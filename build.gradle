@@ -1,0 +1,54 @@
+defaultTasks "build"
+
+def proc = "svn info .".execute()
+if (proc.waitFor() != 0) {
+		throw new RuntimeException('svn version info gathering failed')
+}
+
+timestamp = new java.text.SimpleDateFormat('yyyyMMddHHmmss').format(new
+java.util.Date()) 
+   
+def rev = proc.in.text.split()[11]
+if (null == rev) rev = "???"
+   
+svnVersion = rev
+
+subprojects {
+   apply plugin: 'java'
+   apply plugin: 'eclipse'
+
+   sourceCompatibility = 1.7
+
+   defaultTasks "build"
+   libsDirName = "lib"
+
+   test.workingDir = getProperty('buildDir').getAbsolutePath() + '/classes/test'
+
+   sourceSets {
+      main {
+            java {
+                srcDir 'src'
+            }
+            resources {
+                srcDir 'src'
+            }
+      }
+
+      test {
+            java {
+                srcDir 'test'
+            }
+            resources {
+                srcDir 'test'
+            }
+        }
+    }
+
+}
+
+task javadoc(type: Javadoc) {
+    destinationDir = file("$buildDir/javadoc")
+    source = files { subprojects.collect { it.sourceSets.main.java } }
+    classpath = files { subprojects.collect { it.sourceSets.main.compileClasspath } }
+}
+
