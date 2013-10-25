@@ -1,0 +1,44 @@
+package org.qcmg.common.stream;
+
+import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+
+public class Stream<DataType> extends Thread {
+	private final List<Operation<DataType>> operationSequence;
+	private final DataType endOfStreamInstance;
+	private BlockingQueue<DataType> inputQueue = new LinkedBlockingQueue<DataType>(
+			100);
+
+	public Stream(final List<Operation<DataType>> operationSequence,
+			final DataType endOfStreamInstance) {
+		this.operationSequence = operationSequence;
+		this.endOfStreamInstance = endOfStreamInstance;
+		setDaemon(true);
+	}
+
+	public void put(final DataType record) throws InterruptedException {
+		inputQueue.put(record);
+	}
+
+	@Override
+	public void run() {
+		while (true) {
+			try {
+				DataType data = inputQueue.take();
+				if (endOfStreamInstance == data) {
+					return; // ends the thread
+				}
+				boolean drop = false;
+				for (final Operation<DataType> operation : operationSequence) {
+					drop = operation.applyTo(data);
+					if (drop) {
+						break;
+					}
+				}
+			} catch (InterruptedException e) {
+				// Fall through for run() to return which ends the thread
+			}
+		}
+	}
+}
