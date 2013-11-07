@@ -1,0 +1,10 @@
+#!/bin/bash
+
+if [ -z "$ADAMA_HOME" ]; then
+    echo "qbammerge: The ADAMA_HOME environment variable must be set."
+    exit 1
+fi
+
+module load java/1.7.13
+
+java -Xmx14G -jar ${ADAMA_HOME}/lib/qcoverage-0.7pre.jar "$@"

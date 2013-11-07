@@ -1,0 +1,9 @@
+#!/bin/bash
+
+if [ -z "$ADAMA_HOME" ]; then
+    echo "qsnp: The ADAMA_HOME environment variable must be set."
+    exit 1
+fi
+
+/usr/java/jdk1.7.0_04/bin/java -jar ${ADAMA_HOME}/lib/qsnp-1.0.jar "$@"
+#java -jar ${ADAMA_HOME}/lib/qsnp-0.1pre.jar "$@"

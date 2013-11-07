@@ -1,0 +1,16 @@
+#!/bin/bash
+
+if [ -z "$ADAMA_HOME" ]; then
+    echo "qmule: The ADAMA_HOME environment variable must be set."
+    exit 1
+fi
+
+if [ ${#@} == 0 ]; then
+    echo "qmaftools: Please see the qmaftools wiki page (http://qcmg-wiki.imb.uq.edu.au/index.php/Qmaftools) for usage information"
+    exit 1
+fi
+
+module load java/1.7.13
+
+java -cp ${ADAMA_HOME}/lib/qmaftools-0.1pre.jar "$@"
+#java -jar ${ADAMA_HOME}/lib/qmule-0.1pre.jar "$@"
