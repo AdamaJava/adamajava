@@ -1,0 +1,79 @@
+/*
+ * All code copyright The Queensland Centre for Medical Genomics.
+ *
+ * All rights reserved.
+ */
+package org.qcmg.vcf;
+
+import java.io.BufferedReader;
+import java.io.Closeable;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.Iterator;
+import java.util.zip.GZIPInputStream;
+
+import org.qcmg.common.model.VCFRecord;
+import org.qcmg.common.util.FileUtils;
+
+public final class VCFFileReader implements Closeable, Iterable<VCFRecord> {
+    private final File file;
+    private final InputStream inputStream;
+    private VCFHeader header;
+
+    public VCFFileReader(final File file) throws Exception {
+        this.file = file;
+        
+        
+        if (FileUtils.isFileGZip(file)) {
+	        	GZIPInputStream gzis = new GZIPInputStream(new FileInputStream(file));
+	        try {
+		        	InputStreamReader streamReader = new InputStreamReader(gzis);
+		        	BufferedReader in = new BufferedReader(streamReader);
+		        	header = VCFSerializer.readHeader(in);
+	        	} finally {
+	        		gzis.close();
+	        	}
+	        	
+	        	// setup the input stream to read the file contents
+	        	inputStream = new GZIPInputStream(new FileInputStream(file));
+	    	} else {
+		        FileInputStream stream = new FileInputStream(file);
+		    try {
+		        	InputStreamReader streamReader = new InputStreamReader(stream);
+		        	BufferedReader in = new BufferedReader(streamReader);
+		        
+		        	header = VCFSerializer.readHeader(in);
+		        } finally {
+		        	stream.close();
+		        }
+		        
+	    		inputStream = new FileInputStream(file);
+	    	}
+//        
+//        FileInputStream fileStream = new FileInputStream(file);
+//        inputStream = fileStream;
+        
+    }
+
+    public Iterator<VCFRecord> iterator() {
+        return getRecordIterator();
+    }
+
+    public VCFRecordIterator getRecordIterator() {
+        return new VCFRecordIterator(inputStream);
+    }
+
+    public void close() throws IOException {
+    }
+
+    public File getFile() {
+        return file;
+    }
+
+	public VCFHeader getHeader() {
+		return header;
+	}
+}
