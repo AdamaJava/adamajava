@@ -143,8 +143,8 @@ public class VcfUtils {
 		
 		// INFO field options
 		"##INFO=<ID=" + INFO_MUTANT_READS + ",Number=1,Type=Integer,Description=\"Number of mutant/variant reads\">\n" +
-		"##INFO=<ID=" + INFO_NOVEL_STARTS + ",Number=1,Type=Integer,Description=\"Number of novel starts not considering read pair \">\n" +
-		"##INFO=<ID=" + INFO_FLANKING_SEQUENCE + ",Number=1,Type=String,Description=\"Reference bases either side of mutation \">\n" +
+		"##INFO=<ID=" + INFO_NOVEL_STARTS + ",Number=1,Type=Integer,Description=\"Number of novel starts not considering read pair\">\n" +
+		"##INFO=<ID=" + INFO_FLANKING_SEQUENCE + ",Number=1,Type=String,Description=\"Reference bases either side of mutation\">\n" +
 //		"##INFO=<ID=" + INFO_MUTATION + ",Number=1,Type=String,Description=\"mutation/variant\">\n" +
 		
 		
@@ -163,7 +163,7 @@ public class VcfUtils {
 		
 		// FORMAT field options
 		"##FORMAT=<ID=" + FORMAT_GENOTYPE + ",Number=1,Type=String,Description=\"Genotype: 0/0 homozygous reference; 0/1 heterozygous for alternate allele; 1/1 homozygous for alternate allele\">\n" + 
-		"##FORMAT=<ID=" + FORMAT_GENOTYPE_DETAILS + ",Number=1,Type=String,Description=\"Genotype details: specific alleles (A,G,T or C) \">\n" + 
+		"##FORMAT=<ID=" + FORMAT_GENOTYPE_DETAILS + ",Number=1,Type=String,Description=\"Genotype details: specific alleles (A,G,T or C)\">\n" + 
 		"##FORMAT=<ID=" + FORMAT_ALLELE_COUNT + ",Number=1,Type=String,Description=\"Allele Count: lists number of reads on forward strand [avg base quality], reverse strand [avg base quality]\">\n" + 
 		
 		"#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tNormal\tTumour\n";
