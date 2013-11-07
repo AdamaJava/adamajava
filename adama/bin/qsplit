@@ -1,0 +1,8 @@
+#!/bin/bash
+
+if [ -z "$ADAMA_HOME" ]; then
+    echo "qsplit: The ADAMA_HOME environment variable must be set."
+    exit 1
+fi
+
+java -jar ${ADAMA_HOME}/lib/qsplit-0.1pre.jar "$@"

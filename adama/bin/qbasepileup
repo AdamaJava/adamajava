@@ -1,0 +1,8 @@
+#!/bin/bash
+
+if [ -z "$ADAMA_HOME" ]; then
+    echo "qsv: The ADAMA_HOME environment variable must be set."
+    exit 1
+fi
+
+java -jar ${ADAMA_HOME}/lib/qbasepileup-0.1pre.jar "$@"

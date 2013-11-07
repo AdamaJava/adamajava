@@ -1,0 +1,14 @@
+#!/bin/bash
+
+if [ -z "$ADAMA_HOME" ]; then
+    echo "qmule: The ADAMA_HOME environment variable must be set."
+    exit 1
+fi
+
+if [ ${#@} == 0 ]; then
+    echo "qmule: Please see the qmule wiki page (http://qcmg-wiki.imb.uq.edu.au/index.php/Qmule) for usage information"
+    exit 1
+fi
+
+java -cp ${ADAMA_HOME}/lib/qmule-0.1pre.jar "$@"
+#java -jar ${ADAMA_HOME}/lib/qmule-0.1pre.jar "$@"
