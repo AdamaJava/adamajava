@@ -1,7 +1,7 @@
 version = '0.1pre'
 
 repositories {
-    flatDir(dirs:"$projectDir/../thirdparty")
+    flatDir(dirs:"$projectDir/../lib")
 }
 
 dependencies {
