@@ -1,4 +1,7 @@
 defaultTasks "build"
+allprojects {
+   apply plugin: 'java'
+}
 
 def proc = "svn info .".execute()
 if (proc.waitFor() != 0) {
@@ -13,14 +16,21 @@ if (null == rev) rev = "???"
    
 svnVersion = rev
 
+version = 1.0
+
 subprojects {
-   apply plugin: 'java'
+   //apply plugin: 'java'
    apply plugin: 'eclipse'
+   //apply plugin: 'code-quality'
 
    sourceCompatibility = 1.7
 
    defaultTasks "build"
    libsDirName = "lib"
+
+   //checkstyleConfigFileName = '../conf/checkstyle.xml'
+   //checkstyleMain.onlyIf {project.hasProperty('checkstyle')}
+   //checkstyleTest.onlyIf {project.hasProperty('checkstyle')}
 
    test.workingDir = getProperty('buildDir').getAbsolutePath() + '/classes/test'
 
@@ -46,9 +56,91 @@ subprojects {
 
 }
 
-task javadoc(type: Javadoc) {
-    destinationDir = file("$buildDir/javadoc")
-    source = files { subprojects.collect { it.sourceSets.main.java } }
-    classpath = files { subprojects.collect { it.sourceSets.main.compileClasspath } }
+
+build.doLast {
+  delete('adama/build/lib')
+  mkdir ('adama/build/lib')
+  println "in main buildscript - build.doLast"
+
+    subprojects.each {project ->
+         println "copying ${project} libs to adama"
+         copy {
+              from project.configurations.compile
+              into file('adama/build/lib')
+        }
+         project.tasks.withType(Jar).each {archiveTask ->
+         copy {
+            from archiveTask.archivePath
+           into file('adama/build/lib')
+         }
+     }
+   }
 }
+
+
+task dist(type: Zip) {
+  def zippedDir = "${project.name}-${version}"
+  into(zippedDir){
+    into ('lib') {
+      from 'adama/build/lib'
+    }
+    into ('licenses') {
+      from 'adama/licenses'
+    }
+    into ('bin') {
+      from 'adama/bin'
+      fileMode = 0755
+    }
+  }
+  destinationDir = 'adama/build/distributions' as File
+}
+
+task timestamped_dist(type: Zip) {
+     def zippedDir = "${project.name}-${timestamp}"
+     destinationDir = new java.io.File("adama/build/timestamped_distributions")
+     version = "${timestamp}"
+     into(zippedDir) {
+       into('lib') {
+        from 'adama/build/lib'
+       }
+       into('bin') {
+           from 'adama/bin'
+           fileMode = 0755
+       }
+       into('licenses') {
+           from 'adama/licenses'
+       }
+     }
+ }
+ 
+  task latest_dist(type: Zip, dependsOn: timestamped_dist) {
+     def zippedDir = "${project.name}-${timestamp}"
+     destinationDir = new java.io.File("adama/build/timestamped_distributions")
+     version = "LATEST"
+     into(zippedDir) {
+       into('lib') {
+        from 'adama/build/lib'
+       }
+       into('bin') {
+           from 'adama/bin'
+           fileMode = 0755
+       }
+       into('licenses') {
+           from 'adama/licenses'
+       }
+     }
+  }
+
+
+//task clean << {
+ //   ant {
+  //     delete(dir: "build")
+   // }
+//}
+
+//task javadoc(type: Javadoc) {
+//    destinationDir = file("$buildDir/javadoc")
+//    source = files { subprojects.collect { it.sourceSets.main.java } }
+//    classpath = files { subprojects.collect { it.sourceSets.main.compileClasspath } }
+//}
 
