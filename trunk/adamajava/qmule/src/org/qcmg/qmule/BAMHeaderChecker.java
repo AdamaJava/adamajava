@@ -19,8 +19,8 @@ import net.sf.samtools.SAMReadGroupRecord;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.util.FileUtils;
-import org.qcmg.db.ConnectionType;
-import org.qcmg.db.GeneusDBConnection;
+//import org.qcmg.db.ConnectionType;
+//import org.qcmg.db.GeneusDBConnection;
 import org.qcmg.picard.SAMFileReaderFactory;
 
 public class BAMHeaderChecker {
