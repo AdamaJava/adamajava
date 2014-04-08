@@ -1,3 +1,6 @@
+/**
+ * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ */
 package org.qcmg.chrconv;
 
 import java.io.BufferedReader;
@@ -14,7 +17,7 @@ public class ChrConvRecordIterator implements Iterator<ChromosomeConversionRecor
     public ChrConvRecordIterator(final InputStream stream) {
 	        InputStreamReader streamReader = new InputStreamReader(stream);
 	        reader = new BufferedReader(streamReader);
-	        readNext();
+        	readNext();
 	    }
 
     @Override
@@ -40,7 +43,8 @@ public class ChrConvRecordIterator implements Iterator<ChromosomeConversionRecor
             throw e;
         } catch (Exception ex) {
         	ex.printStackTrace();
-            next = null;
+        	next = null;
+        	throw new NoSuchElementException(ex.getMessage());
         }
     }
 

@@ -1,20 +1,14 @@
-/*
- * All code copyright The Queensland Centre for Medical Genomics.
- *
- * All rights reserved.
+/**
+ * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
 package org.qcmg.gff3;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.regex.Pattern;
 
 import org.qcmg.common.util.TabTokenizer;
 
 public final class GFF3Serializer {
-	private static final Pattern tabbedPattern = Pattern.compile("[\\t]+");
-	private static final Pattern semicolonPattern = Pattern.compile("[;]+");
-	private static final Pattern equalsPattern = Pattern.compile("[=]+");
 	private static final String DEFAULT_HEADER_PREFIX = "#";
 
 	private static String nextNonheaderLine(final BufferedReader reader)
@@ -45,7 +39,6 @@ public final class GFF3Serializer {
 
 	static GFF3Record parseRecord(final String line) throws Exception {
 		String[] params = TabTokenizer.tokenize(line);
-//		String[] params = tabbedPattern.split(line, -1);
 		if (8 > params.length) {
 			throw new Exception("Bad GFF3 format. Insufficient columns: '" + line + "'");
 		}
