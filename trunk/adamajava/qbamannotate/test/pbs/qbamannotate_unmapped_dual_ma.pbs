@@ -1,0 +1,24 @@
+#qbamannotate_unmapped_dual_ma
+
+#These commands set up the Grid Environment for your job:
+#PBS -N qbamannotate_unmapped_dual_ma
+#PBS -l nodes=1,walltime=6:00:00,ncpus=2
+#PBS -S /bin/bash
+#PBS -d /path/testbed/
+
+export ADAMA_HOME=/path/testbed/local/adama/
+export PATH=$ADAMA_HOME/bin:$PATH
+
+inputDir=/path/S0014_20090108_1_MC58/20100609
+outputDir=/path/testbed
+
+firstMA=$inputDir/F3/s_mapping/S0014_20090108_1_MC58_MC58_F3.csfasta.ma
+secondMA=$inputDir/R3/s_mapping/S0014_20090108_1_MC58_MC58_R3.csfasta.ma
+
+unmappedBAM=$inputDir/pairing/unmappedBamFile.bam
+sortedUnmappedBAMPrefix=$outputDir/sorted_unmapped
+annotatedUnmappedBAM=$outputDir/qbamannotated_unmapped.bam
+
+# Actual processing
+/path/samtools/samtools sort -n $unmappedBAM $sortedUnmappedBAMPrefix
+qbamannotate $annotatedUnmappedBAM $sortedUnmappedBAMPrefix.bam $firstMA $secondMA

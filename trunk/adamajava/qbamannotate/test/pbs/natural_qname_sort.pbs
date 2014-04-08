@@ -1,0 +1,15 @@
+#samtools_qname_sort_timing.pbs
+
+#These commands set up the Grid Environment for your job:
+#PBS -N samtools_qname_sort_timing
+#PBS -l nodes=1,walltime=6:00:00,ncpus=2
+#PBS -S /bin/bash
+#PBS -d /path/testbed/
+
+inputDir=/path/S0014_20090108_1_MC58/20100609/pairing
+inputFile=$inputDir/F3-R3-Paired.bam
+
+outputDir=/path/testbed/
+outputPrefix=$outputDir/samtools_qname_sorted
+
+/path/samtools/samtools sort -n $inputFile $outputPrefix

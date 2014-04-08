@@ -1,0 +1,26 @@
+#qbamannotate_paired_merge_unmapped_mapped_dual_ma.pbs
+
+#These commands set up the Grid Environment for your job:
+#PBS -N qbamannotate_paired_merge_unmapped_mapped_dual_ma
+#PBS -l nodes=1,walltime=6:00:00,ncpus=2
+#PBS -S /bin/bash
+#PBS -d /path/testbed/
+
+export ADAMA_HOME=/path/testbed/local/adama/
+export PATH=$ADAMA_HOME/bin:$PATH
+
+inputDir=/path/S0014_20090108_1_MC58/20100609
+outputDir=/path/testbed
+
+mappedBAM=$inputDir/pairing/F3-R3-Paired.bam
+unmappedBAM=$inputDir/pairing/unmappedBamFile.bam
+firstMA=$inputDir/F3/s_mapping/S0014_20090108_1_MC58_MC58_F3.csfasta.ma
+secondMA=$inputDir/R3/s_mapping/S0014_20090108_1_MC58_MC58_R3.csfasta.ma
+
+mergedBAM=$outputDir/merged_mapped_unmapped.bam
+sortedMergedBAMPrefix=$outputDir/sorted_merged_mapped_unmapped
+annotatedMergedBAM=$outputDir/qbamannotated_merged_mapped_unmapped.bam
+
+# Actual processing
+#qbammerge -f -o $mergedBAM -i $mappedBAM -i $unmappedBAM
+qbamannotate $annotatedMergedBAM $sortedMergedBAMPrefix.bam $firstMA $secondMA
