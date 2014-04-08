@@ -37,7 +37,7 @@ dependencies {
     compile name: 'jhdf5'
     compile name: 'jhdfobj'  
     compile name: 'jhdf5obj'  
-    compile name: 'postgresql', version: '9.1-901.jdbc4'
+    //compile name: 'postgresql', version: '9.1-901.jdbc4'
     compile name: 'ini4j', version: '0.5.2-SNAPSHOT'
 
 	//emma "emma:emma:2.0.5312"
