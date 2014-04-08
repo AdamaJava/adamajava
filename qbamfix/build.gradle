@@ -19,7 +19,7 @@ dependencies {
     compile project(':qpicard')
 
     ant {
-       unzip(src: "../thirdparty/commons-cli-1.2-bin.zip", dest: "build/deps")
+       unzip(src: "../lib/commons-cli-1.2-bin.zip", dest: "build/deps")
     }
 
     compile name: 'picard', version: '1.110'
