@@ -5,7 +5,7 @@ scriptname = 'qannotate'
 isExecutable = true
 
 repositories {
-    flatDir(dirs:"$projectDir/../thirdparty")
+    flatDir(dirs:"$projectDir/../lib")
 }
 
 dependencies {
