@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-reverse-engineering PUBLIC "-//Hibernate/Hibernate Reverse Engineering DTD 3.0//EN" "http://hibernate.sourceforge.net/hibernate-reverse-engineering-3.0.dtd" >
+
+<hibernate-reverse-engineering>
+
+
+	<table-filter match-catalog="homo_sapiens_core_55_37"
+		match-name="gene" />
+	<table-filter match-catalog="homo_sapiens_core_55_37"
+		match-name="gene_stable_id" />
+	<table-filter match-catalog="homo_sapiens_core_55_37"
+		match-name="transcript" />
+	<table catalog="homo_sapiens_core_55_37" name="gene_stable_id">
+		<column name="gene_id" type="Gene" property="gene"></column>
+	</table>
+	<table catalog="homo_sapiens_core_55_37" name="transcript">
+		<column name="gene_id" type="Gene" property="gene"></column>
+	</table>
+</hibernate-reverse-engineering>
