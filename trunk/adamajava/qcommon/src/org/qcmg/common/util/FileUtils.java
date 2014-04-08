@@ -1,3 +1,6 @@
+/**
+ * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ */
 package org.qcmg.common.util;
 
 import java.io.File;
@@ -32,6 +35,7 @@ public class FileUtils {
 	
 	
 	public static boolean validOutputFile(final String file) {
+		if (StringUtils.isNullOrEmpty(file)) return false;
 		return validOutputFile(file, null);
 	}
 	
@@ -89,12 +93,15 @@ public class FileUtils {
 			return file.canWrite();
 		} else {
 			// get parent directory
-			File parentDir = file.getParentFile();
+			File parentDir = file.getParentFile();		
 			
+			if (null == parentDir) parentDir = new File(System.getProperty("user.dir") );		
 			return null != parentDir ? parentDir.canWrite() : false;
+//			return parentDir.canWrite();			
 		}
 	}
 	public static boolean canFileBeWrittenTo(final String file) {
+		if (StringUtils.isNullOrEmpty(file)) return false;
 		return canFileBeWrittenTo(new File(file));
 	}
 	
@@ -255,7 +262,7 @@ public class FileUtils {
 			
 			@Override
 			public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-				if (Files.isReadable(file) && file.toString().endsWith(filter)) {
+				if (Files.isReadable(file) && (file.toString().endsWith(filter) || file.toString().endsWith(filter + ".gz"))) {
 //					if (Files.exists(file, LinkOption.NOFOLLOW_LINKS) && file.toString().endsWith(filter)) {
 					foundFiles.add(file.toFile());
 				}

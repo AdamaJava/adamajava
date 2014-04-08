@@ -1,3 +1,6 @@
+/**
+ * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ */
 package org.qcmg.common.model;
 
 /**
@@ -39,7 +42,8 @@ public class ChrPosition  implements Comparable<ChrPosition> {
 	 */
 	public ChrPosition(String chromosome, int position, int endPosition) {
 		if (null == chromosome || chromosome.isEmpty()) throw new IllegalArgumentException("null or empty chromosome supplied to ChrPosition");
-		if (endPosition < position) throw new IllegalArgumentException("end position is before start position");
+		if (endPosition < position) 
+			throw new IllegalArgumentException("end position is before start position: chr: " + chromosome + ":" + position + "-" + endPosition);
 		
 		this.chromosome = chromosome;
 		this.position = position;

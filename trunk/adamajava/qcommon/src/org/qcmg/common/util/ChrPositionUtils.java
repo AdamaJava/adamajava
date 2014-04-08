@@ -1,3 +1,6 @@
+/**
+ * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ */
 package org.qcmg.common.util;
 
 import java.util.ArrayList;
@@ -19,12 +22,19 @@ public class ChrPositionUtils {
 		
 		return true;
 	}
+	
+	
+	public static boolean isChrPositionContained(ChrPosition a, ChrPosition b) {
+		
+		if (doChrPositionsOverlap(a, b)) {
+			return a.getPosition() <= b.getPosition() && a.getEndPosition() >= b.getEndPosition();
+		}
+		return false;
+		
+	}
+	
 	public static boolean doChrPositionsOverlapPositionOnly(ChrPosition a, ChrPosition b) {
-		
-		// check chromosome first
-//		if ( ! a.getChromosome().equals(b.getChromosome())) return false;
-		
-		// now positions
+		// positions
 		if (a.getPosition() > b.getEndPosition()) return false;
 		if (a.getEndPosition() < b.getPosition()) return false;
 		
