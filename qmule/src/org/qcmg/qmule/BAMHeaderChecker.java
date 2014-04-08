@@ -24,7 +24,7 @@ import org.qcmg.db.GeneusDBConnection;
 import org.qcmg.picard.SAMFileReaderFactory;
 
 public class BAMHeaderChecker {
-	
+	/*
 	private static final String SEPERATOR = "&";
 	
 	private static QLogger logger;
@@ -243,4 +243,5 @@ public class BAMHeaderChecker {
 		}
 		return returnStatus;
 	}
+        */
 }
