@@ -1,3 +1,6 @@
+/**
+ * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ */
 package org.qcmg.common.vcf;
 
 import java.io.File;
@@ -93,9 +96,18 @@ public class VcfUtils {
 		return getReducedHeaderForQSig(patientId, library, (String) null, bamName, snpFile);
 	}
 	
-	public static final String getBasicHeaderForQSig(final String bamName, final String snpFile) {
+	public static final String getBasicHeaderForQSig(final String bamName, final String snpFile, String ... bamHeaderInfo) {
+		
+		String patient = null;
+		String library = null;
+		if (null != bamHeaderInfo && bamHeaderInfo.length > 0) {
+			patient = bamHeaderInfo[0];
+			library = bamHeaderInfo.length > 1 ? bamHeaderInfo[1] : null; 
+		}
 		
 		return "##fileformat=VCFv4.0\n" +
+		(patient != null ? 	("##patient_id=" + patient + "\n")  : "") +
+		(library != null ? 	("##library=" + library  + "\n")  : "") +
 		"##bam=" + bamName + "\n" +
 		"##snp_file=" + snpFile + "\n" + 
 		"##filter_q_score=10\n" + 

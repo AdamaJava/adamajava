@@ -1,3 +1,6 @@
+/**
+ * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ */
 package org.qcmg.common.util;
 
 import org.qcmg.common.string.StringUtils;
@@ -13,6 +16,10 @@ public class SnpUtils {
 	//TUMOUR
 	public static final String LESS_THAN_8_READS_TUMOUR = "COVT";
 	public static final String LESS_THAN_3_READS_TUMOUR = "SAT3";
+	
+	//COMPOUND_SNP
+	public static final String COMPOUND_SNP = "COMPOUNDMUTATION";
+	
 	
 	//MUTATION
 	public static final String MUTATION_IN_UNFILTERED_NORMAL = "MIUN";
@@ -43,6 +50,8 @@ public class SnpUtils {
 	public static final String INDEL_HOM_EMB = "HOMEMB_";	
 	public static final String INDEL_HCOVT = "HCOVT";	
 	public static final String INDEL_HCOVN = "HCOVN";	
+	public static final String INDEL_STRAND_BIAS = "TBIAS";	
+	public static final String INDEL_NPART = "NPART";	
 	
 	/**
 	 * Utility method to determine if an annotation contains text that classifies a snp as class A or B
@@ -58,6 +67,7 @@ public class SnpUtils {
 	 * @see #MUTATION_IN_UNFILTERED_NORMAL
 	 */
 	public static final boolean isClassAorB(String annotation) {
+		annotation = removeCompoundSnpAnnotationFromString(annotation);
 		return isClassA(annotation) 
 			|| LESS_THAN_12_READS_NORMAL.equals(annotation)
 			|| LESS_THAN_3_READS_NORMAL.equals(annotation)
@@ -77,7 +87,9 @@ public class SnpUtils {
 				|| isAnnotationAlone(annotation, INDEL_HCOVN)
 				|| isAnnotationAlone(annotation, INDEL_HCOVT)
 				|| isAnnotationAlone(annotation, LESS_THAN_12_READS_NORMAL)
-				|| isAnnotationAlone(annotation, LESS_THAN_8_READS_NORMAL);
+				|| isAnnotationAlone(annotation, LESS_THAN_8_READS_NORMAL)
+				|| isAnnotationAlone(annotation, INDEL_STRAND_BIAS)
+				|| isAnnotationAlone(annotation, INDEL_NPART);
 //				|| isAnnotationAlone(annotation, LESS_THAN_3_READS_NORMAL);
 	}
 //	public static final boolean isClassAorBIndel(String annotation) throws IllegalArgumentException {
@@ -93,6 +105,13 @@ public class SnpUtils {
 //				|| LESS_THAN_3_READS_NORMAL_AND_UNFILTERED.equals(annotation);
 //	}
 	
+	public static String removeCompoundSnpAnnotationFromString(String annotation) {
+		if ( ! StringUtils.isNullOrEmpty(annotation) && annotation.contains(COMPOUND_SNP)) {
+			return annotation.replace(";" + COMPOUND_SNP, "");
+		}
+		return annotation;
+	}
+	
 	/**
 	 * Utility method to determine if an annotation contains text that classifies a snp as class A
 	 * Class A is currently defined as "PASS"
@@ -102,10 +121,10 @@ public class SnpUtils {
 	 */
 	public static final boolean isClassA(String annotation) {
 //		return PASS.equals(annotation) || "--".equals(annotation) || NOVEL_STARTS.equals(annotation) || "---".equals(annotation) ;	// my god...
-		return PASS.equals(annotation);
+		return PASS.equals(removeCompoundSnpAnnotationFromString(annotation));
 	}
 	
-	public static final boolean isClassAIndel(String annotation) throws IllegalArgumentException {
+	public static final boolean isClassAIndel(String annotation, int homopolymerCutoff) throws IllegalArgumentException {
 		if (StringUtils.isNullOrEmpty(annotation)) throw new IllegalArgumentException("null or empty annotation passed to SnpUtils.isClassAIndel");
 		
 		return 
@@ -113,13 +132,13 @@ public class SnpUtils {
 				|| ( ! containsIndelClassBAnnotation(annotation)
 				&&
 				((annotation.contains(INDEL_HOM_ADJ) 
-						&& getNNumberFromAnnotation(annotation, INDEL_HOM_ADJ) < 4)
+						&& getNNumberFromAnnotation(annotation, INDEL_HOM_ADJ) <= homopolymerCutoff)
 				||
 				(annotation.contains(INDEL_HOM_CON) 
-						&& getNNumberFromAnnotation(annotation, INDEL_HOM_CON) < 4)
+						&& getNNumberFromAnnotation(annotation, INDEL_HOM_CON) <= homopolymerCutoff)
 				||
 				(annotation.contains(INDEL_HOM_EMB) 
-						&& getNNumberFromAnnotation(annotation, INDEL_HOM_EMB) < 4)));
+						&& getNNumberFromAnnotation(annotation, INDEL_HOM_EMB) <= homopolymerCutoff)));
 	}
 	
 	public static boolean containsIndelClassBAnnotation(String annotation) {
@@ -132,7 +151,9 @@ public class SnpUtils {
 				|| annotation.contains(INDEL_HCOVT)
 				|| annotation.contains(LESS_THAN_12_READS_NORMAL)
 				|| annotation.contains(MUTATION_GERMLINE_IN_ANOTHER_PATIENT)
-				|| annotation.contains(LESS_THAN_8_READS_NORMAL);
+				|| annotation.contains(LESS_THAN_8_READS_NORMAL)
+				|| annotation.contains(INDEL_STRAND_BIAS)
+				|| annotation.contains(INDEL_NPART);
 				
 	}
 	
