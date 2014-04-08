@@ -1,0 +1,1009 @@
+/**
+ * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ */
+/**
+ * All source code distributed as part of the AdamaJava project is released
+ * under the GNU GENERAL PUBLIC LICENSE Version 3, a copy of which is
+ * included in this distribution as gplv3.txt.
+ */
+package org.qcmg.qprofiler.util;
+
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.Comparator;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicLongArray;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.qcmg.common.model.QCMGAtomicLongArray;
+import org.qcmg.common.model.ReferenceNameComparator;
+import org.qcmg.common.model.SummaryByCycle;
+import org.qcmg.common.model.SummaryByCycleNew2;
+import org.qcmg.common.util.BaseUtils;
+import org.qcmg.common.util.SummaryByCycleUtils;
+import org.qcmg.qprofiler.bam.PositionSummary;
+import org.qcmg.qvisualise.util.QProfilerCollectionsUtils;
+import org.w3c.dom.DOMException;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Text;
+
+public class SummaryReportUtils {
+
+	public static final int MAX_I_SIZE = 50000;
+	public static final int INITIAL_I_SIZE_BUCKET_SIZE = 10;
+	public static final int FINAL_I_SIZE_BUCKET_SIZE = 1000000;
+	public static final Pattern BAD_MD_PATTERN = Pattern.compile("([ACGTN])");
+	
+	private static final Pattern badReadPattern = Pattern.compile("([.N])");
+//	private static final Pattern tagMDPattern = Pattern.compile("[\\d]+");
+	
+	private static final NumberFormat nf = new DecimalFormat("0.0#%");
+
+	/**
+	 * Calls <code>lengthMapToXml(Element parent, String elementName,
+	 * 		Map<T, Integer> mapOfLengths, String cycleElementName)</code> passing
+	 * in "lineLength" as the <code>cycleElementName</code> value
+	 * 
+	 * @param <T>Character, String or Integer
+	 * @param parent
+	 *            Element representing the parent that the generated xml content
+	 *            will be added to
+	 * @param elementName
+	 *            String representing the name that the top level element for
+	 *            this map will be
+	 * @param map
+	 *            Map containing the data that we want in xml format
+	 * @see org.qcmg.qprofiler.util.SummaryReportUtils#lengthMapToXml(Element,
+	 *      String, Map, String)
+	 */
+	public static <T> void lengthMapToXml(Element parent, String elementName,
+			Map<T, AtomicLong> map, Comparator<T> comparator) {
+		
+		Document doc = parent.getOwnerDocument();
+		Element element = doc.createElement(elementName);
+		parent.appendChild(element);
+		
+		lengthMapToXmlTallyItem(element, "ValueTally", map, comparator);
+	}
+	public static <T> void lengthMapToXml(Element parent, String elementName,
+			Map<T, AtomicLong> map) {
+		
+		lengthMapToXml(parent, elementName, map, null);
+	}
+	
+	public static <T> void lengthMapToXml(Element parent, String elementName,
+			AtomicLongArray array) {
+		Map<Integer, AtomicLong> map = new TreeMap<Integer, AtomicLong>();
+		
+		for (int i = 0 , length = array.length() ; i < length ; i++) {
+			if (array.get(i) > 0)
+				map.put(i, new AtomicLong(array.get(i)));
+		}
+		
+		Document doc = parent.getOwnerDocument();
+		Element element = doc.createElement(elementName);
+		parent.appendChild(element);
+		
+		lengthMapToXmlTallyItem(element, "ValueTally", map, null);
+	}
+	public static <T> void lengthMapToXml(Element parent, String elementName,
+			QCMGAtomicLongArray array) {
+		Map<Integer, AtomicLong> map = new TreeMap<Integer, AtomicLong>();
+		long length = array.length();
+		for (int i = 0 ; i < length ; i++) {
+			if (array.get(i) > 0)
+				map.put(i, new AtomicLong(array.get(i)));
+		}
+		
+		Document doc = parent.getOwnerDocument();
+		Element element = doc.createElement(elementName);
+		parent.appendChild(element);
+		
+		lengthMapToXmlTallyItem(element, "ValueTally", map, null);
+	}
+	
+	public static <T> void lengthMapToXmlTallyItem(Element parent, 
+			String elementName, Map<T, AtomicLong> mapOfLengths, Comparator<T> comparator) {
+		
+		long mapTotal = getCountOfMapValues(mapOfLengths);
+		Map <T, AtomicLong> sortedMap = null;
+		// sort the map
+		if (null == comparator) {
+			sortedMap = new TreeMap<T, AtomicLong>(mapOfLengths);
+		} else {
+			// create map, and loop through values inserting....
+			sortedMap = new TreeMap<T, AtomicLong>(comparator);
+			sortedMap.putAll(mapOfLengths);
+		}
+		
+		if (null != mapOfLengths && ! mapOfLengths.isEmpty()) {
+			Document doc = parent.getOwnerDocument();
+			Element element = doc.createElement(elementName);
+			parent.appendChild(element);
+			
+			try {
+				for (Map.Entry<T, AtomicLong> lineLength : sortedMap.entrySet()) {
+					Element cycleE = doc.createElement("TallyItem");
+					AtomicLong ml = lineLength.getValue();
+					double percentage = (((double)ml.get() / mapTotal));
+					cycleE.setAttribute("value", lineLength.getKey().toString());
+					cycleE.setAttribute("count", ml.get()+"");
+					cycleE.setAttribute("percent", nf.format(percentage));
+					element.appendChild(cycleE);
+				}
+			} catch (DOMException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	public static <T> void lengthMapToXmlTallyItem(Element parent, 
+			String elementName, Map<T, AtomicLong> mapOfLengths) {
+		lengthMapToXmlTallyItem(parent, elementName, mapOfLengths, null);
+	}
+	
+	public static <T> long getCountOfMapValues(Map<T, AtomicLong> map) {
+		long count = 0;
+		if (null != map) {
+			for (AtomicLong ml : map.values()) {
+				count += ml.get();
+			}
+		}
+		return count;
+	}
+	
+	
+	/**
+	 * Adds an xml representation of the current object to the supplied parent element.
+	 * 
+	 * @param parent Element that the current objects xml representation will be added to
+	 * @param elementName String representing the name to be used when creating the element
+	 * @return 
+	 */
+	public static <T> void toXmlWithPercentage(SummaryByCycle<T> sumByCycle,  Element parent, String elementName , Map<Integer, AtomicLong> percentageMap, long total) {
+		final NumberFormat nf = new DecimalFormat("0.0#%");
+		Document doc = parent.getOwnerDocument();
+		Element element = doc.createElement(elementName);
+		parent.appendChild(element);
+		
+		// adding another level to conform to DTD..
+		Element cycleTallyElement = doc.createElement("CycleTally");
+		element.appendChild(cycleTallyElement);
+		cycleTallyElement.setAttribute("possibleValues", sumByCycle.getPossibleValuesAsString());
+		Element possValuesE = doc.createElement("PossibleValues");
+		for (T t : sumByCycle.getPossibleValues()) {
+			Element valueE = doc.createElement("Value");
+			valueE.setAttribute("value", t.toString());
+			possValuesE.appendChild(valueE);
+		}
+		possValuesE.setAttribute("possibleValues", sumByCycle.getPossibleValuesAsString());
+		cycleTallyElement.appendChild(possValuesE);
+		
+		try {
+			long count = total;
+			for (Integer cycle : sumByCycle.cycles()) {
+				long mapTotal = getCountOfMapValues(sumByCycle.getValue(cycle));
+				double percentage = (((double) mapTotal / count));
+				AtomicLong ml = percentageMap.get(cycle);
+				if (null != ml) {
+//					percentage = (((double)mapTotal / ml.get()));
+					count -= ml.get();
+				}
+				
+				Element cycleE = doc.createElement("Cycle");
+				cycleE.setAttribute("value", cycle.toString());
+				cycleTallyElement.appendChild(cycleE);
+				for (T value : sumByCycle.values(cycle)) {
+					Element tallyE = doc.createElement("TallyItem");
+					tallyE.setAttribute("value", value.toString());
+					tallyE.setAttribute("count", sumByCycle.count(cycle, value).get()+"");
+					tallyE.setAttribute("percent", nf.format(percentage));
+					cycleE.appendChild(tallyE);
+				}
+			}
+		} catch (DOMException e) {
+			e.printStackTrace();
+		}
+	}
+	public static <T> void toXmlWithPercentage(SummaryByCycle<T> sumByCycle,  Element parent, String elementName , AtomicLongArray percentageArray, long total) {
+		final NumberFormat nf = new DecimalFormat("0.0#%");
+		Document doc = parent.getOwnerDocument();
+		Element element = doc.createElement(elementName);
+		parent.appendChild(element);
+		
+		// adding another level to conform to DTD..
+		Element cycleTallyElement = doc.createElement("CycleTally");
+		element.appendChild(cycleTallyElement);
+		cycleTallyElement.setAttribute("possibleValues", sumByCycle.getPossibleValuesAsString());
+		Element possValuesE = doc.createElement("PossibleValues");
+		for (T t : sumByCycle.getPossibleValues()) {
+			Element valueE = doc.createElement("Value");
+			valueE.setAttribute("value", t.toString());
+			possValuesE.appendChild(valueE);
+		}
+		possValuesE.setAttribute("possibleValues", sumByCycle.getPossibleValuesAsString());
+		cycleTallyElement.appendChild(possValuesE);
+		
+		try {
+			long count = total;
+			for (Integer cycle : sumByCycle.cycles()) {
+				long mapTotal = getCountOfMapValues(sumByCycle.getValue(cycle));
+				double percentage = (((double) mapTotal / count));
+				AtomicLong ml = new AtomicLong(percentageArray.get(cycle));
+				if (null != ml) {
+//					percentage = (((double)mapTotal / ml.get()));
+					count -= ml.get();
+				}
+				
+				Element cycleE = doc.createElement("Cycle");
+				cycleE.setAttribute("value", cycle.toString());
+				cycleTallyElement.appendChild(cycleE);
+				for (T value : sumByCycle.values(cycle)) {
+					Element tallyE = doc.createElement("TallyItem");
+					tallyE.setAttribute("value", value.toString());
+					tallyE.setAttribute("count", sumByCycle.count(cycle, value).get()+"");
+					tallyE.setAttribute("percent", nf.format(percentage));
+					cycleE.appendChild(tallyE);
+				}
+			}
+		} catch (DOMException e) {
+			e.printStackTrace();
+		}
+	}
+	public static <T> void toXmlWithPercentage(SummaryByCycle<T> sumByCycle,  Element parent, String elementName , QCMGAtomicLongArray percentageArray, long total) {
+		final NumberFormat nf = new DecimalFormat("0.0#%");
+		Document doc = parent.getOwnerDocument();
+		Element element = doc.createElement(elementName);
+		parent.appendChild(element);
+		
+		// adding another level to conform to DTD..
+		Element cycleTallyElement = doc.createElement("CycleTally");
+		element.appendChild(cycleTallyElement);
+		cycleTallyElement.setAttribute("possibleValues", sumByCycle.getPossibleValuesAsString());
+		Element possValuesE = doc.createElement("PossibleValues");
+		for (T t : sumByCycle.getPossibleValues()) {
+			Element valueE = doc.createElement("Value");
+			valueE.setAttribute("value", t.toString());
+			possValuesE.appendChild(valueE);
+		}
+		possValuesE.setAttribute("possibleValues", sumByCycle.getPossibleValuesAsString());
+		cycleTallyElement.appendChild(possValuesE);
+		
+		try {
+			long count = total;
+			for (Integer cycle : sumByCycle.cycles()) {
+				long mapTotal = getCountOfMapValues(sumByCycle.getValue(cycle));
+				double percentage = (((double) mapTotal / count));
+				AtomicLong ml = new AtomicLong(percentageArray.get(cycle));
+				if (null != ml) {
+//					percentage = (((double)mapTotal / ml.get()));
+					count -= ml.get();
+				}
+				
+				Element cycleE = doc.createElement("Cycle");
+				cycleE.setAttribute("value", cycle.toString());
+				cycleTallyElement.appendChild(cycleE);
+				for (T value : sumByCycle.values(cycle)) {
+					Element tallyE = doc.createElement("TallyItem");
+					tallyE.setAttribute("value", value.toString());
+					tallyE.setAttribute("count", sumByCycle.count(cycle, value).get()+"");
+					tallyE.setAttribute("percent", nf.format(percentage));
+					cycleE.appendChild(tallyE);
+				}
+			}
+		} catch (DOMException e) {
+			e.printStackTrace();
+		}
+	}
+	public static <T> void toXmlWithPercentage(SummaryByCycleNew2<T> sumByCycle,  Element parent, String elementName , QCMGAtomicLongArray percentageArray, long total) {
+		final NumberFormat nf = new DecimalFormat("0.0#%");
+		Document doc = parent.getOwnerDocument();
+		Element element = doc.createElement(elementName);
+		parent.appendChild(element);
+		
+		// adding another level to conform to DTD..
+		Element cycleTallyElement = doc.createElement("CycleTally");
+		element.appendChild(cycleTallyElement);
+		cycleTallyElement.setAttribute("possibleValues", sumByCycle.getPossibleValuesAsString());
+		Element possValuesE = doc.createElement("PossibleValues");
+		for (T t : sumByCycle.getPossibleValues()) {
+			Element valueE = doc.createElement("Value");
+			valueE.setAttribute("value", t.toString());
+			possValuesE.appendChild(valueE);
+		}
+		possValuesE.setAttribute("possibleValues", sumByCycle.getPossibleValuesAsString());
+		cycleTallyElement.appendChild(possValuesE);
+		
+		try {
+			long count = total;
+			for (Integer cycle : sumByCycle.cycles()) {
+				long mapTotal = getCountOfMapValues(sumByCycle.getValue(cycle));
+				double percentage = (((double) mapTotal / count));
+				AtomicLong ml = new AtomicLong(percentageArray.get(cycle));
+				if (null != ml) {
+//					percentage = (((double)mapTotal / ml.get()));
+					count -= ml.get();
+				}
+				
+				Element cycleE = doc.createElement("Cycle");
+				cycleE.setAttribute("value", cycle.toString());
+				cycleTallyElement.appendChild(cycleE);
+				for (Long value : sumByCycle.values(cycle)) {
+					Element tallyE = doc.createElement("TallyItem");
+					tallyE.setAttribute("value", ""+(char)value.intValue());
+					tallyE.setAttribute("count", sumByCycle.count(cycle, value).get()+"");
+					tallyE.setAttribute("percent", nf.format(percentage));
+					cycleE.appendChild(tallyE);
+				}
+			}
+		} catch (DOMException e) {
+			e.printStackTrace();
+		}
+	}
+//	public static <T> void toXmlWithPercentage(SummaryByCycleNew<T> sumByCycle,  Element parent, String elementName , Map<Integer, AtomicLong> percentageMap, long total) {
+//		final NumberFormat nf = new DecimalFormat("0.0#%");
+//		Document doc = parent.getOwnerDocument();
+//		Element element = doc.createElement(elementName);
+//		parent.appendChild(element);
+//		
+//		// adding another level to conform to DTD..
+//		Element cycleTallyElement = doc.createElement("CycleTally");
+//		element.appendChild(cycleTallyElement);
+//		cycleTallyElement.setAttribute("possibleValues", sumByCycle.getPossibleValuesAsString());
+//		Element possValuesE = doc.createElement("PossibleValues");
+//		for (T t : sumByCycle.getPossibleValues()) {
+//			Element valueE = doc.createElement("Value");
+//			valueE.setAttribute("value", t.toString());
+//			possValuesE.appendChild(valueE);
+//		}
+//		possValuesE.setAttribute("possibleValues", sumByCycle.getPossibleValuesAsString());
+//		cycleTallyElement.appendChild(possValuesE);
+//		
+//		try {
+//			long count = total;
+//			for (Integer cycle : sumByCycle.cycles()) {
+//				long mapTotal = getCountOfMapValues(sumByCycle.getValue(cycle));
+//				double percentage = (((double) mapTotal / count));
+//				AtomicLong ml = percentageMap.get(cycle);
+//				if (null != ml) {
+////					percentage = (((double)mapTotal / ml.get()));
+//					count -= ml.get();
+//				}
+//				
+//				Element cycleE = doc.createElement("Cycle");
+//				cycleE.setAttribute("value", cycle.toString());
+//				cycleTallyElement.appendChild(cycleE);
+//				for (Long value : sumByCycle.values(cycle)) {
+//					Element tallyE = doc.createElement("TallyItem");
+//					tallyE.setAttribute("value", value.toString());
+//					tallyE.setAttribute("count", sumByCycle.count(cycle, value).get()+"");
+//					tallyE.setAttribute("percent", nf.format(percentage));
+//					cycleE.appendChild(tallyE);
+//				}
+////				for (T value : sumByCycle.values(cycle)) {
+////					Element tallyE = doc.createElement("TallyItem");
+////					tallyE.setAttribute("value", value.toString());
+////					tallyE.setAttribute("count", sumByCycle.count(cycle, value).get()+"");
+////					tallyE.setAttribute("percent", nf.format(percentage));
+////					cycleE.appendChild(tallyE);
+////				}
+//			}
+//		} catch (DOMException e) {
+//			e.printStackTrace();
+//		}
+//	}
+
+	/**
+	 * Displays the supplied map of value/count pairs in xml format, attaching
+	 * the new element to the supplied parent element
+	 * 
+	 * @param <T>
+	 *            Character, String or Integer
+	 * @param parent
+	 *            Element representing the parent that the generated xml content
+	 *            will be added to
+	 * @param elementName
+	 *            String representing the name that the top level element for
+	 *            this map will be
+	 * @param map
+	 *            Map containing the data that we want in xml format
+	 * @param cycleElementName
+	 *            String representing the name given to each of the map.entry
+	 *            values
+	 */
+	public static void binnedLengthMapToRangeTallyXml(Element parent, Map<Integer, AtomicLong> map) {
+	
+		Document doc = parent.getOwnerDocument();
+		Element element = doc.createElement("RangeTally");
+		parent.appendChild(element);
+		
+		// sort the map
+		Map <Integer, AtomicLong> sortedMap = new TreeMap<Integer, AtomicLong>(map);
+		
+		try {
+			for (Map.Entry<Integer, AtomicLong> entrySet : sortedMap.entrySet()) {
+				Element cycleE = doc.createElement("RangeTallyItem");
+				cycleE.setAttribute("start", "" + entrySet.getKey());
+				int endValue = entrySet.getKey() < MAX_I_SIZE ? 
+						entrySet.getKey() + (INITIAL_I_SIZE_BUCKET_SIZE - 1) : 
+							entrySet.getKey() + (FINAL_I_SIZE_BUCKET_SIZE - 1); 
+				cycleE.setAttribute("end", "" + endValue);
+				cycleE.setAttribute("count", "" + entrySet.getValue().get());
+				element.appendChild(cycleE);
+			}
+		} catch (DOMException e) {
+			e.printStackTrace();
+		}
+	}
+	public static void binnedLengthMapToRangeTallyXml(Element parent, QCMGAtomicLongArray array) {
+		
+		Document doc = parent.getOwnerDocument();
+		Element element = doc.createElement("RangeTally");
+		parent.appendChild(element);
+		
+		try {
+			long length = array.length();
+			for (int i = 0 ; i < length ; i++) {
+				if (array.get(i) > 0) {
+					Element cycleE = doc.createElement("RangeTallyItem");
+					cycleE.setAttribute("start", "" + i);
+					int endValue = i < MAX_I_SIZE ? 
+							i + (INITIAL_I_SIZE_BUCKET_SIZE - 1) : 
+								i + (FINAL_I_SIZE_BUCKET_SIZE - 1); 
+							cycleE.setAttribute("end", "" + endValue);
+							cycleE.setAttribute("count", "" + array.get(i));
+							element.appendChild(cycleE);
+				}
+			}
+		} catch (DOMException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static void binnedLengthMapToRangeTallyXml(Element parent, QCMGAtomicLongArray array, QCMGAtomicLongArray array2) {
+		
+		Document doc = parent.getOwnerDocument();
+		Element element = doc.createElement("RangeTally");
+		parent.appendChild(element);
+		
+		try {
+			long length = array.length();
+			for (int i = 0 ; i < length ; i++) {
+				if (array.get(i) > 0) {
+					Element cycleE = doc.createElement("RangeTallyItem");
+					cycleE.setAttribute("start", "" + i);
+					int endValue = i < MAX_I_SIZE ? 
+							i + (INITIAL_I_SIZE_BUCKET_SIZE - 1) : 
+								i + (FINAL_I_SIZE_BUCKET_SIZE - 1); 
+							cycleE.setAttribute("end", "" + endValue);
+							cycleE.setAttribute("count", "" + array.get(i));
+							element.appendChild(cycleE);
+				}
+			}
+			length = array2.length();
+			for (int i = 0 ; i < length ; i++) {
+				if (array2.get(i) > 0) {
+					Element cycleE = doc.createElement("RangeTallyItem");
+					cycleE.setAttribute("start", "" + i);
+					int endValue = i < MAX_I_SIZE ? 
+							i + (INITIAL_I_SIZE_BUCKET_SIZE - 1) : 
+								i + (FINAL_I_SIZE_BUCKET_SIZE - 1); 
+							cycleE.setAttribute("end", "" + endValue);
+							cycleE.setAttribute("count", "" + array2.get(i));
+							element.appendChild(cycleE);
+				}
+			}
+		} catch (DOMException e) {
+			e.printStackTrace();
+		}
+	}
+//	public static void binnedLengthMapToRangeTallyXml(Element parent, Map<Integer, AtomicLong> map) {
+//		
+//		Document doc = parent.getOwnerDocument();
+//		Element element = doc.createElement("RangeTally");
+//		parent.appendChild(element);
+//		
+//		try {
+//			for (Map.Entry<Integer, AtomicLong> entrySet : map.entrySet()) {
+//				Element cycleE = doc.createElement("RangeTallyItem");
+//				cycleE.setAttribute("start", "" + entrySet.getKey().getInt());
+//				int endValue = entrySet.getKey().getInt() < MAX_I_SIZE ? 
+//						entrySet.getKey().getInt() + (INITIAL_I_SIZE_BUCKET_SIZE - 1) : 
+//							entrySet.getKey().getInt() + (FINAL_I_SIZE_BUCKET_SIZE - 1); 
+//						cycleE.setAttribute("end", "" + endValue);
+//						cycleE.setAttribute("count", "" + entrySet.getValue().get());
+//						element.appendChild(cycleE);
+//			}
+//		} catch (DOMException e) {
+//			e.printStackTrace();
+//		}
+//	}
+	
+	/**
+	 * Same as <code>SummaryReportUtils.tallyQualScores</code> but operates on
+	 * an ASCII string, that does not have a separator
+	 * 
+	 * @param data String containing the data to be examined. ASCII encoded.
+	 * @param map Map containing the tally
+	 * @param offset int pertaining to the ASCII offset
+	 * @see org.qcmg.qprofiler.util.SummaryReportUtils#tallyQualScores(String, Map, String)
+	 */
+	public static void tallyQualScoresASCII(String data,
+			ConcurrentMap<Integer, AtomicLong> map, int offset) {
+		
+		if (null != data) {
+			int countUnderTen = 0;
+			for (int i = 0, size = data.length() ; i < size ; i++) {
+				if (data.charAt(i) - offset < 10)
+					countUnderTen++;
+			}
+			SummaryByCycleUtils.incrementCount(map, countUnderTen);
+		}
+	}
+	
+	public static void tallyQualScores(byte [] data,
+			ConcurrentMap<Integer, AtomicLong> map) {
+		
+		if (null != data) {
+			int countUnderTen = 0;
+			for (byte b : data) {
+				if ((b & 0xFF) < 10)
+					countUnderTen++;
+			}
+			SummaryByCycleUtils.incrementCount(map, countUnderTen);
+		}
+	}
+	public static void tallyQualScores(byte [] data, AtomicLongArray array) {
+		if (null != data) {
+			int countUnderTen = 0;
+			for (byte b : data) {
+				if ((b & 0xFF) < 10)
+					countUnderTen++;
+			}
+			array.incrementAndGet(countUnderTen);
+//			SummaryByCycleUtils.incrementCount(array, countUnderTen);
+		}
+	}
+	public static void tallyQualScores(byte [] data, QCMGAtomicLongArray array) {
+		if (null != data) {
+			int countUnderTen = 0;
+			for (byte b : data) {
+				if ((b & 0xFF) < 10)
+					countUnderTen++;
+			}
+			array.increment(countUnderTen);
+//			SummaryByCycleUtils.incrementCount(array, countUnderTen);
+		}
+	}
+
+	/**
+	 * Updates the tally of qual scores on the supplied map. </br> The input
+	 * data string is split by the separator, and a count of base qualities that
+	 * have values below 10 is kept for each read. Then calls
+	 * <code>org.qcmg.qprofiler.util.SummaryByCycleUtils.incrementCount(map, count)</code>
+	 * 
+	 * @param data
+	 *            String containing the data to be examined. Must be seperated
+	 *            be the supplied separator String.
+	 * @param map
+	 *            Map containing the tally
+	 * @param separator
+	 *            String indicating the separator for the data String. Must be provided.
+	 * @see org.qcmg.common.util.SummaryByCycleUtils#incrementCount(Map,
+	 *      Object)
+	 */
+	public static void tallyQualScores(String data, ConcurrentMap<Integer, AtomicLong> map,
+			String separator) {
+		
+		if (null != data && null != separator) {
+			int countUnderTen = 0;
+			String[] quals = data.split(separator);
+			for (int i = 0, size = quals.length ; i < size ; i++) {
+				if (quals[i].length() > 0) {
+					if (Integer.parseInt(quals[i]) < 10)
+						countUnderTen++;
+				}
+			}
+			SummaryByCycleUtils.incrementCount(map, countUnderTen);
+		}
+	}
+
+	/**
+	 * Updates the tally of bad reads on the supplied map.</br> A count of the
+	 * number of times '.' or 'N' occurs in the input String is made for each
+	 * read, and then the map is updated with this info using
+	 * <code>org.qcmg.qprofiler.util.SummaryByCycleUtils.incrementCount(map, count)</code>
+	 * 
+	 * @param data
+	 *            String data that is being checked for bad reads ('.' or 'N')
+	 * @param map
+	 *            Map containing the tally
+	 * @see org.qcmg.common.util.SummaryByCycleUtils#incrementCount(Map,
+	 *      Object)
+	 * @deprecated
+	 */
+	@Deprecated
+	public static void tallyBadReads(String data, ConcurrentMap<Integer, AtomicLong> map, Pattern pattern) {
+		if (null != data) {
+			Matcher m = pattern.matcher(data);
+			int count = 0;
+			while (m.find()) {
+				count++;
+			}
+			SummaryByCycleUtils.incrementCount(map, Integer.valueOf(count));
+		}
+	}
+	
+	/**
+	 * @deprecated
+	 * @param data
+	 * @param map
+	 */
+	@Deprecated
+	public static void tallyBadReads(String data, ConcurrentMap<Integer, AtomicLong> map) {
+		tallyBadReads(data, map, badReadPattern);
+	}
+	
+	/**
+	 * Updates the tally of bad reads on the supplied map.</br> A count of the
+	 * number of times '.' or 'N' occurs in the input String is made for each
+	 * read, and then the map is updated with this info using
+	 * <code>org.qcmg.qprofiler.util.SummaryByCycleUtils.incrementCount(map, count)</code>
+	 * 
+	 * @param data String data that is being checked for bad reads ('.' or 'N')
+	 * @param map Map containing the tally
+	 * @see org.qcmg.common.util.SummaryByCycleUtils#incrementCount(Map, Object)
+	 */
+	public static void tallyBadReadsAsString(String data, ConcurrentMap<Integer, AtomicLong> map) {
+		if (null != data) {
+			int count = 0;
+			for (int i = 0, size = data.length() ; i < size ; i++) {
+				if (isInValid(data.charAt(i)))
+					count++;
+			}
+			SummaryByCycleUtils.incrementCount(map, Integer.valueOf(count));
+		}
+	}
+	public static void tallyBadReadsAsString(String data, AtomicLongArray array) {
+		if (null != data) {
+			int count = 0;
+			for (int i = 0, size = data.length() ; i < size ; i++) {
+				if (isInValid(data.charAt(i)))
+					count++;
+			}
+			array.incrementAndGet(count);
+//			SummaryByCycleUtils.incrementCount(array, Integer.valueOf(count));
+		}
+	}
+	public static void tallyBadReadsAsString(String data, QCMGAtomicLongArray array) {
+		if (null != data) {
+			int count = 0;
+			for (int i = 0, size = data.length() ; i < size ; i++) {
+				if (isInValid(data.charAt(i)))
+					count++;
+			}
+			array.increment(count);
+//			SummaryByCycleUtils.incrementCount(array, Integer.valueOf(count));
+		}
+	}
+	public static void tallyBadReadsAsString(byte[] data, QCMGAtomicLongArray array) {
+		if (null != data) {
+			int count = 0;
+			for (byte b : data) {
+				if (isInValid((char) b))
+					count++;
+			}
+			array.increment(count);
+//			SummaryByCycleUtils.incrementCount(array, Integer.valueOf(count));
+		}
+	}
+	
+	public static void tallyBadReadsMD(String data, ConcurrentMap<String, AtomicLong> map) {
+		if (null != data) {
+			int misMatchCount = 0;
+//			int delCount = 0;
+			boolean deletion = false;
+			for (int i = 0, size = data.length() ; i < size ; ) {
+				
+				if ('^' == data.charAt(i)) {
+					deletion = true;
+					i++;
+				} else if (isInValidExtended(data.charAt(i))) {
+					
+					misMatchCount++;
+					while (++i < size && isInValidExtended(data.charAt(i))) {
+						misMatchCount++;
+					}
+					SummaryByCycleUtils.incrementCount(map, misMatchCount + (deletion ? "D" : "M"));
+					misMatchCount = 0;
+					deletion = false;
+				} else i++;
+			}
+		}
+	}
+	
+	/**
+	 * Records the position and and corresponding sequence base where a mismatch occurred.
+	 * Don't care about deletions here at the moment  
+	 * 
+	 * @param mdData md tag
+	 * @param summary SummaryByCycle object that is keeping track of this info
+	 * @param readBases String of sequence bases
+	 */
+	public static void tallyMDMismatches(String mdData, SummaryByCycle<Character> summary, byte[] readBases) {
+		if (null != mdData) {
+			boolean deletion = false;
+			int position = 1;
+			for (int i = 0, size = mdData.length() ; i < size ; ) {
+				
+				if (Character.isDigit(mdData.charAt(i))) {
+					
+					int numberLength = 1;
+					while (++i < size && Character.isDigit(mdData.charAt(i))) {
+						numberLength++;
+					}
+					position += Integer.parseInt(mdData.substring(i-numberLength, i));
+					
+				} else if ('^' == mdData.charAt(i)) {
+					deletion = true;
+					i++;
+				} else if (isInValidExtended(mdData.charAt(i))) {
+					// got a letter - update summary with position
+					if (! deletion) {
+						summary.increment(position, (char)readBases[position-1]);
+						i++;
+						position++;
+					} else {
+						while (++i < size && isInValidExtendedInDelete(mdData.charAt(i))) {}
+					}
+					deletion = false;
+				} else i++;	// need to increment this or could end up with infinite loop...
+			}
+		}
+	}
+	
+	public static void tallyMDMismatches(final String mdData, final SummaryByCycleNew2<Character> summary, 
+			final byte[] readBases, final boolean reverse, QCMGAtomicLongArray mdRefAltLengthsForward, 
+			QCMGAtomicLongArray mdRefAltLengthsReverse) {
+		
+		if (null != mdData) {
+		
+			int readLength = readBases.length;
+			if (readLength == 0) return;	// secondary alignments can have * as their sequence (which picard doesn't seem to report), which we can't do much with
+		
+			boolean deletion = false;
+			if (reverse) {
+				
+				int position = 1;
+				for (int i = 0, size = mdData.length() ; i < size ; ) {
+					
+					if (Character.isDigit(mdData.charAt(i))) {
+						
+						int numberLength = 1;
+						while (++i < size && Character.isDigit(mdData.charAt(i))) {
+							numberLength++;
+						}
+						position += Integer.parseInt(mdData.substring(i-numberLength, i));
+						
+					} else if ('^' == mdData.charAt(i)) {
+						deletion = true;
+						i++;
+					} else if (isInValidExtended(mdData.charAt(i))) {
+						// got a letter - update summary with position
+						if (! deletion) {
+							summary.increment(readLength - position + 1, BaseUtils.getComplement((char)readBases[position-1]));
+							mdRefAltLengthsReverse.increment(getIntFromChars(BaseUtils.getComplement(mdData.charAt(i)), BaseUtils.getComplement((char)readBases[position-1])));
+							i++;
+							position++;
+						} else {
+							while (++i < size && isInValidExtendedInDelete(mdData.charAt(i))) {}
+						}
+						deletion = false;
+					} else i++;	// need to increment this or could end up with infinite loop...
+				}
+				
+			} else {
+				
+				int position = 1;
+				for (int i = 0, size = mdData.length() ; i < size ; ) {
+				
+					if (Character.isDigit(mdData.charAt(i))) {
+						
+						int numberLength = 1;
+						while (++i < size && Character.isDigit(mdData.charAt(i))) {
+							numberLength++;
+						}
+						position += Integer.parseInt(mdData.substring(i-numberLength, i));
+						
+					} else if ('^' == mdData.charAt(i)) {
+						deletion = true;
+						i++;
+					} else if (isInValidExtended(mdData.charAt(i))) {
+						// got a letter - update summary with position
+						if (! deletion) {
+							summary.increment(position, (char)readBases[position-1]);
+							mdRefAltLengthsForward.increment(getIntFromChars(mdData.charAt(i), (char)readBases[position-1]));
+							i++;
+							position++;
+						} else {
+							while (++i < size && isInValidExtendedInDelete(mdData.charAt(i))) {}
+						}
+						deletion = false;
+					} else i++;	// need to increment this or could end up with infinite loop...
+				}
+			}
+		}
+	}
+	public static void tallyMDMismatches(String mdData, SummaryByCycle<Character> summary, String readBases) {
+		if (null != mdData) {
+			boolean deletion = false;
+			int position = 1;
+			for (int i = 0, size = mdData.length() ; i < size ; ) {
+				
+				if (Character.isDigit(mdData.charAt(i))) {
+					
+					int numberLength = 1;
+					while (++i < size && Character.isDigit(mdData.charAt(i))) {
+						numberLength++;
+					}
+					position += Integer.parseInt(mdData.substring(i-numberLength, i));
+					
+				} else if ('^' == mdData.charAt(i)) {
+					deletion = true;
+					i++;
+				} else if (isInValidExtended(mdData.charAt(i))) {
+					// got a letter - update summary with position
+					if (! deletion) {
+						summary.increment(position, readBases.charAt(position-1));
+						i++;
+						position++;
+					} else {
+						while (++i < size && isInValidExtendedInDelete(mdData.charAt(i))) {}
+					}
+					deletion = false;
+				} else i++;	// need to increment this or could end up with infinite loop...
+			}
+		}
+	}
+	
+	private static boolean isInValid(char c) {
+		return c == '.' || c == 'N';
+	}
+	private static boolean isInValidExtended(char c) {
+		return c == 'A' || c == 'C' || c == 'G' || c == 'T' || c == 'N';
+	}
+	private static boolean isInValidExtendedInDelete(char c) {
+		if (! isInValidExtended(c))
+			return c == 'M' || c =='R';
+		else return true;
+	}
+	
+	/**
+	 * 
+	 * @param map
+	 * @param position
+	 * @param length
+	 */
+	public static void addPositionAndLengthToMap(ConcurrentMap<Integer, AtomicLong> map, int position, int length) {
+		for (int i = position ; i < position + length ; i++) {
+			SummaryByCycleUtils.incrementCount(map, Integer.valueOf(i));
+		}
+	}
+	
+	public static void bamHeaderToXml(Element parent, String header) {
+		Document doc = parent.getOwnerDocument();
+		Text element = doc.createCDATASection(header);
+		parent.appendChild(element);
+		
+	}
+	
+	/**
+	 * Converts a map containing values and their corresponding counts into a Map that bins the values 
+	 * into ranges determined by the supplied noOfBins value and the max value in the original map, 
+	 * and the values are the summed values of all entries in the original map that fall within the range
+	 * <br>
+	 * Note that the supplied Map needs to be of type TreeMap as the method relies on the map being ordered.
+	 * <br>
+	 * The returned Map contains a string as its key which corresponds to the range (eg. 0-100)
+	 * <br>
+	 * <b>Note it is assumed that the lowest key value is 0</b><br>
+	 *  ie. this will <b>not</b> work when there are negative values in the original map
+	 * 
+	 * @param map TreeMap map containing Integer keys and values, whose values are to be binned
+	 * @param binSize int corresponding to the number of bins that are required. The range each bin will have is dependent on the max number
+	 * @return Map of String, Integer pairs relating to the range, and number within that range
+	 * @deprecated Use {@link QProfilerCollectionsUtils#convertMapIntoBinnedMap(Map<Integer, AtomicLong>,int,boolean)} instead
+	 */
+	@Deprecated
+	public static Map<String, AtomicLong> convertMapIntoBinnedMap(Map<Integer, AtomicLong> map, int binSize, boolean startFromZero) {
+		return QProfilerCollectionsUtils.convertMapIntoBinnedMap(map, binSize,
+				startFromZero);
+	}
+	
+	public static <T> void postionSummaryMapToXml(Element parent, String elementName,
+			Map<String, PositionSummary> mapOfPositions) {
+		Document doc = parent.getOwnerDocument();
+		Element element = doc.createElement(elementName);
+		parent.appendChild(element);
+		
+		// sort map
+		Map<String, PositionSummary> sortedMap = new TreeMap<String, PositionSummary>(new ReferenceNameComparator());
+		sortedMap.putAll(mapOfPositions);
+		
+		
+		try {
+			for (Map.Entry<String, PositionSummary> entrySet : sortedMap.entrySet()) {
+				Element rNameE = doc.createElement("RNAME");
+				rNameE.setAttribute("value", entrySet.getKey());
+				PositionSummary ps = entrySet.getValue();
+				rNameE.setAttribute("minPosition", "" + ps.getMin());
+				rNameE.setAttribute("maxPosition", "" + ps.getMax());
+				rNameE.setAttribute("count", "" + ps.getCount());
+				element.appendChild(rNameE);
+				
+				Element rangeTallyE = doc.createElement("RangeTally");
+				rNameE.appendChild(rangeTallyE);
+				
+				
+				// insert map of coverage here
+				for (Map.Entry<Integer, AtomicLong> entry : ps.getCoverage()
+						.entrySet()) {
+					Element tallyE = doc.createElement("RangeTallyItem");
+					tallyE.setAttribute("start", "" + entry.getKey() * 1000000);
+					tallyE.setAttribute("end", "" + ((entry.getKey() + 1) * 1000000 - 1));
+					tallyE.setAttribute("count", entry.getValue().get()+"");
+					rangeTallyE.appendChild(tallyE);
+				}
+			}
+		} catch (DOMException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static int getIntFromChars(final char ref, final char alt) {
+		switch (ref) {
+		case 'A':
+			return 'C' == alt ? 1 : ('G' == alt ? 2 : ('T' == alt ? 3 : 13));
+		case 'C':
+			return 'A' == alt ? 4 : ('G' == alt ? 5 : ('T' == alt ? 6 : 14));
+		case 'G':
+			return 'A' == alt ? 7 : ('C' == alt ? 8 : ('T' == alt ? 9 : 15));
+		case 'T':
+			return 'A' == alt ? 10 : ('C' == alt ? 11 : ('G' == alt ? 12 : 16));
+		case 'N':
+			return 'A' == alt ? 17 : ('C' == alt ? 18 : ('G' == alt ? 19 : 20));
+		}
+		return -1;
+	}
+	
+	public static String getStringFromInt(final int i) {
+		switch (i) {
+		case 1: return "A>C";
+		case 2: return "A>G";
+		case 3: return "A>T";
+		case 4: return "C>A";
+		case 5: return "C>G";
+		case 6: return "C>T";
+		case 7: return "G>A";
+		case 8: return "G>C";
+		case 9: return "G>T";
+		case 10: return "T>A";
+		case 11: return "T>C";
+		case 12: return "T>G";
+		case 13: return "A>A";
+		case 14: return "C>C";
+		case 15: return "G>G";
+		case 16: return "T>T";
+		case 17: return "N>A";
+		case 18: return "N>C";
+		case 19: return "N>G";
+		case 20: return "N>T";
+		case -1: return "???";
+		}
+		return null;
+	}
+}
