@@ -1,0 +1,67 @@
+version = '0.1pre'
+
+mainclass = 'org.qcmg.qbasepileup.QBasePileup'
+scriptname = 'qbasepileup'
+isExecutable = true
+
+
+repositories {
+    flatDir(dirs:"$projectDir/../lib")
+    flatDir(dirs:"$buildDir/deps/hdf-java/lib")
+    flatDir(dirs:"$buildDir/deps/ini4j-0.5.2-SNAPSHOT")
+}
+
+dependencies {
+    configurations.compile.transitive = true
+
+    compile project(':qcommon')
+	compile project(':qpileup')
+	compile project(':qbamfilter')
+
+	ant {
+		untar(src: "../lib/hdf-java-2.8-bin.tar", dest: "build/deps")
+		untar(src: "../lib/hdf-java-2.8-bin.tar", dest: "build/deps")
+		unzip(src: "../lib/ini4j-0.5.2-SNAPSHOT-all.zip", dest: "build/deps")
+	}
+	
+	compile name: 'picard', version: '1.110'
+	compile name: 'sam', version: '1.110'	
+    compile name: 'jopt-simple', version: '3.2'
+	compile name: 'jhdf'
+	compile name: 'jhdf5'
+	compile name: 'jhdfobj'
+	compile name: 'jhdf5obj'
+
+    testCompile name: 'junit', version: '4.10'
+	testCompile name: 'easymock', version: '3.1'
+	testCompile name: 'objenesis', version: '1.2'
+	testCompile name: 'cglib-nodep', version: '2.2.3'
+}
+
+jar.doFirst {
+  classpath = configurations.runtime.collect { it.name }.join(' ')
+  jar {
+     manifest {
+        attributes 'Implementation-Title': project.name,
+                   'Implementation-Version': "$version ($svnVersion)",
+                   'SVN-Version': svnVersion,
+                   'Built-By': System.properties['user.name'],
+                   'Date': new java.util.Date().toString(),
+                   'Main-Class' : mainclass,
+                   'Class-Path' : classpath
+     }
+  }
+}
+
+build.doLast {
+    jarname = project.name
+    ant {
+       echo(file: "build/flat/${scriptname}", message: "#!/bin/bash\njava -jar ${jarname}-${version}.jar \$@")
+       chmod(file: "build/flat/${scriptname}", perm: "u+rwx")
+    }
+    copy {
+       from configurations.compile
+       from 'build/lib'
+       into file('build/flat')
+    }
+}
