@@ -36,56 +36,56 @@ public class SnpUtilsTest {
 	@Test
 	public void testIsClassAIndel() {
 		try {
-			assertEquals(false, SnpUtils.isClassAIndel(null));
+			assertEquals(false, SnpUtils.isClassAIndel(null, -1));
 			Assert.fail("Should have thrown an IAE");
 		} catch (IllegalArgumentException iae) {}
 		try {
-			assertEquals(false, SnpUtils.isClassAIndel(""));
+			assertEquals(false, SnpUtils.isClassAIndel("", -1));
 			Assert.fail("Should have thrown an IAE");
 		} catch (IllegalArgumentException iae) {}
 		
 		// PASS
-		assertEquals(false, SnpUtils.isClassAIndel("pass"));
-		assertEquals(true, SnpUtils.isClassAIndel(SnpUtils.PASS));
+		assertEquals(false, SnpUtils.isClassAIndel("pass", -1));
+		assertEquals(true, SnpUtils.isClassAIndel(SnpUtils.PASS, -1));
 		
 		//INDEL_HOM_ADJ
 		try {
-		assertEquals(false, SnpUtils.isClassAIndel(SnpUtils.INDEL_HOM_ADJ));
+		assertEquals(false, SnpUtils.isClassAIndel(SnpUtils.INDEL_HOM_ADJ, 3));
 		Assert.fail("Should have thrown an IAE");
 		} catch (IllegalArgumentException iae) {}
-		assertEquals(false, SnpUtils.isClassAIndel(SnpUtils.INDEL_HOM_ADJ + 9));
-		assertEquals(false, SnpUtils.isClassAIndel(SnpUtils.INDEL_HOM_ADJ + 8));
-		assertEquals(false, SnpUtils.isClassAIndel(SnpUtils.INDEL_HOM_ADJ + 7));
-		assertEquals(false, SnpUtils.isClassAIndel(SnpUtils.INDEL_HOM_ADJ + 4));
-		assertEquals(true, SnpUtils.isClassAIndel(SnpUtils.INDEL_HOM_ADJ + 3));
-		assertEquals(true, SnpUtils.isClassAIndel(SnpUtils.INDEL_HOM_ADJ + 1));
-		assertEquals(true, SnpUtils.isClassAIndel(SnpUtils.INDEL_HOM_ADJ + 0));
+		assertEquals(false, SnpUtils.isClassAIndel(SnpUtils.INDEL_HOM_ADJ + 9, 3));
+		assertEquals(false, SnpUtils.isClassAIndel(SnpUtils.INDEL_HOM_ADJ + 8, 3));
+		assertEquals(false, SnpUtils.isClassAIndel(SnpUtils.INDEL_HOM_ADJ + 7, 3));
+		assertEquals(false, SnpUtils.isClassAIndel(SnpUtils.INDEL_HOM_ADJ + 4, 3));
+		assertEquals(true, SnpUtils.isClassAIndel(SnpUtils.INDEL_HOM_ADJ + 3, 3));
+		assertEquals(true, SnpUtils.isClassAIndel(SnpUtils.INDEL_HOM_ADJ + 1, 3));
+		assertEquals(true, SnpUtils.isClassAIndel(SnpUtils.INDEL_HOM_ADJ + 0, 3));
 		
 		//INDEL_HOM_CON
 		try {
-			assertEquals(false, SnpUtils.isClassAIndel(SnpUtils.INDEL_HOM_CON));
+			assertEquals(false, SnpUtils.isClassAIndel(SnpUtils.INDEL_HOM_CON, 3));
 			Assert.fail("Should have thrown an IAE");
 		} catch (IllegalArgumentException iae) {}
-		assertEquals(false, SnpUtils.isClassAIndel(SnpUtils.INDEL_HOM_CON + 9));
-		assertEquals(false, SnpUtils.isClassAIndel(SnpUtils.INDEL_HOM_CON + 8));
-		assertEquals(false, SnpUtils.isClassAIndel(SnpUtils.INDEL_HOM_CON + 7));
-		assertEquals(false, SnpUtils.isClassAIndel(SnpUtils.INDEL_HOM_CON + 4));
-		assertEquals(true, SnpUtils.isClassAIndel(SnpUtils.INDEL_HOM_CON + 3));
-		assertEquals(true, SnpUtils.isClassAIndel(SnpUtils.INDEL_HOM_CON + 1));
-		assertEquals(true, SnpUtils.isClassAIndel(SnpUtils.INDEL_HOM_CON + 0));
+		assertEquals(false, SnpUtils.isClassAIndel(SnpUtils.INDEL_HOM_CON + 9, 3));
+		assertEquals(false, SnpUtils.isClassAIndel(SnpUtils.INDEL_HOM_CON + 8, 3));
+		assertEquals(false, SnpUtils.isClassAIndel(SnpUtils.INDEL_HOM_CON + 7, 3));
+		assertEquals(false, SnpUtils.isClassAIndel(SnpUtils.INDEL_HOM_CON + 4, 3));
+		assertEquals(true, SnpUtils.isClassAIndel(SnpUtils.INDEL_HOM_CON + 3, 3));
+		assertEquals(true, SnpUtils.isClassAIndel(SnpUtils.INDEL_HOM_CON + 1, 3));
+		assertEquals(true, SnpUtils.isClassAIndel(SnpUtils.INDEL_HOM_CON + 0, 3));
 		
 		//INDEL_HOM_EMB
 		try {
-			assertEquals(false, SnpUtils.isClassAIndel(SnpUtils.INDEL_HOM_EMB));
+			assertEquals(false, SnpUtils.isClassAIndel(SnpUtils.INDEL_HOM_EMB, 3));
 			Assert.fail("Should have thrown an IAE");
 		} catch (IllegalArgumentException iae) {}
-		assertEquals(false, SnpUtils.isClassAIndel(SnpUtils.INDEL_HOM_EMB + 9));
-		assertEquals(false, SnpUtils.isClassAIndel(SnpUtils.INDEL_HOM_EMB + 8));
-		assertEquals(false, SnpUtils.isClassAIndel(SnpUtils.INDEL_HOM_EMB + 7));
-		assertEquals(false, SnpUtils.isClassAIndel(SnpUtils.INDEL_HOM_EMB + 4));
-		assertEquals(true, SnpUtils.isClassAIndel(SnpUtils.INDEL_HOM_EMB + 3));
-		assertEquals(true, SnpUtils.isClassAIndel(SnpUtils.INDEL_HOM_EMB + 1));
-		assertEquals(true, SnpUtils.isClassAIndel(SnpUtils.INDEL_HOM_EMB + 0));
+		assertEquals(false, SnpUtils.isClassAIndel(SnpUtils.INDEL_HOM_EMB + 9, 3));
+		assertEquals(false, SnpUtils.isClassAIndel(SnpUtils.INDEL_HOM_EMB + 8, 3));
+		assertEquals(false, SnpUtils.isClassAIndel(SnpUtils.INDEL_HOM_EMB + 7, 3));
+		assertEquals(false, SnpUtils.isClassAIndel(SnpUtils.INDEL_HOM_EMB + 4, 3));
+		assertEquals(true, SnpUtils.isClassAIndel(SnpUtils.INDEL_HOM_EMB + 3, 3));
+		assertEquals(true, SnpUtils.isClassAIndel(SnpUtils.INDEL_HOM_EMB + 1, 3));
+		assertEquals(true, SnpUtils.isClassAIndel(SnpUtils.INDEL_HOM_EMB + 0, 3));
 	}
 	
 	@Test
@@ -209,7 +209,7 @@ public class SnpUtilsTest {
 	
 	@Test
 	public void testIndels() {
-		assertEquals(false, SnpUtils.isClassAIndel("PASS;NNS;HCOVT;HCOVN;MIN;HOMCON_7"));
+		assertEquals(false, SnpUtils.isClassAIndel("PASS;NNS;HCOVT;HCOVN;MIN;HOMCON_7", 3));
 	}
 	
 }
