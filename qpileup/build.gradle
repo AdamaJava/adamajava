@@ -26,8 +26,8 @@ dependencies {
 	compile project(':qbamfilter')
 	
     ant {
-       untar(src: "../thirdparty/hdf-java-2.8-bin.tar", dest: "build/deps")
-       unzip(src: "../thirdparty/ini4j-0.5.2-SNAPSHOT-all.zip", dest: "build/deps")
+       untar(src: "../lib/hdf-java-2.8-bin.tar", dest: "build/deps")
+       unzip(src: "../lib/ini4j-0.5.2-SNAPSHOT-all.zip", dest: "build/deps")
     }
 
     compile name: 'jopt-simple', version: '3.2'
