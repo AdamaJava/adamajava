@@ -1,0 +1,54 @@
+version = '0.7pre'
+
+mainclass = 'org.qcmg.coverage.Coverage'
+scriptname = 'qcoverage'
+isExecutable = true
+
+repositories {
+    flatDir(dirs:"$projectDir/../lib")
+}
+
+dependencies {
+    configurations.compile.transitive = true
+
+    compile project(':qcommon')
+    compile project(':qio')
+    compile project(':qbamfilter')
+    compile project(':qpicard')
+    
+
+    compile name: 'jopt-simple', version: '3.2'
+    compile name: 'picard', version: '1.110'
+    compile name: 'sam', version: '1.110'
+
+    testCompile project(':qtesting')
+    testCompile name: 'junit', version: '4.10'
+}
+
+jar.doFirst {
+  classpath = configurations.runtime.collect { it.name }.join(' ')
+  jar {
+     manifest {
+        attributes 'Implementation-Title': project.name,
+                   'Implementation-Version': "$version ($svnVersion)",
+                   'SVN-Version': svnVersion,
+                   'Built-By': System.properties['user.name'],
+                   'Date': new java.util.Date().toString(),
+                   'Main-Class' : mainclass,
+                   'Class-Path' : classpath
+     }
+  }
+}
+
+build.doLast {
+    jarname = project.name
+    ant {
+       echo(file: "build/flat/${scriptname}", message: "#!/bin/bash\njava -Xmx24G -jar ${jarname}-${version}.jar \"\$@\"")
+       chmod(file: "build/flat/${scriptname}", perm: "u+rwx")
+    }
+    copy {
+       from configurations.compile
+       from 'build/lib'
+       into file('build/flat')
+    }
+}
