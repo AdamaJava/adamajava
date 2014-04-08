@@ -1,0 +1,29 @@
+version = '0.1pre'
+
+isExecutable = false
+
+repositories {
+    flatDir(dirs:"$projectDir/../lib")
+}
+
+dependencies {
+    configurations.compile.transitive = true
+
+    compile project(':qio')
+    compile project(':qcommon')
+
+    testCompile name: 'junit', version: '4.10'
+}
+
+jar.doFirst {
+  classpath = configurations.runtime.collect { it.name }.join(' ')
+  jar {
+     manifest {
+        attributes 'Implementation-Title': project.name,
+                   'Implementation-Version': "$version ($svnVersion)",
+                   'SVN-Version': svnVersion,
+                   'Built-By': System.properties['user.name'],
+                   'Date': new java.util.Date().toString()
+     }
+  }
+}
