@@ -1,2 +1,4 @@
 include "qcommon"
 include "qio"
+include "qpicard"
+include "qsignature"
