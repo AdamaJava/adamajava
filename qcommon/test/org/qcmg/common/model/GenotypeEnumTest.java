@@ -9,22 +9,26 @@ public class GenotypeEnumTest {
 
 	@Test
 	public void testGetGenotypeEnum() {
-		GenotypeEnum ge = GenotypeEnum.getGenotypeEnum('A', 'A');
-		assertEquals(GenotypeEnum.AA, ge);
-		ge = GenotypeEnum.getGenotypeEnum('T', 'A');
-		assertEquals(GenotypeEnum.AT, ge);
 		
-		ge = GenotypeEnum.getGenotypeEnum('T', 'C');
-		assertEquals(GenotypeEnum.CT, ge);
+		assertEquals(GenotypeEnum.AA, GenotypeEnum.getGenotypeEnum('A', 'A'));
+		assertEquals(GenotypeEnum.AC, GenotypeEnum.getGenotypeEnum('A', 'C'));
+		assertEquals(GenotypeEnum.AG, GenotypeEnum.getGenotypeEnum('A', 'G'));
+		assertEquals(GenotypeEnum.AT, GenotypeEnum.getGenotypeEnum('A', 'T'));
 		
-		ge = GenotypeEnum.getGenotypeEnum('T', 'G');
-		assertEquals(GenotypeEnum.GT, ge);
+		assertEquals(GenotypeEnum.AC, GenotypeEnum.getGenotypeEnum('C', 'A'));
+		assertEquals(GenotypeEnum.CC, GenotypeEnum.getGenotypeEnum('C', 'C'));
+		assertEquals(GenotypeEnum.CG, GenotypeEnum.getGenotypeEnum('C', 'G'));
+		assertEquals(GenotypeEnum.CT, GenotypeEnum.getGenotypeEnum('C', 'T'));
 		
-		ge = GenotypeEnum.getGenotypeEnum('A', 'C');
-		assertEquals(GenotypeEnum.AC, ge);
+		assertEquals(GenotypeEnum.AG, GenotypeEnum.getGenotypeEnum('G', 'A'));
+		assertEquals(GenotypeEnum.CG, GenotypeEnum.getGenotypeEnum('G', 'C'));
+		assertEquals(GenotypeEnum.GG, GenotypeEnum.getGenotypeEnum('G', 'G'));
+		assertEquals(GenotypeEnum.GT, GenotypeEnum.getGenotypeEnum('G', 'T'));
 		
-		ge = GenotypeEnum.getGenotypeEnum('G', 'G');
-		assertEquals(GenotypeEnum.GG, ge);
+		assertEquals(GenotypeEnum.AT, GenotypeEnum.getGenotypeEnum('T', 'A'));
+		assertEquals(GenotypeEnum.CT, GenotypeEnum.getGenotypeEnum('T', 'C'));
+		assertEquals(GenotypeEnum.GT, GenotypeEnum.getGenotypeEnum('T', 'G'));
+		assertEquals(GenotypeEnum.TT, GenotypeEnum.getGenotypeEnum('T', 'T'));
 		
 	}
 	

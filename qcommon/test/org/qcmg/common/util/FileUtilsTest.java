@@ -25,12 +25,12 @@ public class FileUtilsTest {
 	public TemporaryFolder tempFolder = new TemporaryFolder();
 	
 	@Test
-	public void testTestOutputFile() throws Exception{
+	public void testOutputFile() throws Exception{
 		// null outputFile
-		try {
-			FileUtils.validOutputFile(null);
-			Assert.fail("Shouldn't have got here");
-		} catch (Exception e) {}
+//		try {
+			Assert.assertFalse(FileUtils.validOutputFile(null));
+//			Assert.fail("Shouldn't have got here");
+//		} catch (Exception e) {}
 		
 		// empty string file
 		Assert.assertFalse(FileUtils.validOutputFile(""));
@@ -41,18 +41,19 @@ public class FileUtilsTest {
 		// extension does not match file type
 		Assert.assertFalse(FileUtils.validOutputFile("/test1.html", "xml"));
 		
+		File tmpDir = tempFolder.newFolder();
 		// non-existant file, but directory is OK
-		Assert.assertTrue(FileUtils.validOutputFile("/tmp/test1.html"));
+		Assert.assertTrue(FileUtils.validOutputFile(tmpDir.getAbsolutePath() + FileUtils.FILE_SEPARATOR + "test1.html"));
 		
 		// existing file
-		File testFile = File.createTempFile("test", null, new File("/tmp"));
+		File testFile = File.createTempFile("test", null, tmpDir);
 		testFile.deleteOnExit();
 		Assert.assertTrue(FileUtils.validOutputFile(testFile.getAbsolutePath()));
 	}
 	
 	
 	@Test
-	public void testTestInputFile() throws Exception {
+	public void testInputFile() throws Exception {
 		// null input file
 		try {
 			FileUtils.validInputFile(null);
@@ -69,7 +70,7 @@ public class FileUtilsTest {
 		Assert.assertFalse(FileUtils.validInputFile("/test1.xml", "html"));
 		
 		// existing file
-		File testFile = File.createTempFile("test", null, new File("/tmp"));
+		File testFile = File.createTempFile("test", null, tempFolder.newFolder());
 		testFile.deleteOnExit();
 		Assert.assertTrue(FileUtils.validInputFile(testFile.getAbsolutePath()));
 	}
