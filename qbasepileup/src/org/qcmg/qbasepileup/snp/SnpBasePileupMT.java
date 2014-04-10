@@ -1,5 +1,5 @@
 /**
- * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ * �� Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
 package org.qcmg.qbasepileup.snp;
 
@@ -29,6 +29,7 @@ import org.qcmg.qbamfilter.query.QueryExecutor;
 import org.qcmg.qbasepileup.InputBAM;
 import org.qcmg.qbasepileup.Options;
 import org.qcmg.qbasepileup.QBasePileupConstants;
+import org.qcmg.qbasepileup.QBasePileupException;
 import org.qcmg.qbasepileup.QBasePileupUtil;
 
 public class SnpBasePileupMT {
@@ -176,7 +177,7 @@ public class SnpBasePileupMT {
     	   				mutationColumn = QBasePileupUtil.getMutationColumn(line);
     	   			}
     	   			
-        			if (!line.startsWith("#") && !line.startsWith("\n") && !line.startsWith("analysis_id") && !line.startsWith("Hugo") &&  !line.startsWith("mutation")) {
+        			if ( ! line.startsWith("#") && ! line.startsWith("\n") && ! line.startsWith("analysis_id") && ! line.startsWith("Hugo") &&  ! line.startsWith("mutation")) {
         				count++;
         				
         				positionCount.incrementAndGet();
@@ -185,10 +186,10 @@ public class SnpBasePileupMT {
         				
         				String[] columns = QBasePileupUtil.getSNPPositionColumns(format, values, count);
         				
-    					p = new SnpPosition(columns[0],columns[1],new Integer(columns[2]),new Integer(columns[3]), line);        				       				      				
-        				if (!positions.contains(p)) {
-        					uniquePositionCount.incrementAndGet();        					
-        				}  
+    					p = new SnpPosition(columns[0], columns[1], Integer.valueOf(columns[2]), Integer.valueOf(columns[3]), line);        				       				      				
+        				if ( ! positions.contains(p)) {
+        					uniquePositionCount.incrementAndGet();    					
+        				}
         				
         				if (options.getMode().equals(QBasePileupConstants.COMPOUND_SNP_MODE)) {        					
     						p.setAltBases(QBasePileupUtil.getCompoundAltBases(values, mutationColumn));
@@ -311,7 +312,6 @@ public class SnpBasePileupMT {
 
 	                    } else {	                        
 	                        count++;  
-	                        
 	                        if (count % 1000 == 0) {
 	                        	logger.info("Processed " + count + " records");
 	                        }
@@ -339,8 +339,11 @@ public class SnpBasePileupMT {
 		                 		if (options.getMode().equals(QBasePileupConstants.SNP_CHECK_MODE)) {
 		                 			queueOut.add(pileup.toMafString() + "\n");
 		                 		}
-		            			
-	                        }      	            			
+	                        }
+	                        
+	                        if (sb.length() > 0) {
+	                        	queueOut.add(sb.toString());        	                                                     
+	                        }
 	                        
 	                        if (count % checkPoint == 0) {
 	                           
@@ -363,7 +366,6 @@ public class SnpBasePileupMT {
 	                                }
 	                            } 
 	                        }
-	                        queueOut.add(sb.toString());        	                                                     
                         }                       
 	                   
 	                }
@@ -396,7 +398,7 @@ public class SnpBasePileupMT {
 	    private final CountDownLatch filterLatch;
 	    private final CountDownLatch writeLatch;
 		private final CountDownLatch readLatch;
-	    final static String TAB = "\t";
+	    final static char TAB = '\t';
 
 	    public Writing(AbstractQueue<String> q, File f, Thread mainThread,
 	    		CountDownLatch readLatch, CountDownLatch fLatch, CountDownLatch wLatch) {
@@ -415,7 +417,7 @@ public class SnpBasePileupMT {
 	        try {
 	            String record;
 	            int count = 0;
-	            BufferedWriter writer = new BufferedWriter(new FileWriter(resultsFile));
+	            try (BufferedWriter writer = new BufferedWriter(new FileWriter(resultsFile));) {
 	            Map<String, Map<String, String>> inputMap = new HashMap<String, Map<String, String>>();
 	            
 	            writer.write(getHeader());
@@ -437,7 +439,7 @@ public class SnpBasePileupMT {
 	                        run = false;
 	                    }
 
-	                    if ((count % checkPoint == 0) && (!mainThread.isAlive())) {
+	                    if ((count % checkPoint == 0) && ( ! mainThread.isAlive())) {
 	                    	writer.close();
 	                        throw new Exception("Writing threads failed since parent thread died.");
 	                    }
@@ -450,31 +452,32 @@ public class SnpBasePileupMT {
 	                		String info = "";
 	                		for (int i=0; i<vals.length; i++) {
 	                			if (i<5) {
-	                				position += vals[i] + "\t";
+	                				position += vals[i] + TAB;
 	                			}
 	                			if (i==5) {
 	                				position += vals[i];
 	                			}
 	                			if (i==6) {
-	                				bam += vals[i];
+	                				bam = vals[i];
 	                			}
 	                			if (i > 6) {
 	                				if (i == vals.length-1) {
 	                					info += vals[i];
 	                				} else {
-	                					info += vals[i] + "\t";
+	                					info += vals[i] + TAB;
 	                				}
 	                				
 	                			}
 	                		}
-	                		Map<String, String> map = new HashMap<String, String>();
-	                		if (inputMap.containsKey(position)) {
-	                			map = inputMap.get(position);
-	                		} 
+	                		
+	                		Map<String, String> map = inputMap.get(position);
+	                		if (null == map) {
+	                			map = new HashMap<String, String>();
+	                			inputMap.put(position, map);
+	                		}
 	                		
 	                		map.put(bam, info);
 	       
-	                		inputMap.put(position, map);
 	                	} else {
 	                		writer.write(record);
 	                	}
@@ -483,28 +486,53 @@ public class SnpBasePileupMT {
 	            }
 
 	            if (options.getOutputFormat() == 2) {
-
-	        		BufferedReader reader = new BufferedReader(new FileReader(options.getPositionsFile()));
-	        		String line; 
-	        		List<InputBAM> inputs = options.getInputBAMs();
-	        		while ((line = reader.readLine()) != null) {
-	        			if (!line.startsWith("#") && !line.startsWith("Hugo")) {
-	        				StringBuilder sb = new StringBuilder();
-	        				Map<String, String> start = inputMap.get(line);
-	        				sb.append(line + "\t");
-	        				for (int i=0; i<inputs.size(); i++) {    
-		        					sb.append(start.get(inputs.get(i).getAbbreviatedBamFileName()));
-		        					if (i != (inputs.size() -1)) {
-		        						sb.append("\t");
-		        					}
-	        				}
-	        				writer.write(sb.toString() + "\n");
-	        			}
-	        		}
-	        		reader.close();
+	            	
+	            	// load entries from positions file into a collection
+	            	// then check that all entries in collection have a corresponding entry in the inputMap
+	            	// if not, print out the offenders and exit (fail)
+	            	// if yes, write to file as normal
+	            	List<String> positionsFileList = new ArrayList<>();
+	            	try (BufferedReader reader = new BufferedReader(new FileReader(options.getPositionsFile()));) {
+	            		String line; 
+	            		while ((line = reader.readLine()) != null) {
+	            			if ( ! line.startsWith("#") && ! line.startsWith("Hugo")) {
+	            				positionsFileList.add(line);
+	            			}
+	            		}
+	            	}
+	            	
+	            	boolean allGood = true;
+	            	StringBuilder positionsMissingInMap = new StringBuilder();
+	            	for (String s : positionsFileList) {
+	            		if ( ! inputMap.containsKey(s)) {
+	            			positionsMissingInMap.append(s).append("\n");
+	            			allGood = false;
+	            		}
+	            	}
+	            	
+	            	if (allGood) {
+	            		
+	            		List<InputBAM> inputs = options.getInputBAMs();
+	            		for (String line : positionsFileList) {
+	            			Map<String, String> start = inputMap.get(line);
+	            			
+	            			StringBuilder sb = new StringBuilder(line);
+	            			sb.append(TAB);
+	            			
+	            			for (int i=0; i<inputs.size(); i++) {
+	            				sb.append(start.get(inputs.get(i).getAbbreviatedBamFileName()));
+	            				if (i != (inputs.size() -1)) {
+	            					sb.append(TAB);
+	            				}
+	            			}
+	            			writer.write(sb.toString() + "\n");
+	            		}
+	            	} else {
+	            		logger.warn("The following entries in the positions file did not have any results - incorrect reference bases?\n" + positionsMissingInMap.toString());
+	            		throw new QBasePileupException("POSITION_FILE_ERROR");
+	            	}
 	        	}
-
-	            writer.close();
+	            }
 	            
 	            if (!mainThread.isAlive()) {
 	            	if (exitStatus.intValue() == 0) {
