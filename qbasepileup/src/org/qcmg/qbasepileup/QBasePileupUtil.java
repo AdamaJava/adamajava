@@ -1,5 +1,5 @@
 /**
- * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ * �� Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
 package org.qcmg.qbasepileup;
 
@@ -18,6 +18,9 @@ import net.sf.picard.reference.FastaSequenceIndex;
 import net.sf.picard.reference.IndexedFastaSequenceFile;
 
 public class QBasePileupUtil {
+	
+//	public static final Pattern SINGLE_DIGIT_PATTERN = Pattern.compile("\\d");
+	public static final Pattern DOUBLE_DIGIT_PATTERN = Pattern.compile("\\d{1,2}");
 	
 	public static String getStrackTrace(Exception e) {
 		StringWriter sw = new StringWriter();
@@ -38,35 +41,16 @@ public class QBasePileupUtil {
 	
 	public static boolean addChromosomeReference(String ref) {
 		
-		if (ref.contains("chr")) {
-			return false;
-		} else {
-			if (ref.length() == 1) {
-				Pattern pattern = Pattern.compile("\\d");
-			    Matcher matcher = pattern.matcher(ref);
-			    if (matcher.matches()) {			    	
-			    	if (new Integer(ref).intValue() < 23) {
-			    		return true;
-			    	}
-			    } else {
-			    	if (ref.equals("X") || ref.equals("Y") || ref.equals("M")) {
-			    		return true;
-			    	} 
-			    }
-			} else if (ref.length() == 2) {
-				Pattern pattern = Pattern.compile("\\d{2}");
-			    Matcher matcher = pattern.matcher(ref);
-			    if (matcher.matches()) {			    	
-			    	if (new Integer(ref).intValue() < 23) {
-			    		return true;
-			    	}
-			    } else {
-			    	if (ref.equals("MT")) {
-			    		return true;
-			    	}
-			    }
+		if (ref.equals("X") || ref.equals("Y") || ref.equals("M") || ref.equals("MT")) {
+			return true;
+		} else if ( ! ref.contains("chr")) {
+			
+			Matcher matcher = DOUBLE_DIGIT_PATTERN.matcher(ref);
+			if (matcher.matches()) {		    	
+				if (Integer.parseInt(ref) < 23) {
+					return true;
+				}
 			}
-						
 		}
 		return false;
 	}
