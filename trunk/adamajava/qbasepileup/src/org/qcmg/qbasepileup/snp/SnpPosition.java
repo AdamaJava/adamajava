@@ -1,5 +1,5 @@
 /**
- * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ * �� Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
 package org.qcmg.qbasepileup.snp;
 
@@ -12,6 +12,8 @@ import org.qcmg.qbasepileup.QBasePileupException;
 import org.qcmg.qbasepileup.QBasePileupUtil;
 
 public class SnpPosition {
+	
+	public static final char TAB = '\t';
 	
 	private String chromosome;
 	private Integer start;
@@ -38,6 +40,13 @@ public class SnpPosition {
 		this.inputLine = line;
 	}
 	
+	/**
+	 * Only called by test classes
+	 * 
+	 * @param line
+	 * @param columns
+	 * @throws QBasePileupException
+	 */
 	public SnpPosition(String line, Integer[] columns) throws QBasePileupException {
 		super();
 		try {
@@ -82,9 +91,6 @@ public class SnpPosition {
 	public int getEnd() {
 		return end.intValue();
 	}
-//	public void setEnd(int end) {
-//		this.end = end;
-//	}
 	public int getLength() {
 		return length;
 	}
@@ -95,36 +101,55 @@ public class SnpPosition {
 		return fullChromosome;
 	}
 
-	 @Override
-    public boolean equals(final Object o) {
-	       
-        if (!(o instanceof SnpPosition)) return false;
-        
-        final SnpPosition other = (SnpPosition) o;
-        
-        if (chromosome.equals(other.getChromosome())) {
-        	if (start.equals(other.getStart())) {
-        		return end.equals(other.getEnd());
-        	} else {
-        		return start.equals(other.getStart());
-        	}
-        } else {
-        	return chromosome.equals(other.getChromosome());
-        }
-    }
-	    
-    @Override
-    public int hashCode() {
-       return 31*chromosome.hashCode() + start.hashCode() + end.hashCode();
-    }
+
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result
+				+ ((chromosome == null) ? 0 : chromosome.hashCode());
+		result = prime * result + ((end == null) ? 0 : end.hashCode());
+		result = prime * result + ((start == null) ? 0 : start.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		SnpPosition other = (SnpPosition) obj;
+		if (chromosome == null) {
+			if (other.chromosome != null)
+				return false;
+		} else if (!chromosome.equals(other.chromosome))
+			return false;
+		if (end == null) {
+			if (other.end != null)
+				return false;
+		} else if (!end.equals(other.end))
+			return false;
+		if (start == null) {
+			if (other.start != null)
+				return false;
+		} else if (!start.equals(other.start))
+			return false;
+		return true;
+	}
 
 	public String toTabString() {
-		return name + "\t" + chromosome + "\t" + start + "\t" + end;		
+		return name + TAB + chromosome + TAB + start + TAB + end;		
 	}
 	
 	public String toOutputColumnsString() {
-		return inputLine.split("\t")[0] + "\t" + chromosome + "\t" + start + "\t" 
-				+ end + "\t" + new String(referenceBases) + "\t" + new String(altBases);				
+		return name + TAB + chromosome + TAB + start + TAB 
+				+ end + TAB +  String.valueOf(referenceBases) + TAB + String.valueOf(altBases);
+//		return inputLine.split("\t")[0] + "\t" + chromosome + "\t" + start + "\t" 
+//		+ end + "\t" + new String(referenceBases) + "\t" + new String(altBases);				
 	}
 	
 	@Override
