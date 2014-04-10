@@ -22,9 +22,15 @@ public class QBasePileupUtilTest {
 	public void testAddChromosomeReference() {
 		
 		assertTrue(QBasePileupUtil.addChromosomeReference("10"));		
+		assertFalse(QBasePileupUtil.addChromosomeReference("23"));		
+		assertFalse(QBasePileupUtil.addChromosomeReference("99"));		
+		assertFalse(QBasePileupUtil.addChromosomeReference("100"));		
 		assertTrue(QBasePileupUtil.addChromosomeReference("1"));
 		assertTrue(QBasePileupUtil.addChromosomeReference("Y"));
 		assertTrue(QBasePileupUtil.addChromosomeReference("X"));
+		assertTrue(QBasePileupUtil.addChromosomeReference("M"));
+		assertTrue(QBasePileupUtil.addChromosomeReference("MT"));
+		assertFalse(QBasePileupUtil.addChromosomeReference("MTT"));
 		assertFalse(QBasePileupUtil.addChromosomeReference("GL123"));
 		assertFalse(QBasePileupUtil.addChromosomeReference("chr10"));
 	}
