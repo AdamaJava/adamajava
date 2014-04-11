@@ -1,5 +1,5 @@
 /**
- * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ * Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
 package org.qcmg.qmule;
 
@@ -25,7 +25,7 @@ import org.qcmg.picard.SAMOrBAMWriterFactory;
 
 public class AlignerCompare {
 		static QLogger logger = QLoggerFactory.getLogger(AlignerCompare.class);
-		boolean filterNonPrimary;	
+		boolean discardNonPrimary;	
 		SAMFileReader firReader;
 		SAMFileReader secReader;
 		
@@ -53,7 +53,7 @@ public class AlignerCompare {
 			//check inputs: sort by query name
 			firReader = SAMFileReaderFactory.createSAMFileReader(firBam, SAMFileReader.ValidationStringency.SILENT);
 			secReader = SAMFileReaderFactory.createSAMFileReader(secBam, SAMFileReader.ValidationStringency.SILENT);
-			filterNonPrimary = flag;
+			discardNonPrimary = flag;
 			
 			if(! firReader.getFileHeader().getSortOrder().equals(SortOrder.queryname))
 				throw new Exception("Please sort the input BAM by queryname: " + firBam.getAbsolutePath());
@@ -64,7 +64,7 @@ public class AlignerCompare {
 	 		logger = QLoggerFactory.getLogger(AlignerCompare.class, prefix + ".log", null);		 		
 	 		logger.info("input BAM1: " + firBam.getAbsolutePath());
 	 		logger.info("input BAM2: " + secBam.getAbsolutePath());	 	
-	 		logger.info("discard secondary or supplementary alignments: " + String.valueOf(filterNonPrimary));
+	 		logger.info("discard secondary or supplementary alignments: " + String.valueOf(discardNonPrimary));
 
 			//create outputs
 			File outsame = new File(prefix + ".identical.bam" );			
@@ -181,7 +181,7 @@ public class AlignerCompare {
 			ArrayList<SAMRecord> cleaned = new ArrayList<SAMRecord>();
 			
 			for(SAMRecord record : from)
-				if( filterNonPrimary && record.isSecondaryOrSupplementary()){		 
+				if( discardNonPrimary && record.isSecondaryOrSupplementary()){		 
 					if( record.getNotPrimaryAlignmentFlag()) 
 							noSecondary_bam1 ++;									 
 					else if( record.getSupplementaryAlignmentFlag()) 
@@ -244,24 +244,35 @@ public class AlignerCompare {
 		}
 			
 		public static void main(String[] args) throws Exception{
-			
-			if ( args.length < 3  || args.length > 4  )  	
-				throw new Exception("USAGE: qmule " + AlignerCompare.class.getName() + " <bam1> <bam2> <output prefix with dir> [primary option]");
-
-			if(! new File(args[0]).exists()  || ! new File(args[1]).exists()) 
+					
+			Options op = new Options(AlignerCompare.class,  args);    
+		    if(op.hasHelpOption()){
+		    	System.out.println(Messages.getMessage("USAGE_AlignerCompare"));
+		    	op.displayHelp();
+		    	System.exit(0);		
+		    }
+		    
+		    if( op.getInputFileNames().length != 2 
+		    		|| op.getOutputFileNames().length != 1 ){
+		    	System.err.println("improper parameters passed to command line, please refer to");
+		    	System.out.println(Messages.getMessage("USAGE_AlignerCompare"));
+		    	op.displayHelp();
+		    	System.exit(1);	
+		    }
+		    
+		    File f1 = new File(op.getInputFileNames()[0]);
+		    File f2 = new File(op.getInputFileNames()[1]);			    
+			if(!  f1.exists()  || ! f2.exists()) 
 				throw new Exception("input not exists: " + args[0] + " or " + args[1]);
 			
-			boolean flag = false;
-			if ( args.length == 4)
-				if (! args[3].equalsIgnoreCase("primaryOnly") )
-						throw new Exception("wrong paramter for \"args[3]\"! do you means \"primary\" ");
-				else
-					flag = true;
-			
+			//assign to true if no "compareAll" option
+			boolean flag = ! op.hasCompareAllOption();
+					 
+ 			
   			logger.logInitialExecutionStats( "qmule " + AlignerCompare.class.getName(), null,args);
  			
  			long startTime = System.currentTimeMillis();
-			AlignerCompare compare = new AlignerCompare( new File( args[0]), new File( args[1]), args[2], flag );				
+			AlignerCompare compare = new AlignerCompare( f1, f2, op.getOutputFileNames()[0], flag );				
 
 			logger.info( String.format("It took %d hours, %d minutes to perform the comparison",
 					 (int) (System.currentTimeMillis() - startTime) / (1000*60*60), 
