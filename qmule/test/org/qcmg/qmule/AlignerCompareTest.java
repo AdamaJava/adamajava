@@ -54,7 +54,7 @@ public class AlignerCompareTest {
 	@Test
 	public void mainTest() throws Exception{
   
-  		final String[] args1 = { INPUT_SAM1, INPUT_SAM2, OUTPUT_BAM };
+  		final String[] args1 = { "-i", INPUT_SAM1, "-i", INPUT_SAM2, "-o", OUTPUT_BAM };
 		AlignerCompare.main(args1);
 		
 	}
