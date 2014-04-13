@@ -5,14 +5,8 @@ package org.qcmg.qmule;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 
-
-import net.sf.samtools.BAMFileWriter;
-import net.sf.samtools.CigarElement;
-import net.sf.samtools.CigarOperator;
-import net.sf.samtools.SAMFileHeader;
 import net.sf.samtools.SAMFileHeader.SortOrder;
 import net.sf.samtools.SAMFileReader;
 import net.sf.samtools.SAMRecord;
@@ -245,7 +239,7 @@ public class AlignerCompare {
 			
 		public static void main(String[] args) throws Exception{
 					
-			Options op = new Options(AlignerCompare.class,  args);    
+			Options op = new Options(args);    
 		    if(op.hasHelpOption()){
 		    	System.out.println(Messages.getMessage("USAGE_AlignerCompare"));
 		    	op.displayHelp();
@@ -266,7 +260,8 @@ public class AlignerCompare {
 				throw new Exception("input not exists: " + args[0] + " or " + args[1]);
 			
 			//assign to true if no "compareAll" option
-			boolean flag = ! op.hasCompareAllOption();
+//			boolean flag = ! op.hasCompareAllOption();
+			boolean flag = false;
 					 
  			
   			logger.logInitialExecutionStats( "qmule " + AlignerCompare.class.getName(), null,args);
