@@ -1,11 +1,15 @@
 /**
- * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ * �� Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
 package org.qcmg.qmule;
+
+import static java.util.Arrays.asList;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
+
+import org.qcmg.qmule.Messages;
 
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
@@ -49,33 +53,33 @@ public final class Options {
 	private final String commandLine;
 	
 	/** The input file names. */
-	private final String[] inputFileNames;
+	private String[] inputFileNames;
 	
 	/** The output file names. */
-	private final String[] outputFileNames;
+	private  String[] outputFileNames;
 	
 	/** The log file  */
-	private final String logFile;
+	private  String logFile;
 	
 	/** The log level */
-	private final String logLevel;
+	private  String logLevel;
 	
-	private final String patientId;
-	private final String somaticAnalysisId;
-	private final String germlineAnalysisId;
-	private final String normalSampleId;
-	private final String tumourSampleId;
-	private final String position;
-	private final String pileupFormat;
+	private  String patientId;
+	private  String somaticAnalysisId;
+	private  String germlineAnalysisId;
+	private   String normalSampleId;
+	private  String tumourSampleId;
+	private   String position;
+	private   String pileupFormat;
 	private int normalCoverage;
 	private int tumourCoverage;
 	private int minCoverage;
-	private final String mafMode;
-	private final String gff;
-	private final String fasta;
-	private final String[] gffRegions;
+	private  String mafMode;
+	private  String gff;
+	private  String fasta;
+	private   String[] gffRegions;
 	private int noOfBases;
-	private final String mode;
+	private   String mode;
 
 
 	private String column;
@@ -154,7 +158,9 @@ public final class Options {
 		parser.accepts("proportion", Messages
 				.getMessage("PROPORTION_OPTION_DESCRIPTION")).withRequiredArg().ofType(String.class);
 		parser.accepts("stranded", Messages
-				.getMessage("STRANDED_OPTION_DESCRIPTION"));
+				.getMessage("STRANDED_OPTION_DESCRIPTION"));		
+		parser.accepts("compareAll",Messages.getMessage("COMPAREALL_OPTION"));
+		
 		parser.posixlyCorrect(true);
 		options = parser.parse(args);
 		
@@ -221,6 +227,39 @@ public final class Options {
 		
 	}
 
+	/**
+	 * 
+	 * @param className
+	 * @param args
+	 * @throws Exception
+	 */
+	public Options( final Class myclass,  final String[] args) throws Exception {
+		commandLine = Messages.reconstructCommandLine(args);
+		
+		parser.acceptsAll( asList("h", "help"),   HELP_DESCRIPTION );	 
+		parser.acceptsAll( asList("v", "version"), VERSION_DESCRIPTION);				
+		parser.acceptsAll( asList("i", "input"), INPUT_DESCRIPTION).withRequiredArg().ofType(String.class).describedAs("input");
+		parser.accepts("output", OUTPUT_DESCRIPTION).withRequiredArg().ofType(String.class).describedAs("outputfile");
+//		parser.accepts("log", INPUT_DESCRIPTION).withRequiredArg().ofType(String.class).describedAs("logfile");
+//		parser.accepts("loglevel", INPUT_DESCRIPTION).withRequiredArg().ofType(String.class).describedAs("loglevel");
+		
+		if( myclass.equals(AlignerCompare.class) ){ 
+			parser.accepts("compareAll",Messages.getMessage("COMPAREALL_OPTION"));
+ 			parser.acceptsAll( asList("o", "output"), Messages.getMessage("OUTPUT_AlignerCompare")).withRequiredArg().ofType(String.class).describedAs("output");
+			
+		}
+		options = parser.parse(args);
+		
+		List inputList = options.valuesOf("input");
+		inputFileNames = new String[inputList.size()];
+		inputList.toArray(inputFileNames);
+
+		List outputList = options.valuesOf("output");
+		outputFileNames = new String[outputList.size()];
+		outputList.toArray(outputFileNames);		
+		
+	}
+	
 	public String getTumour() {
 		return tumour;
 	}
@@ -285,7 +324,9 @@ public final class Options {
 		return options.has("help");
 	}
 	
-	
+	public boolean hasCompareAllOption() {
+		return options.has("compareAll");
+	}
 	
 	/**
 	 * Checks for log option.
