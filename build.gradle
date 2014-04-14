@@ -54,13 +54,28 @@ subprojects {
         }
     }
 
+    // copies project jar files into adama/build/lib
+    build.doLast {
+      println "copying ${project} libs to adama"
+      copy {
+         from project.configurations.compile
+         into file('adama/build/lib')
+      }
+      project.tasks.withType(Jar).each {archiveTask ->
+          copy {
+             from archiveTask.archivePath
+             into file('adama/build/lib')
+          }
+      }
+
+    }
+
 }
 
-
+// copies thirdpary libs (from ./lib) into adama/build/lib
 build.doLast {
   delete('adama/build/lib')
   mkdir ('adama/build/lib')
-  println "in main buildscript - build.doLast"
 
     subprojects.each {project ->
          println "copying ${project} libs to adama"
@@ -79,6 +94,7 @@ build.doLast {
 
 
 task dist(type: Zip) {
+
   def zippedDir = "${project.name}-${version}"
   into(zippedDir){
     into ('lib') {
@@ -132,11 +148,11 @@ task timestamped_dist(type: Zip) {
   }
 
 
-//task clean << {
- //   ant {
-  //     delete(dir: "build")
-   // }
-//}
+clean << {
+    ant {
+       delete(dir: "adama/build")
+    }
+}
 
 //task javadoc(type: Javadoc) {
 //    destinationDir = file("$buildDir/javadoc")
