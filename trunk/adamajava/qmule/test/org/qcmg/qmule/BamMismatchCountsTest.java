@@ -14,12 +14,17 @@ import org.junit.Test;
 
 public class BamMismatchCountsTest {
 	public static final String INPUT_SAM = "./input.sam";	
-	public static final String OUTPUT_FILE_NAME = "./result.log";	
-	
+	public static final String OUTPUT_FILE_NAME = "./result.counts";	
+ 
 	@After
 	public void deleteFiles(){ 
  		new File(INPUT_SAM).delete();	
-		new File(OUTPUT_FILE_NAME).delete(); 
+ 		
+		//delete output
+		File[] files = new File("./").listFiles();
+		for(File f :  files)
+			if(f.toString().startsWith(OUTPUT_FILE_NAME))
+				f.delete();
 	}
 	
 	@Before
@@ -30,8 +35,9 @@ public class BamMismatchCountsTest {
 	
 	@Test
 	public void mainTest() throws Exception{
-		final String[] args = {INPUT_SAM,OUTPUT_FILE_NAME};
+		final String[] args = {"-i" , INPUT_SAM , "-o" , OUTPUT_FILE_NAME };
 		
+//		System.out.println(args.toString());
 		BamMismatchCounts.main(args);
 		
 	}

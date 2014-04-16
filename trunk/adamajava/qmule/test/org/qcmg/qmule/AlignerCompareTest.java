@@ -31,22 +31,23 @@ public class AlignerCompareTest {
 	
 	@After
 	public void deleteFiles(){ 
+		//delete inputs
 		File in1 = new File(INPUT_SAM1);
-		File in2 = new File(INPUT_SAM2);
-		File out = new File(OUTPUT_BAM);
-				
+		File in2 = new File(INPUT_SAM2);				
 		in1.delete();
 		in2.delete();
-		out.delete();
-		
-	 
+
+		//delete output
+		File[] files = new File("./").listFiles();
+		for(File f :  files)
+			if(f.toString().startsWith(OUTPUT_BAM))
+				f.delete();
+			
 	}
 	
 	@Before
 	public void before(){		 
 		CreateSAMs( );	
- 
-
 	}
 	
 	
