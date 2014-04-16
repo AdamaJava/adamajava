@@ -31,7 +31,7 @@ public class WindowCountTest {
 		
 	@After
 	public void deleteFiles(){
- 		new File(INPUT_TUMOR_BAM).delete(); 
+  		new File(INPUT_TUMOR_BAM).delete(); 
  		new File(INPUT_NORMAL_BAM).delete();	
  		new File(INPUT_TUMOR_BAM + ".bai").delete(); 
  		new File(INPUT_NORMAL_BAM + ".bai").delete();	
@@ -157,8 +157,9 @@ public class WindowCountTest {
 				N_ref0 ++;
 			else if(sCurrentLine.startsWith(genome.get(1).getSequenceName())){
 				N_ref1 ++;
-				List<String> myList = Arrays.asList(sCurrentLine.split(","));
-				N_read += Integer.parseInt(myList.get(3)) + Integer.parseInt(myList.get(4));
+				List<String> myList = Arrays.asList(sCurrentLine.split("\t"));
+				 myList = Arrays.asList(myList.get(4).split(":"));
+				N_read += Integer.parseInt(myList.get(0)) + Integer.parseInt(myList.get(1));
 				
 				if( myList.get(1).equals("320") && myList.get(2).equals("639")){					 
 					assertTrue( Integer.parseInt(myList.get(3)) == 3);
@@ -170,7 +171,8 @@ public class WindowCountTest {
 				}
 				
 			}else{
-				assertTrue(sCurrentLine.startsWith("#ChromosomeArmID"));
+//				assertTrue(sCurrentLine.startsWith("#ChromosomeArmID"));
+				assertTrue(sCurrentLine.startsWith("#Chrom"));
 			}			 
 		}		
 		//window number equal to ref length divided by window size
