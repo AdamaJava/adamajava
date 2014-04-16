@@ -1,5 +1,5 @@
 /**
- * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ * �� Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
 package org.qcmg.qmule;
 
@@ -24,16 +24,12 @@ public class BAMCompress {
 		private static File output;
 		private static int level;
 		
-		BAMCompress(File input, int level) throws Exception{
-			
-			String output_name = input.getAbsolutePath() +  ".compress" + level+ ".bam";
-	
+		BAMCompress(File input, File output, int level) throws Exception{
 			this.input = input;
-			this.output = new File(output_name);
+			this.output = output;
 			this.level = level;
 			
-	 		logger = QLoggerFactory.getLogger(BAMCompress.class, output_name + ".log", null);	
-	 		logger.info("input file: " + input.getAbsolutePath());
+ 	 		logger.info("input file: " + input.getAbsolutePath());
 	 		logger.info("output file name: " + output.getAbsolutePath());
 	 		logger.info("compress level for output BAM: " + level);		
 		}
@@ -119,20 +115,32 @@ public class BAMCompress {
 		
 
 		public static void main(String[] args) throws Exception{
-			
-			if ( args.length < 1 || args.length > 2)  	
-				throw new Exception("USAGE: qmule " + BAMCompress.class.getName() + " <bam/sam filename> <bam compress level>");
-			
-			if(! new File(args[0]).exists() ) 
+			Options op = new Options(BAMCompress.class, args);    
+		    if(op.hasHelpOption()){
+		    	System.out.println(Messages.getMessage("USAGE_BAMCompress"));
+		    	op.displayHelp();
+		    	System.exit(0);		
+		    }
+		 		
+	  	    String output = op.getOutputFileNames()[0];
+		    String input =  op.getInputFileNames()[0];	  		    
+			if(! new File(input).exists() ) 
 				throw new Exception("input file not exists: " + args[0]);
-		
-			int level = 5; //default compress level
-			if( args.length == 2) 	level = Integer.parseInt( args[1]);				
+
+			if(op.hasLogOption())
+				logger = QLoggerFactory.getLogger(BAMCompress.class, op.getLogFile(), op.getLogLevel());
+	 		else
+				logger = QLoggerFactory.getLogger(BAMCompress.class, output + ".log", op.getLogLevel());	
+
+			String version = org.qcmg.qmule.Main.class.getPackage().getImplementationVersion();	
+		 	logger.logInitialExecutionStats( "qmule " + BAMCompress.class.getName(), version,args);
+
+			int level = op.getcompressLevel(); //default compress level			
 			
   			logger.logInitialExecutionStats( "qmule " + BAMCompress.class.getName(), null,args);
  			
  			long startTime = System.currentTimeMillis();
-			BAMCompress compress = new BAMCompress(new File(args[0]),   level  );				
+			BAMCompress compress = new BAMCompress(new File(input), new File(output) ,  level  );				
 			compress.replaceSeq();
 
 			logger.info( String.format("It took %d hours, %d seconds to perform the compression",
