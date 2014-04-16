@@ -55,7 +55,7 @@ public class AlignerCompare {
 			if(! secReader.getFileHeader().getSortOrder().equals(SortOrder.queryname))
 				throw new Exception("Please sort the input BAM by queryname: " + secBam.getAbsolutePath());
 			
-	 		logger = QLoggerFactory.getLogger(AlignerCompare.class, prefix + ".log", null);		 		
+	 		
 	 		logger.info("input BAM1: " + firBam.getAbsolutePath());
 	 		logger.info("input BAM2: " + secBam.getAbsolutePath());	 	
 	 		logger.info("discard secondary or supplementary alignments: " + String.valueOf(discardNonPrimary));
@@ -68,27 +68,19 @@ public class AlignerCompare {
 			if(! firBam.getName().equals(secBam.getName())){	
 				outdiff_first = new File( prefix + ".different." + firBam.getName() );
 				outdiff_second = new File( prefix + ".different." + secBam.getName() );
-//				outdiff_first = new File( firBam.getCanonicalPath() + ".only.bam" );
-//				outdiff_second = new File( secBam.getCanonicalPath() + ".only.bam" );
-			}
+ 			}
 			
-/*			File unsure_first = new File(outdiff_first.getCanonicalFile().toString() + ".unsure.bam" );
-			File unsure_second = new File(outdiff_second.getCanonicalFile().toString() + ".unsure.bam");
-*/
-			
-			sameWriter = new SAMOrBAMWriterFactory(firReader.getFileHeader(), true, outsame);
+ 			sameWriter = new SAMOrBAMWriterFactory(firReader.getFileHeader(), true, outsame);
 			diffWriter_first = new SAMOrBAMWriterFactory(firReader.getFileHeader(), true, outdiff_first );
 			diffWriter_second = new SAMOrBAMWriterFactory(secReader.getFileHeader(), true, outdiff_second );
-/*			unsureWriter_first =  new SAMOrBAMWriterFactory(firReader.getFileHeader(), true, unsure_first );
-			unsureWriter_second = new SAMOrBAMWriterFactory(secReader.getFileHeader(), true, unsure_second );
-*/			
-	 		logger.info("output of identical alignments: " + outsame.getAbsolutePath());
+ 
+			logger.info("output of identical alignments: " + outsame.getAbsolutePath());
 	 		logger.info("output of different alignments from BAM1: " + outdiff_first.getAbsolutePath());
 	 		logger.info("output of different alignments from BAM2: " + outdiff_second.getAbsolutePath());
 	 		
 	 		//execute comparison
 	 		compareExecutor();
-	 		//classifyReads();
+ 
 
 			//close IOs
 			firReader.close();
@@ -96,15 +88,7 @@ public class AlignerCompare {
 			sameWriter.closeWriter();
 			diffWriter_first.closeWriter();
 			diffWriter_second.closeWriter();
-/*			unsureWriter_first.closeWriter();
-			unsureWriter_second.closeWriter();
-			
-			if(nounsureAlignment == 0){
-				unsure_first.delete();
-				unsure_second.delete();
-			}else
-				logger.info( nounsureAlignment +  " alignments are unsure, see details on  *.unsure.bam!");
-*/				
+ 				
 		}
 
 		void compareExecutor() throws Exception{
@@ -239,13 +223,13 @@ public class AlignerCompare {
 			
 		public static void main(String[] args) throws Exception{
 					
-			Options op = new Options(args);    
+			Options op = new Options(AlignerCompare.class, args);    
 		    if(op.hasHelpOption()){
 		    	System.out.println(Messages.getMessage("USAGE_AlignerCompare"));
 		    	op.displayHelp();
 		    	System.exit(0);		
 		    }
-		    
+	    
 		    if( op.getInputFileNames().length != 2 
 		    		|| op.getOutputFileNames().length != 1 ){
 		    	System.err.println("improper parameters passed to command line, please refer to");
@@ -255,17 +239,21 @@ public class AlignerCompare {
 		    }
 		    
 		    File f1 = new File(op.getInputFileNames()[0]);
-		    File f2 = new File(op.getInputFileNames()[1]);			    
+		    File f2 = new File(op.getInputFileNames()[1]);	
 			if(!  f1.exists()  || ! f2.exists()) 
 				throw new Exception("input not exists: " + args[0] + " or " + args[1]);
 			
 			//assign to true if no "compareAll" option
-//			boolean flag = ! op.hasCompareAllOption();
-			boolean flag = false;
-					 
- 			
-  			logger.logInitialExecutionStats( "qmule " + AlignerCompare.class.getName(), null,args);
- 			
+			boolean flag = ! op.hasCompareAllOption();
+			
+			if(op.hasLogOption())
+				logger = QLoggerFactory.getLogger(AlignerCompare.class,op.getLogFile(), op.getLogLevel());
+			else
+				logger = QLoggerFactory.getLogger(AlignerCompare.class,op.getOutputFileNames()[0] + ".log", op.getLogLevel());	
+
+			String version = org.qcmg.qmule.Main.class.getPackage().getImplementationVersion();	
+  			logger.logInitialExecutionStats( "qmule " + AlignerCompare.class.getName(), version,args);
+
  			long startTime = System.currentTimeMillis();
 			AlignerCompare compare = new AlignerCompare( f1, f2, op.getOutputFileNames()[0], flag );				
 

@@ -164,10 +164,6 @@ public final class Options {
 		parser.posixlyCorrect(true);
 		options = parser.parse(args);
 		
-		// throw exception if tool name has not been supplied
-//		tool = (String) options.valueOf("qmule");
-//		if (null == tool) throw new Exception("Tool name must be specified");
-
 		List inputList = options.valuesOf("input");
 		inputFileNames = new String[inputList.size()];
 		inputList.toArray(inputFileNames);
@@ -221,8 +217,6 @@ public final class Options {
 		if (null != options.valueOf("minCoverage"))
 			minCoverage = (Integer) options.valueOf("minCoverage");
 		
-		//subSample
- 		 		 
 		 
 		
 	}
@@ -237,17 +231,24 @@ public final class Options {
 		commandLine = Messages.reconstructCommandLine(args);
 		
 		parser.acceptsAll( asList("h", "help"),   HELP_DESCRIPTION );	 
-		parser.acceptsAll( asList("v", "version"), VERSION_DESCRIPTION);				
+//		parser.acceptsAll( asList("v", "version"), VERSION_DESCRIPTION);				
 		parser.acceptsAll( asList("i", "input"), INPUT_DESCRIPTION).withRequiredArg().ofType(String.class).describedAs("input");
-		parser.accepts("output", OUTPUT_DESCRIPTION).withRequiredArg().ofType(String.class).describedAs("outputfile");
-//		parser.accepts("log", INPUT_DESCRIPTION).withRequiredArg().ofType(String.class).describedAs("logfile");
-//		parser.accepts("loglevel", INPUT_DESCRIPTION).withRequiredArg().ofType(String.class).describedAs("loglevel");
-		
-		if( myclass.equals(AlignerCompare.class) ){ 
+		parser.acceptsAll(asList("o", "output"), OUTPUT_DESCRIPTION).withRequiredArg().ofType(String.class).describedAs("outputfile");
+		parser.accepts("log", Messages.getMessage("LOG_OPTION_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("logfile");
+		parser.accepts("loglevel", Messages.getMessage("LOGLEVEL_OPTION_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("loglevel");
+	
+ 		if( myclass.equals(AlignerCompare.class) ){ 
 			parser.accepts("compareAll",Messages.getMessage("COMPAREALL_OPTION"));
- 			parser.acceptsAll( asList("o", "output"), Messages.getMessage("OUTPUT_AlignerCompare")).withRequiredArg().ofType(String.class).describedAs("output");
-			
+ 			parser.acceptsAll( asList("o", "output"), Messages.getMessage("OUTPUT_AlignerCompare")).withRequiredArg().ofType(String.class).describedAs("output");			
+		}else if(myclass.equals(SubSample.class)) {
+			parser.accepts("proportion",Messages.getMessage("PROPORTION_OPTION_DESCRIPTION")).withRequiredArg().ofType(Double.class).describedAs("[0,1]");
+		}else if(myclass.equals(BAMCompress.class)){
+			parser.accepts("compressLevel",Messages.getMessage("COMPRESS_LEVEL_DESCRIPTION") ).withRequiredArg().ofType(Integer.class).describedAs("[0,9]");
 		}
+
+ 		
+		//else if( myclass.equals(BamMismatchCounts.class)){}
+		
 		options = parser.parse(args);
 		
 		List inputList = options.valuesOf("input");
@@ -406,6 +407,17 @@ public final class Options {
 		return mode;
 	}
 
+	public int getcompressLevel() throws Exception{
+		if(options.has("compressLevel")){
+			int l = (int) options.valueOf("compressLevel");
+			if(l >= 0 && l <= 9)
+				return l;
+			else
+				throw new Exception("compressLevel must between [0,9]");
+		}
+		
+		return 5;
+	}
 	//subSample
 	public double getPROPORTION() throws Exception{
 		if(options.has("proportion")){			
@@ -418,9 +430,6 @@ public final class Options {
 		throw new Exception("no proportion are specified"); 
 	}
 	
-//	public String getToolName() {
-//		return tool;
-//	}
 
 	/**
 	 * Display help.
@@ -448,13 +457,11 @@ public final class Options {
 		}
 	}
 
-	public String getLogFile(){	 
-		
+	public String getLogFile(){	 		
 		return logFile;
 	}
 
-	public String getLogLevel(){
- 
+	public String getLogLevel(){ 
 		return logLevel;
 	}
 	

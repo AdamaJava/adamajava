@@ -1,5 +1,5 @@
 /**
- * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ * �� Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
 package org.qcmg.qmule;
 
@@ -8,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -99,52 +100,57 @@ public class BamMismatchCounts {
 	 * @throws Exception
 	 */
 	public static void main(final String[] args) throws Exception {
- 		System.out.println("reder closing....");			
-		if (args.length == 2) {	
- 			logger = QLoggerFactory.getLogger(BamMismatchCounts.class, args[1] + ".log", null);			
- 			logger.logInitialExecutionStats( "qmule " + BamMismatchCounts.class.getName(), null,args);
- 			for(int i = 0; i < 100; i++) mismatch[i] = 0;
- 			
- 			//check each reads 						 
- 			SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(new File(args[0]),
- 					SAMFileReader.ValidationStringency.SILENT);			
-			for (SAMRecord r : reader){ 	
-				total ++;
-				if(seekFullMapped( r)){
-					fullMapped ++;  
-					countMismatch(r);
-				}
-			}			
-			reader.close();
+		Options op = new Options(BamMismatchCounts.class, args);    
+	    if(op.hasHelpOption()){
+	    	System.out.println(Messages.getMessage("USAGE_BamMismatchCounts"));
+	    	op.displayHelp();
+	    	System.exit(0);		
+	    }
+	 
+		
+		if(op.hasLogOption())
+			logger = QLoggerFactory.getLogger(BamMismatchCounts.class, op.getLogFile(), op.getLogLevel());
+ 		else
+			logger = QLoggerFactory.getLogger(BamMismatchCounts.class,op.getOutputFileNames()[0] + ".log", op.getLogLevel());	
 
-			//report mismatch
-			String S_mismatch = "mismatch matrix for fully mapped reads is below:\nmismatch\treads_number\tratio_to_(fullmapped,total)\n";
-			for(int i = 0; i < 100; i++)
-				if(mismatch[i] > 0){
-					int p1 = Math.round(mismatch[i] * 100 / fullMapped);
-					int p2 = Math.round(mismatch[i] * 100 / total);
-					S_mismatch += String.format("%d\t%d\t(%d%%,%d%%)\n", i,mismatch[i],p1, p2);
-						//	i + "\t" + mismatch[i] + "\t" + mismatch[i]/fullMapped +"\n";			
-					
-				}
-	
-			  Files.write(Paths.get(args[1]), S_mismatch.getBytes() );			
-			 
-			logger.info("total records in file: " + total );				
-			logger.info("unmapped records: " + unmapped);
-			logger.info("records with clipping (CIGAR S,H): " + clipped);
-			logger.info("records with indel (CIGAR I,D) : " + indel);	 
-			logger.info("records with skipping or padding (CIGAR N,P) : " + skipPad);   
-			logger.info("records mapped full-length: " + fullMapped); 
-			logger.info("records mapped full-length but missing MD field: " +  noMDreads);
-			logger.info("the mismatch counts matrix is outputed to " + args[1]);
- 
-//			logger.info(S_mismatch);
-			logger.logFinalExecutionStats(0);
-			
-		} else {
-			logger.info("USAGE: qmule " + BamMismatchCounts.class.getName() + " <bam/sam filename> <output filename>");
-		} 
+		String version = org.qcmg.qmule.Main.class.getPackage().getImplementationVersion();	
+	 	logger.logInitialExecutionStats( "qmule " + BamMismatchCounts.class.getName(), version,args);
+
+  	    String output = op.getOutputFileNames()[0];
+	    String input =  op.getInputFileNames()[0];	    
+	    SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(new File(input),
+					SAMFileReader.ValidationStringency.SILENT);	    
+		  			
+		for(int i = 0; i < 100; i++) mismatch[i] = 0;	 	
+		for (SAMRecord r : reader){ 	
+			total ++;
+			if(seekFullMapped( r)){
+				fullMapped ++;  
+				countMismatch(r);
+			}
+		}			
+		reader.close();
+
+		//report mismatch
+		String S_mismatch = "mismatch matrix for fully mapped reads is below:\nmismatch\treads_number\tratio_to_(fullmapped,total)\n";
+		for(int i = 0; i < 100; i++)
+			if(mismatch[i] > 0){
+				int p1 = Math.round(mismatch[i] * 100 / fullMapped);
+				int p2 = Math.round(mismatch[i] * 100 / total);
+				S_mismatch += String.format("%d\t%d\t(%d%%,%d%%)\n", i,mismatch[i],p1, p2);				
+			}
+
+	    Files.write(Paths.get(output), S_mismatch.getBytes() );			
+		 
+		logger.info("total records in file: " + total );				
+		logger.info("unmapped records: " + unmapped);
+		logger.info("records with clipping (CIGAR S,H): " + clipped);
+		logger.info("records with indel (CIGAR I,D) : " + indel);	 
+		logger.info("records with skipping or padding (CIGAR N,P) : " + skipPad);   
+		logger.info("records mapped full-length: " + fullMapped); 
+		logger.info("records mapped full-length but missing MD field: " +  noMDreads);
+		logger.info("the mismatch counts matrix is outputed to " + args[1]);
+		logger.logFinalExecutionStats(0);
 		
 	}
 
