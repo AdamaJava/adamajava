@@ -1,5 +1,5 @@
 /**
- * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ * �� Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
 package org.qcmg.cnv;
 
@@ -103,6 +103,30 @@ public class ReportCounts {
 	public void windowCountReport(File output, int windowSize, List<SAMSequenceRecord> genome )throws Exception{
 		   
        FileWriter writer = new FileWriter(output);	       
+       writer.write("#Chrom\tStart\tEnd\tFormat\tCounts\n");	 
+       
+       for(int i = 0; i < refArray.length; i ++){
+    	   ReferenceInfo info = refArray[i];   
+    	   String ref = info.getRefname().replaceFirst("(?i)^chr", "");
+    	   for(int j = 0; j < info.getNumberOfWindows() - 1 ;j++){
+    		   writer.write(String.format("%s\t%d\t%d\t%s\t%d:%d\n", info.getRefname(), windowSize * j, windowSize * (j+1) -1, "P0:Ref", 
+    				   info.getTumourCounts()[j], info.getNormalCounts()[j] ));
+    	   }
+    	   //add last window  
+    	   int last = info.getNumberOfWindows() - 1;
+    	   int lref = genome.get(info.getIndex()).getSequenceLength();
+    	   writer.write(String.format("%s\t%d\t%d\t%s\t%d:%d\n", info.getRefname(), windowSize *( last), lref,"P0:Ref",
+    			   info.getTumourCounts()[last], info.getNormalCounts()[last] ));
+       }
+       
+       writer.close();           
+	}
+	
+	
+	/**
+	public void windowCountReport(File output, int windowSize, List<SAMSequenceRecord> genome )throws Exception{
+		   
+       FileWriter writer = new FileWriter(output);	       
        writer.write("#ChromosomeArmID, StartPosition, EndPosition, TotalReadNormal, TotalReadTumor\n");	 
        
        for(int i = 0; i < refArray.length; i ++){
@@ -120,5 +144,7 @@ public class ReportCounts {
        
        writer.close();           
 	}
+	 */
+	
 
 }
