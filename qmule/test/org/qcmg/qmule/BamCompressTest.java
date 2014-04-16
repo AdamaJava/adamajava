@@ -45,9 +45,9 @@ public class BamCompressTest {
 	}
 	
 	@Test
-	public void mainTest() throws Exception{
-		final String[] args1 = { INPUT_SAM, "1" };
-		final String[] args2 = { INPUT_SAM, "9" };
+	public void mainTest() throws Exception{ 
+		final String[] args1 = { "-i", INPUT_SAM, "-o",  OUTPUT_BAM, "--compressLevel", "1" };
+		final String[] args2 = { "-i", INPUT_SAM, "-o",  OUTPUT_BAM, "--compressLevel", "9" };
 		
 		
 		BAMCompress.main(args1);
