@@ -66,6 +66,24 @@ public class MafFilterUtilsTest {
 		MafFilterUtils.checkMAFForMIN(maf);
 		assertEquals(SnpUtils.MUTATION_IN_NORMAL + ";" + SnpUtils.LESS_THAN_8_READS_NORMAL, maf.getFlag());
 	}
+	@Test
+	public void testCheckMAFForMINSnv2() {
+		
+		//APGI_2044.Somatic.ALL.snv.maf:KRAS      0       qcmg.uq.edu.au  37      12      25398284        25398284        +       Missense_Mutation       SNP     C       A       C       novel   null    QCMG-66-APGI_2044-ICGC-ABMJ-20100903-14-TD      QCMG-66-APGI_2044-ICGC-ABMJ-20100903-13-ND      C       C       null    null    null    null    null    Unknown Somatic null    Unknown null    null    null    Unknown MIN     A:2[21],0[0],C:98[37.27],164[37.19],G:1[22],0[0],T:1[40],0[0]   A:13[37.46],18[34.39],C:88[36.8],142[36.75],G:1[33],0[0]        ENST00000311936 G12V;G12V;G12V;G12V;G12V;G12V;G12V;G12V 227C>A;227C>A;227C>A;227C>A;227C>A;227C>A;227C>A;227C>A null    null   null     24
+		MAFRecord maf = new MAFRecord();
+		maf.setMafType(MafType.SNV_SOMATIC);
+		maf.setNd("A:2[21],0[0],C:98[37.27],164[37.19],G:1[22],0[0],T:1[40],0[0]");
+		maf.setTd("A:13[37.46],18[34.39],C:88[36.8],142[36.75],G:1[33],0[0]");
+		maf.setRef("C");
+		maf.setFlag("MIN");
+		maf.setTumourAllele1("A");
+		maf.setTumourAllele2("C");
+		
+		MafFilterUtils.checkMAFForMIN(maf);
+		// more than 1 alt in the nd field
+//		assertEquals(SnpUtils.MUTATION_IN_NORMAL, maf.getFlag());
+		assertEquals(SnpUtils.PASS, maf.getFlag());
+	}
 	
 	@Ignore
 	public void testCheckMAFForMINIndel() {
