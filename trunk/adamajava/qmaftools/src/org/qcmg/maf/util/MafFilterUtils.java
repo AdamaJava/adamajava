@@ -1,5 +1,5 @@
 /**
- * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ * �� Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
 package org.qcmg.maf.util;
 
@@ -305,7 +305,7 @@ public class MafFilterUtils {
 				assert normalAltCount > 0 : 
 					SnpUtils.MUTATION_IN_NORMAL + " annotation is set, but there are no reads supporting the alt in normal: " + maf.getNd() + ", alt: " + alt;
 				
-				if (normalAltCount == 1) {
+//				if (normalAltCount == 1) {
 					char ref = maf.getRef().charAt(0);
 					int normalRefCount = SnpUtils.getCountFromNucleotideString(maf.getNd(), ref);
 					
@@ -313,7 +313,7 @@ public class MafFilterUtils {
 						// reset annotation
 						MafUtils.updateFlag(maf, SnpUtils.PASS);
 					}
-				}
+//				}
 			}
 			
 		}
