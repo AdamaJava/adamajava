@@ -1,5 +1,5 @@
 /**
- * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ *  Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
 package org.qcmg.cnv;
 
@@ -34,40 +34,37 @@ import org.qcmg.picard.SAMRecordFilterWrapper;
 public class MtCounts {
 		
 	final File Output;
-	final File fnormal;
-	final File ftumour;
+	final String[] inputs;
+	final String[] ids;
 	final int noOfThreads; //default
- 	final File tmpdir;
+ 
  	final int windowSize;
  	final QLogger logger;
 
-    MtCounts(File fref, File ftest, File output, File tmp, int thread,int windowSize, QLogger logger) throws IOException{
-      	this.Output = output;
-    	this.fnormal = fref;
-    	this.ftumour = ftest; 
+    MtCounts(String[] inputs, String[] ids, String output,  int thread,int windowSize, QLogger logger) throws Exception{
+      	this.Output = new File(output); 
     	this.noOfThreads = thread;
     	this.windowSize = windowSize;
     	this.logger = logger;
-     	
-     	if(tmp == null)    		
-    		this.tmpdir = File.createTempFile( "qcnv", "", Output.getParentFile());
-    	else 
-    		this.tmpdir = File.createTempFile( "qcnv", "",tmp);
-     	   	
-    	if(!(tmpdir.delete()))
-   	        throw new IOException("Could not delete tmp file: " + tmpdir.getAbsolutePath());	    
-   	   	if(! tmpdir.mkdirs())
-   		   throw new IOException("Could not create tmp directory: " + tmpdir.getAbsolutePath());
-    }
-     
+    	this.ids = ids;
+    	
+    	
+    	if(inputs.length != ids.length )
+    		throw new Exception("incorrect numbers of sample id or input files: " +
+    	 inputs.length + " inputs but id number is " + ids.length);
+    	
+    	this.inputs = inputs;
+    	
+    }  	     	   	    
 	/**
 	 * it call threads, parallel the BAMFileReader.query for single genome  
 	 * @param logger: an instance of QLogger
 	 * @throws Exception 
 	 */
     void callCounts() throws Exception{
-    	SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(fnormal,ValidationStringency.SILENT );			
+    	SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(inputs[0],ValidationStringency.SILENT );			
 		List<SAMSequenceRecord> genome = reader.getFileHeader().getSequenceDictionary().getSequences();
+		reader.close();
 		
 		final AbstractQueue<ReferenceInfo> infoQueue = new ConcurrentLinkedQueue<ReferenceInfo>();
 		
@@ -77,7 +74,7 @@ public class MtCounts {
 	    //parallel query by genomes and output to tmp files 
         int index = 0;
    		for ( SAMSequenceRecord chr : genome){	 	   	    	   
-	    	   queryThreads.execute(new SingleCount(fnormal, ftumour,  chr, windowSize, tmpdir, infoQueue));
+	    	   queryThreads.execute(new WindowCount(inputs, ids, chr, windowSize,infoQueue));
 	    	   index ++;	    	  
 	    }	  
    		
@@ -89,16 +86,11 @@ public class MtCounts {
        
        logger.info("completed parallel query based on genome file name");	       
 
-       ReportCounts report = new ReportCounts(infoQueue, logger);
-       if(windowSize > 0)
-    	    report.windowCountReport(Output, windowSize, genome);
-       else
-    	   report.baseCountReport(Output);
-       
+       ReportCounts report = new ReportCounts(infoQueue);
+    
+       report.windowCountReport(Output);
+      
        logger.info("created final output: " + Output.getCanonicalPath());
-       
-       boolean del = tmpdir.delete();
-       logger.info(del + " deleted tmprary directory: " + tmpdir.getCanonicalPath());
  
     }
 
@@ -108,12 +100,11 @@ public class MtCounts {
 	 * @author q.xu
 	 *
 	 */
-	public static class SingleCount implements Runnable {
+	public static class WindowCount implements Runnable {
 	 
 		File Output;
-		File fnormal;
-		File ftumour;
-		File tmpDir;
+		String[] inputs;
+		String[] ids;
 		int windowSize;
 		SAMSequenceRecord chr;
 		AbstractQueue<ReferenceInfo> queue;
@@ -128,25 +119,22 @@ public class MtCounts {
 		 * @param infoQueue
 		 * @throws IOException
 		 */
-		SingleCount(  File normal, File tumor, SAMSequenceRecord chr, int windowSize,File tmpDir, AbstractQueue<ReferenceInfo> infoQueue  ) throws IOException {
-			fnormal = normal;
-			ftumour = tumor;	 
+		WindowCount(  String[] inputs, String[] ids, SAMSequenceRecord chr, int windowSize, AbstractQueue<ReferenceInfo> infoQueue  ) throws IOException {
+			this.inputs = inputs;
+			this.ids = ids; 
 			this.chr = chr;
 			this.windowSize = windowSize;
 			queue = infoQueue;
-			this.tmpDir = tmpDir;			
 		}
 	 
 		public void run() {
 			try {	
-								
-			    Count myCount;
-			    if(windowSize > 0)
-			    	myCount= new WindowCount(fnormal, ftumour, chr, windowSize);
-			    else
-			    	myCount = new BaseCount(fnormal, ftumour, chr, tmpDir);
-			    
-			    ReferenceInfo info = myCount.execute();				
+				
+				ReferenceInfo info = new ReferenceInfo(chr, windowSize);				 
+				for(int i = 0; i <inputs.length; i++){
+					info.addCounts(ids[i], inputs[i]);
+				}
+			   			
 				queue.add(info );
  		 
 			} catch (Exception e) {
