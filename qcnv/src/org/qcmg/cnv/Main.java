@@ -1,5 +1,5 @@
 /**
- * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ *  Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
 package org.qcmg.cnv;
 
@@ -27,19 +27,11 @@ public class Main {
         	 System.exit(0); 
 
         QLogger logger =  option.getLogger(args);	
-                
-        if(option.hasLineCounts(logger)){  
-        	logger.logFinalExecutionStats(0);
-        	System.exit(0); 
-        }
-        
         try{     	
-			File ftest = new File(option.getTumorInputName());
-			File fref = new File(option.getNormalInputName());	  
-			File fout = new File(option.getOutputName());	
-			File tmp = new File(option.getTmpDir());
-			 
-			MtCounts cnvThread = new MtCounts(fref,ftest, fout, tmp, option.getThreadNumber(),option.getWindowSize(), logger);
+
+			MtCounts cnvThread = new MtCounts(option.getInputNames(), option.getSampleIds(), 
+					option.getOutputName(), option.getThreadNumber(), option.getWindowSize(), logger);
+			
 			cnvThread.callCounts();
         	logger.logFinalExecutionStats(0);
         	System.exit(0);
