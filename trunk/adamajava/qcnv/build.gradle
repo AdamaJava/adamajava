@@ -1,4 +1,4 @@
-version = '0.1pre'
+version = '0.2pre'
 
 mainclass = 'org.qcmg.cnv.Main'
 scriptname = 'qcnv'
