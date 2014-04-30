@@ -1,9 +1,9 @@
 package org.qcmg.qprofiler.bam;
 
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Random;
 import java.util.TreeMap;
-import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -37,9 +37,11 @@ public class BamSummaryReportTest {
 			
 			if (i % 2 == 0) {
 				j = -j;
+				bsr.parseISize(j, "RG1");
+			} else {
+				bsr.parseISize(j, "RG2");
 			}
 			
-			bsr.parseISize(j);
 		}
 		
 		Assert.assertFalse(bsr.getISizeLengths().isEmpty());

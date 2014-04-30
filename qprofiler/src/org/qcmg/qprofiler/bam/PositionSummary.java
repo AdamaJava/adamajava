@@ -1,5 +1,5 @@
 /**
- * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ * �� Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
 /**
  * All source code distributed as part of the AdamaJava project is released
@@ -28,7 +28,6 @@ public class PositionSummary {
 	 * Should give us some breathing space..
 	 */
 	private final QCMGAtomicLongArray coverage = new QCMGAtomicLongArray(512);
-	private final ConcurrentMap<Integer, AtomicLong> sortedCoverage = new ConcurrentSkipListMap<Integer, AtomicLong>();
 	
 	/**
 	 * No default constructor defined as we don't want the initial values of 
@@ -63,6 +62,7 @@ public class PositionSummary {
 	 * Returns a map which holds the coverage of positions binned by millions
 	 */
 	public Map<Integer, AtomicLong> getCoverage() {
+		ConcurrentMap<Integer, AtomicLong> sortedCoverage = new ConcurrentSkipListMap<Integer, AtomicLong>();
 		for (int i = 0, length = (int)coverage.length() ; i < length ; i++) {
 			if (coverage.get(i) > 0)
 				sortedCoverage.put(i, new AtomicLong(coverage.get(i)));
