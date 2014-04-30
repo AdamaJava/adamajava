@@ -1,5 +1,5 @@
 /**
- * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ * �� Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
 /**
  * All source code distributed as part of the AdamaJava project is released
@@ -12,7 +12,9 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Comparator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicLongArray;
@@ -74,6 +76,78 @@ public class SummaryReportUtils {
 			Map<T, AtomicLong> map) {
 		
 		lengthMapToXml(parent, elementName, map, null);
+	}
+	
+	public static ConcurrentMap<String, ConcurrentMap<Integer, AtomicLong>> binIsize(int binSize, Map<String, AtomicLongArray> iSizeByReadGroupMap, Map<String, QCMGAtomicLongArray> iSizeByReadGroupMapBinned) {
+		ConcurrentMap<String, ConcurrentMap<Integer, AtomicLong>> results = new ConcurrentHashMap<>();
+		for (Entry<String, AtomicLongArray> entry : iSizeByReadGroupMap.entrySet()) {
+			// add entry to results map of  maps
+			String readGroup = entry.getKey();
+			ConcurrentMap<Integer, AtomicLong> iSizeLengths = new ConcurrentHashMap<>();
+			results.putIfAbsent(readGroup, iSizeLengths);
+			
+			// need to bin by 10 here
+			AtomicLongArray array = entry.getValue();
+			long longAdder = 0;
+			for (int i = 0 ; i < array.length() ; i++) {
+				longAdder +=array.get(i);
+				
+				if (i % 10 == 9 && longAdder > 0) {
+					// update map and reset longAdder
+					Integer binNumber = i  - 9;
+					AtomicLong al = iSizeLengths.get(binNumber);
+					if (null == al) {
+						al = new AtomicLong();
+						AtomicLong existingLong = iSizeLengths.putIfAbsent(binNumber, al);
+						if (null != existingLong) al = existingLong;
+					}
+					al.addAndGet(longAdder);
+					longAdder = 0;
+				}
+			}
+			// add last entry to map
+			if (longAdder > 0) {
+				Integer binNumber = array.length() + 1 / 10;
+				AtomicLong al = iSizeLengths.get(binNumber);
+				if (null == al) {
+					al = new AtomicLong();
+					AtomicLong existingLong = iSizeLengths.putIfAbsent(binNumber, al);
+					if (null != existingLong) al = existingLong;
+				}
+				al.addAndGet(longAdder);
+			}
+		}
+		
+		// now for the binned map
+		for (Entry<String, QCMGAtomicLongArray> entry : iSizeByReadGroupMapBinned.entrySet()) {
+			String readGroup = entry.getKey();
+			ConcurrentMap<Integer, AtomicLong> iSizeLengths = results.get(readGroup);
+			if (null == iSizeLengths) {
+				iSizeLengths = new ConcurrentHashMap<Integer, AtomicLong>();
+				ConcurrentMap<Integer, AtomicLong>  existingResults = results.putIfAbsent(readGroup, iSizeLengths);
+				if (null != existingResults) {
+					iSizeLengths = existingResults;
+				}
+			}
+			QCMGAtomicLongArray array = entry.getValue();
+			for (int i = 0 ; i < array.length() ; i++) {
+				long l = array.get(i);
+				if (l > 0) {
+					Integer binNumber = (i == 0 ? 50000 : i * 1000000);
+					AtomicLong al = iSizeLengths.get(binNumber);
+					if (null == al) {
+						al = new AtomicLong();
+						AtomicLong existingAL = iSizeLengths.putIfAbsent(binNumber, al);
+						if (null != existingAL) {
+							al = existingAL;
+						}
+					}
+					al.addAndGet(l);
+					
+				}
+			}
+		}
+		return results;
 	}
 	
 	public static <T> void lengthMapToXml(Element parent, String elementName,

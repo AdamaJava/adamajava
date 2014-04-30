@@ -1,5 +1,5 @@
 /**
- * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ * �� Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
 /**
  * All source code distributed as part of the AdamaJava project is released
@@ -87,6 +87,12 @@ public class QProfiler {
 		
 		doc = domImpl.createDocument(null, "qProfiler", null);
 		root = doc.getDocumentElement();
+		
+		// Create new Summary object ready to hold our processing
+		QProfilerSummary sol = new QProfilerSummary();
+		sol.setStartTime(DateUtils.getCurrentDateAsString());
+		
+		
 		/*
 		 * First thing we should do is load XML report file if one is specified
 		 * and if it already exists. The behavior we want for XML is if a file
@@ -131,10 +137,6 @@ public class QProfiler {
 		
 		// if we have a failure, exit now rather than creating a skeleton output file
 		if (exitStatus == 1) return exitStatus;
-		
-		// Create new Summary object ready to hold our processing
-		QProfilerSummary sol = new QProfilerSummary();
-		sol.setStartTime(DateUtils.getCurrentDateAsString());
 		
 		root.setAttribute("start_time", sol.getStartTime());
 		root.setAttribute("run_by_user", System.getProperty("user.name"));

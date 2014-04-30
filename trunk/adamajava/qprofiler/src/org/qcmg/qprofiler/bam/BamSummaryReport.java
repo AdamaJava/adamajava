@@ -1,5 +1,5 @@
 /**
- * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ * �� Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
 /**
  * All source code distributed as part of the AdamaJava project is released
@@ -19,11 +19,13 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicLongArray;
 
 import net.sf.samtools.AlignmentBlock;
 import net.sf.samtools.Cigar;
 import net.sf.samtools.CigarElement;
 import net.sf.samtools.CigarOperator;
+import net.sf.samtools.SAMReadGroupRecord;
 import net.sf.samtools.SAMRecord;
 import net.sf.samtools.SAMSequenceDictionary;
 import net.sf.samtools.SAMTagUtil;
@@ -94,8 +96,12 @@ public class BamSummaryReport extends SummaryReport {
 	private final SummaryByCycle<Integer> zmSmMatrix = new SummaryByCycle<Integer>(128);
 
 //	private final ConcurrentMap<Integer, AtomicLong> iSizeLengths = new ConcurrentHashMap<Integer, AtomicLong>();
-	private final QCMGAtomicLongArray iSizeLengths10 = new QCMGAtomicLongArray(1024 * 16);
-	private final QCMGAtomicLongArray iSizeLengths1M = new QCMGAtomicLongArray(1024);
+//	private final QCMGAtomicLongArray iSizeLengths10 = new QCMGAtomicLongArray(1024 * 16);
+//	private final QCMGAtomicLongArray iSizeLengths1M = new QCMGAtomicLongArray(1024);
+	
+	private final ConcurrentMap<String, AtomicLongArray> iSizeByReadGroupMap = new ConcurrentHashMap<>();
+	private final ConcurrentMap<String, QCMGAtomicLongArray> iSizeByReadGroupMapBinned = new ConcurrentHashMap<>();
+	
 
 	private final QCMGAtomicLongArray MRNMLengths = new QCMGAtomicLongArray(mateRefNameMinusOne + 1);
 //	private final ConcurrentMap<String, AtomicLong> MRNMLengths = new ConcurrentHashMap<String, AtomicLong>(100);
@@ -314,7 +320,7 @@ public class BamSummaryReport extends SummaryReport {
 					cqBadReadLineLengths);
 			
 			//TAG-RG
-			SummaryReportUtils.lengthMapToXml(tagElement, "RG", tagRGLineLengths);
+			SummaryReportUtils.lengthMapToXml(tagElement, "RG", getTagRGLineLengths());
 			
 			//TAG-ZM
 			SummaryReportUtils.lengthMapToXml(tagElement, "ZM", tagZMLineLengths);
@@ -381,8 +387,18 @@ public class BamSummaryReport extends SummaryReport {
 			
 			// ISIZE
 			Element tagISizeElement = createSubElement(bamReportElement, "ISIZE");
-			SummaryReportUtils
-					.binnedLengthMapToRangeTallyXml(tagISizeElement, getISizeLengths());
+			ConcurrentMap<String, ConcurrentMap<Integer, AtomicLong>> iSizeByReadGroupCompleteMap = SummaryReportUtils.binIsize(1, iSizeByReadGroupMap, iSizeByReadGroupMapBinned);
+			
+			for (Entry<String, ConcurrentMap<Integer, AtomicLong>> entry : iSizeByReadGroupCompleteMap.entrySet()) {
+				// create new tag for this readgroup
+				Element rgElement = createSubElement(tagISizeElement, "RG:" + entry.getKey());
+				
+				SummaryReportUtils
+						.binnedLengthMapToRangeTallyXml(rgElement, entry.getValue());	
+				
+			}
+//			SummaryReportUtils
+//					.binnedLengthMapToRangeTallyXml(tagISizeElement, getISizeLengths());
 //			SummaryReportUtils
 //			.binnedLengthMapToRangeTallyXml(tagISizeElement, iSizeLengths10, iSizeLengths1M);
 			
@@ -528,7 +544,13 @@ public class BamSummaryReport extends SummaryReport {
 			SummaryReportUtils.tallyQualScores(qualBytes, qualBadReadLineLengths);
 			
 			// ISIZE
-			parseISize(record.getInferredInsertSize());
+			String readGroup = (String) record.getAttribute(RG);
+			if (null == readGroup) {
+				SAMReadGroupRecord srgr = record.getReadGroup();
+				if (null != srgr)
+					readGroup = record.getReadGroup().getReadGroupId();
+			}
+			parseISize(record.getInferredInsertSize(), readGroup);
 			// MRNM
 			final int mateRefNameIndex = record.getMateReferenceIndex();
 			if (mateRefNameIndex == -1) {
@@ -901,18 +923,42 @@ public class BamSummaryReport extends SummaryReport {
 	}
 	
 
-	void parseISize(final int iSize) {
+	void parseISize(final int iSize, String readGroup) {
+		if (null == readGroup) readGroup = "EMPTY"; 
 		// get absolute value
 		final int absISize = Math.abs(iSize);
 		
 		// bin in 10s until we hit the MAX_I_SIZE (50000), then in millions
-		int bucket = 0;
+//		int bucket = 0;
 		if (absISize < SummaryReportUtils.MAX_I_SIZE) {
-			bucket = (absISize / SummaryReportUtils.INITIAL_I_SIZE_BUCKET_SIZE)
-					* SummaryReportUtils.INITIAL_I_SIZE_BUCKET_SIZE;
+//			bucket = (absISize / SummaryReportUtils.INITIAL_I_SIZE_BUCKET_SIZE)
+//					* SummaryReportUtils.INITIAL_I_SIZE_BUCKET_SIZE;
 			
-			iSizeLengths10.increment(bucket);
+			AtomicLongArray readGroupArray = iSizeByReadGroupMap.get(readGroup);
+			if (null == readGroupArray) {
+				readGroupArray = new AtomicLongArray(SummaryReportUtils.MAX_I_SIZE);
+				AtomicLongArray existingArray = iSizeByReadGroupMap.putIfAbsent(readGroup, readGroupArray);
+				if (existingArray != null) {
+					readGroupArray = existingArray;
+				}
+			}
+
+			readGroupArray.incrementAndGet(absISize);
+			
+//			iSizeLengths10.increment(absISize);
+//			iSizeLengths10.increment(bucket);
 		} else {
+			
+			QCMGAtomicLongArray readGroupArray = iSizeByReadGroupMapBinned.get(readGroup);
+			if (null == readGroupArray) {
+				readGroupArray = new QCMGAtomicLongArray(1024);
+				QCMGAtomicLongArray existingArray = iSizeByReadGroupMapBinned.putIfAbsent(readGroup, readGroupArray);
+				if (existingArray != null) {
+					readGroupArray = existingArray;
+				}
+			}
+
+			readGroupArray.increment(absISize / SummaryReportUtils.FINAL_I_SIZE_BUCKET_SIZE);
 			//TODO check this out - not sure if we'll need to split this into 2 collections....
 			// bucket 50000 will contain values from 50000 - 1000000
 			// after that, it will be 10000000 - 1999999, 2000000 - 2999999, etc.
@@ -924,8 +970,8 @@ public class BamSummaryReport extends SummaryReport {
 //				* SummaryReportUtils.FINAL_I_SIZE_BUCKET_SIZE;
 //			}
 			
-			bucket = (absISize / SummaryReportUtils.FINAL_I_SIZE_BUCKET_SIZE);
-			iSizeLengths1M.increment(bucket);
+//			bucket = (absISize / SummaryReportUtils.FINAL_I_SIZE_BUCKET_SIZE);
+//			iSizeLengths1M.increment(absISize / SummaryReportUtils.FINAL_I_SIZE_BUCKET_SIZE);
 		}
 		
 //		Integer bucketInteger = Integer.valueOf(bucket);
@@ -962,22 +1008,80 @@ public class BamSummaryReport extends SummaryReport {
 	ConcurrentMap<Integer, AtomicLong> getISizeLengths() {
 		ConcurrentMap<Integer, AtomicLong> iSizeLengths = new ConcurrentHashMap<Integer, AtomicLong>();
 		
+		
+		for (Entry<String, AtomicLongArray> entry : iSizeByReadGroupMap.entrySet()) {
+			// ignore read group for now - just checking that we get same results as previously
+			// need to bin by 10 here
+			AtomicLongArray array = entry.getValue();
+			long longAdder = 0;
+			for (int i = 0 ; i < array.length() ; i++) {
+				longAdder +=array.get(i);
+				
+				if (i % 10 == 9 && longAdder > 0) {
+					// update map and reset longAdder
+					Integer binNumber = i  - 9;
+					AtomicLong al = iSizeLengths.get(binNumber);
+					if (null == al) {
+						al = new AtomicLong();
+						AtomicLong existingLong = iSizeLengths.putIfAbsent(binNumber, al);
+						if (null != existingLong) al = existingLong;
+					}
+					al.addAndGet(longAdder);
+					longAdder = 0;
+				}
+			}
+			// add last entry to map
+			if (longAdder > 0) {
+				Integer binNumber = array.length() + 1 / 10;
+				AtomicLong al = iSizeLengths.get(binNumber);
+				if (null == al) {
+					al = new AtomicLong();
+					AtomicLong existingLong = iSizeLengths.putIfAbsent(binNumber, al);
+					if (null != existingLong) al = existingLong;
+				}
+				al.addAndGet(longAdder);
+			}
+		}
+		
+		// now for the binned map
+		for (Entry<String, QCMGAtomicLongArray> entry : iSizeByReadGroupMapBinned.entrySet()) {
+			QCMGAtomicLongArray array = entry.getValue();
+			for (int i = 0 ; i < array.length() ; i++) {
+				long l = array.get(i);
+				if (l > 0) {
+					Integer binNumber = (i == 0 ? 50000 : i * 1000000);
+					AtomicLong al = iSizeLengths.get(binNumber);
+					if (null == al) {
+						al = new AtomicLong();
+						AtomicLong existingAL = iSizeLengths.putIfAbsent(binNumber, al);
+						if (null != existingAL) {
+							al = existingAL;
+						}
+					}
+					al.addAndGet(l);
+					
+				}
+			}
+		}
+		
+		
+		
 		// first add in the 10 binned array, then the 1M
-		for (int i = 0 ; i < iSizeLengths10.length() ; i++) {
-			long l = iSizeLengths10.get(i);
-			if (l > 0) {
-				iSizeLengths.put(i, new AtomicLong(l));
-			}
-		}
-		for (int i = 0 ; i < iSizeLengths1M.length() ; i++) {
-			long l = iSizeLengths1M.get(i);
-			if (l > 0) {
-				if (i == 0)
-					iSizeLengths.put(50000, new AtomicLong(l));
-				else
-					iSizeLengths.put(i * 1000000, new AtomicLong(l));
-			}
-		}
+//		for (int i = 0 ; i < iSizeLengths10.length() ; i++) {
+//			long l = iSizeLengths10.get(i);
+//			if (l > 0) {
+//				iSizeLengths.put(i, new AtomicLong(l));
+//			}
+//		}
+//		for (int i = 0 ; i < iSizeLengths1M.length() ; i++) {
+//			long l = iSizeLengths1M.get(i);
+//			if (l > 0) {
+//				if (i == 0)
+//					iSizeLengths.put(50000, new AtomicLong(l));
+//				else
+//					iSizeLengths.put(i * 1000000, new AtomicLong(l));
+//			}
+//		}
 		
 		return iSizeLengths;
 	}
@@ -999,7 +1103,38 @@ public class BamSummaryReport extends SummaryReport {
 	}
 
 	ConcurrentMap<String, AtomicLong> getTagRGLineLengths() {
+		
 		return tagRGLineLengths;
+//		ConcurrentMap<String, AtomicLong> tagRGLL = new ConcurrentHashMap<>();
+//		
+//		for (Entry<String, AtomicLongArray> entry : iSizeByReadGroupMap.entrySet()) {
+//			long rgTally = 0;
+//			AtomicLongArray array = entry.getValue();
+//			for (int i = 0, len = array.length() ; i < len ; i++) {
+//				rgTally += array.get(i);
+//			}
+//			
+//			tagRGLL.putIfAbsent(entry.getKey(), new AtomicLong(rgTally));
+//		}
+//		
+//		// and now for the binned collection
+//		for (Entry<String, QCMGAtomicLongArray> entry : iSizeByReadGroupMapBinned.entrySet()) {
+//			long rgTally = 0;
+//			QCMGAtomicLongArray array = entry.getValue();
+//			long len = array.length();
+//			for (int i = 0 ; i < len ; i++) {
+//				rgTally += array.get(i);
+//			}
+//			AtomicLong existingValue = tagRGLL.get(entry.getKey());
+//			// this should not be null
+//			if (null == existingValue) {
+//				existingValue = new AtomicLong();
+//				tagRGLL.putIfAbsent(entry.getKey(), existingValue);
+//			}
+//			existingValue.addAndGet(rgTally);
+//		}
+//		
+//		return tagRGLL;
 	}
 
 	QCMGAtomicLongArray  getTagZMLineLengths() {
