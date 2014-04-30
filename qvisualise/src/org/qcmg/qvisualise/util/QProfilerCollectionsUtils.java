@@ -1,5 +1,5 @@
 /**
- * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ * �� Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
 package org.qcmg.qvisualise.util;
 
@@ -9,11 +9,12 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.SortedMap;
 import java.util.Map.Entry;
+import java.util.SortedMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicLongArray;
 
 import org.qcmg.common.model.MAPQMiniMatrix;
 import org.qcmg.common.model.SummaryByCycle;
@@ -218,6 +219,14 @@ public class QProfilerCollectionsUtils {
 				
 			}
 		}
+	}
+	
+	public static AtomicLong tallyArrayValues(AtomicLongArray array) {
+		long l = 0;
+		for (int i = 0 , len = array.length() ; i < len ; i++) {
+			l += array.get(i);
+		}
+		return new AtomicLong(l);
 	}
 
 	/**

@@ -1,5 +1,5 @@
 /**
- * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ * �� Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
 package org.qcmg.qvisualise.report;
 
@@ -8,10 +8,11 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicLongArray;
 
 import org.qcmg.common.model.MAPQMiniMatrix;
 import org.qcmg.common.model.SummaryByCycle;
@@ -176,6 +177,59 @@ public class HTMLReportUtils {
 			}
 
 			sb.append("{v: " + entry.getValue().get() + "}]}");
+		}
+		
+		// end of rows
+		sb.append("]}, 0.6);");
+		
+		return sb.toString();
+	}
+	public static <T> String generateGoogleDataMultiSeries(
+			Map<T, AtomicLongArray> dataSet, String name, boolean isValueString, List<String> readGroupNames) {
+//		Map<Integer, Integer> dataSet, String name, boolean isValueString) {
+		int noOfReadGroups = readGroupNames.size();
+		StringBuilder sb = new StringBuilder("\nvar ");
+		
+		sb.append(name)
+		.append(" = new google.visualization.DataTable(\n{cols: [{id: 'value', label: 'value', type: '"
+				+ (isValueString ? "string" : "number") +"'}");
+		
+		int count = 0;
+		for (String s : readGroupNames) {
+			String label = s.substring(3);
+			sb.append(", {id: 'RG" + count++ + "', label: '" + label + "', type: 'number'}");
+		}
+		if (noOfReadGroups > 1) {
+			// add in a combined series
+			sb.append(", {id: 'combined', label: 'combined', type: 'number'}");
+		}
+		sb.append("], ");
+		
+		// now for the data
+		sb.append("\nrows: [");
+		
+		int i = 0;
+		for (Entry<T, AtomicLongArray> entry : dataSet.entrySet()) {
+			if (i++ > 0)
+				sb.append(",\n");
+			
+			sb.append("{c:[{v: ");
+			
+			if (isValueString) {
+				sb.append("'").append(entry.getKey()).append("'}, ");
+			} else {
+				sb.append(entry.getKey()).append("}, ");
+			}
+			long combinedTally = 0;
+			for (int j = 0 ; j < entry.getValue().length() ; j++) {
+				if (j > 0) sb.append(",");
+				sb.append("{v: " + entry.getValue().get(j) + "}");
+				combinedTally += entry.getValue().get(j);
+			}
+			if (noOfReadGroups > 1) {
+				sb.append(",{v: " + combinedTally + "}");
+			}
+			sb.append("]}");
 		}
 		
 		// end of rows
@@ -362,6 +416,11 @@ public class HTMLReportUtils {
 	
 	public static String generateGoogleScatterChart(String dataName, String chartTitle,
 			int width, int height, boolean logScale) {
+		return generateGoogleScatterChart(dataName, chartTitle, width, height, logScale, " 'none' ");
+	}
+	
+	public static String generateGoogleScatterChart(String dataName, String chartTitle,
+			int width, int height, boolean logScale, String legendText) {
 		
 		String chartName = dataName + "Chart";
 		
@@ -371,7 +430,7 @@ public class HTMLReportUtils {
 		
 		sb.append(", hAxis: {title: 'Value', titleColor: 'blue'}");
 		sb.append(", vAxis: {title: '" + (logScale ? "Log( Count )" : "Count") + "', titleColor: 'blue',logScale: " + logScale + "}");
-		sb.append(", legend: 'none'");
+		sb.append(", legend: ").append(legendText);
 		sb.append(", pointSize: 2, lineWidth: 1});");
 		
 		return sb.toString();
@@ -571,7 +630,8 @@ public class HTMLReportUtils {
 		.append(", title: '")
 		.append(chartTitle)
 		.append("'");
-		sb.append(", chartArea:{left:150,top:40,width:\"85%\",height:\"75%\"}");
+		sb.append(", chartArea:{left:150,top:40,width:\"75%\",height:\"75%\"}");
+//		sb.append(", chartArea:{left:150,top:40,width:\"85%\",height:\"75%\"}");
 	}
 	
 	public static String createStyleSheet() {

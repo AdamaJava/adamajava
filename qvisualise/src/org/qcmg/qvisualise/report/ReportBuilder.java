@@ -1,5 +1,5 @@
 /**
- * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ * �� Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
 package org.qcmg.qvisualise.report;
 
@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicLongArray;
 
 import org.qcmg.common.model.CigarStringComparator;
 import org.qcmg.common.model.MAPQMiniMatrix;
@@ -18,9 +19,11 @@ import org.qcmg.common.model.ProfileType;
 import org.qcmg.common.model.SummaryByCycle;
 import org.qcmg.qvisualise.ChartTab;
 import org.qcmg.qvisualise.Messages;
+import org.qcmg.qvisualise.QVisualiseException;
 import org.qcmg.qvisualise.util.CycleDetailUtils;
 import org.qcmg.qvisualise.util.QProfilerCollectionsUtils;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 public class ReportBuilder {
@@ -38,7 +41,7 @@ public class ReportBuilder {
 	private static final String LINE_LENGTH_DESCRIPTION = Messages.getMessage("LINE_LENGTH_DESCRIPTION");
 	private static final String TAG_MD_DESCRIPTION = Messages.getMessage("TAG_MD_DESCRIPTION");
 
-	public static Report buildReport(ProfileType type, Element reportElement, int reportNumberId) {
+	public static Report buildReport(ProfileType type, Element reportElement, int reportNumberId) throws QVisualiseException {
 		final String fileName = reportElement.getAttribute("file");
 		final String recordCount = reportElement.getAttribute("records_parsed");
 		final String duplicateRecordCount = reportElement.getAttribute("duplicate_records");
@@ -194,7 +197,7 @@ public class ReportBuilder {
 		report.addTab(generateTallyChartTab(mrnmElement, "MRNM", "m", HTMLReportUtils.BAR_CHART,  true));
 	}
 
-	private static void createISIZE(Element reportElement, Report report) {
+	private static void createISIZE(Element reportElement, Report report) throws QVisualiseException {
 		//ISIZE
 		final NodeList iSizeNL = reportElement.getElementsByTagName("ISIZE");
 		final Element iSizeElement = (Element) iSizeNL.item(0);
@@ -509,62 +512,159 @@ public class ReportBuilder {
 		return parentCT;
 	}
 	
-	private static ChartTab createISizeChartTab(Element element) {
+	private static ChartTab createISizeChartTab(Element element) throws QVisualiseException {
 		ChartTab parentCT = null;
 		String title = "iSize";
 		String id = "is" + reportID;
+		int idCounter = 1;
+		//get read group ids
+		NodeList childNodes = element.getChildNodes();
+		List<String> readGroups = new ArrayList<>();
+		for (int k = 0 ; k < childNodes.getLength() ; k++) {
+			Node n = childNodes.item(k);
+			if (n.getNodeName().startsWith("RG:")) {
+				readGroups.add(n.getNodeName());
+			}
+		}
+		int noOfReadGroups = readGroups.size();
+		System.out.println("we have " + noOfReadGroups + " read groups to display");
 		
-		final NodeList nl = element.getElementsByTagName("RangeTally");
-		final Element nameElement = (Element) nl.item(0);
+		if (noOfReadGroups == 0) {
+			throw new QVisualiseException("ISIZE_ERROR");
+		}
 		
-		final TreeMap<Integer, AtomicLong> map = (TreeMap<Integer, AtomicLong>) createRangeTallyMap(nameElement);
+		TreeMap<Integer, AtomicLongArray> arrayMap = new TreeMap<>();
 		
-		if ( ! map.isEmpty()) {
+		
+		int counter = 0;
+		for (String rg : readGroups) {
+			final NodeList nl = element.getElementsByTagName(rg);
+			final Element nameElement = (Element) nl.item(0);
+			final TreeMap<Integer, AtomicLong> map = (TreeMap<Integer, AtomicLong>) createRangeTallyMap(nameElement);
+			
+			// add map data to arrayMap
+			for (Entry<Integer, AtomicLong> entry : map.entrySet()) {
+				// get entry from arrayMap
+				AtomicLongArray ala = arrayMap.get(entry.getKey());
+				if (ala == null) {
+					ala = new AtomicLongArray(noOfReadGroups);
+					arrayMap.put(entry.getKey(), ala);
+				}
+				ala.addAndGet(counter, entry.getValue().get());
+			}
+			
+			counter++;
+		}
+		
+//		final NodeList nl = element.getElementsByTagName("RangeTally");
+//		final Element nameElement = (Element) nl.item(0);
+//		
+//		final TreeMap<Integer, AtomicLong> map = (TreeMap<Integer, AtomicLong>) createRangeTallyMap(nameElement);
+		
+		if ( ! arrayMap.isEmpty()) {
 		
 			// decide if we need to create 2 tabs
-			if (map.lastKey() > 5000) {
-				// split into 2 tabs
+			if (arrayMap.lastKey() > 1500) {
+				// split into 3 tabs
 				// create parent
 				parentCT = new ChartTab(title);
 				
-				// first tab shows 0 - 5000
-				final ChartTab ct1 = new ChartTab("0 to 5000", id+"1");
-				ct1.setData(HTMLReportUtils.generateGoogleData(
-						(map).subMap(0, true, 5000, false),
-						ct1.getName(), false));
-				ct1.setChartInfo(HTMLReportUtils.generateGoogleScatterChart(ct1.getName(),
-						title + ", 0 to 5000", 1200, MAX_REPORT_HEIGHT, true));
+				// add in the summary tab
+				String tabTitle = "0 to 1500" + (noOfReadGroups == 1 ? "" : " - Summary");
+				String longTitle = title + ", 0 to 1500, summed across all read groups";
+				final ChartTab ct1Sum = new ChartTab(tabTitle, (id + idCounter++));
 				
-				parentCT.addChild(ct1);
+				TreeMap<Integer, AtomicLong> summaryMap = new TreeMap<>();
+				for (Entry<Integer, AtomicLongArray> entry : arrayMap.entrySet()) {
+					summaryMap.put(entry.getKey(), QProfilerCollectionsUtils.tallyArrayValues(entry.getValue()));
+				}
+				ct1Sum.setData(HTMLReportUtils.generateGoogleData(
+						summaryMap.subMap(0, true, 1500, false),
+						ct1Sum.getName(), false));
+				ct1Sum.setChartInfo(HTMLReportUtils.generateGoogleScatterChart(ct1Sum.getName(),
+						longTitle, 1400, MAX_REPORT_HEIGHT, true));
+				
+				parentCT.addChild(ct1Sum);
+				
+				if (noOfReadGroups > 1) {	
+				
+					// first tab shows 0 - 1500
+					longTitle = title + ", 0 to 1500, split by read group";
+					final ChartTab ct1All = new ChartTab("0 to 1500 - All", (id + idCounter++));
+					ct1All.setData(HTMLReportUtils.generateGoogleDataMultiSeries(
+							(arrayMap).subMap(0, true, 1500, false),
+							ct1All.getName(), false, readGroups));
+					ct1All.setChartInfo(HTMLReportUtils.generateGoogleScatterChart(ct1All.getName(),
+							longTitle, 1400, MAX_REPORT_HEIGHT, true, "{position: 'right', textStyle: {color: 'blue', fontSize: 14}}, crosshair: {trigger: 'both'}"));
+					
+					parentCT.addChild(ct1All);
+				}
+				
+				// next tab shows 0 - 5000
+				tabTitle = "0 to 5000" + (noOfReadGroups == 1 ? "" : " - Summary");
+				longTitle = title + ", 0 to 5000, summed across all read groups";
+				final ChartTab ct2sum = new ChartTab(tabTitle, (id + idCounter++));
+				ct2sum.setData(HTMLReportUtils.generateGoogleData(
+						summaryMap.subMap(0, true, 5000, false),
+						ct2sum.getName(), false));
+				ct2sum.setChartInfo(HTMLReportUtils.generateGoogleScatterChart(ct2sum.getName(),
+						longTitle, 1400, MAX_REPORT_HEIGHT, true));
+				
+				parentCT.addChild(ct2sum);
+				
+				if (noOfReadGroups > 1) {	
+					
+					// tab shows 0 - 5000
+					longTitle = title + ", 0 to 5000, split by read group";
+					final ChartTab ct2All = new ChartTab("0 to 5000 - All", (id + idCounter++));
+					ct2All.setData(HTMLReportUtils.generateGoogleDataMultiSeries(
+							(arrayMap).subMap(0, true, 5000, false),
+							ct2All.getName(), false, readGroups));
+					ct2All.setChartInfo(HTMLReportUtils.generateGoogleScatterChart(ct2All.getName(),
+							longTitle, 1400, MAX_REPORT_HEIGHT, true, "{position: 'right', textStyle: {color: 'blue', fontSize: 14}}, crosshair: {trigger: 'both'}"));
+					
+					parentCT.addChild(ct2All);
+				}
+				
+				
+				// third tab shows 0 - 50000
+//				final ChartTab ct3 = new ChartTab("0 to 50000", (id + idCounter++));
+//				ct3.setData(HTMLReportUtils.generateGoogleDataMultiSeries(
+//						(arrayMap).subMap(0, true, 50000, false),
+//						ct3.getName(), false, readGroups));
+//				ct3.setChartInfo(HTMLReportUtils.generateGoogleScatterChart(ct3.getName(),
+//						title + ", 0 to 50000", 1400, MAX_REPORT_HEIGHT, true, "{position: 'right', textStyle: {color: 'blue', fontSize: 14}}, crosshair: {trigger: 'both'}"));
+//				
+//				parentCT.addChild(ct3);
 				
 				// second chart - bin first 50000 values by 100
 				
-				final Map<Integer, AtomicLong> subSetMap =  map.headMap(50000, true);
-				final Map<Integer, AtomicLong> binnedSubSetMap = new TreeMap<Integer, AtomicLong>();
-				
-				int tally = 0;
-				for (Entry<Integer, AtomicLong> entry : subSetMap.entrySet()) {
-					tally += entry.getValue().get();
-					if ((entry.getKey() + 5) % 100 == 0) {
-						binnedSubSetMap.put((entry.getKey() + 5) - 50, new AtomicLong(tally));
-						tally = 0;
-					} 
-				}
-				
-				final ChartTab ct2 = new ChartTab("0 to 50000, binned by 100", id+"2");
-				ct2.setData(HTMLReportUtils.generateGoogleData(
-						binnedSubSetMap, ct2.getName(), false));
-				ct2.setChartInfo(HTMLReportUtils.generateGoogleScatterChart(ct2.getName(),
-						title + ", 0 to 50000, binned by 100", 1200, MAX_REPORT_HEIGHT, true));
-				
-				parentCT.addChild(ct2);
+//				final Map<Integer, AtomicLongArray> subSetMap =  arrayMap.headMap(50000, true);
+//				final Map<Integer, AtomicLongArray> binnedSubSetMap = new TreeMap<Integer, AtomicLongArray>();
+//				
+//				int tally = 0;
+//				for (Entry<Integer, AtomicLongArray> entry : subSetMap.entrySet()) {
+//					tally += entry.getValue().get(i)get();
+//					if ((entry.getKey() + 5) % 100 == 0) {
+//						binnedSubSetMap.put((entry.getKey() + 5) - 50, new AtomicLong(tally));
+//						tally = 0;
+//					} 
+//				}
+//				
+//				final ChartTab ct2 = new ChartTab("0 to 50000, binned by 100", id+"2");
+//				ct2.setData(HTMLReportUtils.generateGoogleDataMultiSeries(
+//						binnedSubSetMap, ct2.getName(), false));
+//				ct2.setChartInfo(HTMLReportUtils.generateGoogleScatterChart(ct2.getName(),
+//						title + ", 0 to 50000, binned by 100", 1200, MAX_REPORT_HEIGHT, true));
+//				
+//				parentCT.addChild(ct2);
 				
 			} else {
 				// no need for sub tabs
 				parentCT = new ChartTab(title, id);
-				parentCT.setData(HTMLReportUtils.generateGoogleData(
-						map,
-						parentCT.getName(), false));
+				parentCT.setData(HTMLReportUtils.generateGoogleDataMultiSeries(
+						arrayMap,
+						parentCT.getName(), false, readGroups));
 				parentCT.setChartInfo(HTMLReportUtils.generateGoogleScatterChart(parentCT.getName(),
 						title, 1200, 940, true));
 			}
