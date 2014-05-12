@@ -522,7 +522,7 @@ public class ReportBuilder {
 		List<String> readGroups = new ArrayList<>();
 		for (int k = 0 ; k < childNodes.getLength() ; k++) {
 			Node n = childNodes.item(k);
-			if (n.getNodeName().startsWith("RG:")) {
+			if (n.getNodeName().startsWith("RG_")) {
 				readGroups.add(n.getNodeName());
 			}
 		}
