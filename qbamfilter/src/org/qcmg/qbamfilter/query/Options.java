@@ -98,6 +98,10 @@ public class Options {
         }
         
         //check IO
+        if ( ! options.has("i") || ! options.has("o") || ! options.has("q")) {
+             System.out.println(Messages.USAGE);
+             return;
+        }
         inputFileName = options.valueOf("i").toString();      	 
         outputFileName = options.valueOf("o").toString();      
         if( !checkFiles(inputFileName, outputFileName) ) return;
