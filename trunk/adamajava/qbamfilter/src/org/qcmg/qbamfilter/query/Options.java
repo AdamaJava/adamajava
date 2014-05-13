@@ -1,5 +1,5 @@
 /**
- * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ * �� Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
 package org.qcmg.qbamfilter.query;
 
@@ -35,7 +35,7 @@ public class Options {
     private String query = "";
 
     private final OptionParser parser = new OptionParser();
-    private final OptionSet options;
+    private  OptionSet options;
 
     private String outputFileName = null;
     private String inputFileName = null;
@@ -61,6 +61,13 @@ public class Options {
      * check command line and store arguments and option information
      */
     public Options(final String[] args) throws Exception{ 
+    	
+    	if (null == args || args.length == 0) {
+               parser.printHelpOn(System.err);
+               System.out.println();
+               System.out.println(Messages.USAGE);
+               return;
+    	}
 
         parser.acceptsAll( asList("h", "help"), HELP_DESCRIPTION);
         parser.acceptsAll( asList("v", "version"), VERSION_DESCRIPTION);
