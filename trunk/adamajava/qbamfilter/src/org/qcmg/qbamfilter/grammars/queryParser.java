@@ -1,7 +1,4 @@
-/**
- * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
- */
-// $ANTLR 3.4 /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryParser.g 2013-10-18 16:24:51
+// $ANTLR 3.4 /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryParser.g 2014-05-14 11:57:55
 
     package org.qcmg.qbamfilter.grammars;
     import java.util.HashMap;
@@ -60,7 +57,7 @@ public TreeAdaptor getTreeAdaptor() {
     return adaptor;
 }
     public String[] getTokenNames() { return queryParser.tokenNames; }
-    public String getGrammarFileName() { return "/Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryParser.g"; }
+    public String getGrammarFileName() { return "/Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryParser.g"; }
 
 
       @Override
@@ -76,7 +73,7 @@ public TreeAdaptor getTreeAdaptor() {
 
 
     // $ANTLR start "script"
-    // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryParser.g:23:1: script : ( condition | atom );
+    // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryParser.g:23:1: script : ( condition | atom );
     public final queryParser.script_return script() throws RecognitionException {
         queryParser.script_return retval = new queryParser.script_return();
         retval.start = input.LT(1);
@@ -91,7 +88,7 @@ public TreeAdaptor getTreeAdaptor() {
 
 
         try {
-            // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryParser.g:23:7: ( condition | atom )
+            // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryParser.g:23:7: ( condition | atom )
             int alt1=2;
             int LA1_0 = input.LA(1);
 
@@ -110,7 +107,7 @@ public TreeAdaptor getTreeAdaptor() {
             }
             switch (alt1) {
                 case 1 :
-                    // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryParser.g:23:9: condition
+                    // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryParser.g:23:9: condition
                     {
                     root_0 = (Object)adaptor.nil();
 
@@ -125,7 +122,7 @@ public TreeAdaptor getTreeAdaptor() {
                     }
                     break;
                 case 2 :
-                    //  /qbamfilter/src/org/qcmg/qbamfilter/grammars/queryParser.g:23:22: atom
+                    // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryParser.g:23:22: atom
                     {
                     root_0 = (Object)adaptor.nil();
 
@@ -170,7 +167,7 @@ public TreeAdaptor getTreeAdaptor() {
 
 
     // $ANTLR start "atom"
-    // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryParser.g:26:1: atom : program ^ LEFT_PAREN ! expression ( COMMA ! expression )+ RIGHT_PAREN !;
+    // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryParser.g:26:1: atom : program ^ LEFT_PAREN ! expression ( COMMA ! expression )+ RIGHT_PAREN !;
     public final queryParser.atom_return atom() throws RecognitionException {
         queryParser.atom_return retval = new queryParser.atom_return();
         retval.start = input.LT(1);
@@ -193,8 +190,8 @@ public TreeAdaptor getTreeAdaptor() {
         Object RIGHT_PAREN8_tree=null;
 
         try {
-            // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryParser.g:26:5: ( program ^ LEFT_PAREN ! expression ( COMMA ! expression )+ RIGHT_PAREN !)
-            // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryParser.g:27:5: program ^ LEFT_PAREN ! expression ( COMMA ! expression )+ RIGHT_PAREN !
+            // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryParser.g:26:5: ( program ^ LEFT_PAREN ! expression ( COMMA ! expression )+ RIGHT_PAREN !)
+            // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryParser.g:27:5: program ^ LEFT_PAREN ! expression ( COMMA ! expression )+ RIGHT_PAREN !
             {
             root_0 = (Object)adaptor.nil();
 
@@ -215,7 +212,7 @@ public TreeAdaptor getTreeAdaptor() {
 
             adaptor.addChild(root_0, expression5.getTree());
 
-            // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryParser.g:27:38: ( COMMA ! expression )+
+            // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryParser.g:27:38: ( COMMA ! expression )+
             int cnt2=0;
             loop2:
             do {
@@ -229,7 +226,7 @@ public TreeAdaptor getTreeAdaptor() {
 
                 switch (alt2) {
             	case 1 :
-            	    // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryParser.g:27:39: COMMA ! expression
+            	    // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryParser.g:27:39: COMMA ! expression
             	    {
             	    COMMA6=(Token)match(input,COMMA,FOLLOW_COMMA_in_atom80); 
 
@@ -286,7 +283,7 @@ public TreeAdaptor getTreeAdaptor() {
 
 
     // $ANTLR start "expression"
-    // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryParser.g:29:1: expression : ( condition | atom );
+    // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryParser.g:29:1: expression : ( condition | atom );
     public final queryParser.expression_return expression() throws RecognitionException {
         queryParser.expression_return retval = new queryParser.expression_return();
         retval.start = input.LT(1);
@@ -301,7 +298,7 @@ public TreeAdaptor getTreeAdaptor() {
 
 
         try {
-            // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryParser.g:30:5: ( condition | atom )
+            // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryParser.g:30:5: ( condition | atom )
             int alt3=2;
             int LA3_0 = input.LA(1);
 
@@ -320,7 +317,7 @@ public TreeAdaptor getTreeAdaptor() {
             }
             switch (alt3) {
                 case 1 :
-                    // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryParser.g:30:8: condition
+                    // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryParser.g:30:8: condition
                     {
                     root_0 = (Object)adaptor.nil();
 
@@ -335,7 +332,7 @@ public TreeAdaptor getTreeAdaptor() {
                     }
                     break;
                 case 2 :
-                    // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryParser.g:30:22: atom
+                    // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryParser.g:30:22: atom
                     {
                     root_0 = (Object)adaptor.nil();
 
@@ -380,7 +377,7 @@ public TreeAdaptor getTreeAdaptor() {
 
 
     // $ANTLR start "program"
-    // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryParser.g:32:1: program : ( OR | AND );
+    // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryParser.g:32:1: program : ( OR | AND );
     public final queryParser.program_return program() throws RecognitionException {
         queryParser.program_return retval = new queryParser.program_return();
         retval.start = input.LT(1);
@@ -393,8 +390,8 @@ public TreeAdaptor getTreeAdaptor() {
         Object set11_tree=null;
 
         try {
-            // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryParser.g:32:8: ( OR | AND )
-            // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryParser.g:
+            // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryParser.g:32:8: ( OR | AND )
+            // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryParser.g:
             {
             root_0 = (Object)adaptor.nil();
 
@@ -445,7 +442,7 @@ public TreeAdaptor getTreeAdaptor() {
 
 
     // $ANTLR start "condition"
-    // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryParser.g:34:1: condition : TAG COMPARE value -> ^( CONDITION TAG COMPARE value ) ;
+    // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryParser.g:34:1: condition : TAG COMPARE value -> ^( CONDITION TAG COMPARE value ) ;
     public final queryParser.condition_return condition() throws RecognitionException {
         queryParser.condition_return retval = new queryParser.condition_return();
         retval.start = input.LT(1);
@@ -464,8 +461,8 @@ public TreeAdaptor getTreeAdaptor() {
         RewriteRuleTokenStream stream_TAG=new RewriteRuleTokenStream(adaptor,"token TAG");
         RewriteRuleSubtreeStream stream_value=new RewriteRuleSubtreeStream(adaptor,"rule value");
         try {
-            // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryParser.g:35:5: ( TAG COMPARE value -> ^( CONDITION TAG COMPARE value ) )
-            // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryParser.g:35:7: TAG COMPARE value
+            // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryParser.g:35:5: ( TAG COMPARE value -> ^( CONDITION TAG COMPARE value ) )
+            // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryParser.g:35:7: TAG COMPARE value
             {
             TAG12=(Token)match(input,TAG,FOLLOW_TAG_in_condition132);  
             stream_TAG.add(TAG12);
@@ -483,7 +480,7 @@ public TreeAdaptor getTreeAdaptor() {
             stream_value.add(value14.getTree());
 
             // AST REWRITE
-            // elements: value, COMPARE, TAG
+            // elements: TAG, COMPARE, value
             // token labels: 
             // rule labels: retval
             // token list labels: 
@@ -495,7 +492,7 @@ public TreeAdaptor getTreeAdaptor() {
             root_0 = (Object)adaptor.nil();
             // 36:5: -> ^( CONDITION TAG COMPARE value )
             {
-                // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryParser.g:36:8: ^( CONDITION TAG COMPARE value )
+                // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryParser.g:36:8: ^( CONDITION TAG COMPARE value )
                 {
                 Object root_1 = (Object)adaptor.nil();
                 root_1 = (Object)adaptor.becomeRoot(
@@ -551,7 +548,7 @@ public TreeAdaptor getTreeAdaptor() {
 
 
     // $ANTLR start "value"
-    // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryParser.g:38:2: value : ( TAG | VALUE );
+    // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryParser.g:38:2: value : ( TAG | VALUE );
     public final queryParser.value_return value() throws RecognitionException {
         queryParser.value_return retval = new queryParser.value_return();
         retval.start = input.LT(1);
@@ -564,8 +561,8 @@ public TreeAdaptor getTreeAdaptor() {
         Object set15_tree=null;
 
         try {
-            // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryParser.g:38:7: ( TAG | VALUE )
-            // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryParser.g:
+            // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryParser.g:38:7: ( TAG | VALUE )
+            // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryParser.g:
             {
             root_0 = (Object)adaptor.nil();
 

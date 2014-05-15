@@ -1,5 +1,5 @@
 /**
- * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ * Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
 package org.qcmg.qbamfilter.filter;
 
@@ -14,7 +14,7 @@ package org.qcmg.qbamfilter.filter;
  * @author q.xu
  */
 public enum Comparator {
-        GreatEqual, SmallEqual, Equal, Great, Small, NotEqual;
+        GreatEqual, SmallEqual, Equal, Great, Small, NotEqual,StartWith, EndWith, Contain, NotStartWith, NotEndWith,NotContain;
         
         /**
          * @param v1
@@ -37,11 +37,18 @@ public enum Comparator {
                 case Small: return Integer.valueOf(v1) < Integer.valueOf(v2);
                 case Equal: return v1.equalsIgnoreCase(v2);
                 case NotEqual: return !(v1.equalsIgnoreCase(v2));
+                case StartWith: return v1.toLowerCase().startsWith(v2.toLowerCase());
+                case NotStartWith: return !v1.toLowerCase().startsWith(v2.toLowerCase());
+                case EndWith: return v1.toLowerCase().endsWith(v2.toLowerCase());
+                case NotEndWith: return ! v1.toLowerCase().endsWith(v2.toLowerCase());
+                case Contain: return  v1.toLowerCase().contains(v2.toLowerCase());
+                case NotContain: return  !v1.toLowerCase().contains(v2.toLowerCase());
             }
 
             throw new AssertionError("Unknow comparator mark:" + this);
         }
 
+ 
         /**
          *
          * @param v1: an integer
@@ -104,17 +111,60 @@ public enum Comparator {
          * @return one of the six Comparators based onthe parameter string comp
          * @throws Exception if the parameter comp is not valid.
          */
-        public static final Comparator GetComparator(String comp) throws Exception{
+        public static final Comparator GetComparator(String comp, String value) {
+	
            if(comp.equals(">=")){ return GreatEqual;}
            else if( comp.equals("<=")){return SmallEqual; }
            else if( comp.equals(">")){return Great; }
            else if( comp.equals("<")){return Small; }
            else if( comp.equals("==")){return Equal;  }
            else if( comp.equals("!=")){return NotEqual;}
-           else{
-                throw new Exception("Unknow comparator mark:" + comp);
-            }
+           else if( comp.equals("=~") || comp.equals("!~")){
+         	   return GetWildCaseComparator(comp, value);}
+           else return null;
+            
         }
+        
+        /**
+         * Here we treat '*' in value String as wildcase
+         * @param comp must be '=~' or '!~'
+         * @param value: String contain single or non '*' 
+         * @return
+         * @throws Exception unless the single '*' appear at the begin or end of value string 
+         */
+        public static Comparator GetWildCaseComparator(String comp, String value) {
+        	String subStr = GetWildCaseValue(value);
+        	
+        	if( !comp.equals("=~") && !comp.equals("!~")  )
+        		return null;
+        	
+//        	System.out.println( String.format("GetWildCaseComparator( String %s, String %s  )", comp, value)  );
+
+        	//only allow single or none '*' 
+        	if( value.contains("*")  &&  subStr.length() != (value.length() - 1)  )
+        		return null;
+
+
+        	
+        	if(value.startsWith("*"))	
+        		return comp.equals("=~")? EndWith: NotEndWith;
+        	else if(value.endsWith("*")){
+        		return comp.equals("=~")? StartWith: NotStartWith; 
+        	}else if( ! value.contains("*")){
+        		return comp.equals("=~")? Contain: NotContain; 
+        	} 
+        	
+        	return null;
+        }        
+     
+        
+        public static String GetWildCaseValue(String value) {
+        	//remove all '*'
+        	return value.replace("*", ""); 
+        	
+    
+        }       
+        
         /**
          * @return comparator string. eg.
          * return ">=" for Comparator.GreatEqual.GetString().
