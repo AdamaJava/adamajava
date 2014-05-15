@@ -8,6 +8,8 @@ import org.junit.*;
 import static org.junit.Assert.*;
 
 import net.sf.picard.filter.SamRecordFilter;
+
+import org.qcmg.qbamfilter.filter.Comparator;
 import org.qcmg.qbamfilter.filter.TestFile;
 
 public class ConditionTest {
@@ -34,6 +36,30 @@ public class ConditionTest {
         //test on wrong operator
         String op = "=";
         new Condition(para, op, value).getFilter();
+    }
+    
+    
+    ///??????????debuging
+    @Test
+    public void testWildCase() throws Exception{ 
+    	String[] Operators = {"=~", "!~" };
+    	String[] Values = {"chr*", "*11", "chr1"};
+    	
+    	final String RNAME = "RNAME";
+    	final String MRNM = "MRNM";
+    	
+    	//5 reads "RNAME =~ chr*"; 1 read "RNAME =~ chr11"; 4 reads "RNAME !~ chr11"    	
+    	 SamRecordFilter filter1 = new Condition(RNAME, Operators[0], Values[0]).getFilter();  
+    	 SamRecordFilter filter2 = new Condition(RNAME, Operators[0], Values[2]).getFilter();
+    	 SamRecordFilter filter3 = new Condition(RNAME, Operators[1], Values[2]).getFilter(); 
+    	 assertTrue( check(filter1) == check(filter2) + check(filter3));   
+    	 
+    	 filter1 = new Condition(MRNM, Operators[1], Values[0]).getFilter();  
+    	 filter2 = new Condition(MRNM, Operators[1], Values[2]).getFilter();
+    	 assertTrue( check(filter1) == check(filter2)  );   
+
+    	 
+    
     }
     
     @Test

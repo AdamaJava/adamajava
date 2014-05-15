@@ -1,4 +1,4 @@
-version = '1.0pre'
+version = '1.1pre'
 
 mainclass = 'org.qcmg.qbamfilter.query.Query'
 scriptname = 'qbamfilter'

@@ -1,5 +1,5 @@
 /**
- * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ *  Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
 package org.qcmg.qbamfilter.filter;
 import net.sf.picard.filter.SamRecordFilter;
@@ -20,12 +20,12 @@ public class RNameFilter implements SamRecordFilter{
     public RNameFilter(Comparator comp, String value )throws Exception{
         
         this.value =  value;
-        if((comp == Comparator.Equal) ||(comp == Comparator.NotEqual)){
-            op = comp;
-        }
-        else{
-            throw new Exception("invalid comparator symbols used for RNAME filter: " + comp.GetString());
-        }
+        
+        if( comp == Comparator.Great  || comp == Comparator.Small 
+        		|| comp ==Comparator.SmallEqual || comp == Comparator.GreatEqual )
+        	throw new Exception("invalid comparator symbols used for RNAME filter: " + comp.GetString());
+        
+        this.op = comp;
     }
 
    /**

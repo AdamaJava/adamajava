@@ -1,7 +1,4 @@
-/**
- * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
- */
-// $ANTLR 3.4 /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryTree.g 2013-10-18 16:08:53
+// $ANTLR 3.4 /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryTree.g 2014-05-14 11:58:13
  
     package org.qcmg.qbamfilter.grammars;
     import net.sf.samtools.SAMRecord;
@@ -62,7 +59,7 @@ public TreeAdaptor getTreeAdaptor() {
     return adaptor;
 }
     public String[] getTokenNames() { return queryTree.tokenNames; }
-    public String getGrammarFileName() { return "/Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryTree.g"; }
+    public String getGrammarFileName() { return "/Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryTree.g"; }
 
 
         public static enum Operator{ OR, AND,NULL;  }
@@ -86,7 +83,7 @@ public TreeAdaptor getTreeAdaptor() {
 
 
     // $ANTLR start "script"
-    // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryTree.g:25:1: script returns [SamRecordFilter exp] : ( condition | atom[$script::expression] );
+    // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryTree.g:25:1: script returns [SamRecordFilter exp] : ( condition | atom[$script::expression] );
     public final queryTree.script_return script() throws RecognitionException {
         script_stack.push(new script_scope());
         queryTree.script_return retval = new queryTree.script_return();
@@ -106,7 +103,7 @@ public TreeAdaptor getTreeAdaptor() {
 
         ((script_scope)script_stack.peek()).expression = new Expression();
         try {
-            // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryTree.g:29:2: ( condition | atom[$script::expression] )
+            // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryTree.g:29:2: ( condition | atom[$script::expression] )
             int alt1=2;
             int LA1_0 = input.LA(1);
 
@@ -125,7 +122,7 @@ public TreeAdaptor getTreeAdaptor() {
             }
             switch (alt1) {
                 case 1 :
-                    // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryTree.g:29:2: condition
+                    // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryTree.g:29:2: condition
                     {
                     root_0 = (CommonTree)adaptor.nil();
 
@@ -148,7 +145,7 @@ public TreeAdaptor getTreeAdaptor() {
                     }
                     break;
                 case 2 :
-                    // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryTree.g:34:3: atom[$script::expression]
+                    // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryTree.g:34:3: atom[$script::expression]
                     {
                     root_0 = (CommonTree)adaptor.nil();
 
@@ -201,7 +198,7 @@ public TreeAdaptor getTreeAdaptor() {
 
 
     // $ANTLR start "atom"
-    // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryTree.g:39:1: atom[Expression headNode] : ^( program[$atom::expression] expression[$atom::expression] ( expression[$atom::expression] )+ ) ;
+    // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryTree.g:39:1: atom[Expression headNode] : ^( program[$atom::expression] expression[$atom::expression] ( expression[$atom::expression] )+ ) ;
     public final queryTree.atom_return atom(Expression headNode) throws RecognitionException {
         atom_stack.push(new atom_scope());
         queryTree.atom_return retval = new queryTree.atom_return();
@@ -223,8 +220,8 @@ public TreeAdaptor getTreeAdaptor() {
 
         ((atom_scope)atom_stack.peek()).expression = new Expression();
         try {
-            // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryTree.g:42:2: ( ^( program[$atom::expression] expression[$atom::expression] ( expression[$atom::expression] )+ ) )
-            // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryTree.g:42:2: ^( program[$atom::expression] expression[$atom::expression] ( expression[$atom::expression] )+ )
+            // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryTree.g:42:2: ( ^( program[$atom::expression] expression[$atom::expression] ( expression[$atom::expression] )+ ) )
+            // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryTree.g:42:2: ^( program[$atom::expression] expression[$atom::expression] ( expression[$atom::expression] )+ )
             {
             root_0 = (CommonTree)adaptor.nil();
 
@@ -253,7 +250,7 @@ public TreeAdaptor getTreeAdaptor() {
             adaptor.addChild(root_1, expression4.getTree());
 
 
-            // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryTree.g:42:63: ( expression[$atom::expression] )+
+            // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryTree.g:42:63: ( expression[$atom::expression] )+
             int cnt2=0;
             loop2:
             do {
@@ -267,7 +264,7 @@ public TreeAdaptor getTreeAdaptor() {
 
                 switch (alt2) {
             	case 1 :
-            	    // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryTree.g:42:65: expression[$atom::expression]
+            	    // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryTree.g:42:65: expression[$atom::expression]
             	    {
             	    _last = (CommonTree)input.LT(1);
             	    pushFollow(FOLLOW_expression_in_atom104);
@@ -328,7 +325,7 @@ public TreeAdaptor getTreeAdaptor() {
 
 
     // $ANTLR start "expression"
-    // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryTree.g:47:1: expression[Expression headNode] : ( condition | atom[$headNode] );
+    // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryTree.g:47:1: expression[Expression headNode] : ( condition | atom[$headNode] );
     public final queryTree.expression_return expression(Expression headNode) throws RecognitionException {
         queryTree.expression_return retval = new queryTree.expression_return();
         retval.start = input.LT(1);
@@ -346,7 +343,7 @@ public TreeAdaptor getTreeAdaptor() {
 
 
         try {
-            // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryTree.g:48:3: ( condition | atom[$headNode] )
+            // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryTree.g:48:3: ( condition | atom[$headNode] )
             int alt3=2;
             int LA3_0 = input.LA(1);
 
@@ -365,7 +362,7 @@ public TreeAdaptor getTreeAdaptor() {
             }
             switch (alt3) {
                 case 1 :
-                    // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryTree.g:48:6: condition
+                    // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryTree.g:48:6: condition
                     {
                     root_0 = (CommonTree)adaptor.nil();
 
@@ -387,7 +384,7 @@ public TreeAdaptor getTreeAdaptor() {
                     }
                     break;
                 case 2 :
-                    // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryTree.g:52:3: atom[$headNode]
+                    // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryTree.g:52:3: atom[$headNode]
                     {
                     root_0 = (CommonTree)adaptor.nil();
 
@@ -432,7 +429,7 @@ public TreeAdaptor getTreeAdaptor() {
 
 
     // $ANTLR start "program"
-    // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryTree.g:57:1: program[Expression headNode] : ( OR | AND );
+    // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryTree.g:57:1: program[Expression headNode] : ( OR | AND );
     public final queryTree.program_return program(Expression headNode) throws RecognitionException {
         queryTree.program_return retval = new queryTree.program_return();
         retval.start = input.LT(1);
@@ -450,7 +447,7 @@ public TreeAdaptor getTreeAdaptor() {
         CommonTree AND9_tree=null;
 
         try {
-            // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryTree.g:58:3: ( OR | AND )
+            // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryTree.g:58:3: ( OR | AND )
             int alt4=2;
             int LA4_0 = input.LA(1);
 
@@ -469,7 +466,7 @@ public TreeAdaptor getTreeAdaptor() {
             }
             switch (alt4) {
                 case 1 :
-                    // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryTree.g:58:3: OR
+                    // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryTree.g:58:3: OR
                     {
                     root_0 = (CommonTree)adaptor.nil();
 
@@ -490,7 +487,7 @@ public TreeAdaptor getTreeAdaptor() {
                     }
                     break;
                 case 2 :
-                    // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryTree.g:62:3: AND
+                    // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryTree.g:62:3: AND
                     {
                     root_0 = (CommonTree)adaptor.nil();
 
@@ -536,7 +533,7 @@ public TreeAdaptor getTreeAdaptor() {
 
 
     // $ANTLR start "condition"
-    // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryTree.g:69:1: condition returns [ SamRecordFilter con] : ^( CONDITION id= TAG comp= COMPARE v= value ) ;
+    // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryTree.g:69:1: condition returns [ SamRecordFilter con] : ^( CONDITION id= TAG comp= COMPARE v= value ) ;
     public final queryTree.condition_return condition() throws RecognitionException {
         queryTree.condition_return retval = new queryTree.condition_return();
         retval.start = input.LT(1);
@@ -558,8 +555,8 @@ public TreeAdaptor getTreeAdaptor() {
         CommonTree CONDITION10_tree=null;
 
         try {
-            // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryTree.g:71:2: ( ^( CONDITION id= TAG comp= COMPARE v= value ) )
-            // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryTree.g:71:2: ^( CONDITION id= TAG comp= COMPARE v= value )
+            // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryTree.g:71:2: ( ^( CONDITION id= TAG comp= COMPARE v= value ) )
+            // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryTree.g:71:2: ^( CONDITION id= TAG comp= COMPARE v= value )
             {
             root_0 = (CommonTree)adaptor.nil();
 
@@ -647,7 +644,7 @@ public TreeAdaptor getTreeAdaptor() {
 
 
     // $ANTLR start "value"
-    // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryTree.g:83:1: value returns [String result] : (t= TAG |v= VALUE );
+    // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryTree.g:83:1: value returns [String result] : (t= TAG |v= VALUE );
     public final queryTree.value_return value() throws RecognitionException {
         queryTree.value_return retval = new queryTree.value_return();
         retval.start = input.LT(1);
@@ -665,7 +662,7 @@ public TreeAdaptor getTreeAdaptor() {
         CommonTree v_tree=null;
 
         try {
-            // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryTree.g:84:2: (t= TAG |v= VALUE )
+            // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryTree.g:84:2: (t= TAG |v= VALUE )
             int alt5=2;
             int LA5_0 = input.LA(1);
 
@@ -684,7 +681,7 @@ public TreeAdaptor getTreeAdaptor() {
             }
             switch (alt5) {
                 case 1 :
-                    // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryTree.g:84:4: t= TAG
+                    // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryTree.g:84:4: t= TAG
                     {
                     root_0 = (CommonTree)adaptor.nil();
 
@@ -702,7 +699,7 @@ public TreeAdaptor getTreeAdaptor() {
                     }
                     break;
                 case 2 :
-                    // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryTree.g:85:4: v= VALUE
+                    // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryTree.g:85:4: v= VALUE
                     {
                     root_0 = (CommonTree)adaptor.nil();
 

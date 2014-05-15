@@ -1,5 +1,5 @@
 /**
- * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ *  Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
 package org.qcmg.qbamfilter.filter;
 
@@ -28,7 +28,7 @@ public class MDFilter implements SamRecordFilter{
         try{
             this.value = Integer.valueOf(value);
         }catch(Exception e){
-            throw new Exception("non integer value used in DM field filter: DM_" +operatorName + comp.GetString() + value);
+            throw new Exception("non integer value used in DM field filter: MD_" +operatorName + comp.GetString() + value);
         }
         op = comp;
         if(operatorName.equalsIgnoreCase("mismatch")){

@@ -1,5 +1,5 @@
 /**
- * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ *  Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
 package org.qcmg.qbamfilter.grammars;
 
@@ -36,17 +36,29 @@ public class Condition {
     
 	private final String key;
 	private final String value;
-	private final String comp;    
+	private final String comp; 
+	private final Comparator op;
 
     /**
      * @param key: This constructor will select related filter based on this string parameter
      * @param comp: This constructor will select related Comparator Type based on this parameter
      * @param value: pass this String value to selected filter;
      */
-    Condition(String key, String comp, String value){
+    Condition(String key, String comp, String value) throws Exception{
 		this.key = key;
-		this.value = value;
+
 		this.comp = comp;
+		 
+		if(Comparator.GetWildCaseComparator(comp, value) != null)
+			this.value = Comparator.GetWildCaseValue(value);
+		else
+			this.value = value;
+		
+		op = Comparator.GetComparator(comp, value);
+		
+		if(op == null)
+			throw new Exception(String.format("invalide condition in query: %s %s %s ", key, comp, value));
+
     }
     
 	@Override
@@ -102,9 +114,6 @@ public class Condition {
 	 * @throws Exception
 	 */
 	public SamRecordFilter getFilter() throws Exception {
-		 
-			Comparator op = Comparator.GetComparator(comp);		
-			 
         	int underscorePosition = key.indexOf("_");
         	String firstElement = null;
         	String secondElement = null;
@@ -113,8 +122,7 @@ public class Condition {
             } else {
         		firstElement = key.substring(0, underscorePosition);
         		secondElement = key.substring(underscorePosition+1);
-        	}
-            if(firstElement.equalsIgnoreCase(OPTION)){
+        	} if(firstElement.equalsIgnoreCase(OPTION)){
                return  new TagValueFilter(secondElement, op, value );
             }
             else if(firstElement.equalsIgnoreCase(MAPQ)){

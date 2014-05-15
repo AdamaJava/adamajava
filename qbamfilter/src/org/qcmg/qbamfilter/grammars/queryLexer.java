@@ -1,7 +1,4 @@
-/**
- * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
- */
-// $ANTLR 3.4 /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g 2013-10-18 15:56:38
+// $ANTLR 3.4 /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g 2014-05-14 11:58:38
 
 	package org.qcmg.qbamfilter.grammars;
 
@@ -46,15 +43,15 @@ public class queryLexer extends Lexer {
     public queryLexer(CharStream input, RecognizerSharedState state) {
         super(input,state);
     }
-    public String getGrammarFileName() { return "/Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g"; }
+    public String getGrammarFileName() { return "/Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g"; }
 
     // $ANTLR start "LEFT_PAREN"
     public final void mLEFT_PAREN() throws RecognitionException {
         try {
             int _type = LEFT_PAREN;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:17:12: ( '(' )
-            // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:17:14: '('
+            // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:17:12: ( '(' )
+            // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:17:14: '('
             {
             match('('); 
 
@@ -74,8 +71,8 @@ public class queryLexer extends Lexer {
         try {
             int _type = RIGHT_PAREN;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:18:13: ( ')' )
-            // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:18:16: ')'
+            // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:18:13: ( ')' )
+            // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:18:16: ')'
             {
             match(')'); 
 
@@ -95,8 +92,8 @@ public class queryLexer extends Lexer {
         try {
             int _type = COMPARE;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:20:9: ( '>' | '<' | '==' | '>=' | '<=' | '!=' )
-            int alt1=6;
+            // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:20:9: ( '>' | '<' | '==' | '>=' | '<=' | '!=' | '=~' | '!~' )
+            int alt1=8;
             switch ( input.LA(1) ) {
             case '>':
                 {
@@ -124,12 +121,40 @@ public class queryLexer extends Lexer {
                 break;
             case '=':
                 {
-                alt1=3;
+                int LA1_3 = input.LA(2);
+
+                if ( (LA1_3=='=') ) {
+                    alt1=3;
+                }
+                else if ( (LA1_3=='~') ) {
+                    alt1=7;
+                }
+                else {
+                    NoViableAltException nvae =
+                        new NoViableAltException("", 1, 3, input);
+
+                    throw nvae;
+
+                }
                 }
                 break;
             case '!':
                 {
-                alt1=6;
+                int LA1_4 = input.LA(2);
+
+                if ( (LA1_4=='=') ) {
+                    alt1=6;
+                }
+                else if ( (LA1_4=='~') ) {
+                    alt1=8;
+                }
+                else {
+                    NoViableAltException nvae =
+                        new NoViableAltException("", 1, 4, input);
+
+                    throw nvae;
+
+                }
                 }
                 break;
             default:
@@ -142,21 +167,21 @@ public class queryLexer extends Lexer {
 
             switch (alt1) {
                 case 1 :
-                    // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:20:11: '>'
+                    // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:20:11: '>'
                     {
                     match('>'); 
 
                     }
                     break;
                 case 2 :
-                    // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:20:17: '<'
+                    // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:20:17: '<'
                     {
                     match('<'); 
 
                     }
                     break;
                 case 3 :
-                    // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:20:23: '=='
+                    // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:20:23: '=='
                     {
                     match("=="); 
 
@@ -165,7 +190,7 @@ public class queryLexer extends Lexer {
                     }
                     break;
                 case 4 :
-                    // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:20:30: '>='
+                    // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:20:30: '>='
                     {
                     match(">="); 
 
@@ -174,7 +199,7 @@ public class queryLexer extends Lexer {
                     }
                     break;
                 case 5 :
-                    // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:20:37: '<='
+                    // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:20:37: '<='
                     {
                     match("<="); 
 
@@ -183,9 +208,27 @@ public class queryLexer extends Lexer {
                     }
                     break;
                 case 6 :
-                    // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:20:44: '!='
+                    // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:20:44: '!='
                     {
                     match("!="); 
+
+
+
+                    }
+                    break;
+                case 7 :
+                    // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:20:49: '=~'
+                    {
+                    match("=~"); 
+
+
+
+                    }
+                    break;
+                case 8 :
+                    // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:20:54: '!~'
+                    {
+                    match("!~"); 
 
 
 
@@ -207,8 +250,8 @@ public class queryLexer extends Lexer {
         try {
             int _type = OR;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:21:4: ( ( 'o' | 'O' ) ( 'r' | 'R' ) )
-            // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:21:6: ( 'o' | 'O' ) ( 'r' | 'R' )
+            // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:21:4: ( ( 'o' | 'O' ) ( 'r' | 'R' ) )
+            // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:21:6: ( 'o' | 'O' ) ( 'r' | 'R' )
             {
             if ( input.LA(1)=='O'||input.LA(1)=='o' ) {
                 input.consume();
@@ -246,8 +289,8 @@ public class queryLexer extends Lexer {
         try {
             int _type = AND;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:22:5: ( ( 'a' | 'A' ) ( 'n' | 'N' ) ( 'd' | 'D' ) )
-            // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:22:7: ( 'a' | 'A' ) ( 'n' | 'N' ) ( 'd' | 'D' )
+            // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:22:5: ( ( 'a' | 'A' ) ( 'n' | 'N' ) ( 'd' | 'D' ) )
+            // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:22:7: ( 'a' | 'A' ) ( 'n' | 'N' ) ( 'd' | 'D' )
             {
             if ( input.LA(1)=='A'||input.LA(1)=='a' ) {
                 input.consume();
@@ -295,8 +338,8 @@ public class queryLexer extends Lexer {
         try {
             int _type = TAG;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:23:5: ( ( LETTER ) ( INT | LETTER | '_' | '.' )* )
-            // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:23:8: ( LETTER ) ( INT | LETTER | '_' | '.' )*
+            // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:23:5: ( ( LETTER ) ( INT | LETTER | '_' | '.' )* )
+            // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:23:8: ( LETTER ) ( INT | LETTER | '_' | '.' )*
             {
             if ( (input.LA(1) >= 'A' && input.LA(1) <= 'Z')||(input.LA(1) >= 'a' && input.LA(1) <= 'z') ) {
                 input.consume();
@@ -308,7 +351,7 @@ public class queryLexer extends Lexer {
             }
 
 
-            // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:23:18: ( INT | LETTER | '_' | '.' )*
+            // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:23:18: ( INT | LETTER | '_' | '.' )*
             loop2:
             do {
                 int alt2=2;
@@ -321,7 +364,7 @@ public class queryLexer extends Lexer {
 
                 switch (alt2) {
             	case 1 :
-            	    // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:
+            	    // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:
             	    {
             	    if ( input.LA(1)=='.'||(input.LA(1) >= '0' && input.LA(1) <= '9')||(input.LA(1) >= 'A' && input.LA(1) <= 'Z')||input.LA(1)=='_'||(input.LA(1) >= 'a' && input.LA(1) <= 'z') ) {
             	        input.consume();
@@ -358,10 +401,10 @@ public class queryLexer extends Lexer {
         try {
             int _type = VALUE;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:24:7: ( ( INT | LETTER | '_' | '.' | '*' )* )
-            // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:24:9: ( INT | LETTER | '_' | '.' | '*' )*
+            // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:24:7: ( ( INT | LETTER | '_' | '.' | '*' )* )
+            // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:24:9: ( INT | LETTER | '_' | '.' | '*' )*
             {
-            // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:24:9: ( INT | LETTER | '_' | '.' | '*' )*
+            // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:24:9: ( INT | LETTER | '_' | '.' | '*' )*
             loop3:
             do {
                 int alt3=2;
@@ -374,7 +417,7 @@ public class queryLexer extends Lexer {
 
                 switch (alt3) {
             	case 1 :
-            	    // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:
+            	    // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:
             	    {
             	    if ( input.LA(1)=='*'||input.LA(1)=='.'||(input.LA(1) >= '0' && input.LA(1) <= '9')||(input.LA(1) >= 'A' && input.LA(1) <= 'Z')||input.LA(1)=='_'||(input.LA(1) >= 'a' && input.LA(1) <= 'z') ) {
             	        input.consume();
@@ -411,8 +454,8 @@ public class queryLexer extends Lexer {
         try {
             int _type = COMMA;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:25:7: ( ',' )
-            // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:25:10: ','
+            // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:25:7: ( ',' )
+            // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:25:10: ','
             {
             match(','); 
 
@@ -430,8 +473,8 @@ public class queryLexer extends Lexer {
     // $ANTLR start "INT"
     public final void mINT() throws RecognitionException {
         try {
-            // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:28:17: ( '0' .. '9' )
-            // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:
+            // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:28:17: ( '0' .. '9' )
+            // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:
             {
             if ( (input.LA(1) >= '0' && input.LA(1) <= '9') ) {
                 input.consume();
@@ -456,8 +499,8 @@ public class queryLexer extends Lexer {
     // $ANTLR start "LETTER"
     public final void mLETTER() throws RecognitionException {
         try {
-            // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:29:17: ( 'a' .. 'z' | 'A' .. 'Z' )
-            // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:
+            // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:29:17: ( 'a' .. 'z' | 'A' .. 'Z' )
+            // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:
             {
             if ( (input.LA(1) >= 'A' && input.LA(1) <= 'Z')||(input.LA(1) >= 'a' && input.LA(1) <= 'z') ) {
                 input.consume();
@@ -484,7 +527,7 @@ public class queryLexer extends Lexer {
         try {
             int _type = COMMENT;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:33:5: ( '//' (~ ( '\\n' | '\\r' ) )* ( '\\r' )? '\\n' | '#' (~ ( '\\n' | '\\r' ) )* ( '\\r' )? '\\n' | '/*' ( options {greedy=false; } : . )* '*/' )
+            // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:33:5: ( '//' (~ ( '\\n' | '\\r' ) )* ( '\\r' )? '\\n' | '#' (~ ( '\\n' | '\\r' ) )* ( '\\r' )? '\\n' | '/*' ( options {greedy=false; } : . )* '*/' )
             int alt9=3;
             int LA9_0 = input.LA(1);
 
@@ -517,13 +560,13 @@ public class queryLexer extends Lexer {
             }
             switch (alt9) {
                 case 1 :
-                    // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:33:9: '//' (~ ( '\\n' | '\\r' ) )* ( '\\r' )? '\\n'
+                    // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:33:9: '//' (~ ( '\\n' | '\\r' ) )* ( '\\r' )? '\\n'
                     {
                     match("//"); 
 
 
 
-                    // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:33:14: (~ ( '\\n' | '\\r' ) )*
+                    // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:33:14: (~ ( '\\n' | '\\r' ) )*
                     loop4:
                     do {
                         int alt4=2;
@@ -536,7 +579,7 @@ public class queryLexer extends Lexer {
 
                         switch (alt4) {
                     	case 1 :
-                    	    // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:
+                    	    // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:
                     	    {
                     	    if ( (input.LA(1) >= '\u0000' && input.LA(1) <= '\t')||(input.LA(1) >= '\u000B' && input.LA(1) <= '\f')||(input.LA(1) >= '\u000E' && input.LA(1) <= '\uFFFF') ) {
                     	        input.consume();
@@ -557,7 +600,7 @@ public class queryLexer extends Lexer {
                     } while (true);
 
 
-                    // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:33:28: ( '\\r' )?
+                    // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:33:28: ( '\\r' )?
                     int alt5=2;
                     int LA5_0 = input.LA(1);
 
@@ -566,7 +609,7 @@ public class queryLexer extends Lexer {
                     }
                     switch (alt5) {
                         case 1 :
-                            // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:33:28: '\\r'
+                            // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:33:28: '\\r'
                             {
                             match('\r'); 
 
@@ -583,11 +626,11 @@ public class queryLexer extends Lexer {
                     }
                     break;
                 case 2 :
-                    // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:34:8: '#' (~ ( '\\n' | '\\r' ) )* ( '\\r' )? '\\n'
+                    // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:34:8: '#' (~ ( '\\n' | '\\r' ) )* ( '\\r' )? '\\n'
                     {
                     match('#'); 
 
-                    // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:34:12: (~ ( '\\n' | '\\r' ) )*
+                    // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:34:12: (~ ( '\\n' | '\\r' ) )*
                     loop6:
                     do {
                         int alt6=2;
@@ -600,7 +643,7 @@ public class queryLexer extends Lexer {
 
                         switch (alt6) {
                     	case 1 :
-                    	    // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:
+                    	    // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:
                     	    {
                     	    if ( (input.LA(1) >= '\u0000' && input.LA(1) <= '\t')||(input.LA(1) >= '\u000B' && input.LA(1) <= '\f')||(input.LA(1) >= '\u000E' && input.LA(1) <= '\uFFFF') ) {
                     	        input.consume();
@@ -621,7 +664,7 @@ public class queryLexer extends Lexer {
                     } while (true);
 
 
-                    // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:34:26: ( '\\r' )?
+                    // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:34:26: ( '\\r' )?
                     int alt7=2;
                     int LA7_0 = input.LA(1);
 
@@ -630,7 +673,7 @@ public class queryLexer extends Lexer {
                     }
                     switch (alt7) {
                         case 1 :
-                            // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:34:26: '\\r'
+                            // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:34:26: '\\r'
                             {
                             match('\r'); 
 
@@ -647,13 +690,13 @@ public class queryLexer extends Lexer {
                     }
                     break;
                 case 3 :
-                    // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:35:8: '/*' ( options {greedy=false; } : . )* '*/'
+                    // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:35:8: '/*' ( options {greedy=false; } : . )* '*/'
                     {
                     match("/*"); 
 
 
 
-                    // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:35:13: ( options {greedy=false; } : . )*
+                    // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:35:13: ( options {greedy=false; } : . )*
                     loop8:
                     do {
                         int alt8=2;
@@ -678,7 +721,7 @@ public class queryLexer extends Lexer {
 
                         switch (alt8) {
                     	case 1 :
-                    	    // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:35:41: .
+                    	    // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:35:41: .
                     	    {
                     	    matchAny(); 
 
@@ -715,8 +758,8 @@ public class queryLexer extends Lexer {
         try {
             int _type = WS;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:37:5: ( ( ' ' | '\\t' | '\\r' | '\\n' ) )
-            // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:37:9: ( ' ' | '\\t' | '\\r' | '\\n' )
+            // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:37:5: ( ( ' ' | '\\t' | '\\r' | '\\n' ) )
+            // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:37:9: ( ' ' | '\\t' | '\\r' | '\\n' )
             {
             if ( (input.LA(1) >= '\t' && input.LA(1) <= '\n')||input.LA(1)=='\r'||input.LA(1)==' ' ) {
                 input.consume();
@@ -742,12 +785,12 @@ public class queryLexer extends Lexer {
     // $ANTLR end "WS"
 
     public void mTokens() throws RecognitionException {
-        // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:1:8: ( LEFT_PAREN | RIGHT_PAREN | COMPARE | OR | AND | TAG | VALUE | COMMA | COMMENT | WS )
+        // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:1:8: ( LEFT_PAREN | RIGHT_PAREN | COMPARE | OR | AND | TAG | VALUE | COMMA | COMMENT | WS )
         int alt10=10;
         alt10 = dfa10.predict(input);
         switch (alt10) {
             case 1 :
-                // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:1:10: LEFT_PAREN
+                // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:1:10: LEFT_PAREN
                 {
                 mLEFT_PAREN(); 
 
@@ -755,7 +798,7 @@ public class queryLexer extends Lexer {
                 }
                 break;
             case 2 :
-                // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:1:21: RIGHT_PAREN
+                // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:1:21: RIGHT_PAREN
                 {
                 mRIGHT_PAREN(); 
 
@@ -763,7 +806,7 @@ public class queryLexer extends Lexer {
                 }
                 break;
             case 3 :
-                // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:1:33: COMPARE
+                // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:1:33: COMPARE
                 {
                 mCOMPARE(); 
 
@@ -771,7 +814,7 @@ public class queryLexer extends Lexer {
                 }
                 break;
             case 4 :
-                // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:1:41: OR
+                // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:1:41: OR
                 {
                 mOR(); 
 
@@ -779,7 +822,7 @@ public class queryLexer extends Lexer {
                 }
                 break;
             case 5 :
-                // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:1:44: AND
+                // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:1:44: AND
                 {
                 mAND(); 
 
@@ -787,7 +830,7 @@ public class queryLexer extends Lexer {
                 }
                 break;
             case 6 :
-                // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:1:48: TAG
+                // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:1:48: TAG
                 {
                 mTAG(); 
 
@@ -795,7 +838,7 @@ public class queryLexer extends Lexer {
                 }
                 break;
             case 7 :
-                // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:1:52: VALUE
+                // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:1:52: VALUE
                 {
                 mVALUE(); 
 
@@ -803,7 +846,7 @@ public class queryLexer extends Lexer {
                 }
                 break;
             case 8 :
-                // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:1:58: COMMA
+                // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:1:58: COMMA
                 {
                 mCOMMA(); 
 
@@ -811,7 +854,7 @@ public class queryLexer extends Lexer {
                 }
                 break;
             case 9 :
-                // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:1:64: COMMENT
+                // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:1:64: COMMENT
                 {
                 mCOMMENT(); 
 
@@ -819,7 +862,7 @@ public class queryLexer extends Lexer {
                 }
                 break;
             case 10 :
-                // /Users/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:1:72: WS
+                // /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g:1:72: WS
                 {
                 mWS(); 
 

@@ -1,5 +1,5 @@
 /**
- * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ * Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
 package org.qcmg.qbamfilter.filter;
 
@@ -19,14 +19,14 @@ public class MRNMFilter implements SamRecordFilter{
      * See usage on method filterout.
      */
     public MRNMFilter(Comparator comp, String value )throws Exception{
-
         this.value =  value;
-        if((comp == Comparator.Equal) ||(comp == Comparator.NotEqual)){
-            op = comp;
-        }
-        else{
-            throw new Exception("invalid comparator symbols used for MRNM filter: " + comp.GetString());
-        }
+        
+        if( comp == Comparator.Great  || comp == Comparator.Small 
+        		|| comp ==Comparator.SmallEqual || comp == Comparator.GreatEqual )
+        	throw new Exception("invalid comparator symbols used for RNAME filter: " + comp.GetString());
+        
+        this.op = comp;
+        
     }
 
    /**
