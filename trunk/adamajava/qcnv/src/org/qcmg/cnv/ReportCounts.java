@@ -71,7 +71,7 @@ public class ReportCounts {
     	   
     	   //add last window  
     	   int j = info.getWindowNumber() - 1;
-   		   str = String.format("%s\t%d_%d\t%d\t%d", ref,j+1, windowSize, windowSize * j + 1, info.getReferenceRecord().getSequenceLength()  ); 
+   		   str = String.format("%s\t%d_%d\t%d\t%d\tDP", ref,j+1, windowSize, windowSize * j + 1, info.getReferenceRecord().getSequenceLength()  ); 
 		   for(String sample : sampleids)
 			   str += "\t" +info.getCount(sample)[j];
 		   writer.write(str + "\n");    	   
