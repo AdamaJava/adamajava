@@ -11,6 +11,13 @@ package org.qcmg.qbamfilter.filter;
  * Small: return true if the integer converted from String v1 is smaller than the integer converted from String v2;
  * Equal: return true if the integer converted from String v1 is equal to the integer converted from String v2;
  * NotEqual:return true if the integer converted from String v1 is not equal to the integer converted from String v2;
+ * StartWith: return true if the String v1 starts with String v2;
+ * EndWith: return true if the String v1 ends with String v2;
+ * Contain: return true if the String v1 contains String v2;
+ * NotStartWith: return true if the String v1 doesn't start with String v2;
+ * NotEndWith: return true if the String v1 doesn't end with String v2;
+ * NotContain: return true if the String v1 doesn't contain String v2;
+ * 
  * @author q.xu
  */
 public enum Comparator {
@@ -28,6 +35,12 @@ public enum Comparator {
          * @return true if v1 is Small than v2 for Comparator Small;
          * @return true if v1 and v2 are same string for Comparator Equal
          * @return true if v1 and v2 are different string for Comparator NotEqual
+         * StartWith: return true if the String v1 starts with String v2 for Comparator 
+         * return true if the String v1 ends with String v2 for Comparator  EndWith
+         * return true if the String v1 contains String v2 for Comparator  Contain
+         * return true if the String v1 doesn't start with String v2 for Comparator NotStartWith
+         * return true if the String v1 doesn't end with String v2 for Comparator  NotEndWith
+         * return true if the String v1 doesn't contain String v2 for Comparator  NotContain
          */
         public boolean eval(String v1, String v2) {
             switch(this){
@@ -144,8 +157,6 @@ public enum Comparator {
         	if( value.contains("*")  &&  subStr.length() != (value.length() - 1)  )
         		return null;
 
-
-        	
         	if(value.startsWith("*"))	
         		return comp.equals("=~")? EndWith: NotEndWith;
         	else if(value.endsWith("*")){
