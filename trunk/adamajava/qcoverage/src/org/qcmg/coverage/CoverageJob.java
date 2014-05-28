@@ -1,5 +1,5 @@
 /**
- * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ * �� Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
 package org.qcmg.coverage;
 
@@ -18,7 +18,6 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.util.Pair;
 import org.qcmg.gff3.GFF3Record;
 import org.qcmg.picard.SAMFileReaderFactory;
-import org.qcmg.picard.util.SAMUtils;
 import org.qcmg.qbamfilter.query.QueryExecutor;
 
 class CoverageJob implements Job {
@@ -133,7 +132,7 @@ class CoverageJob implements Job {
 				SAMRecord read = iter.next();
 				
 				// only proceed if read is mapped, not a dup, valid, and primary
-				if ( ! SAMUtils.isSAMRecordValidForVariantCalling(read)) continue;
+//				if ( ! SAMUtils.isSAMRecordValidForVariantCalling(read)) continue;
 				
 				counterIn.increment();   //count input read number
 				
