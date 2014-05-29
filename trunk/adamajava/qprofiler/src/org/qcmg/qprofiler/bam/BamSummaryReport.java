@@ -385,7 +385,8 @@ public class BamSummaryReport extends SummaryReport {
 			
 			for (Entry<String, ConcurrentMap<Integer, AtomicLong>> entry : iSizeByReadGroupCompleteMap.entrySet()) {
 				// create new tag for this readgroup
-				Element rgElement = createSubElement(tagISizeElement, "RG_" + entry.getKey());
+				Element rgElement = createSubElement(tagISizeElement, "RG");
+				rgElement.setAttribute("value", entry.getKey());
 				SummaryReportUtils
 						.binnedLengthMapToRangeTallyXml(rgElement, entry.getValue());	
 			}
