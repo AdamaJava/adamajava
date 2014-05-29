@@ -392,10 +392,8 @@ public class BamSummaryReport extends SummaryReport {
 			for (Entry<String, ConcurrentMap<Integer, AtomicLong>> entry : iSizeByReadGroupCompleteMap.entrySet()) {
 				// create new tag for this readgroup
 				Element rgElement = createSubElement(tagISizeElement, "RG_" + entry.getKey());
-				
 				SummaryReportUtils
 						.binnedLengthMapToRangeTallyXml(rgElement, entry.getValue());	
-				
 			}
 //			SummaryReportUtils
 //					.binnedLengthMapToRangeTallyXml(tagISizeElement, getISizeLengths());
@@ -1049,7 +1047,7 @@ public class BamSummaryReport extends SummaryReport {
 			for (int i = 0 ; i < array.length() ; i++) {
 				long l = array.get(i);
 				if (l > 0) {
-					Integer binNumber = (i == 0 ? 50000 : i * 1000000);
+					Integer binNumber = (i == 0 ? SummaryReportUtils.MAX_I_SIZE : i * 1000000);
 					AtomicLong al = iSizeLengths.get(binNumber);
 					if (null == al) {
 						al = new AtomicLong();
