@@ -196,8 +196,8 @@ public class HTMLReportUtils {
 		
 		int count = 0;
 		for (String s : readGroupNames) {
-			String label = s.substring(3);
-			sb.append(", {id: 'RG" + count++ + "', label: '" + label + "', type: 'number'}");
+//			String label = s.substring(3);
+			sb.append(", {id: 'RG" + count++ + "', label: '" + s + "', type: 'number'}");
 		}
 		if (noOfReadGroups > 1) {
 			// add in a combined series

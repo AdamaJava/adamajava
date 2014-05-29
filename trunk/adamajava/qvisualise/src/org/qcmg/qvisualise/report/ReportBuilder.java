@@ -23,6 +23,7 @@ import org.qcmg.qvisualise.QVisualiseException;
 import org.qcmg.qvisualise.util.CycleDetailUtils;
 import org.qcmg.qvisualise.util.QProfilerCollectionsUtils;
 import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -522,12 +523,16 @@ public class ReportBuilder {
 		List<String> readGroups = new ArrayList<>();
 		for (int k = 0 ; k < childNodes.getLength() ; k++) {
 			Node n = childNodes.item(k);
-			if (n.getNodeName().startsWith("RG_")) {
-				readGroups.add(n.getNodeName());
+			if (n.getNodeName().equals("RG")) {
+				readGroups.add(n.getAttributes().getNamedItem("value").getNodeValue());
 			}
 		}
 		int noOfReadGroups = readGroups.size();
 		System.out.println("we have " + noOfReadGroups + " read groups to display");
+		for (String rg : readGroups) {
+			System.out.println("rg: " + rg);
+			
+		}
 		
 		if (noOfReadGroups == 0) {
 			throw new QVisualiseException("ISIZE_ERROR");
@@ -538,19 +543,26 @@ public class ReportBuilder {
 		
 		int counter = 0;
 		for (String rg : readGroups) {
-			final NodeList nl = element.getElementsByTagName(rg);
-			final Element nameElement = (Element) nl.item(0);
-			final TreeMap<Integer, AtomicLong> map = (TreeMap<Integer, AtomicLong>) createRangeTallyMap(nameElement);
+			final NodeList nl = element.getElementsByTagName("RG");
+			for (int k = 0 ; k < nl.getLength() ; k++) {
+				Node n = childNodes.item(k);
+				NamedNodeMap nnm =n.getAttributes(); 
+				if (null != nnm && nnm.getNamedItem("value").getNodeValue().equals(rg)) {
+					
+					final Element nameElement = (Element) nl.item(k);
+					final TreeMap<Integer, AtomicLong> map = (TreeMap<Integer, AtomicLong>) createRangeTallyMap(nameElement);
 			
-			// add map data to arrayMap
-			for (Entry<Integer, AtomicLong> entry : map.entrySet()) {
-				// get entry from arrayMap
-				AtomicLongArray ala = arrayMap.get(entry.getKey());
-				if (ala == null) {
-					ala = new AtomicLongArray(noOfReadGroups);
-					arrayMap.put(entry.getKey(), ala);
+					// add map data to arrayMap
+					for (Entry<Integer, AtomicLong> entry : map.entrySet()) {
+						// get entry from arrayMap
+						AtomicLongArray ala = arrayMap.get(entry.getKey());
+						if (ala == null) {
+							ala = new AtomicLongArray(noOfReadGroups);
+							arrayMap.put(entry.getKey(), ala);
+						}
+						ala.addAndGet(counter, entry.getValue().get());
+					}
 				}
-				ala.addAndGet(counter, entry.getValue().get());
 			}
 			
 			counter++;
