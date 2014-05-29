@@ -529,10 +529,10 @@ public class ReportBuilder {
 		}
 		int noOfReadGroups = readGroups.size();
 		System.out.println("we have " + noOfReadGroups + " read groups to display");
-		for (String rg : readGroups) {
-			System.out.println("rg: " + rg);
-			
-		}
+//		for (String rg : readGroups) {
+//			System.out.println("rg: " + rg);
+//			
+//		}
 		
 		if (noOfReadGroups == 0) {
 			throw new QVisualiseException("ISIZE_ERROR");
