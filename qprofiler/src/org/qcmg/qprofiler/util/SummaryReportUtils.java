@@ -86,35 +86,19 @@ public class SummaryReportUtils {
 			ConcurrentMap<Integer, AtomicLong> iSizeLengths = new ConcurrentHashMap<>();
 			results.putIfAbsent(readGroup, iSizeLengths);
 			
-			// need to bin by 10 here
 			AtomicLongArray array = entry.getValue();
-			long longAdder = 0;
 			for (int i = 0 ; i < array.length() ; i++) {
-				longAdder +=array.get(i);
+				long longValue = array.get(i);
+				if (longValue > 0) {
 				
-				if (i % 10 == 9 && longAdder > 0) {
-					// update map and reset longAdder
-					Integer binNumber = i  - 9;
-					AtomicLong al = iSizeLengths.get(binNumber);
+					AtomicLong al = iSizeLengths.get(i);
 					if (null == al) {
 						al = new AtomicLong();
-						AtomicLong existingLong = iSizeLengths.putIfAbsent(binNumber, al);
+						AtomicLong existingLong = iSizeLengths.putIfAbsent(i, al);
 						if (null != existingLong) al = existingLong;
 					}
-					al.addAndGet(longAdder);
-					longAdder = 0;
+					al.addAndGet(longValue);
 				}
-			}
-			// add last entry to map
-			if (longAdder > 0) {
-				Integer binNumber = array.length() + 1 / 10;
-				AtomicLong al = iSizeLengths.get(binNumber);
-				if (null == al) {
-					al = new AtomicLong();
-					AtomicLong existingLong = iSizeLengths.putIfAbsent(binNumber, al);
-					if (null != existingLong) al = existingLong;
-				}
-				al.addAndGet(longAdder);
 			}
 		}
 		
@@ -133,7 +117,7 @@ public class SummaryReportUtils {
 			for (int i = 0 ; i < array.length() ; i++) {
 				long l = array.get(i);
 				if (l > 0) {
-					Integer binNumber = (i == 0 ? 50000 : i * 1000000);
+					Integer binNumber = (i == 0 ? MAX_I_SIZE : i * 1000000);
 					AtomicLong al = iSizeLengths.get(binNumber);
 					if (null == al) {
 						al = new AtomicLong();
@@ -501,10 +485,16 @@ public class SummaryReportUtils {
 		try {
 			for (Map.Entry<Integer, AtomicLong> entrySet : sortedMap.entrySet()) {
 				Element cycleE = doc.createElement("RangeTallyItem");
-				cycleE.setAttribute("start", "" + entrySet.getKey());
-				int endValue = entrySet.getKey() < MAX_I_SIZE ? 
-						entrySet.getKey() + (INITIAL_I_SIZE_BUCKET_SIZE - 1) : 
-							entrySet.getKey() + (FINAL_I_SIZE_BUCKET_SIZE - 1); 
+				Integer start = entrySet.getKey();
+				cycleE.setAttribute("start", start.toString());
+				
+				int endValue = start.intValue();
+				if (start.intValue() == MAX_I_SIZE) {
+					endValue = FINAL_I_SIZE_BUCKET_SIZE - 1;
+				} else if  (start.intValue() > MAX_I_SIZE) {
+					endValue = start.intValue() + (FINAL_I_SIZE_BUCKET_SIZE - 1);
+				}
+				
 				cycleE.setAttribute("end", "" + endValue);
 				cycleE.setAttribute("count", "" + entrySet.getValue().get());
 				element.appendChild(cycleE);

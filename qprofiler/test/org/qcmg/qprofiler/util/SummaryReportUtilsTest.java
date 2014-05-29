@@ -823,7 +823,7 @@ public class SummaryReportUtilsTest {
 		Assert.assertFalse(element42RangeTallyItem.hasChildNodes());
 		Assert.assertTrue(element42RangeTallyItem.hasAttributes());
 		Assert.assertEquals(100, Integer.parseInt(element42RangeTallyItem.getAttribute("start")));
-		Assert.assertEquals(109, Integer.parseInt(element42RangeTallyItem.getAttribute("end")));
+		Assert.assertEquals(100, Integer.parseInt(element42RangeTallyItem.getAttribute("end")));
 		Assert.assertEquals(42, Integer.parseInt(element42RangeTallyItem.getAttribute("count")));
 		
 		// second element
@@ -831,7 +831,7 @@ public class SummaryReportUtilsTest {
 		Assert.assertFalse(element42RangeTallyItem.hasChildNodes());
 		Assert.assertTrue(element42RangeTallyItem.hasAttributes());
 		Assert.assertEquals(110, Integer.parseInt(element42RangeTallyItem.getAttribute("start")));
-		Assert.assertEquals(119, Integer.parseInt(element42RangeTallyItem.getAttribute("end")));
+		Assert.assertEquals(110, Integer.parseInt(element42RangeTallyItem.getAttribute("end")));
 		Assert.assertEquals(41, Integer.parseInt(element42RangeTallyItem.getAttribute("count")));
 		
 		// third element
@@ -839,7 +839,7 @@ public class SummaryReportUtilsTest {
 		Assert.assertFalse(element42RangeTallyItem.hasChildNodes());
 		Assert.assertTrue(element42RangeTallyItem.hasAttributes());
 		Assert.assertEquals(120, Integer.parseInt(element42RangeTallyItem.getAttribute("start")));
-		Assert.assertEquals(129, Integer.parseInt(element42RangeTallyItem.getAttribute("end")));
+		Assert.assertEquals(120, Integer.parseInt(element42RangeTallyItem.getAttribute("end")));
 		Assert.assertEquals(40, Integer.parseInt(element42RangeTallyItem.getAttribute("count")));
 		
 		// last element
@@ -847,7 +847,7 @@ public class SummaryReportUtilsTest {
 		Assert.assertFalse(element42RangeTallyItem.hasChildNodes());
 		Assert.assertTrue(element42RangeTallyItem.hasAttributes());
 		Assert.assertEquals(150, Integer.parseInt(element42RangeTallyItem.getAttribute("start")));
-		Assert.assertEquals(159, Integer.parseInt(element42RangeTallyItem.getAttribute("end")));
+		Assert.assertEquals(150, Integer.parseInt(element42RangeTallyItem.getAttribute("end")));
 		Assert.assertEquals(37, Integer.parseInt(element42RangeTallyItem.getAttribute("count")));
 	}
 	
