@@ -364,11 +364,6 @@ public class BamSummaryReport extends SummaryReport {
 			}
 			SummaryReportUtils.lengthMapToXml(tagElement, "MD_mutation_reverse", mdRefAltLengthsString);
 			
-//			if ( ! tagMDMismatchByCycle.isEmpty()) {
-//				SummaryReportUtils.toXmlWithPercentage(tagMDMismatchByCycle, 
-//						tagMDElement, "MismatchByCycle", allReadsLineLengths, getRecordsParsed());
-//				SummaryReportUtils.lengthMapToXml(tagElement, "AllReads", allReadsLineLengths);
-//			}
 			
 			// additional tags
 			for (Entry<String,  ConcurrentSkipListMap<String, AtomicLong>> entry : additionalTags.entrySet()) {
@@ -383,7 +378,6 @@ public class BamSummaryReport extends SummaryReport {
 				SummaryReportUtils.lengthMapToXml(tagElement, entry.getKey(), entry.getValue());
 			}
 				
-//			tagMDMismatchByCycle.toXml(tagMDElement, "MismatchByCycle");
 			
 			// ISIZE
 			Element tagISizeElement = createSubElement(bamReportElement, "ISIZE");
@@ -395,10 +389,6 @@ public class BamSummaryReport extends SummaryReport {
 				SummaryReportUtils
 						.binnedLengthMapToRangeTallyXml(rgElement, entry.getValue());	
 			}
-//			SummaryReportUtils
-//					.binnedLengthMapToRangeTallyXml(tagISizeElement, getISizeLengths());
-//			SummaryReportUtils
-//			.binnedLengthMapToRangeTallyXml(tagISizeElement, iSizeLengths10, iSizeLengths1M);
 			
 			// MRNM
 			if (null != samSeqDictionary) {
@@ -716,143 +706,8 @@ public class BamSummaryReport extends SummaryReport {
 		if (includeMatrices && null != zm && null != sm)
 			zmSmMatrix.increment(zm, sm);
 	}
-//	private void parseTAGs(SAMRecord record, MAPQMatrix matrix, String readBases) {
-//		Integer zm = null;
-//		Integer sm = null;
-//		for (SAMRecord.SAMTagAndValue tag : record.getAttributes()) {
-//			if ("CS".equals(tag.tag)) {
-//				String value = (String)tag.value;
-//				SummaryByCycleUtils.parseCharacterSummary(tagCSByCycle, value, null, 1);
-//				SummaryReportUtils.tallyBadReadsAsString(value, csBadReadLineLengths);
-//				
-//			} else if ("CQ".equals(tag.tag)) {
-//				byte[] value = SAMUtils.fastqToPhred((String)tag.value);
-//				
-//				SummaryByCycleUtils
-//				.parseIntegerSummary(tagCQByCycle, value);
-//				SummaryReportUtils.tallyQualScores(value,
-//						cqBadReadLineLengths);
-//				
-//			} else if ("RG".equals(tag.tag)) {
-//				SummaryByCycleUtils.incrementCount(tagRGLineLengths,
-//						(String) tag.value);
-//			} else if ("ZM".equals(tag.tag)) {
-//				zm = Integer.valueOf((String)tag.value);
-//				SummaryByCycleUtils.incrementCount(tagZMLineLengths, zm);
-//				if ( ! excludeMatrices)
-//					matrix.addToMatrix(zm, MatrixType.ZM);
-////				SummaryByCycleUtils.incrementCount(tagZMLineLengths,
-////						(String) tag.value);
-//			} else if ("ZP".equals(tag.tag)) {
-//				SummaryByCycleUtils.incrementCount(tagZPLineLengths,
-//						(String) tag.value);
-//			} else if ("ZB".equals(tag.tag)) {
-//				SummaryByCycleUtils.incrementCount(tagZBLineLengths,
-//						(String) tag.value);
-//			} else if ("ZF".equals(tag.tag)) {
-//				SummaryByCycleUtils.incrementCount(tagZFLineLengths,
-//						(String) tag.value);
-//			} else if ("CM".equals(tag.tag)) {
-//				Integer i = (Integer) tag.value;
-//				SummaryByCycleUtils.incrementCount(tagCMLineLengths, i);
-//				if ( ! excludeMatrices)
-//					matrix.addToMatrix(i, MatrixType.CM);
-//			} else if ("SM".equals(tag.tag)) {
-//				sm = (Integer) tag.value;
-//				SummaryByCycleUtils.incrementCount(tagSMLineLengths, sm);
-//				if ( ! excludeMatrices)
-//					matrix.addToMatrix(sm, MatrixType.SM);
-//			} else if ("IH".equals(tag.tag)) {
-//				SummaryByCycleUtils.incrementCount(tagIHLineLengths,
-//						(Integer) tag.value);
-//			} else if ("NH".equals(tag.tag)) {
-//				Integer i = (Integer) tag.value; 
-//				SummaryByCycleUtils.incrementCount(tagNHLineLengths, i);
-//				if ( ! excludeMatrices)
-//					matrix.addToMatrix(i, MatrixType.NH);
-//			} else if (! excludeMDTag && "MD".equals(tag.tag)) {
-////				SummaryReportUtils.tallyBadReadsMD((String) tag.value, 
-////						tagMDLineLengths);
-//				SummaryReportUtils.tallyMDMismatches((String) tag.value, tagMDMismatchByCycle, readBases);
-//				SummaryByCycleUtils.incrementCount(allReadsLineLengths, Integer.valueOf(record.getReadLength()));
-////				if (((String) tag.value).length() > 6)
-////					System.out.println((String) tag.value);
-//			} else if (StringUtils.isStringInStringArray(tag.tag, tags)) {
-//				// additionalTags
-//				SummaryByCycleUtils.incrementCount(additionalTags.get(tag.tag), (String) tag.value);
-//			}
-//		}
-//		
-//		if (null != zm && null != sm)
-//			zmSmMatrix.increment(zm, sm);
-//	}
 	
 	
-//	private void parseTAGsNEW(SAMRecord record, MAPQMatrix matrix) {
-//		
-//		String value = record.getStringAttribute("CS");
-//		if (null != value) {
-//			SummaryByCycleUtils.parseCharacterSummary(tagCSByCycle,
-//					value, null, 1);
-//			SummaryReportUtils.tallyBadReads(value, csBadReadLineLengths);
-//		}
-//		value = record.getStringAttribute("CQ");
-//		if (null != value) {
-//			SummaryByCycleUtils
-//			.parseCharacterSummary(tagCQByCycle, StringUtils
-//					.addASCIIValueToChar(value, 33));
-//			SummaryReportUtils.tallyQualScoresASCII(value, cqBadReadLineLengths, 33);
-//		}
-//		
-//		value = record.getStringAttribute("RG");
-//		if (null != value) {
-//			SummaryByCycleUtils.incrementCount(tagRGLineLengths, value);
-//		}
-//		value = record.getStringAttribute("ZM");
-//		if (null != value) {
-//			SummaryByCycleUtils.incrementCount(tagZMLineLengths, value);
-//		}
-//		value = record.getStringAttribute("ZP");
-//		if (null != value) {
-//			SummaryByCycleUtils.incrementCount(tagZPLineLengths, value);
-//		}
-//		value = record.getStringAttribute("ZB");
-//		if (null != value) {
-//			SummaryByCycleUtils.incrementCount(tagZBLineLengths, value);
-//		}
-//		value = record.getStringAttribute("ZF");
-//		if (null != value) {
-//			SummaryByCycleUtils.incrementCount(tagZFLineLengths, value);
-//		}
-//		value = record.getStringAttribute("MD");
-//		if (null != value) {
-//			SummaryReportUtils.tallyBadReads(value, 
-//					tagMDLineLengths, SummaryReportUtils.BAD_MD_PATTERN);
-//		}
-//		
-//		// Integer values
-//		
-//		Integer integerValue = record.getIntegerAttribute("CM");
-//		if (null != integerValue) {
-//			SummaryByCycleUtils.incrementCount(tagCMLineLengths, integerValue);
-//			if ( ! excludeMatricies)
-//				matrix.addToMatrix(integerValue, MatrixType.CM);
-//		}
-//		integerValue = record.getIntegerAttribute("SM");
-//		if (null != integerValue) {
-//			SummaryByCycleUtils.incrementCount(tagSMLineLengths, integerValue);
-//			if ( ! excludeMatricies)
-//				matrix.addToMatrix(integerValue, MatrixType.SM);
-//		}
-//		integerValue = record.getIntegerAttribute("IH");
-//		if (null != integerValue) {
-//			SummaryByCycleUtils.incrementCount(tagIHLineLengths, integerValue);
-//		}
-//		integerValue = record.getIntegerAttribute("NH");
-//		if (null != integerValue) {
-//			SummaryByCycleUtils.incrementCount(tagNHLineLengths, integerValue);
-//		}
-//	}
 
 	void parseCoverage(SAMRecord record) {
 		int count = 0;
@@ -910,8 +765,6 @@ public class BamSummaryReport extends SummaryReport {
 				length += getSizeFromInt(ce.getLength()) + 1;
 			}
 			cigarLengths.increment(length);
-//			SummaryByCycleUtils.incrementCount(cigarLengths, length);
-			
 		}
 	}
 	
@@ -926,11 +779,7 @@ public class BamSummaryReport extends SummaryReport {
 		// get absolute value
 		final int absISize = Math.abs(iSize);
 		
-		// bin in 10s until we hit the MAX_I_SIZE (50000), then in millions
-//		int bucket = 0;
 		if (absISize < SummaryReportUtils.MAX_I_SIZE) {
-//			bucket = (absISize / SummaryReportUtils.INITIAL_I_SIZE_BUCKET_SIZE)
-//					* SummaryReportUtils.INITIAL_I_SIZE_BUCKET_SIZE;
 			
 			AtomicLongArray readGroupArray = iSizeByReadGroupMap.get(readGroup);
 			if (null == readGroupArray) {
@@ -943,8 +792,6 @@ public class BamSummaryReport extends SummaryReport {
 
 			readGroupArray.incrementAndGet(absISize);
 			
-//			iSizeLengths10.increment(absISize);
-//			iSizeLengths10.increment(bucket);
 		} else {
 			
 			QCMGAtomicLongArray readGroupArray = iSizeByReadGroupMapBinned.get(readGroup);
@@ -957,32 +804,8 @@ public class BamSummaryReport extends SummaryReport {
 			}
 
 			readGroupArray.increment(absISize / SummaryReportUtils.FINAL_I_SIZE_BUCKET_SIZE);
-			//TODO check this out - not sure if we'll need to split this into 2 collections....
-			// bucket 50000 will contain values from 50000 - 1000000
-			// after that, it will be 10000000 - 1999999, 2000000 - 2999999, etc.
-			
-//			if (absISize < SummaryReportUtils.FINAL_I_SIZE_BUCKET_SIZE) {
-//				bucket = SummaryReportUtils.MAX_I_SIZE;
-//			} else {
-//				bucket = (absISize / SummaryReportUtils.FINAL_I_SIZE_BUCKET_SIZE)
-//				* SummaryReportUtils.FINAL_I_SIZE_BUCKET_SIZE;
-//			}
-			
-//			bucket = (absISize / SummaryReportUtils.FINAL_I_SIZE_BUCKET_SIZE);
-//			iSizeLengths1M.increment(absISize / SummaryReportUtils.FINAL_I_SIZE_BUCKET_SIZE);
 		}
 		
-//		Integer bucketInteger = Integer.valueOf(bucket);
-//		IntWrapper bucketInteger = new IntWrapper(bucket);
-		
-//		iSizeLengths.incrementAndGet(bucket);
-//		AtomicLong currentCount = iSizeLengths.get(bucket);
-//		if (null == currentCount) {
-//			currentCount = iSizeLengths.putIfAbsent(bucket, new AtomicLong(1));
-//			if (null == currentCount)
-//				return;
-//		}
-//		currentCount.incrementAndGet();
 	}
 
 	void parseRNameAndPos(final String rName, final int position) {
