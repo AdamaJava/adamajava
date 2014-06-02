@@ -23,7 +23,6 @@ import org.qcmg.qvisualise.QVisualiseException;
 import org.qcmg.qvisualise.util.CycleDetailUtils;
 import org.qcmg.qvisualise.util.QProfilerCollectionsUtils;
 import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -543,11 +542,11 @@ public class ReportBuilder {
 		
 		int counter = 0;
 		for (String rg : readGroups) {
-			final NodeList nl = element.getElementsByTagName("RG");
+			final NodeList nl = element.getChildNodes();
 			for (int k = 0 ; k < nl.getLength() ; k++) {
 				Node n = childNodes.item(k);
-				NamedNodeMap nnm =n.getAttributes(); 
-				if (null != nnm && nnm.getNamedItem("value").getNodeValue().equals(rg)) {
+				if (n.getNodeName().equals("RG") && n.getAttributes().getNamedItem("value").getNodeValue().equals(rg)) {
+//					System.out.println("node name: " + n.getNodeName() + " value att: " + n.getAttributes().getNamedItem("value").getNodeValue());
 					
 					final Element nameElement = (Element) nl.item(k);
 					final TreeMap<Integer, AtomicLong> map = (TreeMap<Integer, AtomicLong>) createRangeTallyMap(nameElement);
