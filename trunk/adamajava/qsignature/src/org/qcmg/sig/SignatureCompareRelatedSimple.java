@@ -87,6 +87,11 @@ public class SignatureCompareRelatedSimple {
 		files = SignatureUtil.removeExcludedFilesFromList(files, excludes);
 		logger.info("Total number of files to be compared (minus excluded files): " + files.size());
 		
+		if (files.isEmpty()) {
+			logger.warn("No files left after removing exlcuded files");
+			return 0;
+		}
+		
 		logger.info("Should have " + files.size()  + " + " + (files.size() -1) + "... comparisons");
 		
 		Collections.sort(files, FileUtils.FILE_COMPARATOR);
