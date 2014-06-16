@@ -214,8 +214,9 @@ public class SignatureCompareRelatedSimple {
 			int id2 = fileIdsAndCounts.get(comp.getTest())[0];
 //			logger.info(id1 + " vs " + id2 + " - score: " + comp.getScore() + " overlaping coverage: " + comp.getOverlapCoverage() + " no of calcs: " + comp.getNumberOfCalculations());
 			
-			String id = "id_" + id1 + "_vs_" + id2;
-			Element compE = doc.createElement(id);
+			Element compE = doc.createElement("comparison");
+			compE.setAttribute("file1", id1 + "");
+			compE.setAttribute("file2", id2 + "");
 			compE.setAttribute("score", comp.getScore() + "");
 			compE.setAttribute("overlap", comp.getOverlapCoverage() + "");
 			compE.setAttribute("calcs", comp.getNumberOfCalculations() + "");
