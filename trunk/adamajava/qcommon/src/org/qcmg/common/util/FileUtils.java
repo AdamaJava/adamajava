@@ -1,5 +1,5 @@
 /**
- * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ * �� Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
 package org.qcmg.common.util;
 
@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.nio.file.FileVisitOption;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -16,6 +17,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.List;
 
 import org.qcmg.common.string.StringUtils;
@@ -252,7 +254,7 @@ public class FileUtils {
 		final List<File> foundFiles = new ArrayList<File>();
 		
 		Path startingDir = Paths.get(path);
-		Files.walkFileTree(startingDir, new SimpleFileVisitor<Path>() {
+		Files.walkFileTree(startingDir, EnumSet.of(FileVisitOption.FOLLOW_LINKS),Integer.MAX_VALUE, new SimpleFileVisitor<Path>() {
 			
 			@Override
 			public FileVisitResult visitFileFailed(Path file, IOException ioe) {
