@@ -1,9 +1,16 @@
 /**
- * �� Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ * ?? Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
 package org.qcmg.sig;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.AbstractQueue;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -31,20 +38,21 @@ import org.qcmg.sig.util.Quartile;
 import org.qcmg.sig.util.SignatureUtil;
 
 /**
- * Attempts to find a home for a lost signature file.
- * Takes an orphaned signature file as input, along with a path to search for other signature files.
+ * Attempts to find a home for some lost signature files.
+ * Takes an orphaned signature file(s) as input, along with a path to search for other signature files.
  * Compares the signature files and lists those that match the closest.
  * 
  * 
  * @author o.holmes
  *
  */
-public class SignatureFindRelated {
+public class SignatureFindRelatedMulti {
 	
 	private static QLogger logger;
 	private int exitStatus;
 	
-	private ConcurrentMap<ChrPosition, double[]> lostPatientRatio = new ConcurrentHashMap<>();
+//	private ConcurrentMap<ChrPosition, double[]> lostPatientRatio = new ConcurrentHashMap<>();
+	private final ConcurrentMap<File, ConcurrentMap<ChrPosition, double[]>> lostPatientRatios = new ConcurrentHashMap<>();
 	
 	private List<File> orderedSnpChipFiles;
 	
@@ -61,7 +69,7 @@ public class SignatureFindRelated {
 	
 	private List<ChrPosition> positionsOfInterest;
 	
-	private String email;
+//	private String email;
 	private String logFile;
 	
 	private final AtomicInteger counter = new AtomicInteger();
@@ -84,39 +92,28 @@ public class SignatureFindRelated {
 			return exitStatus;
 		}
 		
-		final File patientQsigVcfFile = new File(cmdLineInputFiles[0]);
-		// check that bam file is not in failedQCRuns list
-		for (String exclude : excludes) {
-			if (patientQsigVcfFile.getName().startsWith(exclude)) {
-				logger.warn("file being examined is in the excludes file list!!!");
+		
+		logger.info("Running comparison for the following file(s): "); 
+		for (String s : cmdLineInputFiles) {
+			logger.info(s);
+			// check that it is not in the excludes
+			for (String exclude : excludes) {
+				if (s.startsWith(exclude)) {
+					logger.warn("file being examined is in the excludes file list!!! " + s);
+				}
 			}
+			File f = new File(s);
+			ConcurrentMap<ChrPosition, double[]> ratios = new ConcurrentHashMap<>(SignatureUtil.loadSignatureRatios(f));
+			
+			logger.info( (ratios.size() < 1000 ? "low" : "") +  "coverage (" + ratios.size() + ") for file " + s);
+			
+			lostPatientRatios.put(f, ratios);
+			
 		}
-		
-		// load ratios for bam in question
-		lostPatientRatio = new ConcurrentHashMap<>(SignatureUtil.loadSignatureRatios(patientQsigVcfFile));
-		if (lostPatientRatio.size() < 1000) {
-			logger.warn("low coverage (" + lostPatientRatio.size() + ") for file " + cmdLineInputFiles[0]);
-		} else {
-			logger.info("coverage (" + lostPatientRatio.size() + ") for file " + cmdLineInputFiles[0]);
-		}
-		
-		logger.info("Running comparison for file: " + patientQsigVcfFile.getAbsolutePath() + " against all snp chip qsig vcf files!");
+		logger.info(""); 
 		
 		for (File f : orderedSnpChipFiles) {
 			inputQueue.add(f);
-//			logger.debug("Will compare against: " + f.getAbsolutePath());
-//			
-//			Map<ChrPosition, double[]> ratios = SignatureUtil.loadSignatureRatios(f);
-//			if (ratios.size() < 1000) logger.warn("low coverage (" + ratios.size() + ") for file " + f.getAbsolutePath());
-//			
-//			Comparison comp = QSigCompareDistance.compareRatios(lostPatientRatio, ratios, patientQsigVcfFile, f, positionsOfInterest);
-//			comparisons.add(comp);
-//			
-//			logger.info(comp.toString());
-//		
-//			if (++noOfProcessedFiles % 100 == 0) {
-//				logger.info("hit " + noOfProcessedFiles + " files");
-//			}
 		}
 		
 		ExecutorService service = Executors.newFixedThreadPool(nThreads);		
@@ -134,12 +131,14 @@ public class SignatureFindRelated {
 					}
 					logger.debug("Will compare against: " + f.getAbsolutePath());
 					
-					Map<ChrPosition, double[]> ratios = null;
-					try {
-						ratios = SignatureUtil.loadSignatureRatios(f);
-					} catch (Exception e) {
-						e.printStackTrace();
-						break;
+					Map<ChrPosition, double[]> ratios = lostPatientRatios.get(f);
+					if (null == ratios) {
+						try {
+							ratios = SignatureUtil.loadSignatureRatios(f);
+						} catch (Exception e) {
+							e.printStackTrace();
+							break;
+						}
 					}
 					if (null == ratios)
 						try {
@@ -151,8 +150,8 @@ public class SignatureFindRelated {
 						}
 					if (ratios.size() < 1000) logger.warn("low coverage (" + ratios.size() + ") for file " + f.getAbsolutePath());
 					
-					Comparison comp = QSigCompareDistance.compareRatios(lostPatientRatio, ratios, patientQsigVcfFile, f, positionsOfInterest);
-					outputQueue.add(comp);
+					List<Comparison> comps = QSigCompareDistance.compareRatios(ratios, f, lostPatientRatios, positionsOfInterest);
+					outputQueue.addAll(comps);
 					
 				}
 			}
@@ -165,104 +164,141 @@ public class SignatureFindRelated {
 		}
 		
 		
-//		List<String> sortedList = new ArrayList<String>();
-//		for (Comparison comp : comparisons) {
-////			sortedList.add(result + " : " + comp.getTest().getAbsolutePath());
-//		}
-		
-		// interrogate results
 		List<Comparison> comparisons = new ArrayList<>(outputQueue);
-		Collections.sort(comparisons);
-		
-		double mean = 0.0;
-		logger.info("SUMMARY:");
-		for (Comparison comp : comparisons) {
-			double result = comp.getScore();
-			mean += result;
-			logger.info(comp.toSummaryString());
-		}
-		
-		mean /= comparisons.size();
-		logger.info("mean: " + mean);
-		
-		logger.info("SUMMARY - POTENTIAL MATCHES:");
-		logger.info("CUTOFF RESULTS (" + cutoff + "): ");
-		// interrogate results
-		String mainDonor = DonorUtils.getDonorFromFilename(cmdLineInputFiles[0]);
-		boolean potentialMatchFound = false;
-		StringBuilder emailContent = new StringBuilder();
-		for (Comparison comp : comparisons) {
-			double result = comp.getScore();
-			
-			if (result < cutoff) {
-				potentialMatchFound = true;
-				String fileName = comp.getTest().getAbsolutePath();
-				String fileDonor = DonorUtils.getDonorFromFilename(fileName);
-				String output = fileDonor + " : " + fileName + " : " +result;
-				if (mainDonor.equals(fileDonor)) {
-					logger.info("CORRECT MATCH : " + output);
-				} else {
-					logger.info("INCORRECT MATCH : " + output);
-					emailContent.append("INCORRECT MATCH : " + output);
-				}
-			}
-		}
-		logger.info("CUTOFF RESULTS (" + cutoff + ") - END");
-		
-		double irqMultiplier = 2.0;
-		List<Number> quartileMatches = Quartile.getPassingValuesString(comparisons, irqMultiplier);
-		if ( ! quartileMatches.isEmpty()) {
-			potentialMatchFound = true;
-			logger.info("QUARTILE RESULTS (IRQ multiplier: " + irqMultiplier + "): ");
-			for (Number n : quartileMatches) {
-				
-				// get entry in sortedList
-				for (Comparison comp : comparisons) {
-					if (n.doubleValue() == comp.getScore()) {
-						logger.info(comp.toSummaryString());
-						break;
-					}
-				}
-			}
-			logger.info("QUARTILE RESULTS (IRQ multiplier: " + irqMultiplier + ") - END");
-		}
-		
-		if ( ! potentialMatchFound) {
-			logger.warn("No potential matches were found!");
-			emailContent.append("No potential matches were found!");
-		}
-		
-		if (emailContent.length() > 0) {
-			// send email
-//			SignatureUtil.sendEmail("Qsignature Comparison: " + cmdLineInputFiles[0] + " vs the world", emailContent.toString(), email, logger);
-//			email(emailContent.toString());
-		}
-		
-		double totalSumOfSquares = 0.0;
-		for (Comparison comp : comparisons) {
-			double result = comp.getScore();
-			
-			totalSumOfSquares += FastMath.pow(result - mean, 2.0);
-		}
-		logger.info("totalSumOfSquares : " + totalSumOfSquares);
-		
-		double subSumOfSquares = 0.0;
-		for (Comparison comp : comparisons) {
-			double result = comp.getScore();
-			
-			if (result > cutoff) subSumOfSquares += FastMath.pow(result - mean, 2.0);
-		}
-		logger.info("subSumOfSquares : " + subSumOfSquares);
-		double subSumOfSquaresTimes2 = (subSumOfSquares * 2.5);
-		logger.info("subSumOfSquares * 2.5 : " + subSumOfSquaresTimes2);
+		writeResults(comparisons);
 		
 		return exitStatus;
 	}
 	
-	public static void main(String[] args) throws Exception {
-		LoadReferencedClasses.loadClasses(SignatureFindRelated.class);
+	
+	private void writeResults(List<Comparison> comps) throws IOException {
+		// for each file in the map, emit an output file with the corresponding comparisons
 		
-		SignatureFindRelated sp = new SignatureFindRelated();
+		for (File f : lostPatientRatios.keySet()) {
+			List<Comparison> fileSpecificComparisons = new ArrayList<>();
+			
+			// get all comparisons where this file is the main one
+			for (Comparison comp : comps) {
+				if (comp.getMain().equals(f)) {
+					fileSpecificComparisons.add(comp);
+				}
+			}
+			
+			if (fileSpecificComparisons.isEmpty()) {
+				continue;
+			}
+			
+			Collections.sort(fileSpecificComparisons);
+			
+			Path outputFile = Paths.get(f.getAbsolutePath().substring(0, f.getAbsolutePath().indexOf(".vcf")) + ".report.txt");
+			if ( ! Files.exists(outputFile)) {
+				Files.createFile(outputFile);
+			}
+			
+			logger.info("will write to " + outputFile.toString());
+			
+			try (BufferedWriter writer = Files.newBufferedWriter(outputFile, StandardCharsets.UTF_8, StandardOpenOption.WRITE)) {
+			
+				writer.write("found " + fileSpecificComparisons.size() + " comparisons for file: " + f.getName());
+				writer.newLine();
+				
+				double mean = 0.0;
+				writer.write("SUMMARY:");
+				writer.newLine();
+				for (Comparison comp : fileSpecificComparisons) {
+					double result = comp.getScore();
+					mean += result;
+					writer.write(comp.toSummaryString());
+					writer.newLine();
+				}
+				
+				mean /= fileSpecificComparisons.size();
+				writer.write("mean: " + mean);
+				writer.newLine();
+				
+				writer.write("SUMMARY - POTENTIAL MATCHES:");
+				writer.newLine();
+				writer.write("CUTOFF RESULTS (" + cutoff + "): ");
+				writer.newLine();
+				// interrogate results
+				String mainDonor = DonorUtils.getDonorFromFilename(f.getAbsolutePath());
+				boolean potentialMatchFound = false;
+				for (Comparison comp : fileSpecificComparisons) {
+					double result = comp.getScore();
+					
+					if (result < cutoff) {
+						potentialMatchFound = true;
+						String fileName = comp.getTest().getAbsolutePath();
+						String fileDonor = DonorUtils.getDonorFromFilename(fileName);
+						String output = fileDonor + " : " + fileName + " : " +result;
+						if (mainDonor.equals(fileDonor)) {
+							writer.write("CORRECT MATCH : " + output);
+							writer.newLine();
+						} else {
+							writer.write("INCORRECT MATCH : " + output);
+							writer.newLine();
+						}
+					}
+				}
+				writer.write("CUTOFF RESULTS (" + cutoff + ") - END");
+				writer.newLine();
+				
+				double irqMultiplier = 2.0;
+				List<Number> quartileMatches = Quartile.getPassingValuesString(fileSpecificComparisons, irqMultiplier);
+				if ( ! quartileMatches.isEmpty()) {
+					potentialMatchFound = true;
+					writer.write("QUARTILE RESULTS (IRQ multiplier: " + irqMultiplier + "): ");
+					writer.newLine();
+					for (Number n : quartileMatches) {
+						
+						// get entry in sortedList
+						for (Comparison comp : fileSpecificComparisons) {
+							if (n.doubleValue() == comp.getScore()) {
+								writer.write(comp.toSummaryString());
+								writer.newLine();
+								break;
+							}
+						}
+					}
+					writer.write("QUARTILE RESULTS (IRQ multiplier: " + irqMultiplier + ") - END");
+					writer.newLine();
+				}
+				
+				if ( ! potentialMatchFound) {
+					writer.write("WARNING: No potential matches were found!");
+					writer.newLine();
+				}
+				
+				
+				double totalSumOfSquares = 0.0;
+				for (Comparison comp : fileSpecificComparisons) {
+					double result = comp.getScore();
+					
+					totalSumOfSquares += FastMath.pow(result - mean, 2.0);
+				}
+				writer.write("totalSumOfSquares : " + totalSumOfSquares);
+				writer.newLine();
+				
+				double subSumOfSquares = 0.0;
+				for (Comparison comp : fileSpecificComparisons) {
+					double result = comp.getScore();
+					
+					if (result > cutoff) subSumOfSquares += FastMath.pow(result - mean, 2.0);
+				}
+				writer.write("subSumOfSquares : " + subSumOfSquares);
+				writer.newLine();
+				double subSumOfSquaresTimes2 = (subSumOfSquares * 2.5);
+				writer.write("subSumOfSquares * 2.5 : " + subSumOfSquaresTimes2);
+				writer.newLine();
+				
+			}
+		}
+	}
+	
+	public static void main(String[] args) throws Exception {
+		LoadReferencedClasses.loadClasses(SignatureFindRelatedMulti.class);
+		
+		SignatureFindRelatedMulti sp = new SignatureFindRelatedMulti();
 		int exitStatus = 0;
 		try {
 			exitStatus = sp.setup(args);
@@ -304,7 +340,7 @@ public class SignatureFindRelated {
 		} else {
 			logFile = options.getLog();
 			// configure logging
-			logger = QLoggerFactory.getLogger(SignatureFindRelated.class, logFile, options.getLogLevel());
+			logger = QLoggerFactory.getLogger(SignatureFindRelatedMulti.class, logFile, options.getLogLevel());
 			
 			// get list of file names
 			cmdLineInputFiles = options.getInputFileNames();
@@ -338,9 +374,6 @@ public class SignatureFindRelated {
 			if (options.hasAdditionalSearchStringOption())
 				additionalSearchStrings = options.getAdditionalSearchString();
 			
-			if (options.hasEmailOption())
-				email = options.getEmail();
-			
 			if (options.hasExcludeVcfsFileOption())
 				excludeVcfsFile = options.getExcludeVcfsFile();
 			
@@ -351,7 +384,7 @@ public class SignatureFindRelated {
 				positionsOfInterest = ChrPositionUtils.getChrPositionsFromStrings(positions);
 			}
 			
-			logger.logInitialExecutionStats("SignatureFindRelated", SignatureFindRelated.class.getPackage().getImplementationVersion(), args);
+			logger.logInitialExecutionStats("SignatureFindRelated", SignatureFindRelatedMulti.class.getPackage().getImplementationVersion(), args);
 			
 			return engage();
 		}

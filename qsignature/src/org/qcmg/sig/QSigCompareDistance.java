@@ -1,5 +1,5 @@
 /**
- * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ * �� Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
 package org.qcmg.sig;
 
@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentMap;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -343,6 +344,18 @@ public class QSigCompareDistance {
 		return compareRatios(file1Ratios, file2Ratios, file1, file2, null);
 	}
 	
+	public static List<Comparison> compareRatios(Map<ChrPosition, double[]> file1Ratios, File f1,
+			ConcurrentMap<File, ConcurrentMap<ChrPosition, double[]>> mapOfRatios, List<ChrPosition> positionsOfInterest) {
+
+		List<Comparison> comps = new ArrayList<>();
+		
+		for (Entry<File, ConcurrentMap<ChrPosition, double[]>> entry : mapOfRatios.entrySet()) {
+			comps.add(compareRatios(entry.getValue(), file1Ratios, entry.getKey(), f1, positionsOfInterest));
+		}
+		
+		return comps;
+	}
+	
 	/**
 	 * Compares the ratios of the 2 supplied maps, and returns a Comparison object
 	 * 
@@ -547,4 +560,6 @@ public class QSigCompareDistance {
 		}
 		return returnStatus;
 	}
+
+	
 }

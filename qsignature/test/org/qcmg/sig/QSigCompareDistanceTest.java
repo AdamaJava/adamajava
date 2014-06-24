@@ -21,7 +21,7 @@ public class QSigCompareDistanceTest {
 	@Test
 	public void testCompareRatios() {
 		try {
-			QSigCompareDistance.compareRatios(null, null, null, null);
+			QSigCompareDistance.compareRatios(null, null, (File)null, (File)null);
 			Assert.fail("Should have thrown an IAE");
 		} catch (IllegalArgumentException iae) {}
 		try {
