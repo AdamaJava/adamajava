@@ -55,15 +55,12 @@ public class SignatureCompareRelatedSimple {
 	
 	private String excludeVcfsFile;
 	private List<String> excludes;
+	private String logFile;
 	
 	private final Map<File, int[]> fileIdsAndCounts = new HashMap<>();
 	private final List<Comparison> allComparisons = new ArrayList<>();
 	
 	private final Map<File, Map<ChrPosition, double[]>> cache = new HashMap<>();
-	
-//	private String email;
-//	private String emailSubject = "Qsignature Comparison: all bams vs donor snp chip";
-	private String logFile;
 	
 	List<String> suspiciousResults = new ArrayList<String>();
 	
@@ -129,11 +126,6 @@ public class SignatureCompareRelatedSimple {
 			cache.remove(f1);
 		}
 		
-//		String comparisonResults = ComparisonUtil.getComparisonsBody(allComparisons);
-//		donorSB.append(comparisonResults);
-//		donorSB.append("\n");
-		
-		
 		for (Comparison comp : allComparisons) {
 			if (comp.getScore() > cutoff) {
 				suspiciousResults.add(donor + "\t" + comp.toSummaryString());
@@ -150,7 +142,6 @@ public class SignatureCompareRelatedSimple {
 		} else {
 			logger.info("Suspicious results SUMMARY:");
 			for (String s : suspiciousResults) logger.info(s);
-			//email();
 		}
 		
 		if (outputXml != null)
@@ -196,15 +187,12 @@ public class SignatureCompareRelatedSimple {
 		for (File f  : keys) {
 			int[] value = fileIdsAndCounts.get(f);
 			
-//			logger.info(value[0] + " : " +  f.getAbsolutePath() + " : " + value[1]);
 			Element fileE = doc.createElement("file");
 			fileE.setAttribute("id", value[0] + "");
 			fileE.setAttribute("name", f.getAbsolutePath());
 			fileE.setAttribute("coverage", value[1] + "");
 			filesE.appendChild(fileE);
 		}
-		// and now the comparisons
-//		logger.info("COMPARISONS: ");
 		
 		// list files
 		Element compsE = doc.createElement("comparisons");
@@ -212,7 +200,6 @@ public class SignatureCompareRelatedSimple {
 		for (Comparison comp : allComparisons) {
 			int id1 = fileIdsAndCounts.get(comp.getMain())[0];
 			int id2 = fileIdsAndCounts.get(comp.getTest())[0];
-//			logger.info(id1 + " vs " + id2 + " - score: " + comp.getScore() + " overlaping coverage: " + comp.getOverlapCoverage() + " no of calcs: " + comp.getNumberOfCalculations());
 			
 			Element compE = doc.createElement("comparison");
 			compE.setAttribute("file1", id1 + "");
