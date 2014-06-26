@@ -105,7 +105,6 @@ public final class Options {
 		commandLine = Messages.reconstructCommandLine(args);
 		
 //		parser.accepts("qmule", "Tool").withRequiredArg().ofType(String.class).describedAs("tool name");
-
 		parser.accepts("output", OUTPUT_DESCRIPTION).withRequiredArg().ofType(String.class).describedAs("outputfile");
 		parser.accepts("input", INPUT_DESCRIPTION).withRequiredArg().ofType(String.class).describedAs("inputfile");
 		parser.accepts("log", INPUT_DESCRIPTION).withRequiredArg().ofType(String.class).describedAs("logfile");
@@ -156,7 +155,7 @@ public final class Options {
 		parser.accepts("gffRegions", INPUT_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',').describedAs("gffRegions");
 		parser.accepts("noOfBases", INPUT_DESCRIPTION).withRequiredArg().ofType(Integer.class).describedAs("noOfBases");
 		parser.accepts("proportion", Messages
-				.getMessage("PROPORTION_OPTION_DESCRIPTION")).withRequiredArg().ofType(String.class);
+				.getMessage("PROPORTION_OPTION_DESCRIPTION")).withRequiredArg().ofType(Double.class);
 		parser.accepts("stranded", Messages
 				.getMessage("STRANDED_OPTION_DESCRIPTION"));		
 		parser.accepts("compareAll",Messages.getMessage("COMPAREALL_OPTION"));
@@ -215,9 +214,7 @@ public final class Options {
 		
 		// qsignature
 		if (null != options.valueOf("minCoverage"))
-			minCoverage = (Integer) options.valueOf("minCoverage");
-		
-		 
+			minCoverage = (Integer) options.valueOf("minCoverage");	 
 		
 	}
 
@@ -420,10 +417,12 @@ public final class Options {
 	}
 	//subSample
 	public double getPROPORTION() throws Exception{
-		if(options.has("proportion")){			
-			double prop = Double.parseDouble(  (String) options.valueOf("proportion")  );
+		if(options.has("proportion")){	
+			
+ 			double prop =  (double) options.valueOf("proportion");
+//			double prop = Double.parseDouble(  (String) options.valueOf("proportion")  );
 			if(prop > 0 && prop <= 1){
-				return  prop;
+ 				return  prop;
 				
 			} 
 		}		

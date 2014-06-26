@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.picard.HeaderUtils;
+import org.qcmg.picard.SAMFileReaderFactory;
+
 import net.sf.samtools.*;
 
 public class SubSample {
@@ -34,7 +36,8 @@ public class SubSample {
 		if(!input.canRead()) 
 			throw new Exception("unreadable input: " + input.getAbsolutePath());	 
 			
-		reader = new SAMFileReader(input);			
+		
+		reader = SAMFileReaderFactory.createSAMFileReader(input,SAMFileReader.ValidationStringency.SILENT);			
 		SAMFileHeader header = reader.getFileHeader();
 		if(header.getSortOrder() != SAMFileHeader.SortOrder.queryname){
 			throw new Exception("the input BAM is not sorted by queryname");
@@ -131,7 +134,7 @@ public class SubSample {
 	}
 	
 	public static void main(String[] args) throws Exception{	
-		Options op = new Options(SubSample.class,  args);    
+		Options op = new Options(SubSample.class,  args);  
 	    if(op.hasHelpOption()){
 	    	System.out.println(Messages.getMessage("USAGE_SUBSAMPLE"));
 	    	op.displayHelp();
@@ -148,9 +151,9 @@ public class SubSample {
 			logger.logFinalExecutionStats(0);
 			System.exit(0);		
 		}catch(Exception e){
-			System.err.println(e.toString());
+			System.err.println( e.getMessage() );
 			logger.logFinalExecutionStats(-1);
-			System.exit(-1);
+			System.exit(1);
 		}
 	}
 
