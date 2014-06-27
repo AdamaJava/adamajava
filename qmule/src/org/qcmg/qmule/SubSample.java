@@ -20,8 +20,7 @@ public class SubSample {
 	QLogger logger;
 	
 	SubSample(Options op, QLogger log) throws Exception{	
-		
-
+	
 		proportion = op.getPROPORTION();	 
 		logger = log;
 		
@@ -34,10 +33,9 @@ public class SubSample {
 		File input = new File(inputs[0]);
 		File output = new File(outputs[0]);	
 		if(!input.canRead()) 
-			throw new Exception("unreadable input: " + input.getAbsolutePath());	 
-			
+			throw new Exception("unreadable input: " + input.getAbsolutePath());	 			
 		
-		reader = SAMFileReaderFactory.createSAMFileReader(input,SAMFileReader.ValidationStringency.SILENT);			
+		reader = SAMFileReaderFactory.createSAMFileReader(input,SAMFileReader.ValidationStringency.LENIENT);			
 		SAMFileHeader header = reader.getFileHeader();
 		if(header.getSortOrder() != SAMFileHeader.SortOrder.queryname){
 			throw new Exception("the input BAM is not sorted by queryname");
@@ -46,6 +44,8 @@ public class SubSample {
         HeaderUtils.addProgramRecord(header,  op.getCommandLine(), null );
          
         writer = writeFactory.makeSAMOrBAMWriter(header, false, output );
+        
+
 	}
 
 	void run() throws Exception{
@@ -54,13 +54,14 @@ public class SubSample {
 		int numtotal = 0;
 		 SAMRecordIterator ie = reader.iterator();
 		 ArrayList<SAMRecord> adjacents = new ArrayList<SAMRecord>();
-		 adjacents.add(ie.next());		 
+		 adjacents.add(ie.next());	
 		 
 		 while(ie.hasNext()){	
 			 numtotal ++;
 			 SAMRecord  record = ie.next();		
+				
 			//select reads
-			if(! record.getReadName().equals(adjacents.get(0).getReadName())){			
+			if(! record.getReadName().equals(adjacents.get(0).getReadName())){	
 				//select pairs
 				if(adjacents.size() > 1)
 					numPair += selectPair( adjacents);
@@ -110,14 +111,15 @@ public class SubSample {
 			SAMRecord mate = null;
 			pairs.remove(first);
 			
-			for(int i = 0; i < pairs.size(); i ++){
-				if(first.getReadGroup().getId().equals(pairs.get(i).getReadGroup().getId())){
+			for(int i = 0; i < pairs.size(); i ++){				
+				if(first.getReadGroup().getId().equals(pairs.get(i).getReadGroup().getId())){					
 					mate = pairs.get(i);
-					pairs.remove(mate);
+					pairs.remove(mate);					
 					break;
 				}
 			}
-			
+
+					
 			if(Math.random() <  proportion ){			
 				num ++; //number of selected paired reads
 				writer.addAlignment(first);
@@ -151,7 +153,7 @@ public class SubSample {
 			logger.logFinalExecutionStats(0);
 			System.exit(0);		
 		}catch(Exception e){
-			System.err.println( e.getMessage() );
+			System.err.println( e.getMessage() + e.toString());
 			logger.logFinalExecutionStats(-1);
 			System.exit(1);
 		}
