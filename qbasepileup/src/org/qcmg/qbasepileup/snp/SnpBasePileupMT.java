@@ -164,10 +164,12 @@ public class SnpBasePileupMT {
             logger.info("Starting to read positions file: " + positionsFile.getAbsolutePath());
             int countSleep = 0;
             long count = 0;
-            try {             	
+            FastaSequenceIndex index = QBasePileupUtil.getFastaIndex(options.getReference());
+            boolean outputFormat2 = options.getOutputFormat() == 2;
+            
+            try (
             	IndexedFastaSequenceFile indexedFastaFile = QBasePileupUtil.getIndexedFastaFile(options.getReference());
-            	FastaSequenceIndex index = QBasePileupUtil.getFastaIndex(options.getReference());
-        		BufferedReader reader = new BufferedReader(new FileReader(positionsFile));
+        		BufferedReader reader = new BufferedReader(new FileReader(positionsFile));) {
         		
         		String line;
         		int mutationColumn = -1;
@@ -182,7 +184,12 @@ public class SnpBasePileupMT {
         				
         				positionCount.incrementAndGet();
         				SnpPosition p = null;
-        				String[] values = line.split("\t");	
+        				String[] values = line.split("\t");
+        				
+        				if (outputFormat2 && values.length < 6) {
+        					logger.warn("positions file has " + values.length + " entries from file: " + positionsFile + ", line: " + line);
+        					throw new Exception("There are fewer than 6 columns in the positions file and the output format is set to columns - this is prohibited!");
+        				}
         				
         				String[] columns = QBasePileupUtil.getSNPPositionColumns(format, values, count);
         				
@@ -195,7 +202,7 @@ public class SnpBasePileupMT {
     						p.setAltBases(QBasePileupUtil.getCompoundAltBases(values, mutationColumn));
     					}
         				
-        				if (options.getOutputFormat() == 2) {
+        				if (outputFormat2) {
     						p.setAltBases(values[5].getBytes());
     					}
         				
@@ -225,8 +232,6 @@ public class SnpBasePileupMT {
                         }
                     }
         		}
-        		indexedFastaFile.close();
-        		reader.close();                            
                 
                 logger.info("Completed reading thread, read " + count
                         + " records from input: " + positionsFile.getAbsolutePath());
