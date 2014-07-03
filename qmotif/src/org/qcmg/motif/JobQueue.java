@@ -1,5 +1,5 @@
 /**
- * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ * �� Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
 package org.qcmg.motif;
 
@@ -7,14 +7,12 @@ import java.io.File;
 import java.io.IOException;
 import java.util.AbstractQueue;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Vector;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -31,14 +29,13 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.util.Pair;
-import org.qcmg.gff3.GFF3FileReader;
-import org.qcmg.gff3.GFF3Record;
 import org.qcmg.motif.util.MotifUtils;
 import org.qcmg.motif.util.MotifsAndRegexes;
 import org.qcmg.motif.util.RegionCounter;
 import org.qcmg.motif.util.SummaryStats;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.SAMOrBAMWriterFactory;
+import org.qcmg.picard.util.SAMSequenceRecodComparator;
 import org.qcmg.qbamfilter.query.QueryExecutor;
 
 public final class JobQueue {
@@ -47,19 +44,9 @@ public final class JobQueue {
 	
 	private final HashMap<String, HashMap<Integer, AtomicLong>> perIdPerCoverageBaseCounts = new HashMap<String, HashMap<Integer, AtomicLong>>();
 	private final int numberThreads;
-	private int numberFeatures = 0;
-	private final File gff3File;
-	private final HashSet<String> refNames = new HashSet<String>();
-	private HashSet<String> bamRefNames = new HashSet<String>();
-	private HashMap<String, Long> gff3RefNames = new HashMap<String, Long>();
-//	private final HashMap<String, HashSet<GFF3Record>> perRefnameFeatures = new HashMap<String, HashSet<GFF3Record>>();
-	private final HashMap<String, Integer> perRefnameLengths = new HashMap<String, Integer>();
-	private final HashMap<Integer, HashSet<String>> perLengthRefnames = new HashMap<Integer, HashSet<String>>();
 	private final HashSet<Pair<File, File>> filePairs;
-	private final HashMap<String, HashSet<Pair<File, File>>> refnameFilePairs = new HashMap<String, HashSet<Pair<File, File>>>();
-	private final Vector<String> refnameExecutionOrder = new Vector<String>();
 	private final Map<ChrPosition, RegionCounter> results = new HashMap<>();
-	private final BlockingQueue<Job> jobQueue = new LinkedBlockingQueue<Job>();
+	private final BlockingQueue<Job> jobQueue = new LinkedBlockingQueue<>();
 	private final LoggerInfo loggerInfo;
 	private final QLogger logger;
 	private final QueryExecutor filter;
@@ -76,12 +63,10 @@ public final class JobQueue {
 	private final MotifsAndRegexes motifsAndRegexes;
 	private final SummaryStats ss = new SummaryStats();
 	
-	private final List<String> gffErrors = new ArrayList<String>();
-
+	private final List<SAMSequenceRecord> contigs;
+	
 	public JobQueue(final Configuration invariants)
 			throws Exception {
-//		perFeatureFlag = invariants.isPerFeatureFlag();
-		gff3File = invariants.getInputGFF3File();
 		filter = invariants.getFilter();
 		algorithm = invariants.getAlgorithm();
 		numberThreads = invariants.getNumberThreads();
@@ -92,7 +77,6 @@ public final class JobQueue {
 		countIn = invariants.getInputReadsCount();
 		countOut = invariants.getCoverageReadsCount();
 		motifsAndRegexes = invariants.getRegex();
-//		motifRefPositions = invariants.getExcludes();
 		windowSize = invariants.getWindowSize();
 		includes = invariants.getIncludes();
 		excludes = invariants.getExcludes();
@@ -108,15 +92,28 @@ public final class JobQueue {
 		SAMFileHeader header = samReader.getFileHeader();
 		bamWriterFactory = new SAMOrBAMWriterFactory(header, false, new File(invariants.getOutputBam()));
 		
+		contigs = header.getSequenceDictionary().getSequences();
+		// add in unmapped as this is not usually in the bam header
+		boolean containsUnmapped = false;
+		for (SAMSequenceRecord ssr : contigs) {
+			if (ssr.getSequenceName().equalsIgnoreCase(UNMAPPED)) {
+				containsUnmapped = true;
+				break;
+			}
+		}
+		if ( ! containsUnmapped) {
+			contigs.add(new SAMSequenceRecord(UNMAPPED, 1000 * 1000 * 128));
+		}
+		
+		// and now sort so that the largest is first
+		Collections.sort(contigs, new SAMSequenceRecodComparator());
+	
 		if (null != invariants.getCutoff()) cutoff = invariants.getCutoff(); 
-//		if (null != invariants.getRegex()) regex =Pattern.compile(invariants.getRegex()); 
 		
 		execute();
 	}
 
 	private void execute() throws Exception, IOException {
-//		logger.info("Loading features from GFF file");
-//		loadFeatures();
 		logger.info("Queueing jobs");
 		queueJobs();
 		logger.info("Commencing processing of jobs...");
@@ -167,16 +164,24 @@ public final class JobQueue {
 	}
 
 	private void queueCoverageJobs() throws Exception {
-		identifyRefNameExecutionOrder();
-		for (String refname : refnameExecutionOrder) {
-			int refLength = perRefnameLengths.get(refname);
-			HashSet<Pair<File, File>> filePairs = refnameFilePairs.get(refname);
+		for (SAMSequenceRecord ssr : contigs) {
+			String refName = ssr.getSequenceName();
+			int refLength = ssr.getSequenceLength();
 			
-			Job job = new CoverageJob(refname,
+			Job job = new CoverageJob(refName,
 					refLength, filePairs, filter,
 					algorithm, countIn, countOut, validation, windowSize, outputQueue, includes, excludes);
 			jobQueue.add(job);
 		}
+//		for (String refname : refnameExecutionOrder) {
+//			int refLength = perRefnameLengths.get(refname);
+//			HashSet<Pair<File, File>> filePairs = refnameFilePairs.get(refname);
+//			
+//			Job job = new CoverageJob(refname,
+//					refLength, filePairs, filter,
+//					algorithm, countIn, countOut, validation, windowSize, outputQueue, includes, excludes);
+//			jobQueue.add(job);
+//		}
 		logger.info("Number of queued coverage jobs: " + jobQueue.size());
 		logger.info("Queued jobs are: " + jobQueue);
 	}
@@ -209,7 +214,6 @@ public final class JobQueue {
 		int rawUnmapped = 0;
 		int rawIncludes = 0;
 		int rawGenomic = 0;
-		
 		
 		for (ChrPosition orderedCP : orderedResultsList) {
 			
@@ -259,7 +263,7 @@ public final class JobQueue {
 					motifs += rs.toString();
 				}
 				
-				// overwrite motifs for now - may want ot put big list of bumf back in there soon...
+				// overwrite motifs for now - may want to put big list of bumf back in there soon...
 				
 				switch (rc.getType()) {
 				case INCLUDES: rawIncludes += rc.getStage2Coverage(); break;
@@ -277,7 +281,6 @@ public final class JobQueue {
 			}
 		}
 		
-		
 		if ( ! resultsList.isEmpty()) {
 			logger.info("SUMMARY: (window size: " + windowSize + ", cutoff: " + cutoff + ")");
 			for (String s : resultsList) logger.info(s);
@@ -289,7 +292,7 @@ public final class JobQueue {
 			logger.info("no evidence of motifs were found!!!");
 		}
 		
-		long factor = 1000000000;
+		long factor = 1000 * 1000 * 1000;
 		long totalReadCount = countIn.get();
 		
 		ss.setWindowSize(windowSize);
@@ -304,127 +307,10 @@ public final class JobQueue {
 		ss.setScaledGenomic((rawGenomic * factor) / totalReadCount);
 		ss.setScaledIncludes((rawIncludes * factor) / totalReadCount);
 		ss.setScaledUnmapped((rawUnmapped * factor) / totalReadCount);
-		
-			
-	}
-
-//	private void loadFeatures() throws Exception, IOException {
-//		identifyRefNames();
-//		GFF3FileReader featureReader = new GFF3FileReader(gff3File);
-//		for (final GFF3Record feature : featureReader) {
-//			String ref = feature.getSeqId();
-//			if (refNames.contains(ref)) {
-//				HashSet<GFF3Record> features = perRefnameFeatures.get(ref);
-//				if (null == features) {
-//					features = new HashSet<GFF3Record>();
-//					perRefnameFeatures.put(ref, features);
-//				}
-//				features.add(feature);
-//			}
-//		}
-//		featureReader.close();
-//	}
-
-	private void identifyRefNames() throws Exception {
-		identifyBamRefNames();
-		identifyGff3RefNames();
-		refNames.addAll(bamRefNames);
-		refNames.retainAll(gff3RefNames.keySet());
-		
-		// add in the unmaped
-		refNames.add(UNMAPPED);
-		
-		// free up some space
-		bamRefNames = null;
-		gff3RefNames = null;
-		
-		logger.debug("Common reference names: " + refNames);
-	}
-
-	private void identifyGff3RefNames() throws Exception, IOException {
-		GFF3FileReader gff3Reader = new GFF3FileReader(gff3File);
-		String chr = null;
-		long maxPosition = 0;
-		for (GFF3Record record : gff3Reader) {
-			numberFeatures++;
-			String refName = record.getSeqId();
-			if ( ! refName.equals(chr)) {
-				if (chr != null)
-					gff3RefNames.put(chr, maxPosition);
-				chr = refName;	// update chr
-				maxPosition = 0;	// reset max position
-			}
-			maxPosition = Math.max(record.getEnd(), maxPosition);
-			
-//			gff3RefNames.add(refName);
-			checkGff3Record(record);
-		}
-		gff3Reader.close();
-		logger.debug("Number of GFF3 features: " + numberFeatures);
-		logger.debug("GFF3 reference names: " + gff3RefNames);
-		
-		// check that we don't have any features that go beyond the lengths of the sequences as defined in the bam header
-		for (Entry<String, Long> entry : gff3RefNames.entrySet()) {
-			// find corresponding entry in bam header collection
-			Integer bamLength = perRefnameLengths.get(entry.getKey());
-			if (null != bamLength) {
-				if (bamLength < entry.getValue()) {
-					gffErrors.add("Gff lengths are greater than bam header lengths for: " 
-							+ entry.getKey() + ", gff length: " + entry.getValue() + ", bam header length: " + bamLength);
-				}
-			} else {
-//				gffErrors.add("Chromosome appears in gff but not in bam file: " + entry.getKey());
-			}
-		}
-		
-		if ( ! gffErrors.isEmpty()) {
-			for (String error : gffErrors) {
-				logger.error(error);
-			}
-			throw new IllegalArgumentException("Errors in gff file: " + gff3File);
-		}
-	}
-	
-	private void checkGff3Record(GFF3Record record) {
-		// check that start position is before or equal to end position
-		if (record.getStart() > record.getEnd()) {
-			gffErrors.add("Start position > end position at line no: " + numberFeatures + ", rec: " + record.getRawData());
-		}
-		
-	}
-	
-	private void identifyBamRefNames() {
-		for (final Pair<File, File> pair : filePairs) {
-			File bamFile = pair.getLeft();
-			File baiFile = pair.getRight();
-			SAMFileReader samReader = SAMFileReaderFactory.createSAMFileReader(bamFile, baiFile);
-			SAMFileHeader header = samReader.getFileHeader();
-			for (SAMSequenceRecord seqRecord : header.getSequenceDictionary()
-					.getSequences()) {
-				String seqName = seqRecord.getSequenceName();
-				bamRefNames.add(seqName);
-				Integer seqLength = seqRecord.getSequenceLength();
-				perRefnameLengths.put(seqName, seqLength);
-				HashSet<Pair<File, File>> filePairs = refnameFilePairs.get(seqName);
-				if (null == filePairs) {
-					filePairs = new HashSet<Pair<File, File>>();
-					refnameFilePairs.put(seqName, filePairs);
-				}
-				filePairs.add(pair);
-			}
-			// add in a bunch of crap for unmapped
-			perRefnameLengths.put(UNMAPPED,1000 * 1000 * 128);
-			bamRefNames.add(UNMAPPED);
-			refnameFilePairs.put(UNMAPPED, filePairs);
-
-			logger.debug("BAM reference names: " + bamRefNames);
-			samReader.close();
-		}
 	}
 
 	private void processJobs() throws Exception {
-		assert (null != refNames);
-		HashSet<WorkerThread> workerThreads = new HashSet<WorkerThread>();
+		HashSet<WorkerThread> workerThreads = new HashSet<>();
 		for (int j = 0; j < numberThreads; j++) {
 			WorkerThread thread = new WorkerThread(jobQueue, loggerInfo, Thread.currentThread());
 			workerThreads.add(thread);
@@ -440,57 +326,9 @@ public final class JobQueue {
 		logger.debug("Results from threads gathered, no of entries in results map: " + results.size());
 	}
 
-	// Prioritise thread execution based on decreasing sequence length
-	private void identifyRefNameExecutionOrder() {
-		for (Integer length : perRefnameLengths.values()) {
-			perLengthRefnames.put(length, new HashSet<String>());
-			
-		}
-		
-		// Identify refnames for each length
-		for (String refName : refNames) {
-			
-			Integer length = perRefnameLengths.get(refName);
-			assert (perLengthRefnames.containsKey(length));
-			perLengthRefnames.get(length).add(refName);
-		}
-		// Identify smallest to largest length order
-		Integer[] lengths = new Integer[perLengthRefnames.keySet().size()];
-		perLengthRefnames.keySet().toArray(lengths);
-		Arrays.sort(lengths);
-		// Determine refName execution order from largest-to-smallest length
-		for (int i = lengths.length - 1; i >= 0; i--) {
-			assert (perLengthRefnames.containsKey(lengths[i]));
-			for (String refName : perLengthRefnames.get(lengths[i])) {
-				refnameExecutionOrder.add(refName);
-			}
-		}
-		logger.debug("Refname execution order (first-to-last): "
-				+ refnameExecutionOrder);
-	}
 	
 	public SummaryStats getResults() {
 		return ss;
 	}
-
-//	public List<CoverageReport> getCoverageReport() {
-//		List<CoverageReport> results = new Vector<CoverageReport>();
-//		for (final String type : perIdPerCoverageBaseCounts.keySet()) {
-//			HashMap<Integer, AtomicLong> value = perIdPerCoverageBaseCounts
-//					.get(type);
-//			CoverageReport report = new CoverageReport();
-//			report.setFeature(type);
-//			report.setType(coverageType);
-//			for (Integer coverage : value.keySet()) {
-//				AtomicLong bases = value.get(coverage);
-//				CoverageModel element = new CoverageModel();
-//				element.setBases(new BigInteger(""+bases.get()));
-//				element.setAt(coverage.toString());
-//				report.getCoverage().add(element);
-//			}
-//			results.add(report);
-//		}
-//		return results;
-//	}
 
 }

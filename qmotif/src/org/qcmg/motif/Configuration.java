@@ -1,5 +1,5 @@
 /**
- * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ * �� Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
 package org.qcmg.motif;
 
@@ -101,7 +101,7 @@ public final class Configuration {
 		inferMissingBaiFileNames();
 
 		if (options.hasNumberThreadsOption()) {
-			numberThreads = options.getNumberThreads()[0];
+			numberThreads = options.getNumberThreads().intValue();
 		} else {
 			numberThreads = 1;
 		}
@@ -112,11 +112,6 @@ public final class Configuration {
 			filter = null;
 		}
 		
-//		if (options.hasVcfFlag() && ! perFeatureFlag) {
-//			logger.warn("VCF mode has been selected, however, the per-feature flag has not been set" +
-//					" - will not be able to create the vcf file");
-//		}
-
 		inputGFF3File = new File(inputGFF3FileName);
 		instantiateBamFiles();
 		instantiateBaiFiles();
@@ -245,15 +240,12 @@ public final class Configuration {
 		for (int i = 0; i < inputBAMFiles.length; i++) {
 			File bamFile = inputBAMFiles[i];
 			File baiFile = inputBAIFiles[i];
-			Pair<File, File> filePair = new Pair<File, File>(bamFile, baiFile);
+			Pair<File, File> filePair = new Pair<>(bamFile, baiFile);
 			filePairs.add(filePair);
 		}
 	}
 
 	private void checkFileExistence() throws Exception {
-//		if (!inputGFF3File.exists()) {
-//			throw new Exception("Input GFF3 feature file does not exist");
-//		}
 		for (final File file : inputBAMFiles) {
 			if (!file.exists()) {
 				throw new Exception("Input BAM file '" + file.getAbsolutePath()
@@ -266,10 +258,6 @@ public final class Configuration {
 						+ "' does not exist");
 			}
 		}
-//		if (outputFile.exists()) {
-//			throw new Exception(
-//					"An output file of the same name already exists.");
-//		}
 	}
 
 	public LoggerInfo getLoggerInfo() {

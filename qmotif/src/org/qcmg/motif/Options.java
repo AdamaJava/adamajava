@@ -1,5 +1,5 @@
 /**
- * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ * �� Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
 package org.qcmg.motif;
 
@@ -23,10 +23,6 @@ public final class Options {
 			.getMessage("INPUT_BAI_OPTION_DESCRIPTION");
 	private static final String NUMBER_THREADS_DESCRIPTION = Messages
 			.getMessage("NUMBER_THREADS_DESCRIPTION");
-	private static final String XML_OPTION_DESCRIPTION = Messages
-			.getMessage("XML_OPTION_DESCRIPTION");
-	private static final String VCF_OPTION_DESCRIPTION = Messages
-			.getMessage("VCF_OPTION_DESCRIPTION");
 	private static final String OUTPUT_DESCRIPTION = Messages
 			.getMessage("OUTPUT_OPTION_DESCRIPTION");
 	private static final String QUERY_OPTION_DESCRIPTION = Messages
@@ -44,8 +40,7 @@ public final class Options {
 	private final String[] inputBAMFileNames;
 	private final String[] outputFileNames;
 	private final String[] inputBAIFileNames;
-	private final String[] types;
-	private final Integer[] numberThreads;
+	private final Integer numberThreads;
 	private final String logLevel;
 	private final String log;
 	private final String query;
@@ -54,8 +49,6 @@ public final class Options {
 	@SuppressWarnings("unchecked")
 	public Options(final String[] args) throws Exception {
 		parser.acceptsAll(asList("h", "help"), HELP_DESCRIPTION);
-		parser.acceptsAll(asList("xml"), XML_OPTION_DESCRIPTION);
-		parser.accepts("vcf", VCF_OPTION_DESCRIPTION);
 		parser.acceptsAll(asList("o", "output"), OUTPUT_DESCRIPTION)
 				.withRequiredArg().ofType(String.class).describedAs("outputfile");
 		parser.acceptsAll(asList("bam"), INPUT_BAM_OPTION_DESCRIPTION)
@@ -96,9 +89,8 @@ public final class Options {
 
 		inputGFF3FileNames = extractStringList("gff3");
 		outputFileNames = extractStringList("o");
-		types = extractStringList("t");
 
-		numberThreads = extractIntegerList("n");
+		numberThreads = (Integer) options.valueOf("n");
 		log = (String) options.valueOf("log");
 		logLevel = (String) options.valueOf("loglevel");
 		query = (String) options.valueOf("query");
@@ -112,13 +104,6 @@ public final class Options {
 		return result;
 	}
 
-	private Integer[] extractIntegerList(final String id) {
-		List<?> list = options.valuesOf(id);
-		Integer[] result = new Integer[list.size()];
-		list.toArray(result);
-		return result;
-	}
-	
 	public String getIniFile() {
 		return (String) (options.has("ini") ? options.valueOf("ini") : null);
 	}
@@ -127,28 +112,12 @@ public final class Options {
 		return options.has("q") || options.has("query");
 	}
 
-	public boolean hasTypeOption() {
-		return options.has("t") || options.has("type");
-	}
-
-	public String[] getTypes() {
-		return types;
-	}
-
 	boolean hasLogOption() {
 		return options.has("log");
 	}
 
 	boolean hasLogLevelOption() {
 		return options.has("loglevel");
-	}
-
-	boolean hasXmlFlag() {
-		return options.has("xml");
-	}
-	
-	boolean hasVcfFlag() {
-		return options.has("vcf");
 	}
 
 	String getLog() {
@@ -221,7 +190,7 @@ public final class Options {
 		parser.printHelpOn(System.out);
 	}
 
-	public Integer[] getNumberThreads() {
+	public Integer getNumberThreads() {
 		return numberThreads;
 	}
 
@@ -233,44 +202,19 @@ public final class Options {
 		return validation;
 	}
 	
-//	public Integer getWindowSize() {
-//		if (null == options.valueOf("windowSize")) return null;
-//		return (Integer) options.valueOf("windowSize");
-//	}
-//	public Integer getCutoff() {
-//		if (null == options.valueOf("cutoff")) return null;
-//		return (Integer) options.valueOf("cutoff");
-//	}
-	
-
 	public void detectBadOptions() throws Exception {
 		if (null != options.nonOptionArguments()
 				&& 0 < options.nonOptionArguments().size()) {
 			throw new Exception("All arguments must be specified as options.");
 		}
-		if (!hasTypeOption()) {
-			throw new Exception("Missing type option");
-		}
-		if (1 != getTypes().length) {
-			throw new Exception("Only one type option can be provided");
-		}
-		if (!hasInputBAMOption()) {
+		if ( ! hasInputBAMOption()) {
 			throw new Exception("Missing BAM input file option");
 		}
-		if (!hasOutputOption()) {
+		if ( ! hasOutputOption()) {
 			throw new Exception("Missing output option");
 		}
-		if (hasNumberThreadsOption() && 1 < getNumberThreads().length) {
-			throw new Exception("Thread count can be specified once");
-		}
-		if (!hasLogOption()) {
+		if ( ! hasLogOption()) {
 			throw new Exception("A log filename must be specified (using the --log option)");
 		}
-//		if (null != getWindowSize() && getWindowSize().intValue() <= 0) {
-//			throw new Exception("Invalid window size - must be > 0 and not " + getWindowSize());
-//		}
-//		if (null != getCutoff() && getCutoff().intValue() < 0) {
-//			throw new Exception("Invalid cutoff - must be >= 0 and not " + getCutoff());
-//		}
 	}
 }

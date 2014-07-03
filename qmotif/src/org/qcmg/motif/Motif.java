@@ -1,5 +1,5 @@
 /**
- * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ * �� Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
 package org.qcmg.motif;
 
@@ -26,10 +26,7 @@ import javax.xml.transform.stream.StreamResult;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
-import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.LoadReferencedClasses;
-import org.qcmg.gff3.GFF3FileWriter;
-import org.qcmg.gff3.GFF3Record;
 import org.qcmg.motif.util.MotifUtils;
 import org.qcmg.motif.util.RegionCounter;
 import org.qcmg.motif.util.RegionType;
@@ -40,117 +37,15 @@ import org.w3c.dom.Element;
 public final class Motif {
 	private final Options options;
 	private final Configuration invariants;
-	private JobQueue jobQueue;
+	private final JobQueue jobQueue;
 
 	public Motif(final Options options) throws Exception {
 		options.detectBadOptions();
 		this.options = options;
 		invariants = new Configuration(options);
-		if (null != options.getReference()) {
-//			ReferenceMotifFinder rmf = new ReferenceMotifFinder(invariants.getMotifs(), options.getReference(), options.getRegex());
-//			rmf.loadNextReferenceSequence();
-//			rmf.performMotifSearch();
-			
-//			Map<ChrPosition, String> positionsFromReference = rmf.getPositionsWithMotifs();
-//			if ( ! positionsFromReference.isEmpty()) {
-//				invariants.setPositionsToIgnore(rmf.getPositionsWithMotifs());
-//				
-//				// write output should gff output option exist
-//				writeMotifReferencePositionsToGFF(invariants.getOutputGff(), positionsFromReference);
-//			}
-			
-			jobQueue = new JobQueue(invariants);
-			saveCoverageReport();
-			
-		} else {
-			jobQueue = new JobQueue(invariants);
-			saveCoverageReport();
-		}
+		jobQueue = new JobQueue(invariants);
+		saveCoverageReport();
 	}
-	
-	private void writeMotifReferencePositionsToGFF(String gffOutputFile, Map<ChrPosition, String> positionsFromReference) {
-		if (StringUtils.isNullOrEmpty(gffOutputFile)) {
-			mlogger.info("No gff output filename supplied");
-		} else {
-			
-			// create gff objects for each entry in the map - sort first
-			List<ChrPosition> orderedPositions = new ArrayList<>(positionsFromReference.keySet());
-			Collections.sort(orderedPositions);
-			
-			try (GFF3FileWriter writer = new GFF3FileWriter(new File(gffOutputFile))) {	
-				for (ChrPosition cp : orderedPositions) {
-					GFF3Record gffRec = new GFF3Record();
-					gffRec.setSeqId(cp.getChromosome());
-					gffRec.setStart(cp.getPosition());
-					gffRec.setSource("qmotif");
-					gffRec.setType("motif");
-					gffRec.setScore(".");
-					gffRec.setPhase(".");
-					gffRec.setStrand(".");
-					String motifs = positionsFromReference.get(cp);
-					// find the shortest motif in here and use that as the length
-					String shortestMotif = motifs;
-					if (motifs.indexOf(':') > -1) {
-						String [] params = motifs.split(":");
-						shortestMotif = params[0];
-						for (String p : params) {
-							if (p.length() < shortestMotif.length()) shortestMotif = p;
-						}
-					}
-					gffRec.setEnd(cp.getPosition() + shortestMotif.length());
-					gffRec.setAttributes("motif=" + shortestMotif);
-					
-					writer.add(gffRec);
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-	}
-
-//	private void writePerFeatureTabDelimitedCoverageReport(
-//			final QCoverageStats stats) throws IOException {
-//		File file = new File(options.getOutputFileNames()[0]);
-//		BufferedWriter out = new BufferedWriter(new FileWriter(file));
-//		out.write("#coveragetype\tnumberofbases\tcoverage\n");
-//		CoverageComparator comparator = new CoverageComparator();
-//		for (final CoverageReport report : stats.getCoverageReport()) {
-//			String type = report.getType().toString().toLowerCase();
-//			String feature = report.getFeature();
-//			out.write("#" + feature + StringUtils.RETURN);
-//			List<CoverageModel> coverages = report.getCoverage();
-//			Collections.sort(coverages, comparator);
-//			for (final CoverageModel coverage : coverages) {
-//				BigInteger bases = coverage.getBases();
-//				String atCoverage = coverage.getAt() + "x";
-//				out.write(type + StringUtils.TAB + bases + StringUtils.TAB
-//						+ atCoverage + StringUtils.RETURN);
-//			}
-//		}
-//		out.close();
-//	}
-
-//	private void writePerTypeTabDelimitedCoverageReport(
-//			final QCoverageStats stats) throws IOException {
-//		File file = new File(options.getOutputFileNames()[0]);
-//		try (BufferedWriter out = new BufferedWriter(new FileWriter(file))) {;
-//			out.write("#coveragetype\tfeaturetype\tnumberofbases\tcoverage\n");
-//			CoverageComparator comparator = new CoverageComparator();
-//			for (final CoverageReport report : stats.getCoverageReport()) {
-//				String type = report.getType().toString().toLowerCase();
-//				String feature = report.getFeature();
-//				List<CoverageModel> coverages = report.getCoverage();
-//				Collections.sort(coverages, comparator);
-//				for (final CoverageModel coverage : coverages) {
-//					BigInteger bases = coverage.getBases();
-//					String atCoverage = coverage.getAt() + "x";
-//					out.write(type + StringUtils.TAB + feature + StringUtils.TAB
-//							+ bases + StringUtils.TAB + atCoverage
-//							+ StringUtils.RETURN);
-//				}
-//			}
-//		}
-//	}
 	
 	private void addToMap(Map<String, AtomicInteger> map, String key, AtomicInteger value) {
 		if (map.containsKey(key)) {
@@ -272,7 +167,6 @@ public final class Motif {
 			motifsE.appendChild(motifE);
 		}
 		
-		
 		// set up regions element
 		Element regionsE = doc.createElement("regions");
 		rootElement.appendChild(regionsE);
@@ -315,7 +209,6 @@ public final class Motif {
 				}
 			}
 		}
-		
 			
 		// write it out
 		TransformerFactory transformerFactory = TransformerFactory.newInstance();
@@ -326,89 +219,8 @@ public final class Motif {
 		transformer.transform(source, result);
 	}
 	
-	
-//	private void writeXMLCoverageReport(final QCoverageStats report)
-//			throws Exception {
-//		JAXBContext context = JAXBContext.newInstance(QCoverageStats.class);
-//		Marshaller m = context.createMarshaller();
-//		StringWriter sw = new StringWriter();
-//		m.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
-//		m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-//		m.marshal(report, sw);
-//		File file = new File(options.getOutputFileNames()[0]);
-//		try (FileWriter fileWriter = new FileWriter(file);) {
-//			fileWriter.write(sw.toString());
-//		}
-//	}
-	
-//	private void writeVCFReport(final QCoverageStats report) throws IOException {
-//		File file = new File(options.getOutputFileNames()[0] + ".vcf");
-//		List<VCFRecord> vcfs = new ArrayList<VCFRecord>();
-//		
-//		for (CoverageReport cr : report.getCoverageReport()) {
-//			if (cr.getFeature().contains("\t")) {
-//				VCFRecord vcf = convertCoverageToVCFRecord(cr);
-//				vcfs.add(vcf);
-//			}
-//		}
-//		
-//		if ( ! vcfs.isEmpty()) {
-//			Collections.sort(vcfs, new VcfPositionComparator());
-//				
-//			try (VCFFileWriter writer = new VCFFileWriter(file);) {
-//				writer.addHeader(VcfUtils.getHeaderForQCoverage(options.getBAMFileNames()[0], options.getInputGFF3FileNames()[0]));
-//				for (VCFRecord vcf : vcfs)
-//					writer.add(vcf);
-//			}
-//		}
-//		
-//	}
-	
-//	private static VCFRecord convertCoverageToVCFRecord(org.qcmg.motif.CoverageReport covReport) {
-//		VCFRecord vcf = new VCFRecord();
-//		
-//		// tab delimited string containing loads of useful stuff 
-//		String feature = covReport.getFeature();
-//		// if there are no tabs in the string, the per-feature flag was not set
-//		String[] params = TabTokenizer.tokenize(feature);
-//		
-//		vcf.setChromosome(params[0]);
-//		vcf.setPosition(Integer.parseInt(params[3]));
-//		
-//		// info field will contain coverage details
-//		int zeroCov = 0, nonZeroCov = 0, totalCov = 0;
-//		for (CoverageModel c : covReport.getCoverage()) {
-//			int coverage = Integer.parseInt(c.getAt());
-//			
-//			int countAtCoverage = c.getBases().intValue();
-//			if (coverage == 0) zeroCov += countAtCoverage;
-//			else {
-//				nonZeroCov += countAtCoverage;
-//				int cov = Integer.parseInt(c.getAt());
-//				totalCov += (cov * countAtCoverage);
-//			}
-//		}
-//		vcf.setInfo("B=" + params[2] + ";BE=" + params[4] + ";ZC=" + zeroCov + ";NZC=" + nonZeroCov + ";TOT=" + totalCov);
-//		
-//		return vcf;
-//	}
-
 	private void saveCoverageReport() throws Exception {
-//		QCoverageStats stats = new QCoverageStats();
-//		for (CoverageReport report : jobQueue.getCoverageReport()) {
-//			stats.getCoverageReport().add(report);
-//		}
-//		if (options.hasVcfFlag() && options.hasPerFeatureOption()) {
-//			writeVCFReport(stats);
-//		}
-		if (options.hasXmlFlag()) writeXMLCoverageReport(jobQueue.getResults());
-//			if (options.hasPerFeatureOption())
-//				writeVCFReport(stats);
-//		} else if (options.hasPerFeatureOption()) {
-//			writePerFeatureTabDelimitedCoverageReport(stats);
-//		} else {
-//			writePerTypeTabDelimitedCoverageReport(stats);
-//		}
+		writeXMLCoverageReport(jobQueue.getResults());
 	}
 
 	private static Options moptions = null;
