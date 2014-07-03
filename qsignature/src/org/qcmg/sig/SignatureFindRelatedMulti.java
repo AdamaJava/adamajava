@@ -87,9 +87,15 @@ public class SignatureFindRelatedMulti {
 		orderedSnpChipFiles = SignatureUtil.populateSnpChipFilesList(path, snpChipSearchSuffix, excludes, additionalSearchStrings);
 		
 		if (orderedSnpChipFiles.isEmpty()) {
-			logger.warn("No snp chip signature files found to use in the comparison based on path: " + path + ", and snpChipSearchSuffix: " + snpChipSearchSuffix + ", and additional search string: " + Arrays.deepToString(additionalSearchStrings));
-			exitStatus = 1;
-			return exitStatus;
+			// try again this time using just the bams rather than snp chips
+			logger.info("no files found using " + snpChipSearchSuffix + ", will try again using: " +  searchSuffix);
+			orderedSnpChipFiles = SignatureUtil.populateSnpChipFilesList(path, searchSuffix, excludes, additionalSearchStrings);
+			
+			if (orderedSnpChipFiles.isEmpty()) {
+				logger.warn("No snp chip signature files found to use in the comparison based on path: " + path + ", and searchSuffix: " + searchSuffix + ", and additional search string: " + Arrays.deepToString(additionalSearchStrings));
+				exitStatus = 1;
+				return exitStatus;
+			}
 		}
 		
 		
