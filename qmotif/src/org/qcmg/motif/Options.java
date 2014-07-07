@@ -15,8 +15,6 @@ public final class Options {
 			.getMessage("HELP_OPTION_DESCRIPTION");
 	private static final String VERSION_DESCRIPTION = Messages
 			.getMessage("VERSION_OPTION_DESCRIPTION");
-	private static final String INPUT_GFF3_OPTION_DESCRIPTION = Messages
-			.getMessage("INPUT_GFF3_OPTION_DESCRIPTION");
 	private static final String INPUT_BAM_OPTION_DESCRIPTION = Messages
 			.getMessage("INPUT_BAM_OPTION_DESCRIPTION");
 	private static final String INPUT_BAI_OPTION_DESCRIPTION = Messages
@@ -36,7 +34,7 @@ public final class Options {
 
 	private final OptionParser parser = new OptionParser();
 	private final OptionSet options;
-	private final String[] inputGFF3FileNames;
+//	private final String[] inputGFF3FileNames;
 	private final String[] inputBAMFileNames;
 	private final String[] outputFileNames;
 	private final String[] inputBAIFileNames;
@@ -55,8 +53,6 @@ public final class Options {
 				.withRequiredArg().ofType(String.class).describedAs("BAM file");
 		parser.acceptsAll(asList("bai"), INPUT_BAI_OPTION_DESCRIPTION)
 				.withRequiredArg().ofType(String.class).describedAs("BAI file");
-		parser.acceptsAll(asList("gff3"), INPUT_GFF3_OPTION_DESCRIPTION)
-				.withRequiredArg().ofType(String.class).describedAs("GFF3 file");
 		parser.acceptsAll(asList("q", "query"), QUERY_OPTION_DESCRIPTION)
 				.withRequiredArg().ofType(String.class).describedAs("expression");
 		parser.acceptsAll(asList("n"), NUMBER_THREADS_DESCRIPTION)
@@ -69,8 +65,6 @@ public final class Options {
 				.withRequiredArg().ofType(String.class);
 		parser.accepts("validation", VALIDATION_STRINGENCY_OPTION_DESCRIPTION)
 				.withRequiredArg().ofType(String.class); 
-		parser.accepts("reference", LOG_OPTION_DESCRIPTION).withRequiredArg().ofType(
-				String.class);
 		parser.accepts("ini", LOG_OPTION_DESCRIPTION).withRequiredArg().ofType(
 				String.class);
 		parser.accepts("windowSize", NUMBER_THREADS_DESCRIPTION)
@@ -87,7 +81,6 @@ public final class Options {
 		inputBAIFileNames = new String[inputBAIFileNamesList.size()];
 		inputBAIFileNamesList.toArray(inputBAIFileNames);
 
-		inputGFF3FileNames = extractStringList("gff3");
 		outputFileNames = extractStringList("o");
 
 		numberThreads = (Integer) options.valueOf("n");
@@ -159,12 +152,6 @@ public final class Options {
 	public boolean hasHelpOption() {
 		return options.has("h") || options.has("help");
 	}
-	public String getReference() {
-		return options.has("reference") ? (String)options.valueOf("reference") : null;
-	}
-//	public String getRegex() {
-//		return options.has("regex") ? (String)options.valueOf("regex") : null;
-//	}
 
 	public boolean hasNonOptions() {
 		return 0 != options.nonOptionArguments().size();
@@ -176,10 +163,6 @@ public final class Options {
 
 	public String[] getBAMFileNames() {
 		return inputBAMFileNames;
-	}
-
-	public String[] getInputGFF3FileNames() {
-		return inputGFF3FileNames;
 	}
 
 	public String[] getOutputFileNames() {
