@@ -63,7 +63,7 @@ public final class JobQueue {
 	private final MotifsAndRegexes motifsAndRegexes;
 	private final SummaryStats ss = new SummaryStats();
 	
-	private final List<SAMSequenceRecord> contigs;
+	private List<SAMSequenceRecord> contigs;
 	
 	public JobQueue(final Configuration invariants)
 			throws Exception {
@@ -101,6 +101,8 @@ public final class JobQueue {
 				break;
 			}
 		}
+		// create a copy of this as we can't modify the original
+		contigs = new ArrayList<SAMSequenceRecord>(contigs);
 		if ( ! containsUnmapped) {
 			contigs.add(new SAMSequenceRecord(UNMAPPED, 1000 * 1000 * 128));
 		}

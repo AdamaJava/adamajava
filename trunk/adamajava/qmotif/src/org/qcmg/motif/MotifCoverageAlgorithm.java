@@ -1,5 +1,5 @@
 /**
- * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ * �� Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
 package org.qcmg.motif;
 
@@ -63,10 +63,14 @@ public class MotifCoverageAlgorithm implements Algorithm {
 		
 		if (stageOneSearch(readString)) {
 			int readStart = read.getAlignmentStart();
+			if (readStart == 0 && read.getReadUnmappedFlag()) {
+				// set the start position to be 1 as we are dealing with 1-based chrPos objects
+				readStart = 1;
+			}
 			ChrPosition cp = new ChrPosition(read.getReferenceName(), readStart);
 			RegionCounter rc = getCounterFromMap(regions, cp);
 			
-			// throw excpetion if we don't have a region for this read
+			// throw exception if we don't have a region for this read
 			if (null == rc) throw new IllegalArgumentException("No RegionCounter exists for region: " + cp.toIGVString());
 			
 			// check that our region type can handle this type of read
