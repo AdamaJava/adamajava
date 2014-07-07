@@ -1,5 +1,5 @@
 /**
- * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ * �� Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
 package org.qcmg.motif;
 
@@ -104,14 +104,6 @@ class CoverageJob implements Job {
 		List<ChrPosition> chrExcludes = MotifUtils.getPositionsForChromosome(refName, excludes);
 		
 		chrSpecificRegions = MotifUtils.getRegionMap(refName, refLength, windowSize, chrIncludes, chrExcludes, "unmapped".equals(refName) );
-		
-		// go through map of motif reference positions, and only keep the ones for this chromosome
-//		chrSpecificMotifRefPositions = new HashMap<ChrPosition, String>();
-//		if (null != motifRefPositions && ! motifRefPositions.isEmpty()) {
-//			for (Entry<ChrPosition, String> entry : motifRefPositions.entrySet()) {
-//				if (refName.equals(entry.getKey().getChromosome()))  chrSpecificMotifRefPositions.put(entry.getKey(), entry.getValue());
-//			}
-//		}
 		logger.info("created " + chrSpecificRegions.size() + " regions for " + refName + " with " + chrIncludes.size() + " includes and " + chrExcludes.size() + " excludes");
 	}
 

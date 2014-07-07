@@ -257,11 +257,9 @@ public final class Motif {
 	}
 
 	private static String chooseErrorMessage(Throwable e) {
-		String message = null;
-		if (null == e.getMessage()) {
+		String message = e.toString();
+		if (null == message) {
 			message = "Unknown error";
-		} else {
-			message = e.getMessage();
 		}
 		return message;
 	}
@@ -269,7 +267,6 @@ public final class Motif {
 	private static void logErrorMessage(final String errorMessage,
 			final Throwable throwable) {
 		System.err.println(Messages.ERROR_PREFIX + errorMessage);
-		System.err.println(Messages.USAGE);
 		throwable.printStackTrace();
 		if (performLogging && null != mlogger) {
 			mlogger.error(errorMessage, throwable);
