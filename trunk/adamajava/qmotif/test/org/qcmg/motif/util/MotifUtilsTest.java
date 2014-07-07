@@ -166,7 +166,7 @@ public class MotifUtilsTest {
 		int size = 100;
 		int windowSize = 10;
 		List<ChrPosition> includes = new ArrayList<>();
-		ChrPosition includedCP = new ChrPosition("1", 10, 19);
+		ChrPosition includedCP = new ChrPosition("1", 11, 20);
 		includes.add(includedCP);
 		Map<ChrPosition, RegionCounter> regions = MotifUtils.getRegionMap("1", size, windowSize, includes, null);
 		assertEquals((size / windowSize) + 1, regions.size());
@@ -226,7 +226,7 @@ public class MotifUtilsTest {
 		int size = 100;
 		int windowSize = 10;
 		List<ChrPosition> excludes = new ArrayList<>();
-		ChrPosition excludedCP = new ChrPosition("1", 10, 19);
+		ChrPosition excludedCP = new ChrPosition("1", 11, 20);
 		excludes.add(excludedCP);
 		Map<ChrPosition, RegionCounter> regions = MotifUtils.getRegionMap("1", size, windowSize, null, excludes);
 		assertEquals((size / windowSize) + 1, regions.size());
@@ -333,6 +333,9 @@ public class MotifUtilsTest {
 	
 	private void testUniformCoverage(Set<ChrPosition> regionChrPos, int size, String chr) {
 		int[] coverage = new int[size];
+		// 1-based so populate the first entry
+		coverage[0] =1;
+		
 		for (ChrPosition cp : regionChrPos) {
 			for (int i = cp.getPosition() ; i <= cp.getEndPosition() ; i++) {
 				if (i < size) coverage[i]++;

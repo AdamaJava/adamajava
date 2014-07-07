@@ -201,7 +201,7 @@ public final class Motif {
 					Map<String, AtomicInteger> motifsRS = MotifUtils.convertStringArrayToMap(rc.getMotifsReverseStrand());
 					for (Entry<String, AtomicInteger> entry : motifsRS.entrySet()) {
 						Element motifFSE = doc.createElement("motif");
-						motifFSE.setAttribute("motifRef", orderedMotifs.indexOf(entry.getKey() +1) + "");
+						motifFSE.setAttribute("motifRef", (orderedMotifs.indexOf(entry.getKey()) +1) + "");
 						motifFSE.setAttribute("number", entry.getValue().get() + "");
 						motifFSE.setAttribute("strand", "R");
 						regionE.appendChild(motifFSE);

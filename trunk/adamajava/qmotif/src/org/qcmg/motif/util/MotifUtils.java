@@ -1,5 +1,5 @@
 /**
- * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ * �� Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
 package org.qcmg.motif.util;
 
@@ -62,7 +62,7 @@ public class MotifUtils {
 		Map<ChrPosition, RegionCounter> results = new HashMap<>();
 
 		for (int i = 0 ; i < noOfBins ; i++) {
-			ChrPosition cp = new ChrPosition(chr, i * windowSize, (i + 1) * windowSize -1);
+			ChrPosition cp = new ChrPosition(chr, (i * windowSize) + 1, (i + 1) * windowSize);
 			results.put(cp, new RegionCounter(isUnmapped ? RegionType.UNMAPPED : RegionType.GENOMIC));
 		}
 		
