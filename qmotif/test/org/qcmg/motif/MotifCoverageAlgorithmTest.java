@@ -27,8 +27,10 @@ public class MotifCoverageAlgorithmTest {
 	
 	MotifsAndRegexes mAndR;
 	MotifsAndRegexes mAndRStage1RegexStage2String;
+	MotifsAndRegexes mAndRStage1StringStage2Regex;
 	MotifCoverageAlgorithm mca;
 	MotifCoverageAlgorithm mcaStage1RegexStage2String;
+	MotifCoverageAlgorithm mcaStage1StringStage2Regex;
 	
 	@Before
 	public void setup() {
@@ -40,6 +42,9 @@ public class MotifCoverageAlgorithmTest {
 		mAndRStage1RegexStage2String = new MotifsAndRegexes(null, "...GGG{2,}|CCC...{2,}", new Motifs(true, "TTAGGGTTAGGG"), null, 10000);
 		mca = new MotifCoverageAlgorithm(mAndR);
 		mcaStage1RegexStage2String = new MotifCoverageAlgorithm(mAndRStage1RegexStage2String);
+		
+		mAndRStage1StringStage2Regex = new MotifsAndRegexes(new Motifs(true, "TTAGGGTTAGGGTTAGGG"), null , null, "(...GGG){2,}|(CCC...){2,}", 10000);
+		mcaStage1StringStage2Regex = new MotifCoverageAlgorithm(mAndRStage1StringStage2Regex);
 		
 		samPass = new SAMRecord(null);
 		samPass.setReferenceName("chr1");
@@ -159,7 +164,32 @@ public class MotifCoverageAlgorithmTest {
 		sam.setMappingQuality(60);
 		sam.setBaseQualityString("<<B0BBF<<FBBBFFBFBBF7FFFBFFFFFFIIBBF70BBFBB<BF0'0BFFFFF7BFFFI<'7<FFIIBB<B0<<7707<<7'77<B<0<BBBBBB<BBB");
 		
-		assertEquals(false, mca.applyTo(samFail, map));
+		assertEquals(false, mca.applyTo(sam, map));
+		
+	}
+	
+	@Test
+	public void realLifeData2() {
+		Map<ChrPosition, RegionCounter> map = new HashMap<>();
+		RegionCounter rc = new RegionCounter(RegionType.INCLUDES);
+		map.put(new ChrPosition("chr", 10001,12464), rc);
+		
+		//HWI-ST526:240:C2928ACXX:7:2107:12069:7310	163	chr1	10003	9	101M	=	10041	139	
+		//ACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCT	
+		//CC@FFFFFHHHHHJJJJJJJJJJJJJJCEHIJJJGIBHIGEHDHIIDIGIBFFGHIJJJIHGGHFFDFFDECEBDBBCCDBDDD?BDDBDDDDB?CCDDD2	X0:i:361	
+		//ZC:i:10	MD:Z:101	PG:Z:MarkDuplicates.3	RG:Z:20140411002647551	XG:i:0	AM:i:0	NM:i:0	SM:i:0	XM:i:0	XO:i:0	XT:A:R
+		SAMRecord sam = new SAMRecord(null);;
+		sam.setFlags(163);
+		sam.setAlignmentStart(10003);
+		sam.setReadString("ACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCT");
+		sam.setCigarString("101M");
+		sam.setMappingQuality(9);
+		sam.setBaseQualityString("CC@FFFFFHHHHHJJJJJJJJJJJJJJCEHIJJJGIBHIGEHDHIIDIGIBFFGHIJJJIHGGHFFDFFDECEBDBBCCDBDDD?BDDBDDDDB?CCDDD2");
+		
+		assertEquals(true, mca.applyTo(sam, map));
+		// same as initial sequence apart from the first character and the last 4 characters
+		assertEquals("CCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAA"
+				, rc.getMotifsForwardStrand());
 		
 	}
 
