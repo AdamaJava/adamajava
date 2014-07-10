@@ -675,7 +675,10 @@ public class BamSummaryReport extends SummaryReport {
 			value = (String) record.getAttribute(MD);
 			if (null != value) {
 //				SummaryReportUtils.tallyMDMismatches(value, tagMDMismatchByCycle, readBases, mdRefAltLengthsForward);
-				SummaryReportUtils.tallyMDMismatches(value, tagMDMismatchByCycle, readBases, reverseStrand, mdRefAltLengthsForward, mdRefAltLengthsReverse);
+//				if (record.getCigarString().contains("I")) {
+//					logger.info("md: " + value + ", cigar: " + record.getCigarString() + ", readBases: " + new String(readBases));
+//				}
+				SummaryReportUtils.tallyMDMismatches(value, record.getCigar(), tagMDMismatchByCycle, readBases, reverseStrand, mdRefAltLengthsForward, mdRefAltLengthsReverse);
 				allReadsLineLengths.increment(record.getReadLength());
 			}
 		}
