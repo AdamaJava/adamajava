@@ -21,6 +21,10 @@ import java.util.concurrent.atomic.AtomicLongArray;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import net.sf.samtools.Cigar;
+import net.sf.samtools.CigarElement;
+import net.sf.samtools.CigarOperator;
+
 import org.qcmg.common.model.QCMGAtomicLongArray;
 import org.qcmg.common.model.ReferenceNameComparator;
 import org.qcmg.common.model.SummaryByCycle;
@@ -889,6 +893,7 @@ public class SummaryReportUtils {
 					} else if (isInValidExtended(mdData.charAt(i))) {
 						// got a letter - update summary with position
 						if (! deletion) {
+							
 							summary.increment(position, (char)readBases[position-1]);
 							mdRefAltLengthsForward.increment(getIntFromChars(mdData.charAt(i), (char)readBases[position-1]));
 							i++;
@@ -902,6 +907,119 @@ public class SummaryReportUtils {
 			}
 		}
 	}
+	
+	public static void tallyMDMismatches(final String mdData, Cigar cigar, final SummaryByCycleNew2<Character> summary, 
+			final byte[] readBases, final boolean reverse, QCMGAtomicLongArray mdRefAltLengthsForward, 
+			QCMGAtomicLongArray mdRefAltLengthsReverse) {
+		
+		if (null != mdData) {
+		
+			int readLength = readBases.length;
+			if (readLength == 0) return;	// secondary alignments can have * as their sequence (which picard doesn't seem to report), which we can't do much with
+		
+			boolean deletion = false;
+			if (reverse) {
+				
+				int position = 1;
+				for (int i = 0, size = mdData.length() ; i < size ; ) {
+					
+					if (Character.isDigit(mdData.charAt(i))) {
+						
+						int numberLength = 1;
+						while (++i < size && Character.isDigit(mdData.charAt(i))) {
+							numberLength++;
+						}
+						position += Integer.parseInt(mdData.substring(i-numberLength, i));
+						
+					} else if ('^' == mdData.charAt(i)) {
+						deletion = true;
+						i++;
+					} else if (isInValidExtended(mdData.charAt(i))) {
+						// got a letter - update summary with position
+						if (! deletion) {
+							
+							// check cigar to see if we need to adjust our offset due to insertsions etc
+							int additionalOffset = getInsertionAdjustedReadOffset(cigar, position);
+							char readBase = BaseUtils.getComplement((char)readBases[position-1 + additionalOffset]);
+							char refBase = BaseUtils.getComplement(mdData.charAt(i));
+							if (refBase == readBase) {
+								System.out.println("Found refBase == altBase, md: " + mdData + " , cigar: " + cigar.toString() + ", seq: " + new String(readBases) + ", reverse strand: " +reverse); 
+							}
+							
+							summary.increment(readLength - position + 1, readBase);
+							mdRefAltLengthsReverse.increment(getIntFromChars(refBase, readBase));
+							i++;
+							position++;
+						} else {
+							while (++i < size && isInValidExtendedInDelete(mdData.charAt(i))) {}
+						}
+						deletion = false;
+					} else i++;	// need to increment this or could end up with infinite loop...
+				}
+				
+			} else {
+				
+				int position = 1;
+				for (int i = 0, size = mdData.length() ; i < size ; ) {
+				
+					if (Character.isDigit(mdData.charAt(i))) {
+						
+						int numberLength = 1;
+						while (++i < size && Character.isDigit(mdData.charAt(i))) {
+							numberLength++;
+						}
+						position += Integer.parseInt(mdData.substring(i-numberLength, i));
+						
+					} else if ('^' == mdData.charAt(i)) {
+						deletion = true;
+						i++;
+					} else if (isInValidExtended(mdData.charAt(i))) {
+						// got a letter - update summary with position
+						if (! deletion) {
+							
+							// check cigar to see if we need to adjust our offset due to insertsions etc
+							int additionalOffset = getInsertionAdjustedReadOffset(cigar, position);
+							char readBase = (char)readBases[position-1 + additionalOffset];
+							char refBase = mdData.charAt(i);
+							if (refBase == readBase) {
+								System.out.println("Found refBase == altBase, md: " + mdData + " , cigar: " + cigar.toString() + ", seq: " + new String(readBases) + ", reverse strand: " +reverse); 
+							}
+									
+							summary.increment(position, readBase);
+							mdRefAltLengthsForward.increment(getIntFromChars(refBase, readBase));
+							i++;
+							position++;
+						} else {
+							while (++i < size && isInValidExtendedInDelete(mdData.charAt(i))) {}
+						}
+						deletion = false;
+					} else i++;	// need to increment this or could end up with infinite loop...
+				}
+			}
+		}
+	}
+	
+	public static int getInsertionAdjustedReadOffset(Cigar cigar, int i) {
+		int offset = 0, rollingLength = 0;
+		for (CigarElement ce : cigar.getCigarElements()) {
+			CigarOperator co = ce.getOperator();
+			
+			// Match/mismatch
+			if (co.consumesReadBases() && co.consumesReferenceBases()) {
+				rollingLength += ce.getLength();
+			} else if (co.consumesReadBases()) {
+				offset += ce.getLength();
+			} else if (co.consumesReferenceBases()) {
+				rollingLength += ce.getLength();
+			}
+			if (rollingLength >= i) {
+				break;
+			}
+			
+		}
+		return offset;
+	}
+	
 	public static void tallyMDMismatches(String mdData, SummaryByCycle<Character> summary, String readBases) {
 		if (null != mdData) {
 			boolean deletion = false;

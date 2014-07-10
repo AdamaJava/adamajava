@@ -1,5 +1,7 @@
 package org.qcmg.qprofiler.util;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentNavigableMap;
@@ -11,6 +13,9 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import junit.framework.Assert;
+import net.sf.samtools.Cigar;
+import net.sf.samtools.CigarElement;
+import net.sf.samtools.CigarOperator;
 import net.sf.samtools.SAMRecord;
 
 import org.junit.Test;
@@ -279,6 +284,229 @@ public class SummaryReportUtilsTest {
 		readBasesString = "CCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACACTAAGATCGGAAGAG";
 		readBases = readBasesString.getBytes();
 		SummaryReportUtils.tallyMDMismatches("3C4C1T4A4", summary, readBases, false, forwardArray, reverseArray);
+	}
+	
+	@Test
+	public void testTallyMDMismatchesRealLifeData2() {
+		SummaryByCycleNew2<Character> summary = new SummaryByCycleNew2<Character>(Character.MAX_VALUE, 64);
+		QCMGAtomicLongArray forwardArray = new QCMGAtomicLongArray(32);
+		QCMGAtomicLongArray reverseArray = new QCMGAtomicLongArray(32);
+		
+		//md: 99, cigar: 3M1I96M, readBases: ACAGGGATTTCGCCATGTTGGCCAGGTTGGAGATTTTATTTTTCTTAAGTCTCACTCTGTCCAGCTGGAGTGCAGCAGTGTGATCTGGGTGACTGTAGCC
+		String readBasesString = "ACAGGGATTTCGCCATGTTGGCCAGGTTGGAGATTTTATTTTTCTTAAGTCTCACTCTGTCCAGCTGGAGTGCAGCAGTGTGATCTGGGTGACTGTAGCC";
+		byte[] readBases = readBasesString.getBytes();
+		SummaryReportUtils.tallyMDMismatches("99", summary, readBases, false, forwardArray, reverseArray);
+		
+		// arrays should be empty
+		for (int i = 0 ; i < forwardArray.length() ; i++) {
+			assertEquals(0, forwardArray.get(i));
+		}
+		for (int i = 0 ; i < reverseArray.length() ; i++) {
+			assertEquals(0, reverseArray.get(i));
+		}
+		
+		// md: 23C74, cigar: 80M2I18M, readBases: ACCTAACATCAGCAGTGCTTTCAATTACGTTCCTTGAACACTGTTTCTTATGTCTTATGTTATGTCATATATTTCATTACATATATATATTACATTACAT
+		readBasesString = "ACCTAACATCAGCAGTGCTTTCAATTACGTTCCTTGAACACTGTTTCTTATGTCTTATGTTATGTCATATATTTCATTACATATATATATTACATTACAT";
+		readBases = readBasesString.getBytes();
+		SummaryReportUtils.tallyMDMismatches("23C74", summary, readBases, false, forwardArray, reverseArray);
+		
+		// would expect C>A on the forward as the mismatch happens before the insertion
+		for (int i = 0 ; i < forwardArray.length() ; i++) {
+			if (i == SummaryReportUtils.getIntFromChars('C', 'A')) {
+				assertEquals(1, forwardArray.get(i));
+			} else {
+				assertEquals(0, forwardArray.get(i));
+			}
+		}
+		
+		
+		// md: 83G12, cigar: 38M4I58M, readBases: GGCAGGGGGATCTTTTTATTTATTTATTTATTTATTTATTTTTTTTTTTGAGATAGAGTTTCACTTTGTCTCCCAGGATGGAGTAGATTGGTGTGATCTC
+		readBasesString = "GGCAGGGGGATCTTTTTATTTATTTATTTATTTATTTATTTTTTTTTTTGAGATAGAGTTTCACTTTGTCTCCCAGGATGGAGTAGAATGGTGTGATCTC";
+		readBases = readBasesString.getBytes();
+		forwardArray = new QCMGAtomicLongArray(32);
+		SummaryReportUtils.tallyMDMismatches("83G12", summary, readBases, false, forwardArray, reverseArray);
+		
+		// if no insertion is taken into account will be G>T
+		for (int i = 0 ; i < forwardArray.length() ; i++) {
+			if (i == SummaryReportUtils.getIntFromChars('G', 'T')) {
+				assertEquals(1, forwardArray.get(i));
+			} else {
+				assertEquals(0, forwardArray.get(i));
+			}
+		}
+		
+		// if insertions are taken into account, should be G>A
+		
+		
+	}
+	
+	@Test
+	public void getInsertionAdjustedReadOffsetMatch() {
+		Cigar cigar = new Cigar();
+		cigar.add(new CigarElement(100, CigarOperator.M));
+		assertEquals(100, cigar.getReadLength());
+		assertEquals(100, cigar.getReferenceLength());
+		
+		for (int i = 1 ; i <= cigar.getReadLength(); i++) {
+			assertEquals(0, SummaryReportUtils.getInsertionAdjustedReadOffset(cigar, i));
+		}
+	}
+	
+	@Test
+	public void getInsertionAdjustedReadOffsetDeletion() {
+		Cigar cigar = new Cigar();
+		cigar.add(new CigarElement(56, CigarOperator.M));
+		cigar.add(new CigarElement(1, CigarOperator.D));
+		cigar.add(new CigarElement(45, CigarOperator.M));
+		// 56 + 45 = 101
+		assertEquals(101, cigar.getReadLength());
+		assertEquals(102, cigar.getReferenceLength());
+		
+		for (int i = 1 ; i <= cigar.getReferenceLength(); i++) {
+			assertEquals(0, SummaryReportUtils.getInsertionAdjustedReadOffset(cigar, i));
+		}
+	}
+	
+	@Test
+	public void getInsertionAdjustedReadOffsetInsertion() {
+		Cigar cigar = new Cigar();
+		cigar.add(new CigarElement(56, CigarOperator.M));
+		cigar.add(new CigarElement(1, CigarOperator.I));
+		cigar.add(new CigarElement(45, CigarOperator.M));
+		// 56 + 1 + 45 = 102
+		assertEquals(102, cigar.getReadLength());
+		assertEquals(101, cigar.getReferenceLength());
+		
+		for (int i = 1 ; i <= cigar.getReferenceLength(); i++) {
+			if (i > 56) {
+				assertEquals(1, SummaryReportUtils.getInsertionAdjustedReadOffset(cigar, i));
+			} else {
+				assertEquals(0, SummaryReportUtils.getInsertionAdjustedReadOffset(cigar, i));
+			}
+		}
+	}
+	
+	@Test
+	public void getInsertionAdjustedReadOffsetInsertion2() {
+		Cigar cigar = new Cigar();
+		cigar.add(new CigarElement(27, CigarOperator.M));
+		cigar.add(new CigarElement(3, CigarOperator.I));
+		cigar.add(new CigarElement(40, CigarOperator.M));
+		cigar.add(new CigarElement(4, CigarOperator.I));
+		cigar.add(new CigarElement(26, CigarOperator.M));
+		//27 + 3 + 40 + 4 + 26 = 100
+		assertEquals(100, cigar.getReadLength());
+		assertEquals(93, cigar.getReferenceLength());
+		
+		for (int i = 1 ; i <= cigar.getReferenceLength(); i++) {
+			if (i <= 27) {
+				assertEquals(0, SummaryReportUtils.getInsertionAdjustedReadOffset(cigar, i));
+			} else if (i > 27 && i <= 67) {
+				assertEquals(3, SummaryReportUtils.getInsertionAdjustedReadOffset(cigar, i));
+			} else if (i > 67) {
+				assertEquals(7, SummaryReportUtils.getInsertionAdjustedReadOffset(cigar, i));
+			} else {
+				assertEquals(7, SummaryReportUtils.getInsertionAdjustedReadOffset(cigar, i));
+			}
+		}
+	}
+	
+	@Test
+	public void getInsertionAdjustedReadOffsetInsertionDeletion() {
+		//md: 	24C2C8A2A2A6A15A2A3^C7A5, cigar: 17M1I55M1D2M1I11M13S, 
+		//readBases: CCAATAGGGTATAAGCATTTTTTTTTTGAACTCCCCCTTAGGCTTTTGTTTTTTTTTGTCTTTTTGTTATTAATATTTCTATTGGGGTTACGTTACATTG
+		Cigar cigar = new Cigar();
+		cigar.add(new CigarElement(17, CigarOperator.M));
+		cigar.add(new CigarElement(1, CigarOperator.I));
+		cigar.add(new CigarElement(55, CigarOperator.M));
+		cigar.add(new CigarElement(1, CigarOperator.D));
+		cigar.add(new CigarElement(2, CigarOperator.M));
+		cigar.add(new CigarElement(1, CigarOperator.I));
+		cigar.add(new CigarElement(11, CigarOperator.M));
+		cigar.add(new CigarElement(13, CigarOperator.S));
+		//17 + 1 + 55 + 2 + 1 + 11 + 13 = 100
+		assertEquals(100, cigar.getReadLength());
+		//17 + 55 + 1 +  2 + 11 = 86
+		assertEquals(86, cigar.getReferenceLength());
+		
+		for (int i = 1 ; i <= cigar.getReferenceLength(); i++) {
+			if (i <= 17) {
+				assertEquals(0, SummaryReportUtils.getInsertionAdjustedReadOffset(cigar, i));
+			} else if (i == 18) {
+				assertEquals(1, SummaryReportUtils.getInsertionAdjustedReadOffset(cigar, i));
+			} else if (i > 18 && i <= 73) {
+				assertEquals(1, SummaryReportUtils.getInsertionAdjustedReadOffset(cigar, i));
+			} else if (i > 73 && i <= 75) {
+				assertEquals(1, SummaryReportUtils.getInsertionAdjustedReadOffset(cigar, i));
+			} else if (i == 76) {
+				assertEquals(2, SummaryReportUtils.getInsertionAdjustedReadOffset(cigar, i));
+			} else {
+				assertEquals(2, SummaryReportUtils.getInsertionAdjustedReadOffset(cigar, i));
+			}
+		}
+	}
+	
+	@Test
+	public void tallyMDMismatchesCheckMutations() {
+		// 0A94A3, cigar: 35M1I64M, 
+		//readBases: GCCCTAACCCTAACCCTAACCCTAACCCTAACCCTAAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCAACCCTACCCC
+		QCMGAtomicLongArray forwardArray = new QCMGAtomicLongArray(32);
+		QCMGAtomicLongArray reverseArray = new QCMGAtomicLongArray(32);
+		SummaryByCycleNew2<Character> summary = new SummaryByCycleNew2<Character>(Character.MAX_VALUE, 64);
+		Cigar cigar = new Cigar();
+		cigar.add(new CigarElement(35, CigarOperator.M));
+		cigar.add(new CigarElement(1, CigarOperator.I));
+		cigar.add(new CigarElement(64, CigarOperator.M));
+		SummaryReportUtils.tallyMDMismatches("0A94A3", cigar, summary, "GCCCTAACCCTAACCCTAACCCTAACCCTAACCCTAAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCAACCCTACCCC".getBytes(), false, forwardArray, reverseArray);
+		
+		//expecting to see 1 A>G and 1 A>C - but this one could be A>A
+		
+		assertEquals(1, forwardArray.get(SummaryReportUtils.getIntFromChars('A', 'G')));
+		assertEquals(1, forwardArray.get(SummaryReportUtils.getIntFromChars('A', 'C')));
+		
+		
+	}
+	
+	@Test
+	public void tallyMDMismatchesCheckMutations2() {
+		// 94C2G0 , cigar: 92M1I1M1I5M, 
+		//seq: CAGTAAGGTTAGATAGAAAACATTCCCCTCAAGCAACATAATAAACAATGAGAAGTAACTATACCTAGTTTGGATATATAAAGTCCTGCATCTGTCTCTT, reverse strand: false
+		QCMGAtomicLongArray forwardArray = new QCMGAtomicLongArray(32);
+		QCMGAtomicLongArray reverseArray = new QCMGAtomicLongArray(32);
+		SummaryByCycleNew2<Character> summary = new SummaryByCycleNew2<Character>(Character.MAX_VALUE, 64);
+		Cigar cigar = new Cigar();
+		cigar.add(new CigarElement(92, CigarOperator.M));
+		cigar.add(new CigarElement(1, CigarOperator.I));
+		cigar.add(new CigarElement(1, CigarOperator.M));
+		cigar.add(new CigarElement(1, CigarOperator.I));
+		cigar.add(new CigarElement(5, CigarOperator.M));
+		SummaryReportUtils.tallyMDMismatches("94C2G0", cigar, summary, "CAGTAAGGTTAGATAGAAAACATTCCCCTCAAGCAACATAATAAACAATGAGAAGTAACTATACCTAGTTTGGATATATAAAGTCCTGCATCTGTCTCTT".getBytes(), false, forwardArray, reverseArray);
+		
+		//expecting to see 1 C>T and 1 G>T
+		
+		assertEquals(1, forwardArray.get(SummaryReportUtils.getIntFromChars('G', 'T')));
+		assertEquals(1, forwardArray.get(SummaryReportUtils.getIntFromChars('C', 'T')));
+	}
+	
+	@Test
+	public void tallyMDMismatchesCheckMutations3() {
+		//md: 4A9T5 , cigar: 22S7M1I13M57S, 
+		//seq: GCAAAGGACCCTGTGGTCAGTGGCGGGGGAGGGGGCTGGTGGGGGGCGGGGGGAGAGAGGTTCCTGGTCGCCTGGTGATGGCAGCTCCTCCCCCCGCCTC, reverse strand: false
+		QCMGAtomicLongArray forwardArray = new QCMGAtomicLongArray(32);
+		QCMGAtomicLongArray reverseArray = new QCMGAtomicLongArray(32);
+		SummaryByCycleNew2<Character> summary = new SummaryByCycleNew2<Character>(Character.MAX_VALUE, 64);
+		Cigar cigar = new Cigar();
+		cigar.add(new CigarElement(22, CigarOperator.S));
+		cigar.add(new CigarElement(7, CigarOperator.M));
+		cigar.add(new CigarElement(1, CigarOperator.I));
+		cigar.add(new CigarElement(13, CigarOperator.M));
+		cigar.add(new CigarElement(57, CigarOperator.S));
+		SummaryReportUtils.tallyMDMismatches("4A9T5", cigar, summary, "GCAAAGGACCCTGTGGTCAGTGGCGGGGGAGGGGGCTGGTGGGGGGCGGGGGGAGAGAGGTTCCTGGTCGCCTGGTGATGGCAGCTCCTCCCCCCGCCTC".getBytes(), false, forwardArray, reverseArray);
+		
+		//expecting to see 1 A>G and 1 T>G
+		
+		assertEquals(1, forwardArray.get(SummaryReportUtils.getIntFromChars('A', 'G')));
+		assertEquals(1, forwardArray.get(SummaryReportUtils.getIntFromChars('T', 'G')));
 	}
 	
 	@Test
