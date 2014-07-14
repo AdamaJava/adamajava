@@ -429,18 +429,14 @@ public class SummaryReportUtilsTest {
 		//17 + 55 + 1 +  2 + 11 = 86
 		assertEquals(86, cigar.getReferenceLength());
 		
-		for (int i = 1 ; i <= cigar.getReferenceLength(); i++) {
+		for (int i = 1 ; i < cigar.getReferenceLength(); i++) {
 			if (i <= 17) {
 				assertEquals(0, SummaryReportUtils.getInsertionAdjustedReadOffset(cigar, i));
-			} else if (i == 18) {
+			} else if (i >= 18 && i <= 72) {
 				assertEquals(1, SummaryReportUtils.getInsertionAdjustedReadOffset(cigar, i));
-			} else if (i > 18 && i <= 73) {
+			} else if (i == 73 || i == 74) {
 				assertEquals(1, SummaryReportUtils.getInsertionAdjustedReadOffset(cigar, i));
-			} else if (i > 73 && i <= 75) {
-				assertEquals(1, SummaryReportUtils.getInsertionAdjustedReadOffset(cigar, i));
-			} else if (i == 76) {
-				assertEquals(2, SummaryReportUtils.getInsertionAdjustedReadOffset(cigar, i));
-			} else {
+			} else if (i > 74) {
 				assertEquals(2, SummaryReportUtils.getInsertionAdjustedReadOffset(cigar, i));
 			}
 		}
@@ -507,6 +503,82 @@ public class SummaryReportUtilsTest {
 		
 		assertEquals(1, forwardArray.get(SummaryReportUtils.getIntFromChars('A', 'G')));
 		assertEquals(1, forwardArray.get(SummaryReportUtils.getIntFromChars('T', 'G')));
+	}
+	
+	@Test
+	public void tallyMDMismatchesDeletion() {
+		//md: 92^AA2G2T1 , cigar: 92M2D1M1I6M, 
+		//seq: GGATAGCTGTATACCCTTCAGGTCTTTTCCCCAAATACGATTGCCTAAAACAAAACATTATTAAAAGTTGTTCAAGGTCATGATCCTCCAACCTGTCTCT, reverse strand: false
+		QCMGAtomicLongArray forwardArray = new QCMGAtomicLongArray(32);
+		QCMGAtomicLongArray reverseArray = new QCMGAtomicLongArray(32);
+		SummaryByCycleNew2<Character> summary = new SummaryByCycleNew2<Character>(Character.MAX_VALUE, 64);
+		Cigar cigar = new Cigar();
+		cigar.add(new CigarElement(92, CigarOperator.M));
+		cigar.add(new CigarElement(2, CigarOperator.D));
+		cigar.add(new CigarElement(1, CigarOperator.M));
+		cigar.add(new CigarElement(1, CigarOperator.I));
+		cigar.add(new CigarElement(6, CigarOperator.M));
+		SummaryReportUtils.tallyMDMismatches("92^AA2G2T1", cigar, summary, "GGATAGCTGTATACCCTTCAGGTCTTTTCCCCAAATACGATTGCCTAAAACAAAACATTATTAAAAGTTGTTCAAGGTCATGATCCTCCAACCTGTCTCT".getBytes(), false, forwardArray, reverseArray);
+		
+		//expecting to see 1 C>T and 1 G>T
+		
+		assertEquals(1, forwardArray.get(SummaryReportUtils.getIntFromChars('T', 'C')));
+		assertEquals(1, forwardArray.get(SummaryReportUtils.getIntFromChars('G', 'T')));
+	}
+	
+	@Test
+	public void tallyMDMismatchesDeletion2() {
+		//md: 94^AG2G1G0 , cigar: 94M2D1M1I4M, 
+		//seq: TCTCACATGAGAGTAACTAGCATCTTTCTCTCAGATGATGAAGATGATGAAGAGGAAGATGAAGAGGAAGAAATCGACGTGGTCACTGTGGAGACTGTCT, reverse strand: false
+		QCMGAtomicLongArray forwardArray = new QCMGAtomicLongArray(32);
+		QCMGAtomicLongArray reverseArray = new QCMGAtomicLongArray(32);
+		SummaryByCycleNew2<Character> summary = new SummaryByCycleNew2<Character>(Character.MAX_VALUE, 64);
+		Cigar cigar = new Cigar();
+		cigar.add(new CigarElement(94, CigarOperator.M));
+		cigar.add(new CigarElement(2, CigarOperator.D));
+		cigar.add(new CigarElement(1, CigarOperator.M));
+		cigar.add(new CigarElement(1, CigarOperator.I));
+		cigar.add(new CigarElement(4, CigarOperator.M));
+		SummaryReportUtils.tallyMDMismatches("94^AG2G1G0", cigar, summary, "TCTCACATGAGAGTAACTAGCATCTTTCTCTCAGATGATGAAGATGATGAAGAGGAAGATGAAGAGGAAGAAATCGACGTGGTCACTGTGGAGACTGTCT".getBytes(), false, forwardArray, reverseArray);
+		
+		//expecting to see 2 G>T
+		
+		assertEquals(2, forwardArray.get(SummaryReportUtils.getIntFromChars('G', 'T')));
+	}
+	
+	@Test
+	public void tallyMDMismatchesNastyCigar() {
+		//md: 16A1T6A2^G5A6T1A0G2C4T0G2^A3^GA5T2T3T8 , cigar: 28M1D4M1I23M1D3M2D3M2I18M18S, 
+		//seq: AGTCTAGAGT CCAAAAGGAA TTCTTCCTCC TG*C*CTTTTCAT CCCTTTTTTT CACATCTTTC A*CC*TCCGCCGGG CCAATTTCT>TCAGTTCT CGTTTTAAGC, reverse strand: false
+		QCMGAtomicLongArray forwardArray = new QCMGAtomicLongArray(32);
+		QCMGAtomicLongArray reverseArray = new QCMGAtomicLongArray(32);
+		SummaryByCycleNew2<Character> summary = new SummaryByCycleNew2<Character>(Character.MAX_VALUE, 64);
+		Cigar cigar = new Cigar();
+		cigar.add(new CigarElement(28, CigarOperator.M));
+		cigar.add(new CigarElement(1, CigarOperator.D));
+		cigar.add(new CigarElement(4, CigarOperator.M));
+		cigar.add(new CigarElement(1, CigarOperator.I));
+		cigar.add(new CigarElement(23, CigarOperator.M));
+		cigar.add(new CigarElement(1, CigarOperator.D));
+		cigar.add(new CigarElement(3, CigarOperator.M));
+		cigar.add(new CigarElement(2, CigarOperator.D));
+		cigar.add(new CigarElement(3, CigarOperator.M));
+		cigar.add(new CigarElement(2, CigarOperator.I));
+		cigar.add(new CigarElement(18, CigarOperator.M));
+		cigar.add(new CigarElement(18, CigarOperator.S));
+		
+		SummaryReportUtils.tallyMDMismatches("16A1T6A2^G5A6T1A0G2C4T0G2^A3^GA5T2T3T8", cigar, summary, "AGTCTAGAGTCCAAAAGGAATTCTTCCTCCTGCCTTTTCATCCCTTTTTTTCACATCTTTCACCTCCGCCGGGCCAATTTCTTCAGTTCTCGTTTTAAGC".getBytes(), false, forwardArray, reverseArray);
+		
+		//expecting to see A>G, T>A, 2x A>C,...... 
+		
+		assertEquals(1, forwardArray.get(SummaryReportUtils.getIntFromChars('A', 'G')));
+		assertEquals(2, forwardArray.get(SummaryReportUtils.getIntFromChars('A', 'C')));
+		assertEquals(1, forwardArray.get(SummaryReportUtils.getIntFromChars('A', 'T')));
+		assertEquals(1, forwardArray.get(SummaryReportUtils.getIntFromChars('C', 'T')));
+		assertEquals(1, forwardArray.get(SummaryReportUtils.getIntFromChars('G', 'T')));
+		assertEquals(1, forwardArray.get(SummaryReportUtils.getIntFromChars('G', 'C')));
+		assertEquals(4, forwardArray.get(SummaryReportUtils.getIntFromChars('T', 'C')));
+		assertEquals(2, forwardArray.get(SummaryReportUtils.getIntFromChars('T', 'A')));
 	}
 	
 	@Test

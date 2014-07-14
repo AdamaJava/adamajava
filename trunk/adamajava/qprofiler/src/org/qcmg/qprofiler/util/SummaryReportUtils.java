@@ -864,6 +864,7 @@ public class SummaryReportUtils {
 						// got a letter - update summary with position
 						if (! deletion) {
 							summary.increment(readLength - position + 1, BaseUtils.getComplement((char)readBases[position-1]));
+						
 							mdRefAltLengthsReverse.increment(getIntFromChars(BaseUtils.getComplement(mdData.charAt(i)), BaseUtils.getComplement((char)readBases[position-1])));
 							i++;
 							position++;
@@ -938,7 +939,7 @@ public class SummaryReportUtils {
 						// got a letter - update summary with position
 						if (! deletion) {
 							
-							// check cigar to see if we need to adjust our offset due to insertsions etc
+							// check cigar to see if we need to adjust our offset due to insertions etc
 							int additionalOffset = getInsertionAdjustedReadOffset(cigar, position);
 							char readBase = BaseUtils.getComplement((char)readBases[position-1 + additionalOffset]);
 							char refBase = BaseUtils.getComplement(mdData.charAt(i));
@@ -947,7 +948,8 @@ public class SummaryReportUtils {
 							}
 							
 							summary.increment(readLength - position + 1, readBase);
-							mdRefAltLengthsReverse.increment(getIntFromChars(refBase, readBase));
+							int intFromChar =getIntFromChars(refBase, readBase);
+							mdRefAltLengthsReverse.increment(intFromChar);
 							i++;
 							position++;
 						} else {
@@ -986,7 +988,9 @@ public class SummaryReportUtils {
 							}
 									
 							summary.increment(position, readBase);
-							mdRefAltLengthsForward.increment(getIntFromChars(refBase, readBase));
+							
+							int intFromChar =getIntFromChars(refBase, readBase);
+							mdRefAltLengthsForward.increment(intFromChar);
 							i++;
 							position++;
 						} else {
@@ -1010,7 +1014,7 @@ public class SummaryReportUtils {
 			} else if (co.consumesReadBases()) {
 				offset += ce.getLength();
 			} else if (co.consumesReferenceBases()) {
-				rollingLength += ce.getLength();
+//				rollingLength += ce.getLength();
 			}
 			if (rollingLength >= i) {
 				break;
@@ -1147,43 +1151,65 @@ public class SummaryReportUtils {
 	}
 	
 	public static int getIntFromChars(final char ref, final char alt) {
+		if (ref == alt) System.out.println("REF == ALT!!! : ref: " + ref + ", alt: " + alt);
 		switch (ref) {
 		case 'A':
-			return 'C' == alt ? 1 : ('G' == alt ? 2 : ('T' == alt ? 3 : 13));
+			return 'A' == alt ? 1 : ('C' == alt ? 2 : ('G' == alt ? 3 : ('T' == alt ? 4 : 5)));
+//			return 'C' == alt ? 1 : ('G' == alt ? 2 : ('T' == alt ? 3 : 13));
 		case 'C':
-			return 'A' == alt ? 4 : ('G' == alt ? 5 : ('T' == alt ? 6 : 14));
+			return 'A' == alt ? 6 : ('C' == alt ? 7 : ('G' == alt ? 8 : ('T' == alt ? 9 : 10)));
+//			return 'A' == alt ? 4 : ('G' == alt ? 5 : ('T' == alt ? 6 : 14));
 		case 'G':
-			return 'A' == alt ? 7 : ('C' == alt ? 8 : ('T' == alt ? 9 : 15));
+			return 'A' == alt ? 11 : ('C' == alt ? 12 : ('G' == alt ? 13 : ('T' == alt ? 14 : 15)));
+//			return 'A' == alt ? 7 : ('C' == alt ? 8 : ('T' == alt ? 9 : 15));
 		case 'T':
-			return 'A' == alt ? 10 : ('C' == alt ? 11 : ('G' == alt ? 12 : 16));
+			return 'A' == alt ? 16 : ('C' == alt ? 17 : ('G' == alt ? 18 : ('T' == alt ? 19 : 20)));
+//			return 'A' == alt ? 10 : ('C' == alt ? 11 : ('G' == alt ? 12 : 16));
 		case 'N':
-			return 'A' == alt ? 17 : ('C' == alt ? 18 : ('G' == alt ? 19 : 20));
+			return 'A' == alt ? 21 : ('C' == alt ? 22 : ('G' == alt ? 23 : ('T' == alt ? 24 : 25)));
+//			return 'A' == alt ? 17 : ('C' == alt ? 18 : ('G' == alt ? 19 : 20));
 		}
 		return -1;
 	}
 	
 	public static String getStringFromInt(final int i) {
 		switch (i) {
-		case 1: return "A>C";
-		case 2: return "A>G";
-		case 3: return "A>T";
-		case 4: return "C>A";
-		case 5: return "C>G";
-		case 6: return "C>T";
-		case 7: return "G>A";
-		case 8: return "G>C";
-		case 9: return "G>T";
-		case 10: return "T>A";
-		case 11: return "T>C";
-		case 12: return "T>G";
-		case 13: return "A>A";
-		case 14: return "C>C";
-		case 15: return "G>G";
-		case 16: return "T>T";
-		case 17: return "N>A";
-		case 18: return "N>C";
-		case 19: return "N>G";
-		case 20: return "N>T";
+		// A's
+		case 1: return "A>A";
+		case 2: return "A>C";
+		case 3: return "A>G";
+		case 4: return "A>T";
+		case 5: return "A>N";
+		
+		//C's
+		case 6: return "C>A";
+		case 7: return "C>C";
+		case 8: return "C>G";
+		case 9: return "C>T";
+		case 10: return "C>N";
+		
+		//G's
+		case 11: return "G>A";
+		case 12: return "G>C";
+		case 13: return "G>G";
+		case 14: return "G>T";
+		case 15: return "G>N";
+		
+		//T's
+		case 16: return "T>A";
+		case 17: return "T>C";
+		case 18: return "T>G";
+		case 19: return "T>T";
+		case 20: return "T>N";
+		
+		//N's
+		case 21: return "N>A";
+		case 22: return "N>C";
+		case 23: return "N>G";
+		case 24: return "N>T";
+		case 25: return "N>N";
+		
+		// hmmmm
 		case -1: return "???";
 		}
 		return null;
