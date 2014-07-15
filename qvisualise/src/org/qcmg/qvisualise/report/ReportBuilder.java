@@ -57,7 +57,7 @@ public class ReportBuilder {
 			createTAGS(reportElement, report);
 			createISIZE(reportElement, report);
 			createRNM(reportElement, report);
-			createMRNM(reportElement, report);
+			createRNEXT(reportElement, report);
 			createCIGAR(reportElement, report);
 			createMAPQ(reportElement, report);
 			createFLAGS(reportElement, report);
@@ -190,11 +190,11 @@ public class ReportBuilder {
 		report.addTab(cigarCT);
 	}
 
-	private static void createMRNM(Element reportElement, Report report) {
+	private static void createRNEXT(Element reportElement, Report report) {
 		//MRNM
-		final NodeList mrnmNL = reportElement.getElementsByTagName("MRNM");
-		final Element mrnmElement = (Element) mrnmNL.item(0);
-		report.addTab(generateTallyChartTab(mrnmElement, "MRNM", "m", HTMLReportUtils.BAR_CHART,  true));
+		final NodeList rnextNL = reportElement.getElementsByTagName("RNEXT");
+		final Element rnextElement = (Element) rnextNL.item(0);
+		report.addTab(generateTallyChartTab(rnextElement, "RNEXT", "m", HTMLReportUtils.BAR_CHART,  true));
 	}
 
 	private static void createISIZE(Element reportElement, Report report) throws QVisualiseException {
