@@ -1,5 +1,5 @@
 /**
- * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ * �� Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
 /**
  * All source code distributed as part of the AdamaJava project is released
@@ -9,9 +9,12 @@
 package org.qcmg.qprofiler.bam;
 
 import java.io.File;
+import java.util.List;
 
 import net.sf.samtools.SAMFileReader;
+import net.sf.samtools.SAMProgramRecord;
 import net.sf.samtools.SAMRecord;
+import net.sf.samtools.SAMSequenceDictionary;
 
 import org.qcmg.common.date.DateUtils;
 import org.qcmg.common.log.QLevel;
@@ -29,6 +32,10 @@ public class BamSummarizer implements Summarizer {
 	private String [] tagsChar;
 	private int maxRecords;
 	private String validation;
+	
+	private static String bamHeader;
+	private static SAMSequenceDictionary samSeqDict;
+	private boolean torrentBam = false;
 	
 	private final static QLogger logger = QLoggerFactory.getLogger(BamSummarizer.class);
 	
@@ -77,7 +84,15 @@ public class BamSummarizer implements Summarizer {
 					break;
 				}
 			}
-			bamSummaryReport.setBamHeader(reader.getFileHeader().getTextHeader());
+			samSeqDict = reader.getFileHeader().getSequenceDictionary();
+			bamHeader = reader.getFileHeader().getTextHeader();
+			List<SAMProgramRecord> pgLines = reader.getFileHeader().getProgramRecords();
+			for (SAMProgramRecord pgLine : pgLines) {
+				if ("tmap".equals(pgLine.getId())) torrentBam = true;
+			}
+			bamSummaryReport.setTorrentBam(torrentBam);
+			bamSummaryReport.setBamHeader(bamHeader);
+			bamSummaryReport.setSamSequenceDictionary(samSeqDict);
 			
 		} finally {
 			reader.close();
