@@ -185,7 +185,7 @@ public class HTMLReportUtils {
 		return sb.toString();
 	}
 	public static <T> String generateGoogleDataMultiSeries(
-			Map<T, AtomicLongArray> dataSet, String name, boolean isValueString, List<String> readGroupNames) {
+			Map<T, AtomicLongArray> dataSet, String name, boolean isValueString, List<String> readGroupNames, boolean showCombined) {
 //		Map<Integer, Integer> dataSet, String name, boolean isValueString) {
 		int noOfReadGroups = readGroupNames.size();
 		StringBuilder sb = new StringBuilder("\nvar ");
@@ -199,7 +199,7 @@ public class HTMLReportUtils {
 //			String label = s.substring(3);
 			sb.append(", {id: 'RG" + count++ + "', label: '" + s + "', type: 'number'}");
 		}
-		if (noOfReadGroups > 1) {
+		if (showCombined && noOfReadGroups > 1) {
 			// add in a combined series
 			sb.append(", {id: 'combined', label: 'combined', type: 'number'}");
 		}
@@ -226,7 +226,7 @@ public class HTMLReportUtils {
 				sb.append("{v: " + entry.getValue().get(j) + "}");
 				combinedTally += entry.getValue().get(j);
 			}
-			if (noOfReadGroups > 1) {
+			if (showCombined && noOfReadGroups > 1) {
 				sb.append(",{v: " + combinedTally + "}");
 			}
 			sb.append("]}");
@@ -364,6 +364,27 @@ public class HTMLReportUtils {
 		sb.append("</table>\n</div>");
 		return sb.toString();
 	}
+	public static String generateRenderingTableInfo(List<String> data) {
+		StringBuilder sb = new StringBuilder("\n<div class=\"pane\">\n<table>");
+		
+		int i = 0; 
+		for (String s : data) {
+			String chartName = "rnm" + s + "Chart_div";
+			if (i % 2 == 0) {
+				sb.append("<tr>");
+			}
+			
+			sb.append("<td id = \"" + chartName + "\"></td>");
+			
+			if (i % 2 == 1) {
+				sb.append("</tr>\n");
+			}
+			i++;
+		}
+		
+		sb.append("</table>\n</div>");
+		return sb.toString();
+	}
 	
 	public static String generateGoogleChartSlidingColors(String dataName, String chartTitle, int width,
 			int height, String chartType, boolean logScale, boolean isStacked, int noOfColors, String[] colours) {
@@ -429,8 +450,9 @@ public class HTMLReportUtils {
 		basicChartSetup(sb, chartName, dataName, chartTitle, width, height);
 		
 		sb.append(", hAxis: {title: 'Value', titleColor: 'blue'}");
-		sb.append(", vAxis: {title: '" + (logScale ? "Log( Count )" : "Count") + "', titleColor: 'blue',logScale: " + logScale + "}");
+		sb.append(", vAxis: {title: '" + (logScale ? "Log( Count )" : "Count") + "', titleColor: 'blue',logScale: " + logScale + ", format: '0'}");
 		sb.append(", legend: ").append(legendText);
+//		sb.append(", curveType: 'function'");
 		sb.append(", pointSize: 2, lineWidth: 1});");
 		
 		return sb.toString();
