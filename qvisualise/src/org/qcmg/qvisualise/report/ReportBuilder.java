@@ -194,7 +194,9 @@ public class ReportBuilder {
 		//MRNM
 		final NodeList rnextNL = reportElement.getElementsByTagName("RNEXT");
 		final Element rnextElement = (Element) rnextNL.item(0);
-		report.addTab(generateTallyChartTab(rnextElement, "RNEXT", "m", HTMLReportUtils.BAR_CHART,  true));
+		if (null != rnextElement) {
+			report.addTab(generateTallyChartTab(rnextElement, "RNEXT", "m", HTMLReportUtils.BAR_CHART,  true));
+		}
 	}
 
 	private static void createISIZE(Element reportElement, Report report) throws QVisualiseException {
@@ -211,8 +213,13 @@ public class ReportBuilder {
 		final NodeList rnmNL = reportElement.getElementsByTagName("RNAME_POS");
 		final Element rnmElement = (Element) rnmNL.item(0);
 		final ChartTab rnmCT = createRNMChartTab(rnmElement);
-		if (null != rnmCT)
+		
+		
+		
+		
+		if (null != rnmCT) {
 			report.addTab(rnmCT);
+		}
 	}
 
 	private static void createTAGS(Element reportElement, Report report) {
@@ -436,79 +443,82 @@ public class ReportBuilder {
 		
 		final NodeList nlTop = element.getElementsByTagName("RNAME");
 		
-		parentCT = new ChartTab(title);
+		parentCT = new ChartTab(title, id);
+		Map<String, TreeMap<Integer, AtomicLong>> contigMaps = new HashMap<>();
+		List<String> chromos = new ArrayList<>();
 		
 		for (int i = 0 , length = nlTop.getLength() ; i < length ; i++) {
 			
 			final Element nameElementTop = (Element) nlTop.item(i);
 			String chromosome =  nameElementTop.getAttribute("value");
+			int contigLength = Integer.parseInt(nameElementTop.getAttribute("maxPosition"));
 			
-			if (null != chromosome && chromosome.startsWith("chr")) {
+			if (null != chromosome && contigLength > 1 * 1000 * 1000) {
+				chromos.add(chromosome);
 		
 				final NodeList nl = nameElementTop.getElementsByTagName("RangeTally");
 				final Element nameElement = (Element) nl.item(0);
 				final TreeMap<Integer, AtomicLong> map = (TreeMap<Integer, AtomicLong>) createRangeTallyMap(nameElement);
 			
 				if ( ! map.isEmpty()) {
-		
-			// decide if we need to create 2 tabs
-//			if (map.lastKey() > 5000) {
-//				// split into 2 tabs
-//				// create parent
-//				parentCT = new ChartTab(title);
-//				
-//				// first tab shows 0 - 5000
-//				final ChartTab ct1 = new ChartTab("0 to 5000", id+"1");
-//				ct1.setData(HTMLReportUtils.generateGoogleData(
-//						(map).subMap(0, true, 5000, false),
-//						ct1.getName(), false));
-//				ct1.setChartInfo(HTMLReportUtils.generateGoogleScatterChart(ct1.getName(),
-//						title + ", 0 to 5000", 1200, MAX_REPORT_HEIGHT, true));
-//				
-//				parentCT.addChild(ct1);
-//				
-//				// second chart - bin first 50000 values by 100
-//				
-//				final Map<Integer, AtomicLong> subSetMap =  map.headMap(50000, true);
-//				final Map<Integer, AtomicLong> binnedSubSetMap = new TreeMap<Integer, AtomicLong>();
-//				
-//				int tally = 0;
-//				for (Entry<Integer, AtomicLong> entry : subSetMap.entrySet()) {
-//					tally += entry.getValue().get();
-//					if ((entry.getKey() + 5) % 100 == 0) {
-//						binnedSubSetMap.put((entry.getKey() + 5) - 50, new AtomicLong(tally));
-//						tally = 0;
-//					} 
-//				}
-//				
-//				final ChartTab ct2 = new ChartTab("0 to 50000, binned by 100", id+"2");
-//				ct2.setData(HTMLReportUtils.generateGoogleData(
-//						binnedSubSetMap, ct2.getName(), false));
-//				ct2.setChartInfo(HTMLReportUtils.generateGoogleScatterChart(ct2.getName(),
-//						title + ", 0 to 50000, binned by 100", 1200, MAX_REPORT_HEIGHT, true));
-//				
-//				parentCT.addChild(ct2);
-//				
-//			} else {
-				// no need for sub tabs
-				final ChartTab ct1 = new ChartTab(chromosome, id+i);
-				ct1.setData(HTMLReportUtils.generateGoogleData(
-						map,
-						ct1.getName(), false));
-				ct1.setChartInfo(HTMLReportUtils.generateGoogleScatterChart(ct1.getName(),
-						title + " - " + chromosome, 1200, MIN_REPORT_HEIGHT, true));
-				
-				parentCT.addChild(ct1);
-//				parentCT = new ChartTab(title, id);
-//				parentCT.setData(HTMLReportUtils.generateGoogleData(
-//						map,
-//						parentCT.getName(), false));
-//				parentCT.setChartInfo(HTMLReportUtils.generateGoogleScatterChart(parentCT.getName(),
-//						title, 1200, MIN_REPORT_HEIGHT, true));
-//			}
-		}
+					contigMaps.put(chromosome, map);
+				}
 			}
 		}
+		
+		// now construct a single map containing all the data
+		Map<Integer, AtomicLongArray> singleMap = new TreeMap<>();
+		
+		
+		StringBuilder dataSB = new StringBuilder();
+		StringBuilder chartSB = new StringBuilder();
+		
+		int i = 0;
+		for (Entry<String, TreeMap<Integer, AtomicLong>> map : contigMaps.entrySet()) {
+			
+			dataSB.append(HTMLReportUtils.generateGoogleData(map.getValue(), "rnm" + map.getKey(), false));
+			chartSB.append(HTMLReportUtils.generateGoogleScatterChart("rnm" + map.getKey(), map.getKey(), 600, MIN_REPORT_HEIGHT, true));
+		}
+			
+			
+//			for (Entry<Integer, AtomicLong> entry : map.entrySet()) {
+//				AtomicLongArray ala = singleMap.get(entry.getKey());
+//				if (null == ala) {
+//					ala = new AtomicLongArray(contigMaps.size());
+//					singleMap.put(entry.getKey(), ala);
+//				}
+//				
+//				ala.addAndGet(i, entry.getValue().get());
+//			}
+//			i++;
+//		}
+		
+//		final ChartTab ct1All = new ChartTab("Contigs", (id + i));
+//		ct1All.setData(HTMLReportUtils.generateGoogleDataMultiSeries(
+//				singleMap,
+//				ct1All.getName(), false, chromos, false));
+//		ct1All.setChartInfo(HTMLReportUtils.generateGoogleScatterChart(ct1All.getName(),
+//				title, 1400, MAX_REPORT_HEIGHT, true, "{position: 'right', textStyle: {color: 'blue', fontSize: 14}}, crosshair: {trigger: 'both'}"));
+//		
+//		parentCT.addChild(ct1All);
+		
+//		ChartTab ct = new ChartTab("Contigs2", "head" + reportID);
+		parentCT.setData(dataSB.toString());
+		parentCT.setChartInfo(chartSB.toString());
+		parentCT.setRenderingInfo(HTMLReportUtils.generateRenderingTableInfo(chromos));
+//		parentCT.addChild(ct);
+		
+			
+		
+				// no need for sub tabs
+//				final ChartTab ct1 = new ChartTab(chromosome, id+i);
+//				ct1.setData(HTMLReportUtils.generateGoogleData(
+//						map,
+//						ct1.getName(), false));
+//				ct1.setChartInfo(HTMLReportUtils.generateGoogleScatterChart(ct1.getName(),
+//						title + " - " + chromosome, 1200, MIN_REPORT_HEIGHT, true));
+//				
+//				parentCT.addChild(ct1);
 		return parentCT;
 	}
 	
@@ -604,7 +614,7 @@ public class ReportBuilder {
 					final ChartTab ct1All = new ChartTab("0 to 1500 - All", (id + idCounter++));
 					ct1All.setData(HTMLReportUtils.generateGoogleDataMultiSeries(
 							(arrayMap).subMap(0, true, 1500, false),
-							ct1All.getName(), false, readGroups));
+							ct1All.getName(), false, readGroups, true));
 					ct1All.setChartInfo(HTMLReportUtils.generateGoogleScatterChart(ct1All.getName(),
 							longTitle, 1400, MAX_REPORT_HEIGHT, true, "{position: 'right', textStyle: {color: 'blue', fontSize: 14}}, crosshair: {trigger: 'both'}"));
 					
@@ -630,7 +640,7 @@ public class ReportBuilder {
 					final ChartTab ct2All = new ChartTab("0 to 5000 - All", (id + idCounter++));
 					ct2All.setData(HTMLReportUtils.generateGoogleDataMultiSeries(
 							(arrayMap).subMap(0, true, 5000, false),
-							ct2All.getName(), false, readGroups));
+							ct2All.getName(), false, readGroups, true));
 					ct2All.setChartInfo(HTMLReportUtils.generateGoogleScatterChart(ct2All.getName(),
 							longTitle, 1400, MAX_REPORT_HEIGHT, true, "{position: 'right', textStyle: {color: 'blue', fontSize: 14}}, crosshair: {trigger: 'both'}"));
 					
@@ -675,7 +685,7 @@ public class ReportBuilder {
 				parentCT = new ChartTab(title, id);
 				parentCT.setData(HTMLReportUtils.generateGoogleDataMultiSeries(
 						arrayMap,
-						parentCT.getName(), false, readGroups));
+						parentCT.getName(), false, readGroups, true));
 				parentCT.setChartInfo(HTMLReportUtils.generateGoogleScatterChart(parentCT.getName(),
 						title, 1200, 940, true));
 			}
