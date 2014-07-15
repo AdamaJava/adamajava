@@ -406,9 +406,9 @@ public class BamSummaryReport extends SummaryReport {
 						}
 					}
 				}
-				SummaryReportUtils.lengthMapToXml(bamReportElement, "MRNM", MRNMLengthsString, new ReferenceNameComparator());
+				SummaryReportUtils.lengthMapToXml(bamReportElement, "RNEXT", MRNMLengthsString, new ReferenceNameComparator());
 			} else {
-				SummaryReportUtils.lengthMapToXml(bamReportElement, "MRNM", MRNMLengths);
+				SummaryReportUtils.lengthMapToXml(bamReportElement, "RNEXT", MRNMLengths);
 			}
 			
 			// CIGAR
