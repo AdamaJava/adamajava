@@ -5,24 +5,12 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 import org.qcmg.qsv.util.TestUtil;
 
 public class ClipTest {
 	
 	Clip clip;
-	
-	@Rule
-    public TemporaryFolder testFolder = new TemporaryFolder();
-		
-
-	@Before
-	public void setUp() throws Exception {
-		
-	}
 	
 	@After
 	public void tearDown() throws Exception {
@@ -75,7 +63,5 @@ public class ClipTest {
 		assertEquals(1, bases[3][3]);
 		assertEquals(1, bases[4][4]);
 	}
-	
-	
 
 }
