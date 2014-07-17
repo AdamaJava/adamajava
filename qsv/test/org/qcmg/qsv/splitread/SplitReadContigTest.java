@@ -1,24 +1,22 @@
 package org.qcmg.qsv.splitread;
 
-import static org.easymock.EasyMock.*;
-import static org.junit.Assert.*;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
-import net.sf.picard.reference.IndexedFastaSequenceFile;
-import net.sf.picard.reference.ReferenceSequence;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.qcmg.qsv.Chromosome;
 import org.qcmg.qsv.QSVException;
 import org.qcmg.qsv.QSVParameters;
 import org.qcmg.qsv.blat.BLAT;
@@ -231,15 +229,13 @@ public class SplitReadContigTest {
 	public void testQueryStringPositionFilter() {
 		createStandardObject(1);
 		assertTrue(splitReadContig.passesQueryPositionFilter(right, left));
-		left.setQueryStart(1);
-		left.setQueryEnd(200);
-		right.setQueryStart(20);
-		right.setQueryEnd(232);
+		
+		left = new SplitReadAlignment("chr10", "+", 89700210, 89700299, 1, 200);
+		right = new SplitReadAlignment("chr10", "+", 89712341, 89712514, 20, 232);
 		assertFalse(splitReadContig.passesQueryPositionFilter(left, right));
-		left.setQueryStart(1);
-		left.setQueryEnd(120);
-		right.setQueryStart(110);
-		right.setQueryEnd(232);
+		
+		left = new SplitReadAlignment("chr10", "+", 89700210, 89700299, 1, 120);
+		right = new SplitReadAlignment("chr10", "+", 89712341, 89712514, 110, 232);
 		assertTrue(splitReadContig.passesQueryPositionFilter(left, right));
 	}
 	
@@ -247,16 +243,15 @@ public class SplitReadContigTest {
 	public void testQueryLengthFilter() {
 		createStandardObject(1);
 		assertTrue(splitReadContig.queryLengthFilter(right, left));
-		left.setQueryStart(1);
-		left.setQueryEnd(10);
+		
+		left = new SplitReadAlignment("chr10", "+", 89700210, 89700299, 1, 10);
 		assertFalse(splitReadContig.queryLengthFilter(left, right));
-		left.setQueryStart(0);
-		left.setQueryEnd(290);
+		
+		left = new SplitReadAlignment("chr10", "+", 89700210, 89700299, 0, 290);
 		assertFalse(splitReadContig.queryLengthFilter(left, right));
-		left.setQueryStart(1);
-		left.setQueryEnd(90);
-		right.setQueryStart(1);
-		right.setQueryEnd(200);
+		
+		left = new SplitReadAlignment("chr10", "+", 89700210, 89700299, 1, 90);
+		right = new SplitReadAlignment("chr10", "+", 89712341, 89712514, 1, 200);
 		assertFalse(splitReadContig.queryLengthFilter(left, right));
 		assertFalse(splitReadContig.queryLengthFilter(right, left));	
 	}
@@ -275,8 +270,9 @@ public class SplitReadContigTest {
 		splitReadContig.setConfidenceLevel(QSVConstants.LEVEL_MID);
 		assertTrue(splitReadContig.passesBreakpointFilter(left));
 		assertTrue(splitReadContig.passesBreakpointFilter(right));
-		right.setStartPos(100);
-		right.setEndPos(200);
+		
+		right = new SplitReadAlignment("chr10", "+", 100, 200, 1, 200);
+		
 		assertFalse(splitReadContig.passesBreakpointFilter(right));
 	}
 	
