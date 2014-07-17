@@ -22,7 +22,6 @@ public class BLATRecord implements Comparable<BLATRecord> {
 	private int endPos;
 	private int queryStart;
 	private int queryEnd;
-	private int score;
 	private int mismatch;
 	private int repMatch;
 	private int tGapCount;
@@ -45,31 +44,30 @@ public class BLATRecord implements Comparable<BLATRecord> {
 		} else {
 			try {
 
-			this.valid = true;
-			this.match = Integer.parseInt(values[0]);
-			this.mismatch = Integer.parseInt(values[1]);
-			this.repMatch = Integer.parseInt(values[2]);
-			this.tGapCount = Integer.parseInt(values[6]);
-			this.qGapCount = Integer.parseInt(values[4]);
-			this.name = values[9];
-			this.reference = values[13];
-			this.size = Integer.parseInt(values[10]);
-			this.startPos = Integer.parseInt(values[15]);
-			this.endPos= Integer.parseInt (values[16]);
-			this.queryStart = Integer.parseInt(values[11]);
-			this.queryEnd = Integer.parseInt(values[12]);
-			this.strand = values[8];
-			this.tGapBases = Integer.parseInt(values[5]);
-			this.blockCount = Integer.parseInt(values[17]);
-			if (blockCount > 1) {				
-				this.blockSizes = values[18].split(",");
-				this.qStarts = values[19].split(",");				
-				this.tStarts = values[20].split(",");
-				if (strand.equals("-")) {
-					this.revQStarts = values[19].split(",");			
+				this.valid = true;
+				this.match = Integer.parseInt(values[0]);
+				this.mismatch = Integer.parseInt(values[1]);
+				this.repMatch = Integer.parseInt(values[2]);
+				this.tGapCount = Integer.parseInt(values[6]);
+				this.qGapCount = Integer.parseInt(values[4]);
+				this.name = values[9];
+				this.reference = values[13];
+				this.size = Integer.parseInt(values[10]);
+				this.startPos = Integer.parseInt(values[15]);
+				this.endPos= Integer.parseInt (values[16]);
+				this.queryStart = Integer.parseInt(values[11]);
+				this.queryEnd = Integer.parseInt(values[12]);
+				this.strand = values[8];
+				this.tGapBases = Integer.parseInt(values[5]);
+				this.blockCount = Integer.parseInt(values[17]);
+				if (blockCount > 1) {				
+					this.blockSizes = values[18].split(",");
+					this.qStarts = values[19].split(",");				
+					this.tStarts = values[20].split(",");
+					if (strand.equals("-")) {
+						this.revQStarts = values[19].split(",");			
+					}
 				}
-			}
-			this.score = calculateScore();
 			} catch (Exception e) {
 				this.valid = false;
 			}
@@ -97,8 +95,8 @@ public class BLATRecord implements Comparable<BLATRecord> {
 				}
 				if (tStarts != null) {
 					for (int i=0; i<tStarts.length; i++) {						
-						Integer newInt = new Integer(tStarts[i]).intValue() + 1;						
-						tStarts[i] = newInt.toString();
+						int newInt = Integer.parseInt(tStarts[i]) + 1;						
+						tStarts[i] = newInt + "";
 					}
 				}
 		}
@@ -127,10 +125,6 @@ public class BLATRecord implements Comparable<BLATRecord> {
 		return match - mismatch - tGapCount - qGapCount;		
 	}
 
-	public int score() {
-		return this.score;
-	}
-	
 	public String getName() {
 		return name;
 	}
@@ -164,7 +158,7 @@ public class BLATRecord implements Comparable<BLATRecord> {
 	}
 
 	public int getScore() {
-		return this.score;
+		return calculateScore();
 	}
 	
 	public boolean isValid() {
@@ -237,9 +231,6 @@ public class BLATRecord implements Comparable<BLATRecord> {
 							}
 						}
 					} 
-					
-				} else {
-					
 				}
 			}
 			return null;
@@ -273,8 +264,8 @@ public class BLATRecord implements Comparable<BLATRecord> {
 	}
 
 	private Integer getCurrentBp(int i, boolean isLeft, String knownStrand, Integer knownBreakpoint) {
-		Integer startPos = new Integer(tStarts[i]);
-		Integer endPos = new Integer(tStarts[i]) + new Integer(blockSizes[i]);
+		int startPos = Integer.parseInt(tStarts[i]);
+		int endPos = Integer.parseInt(tStarts[i]) + Integer.parseInt(blockSizes[i]);
 		Integer currentBp = null;
 		int buffer = 0;
 		if (strand.equals("-")) {
@@ -299,8 +290,8 @@ public class BLATRecord implements Comparable<BLATRecord> {
 	}
 	
 	private Integer getMateCurrentBp(int i, boolean isLeft, String knownStrand, Integer knownBreakpoint) {
-		Integer startPos = new Integer(tStarts[i]);
-		Integer endPos = new Integer(tStarts[i]) + new Integer(blockSizes[i]) - 1;
+		int startPos = Integer.parseInt(tStarts[i]);
+		int endPos = Integer.parseInt(tStarts[i]) + Integer.parseInt(blockSizes[i]) - 1;
 		Integer currentBp = null;
 				
 		boolean isStart = true;
@@ -339,17 +330,17 @@ public class BLATRecord implements Comparable<BLATRecord> {
 	@Override
 	public int compareTo(BLATRecord o) {
 		if (this.name.equals(o.getName())) {
-			return new Integer(this.score).compareTo(new Integer(o.getScore()));
+			return Integer.compare(getScore(), o.getScore());
 		} else {
 			return this.name.compareTo(o.getName());
 		}
 	}
 
 	public SplitReadAlignment getSplitReadAlignment(int i) {
-		Integer startPos = new Integer(tStarts[i]);
-		Integer endPos = new Integer(tStarts[i]) + new Integer(blockSizes[i]) -1;
-		Integer queryStart = new Integer(qStarts[i]);
-		Integer queryEnd = new Integer(qStarts[i]) + new Integer(blockSizes[i]) - 1;
+		int startPos = Integer.parseInt(tStarts[i]);
+		int endPos = Integer.parseInt(tStarts[i]) + Integer.parseInt(blockSizes[i]) -1;
+		int queryStart = Integer.parseInt(qStarts[i]);
+		int queryEnd = Integer.parseInt(qStarts[i]) + Integer.parseInt(blockSizes[i]) - 1;
 		SplitReadAlignment s = new SplitReadAlignment(reference, strand, startPos, endPos, queryStart, queryEnd);
 		
 		return s;
@@ -357,7 +348,7 @@ public class BLATRecord implements Comparable<BLATRecord> {
 	
 	@Override 
 	public String toString() {
-		return this.score + "\t" + this.recordString;
+		return getScore() + "\t" + this.recordString;
 	}
 
 	public String getRecordString() {
