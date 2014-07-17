@@ -1,5 +1,8 @@
 package org.qcmg.qsv.blat;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -13,9 +16,6 @@ import org.junit.rules.TemporaryFolder;
 import org.qcmg.qsv.QSVException;
 import org.qcmg.qsv.QSVParameters;
 import org.qcmg.qsv.util.QSVUtil;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 public class BLATTest {
 	
@@ -46,17 +46,17 @@ public class BLATTest {
 		
 		BLATRecord record = results.get("chr10-89712341-true-pos");
 		assertTrue(record.isValid());
-		assertEquals(record.getMatch(), new Integer(48));
+		assertEquals(record.getMatch(), 48);
 		assertEquals(record.getScore(), 42);
-		assertEquals(record.getMismatch(), new Integer(1));
-		assertEquals(record.gettGapCount(), new Integer(3));
-		assertEquals(record.getqGapCount(), new Integer(2));
+		assertEquals(record.getMismatch(), 1);
+		assertEquals(record.gettGapCount(), 3);
+		assertEquals(record.getqGapCount(), 2);
 		assertEquals(record.getName(), "chr10-89712341-true-pos");
 		assertEquals(record.getReference(), "chr10");
-		assertEquals(record.getQueryStart(), new Integer(1));
-		assertEquals(record.getQueryEnd(), new Integer(48));
-		assertEquals(record.getStartPos(), new Integer(89700252));
-		assertEquals(record.getEndPos(), new Integer(89700299));
+		assertEquals(record.getQueryStart(), (1));
+		assertEquals(record.getQueryEnd(), (48));
+		assertEquals(record.getStartPos(), (89700252));
+		assertEquals(record.getEndPos(), (89700299));
 		assertEquals(record.getStrand(), "+");
 	}
 	

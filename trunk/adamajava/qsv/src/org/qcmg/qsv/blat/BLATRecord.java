@@ -17,20 +17,20 @@ public class BLATRecord implements Comparable<BLATRecord> {
 	private String name;
 	private String reference;
 	private String strand;
-	private Integer match;
-	private Integer startPos;
-	private Integer endPos;
-	private Integer queryStart;
-	private Integer queryEnd;
+	private int match;
+	private int startPos;
+	private int endPos;
+	private int queryStart;
+	private int queryEnd;
 	private int score;
-	private Integer mismatch;
-	private Integer repMatch;
-	private Integer tGapCount;
-	private Integer qGapCount;
+	private int mismatch;
+	private int repMatch;
+	private int tGapCount;
+	private int qGapCount;
 	private boolean valid;
-	private Integer size;
-	private Integer tGapBases;
-	private Integer blockCount;
+	private int size;
+	private int tGapBases;
+	private int blockCount;
 	private String[] tStarts;
 	private String[] blockSizes;
 	private String[] qStarts;
@@ -46,21 +46,21 @@ public class BLATRecord implements Comparable<BLATRecord> {
 			try {
 
 			this.valid = true;
-			this.match = new Integer(values[0]);
-			this.mismatch = new Integer(values[1]);
-			this.repMatch = new Integer(values[2]);
-			this.tGapCount = new Integer(values[6]);
-			this.qGapCount = new Integer(values[4]);
+			this.match = Integer.parseInt(values[0]);
+			this.mismatch = Integer.parseInt(values[1]);
+			this.repMatch = Integer.parseInt(values[2]);
+			this.tGapCount = Integer.parseInt(values[6]);
+			this.qGapCount = Integer.parseInt(values[4]);
 			this.name = values[9];
 			this.reference = values[13];
-			this.size = new Integer(values[10]);
-			this.startPos = new Integer(values[15]);
-			this.endPos= new Integer (values[16]);
-			this.queryStart = new Integer(values[11]);
-			this.queryEnd = new Integer(values[12]);
+			this.size = Integer.parseInt(values[10]);
+			this.startPos = Integer.parseInt(values[15]);
+			this.endPos= Integer.parseInt (values[16]);
+			this.queryStart = Integer.parseInt(values[11]);
+			this.queryEnd = Integer.parseInt(values[12]);
 			this.strand = values[8];
-			this.tGapBases = new Integer(values[5]);
-			this.blockCount = new Integer(values[17]);
+			this.tGapBases = Integer.parseInt(values[5]);
+			this.blockCount = Integer.parseInt(values[17]);
 			if (blockCount > 1) {				
 				this.blockSizes = values[18].split(",");
 				this.qStarts = values[19].split(",");				
@@ -84,13 +84,13 @@ public class BLATRecord implements Comparable<BLATRecord> {
 				if (qStarts != null) {
 					for (int i=0; i<qStarts.length; i++) {
 						if (strand.equals("-")) {
-							Integer newInt = size - new Integer(qStarts[i]).intValue() - new Integer(blockSizes[i]) + 1;							
-							qStarts[i] = newInt.toString();						
+							int newInt = size - Integer.parseInt(qStarts[i]) - Integer.parseInt(blockSizes[i]) + 1;							
+							qStarts[i] =  newInt + "";						
 						} else {
-							Integer newInt = new Integer(qStarts[i]).intValue() + 1;						
-							qStarts[i] = newInt.toString();
+							int newInt = Integer.parseInt(qStarts[i]) + 1;						
+							qStarts[i] = newInt + "";
 							if (strand.equals("-")) {
-								revQStarts[i] = newInt.toString(); 
+								revQStarts[i] = newInt + "";
 							}
 						}
 					}
@@ -108,7 +108,7 @@ public class BLATRecord implements Comparable<BLATRecord> {
 		this(line.split("\t"));
 	}
 
-	public Integer getSize() {
+	public int getSize() {
 		return size;
 	}
 
@@ -143,23 +143,23 @@ public class BLATRecord implements Comparable<BLATRecord> {
 		return strand;
 	}
 
-	public Integer getStartPos() {
+	public int getStartPos() {
 		return startPos;
 	}
 
-	public Integer getEndPos() {
+	public int getEndPos() {
 		return endPos;
 	}
 
-	public Integer getQueryStart() {
+	public int getQueryStart() {
 		return queryStart;
 	}
 
-	public Integer getQueryEnd() {
+	public int getQueryEnd() {
 		return queryEnd;
 	}
 	
-	public Integer getMatch() {
+	public int getMatch() {
 		return match;
 	}
 
@@ -171,28 +171,28 @@ public class BLATRecord implements Comparable<BLATRecord> {
 		return valid;
 	}
 	
-	public Integer getMismatch() {
+	public int getMismatch() {
 		return mismatch;
 	}
 
-	public Integer getRepMatch() {
+	public int getRepMatch() {
 		return repMatch;
 	}
 
-	public Integer gettGapCount() {
+	public int gettGapCount() {
 		return tGapCount;
 	}
 
-	public Integer getqGapCount() {
+	public int getqGapCount() {
 		return qGapCount;
 	}
 
-	public Integer gettGapBases() {
+	public int gettGapBases() {
 		return tGapBases;
 	}
 
 	public int getBlockCount() {
-		return blockCount.intValue();
+		return blockCount;
 	}
 
 	public String[] gettStarts() {
@@ -376,7 +376,4 @@ public class BLATRecord implements Comparable<BLATRecord> {
 		return this.nonTempBases;
 	}
 
-	public String toTabString() {
-		return "records.add(new BLATRecord(\"" + recordString.replace("\t", "\\t") + "\"));";
-	}
 }
