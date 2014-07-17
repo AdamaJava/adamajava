@@ -17,8 +17,8 @@ import org.qcmg.qsv.util.QSVUtil;
 public class MatePair implements Comparable<MatePair> {
 	
 	private static final char TAB = '\t';
-
-    private final QLogger logger = QLoggerFactory.getLogger(getClass());
+    private static final QLogger logger = QLoggerFactory.getLogger(MatePair.class);
+    
     private final String readName;
     private Mate leftMate;
     private Mate rightMate;
