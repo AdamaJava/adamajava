@@ -1,5 +1,5 @@
 /**
- * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ * �� Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
 package org.qcmg.qsv.blat;
 
@@ -112,10 +112,6 @@ public class BLATRecord implements Comparable<BLATRecord> {
 		return size;
 	}
 
-	public void setSize(Integer size) {
-		this.size = size;
-	}
-
 	/**
 	 * Calculate blat score based on web BLAT
 	 * @return
@@ -139,64 +135,32 @@ public class BLATRecord implements Comparable<BLATRecord> {
 		return name;
 	}
 
-	public void setName(String name) {
-		this.name = name;
-	}
-
 	public String getReference() {
 		return reference;
-	}
-
-	public void setReference(String reference) {
-		this.reference = reference;
 	}
 
 	public String getStrand() {
 		return strand;
 	}
 
-	public void setStrand(String strand) {
-		this.strand = strand;
-	}
-
 	public Integer getStartPos() {
 		return startPos;
-	}
-
-	public void setStartPos(Integer startPos) {
-		this.startPos = startPos;
 	}
 
 	public Integer getEndPos() {
 		return endPos;
 	}
 
-	public void setEndPos(Integer endPos) {
-		this.endPos = endPos;
-	}
-
 	public Integer getQueryStart() {
 		return queryStart;
-	}
-
-	public void setQueryStart(Integer queryStart) {
-		this.queryStart = queryStart;
 	}
 
 	public Integer getQueryEnd() {
 		return queryEnd;
 	}
-
-	public void setQueryEnd(Integer queryEnd) {
-		this.queryEnd = queryEnd;
-	}
 	
 	public Integer getMatch() {
 		return match;
-	}
-
-	public void setMatch(Integer match) {
-		this.match = match;
 	}
 
 	public int getScore() {
@@ -206,69 +170,33 @@ public class BLATRecord implements Comparable<BLATRecord> {
 	public boolean isValid() {
 		return valid;
 	}
-
-	public void setValid(boolean valid) {
-		this.valid = valid;
-	}
 	
 	public Integer getMismatch() {
 		return mismatch;
-	}
-
-	public void setMismatch(Integer mismatch) {
-		this.mismatch = mismatch;
 	}
 
 	public Integer getRepMatch() {
 		return repMatch;
 	}
 
-	public void setRepMatch(Integer repMatch) {
-		this.repMatch = repMatch;
-	}
-
 	public Integer gettGapCount() {
 		return tGapCount;
-	}
-
-	public void settGapCount(Integer tGapCount) {
-		this.tGapCount = tGapCount;
 	}
 
 	public Integer getqGapCount() {
 		return qGapCount;
 	}
 
-	public void setqGapCount(Integer qGapCount) {
-		this.qGapCount = qGapCount;
-	}
-
-	public void setScore(int score) {
-		this.score = score;
-	}
-
 	public Integer gettGapBases() {
 		return tGapBases;
-	}
-
-	public void settGapBases(Integer tGapBases) {
-		this.tGapBases = tGapBases;
 	}
 
 	public int getBlockCount() {
 		return blockCount.intValue();
 	}
 
-	public void setBlockCount(Integer blockCount) {
-		this.blockCount = blockCount;
-	}
-
 	public String[] gettStarts() {
 		return tStarts;
-	}
-
-	public void settStarts(String[] tStarts) {
-		this.tStarts = tStarts;
 	}
 
 	public Integer calculateMateBreakpoint(boolean isLeft, String knownReference, Integer knownBreakpoint, String knownStrand) {		
@@ -432,13 +360,8 @@ public class BLATRecord implements Comparable<BLATRecord> {
 		return this.score + "\t" + this.recordString;
 	}
 
-
 	public String getRecordString() {
 		return recordString;
-	}
-
-	public void setRecordString(String recordString) {
-		this.recordString = recordString;
 	}
 
 	public String[] getUnmodifiedStarts() {
