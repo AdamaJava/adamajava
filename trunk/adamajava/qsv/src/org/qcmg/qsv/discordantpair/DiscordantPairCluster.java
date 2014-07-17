@@ -1,5 +1,5 @@
 /**
- * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ * �� Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
 package org.qcmg.qsv.discordantpair;
 
@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import net.sf.samtools.SAMFileReader;
 import net.sf.samtools.SAMRecord;
@@ -24,12 +25,10 @@ import org.qcmg.qsv.util.QSVUtil;
 
 /**
  * Class to represent discordant pair evidence for an SV
- * 
- *
  */
 public class DiscordantPairCluster {
 
-    private List<MatePair> clusterMatePairs;
+    private final List<MatePair> clusterMatePairs;
     private final List<MatePair> matchedNormalMatePairs;
     private int lowConfidenceNormalMatePairs;
 	private final String leftReferenceName;
@@ -38,37 +37,24 @@ public class DiscordantPairCluster {
     private int rightStart = -1;
     private int leftEnd = -1;
     private int rightEnd = -1;
-    private final int leftBreakPoint;
-    private final int rightBreakPoint;
     private String type;
     private final String zp;
     private final int windowSize;
     private final String sampleType;
-    private final Map<String, Integer> strandOrientations;    
+    private final Map<String, AtomicInteger> strandOrientations;    
     private String strandOrientation = "";
-    private final boolean isLeftRightOverlapping = false;
-    private final boolean isMateOverlap = false;
-    private final String tumorAverageBP = "";
-    private final String normalAverageBP = "";
-    private final String leftPhysCoverage = "";
-    private final String rightPhysCoverage = "";
-    private final String leftBaseCoverage = "";
-    private final String rightBaseCoverage = "";
-    private final String potentialGermlineString = "";
     private int id;
-    private String analysisId;
     private String svId; 
     private int compareLeftStart;
     private int compareRightStart;
     private int compareLeftEnd;
     private int compareRightEnd;
-	private String qPrimerString;
-	private final Integer qPrimerThreshold;
+	private final int qPrimerThreshold;
 	private String referenceKey;
 	private boolean rescuedTumour;
 	private QPrimerCategory qPrimerCateory;
 	private boolean isQCMG = false;		
-	private static String NEWLINE = System.getProperty("line.separator");
+	private static final String NEWLINE = System.getProperty("line.separator");
 
 	public DiscordantPairCluster(String leftReferenceName, String rightReferenceName, String zp, QSVParameters findParameters, boolean isQCMG) {
         this.clusterMatePairs = new ArrayList<MatePair>();
@@ -79,11 +65,8 @@ public class DiscordantPairCluster {
         this.type = "";
         this.sampleType = findParameters.getFindType();
         this.windowSize = findParameters.getUpperInsertSize();
-        this.strandOrientations = new HashMap<String, Integer>();
-        this.leftBreakPoint = 0;
-        this.rightBreakPoint = 0;
+        this.strandOrientations = new HashMap<String, AtomicInteger>();
         this.qPrimerThreshold = findParameters.getqPrimerThreshold();
-        this.qPrimerString = null;
         this.lowConfidenceNormalMatePairs = 0;
         this.isQCMG = isQCMG;
     }
@@ -176,40 +159,16 @@ public class DiscordantPairCluster {
 		return compareLeftEnd;
 	}
 
-	public void setCompareLeftEnd(int compareLeftEnd) {
-		this.compareLeftEnd = compareLeftEnd;
-	}
-
 	public int getCompareRightEnd() {
 		return compareRightEnd;
 	}
-
-	public void setCompareRightEnd(int compareEnd) {
-		this.compareRightEnd = compareEnd;
-	}
-	
-	public String getQPrimerString() {
-		return this.qPrimerString;
-	}	
 
 	public String getReferenceKey() {
 		return referenceKey;
 	}
 
-	public void setReferenceKey(String referenceKey) {
-		this.referenceKey = referenceKey;
-	}	
-
 	public boolean isRescuedTumour() {
 		return rescuedTumour;
-	}
-
-	public void setRescuedTumour(boolean rescuedTumour) {
-		this.rescuedTumour = rescuedTumour;
-	}
-	
-	public String getAnalysisId() {
-		return this.analysisId;
 	}
 
 	public String getStrandOrientation() {
@@ -230,11 +189,6 @@ public class DiscordantPairCluster {
 	
 	public String getRealMutationType() {
 		return QSVUtil.getMutationByPairGroup(zp);		
-	}
-
-	public void setClusterMatePairs(List<MatePair> clusterMatePairs) {
-		this.clusterMatePairs = clusterMatePairs;
-		
 	}
 
 	public Integer getQPrimerThreshold() {
@@ -277,38 +231,34 @@ public class DiscordantPairCluster {
     }
      
     public String countStrandOrientations() {
-        strandOrientations.put("+/+", 0);
-        strandOrientations.put("-/-", 0);
-        strandOrientations.put("+/-", 0);
-        strandOrientations.put("-/+", 0);
+        strandOrientations.put("+/+", new AtomicInteger());
+        strandOrientations.put("-/-", new AtomicInteger());
+        strandOrientations.put("+/-", new AtomicInteger());
+        strandOrientations.put("-/+", new AtomicInteger());
         
         for (MatePair m: clusterMatePairs) {
            String orientation = m.getStrandOrientation();
            
            if (orientation.equals("-/-")) {
-               Integer i = strandOrientations.get("-/-") + 1;
-               strandOrientations.put("-/-", i);               
+               strandOrientations.get("-/-").incrementAndGet();
            } else if (orientation.equals("+/-")){
-               Integer i = strandOrientations.get("+/-") + 1;
-               strandOrientations.put("+/-", i);
+               strandOrientations.get("+/-").incrementAndGet();
            } else if (orientation.equals("-/+")) {
-               Integer i = strandOrientations.get("-/+") + 1;
-               strandOrientations.put("-/+", i);
+               strandOrientations.get("-/+").incrementAndGet();
            } else {
-               Integer i = strandOrientations.get("+/+") + 1;
-               strandOrientations.put("+/+", i);
+               strandOrientations.get("+/+").incrementAndGet();
            }
         }
         
         int maxValue = 0;
         String key = "";
         
-        for (Map.Entry<String, Integer> entry : strandOrientations.entrySet()) {
-            if (entry.getValue() == maxValue && maxValue != 0) {
+        for (Map.Entry<String, AtomicInteger> entry : strandOrientations.entrySet()) {
+            if (entry.getValue().get() == maxValue && maxValue != 0) {
                 key += ";" + entry.getKey();
             } else {
-                if (entry.getValue() > maxValue) {
-                    maxValue = entry.getValue();
+                if (entry.getValue().get() > maxValue) {
+                    maxValue = entry.getValue().get();
                     key = entry.getKey();
                 }
             }
@@ -455,7 +405,7 @@ public class DiscordantPairCluster {
     		return leftStart;  		
     	} 
     	
-        return leftBreakPoint;
+        return 0;
     }
     
     public int getRightBreakPoint() {
@@ -468,10 +418,10 @@ public class DiscordantPairCluster {
     		return rightEnd;  		
     	} 
     	
-        return rightBreakPoint;
+        return 0;
     }
 
-    public Map<String, Integer> getStrandOrientations() {
+    public Map<String, AtomicInteger> getStrandOrientations() {
         return strandOrientations;
     }
 
@@ -479,35 +429,6 @@ public class DiscordantPairCluster {
        return this.windowSize;
     }
 
-
-    public boolean getIsLeftRightOverlapping() {
-        return isLeftRightOverlapping;
-    }
-
-    public boolean getIsMateOverlap() {
-        return isMateOverlap;
-    }    
-
-    public String getTumorAverageBP() {        
-        return tumorAverageBP;
-    }
-    
-    public String getNormalAverageBP() {        
-        return normalAverageBP;
-    }
-    
-    public String getPhysicalCoverage() {
-        return leftPhysCoverage + "-" + rightPhysCoverage;
-    }
-    
-    public String getBaseCoverage() {
-        return leftBaseCoverage + "-" + rightBaseCoverage;
-    }
-
-    public String getPotentialGermline() {
-        return this.potentialGermlineString;
-    }
-    
 	public QPrimerCategory getqPrimerCateory() {
 		return qPrimerCateory;
 	}
@@ -656,11 +577,8 @@ public class DiscordantPairCluster {
         	   return true;
             }
         }	
-		
 		return false;
-		
 	}
-		
     
     private void readAndAnnotateRecords(QSVParameters findParameters, QSVParameters compareParameters, Map<String, SAMRecord[]> map, String ref, int start,
 			int end, Annotator annotator, File bamFile) throws Exception {
@@ -741,9 +659,9 @@ public class DiscordantPairCluster {
     	qPrimerCateory.findClusterCategory(clusterMatePairs, leftStart, leftEnd, rightStart, rightEnd);
     	
     	//check if the size of the cluster is greater than the threshold
-    	if (clusterMatePairs.size() >= qPrimerThreshold) {    		
-    		this.qPrimerString = qPrimerCateory.toString();
-    	} 
+//    	if (clusterMatePairs.size() >= qPrimerThreshold) {
+//    		this.qPrimerString = qPrimerCateory.toString();
+//    	}
 	}
     
 	public static class QSVRecordComparator implements Comparator<DiscordantPairCluster> {

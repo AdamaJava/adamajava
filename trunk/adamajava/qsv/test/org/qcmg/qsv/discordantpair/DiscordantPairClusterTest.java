@@ -10,7 +10,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.qcmg.qsv.discordantpair.DiscordantPairCluster;
 import org.qcmg.qsv.util.TestUtil;
 
 public class DiscordantPairClusterTest {
@@ -67,8 +66,8 @@ public class DiscordantPairClusterTest {
     public void testStrandOrientations() {    	
     	assertEquals("+/+", cluster.countStrandOrientations());
     	
-    	assertEquals(new Integer(2), cluster.getStrandOrientations().get("-/-"));
-    	assertEquals(new Integer(4), cluster.getStrandOrientations().get("+/+"));
+    	assertEquals(2, cluster.getStrandOrientations().get("-/-").get());
+    	assertEquals(4, cluster.getStrandOrientations().get("+/+").get());
     	
     }
     
