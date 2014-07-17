@@ -1,6 +1,12 @@
 package org.qcmg.qsv.softclip;
 
-import static org.junit.Assert.*;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.util.HashMap;
@@ -18,11 +24,7 @@ import org.qcmg.qsv.QSVParameters;
 import org.qcmg.qsv.blat.BLAT;
 import org.qcmg.qsv.blat.BLATRecord;
 import org.qcmg.qsv.discordantpair.PairGroup;
-import org.qcmg.qsv.softclip.Breakpoint;
-import org.qcmg.qsv.softclip.Clip;
-import org.qcmg.qsv.softclip.SoftClipCluster;
 import org.qcmg.qsv.util.TestUtil;
-import static org.easymock.EasyMock.*;
 
 public class SoftClipClusterTest {
 
@@ -295,7 +297,7 @@ public class SoftClipClusterTest {
 		b.setTumourClips(clips);
 		b.setMateReference(chr);
 		b.setMateBreakpoint(mateBreakpoint);
-		b.setName("chr1-" + breakpoint + "-" + isLeft);
+//		b.setName("chr1-" + breakpoint + "-" + isLeft);
 		b.setStrand(strand);
 		b.setMateStrand(mateStrand);
 		return b;
@@ -308,7 +310,7 @@ public class SoftClipClusterTest {
 		clips.add(new Clip(
 				"HWI-ST1240:47:D12NAACXX:1:2307:8115:32717:20120608115535190,chr10,89700299,-,right,GCAAAGATCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAAGAGATTATACTTTGTGTAAGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAG,GAGATTATACTTTGTGTAAGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAG,GCAAAGATCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAA"));
 		b.setTumourClips(clips);
-		b.setName("chr1-" + breakpoint + "-" + isLeft);
+//		b.setName("chr1-" + breakpoint + "-" + isLeft);
 		b.setStrand(strand);
 		b.setMateStrand(mateStrand);
 		return b;
