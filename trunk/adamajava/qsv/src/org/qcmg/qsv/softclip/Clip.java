@@ -1,30 +1,26 @@
 /**
- * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ * �� Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
 package org.qcmg.qsv.softclip;
 
-import org.qcmg.qsv.util.QSVUtil;
-
 import net.sf.samtools.SAMRecord;
+
+import org.qcmg.qsv.util.QSVUtil;
 
 public class Clip implements Comparable<Clip>{
 	
-	private String reference;
-	private Integer bpPos;
-	private int length;
-	private String readName;
-	private String clipSequence;
-	private boolean isReverse = false;
-	private boolean isLeft = false;
-	private String side;
-	private String referenceSequence;
-	private String readSequence;
+	private final String reference;
+	private final int bpPos;
+	private final int length;
+	private final String readName;
+	private final String clipSequence;
+	private final boolean isReverse;
+	private final boolean isLeft;
+	private final String referenceSequence;
+	private final String readSequence;
 
 	public Clip(SAMRecord record, int bpPos, String sequence, String aligned, String side) {
-		this.readName = record.getReadName() + ":";
-		if (record.getReadGroup() != null) {
-			this.readName += record.getReadGroup().getId();
-		}
+		this.readName = record.getReadName() + ":" + (record.getReadGroup() != null ? record.getReadGroup().getId() : "");
 		this.readSequence = record.getReadString();
 		this.reference = record.getReferenceName();
 		this.bpPos = bpPos;
@@ -32,88 +28,50 @@ public class Clip implements Comparable<Clip>{
 		this.clipSequence = sequence;
 		this.referenceSequence = aligned;
 		this.isReverse = record.getReadNegativeStrandFlag();
-		this.side = side;
-		if (this.side.equals("left")) {
-			isLeft = true;
-		}
+		this.isLeft = side.equals("left");
 	}
 
 	public Clip(String line) {
 		String[] values = line.split(",");
-		try {
+//		try {
 		this.readName = values[0];
 		this.reference = values[1];
-		this.bpPos = new Integer(values[2]);
-		if (values[3].equals("-")) {
-			isReverse = true;
-		} 
-		this.side = values[4];
-		if (this.side.equals("left")) {
-			isLeft = true;
-		}
+		this.bpPos = Integer.parseInt(values[2]);
+		this.isReverse = values[3].equals("-");
+		this.isLeft = values[4].equals("left");
 		this.readSequence = values[5];
 		this.clipSequence = values[6];
 		this.length = clipSequence.length();
 		this.referenceSequence = values[7];
-		} catch (Exception e) {
-			System.out.println(line + " " + values.length);
-		}
+//		} catch (Exception e) {
+//			System.out.println(line + " " + values.length);
+//		}
 	}
 
 	public String getReference() {
 		return reference;
 	}
 
-
-	public void setReference(String reference) {
-		this.reference = reference;
-	}
-	
 	public boolean isLeft() {
 		return isLeft;
 	}
-
 
 	public Integer getLength() {
 		return length;
 	}
 
-
-	public void setLength(Integer length) {
-		this.length = length;
-	}
-
-
 	public String getReadName() {
 		return readName;
 	}
-
-
-	public void setReadName(String readName) {
-		this.readName = readName;
-	}
-
 
 	public String getClipSequence() {
 		return clipSequence;
 	}
 
-
-	public void setClipSequence(String sequence) {
-		this.clipSequence = sequence;
-		this.length = sequence.length();
-	}
-
-
 	public boolean isReverse() {
 		return isReverse;
 	}
 
-
-	public void setReverse(boolean isReverse) {
-		this.isReverse = isReverse;
-	}
-	
 	public String getStrand() {
 		if (isReverse) {
 			return "-";
@@ -121,56 +79,26 @@ public class Clip implements Comparable<Clip>{
 		return "+";
 	}
 	
-	public void setBpPos(Integer bpPos) {
-		this.bpPos = bpPos;
-	}
-
-	public void setLength(int length) {
-		this.length = length;
-	}
-
-	public void setLeft(boolean isLeft) {
-		this.isLeft = isLeft;
-	}
-
-	public void setSide(String side) {
-		this.side = side;
-	}
-	
-
 	public boolean getIsReverse() {
 		return this.isReverse;
 	}
 
-	public String getSide() {
-		return this.side;
-	}
-	
 	public String getReferenceSequence() {
 		return referenceSequence;
 	}
 
-	public void setReferenceSequence(String referenceSequence) {
-		this.referenceSequence = referenceSequence;
-	}
-	
-	
-	public void setReadSequence(String readSequence) {
-		this.readSequence = readSequence;
-	}
-
-
-	
+	@Override
 	public String toString() {
-		return this.readName + "," + this.reference + "," + this.bpPos + "," + getStrand() + "," + this.side + "," + this.readSequence + "," + this.clipSequence + "," + this.referenceSequence +  QSVUtil.getNewLine();		
+		return this.readName + "," + this.reference + "," + this.bpPos + "," + getStrand() + "," + (this.isLeft ? "left" : "right") + "," + this.readSequence + "," + this.clipSequence + "," + this.referenceSequence +  QSVUtil.getNewLine();		
 	}
 
 	@Override
 	public int compareTo(Clip other) {
-		if (this.bpPos.equals(other.getBpPos())) {
+		int diff = Integer.compare(this.bpPos, other.getBpPos());
+		if (diff == 0) {
 			return this.readName.compareTo(other.getReadName());
 		} else {
-			return this.bpPos.compareTo(other.getBpPos());
+			return diff;
 		}
 	}
 	
@@ -189,10 +117,11 @@ public class Clip implements Comparable<Clip>{
 
 		Clip other = (Clip) aThat;
 
-		if (this.bpPos.equals(other.getBpPos())) {
+		int diff = Integer.compare(bpPos, other.getBpPos());
+		if (diff == 0) {
 			return this.readName.equals(other.getReadName());
 		} else {			
-			return this.bpPos.equals(other.getBpPos());
+			return false;
 		}
 	}
 	
@@ -203,12 +132,10 @@ public class Clip implements Comparable<Clip>{
         int result = 1;
         result = prime * result
                 + ((this.readName == null) ? 0 : readName.hashCode());
-        result += prime * result
-                + ((this.bpPos == null) ? 0 : bpPos.hashCode());
+        result += prime * result + this.bpPos;
         
         return result;
 	}
-
 
 	public void getClipBases(int[][] bases) {
 		
@@ -261,7 +188,4 @@ public class Clip implements Comparable<Clip>{
 	public String getReadSequence() {
 		return this.readSequence;
 	}
-
 }
-
-

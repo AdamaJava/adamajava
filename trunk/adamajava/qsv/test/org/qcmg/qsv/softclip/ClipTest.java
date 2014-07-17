@@ -9,7 +9,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.qcmg.qsv.softclip.Clip;
 import org.qcmg.qsv.util.TestUtil;
 
 public class ClipTest {
@@ -54,16 +53,14 @@ public class ClipTest {
 	@Test
 	public void testCompareToDifferentPos() {
 		Clip clip1 = TestUtil.getClip("-", "left");
-		Clip clip2 = TestUtil.getClip("-", "left");
-		clip2.setBpPos(89700230);
+		Clip clip2 = TestUtil.getClip("-", "left", 89700230);
 		assertEquals(1, clip1.compareTo(clip2));
 	}
 	
 	@Test
 	public void testCompareToDifferentName() {
 		Clip clip1 = TestUtil.getClip("-", "left");
-		Clip clip2 = TestUtil.getClip("-", "left");
-		clip2.setReadName("test");
+		Clip clip2 = TestUtil.getClip("-", "left", "test");
 		assertEquals(-44, clip1.compareTo(clip2));
 	}
 	
