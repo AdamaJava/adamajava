@@ -31,7 +31,7 @@ public class Breakpoint implements Comparable<Breakpoint>{
 	private static String NEWLINE = System.getProperty("line.separator");
 	private static char TAB = '\t';	
 	private String reference;
-	private Integer breakpoint;
+	private int breakpoint;
 	private boolean isLeft;
 	private boolean isGermline;
 	private boolean rescued;
@@ -45,7 +45,7 @@ public class Breakpoint implements Comparable<Breakpoint>{
 	private boolean positiveStrand;
 	private String mateReference;
 	private int mateBreakpoint;
-	private String mateStrand;
+	private boolean matePositiveStrand;
 	private String referenceKey;
 	private BLATRecord blatRecord;
 	private ConsensusRead consensusRead;
@@ -90,11 +90,11 @@ public class Breakpoint implements Comparable<Breakpoint>{
 	}
 
 	public String getMateStrand() {
-		return mateStrand;
+		return matePositiveStrand ? "+" : "-";
 	}
 
 	public void setMateStrand(String mateStrand) {
-		this.mateStrand = mateStrand;
+		matePositiveStrand = mateStrand.equals("+");
 	}
 
 	public String getReferenceKey() {
@@ -541,7 +541,7 @@ public class Breakpoint implements Comparable<Breakpoint>{
 				if (mateBp != null) {	
 					
 					mateReference = mateRecord.getReference();
-					mateStrand = mateRecord.getStrand();
+					setMateStrand(mateRecord.getStrand());
 					mateBreakpoint = mateBp;
 					blatRecord = mateRecord;
 					nonTempBases = mateRecord.getNonTempBases();
@@ -563,10 +563,11 @@ public class Breakpoint implements Comparable<Breakpoint>{
 
 	@Override
 	public int compareTo(Breakpoint o) {
-		if (this.breakpoint.equals(o.getBreakpoint())) {			
+		int diff = Integer.compare(breakpoint, o.getBreakpoint());
+		if (diff == 0) {			
 			return this.name.compareTo(o.getName());			 
 		} else {
-			return this.breakpoint.compareTo(o.getBreakpoint());
+			return diff;
 		}
 	}
 	
@@ -713,7 +714,7 @@ public class Breakpoint implements Comparable<Breakpoint>{
 	}
 
 	public boolean getMatchingStrands() {
-		return (positiveStrand ? "+" : "-").equals(mateStrand);
+		return positiveStrand ==  matePositiveStrand;
 	}
 
 	public String getContigInfo() {
@@ -728,7 +729,7 @@ public class Breakpoint implements Comparable<Breakpoint>{
 		sb.append(blatRecord.getEndPos()).append(tab);
 		sb.append(blatRecord.getQueryStart()).append(tab);
 		sb.append(blatRecord.getQueryEnd()).append(tab);
-		sb.append(mateStrand);
+		sb.append(matePositiveStrand ? "+" : "-");
 		
 		return sb.toString();
 	}
@@ -758,7 +759,6 @@ public class Breakpoint implements Comparable<Breakpoint>{
 	public void setConsensusRead(ConsensusRead consensusRead) {
 		this.consensusRead = consensusRead;
 	}
-
 
 	public int getSplitReadsSize() {
 		return tumourSplitReads.size() + normalSplitReads.size();
