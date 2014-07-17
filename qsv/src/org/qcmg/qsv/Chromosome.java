@@ -11,7 +11,6 @@ public class Chromosome implements Comparable<Chromosome>{
 	
 	private final String name;
 	private final int totalLength;	
-	private final int sectionLength;
 	private final int startPosition;
 	private final int endPosition;
 
@@ -24,7 +23,6 @@ public class Chromosome implements Comparable<Chromosome>{
 	public Chromosome(String name, int totalLength) {
 		this.name = name;
 		this.totalLength = totalLength;	
-		this.sectionLength = this.totalLength;
 		this.startPosition = 1;
 		this.endPosition = this.totalLength;	
 	}
@@ -40,7 +38,6 @@ public class Chromosome implements Comparable<Chromosome>{
 	public Chromosome(String name, int totalLength, int startPosition, int endPosition) {
 		this.name = name;
 		this.totalLength = totalLength;	
-		this.sectionLength = endPosition - startPosition + 1;
 		this.startPosition = startPosition;
 		this.endPosition = endPosition;
 	}
@@ -59,17 +56,8 @@ public class Chromosome implements Comparable<Chromosome>{
 	 *
 	 * @return the total length
 	 */
-	public Integer getTotalLength() {
+	public int getTotalLength() {
 		return totalLength;
-	}
-
-	/**
-	 * Gets the section length.
-	 *
-	 * @return the section length
-	 */
-	public Integer getSectionLength() {
-		return sectionLength;
 	}
 
 	/**
@@ -77,7 +65,7 @@ public class Chromosome implements Comparable<Chromosome>{
 	 *
 	 * @return the start position
 	 */
-	public Integer getStartPosition() {
+	public int getStartPosition() {
 		return startPosition;
 	}
 
@@ -86,7 +74,7 @@ public class Chromosome implements Comparable<Chromosome>{
 	 *
 	 * @return the end position
 	 */
-	public Integer getEndPosition() {
+	public int getEndPosition() {
 		return endPosition;
 	}
 	
