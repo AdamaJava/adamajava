@@ -41,7 +41,7 @@ public class Breakpoint implements Comparable<Breakpoint>{
 	private List<UnmappedRead> tumourSplitReads = new ArrayList<UnmappedRead>();
 	private List<UnmappedRead> normalSplitReads = new ArrayList<UnmappedRead>();
 	private String name;
-	private String type;
+//	private String type;
 	private boolean positiveStrand;
 	private String mateReference;
 	private int mateBreakpoint;
@@ -78,7 +78,7 @@ public class Breakpoint implements Comparable<Breakpoint>{
 	}
 	
 	public String getType() {
-		return type;
+		return isGermline ? "germline" : "somatic";
 	}
 
 	public String getMateReference() {
@@ -193,10 +193,9 @@ public class Breakpoint implements Comparable<Breakpoint>{
 
 	public boolean defineBreakpoint(int clipSize, boolean isRescue) throws Exception {
 		if (tumourClips.size() > clipSize) {
-			this.type = "somatic";
+			this.isGermline = false;
 			if (this.normalClips.size() > 0) {
 				this.isGermline = true;
-				this.type = "germline";
 			}
 			calculateStrand();
 			this.name = reference + "_" + breakpoint + "_" + isLeft + "_" + (positiveStrand ? "+" : "-");
@@ -718,17 +717,16 @@ public class Breakpoint implements Comparable<Breakpoint>{
 	}
 
 	public String getContigInfo() {
-		String tab = "\t";
 		StringBuilder sb = new StringBuilder();
 		
-		sb.append(getMateConsensus()).append(tab);
-		sb.append(getStrand()).append(tab);
-		sb.append(mateReference).append(tab);
-		sb.append(mateBreakpoint).append(tab);
-		sb.append(blatRecord.getStartPos()).append(tab);
-		sb.append(blatRecord.getEndPos()).append(tab);
-		sb.append(blatRecord.getQueryStart()).append(tab);
-		sb.append(blatRecord.getQueryEnd()).append(tab);
+		sb.append(getMateConsensus()).append(TAB);
+		sb.append(getStrand()).append(TAB);
+		sb.append(mateReference).append(TAB);
+		sb.append(mateBreakpoint).append(TAB);
+		sb.append(blatRecord.getStartPos()).append(TAB);
+		sb.append(blatRecord.getEndPos()).append(TAB);
+		sb.append(blatRecord.getQueryStart()).append(TAB);
+		sb.append(blatRecord.getQueryEnd()).append(TAB);
 		sb.append(matePositiveStrand ? "+" : "-");
 		
 		return sb.toString();
@@ -793,6 +791,4 @@ public class Breakpoint implements Comparable<Breakpoint>{
 	public boolean isTranslocation() {
 		return ! this.reference.equals(mateReference);
 	}
-
 }
-
