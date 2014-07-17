@@ -29,7 +29,7 @@ public class Breakpoint implements Comparable<Breakpoint>{
 	
 	private static int LOW_CONF_CLIPS = 10;
 	private static String NEWLINE = System.getProperty("line.separator");
-	private static String TAB = "\t";	
+	private static char TAB = '\t';	
 	private String reference;
 	private Integer breakpoint;
 	private boolean isLeft;
@@ -83,10 +83,6 @@ public class Breakpoint implements Comparable<Breakpoint>{
 		return type;
 	}
 
-	public void setType(String type) {
-		this.type = type;
-	}
-
 	public String getMateReference() {
 		return mateReference;
 	}
@@ -107,10 +103,6 @@ public class Breakpoint implements Comparable<Breakpoint>{
 		return referenceKey;
 	}
 
-	public void setReferenceKey(String referenceKey) {
-		this.referenceKey = referenceKey;
-	}
-
 	public int getMateBreakpoint() {
 		return mateBreakpoint;
 	}
@@ -123,14 +115,9 @@ public class Breakpoint implements Comparable<Breakpoint>{
 		return isLeft;
 	}
 
-	public void setLeft(boolean isLeft) {
-		this.isLeft = isLeft;
-	}
-
 	public boolean isGermline() {
 		return isGermline;
 	}
-
 
 	public void setGermline(boolean isGermline) {
 		this.isGermline = isGermline;
@@ -162,7 +149,6 @@ public class Breakpoint implements Comparable<Breakpoint>{
 		this.breakpoint = breakpointPosition;
 	}
 
-
 	public HashSet<Clip> getTumourClips() {
 		return tumourClips;
 	}
@@ -189,49 +175,27 @@ public class Breakpoint implements Comparable<Breakpoint>{
 	
 	public void addNormalClip(Clip clip) {		
 		normalClips.add(clip);		
-				
 	}
 	
 	public List<UnmappedRead> getTumourSplitReads() {
 		return tumourSplitReads;
-	}
-
-	public void setTumourSplitReads(List<UnmappedRead> tumourSplitReads) {
-		this.tumourSplitReads = tumourSplitReads;
 	}
 	
 	public List<UnmappedRead> getNormalSplitReads() {
 		return normalSplitReads;
 	}
 
-	public void setNormalSplitReads(List<UnmappedRead> normalSplitReads) {
-		this.normalSplitReads = normalSplitReads;
-	}
-
 	public int getPosStrandCount() {
 		return posStrandCount;
 	}
-
-
-	public void setPosStrandCount(int posStrandCount) {
-		this.posStrandCount = posStrandCount;
-	}
-
 
 	public int getNegStrandCount() {
 		return negStrandCount;
 	}
 
-
-	public void setNegStrandCount(int negStrandCount) {
-		this.negStrandCount = negStrandCount;
-	}
-
-
 	public BLATRecord getBlatRecord() {
 		return this.blatRecord;
 	}
-	
 
 	public boolean defineBreakpoint(int clipSize, boolean isRescue) throws Exception {
 		if (tumourClips.size() > clipSize) {
@@ -810,16 +774,8 @@ public class Breakpoint implements Comparable<Breakpoint>{
 		return splitConsensusReads;
 	}
 
-	public void setSplitConsensusReads(int splitConsensusReads) {
-		this.splitConsensusReads = splitConsensusReads;
-	}
-
 	public int getClipConsensusReads() {
 		return clipConsensusReads;
-	}
-
-	public void setClipConsensusReads(int clipConsensusReads) {
-		this.clipConsensusReads = clipConsensusReads;
 	}
 
 	public String getMateConsensusPosStrand() {
@@ -841,10 +797,7 @@ public class Breakpoint implements Comparable<Breakpoint>{
 	}
 
 	public boolean isTranslocation() {
-		if (!this.reference.equals(mateReference)) {
-			return true;
-		}
-		return false;
+		return ! this.reference.equals(mateReference);
 	}
 
 }
