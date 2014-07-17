@@ -1,5 +1,5 @@
 /**
- * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ * �� Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
 package org.qcmg.qsv;
 
@@ -10,10 +10,10 @@ package org.qcmg.qsv;
 public class Chromosome implements Comparable<Chromosome>{
 	
 	private final String name;
-	private final Integer totalLength;	
-	private final Integer sectionLength;
-	private final Integer startPosition;
-	private final Integer endPosition;
+	private final int totalLength;	
+	private final int sectionLength;
+	private final int startPosition;
+	private final int endPosition;
 
 	/**
 	 * Instantiates a new chromosome.
@@ -55,15 +55,6 @@ public class Chromosome implements Comparable<Chromosome>{
 	}
 
 	/**
-	 * Sets the name.
-	 *
-	 * @param name the new name
-	 */
-//	public void setName(String name) {
-//		this.name = name;
-//	}
-
-	/**
 	 * Gets the total length.
 	 *
 	 * @return the total length
@@ -71,15 +62,6 @@ public class Chromosome implements Comparable<Chromosome>{
 	public Integer getTotalLength() {
 		return totalLength;
 	}
-
-	/**
-	 * Sets the total length.
-	 *
-	 * @param totalLength the new total length
-	 */
-//	public void setTotalLength(Integer totalLength) {
-//		this.totalLength = totalLength;
-//	}
 
 	/**
 	 * Gets the section length.
@@ -91,15 +73,6 @@ public class Chromosome implements Comparable<Chromosome>{
 	}
 
 	/**
-	 * Sets the section length.
-	 *
-	 * @param sectionLength the new section length
-	 */
-//	public void setSectionLength(Integer sectionLength) {
-//		this.sectionLength = sectionLength;
-//	}
-
-	/**
 	 * Gets the start position.
 	 *
 	 * @return the start position
@@ -109,15 +82,6 @@ public class Chromosome implements Comparable<Chromosome>{
 	}
 
 	/**
-	 * Sets the start position.
-	 *
-	 * @param startPosition the new start position
-	 */
-//	public void setStartPosition(Integer startPosition) {
-//		this.startPosition = startPosition;
-//	}
-
-	/**
 	 * Gets the end position.
 	 *
 	 * @return the end position
@@ -125,15 +89,6 @@ public class Chromosome implements Comparable<Chromosome>{
 	public Integer getEndPosition() {
 		return endPosition;
 	}
-
-	/**
-	 * Sets the end position.
-	 *
-	 * @param endPosition the new end position
-	 */
-//	public void setEndPosition(Integer endPosition) {
-//		this.endPosition = endPosition;
-//	}
 	
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
@@ -158,7 +113,7 @@ public class Chromosome implements Comparable<Chromosome>{
 				return 1;
 			} else {
 				if (thisName.equals(otherName)) {
-					return this.startPosition.compareTo(other.startPosition);
+					return Integer.compare(startPosition, other.startPosition);
 				} else {
 					return thisName.compareTo(otherName);
 				}
@@ -168,14 +123,14 @@ public class Chromosome implements Comparable<Chromosome>{
 				return -1;
 			} else {
 				if (thisName.equals(otherName)) {
-					return this.startPosition.compareTo(other.startPosition);
+					return Integer.compare(startPosition, other.startPosition);
 				} else {
 					return thisName.compareTo(otherName);
 				}
 			}			
 		} else if (thisName.contains("x") || thisName.contains("y") || otherName.contains("x") || otherName.contains("y")) {
 			if (thisName.equals(otherName)) {
-				return this.startPosition.compareTo(other.startPosition);
+				return Integer.compare(startPosition, other.startPosition);
 			} else {
 				return thisName.compareTo(otherName);
 			}
@@ -184,33 +139,43 @@ public class Chromosome implements Comparable<Chromosome>{
 			Integer b = Integer.valueOf(otherName.substring(3));
 			
 			if (a.equals(b)) {
-				return this.startPosition.compareTo(other.startPosition);
+				return Integer.compare(startPosition, other.startPosition);
 			} else {
 				return (a.compareTo(b));
 			}
 		}		
 	}
-	
-	/* (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
-	@Override
-	public boolean equals(Object o) {
-		 if (!(o instanceof Chromosome)) {
-			 return false;
-		 }
-	            
-		 Chromosome c = (Chromosome) o;
-	     
-		 return (c.name.equals(name)) && c.startPosition.equals(startPosition) && c.endPosition.equals(endPosition);
-	}
-	
-	/* (non-Javadoc)
-	 * @see java.lang.Object#hashCode()
-	 */
+
 	@Override
 	public int hashCode() {
-		return 31*name.hashCode() + startPosition.hashCode() + endPosition.hashCode();
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + endPosition;
+		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		result = prime * result + startPosition;
+		return result;
 	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Chromosome other = (Chromosome) obj;
+		if (endPosition != other.endPosition)
+			return false;
+		if (startPosition != other.startPosition)
+			return false;
+		if (name == null) {
+			if (other.name != null)
+				return false;
+		} else if (!name.equals(other.name))
+			return false;
+		return true;
+	}
+	
 }
 
