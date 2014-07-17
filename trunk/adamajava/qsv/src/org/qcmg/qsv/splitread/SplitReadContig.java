@@ -1,5 +1,5 @@
 /**
- * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ * �� Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
 package org.qcmg.qsv.splitread;
 
@@ -7,7 +7,6 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -39,6 +38,8 @@ import org.qcmg.qsv.util.QSVUtil;
 
 public class SplitReadContig {
 	
+	private static final QLogger logger = QLoggerFactory.getLogger(SplitReadContig.class);
+	
 	private StructuralVariant knownSV;
 	private StructuralVariant splitreadSV = new StructuralVariant();
 	private String splitReadBreakpointString = "";
@@ -52,7 +53,6 @@ public class SplitReadContig {
 	private boolean findMH;
 	private String confidenceLevel;
 	private int maxReadCount;
-	private final QLogger logger = QLoggerFactory.getLogger(getClass());
 	private boolean isPotentialRepeat;
 	private boolean isPotentialSplitRead;
 	private String consensus;
@@ -60,7 +60,7 @@ public class SplitReadContig {
 	private Map<String, List<Chromosome>> chromosomes;
 	private boolean hasSoftClipEvidence;
 	private boolean isTumour;
-	private BLAT blat;
+	private final BLAT blat;
 	private QSVParameters parameters;
 	private IndexedFastaSequenceFile fastaSequenceFile;
 	private String mutationType;
