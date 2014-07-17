@@ -1,5 +1,5 @@
 /**
- * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ * �� Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
 package org.qcmg.qsv.softclip;
 
@@ -27,7 +27,7 @@ public class SoftClipCluster implements Comparable<SoftClipCluster> {
 	String name;
 	Breakpoint leftBreakpointObject;
 	Breakpoint rightBreakpointObject;
-	int buffer = 20;
+//	int buffer = 20;
 	private String mutationType;
 	private String leftReference;
 	private String rightReference;
@@ -43,13 +43,9 @@ public class SoftClipCluster implements Comparable<SoftClipCluster> {
 	private boolean oneSide = false;
 	private boolean rescuedClips;
 	private boolean alreadyMatched;
-	private static String TAB = "\t";
+	private static final char TAB = '\t';
 	private String orientationCategory = "";
 
-
-	public SoftClipCluster() {
-		
-	}
 
 	public SoftClipCluster(Breakpoint leftBreakpoint) throws Exception {
 		this.name = leftBreakpoint.getName();
@@ -251,75 +247,37 @@ public class SoftClipCluster implements Comparable<SoftClipCluster> {
 		return name;
 	}
 
-	public void setName(String name) {
-		this.name = name;
-	}	
-
 	public boolean isRescuedClips() {
 		return rescuedClips;
-	}
-
-	public void setRescuedClips(boolean rescuedClips) {
-		this.rescuedClips = rescuedClips;
 	}
 	
 	public boolean isOneSide() {
 		return oneSide;
 	}
 
-	public void setOneSide(boolean oneSide) {
-		this.oneSide = oneSide;
-	}
-	
 	public Breakpoint getLeftBreakpointObject() {
 		return leftBreakpointObject;
 	}
-
-	public void setLeftBreakpointObject(Breakpoint leftBreakpointClips) {
-		this.leftBreakpointObject = leftBreakpointClips;
-	}
-
+	
 	public Breakpoint getRightBreakpointObject() {
 		return rightBreakpointObject;
-	}
-
-	public void setRightBreakpointObject(Breakpoint rightBreakpointClips) {
-		this.rightBreakpointObject = rightBreakpointClips;
 	}
 
 	public Integer getLeftBreakpoint() {
 		return leftBreakpoint;
 	}
 
-	public void setLeftBreakpoint(Integer leftBreakpoint) {
-		this.leftBreakpoint = leftBreakpoint;
-	}
-
 	public Integer getRightBreakpoint() {
 		return rightBreakpoint;
 	}
-
-	public void setRightBreakpoint(Integer rightBreakpoint) {
-		this.rightBreakpoint = rightBreakpoint;
-	}
-	
 
 	public String getRightReference() {
 		return rightReference;
 	}
 
-	public void setRightReference(String rightReference) {
-		this.rightReference = rightReference;
-	}
-
 	public String getLeftReference() {
 		return leftReference;
 	}
-
-	public void setLeftReference(String leftReference) {
-		this.leftReference = leftReference;
-	}
-
 
 	public String getMutationType() {
 		return this.mutationType;
@@ -380,10 +338,6 @@ public class SoftClipCluster implements Comparable<SoftClipCluster> {
 		return orientationCategory;
 	}
 
-	public void setOrientationCategory(String orientationCategory) {
-		this.orientationCategory = orientationCategory;
-	}
-	
 	@Override
 	public boolean equals(Object aThat) {
 		if (this == aThat)
@@ -821,8 +775,6 @@ public class SoftClipCluster implements Comparable<SoftClipCluster> {
 		String rightReferenceSeq = null;
 		Integer leftBp = null;
 		Integer rightBp = null;
-		String leftStrand = null;
-		String rightStrand = null;
 		
 		if (cat != null) {
 			
@@ -892,21 +844,21 @@ public class SoftClipCluster implements Comparable<SoftClipCluster> {
 		}		
 	}
 	
-	private boolean needToReverseComplement(String cat) {
-		if (hasMatchingBreakpoints) {
-			if (cat.equals(QSVConstants.ORIENTATION_3)) {
-				if (leftBreakpointObject.getStrand().equals("-")) {
-					return true;
-				}
-			}
-			if (cat.equals(QSVConstants.ORIENTATION_4)) {
-				if (leftBreakpointObject.getStrand().equals("+")) {
-					return true;
-				}
-			}
-		}		
-		return false;
-	}
+//	private boolean needToReverseComplement(String cat) {
+//		if (hasMatchingBreakpoints) {
+//			if (cat.equals(QSVConstants.ORIENTATION_3)) {
+//				if (leftBreakpointObject.getStrand().equals("-")) {
+//					return true;
+//				}
+//			}
+//			if (cat.equals(QSVConstants.ORIENTATION_4)) {
+//				if (leftBreakpointObject.getStrand().equals("+")) {
+//					return true;
+//				}
+//			}
+//		}		
+//		return false;
+//	}
 
 	public String getOverlappingContigSequence() throws Exception {		
 		
