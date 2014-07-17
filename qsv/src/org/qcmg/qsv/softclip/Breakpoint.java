@@ -34,13 +34,13 @@ public class Breakpoint implements Comparable<Breakpoint>{
 	private int breakpoint;
 	private boolean isLeft;
 	private boolean isGermline;
-	private boolean rescued;
-	private boolean nonBlatAligned;
+//	private boolean rescued;
+//	private boolean nonBlatAligned;
 	private HashSet<Clip> tumourClips = new HashSet<Clip>();
 	private HashSet<Clip> normalClips = new HashSet<Clip>();
 	private List<UnmappedRead> tumourSplitReads = new ArrayList<UnmappedRead>();
 	private List<UnmappedRead> normalSplitReads = new ArrayList<UnmappedRead>();
-	private String name;
+//	private String name;
 //	private String type;
 	private boolean positiveStrand;
 	private String mateReference;
@@ -121,7 +121,6 @@ public class Breakpoint implements Comparable<Breakpoint>{
 		this.isGermline = isGermline;
 	}
 
-
 	public String getReference() {
 		return reference;
 	}
@@ -131,17 +130,17 @@ public class Breakpoint implements Comparable<Breakpoint>{
 	}
 
 	public String getName() {
-		return name;
+		return reference + "_" + breakpoint + "_" + isLeft + "_" + (positiveStrand ? "+" : "-");
+//		return name;
 	}
 
-	public void setName(String name) {
-		this.name = name;
-	}
+//	public void setName(String name) {
+//		this.name = name;
+//	}
 	
 	public Integer getBreakpoint() {
 		return breakpoint;
 	}
-
 
 	public void setBreakpoint(Integer breakpointPosition) {
 		this.breakpoint = breakpointPosition;
@@ -198,7 +197,7 @@ public class Breakpoint implements Comparable<Breakpoint>{
 				this.isGermline = true;
 			}
 			calculateStrand();
-			this.name = reference + "_" + breakpoint + "_" + isLeft + "_" + (positiveStrand ? "+" : "-");
+//			name = reference + "_" + breakpoint + "_" + isLeft + "_" + (positiveStrand ? "+" : "-");
 			if (posStrandCount > clipSize || negStrandCount > clipSize || isRescue) {					
 				this.consensusRead = createContig(splitReadsMap, clipSize, isRescue);				
 			}			
@@ -564,7 +563,7 @@ public class Breakpoint implements Comparable<Breakpoint>{
 	public int compareTo(Breakpoint o) {
 		int diff = Integer.compare(breakpoint, o.getBreakpoint());
 		if (diff == 0) {			
-			return this.name.compareTo(o.getName());			 
+			return getName().compareTo(o.getName());			 
 		} else {
 			return diff;
 		}
@@ -611,7 +610,7 @@ public class Breakpoint implements Comparable<Breakpoint>{
 
 	public boolean findRescuedMateBreakpoint(BLAT blat, QSVParameters p, String softclipDir) throws Exception {
 		
-		String base = softclipDir + QSVUtil.getFileSeparator() + this.name;
+		String base = softclipDir + QSVUtil.getFileSeparator() + getName();
 		String fa = base + ".fa";
 		BufferedWriter writer = new BufferedWriter(new FileWriter(new File(fa)));
 		String mateConsensus = getMateConsensus();
@@ -670,46 +669,37 @@ public class Breakpoint implements Comparable<Breakpoint>{
 		return null;
 	}
 
+	/**
+	 * It doesn't look like anything sets this to true, so always returns false
+	 * @return
+	 */
 	public boolean isRescued() {
-		return rescued;
+//		return rescued;
+		return false;
 	}
 
 	public void setRescued(boolean rescued) {
-		this.rescued = rescued;
+//		this.rescued = rescued;
 	}
 
 	public String toLowConfidenceString() {
 		StringBuilder builder = new StringBuilder();
 
-		String side = "right";
-		
-		if (this.isLeft) {
-			side = "left";			
-		}
-		
-		String type = "somatic";
-		
-		if (this.isGermline) {
-			type = "germline";
-		}
-		
-		builder.append(this.reference + TAB + this.breakpoint + TAB + type + TAB + side + TAB);
-		
+		builder.append(this.reference + TAB + this.breakpoint + TAB + (isGermline ? "germline" : "somatic") + TAB + (isLeft ? "left" : "right") + TAB);
 		builder.append((positiveStrand ? "+" : "-") + TAB + posStrandCount + TAB + negStrandCount + TAB + getMateConsensus());
-		
 		builder.append(NEWLINE);
 		
 		return builder.toString();		
 	}
 
 	public void setNonBlatAligned() {
-		if (posStrandCount >= LOW_CONF_CLIPS || negStrandCount >= LOW_CONF_CLIPS) {
-			this.nonBlatAligned = true;
-		}
+//		if (posStrandCount >= LOW_CONF_CLIPS || negStrandCount >= LOW_CONF_CLIPS) {
+//			this.nonBlatAligned = true;
+//		}
 	}
 
 	public boolean isNonBlatAligned() {
-		return this.nonBlatAligned;
+		return posStrandCount >= LOW_CONF_CLIPS || negStrandCount >= LOW_CONF_CLIPS;
 	}
 
 	public boolean getMatchingStrands() {
