@@ -21,14 +21,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.qsv.QSVParameters;
-import org.qcmg.qsv.util.TestUtil;
-import org.qcmg.qsv.discordantpair.DiscordantPairCluster;
-import org.qcmg.qsv.discordantpair.FindDiscordantPairClustersMT;
-import org.qcmg.qsv.discordantpair.MatePair;
-import org.qcmg.qsv.discordantpair.MatePairsReader;
-import org.qcmg.qsv.discordantpair.PairClassification;
-import org.qcmg.qsv.discordantpair.PairGroup;
 import org.qcmg.qsv.report.SVCountReport;
+import org.qcmg.qsv.util.TestUtil;
 
 public class FindDiscorantPairClustersMTTest {
 
@@ -43,7 +37,7 @@ public class FindDiscorantPairClustersMTTest {
     private QSVParameters normal = null;
 	private File matePairDir;
 	private SVCountReport countReport;
-	private String query = "Cigar_M > 35 and option_SM > 14 and MD_mismatch < 3 and Flag_DuplicateRead == false ";
+	private final String query = "Cigar_M > 35 and option_SM > 14 and MD_mismatch < 3 and Flag_DuplicateRead == false ";
 
     @Rule
     public TemporaryFolder testFolder = new TemporaryFolder();
@@ -173,12 +167,14 @@ public class FindDiscorantPairClustersMTTest {
     	List<MatePair> pairs = TestUtil.readInMatePairs(new File(matePairDir.getAbsolutePath() + FILE_SEPERATOR + "AAC" + FILE_SEPERATOR + "chr7_test_ND_AAC"));
     	
     	List<MatePair> pairs2 = new ArrayList<MatePair>();
-    	MatePair p = pairs.get(0);
-    	p.getLeftMate().setStart(100);
-    	p.getLeftMate().setEnd(200);
-    	p.getRightMate().setStart(300);
-    	p.getRightMate().setEnd(400);
-    	pairs2.add(p);
+//    	MatePair p = pairs.get(0);
+    	MatePair mp = new MatePair("722_126_792:20110412030837875,chr4,100,200,Cxx,129,false,722_126_792:20110412030837875,chr15,300,400,Cxx,65,false,F2F1\n");
+//    	p.getLeftMate().setStart(100);
+//    	p.getLeftMate().setEnd(200);
+//    	p.getRightMate().setStart(300);
+//    	p.getRightMate().setEnd(400);
+//    	pairs2.add(p);
+    	pairs2.add(mp);
     	
     	List<DiscordantPairCluster> records = new ArrayList<DiscordantPairCluster>();
     	DiscordantPairCluster cluster = TestUtil.setupSolidCluster(PairGroup.AAC, "somatic", testFolder, "chr7", "chr7");

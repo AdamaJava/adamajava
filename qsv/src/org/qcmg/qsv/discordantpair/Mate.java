@@ -1,5 +1,5 @@
 /**
- * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ * �� Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
 package org.qcmg.qsv.discordantpair;
 
@@ -7,13 +7,13 @@ import net.sf.samtools.SAMRecord;
 
 public class Mate {
 
-    private String readName;
-    private int start;
-    private int end;
-    private String referenceName;
-    private boolean negOrientation;
-	private int flags;
-	private String zp;
+    private final String readName;
+    private final int start;
+    private final int end;
+    private final String referenceName;
+    private final boolean negOrientation;
+	private final int flags;
+	private final String zp;
 
     public Mate(String name, String referenceName, int start, int end, String zp, int flags, boolean negativeOrientation) {
         this.readName = name;
@@ -23,7 +23,6 @@ public class Mate {
         this.negOrientation = negativeOrientation;
         this.flags = flags;
         this.zp = zp;
-
     }
 
     public Mate(SAMRecord samRecord) {
@@ -33,43 +32,25 @@ public class Mate {
         this.referenceName = samRecord.getReferenceName();
         this.negOrientation = samRecord.getReadNegativeStrandFlag();
         this.flags = samRecord.getFlags();
-        this.zp = (String) samRecord.getAttribute("ZP");
         
-        if (this.zp.equals("C**")) {
-        	this.zp = "Cxx";
-        }
+        String tmpZP = (String) samRecord.getAttribute("ZP");
+        this.zp = tmpZP.equals("C**") ? "Cxx" : tmpZP;
     }
 
     public String getReferenceName() {
         return referenceName;
     }
 
-    public void setReferenceName(String referenceName) {
-        this.referenceName = referenceName;
-    }
-
     public String getReadName() {
         return readName;
-    }
-
-    public void setReadName(String name) {
-        this.readName = name;
     }
 
     public int getStart() {
         return start;
     }
 
-    public void setStart(int start) {
-        this.start = start;
-    }
-
     public int getEnd() {
         return end;
-    }
-
-    public void setEnd(int end) {
-        this.end = end;
     }
  
     public boolean getNegOrientation() {
@@ -88,21 +69,7 @@ public class Mate {
 		return flags;
 	}
 
-	public void setFlags(int flags) {
-		this.flags = flags;
-	}
-
 	public String getZp() {
 		return zp;
 	}
-
-	public void setZp(String zp) {
-		this.zp = zp;
-	}
-
-	public void setNegOrientation(boolean negOrientation) {
-		this.negOrientation = negOrientation;
-	}
-
-
 }
