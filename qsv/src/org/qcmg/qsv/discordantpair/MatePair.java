@@ -1,49 +1,46 @@
 /**
- * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ * �� Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
 package org.qcmg.qsv.discordantpair;
 
 import java.io.Serializable;
 import java.util.Comparator;
+
+import net.sf.samtools.SAMRecord;
+
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.qsv.QSVException;
 import org.qcmg.qsv.util.QSVConstants;
 import org.qcmg.qsv.util.QSVUtil;
 
-import net.sf.samtools.SAMRecord;
-
 public class MatePair implements Comparable<MatePair> {
+	
+	private static final char TAB = '\t';
 
-    private QLogger logger = QLoggerFactory.getLogger(getClass());
-    private String readName;
+    private final QLogger logger = QLoggerFactory.getLogger(getClass());
+    private final String readName;
     private Mate leftMate;
     private Mate rightMate;
     private final PairClassification zp;
-	private String pairOrder;
-    private SAMRecord leftRecord;
-    private SAMRecord rightRecord;
+	private final String pairOrder;
 
     public MatePair(SAMRecord leftRecord, SAMRecord rightRecord) throws QSVException {
         this.readName = leftRecord.getReadName() + ":" + leftRecord.getReadGroup().getId();
         
         String check = rightRecord.getReadName() + ":" + rightRecord.getReadGroup().getId();
         
-        if (!(check.equals(readName))) {
-            logger.info("Left" + leftRecord.getReadName() + ":" + leftRecord.getReadGroup().getId());
-            logger.info("Right" + rightRecord.getReadName() + ":" + rightRecord.getReadGroup().getId());
+        if ( ! (check.equals(readName))) {
+            logger.info("Left" + readName);
+            logger.info("Right" + check);
             logger.info("Mate" + toString());
             throw new QSVException("PAIR_ERROR");
         }
         this.zp = PairClassification.valueOf(getPairClassificationFromSamRecord(leftRecord));
         this.leftMate = new Mate(leftRecord);
         this.rightMate = new Mate(rightRecord);
-        this.leftRecord = leftRecord;
-        this.rightRecord = rightRecord;
-        checkSortOrder();
-        this.pairOrder = setPairOrder();
-        this.leftRecord = null;
-        this.rightRecord = null;
+        boolean needToSwap = checkSortOrder();
+        this.pairOrder = setPairOrder(needToSwap ? rightRecord : leftRecord);
     }
     
 	public MatePair(String readLine) {
@@ -100,19 +97,19 @@ public class MatePair implements Comparable<MatePair> {
         return zp;
     }
     
-    
-
     /**
      * Check the order of left and right reads to make sure that they are in the
      * correct order. If no, swap the records
      */
-    private void checkSortOrder() {
+    private boolean checkSortOrder() {
+    	boolean needToSwap = false;
         // sort to make sure they are in the correct order: first check if
         // they're on the
         // same chromosome
         if (leftMate.getReferenceName().equals(rightMate.getReferenceName())) {
             // wrong order: swap the records
             if (leftMate.getStart() > rightMate.getStart()) {
+            	needToSwap = true;
                 swapMates();
             }
 
@@ -120,9 +117,12 @@ public class MatePair implements Comparable<MatePair> {
         } else {
             boolean reorder = QSVUtil.reorderByChromosomes(leftMate.getReferenceName(), rightMate.getReferenceName());
             if (reorder) {
+            	needToSwap = true;
             	swapMates();
             }
         }
+        
+        return needToSwap;
     }
 
     private void swapMates() {
@@ -130,11 +130,11 @@ public class MatePair implements Comparable<MatePair> {
         leftMate = rightMate;
         rightMate = temp;
         
-        if (leftRecord != null && rightRecord != null) {
-        	SAMRecord tempRecord = leftRecord;
-        	leftRecord = rightRecord;
-        	rightRecord = tempRecord;
-        }
+//        if (leftRecord != null && rightRecord != null) {
+//        	SAMRecord tempRecord = leftRecord;
+//        	leftRecord = rightRecord;
+//        	rightRecord = tempRecord;
+//        }
     }
 
     @Override
@@ -188,43 +188,31 @@ public class MatePair implements Comparable<MatePair> {
     
     public String toClusterString() {
         StringBuffer sb = new StringBuffer();
-          sb.append(leftMate.getReadName() + "\t");
-          sb.append(leftMate.getReferenceName() + "\t");
-          sb.append(leftMate.getStart() + "\t");
-          sb.append(leftMate.getEnd() + "\t");
-          sb.append(leftMate.getZp()+ "\t");
-          sb.append(leftMate.getFlags()+ "\t");
-          sb.append(rightMate.getReadName() + "\t");
-          sb.append(rightMate.getReferenceName() + "\t");
-          sb.append(rightMate.getStart() + "\t");
-          sb.append(rightMate.getEnd()+ "\t");
-          sb.append(rightMate.getZp()+ "\t");
-          sb.append(rightMate.getFlags()+ "\t");
+          sb.append(leftMate.getReadName()).append(TAB);
+          sb.append(leftMate.getReferenceName()).append(TAB);
+          sb.append(leftMate.getStart()).append(TAB);
+          sb.append(leftMate.getEnd()).append(TAB);
+          sb.append(leftMate.getZp()).append(TAB);
+          sb.append(leftMate.getFlags()).append(TAB);
+          sb.append(rightMate.getReadName()).append(TAB);
+          sb.append(rightMate.getReferenceName()).append(TAB);
+          sb.append(rightMate.getStart()).append(TAB);
+          sb.append(rightMate.getEnd()).append(TAB);
+          sb.append(rightMate.getZp()).append(TAB);
+          sb.append(rightMate.getFlags()).append(TAB);
           sb.append(pairOrder);
           sb.append(QSVUtil.getNewLine());
         return sb.toString();
     }
     
-    private String setPairOrder() {
+    private String setPairOrder(SAMRecord record) {
         
-        String first = "F";
-        String second = "F";
-        String pair1 = "1";
-        String pair2 = "2";
+        char first = record.getReadNegativeStrandFlag() ? 'R' : 'F';
+        char second = record.getMateNegativeStrandFlag() ? 'R' : 'F';
+        int pair1 = record.getSecondOfPairFlag() ? 2 : 1;
+        int pair2 = record.getSecondOfPairFlag() ? 1 :  2;
         
-        if (leftRecord.getReadNegativeStrandFlag()) {
-            first = "R";
-        }
-        
-        if (leftRecord.getMateNegativeStrandFlag()) {
-            second = "R";
-        }
-        
-        if (leftRecord.getSecondOfPairFlag()) {
-            pair1 = "2";
-            pair2 = "1";
-        }
-        return first + pair1 + second + pair2;
+        return "" + first + pair1 + second + pair2;
     }
     
     public String getPairOrder() {
@@ -284,16 +272,7 @@ public class MatePair implements Comparable<MatePair> {
 
         @Override
         public int compare(MatePair mate1, MatePair mate2) {
-
-            int pair1Int = mate1.getLeftMate().getStart();
-            int pair2Int = mate2.getLeftMate().getStart();
-            if (pair1Int > pair2Int) {
-                return 1;
-            } else if (pair1Int < pair2Int) {
-                return -1;
-            } else {
-                return 0;
-            }
+        	return Integer.compare(mate1.getLeftMate().getStart(), mate2.getLeftMate().getStart());
         }
     }
 
@@ -303,15 +282,7 @@ public class MatePair implements Comparable<MatePair> {
 
         @Override
         public int compare(MatePair pair1, MatePair pair2) {
-            int pair1Int = pair1.getLeftMate().getEnd();
-            int pair2Int = pair2.getLeftMate().getEnd();
-            if (pair1Int > pair2Int) {
-                return 1;
-            } else if (pair1Int < pair2Int) {
-                return -1;
-            } else {
-                return 0;
-            }
+        	return Integer.compare(pair1.getLeftMate().getEnd(), pair2.getLeftMate().getEnd());
         }
     }
 
@@ -321,15 +292,7 @@ public class MatePair implements Comparable<MatePair> {
 
         @Override
         public int compare(MatePair pair1, MatePair pair2) {
-            int pair1Int = pair1.getRightMate().getStart();
-            int pair2Int = pair2.getRightMate().getStart();
-            if (pair1Int > pair2Int) {
-                return 1;
-            } else if (pair1Int < pair2Int) {
-                return -1;
-            } else {
-                return 0;
-            }
+        	return Integer.compare(pair1.getRightMate().getStart(), pair2.getRightMate().getStart());
         }
     }
     
@@ -339,15 +302,7 @@ public class MatePair implements Comparable<MatePair> {
 
         @Override
         public int compare(MatePair pair1, MatePair pair2) {
-            int pair1Int = pair1.getRightMate().getEnd();
-            int pair2Int = pair2.getRightMate().getEnd();
-            if (pair1Int > pair2Int) {
-                return 1;
-            } else if (pair1Int < pair2Int) {
-                return -1;
-            } else {
-                return 0;
-            }
+        	return Integer.compare(pair1.getRightMate().getEnd(), pair2.getRightMate().getEnd());
         }
     }
 
