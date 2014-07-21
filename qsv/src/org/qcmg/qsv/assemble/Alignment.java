@@ -1,19 +1,18 @@
 /**
- * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ * �� Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
 package org.qcmg.qsv.assemble;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 
 
 public class Alignment {
 	private int length;
 
-	private List<ReadMatch> matchedReads;
+	private final List<ReadMatch> matchedReads;
 	private int start;
 	private final Read seed;
 	
@@ -22,14 +21,9 @@ public class Alignment {
 		matchedReads = new ArrayList<ReadMatch>();
 	}
 	
-	public void setReads(ConcurrentMap<Integer, ReadMatch> reads) {
-		this.matchedReads = new ArrayList<ReadMatch>(reads.values());
-	}
-	
 	public Alignment(ConcurrentHashMap<Integer, ReadMatch> reads, Read seed)
 	{
 		this.seed = seed;
-		
 		matchedReads = new ArrayList<ReadMatch>(reads.values());
 	}
 	

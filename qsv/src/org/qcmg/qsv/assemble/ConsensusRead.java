@@ -1,13 +1,13 @@
 /**
- * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ * �� Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
 package org.qcmg.qsv.assemble;
 
 
 public class ConsensusRead extends Read {
 	
-	String clipMateSequence;
-	String referenceSequence;
+	final String clipMateSequence;
+	final String referenceSequence;
 
 	public ConsensusRead(String header, String tsequence, String clipString, String referenceSequence) throws Exception {
 		super(header, tsequence);	
@@ -19,20 +19,12 @@ public class ConsensusRead extends Read {
 		return clipMateSequence;
 	}
 
-	public void setClipMateSequence(String clipMateSequence) {
-		this.clipMateSequence = clipMateSequence;
-	}
-	
 	public int getClipMateSequenceLength() {
 		return clipMateSequence.length();
 	}
 
 	public String getReferenceSequence() {
 		return referenceSequence;
-	}
-
-	public void setReferenceSequence(String referenceSequence) {
-		this.referenceSequence = referenceSequence;
 	}
 	
 	public int getReferenceSequenceLength() {
