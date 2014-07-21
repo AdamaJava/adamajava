@@ -1,5 +1,5 @@
 /**
- * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ * �� Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
 package org.qcmg.qsv.assemble;
 
@@ -14,17 +14,12 @@ import org.qcmg.qsv.splitread.UnmappedRead;
 import org.qcmg.qsv.util.QSVUtil;
 
 public class QSVAssemble {
+	private static final QLogger logger = QLoggerFactory.getLogger(QSVAssemble.class);
 
 	private List<Read> clipReads;
 	private Read outputRead;
-	static int MINIMUM_READ_EXTEND = 1;
-	static int SEED_LENGTH = 10;
-	static int MINIMUM_OVERLAP = 7;
-	static double MISMATCH = 0.1;
-	static int CUTOFF = 0;
-	static int avgContigLengthTotal = 0;
-	static int numContig = 0;
-	private final QLogger logger = QLoggerFactory.getLogger(getClass());
+	static final int MINIMUM_READ_EXTEND = 1;
+	static final int SEED_LENGTH = 10;
 	private List<Read> splitReads;
 	private String fullContigSequence;
 	private int matchingSplitReads = 0;
@@ -36,15 +31,10 @@ public class QSVAssemble {
 
 
 	public QSVAssemble() throws Exception {
-		
 	}	
 	
 	public List<Read> getClipReads() {
 		return clipReads;
-	}
-
-	public void setClipReads(List<Read> clipReads) {
-		this.clipReads = clipReads;
 	}
 
 	public Read getOutputRead() {
@@ -57,10 +47,6 @@ public class QSVAssemble {
 
 	public List<Read> getSplitReads() {
 		return splitReads;
-	}
-
-	public void setSplitReads(List<Read> splitReads) {
-		this.splitReads = splitReads;
 	}
 
 	public String getFullContigSequence() {
@@ -83,24 +69,12 @@ public class QSVAssemble {
 		return reverseClipContig;
 	}
 
-	public void setReverseClipContig(Read reverseClipContig) {
-		this.reverseClipContig = reverseClipContig;
-	}
-
 	public String getFullClipSequence() {
 		return fullClipSequence;
 	}
 
-	public void setFullClipSequence(String fullClipSequence) {
-		this.fullClipSequence = fullClipSequence;
-	}
-
 	public Read getCurrentContig() {
 		return currentContig;
-	}
-
-	public void setCurrentContig(Read currentContig) {
-		this.currentContig = currentContig;
 	}
 
 	public ConsensusRead getContigs(Integer bpPos, Read clipContig, List<Read> splitReads, boolean clipReverse, boolean isLeft) throws Exception {
@@ -334,17 +308,9 @@ public class QSVAssemble {
 	public int getMatchingSplitReads() {
 		return matchingSplitReads;
 	}
-
-	public void setMatchingSplitReads(int matchingSplitReads) {
-		this.matchingSplitReads = matchingSplitReads;
-	}
 	
 	public int getMatchingClips() {
 		return matchingClips;
-	}
-
-	public void setMatchingClips(int matchingClips) {
-		this.matchingClips = matchingClips;
 	}
 
 	public String getFinalClipContig(String leftConsensus, String rightConsensus) throws Exception {
