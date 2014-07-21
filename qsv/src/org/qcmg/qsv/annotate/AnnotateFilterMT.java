@@ -1,5 +1,5 @@
 /**
- * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ * �� Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
 package org.qcmg.qsv.annotate;
 
@@ -22,6 +22,7 @@ import net.sf.samtools.SAMFileHeader.SortOrder;
 import net.sf.samtools.SAMFileReader;
 import net.sf.samtools.SAMFileWriter;
 import net.sf.samtools.SAMFileWriterFactory;
+import net.sf.samtools.SAMReadGroupRecord;
 import net.sf.samtools.SAMRecord;
 import net.sf.samtools.SAMRecordIterator;
 
@@ -52,25 +53,25 @@ public class AnnotateFilterMT implements Runnable {
     private int checkPoint;
     private final File input;
     private final File output;
-    private String query;
+    private final String query;
     private final int sleepUnit = 10;
-    private QSVParameters parameters;
+    private final QSVParameters parameters;
     private final CountDownLatch mainLatch;
-    private AtomicLong badRecordCount;
-    private AtomicLong goodPairRecordCount = new AtomicLong(); 
-    private AtomicInteger exitStatus;
-	private File clippedFile;
-	private SAMFileHeader queryNameHeader;
-	private SAMFileHeader coordinateHeader;
-	private String softClipDir;
-	private String clipQuery;
+    private final AtomicLong badRecordCount;
+    private final AtomicLong goodPairRecordCount = new AtomicLong(); 
+    private final AtomicInteger exitStatus;
+	private final File clippedFile;
+	private final SAMFileHeader queryNameHeader;
+	private final SAMFileHeader coordinateHeader;
+	private final String softClipDir;
+	private final String clipQuery;
 	private boolean runPair;
 	private boolean runClip;
-	private boolean isSplitRead;
-	private List<String> readGroupIds;
+	private final boolean isSplitRead;
+	private final List<String> readGroupIds;
 	private AtomicLong goodClipCount = new AtomicLong(); 
-	private AtomicLong unmappedCount = new AtomicLong();
-	private boolean translocationsOnly; 
+	private final AtomicLong unmappedCount = new AtomicLong();
+	private final boolean translocationsOnly; 
 	
 
 
@@ -126,7 +127,8 @@ public class AnnotateFilterMT implements Runnable {
     /**
      * Class entry point. Sets up read, write and annotating/filtering threads
      */
-    public void run() {
+    @Override
+	public void run() {
         
             // create queue to get the chromosomes to reads
             final AbstractQueue<List<Chromosome>> readQueue = new ConcurrentLinkedQueue<List<Chromosome>>();
@@ -300,7 +302,7 @@ public class AnnotateFilterMT implements Runnable {
         private final CountDownLatch filterLatch;
         private final CountDownLatch writeLatch;
         private int countOutputSleep;
-		private AbstractQueue<SAMRecord> queueOutClip;
+		private final AbstractQueue<SAMRecord> queueOutClip;
 		private CountDownLatch clipLatch;
 		QueryExecutor pairQueryEx = new QueryExecutor(query);		
 		QueryExecutor lifescopeQueryEx;		
@@ -407,13 +409,21 @@ public class AnnotateFilterMT implements Runnable {
 
 	        int count = 0;
 	        boolean result = true;
+	        
+	        for (String s : readGroupIds) {
+	        	logger.info("readGroupId: [" + s + "]");
+	        }
+	        
 	        while (iter.hasNext()) {
 	            SAMRecord record = iter.next();
 	            count++;
 	            boolean writersResult = true;
 	            boolean pileupResult = true;
 	           
-	            if (readGroupIds.contains(record.getReadGroup().getId())) {	
+	            SAMReadGroupRecord srgr = record.getReadGroup();
+	            if (null != srgr 
+	            		&& null != srgr.getId() 
+	            		&& readGroupIds.contains(srgr.getId())) {
 	            	
 	            	//discordant pairs
 		            if (record.getAlignmentStart() >= startPos && record.getAlignmentStart() <= endPos) {
@@ -422,7 +432,7 @@ public class AnnotateFilterMT implements Runnable {
 		            	}		            	
 	        		}
 		            
-		            if (runClip) {		
+		            if (runClip) {
 		            	//soft clips
 			            if (record.getCigarString().contains("S") && !record.getReadUnmappedFlag() && !record.getDuplicateReadFlag()) {           	            				            
 			            		pileupResult = pileupSoftClips(writer, record, startPos, endPos, chromosome);			            				            			            	
@@ -435,11 +445,11 @@ public class AnnotateFilterMT implements Runnable {
 		            }
 		            
 		            //check to make sure there aren't any errors
-		            if (!pileupResult || !writersResult) {	            	
-		            	if (!pileupResult) {	            		
+		            if ( ! pileupResult || ! writersResult) {
+		            	if ( ! pileupResult) {	            		
 		            		logger.error("Error finding soft clip records in " + chromosome.toString());
 		            	}
-		            	if (!writersResult) {
+		            	if ( ! writersResult) {
 		            		logger.error("Error finding discordant read records in " + chromosome.toString());
 		            	}
 		            	
@@ -449,6 +459,10 @@ public class AnnotateFilterMT implements Runnable {
 		        		result =  false;
 		        		
 		        	}
+	            } else {
+	            	logger.warn("SAMReadGroupRecord : " + srgr + ":" + record.getSAMString());
+	            	logger.warn("SAMReadGroupRecord was null, or id was not in collection: " + srgr.getId() + ":" + record.getSAMString());
+	            	throw new Exception("Null SAMReadGroupRecord");
 	            }
 	        }
 	       
@@ -564,7 +578,7 @@ public class AnnotateFilterMT implements Runnable {
         private final Thread mainThread;
         private final CountDownLatch filterLatch;
         private final CountDownLatch writeLatch;
-		private SAMFileHeader header;
+		private final SAMFileHeader header;
 
         public Writing(AbstractQueue<SAMRecord> q, File f, Thread mainThread,
                 CountDownLatch fLatch, CountDownLatch wLatch,SAMFileHeader header) {
