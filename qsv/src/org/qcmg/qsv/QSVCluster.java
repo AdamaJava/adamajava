@@ -1,5 +1,5 @@
 /**
- * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ * �� Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
 package org.qcmg.qsv;
 
@@ -16,11 +16,9 @@ import java.util.Set;
 import net.sf.picard.reference.IndexedFastaSequenceFile;
 import net.sf.picard.reference.ReferenceSequence;
 
-
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.gff3.GFF3Record;
-
 import org.qcmg.qsv.blat.BLAT;
 import org.qcmg.qsv.discordantpair.DiscordantPairCluster;
 import org.qcmg.qsv.discordantpair.QPrimerCategory;
@@ -37,25 +35,24 @@ import org.qcmg.qsv.util.QSVUtil;
  */
 public class QSVCluster {
 	
-	private DiscordantPairCluster pairRecord;
+	private static final QLogger logger = QLoggerFactory.getLogger(QSVCluster.class);
+	private static final String NEWLINE = System.getProperty("line.separator");
+	private static final  char TAB = '\t';
+	
+	private final DiscordantPairCluster pairRecord;
 	private List<SoftClipCluster> clipRecords;
 	private boolean isGermline = false;
 	private String sampleId;
-	private String leftReference;
-	private String rightReference;
+	private final String leftReference;
+	private final String rightReference;
 	private String leftReferenceFlank = new String();
 	private String rightReferenceFlank = new String();
-	private boolean rescuedCluster = false;
-	public boolean rescuedClip = false;
 	private String svId;
 	private String analysisId;
 	private String consensus = new String();
 	private boolean rescued;
 	private SplitReadContig splitReadContig;
 	private boolean potentialRepeatRegion;
-	private static String NEWLINE = System.getProperty("line.separator");
-	private static String TAB = "\t";
-	private final QLogger logger = QLoggerFactory.getLogger(getClass());
 	private SplitReadContig normalSplitReadContig;
 	private String validationPlatform;
 	private String features = new String();
@@ -106,22 +103,6 @@ public class QSVCluster {
 		this.rightReferenceFlank = rightReferenceFlank;
 	}
 
-	public boolean isRescuedCluster() {
-		return rescuedCluster;
-	}
-
-	public void setRescuedCluster(boolean rescuedCluster) {
-		this.rescuedCluster = rescuedCluster;
-	}
-
-	public boolean isRescuedClip() {
-		return rescuedClip;
-	}
-
-	public void setRescuedClip(boolean rescuedClip) {
-		this.rescuedClip = rescuedClip;
-	}
-
 	public String getSvId() {
 		return svId;
 	}
@@ -166,40 +147,12 @@ public class QSVCluster {
 		return normalSplitReadContig;
 	}
 
-	public void setNormalSplitReadContig(SplitReadContig normalSplitReadContig) {
-		this.normalSplitReadContig = normalSplitReadContig;
-	}
-
 	public String getValidationPlatform() {
 		return validationPlatform;
 	}
 
-	public void setValidationPlatform(String validationPlatform) {
-		this.validationPlatform = validationPlatform;
-	}
-
 	public String getFeatures() {
 		return features;
-	}
-
-	public void setFeatures(String features) {
-		this.features = features;
-	}
-
-	public void setClipRecords(List<SoftClipCluster> clipRecords) {
-		this.clipRecords = clipRecords;
-	}
-
-	public void setLeftReference(String leftReference) {
-		this.leftReference = leftReference;
-	}
-
-	public void setRightReference(String rightReference) {
-		this.rightReference = rightReference;
-	}
-
-	public void setPotentialRepeatRegion(boolean potentialRepeatRegion) {
-		this.potentialRepeatRegion = potentialRepeatRegion;
 	}
 
 	public boolean isGermline() {
@@ -212,10 +165,6 @@ public class QSVCluster {
 	
 	public DiscordantPairCluster getPairRecord() {
 		return pairRecord;
-	}
-
-	public void setPairRecord(DiscordantPairCluster pairRecord) {
-		this.pairRecord = pairRecord;
 	}
 	
 	private String getLeftReference() {
@@ -945,10 +894,10 @@ public class QSVCluster {
 		QPrimerCategory c = null;		
 		
 		if (pairRecord != null) {
-			if (!rescuedCluster) {
+//			if (!rescuedCluster) {
 				c = pairRecord.getqPrimerCateory();
 				return c.toString(svId);
-			}
+//			}
 		} 
 		
 		return "";
