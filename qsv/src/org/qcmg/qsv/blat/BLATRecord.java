@@ -241,7 +241,7 @@ public class BLATRecord implements Comparable<BLATRecord> {
 			String knownReference, Integer knownBreakpoint, String knownStrand) {
 		Integer mateBp = null;
 		nonTempBases = 0;
-		if (isLeft) {					
+		if (isLeft) {
 			mateBp =  knownStrand.equals (strand) ? endPos : startPos;
 			
 			if (strand.equals("+")) {
@@ -250,15 +250,15 @@ public class BLATRecord implements Comparable<BLATRecord> {
 				nonTempBases = knownStrand.equals(strand) ? queryStart - 0 : size - queryEnd;
 			}
 			
-		} else {			
+		} else {
 			mateBp =  knownStrand.equals(strand) ? startPos: endPos;
 			
 			if (strand.equals("+")) {
 				nonTempBases = knownStrand.equals(strand) ? queryStart: size - queryEnd;
 			} else {
 				nonTempBases = knownStrand.equals(strand) ? size - queryEnd: queryStart;
-			}			
-		}		 
+			}
+		}
 		
 		return mateBp;	
 	}
@@ -272,7 +272,7 @@ public class BLATRecord implements Comparable<BLATRecord> {
 			buffer = 0;
 		}
 		
-		if (knownStrand.equals(strand)) {			
+		if (knownStrand.equals(strand)) {
 			if (isLeft) {
 				currentBp = startPos + buffer;
 			} else {
