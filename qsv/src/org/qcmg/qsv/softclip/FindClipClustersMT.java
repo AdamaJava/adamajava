@@ -1,5 +1,5 @@
 /**
- * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ * �� Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
 package org.qcmg.qsv.softclip;
 
@@ -17,9 +17,9 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.NavigableMap;
 import java.util.Set;
-import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.UUID;
 import java.util.concurrent.Callable;
@@ -33,7 +33,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
-import org.qcmg.qsv.*;
+import org.qcmg.qsv.Chromosome;
+import org.qcmg.qsv.Options;
+import org.qcmg.qsv.QSVCluster;
+import org.qcmg.qsv.QSVClusterWriter;
+import org.qcmg.qsv.QSVParameters;
 import org.qcmg.qsv.blat.BLAT;
 import org.qcmg.qsv.blat.BLATRecord;
 import org.qcmg.qsv.discordantpair.DiscordantPairCluster;
@@ -47,31 +51,31 @@ public class FindClipClustersMT  {
     private final QLogger logger = QLoggerFactory.getLogger(getClass());
     private int noOfThreads;
     private final int sleepUnit = 10;
-    private QSVParameters tumourParameters;
-    private QSVParameters normalParameters;
-    private AtomicInteger exitStatus = new AtomicInteger();
-	private String softClipDir;
-	private ConcurrentHashMap<String, List<SoftClipCluster>> clipRecordsMap = new ConcurrentHashMap<String, List<SoftClipCluster>>();
-	private ConcurrentHashMap<PairGroup, Map<String, List<DiscordantPairCluster>>> tumorClusterRecords;
-	private BLAT blat;
+    private final QSVParameters tumourParameters;
+    private final QSVParameters normalParameters;
+    private final AtomicInteger exitStatus = new AtomicInteger();
+	private final String softClipDir;
+	private final ConcurrentHashMap<String, List<SoftClipCluster>> clipRecordsMap = new ConcurrentHashMap<String, List<SoftClipCluster>>();
+	private final ConcurrentHashMap<PairGroup, Map<String, List<DiscordantPairCluster>>> tumorClusterRecords;
+	private final BLAT blat;
 	private QSVClusterWriter qsvRecordWriter;
 	private int noOfFinalThreads;
 	private String lowConfidenceFile;
 	private boolean isQCMG = false;
-	private boolean singleSided;
-	private boolean isSplitRead;
-	private Integer CONSENSUS_LENGTH;
+	private final boolean singleSided;
+	private final boolean isSplitRead;
+	private final Integer CONSENSUS_LENGTH;
 	private Integer CLIP_SIZE;
-	private Integer MIN_INSERT_SIZE;
+	private final Integer MIN_INSERT_SIZE;
 	private int defineThreadNo;
-	private String reference;
+	private final String reference;
 	private boolean runClip;
-	private String platform;
-	private boolean translocationOnly;
-	private boolean allChromosomes;
+	private final String platform;
+	private final boolean translocationOnly;
+	private final boolean allChromosomes;
 	
-	private static String NEWLINE = System.getProperty("line.separator");
-	private static String TAB = "\t";
+	private static final String NEWLINE = System.getProperty("line.separator");
+	private static final String TAB = "\t";
 	
     public FindClipClustersMT(QSVParameters tumourParameters, QSVParameters normalParameters, String softclipDir, BLAT blat2, Map<PairGroup, Map<String, List<DiscordantPairCluster>>> tumorClusterRecords, Options options, String analysisId, long clipCount) throws Exception {
     	this.noOfThreads = 3;
@@ -452,7 +456,7 @@ public class FindClipClustersMT  {
 			        	 throw e;
                     }
 
-                } else {  
+                } else {
                 	//check to make sure exceptions haven't occured
                 	if (exitStatus.intValue() != 0) {
                 		run = false;
@@ -463,7 +467,7 @@ public class FindClipClustersMT  {
                 	if (runClip) {
 	                	currentQsvRecords = new ArrayList<QSVCluster>();
 	                	
-	            		for (Chromosome c: chromosomes) {            			
+	            		for (Chromosome c: chromosomes) {
 	            			this.chromosome = c;            			
 	        				clusterSoftClips(chromosome);        						      	 
 	        			 }
@@ -531,21 +535,18 @@ public class FindClipClustersMT  {
 		private TreeMap<String, List<Breakpoint>> defineClipPositions(TreeMap<Integer, Breakpoint> leftClipPositions, TreeMap<Integer, Breakpoint> rightClipPositions,TreeMap<Integer, List<UnmappedRead>> splitReads) throws Exception {
 			int buffer = tumourParameters.getUpperInsertSize() + 100;
 			AbstractQueue<Breakpoint> queueIn = new ConcurrentLinkedQueue<Breakpoint>(); 			
-			int count = 0;
+//			int count = 0;
 			logger.info("Before " +  chromosome.getName() + " left: " + leftClipPositions.size() + " right:" + rightClipPositions.size()) ;
 			for (Entry<Integer, Breakpoint> entry : leftClipPositions.entrySet()) {
 				Integer key = entry.getKey();
 				Breakpoint leftBP = entry.getValue();
 				
-				Breakpoint rightBP = null; 
-				if (rightClipPositions.containsKey(key)) {
-					rightBP = rightClipPositions.get(key);
-					rightClipPositions.remove(key);
-				}
+				Breakpoint rightBP = rightClipPositions.remove(key);
+				
 				Integer start = leftBP.getBreakpoint() - buffer;
 				Integer end  = leftBP.getBreakpoint() + buffer;
 				NavigableMap<Integer, List<UnmappedRead>> splitReadsMap = splitReads.subMap(start, true, end, true);
-				count++;
+//				count++;
 				leftBP.addSplitReadsMap(splitReadsMap);				
 				queueIn.add(leftBP);
 				if (rightBP != null) {
@@ -559,10 +560,10 @@ public class FindClipClustersMT  {
 				Integer start = rightBP.getBreakpoint() - buffer;
 				Integer end  = rightBP.getBreakpoint() + buffer;
 				NavigableMap<Integer, List<UnmappedRead>> splitReadsMap = splitReads.subMap(start, true, end, true);
-				count++;
-				if (count % 1000 == 0) {
+//				count++;
+//				if (count % 1000 == 0) {
 					//logger.info("Processed " +  count + " potential breakpoints");
-				}				
+//				}				
 				rightBP.addSplitReadsMap(splitReadsMap);					
 				queueIn.add(rightBP);				
 			}
@@ -607,7 +608,7 @@ public class FindClipClustersMT  {
 		private void findMatchingClipBreakpoint(TreeMap<String, List<Breakpoint>> leftMap) throws Exception {
 			logger.info("Finding matching clip breakpoint for " + chromosome.getName());
 
-			for (String key : leftMap.keySet()) {				
+			for (String key : leftMap.keySet()) {
 				//at this stage only match intra-chromosomal
 				 List<SoftClipCluster> bpList = new ArrayList<SoftClipCluster>();
 				 if (leftMap.containsKey(key)) {
@@ -623,13 +624,13 @@ public class FindClipClustersMT  {
 						 clipRecordsMap.get(key).addAll(properClipRecords);
 					 } else {
 						 clipRecordsMap.put(key, properClipRecords);	
-					 }										 
+					 }
 				 } else {
 					 if (clipRecordsMap.containsKey(key)) {
 						 clipRecordsMap.get(key).addAll(bpList);
 					 } else {
 						 clipRecordsMap.put(key, bpList);	
-					 }					 
+					 }
 				 }				 
 			}
 			
@@ -685,13 +686,13 @@ public class FindClipClustersMT  {
 						}
 						
 					} else {
-						r.setNonBlatAligned();
+//						r.setNonBlatAligned();
 						if (r.isNonBlatAligned()) {
 							nonBlatAligned.add(r);
 						}
 					}
 				} else {
-					r.setNonBlatAligned();
+//					r.setNonBlatAligned();
 					if (r.isNonBlatAligned()) {
 						nonBlatAligned.add(r);
 					}
@@ -717,17 +718,16 @@ public class FindClipClustersMT  {
 
 				String line = reader.readLine();
 
-				while (line != null) {					
+				while (line != null) {
 					if (line.startsWith("unmapped")) {
-						if (isSplitRead) {							
+						if (isSplitRead) {
 							UnmappedRead r = new UnmappedRead(line, isTumour);
-							if (splitReads.containsKey(r.getBpPos())) {
-								splitReads.get(r.getBpPos()).add(r);
-							} else {
-								List<UnmappedRead> reads = new ArrayList<UnmappedRead>();
-								reads.add(r);
+							List<UnmappedRead> reads = splitReads.get(r.getBpPos());
+							if (null == reads) {
+								reads = new ArrayList<UnmappedRead>();
 								splitReads.put(r.getBpPos(), reads);
 							}
+							reads.add(r);
 						}
 					} else {
 						Clip record = new Clip(line);
@@ -930,9 +930,9 @@ public class FindClipClustersMT  {
         private final AbstractQueue<Breakpoint> queueIn;  
         private final Thread mainThread;
         private final CountDownLatch latch;      
-        private List<Breakpoint> breakpoints = new ArrayList<Breakpoint>();
-		private int clipSize;
-		private boolean isRescue;
+        private final List<Breakpoint> breakpoints = new ArrayList<Breakpoint>();
+		private final int clipSize;
+		private final boolean isRescue;
 
     public DefineBreakpoint(AbstractQueue<Breakpoint> readQueue,
             Thread mainThread,
@@ -944,7 +944,8 @@ public class FindClipClustersMT  {
         this.isRescue = isRescue;
     }
 
-    public List<Breakpoint> call() {
+    @Override
+	public List<Breakpoint> call() {
 
         boolean run = true;
 
@@ -952,7 +953,7 @@ public class FindClipClustersMT  {
             
         	Breakpoint breakpoint = null;
             while (run) {
-            	breakpoint = queueIn.poll();                
+            	breakpoint = queueIn.poll();
                 
                 if (breakpoint == null) {
                 	
@@ -1004,17 +1005,17 @@ public class FindClipClustersMT  {
         private final AbstractQueue<List<QSVCluster>> queueIn;  
         private final Thread mainThread;
         private final CountDownLatch latch;      
-        private List<QSVCluster> clusters = new ArrayList<QSVCluster>();
-		private String reference;
-		private boolean isSplitRead;
-		private boolean singleSided;
-		private Integer minInsertSize;
-		private boolean isQCMG;
-		private Integer consensusLength;
-		private String softclipDir;
-		private QSVParameters normalParameters;
-		private QSVParameters tumourParameters;
-		private BLAT blat;
+        private final List<QSVCluster> clusters = new ArrayList<QSVCluster>();
+		private final String reference;
+		private final boolean isSplitRead;
+		private final boolean singleSided;
+		private final Integer minInsertSize;
+		private final boolean isQCMG;
+		private final Integer consensusLength;
+		private final String softclipDir;
+		private final QSVParameters normalParameters;
+		private final QSVParameters tumourParameters;
+		private final BLAT blat;
 
     public RescueRecord(AbstractQueue<List<QSVCluster>> queueIn2,
             Thread mainThread,
@@ -1034,7 +1035,8 @@ public class FindClipClustersMT  {
         this.reference = reference;
     }
 
-    public List<QSVCluster> call() {
+    @Override
+	public List<QSVCluster> call() {
 
         boolean run = true;
 
