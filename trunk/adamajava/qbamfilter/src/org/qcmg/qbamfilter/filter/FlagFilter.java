@@ -23,7 +23,8 @@ public class FlagFilter  implements SamRecordFilter{
         SecondOfpair,
         NotprimaryAlignment,
         ReadFailsVendorQuality,
-        DuplicateRead;
+        DuplicateRead,
+        SupplementaryRead;
         
         /**
      * Here we assume all read with valid Flag. Any query regard to Mate read information, 
@@ -49,6 +50,7 @@ public class FlagFilter  implements SamRecordFilter{
                 case NotprimaryAlignment: return record.getNotPrimaryAlignmentFlag();
                 case ReadFailsVendorQuality: return record.getReadFailsVendorQualityCheckFlag();
                 case DuplicateRead: return record.getDuplicateReadFlag();
+                case SupplementaryRead: return record.getSupplementaryAlignmentFlag();
             }
             throw new AssertionError("Unknow flag:" + this);
         }
@@ -95,6 +97,10 @@ public class FlagFilter  implements SamRecordFilter{
             else if(flagName.equalsIgnoreCase("DuplicateRead")){
                 return DuplicateRead;
             }
+            else if(flagName.equalsIgnoreCase("SupplementaryRead")){
+                return SupplementaryRead;
+            }
+           
             else{
                 throw new Exception("invaid flag name: " + flagName  +
                         "in query condition Flag_" + flagName );
@@ -104,7 +110,9 @@ public class FlagFilter  implements SamRecordFilter{
     
     /**
      * initilize flag name, comparator and flag value
-     * @parm flagName : At moment the valid name are [M,I,D,N,S,H,P].
+     * @parm flagName : At moment the valid name are [ReadPaired,ProperPair,ReadUnmapped, 
+     * Mateunmapped,ReadNegativeStrand,MateNegativeStrand,FirstOfpair,
+        SecondOfpair,NotprimaryAlignment,ReadFailsVendorQuality,DuplicateRead,SupplementaryRead].
      * @param comp: only valid on Comparator.Equal and Comparator.NotEqual.
      * See details on org.qcmg.qbamfilter.filter::Comparator.
      * @param value:  only valid at ["true","false", "1", "0" ]
