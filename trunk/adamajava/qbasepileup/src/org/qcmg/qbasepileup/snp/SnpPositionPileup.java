@@ -279,9 +279,13 @@ public class SnpPositionPileup {
 				&& position.getStart() <= r.getAlignmentEnd() && position.getEnd() <= r.getAlignmentEnd()) {
 			//filters	
 			
-			if ((!r.getDuplicateReadFlag() || (r.getDuplicateReadFlag() && options.includeDuplicates())) && !r.getReadUnmappedFlag() && (exec == null || (exec !=null && exec.Execute(r)))) {
-				return true;
-			}				
+//			if ((!r.getDuplicateReadFlag() || (r.getDuplicateReadFlag() && options.includeDuplicates())) && !r.getReadUnmappedFlag() && (exec == null || (exec !=null && exec.Execute(r)))) {
+			if(exec != null )
+				return exec.Execute(r);
+			else
+				return !r.getReadUnmappedFlag() && (!r.getDuplicateReadFlag() || options.includeDuplicates());
+						
+			 			
 		}
 		return false;
 	}
