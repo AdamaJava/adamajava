@@ -440,7 +440,8 @@ public class IndelBasePileupByChrMT {
          			int startKey = positionMap.firstKey()-250;
          			int endKey = positionMap.lastKey()+250;
          			logger.info("Getting records from "+fullChromosome+": " + startKey  + " to " + endKey);
-             		SAMRecordIterator iter = reader.queryOverlapping(fullChromosome, startKey, endKey);		
+             		SAMRecordIterator iter = reader.queryOverlapping(fullChromosome, startKey, endKey);	
+             		boolean passFilter;
              		while (iter.hasNext()) {
              			SAMRecord r = iter.next();
              			//reset soft clip in indel flag
@@ -456,8 +457,15 @@ public class IndelBasePileupByChrMT {
                  			}
              			}             				
              			
-             			if (!r.getReadUnmappedFlag() && (!r.getDuplicateReadFlag() || (r.getDuplicateReadFlag() && options.includeDuplicates())) && (exec == null || (exec !=null && exec.Execute(r)))) {
-             				int start = r.getAlignmentStart() - maxLength;
+        //     			if (!r.getReadUnmappedFlag() && (!r.getDuplicateReadFlag() || (r.getDuplicateReadFlag() && options.includeDuplicates())) && (exec == null || (exec !=null && exec.Execute(r)))) {
+            			if(exec != null )
+            				passFilter = exec.Execute(r);
+            			else
+            				passFilter = !r.getReadUnmappedFlag() && (!r.getDuplicateReadFlag() || options.includeDuplicates());
+
+            			if(! passFilter) continue;
+        
+             			int start = r.getAlignmentStart() - maxLength;
              				int end = r.getAlignmentEnd() + maxLength;
              				
              				SortedMap<Integer, List<IndelPositionPileup>> subMap = positionMap.subMap(start, end);
@@ -470,7 +478,7 @@ public class IndelBasePileupByChrMT {
              						}
              					}
              				}
-              			}
+              			
              		}
              		
              		iter.close();

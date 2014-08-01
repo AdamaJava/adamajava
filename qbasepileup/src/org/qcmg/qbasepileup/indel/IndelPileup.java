@@ -80,20 +80,26 @@ public class IndelPileup {
 		SAMFileReader reader = new SAMFileReader(inputBam.getBamFile());			
 		
 		SAMRecordIterator iter = reader.queryOverlapping(position.getFullChromosome(), position.getStart(), position.getEnd());		
+		boolean passFilter;
 		while (iter.hasNext()) {
 			SAMRecord r = iter.next();
 			//reset soft clip in indel flag
-			if (!r.getReadUnmappedFlag() &&  (!r.getDuplicateReadFlag() || r.getDuplicateReadFlag() && options.includeDuplicates()) && (exec == null || (exec !=null && exec.Execute(r)))) {
-				
-				if (totalReads >= 1000) {
-					highCoverage = true;
-					break;
-				}
-				totalReads++;
-				
-				filterSAMRecord(r);					
-				
+//			if (!r.getReadUnmappedFlag() &&  (!r.getDuplicateReadFlag() || r.getDuplicateReadFlag() && options.includeDuplicates()) && (exec == null || (exec !=null && exec.Execute(r)))) {
+
+			if(exec != null )
+				passFilter = exec.Execute(r);
+			else
+				passFilter = !r.getReadUnmappedFlag() && (!r.getDuplicateReadFlag() || options.includeDuplicates());
+
+			if(! passFilter) continue;
+			
+			if (totalReads >= 1000) {
+				highCoverage = true;
+				break;
 			}
+			totalReads++;
+			
+			filterSAMRecord(r);						 
 		}
 		
 		iter.close();
