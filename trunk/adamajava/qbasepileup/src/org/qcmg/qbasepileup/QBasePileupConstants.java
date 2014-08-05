@@ -8,5 +8,10 @@ public class QBasePileupConstants {
 	public final static String COMPOUND_SNP_MODE = "compoundsnp";
 	
 	public final static String SNP_CHECK_MODE = "snpcheck";
-
+	
+	public final static String SNP_MODE = "snp";
+	
+	public final static String INDEL_MODE = "indle";
+	
+	public final static String COVERAGE_MODE = "coverage";
 }
