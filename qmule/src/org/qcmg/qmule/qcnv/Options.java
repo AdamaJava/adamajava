@@ -5,6 +5,7 @@ package org.qcmg.qmule.qcnv;
 
 
 import java.io.File;
+import java.util.List;
 
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
@@ -134,9 +135,12 @@ public class Options {
 			if( hasHelp() || hasVersion() ){ 
 				 System.exit(0); 
 			} 		 
-			
-			if (options.nonOptionArguments().size() > 0) {				 
-				for(String str : options.nonOptionArguments()){
+	
+		
+			if (options.nonOptionArguments().size() > 0) {	
+				List<String> nonoptions = (List<String>) options.nonOptionArguments();
+
+				for(String str : nonoptions){
 					System.err.println("INVALID OPTION: " + str);
 				} 				
 				return false;
