@@ -66,7 +66,7 @@ public final class Options {
 				.withRequiredArg().ofType(String.class);
 		parser.posixlyCorrect(true);
 		options = parser.parse(args);
-		List<String> nonoptions = options.nonOptionArguments();
+		List<String> nonoptions = (List<String>) options.nonOptionArguments();
 		if (!hasSelfOption()) {
 			if (3 > nonoptions.size()) {
 				hasInsufficientArguments = true;
