@@ -30,7 +30,7 @@ dependencies {
        unzip(src: "../lib/ini4j-0.5.2-SNAPSHOT-all.zip", dest: "build/deps")
     }
 
-    compile name: 'jopt-simple', version: '3.2'
+    compile name: 'jopt-simple', version: '4.6'
     compile name: 'picard', version: '1.110'
     compile name: 'sam', version: '1.110'
     compile name: 'jhdf'

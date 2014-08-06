@@ -23,7 +23,7 @@ dependencies {
        unzip(src: "../lib/findbugs-1.3.9.zip", dest: "build/deps")
     }
 
-    compile name: 'jopt-simple', version: '3.2'
+    compile name: 'jopt-simple', version: '4.6'
     compile name: 'picard', version: '1.110'
     compile name: 'sam', version: '1.110'
 
