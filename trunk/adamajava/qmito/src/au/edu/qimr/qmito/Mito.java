@@ -3,7 +3,6 @@ package au.edu.qimr.qmito;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.util.LoadReferencedClasses;
-import org.qcmg.pileup.QPileup;
 
 
 
@@ -19,8 +18,7 @@ public class Mito {
 	            logger = QLoggerFactory.getLogger(Mito.class, options.getLogFileName(), options.getLogLevel());
 	            
 	            if ( options.hasCommandChecked()){    
-					LoadReferencedClasses.loadClasses(QPileup.class);
-          	
+					LoadReferencedClasses.loadClasses(Mito.class);          	
 	               logger.logInitialExecutionStats(options.getPGName(), options.getVersion(),args);
 	               logger.tool("query: " + options.getQuery());
 	               logger.tool("input: " +options.getInputFileName());
