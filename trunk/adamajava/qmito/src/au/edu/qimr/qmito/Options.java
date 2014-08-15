@@ -12,9 +12,12 @@ import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import net.sf.samtools.SAMFileHeader;
 import net.sf.samtools.SAMFileReader;
+import net.sf.samtools.SAMSequenceRecord;
 
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qbamfilter.query.QueryExecutor;
+
+
 
 /*
  * parse command line to options. 
@@ -32,7 +35,13 @@ public class Options {
 	.getMessage("LOG_LEVEL_OPTION_DESCRIPTION");
    
     private boolean commandCheck = false;
-    private String query = "";
+    private String query = "and (flag_SecondOfpair == false, flag_ReadUnmapped == false)";
+    private String defaultRefName = "chrMT";
+    private String referenceFile;
+    private SAMSequenceRecord referenceRecord;
+    private int lowreadcount = 10;
+    private int nonrefthreshold = 20;
+    private int referenceSize = -1;
 
     private final OptionParser parser = new OptionParser();
     private  OptionSet options;
@@ -62,9 +71,13 @@ public class Options {
         parser.acceptsAll( asList("q", "query"), QUERY_DESCRIPTION).withRequiredArg().ofType(String.class).describedAs("\"query\"");
         parser.acceptsAll( asList("i", "input"), Messages.getMessage("INPUT_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("input");
         parser.acceptsAll( asList("o", "output"), Messages.getMessage("OUTPUT_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("output"); 
-        parser.accepts("log", LOG_DESCRIPTION).withRequiredArg().ofType(String.class);
-        parser.accepts("loglevel",  LOG_LEVEL_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
-
+        parser.acceptsAll(asList("f", "referenceFile")).withRequiredArg().ofType(String.class);
+        parser.accepts("log",  LOG_DESCRIPTION).withRequiredArg().ofType(String.class);
+       parser.accepts("loglevel",  LOG_LEVEL_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
+        parser.accepts("lowreadcount").withRequiredArg().ofType(Integer.class);
+        parser.accepts("nonrefthreshold").withRequiredArg().ofType(Integer.class);
+        parser.accepts("refname").withRequiredArg().ofType(String.class);
+ 
 //        parser.acceptsAll( asList("m", "maxRecordNumber"), Messages.getMessage("MAXRECORD_DESCRITPION")).withRequiredArg().ofType(String.class).describedAs("maxRecordNumber");       
 //        parser.acceptsAll( asList("t", "threadNumber"), Messages.getMessage("THREADNUMBER_DESCRITPION")).withRequiredArg().ofType(String.class).describedAs("threadNumber");
 //        parser.accepts("tmpdir", Messages.getMessage("TMPDIR_OPTION_DESCRIPTION")).withRequiredArg().ofType(String.class); 
@@ -83,25 +96,11 @@ public class Options {
             return;
         }
         
-        if ( ! options.has("i") || ! options.has("o") ) {
+        if ( ! options.has("i") || ! options.has("o")  ||!options.has("f") ) {
              System.out.println(Messages.USAGE);
              return;
         }
-               
-        //check inputs
-        List inputs = options.valuesOf("i");
-        inputBamNames = new String[inputs.size()];
-        inputs.toArray(inputBamNames);   
-        checkInputBams();
-     
-        //check outputs
-        outputFileName =  (String) options.valueOf("o");
-                  
-        //check query string format
-        if(options.has("q") || options.has("query")){
-	        query = options.valueOf("q").toString();                  
-	        if(! checkQuery(query)) return;
-        }
+        
                    
         if( !options.has("log")){
             System.out.println(Messages.getMessage("LOG_OPTION_DESCRIPTION"));
@@ -116,8 +115,55 @@ public class Options {
          
         logLevel = (String) options.valueOf("loglevel");
         
-       commandCheck = true;
+        //check all parameters  	        
+       commandCheck = checkCommand();
     } 
+    
+    /**
+     * 
+     * @return true if no Exception happens
+     * @throws Exception
+     */
+    private boolean checkCommand() throws Exception{     
+        //check query string format
+        if(options.has("q") || options.has("query")){
+	        query = options.valueOf("q").toString();                  
+	        if(! checkQuery(query)) return false;	        	 
+        }
+        
+ 
+        List inputs = options.valuesOf("i");
+        inputBamNames = new String[inputs.size()];
+        inputs.toArray(inputBamNames);   
+        checkInputBams();
+        
+        //check Reference
+        referenceFile = (String) options.valueOf("f");
+        if( ! (new File(referenceFile).exists()))
+        	throw new Exception("reference is not exist: " + referenceFile);      
+        
+         
+        
+        String ref = defaultRefName; 
+        if(options.has("refname"))
+        	ref = (String) options.valueOf("refname");
+      	
+		SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(inputBamNames[0]);  
+		SAMFileHeader header = reader.getFileHeader().clone();
+		reader.close();
+		
+		int index = header.getSequenceIndex(ref);
+		referenceRecord = header.getSequence(header.getSequenceIndex(ref));
+		if(referenceRecord == null)
+			throw new Exception("invalide reference sequence name: " + ref);
+
+         //check outputs
+        outputFileName =  (String) options.valueOf("o");
+       
+    	
+    	return true;
+    }
+    
 
     private void checkInputBams() throws Exception{
 		for (String bam : inputBamNames) {
@@ -165,6 +211,7 @@ public class Options {
     	return true;
     }
 
+ 
     public void displayHelp()  throws Exception{
         parser.printHelpOn(System.err);
     }
@@ -175,12 +222,35 @@ public class Options {
     public String getOutputFileName(){
         return outputFileName;
     }
-    public String[] getInputFileName(){
+    public String[] getInputFileNames(){
         return inputBamNames;
+    }
+    public String getReferenceFile(){
+    	return referenceFile;
     }
     public String getQuery(){
         return query;
     }
+    public SAMSequenceRecord  getReferenceRecord(){    	   	
+    	return referenceRecord;
+    }
+    
+    
+    public int getLowReadCount(){
+    	if(options.has("lowreadcount"))
+    		lowreadcount = (Integer) options.valueOf("lowreadcount");
+    	
+    	return lowreadcount;
+    		 
+    }
+    
+    public int getNonRefThreshold(){
+    	if(options.has("nonrefthreshold"))
+    		nonrefthreshold = (Integer) options.valueOf("nonrefthreshold");
+
+    	return nonrefthreshold;    		 
+    }
+  
     public String getVersion(){
     	return Options.class.getPackage().getImplementationVersion();
       //  return Messages.getMessage("VERSION_MESSAGE");

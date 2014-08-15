@@ -15,7 +15,7 @@ dependencies {
     configurations.compile.transitive = true
 	
     compile project(':qcommon')
-	compile project(':qpileup')
+    compile project(':qlib')
 	compile project(':qbamfilter')
 
 	ant {
