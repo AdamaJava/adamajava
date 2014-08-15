@@ -74,7 +74,7 @@ public final class Messages
         messages = ResourceBundle.getBundle(msgResourceLocation);
     }
 
-    private String getMessage(String identifier)
+    public String getMessage(String identifier)
     {
         return messages.getString(identifier);
     }

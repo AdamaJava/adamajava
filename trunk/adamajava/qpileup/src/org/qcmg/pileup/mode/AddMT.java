@@ -171,8 +171,7 @@ public class AddMT {
 		        		} else {
 		        			metaDS.writeMember(PileupUtil.getCurrentDate(), PileupUtil.getCurrentTime(":"), mode, bamFile, totalCount, time, "");
 		        		}
-		        		
-		        		
+		        				        		
 		        	}
 		        	metaDS.writeAttribute("bams_added");
 		        	hdf.close();
