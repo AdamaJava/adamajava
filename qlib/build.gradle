@@ -8,11 +8,17 @@ repositories {
 
 dependencies {
     configurations.compile.transitive = true
-    testCompile name: 'junit', version: '4.10'
+    
+    compile project(':qcommon')
+    compile project(':qpicard')
+	compile project(':qio')
+	compile project(':qbamfilter')
+    
+ 
     compile name: 'picard', version: '1.110'
     compile name: 'sam', version: '1.110'
  
-    
+   testCompile name: 'junit', version: '4.10'
 }
 
 jar.doFirst {
