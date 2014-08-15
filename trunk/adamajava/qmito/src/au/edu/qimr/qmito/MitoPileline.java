@@ -109,16 +109,12 @@ public class MitoPileline {
 		for(int i = 0; i < referenceRecord.getSequenceLength(); i++){
 			pos = new PositionElement(  referenceRecord.getSequenceName(), i, (char) referenceBases[i] );
 			QPileupRecord qRecord = new QPileupRecord(pos, 
-					forward.getStrandElementMap(i), reverse.getStrandElementMap(i));
-			
+					forward.getStrandElementMap(i), reverse.getStrandElementMap(i));			
 			String sb = qRecord.getPositionString() + qRecord.getStrandRecordString() + "\n" ;		  				
 			writer.write(sb);		 
- 		}	
-		
-  	   	logger.info("outputed strand dataset of " + referenceRecord.getSequenceName() + ", pileup position " + referenceRecord.getSequenceLength());    	 		
-	
-	}
-	
+ 		}			
+  	   	logger.info("outputed strand dataset of " + referenceRecord.getSequenceName() + ", pileup position " + referenceRecord.getSequenceLength());    	 			
+	}	
 	
 	private void writeHeader( BufferedWriter writer ) throws IOException{
 		
@@ -155,20 +151,15 @@ public class MitoPileline {
             	addToStrandDS(p);
             	p = null;		
             	numReads ++;
-            	
-            	//debug
-            	
-            	System.out.println(record.getAlignmentStart() + " -- " + record.getAlignmentEnd());
-			}  
+  			}  
 			ite.close();
 			reader.close();
 			logger.info("Added " + numReads + " reads mapped on "+ ref.getSequenceName()+" and met query from BAM: " + bamFile);					 			 
     	} catch (Exception e) {
     		logger.error("Exception happened during reading: " + bamFile);
-            throw new Exception("ExceptionMessage.getStrackTrace(e) ");
+            throw new Exception(ExceptionMessage.getStrackTrace(e) );
     	} 	
 	}
-
 
 	private void addToStrandDS(PileupSAMRecord p) throws Exception {
 	    	List<PileupDataRecord> records = p.getPileupDataRecords();			
