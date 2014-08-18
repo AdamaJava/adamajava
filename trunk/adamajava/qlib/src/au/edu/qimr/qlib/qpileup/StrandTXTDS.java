@@ -126,7 +126,7 @@ public class StrandTXTDS {
 				int intNo = record.getIntMember(name);
 				if (isRemove) {
 					element.removeElement(index, intNo);
-				} else {
+				} else {			
 					element.addElement(index, intNo);
 				}
 			}	

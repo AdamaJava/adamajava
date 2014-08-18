@@ -81,8 +81,8 @@ public class PileupSAMRecord {
 	}
 	
 	public void pileup() throws Exception {
+		//converting MD field annotation to our standard
 		try {
-			
 			String md = (String)record.getAttribute("MD");
 			if (md.contains("M")){				
 				String newM = md.replaceAll("M", "N");				
@@ -95,10 +95,12 @@ public class PileupSAMRecord {
 				record.setAttribute("MD", newM);
 			}
 			
-			
 			int readIndex = 0;		
 			int referencePos = referenceStart;
 			int referenceIndex = 0;
+			
+//debug investigate pileupDataRecord
+//System.out.println("PileupSAMRecord::pileup " + record.getCigarString() +  ", reference start: " + referencePos  + ", number of pileupDataRcord is " + dsRecords.size());
 			
 			//make the reference from the read sequence using picard
 			byte[] referenceBytes = SequenceUtil.makeReferenceFromAlignment(record, true);			
@@ -108,10 +110,9 @@ public class PileupSAMRecord {
 			//iterate through cigar elements and perform pileup
 			for (CigarElement element: record.getCigar().getCigarElements()) {
 				CigarOperator operator = element.getOperator();
-				
+ 								
 				//not a read base
-				if (referencePos < readStart || referencePos > readEnd) {
-					
+				if (referencePos < readStart || referencePos > readEnd) {					
 					if (operator == CigarOperator.H || operator == CigarOperator.S) {	
 						setCigarRecords(referencePos, element.getLength(), operator, readStart, readEnd);
 						referencePos += element.getLength();					
@@ -160,8 +161,16 @@ public class PileupSAMRecord {
 						String error = "ReferencePos: " + referencePos + " ReadStart" + readStart + " ReadEnd: " + readEnd + " CigarOperator: " + operator.name();
 						throw new Exception(Messages.getMessage("BASE_RANGE_ERROR", ""  + error, record.getSAMString()));
 					}
-				}			
+				}
+				
+				
+				//debug investigate pileupDataRecord
+//				System.out.println(String.format("%s::cigar element: %s; referecePos: %d; read region (%d ~ %d); pileupDataRcord size: %d", 
+//						record.getCigar(),  operator.name(), referencePos, readStart,readEnd, dsRecords.size()));			
+
 	 		}
+			
+				
 			
 		} catch (Exception e) {
 			logger.warn("Error parsing SAMRecord: " + record.getSAMString());
