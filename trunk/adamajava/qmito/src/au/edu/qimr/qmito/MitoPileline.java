@@ -32,6 +32,7 @@ import net.sf.samtools.SAMFileReader;
 import net.sf.samtools.SAMRecord;
 import net.sf.samtools.SAMRecordIterator;
 import net.sf.samtools.SAMSequenceRecord;
+import net.sf.samtools.SAMFileReader.ValidationStringency;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -141,16 +142,22 @@ public class MitoPileline {
         	reverseNonRef = new NonReferenceRecord(ref.getSequenceName(), ref.getSequenceLength(), true, lowReadCount, nonrefThreshold);
 			
         	int numReads = 0;
-			SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile);
+			SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile,ValidationStringency.SILENT);
 			SAMRecordIterator ite = reader.query(ref.getSequenceName(),0, ref.getSequenceLength(), false);
 			while(ite.hasNext()){
 				SAMRecord record = ite.next();	
+	
+           	//debug
+            //	if(record.getReadName().equals( "HWI-ST1240:115:H03J8ADXX:2:1216:5509:54570")){
+//            		System.out.println( record.getCigarString() + " (cigar)," + record.getAlignmentStart() + "--" + record.getAlignmentEnd());
+            				
             	if(! exec.Execute(record)) continue;			
 				PileupSAMRecord p = new PileupSAMRecord(record);    	      	            	
             	p.pileup();      	            	
             	addToStrandDS(p);
             	p = null;		
             	numReads ++;
+   	
   			}  
 			ite.close();
 			reader.close();
@@ -164,8 +171,19 @@ public class MitoPileline {
 	private void addToStrandDS(PileupSAMRecord p) throws Exception {
 	    	List<PileupDataRecord> records = p.getPileupDataRecords();			
 			for (PileupDataRecord dataRecord : records) {
-				int index = dataRecord.getPosition();
+				//pileup will add extra pileupDataRecord for clips, it may byond reference edge
+				if (dataRecord.getPosition() < 0 ||   dataRecord.getPosition() >= referenceRecord.getSequenceLength()) 
+					continue;
+
+				int index = dataRecord.getPosition();  //?array start with 0, but reference start with 1
 				if (dataRecord.isReverse()) {
+/*
+if(p.getSAMRecord().getReadName().equals( "HWI-ST1240:115:H03J8ADXX:2:1216:5509:54570")){
+//	System.out.println(p.getSAMRecord().getReadName() );
+	System.out.println(dataRecord.getPosition() + " ,index: " + index + " ,pileupDataRecord size: " + records.size() + 
+			", reference length: " +  referenceRecord.getSequenceLength());
+
+}*/
  					reverse.modifyStrandDS(dataRecord, index, false);
  					reverseNonRef.addNonReferenceMetrics(dataRecord, index);
 				} else {
