@@ -23,19 +23,14 @@ import org.qcmg.qbamfilter.query.QueryExecutor;
  * parse command line to options. 
  */
 public class Options {
-    private static final String VERSION_DESCRIPTION =
-        Messages.getMessage("VERSION_OPTION_DESCRIPTION");
-   private static final String HELP_DESCRIPTION =
-        Messages.getMessage("HELP_OPTION_DESCRIPTION");  
-   private static final String QUERY_DESCRIPTION =
-        Messages.getMessage("QUERY_OPTION_DESCRIPTION");
-   private static final String LOG_DESCRIPTION =
-       Messages.getMessage("LOG_OPTION_DESCRIPTION");
-   private static final String LOG_LEVEL_OPTION_DESCRIPTION = Messages
-	.getMessage("LOG_LEVEL_OPTION_DESCRIPTION");
+    private static final String VERSION_DESCRIPTION = Messages.getMessage("VERSION_OPTION_DESCRIPTION");
+   private static final String HELP_DESCRIPTION = Messages.getMessage("HELP_OPTION_DESCRIPTION");  
+   private static final String QUERY_DESCRIPTION = Messages.getMessage("QUERY_OPTION_DESCRIPTION");
+   private static final String LOG_DESCRIPTION = Messages.getMessage("LOG_OPTION_DESCRIPTION");
+   private static final String LOG_LEVEL_OPTION_DESCRIPTION = Messages.getMessage("LOG_LEVEL_OPTION_DESCRIPTION");
    
     private boolean commandCheck = false;
-    private String query = "and (flag_SecondOfpair == false, flag_ReadUnmapped == false)";
+    private String query = "and (flag_NotprimaryAlignment == false, flag_ReadUnmapped == false)";
     private String defaultRefName = "chrMT";
     private String referenceFile;
     private SAMSequenceRecord referenceRecord;
