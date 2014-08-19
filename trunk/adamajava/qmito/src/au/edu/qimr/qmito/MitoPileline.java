@@ -108,12 +108,21 @@ public class MitoPileline {
 
        	PositionElement pos;
 		for(int i = 0; i < referenceRecord.getSequenceLength(); i++){
-			pos = new PositionElement(  referenceRecord.getSequenceName(), i, (char) referenceBases[i] );
+			//Samtools report 1 on mapping position if mapped at start of reference. but java array start at 0
+ 			pos = new PositionElement(  referenceRecord.getSequenceName(), i+1, (char) referenceBases[i] );
+ 			
 			QPileupRecord qRecord = new QPileupRecord(pos, 
 					forward.getStrandElementMap(i), reverse.getStrandElementMap(i));			
-			String sb = qRecord.getPositionString() + qRecord.getStrandRecordString() + "\n" ;		  				
+			String sb = qRecord.getPositionString() + qRecord.getStrandRecordString() + "\n" ;		
 			writer.write(sb);		 
+			
+/*	debug			
+			if((i+1 >= 16479 && i+1 <= 16481 ) || 
+					(i+1 >= 16567 && i+1 <= 16569 ))
+			System.out.println("output: " +sb);*/
+			
  		}			
+
   	   	logger.info("outputed strand dataset of " + referenceRecord.getSequenceName() + ", pileup position " + referenceRecord.getSequenceLength());    	 			
 	}	
 	
@@ -145,19 +154,14 @@ public class MitoPileline {
 			SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile,ValidationStringency.SILENT);
 			SAMRecordIterator ite = reader.query(ref.getSequenceName(),0, ref.getSequenceLength(), false);
 			while(ite.hasNext()){
-				SAMRecord record = ite.next();	
-	
-           	//debug
-            //	if(record.getReadName().equals( "HWI-ST1240:115:H03J8ADXX:2:1216:5509:54570")){
-//            		System.out.println( record.getCigarString() + " (cigar)," + record.getAlignmentStart() + "--" + record.getAlignmentEnd());
-            				
+				SAMRecord record = ite.next();	            				
             	if(! exec.Execute(record)) continue;			
 				PileupSAMRecord p = new PileupSAMRecord(record);    	      	            	
-            	p.pileup();      	            	
-            	addToStrandDS(p);
+            	p.pileup();    
+//            	addToStrandDSDebug(p);
+             	addToStrandDS(p);
             	p = null;		
             	numReads ++;
-   	
   			}  
 			ite.close();
 			reader.close();
@@ -169,21 +173,16 @@ public class MitoPileline {
 	}
 
 	private void addToStrandDS(PileupSAMRecord p) throws Exception {
+		
+		
 	    	List<PileupDataRecord> records = p.getPileupDataRecords();			
 			for (PileupDataRecord dataRecord : records) {
 				//pileup will add extra pileupDataRecord for clips, it may byond reference edge
-				if (dataRecord.getPosition() < 0 ||   dataRecord.getPosition() >= referenceRecord.getSequenceLength()) 
+				if (dataRecord.getPosition() < 1 ||   dataRecord.getPosition() > referenceRecord.getSequenceLength()) 
 					continue;
-
-				int index = dataRecord.getPosition();  //?array start with 0, but reference start with 1
-				if (dataRecord.isReverse()) {
-/*
-if(p.getSAMRecord().getReadName().equals( "HWI-ST1240:115:H03J8ADXX:2:1216:5509:54570")){
-//	System.out.println(p.getSAMRecord().getReadName() );
-	System.out.println(dataRecord.getPosition() + " ,index: " + index + " ,pileupDataRecord size: " + records.size() + 
-			", reference length: " +  referenceRecord.getSequenceLength());
-
-}*/
+				
+				int index = dataRecord.getPosition() - 1;  //?array start with 0, but reference start with 1
+				if (dataRecord.isReverse()) {				
  					reverse.modifyStrandDS(dataRecord, index, false);
  					reverseNonRef.addNonReferenceMetrics(dataRecord, index);
 				} else {
@@ -191,8 +190,52 @@ if(p.getSAMRecord().getReadName().equals( "HWI-ST1240:115:H03J8ADXX:2:1216:5509:
 					forwardNonRef.addNonReferenceMetrics(dataRecord, index);
 				}			 
  			}
+			
 					
 		}			
 	
+	private void addToStrandDSDebug(PileupSAMRecord p) throws Exception {
+		
+		
+		//debug only test on this read
+		if(!  p.getSAMRecord().getReadName().equals( "HWI-ST1240:115:H03J8ADXX:2:1216:5509:54570"))	
+			return;
+		
+System.out.println("read: " + p.getSAMRecord().getSAMString() );
+System.out.println("read: " + new String (p.getSAMRecord().getReadBases()) );
+IndexedFastaSequenceFile indexedFastaFile = Reference.getIndexedFastaFile( new File(referenceFile) );   	
+referenceBases = indexedFastaFile.getSubsequenceAt(referenceRecord.getSequenceName(), 1,referenceRecord.getSequenceLength()).getBases();
 
+System.out.print("refe: ");
+for(int i = p.getSAMRecord().getAlignmentStart() - 1; i <p.getSAMRecord().getAlignmentEnd();i++)
+		System.out.print((char)referenceBases[i]);
+System.out.print(  "( "+p.getSAMRecord().getAlignmentStart() + " - " + p.getSAMRecord().getAlignmentEnd() + " )\n");	
+
+//debug		 			
+for (PileupDataRecord d : p.getPileupDataRecords())			
+	if((d.getPosition() >= 16479 && d.getPosition() <= 16481 ) || 
+			(d.getPosition() >= 16567 && d.getPosition() <= 16569 ))
+			System.out.println(String.format("\nDebug: reference:(%s:%d:%c); pileup: (A%d, T%d,G%d,C%d), nonRefno is %d",
+					d.getReference(),d.getPosition(), referenceBases[d.getPosition()-1],  
+					d.getBaseA(),d.getBaseT(),d.getBaseG(),d.getBaseC(),
+					d.getNonReferenceNo()));
+
+
+	    	List<PileupDataRecord> records = p.getPileupDataRecords();			
+			for (PileupDataRecord dataRecord : records) {
+				//pileup will add extra pileupDataRecord for clips, it may byond reference edge
+				if (dataRecord.getPosition() < 1 ||   dataRecord.getPosition() > referenceRecord.getSequenceLength()) 
+					continue;
+				
+				int index = dataRecord.getPosition()-1;  //?array start with 0, but reference start with 1
+				if (dataRecord.isReverse()) {				
+ 					reverse.modifyStrandDS(dataRecord, index, false);
+ 					reverseNonRef.addNonReferenceMetrics(dataRecord, index);
+				} else {
+					forward.modifyStrandDS(dataRecord, index, false);
+					forwardNonRef.addNonReferenceMetrics(dataRecord, index);
+				}			 
+ 			}
+								
+		}	
 }
