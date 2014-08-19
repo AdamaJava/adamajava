@@ -58,9 +58,7 @@ public class StrandElement {
 	}
 	
 	public void addElement(int index, int size) {	
-		//debug
-if(index == 16569)
-	System.out.println(intDataMembers.length + " addElement (index: " + index + ", size: " + size );		
+		
 			if (isLong) {
 				longDataMembers[index] += size;
 			} else {

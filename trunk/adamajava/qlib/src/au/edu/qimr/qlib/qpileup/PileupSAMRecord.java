@@ -213,6 +213,8 @@ public class PileupSAMRecord {
 		d.checkBase(base, baseQual, ref, record);
 
 		dsRecords.add(d);	
+		
+	
 	}
 
 	public void setCigarRecords(int referencePos, int length, CigarOperator o, int readStart, int readEnd) {
