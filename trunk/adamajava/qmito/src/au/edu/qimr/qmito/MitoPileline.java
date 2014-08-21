@@ -165,6 +165,10 @@ public class MitoPileline {
   			}  
 			ite.close();
 			reader.close();
+        	//add the stats that need to be done at the end to the datasets				
+        	forward.finalizeMetrics(ref.getSequenceLength(), isRemove, forwardNonRef);
+        	reverse.finalizeMetrics(ref.getSequenceLength(), isRemove, reverseNonRef); 
+
 			logger.info("Added " + numReads + " reads mapped on "+ ref.getSequenceName()+" and met query from BAM: " + bamFile);					 			 
     	} catch (Exception e) {
     		logger.error("Exception happened during reading: " + bamFile);
