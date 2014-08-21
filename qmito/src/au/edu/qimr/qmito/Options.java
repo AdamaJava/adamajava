@@ -66,7 +66,7 @@ public class Options {
         parser.acceptsAll( asList("q", "query"), QUERY_DESCRIPTION).withRequiredArg().ofType(String.class).describedAs("\"query\"");
         parser.acceptsAll( asList("i", "input"), Messages.getMessage("INPUT_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("input");
         parser.acceptsAll( asList("o", "output"), Messages.getMessage("OUTPUT_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("output"); 
-        parser.acceptsAll(asList("f", "referenceFile")).withRequiredArg().ofType(String.class);
+        parser.acceptsAll(asList("r", "referenceFile")).withRequiredArg().ofType(String.class);
         parser.accepts("log",  LOG_DESCRIPTION).withRequiredArg().ofType(String.class);
        parser.accepts("loglevel",  LOG_LEVEL_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
         parser.accepts("lowreadcount").withRequiredArg().ofType(Integer.class);
@@ -91,7 +91,7 @@ public class Options {
             return;
         }
         
-        if ( ! options.has("i") || ! options.has("o")  ||!options.has("f") ) {
+        if ( ! options.has("i") || ! options.has("o")  ||!options.has("r") ) {
              System.out.println(Messages.USAGE);
              return;
         }
@@ -133,7 +133,7 @@ public class Options {
         checkInputBams();
         
         //check Reference
-        referenceFile = (String) options.valueOf("f");
+        referenceFile = (String) options.valueOf("r");
         if( ! (new File(referenceFile).exists()))
         	throw new Exception("reference is not exist: " + referenceFile);      
         
