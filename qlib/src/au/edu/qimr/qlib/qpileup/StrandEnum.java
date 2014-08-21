@@ -37,7 +37,9 @@ public enum StrandEnum{
 		cigarHStart("CigarH_start"),
 		cigarN("CigarN"),
 		cigarNStart("CigarN_start");
-		final static String DELIMITER = PileupConstants.DELIMITER;
+ 		
+		static String DELIMITER = "\t";
+		 
 		
 		private String type;		
 		public static int LONG_INDEX_START = 5;
@@ -50,6 +52,8 @@ public enum StrandEnum{
 	    public String getStrandEnum(){
 	        return type;
 	    } 
+	    
+	    public static void setDelimiter(String delimiter){  DELIMITER =  delimiter ;}
 	    
 	    public static String getHeader(){
 	    	StringBuffer sb = new StringBuffer();
