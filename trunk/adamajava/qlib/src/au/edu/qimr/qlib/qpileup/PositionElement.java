@@ -8,7 +8,6 @@ public class PositionElement {
 	String chr;
 	long position;
 	char base;
-	final static String DELIMITER = PileupConstants.DELIMITER;
 	
 	public PositionElement(String chr, long position, char base) {
 		super();

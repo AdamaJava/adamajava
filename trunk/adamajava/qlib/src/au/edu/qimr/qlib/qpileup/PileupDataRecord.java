@@ -4,7 +4,6 @@
 package au.edu.qimr.qlib.qpileup;
 
 import net.sf.samtools.SAMRecord;
-import au.edu.qimr.qlib.qpileup.PileupConstants;
 
 public class PileupDataRecord {
 
@@ -42,7 +41,8 @@ public class PileupDataRecord {
 	private String reference;
 	boolean isReverse = false;
 	
-	final static String DELIMITER = PileupConstants.DELIMITER;
+	//default delimiter is tab
+	String DELIMITER = "\t";
 	
 	public PileupDataRecord()  {
 		
@@ -366,6 +366,8 @@ public class PileupDataRecord {
 		}
 		return sb.toString();
 	}
+	
+	public void setDelimiter(String delimiter){	 this.DELIMITER = delimiter;}
 
 	public int getTotalBases() {
 		return  baseA + baseT  + baseC  + baseG  + baseN;

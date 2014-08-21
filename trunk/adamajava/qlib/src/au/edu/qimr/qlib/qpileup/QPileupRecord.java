@@ -19,8 +19,10 @@ public class QPileupRecord {
 
 	PositionElement position;
 	Map<String, StrandElement> forwardElementMap;
-	Map<String, StrandElement> reverseElementMap;
-	final static String DELIMITER = PileupConstants.DELIMITER;
+	Map<String, StrandElement> reverseElementMap;	
+	
+    //default delimiter is tab
+	String DELIMITER = "\t";
 
 	public QPileupRecord(PositionElement position, 
 			Map<String, StrandElement> forwardElementMap, Map<String, StrandElement> reverseElementMap) {
@@ -28,6 +30,7 @@ public class QPileupRecord {
 		this.forwardElementMap = forwardElementMap;
 		this.reverseElementMap = reverseElementMap;
 	}
+	public void setDelimiter(String delimiter){  this.DELIMITER =  delimiter ;}
 	
 	public String getPositionString() {
 		StringBuffer sb = new StringBuffer();
