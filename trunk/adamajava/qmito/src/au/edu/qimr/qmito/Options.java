@@ -66,12 +66,11 @@ public class Options {
         parser.acceptsAll( asList("q", "query"), QUERY_DESCRIPTION).withRequiredArg().ofType(String.class).describedAs("\"query\"");
         parser.acceptsAll( asList("i", "input"), Messages.getMessage("INPUT_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("input");
         parser.acceptsAll( asList("o", "output"), Messages.getMessage("OUTPUT_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("output"); 
-        parser.acceptsAll(asList("r", "referenceFile")).withRequiredArg().ofType(String.class);
+        parser.acceptsAll(asList("r", "referenceFile"),Messages.getMessage("REFERENCE_DESCRIPTION")).withRequiredArg().ofType(String.class);
         parser.accepts("log",  LOG_DESCRIPTION).withRequiredArg().ofType(String.class);
-       parser.accepts("loglevel",  LOG_LEVEL_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
-        parser.accepts("lowreadcount").withRequiredArg().ofType(Integer.class);
-        parser.accepts("nonrefthreshold").withRequiredArg().ofType(Integer.class);
-        parser.accepts("refname").withRequiredArg().ofType(String.class);
+        parser.accepts("loglevel",  LOG_LEVEL_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
+        parser.accepts("lowreadcount",Messages.getMessage("LOW_READ_COUNT_DESCRIPTION")).withRequiredArg().ofType(Integer.class);
+        parser.accepts("nonrefthreshold",Messages.getMessage("NONREFERENCE_THRESHOLD_DESCRIPTION")).withRequiredArg().ofType(Integer.class);
  
 //        parser.acceptsAll( asList("m", "maxRecordNumber"), Messages.getMessage("MAXRECORD_DESCRITPION")).withRequiredArg().ofType(String.class).describedAs("maxRecordNumber");       
 //        parser.acceptsAll( asList("t", "threadNumber"), Messages.getMessage("THREADNUMBER_DESCRITPION")).withRequiredArg().ofType(String.class).describedAs("threadNumber");

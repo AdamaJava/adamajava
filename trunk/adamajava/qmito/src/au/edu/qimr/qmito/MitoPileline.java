@@ -66,12 +66,12 @@ public class MitoPileline {
 	private SAMSequenceRecord referenceRecord;
 	private byte[] referenceBases;
 	private Options options;
-	QueryExecutor exec;
+	private QueryExecutor exec;
 	
-    NonReferenceRecord forwardNonRef = null;
-    NonReferenceRecord reverseNonRef = null;	
-    StrandTXTDS forward = null;
-    StrandTXTDS reverse = null;
+    private NonReferenceRecord forwardNonRef = null;
+    private NonReferenceRecord reverseNonRef = null;	
+    private StrandTXTDS forward = null;
+    private StrandTXTDS reverse = null;
 
 	public MitoPileline(Options options) throws Exception {
 		 
@@ -95,13 +95,33 @@ public class MitoPileline {
 		
 		//output 
   	   	//read reference base into array
-		BufferedWriter writer = new BufferedWriter(new FileWriter(options.getOutputFileName(), false));
-		writeHeader(writer);
-		writeDataset(writer );
-		writer.close();		
+		output2tsv(options.getOutputFileName());
+		
 	}
-
-	private void writeDataset(BufferedWriter writer) throws IOException{
+	
+	/**
+	 * it output all pileup datasets into tsv format file
+	 * @param output: output file name with full path
+	 * @throws IOException
+	 */
+	private void output2tsv(String output) throws IOException{
+		BufferedWriter writer = new BufferedWriter(new FileWriter(output, false));
+		
+		//headlines
+		DateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
+		String sb = "## DATE=" + dateFormat.format(new Date()) + "\n";
+		sb += "## TOOL_NAME=" + options.getPGName() + ", version " + options.getVersion() + "\n";
+		sb += "## REFERENCE=FILE: " + referenceFile + "\n";
+		sb += "## REFERENCE=SEQUENCE: " + referenceRecord.getSequenceName() + ",LENGTH:" + referenceRecord.getSequenceLength() + "\n";
+		sb += "## INFO=BAMS_ADDED:" + bamFiles.length + "\n";
+		for (String bam : bamFiles)
+			sb += "## INFO=BAMS_FILE:" + bam + "\n";
+		sb += "## INFO=LOW_READ_COUNT:" + options.getLowReadCount() + "\n";
+		sb += "## INFO=MIN_NONREF_PERCENT:" + options.getNonRefThreshold() + "\n";
+		sb += "## Reference\tPosition\tRef_base\t" + StrandEnum.getHeader() + "\n";
+		writer.write(sb);			
+		
+		//all pileup dataset
      	IndexedFastaSequenceFile indexedFastaFile = Reference.getIndexedFastaFile( new File(referenceFile) );
        	FastaSequenceIndex index = Reference.getFastaIndex(new File(referenceFile));  	   	
        	referenceBases = indexedFastaFile.getSubsequenceAt(referenceRecord.getSequenceName(), 1,referenceRecord.getSequenceLength()).getBases();
@@ -113,36 +133,21 @@ public class MitoPileline {
  			
 			QPileupRecord qRecord = new QPileupRecord(pos, 
 					forward.getStrandElementMap(i), reverse.getStrandElementMap(i));			
-			String sb = qRecord.getPositionString() + qRecord.getStrandRecordString() + "\n" ;		
-			writer.write(sb);		 
-			
-/*	debug			
-			if((i+1 >= 16479 && i+1 <= 16481 ) || 
-					(i+1 >= 16567 && i+1 <= 16569 ))
-			System.out.println("output: " +sb);*/
-			
+			sb = qRecord.getPositionString() + qRecord.getStrandRecordString() + "\n" ;		
+			writer.write(sb);		 		
  		}			
 
   	   	logger.info("outputed strand dataset of " + referenceRecord.getSequenceName() + ", pileup position " + referenceRecord.getSequenceLength());    	 			
-	}	
-	
-	private void writeHeader( BufferedWriter writer ) throws IOException{
-		
-		DateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
-		String sb = "## DATE=" + dateFormat.format(new Date()) + "\n";
-		sb += "## TOOL_NAME=" + options.getPGName() + ", version " + options.getVersion() + "\n";
-		sb += "## REFERENCE=FILE: " + referenceFile + "\n";
-		sb += "## REFERENCE=SEQUENCE: " + referenceRecord.getSequenceName() + ",LENGTH:" + referenceRecord.getSequenceLength() + "\n";
-		sb += "## INFO=BAMS_ADDED:" + bamFiles.length + "\n";
-		for (String bam : bamFiles)
-			sb += "## INFO=BAMS_FILE:" + bam + "\n";
 
-		sb += "## INFO=LOW_READ_COUNT:" + options.getLowReadCount() + "\n";
-		sb += "## INFO=MIN_NONREF_PERCENT:" + options.getNonRefThreshold() + "\n";
-		sb += "## Reference\tPosition\tRef_base\t" + StrandEnum.getHeader() + "\n";
-		writer.write(sb);	
+		writer.close();			
 	}
-	
+	/**
+	 * main pileline to run pileup on a single BAM
+	 * @param bamFile: input BAM file
+	 * @param ref : reference file where BAM mapped on
+	 * @param exec: qbamfilter query executor
+	 * @throws Exception
+	 */
 	private void readSAMRecords(String bamFile, SAMSequenceRecord ref,QueryExecutor exec) throws Exception{							
 
     	try {            		
@@ -156,9 +161,10 @@ public class MitoPileline {
 			while(ite.hasNext()){
 				SAMRecord record = ite.next();	            				
             	if(! exec.Execute(record)) continue;			
-				PileupSAMRecord p = new PileupSAMRecord(record);    	      	            	
+				PileupSAMRecord p = new PileupSAMRecord(record);   
+				//pileup single read
             	p.pileup();    
-//            	addToStrandDSDebug(p);
+            	//accumulate  base information into related reference base 
              	addToStrandDS(p);
             	p = null;		
             	numReads ++;
@@ -176,9 +182,12 @@ public class MitoPileline {
     	} 	
 	}
 
-	private void addToStrandDS(PileupSAMRecord p) throws Exception {
-		
-		
+	/**
+	 * accumulate  base information into related reference base 
+	 * @param p: a pileupSAMRecord stored pileup information on base of a single SAMRecord
+	 * @throws Exception
+	 */
+	private void addToStrandDS(PileupSAMRecord p) throws Exception {		
 	    	List<PileupDataRecord> records = p.getPileupDataRecords();			
 			for (PileupDataRecord dataRecord : records) {
 				//pileup will add extra pileupDataRecord for clips, it may byond reference edge
@@ -193,53 +202,6 @@ public class MitoPileline {
 					forward.modifyStrandDS(dataRecord, index, false);
 					forwardNonRef.addNonReferenceMetrics(dataRecord, index);
 				}			 
- 			}
-			
-					
+ 			}				
 		}			
-	
-	private void addToStrandDSDebug(PileupSAMRecord p) throws Exception {
-		
-		
-		//debug only test on this read
-		if(!  p.getSAMRecord().getReadName().equals( "HWI-ST1240:115:H03J8ADXX:2:1216:5509:54570"))	
-			return;
-		
-System.out.println("read: " + p.getSAMRecord().getSAMString() );
-System.out.println("read: " + new String (p.getSAMRecord().getReadBases()) );
-IndexedFastaSequenceFile indexedFastaFile = Reference.getIndexedFastaFile( new File(referenceFile) );   	
-referenceBases = indexedFastaFile.getSubsequenceAt(referenceRecord.getSequenceName(), 1,referenceRecord.getSequenceLength()).getBases();
-
-System.out.print("refe: ");
-for(int i = p.getSAMRecord().getAlignmentStart() - 1; i <p.getSAMRecord().getAlignmentEnd();i++)
-		System.out.print((char)referenceBases[i]);
-System.out.print(  "( "+p.getSAMRecord().getAlignmentStart() + " - " + p.getSAMRecord().getAlignmentEnd() + " )\n");	
-
-//debug		 			
-for (PileupDataRecord d : p.getPileupDataRecords())			
-	if((d.getPosition() >= 16479 && d.getPosition() <= 16481 ) || 
-			(d.getPosition() >= 16567 && d.getPosition() <= 16569 ))
-			System.out.println(String.format("\nDebug: reference:(%s:%d:%c); pileup: (A%d, T%d,G%d,C%d), nonRefno is %d",
-					d.getReference(),d.getPosition(), referenceBases[d.getPosition()-1],  
-					d.getBaseA(),d.getBaseT(),d.getBaseG(),d.getBaseC(),
-					d.getNonReferenceNo()));
-
-
-	    	List<PileupDataRecord> records = p.getPileupDataRecords();			
-			for (PileupDataRecord dataRecord : records) {
-				//pileup will add extra pileupDataRecord for clips, it may byond reference edge
-				if (dataRecord.getPosition() < 1 ||   dataRecord.getPosition() > referenceRecord.getSequenceLength()) 
-					continue;
-				
-				int index = dataRecord.getPosition()-1;  //?array start with 0, but reference start with 1
-				if (dataRecord.isReverse()) {				
- 					reverse.modifyStrandDS(dataRecord, index, false);
- 					reverseNonRef.addNonReferenceMetrics(dataRecord, index);
-				} else {
-					forward.modifyStrandDS(dataRecord, index, false);
-					forwardNonRef.addNonReferenceMetrics(dataRecord, index);
-				}			 
- 			}
-								
-		}	
 }
