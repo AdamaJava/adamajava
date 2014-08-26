@@ -68,10 +68,10 @@ public class MitoPileline {
 	private Options options;
 	private QueryExecutor exec;
 	
-    private NonReferenceRecord forwardNonRef = null;
-    private NonReferenceRecord reverseNonRef = null;	
-    private StrandTXTDS forward = null;
-    private StrandTXTDS reverse = null;
+    NonReferenceRecord forwardNonRef = null;
+    NonReferenceRecord reverseNonRef = null;	
+    private StrandDS forward = null;
+    private StrandDS reverse = null;
 
 	public MitoPileline(Options options) throws Exception {
 		 
@@ -85,27 +85,29 @@ public class MitoPileline {
 		outputFile = options.getOutputFileName();
 		
 		this.options = options;		
-       
-       	forward = new StrandTXTDS( referenceRecord, false );
-    	reverse = new StrandTXTDS(referenceRecord, true );
+      	forward = new StrandDS( referenceRecord, false );
+    	reverse = new StrandDS(referenceRecord, true );
        			
 		//alalysis reads
-		for (String bam : bamFiles)        	 
-        	readSAMRecords(bam, referenceRecord, exec) ;	
-		
-		//output 
-  	   	//read reference base into array
-		output2tsv(options.getOutputFileName());
+		for (String bam : bamFiles) {       	 
+        	readSAMRecords(bam) ;	
+        	//add the stats that need to be done at the end to the datasets				
+        	forward.finalizeMetrics(referenceRecord.getSequenceLength(), isRemove, forwardNonRef);
+        	reverse.finalizeMetrics(referenceRecord.getSequenceLength(), isRemove, reverseNonRef); 
+		}
 		
 	}
+	
+	
+
 	
 	/**
 	 * it output all pileup datasets into tsv format file
 	 * @param output: output file name with full path
 	 * @throws IOException
 	 */
-	private void output2tsv(String output) throws IOException{
-		BufferedWriter writer = new BufferedWriter(new FileWriter(output, false));
+ 	public void report() throws IOException{
+		BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile, false));
 		
 		//headlines
 		DateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
@@ -122,8 +124,7 @@ public class MitoPileline {
 		writer.write(sb);			
 		
 		//all pileup dataset
-     	IndexedFastaSequenceFile indexedFastaFile = Reference.getIndexedFastaFile( new File(referenceFile) );
-       	FastaSequenceIndex index = Reference.getFastaIndex(new File(referenceFile));  	   	
+    	IndexedFastaSequenceFile indexedFastaFile = Reference.getIndexedFastaFile( new File(referenceFile) );
        	referenceBases = indexedFastaFile.getSubsequenceAt(referenceRecord.getSequenceName(), 1,referenceRecord.getSequenceLength()).getBases();
 
        	PositionElement pos;
@@ -148,18 +149,29 @@ public class MitoPileline {
 	 * @param exec: qbamfilter query executor
 	 * @throws Exception
 	 */
-	private void readSAMRecords(String bamFile, SAMSequenceRecord ref,QueryExecutor exec) throws Exception{							
+	void readSAMRecords(String bamFile) throws Exception{							
 
     	try {            		
     		//set up overall stats for the bam 
-        	forwardNonRef = new NonReferenceRecord(ref.getSequenceName(), ref.getSequenceLength(), false, lowReadCount, nonrefThreshold);
-        	reverseNonRef = new NonReferenceRecord(ref.getSequenceName(), ref.getSequenceLength(), true, lowReadCount, nonrefThreshold);
+        	forwardNonRef = new NonReferenceRecord(referenceRecord.getSequenceName(), referenceRecord.getSequenceLength(), false, lowReadCount, nonrefThreshold);
+        	reverseNonRef = new NonReferenceRecord(referenceRecord.getSequenceName(), referenceRecord.getSequenceLength(), true, lowReadCount, nonrefThreshold);
 			
         	int numReads = 0;
 			SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile,ValidationStringency.SILENT);
-			SAMRecordIterator ite = reader.query(ref.getSequenceName(),0, ref.getSequenceLength(), false);
+			SAMRecordIterator ite = reader.query(referenceRecord.getSequenceName(),0, referenceRecord.getSequenceLength(), false);
 			while(ite.hasNext()){
-				SAMRecord record = ite.next();	            				
+				SAMRecord record = ite.next();	 
+
+/*				
+//debug
+if(record.getAlignmentStart() >= 16478){
+System.out.println(String.format("record mapped on %d~%d,MD:%s", record.getAlignmentStart(), record.getAlignmentEnd(),record.getAttribute("MD")));
+byte[] base = record.getReadBases();
+System.out.print("read base:   "); 
+for(byte b : base)
+	System.out.print( (char) b);
+System.out.println();
+}*/
             	if(! exec.Execute(record)) continue;			
 				PileupSAMRecord p = new PileupSAMRecord(record);   
 				//pileup single read
@@ -171,11 +183,7 @@ public class MitoPileline {
   			}  
 			ite.close();
 			reader.close();
-        	//add the stats that need to be done at the end to the datasets				
-        	forward.finalizeMetrics(ref.getSequenceLength(), isRemove, forwardNonRef);
-        	reverse.finalizeMetrics(ref.getSequenceLength(), isRemove, reverseNonRef); 
-
-			logger.info("Added " + numReads + " reads mapped on "+ ref.getSequenceName()+" and met query from BAM: " + bamFile);					 			 
+ 			logger.info("Added " + numReads + " reads mapped on "+ referenceRecord.getSequenceName()+" and met query from BAM: " + bamFile);					 			 
     	} catch (Exception e) {
     		logger.error("Exception happened during reading: " + bamFile);
             throw new Exception(ExceptionMessage.getStrackTrace(e) );
@@ -204,4 +212,8 @@ public class MitoPileline {
 				}			 
  			}				
 		}			
+
+	public StrandDS GetForwardStrandDS(){	return forward; }
+	
+	public StrandDS GetReverseStrandDS(){	return reverse; }
 }
