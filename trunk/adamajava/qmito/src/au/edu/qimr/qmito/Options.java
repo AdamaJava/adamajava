@@ -146,7 +146,7 @@ public class Options {
 		SAMFileHeader header = reader.getFileHeader().clone();
 		reader.close();
 		
-		int index = header.getSequenceIndex(ref);
+//		int index = header.getSequenceIndex(ref);
 		referenceRecord = header.getSequence(header.getSequenceIndex(ref));
 		if(referenceRecord == null)
 			throw new Exception("invalide reference sequence name: " + ref);

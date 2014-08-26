@@ -26,7 +26,7 @@ public class Mito {
 	               logger.tool("Low Read Count: " + options.getLowReadCount());
 	               logger.tool("NonReference Threshold: " + options.getNonRefThreshold());
 	               logger.info("logger level " + options.getLogLevel());	
-	               new MitoPileline(options);
+	               new MitoPileline(options).report();
 		          
 		           logger.logFinalExecutionStats(0);
 	            }
