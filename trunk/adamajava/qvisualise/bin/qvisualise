@@ -1,8 +1,0 @@
-#!/bin/bash
-
-if [ -z "$QVISUALISE_HOME" ]; then
-    echo "qVisualise: The QVISUALISE_HOME environment variable must be set."
-    exit 1
-fi
-
-java -jar ${QVISUALISE_HOME}/lib/qvisualise-VERSION.jar $@
