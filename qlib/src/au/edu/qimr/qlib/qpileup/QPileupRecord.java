@@ -204,6 +204,13 @@ public class QPileupRecord {
 		return sb.toString();
 	}
 	
+	//debug
+	public String getRevStrandRecordString() {
+		StringBuffer sb = new StringBuffer();		
+		sb.append(getReverseElementString(null));		
+		return sb.toString();
+	}
+	
 	public String toString() {
 		StringBuffer sb = new StringBuffer();
 		sb.append(getPositionString());

@@ -146,6 +146,19 @@ public enum StrandEnum{
 			return list;
 		}
 		
+		//debug
+		public static String getBaseHeader( ){
+			StringBuffer sb = new StringBuffer();
+	    	StrandEnum[] enums = StrandEnum.values();
+	    	 
+		    	for (int i=0; i<5; i++) 		    		 
+		    			sb.append(enums[i].getStrandEnum()).append("_for").append(DELIMITER);
+		    	for (int i=0; i<5; i++) 		    		 
+	    			sb.append(enums[i].getStrandEnum()).append("_rev").append(DELIMITER);		    	 
+ 
+	    	return sb.toString();
+		}
+		
 		public static List<StrandEnum> getCigars(){
 			List<StrandEnum> list = new ArrayList<StrandEnum>();
 			list.add(cigarI);

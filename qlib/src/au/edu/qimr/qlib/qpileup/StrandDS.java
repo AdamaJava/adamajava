@@ -10,21 +10,27 @@ import net.sf.samtools.SAMSequenceRecord;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 
-public class StrandTXTDS {
-	
+
+/**
+ * this class borrowed idea from org.qcmg.qpileup.hdf.StrandDS.java. Here we moved all hdf related functions and methods. 
+ * @author christix
+ *
+ */
+public class StrandDS {
 	
 	private QLogger logger = QLoggerFactory.getLogger(getClass());	
-
-//	private int datasetLength;
 
 	private SAMSequenceRecord reference;
 	private String direction;
 	private boolean isReverse = false;
 	private Map<String, StrandElement> elementMap;
 
-	
-	
-	public StrandTXTDS(SAMSequenceRecord reference, boolean isReverse ) {
+	/**
+	 * Set up an empty map where pileup dataset from indicated strand will be stored for all reference base 
+	 * @param reference: a SAMSequenceRecord
+	 * @param isReverse: a flag to  indicate whether stored base information are from reverse strand or not.   
+	 */
+	public StrandDS(SAMSequenceRecord reference, boolean isReverse ) {
 		this.reference = reference;
 		this.isReverse = isReverse;
 		getDirection();

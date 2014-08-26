@@ -44,16 +44,4 @@ public final class Messages {
 	static String getProgramName() {
 		return Messages.class.getPackage().getImplementationTitle();
 	}
-
-	static String getProgramVersion() {
-		return Messages.class.getPackage().getImplementationVersion();
-	}
-
-	public static String getVersionMessage() throws Exception {
-		return getProgramName() + ", version " + getProgramVersion();
-	}
-
-	public static String getVersionFileMessage() {
-		return getMessage("VERSION_FILE");
-	}
 }

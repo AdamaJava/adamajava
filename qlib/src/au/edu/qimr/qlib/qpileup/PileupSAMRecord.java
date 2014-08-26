@@ -99,13 +99,9 @@ public class PileupSAMRecord {
 			int referencePos = referenceStart;
 			int referenceIndex = 0;
 			
-//debug investigate pileupDataRecord
-//System.out.println("PileupSAMRecord::pileup " + record.getCigarString() +  ", reference start: " + referencePos  + ", number of pileupDataRcord is " + dsRecords.size());
-			
 			//make the reference from the read sequence using picard
 			byte[] referenceBytes = SequenceUtil.makeReferenceFromAlignment(record, true);			
 			byte[] readBytes = record.getReadBases();		
-						
 
 			//iterate through cigar elements and perform pileup
 			for (CigarElement element: record.getCigar().getCigarElements()) {
@@ -137,7 +133,10 @@ public class PileupSAMRecord {
 								addReadDataRecord(referencePos, base, ref, baseQualities[readIndex]);
 								readIndex++;
 								referenceIndex++;
-								referencePos++;
+								referencePos++;								
+								
+								//deubug
+								//System.out.println(referencePos +":base:ref - " + base + ":" + ref );
 							}												
 						} else if (operator ==  CigarOperator.D) {
 							setCigarRecords(referencePos, element.getLength(), operator, readStart, readEnd);
@@ -165,16 +164,13 @@ public class PileupSAMRecord {
 				
 				
 				//debug investigate pileupDataRecord
-//				System.out.println(String.format("%s::cigar element: %s; referecePos: %d; read region (%d ~ %d); pileupDataRcord size: %d", 
-//						record.getCigar(),  operator.name(), referencePos, readStart,readEnd, dsRecords.size()));			
+				//System.out.println(String.format("%s::cigar element: %s; referecePos: %d; read region (%d ~ %d); pileupDataRcord size: %d", 
+ 				//		record.getCigar(),  operator.name(), referencePos, readStart,readEnd, dsRecords.size()));			
 
 	 		}
 			
-				
-			
 		} catch (Exception e) {
 			logger.warn("Error parsing SAMRecord: " + record.getSAMString());
-//			logger.warn("Error parsing SAMRecord: " + PileupUtil.getStrackTrace(e));
 			throw new Exception(Messages.getMessage("PILEUP_ERROR"));   
 		}	
 	}
@@ -211,6 +207,8 @@ public class PileupSAMRecord {
 		
 		d.setMapQual(record.getMappingQuality());
 		d.checkBase(base, baseQual, ref, record);
+		
+		
 
 		dsRecords.add(d);	
 		

@@ -316,7 +316,6 @@ public class PileupDataRecord {
 			} else {
 				referenceNo += 1;
 			}
-			
 			if (base == 'A') {			
 				baseA += 1;	
 				aQual += qual;							
