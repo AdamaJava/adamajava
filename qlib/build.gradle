@@ -11,7 +11,6 @@ dependencies {
     
     compile project(':qcommon')
     compile project(':qpicard')
-	compile project(':qio')
 	compile project(':qbamfilter')
     
  
