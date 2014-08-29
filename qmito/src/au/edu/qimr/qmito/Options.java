@@ -14,6 +14,7 @@ import net.sf.samtools.SAMFileHeader;
 import net.sf.samtools.SAMFileReader;
 import net.sf.samtools.SAMSequenceRecord;
 
+import org.qcmg.common.meta.QExec;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qbamfilter.query.QueryExecutor;
 
@@ -49,7 +50,8 @@ public class Options {
 	private String tmpdir = null;    
     private  String logLevel; 
     private int maxNoOfRecords;
-    
+    private String uuid;
+    private QExec qexec;
     /**
      * check command line and store arguments and option information
      */
@@ -90,6 +92,7 @@ public class Options {
             return;
         }
         
+        
         if ( ! options.has("i") || ! options.has("o")  ||!options.has("r") ) {
              System.out.println(Messages.USAGE);
              return;
@@ -111,6 +114,13 @@ public class Options {
         
         //check all parameters  	        
        commandCheck = checkCommand();
+       
+      // uuid = QExec.createUUid();
+	   qexec = new QExec(Messages.getProgramName(), Messages.getProgramVersion(), args);
+	   
+	   //debug
+	   System.out.println(Messages.getProgramName() + Messages.getProgramVersion() + args);
+
     } 
     
     /**
@@ -213,6 +223,11 @@ public class Options {
     public boolean hasCommandChecked(){
         return commandCheck;
     }
+    
+//    public String getUuid(){return uuid;}
+    
+    public QExec getQExec(){return qexec;}
+    
     public String getOutputFileName(){
         return outputFileName;
     }
