@@ -120,7 +120,7 @@ public class MitoPileline {
 			sb += "## INFO=BAMS_FILE:" + bam + "\n";
 		sb += "## INFO=LOW_READ_COUNT:" + options.getLowReadCount() + "\n";
 		sb += "## INFO=MIN_NONREF_PERCENT:" + options.getNonRefThreshold() + "\n";
-		sb += "## Reference\tPosition\tRef_base\t" + StrandEnum.getHeader() + "\n";
+		sb += "Reference\tPosition\tRef_base\t" + StrandEnum.getHeader() + "\n";
 		writer.write(sb);			
 		
 		//all pileup dataset
