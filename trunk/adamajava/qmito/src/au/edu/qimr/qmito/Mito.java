@@ -2,6 +2,8 @@ package au.edu.qimr.qmito;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.meta.QExec;
+import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.LoadReferencedClasses;
 
 public class Mito {	
@@ -13,9 +15,11 @@ public class Mito {
        try {
             Options options = new Options(args);
             logger = QLoggerFactory.getLogger(Mito.class, options.getLogFileName(), options.getLogLevel());
-            
-            if ( options.hasCommandChecked()){    					     	
-               logger.logInitialExecutionStats(options.getPGName(), options.getVersion(),args);
+					
+	 
+            if ( options.hasCommandChecked()){    
+            	logger.logInitialExecutionStats(options.getQExec());
+              // logger.logInitialExecutionStats(options.getPGName(), options.getVersion(),args, options.getUuid());
 	       	   for (String bamFile: options.getInputFileNames()) 
 	       			logger.info("input Bam: "  + bamFile);
                

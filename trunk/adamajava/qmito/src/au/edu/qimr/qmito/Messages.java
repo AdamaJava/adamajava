@@ -5,6 +5,7 @@ package au.edu.qimr.qmito;
 import java.text.MessageFormat;
 import java.util.ResourceBundle;
 
+
 /*
  * a collection of methods which return formated message string
  */
@@ -59,6 +60,10 @@ public class Messages {
 	 */
 	static String getProgramName() {
 		return Messages.class.getPackage().getImplementationTitle();
+	}
+	
+	static String getProgramVersion() {
+		return Messages.class.getPackage().getImplementationVersion();
 	}
 
 

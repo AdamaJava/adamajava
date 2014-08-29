@@ -36,7 +36,10 @@ import net.sf.samtools.SAMFileReader.ValidationStringency;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.meta.QExec;
+import org.qcmg.common.meta.QLimsMeta;
 import org.qcmg.picard.SAMFileReaderFactory;
+import org.qcmg.picard.util.QLimsMetaFactory;
 import org.qcmg.qbamfilter.query.QueryExecutor;
 
 import au.edu.qimr.qlib.qpileup.*;
@@ -72,7 +75,8 @@ public class MitoPileline {
     NonReferenceRecord reverseNonRef = null;	
     private StrandDS forward = null;
     private StrandDS reverse = null;
-
+    
+    
 	public MitoPileline(Options options) throws Exception {
 		 
 		this.bamFiles = options.getInputFileNames();
@@ -104,12 +108,22 @@ public class MitoPileline {
 	/**
 	 * it output all pileup datasets into tsv format file
 	 * @param output: output file name with full path
-	 * @throws IOException
+	 * @throws Exception 
 	 */
- 	public void report() throws IOException{
+ 	public void report() throws Exception{
+ 		//QExec(String programName, String programVersion, String[] args, String uuid) {	
+ 		QExec qexec = options.getQExec();
 		BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile, false));
 		
 		//headlines
+		writer.write(qexec.getExecMetaDataToString());
+		for (String bam : bamFiles) {       	 
+			SAMFileHeader header = SAMFileReaderFactory.createSAMFileReader(bam).getFileHeader(); 
+			QLimsMeta limsMeta = QLimsMetaFactory.getLimsMeta("input", bam, header);		 
+			writer.write(limsMeta.getLimsMetaDataToString() );
+		}
+		writer.write("Reference\tPosition\tRef_base\t" + StrandEnum.getHeader() + "\n");
+/*		
 		DateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
 		String sb = "## DATE=" + dateFormat.format(new Date()) + "\n";
 		sb += "## TOOL_NAME=" + options.getPGName() + ", version " + options.getVersion() + "\n";
@@ -122,7 +136,7 @@ public class MitoPileline {
 		sb += "## INFO=MIN_NONREF_PERCENT:" + options.getNonRefThreshold() + "\n";
 		sb += "Reference\tPosition\tRef_base\t" + StrandEnum.getHeader() + "\n";
 		writer.write(sb);			
-		
+*/	
 		//all pileup dataset
     	IndexedFastaSequenceFile indexedFastaFile = Reference.getIndexedFastaFile( new File(referenceFile) );
        	referenceBases = indexedFastaFile.getSubsequenceAt(referenceRecord.getSequenceName(), 1,referenceRecord.getSequenceLength()).getBases();
@@ -134,7 +148,7 @@ public class MitoPileline {
  			
 			QPileupRecord qRecord = new QPileupRecord(pos, 
 					forward.getStrandElementMap(i), reverse.getStrandElementMap(i));			
-			sb = qRecord.getPositionString() + qRecord.getStrandRecordString() + "\n" ;		
+			String sb = qRecord.getPositionString() + qRecord.getStrandRecordString() + "\n" ;		
 			writer.write(sb);		 		
  		}			
 
