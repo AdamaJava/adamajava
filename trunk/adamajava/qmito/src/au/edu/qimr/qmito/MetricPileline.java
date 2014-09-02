@@ -36,8 +36,10 @@ import net.sf.samtools.SAMFileReader.ValidationStringency;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.meta.KeyValue;
 import org.qcmg.common.meta.QExec;
 import org.qcmg.common.meta.QLimsMeta;
+import org.qcmg.common.meta.QToolMeta;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.util.QLimsMetaFactory;
 import org.qcmg.qbamfilter.query.QueryExecutor;
@@ -45,98 +47,93 @@ import org.qcmg.qbamfilter.query.QueryExecutor;
 import au.edu.qimr.qlib.qpileup.*;
 import au.edu.qimr.qlib.util.*;
 
-public class MitoPileline {
+public class MetricPileline {
 	
 	private QLogger logger = QLoggerFactory.getLogger(getClass());
-	private int blockSize;
-    private final int sleepUnit = 10;
-    private int noOfThreads;	
 	private String[] bamFiles;	
 	private String outputFile;
 	private String referenceFile;
-//	private AtomicInteger exitStatus = new AtomicInteger(0);
-	private ConcurrentHashMap<String, AtomicLong> totalSAMRecordMap = new ConcurrentHashMap<String, AtomicLong>();
-	private ConcurrentHashMap<String, AtomicLong> filteredSAMRecordMap = new ConcurrentHashMap<String, AtomicLong>();
-	private long startTime;
-	private int bufferNumber;
-	private String mode;
-	private List<String> ranges;
-	private boolean isRemove = false;
-	private boolean isBamOverride = false;
-	
+
 	private Integer lowReadCount;
 	private Integer nonrefThreshold;
 	private SAMSequenceRecord referenceRecord;
 	private byte[] referenceBases;
-	private Options options;
-	private QueryExecutor exec;
+	private String query;
+	private QExec qexec;
+//	private MetricOptions options;
+//	private QueryExecutor exec;
 	
     NonReferenceRecord forwardNonRef = null;
     NonReferenceRecord reverseNonRef = null;	
     private StrandDS forward = null;
     private StrandDS reverse = null;
-    
-    
-	public MitoPileline(Options options) throws Exception {
+
+	public MetricPileline(MetricOptions options) throws Exception {
 		 
 		this.bamFiles = options.getInputFileNames();
-		this.startTime = System.currentTimeMillis();
-		exec = new QueryExecutor(options.getQuery());	
+		this.query = options.getQuery();
+		this.qexec = options.getQExec();
+		
 		lowReadCount = options.getLowReadCount();
 		nonrefThreshold = options.getNonRefThreshold();
 		referenceRecord = options.getReferenceRecord();
 		referenceFile = options.getReferenceFile();
 		outputFile = options.getOutputFileName();
 		
-		this.options = options;		
+	//	this.options = options;		
       	forward = new StrandDS( referenceRecord, false );
     	reverse = new StrandDS(referenceRecord, true );
        			
 		//alalysis reads
+    	QueryExecutor exec = new QueryExecutor(options.getQuery());	
 		for (String bam : bamFiles) {       	 
-        	readSAMRecords(bam) ;	
+        	readSAMRecords(bam,exec) ;	
         	//add the stats that need to be done at the end to the datasets				
-        	forward.finalizeMetrics(referenceRecord.getSequenceLength(), isRemove, forwardNonRef);
-        	reverse.finalizeMetrics(referenceRecord.getSequenceLength(), isRemove, reverseNonRef); 
+        	forward.finalizeMetrics(referenceRecord.getSequenceLength(), false, forwardNonRef);
+        	reverse.finalizeMetrics(referenceRecord.getSequenceLength(), false, reverseNonRef); 
 		}
-		
 	}
 	
-	
+	private void createHeader(BufferedWriter writer) throws Exception{
+ 		//output tool execution information	
+		writer.write(qexec.getExecMetaDataToString());
 
-	
+		//output input files information		
+		for (String bam : bamFiles) {       	 
+			SAMFileHeader header = SAMFileReaderFactory.createSAMFileReader(bam).getFileHeader(); 
+			QLimsMeta limsMeta = QLimsMetaFactory.getLimsMeta("input", bam, header);		 
+			writer.write(limsMeta.getLimsMetaDataToString() );
+		}
+		
+		//output tool parameters
+		KeyValue[] array = new KeyValue[5];
+		array[0] = new KeyValue("ReferenceFile", referenceFile); 
+		array[1] = new KeyValue("ReferenceName", referenceRecord.getSequenceName() + ",LENGTH:" + referenceRecord.getSequenceLength());
+		array[2] = new KeyValue("QueryForQbamfilter", query );
+		array[3] = new KeyValue("LOW_READ_COUNT", lowReadCount.toString() );
+		array[4] = new KeyValue("MIN_NONREF_PERCENT",  nonrefThreshold.toString() );		
+		
+		QToolMeta meta = new QToolMeta("qMito", array);
+		writer.write(meta.getToolMetaDataToString());	
+		
+		//output column names
+		writer.write("Reference\tPosition\tRef_base\t" + StrandEnum.getHeader() + "\n");
+		
+		
+	}
+
 	/**
 	 * it output all pileup datasets into tsv format file
 	 * @param output: output file name with full path
 	 * @throws Exception 
 	 */
  	public void report() throws Exception{
- 		//QExec(String programName, String programVersion, String[] args, String uuid) {	
- 		QExec qexec = options.getQExec();
+ 		
 		BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile, false));
 		
-		//headlines
-		writer.write(qexec.getExecMetaDataToString());
-		for (String bam : bamFiles) {       	 
-			SAMFileHeader header = SAMFileReaderFactory.createSAMFileReader(bam).getFileHeader(); 
-			QLimsMeta limsMeta = QLimsMetaFactory.getLimsMeta("input", bam, header);		 
-			writer.write(limsMeta.getLimsMetaDataToString() );
-		}
-		writer.write("Reference\tPosition\tRef_base\t" + StrandEnum.getHeader() + "\n");
-/*		
-		DateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
-		String sb = "## DATE=" + dateFormat.format(new Date()) + "\n";
-		sb += "## TOOL_NAME=" + options.getPGName() + ", version " + options.getVersion() + "\n";
-		sb += "## REFERENCE=FILE: " + referenceFile + "\n";
-		sb += "## REFERENCE=SEQUENCE: " + referenceRecord.getSequenceName() + ",LENGTH:" + referenceRecord.getSequenceLength() + "\n";
-		sb += "## INFO=BAMS_ADDED:" + bamFiles.length + "\n";
-		for (String bam : bamFiles)
-			sb += "## INFO=BAMS_FILE:" + bam + "\n";
-		sb += "## INFO=LOW_READ_COUNT:" + options.getLowReadCount() + "\n";
-		sb += "## INFO=MIN_NONREF_PERCENT:" + options.getNonRefThreshold() + "\n";
-		sb += "Reference\tPosition\tRef_base\t" + StrandEnum.getHeader() + "\n";
-		writer.write(sb);			
-*/	
+		//create header lines
+		createHeader(writer);
+		
 		//all pileup dataset
     	IndexedFastaSequenceFile indexedFastaFile = Reference.getIndexedFastaFile( new File(referenceFile) );
        	referenceBases = indexedFastaFile.getSubsequenceAt(referenceRecord.getSequenceName(), 1,referenceRecord.getSequenceLength()).getBases();
@@ -163,7 +160,7 @@ public class MitoPileline {
 	 * @param exec: qbamfilter query executor
 	 * @throws Exception
 	 */
-	void readSAMRecords(String bamFile) throws Exception{							
+	void readSAMRecords(String bamFile, QueryExecutor exec) throws Exception{							
 
     	try {            		
     		//set up overall stats for the bam 
