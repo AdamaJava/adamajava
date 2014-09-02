@@ -34,7 +34,7 @@ import net.sf.samtools.SAMRecordIterator;
 import net.sf.samtools.SAMFileReader.ValidationStringency;
 import net.sf.samtools.SAMSequenceRecord;
 
-public class MitoPilelineTest {
+public class MetricPilelineTest {
 	private String input = "./input.bam";
 	private String reference = "./reference.fa";
 	private String log = "./output.log";
@@ -54,11 +54,11 @@ public class MitoPilelineTest {
 	@Test
 	public void pilelineTest(){
 		//here we use fake reference file, since it won't be used only passing to option 
-		String[] args = {"-r", input,"-i", input, "-o", output, "--log",log, "--lowreadcount","2", "--nonrefthreshold" , "50" };
+		String[] args = {"-m", "metric", "-r", input,"-i", input, "-o", output, "--log",log, "--lowreadcount","2", "--nonrefthreshold" , "50" };
 		try {
-			Options options = new Options(args);
+			MetricOptions options = new Options(args).getMetricOption();
 			//here we can't call mito.report since we testing data don't provide reference index file		
-			MitoPileline mito = new MitoPileline(options);
+			MetricPileline mito = new MetricPileline(options);
 		    
 			//Here we only test last three base of chrMT
 			int posStart = 16567;			
@@ -93,7 +93,7 @@ public class MitoPilelineTest {
 			e.printStackTrace();
 		}
 	}
-	
+/*	
  	private void readReads(Options options ){
 		SAMSequenceRecord ref =  options.getReferenceRecord();
 	 
@@ -110,4 +110,5 @@ public class MitoPilelineTest {
 		}
 		reader.close();
 	}
+*/
 }
