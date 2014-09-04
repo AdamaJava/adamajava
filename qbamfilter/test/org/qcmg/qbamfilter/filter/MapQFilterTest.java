@@ -1,11 +1,17 @@
 package org.qcmg.qbamfilter.filter;
 
-import org.junit.*;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import java.io.File;
+
+import net.sf.picard.filter.SamRecordFilter;
 import net.sf.samtools.SAMFileReader;
 import net.sf.samtools.SAMRecord;
-import net.sf.picard.filter.SamRecordFilter;
-import java.io.File;
+
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 
 public class MapQFilterTest {
@@ -55,14 +61,15 @@ public class MapQFilterTest {
      */
     @Test
     public void testInvalidMapQ() throws Exception{
-        SAMFileReader Inreader = new SAMFileReader(new File(TestFile.INPUT_FILE_NAME));
-        SamRecordFilter filter = new MapQFilter(Comparator.Small, "1000");
-        for(SAMRecord re : Inreader){
-            re.setMappingQuality(256);
-            assertFalse(re.isValid() == null);
-            assertTrue(filter.filterOut(re));
-            break;
-       }
+        try (SAMFileReader Inreader = new SAMFileReader(new File(TestFile.INPUT_FILE_NAME));) {
+	        SamRecordFilter filter = new MapQFilter(Comparator.Small, "1000");
+	        for(SAMRecord re : Inreader){
+	            re.setMappingQuality(256);
+	            assertFalse(re.isValid() == null);
+	            assertTrue(filter.filterOut(re));
+	            break;
+	       }
+        }
 
     }
 }
