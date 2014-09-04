@@ -1,12 +1,17 @@
 package org.qcmg.qbamfilter.filter;
 
  
-import org.junit.*;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
+
+import java.io.File;
+
+import net.sf.picard.filter.SamRecordFilter;
 import net.sf.samtools.SAMFileReader;
 import net.sf.samtools.SAMRecord;
-import net.sf.picard.filter.SamRecordFilter;
-import java.io.File;
+
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 public class ISIZETest {
     @BeforeClass
@@ -55,13 +60,14 @@ public class ISIZETest {
      */
     @Test
     public void testNegativeValue() throws Exception{
-        SAMFileReader Inreader = new SAMFileReader(new File(TestFile.INPUT_FILE_NAME));
-        SamRecordFilter filter = new IsizeFilter(Comparator.Great, "-101");
-        for(SAMRecord re : Inreader){
-        	re.setInferredInsertSize(-100);
-            assertTrue(filter.filterOut(re));
-            break;
-       }
+        try (SAMFileReader Inreader = new SAMFileReader(new File(TestFile.INPUT_FILE_NAME));) {
+	        SamRecordFilter filter = new IsizeFilter(Comparator.Great, "-101");
+	        for(SAMRecord re : Inreader){
+	        	re.setInferredInsertSize(-100);
+	            assertTrue(filter.filterOut(re));
+	            break;
+	       }
+        }
 
     }
 }
