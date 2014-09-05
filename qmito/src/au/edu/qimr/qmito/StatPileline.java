@@ -56,23 +56,6 @@ public class StatPileline {
  		 if(control.size() != test.size())
  			 throw new Exception("Two input metric files contains differnt line number ( position number)");
 		 
-		//create
-		long[] a1 = {0,1};
-		long[] a2 = {1, 0};
-		
-		 
-		
-			ChiSquareTest chiTest = new ChiSquareTest();
-			double out1 = 0, out2=0;
-		try{
-			out1 = chiTest.chiSquareTestDataSetsComparison (a1, a2);
-			out2 = chiTest.chiSquareTestDataSetsComparison (a2, a1);
-		}catch(ZeroException e){
-			
-		}
-		
-		System.out.println( "testing output: " + out1);	
-		System.out.println( "testing output: " + out2);
 	}
  
 	
