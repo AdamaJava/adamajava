@@ -70,6 +70,8 @@ public class MetricPileline {
     
     private long[] Fmismatch = new long[100];
     private long[] Rmismatch = new long[100];
+    private long Ftotal = 0;
+    private long Rtotal = 0;
     
 	public MetricPileline(MetricOptions options) throws Exception {
 		 
@@ -99,7 +101,7 @@ public class MetricPileline {
     	for(int i = 0; i < 100; i ++) 
     		if(Fmismatch[i] > 0 || Rmismatch[i] > 0) 
     			logger.info(String.format("There %d forward records  and %d reverse reacords contains %d base mismatch", Fmismatch[i],Rmismatch[i],i));
-		
+		logger.info(String.format("There are total %d forward records and %d reverse records pileup", Ftotal, Rtotal));
 	}
 	
 	private void createHeader(BufferedWriter writer) throws Exception{
@@ -219,13 +221,13 @@ public class MetricPileline {
 					while (++i < size && Character.isLetter(attribute.charAt(i))) {}
 				} else i++;	// need to increment this or could end up with infinite loop...
 			}
-			if(record.getReadNegativeStrandFlag())	
+			if(record.getReadNegativeStrandFlag()){	
 				Rmismatch[count] ++;
-			else
+				Rtotal ++;
+			}else{
 				Fmismatch[count]++;
-			
- 
-		
+				Ftotal ++;
+			}
 	}
 
 	/**
