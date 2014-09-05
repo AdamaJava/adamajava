@@ -97,11 +97,6 @@ public class MetricPileline {
     	forward.finalizeMetrics(referenceRecord.getSequenceLength(), false, forwardNonRef);
     	reverse.finalizeMetrics(referenceRecord.getSequenceLength(), false, reverseNonRef); 
     	
-    	//report mismatch stats
-    	for(int i = 0; i < 100; i ++) 
-    		if(Fmismatch[i] > 0 || Rmismatch[i] > 0) 
-    			logger.info(String.format("There %d forward records  and %d reverse reacords contains %d base mismatch", Fmismatch[i],Rmismatch[i],i));
-		logger.info(String.format("There are total %d forward records and %d reverse records pileup", Ftotal, Rtotal));
 	}
 	
 	private void createHeader(BufferedWriter writer) throws Exception{
@@ -158,10 +153,15 @@ public class MetricPileline {
 			String sb = qRecord.getPositionString() + qRecord.getStrandRecordString() + "\n" ;		
 			writer.write(sb);		 		
  		}			
-
+		writer.close();	
+		
   	   	logger.info("outputed strand dataset of " + referenceRecord.getSequenceName() + ", pileup position " + referenceRecord.getSequenceLength());    	 			
+    	//report mismatch stats
+    	for(int i = 0; i < 100; i ++) 
+    		if(Fmismatch[i] > 0 || Rmismatch[i] > 0) 
+    			logger.info(String.format("There %d forward records  and %d reverse reacords contains %d base mismatch", Fmismatch[i],Rmismatch[i],i));
+		logger.info(String.format("There are total %d forward records and %d reverse records pileup", Ftotal, Rtotal));
 
-		writer.close();			
 	}
 	/**
 	 * main pileline to run pileup on a single BAM
