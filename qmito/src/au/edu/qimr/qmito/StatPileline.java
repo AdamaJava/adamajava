@@ -175,7 +175,7 @@ public class StatPileline {
 		for (int i = 0; i < 4; i++)
 			line += "test_" + baseName[i] + "_rev\t";
 		line += "test_chi_forVSrev\t";
-		line += "total_chi_conVStest\t";
+		line += "total_chi_conVStest\n";
 		
 		writer.write(line);
  		
