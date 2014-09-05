@@ -67,7 +67,10 @@ public class MetricPileline {
     NonReferenceRecord reverseNonRef = null;	
     private StrandDS forward = null;
     private StrandDS reverse = null;
-
+    
+    private long[] Fmismatch = new long[100];
+    private long[] Rmismatch = new long[100];
+    
 	public MetricPileline(MetricOptions options) throws Exception {
 		 
 		this.bamFiles = options.getInputFileNames();
@@ -86,12 +89,17 @@ public class MetricPileline {
        			
 		//alalysis reads
     	QueryExecutor exec = new QueryExecutor(options.getQuery());	
-		for (String bam : bamFiles) {       	 
-        	readSAMRecords(bam,exec) ;	
-        	//add the stats that need to be done at the end to the datasets				
-        	forward.finalizeMetrics(referenceRecord.getSequenceLength(), false, forwardNonRef);
-        	reverse.finalizeMetrics(referenceRecord.getSequenceLength(), false, reverseNonRef); 
-		}
+		for (String bam : bamFiles)  readSAMRecords(bam,exec) ;	
+		
+    	//add the stats that need to be done at the end to the datasets				
+    	forward.finalizeMetrics(referenceRecord.getSequenceLength(), false, forwardNonRef);
+    	reverse.finalizeMetrics(referenceRecord.getSequenceLength(), false, reverseNonRef); 
+    	
+    	//report mismatch stats
+    	for(int i = 0; i < 100; i ++) 
+    		if(Fmismatch[i] > 0 || Rmismatch[i] > 0) 
+    			logger.info(String.format("There %d forward records  and %d reverse reacords contains %d base mismatch", Fmismatch[i],Rmismatch[i],i));
+		
 	}
 	
 	private void createHeader(BufferedWriter writer) throws Exception{
@@ -167,23 +175,18 @@ public class MetricPileline {
         	forwardNonRef = new NonReferenceRecord(referenceRecord.getSequenceName(), referenceRecord.getSequenceLength(), false, lowReadCount, nonrefThreshold);
         	reverseNonRef = new NonReferenceRecord(referenceRecord.getSequenceName(), referenceRecord.getSequenceLength(), true, lowReadCount, nonrefThreshold);
 			
-        	int numReads = 0;
+        	int numReads = 0, total = 0;
 			SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile,ValidationStringency.SILENT);
+			
 			SAMRecordIterator ite = reader.query(referenceRecord.getSequenceName(),0, referenceRecord.getSequenceLength(), false);
 			while(ite.hasNext()){
+				total ++;
 				SAMRecord record = ite.next();	 
-
-/*				
-//debug
-if(record.getAlignmentStart() >= 16478){
-System.out.println(String.format("record mapped on %d~%d,MD:%s", record.getAlignmentStart(), record.getAlignmentEnd(),record.getAttribute("MD")));
-byte[] base = record.getReadBases();
-System.out.print("read base:   "); 
-for(byte b : base)
-	System.out.print( (char) b);
-System.out.println();
-}*/
-            	if(! exec.Execute(record)) continue;			
+            	if(! exec.Execute(record)) continue;	
+            	if(record.getAttribute("MD") == null) continue;
+            	
+				//add little stats here
+				add2Stat(record);            	
 				PileupSAMRecord p = new PileupSAMRecord(record);   
 				//pileup single read
             	p.pileup();    
@@ -194,11 +197,35 @@ System.out.println();
   			}  
 			ite.close();
 			reader.close();
+ 			logger.info("Total read " + total + " reads from input: " + bamFile);					 			 
  			logger.info("Added " + numReads + " reads mapped on "+ referenceRecord.getSequenceName()+" and met query from BAM: " + bamFile);					 			 
     	} catch (Exception e) {
     		logger.error("Exception happened during reading: " + bamFile);
             throw new Exception(ExceptionMessage.getStrackTrace(e) );
     	} 	
+	}
+	
+	private void add2Stat(SAMRecord record){
+		String attribute = (String)record.getAttribute("MD");	
+	 
+			int count = 0;
+			for (int i = 0, size = attribute.length() ; i < size ; ) {
+				char c = attribute.charAt(i);
+				if (c == 'A' || c == 'C' || c == 'G' || c == 'T' || c == 'N') {
+					count++;
+					i++;
+				} else if ( c == '^') {
+					//skip the insertion base
+					while (++i < size && Character.isLetter(attribute.charAt(i))) {}
+				} else i++;	// need to increment this or could end up with infinite loop...
+			}
+			if(record.getReadNegativeStrandFlag())	
+				Rmismatch[count] ++;
+			else
+				Fmismatch[count]++;
+			
+ 
+		
 	}
 
 	/**

@@ -2,8 +2,10 @@ package au.edu.qimr.qmito;
 
 import java.io.BufferedWriter;
 import java.io.File;
+
 import java.io.FileWriter;
 import java.io.IOException;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,31 +13,25 @@ import net.sf.samtools.SAMFileReader;
 import net.sf.samtools.SAMFileWriter;
 import net.sf.samtools.SAMRecord;
 
-import org.junit.Test;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.SAMOrBAMWriterFactory;
 
-import net.sf.picard.reference.FastaSequenceIndex;
-import net.sf.picard.reference.IndexedFastaSequenceFile;
-
 public class TestFile {
-	 
-    public static void CreateFile(List<String> data, String fileName){
-
-       BufferedWriter out;
-       try {
-          out = new BufferedWriter(new FileWriter(fileName));
+	
+  public static void CreateFile(List<String> data, String fileName) throws IOException{
+      
+       try(BufferedWriter out = new BufferedWriter(new FileWriter(fileName));) {
+         
           for (String line : data) {
                   out.write(line + "\n");
           }
           out.close();
-       } catch (IOException e) {
-           System.err.println("IOException caught whilst attempting to write to SAM test file: "
-                                              + fileName + e);
-       }
+       }  
  }
 
-		public static void CreateBam(String output){
+	 
+
+		public static void CreateBam(String output) throws IOException{
 			String sam = "./input.sam";
 			CreateFile(TestFile.CreateSam(), sam);
 			SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(sam,  SAMFileReader.ValidationStringency.SILENT);  

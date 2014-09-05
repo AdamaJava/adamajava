@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -36,19 +37,19 @@ import net.sf.samtools.SAMSequenceRecord;
 
 public class MetricPilelineTest {
 	private String input = "./input.bam";
-	private String reference = "./reference.fa";
 	private String log = "./output.log";
 	private String output = "./output.tsv";
  
 	
 	@Before
-	public void createInput(){	
+	public void createInput() throws IOException{	
 		TestFile.CreateBam(input);
 	}
 	@After
 	public void deleteInput(){	
 		new File(input + ".bai").delete();
 		new File(input).delete();
+		new File(output).delete();
 	}
 	
 	@Test
