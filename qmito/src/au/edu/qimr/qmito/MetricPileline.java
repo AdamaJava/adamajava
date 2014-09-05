@@ -157,10 +157,11 @@ public class MetricPileline {
 		
   	   	logger.info("outputed strand dataset of " + referenceRecord.getSequenceName() + ", pileup position " + referenceRecord.getSequenceLength());    	 			
     	//report mismatch stats
+  	   	long total = Ftotal + Rtotal;
     	for(int i = 0; i < 100; i ++) 
     		if(Fmismatch[i] > 0 || Rmismatch[i] > 0) 
-    			logger.info(String.format("There %d forward records  and %d reverse reacords contains %d base mismatch", Fmismatch[i],Rmismatch[i],i));
-		logger.info(String.format("There are total %d forward records and %d reverse records pileup", Ftotal, Rtotal));
+    			logger.info(String.format("There %d (%.2f) forward records  and %d (%.2f) reverse reacords contains %d base mismatch", Fmismatch[i], (double) Fmismatch[i] / total ,Rmismatch[i], (double) Rmismatch[i] / total, i));
+		logger.info(String.format("There are total %d (%.2f) forward records and %d (%.2f) reverse records pileup", Ftotal,(double) Ftotal / total , Rtotal, (double) Rtotal / total));
 
 	}
 	/**
