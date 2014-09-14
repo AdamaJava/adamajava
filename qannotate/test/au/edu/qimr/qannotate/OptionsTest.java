@@ -41,10 +41,8 @@ public class OptionsTest {
 				"-config","/Users/christix/Documents/tools/snpEff/snpEff.config", 
 				"-stats", "/Users/christix/Documents/Eclipse/data/TP53_snpeff.uniq.output.vcf.snpEff_summary.html",
 				"GRCh37.70", "/Users/christix/Documents/Eclipse/data/TP53_snpeff.uniq.vcf"};
-		     
 		
-		
-		SnpEff.main(args);
+//		SnpEff.main(args);
  
 	}
 	
