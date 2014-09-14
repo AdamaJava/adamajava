@@ -1,4 +1,5 @@
 package au.edu.qimr.qannotate;
+
 import java.text.MessageFormat;
 import java.util.ResourceBundle;
 
@@ -6,19 +7,13 @@ import java.util.ResourceBundle;
  * a collection of methods which return formated message string
  */
 public class Messages {
-    static final ResourceBundle messages =
-        ResourceBundle.getBundle("au.edu.qimr.qannotate.messages");
-
-    public static String USAGE = getMessage("USAGE");
-
-    public static String getMessage(final String identifier)
-    {
+    static final ResourceBundle messages = ResourceBundle.getBundle("au.edu.qimr.qannotate.messages");
+ 
+    public static String getMessage(final String identifier) {
         return messages.getString(identifier);
     }
 
-    static String getMessage(final String identifier,
-                             final String argument)
-    {
+    static String getMessage(final String identifier, final String argument){
          String message = Messages.getMessage(identifier);
         Object[] arguments = {argument};
         return MessageFormat.format(message, arguments);

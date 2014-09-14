@@ -16,6 +16,7 @@ public class Options {
 	protected enum MODE {dbSNP, germline, snpEff }
 	
    protected static final String VERSION_DESCRIPTION = Messages.getMessage("VERSION_OPTION_DESCRIPTION");
+	 
    protected static final String HELP_DESCRIPTION = Messages.getMessage("HELP_OPTION_DESCRIPTION");  
     
    protected static final String LOG_DESCRIPTION = Messages.getMessage("LOG_OPTION_DESCRIPTION");
@@ -58,7 +59,7 @@ public class Options {
             return false;
         }
         
-        commandLine = Messages.reconstructCommandLine(args);
+        commandLine = Messages.reconstructCommandLine(args) ;
         
         if(options.has("mode")){  
         	
@@ -86,7 +87,7 @@ public class Options {
 	} 
     
     public void displayHelp() throws Exception {
-		    System.out.println(Messages.USAGE);  
+		    System.out.println(Messages.getMessage("USAGE"));  
 		    Thread.sleep(1);
 		    parser.printHelpOn(System.err);	        
     }
