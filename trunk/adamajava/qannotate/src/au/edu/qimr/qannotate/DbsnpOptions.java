@@ -16,13 +16,17 @@ import org.qcmg.picard.SAMFileReaderFactory;
 /*
  * parse command line to options. 
  */
-public class GermlineOptions extends Options {
-  
-	public final Options.MODE Mode = Options.MODE.germline;
+public class DbsnpOptions extends Options {
+ 	
+ 	 public final Options.MODE Mode = Options.MODE.germline;
 
     /**
      * check command line and store arguments and option information
      */
+ 	
+ 	 
+ //	public DbsnpOptions(){  mode = null;    parser = new OptionParser();  }
+ 	
     @Override
     public boolean parseArgs(final String[] args) throws Exception{  	
     	 

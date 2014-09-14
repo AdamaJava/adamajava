@@ -37,13 +37,16 @@ public class DbsnpMode {
 	VCFHeader header;
 	QLogger logger;
 	
-	public DbsnpMode(File input, File output, File dbSNPFile, QLogger logger, String cmd) throws Exception{
-		this.logger = logger;
+	public DbsnpMode(DbsnpOptions options) throws Exception{
+		logger.tool("input: " + options.getInputFileName());
+        logger.tool("dbSNP file: " + options.getDatabaseFileName() );
+        logger.tool("output for annotated vcf records: " + options.getOutputFileName());
+        logger.info("logger level " + options.getLogLevel());
+ 
 		
-		inputRecord(input);
-		addAnnotation(dbSNPFile);
-		writeVCF(output, cmd);
-		
+		inputRecord(new File( options.getInputFileName())   );
+		addAnnotation(new File( options.getDatabaseFileName() ));
+		writeVCF(new File(options.getOutputFileName()), options.getCommandLine());	
 	}
 	
 //	public void process(){}
