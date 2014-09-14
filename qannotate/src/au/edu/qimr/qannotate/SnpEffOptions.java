@@ -17,25 +17,11 @@ import org.qcmg.picard.SAMFileReaderFactory;
  * parse command line to options. 
  */
 public class SnpEffOptions extends Options {
-  
-//    private boolean commandCheck = false;
-//    private String commandLine;
-
-//    private final OptionParser parser = new OptionParser();
-//    private final OptionSet options;
-
-//    private String outputFileName = null;
-//    private String inputFileName = null;
-//    private String databaseFileName = null;
-//    private String logFileName = null;
-
-//    private  String logLevel;  
-	
-//	public static final String DEFAULT_SUMMARY_CSV_FILE = "snpEff_summary.csv";
+	public final Options.MODE Mode = Options.MODE.snpEff;
 	
 	public static final String DEFAULT_SUMMARY_FILE_SUFFIX = ".snpEff_summary.html";
 	public static final String DEFAULT_CONFIG_FILE = "snpEff.config";
-	public static final Options.MODE Mode = Options.MODE.snpEff;
+	 
     private String configFileName ;
     private String statOutputFileName ;
     
@@ -63,7 +49,7 @@ public class SnpEffOptions extends Options {
 //        parser.acceptsAll( asList("m", "mode"), "snpEff").withRequiredArg().ofType(String.class);
         parser.accepts("log", LOG_DESCRIPTION).withRequiredArg().ofType(String.class);
         parser.accepts("loglevel",  LOG_LEVEL_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
-        options = parser.parse(args);   
+        OptionSet options = parser.parse(args);   
         
         if(options.has("h") || options.has("help")){
         	displayHelp();

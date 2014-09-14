@@ -27,14 +27,19 @@ public class GermlineMode {
 	VCFHeader header;
 	QLogger logger;
 
-	public GermlineMode(File input, File output, File dbGermlineFile, QLogger logger, String cmd) throws Exception{
-		this.logger = logger;
+	public GermlineMode(GermlineOptions options) throws Exception{
+		logger.tool("input: " + options.getInputFileName());
+        logger.tool("dbGermline file: " + options.getDatabaseFileName() );
+        logger.tool("output for annotated vcf records: " + options.getOutputFileName());
+        logger.info("logger level " + options.getLogLevel());
+ 
 		
-		inputRecord(input);
-		addAnnotation(dbGermlineFile);
-//		writeVCF(output, cmd);
-		
+		inputRecord(new File( options.getInputFileName())   );
+		addAnnotation(new File( options.getDatabaseFileName() ));
+		writeVCF(new File(options.getOutputFileName()), options.getCommandLine());	
 	}
+	
+ 
 	private VCFHeader reheader(VCFHeader header, String cmd){
 		final String STANDARD_FINAL_HEADER_LINE = "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO";
 		final String STANDARD_FILE_DATE = "##fileDate=";
@@ -61,8 +66,6 @@ public class GermlineMode {
 	void writeVCF(File outputFile, String cmd ) throws IOException {
 		 
 		logger.info("Writing VCF output");
-		
-	 
 				 		
 		//get Q_EXEC or #Q_DCCMETA  org.qcmg.common.meta.KeyValue.java or org.qcmg.common.meta.QExec.java	
 		List<ChrPosition> orderedList = new ArrayList<ChrPosition>(positionRecordMap.keySet());

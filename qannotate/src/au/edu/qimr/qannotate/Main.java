@@ -18,23 +18,16 @@ public class Main {
 	            	logger = QLoggerFactory.getLogger(Main.class, options.getLogFileName(), options.getLogLevel());
 	               logger.logInitialExecutionStats(options.getPGName(), options.getVersion(),args);
 
-	/*               logger.tool("input: " + options.getInputFileName());
-	               logger.tool("dbSNP file: " + options.getDbSNPFileName() );
-	               logger.tool("output for annotated vcf records: " + options.getOutputFileName());
-	               logger.info("logger level " + options.getLogLevel());
-	               DbsnpMode(File input, File output, File dbSNPFile, QLogger logger)
-	               new DbsnpMode( new File(options.getInputFileName()),
-	            		   new File( options.getOutputFileName() ),
-	            		   new File( options.getDbSNPFileName() ),
-	            		   logger, options.getCommandLine());
-	            		   	            		                   
-*/	    	
+	               
+	         System.out.println(      options.getMode().name() );
+	         
 	               if(options.getMode() == Options.MODE.snpEff)
-	            	   new SnpEffMode((SnpEffOptions) options.getModeOption());
-	               else if(options.getMode() == Options.MODE.germline){}
-	               else if(options.getMode() == Options.MODE.dbSNP){}
+	            	   new SnpEffMode( (SnpEffOptions) options.getOption());
+	               else if(options.getMode() == Options.MODE.germline)
+	            	   new GermlineMode( (GermlineOptions) options.getOption());
+	               else if(options.getMode() == Options.MODE.snpEff){}
 	               else
-	            	   throw new Exception("No valid mode are specified on commandline");
+	            	   throw new Exception("No valid mode are specified on commandline: " + options.getMode().name()) ;
 	       //        new SnpEffMode(new SnpEffOptions(args));
  	               logger.logFinalExecutionStats(0);
 	            }
