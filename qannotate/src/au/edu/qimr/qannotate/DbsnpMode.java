@@ -1,4 +1,4 @@
-package org.qcmg.qannotate;
+package au.edu.qimr.qannotate;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -52,16 +52,14 @@ public class DbsnpMode {
 	void inputRecord(File f) throws Exception{
 		
         //read record into RAM, meanwhile wipe off the ID field value;
-        VCFFileReader reader = new VCFFileReader(f);
-        try {
+ 
+        try(VCFFileReader reader = new VCFFileReader(f)) {
         	header = reader.getHeader();
 			for (VCFRecord qpr : reader) {
 				qpr.setId(".");
 				positionRecordMap.put(new ChrPosition(qpr.getChromosome(), qpr.getPosition()),qpr);
 			}
-		} finally {
-			reader.close();
-		}
+		}  
         
 	}
 	
@@ -106,15 +104,12 @@ public class DbsnpMode {
 	
 	void writeVCF(File outputFile, String cmd ) throws IOException {
  
-		logger.info("Writing VCF output");
-		
-		VCFFileWriter writer = new VCFFileWriter( outputFile);
-				 		
+		logger.info("Writing VCF output");	 		
 		//get Q_EXEC or #Q_DCCMETA  org.qcmg.common.meta.KeyValue.java or org.qcmg.common.meta.QExec.java	
 		List<ChrPosition> orderedList = new ArrayList<ChrPosition>(positionRecordMap.keySet());
 		Collections.sort(orderedList);
 		
-		try {
+		try(VCFFileWriter writer = new VCFFileWriter( outputFile)) {
 			header = reheader(header, cmd);
 			
 			for(String record: header)  writer.addHeader(record);
@@ -122,9 +117,7 @@ public class DbsnpMode {
 				VCFRecord record = positionRecordMap.get(position); 
 				writer.add( record );				 
 			}
-		} finally {
-			writer.close();
-		}
+		}  
 		
 	}
 	

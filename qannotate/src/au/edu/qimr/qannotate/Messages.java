@@ -1,4 +1,4 @@
-package org.qcmg.qannotate;
+package au.edu.qimr.qannotate;
 import java.text.MessageFormat;
 import java.util.ResourceBundle;
 
@@ -7,7 +7,7 @@ import java.util.ResourceBundle;
  */
 public class Messages {
     static final ResourceBundle messages =
-        ResourceBundle.getBundle("org.qcmg.qannotate.messages");
+        ResourceBundle.getBundle("au.edu.qimr.qannotate.messages");
 
     public static String USAGE = getMessage("USAGE");
 

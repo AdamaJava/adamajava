@@ -1,4 +1,4 @@
-package org.qcmg.qannotate;
+package au.edu.qimr.qannotate;
 
 import java.io.File;
 import java.io.IOException;
@@ -62,13 +62,13 @@ public class GermlineMode {
 		 
 		logger.info("Writing VCF output");
 		
-		VCFFileWriter writer = new VCFFileWriter( outputFile);
+	 
 				 		
 		//get Q_EXEC or #Q_DCCMETA  org.qcmg.common.meta.KeyValue.java or org.qcmg.common.meta.QExec.java	
 		List<ChrPosition> orderedList = new ArrayList<ChrPosition>(positionRecordMap.keySet());
 		Collections.sort(orderedList);
 		
-		try {
+		try (VCFFileWriter writer = new VCFFileWriter( outputFile)) {
 			header = reheader(header, cmd);
 			
 			for(String record: header)  writer.addHeader(record);
@@ -76,23 +76,19 @@ public class GermlineMode {
 				VCFRecord record = positionRecordMap.get(position); 
 				writer.add( record );				 
 			}
-		} finally {
-			writer.close();
-		}
+		}  
 		
 	}
 	
 	void inputRecord(File f) throws Exception{
 		
         //read record into RAM, meanwhile wipe off the ID field value;
-        VCFFileReader reader = new VCFFileReader(f);
-        try {
+        
+        try(VCFFileReader reader = new VCFFileReader(f)) {
         	header = reader.getHeader();
 			for (VCFRecord qpr : reader) {
 				positionRecordMap.put(new ChrPosition(qpr.getChromosome(), qpr.getPosition()),qpr);
 			}
-		} finally {
-			reader.close();
 		}       
 	}	 
 	
@@ -107,44 +103,44 @@ public class GermlineMode {
 	 */
 		
 	void addAnnotation(File dbGermlineFile) throws Exception{
-		 try (VCFFileReader reader = new VCFFileReader(dbGermlineFile);) {
-			 String filter = null;
-			 for (VCFRecord dbGermlineVcf : reader) {
-				// vcf dbSNP record chromosome does not contain "chr", whereas the positionRecordMap does - add
-				//eg.positionRecordMap (key, value) = (chr1.100, vcfRecord )
-				VCFRecord inputVcf = positionRecordMap.get(new ChrPosition("chr"+ dbGermlineVcf.getChromosome(), dbGermlineVcf.getPosition()));
-				if (null == inputVcf) continue;
-			 		
-				// only proceed if we have a SOMATIC variant record
-				if ( ! StringUtils.doesStringContainSubString(dbGermlineVcf.getInfo(), "SOMATIC", false)) continue;
-				
-				//reference base must be same
-				if( dbGermlineVcf.getRef() != dbGermlineVcf.getRef() )
-					throw new Exception("reference base are different ");
+		 VCFFileReader reader = new VCFFileReader(dbGermlineFile);
+		 String filter = null;
+		 for (VCFRecord dbGermlineVcf : reader) {
+			// vcf dbSNP record chromosome does not contain "chr", whereas the positionRecordMap does - add
+			//eg.positionRecordMap (key, value) = (chr1.100, vcfRecord )
+			VCFRecord inputVcf = positionRecordMap.get(new ChrPosition("chr"+ dbGermlineVcf.getChromosome(), dbGermlineVcf.getPosition()));
+			if (null == inputVcf) continue;
+		 		
+			// only proceed if we have a SOMATIC variant record
+			if ( ! StringUtils.doesStringContainSubString(dbGermlineVcf.getInfo(), "SOMATIC", false)) continue;
+			
+			//reference base must be same
+			if( dbGermlineVcf.getRef() != dbGermlineVcf.getRef() )
+				throw new Exception("reference base are different ");
+			 
+ 			String [] alts = null; 
+			if(inputVcf.getAlt().length() > 1)	  				
+				alts = TabTokenizer.tokenize(inputVcf.getAlt(), ',');
+		    else 
+				alts = new String[] {inputVcf.getAlt()};			
+			
+			if (null == alts)  continue;			
+			//annotation if at least one alts matches dbSNP alt
+			for (String alt : alts)  
+				if(dbGermlineVcf.getAlt().toUpperCase().contains(alt.toUpperCase()) ){
+					filter = inputVcf.getFilter();
+					if(filter.endsWith("PASS") ){
+							if (filter.indexOf("PASS") != filter.length() - 4)
+							throw new Exception("mutli \"PASS\" marked on the FILTER field for vcf record: " + inputVcf.toString());
+							filter = filter.replace("PASS", "GERM");							
+					}else
+						filter +=  ";GERM";
 				 
-	 			String [] alts = null; 
-				if(inputVcf.getAlt().length() > 1)	  				
-					alts = TabTokenizer.tokenize(inputVcf.getAlt(), ',');
-			    else 
-					alts = new String[] {inputVcf.getAlt()};			
-				
-				if (null == alts)  continue;			
-				//annotation if at least one alts matches dbSNP alt
-				for (String alt : alts)  
-					if(dbGermlineVcf.getAlt().toUpperCase().contains(alt.toUpperCase()) ){
-						filter = inputVcf.getFilter();
-						if(filter.endsWith("PASS") ){
-								if (filter.indexOf("PASS") != filter.length() - 4)
-								throw new Exception("mutli \"PASS\" marked on the FILTER field for vcf record: " + inputVcf.toString());
-								filter = filter.replace("PASS", "GERM");							
-						}else
-							filter +=  ";GERM";
-					 
-						inputVcf.setFilter(filter);
-						break;
-					}
-			 }
+					inputVcf.setFilter(filter);
+					break;
+				}
 		 }
+		 reader.close(); 
 	}
 	
 }
