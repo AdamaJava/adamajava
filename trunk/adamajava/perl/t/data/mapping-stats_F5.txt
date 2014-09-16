@@ -1,0 +1,85 @@
+#Bioscope version: bioscope-v1.2.1-rBS121_Final_47775_20100625065850 
+Mapping Statistics -- Local Alignment Method
+input ma file:/panfs/imb/seq_mapped/S0414_20101104_2_FragPEBC/S16_08/20101202/F5/s_mapping/S0414_20101104_2_FragPEBC_bcSample1_F5-BC_S16_08.csfasta.ma
+
+48,457,491 total tags found
+Reference sequence:/panfs/imb/share/genomes/GRCh37_ICGC_standard_v2/GRCh37_ICGC_standard_v2.fa, 3,101,804,739 bp
+28697605 Mapped reads (59.22%) using parameter settings listed below.
+
+     mismatch penalty = -2.00
+     clearzone = 5.00
+
+Mapped Reads
+  Read Length 35
+     0 mismatches        7,316,818 (25.50%)                          
+     1 mismatches        3,981,378 (13.87%)       11,298,196 (39.37%)
+     2 mismatches        2,511,952 ( 8.75%)       13,810,148 (48.12%)
+     3 mismatches        1,595,261 ( 5.56%)       15,405,409 (53.68%)
+     4 mismatches          493,136 ( 1.72%)       15,898,545 (55.40%)
+  Read Length 34
+     0 mismatches          559,750 ( 1.95%)                                 16,458,295 (57.35%)
+     1 mismatches          522,966 ( 1.82%)        1,082,716 ( 3.77%)       16,981,261 (59.17%)
+     2 mismatches          451,761 ( 1.57%)        1,534,477 ( 5.35%)       17,433,022 (60.75%)
+     3 mismatches          368,819 ( 1.29%)        1,903,296 ( 6.63%)       17,801,841 (62.03%)
+     4 mismatches           68,470 ( 0.24%)        1,971,766 ( 6.87%)       17,870,311 (62.27%)
+  Read Length 33
+     0 mismatches          747,058 ( 2.60%)                                 18,617,369 (64.87%)
+     1 mismatches          696,978 ( 2.43%)        1,444,036 ( 5.03%)       19,314,347 (67.30%)
+     2 mismatches          607,173 ( 2.12%)        2,051,209 ( 7.15%)       19,921,520 (69.42%)
+     3 mismatches          492,245 ( 1.72%)        2,543,454 ( 8.86%)       20,413,765 (71.13%)
+  Read Length 32
+     0 mismatches        1,319,934 ( 4.60%)                                 21,733,699 (75.73%)
+     1 mismatches        1,347,072 ( 4.69%)        2,667,006 ( 9.29%)       23,080,771 (80.43%)
+     2 mismatches        1,197,544 ( 4.17%)        3,864,550 (13.47%)       24,278,315 (84.60%)
+     3 mismatches        1,000,914 ( 3.49%)        4,865,464 (16.95%)       25,279,229 (88.09%)
+  Read Length 31
+     0 mismatches          283,601 ( 0.99%)                                 25,562,830 (89.08%)
+     1 mismatches          389,571 ( 1.36%)          673,172 ( 2.35%)       25,952,401 (90.43%)
+     2 mismatches          451,757 ( 1.57%)        1,124,929 ( 3.92%)       26,404,158 (92.01%)
+     3 mismatches          495,564 ( 1.73%)        1,620,493 ( 5.65%)       26,899,722 (93.74%)
+  Read Length 30
+     0 mismatches          253,867 ( 0.88%)                                 27,153,589 (94.62%)
+     1 mismatches          408,336 ( 1.42%)          662,203 ( 2.31%)       27,561,925 (96.04%)
+     2 mismatches          513,876 ( 1.79%)        1,176,079 ( 4.10%)       28,075,801 (97.83%)
+     3 mismatches          621,804 ( 2.17%)        1,797,883 ( 6.26%)       28,697,605 (100.00%)
+Megabases of coverage 967.289734
+
+Uniquely Placed Reads
+  Read Length 35
+     0 mismatches        6,076,691 (21.17%)                          
+     1 mismatches        3,281,761 (11.44%)        9,358,452 (32.61%)
+     2 mismatches        2,016,877 ( 7.03%)       11,375,329 (39.64%)
+     3 mismatches        1,259,601 ( 4.39%)       12,634,930 (44.03%)
+     4 mismatches          394,174 ( 1.37%)       13,029,104 (45.40%)
+  Read Length 34
+     0 mismatches          460,668 ( 1.61%)                                 13,489,772 (47.01%)
+     1 mismatches          426,844 ( 1.49%)          887,512 ( 3.09%)       13,916,616 (48.49%)
+     2 mismatches          361,452 ( 1.26%)        1,248,964 ( 4.35%)       14,278,068 (49.75%)
+     3 mismatches          290,713 ( 1.01%)        1,539,677 ( 5.37%)       14,568,781 (50.77%)
+     4 mismatches           53,781 ( 0.19%)        1,593,458 ( 5.55%)       14,622,562 (50.95%)
+  Read Length 33
+     0 mismatches          611,628 ( 2.13%)                                 15,234,190 (53.09%)
+     1 mismatches          566,442 ( 1.97%)        1,178,070 ( 4.11%)       15,800,632 (55.06%)
+     2 mismatches          483,769 ( 1.69%)        1,661,839 ( 5.79%)       16,284,401 (56.74%)
+     3 mismatches          390,399 ( 1.36%)        2,052,238 ( 7.15%)       16,674,800 (58.11%)
+  Read Length 32
+     0 mismatches        1,094,030 ( 3.81%)                                 17,768,830 (61.92%)
+     1 mismatches        1,110,441 ( 3.87%)        2,204,471 ( 7.68%)       18,879,271 (65.79%)
+     2 mismatches          972,954 ( 3.39%)        3,177,425 (11.07%)       19,852,225 (69.18%)
+     3 mismatches          817,288 ( 2.85%)        3,994,713 (13.92%)       20,669,513 (72.03%)
+  Read Length 31
+     0 mismatches          227,908 ( 0.79%)                                 20,897,421 (72.82%)
+     1 mismatches          312,292 ( 1.09%)          540,200 ( 1.88%)       21,209,713 (73.91%)
+     2 mismatches          358,468 ( 1.25%)          898,668 ( 3.13%)       21,568,181 (75.16%)
+     3 mismatches          398,756 ( 1.39%)        1,297,424 ( 4.52%)       21,966,937 (76.55%)
+  Read Length 30
+     0 mismatches          201,430 ( 0.70%)                                 22,168,367 (77.25%)
+     1 mismatches          323,941 ( 1.13%)          525,371 ( 1.83%)       22,492,308 (78.38%)
+     2 mismatches          406,529 ( 1.42%)          931,900 ( 3.25%)       22,898,837 (79.79%)
+     3 mismatches          512,044 ( 1.78%)        1,443,944 ( 5.03%)       23,410,881 (81.58%)
+Megabases of coverage 789.289368
+
+Starting Points within Placed Tags
+  Number of Starting Points in Uniquely placed tag 13,085,214 (0.210929% of reference)
+  Average Number of Uniquely Mapped reads per Start Point       1.789109
+  Estimate number of starting point for all mapped tags 16,040,161 (0.258562% of reference)

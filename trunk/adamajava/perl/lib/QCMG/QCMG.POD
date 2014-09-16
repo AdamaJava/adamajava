@@ -1,0 +1,79 @@
+=head1 NAME
+
+QCMG::XXX::YYY - This module does stuff
+
+
+=head1 SYNOPSIS
+
+ use QCMG::XXX::YYY;
+
+ my $obj = QCMG::XXX::YYY->new( filename => $infile );
+
+
+=head1 DESCRIPTION
+
+This module provides ...
+
+
+=head1 PUBLIC METHODS
+
+=over 2
+
+=item B<new()>
+
+ my $obj = QCMG::XXX::YYYY->new( filename => 'myfile.txt',
+                                 verbose  => 1 );
+
+The B<new()> method takes 1 mandatory and 2 optional parameters.  The
+mandatory param is I<filename> which is ...
+and the optional params are I<verbose> which default to 0 and
+indicates the level of verbosity in reporting, and ...
+
+=item B<filename()>
+
+ $obj->filename( 'hohoho.bam' );
+
+Accessor for filename.  No point using the setter because the only
+way to trigger processing of a new file is via B<new()>.
+
+=item B<verbose()>
+
+ $bam->verbose( 2 );
+ my $verb = $bam->verbose;
+
+Accessor for verbosity level of progress reporting.
+
+=back
+
+
+=head1 AUTHORS
+
+John Pearson L<mailto:j.pearson@uq.edu.au>
+
+
+=head1 VERSION
+
+$Id: QCMG.POD 4664 2014-07-24 08:17:04Z j.pearson $
+
+
+=head1 COPYRIGHT
+
+Copyright (c) The University of Queensland 20xx
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the "Software"),
+to deal in the Software without restriction, including without limitation
+the rights to use, copy, modify, merge, publish, distribute, sublicense,
+and/or sell copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.

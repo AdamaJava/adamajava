@@ -1,0 +1,132 @@
+<?xml version='1.0'?>
+<!DOCTYPE flipper SYSTEM "http://bioinformatics.qcmg.org/DTDs/flipper.dtd">
+<flipper_config>
+
+  <!-- Information about this file -->
+  
+  <fileInfo>
+    <cvsId>$Id: flipper.xml,v 1.5 2008/04/30 23:36:08 jpearson Exp $</cvsId>
+    <history>
+      <created>
+        <date>2010-04-15</date>
+        <personName>John V Pearson</personName>
+      </created>
+      <last_modified>
+        <date>$Date: 2010/04/15 23:36:08 $</date>
+        <personName>$Author: jpearson $</personName>
+        <revision>$Revision: 1.5 $</revision>
+      </last_modified>
+    </history>
+    <comment>
+    </comment>
+  </fileInfo>
+   
+  <!-- Directories that are to be purged (except for named files) -->
+
+  <directoriesToBePurged>
+    <directory>
+      <name>../</name>
+      <keepFiles>
+        <file>.svnignore</file>
+        <file>README.QCMGPerl</file>
+      </keepFiles>
+    </directory>
+    <directory>
+      <name>../src</name>
+      <keepFiles>
+        <file>README.src</file>
+      </keepFiles>
+    </directory>
+  </directoriesToBePurged>
+
+  <!-- Projects -->
+
+  <projects>
+    <project>
+      <name>clean</name>
+    </project>
+    <project>
+      <name>qAmplicon</name>
+      <dir>qamplicon/</dir>
+      <files>
+         <file>Makefile.PL</file>
+         <file>MANIFEST</file>
+         <file>README</file>
+      </files>
+    </project>
+    <project>
+      <name>RNA-Mate</name>
+      <dir>rna_mate/</dir>
+      <files>
+         <file>CHANGES</file>
+         <file>Makefile.PL</file>
+         <file>MANIFEST</file>
+         <file>README</file>
+      </files>
+    </project>
+    <project>
+      <name>X-Mate</name>
+      <dir>x_mate/</dir>
+      <files>
+         <file>Makefile.PL</file>
+         <file>MANIFEST</file>
+         <file>README</file>
+      </files>
+    </project>
+    <project>
+      <name>SeqTools</name>
+      <dir>seqtools/</dir>
+      <files>
+         <file>Makefile.PL</file>
+         <file>MANIFEST</file>
+         <file>README</file>
+      </files>
+    </project>
+    <project>
+      <name>SOLiD</name>
+      <dir>solid/</dir>
+      <files>
+         <file>Makefile.PL</file>
+         <file>MANIFEST</file>
+         <file>README</file>
+      </files>
+    </project>
+    <project>
+      <name>Coverage</name>
+      <dir>coverage/</dir>
+      <files>
+         <file>Makefile.PL</file>
+         <file>MANIFEST</file>
+         <file>README</file>
+      </files>
+    </project>
+    <project>
+      <name>Library</name>
+      <dir>library/</dir>
+      <files>
+         <file>Makefile.PL</file>
+         <file>MANIFEST</file>
+         <file>README</file>
+      </files>
+    </project>
+	<project>
+      <name>Maintenance</name>
+      <dir>maintenance/</dir>
+      <files>
+         <file>Makefile.PL</file>
+         <file>MANIFEST</file>
+         <file>README</file>
+      </files>
+    </project>
+	<project>
+      <name>qAmplicon</name>
+      <dir>qamplicon/</dir>
+      <files>
+         <file>Makefile.PL</file>
+         <file>MANIFEST</file>
+         <file>README</file>
+      </files>
+    </project>
+  </projects>
+
+</flipper_config>

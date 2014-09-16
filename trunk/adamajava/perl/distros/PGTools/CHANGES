@@ -1,0 +1,10 @@
+This file contains changes for PGTools 
+
+
+0.0.1   2012-09-06  00:00:00
+  - Library class for dealing with Fasta Files
+  - Decoy
+  - Translate
+  - Help command to browse pod documentation 
+  
+  

@@ -1,0 +1,10 @@
+README.QCMGPerl
+---------------
+
+This is the single repository for all QCMG Perl projects.  It is under
+the control of the 'flipper' multi-project framework so all new projects
+should be created under the distros/ directory, all modules should be
+placed into the single lib/ tree and the distros/flipper.xml file should
+be edited to include the details of the new project.  For more details,
+see the flipper.pl documentation.
+

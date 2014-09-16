@@ -1,0 +1,13 @@
+README.src
+------------------
+
+$Id: README.src,v 1.1 2008/04/14 19:04:32 jpearson Exp $
+
+Nothing should *EVER* get committed in this directory except this README
+file.  All perl/bash/whatever programs should get committed in the
+distros/blah/src directory where "blah" is the name of the
+subproject.  The flipper.pl program will copy scripts from the distro
+directory to this directory as needed.
+
+Note that this README.src file should *never* appear in any 
+project-specific Makefile.PL or MANIFEST file.

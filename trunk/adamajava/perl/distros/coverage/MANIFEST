@@ -1,0 +1,6 @@
+Changes
+Makefile.PL
+MANIFEST
+README
+lib/QCMG/FileDir/Finder.pm
+src/finder.pl

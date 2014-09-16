@@ -1,0 +1,19 @@
+README
+------
+
+The QCMG solid package is a collection of perl modules and scripts that
+are designed to be run on the head-node of the onboard cluster of a SOLiD
+sequencer.  Most of these are associated with data ingestion.
+
+To install this package, uncompress the install, cd into the
+uncompressed directory and type the following sequence of commands:
+
+   perl Makefile.PL
+   make
+   make test
+   make install
+
+The final "make install" command may require that you be root or that
+you have permission to use the sudo command.
+
+$Id: README 4670 2014-07-24 10:50:59Z j.pearson $

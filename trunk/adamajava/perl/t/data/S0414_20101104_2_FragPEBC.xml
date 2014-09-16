@@ -1,0 +1,913 @@
+<com.apldbio.aga.common.model.objects.FlowcellRun>
+  <sampleLoading class="com.apldbio.aga.common.model.objects.SampleLoading_$$_javassist_32" resolves-to="org.hibernate.proxy.pojo.javassist.SerializableProxy">
+    <entityName>com.apldbio.aga.common.model.objects.SampleLoading</entityName>
+    <persistentClass>com.apldbio.aga.common.model.objects.SampleLoading</persistentClass>
+    <interfaces>
+      <java-class>org.hibernate.proxy.HibernateProxy</java-class>
+    </interfaces>
+    <id class="long">44</id>
+    <getIdentifierMethodClass>com.apldbio.aga.common.model.objects.BasePersistentObject</getIdentifierMethodClass>
+    <getIdentifierMethodName>getId</getIdentifierMethodName>
+  </sampleLoading>
+  <flowcellNum>2</flowcellNum>
+  <protocolName>SOLiD4 Multiplex</protocolName>
+  <protocolXML>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;&#x0D;
+&lt;RunProtocol xmlns=&quot;http://aga.apldbio.com/common/runprotocol&quot;&gt;&#x0D;
+&lt;JobSubmission&gt;SOLiD&lt;/JobSubmission&gt;&#x0D;
+&#x0D;
+	&lt;Description&gt;Barcode and Sequencing with 5 primer walkaway.&lt;/Description&gt;&#x0D;
+	&lt;PreScans&gt;&#x0D;
+		&lt;Prescan&gt;&#x0D;
+			&lt;Module type=&quot;fluidic&quot; name=&quot;Reset&quot; safe=&quot;true&quot;&gt;&#x0D;
+				&lt;Description&gt;Denature the templates with Reset Buffer.&lt;/Description&gt;&#x0D;
+				&lt;Script&gt;HOT_RESET_1_265uL.waa&lt;/Script&gt;&#x0D;
+				&lt;Seconds&gt;1223&lt;/Seconds&gt;&#x0D;
+			&lt;/Module&gt;&#x0D;
+			&lt;Module type=&quot;fluidic&quot; name=&quot;P2 Label&quot; safe=&quot;true&quot;&gt;&#x0D;
+				&lt;Description&gt;Hybridize Cy-3 labeled p2 oligo.&lt;/Description&gt;&#x0D;
+				&lt;Script&gt;SOLiD_LABELED_PRIMER_265uL.waa&lt;/Script&gt;&#x0D;
+				&lt;Seconds&gt;954&lt;/Seconds&gt;&#x0D;
+			&lt;/Module&gt;&#x0D;
+			&lt;Module type=&quot;fluidic&quot; name=&quot;Image Prep&quot; safe=&quot;true&quot;&gt;&#x0D;
+				&lt;Description&gt;Wash the flowcell and fill the flowcell with imaging buffer.&lt;/Description&gt;&#x0D;
+				&lt;Script&gt;SOLiD_25IB_265uL.waa&lt;/Script&gt;&#x0D;
+				&lt;Seconds&gt;164&lt;/Seconds&gt;&#x0D;
+			&lt;/Module&gt;&#x0D;
+			&lt;Module type=&quot;imaging&quot; name=&quot;Focus Map&quot; safe=&quot;true&quot;&gt;&#x0D;
+				&lt;Description&gt;Take bead image with Cy-3 for Focal Map.&lt;/Description&gt;&#x0D;
+				&lt;Seconds&gt;0&lt;/Seconds&gt;&#x0D;
+			&lt;/Module&gt;&#x0D;
+			&lt;Description&gt;Focus map with CY3&lt;/Description&gt;&#x0D;
+		&lt;/Prescan&gt;&#x0D;
+	&lt;/PreScans&gt;&#x0D;
+	&#x0D;
+	&lt;MatePairPrimerSetRecommendedOrders&gt;&#x0D;
+		&lt;MatePairPrimerSetRecommendedOrder name=&quot;F3&quot;/&gt;&#x0D;
+	&lt;/MatePairPrimerSetRecommendedOrders&gt;&#x0D;
+			&#x0D;
+	&lt;PEMultiplexPrimerSetRecommendedOrders&gt;&#x0D;
+		&lt;PEMultiplexPrimerSetRecommendedOrder name=&quot;BC&quot;/&gt;&#x0D;
+		&lt;PEMultiplexPrimerSetRecommendedOrder name=&quot;F5-BC&quot;/&gt;&#x0D;
+		&lt;PEMultiplexPrimerSetRecommendedOrder name=&quot;F3&quot;/&gt;&#x0D;
+	&lt;/PEMultiplexPrimerSetRecommendedOrders&gt;&#x0D;
+	&#x0D;
+	&lt;PrimerSets&gt;&#x0D;
+		&lt;PrimerSet name=&quot;F3&quot; sequencing=&quot;F3&quot;&gt;&#x0D;
+		&lt;/PrimerSet&gt;&#x0D;
+		&lt;PrimerSet name=&quot;F5-BC&quot; sequencing=&quot;F5-BC&quot;&gt;&#x0D;
+		&lt;/PrimerSet&gt;&#x0D;
+		&lt;PrimerSet name=&quot;BC&quot; sequencing=&quot;BC&quot;&gt;&#x0D;
+		&lt;/PrimerSet&gt;&#x0D;
+	&lt;/PrimerSets&gt;&#x0D;
+&#x0D;
+	&lt;Sequencing name=&quot;F3&quot;&gt;&#x0D;
+		&lt;PrimerCount&gt;5&lt;/PrimerCount&gt;&#x0D;
+		&lt;MaxCycles&gt;10&lt;/MaxCycles&gt;&#x0D;
+		&lt;DefaultCycles&gt;5&lt;/DefaultCycles&gt;&#x0D;
+		&lt;ProbeSet&gt;12&lt;/ProbeSet&gt;&#x0D;
+		&lt;PrimersPerPlate&gt;5&lt;/PrimersPerPlate&gt;&#x0D;
+		&lt;WellMappingFile&gt;&quot;FivePrimerWalkaway.plt&quot;&lt;/WellMappingFile&gt;&#x0D;
+		&lt;Primers&gt;&#x0D;
+			&lt;Primer name=&quot;1&quot; number=&quot;1&quot; ligationsetup=&quot;ligsetup&quot; ligation=&quot;ligF3&quot;/&gt;&#x0D;
+			&lt;Primer name=&quot;2&quot; number=&quot;2&quot; ligationsetup=&quot;ligsetup&quot; ligation=&quot;ligF3&quot;/&gt;&#x0D;
+			&lt;Primer name=&quot;3&quot; number=&quot;3&quot; ligationsetup=&quot;nestedligsetup&quot; ligation=&quot;ligF3&quot;/&gt;&#x0D;
+			&lt;Primer name=&quot;4&quot; number=&quot;4&quot; ligationsetup=&quot;nestedligsetup&quot; ligation=&quot;ligF3&quot;/&gt;&#x0D;
+			&lt;Primer name=&quot;5&quot; number=&quot;5&quot; ligationsetup=&quot;nestedligsetup&quot; ligation=&quot;ligF3PE&quot;/&gt;&#x0D;
+		&lt;/Primers&gt;&#x0D;
+	&lt;/Sequencing&gt;&#x0D;
+	&#x0D;
+	&lt;Sequencing name=&quot;F5-BC&quot;&gt;&#x0D;
+		&lt;PrimerCount&gt;5&lt;/PrimerCount&gt;&#x0D;
+		&lt;MaxCycles&gt;7&lt;/MaxCycles&gt;&#x0D;
+		&lt;DefaultCycles&gt;5&lt;/DefaultCycles&gt;&#x0D;
+		&lt;ProbeSet&gt;12&lt;/ProbeSet&gt;&#x0D;
+		&lt;PrimersPerPlate&gt;5&lt;/PrimersPerPlate&gt;&#x0D;
+		&lt;WellMappingFile&gt;&quot;FivePrimerWalkaway.plt&quot;&lt;/WellMappingFile&gt;&#x0D;
+		&lt;Primers&gt;&#x0D;
+			&lt;Primer name=&quot;1&quot; number=&quot;1&quot; ligationsetup=&quot;ligsetupR&quot; ligation=&quot;ligR&quot;/&gt;&#x0D;
+			&lt;Primer name=&quot;2&quot; number=&quot;2&quot; ligationsetup=&quot;ligsetupR&quot; ligation=&quot;ligR&quot;/&gt;&#x0D;
+			&lt;Primer name=&quot;3&quot; number=&quot;3&quot; ligationsetup=&quot;nestedligsetupR&quot; ligation=&quot;ligR&quot;/&gt;&#x0D;
+			&lt;Primer name=&quot;4&quot; number=&quot;4&quot; ligationsetup=&quot;nestedligsetupR&quot; ligation=&quot;ligR&quot;/&gt;&#x0D;
+			&lt;Primer name=&quot;5&quot; number=&quot;5&quot; ligationsetup=&quot;nestedligsetupR&quot; ligation=&quot;ligPER&quot;/&gt;&#x0D;
+		&lt;/Primers&gt;&#x0D;
+	&lt;/Sequencing&gt;&#x0D;
+	&#x0D;
+	&lt;Sequencing name=&quot;BC&quot;&gt;&#x0D;
+		&lt;PrimerCount&gt;5&lt;/PrimerCount&gt;&#x0D;
+		&lt;MaxCycles&gt;2&lt;/MaxCycles&gt;&#x0D;
+		&lt;DefaultCycles&gt;5&lt;/DefaultCycles&gt;&#x0D;
+		&lt;ProbeSet&gt;12&lt;/ProbeSet&gt;&#x0D;
+		&lt;PrimersPerPlate&gt;5&lt;/PrimersPerPlate&gt;&#x0D;
+		&lt;WellMappingFile&gt;&quot;FivePrimerWalkaway.plt&quot;&lt;/WellMappingFile&gt;&#x0D;
+		&lt;Primers&gt;&#x0D;
+			&lt;Primer name=&quot;1&quot; number=&quot;1&quot; ligationsetup=&quot;ligsetupA&quot; ligation=&quot;ligBC&quot;/&gt;&#x0D;
+			&lt;Primer name=&quot;2&quot; number=&quot;2&quot; ligationsetup=&quot;ligsetupB&quot; ligation=&quot;ligBC&quot;/&gt;&#x0D;
+			&lt;Primer name=&quot;3&quot; number=&quot;3&quot; ligationsetup=&quot;ligsetupC&quot; ligation=&quot;ligBC&quot;/&gt;&#x0D;
+			&lt;Primer name=&quot;4&quot; number=&quot;4&quot; ligationsetup=&quot;ligsetupD&quot; ligation=&quot;ligBC&quot;/&gt;&#x0D;
+			&lt;Primer name=&quot;5&quot; number=&quot;5&quot; ligationsetup=&quot;ligsetupE&quot; ligation=&quot;ligBCPE&quot;/&gt;&#x0D;
+		&lt;/Primers&gt;&#x0D;
+	&lt;/Sequencing&gt;&#x0D;
+&#x0D;
+	&lt;LigationSetup name=&quot;ligsetup&quot;&gt;&#x0D;
+		&lt;Description&gt;Hybridize primer.&lt;/Description&gt;&#x0D;
+		&lt;Module type=&quot;fluidic&quot; name=&quot;Reset&quot; safe=&quot;true&quot;&gt;&#x0D;
+			&lt;Description&gt;Denature the templates with Reset Buffer.&lt;/Description&gt;&#x0D;
+			&lt;Script&gt;HOT_RESET_2_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;1120&lt;/Seconds&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module type=&quot;fluidic&quot; name=&quot;Prime/Ligate Mix&quot; safe=&quot;false&quot;&gt;&#x0D;
+			&lt;Description&gt;Hybridize primer and prepare ligate mix with Probe A for the next module.&lt;/Description&gt;&#x0D;
+			&lt;Script&gt;SOLiD_SEQUENCING_PRIMER_tr_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;790&lt;/Seconds&gt;&#x0D;
+			&lt;ExtraScript name=&quot;RemixScript&quot; Seconds=&quot;0&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;ResumeScript&quot; Seconds=&quot;0&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;PauseScript&quot; Seconds=&quot;3&quot; ScriptFileName=&quot;SOLiD_PAUSE.waa&quot;/&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+	&lt;/LigationSetup&gt;&#x0D;
+	&#x0D;
+	&lt;LigationSetup name=&quot;nestedligsetup&quot;&gt;&#x0D;
+		&lt;Description&gt;Hybridize primer and add bridge probe.&lt;/Description&gt;&#x0D;
+		&#x0D;
+		&lt;Module type=&quot;fluidic&quot; name=&quot;Reset&quot; safe=&quot;true&quot;&gt;&#x0D;
+			&lt;Description&gt;Denature the templates with Reset Buffer.&#x0D;
+		    &lt;/Description&gt;&#x0D;
+			&lt;Script&gt;HOT_RESET_2_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;1120&lt;/Seconds&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module type=&quot;fluidic&quot; name=&quot;Prime/Bridge Ligate Mix&quot; safe=&quot;false&quot;&gt;&#x0D;
+			&lt;Description&gt;Hybridize primer and prepare bridge ligate mix for the next module.&lt;/Description&gt;&#x0D;
+		    &#x0D;
+			&lt;Script&gt;SOLiD_SEQUENCING_PRIMER_nested_tr_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;790&lt;/Seconds&gt;&#x0D;
+			&lt;ExtraScript name=&quot;RemixScript&quot; Seconds=&quot;0&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;ResumeScript&quot; Seconds=&quot;0&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;PauseScript&quot; Seconds=&quot;3&quot; ScriptFileName=&quot;SOLiD_PAUSE.waa&quot;/&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module type=&quot;fluidic&quot; name=&quot;Ligate bridge/Phosphatase Mix&quot; safe=&quot;false&quot;&gt;&#x0D;
+			&lt;Description&gt;Add bridge probe by ligation and prepare phosphatase mix for the next module.&lt;/Description&gt;&#x0D;
+		    &#x0D;
+			&lt;Script&gt;SOLiD_LIGATE_nested_tr_265uL_FL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;1576&lt;/Seconds&gt;&#x0D;
+			&lt;ExtraScript name=&quot;RemixScript&quot; Seconds=&quot;200&quot; ScriptFileName=&quot;SOLiD_LIGATE_nested_tr_REMIX_265uL.waa&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;ResumeScript&quot; Seconds=&quot;3&quot; ScriptFileName=&quot;SOLiD_LIGATE_nested_tr_RESUME.waa&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;PauseScript&quot; Seconds=&quot;3&quot; ScriptFileName=&quot;SOLiD_PAUSE.waa&quot;/&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module type=&quot;fluidic&quot; name=&quot;Phosphatase bridge&quot; safe=&quot;false&quot;&gt;&#x0D;
+			&lt;Description&gt;Phosphatase on bridge probe.&lt;/Description&gt;&#x0D;
+		    &#x0D;
+			&lt;Script&gt;SOLiD_PHOSPHATASE_tr_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;437&lt;/Seconds&gt;&#x0D;
+			&lt;ExtraScript name=&quot;RemixScript&quot; Seconds=&quot;150&quot; ScriptFileName=&quot;SOLiD_PHOSPHATASE_tr_REMIX_265uL_FL.waa&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;ResumeScript&quot; Seconds=&quot;3&quot; ScriptFileName=&quot;SOLiD_PHOSPHATASE_tr_RESUME.waa&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;PauseScript&quot; Seconds=&quot;3&quot; ScriptFileName=&quot;SOLiD_PAUSE.waa&quot;/&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module type=&quot;fluidic&quot; name=&quot;Cleave/Ligate Mix&quot; safe=&quot;false&quot;&gt;&#x0D;
+			&lt;Description&gt;Cleave and prepare ligate mix with Probe A for the next module.&lt;/Description&gt;&#x0D;
+		    &#x0D;
+			&lt;Script&gt;SOLiD_CLEAVE_nested_tr_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;895&lt;/Seconds&gt;&#x0D;
+			&lt;ExtraScript name=&quot;RemixScript&quot; Seconds=&quot;0&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;ResumeScript&quot; Seconds=&quot;0&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;PauseScript&quot; Seconds=&quot;3&quot; ScriptFileName=&quot;SOLiD_PAUSE.waa&quot;/&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+	&lt;/LigationSetup&gt;&#x0D;
+	&#x0D;
+	&lt;LigationSetup name=&quot;ligsetupR&quot;&gt;&#x0D;
+		&lt;Description&gt;Hybridize primer.&lt;/Description&gt;&#x0D;
+		&lt;Module type=&quot;fluidic&quot; name=&quot;Reset&quot; safe=&quot;true&quot;&gt;&#x0D;
+			&lt;Description&gt;Denature the templates with Reset Buffer.&lt;/Description&gt;&#x0D;
+			&lt;Script&gt;HOT_RESET_2_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;1120&lt;/Seconds&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module type=&quot;fluidic&quot; name=&quot;Prime/Ligate Mix&quot; safe=&quot;false&quot;&gt;&#x0D;
+			&lt;Description&gt;Hybridize primer and prepare ligate mix with Probe A for the next module.&lt;/Description&gt;&#x0D;
+			&lt;Script&gt;SOLiD_SEQUENCING_PRIMER_RL_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;790&lt;/Seconds&gt;&#x0D;
+			&lt;ExtraScript name=&quot;RemixScript&quot; Seconds=&quot;0&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;ResumeScript&quot; Seconds=&quot;0&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;PauseScript&quot; Seconds=&quot;3&quot; ScriptFileName=&quot;SOLiD_PAUSE.waa&quot;/&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+	&lt;/LigationSetup&gt;&#x0D;
+	&#x0D;
+	&lt;LigationSetup name=&quot;nestedligsetupR&quot;&gt;&#x0D;
+		&lt;Description&gt;Hybridize primer and add bridge probe.&lt;/Description&gt;&#x0D;
+		&#x0D;
+		&lt;Module type=&quot;fluidic&quot; name=&quot;Reset&quot; safe=&quot;true&quot;&gt;&#x0D;
+			&lt;Description&gt;Denature the templates with Reset Buffer.&#x0D;
+		    &lt;/Description&gt;&#x0D;
+			&lt;Script&gt;HOT_RESET_2_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;1120&lt;/Seconds&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module type=&quot;fluidic&quot; name=&quot;Prime/Bridge Ligate Mix&quot; safe=&quot;false&quot;&gt;&#x0D;
+			&lt;Description&gt;Hybridize primer and prepare bridge ligate mix for the next module.&lt;/Description&gt;&#x0D;
+		    &#x0D;
+			&lt;Script&gt;SOLiD_SEQUENCING_PRIMER_nested_RL_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;790&lt;/Seconds&gt;&#x0D;
+			&lt;ExtraScript name=&quot;RemixScript&quot; Seconds=&quot;0&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;ResumeScript&quot; Seconds=&quot;0&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;PauseScript&quot; Seconds=&quot;3&quot; ScriptFileName=&quot;SOLiD_PAUSE.waa&quot;/&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module type=&quot;fluidic&quot; name=&quot;Ligate bridge/Capper Enzyme Mix&quot; safe=&quot;false&quot;&gt;&#x0D;
+			&lt;Description&gt;Add bridge probe by ligation and prepare Capper Enzyme mix for the next module.&lt;/Description&gt;&#x0D;
+		    &#x0D;
+			&lt;Script&gt;SOLiD_LIGATE_nested_RL_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;1576&lt;/Seconds&gt;&#x0D;
+			&lt;ExtraScript name=&quot;RemixScript&quot; Seconds=&quot;200&quot; ScriptFileName=&quot;SOLiD_LIGATE_nested_RL_REMIX_265uL.waa&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;ResumeScript&quot; Seconds=&quot;3&quot; ScriptFileName=&quot;SOLiD_LIGATE_nested_RL_RESUME.waa&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;PauseScript&quot; Seconds=&quot;3&quot; ScriptFileName=&quot;SOLiD_PAUSE.waa&quot;/&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module type=&quot;fluidic&quot; name=&quot;Capper Enzyme bridge&quot; safe=&quot;false&quot;&gt;&#x0D;
+			&lt;Description&gt;Phosphatase on bridge probe.&lt;/Description&gt;&#x0D;
+		    &#x0D;
+			&lt;Script&gt;SOLiD_CappingEnzyme_RL_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;663&lt;/Seconds&gt;&#x0D;
+			&lt;ExtraScript name=&quot;RemixScript&quot; Seconds=&quot;150&quot; ScriptFileName=&quot;SOLiD_CappingEnzyme_RL_REMIX_265uL.waa&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;ResumeScript&quot; Seconds=&quot;3&quot; ScriptFileName=&quot;SOLiD_CappingEnzyme_RL_RESUME.waa&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;PauseScript&quot; Seconds=&quot;3&quot; ScriptFileName=&quot;SOLiD_PAUSE.waa&quot;/&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module type=&quot;fluidic&quot; name=&quot;Cleave/RevPhosphatase Mix&quot; safe=&quot;false&quot;&gt;&#x0D;
+			&lt;Description&gt;Cleave and prepare RevPhosphatase mix for the next module.&lt;/Description&gt;&#x0D;
+		    &#x0D;
+			&lt;Script&gt;SOLiD_CLEAVE_nested_RL_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;1002&lt;/Seconds&gt;&#x0D;
+			&lt;ExtraScript name=&quot;RemixScript&quot; Seconds=&quot;0&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;ResumeScript&quot; Seconds=&quot;0&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;PauseScript&quot; Seconds=&quot;3&quot; ScriptFileName=&quot;SOLiD_PAUSE.waa&quot;/&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module type=&quot;fluidic&quot; name=&quot;RevPhosphatase bridge&quot; safe=&quot;false&quot;&gt;&#x0D;
+			&lt;Description&gt;RevPhosphatase.&lt;/Description&gt;&#x0D;
+		    &#x0D;
+			&lt;Script&gt;SOLiD_RevPhosphatase_nested_RL_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;774&lt;/Seconds&gt;&#x0D;
+			&lt;ExtraScript name=&quot;RemixScript&quot; Seconds=&quot;150&quot; ScriptFileName=&quot;SOLiD_RevPhosphatase_RL_REMIX_265uL.waa&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;ResumeScript&quot; Seconds=&quot;3&quot; ScriptFileName=&quot;SOLiD_RevPhosphatase_RL_RESUME.waa&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;PauseScript&quot; Seconds=&quot;3&quot; ScriptFileName=&quot;SOLiD_PAUSE.waa&quot;/&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+	&lt;/LigationSetup&gt;&#x0D;
+	&#x0D;
+	&lt;LigationSetup name=&quot;ligsetupA&quot;&gt;&#x0D;
+		&lt;Description&gt;Hybridize primer A.&lt;/Description&gt;&#x0D;
+		&lt;Module type=&quot;fluidic&quot; name=&quot;Reset&quot; safe=&quot;true&quot;&gt;&#x0D;
+			&lt;Description&gt;Denature the templates with Reset Buffer.&lt;/Description&gt;&#x0D;
+		    &#x0D;
+			&lt;Script&gt;HOT_RESET_2_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;1120&lt;/Seconds&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module type=&quot;fluidic&quot; name=&quot;Prime&quot; safe=&quot;true&quot;&gt;&#x0D;
+			&lt;Description&gt;Hybridize primer A.&lt;/Description&gt;&#x0D;
+		    &#x0D;
+			&lt;Script&gt;BARCODE_PRIMER_A_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;1030&lt;/Seconds&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+	&lt;/LigationSetup&gt;&#x0D;
+	&#x0D;
+	&lt;LigationSetup name=&quot;ligsetupB&quot;&gt;&#x0D;
+		&lt;Description&gt;Hybridize primer B.&lt;/Description&gt;&#x0D;
+		&#x0D;
+		&lt;Module type=&quot;fluidic&quot; name=&quot;Reset&quot; safe=&quot;true&quot;&gt;&#x0D;
+			&lt;Description&gt;Denature the templates with Reset Buffer.&lt;/Description&gt;&#x0D;
+		    &#x0D;
+			&lt;Script&gt;HOT_RESET_2_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;1120&lt;/Seconds&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module type=&quot;fluidic&quot; name=&quot;Prime&quot; safe=&quot;true&quot;&gt;&#x0D;
+			&lt;Description&gt;Hybridize primer B.&lt;/Description&gt;&#x0D;
+		    &#x0D;
+			&lt;Script&gt;BARCODE_PRIMER_B_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;1030&lt;/Seconds&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+	&lt;/LigationSetup&gt;&#x0D;
+	&#x0D;
+	&lt;LigationSetup name=&quot;ligsetupC&quot;&gt;&#x0D;
+		&lt;Description&gt;Hybridize primer c.&lt;/Description&gt;&#x0D;
+		&#x0D;
+		&lt;Module type=&quot;fluidic&quot; name=&quot;Reset&quot; safe=&quot;true&quot;&gt;&#x0D;
+			&lt;Description&gt;Denature the templates with Reset Buffer.&lt;/Description&gt;&#x0D;
+		    &#x0D;
+			&lt;Script&gt;HOT_RESET_2_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;1120&lt;/Seconds&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module type=&quot;fluidic&quot; name=&quot;Prime&quot; safe=&quot;true&quot;&gt;&#x0D;
+			&lt;Description&gt;Hybridize primer C.&lt;/Description&gt;&#x0D;
+		    &#x0D;
+			&lt;Script&gt;BARCODE_PRIMER_C_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;1030&lt;/Seconds&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module type=&quot;fluidic&quot; name=&quot;Ligate bridge C&quot; safe=&quot;true&quot;&gt;&#x0D;
+			&lt;Description&gt;Add bridge probe C by ligation.&lt;/Description&gt;&#x0D;
+		    &#x0D;
+			&lt;Script&gt;Barcode_bridge_C_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;1836&lt;/Seconds&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module type=&quot;fluidic&quot; name=&quot;Phosphatase&quot; safe=&quot;true&quot;&gt;&#x0D;
+			&lt;Description&gt;Phosphatase on bridge probe.&lt;/Description&gt;&#x0D;
+		    &#x0D;
+			&lt;Script&gt;Barcode_phos_265uL_FL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;929&lt;/Seconds&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module type=&quot;fluidic&quot; name=&quot;Cleave&quot; safe=&quot;true&quot;&gt;&#x0D;
+			&lt;Description&gt;Cleave.&lt;/Description&gt;&#x0D;
+		    &#x0D;
+			&lt;Script&gt;SOLiD_CLEAVE_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;1101&lt;/Seconds&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+	&lt;/LigationSetup&gt;&#x0D;
+	&#x0D;
+	&lt;LigationSetup name=&quot;ligsetupD&quot;&gt;&#x0D;
+		&lt;Description&gt;Hybridize primer D.&lt;/Description&gt;&#x0D;
+		&#x0D;
+		&lt;Module type=&quot;fluidic&quot; name=&quot;Reset&quot; safe=&quot;true&quot;&gt;&#x0D;
+			&lt;Description&gt;Denature the templates with Reset Buffer.&lt;/Description&gt;&#x0D;
+		    &#x0D;
+			&lt;Script&gt;HOT_RESET_2_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;1120&lt;/Seconds&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module type=&quot;fluidic&quot; name=&quot;Prime&quot; safe=&quot;true&quot;&gt;&#x0D;
+			&lt;Description&gt;Hybridize primer D.&lt;/Description&gt;&#x0D;
+		    &#x0D;
+			&lt;Script&gt;BARCODE_PRIMER_D_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;1030&lt;/Seconds&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module type=&quot;fluidic&quot; name=&quot;Ligate bridge D&quot; safe=&quot;true&quot;&gt;&#x0D;
+			&lt;Description&gt;Add bridge probe D by ligation.&lt;/Description&gt;&#x0D;
+		    &#x0D;
+			&lt;Script&gt;Barcode_bridge_D_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;1836&lt;/Seconds&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module type=&quot;fluidic&quot; name=&quot;Phosphatase&quot; safe=&quot;true&quot;&gt;&#x0D;
+			&lt;Description&gt;Phosphatase on bridge probe.&lt;/Description&gt;&#x0D;
+		    &#x0D;
+			&lt;Script&gt;Barcode_phos_265uL_FL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;929&lt;/Seconds&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module type=&quot;fluidic&quot; name=&quot;Cleave&quot; safe=&quot;true&quot;&gt;&#x0D;
+			&lt;Description&gt;Cleave.&lt;/Description&gt;&#x0D;
+		    &#x0D;
+			&lt;Script&gt;SOLiD_CLEAVE_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;1101&lt;/Seconds&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+	&lt;/LigationSetup&gt;&#x0D;
+	&#x0D;
+	&lt;LigationSetup name=&quot;ligsetupE&quot;&gt;&#x0D;
+		&lt;Description&gt;Hybridize primer E.&lt;/Description&gt;&#x0D;
+		&#x0D;
+		&lt;Module type=&quot;fluidic&quot; name=&quot;Reset&quot; safe=&quot;true&quot;&gt;&#x0D;
+			&lt;Description&gt;Denature the templates with Reset Buffer.&lt;/Description&gt;&#x0D;
+		    &#x0D;
+			&lt;Script&gt;HOT_RESET_2_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;1120&lt;/Seconds&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module type=&quot;fluidic&quot; name=&quot;Prime&quot; safe=&quot;true&quot;&gt;&#x0D;
+			&lt;Description&gt;Hybridize primer E.&lt;/Description&gt;&#x0D;
+			&#x0D;
+			&lt;Script&gt;BARCODE_PRIMER_E_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;1030&lt;/Seconds&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module type=&quot;fluidic&quot; name=&quot;Ligate bridge E&quot; safe=&quot;true&quot;&gt;&#x0D;
+			&lt;Description&gt;Add bridge probe E by ligation.&lt;/Description&gt;&#x0D;
+		    &#x0D;
+			&lt;Script&gt;Barcode_bridge_E_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;1836&lt;/Seconds&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module type=&quot;fluidic&quot; name=&quot;Phosphatase&quot; safe=&quot;true&quot;&gt;&#x0D;
+			&lt;Description&gt;Phosphatase on bridge probe.&lt;/Description&gt;&#x0D;
+		    &#x0D;
+			&lt;Script&gt;Barcode_phos_265uL_FL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;929&lt;/Seconds&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module type=&quot;fluidic&quot; name=&quot;Cleave&quot; safe=&quot;true&quot;&gt;&#x0D;
+			&lt;Description&gt;Cleave.&lt;/Description&gt;&#x0D;
+		    &#x0D;
+			&lt;Script&gt;SOLiD_CLEAVE_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;1101&lt;/Seconds&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+	&lt;/LigationSetup&gt;&#x0D;
+	&#x0D;
+	&lt;Ligation name=&quot;ligF3&quot;&gt;&#x0D;
+		&lt;Description&gt;ligation cycle.&#x0D;
+		&lt;/Description&gt;&#x0D;
+		&lt;Module conditional=&quot;Not Last Cycle&quot; type=&quot;fluidic&quot; name=&quot;Ligate/Dark Ligate Mix&quot; safe=&quot;false&quot;&gt;&#x0D;
+			&lt;Description&gt;Add Probe A by ligation and prepare Dark Probe Mix for the next module.&lt;/Description&gt;&#x0D;
+			&#x0D;
+			&lt;Script&gt;SOLiD_LIGATE_12_tr_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;2052&lt;/Seconds&gt;&#x0D;
+			&lt;ExtraScript name=&quot;RemixScript&quot; Seconds=&quot;200&quot; ScriptFileName=&quot;SOLiD_LIGATE_tr_REMIX_265uL.waa&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;ResumeScript&quot; Seconds=&quot;3&quot; ScriptFileName=&quot;SOLiD_LIGATE_tr_RESUME.waa&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;PauseScript&quot; Seconds=&quot;3&quot; ScriptFileName=&quot;SOLiD_PAUSE.waa&quot;/&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module conditional=&quot;Not Last Cycle&quot; type=&quot;fluidic&quot; name=&quot;Dark Ligate/Phosphatase Mix&quot; safe=&quot;false&quot;&gt;&#x0D;
+			&lt;Description&gt; Add Dark Probe by ligation and prepare Phosphatase Mix for the next module. &lt;/Description&gt;&#x0D;
+			&lt;Script&gt;SOLiD_DARK_LIGATE_12_tr_265uL_FL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;1140&lt;/Seconds&gt;&#x0D;
+			&lt;ExtraScript name=&quot;RemixScript&quot; Seconds=&quot;200&quot; ScriptFileName=&quot;SOLiD_DARK_LIGATE_tr_REMIX_265uL.waa&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;ResumeScript&quot; Seconds=&quot;3&quot; ScriptFileName=&quot;SOLiD_DARK_LIGATE_tr_RESUME.waa&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;PauseScript&quot; Seconds=&quot;3&quot; ScriptFileName=&quot;SOLiD_PAUSE.waa&quot;/&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module conditional=&quot;Not Last Cycle&quot; type=&quot;fluidic&quot; name=&quot;Phosphatase&quot; safe=&quot;false&quot;&gt;&#x0D;
+			&lt;Description&gt;Phosphatase.&lt;/Description&gt;&#x0D;
+			&#x0D;
+			&lt;Script&gt;SOLiD_PHOSPHATASE_tr_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;438&lt;/Seconds&gt;&#x0D;
+			&lt;ExtraScript name=&quot;RemixScript&quot; Seconds=&quot;150&quot; ScriptFileName=&quot;SOLiD_PHOSPHATASE_tr_REMIX_265uL_FL.waa&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;ResumeScript&quot; Seconds=&quot;3&quot; ScriptFileName=&quot;SOLiD_PHOSPHATASE_tr_RESUME.waa&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;PauseScript&quot; Seconds=&quot;3&quot; ScriptFileName=&quot;SOLiD_PAUSE.waa&quot;/&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module conditional=&quot;Only Last Cycle&quot; type=&quot;fluidic&quot; name=&quot;Ligate&quot; safe=&quot;false&quot;&gt;&#x0D;
+			&lt;Description&gt;Add Probe A by ligation.&lt;/Description&gt;&#x0D;
+			&#x0D;
+			&lt;Script&gt;SOLiD_LIGATE_12_LastCycle_tr_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;2215&lt;/Seconds&gt;&#x0D;
+			&lt;ExtraScript name=&quot;RemixScript&quot; Seconds=&quot;200&quot; ScriptFileName=&quot;SOLiD_LIGATE_tr_REMIX_265uL.waa&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;ResumeScript&quot; Seconds=&quot;3&quot; ScriptFileName=&quot;SOLiD_LIGATE_tr_RESUME.waa&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;PauseScript&quot; Seconds=&quot;3&quot; ScriptFileName=&quot;SOLiD_PAUSE.waa&quot;/&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module conditional=&quot;Only Last Cycle&quot; type=&quot;fluidic&quot; name=&quot;Wash&quot; safe=&quot;true&quot;&gt;&#x0D;
+			&lt;Description&gt;Wash the flowcell with Instrument Buffer and Storage Buffer.&lt;/Description&gt;&#x0D;
+			&#x0D;
+			&lt;Script&gt;SOLiD_HOT_WASH_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;498&lt;/Seconds&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module type=&quot;fluidic&quot; name=&quot;Image Prep&quot; safe=&quot;true&quot;&gt;&#x0D;
+			&lt;Description&gt;Wash the flowcell and fill the flowcell with imaging buffer.&lt;/Description&gt;&#x0D;
+			&#x0D;
+			&lt;Script&gt;SOLiD_25IB_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;177&lt;/Seconds&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module type=&quot;imaging&quot; name=&quot;Scan Slide&quot; safe=&quot;true&quot;&gt;&#x0D;
+			&lt;Description&gt;Take bead image with four colors.&lt;/Description&gt;&#x0D;
+			&#x0D;
+			&lt;Seconds&gt;0&lt;/Seconds&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module conditional=&quot;Not Last Cycle&quot; type=&quot;fluidic&quot; name=&quot;Cleave/Ligate Mix&quot; safe=&quot;false&quot;&gt;&#x0D;
+			&lt;Description&gt;Cleave and prepare ligate mix with Probe A for the next module.&lt;/Description&gt;&#x0D;
+		    &#x0D;
+			&lt;Script&gt;SOLiD_CLEAVE_tr_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;1051&lt;/Seconds&gt;&#x0D;
+			&lt;ExtraScript name=&quot;RemixScript&quot; Seconds=&quot;0&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;ResumeScript&quot; Seconds=&quot;0&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;PauseScript&quot; Seconds=&quot;3&quot; ScriptFileName=&quot;SOLiD_PAUSE.waa&quot;/&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+	&lt;/Ligation&gt;&#x0D;
+	&#x0D;
+	&lt;Ligation name=&quot;ligF3PE&quot;&gt;&#x0D;
+		&lt;Description&gt;ligation cycle.&lt;/Description&gt;&#x0D;
+		&#x0D;
+		&lt;Module conditional=&quot;Not Last Cycle&quot; type=&quot;fluidic&quot; name=&quot;Ligate/Dark Ligate Mix&quot; safe=&quot;false&quot;&gt;&#x0D;
+			&lt;Description&gt;Add Probe A by ligation and prepare Dark Probe Mix for the next module.&lt;/Description&gt;&#x0D;
+			&#x0D;
+			&lt;Script&gt;SOLiD_LIGATE_12_tr_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;2052&lt;/Seconds&gt;&#x0D;
+			&lt;ExtraScript name=&quot;RemixScript&quot; Seconds=&quot;200&quot; ScriptFileName=&quot;SOLiD_LIGATE_tr_REMIX_265uL.waa&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;ResumeScript&quot; Seconds=&quot;3&quot; ScriptFileName=&quot;SOLiD_LIGATE_tr_RESUME.waa&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;PauseScript&quot; Seconds=&quot;3&quot; ScriptFileName=&quot;SOLiD_PAUSE.waa&quot;/&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module conditional=&quot;Not Last Cycle&quot; type=&quot;fluidic&quot; name=&quot;Dark Ligate/Phosphatase Mix&quot; safe=&quot;false&quot;&gt;&#x0D;
+			&lt;Description&gt;Add Dark Probe by ligation and prepare Phosphatase Mix for the next module.&lt;/Description&gt;&#x0D;
+			 &#x0D;
+			&lt;Script&gt;SOLiD_DARK_LIGATE_12_tr_265uL_FL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;1140&lt;/Seconds&gt;&#x0D;
+			&lt;ExtraScript name=&quot;RemixScript&quot; Seconds=&quot;200&quot; ScriptFileName=&quot;SOLiD_DARK_LIGATE_tr_REMIX_265uL.waa&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;ResumeScript&quot; Seconds=&quot;3&quot; ScriptFileName=&quot;SOLiD_DARK_LIGATE_tr_RESUME.waa&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;PauseScript&quot; Seconds=&quot;3&quot; ScriptFileName=&quot;SOLiD_PAUSE.waa&quot;/&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module conditional=&quot;Not Last Cycle&quot; type=&quot;fluidic&quot; name=&quot;Phosphatase&quot; safe=&quot;false&quot;&gt;&#x0D;
+			&lt;Description&gt;Phosphatase.&lt;/Description&gt;&#x0D;
+			&#x0D;
+			&lt;Script&gt;SOLiD_PHOSPHATASE_tr_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;438&lt;/Seconds&gt;&#x0D;
+			&lt;ExtraScript name=&quot;RemixScript&quot; Seconds=&quot;150&quot; ScriptFileName=&quot;SOLiD_PHOSPHATASE_tr_REMIX_265uL_FL.waa&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;ResumeScript&quot; Seconds=&quot;3&quot; ScriptFileName=&quot;SOLiD_PHOSPHATASE_tr_RESUME.waa&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;PauseScript&quot; Seconds=&quot;3&quot; ScriptFileName=&quot;SOLiD_PAUSE.waa&quot;/&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module conditional=&quot;Only Last Cycle&quot; type=&quot;fluidic&quot; name=&quot;Ligate&quot; safe=&quot;false&quot;&gt;&#x0D;
+			&lt;Description&gt;Add Probe A by ligation.&lt;/Description&gt;&#x0D;
+			&#x0D;
+			&lt;Script&gt;SOLiD_LIGATE_12_LastCycle_tr_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;2215&lt;/Seconds&gt;&#x0D;
+			&lt;ExtraScript name=&quot;RemixScript&quot; Seconds=&quot;200&quot; ScriptFileName=&quot;SOLiD_LIGATE_tr_REMIX_265uL.waa&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;ResumeScript&quot; Seconds=&quot;3&quot; ScriptFileName=&quot;SOLiD_LIGATE_tr_RESUME.waa&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;PauseScript&quot; Seconds=&quot;3&quot; ScriptFileName=&quot;SOLiD_PAUSE.waa&quot;/&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module conditional=&quot;Only Last Cycle&quot; type=&quot;fluidic&quot; name=&quot;Wash&quot; safe=&quot;true&quot;&gt;&#x0D;
+			&lt;Description&gt;Wash the flowcell with Instrument Buffer and Storage Buffer.&lt;/Description&gt;&#x0D;
+			&#x0D;
+			&lt;Script&gt;SOLiD_HOT_WASH_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;498&lt;/Seconds&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module type=&quot;fluidic&quot; name=&quot;Image Prep&quot; safe=&quot;true&quot;&gt;&#x0D;
+			&lt;Description&gt;Wash the flowcell and fill the flowcell with imaging buffer.&lt;/Description&gt;&#x0D;
+			&#x0D;
+			&lt;Script&gt;SOLiD_25IB_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;177&lt;/Seconds&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module type=&quot;imaging&quot; name=&quot;Scan Slide&quot; safe=&quot;true&quot;&gt;&#x0D;
+			&lt;Description&gt;Take bead image with four colors.&lt;/Description&gt;&#x0D;
+			&#x0D;
+			&lt;Seconds&gt;0&lt;/Seconds&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module conditional=&quot;Not Last Cycle&quot; type=&quot;fluidic&quot; name=&quot;Cleave/Ligate Mix&quot; safe=&quot;false&quot;&gt;&#x0D;
+			&lt;Description&gt;Cleave and prepare ligate mix with Probe A for the next module.&lt;/Description&gt;&#x0D;
+		    &#x0D;
+			&lt;Script&gt;SOLiD_CLEAVE_tr_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;1051&lt;/Seconds&gt;&#x0D;
+			&lt;ExtraScript name=&quot;RemixScript&quot; Seconds=&quot;0&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;ResumeScript&quot; Seconds=&quot;0&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;PauseScript&quot; Seconds=&quot;3&quot; ScriptFileName=&quot;SOLiD_PAUSE.waa&quot;/&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module conditional=&quot;Only Last Cycle&quot; type=&quot;fluidic&quot; name=&quot;Store&quot; safe=&quot;true&quot;&gt;&#x0D;
+			&lt;Description&gt;Fill the flowcell with Storage Buffer.&lt;/Description&gt;&#x0D;
+		    &#x0D;
+			&lt;Script&gt;Turbo_SOLiD_STORE.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;72&lt;/Seconds&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+	&lt;/Ligation&gt;&#x0D;
+	&#x0D;
+		&lt;Ligation name=&quot;ligR&quot;&gt;&#x0D;
+		&lt;Description&gt;ligation cycle.&#x0D;
+		&lt;/Description&gt;&#x0D;
+		&lt;Module conditional=&quot;Not Last Cycle&quot; type=&quot;fluidic&quot; name=&quot;Ligate/Dark Ligate Mix&quot; safe=&quot;false&quot;&gt;&#x0D;
+			&lt;Description&gt;Add Probe A by ligation and prepare Dark Probe Mix for the next module.&lt;/Description&gt;&#x0D;
+			&#x0D;
+			&lt;Script&gt;SOLiD_LIGATE_RL_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;2587&lt;/Seconds&gt;&#x0D;
+			&lt;ExtraScript name=&quot;RemixScript&quot; Seconds=&quot;200&quot; ScriptFileName=&quot;SOLiD_LIGATE_RL_REMIX_265uL.waa&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;ResumeScript&quot; Seconds=&quot;3&quot; ScriptFileName=&quot;SOLiD_LIGATE_RL_RESUME.waa&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;PauseScript&quot; Seconds=&quot;3&quot; ScriptFileName=&quot;SOLiD_PAUSE.waa&quot;/&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module conditional=&quot;Not Last Cycle&quot; type=&quot;fluidic&quot; name=&quot;Dark Ligate/Capper Enzyme Mix&quot; safe=&quot;false&quot;&gt;&#x0D;
+			&lt;Description&gt; Add Dark Probe by ligation and prepare Capper Enzyme Mix for the next module. &lt;/Description&gt;&#x0D;
+			&lt;Script&gt;SOLiD_DARK_LIGATE_RL_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;2143&lt;/Seconds&gt;&#x0D;
+			&lt;ExtraScript name=&quot;RemixScript&quot; Seconds=&quot;200&quot; ScriptFileName=&quot;SOLiD_DARK_LIGATE_RL_REMIX_265uL.waa&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;ResumeScript&quot; Seconds=&quot;3&quot; ScriptFileName=&quot;SOLiD_DARK_LIGATE_RL_RESUME.waa&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;PauseScript&quot; Seconds=&quot;3&quot; ScriptFileName=&quot;SOLiD_PAUSE.waa&quot;/&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module conditional=&quot;Not Last Cycle&quot; type=&quot;fluidic&quot; name=&quot;Capper Enzyme&quot; safe=&quot;false&quot;&gt;&#x0D;
+			&lt;Description&gt;Capper Enzyme.&lt;/Description&gt;&#x0D;
+			&#x0D;
+			&lt;Script&gt;SOLiD_CappingEnzyme_RL_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;664&lt;/Seconds&gt;&#x0D;
+			&lt;ExtraScript name=&quot;RemixScript&quot; Seconds=&quot;150&quot; ScriptFileName=&quot;SOLiD_CappingEnzyme_RL_REMIX_265uL.waa&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;ResumeScript&quot; Seconds=&quot;3&quot; ScriptFileName=&quot;SOLiD_CappingEnzyme_RL_RESUME.waa&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;PauseScript&quot; Seconds=&quot;3&quot; ScriptFileName=&quot;SOLiD_PAUSE.waa&quot;/&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module conditional=&quot;Only Last Cycle&quot; type=&quot;fluidic&quot; name=&quot;Ligate&quot; safe=&quot;false&quot;&gt;&#x0D;
+			&lt;Description&gt;Add Probe A by ligation.&lt;/Description&gt;&#x0D;
+			&#x0D;
+			&lt;Script&gt;SOLiD_LIGATE_RL_LastCycle_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;2861&lt;/Seconds&gt;&#x0D;
+			&lt;ExtraScript name=&quot;RemixScript&quot; Seconds=&quot;200&quot; ScriptFileName=&quot;SOLiD_LIGATE_RL_REMIX_265uL.waa&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;ResumeScript&quot; Seconds=&quot;3&quot; ScriptFileName=&quot;SOLiD_LIGATE_RL_RESUME.waa&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;PauseScript&quot; Seconds=&quot;3&quot; ScriptFileName=&quot;SOLiD_PAUSE.waa&quot;/&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module conditional=&quot;Only Last Cycle&quot; type=&quot;fluidic&quot; name=&quot;Wash&quot; safe=&quot;true&quot;&gt;&#x0D;
+			&lt;Description&gt;Wash the flowcell with Instrument Buffer and Storage Buffer.&lt;/Description&gt;&#x0D;
+			&#x0D;
+			&lt;Script&gt;SOLiD_HOT_WASH_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;470&lt;/Seconds&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module type=&quot;fluidic&quot; name=&quot;Image Prep&quot; safe=&quot;true&quot;&gt;&#x0D;
+			&lt;Description&gt;Wash the flowcell and fill the flowcell with imaging buffer.&lt;/Description&gt;&#x0D;
+			&#x0D;
+			&lt;Script&gt;SOLiD_25IB_RL_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;164&lt;/Seconds&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module type=&quot;imaging&quot; name=&quot;Scan Slide&quot; safe=&quot;true&quot;&gt;&#x0D;
+			&lt;Description&gt;Take bead image with four colors.&lt;/Description&gt;&#x0D;
+			&#x0D;
+			&lt;Seconds&gt;0&lt;/Seconds&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module conditional=&quot;Not Last Cycle&quot; type=&quot;fluidic&quot; name=&quot;Cleave/RevPhosphatase Mix&quot; safe=&quot;false&quot;&gt;&#x0D;
+			&lt;Description&gt;Cleave and prepare RevPhosphatase mix for the next module.&lt;/Description&gt;&#x0D;
+		    &#x0D;
+			&lt;Script&gt;SOLiD_CLEAVE_RL_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;1083&lt;/Seconds&gt;&#x0D;
+			&lt;ExtraScript name=&quot;RemixScript&quot; Seconds=&quot;0&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;ResumeScript&quot; Seconds=&quot;0&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;PauseScript&quot; Seconds=&quot;3&quot; ScriptFileName=&quot;SOLiD_PAUSE.waa&quot;/&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module conditional=&quot;Not Last Cycle&quot; type=&quot;fluidic&quot; name=&quot;RevPhosphatase/Ligate Mix&quot; safe=&quot;false&quot;&gt;&#x0D;
+			&lt;Description&gt;Add Probe A by ligation and prepare Dark Probe Mix for the next module.&lt;/Description&gt;&#x0D;
+			&#x0D;
+			&lt;Script&gt;SOLiD_RevPhosphatase_RL_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;782&lt;/Seconds&gt;&#x0D;
+			&lt;ExtraScript name=&quot;RemixScript&quot; Seconds=&quot;200&quot; ScriptFileName=&quot;SOLiD_RevPhosphatase_RL_REMIX_265uL.waa&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;ResumeScript&quot; Seconds=&quot;3&quot; ScriptFileName=&quot;SOLiD_RevPhosphatase_RL_RESUME.waa&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;PauseScript&quot; Seconds=&quot;3&quot; ScriptFileName=&quot;SOLiD_PAUSE.waa&quot;/&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+	&lt;/Ligation&gt;&#x0D;
+&#x0D;
+	&lt;Ligation name=&quot;ligPER&quot;&gt;&#x0D;
+		&lt;Description&gt;ligation cycle.&#x0D;
+		&lt;/Description&gt;&#x0D;
+		&lt;Module conditional=&quot;Not Last Cycle&quot; type=&quot;fluidic&quot; name=&quot;Ligate/Dark Ligate Mix&quot; safe=&quot;false&quot;&gt;&#x0D;
+			&lt;Description&gt;Add Probe A by ligation and prepare Dark Probe Mix for the next module.&lt;/Description&gt;&#x0D;
+			&#x0D;
+			&lt;Script&gt;SOLiD_LIGATE_RL_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;2587&lt;/Seconds&gt;&#x0D;
+			&lt;ExtraScript name=&quot;RemixScript&quot; Seconds=&quot;200&quot; ScriptFileName=&quot;SOLiD_LIGATE_RL_REMIX_265uL.waa&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;ResumeScript&quot; Seconds=&quot;3&quot; ScriptFileName=&quot;SOLiD_LIGATE_RL_RESUME.waa&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;PauseScript&quot; Seconds=&quot;3&quot; ScriptFileName=&quot;SOLiD_PAUSE.waa&quot;/&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module conditional=&quot;Not Last Cycle&quot; type=&quot;fluidic&quot; name=&quot;Dark Ligate/Capper Enzyme Mix&quot; safe=&quot;false&quot;&gt;&#x0D;
+			&lt;Description&gt; Add Dark Probe by ligation and prepare Capper Enzyme Mix for the next module. &lt;/Description&gt;&#x0D;
+			&lt;Script&gt;SOLiD_DARK_LIGATE_RL_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;2143&lt;/Seconds&gt;&#x0D;
+			&lt;ExtraScript name=&quot;RemixScript&quot; Seconds=&quot;200&quot; ScriptFileName=&quot;SOLiD_DARK_LIGATE_RL_REMIX_265uL.waa&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;ResumeScript&quot; Seconds=&quot;3&quot; ScriptFileName=&quot;SOLiD_DARK_LIGATE_RL_RESUME.waa&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;PauseScript&quot; Seconds=&quot;3&quot; ScriptFileName=&quot;SOLiD_PAUSE.waa&quot;/&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module conditional=&quot;Not Last Cycle&quot; type=&quot;fluidic&quot; name=&quot;Capper Enzyme&quot; safe=&quot;false&quot;&gt;&#x0D;
+			&lt;Description&gt;Capper Enzyme.&lt;/Description&gt;&#x0D;
+			&#x0D;
+			&lt;Script&gt;SOLiD_CappingEnzyme_RL_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;664&lt;/Seconds&gt;&#x0D;
+			&lt;ExtraScript name=&quot;RemixScript&quot; Seconds=&quot;150&quot; ScriptFileName=&quot;SOLiD_CappingEnzyme_RL_REMIX_265uL.waa&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;ResumeScript&quot; Seconds=&quot;3&quot; ScriptFileName=&quot;SOLiD_CappingEnzyme_RL_RESUME.waa&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;PauseScript&quot; Seconds=&quot;3&quot; ScriptFileName=&quot;SOLiD_PAUSE.waa&quot;/&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module conditional=&quot;Only Last Cycle&quot; type=&quot;fluidic&quot; name=&quot;Ligate&quot; safe=&quot;false&quot;&gt;&#x0D;
+			&lt;Description&gt;Add Probe A by ligation.&lt;/Description&gt;&#x0D;
+			&#x0D;
+			&lt;Script&gt;SOLiD_LIGATE_RL_LastCycle_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;2861&lt;/Seconds&gt;&#x0D;
+			&lt;ExtraScript name=&quot;RemixScript&quot; Seconds=&quot;200&quot; ScriptFileName=&quot;SOLiD_LIGATE_RL_REMIX_265uL.waa&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;ResumeScript&quot; Seconds=&quot;3&quot; ScriptFileName=&quot;SOLiD_LIGATE_RL_RESUME.waa&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;PauseScript&quot; Seconds=&quot;3&quot; ScriptFileName=&quot;SOLiD_PAUSE.waa&quot;/&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module conditional=&quot;Only Last Cycle&quot; type=&quot;fluidic&quot; name=&quot;Wash&quot; safe=&quot;true&quot;&gt;&#x0D;
+			&lt;Description&gt;Wash the flowcell with Instrument Buffer and Storage Buffer.&lt;/Description&gt;&#x0D;
+			&#x0D;
+			&lt;Script&gt;SOLiD_HOT_WASH_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;470&lt;/Seconds&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module type=&quot;fluidic&quot; name=&quot;Image Prep&quot; safe=&quot;true&quot;&gt;&#x0D;
+			&lt;Description&gt;Wash the flowcell and fill the flowcell with imaging buffer.&lt;/Description&gt;&#x0D;
+			&#x0D;
+			&lt;Script&gt;SOLiD_25IB_RL_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;164&lt;/Seconds&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module type=&quot;imaging&quot; name=&quot;Scan Slide&quot; safe=&quot;true&quot;&gt;&#x0D;
+			&lt;Description&gt;Take bead image with four colors.&lt;/Description&gt;&#x0D;
+			&#x0D;
+			&lt;Seconds&gt;0&lt;/Seconds&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module conditional=&quot;Not Last Cycle&quot; type=&quot;fluidic&quot; name=&quot;Cleave/RevPhosphatase Mix&quot; safe=&quot;false&quot;&gt;&#x0D;
+			&lt;Description&gt;Cleave and prepare RevPhosphatase mix for the next module.&lt;/Description&gt;&#x0D;
+		    &#x0D;
+			&lt;Script&gt;SOLiD_CLEAVE_RL_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;1083&lt;/Seconds&gt;&#x0D;
+			&lt;ExtraScript name=&quot;RemixScript&quot; Seconds=&quot;0&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;ResumeScript&quot; Seconds=&quot;0&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;PauseScript&quot; Seconds=&quot;3&quot; ScriptFileName=&quot;SOLiD_PAUSE.waa&quot;/&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module conditional=&quot;Not Last Cycle&quot; type=&quot;fluidic&quot; name=&quot;RevPhosphatase/Ligate Mix&quot; safe=&quot;false&quot;&gt;&#x0D;
+			&lt;Description&gt;Add Probe A by ligation and prepare Dark Probe Mix for the next module.&lt;/Description&gt;&#x0D;
+			&#x0D;
+			&lt;Script&gt;SOLiD_RevPhosphatase_RL_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;782&lt;/Seconds&gt;&#x0D;
+			&lt;ExtraScript name=&quot;RemixScript&quot; Seconds=&quot;200&quot; ScriptFileName=&quot;SOLiD_RevPhosphatase_RL_REMIX_265uL.waa&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;ResumeScript&quot; Seconds=&quot;3&quot; ScriptFileName=&quot;SOLiD_RevPhosphatase_RL_RESUME.waa&quot;/&gt;&#x0D;
+			&lt;ExtraScript name=&quot;PauseScript&quot; Seconds=&quot;3&quot; ScriptFileName=&quot;SOLiD_PAUSE.waa&quot;/&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module conditional=&quot;Only Last Cycle&quot; type=&quot;fluidic&quot; name=&quot;Store/Complete&quot; safe=&quot;true&quot;&gt;&#x0D;
+			&lt;Description&gt;Fill the flowcell with Storage Buffer.&lt;/Description&gt;&#x0D;
+		    &#x0D;
+			&lt;Script&gt;SOLiD_Run_Complete.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;72&lt;/Seconds&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+	&lt;/Ligation&gt;&#x0D;
+&#x0D;
+	&lt;Ligation name=&quot;ligBC&quot;&gt;&#x0D;
+		&lt;Description&gt;ligation cycle.&lt;/Description&gt;&#x0D;
+        &#x0D;
+		&lt;Module type=&quot;fluidic&quot; name=&quot;Ligate&quot; safe=&quot;true&quot;&gt;&#x0D;
+			&lt;Description&gt;Add Probe A by ligation.&lt;/Description&gt;&#x0D;
+			&#x0D;
+			&lt;Script&gt;Barcode_ligate_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;2483&lt;/Seconds&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module conditional=&quot;Not Last Cycle&quot; type=&quot;fluidic&quot; name=&quot;Phosphatase&quot; safe=&quot;true&quot;&gt;&#x0D;
+			&lt;Description&gt;Phosphatase.&lt;/Description&gt;&#x0D;
+		    &#x0D;
+			&lt;Script&gt;Barcode_phos_265uL_FL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;929&lt;/Seconds&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module conditional=&quot;Only Last Cycle&quot; type=&quot;fluidic&quot; name=&quot;Wash&quot; safe=&quot;true&quot;&gt;&#x0D;
+			&lt;Description&gt;Wash the flowcell with Instrument Buffer and Storage Buffer.&lt;/Description&gt;&#x0D;
+			&#x0D;
+			&lt;Script&gt;SOLiD_HOT_WASH_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;470&lt;/Seconds&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module type=&quot;fluidic&quot; name=&quot;Image Prep&quot; safe=&quot;true&quot;&gt;&#x0D;
+			&lt;Description&gt;Wash the flowcell and fill the flowcell with imaging buffer.&lt;/Description&gt;&#x0D;
+			&#x0D;
+			&lt;Script&gt;SOLiD_25IB_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;164&lt;/Seconds&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module type=&quot;imaging&quot; name=&quot;Scan Slide&quot; safe=&quot;true&quot;&gt;&#x0D;
+			&lt;Description&gt;Take bead image with four colors.&lt;/Description&gt;&#x0D;
+			&#x0D;
+			&lt;Seconds&gt;0&lt;/Seconds&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module conditional=&quot;Not Last Cycle&quot; type=&quot;fluidic&quot; name=&quot;Cleave&quot; safe=&quot;true&quot;&gt;&#x0D;
+			&lt;Description&gt;Cleave.&lt;/Description&gt;&#x0D;
+			&#x0D;
+			&lt;Script&gt;SOLiD_CLEAVE_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;1101&lt;/Seconds&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+	&lt;/Ligation&gt;&#x0D;
+&#x0D;
+	&lt;Ligation name=&quot;ligBCPE&quot;&gt;&#x0D;
+		&lt;Description&gt;ligation cycle.&lt;/Description&gt;&#x0D;
+		&#x0D;
+		&lt;Module type=&quot;fluidic&quot; name=&quot;Ligate&quot; safe=&quot;true&quot;&gt;&#x0D;
+			&lt;Description&gt;Add Probe A by ligation.&lt;/Description&gt;&#x0D;
+			&#x0D;
+			&lt;Script&gt;Barcode_ligate_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;2483&lt;/Seconds&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module conditional=&quot;Not Last Cycle&quot; type=&quot;fluidic&quot; name=&quot;Phosphatase&quot; safe=&quot;true&quot;&gt;&#x0D;
+			&lt;Description&gt;Phosphatase.&lt;/Description&gt;&#x0D;
+		    &#x0D;
+			&lt;Script&gt;Barcode_phos_265uL_FL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;929&lt;/Seconds&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module conditional=&quot;Only Last Cycle&quot; type=&quot;fluidic&quot; name=&quot;Wash&quot; safe=&quot;true&quot;&gt;&#x0D;
+			&lt;Description&gt;Wash the flowcell with Instrument Buffer and Storage Buffer.&lt;/Description&gt;&#x0D;
+			&#x0D;
+			&lt;Script&gt;SOLiD_HOT_WASH_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;470&lt;/Seconds&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module type=&quot;fluidic&quot;  name=&quot;Image Prep&quot; safe=&quot;true&quot;&gt;&#x0D;
+			&lt;Description&gt;Wash the flowcell and fill the flowcell with imaging buffer.&lt;/Description&gt;&#x0D;
+			&#x0D;
+			&lt;Script&gt;SOLiD_25IB_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;164&lt;/Seconds&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module type=&quot;imaging&quot; name=&quot;Scan Slide&quot; safe=&quot;true&quot;&gt;&#x0D;
+			&lt;Description&gt;Take bead image with four colors.&lt;/Description&gt;&#x0D;
+			&#x0D;
+			&lt;Seconds&gt;0&lt;/Seconds&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module conditional=&quot;Not Last Cycle&quot; type=&quot;fluidic&quot; name=&quot;Cleave&quot; safe=&quot;true&quot;&gt;&#x0D;
+			&lt;Description&gt;Cleave.&lt;/Description&gt;&#x0D;
+			&#x0D;
+			&lt;Script&gt;SOLiD_CLEAVE_265uL.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;1101&lt;/Seconds&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+		&lt;Module conditional=&quot;Only Last Cycle&quot; type=&quot;fluidic&quot; name=&quot;Store&quot; safe=&quot;true&quot;&gt;&#x0D;
+			&lt;Description&gt;Fill the flowcell with Storage Buffer.&lt;/Description&gt;&#x0D;
+		    &#x0D;
+			&lt;Script&gt;Turbo_SOLiD_STORE.waa&lt;/Script&gt;&#x0D;
+			&lt;Seconds&gt;72&lt;/Seconds&gt;&#x0D;
+		&lt;/Module&gt;&#x0D;
+	&lt;/Ligation&gt;&#x0D;
+&lt;/RunProtocol&gt;&#x0D;
+</protocolXML>
+  <templateName>1 sample in 1_spot_mask_sf [1]</templateName>
+  <numBases>25</numBases>
+  <dateStarted class="sql-timestamp">2010-11-04 17:38:47.421</dateStarted>
+  <dateCompleted class="sql-timestamp">2010-11-29 20:15:00.546</dateCompleted>
+  <description></description>
+  <runType>sequencing</runType>
+  <runState>complete</runState>
+  <focalMapVersion>1</focalMapVersion>
+  <diskUsageResults>948340397504</diskUsageResults>
+  <diskUsageImages>3592021785119</diskUsageImages>
+  <diskUsageIntermediate>8616785491</diskUsageIntermediate>
+  <protocolJobSubmission>SOLiD</protocolJobSubmission>
+  <isCleared>false</isCleared>
+  <sequencingRuns class="org.hibernate.collection.PersistentList">
+    <list>
+      <com.apldbio.aga.common.model.objects.SequencingRun>
+        <dateStarted class="sql-timestamp">2010-11-04 22:23:43.343</dateStarted>
+        <dateCompleted class="sql-timestamp">2010-11-05 21:25:12.296</dateCompleted>
+        <primerSet>
+          <name>BC</name>
+          <primerBase>G</primerBase>
+          <version>1</version>
+          <isPairedEnd>false</isPairedEnd>
+          <id>3</id>
+        </primerSet>
+        <probeSet>
+          <name>12</name>
+          <primerOrder>2, 1, 5, 4, 3</primerOrder>
+          <id>2</id>
+        </probeSet>
+        <numBases>5</numBases>
+        <numPrimers>5</numPrimers>
+        <cycles class="org.hibernate.collection.PersistentSortedSet">
+          <comparator class="com.apldbio.aga.common.model.objects.CycleComparator">
+            <sortBy></sortBy>
+            <ignoreCase>true</ignoreCase>
+          </comparator>
+          <initialized>false</initialized>
+          <owner class="com.apldbio.aga.common.model.objects.SequencingRun" reference="../.."/>
+          <cachedSize>-1</cachedSize>
+          <role>com.apldbio.aga.common.model.objects.SequencingRun.cycles</role>
+          <key class="long">60</key>
+          <dirty>false</dirty>
+        </cycles>
+        <flowcellRun reference="../../../.."/>
+        <index>0</index>
+        <id>60</id>
+      </com.apldbio.aga.common.model.objects.SequencingRun>
+      <com.apldbio.aga.common.model.objects.SequencingRun>
+        <dateStarted class="sql-timestamp">2010-11-05 21:25:12.296</dateStarted>
+        <dateCompleted class="sql-timestamp">2010-11-16 01:17:06.937</dateCompleted>
+        <primerSet>
+          <name>F5-BC</name>
+          <primerBase>G</primerBase>
+          <version>1</version>
+          <isPairedEnd>true</isPairedEnd>
+          <id>5</id>
+        </primerSet>
+        <probeSet reference="../../com.apldbio.aga.common.model.objects.SequencingRun/probeSet"/>
+        <numBases>35</numBases>
+        <numPrimers>5</numPrimers>
+        <cycles class="org.hibernate.collection.PersistentSortedSet">
+          <comparator class="com.apldbio.aga.common.model.objects.CycleComparator" reference="../../../com.apldbio.aga.common.model.objects.SequencingRun/cycles/comparator"/>
+          <initialized>false</initialized>
+          <owner class="com.apldbio.aga.common.model.objects.SequencingRun" reference="../.."/>
+          <cachedSize>-1</cachedSize>
+          <role>com.apldbio.aga.common.model.objects.SequencingRun.cycles</role>
+          <key class="long">61</key>
+          <dirty>false</dirty>
+        </cycles>
+        <flowcellRun reference="../../../.."/>
+        <index>1</index>
+        <id>61</id>
+      </com.apldbio.aga.common.model.objects.SequencingRun>
+      <com.apldbio.aga.common.model.objects.SequencingRun>
+        <dateStarted class="sql-timestamp">2010-11-16 01:17:06.937</dateStarted>
+        <dateCompleted class="sql-timestamp">2010-11-29 20:15:00.187</dateCompleted>
+        <primerSet>
+          <name>F3</name>
+          <primerBase>T</primerBase>
+          <version>1</version>
+          <isPairedEnd>false</isPairedEnd>
+          <id>1</id>
+        </primerSet>
+        <probeSet reference="../../com.apldbio.aga.common.model.objects.SequencingRun/probeSet"/>
+        <numBases>50</numBases>
+        <numPrimers>5</numPrimers>
+        <cycles class="org.hibernate.collection.PersistentSortedSet">
+          <comparator class="com.apldbio.aga.common.model.objects.CycleComparator" reference="../../../com.apldbio.aga.common.model.objects.SequencingRun/cycles/comparator"/>
+          <initialized>false</initialized>
+          <owner class="com.apldbio.aga.common.model.objects.SequencingRun" reference="../.."/>
+          <cachedSize>-1</cachedSize>
+          <role>com.apldbio.aga.common.model.objects.SequencingRun.cycles</role>
+          <key class="long">62</key>
+          <dirty>false</dirty>
+        </cycles>
+        <flowcellRun reference="../../../.."/>
+        <index>2</index>
+        <id>62</id>
+      </com.apldbio.aga.common.model.objects.SequencingRun>
+    </list>
+    <initialized>true</initialized>
+    <owner class="com.apldbio.aga.common.model.objects.FlowcellRun" reference="../.."/>
+    <cachedSize>-1</cachedSize>
+    <role>com.apldbio.aga.common.model.objects.FlowcellRun.sequencingRuns</role>
+    <key class="long">39</key>
+    <dirty>false</dirty>
+    <storedSnapshot class="list">
+      <com.apldbio.aga.common.model.objects.SequencingRun reference="../../list/com.apldbio.aga.common.model.objects.SequencingRun"/>
+      <com.apldbio.aga.common.model.objects.SequencingRun reference="../../list/com.apldbio.aga.common.model.objects.SequencingRun[2]"/>
+      <com.apldbio.aga.common.model.objects.SequencingRun reference="../../list/com.apldbio.aga.common.model.objects.SequencingRun[3]"/>
+    </storedSnapshot>
+  </sequencingRuns>
+  <name>S0414_20101104_2_FragPEBC</name>
+  <version>1</version>
+  <creationUser class="com.apldbio.aga.common.model.objects.User_$$_javassist_13" resolves-to="com.apldbio.aga.common.model.objects.User">
+    <name>lab_user</name>
+    <role>user</role>
+    <instrument>
+      <name>138000414</name>
+      <id>1</id>
+    </instrument>
+    <password>password</password>
+    <isActive>true</isActive>
+    <userPreferences class="org.hibernate.collection.PersistentSet">
+      <initialized>false</initialized>
+      <owner class="com.apldbio.aga.common.model.objects.User">
+        <name>lab_user</name>
+        <role reference="../../../role"/>
+        <instrument reference="../../../instrument"/>
+        <password>password</password>
+        <isActive>true</isActive>
+        <userPreferences class="org.hibernate.collection.PersistentSet" reference="../.."/>
+        <id>2</id>
+      </owner>
+      <cachedSize>-1</cachedSize>
+      <role>com.apldbio.aga.common.model.objects.User.userPreferences</role>
+      <key class="long">2</key>
+      <dirty>false</dirty>
+    </userPreferences>
+    <id>2</id>
+  </creationUser>
+  <dateCreated class="sql-timestamp">2010-11-04 16:52:23.968</dateCreated>
+  <dateModified class="sql-timestamp">2010-11-04 16:52:23.968</dateModified>
+  <id>39</id>
+</com.apldbio.aga.common.model.objects.FlowcellRun>

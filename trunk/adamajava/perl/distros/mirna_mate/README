@@ -1,0 +1,36 @@
+README
+------
+
+The QCMG mirna_mate package is a collection of perl modules and scripts
+that do transcriptome alignment on next-generation sequencing data
+generated on the Life Technologies SOLiD platform.
+
+To install this package, uncompress the install, cd into the
+uncompressed directory and type the following sequence of commands:
+
+   perl Makefile.PL 
+   make
+   make test
+   make install
+
+The final "make install" command may require that you be root or that
+you have permission to use the sudo command.
+
+If you want to install it locally, append your location to PREFIX on the 
+first command. eg.
+  perl Makefile.PL PREFIX=/yourDir
+
+
+After the mirna_mate installed, you should do below setting:
+1. Make sure the mapreads is installed, otherwise this pipeline won't work;
+2. Make sure the weblog is installed, otherwise final images can't create;
+3. Put f2m.pl, mask_schemas_mapreads.pl in same directory; move the schemas 
+folder from mapreads package to this directory as well;
+4. If you installed Path::Class locally, you should move it to the same directory 
+with f2m.pl. The reason is the f2m.pl will run on cluster, if you installed it's 
+dependcy locally and export the local path but the cluster still won't know it.   
+5. There is a testing dataset and examples of configure file if you need:
+mirna_mate/test/
+
+$Id: README,v 1.1 2008/05/20 06:38:38 jpearson Exp $
+

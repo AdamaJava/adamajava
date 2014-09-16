@@ -1,0 +1,19 @@
+README
+------
+
+The QCMG maintenance package is a collection of perl modules and scripts
+that implement testing and consistency checks against QCMG resources
+including filesystems and databases.
+
+To install this package, uncompress the install, cd into the
+uncompressed directory and type the following sequence of commands:
+
+   perl Makefile.PL
+   make
+   make test
+   make install
+
+The final "make install" command may require that you be root or that
+you have permission to use the sudo command.
+
+$Id: README 2784 2012-08-24 03:32:59Z j.pearson $

@@ -1,0 +1,29 @@
+README
+------
+
+The qAmplicon package is a utility designed to assist with the design
+of primer pairs for PCR-verification of variants identified by
+next-generation sequencing.  qAmplicon was originally designed to
+support verification by Ion Torrent sequencing of the PCR'd amplicons
+but the program is generic and shoudl work for any sequencing platform.
+
+qAmplicon requires both BLAST and primer3 to be installed and you must
+edit the perl QCMG::Automation::Qamplicon module after install to
+contain the correct paths to primer3 and BLAST.  For full install 
+instructions and further details on how to use the software, see the 
+qAmplicon wiki page on the AdamaJava project site at SourceForge.
+
+To install this package, uncompress the install tarball, cd into the
+uncompressed directory and type the following sequence of commands:
+
+   perl Makefile.PL
+   make
+   make test
+   make install
+
+The final "make install" command may require that you be root or that
+you have permission to use the sudo command.  Alternatively you can
+install it into another directory - see the documentation for the perl
+module ExtUtils::MakeMaker and in particular, look for "INSTALL_BASE".
+
+$Id: README 4626 2014-06-10 01:46:26Z j.pearson $

@@ -1,0 +1,10 @@
+Changes
+Makefile.PL
+MANIFEST
+README
+lib/QCMG/IO/VcfReader.pm
+lib/QCMG/IO/VcfRecord.pm
+lib/QCMG/IO/VcfWriter.pm
+lib/QCMG/Bioscope/LogDirectory.pm
+lib/QCMG/Bioscope/LogModule.pm
+lib/QCMG/Bioscope/MappingStats.pm

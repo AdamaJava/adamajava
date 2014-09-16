@@ -1,0 +1,91 @@
+#!/usr/bin/env perl
+
+use strict;
+use lib;
+use FindBin;
+
+check_dependencies();
+
+my @paths = (
+  "$FindBin::Bin/../lib",
+  "/Perl/lib/pgtools"
+);
+# In the parent directory?
+for ( @paths ) {
+  unshift @INC, $_ if -d $_; 
+}
+
+# If nothing we should have PGTools in
+# our include path
+require PGTools;
+
+
+
+PGTools->run;
+
+sub check_dependencies {
+  for my $dependency ( <DATA> ) {
+    chomp $dependency;
+
+    eval "use $dependency";
+
+
+    if( $@ ) {
+      my $message = "
+        Unable to load $dependency, PGTools requires requires this module, 
+        please install before running PGTools. 
+
+        There are several ways to install the dependencies, you could use 'cpan' or more recent 
+        App::cpanminus to install your modules. PGTools ships with Makefile.PL that lists all 
+        dependencies.
+
+        Run:
+          perl Makefile.PL
+          make
+
+        This should install all dependency, alternatively, if you have App::cpanminus installed, 
+        running:
+
+          cpanm .
+
+        should install all the necessary dependencies. 
+      ";
+
+      # $message =~ s/^\s*/  /smg;
+
+      print( $message . "\n" ) and exit( 1 );
+
+    }
+
+  }
+}
+
+# Font::TTF::Font   
+
+__DATA__
+Data::Dumper      
+Getopt::Long      
+IO::File          
+FindBin           
+Pod::Text         
+List::Util        
+Config::General   
+Math::Bezier      
+Math::Round       
+Regexp::Common    
+Readonly          
+Params::Validate  
+GD::Polyline      
+Clone             
+Set::IntSpan      
+List::MoreUtils   
+Text::Format      
+Math::VecStat     
+Exporter          
+File::Slurp       
+parent            
+Text::CSV         
+XML::Twig         
+DBI               
+DBD::SQLite       
+Venn::Chart

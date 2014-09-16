@@ -1,0 +1,75 @@
+#!/bin/bash
+
+###########################################################################
+#
+#  Script:  test.pbs
+#  Creator: John Pearson
+#  Created: 2012-08-18
+#
+#  This is a test script for running stuff.
+#
+#  $Id: test.pbs 4350 2013-11-14 06:15:44Z j.pearson $
+#
+###########################################################################
+
+#PBS -N qverif_text
+#PBS -S /bin/bash
+#PBS -q batch
+#PBS -r n
+#PBS -l walltime=1:00:00,ncpus=1,mem=2gb
+#PBS -m ae
+#PBS -M j.pearson@uq.edu.au
+
+
+module load java/1.7.13
+module load adama/nightly
+
+function co_test {
+    #CO="'QCMG:hohoho    HO:JP'"
+    #CO="QCMG:hohoho    HO:JP"
+    CO="'QCMG HO:JP'"
+    picard MarkDuplicates INPUT=jp1.bam OUTPUT=jp1.dedup.bam METRICS_FILE=jp1.bam.metrics COMMENT=$CO
+}
+
+
+function my_qverify_test {
+    local QVEXE=$QCMG_SVN/QCMGPerl/distros/admin/src/qverify.pl
+    local GREF=/panfs/share/genomes/GRCh37_ICGC_standard_v2/GRCh37_ICGC_standard_v2.fa
+
+    normalBam=/mnt/seq_results/icgc_pancreatic/APGI_3206/seq_final/IcgcPancreatic_APGI3206_1DNA_1NormalBlood_ICGCABMB20121025022_IlluminaTruSEQPCRFreeMultiplexedManual_NoCapture_Bwa_HiSeq.jpearson.bam
+    tumourBam=/mnt/seq_results/icgc_pancreatic/APGI_3206/seq_final/IcgcPancreatic_APGI3206_1DNA_9CellLineDerivedFromTumour_ICGCABMB20121025009_IlluminaTruSEQPCRFreeMultiplexedManual_NoCapture_Bwa_HiSeq.jpearson.bam
+    maf=/mnt/seq_results/icgc_pancreatic/APGI_3206/variants/qSNP/835752a8_2232_45fa_86ba_2e273c67a8d3/APGI_3206.Somatic.HighConfidenceConsequence.snv.maf
+    mafout=$QCMG_HOME/qverify/pdac_cell_lines/APGI_3206.qsnp.835752a8_2232_45fa_86ba_2e273c67a8d3.Somatic.HighConfidenceConsequence.snv.maf.verified2
+    qbptxt=$QCMG_HOME/qverify/pdac_cell_lines/APGI_3206.qsnp.835752a8_2232_45fa_86ba_2e273c67a8d3.Somatic.HighConfidenceConsequence.qbp.txt
+    qbplog=$QCMG_HOME/qverify/pdac_cell_lines/APGI_3206.qsnp.835752a8_2232_45fa_86ba_2e273c67a8d3.Somatic.HighConfidenceConsequence.qbp.log
+    bamlist=$QCMG_HOME/qverify/pdac_cell_lines/APGI_3206.bamlist.txt
+    outfile=$QCMG_HOME/qverify/pdac_cell_lines/APGI_3206.jvps_new_stuff.txt
+
+    # qbasepileup
+#    local CMD1="qbasepileup -b $bamlist -s $maf -f maf -r $GREF --log $qbplog -o $qbptxt"
+#    echo Executing: $CMD1
+#    eval $CMD1
+
+    # qverify
+    CMD2="$QVEXE -v -f $maf -i $normalBam -i $tumourBam -q $qbptxt --mafout $mafout -b $bamlist -o $outfile"
+    echo Executing: $CMD2
+    eval $CMD2
+}
+
+
+##########################################################################
+### Main #################################################################
+##########################################################################
+
+START_DATE=`/bin/date`
+START_SECOND=`/bin/date +%s`
+
+# 2013-07-23  testing how we might automate qverify
+my_qverify_test
+
+END_SECOND=`/bin/date +%s`
+ELAPSED=$(($END_SECOND-$START_SECOND))
+echo $PBS_JOBID \| $PBS_JOBNAME \| $PBS_QUEUE \| $START_DATE \| $ELAPSED >> $QCMG_HOME/pbs_jobs.log
+
+
+

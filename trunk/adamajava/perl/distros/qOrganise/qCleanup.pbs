@@ -1,0 +1,63 @@
+#!/bin/bash
+#PBS -N BWA-cleanup
+#PBS -q mapping
+#PBS -r n
+#PBS -l ncpus=1,walltime=72:00:00,mem=6gb
+#PBS -m ae
+#PBS -j oe
+#PBS -W umask=0007
+#PBS -M s.kazakoff@imb.uq.edu.au
+################################################################################
+################################################################################
+
+set -e 
+
+if [ -z "$sample" ]; then
+
+    echo 'You must pass a variable called "$sample".'
+    echo
+
+    exit 1
+fi
+
+if [ -z "$seq_mapped" && -d "$seq_mapped" ]; then
+
+    echo 'You must pass a variable called "$seq_mapped".'
+    echo
+
+    exit 1
+fi
+
+if [ -z "$seq_results" && -d "$seq_results" ]; then
+
+    echo 'You must pass a variable called "$seq_results".'
+    echo
+
+    exit 1
+fi
+
+module load picard/1.97
+module load java/1.7.45
+
+while ! find "$seq_mapped/log/$sample.bwa.log" &>/dev/null; do sleep 30; done 
+
+workdir="/scratch/$sample"
+
+cd "$workdir"
+
+java -Xmx8g -jar "$PICARD_HOME/MarkDuplicates.jar" \
+    I="$sample.mapped.bam" \
+    O="$sample.bam" \
+    M="$sample.metric" \
+    AS=true \
+    VALIDATION_STRINGENCY=LENIENT
+        
+chmod 664 "$sample.bam"
+
+cp "$sample.bam" "$seq_mapped"
+cp "$sample.bam" "$seq_results"
+
+rm -rf "$workdir"
+
+################################################################################
+################################################################################

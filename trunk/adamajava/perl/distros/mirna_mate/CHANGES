@@ -1,0 +1,201 @@
+>>>>20 Aug 2009:
+
+Modified miRNA-Mate, which can be used for the splited raw data
+changes:
+
+1. in configuration file:
+	a. 	delete the parameter "name_Adaptor" from configuration file
+	b. 	delete the parameter "BC_length"
+2. in miRNA_mapping::recursive_mapping, 
+        	#copy input file:
+	        my $f_BC = "$self->{'outdir'}$self->{'exp_name'}.$BCi.out";
+        	my $f_csfasta_max = "$self->{'outdir'}$self->{'exp_name'}.$BCi.mers$l_last.csfasta";
+	bf:     if(system("cp $f_BC $f_csfasta_max") != 0){$toolobj->Log_DIED("can't copy $f_BC to $f_csfasta_max\n")}
+	af:     if(system("mv $f_BC $f_csfasta_max") != 0){$toolobj->Log_DIED("can't copy $f_BC to $f_csfasta_max\n")}
+
+3. in the main script: miRNA-MATEv1.1.pl 
+	bf:	#split tags based on the barcode -- BC file
+		#output will be BC*.out
+		my $f_F3 = $argv{'raw_F3'};
+		my $f_BC = $argv{'raw_BC'};
+		my $split_BC_obj = split_BC->new(\%argv);
+		$split_BC_obj->main($f_F3,$f_BC);
+
+
+	af: 	
+		my $f_F3 = $argv{'raw_F3'};
+		my $f_BC = $argv{'raw_BC'};
+		my @BCs = split(/\,/,$argv{'name_BC'});
+		#split tags based on the barcode -- BC file
+		#output will be BC*.out
+		if( scalar(@BCs) > 1 ){
+        		my $split_BC_obj = split_BC->new(\%argv);
+		        $split_BC_obj->main($f_F3,$f_BC);
+		}
+		else{
+        		my $f_BC = "$argv{'output_dir'}$argv{'exp_name'}.$BCs[0].out";
+	        	system("cp $f_F3 $f_BC");
+		}
+
+4. in Split_BC::classify_BC
+old: 
+        for(my $i = 1 ; $i <= $self->{'num_BC'}; $i++ ){
+                for(my $j = 1; $j <= $self->{'BC_length'}; $j ++){
+                        foreach my $c (@color){
+                                my $BCi = $self->{"BC$i"};
+                                #replace one char with other color value
+                                substr($BCi, $j, 1) = $c;
+                                #this one mismatched BC bleng to that BC calss as well
+                                $BC{$BCi} = "BC$i";
+                        }
+                }
+        }
+
+
+new:    
+        my @BCs = split(/,/, $self->{'name_BC'});
+        foreach my $BC (@BCs){
+                for(my $j = 1; $j <= $self->{'BC_length'}; $j ++){
+                        foreach my $c (@color){
+                                my $BCi = $self->{$BC};
+                                #replace one char with other color value
+                                substr($BCi, $j, 1) = $c;
+                                #this one mismatched BC bleng to that BC calss as well
+                                $BC{$BCi} = $BC;
+                        }
+                }
+        }
+5. in split::BC::classify_F3
+
+old: 
+
+new: 
+        my @BCs = split(/,/, $self->{'name_BC'});
+        foreach my $BC (@BCs){
+                my $fname = $self->{outdir} . "$self->{exp_name}.$BC.out";
+                open(my $fhandle,">$fname") or $toolobj->myLog("[DIED]: $fname\n");
+                $output{$BC} = $fhandle;
+        }
+
+
+
+6. in Split_BC::new
+	add one parameter to $self:           name_BC => $arg->{"name_BC"}
+
+7. delete codes that check wheterh the panel number is sorted or not in the original raw F3 files. if not, the deleted code will divide it into several files in which the panel is sorted.
+
+
+>>>>21 May m(dified regeion_picture.pm
+	BUG:
+	a main function of this module is passing csfasta file to seqlogo to create GIF file. few of the csfata file can't convert to GIF since bad EPS file formate.
+	FIX:
+	we pass the csfata file again to seqlogo by using differnt parameters. 
+	New code:
+
+                #check whether the seqlogo is failed. if failed change parameter (add -M or delete it) and run seqlogo again. 
+                if($command =~ m/(\-F\s\S+)/){
+                        #$1 store the output file formart type from the system comment eg."-F png"
+                        my $f_image ;
+                        if($1 =~ m/GIF/i){$f_image = "$f.gif"}
+                        elsif($1 =~ m/PNG/i){$f_image = "$f.png"}
+                        elsif($1 =~ m/PDF/i){$f_image = "$f.pdf"}
+                        elsif($1 =~ m/EPS/i){$f_image = "$f.eps"}
+                        else{ $toolobj->Log_DIED("wrong output file fomart - $1\n")  }
+
+                        if(!(-e "$f_image" ) ){
+                                if($command =~ m/\-M/){$command =~ s/\-M//}
+                                else{ $command .= " -M "}
+                                system($command);
+                                if(-e "$f.gif" ){print "the file is reformated and successfully created output: $f_image\n"}
+
+                        }
+                }
+	New code function:
+	these code will change the parameters for seqlogo and create image again. At moment we only change "-M". If seqlogo's parameter already include it we will delete it, otherwise we add it. We found if seqlogo created bad formate file with or without "-M", after we change it and the seqlogo will create righte formate output. 
+
+
+==> => 16 Feb 2010 miRNA_mapping::mapping
+        delete some debug codes:
+        # if input file is zero size, we jump over the mapping process and create an zero size output file.
+#       if( -z $tag_file ){
+#                $toolobj->Log_WARNING("no tag for genome mapping in $tag_file!\n");
+                #create empty files
+#                my $fname = $argv->{outdir}. "$argv->{lib_name}.$tag_file_name.ma.$para->[0].$para->[1]";
+#                open(IN, ">$fname");
+#                close(IN);
+#                return 1;
+#        }
+
+>>>>>>>>>> 1 April 2010
+==>in chop_adaptor::chop_for_BCi:
+bf:	#count mismatch value
+        my $mis = $adaptor_offset{$key};
+        for(my $i = $key, my $j = length($self->{'Adaptor_start'}); $i <= $self->{'raw_tag_length'}; $i ++, $j ++){
+             if($seq_array[$i] != $ada_array[$j]){   $mis ++ }
+        }
+***we assume all sequence are color base "0123" but sometimes sequce contain "." eg: "T23.0201030313112302303031220..23000". So it cause error:
+"Argument "." isn't numeric in numeric ne (!=) at /data/cxu/MiRNA/1Apr2010/lib/chop_adaptor.pm line 113, <IN> line 13. "
+
+af:  if($seq_array[$i] !~ $ada_array[$j]){   $mis ++ }
+
+==>search_ID
+** the old library index file use two lines indicate each synthetic library line. but all new library use one line to indicate each synthetic library line.
+bf: for(my $i = $i_search; $i < $i_end; $i += 2){
+	...
+	# the $i_search will start from last found junction id position
+        $i_search = $i - 2;
+	break;
+	...
+    }
+
+af:for(my $i = $i_search; $i < $i_end; $i ++){
+        ...
+        # the $i_search will start from last found junction id position
+        $i_search = $i;
+        break;
+        ...
+    }
+
+>>>>> 14 April 2010
+==> delete tools_miRNA::create_csfasta method, since it is not used in this pipeline.
+==> delete documentation for tools_miRNA::create_csfasta method 
+==> add below documentation for tools_miRNA::editing method
+$obj->editing($input, $f_chr, $argv);
+
+This function pass the input file and miRNA library file to scripts which listed on “script_editing”. 
+The input should be a single selected ma file and related genome file, the output is the .bc file. see example below:
+
+my $argv= {'script_editing' => "/data/editing.pl" }
+$obj->editing("exp.BC1.once.SiM.positive", "miRNA.lib1.fa", $argv);
+the output will be exp.BC1.once.SiM.positive.bc.
+
+>>>>>> 7 June 2010
+==> analysis .bc file
+
+78_996_625_F3  top     30223120231121132300    12223120231121132322    TGAGATGAAGCACTGTAGCTC   27686   2       0_31,1_02,18_02,19_02
+480_80_1141_F3  top     51121321221311131010    65121321221311130010    NNCAGTAGTCTGCACATTTGG   15816   2       0_56,1_15,16_10
+483_87_898_F3   top     50113023121223122333    65113023121223212333    NNGTGCCTACTGAGCTGATAT   21659   2       0_56,1_05,14_12,15_21
+490_1563_57_F3  top     51121321221311103010    65121321221311130010    NNCAGTAGTCTGCACATTTGG   15816   2       0_56,1_15,15_03,16_30
+491_1242_878_F3 top     51021112110323021022    65021112110323021022    NNTTCACAGTGGCTAAGTTCT   14845   1       0_56,1_15
+
+37_1855_853_F3  top     5310212221002301201102  5200212221002301201112  NTCCCTGAGACCCTAACTTGTGA 11077   2       1_32,2_10,20_01
+
+
+ref:		N T C C C T G A G A C C C T A A C T T G T G A
+		 5 2 0 0 2 1 2 2 2 1 0 0 2 3 0 1 2 0 1 1 1 2
+tag:		 5 3 1 0 2 1 2 2 2 1 0 0 2 3 0 1 2 0 1 1 0 2
+		  T A C	C
+		T0 3 1 0 2 1 2 2 2 1 0 0 2 3 0 1 2 0 1 1 0 2
+
+===> error since library index id is not unique:
+
+q.xu@smg-solid:/data/cxu/miRNA/miRNA_Data/output]$../../miRNA_Mate/bin/mirna_mate.pl -c OnceAtlas.conf 
+/data/cxu/miRNA/miRNA_Mate/bin/editing.pl -t single -i /data/cxu/miRNA/miRNA_Data/output/ONCE_Atlats.BC1.once.SIM.positive -g /data/miRNA-MATEv1.1/miRBasev15/2MM_VA_miRBasev15.final.padded.cat -f3 /data/cxu/miRNA/miRNA_Data/output/ONCE_Atlats.BC1.once.SIM.positive.bc
+Error: Invalid input format does not conform to FASTA, CLUSTAL, or Flat.
+Error: Invalid input format does not conform to FASTA, CLUSTAL, or Flat.
+Error: Invalid input format does not conform to FASTA, CLUSTAL, or Flat.err
+Error: Invalid input format does not conform to FASTA, CLUSTAL, or Flat.
+Error: Invalid input format does not conform to FASTA, CLUSTAL, or Flat.
+
+The reason ob above error is Nicole's miRNA library index file didn't store unique ID on the first column, it cause lots of tag with high frequency couldn't report to Fasta file for weblog
+

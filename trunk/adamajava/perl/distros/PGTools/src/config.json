@@ -1,0 +1,92 @@
+{
+
+  "format_aliases": {
+    "mzXML": [ "mzXML", "mzML" ]
+  },
+
+
+  "msearch": {
+
+    "defaults": [ "omssa" ],
+
+    "suspend_preprocess": false,
+    "suspend_postproces": false,
+    "postprocess_automatically": 1,
+
+    "decoy": {
+      "prepare": true,
+      "concat": false,
+      "compute_fda": true
+    },
+
+
+    "algorithms": [
+
+      {
+        "name": "msgfdb",
+        "command": "/home/s.nagaraj/MSGFDB/MSGFDB.jar",
+        "database": "/home/s.nagaraj/bio/Homo_sapiens.GRCh37.69.pep.all.fa",
+        "options": " -t 0.5Da,2.5Da -tda 1 ",
+        "class": "MSGFDB"
+      },
+
+      {
+        "name": "omssa",
+        "command": "/home/s.nagaraj/omssa-2.1.9.linux/omssacl",
+        "database": "/home/s.nagaraj/bio/Homo_sapiens.GRCh37.69.pep.all.fa",
+        "options": "-to 0.8 -te 2 -tom 0 -tem 0 -w",
+        "class": "OMSSA"
+      },
+
+      {
+        "name": "xtandem",
+        "command": "/home/s.nagaraj/tandem-linux-11-12-01-1/bin/tandem.exe",
+        "database": "/home/s.nagaraj/omssa-2.1.9.linux/Homo_sapiens.GRCh37.69.pep.all.fa",
+        "class": "XTandem"
+      }
+
+    ]
+  },
+
+
+  "convert": { 
+
+    "commands": {
+
+      "tpp_dta": {
+        "command": "/usr/local/tpp/bin/dta2mzxml",
+
+        "accept_directories": 1,
+
+        "file_args": " <INFILE> ",
+
+        "post_move_files": 1,
+
+        "formats": [
+          { "from": "dta", "to": "mzXML", "switch": "" }
+        ]
+      },
+
+      "tpp_search": {
+
+        "command": "/usr/local/tpp/bin/MzXML2Search",
+
+        "file_args": " <INFILE> ",
+
+        "post_move_files": 1,
+
+        "default_options": "",
+
+        "formats": [
+          { "from": "mzXML", "to": "dta", "switch": "-dta" },
+          { "from": "mzXML", "to": "mgf", "switch": "-mgf" },
+          { "from": "mzXML", "to": "odta", "switch": "-odta" },
+          { "from": "mzXML", "to": "mgf", "switch": "-mgf" },
+          { "from": "mzXML", "to": "pkl", "switch": "-pkl" },
+          { "from": "mzXML", "to": "ms2", "switch": "-ms2" }
+        ]
+      }
+    }
+  }
+}
+

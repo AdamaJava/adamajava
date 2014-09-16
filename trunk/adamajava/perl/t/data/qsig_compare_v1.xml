@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<QSigCompare>
+<BAMFiles>
+<BAM bam="/panfs/home/oholmes/qsignature/data/APGI_2270/S0014_20110627_1_FragPEBC.nopd.bcB16_07.bam.qsig.vcf" id="1" inputType="ND" library="Library_20110617_G" patient="APGI_2270"/>
+<BAM bam="/panfs/home/oholmes/qsignature/data/APGI_2270/S0014_20110627_1_FragPEBC.nopd.bcB16_08.bam.qsig.vcf" id="2" inputType="TD" library="Library_20110617_H" patient="APGI_2270"/>
+<BAM bam="/panfs/home/oholmes/qsignature/data/APGI_2270/S0413_20110603_1_FragPEBC.nopd.bcB16_10.bam.qsig.vcf" id="3" inputType="TD" library="Library_20110511_J" patient="APGI_2270"/>
+<BAM bam="/panfs/home/oholmes/qsignature/data/APGI_2270/S0413_20110603_1_FragPEBC.nopd.bcB16_09.bam.qsig.vcf" id="4" inputType="ND" library="Library_20110511_I" patient="APGI_2270"/>
+<BAM bam="/panfs/home/oholmes/qsignature/data/APGI_2270/S0014_20091109_1_Frag.nopd.nobc.bam.qsig.vcf" id="5" inputType="TD" library="Library_20091027_A" patient="APGI_1959"/>
+<BAM bam="/panfs/home/oholmes/qsignature/data/APGI_2270/S0014_20111212_1_LMP.nopd.nobc.bam.qsig.vcf" id="6" inputType="ND" library="Library_20111203_A" patient="APGI_2270"/>
+<BAM bam="/panfs/home/oholmes/qsignature/data/APGI_2270/S0417_20111216_1_LMP.nopd.nobc.bam.qsig.vcf" id="7" inputType="TD" library="Library_20111203_B" patient="APGI_2270"/>
+</BAMFiles>
+<Results>
+<result files="1 vs 2" flag="OK" rating="ABB" score="0.02862038" snpsUsed="234"/>
+<result files="1 vs 3" flag="???" rating="ABB" score="0.056154236" snpsUsed="26"/>
+<result files="1 vs 4" flag="OK" rating="ABA" score="0.029926905" snpsUsed="52"/>
+<result files="1 vs 5" flag="OK" rating="BBB" score="0.09993735" snpsUsed="2"/>
+<result files="1 vs 6" flag="OK" rating="ABA" score="0.02680584" snpsUsed="175"/>
+<result files="1 vs 7" flag="OK" rating="ABB" score="0.031532437" snpsUsed="168"/>
+<result files="2 vs 3" flag="???" rating="ABA" score="0.04465374" snpsUsed="27"/>
+<result files="2 vs 4" flag="OK" rating="ABB" score="0.02625278" snpsUsed="53"/>
+<result files="2 vs 5" flag="OK" rating="BBA" score="0.053571433" snpsUsed="2"/>
+<result files="2 vs 6" flag="OK" rating="ABB" score="0.025033629" snpsUsed="197"/>
+<result files="2 vs 7" flag="OK" rating="ABA" score="0.025800731" snpsUsed="208"/>
+<result files="3 vs 4" flag="OK" rating="ABB" score="0.03081591" snpsUsed="17"/>
+<result files="3 vs 5" flag="OK" rating="BBA" score="NaN" snpsUsed="0"/>
+<result files="3 vs 6" flag="OK" rating="ABB" score="0.027171718" snpsUsed="15"/>
+<result files="3 vs 7" flag="???" rating="ABA" score="0.0424313" snpsUsed="20"/>
+<result files="4 vs 5" flag="OK" rating="BBB" score="0.27922076" snpsUsed="1"/>
+<result files="4 vs 6" flag="OK" rating="ABA" score="0.01934356" snpsUsed="33"/>
+<result files="4 vs 7" flag="???" rating="ABB" score="0.04420573" snpsUsed="28"/>
+<result files="5 vs 6" flag="OK" rating="BBB" score="0.06250001" snpsUsed="4"/>
+<result files="5 vs 7" flag="OK" rating="BBA" score="0.038690478" snpsUsed="4"/>
+<result files="6 vs 7" flag="OK" rating="ABB" score="0.03105473" snpsUsed="351"/>
+</Results>
+</QSigCompare>

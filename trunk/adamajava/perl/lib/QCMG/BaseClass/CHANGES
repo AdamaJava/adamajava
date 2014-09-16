@@ -1,0 +1,172 @@
+9th Dec 2009
+=> BaseClass::Mapping::mapping, change the flagfile name
+	from        my $flagFile = "$output." . time();
+	to        my $flagFile = "$output." . "success";
+
+The reason: if jobs died on queue, it is easy for user move all flagfile from output directory to another directory.
+
+18th Dec 2009
+remove Junction.pm from XMate to BaseClass::Junction
+
+22nd Dec 2009
+=>add one line to BaseClass::Junction to improve searching speed
+in sub getJuncID{
+	...
+     #stop search for current junction tag since it crossing two junction id
+     elsif(($tag_start < $junc_end) &&  ($tag_end > $junc_end)){ last        }
+	...
+}
+
+5th Jan 2010
+=> add one method to tools.pm:
+sub GetFilesNameForMap{...}
+
+this method return same value as sub Pre_recursiveMap, but it won't create any output file. If ISASMate pipeline died during mapping, it is not necessary to copy raw data again into the input file again.
+
+=> modified BaseClass::ISAS::mapping
+it will report all error information for each step during passing parameters to ISAS. 
+
+=> add one subroutine BaseClass::ISAS::check_setting
+it check all parameters in final settings_colors.txt with ISAS parameters listing in configure file. If they are not consistant, such as permission issue, the whole pipeline will be stopped.
+
+7th Jan 2010
+=> add sleep(30) during each ISAS command. I tried sleep(5), but it still cause conflit between two ISAS command, such as between "ISASColorOldCPU database=/data/hg19_chr" and "ISASColorOldCPU chr=1,25".
+
+11th Jan 2010
+=> improved algorithm in BaseClass::Junction::getjuncID
+	the old will start junction from $i_search to end even $tag_start > $junc_end; So it make search extermly slow. the new will stop search once $tag_start > $junc_end and then report "noid"; if a tag mapped during two junctions, it stop and report "noid" and then it start from current junc ($i) rather than ($i -1) for next tag.
+
+old:
+	{
+              chomp($line);
+                my ($tagid,$tag_start,$tag_end,$strand, $mismatch) = split(/\t/,$line);
+                #if we can't find junction id for this matched position,
+                #this tag will be assign "...\tnoid\t0\t0\n"
+                my $juncid = "noid";
+                my $j_start=0;
+                my $j_end = 0;
+                for(my $i = $i_search; $i < $i_end; $i ++){
+                        my($id,$junc_start,$junc_end) = ($all_junc_id[$i]->[0], $all_junc_id[$i]->[1], $all_junc_id[$i]->[2] );
+                        #search next junction id
+                        if($tag_start > $junc_end){ next }
+                        #check current junc id 
+                        #found id, give right value to varible
+                       if(($tag_start >= $junc_start) &&($tag_end <=$junc_end)){
+                  		$juncid = $id;
+	                       $j_start = $junc_start;
+                               $j_end = $junc_end;
+                               #stay at the current junction id for next tag on the sorted file
+	                       $i_search = $i - 1;
+        	               last;
+                        }
+                        #stop search for current junction tag since it crossing two junction id
+                        elsif(($tag_start > $junc_start ) || ($tag_end > $junc_end) ){  last; }
+                }
+                #if we can't find junction id for this tag, the $i_search will start from last found junction id position
+                print JUNC_ID "$tagid\t$tag_start\t$tag_end\t$strand\t$mismatch\t$juncid\t$j_start\t$j_end\n";
+        }
+
+new:
+	{
+              chomp($line);
+                my ($tagid,$tag_start,$tag_end,$strand, $mismatch) = split(/\t/,$line);
+                #if we can't find junction id for this matched position,
+                #this tag will be assign "...\tnoid\t0\t0\n"
+                my $juncid = "noid";
+                my $j_start=0;
+                my $j_end = 0;
+                for(my $i = $i_search; $i < $i_end; $i ++){
+                        my($id,$junc_start,$junc_end) = ( $all_junc_id[$i]->[0], $all_junc_id[$i]->[1], $all_junc_id[$i]->[2] );
+                        #search next junction id
+                        if($tag_start > $junc_end){ next }
+                        #check current junc id 
+                        else{
+                                #found id, give right value to varible
+                                if(($tag_start >= $junc_start) &&($tag_end <= $junc_end)){
+                                        $juncid = $id;
+                                        $j_start = $junc_start;
+                                        $j_end = $junc_end;
+                                }
+                                #stop search for current junction tag since it crossing two junction id or it start between two junctions -- "."
+                                #       elsif( ($tag_start == ($junc_start -  1)) || ($tag_end > $junc_end) ){  $i_search = $i; last; }
+                                #stay at the current junction id for next tag on the sorted file
+                                $i_search = $i;
+                                last;
+                        }
+                }
+                #if we can't find junction id for this tag, the $i_search will start from last found junction id position
+                print JUNC_ID "$tagid\t$tag_start\t$tag_end\t$strand\t$mismatch\t$juncid\t$j_start\t$j_end\n";
+        }
+
+
+
+22th Jan 2010
+=> comment out debug code such as forkmanager
+
+=> BaseClass::Tools::check_died
+	old:   
+	while(my $line = <LOG>){
+                if($line =~ m/^\[DIED\]/){
+                    if(!exists $arg[1]){ return 1    }
+                    #check whether the DIED information contain $arg[1] message
+                    elsif($line =~ /($arg[1])$/ ){ return 1 }
+                }
+        }
+
+	...
+	return 0;
+
+	new:
+	       while(my $line = <LOG>){
+                if($line =~ m/^\[DIED\]/){
+                    if(!exists $arg[1]){ die "$line"    }
+                    #check whether the DIED information contain $arg[1]message
+                    elsif($line =~ /($arg[1])$/ ){ die "$line" }
+                }
+        }
+	...
+	#return 0;
+=> all scripts use &check_died 
+	old:
+	if($objTool[$$self]->check_died){return -1}
+
+	new:
+	$objTool[$$self]->check_died;
+
+	
+4th Feb 2010
+=> a bug in BaseClass::SingleSelect::afSelect
+   we was treat sequence length as "length($seq)", but all sequence start with
+"T", so it cause "length($seq)" is one base longer than real base sequence.
+---->	previous code:
+	chomp($seq);
+        my $l = length($seq);
+        if( ($pos >= 0) ){my $start = $pos;     my $end = $start + $l -1;       print POS "$start\t$end\t1\n"}
+        else{my $end = abs($pos); my $start = $end -$l + 1;print NEG "$start\t$end\t1\n"}
+
+--> we change to 
+	 my $l = length($seq) - 1;
+
+8th Feb 2010
+=> BaseClass::WigStart::create_wig()
+
+filter out all negative position in pre_wig file, as ISAS some time report bonary error postion. eg. >tagid,chrM.-33.3 for 35mers tag.
+---> previous code:
+      else{    $objTool[$$self]->Log_DIED("error:$line is out of range ($i_start,$i_end)\nsee file $in_sort")  }
+---> we change to
+      else{    $objTool[$$self]->Log_WARNING("$line is out of range ($i_start,$i_end)\nsee file $in_sort")  }
+
+11th Feb 2010
+=>BaseClass::Mapping::mapping
+----->old:
+->old:
+^
+        if(-d SCRATCHDIR && -w _){
+                 $ScratchDir = tempdir("MatchXXXXX", CLEANUP =>1,DIR => "/data/scratch" );
+        }
+
+--->now: 
+	if(-d SCRATCHDIR && -w _){ 
+                 $ScratchDir = tempdir("MatchXXXXX", CLEANUP =>1,DIR => SCRATCHDIR );
+        }
+

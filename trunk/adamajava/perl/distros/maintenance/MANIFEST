@@ -1,0 +1,6 @@
+Makefile.PL
+MANIFEST
+README
+lib/QCMG/Automation/LiveArc.pm
+lib/QCMG/DB/Metadata.pm
+lib/QCMG/Util/QLog.pm

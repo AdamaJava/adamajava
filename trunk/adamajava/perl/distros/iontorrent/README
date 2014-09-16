@@ -1,0 +1,19 @@
+README
+------
+
+The QCMG iontorrent package is a collection of perl modules and scripts that
+are designed to be run either on a torrent server associated with an Ion
+Torrent PGM sequencer, or on a linux computer that has PGM data.
+
+To install this package, uncompress the install, cd into the
+uncompressed directory and type the following sequence of commands:
+
+   perl Makefile.PL
+   make
+   make test
+   make install
+
+The final "make install" command may require that you be root or that
+you have permission to use the sudo command.
+
+$Id: README 605 2011-04-02 03:26:34Z j.pearson $

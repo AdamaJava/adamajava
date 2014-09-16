@@ -1,0 +1,22 @@
+Run	Reads On	Percent On	Reads Off	Percent Off	Enrichment Fold
+/panfs/seq_mapped/S0411_20101021_1_FragPEBC/S16_01/20101111/enrichment/CRL_2557_Panc_05_04_CD_exome.20101019_A.dedup.ontarget.bam	80825758	71.7864%	31766255	28.2136%	43.2002
+
+Reads In Targets:	80825758	71.7864%
+Reads Off Targets: 31766255	28.2136%
+Ratio of Percent on/off Target: 2.54439
+Total Target BP: 51543125
+Total Genome Size: 3101804739
+Ratio of target to genome: 0.0166171
+Enrichment fold relative to target size: 43.2002
+
+# Targets Not Covered	Target Bases Not Covered	Percent of Target Bases Not Covered	Percent of Target Covered >= 1X	Percent of Target Covered >= 5X	Percent of Target Covered >= 10X	Percent of Target Covered >= 20X	Average Depth of Target Coverage
+12993	5724076	11.11%	88.89%	79.87%	72.75%	61.78%	59.18
+
+Number of target regions with no coverage: 12993
+Percent of target bp not covered: 11% (5724076 bp)
+Percent of target bp covered at >= 1X: 88.89%
+Percent of target bp covered at >= 5X: 79.87%
+Percent of target bp covered at >= 10X: 72.75%
+Percent of target bp covered at >= 20X: 61.78%
+Maximum depth of coverage within targets: 7441
+Average depth of coverage within targets: 59.18

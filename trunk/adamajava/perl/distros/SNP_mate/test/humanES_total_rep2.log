@@ -1,0 +1,18 @@
+Thu Jan 15 12:56:24 2009
+[PORCESS]: Welcome to our SNPs prediction system!
+Thu Jan 15 12:56:24 2009
+[PROCESS]: single selection tag mapping position
+ Thu Jan 15 13:26:00 2009
+[PROCESS]: parallel SNP prediction for each chromosome.
+ Thu Jan 15 13:31:11 2009
+[SUCCESS]: Created bc file: /data/cxu/SNPs/xu_SNPs/humanES/output/chr10.humanES_total_rep2.mers35.single_selected.mismatched.bc
+Thu Jan 15 13:32:16 2009
+[SUCCESS]:created the file: /data/cxu/SNPs/xu_SNPs/humanES/output/chr10.humanES_total_rep2.mers35.valid_adjacent !
+ Thu Jan 15 13:32:28 2009
+[SUCCESS]: find potential SNPs for chr10!
+Thu Jan 15 13:33:27 2009
+[SUCCESS]:created output after proportion filter: /data/cxu/SNPs/xu_SNPs/humanES/output/chr10.humanES_total_rep2.mers35.valid_adjacent
+Thu Jan 15 13:33:30 2009
+[FINISHED]: all SNP prediction for whole genome.
+ Please check whether it is succeed for each chromosome.
+ 

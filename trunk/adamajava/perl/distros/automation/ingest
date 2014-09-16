@@ -1,0 +1,125 @@
+#!/usr/bin/perl
+
+# ingest
+# wrapper for ingest.pl
+#
+# $Id: ingest 1913 2012-05-24 00:41:50Z l.fink $
+
+use strict;
+use Getopt::Long;
+use POSIX 'strftime';			# for printing timestamp
+use File::Spec;				# for parsing paths
+use Cwd 'realpath';			# for relative -> absolute paths
+
+$ENV{'PERL5LIB'} = "/usr/local/mediaflux/QCMGPerl/lib/";
+
+# set local Perl environment - this will include the necessary version of 
+#  XML::LibXML (to avoid using the system version which is too old)
+my $source      = 'source /usr/local/mediaflux/perlenv';
+#my $rv          = `$source`;
+my $rv		= system($source);
+
+my $path	= '/usr/local/mediaflux/QCMGPerl/distros/automation/';
+my $script	= 'ingest.pl';
+my $ingestpl	= $path.$script;
+
+my $RUN_FOLDER;
+my $USAGE;
+my $LOGLEVEL;
+
+&GetOptions(
+		"i=s"		=> \$RUN_FOLDER,
+		"loglevel=s"	=> \$LOGLEVEL,
+		"h!"		=> \$USAGE
+	);
+
+# help message
+if($USAGE || ! $RUN_FOLDER ) {
+        my $message = <<USAGE;
+
+        USAGE: $0
+
+	Ingest raw sequencing run files into LiveArc (wrapper)
+
+	This script will nohup ingest.pl and write the ingest log file to the
+	run folder (default behavior).
+
+        $0 -i /path/to/run/folder/
+
+	Required:
+	-i        <dir>  path to run folder to ingest
+	-loglevel <INFO> print status messages
+
+	Optional:
+        -h        (print this message)
+
+USAGE
+
+        print $message;
+        exit(0);
+}
+
+# get full, absolute path to run folder
+my $dir		= Cwd::realpath($RUN_FOLDER)."/";
+my ($v, $d, $f)	= File::Spec->splitpath($dir);
+
+my $stamp	= &timestamp();
+my $nohupout	= "~/.ingest_nohup_".$stamp;
+
+my $cmd = qq{nohup $ingestpl -i $dir >& $nohupout &};
+print STDERR "$cmd\n";
+
+system($cmd);
+
+
+# check log and make sure ingest.pl is running
+# grep for "Finding files with reads"
+# and EXECLOG: exitStatus N
+#sleep(10);
+# expected log file: /run/folder/runfolder_ingest.log
+
+$d		=~ /.+\/(.+?)\/$/;
+#my $logfile	= $1.".log";
+my $log		= $dir.$1."_ingest.log";
+
+my $status	= 1;
+
+my $checklog;
+until($status != 1) {
+	print STDERR "Checking logfile...\n" if($LOGLEVEL);
+
+	my $finddir	= `grep "Finding files" $log`;
+	$checklog	= `grep "exitStatus" $log`;
+
+	if($finddir) {
+		$status = 0;
+	}
+	elsif($checklog) {
+		$status = 2;
+	}
+	else {
+		sleep(2);
+	}
+}
+
+print STDERR "Check complete\n\n" if($LOGLEVEL);
+
+if($status == 2) {
+	chomp $checklog;
+	print STDERR "Ingest ended prematurely ($checklog), please check $log\n";
+	$checklog =~ /exitStatus\s+(\d+)/;
+	exit($1);
+	
+}
+
+exit(0);
+
+###
+
+sub timestamp {
+	my $stamp = lc strftime("[%Y-%m-%d %H:%M:%S]", localtime); 
+
+	$stamp = uc strftime("%Y%m%d%H%M%S", localtime);
+
+	return($stamp);
+}

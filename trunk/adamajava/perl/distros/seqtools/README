@@ -1,0 +1,18 @@
+README
+------
+
+The QCMG ngstools package is a collection of perl modules and scripts
+that operate on next-generation sequencing data and associated files.
+
+To install this package, uncompress the install, cd into the
+uncompressed directory and type the following sequence of commands:
+
+   perl Makefile.PL
+   make
+   make test
+   make install
+
+The final "make install" command may require that you be root or that
+you have permission to use the sudo command.
+
+$Id: README 4669 2014-07-24 10:48:22Z j.pearson $

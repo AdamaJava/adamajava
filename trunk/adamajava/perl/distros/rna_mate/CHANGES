@@ -1,0 +1,43 @@
+CHANGES
+-------
+
+22 Apr 2009:
+
+This version read different junction library for differnt tag length. but 
+the junction index file format as same as the old one. 
+
+11th Jun 2009:
+the RNA_mapping.pm deal with new junction index file, in which the block is 
+deleted. This means each line of the junction index decode each junction id 
+and postions
+
+**********************22nd June 2009
+find a bug 
+
+old: $i_search = $i - 2;
+new: $i_search = $i - 1;
+
+the old one won't affect the result but it check back one juction id, make the process slow. 
+
+***********************88 Oct 2009
+modify code for hg19 junciton library:
+
+error:chr7    -10     74190   chr7_gl000195_random_74180_86517_-      1 86517   -10     74190   0       2       10,10   0,74190
+correct: :chr7_gl000195_random  -10     74190   chr7_gl000195_random_74180_86517_-      1 86517   -10 74190   0       2       10,10   0,74190
+
+>>>new code:
+my $juncID = "chr7_gl000195_random_74180_86517_- ";
+my @junc = split(/_/, $junctionID);
+my $strand = pop(@junc);  #the last element is the strand
+my $end = pop(@junc);  #the second last element is the end position
+my $start = pop(@junc);  #the third last element is the start position
+my $chr = join("_", @junc); #the rest are the chromosome name
+
+>>>changed headline
+   #add head line here
+before: print BED "track name=\"[$self->{'exp_name'}] junctions\" description=\"[$self->{'exp_name'}] SiM matches to 60mer informative junctions\" \n";
+now:    print BED "track name=\"[$self->{'exp_name'}] junctions\" description=\"[$self->{'exp_name'}] SiM matches to junctions\" \n";
+
+
+
+$Id: README,v 1.1 2008/05/20 06:38:38 jpearson Exp $

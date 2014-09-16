@@ -1,0 +1,17 @@
+CHANGES
+Makefile.PL
+MANIFEST
+README
+src/f2m.pl
+src/chr_start.pl
+src/chr_rescueSOLiD.py
+src/chr_wig.pl
+src/rna_mate.pl
+src/rna_mate_example.conf
+lib/QCMG/RNA_Mate/new_rescue.pm
+lib/QCMG/RNA_Mate/RNA_mapping.pm
+lib/QCMG/RNA_Mate/single_select.pm
+lib/QCMG/RNA_Mate/tag_quality.pm
+lib/QCMG/RNA_Mate/tools_RNA.pm
+lib/QCMG/RNA_Mate/UCSC_junction.pm
+lib/QCMG/RNA_Mate/wiggle_plot.pm
