@@ -1,6 +1,6 @@
 version = '1.0pre'
 
-mainclass = 'au.edu..qannotate.Main'
+mainclass = 'au.edu.qimr.qannotate.Main'
 scriptname = 'qannotate'
 isExecutable = true
 
