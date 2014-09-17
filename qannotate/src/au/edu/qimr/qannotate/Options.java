@@ -62,10 +62,7 @@ public class Options {
         commandLine = Messages.reconstructCommandLine(args) ;
         
         if(options.has("mode")){  
-        	
-	 System.out.println(     options.valueOf("mode"));
-       	
-        	String	m = ((String) options.valueOf("mode")).toLowerCase();
+         	String	m = ((String) options.valueOf("mode")).toLowerCase();
 			if(m.equalsIgnoreCase(MODE.dbSNP.name())) 			 
 				modeOptions = new DbsnpOptions();
 			else if( m.equalsIgnoreCase(MODE.germline.name())) 			 
