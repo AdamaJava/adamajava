@@ -41,11 +41,11 @@ public class SnpEffOptions extends Options {
         parser.acceptsAll( asList("h", "help"), Messages.getMessage("HELP_OPTION_DESCRIPTION"));
         parser.acceptsAll( asList("i", "input"), Messages.getMessage("INPUT_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("input vcf");
         parser.acceptsAll( asList("o", "output"), Messages.getMessage("OUTPUT_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("output vcf"); 
-        parser.accepts("mode", "specify [snpEff] here").withRequiredArg().ofType(String.class).describedAs("snpEff mode");
+        parser.accepts("mode", "run snpeff mode").withRequiredArg().ofType(String.class).describedAs("snpEff");
        // "(compulsary) database location"
-        parser.accepts("database", Messages.getMessage("SNPEFF_DATABSE_DESCRIPTION")).withRequiredArg().ofType(String.class);
-        parser.accepts("config", "(optional) configure file with full path").withRequiredArg().ofType(String.class);
-        parser.accepts("statFile", "(optional) output stats file with full path").withRequiredArg().ofType(String.class);
+        parser.acceptsAll( asList("d", "database"), Messages.getMessage("DATABASE_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("database file"); 
+        parser.accepts("config", "(optional) configure file with full path").withRequiredArg().ofType(String.class).describedAs("config file");
+        parser.accepts("statFile", "(optional) output stats file with full path").withRequiredArg().ofType(String.class).describedAs("stat output");
 //        parser.acceptsAll( asList("m", "mode"), "snpEff").withRequiredArg().ofType(String.class);
         parser.accepts("log", LOG_DESCRIPTION).withRequiredArg().ofType(String.class);
         parser.accepts("loglevel",  LOG_LEVEL_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
@@ -76,10 +76,10 @@ public class SnpEffOptions extends Options {
     } 
 
     public void displayHelp() throws Exception {
-    	 System.out.println(Messages.getMessage("HELP_OPTION_DESCRIPTION"));
-		    Thread.sleep(1);
+    	    System.out.println(Messages.getMessage("SNPEFF_USAGE"));       
+		   
 		    parser.printHelpOn(System.err);
-		    System.out.println(Messages.getMessage("SNPEFF_USAGE"));       
+		  
     }
 
 

@@ -18,7 +18,7 @@ import org.qcmg.picard.SAMFileReaderFactory;
  */
 public class DbsnpOptions extends Options {
  	
- 	 public final Options.MODE Mode = Options.MODE.germline;
+ 	 public final Options.MODE Mode = Options.MODE.dbSNP;
 
     /**
      * check command line and store arguments and option information
@@ -33,7 +33,8 @@ public class DbsnpOptions extends Options {
         parser.acceptsAll( asList("h", "help"), Messages.getMessage("HELP_OPTION_DESCRIPTION"));
         parser.acceptsAll( asList("i", "input"), Messages.getMessage("INPUT_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("input vcf");
         parser.acceptsAll( asList("o", "output"), Messages.getMessage("OUTPUT_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("output vcf"); 
-        parser.accepts("mode", "specify [germline] here").withRequiredArg().ofType(String.class).describedAs("germline mode");
+        parser.acceptsAll( asList("d", "database"), Messages.getMessage("DATABASE_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("database file"); 
+        parser.accepts("mode", "run dbSNP mode").withRequiredArg().ofType(String.class).describedAs("dbsnp");
         parser.accepts("log", LOG_DESCRIPTION).withRequiredArg().ofType(String.class);
         parser.accepts("loglevel",  LOG_LEVEL_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
         OptionSet options = parser.parse(args);   
@@ -46,6 +47,7 @@ public class DbsnpOptions extends Options {
         //check IO
         inputFileName = (String) options.valueOf("i") ;      	 
         outputFileName = (String) options.valueOf("o") ; 
+        databaseFileName = (String) options.valueOf("d") ; 
          if( !options.has("log")){
             System.out.println(Messages.getMessage("LOG_OPTION_DESCRIPTION"));            
             return false;
@@ -59,10 +61,11 @@ public class DbsnpOptions extends Options {
     } 
 
     public void displayHelp() throws Exception {
-    	 System.out.println(Messages.getMessage("HELP_OPTION_DESCRIPTION"));
+   
+    	 System.out.println(Messages.getMessage("DBSNP_USAGE"));     
 		    Thread.sleep(1);
 		    parser.printHelpOn(System.err);
-		    System.out.println(Messages.getMessage("SNPEFF_USAGE"));       
+		      
     }
 
 

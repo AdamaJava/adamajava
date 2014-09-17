@@ -29,7 +29,9 @@ public class GermlineOptions extends Options {
         parser.acceptsAll( asList("h", "help"), Messages.getMessage("HELP_OPTION_DESCRIPTION"));
         parser.acceptsAll( asList("i", "input"), Messages.getMessage("INPUT_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("input vcf");
         parser.acceptsAll( asList("o", "output"), Messages.getMessage("OUTPUT_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("output vcf"); 
-        parser.accepts("mode", "specify [germline] here").withRequiredArg().ofType(String.class).describedAs("germline mode");
+        parser.acceptsAll( asList("d", "database"), Messages.getMessage("DATABASE_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("database file"); 
+
+        parser.accepts("mode", "run germline mode").withRequiredArg().ofType(String.class).describedAs("germline");
         parser.accepts("log", LOG_DESCRIPTION).withRequiredArg().ofType(String.class);
         parser.accepts("loglevel",  LOG_LEVEL_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
         OptionSet options = parser.parse(args);   
@@ -55,10 +57,10 @@ public class GermlineOptions extends Options {
     } 
 
     public void displayHelp() throws Exception {
-    	 System.out.println(Messages.getMessage("HELP_OPTION_DESCRIPTION"));
+       System.out.println(Messages.getMessage("GERMLINE_USAGE"));   
 		    Thread.sleep(1);
 		    parser.printHelpOn(System.err);
-		    System.out.println(Messages.getMessage("SNPEFF_USAGE"));       
+		     
     }
 
 
