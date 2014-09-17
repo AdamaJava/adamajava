@@ -8,7 +8,7 @@ repositories {
 
 dependencies {
     configurations.compile.transitive = true
-    compile name: 'commons-math3', version: '3.1.1'
+    compile name: 'commons-math3', version: '3.3'
     testCompile name: 'junit', version: '4.10'
 }
 
