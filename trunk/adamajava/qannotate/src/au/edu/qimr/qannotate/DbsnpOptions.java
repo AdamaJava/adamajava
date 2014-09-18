@@ -44,20 +44,28 @@ public class DbsnpOptions extends Options {
             return false;
         }
         
-        //check IO
-        inputFileName = (String) options.valueOf("i") ;      	 
-        outputFileName = (String) options.valueOf("o") ; 
-        databaseFileName = (String) options.valueOf("d") ; 
-         if( !options.has("log")){
+        
+        if( !options.has("log")){
             System.out.println(Messages.getMessage("LOG_OPTION_DESCRIPTION"));            
             return false;
         } else{  
         	logFileName = (String) options.valueOf("log");  	
         	logLevel = (String) options.valueOf("loglevel");
-        }
-    
-                
-        return checkIO();
+        }   
+        
+        //check IO
+        inputFileName = (String) options.valueOf("i") ;      	 
+        outputFileName = (String) options.valueOf("o") ; 
+        databaseFileName = (String) options.valueOf("d") ; 
+
+        String[] inputs = new String[]{ inputFileName,databaseFileName} ;
+        String[] outputs = new String[]{outputFileName};
+        String [] ios = new String[inputs.length + outputs.length];
+        System.arraycopy(inputs, 0, ios, 0, inputs.length);
+        System.arraycopy(outputs, 0, ios, inputs.length, outputs.length);
+        return checkInputs(inputs )  && checkOutputs(outputs ) && checkUnique(ios);
+        
+  
     } 
 
     public void displayHelp() throws Exception {

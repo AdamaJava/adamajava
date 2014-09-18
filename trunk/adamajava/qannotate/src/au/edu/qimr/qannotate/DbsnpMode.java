@@ -32,6 +32,8 @@ import org.qcmg.vcf.VCFSerializer;
 
 public class DbsnpMode {
 	
+	// /panfs/share/dbSNP/hg19.db130.single.SNP.all
+	
 	//normally << 10,000,000 records in one vcf file
 	final Map<ChrPosition,VCFRecord> positionRecordMap = new HashMap<ChrPosition,VCFRecord>();
 	VCFHeader header;

@@ -13,6 +13,8 @@ import net.sf.samtools.SAMFileReader;
 import org.qcmg.picard.HeaderUtils;
 import org.qcmg.picard.SAMFileReaderFactory;
 
+import scala.Array;
+
 /*
  * parse command line to options. 
  */
@@ -41,9 +43,6 @@ public class GermlineOptions extends Options {
             return false;
         }
         
-        //check IO
-        inputFileName = (String) options.valueOf("i") ;      	 
-        outputFileName = (String) options.valueOf("o") ; 
          if( !options.has("log")){
             System.out.println(Messages.getMessage("LOG_OPTION_DESCRIPTION"));            
             return false;
@@ -52,8 +51,18 @@ public class GermlineOptions extends Options {
         	logLevel = (String) options.valueOf("loglevel");
         }
     
-                
-        return checkIO();
+         //check IO
+        inputFileName = (String) options.valueOf("i") ;      	 
+        outputFileName = (String) options.valueOf("o") ; 
+        databaseFileName = (String) options.valueOf("d") ;      
+        String[] inputs = new String[]{ inputFileName,databaseFileName} ;
+        String[] outputs = new String[]{outputFileName};
+        String [] ios = new String[inputs.length + outputs.length];
+        System.arraycopy(inputs, 0, ios, 0, inputs.length);
+        System.arraycopy(outputs, 0, ios, inputs.length, outputs.length);
+        
+        return checkInputs(inputs )  && checkOutputs(outputs ) && checkUnique(ios);
+         
     } 
 
     public void displayHelp() throws Exception {

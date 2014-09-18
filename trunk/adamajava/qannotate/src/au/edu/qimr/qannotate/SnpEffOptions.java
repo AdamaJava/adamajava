@@ -55,14 +55,7 @@ public class SnpEffOptions extends Options {
         	displayHelp();
             return false;
         }
-        
-        //check IO
-        inputFileName = (String) options.valueOf("i") ;      	 
-        outputFileName = (String) options.valueOf("o") ; 
-        databaseFileName = (String) options.valueOf("database") ;
-        configFileName = (String) options.valueOf("config") ;
-        statOutputFileName = (String) options.valueOf("statFile") ;
-                       
+                               
         if( !options.has("log")){
             System.out.println(Messages.getMessage("LOG_OPTION_DESCRIPTION"));            
             return false;
@@ -71,9 +64,22 @@ public class SnpEffOptions extends Options {
         	logLevel = (String) options.valueOf("loglevel");
         }
     
-                
-        return hasCommandChecked();
-    } 
+        //check IO
+        inputFileName = (String) options.valueOf("i") ;      	 
+        outputFileName = (String) options.valueOf("o") ; 
+        databaseFileName = (String) options.valueOf("d") ;
+        configFileName = (String) options.valueOf("config") ;
+        statOutputFileName = (String) options.valueOf("statFile") ;
+        
+        String[] inputs = new String[]{ inputFileName,databaseFileName,getConfigFileName()} ;
+        String[] outputs = new String[]{outputFileName, getStatOutputFileName()};
+        String [] ios = new String[inputs.length + outputs.length];
+        System.arraycopy(inputs, 0, ios, 0, inputs.length);
+        System.arraycopy(outputs, 0, ios, inputs.length, outputs.length);
+
+        return checkInputs(inputs )  && checkOutputs(outputs ) && checkUnique(ios);
+        
+     } 
 
     public void displayHelp() throws Exception {
     	    System.out.println(Messages.getMessage("SNPEFF_USAGE"));       
@@ -82,36 +88,7 @@ public class SnpEffOptions extends Options {
 		  
     }
 
-
-	public boolean hasCommandChecked(){  	
-    	String message = null;
-         File database = new File(databaseFileName); 
-   	
-    	if(databaseFileName == null)
-    		message = Messages.getMessage("MISSING_OPTION", "--database");       	
-        else if(!database.isDirectory())
-        	message = Messages.getMessage("DATABASE_FILE_ERR_DESCRIPTION",MODE.snpEff.name(), database.getAbsolutePath()); 
-       // 	|| !database.canRead()) 
-        	 
-        else if(configFileName != null){
-        	File conf = new File(configFileName);
-        	if(!conf.exists() || !conf.isFile() || !conf.canRead()) 
-        		message = Messages.getMessage("CONF_FILE_ERR_DESCRIPTION",MODE.snpEff.name(), conf.getName());
-        }else if( statOutputFileName != null ){
-        	File stat = new File(statOutputFileName);     
-            if(( stat.exists() && ! stat.canWrite()) || !stat.getParentFile().canWrite() )
-           	 message = Messages.getMessage("OUTPUT_ERR_DESCRIPTION",stat.getName());
-        }
-        
-        if(message != null){
-        	System.err.println( message);
-            return false;
-        }
-        
-       //finally check input and output 
-        return checkIO();
-    }
-    
+  
 	public String getConfigFileName() { 
 		if(configFileName == null)
 			configFileName = new File(databaseFileName).getParent() + "/" + DEFAULT_CONFIG_FILE; 
