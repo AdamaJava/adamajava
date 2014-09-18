@@ -3,6 +3,10 @@ package au.edu.qimr.qannotate;
 import static java.util.Arrays.asList;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -101,29 +105,80 @@ public class Options {
      * check input and output files
      * @return true if input file readable and output file writable
      */
-    protected boolean checkIO(  ){   	
-        File in = new File(inputFileName);
-        File out = new File(outputFileName);
+    protected boolean checkIO( ){   	
+    	 File in = new File(inputFileName );
+        File out = new File(outputFileName  );
       
-        String errMessage = null;
-        
-        if(!in.exists()) 
-            errMessage = Messages.getMessage("NONEXIST_INPUT_FILE", inputFileName);
-        else if(!in.isFile())       
-            errMessage = Messages.getMessage("FILE_NOT_DIRECTORY", inputFileName); 
-         else if(!in.canRead())
-        	errMessage = Messages.getMessage("UNREAD_INPUT_FILE",inputFileName);           
-        else if(in.getName().equals(out.getName()) && in.getPath().equals(out.getPath()) )
+        String errMessage = null; 	
+        if((out.exists() && !out.canWrite()) || !out.getParentFile().canWrite() )
+        	 errMessage = Messages.getMessage("OUTPUT_ERR_DESCRIPTION",out.getName());
+          else if(in.getName().equals(out.getName()) && in.getPath().equals(out.getPath()) )
             errMessage = Messages.getMessage("INPUT_SAME_OUTPUT",in.getName(),out.getName());
-        else if((out.exists() && !out.canWrite()) || !out.getParentFile().canWrite() )
-        	 errMessage = Messages.getMessage("OUTPUT_ERR_DESCRIPTION",in.getName(),out.getName());
-         
+        
         if(errMessage == null)
         	return true;
         else
         	System.err.println(errMessage);
         
         return false;
+      
+    }
+    protected boolean checkUnique(String[] ios ){   
+    	Path[] pios = new Path[ios.length];
+    	
+    	for (int i = 0; i < ios.length; i ++)
+    		pios[i] = Paths.get(ios[i]); 
+    	   	
+    	for(int  i = ios.length -1; i > 0; i --)
+    		for (int j = i-1; j >= 0; j -- )
+				try {
+					if( Files.isSameFile(pios[i], pios[j]))
+					 throw new Exception(   String.format("below two files assigned to different option but located same :", i, ios[i], j, ios[j])     ) ;
+				} catch (final Exception e) {
+					//e.printStackTrace();
+					System.err.println(e.getMessage());
+					return false;
+				}
+
+    	return true;    	
+    }	 
+    
+    protected boolean checkOutputs( String[]  outputs){   
+    	for(int i = 0; i < outputs.length; i ++){
+	        File out = new File(outputs[i] );
+	        if((out.exists() && !out.canWrite()) || !out.getParentFile().canWrite() ){
+	        	System.err.println( Messages.getMessage("OUTPUT_ERR_DESCRIPTION",out.getName()) );
+	        	 return false;
+	        }
+	        
+    	}
+    	return true;
+    }
+    
+    
+    /**
+     * check input and output files
+     * @return true if input file readable and output file writable
+     */
+    protected boolean checkInputs( String[] inputs ){   
+        String errMessage = null;
+        
+        for(int i = 0; i < inputs.length; i ++){
+        	File in = new File(inputs[i] );
+	        if(!in.exists()) 
+	            errMessage = Messages.getMessage("NONEXIST_INPUT_FILE", inputFileName);
+	        else if(!in.isFile())       
+	            errMessage = Messages.getMessage("FILE_NOT_DIRECTORY", inputFileName); 
+	         else if(!in.canRead())
+	        	errMessage = Messages.getMessage("UNREAD_INPUT_FILE",inputFileName);           
+	           
+	        if(errMessage != null){
+	        	System.err.println(errMessage);
+	        	 return false;
+	        }
+	       }  	
+	        	
+	       return true;
       
     }
 
