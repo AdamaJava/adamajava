@@ -13,19 +13,21 @@ import net.sf.samtools.SAMFileReader;
 import org.qcmg.picard.HeaderUtils;
 import org.qcmg.picard.SAMFileReaderFactory;
 
+import au.edu.qimr.qannotate.Options.MODE;
+
 /*
  * parse command line to options. 
  */
 public class DbsnpOptions extends Options {
  	
- 	 public final Options.MODE Mode = Options.MODE.dbSNP;
+ //	 public final Options.MODE Mode = Options.MODE.dbSNP;
 
     /**
      * check command line and store arguments and option information
      */
  	
- 	 
- //	public DbsnpOptions(){  mode = null;    parser = new OptionParser();  }
+ 	// public Options(){  parser = new OptionParser(); this.Mode = null; } 
+ 	public DbsnpOptions(){ super(Options.MODE.dbSNP);   }
  	
     @Override
     public boolean parseArgs(final String[] args) throws Exception{  	
@@ -75,6 +77,7 @@ public class DbsnpOptions extends Options {
 		    parser.printHelpOn(System.err);
 		      
     }
+    
 
 
    

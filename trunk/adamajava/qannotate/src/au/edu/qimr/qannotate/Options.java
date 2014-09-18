@@ -27,7 +27,6 @@ public class Options {
    protected static final String LOG_LEVEL_OPTION_DESCRIPTION = Messages.getMessage("LOG_LEVEL_OPTION_DESCRIPTION");
    	
     
- 	public final Options.MODE Mode = null ;   
     private boolean commandCheck = false;
     private String commandLine;
 
@@ -36,7 +35,9 @@ public class Options {
 	
 //	private Options option = null;
 //	private Object modeOption = null;
-	
+    
+//    public final Options.MODE Mode = null;
+ 	protected final Options.MODE Mode;   	
 	protected String outputFileName = null;
 	protected String inputFileName = null;
 	protected String databaseFileName = null;
@@ -48,7 +49,8 @@ public class Options {
      * check command line and store arguments and option information
      */
     
-    public Options(){  parser = new OptionParser();  }
+    public Options(){  parser = new OptionParser(); this.Mode = null; }
+    public Options(Options.MODE m){ parser = new OptionParser(); this.Mode = m;}
     
     public boolean parseArgs(final String[] args) throws Exception{ 
 
@@ -79,6 +81,9 @@ public class Options {
 				}
         }else if(options.has("h") || options.has("help")) 
         	displayHelp();  
+        
+        System.out.println("cmd is " + commandLine);
+        
       
         if(modeOptions != null)   
         	return modeOptions.parseArgs( args  );    	
@@ -192,13 +197,19 @@ public class Options {
 	public Options getOption(){		
 		return modeOptions;
 	}
-	
+/*	
 	public MODE getMode(){
+		//debug
+		System.out.println ("getMode: " + modeOptions.Mode);
+		
 		if(modeOptions != null)
 			return modeOptions.Mode;
 		else
 			return null;
 	}
+ */
+    public MODE getMode(){	return  Mode; }
+    
 
 	
 }

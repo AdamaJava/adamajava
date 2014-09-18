@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Vector;
 
 import org.qcmg.common.log.QLogger;
+import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.meta.QExec;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.GenotypeEnum;
@@ -38,8 +39,12 @@ public class DbsnpMode {
 	final Map<ChrPosition,VCFRecord> positionRecordMap = new HashMap<ChrPosition,VCFRecord>();
 	VCFHeader header;
 	QLogger logger;
-	
-	public DbsnpMode(DbsnpOptions options) throws Exception{
+		public DbsnpMode(DbsnpOptions options) throws Exception{
+		logger = QLoggerFactory.getLogger(Main.class, options.getLogFileName(), options.getLogLevel());
+
+		System.out.println( options.getInputFileName());
+		
+		
 		logger.tool("input: " + options.getInputFileName());
         logger.tool("dbSNP file: " + options.getDatabaseFileName() );
         logger.tool("output for annotated vcf records: " + options.getOutputFileName());

@@ -13,24 +13,24 @@ import net.sf.samtools.SAMFileReader;
 import org.qcmg.picard.HeaderUtils;
 import org.qcmg.picard.SAMFileReaderFactory;
 
+import au.edu.qimr.qannotate.Options.MODE;
+
 /*
  * parse command line to options. 
  */
 public class SnpEffOptions extends Options {
-	public final Options.MODE Mode = Options.MODE.snpEff;
-	
+ 	
 	public static final String DEFAULT_SUMMARY_FILE_SUFFIX = ".snpEff_summary.html";
 	public static final String DEFAULT_CONFIG_FILE = "snpEff.config";
 	 
     private String configFileName ;
     private String statOutputFileName ;
     
-    public SnpEffOptions( ) throws Exception{  	super(); }
+ 
 
-    public SnpEffOptions(final String[] args) throws Exception{  	
-    	super();
-    	parseArgs( args);
-    }
+    public SnpEffOptions( ) {  super(Options.MODE.snpEff);	  }
+
+//    public SnpEffOptions(final String[] args) throws Exception{   super(); parseArgs( args);  }
 
     /**
      * check command line and store arguments and option information
@@ -102,4 +102,6 @@ public class SnpEffOptions extends Options {
 		
 		return  statOutputFileName;
 	}
+	
+ 
 }

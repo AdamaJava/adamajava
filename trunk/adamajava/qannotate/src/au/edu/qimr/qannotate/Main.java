@@ -13,12 +13,13 @@ public class Main {
 	            
 	            if ( options.parseArgs(args)){ 	            	
 	               logger = QLoggerFactory.getLogger(Main.class, options.getLogFileName(), options.getLogLevel());
-	               logger.logInitialExecutionStats(options.getPGName(), options.getVersion(),args);
-	               if(options.getMode() == Options.MODE.dbSNP)
+	               logger.logInitialExecutionStats(options.getPGName(), options.getVersion(),args);	                
+	                 
+	               if(options.getOption().getMode() == Options.MODE.dbSNP)
 	            	   new DbsnpMode( (DbsnpOptions) options.getOption()   );
-	               else if(options.getMode() == Options.MODE.germline)
+	               else if(options.getOption().getMode() == Options.MODE.germline)
 	            	   new GermlineMode( (GermlineOptions) options.getOption());
-	               else if(options.getMode() == Options.MODE.snpEff)
+	               else if(options.getOption().getMode() == Options.MODE.snpEff)
 	            	    new SnpEffMode( (SnpEffOptions) options.getOption());
 	               else
 	            	   throw new Exception("No valid mode are specified on commandline: " + options.getMode().name()) ;

@@ -13,6 +13,7 @@ import net.sf.samtools.SAMFileReader;
 import org.qcmg.picard.HeaderUtils;
 import org.qcmg.picard.SAMFileReaderFactory;
 
+import au.edu.qimr.qannotate.Options.MODE;
 import scala.Array;
 
 /*
@@ -20,7 +21,7 @@ import scala.Array;
  */
 public class GermlineOptions extends Options {
   
-	public final Options.MODE Mode = Options.MODE.germline;
+		public GermlineOptions(){ super(Options.MODE.germline);   }
 
     /**
      * check command line and store arguments and option information
@@ -72,6 +73,6 @@ public class GermlineOptions extends Options {
 		     
     }
 
-
+ 
    
 }
