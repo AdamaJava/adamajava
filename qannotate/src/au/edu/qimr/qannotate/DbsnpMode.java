@@ -38,18 +38,15 @@ public class DbsnpMode {
 	//normally << 10,000,000 records in one vcf file
 	final Map<ChrPosition,VCFRecord> positionRecordMap = new HashMap<ChrPosition,VCFRecord>();
 	VCFHeader header;
-	QLogger logger;
-		public DbsnpMode(DbsnpOptions options) throws Exception{
-		logger = QLoggerFactory.getLogger(Main.class, options.getLogFileName(), options.getLogLevel());
-
-		System.out.println( options.getInputFileName());
-		
-		
+	private final QLogger logger;
+		public DbsnpMode(DbsnpOptions options, QLogger logger) throws Exception{
+			
+		this.logger = logger;		
 		logger.tool("input: " + options.getInputFileName());
         logger.tool("dbSNP file: " + options.getDatabaseFileName() );
         logger.tool("output for annotated vcf records: " + options.getOutputFileName());
-        logger.info("logger level " + options.getLogLevel());
- 
+        logger.tool("logger file " + options.getLogFileName());
+        logger.tool("logger level " + options.getLogLevel());
 		
 		inputRecord(new File( options.getInputFileName())   );
 		addAnnotation(new File( options.getDatabaseFileName() ));
@@ -89,9 +86,7 @@ public class DbsnpMode {
 			if( dbSNPVcf.getRef() != dbSNPVcf.getRef() )
 				throw new Exception("reference base are different ");
 			 
-			//debug
-			if(dbSNPVcf.getAlt().length() > 1)
-				System.out.println( dbSNPVcf.getId() + " " + dbSNPVcf.getAlt());
+ 			
 			//*eg. dbSNP: "1 100 rs12334 A G,T,C ..." dbSNP may have multiple entries
 			//*eg. input.vcf: "1 100 101 A G ..." , "1 100 101 A T,C ..." out snp vcf are single entries			  
 			String [] alts = null; 

@@ -70,8 +70,8 @@ public class SnpEffOptions extends Options {
         databaseFileName = (String) options.valueOf("d") ;
         configFileName = (String) options.valueOf("config") ;
         statOutputFileName = (String) options.valueOf("statFile") ;
-        
-        String[] inputs = new String[]{ inputFileName,databaseFileName,getConfigFileName()} ;
+        //,databaseFileName
+        String[] inputs = new String[]{ inputFileName,getConfigFileName()} ;
         String[] outputs = new String[]{outputFileName, getStatOutputFileName()};
         String [] ios = new String[inputs.length + outputs.length];
         System.arraycopy(inputs, 0, ios, 0, inputs.length);
