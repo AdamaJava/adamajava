@@ -17,10 +17,19 @@ public class SnpEffMode {
 	QLogger logger;
 	//public SnpEffMode(SnpEffOptions options ) throws Exception{}
 	
-	public  SnpEffMode(SnpEffOptions options ) throws Exception{
+	public  SnpEffMode(SnpEffOptions options,QLogger logger ) throws Exception{
+		this.logger = logger;		
+		logger.tool("input: " + options.getInputFileName());
+        logger.tool("snpEff database: " + options.getDatabaseFileName() );
+        logger.tool("configure file: " + options.getConfigFileName());
+        logger.tool("output stat file: " + options.getStatOutputFileName());
+        logger.tool("output for annotated vcf records: " + options.getOutputFileName());        
+        logger.tool("logger file " + options.getLogFileName());
+        logger.tool("logger level " + options.getLogLevel());
 		
 		File fdata = new File(options.getDatabaseFileName());
 		
+		//constructure the command line for snpEff
 		List<String> command = new ArrayList<String>();
 		command.add(0, "eff");
 		command.add(1, "-dataDir");
@@ -29,10 +38,8 @@ public class SnpEffMode {
 		command.add(4, options.getConfigFileName());
 		command.add(5, "-stats");
 		command.add(6, options.getStatOutputFileName());		
-		//genome version information here which should be database file base name
 		command.add(7, fdata.getName());
-		command.add(8, options.getInputFileName()); 
-		
+		command.add(8, options.getInputFileName()); 		
 		command.add(9, "-o");
 		command.add(10, "VCF");	
 		//command.add(11, "-interval");

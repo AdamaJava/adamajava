@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.qcmg.common.log.QLogger;
+
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 /*
@@ -32,6 +34,7 @@ public class Options {
 
     protected OptionParser parser;
     protected Options modeOptions = null;
+    protected QLogger logger = null;
 	
 //	private Options option = null;
 //	private Object modeOption = null;
@@ -82,7 +85,7 @@ public class Options {
         }else if(options.has("h") || options.has("help")) 
         	displayHelp();  
         
-        System.out.println("cmd is " + commandLine);
+ //       System.out.println("cmd is " + commandLine);
         
       
         if(modeOptions != null)   
@@ -129,16 +132,19 @@ public class Options {
       
     }
     protected boolean checkUnique(String[] ios ){   
-    	Path[] pios = new Path[ios.length];
+    	
+    	File[] fios = new File[ios.length];
+ //   	Path[] pios = new Path[ios.length];
     	
     	for (int i = 0; i < ios.length; i ++)
-    		pios[i] = Paths.get(ios[i]); 
+    		fios[i] = new File(ios[i]); 
     	   	
     	for(int  i = ios.length -1; i > 0; i --)
     		for (int j = i-1; j >= 0; j -- )
 				try {
-					if( Files.isSameFile(pios[i], pios[j]))
-					 throw new Exception(   String.format("below two files assigned to different option but located same :", i, ios[i], j, ios[j])     ) ;
+					//if( Files.isSameFile(pios[i], pios[j]))
+					if(fios[i].getCanonicalFile().equals(fios[j].getCanonicalFile()))
+						throw new Exception( "below command line values are point to same file: \n\t" + fios[i] + "\n\t" + fios[j]   ) ;
 				} catch (final Exception e) {
 					//e.printStackTrace();
 					System.err.println(e.getMessage());
@@ -171,11 +177,11 @@ public class Options {
         for(int i = 0; i < inputs.length; i ++){
         	File in = new File(inputs[i] );
 	        if(!in.exists()) 
-	            errMessage = Messages.getMessage("NONEXIST_INPUT_FILE", inputFileName);
+	            errMessage = Messages.getMessage("NONEXIST_INPUT_FILE", in.getPath());
 	        else if(!in.isFile())       
-	            errMessage = Messages.getMessage("FILE_NOT_DIRECTORY", inputFileName); 
+	            errMessage = Messages.getMessage("FILE_NOT_DIRECTORY", in.getPath());
 	         else if(!in.canRead())
-	        	errMessage = Messages.getMessage("UNREAD_INPUT_FILE",inputFileName);           
+	        	errMessage = Messages.getMessage("UNREAD_INPUT_FILE",in.getPath());     
 	           
 	        if(errMessage != null){
 	        	System.err.println(errMessage);
@@ -197,19 +203,14 @@ public class Options {
 	public Options getOption(){		
 		return modeOptions;
 	}
-/*	
-	public MODE getMode(){
-		//debug
-		System.out.println ("getMode: " + modeOptions.Mode);
-		
-		if(modeOptions != null)
-			return modeOptions.Mode;
-		else
-			return null;
-	}
- */
-    public MODE getMode(){	return  Mode; }
-    
 
-	
+    public MODE getMode(){	return  Mode; }
+
+    /*
+    public void setLog( QLogger log ){
+    	this.logger = log;
+    }
+
+    public QLogger getLog(){return logger;}
+	*/
 }

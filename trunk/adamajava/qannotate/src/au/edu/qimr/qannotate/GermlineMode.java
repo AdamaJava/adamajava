@@ -27,13 +27,15 @@ public class GermlineMode {
 	VCFHeader header;
 	QLogger logger;
 
-	public GermlineMode(GermlineOptions options) throws Exception{
-		logger.tool("input: " + options.getInputFileName());
-        logger.tool("dbGermline file: " + options.getDatabaseFileName() );
-        logger.tool("output for annotated vcf records: " + options.getOutputFileName());
-        logger.info("logger level " + options.getLogLevel());
- 
+	public GermlineMode(GermlineOptions options, QLogger logger) throws Exception{
 		
+		this.logger = logger;		
+		logger.tool("input: " + options.getInputFileName());
+        logger.tool("germline database: " + options.getDatabaseFileName() );
+        logger.tool("output annotated records: " + options.getOutputFileName());
+        logger.tool("logger file " + options.getLogFileName());
+        logger.tool("logger level " + options.getLogLevel());
+ 		
 		inputRecord(new File( options.getInputFileName())   );
 		addAnnotation(new File( options.getDatabaseFileName() ));
 		writeVCF(new File(options.getOutputFileName()), options.getCommandLine());	
@@ -112,33 +114,58 @@ public class GermlineMode {
 		 for (VCFRecord dbGermlineVcf : reader) {
 			// vcf dbSNP record chromosome does not contain "chr", whereas the positionRecordMap does - add
 			//eg.positionRecordMap (key, value) = (chr1.100, vcfRecord )
+			 
+				//debug
+				if(dbGermlineVcf.getPosition() == 59032248){					
+					System.out.println(dbGermlineVcf.toString());
+				}
+		 
+			 
 			VCFRecord inputVcf = positionRecordMap.get(new ChrPosition("chr"+ dbGermlineVcf.getChromosome(), dbGermlineVcf.getPosition()));
 			if (null == inputVcf) continue;
+			
 		 		
 			// only proceed if we have a SOMATIC variant record
-			if ( ! StringUtils.doesStringContainSubString(dbGermlineVcf.getInfo(), "SOMATIC", false)) continue;
+			if ( ! StringUtils.doesStringContainSubString(inputVcf.getInfo(), "SOMATIC", false)) continue;
+			
+			//debug
+			if(dbGermlineVcf.getPosition() == 59032248){					
+				System.out.println(inputVcf.toString());
+			}			
+			
 			
 			//reference base must be same
-			if( dbGermlineVcf.getRef() != dbGermlineVcf.getRef() )
+			//?? maybe errif( dbGermlineVcf.getRef() != dbGermlineVcf.getRef() )
+			if( dbGermlineVcf.getRef() != inputVcf.getRef() )
 				throw new Exception("reference base are different ");
 			 
  			String [] alts = null; 
 			if(inputVcf.getAlt().length() > 1)	  				
 				alts = TabTokenizer.tokenize(inputVcf.getAlt(), ',');
 		    else 
-				alts = new String[] {inputVcf.getAlt()};			
+				alts = new String[] {inputVcf.getAlt()};	
+			
 			
 			if (null == alts)  continue;			
 			//annotation if at least one alts matches dbSNP alt
 			for (String alt : alts)  
 				if(dbGermlineVcf.getAlt().toUpperCase().contains(alt.toUpperCase()) ){
+					
+					
 					filter = inputVcf.getFilter();
 					if(filter.endsWith("PASS") ){
-							if (filter.indexOf("PASS") != filter.length() - 4)
+						if (filter.indexOf("PASS") != filter.length() - 4)
 							throw new Exception("mutli \"PASS\" marked on the FILTER field for vcf record: " + inputVcf.toString());
-							filter = filter.replace("PASS", "GERM");							
+						filter = filter.replace("PASS", "GERM");							
 					}else
 						filter +=  ";GERM";
+					
+					//debug
+					if(inputVcf.getPosition() == 59032248){
+						System.out.println(String.format("bf:%s, af:%s",inputVcf.getFilter(), filter ));
+					}
+					
+					
 				 
 					inputVcf.setFilter(filter);
 					break;
