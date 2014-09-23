@@ -22,7 +22,7 @@ public class MatePairsReader {
     private Map<String, List<File>> filesToRead;
     private int mateCount;
     private final String type;
-	private List<String> categories;
+	private final List<String> categories;
 
     public MatePairsReader(PairGroup zp, String matepairFilePath,  String outName, String type) {
         this.zp = zp;
@@ -105,18 +105,19 @@ public class MatePairsReader {
         List<MatePair> readPairs = new ArrayList<MatePair>();
         
         for (File file : files) {
-	        FileReader fileReader = new FileReader(file);
-	        BufferedReader reader = new BufferedReader(fileReader);
-	        String line = reader.readLine();
-	        while (line != null) {
-	            if (isFindMethod) {
-	                mateCount++;
-	            }
-	            MatePair readPair = new MatePair(line);
-	            readPairs.add(readPair);
-	            line = reader.readLine();
+	        try (FileReader fileReader = new FileReader(file);
+	        		BufferedReader reader = new BufferedReader(fileReader);) {
+	        	
+		        String line = reader.readLine();
+		        while (line != null) {
+		            if (isFindMethod) {
+		                mateCount++;
+		            }
+		            MatePair readPair = new MatePair(line);
+		            readPairs.add(readPair);
+		            line = reader.readLine();
+		        }
 	        }
-	        reader.close();
         }
         
        Collections.sort(readPairs, new MatePair.ReadMateLeftStartComparator());
