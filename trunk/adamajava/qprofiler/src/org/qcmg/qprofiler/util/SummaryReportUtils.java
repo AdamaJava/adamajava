@@ -942,7 +942,8 @@ public class SummaryReportUtils {
 							// check cigar to see if we need to adjust our offset due to insertions etc
 							int additionalOffset = getInsertionAdjustedReadOffset(cigar, position);
 							char readBase = BaseUtils.getComplement((char)readBases[position-1 + additionalOffset]);
-							char refBase = BaseUtils.getComplement(mdData.charAt(i));
+							char refBase = mdData.charAt(i);
+//							char refBase = BaseUtils.getComplement(mdData.charAt(i));
 							if (refBase == readBase) {
 								System.out.println("Found refBase == altBase, md: " + mdData + " , cigar: " + cigar.toString() + ", seq: " + new String(readBases) + ", reverse strand: " +reverse); 
 							}

@@ -443,6 +443,25 @@ public class SummaryReportUtilsTest {
 	}
 	
 	@Test
+	public void tallyMDMismatchesRefEqualsAltReverse() {
+		//Found refBase == altBase, md: 18C4T10G41A30A43 , cigar: 151M, 
+		//seq: TTTGTTAGCTGTTCCTGGCCCAATTGCATTGTTGTTGTTGCGAGTTGTCTCCTCTCCTTTACGACCCATTTTGAACCCAAATAAGAAAATCGCTCAAATTTGCTTTTCGTCTCACATCATTTCCATAGTCTAAAATAAAACAGCAAGTAGT
+		//reverse strand: true
+		QCMGAtomicLongArray forwardArray = new QCMGAtomicLongArray(32);
+		QCMGAtomicLongArray reverseArray = new QCMGAtomicLongArray(32);
+		SummaryByCycleNew2<Character> summary = new SummaryByCycleNew2<Character>(Character.MAX_VALUE, 64);
+		Cigar cigar = new Cigar();
+		cigar.add(new CigarElement(151, CigarOperator.M));
+		SummaryReportUtils.tallyMDMismatches("18C4T10G41A30A43", cigar, summary, "TTTGTTAGCTGTTCCTGGCCCAATTGCATTGTTGTTGTTGCGAGTTGTCTCCTCTCCTTTACGACCCATTTTGAACCCAAATAAGAAAATCGCTCAAATTTGCTTTTCGTCTCACATCATTTCCATAGTCTAAAATAAAACAGCAAGTAGT".getBytes(), true, forwardArray, reverseArray);
+		
+		assertEquals(1, reverseArray.get(SummaryReportUtils.getIntFromChars('C', 'G')));
+		assertEquals(1, reverseArray.get(SummaryReportUtils.getIntFromChars('T', 'A')));
+		assertEquals(1, reverseArray.get(SummaryReportUtils.getIntFromChars('G', 'A')));
+		assertEquals(2, reverseArray.get(SummaryReportUtils.getIntFromChars('A', 'G')));
+//		assertEquals(1, forwardArray.get(SummaryReportUtils.getIntFromChars('A', 'C')));
+	}
+	
+	@Test
 	public void tallyMDMismatchesCheckMutations() {
 		// 0A94A3, cigar: 35M1I64M, 
 		//readBases: GCCCTAACCCTAACCCTAACCCTAACCCTAACCCTAAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCAACCCTACCCC
@@ -459,8 +478,6 @@ public class SummaryReportUtilsTest {
 		
 		assertEquals(1, forwardArray.get(SummaryReportUtils.getIntFromChars('A', 'G')));
 		assertEquals(1, forwardArray.get(SummaryReportUtils.getIntFromChars('A', 'C')));
-		
-		
 	}
 	
 	@Test
