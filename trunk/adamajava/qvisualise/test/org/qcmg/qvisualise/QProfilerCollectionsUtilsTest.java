@@ -1,11 +1,15 @@
 package org.qcmg.qvisualise;
 
+import static org.junit.Assert.assertEquals;
+
 import java.io.File;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.junit.Ignore;
+import org.junit.Test;
 import org.qcmg.common.model.SummaryByCycle;
 import org.qcmg.common.util.SummaryByCycleUtils;
 import org.qcmg.qvisualise.report.XmlReportReader;
@@ -38,5 +42,30 @@ public class QProfilerCollectionsUtilsTest {
 //		}
 		
 		
+	}
+	
+	
+	@Test
+	public void doBothSecondaryAndSupplementaryElementsAppear() {
+		Map<String, AtomicLong> flagMap = new HashMap<>();
+		flagMap.put("100010000001, pS2", new AtomicLong(100));
+		flagMap.put("100010010001, p1s", new AtomicLong(200));
+		flagMap.put("100010010001, p", new AtomicLong(20500));
+		
+		Map<String, String> discMap = new HashMap<>();
+		discMap.put("S", "Supplementary");
+		discMap.put("s", "secondary");
+		
+		Map<String, AtomicLong> results = QProfilerCollectionsUtils.splitFlagTallyByDistinguisher(flagMap, discMap, null);
+		assertEquals(3, results.size());
+		
+		discMap.clear();
+		discMap.put("S", "Supplementary");
+		results = QProfilerCollectionsUtils.splitFlagTallyByDistinguisher(flagMap, discMap, null);
+		assertEquals(2, results.size());
+		
+		discMap.clear();
+		results = QProfilerCollectionsUtils.splitFlagTallyByDistinguisher(flagMap, discMap, null);
+		assertEquals(1, results.size());
 	}
 }
