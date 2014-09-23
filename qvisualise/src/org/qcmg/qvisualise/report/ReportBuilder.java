@@ -179,6 +179,12 @@ public class ReportBuilder {
 		final Map<String, AtomicLong> mappedFlags = QProfilerCollectionsUtils.splitFlagTallyByDistinguisher(flags, mappedMap, "Mapped");
 		flagTab.addChild(getChartTabFromMap("Unmapped", "flm", HTMLReportUtils.PIE_CHART, true, mappedFlags));
 		
+		final Map<String, String> primaryMap = new HashMap<String, String>();
+		primaryMap.put("s", "secondary");
+		primaryMap.put("S", "Supplementary");
+		final Map<String, AtomicLong> primaryFlags = QProfilerCollectionsUtils.splitFlagTallyByDistinguisher(flags, primaryMap, "Primary");
+		flagTab.addChild(getChartTabFromMap("Primary", "fls", HTMLReportUtils.PIE_CHART, true, primaryFlags));
+		
 		report.addTab(flagTab);
 	}
 
