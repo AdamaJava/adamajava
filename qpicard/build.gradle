@@ -1,6 +1,6 @@
 version = '0.1pre'
 
-isExecutable = false
+def isExecutable = false
 
 repositories {
     flatDir(dirs:"$projectDir/../lib")
@@ -17,7 +17,7 @@ dependencies {
 }
 
 jar.doFirst {
-  classpath = configurations.runtime.collect { it.name }.join(' ')
+  //classpath = configurations.runtime.collect { it.name }.join(' ')
   jar {
      manifest {
         attributes 'Implementation-Title': project.name,
