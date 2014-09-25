@@ -1,8 +1,8 @@
 version = '1.1pre'
 
-mainclass = 'org.qcmg.qbamfilter.query.Query'
-scriptname = 'qbamfilter'
-isExecutable = true
+def mainclass = 'org.qcmg.qbamfilter.query.Query'
+def scriptname = 'qbamfilter'
+def isExecutable = true
 
 repositories {
     flatDir(dirs:"$projectDir/../lib")
@@ -24,7 +24,7 @@ dependencies {
 }
 
 jar.doFirst {
-  classpath = configurations.runtime.collect { it.name }.join(' ')
+  def classpath = configurations.runtime.collect { it.name }.join(' ')
   jar {
      manifest {
         attributes 'Implementation-Title': project.name,
@@ -39,7 +39,7 @@ jar.doFirst {
 }
 
 build.doLast {
-    jarname = project.name
+    def jarname = project.name
     ant {
        echo(file: "build/flat/${scriptname}", message: "#!/bin/bash\njava -jar ${jarname}-${version}.jar \$@")
        chmod(file: "build/flat/${scriptname}", perm: "u+rwx")
