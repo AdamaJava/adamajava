@@ -1,9 +1,9 @@
 version = '0.1pre'
-xmlVersion = '0.2'
+def xmlVersion = '0.2'
 
-mainclass = 'org.qcmg.motif.Motif'
-scriptname = 'qmotif'
-isExecutable = true
+def mainclass = 'org.qcmg.motif.Motif'
+def scriptname = 'qmotif'
+def isExecutable = true
 
 repositories {
 	flatDir(dirs:"$buildDir/deps/ini4j-0.5.2-SNAPSHOT")
@@ -33,7 +33,7 @@ dependencies {
 }
 
 jar.doFirst {
-  classpath = configurations.runtime.collect { it.name }.join(' ')
+  def classpath = configurations.runtime.collect { it.name }.join(' ')
   jar {
      manifest {
         attributes 'Implementation-Title': project.name,
@@ -48,7 +48,7 @@ jar.doFirst {
 }
 
 build.doLast {
-    jarname = project.name
+    def jarname = project.name
     ant {
        echo(file: "build/flat/${scriptname}", message: "#!/bin/bash\njava -Xmx24G -jar ${jarname}-${version}.jar \"\$@\"")
        chmod(file: "build/flat/${scriptname}", perm: "u+rwx")

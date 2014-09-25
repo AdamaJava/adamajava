@@ -1,8 +1,8 @@
 version = '0.2pre'
 
-mainclass = 'org.qcmg.qsv.QSV'
-scriptname = 'qsv'
-isExecutable = true
+def mainclass = 'org.qcmg.qsv.QSV'
+def scriptname = 'qsv'
+def isExecutable = true
 
 
 
@@ -38,7 +38,7 @@ dependencies {
 
 
 jar.doFirst {
-  classpath = configurations.runtime.collect { it.name }.join(' ')
+  def classpath = configurations.runtime.collect { it.name }.join(' ')
   jar {
      manifest {
         attributes 'Implementation-Title': project.name,
@@ -53,7 +53,7 @@ jar.doFirst {
 }
 
 build.doLast {
-    jarname = project.name
+    def jarname = project.name
     ant {
        echo(file: "build/flat/${scriptname}", message: "#!/bin/bash\njava -jar ${jarname}-${version}.jar \$@")
        chmod(file: "build/flat/${scriptname}", perm: "u+rwx")

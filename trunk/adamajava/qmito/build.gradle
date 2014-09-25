@@ -1,8 +1,8 @@
 version = '0.1pre'
 
-mainclass = 'au.edu.qimr.qmito.Mito'
-scriptname = 'qmito'
-isExecutable = true
+def mainclass = 'au.edu.qimr.qmito.Mito'
+def scriptname = 'qmito'
+def isExecutable = true
 
 
 repositories {
@@ -26,7 +26,7 @@ dependencies {
 }
 
 jar.doFirst {
-  classpath = configurations.runtime.collect { it.name }.join(' ')
+  def classpath = configurations.runtime.collect { it.name }.join(' ')
   jar {
      manifest {
         attributes 'Implementation-Title': project.name,
@@ -41,7 +41,7 @@ jar.doFirst {
 }
 
 build.doLast {
-    jarname = project.name
+    def jarname = project.name
     ant {
        echo(file: "build/flat/${scriptname}", message: "#!/bin/bash\njava -jar ${jarname}-${version}.jar \$@")
        chmod(file: "build/flat/${scriptname}", perm: "u+rwx")
