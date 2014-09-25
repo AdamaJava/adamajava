@@ -5,5 +5,5 @@ if [ -z "$ADAMA_HOME" ]; then
     exit 1
 fi
 
-/usr/java/jdk1.7.0_04/bin/java -Dsamjdk.compression_level=1 -XX:ParallelGCThreads=2 -Xmx15g -jar ${ADAMA_HOME}/lib/qbamfix-0.2pre.jar "$@"
+java -Dsamjdk.compression_level=1 -XX:ParallelGCThreads=2 -Xmx15g -jar ${ADAMA_HOME}/lib/qbamfix-0.2pre.jar "$@"
 #java -Dsamjdk.compression_level=1 -jar ${ADAMA_HOME}/lib/qbamfix-0.1pre.jar "$@"

@@ -6,4 +6,4 @@ if [ -z "$ADAMA_HOME" ]; then
 fi
 
 #java -Dsamjdk.compression_level=1 -jar ${ADAMA_HOME}/lib/qbamfilter-1.0pre.jar "$@"
-/usr/java/jdk1.7.0_04/bin/java -Dsamjdk.compression_level=1 -jar ${ADAMA_HOME}/lib/qbamfilter-1.0pre.jar "$@"
+java -Dsamjdk.compression_level=1 -jar ${ADAMA_HOME}/lib/qbamfilter-1.0pre.jar "$@"
