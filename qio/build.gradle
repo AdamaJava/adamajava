@@ -1,5 +1,18 @@
 version = '0.1pre'
 
+def proc = "svn info .".execute()
+if (proc.waitFor() != 0) {
+                throw new RuntimeException('svn version info gathering failed')
+}
+
+def timestamp = new java.text.SimpleDateFormat('yyyyMMddHHmmss').format(new
+java.util.Date())
+
+def rev = proc.in.text.split()[11]
+if (null == rev) rev = "???"
+
+def svnVersion = rev
+
 repositories {
     flatDir(dirs:"$projectDir/../lib")
 }
@@ -13,7 +26,7 @@ dependencies {
 }
 
 jar.doFirst {
-  classpath = configurations.runtime.collect { it.name }.join(' ')
+  def classpath = configurations.runtime.collect { it.name }.join(' ')
   jar {
      manifest {
         attributes 'Implementation-Title': project.name,
