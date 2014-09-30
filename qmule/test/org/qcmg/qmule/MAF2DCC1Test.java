@@ -8,7 +8,9 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.After;
@@ -27,8 +29,8 @@ public class MAF2DCC1Test {
 	private File indelDccFile;
 	private File outputFile;
 	private MAF2DCC1 test;
-	private String DCCHEADER = "analysis_id	analyzed_sample_id	mutation_id	mutation_type	chromosome	chromosome_start	chromosome_end	chromosome_strand	refsnp_allele	refsnp_strand	reference_genome_allele	control_genotype	tumour_genotype	mutation	expressed_allele	quality_score	probability	read_count	is_annotated	validation_status	validation_platform	xref_ensembl_var_id	note	QCMGflag	ND	TD	NNS	FlankSeq";
-	private String MAFHEADER = "Hugo_Symbol	Entrez_Gene_Id	Center	NCBI_Build	Chromosome	Start_Position	End_Position	Strand	Variant_Classification	Variant_Type	Reference_Allele	Tumor_Seq_Allele1	Tumor_Seq_Allele2	dbSNP_RS	dbSNP_Val_Status	Tumor_Sample_Barcode	Matched_Norm_Sample_Barcode	Match_Norm_Seq_Allele1	Match_Norm_Seq_Allele2	Tumor_Validation_Allele1	Tumor_Validation_Allele2	Match_Norm_Validation_Allele1	Match_Norm_Validation_Allele2	Verification_Status	Validation_Status	Mutation_Status	Sequencing_Phase	Sequence_Source	Validation_Method	Score	BAM_File	Sequencer	QCMG_Flag	ND	TD	Canonical_Transcript_Id	Canonical_AA_Change	Canonical_Base_Change	Alternate_Transcript_Id	Alternate_AA_Change	Alternate_Base_Change	Confidence	CPG	Gff3_Bait	Novel_Starts";
+	private final String DCCHEADER = "analysis_id	analyzed_sample_id	mutation_id	mutation_type	chromosome	chromosome_start	chromosome_end	chromosome_strand	refsnp_allele	refsnp_strand	reference_genome_allele	control_genotype	tumour_genotype	mutation	expressed_allele	quality_score	probability	read_count	is_annotated	validation_status	validation_platform	xref_ensembl_var_id	note	QCMGflag	ND	TD	NNS	FlankSeq";
+	private final String MAFHEADER = "Hugo_Symbol	Entrez_Gene_Id	Center	NCBI_Build	Chromosome	Start_Position	End_Position	Strand	Variant_Classification	Variant_Type	Reference_Allele	Tumor_Seq_Allele1	Tumor_Seq_Allele2	dbSNP_RS	dbSNP_Val_Status	Tumor_Sample_Barcode	Matched_Norm_Sample_Barcode	Match_Norm_Seq_Allele1	Match_Norm_Seq_Allele2	Tumor_Validation_Allele1	Tumor_Validation_Allele2	Match_Norm_Validation_Allele1	Match_Norm_Validation_Allele2	Verification_Status	Validation_Status	Mutation_Status	Sequencing_Phase	Sequence_Source	Validation_Method	Score	BAM_File	Sequencer	QCMG_Flag	ND	TD	Canonical_Transcript_Id	Canonical_AA_Change	Canonical_Base_Change	Alternate_Transcript_Id	Alternate_AA_Change	Alternate_Base_Change	Confidence	CPG	Gff3_Bait	Novel_Starts";
 			
 	private static String FILE_SEPARATOR = System.getProperty("file.separator");
 	
@@ -179,9 +181,11 @@ public class MAF2DCC1Test {
 		TabbedRecord dcc = new TabbedRecord();
 		maf.setData("chr1\t1\t2\tINS\t-\tA");
 		dcc.setData("chr1\t1\t2\t2\t-\tA");
-		Map<ChrPosition, TabbedRecord> mafs = new HashMap<ChrPosition, TabbedRecord>();
+		List<TabbedRecord> listOfRecords = new ArrayList<>();
+		listOfRecords.add(maf);
+		Map<ChrPosition, List<TabbedRecord>> mafs = new HashMap<>();
 		ChrPosition c = new ChrPosition("chr1", 1, 2, "a");
-		mafs.put(c, maf);
+		mafs.put(c, listOfRecords);
 		test.setMafRecords(mafs);
 		assertTrue(test.recordInMaf(c, dcc));		
 	}
@@ -196,12 +200,20 @@ public class MAF2DCC1Test {
 		TabbedRecord dcc = new TabbedRecord();
 		maf.setData("chr1\t1\t2\tINS\t-\tA");
 		dcc.setData("chr1\t1\t2\t2\t-\tA");
-		Map<ChrPosition, TabbedRecord> mafs = new HashMap<ChrPosition, TabbedRecord>();
-		ChrPosition c = new ChrPosition("chr1", 1, 2, "a");
-		ChrPosition c2 = new ChrPosition("chr1", 1, 2, "b");
-		mafs.put(c, maf);
-		mafs.put(c2, maf);
-		assertEquals(2, mafs.size());
+		List<TabbedRecord> listOfRecords = new ArrayList<>();
+		listOfRecords.add(maf);
+		listOfRecords.add(maf);
+//		List<TabbedRecord> listOfRecords2 = new ArrayList<>();
+//		listOfRecords2.add(maf);
+		Map<ChrPosition, List<TabbedRecord>> mafs = new HashMap<>();
+		ChrPosition c = new ChrPosition("chr1", 1, 2);
+//		ChrPosition c2 = new ChrPosition("chr1", 1, 2);
+//		ChrPosition c = new ChrPosition("chr1", 1, 2, "a");
+//		ChrPosition c2 = new ChrPosition("chr1", 1, 2, "b");
+		mafs.put(c, listOfRecords);
+//		mafs.put(c2, listOfRecords2);
+		assertEquals(1, mafs.size());
+		assertEquals(2, mafs.get( new ChrPosition("chr1", 1, 2)).size());
 		test.setMafRecords(mafs);
 		test.recordInMaf(c, dcc);
 	}
@@ -254,12 +266,16 @@ public class MAF2DCC1Test {
 		maf.setData("chr1\t1\t2\tINS\t-\tA");
 		test.addToMafRecordMap(maf, 1);
 		assertEquals(1, test.getMafRecords().size());
-		assertTrue(test.getMafRecords().containsKey(new ChrPosition("1", 1, 2, "" + 1)));
+		assertTrue(test.getMafRecords().containsKey(new ChrPosition("1", 1, 2)));
+//		assertTrue(test.getMafRecords().containsKey(new ChrPosition("1", 1, 2, "" + 1)));
 		maf = new TabbedRecord();
 		maf.setData("chr1\t1\t2\tINS\t-\tA");
 		test.addToMafRecordMap(maf, 2);
-		assertEquals(2, test.getMafRecords().size());
-		assertTrue(test.getMafRecords().containsKey(new ChrPosition("1", 1, 2, "" +2)));
+		assertEquals(1, test.getMafRecords().size());
+		assertEquals(2, test.getMafRecords().get(new ChrPosition("1", 1, 2)).size());
+//		assertEquals(2, test.getMafRecords().size());
+		assertTrue(test.getMafRecords().containsKey(new ChrPosition("1", 1, 2)));
+//		assertTrue(test.getMafRecords().containsKey(new ChrPosition("1", 1, 2, "" +2)));
 	}
 
 	

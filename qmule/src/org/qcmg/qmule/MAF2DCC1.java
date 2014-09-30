@@ -6,10 +6,8 @@ package org.qcmg.qmule;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -25,10 +23,10 @@ public class MAF2DCC1 {
 	
 	private String logFile;	
 	private File mafFile;
-	private List<File> dccFiles = new ArrayList<File>();
+	private final List<File> dccFiles = new ArrayList<File>();
 	private File outputDccFile;
 	private static QLogger logger;
-	private Map<ChrPosition, TabbedRecord> mafRecords = new HashMap<ChrPosition, TabbedRecord>();
+	private Map<ChrPosition, List<TabbedRecord>> mafRecords = new HashMap<>();
 	private int inputMafRecordCount;
 	private int[] mafColumnIndexes;
 	private int[] dccColumnIndexes;
@@ -39,40 +37,19 @@ public class MAF2DCC1 {
 		return logFile;
 	}
 
-	public void setLogFile(String logFile) {
-		this.logFile = logFile;
-	}
-
 	public File getMafFile() {
 		return mafFile;
 	}
-
-	public void setMafFile(File mafFile) {
-		this.mafFile = mafFile;
-	}
-
 
 	public File getOutputDccFile() {
 		return outputDccFile;
 	}
 
-	public void setOutputDccFile(File outputDccFile) {
-		this.outputDccFile = outputDccFile;
-	}
-
-	public static QLogger getLogger() {
-		return logger;
-	}
-
-	public static void setLogger(QLogger logger) {
-		MAF2DCC1.logger = logger;
-	}
-
-	public Map<ChrPosition, TabbedRecord> getMafRecords() {
+	public Map<ChrPosition, List<TabbedRecord>> getMafRecords() {
 		return mafRecords;
 	}
 
-	public void setMafRecords(Map<ChrPosition, TabbedRecord> mafRecords) {
+	public void setMafRecords(Map<ChrPosition, List<TabbedRecord>> mafRecords) {
 		this.mafRecords = mafRecords;
 	}
 
@@ -103,19 +80,11 @@ public class MAF2DCC1 {
 	public int getInputMafRecordCount() {
 		return inputMafRecordCount;
 	}
-
-	public void setInputMafRecordCount(int inputMafRecordCount) {
-		this.inputMafRecordCount = inputMafRecordCount;
-	}
 	
 	public List<File> getDccFiles() {
 		return dccFiles;
 	}
 
-	public void setDccFiles(List<File> dccFiles) {
-		this.dccFiles = dccFiles;
-	}
-	
 	public void setup(String args[]) throws Exception{
 		
 		if (null == args || args.length == 0) {
@@ -197,17 +166,17 @@ public class MAF2DCC1 {
 		
 		int countInMaf = 0;
 		
-		TabbedFileWriter writer = new TabbedFileWriter(outputDccFile);
-		for (int i=0; i<dccFiles.size(); i++) {
-			countInMaf += compare(dccFiles.get(i), i+1, writer);
+		try (TabbedFileWriter writer = new TabbedFileWriter(outputDccFile);) {
+			for (int i=0; i<dccFiles.size(); i++) {
+				countInMaf += compare(dccFiles.get(i), i+1, writer);
+			}
 		}
-		writer.close();
 		
 		//check to see if there are any which do not have a match
 		if (mafRecords.size() > 0) {
 			logger.warn("Could not find matches for the following records: ");
-			for (Entry<ChrPosition, TabbedRecord> entry: mafRecords.entrySet()) {
-				logger.info("Missing at positions: " + entry.getKey().toString());
+			for (ChrPosition key : mafRecords.keySet()) {
+				logger.info("Missing at positions: " + key.toString());
 			}
 				throw new QMuleException("MISSING_DCC_RECORDS", Integer.toString(mafRecords.size()));
 		}
@@ -225,14 +194,19 @@ public class MAF2DCC1 {
 		TabbedFileReader reader = new TabbedFileReader(mafFile);	
 		try {
 			int count = 0;
+			boolean checkForMissingColumnIndex = true;
 			for (TabbedRecord rec : reader) {
 				count++;
 				//header
 				if (rec.getData().startsWith("Hugo")) {
 					mafColumnIndexes = findColumnIndexesFromHeader(rec);
-				} else {					
-					if (missingColumnIndex(mafColumnIndexes)) {
-						throw new QMuleException("NO_COLUMN_INDEX", mafFile.getAbsolutePath());
+				} else {
+					// only need to do this once
+					if (checkForMissingColumnIndex) {
+						if (missingColumnIndex(mafColumnIndexes)) {
+							throw new QMuleException("NO_COLUMN_INDEX", mafFile.getAbsolutePath());
+						}
+						checkForMissingColumnIndex = false;
 					}
 					addToMafRecordMap(rec, count);
 					inputMafRecordCount++;
@@ -248,15 +222,15 @@ public class MAF2DCC1 {
 	
 	private int compare(File dccFile, int count, TabbedFileWriter writer) throws Exception {
 		logger.info("Looking in dcc file: " + dccFile.getAbsolutePath());
-		TabbedFileReader reader = new TabbedFileReader(dccFile);		
-		if (count == 1) {
-			TabbedHeader header = reader.getHeader();		
-			writer.addHeader(header);
-		}
 		int countInMaf = 0;
-		try {
-			
-			int total = 0;
+		int total = 0;
+		boolean checkForMissingColumnIndex = true;
+		
+		try (TabbedFileReader reader = new TabbedFileReader(dccFile);) {
+			if (count == 1) {
+				TabbedHeader header = reader.getHeader();		
+				writer.addHeader(header);
+			}
 			for (TabbedRecord rec : reader) {
 				//header
 				
@@ -271,24 +245,24 @@ public class MAF2DCC1 {
 					if (total % 10000 == 0) {
 						logger.info("Processed: " + total + " dcc records" );
 					}
-					if (missingColumnIndex(mafColumnIndexes)) {
-						throw new QMuleException("NO_MUTATION_ID", dccFile.getAbsolutePath());
+					if (checkForMissingColumnIndex) {
+						if (missingColumnIndex(mafColumnIndexes)) {
+							throw new QMuleException("NO_MUTATION_ID", dccFile.getAbsolutePath());
+						}
+						checkForMissingColumnIndex = false;
 					}
 					String[] strArray = rec.getDataArray();
 					String chr = strArray[dccColumnIndexes[0]].replace("chr", "");
 					if (chr.equals("M")) {
 						chr += "T";
 					}
-					ChrPosition chrPos = new ChrPosition(chr, new Integer(strArray[dccColumnIndexes[1]]), new Integer(strArray[dccColumnIndexes[2]]));
+					ChrPosition chrPos = new ChrPosition(chr, Integer.valueOf(strArray[dccColumnIndexes[1]]), Integer.valueOf(strArray[dccColumnIndexes[2]]));
 					if (recordInMaf(chrPos, rec)) {
 						writer.add(rec);
 						countInMaf++;
 					}
 				}
-			}			
-			
-		} finally {
-			reader.close();
+			}
 		}
 		logger.info("Finished looking in dcc file: " + dccFile.getAbsolutePath() + " found " + countInMaf + " maf record/s." );
 		return countInMaf;
@@ -303,9 +277,15 @@ public class MAF2DCC1 {
 		if (chr.equals("M")) {
 			chr += "T";
 		}
-		ChrPosition chrPos = new ChrPosition(chr, new Integer(strArray[mafColumnIndexes[1]]), new Integer(strArray[mafColumnIndexes[2]]), Integer.toString(count));
+		ChrPosition chrPos = new ChrPosition(chr, Integer.valueOf(strArray[mafColumnIndexes[1]]), Integer.valueOf(strArray[mafColumnIndexes[2]]));
 		
-		mafRecords.put(chrPos, rec);		
+		List<TabbedRecord> recordsAtThisPosition = mafRecords.get(chrPos);
+		if (null == recordsAtThisPosition) {
+			recordsAtThisPosition = new ArrayList<TabbedRecord>(2);
+			mafRecords.put(chrPos, recordsAtThisPosition);		
+		}
+		recordsAtThisPosition.add(rec);
+		
 	}
 
 	public boolean missingColumnIndex(int[] columnIndexes) throws QMuleException {
@@ -342,17 +322,37 @@ public class MAF2DCC1 {
 
 	public boolean recordInMaf(ChrPosition dccChrPos, TabbedRecord dccRec) throws QMuleException {	
 		int matches = 0;
-		Iterator<Entry<ChrPosition, TabbedRecord>> iterator = mafRecords.entrySet().iterator();
 		boolean matchFound = false;
-		while (iterator.hasNext()) {
-			Entry<ChrPosition, TabbedRecord> mafEntry = iterator.next();
-			if (match(mafEntry.getKey(), dccChrPos) && matchOtherColumns(mafEntry.getValue(), dccRec)) {
-				matches++;
-				if (matches > 1) {
-					throw new QMuleException("T0O_MANY_MATCHES", dccChrPos.toString());
-				}				
-				iterator.remove();
-				matchFound = true;
+		
+		List<TabbedRecord> recordsAtThisPosition = mafRecords.get(dccChrPos);
+		if (null != recordsAtThisPosition && ! recordsAtThisPosition.isEmpty()) {
+			
+			if (recordsAtThisPosition.size() > 1) {
+				logger.info("more than 1 record for position: " + dccChrPos);
+			}
+			
+			// check to see if any of the records match our dccRec
+			List<TabbedRecord> recordsToRemove = new ArrayList<>(2);
+			
+			for (TabbedRecord tr : recordsAtThisPosition) {
+				if (matchOtherColumns(tr, dccRec)) {
+					matches++;
+					if (matches > 1) {
+						throw new QMuleException("T0O_MANY_MATCHES", dccChrPos.toString());
+					}
+					
+					// remove record from array
+					recordsToRemove.add(tr);
+					matchFound = true;
+				}
+			}
+			
+			// remove records that have been matched
+			recordsAtThisPosition.removeAll(recordsToRemove);
+			
+			// check to see if there are any records left, if not, remove entry from map
+			if (recordsAtThisPosition.isEmpty()) {
+				mafRecords.remove(dccChrPos);
 			}
 		}
 		
