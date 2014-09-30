@@ -121,13 +121,11 @@ public class MAF2DCC1Test {
 		ChrPosition dcc = new ChrPosition("chr1", 1, 2);
 		
 		assertTrue(test.match(maf, dcc));
-		dcc.setEndPosition(3);
+		dcc = new ChrPosition("chr1", 1, 3);
 		assertFalse(test.match(maf, dcc));
-		dcc.setEndPosition(2);
-		dcc.setPosition(2);
+		dcc = new ChrPosition("chr1", 2, 2);
 		assertFalse(test.match(maf, dcc));
-		dcc.setPosition(1);
-		dcc.setChromosome("1");
+		dcc = new ChrPosition("chr1", 1, 1);
 		assertFalse(test.match(maf, dcc));
 	}
 	
