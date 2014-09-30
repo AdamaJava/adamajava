@@ -26,15 +26,9 @@ public class Segment implements Comparable<Segment>{
 	public ChrPosition getPosition() {
 		return position;
 	}
-//	public void setFields(String[] fields) {
-//		this.fields = fields;
-//	}
 	public Feature getFeature() {
 		return feature;
 	}
-//	public void setFeature(Feature feature) {
-//		this.feature = feature;
-//	}
 	@Override
 	public int compareTo(Segment o) {
 		return this.position.compareTo(o.position);
@@ -48,13 +42,6 @@ public class Segment implements Comparable<Segment>{
 	public String getPositionString() {
 		return position.getChromosome() + ":" + position.getPosition() + "-" + position.getEndPosition();
 	}
-//	public void setPositionStart(int positionStart) {
-//		position.setPosition(positionStart);
-//		
-//	}
-//	public void setPositionEnd(int positionEnd) {
-//		position.setEndPosition(positionEnd);		
-//	} 
 	@Override
 	public String toString() {
 		String result = "";
@@ -68,7 +55,4 @@ public class Segment implements Comparable<Segment>{
 		return result;
 	}
 	
-	
-	
-
 }
