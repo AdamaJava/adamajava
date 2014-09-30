@@ -18,20 +18,21 @@ import java.util.Map.Entry;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.model.ChrPosition;
 
 public class Segmenter {	
 
-	private File inputFile;
-	private File outputFile;
-	private boolean runMerge;
-	private boolean runFill;
-	private Feature[] features;
+	private final File inputFile;
+	private final File outputFile;
+	private final boolean runMerge;
+	private final boolean runFill;
+	private final Feature[] features;
 	private HashMap<String, List<Segment>> segments = new HashMap<String, List<Segment>>();	
 	private final QLogger logger = QLoggerFactory.getLogger(getClass());
-	private Map<String, Integer> bounds;
-	private List<String> chromosomeOrder = new ArrayList<String>();
-	private String cmdLine;
-	private File boundsFile;
+	private final Map<String, Integer> bounds;
+	private final List<String> chromosomeOrder = new ArrayList<String>();
+	private final String cmdLine;
+	private final File boundsFile;
 	 
 	public Segmenter(Options options, String cmdLine) throws IOException {
 		this.inputFile = options.getInputSegmentFile();
@@ -174,10 +175,16 @@ public class Segmenter {
 				if (problemFlag) {
 					logger.info("Merging " + probMsg  + " " + currentSeg.getPositionString() + "," + nextSeg.getPositionString());
 					if (nextSeg.getPositionStart() < currentSeg.getPositionStart()) {
-						currentSeg.setPositionStart(nextSeg.getPositionStart());
+//						currentSeg.setPositionStart(nextSeg.getPositionStart());
+						// create new Segment object with updated start position
+						ChrPosition newChrPos = new ChrPosition(currentSeg.getPosition().getChromosome(), nextSeg.getPositionStart(), currentSeg.getPosition().getEndPosition(), currentSeg.getPosition().getName());
+						currentSeg = new Segment(currentSeg.getFields(), currentSeg.getFeature(), newChrPos);
 					}
 					if (nextSeg.getPositionEnd() > currentSeg.getPositionStart()) {
-						currentSeg.setPositionEnd(nextSeg.getPositionEnd());
+//						currentSeg.setPositionEnd(nextSeg.getPositionEnd());
+						// create new Segment object with updated end position
+						ChrPosition newChrPos = new ChrPosition(currentSeg.getPosition().getChromosome(), currentSeg.getPosition().getPosition(), nextSeg.getPositionEnd(), currentSeg.getPosition().getName());
+						currentSeg = new Segment(currentSeg.getFields(), currentSeg.getFeature(), newChrPos);
 					}					
 				} else {
 					newSegments.get(chr).add(currentSeg);
@@ -585,7 +592,12 @@ public class Segmenter {
             		} else if (segment.getPositionEnd() > chrEnd) {
             			//feature outside bounds so truncating feature
             			logger.info("truncating " + segment.getPositionString());
-             			segment.setPositionEnd(chrEnd);        			
+            			
+            			
+            			// create new Segment object with updated end position
+						ChrPosition newChrPos = new ChrPosition(segment.getPosition().getChromosome(), segment.getPosition().getPosition(), chrEnd, segment.getPosition().getName());
+						segment = new Segment(segment.getFields(), segment.getFeature(), newChrPos);
+//             			segment.setPositionEnd(chrEnd);        			
             			writer.write(segment.toString());
             		} else {
             			//logger.info(segment.toString());

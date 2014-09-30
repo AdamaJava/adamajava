@@ -7,28 +7,34 @@ import org.qcmg.common.model.ChrPosition;
 
 public class Segment implements Comparable<Segment>{
 	
-	ChrPosition position;
-	String[] fields;
-	Feature feature;	
+	private final ChrPosition position;
+	private final String[] fields;
+	private final Feature feature;	
 	
 	public Segment(String[] fields, Feature feature, int recordCount) {
+		this(fields, feature, new ChrPosition(fields[0], Integer.parseInt(fields[3]),  Integer.parseInt(fields[4]), Integer.toString(recordCount)));
+	}
+	public Segment(String[] fields, Feature feature, ChrPosition chrPos) {
 		super();
-		this.position =  new ChrPosition(fields[0], new Integer(fields[3]),  new Integer(fields[4]), Integer.toString(recordCount));
+		this.position =  chrPos;
 		this.fields = fields;
 		this.feature = feature;
 	}
 	public String[] getFields() {
 		return fields;
 	}
-	public void setFields(String[] fields) {
-		this.fields = fields;
+	public ChrPosition getPosition() {
+		return position;
 	}
+//	public void setFields(String[] fields) {
+//		this.fields = fields;
+//	}
 	public Feature getFeature() {
 		return feature;
 	}
-	public void setFeature(Feature feature) {
-		this.feature = feature;
-	}
+//	public void setFeature(Feature feature) {
+//		this.feature = feature;
+//	}
 	@Override
 	public int compareTo(Segment o) {
 		return this.position.compareTo(o.position);
@@ -42,13 +48,14 @@ public class Segment implements Comparable<Segment>{
 	public String getPositionString() {
 		return position.getChromosome() + ":" + position.getPosition() + "-" + position.getEndPosition();
 	}
-	public void setPositionStart(int positionStart) {
-		position.setPosition(positionStart);
-		
-	}
-	public void setPositionEnd(int positionEnd) {
-		position.setEndPosition(positionEnd);		
-	} 
+//	public void setPositionStart(int positionStart) {
+//		position.setPosition(positionStart);
+//		
+//	}
+//	public void setPositionEnd(int positionEnd) {
+//		position.setEndPosition(positionEnd);		
+//	} 
+	@Override
 	public String toString() {
 		String result = "";
 		fields[0] = position.getChromosome();

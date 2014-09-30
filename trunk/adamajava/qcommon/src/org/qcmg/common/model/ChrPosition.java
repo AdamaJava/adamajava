@@ -17,10 +17,10 @@ public class ChrPosition  implements Comparable<ChrPosition> {
 	
 	private static final ReferenceNameComparator COMPARATOR = new ReferenceNameComparator();
 	
-	private String chromosome;
-	private int position;
-	private int endPosition;
-	private String name;
+	private final String chromosome;
+	private final int position;
+	private final int endPosition;
+	private final String name;
 	
 	/**
 	 * Constructor that takes in the chromosome and a single position, which is used to populate the start and end positions
@@ -41,18 +41,13 @@ public class ChrPosition  implements Comparable<ChrPosition> {
 	 * @param endPosition
 	 */
 	public ChrPosition(String chromosome, int position, int endPosition) {
-		if (null == chromosome || chromosome.isEmpty()) throw new IllegalArgumentException("null or empty chromosome supplied to ChrPosition");
-		if (endPosition < position) 
-			throw new IllegalArgumentException("end position is before start position: chr: " + chromosome + ":" + position + "-" + endPosition);
-		
-		this.chromosome = chromosome;
-		this.position = position;
-		this.endPosition = endPosition;
+		this(chromosome, position, endPosition, null);
 	}
 	
 	public ChrPosition(String chromosome, int position, int endPosition, String name) {
 		if (null == chromosome || chromosome.isEmpty()) throw new IllegalArgumentException("null or empty chromosome supplied to ChrPosition");
-		if (endPosition < position) throw new IllegalArgumentException("end position is before start position");
+		if (endPosition < position) 
+			throw new IllegalArgumentException("end position is before start position: chr: " + chromosome + ":" + position + "-" + endPosition);
 		
 		this.chromosome = chromosome;
 		this.position = position;
@@ -70,9 +65,13 @@ public class ChrPosition  implements Comparable<ChrPosition> {
 		return chromosome;
 	}
 	
-	public void setChromosome(String chromosome) {
-		this.chromosome = chromosome;
+	public String getName() {
+		return name;
 	}
+	
+//	public void setChromosome(String chromosome) {
+//		this.chromosome = chromosome;
+//	}
 	
 	/**
 	 * Start position of this ChrPosition object 
@@ -93,13 +92,13 @@ public class ChrPosition  implements Comparable<ChrPosition> {
 		return endPosition;
 	}
 	
-	public void setPosition(int position) {
-		this.position = position;
-	}
-
-	public void setEndPosition(int endPosition) {
-		this.endPosition = endPosition;
-	}
+//	public void setPosition(int position) {
+//		this.position = position;
+//	}
+//
+//	public void setEndPosition(int endPosition) {
+//		this.endPosition = endPosition;
+//	}
 	
 	public boolean isSinglePoint() {
 		return position == endPosition;
@@ -174,11 +173,6 @@ public class ChrPosition  implements Comparable<ChrPosition> {
 	
 	public String toIGVString() {
 		return chromosome + ":" + position + "-" + endPosition;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-		
 	}
 	
 }
