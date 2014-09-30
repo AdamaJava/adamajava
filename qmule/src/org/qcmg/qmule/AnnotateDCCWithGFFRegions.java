@@ -31,9 +31,9 @@ public class AnnotateDCCWithGFFRegions {
 	private String[] cmdLineInputFiles;
 	private String[] cmdLineOutputFiles;
 	private List<String> chromosomes = new ArrayList<String>();
-	private int exitStatus = 0;
+	private final int exitStatus = 0;
 	private Map<String, TreeMap<ChrPosition, TabbedRecord>> inputRecords = new HashMap<String, TreeMap<ChrPosition, TabbedRecord>>();
-	private Map<String, TreeMap<ChrPosition, TabbedRecord>> compareRecords = new HashMap<String, TreeMap<ChrPosition, TabbedRecord>>();
+	private final Map<String, TreeMap<ChrPosition, TabbedRecord>> compareRecords = new HashMap<String, TreeMap<ChrPosition, TabbedRecord>>();
 	private int overlapCount = 0;
 	private int notOverlappingCount = 0;
 	private int recordCount;
@@ -52,7 +52,7 @@ public class AnnotateDCCWithGFFRegions {
 	private File outputFile;
 	private String[] features;
 	private boolean stranded;
-	private int GFF_STRAND_INDEX = 6;
+	private final int GFF_STRAND_INDEX = 6;
 	private int DCC_STRAND_INDEX = -1;
 	private int QCMGFLAG_COLUMN_INDEX = -1;
 	private int REFERENCE_ALLELE_INDEX  = -1;
@@ -116,8 +116,7 @@ public class AnnotateDCCWithGFFRegions {
 					continue;
 				}				
 				recordCount++;
-				ChrPosition chrPos = getChrPosition(GFF3, tab);
-				chrPos.setName(Integer.toString(recordCount));
+				ChrPosition chrPos = getChrPosition(GFF3, tab, Integer.toString(recordCount));
 				String key = chrPos.getChromosome().replace("chr", "");				
 				if (records.containsKey(key)) {
 					records.get(key).put(chrPos, tab);
@@ -169,7 +168,7 @@ public class AnnotateDCCWithGFFRegions {
 				}
 				
 				recordCount++;
-				ChrPosition chrPos = getChrPosition(fileType, inputRecord);
+				ChrPosition chrPos = getChrPosition(fileType, inputRecord, null);
 				String key = chrPos.getChromosome().replace("chr", "");
 				TreeMap<ChrPosition, TabbedRecord> compareMap = compareRecords.get(key);
 				boolean isOverlapping = false;
@@ -424,7 +423,7 @@ public class AnnotateDCCWithGFFRegions {
 		outputFileWriter.write(record.getData());		
 	}
 
-	private ChrPosition getChrPosition(String inputFileType, TabbedRecord tab) throws Exception {
+	private ChrPosition getChrPosition(String inputFileType, TabbedRecord tab, String name) throws Exception {
 		
 		String[] values = tab.getData().split("\t");
 		ChrPosition chr = null;
@@ -456,9 +455,9 @@ public class AnnotateDCCWithGFFRegions {
 			chromosome = "chrMT";
 		}
 		if (inputFileType.equals(MAF)) {
-			chr = new ChrPosition(chromosome, new Integer(values[startIndex]), new Integer(values[endIndex]), values[0]);	
+			chr = new ChrPosition(chromosome, new Integer(values[startIndex]), new Integer(values[endIndex]), name != null ? name : values[0]);	
 		} else {
-			chr = new ChrPosition(chromosome, new Integer(values[startIndex]), new Integer(values[endIndex]));
+			chr = new ChrPosition(chromosome, new Integer(values[startIndex]), new Integer(values[endIndex]), name);
 		}
 		
 		return chr;
