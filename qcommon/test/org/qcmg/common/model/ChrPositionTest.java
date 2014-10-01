@@ -1,5 +1,7 @@
 package org.qcmg.common.model;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -29,15 +31,15 @@ public class ChrPositionTest {
 		
 		ChrPosition cp1 = new ChrPosition("123", -1);
 		ChrPosition cp2 = new ChrPosition("123", -1);
-		Assert.assertEquals(cp1, cp2);
+		assertEquals(cp1, cp2);
 		
 		cp1 = new ChrPosition("chr1", 12345);
 		cp2 = new ChrPosition("chr1", 12345, 12345);
-		Assert.assertEquals(cp1, cp2);
+		assertEquals(cp1, cp2);
 		
 		cp1 = new ChrPosition("hello", 99999);
 		cp2 = new ChrPosition("hello", 99999, 99999);
-		Assert.assertEquals(cp1, cp2);
+		assertEquals(cp1, cp2);
 	}
 	
 	@Test
@@ -49,16 +51,16 @@ public class ChrPositionTest {
 		positions.add(cp2);
 		
 		Collections.sort(positions);
-		Assert.assertEquals(cp1, positions.get(0));
-		Assert.assertEquals(cp2, positions.get(1));
+		assertEquals(cp1, positions.get(0));
+		assertEquals(cp2, positions.get(1));
 		
 		ChrPosition cp3 = new ChrPosition("22", 1);
 		positions.add(cp3);
 		
 		Collections.sort(positions);
-		Assert.assertEquals(cp3, positions.get(0));
-		Assert.assertEquals(cp1, positions.get(1));
-		Assert.assertEquals(cp2, positions.get(2));
+		assertEquals(cp3, positions.get(0));
+		assertEquals(cp1, positions.get(1));
+		assertEquals(cp2, positions.get(2));
 		
 		// empty collection asn re-populate
 		positions.clear();
@@ -69,14 +71,24 @@ public class ChrPositionTest {
 		positions.add(cp2);
 		positions.add(cp3);
 		Collections.sort(positions);
-		Assert.assertEquals(cp3, positions.get(0));
-		Assert.assertEquals(cp2, positions.get(1));
-		Assert.assertEquals(cp1, positions.get(2));
+		assertEquals(cp3, positions.get(0));
+		assertEquals(cp2, positions.get(1));
+		assertEquals(cp1, positions.get(2));
 		
 		ChrPosition cp4 = new ChrPosition("chr22", 10,10);
 		positions.add(cp4);
 		Collections.sort(positions);
-		Assert.assertEquals(cp4, positions.get(3));
+		assertEquals(cp4, positions.get(3));
+	}
+	
+	@Test
+	public void doesGetLengthWork() {
+		ChrPosition cp1 = new ChrPosition("chr22", 1);
+		ChrPosition cp2 = new ChrPosition("chr22", 2,3);
+		ChrPosition cp3 = new ChrPosition("chr22", 2,4);
+		assertEquals(1, cp1.getLength());
+		assertEquals(2, cp2.getLength());
+		assertEquals(3, cp3.getLength());
 	}
 	
 	@Ignore

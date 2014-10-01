@@ -69,10 +69,6 @@ public class ChrPosition  implements Comparable<ChrPosition> {
 		return name;
 	}
 	
-//	public void setChromosome(String chromosome) {
-//		this.chromosome = chromosome;
-//	}
-	
 	/**
 	 * Start position of this ChrPosition object 
 	 * eg. 1234356
@@ -92,16 +88,12 @@ public class ChrPosition  implements Comparable<ChrPosition> {
 		return endPosition;
 	}
 	
-//	public void setPosition(int position) {
-//		this.position = position;
-//	}
-//
-//	public void setEndPosition(int endPosition) {
-//		this.endPosition = endPosition;
-//	}
-	
 	public boolean isSinglePoint() {
 		return position == endPosition;
+	}
+	
+	public int getLength() {
+		return endPosition - position + 1;
 	}
 	
 	/**
