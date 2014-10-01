@@ -22,10 +22,11 @@ public class Options {
 
 	private static final String HELP_OPTION = Messages.getMessage("OPTION_HELP");	
 	private static final String VERSION_OPTION = Messages.getMessage("OPTION_VERSION");
+	
 	private final OptionParser parser = new OptionParser();
 	private final OptionSet options;
 	private File output;
-	private String log;
+	private final String log;
 	private File positionsFile;
 	private String profile;
 	private String format;
@@ -37,7 +38,7 @@ public class Options {
 	private boolean intron = true;
 	private boolean indel = true;
 	private Integer threadNo = 1;
-	private List<InputBAM> inputBAMs = new ArrayList<InputBAM>();
+	private final List<InputBAM> inputBAMs = new ArrayList<InputBAM>();
 	private File hdf;
 	private String inputType;
 	public final static String INPUT_BAM = "bam";
@@ -58,7 +59,7 @@ public class Options {
 	private Integer maxCoverage;
 	private Map<String, String[]> pindelMutations;
 	private Integer outputFormat = 1;
-	
+
 	public Options(final String[] args) throws Exception {
 
 		parser.accepts("log", Messages.getMessage("OPTION_LOG")).withRequiredArg().ofType(String.class);	
@@ -83,7 +84,7 @@ public class Options {
 		parser.accepts("strand", Messages.getMessage("OPTION_STRAND")).withRequiredArg().ofType(String.class).describedAs("strand");
 		parser.accepts("novelstarts", Messages.getMessage("OPTION_NOVELSTARTS")).withRequiredArg().ofType(String.class).describedAs("novelstarts");
 		parser.accepts("hdf", Messages.getMessage("OPTION_HDF")).withRequiredArg().ofType(String.class).describedAs("hdf");
-		
+
 		//indel
 		parser.accepts("is", Messages.getMessage("OPTION_SOMATIC_INPUT")).withRequiredArg().ofType(String.class).describedAs("somatic_indel_file");
 		parser.accepts("ig", Messages.getMessage("OPTION_GERMLINE_INPUT")).withRequiredArg().ofType(String.class).describedAs("germline_file");
@@ -99,17 +100,17 @@ public class Options {
 		parser.accepts("it", Messages.getMessage("OPTION_INPUT_TUMOUR")).withRequiredArg().ofType(String.class).describedAs("input_tumour_bam");
 		parser.accepts("in", Messages.getMessage("OPTION_INPUT_NORMAL")).withRequiredArg().ofType(String.class).describedAs("input_normal_bam");
 		parser.accepts("pd", Messages.getMessage("OPTION_INPUT_NORMAL")).withRequiredArg().ofType(String.class).describedAs("pindel_deletions");
-		
+
 		//coverage
 		parser.accepts("mincov", Messages.getMessage("OPTION_MIN_COV")).withRequiredArg().ofType(Integer.class).describedAs("min_coverage");
 		parser.accepts("maxcov", Messages.getMessage("OPTION_MIN_COV")).withRequiredArg().ofType(Integer.class).describedAs("max_coverage");
-		
+
 		parser.acceptsAll(asList("h", "help"), HELP_OPTION);
 		parser.acceptsAll(asList("v", "V", "version"), VERSION_OPTION);	
 		options = parser.parse(args);	
 		log = (String) options.valueOf("log");
 		String loglevel = (String) options.valueOf("loglevel");
-		
+
 		if (loglevel == null) {
 			loglevel = "INFO";
 		}		
@@ -117,32 +118,32 @@ public class Options {
 		if (options.has("r")) {
 			reference = new File((String) options.valueOf("r"));
 		}
-		
+
 		if (options.has("m")) {
 			mode =  (String) options.valueOf("m");
 		}
-		
+
 		if (!mode.equals("snp") && !mode.equals("snpcheck") && !mode.equals("indel") && !mode.equals("coverage") && !mode.equals(QBasePileupConstants.COMPOUND_SNP_MODE)) {
 			throw new QBasePileupException("MODE_ERROR", mode);
 		}		
-		
+
 		if (options.has("t")) {
 			threadNo = (Integer) options.valueOf("t");
 		} else {
-			threadNo = 1;
+			threadNo = 2;
 		}	
-		
+
 		if (options.has("filter")) {
 			filterQuery = (String) options.valueOf("filter");
 		} 	
-		
+
 		if (mode.equals("snp") || mode.equals(QBasePileupConstants.COMPOUND_SNP_MODE) || mode.equals(QBasePileupConstants.SNP_CHECK_MODE)) {
-			
+
 			///default filter for compound snps:			
 			if (mode.equals(QBasePileupConstants.COMPOUND_SNP_MODE)) {
 				filterQuery = "and(Flag_DuplicateRead==false , CIGAR_M>34 , MD_mismatch <= 3 , option_SM > 10)";
 			}
-			
+
 			String posFile = (String) options.valueOf("s");
 			if (posFile != null) {
 				positionsFile = new File(posFile);
@@ -153,23 +154,23 @@ public class Options {
 			if (options.has("f")) {
 				format = (String) options.valueOf("f");
 			}
-			
+
 			if (options.has("of")) {
 				String of = (String) options.valueOf("of");
 				if (of.equals("columns")) {
 					outputFormat = 2;
 				}
 			}	
-			
-			
+
+
 			if (mode.equals(QBasePileupConstants.COMPOUND_SNP_MODE) && !format.equals("dcc1")) {
 				throw new QBasePileupException("COMP_FILE_FORMAT_ERROR");
 			}
-			
+
 			if (mode.equals(QBasePileupConstants.SNP_CHECK_MODE) && !format.equals("maf")) {
 				throw new QBasePileupException("CHECK_FILE_FORMAT_ERROR");
 			}
-			
+
 			if (format == null) {
 				format = "dcc1";
 			}
@@ -177,15 +178,15 @@ public class Options {
 				format = "columns";
 			}
 			String input = (String) options.valueOf("i");
-			
+
 			if (input != null) {
 				inputType = INPUT_BAM;
 				InputBAM i = new InputBAM(null, null, new File(input), inputType);
 				inputBAMs.add(i);
 			}
-			
+
 			String bamList = (String) options.valueOf("b");
-			
+
 			if (bamList != null) {
 				File bamFileList = new File(bamList);
 				if (!bamFileList.exists()) {
@@ -194,63 +195,61 @@ public class Options {
 				inputType = INPUT_LIST;
 				getBamList(bamFileList);			
 			}
-			
+
 			if (options.has("hdf")) {
 				hdf = new File((String) options.valueOf("hdf"));
-				
+
 				if (!hdf.exists()) {
 					throw new QBasePileupException("NO_HDF", hdf.getAbsolutePath());
 				}
 				inputType = INPUT_HDF;
 				getHDFBamList();
-				
+
 			}		
-			
+
 			if (options.has("p")) {
 				profile = (String) options.valueOf("p");
 			}			
 			if (profile == null) {
 				profile = "standard";
 			}	
-			
-						
-			
+
+
 			//set filtering options			
-	    	if (profile.equals("torrent")) {
-	    		baseQuality = 0;
-	    		mappingQuality = 1;
-	    		indel = true;
-	    		intron = true;
-	    		novelstarts = false;
-	    		strand=false;
-	    	} else if (profile.equals("RNA")) {
-	    		baseQuality = 7;
-	    		mappingQuality = 10;
-	    		indel = true;
-	    		intron = true;
-	    		novelstarts = true;
-	    		strand=false;
-	    	} else if (profile.equals("DNA")) {
-	    		baseQuality = 10;
-	    		mappingQuality = 10;
-	    		indel = true;
-	    		intron = false;
-	    		novelstarts = false;
-	    		strand=false;
-	    	} else if (profile.equals("indel")) {
-	    		
-	    	}		    
-		
-			
+			if (profile.equals("torrent")) {
+				baseQuality = 0;
+				mappingQuality = 1;
+				indel = true;
+				intron = true;
+				novelstarts = false;
+				strand=false;
+			} else if (profile.equals("RNA")) {
+				baseQuality = 7;
+				mappingQuality = 10;
+				indel = true;
+				intron = true;
+				novelstarts = true;
+				strand=false;
+			} else if (profile.equals("DNA")) {
+				baseQuality = 10;
+				mappingQuality = 10;
+				indel = true;
+				intron = false;
+				novelstarts = false;
+				strand=false;
+			} else if (profile.equals("indel")) {
+
+			}		    
+
 			if (options.has("bq")) {
 				baseQuality =  (Integer) options.valueOf("bq");
 			}
-			
+
 			if (options.has("mq")) {
 				mappingQuality =  (Integer) options.valueOf("mq");
 			}			
 
-			
+
 			if (options.has("strand")) {
 				String s = (String)options.valueOf("strand");
 				if (s.equalsIgnoreCase("y")) {
@@ -271,14 +270,14 @@ public class Options {
 			}
 			if (options.has("intron")) {
 				String s = (String)options.valueOf("intron");
-				
+
 				if (s.equalsIgnoreCase("y")) {
 					intron = true;
 				}
 				if (s.equalsIgnoreCase("n")) {
 					intron = false;
 				}
-				
+
 			}
 			if (options.has("ind")) {
 				String s = (String)options.valueOf("ind");				
@@ -289,39 +288,31 @@ public class Options {
 					indel = false;
 				}
 			}
-			
-//			if (mode.equals(mode.equals(QBasePileupConstants.SNP_CHECK_MODE))) {
-//				inputType = INPUT_BAM;
-//				tumourBam = new InputBAM(null, null, new File((String) options.valueOf("it")), inputType);
-//				normalBam = new InputBAM(null, null, new File((String) options.valueOf("in")), inputType);		
-//			}
-			
-			
 		}
-		
+
 		if (mode.equals("indel")) {
-			
+
 			String somFile = (String) options.valueOf("is");
 			if (somFile != null) {
 				somaticIndelFile = new File(somFile);
 			}
-			
+
 			String germFile = (String) options.valueOf("ig");
 			if (germFile != null) {
 				germlineIndelFile = new File(germFile);
 			}
-			
+
 			String germOutFile = (String) options.valueOf("og");
 			if (germOutFile != null) {
 				germlineOutputFile = new File(germOutFile);
 				//germlineOutputFile.delete();
 			}
-			
+
 			String somOutFile = (String) options.valueOf("os");
 			if (somOutFile != null) {
 				somaticOutputFile = new File(somOutFile);
 			}			
-			
+
 			//indel options
 			if (options.has("sc")) {
 				softClipWindow = (Integer)options.valueOf("sc");
@@ -335,13 +326,13 @@ public class Options {
 			inputType = INPUT_BAM;
 			tumourBam = new InputBAM(null, null, new File((String) options.valueOf("it")), inputType);
 			normalBam = new InputBAM(null, null, new File((String) options.valueOf("in")), inputType);			
-				
+
 			if (options.has("pd") || options.has("pi")) {
 				this.pindelMutations = getPindelMutations(options);
 			}		
-			
+
 		}	
-		
+
 		if (mode.equals("coverage")) {
 			String posFile = (String) options.valueOf("s");
 			if (posFile != null) {
@@ -360,7 +351,7 @@ public class Options {
 				inputBAMs.add(i);
 			}
 			String bamList = (String) options.valueOf("b");
-			
+
 			if (bamList != null) {
 				File bamFileList = new File(bamList);
 				if (!bamFileList.exists()) {
@@ -369,18 +360,14 @@ public class Options {
 				inputType = INPUT_LIST;
 				getBamList(bamFileList);			
 			}
-			
-//			if (options.has("mincov")) {				
-//				minCoverage = (Integer) options.valueOf("maxcov");
-//			}
 			if (options.has("maxcov")) {				
 				maxCoverage = (Integer) options.valueOf("maxcov");
 			}
 		}
-		
+
 		detectBadOptions();		
 	}	
-	
+
 	public boolean includeDuplicates() {
 		if (options.has("dup")) {
 			return true;
@@ -392,25 +379,13 @@ public class Options {
 		return outputFormat;
 	}
 
-
-
-	public void setOutputFormat(Integer outputFormat) {
-		this.outputFormat = outputFormat;
-	}
-
-
-
 	public Map<String, String[]> getPindelMutations() {
 		return pindelMutations;
 	}
 
-	public void setPindelMutations(Map<String, String[]> pindelMutations) {
-		this.pindelMutations = pindelMutations;
-	}
-
 	private Map<String, String[]> getPindelMutations(OptionSet options) throws IOException {
 		Map<String, String[]> pindelMutations = new HashMap<String, String[]>();
-		
+
 		if (options.has("pd")) {
 			File file = new File((String)options.valueOf("pd"));			
 			readPindelMutationFile(pindelMutations, file, "DEL");
@@ -423,7 +398,7 @@ public class Options {
 	}
 
 	private void readPindelMutationFile(Map<String, String[]> pindelMutations,
-		File file, String type) throws IOException {
+			File file, String type) throws IOException {
 		BufferedReader reader = new BufferedReader(new FileReader(file));
 		String line;
 		List<String> lines = new ArrayList<String>();
@@ -470,64 +445,36 @@ public class Options {
 		return maxCoverage;
 	}
 
-	public void setMaxCoverage(Integer maxCoverage) {
-		this.maxCoverage = maxCoverage;
-	}
-
 	public String getFilterQuery() {
 		return filterQuery;
-	}
-
-	public void setFilterQuery(String filterQuery) {
-		this.filterQuery = filterQuery;
 	}
 
 	public File getGermlineIndelFile() {
 		return germlineIndelFile;
 	}
 
-	public void setGermlineIndelFile(File germlineIndelFile) {
-		this.germlineIndelFile = germlineIndelFile;
-	}
-
 	public File getSomaticOutputFile() {
 		return somaticOutputFile;
-	}
-
-	public void setSomaticOutputFile(File somaticOutputFile) {
-		this.somaticOutputFile = somaticOutputFile;
 	}
 
 	public File getGermlineOutputFile() {
 		return germlineOutputFile;
 	}
 
-	public void setGermlineOutputFile(File germlineOutputFile) {
-		this.germlineOutputFile = germlineOutputFile;
-	}
-
 	public File getSomaticIndelFile() {
 		return somaticIndelFile;
-	}
-
-	public void setSomaticIndelFile(File somaticIndelFile) {
-		this.somaticIndelFile = somaticIndelFile;
 	}
 
 	public boolean hasPindelOption() {
 		return options.has("pindel");
 	}
-	
+
 	public boolean hasStrelkaOption() {
 		return options.has("strelka");
 	}
 
 	public String getInputType() {
 		return inputType;
-	}
-
-	public void setInputType(String inputType) {
-		this.inputType = inputType;
 	}
 
 	private void getHDFBamList() throws Exception {
@@ -569,114 +516,61 @@ public class Options {
 					}
 				}
 			}
-			 		
+
 		}
 		reader.close();
 	}
-	
+
 	public List<InputBAM> getInputBAMs() {
 		return inputBAMs;
 	}
 
-	public void setInputBAMs(List<InputBAM> inputBAMs) {
-		this.inputBAMs = inputBAMs;
-	}
-	
 	public String getProfile() {
 		return profile;
-	}
-
-	public void setProfile(String profile) {
-		this.profile = profile;
 	}
 
 	public String getFormat() {
 		return format;
 	}
 
-	public void setFormat(String format) {
-		this.format = format;
-	}
-
 	public Integer getThreadNo() {
 		return threadNo;
 	}
 
-	public void setThreadNo(Integer threadNo) {
-		this.threadNo = threadNo;
-	}
 	public Integer getBaseQuality() {
 		return baseQuality;
-	}
-
-	public void setBaseQuality(Integer baseQuality) {
-		this.baseQuality = baseQuality;
 	}
 
 	public Integer getMappingQuality() {
 		return mappingQuality;
 	}
 
-	public void setMappingQuality(Integer mappingQuality) {
-		this.mappingQuality = mappingQuality;
-	}
-
-
 	public boolean isStrandSpecific() {
 		return strand;
-	}
-
-	public void setStrand(boolean strand) {
-		this.strand = strand;
 	}
 
 	public boolean isNovelstarts() {
 		return novelstarts;
 	}
 
-	public void setNovelstarts(boolean novelstarts) {
-		this.novelstarts = novelstarts;
-	}
-
 	public File getPositionsFile() {
 		return positionsFile;
-	}
-
-	public void setPositionsFile(File positionsFile) {
-		this.positionsFile = positionsFile;
 	}
 
 	public String getLog() {
 		return log;
 	}
 
-	public void setLog(String log) {
-		this.log = log;
-	}
-
 	public boolean includeIndel() {
 		return indel;
-	}
-
-	public void setIndel(boolean indel) {
-		this.indel = indel;
 	}
 
 	public boolean includeIntron() {
 		return intron;
 	}
 
-	public void setIntron(boolean intron) {
-		this.intron = intron;
-	}
-
-
 	public File getHdf() {
 		return hdf;
-	}
-
-	public void setHdf(File hdf) {
-		this.hdf = hdf;
 	}
 
 	public OptionParser getParser() {
@@ -690,7 +584,7 @@ public class Options {
 	boolean hasHelpOption() {
 		return options.has("h") || options.has("help");
 	}
-	
+
 	void displayHelp() throws Exception {
 		parser.printHelpOn(System.err);
 	}
@@ -709,48 +603,46 @@ public class Options {
 
 	public void detectBadOptions() throws QBasePileupException {
 		if (!hasHelpOption() && !hasVersionOption()) {
-			
-					
-			
+
 			if (mode.equals("snp") || mode.equals(QBasePileupConstants.COMPOUND_SNP_MODE) 
 					|| mode.equals(QBasePileupConstants.SNP_CHECK_MODE)) {			
-				
+
 				if (output.exists()) {					
 					throw new QBasePileupException("OUTPUT_EXISTS", output.getAbsolutePath());
 				}
-								
+
 				if (!format.equals("dcc1") && !format.equals("maf") && !format.equals("tab") &&
 						!format.equals("dccq") && !format.equals("vcf") && !format.equals("hdf") && !format.equals("txt")
 						&& !format.equals("columns")) {
 					throw new QBasePileupException("UNKNOWN_FILE_FORMAT", format);
 				}				
-				
+
 				if (!positionsFile.exists()) {
 					throw new QBasePileupException("NO_POS_FILE", positionsFile.getAbsolutePath());
 				}			
-				
-	    		
-    			if (inputBAMs.size() == 0 ) {
-    				throw new QBasePileupException("NO_FILE");
-    			} 
-    			
-    			for (InputBAM i: inputBAMs) {
-    				if (!i.exists()) {
-    					throw new QBasePileupException("FILE_EXISTS_ERROR", i.getBamFile().getAbsolutePath());
-    				}
-    			}
-    			
-    			if (mode.equals("snp") || mode.equals(QBasePileupConstants.COMPOUND_SNP_MODE)) {
-	    			checkReference();
-	    			if (!profile.equals("standard") && !profile.equals("torrent") && !profile.equals("RNA") && !profile.equals("DNA")) {
-	    				throw new QBasePileupException("UNKNOWN_PROFILE", profile);
-	    			}
-    			}
-				
+
+
+				if (inputBAMs.size() == 0 ) {
+					throw new QBasePileupException("NO_FILE");
+				} 
+
+				for (InputBAM i: inputBAMs) {
+					if (!i.exists()) {
+						throw new QBasePileupException("FILE_EXISTS_ERROR", i.getBamFile().getAbsolutePath());
+					}
+				}
+
+				if (mode.equals("snp") || mode.equals(QBasePileupConstants.COMPOUND_SNP_MODE)) {
+					checkReference();
+					if (!profile.equals("standard") && !profile.equals("torrent") && !profile.equals("RNA") && !profile.equals("DNA")) {
+						throw new QBasePileupException("UNKNOWN_PROFILE", profile);
+					}
+				}
+
 			}
-			
-    		if (mode.equals("indel")) {    	
-    			checkReference();
+
+			if (mode.equals("indel")) {    	
+				checkReference();
 				if (!tumourBam.exists()) {
 					throw new QBasePileupException("FILE_EXISTS_ERROR", tumourBam.getBamFile().getAbsolutePath());
 				}
@@ -776,7 +668,6 @@ public class Options {
 		}				
 	}
 
-
 	private void checkReference() throws QBasePileupException {
 		if (!reference.exists()) {
 			throw new QBasePileupException("NO_REF_FILE", reference.getAbsolutePath());
@@ -785,16 +676,11 @@ public class Options {
 
 		if (!indexFile.exists()) {
 			throw new QBasePileupException("FASTA_INDEX_ERROR", reference.getAbsolutePath());
-		}	
-		
+		}
 	}
 
 	public File getOutput() {
 		return output;
-	}
-
-	public void setOutput(File output) {
-		this.output = output;
 	}
 
 	public File getReference() {
@@ -805,16 +691,8 @@ public class Options {
 		return nearbyIndelWindow;
 	}
 
-	public void setNearbyIndelWindow(int nearbyIndelWindow) {
-		this.nearbyIndelWindow = nearbyIndelWindow;
-	}
-
 	public int getNearbyHomopolymerWindow() {
 		return nearbyHomopolymer;
-	}
-
-	public void setNearbyHomopolymer(int nearbyHomopolymer) {
-		this.nearbyHomopolymer = nearbyHomopolymer;
 	}
 
 	public int getSoftClipWindow() {
@@ -825,24 +703,8 @@ public class Options {
 		return tumourBam;
 	}
 
-	public void setTumourBam(InputBAM tumourBam) {
-		this.tumourBam = tumourBam;
-	}
-
 	public InputBAM getNormalBam() {
 		return normalBam;
-	}
-
-	public void setNormalBam(InputBAM normalBam) {
-		this.normalBam = normalBam;
-	}
-
-	public void setSoftClipWindow(int softClipWindow) {
-		this.softClipWindow = softClipWindow;
-	}
-
-	public void setReference(File reference) {
-		this.reference = reference;
 	}
 
 	public String getMode() {
@@ -852,6 +714,5 @@ public class Options {
 	public boolean hasGATKOption() {
 		return options.has("gatk");
 	}	
-
 }
 
