@@ -5,7 +5,6 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.BufferedWriter;
@@ -76,7 +75,7 @@ public class SnpPositionPileupTest {
 
 		SnpPositionPileup pp = new SnpPositionPileup(input, p, options,indexedFasta);		
 				
-		pp.pileup();
+		pp.pileup(input.getSAMFileReader());
 		String expected = "\t\t"+bamFile+"\ttest\tchr7\t140188962\t140188962\tC\t0\t2\t0\t0\t0\t2\t0\t2";
 		assertEquals(expected, pp.toString());
 	}
@@ -236,7 +235,7 @@ public class SnpPositionPileupTest {
 	public void testBasesAreMapped() throws QBasePileupException {
 		p = new SnpPosition("test","chr7", 140188962, 140188962);
 		SnpPositionPileup pp = new SnpPositionPileup(input, p, options,indexedFasta);		
-		Character[] readBases = new Character[1];
+		char[] readBases = new char[1];
 		pp.setReadBases(readBases);
 		assertFalse(pp.basesAreMapped());
 		readBases[0] = 'C';
@@ -250,7 +249,7 @@ public class SnpPositionPileupTest {
 		p = new SnpPosition("test","chr7", 89700206, 89700206);
 		SnpPositionPileup pp = new SnpPositionPileup(input, p, options,indexedFasta);
 		pp.deconvoluteReadSequence(r);
-		assertEquals(new Character('A'), pp.getReadBases()[0]);
+		assertEquals('A', pp.getReadBases()[0]);
 		
 	}
 	
@@ -260,7 +259,7 @@ public class SnpPositionPileupTest {
 		p = new SnpPosition("test","chr7", 89700205, 89700205);
 		SnpPositionPileup pp = new SnpPositionPileup(input, p, options,indexedFasta);
 		pp.deconvoluteReadSequence(r);
-		assertNull(pp.getReadBases()[0]);		
+		assertEquals('\u0000', pp.getReadBases()[0]);		
 	}
 	
 	@Test
