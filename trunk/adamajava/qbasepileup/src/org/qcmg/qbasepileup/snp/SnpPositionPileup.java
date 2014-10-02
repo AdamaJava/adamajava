@@ -17,38 +17,38 @@ import net.sf.samtools.Cigar;
 import net.sf.samtools.CigarElement;
 import net.sf.samtools.CigarOperator;
 import net.sf.samtools.SAMFileReader;
-import net.sf.samtools.SAMFileReader.ValidationStringency;
 import net.sf.samtools.SAMRecord;
 import net.sf.samtools.SAMRecordIterator;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
-import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qbamfilter.query.QueryExecutor;
 import org.qcmg.qbasepileup.InputBAM;
 import org.qcmg.qbasepileup.Options;
 import org.qcmg.qbasepileup.QBasePileupConstants;
 import org.qcmg.qbasepileup.QBasePileupException;
-
-
-
+import org.qcmg.qbasepileup.QBasePileupUtil;
 
 public class SnpPositionPileup {
 	
-	private static QLogger logger = QLoggerFactory.getLogger(SnpPositionPileup.class);
-	private Integer baseQual;
+	private static final QLogger logger = QLoggerFactory.getLogger(SnpPositionPileup.class);
+	
+	private final Integer baseQual;
 	private final Integer mappingQual;
-	private Character[] readBases;
+	private final SnpPosition position;
+	private final Options options;
+	private final boolean isNovelStarts;
+	private final boolean isStrand;
+	
+	private char[] readBases;
 	private int[] baseQuals;
 	private Map<String, AtomicInteger> coverageMap;
 	private Map<String, AtomicInteger> forCoverageMap;
 	private Map<String, AtomicInteger> revCoverageMap;
 	private Map<String, Set<Integer>> forNovelStartMap;
 	private Map<String, Set<Integer>> revNovelStartMap;	
-	private final SnpPosition position;
 	private IndexedFastaSequenceFile indexedFasta;
 	private byte[] referenceBases;
-	private final Options options;
 	int totalExamined = 0;
 	int passFiltersCount = 0;
 	int countPositiveStrand = 0;
@@ -57,8 +57,6 @@ public class SnpPositionPileup {
 	int readsNotPassMapQual = 0;
 	int doesntMapCount = 0;
 	List<String> allStarts;
-	private final boolean isNovelStarts;
-	private final boolean isStrand;
 	private InputBAM input;
 	private int referenceBaseCount = 0;
 	private int nonReferenceBaseCount = 0;
@@ -73,9 +71,7 @@ public class SnpPositionPileup {
 		this.isStrand = options.isStrandSpecific();
 		this.options = options;
 		
-		if (options.getBaseQuality() != null) {
-			this.baseQual = options.getBaseQuality();
-		}
+		this.baseQual = (options.getBaseQuality() != null)  ? options.getBaseQuality() : null;
 		this.mappingQual = options.getMappingQuality();
 				
 		if (isNovelStarts) {
@@ -91,9 +87,7 @@ public class SnpPositionPileup {
 		this.isNovelStarts = options.isNovelstarts();
 		this.options = options;		
 		this.isStrand = options.isStrandSpecific();
-		if (options.getBaseQuality() != null) {
-			this.baseQual = options.getBaseQuality();
-		}
+		this.baseQual = (options.getBaseQuality() != null)  ? options.getBaseQuality() : null;
 		this.mappingQual = options.getMappingQuality();
 				
 		if (isNovelStarts) {
@@ -176,21 +170,11 @@ public class SnpPositionPileup {
 	}
 
 	private String getReferenceBases() {
-		StringBuilder b = new StringBuilder();
-		for (byte by: referenceBases) {
-			b.append((char) by);
-		}
-		return b.toString();
-//		return new String(referenceBases);
+		return new String(referenceBases);
 	}
 	
 	private String getCompoundReferenceBases() {
-		StringBuilder b = new StringBuilder();
-		for (byte by: position.getAltBases()) {
-			b.append((char) by);
-		}
-		return b.toString();
-//		return new String(position.getAltBases());
+		return new String(position.getAltBases());
 	}
 
 	public boolean isSingleBasePosition() {
@@ -224,11 +208,11 @@ public class SnpPositionPileup {
 		return totalExamined;
 	}
 
-	public Character[] getReadBases() {
+	public char[] getReadBases() {
 		return readBases;
 	}
 
-	public void setReadBases(Character[] readBases) {
+	public void setReadBases(char[] readBases) {
 		this.readBases = readBases;
 	}
 
@@ -236,14 +220,27 @@ public class SnpPositionPileup {
 		return passFiltersCount;
 	}
 
-	public void pileup() throws Exception {
+	public void pileup(List<SAMRecord> records, boolean prefiltered) throws Exception {
 		//logger.info("Pileup for " + position.toString());			
 		
 		if (referenceBases == null && indexedFasta != null) {
 			referenceBases = indexedFasta.getSubsequenceAt(position.getFullChromosome(), position.getStart(), position.getEnd()).getBases();
 		}	
 		
-		pileupFile();		
+		pileupFile(records, prefiltered);
+		
+		logger.debug("TOTAL COUNTS FOR THIS SNP:\t " + passFiltersCount+ " / " + totalExamined);
+		logger.debug("READ DOES NOT MAP TO POS:\t"+doesntMapCount+"");
+		logger.debug("BAD BASE/MAP QUALITY:\t\t" + basesNotPassBaseQual+ " / " + readsNotPassMapQual);		
+	}
+	public void pileup(SAMFileReader reader) throws Exception {
+		//logger.info("Pileup for " + position.toString());			
+		
+		if (referenceBases == null && indexedFasta != null) {
+			referenceBases = indexedFasta.getSubsequenceAt(position.getFullChromosome(), position.getStart(), position.getEnd()).getBases();
+		}	
+		
+		pileupFile(reader);		
 		
 		logger.debug("TOTAL COUNTS FOR THIS SNP:\t " + passFiltersCount+ " / " + totalExamined);
 		logger.debug("READ DOES NOT MAP TO POS:\t"+doesntMapCount+"");
@@ -251,35 +248,45 @@ public class SnpPositionPileup {
 	}
 	
 	public void addSAMRecord(SAMRecord record) throws Exception {
-		if (passesReadFilters(record)) {
+		if (passesReadFilters(record, false)) {
 			parseRecord(record);
 		}	
 	}
-	
 
-	private void pileupFile() throws Exception {
-		try (SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(input.getBamFile(), ValidationStringency.SILENT)) {
-					
-			SAMRecordIterator iter = reader.queryOverlapping(position.getFullChromosome(), position.getStart(), position.getEnd());
-			
-			while (iter.hasNext()) {
-				SAMRecord r = iter.next();
-				
-				if (passesReadFilters(r)) {
-					parseRecord(r);
-				}					
+	private void pileupFile(List<SAMRecord> records, boolean prefiltered) throws Exception {
+		if (null != records) {
+			for (SAMRecord r : records) {
+					if (passesReadFilters(r, prefiltered)) {
+						parseRecord(r);
+					}					
 			}
-			iter.close();
 		}
 	}
+	
+	private void pileupFile(SAMFileReader reader) throws Exception {
+		
+		SAMRecordIterator iter = reader.queryOverlapping(position.getFullChromosome(), position.getStart(), position.getEnd());
+//		logger.info("about to get: " + position.getFullChromosome() + "-" +  position.getStart() + "-" + position.getEnd());
+//		SAMRecordIterator iter = input.getSAMFileReader().queryOverlapping(position.getFullChromosome(), position.getStart(), position.getEnd());
+		
+		while (iter.hasNext()) {
+			SAMRecord r = iter.next();
+			
+			if (passesReadFilters(r, false)) {
+				parseRecord(r);
+			}					
+		}
+		iter.close();
+	}
 
-	private boolean passesReadFilters(SAMRecord r) throws Exception {
+	private boolean passesReadFilters(SAMRecord r, boolean prefiltered) throws Exception {
 		//make sure alignment contains the position/s of interest
 		if (position.getStart() >= r.getAlignmentStart() && position.getEnd() >= r.getAlignmentStart() 
 				&& position.getStart() <= r.getAlignmentEnd() && position.getEnd() <= r.getAlignmentEnd()) {
 			//filters	
-			
-//			if ((!r.getDuplicateReadFlag() || (r.getDuplicateReadFlag() && options.includeDuplicates())) && !r.getReadUnmappedFlag() && (exec == null || (exec !=null && exec.Execute(r)))) {
+			if (prefiltered) {
+				return true;
+			}
 			if(exec != null )
 				return exec.Execute(r);
 			else
@@ -291,7 +298,7 @@ public class SnpPositionPileup {
 	}
 
 	public void parseRecord(SAMRecord r) throws QBasePileupException {
-	
+		
 		totalExamined ++;		
 		
 		//skip indels
@@ -314,12 +321,11 @@ public class SnpPositionPileup {
 		}
 		
 		//read doesn't pass base quality filtering
-		String readBaseString = new String();
 		if (basesAreMapped()) {
+			String readBaseString = String.valueOf(readBases);
 			
-			for (int i=0; i<readBases.length; i++) {
-				readBaseString += readBases[i];
-				if (baseQual != null) {					
+			if (baseQual != null) {					
+				for (int i=0; i<readBases.length; i++) {
 					if (baseQuals[i] < baseQual.intValue()) {
 						basesNotPassBaseQual++;
 						return;
@@ -433,7 +439,7 @@ public class SnpPositionPileup {
 	public boolean basesAreMapped() {
 		if (readBases != null) {
 			for (int i=0; i<readBases.length; i++) {
-				if (readBases[i] == null) {
+				if (readBases[i] == '\u0000') {
 					doesntMapCount++;
 					return false;
 				}
@@ -455,7 +461,7 @@ public class SnpPositionPileup {
 		byte[] readBytes = r.getReadBases();
 		byte[] baseQualities = r.getBaseQualities();
 				
-		readBases = new Character[position.getLength()];
+		readBases = new char[position.getLength()];
 		baseQuals = new int[position.getLength()];
 		
 		for (CigarElement element: r.getCigar().getCigarElements()) {
@@ -512,11 +518,11 @@ public class SnpPositionPileup {
 	private String getMapString(Map<String, AtomicInteger> map) {
 		StringBuilder b = new StringBuilder();
 		if (isSingleBasePosition()) {
-			b.append(map.get("A").intValue() + "\t");
-			b.append(map.get("C").intValue() + "\t");			
-			b.append(map.get("G").intValue() + "\t");
-			b.append(map.get("T").intValue() + "\t");
-			b.append(map.get("N").intValue() + "\t");
+			b.append(map.get("A").intValue()).append(QBasePileupUtil.TAB);
+			b.append(map.get("C").intValue()).append(QBasePileupUtil.TAB);		
+			b.append(map.get("G").intValue()).append(QBasePileupUtil.TAB);
+			b.append(map.get("T").intValue()).append(QBasePileupUtil.TAB);
+			b.append(map.get("N").intValue() ).append(QBasePileupUtil.TAB);
 		} else {
 			for (Entry<String, AtomicInteger> entry: map.entrySet()) {				
 				b.append(entry.getValue().intValue() + "\t");
@@ -537,14 +543,14 @@ public class SnpPositionPileup {
 	public String getNovelStartMapString(Map<String, Set<Integer>> novelStartMap) {
 		StringBuilder b = new StringBuilder();
 		if (isSingleBasePosition()) {
-			b.append(novelStartMap.get("A").size() + "\t");
-			b.append(novelStartMap.get("C").size() + "\t");			
-			b.append(novelStartMap.get("G").size() + "\t");
-			b.append(novelStartMap.get("T").size() + "\t");
-			b.append(novelStartMap.get("N").size() + "\t");
+			b.append(novelStartMap.get("A").size()).append(QBasePileupUtil.TAB);
+			b.append(novelStartMap.get("C").size()).append(QBasePileupUtil.TAB);	
+			b.append(novelStartMap.get("G").size()).append(QBasePileupUtil.TAB);
+			b.append(novelStartMap.get("T").size()).append(QBasePileupUtil.TAB);
+			b.append(novelStartMap.get("N").size()).append(QBasePileupUtil.TAB);
 		} else {
 			for ( Entry<String, Set<Integer>> entry: novelStartMap.entrySet()) {
-				b.append(entry.getValue().size() + "\t");
+				b.append(entry.getValue().size()).append(QBasePileupUtil.TAB);
 			}
 		}		
 		return b.toString();
@@ -562,11 +568,11 @@ public class SnpPositionPileup {
 			Map<String, Set<Integer>> revNovelStartMap) {
 		StringBuilder b = new StringBuilder();
 		if (isSingleBasePosition()) {
-			b.append(getNovelCounts("A",forNovelStartMap, revNovelStartMap)+ "\t");
-			b.append(getNovelCounts("C",forNovelStartMap, revNovelStartMap) + "\t");			
-			b.append(getNovelCounts("G",forNovelStartMap, revNovelStartMap) + "\t");
-			b.append(getNovelCounts("T",forNovelStartMap, revNovelStartMap) + "\t");
-			b.append(getNovelCounts("N",forNovelStartMap, revNovelStartMap) + "\t");
+			b.append(getNovelCounts("A",forNovelStartMap, revNovelStartMap)).append(QBasePileupUtil.TAB);
+			b.append(getNovelCounts("C",forNovelStartMap, revNovelStartMap)).append(QBasePileupUtil.TAB);		
+			b.append(getNovelCounts("G",forNovelStartMap, revNovelStartMap)).append(QBasePileupUtil.TAB);
+			b.append(getNovelCounts("T",forNovelStartMap, revNovelStartMap)).append(QBasePileupUtil.TAB);
+			b.append(getNovelCounts("N",forNovelStartMap, revNovelStartMap)).append(QBasePileupUtil.TAB);
 		} else {
 			Set<String> keys = new TreeSet<String>(forNovelStartMap.keySet());
 			keys.addAll(revNovelStartMap.keySet());
@@ -579,7 +585,7 @@ public class SnpPositionPileup {
 				if (revNovelStartMap.containsKey(key)) {
 					count += revNovelStartMap.get(key).size();
 				}
-				b.append(count + "\t");
+				b.append(count).append(QBasePileupUtil.TAB);
 			}
 		}		
 		return b.toString();
@@ -590,10 +596,14 @@ public class SnpPositionPileup {
 		StringBuilder b = new StringBuilder();
 		String refBases = getReferenceBases();
 		calculateTotalReferenceBases(refBases);
-		String start = input.toString() + "\t" + position.toTabString() + "\t" + refBases + "\t" 
-		+ referenceBaseCount + "\t" + nonReferenceBaseCount + "\t";
-		b.append(start);
-		if (!isStrand) {			
+		
+		b.append(input.toString()).append(QBasePileupUtil.TAB);
+		b.append(position.toTabString()).append(QBasePileupUtil.TAB);
+		b.append(refBases).append(QBasePileupUtil.TAB);
+		b.append(referenceBaseCount).append(QBasePileupUtil.TAB);
+		b.append(nonReferenceBaseCount).append(QBasePileupUtil.TAB);
+		
+		if ( ! isStrand) {			
 			if (isNovelStarts) {
 				b.append(getNovelStartMapString(forNovelStartMap, revNovelStartMap));	
 			} else {
@@ -603,7 +613,7 @@ public class SnpPositionPileup {
 		} else {			
 			b.append(getCountsString(forCoverageMap, forNovelStartMap));		
 			b.append(countPositiveStrand);
-			b.append("\t");
+			b.append(QBasePileupUtil.TAB);
 			b.append(getCountsString(revCoverageMap, revNovelStartMap));
 			b.append(countNegativeStrand);			
 		}
@@ -611,20 +621,20 @@ public class SnpPositionPileup {
 	}
 	
 	public String toColumnString() {
-		StringBuilder b = new StringBuilder();
-		b.append(position.toOutputColumnsString() +  "\t");
-		b.append(input.getAbbreviatedBamFileName() + "\t" + getAllBaseCounts(forCoverageMap, revCoverageMap));
+		StringBuilder b = new StringBuilder(position.toOutputColumnsString());
+		b.append(QBasePileupUtil.TAB);
+		b.append(input.getAbbreviatedBamFileName()).append(QBasePileupUtil.TAB).append(getAllBaseCounts(forCoverageMap, revCoverageMap));
 		return b.toString();
 	}	
 	
 	private String getAllBaseCounts(Map<String, AtomicInteger> forCoverageMap, Map<String, AtomicInteger> revCoverageMap) {
 		StringBuilder b = new StringBuilder();
 		if (isSingleBasePosition()) {
-			b.append(forCoverageMap.get("A").intValue() + revCoverageMap.get("A").intValue() + "\t");
-			b.append(forCoverageMap.get("C").intValue() + revCoverageMap.get("C").intValue() + "\t");	
-			b.append(forCoverageMap.get("G").intValue() + revCoverageMap.get("G").intValue() + "\t");
-			b.append(forCoverageMap.get("T").intValue() + revCoverageMap.get("T").intValue() + "\t");
-			b.append(forCoverageMap.get("N").intValue() + revCoverageMap.get("N").intValue() + "\t");
+			b.append(forCoverageMap.get("A").intValue() + revCoverageMap.get("A").intValue()).append(QBasePileupUtil.TAB);
+			b.append(forCoverageMap.get("C").intValue() + revCoverageMap.get("C").intValue()).append(QBasePileupUtil.TAB);	
+			b.append(forCoverageMap.get("G").intValue() + revCoverageMap.get("G").intValue()).append(QBasePileupUtil.TAB);
+			b.append(forCoverageMap.get("T").intValue() + revCoverageMap.get("T").intValue()).append(QBasePileupUtil.TAB);
+			b.append(forCoverageMap.get("N").intValue() + revCoverageMap.get("N").intValue()).append(QBasePileupUtil.TAB);
 		} 
 		return b.toString();
 	}
@@ -702,12 +712,9 @@ public class SnpPositionPileup {
 
 	public String toMafString() {
 		StringBuilder sb = new StringBuilder();
-		String indelCheck = "";
-		if (indelPresent > 0) {
-			indelCheck = "yes";
-		}
-		sb.append(position.getInputLine());
-		sb.append("\t" + indelCheck);
+		String indelCheck = indelPresent > 0 ? "yes" : "";
+		sb.append(position.getInputLine()).append(QBasePileupUtil.TAB);
+		sb.append(indelCheck);
 		return sb.toString();
 	}
 

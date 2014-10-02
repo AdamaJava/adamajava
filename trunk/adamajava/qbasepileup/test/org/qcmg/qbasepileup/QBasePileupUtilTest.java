@@ -16,6 +16,9 @@ public class QBasePileupUtilTest {
 		
 		assertEquals("chr10", QBasePileupUtil.getFullChromosome("10"));
 		assertEquals("chr10", QBasePileupUtil.getFullChromosome("chr10"));
+		assertEquals("chrMT", QBasePileupUtil.getFullChromosome("M"));
+		assertEquals("chrMT", QBasePileupUtil.getFullChromosome("MT"));
+		assertEquals("GL12345", QBasePileupUtil.getFullChromosome("GL12345"));
 	}
 	
 	@Test
@@ -34,6 +37,7 @@ public class QBasePileupUtilTest {
 		assertFalse(QBasePileupUtil.addChromosomeReference("GL123"));
 		assertFalse(QBasePileupUtil.addChromosomeReference("chr10"));
 	}
+	
 	
 	@Test
 	public void testParseDCCHeaderVersionOld() throws QBasePileupException {

@@ -26,7 +26,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.qbasepileup.Options;
-import org.qcmg.qbasepileup.snp.SnpBasePileupMT;
 
 public class BasePileupMTTest {
 	
@@ -68,25 +67,26 @@ public class BasePileupMTTest {
         new SnpBasePileupMT(options);
         assertTrue(new File(output).exists());
        
-        BufferedReader reader = new BufferedReader(new FileReader(new File(output)));
-        String line;
         int count = 0;
-        while ((line = reader.readLine()) != null) {
-        	count++;
-        	 if (count == 1) {
-        		 assertEquals("##qbasepileup version 1.0", line);
-        	 } else if (count == 2) {
-        		 assertTrue(line.startsWith("ID"));
-        	 } else if (count ==3) {
-        		 assertTrue(line.startsWith(""));
-        		 assertEquals(22, line.split("\t").length);
-        		 assertEquals("1", line.split("\t")[16]);
-        		 assertEquals("1", line.split("\t")[8]);
-        		 assertEquals("0", line.split("\t")[9]);
-        	 }
+        String line;
+        try (BufferedReader reader = new BufferedReader(new FileReader(new File(output)));) {
+	        while ((line = reader.readLine()) != null) {
+	        	count++;
+	        	 if (count == 1) {
+	        		 assertEquals("##qbasepileup version 1.0", line);
+	        	 } else if (count == 2) {
+	        		 assertTrue(line.startsWith("ID"));
+	        	 } else if (count ==3) {
+	        		 assertTrue(line.startsWith(""));
+	        		 String[] lineArr = line.split("\t");
+	        		 assertEquals(22, lineArr.length);
+	        		 assertEquals("1", lineArr[16]);
+	        		 assertEquals("1", lineArr[8]);
+	        		 assertEquals("0", lineArr[9]);
+	        	 }
+	        }
         }
         assertEquals(3, count);
-        reader.close();
 	}
 	
 	@Test

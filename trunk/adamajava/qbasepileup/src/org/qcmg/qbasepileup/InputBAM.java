@@ -5,20 +5,20 @@ package org.qcmg.qbasepileup;
 
 import java.io.File;
 
+import net.sf.samtools.SAMFileReader;
+import net.sf.samtools.SAMFileReader.ValidationStringency;
+
+import org.qcmg.picard.SAMFileReaderFactory;
+
 public class InputBAM {
 	
-	final Integer id;
-	final String donor;
-	final File bamFile;
-//	private final SAMFileReader samFileReader;
+	private final Integer id;
+	private final String donor;
+	private final File bamFile;
 	private final String inputType;
 	
 	public InputBAM(File bamFile) {
-		super();
-		this.bamFile = bamFile;
-		this.donor = null;
-		this.id = null;
-		this.inputType = null;
+		this(null, null, bamFile, null);
 	}
 
 	public InputBAM(Integer id, String donor, File bamFile, String inputType) {
@@ -44,6 +44,10 @@ public class InputBAM {
 		return inputType;
 	}
 	
+	public SAMFileReader getSAMFileReader() {
+		return SAMFileReaderFactory.createSAMFileReader(bamFile, ValidationStringency.SILENT);
+	}
+	
 	@Override
 	public String toString() {
 		if (inputType.equals(Options.INPUT_BAM)) {
@@ -62,3 +66,5 @@ public class InputBAM {
 		return bamFile.getName().replace(".bam", "");
 	}
 }
+
+	

@@ -22,6 +22,8 @@ public class QBasePileupUtil {
 //	public static final Pattern SINGLE_DIGIT_PATTERN = Pattern.compile("\\d");
 	public static final Pattern DOUBLE_DIGIT_PATTERN = Pattern.compile("\\d{1,2}");
 	
+	public static final char TAB = '\t';
+	
 	public static String getStrackTrace(Exception e) {
 		StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
@@ -30,26 +32,42 @@ public class QBasePileupUtil {
 	}
 	
 	public static String getFullChromosome(String ref) {
-		if (ref.equals("chrM") || ref.equals("M")) {
+		
+		
+		// if ref starts with chr or GL, just return it
+		if (ref.startsWith("chr") || ref.startsWith("GL")) {
+			if (ref.equals("chrM")) {
+				return "chrMT";
+			}
+			return ref;
+		}
+		
+		
+		if (ref.equals("M")) {
 			return "chrMT";
-		} else	if (addChromosomeReference(ref)) {			
+		}
+		
+		if (addChromosomeReference(ref)) {
 			return "chr" + ref;
-		} else {			
+		} else {
 			return ref;
 		}
 	}
 	
 	public static boolean addChromosomeReference(String ref) {
 		
+		if (ref.startsWith("chr") || ref.startsWith("GL")) {
+			return false;
+		}
+		
 		if (ref.equals("X") || ref.equals("Y") || ref.equals("M") || ref.equals("MT")) {
 			return true;
-		} else if ( ! ref.contains("chr")) {
-			
-			Matcher matcher = DOUBLE_DIGIT_PATTERN.matcher(ref);
-			if (matcher.matches()) {		    	
-				if (Integer.parseInt(ref) < 23) {
-					return true;
-				}
+		}
+		
+		Matcher matcher = DOUBLE_DIGIT_PATTERN.matcher(ref);
+		if (matcher.matches()) {		    	
+			if (Integer.parseInt(ref) < 23) {
+				return true;
 			}
 		}
 		return false;

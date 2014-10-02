@@ -130,7 +130,7 @@ public class Options {
 		if (options.has("t")) {
 			threadNo = (Integer) options.valueOf("t");
 		} else {
-			threadNo = 2;
+			threadNo = 1;
 		}	
 
 		if (options.has("filter")) {

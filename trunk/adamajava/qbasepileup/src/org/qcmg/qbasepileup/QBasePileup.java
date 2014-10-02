@@ -30,7 +30,7 @@ public class QBasePileup {
 		QBasePileup pileup = new QBasePileup();
 		LoadReferencedClasses.loadClasses(QBasePileup.class);
 		
-		int	exitStatus = pileup.runBasePileup(args);
+		int exitStatus = pileup.runBasePileup(args);
 
 		if (null != logger) {
 			logger.logFinalExecutionStats(exitStatus);
