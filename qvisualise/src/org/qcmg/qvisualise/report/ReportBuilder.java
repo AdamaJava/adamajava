@@ -28,6 +28,11 @@ import org.w3c.dom.NodeList;
 
 public class ReportBuilder {
 	
+	private static final String ISIZE = "iSize";
+	private static final String UNMAPPED = "Unmapped";
+	private static final String DUPLICATE = "Duplicate";
+	private static final String MD = "TAG MD";
+	private static final String FLAG = "FLAG";
 	private static final String[] SEQ_COLOURS = new String[] { "green", "blue", "black", "red", "aqua" };
 	private static final String[] CS_COLOURS = new String[] { "blue", "green", "orange", "red", "black" };
 	private static int reportID;
@@ -64,6 +69,7 @@ public class ReportBuilder {
 			createCoverage(reportElement, report);
 			//
 			createMatrix(reportElement, report);
+			createSummary(reportElement, report);
 			break;
 		case QUAL:
 			for (ChartTab ct : buildMultiTabCycles(false,"Qual", reportElement, "qual",
@@ -98,6 +104,74 @@ public class ReportBuilder {
 		}
 
 		return report;
+	}
+	
+	private static void createSummary(Element reportElement, Report report) {
+		final ChartTab summary = new ChartTab("Summary");
+		// get the existing ChartTabs for this report
+		// loop throught to ensure that the ones we want are there
+		
+		List<String> chartNames = new ArrayList<>();
+		
+		List<ChartTab> chartTabs = report.getTabs();
+		int flagPosition = 0, iSizePosition = 0, mdPosition = 0;
+		int i = 0;
+		for (ChartTab ct : chartTabs) {
+			if (FLAG.equals(ct.getTitle())) {
+				flagPosition = i;
+			} else if (ISIZE.equals(ct.getTitle())) {
+				iSizePosition = i;
+			} else if (MD.equals(ct.getTitle())) {
+				mdPosition = i;
+			}
+			System.out.println("in summary tab: we have chart tab name: " + ct.getName() + ", title :" + ct.getTitle());
+			i++;
+		}
+		
+		// FLAG
+		// we want the unmapped and the duplicate charts
+		ChartTab flag = report.getTabs().get(flagPosition);
+		
+//		int dupsPosition = 0, mappedPosition = 0;
+		i = 0;
+		for (ChartTab ct : flag.getChildren()) {
+			if (DUPLICATE.equals(ct.getTitle())) {
+//				dupsPosition = i;
+				ct.setIncludeInSummary(true);
+				chartNames.add(ct.getName());
+			} else if (UNMAPPED.equals(ct.getTitle())) {
+				ct.setIncludeInSummary(true);
+//				mappedPosition = i;
+				chartNames.add(ct.getName());
+			}
+			System.out.println("in flags tab: we have chart tab name: " + ct.getName() + ", title :" + ct.getTitle());
+			i++;
+		}
+		
+		
+		// mismatches above 1%
+		ChartTab md = report.getTabs().get(mdPosition);
+		// get the second md chart there is
+		ChartTab ct = md.getChildren().get(1);
+		ct.setIncludeInSummary(true);
+		chartNames.add(ct.getName());
+		
+		//isize
+		ChartTab iSize = report.getTabs().get(iSizePosition);
+//		int iSizeChartPosition = 0;
+//		i = 0;
+		
+		// get the first isize chart there is
+		ct = iSize.getChildren().get(0);
+		ct.setIncludeInSummary(true);
+		chartNames.add(ct.getName());
+		
+		
+		summary.setRenderingInfo(HTMLReportUtils.generateRenderingTableInfoSummary(chartNames));
+		
+		// add summary report to the front
+		chartTabs.add(0, summary);
+		report.setTabs(chartTabs);
 	}
 	
 	private static void createMatrix(Element reportElement, Report report) {
@@ -144,9 +218,9 @@ public class ReportBuilder {
 
 	private static void createFLAGS(Element reportElement, Report report) {
 		//FLAG
-		final NodeList flagNL = reportElement.getElementsByTagName("FLAG");
+		final NodeList flagNL = reportElement.getElementsByTagName(FLAG);
 		final Element flagElement = (Element) flagNL.item(0);
-		final ChartTab flagTab = new ChartTab("FLAG");
+		final ChartTab flagTab = new ChartTab(FLAG);
 		Map<String, AtomicLong> flags = getMapFromElement(flagElement);
 		
 		Map<String, AtomicLong> flagsKeyChange = new LinkedHashMap<String, AtomicLong>();
@@ -161,7 +235,7 @@ public class ReportBuilder {
 		final Map<String, String> dupMap = new HashMap<String, String>();
 		dupMap.put("d", "Duplicates");
 		final Map<String, AtomicLong> duplicateFlags = QProfilerCollectionsUtils.splitFlagTallyByDistinguisher(flags, dupMap, "Singletons");
-		flagTab.addChild(getChartTabFromMap("Duplicate", "fld", HTMLReportUtils.PIE_CHART, true, duplicateFlags));
+		flagTab.addChild(getChartTabFromMap(DUPLICATE, "fld", HTMLReportUtils.PIE_CHART, true, duplicateFlags));
 		// vendor check
 		final Map<String, String> vendorMap = new HashMap<String, String>();
 		vendorMap.put("f", "Failed Vendor Check");
@@ -175,9 +249,9 @@ public class ReportBuilder {
 		flagTab.addChild(getChartTabFromMap("Read in Pair", "flfs", HTMLReportUtils.PIE_CHART, true, firstSecondFlags));
 		
 		final Map<String, String> mappedMap = new HashMap<String, String>();
-		mappedMap.put("u", "Unmapped");
+		mappedMap.put("u", UNMAPPED);
 		final Map<String, AtomicLong> mappedFlags = QProfilerCollectionsUtils.splitFlagTallyByDistinguisher(flags, mappedMap, "Mapped");
-		flagTab.addChild(getChartTabFromMap("Unmapped", "flm", HTMLReportUtils.PIE_CHART, true, mappedFlags));
+		flagTab.addChild(getChartTabFromMap(UNMAPPED, "flm", HTMLReportUtils.PIE_CHART, true, mappedFlags));
 		
 		final Map<String, String> primaryMap = new HashMap<String, String>();
 		primaryMap.put("s", "secondary");
@@ -390,6 +464,7 @@ public class ReportBuilder {
 //		String id = "rnm" + reportID;
 		
 		ChartTab mismatchCT = null;
+		ChartTab onePercentCT = null;
 		ChartTab forwardCT = null;
 		ChartTab reverseCT = null;
 		
@@ -405,7 +480,7 @@ public class ReportBuilder {
 			"MismatchByCycle");
 			
 			// create cycle tab
-			mismatchCT = new ChartTab("TAG MD", "tmd");
+			mismatchCT = new ChartTab(MD, "tmd");
 			mismatchCT.setData(HTMLReportUtils.generateGoogleDataCycles(cycle, mismatchCT
 					.getName(), CycleDetailUtils.getSeqCycle(), false, cyclePercentages));
 			mismatchCT.setChartInfo(HTMLReportUtils.generateGoogleChartSlidingColors(
@@ -413,6 +488,27 @@ public class ReportBuilder {
 					HTMLReportUtils.BAR_CHART, false, true, cycle.getPossibleValues().size(),
 					SEQ_COLOURS));
 			mismatchCT.setDescription(TAG_MD_DESCRIPTION);
+			
+			
+			Map<Integer, Double> sortedPercentageMap = new TreeMap<>();
+			
+			for (Entry<Integer, String> entry : cyclePercentages.entrySet()) {
+				String value = entry.getValue();
+				double percentage = Double.parseDouble(value.substring(0, value.length() - 1));
+				if (percentage > 1.0) {
+					System.out.println("cycle " + entry.getKey().intValue() + " has error percentage over 1%: " + percentage);
+					sortedPercentageMap.put(entry.getKey(), percentage);
+				}
+			}
+			
+			
+			onePercentCT = new ChartTab(MD + " 1 PERC", "tmd1pc");
+			onePercentCT.setData(HTMLReportUtils.generateGoogleData(sortedPercentageMap, onePercentCT
+					.getName(),false, "Error Percentage", "Cycle"));
+			onePercentCT.setChartInfo(HTMLReportUtils.generateGoogleTable(onePercentCT.getName(), 1, "Cycles with > 1% md mismatch rate"));
+//			onePercentCT.setDescription(TAG_MD_DESCRIPTION);
+			
+			
 		}
 		
 		//TAG-MD_forward
@@ -432,7 +528,9 @@ public class ReportBuilder {
 		if (null != mismatchCT && null != forwardCT && null != reverseCT) {
 			parentCT = new ChartTab("TAG MD");
 			mismatchCT.setTitle("MD mismatch");
+			onePercentCT.setTitle("Cycles with 1% error or more");
 			parentCT.addChild(mismatchCT);
+			parentCT.addChild(onePercentCT);
 			parentCT.addChild(forwardCT);
 			parentCT.addChild(reverseCT);
 		} else if (null != mismatchCT) {
@@ -530,7 +628,7 @@ public class ReportBuilder {
 	
 	private static ChartTab createISizeChartTab(Element element) throws QVisualiseException {
 		ChartTab parentCT = null;
-		String title = "iSize";
+//		String title = "iSize";
 		String id = "is" + reportID;
 		int idCounter = 1;
 		//get read group ids
@@ -594,11 +692,11 @@ public class ReportBuilder {
 			if (arrayMap.lastKey() > 1500) {
 				// split into 3 tabs
 				// create parent
-				parentCT = new ChartTab(title);
+				parentCT = new ChartTab(ISIZE);
 				
 				// add in the summary tab
 				String tabTitle = "0 to 1500" + (noOfReadGroups == 1 ? "" : " - Summary");
-				String longTitle = title + ", 0 to 1500, summed across all read groups";
+				String longTitle = ISIZE + ", 0 to 1500, summed across all read groups";
 				final ChartTab ct1Sum = new ChartTab(tabTitle, (id + idCounter++));
 				
 				TreeMap<Integer, AtomicLong> summaryMap = new TreeMap<>();
@@ -613,10 +711,10 @@ public class ReportBuilder {
 				
 				parentCT.addChild(ct1Sum);
 				
-				if (noOfReadGroups > 1) {	
+				if (noOfReadGroups > 1) {
 				
 					// first tab shows 0 - 1500
-					longTitle = title + ", 0 to 1500, split by read group";
+					longTitle = ISIZE + ", 0 to 1500, split by read group";
 					final ChartTab ct1All = new ChartTab("0 to 1500 - All", (id + idCounter++));
 					ct1All.setData(HTMLReportUtils.generateGoogleDataMultiSeries(
 							(arrayMap).subMap(0, true, 1500, false),
@@ -629,7 +727,7 @@ public class ReportBuilder {
 				
 				// next tab shows 0 - 5000
 				tabTitle = "0 to 5000" + (noOfReadGroups == 1 ? "" : " - Summary");
-				longTitle = title + ", 0 to 5000, summed across all read groups";
+				longTitle = ISIZE + ", 0 to 5000, summed across all read groups";
 				final ChartTab ct2sum = new ChartTab(tabTitle, (id + idCounter++));
 				ct2sum.setData(HTMLReportUtils.generateGoogleData(
 						summaryMap.subMap(0, true, 5000, false),
@@ -642,7 +740,7 @@ public class ReportBuilder {
 				if (noOfReadGroups > 1) {	
 					
 					// tab shows 0 - 5000
-					longTitle = title + ", 0 to 5000, split by read group";
+					longTitle = ISIZE + ", 0 to 5000, split by read group";
 					final ChartTab ct2All = new ChartTab("0 to 5000 - All", (id + idCounter++));
 					ct2All.setData(HTMLReportUtils.generateGoogleDataMultiSeries(
 							(arrayMap).subMap(0, true, 5000, false),
@@ -688,12 +786,12 @@ public class ReportBuilder {
 				
 			} else {
 				// no need for sub tabs
-				parentCT = new ChartTab(title, id);
+				parentCT = new ChartTab(ISIZE, id);
 				parentCT.setData(HTMLReportUtils.generateGoogleDataMultiSeries(
 						arrayMap,
 						parentCT.getName(), false, readGroups, true));
 				parentCT.setChartInfo(HTMLReportUtils.generateGoogleScatterChart(parentCT.getName(),
-						title, 1200, 940, true));
+						ISIZE, 1200, 940, true));
 			}
 		}
 		return parentCT;

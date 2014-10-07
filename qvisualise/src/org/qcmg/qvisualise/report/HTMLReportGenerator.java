@@ -25,11 +25,17 @@ public class HTMLReportGenerator {
 			if (tab.getChildren().isEmpty() && null != tab.getData() &&  null != tab.getChartInfo()) {
 				sb.append(tab.getData());
 				sb.append(tab.getChartInfo());
+				if (tab.isIncludeInSummary()) {
+					sb.append(tab.getChartInfoSummary());
+				}
 			} else {
 				for (ChartTab child : tab.getChildren()) {
 					if (null != child.getData() &&  null != child.getChartInfo() ) {
 						sb.append(child.getData());
 						sb.append(child.getChartInfo());
+						if (child.isIncludeInSummary()) {
+							sb.append(child.getChartInfoSummary());
+						}
 					}
 				}
 			}
@@ -164,7 +170,11 @@ public class HTMLReportGenerator {
 			if (null == tab.getChildren() || tab.getChildren().isEmpty()) {
 				if (null == tab.getRenderingInfo()) {
 					if (null == tab.getDescription()) {
-						sb.append("\n<div class=\"pane\" id=\"" + tab.getName() + "Chart_div\">");
+						if (tab.isIncludeInSummary()) {
+							sb.append("\n<div class=\"pane\" id=\"" + tab.getName() + "ChartSummary_div\">");
+						} else {
+							sb.append("\n<div class=\"pane\" id=\"" + tab.getName() + "Chart_div\">");
+						}
 						sb.append(END_DIV);
 					} else {
 						sb.append("\n<div class=\"pane\">");

@@ -14,7 +14,8 @@ public class ChartTab {
 	private String chartInfo;
 	private String renderingInfo;
 	private String description;
-	private List<ChartTab> children = new ArrayList<ChartTab>();
+	private final List<ChartTab> children = new ArrayList<ChartTab>();
+	private boolean includeInSummary;
 
 	///////////////////////////////////////////////////////////////////////////
 	// Constructors
@@ -78,6 +79,38 @@ public class ChartTab {
 
 	public String getDescription() {
 		return description;
+	}
+
+	public boolean isIncludeInSummary() {
+		return includeInSummary;
+	}
+
+	public void setIncludeInSummary(boolean includeInSummary) {
+		this.includeInSummary = includeInSummary;
+	}
+
+	public String getChartInfoSummary() {
+		String summaryChartInfo = chartInfo.replaceAll(name + "Chart", name + "ChartSummary");
+		
+		// reduce size
+		int widthPos = summaryChartInfo.indexOf("width: ");
+		
+		if (widthPos > -1) {
+			
+			widthPos += 7;
+		
+			int origWidth = Integer.parseInt(summaryChartInfo.substring(widthPos, summaryChartInfo.indexOf(",", widthPos)));
+			summaryChartInfo = summaryChartInfo.replaceAll("width: " + origWidth , "width: " + 450);
+	//		summaryChartInfo = summaryChartInfo.replaceAll("width: " + origWidth , "width: " + origWidth/2);
+			
+			int heightPos = summaryChartInfo.indexOf("height: ") + 8;
+			
+			int origHeight = Integer.parseInt(summaryChartInfo.substring(heightPos, summaryChartInfo.indexOf(",", heightPos)));
+			summaryChartInfo = summaryChartInfo.replaceAll("height: " + origHeight , "height: " + 300);
+	//		summaryChartInfo = summaryChartInfo.replaceAll("height: " + origHeight , "height: " + origHeight/2);
+		}
+
+		return summaryChartInfo;
 	}
 
 }
