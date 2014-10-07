@@ -129,15 +129,19 @@ public class DbsnpMode {
 //	private static final Pattern tabbedPattern = Pattern.compile("[\\t]+");
 
 	
-	/**
+		/**
 	 * insert the cmd into header before the final header line
 	 * @param header: vcf header
 	 * @param cmd: program command line
 	 * @return vcf header
 	 */
-	private VCFHeader reheader(VCFHeader header, String cmd){
+	private VCFHeader reheader(VCFHeader header , String cmd){
 		final String STANDARD_FINAL_HEADER_LINE = "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO";
 		final String STANDARD_FILE_DATE = "##fileDate=";
+		final String STANDARD_SOURCE_LINE = "##source=";
+		final String STANDARD_UUID_LINE = "##uuid=";
+		
+		String version = Main.class.getPackage().getImplementationVersion();
 
 		DateFormat df = new SimpleDateFormat("yyyyMMdd");
 		Vector<String> headerLines = new Vector<String>();
@@ -146,18 +150,26 @@ public class DbsnpMode {
 				//replace date
 				headerLines.add(STANDARD_FILE_DATE + df.format(Calendar.getInstance().getTime()) + "\n");
 				//add uuid
-				headerLines.add("##uuid=" + QExec.createUUid());
+				headerLines.add(STANDARD_UUID_LINE + QExec.createUUid() + "\n");
+				headerLines.add(STANDARD_SOURCE_LINE + "qannotate " + version + "\n");
 				continue;
-			}else if( record.startsWith(STANDARD_FINAL_HEADER_LINE) ) 
+			}else if(record.startsWith(STANDARD_SOURCE_LINE) || record.startsWith(STANDARD_UUID_LINE)){
+				continue;
+			
+			}else if( record.startsWith(STANDARD_FINAL_HEADER_LINE) ){
 				headerLines.add("##" + cmd + "\n"); //add cmd
-	/*
-	 * @PG	ID:6a412e43-1ff9-4802-b578-6a9b9b628f8b	PN:qbammerge	zc:7	VN:0.6pre (6775)	CL:qbammerge --output /mnt/seq_results/icgc_pancreatic/APGI_1992/seq_final/IcgcPancreatic_APGI1992_1DNA_7PrimaryTumour_ICGCABMJ2011092355TD_		
-	 */
+				headerLines.add(record + "\n");
+				break;
+			} 
+				
 			headerLines.add(record + "\n");
 		} 
 				
 		return new VCFHeader(headerLines);
-	}
+	}	
+}	
+
+	 
 	
 	
-}
+ 
