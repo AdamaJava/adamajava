@@ -19,12 +19,12 @@ import au.edu.qimr.qannotate.Options.MODE;
  * parse command line to options. 
  */
 public class SnpEffOptions extends Options {
- 	
+	public static final String DEFAULT_GENES_FILE_SUFFIX = ".snpEff_genes.txt";
 	public static final String DEFAULT_SUMMARY_FILE_SUFFIX = ".snpEff_summary.html";
 	public static final String DEFAULT_CONFIG_FILE = "snpEff.config";
 	 
     private String configFileName ;
-    private String statOutputFileName ;
+    private String summaryFileName ;
     
  
 
@@ -45,7 +45,7 @@ public class SnpEffOptions extends Options {
        // "(compulsary) database location"
         parser.acceptsAll( asList("d", "database"), Messages.getMessage("DATABASE_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("database file"); 
         parser.accepts("config", "(optional) configure file with full path").withRequiredArg().ofType(String.class).describedAs("config file");
-        parser.accepts("statFile", "(optional) output stats file with full path").withRequiredArg().ofType(String.class).describedAs("stat output");
+        parser.accepts("summaryFile", "(optional) output stats file with full path").withRequiredArg().ofType(String.class).describedAs("stat output");
 //        parser.acceptsAll( asList("m", "mode"), "snpEff").withRequiredArg().ofType(String.class);
         parser.accepts("log", LOG_DESCRIPTION).withRequiredArg().ofType(String.class);
         parser.accepts("loglevel",  LOG_LEVEL_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
@@ -69,10 +69,10 @@ public class SnpEffOptions extends Options {
         outputFileName = (String) options.valueOf("o") ; 
         databaseFileName = (String) options.valueOf("d") ;
         configFileName = (String) options.valueOf("config") ;
-        statOutputFileName = (String) options.valueOf("statFile") ;
+        summaryFileName = (String) options.valueOf("summaryFile") ;
         //,databaseFileName
         String[] inputs = new String[]{ inputFileName,getConfigFileName()} ;
-        String[] outputs = new String[]{outputFileName, getStatOutputFileName()};
+        String[] outputs = new String[]{outputFileName, getSummaryFileName()};
         String [] ios = new String[inputs.length + outputs.length];
         System.arraycopy(inputs, 0, ios, 0, inputs.length);
         System.arraycopy(outputs, 0, ios, inputs.length, outputs.length);
@@ -96,12 +96,17 @@ public class SnpEffOptions extends Options {
 		
 	}	  
 	
-	public String getStatOutputFileName(){
-		if(statOutputFileName == null)
-			statOutputFileName = outputFileName + DEFAULT_SUMMARY_FILE_SUFFIX;
+	public String getSummaryFileName(){
+		if(summaryFileName == null)
+			summaryFileName = outputFileName + DEFAULT_SUMMARY_FILE_SUFFIX;
 		
-		return  statOutputFileName;
+		return  summaryFileName;
 	}
 	
- 
+	public String getGenesFileName(){
+		 
+			return outputFileName + DEFAULT_GENES_FILE_SUFFIX;
+		
+		 
+	}
 }

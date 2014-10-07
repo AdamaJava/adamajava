@@ -1,13 +1,18 @@
 package au.edu.qimr.qannotate;
 
+import java.util.jar.JarFile;
+import java.util.zip.ZipEntry;
+
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
- 
+import java.util.Date;
 
 public class Main {
 	 
 	private static QLogger logger;
 	public static void main(final String[] args) throws Exception {	
+
+ 		
 		//QLogger logger = null;
 	       try {
 	            Options options = new Options();
@@ -23,6 +28,7 @@ public class Main {
 	            	   new GermlineMode( (GermlineOptions) options.getOption(), logger );
 	               else if(options.getOption().getMode() == Options.MODE.snpEff)
 	            	    new SnpEffMode( (SnpEffOptions) options.getOption(), logger );
+	            	    //new SnpEffMode( (SnpEffOptions) options.getOption());
 	               else
 	            	   throw new Exception("No valid mode are specified on commandline: " + options.getMode().name()) ;
 
