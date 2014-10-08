@@ -2,7 +2,6 @@ package au.edu.qimr.qannotate;
 
 
 import java.io.File;
-import java.io.IOException;
 import java.io.PrintStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;

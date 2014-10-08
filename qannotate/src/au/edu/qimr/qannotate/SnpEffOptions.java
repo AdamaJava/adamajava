@@ -3,17 +3,8 @@ package au.edu.qimr.qannotate;
 import static java.util.Arrays.asList;
 
 import java.io.File;
-import java.util.Arrays;
-
-import joptsimple.OptionParser;
 import joptsimple.OptionSet;
-import net.sf.samtools.SAMFileHeader;
-import net.sf.samtools.SAMFileReader;
 
-import org.qcmg.picard.HeaderUtils;
-import org.qcmg.picard.SAMFileReaderFactory;
-
-import au.edu.qimr.qannotate.Options.MODE;
 
 /*
  * parse command line to options. 
