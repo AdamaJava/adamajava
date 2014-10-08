@@ -1,6 +1,6 @@
 package au.edu.qimr.qannotate;
 
-import java.io.BufferedReader;
+
 import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
@@ -14,22 +14,15 @@ import java.util.Map;
 import java.util.Vector;
 
 import org.qcmg.common.log.QLogger;
-import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.meta.QExec;
 import org.qcmg.common.model.ChrPosition;
-import org.qcmg.common.model.GenotypeEnum;
-import org.qcmg.common.model.QSnpGATKRecord;
 import org.qcmg.common.model.VCFRecord;
 import org.qcmg.common.string.StringUtils;
-import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.TabTokenizer;
-import org.qcmg.common.util.BaseUtils;
-import org.qcmg.pileup.QSnpRecord;
-import org.qcmg.pileup.QSnpRecord.Classification;
+
 import org.qcmg.vcf.VCFFileReader;
 import org.qcmg.vcf.VCFFileWriter;
 import org.qcmg.vcf.VCFHeader;
-import org.qcmg.vcf.VCFSerializer;
 
 public class DbsnpMode {
 	

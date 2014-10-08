@@ -1,11 +1,8 @@
 package au.edu.qimr.qannotate;
 
-import java.util.jar.JarFile;
-import java.util.zip.ZipEntry;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
-import java.util.Date;
 
 public class Main {
 	 
