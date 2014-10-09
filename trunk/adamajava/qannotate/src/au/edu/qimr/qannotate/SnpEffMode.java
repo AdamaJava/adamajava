@@ -36,8 +36,10 @@ public class SnpEffMode {
 			
 		this.logger = logger;		
 		logger.tool("input: " + options.getInputFileName());
-        logger.tool("dbSNP file: " + options.getDatabaseFileName() );
+        logger.tool("snpeff database: " + options.getDatabaseFileName() );
+        logger.tool("snpeff config file: " + options.getConfigFileName());
         logger.tool("output for annotated vcf records: " + options.getOutputFileName());
+        logger.tool("output for summary File: " + options.getSummaryFileName());
         logger.tool("logger file " + options.getLogFileName());
         logger.tool("logger level " + options.getLogLevel());
 		
