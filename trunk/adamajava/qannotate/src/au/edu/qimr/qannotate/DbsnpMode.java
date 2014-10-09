@@ -36,7 +36,7 @@ public class DbsnpMode {
 			
 		this.logger = logger;		
 		logger.tool("input: " + options.getInputFileName());
-        logger.tool("dbSNP file: " + options.getDatabaseFileName() );
+        logger.tool("dbSNP database: " + options.getDatabaseFileName() );
         logger.tool("output for annotated vcf records: " + options.getOutputFileName());
         logger.tool("logger file " + options.getLogFileName());
         logger.tool("logger level " + options.getLogLevel());

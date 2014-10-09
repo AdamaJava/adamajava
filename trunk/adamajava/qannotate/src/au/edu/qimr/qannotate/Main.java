@@ -3,6 +3,7 @@ package au.edu.qimr.qannotate;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.util.LoadReferencedClasses;
 
 public class Main {
 	 
@@ -15,7 +16,7 @@ public class Main {
 	            Options options = new Options();
 	            
 	            if ( options.parseArgs(args)){ 	    
-           	
+	            	LoadReferencedClasses.loadClasses(Main.class);    
 	               logger = QLoggerFactory.getLogger(Main.class, options.getOption().getLogFileName(),  options.getOption().getLogLevel());	            		               
 	               logger.logInitialExecutionStats(options.getPGName(), options.getVersion(),args);	        
  	               
