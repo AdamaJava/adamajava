@@ -84,6 +84,7 @@ public class SnpEffMode {
 		
 		//run snpEff, store output to a tmp file
 		String[] args =  command.toArray(new String[0]) ;	
+		logger.tool("cmd for snpEff: " + command.toString() );
 		
 		boolean ok = false;
 		try(PrintStream original = new PrintStream(System.out);
