@@ -23,7 +23,7 @@ public class Options {
    	
     
     private boolean commandCheck = false;
-    private String commandLine;
+    protected String commandLine;
 
     protected OptionParser parser;
     protected Options modeOptions = null;

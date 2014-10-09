@@ -43,6 +43,8 @@ public class DbsnpOptions extends Options {
         	logLevel = (String) options.valueOf("loglevel");
         }   
         
+        commandLine = Messages.reconstructCommandLine(args) ;
+        
         //check IO
         inputFileName = (String) options.valueOf("i") ;      	 
         outputFileName = (String) options.valueOf("o") ; 
