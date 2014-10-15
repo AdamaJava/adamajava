@@ -32,7 +32,7 @@ dependencies {
 
 jar.doFirst {
 
-  //classpath = configurations.runtime.collect { it.name }.join(' ')
+  def classpath = configurations.runtime.collect { it.name }.join(' ')
   jar {
      manifest {
         attributes 'Implementation-Title': project.name,
@@ -40,9 +40,8 @@ jar.doFirst {
                    'SVN-Version': svnVersion,
                    'Built-By': System.properties['user.name'],
                    'Date': new java.util.Date().toString(),
-                   'Main-Class' : mainclass
-                   //'Main-Class' : mainclass,
-                   //'Class-Path' : classpath
+                   'Main-Class' : mainclass,
+                   'Class-Path' : classpath
      }
   }
 }
