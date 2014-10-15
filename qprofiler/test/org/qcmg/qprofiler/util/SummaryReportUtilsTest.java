@@ -18,6 +18,7 @@ import net.sf.samtools.CigarElement;
 import net.sf.samtools.CigarOperator;
 import net.sf.samtools.SAMRecord;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.qcmg.common.model.QCMGAtomicLongArray;
 import org.qcmg.common.model.SummaryByCycle;
@@ -442,7 +443,7 @@ public class SummaryReportUtilsTest {
 		}
 	}
 	
-	@Test
+	@Ignore
 	public void tallyMDMismatchesRefEqualsAltReverse() {
 		//Found refBase == altBase, md: 18C4T10G41A30A43 , cigar: 151M, 
 		//seq: TTTGTTAGCTGTTCCTGGCCCAATTGCATTGTTGTTGTTGCGAGTTGTCTCCTCTCCTTTACGACCCATTTTGAACCCAAATAAGAAAATCGCTCAAATTTGCTTTTCGTCTCACATCATTTCCATAGTCTAAAATAAAACAGCAAGTAGT
@@ -458,7 +459,21 @@ public class SummaryReportUtilsTest {
 		assertEquals(1, reverseArray.get(SummaryReportUtils.getIntFromChars('T', 'A')));
 		assertEquals(1, reverseArray.get(SummaryReportUtils.getIntFromChars('G', 'A')));
 		assertEquals(2, reverseArray.get(SummaryReportUtils.getIntFromChars('A', 'G')));
-//		assertEquals(1, forwardArray.get(SummaryReportUtils.getIntFromChars('A', 'C')));
+	}
+	
+	@Test
+	public void tallyMDMismatchesRefEqualsAltReverse2() {
+//		Found refBase == altBase, md: 76A24 , cigar: 101M, seq:
+//			GTCCCCTGGTGTGCCTGGTAATCTTGTGTTGAATGCTAGACATTGTGCATGAAAAGCTATAGAGATGATTCATGGCTCTAAATCAGACATTGACCAGCTAT,
+//			reverse strand: true
+		QCMGAtomicLongArray forwardArray = new QCMGAtomicLongArray(32);
+		QCMGAtomicLongArray reverseArray = new QCMGAtomicLongArray(32);
+		SummaryByCycleNew2<Character> summary = new SummaryByCycleNew2<Character>(Character.MAX_VALUE, 64);
+		Cigar cigar = new Cigar();
+		cigar.add(new CigarElement(101, CigarOperator.M));
+		SummaryReportUtils.tallyMDMismatches("76A24", cigar, summary, "GTCCCCTGGTGTGCCTGGTAATCTTGTGTTGAATGCTAGACATTGTGCATGAAAAGCTATAGAGATGATTCATGGCTCTAAATCAGACATTGACCAGCTAT".getBytes(), true, forwardArray, reverseArray);
+		
+		assertEquals(1, reverseArray.get(SummaryReportUtils.getIntFromChars('T', 'A')));
 	}
 	
 	@Test
@@ -503,6 +518,27 @@ public class SummaryReportUtilsTest {
 	
 	@Test
 	public void tallyMDMismatchesCheckMutations3() {
+		//md: 4A9T5 , cigar: 22S7M1I13M57S, 
+		//seq: GCAAAGGACCCTGTGGTCAGTGGCGGGGGAGGGGGCTGGTGGGGGGCGGGGGGAGAGAGGTTCCTGGTCGCCTGGTGATGGCAGCTCCTCCCCCCGCCTC, reverse strand: false
+		QCMGAtomicLongArray forwardArray = new QCMGAtomicLongArray(32);
+		QCMGAtomicLongArray reverseArray = new QCMGAtomicLongArray(32);
+		SummaryByCycleNew2<Character> summary = new SummaryByCycleNew2<Character>(Character.MAX_VALUE, 64);
+		Cigar cigar = new Cigar();
+		cigar.add(new CigarElement(22, CigarOperator.S));
+		cigar.add(new CigarElement(7, CigarOperator.M));
+		cigar.add(new CigarElement(1, CigarOperator.I));
+		cigar.add(new CigarElement(13, CigarOperator.M));
+		cigar.add(new CigarElement(57, CigarOperator.S));
+		SummaryReportUtils.tallyMDMismatches("4A9T5", cigar, summary, "GCAAAGGACCCTGTGGTCAGTGGCGGGGGAGGGGGCTGGTGGGGGGCGGGGGGAGAGAGGTTCCTGGTCGCCTGGTGATGGCAGCTCCTCCCCCCGCCTC".getBytes(), false, forwardArray, reverseArray);
+		
+		//expecting to see 1 A>G and 1 T>G
+		
+		assertEquals(1, forwardArray.get(SummaryReportUtils.getIntFromChars('A', 'G')));
+		assertEquals(1, forwardArray.get(SummaryReportUtils.getIntFromChars('T', 'G')));
+	}
+	
+	@Test
+	public void tallyMDMismatchesCheckMutations4() {
 		//md: 4A9T5 , cigar: 22S7M1I13M57S, 
 		//seq: GCAAAGGACCCTGTGGTCAGTGGCGGGGGAGGGGGCTGGTGGGGGGCGGGGGGAGAGAGGTTCCTGGTCGCCTGGTGATGGCAGCTCCTCCCCCCGCCTC, reverse strand: false
 		QCMGAtomicLongArray forwardArray = new QCMGAtomicLongArray(32);
