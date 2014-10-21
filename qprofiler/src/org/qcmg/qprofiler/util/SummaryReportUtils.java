@@ -46,7 +46,6 @@ public class SummaryReportUtils {
 	public static final Pattern BAD_MD_PATTERN = Pattern.compile("([ACGTN])");
 	
 	private static final Pattern badReadPattern = Pattern.compile("([.N])");
-//	private static final Pattern tagMDPattern = Pattern.compile("[\\d]+");
 	
 	private static final NumberFormat nf = new DecimalFormat("0.0#%");
 
@@ -131,7 +130,6 @@ public class SummaryReportUtils {
 						}
 					}
 					al.addAndGet(l);
-					
 				}
 			}
 		}
@@ -252,7 +250,6 @@ public class SummaryReportUtils {
 				double percentage = (((double) mapTotal / count));
 				AtomicLong ml = percentageMap.get(cycle);
 				if (null != ml) {
-//					percentage = (((double)mapTotal / ml.get()));
 					count -= ml.get();
 				}
 				
@@ -297,7 +294,6 @@ public class SummaryReportUtils {
 				double percentage = (((double) mapTotal / count));
 				AtomicLong ml = new AtomicLong(percentageArray.get(cycle));
 				if (null != ml) {
-//					percentage = (((double)mapTotal / ml.get()));
 					count -= ml.get();
 				}
 				
@@ -342,7 +338,6 @@ public class SummaryReportUtils {
 				double percentage = (((double) mapTotal / count));
 				AtomicLong ml = new AtomicLong(percentageArray.get(cycle));
 				if (null != ml) {
-//					percentage = (((double)mapTotal / ml.get()));
 					count -= ml.get();
 				}
 				
@@ -387,7 +382,6 @@ public class SummaryReportUtils {
 				double percentage = (((double) mapTotal / count));
 				AtomicLong ml = new AtomicLong(percentageArray.get(cycle));
 				if (null != ml) {
-//					percentage = (((double)mapTotal / ml.get()));
 					count -= ml.get();
 				}
 				
@@ -406,58 +400,6 @@ public class SummaryReportUtils {
 			e.printStackTrace();
 		}
 	}
-//	public static <T> void toXmlWithPercentage(SummaryByCycleNew<T> sumByCycle,  Element parent, String elementName , Map<Integer, AtomicLong> percentageMap, long total) {
-//		final NumberFormat nf = new DecimalFormat("0.0#%");
-//		Document doc = parent.getOwnerDocument();
-//		Element element = doc.createElement(elementName);
-//		parent.appendChild(element);
-//		
-//		// adding another level to conform to DTD..
-//		Element cycleTallyElement = doc.createElement("CycleTally");
-//		element.appendChild(cycleTallyElement);
-//		cycleTallyElement.setAttribute("possibleValues", sumByCycle.getPossibleValuesAsString());
-//		Element possValuesE = doc.createElement("PossibleValues");
-//		for (T t : sumByCycle.getPossibleValues()) {
-//			Element valueE = doc.createElement("Value");
-//			valueE.setAttribute("value", t.toString());
-//			possValuesE.appendChild(valueE);
-//		}
-//		possValuesE.setAttribute("possibleValues", sumByCycle.getPossibleValuesAsString());
-//		cycleTallyElement.appendChild(possValuesE);
-//		
-//		try {
-//			long count = total;
-//			for (Integer cycle : sumByCycle.cycles()) {
-//				long mapTotal = getCountOfMapValues(sumByCycle.getValue(cycle));
-//				double percentage = (((double) mapTotal / count));
-//				AtomicLong ml = percentageMap.get(cycle);
-//				if (null != ml) {
-////					percentage = (((double)mapTotal / ml.get()));
-//					count -= ml.get();
-//				}
-//				
-//				Element cycleE = doc.createElement("Cycle");
-//				cycleE.setAttribute("value", cycle.toString());
-//				cycleTallyElement.appendChild(cycleE);
-//				for (Long value : sumByCycle.values(cycle)) {
-//					Element tallyE = doc.createElement("TallyItem");
-//					tallyE.setAttribute("value", value.toString());
-//					tallyE.setAttribute("count", sumByCycle.count(cycle, value).get()+"");
-//					tallyE.setAttribute("percent", nf.format(percentage));
-//					cycleE.appendChild(tallyE);
-//				}
-////				for (T value : sumByCycle.values(cycle)) {
-////					Element tallyE = doc.createElement("TallyItem");
-////					tallyE.setAttribute("value", value.toString());
-////					tallyE.setAttribute("count", sumByCycle.count(cycle, value).get()+"");
-////					tallyE.setAttribute("percent", nf.format(percentage));
-////					cycleE.appendChild(tallyE);
-////				}
-//			}
-//		} catch (DOMException e) {
-//			e.printStackTrace();
-//		}
-//	}
 
 	/**
 	 * Displays the supplied map of value/count pairs in xml format, attaching
@@ -755,7 +697,6 @@ public class SummaryReportUtils {
 					count++;
 			}
 			array.increment(count);
-//			SummaryByCycleUtils.incrementCount(array, Integer.valueOf(count));
 		}
 	}
 	public static void tallyBadReadsAsString(byte[] data, QCMGAtomicLongArray array) {
@@ -766,14 +707,12 @@ public class SummaryReportUtils {
 					count++;
 			}
 			array.increment(count);
-//			SummaryByCycleUtils.incrementCount(array, Integer.valueOf(count));
 		}
 	}
 	
 	public static void tallyBadReadsMD(String data, ConcurrentMap<String, AtomicLong> map) {
 		if (null != data) {
 			int misMatchCount = 0;
-//			int delCount = 0;
 			boolean deletion = false;
 			for (int i = 0, size = data.length() ; i < size ; ) {
 				
@@ -1156,19 +1095,14 @@ public class SummaryReportUtils {
 		switch (ref) {
 		case 'A':
 			return 'A' == alt ? 1 : ('C' == alt ? 2 : ('G' == alt ? 3 : ('T' == alt ? 4 : 5)));
-//			return 'C' == alt ? 1 : ('G' == alt ? 2 : ('T' == alt ? 3 : 13));
 		case 'C':
 			return 'A' == alt ? 6 : ('C' == alt ? 7 : ('G' == alt ? 8 : ('T' == alt ? 9 : 10)));
-//			return 'A' == alt ? 4 : ('G' == alt ? 5 : ('T' == alt ? 6 : 14));
 		case 'G':
 			return 'A' == alt ? 11 : ('C' == alt ? 12 : ('G' == alt ? 13 : ('T' == alt ? 14 : 15)));
-//			return 'A' == alt ? 7 : ('C' == alt ? 8 : ('T' == alt ? 9 : 15));
 		case 'T':
 			return 'A' == alt ? 16 : ('C' == alt ? 17 : ('G' == alt ? 18 : ('T' == alt ? 19 : 20)));
-//			return 'A' == alt ? 10 : ('C' == alt ? 11 : ('G' == alt ? 12 : 16));
 		case 'N':
 			return 'A' == alt ? 21 : ('C' == alt ? 22 : ('G' == alt ? 23 : ('T' == alt ? 24 : 25)));
-//			return 'A' == alt ? 17 : ('C' == alt ? 18 : ('G' == alt ? 19 : 20));
 		}
 		return -1;
 	}
