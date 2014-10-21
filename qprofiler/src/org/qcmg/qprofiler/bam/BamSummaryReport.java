@@ -292,7 +292,7 @@ public class BamSummaryReport extends SummaryReport {
 		Element summaryElement = createSubElement(bamReportElement, "SUMMARY");
 		Element noOfReadsE = createSubElement(summaryElement, "ReadCount");
 		noOfReadsE.setAttribute("value", noOfRecords + "");
-		Element noOfDupsE = createSubElement(summaryElement, "DuplicateCount");
+		Element noOfDupsE = createSubElement(summaryElement, "DuplicatePercentage");
 		noOfDupsE.setAttribute("value", (duplicateCount.doubleValue() / noOfRecords) * 100 + "");
 		
 		// loop through flag, tallying unmapped
@@ -302,7 +302,7 @@ public class BamSummaryReport extends SummaryReport {
 				tally += flagBinaryCount.get(s).longValue();
 			}
 		}
-		Element noOfUnmappedE = createSubElement(summaryElement, "UnmappedCount");
+		Element noOfUnmappedE = createSubElement(summaryElement, "UnmappedPercentage");
 		noOfUnmappedE.setAttribute("value", ((double)tally / noOfRecords) * 100 + "");
 		
 		for (String s : iSizeByReadGroupMap.keySet()) {
