@@ -131,7 +131,7 @@ public class ReportBuilder {
 						case "DuplicatePercentage":
 							double percentage = Double.parseDouble(n.getAttributes().getNamedItem("value").getNodeValue());
 							String rag = "', p:{style:'background-color: ";
-							rag += (percentage > 20) ? "red;'}}]}" : (percentage > 10) ? "amber;'}}]}" : "green;'}}]}" ;
+							rag += (percentage > 20) ? "red;'}}]}" : (percentage > 10) ? "orange;'}}]}" : "green;'}}]}" ;
 							
 							summaryMap.put("Percentage of duplicate reads", startVBlock + String.format("%.2f", percentage) + rag);
 							break;
