@@ -219,12 +219,6 @@ public class SignatureGeneratorTest {
 		return new Executor(command, "org.qcmg.sig.SignatureGenerator");
 	}
 	
-	private void deleteFile(File outputFile) {
-		if (outputFile.exists()) {
-			outputFile.delete();
-		}
-	}
-
     @Test
 	public void runProcessWithEmptySnpChipFile() throws Exception {
     	File positionsOfInterestFile = testFolder.newFile("runProcessWithEmptySnpChipFile.txt");
@@ -247,7 +241,7 @@ public class SignatureGeneratorTest {
     	File illuminaArraysDesignFile = testFolder.newFile("runProcessWithSnpChipFileIAD.txt");
     	File snpChipFile = testFolder.newFile("runProcessWithSnpChipFile_snpChip.txt");
     	File logFile = testFolder.newFile("runProcessWithSnpChipFile.log");
-    	String outputFIleName = snpChipFile.getAbsolutePath() + ".qsig.vcf";
+    	String outputFIleName = snpChipFile.getAbsolutePath() + ".qsig.vcf.gz";
     	File outputFile = new File(outputFIleName);
     	
     	writeSnpChipFile(snpChipFile);
