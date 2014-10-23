@@ -301,6 +301,33 @@ public class HTMLReportUtils {
 		return sb.toString();
 	}
 	
+	public static String generateGoogleDataForTableStringMap(Map<String, String> dataSet, String name) {
+//		public static String generateGoogleDataForTable(Map<String, String> dataSet, String name) {
+		StringBuilder sb = new StringBuilder();
+			sb .append("\nvar ");
+			sb.append(name)
+			.append(" = new google.visualization.DataTable(\n{cols: [{id: 'header', label: 'Summary', type: 'string'}, {id: 'value', label: 'Value', type: 'string'}], ");
+			
+			
+			// now for the data
+			sb.append("\nrows: [");
+			
+			int j = 0;
+			for (Entry<String, String> entry : dataSet.entrySet()) {
+				if (j++ > 0)
+					sb.append(",\n");
+				
+				sb.append("{c:[");
+				sb.append("{v: '").append(entry.getKey()).append("'},");
+				sb.append(entry.getValue());
+//				sb.append("{v: '").append(entry.getValue()).append("', p:{style:'background-color: red;'}}]}");
+			}
+			// end of rows
+			sb.append("]}, 0.6);");
+			
+		return sb.toString();
+	}
+	
 	public static String generateGoogleMatrixData(
 			Map<MAPQMiniMatrix, AtomicLong> dataSet, String name, boolean isValueString) {
 		
@@ -394,7 +421,7 @@ public class HTMLReportUtils {
 			
 			initialTableSetup(sb, chartName);
 			
-			sb.append(chartName + ".draw(" + dataName +", {width: 150, height: 200, " + title + ", showRowNumber: false});");
+			sb.append(chartName + ".draw(" + dataName +", {allowHtml: 'true', width: 1000, height: 500, " + title + ", showRowNumber: false});");
 		}
 		return sb.toString();
 	}
@@ -455,8 +482,13 @@ public class HTMLReportUtils {
 	public static String generateRenderingTableInfo(String dataName, int numberOfTables) {
 		StringBuilder sb = new StringBuilder("\n<div class=\"pane\">\n<table>");
 		
-		for (int i = 1 ; i <= numberOfTables ; i++) {
-			String chartName = dataName + i + "Chart_div";
+		if (numberOfTables > 1) {
+			for (int i = 1 ; i <= numberOfTables ; i++) {
+				String chartName = dataName + i + "Chart_div";
+				sb.append("<tr><td id = \"" + chartName + "\"></td></tr>\n");
+			}
+		} else {
+			String chartName = dataName + "Chart_div";
 			sb.append("<tr><td id = \"" + chartName + "\"></td></tr>\n");
 		}
 		
@@ -763,7 +795,8 @@ public class HTMLReportUtils {
 		.append("background: rgb(234,242,255);")
 		.append("font-size: 15px;}\n")
 		.append(".desc{padding: 5px 10px;font-family: Verdana, Helvetica, Arial; font-size:12px}\n")
-		.append(".butt{font-family: Verdana, Helvetica, Arial; font-size:12px}\n</style>\n");
+		.append(".butt{font-family: Verdana, Helvetica, Arial; font-size:12px}\n")
+		.append("</style>\n");
 		
 		return sb.toString();
 	}

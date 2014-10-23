@@ -107,71 +107,78 @@ public class ReportBuilder {
 	}
 	
 	private static void createSummary(Element reportElement, Report report) {
-		final ChartTab summary = new ChartTab("Summary");
-		// get the existing ChartTabs for this report
-		// loop throught to ensure that the ones we want are there
 		
-		List<String> chartNames = new ArrayList<>();
-		
-		List<ChartTab> chartTabs = report.getTabs();
-		int flagPosition = 0, iSizePosition = 0, mdPosition = 0;
-		int i = 0;
-		for (ChartTab ct : chartTabs) {
-			if (FLAG.equals(ct.getTitle())) {
-				flagPosition = i;
-			} else if (ISIZE.equals(ct.getTitle())) {
-				iSizePosition = i;
-			} else if (MD.equals(ct.getTitle())) {
-				mdPosition = i;
+		final NodeList summaryNL = reportElement.getElementsByTagName("SUMMARY");
+		if (null != summaryNL) {
+			final Element summaryElement = (Element) summaryNL.item(0);
+			if (null != summaryElement) {
+				
+				Map<String, String> summaryMap = new LinkedHashMap<>();
+				NodeList summaryNodes = summaryElement.getChildNodes();
+				
+				if (null != summaryNodes) {
+					for (int i = 0 ; i < summaryNodes.getLength() ; i++) {
+						
+						Node n = summaryNodes.item(i);
+						String nodeName = n.getNodeName();
+						
+						final String startVBlock = "{v: '";
+						final String endVBlock = "'}]}";
+						switch (nodeName) {
+						case "ReadCount":
+							summaryMap.put("Number of reads", startVBlock + n.getAttributes().getNamedItem("value").getNodeValue() + endVBlock);
+							break;
+						case "DuplicatePercentage":
+							double percentage = Double.parseDouble(n.getAttributes().getNamedItem("value").getNodeValue());
+							String rag = "', p:{style:'background-color: ";
+							rag += (percentage > 20) ? "red;'}}]}" : (percentage > 10) ? "amber;'}}]}" : "green;'}}]}" ;
+							
+							summaryMap.put("Percentage of duplicate reads", startVBlock + String.format("%.2f", percentage) + rag);
+							break;
+						case "UnmappedPercentage":
+							percentage = Double.parseDouble(n.getAttributes().getNamedItem("value").getNodeValue());
+							rag = "', p:{style:'background-color: ";
+							rag += (percentage > 20) ? "red;'}}]}" : (percentage > 10) ? "orange;'}}]}" : "green;'}}]}" ;
+							
+							summaryMap.put("Percentage of unmapped reads", startVBlock + String.format("%.2f", percentage)+ rag);
+							break;
+						case "FirstInPairAveLength":
+							summaryMap.put("Average read length of first in pair reads", startVBlock + n.getAttributes().getNamedItem("value").getNodeValue()+ endVBlock);
+							break;
+						case "SecondInPairAveLength":
+							summaryMap.put("Average read length of second in pair reads", startVBlock + n.getAttributes().getNamedItem("value").getNodeValue()+ endVBlock);
+							break;
+						case "MDMismatchCycles":
+							int noOfCylces =  Integer.parseInt(n.getAttributes().getNamedItem("value").getNodeValue());
+							
+							rag = "', p:{style:'background-color: ";
+							rag += (noOfCylces > 20) ? "red;'}}]}" : (noOfCylces > 10) ? "orange;'}}]}" : "green;'}}]}" ;
+							
+							summaryMap.put("Number of cycles with >1% mismatches", startVBlock + noOfCylces+ rag);
+							break;
+						case "ModalISize":
+							summaryMap.put("Modal ISize for read group: "  + n.getAttributes().getNamedItem("rg").getNodeValue(), startVBlock + n.getAttributes().getNamedItem("value").getNodeValue()+ endVBlock);
+							break;
+						}
+					}
+					
+					
+					ChartTab ct = new ChartTab("Summary", "summ" + reportID);
+					ct.setData(HTMLReportUtils.generateGoogleDataForTableStringMap(summaryMap, ct.getName()));
+					ct.setChartInfo(HTMLReportUtils.generateGoogleTable(ct.getName(), 1, "Summary"));
+					ct.setRenderingInfo(HTMLReportUtils.generateRenderingTableInfo(ct.getName(), 1));
+					
+					
+					// add summary report to the front
+					List<ChartTab> chartTabs = report.getTabs();
+					chartTabs.add(0, ct);
+					report.setTabs(chartTabs);
+					
+				} else {
+					System.out.println("summaryNodes was null");
+				}
 			}
-			System.out.println("in summary tab: we have chart tab name: " + ct.getName() + ", title :" + ct.getTitle());
-			i++;
 		}
-		
-		// FLAG
-		// we want the unmapped and the duplicate charts
-		ChartTab flag = report.getTabs().get(flagPosition);
-		
-//		int dupsPosition = 0, mappedPosition = 0;
-		i = 0;
-		for (ChartTab ct : flag.getChildren()) {
-			if (DUPLICATE.equals(ct.getTitle())) {
-//				dupsPosition = i;
-				ct.setIncludeInSummary(true);
-				chartNames.add(ct.getName());
-			} else if (UNMAPPED.equals(ct.getTitle())) {
-				ct.setIncludeInSummary(true);
-//				mappedPosition = i;
-				chartNames.add(ct.getName());
-			}
-			System.out.println("in flags tab: we have chart tab name: " + ct.getName() + ", title :" + ct.getTitle());
-			i++;
-		}
-		
-		
-		// mismatches above 1%
-		ChartTab md = report.getTabs().get(mdPosition);
-		// get the second md chart there is
-		ChartTab ct = md.getChildren().get(1);
-		ct.setIncludeInSummary(true);
-		chartNames.add(ct.getName());
-		
-		//isize
-		ChartTab iSize = report.getTabs().get(iSizePosition);
-//		int iSizeChartPosition = 0;
-//		i = 0;
-		
-		// get the first isize chart there is
-		ct = iSize.getChildren().get(0);
-		ct.setIncludeInSummary(true);
-		chartNames.add(ct.getName());
-		
-		
-		summary.setRenderingInfo(HTMLReportUtils.generateRenderingTableInfoSummary(chartNames));
-		
-		// add summary report to the front
-		chartTabs.add(0, summary);
-		report.setTabs(chartTabs);
 	}
 	
 	private static void createMatrix(Element reportElement, Report report) {
@@ -496,7 +503,7 @@ public class ReportBuilder {
 				String value = entry.getValue();
 				double percentage = Double.parseDouble(value.substring(0, value.length() - 1));
 				if (percentage > 1.0) {
-					System.out.println("cycle " + entry.getKey().intValue() + " has error percentage over 1%: " + percentage);
+//					System.out.println("cycle " + entry.getKey().intValue() + " has error percentage over 1%: " + percentage);
 					sortedPercentageMap.put(entry.getKey(), percentage);
 				}
 			}

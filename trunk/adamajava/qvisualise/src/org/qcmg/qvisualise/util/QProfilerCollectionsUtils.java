@@ -279,6 +279,60 @@ public class QProfilerCollectionsUtils {
 		return binnedMap;
 	}
 	
+	public static Map<String, List<String>> convertSummaryTextToMap(String summaryText) {
+		if (null == summaryText) return null;
+		
+		String [] params = summaryText.split("\n");
+		Map<String, List<String>> results = new LinkedHashMap<String ,List<String>>();
+		if (params.length > 1) {
+			for (String param : params) {
+				
+				String key = null;
+				if (param.startsWith("@HD")) {
+					key = "Header";
+				} else if (param.startsWith("@SQ")) {
+					key = "Sequence";
+				} else if (param.startsWith("@RG")) {
+					key = "Read Group";
+				} else if (param.startsWith("@PG")) {
+					key = "Program";
+				} else if (param.startsWith("@CO")) {
+					key = "Comments";
+				} else {
+					key = "Other";
+				}
+				addDataToList(results, key, param);
+			}
+		} else {
+			//FIXME split on '@' char, and add back in....
+			// hack to get around line breaks not being preserved in CDATA sections
+			// also check using UTF-16...
+			params = summaryText.split("@");
+			if (params.length > 1) {
+				for (String param : params) {
+					if (param.trim().length() > 0) {
+						String key = null;
+						if (param.startsWith("HD")) {
+							key = "Header";
+						} else if (param.startsWith("SQ")) {
+							key = "Sequence";
+						} else if (param.startsWith("RG")) {
+							key = "Read Group";
+						} else if (param.startsWith("PG")) {
+							key = "Program";
+						} else if (param.startsWith("CO")) {
+							key = "Comments";
+						} else {
+							key = "Other";
+						}
+						addDataToList(results, key, param);
+					}
+				}
+			}
+		}
+		return results;
+	}
+	
 	public static Map<String, List<String>> convertHeaderTextToMap(String headerText) {
 		if (null == headerText) return null;
 		
