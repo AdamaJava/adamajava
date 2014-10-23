@@ -63,9 +63,7 @@ public class SignatureGenerator {
 	static QLogger logger;
 	private String logFile;
 	private String[] cmdLineInputFiles;
-	private String[] cmdLineOutputFiles;
 	private String illumiaArraysDesign;
-//	private String illumiaArraysDesign = "/panfs/share/qsignature/Illumina_arrays_design.txt";
 	private int exitStatus;
 	
 	private VCFRecord vcf;
@@ -79,17 +77,15 @@ public class SignatureGenerator {
 	
 	private int minMappingQuality = 10;
 	private int minBaseQuality = 10;
+	private String validationStringency;
 	
 	Comparator<String> chrComparator;
 	
 	private final List<VCFRecord> snps = new ArrayList<VCFRecord>();
 	private final Map<VCFRecord, List<BaseStrandPosition>> results = new ConcurrentHashMap<VCFRecord, List<BaseStrandPosition>>();
-	
 	private final AbstractQueue<SAMRecord> sams = new ConcurrentLinkedQueue<SAMRecord>();
-	
 	private final Map<String, String[]> IlluminaArraysDesign = new ConcurrentHashMap<String, String[]>();
 	
-	private String validationStringency;
 	
 	public int engage() throws Exception {
 		
@@ -174,8 +170,6 @@ public class SignatureGenerator {
 				
 				createComparatorFromSAMHeader(bamFile);
 				
-//					checkLists();
-				
 				runSequentially(bamFile);
 				
 				updateResults();
@@ -187,7 +181,6 @@ public class SignatureGenerator {
 				results.clear();
 				for (VCFRecord vcf : snps) vcf.setInfo(null);
 			}
-		
 		}
 		
 		return exitStatus;
@@ -234,19 +227,9 @@ public class SignatureGenerator {
 						&& Float.NaN != tempRec.getLogRRatio()
 						&& tempRec.getSnpId().startsWith("rs")) {
 					
-//					logger.info("gc score: " + tempRec.getGCScore());
-//					logger.info("chr: " + tempRec.getChr());
-//					logger.info("b allele freq: " + tempRec.getbAlleleFreq());
-//					logger.info("log r ratio: " + tempRec.getLogRRatio());
-//					logger.info("snp id: " + tempRec.getSnpId());
-//					logger.info("snp: " + tempRec.getSnp());
-//					logger.info("passed first hurdle");
-					
 					// only deal with bi-allelic snps
 					String snp = tempRec.getSnp();
 					if (snp.length() == 5 &&  '/' == snp.charAt(2)) {
-//						if (snp.length() == 3 &&  "/".equals(snp.charAt(1))) {
-//						logger.info("passed second hurdle");
 					
 						if ("XY".equals(tempRec.getChr())) {
 							// add both X and Y to map
@@ -358,78 +341,21 @@ public class SignatureGenerator {
 		
 	}
 	
-//	private boolean isComplemented(String illuminaCall, String snp, char allele1Forward, char allele2Forward) {
-//		boolean complement = false;
-//		char snp1 = snp.charAt(0);
-//		char snp2 = snp.charAt(1);
-//		if ('/' == snp2) {
-//			if (snp.length() < 3)
-//				throw new IllegalArgumentException("invalid illumina genotype specified: " + snp);
-//			snp2 = snp.charAt(2);
-//		}
-//		
-//		if ("AA".equals(illuminaCall)) {
-//			complement = (allele1Forward != snp1);
-//		} else if ("AB".equals(illuminaCall)) {
-//			complement = (allele1Forward != snp1);
-//		} else if ("BB".equals(illuminaCall)) {
-//			complement = (allele2Forward != snp2);
-//		}
-//		
-//		return complement;
-//	}
-	
-//	private char[] getAlleleAandB(String snp, String strand) {
-//		char[] alleleAB = new char[2];
-//		char snp1 = snp.charAt(0);
-//		char snp2 = snp.charAt(1);
-//		if ('/' == snp2) {
-//			if (snp.length() < 3)
-//				throw new IllegalArgumentException("invalid illumina genotype specified: " + snp);
-//			snp2 = snp.charAt(2);
-//		}
-//		
-//		if (BaseUtils.isAT(snp1) && BaseUtils.isAT(snp2)) {
-//			// A/T or T/A - need strand
-//			if ("TOP".equals(strand)) {
-//				alleleAB[0] = 'A';
-//				alleleAB[1] = 'T';
-//			} else {
-//				alleleAB[0] = 'T';
-//				alleleAB[1] = 'A';
-//			}
-//		} else if (BaseUtils.isCG(snp1) && BaseUtils.isCG(snp2)) {
-//			// C/G or G/C  - need strand
-//			if ("TOP".equals(strand)) {
-//				alleleAB[0] = 'C';
-//				alleleAB[1] = 'G';
-//			} else {
-//				alleleAB[0] = 'G';
-//				alleleAB[1] = 'C';
-//			}
-//		} else {
-//			// A/G or A/C or G/A or C/A - no strand required
-//			alleleAB[0] = snp1;
-//			alleleAB[1] = snp2;
-//		}
-//		
-//		return alleleAB;
-//	}
 	
 	private void writeVCFOutput(File bamFile, String header) throws IOException {
 		// if we have an output folder defined, place the vcf files there, otherwise they will live next to the bams
 		File outputVCFFile = null;
 		if (null != outputDirectory) {
-			outputVCFFile = new File(outputDirectory + FileUtils.FILE_SEPARATOR + bamFile.getName() + ".qsig.vcf");
+			outputVCFFile = new File(outputDirectory + FileUtils.FILE_SEPARATOR + bamFile.getName() + ".qsig.vcf.gz");
 		} else {
-			outputVCFFile = new File(bamFile.getAbsoluteFile() + ".qsig.vcf");
+			outputVCFFile = new File(bamFile.getAbsoluteFile() + ".qsig.vcf.gz");
 		}
 		logger.info("Will write output vcf to file: " + outputVCFFile.getAbsolutePath());
 		// standard output format
 		// check that can wriite to new file
 		if (FileUtils.canFileBeWrittenTo(outputVCFFile)) {
 			
-			try (VCFFileWriter writer = new VCFFileWriter(outputVCFFile, false);){
+			try (VCFFileWriter writer = new VCFFileWriter(outputVCFFile, true);){
 				// write header
 				writer.addHeader(header);
 				
@@ -683,15 +609,6 @@ public class SignatureGenerator {
 					if ( ! FileUtils.canFileBeRead(cmdLineInputFiles[i])) {
 						throw new QSignatureException("INPUT_FILE_READ_ERROR" , cmdLineInputFiles[i]);
 					}
-				}
-			}
-			
-			// check supplied output files can be written to
-			if (null != options.getOutputFileNames()) {
-				cmdLineOutputFiles = options.getOutputFileNames();
-				for (String outputFile : cmdLineOutputFiles) {
-					if ( ! FileUtils.canFileBeWrittenTo(outputFile))
-						throw new QSignatureException("OUTPUT_FILE_WRITE_ERROR", outputFile);
 				}
 			}
 			
