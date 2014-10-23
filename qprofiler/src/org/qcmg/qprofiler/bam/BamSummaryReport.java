@@ -321,20 +321,22 @@ public class BamSummaryReport extends SummaryReport {
 		}
 		
 		// md cycles
-		StringBuilder mismatchingCycles = new StringBuilder();
+//		StringBuilder mismatchingCycles = new StringBuilder();
+		int mismatchingCycles = 0;
 		for (Integer cycle : tagMDMismatchByCycle.cycles()) {
 			long mapTotal = SummaryReportUtils.getCountOfMapValues(tagMDMismatchByCycle.getValue(cycle));
 			double percentage = (((double) mapTotal / noOfRecords));
 			if (percentage > 0.01) {
+				mismatchingCycles++;
 				// we want to know about this
-				if (mismatchingCycles.length() > 0) {
-					mismatchingCycles.append(",");
-				}
-				mismatchingCycles.append(cycle.intValue());
+//				if (mismatchingCycles.length() > 0) {
+//					mismatchingCycles.append(",");
+//				}
+//				mismatchingCycles.append(cycle.intValue());
 			}
 		}
 		Element mdMismatchCyclesE = createSubElement(summaryElement, "MDMismatchCycles");
-		mdMismatchCyclesE.setAttribute("value", mismatchingCycles.toString());
+		mdMismatchCyclesE.setAttribute("value", mismatchingCycles + "");
 		
 		// Summary - 1st and 2nd in pair ave read lengths
 		long runningTally = 0, total = 0;
