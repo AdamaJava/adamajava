@@ -131,14 +131,14 @@ public class ReportBuilder {
 						case "DuplicatePercentage":
 							double percentage = Double.parseDouble(n.getAttributes().getNamedItem("value").getNodeValue());
 							String rag = "', p:{style:'background-color: ";
-							rag += (percentage > 20) ? "red;'}}]}" : (percentage > 10) ? "orange;'}}]}" : "green;'}}]}" ;
+							rag += (percentage > 20) ? "tomato;'}}]}" : (percentage > 10) ? "yellow;'}}]}" : "palegreen;'}}]}" ;
 							
 							summaryMap.put("Percentage of duplicate reads", startVBlock + String.format("%.2f", percentage) + rag);
 							break;
 						case "UnmappedPercentage":
 							percentage = Double.parseDouble(n.getAttributes().getNamedItem("value").getNodeValue());
 							rag = "', p:{style:'background-color: ";
-							rag += (percentage > 20) ? "red;'}}]}" : (percentage > 10) ? "orange;'}}]}" : "green;'}}]}" ;
+							rag += (percentage > 20) ? "tomato;'}}]}" : (percentage > 10) ? "yellow;'}}]}" : "palegreen;'}}]}" ;
 							
 							summaryMap.put("Percentage of unmapped reads", startVBlock + String.format("%.2f", percentage)+ rag);
 							break;
@@ -152,7 +152,7 @@ public class ReportBuilder {
 							int noOfCylces =  Integer.parseInt(n.getAttributes().getNamedItem("value").getNodeValue());
 							
 							rag = "', p:{style:'background-color: ";
-							rag += (noOfCylces > 20) ? "red;'}}]}" : (noOfCylces > 10) ? "orange;'}}]}" : "green;'}}]}" ;
+							rag += (noOfCylces > 20) ? "tomato;'}}]}" : (noOfCylces > 10) ? "yellow;'}}]}" : "palegreen;'}}]}" ;
 							
 							summaryMap.put("Number of cycles with >1% mismatches", startVBlock + noOfCylces+ rag);
 							break;
