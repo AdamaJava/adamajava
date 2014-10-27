@@ -421,7 +421,7 @@ public class HTMLReportUtils {
 			
 			initialTableSetup(sb, chartName);
 			
-			sb.append(chartName + ".draw(" + dataName +", {allowHtml: 'true', width: 1000, height: 500, " + title + ", showRowNumber: false});");
+			sb.append(chartName + ".draw(" + dataName +", {allowHtml: 'true', width: 700, height: 500, " + title + ", showRowNumber: false});");
 		}
 		return sb.toString();
 	}
