@@ -57,8 +57,38 @@ public class AccumulatorTest {
 	public void testUnfilteredPileup() {
 		Accumulator acc = new Accumulator(1);
 		String basesString = "ACGTACGTGTACACT";
-		byte[] bases = basesString.getBytes();
-		for (byte b : bases) acc.addUnfilteredBase(b);
+		for (byte b : basesString.getBytes()) acc.addUnfilteredBase(b);
+		Assert.assertEquals("ACGT", acc.getUnfilteredPileup());
+	}
+	
+	@Test
+	public void singleUnfilteredPileup() {
+		Accumulator acc = new Accumulator(1);
+		for (byte b : "ACGT".getBytes()) acc.addUnfilteredBase(b);
+		Assert.assertEquals("", acc.getUnfilteredPileup());
+		
+		acc = new Accumulator(1);
+		for (byte b : "ACGTA".getBytes()) acc.addUnfilteredBase(b);
+		Assert.assertEquals("A", acc.getUnfilteredPileup());
+		
+		acc = new Accumulator(1);
+		for (byte b : "ACCGT".getBytes()) acc.addUnfilteredBase(b);
+		Assert.assertEquals("C", acc.getUnfilteredPileup());
+		
+		acc = new Accumulator(1);
+		for (byte b : "ATTTGT".getBytes()) acc.addUnfilteredBase(b);
+		Assert.assertEquals("T", acc.getUnfilteredPileup());
+		
+		acc = new Accumulator(1);
+		for (byte b : "AAAATTTGT".getBytes()) acc.addUnfilteredBase(b);
+		Assert.assertEquals("AT", acc.getUnfilteredPileup());
+		
+		acc = new Accumulator(1);
+		for (byte b : "AAAACTTTCGT".getBytes()) acc.addUnfilteredBase(b);
+		Assert.assertEquals("ACT", acc.getUnfilteredPileup());
+		
+		acc = new Accumulator(1);
+		for (byte b : "AAAACTTTCGTG".getBytes()) acc.addUnfilteredBase(b);
 		Assert.assertEquals("ACGT", acc.getUnfilteredPileup());
 	}
 	
