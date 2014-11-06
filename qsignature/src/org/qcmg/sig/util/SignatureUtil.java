@@ -3,12 +3,10 @@
  */
 package org.qcmg.sig.util;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -34,6 +32,8 @@ import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.illumina.IlluminaRecord;
 import org.qcmg.sig.QSigCompare;
+import org.qcmg.tab.TabbedFileReader;
+import org.qcmg.tab.TabbedRecord;
 
 public class SignatureUtil {
 	
@@ -185,11 +185,15 @@ public class SignatureUtil {
 		
 		if (null == file) throw new IllegalArgumentException("Null file object passed to loadSignatureRatios");
 		
-		Path p = file.toPath();
-		try (BufferedReader reader = Files.newBufferedReader(p, StandardCharsets.UTF_8)) {
+//		Path p = file.toPath();
+//		try (BufferedReader reader = Files.newBufferedReader(p, StandardCharsets.UTF_8)) {
+		try (TabbedFileReader reader = new TabbedFileReader(file)) {
 			String line;
 			
-			while ((line = reader.readLine()) != null) {
+//			while ((line = reader.readLine()) != null) {
+				
+			for (TabbedRecord vcfRecord : reader) {
+				line = vcfRecord.getData();
 				if (line.startsWith("#")) continue;
 				//do a brute force search for the empty coverage string before passing to tokenizer
 				// only populate ratios with non-zero values
