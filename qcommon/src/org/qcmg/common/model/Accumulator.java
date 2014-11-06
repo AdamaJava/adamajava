@@ -42,6 +42,11 @@ public class Accumulator {
 	private boolean unfilteredC;
 	private boolean unfilteredG;
 	private boolean unfilteredT;
+	// now need 2 unfiltered to trigger the MIUN flag - any more and move to int...
+	private boolean unfilteredA2;
+	private boolean unfilteredC2;
+	private boolean unfilteredG2;
+	private boolean unfilteredT2;
 	
 	public Accumulator(int position) {
 		this.position = position;
@@ -55,14 +60,30 @@ public class Accumulator {
 
 	public void addUnfilteredBase(final byte base) {
 		switch (base) {
-		case 'A': unfilteredA = true;
-			break;
-		case 'C':  unfilteredC = true;
-			break;
-		case 'G': unfilteredG = true;
-			break;
-		case 'T': unfilteredT = true;
-			break;
+		case 'A': if (unfilteredA) {
+			unfilteredA2 = true;
+		} else {
+			unfilteredA = true;
+		}
+		break;
+		case 'C':  if (unfilteredC) {
+			unfilteredC2 = true;
+		} else {
+			unfilteredC = true;
+		}
+		break;
+		case 'G': if (unfilteredG) {
+			unfilteredG2 = true;
+		} else {
+			unfilteredG = true;
+		}
+		break;
+		case 'T': if (unfilteredT) {
+			unfilteredT2 = true;
+		} else {
+			unfilteredT = true;
+		}
+		break;
 		}
 	}
 	
@@ -259,10 +280,10 @@ public class Accumulator {
 	
 	public String getUnfilteredPileup() {
 		StringBuilder pileup = new StringBuilder();
-		if (unfilteredA) pileup.append('A');
-		if (unfilteredC) pileup.append('C');
-		if (unfilteredG) pileup.append('G');
-		if (unfilteredT) pileup.append('T');
+		if (unfilteredA2) pileup.append('A');
+		if (unfilteredC2) pileup.append('C');
+		if (unfilteredG2) pileup.append('G');
+		if (unfilteredT2) pileup.append('T');
 		return pileup.toString();
 	}
 
