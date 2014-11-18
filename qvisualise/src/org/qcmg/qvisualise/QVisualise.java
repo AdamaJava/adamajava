@@ -15,7 +15,6 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ProfileType;
 import org.qcmg.common.util.FileUtils;
-import org.qcmg.common.util.LoadReferencedClasses;
 import org.qcmg.qvisualise.report.HTMLReportGenerator;
 import org.qcmg.qvisualise.report.Report;
 import org.qcmg.qvisualise.report.ReportBuilder;
@@ -94,7 +93,7 @@ public class QVisualise {
 	 * @throws Exception 
 	 */
 	public static void main(String[] args) throws Exception {
-		LoadReferencedClasses.loadClasses(QVisualise.class);
+//		LoadReferencedClasses.loadClasses(QVisualise.class);
 		QVisualise qp = new QVisualise();
 		int exitStatus = qp.setup(args);
 		System.exit(exitStatus);

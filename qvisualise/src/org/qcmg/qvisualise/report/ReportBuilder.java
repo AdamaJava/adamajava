@@ -85,15 +85,19 @@ public class ReportBuilder {
 			}
 			break;
 		case FASTQ:
-			for (ChartTab ct : buildMultiTabCycles(true,"Base", reportElement, "fastq",
-					"BaseByCycle", "BadBasesInReads", CycleDetailUtils.getTagCSNumericCycle(), CS_COLOURS, false)) {
-				report.addTab(ct);
-			}
-			for (ChartTab ct : buildMultiTabCycles(true,"Qual", reportElement, "qual",
-					"QualityByCycle", "BadQualsInReads", null, 
-					null, true)) {
-				report.addTab(ct);
-			}
+			
+			createSEQ(reportElement, report);
+			createQUALS(reportElement, report);
+			
+//			for (ChartTab ct : buildMultiTabCycles(true,"Base", reportElement, "fastq",
+//					"BaseByCycle", "BadBasesInReads", CycleDetailUtils.getTagCSNumericCycle(), CS_COLOURS, false)) {
+//				report.addTab(ct);
+//			}
+//			for (ChartTab ct : buildMultiTabCycles(true,"Qual", reportElement, "qual",
+//					"QualityByCycle", "BadQualsInReads", null, 
+//					null, true)) {
+//				report.addTab(ct);
+//			}
 			break;
 		case MA:
 			for (ChartTab ct : buildMultiTabCycles(false,"Ma", reportElement, "ma",
