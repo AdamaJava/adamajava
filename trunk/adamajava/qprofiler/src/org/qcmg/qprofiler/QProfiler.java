@@ -31,6 +31,7 @@ import org.qcmg.qprofiler.bam.BamSummarizer;
 import org.qcmg.qprofiler.bam.BamSummarizerMT;
 import org.qcmg.qprofiler.fasta.FastaSummarizer;
 import org.qcmg.qprofiler.fastq.FastqSummarizer;
+import org.qcmg.qprofiler.fastq.FastqSummarizerMT;
 import org.qcmg.qprofiler.gff.GffSummarizer;
 import org.qcmg.qprofiler.ma.MaSummarizer;
 import org.qcmg.qprofiler.qual.QualSummarizer;
@@ -235,7 +236,11 @@ public class QProfiler {
 				summarizer = new FastaSummarizer(cmdLineInclude);
 				break;
 			case FASTQ:
-				summarizer = new FastqSummarizer(cmdLineInclude);
+				if (noOfConsumerThreads > 0) {
+					summarizer = new FastqSummarizerMT(noOfConsumerThreads);
+				} else {
+					summarizer = new FastqSummarizer(cmdLineInclude);
+				}
 				break;
 			case BAM:
 				if (noOfConsumerThreads > 0) {

@@ -46,7 +46,7 @@ public class FastqSummaryReport extends SummaryReport {
 	private final QCMGAtomicLongArray qualBadReadLineLengths = new QCMGAtomicLongArray(128);
 	
 	
-	private String[] excludes;
+	private  String[] excludes;
 	private boolean excludeAll;
 	private boolean reverseStrand;
 	
@@ -70,8 +70,6 @@ public class FastqSummaryReport extends SummaryReport {
 	
 	@Override
 	public void toXml(Element parent) {
-		
-		
 		
 		Element element = init(parent, ProfileType.FASTQ, null, excludes, null);
 		if ( ! excludeAll) {
