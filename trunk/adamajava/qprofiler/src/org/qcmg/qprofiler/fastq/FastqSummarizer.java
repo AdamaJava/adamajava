@@ -42,7 +42,6 @@ public class FastqSummarizer implements Summarizer {
 	@Override
 	public SummaryReport summarize(File file) throws Exception {
 		
-		FastqReader reader =  new FastqReader(file);
 		
 		// create the SummaryReport
 		FastqSummaryReport fastqSummaryReport = new FastqSummaryReport(excludes);
@@ -53,20 +52,21 @@ public class FastqSummarizer implements Summarizer {
 		final boolean isLevelEnabled = logger.isLevelEnabled(QLevel.DEBUG);
 		
 		long recordsParsed = 0;
-		try {
+		try (FastqReader reader =  new FastqReader(file);) {
 			for (FastqRecord record : reader) {
 				if (null != record) {
 					
 					fastqSummaryReport.parseRecord(record);
 					recordsParsed = fastqSummaryReport.getRecordsParsed();
 					
-					if (isLevelEnabled && recordsParsed % (FEEDBACK_LINES_COUNT * 2) == 0) {
-						logger.debug("Records parsed: " + recordsParsed);
+//					if (isLevelEnabled && recordsParsed % (FEEDBACK_LINES_COUNT * 2) == 0) {
+//						logger.debug("Records parsed: " + recordsParsed);
+//					}
+					if (recordsParsed % (FEEDBACK_LINES_COUNT) == 0) {
+						logger.info("Records parsed: " + recordsParsed);
 					}
 				}
 			}
-		} finally {
-			reader.close();
 		}
 		
 		logger.info("Records parsed: " + fastqSummaryReport.getRecordsParsed());

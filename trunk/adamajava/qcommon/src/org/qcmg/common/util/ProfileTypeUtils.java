@@ -9,37 +9,50 @@ import org.qcmg.common.model.ProfileType;
 
 public class ProfileTypeUtils {
 	
-	private static final String GFF_EXTENTION = "gff";
-	private static final String GFF_EXTENTION_3 = "gff3";
-	private static final String FASTA_EXTENTION = "csfasta";
-	private static final String QUAL_EXTENTION = "qual";
-	private static final String BAM_EXTENTION = "bam";
-	private static final String SAM_EXTENTION = "sam";
-	private static final String XML_EXTENTION = "xml";
-	private static final String MA_EXTENTION = "ma";
-	private static final String FASTQ_EXTENTION = "fastq";
+	private static final String GFF_EXTENSION = "gff";
+	private static final String GFF_EXTENSION_3 = "gff3";
+	private static final String FASTA_EXTENSION = "csfasta";
+	private static final String QUAL_EXTENSION = "qual";
+	private static final String BAM_EXTENSION = "bam";
+	private static final String SAM_EXTENSION = "sam";
+	private static final String XML_EXTENSION = "xml";
+	private static final String MA_EXTENSION = "ma";
+	private static final String FASTQ_EXTENSION = "fastq";
+	private static final String FASTQ_GZ_EXTENSION = "fastq.gz";
+	private static final String GZ_EXTENSION = "gz";
 	
 	public static ProfileType getType(File f) throws Exception {
 		String ext = null;
 		final String s = f.getName();
-	    final int i = s.lastIndexOf('.');
+	    int i = s.lastIndexOf('.');
 	    
-	    if ( ! f.isDirectory() && i > 0 &&  i < s.length() - 1)
+	    if ( ! f.isDirectory() && i > 0 &&  i < s.length() - 1) {
 		    	ext = s.substring(i+1).toLowerCase();
+	    }
 	    
-	    if (BAM_EXTENTION.equals(ext) || SAM_EXTENTION.equals(ext))
+	    
+	    // if ext is equal to gz, then find the previous extension
+	    if (GZ_EXTENSION.equals(ext)) {
+		    	i = s.lastIndexOf('.', i -1);
+		    	ext = s.substring(i+1).toLowerCase();
+	    }
+	    
+	    
+	    if (BAM_EXTENSION.equals(ext) || SAM_EXTENSION.equals(ext))
 	    	return ProfileType.BAM;
-	    if (FASTA_EXTENTION.equals(ext))
+	    if (FASTA_EXTENSION.equals(ext))
 	    	return ProfileType.FASTA;
-	    if (QUAL_EXTENTION.equals(ext))
+	    if (QUAL_EXTENSION.equals(ext))
 	    	return ProfileType.QUAL;
-	    if (XML_EXTENTION.equals(ext))
+	    if (XML_EXTENSION.equals(ext))
 	    	return ProfileType.XML;
-	    if (GFF_EXTENTION.equals(ext) || GFF_EXTENTION_3.equals(ext))
+	    if (GFF_EXTENSION.equals(ext) || GFF_EXTENSION_3.equals(ext))
 	    	return ProfileType.GFF;
-	    if (MA_EXTENTION.equals(ext))
+	    if (MA_EXTENSION.equals(ext))
 	    	return ProfileType.MA;
-	    if (FASTQ_EXTENTION.equals(ext))
+	    if (FASTQ_EXTENSION.equals(ext))
+	    	return ProfileType.FASTQ;
+	    if (FASTQ_GZ_EXTENSION.equals(ext))
 	    	return ProfileType.FASTQ;
 	    
 	    throw new Exception("Unsupported file type "+ ext);
