@@ -9,15 +9,14 @@
 package org.qcmg.qprofiler.fastq;
 
 import java.util.Map;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import net.sf.picard.fastq.FastqRecord;
 import net.sf.samtools.SAMUtils;
 
 import org.qcmg.common.model.ProfileType;
-import org.qcmg.common.model.SummaryByCycle;
+import org.qcmg.common.model.QCMGAtomicLongArray;
+import org.qcmg.common.model.SummaryByCycleNew2;
 import org.qcmg.common.util.SummaryByCycleUtils;
 import org.qcmg.qprofiler.report.SummaryReport;
 import org.qcmg.qprofiler.util.SummaryReportUtils;
@@ -25,17 +24,31 @@ import org.w3c.dom.Element;
 
 public class FastqSummaryReport extends SummaryReport {
 	
-	private SummaryByCycle<Character> baseByCycle = new SummaryByCycle<Character>(200,8);
-	private ConcurrentMap<Integer, AtomicLong> seqBadReadLineLengths = new ConcurrentSkipListMap<Integer, AtomicLong>();
+	private static final Character c = Character.MAX_VALUE;
+	private static final Integer i = Integer.MAX_VALUE;
 	
-	private SummaryByCycle<Integer> qualByCycle = new SummaryByCycle<Integer>(200,60);
-	private ConcurrentMap<Integer, AtomicLong> qualBadReadLineLengths = new ConcurrentSkipListMap<Integer, AtomicLong>();
+//	private SummaryByCycle<Character> baseByCycle = new SummaryByCycle<Character>(200,8);
+//	private ConcurrentMap<Integer, AtomicLong> seqBadReadLineLengths = new ConcurrentSkipListMap<Integer, AtomicLong>();
+//	
+//	private SummaryByCycle<Integer> qualByCycle = new SummaryByCycle<Integer>(200,60);
+//	private ConcurrentMap<Integer, AtomicLong> qualBadReadLineLengths = new ConcurrentSkipListMap<Integer, AtomicLong>();
+//	
+//	private Map<Integer, AtomicLong> sequenceLineLengths = null;
 	
-	private Map<Integer, AtomicLong> sequenceLineLengths = null;
+	//SEQ
+	private final SummaryByCycleNew2<Character> seqByCycle = new SummaryByCycleNew2<Character>(c, 512);
+	private Map<Integer, AtomicLong> seqLineLengths = null;
+	private final QCMGAtomicLongArray seqBadReadLineLengths = new QCMGAtomicLongArray(128);
+
+	//QUAL
+	private final SummaryByCycleNew2<Integer> qualByCycleInteger = new SummaryByCycleNew2<Integer>(i, 512);
+	private Map<Integer, AtomicLong> qualLineLengths = null;
+	private final QCMGAtomicLongArray qualBadReadLineLengths = new QCMGAtomicLongArray(128);
 	
 	
 	private String[] excludes;
 	private boolean excludeAll;
+	private boolean reverseStrand;
 	
 	public FastqSummaryReport() {
 		super();
@@ -53,23 +66,31 @@ public class FastqSummaryReport extends SummaryReport {
 			}
 		}
 		logger.debug("Running with excludeAll: " + excludeAll);
-//		logger.debug("Running with [excludeAll: {}]" , excludeAll);
 	}
 	
 	@Override
 	public void toXml(Element parent) {
 		
 		
-		sequenceLineLengths = SummaryByCycleUtils.getLengthsFromSummaryByCycle(baseByCycle, getRecordsParsed());
 		
 		Element element = init(parent, ProfileType.FASTQ, null, excludes, null);
 		if ( ! excludeAll) {
-			baseByCycle.toXml( element, "BaseByCycle");
-			SummaryReportUtils.lengthMapToXml(element, "BadBasesInReads", seqBadReadLineLengths);
-			SummaryReportUtils.lengthMapToXml(element, "LengthTally", sequenceLineLengths);
 			
-			qualByCycle.toXml( element, "QualityByCycle");
-			SummaryReportUtils.lengthMapToXml(element, "BadQualsInReads", qualBadReadLineLengths);
+			// create the length maps here from the cycles objects
+			seqLineLengths = SummaryByCycleUtils.getLengthsFromSummaryByCycle(seqByCycle, getRecordsParsed());
+			qualLineLengths = SummaryByCycleUtils.getLengthsFromSummaryByCycle(qualByCycleInteger, getRecordsParsed());
+			
+			// SEQ
+			Element seqElement = createSubElement(element, "SEQ");
+			seqByCycle.toXml(seqElement, "BaseByCycle");
+			SummaryReportUtils.lengthMapToXmlTallyItem(seqElement, "LengthTally", seqLineLengths);
+			SummaryReportUtils.lengthMapToXml(seqElement, "BadBasesInReads", seqBadReadLineLengths);
+			
+			// QUAL
+			Element qualElement = createSubElement(element, "QUAL");
+			qualByCycleInteger.toXml(qualElement, "QualityByCycle");
+			SummaryReportUtils.lengthMapToXmlTallyItem(qualElement, "LengthTally", qualLineLengths);
+			SummaryReportUtils.lengthMapToXml(qualElement, "BadQualsInReads", qualBadReadLineLengths);
 		}
 	}
 	
@@ -84,22 +105,21 @@ public class FastqSummaryReport extends SummaryReport {
 			updateRecordsParsed();
 			
 			if ( ! excludeAll) {
-			
-				SummaryByCycleUtils.parseCharacterSummary(baseByCycle, record.getReadString(), null);
-				// keep tally of the number of '.' and 'N' that occur in each read
+				
+				// SEQ
+				SummaryByCycleUtils.parseCharacterSummary(seqByCycle, record.getReadString().getBytes(), reverseStrand);
 				SummaryReportUtils.tallyBadReadsAsString(record.getReadString(), seqBadReadLineLengths);
-				
-				// qual file is space delimited
+
+				// QUAL
 				byte[] baseQualities = SAMUtils.fastqToPhred(record.getBaseQualityString());
-				SummaryByCycleUtils.parseIntegerSummary(qualByCycle, baseQualities);
-				
-				// keep count of the no of read bases that have a qual score of less than 10 for each read
+				SummaryByCycleUtils.parseIntegerSummary(qualByCycleInteger, baseQualities, reverseStrand);
 				SummaryReportUtils.tallyQualScores(baseQualities, qualBadReadLineLengths);
+				
 			}
 		}
 	}
 	
-	SummaryByCycle<Character> getFastqBaseByCycle() {
-		return baseByCycle;
+	SummaryByCycleNew2<Character> getFastqBaseByCycle() {
+		return seqByCycle;
 	}
 }
