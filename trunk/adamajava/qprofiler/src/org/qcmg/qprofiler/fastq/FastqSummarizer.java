@@ -22,7 +22,6 @@ import net.sf.picard.fastq.FastqReader;
 import net.sf.picard.fastq.FastqRecord;
 
 import org.qcmg.common.date.DateUtils;
-import org.qcmg.common.log.QLevel;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.qprofiler.report.SummaryReport;
@@ -49,7 +48,7 @@ public class FastqSummarizer implements Summarizer {
 		fastqSummaryReport.setStartTime(DateUtils.getCurrentDateAsString());
 		
 		// set logging level for printing of no of records parsed
-		final boolean isLevelEnabled = logger.isLevelEnabled(QLevel.DEBUG);
+//		final boolean isLevelEnabled = logger.isLevelEnabled(QLevel.DEBUG);
 		
 		long recordsParsed = 0;
 		try (FastqReader reader =  new FastqReader(file);) {
@@ -59,11 +58,8 @@ public class FastqSummarizer implements Summarizer {
 					fastqSummaryReport.parseRecord(record);
 					recordsParsed = fastqSummaryReport.getRecordsParsed();
 					
-//					if (isLevelEnabled && recordsParsed % (FEEDBACK_LINES_COUNT * 2) == 0) {
-//						logger.debug("Records parsed: " + recordsParsed);
-//					}
 					if (recordsParsed % (FEEDBACK_LINES_COUNT) == 0) {
-						logger.info("Records parsed: " + recordsParsed);
+						logger.info("Records parsed: " + (recordsParsed / FEEDBACK_LINES_COUNT) + "M");
 					}
 				}
 			}
