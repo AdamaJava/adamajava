@@ -75,9 +75,7 @@ public class SummaryReportUtils {
 		
 		lengthMapToXmlTallyItem(element, "ValueTally", map, comparator);
 	}
-	public static <T> void lengthMapToXml(Element parent, String elementName,
-			Map<T, AtomicLong> map) {
-		
+	public static <T> void lengthMapToXml(Element parent, String elementName, Map<T, AtomicLong> map) {
 		lengthMapToXml(parent, elementName, map, null);
 	}
 	
