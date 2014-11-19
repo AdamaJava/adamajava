@@ -112,6 +112,7 @@ public class FastqSummaryReport extends SummaryReport {
 			qualHeaders.put("+", new AtomicLong(getRecordsParsed() - qualHeaderNotEqualToPlus.longValue()));
 			SummaryReportUtils.lengthMapToXml(element, "QUAL_HEADERS", qualHeaders);
 			
+			logger.info("no of kmers: " + kmers.size());
 			SummaryReportUtils.lengthMapToXml(element, "KMERS", kmers);
 			
 			// create the length maps here from the cycles objects
