@@ -60,6 +60,7 @@ import org.qcmg.common.util.PileupElementLiteUtil;
 import org.qcmg.common.util.PileupUtils;
 import org.qcmg.common.util.SnpUtils;
 import org.qcmg.common.util.TabTokenizer;
+import org.qcmg.common.vcf.VcfHeaderUtils;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.illumina.IlluminaFileReader;
 import org.qcmg.illumina.IlluminaRecord;
@@ -81,7 +82,6 @@ import org.qcmg.snp.util.IniFileUtil;
 import org.qcmg.snp.util.RulesUtil;
 import org.qcmg.vcf.VCFFileReader;
 import org.qcmg.vcf.VCFFileWriter;
-import org.qcmg.vcf.VCFHeaderUtils;
 
 public abstract class Pipeline {
 	
@@ -830,7 +830,7 @@ public abstract class Pipeline {
 		
 			VCFFileReader reader = new VCFFileReader(new File(germlineDBFile));
 			
-			int [] idArray = VCFHeaderUtils.getIdsForPatient(VCFHeaderUtils.getMapFromInfoHeader(reader.getHeader()), patientId);
+			int [] idArray = VcfHeaderUtils.getIdsForPatient(VcfHeaderUtils.getMapFromInfoHeader(reader.getHeader()), patientId);
 			boolean idArrayNotEmpty = null != idArray && idArray.length > 0;
 			if (idArrayNotEmpty) Arrays.sort(idArray);
 				
