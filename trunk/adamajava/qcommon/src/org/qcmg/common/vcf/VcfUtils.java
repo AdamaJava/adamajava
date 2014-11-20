@@ -44,7 +44,13 @@ public class VcfUtils {
 	public static final String INFO_NOVEL_STARTS = FILTER_NOVEL_STARTS;
 	public static final String INFO_MUTATION = "MU";
 	public static final String INFO_FLANKING_SEQUENCE = "FS";
-	public static final String INFO_DONOR = "DON";
+	public static final String INFO_DONOR = "DON";	
+	public static final String INFO_EFFECT = "EFF";
+	public static final String INFO_LOSS_FUNCTION = "LOF";
+	public static final String INFO_NONSENSE_MEDIATED_DECAY = "NMD";	
+	public static final String INFO_SOMATIC = "SOMATIC";
+	public static final String INFO_CONFIDENT = "CONFIDENT";
+	
 	//FORMAT FIELDS
 	public static final String FORMAT_GENOTYPE = "GT";
 	public static final String FORMAT_GENOTYPE_DETAILS = "GD";

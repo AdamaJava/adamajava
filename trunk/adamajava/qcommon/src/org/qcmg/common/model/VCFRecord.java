@@ -5,6 +5,10 @@ package org.qcmg.common.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.qcmg.common.string.StringUtils;
 
 public class VCFRecord {
 	
@@ -12,7 +16,9 @@ public class VCFRecord {
 	private static final char NL = '\n';
 	public static final char MISSING_DATA = '.';
 	private static final char NULL_CHAR = '\u0000';
-
+	private static Pattern effPattern = Pattern.compile("\\w.\\([A-Za-z].(\\|\\S.).\\)");
+	
+	
 	private String chromosome;
 	private int position;
 	private String id;
@@ -98,5 +104,6 @@ public class VCFRecord {
 		builder.append(NL);
 		return builder.toString();
 	}
+
 	
 }
