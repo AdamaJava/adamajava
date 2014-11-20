@@ -1,9 +1,10 @@
-package au.edu.qimr.qannotate;
+package au.edu.qimr.qannotate.options;
 
 import static java.util.Arrays.asList;
 
 import java.io.File;
 
+import au.edu.qimr.qannotate.Messages;
 import joptsimple.OptionSet;
 
 
@@ -44,7 +45,7 @@ public class SnpEffOptions extends Options {
         OptionSet options = parser.parse(args);   
         
         if(options.has("h") || options.has("help")){
-        	displayHelp();
+        	displayHelp(Messages.getMessage("SNPEFF_USAGE"));
             return false;
         }
                                
@@ -73,13 +74,6 @@ public class SnpEffOptions extends Options {
         return checkInputs(inputs )  && checkOutputs(outputs ) && checkUnique(ios);
         
      } 
-
-    public void displayHelp() throws Exception {
-    	    System.out.println(Messages.getMessage("SNPEFF_USAGE"));       
-		   
-		    parser.printHelpOn(System.err);
-		  
-    }
 
   
 	public String getConfigFileName() { 
