@@ -3,6 +3,10 @@
  */
 package org.qcmg.common.vcf;
 
+import static org.qcmg.common.util.Constants.COLON;
+import static org.qcmg.common.util.Constants.COLON_STRING;
+import static org.qcmg.common.util.Constants.MISSING_DATA_STRING;
+
 import java.io.File;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -15,13 +19,20 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.qcmg.common.log.QLogger;
+import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.meta.QBamId;
+import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.GenotypeEnum;
 import org.qcmg.common.model.PileupElement;
 import org.qcmg.common.model.VCFRecord;
 import org.qcmg.common.string.StringUtils;
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.SnpUtils;
 
 public class VcfUtils {
+	
+	private static final QLogger logger = QLoggerFactory.getLogger(VcfUtils.class);
 	
 	private final static DateFormat df = new SimpleDateFormat("yyyyMMdd");
 	
@@ -55,6 +66,7 @@ public class VcfUtils {
 	public static final String FORMAT_GENOTYPE = "GT";
 	public static final String FORMAT_GENOTYPE_DETAILS = "GD";
 	public static final String FORMAT_ALLELE_COUNT = "AC";
+	public static final String FORMAT_ALLELE_COUNT_COMPOUND_SNP = "ACCS";
 	
 	// standard final header line
 	public static final String STANDARD_FINAL_HEADER_LINE = "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n";
@@ -142,22 +154,34 @@ public class VcfUtils {
 		STANDARD_FINAL_HEADER_LINE;
 	}
 	
-	public static final String getHeaderForQSnp(final String patientId,  final String normalSampleId, final String tumourSampleId, final String source) {
+	public static final String getHeaderForQSnp(final String patientId,  final String normalSampleId, final String tumourSampleId, final String source, QBamId[] normalBamIds, QBamId[] tumourBamIds, String uuid, boolean singleSampleMode) {
+		
+		String controlBamString = "";
+		if (null != normalBamIds) {
+			for (QBamId s : normalBamIds) {
+				controlBamString += "##controlBam=" + s.getBamName()  + "\n";
+				controlBamString += "##controlBamUUID=" + s.getUUID();
+			}
+		}
+		String testBamString = "";
+		if (null != tumourBamIds) {
+			for (QBamId s : tumourBamIds) {
+				testBamString += "##testBam=" + s.getBamName()  + "\n";
+				testBamString += "##testBamUUID=" + s.getUUID()  + "\n";
+			}
+		}
 		
 		return "##fileformat=VCFv4.0\n" +
 		"##fileDate=" + df.format(Calendar.getInstance().getTime()) + "\n" + 
 		"##source=" + source + "\n" + 
 		"##patient_id=" + patientId + "\n" + 
 //		"##input_type=" + inputType  + "\n" +
-		"##normalSample=" + normalSampleId  + "\n" +
-		"##tumourSample=" + tumourSampleId  + "\n" +
-//		"##library=" + library  + "\n" +
-//		"##slide=" + slide + "\n" +
-//		"##barcode=" + barcode + "\n" + 
-//		"##physical_division=" + physicalDivision + "\n" + 
-//		"##pileupFile=" + pileupFile + "\n" +
-//		"##bam=" + bamName + "\n" +
-//		"##snp_file=" + snpFile + "\n" +
+		"##controlSample=" + normalSampleId  + "\n" +
+		"##testSample=" + tumourSampleId  + "\n" +
+		controlBamString +
+		testBamString+
+		"##analysisId=" + uuid  + "\n" +
+		"##\n##\n" +
 		
 		// INFO field options
 		"##INFO=<ID=" + INFO_MUTANT_READS + ",Number=1,Type=Integer,Description=\"Number of mutant/variant reads\">\n" +
@@ -183,8 +207,9 @@ public class VcfUtils {
 		"##FORMAT=<ID=" + FORMAT_GENOTYPE + ",Number=1,Type=String,Description=\"Genotype: 0/0 homozygous reference; 0/1 heterozygous for alternate allele; 1/1 homozygous for alternate allele\">\n" + 
 		"##FORMAT=<ID=" + FORMAT_GENOTYPE_DETAILS + ",Number=1,Type=String,Description=\"Genotype details: specific alleles (A,G,T or C)\">\n" + 
 		"##FORMAT=<ID=" + FORMAT_ALLELE_COUNT + ",Number=1,Type=String,Description=\"Allele Count: lists number of reads on forward strand [avg base quality], reverse strand [avg base quality]\">\n" + 
+		"##FORMAT=<ID=" + FORMAT_ALLELE_COUNT_COMPOUND_SNP + ",Number=1,Type=String,Description=\"Allele Count Compound Snp: lists read sequence and count (forward strand, reverse strand) \">\n" + 
 		
-		"#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tNormal\tTumour\n";
+		"#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\t" + ( ! singleSampleMode ? "Control\t" : "" ) + "Test\n";
 	}
 	
 	public static final String getHeaderForQCoverage(final String bamFileName, final String gffFile) {
@@ -300,17 +325,17 @@ public class VcfUtils {
 	}
 	
 	public static String getGenotypeFromGATKVCFRecord(VCFRecord rec) {
-		if (null == rec || rec.getExtraFields().size() < 2)
+		if (null == rec || rec.getFormatFields().size() < 2)
 			throw new IllegalArgumentException("VCFRecord null, or does not contain the appropriate fields");
 		
-		String extraField = rec.getExtraFields().get(1);	// second item in list should have pertinent info
+		String extraField = rec.getFormatFields().get(1);	// second item in list should have pertinent info
 		if (StringUtils.isNullOrEmpty(extraField)) return null;
 		return extraField.substring(0,3);
 	}
 	
 	public static GenotypeEnum getGEFromGATKVCFRec(VCFRecord rec) {
 		String genotypeString = getGenotypeFromGATKVCFRecord(rec);
-		return calculateGenotypeEnum(genotypeString, rec.getRef(), rec.getAlt().charAt(0));
+		return calculateGenotypeEnum(genotypeString, rec.getRefChar(), rec.getAlt().charAt(0));
 	}
 	
 	/**
@@ -356,25 +381,33 @@ public class VcfUtils {
 		else return "0/1";
 	}
 	
-	public static String[] getMutationAndGTs(char ref, GenotypeEnum control, GenotypeEnum test) {
-		String NO_DATA = "" + VCFRecord.MISSING_DATA;
+	public static String[] getMutationAndGTs(String refString, GenotypeEnum control, GenotypeEnum test) {
 		String [] results = new String[3];
 		Set<Character> alts= new TreeSet<Character>();
+		char ref = '\u0000';
 		
-		if (null != control) {
-			if (ref != control.getFirstAllele()) {
-				alts.add(control.getFirstAllele());
+		if ( ! StringUtils.isNullOrEmpty(refString)) {
+			if (refString.length() > 1) {
+				logger.warn("getting the first char from ref: " + refString + "  in VcfUtils.getMutationAndGTs");
 			}
-			if (ref != control.getSecondAllele()) {
-				alts.add(control.getSecondAllele());
+			ref = refString.charAt(0);
+			
+			
+			if (null != control) {
+				if (ref != control.getFirstAllele()) {
+					alts.add(control.getFirstAllele());
+				}
+				if (ref != control.getSecondAllele()) {
+					alts.add(control.getSecondAllele());
+				}
 			}
-		}
-		if (null != test) {
-			if (ref != test.getFirstAllele()) {
-				alts.add(test.getFirstAllele());
-			}
-			if (ref != test.getSecondAllele()) {
-				alts.add(test.getSecondAllele());
+			if (null != test) {
+				if (ref != test.getFirstAllele()) {
+					alts.add(test.getFirstAllele());
+				}
+				if (ref != test.getSecondAllele()) {
+					alts.add(test.getSecondAllele());
+				}
 			}
 		}
 		
@@ -383,12 +416,12 @@ public class VcfUtils {
 		String altsString = getStringFromCharSet(alts);
 		if (size == 0) {
 //			assert false : "empty list of alts from control and test: " + control + ", " + test;
-			Arrays.fill(results, NO_DATA);
+			Arrays.fill(results, MISSING_DATA_STRING);
 		
 		} else if (size == 1) {
 			results[0] = alts.iterator().next().toString();
-			results[1] = null != control ? control.getGTString(ref) : NO_DATA;
-			results[2] = null != test ? test.getGTString(ref) : NO_DATA;
+			results[1] = null != control ? control.getGTString(ref) : MISSING_DATA_STRING;
+			results[2] = null != test ? test.getGTString(ref) : MISSING_DATA_STRING;
 		} else {
 			String alt = "";
 			for (char c : alts) {
@@ -407,7 +440,7 @@ public class VcfUtils {
 	}
 	
 	public static String getGTString(String altsString, char ref, GenotypeEnum ge) {
-		String result = "" + VCFRecord.MISSING_DATA;
+		String result = MISSING_DATA_STRING;
 		if (ge != null && ! StringUtils.isNullOrEmpty(altsString)) {
 			if (ge.containsAllele(ref)) {
 				if (ge.isHeterozygous()) {
@@ -416,11 +449,7 @@ public class VcfUtils {
 					result = "0/0";
 				}
 			} else {
-//				if (ge.isHeterozygous()) {
-					result = (altsString.indexOf(ge.getFirstAllele()) + 1) + "/" + (altsString.indexOf(ge.getSecondAllele()) + 1);
-//				} else {
-//					result = (altsString.indexOf(ge.getFirstAllele()) + 1) + "/" + (altsString.indexOf(ge.getSecondAllele()) + 1);
-//				}
+				result = (altsString.indexOf(ge.getFirstAllele()) + 1) + "/" + (altsString.indexOf(ge.getSecondAllele()) + 1);
 			}
 		}
 		
@@ -433,6 +462,133 @@ public class VcfUtils {
 			for (Character c : set) sb.append(c);
 		}
 		return sb.toString();
+	}
+	
+	public static VCFRecord createVcfRecord(ChrPosition cp, String id, String ref, String alt) {
+		VCFRecord rec = new VCFRecord(cp, id, ref, alt);
+		return rec;
+	}
+	public static VCFRecord createVcfRecord(ChrPosition cp, String ref) {
+		return createVcfRecord(cp, null, ref, null);
+	}
+//	public static VCFRecord createVcfRecord(ChrPosition cp) {
+//		return createVcfRecord(cp, null, null);
+//	}
+	public static VCFRecord createVcfRecord(String chr, int position, String ref) {
+		return createVcfRecord(new ChrPosition(chr, position), ref);
+	}
+	public static VCFRecord createVcfRecord(String chr, int position) {
+		return createVcfRecord(new ChrPosition(chr, position), null);
+	}
+	
+	/**
+	 * A vcf record is considered to be a snp if the length of the ref and alt fields are the same (and not null/0), the fields don't contain commas, and are not equal 
+	 * This caters for standard snps and compound snps (where the polymorphism covers more than 1 base)
+	 * 
+	 * @param vcf VCFRecord
+	 * @return boolean indicating if this vcf record is a snp (or compound snp)
+	 */
+	public static boolean isRecordAMnp(VCFRecord vcf) {
+		boolean isSnp = false;
+		if (null != vcf) {
+			String ref = vcf.getRef();
+			String alt = vcf.getAlt();
+			
+			if ( ! StringUtils.isNullOrEmpty(ref) && ! StringUtils.isNullOrEmpty(alt)) {
+				
+				// if lengths are both 1, and they are not equal
+				int refLength = ref.length();
+				int altLength = alt.length();
+				
+				if (refLength == altLength
+						&& ! ref.contains(Constants.COMMA_STRING)
+						&& ! alt.contains(Constants.COMMA_STRING)
+						&& ! ref.equals(alt)) {
+					isSnp = true;
+				}
+			}
+		}
+		return isSnp;
+	}
+	
+	public static void addFormatFieldsToVcf(VCFRecord vcf, List<String> additionalFormatFields) {
+		if ( null != additionalFormatFields && ! additionalFormatFields.isEmpty()) {
+			// if there are no existing format fields, set field to be additional..
+			if (null == vcf.getFormatFields() || vcf.getFormatFields().isEmpty()) {
+				vcf.setFormatField(additionalFormatFields);
+			} else {
+				
+				
+				// check that the 2 lists of the same size
+				if (vcf.getFormatFields().size() != additionalFormatFields.size()) {
+					logger.warn("format field size mismatch. Exiting record has " 
+				+ vcf.getFormatFields().size() + " entries, whereas additionalFormatFields has " 
+							+ additionalFormatFields.size() + " entries - skipping addition");
+				} else {
+					List<String> newFF =  vcf.getFormatFields();
+					
+					// need to check each element to see if it already exists...
+					String [] formatFieldAttributes = additionalFormatFields.get(0).split(COLON_STRING);
+					
+					for (int i = 0 ; i < formatFieldAttributes.length ; i++) {
+						
+						String existingFieldAttributes = newFF.get(0);
+						String s = formatFieldAttributes[i];
+						
+						if (existingFieldAttributes.contains(s)) {
+							// skip this one
+						} else {
+							// add this one
+							for (int j = 0 ; j < additionalFormatFields.size() ; j++) {
+								
+								// get existing entry 
+								String existing = newFF.get(j);
+								// create new
+								String newEntry = existing + COLON + additionalFormatFields.get(j).split(COLON_STRING)[i];
+								
+								// re-insert into vcf
+								newFF.set(j, newEntry);
+							}
+						}
+					}
+					
+					if ( ! newFF.isEmpty()) {
+						vcf.setFormatField(newFF);
+					}
+					
+				}
+			}
+		}
+	}
+	/**
+	 * Checks to see if the existing annotation is a PASS.
+	 * If it is, then the annotation is replaced with the supplied annotation.
+	 * If its not, the supplied annotation is appended to the existing annotation(s)
+	 * 
+	 * Also, if the supplied annotation is a PASS, then all previous annotations are removed.
+	 * 
+	 * @param rec qsnp record
+	 * @param ann String representation of the annotation
+	 */
+	public static void updateFilter(VCFRecord rec, String ann) {
+		// perform some null guarding
+		if (null == rec) throw new IllegalArgumentException("Null vcf record passed to updateFilter");
+		
+		if (SnpUtils.PASS.equals(rec.getFilter()) || SnpUtils.PASS.equals(ann)) {
+			rec.setFilter(ann);
+		} else {
+			rec.addFilter(ann);
+		}
+	}
+	
+	public static void removeFilter(VCFRecord rec, String filter) {
+		// perform some null guarding
+		if (null == rec) throw new IllegalArgumentException("Null vcf record passed to removeAnnotation");
+		if (null == filter) {
+			return;
+		}
+		
+		rec.setFilter(StringUtils.removeFromString(rec.getFilter(), filter, Constants.SC));
 	}
 	
 //	public static String getAltFromGenotypeEnum(char ref, GenotypeEnum ge) {

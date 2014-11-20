@@ -13,16 +13,8 @@ public class VcfPositionComparatorTest {
 	
 	@Test
 	public void testComparator() {
-		VCFRecord vcf1 = new VCFRecord();
-		VCFRecord vcf2 = new VCFRecord();
-		
-		// same chr
-		vcf1.setChromosome("chr1");
-		vcf2.setChromosome("chr1");
-		
-		// diff position
-		vcf1.setPosition(12346);
-		vcf2.setPosition(12345);
+		VCFRecord vcf1 = VcfUtils.createVcfRecord("chr1", 12346);
+		VCFRecord vcf2 = VcfUtils.createVcfRecord("chr1", 12345);
 		
 		List<VCFRecord> array = new ArrayList<VCFRecord>();
 		array.add(vcf1);

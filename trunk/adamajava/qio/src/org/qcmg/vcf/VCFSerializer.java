@@ -10,10 +10,9 @@ import java.util.List;
 
 import org.qcmg.common.model.VCFRecord;
 import org.qcmg.common.util.TabTokenizer;
-import org.qcmg.common.vcf.header.*;
+import org.qcmg.common.vcf.header.VcfHeader;
 
 public final class VCFSerializer {
-//	private static final Pattern tabbedPattern = Pattern.compile("[\\t]+");
 	private static final String DEFAULT_HEADER_PREFIX = "#";
 
 	private static String nextNonheaderLine(final BufferedReader reader)
@@ -26,7 +25,8 @@ public final class VCFSerializer {
 	}
 	
 	public static VcfHeader readHeader(final BufferedReader reader) throws Exception {
-		List<String> headerLines = new ArrayList<String>();
+		List<String> headerLines = new ArrayList<>();
+
 		String line = reader.readLine();
 		while (null != line && line.startsWith("#")) {
 			headerLines.add(line);
@@ -51,21 +51,7 @@ public final class VCFSerializer {
 		if (8 > arrayLength) {
 			throw new Exception("Bad VCF format. Insufficient columns: '" + line + "'");
 		}
-		VCFRecord result = new VCFRecord();
-		result.setChromosome(params[0]);
-		result.setPosition(Integer.parseInt(params[1]));
-		result.setId(params[2]);
-		result.setRef(params[3].charAt(0));
-		result.setAlt(params[4]);
-		result.setQualString(params[5]);
-		result.setFilter(params[6]);
-		result.setInfo(params[7]);
-		for (int i = 8 ; i < arrayLength ; i++) {
-			result.addExtraField(params[i]);
-		}
-//		result.setGenotype(params[9]);
-//		calculateGenotypeEnum(result);
+		VCFRecord result = new VCFRecord(params);
 		return result;
 	}
-	
 }

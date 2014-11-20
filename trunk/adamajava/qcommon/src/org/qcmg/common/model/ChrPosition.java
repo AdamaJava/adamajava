@@ -93,7 +93,7 @@ public class ChrPosition  implements Comparable<ChrPosition> {
 	}
 	
 	public int getLength() {
-		return endPosition - position + 1;
+		return (endPosition - position) + 1;
 	}
 	
 	/**

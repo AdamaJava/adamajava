@@ -35,20 +35,16 @@ public final class QPileupSerializer {
 
 	static QSnpRecord parseRecord(final String line) throws Exception {
 		String[] params = tabbedPattern.split(line, -1);
-//		if (4 > params.length) {
-//			throw new Exception("Bad Pileup format. Insufficient columns: '" + line + "'");
-//		}
-		QSnpRecord result = new QSnpRecord();
+		// TODO check that this is right...
+		QSnpRecord result = new QSnpRecord(params[0], Integer.parseInt(params[1]), params[2], params[3]);
 		
-		result.setChromosome(params[0]);
-		result.setPosition(Integer.parseInt(params[1]));
 		//FIXME - just want the actual pileup ideally...
 		result.setPileup(line);
 		result.setNormalGenotype(BaseUtils.getGenotypeEnum(params[15]));
 		result.setTumourGenotype(BaseUtils.getGenotypeEnum(params[16]));
 		result.setClassification(getClassification(params[17]));
 		result.setMutation(params[18]);
-		result.setAnnotation(params[19]);
+		result.getVcfRecord().setFilter(params[19]);
 		
 		return result;
 	}

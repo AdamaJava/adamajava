@@ -4,6 +4,7 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -11,6 +12,7 @@ import java.util.TreeSet;
 import org.junit.Test;
 import org.qcmg.common.model.GenotypeEnum;
 import org.qcmg.common.model.PileupElement;
+import org.qcmg.common.model.VCFRecord;
 
 public class VcfUtilsTest {
 	
@@ -75,13 +77,13 @@ public class VcfUtilsTest {
 	
 	@Test
 	public void testGetMutationAndGTs() {
-		assertArrayEquals(new String[] {".", ".","."}, VcfUtils.getMutationAndGTs('\u0000',  null, null));
-		assertArrayEquals(new String[] {"C", "0/0","0/1"} , VcfUtils.getMutationAndGTs('G',  GenotypeEnum.GG, GenotypeEnum.CG));
-		assertArrayEquals(new String[] {"C", ".","0/1"} , VcfUtils.getMutationAndGTs('G',  null, GenotypeEnum.CG));
-		assertArrayEquals(new String[] {"T", "0/1","."} , VcfUtils.getMutationAndGTs('G',  GenotypeEnum.GT, null));
-		assertArrayEquals(new String[] {"T", "1/1","."} , VcfUtils.getMutationAndGTs('G',  GenotypeEnum.TT, null));
-		assertArrayEquals(new String[] {"A,T", "2/2","1/2"} , VcfUtils.getMutationAndGTs('G',  GenotypeEnum.TT, GenotypeEnum.AT));
-		assertArrayEquals(new String[] {"A,T", "2/2","1/2"} , VcfUtils.getMutationAndGTs('G',  GenotypeEnum.TT, GenotypeEnum.AT));
+		assertArrayEquals(new String[] {".", ".","."}, VcfUtils.getMutationAndGTs(null,  null, null));
+		assertArrayEquals(new String[] {"C", "0/0","0/1"} , VcfUtils.getMutationAndGTs("G",  GenotypeEnum.GG, GenotypeEnum.CG));
+		assertArrayEquals(new String[] {"C", ".","0/1"} , VcfUtils.getMutationAndGTs("G",  null, GenotypeEnum.CG));
+		assertArrayEquals(new String[] {"T", "0/1","."} , VcfUtils.getMutationAndGTs("G",  GenotypeEnum.GT, null));
+		assertArrayEquals(new String[] {"T", "1/1","."} , VcfUtils.getMutationAndGTs("G",  GenotypeEnum.TT, null));
+		assertArrayEquals(new String[] {"A,T", "2/2","1/2"} , VcfUtils.getMutationAndGTs("G",  GenotypeEnum.TT, GenotypeEnum.AT));
+		assertArrayEquals(new String[] {"A,T", "2/2","1/2"} , VcfUtils.getMutationAndGTs("G",  GenotypeEnum.TT, GenotypeEnum.AT));
 	}
 	
 	@Test
@@ -133,5 +135,79 @@ public class VcfUtilsTest {
 		set.add('Z');
 		assertEquals("ACGTXYZ", VcfUtils.getStringFromCharSet(set));
 	}
-
+	
+	@Test
+	public void isRecordAMnp() {
+		
+		VCFRecord rec = VcfUtils.createVcfRecord("1", 1, "A");
+		assertEquals(false, VcfUtils.isRecordAMnp(rec));
+		
+		rec.setAlt("A");
+		assertEquals(false, VcfUtils.isRecordAMnp(rec));
+		
+		 rec = VcfUtils.createVcfRecord("1", 1, "AC");
+		rec.setAlt("A");
+		assertEquals(false, VcfUtils.isRecordAMnp(rec));
+		
+		rec.setAlt("ACG");
+		assertEquals(false, VcfUtils.isRecordAMnp(rec));
+		
+		rec = VcfUtils.createVcfRecord("1", 1, "G");
+		rec.setAlt("G");
+		assertEquals(false, VcfUtils.isRecordAMnp(rec));		// ref == alt
+		rec = VcfUtils.createVcfRecord("1", 1, "CG");
+		rec.setAlt("GA");
+		assertEquals(true, VcfUtils.isRecordAMnp(rec));
+		rec = VcfUtils.createVcfRecord("1", 1, "CGTTT");
+		rec.setAlt("GANNN");
+		assertEquals(true, VcfUtils.isRecordAMnp(rec));
+	}
+	@Test
+	public void isRecordAMnpCheckIndels() {
+		
+		VCFRecord rec = VcfUtils.createVcfRecord("1", 1, "ACCACCACC");
+		assertEquals(false, VcfUtils.isRecordAMnp(rec));
+		
+		rec.setAlt("A,AACCACC");
+		assertEquals(false, VcfUtils.isRecordAMnp(rec));
+		
+	}
+	
+	@Test
+	public void addFormatFields() {
+		VCFRecord rec = VcfUtils.createVcfRecord("1", 1, "ACCACCACC");
+		VcfUtils.addFormatFieldsToVcf(rec, Arrays.asList("GT:AD:DP:GQ:PL", "0/1:6,3:9:62:62,0,150"));
+		
+		List<String> newStuff = new ArrayList<>();
+		newStuff.add("GT");
+		newStuff.add("blah");
+		
+		VcfUtils.addFormatFieldsToVcf(rec, newStuff);
+		
+		assertEquals("GT:AD:DP:GQ:PL", rec.getFormatFields().get(0));
+		assertEquals("0/1:6,3:9:62:62,0,150", rec.getFormatFields().get(1));
+		
+		newStuff = new ArrayList<>();
+		newStuff.add("QT");
+		newStuff.add("blah");
+		
+		VcfUtils.addFormatFieldsToVcf(rec, newStuff);
+		
+		assertEquals("GT:AD:DP:GQ:PL:QT", rec.getFormatFields().get(0));
+		assertEquals("0/1:6,3:9:62:62,0,150:blah", rec.getFormatFields().get(1));
+		
+		// and again
+		rec = VcfUtils.createVcfRecord("1", 1, "ACCACCACC");
+		VcfUtils.addFormatFieldsToVcf(rec, Arrays.asList("GT:AD:DP:GQ:PL", "0/1:6,3:9:62:62,0,150"));
+		
+		newStuff = new ArrayList<>();
+		newStuff.add("GT:GD:AC");
+		newStuff.add("0/1:A/C:A10[12.5],2[33],C20[1],30[2]");
+		
+		VcfUtils.addFormatFieldsToVcf(rec, newStuff);
+		
+		assertEquals("GT:AD:DP:GQ:PL:GD:AC", rec.getFormatFields().get(0));
+		assertEquals("0/1:6,3:9:62:62,0,150:A/C:A10[12.5],2[33],C20[1],30[2]", rec.getFormatFields().get(1));
+		
+	}
 }

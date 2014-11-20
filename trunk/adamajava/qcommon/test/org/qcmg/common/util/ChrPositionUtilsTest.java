@@ -98,5 +98,37 @@ public class ChrPositionUtilsTest {
 		assertEquals(false, ChrPositionUtils.isChrPositionContained(cp2, cp4));
 		assertEquals(false, ChrPositionUtils.isChrPositionContained(cp4, cp2));
 	}
-
+	
+	@Test
+	public void arePositionsAdjacent() {
+		assertEquals(false, ChrPositionUtils.areAdjacent(new ChrPosition("1", 1, 10), new ChrPosition("2", 11, 20)));
+		assertEquals(false, ChrPositionUtils.areAdjacent(new ChrPosition("1", 1, 10), new ChrPosition("1", 12, 20)));
+		assertEquals(false, ChrPositionUtils.areAdjacent(new ChrPosition("1", 1, 10), new ChrPosition("1", 10, 20)));
+		assertEquals(false, ChrPositionUtils.areAdjacent(new ChrPosition("1", 10, 20), new ChrPosition("1", 1, 10)));
+		assertEquals(false, ChrPositionUtils.areAdjacent(new ChrPosition("1", 123456, 123456), new ChrPosition("1", 123456, 123456)));
+		assertEquals(false, ChrPositionUtils.areAdjacent(new ChrPosition("2", 123456, 123456), new ChrPosition("1", 123456, 123456)));
+		assertEquals(false, ChrPositionUtils.areAdjacent(new ChrPosition("2", 123456, 123456), new ChrPosition("1", 123457, 123457)));
+		
+		assertEquals(true, ChrPositionUtils.areAdjacent(new ChrPosition("1", 1, 10), new ChrPosition("1", 11, 20)));
+		assertEquals(true, ChrPositionUtils.areAdjacent(new ChrPosition("2", 1, 10), new ChrPosition("2", 11, 20)));
+		assertEquals(true, ChrPositionUtils.areAdjacent(new ChrPosition("2", 11, 20), new ChrPosition("2", 1, 10)));
+		assertEquals(true, ChrPositionUtils.areAdjacent(new ChrPosition("2", 11, 20), new ChrPosition("2", 1, 10)));
+		
+		assertEquals(true, ChrPositionUtils.areAdjacent(new ChrPosition("1", 123456, 123456), new ChrPosition("1", 123457, 123457)));
+		assertEquals(true, ChrPositionUtils.areAdjacent(new ChrPosition("1", 123457, 123457), new ChrPosition("1", 123456, 123456)));
+		
+	}
+	
+	@Test
+	public void positionOnlyOverlap() {
+		assertEquals(false, ChrPositionUtils.doChrPositionsOverlapPositionOnly(new ChrPosition("1", 1, 10), new ChrPosition("1", 11, 20)));
+		assertEquals(false, ChrPositionUtils.doChrPositionsOverlapPositionOnly(new ChrPosition("1", 11, 20), new ChrPosition("1", 1, 10)));
+		
+		assertEquals(true, ChrPositionUtils.doChrPositionsOverlapPositionOnly(new ChrPosition("1", 1, 10), new ChrPosition("1", 10, 20)));
+		assertEquals(true, ChrPositionUtils.doChrPositionsOverlapPositionOnly(new ChrPosition("1", 10, 20), new ChrPosition("1", 1, 10)));
+		
+		assertEquals(true, ChrPositionUtils.doChrPositionsOverlapPositionOnly(new ChrPosition("1", 1, 100), new ChrPosition("1", 10, 20)));
+		assertEquals(true, ChrPositionUtils.doChrPositionsOverlapPositionOnly(new ChrPosition("1", 10, 20), new ChrPosition("1", 1, 100)));
+		assertEquals(true, ChrPositionUtils.doChrPositionsOverlapPositionOnly(new ChrPosition("1", 123456, 123456), new ChrPosition("1", 123456, 123456)));
+	}
 }

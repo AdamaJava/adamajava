@@ -4,6 +4,8 @@
 package org.qcmg.maf.util;
 
 import org.qcmg.common.dcc.DccConsequence;
+import org.qcmg.common.log.QLogger;
+import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.MafConfidence;
 import org.qcmg.common.model.MafType;
 import org.qcmg.common.string.StringUtils;
@@ -12,6 +14,8 @@ import org.qcmg.maf.MAFRecord;
 import org.qcmg.maf.MafPipelineNew;
 
 public class MafFilterUtils {
+	
+	private static final QLogger logger = QLoggerFactory.getLogger(MafFilterUtils.class);
 	
 	public static final int MIN_PASSING_PERCENTAGE = 3;
 	
@@ -211,8 +215,11 @@ public class MafFilterUtils {
 			ndTd = maf.getNd();
 		}
 		
-		char alt = MafUtils.getVariant(maf);
-		return MafUtils.passesCountCheck(ndTd, passingScore, alt);
+		String alt = MafUtils.getVariant(maf);
+		if (alt.length() > 1) {
+			logger.warn("alt: " + alt + " in MafFilterUtils.checkAltFrequency");
+		}
+		return MafUtils.passesCountCheck(ndTd, passingScore, alt.charAt(0));
 	}
 	
 	/**
@@ -299,14 +306,14 @@ public class MafFilterUtils {
 			}
 		} else {
 			if (SnpUtils.MUTATION_IN_NORMAL.equals(maf.getFlag())) {
-				char alt = MafUtils.getVariant(maf);
+				String alt = MafUtils.getVariant(maf);
 				int normalAltCount = SnpUtils.getCountFromNucleotideString(maf.getNd(), alt);
 				
 				assert normalAltCount > 0 : 
 					SnpUtils.MUTATION_IN_NORMAL + " annotation is set, but there are no reads supporting the alt in normal: " + maf.getNd() + ", alt: " + alt;
 				
 //				if (normalAltCount == 1) {
-					char ref = maf.getRef().charAt(0);
+					String ref = maf.getRef();
 					int normalRefCount = SnpUtils.getCountFromNucleotideString(maf.getNd(), ref);
 					
 					if (( 100.0d * normalAltCount / (normalRefCount + normalAltCount)) < minPassingPercentage) {

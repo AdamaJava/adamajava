@@ -148,7 +148,9 @@ public class SAMUtils {
 		
 		Accumulator acc = new Accumulator(position);
 		
+		long counter = 0;
 		for (SAMRecord sam : sams) {
+			counter++;
 			int positionInReadString = getIndexInReadFromPosition(sam, position);
 			if (positionInReadString > -1) {
 				byte base = sam.getReadBases()[positionInReadString];
@@ -159,7 +161,7 @@ public class SAMUtils {
 				int startPosition = sam.getAlignmentStart();
 				int endPosition = sam.getAlignmentEnd();
 				
-				acc.addBase(base, qual, forwardStrand, startPosition, position, endPosition);
+				acc.addBase(base, qual, forwardStrand, startPosition, position, endPosition, counter);
 			}
 		}
 		
@@ -251,9 +253,13 @@ public class SAMUtils {
 	  * @return
 	  */
 	 public static boolean isSAMRecordValidForVariantCalling(SAMRecord rec) {
+		 return isSAMRecordValidForVariantCalling(rec, false);
+	 }
+	 
+	 public static boolean isSAMRecordValidForVariantCalling(SAMRecord rec, boolean includeDuplicates) {
 		 return
 				 isSAMRecordValid(rec)
-				 && ! rec.getDuplicateReadFlag()
+				 && (includeDuplicates || ! rec.getDuplicateReadFlag())
 				 && ! rec.getReadUnmappedFlag()
 				 && ! rec.getNotPrimaryAlignmentFlag();
 	 }

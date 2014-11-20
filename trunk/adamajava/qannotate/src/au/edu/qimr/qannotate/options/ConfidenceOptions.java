@@ -11,14 +11,13 @@ import joptsimple.OptionSet;
 public class ConfidenceOptions extends Options {
  	
  //	 public final Options.MODE Mode = Options.MODE.dbSNP;
-	 String patientId;
+
     /**
      * check command line and store arguments and option information
      */
  	
  	// public Options(){  parser = new OptionParser(); this.Mode = null; } 
- 	public ConfidenceOptions(){ super(Options.MODE.confidence);   }
- 	
+ 	public ConfidenceOptions(){ super(Options.MODE.dbSNP);   }
  	
     @Override
     public boolean parseArgs(final String[] args) throws Exception{  	
@@ -27,9 +26,7 @@ public class ConfidenceOptions extends Options {
         parser.acceptsAll( asList("i", "input"), Messages.getMessage("INPUT_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("input vcf");
         parser.acceptsAll( asList("o", "output"), Messages.getMessage("OUTPUT_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("output vcf"); 
         parser.acceptsAll( asList("d", "database"), Messages.getMessage("DATABASE_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("verified file"); 
-        parser.accepts("patient", "patient id").withRequiredArg().ofType(String.class).describedAs("patient id");
-       
-        parser.accepts("mode", "run confident mode").withRequiredArg().ofType(String.class).describedAs("confidence");
+        parser.accepts("mode", "run confident mode").withRequiredArg().ofType(String.class).describedAs("dbsnp");
         parser.accepts("log", LOG_DESCRIPTION).withRequiredArg().ofType(String.class);
         parser.accepts("loglevel",  LOG_LEVEL_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
         OptionSet options = parser.parse(args);   
@@ -54,8 +51,7 @@ public class ConfidenceOptions extends Options {
         inputFileName = (String) options.valueOf("i") ;      	 
         outputFileName = (String) options.valueOf("o") ; 
         databaseFileName = (String) options.valueOf("d") ; 
-        patientId = (String) options.valueOf("patient") ; 
-   
+
         String[] inputs = new String[]{ inputFileName,databaseFileName} ;
         String[] outputs = new String[]{outputFileName};
         String [] ios = new String[inputs.length + outputs.length];
@@ -65,11 +61,6 @@ public class ConfidenceOptions extends Options {
 
     } 
 
-    
-    public String getpatientid(){
-    	return patientId; 
-    	
-    }
    
 
 

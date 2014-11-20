@@ -1,16 +1,28 @@
 package au.edu.qimr.qannotate.modes;
 
 import java.io.File;
+import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Vector;
 
 import org.qcmg.common.log.QLogger;
+import org.qcmg.common.meta.QExec;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.VCFRecord;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.TabTokenizer;
-import org.qcmg.common.vcf.VcfHeaderUtils;
-import org.qcmg.common.vcf.header.VcfHeaderFilter;
 import org.qcmg.vcf.VCFFileReader;
+import org.qcmg.vcf.VCFFileWriter;
+import org.qcmg.vcf.VCFHeader;
 
+import au.edu.qimr.qannotate.Main;
 import au.edu.qimr.qannotate.options.GermlineOptions;
 
 public class GermlineMode extends AbstractMode{
@@ -25,7 +37,7 @@ public class GermlineMode extends AbstractMode{
  		
 		inputRecord(new File( options.getInputFileName())   );
 		addAnnotation(options.getDatabaseFileName() );
-		reheader(options.getCommandLine(), options.getInputFileName());
+		reheader(options.getCommandLine());
 		writeVCF(new File(options.getOutputFileName()) );	
 	}
 	
@@ -41,9 +53,6 @@ public class GermlineMode extends AbstractMode{
 	 */
  	@Override	
 	void addAnnotation(String dbGermlineFile) throws Exception{
- 		
- 		header.add(new VcfHeaderFilter(VcfHeaderUtils.FILTER_GERMLINE, VcfHeaderUtils.DESCRITPION_FILTER_GERMLINE));
- 		
  		try(VCFFileReader reader = new VCFFileReader(new File(dbGermlineFile))){
 	 
 		 String filter = null;
@@ -70,7 +79,7 @@ public class GermlineMode extends AbstractMode{
 			
 			
 			if (null == alts)  continue;			
-			//annotation if at least one alts matches germline alt
+			//annotation if at least one alts matches dbSNP alt
 			for (String alt : alts)  
 				if(dbGermlineVcf.getAlt().toUpperCase().contains(alt.toUpperCase()) ){					
 					filter = inputVcf.getFilter();

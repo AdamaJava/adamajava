@@ -323,5 +323,41 @@ public class StringUtils {
 		
 		return true;
 	}
+	
+	public static String addToString(String existing, String addition, char delim) {
+		if (StringUtils.isNullOrEmpty(existing)) {
+			return addition;
+		} else if ( ! existing.contains(addition)) {
+			return existing += delim + addition;
+		} else {
+			return existing;
+		}
+	}
+	
+	public static String removeFromString(String existing, String addition, char delim) {
+		if (null != existing && null != addition && existing.contains(addition)) {
+			if (existing.equals(addition)) {
+				return null;
+			} else if (existing.startsWith(addition)) {	// need to remove semi-colon along with annotation
+				return  existing.replace(addition + delim, "");
+			} else {
+				return  existing.replace(delim + addition, "");
+			}
+		} else {
+			return existing;
+		}
+	}
+
+	/**
+	 * Examines the string and returns true if the character is in it!
+	 * 
+	 * @param string String that we are examining
+	 * @param c upper case char value
+	 * @return boolean if the supplied character exists in the supplied string, in either upper case, or lower case
+	 */
+	public static boolean isCharPresentInString(String string, char c) {
+		return null != string && (string.contains("" + c) 
+				|| string.contains("" + Character.toLowerCase(c))); 
+	}
 
 }

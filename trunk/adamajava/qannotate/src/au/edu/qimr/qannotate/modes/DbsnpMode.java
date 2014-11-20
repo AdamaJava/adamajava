@@ -1,27 +1,31 @@
 package au.edu.qimr.qannotate.modes;
 
 import java.io.File;
-
+import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
-
+import java.util.List;
 import java.util.Map;
 
 import org.qcmg.common.log.QLogger;
-
+import org.qcmg.common.meta.QExec;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.VCFRecord;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.TabTokenizer;
-import org.qcmg.common.vcf.VcfHeaderUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.vcf.VCFFileReader;
+import org.qcmg.vcf.VCFFileWriter;
+import org.qcmg.vcf.VCFHeaderUtils;
 
-
-
+import au.edu.qimr.qannotate.Main;
 import au.edu.qimr.qannotate.options.DbsnpOptions;
-
 
 public class DbsnpMode extends AbstractMode{
 	
@@ -40,10 +44,10 @@ public class DbsnpMode extends AbstractMode{
         logger.tool("logger file " + options.getLogFileName());
         logger.tool("logger level " + options.getLogLevel());
 		
-		inputRecord(new File( options.getInputFileName()) );
-		addAnnotation(options.getDatabaseFileName() );		
+		inputRecord(new File( options.getInputFileName())   );
 		
-		reheader(  options.getCommandLine(), options.getInputFileName()); 
+		addAnnotation(options.getDatabaseFileName() );
+		reheader(  options.getCommandLine()); 
 		writeVCF(new File(options.getOutputFileName()));	
 	}
 		
@@ -53,7 +57,7 @@ public class DbsnpMode extends AbstractMode{
 		//init remove all exsiting dbsnpid
 		Iterator<VCFRecord> it = positionRecordMap.values().iterator(); 
  	    while (it.hasNext()) {
-	        VCFRecord vcf = (VCFRecord) it.next();
+	        VCFRecord vcf = it.next();
 	        vcf.setId(".");
  	    }
 		 		
@@ -61,12 +65,12 @@ public class DbsnpMode extends AbstractMode{
 		try(VCFFileReader reader= new VCFFileReader( dbSNPFile )) {
 			//add dbSNP version into header	
 			VcfHeader snpHeader = reader.getHeader();
-			for (VcfHeaderRecord hr : snpHeader) {				
-				if( hr.getId() != null &&  hr.getId().equalsIgnoreCase(VcfHeaderUtils.STANDARD_DBSNP_LINE)){
+			for (VcfHeaderRecord hr : snpHeader) 
+				if(hr.getId().equalsIgnoreCase(VCFHeaderUtils.STANDARD_DBSNP_LINE)){
 					header.replace(hr);  
 					break;					
-				}
-			}		 
+				}	
+		 
 			//check dbsnp record
 			for (VCFRecord dbSNPVcf : reader) {
 				// vcf dbSNP record chromosome does not contain "chr", whereas the positionRecordMap does - add
@@ -100,9 +104,49 @@ public class DbsnpMode extends AbstractMode{
 		}
 
 	}
+	@Override
+	protected void writeVCF(File outputFile  ) throws IOException {
+ 
+		logger.info("Writing VCF output");	 		
+		//get Q_EXEC or #Q_DCCMETA  org.qcmg.common.meta.KeyValue.java or org.qcmg.common.meta.QExec.java	
+		List<ChrPosition> orderedList = new ArrayList<ChrPosition>(positionRecordMap.keySet());
+		Collections.sort(orderedList);
+		
+		try(VCFFileWriter writer = new VCFFileWriter( outputFile)) {
+			 
+			
+			for(VcfHeaderRecord record: header)  writer.addHeader(record.toString());
+			for (ChrPosition position : orderedList) {				
+				VCFRecord record = positionRecordMap.get(position); 
+				writer.add( record );				 
+			}
+		}  
+		
+	}
+	
+//	private static final Pattern tabbedPattern = Pattern.compile("[\\t]+");
 
 	
-	 
+		/**
+	 * insert the cmd into header before the final header line
+	 * @param header: vcf header
+	 * @param cmd: program command line
+	 * @return vcf header
+		 * @throws Exception 
+	 */
+	protected VcfHeader reheader(VcfHeader header , String cmd) throws Exception{	
+		String version = Main.class.getPackage().getImplementationVersion();
+
+		DateFormat df = new SimpleDateFormat("yyyyMMdd");
+		//Vector<String> headerLines = new Vector<String>();
+		
+		header.updateHeader(new VcfHeaderRecord(VCFHeaderUtils.CURRENT_FILE_VERSION),
+				new VcfHeaderRecord(VCFHeaderUtils.STANDARD_FILE_DATE + df.format(Calendar.getInstance().getTime())),
+				new VcfHeaderRecord(VCFHeaderUtils.STANDARD_UUID_LINE + QExec.createUUid() ),
+				new VcfHeaderRecord(VCFHeaderUtils.STANDARD_SOURCE_LINE + "qannotate " + version) );
+ 				
+		return header;
+	}	
 }	
 
 	 

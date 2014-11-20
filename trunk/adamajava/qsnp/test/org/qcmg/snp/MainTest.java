@@ -14,16 +14,7 @@ public class MainTest {
 	@Rule
 	public TemporaryFolder folder = new TemporaryFolder();
 	
-	@Test
-	public void testAreInputFilesValid() throws IOException {
-		Assert.assertEquals(false, Main.areInputFilesValid());
-		Assert.assertEquals(false, Main.areInputFilesValid(null));
-		Assert.assertEquals(false, Main.areInputFilesValid(null, null));
-		String newFile = folder.newFile().getAbsolutePath();
-		Assert.assertEquals(true, Main.areInputFilesValid(newFile));
-		Assert.assertEquals(false, Main.areInputFilesValid(newFile, null));
-		Assert.assertEquals(false, Main.areInputFilesValid(null, newFile));
-	}
+
 	
 	@Test
 	public final void executeWithNoArgs() throws Exception {
@@ -144,18 +135,6 @@ public class MainTest {
 			Assert.assertEquals(true, e.getMessage().startsWith(Messages.getMessage("EMPTY_PILEUP_FILE")));
 		}
 		
-		// ADD in annoate mode = dcc
-		// will cause a failure as we are missing required input and output files
-		// OUTPUT - dccSomatic, dccGermline
-		// INPUT - unfilteredBamFile
-		
-		IniFileGenerator.addStringToIniFile(iniFile, "\n[parameters]\nannotateMode = dcc", true);
-		try {
-			exitStatus = new Main().setup(new String[]{"-input", iniFile.getAbsolutePath(), "-log", logFile.getAbsolutePath()});
-			Assert.fail("Should have thrown a SnpException");
-		} catch (SnpException e) {
-			Assert.assertEquals(true, e.getMessage().startsWith(Messages.getMessage("MISSING_ENTRIES_IN_INI_FILE")));
-		}
 	}
 	
 	@Test

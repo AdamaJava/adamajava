@@ -81,10 +81,16 @@ public class MafStatsUtils {
 			
 			for (MAFRecord maf : mafs) {
 				String refString = maf.getRef();
-				if (null == refString) continue;
+				if (null == refString) {
+					continue;
+				}
+				String altString = MafUtils.getVariant(maf);
+				if (null == altString) {
+					continue;
+				}
 				
 				char ref = refString.charAt(0);
-				char alt = MafUtils.getVariant(maf);
+				char alt = altString.charAt(0);
 				
 				switch (ref) {
 				case 'A' : 

@@ -125,15 +125,13 @@ public final class Coverage {
 	}
 	
 	private static VCFRecord convertCoverageToVCFRecord(org.qcmg.coverage.CoverageReport covReport) {
-		VCFRecord vcf = new VCFRecord();
 		
 		// tab delimited string containing loads of useful stuff 
 		String feature = covReport.getFeature();
 		// if there are no tabs in the string, the per-feature flag was not set
 		String[] params = TabTokenizer.tokenize(feature);
 		
-		vcf.setChromosome(params[0]);
-		vcf.setPosition(Integer.parseInt(params[3]));
+		VCFRecord vcf = VcfUtils.createVcfRecord(params[0], Integer.parseInt(params[3]), null);
 		
 		// info field will contain coverage details
 		int zeroCov = 0, nonZeroCov = 0, totalCov = 0;

@@ -5,13 +5,10 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
-import java.io.Writer;
 import java.util.Arrays;
-import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -21,7 +18,6 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.commandline.Executor;
 import org.qcmg.common.model.Accumulator;
-import org.qcmg.snp.util.HeaderUtil;
 import org.qcmg.tab.TabbedFileReader;
 import org.qcmg.tab.TabbedRecord;
 
@@ -38,20 +34,14 @@ public class StandardPipelineTest {
 		File reference = createRefFile("StandardPipelineTest.reference.fa");
 		File ini = testFolder.newFile("ini.ini");
 		File vcf = testFolder.newFile("output.vcf");
-		File chrConv = testFolder.newFile("chr.conv");
-		File dccSomaticOutput = testFolder.newFile("output.dcc.somatic");
-		File dccGermlineOutput = testFolder.newFile("output.dcc.germline");
 		IniFileGenerator.createRulesOnlyIni(ini);
 		IniFileGenerator.addInputFiles(ini, false, "ref = " + reference.getAbsolutePath());
-		IniFileGenerator.addInputFiles(ini, false, "normalBam = " + normalBam.getAbsolutePath());
-		IniFileGenerator.addInputFiles(ini, false, "tumourBam = " + tumourBam.getAbsolutePath());
-		IniFileGenerator.addInputFiles(ini, false, "chrConv = " + chrConv.getAbsolutePath());
+		IniFileGenerator.addInputFiles(ini, false, "controlBam = " + normalBam.getAbsolutePath());
+		IniFileGenerator.addInputFiles(ini, false, "testBam = " + tumourBam.getAbsolutePath());
 //		IniFileGenerator.addStringToIniFile(ini, "[filter]\nquery = \"Flag_DuplicateRead == false\"", true);
 		IniFileGenerator.addOutputFiles(ini, false, "vcf = " + vcf.getAbsolutePath());
-		IniFileGenerator.addOutputFiles(ini, false, "dccSomatic = " + dccSomaticOutput.getAbsolutePath());
-		IniFileGenerator.addOutputFiles(ini, false, "dccGermline = " + dccGermlineOutput.getAbsolutePath());
 		IniFileGenerator.addStringToIniFile(ini, "[parameters]\nrunMode = standard", true);
-		IniFileGenerator.addStringToIniFile(ini, "\nannotateMode = dcc", true);
+//		IniFileGenerator.addStringToIniFile(ini, "\nannotateMode = dcc", true);
 		
 //		new StandardPipeline(new Ini(ini));
 		
@@ -59,14 +49,6 @@ public class StandardPipelineTest {
 		Executor exec = new Executor(command, "org.qcmg.snp.Main");
 		assertEquals(0, exec.getErrCode());
 		assertTrue(0 == exec.getOutputStreamConsumer().getLines().length);
-		
-		assertEquals(HeaderUtil.DCC_SOMATIC_HEADER.trim(), PileupPipelineTest.getFileHeader(dccSomaticOutput));
-		assertEquals(HeaderUtil.DCC_GERMLINE_HEADER.trim(), PileupPipelineTest.getFileHeader(dccGermlineOutput));
-		
-		// test number of fields in the actual data in the dcc files
-		assertEquals(HeaderUtil.DCC_SOMATIC_HEADER.split("\t").length, noOfColumnsInDCCOutputFile(dccSomaticOutput));
-//		assertEquals(HeaderUtil.DCC_GERMLINE_HEADER.split("\t").length, noOfColumnsInDCCOutputFile(dccGermlineOutput));
-		
 	}
 	
 	private int noOfColumnsInDCCOutputFile(File dccFile) throws Exception {
@@ -81,46 +63,6 @@ public class StandardPipelineTest {
 			reader.close();
 		}
 		return -1;
-	}
-	
-	@Test (expected=NoSuchElementException.class)
-	public void checkThatInvalidChrConversionFileThrowsException() throws IOException {
-		// create dummy chrconv file with too few columns
-		File chrConv = testFolder.newFile("chr.conv");
-		try (Writer w = new FileWriter(chrConv)) {
-			w.write("#Ensemblv55	DCC_v0.4	\n");
-			w.write("1	chr1\n");
-		}
-		
-		TestPipeline tp = new TestPipeline();
-		tp.loadChromosomeConversionData(chrConv.getAbsolutePath());
-	}
-	
-	@Test (expected=NoSuchElementException.class)
-	public void checkThatInvalidChrConversionFileThrowsException2() throws IOException {
-		// create dummy chrconv file with too many columns
-		File chrConv = testFolder.newFile("chr.conv");
-		try (Writer w = new FileWriter(chrConv)) {
-			w.write("#Ensemblv55	QCMG	DCC_v0.4	diBayes\n");
-			w.write("1	chr1	1	blah\n");
-		}
-		
-		TestPipeline tp = new TestPipeline();
-		tp.loadChromosomeConversionData(chrConv.getAbsolutePath());
-	}
-	
-	@Test
-	public void checkThatValidChrConversionFileIsCool() throws IOException {
-		// create dummy chrconv file with too many columns
-		File chrConv = testFolder.newFile("chr.conv");
-		try (Writer w = new FileWriter(chrConv)) {
-			w.write("#Ensemblv55	QCMG	DCC_v0.4\n");
-			w.write("1	chr1	1\n");
-		}
-		
-		TestPipeline tp = new TestPipeline();
-		tp.loadChromosomeConversionData(chrConv.getAbsolutePath());
-		assertEquals(1, tp.ensembleToQCMG.size());
 	}
 	
 	@Ignore

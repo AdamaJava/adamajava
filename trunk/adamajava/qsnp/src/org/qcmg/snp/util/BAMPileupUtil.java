@@ -14,10 +14,10 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.QSnpGATKRecord;
 import org.qcmg.common.util.SnpUtils;
+import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.picard.util.PileupElementUtil;
 import org.qcmg.picard.util.SAMUtils;
 import org.qcmg.pileup.QSnpRecord;
-import org.qcmg.snp.Pipeline;
 import org.qcmg.snp.util.QJumperWorker.Mode;
 
 public class BAMPileupUtil {
@@ -85,7 +85,7 @@ public class BAMPileupUtil {
 					// both chars should always be upper case at this point
 					assert ! Character.isLowerCase(c);
 					if (c == mutation) {
-						Pipeline.updateAnnotation(record, SnpUtils.MUTATION_IN_UNFILTERED_NORMAL);
+						VcfUtils.updateFilter(record.getVcfRecord(), SnpUtils.MUTATION_IN_UNFILTERED_NORMAL);
 						return;
 					}
 				}
@@ -100,10 +100,10 @@ public class BAMPileupUtil {
 				if (null == record.getNormalGenotype()) {
 					record.setNormalPileup(pileup);
 					record.setNormalCount(pileup.length());
-					record.setNormalNucleotides(PileupElementUtil.getPileupElementString(PileupElementUtil.getPileupCounts(pileup, qualities), record.getRef()));
+					record.setNormalNucleotides(PileupElementUtil.getPileupElementString(PileupElementUtil.getPileupCounts(pileup, qualities), record.getRef().charAt(0)));
 				} else if (null == record.getTumourGenotype()) {
 					record.setTumourCount(pileup.length());
-					record.setTumourNucleotides(PileupElementUtil.getPileupElementString(PileupElementUtil.getPileupCounts(pileup, qualities), record.getRef()));
+					record.setTumourNucleotides(PileupElementUtil.getPileupElementString(PileupElementUtil.getPileupCounts(pileup, qualities), record.getRef().charAt(0)));
 				}
 			} 
 //			else if (Mode.QSNP_MUTATION_IN_NORMAL == mode) {

@@ -165,16 +165,6 @@ public class BuildCommonSnpsVcf {
 		}
 	}
 	
-	static VCFRecord createVcfRecord(ChrPosition cp, Integer id, char ref, String alt) {
-		VCFRecord rec = new VCFRecord();
-		rec.setChromosome(cp.getChromosome());
-		rec.setPosition(cp.getPosition());
-		rec.setRef(ref);
-		rec.setAlt(alt);
-		rec.setInfo(id.toString());
-		return rec;
-	}
-	
 	private void processDccFile(File f, Integer id) throws Exception {
 		// read in data from file.
 		try (TabbedFileReader reader = new TabbedFileReader(f);) {
@@ -185,7 +175,7 @@ public class BuildCommonSnpsVcf {
 				
 				String [] params = TabTokenizer.tokenize(rec.getData());
 				ChrPosition cp = new ChrPosition(params[4], Integer.parseInt(params[5]));
-				final char ref = params[10].charAt(0);
+				String ref = params[10];
 				String alt = getAltFromMutation(params, 13);		// can eventually change this to the last element in the file
 				
 				// check to see if this appears in the map already - if so, update patient (if not already there)
@@ -193,8 +183,8 @@ public class BuildCommonSnpsVcf {
 					VCFRecord vcfRec = snpPositions.get(cp);
 					String existingDonors = vcfRec.getInfo();
 					
-					final char existingRef = vcfRec.getRef();
-					if (ref != existingRef) {
+					String existingRef = vcfRec.getRef();
+					if ( ! ref.equals(existingRef)) {
 						logger.warn("different references found at position : " + cp.toIGVString());
 					}
 					
@@ -217,7 +207,7 @@ public class BuildCommonSnpsVcf {
 	//				}	// else do nothing
 				} else {
 					// add
-					snpPositions.put(cp, createVcfRecord(cp, id, ref, alt));
+					snpPositions.put(cp, VcfUtils.createVcfRecord(cp, id.toString(), ref, alt));
 				}
 				
 			}
@@ -234,12 +224,12 @@ public class BuildCommonSnpsVcf {
 				
 				String [] params = TabTokenizer.tokenize(rec.getData());
 				ChrPosition cp = new ChrPosition(params[4], Integer.parseInt(params[5]));
-				final char ref = params[10].charAt(0);
+				String ref = params[10];
 				final char alt1 = params[11].charAt(0);
 				final char alt2 = params[12].charAt(0);
 				String alt = ".";
-				if (alt1 == ref) alt = "" + alt2;
-				else if (alt2 == ref) alt = "" + alt1;
+				if (alt1 == ref.charAt(0)) alt = "" + alt2;
+				else if (alt2 == ref.charAt(0)) alt = "" + alt1;
 				else alt = alt1 + "," + alt2;
 				
 				// check to see if this appears in the map already - if so, update patient (if not already there)
@@ -247,7 +237,7 @@ public class BuildCommonSnpsVcf {
 					VCFRecord vcfRec = snpPositions.get(cp);
 					String existingDonors = vcfRec.getInfo();
 					
-					final char existingRef = vcfRec.getRef();
+					String existingRef = vcfRec.getRef();
 					if (ref != existingRef) {
 						logger.warn("different references found at position : " + cp.toIGVString());
 					}
@@ -271,7 +261,7 @@ public class BuildCommonSnpsVcf {
 					//				}	// else do nothing
 				} else {
 					// add
-					snpPositions.put(cp, createVcfRecord(cp, id, ref, alt));
+					snpPositions.put(cp, VcfUtils.createVcfRecord(cp, id.toString(), ref, alt));
 				}
 				
 			}

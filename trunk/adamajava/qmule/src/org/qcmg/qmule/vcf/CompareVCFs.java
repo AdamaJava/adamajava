@@ -168,9 +168,9 @@ public class CompareVCFs {
 				// need to get the genotype from the VCFRecord
 				
 				GenotypeEnum normalGenotype = VcfUtils.calculateGenotypeEnum(
-						normalVCF.getInfo().substring(0, 3), normalVCF.getRef(), normalVCF.getAlt().charAt(0));
+						normalVCF.getInfo().substring(0, 3), normalVCF.getRefChar(), normalVCF.getAlt().charAt(0));
 				GenotypeEnum tumourGenotype = VcfUtils.calculateGenotypeEnum(
-						tumourVCF.getInfo().substring(0, 3), tumourVCF.getRef(), tumourVCF.getAlt().charAt(0));
+						tumourVCF.getInfo().substring(0, 3), tumourVCF.getRefChar(), tumourVCF.getAlt().charAt(0));
 //				GenotypeEnum normalGenotype = normalVCF.getGenotypeEnum();
 //				GenotypeEnum tumourGenotype = tumourVCF.getGenotypeEnum();
 				
@@ -179,7 +179,7 @@ public class CompareVCFs {
 					if (normalGenotype == tumourGenotype)
 						++sameMutationSameGenotype;
 					else {
-						RefAndMultiGenotype ramg = new RefAndMultiGenotype(normalVCF.getRef(), normalGenotype, tumourGenotype);
+						RefAndMultiGenotype ramg = new RefAndMultiGenotype(normalVCF.getRefChar(), normalGenotype, tumourGenotype);
 						AtomicLong al = diffGenotypes.get(ramg);
 						if (null == al) {
 							al = new AtomicLong();

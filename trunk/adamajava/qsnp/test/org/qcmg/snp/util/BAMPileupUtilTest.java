@@ -9,6 +9,7 @@ import net.sf.samtools.SAMRecord;
 import org.junit.Test;
 import org.qcmg.common.model.GenotypeEnum;
 import org.qcmg.common.model.QSnpGATKRecord;
+import org.qcmg.common.model.VCFRecord;
 import org.qcmg.common.util.SnpUtils;
 import org.qcmg.pileup.QSnpRecord;
 import org.qcmg.snp.util.QJumperWorker.Mode;
@@ -101,8 +102,7 @@ public class BAMPileupUtilTest {
 		List<SAMRecord> records = new ArrayList<SAMRecord>();
 		records.add(record);
 		
-		QSnpGATKRecord vcfRecord = new QSnpGATKRecord();
-		vcfRecord.setPosition(100);
+		QSnpGATKRecord vcfRecord = new QSnpGATKRecord(new VCFRecord("chr1", 100));
 		
 		BAMPileupUtil.examinePileupVCF(records, vcfRecord);
 		
@@ -110,29 +110,25 @@ public class BAMPileupUtilTest {
 		Assert.assertEquals(1, vcfRecord.getPileup().size());
 		Assert.assertEquals('A', vcfRecord.getPileup().get(0).getBase());
 		
-		vcfRecord = new QSnpGATKRecord();
-		vcfRecord.setPosition(101);
+		vcfRecord = new QSnpGATKRecord(new VCFRecord("chr1", 101));
 		BAMPileupUtil.examinePileupVCF(records, vcfRecord);
 		Assert.assertNotNull(vcfRecord.getPileup());
 		Assert.assertEquals(1, vcfRecord.getPileup().size());
 		Assert.assertEquals('C', vcfRecord.getPileup().get(0).getBase());
 		
-		vcfRecord = new QSnpGATKRecord();
-		vcfRecord.setPosition(102);
+		vcfRecord = new QSnpGATKRecord(new VCFRecord("chr1", 102));
 		BAMPileupUtil.examinePileupVCF(records, vcfRecord);
 		Assert.assertNotNull(vcfRecord.getPileup());
 		Assert.assertEquals(1, vcfRecord.getPileup().size());
 		Assert.assertEquals('G', vcfRecord.getPileup().get(0).getBase());
 		
-		vcfRecord = new QSnpGATKRecord();
-		vcfRecord.setPosition(103);
+		vcfRecord = new QSnpGATKRecord(new VCFRecord("chr1", 103));
 		BAMPileupUtil.examinePileupVCF(records, vcfRecord);
 		Assert.assertNotNull(vcfRecord.getPileup());
 		Assert.assertEquals(1, vcfRecord.getPileup().size());
 		Assert.assertEquals('T', vcfRecord.getPileup().get(0).getBase());
 		
-		vcfRecord = new QSnpGATKRecord();
-		vcfRecord.setPosition(104);
+		vcfRecord = new QSnpGATKRecord(new VCFRecord("chr1", 104));
 		BAMPileupUtil.examinePileupVCF(records, vcfRecord);
 		Assert.assertNull(vcfRecord.getPileup());
 	}
@@ -148,8 +144,7 @@ public class BAMPileupUtilTest {
 		List<SAMRecord> records = new ArrayList<SAMRecord>();
 		records.add(record);
 		
-		QSnpGATKRecord vcfRecord = new QSnpGATKRecord();
-		vcfRecord.setPosition(100);
+		QSnpGATKRecord vcfRecord = new QSnpGATKRecord(new VCFRecord("chr1", 100));
 		
 		BAMPileupUtil.examinePileupVCF(records, vcfRecord);
 		
@@ -157,44 +152,37 @@ public class BAMPileupUtilTest {
 		Assert.assertEquals(1, vcfRecord.getPileup().size());
 		Assert.assertEquals('A', vcfRecord.getPileup().get(0).getBase());
 		
-		vcfRecord = new QSnpGATKRecord();
-		vcfRecord.setPosition(105);
+		vcfRecord = new QSnpGATKRecord(new VCFRecord("chr1", 105));
 		BAMPileupUtil.examinePileupVCF(records, vcfRecord);
 		Assert.assertNull(vcfRecord.getPileup());
 		
-		vcfRecord = new QSnpGATKRecord();
-		vcfRecord.setPosition(114);
+		vcfRecord = new QSnpGATKRecord(new VCFRecord("chr1", 114));
 		BAMPileupUtil.examinePileupVCF(records, vcfRecord);
 		Assert.assertNull(vcfRecord.getPileup());
 		
-		vcfRecord = new QSnpGATKRecord();
-		vcfRecord.setPosition(115);
+		vcfRecord = new QSnpGATKRecord(new VCFRecord("chr1", 115));
 		BAMPileupUtil.examinePileupVCF(records, vcfRecord);
 		Assert.assertNotNull(vcfRecord.getPileup());
 		Assert.assertEquals(1, vcfRecord.getPileup().size());
 		Assert.assertEquals('G', vcfRecord.getPileup().get(0).getBase());
 		Assert.assertEquals(40, vcfRecord.getPileup().get(0).getTotalQualityScore());
 		
-		vcfRecord = new QSnpGATKRecord();
-		vcfRecord.setPosition(149);
+		vcfRecord = new QSnpGATKRecord(new VCFRecord("chr1", 149));
 		BAMPileupUtil.examinePileupVCF(records, vcfRecord);
 		Assert.assertNotNull(vcfRecord.getPileup());
 		Assert.assertEquals(1, vcfRecord.getPileup().size());
 		Assert.assertEquals('T', vcfRecord.getPileup().get(0).getBase());
 		Assert.assertEquals(40, vcfRecord.getPileup().get(0).getTotalQualityScore());
 		
-		vcfRecord = new QSnpGATKRecord();
-		vcfRecord.setPosition(150);
+		vcfRecord = new QSnpGATKRecord(new VCFRecord("chr1", 150));
 		BAMPileupUtil.examinePileupVCF(records, vcfRecord);
 		Assert.assertNull(vcfRecord.getPileup());
 		
-		vcfRecord = new QSnpGATKRecord();
-		vcfRecord.setPosition(154);
+		vcfRecord = new QSnpGATKRecord(new VCFRecord("chr1", 154));
 		BAMPileupUtil.examinePileupVCF(records, vcfRecord);
 		Assert.assertNull(vcfRecord.getPileup());
 		
-		vcfRecord = new QSnpGATKRecord();
-		vcfRecord.setPosition(155);
+		vcfRecord = new QSnpGATKRecord(new VCFRecord("chr1", 155));
 		BAMPileupUtil.examinePileupVCF(records, vcfRecord);
 		Assert.assertNotNull(vcfRecord.getPileup());
 		Assert.assertEquals(1, vcfRecord.getPileup().size());
@@ -233,8 +221,7 @@ public class BAMPileupUtilTest {
 		record3.setAttribute("SM", Integer.valueOf(22));
 		records.add(record3);
 		
-		QSnpGATKRecord vcfRecord = new QSnpGATKRecord();
-		vcfRecord.setPosition(753269);
+		QSnpGATKRecord vcfRecord = new QSnpGATKRecord(new VCFRecord("chr1", 753269));
 		
 		BAMPileupUtil.examinePileupVCF(records, vcfRecord);
 		
@@ -274,21 +261,21 @@ public class BAMPileupUtilTest {
 		List<SAMRecord> records = new ArrayList<SAMRecord>();
 		records.add(record);
 		
-		QSnpRecord qsnpRecord = new QSnpRecord();
+		QSnpRecord qsnpRecord = new QSnpRecord("chr1", 100, "A");
 		qsnpRecord.setMutation("A>G");
 		Mode mode = Mode.QSNP_MUTATION_IN_NORMAL;
-		qsnpRecord.setPosition(100);
 		
 		BAMPileupUtil.examinePileupSNP(records, qsnpRecord, mode);
 		Assert.assertNull(qsnpRecord.getAnnotation());
 		
-		qsnpRecord.setPosition(102);
+		qsnpRecord = new QSnpRecord("chr1", 102, "A");
+		qsnpRecord.setMutation("A>G");
 		
 		BAMPileupUtil.examinePileupSNP(records, qsnpRecord, mode);
 		Assert.assertEquals(SnpUtils.MUTATION_IN_UNFILTERED_NORMAL, qsnpRecord.getAnnotation());
 		
 		qsnpRecord.setMutation("G>T");
-		qsnpRecord.setAnnotation(null);
+		qsnpRecord.getVcfRecord().setFilter(null);
 		
 		BAMPileupUtil.examinePileupSNP(records, qsnpRecord, mode);
 		Assert.assertNull(qsnpRecord.getAnnotation());
@@ -311,32 +298,27 @@ public class BAMPileupUtilTest {
 		records.add(record);
 		records.add(record2);
 		
-		QSnpRecord qsnpRecord = new QSnpRecord();
+		QSnpRecord qsnpRecord = new QSnpRecord("chr1", 100, "C");
 		// set either the N or T genotype
 		qsnpRecord.setNormalGenotype(GenotypeEnum.AA);
-		qsnpRecord.setRef('C');
 		Mode mode = Mode.QSNP;
-		qsnpRecord.setPosition(100);
 		
 		BAMPileupUtil.examinePileupSNP(records, qsnpRecord, mode);
 		Assert.assertNull(qsnpRecord.getAnnotation());
 		Assert.assertEquals(1, qsnpRecord.getTumourCount());
 		Assert.assertEquals("A:1[40],0[0]", qsnpRecord.getTumourNucleotides());
 		
-		qsnpRecord.setTumourCount(0);
-		qsnpRecord.setTumourNucleotides(null);
-		qsnpRecord.setPosition(102);
+		qsnpRecord = new QSnpRecord("chr1", 102, "C");
+		qsnpRecord.setNormalGenotype(GenotypeEnum.AA);
 		
 		BAMPileupUtil.examinePileupSNP(records, qsnpRecord, mode);
 		Assert.assertNull(qsnpRecord.getAnnotation());
 		Assert.assertEquals(2, qsnpRecord.getTumourCount());
 		Assert.assertEquals("A:1[40],0[0],G:1[40],0[0]", qsnpRecord.getTumourNucleotides());
 		
-		qsnpRecord = new QSnpRecord();
+		qsnpRecord = new QSnpRecord("chr1", 100, "C");
 		// set either the N or T genotype
 		qsnpRecord.setTumourGenotype(GenotypeEnum.AA);
-		qsnpRecord.setRef('C');
-		qsnpRecord.setPosition(100);
 		
 		BAMPileupUtil.examinePileupSNP(records, qsnpRecord, mode);
 		Assert.assertNull(qsnpRecord.getAnnotation());
@@ -344,9 +326,7 @@ public class BAMPileupUtilTest {
 		Assert.assertEquals("A", qsnpRecord.getNormalPileup());
 		Assert.assertEquals("A:1[40],0[0]", qsnpRecord.getNormalNucleotides());
 		
-		qsnpRecord.setNormalCount(0);
-		qsnpRecord.setNormalNucleotides(null);
-		qsnpRecord.setPosition(102);
+		qsnpRecord = new QSnpRecord("chr1", 102, "A");
 		
 		BAMPileupUtil.examinePileupSNP(records, qsnpRecord, mode);
 		Assert.assertNull(qsnpRecord.getAnnotation());

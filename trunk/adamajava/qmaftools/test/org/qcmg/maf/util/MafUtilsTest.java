@@ -193,19 +193,19 @@ public class MafUtilsTest {
 		maf.setRef("A");
 		maf.setTumourAllele1("A");
 		maf.setTumourAllele2("B");
-		assertEquals('B', MafUtils.getVariant(maf));
+		assertEquals("B", MafUtils.getVariant(maf));
 		maf.setRef("B");
 		maf.setTumourAllele1("A");
 		maf.setTumourAllele2("B");
-		assertEquals('A', MafUtils.getVariant(maf));
+		assertEquals("A", MafUtils.getVariant(maf));
 		maf.setRef("BBC");
 		maf.setTumourAllele1("ABC");
 		maf.setTumourAllele2("BBC");
-		assertEquals('A', MafUtils.getVariant(maf));
+		assertEquals("ABC", MafUtils.getVariant(maf));
 		maf.setRef("BBC-");
 		maf.setTumourAllele1("AB-C");
 		maf.setTumourAllele2("BBC");
-		assertEquals('A', MafUtils.getVariant(maf));
+		assertEquals("AB-C", MafUtils.getVariant(maf));
 	}
 	@Test
 	public void testGetVariantGermline() {
@@ -215,26 +215,26 @@ public class MafUtilsTest {
 		maf.setTumourAllele1("A");
 		maf.setTumourAllele2("B");
 		try {
-			assertEquals('B', MafUtils.getVariant(maf));
+			assertEquals("B", MafUtils.getVariant(maf));
 			Assert.fail("SHould have thrown an exception");
 		} catch (Exception e) {}
 		
 		maf.setNormalAllele1("A");
 		maf.setNormalAllele2("B");
-		assertEquals('B', MafUtils.getVariant(maf));
+		assertEquals("B", MafUtils.getVariant(maf));
 		
 		maf.setRef("B");
 		maf.setNormalAllele1("A");
 		maf.setNormalAllele2("B");
-		assertEquals('A', MafUtils.getVariant(maf));
+		assertEquals("A", MafUtils.getVariant(maf));
 		maf.setRef("BBC");
 		maf.setNormalAllele1("ABC");
 		maf.setNormalAllele2("BBC");
-		assertEquals('A', MafUtils.getVariant(maf));
+		assertEquals("ABC", MafUtils.getVariant(maf));
 		maf.setRef("BBC-");
 		maf.setNormalAllele1("AB-C");
 		maf.setNormalAllele2("BBC");
-		assertEquals('A', MafUtils.getVariant(maf));
+		assertEquals("AB-C", MafUtils.getVariant(maf));
 	}
 	
 	@Test
@@ -492,7 +492,7 @@ public class MafUtilsTest {
 		
 		// high conf filter
 //		String variant = maf.getRef().equals(maf.getTumourAllele1()) ? maf.getTumourAllele2() : maf.getTumourAllele1();
-		char alt = MafUtils.getVariant(maf);
+		char alt = MafUtils.getVariant(maf).charAt(0);
 		assertEquals(true, MafUtils.passesHighConfidenceFilter(maf.getFlag(), maf.getVariantType(), maf.getTd(), true , alt));
 		
 		// low conf filter
@@ -523,7 +523,7 @@ public class MafUtilsTest {
 		
 		// high conf filter
 //		String variant = maf.getRef().equals(maf.getTumourAllele1()) ? maf.getTumourAllele2() : maf.getTumourAllele1();
-		char alt = MafUtils.getVariant(maf);
+		char alt = MafUtils.getVariant(maf).charAt(0);
 		assertEquals(true, MafUtils.passesHighConfidenceFilter(maf.getFlag(), maf.getVariantType(), maf.getTd(), true , alt));
 		
 		// low conf filter
@@ -579,7 +579,7 @@ public class MafUtilsTest {
 		
 		// high conf filter
 //		String variant = maf.getRef().equals(maf.getTumourAllele1()) ? maf.getTumourAllele2() : maf.getTumourAllele1();
-		char alt = MafUtils.getVariant(maf);
+		char alt = MafUtils.getVariant(maf).charAt(0);
 		assertEquals(true, MafUtils.passesHighConfidenceFilter(maf.getFlag(), maf.getVariantType(), maf.getTd(), true , alt));
 		
 		// low conf filter
@@ -603,7 +603,7 @@ public class MafUtilsTest {
 		maf.setMafType(MafType.SNV_SOMATIC);
 		// high conf filter
 //		variant = maf.getRef().equals(maf.getTumourAllele1()) ? maf.getTumourAllele2() : maf.getTumourAllele1();
-		alt = MafUtils.getVariant(maf);
+		alt = MafUtils.getVariant(maf).charAt(0);
 		assertEquals(true, MafUtils.passesHighConfidenceFilter(maf.getFlag(), maf.getVariantType(), maf.getTd(), true , alt));
 		
 		// low conf filter

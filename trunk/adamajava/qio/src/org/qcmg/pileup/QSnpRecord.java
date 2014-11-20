@@ -3,22 +3,24 @@
  */
 package org.qcmg.pileup;
 
+import static org.qcmg.common.util.Constants.TAB;
+
+import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.GenotypeEnum;
+import org.qcmg.common.model.VCFRecord;
 import org.qcmg.common.string.StringUtils;
+import org.qcmg.common.vcf.VcfUtils;
 
 public class QSnpRecord {
 	public enum Classification{
-		SOMATIC, GERMLINE
+		SOMATIC, GERMLINE, UNKNOWN
 	}
-
-	private static final char TAB = '\t';
-	private static final char SC = ';';
 	
 	private int id;
-	private String chromosome;
-	private int position;
-	private char ref;
-	private char alt;
+	private final VCFRecord vcf;
+//	private final ChrPosition chrPos;
+//	private char ref;
+//	private char alt;
 	private String pileup;
 	private GenotypeEnum normalGenotype;
 	private GenotypeEnum tumourGenotype;
@@ -27,48 +29,55 @@ public class QSnpRecord {
 	private int normalNovelStartCount;
 	private int tumourNovelStartCount;
 	private Classification classification;
-	private String annotation;
+//	private String annotation;
 	private String note;
 	private String mutation;
 	private String normalPileup;
 	private String unfilteredNormalPileup;
-	private String dbSnpId;
-	private char dbSnpStrand;
-	private int dbSnpAltLength;
-	private GenotypeEnum dbSnpGenotype;
-	private GenotypeEnum illuminaNormalGenotype;
-	private GenotypeEnum illuminaTumourGenotype;
-	
+//	private String dbSnpId;
+//	private char dbSnpStrand;
+//	private int dbSnpAltLength;
+//	private GenotypeEnum dbSnpGenotype;
+//	private GenotypeEnum illuminaNormalGenotype;
+//	private GenotypeEnum illuminaTumourGenotype;
 	private Double probablility;
-	
 	private String normalNucleotides;
 	private String tumourNucleotides;
-	
 	private String flankingSequence;
 	
-	public char getRef() {
-		return ref;
+	public QSnpRecord(VCFRecord vcf) {
+		this.vcf = vcf;
 	}
-	public void setRef(char ref) {
-		this.ref = ref;
+	
+	public QSnpRecord(String chr, int position, String ref) {
+		this(chr, position, ref, null);
 	}
-	public char getAlt() {
-		return alt;
+	public QSnpRecord(String chr, int position, String ref, String alt) {
+		int length = StringUtils.isNullOrEmpty(ref) ? 1 : ref.length();
+		vcf = VcfUtils.createVcfRecord(new ChrPosition(chr, position, (position + length) -1), null, ref, alt);
 	}
-	public void setAlt(char alt) {
-		this.alt = alt;
+	
+	public ChrPosition getChrPos() {
+		return vcf.getChrPosition();
 	}
+	
+	public String getRef() {
+		return vcf.getRef();
+	}
+//	public void setRef(char ref) {
+//		this.ref = ref;
+//	}
+	public String getAlt() {
+		return vcf.getAlt();
+	}
+//	public void setAlt(char alt) {
+//		this.alt = alt;
+//	}
 	public String getChromosome() {
-		return chromosome;
-	}
-	public void setChromosome(String chromosome) {
-		this.chromosome = chromosome;
+		return vcf.getChromosome();
 	}
 	public int getPosition() {
-		return position;
-	}
-	public void setPosition(int position) {
-		this.position = position;
+		return vcf.getPosition();
 	}
 	public String getPileup() {
 		return pileup;
@@ -107,28 +116,17 @@ public class QSnpRecord {
 		return tumourCount;
 	}
 	
-	public void setAnnotation(String annotation) {
-		this.annotation = annotation;
-	}
-	public void addAnnotation(String annotation) {
-		if (StringUtils.isNullOrEmpty(this.annotation))
-			this.annotation = annotation;
-		else if ( ! this.annotation.contains(annotation))
-			this.annotation += SC + annotation;
-	}
-	public void removeAnnotation(String annotation) {
-		if (null != this.annotation && this.annotation.contains(annotation)) {
-			if (this.annotation.equals(annotation)) {
-				this.annotation = null;
-			} else if (this.annotation.startsWith(annotation)) {	// need to remove semi-colon along with annotation
-				this.annotation = this.annotation.replace(annotation + SC, "");
-			} else {
-				this.annotation = this.annotation.replace(SC + annotation, "");
-			}
-		}
-	}
+//	public void setAnnotation(String annotation) {
+//		this.annotation = annotation;
+//	}
+//	public void addAnnotation(String newAnnotation) {
+//		this.annotation = StringUtils.addToString(annotation, newAnnotation, SC);
+//	}
+//	public void removeAnnotation(String annotationToRemove) {
+//		this.annotation = StringUtils.removeFromString(this.annotation, annotationToRemove, SC);
+//	}
 	public String getAnnotation() {
-		return annotation;
+		return vcf.getFilter();
 	}
 	public void setMutation(String mutation) {
 		this.mutation = mutation;
@@ -143,24 +141,24 @@ public class QSnpRecord {
 	public String getNormalPileup() {
 		return normalPileup;
 	}
-	public void setDbSnpId(String dbSnpId) {
-		this.dbSnpId = dbSnpId;
-	}
-	public String getDbSnpId() {
-		return dbSnpId;
-	}
-	public void setDbSnpStrand(char dbSnpStrand) {
-		this.dbSnpStrand = dbSnpStrand;
-	}
-	public char getDbSnpStrand() {
-		return dbSnpStrand;
-	}
-	public void setDbSnpGenotype(GenotypeEnum dbSnpGenotype) {
-		this.dbSnpGenotype = dbSnpGenotype;
-	}
-	public GenotypeEnum getDbSnpGenotype() {
-		return dbSnpGenotype;
-	}
+//	public void setDbSnpId(String dbSnpId) {
+//		this.dbSnpId = dbSnpId;
+//	}
+//	public String getDbSnpId() {
+//		return dbSnpId;
+//	}
+//	public void setDbSnpStrand(char dbSnpStrand) {
+//		this.dbSnpStrand = dbSnpStrand;
+//	}
+//	public char getDbSnpStrand() {
+//		return dbSnpStrand;
+//	}
+//	public void setDbSnpGenotype(GenotypeEnum dbSnpGenotype) {
+//		this.dbSnpGenotype = dbSnpGenotype;
+//	}
+//	public GenotypeEnum getDbSnpGenotype() {
+//		return dbSnpGenotype;
+//	}
 	
 	public String getFormattedString() {
 		return pileup + TAB
@@ -168,22 +166,22 @@ public class QSnpRecord {
 		+ (null != tumourGenotype ? tumourGenotype.getDisplayString() : "") + TAB 
 		+ classification + TAB
 		+ (null != mutation ? mutation : "") + TAB
-		+ (null != annotation ? annotation : "") + TAB
-		+ (null != note ? note : "") + TAB
-		+ (null != dbSnpId ? dbSnpId : "--") + TAB
-		+ (null != dbSnpGenotype ? dbSnpGenotype.getDisplayString() : "-888") + TAB
-		+ (('+' == dbSnpStrand ? "1" : ('-' == dbSnpStrand? "-1" : "-888"))) + TAB
-		+ getStatus()  + TAB
-		+ (null != illuminaNormalGenotype ? illuminaNormalGenotype.getDisplayString() : "") + TAB
-		+ (null != illuminaTumourGenotype ? illuminaTumourGenotype.getDisplayString() : "") + TAB
-		+ getValidStatus() + TAB
-		+ getValidPlatform();
+		+ (StringUtils.isNullOrEmpty(vcf.getFilter()) ? "" : vcf.getFilter()) + TAB
+		+ (null != note ? note : "") + TAB;
+//		+ (null != dbSnpId ? dbSnpId : "--") + TAB
+//		+ (null != dbSnpGenotype ? dbSnpGenotype.getDisplayString() : "-888") + TAB
+//		+ (('+' == dbSnpStrand ? "1" : ('-' == dbSnpStrand? "-1" : "-888"))) + TAB
+//		+ getStatus()  + TAB
+//		+ (null != illuminaNormalGenotype ? illuminaNormalGenotype.getDisplayString() : "") + TAB
+//		+ (null != illuminaTumourGenotype ? illuminaTumourGenotype.getDisplayString() : "") + TAB
+//		+ getValidStatus() + TAB
+//		+ getValidPlatform();
 	}
 	
 	public String getGATKFormattedString() {
-		return chromosome + TAB
-		+ position + TAB
-		+ ref + TAB
+		return vcf.getChromosome() + TAB
+		+ vcf.getPosition() + TAB
+		+ vcf.getRef() + TAB
 //		+ (null != normalPileup ? normalPileup : "--") + TAB
 //		+ normalCount+ TAB
 //		+ tumourCount+ TAB
@@ -191,16 +189,16 @@ public class QSnpRecord {
 		+ (null != tumourGenotype ? tumourGenotype.getDisplayString() : "") + TAB 
 		+ classification + TAB
 		+ (null != mutation ? mutation : "") + TAB
-		+ (null != annotation ? annotation : "") + TAB
+		+ (StringUtils.isNullOrEmpty(vcf.getFilter()) ? "" : vcf.getFilter()) + TAB
 		+ (null != note ? note : "") + TAB
-		+ (null != dbSnpId ? dbSnpId : "--") + TAB
-		+ (null != dbSnpGenotype ? dbSnpGenotype.getDisplayString() : "-888") + TAB
-		+ (('+' == dbSnpStrand ? "1" : ('-' == dbSnpStrand? "-1" : "-888"))) + TAB
-		+ getStatus()  + TAB
-		+ (null != illuminaNormalGenotype ? illuminaNormalGenotype.getDisplayString() : "") + TAB
-		+ (null != illuminaTumourGenotype ? illuminaTumourGenotype.getDisplayString() : "") + TAB
-		+ getValidStatus() + TAB
-		+ getValidPlatform() + TAB
+//		+ (null != dbSnpId ? dbSnpId : "--") + TAB
+//		+ (null != dbSnpGenotype ? dbSnpGenotype.getDisplayString() : "-888") + TAB
+//		+ (('+' == dbSnpStrand ? "1" : ('-' == dbSnpStrand? "-1" : "-888"))) + TAB
+//		+ getStatus()  + TAB
+//		+ (null != illuminaNormalGenotype ? illuminaNormalGenotype.getDisplayString() : "") + TAB
+//		+ (null != illuminaTumourGenotype ? illuminaTumourGenotype.getDisplayString() : "") + TAB
+//		+ getValidStatus() + TAB
+//		+ getValidPlatform() + TAB
 		+ (StringUtils.isNullOrEmpty(normalNucleotides) ? "--" : normalNucleotides) + TAB	 
 		+ (StringUtils.isNullOrEmpty(tumourNucleotides) ? "--" : tumourNucleotides);
 	}
@@ -210,26 +208,27 @@ public class QSnpRecord {
 		sb.append(mutationIdPrefix + id).append(TAB);
 		sb.append("1").append(TAB);
 		sb.append(chr).append(TAB);
-		sb.append(position).append(TAB);
-		sb.append(position).append(TAB);
+		sb.append( vcf.getPosition()).append(TAB);
+		sb.append( vcf.getPosition()).append(TAB);
 		sb.append(1).append(TAB);
-		sb.append(null != dbSnpGenotype ? dbSnpGenotype.getDisplayString() : "-888").append(TAB);
-		sb.append(('+' == dbSnpStrand ? "1" : ('-' == dbSnpStrand? "-1" : "-888"))).append(TAB);
-		sb.append(ref).append(TAB);
+//		sb.append(null != dbSnpGenotype ? dbSnpGenotype.getDisplayString() : "-888").append(TAB);
+//		sb.append(('+' == dbSnpStrand ? "1" : ('-' == dbSnpStrand? "-1" : "-888"))).append(TAB);
+		sb.append(vcf.getRef()).append(TAB);
 		sb.append(null != normalGenotype ? normalGenotype.getDisplayString() : "--").append(TAB);
 		sb.append(null != tumourGenotype ? tumourGenotype.getDisplayString() : "--").append(TAB);
-		if (Classification.SOMATIC == classification)
+		if (Classification.GERMLINE != classification) {
 			sb.append(null != mutation ? mutation : "").append(TAB);
+		}
 		sb.append("-999").append(TAB);		// expressed_allele
 		sb.append("-999").append(TAB);		// quality_score
 		sb.append(null != probablility ? probablility.toString() : "-999").append(TAB);	// probability
-		sb.append(Classification.SOMATIC == classification ? tumourCount : normalCount).append(TAB);
-		sb.append(getStatus()).append(TAB);
-		sb.append(getValidStatus()).append(TAB);
-		sb.append(getValidPlatform()).append(TAB);
-		sb.append(getXRef()).append(TAB);
+		sb.append(Classification.GERMLINE != classification ? tumourCount : normalCount).append(TAB);
+//		sb.append(getStatus()).append(TAB);
+//		sb.append(getValidStatus()).append(TAB);
+//		sb.append(getValidPlatform()).append(TAB);
+//		sb.append(getXRef()).append(TAB);
 		sb.append(null != note ? note : "-999").append(TAB);
-		sb.append(null != annotation ? annotation : "--").append(TAB);
+		sb.append(StringUtils.isNullOrEmpty(vcf.getFilter()) ? "--" : vcf.getFilter()).append(TAB);
 		sb.append(StringUtils.isNullOrEmpty(normalNucleotides) ? "--" : normalNucleotides).append(TAB);
 		sb.append(StringUtils.isNullOrEmpty(tumourNucleotides) ? "--" : tumourNucleotides);
 		
@@ -252,56 +251,56 @@ public class QSnpRecord {
 		//tumour sample id
 		//mutation id
 		// chromosome
-		return  position + TAB
-		+ position + TAB
+		return   vcf.getPosition() + TAB
+		+  vcf.getPosition() + TAB
 		+ 1 + TAB	// strand - always set to 1 ???
-		+  (null != dbSnpGenotype ? dbSnpGenotype.getDisplayString() : "-888") + TAB
-		+ (('+' == dbSnpStrand ? "1" : ('-' == dbSnpStrand? "-1" : "-888"))) + TAB
-		+ ref + TAB
+//		+  (null != dbSnpGenotype ? dbSnpGenotype.getDisplayString() : "-888") + TAB
+//		+ (('+' == dbSnpStrand ? "1" : ('-' == dbSnpStrand? "-1" : "-888"))) + TAB
+		+ vcf.getRef() + TAB
 		+ (null != normalGenotype ? normalGenotype.getDisplayString() : "") + TAB
 		+ (null != tumourGenotype ? tumourGenotype.getDisplayString() : "") + TAB
 		+ "-999\t"		// quality_score
 		+ "-999\t"		// probability
-		+ (normalCount + tumourCount) + TAB	// read count 
-		+ getStatus() + TAB		// annotation status
-		+ getValidStatus() + TAB	// validation status
-		+ getValidPlatform() + TAB	// validation platform
-		+ getXRef() + TAB
-		+ (null != note ? note : "-999");
+		+ (normalCount + tumourCount) + TAB;	// read count 
+//		+ getStatus() + TAB		// annotation status
+//		+ getValidStatus() + TAB	// validation status
+//		+ getValidPlatform() + TAB	// validation platform
+//		+ getXRef() + TAB
+//		+ (null != note ? note : "-999");
 	}
 	
 	
-	public void setIlluminaNormalGenotype(GenotypeEnum illuminaNormalGenotype) {
-		this.illuminaNormalGenotype = illuminaNormalGenotype;
-	}
-	public GenotypeEnum getIlluminaNormalGenotype() {
-		return illuminaNormalGenotype;
-	}
-	public void setIlluminaTumourGenotype(GenotypeEnum illuminaTumourGenotype) {
-		this.illuminaTumourGenotype = illuminaTumourGenotype;
-	}
-	public GenotypeEnum getIlluminaTumourGenotype() {
-		return illuminaTumourGenotype;
-	}
+//	public void setIlluminaNormalGenotype(GenotypeEnum illuminaNormalGenotype) {
+//		this.illuminaNormalGenotype = illuminaNormalGenotype;
+//	}
+//	public GenotypeEnum getIlluminaNormalGenotype() {
+//		return illuminaNormalGenotype;
+//	}
+//	public void setIlluminaTumourGenotype(GenotypeEnum illuminaTumourGenotype) {
+//		this.illuminaTumourGenotype = illuminaTumourGenotype;
+//	}
+//	public GenotypeEnum getIlluminaTumourGenotype() {
+//		return illuminaTumourGenotype;
+//	}
 	
-	public String getXRef() {
-		return 1 == getStatus() ? dbSnpId : "-999";
-	}
-	public int getStatus() {
-		return null != dbSnpId ? 1 : 2;
-	}
-	public int getValidStatus() {
-		if (null == illuminaNormalGenotype || null == illuminaTumourGenotype)
-			return 2;	//not tested
-		if ( illuminaNormalGenotype == illuminaTumourGenotype)
-			return 1;	//validated
-		else return 3;	//not valid
-	}
-	public int getValidPlatform() {
-		if (null == illuminaNormalGenotype || null == illuminaTumourGenotype)
-			return -888;
-		else return 48;
-	}
+//	public String getXRef() {
+//		return 1 == getStatus() ? dbSnpId : "-999";
+//	}
+//	public int getStatus() {
+//		return null != dbSnpId ? 1 : 2;
+//	}
+//	public int getValidStatus() {
+//		if (null == illuminaNormalGenotype || null == illuminaTumourGenotype)
+//			return 2;	//not tested
+//		if ( illuminaNormalGenotype == illuminaTumourGenotype)
+//			return 1;	//validated
+//		else return 3;	//not valid
+//	}
+//	public int getValidPlatform() {
+//		if (null == illuminaNormalGenotype || null == illuminaTumourGenotype)
+//			return -888;
+//		else return 48;
+//	}
 	public void setNote(String note) {
 		this.note = note;
 	}
@@ -332,14 +331,14 @@ public class QSnpRecord {
 	public String getUnfilteredNormalPileup() {
 		return unfilteredNormalPileup;
 	}
-	public void setDbSnpAltLength(int dbSnpAltLength) {
-		this.dbSnpAltLength = dbSnpAltLength;
-	}
-	public int getDbSnpAltLength() {
-		return dbSnpAltLength;
-	}
+//	public void setDbSnpAltLength(int dbSnpAltLength) {
+//		this.dbSnpAltLength = dbSnpAltLength;
+//	}
+//	public int getDbSnpAltLength() {
+//		return dbSnpAltLength;
+//	}
 	public int getNovelStartCount() {
-		return Classification.SOMATIC == classification ? tumourNovelStartCount : normalNovelStartCount;
+		return Classification.GERMLINE != classification ? tumourNovelStartCount : normalNovelStartCount;
 	}
 	public void setNormalNovelStartCount(int normalNovelStartCount) {
 		this.normalNovelStartCount = normalNovelStartCount;
@@ -364,5 +363,9 @@ public class QSnpRecord {
 	}
 	public void setProbability(double probability) {
 		this.probablility = Double.valueOf(probability);
+	}
+
+	public VCFRecord getVcfRecord() {
+		return vcf;
 	}
 }

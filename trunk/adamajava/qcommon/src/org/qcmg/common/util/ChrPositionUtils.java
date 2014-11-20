@@ -83,4 +83,28 @@ public class ChrPositionUtils {
 		}
 		return chrPositions;
 	}
+	
+	/**
+	 * Returns true if the two supplied chrpos objects are on the same chromosome and are adjacent
+	 * that is, the end position of 1 is next to the start position of the other
+	 * 
+	 * if they overlap, return false
+	 * 
+	 * @param cp1
+	 * @param cp2
+	 * @return
+	 */
+	public static boolean areAdjacent(ChrPosition cp1, ChrPosition cp2) {
+		// need to be on the same chromosome
+		if (cp1.getChromosome().equals(cp2.getChromosome())) {
+			
+			if (cp1.getPosition() == cp2.getEndPosition() + 1) {
+				return true;
+			}
+			if (cp1.getEndPosition() == cp2.getPosition() - 1) {
+				return true;
+			}
+		}
+		return false;
+	}
 }

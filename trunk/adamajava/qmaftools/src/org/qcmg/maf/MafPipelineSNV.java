@@ -168,7 +168,7 @@ public class MafPipelineSNV extends MafPipelineNew {
 					int goodReadCutoff = NO_OF_GOOD_READS * 2;
 					
 					// get alt, and then get positions that have the alt at our POI
-					 char alt = MafUtils.getVariant(maf);
+					 char alt = MafUtils.getVariant(maf).charAt(0);
 					 boolean forwardStrand = false;
 					 boolean reverseStrand = false;
 					 
