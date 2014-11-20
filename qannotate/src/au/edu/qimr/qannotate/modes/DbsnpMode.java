@@ -1,19 +1,14 @@
 package au.edu.qimr.qannotate.modes;
 
 import java.io.File;
-import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collections;
+
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
+
 import java.util.Map;
 
 import org.qcmg.common.log.QLogger;
-import org.qcmg.common.meta.QExec;
+
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.VCFRecord;
 import org.qcmg.common.string.StringUtils;
@@ -21,11 +16,10 @@ import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfHeaderUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
-import org.qcmg.common.vcf.*;
-import org.qcmg.vcf.*;
-import org.qcmg.vcf.VCFFileWriter;
+import org.qcmg.vcf.VCFFileReader;
 
-import au.edu.qimr.qannotate.Main;
+
+
 import au.edu.qimr.qannotate.options.DbsnpOptions;
 
 
