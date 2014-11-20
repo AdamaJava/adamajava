@@ -37,7 +37,7 @@ public class Main {
 	               else if(options.getOption().getMode() == Options.MODE.snpEff)
 	            	    new SnpEffMode( (SnpEffOptions) options.getOption(), logger );
 	            	    //new SnpEffMode( (SnpEffOptions) options.getOption());
-	               else if(options.getOption().getMode() == Options.MODE.confidence)
+	               else if(options.getOption().getMode() == Options.MODE.confident)
 	            	    new ConfidenceMode( (ConfidenceOptions) options.getOption(), logger );
 	               else
 	            	   throw new Exception("No valid mode are specified on commandline: " + options.getMode().name()) ;
