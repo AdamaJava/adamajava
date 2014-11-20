@@ -5,10 +5,12 @@ package org.qcmg.vcf;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.qcmg.common.model.VCFRecord;
 import org.qcmg.common.util.TabTokenizer;
+import org.qcmg.common.vcf.header.*;
 
 public final class VCFSerializer {
 //	private static final Pattern tabbedPattern = Pattern.compile("[\\t]+");
@@ -23,14 +25,14 @@ public final class VCFSerializer {
 		return line;
 	}
 	
-	public static VCFHeader readHeader(final BufferedReader reader) throws Exception {
-		Vector<String> headerLines = new Vector<String>();
+	public static VcfHeader readHeader(final BufferedReader reader) throws Exception {
+		List<String> headerLines = new ArrayList<String>();
 		String line = reader.readLine();
 		while (null != line && line.startsWith("#")) {
 			headerLines.add(line);
 			line = reader.readLine();
 		}
-		return new VCFHeader(headerLines);
+		return new VcfHeader(headerLines);
 	}
 
 	public static VCFRecord nextRecord(final BufferedReader reader)
@@ -66,17 +68,4 @@ public final class VCFSerializer {
 		return result;
 	}
 	
-//	private static void calculateGenotypeEnum(VCFRecord record) {
-//		String genotypeString = record.getGenotype().substring(0, 3);
-//		
-//		if ("0/1".equals(genotypeString)) {
-//			record.setGenotypeEnum(GenotypeEnum.getGenotypeEnum(record.getRef(), record.getAlt().charAt(0)));
-//		} else if ("1/1".equals(genotypeString)) {
-//			record.setGenotypeEnum(GenotypeEnum.getGenotypeEnum(record.getAlt().charAt(0), record.getAlt().charAt(0)));
-//		} else if ("0/0".equals(genotypeString)) {
-//			record.setGenotypeEnum(GenotypeEnum.getGenotypeEnum(record.getRef(), record.getRef()));
-//		} else {
-//			System.out.println("unhandled genotype string: " + genotypeString);
-//		}
-//	}
 }
