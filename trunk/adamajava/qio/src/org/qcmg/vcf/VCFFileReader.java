@@ -15,16 +15,17 @@ import java.util.zip.GZIPInputStream;
 
 import org.qcmg.common.model.VCFRecord;
 import org.qcmg.common.util.FileUtils;
+import org.qcmg.common.vcf.header.VcfHeader;;
+
 
 public final class VCFFileReader implements Closeable, Iterable<VCFRecord> {
     private final File file;
     private final InputStream inputStream;
-    private VCFHeader header;
+    private VcfHeader header;
 
     public VCFFileReader(final File file) throws Exception {
         this.file = file;
-        
-        
+               
         if (FileUtils.isFileGZip(file)) {
 	        	GZIPInputStream gzis = new GZIPInputStream(new FileInputStream(file));
 	        try {
@@ -56,6 +57,10 @@ public final class VCFFileReader implements Closeable, Iterable<VCFRecord> {
         
     }
 
+    public VCFFileReader(final String file) throws Exception {
+    	this(new File(file));
+    }
+    
     public Iterator<VCFRecord> iterator() {
         return getRecordIterator();
     }
@@ -71,7 +76,7 @@ public final class VCFFileReader implements Closeable, Iterable<VCFRecord> {
         return file;
     }
 
-	public VCFHeader getHeader() {
+	public VcfHeader getHeader() {
 		return header;
 	}
 }
