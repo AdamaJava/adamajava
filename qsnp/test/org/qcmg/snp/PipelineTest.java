@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -472,7 +473,7 @@ public class PipelineTest {
 		assertEquals("rs34528299", tp.positionRecordMap.get(cp).getDbSnpId());
 	}
 	
-	@Test
+	@Ignore
 	public void testAddGermlineDBData() throws Exception {
 		String chr = "chr1";
 		int position = 10234;
