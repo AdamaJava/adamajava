@@ -42,7 +42,6 @@ public class SnpUtils {
 	
 	
 	public static final String INDEL_SATELLITE = "Satellite";	
-//	public static final String INDEL_SATELLITE = "Satellite/telo::";	
 	public static final String INDEL_SIMPLE_REPEAT = "Simple_repeat::";	
 	public static final String INDEL_LOW_COMPLEXITY = "Low_complexity::";	
 	public static final String INDEL_HOM_ADJ = "HOMADJ_";	
