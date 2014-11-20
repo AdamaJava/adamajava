@@ -5,6 +5,9 @@ package org.qcmg.common.util;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Queue;
 
 import org.qcmg.common.model.Accumulator;
 import org.qcmg.common.model.PileupElementLite;
@@ -132,6 +135,39 @@ public class PileupElementLiteUtil {
 		double reverseQual = reverseCount == 0 ? 0.0 : (double)pel.getTotalReverseQualityScore() / reverseCount; 
 		sb.append(nf.format(reverseQual));
 		sb.append("]");
+		return sb.toString();
+	}
+	
+	public static String getBaseAndReadIds(final PileupElementLite pel, final String base) {
+		
+		StringBuilder sb = new StringBuilder(base);
+		sb.append(":");
+		
+		List<Long> forwardReadIds = null;
+		List<Long> reverseReadIds = null;
+		
+		Queue<Long> ids = pel.getForwardReadIds();
+		if (null != ids) {
+			forwardReadIds = new ArrayList<>(ids);
+		}
+		ids = pel.getReverseReadIds();
+		if (null != ids) {
+			reverseReadIds = new ArrayList<>(ids);
+		}
+		
+		if (null != forwardReadIds) {
+			for (Long s : forwardReadIds) {
+				sb.append(s).append(',');
+			}
+		}
+		sb.append('-');
+		
+		if (null != reverseReadIds) {
+			for (Long s : reverseReadIds) {
+				sb.append(s).append(',');
+			}
+		}
+		
 		return sb.toString();
 	}
 }

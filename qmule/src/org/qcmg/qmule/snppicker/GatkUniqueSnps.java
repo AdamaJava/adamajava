@@ -10,8 +10,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Map.Entry;
+import java.util.Properties;
 
 import net.sf.samtools.SAMRecord;
 
@@ -24,7 +24,9 @@ import org.qcmg.common.model.GenotypeEnum;
 import org.qcmg.common.model.QSnpGATKRecord;
 import org.qcmg.common.model.VCFRecord;
 import org.qcmg.common.util.BaseUtils;
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.FileUtils;
+import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.germlinedb.GermlineDBFileReader;
 import org.qcmg.germlinedb.GermlineDBRecord;
 import org.qcmg.picard.QJumper;
@@ -32,8 +34,8 @@ import org.qcmg.pileup.QSnpRecord;
 import org.qcmg.pileup.QSnpRecord.Classification;
 import org.qcmg.qmule.Messages;
 import org.qcmg.qmule.Options;
-import org.qcmg.qmule.QMuleException;
 import org.qcmg.qmule.Options.Ids;
+import org.qcmg.qmule.QMuleException;
 import org.qcmg.vcf.VCFFileReader;
 
 public class GatkUniqueSnps {
@@ -170,11 +172,11 @@ public class GatkUniqueSnps {
 				if (normalGenotype == tumourGenotype) {
 					sameGenotype++;
 				} else {
-					if (tumourGenotype.containsAllele(normalRecord.getAlt())) {
-						tumourEntry.getValue().addAnnotation("mutation also found in pileup of normal");
+					if (tumourGenotype.containsAllele(normalRecord.getAlt().charAt(0))) {
+						tumourEntry.getValue().getVCFRecord().addInfo("MIN");
 					}
-					if ( tumourGenotype.isHeterozygous() && ! tumourGenotype.containsAllele(tumourEntry.getValue().getRef()))
-						tumourEntry.getValue().addAnnotation("tumour heterozygous for two non-reference alleles");
+					if ( tumourGenotype.isHeterozygous() && ! tumourGenotype.containsAllele(tumourEntry.getValue().getRef().charAt(0)))
+						tumourEntry.getValue().getVCFRecord().addInfo("tumour heterozygous for two non-reference alleles");
 					
 					if (null == tumourEntry.getValue().getAnnotation()) {
 						qPileupRecords.add(getQPileupRecord(tumourEntry.getValue()));
@@ -246,13 +248,10 @@ public class GatkUniqueSnps {
 	}
 	
 	private static QSnpRecord getQPileupRecord(QSnpGATKRecord vcfRec) {
-		QSnpRecord qpr = new QSnpRecord();
-		qpr.setChromosome(vcfRec.getChromosome());
-		qpr.setPosition(vcfRec.getPosition());
+		QSnpRecord qpr = new QSnpRecord(vcfRec.getChromosome(), vcfRec.getPosition(), vcfRec.getRef());
 		qpr.setTumourGenotype(vcfRec.getGenotypeEnum());
-		qpr.setMutation(vcfRec.getRef() + ">" + vcfRec.getAlt());
-		qpr.setRef(vcfRec.getRef());
-		qpr.setAnnotation(vcfRec.getAnnotation());
+		qpr.setMutation(vcfRec.getRef() + Constants.MUT_DELIM + vcfRec.getAlt());
+		qpr.getVcfRecord().setFilter(vcfRec.getAnnotation());
 		qpr.setClassification(Classification.SOMATIC);
 		return qpr;
 	}
@@ -325,13 +324,14 @@ public class GatkUniqueSnps {
 		}
 		
 		if (mutationFoundInNormal) {
-			record.addAnnotation("mutation also found in pileup of normal");
+			VcfUtils.updateFilter(record.getVcfRecord(), VcfUtils.FILTER_MUTATION_IN_NORMAL);
 		}
 		
 		record.setNormalCount(normalCoverage);
 		
-		if (normalCoverage < 12)
-			record.addAnnotation("less than 12 reads coverage in normal");
+		if (normalCoverage < 12) {
+			VcfUtils.updateFilter(record.getVcfRecord(), VcfUtils.FILTER_COVERAGE_NORMAL_12);
+		}
 		
 		
 	}
@@ -377,7 +377,7 @@ public class GatkUniqueSnps {
 				ChrPosition id = new ChrPosition(chr, rec.getPosition());
 				
 				QSnpRecord qpr = somaticPileupMap.get(id);
-				if (null != qpr && null != qpr.getMutation() && (null == qpr.getAnnotation() || ! qpr.getAnnotation().contains("mutation is a germline variant in another patient"))) {
+				if (null != qpr && null != qpr.getMutation() && (null == qpr.getAnnotation() || ! qpr.getAnnotation().contains(VcfUtils.FILTER_GERMLINE))) {
 					String mutation = qpr.getMutation();
 					if (mutation.length() == 3) {
 						char c = mutation.charAt(2);
@@ -385,7 +385,7 @@ public class GatkUniqueSnps {
 						GenotypeEnum germlineDBGenotype = BaseUtils.getGenotypeEnum(rec.getNormalGenotype());
 						if (germlineDBGenotype.containsAllele(c)) {
 							updateCount++;
-							qpr.addAnnotation("mutation is a germline variant in another patient");
+							VcfUtils.updateFilter(qpr.getVcfRecord(), VcfUtils.FILTER_GERMLINE);
 						}
 						
 						

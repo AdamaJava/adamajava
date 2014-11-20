@@ -88,18 +88,12 @@ public final class Main {
 			// RETRIEVE INPUT & OUTPUT FILES FROM INI
 			//output
 			String vcfOutputFilename = IniFileUtil.getOutputFile(iniFile, "vcf");
-			String dccSomaticOutputFilename = IniFileUtil.getOutputFile(iniFile, "dccSomatic");
-			String dccGermlineOutputFilename = IniFileUtil.getOutputFile(iniFile, "dccGermline");
 			//input
 			String pileupFilename = IniFileUtil.getInputFile(iniFile, "pileup");
-			String normalVCFFilename = IniFileUtil.getInputFile(iniFile, "vcfNormal");
-			String tumourVCFFilename = IniFileUtil.getInputFile(iniFile, "vcfTumour");
-//			String normalIlluminaFilename = IniFileUtil.getInputFile(iniFile, "illuminaNormal");
-//			String tumourIlluminaFilename = IniFileUtil.getInputFile(iniFile, "illuminaTumour");
-			String chrConvFilename = IniFileUtil.getInputFile(iniFile, "chrConv");
-			String germlineDBFilename = IniFileUtil.getInputFile(iniFile, "germlineDB");
-			String normalBamFilename = IniFileUtil.getInputFile(iniFile, "normalBam");
-			String tumourBamFilename = IniFileUtil.getInputFile(iniFile, "tumourBam");
+			String controlVCFFilename = IniFileUtil.getInputFile(iniFile, "controlVcf");
+			String testVCFFilename = IniFileUtil.getInputFile(iniFile, "testVcf");
+			String controlBamFilename = IniFileUtil.getInputFile(iniFile, "controlBam");
+			String testBamFilename = IniFileUtil.getInputFile(iniFile, "testBam");
 			String referenceFilename = IniFileUtil.getInputFile(iniFile, "ref");
 			String mutectFilename = IniFileUtil.getInputFile(iniFile, "mutect");
 			
@@ -114,54 +108,6 @@ public final class Main {
 //				return 1;
 			}
 			
-			// Next look at annotate mode - check we have the required files if running in dcc mode
-			if ("dcc".equalsIgnoreCase(annotateMode)) {
-				
-				//OUTPUT file checks
-				// check that both somatic and germline output files have been specified
-				
-				if (null == dccSomaticOutputFilename || ! FileUtils.canFileBeWrittenTo(dccSomaticOutputFilename)) {
-					errorString.append("Annotate mode is set to dcc, but no dccSomatic output file is specified");
-				}
-				if (null == dccGermlineOutputFilename || ! FileUtils.canFileBeWrittenTo(dccGermlineOutputFilename)) {
-					if (errorString.length() > 0) errorString.append('\n');
-					errorString.append("Annotate mode is set to dcc, but no dccGermline output file is specified");
-				}
-				
-				//INPUT file checks
-				// check that both somatic and germline output files have been specified, along with chromosome conversion
-				
-//				if (null == normalIlluminaFilename || ! FileUtils.canFileBeRead(normalIlluminaFilename)) {
-//					if (errorString.length() > 0) errorString.append('\n');
-//					errorString.append("Annotate mode is set to dcc, but no normal Illumia file is specified");
-//				}
-//				if (null == tumourIlluminaFilename || ! FileUtils.canFileBeRead(tumourIlluminaFilename)) {
-//					if (errorString.length() > 0) errorString.append('\n');
-//					errorString.append("Annotate mode is set to dcc, but no tumour Illumia file is specified");
-//				}
-				if (null == chrConvFilename || ! FileUtils.canFileBeRead(chrConvFilename)) {
-					if (null == chrConvFilename) {
-						if (errorString.length() > 0) errorString.append('\n');
-						errorString.append("Annotate mode is set to dcc, but no chromosome conversion file is specified (null)");
-					} else {
-						if (errorString.length() > 0) errorString.append('\n');
-						errorString.append("Annotate mode is set to dcc, but no chromosome conversion file is specified (can't read)");
-					}
-				}
-				
-			}
-			
-			// if updateGermlineDB is set to true, must have the germlineDB file in the ini
-//			String updateGermlineString = IniFileUtil.getEntry(iniFile, "flags", "updateGermlineDB"); 
-//			boolean updateGermlineDB = (null != updateGermlineString && "true".equalsIgnoreCase(updateGermlineString));
-//			if (updateGermlineDB) {
-//				if (null == germlineDBFilename || ! FileUtils.canFileBeRead(germlineDBFilename) 
-//						|| ! FileUtils.canFileBeWrittenTo(germlineDBFilename)) {
-//					if (errorString.length() > 0) errorString.append('\n');
-//					errorString.append("updateGermlineDB is set to true, but no germlineDB file is specified");
-//				}
-//			}
-			
 			if (errorString.length() > 0) {
 				logger.error(errorString.toString());
 				throw new SnpException("MISSING_ENTRIES_IN_INI_FILE");
@@ -172,19 +118,20 @@ public final class Main {
 			
 			if ("standard".equalsIgnoreCase(runMode)) {
 				
-				if (areInputFilesValid(normalBamFilename, tumourBamFilename, referenceFilename)) {
-					new StandardPipeline(iniFile, qexec);
+				if (FileUtils.areInputFilesValid(testBamFilename, referenceFilename)) {
+					// if the control bam file does not exist, run in single sample mode
+					new StandardPipeline(iniFile, qexec,  ! FileUtils.areInputFilesValid(controlBamFilename));
 				} else {
 					
-					logger.error("run mode is standard, but no normalBam or tumourBam or ref entry exists in inputFiles section of ini file");
+					logger.error("run mode is standard, but no controlBam or testBam or ref entry exists in inputFiles section of ini file");
 					
-					if ( ! areInputFilesValid(normalBamFilename)) {
-						logger.error("normalBam entry is missing/can't be read: " + normalBamFilename);
+					if ( ! FileUtils.areInputFilesValid(controlBamFilename)) {
+						logger.error("controlBam entry is missing/can't be read: " + controlBamFilename);
 					}
-					if ( ! areInputFilesValid(tumourBamFilename)) {
-						logger.error("tumourBam entry is missing/can't be read: " + tumourBamFilename);
+					if ( ! FileUtils.areInputFilesValid(testBamFilename)) {
+						logger.error("testBam entry is missing/can't be read: " + testBamFilename);
 					}
-					if ( ! areInputFilesValid(referenceFilename)) {
+					if ( ! FileUtils.areInputFilesValid(referenceFilename)) {
 						logger.error("referenceFilename entry is missing/can't be read: " + referenceFilename);
 					}
 					
@@ -193,9 +140,8 @@ public final class Main {
 				
 			} else if ("torrent".equalsIgnoreCase(runMode)) {
 				
-				if (areInputFilesValid(normalBamFilename, tumourBamFilename, referenceFilename)) {
-//					if (areInputFilesValid(pileupFilename)) {
-					new TorrentPipeline(iniFile, qexec);
+				if (FileUtils.areInputFilesValid(testBamFilename, referenceFilename)) {
+					new TorrentPipeline(iniFile, qexec, ! FileUtils.areInputFilesValid(controlBamFilename));
 				} else {
 					logger.error("run mode is torrent, but no pileup file exists in inputFiles section of ini file");
 					throw new SnpException("MISSING_ENTRIES_IN_INI_FILE");
@@ -203,8 +149,8 @@ public final class Main {
 				
 			} else if ("pileup".equalsIgnoreCase(runMode)) {
 				
-				if (areInputFilesValid(pileupFilename)) {
-					new PileupPipeline(iniFile, qexec);
+				if (FileUtils.areInputFilesValid(pileupFilename)) {
+					new PileupPipeline(iniFile, qexec, false);		// not sure about single sample for pileup pipe...
 				} else {
 					logger.error("run mode is pileup, but no pileup file exists in inputFiles section of ini file");
 					throw new SnpException("MISSING_ENTRIES_IN_INI_FILE");
@@ -212,19 +158,19 @@ public final class Main {
 				
 			} else if ("vcf".equalsIgnoreCase(runMode)) {
 				
-				if (areInputFilesValid(normalVCFFilename, tumourVCFFilename)) {
-					 new VcfPipeline(iniFile, qexec);
+				if (FileUtils.areInputFilesValid(testVCFFilename)) {
+					 new VcfPipeline(iniFile, qexec,  ! FileUtils.areInputFilesValid(controlVCFFilename));
 				} else {
-					 logger.error("run mode is vcf, but no normal vcf or tumour vcf entries exists in inputFiles section of ini file");
+					 logger.error("run mode is vcf, but no control vcf or test vcf entries exists in inputFiles section of ini file");
 					 throw new SnpException("MISSING_ENTRIES_IN_INI_FILE");
 				}
 				
 			} else if ("mutect".equalsIgnoreCase(runMode)) {
 				
-				if (areInputFilesValid(mutectFilename)) {
+				if (FileUtils.areInputFilesValid(mutectFilename)) {
 					 new MuTectPipeline(iniFile, qexec);
 				} else {
-					 logger.error("run mode is mutect, but no mutect entriy exists in inputFiles section of ini file");
+					 logger.error("run mode is mutect, but no mutect entry exists in inputFiles section of ini file");
 					 throw new SnpException("MISSING_ENTRIES_IN_INI_FILE");
 				}
 				
@@ -235,16 +181,5 @@ public final class Main {
 			
 		}
 		return 0;
-	}
-	
-	public static boolean areInputFilesValid(String ... inputs) {
-		if (null == inputs || inputs.length == 0) return false;
-		
-		for (String input : inputs) {
-			if (StringUtils.isNullOrEmpty(input) || ! FileUtils.canFileBeRead(input)) {
-				return false;
-			}
-		}
-		return true;
 	}
 }

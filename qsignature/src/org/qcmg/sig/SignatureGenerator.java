@@ -522,12 +522,12 @@ public class SignatureGenerator {
 				++count;
 				String[] params = TabTokenizer.tokenize(rec.getData());
 				
-				char ref = '\u0000';
+				String ref = null;
 				if (params.length > 4 && null != params[4] && params[4].length() == 1) {
-					ref = params[4].charAt(0);
+					ref = params[4];
 				} else if (params.length > 3 && null != params[3] && params[3].length() == 1){
 					// mouse file has ref at position 3 (0-based)
-					ref = params[3].charAt(0);
+					ref = params[3];
 				}
 				
 				if (params.length < 2) {
@@ -536,10 +536,7 @@ public class SignatureGenerator {
 				
 				String chr = params[0];
 				int position = Integer.parseInt(params[1]);
-				VCFRecord vcf = new VCFRecord();
-				vcf.setChromosome(chr);
-				vcf.setPosition(position);
-				vcf.setRef(ref);
+				VCFRecord vcf =VcfUtils.createVcfRecord(chr, position, ref);
 				
 				if (params.length > 2)
 					vcf.setId(params[2]);

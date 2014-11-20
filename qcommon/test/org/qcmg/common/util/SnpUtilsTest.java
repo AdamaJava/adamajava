@@ -1,5 +1,7 @@
 package org.qcmg.common.util;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -128,30 +130,30 @@ public class SnpUtilsTest {
 		
 		try {
 			SnpUtils.getAltFromMutationString(null);
-			Assert.fail("Should have thrown an eception");
+			Assert.fail("Should have thrown an exception");
 		} catch (IllegalArgumentException iae) {}
 		try {
 			SnpUtils.getAltFromMutationString("");
-			Assert.fail("Should have thrown an eception");
+			Assert.fail("Should have thrown an exception");
 		} catch (IllegalArgumentException iae) {}
 		
-		assertEquals('C', SnpUtils.getAltFromMutationString("A/C"));
-		assertEquals('A', SnpUtils.getAltFromMutationString("A/A"));
-		assertEquals('X', SnpUtils.getAltFromMutationString("A/X"));
-		assertEquals('Y', SnpUtils.getAltFromMutationString("X/Y"));
+		assertEquals("C", SnpUtils.getAltFromMutationString("A" + Constants.MUT_DELIM + "C"));
+		assertEquals("A", SnpUtils.getAltFromMutationString("A" + Constants.MUT_DELIM + "A"));
+		assertEquals("X", SnpUtils.getAltFromMutationString("A" + Constants.MUT_DELIM + "X"));
+		assertEquals("Y", SnpUtils.getAltFromMutationString("X" + Constants.MUT_DELIM + "Y"));
 		
 	}
 	
 	
 	@Test
 	public void testGetVariantCountFromNucleotideString() {
-		assertEquals(0, SnpUtils.getCountFromNucleotideString(null,'\u0000'));
-		assertEquals(0, SnpUtils.getCountFromNucleotideString("",'\u0000'));
-		assertEquals(0, SnpUtils.getCountFromNucleotideString("ABCD",'\u0000'));
-		assertEquals(56, SnpUtils.getCountFromNucleotideString("A:56[29.05],0[0],C:0[0],4[25.43],T:0[0],2[25.74],G:1[29],0[0]",'A'));
-		assertEquals(4, SnpUtils.getCountFromNucleotideString("A:56[29.05],0[0],C:0[0],4[25.43],T:0[0],2[25.74],G:1[29],0[0]",'C'));
-		assertEquals(2, SnpUtils.getCountFromNucleotideString("A:56[29.05],0[0],C:0[0],4[25.43],T:0[0],2[25.74],G:1[29],0[0]",'T'));
-		assertEquals(1, SnpUtils.getCountFromNucleotideString("A:56[29.05],0[0],C:0[0],4[25.43],T:0[0],2[25.74],G:1[29],0[0]",'G'));
+		assertEquals(0, SnpUtils.getCountFromNucleotideString(null, null));
+		assertEquals(0, SnpUtils.getCountFromNucleotideString("", null));
+		assertEquals(0, SnpUtils.getCountFromNucleotideString("ABCD", null));
+		assertEquals(56, SnpUtils.getCountFromNucleotideString("A:56[29.05],0[0],C:0[0],4[25.43],T:0[0],2[25.74],G:1[29],0[0]","A"));
+		assertEquals(4, SnpUtils.getCountFromNucleotideString("A:56[29.05],0[0],C:0[0],4[25.43],T:0[0],2[25.74],G:1[29],0[0]","C"));
+		assertEquals(2, SnpUtils.getCountFromNucleotideString("A:56[29.05],0[0],C:0[0],4[25.43],T:0[0],2[25.74],G:1[29],0[0]","T"));
+		assertEquals(1, SnpUtils.getCountFromNucleotideString("A:56[29.05],0[0],C:0[0],4[25.43],T:0[0],2[25.74],G:1[29],0[0]","G"));
 		
 	}
 	
@@ -210,6 +212,23 @@ public class SnpUtilsTest {
 	@Test
 	public void testIndels() {
 		assertEquals(false, SnpUtils.isClassAIndel("PASS;NNS;HCOVT;HCOVN;MIN;HOMCON_7", 3));
+	}
+	
+	@Test
+	public void oneStrandOnly() {
+		assertFalse(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("A0[0],2[33.5]"));
+		assertFalse(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("A10[10],0[0]"));
+		assertFalse(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("A0[0],2[33.5],C0[0],1[34],G0[0],888[33.34]"));
+		assertFalse(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("A2[33.5],0[0],C1[34],0[0],G888[33.34],0[0]"));
+		assertFalse(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("A0[0],306[38.77],G0[0],179[38.5],T0[0],2[27.5]"));
+		assertFalse(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("A0[0],848[37.74],C0[0],3[23],G0[0],393[38.01],T0[0],4[21.5]"));
+		assertFalse(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("A:0[0],1[33],C:0[0],29[32.55],T:0[0],156[31.74]"));
+	}
+	@Test
+	public void twoStrands() {
+		assertTrue(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("A10[10],2[33.5]"));
+		assertTrue(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("A2[33.5],0[0],C0[0],1[34],G888[33.34],0[0]"));
+		assertTrue(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("A2[33.5],10[10],C10[10],1[34],G888[33.34],10[10]"));
 	}
 	
 }

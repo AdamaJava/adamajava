@@ -293,7 +293,7 @@ public abstract class MafPipelineNew {
 //							bases[i++] = c;
 							// novel start count
 							
-							final char var = MafUtils.getVariant(maf);
+							final char var = MafUtils.getVariant(maf).charAt(0);
 							
 							// only care about variant novel starts
 							if (var == c) {
@@ -318,7 +318,7 @@ public abstract class MafPipelineNew {
 					// count the number of times the variant appears in the novelstartbases[]
 					maf.setNovelStartBases(new String(novelStartBases));
 					int count = 0;
-					final char var = MafUtils.getVariant(maf);
+					final char var = MafUtils.getVariant(maf).charAt(0);
 					for (final char c : novelStartBases) {
 						if (c == var) count++;
 					}
@@ -747,15 +747,15 @@ public abstract class MafPipelineNew {
 				// if germine use ND and normalAllele fields
 				String bases = mafType.isGermline() ? maf.getNd() : maf.getTd();
 						
-				char ref = maf.getRef().charAt(0);
+				String ref = maf.getRef();
 				//logger.info("about to call SnpUtils.getCountFromNucleotideString with bases: " + bases +", and ref: " + ref);
 				int refCount = SnpUtils.getCountFromNucleotideString(bases, ref);
 				
 				// if we don't have any reference bases, skip this position as we won't be adding the annotation
 				if (refCount == 0) continue;
 				
-				char allele1 = mafType.isGermline() ? maf.getNormalAllele1().charAt(0) : maf.getTumourAllele1().charAt(0);
-				char allele2 = mafType.isGermline() ? maf.getNormalAllele2().charAt(0) : maf.getTumourAllele2().charAt(0);
+				String allele1 = mafType.isGermline() ? maf.getNormalAllele1() : maf.getTumourAllele1();
+				String allele2 = mafType.isGermline() ? maf.getNormalAllele2() : maf.getTumourAllele2();
 				
 				int altCount = 0;
 				if (allele1 == allele2 && allele2 != ref) {

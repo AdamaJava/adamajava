@@ -5,14 +5,12 @@ package org.qcmg.snp.util;
 
 import java.util.Deque;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
 import net.sf.samtools.SAMRecord;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
-import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.QSnpGATKRecord;
 import org.qcmg.picard.QJumper;
 import org.qcmg.pileup.QSnpRecord;
@@ -26,34 +24,31 @@ public class QJumperWorker<T> implements Runnable {
 	}
 	
 	private final CountDownLatch latch;
-	private  Map<ChrPosition, QSnpGATKRecord>  vcfs;
+//	private  Map<ChrPosition, QSnpGATKRecord>  vcfs;
 	private Deque<T> primaryQueue;
 	private Deque<T> workStealingQueue;
-//	private Deque<QSnpGATKRecord> primaryQueue;
-//	private Deque<QSnpGATKRecord> workStealingQueue;
 	private String primaryBamFile;
 	private String workStealingBamFile;
-	private  Map<ChrPosition, QSnpRecord>  snps;
+//	private  Map<ChrPosition, QSnpRecord>  snps;
 	private final QJumper  qj = new QJumper();
-//	private final boolean workStealingMode = false;
 	private final Mode mode;
 	private int count, updatedPileup;
 	
 	private final QLogger logger = QLoggerFactory.getLogger(QJumperWorker.class);
 
-	public QJumperWorker(CountDownLatch latch, String bamFile, Map<ChrPosition, QSnpGATKRecord> vcfs) {
-		this.latch = latch;
-		this.vcfs = vcfs;
-		this.qj.setupReader(bamFile);
-		this.mode = Mode.VCF;
-	}
+//	public QJumperWorker(CountDownLatch latch, String bamFile, Map<ChrPosition, QSnpGATKRecord> vcfs) {
+//		this.latch = latch;
+////		this.vcfs = vcfs;
+//		this.qj.setupReader(bamFile);
+//		this.mode = Mode.VCF;
+//	}
 	
-	public QJumperWorker(CountDownLatch latch, String bamFile, Map<ChrPosition, QSnpRecord> snps, Mode mode) {
-		this.latch = latch;
-		this.snps = snps;
-		this.qj.setupReader(bamFile);
-		this.mode = mode;
-	}
+//	public QJumperWorker(CountDownLatch latch, String bamFile, Map<ChrPosition, QSnpRecord> snps, Mode mode) {
+//		this.latch = latch;
+////		this.snps = snps;
+//		this.qj.setupReader(bamFile);
+//		this.mode = mode;
+//	}
 	
 	public QJumperWorker(CountDownLatch latch, String primaryBamFile, Deque<T> primaryQueue,
 			String wsBamFile, Deque<T> wsQueue, Mode mode) {
@@ -65,15 +60,16 @@ public class QJumperWorker<T> implements Runnable {
 		this.mode = mode;
 	}
 	
-	public QJumperWorker(CountDownLatch latch, String primaryBamFile, Deque<T> primaryQueue,
-			String wsBamFile, Deque<T> wsQueue) {
-		this(latch, primaryBamFile, primaryQueue, wsBamFile, wsQueue, Mode.VCF);
-	}
+//	public QJumperWorker(CountDownLatch latch, String primaryBamFile, Deque<T> primaryQueue,
+//			String wsBamFile, Deque<T> wsQueue) {
+//		this(latch, primaryBamFile, primaryQueue, wsBamFile, wsQueue, Mode.VCF);
+//	}
 	
 	public QJumperWorker(CountDownLatch latch, String primaryBamFile, Deque<T> primaryQueue, Mode mode) {
 		this(latch, primaryBamFile, primaryQueue, null, null, mode);
 	}
 	
+	@Override
 	public void run() {
 		logger.info("QJumperWorker thread started... mode: " + mode);
 		try {

@@ -111,12 +111,12 @@ public class PileupElementLiteUtilTest {
 		accum.addUnfilteredBase((byte)'A');
 		assertEquals(0, PileupElementLiteUtil.getLargestVariantNovelStarts(accum, 'A'));
 		byte A = 'A';
-		accum.addBase(A, (byte) 1, true, 1, 1, 2);
+		accum.addBase(A, (byte) 1, true, 1, 1, 2, 1);
 		assertEquals(0, PileupElementLiteUtil.getLargestVariantNovelStarts(accum, 'A'));
 		assertEquals(1, PileupElementLiteUtil.getLargestVariantNovelStarts(accum, 'C'));
 		byte C = 'C';
-		accum.addBase(C, (byte) 1, true, 1, 1, 2);
-		accum.addBase(C, (byte) 1, true, 2, 1, 2);
+		accum.addBase(C, (byte) 1, true, 1, 1, 2, 1);
+		accum.addBase(C, (byte) 1, true, 2, 1, 2, 1);
 		assertEquals(1, PileupElementLiteUtil.getLargestVariantNovelStarts(accum, 'C'));	// still have the A in there
 		assertEquals(2, PileupElementLiteUtil.getLargestVariantNovelStarts(accum, 'A'));
 		assertEquals(2, PileupElementLiteUtil.getLargestVariantNovelStarts(accum, 'G'));
@@ -135,13 +135,13 @@ public class PileupElementLiteUtilTest {
 		assertEquals(false, PileupElementLiteUtil.isAccumulatorAKeeper(accum, 'A', new Rule(0,20,3), 10)[0]);
 		assertEquals(false, PileupElementLiteUtil.isAccumulatorAKeeper(accum, 'A', new Rule(0,20,3), 10)[1]);
 		byte C = 'C';
-		accum.addBase(C, (byte) 1, true, 1, 1, 2);
+		accum.addBase(C, (byte) 1, true, 1, 1, 2, 1);
 		assertEquals(false, PileupElementLiteUtil.isAccumulatorAKeeper(accum, 'A', new Rule(0,20,3), 10)[0]);
 		assertEquals(false, PileupElementLiteUtil.isAccumulatorAKeeper(accum, 'A', new Rule(0,20,3), 10)[1]);
 		accum = new Accumulator(1);
-		accum.addBase(C, (byte) 1, true, 1, 1, 2);
-		accum.addBase(C, (byte) 1, true, 1, 1, 2);
-		accum.addBase(C, (byte) 1, false, 1, 1, 2);
+		accum.addBase(C, (byte) 1, true, 1, 1, 2, 1);
+		accum.addBase(C, (byte) 1, true, 1, 1, 2, 1);
+		accum.addBase(C, (byte) 1, false, 1, 1, 2, 1);
 		// second pass pass
 		assertEquals(true, PileupElementLiteUtil.isAccumulatorAKeeper(accum, 'A', new Rule(0,20,3), 10)[0]);
 		assertEquals(false, PileupElementLiteUtil.isAccumulatorAKeeper(accum, 'A', new Rule(0,20,3), 10)[1]);
@@ -153,12 +153,12 @@ public class PileupElementLiteUtilTest {
 		assertEquals(false, PileupElementLiteUtil.isAccumulatorAKeeper(accum, 'A', new Rule(0,Integer.MAX_VALUE,4), 10)[1]);
 		// add in some reference bases
 		accum = new Accumulator(1);
-		accum.addBase(C, (byte) 1, true, 1, 1, 2);
-		accum.addBase(C, (byte) 1, true, 1, 1, 2);
-		accum.addBase(C, (byte) 1, false, 1, 1, 2);
+		accum.addBase(C, (byte) 1, true, 1, 1, 2, 1);
+		accum.addBase(C, (byte) 1, true, 1, 1, 2, 1);
+		accum.addBase(C, (byte) 1, false, 1, 1, 2, 1);
 		byte A = 'A';
 		for (int i = 0 ; i < 97 ; i++) {
-			accum.addBase(A, (byte) 1, true, 1, 1, 2);
+			accum.addBase(A, (byte) 1, true, 1, 1, 2, 1);
 		}
 		assertEquals(false, PileupElementLiteUtil.isAccumulatorAKeeper(accum, 'A', new Rule(0,Integer.MAX_VALUE,6), 3)[0]);
 		assertEquals(true, PileupElementLiteUtil.isAccumulatorAKeeper(accum, 'A', new Rule(0,Integer.MAX_VALUE,6), 3)[1]);

@@ -18,22 +18,9 @@ import java.util.Set;
  */
 public class PileupElementLite implements Comparable<PileupElementLite> {
 	
-	/**
-	 * Number of reverse strand novel starts that satisfies our curiosity in this position
-	 * Once this target is reached, no more novel start information on the reverse strand will be collated.
-	 */
-//	public static final int REVERSE_STRAND_NOVEL_START_TARGET = 32;
-	
-//	private AtomicIntegerArray forwardQualitiesArray;
-//	private AtomicIntegerArray reverseQualitiesArray;
-//	
-//	private final AtomicInteger lastForwardStartPosition = new AtomicInteger();
-//	private final AtomicInteger forwardNovelStartCount = new AtomicInteger();
-//	
 	private Queue<Integer> reverseStrandStartPositions;
-//	
-//	private final AtomicInteger endOfReadCountFS = new AtomicInteger();
-//	private final AtomicInteger endOfReadCountRS = new AtomicInteger();
+	private Queue<Long> reverseReadIds;
+	private Queue<Long> forwardReadIds;
 	
 	private volatile int forwardCount;
 	private volatile int reverseCount;
@@ -43,30 +30,24 @@ public class PileupElementLite implements Comparable<PileupElementLite> {
 	private int lastForwardStartPosition;
 	private int forwardNovelStartCount;
 	
-//	private List<Integer> reverseStrandStartPositions;
-	
 	private int endOfReadCountFS;
 	private int endOfReadCountRS;
+
 	
+	
+	public Queue<Long> getForwardReadIds() {
+		return forwardReadIds;
+	}
+
+	public Queue<Long> getReverseReadIds() {
+		return reverseReadIds;
+	}
 	
 	/**
-	 * If reverse strand, then the start position needs to be the end of read position, as they are reported on the +ve strand
 	 * 
 	 * @param startPosition
 	 * @param forwardStrand
 	 */
-//	private void updateNovelStarts(int startPosition, boolean forwardStrand) {
-//		if (forwardStrand) {
-//			if (startPosition > lastForwardStartPosition.get()) {
-//				forwardNovelStartCount.incrementAndGet();
-//				lastForwardStartPosition.set(startPosition);
-//			}
-//		} else {
-//			if (null == reverseStrandStartPositions)
-//				reverseStrandStartPositions = new ConcurrentLinkedQueue<Integer>();
-//			reverseStrandStartPositions.add(startPosition);
-//		}
-//	}
 	private void updateNovelStarts(int startPosition, boolean forwardStrand) {
 		if (forwardStrand) {
 			if (startPosition > lastForwardStartPosition) {
@@ -74,8 +55,9 @@ public class PileupElementLite implements Comparable<PileupElementLite> {
 				lastForwardStartPosition = startPosition;
 			}
 		} else {
-			if (null == reverseStrandStartPositions)
+			if (null == reverseStrandStartPositions) {
 				reverseStrandStartPositions = new ArrayDeque<Integer>();
+			}
 			reverseStrandStartPositions.add(startPosition);
 		}
 	}
@@ -114,29 +96,36 @@ public class PileupElementLite implements Comparable<PileupElementLite> {
 		return getForwardCount() > 0 && getReverseCount() > 0;
 	}
 	
-//	public boolean isFoundOnBothStrandsMiddleOfRead() {
-//		return getForwardCount() - endOfReadCountFS.get() > 0 && getReverseCount() - endOfReadCountRS.get() > 0;
-//	}
 	public boolean isFoundOnBothStrandsMiddleOfRead() {
 		return getForwardCount() - endOfReadCountFS > 0 && getReverseCount() - endOfReadCountRS > 0;
 	}
 	
-	public void addForwardQuality(byte b, int startPosition) {
-		addForwardQuality(b, startPosition, false);
+	public void addForwardQuality(byte b, int startPosition, long readId) {
+		addForwardQuality(b, startPosition, readId, false);
 	}
-	public void addReverseQuality(byte b, int startPosition) {
-		addReverseQuality(b, startPosition, false);
+	public void addReverseQuality(byte b, int startPosition, long readId) {
+		addReverseQuality(b, startPosition, readId, false);
 	}
 	
-	public void addForwardQuality(byte b, int startPosition, boolean endOfRead) {
-		if (null == forwardQualitiesArray) forwardQualitiesArray = new QCMGIntArray(100);
+	public void addForwardQuality(byte b, int startPosition, long readId, boolean endOfRead) {
+		if (null == forwardQualitiesArray) {
+			forwardQualitiesArray = new QCMGIntArray(100);
+			forwardReadIds = new ArrayDeque<>();
+		}
+		
+		forwardReadIds.add(readId);
 		forwardQualitiesArray.increment(b);
 		updateNovelStarts(startPosition, true);
 		if (endOfRead) endOfReadCountFS++;
 	}
 
-	public void addReverseQuality(byte b, int startPosition, boolean endOfRead) {
-		if (null == reverseQualitiesArray) reverseQualitiesArray = new QCMGIntArray(100);
+	public void addReverseQuality(byte b, int startPosition, long readId, boolean endOfRead) {
+		if (null == reverseQualitiesArray) {
+			reverseQualitiesArray = new QCMGIntArray(100);
+			reverseReadIds = new ArrayDeque<>();
+		}
+		
+		reverseReadIds.add(readId);
 		reverseQualitiesArray.increment(b);
 		updateNovelStarts(startPosition, false);
 		if (endOfRead) endOfReadCountRS++;
@@ -150,18 +139,9 @@ public class PileupElementLite implements Comparable<PileupElementLite> {
 		return getTotalCount() - getEndOfReadCount();
 	}
 	
-//	public int getNovelStartCount() {
-//		if (null != reverseStrandStartPositions) {
-//			
-//			Set<Integer> set = new HashSet<Integer>(reverseStrandStartPositions);
-//			return forwardNovelStartCount.get() + set.size();
-////			return forwardNovelStartCount.get() + reverseStrandStartPositions.size();
-//		}
-//		return forwardNovelStartCount.get();
-//	}
 	public int getNovelStartCount() {
 		if (null != reverseStrandStartPositions) {
-			Set<Integer> set = new HashSet<Integer>(reverseStrandStartPositions);
+			Set<Integer> set = new HashSet<>(reverseStrandStartPositions);
 			return forwardNovelStartCount + set.size();
 		}
 		return forwardNovelStartCount;

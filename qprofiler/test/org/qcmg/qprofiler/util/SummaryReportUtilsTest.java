@@ -388,6 +388,26 @@ public class SummaryReportUtilsTest {
 	}
 	
 	@Test
+	public void getInsertionAdjustedReadOffsetInsertionAtStart() {
+		Cigar cigar = new Cigar();
+		cigar.add(new CigarElement(1, CigarOperator.I));
+		cigar.add(new CigarElement(55, CigarOperator.M));
+		cigar.add(new CigarElement(1, CigarOperator.I));
+		cigar.add(new CigarElement(45, CigarOperator.M));
+		// 1 + 55 + 1 + 45 = 102
+		assertEquals(102, cigar.getReadLength());
+		assertEquals(100, cigar.getReferenceLength());
+		
+//		for (int i = 1 ; i <= cigar.getReferenceLength(); i++) {
+//			if (i > 56) {
+//				assertEquals(1, SummaryReportUtils.getInsertionAdjustedReadOffset(cigar, i));
+//			} else {
+//				assertEquals(0, SummaryReportUtils.getInsertionAdjustedReadOffset(cigar, i));
+//			}
+//		}
+	}
+	
+	@Test
 	public void getInsertionAdjustedReadOffsetInsertion2() {
 		Cigar cigar = new Cigar();
 		cigar.add(new CigarElement(27, CigarOperator.M));
@@ -577,6 +597,20 @@ public class SummaryReportUtilsTest {
 		
 		assertEquals(1, forwardArray.get(SummaryReportUtils.getIntFromChars('T', 'C')));
 		assertEquals(1, forwardArray.get(SummaryReportUtils.getIntFromChars('G', 'T')));
+	}
+	
+	@Ignore
+	public void tallyMDMismatchesInsertion() {
+		//HWI-ST1445:86:C4CKMACXX:2:2308:11384:83325       163     chr1    450820  0       98I3M   =       450820  129     GTCTTTTTTTTTTTTTTTTTTTTTTTAAAAGGGGGGGGGCGGGGGGGCCCCCCCCTGTAACCCCAGCAATTTGGGGGACTGGGGGGGGGGGGTCTCTTGGG   BBBFFFFFFFFFFIIIIIFFFFFFB0<BBB#######################################################################   XA:i:2  MD:Z:0G0T0T2A1A1A0A0A0A0A0A0A0A0A0A0A0A1A0A0A0A0A0A0A3A0A0A0A0A0A0A0A0A0A0A1A1A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A23A1A0   NM:i:67 ZW:f:0.0
+		QCMGAtomicLongArray forwardArray = new QCMGAtomicLongArray(32);
+		QCMGAtomicLongArray reverseArray = new QCMGAtomicLongArray(32);
+		SummaryByCycleNew2<Character> summary = new SummaryByCycleNew2<Character>(Character.MAX_VALUE, 64);
+		Cigar cigar = new Cigar();
+		cigar.add(new CigarElement(98, CigarOperator.I));
+		cigar.add(new CigarElement(3, CigarOperator.M));
+		SummaryReportUtils.tallyMDMismatches("0G0T0T2A1A1A0A0A0A0A0A0A0A0A0A0A0A1A0A0A0A0A0A0A3A0A0A0A0A0A0A0A0A0A0A1A1A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A23A1A0", cigar, summary, "GTCTTTTTTTTTTTTTTTTTTTTTTTAAAAGGGGGGGGGCGGGGGGGCCCCCCCCTGTAACCCCAGCAATTTGGGGGACTGGGGGGGGGGGGTCTCTTGGG".getBytes(), false, forwardArray, reverseArray);
+		
+		
 	}
 	
 	@Test

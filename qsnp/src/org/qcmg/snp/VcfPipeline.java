@@ -1,5 +1,5 @@
 /**
- * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+s * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
 package org.qcmg.snp;
 
@@ -31,12 +31,14 @@ import org.qcmg.common.model.Accumulator;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.GenotypeEnum;
 import org.qcmg.common.model.PileupElementLite;
-import org.qcmg.common.model.QSnpGATKRecord;
 import org.qcmg.common.model.ReferenceNameComparator;
 import org.qcmg.common.model.VCFRecord;
 import org.qcmg.common.string.StringUtils;
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.vcf.VcfUtils;
+import org.qcmg.common.vcf.header.VcfHeader;
+import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.util.QDccMetaFactory;
 import org.qcmg.picard.util.SAMUtils;
@@ -46,6 +48,7 @@ import org.qcmg.snp.util.HeaderUtil;
 import org.qcmg.snp.util.IniFileUtil;
 import org.qcmg.vcf.VCFFileReader;
 
+
 /**
  */
 public final class VcfPipeline extends Pipeline {
@@ -53,101 +56,123 @@ public final class VcfPipeline extends Pipeline {
 	private final static ReferenceNameComparator COMPARATOR = new ReferenceNameComparator();
 	
 	private final static QLogger logger = QLoggerFactory.getLogger(VcfPipeline.class);
-	
-	private final ConcurrentMap<ChrPosition, Accumulator> normalPileup = new ConcurrentHashMap<ChrPosition, Accumulator>();
-	private final ConcurrentMap<ChrPosition, Accumulator> tumourPileup = new ConcurrentHashMap<ChrPosition, Accumulator>();
 
-	private final ConcurrentMap<ChrPosition, QSnpGATKRecord> normalVCFMap = new ConcurrentHashMap<ChrPosition, QSnpGATKRecord>(12500); //not expecting more than 100000
-	private final ConcurrentMap<ChrPosition, QSnpGATKRecord> tumourVCFMap = new ConcurrentHashMap<ChrPosition, QSnpGATKRecord>(12500);
+	private static VcfHeader controlVcfHeader;
+	private static VcfHeader testVcfHeader;
+	
+	private final ConcurrentMap<ChrPosition, Accumulator> controlPileup = new ConcurrentHashMap<>();
+	private final ConcurrentMap<ChrPosition, Accumulator> testPileup = new ConcurrentHashMap<>();
+
+	private final ConcurrentMap<ChrPosition, QSnpRecord> controlVCFMap = new ConcurrentHashMap<>(); //not expecting more than 100000
+	private final ConcurrentMap<ChrPosition, QSnpRecord> testVCFMap = new ConcurrentHashMap<>(1024 * 128);
 	
 	//input Files
-	private String vcfNormalFile, vcfTumourFile;
-	private String normalBam;
-	private String tumourBam;
+	private String controlVcfFile, testVcfFile;
+	private String controlBam;
+	private String testBam;
 	private int mutationId;
 
 	/**
 	 */
-	public VcfPipeline(final Ini iniFile, QExec qexec) throws SnpException, IOException, Exception {
-		super(qexec);
+	public VcfPipeline(final Ini iniFile, QExec qexec, boolean singleSample) throws SnpException, IOException, Exception {
+		super(qexec, singleSample);
 
 		// load rules from ini file
 		ingestIni(iniFile);
 		
 		// setup normalBam and tumourBam variables
-		if (null != normalBams && normalBams.length > 0)
-			normalBam = normalBams[0];
-		else throw new SnpException("No normal bam file specified");
-		if (null != tumourBams && tumourBams.length > 0)
-			tumourBam = tumourBams[0];
-		else throw new SnpException("No tumour bam file specified");
+		if ( ! singleSampleMode) {
+			if (null != controlBams && controlBams.length > 0) {
+				controlBam = controlBams[0];
+			} else {
+				throw new SnpException("No normal bam file specified");
+			}
+		
+		}
+		if (null != testBams && testBams.length > 0) {
+			testBam = testBams[0];
+		} else {
+			throw new SnpException("No tumour bam file specified");
+		}
 		
 		// load vcf files
-		logger.info("Loading normal vcf data");
-		loadVCFData(vcfNormalFile, normalVCFMap);
-		logger.info("Loading normal vcf data - DONE [" + normalVCFMap.size() + "]");
+		if ( ! singleSampleMode) {
+			logger.info("Loading normal vcf data");
+			loadVCFData(controlVcfFile, controlVCFMap, true);
+			logger.info("Loading normal vcf data - DONE [" + controlVCFMap.size() + "]");
+		}
 		
 		logger.info("Loading tumour vcf data");
-		loadVCFData(vcfTumourFile, tumourVCFMap);
-		logger.info("Loading tumour vcf data - DONE [" + tumourVCFMap.size() + "]");
+		loadVCFData(testVcfFile, testVCFMap, false);
+		logger.info("Loading tumour vcf data - DONE [" + testVCFMap.size() + "]");
 		
-		if (normalVCFMap.isEmpty() && tumourVCFMap.isEmpty()) throw new SnpException("EMPTY_VCF_FILES");
-		else if (normalVCFMap.isEmpty()) logger.warn("no data in control vcf file - all calls will be somatic");
-		else if (tumourVCFMap.isEmpty()) logger.warn("no data in test vcf file - all calls will be germline");
+		if (controlVCFMap.isEmpty() && testVCFMap.isEmpty()) {
+			throw new SnpException("EMPTY_VCF_FILES");
+		} else if (controlVCFMap.isEmpty()) {
+			logger.warn("no data in control vcf file");
+		} else if (testVCFMap.isEmpty()) {
+			logger.warn("no data in test vcf file");
+		}
 		
-		logger.info("converting vcf data to qsnp data");
-		convertVCFToQSnpFormat();
-		logger.info("converting vcf data to qsnp data - DONE [" + positionRecordMap.size() + "]");
+		if ( ! singleSampleMode) {
+			logger.info("merging data");
+			mergeControlAndTestRecords();
+			logger.info("merging data - DONE [" + positionRecordMap.size() + "]");
+		} else {
+			// put test map into positions map
+			positionRecordMap.putAll(testVCFMap);
+		}
 		
 		// add pileup from the normal bam file
-		logger.info("adding pileup to vcf records map");
+		logger.info("adding pileup to vcf records map[" + positionRecordMap.size() + "]");
 		addPileup();
-		logger.info("adding pileup to vcf records map - DONE");
+		logger.info("adding pileup to vcf records map - DONE[" + positionRecordMap.size() + "]");
 		
+		logger.info("about to clean snp map[" + positionRecordMap.size() + "]");
 		cleanSnpMap();
+		logger.info("about to clean snp map - DONE[" + positionRecordMap.size() + "]");
 
 		// time for post-processing
+		logger.info("about to classify[" + positionRecordMap.size() + "]");
 		classifyPileup();
-		
-		// load in IlluminaData - this will need to be appended to with dbSnp location details
-		// when we go through the dbSnp file
-		if ( ! StringUtils.isNullOrEmpty(illuminaNormalFile ) && ! StringUtils.isNullOrEmpty(illuminaTumourFile)) {
-			logger.info("Loading illumina normal data");
-			loadIlluminaData(illuminaNormalFile, normalIlluminaMap);
-			logger.info("Loading illumina tumour data");
-			loadIlluminaData(illuminaTumourFile, tumourIlluminaMap);
-		}
-		
-		if ( ! StringUtils.isNullOrEmpty(dbSnpFile)) {
-			// add dbSNP ids
-			logger.info("Loading dbSNP data");
-			addDbSnpData(dbSnpFile);
-		}
-		
-		// need chromosome conversion data
-		logger.info("Loading chromosome conversion data");
-		loadChromosomeConversionData(chrConvFile);
-		
-		if ( ! StringUtils.isNullOrEmpty(germlineDBFile)) {
-			logger.info("Loading germline DB data");
-			addGermlineDBData(germlineDBFile);
-		} 
+		logger.info("about to classify - DONE[" + positionRecordMap.size() + "]");
 		
 		// write output
 		writeVCF(vcfFile);
-		if ( ! vcfOnlyMode) writeOutputForDCC();
 
 	}
 	
 	@Override
-	String getDccMetaData() throws Exception {
-		if (null == normalBams || normalBams.length == 0 || 
-				StringUtils.isNullOrEmpty(normalBams[0]) 
-				|| null == tumourBams || tumourBams.length == 0 
-				|| StringUtils.isNullOrEmpty(tumourBams[0])) return null;
+	String getExistingVCFHeaderDetails()  {
+		StringBuilder sb = new StringBuilder();
 		
-		SAMFileHeader controlHeader = SAMFileReaderFactory.createSAMFileReader(normalBams[0]).getFileHeader();
-		SAMFileHeader analysisHeader = SAMFileReaderFactory.createSAMFileReader(tumourBams[0]).getFileHeader();
+		
+		if ( ! singleSampleMode) {
+			
+			for (VcfHeaderRecord rec : controlVcfHeader) {
+				sb.append(rec.toString()).append(Constants.NEW_LINE);
+			}
+			sb.append(Constants.DOUBLE_HASH).append(Constants.NEW_LINE);
+		}
+		
+		for (VcfHeaderRecord rec : testVcfHeader) {
+			sb.append(rec.toString()).append(Constants.NEW_LINE);
+		}
+		sb.append(Constants.DOUBLE_HASH).append(Constants.NEW_LINE);
+		
+		// override this if dealing with input VCFs and the existing headers are to be kept
+		return sb.toString();
+	}
+	
+	@Override
+	String getDccMetaData() throws Exception {
+		if (null == controlBams || controlBams.length == 0 || 
+				StringUtils.isNullOrEmpty(controlBams[0]) 
+				|| null == testBams || testBams.length == 0 
+				|| StringUtils.isNullOrEmpty(testBams[0])) return null;
+		
+		SAMFileHeader controlHeader = SAMFileReaderFactory.createSAMFileReader(controlBams[0]).getFileHeader();
+		SAMFileHeader analysisHeader = SAMFileReaderFactory.createSAMFileReader(testBams[0]).getFileHeader();
 		
 		QDccMeta dccMeta = QDccMetaFactory.getDccMeta(qexec, controlHeader, analysisHeader, "GATK");
 		
@@ -162,16 +187,20 @@ public final class VcfPipeline extends Pipeline {
 			// if entry doesn't have a normal genotype, but contains a normal nucleotides string
 			// set normal genotype to hom ref
 			if (null == record.getNormalGenotype() && null != record.getNormalNucleotides()) {
-				record.setNormalGenotype(GenotypeEnum.getGenotypeEnum(record.getRef(), record.getRef()));
+				String refString = record.getRef();
+				if (refString.length() > 1) {
+					logger.warn("refString: " + refString + " in VcfPipeline.cleanSnpMap");
+				}
+				char ref = refString.charAt(0);
+				record.setNormalGenotype(GenotypeEnum.getGenotypeEnum(ref, ref));
 				normalUpdated++;
 			}
 			
 			// if we don't have a tumour vcf call, just classify as Germline, annotate and off we go  
-			if (null == record.getTumourGenotype()) {
+			if ( ! singleSampleMode && null == record.getTumourGenotype()) {
 				record.setClassification(Classification.GERMLINE);
-				record.addAnnotation("no call in tumour vcf");
+				VcfUtils.updateFilter(record.getVcfRecord(), "no call in tumour vcf");
 				
-//				record.setTumourGenotype(GenotypeEnum.getGenotypeEnum(record.getRef(), record.getRef()));
 				tumourUpdated++;
 			}
 		}
@@ -184,11 +213,15 @@ public final class VcfPipeline extends Pipeline {
 		logger.info("Setting up Pileup threads");
 		long start = System.currentTimeMillis();
 		
-		final CountDownLatch latch = new CountDownLatch(2);
-		final ExecutorService service = Executors.newFixedThreadPool(2);
+		int noOfThreads = singleSampleMode ? 1 : 2;
 		
-		service.execute(new Pileup(normalBam, latch, true));
-		service.execute(new Pileup(tumourBam, latch, false));
+		final CountDownLatch latch = new CountDownLatch(noOfThreads);
+		final ExecutorService service = Executors.newFixedThreadPool(noOfThreads);
+		
+		if ( ! singleSampleMode) {
+			service.execute(new Pileup(controlBam, latch, true));
+		}
+		service.execute(new Pileup(testBam, latch, false));
 		service.shutdown();
 		
 		try {
@@ -201,16 +234,16 @@ public final class VcfPipeline extends Pipeline {
 	}
 	
 	
-	private void convertVCFToQSnpFormat() {
+	private void mergeControlAndTestRecords() {
 		
 		// loop through normal vcf map - get corresponding tumour if present
-		for (Entry<ChrPosition, QSnpGATKRecord> entry : normalVCFMap.entrySet()) {
-			QSnpGATKRecord tumour = tumourVCFMap.get(entry.getKey());
+		for (Entry<ChrPosition, QSnpRecord> entry : controlVCFMap.entrySet()) {
+			QSnpRecord tumour = testVCFMap.get(entry.getKey());
 			positionRecordMap.put(entry.getKey(), getQSnpRecord(entry.getValue(), tumour));
 		}
 		
 		// loop through tumour, making sure entry exists in qsnp map
-		for (Entry<ChrPosition, QSnpGATKRecord> entry : tumourVCFMap.entrySet()) {
+		for (Entry<ChrPosition, QSnpRecord> entry : testVCFMap.entrySet()) {
 			
 			QSnpRecord snpRecord = positionRecordMap.get(entry.getKey());
 			if (null == snpRecord) {
@@ -219,42 +252,58 @@ public final class VcfPipeline extends Pipeline {
 		}
 	}
 	
-	private  QSnpRecord getQSnpRecord(QSnpGATKRecord normal, QSnpGATKRecord tumour) {
-		QSnpRecord qpr = new QSnpRecord();
-		qpr.setId(++mutationId);
+	private  QSnpRecord getQSnpRecord(QSnpRecord normal, QSnpRecord tumour) {
+		QSnpRecord qpr = null;
 		
 		if (null != normal) {
-			qpr.setChromosome(normal.getChromosome());
-			qpr.setPosition(normal.getPosition());
-			qpr.setRef(normal.getRef());
-			qpr.setNormalGenotype(normal.getGenotypeEnum());
-			qpr.setAnnotation(normal.getAnnotation());
+			qpr = normal;
+//			qpr.setRef(normal.getRef());
+//			qpr.setNormalGenotype(normal.getGenotypeEnum());
+//			qpr.setAnnotation(normal.getAnnotation());
 			// tumour fields
-			qpr.setTumourGenotype(null == tumour ? null : tumour.getGenotypeEnum());
-			qpr.setTumourCount(null == tumour ? 0 :  VcfUtils.getDPFromFormatField(tumour.getGenotype()));
-//			qpr.setTumourNucleotides(null == tumour ? null :  PileupElementUtil.getPileupElementString(tumour.getPileup(), tumour.getRef()));
+			qpr.setTumourGenotype(null == tumour ? null : tumour.getTumourGenotype());
+			qpr.setTumourCount(null == tumour ? 0 :  VcfUtils.getDPFromFormatField(tumour.getVcfRecord().getFormatFields().get(1)));
 			
 		} else if (null != tumour) {
-			qpr.setChromosome(tumour.getChromosome());
-			qpr.setPosition(tumour.getPosition());
-			qpr.setRef(tumour.getRef());
-			qpr.setTumourGenotype(tumour.getGenotypeEnum());
-			qpr.setTumourCount(VcfUtils.getDPFromFormatField(tumour.getGenotype()));
+			qpr = tumour;
+//			qpr = new QSnpRecord(tumour.getChromosome(), tumour.getPosition(), tumour.getRef());
+//			qpr.setRef(tumour.getRef());
+//			qpr.setTumourGenotype(tumour.getGenotypeEnum());
+//			qpr.setTumourCount(VcfUtils.getDPFromFormatField(tumour.getGenotype()));
 		}
 		
+		qpr.setId(++mutationId);
 		return qpr;
 	}
 
-	private static void loadVCFData(String vcfFile, Map<ChrPosition,QSnpGATKRecord> map) throws Exception {
+	private static void loadVCFData(String vcfFile, Map<ChrPosition,QSnpRecord> map, boolean isControl) throws Exception {
 		if (FileUtils.canFileBeRead(vcfFile)) {
 			
-			VCFFileReader reader  = new VCFFileReader(new File(vcfFile));
-			try {
-				for (VCFRecord qpr : reader) {
-					map.put(new ChrPosition(qpr.getChromosome(), qpr.getPosition()),new QSnpGATKRecord(qpr));
+			try (VCFFileReader reader  = new VCFFileReader(new File(vcfFile));) {
+				if (isControl) {
+					controlVcfHeader = reader.getHeader();
+				} else {
+					testVcfHeader = reader.getHeader();
 				}
-			} finally {
-				reader.close();
+				for (VCFRecord qpr : reader) {
+					
+					// if the length of the reference bases != length of the alt bases, its not a snp (or compound snp)
+					if (VcfUtils.isRecordAMnp(qpr)) {
+						QSnpRecord snpRecord = new QSnpRecord(qpr);
+						if (null != qpr.getFormatFields() && ! qpr.getFormatFields().isEmpty()) {
+							//	 set genotype
+							if (isControl) {
+								snpRecord.setNormalNucleotides(VcfUtils.getGenotypeFromGATKVCFRecord(qpr));
+								snpRecord.setNormalGenotype(VcfUtils.getGEFromGATKVCFRec(qpr));
+							} else {
+								snpRecord.setTumourNucleotides(VcfUtils.getGenotypeFromGATKVCFRecord(qpr));
+								snpRecord.setTumourGenotype(VcfUtils.getGEFromGATKVCFRec(qpr));
+							}
+						}
+						map.put(qpr.getChrPosition() , snpRecord);
+					}
+//					map.put(new ChrPosition(qpr.getChromosome(), qpr.getPosition()),new QSnpGATKRecord(qpr));
+				}
 			}
 		}
 	}
@@ -265,13 +314,13 @@ public final class VcfPipeline extends Pipeline {
 		super.ingestIni(ini);
 
 		// ADDITIONAL INPUT FILES
-		vcfNormalFile = IniFileUtil.getInputFile(ini, "vcfNormal");
-		vcfTumourFile = IniFileUtil.getInputFile(ini, "vcfTumour");
+		controlVcfFile = IniFileUtil.getInputFile(ini, "controlVcf");
+		testVcfFile = IniFileUtil.getInputFile(ini, "testVcf");
 		
 		// log values retrieved from in file
 		logger.tool("**** ADDITIONAL INPUT FILES ****");
-		logger.tool("normal vcf file: " + vcfNormalFile);
-		logger.tool("tumour vcf file: " + vcfTumourFile);
+		logger.tool("control vcf file: " + controlVcfFile);
+		logger.tool("test vcf file: " + testVcfFile);
 		
 		logger.tool("**** OTHER CONFIG ****");
 		logger.tool("mutationIdPrefix: " + mutationIdPrefix);
@@ -296,7 +345,6 @@ public final class VcfPipeline extends Pipeline {
 	 * 
 	 */
 	public class Pileup implements Runnable {
-//		private final String bamFile;
 		private final SAMFileReader reader;
 		private final boolean isNormal;
 		private final ConcurrentMap<ChrPosition , Accumulator> pileupMap;
@@ -308,9 +356,8 @@ public final class VcfPipeline extends Pipeline {
 		private final CountDownLatch latch;
 		
 		public Pileup(final String bamFile, final CountDownLatch latch, final boolean isNormal) {
-//			this.bamFile = bamFile;
 			this.isNormal = isNormal;
-			pileupMap = isNormal ? normalPileup : tumourPileup;
+			pileupMap = isNormal ? controlPileup : testPileup;
 			reader = SAMFileReaderFactory.createSAMFileReader(bamFile);
 			snps = new ArrayList<ChrPosition>(positionRecordMap.keySet());
 			this.latch = latch;
@@ -370,9 +417,14 @@ public final class VcfPipeline extends Pipeline {
 				Accumulator acc = pileupMap.remove(cp);
 				if (null != acc) {
 					QSnpRecord rec = positionRecordMap.get(cp);
-//					logger.info("updating cp: " + cp.toIGVString() + " with acc: " + acc.getPileup());
 					
-					PileupElementLite pel = acc.getLargestVariant(rec.getRef());
+					String refString = rec.getRef();
+					if (refString.length() > 1) {
+						logger.warn("refString: " + refString + " in VcfPipeline.cleanSnpMap");
+					}
+					char ref = refString.charAt(0);
+					
+					PileupElementLite pel = acc.getLargestVariant(ref);
 					if (isNormal) {
 						rec.setNormalNucleotides(acc.getPileupElementString());
 						rec.setNormalCount(acc.getCoverage());
@@ -380,7 +432,6 @@ public final class VcfPipeline extends Pipeline {
 						rec.setNormalNovelStartCount(null != pel ? pel.getNovelStartCount() : 0);
 					} else {
 						// tumour fields
-	//					rec.setTumourGenotype(null == tumour ? null : tumour.getGenotypeEnum());
 						rec.setTumourCount(acc.getCoverage());
 						rec.setTumourNucleotides(acc.getPileupElementString());
 						rec.setTumourNovelStartCount(null != pel ? pel.getNovelStartCount() : 0);
@@ -394,8 +445,9 @@ public final class VcfPipeline extends Pipeline {
 			if (null == thisCPf) return false;
 			if (rec.getReferenceName().equals(thisCPf.getChromosome())) {
 				
-				if (rec.getAlignmentEnd() < thisCPf.getPosition())
+				if (rec.getAlignmentEnd() < thisCPf.getPosition()) {
 					return false;
+				}
 				
 				if (rec.getAlignmentStart() <= thisCPf.getPosition()) {
 					return true;
@@ -410,7 +462,7 @@ public final class VcfPipeline extends Pipeline {
 				}
 				
 				
-			} else if (chrComparator.compare(rec.getReferenceName(), thisCPf.getChromosome()) < 1){
+			} else if (chrComparator.compare(rec.getReferenceName(), thisCPf.getChromosome()) < 1) {
 				// keep iterating through bam file 
 				return false;
 			} else {
@@ -423,7 +475,7 @@ public final class VcfPipeline extends Pipeline {
 				}
 			}
 		}
-		private void updateResults(ChrPosition cp, SAMRecord sam) {
+		private void updateResults(ChrPosition cp, SAMRecord sam, long readId) {
 			// get read index
 			final int indexInRead = SAMUtils.getIndexInReadFromPosition(sam, cp.getPosition());
 			
@@ -439,7 +491,7 @@ public final class VcfPipeline extends Pipeline {
 					if (null != oldAcc) acc = oldAcc;
 				}
 				acc.addBase(sam.getReadBases()[indexInRead], baseQuality, ! sam.getReadNegativeStrandFlag(), 
-						sam.getAlignmentStart(), cp.getPosition(), sam.getAlignmentEnd());
+						sam.getAlignmentStart(), cp.getPosition(), sam.getAlignmentEnd(), readId);
 			}
 		}
 		
@@ -464,17 +516,14 @@ public final class VcfPipeline extends Pipeline {
 					if ( ! SAMUtils.isSAMRecordValidForVariantCalling(sam)) continue;
 					
 					if (match(sam, cp, true)) {
-//						logger.info("got a match!");
-						updateResults(cp, sam);
+						updateResults(cp, sam, recordCount);
 						
 						// get next cp and see if it matches
 						int j = 0;
 						if (arrayPosition < arraySize) {
 							ChrPosition tmpCP = snps.get(arrayPosition + j++);
-							//					ChrPosition tmpCP = snps.get(arrayPosition + j++);
 							while (match(sam, tmpCP, false)) {
-								//								logger.info("got a subsequent match!");
-								updateResults(tmpCP, sam);
+								updateResults(tmpCP, sam, recordCount);
 								if (arrayPosition + j < arraySize)
 									tmpCP = snps.get(arrayPosition + j++);
 								else tmpCP = null;

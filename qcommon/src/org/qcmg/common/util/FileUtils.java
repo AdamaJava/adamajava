@@ -298,4 +298,15 @@ public class FileUtils {
 		return dir.listFiles(filter);
 	}
 
+	public static boolean areInputFilesValid(String ... inputs) {
+		if (null == inputs || inputs.length == 0) return false;
+		
+		for (String input : inputs) {
+			if (StringUtils.isNullOrEmpty(input) || ! canFileBeRead(input)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 }

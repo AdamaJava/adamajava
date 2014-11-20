@@ -9,8 +9,8 @@ import java.util.List;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.model.VCFRecord;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
-import org.qcmg.vcf.VCFFileWriter;
 import org.qcmg.vcf.VCFFileReader;
+import org.qcmg.vcf.VCFFileWriter;
 
 import au.edu.qimr.qannotate.options.SnpEffOptions;
 import ca.mcgill.mcb.pcingola.snpEffect.commandLine.SnpEff;
@@ -19,8 +19,8 @@ import ca.mcgill.mcb.pcingola.snpEffect.commandLine.SnpEff;
 public class SnpEffMode extends AbstractMode{
 
 //	private String cmd;
-	private  String tmpFile;
-	private QLogger logger;
+	private final  String tmpFile;
+	private final QLogger logger;
 	public SnpEffMode(SnpEffOptions options, QLogger logger) throws Exception{
 		this.logger = logger;
 		
@@ -34,33 +34,28 @@ public class SnpEffMode extends AbstractMode{
 		      
         tmpFile = options.getOutputFileName() + ".tmp";
         
-    	logger.tool("running snpEFF, output to " + tmpFile); 	
-    	
+    	logger.tool("running snpEFF, output to " + tmpFile);
     	boolean ok = addAnnotation( options , tmpFile );
 
     	logger.tool("exit snpEFF: " + ok);
 		
 		//reheader
-        if(ok){ 
-        	 logger.tool("adding annotated record to final output ");
-        	try(VCFFileReader reader = new VCFFileReader(new File( tmpFile))){
-    			header = reader.getHeader();
-    			reheader( options.getCommandLine(),options.getInputFileName());	
-     		} 
+        if(ok){ 	
+         	reheader( options.getCommandLine());	
         	writeVCF(new File( options.getOutputFileName()) );
 			logger.tool("reheader snpEFF output to " +   options.getOutputFileName());
 		}else{
 			logger.info("run SnpEff failed!");
 			System.exit(1);
 		}
-	}
 	
+	}
 	@Override
 	protected void writeVCF(File outputFile )  throws Exception{
 		try(VCFFileReader reader = new VCFFileReader(new File( tmpFile));
 				VCFFileWriter writer = new VCFFileWriter(outputFile )){
 								
-        	for(VcfHeaderRecord record: header)  writer.addHeader(record.toString() + "\n");
+        	for(VcfHeaderRecord record: header)  writer.addHeader(record.toString());
         	for (VCFRecord qpr : reader) writer.add(qpr);
 		} 
 	}

@@ -132,30 +132,16 @@ public class VcfPipelineTest {
 		
 		File pileupInput = testFolder.newFile("input.pileup");
 		File vcfOutput = testFolder.newFile("output.vcf");
-		File pileupOutput = testFolder.newFile("output.pileup");
-		File dccSomaticOutput = testFolder.newFile("output.dcc.somatic");
-		File dccGermlineOutput = testFolder.newFile("output.dcc.germline");
-		File illuminaFileNormalAndTumour = testFolder.newFile("illumina.normal.tumour");
-		File chrConv = testFolder.newFile("chr.conv");
-		File germlineDB = testFolder.newFile("germline.DB");
 		
 		PileupFileGenerator.createPileupFile(pileupInput);
-		IlluminaFileGenerator.createIlluminaFile(illuminaFileNormalAndTumour);
 		
-		IniFileGenerator.addInputFiles(iniFile, false, "pileup = " + pileupInput.getAbsolutePath()
-				+ "\nilluminaNormal = " + illuminaFileNormalAndTumour.getAbsolutePath()
-				+ "\nilluminaTumour = " + illuminaFileNormalAndTumour.getAbsolutePath()
-				+ "\ngermlineDB = " + germlineDB.getAbsolutePath()
-				+ "\nchrConv = " + chrConv.getAbsolutePath());
+		IniFileGenerator.addInputFiles(iniFile, false, "pileup = " + pileupInput.getAbsolutePath());
 		
-		IniFileGenerator.addOutputFiles(iniFile, false, "vcf = " + vcfOutput.getAbsolutePath() 
-				+ "\ndccSomatic = " + dccSomaticOutput.getAbsolutePath()
-				+ "\npileup = " + pileupOutput.getAbsolutePath()
-				+ "\ndccGermline = " + dccGermlineOutput.getAbsolutePath());
+		IniFileGenerator.addOutputFiles(iniFile, false, "vcf = " + vcfOutput.getAbsolutePath()); 
 		IniFileGenerator.addStringToIniFile(iniFile, "[parameters]\nincludeIndels = true", true);
 		
 		// add the annotate mode=dcc to the ini file
-		IniFileGenerator.addStringToIniFile(iniFile, "\nannotateMode = dcc", true);
+//		IniFileGenerator.addStringToIniFile(iniFile, "\nannotateMode = dcc", true);
 		// add runType to ini file
 		IniFileGenerator.addStringToIniFile(iniFile, "\nrunMode = pileup", true);	// append to file
 		
@@ -168,10 +154,6 @@ public class VcfPipelineTest {
 		
 		// check the vcf output file
 		assertEquals(2, noOfLinesInVCFOutputFile(vcfOutput));
-		// check the dcc somatic output file
-		assertEquals(1, noOfLinesInDCCOutputFile(dccSomaticOutput));
-		// check the dcc germline output file
-		assertEquals(1, noOfLinesInDCCOutputFile(dccGermlineOutput));
 	}
 	
 	private int noOfLinesInVCFOutputFile(File vcfOutput) throws Exception {

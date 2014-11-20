@@ -22,7 +22,9 @@ public class RulesUtil {
 	 */
 	public static Rule getRule(List<Rule> rules, int coverage) {
 		for (Rule r : rules) {
-			if (r.getMaxCoverage() >= coverage && r.getMinCoverage() <= coverage) return r;
+			if (r.getMaxCoverage() >= coverage && r.getMinCoverage() <= coverage) {
+				return r;
+			}
 		}
 		return null;
 	}
@@ -55,8 +57,9 @@ public class RulesUtil {
 		// check boundaries
 		if (rules.get(0).getMinCoverage() > 0) {
 			String errorMessage = "rules don't cover from 0 to " + rules.get(0).getMinCoverage();
-			if ( ! sb.toString().contains(errorMessage))
+			if ( ! sb.toString().contains(errorMessage)) {
 				sb.append("rules don't cover from 0 to " + rules.get(0).getMinCoverage() + "\n");
+			}
 		}
 		if (previousMaxValue < Integer.MAX_VALUE) {
 			sb.append("rules don't cover from " + (previousMaxValue +1) + " to Integer.MAX_VALUE\n");

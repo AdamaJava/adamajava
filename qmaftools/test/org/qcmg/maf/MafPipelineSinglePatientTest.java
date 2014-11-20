@@ -301,7 +301,7 @@ public class MafPipelineSinglePatientTest {
 		
 		boolean novelDbSnp = true;
 //		String variant = maf.getRef().equals(maf.getTumourAllele1()) ? maf.getTumourAllele2() : maf.getTumourAllele1();
-		char alt = MafUtils.getVariant(maf);
+		char alt = MafUtils.getVariant(maf).charAt(0);
 		
 		// first part of the filter
 		Assert.assertEquals(true, DccConsequence.passesMafNameFilter(maf.getVariantClassification()));
@@ -331,7 +331,7 @@ public class MafPipelineSinglePatientTest {
 		
 		boolean novelDbSnp = true;
 //		String variant = maf.getRef().equals(maf.getTumourAllele1()) ? maf.getTumourAllele2() : maf.getTumourAllele1();
-		char alt = MafUtils.getVariant(maf);
+		char alt = MafUtils.getVariant(maf).charAt(0);
 		
 		// first part of the filter
 		Assert.assertEquals(true, DccConsequence.passesMafNameFilter(maf.getVariantClassification()));

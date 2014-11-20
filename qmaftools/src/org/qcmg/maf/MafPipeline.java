@@ -449,7 +449,7 @@ public abstract class MafPipeline {
 //							bases[i++] = c;
 							// novel start count
 							
-							final char var = MafUtils.getVariant(maf);
+							final char var = MafUtils.getVariant(maf).charAt(0);
 							
 							// only care about variant novel starts
 							if (var == c) {
@@ -474,8 +474,8 @@ public abstract class MafPipeline {
 					// count the number of times the variant appears in the novelstartbases[]
 					maf.setNovelStartBases(new String(novelStartBases));
 					int count = 0;
-					final char var = MafUtils.getVariant(maf);
-					for (final char c : novelStartBases) {
+					final char var = MafUtils.getVariant(maf).charAt(0);
+					for (char c : novelStartBases) {
 						if (c == var) count++;
 					}
 					maf.setNovelStartCount(count);
@@ -678,16 +678,16 @@ public abstract class MafPipeline {
 			for (MAFRecord maf : mafs) {
 				
 				String TD = maf.getTd();
-				char ref = maf.getRef().charAt(0);
-				char tumourAllele1 = maf.getTumourAllele1().charAt(0);
-				char tumourAllele2 = maf.getTumourAllele2().charAt(0);
+				String ref = maf.getRef();
+				String tumourAllele1 = maf.getTumourAllele1();
+				String tumourAllele2 = maf.getTumourAllele2();
 				
 				int tumourRefCount = SnpUtils.getCountFromNucleotideString(TD, ref);
 				int tumourAltCount = 0;
 				
-				if (ref == tumourAllele1) {
+				if (ref.equals(tumourAllele1)) {
 					tumourAltCount = SnpUtils.getCountFromNucleotideString(TD, tumourAllele2);
-				} else if (ref == tumourAllele2) {
+				} else if (ref.equals(tumourAllele2)) {
 					tumourAltCount = SnpUtils.getCountFromNucleotideString(TD, tumourAllele1);
 				} else {
 					logger.info("Neither tumour alleles equals ref. allele1: " + tumourAllele1 + ", allele2: " + tumourAllele2 + ", ref: "  + ref);
@@ -723,7 +723,7 @@ public abstract class MafPipeline {
 			
 			boolean novelDbSnp = "novel".equals(maf.getDbSnpId());
 //			String variant = maf.getRef().equals(maf.getTumourAllele1()) ? maf.getTumourAllele2() : maf.getTumourAllele1();
-			char alt = MafUtils.getVariant(maf);
+			char alt = MafUtils.getVariant(maf).charAt(0);
 			
 			// if maf position verifies, put it straight away into high conf file
 			if ("Valid".equals(maf.getValidationStatus())) {

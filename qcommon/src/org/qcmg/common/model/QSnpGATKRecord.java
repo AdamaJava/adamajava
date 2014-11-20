@@ -9,24 +9,26 @@ import org.qcmg.common.vcf.VcfUtils;
 
 public class QSnpGATKRecord {
 
-	private VCFRecord gatkVcfRecord;
+	private final VCFRecord gatkVcfRecord;
 	private String genotype;
 	private GenotypeEnum genotypeEnum;
 	private String annotation;
-	private int coverage;
 	private List<PileupElement> pileup;
-	private List<PileupElement> novelStartPileup;
-	private int novelStartCount;
-	
-	// default constructor
-	public QSnpGATKRecord() {}
+//	private List<PileupElement> novelStartPileup;
+//	private int novelStartCount;
 	
 	public QSnpGATKRecord(VCFRecord vcf) {
 		this.gatkVcfRecord = vcf;
 		
-		// set genotype
-		genotype = VcfUtils.getGenotypeFromGATKVCFRecord(vcf);
-		genotypeEnum = VcfUtils.getGEFromGATKVCFRec(vcf);
+		if (null != gatkVcfRecord.getFormatFields() && ! gatkVcfRecord.getFormatFields().isEmpty()) {
+			//	 set genotype
+			genotype = VcfUtils.getGenotypeFromGATKVCFRecord(vcf);
+			genotypeEnum = VcfUtils.getGEFromGATKVCFRec(vcf);
+		}
+	}
+	
+	public VCFRecord getVCFRecord() {
+		return gatkVcfRecord;
 	}
 	
 	/**
@@ -35,7 +37,7 @@ public class QSnpGATKRecord {
 	 */
 	public int getDPFromFormatField() {
 		if (null != gatkVcfRecord) {
-			List<String> extraFields = gatkVcfRecord.getExtraFields();
+			List<String> extraFields = gatkVcfRecord.getFormatFields();
 			if (extraFields.size() > 1)
 				return VcfUtils.getDPFromFormatField(extraFields.get(1));
 		}
@@ -48,67 +50,61 @@ public class QSnpGATKRecord {
 	public int getPosition() {
 		return gatkVcfRecord.getPosition();
 	}
-	public void setPosition(final int position) {
-		if (null == gatkVcfRecord) gatkVcfRecord = new VCFRecord();
-		gatkVcfRecord.setPosition(position);
-	}
-	public char getRef() {
+//	public void setPosition(final int position) {
+//		if (null == gatkVcfRecord) gatkVcfRecord = new VCFRecord();
+//		gatkVcfRecord.setPosition(position);
+//	}
+	public String getRef() {
 		return gatkVcfRecord.getRef();
 	}
-	public char getAlt() {
-		return gatkVcfRecord.getAlt().charAt(0);
+	public String getAlt() {
+		return gatkVcfRecord.getAlt();
 	}
 	
 	public String getGenotype() {
 		return genotype;
 	}
-	public void setGenotype(String genotype) {
-		this.genotype = genotype;
-	}
+//	public void setGenotype(String genotype) {
+//		this.genotype = genotype;
+//	}
 	
 	public GenotypeEnum getGenotypeEnum() {
 		return genotypeEnum;
 	}
-	public void setGenotypeEnum(GenotypeEnum genotypeEnum) {
-		this.genotypeEnum = genotypeEnum;
-	}
+//	public void setGenotypeEnum(GenotypeEnum genotypeEnum) {
+//		this.genotypeEnum = genotypeEnum;
+//	}
 	public String getAnnotation() {
 		return annotation;
 	}
-	public void setAnnotation(String annotation) {
-		this.annotation = annotation;
-	}
-	public void addAnnotation(String annotation) {
-		if (null == this.annotation)
-			this.annotation = annotation;
-		else
-			this.annotation += "; " +  annotation;
-	}
-	public int getCoverage() {
-		return coverage;
-	}
-	public void setCoverage(int coverage) {
-		this.coverage = coverage;
-	}
+//	public void setAnnotation(String annotation) {
+//		this.annotation = annotation;
+//	}
+//	public void addAnnotation(String annotation) {
+//		if (null == this.annotation)
+//			this.annotation = annotation;
+//		else
+//			this.annotation += "; " +  annotation;
+//	}
 	public void setPileup(List<PileupElement> pileup) {
 		this.pileup = pileup;
 	}
 	public List<PileupElement> getPileup() {
 		return pileup;
 	}
-	public void setNovelStartPileup(List<PileupElement> novelStartPileup) {
-		this.novelStartPileup = novelStartPileup;
-	}
-	public List<PileupElement> getNovelStartPileup() {
-		return novelStartPileup;
-	}
+//	public void setNovelStartPileup(List<PileupElement> novelStartPileup) {
+//		this.novelStartPileup = novelStartPileup;
+//	}
+//	public List<PileupElement> getNovelStartPileup() {
+//		return novelStartPileup;
+//	}
 
-	public void setNovelStartCount(int novelStartCount) {
-		this.novelStartCount = novelStartCount;
-	}
+//	public void setNovelStartCount(int novelStartCount) {
+//		this.novelStartCount = novelStartCount;
+//	}
 
-	public int getNovelStartCount() {
-		return novelStartCount;
-	}
+//	public int getNovelStartCount() {
+//		return novelStartCount;
+//	}
 	
 }

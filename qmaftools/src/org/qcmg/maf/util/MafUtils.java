@@ -1069,7 +1069,7 @@ public class MafUtils {
 	 * @return  char representing the variant
 	 * @throws IllegalArgumentException if the maf record is null, or if the reference, tumour allele 1 or 2 are null
 	 */
-	public static char getVariant(final MAFRecord maf) {
+	public static String getVariant(final MAFRecord maf) {
 		if (null == maf || null == maf.getRef() || null == maf.getMafType())
 			throw new IllegalArgumentException("Null maf object passed to getVariant");
 		
@@ -1080,7 +1080,7 @@ public class MafUtils {
 			throw new IllegalArgumentException("Maf object does not contain valid alleles in getVariant: " + maf.toString());
 			
 		String variant = maf.getRef().equals(allele1) ? allele2 : allele1;
-		return variant.charAt(0);
+		return variant;
 	}
 	
 	public static String getFullChromosome(final MAFRecord maf) {

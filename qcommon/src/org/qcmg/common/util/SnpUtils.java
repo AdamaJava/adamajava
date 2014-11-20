@@ -3,6 +3,8 @@
  */
 package org.qcmg.common.util;
 
+import org.qcmg.common.log.QLogger;
+import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.vcf.VcfUtils;
 
@@ -50,7 +52,9 @@ public class SnpUtils {
 	public static final String INDEL_HCOVT = "HCOVT";	
 	public static final String INDEL_HCOVN = "HCOVN";	
 	public static final String INDEL_STRAND_BIAS = "TBIAS";	
-	public static final String INDEL_NPART = "NPART";	
+	public static final String INDEL_NPART = "NPART";
+	
+	private static final QLogger logger = QLoggerFactory.getLogger(SnpUtils.class);
 	
 	/**
 	 * Utility method to determine if an annotation contains text that classifies a snp as class A or B
@@ -216,10 +220,12 @@ public class SnpUtils {
 	 * @return char representing the alt allele
 	 * @TODO must update to deal with X>X/Y and X/Y>X/Y
 	 */
-	public static char getAltFromMutationString(String mutation) {
-		if (StringUtils.isNullOrEmpty(mutation))
+	public static String getAltFromMutationString(String mutation) {
+		if (StringUtils.isNullOrEmpty(mutation)) {
 			throw new IllegalArgumentException("invalid mutation string supplied to getAltFromMutationString (null or empty)");
-		return mutation.charAt(mutation.length() - 1);
+		}
+		int index = mutation.indexOf(">");
+		return mutation.substring(index + 1);
 	}
 	
 	/**
@@ -233,8 +239,10 @@ public class SnpUtils {
 	 * @param base
 	 * @return
 	 */
-	public static int getCountFromNucleotideString(final String bases, final char base) {
-		if (StringUtils.isNullOrEmpty(bases)) return 0;
+	public static int getCountFromNucleotideString(final String bases, final String base) {
+		if (StringUtils.isNullOrEmpty(bases) || StringUtils.isNullOrEmpty(base)) {
+			return 0;
+		}
 		
 		final int basePosition = bases.indexOf(base);  
 		if (basePosition == -1) return 0;
@@ -276,6 +284,47 @@ public class SnpUtils {
 			throw new IllegalArgumentException
 			("invalid parameters supplied to getCountFromIndelNucleotideString: " + countsString + ", and position: " + position);
 		}
+	}
+	
+	public static boolean doesNucleotideStringContainReadsOnBothStrands(String bases) {
+		
+		if (StringUtils.isNullOrEmpty(bases)) return false;
+		
+//		logger.info("in doesNucleotideStringContainReadsOnBothStrands with : " + bases);
+		
+		String [] basesArray = TabTokenizer.tokenize(bases, ',');
+		// should always have an even number of bases (1 for each strand)
+		if (basesArray.length % 2 != 0) {
+			logger.warn("Incorrect number of basesArray elements: " + basesArray.length);
+		}
+		
+		int zeroOnFS = 0, zeroOnRS = 0;
+		for (int i = 0 ; i < basesArray.length ; i++) {
+			// strip leading character if it is a letter
+			String arrayValue = basesArray[i];
+			
+			if ( ! Character.isDigit(arrayValue.charAt(0))) {
+				
+				arrayValue = arrayValue.substring(1);
+				// check to see if first char is now a colon
+				if (':' == arrayValue.charAt(0)) {
+					arrayValue = arrayValue.substring(1);
+				}
+			}
+			if ("0[0]".equals(arrayValue)) {
+				
+				// if remainder when divided by 2 is 0 - fs, otherwise rs
+				int rem = i % 2;
+				if (rem == 0) {
+					zeroOnFS++;
+				} else {
+					zeroOnRS++;
+				}
+			}
+		}
+//		logger.info("zeroOnFS : " + zeroOnFS + ", zeroOnRS: " + zeroOnRS + ", basesArray.length / 2: " + (basesArray.length / 2));
+		
+		return (zeroOnFS != (basesArray.length / 2)) &&  (zeroOnRS != (basesArray.length / 2));
 	}
 	
 }

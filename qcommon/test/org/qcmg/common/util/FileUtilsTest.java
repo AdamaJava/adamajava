@@ -341,4 +341,15 @@ public class FileUtilsTest {
 		System.out.println("old skool, foundFiles size: " + oldSchoolFoundFiles.length +", time taken: " + (System.currentTimeMillis() - start));
 		
 	}
+	
+	@Test
+	public void testAreInputFilesValid() throws IOException {
+		Assert.assertEquals(false, FileUtils.areInputFilesValid());
+		Assert.assertEquals(false, FileUtils.areInputFilesValid(null));
+		Assert.assertEquals(false, FileUtils.areInputFilesValid(null, null));
+		String newFile = tempFolder.newFile().getAbsolutePath();
+		Assert.assertEquals(true, FileUtils.areInputFilesValid(newFile));
+		Assert.assertEquals(false, FileUtils.areInputFilesValid(newFile, null));
+		Assert.assertEquals(false, FileUtils.areInputFilesValid(null, newFile));
+	}
 }

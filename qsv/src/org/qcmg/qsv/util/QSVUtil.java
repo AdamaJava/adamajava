@@ -34,6 +34,9 @@ import org.qcmg.qsv.splitread.UnmappedRead;
  */
 public class QSVUtil {
 
+	
+	private static final Pattern numPattern = Pattern.compile("\\d*");
+	
     /**
      * Takes start and end date and return a string of the time between these two Date objects
      *
@@ -124,7 +127,6 @@ public class QSVUtil {
         String leftChr = leftReference.replace("chr", "");
         String rightChr = rightReference.replace("chr", "");
         
-        Pattern numPattern = Pattern.compile("\\d*");
         Matcher numMatcherleft = numPattern.matcher(leftChr);
         Matcher numMatcherRight = numPattern.matcher(rightChr);
 

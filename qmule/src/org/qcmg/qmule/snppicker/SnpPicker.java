@@ -421,7 +421,7 @@ public class SnpPicker {
 					value = new VariantRecord();
 					variantMap.put(id, value);
 				}
-				value.setVcfRef(rec.getRef());
+				value.setVcfRef(rec.getRefChar());
 				value.setVcfAlt(rec.getAlt().charAt(0));
 				value.setVcfGenotype(VcfUtils.getGenotypeFromGATKVCFRecord(rec));
 				vcfCount++;

@@ -13,6 +13,7 @@ import org.qcmg.common.model.VCFRecord;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.TabTokenizer;
+import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.tab.TabbedFileReader;
 import org.qcmg.tab.TabbedRecord;
 
@@ -39,10 +40,10 @@ public class SnpFileDetails {
 				++count;
 				String[] params = TabTokenizer.tokenize(rec.getData());
 				
-				char ref = '\u0000';
+				String ref = null;
 				if (params.length > 4 && ! StringUtils.isNullOrEmpty(params[4])) {
-					ref = params[4].charAt(0);
-					if ('-' == ref || '.' == ref) {
+					ref = params[4];
+					if ("-".equals(ref) || ".".equals(ref)) {
 						dashRef++;
 						logger.info("dash ref: " + rec.getData());
 					}
@@ -53,13 +54,11 @@ public class SnpFileDetails {
 				
 				String chr = params[0];
 				int position = Integer.parseInt(params[1]);
-				VCFRecord vcf = new VCFRecord();
-				vcf.setChromosome(chr);
-				vcf.setPosition(position);
+				VCFRecord vcf =VcfUtils.createVcfRecord(chr, position, ref);
 				vcf.setId(params[2]);
-				vcf.setRef(ref);
-				if (params.length > 5)
+				if (params.length > 5) {
 					vcf.setAlt(params[5].replaceAll("/", ","));
+				}
 
 				// Lynns new files are 1-based - no need to do any processing on th position
 				snps.add(vcf);

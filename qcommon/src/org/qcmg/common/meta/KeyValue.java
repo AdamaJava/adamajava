@@ -11,6 +11,7 @@ public class KeyValue {
 	public static final String Q_DCC_META = "#Q_DCCMETA";
 	public static final String Q_EXEC = "#Q_EXEC";
 	public static final String Q_LIMS_META = "#Q_LIMSMETA_";
+	public static final String Q_BAM_ID = "#Q_BAM_ID";
 	
 	private String key;
 	private String value;
@@ -50,6 +51,10 @@ public class KeyValue {
 	
 	public String toLimsMetaString(String prefix) {
 		return Q_LIMS_META + prefix.toUpperCase() + TAB + this.key + TAB + this.value + LS; 
+	}
+	
+	public String toBamIdString() {
+		return Q_BAM_ID + TAB + this.key + TAB + this.value + LS; 
 	}
 	
 	public String toToolString(String tool) {

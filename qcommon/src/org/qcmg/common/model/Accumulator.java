@@ -6,7 +6,10 @@ package org.qcmg.common.model;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Queue;
 
 import org.qcmg.common.util.PileupElementLiteUtil;
 
@@ -87,7 +90,7 @@ public class Accumulator {
 		}
 	}
 	
-	public void addBase(final byte base, final byte qual, final boolean forwardStrand, final int startPosition, final int position, final int endPosition) {
+	public void addBase(final byte base, final byte qual, final boolean forwardStrand, final int startPosition, final int position, final int endPosition, long readId) {
 		
 		if (this.position != position) throw new IllegalArgumentException("Attempt to add data for wrong position. " +
 				"This position: " + this.position + ", position: " + position);
@@ -101,19 +104,19 @@ public class Accumulator {
 		switch (base) {
 		case 'A': 
 			if (null == A) A = new PileupElementLite();
-			update(A, qual, forwardStrand, startPositionToUse, endOfRead);
+			update(A, qual, forwardStrand, startPositionToUse, endOfRead, readId);
 			break;
 		case 'C': 
 			if (null == C) C = new PileupElementLite();
-			update(C, qual, forwardStrand, startPositionToUse, endOfRead);
+			update(C, qual, forwardStrand, startPositionToUse, endOfRead, readId);
 			break;
 		case 'G': 
 			if (null == G) G = new PileupElementLite();
-			update(G, qual, forwardStrand, startPositionToUse, endOfRead);
+			update(G, qual, forwardStrand, startPositionToUse, endOfRead, readId);
 			break;
 		case 'T': 
 			if (null == T) T = new PileupElementLite();
-			update(T, qual, forwardStrand, startPositionToUse, endOfRead);
+			update(T, qual, forwardStrand, startPositionToUse, endOfRead, readId);
 			break;
 		case 'N':
 			nCount++;
@@ -121,11 +124,11 @@ public class Accumulator {
 		}
 	}
 	
-	private void update(final PileupElementLite peLite, final byte qual, final boolean forwardStrand, final int startPosition, boolean endOfRead) {
+	private void update(final PileupElementLite peLite, final byte qual, final boolean forwardStrand, final int startPosition, boolean endOfRead, long readId) {
 		if (forwardStrand)
-			peLite.addForwardQuality(qual, startPosition, endOfRead);
+			peLite.addForwardQuality(qual, startPosition, readId, endOfRead);
 		else
-			peLite.addReverseQuality(qual, startPosition, endOfRead);
+			peLite.addReverseQuality(qual, startPosition, readId, endOfRead);
 	}
 	
 	public String getPileup() {
@@ -251,7 +254,7 @@ public class Accumulator {
 		return pileup.toString();
 	}
 	
-	public boolean containsMutation() {
+	public boolean containsMultipleAlleles() {
 		int differentBases = 0;
 //		if (null != DOT) differentBases++;
 		if (null != A) differentBases++;
@@ -262,12 +265,12 @@ public class Accumulator {
 	}
 	
 	/**
-	 * This method is only called if containsMutation returns false.
+	 * This method is only called if containsMultipleAlleles returns false.
 	 * Meaning that there should only be a single base being represented at this position.
 	 * @return
 	 */
 	public char getBase() {
-		if (containsMutation()) 
+		if (containsMultipleAlleles()) 
 			throw new UnsupportedOperationException(
 					"Accumulator.getBase() called when there is more than 1 base at this position");
 		
@@ -402,7 +405,9 @@ public class Accumulator {
 	
 	public String getPileupElementString() {
 		StringBuilder pileup = new StringBuilder();
-		if (null != A) pileup.append(PileupElementLiteUtil.toSummaryString(A, "A"));
+		if (null != A) {
+			pileup.append(PileupElementLiteUtil.toSummaryString(A, "A"));
+		}
 		if (null != C) {
 			if (pileup.length() > 0) pileup.append(COMMA);
 			pileup.append(PileupElementLiteUtil.toSummaryString(C, "C"));
@@ -417,6 +422,91 @@ public class Accumulator {
 		}
 		
 		return pileup.toString();
+	}
+	
+	public String getReadIdsPerAllele() {
+		StringBuilder sb = new StringBuilder();
+		if (null != A) {
+			sb.append(PileupElementLiteUtil.getBaseAndReadIds(A, "A"));
+		}
+		if (null != C) {
+			if (sb.length() > 0) sb.append(COMMA);
+			sb.append(PileupElementLiteUtil.getBaseAndReadIds(C, "C"));
+		}
+		if (null != G) {
+			if (sb.length() > 0) sb.append(COMMA);
+			sb.append(PileupElementLiteUtil.getBaseAndReadIds(G, "G"));
+		}
+		if (null != T) {
+			if (sb.length() > 0) sb.append(COMMA);
+			sb.append(PileupElementLiteUtil.getBaseAndReadIds(T, "T"));
+		}
+		
+		return sb.toString();
+		
+	}
+	
+	public Map<Long, Character> getReadIdBaseMap() {
+		Map<Long, Character> map = new HashMap<>();
+		
+		if (null != A) {
+			Queue<Long> ids = A.getForwardReadIds();
+			if (ids != null) {
+				for (Long s : ids) {
+					map.put(s, 'A');
+				}
+			}
+			 ids = A.getReverseReadIds();
+				if (ids != null) {
+					for (Long s : ids) {
+						map.put(s, 'a');
+					}
+				}
+		}
+		if (null != C) {
+			Queue<Long> ids = C.getForwardReadIds();
+			if (ids != null) {
+				for (Long s : ids) {
+					map.put(s, 'C');
+				}
+			}
+			 ids = C.getReverseReadIds();
+				if (ids != null) {
+					for (Long s : ids) {
+						map.put(s, 'c');
+					}
+				}
+		}
+		if (null != G) {
+			Queue<Long> ids = G.getForwardReadIds();
+			if (ids != null) {
+				for (Long s : ids) {
+					map.put(s, 'G');
+				}
+			}
+			 ids = G.getReverseReadIds();
+				if (ids != null) {
+					for (Long s : ids) {
+						map.put(s, 'g');
+					}
+				}
+		}
+		if (null != T) {
+			Queue<Long> ids = T.getForwardReadIds();
+			if (ids != null) {
+				for (Long s : ids) {
+					map.put(s, 'T');
+				}
+			}
+			 ids = T.getReverseReadIds();
+				if (ids != null) {
+					for (Long s : ids) {
+						map.put(s, 't');
+					}
+				}
+		}
+		
+		return map;
 	}
 	
 }

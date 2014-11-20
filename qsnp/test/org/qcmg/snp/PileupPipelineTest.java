@@ -16,7 +16,6 @@ import org.qcmg.common.commandline.Executor;
 import org.qcmg.common.model.PileupElement;
 import org.qcmg.common.model.Rule;
 import org.qcmg.common.model.VCFRecord;
-import org.qcmg.snp.util.HeaderUtil;
 import org.qcmg.tab.TabbedFileReader;
 import org.qcmg.tab.TabbedRecord;
 import org.qcmg.vcf.VCFFileReader;
@@ -69,6 +68,10 @@ public class PileupPipelineTest {
 		ExpectedException.none();
 		String command = "-log " + logFile.getAbsolutePath() + " -i " + iniFile.getAbsolutePath();
 		Executor exec = new Executor(command, "org.qcmg.snp.Main");
+//		String [] lines = exec.getErrorStreamConsumer().getLines();
+//		for (String s : lines) {
+//			System.out.println("s: " + s);
+//		}
 		assertEquals(0, exec.getErrCode());
 		assertTrue(0 == exec.getOutputStreamConsumer().getLines().length);
 		
@@ -105,86 +108,63 @@ public class PileupPipelineTest {
 		assertEquals(2, noOfLinesInVCFOutputFile(vcfOutput));
 	}
 	
-	@Test
-	public void testPileupPipelineDCCMode() throws Exception{
-		File logFile = testFolder.newFile("qsnp.log");
-		File iniFile = testFolder.newFile("qsnp.ini");
-		IniFileGenerator.createRulesOnlyIni(iniFile);
-		
-		File pileupInput = testFolder.newFile("input.pileup");
-		File vcfOutput = testFolder.newFile("output.vcf");
-		File dccSomaticOutput = testFolder.newFile("output.dcc.somatic");
-		File dccGermlineOutput = testFolder.newFile("output.dcc.germline");
-		File illuminaFileNormalAndTumour = testFolder.newFile("illumina.normal.tumour");
-		File chrConv = testFolder.newFile("chr.conv");
-		File germlineDB = testFolder.newFile("germline.DB");
-		
-		PileupFileGenerator.createPileupFile(pileupInput);
-		IlluminaFileGenerator.createIlluminaFile(illuminaFileNormalAndTumour);
-		
-		IniFileGenerator.addInputFiles(iniFile, false, "pileup = " + pileupInput.getAbsolutePath()
-				+ "\nilluminaNormal = " + illuminaFileNormalAndTumour.getAbsolutePath()
-				+ "\nilluminaTumour = " + illuminaFileNormalAndTumour.getAbsolutePath()
-				+ "\ngermlineDB = " + germlineDB.getAbsolutePath()
-				+ "\nchrConv = " + chrConv.getAbsolutePath());
-		
-		IniFileGenerator.addOutputFiles(iniFile, false, "vcf = " + vcfOutput.getAbsolutePath() 
-				+ "\ndccSomatic = " + dccSomaticOutput.getAbsolutePath()
-				+ "\ndccGermline = " + dccGermlineOutput.getAbsolutePath());
-		IniFileGenerator.addStringToIniFile(iniFile, "[parameters]\nincludeIndels = true", true);
-		
-		// add the annotate mode=dcc to the ini file
-		IniFileGenerator.addStringToIniFile(iniFile, "\nannotateMode = dcc", true);
-		// add runType to ini file
-		IniFileGenerator.addStringToIniFile(iniFile, "\nrunMode = pileup", true);	// append to file
-		
-		// that should be it
-		ExpectedException.none();
-		String command = "-log " + logFile.getAbsolutePath() + " -i " + iniFile.getAbsolutePath();
-		Executor exec = new Executor(command, "org.qcmg.snp.Main");
-		assertEquals(0, exec.getErrCode());
-		assertTrue(0 == exec.getOutputStreamConsumer().getLines().length);
-		
-		// check the vcf output file
-		assertEquals(2, noOfLinesInVCFOutputFile(vcfOutput));
-		// check the dcc somatic output file
-		assertEquals(1, noOfLinesInDCCOutputFile(dccSomaticOutput));
-		// check the dcc germline output file
-		assertEquals(1, noOfLinesInDCCOutputFile(dccGermlineOutput));
-		
-		assertEquals(HeaderUtil.DCC_SOMATIC_HEADER_MINIMAL.trim(), getFileHeader(dccSomaticOutput));
-		assertEquals(HeaderUtil.DCC_GERMLINE_HEADER_MINIMAL.trim(), getFileHeader(dccGermlineOutput));
-	}
+//	@Test
+//	public void testPileupPipelineDCCMode() throws Exception{
+//		File logFile = testFolder.newFile("qsnp.log");
+//		File iniFile = testFolder.newFile("qsnp.ini");
+//		IniFileGenerator.createRulesOnlyIni(iniFile);
+//		
+//		File pileupInput = testFolder.newFile("input.pileup");
+//		File vcfOutput = testFolder.newFile("output.vcf");
+//		
+//		PileupFileGenerator.createPileupFile(pileupInput);
+//		
+//		IniFileGenerator.addInputFiles(iniFile, false, "pileup = " + pileupInput.getAbsolutePath());
+//		
+//		IniFileGenerator.addOutputFiles(iniFile, false, "vcf = " + vcfOutput.getAbsolutePath()); 
+//		IniFileGenerator.addStringToIniFile(iniFile, "[parameters]\nincludeIndels = true", true);
+//		
+//		// add the annotate mode=dcc to the ini file
+//		IniFileGenerator.addStringToIniFile(iniFile, "\nannotateMode = dcc", true);
+//		// add runType to ini file
+//		IniFileGenerator.addStringToIniFile(iniFile, "\nrunMode = pileup", true);	// append to file
+//		
+//		// that should be it
+//		ExpectedException.none();
+//		String command = "-log " + logFile.getAbsolutePath() + " -i " + iniFile.getAbsolutePath();
+//		Executor exec = new Executor(command, "org.qcmg.snp.Main");
+//		assertEquals(0, exec.getErrCode());
+//		assertTrue(0 == exec.getOutputStreamConsumer().getLines().length);
+//		
+//		// check the vcf output file
+//		assertEquals(2, noOfLinesInVCFOutputFile(vcfOutput));
+//		
+//	}
 	
 	private int noOfLinesInVCFOutputFile(File vcfOutput) throws Exception {
-		VCFFileReader reader = new VCFFileReader(vcfOutput);
 		int noOfLines = 0;
-		try {
+		try (VCFFileReader reader = new VCFFileReader(vcfOutput);) {
 			for (VCFRecord vcf : reader) noOfLines++;
-		} finally {
-			reader.close();
 		}
 		return noOfLines;
 	}
 	
 	public static String getFileHeader(File file) throws Exception {
-		TabbedFileReader reader = new TabbedFileReader(file);
-		for (TabbedRecord vcf : reader) {
-			if (vcf.getData().startsWith("analysis")) return vcf.getData();
+		try (TabbedFileReader reader = new TabbedFileReader(file);) {
+			for (TabbedRecord vcf : reader) {
+				if (vcf.getData().startsWith("analysis")) return vcf.getData();
+			}
 		}
 		return "no header line found";
 	}
 	
 	private int noOfLinesInDCCOutputFile(File dccFile) throws Exception {
-		TabbedFileReader reader = new TabbedFileReader(dccFile);
 		int noOfLines = 0;
-		try {
+		try (TabbedFileReader reader = new TabbedFileReader(dccFile);) {
 			for (TabbedRecord vcf : reader) {
 				if (vcf.getData().startsWith("analysis")) continue;	// header line
 				noOfLines++;
 			}
-		} finally {
-			reader.close();
 		}
 		return noOfLines;
 	}

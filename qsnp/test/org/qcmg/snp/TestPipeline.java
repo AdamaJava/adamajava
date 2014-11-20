@@ -6,7 +6,7 @@ import org.qcmg.pileup.QSnpRecord;
 public class TestPipeline extends Pipeline {
 	
 	public TestPipeline() {
-		super(new QExec("qSNP","TEST",new String[] {}));
+		super(new QExec("qSNP","TEST",new String[] {}), false);
 	}
 
 	@Override

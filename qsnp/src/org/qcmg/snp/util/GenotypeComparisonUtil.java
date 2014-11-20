@@ -3,19 +3,59 @@
  */
 package org.qcmg.snp.util;
 
+import static org.qcmg.common.util.Constants.MUT_DELIM;
+
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.GenotypeEnum;
+import org.qcmg.common.string.StringUtils;
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.SnpUtils;
+import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.pileup.QSnpRecord;
 import org.qcmg.pileup.QSnpRecord.Classification;
-import org.qcmg.snp.Pipeline;
-
 public class GenotypeComparisonUtil {
 	
-	private static final String MUT_DELIM = ">";
+	
 	private final static QLogger logger = QLoggerFactory.getLogger(GenotypeComparisonUtil.class);
 	
+	
+	public static void singleSampleGenotype(QSnpRecord record) {
+		if (null == record) 
+			throw new IllegalArgumentException("Null pileup record passed to GenotypeComparisonUtil.compareSingleGenotype");
+		
+		GenotypeEnum genotype = record.getTumourGenotype();
+		
+		if (null == genotype) {
+			logger.error("Error predicting genotype for record: " + record.getFormattedString());
+			throw new IllegalArgumentException("Pileup record passed to GenotypeComparisonUtil.compareGenotypes has missing genotype");
+		}
+		
+		record.setClassification(Classification.UNKNOWN);
+		
+		String refString = record.getRef();
+		if (refString.length() > 1) {
+			logger.warn("ref string: " + refString + "  has more than 1 char in it! in GenotypeComparisonUtil.singleSampleGenotype");
+		}
+		char reference = refString.charAt(0);
+		
+		if (genotype.containsAllele(reference)) {
+		
+			if (genotype.isHeterozygous()) {
+				record.setMutation(reference + MUT_DELIM + (genotype.getFirstAllele() == reference ? genotype.getSecondAllele() : genotype.getFirstAllele()));
+			} else {
+				// Ignore (not expecting this to happen...)
+				logger.warn("Ignoring due to homozygous and equal to ref: " + record.getFormattedString());
+			}
+		} else {
+			if (genotype.isHeterozygous()) {
+				record.setMutation(reference + MUT_DELIM + genotype.getFirstAllele() + Constants.COMMA +  genotype.getSecondAllele());
+			} else {
+				record.setMutation(reference + MUT_DELIM + genotype.getFirstAllele());
+			}
+			
+		}
+	}
 	
 	public static void compareSingleGenotype(QSnpRecord record) {
 		if (null == record) 
@@ -29,11 +69,15 @@ public class GenotypeComparisonUtil {
 			throw new IllegalArgumentException("Pileup record passed to GenotypeComparisonUtil.compareGenotypes has missing genotype");
 		}
 		
-		char reference = record.getRef();
+		String refString = record.getRef();
+		if (refString.length() > 1) {
+			logger.warn("ref string: " + refString + "  has more than 1 char in it! in GenotypeComparisonUtil.compareSingleGenotype");
+		}
+		char reference = refString.charAt(0);
 		
 		if (null == tumour) {
 			
-			Pipeline.updateAnnotation(record, SnpUtils.LESS_THAN_3_READS_TUMOUR);
+			VcfUtils.updateFilter(record.getVcfRecord(), SnpUtils.LESS_THAN_3_READS_TUMOUR);
 			
 			if (normal.containsAllele(reference)) {
 				if (normal.isHeterozygous()) {
@@ -54,7 +98,7 @@ public class GenotypeComparisonUtil {
 			}
 			
 		} else {
-			Pipeline.updateAnnotation(record, SnpUtils.LESS_THAN_3_READS_NORMAL);
+			VcfUtils.updateFilter(record.getVcfRecord(), SnpUtils.LESS_THAN_3_READS_NORMAL);
 			
 			if (tumour.containsAllele(reference)) {
 				
@@ -64,7 +108,7 @@ public class GenotypeComparisonUtil {
 				} else {
 					char M = reference == tumour.getFirstAllele() ? tumour.getSecondAllele() : tumour.getFirstAllele();
 					// if there is evidence of the variant in the normal - > GERMLINE
-					if (record.getNormalCount() > 0 && isCharPresentInString(record.getNormalPileup(), M)) {
+					if (record.getNormalCount() > 0 && StringUtils.isCharPresentInString(record.getNormalPileup(), M)) {
 						
 						record.setClassification(Classification.GERMLINE);
 						record.setMutation(reference + MUT_DELIM + M);
@@ -83,7 +127,7 @@ public class GenotypeComparisonUtil {
 				
 				if (tumour.isHomozygous()) {
 					char M = tumour.getFirstAllele();
-					if (record.getNormalCount() > 0 && (isCharPresentInString(record.getNormalPileup(), M))) {
+					if (record.getNormalCount() > 0 && (StringUtils.isCharPresentInString(record.getNormalPileup(), M))) {
 //						if (record.getNormalCount() > 0 && (record.getNormalPileup().contains(""+M) 
 //								|| record.getNormalPileup().contains(""+Character.toLowerCase(M)))) {
 						
@@ -106,8 +150,8 @@ public class GenotypeComparisonUtil {
 					char B = tumour.getSecondAllele();
 					
 					if (record.getNormalCount() > 0 
-							&& isCharPresentInString(record.getNormalPileup(), A) 
-							&& isCharPresentInString(record.getNormalPileup(), B)) {
+							&& StringUtils.isCharPresentInString(record.getNormalPileup(), A) 
+							&& StringUtils.isCharPresentInString(record.getNormalPileup(), B)) {
 						record.setClassification(Classification.GERMLINE);
 						record.setMutation(reference + MUT_DELIM + tumour.getDisplayString());
 //						record.addAnnotation("mutation also found in pileup of normal");
@@ -138,6 +182,12 @@ public class GenotypeComparisonUtil {
 		String mutation = null;
 		String note = null;
 		
+		String refString = record.getRef();
+		if (refString.length() > 1) {
+			logger.warn("ref string: " + refString + "  has more than 1 char in it! in GenotypeComparisonUtil.compareGenotypes");
+		}
+		char reference = refString.charAt(0);
+		
 		
 		////////////////////////////////////////////////////////////////
 		// this deals with HOM/HOM and HET/HET
@@ -150,17 +200,17 @@ public class GenotypeComparisonUtil {
 			record.setClassification(Classification.SOMATIC);
 			mutation = normal.getFirstAllele() + MUT_DELIM + tumour.getFirstAllele();
 			
-			if (tumour.getFirstAllele() == record.getRef()) {
-				Pipeline.updateAnnotation(record, SnpUtils.MUTATION_EQUALS_REF);
+			if (tumour.getFirstAllele() == reference) {
+				VcfUtils.updateFilter(record.getVcfRecord(), SnpUtils.MUTATION_EQUALS_REF);
 			}
 		} else if (normal.isHeterozygous() && tumour.isHeterozygous()) {
 			// not equal but both are heterozygous
 			record.setClassification(Classification.SOMATIC);
 			
-			if ((tumour.getFirstAllele() == record.getRef() || normal.containsAllele(tumour.getFirstAllele())) 
-					&& (tumour.getSecondAllele() == record.getRef() || normal.containsAllele(tumour.getSecondAllele()))) {
-				Pipeline.updateAnnotation(record, SnpUtils.MUTATION_EQUALS_REF);
-				char firstAllele = normal.getFirstAllele() == record.getRef() ? normal.getSecondAllele() : normal.getFirstAllele();
+			if ((tumour.getFirstAllele() == reference || normal.containsAllele(tumour.getFirstAllele())) 
+					&& (tumour.getSecondAllele() == reference || normal.containsAllele(tumour.getSecondAllele()))) {
+				VcfUtils.updateFilter(record.getVcfRecord(), SnpUtils.MUTATION_EQUALS_REF);
+				char firstAllele = normal.getFirstAllele() == reference ? normal.getSecondAllele() : normal.getFirstAllele();
 				mutation = firstAllele + MUT_DELIM + record.getRef();
 			} else {
 				
@@ -186,7 +236,7 @@ public class GenotypeComparisonUtil {
 		///////////////////////////////////////////////////////
 		else if (normal.isHomozygous() && tumour.isHeterozygous()) {
 			
-			GenotypeEnum refAndNormalGenotype = GenotypeEnum.getGenotypeEnum(record.getRef(), normal.getFirstAllele());
+			GenotypeEnum refAndNormalGenotype = GenotypeEnum.getGenotypeEnum(reference, normal.getFirstAllele());
 			
 			if (tumour == refAndNormalGenotype) {
 				record.setClassification(Classification.GERMLINE);
@@ -220,28 +270,28 @@ public class GenotypeComparisonUtil {
 			
 			// add standard annotation
 			// ref -> normal
-			if (normal.isHomozygous() && ! normal.containsAllele(record.getRef())) {
+			if (normal.isHomozygous() && ! normal.containsAllele(reference)) {
 				mutation = record.getRef() + MUT_DELIM + normal.getFirstAllele();
-			} else if (normal.isHeterozygous() && normal.containsAllele(record.getRef())) {
-				mutation = record.getRef() + MUT_DELIM + (record.getRef() == normal.getFirstAllele() ? normal.getSecondAllele() : normal.getFirstAllele());
+			} else if (normal.isHeterozygous() && normal.containsAllele(reference)) {
+				mutation = record.getRef() + MUT_DELIM + (reference == normal.getFirstAllele() ? normal.getSecondAllele() : normal.getFirstAllele());
 			} else if (normal.isHeterozygous()) {
 				mutation = record.getRef() + MUT_DELIM + normal.getDisplayString();
 			}
 			
 			if (record.getNormalCount() < 8) 
-				Pipeline.updateAnnotation(record, SnpUtils.LESS_THAN_8_READS_NORMAL);
+				VcfUtils.updateFilter(record.getVcfRecord(), SnpUtils.LESS_THAN_8_READS_NORMAL);
 			if (record.getTumourCount() < 8)
-				Pipeline.updateAnnotation(record, SnpUtils.LESS_THAN_8_READS_TUMOUR);
+				VcfUtils.updateFilter(record.getVcfRecord(), SnpUtils.LESS_THAN_8_READS_TUMOUR);
 		} else if (Classification.SOMATIC.equals(record.getClassification())) {
 			
 			if (record.getNormalCount() < 12) 
-				Pipeline.updateAnnotation(record, SnpUtils.LESS_THAN_12_READS_NORMAL);
+				VcfUtils.updateFilter(record.getVcfRecord(), SnpUtils.LESS_THAN_12_READS_NORMAL);
 			
 			if (null != mutation) {
 				char M = mutation.charAt(mutation.length()-1);
 				
-				if (isCharPresentInString(record.getNormalPileup(), M)) {
-					Pipeline.updateAnnotation(record, SnpUtils.MUTATION_IN_NORMAL);
+				if (StringUtils.isCharPresentInString(record.getNormalPileup(), M)) {
+					VcfUtils.updateFilter(record.getVcfRecord(), SnpUtils.MUTATION_IN_NORMAL);
 				}
 			}
 		}
@@ -249,18 +299,6 @@ public class GenotypeComparisonUtil {
 		if (null != note)
 			record.setNote(note);
 		record.setMutation(mutation);
-	}
-	
-	/**
-	 * Examines the string and returns true if the character is in it!
-	 * 
-	 * @param string String that we are examining
-	 * @param c upper case char value
-	 * @return boolean if the supplied character exists in the supplied string, in either upper case, or lower case
-	 */
-	public static boolean isCharPresentInString(String string, char c) {
-		return null != string && (string.contains("" + c) 
-				|| string.contains("" + Character.toLowerCase(c))); 
 	}
 
 }
