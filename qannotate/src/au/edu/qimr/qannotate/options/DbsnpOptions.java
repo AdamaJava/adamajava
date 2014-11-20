@@ -1,6 +1,8 @@
-package au.edu.qimr.qannotate;
+package au.edu.qimr.qannotate.options;
 
 import static java.util.Arrays.asList;
+import au.edu.qimr.qannotate.Messages;
+import au.edu.qimr.qannotate.options.Options.MODE;
 import joptsimple.OptionSet;
 
 /*
@@ -30,7 +32,7 @@ public class DbsnpOptions extends Options {
         OptionSet options = parser.parse(args);   
         
         if(options.has("h") || options.has("help")){
-        	displayHelp();
+        	displayHelp(Messages.getMessage("DBSNP_USAGE"));
             return false;
         }
         
@@ -60,13 +62,7 @@ public class DbsnpOptions extends Options {
   
     } 
 
-    public void displayHelp() throws Exception {
-   
-    	 System.out.println(Messages.getMessage("DBSNP_USAGE"));     
-		    Thread.sleep(1);
-		    parser.printHelpOn(System.err);
-		      
-    }
+
     
 
 

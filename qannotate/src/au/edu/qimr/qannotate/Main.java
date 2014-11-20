@@ -5,6 +5,16 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.util.LoadReferencedClasses;
 
+import au.edu.qimr.qannotate.modes.ConfidenceMode;
+import au.edu.qimr.qannotate.modes.DbsnpMode;
+import au.edu.qimr.qannotate.modes.GermlineMode;
+import au.edu.qimr.qannotate.modes.SnpEffMode;
+import au.edu.qimr.qannotate.options.ConfidenceOptions;
+import au.edu.qimr.qannotate.options.DbsnpOptions;
+import au.edu.qimr.qannotate.options.GermlineOptions;
+import au.edu.qimr.qannotate.options.Options;
+import au.edu.qimr.qannotate.options.SnpEffOptions;
+
 public class Main {
 	 
 	private static QLogger logger;
@@ -27,6 +37,8 @@ public class Main {
 	               else if(options.getOption().getMode() == Options.MODE.snpEff)
 	            	    new SnpEffMode( (SnpEffOptions) options.getOption(), logger );
 	            	    //new SnpEffMode( (SnpEffOptions) options.getOption());
+	               else if(options.getOption().getMode() == Options.MODE.confidence)
+	            	    new ConfidenceMode( (ConfidenceOptions) options.getOption(), logger );
 	               else
 	            	   throw new Exception("No valid mode are specified on commandline: " + options.getMode().name()) ;
 

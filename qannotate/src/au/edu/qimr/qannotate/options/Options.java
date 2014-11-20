@@ -1,18 +1,19 @@
-package au.edu.qimr.qannotate;
+package au.edu.qimr.qannotate.options;
 
 import static java.util.Arrays.asList;
-import java.io.File;
 
+import java.io.File;
 
 import org.qcmg.common.log.QLogger;
 
+import au.edu.qimr.qannotate.Messages;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 /*
  * parse command line to options. 
  */
 public class Options {
-	protected enum MODE {dbSNP, germline, snpEff }
+	public enum MODE {dbSNP, germline, snpEff,confidence }
 	
    protected static final String VERSION_DESCRIPTION = Messages.getMessage("VERSION_OPTION_DESCRIPTION");
 	 
@@ -71,6 +72,8 @@ public class Options {
 				modeOptions = new  GermlineOptions();
 			else if(m.equalsIgnoreCase(MODE.snpEff.name()))
 				modeOptions = new SnpEffOptions();
+			else if(m.equalsIgnoreCase(MODE.confidence.name()))
+				modeOptions = new ConfidenceOptions();
 			else{ 
 				System.err.println("err on command line : \n\t" + commandLine);
 				System.err.println(Messages.getMessage("INVALID_MODE_OPTION", m + " " +  MODE.snpEff.name())); 
@@ -199,11 +202,12 @@ public class Options {
 
     public MODE getMode(){	return  Mode; }
 
-    /*
-    public void setLog( QLogger log ){
-    	this.logger = log;
+    
+    public void displayHelp(String modeMessage) throws Exception {
+    	System.out.println(modeMessage);          
+		Thread.sleep(1);
+		parser.printHelpOn(System.err);
+		      
     }
-
-    public QLogger getLog(){return logger;}
-	*/
+ 
 }

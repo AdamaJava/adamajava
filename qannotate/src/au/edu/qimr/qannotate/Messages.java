@@ -13,13 +13,13 @@ public class Messages {
         return messages.getString(identifier);
     }
 
-    static String getMessage(final String identifier, final String argument){
+    public static String getMessage(final String identifier, final String argument){
          String message = Messages.getMessage(identifier);
         Object[] arguments = {argument};
         return MessageFormat.format(message, arguments);
     }
 
-    static String getMessage(final String identifier,
+    public static String getMessage(final String identifier,
                              final String arg1,
                              final String arg2)
     {
@@ -49,7 +49,7 @@ public class Messages {
 	 *
 	 * @return the program name
 	 */
-	static String getProgramName() {
+	public static String getProgramName() {
 		return Messages.class.getPackage().getImplementationTitle();
 	}
 	/**
@@ -58,7 +58,7 @@ public class Messages {
 	 * @param args the args
 	 * @return the string
 	 */
-	static String reconstructCommandLine(final String[] args) {
+	public static String reconstructCommandLine(final String[] args) {
 		String result = getProgramName() + " ";
 		for (final String arg : args) {
 			result += arg + " ";
