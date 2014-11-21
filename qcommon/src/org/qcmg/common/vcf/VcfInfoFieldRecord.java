@@ -21,11 +21,19 @@ public class VcfInfoFieldRecord {
 	}
 	
 	public void setfield(String key, String value){
-		field.put(key, value);
+		if(value == null)
+			field.put(key, NULL);
+		else
+			field.put(key, value);
 	}
 	
 	public String getfield(String key){
 		return field.get(key);
+	}
+	
+	public void removefield(String key){
+		field.remove(key);
+		
 	}
 	
 	@Override
@@ -42,5 +50,8 @@ public class VcfInfoFieldRecord {
 		
 		return str;
 	}
-	
+
+ 
+
+ 
 }

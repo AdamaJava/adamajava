@@ -5,6 +5,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.qcmg.common.vcf.VcfHeaderUtils;
+import org.qcmg.common.vcf.header.VcfHeaderRecord.VcfInfoNumber;
 
 public class VcfHeaderRecord {
 	static final Pattern pattern_id = Pattern.compile("ID=([^,]+),");	
@@ -28,7 +29,8 @@ public class VcfHeaderRecord {
 	String version = null;
 	
 	public enum VcfInfoNumber {
-		NUMBER, UNLIMITED, ALLELE, ALL_ALLELES, GENOTYPE;
+		NUMBER, UNLIMITED, ALLELE, ALL_ALLELES, GENOTYPE,UNKNOWN;
+		//ZERO(0),ONE(1), TWO(2),THREE(3),FOUR(4),FIVE(5);
 
 		@Override
 		public String toString() {
@@ -41,10 +43,14 @@ public class VcfHeaderRecord {
 					return "R";
 				case GENOTYPE:
 					return "G";
+				case UNKNOWN:
+					return ".";	
 				default:
 					throw new RuntimeException("Unimplemented method for type " + this);
 			}
 		}
+		
+
 	}
 	
 	public enum VcfInfoType {
@@ -202,9 +208,9 @@ public class VcfHeaderRecord {
 		else if (number.equals("R")) vcfInfoNumber = VcfInfoNumber.ALL_ALLELES;
 		else if (number.equals("G")) vcfInfoNumber = VcfInfoNumber.GENOTYPE;
 		else if (number.equals(".")) vcfInfoNumber = VcfInfoNumber.UNLIMITED;
-		else {
-			vcfInfoNumber = VcfInfoNumber.NUMBER;
+		else {			
 			this.number = VcfHeaderUtils.parseIntSafe(number);
+			vcfInfoNumber = VcfInfoNumber.NUMBER;
 		}
 	}	
 	@Override
