@@ -75,13 +75,13 @@ public class VcfHeaderRecord {
 		public String toString() {
 			switch (this) {
 			case FORMAT:
-				return VcfHeaderUtils.HEADER_LINE_FORMAT;
+				return VcfHeaderUtils.HEADER_LINE_FORMAT + "=";
 			case FILTER:
-				return VcfHeaderUtils.HEADER_LINE_FILTER;
+				return VcfHeaderUtils.HEADER_LINE_FILTER + "=";
 			case INFO:
-				return VcfHeaderUtils.HEADER_LINE_INFO;
+				return VcfHeaderUtils.HEADER_LINE_INFO + "=";
 			case CHROM:
-				return VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE;
+				return VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "=";
 			}
 			return "##";
 		}
