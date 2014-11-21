@@ -20,6 +20,7 @@ import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.LoadReferencedClasses;
 import org.qcmg.common.util.TabTokenizer;
+import org.qcmg.common.vcf.VcfHeaderUtils;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.tab.TabbedFileReader;
 import org.qcmg.tab.TabbedRecord;
@@ -30,7 +31,7 @@ public class BuildCommonSnpsVcf {
 	private static QLogger logger;
 	public static String version;
 	
-	public static final String DONOR_EQUALS = VcfUtils.INFO_DONOR + "=";
+	public static final String DONOR_EQUALS = VcfHeaderUtils.INFO_DONOR + "=";
 	
 	// INPUTS
 	private static String logFile;

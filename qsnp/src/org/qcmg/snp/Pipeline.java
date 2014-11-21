@@ -58,6 +58,7 @@ import org.qcmg.common.util.PileupElementLiteUtil;
 import org.qcmg.common.util.PileupUtils;
 import org.qcmg.common.util.SnpUtils;
 import org.qcmg.common.util.TabTokenizer;
+import org.qcmg.common.vcf.VcfHeaderUtils;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.maths.FisherExact;
 import org.qcmg.picard.MultiSAMFileIterator;
@@ -405,7 +406,7 @@ public abstract class Pipeline {
 		
 		// set to PASS if no other filters have been set
 		if (StringUtils.isNullOrEmpty(record.getAnnotation()) || "--".equals(record.getAnnotation())) {
-			VcfUtils.updateFilter(record.getVcfRecord(), VcfUtils.FILTER_PASS);
+			VcfUtils.updateFilter(record.getVcfRecord(), VcfHeaderUtils.FILTER_PASS);
 		}
 	}
 	
@@ -598,7 +599,7 @@ public abstract class Pipeline {
 //				info.append(Constants.SEMI_COLON);
 //			}
 //			info.append(VcfUtils.INFO_MUTANT_READS).append(Constants.EQ).append(mutantReadCount);
-			info = StringUtils.addToString(info, VcfUtils.INFO_MUTANT_READS +Constants.EQ +mutantReadCount  , Constants.SEMI_COLON);
+			info = StringUtils.addToString(info,VcfHeaderUtils.INFO_MUTANT_READS +Constants.EQ +mutantReadCount  , Constants.SEMI_COLON);
 		}
 		
 		if (novelStartCount > 0) {
@@ -606,7 +607,7 @@ public abstract class Pipeline {
 //				info.append(Constants.SEMI_COLON);
 //			}
 //			info.append(VcfUtils.INFO_NOVEL_STARTS).append(Constants.EQ).append(novelStartCount);
-			info = StringUtils.addToString(info, VcfUtils.INFO_NOVEL_STARTS +Constants.EQ +novelStartCount  , Constants.SEMI_COLON);
+			info = StringUtils.addToString(info, VcfHeaderUtils.INFO_NOVEL_STARTS +Constants.EQ +novelStartCount  , Constants.SEMI_COLON);
 		}
 		
 		// cpg data
@@ -615,7 +616,7 @@ public abstract class Pipeline {
 //				info.append(Constants.SEMI_COLON);
 //			}
 //			info.append(VcfUtils.INFO_FLANKING_SEQUENCE).append(Constants.EQ).append(rec.getFlankingSequence());
-			info = StringUtils.addToString(info, VcfUtils.INFO_FLANKING_SEQUENCE +Constants.EQ +rec.getFlankingSequence()  , Constants.SEMI_COLON);
+			info = StringUtils.addToString(info, VcfHeaderUtils.INFO_FLANKING_SEQUENCE +Constants.EQ +rec.getFlankingSequence()  , Constants.SEMI_COLON);
 		}
 		
 		String [] altAndGTs = VcfUtils.getMutationAndGTs(rec.getRef(), rec.getNormalGenotype(), rec.getTumourGenotype());
@@ -629,9 +630,9 @@ public abstract class Pipeline {
 		// FORMAT field - contains GT field (and others)
 		StringBuilder formatField = new StringBuilder();
 		// add in the columns
-		formatField.append(VcfUtils.FORMAT_GENOTYPE).append(Constants.COLON);
-		formatField.append(VcfUtils.FORMAT_GENOTYPE_DETAILS).append(Constants.COLON);
-		formatField.append(VcfUtils.FORMAT_ALLELE_COUNT);
+		formatField.append(VcfHeaderUtils.FORMAT_GENOTYPE).append(Constants.COLON);
+		formatField.append(VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS).append(Constants.COLON);
+		formatField.append(VcfHeaderUtils.FORMAT_ALLELE_COUNT);
 		additionalformatFields.add(formatField.toString());
 		
 		String normalGDField = null != rec.getNormalGenotype() ? rec.getNormalGenotype().getDisplayString() : Constants.MISSING_DATA_STRING;
