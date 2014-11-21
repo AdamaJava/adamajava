@@ -6,6 +6,7 @@ package org.qcmg.common.util;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.string.StringUtils;
+import org.qcmg.common.vcf.VcfHeaderUtils;
 import org.qcmg.common.vcf.VcfUtils;
 
 public class SnpUtils {
@@ -39,7 +40,7 @@ public class SnpUtils {
 	//EXTRAs
 	public static final String NOVEL_STARTS = "NNS";
 	public static final String MUTANT_READS = "MR";
-	public static final String PASS = VcfUtils.FILTER_PASS;
+	public static final String PASS = "PASS";
 	public static final String MUTATION_EQUALS_REF = "MER";	// mutation same as reference
 	
 	

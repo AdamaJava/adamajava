@@ -35,37 +35,10 @@ public class VcfUtils {
 	private static final QLogger logger = QLoggerFactory.getLogger(VcfUtils.class);
 	
 	private final static DateFormat df = new SimpleDateFormat("yyyyMMdd");
+ 
 	
-	//FILTER FIELDS
-	public static final String FILTER_PASS = "PASS";
-	public static final String FILTER_COVERAGE_NORMAL_12 = SnpUtils.LESS_THAN_12_READS_NORMAL;
-	public static final String FILTER_COVERAGE_NORMAL_8 = SnpUtils.LESS_THAN_8_READS_NORMAL;
-	public static final String FILTER_COVERAGE_TUMOUR = SnpUtils.LESS_THAN_8_READS_TUMOUR;
-	public static final String FILTER_GERMLINE = SnpUtils.MUTATION_GERMLINE_IN_ANOTHER_PATIENT;
-	public static final String FILTER_MUTATION_IN_NORMAL = SnpUtils.MUTATION_IN_NORMAL;
-	public static final String FILTER_MUTATION_IN_UNFILTERED_NORMAL = SnpUtils.MUTATION_IN_UNFILTERED_NORMAL;
-	public static final String FILTER_SAME_ALLELE_NORMAL = SnpUtils.LESS_THAN_3_READS_NORMAL;
-	public static final String FILTER_SAME_ALLELE_TUMOUR = SnpUtils.LESS_THAN_3_READS_TUMOUR;
-	public static final String FILTER_NOVEL_STARTS = SnpUtils.NOVEL_STARTS;
-	public static final String FILTER_MUTANT_READS = SnpUtils.MUTANT_READS;
-	public static final String FILTER_MUTATION_EQUALS_REF = SnpUtils.MUTATION_EQUALS_REF;
-	
-	//INFO FIELDS
-	public static final String INFO_MUTANT_READS = FILTER_MUTANT_READS;
-	public static final String INFO_NOVEL_STARTS = FILTER_NOVEL_STARTS;
-	public static final String INFO_MUTATION = "MU";
-	public static final String INFO_FLANKING_SEQUENCE = "FS";
-	public static final String INFO_DONOR = "DON";	
-	public static final String INFO_EFFECT = "EFF";
-	public static final String INFO_LOSS_FUNCTION = "LOF";
-	public static final String INFO_NONSENSE_MEDIATED_DECAY = "NMD";	
-	public static final String INFO_SOMATIC = "SOMATIC";
-	public static final String INFO_CONFIDENT = "CONFIDENT";
-	
-	//FORMAT FIELDS
-	public static final String FORMAT_GENOTYPE = "GT";
-	public static final String FORMAT_GENOTYPE_DETAILS = "GD";
-	public static final String FORMAT_ALLELE_COUNT = "AC";
+ 
+ 
 	public static final String FORMAT_ALLELE_COUNT_COMPOUND_SNP = "ACCS";
 	
 	// standard final header line
@@ -184,29 +157,29 @@ public class VcfUtils {
 		"##\n##\n" +
 		
 		// INFO field options
-		"##INFO=<ID=" + INFO_MUTANT_READS + ",Number=1,Type=Integer,Description=\"Number of mutant/variant reads\">\n" +
-		"##INFO=<ID=" + INFO_NOVEL_STARTS + ",Number=1,Type=Integer,Description=\"Number of novel starts not considering read pair\">\n" +
-		"##INFO=<ID=" + INFO_FLANKING_SEQUENCE + ",Number=1,Type=String,Description=\"Reference bases either side of mutation\">\n" +
+		"##INFO=<ID=" + VcfHeaderUtils.INFO_MUTANT_READS + ",Number=1,Type=Integer,Description=\"Number of mutant/variant reads\">\n" +
+		"##INFO=<ID=" + VcfHeaderUtils.INFO_NOVEL_STARTS + ",Number=1,Type=Integer,Description=\"Number of novel starts not considering read pair\">\n" +
+		"##INFO=<ID=" + VcfHeaderUtils.INFO_FLANKING_SEQUENCE + ",Number=1,Type=String,Description=\"Reference bases either side of mutation\">\n" +
 //		"##INFO=<ID=" + INFO_MUTATION + ",Number=1,Type=String,Description=\"mutation/variant\">\n" +
 		
 		
 		// FILTER field options
-		"##FILTER=<ID=" + FILTER_COVERAGE_NORMAL_12 + ",Description=\"Less than 12 reads coverage in normal\">\n" + 
-		"##FILTER=<ID=" + FILTER_COVERAGE_NORMAL_8 + ",Description=\"Less than 8 reads coverage in normal\">\n" + 
-		"##FILTER=<ID=" + FILTER_COVERAGE_TUMOUR + ",Description=\"Less than 8 reads coverage in tumour\">\n" + 
-		"##FILTER=<ID=" + FILTER_SAME_ALLELE_NORMAL + ",Description=\"Less than 3 reads of same allele in normal\">\n" + 
-		"##FILTER=<ID=" + FILTER_SAME_ALLELE_TUMOUR + ",Description=\"Less than 3 reads of same allele in tumour\">\n" + 
-		"##FILTER=<ID=" + FILTER_MUTATION_IN_NORMAL + ",Description=\"Mutation also found in pileup of normal\">\n" + 
-		"##FILTER=<ID=" + FILTER_MUTATION_IN_UNFILTERED_NORMAL + ",Description=\"Mutation also found in pileup of (unfiltered) normal\">\n" + 
-		"##FILTER=<ID=" + FILTER_GERMLINE + ",Description=\"Mutation is a germline variant in another patient\">\n" + 
-		"##FILTER=<ID=" + FILTER_NOVEL_STARTS + ",Description=\"Less than 4 novel starts not considering read pair\">\n" + 
-		"##FILTER=<ID=" + FILTER_MUTANT_READS + ",Description=\"Less than 5 mutant reads\">\n" +
-		"##FILTER=<ID=" + FILTER_MUTATION_EQUALS_REF + ",Description=\"Mutation equals reference\">\n" +
+		"##FILTER=<ID=" + VcfHeaderUtils.FILTER_COVERAGE_NORMAL_12 + ",Description=\"Less than 12 reads coverage in normal\">\n" + 
+		"##FILTER=<ID=" + VcfHeaderUtils.FILTER_COVERAGE_NORMAL_8 + ",Description=\"Less than 8 reads coverage in normal\">\n" + 
+		"##FILTER=<ID=" + VcfHeaderUtils.FILTER_COVERAGE_TUMOUR + ",Description=\"Less than 8 reads coverage in tumour\">\n" + 
+		"##FILTER=<ID=" + VcfHeaderUtils.FILTER_SAME_ALLELE_NORMAL + ",Description=\"Less than 3 reads of same allele in normal\">\n" + 
+		"##FILTER=<ID=" + VcfHeaderUtils.FILTER_SAME_ALLELE_TUMOUR + ",Description=\"Less than 3 reads of same allele in tumour\">\n" + 
+		"##FILTER=<ID=" + VcfHeaderUtils.FILTER_MUTATION_IN_NORMAL + ",Description=\"Mutation also found in pileup of normal\">\n" + 
+		"##FILTER=<ID=" + VcfHeaderUtils.FILTER_MUTATION_IN_UNFILTERED_NORMAL + ",Description=\"Mutation also found in pileup of (unfiltered) normal\">\n" + 
+		"##FILTER=<ID=" + VcfHeaderUtils.FILTER_GERMLINE + ",Description=\"Mutation is a germline variant in another patient\">\n" + 
+		"##FILTER=<ID=" + VcfHeaderUtils.FILTER_NOVEL_STARTS + ",Description=\"Less than 4 novel starts not considering read pair\">\n" + 
+		"##FILTER=<ID=" + VcfHeaderUtils.FILTER_MUTANT_READS + ",Description=\"Less than 5 mutant reads\">\n" +
+		"##FILTER=<ID=" + VcfHeaderUtils.FILTER_MUTATION_EQUALS_REF + ",Description=\"Mutation equals reference\">\n" +
 		
 		// FORMAT field options
-		"##FORMAT=<ID=" + FORMAT_GENOTYPE + ",Number=1,Type=String,Description=\"Genotype: 0/0 homozygous reference; 0/1 heterozygous for alternate allele; 1/1 homozygous for alternate allele\">\n" + 
-		"##FORMAT=<ID=" + FORMAT_GENOTYPE_DETAILS + ",Number=1,Type=String,Description=\"Genotype details: specific alleles (A,G,T or C)\">\n" + 
-		"##FORMAT=<ID=" + FORMAT_ALLELE_COUNT + ",Number=1,Type=String,Description=\"Allele Count: lists number of reads on forward strand [avg base quality], reverse strand [avg base quality]\">\n" + 
+		"##FORMAT=<ID=" + VcfHeaderUtils.FORMAT_GENOTYPE + ",Number=1,Type=String,Description=\"Genotype: 0/0 homozygous reference; 0/1 heterozygous for alternate allele; 1/1 homozygous for alternate allele\">\n" + 
+		"##FORMAT=<ID=" + VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS + ",Number=1,Type=String,Description=\"Genotype details: specific alleles (A,G,T or C)\">\n" + 
+		"##FORMAT=<ID=" + VcfHeaderUtils.FORMAT_ALLELE_COUNT + ",Number=1,Type=String,Description=\"Allele Count: lists number of reads on forward strand [avg base quality], reverse strand [avg base quality]\">\n" + 
 		"##FORMAT=<ID=" + FORMAT_ALLELE_COUNT_COMPOUND_SNP + ",Number=1,Type=String,Description=\"Allele Count Compound Snp: lists read sequence and count (forward strand, reverse strand) \">\n" + 
 		
 		"#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\t" + ( ! singleSampleMode ? "Control\t" : "" ) + "Test\n";

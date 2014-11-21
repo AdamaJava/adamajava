@@ -3,14 +3,9 @@
  */
 package org.qcmg.common.vcf;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 
 import org.qcmg.common.util.SnpUtils;
-import org.qcmg.common.util.TabTokenizer;
+
 
 public class VcfHeaderUtils {
 	
@@ -53,18 +48,18 @@ public class VcfHeaderUtils {
 	
 	//Header lines
 	public static final String CURRENT_FILE_VERSION = "##fileformat=VCFv4.2";
-	public static final String STANDARD_FILE_VERSION = "##fileformat="; 
-	public static final String STANDARD_FILE_DATE = "##fileDate=";
-	public static final String STANDARD_SOURCE_LINE = "##source=";
-	public static final String STANDARD_UUID_LINE = "##uuid=";
-	public static final String PREVIOUS_UUID_LINE = "##preUuid=";
-	public static final String STANDARD_DBSNP_LINE = "##dbSNP_BUILD_ID=";
-	public static final String STANDARD_INPUT_LINE = "##INPUT=";
-	public static final String HEADER_LINE_FILTER = "##FILTER=";
-	public static final String HEADER_LINE_INFO = "##INFO=";
-	public static final String HEADER_LINE_FORMAT = "##FORMAT=";	
+	public static final String STANDARD_FILE_VERSION = "##fileformat"; 
+	public static final String STANDARD_FILE_DATE = "##fileDate";
+	public static final String STANDARD_SOURCE_LINE = "##source";
+	public static final String STANDARD_UUID_LINE = "##uuid";
+	public static final String PREVIOUS_UUID_LINE = "##preUuid";
+	public static final String STANDARD_DBSNP_LINE = "##dbSNP_BUILD_ID";
+	public static final String STANDARD_INPUT_LINE = "##INPUT";
+	public static final String HEADER_LINE_FILTER = "##FILTER";
+	public static final String HEADER_LINE_INFO = "##INFO";
+	public static final String HEADER_LINE_FORMAT = "##FORMAT";	
 	public static final String STANDARD_FINAL_HEADER_LINE = "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO";
-	public static final String PATIENT_ID = "##patient_id=";
+	public static final String PATIENT_ID = "##patient_id";
 
 	public static int parseIntSafe(String s) {
 		try {
