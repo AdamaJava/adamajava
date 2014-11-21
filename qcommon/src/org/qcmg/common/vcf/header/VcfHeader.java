@@ -114,17 +114,16 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 			chromLine = record;
 		else if(record.type.equals(MetaType.OTHER ) )
 			others.add(record);
-		else if(record.type.equals(MetaType.META)){
-			String id = record.getId() + "=";		
-			if(id.equalsIgnoreCase(VcfHeaderUtils.STANDARD_FILE_VERSION)){
+		else if(record.type.equals(MetaType.META)){	
+			if(record.getId().equalsIgnoreCase(VcfHeaderUtils.STANDARD_FILE_VERSION)){
 				version = record;				
-			}else if(id.equalsIgnoreCase(VcfHeaderUtils.STANDARD_FILE_DATE)){
+			}else if(record.getId().equalsIgnoreCase(VcfHeaderUtils.STANDARD_FILE_DATE)){
 				fileDate = record;
-			}else if(id.equalsIgnoreCase(VcfHeaderUtils.STANDARD_UUID_LINE )){
+			}else if(record.getId().equalsIgnoreCase(VcfHeaderUtils.STANDARD_UUID_LINE )){
 				uuid = record;			 
-			}else if(id.equalsIgnoreCase(VcfHeaderUtils.STANDARD_SOURCE_LINE )){
+			}else if(record.getId().equalsIgnoreCase(VcfHeaderUtils.STANDARD_SOURCE_LINE )){
 				source = record; 
-			}else if(id.equalsIgnoreCase(VcfHeaderUtils.PREVIOUS_UUID_LINE )){
+			}else if(record.getId().equalsIgnoreCase(VcfHeaderUtils.PREVIOUS_UUID_LINE )){
 				preuuid = record;
 			} else{ 
 				meta.add(record);		
