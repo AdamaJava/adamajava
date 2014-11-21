@@ -5,10 +5,9 @@ package org.qcmg.qbamfix;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.List;
+
 
 
 import net.sf.samtools.SAMFileHeader;
