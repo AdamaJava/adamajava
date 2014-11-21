@@ -15,6 +15,7 @@ import org.qcmg.common.model.GenotypeEnum;
 import org.qcmg.common.model.VCFRecord;
 import org.qcmg.common.util.Pair;
 import org.qcmg.common.util.SnpUtils;
+import org.qcmg.common.vcf.VcfHeaderUtils;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.pileup.QSnpRecord;
 import org.qcmg.pileup.QSnpRecord.Classification;
@@ -341,14 +342,14 @@ public class PipelineTest {
 		snp.setTumourNucleotides(tumourNucleotides);
 		vcf.setFormatField(null);
 		vcf = pipeline.convertQSnpToVCF(snp);
-		assertEquals(Classification.SOMATIC + SC + VcfUtils.INFO_MUTANT_READS + "=34" , vcf.getInfo());
+		assertEquals(Classification.SOMATIC + SC + VcfHeaderUtils.INFO_MUTANT_READS + "=34" , vcf.getInfo());
 		
 		// add in Novel starts
 		snp.setTumourNovelStartCount(5);
 		vcf.setFormatField(null);
 		vcf = pipeline.convertQSnpToVCF(snp);
-		assertEquals(Classification.SOMATIC + SC + VcfUtils.INFO_MUTANT_READS + "=34;" 
-				+ VcfUtils.INFO_NOVEL_STARTS + "=5" , vcf.getInfo());
+		assertEquals(Classification.SOMATIC + SC + VcfHeaderUtils.INFO_MUTANT_READS + "=34;" 
+				+ VcfHeaderUtils.INFO_NOVEL_STARTS + "=5" , vcf.getInfo());
 		
 		// format field
 //		assertEquals(VcfUtils.FORMAT_GENOTYPE + C + VcfUtils.FORMAT_GENOTYPE_DETAILS + C + VcfUtils.FORMAT_ALLELE_COUNT + T
@@ -366,7 +367,7 @@ public class PipelineTest {
 //		snp.setTumourGenotype(GenotypeEnum.AC);
 		vcf.setFormatField(null);
 		vcf = pipeline.convertQSnpToVCF(snp);
-		assertEquals(VcfUtils.FORMAT_GENOTYPE + C + VcfUtils.FORMAT_GENOTYPE_DETAILS + C + VcfUtils.FORMAT_ALLELE_COUNT,
+		assertEquals(VcfHeaderUtils.FORMAT_GENOTYPE + C + VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS + C + VcfHeaderUtils.FORMAT_ALLELE_COUNT,
 				vcf.getFormatFields().get(0));
 		assertEquals("0/0:A/A:" + normalNucleotides.replace(":", ""), vcf.getFormatFields().get(1));
 		assertEquals("0/1:A/C:" + tumourNucleotides.replace(":", ""), vcf.getFormatFields().get(2));
@@ -410,15 +411,15 @@ public class PipelineTest {
 		String normalNucleotides = "A:5[28.01],10[26.6],G:9[19.34],4[25.51]"; 
 		snp.setNormalNucleotides(normalNucleotides);
 		vcf = pipeline.convertQSnpToVCF(snp);
-		assertEquals(VcfUtils.INFO_MUTANT_READS + "=15", vcf.getInfo());
+		assertEquals(VcfHeaderUtils.INFO_MUTANT_READS + "=15", vcf.getInfo());
 		
 		// add in Novel starts
 		snp.setNormalNovelStartCount(7);
 		
 		vcf.setFormatField(null);	// reset format fields
 		vcf = pipeline.convertQSnpToVCF(snp);
-		assertEquals(VcfUtils.INFO_MUTANT_READS + "=15;" 
-				+ VcfUtils.INFO_NOVEL_STARTS + "=7" , vcf.getInfo());
+		assertEquals(VcfHeaderUtils.INFO_MUTANT_READS + "=15;" 
+				+ VcfHeaderUtils.INFO_NOVEL_STARTS + "=7" , vcf.getInfo());
 		
 		// format field
 //		assertEquals(VcfUtils.FORMAT_GENOTYPE + C + VcfUtils.FORMAT_GENOTYPE_DETAILS + C + VcfUtils.FORMAT_ALLELE_COUNT + T
@@ -431,7 +432,7 @@ public class PipelineTest {
 //				+ "0/1:A/G:" + normalNucleotides.replace(":", "") + T + "0/1:A/G:" + tumourNucleotides.replace(":", "")
 //				, vcf.getFormatFields().get(0));
 		
-		assertEquals(VcfUtils.FORMAT_GENOTYPE + C + VcfUtils.FORMAT_GENOTYPE_DETAILS + C + VcfUtils.FORMAT_ALLELE_COUNT,
+		assertEquals(VcfHeaderUtils.FORMAT_GENOTYPE + C + VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS + C + VcfHeaderUtils.FORMAT_ALLELE_COUNT,
 				vcf.getFormatFields().get(0));
 		assertEquals("0/1:A/G:" + normalNucleotides.replace(":", ""), vcf.getFormatFields().get(1));
 		assertEquals("0/1:A/G:" + tumourNucleotides.replace(":", ""), vcf.getFormatFields().get(2));
