@@ -60,7 +60,7 @@ public class VcfUtils {
 		"##FILTER=<ID=LowQual,Description=\"REQUIRED: QUAL < 50.0\">\n" + 
 		"##INFO=<ID=FULLCOV,Number=.,Type=String,Description=\"all bases at position\">\n" + 
 		"##INFO=<ID=NOVELCOV,Number=.,Type=String,Description=\"bases at position from reads with novel starts\">\n" + 
-		VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE;
+		VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\n";
  
 	}
 	public static final String getReducedHeaderForQSig(final String patientId, final String inputType,  final String library,
@@ -78,7 +78,7 @@ public class VcfUtils {
 		"##FILTER=<ID=LowQual,Description=\"REQUIRED: QUAL < 50.0\">\n" + 
 		"##INFO=<ID=FULLCOV,Number=.,Type=String,Description=\"all bases at position\">\n" + 
 		"##INFO=<ID=NOVELCOV,Number=.,Type=String,Description=\"bases at position from reads with novel starts\">\n" + 
-		VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE;
+		VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE+ "\n";
 	}
 	public static final String getReducedHeaderForQSig(final String patientId,  final String library,
 			final String bamName, final String snpFile) {
@@ -104,7 +104,7 @@ public class VcfUtils {
 		"##FILTER=<ID=LowQual,Description=\"REQUIRED: QUAL < 50.0\">\n" + 
 		"##INFO=<ID=FULLCOV,Number=.,Type=String,Description=\"all bases at position\">\n" + 
 		"##INFO=<ID=NOVELCOV,Number=.,Type=String,Description=\"bases at position from reads with novel starts\">\n" + 
-		VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE;
+		VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE+ "\n";
 	}
 	
 	public static final String getHeaderForQSigIlluminaFile(final String patientId,  final String sample,
@@ -122,7 +122,7 @@ public class VcfUtils {
 		"##FILTER=<ID=LowQual,Description=\"REQUIRED: QUAL < 50.0\">\n" + 
 		"##INFO=<ID=FULLCOV,Number=.,Type=String,Description=\"all bases at position\">\n" + 
 		"##INFO=<ID=NOVELCOV,Number=.,Type=String,Description=\"bases at position from reads with novel starts\">\n" + 
-		VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE;
+		VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE+ "\n";
 	}
 	
 	public static final String getHeaderForQSnp(final String patientId,  final String normalSampleId, final String tumourSampleId, final String source, QBamId[] normalBamIds, QBamId[] tumourBamIds, String uuid, boolean singleSampleMode) {
@@ -193,7 +193,7 @@ public class VcfUtils {
 		"##INFO=<ID=ZC,Number=.,Type=String,Description=\"bases with Zero Coverage\">\n" + 
 		"##INFO=<ID=NZC,Number=.,Type=String,Description=\"bases with Non Zero Coverage\">\n" + 
 		"##INFO=<ID=TOT,Number=.,Type=String,Description=\"Total number of sequenced bases\">\n" +
-		VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE;
+		VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE+ "\n";
 	}
 	
 	public static final String getHeaderForCommonSnps(final String searchString, final String searchDirectory, String[] additionalSearchStrings, Map<File, Integer> mapOfFilesAndIds) {
@@ -212,7 +212,7 @@ public class VcfUtils {
 		"##search_string=" + searchString + "\n" +
 		"##search_directory=" + searchDirectory + "\n" + 
 		"##additional_search_directory=" + Arrays.deepToString(additionalSearchStrings) + "\n" + 
-		filesMapSB.toString() + VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE;
+		filesMapSB.toString() + VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE+ "\n";
 	}
 	
 	public static String getPileupElementAsString(List<PileupElement> pileups, boolean novelStart) {
