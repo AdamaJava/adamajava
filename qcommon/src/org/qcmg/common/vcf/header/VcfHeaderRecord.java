@@ -81,7 +81,7 @@ public class VcfHeaderRecord {
 			case INFO:
 				return VcfHeaderUtils.HEADER_LINE_INFO + "=";
 			case CHROM:
-				return VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "=";
+				return VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE;
 			}
 			return "##";
 		}
@@ -159,7 +159,7 @@ public class VcfHeaderRecord {
 	public VcfInfoType getVcfInfoType() throws Exception { return parseRecord().vcfInfoType; }
 	
 	public String getNumber() {
-		return "" + (number >= 0 ? number : vcfInfoNumber);
+		return "" + (number >= 0 ? number : vcfInfoNumber.toString());
 	}
 	
 	
