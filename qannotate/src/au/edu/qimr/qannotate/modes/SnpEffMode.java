@@ -41,7 +41,7 @@ public class SnpEffMode extends AbstractMode{
 		
 		//reheader
         if(ok){ 	
-         	reheader( options.getCommandLine());	
+        	reheader(options.getCommandLine(),options.getInputFileName())	;	
         	writeVCF(new File( options.getOutputFileName()) );
 			logger.tool("reheader snpEFF output to " +   options.getOutputFileName());
 		}else{

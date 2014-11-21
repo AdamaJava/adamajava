@@ -15,9 +15,10 @@ import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.VCFRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
+import org.qcmg.common.vcf.header.VcfHeaderRecord.MetaType;
+import org.qcmg.common.vcf.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 import org.qcmg.vcf.VCFFileWriter;
-import org.qcmg.vcf.VCFHeaderUtils;
 
 import au.edu.qimr.qannotate.Main;
 import au.edu.qimr.qannotate.Messages;
@@ -26,7 +27,8 @@ public abstract class AbstractMode {
 	private static final DateFormat df = new SimpleDateFormat("yyyyMMdd");
 	protected final Map<ChrPosition,VCFRecord> positionRecordMap = new HashMap<ChrPosition,VCFRecord>();
 	protected VcfHeader header;
-//	private QLogger logger;
+	protected String inputUuid;
+ 
 	
 	protected void inputRecord(File f) throws Exception{
 		
@@ -34,6 +36,13 @@ public abstract class AbstractMode {
  
         try(VCFFileReader reader = new VCFFileReader(f)) {
         	header = reader.getHeader();
+           	for(VcfHeaderRecord hr : header)
+        		if(hr.getMetaType().equals(MetaType.META) && hr.getId().equalsIgnoreCase(VcfHeaderUtils.STANDARD_UUID_LINE)){
+        			inputUuid = hr.getDescription();
+        			break;
+        		}
+        	
+        	
 			for (VCFRecord qpr : reader) {
 				positionRecordMap.put(new ChrPosition(qpr.getChromosome(), qpr.getPosition()),qpr);
 			}
@@ -63,20 +72,21 @@ public abstract class AbstractMode {
 		
 	}
 	
-	protected void reheader(String cmd) throws Exception{	
-		
-		
+	protected void reheader(String cmd, String inputVcfName) throws Exception{	
+
 		String version = Main.class.getPackage().getImplementationVersion();
 		String pg = Messages.getProgramName();
 		String fileDate = df.format(Calendar.getInstance().getTime());
 		String uuid = QExec.createUUid();
+
+		//move input uuid into preuuid
+		header.replace(new VcfHeaderRecord(VcfHeaderUtils.STANDARD_INPUT_LINE + inputUuid + ":"+ inputVcfName) );
+		header.add( new VcfHeaderRecord( MetaType.OTHER.toString() + cmd));
 		
-		header.add(new VcfHeaderRecord(cmd));
-		
-		header.updateHeader( new VcfHeaderRecord(VCFHeaderUtils.CURRENT_FILE_VERSION),
-				new VcfHeaderRecord(VCFHeaderUtils.STANDARD_FILE_DATE + fileDate ),
-				new VcfHeaderRecord(VCFHeaderUtils.STANDARD_UUID_LINE + uuid ),
-				new VcfHeaderRecord(VCFHeaderUtils.STANDARD_SOURCE_LINE + pg+"-"+version) );
+		header.updateHeader( new VcfHeaderRecord(VcfHeaderUtils.CURRENT_FILE_VERSION),
+				new VcfHeaderRecord(VcfHeaderUtils.STANDARD_FILE_DATE + fileDate ),
+				new VcfHeaderRecord(VcfHeaderUtils.STANDARD_UUID_LINE + uuid ),
+				new VcfHeaderRecord(VcfHeaderUtils.STANDARD_SOURCE_LINE + pg+"-"+version) );
   
 		//return header;
 	}	
