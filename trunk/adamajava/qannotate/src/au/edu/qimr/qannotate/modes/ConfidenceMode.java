@@ -14,10 +14,14 @@ import org.qcmg.common.model.VCFRecord;
 import org.qcmg.common.util.DonorUtils;
 import org.qcmg.common.util.SnpUtils;
 import org.qcmg.common.vcf.VcfInfoFieldRecord;
+import org.qcmg.common.vcf.VcfUtils;
+import org.qcmg.common.vcf.VcfHeaderUtils;
+import org.qcmg.common.vcf.header.VcfHeaderInfo;
+import org.qcmg.common.vcf.header.VcfHeaderRecord.MetaType;
+import org.qcmg.common.vcf.header.VcfHeaderRecord.VcfInfoNumber;
+import org.qcmg.common.vcf.header.VcfHeaderRecord.VcfInfoType;
 import org.qcmg.maf.util.MafUtils;
 import org.qcmg.picard.util.PileupElementUtil;
-//import org.qcmg.vcf.VCFHeaderInfoRecord;
-import org.qcmg.vcf.VCFHeaderUtils;
 
 import au.edu.qimr.qannotate.options.ConfidenceOptions;
 
@@ -48,7 +52,7 @@ public class ConfidenceMode extends AbstractMode{
 		//if(options.getpatientid == null)
 		patientId = DonorUtils.getDonorFromFilename(options.getInputFileName());		
 		addAnnotation( options.getDatabaseFileName() );
-		reheader(options.getCommandLine())	;	
+		reheader(options.getCommandLine(),options.getInputFileName())	;	
 		writeVCF(new File(options.getOutputFileName()) );	
 	}
 	/**
@@ -73,38 +77,48 @@ public class ConfidenceMode extends AbstractMode{
 	    	VcfInfoFieldRecord infoRecord = new VcfInfoFieldRecord(vcf.getInfo());	    	
 	                	        
 	        if (VerifiedData.get(pos).equals( TorrentVerificationStatus.YES))  
-	        	 infoRecord.setfield(VCFHeaderUtils.INFO_CONFIDENT, Confidence.HIGH.toString());		        
+	        	 infoRecord.setfield(VcfHeaderUtils.INFO_CONFIDENT, Confidence.HIGH.toString());		        
 	        else if (checkNovelStarts(HIGH_CONF_NOVEL_STARTS_PASSING_SCORE, infoRecord) 
 					&& checkAltFrequency(HIGH_CONF_ALT_FREQ_PASSING_SCORE, vcf)
 					&& SnpUtils.isClassA(vcf.getFilter()))  
-	        	 infoRecord.setfield(VCFHeaderUtils.INFO_CONFIDENT, Confidence.HIGH.toString());		        	 				 				
+	        	 infoRecord.setfield(VcfHeaderUtils.INFO_CONFIDENT, Confidence.HIGH.toString());		        	 				 				
 			else if (checkNovelStarts(LOW_CONF_NOVEL_STARTS_PASSING_SCORE, infoRecord) 
 					&& checkAltFrequency(LOW_CONF_ALT_FREQ_PASSING_SCORE, vcf)
 					&& SnpUtils.isClassAorB( vcf.getFilter() )) 
-				 infoRecord.setfield(VCFHeaderUtils.INFO_CONFIDENT, Confidence.LOW.toString());					 
+				 infoRecord.setfield(VcfHeaderUtils.INFO_CONFIDENT, Confidence.LOW.toString());					 
 			 else
-				 infoRecord.setfield(VCFHeaderUtils.INFO_CONFIDENT, Confidence.ZERO.toString());		        
+				 infoRecord.setfield(VcfHeaderUtils.INFO_CONFIDENT, Confidence.ZERO.toString());		        
 	        vcf.setInfo(infoRecord.toString());
 	    } 	
+ 
+	    
+		//add header line
+	//    VcfInfoNumber.NUMBER.setNumber(1); //set number to 1
+		header.add(new VcfHeaderInfo(VcfHeaderUtils.INFO_CONFIDENT, 
+				VcfInfoNumber.NUMBER, 1,  VcfInfoType.String, 
+				VcfHeaderUtils.DESCRITPION_INFO_CONFIDENCE, null,null) );
+ 
 	     
 	}
 	
 	 private boolean checkAltFrequency(int score, VCFRecord vcf){
 		 
 		 String info =  vcf.getInfo();
-		 String allel = info.contains("SOMATIC") ? allel = vcf.getFormatFields().get(1) : vcf.getFormatFields().get(0); //init set to normal
-		 
+		 //set to TD if somatic, otherwise set to normal
+		 String allel = (info.contains(VcfHeaderUtils.INFO_SOMATIC)) ? vcf.getFormatFields().get(0) :  vcf.getFormatFields().get(1);
+ 		 
 		 List<PileupElement> pileups = PileupElementUtil.createPileupElementsFromString(allel);
-			for (PileupElement pe : pileups) {
-				if (pe.getBase() ==   vcf.getAlt().charAt(0) && pe.getTotalCount() >= score) return true;
-			}
+		 for (PileupElement pe : pileups) 
+			if (pe.getBase() ==   vcf.getAlt().charAt(0) && pe.getTotalCount() >= score) 
+				return true;
+		 
  
 		 return false;
 	 }   
  
 	 private boolean   checkNovelStarts(int score, VcfInfoFieldRecord infoRecord ) {
 		 try{
-			 if(   Integer.parseInt(  infoRecord.getfield( SnpUtils.NOVEL_STARTS )  ) >= score ) 
+			 if(   Integer.parseInt(  infoRecord.getfield( VcfHeaderUtils.INFO_NOVEL_STARTS  )  ) >= score ) 
 				 return true;
 		 }catch(Exception e){
 			 return false;

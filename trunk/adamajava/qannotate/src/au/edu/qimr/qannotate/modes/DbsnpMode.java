@@ -22,7 +22,7 @@ import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.vcf.VCFFileReader;
 import org.qcmg.vcf.VCFFileWriter;
-import org.qcmg.vcf.VCFHeaderUtils;
+import org.qcmg.common.vcf.VcfHeaderUtils;
 
 import au.edu.qimr.qannotate.Main;
 import au.edu.qimr.qannotate.options.DbsnpOptions;
@@ -47,7 +47,7 @@ public class DbsnpMode extends AbstractMode{
 		inputRecord(new File( options.getInputFileName())   );
 		
 		addAnnotation(options.getDatabaseFileName() );
-		reheader(  options.getCommandLine()); 
+		reheader(options.getCommandLine(),options.getInputFileName())	;	
 		writeVCF(new File(options.getOutputFileName()));	
 	}
 		
@@ -66,7 +66,7 @@ public class DbsnpMode extends AbstractMode{
 			//add dbSNP version into header	
 			VcfHeader snpHeader = reader.getHeader();
 			for (VcfHeaderRecord hr : snpHeader) 
-				if(hr.getId().equalsIgnoreCase(VCFHeaderUtils.STANDARD_DBSNP_LINE)){
+				if(hr.getId().equalsIgnoreCase(VcfHeaderUtils.STANDARD_DBSNP_LINE)){
 					header.replace(hr);  
 					break;					
 				}	
@@ -140,10 +140,10 @@ public class DbsnpMode extends AbstractMode{
 		DateFormat df = new SimpleDateFormat("yyyyMMdd");
 		//Vector<String> headerLines = new Vector<String>();
 		
-		header.updateHeader(new VcfHeaderRecord(VCFHeaderUtils.CURRENT_FILE_VERSION),
-				new VcfHeaderRecord(VCFHeaderUtils.STANDARD_FILE_DATE + df.format(Calendar.getInstance().getTime())),
-				new VcfHeaderRecord(VCFHeaderUtils.STANDARD_UUID_LINE + QExec.createUUid() ),
-				new VcfHeaderRecord(VCFHeaderUtils.STANDARD_SOURCE_LINE + "qannotate " + version) );
+		header.updateHeader(new VcfHeaderRecord(VcfHeaderUtils.CURRENT_FILE_VERSION),
+				new VcfHeaderRecord(VcfHeaderUtils.STANDARD_FILE_DATE + df.format(Calendar.getInstance().getTime())),
+				new VcfHeaderRecord(VcfHeaderUtils.STANDARD_UUID_LINE + QExec.createUUid() ),
+				new VcfHeaderRecord(VcfHeaderUtils.STANDARD_SOURCE_LINE + "qannotate " + version) );
  				
 		return header;
 	}	
