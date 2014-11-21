@@ -26,6 +26,7 @@ import org.qcmg.common.model.VCFRecord;
 import org.qcmg.common.util.BaseUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.FileUtils;
+import org.qcmg.common.vcf.VcfHeaderUtils;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.germlinedb.GermlineDBFileReader;
 import org.qcmg.germlinedb.GermlineDBRecord;
@@ -324,13 +325,13 @@ public class GatkUniqueSnps {
 		}
 		
 		if (mutationFoundInNormal) {
-			VcfUtils.updateFilter(record.getVcfRecord(), VcfUtils.FILTER_MUTATION_IN_NORMAL);
+			VcfUtils.updateFilter(record.getVcfRecord(), VcfHeaderUtils.FILTER_MUTATION_IN_NORMAL);
 		}
 		
 		record.setNormalCount(normalCoverage);
 		
 		if (normalCoverage < 12) {
-			VcfUtils.updateFilter(record.getVcfRecord(), VcfUtils.FILTER_COVERAGE_NORMAL_12);
+			VcfUtils.updateFilter(record.getVcfRecord(), VcfHeaderUtils.FILTER_COVERAGE_NORMAL_12);
 		}
 		
 		
@@ -377,7 +378,7 @@ public class GatkUniqueSnps {
 				ChrPosition id = new ChrPosition(chr, rec.getPosition());
 				
 				QSnpRecord qpr = somaticPileupMap.get(id);
-				if (null != qpr && null != qpr.getMutation() && (null == qpr.getAnnotation() || ! qpr.getAnnotation().contains(VcfUtils.FILTER_GERMLINE))) {
+				if (null != qpr && null != qpr.getMutation() && (null == qpr.getAnnotation() || ! qpr.getAnnotation().contains(VcfHeaderUtils.FILTER_GERMLINE))) {
 					String mutation = qpr.getMutation();
 					if (mutation.length() == 3) {
 						char c = mutation.charAt(2);
@@ -385,7 +386,7 @@ public class GatkUniqueSnps {
 						GenotypeEnum germlineDBGenotype = BaseUtils.getGenotypeEnum(rec.getNormalGenotype());
 						if (germlineDBGenotype.containsAllele(c)) {
 							updateCount++;
-							VcfUtils.updateFilter(qpr.getVcfRecord(), VcfUtils.FILTER_GERMLINE);
+							VcfUtils.updateFilter(qpr.getVcfRecord(), VcfHeaderUtils.FILTER_GERMLINE);
 						}
 						
 						
