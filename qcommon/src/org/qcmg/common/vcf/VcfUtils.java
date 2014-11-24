@@ -29,6 +29,7 @@ import org.qcmg.common.model.VCFRecord;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.SnpUtils;
+import org.qcmg.common.vcf.header.VcfHeaderUtils;
 
 public class VcfUtils {
 	

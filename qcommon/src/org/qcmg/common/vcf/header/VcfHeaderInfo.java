@@ -1,7 +1,5 @@
 package org.qcmg.common.vcf.header;
 
-import org.qcmg.common.vcf.header.VcfHeaderRecord.VcfInfoNumber;
-
 
 public final class VcfHeaderInfo extends VcfHeaderRecord{
 

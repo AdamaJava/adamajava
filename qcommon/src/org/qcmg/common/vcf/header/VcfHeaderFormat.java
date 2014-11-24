@@ -1,12 +1,6 @@
 package org.qcmg.common.vcf.header;
 
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import org.qcmg.common.vcf.VcfHeaderUtils;
-
-
 /**
  * Represents a info elements in a VCF file
  *

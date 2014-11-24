@@ -5,8 +5,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
-import org.qcmg.common.vcf.VcfHeaderUtils;
 import org.qcmg.common.vcf.header.VcfHeaderRecord.MetaType;
 
 /**
@@ -26,11 +26,11 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 	VcfHeaderRecord preuuid = null;
 	VcfHeaderRecord source = null;
 		
-	final HashMap<String, VcfHeaderInfo> vcfInfoById;
-	final HashMap<String, VcfHeaderFormat> vcfFormatById;
-	final HashMap<String, VcfHeaderFilter> vcfFilterById;
-	final ArrayList<VcfHeaderRecord> meta;
-	final ArrayList<VcfHeaderRecord> others;
+	final Map<String, VcfHeaderInfo> vcfInfoById;
+	final Map<String, VcfHeaderFormat> vcfFormatById;
+	final Map<String, VcfHeaderFilter> vcfFilterById;
+	final List<VcfHeaderRecord> meta;
+	final List<VcfHeaderRecord> others;
 	VcfHeaderRecord chromLine = null;
 	
 	ArrayList<String> sampleNames;
@@ -51,9 +51,9 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 
 	public VcfHeader(final List<String> headerRecords) throws Exception {
 		this();		
-		for (String record : headerRecords)
+		for (String record : headerRecords) {
 			add(new VcfHeaderRecord(record));
-		
+		}
 	 }
 	
 	//only meta data header line can be replaced
@@ -61,9 +61,11 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 		
 		if(record.type.equals(MetaType.META)){
 			Iterator<VcfHeaderRecord> it = meta.iterator();
-			while(it.hasNext())
-				if(it.next().getId().equalsIgnoreCase(record.getId()))
+			while(it.hasNext()) {
+				if(it.next().getId().equalsIgnoreCase(record.getId())) {
 					it.remove();
+				}
+			}
 		}
 		
 		//others go to add method directly
@@ -190,16 +192,35 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 	 */
 	@Override	
 	public Iterator<VcfHeaderRecord> iterator() {
-		final List<VcfHeaderRecord> records = new ArrayList<VcfHeaderRecord>();
-		if(version != null) records.add(version);
-		if(fileDate != null) records.add(fileDate);
-		if(uuid != null) records.add(uuid);
-		if(source != null) records.add(source);								
-		for(VcfHeaderRecord record : meta) records.add(record);
-		for(VcfHeaderRecord record : others) records.add(record);
-		for(VcfHeaderRecord record : vcfInfoById.values()) records.add(record);
-		for(VcfHeaderRecord record : vcfFilterById.values()) records.add(record);
-		for(VcfHeaderRecord record : vcfFormatById.values()) records.add(record);	 
+		final List<VcfHeaderRecord> records = new ArrayList<>();
+		if (version != null) {
+			records.add(version);
+		}
+		if (fileDate != null) {
+			records.add(fileDate);
+		}
+		if (uuid != null) {
+			records.add(uuid);
+		}
+		if (source != null) {
+			records.add(source);
+		}
+		
+		for (VcfHeaderRecord record : meta) {
+			records.add(record);
+		}
+		for (VcfHeaderRecord record : others) {
+			records.add(record);
+		}
+		for (VcfHeaderRecord record : vcfInfoById.values()) {
+			records.add(record);
+		}
+		for (VcfHeaderRecord record : vcfFilterById.values()) {
+			records.add(record);
+		}
+		for (VcfHeaderRecord record : vcfFormatById.values()) {
+			records.add(record);	 
+		}
 		records.add(chromLine);		
 		
 		return records.iterator();

@@ -7,7 +7,7 @@ import java.util.Map;
 public class VcfInfoFieldRecord {
 	static final String NULL = "NULL";
 	
-	Map<String,String> field = new HashMap<String,String>();	
+	Map<String,String> field = new HashMap<>();	
 	
 	public VcfInfoFieldRecord(String line){
 		String[] infos = line.trim().split(";");			
