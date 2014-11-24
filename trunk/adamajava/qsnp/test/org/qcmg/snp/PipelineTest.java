@@ -15,8 +15,8 @@ import org.qcmg.common.model.GenotypeEnum;
 import org.qcmg.common.model.VCFRecord;
 import org.qcmg.common.util.Pair;
 import org.qcmg.common.util.SnpUtils;
-import org.qcmg.common.vcf.VcfHeaderUtils;
 import org.qcmg.common.vcf.VcfUtils;
+import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.pileup.QSnpRecord;
 import org.qcmg.pileup.QSnpRecord.Classification;
 

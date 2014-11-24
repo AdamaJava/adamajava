@@ -20,9 +20,9 @@ import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
+import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 import org.qcmg.vcf.VCFFileWriter;
-import org.qcmg.common.vcf.VcfHeaderUtils;
 
 import au.edu.qimr.qannotate.Main;
 import au.edu.qimr.qannotate.options.DbsnpOptions;

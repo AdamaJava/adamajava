@@ -15,8 +15,8 @@ import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.VCFRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
+import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.common.vcf.header.VcfHeaderRecord.MetaType;
-import org.qcmg.common.vcf.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 import org.qcmg.vcf.VCFFileWriter;
 

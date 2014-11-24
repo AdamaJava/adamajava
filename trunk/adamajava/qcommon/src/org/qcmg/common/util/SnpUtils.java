@@ -6,8 +6,8 @@ package org.qcmg.common.util;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.string.StringUtils;
-import org.qcmg.common.vcf.VcfHeaderUtils;
 import org.qcmg.common.vcf.VcfUtils;
+import org.qcmg.common.vcf.header.VcfHeaderUtils;
 
 public class SnpUtils {
 	
