@@ -14,10 +14,10 @@ import org.qcmg.common.util.DonorUtils;
 import org.qcmg.common.util.SnpUtils;
 import org.qcmg.common.vcf.VCFRecord;
 import org.qcmg.common.vcf.VcfInfoFieldRecord;
-import org.qcmg.common.vcf.VcfUtils;
+ 
 import org.qcmg.common.vcf.header.VcfHeaderInfo;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-import org.qcmg.common.vcf.header.VcfHeaderRecord.MetaType;
+
 import org.qcmg.common.vcf.header.VcfHeaderRecord.VcfInfoNumber;
 import org.qcmg.common.vcf.header.VcfHeaderRecord.VcfInfoType;
 import org.qcmg.maf.util.MafUtils;

@@ -84,7 +84,7 @@ public class GermlineMode extends AbstractMode{
 				if(dbGermlineVcf.getAlt().toUpperCase().contains(alt.toUpperCase()) ){					
 					filter = inputVcf.getFilter();
 					//remove "PASS" or "PASS;"
-					filter.replaceAll("PASS$", "");
+					filter.replaceAll("PASS$|PASS;", "");
 					
 					if(filter.endsWith("PASS") ){
 						if (filter.indexOf("PASS") != filter.length() - 4)

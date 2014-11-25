@@ -9,8 +9,8 @@ import net.sf.samtools.SAMRecord;
 import org.junit.Test;
 import org.qcmg.common.model.GenotypeEnum;
 import org.qcmg.common.model.QSnpGATKRecord;
-import org.qcmg.common.model.VCFRecord;
 import org.qcmg.common.util.SnpUtils;
+import org.qcmg.common.vcf.VCFRecord;
 import org.qcmg.pileup.QSnpRecord;
 import org.qcmg.snp.util.QJumperWorker.Mode;
 

@@ -3,19 +3,14 @@
  */
 package org.qcmg.cnv;
 
-import java.io.BufferedReader;
+
+
 import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 import net.sf.samtools.SAMFileHeader;
 import net.sf.samtools.SAMFileReader;
+
 import org.apache.commons.cli.*;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;

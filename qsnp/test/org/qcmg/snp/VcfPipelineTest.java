@@ -17,7 +17,7 @@ import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.commandline.Executor;
 import org.qcmg.common.model.PileupElement;
 import org.qcmg.common.model.Rule;
-import org.qcmg.common.model.VCFRecord;
+import org.qcmg.common.vcf.VCFRecord;
 import org.qcmg.tab.TabbedFileReader;
 import org.qcmg.tab.TabbedRecord;
 import org.qcmg.vcf.VCFFileReader;
