@@ -43,6 +43,10 @@ public class OptionsTest {
 				"GRCh37.70", "/Users/christix/Documents/Eclipse/data/TP53_snpeff.uniq.vcf"};
 		
 //		SnpEff.main(args);
+		
+		String filter = "OK;PASS;PASS";
+		filter = filter.replaceAll("PASS$|PASS;", "");
+		System.out.println("after replace: " + filter);
  
 	}
 	

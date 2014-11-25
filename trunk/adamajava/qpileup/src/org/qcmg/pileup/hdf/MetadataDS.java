@@ -57,6 +57,7 @@ public abstract class MetadataDS {
 		}		
 	}
 
+
 	public Integer getAttribute(String name) throws Exception {
 		return hdf.getIntegerAttribute(fullName, name);
 	}

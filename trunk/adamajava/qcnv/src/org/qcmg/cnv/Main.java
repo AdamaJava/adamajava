@@ -3,19 +3,9 @@
  */
 package org.qcmg.cnv;
 
-import java.io.File;
-
-import java.io.FileWriter;
-import java.util.List;
-
-import net.sf.samtools.SAMFileReader;
-import net.sf.samtools.SAMFileReader.ValidationStringency;
-import net.sf.samtools.SAMSequenceRecord;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.util.LoadReferencedClasses;
-import org.qcmg.picard.SAMFileReaderFactory;
-import org.qcmg.common.date.DateUtils;
 
 
 public class Main {

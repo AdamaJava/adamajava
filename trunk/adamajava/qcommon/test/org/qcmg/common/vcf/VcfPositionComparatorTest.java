@@ -7,7 +7,6 @@ import java.util.List;
 import junit.framework.Assert;
 
 import org.junit.Test;
-import org.qcmg.common.model.VCFRecord;
 
 public class VcfPositionComparatorTest {
 	

@@ -9,10 +9,10 @@ import java.util.List;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
-import org.qcmg.common.model.VCFRecord;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.TabTokenizer;
+import org.qcmg.common.vcf.VCFRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.tab.TabbedFileReader;
 import org.qcmg.tab.TabbedRecord;

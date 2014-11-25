@@ -12,7 +12,6 @@ import java.util.TreeSet;
 import org.junit.Test;
 import org.qcmg.common.model.GenotypeEnum;
 import org.qcmg.common.model.PileupElement;
-import org.qcmg.common.model.VCFRecord;
 
 public class VcfUtilsTest {
 	
