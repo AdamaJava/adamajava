@@ -12,7 +12,7 @@ import java.util.Map;
 
 import org.qcmg.common.meta.QExec;
 import org.qcmg.common.model.ChrPosition;
-import org.qcmg.common.model.VCFRecord;
+import org.qcmg.common.vcf.VCFRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;

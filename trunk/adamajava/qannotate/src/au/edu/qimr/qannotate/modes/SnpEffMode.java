@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.qcmg.common.log.QLogger;
-import org.qcmg.common.model.VCFRecord;
+import org.qcmg.common.vcf.VCFRecord;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.vcf.VCFFileReader;
 import org.qcmg.vcf.VCFFileWriter;

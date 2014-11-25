@@ -15,11 +15,11 @@ import java.util.Vector;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.meta.QExec;
 import org.qcmg.common.model.ChrPosition;
-import org.qcmg.common.model.VCFRecord;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.vcf.VCFFileReader;
 import org.qcmg.vcf.VCFFileWriter;
+import org.qcmg.common.vcf.VCFRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 
 import au.edu.qimr.qannotate.Main;
@@ -83,6 +83,9 @@ public class GermlineMode extends AbstractMode{
 			for (String alt : alts)  
 				if(dbGermlineVcf.getAlt().toUpperCase().contains(alt.toUpperCase()) ){					
 					filter = inputVcf.getFilter();
+					//remove "PASS" or "PASS;"
+					filter.replaceAll("PASS$", "");
+					
 					if(filter.endsWith("PASS") ){
 						if (filter.indexOf("PASS") != filter.length() - 4)
 							throw new Exception("mutli \"PASS\" marked on the FILTER field for vcf record: " + inputVcf.toString());
