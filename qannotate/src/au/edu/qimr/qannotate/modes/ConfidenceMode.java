@@ -76,7 +76,7 @@ public class ConfidenceMode extends AbstractMode{
 	    	VCFRecord vcf = positionRecordMap.get(pos);
 	    	VcfInfoFieldRecord infoRecord = new VcfInfoFieldRecord(vcf.getInfo());	    	
 	                	        
-	        if (VerifiedData.get(pos).equals( TorrentVerificationStatus.YES))  
+	        if (VerifiedData != null && VerifiedData.get(pos).equals( TorrentVerificationStatus.YES))  
 	        	 infoRecord.setfield(VcfHeaderUtils.INFO_CONFIDENT, Confidence.HIGH.toString());		        
 	        else if (checkNovelStarts(HIGH_CONF_NOVEL_STARTS_PASSING_SCORE, infoRecord) 
 					&& checkAltFrequency(HIGH_CONF_ALT_FREQ_PASSING_SCORE, vcf)
@@ -106,18 +106,25 @@ public class ConfidenceMode extends AbstractMode{
 		 String info =  vcf.getInfo();
 		 //set to TD if somatic, otherwise set to normal
 		 String allel = (info.contains(VcfHeaderUtils.INFO_SOMATIC)) ? vcf.getFormatFields().get(0) :  vcf.getFormatFields().get(1);
- 		 
-		 List<PileupElement> pileups = PileupElementUtil.createPileupElementsFromString(allel);
-		 for (PileupElement pe : pileups) 
+		 
+		 //debug
+		 System.out.println(   allel + " ==> " + vcf.getPosition());
+		 
+		 allel = allel.substring(allel.lastIndexOf(":") + 1, allel.length());
+		 System.out.println(  ": Confidence Mode, Allel: " + allel);
+ 		 List<PileupElement> pileups = PileupElementUtil.createPileupElementsFromString(allel);
+		 for (PileupElement pe : pileups){ 
+			 //debug
+			 System.out.println("Confidence Mode, Allel: " + pe.toString());
 			if (pe.getBase() ==   vcf.getAlt().charAt(0) && pe.getTotalCount() >= score) 
 				return true;
-		 
+		 }
  
 		 return false;
 	 }   
  
 	 private boolean   checkNovelStarts(int score, VcfInfoFieldRecord infoRecord ) {
-		 try{
+		 try{			 
 			 if(   Integer.parseInt(  infoRecord.getfield( VcfHeaderUtils.INFO_NOVEL_STARTS  )  ) >= score ) 
 				 return true;
 		 }catch(Exception e){
