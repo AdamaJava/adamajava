@@ -17,7 +17,7 @@ public class ConfidenceOptions extends Options {
      */
  	
  	// public Options(){  parser = new OptionParser(); this.Mode = null; } 
- 	public ConfidenceOptions(){ super(Options.MODE.dbSNP);   }
+ 	public ConfidenceOptions(){ super(Options.MODE.confidence);   }
  	
     @Override
     public boolean parseArgs(final String[] args) throws Exception{  	
@@ -32,7 +32,7 @@ public class ConfidenceOptions extends Options {
         OptionSet options = parser.parse(args);   
         
         if(options.has("h") || options.has("help")){
-        	displayHelp(Messages.getMessage("CONFIDENT_USAGE"));
+        	displayHelp(Messages.getMessage("CONFIDENCE_USAGE"));
             return false;
         }
         

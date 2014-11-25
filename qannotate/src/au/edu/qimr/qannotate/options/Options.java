@@ -13,7 +13,7 @@ import joptsimple.OptionSet;
  * parse command line to options. 
  */
 public class Options {
-	public enum MODE {dbSNP, germline, snpEff,confident,customerConfident }
+	public enum MODE {dbSNP, germline, snpEff,confidence,customerConfidence }
 	
    protected static final String VERSION_DESCRIPTION = Messages.getMessage("VERSION_OPTION_DESCRIPTION");
 	 
@@ -72,9 +72,9 @@ public class Options {
 				modeOptions = new  GermlineOptions();
 			else if(m.equalsIgnoreCase(MODE.snpEff.name()))
 				modeOptions = new SnpEffOptions();
-			else if(m.equalsIgnoreCase(MODE.confident.name()))
+			else if(m.equalsIgnoreCase(MODE.confidence.name()))
 				modeOptions = new ConfidenceOptions();
-			else if(m.equalsIgnoreCase(MODE.customerConfident.name()))
+			else if(m.equalsIgnoreCase(MODE.customerConfidence.name()))
 				modeOptions = new CustomerConfidenceOptions();
 			
 			else{ 
