@@ -63,7 +63,7 @@ public abstract class AbstractMode {
 		try(VCFFileWriter writer = new VCFFileWriter( outputFile)) {
 //			header = reheader(header, cmd);
 			
-			for(VcfHeaderRecord record: header)  writer.addHeader(record.toString());
+			for(VcfHeaderRecord record: header)  writer.addHeader(record.toString()+"\n");
 			for (ChrPosition position : orderedList) {				
 				VCFRecord record = positionRecordMap.get(position); 
 				writer.add( record );				 
@@ -80,13 +80,13 @@ public abstract class AbstractMode {
 		String uuid = QExec.createUUid();
 
 		//move input uuid into preuuid
-		header.replace(new VcfHeaderRecord(VcfHeaderUtils.STANDARD_INPUT_LINE + inputUuid + ":"+ inputVcfName) );
+		header.replace(new VcfHeaderRecord(VcfHeaderUtils.STANDARD_INPUT_LINE + "=" + inputUuid + ":"+ inputVcfName) );
 		header.add( new VcfHeaderRecord( MetaType.OTHER.toString() + cmd));
 		
 		header.updateHeader( new VcfHeaderRecord(VcfHeaderUtils.CURRENT_FILE_VERSION),
-				new VcfHeaderRecord(VcfHeaderUtils.STANDARD_FILE_DATE + fileDate ),
-				new VcfHeaderRecord(VcfHeaderUtils.STANDARD_UUID_LINE + uuid ),
-				new VcfHeaderRecord(VcfHeaderUtils.STANDARD_SOURCE_LINE + pg+"-"+version) );
+				new VcfHeaderRecord(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + fileDate ),
+				new VcfHeaderRecord(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + uuid ),
+				new VcfHeaderRecord(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=" + pg+"-"+version) );
   
 		//return header;
 	}	
