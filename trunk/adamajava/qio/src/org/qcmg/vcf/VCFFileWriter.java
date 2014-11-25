@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.zip.GZIPOutputStream;
 
-import org.qcmg.common.model.VCFRecord;
+import org.qcmg.common.vcf.VCFRecord;
 
 public final class VCFFileWriter implements Closeable {
 	private final File file;

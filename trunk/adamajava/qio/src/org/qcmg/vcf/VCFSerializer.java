@@ -8,8 +8,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.qcmg.common.model.VCFRecord;
 import org.qcmg.common.util.TabTokenizer;
+import org.qcmg.common.vcf.VCFRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
 
 public final class VCFSerializer {

@@ -9,7 +9,7 @@ import java.io.InputStreamReader;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-import org.qcmg.common.model.VCFRecord;
+import org.qcmg.common.vcf.VCFRecord;
 
 public final class VCFRecordIterator implements Iterator<VCFRecord> {
     private final BufferedReader reader;
