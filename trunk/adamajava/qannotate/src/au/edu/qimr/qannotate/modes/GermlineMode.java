@@ -83,10 +83,13 @@ public class GermlineMode extends AbstractMode{
 			for (String alt : alts)  
 				if(dbGermlineVcf.getAlt().toUpperCase().contains(alt.toUpperCase()) ){					
 					filter = inputVcf.getFilter();
-					//remove "PASS" or "PASS;"
-					filter.replaceAll("PASS$|PASS;", "");
+					//remove "PASS" or "PASS;" then append GERM
+					filter = filter.replaceAll("PASS;|;?PASS$", "");
+					inputVcf.setFilter(filter);
+					inputVcf.addFilter(VcfHeaderUtils.FILTER_GERMLINE);
+					break;
 					
-					if(filter.endsWith("PASS") ){
+/*					if(filter.endsWith("PASS") ){
 						if (filter.indexOf("PASS") != filter.length() - 4)
 							throw new Exception("mutli \"PASS\" marked on the FILTER field for vcf record: " + inputVcf.toString());
 						filter = filter.replace("PASS", "GERM");							
@@ -95,7 +98,9 @@ public class GermlineMode extends AbstractMode{
 					
 					//inputVcf is a pointer, use set method to change real value
 					inputVcf.setFilter(filter);
-					break;
+					
+*/
+					
 				}
 		 	}
  		}

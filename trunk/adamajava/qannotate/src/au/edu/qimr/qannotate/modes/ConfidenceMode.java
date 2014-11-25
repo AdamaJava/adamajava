@@ -1,10 +1,13 @@
 package au.edu.qimr.qannotate.modes;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.model.ChrPosition;
@@ -14,10 +17,8 @@ import org.qcmg.common.util.DonorUtils;
 import org.qcmg.common.util.SnpUtils;
 import org.qcmg.common.vcf.VCFRecord;
 import org.qcmg.common.vcf.VcfInfoFieldRecord;
- 
 import org.qcmg.common.vcf.header.VcfHeaderInfo;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-
 import org.qcmg.common.vcf.header.VcfHeaderRecord.VcfInfoNumber;
 import org.qcmg.common.vcf.header.VcfHeaderRecord.VcfInfoType;
 import org.qcmg.maf.util.MafUtils;
@@ -39,6 +40,7 @@ public class ConfidenceMode extends AbstractMode{
 	public static final String NOVEL_STARTS = "NNS";
 
 	public enum Confidence{	HIGH , LOW, ZERO ; }
+	private static final Pattern pattern = Pattern.compile("[ACGT][0-9]+\\[[0-9]+.?[0-9]*\\],[0-9]+\\[[0-9]+.?[0-9]*\\]");
 
 	private final String patientId;
 	public ConfidenceMode(ConfidenceOptions options, QLogger logger) throws Exception{				 
@@ -105,21 +107,35 @@ public class ConfidenceMode extends AbstractMode{
 		 
 		 String info =  vcf.getInfo();
 		 //set to TD if somatic, otherwise set to normal
-		 String allel = (info.contains(VcfHeaderUtils.INFO_SOMATIC)) ? vcf.getFormatFields().get(0) :  vcf.getFormatFields().get(1);
-		 
-		 //debug
-		 System.out.println(   allel + " ==> " + vcf.getPosition());
-		 
+		 String allel = (info.contains(VcfHeaderUtils.INFO_SOMATIC)) ? vcf.getFormatFields().get(0) :  vcf.getFormatFields().get(1); 
 		 allel = allel.substring(allel.lastIndexOf(":") + 1, allel.length());
-		 System.out.println(  ": Confidence Mode, Allel: " + allel);
- 		 List<PileupElement> pileups = PileupElementUtil.createPileupElementsFromString(allel);
+		 
+		List<PileupElement> result = new ArrayList<PileupElement>();
+		Matcher m = pattern.matcher(allel);
+		int count = 0;
+		while (m.find()) {
+			String pileup = m.group();
+			// first char is the base
+			char base = pileup.charAt(0);
+			
+			if(base == vcf.getAlt().charAt(0)){
+				count = Integer.parseInt(pileup.substring(1, pileup.indexOf('['))) +
+						Integer.parseInt(pileup.substring(pileup.indexOf(',')+1, pileup.indexOf('[', pileup.indexOf(','))));
+			 //	 System.out.println("Confidence Mode, Allel: " + count);		
+				return (count >= score) ? true:false;
+			}
+			 
+		}
+		 
+		 
+ /*		 List<PileupElement> pileups = PileupElementUtil.createPileupElementsFromString(allel);
 		 for (PileupElement pe : pileups){ 
 			 //debug
-			 System.out.println("Confidence Mode, Allel: " + pe.toString());
+			
 			if (pe.getBase() ==   vcf.getAlt().charAt(0) && pe.getTotalCount() >= score) 
 				return true;
 		 }
- 
+*/ 
 		 return false;
 	 }   
  
