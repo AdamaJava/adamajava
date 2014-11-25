@@ -25,7 +25,6 @@ import org.qcmg.common.meta.QBamId;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.GenotypeEnum;
 import org.qcmg.common.model.PileupElement;
-import org.qcmg.common.model.VCFRecord;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.SnpUtils;
@@ -562,24 +561,5 @@ public class VcfUtils {
 		rec.setFilter(StringUtils.removeFromString(rec.getFilter(), filter, Constants.SC));
 	}
 	
-//	public static String getAltFromGenotypeEnum(char ref, GenotypeEnum ge) {
-//		String result = null;
-//		
-//		if (null != ge) {
-//			
-//			if (ge.containsAllele(ref)) {
-//				if (ge.isHeterozygous()) {
-//					result = (ref == ge.getFirstAllele()) ? "" + ge.getSecondAllele() : "" + ge.getFirstAllele();
-//				}
-//			} else {
-//				if (ge.isHeterozygous()) {
-//					result = ge.getFirstAllele() + "," + ge.getSecondAllele();
-//				} else {
-//					result = "" + ge.getFirstAllele(); 
-//				}
-//			}
-//		}
-//		
-//		return result;
-//	}
+ 
 }

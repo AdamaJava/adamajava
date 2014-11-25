@@ -3,26 +3,31 @@ package org.qcmg.common.vcf;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import org.qcmg.common.util.Constants;
 
 public class VcfInfoFieldRecord {
-	static final String NULL = "NULL";
+//	static final String NULL = "NULL";
 	
 	Map<String,String> field = new HashMap<>();	
 	
+	/**
+	 * parse line into <key, value> pairs. eg. "CONF;NNS=5" will be parsed to <CONF,NULL>, <NNS,5>
+	 * @param line
+	 */
 	public VcfInfoFieldRecord(String line){
 		String[] infos = line.trim().split(";");			
 		for(String str: infos){
 			int index = str.indexOf("=");			 
 			if(index >= 0)
-				field.put(str.substring(0,index), str.substring(index));
+				field.put(str.substring(0,index), str.substring(index+1));
 			else
-				field.put(str,NULL);			
+				field.put(str,Constants.NULL_STRING);			
 		}
 	}
 	
 	public void setfield(String key, String value){
 		if(value == null)
-			field.put(key, NULL);
+			field.put(key, Constants.NULL_STRING);
 		else
 			field.put(key, value);
 	}
@@ -43,9 +48,9 @@ public class VcfInfoFieldRecord {
 		Iterator<String> it = field.keySet().iterator();
 		while(it.hasNext()){
 			String key = it.next();
-			if(str != "") str += ";";
+			if(str != "") str +=  Constants.SEMI_COLON_STRING;
 			str += key;
-			str += (field.get(key) == VcfInfoFieldRecord.NULL ? "": "=" + field.get(key));			
+			str += (field.get(key) == Constants.NULL_STRING ? "": Constants.EQ + field.get(key));			
 		}
 		
 		return str;

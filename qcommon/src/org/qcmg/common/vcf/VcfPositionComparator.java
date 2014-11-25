@@ -6,7 +6,6 @@ package org.qcmg.common.vcf;
 import java.util.Comparator;
 
 import org.qcmg.common.model.ReferenceNameComparator;
-import org.qcmg.common.model.VCFRecord;
 
 public class VcfPositionComparator implements Comparator<VCFRecord> {
 	
