@@ -22,10 +22,11 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.GenotypeEnum;
 import org.qcmg.common.model.QSnpGATKRecord;
-import org.qcmg.common.model.VCFRecord;
 import org.qcmg.common.util.BaseUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.FileUtils;
+import org.qcmg.common.vcf.VCFRecord;
+import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.germlinedb.GermlineDBFileReader;
 import org.qcmg.germlinedb.GermlineDBRecord;
@@ -385,6 +386,7 @@ public class GatkUniqueSnps {
 						GenotypeEnum germlineDBGenotype = BaseUtils.getGenotypeEnum(rec.getNormalGenotype());
 						if (germlineDBGenotype.containsAllele(c)) {
 							updateCount++;
+							
 							VcfUtils.updateFilter(qpr.getVcfRecord(), VcfHeaderUtils.FILTER_GERMLINE);
 						}
 						
