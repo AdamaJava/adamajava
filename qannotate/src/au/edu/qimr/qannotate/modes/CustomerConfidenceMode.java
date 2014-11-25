@@ -6,13 +6,14 @@ import java.util.List;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.model.PileupElement;
-import org.qcmg.common.model.VCFRecord;
+import org.qcmg.common.vcf.VCFRecord;
 import org.qcmg.common.vcf.VcfInfoFieldRecord;
 import org.qcmg.common.vcf.header.VcfHeaderInfo;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.common.vcf.header.VcfHeaderRecord.VcfInfoNumber;
 import org.qcmg.common.vcf.header.VcfHeaderRecord.VcfInfoType;
 import org.qcmg.picard.util.PileupElementUtil;
+
 import au.edu.qimr.qannotate.options.CustomerConfidenceOptions;
 
 
