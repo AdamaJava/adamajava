@@ -13,8 +13,8 @@ import java.io.InputStreamReader;
 import java.util.Iterator;
 import java.util.zip.GZIPInputStream;
 
-import org.qcmg.common.model.VCFRecord;
 import org.qcmg.common.util.FileUtils;
+import org.qcmg.common.vcf.VCFRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
 
 
