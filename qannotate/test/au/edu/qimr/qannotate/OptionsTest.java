@@ -44,8 +44,9 @@ public class OptionsTest {
 		
 //		SnpEff.main(args);
 		
-		String filter = "OK;PASS;PASS";
-		filter = filter.replaceAll("PASS$|PASS;", "");
+		String filter = "OK;PASS;YES;PASS";
+		filter = "PASS";
+		filter = filter.replaceAll("PASS;|;?PASS$", "");
 		System.out.println("after replace: " + filter);
  
 	}
