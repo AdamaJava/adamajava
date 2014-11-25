@@ -7,16 +7,14 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Comparator;
 import java.util.HashMap;
-
-
-
 import net.sf.samtools.SAMFileHeader;
 import net.sf.samtools.SAMFileReader;
 import org.apache.commons.cli.*;
+//import org.apache.commons.cli.CommandLine;
 
 public class NewOptions {
      	
-	private final CommandLineParser parser = new BasicParser( );
+	private final CommandLineParser parser = new BasicParser();
 	private final Options options = new Options();
 	
 	private String tmpdir = null;
