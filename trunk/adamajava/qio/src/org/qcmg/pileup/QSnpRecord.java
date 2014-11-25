@@ -7,8 +7,8 @@ import static org.qcmg.common.util.Constants.TAB;
 
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.GenotypeEnum;
-import org.qcmg.common.model.VCFRecord;
 import org.qcmg.common.string.StringUtils;
+import org.qcmg.common.vcf.VCFRecord;
 import org.qcmg.common.vcf.VcfUtils;
 
 public class QSnpRecord {
