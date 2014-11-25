@@ -1,4 +1,4 @@
-version = '1.0'
+version = '2.0'
 
 def mainclass = 'org.qcmg.snp.Main'
 def scriptname = 'qsnp'
@@ -6,9 +6,6 @@ def isExecutable = true
 
 repositories {
     flatDir(dirs:"$buildDir/deps/ini4j-0.5.2-SNAPSHOT")
-    //flatDir(dirs:"$buildDir/deps/hibernate-distribution-3.5.6-Final")
-    //flatDir(dirs:"$buildDir/deps/hibernate-distribution-3.5.6-Final/lib/required")
-    //flatDir(dirs:"$buildDir/deps/hibernate-distribution-3.5.6-Final/lib/jpa")
     flatDir(dirs:"$projectDir/../lib")
 }
 
@@ -45,7 +42,6 @@ dependencies {
 
 jar.doFirst {
   def classpath = configurations.runtime.collect { it.name }.join(' ')
-  //classpath = classpath + ' hibernate.cfg.xml'
   jar {
      manifest {
         attributes 'Implementation-Title': project.name,
@@ -59,12 +55,6 @@ jar.doFirst {
   }
 }
 
-
-compileJava {
-	// don't care about ensemble, and therefore hibernate at the moment...
-	exclude("org/qcmg/ensembl/**")
-	exclude("org/qcmg/snp/util/EnsembleUtil.java")
-}
 
 build.doLast {
     def jarname = project.name
