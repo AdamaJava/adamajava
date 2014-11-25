@@ -1,7 +1,7 @@
 /**
  * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
-package org.qcmg.common.model;
+package org.qcmg.common.vcf;
 
 import static org.qcmg.common.util.Constants.MISSING_DATA_STRING;
 import static org.qcmg.common.util.Constants.NL;
@@ -14,6 +14,7 @@ import java.util.List;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
 

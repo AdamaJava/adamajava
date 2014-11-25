@@ -5,6 +5,7 @@ package org.qcmg.common.model;
 
 import java.util.List;
 
+import org.qcmg.common.vcf.VCFRecord;
 import org.qcmg.common.vcf.VcfUtils;
 
 public class QSnpGATKRecord {
