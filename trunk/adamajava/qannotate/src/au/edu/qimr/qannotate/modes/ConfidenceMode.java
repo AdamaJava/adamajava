@@ -40,7 +40,7 @@ public class ConfidenceMode extends AbstractMode{
 	public static final String NOVEL_STARTS = "NNS";
 
 	public enum Confidence{	HIGH , LOW, ZERO ; }
-	private static final Pattern pattern = Pattern.compile("[ACGT][0-9]+\\[[0-9]+.?[0-9]*\\],[0-9]+\\[[0-9]+.?[0-9]*\\]");
+	public static final Pattern pattern = Pattern.compile("[ACGT][0-9]+\\[[0-9]+.?[0-9]*\\],[0-9]+\\[[0-9]+.?[0-9]*\\]");
 
 	private final String patientId;
 	public ConfidenceMode(ConfidenceOptions options, QLogger logger) throws Exception{				 

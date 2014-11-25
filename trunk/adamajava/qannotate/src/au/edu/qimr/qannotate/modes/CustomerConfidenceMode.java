@@ -1,8 +1,10 @@
 package au.edu.qimr.qannotate.modes;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.regex.Matcher;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.model.PileupElement;
@@ -68,8 +70,7 @@ public class CustomerConfidenceMode extends AbstractMode{
 			//remove previous annotaion about CONF
 			VcfInfoFieldRecord infoRecord = new VcfInfoFieldRecord(re.getInfo());
 			infoRecord.removefield(VcfHeaderUtils.INFO_CONFIDENT);
-			
-  			
+			 			
 			//only annotate record passed filters
 			if(passOnly && !re.getFilter().toUpperCase().contains(VcfHeaderUtils.FILTER_PASS))
 				continue;
@@ -78,10 +79,10 @@ public class CustomerConfidenceMode extends AbstractMode{
 			if( total <  min_read_counts) continue;
 			
 			int mutants = Integer.parseInt( infoRecord.getfield(VcfHeaderUtils.INFO_MUTANT_READS));			  
-			if( (100 * mutants) / total < variants_rate  ) continue;
+			if( ((100 * mutants) / total) < variants_rate  ) continue;
 							 
 			infoRecord.setfield(VcfHeaderUtils.INFO_CONFIDENT, null);
-			
+			re.setInfo(infoRecord.toString());			
 		}
 		
 	}				
@@ -95,17 +96,19 @@ public class CustomerConfidenceMode extends AbstractMode{
 		 
 		 //set to TD if somatic, otherwise set to normal
 		 String allel = (info.contains(VcfHeaderUtils.INFO_SOMATIC)) ? vcf.getFormatFields().get(0) :  vcf.getFormatFields().get(1);
-			 
-		 List<PileupElement> pileups = PileupElementUtil.createPileupElementsFromString(allel);
-		 int total = 0;
-		 for (PileupElement pe : pileups){ 
-			  System.out.println(pe.getFormattedString() + " : total Counts: " + total);
-			total += pe.getTotalCount(); 
+		 allel = allel.substring(allel.lastIndexOf(":") + 1, allel.length());
+		 
+		List<PileupElement> result = new ArrayList<PileupElement>();
+		Matcher m = ConfidenceMode.pattern.matcher(allel);
+		int count = 0;
+		while (m.find()) {
+			String pileup = m.group(); 
+			count += Integer.parseInt(pileup.substring(1, pileup.indexOf('['))) +
+					Integer.parseInt(pileup.substring(pileup.indexOf(',')+1, pileup.indexOf('[', pileup.indexOf(','))));
 		 }
-		 //debug
-		
-	 	
-		return total;
+	
+			 	
+		return count;
 	}
 	
 	 
