@@ -67,28 +67,17 @@ public class DbsnpMode extends AbstractMode{
 			for (VCFRecord dbSNPVcf : reader) {
 				// vcf dbSNP record chromosome does not contain "chr", whereas the positionRecordMap does - add
 				//eg.positionRecordMap (key, value) = (chr1.100, vcfRecord )
-				VCFRecord inputVcf = positionRecordMap.get(new ChrPosition(dbSNPVcf.getChromosome(), dbSNPVcf.getPosition() ));
+				VCFRecord inputVcf = positionRecordMap.get(new ChrPosition("chr" + dbSNPVcf.getChromosome(), dbSNPVcf.getPosition() ));
 				// , dbSNPVcf.getPosition() + dbSNPVcf.getRef().length()));
 				if (null == inputVcf) continue;
-				
-
-			 		
+	 			 		
 				// only proceed if we have a SNP variant record
 				if ( ! StringUtils.doesStringContainSubString(dbSNPVcf.getInfo(), "VC=SNV", false)) continue;
-				
-				
-				//debug
-				if(dbSNPVcf.getPosition() == 59033285)
-					System.out.println("find dbSNP:" + dbSNPVcf.getRef().length());				
-				
-				//reference base must be same
-				//if( dbSNPVcf.getRef() != dbSNPVcf.getRef() )
-				if( dbSNPVcf.getRef() != inputVcf.getRef() ){
-					//debug
-					System.out.println(dbSNPVcf.getRef() + " dbSNP: " + dbSNPVcf.toString());
-					System.out.println(inputVcf.getRef() + " input: " + inputVcf.toString());
+
+				//reference base must be same	 
+				if( ! dbSNPVcf.getRef().equals( inputVcf.getRef() )) 
 					throw new Exception("reference base are different ");			 
-				}
+			 
 				//*eg. dbSNP: "1 100 rs12334 A G,T,C ..." dbSNP may have multiple entries
 				//*eg. input.vcf: "1 100 101 A G ..." , "1 100 101 A T,C ..." out snp vcf are single entries			  
 				String [] alts = null; 
@@ -101,13 +90,15 @@ public class DbsnpMode extends AbstractMode{
 				//annotation if at least one alts matches dbSNP alt
 				for (String alt : alts)  
 					if(dbSNPVcf.getAlt().toUpperCase().contains(alt.toUpperCase()) ){
-						inputVcf.setId(dbSNPVcf.getId());
+						inputVcf.setId(dbSNPVcf.getId());						
 						break;
 					}
 			}
 		}
 
 	}
+
+/*	
 	@Override
 	protected void writeVCF(File outputFile  ) throws IOException {
  
@@ -127,7 +118,7 @@ public class DbsnpMode extends AbstractMode{
 		}  
 		
 	}
-	
+*/	
 //	private static final Pattern tabbedPattern = Pattern.compile("[\\t]+");
 
 	
