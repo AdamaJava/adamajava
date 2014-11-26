@@ -42,7 +42,7 @@ public abstract class AbstractMode {
         			break;
         		}
         	
-        	
+        	//no chr in front of position
 			for (VCFRecord qpr : reader) {
 				positionRecordMap.put(new ChrPosition(qpr.getChromosome(), qpr.getPosition()),qpr);
 			}

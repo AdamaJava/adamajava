@@ -54,8 +54,13 @@ public class VCFRecord {
 		this(new ChrPosition(chr, position), id, ref, alt);
 	}
 	
+	public VCFRecord(String chr, int position, int end, String id, String ref, String alt) {
+		this(new ChrPosition(chr, position, end), id, ref, alt);
+	}
+	
 	public VCFRecord(String [] params) {
-		this(params[0], Integer.parseInt(params[1]), params[2], params[3], params[4]);
+//		this(params[0], Integer.parseInt(params[1]), params[2], params[3], params[4]);				
+		this(params[0], Integer.parseInt(params[1]), Integer.parseInt(params[1]) + params[3].length() - 1, params[2], params[3], params[4]);			
 		
 		qualString = (params[5]);
 		filter = (params[6]);

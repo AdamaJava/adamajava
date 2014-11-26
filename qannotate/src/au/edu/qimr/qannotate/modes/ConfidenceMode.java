@@ -22,7 +22,7 @@ import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.common.vcf.header.VcfHeaderRecord.VcfInfoNumber;
 import org.qcmg.common.vcf.header.VcfHeaderRecord.VcfInfoType;
 import org.qcmg.maf.util.MafUtils;
-import org.qcmg.picard.util.PileupElementUtil;
+
 
 import au.edu.qimr.qannotate.options.ConfidenceOptions;
 
