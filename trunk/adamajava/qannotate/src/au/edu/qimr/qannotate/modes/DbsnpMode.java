@@ -29,15 +29,7 @@ import au.edu.qimr.qannotate.options.DbsnpOptions;
 
 public class DbsnpMode extends AbstractMode{
 	
-	// /panfs/share/dbSNP/hg19.db130.single.SNP.all
-	
-	//normally << 10,000,000 records in one vcf file
-	final Map<ChrPosition,VCFRecord> positionRecordMap = new HashMap<ChrPosition,VCFRecord>();
-	VcfHeader header;
-	private final QLogger logger;
-		public DbsnpMode(DbsnpOptions options, QLogger logger) throws Exception{
-			
-		this.logger = logger;		
+	public DbsnpMode(DbsnpOptions options, QLogger logger) throws Exception{	
 		logger.tool("input: " + options.getInputFileName());
         logger.tool("dbSNP database: " + options.getDatabaseFileName() );
         logger.tool("output for annotated vcf records: " + options.getOutputFileName());
@@ -47,7 +39,8 @@ public class DbsnpMode extends AbstractMode{
 		inputRecord(new File( options.getInputFileName())   );
 		
 		addAnnotation(options.getDatabaseFileName() );
-		reheader(options.getCommandLine(),options.getInputFileName())	;	
+		reheader(options.getCommandLine(),options.getInputFileName())	;
+		logger.info("Writing VCF output");	
 		writeVCF(new File(options.getOutputFileName()));	
 	}
 		
@@ -60,8 +53,7 @@ public class DbsnpMode extends AbstractMode{
 	        VCFRecord vcf = it.next();
 	        vcf.setId(".");
  	    }
-		 		
-		 
+		 				 
 		try(VCFFileReader reader= new VCFFileReader( dbSNPFile )) {
 			//add dbSNP version into header	
 			VcfHeader snpHeader = reader.getHeader();
@@ -75,16 +67,28 @@ public class DbsnpMode extends AbstractMode{
 			for (VCFRecord dbSNPVcf : reader) {
 				// vcf dbSNP record chromosome does not contain "chr", whereas the positionRecordMap does - add
 				//eg.positionRecordMap (key, value) = (chr1.100, vcfRecord )
-				VCFRecord inputVcf = positionRecordMap.get(new ChrPosition("chr"+ dbSNPVcf.getChromosome(), dbSNPVcf.getPosition()));
+				VCFRecord inputVcf = positionRecordMap.get(new ChrPosition(dbSNPVcf.getChromosome(), dbSNPVcf.getPosition() ));
+				// , dbSNPVcf.getPosition() + dbSNPVcf.getRef().length()));
 				if (null == inputVcf) continue;
+				
+
 			 		
 				// only proceed if we have a SNP variant record
 				if ( ! StringUtils.doesStringContainSubString(dbSNPVcf.getInfo(), "VC=SNV", false)) continue;
 				
+				
+				//debug
+				if(dbSNPVcf.getPosition() == 59033285)
+					System.out.println("find dbSNP:" + dbSNPVcf.getRef().length());				
+				
 				//reference base must be same
-				if( dbSNPVcf.getRef() != dbSNPVcf.getRef() )
+				//if( dbSNPVcf.getRef() != dbSNPVcf.getRef() )
+				if( dbSNPVcf.getRef() != inputVcf.getRef() ){
+					//debug
+					System.out.println(dbSNPVcf.getRef() + " dbSNP: " + dbSNPVcf.toString());
+					System.out.println(inputVcf.getRef() + " input: " + inputVcf.toString());
 					throw new Exception("reference base are different ");			 
-	 			
+				}
 				//*eg. dbSNP: "1 100 rs12334 A G,T,C ..." dbSNP may have multiple entries
 				//*eg. input.vcf: "1 100 101 A G ..." , "1 100 101 A T,C ..." out snp vcf are single entries			  
 				String [] alts = null; 
@@ -107,7 +111,7 @@ public class DbsnpMode extends AbstractMode{
 	@Override
 	protected void writeVCF(File outputFile  ) throws IOException {
  
-		logger.info("Writing VCF output");	 		
+		 		
 		//get Q_EXEC or #Q_DCCMETA  org.qcmg.common.meta.KeyValue.java or org.qcmg.common.meta.QExec.java	
 		List<ChrPosition> orderedList = new ArrayList<ChrPosition>(positionRecordMap.keySet());
 		Collections.sort(orderedList);

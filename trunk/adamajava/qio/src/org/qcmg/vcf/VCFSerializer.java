@@ -52,6 +52,8 @@ public final class VCFSerializer {
 			throw new Exception("Bad VCF format. Insufficient columns: '" + line + "'");
 		}
 		VCFRecord result = new VCFRecord(params);
+		
+		
 		return result;
 	}
 }

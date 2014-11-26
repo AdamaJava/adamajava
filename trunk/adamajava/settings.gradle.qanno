@@ -1,0 +1,6 @@
+include "qcommon"
+include "qpicard"
+include "qmaftools"
+include "qannotate"
+include "qbamfilter"
+include "qio"
