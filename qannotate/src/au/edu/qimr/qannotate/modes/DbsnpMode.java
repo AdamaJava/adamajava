@@ -97,6 +97,8 @@ public class DbsnpMode extends AbstractMode{
 		}
 
 	}
+	
+}
 
 /*	
 	@Override
@@ -118,7 +120,7 @@ public class DbsnpMode extends AbstractMode{
 		}  
 		
 	}
-*/	
+
 //	private static final Pattern tabbedPattern = Pattern.compile("[\\t]+");
 
 	
@@ -129,7 +131,7 @@ public class DbsnpMode extends AbstractMode{
 	 * @return vcf header
 		 * @throws Exception 
 	 */
-	protected VcfHeader reheader(VcfHeader header , String cmd) throws Exception{	
+/*	protected VcfHeader reheader(VcfHeader header , String cmd) throws Exception{	
 		String version = Main.class.getPackage().getImplementationVersion();
 
 		DateFormat df = new SimpleDateFormat("yyyyMMdd");
@@ -142,7 +144,9 @@ public class DbsnpMode extends AbstractMode{
  				
 		return header;
 	}	
-}	
+	
+	*/		
+	
 
 	 
 	
