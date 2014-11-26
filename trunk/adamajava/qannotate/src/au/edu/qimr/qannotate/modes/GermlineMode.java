@@ -68,7 +68,7 @@ public class GermlineMode extends AbstractMode{
 			
 			//reference base must be same
 			//?? maybe errif( dbGermlineVcf.getRef() != dbGermlineVcf.getRef() )
-			if( dbGermlineVcf.getRef() != inputVcf.getRef() )
+			if( !dbGermlineVcf.getRef().equals(  inputVcf.getRef()) )
 				throw new Exception("reference base are different ");
 			 
  			String [] alts = null; 
