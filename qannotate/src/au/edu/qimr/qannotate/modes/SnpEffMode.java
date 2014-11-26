@@ -56,7 +56,7 @@ public class SnpEffMode extends AbstractMode{
 		try(VCFFileReader reader = new VCFFileReader(new File( tmpFile));
 				VCFFileWriter writer = new VCFFileWriter(outputFile )){
 								
-        	for(VcfHeaderRecord record: header)  writer.addHeader(record.toString());
+        	for(VcfHeaderRecord record: header)  writer.addHeader(record.toString()+"\n");
         	for (VCFRecord qpr : reader) writer.add(qpr);
 		} 
 	}
