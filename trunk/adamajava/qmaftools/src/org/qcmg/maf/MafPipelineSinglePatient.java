@@ -18,6 +18,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.qcmg.common.dcc.MutationType;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.maf.MAFRecord;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.Pair;

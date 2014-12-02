@@ -11,10 +11,9 @@ import org.qcmg.common.model.PileupElement;
 import org.qcmg.common.vcf.VCFRecord;
 import org.qcmg.common.vcf.VcfInfoFieldRecord;
 import org.qcmg.common.vcf.header.VcfHeaderInfo;
-import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.common.vcf.header.VcfHeaderRecord.VcfInfoNumber;
 import org.qcmg.common.vcf.header.VcfHeaderRecord.VcfInfoType;
-import org.qcmg.picard.util.PileupElementUtil;
+import org.qcmg.common.vcf.header.VcfHeaderUtils;
 
 import au.edu.qimr.qannotate.options.CustomerConfidenceOptions;
 
@@ -52,6 +51,7 @@ public class CustomerConfidenceMode extends AbstractMode{
 	 * add dbsnp version
 	 * @throws Exception
 	 */
+	@Override
 	//inherited method from super
 	void addAnnotation(String verificationFile) throws Exception{		
 	    
@@ -61,48 +61,44 @@ public class CustomerConfidenceMode extends AbstractMode{
 		description += Integer.toString( variants_rate) + "% reads contains variants";		
 		header.add(new VcfHeaderInfo(VcfHeaderUtils.INFO_CONFIDENT, 
 				VcfInfoNumber.NUMBER,0, VcfInfoType.Flag, description, null,null) );
-	     
- 
-		Iterator<VCFRecord>  it =  positionRecordMap.values().iterator();
+	      
+		final Iterator<VCFRecord>  it =  positionRecordMap.values().iterator();
 		while( it.hasNext() ){
-			VCFRecord re = it.next();
+			final VCFRecord re = it.next();
 			
 			//remove previous annotaion about CONF
-			VcfInfoFieldRecord infoRecord = new VcfInfoFieldRecord(re.getInfo());
+			final VcfInfoFieldRecord infoRecord = new VcfInfoFieldRecord(re.getInfo());
 			infoRecord.removefield(VcfHeaderUtils.INFO_CONFIDENT);
 			 			
 			//only annotate record passed filters
 			if(passOnly && !re.getFilter().toUpperCase().contains(VcfHeaderUtils.FILTER_PASS))
 				continue;
  			
-			int total = getReadCount(re);			
+			final int total = getReadCount(re);				
 			if( total <  min_read_counts) continue;
 			
-			int mutants = Integer.parseInt( infoRecord.getfield(VcfHeaderUtils.INFO_MUTANT_READS));			  
+			final int mutants = Integer.parseInt( infoRecord.getfield(VcfHeaderUtils.INFO_MUTANT_READS));			  
 			if( ((100 * mutants) / total) < variants_rate  ) continue;
 							 
 			infoRecord.setfield(VcfHeaderUtils.INFO_CONFIDENT, null);
 			re.setInfo(infoRecord.toString());			
-		}
-		
+		}		
 	}				
-
- 
 	
 	
 	private int getReadCount(VCFRecord vcf){
 		
-		 String info =  vcf.getInfo();
+		 final String info =  vcf.getInfo();
 		 
 		 //set to TD if somatic, otherwise set to normal
 		 String allel = (info.contains(VcfHeaderUtils.INFO_SOMATIC)) ? vcf.getFormatFields().get(0) :  vcf.getFormatFields().get(1);
 		 allel = allel.substring(allel.lastIndexOf(":") + 1, allel.length());
 		 
-		List<PileupElement> result = new ArrayList<PileupElement>();
-		Matcher m = ConfidenceMode.pattern.matcher(allel);
+		final List<PileupElement> result = new ArrayList<PileupElement>();
+		final Matcher m = ConfidenceMode.pattern.matcher(allel);
 		int count = 0;
 		while (m.find()) {
-			String pileup = m.group(); 
+			final String pileup = m.group(); 
 			count += Integer.parseInt(pileup.substring(1, pileup.indexOf('['))) +
 					Integer.parseInt(pileup.substring(pileup.indexOf(',')+1, pileup.indexOf('[', pileup.indexOf(','))));
 		 }

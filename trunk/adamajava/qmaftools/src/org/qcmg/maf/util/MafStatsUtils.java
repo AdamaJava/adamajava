@@ -13,8 +13,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.qcmg.common.maf.MAFRecord;
 import org.qcmg.common.string.StringUtils;
-import org.qcmg.maf.MAFRecord;
 
 public class MafStatsUtils {
 	

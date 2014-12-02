@@ -12,6 +12,7 @@ import java.util.Set;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.maf.MAFRecord;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.TorrentVerificationStatus;
 import org.qcmg.common.util.FileUtils;

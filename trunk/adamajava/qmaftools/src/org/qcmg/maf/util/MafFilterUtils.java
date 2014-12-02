@@ -6,11 +6,11 @@ package org.qcmg.maf.util;
 import org.qcmg.common.dcc.DccConsequence;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.maf.MAFRecord;
 import org.qcmg.common.model.MafConfidence;
 import org.qcmg.common.model.MafType;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.SnpUtils;
-import org.qcmg.maf.MAFRecord;
 import org.qcmg.maf.MafPipelineNew;
 
 public class MafFilterUtils {

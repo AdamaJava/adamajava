@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Test;
+import org.qcmg.common.maf.MAFRecord;
 import org.qcmg.maf.util.MafStatsUtils;
 
 public class MafPipelineTest {
