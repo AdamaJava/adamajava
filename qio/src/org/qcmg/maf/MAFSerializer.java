@@ -7,6 +7,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.regex.Pattern;
 
+import org.qcmg.common.maf.MAFRecord;
+
 public final class MAFSerializer {
 	private static final Pattern tabbedPattern = Pattern.compile("[\\t]");
 	private static final String DEFAULT_HEADER_PREFIX = "#";

@@ -14,6 +14,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.dcc.DccConsequence;
 import org.qcmg.common.dcc.MutationType;
+import org.qcmg.common.maf.MAFRecord;
 import org.qcmg.common.model.MafType;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.SnpUtils;

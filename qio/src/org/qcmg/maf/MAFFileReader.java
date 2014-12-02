@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
 
+import org.qcmg.common.maf.MAFRecord;
+
 public final class MAFFileReader implements Closeable, Iterable<MAFRecord> {
     private final File file;
     private final InputStream inputStream;

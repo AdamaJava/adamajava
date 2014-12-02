@@ -30,6 +30,7 @@ import net.sf.samtools.SAMRecordIterator;
 import org.qcmg.common.dcc.MutationType;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.maf.MAFRecord;
 import org.qcmg.common.meta.KeyValue;
 import org.qcmg.common.meta.QExec;
 import org.qcmg.common.model.ChrPosBait;

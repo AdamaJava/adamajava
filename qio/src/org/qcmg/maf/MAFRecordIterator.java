@@ -9,6 +9,8 @@ import java.io.InputStreamReader;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
+import org.qcmg.common.maf.MAFRecord;
+
 public final class MAFRecordIterator implements Iterator<MAFRecord> {
     private final BufferedReader reader;
     private MAFRecord next;

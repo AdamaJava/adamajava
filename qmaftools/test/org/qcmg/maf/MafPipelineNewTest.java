@@ -10,6 +10,7 @@ import java.util.Set;
 
 import org.junit.Test;
 import org.qcmg.common.dcc.MutationType;
+import org.qcmg.common.maf.MAFRecord;
 import org.qcmg.common.model.MafConfidence;
 import org.qcmg.common.model.MafType;
 import org.qcmg.common.util.SnpUtils;

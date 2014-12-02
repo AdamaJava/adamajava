@@ -13,6 +13,7 @@ import net.sf.samtools.SAMRecordIterator;
 
 import org.qcmg.common.log.QLevel;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.maf.MAFRecord;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.SnpUtils;
