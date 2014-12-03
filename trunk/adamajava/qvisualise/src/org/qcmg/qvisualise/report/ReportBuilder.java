@@ -4,6 +4,8 @@
 package org.qcmg.qvisualise.report;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -85,19 +87,9 @@ public class ReportBuilder {
 			}
 			break;
 		case FASTQ:
-			
+			createFastqSummary(reportElement, report);
 			createSEQ(reportElement, report);
 			createQUALS(reportElement, report);
-			
-//			for (ChartTab ct : buildMultiTabCycles(true,"Base", reportElement, "fastq",
-//					"BaseByCycle", "BadBasesInReads", CycleDetailUtils.getTagCSNumericCycle(), CS_COLOURS, false)) {
-//				report.addTab(ct);
-//			}
-//			for (ChartTab ct : buildMultiTabCycles(true,"Qual", reportElement, "qual",
-//					"QualityByCycle", "BadQualsInReads", null, 
-//					null, true)) {
-//				report.addTab(ct);
-//			}
 			break;
 		case MA:
 			for (ChartTab ct : buildMultiTabCycles(false,"Ma", reportElement, "ma",
@@ -108,6 +100,118 @@ public class ReportBuilder {
 		}
 
 		return report;
+	}
+	
+	
+	private static void addEntryToSummaryMap(Element reportElement, String elementName, String mapEntryName, Map<String, Map<String, AtomicLong>> summaryMap) {
+		final NodeList nodeList = reportElement.getElementsByTagName(elementName);
+		if (null != nodeList) {
+			final Element element = (Element) nodeList.item(0);
+			if (null != element) {
+				Map<String, AtomicLong> sourceMap = new HashMap<>();
+				QProfilerCollectionsUtils.populateTallyItemMap(element, sourceMap, false);
+				
+				for (Entry<String, AtomicLong> entry : sourceMap.entrySet()) {
+					// get map from summaryMap
+					Map<String, AtomicLong> map = summaryMap.get(mapEntryName);
+					if (null == map) {
+						map = new HashMap<String, AtomicLong>();
+						summaryMap.put(mapEntryName, map);
+					}
+					map.put(entry.getKey(), entry.getValue());
+				}
+			} else {
+				System.out.println("null " + elementName  + " element");
+			}
+		} else {
+			System.out.println("null  " + elementName  + " NL");
+		}
+	}
+	
+	private static void createFastqSummary(Element reportElement, Report report) {
+		
+		// setup parent tab
+		ChartTab parentCT = new ChartTab("Summary", "summ" + reportID);
+		
+		// table with some basic info
+		
+		// table with instrument, run ids, flow cell ids, tile numbers, etc
+		Map<String, Map<String, AtomicLong>> summaryMap = new LinkedHashMap<>();
+		
+		// instruments first
+		addEntryToSummaryMap(reportElement, "INSTRUMENTS", "Instrument", summaryMap);
+		addEntryToSummaryMap(reportElement, "RUN_IDS", "Run Id", summaryMap);
+		addEntryToSummaryMap(reportElement, "FLOW_CELL_IDS", "Flow Cell Id", summaryMap);
+		addEntryToSummaryMap(reportElement, "FLOW_CELL_LANES", "Flow Cell Lane", summaryMap);
+		addEntryToSummaryMap(reportElement, "PAIR_INFO", "Pair", summaryMap);
+		addEntryToSummaryMap(reportElement, "FILTER_INFO", "Filter", summaryMap);
+		addEntryToSummaryMap(reportElement, "TILE_NUMBERS", "Tile Number", summaryMap);
+		
+		
+		ChartTab ct = new ChartTab("Summary", "summ" + reportID);
+		ct.setData(HTMLReportUtils.generateGoogleDataForTableStringMapPair(summaryMap, ct.getName()));
+		ct.setChartInfo(HTMLReportUtils.generateGoogleTable(ct.getName(), 1, "Summary"));
+		ct.setRenderingInfo(HTMLReportUtils.generateRenderingTableInfo(ct.getName(), 1));
+		
+		parentCT.addChild(ct);
+		
+		parentCT.addChild(addTop100Chart(reportElement, "KMERS", "Kmer", "kmer", "Top 100 6-mers seen in fastq sequencing reads", 100, false));
+		parentCT.addChild(addTop100Chart(reportElement, "INDEXES", "Index", "index", "Top 50 indexes seen in fastq sequencing reads", 50, true));
+		
+		
+		report.addTab(parentCT);
+	}
+	
+	private static ChartTab addTop100Chart(Element reportElement, String nodeName, String charTitle, String chartId, String description, int number, boolean logScale) {
+		final NodeList nodeList = reportElement.getElementsByTagName(nodeName);
+		if (null != nodeList) {
+			final Element element = (Element) nodeList.item(0);
+			if (null != element) {
+				
+				Map<String, AtomicLong> map = new HashMap<>();
+				QProfilerCollectionsUtils.populateTallyItemMap(element, map, false);
+				System.out.println("no of entries in map: " + map.size());
+				List <String> list = new ArrayList<>();
+				
+				for (Entry<String, AtomicLong> entry : map.entrySet()) {
+					list.add(entry.getValue() + "-" + entry.getKey());
+				}
+				Collections.sort(list, new Comparator<String>() {
+					@Override
+					public int compare(String arg0, String arg1) {
+						//strip the number part out of the string
+						int arg0Tally = Integer.parseInt(arg0.substring(0, arg0.indexOf("-")));
+						int arg1Tally = Integer.parseInt(arg1.substring(0, arg1.indexOf("-")));
+						return arg1Tally - arg0Tally;
+					}
+				});
+				
+				Map<String, AtomicLong> top100Entries = new LinkedHashMap<>();
+				for (int i = 0 ; i < number ; i++) {
+					String entry =  list.get(i);
+					
+					int dashIndex = entry.indexOf("-");
+					String key = entry.substring(dashIndex + 1);
+					AtomicLong al = new AtomicLong(Long.parseLong(entry.substring(0, dashIndex)));
+					
+					top100Entries.put(key, al);
+				}
+				
+				final ChartTab charTab = new ChartTab(charTitle, chartId);
+				charTab.setData(HTMLReportUtils.generateGoogleData(top100Entries, charTab.getName(), true));
+				charTab.setChartInfo(HTMLReportUtils.generateGoogleChart(charTab.getName(), 
+						charTitle, 1200, MIN_REPORT_HEIGHT,
+						HTMLReportUtils.COLUMN_CHART, logScale, false));
+				charTab.setDescription(description + " (total number: " + map.size() + ")");
+				
+				return charTab;
+			} else {
+				System.out.println("null " + nodeName + " Element");
+			}
+		} else {
+			System.out.println("null " + nodeName + "NL");
+		}
+		return null;
 	}
 	
 	private static void createSummary(Element reportElement, Report report) {
@@ -165,7 +269,6 @@ public class ReportBuilder {
 							break;
 						}
 					}
-					
 					
 					ChartTab ct = new ChartTab("Summary", "summ" + reportID);
 					ct.setData(HTMLReportUtils.generateGoogleDataForTableStringMap(summaryMap, ct.getName()));

@@ -301,6 +301,41 @@ public class HTMLReportUtils {
 		return sb.toString();
 	}
 	
+	public static String generateGoogleDataForTableStringMapPair(Map<String, Map<String, AtomicLong>> dataSet, String name) {
+//		public static String generateGoogleDataForTable(Map<String, String> dataSet, String name) {
+		StringBuilder sb = new StringBuilder();
+			sb .append("\nvar ");
+			sb.append(name)
+			.append(" = new google.visualization.DataTable(\n{cols: [{id: 'header', label: 'Name', type: 'string'}, {id: 'value', label: 'Value', type: 'string'}, {id: 'count', label: 'Count', type: 'number'}], ");
+			
+			
+			// now for the data
+			sb.append("\nrows: [");
+			
+			int j = 0;
+			for (Entry<String, Map<String, AtomicLong>> entry : dataSet.entrySet()) {
+				if (j++ > 0)
+					sb.append(",\n");
+				
+				int k = 0 ;
+				for (Entry<String, AtomicLong> innerEntry : entry.getValue().entrySet()) {
+					if (k++ > 0) {
+						sb.append(",\n");
+					}
+					
+					sb.append("{c:[");
+					sb.append("{v: '").append(entry.getKey()).append("'},");
+					sb.append("{v: '").append(innerEntry.getKey()).append("'},");
+					sb.append("{v: '").append(innerEntry.getValue().longValue()).append("'}]}");
+	//				sb.append("{v: '").append(entry.getValue()).append("', p:{style:'background-color: red;'}}]}");
+				}
+			}
+			// end of rows
+			sb.append("]}, 0.6);");
+			
+		return sb.toString();
+	}
+	
 	public static String generateGoogleDataForTableStringMap(Map<String, String> dataSet, String name) {
 //		public static String generateGoogleDataForTable(Map<String, String> dataSet, String name) {
 		StringBuilder sb = new StringBuilder();
