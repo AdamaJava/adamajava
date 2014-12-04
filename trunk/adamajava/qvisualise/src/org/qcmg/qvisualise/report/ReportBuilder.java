@@ -91,6 +91,9 @@ public class ReportBuilder {
 			createSEQ(reportElement, report);
 			createQUALS(reportElement, report);
 			break;
+		case FA:
+			createFaSummary(reportElement, report);
+			break;
 		case MA:
 			for (ChartTab ct : buildMultiTabCycles(false,"Ma", reportElement, "ma",
 					"ColourByCycle", "BadBasesInReads", CycleDetailUtils.getTagCSNumericCycle(), CS_COLOURS, false)) {
@@ -128,6 +131,11 @@ public class ReportBuilder {
 		}
 	}
 	
+	private static void createFaSummary(Element reportElement, Report report) {
+		
+		// setup parent tab
+		report.addTab(addTop100Chart(reportElement, "KMERS", "Kmer", "kmer", "Top 100 6-mers seen in reference genome", 100, true));
+	}
 	private static void createFastqSummary(Element reportElement, Report report) {
 		
 		// setup parent tab
