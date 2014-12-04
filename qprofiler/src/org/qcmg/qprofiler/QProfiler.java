@@ -29,6 +29,7 @@ import org.qcmg.common.util.LoadReferencedClasses;
 import org.qcmg.common.util.ProfileTypeUtils;
 import org.qcmg.qprofiler.bam.BamSummarizer;
 import org.qcmg.qprofiler.bam.BamSummarizerMT;
+import org.qcmg.qprofiler.fa.FaSummarizerMT;
 import org.qcmg.qprofiler.fasta.FastaSummarizer;
 import org.qcmg.qprofiler.fastq.FastqSummarizer;
 import org.qcmg.qprofiler.fastq.FastqSummarizerMT;
@@ -254,6 +255,9 @@ public class QProfiler {
 				break;
 			case MA:
 				summarizer = new MaSummarizer();
+				break;
+			case FA:
+				summarizer = new FaSummarizerMT(noOfConsumerThreads);
 				break;
 			default:
 				logger.warn("Summarizer for type " + key + " does not yet exist");
