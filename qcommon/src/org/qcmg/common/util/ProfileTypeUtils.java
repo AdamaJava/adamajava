@@ -19,6 +19,7 @@ public class ProfileTypeUtils {
 	private static final String MA_EXTENSION = "ma";
 	private static final String FASTQ_EXTENSION = "fastq";
 	private static final String FASTQ_GZ_EXTENSION = "fastq.gz";
+	private static final String FA_EXTENSION = "fa";
 	private static final String GZ_EXTENSION = "gz";
 	
 	public static ProfileType getType(File f) throws Exception {
@@ -54,6 +55,8 @@ public class ProfileTypeUtils {
 	    	return ProfileType.FASTQ;
 	    if (FASTQ_GZ_EXTENSION.equals(ext))
 	    	return ProfileType.FASTQ;
+	    if (FA_EXTENSION.equals(ext))
+	    	return ProfileType.FA;
 	    
 	    throw new Exception("Unsupported file type "+ ext);
 	}
