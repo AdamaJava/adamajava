@@ -10,7 +10,7 @@ import org.qcmg.common.string.StringUtils;
 
 public class MAFRecord {
 	
-	private final static char T = '\t';
+	protected final static char T = '\t';
 
 	private String hugoSymbol;
 	private String entrezGeneId;
@@ -57,15 +57,15 @@ public class MAFRecord {
 	private String alternateAAChange;
 	private String alternateBaseChange;
 	
-	private String cpg;
+	
+	private String cpg;  //eg. FS=AGAGAGTAATT
 	private String gffBait;
 //	private String confidence;
 	private String ranking;
 	private int novelStartCount;
 	private String novelStartBases;
 	
-	private String patient;
-	
+	private String patient;	
 	private MafConfidence confidence;
 	private MafType mafType;
 	

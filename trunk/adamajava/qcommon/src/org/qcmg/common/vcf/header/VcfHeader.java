@@ -51,7 +51,7 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 
 	public VcfHeader(final List<String> headerRecords) throws Exception {
 		this();		
-		for (String record : headerRecords) {
+		for (final String record : headerRecords) {
 			add(new VcfHeaderRecord(record));
 		}
 	 }
@@ -60,7 +60,7 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 	public void replace(VcfHeaderRecord record)throws Exception {
 		
 		if(record.type.equals(MetaType.META)){
-			Iterator<VcfHeaderRecord> it = meta.iterator();
+			final Iterator<VcfHeaderRecord> it = meta.iterator();
 			while(it.hasNext()) {
 				if(it.next().getId().equalsIgnoreCase(record.getId())) {
 					it.remove();
@@ -74,7 +74,7 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 	
 	public VcfHeaderRecord get(MetaType type, final String key) throws Exception{
 		
-		String id = ( key.endsWith("=") )? key.substring(0,key.length() - 1) : key;
+		final String id = ( key.endsWith("=") )? key.substring(0,key.length() - 1) : key;
  		
 		Iterator<VcfHeaderRecord> it;
 		switch (type) {
@@ -95,7 +95,7 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 		}
 		 					 
 		while(it.hasNext()){
-			VcfHeaderRecord re = it.next();
+			final VcfHeaderRecord re = it.next();
 			if( re.getId().equalsIgnoreCase(id)){
 				return re; 
 			}
@@ -193,35 +193,35 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 	@Override	
 	public Iterator<VcfHeaderRecord> iterator() {
 		final List<VcfHeaderRecord> records = new ArrayList<>();
-		if (version != null) {
+		if (version != null)  
 			records.add(version);
-		}
-		if (fileDate != null) {
+		 
+		if (fileDate != null)  
 			records.add(fileDate);
-		}
-		if (uuid != null) {
+	 
+		if (uuid != null)  
 			records.add(uuid);
-		}
-		if (source != null) {
+	 
+		if (source != null)  
 			records.add(source);
-		}
-		
-		for (VcfHeaderRecord record : meta) {
+		 		
+		for (final VcfHeaderRecord record : meta)  
 			records.add(record);
-		}
-		for (VcfHeaderRecord record : others) {
+		 
+		for (final VcfHeaderRecord record : others) 
 			records.add(record);
-		}
-		for (VcfHeaderRecord record : vcfInfoById.values()) {
+		 
+		for (final VcfHeaderRecord record : vcfInfoById.values()) 
 			records.add(record);
-		}
-		for (VcfHeaderRecord record : vcfFilterById.values()) {
+		 
+		for (final VcfHeaderRecord record : vcfFilterById.values()) 
 			records.add(record);
-		}
-		for (VcfHeaderRecord record : vcfFormatById.values()) {
+		 
+		for (final VcfHeaderRecord record : vcfFormatById.values()) 
 			records.add(record);	 
-		}
-		records.add(chromLine);		
+		 
+		if (chromLine != null)
+			records.add(chromLine);		
 		
 		return records.iterator();
 	} 

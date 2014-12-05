@@ -3,6 +3,7 @@ package org.qcmg.common.vcf;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+
 import org.qcmg.common.util.Constants;
 
 public class VcfInfoFieldRecord {
@@ -15,19 +16,19 @@ public class VcfInfoFieldRecord {
 	 * @param line
 	 */
 	public VcfInfoFieldRecord(String line){
-		String[] infos = line.trim().split(";");			
-		for(String str: infos){
-			int index = str.indexOf("=");			 
+		final String[] infos = line.trim().split(";");			
+		for(final String str: infos){
+			final int index = str.indexOf("=");			 
 			if(index >= 0)
 				field.put(str.substring(0,index), str.substring(index+1));
 			else
-				field.put(str,Constants.NULL_STRING);			
+				field.put(str,Constants.EMPTY_STRING);			
 		}
 	}
 	
 	public void setfield(String key, String value){
 		if(value == null)
-			field.put(key, Constants.NULL_STRING);
+			field.put(key, Constants.EMPTY_STRING);
 		else
 			field.put(key, value);
 	}
@@ -45,9 +46,9 @@ public class VcfInfoFieldRecord {
 	public String toString(){
 		String str = "";
 		
-		Iterator<String> it = field.keySet().iterator();
+		final Iterator<String> it = field.keySet().iterator();
 		while(it.hasNext()){
-			String key = it.next();
+			final String key = it.next();
 			if(str != "") str +=  Constants.SEMI_COLON_STRING;
 			str += key;
 			str += (field.get(key) == Constants.NULL_STRING ? "": Constants.EQ + field.get(key));			

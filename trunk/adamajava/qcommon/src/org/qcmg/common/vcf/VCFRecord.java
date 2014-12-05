@@ -39,8 +39,8 @@ public class VCFRecord {
 		this.alt = alt;
 		// check to see if the length of the reference is equal to the length of the ChrPosition
 		if ( ! StringUtils.isNullOrEmpty(ref)) {
-			int refLength = ref.length();
-			int chrPosLength = chrPos.getLength();
+			final int refLength = ref.length();
+			final int chrPosLength = chrPos.getLength();
 			if (refLength != chrPosLength) {
 				logger.warn("In VCFRecord constructor, ref length != chrPos length! ref: " + ref + ", chrPos: " + chrPos);
 			}
@@ -65,7 +65,7 @@ public class VCFRecord {
 		qualString = (params[5]);
 		filter = (params[6]);
 		addInfo(params[7]);
-		int length = params.length;
+		final int length = params.length;
 		for (int i = 8 ; i < length ; i++) {
 			format.add(params[i]);
 		}
@@ -79,7 +79,7 @@ public class VCFRecord {
 		return ref;
 	}
 	public char getRefChar() {
-		int len = null != ref ? ref.length() : 0;
+		final int len = null != ref ? ref.length() : 0;
 		if (0 == len) {
 			logger.warn("Reference is empty at " + chrPos.toIGVString());
 			return NULL_CHAR;
@@ -118,16 +118,19 @@ public class VCFRecord {
 	public void setInfo(String info) {
 		this.info = info;
 	}
+	
+	/**
+	 * append additional info record into info column
+	 * @param additionalInfo
+	 */
 	public void addInfo(String additionalInfo) {
 		if (StringUtils.isNullOrEmpty(info)) {
 			this.info = additionalInfo;
-		} else {
+		} else if(! StringUtils.isNullOrEmpty( additionalInfo )){
 			// need to check that we are not duplicating info
-			String [] infoParam = additionalInfo.split(Constants.SEMI_COLON_STRING);
-			for (String s : infoParam) {
+			final String [] infoParam = additionalInfo.split(Constants.SEMI_COLON_STRING);
+			for (final String s : infoParam) 
 				info = StringUtils.addToString(info, s, SEMI_COLON);
-			}
-//			info += (Constants.SEMI_COLON + additionalInfo);
 		}
 	}
 	public String getInfo() {
@@ -161,7 +164,7 @@ public class VCFRecord {
 	}
 	@Override
 	public String toString() {
-		StringBuilder builder = new StringBuilder();
+		final StringBuilder builder = new StringBuilder();
 		builder.append(chrPos.getChromosome()).append(TAB);
 		builder.append(chrPos.getPosition()).append(TAB);
 		builder.append(StringUtils.isNullOrEmpty(id) ? MISSING_DATA_STRING : id).append(TAB);
@@ -176,7 +179,7 @@ public class VCFRecord {
 			builder.append(StringUtils.isNullOrEmpty(info) ? "END=" : info + ";END=").append(chrPos.getEndPosition());
 		}
 		if (null != format)
-			for (String s : format) {
+			for (final String s : format) {
 				builder.append(TAB).append(s);
 			}
 		builder.append(NL);

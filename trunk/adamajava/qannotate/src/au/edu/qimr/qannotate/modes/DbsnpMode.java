@@ -65,16 +65,10 @@ public class DbsnpMode extends AbstractMode{
 			//check dbsnp record
 			for (final VCFRecord dbSNPVcf : reader) {
 				// vcf dbSNP record chromosome does not contain "chr", whereas the positionRecordMap does - add
-				//eg.positionRecordMap (key, value) = (chr1.100, vcfRecord )
-				//VCFRecord inputVcf = positionRecordMap.get(new ChrPosition("chr" + dbSNPVcf.getChromosome(), dbSNPVcf.getPosition() ));
-				
+				//eg.positionRecordMap (key, value) = (chr1.100-101, vcfRecord )
 				//put end position in case of compound snp
 				final VCFRecord inputVcf = positionRecordMap.get(new ChrPosition("chr" + dbSNPVcf.getChromosome(), dbSNPVcf.getPosition(), dbSNPVcf.getPosition() + dbSNPVcf.getRef().length() - 1 ));
  
-				//debug
-				//final ChrPosition pos = new ChrPosition("chr" + dbSNPVcf.getChromosome(), dbSNPVcf.getPosition(), dbSNPVcf.getPosition() + dbSNPVcf.getRef().length() - 1 );
-				//System.out.println( "sbsnp: "+ dbSNPVcf.toString() );
-				//System.out.println( pos.toIGVString() );
 				
 				// , dbSNPVcf.getPosition() + dbSNPVcf.getRef().length()));
 				if (null == inputVcf) continue;
