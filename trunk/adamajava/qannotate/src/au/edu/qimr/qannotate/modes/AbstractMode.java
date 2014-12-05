@@ -15,8 +15,8 @@ import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.vcf.VCFRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
-import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.common.vcf.header.VcfHeaderRecord.MetaType;
+import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 import org.qcmg.vcf.VCFFileWriter;
 
@@ -28,23 +28,22 @@ public abstract class AbstractMode {
 	protected final Map<ChrPosition,VCFRecord> positionRecordMap = new HashMap<ChrPosition,VCFRecord>();
 	protected VcfHeader header;
 	protected String inputUuid;
- 
-	
+ 	
 	protected void inputRecord(File f) throws Exception{
 		
         //read record into RAM, meanwhile wipe off the ID field value;
  
         try(VCFFileReader reader = new VCFFileReader(f)) {
         	header = reader.getHeader();
-           	for(VcfHeaderRecord hr : header)
+           	for(final VcfHeaderRecord hr : header)
         		if(hr.getMetaType().equals(MetaType.META) && hr.getId().equalsIgnoreCase(VcfHeaderUtils.STANDARD_UUID_LINE)){
         			inputUuid = hr.getDescription();
         			break;
         		}
         	
         	//no chr in front of position
-			for (VCFRecord qpr : reader) {
-				positionRecordMap.put(new ChrPosition(qpr.getChromosome(), qpr.getPosition()),qpr);
+			for (final VCFRecord qpr : reader) {
+				positionRecordMap.put(new ChrPosition(qpr.getChromosome(), qpr.getPosition(), qpr.getPosition() + qpr.getRef().length() - 1 ), qpr);
 			}
 		}  
         
@@ -57,15 +56,13 @@ public abstract class AbstractMode {
 		 
 //		logger.info("Writing VCF output");	 		
 		//get Q_EXEC or #Q_DCCMETA  org.qcmg.common.meta.KeyValue.java or org.qcmg.common.meta.QExec.java	
-		List<ChrPosition> orderedList = new ArrayList<ChrPosition>(positionRecordMap.keySet());
+		final List<ChrPosition> orderedList = new ArrayList<ChrPosition>(positionRecordMap.keySet());
 		Collections.sort(orderedList);
 		
-		try(VCFFileWriter writer = new VCFFileWriter( outputFile)) {
-//			header = reheader(header, cmd);
-			
-			for(VcfHeaderRecord record: header)  writer.addHeader(record.toString()+"\n");
-			for (ChrPosition position : orderedList) {				
-				VCFRecord record = positionRecordMap.get(position); 
+		try(VCFFileWriter writer = new VCFFileWriter( outputFile)) {			
+			for(final VcfHeaderRecord record: header)  writer.addHeader(record.toString()+"\n");
+			for (final ChrPosition position : orderedList) {				
+				final VCFRecord record = positionRecordMap.get(position); 
 				writer.add( record );				 
 			}
 		}  
@@ -74,10 +71,10 @@ public abstract class AbstractMode {
 	
 	protected void reheader(String cmd, String inputVcfName) throws Exception{	
 
-		String version = Main.class.getPackage().getImplementationVersion();
-		String pg = Messages.getProgramName();
-		String fileDate = df.format(Calendar.getInstance().getTime());
-		String uuid = QExec.createUUid();
+		final String version = Main.class.getPackage().getImplementationVersion();
+		final String pg = Messages.getProgramName();
+		final String fileDate = df.format(Calendar.getInstance().getTime());
+		final String uuid = QExec.createUUid();
 
 		//move input uuid into preuuid
 		header.replace(new VcfHeaderRecord(VcfHeaderUtils.STANDARD_INPUT_LINE + "=" + inputUuid + ":"+ inputVcfName) );
@@ -87,7 +84,6 @@ public abstract class AbstractMode {
 				new VcfHeaderRecord(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + fileDate ),
 				new VcfHeaderRecord(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + uuid ),
 				new VcfHeaderRecord(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=" + pg+"-"+version) );
-  
-		//return header;
+
 	}	
 }
