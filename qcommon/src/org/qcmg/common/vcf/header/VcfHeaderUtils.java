@@ -40,6 +40,7 @@ public class VcfHeaderUtils {
 	public static final String INFO_NONSENSE_MEDIATED_DECAY = "NMD";	
 	public static final String INFO_SOMATIC = "SOMATIC";
 	public static final String INFO_CONFIDENT = "CONF";
+	public static final String INFO_GMAF = "GMAF";
 	
 	//FORMAT FIELDS
 	public static final String FORMAT_GENOTYPE = "GT";
@@ -64,7 +65,7 @@ public class VcfHeaderUtils {
 	public static int parseIntSafe(String s) {
 		try {
 			return Integer.parseInt(s);
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			return 0;
 		}
 	}

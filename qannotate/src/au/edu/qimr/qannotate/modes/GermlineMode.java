@@ -44,12 +44,9 @@ public class GermlineMode extends AbstractMode{
 	 
 		 String filter = null;
 		 for (final VCFRecord dbGermlineVcf : reader) {
-			// vcf dbSNP record chromosome does not contain "chr", whereas the positionRecordMap does - add
-			//eg.positionRecordMap (key, value) = (chr1.100, vcfRecord )
 			final VCFRecord inputVcf = positionRecordMap.get(new ChrPosition("chr"+ dbGermlineVcf.getChromosome(), dbGermlineVcf.getPosition()));
 			if (null == inputVcf) continue;
-			
-		 	
+					 	
 			// only proceed if we have a SOMATIC variant record
 			if ( ! StringUtils.doesStringContainSubString(inputVcf.getInfo(), "SOMATIC", false)) continue;
 			
@@ -59,12 +56,14 @@ public class GermlineMode extends AbstractMode{
 				throw new Exception("reference base are different ");
 			 
  			String [] alts = null; 
-			if(inputVcf.getAlt().length() > 1)	  				
+			try{
+				//multi allels
 				alts = TabTokenizer.tokenize(inputVcf.getAlt(), ',');
-		    else 
-				alts = new String[] {inputVcf.getAlt()};	
-			
-			
+			}catch(final IllegalArgumentException e){
+				//single allel
+				alts = new String[] {inputVcf.getAlt()};		
+			}
+						
 			if (null == alts)  continue;			
 			//annotation if at least one alts matches dbSNP alt
 			for (final String alt : alts)  
@@ -75,18 +74,6 @@ public class GermlineMode extends AbstractMode{
 					inputVcf.setFilter(filter);
 					inputVcf.addFilter(VcfHeaderUtils.FILTER_GERMLINE);
 					break;
-					
-/*					if(filter.endsWith("PASS") ){
-						if (filter.indexOf("PASS") != filter.length() - 4)
-							throw new Exception("mutli \"PASS\" marked on the FILTER field for vcf record: " + inputVcf.toString());
-						filter = filter.replace("PASS", "GERM");							
-					}else
-						filter +=  ";GERM";
-					
-					//inputVcf is a pointer, use set method to change real value
-					inputVcf.setFilter(filter);
-					
-*/
 					
 				}
 		 	}
