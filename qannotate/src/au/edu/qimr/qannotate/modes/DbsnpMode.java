@@ -1,33 +1,28 @@
 package au.edu.qimr.qannotate.modes;
 
+import static org.qcmg.common.util.Constants.EQ;
+
 import java.io.File;
-import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 
 import org.qcmg.common.log.QLogger;
-import org.qcmg.common.meta.QExec;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VCFRecord;
+import org.qcmg.common.vcf.VcfInfoFieldRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
+import org.qcmg.common.vcf.header.VcfHeaderRecord.MetaType;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
-import org.qcmg.vcf.VCFFileWriter;
 
-import au.edu.qimr.qannotate.Main;
 import au.edu.qimr.qannotate.options.DbsnpOptions;
 
 public class DbsnpMode extends AbstractMode{
+	
+	//for unit Test
+	DbsnpMode(){}
 	
 	public DbsnpMode(DbsnpOptions options, QLogger logger) throws Exception{	
 		logger.tool("input: " + options.getInputFileName());
@@ -48,31 +43,45 @@ public class DbsnpMode extends AbstractMode{
 	@Override
 	void addAnnotation(String dbSNPFile) throws Exception{
 		//init remove all exsiting dbsnpid
-		Iterator<VCFRecord> it = positionRecordMap.values().iterator(); 
+		final Iterator<VCFRecord> it = positionRecordMap.values().iterator(); 
  	    while (it.hasNext()) {
-	        VCFRecord vcf = it.next();
+	        final VCFRecord vcf = it.next();
 	        vcf.setId(".");
  	    }
 		 				 
 		try(VCFFileReader reader= new VCFFileReader( dbSNPFile )) {
 			//add dbSNP version into header	
-			VcfHeader snpHeader = reader.getHeader();
-			for (VcfHeaderRecord hr : snpHeader) 
-				if(hr.getId().equalsIgnoreCase(VcfHeaderUtils.STANDARD_DBSNP_LINE)){
+			final VcfHeader snpHeader = reader.getHeader();
+			for (final VcfHeaderRecord hr : snpHeader){ 
+				if(hr.getMetaType().equals(MetaType.META) &&  hr.getId().equalsIgnoreCase(VcfHeaderUtils.STANDARD_DBSNP_LINE)) 
 					header.replace(hr);  
-					break;					
-				}	
-		 
+					 				
+				else if( hr.getMetaType().equals(MetaType.INFO) && hr.getId().equalsIgnoreCase(VcfHeaderUtils.INFO_GMAF) ){
+					header.replace(hr);
+				}				
+			}
+			
+			
 			//check dbsnp record
-			for (VCFRecord dbSNPVcf : reader) {
+			for (final VCFRecord dbSNPVcf : reader) {
 				// vcf dbSNP record chromosome does not contain "chr", whereas the positionRecordMap does - add
 				//eg.positionRecordMap (key, value) = (chr1.100, vcfRecord )
-				VCFRecord inputVcf = positionRecordMap.get(new ChrPosition("chr" + dbSNPVcf.getChromosome(), dbSNPVcf.getPosition() ));
+				//VCFRecord inputVcf = positionRecordMap.get(new ChrPosition("chr" + dbSNPVcf.getChromosome(), dbSNPVcf.getPosition() ));
+				
+				//put end position in case of compound snp
+				final VCFRecord inputVcf = positionRecordMap.get(new ChrPosition("chr" + dbSNPVcf.getChromosome(), dbSNPVcf.getPosition(), dbSNPVcf.getPosition() + dbSNPVcf.getRef().length() - 1 ));
+ 
+				//debug
+				//final ChrPosition pos = new ChrPosition("chr" + dbSNPVcf.getChromosome(), dbSNPVcf.getPosition(), dbSNPVcf.getPosition() + dbSNPVcf.getRef().length() - 1 );
+				//System.out.println( "sbsnp: "+ dbSNPVcf.toString() );
+				//System.out.println( pos.toIGVString() );
+				
 				// , dbSNPVcf.getPosition() + dbSNPVcf.getRef().length()));
 				if (null == inputVcf) continue;
 	 			 		
-				// only proceed if we have a SNP variant record
-				if ( ! StringUtils.doesStringContainSubString(dbSNPVcf.getInfo(), "VC=SNV", false)) continue;
+				// only proceed if we have a SNP, MNP variant record
+				if ( ! StringUtils.doesStringContainSubString(dbSNPVcf.getInfo(), "VC=SNV", false) &&
+						! StringUtils.doesStringContainSubString(dbSNPVcf.getInfo(), "VC=MNV", false)) continue;
 
 				//reference base must be same	 
 				if( ! dbSNPVcf.getRef().equals( inputVcf.getRef() )) 
@@ -81,72 +90,38 @@ public class DbsnpMode extends AbstractMode{
 				//*eg. dbSNP: "1 100 rs12334 A G,T,C ..." dbSNP may have multiple entries
 				//*eg. input.vcf: "1 100 101 A G ..." , "1 100 101 A T,C ..." out snp vcf are single entries			  
 				String [] alts = null; 
-				if(inputVcf.getAlt().length() > 1)	  				
+				try{
+					//multi allels
 					alts = TabTokenizer.tokenize(inputVcf.getAlt(), ',');
-			    else 
-					alts = new String[] {inputVcf.getAlt()};			
+				}catch(final IllegalArgumentException e){
+					//single allel
+					alts = new String[] {inputVcf.getAlt()};		
+				}
 				
 				if (null == alts)  continue;			
 				//annotation if at least one alts matches dbSNP alt
-				for (String alt : alts)  
+				for (final String alt : alts)  
 					if(dbSNPVcf.getAlt().toUpperCase().contains(alt.toUpperCase()) ){
+						inputVcf.addInfo(getGMAF(dbSNPVcf.getInfo()));
 						inputVcf.setId(dbSNPVcf.getId());						
 						break;
-					}
+					} 
 			}
 		}
 
 	}
 	
+	private String getGMAF(String info){
+
+		final String gmaf =  new VcfInfoFieldRecord(info).getfield(VcfHeaderUtils.INFO_GMAF);
+		 
+		if(gmaf != null) return StringUtils.addToString(VcfHeaderUtils.INFO_GMAF, gmaf, EQ);
+		
+		return null;
+	}
+	
 }
 
-/*	
-	@Override
-	protected void writeVCF(File outputFile  ) throws IOException {
- 
-		 		
-		//get Q_EXEC or #Q_DCCMETA  org.qcmg.common.meta.KeyValue.java or org.qcmg.common.meta.QExec.java	
-		List<ChrPosition> orderedList = new ArrayList<ChrPosition>(positionRecordMap.keySet());
-		Collections.sort(orderedList);
-		
-		try(VCFFileWriter writer = new VCFFileWriter( outputFile)) {
-			 
-			
-			for(VcfHeaderRecord record: header)  writer.addHeader(record.toString());
-			for (ChrPosition position : orderedList) {				
-				VCFRecord record = positionRecordMap.get(position); 
-				writer.add( record );				 
-			}
-		}  
-		
-	}
-
-//	private static final Pattern tabbedPattern = Pattern.compile("[\\t]+");
-
-	
-		/**
-	 * insert the cmd into header before the final header line
-	 * @param header: vcf header
-	 * @param cmd: program command line
-	 * @return vcf header
-		 * @throws Exception 
-	 */
-/*	protected VcfHeader reheader(VcfHeader header , String cmd) throws Exception{	
-		String version = Main.class.getPackage().getImplementationVersion();
-
-		DateFormat df = new SimpleDateFormat("yyyyMMdd");
-		//Vector<String> headerLines = new Vector<String>();
-		
-		header.updateHeader(new VcfHeaderRecord(VcfHeaderUtils.CURRENT_FILE_VERSION),
-				new VcfHeaderRecord(VcfHeaderUtils.STANDARD_FILE_DATE + df.format(Calendar.getInstance().getTime())),
-				new VcfHeaderRecord(VcfHeaderUtils.STANDARD_UUID_LINE + QExec.createUUid() ),
-				new VcfHeaderRecord(VcfHeaderUtils.STANDARD_SOURCE_LINE + "qannotate " + version) );
- 				
-		return header;
-	}	
-	
-	*/		
-	
 
 	 
 	

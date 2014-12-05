@@ -1,28 +1,15 @@
 package au.edu.qimr.qannotate.modes;
 
 import java.io.File;
-import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Vector;
 
 import org.qcmg.common.log.QLogger;
-import org.qcmg.common.meta.QExec;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.TabTokenizer;
-import org.qcmg.vcf.VCFFileReader;
-import org.qcmg.vcf.VCFFileWriter;
 import org.qcmg.common.vcf.VCFRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
+import org.qcmg.vcf.VCFFileReader;
 
-import au.edu.qimr.qannotate.Main;
 import au.edu.qimr.qannotate.options.GermlineOptions;
 
 public class GermlineMode extends AbstractMode{
@@ -56,13 +43,13 @@ public class GermlineMode extends AbstractMode{
  		try(VCFFileReader reader = new VCFFileReader(new File(dbGermlineFile))){
 	 
 		 String filter = null;
-		 for (VCFRecord dbGermlineVcf : reader) {
+		 for (final VCFRecord dbGermlineVcf : reader) {
 			// vcf dbSNP record chromosome does not contain "chr", whereas the positionRecordMap does - add
 			//eg.positionRecordMap (key, value) = (chr1.100, vcfRecord )
-			VCFRecord inputVcf = positionRecordMap.get(new ChrPosition("chr"+ dbGermlineVcf.getChromosome(), dbGermlineVcf.getPosition()));
+			final VCFRecord inputVcf = positionRecordMap.get(new ChrPosition("chr"+ dbGermlineVcf.getChromosome(), dbGermlineVcf.getPosition()));
 			if (null == inputVcf) continue;
 			
-		 		
+		 	
 			// only proceed if we have a SOMATIC variant record
 			if ( ! StringUtils.doesStringContainSubString(inputVcf.getInfo(), "SOMATIC", false)) continue;
 			
@@ -80,7 +67,7 @@ public class GermlineMode extends AbstractMode{
 			
 			if (null == alts)  continue;			
 			//annotation if at least one alts matches dbSNP alt
-			for (String alt : alts)  
+			for (final String alt : alts)  
 				if(dbGermlineVcf.getAlt().toUpperCase().contains(alt.toUpperCase()) ){					
 					filter = inputVcf.getFilter();
 					//remove "PASS" or "PASS;" then append GERM

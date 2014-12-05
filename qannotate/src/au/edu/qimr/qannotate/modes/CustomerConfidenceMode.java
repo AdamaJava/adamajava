@@ -47,6 +47,8 @@ public class CustomerConfidenceMode extends AbstractMode{
 		reheader(options.getCommandLine(),options.getInputFileName())	;	
 		writeVCF(new File(options.getOutputFileName()) );	
 	}
+	
+	
 	/**
 	 * add dbsnp version
 	 * @throws Exception
@@ -56,7 +58,8 @@ public class CustomerConfidenceMode extends AbstractMode{
 	void addAnnotation(String verificationFile) throws Exception{		
 	    
 		//add header line
-		String description = (passOnly) ? "passed filter," : "";
+		String description = "Set CONF to HIGH once the variants meet conditions: ";
+		description += 	(passOnly) ? "passed filter," : "";
 		description += "total read counts more than " +  Integer.toString(min_read_counts) + ", more than ";
 		description += Integer.toString( variants_rate) + "% reads contains variants";		
 		header.add(new VcfHeaderInfo(VcfHeaderUtils.INFO_CONFIDENT, 
