@@ -12,7 +12,7 @@ import java.util.Map;
 
 import org.qcmg.common.meta.QExec;
 import org.qcmg.common.model.ChrPosition;
-import org.qcmg.common.vcf.VCFRecord;
+import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderRecord.MetaType;
@@ -25,7 +25,7 @@ import au.edu.qimr.qannotate.Messages;
 
 public abstract class AbstractMode {
 	private static final DateFormat df = new SimpleDateFormat("yyyyMMdd");
-	protected final Map<ChrPosition,VCFRecord> positionRecordMap = new HashMap<ChrPosition,VCFRecord>();
+	protected final Map<ChrPosition,VcfRecord> positionRecordMap = new HashMap<ChrPosition,VcfRecord>();
 	protected VcfHeader header;
 	protected String inputUuid;
  	
@@ -42,7 +42,7 @@ public abstract class AbstractMode {
         		}
         	
         	//no chr in front of position
-			for (final VCFRecord qpr : reader) {
+			for (final VcfRecord qpr : reader) {
 				positionRecordMap.put(new ChrPosition(qpr.getChromosome(), qpr.getPosition(), qpr.getPosition() + qpr.getRef().length() - 1 ), qpr);
 			}
 		}  
@@ -62,7 +62,7 @@ public abstract class AbstractMode {
 		try(VCFFileWriter writer = new VCFFileWriter( outputFile)) {			
 			for(final VcfHeaderRecord record: header)  writer.addHeader(record.toString()+"\n");
 			for (final ChrPosition position : orderedList) {				
-				final VCFRecord record = positionRecordMap.get(position); 
+				final VcfRecord record = positionRecordMap.get(position); 
 				writer.add( record );				 
 			}
 		}  

@@ -57,7 +57,7 @@ import org.qcmg.common.util.PileupElementLiteUtil;
 import org.qcmg.common.util.PileupUtils;
 import org.qcmg.common.util.SnpUtils;
 import org.qcmg.common.util.TabTokenizer;
-import org.qcmg.common.vcf.VCFRecord;
+import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.maths.FisherExact;
@@ -108,7 +108,7 @@ public abstract class Pipeline {
 	// ChrPosition chromosome consists of "chr" and then the number/letter
 	final Map<ChrPosition,QSnpRecord> positionRecordMap = new HashMap<>(100000);
 	
-	final Map<ChrPosition,VCFRecord> compoundSnps = new HashMap<>();
+	final Map<ChrPosition,VcfRecord> compoundSnps = new HashMap<>();
 	
 	final Map<ChrPosition, Pair<Accumulator, Accumulator>> accumulators = new HashMap<>(); 
 	
@@ -357,7 +357,7 @@ public abstract class Pipeline {
 					}
 				} else {
 					// get from copoundSnp map
-					VCFRecord vcf = compoundSnps.get(position);
+					VcfRecord vcf = compoundSnps.get(position);
 					writer.add(vcf);
 					
 				}
@@ -567,9 +567,9 @@ public abstract class Pipeline {
 		logger.info("number of SOMATIC snps that have evidence of mutation in unfiltered normal: " + noOfAffectedRecords);
 	}
 	
-	public  VCFRecord convertQSnpToVCF(QSnpRecord rec) {
+	public  VcfRecord convertQSnpToVCF(QSnpRecord rec) {
 //		VCFRecord vcf = VcfUtils.createVcfRecord(rec.getChrPos(), rec.getDbSnpId(), rec.getRef() + "");
-		VCFRecord vcf = rec.getVcfRecord();
+		VcfRecord vcf = rec.getVcfRecord();
 		
 		String altString = null != rec.getMutation() ? SnpUtils.getAltFromMutationString(rec.getMutation()) : null;
 //		char alt = '\u0000';
@@ -1873,7 +1873,7 @@ public abstract class Pipeline {
 					logger.info(csChrPos.toString() + " - ref bases: " + ref + ", alt: " + alt + " : " + classification + ", flag: " + flag + "\nnormal: " + normalSb.toString() + "\ntumour: " + tumourSb.toString());
 					
 					// create new VCFRecord with start position
-					VCFRecord cs = VcfUtils.createVcfRecord(csChrPos, null, ref, alt);
+					VcfRecord cs = VcfUtils.createVcfRecord(csChrPos, null, ref, alt);
 					if (somatic) {
 						cs.addInfo(Classification.SOMATIC.toString());
 					}

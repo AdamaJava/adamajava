@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.qcmg.common.util.TabTokenizer;
-import org.qcmg.common.vcf.VCFRecord;
+import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
 
 public final class VCFSerializer {
@@ -35,9 +35,9 @@ public final class VCFSerializer {
 		return new VcfHeader(headerLines);
 	}
 
-	public static VCFRecord nextRecord(final BufferedReader reader)
+	public static VcfRecord nextRecord(final BufferedReader reader)
 			throws IOException , Exception {
-		VCFRecord result = null;
+		VcfRecord result = null;
 		String line = nextNonheaderLine(reader);
 		if (null != line) {
 			result = parseRecord(line);
@@ -45,13 +45,13 @@ public final class VCFSerializer {
 		return result;
 	}
 
-	static VCFRecord parseRecord(final String line) throws Exception {
+	static VcfRecord parseRecord(final String line) throws Exception {
 		String[] params = TabTokenizer.tokenize(line);
 		int arrayLength = params.length; 
 		if (8 > arrayLength) {
 			throw new Exception("Bad VCF format. Insufficient columns: '" + line + "'");
 		}
-		VCFRecord result = new VCFRecord(params);
+		VcfRecord result = new VcfRecord(params);
 		
 		
 		return result;

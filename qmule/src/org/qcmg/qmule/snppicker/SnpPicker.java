@@ -22,7 +22,7 @@ import org.qcmg.common.model.Genotype;
 import org.qcmg.common.util.BaseUtils;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.TabTokenizer;
-import org.qcmg.common.vcf.VCFRecord;
+import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.dbsnp.Dbsnp130Record;
 import org.qcmg.dbsnp.DbsnpFileReader;
@@ -412,7 +412,7 @@ public class SnpPicker {
 			ChrPosition id;
 			VariantRecord value;
 			
-			for (VCFRecord rec : reader) {
+			for (VcfRecord rec : reader) {
 				
 				id = new ChrPosition(rec.getChromosome(), rec.getPosition());
 				

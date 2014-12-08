@@ -13,7 +13,7 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.util.FileUtils;
-import org.qcmg.common.vcf.VCFRecord;
+import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.pileup.QPileupFileReader;
 import org.qcmg.pileup.QSnpRecord;
@@ -26,7 +26,7 @@ public class ExamineVerifiedSnps {
 	private static final QLogger logger = QLoggerFactory.getLogger(ExamineVerifiedSnps.class);
 	
 	private static Map<ChrPosition,QSnpRecord> pileup = new HashMap<ChrPosition,QSnpRecord>(80000);
-	private static Map<ChrPosition,VCFRecord> vcfRecords = new HashMap<ChrPosition,VCFRecord>(80000);
+	private static Map<ChrPosition,VcfRecord> vcfRecords = new HashMap<ChrPosition,VcfRecord>(80000);
 	private static Map<ChrPosition,VerifiedSnpRecord> verifiedSNPs = new HashMap<ChrPosition,VerifiedSnpRecord>(250);
 
 	public static void main(String[] args) throws Exception {
@@ -132,7 +132,7 @@ public class ExamineVerifiedSnps {
 			
 			for (final Map.Entry<ChrPosition,VerifiedSnpRecord> entry : verifiedSNPs.entrySet()) {
 				
-				VCFRecord qpr = vcfRecords.get(entry.getKey());
+				VcfRecord qpr = vcfRecords.get(entry.getKey());
 				VerifiedSnpRecord vsr = entry.getValue();
 				
 				// only interested in exome data
@@ -210,7 +210,7 @@ public class ExamineVerifiedSnps {
 			
 			VCFFileReader reader  = new VCFFileReader(new File(pileupFile));
 			try {
-				for (VCFRecord qpr : reader) {
+				for (VcfRecord qpr : reader) {
 					vcfRecords.put(new ChrPosition(qpr.getChromosome(), qpr.getPosition()),qpr);
 				}
 			} finally {

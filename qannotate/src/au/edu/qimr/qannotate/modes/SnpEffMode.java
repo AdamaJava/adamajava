@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.qcmg.common.log.QLogger;
-import org.qcmg.common.vcf.VCFRecord;
+import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.vcf.VCFFileReader;
 import org.qcmg.vcf.VCFFileWriter;
@@ -57,7 +57,7 @@ public class SnpEffMode extends AbstractMode{
 				VCFFileWriter writer = new VCFFileWriter(outputFile )){
 								
         	for(VcfHeaderRecord record: header)  writer.addHeader(record.toString()+"\n");
-        	for (VCFRecord qpr : reader) writer.add(qpr);
+        	for (VcfRecord qpr : reader) writer.add(qpr);
 		} 
 	}
 		//throws Exception

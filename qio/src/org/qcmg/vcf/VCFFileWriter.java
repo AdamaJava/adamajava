@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.zip.GZIPOutputStream;
 
-import org.qcmg.common.vcf.VCFRecord;
+import org.qcmg.common.vcf.VcfRecord;
 
 public final class VCFFileWriter implements Closeable {
 	private final File file;
@@ -31,7 +31,7 @@ public final class VCFFileWriter implements Closeable {
 		outputStream.flush();
 	}
 
-	public void add(final VCFRecord record) throws IOException {
+	public void add(final VcfRecord record) throws IOException {
 		String encoded = record.toString();
 		outputStream.write(encoded.getBytes());
 		outputStream.flush();

@@ -9,11 +9,11 @@ import java.io.InputStreamReader;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-import org.qcmg.common.vcf.VCFRecord;
+import org.qcmg.common.vcf.VcfRecord;
 
-public final class VCFRecordIterator implements Iterator<VCFRecord> {
+public final class VCFRecordIterator implements Iterator<VcfRecord> {
     private final BufferedReader reader;
-    private VCFRecord next;
+    private VcfRecord next;
 
     public VCFRecordIterator(final InputStream stream) {
         InputStreamReader streamReader = new InputStreamReader(stream);
@@ -25,11 +25,11 @@ public final class VCFRecordIterator implements Iterator<VCFRecord> {
         return null != next;
     }
 
-    public VCFRecord next() {
+    public VcfRecord next() {
         if (!hasNext()) {
             throw new NoSuchElementException();
         }
-        VCFRecord result = next;
+        VcfRecord result = next;
         readNext();
         return result;
     }

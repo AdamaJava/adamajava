@@ -29,7 +29,7 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.util.BaseUtils;
 import org.qcmg.common.util.IlluminaUtils;
 import org.qcmg.common.util.TabTokenizer;
-import org.qcmg.common.vcf.VCFRecord;
+import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.illumina.IlluminaRecord;
 import org.qcmg.picard.SAMOrBAMWriterFactory;
 import org.qcmg.sig.util.SignatureUtil;
@@ -258,16 +258,16 @@ public class SignatureGeneratorTest {
     	
     	assertTrue(outputFile.exists());
     	
-    	List<VCFRecord> recs = new ArrayList<>();
+    	List<VcfRecord> recs = new ArrayList<>();
     	try (VCFFileReader reader = new VCFFileReader(outputFile);) {
-	    	for (VCFRecord rec : reader) {
+	    	for (VcfRecord rec : reader) {
 	    		recs.add(rec);
 	    	}
     	}
     	assertEquals(6, recs.size());
     	
     	// now check that any complementation has taken place
-    	for (VCFRecord rec : recs) {
+    	for (VcfRecord rec : recs) {
 //    		if (rec.getChromosome().equalsIgnoreCase("chr12") && rec.getPosition() == 126890980) {
     			
     			String info = rec.getInfo();

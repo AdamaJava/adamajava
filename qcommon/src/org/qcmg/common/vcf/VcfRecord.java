@@ -18,9 +18,9 @@ import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
 
-public class VCFRecord {
+public class VcfRecord {
 	
-	private static final QLogger logger = QLoggerFactory.getLogger(VCFRecord.class);
+	private static final QLogger logger = QLoggerFactory.getLogger(VcfRecord.class);
 	
 	private final ChrPosition chrPos;
 	private final String ref;
@@ -32,7 +32,7 @@ public class VCFRecord {
 //	private String format;
 	private List<String> format = new ArrayList<>(4);
 	
-	public VCFRecord(ChrPosition cp, String id, String ref, String alt) {
+	public VcfRecord(ChrPosition cp, String id, String ref, String alt) {
 		this.chrPos = cp;
 		this.id = id;
 		this.ref = ref;
@@ -47,18 +47,18 @@ public class VCFRecord {
 		}
 	}
 	
-	public VCFRecord(String chr, int position) {
+	public VcfRecord(String chr, int position) {
 		this(new ChrPosition(chr, position), null, null, null);
 	}
-	public VCFRecord(String chr, int position, String id, String ref, String alt) {
+	public VcfRecord(String chr, int position, String id, String ref, String alt) {
 		this(new ChrPosition(chr, position), id, ref, alt);
 	}
 	
-	public VCFRecord(String chr, int position, int end, String id, String ref, String alt) {
+	public VcfRecord(String chr, int position, int end, String id, String ref, String alt) {
 		this(new ChrPosition(chr, position, end), id, ref, alt);
 	}
 	
-	public VCFRecord(String [] params) {
+	public VcfRecord(String [] params) {
 //		this(params[0], Integer.parseInt(params[1]), params[2], params[3], params[4]);				
 		this(params[0], Integer.parseInt(params[1]), Integer.parseInt(params[1]) + params[3].length() - 1, params[2], params[3], params[4]);			
 		

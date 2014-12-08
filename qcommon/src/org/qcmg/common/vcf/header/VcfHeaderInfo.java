@@ -18,7 +18,7 @@ public final class VcfHeaderInfo extends VcfHeaderRecord{
   * it create an INFO vcf header record, eg. ##INFO=<ID=id,NUMBER=number/infoNumber,Type=infoType,Description=description,Source=source,Version=version>
   * @param id 
   * @param infoNumbe
-  * @param number: this number will show on vcf header record if infoNumber is MetaType.NUMBER
+  * @param number: this number (>=0) will show on vcf header record if infoNumber is MetaType.NUMBER
   * @param infoType
   * @param description
   * @param source: it will show on vcf header if source != null

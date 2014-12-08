@@ -25,7 +25,7 @@ import org.qcmg.common.model.QSnpGATKRecord;
 import org.qcmg.common.util.BaseUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.FileUtils;
-import org.qcmg.common.vcf.VCFRecord;
+import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.germlinedb.GermlineDBFileReader;
@@ -411,7 +411,7 @@ public class GatkUniqueSnps {
 			
 			VCFFileReader reader  = new VCFFileReader(new File(pileupFile));
 			try {
-				for (VCFRecord qpr : reader) {
+				for (VcfRecord qpr : reader) {
 					map.put(new ChrPosition(qpr.getChromosome(), qpr.getPosition()), new QSnpGATKRecord(qpr));
 				}
 			} finally {
