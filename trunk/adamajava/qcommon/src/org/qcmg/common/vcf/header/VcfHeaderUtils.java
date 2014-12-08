@@ -9,10 +9,12 @@ import org.qcmg.common.util.SnpUtils;
 
 public class VcfHeaderUtils {
 	
-	public static final String DESCRITPION_FILTER_GERMLINE="Mutation is a germline variant in another patient";
-	public static final String DESCRITPION_INFO_CONFIDENCE="set to HIGH if more than 5 novel starts, 5 allels and passed all filter;"
+	public static final String DESCRITPION_FILTER_GERMLINE = "Mutation is a germline variant in another patient";
+	public static final String DESCRITPION_INFO_CONFIDENCE = "set to HIGH if more than 5 novel starts, 5 allels and passed all filter;"
 			+ "otherwise set to LOW if 4 novel starts, 4 allels and passed one of filter of \"MIUN\" \"MIN\" or \"GERM\";" 			
 			+ "set to ZERO for remaining mutations";
+	
+	public static final String DESCRITPION_FORMAT_COMPOUND_SNP_ALLELE_COUNT = "Allele Count Compound Snp: lists read sequence and count (forward strand, reverse strand) ";
 	
 	//FILTER FIELDS
 	public static final String FILTER_PASS = "PASS";
@@ -27,6 +29,7 @@ public class VcfHeaderUtils {
 	public static final String FILTER_NOVEL_STARTS = SnpUtils.NOVEL_STARTS;
 	public static final String FILTER_MUTANT_READS = SnpUtils.MUTANT_READS;
 	public static final String FILTER_MUTATION_EQUALS_REF = SnpUtils.MUTATION_EQUALS_REF;
+	public static final String FILTER_LOW_QUAL = "LowQual";
 
 	
 	//INFO FIELDS
@@ -41,11 +44,13 @@ public class VcfHeaderUtils {
 	public static final String INFO_SOMATIC = "SOMATIC";
 	public static final String INFO_CONFIDENT = "CONF";
 	public static final String INFO_GMAF = "GMAF";
+	public static final String INFO_FILLCOV =  "FULLCOV";
 	
 	//FORMAT FIELDS
 	public static final String FORMAT_GENOTYPE = "GT";
 	public static final String FORMAT_GENOTYPE_DETAILS = "GD";
 	public static final String FORMAT_ALLELE_COUNT = "AC";
+	public static final String FORMAT_ALLELE_COUNT_COMPOUND_SNP = "ACCS";	
 	
 	//Header lines
 	public static final String CURRENT_FILE_VERSION = "##fileformat=VCFv4.2";

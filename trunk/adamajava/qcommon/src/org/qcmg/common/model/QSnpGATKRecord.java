@@ -5,12 +5,12 @@ package org.qcmg.common.model;
 
 import java.util.List;
 
-import org.qcmg.common.vcf.VCFRecord;
+import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 
 public class QSnpGATKRecord {
 
-	private final VCFRecord gatkVcfRecord;
+	private final VcfRecord gatkVcfRecord;
 	private String genotype;
 	private GenotypeEnum genotypeEnum;
 	private String annotation;
@@ -18,7 +18,7 @@ public class QSnpGATKRecord {
 //	private List<PileupElement> novelStartPileup;
 //	private int novelStartCount;
 	
-	public QSnpGATKRecord(VCFRecord vcf) {
+	public QSnpGATKRecord(VcfRecord vcf) {
 		this.gatkVcfRecord = vcf;
 		
 		if (null != gatkVcfRecord.getFormatFields() && ! gatkVcfRecord.getFormatFields().isEmpty()) {
@@ -28,7 +28,7 @@ public class QSnpGATKRecord {
 		}
 	}
 	
-	public VCFRecord getVCFRecord() {
+	public VcfRecord getVCFRecord() {
 		return gatkVcfRecord;
 	}
 	

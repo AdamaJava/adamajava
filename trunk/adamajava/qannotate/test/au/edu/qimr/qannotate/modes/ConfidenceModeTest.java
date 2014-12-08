@@ -12,7 +12,7 @@ import java.util.List;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.qcmg.common.vcf.VCFRecord;
+import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfInfoFieldRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
@@ -54,7 +54,7 @@ public class ConfidenceModeTest {
 		 try(VCFFileReader reader = new VCFFileReader(DbsnpModeTest.outputName)){
 			 
 			 
-			for (final VCFRecord re : reader) {		
+			for (final VcfRecord re : reader) {		
 				final VcfInfoFieldRecord infoRecord = new VcfInfoFieldRecord(re.getInfo()); 				
 				if(re.getPosition() == 2675825) 
 					assertTrue(infoRecord.getfield(VcfHeaderUtils.INFO_CONFIDENT).equals(Confidence.ZERO.toString())); 

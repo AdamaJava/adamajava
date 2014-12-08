@@ -15,7 +15,7 @@ import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.commandline.Executor;
 import org.qcmg.common.model.PileupElement;
 import org.qcmg.common.model.Rule;
-import org.qcmg.common.vcf.VCFRecord;
+import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.tab.TabbedFileReader;
 import org.qcmg.tab.TabbedRecord;
 import org.qcmg.vcf.VCFFileReader;
@@ -144,7 +144,7 @@ public class PileupPipelineTest {
 	private int noOfLinesInVCFOutputFile(File vcfOutput) throws Exception {
 		int noOfLines = 0;
 		try (VCFFileReader reader = new VCFFileReader(vcfOutput);) {
-			for (VCFRecord vcf : reader) noOfLines++;
+			for (VcfRecord vcf : reader) noOfLines++;
 		}
 		return noOfLines;
 	}

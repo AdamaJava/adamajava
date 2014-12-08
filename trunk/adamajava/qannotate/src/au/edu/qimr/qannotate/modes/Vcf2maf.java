@@ -1,6 +1,6 @@
 package au.edu.qimr.qannotate.modes;
 
-import org.qcmg.common.vcf.VCFRecord;
+import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfInfoFieldRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
@@ -43,7 +43,7 @@ public class Vcf2maf {
 
 	//EFF= Effect ( Effect_Impact | Functional_Class | Codon_Change | Amino_Acid_Change| Amino_Acid_Length | Gene_Name | Transcript_BioType | Gene_Coding | Transcript_ID | Exon_Rank  | Genotype_Number [ | ERRORS | WARNINGS ] )
 	
-	public SnpEffMafRecord toMafRecord(VCFRecord vcf ){
+	public SnpEffMafRecord toMafRecord(VcfRecord vcf ){
 		final SnpEffMafRecord maf = new SnpEffMafRecord();
 
 		final VcfInfoFieldRecord info =  new VcfInfoFieldRecord(vcf.getInfo());

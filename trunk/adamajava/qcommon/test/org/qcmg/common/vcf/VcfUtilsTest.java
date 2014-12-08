@@ -138,7 +138,7 @@ public class VcfUtilsTest {
 	@Test
 	public void isRecordAMnp() {
 		
-		VCFRecord rec = VcfUtils.createVcfRecord("1", 1, "A");
+		VcfRecord rec = VcfUtils.createVcfRecord("1", 1, "A");
 		assertEquals(false, VcfUtils.isRecordAMnp(rec));
 		
 		rec.setAlt("A");
@@ -164,7 +164,7 @@ public class VcfUtilsTest {
 	@Test
 	public void isRecordAMnpCheckIndels() {
 		
-		VCFRecord rec = VcfUtils.createVcfRecord("1", 1, "ACCACCACC");
+		VcfRecord rec = VcfUtils.createVcfRecord("1", 1, "ACCACCACC");
 		assertEquals(false, VcfUtils.isRecordAMnp(rec));
 		
 		rec.setAlt("A,AACCACC");
@@ -174,7 +174,7 @@ public class VcfUtilsTest {
 	
 	@Test
 	public void addFormatFields() {
-		VCFRecord rec = VcfUtils.createVcfRecord("1", 1, "ACCACCACC");
+		VcfRecord rec = VcfUtils.createVcfRecord("1", 1, "ACCACCACC");
 		VcfUtils.addFormatFieldsToVcf(rec, Arrays.asList("GT:AD:DP:GQ:PL", "0/1:6,3:9:62:62,0,150"));
 		
 		List<String> newStuff = new ArrayList<>();

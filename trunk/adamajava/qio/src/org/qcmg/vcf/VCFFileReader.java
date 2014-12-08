@@ -14,11 +14,11 @@ import java.util.Iterator;
 import java.util.zip.GZIPInputStream;
 
 import org.qcmg.common.util.FileUtils;
-import org.qcmg.common.vcf.VCFRecord;
+import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
 
 
-public final class VCFFileReader implements Closeable, Iterable<VCFRecord> {
+public final class VCFFileReader implements Closeable, Iterable<VcfRecord> {
     private final File file;
     private final InputStream inputStream;
     private VcfHeader header;
@@ -62,7 +62,7 @@ public final class VCFFileReader implements Closeable, Iterable<VCFRecord> {
     }
     
     @Override
-	public Iterator<VCFRecord> iterator() {
+	public Iterator<VcfRecord> iterator() {
         return getRecordIterator();
     }
 

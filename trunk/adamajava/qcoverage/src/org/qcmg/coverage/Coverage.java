@@ -9,7 +9,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.math.BigInteger;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
 
@@ -18,12 +21,20 @@ import javax.xml.bind.Marshaller;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.meta.QExec;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.LoadReferencedClasses;
 import org.qcmg.common.util.TabTokenizer;
-import org.qcmg.common.vcf.VCFRecord;
 import org.qcmg.common.vcf.VcfPositionComparator;
+import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
+import org.qcmg.common.vcf.header.VcfHeader;
+import org.qcmg.common.vcf.header.VcfHeaderFilter;
+import org.qcmg.common.vcf.header.VcfHeaderInfo;
+import org.qcmg.common.vcf.header.VcfHeaderRecord;
+import org.qcmg.common.vcf.header.VcfHeaderRecord.VcfInfoNumber;
+import org.qcmg.common.vcf.header.VcfHeaderRecord.VcfInfoType;
+import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileWriter;
 
 public final class Coverage {
@@ -41,19 +52,19 @@ public final class Coverage {
 
 	private void writePerFeatureTabDelimitedCoverageReport(
 			final QCoverageStats stats) throws IOException {
-		File file = new File(options.getOutputFileNames()[0]);
-		BufferedWriter out = new BufferedWriter(new FileWriter(file));
+		final File file = new File(options.getOutputFileNames()[0]);
+		final BufferedWriter out = new BufferedWriter(new FileWriter(file));
 		out.write("#coveragetype\tnumberofbases\tcoverage\n");
-		CoverageComparator comparator = new CoverageComparator();
+		final CoverageComparator comparator = new CoverageComparator();
 		for (final CoverageReport report : stats.getCoverageReport()) {
-			String type = report.getType().toString().toLowerCase();
-			String feature = report.getFeature();
+			final String type = report.getType().toString().toLowerCase();
+			final String feature = report.getFeature();
 			out.write("#" + feature + StringUtils.RETURN);
-			List<CoverageModel> coverages = report.getCoverage();
+			final List<CoverageModel> coverages = report.getCoverage();
 			Collections.sort(coverages, comparator);
 			for (final CoverageModel coverage : coverages) {
-				BigInteger bases = coverage.getBases();
-				String atCoverage = coverage.getAt() + "x";
+				final BigInteger bases = coverage.getBases();
+				final String atCoverage = coverage.getAt() + "x";
 				out.write(type + StringUtils.TAB + bases + StringUtils.TAB
 						+ atCoverage + StringUtils.RETURN);
 			}
@@ -63,18 +74,18 @@ public final class Coverage {
 
 	private void writePerTypeTabDelimitedCoverageReport(
 			final QCoverageStats stats) throws IOException {
-		File file = new File(options.getOutputFileNames()[0]);
-		BufferedWriter out = new BufferedWriter(new FileWriter(file));
+		final File file = new File(options.getOutputFileNames()[0]);
+		final BufferedWriter out = new BufferedWriter(new FileWriter(file));
 		out.write("#coveragetype\tfeaturetype\tnumberofbases\tcoverage\n");
-		CoverageComparator comparator = new CoverageComparator();
+		final CoverageComparator comparator = new CoverageComparator();
 		for (final CoverageReport report : stats.getCoverageReport()) {
-			String type = report.getType().toString().toLowerCase();
-			String feature = report.getFeature();
-			List<CoverageModel> coverages = report.getCoverage();
+			final String type = report.getType().toString().toLowerCase();
+			final String feature = report.getFeature();
+			final List<CoverageModel> coverages = report.getCoverage();
 			Collections.sort(coverages, comparator);
 			for (final CoverageModel coverage : coverages) {
-				BigInteger bases = coverage.getBases();
-				String atCoverage = coverage.getAt() + "x";
+				final BigInteger bases = coverage.getBases();
+				final String atCoverage = coverage.getAt() + "x";
 				out.write(type + StringUtils.TAB + feature + StringUtils.TAB
 						+ bases + StringUtils.TAB + atCoverage
 						+ StringUtils.RETURN);
@@ -85,64 +96,88 @@ public final class Coverage {
 
 	private void writeXMLCoverageReport(final QCoverageStats report)
 			throws Exception {
-		JAXBContext context = JAXBContext.newInstance(QCoverageStats.class);
-		Marshaller m = context.createMarshaller();
-		StringWriter sw = new StringWriter();
+		final JAXBContext context = JAXBContext.newInstance(QCoverageStats.class);
+		final Marshaller m = context.createMarshaller();
+		final StringWriter sw = new StringWriter();
 		m.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
 		m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
 		m.marshal(report, sw);
-		File file = new File(options.getOutputFileNames()[0]);
-		FileWriter fileWriter = new FileWriter(file);
+		final File file = new File(options.getOutputFileNames()[0]);
+		final FileWriter fileWriter = new FileWriter(file);
 		fileWriter.write(sw.toString());
 		fileWriter.close();
 	}
 	
-	private void writeVCFReport(final QCoverageStats report) throws IOException {
-		File file = new File(options.getOutputFileNames()[0] + ".vcf");
-		List<VCFRecord> vcfs = new ArrayList<VCFRecord>();
+	private void writeVCFReport(final QCoverageStats report) throws Exception {
+		final File file = new File(options.getOutputFileNames()[0] + ".vcf");
+		final List<VcfRecord> vcfs = new ArrayList<VcfRecord>();
 		
-		for (CoverageReport cr : report.getCoverageReport()) {
+		for (final CoverageReport cr : report.getCoverageReport()) {
 			if (cr.getFeature().contains("\t")) {
-				VCFRecord vcf = convertCoverageToVCFRecord(cr);
+				final VcfRecord vcf = convertCoverageToVCFRecord(cr);
 				vcfs.add(vcf);
 			}
 		}
 		
 		if ( ! vcfs.isEmpty()) {
 			Collections.sort(vcfs, new VcfPositionComparator());
-				
-			VCFFileWriter writer = new VCFFileWriter(file);
-			try {
-				writer.addHeader(VcfUtils.getHeaderForQCoverage(options.getBAMFileNames()[0], options.getInputGFF3FileNames()[0]));
-				for (VCFRecord vcf : vcfs)
-					writer.add(vcf);
-				
-			} finally {
-				writer.close();
-			}
+			try(final VCFFileWriter writer = new VCFFileWriter(file)) {
+				final VcfHeader header = getHeaderForQCoverage(options.getBAMFileNames()[0], options.getInputGFF3FileNames()[0]);
+				for(final VcfHeaderRecord record: header)  writer.addHeader(record.toString()+"\n");
+				for (final VcfRecord vcf : vcfs)
+					writer.add(vcf);				
+			}  
 		}
 		
 	}
 	
-	private static VCFRecord convertCoverageToVCFRecord(org.qcmg.coverage.CoverageReport covReport) {
+	//create vcf output header
+	private  VcfHeader getHeaderForQCoverage(final String bamFileName, final String gffFile) throws Exception {
+		final VcfHeader header = new VcfHeader();
+		final DateFormat df = new SimpleDateFormat("yyyyMMdd");
+		final String version = Main.class.getPackage().getImplementationVersion();
+		final String pg = Messages.getProgramName();
+		final String fileDate = df.format(Calendar.getInstance().getTime());
+		final String uuid = QExec.createUUid();
+
+		//move input uuid into preuuid
+		header.add(new VcfHeaderRecord(VcfHeaderUtils.CURRENT_FILE_VERSION));		
+		header.add(new VcfHeaderRecord(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + fileDate ));
+		header.add(new VcfHeaderRecord(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + uuid ));
+		header.add(new VcfHeaderRecord(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=" + pg+"-"+version));
+		header.add(new VcfHeaderRecord( "##bam_file=" + bamFileName ) );
+		header.add( new VcfHeaderRecord("##gff_file=" + gffFile  ));
+		header.add( new VcfHeaderFilter("LowQual","REQUIRED: QUAL < 50.0") );
+		header.add( new VcfHeaderInfo("B", VcfInfoNumber.UNKNOWN, -1, VcfInfoType.String, "Bait end position", null, null) );
+		header.add( new VcfHeaderInfo("BE", VcfInfoNumber.UNKNOWN, -1, VcfInfoType.String, "Bait end position", null, null)  );
+		header.add( new VcfHeaderInfo("ZC", VcfInfoNumber.UNKNOWN, -1, VcfInfoType.String, "bases with Zero Coverage", null, null)  );
+		header.add( new VcfHeaderInfo("NZC", VcfInfoNumber.UNKNOWN, -1, VcfInfoType.String, "bases with Non Zero Coverage", null, null)  );
+		header.add( new VcfHeaderInfo("TOT", VcfInfoNumber.UNKNOWN, -1, VcfInfoType.String, "Total number of sequenced bases", null, null)  );
+		header.add(new VcfHeaderRecord(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE));		
+ 		
+		return  header;
+	}
+	
+	
+	private static VcfRecord convertCoverageToVCFRecord(org.qcmg.coverage.CoverageReport covReport) {
 		
 		// tab delimited string containing loads of useful stuff 
-		String feature = covReport.getFeature();
+		final String feature = covReport.getFeature();
 		// if there are no tabs in the string, the per-feature flag was not set
-		String[] params = TabTokenizer.tokenize(feature);
+		final String[] params = TabTokenizer.tokenize(feature);
 		
-		VCFRecord vcf = VcfUtils.createVcfRecord(params[0], Integer.parseInt(params[3]), null);
+		final VcfRecord vcf = VcfUtils.createVcfRecord(params[0], Integer.parseInt(params[3]), null);
 		
 		// info field will contain coverage details
 		int zeroCov = 0, nonZeroCov = 0, totalCov = 0;
-		for (CoverageModel c : covReport.getCoverage()) {
-			int coverage = Integer.parseInt(c.getAt());
+		for (final CoverageModel c : covReport.getCoverage()) {
+			final int coverage = Integer.parseInt(c.getAt());
 			
-			int countAtCoverage = c.getBases().intValue();
+			final int countAtCoverage = c.getBases().intValue();
 			if (coverage == 0) zeroCov += countAtCoverage;
 			else {
 				nonZeroCov += countAtCoverage;
-				int cov = Integer.parseInt(c.getAt());
+				final int cov = Integer.parseInt(c.getAt());
 				totalCov += (cov * countAtCoverage);
 			}
 		}
@@ -152,8 +187,8 @@ public final class Coverage {
 	}
 
 	private void saveCoverageReport() throws Exception {
-		QCoverageStats stats = new QCoverageStats();
-		for (CoverageReport report : jobQueue.getCoverageReport()) {
+		final QCoverageStats stats = new QCoverageStats();
+		for (final CoverageReport report : jobQueue.getCoverageReport()) {
 			stats.getCoverageReport().add(report);
 		}
 		if (options.hasVcfFlag() && options.hasPerFeatureOption()) {
@@ -190,11 +225,11 @@ public final class Coverage {
 						.getLog(), moptions.getLogLevel());
 				mlogger.logInitialExecutionStats(getProgramName(),
 						getProgramVersion(), args);
-				Coverage operation = new Coverage(moptions);
+				final Coverage operation = new Coverage(moptions);
 				exitStatus = 0; // SUCCESS
 			}
-		} catch (Throwable e) {
-			String errorMessage = chooseErrorMessage(e);
+		} catch (final Throwable e) {
+			final String errorMessage = chooseErrorMessage(e);
 			logErrorMessage(errorMessage, e);
 		}
 		if (performLogging && null != mlogger) {
@@ -220,7 +255,7 @@ public final class Coverage {
 		throwable.printStackTrace();
 		if (performLogging && null != mlogger) {
 			mlogger.error(errorMessage, throwable);
-			for (StackTraceElement elem : throwable.getStackTrace()) {
+			for (final StackTraceElement elem : throwable.getStackTrace()) {
 				mlogger.error(elem.toString());
 			}
 		}

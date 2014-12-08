@@ -12,10 +12,10 @@ public class VcfPositionComparatorTest {
 	
 	@Test
 	public void testComparator() {
-		VCFRecord vcf1 = VcfUtils.createVcfRecord("chr1", 12346);
-		VCFRecord vcf2 = VcfUtils.createVcfRecord("chr1", 12345);
+		VcfRecord vcf1 = VcfUtils.createVcfRecord("chr1", 12346);
+		VcfRecord vcf2 = VcfUtils.createVcfRecord("chr1", 12345);
 		
-		List<VCFRecord> array = new ArrayList<VCFRecord>();
+		List<VcfRecord> array = new ArrayList<VcfRecord>();
 		array.add(vcf1);
 		array.add(vcf2);
 		

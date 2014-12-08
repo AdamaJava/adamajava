@@ -35,7 +35,7 @@ import org.qcmg.common.model.ReferenceNameComparator;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.FileUtils;
-import org.qcmg.common.vcf.VCFRecord;
+import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
@@ -285,7 +285,7 @@ public final class VcfPipeline extends Pipeline {
 				} else {
 					testVcfHeader = reader.getHeader();
 				}
-				for (VCFRecord qpr : reader) {
+				for (VcfRecord qpr : reader) {
 					
 					// if the length of the reference bases != length of the alt bases, its not a snp (or compound snp)
 					if (VcfUtils.isRecordAMnp(qpr)) {

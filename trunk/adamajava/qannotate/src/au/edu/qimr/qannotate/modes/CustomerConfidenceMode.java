@@ -1,15 +1,12 @@
 package au.edu.qimr.qannotate.modes;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
-import java.util.regex.Matcher;
 
 import org.qcmg.common.log.QLogger;
-import org.qcmg.common.model.PileupElement;
-import org.qcmg.common.vcf.VCFRecord;
 import org.qcmg.common.vcf.VcfInfoFieldRecord;
+import org.qcmg.common.vcf.VcfRecord;
+import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeaderInfo;
 import org.qcmg.common.vcf.header.VcfHeaderRecord.VcfInfoNumber;
 import org.qcmg.common.vcf.header.VcfHeaderRecord.VcfInfoType;
@@ -65,9 +62,9 @@ public class CustomerConfidenceMode extends AbstractMode{
 		header.add(new VcfHeaderInfo(VcfHeaderUtils.INFO_CONFIDENT, 
 				VcfInfoNumber.NUMBER,0, VcfInfoType.Flag, description, null,null) );
 	      
-		final Iterator<VCFRecord>  it =  positionRecordMap.values().iterator();
+		final Iterator<VcfRecord>  it =  positionRecordMap.values().iterator();
 		while( it.hasNext() ){
-			final VCFRecord re = it.next();
+			final VcfRecord re = it.next();
 			
 			//remove previous annotaion about CONF
 			final VcfInfoFieldRecord infoRecord = new VcfInfoFieldRecord(re.getInfo());
@@ -77,7 +74,7 @@ public class CustomerConfidenceMode extends AbstractMode{
 			if(passOnly && !re.getFilter().toUpperCase().contains(VcfHeaderUtils.FILTER_PASS))
 				continue;
  			
-			final int total = getReadCount(re);				
+			final int total = VcfUtils.getAltFrequency(re);				
 			if( total <  min_read_counts) continue;
 			
 			final int mutants = Integer.parseInt( infoRecord.getfield(VcfHeaderUtils.INFO_MUTANT_READS));			  
@@ -89,26 +86,7 @@ public class CustomerConfidenceMode extends AbstractMode{
 	}				
 	
 	
-	private int getReadCount(VCFRecord vcf){
-		
-		 final String info =  vcf.getInfo();
-		 
-		 //set to TD if somatic, otherwise set to normal
-		 String allel = (info.contains(VcfHeaderUtils.INFO_SOMATIC)) ? vcf.getFormatFields().get(0) :  vcf.getFormatFields().get(1);
-		 allel = allel.substring(allel.lastIndexOf(":") + 1, allel.length());
-		 
-		final List<PileupElement> result = new ArrayList<PileupElement>();
-		final Matcher m = ConfidenceMode.pattern.matcher(allel);
-		int count = 0;
-		while (m.find()) {
-			final String pileup = m.group(); 
-			count += Integer.parseInt(pileup.substring(1, pileup.indexOf('['))) +
-					Integer.parseInt(pileup.substring(pileup.indexOf(',')+1, pileup.indexOf('[', pileup.indexOf(','))));
-		 }
-	
-			 	
-		return count;
-	}
+	 
 	
 	 
 }	

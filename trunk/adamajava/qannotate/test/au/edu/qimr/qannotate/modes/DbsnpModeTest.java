@@ -13,7 +13,7 @@ import java.util.List;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.qcmg.common.vcf.VCFRecord;
+import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderRecord.MetaType;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
@@ -64,7 +64,7 @@ public class DbsnpModeTest {
 				i ++;
 			} 
 			 
-			for (final VCFRecord re : reader) {					
+			for (final VcfRecord re : reader) {					
 				if(re.getPosition() == 2675825){
 					assertTrue(re.getId().equals("rs71432129"));
 					assertFalse(re.getInfo().contains(VcfHeaderUtils.INFO_GMAF));
@@ -89,7 +89,6 @@ public class DbsnpModeTest {
         data.add("chrY\t14923588\t.\tG\tA\t.\tSBIAS\tMR=15;NNS=13;FS=GTGATATTCCC\tGT:GD:AC\t0/1:G/A:A0[0],15[36.2],G11[36.82],9[33]\t0/1:G/A:A0[0],33[35.73],G6[30.5],2[34]"); 
         data.add("chrY\t2675825\t.\tTTG\tTCA\t.\tMIN;MIUN\tSOMATIC;END=2675826\tACCS\tTTG,5,37,TCA,0,2\tTAA,1,1,TCA,4,1,TCT,3,1,TTA,11,76,TTG,2,2,_CA,0,3,TTG,0,1");
         data.add("chrY\t22012840\t.\tC\tA\t.\tSBIAS\tMR=15;NNS=13;FS=GTGATATTCCC\tGT:GD:AC\t0/1:C/A:A0[0],15[36.2],C11[36.82],9[33]\t0/1:C/A:A0[0],33[35.73],C6[30.5],2[34]"); 
-        
         
         try(BufferedWriter out = new BufferedWriter(new FileWriter(inputName));) {          
             for (final String line : data)   out.write(line + "\n");                  

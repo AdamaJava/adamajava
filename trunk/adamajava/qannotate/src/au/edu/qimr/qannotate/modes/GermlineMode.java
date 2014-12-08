@@ -6,7 +6,7 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.TabTokenizer;
-import org.qcmg.common.vcf.VCFRecord;
+import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 
@@ -43,8 +43,8 @@ public class GermlineMode extends AbstractMode{
  		try(VCFFileReader reader = new VCFFileReader(new File(dbGermlineFile))){
 	 
 		 String filter = null;
-		 for (final VCFRecord dbGermlineVcf : reader) {
-			final VCFRecord inputVcf = positionRecordMap.get(new ChrPosition("chr"+ dbGermlineVcf.getChromosome(), dbGermlineVcf.getPosition()));
+		 for (final VcfRecord dbGermlineVcf : reader) {
+			final VcfRecord inputVcf = positionRecordMap.get(new ChrPosition("chr"+ dbGermlineVcf.getChromosome(), dbGermlineVcf.getPosition()));
 			if (null == inputVcf) continue;
 					 	
 			// only proceed if we have a SOMATIC variant record

@@ -19,7 +19,7 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.GenotypeEnum;
 import org.qcmg.common.util.FileUtils;
-import org.qcmg.common.vcf.VCFRecord;
+import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.picard.QJumper;
 import org.qcmg.picard.util.SAMUtils;
@@ -37,9 +37,9 @@ public class CompareVCFs {
 	
 	private static QLogger logger;
 	
-	private final ConcurrentMap<ChrPosition, VCFRecord> normalVCFMap = new ConcurrentHashMap<ChrPosition, VCFRecord>(12500); //not expecting more than 100000
-	private final ConcurrentMap<ChrPosition, VCFRecord> tumourVCFMap = new ConcurrentHashMap<ChrPosition, VCFRecord>(12500);
-	private final ConcurrentMap<ChrPosition, VCFRecord> uniqueTumourVCFMap = new ConcurrentHashMap<ChrPosition, VCFRecord>(40000);
+	private final ConcurrentMap<ChrPosition, VcfRecord> normalVCFMap = new ConcurrentHashMap<ChrPosition, VcfRecord>(12500); //not expecting more than 100000
+	private final ConcurrentMap<ChrPosition, VcfRecord> tumourVCFMap = new ConcurrentHashMap<ChrPosition, VcfRecord>(12500);
+	private final ConcurrentMap<ChrPosition, VcfRecord> uniqueTumourVCFMap = new ConcurrentHashMap<ChrPosition, VcfRecord>(40000);
 	
 	public int engage() throws Exception {
 		
@@ -65,7 +65,7 @@ public class CompareVCFs {
 		QJumper qj = new QJumper();
 		qj.setupReader(cmdLineInputFiles[2]);
 		
-		for (Entry<ChrPosition, VCFRecord> entry : uniqueTumourVCFMap.entrySet()) {
+		for (Entry<ChrPosition, VcfRecord> entry : uniqueTumourVCFMap.entrySet()) {
 			int position = entry.getKey().getPosition();
 			boolean foundInNormal = false;
 			List<SAMRecord> sams = qj.getOverlappingRecordsAtPosition(entry.getKey().getChromosome(), position, position);
@@ -148,10 +148,10 @@ public class CompareVCFs {
 		
 		// here we go
 		
-		for (Entry <ChrPosition, VCFRecord> entry : normalVCFMap.entrySet()) {
+		for (Entry <ChrPosition, VcfRecord> entry : normalVCFMap.entrySet()) {
 			
-			VCFRecord normalVCF = entry.getValue();
-			VCFRecord tumourVCF = tumourVCFMap.get(entry.getKey());
+			VcfRecord normalVCF = entry.getValue();
+			VcfRecord tumourVCF = tumourVCFMap.get(entry.getKey());
 			
 			if (null == tumourVCF) {
 				normalUnique++;
@@ -227,12 +227,12 @@ public class CompareVCFs {
 		
 	}
 	
-	private void loadVCFData(String vcfFile, Map<ChrPosition,VCFRecord> map) throws Exception {
+	private void loadVCFData(String vcfFile, Map<ChrPosition,VcfRecord> map) throws Exception {
 		if (FileUtils.canFileBeRead(vcfFile)) {
 			
 			VCFFileReader reader  = new VCFFileReader(new File(vcfFile));
 			try {
-				for (VCFRecord qpr : reader) {
+				for (VcfRecord qpr : reader) {
 					map.put(new ChrPosition(qpr.getChromosome(), qpr.getPosition()),qpr);
 				}
 			} finally {

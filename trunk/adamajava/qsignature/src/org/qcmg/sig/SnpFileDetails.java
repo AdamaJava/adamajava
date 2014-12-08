@@ -12,7 +12,7 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.TabTokenizer;
-import org.qcmg.common.vcf.VCFRecord;
+import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.tab.TabbedFileReader;
 import org.qcmg.tab.TabbedRecord;
@@ -23,7 +23,7 @@ public class SnpFileDetails {
 	private String logFile;
 	private String[] cmdLineInputFiles;
 	private int exitStatus;
-	private final List<VCFRecord> snps = new ArrayList<VCFRecord>();
+	private final List<VcfRecord> snps = new ArrayList<VcfRecord>();
 	
 	private int engage() throws Exception {
 		
@@ -54,7 +54,7 @@ public class SnpFileDetails {
 				
 				String chr = params[0];
 				int position = Integer.parseInt(params[1]);
-				VCFRecord vcf =VcfUtils.createVcfRecord(chr, position, ref);
+				VcfRecord vcf =VcfUtils.createVcfRecord(chr, position, ref);
 				vcf.setId(params[2]);
 				if (params.length > 5) {
 					vcf.setAlt(params[5].replaceAll("/", ","));

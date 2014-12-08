@@ -7,21 +7,18 @@ import static org.qcmg.common.util.Constants.COLON;
 import static org.qcmg.common.util.Constants.COLON_STRING;
 import static org.qcmg.common.util.Constants.MISSING_DATA_STRING;
 
-import java.io.File;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
-import org.qcmg.common.meta.QBamId;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.GenotypeEnum;
 import org.qcmg.common.model.PileupElement;
@@ -35,191 +32,54 @@ public class VcfUtils {
 	private static final QLogger logger = QLoggerFactory.getLogger(VcfUtils.class);
 	
 	private final static DateFormat df = new SimpleDateFormat("yyyyMMdd");
-
-	public static final String FORMAT_ALLELE_COUNT_COMPOUND_SNP = "ACCS";
 	
-	// standard final header line
-//	public static final String STANDARD_FINAL_HEADER_LINE = "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n";
+	public static final Pattern pattern_AC = Pattern.compile("[ACGT][0-9]+\\[[0-9]+.?[0-9]*\\],[0-9]+\\[[0-9]+.?[0-9]*\\]");
+	public static final Pattern pattern_ACCS = Pattern.compile("[ACGT]+,[0-9]+,[0-9]+");
 
-	public static final String getHeaderForQSig(final String patientId,  final String slide, final String library,
-			final String inputType, final String barcode, final String physicalDivision, 
-			final String bamName, final String snpFile) {
+
+	public static int getAltFrequency( VcfRecord vcf){
+		 
+		 final String info =  vcf.getInfo();
+		 //set to TD if somatic, otherwise set to normal
+		 String allel = (info.contains(VcfHeaderUtils.INFO_SOMATIC)) ? vcf.getFormatFields().get(0) :  vcf.getFormatFields().get(1); 
+		 allel = allel.substring(allel.lastIndexOf(":") + 1, allel.length());
+		 
+		final List<PileupElement> result = new ArrayList<PileupElement>();
 		
-		return "##fileformat=VCFv4.0\n" +
-		"##patient_id=" + patientId + "\n" + 
-		"##input_type=" + inputType  + "\n" +
-		"##library=" + library  + "\n" +
-		"##slide=" + slide + "\n" +
-		"##barcode=" + barcode + "\n" + 
-		"##physical_division=" + physicalDivision + "\n" + 
-		"##bam=" + bamName + "\n" +
-		"##snp_file=" + snpFile + "\n" + 
-		"##filter_q_score=10\n" + 
-		"##filter_match_qual=10\n" + 
-		"##genome=GRCh37_ICGC_standard_v2.fa\n" + 
-		"##FILTER=<ID=LowQual,Description=\"REQUIRED: QUAL < 50.0\">\n" + 
-		"##INFO=<ID=FULLCOV,Number=.,Type=String,Description=\"all bases at position\">\n" + 
-		"##INFO=<ID=NOVELCOV,Number=.,Type=String,Description=\"bases at position from reads with novel starts\">\n" + 
-		VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\n";
+		final Matcher m;
+		int count = 0;
+		if(vcf.getFormatFields().contains(VcfHeaderUtils.FORMAT_ALLELE_COUNT)){
+			// eg. 0/1:A/C:A2[17.5],34[25.79],C2[28.5],3[27.67]
+			m = pattern_AC.matcher(allel);			
+			while (m.find()) {
+				final String pileup = m.group();				
+				final char base = pileup.charAt(0);			
+				if(base == vcf.getAlt().charAt(0))
+					count = Integer.parseInt(pileup.substring(1, pileup.indexOf('['))) +
+							Integer.parseInt(pileup.substring(pileup.indexOf(',')+1, pileup.indexOf('[', pileup.indexOf(','))));		 
+			}					
+		}else if(vcf.getFormatFields().contains(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP)){
+			// eg. AA,1,1,CA,4,1,CT,3,1,TA,11,76,TT,2,2,_A,0,3,TG,0,1
+			m = pattern_ACCS.matcher(allel);
+			while (m.find()) {
+				final String[] pileup = m.group().split(Constants.COMMA_STRING);
+				final String base = pileup[0];
+				if(base.equals(vcf.getAlt()))
+				count = Integer.parseInt(pileup[1]) + Integer.parseInt(pileup[2]);
+			}	
+		} 
+		 
+		 return count;
+	 }   
  
-	}
-	public static final String getReducedHeaderForQSig(final String patientId, final String inputType,  final String library,
-			final String bamName, final String snpFile) {
-		
-		return "##fileformat=VCFv4.0\n" +
-		"##patient_id=" + patientId + "\n" +
-		(inputType != null ? ("##input_type=" + inputType  + "\n") : "") + 
-		"##library=" + library  + "\n" +
-		"##bam=" + bamName + "\n" +
-		"##snp_file=" + snpFile + "\n" + 
-		"##filter_q_score=10\n" + 
-		"##filter_match_qual=10\n" + 
-		"##genome=GRCh37_ICGC_standard_v2.fa\n" + 
-		"##FILTER=<ID=LowQual,Description=\"REQUIRED: QUAL < 50.0\">\n" + 
-		"##INFO=<ID=FULLCOV,Number=.,Type=String,Description=\"all bases at position\">\n" + 
-		"##INFO=<ID=NOVELCOV,Number=.,Type=String,Description=\"bases at position from reads with novel starts\">\n" + 
-		VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE+ "\n";
-	}
-	public static final String getReducedHeaderForQSig(final String patientId,  final String library,
-			final String bamName, final String snpFile) {
-		return getReducedHeaderForQSig(patientId, library, (String) null, bamName, snpFile);
-	}
-	
-	public static final String getBasicHeaderForQSig(final String bamName, final String snpFile, String ... bamHeaderInfo) {
-		
-		String patient = null;
-		String library = null;
-		if (null != bamHeaderInfo && bamHeaderInfo.length > 0) {
-			patient = bamHeaderInfo[0];
-			library = bamHeaderInfo.length > 1 ? bamHeaderInfo[1] : null; 
-		}
-		
-		return "##fileformat=VCFv4.0\n" +
-		(patient != null ? 	("##patient_id=" + patient + "\n")  : "") +
-		(library != null ? 	("##library=" + library  + "\n")  : "") +
-		"##bam=" + bamName + "\n" +
-		"##snp_file=" + snpFile + "\n" + 
-		"##filter_q_score=10\n" + 
-		"##filter_match_qual=10\n" + 
-		"##FILTER=<ID=LowQual,Description=\"REQUIRED: QUAL < 50.0\">\n" + 
-		"##INFO=<ID=FULLCOV,Number=.,Type=String,Description=\"all bases at position\">\n" + 
-		"##INFO=<ID=NOVELCOV,Number=.,Type=String,Description=\"bases at position from reads with novel starts\">\n" + 
-		VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE+ "\n";
-	}
-	
-	public static final String getHeaderForQSigIlluminaFile(final String patientId,  final String sample,
-			final String inputType, final String illuminaFileName, final String snpFile) {
-		
-		return "##fileformat=VCFv4.0\n" +
-		"##patient_id=" + patientId + "\n" + 
-		"##input_type=" + inputType  + "\n" +
-		"##sample=" + sample  + "\n" +
-		"##bam=" + illuminaFileName + "\n" +
-		"##snp_file=" + snpFile + "\n" + 
-		"##filter_q_score=10\n" + 
-		"##filter_match_qual=10\n" + 
-		"##genome=GRCh37_ICGC_standard_v2.fa\n" + 
-		"##FILTER=<ID=LowQual,Description=\"REQUIRED: QUAL < 50.0\">\n" + 
-		"##INFO=<ID=FULLCOV,Number=.,Type=String,Description=\"all bases at position\">\n" + 
-		"##INFO=<ID=NOVELCOV,Number=.,Type=String,Description=\"bases at position from reads with novel starts\">\n" + 
-		VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE+ "\n";
-	}
-	
-	public static final String getHeaderForQSnp(final String patientId,  final String normalSampleId, final String tumourSampleId, final String source, QBamId[] normalBamIds, QBamId[] tumourBamIds, String uuid, boolean singleSampleMode) {
-		
-		String controlBamString = "";
-		if (null != normalBamIds) {
-			for (QBamId s : normalBamIds) {
-				controlBamString += "##controlBam=" + s.getBamName()  + "\n";
-				controlBamString += "##controlBamUUID=" + s.getUUID();
-			}
-		}
-		String testBamString = "";
-		if (null != tumourBamIds) {
-			for (QBamId s : tumourBamIds) {
-				testBamString += "##testBam=" + s.getBamName()  + "\n";
-				testBamString += "##testBamUUID=" + s.getUUID()  + "\n";
-			}
-		}
-		
-		return "##fileformat=VCFv4.0\n" +
-		"##fileDate=" + df.format(Calendar.getInstance().getTime()) + "\n" + 
-		"##source=" + source + "\n" + 
-		"##patient_id=" + patientId + "\n" + 
-//		"##input_type=" + inputType  + "\n" +
-		"##controlSample=" + normalSampleId  + "\n" +
-		"##testSample=" + tumourSampleId  + "\n" +
-		controlBamString +
-		testBamString+
-		"##analysisId=" + uuid  + "\n" +
-		"##\n##\n" +
-		
-		// INFO field options
-		"##INFO=<ID=" + VcfHeaderUtils.INFO_MUTANT_READS + ",Number=1,Type=Integer,Description=\"Number of mutant/variant reads\">\n" +
-		"##INFO=<ID=" + VcfHeaderUtils.INFO_NOVEL_STARTS + ",Number=1,Type=Integer,Description=\"Number of novel starts not considering read pair\">\n" +
-		"##INFO=<ID=" + VcfHeaderUtils.INFO_FLANKING_SEQUENCE + ",Number=1,Type=String,Description=\"Reference bases either side of mutation\">\n" +
-//		"##INFO=<ID=" + INFO_MUTATION + ",Number=1,Type=String,Description=\"mutation/variant\">\n" +
-		
-		
-		// FILTER field options
-		"##FILTER=<ID=" + VcfHeaderUtils.FILTER_COVERAGE_NORMAL_12 + ",Description=\"Less than 12 reads coverage in normal\">\n" + 
-		"##FILTER=<ID=" + VcfHeaderUtils.FILTER_COVERAGE_NORMAL_8 + ",Description=\"Less than 8 reads coverage in normal\">\n" + 
-		"##FILTER=<ID=" + VcfHeaderUtils.FILTER_COVERAGE_TUMOUR + ",Description=\"Less than 8 reads coverage in tumour\">\n" + 
-		"##FILTER=<ID=" + VcfHeaderUtils.FILTER_SAME_ALLELE_NORMAL + ",Description=\"Less than 3 reads of same allele in normal\">\n" + 
-		"##FILTER=<ID=" + VcfHeaderUtils.FILTER_SAME_ALLELE_TUMOUR + ",Description=\"Less than 3 reads of same allele in tumour\">\n" + 
-		"##FILTER=<ID=" + VcfHeaderUtils.FILTER_MUTATION_IN_NORMAL + ",Description=\"Mutation also found in pileup of normal\">\n" + 
-		"##FILTER=<ID=" + VcfHeaderUtils.FILTER_MUTATION_IN_UNFILTERED_NORMAL + ",Description=\"Mutation also found in pileup of (unfiltered) normal\">\n" + 
-		"##FILTER=<ID=" + VcfHeaderUtils.FILTER_GERMLINE + ",Description=\"Mutation is a germline variant in another patient\">\n" + 
-		"##FILTER=<ID=" + VcfHeaderUtils.FILTER_NOVEL_STARTS + ",Description=\"Less than 4 novel starts not considering read pair\">\n" + 
-		"##FILTER=<ID=" + VcfHeaderUtils.FILTER_MUTANT_READS + ",Description=\"Less than 5 mutant reads\">\n" +
-		"##FILTER=<ID=" + VcfHeaderUtils.FILTER_MUTATION_EQUALS_REF + ",Description=\"Mutation equals reference\">\n" +
-		
-		// FORMAT field options
-		"##FORMAT=<ID=" + VcfHeaderUtils.FORMAT_GENOTYPE + ",Number=1,Type=String,Description=\"Genotype: 0/0 homozygous reference; 0/1 heterozygous for alternate allele; 1/1 homozygous for alternate allele\">\n" + 
-		"##FORMAT=<ID=" + VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS + ",Number=1,Type=String,Description=\"Genotype details: specific alleles (A,G,T or C)\">\n" + 
-		"##FORMAT=<ID=" + VcfHeaderUtils.FORMAT_ALLELE_COUNT + ",Number=1,Type=String,Description=\"Allele Count: lists number of reads on forward strand [avg base quality], reverse strand [avg base quality]\">\n" + 
-		"##FORMAT=<ID=" + FORMAT_ALLELE_COUNT_COMPOUND_SNP + ",Number=1,Type=String,Description=\"Allele Count Compound Snp: lists read sequence and count (forward strand, reverse strand) \">\n" + 
-		
-		VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\t" + ( ! singleSampleMode ? "Control\t" : "" ) + "Test\n";
-	}
-	
-	public static final String getHeaderForQCoverage(final String bamFileName, final String gffFile) {
-		return "##fileformat=VCFv4.0\n" +
-		"##bam_file=" + bamFileName + "\n" +
-		"##gff_file=" + gffFile + "\n" + 
-		"##FILTER=<ID=LowQual,Description=\"REQUIRED: QUAL < 50.0\">\n" + 
-		"##INFO=<ID=B,Number=.,Type=String,Description=\"Bait name\">\n" + 
-		"##INFO=<ID=BE,Number=.,Type=String,Description=\"Bait end position\">\n" + 
-		"##INFO=<ID=ZC,Number=.,Type=String,Description=\"bases with Zero Coverage\">\n" + 
-		"##INFO=<ID=NZC,Number=.,Type=String,Description=\"bases with Non Zero Coverage\">\n" + 
-		"##INFO=<ID=TOT,Number=.,Type=String,Description=\"Total number of sequenced bases\">\n" +
-		VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE+ "\n";
-	}
-	
-	public static final String getHeaderForCommonSnps(final String searchString, final String searchDirectory, String[] additionalSearchStrings, Map<File, Integer> mapOfFilesAndIds) {
-		StringBuilder filesMapSB = new StringBuilder();
-		if (null != mapOfFilesAndIds && mapOfFilesAndIds.size() > 0) {
-			
-			List<File> files = new ArrayList<File>(mapOfFilesAndIds.keySet());
-			Collections.sort(files);
-			
-			for (File f : files) {
-				filesMapSB .append("##INFO=<ID=" + mapOfFilesAndIds.get(f) + ",Number=0,Type=Flag,Description=\"" + f.getAbsolutePath() + "\">\n");
-			}
-		}
-		
-		return "##fileformat=VCFv4.0\n" +
-		"##search_string=" + searchString + "\n" +
-		"##search_directory=" + searchDirectory + "\n" + 
-		"##additional_search_directory=" + Arrays.deepToString(additionalSearchStrings) + "\n" + 
-		filesMapSB.toString() + VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE+ "\n";
-	}
+ 
+	 
 	
 	public static String getPileupElementAsString(List<PileupElement> pileups, boolean novelStart) {
 		
 		int a = 0, c = 0, g = 0, t = 0, n = 0;
 		if (null != pileups) {
-			for (PileupElement pe : pileups) {
+			for (final PileupElement pe : pileups) {
 				switch (pe.getBase()) {
 				case 'A': a = pe.getTotalCount(); break;
 				case 'C': c = pe.getTotalCount(); break;
@@ -246,9 +106,9 @@ public class VcfUtils {
 		// looking for the number between the first and second colons
 		
 //		int firstIndex = genotype.indexOf(":");
-		int firstIndex = 4;	// string should always start with 0/0
-		int secondIndex = genotype.indexOf(":", firstIndex);
-		String adNumbers = genotype.substring(firstIndex, secondIndex);
+		final int firstIndex = 4;	// string should always start with 0/0
+		final int secondIndex = genotype.indexOf(":", firstIndex);
+		final String adNumbers = genotype.substring(firstIndex, secondIndex);
 		
 		for (int i = 0 , size = adNumbers.length() ; i < size ; ) {
 			
@@ -276,35 +136,35 @@ public class VcfUtils {
 		
 		// looking for the number between the second and third colons
 //		int firstIndex = genotype.indexOf(":");
-		int firstIndex = 4;	// string should always start with 0/0
-		int secondIndex = format.indexOf(":", firstIndex) +1;
+		final int firstIndex = 4;	// string should always start with 0/0
+		final int secondIndex = format.indexOf(":", firstIndex) +1;
 		if (secondIndex == -1) { 
 //			System.err.println("incorrent index for format field: " + format);
 			return -1;
 		}
 		
-		int thirdIndex = format.indexOf(":", secondIndex);
+		final int thirdIndex = format.indexOf(":", secondIndex);
 		
 		if (thirdIndex == -1) {
 //			System.err.println("incorrent index for format field: " + format);
 			return -1;
 		}
 		
-		String dpString = format.substring(secondIndex, thirdIndex);
+		final String dpString = format.substring(secondIndex, thirdIndex);
 		return Integer.parseInt(dpString);
 	}
 	
-	public static String getGenotypeFromGATKVCFRecord(VCFRecord rec) {
+	public static String getGenotypeFromGATKVCFRecord(VcfRecord rec) {
 		if (null == rec || rec.getFormatFields().size() < 2)
 			throw new IllegalArgumentException("VCFRecord null, or does not contain the appropriate fields");
 		
-		String extraField = rec.getFormatFields().get(1);	// second item in list should have pertinent info
+		final String extraField = rec.getFormatFields().get(1);	// second item in list should have pertinent info
 		if (StringUtils.isNullOrEmpty(extraField)) return null;
 		return extraField.substring(0,3);
 	}
 	
-	public static GenotypeEnum getGEFromGATKVCFRec(VCFRecord rec) {
-		String genotypeString = getGenotypeFromGATKVCFRecord(rec);
+	public static GenotypeEnum getGEFromGATKVCFRec(VcfRecord rec) {
+		final String genotypeString = getGenotypeFromGATKVCFRecord(rec);
 		return calculateGenotypeEnum(genotypeString, rec.getRefChar(), rec.getAlt().charAt(0));
 	}
 	
@@ -352,8 +212,8 @@ public class VcfUtils {
 	}
 	
 	public static String[] getMutationAndGTs(String refString, GenotypeEnum control, GenotypeEnum test) {
-		String [] results = new String[3];
-		Set<Character> alts= new TreeSet<Character>();
+		final String [] results = new String[3];
+		final Set<Character> alts= new TreeSet<Character>();
 		char ref = '\u0000';
 		
 		if ( ! StringUtils.isNullOrEmpty(refString)) {
@@ -381,9 +241,9 @@ public class VcfUtils {
 			}
 		}
 		
-		int size = alts.size();
+		final int size = alts.size();
 		
-		String altsString = getStringFromCharSet(alts);
+		final String altsString = getStringFromCharSet(alts);
 		if (size == 0) {
 //			assert false : "empty list of alts from control and test: " + control + ", " + test;
 			Arrays.fill(results, MISSING_DATA_STRING);
@@ -394,7 +254,7 @@ public class VcfUtils {
 			results[2] = null != test ? test.getGTString(ref) : MISSING_DATA_STRING;
 		} else {
 			String alt = "";
-			for (char c : alts) {
+			for (final char c : alts) {
 				if (alt.length() == 0) {
 					alt = "" + c;
 				} else { 
@@ -427,27 +287,27 @@ public class VcfUtils {
 	}
 	 
 	public static String getStringFromCharSet(Set<Character> set) {
-		StringBuilder sb = new StringBuilder();
+		final StringBuilder sb = new StringBuilder();
 		if (null != set) {
-			for (Character c : set) sb.append(c);
+			for (final Character c : set) sb.append(c);
 		}
 		return sb.toString();
 	}
 	
-	public static VCFRecord createVcfRecord(ChrPosition cp, String id, String ref, String alt) {
-		VCFRecord rec = new VCFRecord(cp, id, ref, alt);
+	public static VcfRecord createVcfRecord(ChrPosition cp, String id, String ref, String alt) {
+		final VcfRecord rec = new VcfRecord(cp, id, ref, alt);
 		return rec;
 	}
-	public static VCFRecord createVcfRecord(ChrPosition cp, String ref) {
+	public static VcfRecord createVcfRecord(ChrPosition cp, String ref) {
 		return createVcfRecord(cp, null, ref, null);
 	}
 //	public static VCFRecord createVcfRecord(ChrPosition cp) {
 //		return createVcfRecord(cp, null, null);
 //	}
-	public static VCFRecord createVcfRecord(String chr, int position, String ref) {
+	public static VcfRecord createVcfRecord(String chr, int position, String ref) {
 		return createVcfRecord(new ChrPosition(chr, position), ref);
 	}
-	public static VCFRecord createVcfRecord(String chr, int position) {
+	public static VcfRecord createVcfRecord(String chr, int position) {
 		return createVcfRecord(new ChrPosition(chr, position), null);
 	}
 	
@@ -458,17 +318,17 @@ public class VcfUtils {
 	 * @param vcf VCFRecord
 	 * @return boolean indicating if this vcf record is a snp (or compound snp)
 	 */
-	public static boolean isRecordAMnp(VCFRecord vcf) {
+	public static boolean isRecordAMnp(VcfRecord vcf) {
 		boolean isSnp = false;
 		if (null != vcf) {
-			String ref = vcf.getRef();
-			String alt = vcf.getAlt();
+			final String ref = vcf.getRef();
+			final String alt = vcf.getAlt();
 			
 			if ( ! StringUtils.isNullOrEmpty(ref) && ! StringUtils.isNullOrEmpty(alt)) {
 				
 				// if lengths are both 1, and they are not equal
-				int refLength = ref.length();
-				int altLength = alt.length();
+				final int refLength = ref.length();
+				final int altLength = alt.length();
 				
 				if (refLength == altLength
 						&& ! ref.contains(Constants.COMMA_STRING)
@@ -481,7 +341,7 @@ public class VcfUtils {
 		return isSnp;
 	}
 	
-	public static void addFormatFieldsToVcf(VCFRecord vcf, List<String> additionalFormatFields) {
+	public static void addFormatFieldsToVcf(VcfRecord vcf, List<String> additionalFormatFields) {
 		if ( null != additionalFormatFields && ! additionalFormatFields.isEmpty()) {
 			// if there are no existing format fields, set field to be additional..
 			if (null == vcf.getFormatFields() || vcf.getFormatFields().isEmpty()) {
@@ -495,15 +355,15 @@ public class VcfUtils {
 				+ vcf.getFormatFields().size() + " entries, whereas additionalFormatFields has " 
 							+ additionalFormatFields.size() + " entries - skipping addition");
 				} else {
-					List<String> newFF =  vcf.getFormatFields();
+					final List<String> newFF =  vcf.getFormatFields();
 					
 					// need to check each element to see if it already exists...
-					String [] formatFieldAttributes = additionalFormatFields.get(0).split(COLON_STRING);
+					final String [] formatFieldAttributes = additionalFormatFields.get(0).split(COLON_STRING);
 					
 					for (int i = 0 ; i < formatFieldAttributes.length ; i++) {
 						
-						String existingFieldAttributes = newFF.get(0);
-						String s = formatFieldAttributes[i];
+						final String existingFieldAttributes = newFF.get(0);
+						final String s = formatFieldAttributes[i];
 						
 						if (existingFieldAttributes.contains(s)) {
 							// skip this one
@@ -512,9 +372,9 @@ public class VcfUtils {
 							for (int j = 0 ; j < additionalFormatFields.size() ; j++) {
 								
 								// get existing entry 
-								String existing = newFF.get(j);
+								final String existing = newFF.get(j);
 								// create new
-								String newEntry = existing + COLON + additionalFormatFields.get(j).split(COLON_STRING)[i];
+								final String newEntry = existing + COLON + additionalFormatFields.get(j).split(COLON_STRING)[i];
 								
 								// re-insert into vcf
 								newFF.set(j, newEntry);
@@ -540,7 +400,7 @@ public class VcfUtils {
 	 * @param rec qsnp record
 	 * @param ann String representation of the annotation
 	 */
-	public static void updateFilter(VCFRecord rec, String ann) {
+	public static void updateFilter(VcfRecord rec, String ann) {
 		// perform some null guarding
 		if (null == rec) throw new IllegalArgumentException("Null vcf record passed to updateFilter");
 		
@@ -551,7 +411,7 @@ public class VcfUtils {
 		}
 	}
 	
-	public static void removeFilter(VCFRecord rec, String filter) {
+	public static void removeFilter(VcfRecord rec, String filter) {
 		// perform some null guarding
 		if (null == rec) throw new IllegalArgumentException("Null vcf record passed to removeAnnotation");
 		if (null == filter) {

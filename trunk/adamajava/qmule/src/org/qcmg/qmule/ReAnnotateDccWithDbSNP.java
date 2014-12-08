@@ -18,7 +18,7 @@ import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.TabTokenizer;
-import org.qcmg.common.vcf.VCFRecord;
+import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.tab.TabbedFileReader;
 import org.qcmg.tab.TabbedRecord;
 import org.qcmg.vcf.VCFFileReader;
@@ -112,7 +112,7 @@ public class ReAnnotateDccWithDbSNP {
 		int count = 0, multipleVersions = 0;
 		int pre30 = 0, thirty = 0, thirtyOne = 0, thirtyTwo = 0, thirtyThree = 0, thirtyFour = 0, thirtyFive = 0;
 		try {
-			for (VCFRecord dbSNPVcf : reader) {
+			for (VcfRecord dbSNPVcf : reader) {
 				if (++count % 1000000 == 0)
 					logger.info("hit " + count + " dbsnp records");
 				

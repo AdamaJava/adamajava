@@ -19,7 +19,7 @@ import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.LoadReferencedClasses;
 import org.qcmg.common.util.TabTokenizer;
-import org.qcmg.common.vcf.VCFRecord;
+import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.tab.TabbedFileReader;
@@ -43,7 +43,7 @@ public class BuildCommonSnpsVcf {
 	
 	private int exitStatus;
 	
-	private Map<ChrPosition, VCFRecord> snpPositions;
+	private Map<ChrPosition, VcfRecord> snpPositions;
 	private final Map<File, Integer> mapOfFilesAndIds = new HashMap<File, Integer>();
 	
 	private int engage() throws Exception {
@@ -82,7 +82,7 @@ public class BuildCommonSnpsVcf {
 		if ( ! mapOfFilesAndIds.isEmpty()) {
 			
 			// create map
-			snpPositions = new HashMap<ChrPosition, VCFRecord>(1024 * 1024 * 4);
+			snpPositions = new HashMap<ChrPosition, VcfRecord>(1024 * 1024 * 4);
 			
 			List<File> files = new ArrayList<File>(mapOfFilesAndIds.keySet());
 			Collections.sort(files);
@@ -121,7 +121,7 @@ public class BuildCommonSnpsVcf {
 		
 		int count = 0;
 		try (VCFFileReader reader = new VCFFileReader(new File(fileName));) {
-			for (VCFRecord dbSNPVcf : reader) {
+			for (VcfRecord dbSNPVcf : reader) {
 				if (++count % 1000000 == 0)
 					logger.info("hit " + count + " dbsnp records");
 				
@@ -129,7 +129,7 @@ public class BuildCommonSnpsVcf {
 				if ( ! StringUtils.doesStringContainSubString(dbSNPVcf.getInfo(), "VC=SNV", false)) continue;
 				
 				ChrPosition cp = new ChrPosition(dbSNPVcf.getChromosome(), dbSNPVcf.getPosition());
-				VCFRecord commonSnpVcf = snpPositions.get(cp);
+				VcfRecord commonSnpVcf = snpPositions.get(cp);
 				if (null == commonSnpVcf) continue;
 				
 				// add the snp id to the the common vcf record
@@ -181,7 +181,7 @@ public class BuildCommonSnpsVcf {
 				
 				// check to see if this appears in the map already - if so, update patient (if not already there)
 				if (snpPositions.containsKey(cp)) {
-					VCFRecord vcfRec = snpPositions.get(cp);
+					VcfRecord vcfRec = snpPositions.get(cp);
 					String existingDonors = vcfRec.getInfo();
 					
 					String existingRef = vcfRec.getRef();
@@ -235,7 +235,7 @@ public class BuildCommonSnpsVcf {
 				
 				// check to see if this appears in the map already - if so, update patient (if not already there)
 				if (snpPositions.containsKey(cp)) {
-					VCFRecord vcfRec = snpPositions.get(cp);
+					VcfRecord vcfRec = snpPositions.get(cp);
 					String existingDonors = vcfRec.getInfo();
 					
 					String existingRef = vcfRec.getRef();

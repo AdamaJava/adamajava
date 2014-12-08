@@ -24,7 +24,7 @@ import org.qcmg.common.model.GenotypeEnum;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.BaseUtils;
 import org.qcmg.common.util.TabTokenizer;
-import org.qcmg.common.vcf.VCFRecord;
+import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.pileup.PileupConstants;
 import org.qcmg.pileup.PileupUtil;
 import org.qcmg.pileup.metrics.record.ResultRecord;
@@ -353,10 +353,10 @@ public class SnpMetric extends Metric {
 
 	public void processVCF(File file, String annotation) throws Exception {
 		VCFFileReader reader = new VCFFileReader(file);		
-		Iterator<VCFRecord> iter = reader.iterator();
+		Iterator<VcfRecord> iter = reader.iterator();
 		int count = 0;
 		while (iter.hasNext()) {
-			VCFRecord vcfRecord = iter.next();
+			VcfRecord vcfRecord = iter.next();
 			
 			if (++count % 10000000 == 0) {
 				logger.info("Processed " + count  + " " + annotation + " records");
@@ -380,10 +380,10 @@ public class SnpMetric extends Metric {
 	public void processDbSnp() throws Exception {
 		
 		VCFFileReader reader = new VCFFileReader(dbSnpFile);		
-		Iterator<VCFRecord> iter = reader.iterator();
+		Iterator<VcfRecord> iter = reader.iterator();
 		int count = 0;
 		while (iter.hasNext()) {
-			VCFRecord vcfRecord = iter.next();
+			VcfRecord vcfRecord = iter.next();
 			if (++count % 10000000 == 0) {
 				logger.info("Processed " + count  + " dbSNP records");
 			}

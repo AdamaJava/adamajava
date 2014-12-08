@@ -9,7 +9,7 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.TabTokenizer;
-import org.qcmg.common.vcf.VCFRecord;
+import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfInfoFieldRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
@@ -43,9 +43,9 @@ public class DbsnpMode extends AbstractMode{
 	@Override
 	void addAnnotation(String dbSNPFile) throws Exception{
 		//init remove all exsiting dbsnpid
-		final Iterator<VCFRecord> it = positionRecordMap.values().iterator(); 
+		final Iterator<VcfRecord> it = positionRecordMap.values().iterator(); 
  	    while (it.hasNext()) {
-	        final VCFRecord vcf = it.next();
+	        final VcfRecord vcf = it.next();
 	        vcf.setId(".");
  	    }
 		 				 
@@ -63,11 +63,11 @@ public class DbsnpMode extends AbstractMode{
 			
 			
 			//check dbsnp record
-			for (final VCFRecord dbSNPVcf : reader) {
+			for (final VcfRecord dbSNPVcf : reader) {
 				// vcf dbSNP record chromosome does not contain "chr", whereas the positionRecordMap does - add
 				//eg.positionRecordMap (key, value) = (chr1.100-101, vcfRecord )
 				//put end position in case of compound snp
-				final VCFRecord inputVcf = positionRecordMap.get(new ChrPosition("chr" + dbSNPVcf.getChromosome(), dbSNPVcf.getPosition(), dbSNPVcf.getPosition() + dbSNPVcf.getRef().length() - 1 ));
+				final VcfRecord inputVcf = positionRecordMap.get(new ChrPosition("chr" + dbSNPVcf.getChromosome(), dbSNPVcf.getPosition(), dbSNPVcf.getPosition() + dbSNPVcf.getRef().length() - 1 ));
  
 				
 				// , dbSNPVcf.getPosition() + dbSNPVcf.getRef().length()));

@@ -8,7 +8,7 @@ import static org.qcmg.common.util.Constants.TAB;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.GenotypeEnum;
 import org.qcmg.common.string.StringUtils;
-import org.qcmg.common.vcf.VCFRecord;
+import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 
 public class QSnpRecord {
@@ -17,7 +17,7 @@ public class QSnpRecord {
 	}
 	
 	private int id;
-	private final VCFRecord vcf;
+	private final VcfRecord vcf;
 //	private final ChrPosition chrPos;
 //	private char ref;
 //	private char alt;
@@ -45,7 +45,7 @@ public class QSnpRecord {
 	private String tumourNucleotides;
 	private String flankingSequence;
 	
-	public QSnpRecord(VCFRecord vcf) {
+	public QSnpRecord(VcfRecord vcf) {
 		this.vcf = vcf;
 	}
 	
@@ -365,7 +365,7 @@ public class QSnpRecord {
 		this.probablility = Double.valueOf(probability);
 	}
 
-	public VCFRecord getVcfRecord() {
+	public VcfRecord getVcfRecord() {
 		return vcf;
 	}
 }

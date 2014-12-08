@@ -14,7 +14,7 @@ import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.GenotypeEnum;
 import org.qcmg.common.util.Pair;
 import org.qcmg.common.util.SnpUtils;
-import org.qcmg.common.vcf.VCFRecord;
+import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.pileup.QSnpRecord;
@@ -321,7 +321,7 @@ public class PipelineTest {
 		snp.setTumourGenotype(GenotypeEnum.AC);
 		
 		Pipeline pipeline = new TestPipeline();
-		VCFRecord vcf = pipeline.convertQSnpToVCF(snp);
+		VcfRecord vcf = pipeline.convertQSnpToVCF(snp);
 		
 		assertEquals(snp.getChromosome(), vcf.getChromosome());
 		assertEquals(snp.getPosition(), vcf.getPosition());
@@ -388,7 +388,7 @@ public class PipelineTest {
 		snp.setTumourGenotype(GenotypeEnum.AG);
 		
 		Pipeline pipeline = new TestPipeline();
-		VCFRecord vcf = pipeline.convertQSnpToVCF(snp);
+		VcfRecord vcf = pipeline.convertQSnpToVCF(snp);
 		
 		assertEquals(snp.getChromosome(), vcf.getChromosome());
 		assertEquals(snp.getPosition(), vcf.getPosition());
@@ -459,7 +459,7 @@ public class PipelineTest {
 		Pipeline pipeline = new TestPipeline();
 		pipeline.classifyPileupRecord(snp);
 		assertEquals(SnpUtils.LESS_THAN_12_READS_NORMAL + SC + SnpUtils.MUTANT_READS + SC + SnpUtils.NOVEL_STARTS , snp.getAnnotation());
-		VCFRecord vcf = pipeline.convertQSnpToVCF(snp);
+		VcfRecord vcf = pipeline.convertQSnpToVCF(snp);
 		assertEquals(SnpUtils.LESS_THAN_12_READS_NORMAL + SC + SnpUtils.MUTANT_READS + SC + SnpUtils.NOVEL_STARTS , vcf.getFilter());
 		
 		// reset annotation
