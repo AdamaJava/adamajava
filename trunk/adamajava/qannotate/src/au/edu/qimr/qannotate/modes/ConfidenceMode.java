@@ -18,11 +18,10 @@ import org.qcmg.common.util.SnpUtils;
 import org.qcmg.common.vcf.VCFRecord;
 import org.qcmg.common.vcf.VcfInfoFieldRecord;
 import org.qcmg.common.vcf.header.VcfHeaderInfo;
-import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.common.vcf.header.VcfHeaderRecord.VcfInfoNumber;
 import org.qcmg.common.vcf.header.VcfHeaderRecord.VcfInfoType;
+import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.maf.util.MafUtils;
-
 
 import au.edu.qimr.qannotate.options.ConfidenceOptions;
 
@@ -43,6 +42,11 @@ public class ConfidenceMode extends AbstractMode{
 	public static final Pattern pattern = Pattern.compile("[ACGT][0-9]+\\[[0-9]+.?[0-9]*\\],[0-9]+\\[[0-9]+.?[0-9]*\\]");
 
 	private final String patientId;
+	
+	//for unit testing
+	ConfidenceMode(String patient){ patientId = patient;}
+	
+	
 	public ConfidenceMode(ConfidenceOptions options, QLogger logger) throws Exception{				 
 		logger.tool("input: " + options.getInputFileName());
         logger.tool("verified File: " + options.getDatabaseFileName() );
@@ -57,6 +61,9 @@ public class ConfidenceMode extends AbstractMode{
 		reheader(options.getCommandLine(),options.getInputFileName())	;	
 		writeVCF(new File(options.getOutputFileName()) );	
 	}
+
+
+
 	/**
 	 * add dbsnp version
 	 * @throws Exception
@@ -67,18 +74,18 @@ public class ConfidenceMode extends AbstractMode{
 
 		
 		//load verified file
-		Map<String, Map<ChrPosition, TorrentVerificationStatus>> verifiedDataAll = new HashMap<String, Map<ChrPosition, TorrentVerificationStatus>>();
+		final Map<String, Map<ChrPosition, TorrentVerificationStatus>> verifiedDataAll = new HashMap<String, Map<ChrPosition, TorrentVerificationStatus>>();
 		MafUtils.getVerifiedData(verificationFile, patientId,verifiedDataAll );
-		Map<ChrPosition, TorrentVerificationStatus> VerifiedData = verifiedDataAll.get(patientId);		
+		final Map<ChrPosition, TorrentVerificationStatus> VerifiedData = verifiedDataAll.get(patientId);		
 		
 		//check high, low nns...
-		Iterator<  ChrPosition > it = positionRecordMap.keySet().iterator();
+		final Iterator<  ChrPosition > it = positionRecordMap.keySet().iterator();
 	    while (it.hasNext()) {
-	    	ChrPosition pos = it.next();
-	    	VCFRecord vcf = positionRecordMap.get(pos);
-	    	VcfInfoFieldRecord infoRecord = new VcfInfoFieldRecord(vcf.getInfo());	    	
-	                	        
-	        if (VerifiedData != null && VerifiedData.get(pos).equals( TorrentVerificationStatus.YES))  
+	    	final ChrPosition pos = it.next();
+	    	final VCFRecord vcf = positionRecordMap.get(pos);
+	    	final VcfInfoFieldRecord infoRecord = new VcfInfoFieldRecord(vcf.getInfo());	
+	    		    	
+	        if (VerifiedData != null && VerifiedData.get(pos) != null && VerifiedData.get(pos).equals( TorrentVerificationStatus.YES))  
 	        	 infoRecord.setfield(VcfHeaderUtils.INFO_CONFIDENT, Confidence.HIGH.toString());		        
 	        else if (checkNovelStarts(HIGH_CONF_NOVEL_STARTS_PASSING_SCORE, infoRecord) 
 					&& checkAltFrequency(HIGH_CONF_ALT_FREQ_PASSING_SCORE, vcf)
@@ -105,18 +112,18 @@ public class ConfidenceMode extends AbstractMode{
 	
 	 private boolean checkAltFrequency(int score, VCFRecord vcf){
 		 
-		 String info =  vcf.getInfo();
+		 final String info =  vcf.getInfo();
 		 //set to TD if somatic, otherwise set to normal
 		 String allel = (info.contains(VcfHeaderUtils.INFO_SOMATIC)) ? vcf.getFormatFields().get(0) :  vcf.getFormatFields().get(1); 
 		 allel = allel.substring(allel.lastIndexOf(":") + 1, allel.length());
 		 
-		List<PileupElement> result = new ArrayList<PileupElement>();
-		Matcher m = pattern.matcher(allel);
+		final List<PileupElement> result = new ArrayList<PileupElement>();
+		final Matcher m = pattern.matcher(allel);
 		int count = 0;
 		while (m.find()) {
-			String pileup = m.group();
+			final String pileup = m.group();
 			// first char is the base
-			char base = pileup.charAt(0);
+			final char base = pileup.charAt(0);
 			
 			if(base == vcf.getAlt().charAt(0)){
 				count = Integer.parseInt(pileup.substring(1, pileup.indexOf('['))) +
@@ -143,7 +150,7 @@ public class ConfidenceMode extends AbstractMode{
 		 try{			 
 			 if(   Integer.parseInt(  infoRecord.getfield( VcfHeaderUtils.INFO_NOVEL_STARTS  )  ) >= score ) 
 				 return true;
-		 }catch(Exception e){
+		 }catch(final Exception e){
 			 return false;
 		 }
 		 
