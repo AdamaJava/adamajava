@@ -85,9 +85,9 @@ public class SignatureGeneratorTest {
 		try {
 			qss.createComparatorFromSAMHeader(null);
 			Assert.fail("Should have thrown an IAE");
-		} catch (IllegalArgumentException iae) {}
+		} catch (final IllegalArgumentException iae) {}
 		
-		File bamFile = testFolder.newFile("bamFile");
+		final File bamFile = testFolder.newFile("bamFile");
 		getBamFile(bamFile, false, null);
 		qss.createComparatorFromSAMHeader(bamFile);
 
@@ -113,10 +113,10 @@ public class SignatureGeneratorTest {
 	 * @see SignatureGenerator#updateResultsIllumina
 	 */
 	private String updateResultsIllumina(String illRecString, char ref) {
-		int snpChipCoverageValue = 20;
-		IlluminaRecord illRec = new IlluminaRecord(TabTokenizer.tokenize(illRecString));
+		final int snpChipCoverageValue = 20;
+		final IlluminaRecord illRec = new IlluminaRecord(TabTokenizer.tokenize(illRecString));
 		
-		int[] alleleCounts = IlluminaUtils.getAllelicCounts(snpChipCoverageValue, illRec.getLogRRatio(), illRec.getRawX(), illRec.getRawY());
+		final int[] alleleCounts = IlluminaUtils.getAllelicCounts(snpChipCoverageValue, illRec.getLogRRatio(), illRec.getRawX(), illRec.getRawY());
 		String illuminaAlleles = null;
 		if (illRec.getSnp().length() == 5) {
 			illuminaAlleles = illRec.getSnp().substring(1, 4);
@@ -129,7 +129,7 @@ public class SignatureGeneratorTest {
 			System.out.println("invalid bases in illumina genotype: " + illuminaAlleles);
 		}
 		
-		String illuminaCall = illRec.getFirstAlleleCall() + "" + illRec.getSecondAlleleCall();
+		final String illuminaCall = illRec.getFirstAlleleCall() + "" + illRec.getSecondAlleleCall();
 		System.out.println("illuminaCall: " + illuminaCall);
 		
 		if ("--".equals(illuminaCall))  {
@@ -144,22 +144,22 @@ public class SignatureGeneratorTest {
 			illGenChar2 = illuminaAlleles.charAt(2);
 		}
 		
-		boolean complement = ref != illGenChar1 && ref != illGenChar2;
-		boolean newComplement = isComplemented(illuminaCall, illuminaAlleles, illRec.getFirstAlleleForward(), illRec.getSecondAlleleForward());
-		char[] alleleAB = getAlleleAandB(illuminaAlleles, illRec.getStrand());
+		final boolean complement = ref != illGenChar1 && ref != illGenChar2;
+		final boolean newComplement = isComplemented(illuminaCall, illuminaAlleles, illRec.getFirstAlleleForward(), illRec.getSecondAlleleForward());
+		final char[] alleleAB = getAlleleAandB(illuminaAlleles, illRec.getStrand());
 		System.out.println("old complement: " + complement + ", new complement: " + newComplement);
 			if (complement) {
 			illGenChar1 = BaseUtils.getComplement(illGenChar1);
 			illGenChar2 = BaseUtils.getComplement(illGenChar2);
 		}
-		String result = SignatureUtil.getCoverageStringFromCharsAndInts(alleleAB[0], alleleAB[1], alleleCounts[0], alleleCounts[1]);
+		final String result = SignatureUtil.getCoverageStringFromCharsAndInts(alleleAB[0], alleleAB[1], alleleCounts[0], alleleCounts[1]);
 		System.out.println(result);
 		return result;
 	}
 	
 	private boolean isComplemented(String illuminaCall, String snp, char allele1Forward, char allele2Forward) {
 		boolean complement = false;
-		char snp1 = snp.charAt(0);
+		final char snp1 = snp.charAt(0);
 		char snp2 = snp.charAt(1);
 		if ('/' == snp2) {
 			if (snp.length() < 3)
@@ -179,8 +179,8 @@ public class SignatureGeneratorTest {
 	}
 	
 	private char[] getAlleleAandB(String snp, String strand) {
-		char[] alleleAB = new char[2];
-		char snp1 = snp.charAt(0);
+		final char[] alleleAB = new char[2];
+		final char snp1 = snp.charAt(0);
 		char snp2 = snp.charAt(1);
 		if ('/' == snp2) {
 			if (snp.length() < 3)
@@ -221,15 +221,15 @@ public class SignatureGeneratorTest {
 	
     @Test
 	public void runProcessWithEmptySnpChipFile() throws Exception {
-    	File positionsOfInterestFile = testFolder.newFile("runProcessWithEmptySnpChipFile.txt");
-    	File snpChipFile = testFolder.newFile("runProcessWithEmptySnpChipFile_snpChip.txt");
-    	File illuminaArraysDesignFile = testFolder.newFile("runProcessWithEmptySnpChipFile_snpChipIAD.txt");
-    	File logFile = testFolder.newFile("runProcessWithEmptySnpChipFile.log");
-    	File outputFile = testFolder.newFile("runProcessWithEmptySnpChipFile.qsig.vcf");
+    	final File positionsOfInterestFile = testFolder.newFile("runProcessWithEmptySnpChipFile.txt");
+    	final File snpChipFile = testFolder.newFile("runProcessWithEmptySnpChipFile_snpChip.txt");
+    	final File illuminaArraysDesignFile = testFolder.newFile("runProcessWithEmptySnpChipFile_snpChipIAD.txt");
+    	final File logFile = testFolder.newFile("runProcessWithEmptySnpChipFile.log");
+    	final File outputFile = testFolder.newFile("runProcessWithEmptySnpChipFile.qsig.vcf");
 //    	getBamFile(snpChipFile, true, null);
 
 		ExpectedException.none();
-		Executor exec = execute("--log " + logFile.getAbsolutePath() + " -i " + positionsOfInterestFile.getAbsolutePath() + " -i " + snpChipFile.getAbsolutePath()+ " -i " + illuminaArraysDesignFile.getAbsolutePath());
+		final Executor exec = execute("--log " + logFile.getAbsolutePath() + " -i " + positionsOfInterestFile.getAbsolutePath() + " -i " + snpChipFile.getAbsolutePath()+ " -i " + illuminaArraysDesignFile.getAbsolutePath());
 		assertTrue(0 == exec.getErrCode());
 
 		assertTrue(outputFile.exists());
@@ -237,19 +237,19 @@ public class SignatureGeneratorTest {
     
     @Test
     public void runProcessWithSnpChipFile() throws Exception {
-    	File positionsOfInterestFile = testFolder.newFile("runProcessWithSnpChipFile.txt");
-    	File illuminaArraysDesignFile = testFolder.newFile("runProcessWithSnpChipFileIAD.txt");
-    	File snpChipFile = testFolder.newFile("runProcessWithSnpChipFile_snpChip.txt");
-    	File logFile = testFolder.newFile("runProcessWithSnpChipFile.log");
-    	String outputFIleName = snpChipFile.getAbsolutePath() + ".qsig.vcf.gz";
-    	File outputFile = new File(outputFIleName);
+    	final File positionsOfInterestFile = testFolder.newFile("runProcessWithSnpChipFile.txt");
+    	final File illuminaArraysDesignFile = testFolder.newFile("runProcessWithSnpChipFileIAD.txt");
+    	final File snpChipFile = testFolder.newFile("runProcessWithSnpChipFile_snpChip.txt");
+    	final File logFile = testFolder.newFile("runProcessWithSnpChipFile.log");
+    	final String outputFIleName = snpChipFile.getAbsolutePath() + ".qsig.vcf.gz";
+    	final File outputFile = new File(outputFIleName);
     	
     	writeSnpChipFile(snpChipFile);
     	writeSnpPositionsFile(positionsOfInterestFile);
     	writeIlluminaArraysDesignFile(illuminaArraysDesignFile);
 //    	getBamFile(snpChipFile, true, null);
     	
-    	int exitStatus = qss.setup(new String[] {"--log" , logFile.getAbsolutePath(), "-i" , positionsOfInterestFile.getAbsolutePath(), "-i" , snpChipFile.getAbsolutePath(),  "-i" , illuminaArraysDesignFile.getAbsolutePath()} );
+    	final int exitStatus = qss.setup(new String[] {"--log" , logFile.getAbsolutePath(), "-i" , positionsOfInterestFile.getAbsolutePath(), "-i" , snpChipFile.getAbsolutePath(),  "-i" , illuminaArraysDesignFile.getAbsolutePath()} );
     	assertEquals(0, exitStatus);
     	
 //    	ExpectedException.none();
@@ -257,27 +257,15 @@ public class SignatureGeneratorTest {
 //    	assertTrue(0 == exec.getErrCode());
     	
     	assertTrue(outputFile.exists());
-    	
-    	List<VcfRecord> recs = new ArrayList<>();
-    	try (VCFFileReader reader = new VCFFileReader(outputFile);) {
-	    	for (VcfRecord rec : reader) {
+   	
+    	final List<VcfRecord> recs = new ArrayList<>();
+    	try (VCFFileReader reader = new VCFFileReader(outputFile);) {    			
+	    	for (final VcfRecord rec : reader) 
 	    		recs.add(rec);
-	    	}
     	}
-    	assertEquals(6, recs.size());
-    	
-    	// now check that any complementation has taken place
-    	for (VcfRecord rec : recs) {
-//    		if (rec.getChromosome().equalsIgnoreCase("chr12") && rec.getPosition() == 126890980) {
-    			
-    			String info = rec.getInfo();
-    			System.out.println("info: " + info);
-    			
-//    		}
+       	
+    	assertEquals(6, recs.size());	
     		
-    		
-    		
-    	}
     }
     
     private void writeSnpChipFile(File snpChipFile) throws IOException {
@@ -321,43 +309,43 @@ public class SignatureGeneratorTest {
     }
 	
     private static void getBamFile(File bamFile, boolean validHeader, List<SAMRecord> data) {
-    	SAMFileHeader header = getHeader(validHeader);
+    	final SAMFileHeader header = getHeader(validHeader);
     	if ( ! validHeader) header.setSequenceDictionary(new SAMSequenceDictionary());
-    	SAMOrBAMWriterFactory factory = new SAMOrBAMWriterFactory(header, false, bamFile, false);
+    	final SAMOrBAMWriterFactory factory = new SAMOrBAMWriterFactory(header, false, bamFile, false);
     	try {
-    		SAMFileWriter writer = factory.getWriter();
+    		final SAMFileWriter writer = factory.getWriter();
     		if (null != data)
-    			for (SAMRecord s : data) writer.addAlignment(s);
+    			for (final SAMRecord s : data) writer.addAlignment(s);
     	} finally {
     		factory.closeWriter();
     	}
     }
     
 	private static SAMFileHeader getHeader(boolean valid) {
-		SAMFileHeader header = new SAMFileHeader();
+		final SAMFileHeader header = new SAMFileHeader();
 		
-		SAMProgramRecord bwaPG = new SAMProgramRecord("bwa");
+		final SAMProgramRecord bwaPG = new SAMProgramRecord("bwa");
 		bwaPG.setProgramName("bwa");
 		bwaPG.setProgramVersion("0.6.1-r104");
 		header.addProgramRecord(bwaPG);
 		
 		if ( ! valid) {
-			SAMProgramRecord invalidPG = new SAMProgramRecord("blah");
+			final SAMProgramRecord invalidPG = new SAMProgramRecord("blah");
 			invalidPG.setAttribute("CL", "");
 			header.addProgramRecord(invalidPG);
 			
-			SAMReadGroupRecord rgRec = new SAMReadGroupRecord("ID");
+			final SAMReadGroupRecord rgRec = new SAMReadGroupRecord("ID");
 			rgRec.setAttribute("PG", "tmap");
 			header.addReadGroup(rgRec);
 		}
 		
 		// looks like we need this to be specifically defined
-		SAMSequenceDictionary seqDict = new SAMSequenceDictionary();
-		SAMSequenceRecord seqRec1 = new SAMSequenceRecord("chr1", 249250621);
-		SAMSequenceRecord seqRec2 = new SAMSequenceRecord("chr2", 243199373);
-		SAMSequenceRecord seqRec3 = new SAMSequenceRecord("chr3", 198022430);
-		SAMSequenceRecord seqRec4 = new SAMSequenceRecord("chr4", 191154276);
-		SAMSequenceRecord seqRec5 = new SAMSequenceRecord("chr5", 180915260);
+		final SAMSequenceDictionary seqDict = new SAMSequenceDictionary();
+		final SAMSequenceRecord seqRec1 = new SAMSequenceRecord("chr1", 249250621);
+		final SAMSequenceRecord seqRec2 = new SAMSequenceRecord("chr2", 243199373);
+		final SAMSequenceRecord seqRec3 = new SAMSequenceRecord("chr3", 198022430);
+		final SAMSequenceRecord seqRec4 = new SAMSequenceRecord("chr4", 191154276);
+		final SAMSequenceRecord seqRec5 = new SAMSequenceRecord("chr5", 180915260);
 		seqDict.addSequence(seqRec5);
 		seqDict.addSequence(seqRec4);
 		seqDict.addSequence(seqRec3);

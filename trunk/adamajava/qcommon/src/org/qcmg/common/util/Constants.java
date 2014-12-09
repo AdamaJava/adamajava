@@ -19,6 +19,7 @@ public class Constants {
 	public static final String MUT_DELIM = ">";
 	public static final String SEMI_COLON_STRING = SC+"";
 	public static final String COLON_STRING = COLON + "";
+	public static final String NL_STRING = NL + "";
 	
 	//at moment only for VcfInfoFieldRecord
 	public static final String NULL_STRING = "NULL";

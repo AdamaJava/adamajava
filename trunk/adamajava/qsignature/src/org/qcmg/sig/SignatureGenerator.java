@@ -370,7 +370,7 @@ public class SignatureGenerator {
 			try (VCFFileWriter writer = new VCFFileWriter(outputVCFFile, true);){
 				// write header
 				for(final VcfHeaderRecord re: header)
-					writer.addHeader(re.toString());
+					writer.addHeader(re.toString() );
 				
 				for (final VcfRecord vcf : snps) {
 					if (StringUtils.isNullOrEmpty(vcf.getInfo())) vcf.setInfo(SignatureUtil.EMPTY_COVERAGE);
@@ -411,7 +411,7 @@ public class SignatureGenerator {
 		header.add( new VcfHeaderFilter(VcfHeaderUtils.FILTER_LOW_QUAL,"REQUIRED: QUAL < 50.0") );
 		header.add( new VcfHeaderInfo("FULLCOV", VcfInfoNumber.UNKNOWN, -1, VcfInfoType.String, "all bases at position", null, null) );
 		header.add( new VcfHeaderInfo("NOVELCOV", VcfInfoNumber.UNKNOWN, -1, VcfInfoType.String, "bases at position from reads with novel starts", null, null)  );
-  		header.add(new VcfHeaderInfo(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE));
+  		header.add(new VcfHeaderRecord(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE));
 		return  header;
 		
 /*		
@@ -456,7 +456,7 @@ public class SignatureGenerator {
 		header.add( new VcfHeaderFilter(VcfHeaderUtils.FILTER_LOW_QUAL,"REQUIRED: QUAL < 50.0") );
 		header.add( new VcfHeaderInfo("FULLCOV", VcfInfoNumber.UNKNOWN, -1, VcfInfoType.String, "all bases at position", null, null) );
 		header.add( new VcfHeaderInfo("NOVELCOV", VcfInfoNumber.UNKNOWN, -1, VcfInfoType.String, "bases at position from reads with novel starts", null, null)  );
-  		header.add(new VcfHeaderInfo(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE));
+  		header.add(new VcfHeaderRecord(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE));
 		return  header;
 		
 		

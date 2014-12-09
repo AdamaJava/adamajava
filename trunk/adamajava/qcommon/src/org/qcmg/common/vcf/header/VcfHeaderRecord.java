@@ -4,7 +4,7 @@ package org.qcmg.common.vcf.header;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.qcmg.common.vcf.header.VcfHeaderRecord.VcfInfoNumber;
+import org.qcmg.common.util.Constants;
 
 public class VcfHeaderRecord {
 	static final Pattern pattern_id = Pattern.compile("ID=([^,]+),");	
@@ -114,7 +114,7 @@ public class VcfHeaderRecord {
 				throw new Exception("can't convert String into VcfHeaderRecord since missing \"##\" at the begin of line: " + line);
 			}
 			
-			int index = line.indexOf('=');
+			final int index = line.indexOf('=');
 			if(index >= 0){
 				type = MetaType.META; 
 				id = line.substring(0, index); 
@@ -169,9 +169,9 @@ public class VcfHeaderRecord {
 		if(!type.equals(MetaType.FILTER) && !type.equals(MetaType.FORMAT) && ! type.equals(MetaType.INFO))
 			return ;
 		
-		int start = line.indexOf('<');
-		int end = line.lastIndexOf('>');
-		String params = line.substring(start + 1, end);
+		final int start = line.indexOf('<');
+		final int end = line.lastIndexOf('>');
+		final String params = line.substring(start + 1, end);
 
 		// Find ID
 		Matcher matcher = pattern_id.matcher(params);
@@ -213,5 +213,10 @@ public class VcfHeaderRecord {
 		}
 	}	
 	@Override
-	public String toString() {	return line;	}
+	public String toString() {	
+		if (line != Constants.NULL_STRING) 
+			return (line.endsWith(Constants.NL_STRING))? line : line + Constants.NL  ;
+		return Constants.NULL_STRING;
+		
+	}
 }
