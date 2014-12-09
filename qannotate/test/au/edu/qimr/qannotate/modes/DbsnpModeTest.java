@@ -53,11 +53,11 @@ public class DbsnpModeTest {
 			int i = 0; 
 			for (final VcfHeaderRecord re : reader.getHeader()){
 				if(i == 0)  
-					assertTrue(re.getMetaType().equals(MetaType.META)  && re.toString().equals( "##fileformat=VCFv4.0"));
+					assertTrue(re.getMetaType().equals(MetaType.META)  && re.toString().equals( "##fileformat=VCFv4.0\n"));
 				else if(i == 1)  
-					assertTrue(re.getMetaType().equals(MetaType.META) && re.toString().equals( "##dbSNP_BUILD_ID=135"));
+					assertTrue(re.getMetaType().equals(MetaType.META) && re.toString().equals( "##dbSNP_BUILD_ID=135\n"));
 				else if(i == 2)  
-					assertTrue(re.getMetaType().equals(MetaType.INFO) && re.toString().equals("##INFO=<ID=GMAF,Number=1,Type=Float,Description=\"Global Minor Allele Frequency [0, 0.5]; global population is 1000GenomesProject phase 1 genotype data from 629 individuals, released in the 08-04-2010 dataset\">"));
+					assertTrue(re.getMetaType().equals(MetaType.INFO) && re.toString().equals("##INFO=<ID=GMAF,Number=1,Type=Float,Description=\"Global Minor Allele Frequency [0, 0.5]; global population is 1000GenomesProject phase 1 genotype data from 629 individuals, released in the 08-04-2010 dataset\">\n"));
 				else
 					assertFalse(true);
 				
