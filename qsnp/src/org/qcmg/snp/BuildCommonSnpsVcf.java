@@ -4,9 +4,11 @@
 package org.qcmg.snp;
 
 import java.io.File;
-import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -14,6 +16,7 @@ import java.util.Map;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.meta.QExec;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.FileUtils;
@@ -21,6 +24,11 @@ import org.qcmg.common.util.LoadReferencedClasses;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
+import org.qcmg.common.vcf.header.VcfHeader;
+import org.qcmg.common.vcf.header.VcfHeaderInfo;
+import org.qcmg.common.vcf.header.VcfHeaderRecord;
+import org.qcmg.common.vcf.header.VcfHeaderRecord.VcfInfoNumber;
+import org.qcmg.common.vcf.header.VcfHeaderRecord.VcfInfoType;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.tab.TabbedFileReader;
 import org.qcmg.tab.TabbedRecord;
@@ -54,15 +62,15 @@ public class BuildCommonSnpsVcf {
 		Arrays.sort(dcc1Files);
 		
 		logger.info("UNFILTERED LIST");
-		for (File f : dcc1Files) logger.info(f.getAbsolutePath());
+		for (final File f : dcc1Files) logger.info(f.getAbsolutePath());
 		logger.info("UNFILTERED LIST - END");
 		
 		if (null != additionalSearchStrings && additionalSearchStrings.length > 0) {
 			int i = 1;
 			// additional filtering of files
-			for (File f : dcc1Files) {
+			for (final File f : dcc1Files) {
 				boolean passesFilter = true;
-				for (String filter : additionalSearchStrings) {
+				for (final String filter : additionalSearchStrings) {
 					if ( ! f.getAbsolutePath().contains(filter)) {
 						passesFilter = false;
 						break;
@@ -74,7 +82,7 @@ public class BuildCommonSnpsVcf {
 		} else {
 			int i = 1;
 			// need to populate the map
-			for (File f : dcc1Files) mapOfFilesAndIds.put(f, i++);
+			for (final File f : dcc1Files) mapOfFilesAndIds.put(f, i++);
 		}
 		
 		logger.info("Will create an output file based on the contents of " + dcc1Files.length + " files matching " + searchString);
@@ -84,10 +92,10 @@ public class BuildCommonSnpsVcf {
 			// create map
 			snpPositions = new HashMap<ChrPosition, VcfRecord>(1024 * 1024 * 4);
 			
-			List<File> files = new ArrayList<File>(mapOfFilesAndIds.keySet());
+			final List<File> files = new ArrayList<File>(mapOfFilesAndIds.keySet());
 			Collections.sort(files);
 			
-			for (File f : files) {
+			for (final File f : files) {
 				// quick check to see if file still exists before proceeding
 				if (f.exists() && f.canRead()) {
 					
@@ -121,15 +129,15 @@ public class BuildCommonSnpsVcf {
 		
 		int count = 0;
 		try (VCFFileReader reader = new VCFFileReader(new File(fileName));) {
-			for (VcfRecord dbSNPVcf : reader) {
+			for (final VcfRecord dbSNPVcf : reader) {
 				if (++count % 1000000 == 0)
 					logger.info("hit " + count + " dbsnp records");
 				
 				// only proceed if we have a SNP variant record
 				if ( ! StringUtils.doesStringContainSubString(dbSNPVcf.getInfo(), "VC=SNV", false)) continue;
 				
-				ChrPosition cp = new ChrPosition(dbSNPVcf.getChromosome(), dbSNPVcf.getPosition());
-				VcfRecord commonSnpVcf = snpPositions.get(cp);
+				final ChrPosition cp = new ChrPosition(dbSNPVcf.getChromosome(), dbSNPVcf.getPosition());
+				final VcfRecord commonSnpVcf = snpPositions.get(cp);
 				if (null == commonSnpVcf) continue;
 				
 				// add the snp id to the the common vcf record
@@ -146,45 +154,80 @@ public class BuildCommonSnpsVcf {
 		}
 	}
 	
-	void writeVCF(String outputFileName) throws IOException {
+	void writeVCF(String outputFileName) throws Exception {
 		if (StringUtils.isNullOrEmpty(outputFileName)) {
 			logger.warn("No vcf output file scpecified so can't output vcf");
 			return;
 		}
 		logger.info("Writing VCF output");
-		
-		String header = VcfUtils.getHeaderForCommonSnps(searchString, searchDirectory, additionalSearchStrings, mapOfFilesAndIds);
-		
-		List<ChrPosition> orderedList = new ArrayList<ChrPosition>(snpPositions.keySet());
+
+		final List<ChrPosition> orderedList = new ArrayList<ChrPosition>(snpPositions.keySet());
 		Collections.sort(orderedList);
 		
 		try (VCFFileWriter writer = new VCFFileWriter(new File(outputFileName));) {
-			writer.addHeader(header);
-			for (ChrPosition position : orderedList) {
+			final VcfHeader header = getHeaderForCommonSnps(searchString, searchDirectory, additionalSearchStrings, mapOfFilesAndIds);
+			for(final VcfHeaderRecord re : header)
+				writer.addHeader(re.toString());
+			for (final ChrPosition position : orderedList) {
 				writer.add(snpPositions.get(position));
 			}
 		}
 	}
+	private VcfHeader getHeaderForCommonSnps(final String searchString, final String searchDirectory, String[] additionalSearchStrings, Map<File, Integer> mapOfFilesAndIds) throws Exception {
+		final VcfHeader header = new VcfHeader();
+		final DateFormat df = new SimpleDateFormat("yyyyMMdd");
+ //		final String fileDate = df.format(Calendar.getInstance().getTime());
+		//final String uuid = QExec.createUUid();		
+
+
+		//move input uuid into preuuid
+		header.add( new VcfHeaderRecord(VcfHeaderUtils.CURRENT_FILE_VERSION));		
+		header.add( new VcfHeaderRecord(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + df.format(Calendar.getInstance().getTime()) ));
+		header.add( new VcfHeaderRecord(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + QExec.createUUid() ));
+		header.add( new VcfHeaderRecord(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=" + Messages.getProgramName() + Main.class.getPackage().getImplementationVersion() ) );
+		header.add( new VcfHeaderRecord("##search_string=" + searchString ));
+		header.add( new VcfHeaderRecord( "##search_directory=" + searchDirectory));
+		header.add( new VcfHeaderRecord( "##additional_search_directory=" + Arrays.deepToString(additionalSearchStrings) ));
+		
+		if (null != mapOfFilesAndIds && mapOfFilesAndIds.size() > 0) {			
+			final List<File> files = new ArrayList<File>(mapOfFilesAndIds.keySet());
+			Collections.sort(files);			
+			for (final File f : files) {
+				header.add( new VcfHeaderInfo(mapOfFilesAndIds.get(f).toString(), VcfInfoNumber.NUMBER, 0, VcfInfoType.Flag, f.getAbsolutePath() , null, null));
+				//filesMapSB .append("##INFO=<ID=" + mapOfFilesAndIds.get(f) + ",Number=0,Type=Flag,Description=\"" + f.getAbsolutePath() + "\">\n");
+			}
+		}
+		
+		header.add(new VcfHeaderRecord(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE));
+		return header;
+/*		return "##fileformat=VCFv4.0\n" +
+		"##search_string=" + searchString + "\n" +
+		"##search_directory=" + searchDirectory + "\n" + 
+		"##additional_search_directory=" + Arrays.deepToString(additionalSearchStrings) + "\n" + 
+		filesMapSB.toString() + VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE+ "\n";
+		*/
+	}
+	
 	
 	private void processDccFile(File f, Integer id) throws Exception {
 		// read in data from file.
 		try (TabbedFileReader reader = new TabbedFileReader(f);) {
 			int i = 0;
-			for (TabbedRecord rec : reader) {
+			for (final TabbedRecord rec : reader) {
 				// ignore header line
 				if (i++ == 0) continue;
 				
-				String [] params = TabTokenizer.tokenize(rec.getData());
-				ChrPosition cp = new ChrPosition(params[4], Integer.parseInt(params[5]));
-				String ref = params[10];
-				String alt = getAltFromMutation(params, 13);		// can eventually change this to the last element in the file
+				final String [] params = TabTokenizer.tokenize(rec.getData());
+				final ChrPosition cp = new ChrPosition(params[4], Integer.parseInt(params[5]));
+				final String ref = params[10];
+				final String alt = getAltFromMutation(params, 13);		// can eventually change this to the last element in the file
 				
 				// check to see if this appears in the map already - if so, update patient (if not already there)
 				if (snpPositions.containsKey(cp)) {
-					VcfRecord vcfRec = snpPositions.get(cp);
-					String existingDonors = vcfRec.getInfo();
+					final VcfRecord vcfRec = snpPositions.get(cp);
+					final String existingDonors = vcfRec.getInfo();
 					
-					String existingRef = vcfRec.getRef();
+					final String existingRef = vcfRec.getRef();
 					if ( ! ref.equals(existingRef)) {
 						logger.warn("different references found at position : " + cp.toIGVString());
 					}
@@ -196,7 +239,7 @@ public class BuildCommonSnpsVcf {
 							vcfRec.setAlt("");	// delete
 						}
 						
-						for (char c : alt.toCharArray()) {
+						for (final char c : alt.toCharArray()) {
 							if (vcfRec.getAlt().indexOf(c) == -1) {
 								vcfRec.setAlt(vcfRec.getAlt().trim().length() > 0 ? (vcfRec.getAlt() + "," + c) : ""+c);
 							}
@@ -219,13 +262,13 @@ public class BuildCommonSnpsVcf {
 		// read in data from file.
 		try (TabbedFileReader reader = new TabbedFileReader(f);) {
 			int i = 0;
-			for (TabbedRecord rec : reader) {
+			for (final TabbedRecord rec : reader) {
 				// ignore header line
 				if (i++ == 0) continue;
 				
-				String [] params = TabTokenizer.tokenize(rec.getData());
-				ChrPosition cp = new ChrPosition(params[4], Integer.parseInt(params[5]));
-				String ref = params[10];
+				final String [] params = TabTokenizer.tokenize(rec.getData());
+				final ChrPosition cp = new ChrPosition(params[4], Integer.parseInt(params[5]));
+				final String ref = params[10];
 				final char alt1 = params[11].charAt(0);
 				final char alt2 = params[12].charAt(0);
 				String alt = ".";
@@ -235,10 +278,10 @@ public class BuildCommonSnpsVcf {
 				
 				// check to see if this appears in the map already - if so, update patient (if not already there)
 				if (snpPositions.containsKey(cp)) {
-					VcfRecord vcfRec = snpPositions.get(cp);
-					String existingDonors = vcfRec.getInfo();
+					final VcfRecord vcfRec = snpPositions.get(cp);
+					final String existingDonors = vcfRec.getInfo();
 					
-					String existingRef = vcfRec.getRef();
+					final String existingRef = vcfRec.getRef();
 					if (ref != existingRef) {
 						logger.warn("different references found at position : " + cp.toIGVString());
 					}
@@ -250,7 +293,7 @@ public class BuildCommonSnpsVcf {
 							vcfRec.setAlt("");	// delete
 						}
 						
-						for (char c : alt.toCharArray()) {
+						for (final char c : alt.toCharArray()) {
 							if (vcfRec.getAlt().indexOf(c) == -1) {
 								vcfRec.setAlt(vcfRec.getAlt().trim().length() > 0 ? (vcfRec.getAlt() + "," + c) : ""+c);
 							}
@@ -270,7 +313,7 @@ public class BuildCommonSnpsVcf {
 	}
 
 	private String getAltFromMutation(String [] params, int position) {
-		String mutation = params[position];
+		final String mutation = params[position];
 		String alt = ".";
 		if ( ! StringUtils.isNullOrEmpty(mutation)) {
 			if (mutation.length() == 3) {
@@ -309,8 +352,8 @@ public class BuildCommonSnpsVcf {
 		
 		LoadReferencedClasses.loadClasses(BuildCommonSnpsVcf.class);
 		
-		BuildCommonSnpsVcf main = new BuildCommonSnpsVcf();
-		int exitStatus = main.setup( args );
+		final BuildCommonSnpsVcf main = new BuildCommonSnpsVcf();
+		final int exitStatus = main.setup( args );
 		if (null != logger)
 			logger.logFinalExecutionStats(exitStatus);
 		else
@@ -319,7 +362,7 @@ public class BuildCommonSnpsVcf {
 	}
 	
 	int setup(String [] args) throws Exception{
-		Options options = new Options(args);
+		final Options options = new Options(args);
 		if (options.hasHelpOption() || null == args || args.length == 0) {
 //			System.out.println(Messages.USAGE);
 			options.displayHelp();

@@ -54,21 +54,34 @@ public final class VcfHeaderFormat extends VcfHeaderRecord{
 
 	}
 	
-	public VcfHeaderFormat(String id, VcfInfoNumber infoNumber, VcfInfoType infoType, String description) throws Exception {
-		super( null );
-		this.id = id;
-		vcfInfoNumber = infoNumber;
-		vcfInfoType = infoType;
-		this.description = description;
-		type = MetaType.FORMAT;
-		line = type.toString() + "=<ID=" + id//
-				+ ",Number=" + (number >= 0 ? number : vcfInfoNumber) //
-				+ ",Type=" + vcfInfoType //
-				+ ",Description=\"" + description + "\"" + ">" ;
-		
-		record = this;
+	/**
+	  * it create an INFO vcf header record, eg. ##INFO=<ID=id,NUMBER=number/infoNumber,Type=infoType,Description=description,Source=source,Version=version>
+	  * @param id 
+	  * @param infoNumbe
+	  * @param number: this number (>=0) will show on vcf header record if infoNumber is MetaType.NUMBER
+	  * @param infoType
+	  * @param description
+	  * @param source: it will show on vcf header if source != null
+	  * @param version: it will show on vcf header if source != null
+	  * @throws Exception
+	  */
+		public VcfHeaderFormat(String id, VcfInfoNumber infoNumber, int number, VcfInfoType infoType, String description) throws Exception {
 
-	}
+			super(null);
+			this.id = id;
+			vcfInfoNumber = infoNumber;
+			this.number = number;
+			vcfInfoType = infoType;
+			this.description = description;
+			 
+			this.type = MetaType.FORMAT; //type should bf line otherwise exception
+			this.line = type.toString() + "<ID=" + id//
+					+ ",Number=" + (number >= 0 ? number : vcfInfoNumber.toString()) //
+//					+ ",Number=" +vcfInfoNumber.toString()
+					+ ",Type=" + vcfInfoType.toString() //
+					+ ",Description=\"" + description + "\"" + ">" ;			
+			record = this;
+		}
 
 	public boolean isNumberAllAlleles() {
 		return vcfInfoNumber == VcfInfoNumber.ALL_ALLELES;
