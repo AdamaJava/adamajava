@@ -60,7 +60,7 @@ public abstract class AbstractMode {
 		Collections.sort(orderedList);
 		
 		try(VCFFileWriter writer = new VCFFileWriter( outputFile)) {			
-			for(final VcfHeaderRecord record: header)  writer.addHeader(record.toString()+"\n");
+			for(final VcfHeaderRecord record: header)  writer.addHeader(record.toString());
 			for (final ChrPosition position : orderedList) {				
 				final VcfRecord record = positionRecordMap.get(position); 
 				writer.add( record );				 

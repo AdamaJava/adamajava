@@ -22,7 +22,6 @@ import net.sf.samtools.SAMFileReader;
 import net.sf.samtools.SAMRecord;
 import net.sf.samtools.SAMSequenceRecord;
 
-import org.ini4j.Ini;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.meta.QDccMeta;
@@ -144,18 +143,18 @@ public final class VcfPipeline extends Pipeline {
 	
 	@Override
 	String getExistingVCFHeaderDetails()  {
-		StringBuilder sb = new StringBuilder();
+		final StringBuilder sb = new StringBuilder();
 		
 		
 		if ( ! singleSampleMode) {
 			
-			for (VcfHeaderRecord rec : controlVcfHeader) {
+			for (final VcfHeaderRecord rec : controlVcfHeader) {
 				sb.append(rec.toString()).append(Constants.NEW_LINE);
 			}
 			sb.append(Constants.DOUBLE_HASH).append(Constants.NEW_LINE);
 		}
 		
-		for (VcfHeaderRecord rec : testVcfHeader) {
+		for (final VcfHeaderRecord rec : testVcfHeader) {
 			sb.append(rec.toString()).append(Constants.NEW_LINE);
 		}
 		sb.append(Constants.DOUBLE_HASH).append(Constants.NEW_LINE);
@@ -171,10 +170,10 @@ public final class VcfPipeline extends Pipeline {
 				|| null == testBams || testBams.length == 0 
 				|| StringUtils.isNullOrEmpty(testBams[0])) return null;
 		
-		SAMFileHeader controlHeader = SAMFileReaderFactory.createSAMFileReader(controlBams[0]).getFileHeader();
-		SAMFileHeader analysisHeader = SAMFileReaderFactory.createSAMFileReader(testBams[0]).getFileHeader();
+		final SAMFileHeader controlHeader = SAMFileReaderFactory.createSAMFileReader(controlBams[0]).getFileHeader();
+		final SAMFileHeader analysisHeader = SAMFileReaderFactory.createSAMFileReader(testBams[0]).getFileHeader();
 		
-		QDccMeta dccMeta = QDccMetaFactory.getDccMeta(qexec, controlHeader, analysisHeader, "GATK");
+		final QDccMeta dccMeta = QDccMetaFactory.getDccMeta(qexec, controlHeader, analysisHeader, "GATK");
 		
 		return dccMeta.getDCCMetaDataToString();
 	}
@@ -183,15 +182,15 @@ public final class VcfPipeline extends Pipeline {
 	private void cleanSnpMap() {
 		logger.info("about to clean the map");
 		int normalUpdated = 0, tumourUpdated = 0;
-		for (QSnpRecord record : positionRecordMap.values()) {
+		for (final QSnpRecord record : positionRecordMap.values()) {
 			// if entry doesn't have a normal genotype, but contains a normal nucleotides string
 			// set normal genotype to hom ref
 			if (null == record.getNormalGenotype() && null != record.getNormalNucleotides()) {
-				String refString = record.getRef();
+				final String refString = record.getRef();
 				if (refString.length() > 1) {
 					logger.warn("refString: " + refString + " in VcfPipeline.cleanSnpMap");
 				}
-				char ref = refString.charAt(0);
+				final char ref = refString.charAt(0);
 				record.setNormalGenotype(GenotypeEnum.getGenotypeEnum(ref, ref));
 				normalUpdated++;
 			}
@@ -211,9 +210,9 @@ public final class VcfPipeline extends Pipeline {
 	private void addPileup() throws Exception {
 		
 		logger.info("Setting up Pileup threads");
-		long start = System.currentTimeMillis();
+		final long start = System.currentTimeMillis();
 		
-		int noOfThreads = singleSampleMode ? 1 : 2;
+		final int noOfThreads = singleSampleMode ? 1 : 2;
 		
 		final CountDownLatch latch = new CountDownLatch(noOfThreads);
 		final ExecutorService service = Executors.newFixedThreadPool(noOfThreads);
@@ -227,7 +226,7 @@ public final class VcfPipeline extends Pipeline {
 		try {
 			latch.await();
 			logger.info("Pileup threads finished in " + ((System.currentTimeMillis() - start)/1000) + " seconds");
-		} catch (InterruptedException ie) {
+		} catch (final InterruptedException ie) {
 			logger.error("InterruptedException caught",ie);
 			Thread.currentThread().interrupt();
 		}
@@ -237,15 +236,15 @@ public final class VcfPipeline extends Pipeline {
 	private void mergeControlAndTestRecords() {
 		
 		// loop through normal vcf map - get corresponding tumour if present
-		for (Entry<ChrPosition, QSnpRecord> entry : controlVCFMap.entrySet()) {
-			QSnpRecord tumour = testVCFMap.get(entry.getKey());
+		for (final Entry<ChrPosition, QSnpRecord> entry : controlVCFMap.entrySet()) {
+			final QSnpRecord tumour = testVCFMap.get(entry.getKey());
 			positionRecordMap.put(entry.getKey(), getQSnpRecord(entry.getValue(), tumour));
 		}
 		
 		// loop through tumour, making sure entry exists in qsnp map
-		for (Entry<ChrPosition, QSnpRecord> entry : testVCFMap.entrySet()) {
+		for (final Entry<ChrPosition, QSnpRecord> entry : testVCFMap.entrySet()) {
 			
-			QSnpRecord snpRecord = positionRecordMap.get(entry.getKey());
+			final QSnpRecord snpRecord = positionRecordMap.get(entry.getKey());
 			if (null == snpRecord) {
 				positionRecordMap.put(entry.getKey(), getQSnpRecord(null, entry.getValue()));
 			}
@@ -285,11 +284,11 @@ public final class VcfPipeline extends Pipeline {
 				} else {
 					testVcfHeader = reader.getHeader();
 				}
-				for (VcfRecord qpr : reader) {
+				for (final VcfRecord qpr : reader) {
 					
 					// if the length of the reference bases != length of the alt bases, its not a snp (or compound snp)
 					if (VcfUtils.isRecordAMnp(qpr)) {
-						QSnpRecord snpRecord = new QSnpRecord(qpr);
+						final QSnpRecord snpRecord = new QSnpRecord(qpr);
 						if (null != qpr.getFormatFields() && ! qpr.getFormatFields().isEmpty()) {
 							//	 set genotype
 							if (isControl) {
@@ -364,10 +363,10 @@ public final class VcfPipeline extends Pipeline {
 		}
 		
 		private void createComparatorFromSAMHeader(SAMFileReader reader) {
-			SAMFileHeader header = reader.getFileHeader();
+			final SAMFileHeader header = reader.getFileHeader();
 			
 			final List<String> sortedContigs = new ArrayList<String>();
-			for (SAMSequenceRecord contig : header.getSequenceDictionary().getSequences()) {
+			for (final SAMSequenceRecord contig : header.getSequenceDictionary().getSequences()) {
 				sortedContigs.add(contig.getSequenceName());
 			}
 			
@@ -385,7 +384,7 @@ public final class VcfPipeline extends Pipeline {
 				Collections.sort(snps, new Comparator<ChrPosition>() {
 					@Override
 					public int compare(ChrPosition o1, ChrPosition o2) {
-						int diff = chrComparator.compare(o1.getChromosome(), o2.getChromosome());
+						final int diff = chrComparator.compare(o1.getChromosome(), o2.getChromosome());
 						if (diff != 0) return diff;
 						return o1.getPosition() - o2.getPosition();
 					}
@@ -396,7 +395,7 @@ public final class VcfPipeline extends Pipeline {
 				Collections.sort(snps, new Comparator<ChrPosition>() {
 					@Override
 					public int compare(ChrPosition o1, ChrPosition o2) {
-						int diff = COMPARATOR.compare(o1.getChromosome(), o2.getChromosome());
+						final int diff = COMPARATOR.compare(o1.getChromosome(), o2.getChromosome());
 						if (diff != 0) return diff;
 						return o1.getPosition() - o2.getPosition();
 					}
@@ -414,17 +413,17 @@ public final class VcfPipeline extends Pipeline {
 			}
 			if (null != cp) {
 				// update QSnpRecord with our findings
-				Accumulator acc = pileupMap.remove(cp);
+				final Accumulator acc = pileupMap.remove(cp);
 				if (null != acc) {
-					QSnpRecord rec = positionRecordMap.get(cp);
+					final QSnpRecord rec = positionRecordMap.get(cp);
 					
-					String refString = rec.getRef();
+					final String refString = rec.getRef();
 					if (refString.length() > 1) {
 						logger.warn("refString: " + refString + " in VcfPipeline.cleanSnpMap");
 					}
-					char ref = refString.charAt(0);
+					final char ref = refString.charAt(0);
 					
-					PileupElementLite pel = acc.getLargestVariant(ref);
+					final PileupElementLite pel = acc.getLargestVariant(ref);
 					if (isNormal) {
 						rec.setNormalNucleotides(acc.getPileupElementString());
 						rec.setNormalCount(acc.getCoverage());
@@ -487,7 +486,7 @@ public final class VcfPipeline extends Pipeline {
 				Accumulator acc = pileupMap.get(cp);
 				if (null == acc) {
 					acc = new Accumulator(cp.getPosition());
-					Accumulator oldAcc = pileupMap.putIfAbsent(cp, acc);
+					final Accumulator oldAcc = pileupMap.putIfAbsent(cp, acc);
 					if (null != oldAcc) acc = oldAcc;
 				}
 				acc.addBase(sam.getReadBases()[indexInRead], baseQuality, ! sam.getReadNegativeStrandFlag(), 
@@ -506,7 +505,7 @@ public final class VcfPipeline extends Pipeline {
 				advanceCPAndPosition();
 				long recordCount = 0;
 				// take items off the queue and process
-				for (SAMRecord sam : reader) {
+				for (final SAMRecord sam : reader) {
 						
 					if (++recordCount % 1000000 == 0) {
 						logger.info("Processed " + recordCount/1000000 + "M records so far..");

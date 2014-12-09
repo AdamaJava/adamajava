@@ -1,5 +1,6 @@
 package org.qcmg.common.vcf.header;
 
+import org.qcmg.common.util.Constants;
 
 public final class VcfHeaderInfo extends VcfHeaderRecord{
 
@@ -49,7 +50,8 @@ public final class VcfHeaderInfo extends VcfHeaderRecord{
 	
 	@Override
 	public String toString() {
-		if (line != null) return line;
+		if (line != Constants.NULL_STRING) 
+			return (line.endsWith(Constants.NL_STRING))? line : line + Constants.NL  ;
 
 		return type.toString() + "<ID=" + id//
 				+ ",Number=" + (number >= 0 ? number : vcfInfoNumber) //
@@ -57,11 +59,8 @@ public final class VcfHeaderInfo extends VcfHeaderRecord{
 				+ ",Description=\"" + description + "\"" //
 				+ (source == null ? "" : ",Source=\"" + source + "\"" )//
 				+ (version == null ? "" : ",Version=\"" + version + "\"" )//
-				+ ">" //
-		;
+				+ ">" + Constants.NL;  
 	}
-	
 
-	
 	
 }

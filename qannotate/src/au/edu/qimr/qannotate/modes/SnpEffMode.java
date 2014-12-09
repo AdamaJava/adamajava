@@ -35,7 +35,7 @@ public class SnpEffMode extends AbstractMode{
         tmpFile = options.getOutputFileName() + ".tmp";
         
     	logger.tool("running snpEFF, output to " + tmpFile);
-    	boolean ok = addAnnotation( options , tmpFile );
+    	final boolean ok = addAnnotation( options , tmpFile );
 
     	logger.tool("exit snpEFF: " + ok);
 		
@@ -56,15 +56,15 @@ public class SnpEffMode extends AbstractMode{
 		try(VCFFileReader reader = new VCFFileReader(new File( tmpFile));
 				VCFFileWriter writer = new VCFFileWriter(outputFile )){
 								
-        	for(VcfHeaderRecord record: header)  writer.addHeader(record.toString()+"\n");
-        	for (VcfRecord qpr : reader) writer.add(qpr);
+        	for(final VcfHeaderRecord record: header)  writer.addHeader(record.toString());
+        	for (final VcfRecord qpr : reader) writer.add(qpr);
 		} 
 	}
 		//throws Exception
 	private boolean addAnnotation(SnpEffOptions options, String tmpFile ) throws Exception{	
 		
-		List<String> command = new ArrayList<String>();
-		File fdata = new File(options.getDatabaseFileName());
+		final List<String> command = new ArrayList<String>();
+		final File fdata = new File(options.getDatabaseFileName());
 		
 		int i = 0;
 		command.add(i, "eff");
@@ -81,7 +81,7 @@ public class SnpEffMode extends AbstractMode{
 		command.add(++i, options.getInputFileName());
 		
 		//run snpEff, store output to a tmp file
-		String[] args =  command.toArray(new String[0]) ;	
+		final String[] args =  command.toArray(new String[0]) ;	
     	logger.tool( command.toString());	 
 		
 		boolean ok = false;
@@ -89,7 +89,7 @@ public class SnpEffMode extends AbstractMode{
 				PrintStream ps =  new PrintStream(tmpFile)){
 			
 			System.setOut(ps);	
-			SnpEff snpEff = new SnpEff(args);
+			final SnpEff snpEff = new SnpEff(args);
 			ok = snpEff.run();
 						
 	 	//	SnpEff.main(args); it will exit system once done
