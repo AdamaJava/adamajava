@@ -30,31 +30,26 @@ public class VcfPipelineTest {
 	public  TemporaryFolder testFolder = new TemporaryFolder();
 	@org.junit.Rule
     public ExpectedException thrown= ExpectedException.none();
-	
-	
-	
-	
-	
-	private void createVcfFile(File vcfFile, List<String> data) throws IOException {
-		FileWriter writer = new FileWriter(vcfFile);
-		try {
+
+	@SuppressWarnings("unused")
+	private void createVcfFile( File vcfFile, List<String> data ) throws IOException {
+		
+		try (final FileWriter writer = new FileWriter(vcfFile);){
 			// add data
-			for (String s : data) {
+			for (final String s : data) {
 				writer.write(s + NL);
 			}
-		} finally {
-			writer.close();
-		}
+		}  
 	}
 	
 	@Test
 	public void testPileupPipelineEmptyPileupFile() throws Exception {
-		File logFile = testFolder.newFile("qsnp.log");
-		File iniFile = testFolder.newFile("qsnp.ini");
+		final File logFile = testFolder.newFile("qsnp.log");
+		final File iniFile = testFolder.newFile("qsnp.ini");
 		IniFileGenerator.createRulesOnlyIni(iniFile);
 		
-		File pileupInput = testFolder.newFile("input.pileup");
-		File vcfOutput = testFolder.newFile("output.vcf");
+		final File pileupInput = testFolder.newFile("input.pileup");
+		final File vcfOutput = testFolder.newFile("output.vcf");
 		
 //		PileupFileGenerator.createPileupFile(pileupInput);
 		
@@ -62,19 +57,20 @@ public class VcfPipelineTest {
 		IniFileGenerator.addOutputFiles(iniFile, false, "vcf = " + vcfOutput.getAbsolutePath());
 		
 		// that should be it
-		String command = "-log " + logFile.getAbsolutePath() + " -i " + iniFile.getAbsolutePath();
-		Executor exec = new Executor(command, "org.qcmg.snp.Main");
+		final String command = "-log " + logFile.getAbsolutePath() + " -i " + iniFile.getAbsolutePath();
+		final Executor exec = new Executor(command, "org.qcmg.snp.Main");
 		assertEquals(1, exec.getErrCode());
 	}
 	
 	@Test
 	public void testPileupPipelineGenerateVCFOnly() throws Exception {
-		File logFile = testFolder.newFile("qsnp.log");
-		File iniFile = testFolder.newFile("qsnp.ini");
+		
+		final File logFile = testFolder.newFile("qsnp.log");
+		final File iniFile = testFolder.newFile("qsnp.ini");
 		IniFileGenerator.createRulesOnlyIni(iniFile);
 		
-		File pileupInput = testFolder.newFile("input.pileup");
-		File vcfOutput = testFolder.newFile("output.vcf");
+		final File pileupInput = testFolder.newFile("input.pileup");
+		final File vcfOutput = testFolder.newFile("output.vcf");
 		
 		PileupFileGenerator.createPileupFile(pileupInput);
 		
@@ -86,8 +82,8 @@ public class VcfPipelineTest {
 		
 		// that should be it
 		ExpectedException.none();
-		String command = "-log " + logFile.getAbsolutePath() + " -i " + iniFile.getAbsolutePath();
-		Executor exec = new Executor(command, "org.qcmg.snp.Main");
+		final String command = "-log " + logFile.getAbsolutePath() + " -i " + iniFile.getAbsolutePath();
+		final Executor exec = new Executor(command, "org.qcmg.snp.Main");
 		assertEquals(0, exec.getErrCode());
 		assertTrue(0 == exec.getOutputStreamConsumer().getLines().length);
 		
@@ -97,12 +93,12 @@ public class VcfPipelineTest {
 	
 	@Test
 	public void testPileupPipelineGenerateVCFOnlyIncludeIndels() throws Exception {
-		File logFile = testFolder.newFile("qsnp.log");
-		File iniFile = testFolder.newFile("qsnp.ini");
+		final File logFile = testFolder.newFile("qsnp.log");
+		final File iniFile = testFolder.newFile("qsnp.ini");
 		IniFileGenerator.createRulesOnlyIni(iniFile);
 		
-		File pileupInput = testFolder.newFile("input.pileup");
-		File vcfOutput = testFolder.newFile("output.vcf");
+		final File pileupInput = testFolder.newFile("input.pileup");
+		final File vcfOutput = testFolder.newFile("output.vcf");
 		
 		PileupFileGenerator.createPileupFile(pileupInput);
 		
@@ -115,8 +111,8 @@ public class VcfPipelineTest {
 		
 		// that should be it
 		ExpectedException.none();
-		String command = "-log " + logFile.getAbsolutePath() + " -i " + iniFile.getAbsolutePath();
-		Executor exec = new Executor(command, "org.qcmg.snp.Main");
+		final String command = "-log " + logFile.getAbsolutePath() + " -i " + iniFile.getAbsolutePath();
+		final Executor exec = new Executor(command, "org.qcmg.snp.Main");
 		assertEquals(0, exec.getErrCode());
 		assertTrue(0 == exec.getOutputStreamConsumer().getLines().length);
 		
@@ -126,12 +122,12 @@ public class VcfPipelineTest {
 	
 	@Test
 	public void testPileupPipelineDCCMode() throws Exception{
-		File logFile = testFolder.newFile("qsnp.log");
-		File iniFile = testFolder.newFile("qsnp.ini");
+		final File logFile = testFolder.newFile("qsnp.log");
+		final File iniFile = testFolder.newFile("qsnp.ini");
 		IniFileGenerator.createRulesOnlyIni(iniFile);
 		
-		File pileupInput = testFolder.newFile("input.pileup");
-		File vcfOutput = testFolder.newFile("output.vcf");
+		final File pileupInput = testFolder.newFile("input.pileup");
+		final File vcfOutput = testFolder.newFile("output.vcf");
 		
 		PileupFileGenerator.createPileupFile(pileupInput);
 		
@@ -147,8 +143,8 @@ public class VcfPipelineTest {
 		
 		// that should be it
 		ExpectedException.none();
-		String command = "-log " + logFile.getAbsolutePath() + " -i " + iniFile.getAbsolutePath();
-		Executor exec = new Executor(command, "org.qcmg.snp.Main");
+		final String command = "-log " + logFile.getAbsolutePath() + " -i " + iniFile.getAbsolutePath();
+		final Executor exec = new Executor(command, "org.qcmg.snp.Main");
 		assertEquals(0, exec.getErrCode());
 		assertTrue(0 == exec.getOutputStreamConsumer().getLines().length);
 		
@@ -157,10 +153,10 @@ public class VcfPipelineTest {
 	}
 	
 	private int noOfLinesInVCFOutputFile(File vcfOutput) throws Exception {
-		VCFFileReader reader = new VCFFileReader(vcfOutput);
+		final VCFFileReader reader = new VCFFileReader(vcfOutput);
 		int noOfLines = 0;
 		try {
-			for (VcfRecord vcf : reader) noOfLines++;
+			for (final VcfRecord vcf : reader) noOfLines++;
 		} finally {
 			reader.close();
 		}
@@ -168,10 +164,10 @@ public class VcfPipelineTest {
 	}
 	
 	private int noOfLinesInDCCOutputFile(File dccFile) throws Exception {
-		TabbedFileReader reader = new TabbedFileReader(dccFile);
+		final TabbedFileReader reader = new TabbedFileReader(dccFile);
 		int noOfLines = 0;
 		try {
-			for (TabbedRecord vcf : reader) {
+			for (final TabbedRecord vcf : reader) {
 				if (vcf.getData().startsWith("analysis")) continue;	// header line
 				noOfLines++;
 			}
@@ -186,8 +182,8 @@ public class VcfPipelineTest {
 		// arguments are.....
 		// int variantCount, int coverage, Rule rule, List<PileupElement> baseCounts, double percentage
 		
-		Rule r = new Rule(0, 20, 1);
-		List<PileupElement> pes = new ArrayList<PileupElement>();
+		final Rule r = new Rule(0, 20, 1);
+		final List<PileupElement> pes = new ArrayList<PileupElement>();
 		
 		assertEquals(false, PileupPipeline.isPileupRecordAKeeper(0, 0, r, null, 0));
 		assertEquals(false, PileupPipeline.isPileupRecordAKeeper(0, 0, r, pes, 0));
@@ -195,10 +191,10 @@ public class VcfPipelineTest {
 		try {	// variant count is greater than total count
 			assertEquals(false, PileupPipeline.isPileupRecordAKeeper(1, 0, r, pes, 0));
 			Assert.fail("Should have thrown an IllegalArgumentException");
-		} catch (IllegalArgumentException e) {}
+		} catch (final IllegalArgumentException e) {}
 		
 		assertEquals(false, PileupPipeline.isPileupRecordAKeeper(1, 1, r, pes, 0));
-		PileupElement pe = new PileupElement('A');
+		final PileupElement pe = new PileupElement('A');
 		pe.incrementForwardCount((byte)'I');
 		pes.add(pe);
 		assertEquals(true, PileupPipeline.isPileupRecordAKeeper(1, 1, r, pes, 0));
@@ -213,7 +209,7 @@ public class VcfPipelineTest {
 		assertEquals(true, PileupPipeline.isPileupRecordAKeeper(2, 100, new Rule(0,Integer.MAX_VALUE,4), pes, 0));
 		assertEquals(false, PileupPipeline.isPileupRecordAKeeper(1, 100, new Rule(0,Integer.MAX_VALUE,4), pes, 0));
 		
-		PileupElement pe2 = new PileupElement('.');
+		final PileupElement pe2 = new PileupElement('.');
 		pe2.incrementForwardCount((byte)'I');
 		pe2.incrementForwardCount((byte)'I');
 		pe2.incrementForwardCount((byte)'I');
@@ -229,13 +225,13 @@ public class VcfPipelineTest {
 	@Test
 	public void testIsVariantOnBothStrands() {
 		assertEquals(false, PileupPipeline.isVariantOnBothStrands(null));
-		List<PileupElement> pes = new ArrayList<PileupElement>();
+		final List<PileupElement> pes = new ArrayList<PileupElement>();
 		assertEquals(false, PileupPipeline.isVariantOnBothStrands(pes));
-		PileupElement pe = new PileupElement('.');
+		final PileupElement pe = new PileupElement('.');
 		pe.incrementForwardCount((byte)'I');
 		pes.add(pe);
 		assertEquals(false, PileupPipeline.isVariantOnBothStrands(pes));
-		PileupElement pe2 = new PileupElement('C');
+		final PileupElement pe2 = new PileupElement('C');
 		pe2.incrementForwardCount((byte)'I');
 		pes.add(pe2);
 		assertEquals(false, PileupPipeline.isVariantOnBothStrands(pes));
@@ -243,7 +239,7 @@ public class VcfPipelineTest {
 		assertEquals(true, PileupPipeline.isVariantOnBothStrands(pes));
 		
 		pes.clear();
-		PileupElement pe3 = new PileupElement('T');
+		final PileupElement pe3 = new PileupElement('T');
 		pe3.incrementReverseCount((byte)'I');
 		pes.add(pe3);
 		assertEquals(false, PileupPipeline.isVariantOnBothStrands(pes));
