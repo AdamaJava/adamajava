@@ -28,12 +28,12 @@ public class StandardPipelineTest {
 	
 	@Test
 	public void testRunStandardMode() throws Exception{
-		File logFile = testFolder.newFile("qsnp.log");
-		File normalBam = createCoverageSam("normal.bam");
-		File tumourBam = createTumourCoverageSam("tumour.bam");
-		File reference = createRefFile("StandardPipelineTest.reference.fa");
-		File ini = testFolder.newFile("ini.ini");
-		File vcf = testFolder.newFile("output.vcf");
+		final File logFile = testFolder.newFile("qsnp.log");
+		final File normalBam = createCoverageSam("normal.bam");
+		final File tumourBam = createTumourCoverageSam("tumour.bam");
+		final File reference = createRefFile("StandardPipelineTest.reference.fa");
+		final File ini = testFolder.newFile("ini.ini");
+		final File vcf = testFolder.newFile("output.vcf");
 		IniFileGenerator.createRulesOnlyIni(ini);
 		IniFileGenerator.addInputFiles(ini, false, "ref = " + reference.getAbsolutePath());
 		IniFileGenerator.addInputFiles(ini, false, "controlBam = " + normalBam.getAbsolutePath());
@@ -41,22 +41,22 @@ public class StandardPipelineTest {
 //		IniFileGenerator.addStringToIniFile(ini, "[filter]\nquery = \"Flag_DuplicateRead == false\"", true);
 		IniFileGenerator.addOutputFiles(ini, false, "vcf = " + vcf.getAbsolutePath());
 		IniFileGenerator.addStringToIniFile(ini, "[parameters]\nrunMode = standard", true);
-//		IniFileGenerator.addStringToIniFile(ini, "\nannotateMode = dcc", true);
-		
+//		IniFileGenerator.addStringToIniFile(ini, "\nannotateMode = dcc", true);		
 //		new StandardPipeline(new Ini(ini));
 		
-		String command = "-log " + logFile.getAbsolutePath() + " -i " + ini.getAbsolutePath();
-		Executor exec = new Executor(command, "org.qcmg.snp.Main");
+		final String command = "-log " + logFile.getAbsolutePath() + " -i " + ini.getAbsolutePath();
+		final Executor exec = new Executor(command, "org.qcmg.snp.Main");
 		assertEquals(0, exec.getErrCode());
 		assertTrue(0 == exec.getOutputStreamConsumer().getLines().length);
 	}
 	
+	@SuppressWarnings("unused")
 	private int noOfColumnsInDCCOutputFile(File dccFile) throws Exception {
-		TabbedFileReader reader = new TabbedFileReader(dccFile);
+		final TabbedFileReader reader = new TabbedFileReader(dccFile);
 		try {
-			for (TabbedRecord vcf : reader) {
+			for (final TabbedRecord vcf : reader) {
 				if (vcf.getData().startsWith("analysis")) continue;	// header line
-				String[] data = vcf.getData().split("\t");
+				final String[] data = vcf.getData().split("\t");
 				return data.length;
 			}
 		} finally {
@@ -67,8 +67,8 @@ public class StandardPipelineTest {
 	
 	@Ignore
 	public void testContainsAndRemove() {
-		ConcurrentMap<Integer, Accumulator> map = new ConcurrentHashMap<Integer, Accumulator>();
-		int noOfLoops = 100000;
+		final ConcurrentMap<Integer, Accumulator> map = new ConcurrentHashMap<Integer, Accumulator>();
+		final int noOfLoops = 100000;
 		long time = System.currentTimeMillis();
 		for (int i = 0 ; i < noOfLoops ; i++) {
 			map.remove(i);
@@ -91,9 +91,9 @@ public class StandardPipelineTest {
 	
 	@Ignore
 	public void testContainsAndRemoveFullMap() {
-		ConcurrentMap<Integer, Accumulator> map = new ConcurrentHashMap<Integer, Accumulator>();
+		final ConcurrentMap<Integer, Accumulator> map = new ConcurrentHashMap<Integer, Accumulator>();
 		
-		int noOfLoops = 100000;
+		final int noOfLoops = 100000;
 		for (int i = 0 ; i < noOfLoops ; i ++) {
 			map.put(i, new Accumulator(i));
 		}
@@ -132,7 +132,7 @@ public class StandardPipelineTest {
 		
 		time = System.currentTimeMillis();
 		for (int i = 0 ; i < noOfLoops ; i++) {
-			Accumulator acc = map.get(i);
+			final Accumulator acc = map.get(i);
 			if (null != acc) map.remove(i, acc);
 		}
 		System.out.println("FULL: get and remove time: " + (System.currentTimeMillis() - time));
@@ -140,9 +140,9 @@ public class StandardPipelineTest {
 	
 	
 	public final File createCoverageSam(final String fileName) throws Exception {
-		File file = testFolder.newFile(fileName);
-		OutputStream os = new FileOutputStream(file);
-		PrintStream ps = new PrintStream(os);
+		final File file = testFolder.newFile(fileName);
+		final OutputStream os = new FileOutputStream(file);
+		final PrintStream ps = new PrintStream(os);
 		
 		ps.println("@HD	VN:1.0	SO:coordinate");
 		ps.println("@RG	ID:20100803052556101	SM:ES	DS:rl=50	");
@@ -169,9 +169,10 @@ public class StandardPipelineTest {
 	}
 	
 	public final File createTumourCoverageSam(final String fileName) throws Exception {
-		File file = testFolder.newFile(fileName);
-		OutputStream os = new FileOutputStream(file);
-		PrintStream ps = new PrintStream(os);
+		final File file = testFolder.newFile(fileName);
+		
+		final OutputStream os = new FileOutputStream(file);
+		final PrintStream ps = new PrintStream(os);
 		
 		ps.println("@HD	VN:1.0	SO:coordinate");
 		ps.println("@RG	ID:2010080607305580	SM:ES	DS:rl=50	");
@@ -207,11 +208,11 @@ public class StandardPipelineTest {
 	}
 	
 	public final File createRefFile(final String filename) throws IOException {
-		File file = testFolder.newFile(filename);
-		OutputStream os = new FileOutputStream(file);
-		PrintStream ps = new PrintStream(os);
+		final File file = testFolder.newFile(filename);
+		final OutputStream os = new FileOutputStream(file);
+		final PrintStream ps = new PrintStream(os);
 		ps.println(">chr1");
-		char[] chr1 = new char[12000000];
+		final char[] chr1 = new char[12000000];
 		Arrays.fill(chr1, 'A');
 		ps.println(chr1);
 		ps.close();
