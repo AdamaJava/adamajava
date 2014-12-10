@@ -9,8 +9,8 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.TabTokenizer;
-import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfInfoFieldRecord;
+import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderRecord.MetaType;
@@ -95,7 +95,8 @@ public class DbsnpMode extends AbstractMode{
 				if (null == alts)  continue;			
 				//annotation if at least one alts matches dbSNP alt
 				for (final String alt : alts)  
-					if(dbSNPVcf.getAlt().toUpperCase().contains(alt.toUpperCase()) ){
+					//if(dbSNPVcf.getAlt().toUpperCase().contains(alt.toUpperCase()) ){
+					if(dbSNPVcf.getAlt().equalsIgnoreCase(alt)  ){
 						inputVcf.addInfo(getGMAF(dbSNPVcf.getInfo()));
 						inputVcf.setId(dbSNPVcf.getId());						
 						break;

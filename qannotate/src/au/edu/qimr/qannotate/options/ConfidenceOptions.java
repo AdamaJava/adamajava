@@ -1,9 +1,8 @@
 package au.edu.qimr.qannotate.options;
 
 import static java.util.Arrays.asList;
-import au.edu.qimr.qannotate.Messages;
-import au.edu.qimr.qannotate.options.Options.MODE;
 import joptsimple.OptionSet;
+import au.edu.qimr.qannotate.Messages;
 
 /*
  * parse command line to options. 
@@ -29,7 +28,7 @@ public class ConfidenceOptions extends Options {
         parser.accepts("mode", "run confident mode").withRequiredArg().ofType(String.class).describedAs("dbsnp");
         parser.accepts("log", LOG_DESCRIPTION).withRequiredArg().ofType(String.class);
         parser.accepts("loglevel",  LOG_LEVEL_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
-        OptionSet options = parser.parse(args);   
+        final OptionSet options = parser.parse(args);   
         
         if(options.has("h") || options.has("help")){
         	displayHelp(Messages.getMessage("CONFIDENCE_USAGE"));
@@ -52,9 +51,9 @@ public class ConfidenceOptions extends Options {
         outputFileName = (String) options.valueOf("o") ; 
         databaseFileName = (String) options.valueOf("d") ; 
 
-        String[] inputs = new String[]{ inputFileName,databaseFileName} ;
-        String[] outputs = new String[]{outputFileName};
-        String [] ios = new String[inputs.length + outputs.length];
+        final String[] inputs = new String[]{ inputFileName,databaseFileName} ;
+        final String[] outputs = new String[]{outputFileName};
+        final String [] ios = new String[inputs.length + outputs.length];
         System.arraycopy(inputs, 0, ios, 0, inputs.length);
         System.arraycopy(outputs, 0, ios, inputs.length, outputs.length);
         return checkInputs(inputs )  && checkOutputs(outputs ) && checkUnique(ios);

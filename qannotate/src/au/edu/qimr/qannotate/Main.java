@@ -10,12 +10,14 @@ import au.edu.qimr.qannotate.modes.CustomerConfidenceMode;
 import au.edu.qimr.qannotate.modes.DbsnpMode;
 import au.edu.qimr.qannotate.modes.GermlineMode;
 import au.edu.qimr.qannotate.modes.SnpEffMode;
+import au.edu.qimr.qannotate.modes.Vcf2maf;
 import au.edu.qimr.qannotate.options.ConfidenceOptions;
 import au.edu.qimr.qannotate.options.CustomerConfidenceOptions;
 import au.edu.qimr.qannotate.options.DbsnpOptions;
 import au.edu.qimr.qannotate.options.GermlineOptions;
 import au.edu.qimr.qannotate.options.Options;
 import au.edu.qimr.qannotate.options.SnpEffOptions;
+import au.edu.qimr.qannotate.options.Vcf2mafOptions;
 
 public class Main {
 	 
@@ -24,7 +26,7 @@ public class Main {
 
  		
       try {
-            Options options = new Options();
+            final Options options = new Options();
             
             if ( options.parseArgs(args)){ 	    
             	LoadReferencedClasses.loadClasses(Main.class);    
@@ -39,9 +41,10 @@ public class Main {
             	    new SnpEffMode( (SnpEffOptions) options.getOption(), logger );
                else if(options.getOption().getMode() == Options.MODE.confidence)
             	    new ConfidenceMode( (ConfidenceOptions) options.getOption(), logger );
-
                else if(options.getOption().getMode() == Options.MODE.customerConfidence)
-            	    new CustomerConfidenceMode( (CustomerConfidenceOptions) options.getOption(), logger );	            	     
+            	    new CustomerConfidenceMode( (CustomerConfidenceOptions) options.getOption(), logger );	 
+               else if(options.getOption().getMode() == Options.MODE.vcf2maf)
+            	   new Vcf2maf((Vcf2mafOptions) options.getOption(),logger);
                else
             	   throw new Exception("No valid mode are specified on commandline: " + options.getMode().name()) ;
 
