@@ -32,6 +32,7 @@ public class VcfRecord {
 //	private String format;
 	private List<String> format = new ArrayList<>(4);
 	
+	
 	public VcfRecord(ChrPosition cp, String id, String ref, String alt) {
 		this.chrPos = cp;
 		this.id = id;
@@ -144,7 +145,11 @@ public class VcfRecord {
 	public void setFormatField(List<String> field) {
 		format = field;		// 1 for header, 1 for control and 1 for test
 	}
-	
+	/**
+	 * 
+	 * @return the first element is value of FORMAT column: eg. GT:GD:AC
+	 * the second  and third element are values of normal and tumor column: eg. 0/1:A/G:A15[38.93],15[38.67],G1[39],1[39]
+	 */
 	public List<String> getFormatFields() {
 		return format;
 	}

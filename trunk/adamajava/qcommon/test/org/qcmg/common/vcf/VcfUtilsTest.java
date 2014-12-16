@@ -15,6 +15,39 @@ import org.qcmg.common.model.PileupElement;
 
 public class VcfUtilsTest {
 	
+	
+	@Test
+	public void getAltFrequencyTest(){
+		
+        //"chrY\t14923588\t.\tG\tA\t.\tSBIAS\tMR=15;NNS=13;FS=GTGATATTCCC\tGT:GD:AC\t0/1:G/A:A0[0],15[36.2],G11[36.82],9[33]\t0/1:G/A:A0[0],33[35.73],G6[30.5],2[34]"); 
+        //"chrY\t2675825\t.\tTTG\tTCA\t.\tMIN;MIUN\tSOMATIC;END=2675826\tACCS\tTTG,5,37,TCA,0,2\tTAA,1,1,TCA,4,1,TCT,3,1,TTA,11,76,TTG,2,2,_CA,0,3,TTG,0,1");
+
+		String str = "chrY\t14923588\t.\tG\tA\t.\tSBIAS\tMR=15;NNS=13;FS=GTGATATTCCC\tGT:GD:AC\t0/1:G/A:A0[0],15[36.2],G11[36.82],9[33]\t0/1:G/A:A0[0],33[35.73],G6[30.5],2[34]" ; 
+		VcfRecord  vcf  = new VcfRecord(str.split("\t"));
+		VcfFormatFieldRecord format = new VcfFormatFieldRecord(vcf.getFormatFields().get(0), vcf.getFormatFields().get(1));
+		int count = VcfUtils.getAltFrequency(format, null);
+		assertEquals(count,35);
+		
+		count = VcfUtils.getAltFrequency(format, "G");
+		assertEquals(count,20);
+		
+		count = VcfUtils.getAltFrequency(format, "W");
+		assertEquals(count,0);
+		
+
+		//test coumpound snp
+		str =  "chrY\t2675825\t.\tTTG\tTCA\t.\tMIN;MIUN\tSOMATIC;END=2675826\tACCS\tTTG,5,37,TCA,0,2\tTAA,1,1,TCA,4,1,TCT,3,1,TTA,11,76,TTG,2,2,_CA,0,3,TTG,0,1" ;
+		vcf  = new VcfRecord(str.split("\t"));
+		format = new VcfFormatFieldRecord(vcf.getFormatFields().get(0), vcf.getFormatFields().get(2));
+		count = VcfUtils.getAltFrequency(format, "TCT");
+		assertEquals(count,4);
+		
+		count = VcfUtils.getAltFrequency(format, null);
+		assertEquals(count,106);
+		System.out.println(count);
+		
+	}
+	
 	@Test
 	public void testGetADFromGenotypeField() {
 		String genotype = "";
@@ -62,10 +95,10 @@ public class VcfUtilsTest {
 	public void testGetPileupElementAsString() {
 		assertEquals("FULLCOV=A:0,C:0,G:0,T:0,N:0,TOTAL:0", VcfUtils.getPileupElementAsString(null, false));
 		assertEquals("NOVELCOV=A:0,C:0,G:0,T:0,N:0,TOTAL:0", VcfUtils.getPileupElementAsString(null, true));
-		List<PileupElement> pileups = new ArrayList<PileupElement>();
-		PileupElement pA = new PileupElement('A');
+		final List<PileupElement> pileups = new ArrayList<PileupElement>();
+		final PileupElement pA = new PileupElement('A');
 		pA.incrementForwardCount();
-		PileupElement pC = new PileupElement('C');
+		final PileupElement pC = new PileupElement('C');
 		pC.incrementForwardCount();
 		pileups.add(pA);
 		assertEquals("NOVELCOV=A:1,C:0,G:0,T:0,N:0,TOTAL:1", VcfUtils.getPileupElementAsString(pileups, true));
@@ -113,7 +146,7 @@ public class VcfUtilsTest {
 	@Test
 	public void testGetStringFromCharSet() {
 		assertEquals("", VcfUtils.getStringFromCharSet(null));
-		Set<Character> set = new TreeSet<Character>();
+		final Set<Character> set = new TreeSet<Character>();
 		
 		assertEquals("", VcfUtils.getStringFromCharSet(set));
 		set.add('T');
@@ -164,7 +197,7 @@ public class VcfUtilsTest {
 	@Test
 	public void isRecordAMnpCheckIndels() {
 		
-		VcfRecord rec = VcfUtils.createVcfRecord("1", 1, "ACCACCACC");
+		final VcfRecord rec = VcfUtils.createVcfRecord("1", 1, "ACCACCACC");
 		assertEquals(false, VcfUtils.isRecordAMnp(rec));
 		
 		rec.setAlt("A,AACCACC");

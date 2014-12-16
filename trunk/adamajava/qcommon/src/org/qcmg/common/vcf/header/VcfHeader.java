@@ -1,12 +1,14 @@
 package org.qcmg.common.vcf.header;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.vcf.header.VcfHeaderRecord.MetaType;
 
 /**
@@ -19,6 +21,9 @@ import org.qcmg.common.vcf.header.VcfHeaderRecord.MetaType;
  */
 
 public class VcfHeader implements Iterable<VcfHeaderRecord> {	
+	
+	static final String format = "FORMAT";
+	
 	//default first 4 lines as standard
 	VcfHeaderRecord version = null;
 	VcfHeaderRecord fileDate = null;	
@@ -33,7 +38,7 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 	final List<VcfHeaderRecord> others;
 	VcfHeaderRecord chromLine = null;
 	
-	ArrayList<String> sampleNames;
+	
 //	private boolean VcfHeaderRecord;
 	
 	
@@ -54,6 +59,10 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 		for (final String record : headerRecords) {
 			add(new VcfHeaderRecord(record));
 		}
+		
+		//in case missing header line
+		if(chromLine == null)
+			chromLine = new VcfHeaderRecord(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE);
 	 }
 	
 	//only meta data header line can be replaced
@@ -74,7 +83,9 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 	
 	public VcfHeaderRecord get(MetaType type, final String key) throws Exception{
 		
-		final String id = ( key.endsWith("=") )? key.substring(0,key.length() - 1) : key;
+		//remove "=" and space
+		String id = ( key.endsWith("=") )? key.substring(0,key.length() - 1) : key;
+		id = id.replaceAll(" ", "");
  		
 		Iterator<VcfHeaderRecord> it;
 		switch (type) {
@@ -104,6 +115,18 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 		return null;	 
 	}
 
+	public String[] getSampleId() throws Exception{
+		if(chromLine == null)
+			throw new Exception("missing vcf header line, eg. " + VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE);
+		
+		final String[] column = chromLine.toString().trim().split(Constants.TAB+"");
+		
+		if(column[8].equalsIgnoreCase(format) && column.length > 9)
+			return Arrays.copyOfRange(column, 9, column.length);
+		
+		return null;
+		
+	}
  
 	public void add(VcfHeaderRecord record) throws Exception {
 		if(record.type.equals(MetaType.FILTER)  ) 
