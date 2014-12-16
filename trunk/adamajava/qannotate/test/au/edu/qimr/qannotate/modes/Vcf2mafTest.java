@@ -15,7 +15,6 @@ import org.qcmg.common.util.Constants;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.vcf.VCFFileReader;
 
-import au.edu.qimr.qannotate.utils.SnpEffMafRecord;
 import au.edu.qimr.qannotate.utils.SnpEffMafRecord.mutation_status;
 
 public class Vcf2mafTest {
@@ -37,13 +36,6 @@ public class Vcf2mafTest {
 		 for(int i  = 0; i < out.length; i++)
 			 System.out.println("i: " + out[i] );
 		 
-		 final String[] samples = null;
-		 System.out.println("samples length is "+ samples.length);
-		 for(int i = 0; i < samples.length; i++)
-				if(samples[i].equalsIgnoreCase(null))
-					System.out.println("find null");
-				else if(samples[i].equalsIgnoreCase("ok"))
-					System.out.println("find ok");
 			
 		 
 		 final String s = "MODIFIER|||n.376-566C>T||AC027612.3|processed_transcript|NON_CODING|ENST00000436174|4|1";
@@ -55,9 +47,9 @@ public class Vcf2mafTest {
 			try(VCFFileReader reader = new VCFFileReader(new File( DbsnpModeTest.inputName)); ){
 				
 	        	for (final VcfRecord vcf : reader){ 
-	        		final SnpEffMafRecord maf = v2m.converter(vcf);
+	        	//	final SnpEffMafRecord maf = v2m.converter(vcf);
 	        		System.out.println(vcf.toString());
-	        		System.out.println(maf.toString()  );
+	        	//	System.out.println(maf.toString()  );
 	        		
 	        	}
 	        	
