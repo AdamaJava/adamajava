@@ -10,6 +10,7 @@ import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.TorrentVerificationStatus;
 import org.qcmg.common.util.DonorUtils;
 import org.qcmg.common.util.SnpUtils;
+import org.qcmg.common.vcf.VcfFormatFieldRecord;
 import org.qcmg.common.vcf.VcfInfoFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
@@ -33,6 +34,14 @@ public class ConfidenceMode extends AbstractMode{
 	public static final int LOW_CONF_ALT_FREQ_PASSING_SCORE = 4;	
 	public static final String SOMATIC = "SOMATIC";
 	public static final String NOVEL_STARTS = "NNS";
+	
+	//filters 
+	public static final String PASS = "PASS";
+	public static final String LESS_THAN_12_READS_NORMAL = "COVN12";
+	public static final String LESS_THAN_3_READS_NORMAL = "SAN3";
+	public static final String MUTATION_IN_UNFILTERED_NORMAL = "MIUN";
+	public static final String LESS_THAN_12_READS_NORMAL_AND_UNFILTERED= LESS_THAN_12_READS_NORMAL + ";" + MUTATION_IN_UNFILTERED_NORMAL;
+	public static final String LESS_THAN_3_READS_NORMAL_AND_UNFILTERED= LESS_THAN_3_READS_NORMAL + ";" + MUTATION_IN_UNFILTERED_NORMAL;
 
 	public enum Confidence{	HIGH , LOW, ZERO ; }
 	private final String patientId;
@@ -78,20 +87,43 @@ public class ConfidenceMode extends AbstractMode{
 	    	final ChrPosition pos = it.next();
 	    	final VcfRecord vcf = positionRecordMap.get(pos);
 	    	final VcfInfoFieldRecord infoRecord = new VcfInfoFieldRecord(vcf.getInfo());	
+	    	
+	    	//debug
+    	if(vcf.getPosition() == 2675825) 
+    		System.out.println(vcf.toString() + "\n" + infoRecord.toString());
+    	
+    	if(SnpUtils.LESS_THAN_12_READS_NORMAL_AND_UNFILTERED.equals(vcf.getFilter() ))
+    		System.out.println("equal");
+    	else
+    		System.out.println(SnpUtils.LESS_THAN_12_READS_NORMAL_AND_UNFILTERED + " vs " + vcf.getFilter());
+	    	
 	    		    	
 	        if (VerifiedData != null && VerifiedData.get(pos) != null && VerifiedData.get(pos).equals( TorrentVerificationStatus.YES))  
 	        	 infoRecord.setfield(VcfHeaderUtils.INFO_CONFIDENT, Confidence.HIGH.toString());		        
 	        else if (checkNovelStarts(HIGH_CONF_NOVEL_STARTS_PASSING_SCORE, infoRecord) 
-					&& ( VcfUtils.getAltFrequency(vcf) >=  HIGH_CONF_ALT_FREQ_PASSING_SCORE)
-					&& SnpUtils.isClassA(vcf.getFilter()))  
+					&& ( getAltFrequency(vcf) >=  HIGH_CONF_ALT_FREQ_PASSING_SCORE)
+					&& PASS.equals(vcf.getFilter()))  
 	        	 infoRecord.setfield(VcfHeaderUtils.INFO_CONFIDENT, Confidence.HIGH.toString());		        	 				 				
 			else if (checkNovelStarts(LOW_CONF_NOVEL_STARTS_PASSING_SCORE, infoRecord) 
-					&& ( VcfUtils.getAltFrequency(vcf) >= LOW_CONF_ALT_FREQ_PASSING_SCORE )
-					&& SnpUtils.isClassAorB( vcf.getFilter() )) 
+					&& ( getAltFrequency(vcf) >= LOW_CONF_ALT_FREQ_PASSING_SCORE )
+					&& (PASS.equals(vcf.getFilter()) 
+						|| LESS_THAN_12_READS_NORMAL.equals(vcf.getFilter())
+						|| LESS_THAN_3_READS_NORMAL.equals(vcf.getFilter())
+						|| MUTATION_IN_UNFILTERED_NORMAL.equals(vcf.getFilter())
+						|| LESS_THAN_12_READS_NORMAL_AND_UNFILTERED.equals(vcf.getFilter())
+						|| LESS_THAN_3_READS_NORMAL_AND_UNFILTERED.equals(vcf.getFilter())))
 				 infoRecord.setfield(VcfHeaderUtils.INFO_CONFIDENT, Confidence.LOW.toString());					 
 			 else
-				 infoRecord.setfield(VcfHeaderUtils.INFO_CONFIDENT, Confidence.ZERO.toString());		        
+				 infoRecord.setfield(VcfHeaderUtils.INFO_CONFIDENT, Confidence.ZERO.toString());		  
+	        
 	        vcf.setInfo(infoRecord.toString());
+	        
+		    	//debug
+	    	if(vcf.getPosition() == 2675825) 
+	    		System.out.println(vcf.toString() + "\n" + infoRecord.toString());
+        
+	        
+	        
 	    } 	
  
 	    
@@ -104,6 +136,15 @@ public class ConfidenceMode extends AbstractMode{
 	     
 	}
 	
+	private int getAltFrequency(VcfRecord vcf){
+		 final String info =  vcf.getInfo();
+		 final String allel = (info.contains(VcfHeaderUtils.INFO_SOMATIC)) ? vcf.getFormatFields().get(2) :  vcf.getFormatFields().get(1); 		 
+		 final VcfFormatFieldRecord re = new VcfFormatFieldRecord(vcf.getFormatFields().get(0) ,  allel);
+		 
+		 return VcfUtils.getAltFrequency(re, vcf.getAlt());
+		 
+	 
+	}
  
 	 private boolean   checkNovelStarts(int score, VcfInfoFieldRecord infoRecord ) {
 		 try{			 
