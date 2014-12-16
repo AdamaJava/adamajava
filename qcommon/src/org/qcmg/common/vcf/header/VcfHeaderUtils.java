@@ -44,6 +44,7 @@ public class VcfHeaderUtils {
 	public static final String INFO_SOMATIC = "SOMATIC";
 	public static final String INFO_CONFIDENT = "CONF";
 	public static final String INFO_GMAF = "GMAF";
+	public static final String INFO_FS = "FS";
 	public static final String INFO_FILLCOV =  "FULLCOV";
 	
 	//FORMAT FIELDS

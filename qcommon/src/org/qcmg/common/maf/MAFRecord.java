@@ -12,69 +12,69 @@ public class MAFRecord {
 	
 	protected final static char T = '\t';
 
-	private String hugoSymbol;
-	private String entrezGeneId;
-	private String center;
-	private Number ncbiBuild;
-	private String chromosome;
-	private int startPosition;
-	private int endPosition;
-	private char strand;
-	private String variantClassification;
-	private MutationType variantType;
-//	private String variantType;
-	private String ref;
-	private String tumourAllele1;
-	private String tumourAllele2;
-	private String dbSnpId;
-	private String dbSnpValStatus;
-	private String tumourSampleBarcode;
-	private String normalSampleBarcode;
-	private String normalAllele1;
-	private String normalAllele2;
-	private String tumourValidationAllele1;
-	private String tumourValidationAllele2;
-	private String normalValidationAllele1;
-	private String normalValidationAllele2;
-	private String verificationStatus;
-	private String validationStatus;
-	private String mutationStatus;
-	private String sequencingPhase;
-	private String sequencingSource;
-	private String validationMethod;
-	private String score;
-	private String bamFile;
-	private String sequencer;
+	protected String hugoSymbol;
+	protected String entrezGeneId;
+	protected String center;
+	protected Number ncbiBuild;
+	protected String chromosome;
+	protected int startPosition;
+	protected int endPosition;
+	protected char strand;
+	protected String variantClassification;
+	protected MutationType variantType;
+//	protected String variantType;
+	protected String ref;
+	protected String tumourAllele1;
+	protected String tumourAllele2;
+	protected String dbSnpId;
+	protected String dbSnpValStatus;
+	protected String tumourSampleBarcode;
+	protected String normalSampleBarcode;
+	protected String normalAllele1;
+	protected String normalAllele2;
+	protected String tumourValidationAllele1;
+	protected String tumourValidationAllele2;
+	protected String normalValidationAllele1;
+	protected String normalValidationAllele2;
+	protected String verificationStatus;
+	protected String validationStatus;
+	protected String mutationStatus;
+	protected String sequencingPhase;
+	protected String sequencingSource;
+	protected String validationMethod;
+	protected String score;
+	protected String bamFile;
+	protected String sequencer;
 	
 	// QCMG specific fields
-	private String flag;
-	private String nd;
-	private String td;
-	private String canonicalTranscriptId;
-	private String canonicalAAChange;
-	private String canonicalBaseChange;
-	private String alternateTranscriptId;
-	private String alternateAAChange;
-	private String alternateBaseChange;
+	protected String flag;
+	protected String nd;
+	protected String td;
+	protected String canonicalTranscriptId;
+	protected String canonicalAAChange;
+	protected String canonicalBaseChange;
+	protected String alternateTranscriptId;
+	protected String alternateAAChange;
+	protected String alternateBaseChange;
 	
 	
-	private String cpg;  //eg. FS=AGAGAGTAATT
-	private String gffBait;
-//	private String confidence;
-	private String ranking;
-	private int novelStartCount;
-	private String novelStartBases;
+	protected String cpg;  //eg. FS=AGAGAGTAATT
+	protected String gffBait;
+//	protected String confidence;
+	protected String ranking;
+	protected int novelStartCount;
+	protected String novelStartBases;
 	
-	private String patient;	
-	private MafConfidence confidence;
-	private MafType mafType;
+	protected String patient;	
+	protected MafConfidence confidence;
+	protected MafType mafType;
 	
 	
 	//COSMIC fields
-	private String cosmicId;
-	private int cosmicIdFreq;
-	private int cosmicFreq;
-	private int cosmicGene;
+	protected String cosmicId;
+	protected int cosmicIdFreq;
+	protected int cosmicFreq;
+	protected int cosmicGene;
 	
 	
 	public String getHugoSymbol() {
@@ -374,6 +374,12 @@ public class MAFRecord {
 		sb.append(alternateAAChange).append(T);
 		sb.append(alternateBaseChange);
 		return sb.toString();
+		
+		
+		
+		
+
+ 
 	}
 	
 	public String toFormattedString() {
@@ -502,8 +508,8 @@ public class MAFRecord {
 	public int getNovelStartCount() {
 		return novelStartCount;
 	}
-	public void setConfidence(MafConfidence confidence) {
-		this.confidence = confidence;
+	public void setConfidence(MafConfidence string) {
+		this.confidence = string;
 	}
 	public MafConfidence getConfidence() {
 		return confidence;

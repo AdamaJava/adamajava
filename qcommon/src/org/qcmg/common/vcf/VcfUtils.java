@@ -36,43 +36,51 @@ public class VcfUtils {
 	public static final Pattern pattern_AC = Pattern.compile("[ACGT][0-9]+\\[[0-9]+.?[0-9]*\\],[0-9]+\\[[0-9]+.?[0-9]*\\]");
 	public static final Pattern pattern_ACCS = Pattern.compile("[ACGT]+,[0-9]+,[0-9]+");
 
-
-	public static int getAltFrequency( VcfRecord vcf){
-		 
-		 final String info =  vcf.getInfo();
-		 //set to TD if somatic, otherwise set to normal
-		 String allel = (info.contains(VcfHeaderUtils.INFO_SOMATIC)) ? vcf.getFormatFields().get(0) :  vcf.getFormatFields().get(1); 
-		 allel = allel.substring(allel.lastIndexOf(":") + 1, allel.length());
-		 
+ 
+ /**
+  * 
+  * @param re: String record from sample format column. eg. eg. 0/1:A/C:A2[17.5],34[25.79],C2[28.5],3[27.67]
+  * @param base: allel base, eg. [A,T,G,C] for SNP, [AAT, GC...] for compound SNP
+  * @return the counts for specified base or return total allels counts if base is null;
+  */
+	public static int getAltFrequency( VcfFormatFieldRecord re, String base){
+		int count = 0;
+ 		 
 		final List<PileupElement> result = new ArrayList<PileupElement>();
 		
 		final Matcher m;
-		int count = 0;
-		if(vcf.getFormatFields().contains(VcfHeaderUtils.FORMAT_ALLELE_COUNT)){
+		String countString = null;
+		if( (countString = re.getfield(VcfHeaderUtils.FORMAT_ALLELE_COUNT) )  != null ){
 			// eg. 0/1:A/C:A2[17.5],34[25.79],C2[28.5],3[27.67]
-			m = pattern_AC.matcher(allel);			
+			m = pattern_AC.matcher(countString);			
 			while (m.find()) {
-				final String pileup = m.group();				
-				final char base = pileup.charAt(0);			
-				if(base == vcf.getAlt().charAt(0))
+				final String pileup = m.group();
+				if(base == null){
+					count += Integer.parseInt(pileup.substring(1, pileup.indexOf('['))) +
+								Integer.parseInt(pileup.substring(pileup.indexOf(',')+1, pileup.indexOf('[', pileup.indexOf(','))));
+				}else if(base.equalsIgnoreCase(pileup.substring(0,1))){
 					count = Integer.parseInt(pileup.substring(1, pileup.indexOf('['))) +
-							Integer.parseInt(pileup.substring(pileup.indexOf(',')+1, pileup.indexOf('[', pileup.indexOf(','))));		 
+							Integer.parseInt(pileup.substring(pileup.indexOf(',')+1, pileup.indexOf('[', pileup.indexOf(','))));
+					break;
+				}	 
 			}					
-		}else if(vcf.getFormatFields().contains(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP)){
+		}else if((countString = re.getfield(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP)) != null){
 			// eg. AA,1,1,CA,4,1,CT,3,1,TA,11,76,TT,2,2,_A,0,3,TG,0,1
-			m = pattern_ACCS.matcher(allel);
+			m = pattern_ACCS.matcher(countString);
 			while (m.find()) {
 				final String[] pileup = m.group().split(Constants.COMMA_STRING);
-				final String base = pileup[0];
-				if(base.equals(vcf.getAlt()))
-				count = Integer.parseInt(pileup[1]) + Integer.parseInt(pileup[2]);
+				if(base == null){
+					count += Integer.parseInt(pileup[1]) + Integer.parseInt(pileup[2]);
+					
+				}else if(base.equalsIgnoreCase(pileup[0])){	 
+					count = Integer.parseInt(pileup[1]) + Integer.parseInt(pileup[2]);
+					break;
+				}
 			}	
 		} 
 		 
 		 return count;
 	 }   
- 
- 
 	 
 	
 	public static String getPileupElementAsString(List<PileupElement> pileups, boolean novelStart) {

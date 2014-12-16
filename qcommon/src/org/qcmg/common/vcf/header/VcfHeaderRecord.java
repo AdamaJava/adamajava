@@ -151,7 +151,6 @@ public class VcfHeaderRecord {
 		return record;
 	}
   
-
 	
 	public MetaType getMetaType() throws Exception{		return parseRecord().type;	}
 	
@@ -161,9 +160,7 @@ public class VcfHeaderRecord {
 		return "" + (number >= 0 ? number : vcfInfoNumber.toString());
 	}
 	
-	
 
-	
 	public void parseLine(String line){
 		
 		if(!type.equals(MetaType.FILTER) && !type.equals(MetaType.FORMAT) && ! type.equals(MetaType.INFO))
