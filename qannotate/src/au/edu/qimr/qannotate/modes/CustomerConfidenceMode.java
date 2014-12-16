@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.Iterator;
 
 import org.qcmg.common.log.QLogger;
+import org.qcmg.common.vcf.VcfFormatFieldRecord;
 import org.qcmg.common.vcf.VcfInfoFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
@@ -73,8 +74,9 @@ public class CustomerConfidenceMode extends AbstractMode{
 			//only annotate record passed filters
 			if(passOnly && !re.getFilter().toUpperCase().contains(VcfHeaderUtils.FILTER_PASS))
 				continue;
- 			
-			final int total = VcfUtils.getAltFrequency(re);				
+			  
+			final String allel = (re.getInfo().contains(VcfHeaderUtils.INFO_SOMATIC)) ? re.getFormatFields().get(2) :  re.getFormatFields().get(1); 		 
+			final int total =  VcfUtils.getAltFrequency(new VcfFormatFieldRecord(re.getFormatFields().get(0) ,  allel), null );
 			if( total <  min_read_counts) continue;
 			
 			final int mutants = Integer.parseInt( infoRecord.getfield(VcfHeaderUtils.INFO_MUTANT_READS));			  
