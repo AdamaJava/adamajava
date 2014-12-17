@@ -34,7 +34,6 @@ public final class Options {
 
 	private final OptionParser parser = new OptionParser();
 	private final OptionSet options;
-//	private final String[] inputGFF3FileNames;
 	private final String[] inputBAMFileNames;
 	private final String[] outputFileNames;
 	private final String[] inputBAIFileNames;
@@ -67,10 +66,6 @@ public final class Options {
 				.withRequiredArg().ofType(String.class); 
 		parser.accepts("ini", LOG_OPTION_DESCRIPTION).withRequiredArg().ofType(
 				String.class);
-		parser.accepts("windowSize", NUMBER_THREADS_DESCRIPTION)
-			.withRequiredArg().ofType(Integer.class).describedAs("size of window bins");
-		parser.accepts("cutoff", NUMBER_THREADS_DESCRIPTION)
-			.withRequiredArg().ofType(Integer.class).describedAs("cutoff");
 		options = parser.parse(args);
 
 		List inputBAMFileNamesList = options.valuesOf("bam");
