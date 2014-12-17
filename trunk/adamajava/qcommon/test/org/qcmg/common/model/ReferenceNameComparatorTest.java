@@ -45,6 +45,52 @@ public class ReferenceNameComparatorTest {
 	}
 	
 	@Test
+	public void compareNonChr(){
+		TreeMap<String, Integer> map = new TreeMap<String, Integer>(new ReferenceNameComparator());
+		map.put("20",1);
+		map.put("21",1);
+		map.put("22",1);
+		map.put("6",1);
+		map.put("2",1);
+		map.put("19",1);
+		map.put("3",1);
+		map.put("1",1);
+		map.put("4",1);
+		map.put("16",1);
+		map.put("Y",1);
+		map.put("15",1);
+		map.put("11",1);
+		map.put("17",1);
+		map.put("10",1);
+		map.put("MT",1);
+		map.put("5",1);
+		map.put("7",1);
+		map.put("13",1);
+		map.put("18",1);
+		map.put("X",1);
+		map.put("9",1);
+		map.put("8",1);
+		map.put("12",1);
+		map.put("14",1);
+		
+		
+		int i = 1;
+		for (Entry <String, Integer> entry : map.entrySet()) {
+			String key = entry.getKey();
+			if (i < 23) {
+				Assert.assertEquals(i, Integer.parseInt(key));
+			} else if (i == 23) {
+				Assert.assertEquals("MT", key);
+			} else if (i == 24) {
+				Assert.assertEquals("X", key);
+			} else if (i == 25) {
+				Assert.assertEquals("Y", key);
+			}
+			i++;
+		}
+	}
+	
+	@Test
 	public void testCompareWithGL(){
 		Map<String, Integer> map = new TreeMap<String, Integer>(new ReferenceNameComparator());
 		map.put("chr20",1);
