@@ -18,6 +18,7 @@ import java.util.concurrent.atomic.AtomicLongArray;
 import org.qcmg.common.model.CigarStringComparator;
 import org.qcmg.common.model.MAPQMiniMatrix;
 import org.qcmg.common.model.ProfileType;
+import org.qcmg.common.model.ReferenceNameComparator;
 import org.qcmg.common.model.SummaryByCycle;
 import org.qcmg.qvisualise.ChartTab;
 import org.qcmg.qvisualise.Messages;
@@ -101,10 +102,8 @@ public class ReportBuilder {
 			}
 			break;
 		}
-
 		return report;
 	}
-	
 	
 	private static void addEntryToSummaryMap(Element reportElement, String elementName, String mapEntryName, Map<String, Map<String, AtomicLong>> summaryMap) {
 		final NodeList nodeList = reportElement.getElementsByTagName(elementName);
@@ -140,8 +139,6 @@ public class ReportBuilder {
 		
 		// setup parent tab
 		ChartTab parentCT = new ChartTab("Summary", "summ" + reportID);
-		
-		// table with some basic info
 		
 		// table with instrument, run ids, flow cell ids, tile numbers, etc
 		Map<String, Map<String, AtomicLong>> summaryMap = new LinkedHashMap<>();
@@ -416,9 +413,6 @@ public class ReportBuilder {
 		final Element rnmElement = (Element) rnmNL.item(0);
 		final ChartTab rnmCT = createRNMChartTab(rnmElement);
 		
-		
-		
-		
 		if (null != rnmCT) {
 			report.addTab(rnmCT);
 		}
@@ -465,8 +459,9 @@ public class ReportBuilder {
 		
 		//TAG-MD
 		ChartTab mdCT = createMDChartTab(tagElement);
-		if (null != mdCT) report.addTab(mdCT);
-		
+		if (null != mdCT) {
+			report.addTab(mdCT);
+		}
 	}
 
 	private static void createQUALS(Element reportElement, Report report) {
@@ -549,7 +544,6 @@ public class ReportBuilder {
 			lineLengthCT.setDescription(LINE_LENGTH_DESCRIPTION);
 		}
 		//		
-//		int badReadsWidth = 1200 ;
 		int badReadsWidth = badReads.size() > 25 ? 1200 : 950;
 		// create bad reads
 		final ChartTab badReadsCT = new ChartTab("Bad Reads", id + "br");
@@ -559,7 +553,6 @@ public class ReportBuilder {
 				.getName(), mainTabName + " Bad Reads", badReadsWidth, MIN_REPORT_HEIGHT,
 				HTMLReportUtils.COLUMN_CHART, true, false));
 		badReadsCT.setDescription(isQualData ? BAD_QUALS_DESCRIPTION : BAD_READS_DESCRIPTION);
-//		badReadsCT.setDescription("This chart shows the number of reads that have 10 or more bad bases (. or N)");
 
 		List<ChartTab> tabs = new ArrayList<ChartTab>();
 		
@@ -582,9 +575,6 @@ public class ReportBuilder {
 	
 	private static ChartTab createMDChartTab(Element tagElement) {
 		ChartTab parentCT = null;
-//		String title = "rName";
-//		String id = "rnm" + reportID;
-		
 		ChartTab mismatchCT = null;
 		ChartTab onePercentCT = null;
 		ChartTab forwardCT = null;
@@ -623,14 +613,11 @@ public class ReportBuilder {
 				}
 			}
 			
-			
 			onePercentCT = new ChartTab(MD + " 1 PERC", "tmd1pc");
 			onePercentCT.setData(HTMLReportUtils.generateGoogleData(sortedPercentageMap, onePercentCT
 					.getName(),false, "Error Percentage", "Cycle"));
 			onePercentCT.setChartInfo(HTMLReportUtils.generateGoogleTable(onePercentCT.getName(), 1, "Cycles with > 1% md mismatch rate"));
 //			onePercentCT.setDescription(TAG_MD_DESCRIPTION);
-			
-			
 		}
 		
 		//TAG-MD_forward
@@ -658,7 +645,6 @@ public class ReportBuilder {
 		} else if (null != mismatchCT) {
 			parentCT = mismatchCT;
 		}
-		
 		return parentCT;
 	}
 	
@@ -692,65 +678,25 @@ public class ReportBuilder {
 			}
 		}
 		
-		// now construct a single map containing all the data
-		Map<Integer, AtomicLongArray> singleMap = new TreeMap<>();
-		
+		Collections.sort(chromos, new ReferenceNameComparator());
 		
 		StringBuilder dataSB = new StringBuilder();
 		StringBuilder chartSB = new StringBuilder();
 		
-		int i = 0;
 		for (Entry<String, TreeMap<Integer, AtomicLong>> map : contigMaps.entrySet()) {
-			
 			dataSB.append(HTMLReportUtils.generateGoogleData(map.getValue(), "rnm" + map.getKey(), false));
 			chartSB.append(HTMLReportUtils.generateGoogleScatterChart("rnm" + map.getKey(), map.getKey(), 600, MIN_REPORT_HEIGHT, true));
 		}
 			
-			
-//			for (Entry<Integer, AtomicLong> entry : map.entrySet()) {
-//				AtomicLongArray ala = singleMap.get(entry.getKey());
-//				if (null == ala) {
-//					ala = new AtomicLongArray(contigMaps.size());
-//					singleMap.put(entry.getKey(), ala);
-//				}
-//				
-//				ala.addAndGet(i, entry.getValue().get());
-//			}
-//			i++;
-//		}
-		
-//		final ChartTab ct1All = new ChartTab("Contigs", (id + i));
-//		ct1All.setData(HTMLReportUtils.generateGoogleDataMultiSeries(
-//				singleMap,
-//				ct1All.getName(), false, chromos, false));
-//		ct1All.setChartInfo(HTMLReportUtils.generateGoogleScatterChart(ct1All.getName(),
-//				title, 1400, MAX_REPORT_HEIGHT, true, "{position: 'right', textStyle: {color: 'blue', fontSize: 14}}, crosshair: {trigger: 'both'}"));
-//		
-//		parentCT.addChild(ct1All);
-		
-//		ChartTab ct = new ChartTab("Contigs2", "head" + reportID);
 		parentCT.setData(dataSB.toString());
 		parentCT.setChartInfo(chartSB.toString());
 		parentCT.setRenderingInfo(HTMLReportUtils.generateRenderingTableInfo(chromos));
-//		parentCT.addChild(ct);
-		
 			
-		
-				// no need for sub tabs
-//				final ChartTab ct1 = new ChartTab(chromosome, id+i);
-//				ct1.setData(HTMLReportUtils.generateGoogleData(
-//						map,
-//						ct1.getName(), false));
-//				ct1.setChartInfo(HTMLReportUtils.generateGoogleScatterChart(ct1.getName(),
-//						title + " - " + chromosome, 1200, MIN_REPORT_HEIGHT, true));
-//				
-//				parentCT.addChild(ct1);
 		return parentCT;
 	}
 	
 	private static ChartTab createISizeChartTab(Element element) throws QVisualiseException {
 		ChartTab parentCT = null;
-//		String title = "iSize";
 		String id = "is" + reportID;
 		int idCounter = 1;
 		//get read group ids
@@ -764,17 +710,12 @@ public class ReportBuilder {
 		}
 		int noOfReadGroups = readGroups.size();
 		System.out.println("we have " + noOfReadGroups + " read groups to display");
-//		for (String rg : readGroups) {
-//			System.out.println("rg: " + rg);
-//			
-//		}
 		
 		if (noOfReadGroups == 0) {
 			throw new QVisualiseException("ISIZE_ERROR");
 		}
 		
 		TreeMap<Integer, AtomicLongArray> arrayMap = new TreeMap<>();
-		
 		
 		int counter = 0;
 		for (String rg : readGroups) {
@@ -802,11 +743,6 @@ public class ReportBuilder {
 			
 			counter++;
 		}
-		
-//		final NodeList nl = element.getElementsByTagName("RangeTally");
-//		final Element nameElement = (Element) nl.item(0);
-//		
-//		final TreeMap<Integer, AtomicLong> map = (TreeMap<Integer, AtomicLong>) createRangeTallyMap(nameElement);
 		
 		if ( ! arrayMap.isEmpty()) {
 		
@@ -872,40 +808,6 @@ public class ReportBuilder {
 					
 					parentCT.addChild(ct2All);
 				}
-				
-				
-				// third tab shows 0 - 50000
-//				final ChartTab ct3 = new ChartTab("0 to 50000", (id + idCounter++));
-//				ct3.setData(HTMLReportUtils.generateGoogleDataMultiSeries(
-//						(arrayMap).subMap(0, true, 50000, false),
-//						ct3.getName(), false, readGroups));
-//				ct3.setChartInfo(HTMLReportUtils.generateGoogleScatterChart(ct3.getName(),
-//						title + ", 0 to 50000", 1400, MAX_REPORT_HEIGHT, true, "{position: 'right', textStyle: {color: 'blue', fontSize: 14}}, crosshair: {trigger: 'both'}"));
-//				
-//				parentCT.addChild(ct3);
-				
-				// second chart - bin first 50000 values by 100
-				
-//				final Map<Integer, AtomicLongArray> subSetMap =  arrayMap.headMap(50000, true);
-//				final Map<Integer, AtomicLongArray> binnedSubSetMap = new TreeMap<Integer, AtomicLongArray>();
-//				
-//				int tally = 0;
-//				for (Entry<Integer, AtomicLongArray> entry : subSetMap.entrySet()) {
-//					tally += entry.getValue().get(i)get();
-//					if ((entry.getKey() + 5) % 100 == 0) {
-//						binnedSubSetMap.put((entry.getKey() + 5) - 50, new AtomicLong(tally));
-//						tally = 0;
-//					} 
-//				}
-//				
-//				final ChartTab ct2 = new ChartTab("0 to 50000, binned by 100", id+"2");
-//				ct2.setData(HTMLReportUtils.generateGoogleDataMultiSeries(
-//						binnedSubSetMap, ct2.getName(), false));
-//				ct2.setChartInfo(HTMLReportUtils.generateGoogleScatterChart(ct2.getName(),
-//						title + ", 0 to 50000, binned by 100", 1200, MAX_REPORT_HEIGHT, true));
-//				
-//				parentCT.addChild(ct2);
-				
 			} else {
 				// no need for sub tabs
 				parentCT = new ChartTab(ISIZE, id);
@@ -1045,7 +947,6 @@ public class ReportBuilder {
 				}
 			}
 			
-			
 			// cumulative
 			Map<Integer, AtomicLong> cumulativeTallys = new TreeMap<Integer, AtomicLong>();
 			long count = 0;
@@ -1070,11 +971,6 @@ public class ReportBuilder {
 		String id = "mx" + reportID;
 		Map<MAPQMiniMatrix, AtomicLong> tallys = generateMatrixCollection(element, "ValueTally");
 		
-		// Fish-eye
-//		ChartTab ct = new ChartTab("MAPQ Matrix", id);
-//		ct.setData(HTMLReportUtils.generateGoogleMatrixData(tallys, ct.getName(), true));
-//		ct.setChartInfo(HTMLReportUtils.generateGoogleHeatMap(ct.getName(),
-//				title + " FishEye", 1600, 1000));
 		
 		ChartTab ct = null; 
 		if ( ! tallys.isEmpty()) {
@@ -1135,9 +1031,7 @@ public class ReportBuilder {
 				width = MAX_REPORT_WIDTH - 100;
 				height = MAX_REPORT_HEIGHT + 300;
 			}
-					
 		}		
-		
 		
 		ct.setData(HTMLReportUtils.generateGoogleData(cycleCount,
 				ct.getName(), isValueString));
@@ -1167,8 +1061,6 @@ public class ReportBuilder {
 		QProfilerCollectionsUtils.populateTallyItemMap(nameElement, cycleCount, false);
 		return cycleCount;
 	}
-
-
 
 	private static Map<Integer, AtomicLong> generateLengthsTally(Element tabElement,
 			String name) {
@@ -1211,5 +1103,4 @@ public class ReportBuilder {
 		final Element nameElement = (Element) nl.item(0);
 		return generateLengthsTally(nameElement, "ValueTally");
 	}
-
 }
