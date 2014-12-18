@@ -108,7 +108,7 @@ public final class Motif {
 		revCompE.setAttribute("value", Boolean.toString(revComp));
 		
 		Element windowSizeE = doc.createElement("window_size");
-		revCompE.setAttribute("value", invariants.getRegex().getWindowSize() + "");
+		windowSizeE.setAttribute("value", invariants.getRegex().getWindowSize() + "");
 		
 		// add to ini element
 		iniE.appendChild(stage1E);
