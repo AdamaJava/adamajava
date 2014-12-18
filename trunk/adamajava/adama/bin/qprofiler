@@ -5,6 +5,6 @@ if [ -z "$ADAMA_HOME" ]; then
     exit 1
 fi
 
-##module load java/1.7.13
+###module load java/1.7.13
 
 java -jar ${ADAMA_HOME}/build/lib/qprofiler-1.0.jar "$@"
