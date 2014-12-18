@@ -49,21 +49,24 @@ public class ChrPositionUtils {
 	 * @return
 	 */
 	public static ChrPosition getChrPositionFromString(String position) {
+		return getChrPositionFromString(position, null);
+	}
+	public static ChrPosition getChrPositionFromString(String position, String name) {
 		if (StringUtils.isNullOrEmpty(position)) 
 			throw new IllegalArgumentException("Null or empty string passed to getChrPositionFromString()");
 		
 		int colonPos = position.indexOf(':');
 		int minusPos = position.indexOf('-');
 		
-		if (colonPos == -1 || minusPos == -1) 
+		if (colonPos == -1 || minusPos == -1) {
 			throw new IllegalArgumentException("invalid string passed to getChrPositionFromString() - must be in chr1:12345-23456 format");
+		}
 		
 		String chr = position.substring(0, colonPos);
 		int start = Integer.parseInt(position.substring(colonPos + 1, minusPos));
 		int end = Integer.parseInt(position.substring(minusPos + 1));
 		
-		return new ChrPosition(chr, start, end);
-		
+		return new ChrPosition(chr, start, end, name);
 	}
 	
 	/**
