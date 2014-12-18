@@ -11,7 +11,14 @@ if (proc.waitFor() != 0) {
 timestamp = new java.text.SimpleDateFormat('yyyyMMddHHmmss').format(new
 java.util.Date()) 
    
-def rev = proc.in.text.split()[11]
+params = proc.in.text.split(System.getProperty("line.separator"))
+params.each {param ->
+        if (param.startsWith("Revision")) {
+                rev = param.split()[1]
+        }
+}
+
+
 if (null == rev) rev = "???"
    
 svnVersion = rev
