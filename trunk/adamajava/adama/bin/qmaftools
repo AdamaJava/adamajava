@@ -10,7 +10,7 @@ if [ ${#@} == 0 ]; then
     exit 1
 fi
 
-module load java/1.7.13
+#module load java/1.7.13
 
-java -cp ${ADAMA_HOME}/lib/qmaftools-0.1pre.jar "$@"
-#java -jar ${ADAMA_HOME}/lib/qmule-0.1pre.jar "$@"
+java -cp ${ADAMA_HOME}/build/lib/qmaftools-0.1pre.jar "$@"
+#java -jar ${ADAMA_HOME}/build/lib/qmule-0.1pre.jar "$@"
