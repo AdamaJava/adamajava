@@ -62,12 +62,19 @@ public class IniUtils {
 		Ini.Section section = ini.get(type);
 		if (null != section) {
 			for (Map.Entry<String,String> entry : section.entrySet()) {
-//				System.out.println("entry key: " + entry.getKey() + ", entry value: " + entry.getValue());
+				String params[] = entry.getKey().split("\\s");
+				String name = null, chr = null;
+				if (params.length == 2) {
+					name = params[0];
+					chr = params[1];
+				}
+//				System.out.println("entry key: " + entry.getKey() + ", entry value: " + entry.getValue() + ", name: " + name + ", chr: " + chr);
 				
+				//TODO remove regex work here - already have chr...
 				Matcher m = chrPosPattern.matcher(entry.getKey() + ":" + entry.getValue());
 				if (m.find()) {
 					String chrPos = m.group();
-					positions.add(ChrPositionUtils.getChrPositionFromString(chrPos));
+					positions.add(ChrPositionUtils.getChrPositionFromString(chrPos, name));
 				} else {
 					throw new IllegalArgumentException("Invalid chromosome and position format: " 
 								+ entry.getKey() + ":" + entry.getValue() + " - should be chr1:12345-678910");

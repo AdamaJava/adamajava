@@ -70,6 +70,93 @@ public final class Motif {
 		rootElement.setAttribute("version", getProgramVersion());
 		doc.appendChild(rootElement);
 		
+		// ini file
+		Element iniE = doc.createElement("ini");
+		rootElement.appendChild(iniE);
+		iniE.setAttribute("file", options.getIniFile());
+		
+		// stage1
+		Element stage1E = doc.createElement("stage1_motif");
+		if (null != invariants.getRegex().getStageOneMotifs() &&  ! invariants.getRegex().getStageOneMotifs().motifs.isEmpty()) {
+			for (String s : invariants.getRegex().getStageOneMotifs().motifs) {
+				Element e = doc.createElement("string");
+				e.setAttribute("value", s);
+				stage1E.appendChild(e);
+			}
+		} else {
+			// add regex
+			Element e = doc.createElement("regex");
+			e.setAttribute("value", invariants.getRegex().getStageOneRegexPattern().pattern());
+			stage1E.appendChild(e);
+		}
+		// stage2
+		Element stage2E = doc.createElement("stage2_motif");
+		if (null != invariants.getRegex().getStageTwoMotifs() &&  ! invariants.getRegex().getStageTwoMotifs().motifs.isEmpty()) {
+			for (String s : invariants.getRegex().getStageTwoMotifs().motifs) {
+				Element e = doc.createElement("string");
+				e.setAttribute("value", s);
+				stage2E.appendChild(e);
+			}
+		} else {
+			// add regex
+			Element e = doc.createElement("regex");
+			e.setAttribute("value", invariants.getRegex().getStageTwoRegexPattern().pattern());
+			stage2E.appendChild(e);
+		}
+		Element revCompE = doc.createElement("rev_comp");
+		boolean revComp = invariants.getRegex().getStageOneMotifs().revComp || invariants.getRegex().getStageTwoMotifs().revComp;
+		revCompE.setAttribute("value", Boolean.toString(revComp));
+		
+		Element windowSizeE = doc.createElement("window_size");
+		revCompE.setAttribute("value", invariants.getRegex().getWindowSize() + "");
+		
+		// add to ini element
+		iniE.appendChild(stage1E);
+		iniE.appendChild(stage2E);
+		iniE.appendChild(revCompE);
+		iniE.appendChild(windowSizeE);
+		
+		// need includes and excludes
+		// add the list of user defined includes
+		Element includesE = doc.createElement("includes");
+		iniE.appendChild(includesE);
+		
+		List<ChrPosition> includes = new ArrayList<>();
+		for (Entry<ChrPosition, RegionCounter> entry : results.entrySet()) {
+			if (RegionType.INCLUDES == entry.getValue().getType()) {
+				includes.add(entry.getKey());
+			}
+		}
+		Collections.sort(includes);
+		
+		for (ChrPosition cp : includes) {
+			Element e = doc.createElement("region");
+			includesE.appendChild(e);
+			e.setAttribute("chrPos", cp.toIGVString());
+			e.setAttribute("name", cp.getName());
+		}
+		// add the list of user defined excludes
+		List<ChrPosition> excludes = new ArrayList<>();
+		for (Entry<ChrPosition, RegionCounter> entry : results.entrySet()) {
+			if (RegionType.EXCLUDES == entry.getValue().getType()) {
+				excludes.add(entry.getKey());
+			}
+		}
+		if ( ! excludes.isEmpty()) {
+			
+			Element excludesE = doc.createElement("excludes");
+			iniE.appendChild(excludesE);
+			
+			Collections.sort(excludes);
+			
+			for (ChrPosition cp : excludes) {
+				Element e = doc.createElement("region");
+				includesE.appendChild(e);
+				e.setAttribute("chrPos", cp.toIGVString());
+				e.setAttribute("name", cp.getName());
+			}
+		}
+		
 		// summary element
 		Element summaryE = doc.createElement("summary");
 		rootElement.appendChild(summaryE);
@@ -77,10 +164,6 @@ public final class Motif {
 		Element countsE = doc.createElement("counts");
 		summaryE.appendChild(countsE);
 		
-		Element windowSizeE = doc.createElement("windowSize");
-		windowSizeE.setAttribute("count", ss.getWindowSize() + "");
-		Element cutoffE = doc.createElement("cutoff");
-		cutoffE.setAttribute("count", ss.getCutoff() + "");
 		Element totalReadCountE = doc.createElement("totalReadCount");
 		totalReadCountE.setAttribute("count", ss.getTotalReadCount() + "");
 		Element noOfMotifsE = doc.createElement("noOfMotifs");
@@ -99,8 +182,6 @@ public final class Motif {
 		Element scaledGenomicE = doc.createElement("scaledGenomic");
 		scaledGenomicE.setAttribute("count", ss.getScaledGenomic() + "");
 		
-		countsE.appendChild(windowSizeE);
-		countsE.appendChild(cutoffE);
 		countsE.appendChild(totalReadCountE);
 		countsE.appendChild(noOfMotifsE);
 		countsE.appendChild(rawUnmappedE);
@@ -112,22 +193,22 @@ public final class Motif {
 		countsE.appendChild(scaledGenomicE);
 		
 		// add the list of user defined includes
-		Element includesE = doc.createElement("includes");
-		summaryE.appendChild(includesE);
-		
-		List<ChrPosition> includes = new ArrayList<>();
-		for (Entry<ChrPosition, RegionCounter> entry : results.entrySet()) {
-			if (RegionType.INCLUDES == entry.getValue().getType()) {
-				includes.add(entry.getKey());
-			}
-		}
-		Collections.sort(includes);
-		
-		for (ChrPosition cp : includes) {
-			Element includeE = doc.createElement("region");
-			includesE.appendChild(includeE);
-			includeE.setAttribute("chrPos", cp.toIGVString());
-		}
+//		Element includesE = doc.createElement("includes");
+//		summaryE.appendChild(includesE);
+//		
+//		List<ChrPosition> includes = new ArrayList<>();
+//		for (Entry<ChrPosition, RegionCounter> entry : results.entrySet()) {
+//			if (RegionType.INCLUDES == entry.getValue().getType()) {
+//				includes.add(entry.getKey());
+//			}
+//		}
+//		Collections.sort(includes);
+//		
+//		for (ChrPosition cp : includes) {
+//			Element includeE = doc.createElement("region");
+//			includesE.appendChild(includeE);
+//			includeE.setAttribute("chrPos", cp.toIGVString());
+//		}
 			
 		// list motifs
 		Element motifsE = doc.createElement("motifs");
@@ -181,6 +262,7 @@ public final class Motif {
 			if (rc.hasMotifs()) {
 				Element regionE = doc.createElement("region");
 				regionE.setAttribute("chrPos", cp.toIGVString());
+				regionE.setAttribute("name", cp.getName());
 				regionE.setAttribute("type", rc.getType().toString().toLowerCase());
 				regionE.setAttribute("stage1Cov", rc.getStage1Coverage() + "");
 				regionE.setAttribute("stage2Cov", rc.getStage2Coverage() + "");
