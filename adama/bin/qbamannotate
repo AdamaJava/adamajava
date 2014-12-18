@@ -5,4 +5,4 @@ if [ -z "$ADAMA_HOME" ]; then
     exit 1
 fi
 
-java -jar ${ADAMA_HOME}/lib/qbamannotate-0.3pre.jar "$@"
+java -jar ${ADAMA_HOME}/build/lib/qbamannotate-0.3pre.jar "$@"

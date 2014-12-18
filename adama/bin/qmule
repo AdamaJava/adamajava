@@ -10,5 +10,5 @@ if [ ${#@} == 0 ]; then
     exit 1
 fi
 
-java -cp ${ADAMA_HOME}/lib/qmule-0.1pre.jar "$@"
-#java -jar ${ADAMA_HOME}/lib/qmule-0.1pre.jar "$@"
+java -cp ${ADAMA_HOME}/build/lib/qmule-0.1pre.jar "$@"
+#java -jar ${ADAMA_HOME}/build/lib/qmule-0.1pre.jar "$@"

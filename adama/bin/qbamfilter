@@ -5,5 +5,5 @@ if [ -z "$ADAMA_HOME" ]; then
     exit 1
 fi
 
-#java -Dsamjdk.compression_level=1 -jar ${ADAMA_HOME}/lib/qbamfilter-1.0pre.jar "$@"
-java -Dsamjdk.compression_level=1 -jar ${ADAMA_HOME}/lib/qbamfilter-1.0pre.jar "$@"
+#java -Dsamjdk.compression_level=1 -jar ${ADAMA_HOME}/build/lib/qbamfilter-1.0pre.jar "$@"
+java -Dsamjdk.compression_level=1 -jar ${ADAMA_HOME}/build/lib/qbamfilter-1.1pre.jar "$@"

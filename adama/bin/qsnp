@@ -5,5 +5,5 @@ if [ -z "$ADAMA_HOME" ]; then
     exit 1
 fi
 
-java -jar ${ADAMA_HOME}/lib/qsnp-1.0.jar "$@"
-#java -jar ${ADAMA_HOME}/lib/qsnp-0.1pre.jar "$@"
+java -jar ${ADAMA_HOME}/build/lib/qsnp-1.0.jar "$@"
+#java -jar ${ADAMA_HOME}/build/lib/qsnp-0.1pre.jar "$@"
