@@ -1,9 +1,8 @@
 package au.edu.qimr.qannotate.utils;
 
-import org.qcmg.common.maf.MAFRecord;
  
 
-public class SnpEffMafRecord extends MAFRecord {	
+public class SnpEffMafRecord  {	
 	
 	public static final String Unknown = "Unknown";
 	public static final String Other = "Other";
@@ -13,7 +12,8 @@ public class SnpEffMafRecord extends MAFRecord {
 	public static final char positive = '+';
 	public static final String none  = "none";
 	public static final String No = "No";
-	 
+	public static final String Null = "null";
+	public static final String Yes = "Yes";
 	
 	
 	public enum mutation_status{  
@@ -29,264 +29,165 @@ public class SnpEffMafRecord extends MAFRecord {
 		}
 	};
 	public enum Validation_Status { Untested,Inconclusive, Valid,Invalid };
+		
+	String[] maf = new String[57];
+	
+	//all 58 set methods
+	
+	
+	
+	
 	
 
-	//extra field for new maf
-	String Tumor_Sample_UUID;
-	String Matched_Norm_Sample_UUID;
+	public String getMafLine() {
+		String line = maf[0];
+		for (int i = 1; i < 52; i++)
+			line += "\t" + maf[i];
+		
+		return line;
+	}
+	public void setColumnValue(int colNum, String value) throws Exception{
+		if(colNum > maf.length || colNum < 1)
+			throw new Exception("invalid column number byond maf record column size: " + colNum);
+		
+		if((colNum == 2 || colNum == 4 || colNum == 6 || colNum == 7 || 
+				colNum == 43 || colNum == 44 || colNum == 45 ||
+				colNum == 46 || colNum == 47 || colNum == 48 )
+				&& !value.matches("\\d+") )
+			throw new Exception(String.format("Column %d can't accept non Integer number: %s.", colNum, value));
+		
+		maf[colNum - 1] = value;		
+	}
+	
+	public static String getSnpEffMafHeaderline(){
+		final String[] str = new String[57];
+		str[0]="Hugo_Symbol";
+		str[1]="Entrez_Gene_Id";
+		str[2]="Center";
+		str[3]="NCBI_Build";
+		str[4]="Chromosome";
+		str[5]="Start_Position";
+		str[6]="End_Position";
+		str[7]="Strand";
+		str[8]="Variant_Classification";
+		str[9]="Variant_Type";
+		str[10]="Reference_Allele";
+		str[11]="Tumor_Seq_Allele1";
+		str[12]="Tumor_Seq_Allele2";
+		str[13]="dbSNP_RS";
+		str[14]="dbSNP_Val_Status";
+		str[15]="Tumor_Sample_Barcode";
+		str[16]="Matched_Norm_Sample_Barcode";
+		str[17]="Match_Norm_Seq_Allele1";
+		str[18]="Match_Norm_Seq_Allele2";
+		str[19]="Tumor_Validation_Allele1";
+		str[20]="Tumor_Validation_Allele2";
+		str[21]="Match_Norm_Validation_Allele1";
+		str[22]="Match_Norm_Validation_Allele2";
+		str[23]="Verification_Status";
+		str[24]="Validation_Status";
+		str[25]="Mutation_Status";
+		str[26]="Sequencing_Phase";
+		str[27]="Sequence_Source";
+		str[28]="Validation_Method";
+		str[29]="Score";
+		str[30]="BAM_File";
+		str[31]="Sequencer";
+		str[32]="Tumor_Sample_UUID";
+		str[33]="Matched_Norm_Sample_UUID";
+		str[34]="QCMG_Flag";
+		str[35]="ND";
+		str[36]="TD";
+		str[37]="confidence";
+		str[38]="consequence";
+		str[39]="novel_starts";
+		str[40]="Cpg";
+		str[41]="GMAF";
+		str[42]="t_depth";
+		str[43]="t_ref_count";
+		str[44]="t_alt_count";
+		str[45]="n_depth";
+		str[46]="n_ref_count";
+		str[47]="n_alt_count";
+		str[48]="Transcript_ID";
+		str[49]="Amino_Acid_Change";
+		str[50]="Amino_Acid_Length";
+		str[51]="Transcript_BioType";
+		str[52]="Gene_Coding";
+		str[53]="Exon_Rank";
+		str[54]="Genotype_Number";
+		str[55]="effect_ontology";
+		str[56]="effect_class";
 
-	private String population_frequence;
-	private int t_depth;  //total coverage for tumor sample
-	private int t_ref_count;
-	private int t_alt_count;	
-	private int n_depth;
-	private int n_ref_count;
-	private int n_alt_count;
-	
-	//snpEff information
-	private String Transcript_ID;
-	private String Amino_Acid_Change;
-	private String Amino_Acid_Length; 
-	private String Transcript_BioType;
-	private String Gene_Coding;
-	private int  Exon_Rank; 
-	private int Genotype_Number;
+		String line = str[0];
+		for (int i = 1; i < 57; i++)
+			line += "\t" + str[i];
 		
-	public int get_t_depth(){	 return t_depth; }	
-	public void set_t_depth(int t){	  t_depth = t; }
-	
-	public int get_n_depth(){	 return n_depth; }	
-	public void set_n_depth(int t){	  n_depth = t; }
-	
-	public int get_t_ref_count(){	 return t_ref_count; }	
-	public void set_t_ref_count(int t){	  t_ref_count = t; }
-	
-	public int get_n_ref_count(){	 return n_ref_count; }	
-	public void set_n_ref_count(int t){	  n_ref_count = t; }
-	
-	public int get_t_alt_count(){	 return t_alt_count; }	
-	public void set_t_alt_count(int t){	  t_alt_count = t; }
-	
-	public int get_n_alt_count(){	 return n_alt_count; }	
-	public void set_n_alt_count(int t){	  n_alt_count = t; }
-	
-	public void set_Tumor_Sample_UUID(String id){ Tumor_Sample_UUID = id;}
-	public String get_Tumor_Sample_UUID(){ return Tumor_Sample_UUID; }	 
-	
-	public void set_Matched_Norm_Sample_UUID(String id){ Matched_Norm_Sample_UUID = id;}
-	public String get_Matched_Norm_Sample_UUID(){ return Matched_Norm_Sample_UUID; }
-	
-	public void set_Population_frequence(String i){population_frequence = i;}
-	public String get_Population_frequence( ){return population_frequence; }
-	
-	
-	String confidence;
-	public void setStringConfidence(String string) {
-		this.confidence = string;
+		return line;
 	}
-	
-	public String geStringConfidence() {
-		return this.confidence;
-	}
-	
-	
-	//set default value;
-	public SnpEffMafRecord(){
-		setHugoSymbol(Unknown);
-		setEntrezGeneId("0");
-	    setCenter(Unknown);
-	    setNcbiBuild(37);
-	    
-	  //  setChromosome(String chromosome);
-	  //  setStartPosition(int startPosition);
-	  //  setEndPosition(int endPosition);
-	    
-	    setStrand(positive);
-	    
-	    //??Variant_Classification try snpEff
-	 //   setVariantClassification(String variantClassification);
-	            
-	  //  setVariantType(MutationType variantType);        
-	  //  setRef(String ref);       
-	   // setTumourAllele1(String tumourAllele1);
-	   // setTumourAllele2(String tumourAllele2);
-	    
-	    setDbSnpId(null);        
-	    setDbSnpValStatus(null);       
-	    setTumourSampleBarcode(Unknown);
-	    setNormalSampleBarcode(Unknown);
-	    
-	   // setNormalAllele1(String normalAllele1);
-	   // setNormalAllele2(String normalAllele2);
-	    
-	    setTumourValidationAllele1(Unknown);
-	    setTumourValidationAllele2(Unknown);
-	    setNormalValidationAllele1(Unknown);
-	    setNormalValidationAllele2(Unknown);
-	    
-	    setVerificationStatus(Unknown);
-	    setValidationStatus(Validation_Status.Untested.toString());	    
-	    setMutationStatus(mutation_status.Unknown.toString());	    
-	    setSequencingPhase(Unknown);
-	    setSequencingSource(Other);	    
-	    setValidationMethod( none );	    
-	    setScore(null);  
-	    setBamFile(null);  	    
-	    setSequencer(Unknown);	
-	    set_Tumor_Sample_UUID(Unknown);
-		set_Matched_Norm_Sample_UUID(Unknown);
-		
-		
-		//extra field
-		set_Population_frequence(Unknown);
-        setFlag(Unknown) ;     
-        setTd(No) ;       
-        setNd(No);        
-        setCanonicalTranscriptId(Unknown);
-        setCanonicalAAChange(Unknown);
-        setCanonicalBaseChange(Unknown);
-        setAlternateTranscriptId(Unknown);
-        setAlternateAAChange(Unknown);
-        setAlternateBaseChange(Unknown);
-        setCpg(Unknown);
-        
-        set_t_depth(-1 );
-        set_n_depth(-1 );
-        set_t_ref_count(-1 );
-        set_n_ref_count(-1 );
-        set_t_alt_count(-1 );
-        set_n_alt_count(-1 );
-	}	
-	
-	 
-	@Override
-	public String toFormattedString() {
-		final StringBuilder sb = new StringBuilder();
-		sb.append(hugoSymbol).append(T);
-		sb.append(entrezGeneId).append(T);
-		sb.append(center).append(T);
-		sb.append(ncbiBuild).append(T);
-		sb.append(chromosome).append(T);
-		sb.append(startPosition).append(T);
-		sb.append(endPosition).append(T);
-		sb.append(strand).append(T);
-		sb.append(variantClassification).append(T);
-		sb.append(variantType).append(T);
-		sb.append(ref).append(T);
-		sb.append(tumourAllele1).append(T);
-		sb.append(tumourAllele2).append(T);
-		sb.append(dbSnpId).append(T);
-		sb.append(dbSnpValStatus).append(T);
-		sb.append(tumourSampleBarcode).append(T);
-		sb.append(normalSampleBarcode).append(T);
-		sb.append(normalAllele1).append(T);
-		sb.append(normalAllele2).append(T);
-		sb.append(tumourValidationAllele1).append(T);
-		sb.append(tumourValidationAllele2).append(T);
-		sb.append(normalValidationAllele1).append(T);
-		sb.append(normalValidationAllele2).append(T);
-		sb.append(verificationStatus).append(T);
-		sb.append(validationStatus).append(T);
-		sb.append(mutationStatus).append(T);
-		sb.append(sequencingPhase).append(T);
-		sb.append(sequencingSource).append(T);
-		sb.append(validationMethod).append(T);
-		sb.append(score).append(T);
-		sb.append(bamFile).append(T);
-		sb.append(sequencer).append(T);
-		sb.append(Tumor_Sample_UUID).append(T);
-		sb.append(Matched_Norm_Sample_UUID).append(T);
-		sb.append(flag).append(T);
-		sb.append(nd).append(T);
-		sb.append(td).append(T);
-		sb.append(canonicalTranscriptId).append(T);
-		sb.append(canonicalAAChange).append(T);
-		sb.append(canonicalBaseChange).append(T);
-		sb.append(alternateTranscriptId).append(T);
-		sb.append(alternateAAChange).append(T);
-		sb.append(alternateBaseChange).append(T);
-		
-		sb.append(confidence).append(T); 
-		sb.append(cpg).append(T); 
-		sb.append(novelStartCount).append(T); 
-		
-		sb.append( population_frequence).append(T); 
-		sb.append(t_depth).append(T);
-		sb.append(t_ref_count).append(T);
-		sb.append(t_alt_count).append(T);
-		sb.append(n_depth).append(T);
-		sb.append(n_ref_count).append(T);
-		sb.append(n_alt_count);
-			
-		return sb.toString();
- 
-	}
-	
- 
-	
- 
-	
- 
  	
-	public static String toFormatHeaderline(){
-		final StringBuilder sb = new StringBuilder();
-		sb.append("Hugo_Symbol").append(T);  //1
-		sb.append("Entrez_Gene_Id").append(T);  //2
-		sb.append("Center").append(T);  //3
-		sb.append("NCBI_Build").append(T);  //4
-		sb.append("Chromosome").append(T);  //5
-		sb.append("Start_Position").append(T);  //6
-		sb.append("End_Position").append(T);  //7
-		sb.append("Strand").append(T);  //8
-		sb.append("Variant_Classification").append(T);  //9
-		sb.append("Variant_Type").append(T);  //10
-		sb.append("Reference_Allele").append(T);  //11
-		sb.append("Tumor_Seq_Allele1").append(T);  //12
-		sb.append("Tumor_Seq_Allele2").append(T);  //13
-		sb.append("dbSNP_RS").append(T);  //14
-		sb.append("dbSNP_Val_Status").append(T);  //15
-		sb.append("Tumor_Sample_Barcode").append(T);  //16
-		sb.append("Matched_Norm_Sample_Barcode").append(T);  //17
-		sb.append("Match_Norm_Seq_Allele1").append(T);  //18
-		sb.append("Match_Norm_Seq_Allele2").append(T);  //19
-		sb.append("Tumor_Validation_Allele1").append(T);  //20
-		sb.append("Tumor_Validation_Allele2").append(T);  //21
-		sb.append("Match_Norm_Validation_Allele1").append(T);  //22
-		sb.append("Match_Norm_Validation_Allele2").append(T);  //23
-		sb.append("Verification_Status4").append(T);  //24
-		sb.append("Validation_Status4").append(T);  //25
-		sb.append("Mutation_Status").append(T);  //26
-		sb.append("Sequencing_Phase").append(T);  //27
-		sb.append("Sequence_Source").append(T);  //28
-		sb.append("Validation_Method").append(T);  //29
-		sb.append("Score").append(T);  //30
-		sb.append("BAM_File").append(T);  //31
-		sb.append("Sequencer").append(T);  //32
-		sb.append("Tumor_Sample_UUID").append(T);  //33
-		sb.append("Matched_Norm_Sample_UUID").append(T);  //34
-		sb.append("QCMG_Flag").append(T);
-		sb.append("ND").append(T);
-		sb.append("TD").append(T);
-		sb.append("Canonical_Transcript_Id").append(T);
-		sb.append("Canonical_AA_Change").append(T);
-		sb.append( "Canonical_Base_Change").append(T); 
-		sb.append("Alternate_Transcript_Id").append(T);
-		sb.append("Alternate_AA_Change").append(T);
-		sb.append("Alternate_Base_Change").append(T);
-		sb.append("Confidence").append(T); 
-		sb.append("CPG").append(T); 
-		sb.append("Novel_Starts").append(T); 
-		sb.append( "populatiohn_frequence").append(T); 
-		sb.append("t_depth").append(T);
-		sb.append("t_ref_count").append(T);
-		sb.append("t_alt_count").append(T);
-		sb.append("n_depth").append(T);
-		sb.append("n_ref_count").append(T);
-		sb.append("n_alt_count").append(T);
+	public void setDefaultValue(){
+		maf[0] = Unknown; //Hugo_Symbol
+		maf[1] = "0"; //??Entrez_Gene_Id  Entrez gene ID (an integer). If no gene exists within 3kb enter "0". 
+		maf[2] = "qimr"; //Center
+		maf[3] = "37"; //NCBI_Build
+		//maf[4] = ? //Chromosome is compulsary with correct value
+		//maf[5] = ? //Start_Position
+		//maf[6] = ? //End_Position
+		maf[7] = "+"; //Strand
+		maf[8] = Unknown; //Variant_Classification =snpeff Impact
+		maf[9] = "SNP"; //Variant_Type
+		//maf[10] = ? //Reference_Allele
+		//maf[11] = ? //Tumor_Seq_Allele1
+		//maf[12] = ? //Tumor_Seq_Allele2
+		maf[13] = "novel"; //dbSNP_RS
+		maf[14] = Null; //dbSNP_Val_Status
+		maf[15] = Unknown; //Tumor_Sample_Barcode, eg. ##tumourSample=ICGC-ABMJ-20120706-01
+		maf[16] = Unknown; //Matched_Norm_Sample_Barcode eg. ##normalSample=ICGC-ABMP-20091203-10-ND
+		maf[17] = Null; //Match_Norm_Seq_Allele1
+		maf[18] = Null; //Match_Norm_Seq_Allele2
+		maf[19] = Null; //Tumor_Validation_Allele1
+		maf[20] = Null; //Tumor_Validation_Allele2
+		maf[21] = Null; //Match_Norm_Validation_Allele1
+		maf[22] = Null; //Match_Norm_Validation_Allele2
+		maf[23] = Null ; //Verification_Status
+		maf[24] = Validation_Status.Untested.name();  ; //Validation_Status
+		maf[25] = mutation_status.Unknown.name(); //Mutation_Status somatic/germline
+		maf[26] = Null; //Sequencing_Phase
+		maf[27] = Unknown; //??Sequence_Source
+		maf[28] = none; //Validation_Method NO. If Validation_Status = Untested then "none" If Validation_Status = Valid or Invalid, then not "none" (case insensitive)
+		maf[29] = Null; //Score
+		maf[30] = Null; //BAM_File
+		maf[31] = Unknown; //Sequencer eg. Illumina HiSeq, SOLID
+		maf[32] = none; //Tumor_Sample_UUID
+		maf[33] = none; //Matched_Norm_Sample_UUID
+		// maf[34] = ? //QCMG_Flag, vcf filter column
+		maf[35] = Null; //ND
+		maf[36] = Null; //TD
+		
+		maf[37]= Unknown;  //"confidence";
+		maf[38]= No;  //"consequence";
+		maf[39]= Unknown; //"novel_starts";
+		maf[40]= Unknown;  //"Cpg";
+		maf[41]= Unknown; //"GMAF";
+	
+		maf[42] = "-1"; //t_depth
+		maf[43] = "-1"; //t_ref_count
+		maf[44] = "-1"; //t_alt_count
+		maf[45] = "-1"; //n_depth
+		maf[46] = "-1"; //n_ref_count
+		maf[47] = "-1";//n_alt_count
+		maf[48] = Null; //Transcript_ID
+		maf[49] = Null;  //Amino_Acid_Change
+		maf[50] = Null; //Amino_Acid_Length
+		maf[51] = Null;  //Transcript_BioType
+		maf[52] = Null;  //Gene_Coding
+		maf[53] = Null;  //Exon_Rank
+		maf[54] = Null;  //Genotype_Number
+		maf[55] = Null;  //effect_ontology
+		maf[56] = Null;  //effect_class
 
-		return sb.toString();
 	}
-
-
 
 }
+ 
