@@ -9,7 +9,6 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.TorrentVerificationStatus;
 import org.qcmg.common.util.DonorUtils;
-import org.qcmg.common.util.SnpUtils;
 import org.qcmg.common.vcf.VcfFormatFieldRecord;
 import org.qcmg.common.vcf.VcfInfoFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
@@ -87,16 +86,6 @@ public class ConfidenceMode extends AbstractMode{
 	    	final ChrPosition pos = it.next();
 	    	final VcfRecord vcf = positionRecordMap.get(pos);
 	    	final VcfInfoFieldRecord infoRecord = new VcfInfoFieldRecord(vcf.getInfo());	
-	    	
-	    	//debug
-    	if(vcf.getPosition() == 2675825) 
-    		System.out.println(vcf.toString() + "\n" + infoRecord.toString());
-    	
-    	if(SnpUtils.LESS_THAN_12_READS_NORMAL_AND_UNFILTERED.equals(vcf.getFilter() ))
-    		System.out.println("equal");
-    	else
-    		System.out.println(SnpUtils.LESS_THAN_12_READS_NORMAL_AND_UNFILTERED + " vs " + vcf.getFilter());
-	    	
 	    		    	
 	        if (VerifiedData != null && VerifiedData.get(pos) != null && VerifiedData.get(pos).equals( TorrentVerificationStatus.YES))  
 	        	 infoRecord.setfield(VcfHeaderUtils.INFO_CONFIDENT, Confidence.HIGH.toString());		        
@@ -106,44 +95,46 @@ public class ConfidenceMode extends AbstractMode{
 	        	 infoRecord.setfield(VcfHeaderUtils.INFO_CONFIDENT, Confidence.HIGH.toString());		        	 				 				
 			else if (checkNovelStarts(LOW_CONF_NOVEL_STARTS_PASSING_SCORE, infoRecord) 
 					&& ( getAltFrequency(vcf) >= LOW_CONF_ALT_FREQ_PASSING_SCORE )
-					&& (PASS.equals(vcf.getFilter()) 
-						|| LESS_THAN_12_READS_NORMAL.equals(vcf.getFilter())
-						|| LESS_THAN_3_READS_NORMAL.equals(vcf.getFilter())
-						|| MUTATION_IN_UNFILTERED_NORMAL.equals(vcf.getFilter())
-						|| LESS_THAN_12_READS_NORMAL_AND_UNFILTERED.equals(vcf.getFilter())
-						|| LESS_THAN_3_READS_NORMAL_AND_UNFILTERED.equals(vcf.getFilter())))
+					&& isClassB(vcf.getFilter()) )
 				 infoRecord.setfield(VcfHeaderUtils.INFO_CONFIDENT, Confidence.LOW.toString());					 
 			 else
 				 infoRecord.setfield(VcfHeaderUtils.INFO_CONFIDENT, Confidence.ZERO.toString());		  
 	        
-	        vcf.setInfo(infoRecord.toString());
-	        
-		    	//debug
-	    	if(vcf.getPosition() == 2675825) 
-	    		System.out.println(vcf.toString() + "\n" + infoRecord.toString());
-        
-	        
-	        
+	        vcf.setInfo(infoRecord.toString());	        
 	    } 	
  
 	    
-		//add header line
-	//    VcfInfoNumber.NUMBER.setNumber(1); //set number to 1
+		//add header line  set number to 1
 		header.add(new VcfHeaderInfo(VcfHeaderUtils.INFO_CONFIDENT, 
 				VcfInfoNumber.NUMBER, 1,  VcfInfoType.String, 
 				VcfHeaderUtils.DESCRITPION_INFO_CONFIDENCE, null,null) );
- 
 	     
 	}
+
+	/**
+	 * 
+	 * @param filter
+	 * @return true if the filter string match "PASS", "MIUN","SAN3" and "COVN12";
+	 */
+	private boolean isClassB(String filter){
+		if (PASS.equals(filter))
+				return true;
+		
+		//remove MUTATION_IN_UNFILTERED_NORMAL
+		final String f = filter.replace(MUTATION_IN_UNFILTERED_NORMAL, "").trim();
+		if(LESS_THAN_12_READS_NORMAL.equals(f)  ||   LESS_THAN_3_READS_NORMAL.equals(f) )
+			 return true;
+		
+		return false;
+	}
+	
 	
 	private int getAltFrequency(VcfRecord vcf){
 		 final String info =  vcf.getInfo();
 		 final String allel = (info.contains(VcfHeaderUtils.INFO_SOMATIC)) ? vcf.getFormatFields().get(2) :  vcf.getFormatFields().get(1); 		 
 		 final VcfFormatFieldRecord re = new VcfFormatFieldRecord(vcf.getFormatFields().get(0) ,  allel);
 		 
-		 return VcfUtils.getAltFrequency(re, vcf.getAlt());
-		 
-	 
+		 return VcfUtils.getAltFrequency(re, vcf.getAlt());	 
 	}
  
 	 private boolean   checkNovelStarts(int score, VcfInfoFieldRecord infoRecord ) {
