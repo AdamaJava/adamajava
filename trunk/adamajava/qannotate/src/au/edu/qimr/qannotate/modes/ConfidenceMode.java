@@ -121,7 +121,7 @@ public class ConfidenceMode extends AbstractMode{
 				return true;
 		
 		//remove MUTATION_IN_UNFILTERED_NORMAL
-		final String f = filter.replace(MUTATION_IN_UNFILTERED_NORMAL, "").trim();
+		final String f = filter.replace(MUTATION_IN_UNFILTERED_NORMAL, "").replace(";","").trim();
 		if(LESS_THAN_12_READS_NORMAL.equals(f)  ||   LESS_THAN_3_READS_NORMAL.equals(f) )
 			 return true;
 		

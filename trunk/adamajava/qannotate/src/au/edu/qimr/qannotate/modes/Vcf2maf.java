@@ -101,8 +101,9 @@ public class Vcf2maf extends AbstractMode{
 		if(info.getfield(VcfHeaderUtils.INFO_FS) != null) maf.setColumnValue(41,  info.getfield(VcfHeaderUtils.INFO_FS));
 		if(info.getfield(VcfHeaderUtils.INFO_GMAF) != null) maf.setColumnValue(42,  info.getfield(VcfHeaderUtils.INFO_GMAF));
 
-		
-		getSnpEffAnnotation( maf, info.getfield(VcfHeaderUtils.INFO_EFFECT));
+		String eff; 
+		if( (eff = info.getfield(VcfHeaderUtils.INFO_EFFECT)) != null)
+			getSnpEffAnnotation( maf, eff);
 
 		
 		//format & sample field
