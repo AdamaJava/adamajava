@@ -5,10 +5,8 @@ package org.qcmg.picard;
 
 import java.io.File;
 
-import net.sf.samtools.SAMFileHeader;
 import net.sf.samtools.SAMFileReader;
 import net.sf.samtools.SAMFileReader.ValidationStringency;
-import net.sf.samtools.SAMProgramRecord;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -30,33 +28,33 @@ public class SAMFileReaderFactory {
 	 * @return
 	 */
 	public static SAMFileReader createSAMFileReader(final File bamFile) {
-		ValidationStringency original = SAMFileReader.getDefaultValidationStringency();
-		SAMFileReader reader = null;
-		try {
-			SAMFileReader.setDefaultValidationStringency(ValidationStringency.SILENT);
-			reader = new SAMFileReader(bamFile);
-		} finally {
-			SAMFileReader.setDefaultValidationStringency(original);
-		}
-		boolean setToSilent = false;
-		try {
-			SAMFileHeader header = reader.getFileHeader();
-			for (SAMProgramRecord pg : header.getProgramRecords()) {
-				if ("bwa".equalsIgnoreCase(pg.getProgramName())) { 
-//						|| ("tmap".equalsIgnoreCase(pg.getId())
-//								&& 28 >= Integer.parseInt(pg.getProgramVersion().substring(pg.getProgramVersion().lastIndexOf(".") + 1)))) {
-					setToSilent = true;
-					break;
-				}
-			}	
-		} finally {
-			reader.close();
-		}
-		ValidationStringency vs = setToSilent ?  ValidationStringency.SILENT : ValidationStringency.STRICT;
+//		ValidationStringency original = SAMFileReader.getDefaultValidationStringency();
+//		SAMFileReader reader = null;
+//		try {
+//			SAMFileReader.setDefaultValidationStringency(ValidationStringency.SILENT);
+//			reader = new SAMFileReader(bamFile);
+//		} finally {
+//			SAMFileReader.setDefaultValidationStringency(original);
+//		}
+//		boolean setToSilent = false;
+//		try {
+//			SAMFileHeader header = reader.getFileHeader();
+//			for (SAMProgramRecord pg : header.getProgramRecords()) {
+//				if ("bwa".equalsIgnoreCase(pg.getProgramName())) { 
+//					setToSilent = true;
+//					break;
+//				}
+//			}	
+//		} finally {
+//			reader.close();
+//		}
+//		ValidationStringency vs = setToSilent ?  ValidationStringency.SILENT : ValidationStringency.STRICT;
 		
 		// if we have bwa as a program record in the bam header, setup a reader that has a strict/lenient validation stringency
 		// otherwise use strict
-		return createSAMFileReader(bamFile, vs); 
+		
+		// default to SILENT
+		return createSAMFileReader(bamFile, ValidationStringency.SILENT); 
 	}
 	
 	/**
@@ -68,32 +66,35 @@ public class SAMFileReaderFactory {
 	 * @return
 	 */
 	public static SAMFileReader createSAMFileReader(final File bamFile, final File indexFile) {
-		ValidationStringency original = SAMFileReader.getDefaultValidationStringency();
-		SAMFileReader reader = null;
-		try {
-			SAMFileReader.setDefaultValidationStringency(ValidationStringency.SILENT);
-			reader = new SAMFileReader(bamFile, indexFile);
-		} finally {
-			SAMFileReader.setDefaultValidationStringency(original);
-		}
-		boolean bwaAligned = false;
-		try {
-			SAMFileHeader header = reader.getFileHeader();
-			for (SAMProgramRecord pg : header.getProgramRecords()) {
-				if ("bwa".equalsIgnoreCase(pg.getProgramName())) {
-					bwaAligned = true;
-					break;
-				}
-			}
-		} finally {
-			reader.close();
-		}
-		ValidationStringency vs = ValidationStringency.STRICT;
-		if (bwaAligned) vs = ValidationStringency.SILENT;
+//		ValidationStringency original = SAMFileReader.getDefaultValidationStringency();
+//		SAMFileReader reader = null;
+//		try {
+//			SAMFileReader.setDefaultValidationStringency(ValidationStringency.SILENT);
+//			reader = new SAMFileReader(bamFile, indexFile);
+//		} finally {
+//			SAMFileReader.setDefaultValidationStringency(original);
+//		}
+//		boolean bwaAligned = false;
+//		try {
+//			SAMFileHeader header = reader.getFileHeader();
+//			for (SAMProgramRecord pg : header.getProgramRecords()) {
+//				if ("bwa".equalsIgnoreCase(pg.getProgramName())) {
+//					bwaAligned = true;
+//					break;
+//				}
+//			}
+//		} finally {
+//			reader.close();
+//		}
+//		ValidationStringency vs = ValidationStringency.STRICT;
+//		if (bwaAligned) vs = ValidationStringency.SILENT;
 		
 		// if we have bwa as a program record in the bam header, setup a reader that has a strict/lenient validation stringency
 		// otherwise use strict
-		return createSAMFileReader(bamFile, indexFile, vs);
+		
+		// default to SILENT 
+		
+		return createSAMFileReader(bamFile, indexFile, ValidationStringency.SILENT);
 	}
 	
 	public static SAMFileReader createSAMFileReader(final String bamFile, final String stringency) {
