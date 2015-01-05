@@ -6,8 +6,6 @@ package org.qcmg.motif.util;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.ini4j.Ini;
 import org.qcmg.common.model.ChrPosition;
@@ -16,8 +14,8 @@ import org.qcmg.common.util.ChrPositionUtils;
 
 public class IniUtils {
 	
-	public static final String chrPos = "[a-zA-Z0-9]{1,}:[0-9]{1,}-[0-9]{1,}";
-	public static final Pattern chrPosPattern = Pattern.compile(chrPos);
+//	public static final String chrPos = "[a-zA-Z0-9]{1,}:[0-9]{1,}-[0-9]{1,}";
+//	public static final Pattern chrPosPattern = Pattern.compile(chrPos);
 	
 
 	/**
@@ -61,25 +59,21 @@ public class IniUtils {
 		
 		Ini.Section section = ini.get(type);
 		if (null != section) {
+			
 			for (Map.Entry<String,String> entry : section.entrySet()) {
+				
 				String params[] = entry.getKey().split("\\s");
-				String name = null, chr = null;
-				if (params.length == 2) {
+				// if there are 2 or more entries, we have a chr and a name, otherwise just have a chr
+				String chr = null, name =null;
+				if (params.length == 1) {
+					chr = params[0];
+				} else if (params.length > 1) {
 					name = params[0];
-					chr = params[1];
+					chr = params[params.length - 1];
 				}
-//				System.out.println("entry key: " + entry.getKey() + ", entry value: " + entry.getValue() + ", name: " + name + ", chr: " + chr);
+//				System.out.println("name: " + name + ", chr: " + chr + ":" + entry.getValue() + ", params.length: " + params.length);
 				
-				//TODO remove regex work here - already have chr...
-				Matcher m = chrPosPattern.matcher(entry.getKey() + ":" + entry.getValue());
-				if (m.find()) {
-					String chrPos = m.group();
-					positions.add(ChrPositionUtils.getChrPositionFromString(chrPos, name));
-				} else {
-					throw new IllegalArgumentException("Invalid chromosome and position format: " 
-								+ entry.getKey() + ":" + entry.getValue() + " - should be chr1:12345-678910");
-				}
-				
+				positions.add(ChrPositionUtils.getChrPositionFromString(chr + ":" + entry.getValue(), name));
 			}
 		}
 

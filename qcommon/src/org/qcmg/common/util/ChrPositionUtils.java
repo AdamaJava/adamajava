@@ -59,7 +59,7 @@ public class ChrPositionUtils {
 		int minusPos = position.indexOf('-');
 		
 		if (colonPos == -1 || minusPos == -1) {
-			throw new IllegalArgumentException("invalid string passed to getChrPositionFromString() - must be in chr1:12345-23456 format");
+			throw new IllegalArgumentException("invalid string passed to getChrPositionFromString() - must be in chr1:12345-23456 format: " + position);
 		}
 		
 		String chr = position.substring(0, colonPos);

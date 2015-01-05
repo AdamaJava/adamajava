@@ -162,6 +162,18 @@ public class MotifUtilsTest {
 	}
 	
 	@Test
+	public void includesCoversWholeContig() {
+		List<ChrPosition> includes = new ArrayList<>();
+		ChrPosition includedCP = new ChrPosition("chr6_ssto_hap7", 1, 4928567);
+		includes.add(includedCP);
+		
+		Map<ChrPosition, RegionCounter> regions = MotifUtils.getRegionMap("chr6_ssto_hap7", 4928567, 100000, includes, null);
+		
+		//TODO this should be 1...
+		assertEquals(2, regions.size());
+	}
+	
+	@Test
 	public void getRegionWithIncludesDirectSwap() {
 		int size = 100;
 		int windowSize = 10;

@@ -27,7 +27,9 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.util.LoadReferencedClasses;
+import org.qcmg.motif.util.MotifMode;
 import org.qcmg.motif.util.MotifUtils;
+import org.qcmg.motif.util.MotifsAndRegexes;
 import org.qcmg.motif.util.RegionCounter;
 import org.qcmg.motif.util.RegionType;
 import org.qcmg.motif.util.SummaryStats;
@@ -75,10 +77,14 @@ public final class Motif {
 		rootElement.appendChild(iniE);
 		iniE.setAttribute("file", options.getIniFile());
 		
+		MotifsAndRegexes mAndR = invariants.getRegex();
+		MotifMode mm = mAndR.getMotifMode();
+		
 		// stage1
 		Element stage1E = doc.createElement("stage1_motif");
-		if (null != invariants.getRegex().getStageOneMotifs() &&  ! invariants.getRegex().getStageOneMotifs().motifs.isEmpty()) {
-			for (String s : invariants.getRegex().getStageOneMotifs().motifs) {
+		
+		if (mm.stageOneString()) {
+			for (String s : mAndR.getStageOneMotifs().motifs) {
 				Element e = doc.createElement("string");
 				e.setAttribute("value", s);
 				stage1E.appendChild(e);
@@ -86,13 +92,15 @@ public final class Motif {
 		} else {
 			// add regex
 			Element e = doc.createElement("regex");
-			e.setAttribute("value", invariants.getRegex().getStageOneRegexPattern().pattern());
+			e.setAttribute("value", mAndR.getStageOneRegexPattern().pattern());
 			stage1E.appendChild(e);
 		}
 		// stage2
 		Element stage2E = doc.createElement("stage2_motif");
-		if (null != invariants.getRegex().getStageTwoMotifs() &&  ! invariants.getRegex().getStageTwoMotifs().motifs.isEmpty()) {
-			for (String s : invariants.getRegex().getStageTwoMotifs().motifs) {
+		
+		
+		if (mm.stageTwoString()) {
+			for (String s : mAndR.getStageTwoMotifs().motifs) {
 				Element e = doc.createElement("string");
 				e.setAttribute("value", s);
 				stage2E.appendChild(e);
@@ -100,20 +108,24 @@ public final class Motif {
 		} else {
 			// add regex
 			Element e = doc.createElement("regex");
-			e.setAttribute("value", invariants.getRegex().getStageTwoRegexPattern().pattern());
+			e.setAttribute("value", mAndR.getStageTwoRegexPattern().pattern());
 			stage2E.appendChild(e);
 		}
-		Element revCompE = doc.createElement("rev_comp");
-		boolean revComp = invariants.getRegex().getStageOneMotifs().revComp || invariants.getRegex().getStageTwoMotifs().revComp;
-		revCompE.setAttribute("value", Boolean.toString(revComp));
 		
+		Element revCompE = doc.createElement("rev_comp");
+		if (mm.stageOneString() || mm.stageTwoString()) {
+			boolean revComp = mm.stageOneString()  ? mAndR.getStageOneMotifs().revComp : mAndR.getStageTwoMotifs().revComp;
+			revCompE.setAttribute("value", Boolean.toString(revComp));
+		}
 		Element windowSizeE = doc.createElement("window_size");
-		windowSizeE.setAttribute("value", invariants.getRegex().getWindowSize() + "");
+		windowSizeE.setAttribute("value", mAndR.getWindowSize() + "");
 		
 		// add to ini element
 		iniE.appendChild(stage1E);
 		iniE.appendChild(stage2E);
-		iniE.appendChild(revCompE);
+		if (mm.stageOneString() || mm.stageTwoString()) {
+			iniE.appendChild(revCompE);
+		}
 		iniE.appendChild(windowSizeE);
 		
 		// need includes and excludes
