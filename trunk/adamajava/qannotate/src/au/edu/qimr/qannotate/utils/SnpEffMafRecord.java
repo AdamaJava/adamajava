@@ -97,7 +97,7 @@ public class SnpEffMafRecord  {
 		str[31]="Sequencer";
 		str[32]="Tumor_Sample_UUID";
 		str[33]="Matched_Norm_Sample_UUID";
-		str[34]="QCMG_Flag";
+		str[34]="QFlag";
 		str[35]="ND";
 		str[36]="TD";
 		str[37]="confidence";
