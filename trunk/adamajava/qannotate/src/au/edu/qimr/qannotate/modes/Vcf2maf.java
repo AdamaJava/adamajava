@@ -42,6 +42,8 @@ public class Vcf2maf extends AbstractMode{
 
 		center = SnpEffMafRecord.Unknown; 
 		sequencer = SnpEffMafRecord.Unknown; 
+		tumour_column = 3;		 
+		normal_column = 2;
 	}
 
 	
@@ -65,9 +67,9 @@ public class Vcf2maf extends AbstractMode{
 				else if(samples[i].equalsIgnoreCase(normalid))
 					normal_column = i + 1;
 		 			
-			if(tumour_column < 0  && tumourid != null)
+			if(tumour_column <= 0  && tumourid != null)
 				throw new Exception("can't find tumour sample id from vcf header line: " + tumourid);
-			if(normal_column < 0  && normalid != null)
+			if(normal_column <= 0  && normalid != null)
 				throw new Exception("can't find normal sample id from vcf header line: " + normalid);	 
 				
 			out.println(SnpEffMafRecord.getSnpEffMafHeaderline());
@@ -83,6 +85,7 @@ public class Vcf2maf extends AbstractMode{
 	//Effect ( Effect_Impact | Functional_Class | Codon_Change | Amino_Acid_Change| Amino_Acid_length | Gene_Name | Transcript_BioType | Gene_Coding | Transcript_ID | Exon_Rank  | Genotype_Number [ | ERRORS | WARNINGS ] )
 	 SnpEffMafRecord converter(VcfRecord vcf) throws Exception{
 		final SnpEffMafRecord maf = new SnpEffMafRecord();
+		maf.setDefaultValue();
 		
 		//set common value;				 
 		maf.setColumnValue(3, center);
@@ -108,10 +111,11 @@ public class Vcf2maf extends AbstractMode{
 		
 		//format & sample field
 		final List<String> formats =  vcf.getFormatFields();
-		if(   formats.size() <= Math.max(tumour_column, normal_column)  )	
+//		if(   formats.size() <= Math.max(tumour_column, normal_column)  )
+		if(   formats.size() < Math.max(tumour_column, normal_column)  )	
 			throw new Exception("Missing sample column for "+ tumourid + " or " + normalid + ", in below vcf:\n"+ vcf.toString());
 		
-		final VcfFormatFieldRecord tumour = ( tumour_column > 0) ? new VcfFormatFieldRecord(formats.get(0), formats.get(tumour_column )) : null;
+		final VcfFormatFieldRecord tumour = ( tumour_column > 0) ? new VcfFormatFieldRecord(formats.get(0), formats.get(tumour_column -1)) : null;
 		
 		if(tumour != null){
 			final String allel =  tumour.getfield(VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS);		
@@ -162,7 +166,7 @@ public class Vcf2maf extends AbstractMode{
 					 
 				}
 				
-				final String annotate = effAnno.substring( effAnno.indexOf("(") + 1);	
+				final String annotate = effAnno.substring( effAnno.indexOf("(") + 1, effAnno.indexOf(")"));	
 				if(! StringUtils.isNullOrEmpty(annotate)  ){					
 					final String[] effs = annotate.split(bar);
 					if(! StringUtils.isNullOrEmpty(effs[0]))  maf.setColumnValue(9, effs[0]); //VariantClassification, eg. modifier
@@ -170,10 +174,10 @@ public class Vcf2maf extends AbstractMode{
 					if(! StringUtils.isNullOrEmpty(effs[4]))  maf.setColumnValue(51,effs[4]);
 					if(! StringUtils.isNullOrEmpty(effs[5]))  maf.setColumnValue(1, effs[5]);
 					if(! StringUtils.isNullOrEmpty(effs[6]))  maf.setColumnValue(52,effs[6]);
-					if(! StringUtils.isNullOrEmpty(effs[7]))  maf.setColumnValue(54,effs[7]);					
-					if(! StringUtils.isNullOrEmpty(effs[8]))  maf.setColumnValue(50,effs[8]);
-					if(! StringUtils.isNullOrEmpty(effs[9]))  maf.setColumnValue(55,effs[9]);
-					if(! StringUtils.isNullOrEmpty(effs[10])) maf.setColumnValue(56,effs[10]);				
+					if(! StringUtils.isNullOrEmpty(effs[7]))  maf.setColumnValue(53,effs[7]);					
+					if(! StringUtils.isNullOrEmpty(effs[8]))  maf.setColumnValue(49,effs[8]);
+					if(! StringUtils.isNullOrEmpty(effs[9]))  maf.setColumnValue(54,effs[9]);
+					if(! StringUtils.isNullOrEmpty(effs[10])) maf.setColumnValue(55,effs[10]);				
 				}
 			}catch(final Exception e ){	
 				throw new Exception("missing EFF information or EFF info field format wrong: " + effString );
@@ -232,6 +236,7 @@ public class Vcf2maf extends AbstractMode{
 		}
 	}
 
+	/*
 	public SnpEffMafRecord toMafRecord(VcfRecord vcf ){
 		final SnpEffMafRecord maf = new SnpEffMafRecord();
 
@@ -241,8 +246,7 @@ public class Vcf2maf extends AbstractMode{
 		return maf;
 		
 	}
-
-
+*/
 	@Override
 	void addAnnotation(String dbfile) throws Exception {
 		// TODO Auto-generated method stub

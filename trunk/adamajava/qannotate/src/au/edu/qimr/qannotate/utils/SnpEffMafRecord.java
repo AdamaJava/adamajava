@@ -41,11 +41,13 @@ public class SnpEffMafRecord  {
 
 	public String getMafLine() {
 		String line = maf[0];
-		for (int i = 1; i < 52; i++)
+		for (int i = 1; i < maf.length; i++)
+			
 			line += "\t" + maf[i];
 		
 		return line;
 	}
+	
 	public void setColumnValue(int colNum, String value) throws Exception{
 		if(colNum > maf.length || colNum < 1)
 			throw new Exception("invalid column number byond maf record column size: " + colNum);
