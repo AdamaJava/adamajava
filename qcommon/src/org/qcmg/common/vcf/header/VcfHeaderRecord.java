@@ -29,27 +29,25 @@ public class VcfHeaderRecord {
 	
 	public enum VcfInfoNumber {
 		NUMBER, UNLIMITED, ALLELE, ALL_ALLELES, GENOTYPE,UNKNOWN;
-		//ZERO(0),ONE(1), TWO(2),THREE(3),FOUR(4),FIVE(5);
 
 		@Override
 		public String toString() {
 			switch (this) {
-				case NUMBER:
-					return "";
-				case ALLELE:
-					return "A";
-				case ALL_ALLELES:
-					return "R";
-				case GENOTYPE:
-					return "G";
-				case UNKNOWN:
-					return ".";	
-				default:
-					throw new RuntimeException("Unimplemented method for type " + this);
+			case NUMBER:
+				return "";
+			case ALLELE:
+				return "A";
+			case ALL_ALLELES:
+				return "R";
+			case GENOTYPE:
+				return "G";
+			case UNKNOWN:
+			case UNLIMITED:
+				return ".";	
+			default:
+				throw new IllegalArgumentException("Unimplemented method for type " + this);
 			}
 		}
-		
-
 	}
 	
 	public enum VcfInfoType {
@@ -81,8 +79,11 @@ public class VcfHeaderRecord {
 				return VcfHeaderUtils.HEADER_LINE_INFO + "=";
 			case CHROM:
 				return VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE;
+			case META:
+			case OTHER:
+			default:
+				return "##";
 			}
-			return "##";
 		}
 	}
 		
@@ -90,9 +91,8 @@ public class VcfHeaderRecord {
 	/**
 	 * Constructor using a "##INFO" line from a VCF file
 	 * @param line
-	 * @throws Exception 
 	 */
-	public VcfHeaderRecord(String line) throws Exception {
+	public VcfHeaderRecord(String line)  {
 		if(line == null) return;
 		
 		String Hline = line.trim();
@@ -110,8 +110,8 @@ public class VcfHeaderRecord {
 		else if (line.toUpperCase().startsWith(MetaType.CHROM.toString())  ) 
 			type = MetaType.CHROM;
 		else{  
-			if(!line.startsWith(MetaType.OTHER.toString())){
-				throw new Exception("can't convert String into VcfHeaderRecord since missing \"##\" at the begin of line: " + line);
+			if(!line.startsWith(MetaType.OTHER.toString())) {
+				throw new IllegalArgumentException("can't convert String into VcfHeaderRecord since missing \"##\" at the begin of line: " + line);
 			}
 			
 			final int index = line.indexOf('=');
@@ -124,13 +124,20 @@ public class VcfHeaderRecord {
 		}
 		
 	}
-	public String getDescription() throws Exception { return parseRecord().description;	}
-	public String getId() throws Exception {	return parseRecord().id; }
-	public String getSource() throws Exception {	return source; }
-	public String getVersion() throws Exception {	return version; }
+	public String getDescription() { 
+		return parseRecord().description;
+	}
+	public String getId() {
+		return parseRecord().id;
+	}
+	public String getSource()  {
+		return source; 
+	}
+	public String getVersion()  {
+		return version; 
+	}
 	
-	
-	public VcfHeaderRecord parseRecord() throws Exception{			
+	public VcfHeaderRecord parseRecord() {			
 		if(record != null)	return record;
 
 		switch (type) {
@@ -152,9 +159,13 @@ public class VcfHeaderRecord {
 	}
   
 	
-	public MetaType getMetaType() throws Exception{		return parseRecord().type;	}
+	public MetaType getMetaType() {
+		return parseRecord().type;	
+	}
 	
-	public VcfInfoType getVcfInfoType() throws Exception { return parseRecord().vcfInfoType; }
+	public VcfInfoType getVcfInfoType()  { 
+		return parseRecord().vcfInfoType; 
+	}
 	
 	public String getNumber() {
 		return "" + (number >= 0 ? number : vcfInfoNumber.toString());

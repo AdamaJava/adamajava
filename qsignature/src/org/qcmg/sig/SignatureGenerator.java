@@ -406,9 +406,11 @@ public class SignatureGenerator {
 		header.add(new VcfHeaderRecord(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + uuid ));
 		header.add(new VcfHeaderRecord( "##bam_file=" + bamName ) );
 		header.add( new VcfHeaderRecord("##snp_file=" + snpFile  ));
-		header.add( new VcfHeaderFilter("##filter_q_score=10") );
-		header.add( new VcfHeaderFilter("##filter_match_qual=10"));		
-		header.add( new VcfHeaderFilter(VcfHeaderUtils.FILTER_LOW_QUAL,"REQUIRED: QUAL < 50.0") );
+		header.add( new VcfHeaderFilter("BASE_QUALITY", "Base quality < " + minBaseQuality ) );
+		header.add( new VcfHeaderFilter("MAPPING_QUALITY", "Mapping quality < " + minMappingQuality ) );
+//		header.add( new VcfHeaderFilter("##filter_q_score=10") );
+//		header.add( new VcfHeaderRecord("##filter_match_qual=10"));		
+//		header.add( new VcfHeaderRecord(VcfHeaderUtils.FILTER_LOW_QUAL,"REQUIRED: QUAL < 50.0") );
 		header.add( new VcfHeaderInfo("FULLCOV", VcfInfoNumber.UNKNOWN, -1, VcfInfoType.String, "all bases at position", null, null) );
 		header.add( new VcfHeaderInfo("NOVELCOV", VcfInfoNumber.UNKNOWN, -1, VcfInfoType.String, "bases at position from reads with novel starts", null, null)  );
   		header.add(new VcfHeaderRecord(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE));
@@ -714,15 +716,19 @@ public class SignatureGenerator {
 				}
 			}
 			
-			if (null != options.getDirNames() && options.getDirNames().length > 0)
+			if (null != options.getDirNames() && options.getDirNames().length > 0) {
 				outputDirectory = options.getDirNames()[0];
-			if (options.getMinMappingQuality() > 0)
-				minMappingQuality = options.getMinMappingQuality();
-			if (options.getMinBaseQuality() > 0)
-				minBaseQuality = options.getMinBaseQuality();
+			}
+			if (null != options.getMinMappingQuality()) {
+				minMappingQuality = options.getMinMappingQuality().intValue();
+			}
+			if (null != options.getMinBaseQuality()) {
+				minBaseQuality = options.getMinBaseQuality().intValue();
+			}
 			
-			if (options.hasIlluminaArraysDesignOption())
+			if (options.hasIlluminaArraysDesignOption()) {
 				illumiaArraysDesign = options.getIlluminaArraysDesign();
+			}
 			
 			validationStringency = options.getValidation();
 			
@@ -782,6 +788,7 @@ public class SignatureGenerator {
 		
 		@Override
 		public void run() {
+			int intervalSize = 1000000;
 			try {
 				// reset some key values
 				arrayPosition = 0;
@@ -803,8 +810,8 @@ public class SignatureGenerator {
 						}
 					} else {
 						
-						if (++recordCount % 1000000 == 0) {
-							logger.info("Processed " + recordCount + " records so far..");
+						if (++recordCount % intervalSize == 0) {
+							logger.info("Processed " + (recordCount / intervalSize) + "M records so far..");
 						}
 						
 						if (match(sam, vcf, true)) {

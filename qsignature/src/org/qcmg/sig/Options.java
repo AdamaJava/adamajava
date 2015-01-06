@@ -49,8 +49,8 @@ final class Options {
 	private final String[] outputFileNames;
 	private final String[] dirNames;
 	private int minCoverage;
-	private int minMappingQuality;
-	private int minBaseQuality;
+	private Integer minMappingQuality;
+	private Integer minBaseQuality;
 	private int noOfThreads;
 //	private int snpChipCoverage;
 //	private float cutoff;
@@ -238,11 +238,11 @@ final class Options {
 		}
 	}
 
-	public int getMinMappingQuality() {
+	public Integer getMinMappingQuality() {
 		return minMappingQuality;
 	}
 
-	public int getMinBaseQuality() {
+	public Integer getMinBaseQuality() {
 		return minBaseQuality;
 	}
 

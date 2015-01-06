@@ -43,12 +43,12 @@ public final class VcfHeaderFormat extends VcfHeaderRecord{
 	 * The `Flag' type indicates that the INFO field does not contain a Value entry, and hence the Number should be 0 in this case.
 	 */
 
-	public VcfHeaderFormat(String line) throws Exception {
+	public VcfHeaderFormat(String line) {
 		super(line);
 		// Is this an Info line?
 		if (line.startsWith(MetaType.FORMAT.toString())) {
 			parseLine(line);
-		} else throw new RuntimeException("Line provided is not an FORMAT definition: '" + line + "'");
+		} else throw new IllegalArgumentException("Can't create VcfHeaderFormat = line provided is not an FORMAT definition: '" + line + "'");
 		
 		record = this;
 
@@ -65,7 +65,7 @@ public final class VcfHeaderFormat extends VcfHeaderRecord{
 	  * @param version: it will show on vcf header if source != null
 	  * @throws Exception
 	  */
-		public VcfHeaderFormat(String id, VcfInfoNumber infoNumber, int number, VcfInfoType infoType, String description) throws Exception {
+		public VcfHeaderFormat(String id, VcfInfoNumber infoNumber, int number, VcfInfoType infoType, String description) {
 
 			super(null);
 			this.id = id;
@@ -77,7 +77,6 @@ public final class VcfHeaderFormat extends VcfHeaderRecord{
 			this.type = MetaType.FORMAT; //type should bf line otherwise exception
 			this.line = type.toString() + "<ID=" + id//
 					+ ",Number=" + (number >= 0 ? number : vcfInfoNumber.toString()) //
-//					+ ",Number=" +vcfInfoNumber.toString()
 					+ ",Type=" + vcfInfoType.toString() //
 					+ ",Description=\"" + description + "\"" + ">" ;			
 			record = this;
@@ -102,7 +101,6 @@ public final class VcfHeaderFormat extends VcfHeaderRecord{
 	public boolean isNumberPerAllele() {
 		return vcfInfoNumber == VcfInfoNumber.ALLELE || vcfInfoNumber == VcfInfoNumber.ALL_ALLELES;
 	}
-
 
 	@Override
 	public String toString() {

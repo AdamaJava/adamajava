@@ -39,9 +39,6 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 	VcfHeaderRecord chromLine = null;
 	
 	
-//	private boolean VcfHeaderRecord;
-	
-	
 	public VcfHeader(){
 		meta = new ArrayList<VcfHeaderRecord>();
 		others = new ArrayList<VcfHeaderRecord>();
@@ -128,7 +125,7 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 		
 	}
  
-	public void add(VcfHeaderRecord record) throws Exception {
+	public void add(VcfHeaderRecord record)  {
 		if(record.type.equals(MetaType.FILTER)  ) 
 			vcfFilterById.put(record.getId(), (VcfHeaderFilter) record.parseRecord() );
 		else if(record.type.equals(MetaType.FORMAT)  ) 
@@ -154,7 +151,7 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 				meta.add(record);		
 			}	
 		}else
-			throw new Exception("invalid or duplicated Vcf header record: " + record.toString());
+			throw new IllegalArgumentException("invalid or duplicated Vcf header record: " + record.toString());
 
 	}
 
