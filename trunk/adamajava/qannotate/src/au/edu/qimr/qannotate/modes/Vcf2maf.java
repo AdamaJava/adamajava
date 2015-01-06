@@ -153,8 +153,10 @@ public class Vcf2maf extends AbstractMode{
 				//Effect 			   ( Effect_Impact | Functional_Class | Codon_Change | Amino_Acid_Change| Amino_Acid_length | Gene_Name | Transcript_BioType | Gene_Coding 				| Transcript_ID | Exon_Rank  | Genotype_Number [ | ERRORS | WARNINGS ] )
 				//upstream_gene_variant (MODIFIER       |         -         |1760          |     -             |		-			| DDX11L1	|processed_transcript|NON_CODING				|ENST00000456328|		-	 |1)
 				
-				String effAnno = SnpEffConsequence.getWorstCaseConsequence(effString.split(","));
-				if(effAnno == null) effAnno = effString.split(",")[0];
+				final String effAnno = SnpEffConsequence.getWorstCaseConsequence(effString.split(","));
+				//if(effAnno == null) effAnno = effString.split(",")[0];
+				
+				
 				final String ontolog = effAnno.substring(0, effAnno.indexOf("("));		
 					 
 				if(! StringUtils.isNullOrEmpty(ontolog)  ){

@@ -85,24 +85,19 @@ public enum SnpEffConsequence {
 		// we haven't defined all the snp types here - so if its a type snp, set to SNP
 		
 		SnpEffConsequence worstConsequence = null;
+		String worstConsequencestr = null;
 		if (null == strings || strings.length == 0) return null;
 		
 		for (final String consequence : strings) {
-			for (final SnpEffConsequence dcEnum : values()) {
-				if (  dcEnum.ontologName.equals(consequence) ) {
-					if (null == worstConsequence)  {
+			for (final SnpEffConsequence dcEnum : values())  
+				if (  dcEnum.ontologName.equals(consequence.subSequence(0, consequence.indexOf("("))) ) 
+					if (null == worstConsequence || dcEnum.snpRank < worstConsequence.snpRank)  {
 						worstConsequence = dcEnum;
-						continue;
-					}
-
-					if (dcEnum.snpRank < worstConsequence.snpRank)
-						worstConsequence = dcEnum;
-					
-				}
-			}
+						worstConsequencestr = consequence;
+					}			 
 		}
 		
-		return null != worstConsequence ? worstConsequence.ontologName : null;
+		return null != worstConsequence ? worstConsequencestr : null;
 	}
 	
 

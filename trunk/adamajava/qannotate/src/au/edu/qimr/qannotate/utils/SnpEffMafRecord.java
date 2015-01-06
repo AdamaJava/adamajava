@@ -33,11 +33,6 @@ public class SnpEffMafRecord  {
 	String[] maf = new String[57];
 	
 	//all 58 set methods
-	
-	
-	
-	
-	
 
 	public String getMafLine() {
 		String line = maf[0];
@@ -48,15 +43,19 @@ public class SnpEffMafRecord  {
 		return line;
 	}
 	
+	/**
+	 * 
+	 * @param colNum: there are total 57 column on QIMR maf file, start from column number 1.
+	 * @param value: column value number will show on maf file
+	 * @throws Exception if column number byond [1,57] or non integer string for column 2, 4, 6, 7, 43-48
+	 */
 	public void setColumnValue(int colNum, String value) throws Exception{
 		if(colNum > maf.length || colNum < 1)
 			throw new Exception("invalid column number byond maf record column size: " + colNum);
 		
-		if((colNum == 2 || colNum == 4 || colNum == 6 || colNum == 7 || 
-				colNum == 43 || colNum == 44 || colNum == 45 ||
-				colNum == 46 || colNum == 47 || colNum == 48 )
-				&& !value.matches("\\d+") )
-			throw new Exception(String.format("Column %d can't accept non Integer number: %s.", colNum, value));
+		if(colNum == 2 || colNum == 4 || colNum == 6 || colNum == 7 || (colNum >= 43 && colNum <= 48 ))
+			if(!value.matches("\\d+")) 
+				throw new Exception(String.format("Column %d can't accept non Integer number: %s.", colNum, value)) ;
 		
 		maf[colNum - 1] = value;		
 	}
