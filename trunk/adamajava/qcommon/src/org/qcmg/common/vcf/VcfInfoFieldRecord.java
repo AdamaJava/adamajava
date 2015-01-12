@@ -16,6 +16,12 @@ public class VcfInfoFieldRecord {
 	 * @param line
 	 */
 	public VcfInfoFieldRecord(String line){
+		//incase for some testing data
+		if(line == null){
+			field.put(Constants.MISSING_DATA_STRING, Constants.EMPTY_STRING);
+			return;
+		}
+		
 		final String[] infos = line.trim().split(";");			
 		for(final String str: infos){
 			final int index = str.indexOf("=");			 
@@ -54,6 +60,7 @@ public class VcfInfoFieldRecord {
 			str += (field.get(key) == Constants.NULL_STRING ? "": Constants.EQ + field.get(key));			
 		}
 		
+		if (str == "") return Constants.MISSING_DATA_STRING;
 		return str;
 	}
 
