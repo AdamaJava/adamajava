@@ -30,7 +30,7 @@ public class SnpEffMafRecord  {
 	};
 	public enum Validation_Status { Untested,Inconclusive, Valid,Invalid };
 		
-	String[] maf = new String[57];
+	String[] maf = new String[58];
 	
 	//all 58 set methods
 
@@ -61,67 +61,68 @@ public class SnpEffMafRecord  {
 	}
 	
 	public static String getSnpEffMafHeaderline(){
-		final String[] str = new String[57];
-		str[0]="Hugo_Symbol";
-		str[1]="Entrez_Gene_Id";
-		str[2]="Center";
-		str[3]="NCBI_Build";
-		str[4]="Chromosome";
-		str[5]="Start_Position";
-		str[6]="End_Position";
-		str[7]="Strand";
-		str[8]="Variant_Classification";
-		str[9]="Variant_Type";
-		str[10]="Reference_Allele";
-		str[11]="Tumor_Seq_Allele1";
-		str[12]="Tumor_Seq_Allele2";
-		str[13]="dbSNP_RS";
-		str[14]="dbSNP_Val_Status";
-		str[15]="Tumor_Sample_Barcode";
-		str[16]="Matched_Norm_Sample_Barcode";
-		str[17]="Match_Norm_Seq_Allele1";
-		str[18]="Match_Norm_Seq_Allele2";
-		str[19]="Tumor_Validation_Allele1";
-		str[20]="Tumor_Validation_Allele2";
-		str[21]="Match_Norm_Validation_Allele1";
-		str[22]="Match_Norm_Validation_Allele2";
-		str[23]="Verification_Status";
-		str[24]="Validation_Status";
-		str[25]="Mutation_Status";
-		str[26]="Sequencing_Phase";
-		str[27]="Sequence_Source";
-		str[28]="Validation_Method";
-		str[29]="Score";
-		str[30]="BAM_File";
-		str[31]="Sequencer";
-		str[32]="Tumor_Sample_UUID";
-		str[33]="Matched_Norm_Sample_UUID";
-		str[34]="QFlag";
-		str[35]="ND";
-		str[36]="TD";
-		str[37]="confidence";
-		str[38]="consequence";
-		str[39]="novel_starts";
-		str[40]="Cpg";
-		str[41]="GMAF";
-		str[42]="t_depth";
-		str[43]="t_ref_count";
-		str[44]="t_alt_count";
-		str[45]="n_depth";
-		str[46]="n_ref_count";
-		str[47]="n_alt_count";
-		str[48]="Transcript_ID";
-		str[49]="Amino_Acid_Change";
-		str[50]="Amino_Acid_Length";
-		str[51]="Transcript_BioType";
-		str[52]="Gene_Coding";
-		str[53]="Exon_Rank";
-		str[54]="Genotype_Number";
-		str[55]="effect_ontology";
-		str[56]="effect_class";
-
+		final String[] str = new String[58];
+		str[0] = "Hugo_Symbol";
+		str[1] = "Entrez_Gene_Id";
+		str[2] = "Center";
+		str[3] = "NCBI_Build";
+		str[4] = "Chromosome";
+		str[5] = "Start_Position";
+		str[6] = "End_Position";
+		str[7] = "Strand";
+		str[8] = "Variant_Classification";
+		str[9] = "Variant_Type";
+		str[10] = "Reference_Allele";
+		str[11] = "Tumor_Seq_Allele1";
+		str[12] = "Tumor_Seq_Allele2";
+		str[13] = "dbSNP_RS";
+		str[14] = "dbSNP_Val_Status";
+		str[15] = "Tumor_Sample_Barcode";
+		str[16] = "Matched_Norm_Sample_Barcode";
+		str[17] = "Match_Norm_Seq_Allele1";
+		str[18] = "Match_Norm_Seq_Allele2";
+		str[19] = "Tumor_Validation_Allele1";
+		str[20] = "Tumor_Validation_Allele2";
+		str[21] = "Match_Norm_Validation_Allele1";
+		str[22] = "Match_Norm_Validation_Allele2";
+		str[23] = "Verification_Status";
+		str[24] = "Validation_Status";
+		str[25] = "Mutation_Status";
+		str[26] = "Sequencing_Phase";
+		str[27] = "Sequence_Source";
+		str[28] = "Validation_Method";
+		str[29] = "Score";
+		str[30] = "BAM_File";
+		str[31] = "Sequencer";
+		str[32] = "Tumor_Sample_UUID";
+		str[33] = "Matched_Norm_Sample_UUID";
+		str[34] = "QFlag";
+		str[35] = "ND";
+		str[36] = "TD";
+		str[37] = "confidence";
+		str[38] = "consequence";
+		str[39] = "novel_starts";
+		str[40] = "CpG";
+		str[41] = "GMAF";
+		str[42] = "t_depth";
+		str[43] = "t_ref_count";
+		str[44] = "t_alt_count";
+		str[45] = "n_depth";
+		str[46] = "n_ref_count";
+		str[47] = "n_alt_count";
+		str[48] = "Transcript_ID";
+		str[49] = "Amino_Acid_Change";
+		str[50] = "CDS_change";	
+		str[51] = "Amino_Acid_Length";
+		str[52] = "Transcript_BioType";
+		str[53] = "Gene_Coding";
+		str[54] = "Exon_Rank";
+		str[55] = "Genotype_Number";
+		str[56] = "effect_ontology";
+		str[56] = "effect_class";
+		str[57] = "effect_class";
 		String line = str[0];
-		for (int i = 1; i < 57; i++)
+		for (int i = 1; i <= 57; i++)
 			line += "\t" + str[i];
 		
 		return line;
@@ -179,15 +180,17 @@ public class SnpEffMafRecord  {
 		maf[46] = "-1"; //n_ref_count
 		maf[47] = "-1";//n_alt_count
 		maf[48] = Null; //Transcript_ID
-		maf[49] = Null;  //Amino_Acid_Change
-		maf[50] = Null; //Amino_Acid_Length
-		maf[51] = Null;  //Transcript_BioType
-		maf[52] = Null;  //Gene_Coding
-		maf[53] = Null;  //Exon_Rank
-		maf[54] = Null;  //Genotype_Number
-		maf[55] = Null;  //effect_ontology
-		maf[56] = Null;  //effect_class
-
+		maf[49] = Null; //Amino_Acid_Change
+		maf[50] = Null;  //CDS_change
+		maf[51] = Null; //Amino_Acid_Length
+		maf[52] = Null;  //Transcript_BioType
+		maf[53] = Null;  //Gene_Coding
+		maf[54] = Null;  //Exon_Rank
+		maf[55] = Null;  //Genotype_Number
+		maf[56] = Null;  //effect_ontology
+		maf[57] = Null;  //effect_class
+		
+ 
 	}
 
 }

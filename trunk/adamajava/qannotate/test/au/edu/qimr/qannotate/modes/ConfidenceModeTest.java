@@ -56,11 +56,11 @@ public class ConfidenceModeTest {
 			 
 			for (final VcfRecord re : reader) {		
 				final VcfInfoFieldRecord infoRecord = new VcfInfoFieldRecord(re.getInfo()); 				
-				if(re.getPosition() == 2675825) 
+				if(re.getPosition() == 2675826) 
 					assertTrue(infoRecord.getfield(VcfHeaderUtils.INFO_CONFIDENT).equals(Confidence.LOW.toString())); 
 				else if(re.getPosition() == 22012840)
 					assertTrue(infoRecord.getfield(VcfHeaderUtils.INFO_CONFIDENT).equals(Confidence.ZERO.toString()));
-				else
+				else if(re.getPosition() == 2675825)
 					assertTrue(infoRecord.getfield(VcfHeaderUtils.INFO_CONFIDENT).equals(Confidence.HIGH.toString()));
 			}
 		 }		
@@ -71,13 +71,8 @@ public class ConfidenceModeTest {
 	public void CompoundSNPTest() throws IOException, Exception{	
 		
  	 	//test coumpound snp
-		final String str =  "chrY\t2675825\t.\tTTG\tTCA\t.\tMIN;MIUN\tSOMATIC;END=2675826\tACCS\tTTG,5,37,TCA,0,2\tTAA,1,1,TCA,4,1,TCT,3,1,TTA,11,76,TTG,2,2,_CA,0,3,TTG,0,1" ;
+		final String str =  "chrY\t2675825\t.\tTTG\tTCA\t.\tMIN;MIUN\tSOMATIC;RSPOS=2675825;END=2675826\tACCS\tTTG,5,37,TCA,0,2\tTAA,1,1,TCA,4,1,TCT,3,1,TTA,11,76,TTG,2,2,_CA,0,3,TTG,0,1" ;
 		final VcfRecord vcf  = new VcfRecord(str.split("\t"));
-		
-	 
-		
-
-		
 	}
 	
 	
