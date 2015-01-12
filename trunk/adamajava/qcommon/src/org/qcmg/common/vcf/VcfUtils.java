@@ -39,11 +39,12 @@ public class VcfUtils {
  
  /**
   * 
-  * @param re: String record from sample format column. eg. eg. 0/1:A/C:A2[17.5],34[25.79],C2[28.5],3[27.67]
-  * @param base: allel base, eg. [A,T,G,C] for SNP, [AAT, GC...] for compound SNP
+  * @param re: String record from sample format column. eg. 0/1:A/C:A2[17.5],34[25.79],C2[28.5],3[27.67]
+  * @param base: allel base, eg. [A,T,G,C] for SNP; [AAT, GC...] for compound SNP; null for all base
   * @return the counts for specified base or return total allels counts if base is null;
   */
 	public static int getAltFrequency( VcfFormatFieldRecord re, String base){
+		
 		int count = 0;
  		 
 		final List<PileupElement> result = new ArrayList<PileupElement>();
@@ -348,14 +349,19 @@ public class VcfUtils {
 		}
 		return isSnp;
 	}
-	
-	public static void addFormatFieldsToVcf(VcfRecord vcf, List<String> additionalFormatFields) {
+	/**
+	 * 
+	 * @param vcf
+	 * @param additionalFormatFields, any non existing attributes will be appended to existing FORMAT
+	 * @throws Exception
+	 */
+	public static void addFormatFieldsToVcf(VcfRecord vcf, List<String> additionalFormatFields) throws Exception {
 		if ( null != additionalFormatFields && ! additionalFormatFields.isEmpty()) {
 			// if there are no existing format fields, set field to be additional..
 			if (null == vcf.getFormatFields() || vcf.getFormatFields().isEmpty()) {
-				vcf.setFormatField(additionalFormatFields);
+				//vcf.setFormatField(additionalFormatFields);
+				vcf.setSampleFormatField(additionalFormatFields);
 			} else {
-				
 				
 				// check that the 2 lists of the same size
 				if (vcf.getFormatFields().size() != additionalFormatFields.size()) {
@@ -391,7 +397,8 @@ public class VcfUtils {
 					}
 					
 					if ( ! newFF.isEmpty()) {
-						vcf.setFormatField(newFF);
+						vcf.setSampleFormatField(newFF);
+					//	vcf.setFormatField(newFF);
 					}
 					
 				}

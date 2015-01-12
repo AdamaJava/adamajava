@@ -23,8 +23,12 @@ public class VcfUtilsTest {
         //"chrY\t2675825\t.\tTTG\tTCA\t.\tMIN;MIUN\tSOMATIC;END=2675826\tACCS\tTTG,5,37,TCA,0,2\tTAA,1,1,TCA,4,1,TCT,3,1,TTA,11,76,TTG,2,2,_CA,0,3,TTG,0,1");
 
 		String str = "chrY\t14923588\t.\tG\tA\t.\tSBIAS\tMR=15;NNS=13;FS=GTGATATTCCC\tGT:GD:AC\t0/1:G/A:A0[0],15[36.2],G11[36.82],9[33]\t0/1:G/A:A0[0],33[35.73],G6[30.5],2[34]" ; 
-		VcfRecord  vcf  = new VcfRecord(str.split("\t"));
-		VcfFormatFieldRecord format = new VcfFormatFieldRecord(vcf.getFormatFields().get(0), vcf.getFormatFields().get(1));
+		VcfRecord  vcf  = new VcfRecord(str.split("\t"));				
+		VcfFormatFieldRecord format = vcf.getSampleFormatRecord(1);
+		
+		//debug		
+		format = new VcfFormatFieldRecord(vcf.getFormatFields().get(0), vcf.getFormatFields().get(1));	 
+		
 		int count = VcfUtils.getAltFrequency(format, null);
 		assertEquals(count,35);
 		
@@ -206,7 +210,7 @@ public class VcfUtilsTest {
 	}
 	
 	@Test
-	public void addFormatFields() {
+	public void addFormatFields() throws Exception {
 		VcfRecord rec = VcfUtils.createVcfRecord("1", 1, "ACCACCACC");
 		VcfUtils.addFormatFieldsToVcf(rec, Arrays.asList("GT:AD:DP:GQ:PL", "0/1:6,3:9:62:62,0,150"));
 		

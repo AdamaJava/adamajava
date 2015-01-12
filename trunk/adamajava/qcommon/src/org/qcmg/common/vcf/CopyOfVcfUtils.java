@@ -129,14 +129,14 @@ public class CopyOfVcfUtils {
 		
 		String controlBamString = "";
 		if (null != normalBamIds) {
-			for (QBamId s : normalBamIds) {
+			for (final QBamId s : normalBamIds) {
 				controlBamString += "##controlBam=" + s.getBamName()  + "\n";
 				controlBamString += "##controlBamUUID=" + s.getUUID();
 			}
 		}
 		String testBamString = "";
 		if (null != tumourBamIds) {
-			for (QBamId s : tumourBamIds) {
+			for (final QBamId s : tumourBamIds) {
 				testBamString += "##testBam=" + s.getBamName()  + "\n";
 				testBamString += "##testBamUUID=" + s.getUUID()  + "\n";
 			}
@@ -197,13 +197,13 @@ public class CopyOfVcfUtils {
 	}
 	
 	public static final String getHeaderForCommonSnps(final String searchString, final String searchDirectory, String[] additionalSearchStrings, Map<File, Integer> mapOfFilesAndIds) {
-		StringBuilder filesMapSB = new StringBuilder();
+		final StringBuilder filesMapSB = new StringBuilder();
 		if (null != mapOfFilesAndIds && mapOfFilesAndIds.size() > 0) {
 			
-			List<File> files = new ArrayList<File>(mapOfFilesAndIds.keySet());
+			final List<File> files = new ArrayList<File>(mapOfFilesAndIds.keySet());
 			Collections.sort(files);
 			
-			for (File f : files) {
+			for (final File f : files) {
 				filesMapSB .append("##INFO=<ID=" + mapOfFilesAndIds.get(f) + ",Number=0,Type=Flag,Description=\"" + f.getAbsolutePath() + "\">\n");
 			}
 		}
@@ -219,7 +219,7 @@ public class CopyOfVcfUtils {
 		
 		int a = 0, c = 0, g = 0, t = 0, n = 0;
 		if (null != pileups) {
-			for (PileupElement pe : pileups) {
+			for (final PileupElement pe : pileups) {
 				switch (pe.getBase()) {
 				case 'A': a = pe.getTotalCount(); break;
 				case 'C': c = pe.getTotalCount(); break;
@@ -246,9 +246,9 @@ public class CopyOfVcfUtils {
 		// looking for the number between the first and second colons
 		
 //		int firstIndex = genotype.indexOf(":");
-		int firstIndex = 4;	// string should always start with 0/0
-		int secondIndex = genotype.indexOf(":", firstIndex);
-		String adNumbers = genotype.substring(firstIndex, secondIndex);
+		final int firstIndex = 4;	// string should always start with 0/0
+		final int secondIndex = genotype.indexOf(":", firstIndex);
+		final String adNumbers = genotype.substring(firstIndex, secondIndex);
 		
 		for (int i = 0 , size = adNumbers.length() ; i < size ; ) {
 			
@@ -276,21 +276,21 @@ public class CopyOfVcfUtils {
 		
 		// looking for the number between the second and third colons
 //		int firstIndex = genotype.indexOf(":");
-		int firstIndex = 4;	// string should always start with 0/0
-		int secondIndex = format.indexOf(":", firstIndex) +1;
+		final int firstIndex = 4;	// string should always start with 0/0
+		final int secondIndex = format.indexOf(":", firstIndex) +1;
 		if (secondIndex == -1) { 
 //			System.err.println("incorrent index for format field: " + format);
 			return -1;
 		}
 		
-		int thirdIndex = format.indexOf(":", secondIndex);
+		final int thirdIndex = format.indexOf(":", secondIndex);
 		
 		if (thirdIndex == -1) {
 //			System.err.println("incorrent index for format field: " + format);
 			return -1;
 		}
 		
-		String dpString = format.substring(secondIndex, thirdIndex);
+		final String dpString = format.substring(secondIndex, thirdIndex);
 		return Integer.parseInt(dpString);
 	}
 	
@@ -298,13 +298,13 @@ public class CopyOfVcfUtils {
 		if (null == rec || rec.getFormatFields().size() < 2)
 			throw new IllegalArgumentException("VCFRecord null, or does not contain the appropriate fields");
 		
-		String extraField = rec.getFormatFields().get(1);	// second item in list should have pertinent info
+		final String extraField = rec.getFormatFields().get(1);	// second item in list should have pertinent info
 		if (StringUtils.isNullOrEmpty(extraField)) return null;
 		return extraField.substring(0,3);
 	}
 	
 	public static GenotypeEnum getGEFromGATKVCFRec(VcfRecord rec) {
-		String genotypeString = getGenotypeFromGATKVCFRecord(rec);
+		final String genotypeString = getGenotypeFromGATKVCFRecord(rec);
 		return calculateGenotypeEnum(genotypeString, rec.getRefChar(), rec.getAlt().charAt(0));
 	}
 	
@@ -352,8 +352,8 @@ public class CopyOfVcfUtils {
 	}
 	
 	public static String[] getMutationAndGTs(String refString, GenotypeEnum control, GenotypeEnum test) {
-		String [] results = new String[3];
-		Set<Character> alts= new TreeSet<Character>();
+		final String [] results = new String[3];
+		final Set<Character> alts= new TreeSet<Character>();
 		char ref = '\u0000';
 		
 		if ( ! StringUtils.isNullOrEmpty(refString)) {
@@ -381,9 +381,9 @@ public class CopyOfVcfUtils {
 			}
 		}
 		
-		int size = alts.size();
+		final int size = alts.size();
 		
-		String altsString = getStringFromCharSet(alts);
+		final String altsString = getStringFromCharSet(alts);
 		if (size == 0) {
 //			assert false : "empty list of alts from control and test: " + control + ", " + test;
 			Arrays.fill(results, MISSING_DATA_STRING);
@@ -394,7 +394,7 @@ public class CopyOfVcfUtils {
 			results[2] = null != test ? test.getGTString(ref) : MISSING_DATA_STRING;
 		} else {
 			String alt = "";
-			for (char c : alts) {
+			for (final char c : alts) {
 				if (alt.length() == 0) {
 					alt = "" + c;
 				} else { 
@@ -427,15 +427,15 @@ public class CopyOfVcfUtils {
 	}
 	 
 	public static String getStringFromCharSet(Set<Character> set) {
-		StringBuilder sb = new StringBuilder();
+		final StringBuilder sb = new StringBuilder();
 		if (null != set) {
-			for (Character c : set) sb.append(c);
+			for (final Character c : set) sb.append(c);
 		}
 		return sb.toString();
 	}
 	
 	public static VcfRecord createVcfRecord(ChrPosition cp, String id, String ref, String alt) {
-		VcfRecord rec = new VcfRecord(cp, id, ref, alt);
+		final VcfRecord rec = new VcfRecord(cp, id, ref, alt);
 		return rec;
 	}
 	public static VcfRecord createVcfRecord(ChrPosition cp, String ref) {
@@ -461,14 +461,14 @@ public class CopyOfVcfUtils {
 	public static boolean isRecordAMnp(VcfRecord vcf) {
 		boolean isSnp = false;
 		if (null != vcf) {
-			String ref = vcf.getRef();
-			String alt = vcf.getAlt();
+			final String ref = vcf.getRef();
+			final String alt = vcf.getAlt();
 			
 			if ( ! StringUtils.isNullOrEmpty(ref) && ! StringUtils.isNullOrEmpty(alt)) {
 				
 				// if lengths are both 1, and they are not equal
-				int refLength = ref.length();
-				int altLength = alt.length();
+				final int refLength = ref.length();
+				final int altLength = alt.length();
 				
 				if (refLength == altLength
 						&& ! ref.contains(Constants.COMMA_STRING)
@@ -481,11 +481,12 @@ public class CopyOfVcfUtils {
 		return isSnp;
 	}
 	
-	public static void addFormatFieldsToVcf(VcfRecord vcf, List<String> additionalFormatFields) {
+	public static void addFormatFieldsToVcf(VcfRecord vcf, List<String> additionalFormatFields) throws Exception {
 		if ( null != additionalFormatFields && ! additionalFormatFields.isEmpty()) {
 			// if there are no existing format fields, set field to be additional..
 			if (null == vcf.getFormatFields() || vcf.getFormatFields().isEmpty()) {
-				vcf.setFormatField(additionalFormatFields);
+				//vcf.setFormatField(additionalFormatFields);
+				vcf.setSampleFormatField(additionalFormatFields);
 			} else {
 				
 				
@@ -495,15 +496,15 @@ public class CopyOfVcfUtils {
 				+ vcf.getFormatFields().size() + " entries, whereas additionalFormatFields has " 
 							+ additionalFormatFields.size() + " entries - skipping addition");
 				} else {
-					List<String> newFF =  vcf.getFormatFields();
+					final List<String> newFF =  vcf.getFormatFields();
 					
 					// need to check each element to see if it already exists...
-					String [] formatFieldAttributes = additionalFormatFields.get(0).split(COLON_STRING);
+					final String [] formatFieldAttributes = additionalFormatFields.get(0).split(COLON_STRING);
 					
 					for (int i = 0 ; i < formatFieldAttributes.length ; i++) {
 						
-						String existingFieldAttributes = newFF.get(0);
-						String s = formatFieldAttributes[i];
+						final String existingFieldAttributes = newFF.get(0);
+						final String s = formatFieldAttributes[i];
 						
 						if (existingFieldAttributes.contains(s)) {
 							// skip this one
@@ -512,9 +513,9 @@ public class CopyOfVcfUtils {
 							for (int j = 0 ; j < additionalFormatFields.size() ; j++) {
 								
 								// get existing entry 
-								String existing = newFF.get(j);
+								final String existing = newFF.get(j);
 								// create new
-								String newEntry = existing + COLON + additionalFormatFields.get(j).split(COLON_STRING)[i];
+								final String newEntry = existing + COLON + additionalFormatFields.get(j).split(COLON_STRING)[i];
 								
 								// re-insert into vcf
 								newFF.set(j, newEntry);
@@ -523,7 +524,8 @@ public class CopyOfVcfUtils {
 					}
 					
 					if ( ! newFF.isEmpty()) {
-						vcf.setFormatField(newFF);
+						//vcf.setFormatField(newFF);
+						vcf.setSampleFormatField(newFF);
 					}
 					
 				}

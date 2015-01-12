@@ -28,9 +28,12 @@ public class VcfRecord {
 	private String alt;
 	private String qualString;
 	private String filter;
-	private String info;
+//	private String info;
+	private VcfInfoFieldRecord infoRecord;
+	private final List<VcfFormatFieldRecord> formatRecords = new ArrayList<VcfFormatFieldRecord>();
+	
 //	private String format;
-	private List<String> format = new ArrayList<>(4);
+//	private List<String> format = new ArrayList<>(4);
 	
 	
 	public VcfRecord(ChrPosition cp, String id, String ref, String alt) {
@@ -63,22 +66,18 @@ public class VcfRecord {
 //		this(params[0], Integer.parseInt(params[1]), params[2], params[3], params[4]);				
 		this(params[0], Integer.parseInt(params[1]), Integer.parseInt(params[1]) + params[3].length() - 1, params[2], params[3], params[4]);			
 		
-		qualString = (params[5]);
-		filter = (params[6]);
-		addInfo(params[7]);
-		final int length = params.length;
-		for (int i = 8 ; i < length ; i++) {
-			format.add(params[i]);
-		}
+		qualString = (params.length >= 6) ?  params[5] : null ;
+		filter = (params.length >= 7) ? params[6] : null;
+		infoRecord = (params.length >= 8) ?  new VcfInfoFieldRecord(params[7]): null;
+		
+		for(int i = 9; i < params.length; i ++)
+			formatRecords.add(new VcfFormatFieldRecord(params[8], params[i]));
 	}
 	
-	public ChrPosition getChrPosition() {
-		return this.chrPos;
-	}
+	public ChrPosition getChrPosition() {		return this.chrPos;	}
 
-	public String getRef() {
-		return ref;
-	}
+	public String getRef() {	return ref;	}
+	
 	public char getRefChar() {
 		final int len = null != ref ? ref.length() : 0;
 		if (0 == len) {
@@ -91,84 +90,127 @@ public class VcfRecord {
 			return ref.charAt(0);
 		}
 	}
-//	public void setRef(String ref) {
-//		this.ref = ref;
-//	}
-	public String getAlt() {
-		return alt;
-	}
-	public void setAlt(String alt) {
-		this.alt = alt;
-	}
+ 
+	public String getAlt() { return alt; }
+	public void setAlt(String alt) { this.alt = alt; }
 
-	public void setQualString(String qualString) {
-		this.qualString = qualString;
-	}
+	public void setQualString(String qualString) { this.qualString = qualString; }
 	
-	public void addFilter(String additionalFilter) {
-		this.filter = StringUtils.addToString(this.filter, additionalFilter, SEMI_COLON);
-	}
+	public void addFilter(String additionalFilter) { this.filter = StringUtils.addToString(this.filter, additionalFilter, SEMI_COLON); }
 	
-	public void setFilter(String filter) {
-		this.filter = filter;
-	}
-	public String getFilter() {
-		return filter;
-	}
+	public void setFilter(String filter) { this.filter = filter; }
+	public String getFilter() { return filter; }
 	
-	public void setInfo(String info) {
-		this.info = info;
-	}
+	/**
+	 * 
+	 * @param info INFO column value. eg. SOMATIC:RSPOS=100:END=102
+	 */
+	public void setInfo(String info) {  this.infoRecord = new VcfInfoFieldRecord(info); }
 	
 	/**
 	 * append additional info record into info column
-	 * @param additionalInfo
+	 * @param additionalInfo eg. RSPOS=99;END=100;
 	 */
-	public void addInfo(String additionalInfo) {
-		if (StringUtils.isNullOrEmpty(info)) {
-			this.info = additionalInfo;
-		} else if(! StringUtils.isNullOrEmpty( additionalInfo )){
+	public void appendInfo(String additionalInfo) throws Exception{
+		if( StringUtils.isNullOrEmpty( additionalInfo ))
+			return;
+		
+		if(infoRecord == null)
+			infoRecord = new VcfInfoFieldRecord(additionalInfo);
+		else {
 			// need to check that we are not duplicating info
 			final String [] infoParam = additionalInfo.split(Constants.SEMI_COLON_STRING);
 			for (final String s : infoParam) 
-				info = StringUtils.addToString(info, s, SEMI_COLON);
+				if( !s.contains(Constants.EQ+""))
+						infoRecord.setfield(s,null);
+				else{
+					final String key = s.substring(0, s.indexOf(Constants.EQ));
+					final String data = s.substring(s.indexOf(Constants.EQ) );
+				    if(key.isEmpty() || data.isEmpty())
+				    	throw new Exception("Sub INFO string didn't follow format <key>=<data>:" + s);
+				    infoRecord.setfield(key, data);					 
+				}
 		}
 	}
-	public String getInfo() {
-		return info;
-	}
+	public String getInfo() { 	return (infoRecord == null)? null: infoRecord.toString(); }	
+	public VcfInfoFieldRecord getInfoRecord() { return infoRecord; }
 	
 //	public void addFormatField(int position, String field) {
 //		if (null == format) format = new ArrayList<String>(4);		// 1 for header, 1 for control and 1 for test
 //		format.set(position, field);
 //	}
-	public void setFormatField(List<String> field) {
-		format = field;		// 1 for header, 1 for control and 1 for test
+	
+	/**
+	 * add/replace new format fields, it will wipe off old format column data if exits
+	 * @param field: a list of format string start with FORMAT string.
+	 * @throws Exception if list size smaller than two 
+	 */
+	public void setSampleFormatField(List<String> field) throws Exception {
+		if(field.size() == 1) 
+			throw new Exception("missing sample column information");
+		
+		formatRecords.clear();
+		for(int i = 1; i < field.size(); i ++)
+			formatRecords.add(new VcfFormatFieldRecord(field.get(0), field.get(i)));
 	}
+	
+	/**
+	 * 
+	 * @param index: the column number of sample. eg. 1 means the first column after "FORMAT" column
+	 * @return a VcfFormatFieldRecord for specified sample 
+	 */
+	public VcfFormatFieldRecord getSampleFormatRecord(int index){
+		
+		return (index > formatRecords.size())? null: formatRecords.get(index-1);
+		
+	}
+	
+	
 	/**
 	 * 
 	 * @return the first element is value of FORMAT column: eg. GT:GD:AC
 	 * the second  and third element are values of normal and tumor column: eg. 0/1:A/G:A15[38.93],15[38.67],G1[39],1[39]
 	 */
 	public List<String> getFormatFields() {
-		return format;
+		if( formatRecords.size() == 0 ) return null;		
+		
+		final List<String> list = new ArrayList<String>();
+		list.add( formatRecords.get(0).getFormatColumnString() );
+				 
+		for(int i = 0; i < formatRecords.size(); i ++)
+			list.add( formatRecords.get(i).toString());
+		
+		return list;
 	}
 	
-	public String getChromosome() {
-		return chrPos.getChromosome();
-	}
-	public int getPosition() {
-		return chrPos.getPosition();
+	public String getFormatFieldStrings(){ 
+		if(formatRecords.size() == 0 ) return "";		
+		
+		String str =  formatRecords.get(0).getFormatColumnString();
+		for(int i = 0; i < formatRecords.size(); i ++)
+			str += Constants.TAB +  formatRecords.get(i).toString();
+		
+		return str;	
 	}
 	
-	public void setId(String id) {
-		this.id = id;
-	}
-	public String getId() {
-		return id;
-	}
+	public String getChromosome() { 	return chrPos.getChromosome(); }
+	public int getPosition() { 	return chrPos.getPosition(); }
+	
+	public void setId(String id) { this.id = id; }
+	public String getId() { 	return id; }
+	 
 	@Override
-	public String toString() {
+	public String toString(){
+		
+		//add END position into info column for compound SNP
+		if (! chrPos.isSinglePoint())
+			try {
+				appendInfo("END=" + chrPos.getEndPosition()  );
+			} catch (final Exception e) {
+				// This exception shouldn't happen
+				e.printStackTrace();
+			}
+		
 		final StringBuilder builder = new StringBuilder();
 		builder.append(chrPos.getChromosome()).append(TAB);
 		builder.append(chrPos.getPosition()).append(TAB);
@@ -178,15 +220,8 @@ public class VcfRecord {
 		builder.append(StringUtils.isNullOrEmpty(qualString) ? MISSING_DATA_STRING : qualString).append(TAB);
 		builder.append(StringUtils.isNullOrEmpty(filter) ? MISSING_DATA_STRING : filter).append(TAB);
 		// add END to info field if this record spans more than 1 base
-		if (chrPos.isSinglePoint()) {
-			builder.append(StringUtils.isNullOrEmpty(info) ? MISSING_DATA_STRING : info);
-		} else {
-			builder.append(StringUtils.isNullOrEmpty(info) ? "END=" : info + ";END=").append(chrPos.getEndPosition());
-		}
-		if (null != format)
-			for (final String s : format) {
-				builder.append(TAB).append(s);
-			}
+		builder.append( (infoRecord == null) ? MISSING_DATA_STRING : getInfo()).append(TAB);
+		builder.append( getFormatFieldStrings() );
 		builder.append(NL);
 		return builder.toString();
 	}

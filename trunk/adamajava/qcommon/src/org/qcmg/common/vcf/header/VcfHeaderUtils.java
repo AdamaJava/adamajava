@@ -44,6 +44,8 @@ public class VcfHeaderUtils {
 	public static final String INFO_SOMATIC = "SOMATIC";
 	public static final String INFO_CONFIDENT = "CONF";
 	public static final String INFO_GMAF = "GMAF";
+	public static final String INFO_CAF = "CAF";
+
 	public static final String INFO_FS = "FS";
 	public static final String INFO_FILLCOV =  "FULLCOV";
 	
@@ -67,7 +69,7 @@ public class VcfHeaderUtils {
 	public static final String HEADER_LINE_FORMAT = "##FORMAT";	
 	public static final String STANDARD_FINAL_HEADER_LINE = "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO";
 	public static final String PATIENT_ID = "##patient_id";
-
+	
 	public static int parseIntSafe(String s) {
 		try {
 			return Integer.parseInt(s);
