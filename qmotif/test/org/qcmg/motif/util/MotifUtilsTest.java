@@ -134,31 +134,60 @@ public class MotifUtilsTest {
 	}
 	
 	@Test
+	public void windowSizeLargerThanContogSize() {
+		
+		int size = 1000;
+		int windowSize = 10000;
+		Map<ChrPosition, RegionCounter> regions = MotifUtils.getRegionMap("1", size, windowSize, null, null);
+		assertEquals(1, regions.size());
+		
+		// get ChrPosition
+		ChrPosition [] array = new ChrPosition[]{};
+		array = regions.keySet().toArray(array);
+		
+		assertEquals(size, array[0].getEndPosition());
+		assertEquals(1, array[0].getPosition());
+		assertEquals("1", array[0].getChromosome());
+	}
+	
+	@Test
 	public void getRegionWithNoIncludesOrExcludes() {
 		int size = 1000000;
 		int windowSize = 10000;
 		Map<ChrPosition, RegionCounter> regions = MotifUtils.getRegionMap("1", size, windowSize, null, null);
-		assertEquals((size / windowSize) + 1, regions.size());
+		assertEquals(size / windowSize, regions.size());
 		
 		size = 10;
 		windowSize = 1;
 		regions = MotifUtils.getRegionMap("1", size, windowSize, new ArrayList<ChrPosition>(), null);
-		assertEquals((size / windowSize) + 1, regions.size());
+		assertEquals(size / windowSize, regions.size());
 		
 		size = 1;
 		windowSize = 1;
 		regions = MotifUtils.getRegionMap("1", size, windowSize, null, new ArrayList<ChrPosition>());
-		assertEquals((size / windowSize) + 1, regions.size());
+		assertEquals(size / windowSize, regions.size());
 		
 		size = 1000000;
 		windowSize = 1;
 		regions = MotifUtils.getRegionMap("1", size, windowSize, null, null);
-		assertEquals((size / windowSize) + 1, regions.size());
+		assertEquals(size / windowSize, regions.size());
 		
 		size = 1000000;
 		windowSize = 1000000;
 		regions = MotifUtils.getRegionMap("1", size, windowSize, new ArrayList<ChrPosition>(), new ArrayList<ChrPosition>());
-		assertEquals((size / windowSize) + 1, regions.size());
+		assertEquals(size / windowSize, regions.size());
+		
+		regions = MotifUtils.getRegionMap("1", 11, 5, new ArrayList<ChrPosition>(), new ArrayList<ChrPosition>());
+		assertEquals(3, regions.size());
+		
+		regions = MotifUtils.getRegionMap("1", 14, 5, new ArrayList<ChrPosition>(), new ArrayList<ChrPosition>());
+		assertEquals(3, regions.size());
+		
+		regions = MotifUtils.getRegionMap("1", 15, 5, new ArrayList<ChrPosition>(), new ArrayList<ChrPosition>());
+		assertEquals(3, regions.size());
+		
+		regions = MotifUtils.getRegionMap("1", 16, 5, new ArrayList<ChrPosition>(), new ArrayList<ChrPosition>());
+		assertEquals(4, regions.size());
 	}
 	
 	@Test
@@ -170,7 +199,14 @@ public class MotifUtilsTest {
 		Map<ChrPosition, RegionCounter> regions = MotifUtils.getRegionMap("chr6_ssto_hap7", 4928567, 100000, includes, null);
 		
 		//TODO this should be 1...
+		assertEquals(1, regions.size());
+		
+		// increase contig length by 1
+		regions = MotifUtils.getRegionMap("chr6_ssto_hap7", 4928568, 100000, includes, null);
 		assertEquals(2, regions.size());
+		// decrease contig length by 2
+		regions = MotifUtils.getRegionMap("chr6_ssto_hap7", 4928566, 100000, includes, null);
+		assertEquals(1, regions.size());
 	}
 	
 	@Test
@@ -181,7 +217,7 @@ public class MotifUtilsTest {
 		ChrPosition includedCP = new ChrPosition("1", 11, 20);
 		includes.add(includedCP);
 		Map<ChrPosition, RegionCounter> regions = MotifUtils.getRegionMap("1", size, windowSize, includes, null);
-		assertEquals((size / windowSize) + 1, regions.size());
+		assertEquals((size / windowSize), regions.size());
 		
 		for (Entry<ChrPosition, RegionCounter> entry : regions.entrySet()) {
 			if (entry.getKey().equals(includedCP)) assertEquals(RegionType.INCLUDES, entry.getValue().getType());
@@ -201,7 +237,7 @@ public class MotifUtilsTest {
 		ChrPosition includedCP = new ChrPosition("1", 12, 15);
 		includes.add(includedCP);
 		Map<ChrPosition, RegionCounter> regions = MotifUtils.getRegionMap("1", size, windowSize, includes, null);
-		assertEquals((size / windowSize) + 3, regions.size());
+		assertEquals((size / windowSize) + 2, regions.size());
 		
 		for (Entry<ChrPosition, RegionCounter> entry : regions.entrySet()) {
 			if (entry.getKey().equals(includedCP)) assertEquals(RegionType.INCLUDES, entry.getValue().getType());
@@ -221,7 +257,7 @@ public class MotifUtilsTest {
 		ChrPosition includedCP = new ChrPosition("1", 10, 50);
 		includes.add(includedCP);
 		Map<ChrPosition, RegionCounter> regions = MotifUtils.getRegionMap("1", size, windowSize, includes, null);
-		assertEquals(8, regions.size());
+		assertEquals(7, regions.size());
 		
 		for (Entry<ChrPosition, RegionCounter> entry : regions.entrySet()) {
 			if (entry.getKey().equals(includedCP)) assertEquals(RegionType.INCLUDES, entry.getValue().getType());
@@ -241,7 +277,7 @@ public class MotifUtilsTest {
 		ChrPosition excludedCP = new ChrPosition("1", 11, 20);
 		excludes.add(excludedCP);
 		Map<ChrPosition, RegionCounter> regions = MotifUtils.getRegionMap("1", size, windowSize, null, excludes);
-		assertEquals((size / windowSize) + 1, regions.size());
+		assertEquals((size / windowSize), regions.size());
 		
 		for (Entry<ChrPosition, RegionCounter> entry : regions.entrySet()) {
 			if (entry.getKey().equals(excludedCP)) assertEquals(RegionType.EXCLUDES, entry.getValue().getType());
@@ -261,7 +297,7 @@ public class MotifUtilsTest {
 		ChrPosition excludedCP = new ChrPosition("1", 10, 15);
 		excludes.add(excludedCP);
 		Map<ChrPosition, RegionCounter> regions = MotifUtils.getRegionMap("1", size, windowSize, null, excludes);
-		assertEquals((size / windowSize) + 2, regions.size());
+		assertEquals(11, regions.size());
 		
 		for (Entry<ChrPosition, RegionCounter> entry : regions.entrySet()) {
 			if (entry.getKey().equals(excludedCP)) assertEquals(RegionType.EXCLUDES, entry.getValue().getType());
@@ -281,7 +317,7 @@ public class MotifUtilsTest {
 		ChrPosition excludedCP = new ChrPosition("1", 10, 50);
 		excludes.add(excludedCP);
 		Map<ChrPosition, RegionCounter> regions = MotifUtils.getRegionMap("1", size, windowSize, null, excludes);
-		assertEquals(8, regions.size());
+		assertEquals(7, regions.size());
 		
 		for (Entry<ChrPosition, RegionCounter> entry : regions.entrySet()) {
 			if (entry.getKey().equals(excludedCP)) assertEquals(RegionType.EXCLUDES, entry.getValue().getType());
@@ -306,7 +342,7 @@ public class MotifUtilsTest {
 		ChrPosition excludedCP = new ChrPosition("1", 27, 31);
 		excludes.add(excludedCP);
 		Map<ChrPosition, RegionCounter> regions = MotifUtils.getRegionMap("1", size, windowSize, includes, excludes);
-		assertEquals(13, regions.size());
+		assertEquals(12, regions.size());
 		
 		for (Entry<ChrPosition, RegionCounter> entry : regions.entrySet()) {
 			if (entry.getKey().equals(includedCP)) assertEquals(RegionType.INCLUDES, entry.getValue().getType());

@@ -10,8 +10,10 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.ini4j.Ini;
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.Pair;
 import org.qcmg.motif.util.IniUtils;
+import org.qcmg.motif.util.MotifConstants;
 import org.qcmg.motif.util.MotifsAndRegexes;
 import org.qcmg.qbamfilter.query.QueryExecutor;
 
@@ -47,18 +49,18 @@ public final class Configuration {
 			
 		windowSize = Integer.parseInt(IniUtils.getEntry(iniFile, "PARAMS", "window_size"));
 		
-		String stageOneRegex = IniUtils.getEntry(iniFile, "PARAMS", "stage1_motif_regex");
-		String stageTwoRegex = IniUtils.getEntry(iniFile, "PARAMS", "stage2_motif_regex");
+		String stageOneRegex = IniUtils.getEntry(iniFile, MotifConstants.PARAMS, MotifConstants.STAGE_1_MOTIF_REGEX);
+		String stageTwoRegex = IniUtils.getEntry(iniFile, MotifConstants.PARAMS, MotifConstants.STAGE_2_MOTIF_REGEX);
 		Motifs stageOneMotifs = null;
 		Motifs stageTwoMotifs = null;
 		
-		String s1Motifs = IniUtils.getEntry(iniFile, "PARAMS", "stage1_motif_string");
+		String s1Motifs = IniUtils.getEntry(iniFile, MotifConstants.PARAMS, MotifConstants.STAGE_1_MOTIF_STRING);
 		if (null != s1Motifs) {
-			stageOneMotifs = new Motifs(Boolean.parseBoolean(IniUtils.getEntry(iniFile, "PARAMS", "revcomp")), s1Motifs.split(","));
+			stageOneMotifs = new Motifs(Boolean.parseBoolean(IniUtils.getEntry(iniFile, MotifConstants.PARAMS, MotifConstants.STAGE_1_STRING_REV_COMP)), s1Motifs.split(Constants.COMMA_STRING));
 		}
-		String s2Motifs = IniUtils.getEntry(iniFile, "PARAMS", "stage2_motif_string");
+		String s2Motifs = IniUtils.getEntry(iniFile, MotifConstants.PARAMS, MotifConstants.STAGE_2_MOTIF_STRING);
 		if (null != s2Motifs) {
-			stageTwoMotifs = new Motifs(Boolean.parseBoolean(IniUtils.getEntry(iniFile, "PARAMS", "revcomp")), s2Motifs.split(","));
+			stageTwoMotifs = new Motifs(Boolean.parseBoolean(IniUtils.getEntry(iniFile, MotifConstants.PARAMS, MotifConstants.STAGE_2_STRING_REV_COMP)), s2Motifs.split(Constants.COMMA_STRING));
 		}
 		
 		mAndR = new MotifsAndRegexes(stageOneMotifs, stageOneRegex, stageTwoMotifs, stageTwoRegex, windowSize);
@@ -94,7 +96,7 @@ public final class Configuration {
 		countReadFromInput = new AtomicLong();
 		countReadToCoverage = new AtomicLong();
 		
-		cutoff = Integer.parseInt(IniUtils.getEntry(iniFile, "PARAMS", "cutoff_size"));
+		cutoff = Integer.parseInt(IniUtils.getEntry(iniFile, MotifConstants.PARAMS, "cutoff_size"));
 	}
 	
 	public AtomicLong getInputReadsCount(){

@@ -20,6 +20,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import net.sf.samtools.SAMFileHeader;
+import net.sf.samtools.SAMFileHeader.SortOrder;
 import net.sf.samtools.SAMFileReader;
 import net.sf.samtools.SAMFileWriter;
 import net.sf.samtools.SAMRecord;
@@ -90,6 +91,9 @@ public final class JobQueue {
 		
 		SAMFileReader samReader = SAMFileReaderFactory.createSAMFileReader(bamFile);
 		SAMFileHeader header = samReader.getFileHeader();
+		
+		// set sort order to coordinate
+		header.setSortOrder(SortOrder.coordinate);
 		bamWriterFactory = new SAMOrBAMWriterFactory(header, false, new File(invariants.getOutputBam()));
 		
 		contigs = header.getSequenceDictionary().getSequences();
