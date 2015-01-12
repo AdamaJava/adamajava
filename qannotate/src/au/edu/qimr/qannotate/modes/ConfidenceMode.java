@@ -129,10 +129,18 @@ public class ConfidenceMode extends AbstractMode{
 	}
 	
 	
+	//require update
+	/**
+	 * ********error Here, default somatic is the last field, but now user can specify control and tumour, so look at vcf2maf 
+	 * @param vcf
+	 * @return
+	 */
 	private int getAltFrequency(VcfRecord vcf){
 		 final String info =  vcf.getInfo();
-		 final String allel = (info.contains(VcfHeaderUtils.INFO_SOMATIC)) ? vcf.getFormatFields().get(2) :  vcf.getFormatFields().get(1); 		 
-		 final VcfFormatFieldRecord re = new VcfFormatFieldRecord(vcf.getFormatFields().get(0) ,  allel);
+//		 final String allel = (info.contains(VcfHeaderUtils.INFO_SOMATIC)) ? vcf.getFormatFields().get(2) :  vcf.getFormatFields().get(1); 		 
+		 final VcfFormatFieldRecord re = (info.contains(VcfHeaderUtils.INFO_SOMATIC)) ? vcf.getSampleFormatRecord(2) :  vcf.getSampleFormatRecord(1);
+				 
+		//		 new VcfFormatFieldRecord(vcf.getFormatFields().get(0) ,  allel);		 
 		 
 		 return VcfUtils.getAltFrequency(re, vcf.getAlt());	 
 	}

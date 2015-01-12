@@ -20,11 +20,13 @@ import org.qcmg.vcf.VCFFileReader;
 import au.edu.qimr.qannotate.options.DbsnpOptions;
 
 public class DbsnpMode extends AbstractMode{
+	QLogger logger;
 	
 	//for unit Test
 	DbsnpMode(){}
 	
 	public DbsnpMode(DbsnpOptions options, QLogger logger) throws Exception{	
+		this.logger = logger;
 		logger.tool("input: " + options.getInputFileName());
         logger.tool("dbSNP database: " + options.getDatabaseFileName() );
         logger.tool("output for annotated vcf records: " + options.getOutputFileName());
@@ -52,65 +54,76 @@ public class DbsnpMode extends AbstractMode{
 		try(VCFFileReader reader= new VCFFileReader( dbSNPFile )) {
 			//add dbSNP version into header	
 			final VcfHeader snpHeader = reader.getHeader();
-			for (final VcfHeaderRecord hr : snpHeader){ 
+			for (final VcfHeaderRecord hr : snpHeader) 
 				if(hr.getMetaType().equals(MetaType.META) &&  hr.getId().equalsIgnoreCase(VcfHeaderUtils.STANDARD_DBSNP_LINE)) 
-					header.replace(hr);  
-					 				
-				else if( hr.getMetaType().equals(MetaType.INFO) && hr.getId().equalsIgnoreCase(VcfHeaderUtils.INFO_GMAF) ){
+					header.replace(hr);  					 				
+				else if( hr.getMetaType().equals(MetaType.INFO) && hr.getId().equalsIgnoreCase(VcfHeaderUtils.INFO_GMAF) ) 
+					header.replace(hr);				 
+				 else if( hr.getMetaType().equals(MetaType.INFO) && hr.getId().equalsIgnoreCase(VcfHeaderUtils.INFO_CAF) ) 
 					header.replace(hr);
-				}				
-			}
-			
-			
-			//check dbsnp record
+				 							 
+			//below algorithm only work for SNP and compound SNP
 			for (final VcfRecord dbSNPVcf : reader) {
-				// vcf dbSNP record chromosome does not contain "chr", whereas the positionRecordMap does - add
-				//eg.positionRecordMap (key, value) = (chr1.100-101, vcfRecord )
-				//put end position in case of compound snp
-				final VcfRecord inputVcf = positionRecordMap.get(new ChrPosition("chr" + dbSNPVcf.getChromosome(), dbSNPVcf.getPosition(), dbSNPVcf.getPosition() + dbSNPVcf.getRef().length() - 1 ));
- 
-				
-				// , dbSNPVcf.getPosition() + dbSNPVcf.getRef().length()));
-				if (null == inputVcf) continue;
-	 			 		
-				// only proceed if we have a SNP, MNP variant record
-				if ( ! StringUtils.doesStringContainSubString(dbSNPVcf.getInfo(), "VC=SNV", false) &&
-						! StringUtils.doesStringContainSubString(dbSNPVcf.getInfo(), "VC=MNV", false)) continue;
+				if ( !StringUtils.doesStringContainSubString(dbSNPVcf.getInfo(), "VC=SNV", false) &&
+						!StringUtils.doesStringContainSubString(dbSNPVcf.getInfo(), "VC=MNV", false))
+					continue;
 
-				//reference base must be same	 
-				if( ! dbSNPVcf.getRef().equals( inputVcf.getRef() )) 
-					throw new Exception("reference base are different ");			 
-			 
-				//*eg. dbSNP: "1 100 rs12334 A G,T,C ..." dbSNP may have multiple entries
-				//*eg. input.vcf: "1 100 101 A G ..." , "1 100 101 A T,C ..." out snp vcf are single entries			  
-				String [] alts = null; 
-				try{
-					//multi allels
-					alts = TabTokenizer.tokenize(inputVcf.getAlt(), ',');
-				}catch(final IllegalArgumentException e){
-					//single allel
-					alts = new String[] {inputVcf.getAlt()};		
+			
+				// vcf dbSNP record chromosome does not contain "chr", whereas the positionRecordMap does - add
+				final VcfInfoFieldRecord info = new VcfInfoFieldRecord(dbSNPVcf.getInfo());	
+				final int start = Integer.parseInt(info.getfield("RSPOS"));
+				final int end =  dbSNPVcf.getRef().length() +  dbSNPVcf.getPosition() -1;		
+				final VcfRecord inputVcf = positionRecordMap.get(new ChrPosition("chr" + dbSNPVcf. getChromosome(), start, end ));	
+				if (null == inputVcf) continue;
+			
+				//debug untill find vcf inside
+				
+				/*VcfRecord inputVcf = null;
+				while(inputVcf == null && end >= start){
+					inputVcf = positionRecordMap.get(new ChrPosition("chr" + dbSNPVcf. getChromosome(), start, end ));
+					end --;
+				}
+				end ++;
+				if (null == inputVcf) continue;*/
+				
+				//reference base must be same
+				final String dbRef = dbSNPVcf.getRef().substring(start - dbSNPVcf.getPosition());
+				final String inputRef = inputVcf.getRef();
+				if( ! dbRef.equals( inputRef )){ 
+					logger.warn(String.format( "dbSNP reference base (%s) are different to vcf Record (%s) for variant at position: %s", dbRef, inputRef, inputVcf.getPosition()));			 
+					continue;
 				}
 				
-				if (null == alts)  continue;			
-				//annotation if at least one alts matches dbSNP alt
+				
+				//*eg. dbSNP: "1 100 rs12334 A G,T,C ..." dbSNP may have multiple entries
+				//*eg. input.vcf: "1 100 101 A G ..." , "1 100 101 A T,C ..." out snp vcf are single entries			  
+				String [] alts = {}; 
+				try{					
+					alts = TabTokenizer.tokenize(dbSNPVcf.getAlt(), ','); //multi allels
+				}catch(final IllegalArgumentException e){				
+					alts = new String[] {dbSNPVcf.getAlt()};		//single allel	
+				}
+				
 				for (final String alt : alts)  
 					//if(dbSNPVcf.getAlt().toUpperCase().contains(alt.toUpperCase()) ){
-					if(dbSNPVcf.getAlt().equalsIgnoreCase(alt)  ){
-						inputVcf.addInfo(getGMAF(dbSNPVcf.getInfo()));
-						inputVcf.setId(dbSNPVcf.getId());						
+ 					if(inputVcf.getAlt().equalsIgnoreCase(alt.substring(start-dbSNPVcf.getPosition())  )  ){
+						inputVcf.appendInfo(getCAF(dbSNPVcf.getInfo()));
+						inputVcf.setId(dbSNPVcf.getId());	
 						break;
 					} 
-			}
+				}
 		}
-
 	}
 	
-	private String getGMAF(String info){
+
+	
+	private String getCAF(String info){
 
 		final String gmaf =  new VcfInfoFieldRecord(info).getfield(VcfHeaderUtils.INFO_GMAF);
+		final String caf =  new VcfInfoFieldRecord(info).getfield(VcfHeaderUtils.INFO_CAF);
 		 
 		if(gmaf != null) return StringUtils.addToString(VcfHeaderUtils.INFO_GMAF, gmaf, EQ);
+		if(caf != null) return StringUtils.addToString(VcfHeaderUtils.INFO_CAF, caf, EQ);
 		
 		return null;
 	}

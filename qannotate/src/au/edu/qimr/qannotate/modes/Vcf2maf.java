@@ -36,14 +36,14 @@ public class Vcf2maf extends AbstractMode{
 	// org.qcmg.common.dcc.DccConsequence.getWorstCaseConsequence(MutationType, String...)
 	
 	//for unit test
-	Vcf2maf(){
+	Vcf2maf(int tumour_column, int normal_column){
 		this.tumourid = Vcf2mafOptions.normalid_Default;
 		this.normalid = Vcf2mafOptions.tumourid_Default;
 
 		center = SnpEffMafRecord.Unknown; 
 		sequencer = SnpEffMafRecord.Unknown; 
-		tumour_column = 3;		 
-		normal_column = 2;
+		this.tumour_column = tumour_column;		 
+		this.normal_column = normal_column;
 	}
 
 	
@@ -117,29 +117,34 @@ public class Vcf2maf extends AbstractMode{
 		
 		final VcfFormatFieldRecord tumour = ( tumour_column > 0) ? new VcfFormatFieldRecord(formats.get(0), formats.get(tumour_column -1)) : null;
 		
-		if(tumour != null){
-			final String allel =  tumour.getfield(VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS);		
+		if(tumour != null){	
 			maf.setColumnValue(37,  tumour.toString());
-		    if(allel != null && !allel.equals(Constants.MISSING_DATA_STRING)){		    	
+	    	maf.setColumnValue(43, Integer.toString( VcfUtils.getAltFrequency(tumour, null)));
+	    	maf.setColumnValue(44, Integer.toString( VcfUtils.getAltFrequency(tumour, vcf.getRef()))); 
+	    	maf.setColumnValue(45, Integer.toString( VcfUtils.getAltFrequency(tumour, vcf.getAlt())));
+			
+			final String allel =  tumour.getfield(VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS);		
+			if(allel != null && !allel.equals(Constants.MISSING_DATA_STRING)){		    	
 		    	maf.setColumnValue(12,  allel.substring(0,1));
 		    	maf.setColumnValue(13, allel.substring(2,3));
-		    	maf.setColumnValue(43, Integer.toString( VcfUtils.getAltFrequency(tumour, null)));
-		    	maf.setColumnValue(44, Integer.toString( VcfUtils.getAltFrequency(tumour, vcf.getRef()))); 
-		    	maf.setColumnValue(45, Integer.toString( VcfUtils.getAltFrequency(tumour, vcf.getAlt())));
-		    }    
+		    	
+		    	
+		    } 	
+		       
 		}
 		
 		
-		final VcfFormatFieldRecord normal= ( normal_column > 0) ? new VcfFormatFieldRecord(formats.get(0), formats.get(normal_column )): null;
-		if(normal != null){
-			final String allel =  normal.getfield(VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS);		
+		final VcfFormatFieldRecord normal= ( normal_column > 0) ? new VcfFormatFieldRecord(formats.get(0), formats.get(normal_column - 1)): null;
+		if(normal != null){				
 			maf.setColumnValue(36,  normal.toString());
+	    	maf.setColumnValue(46, Integer.toString( VcfUtils.getAltFrequency(normal, null)));
+	    	maf.setColumnValue(47, Integer.toString( VcfUtils.getAltFrequency(normal, vcf.getRef()))); 
+	    	maf.setColumnValue(48, Integer.toString( VcfUtils.getAltFrequency(normal, vcf.getAlt())));
+
+			final String allel =  normal.getfield(VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS);	
 		    if(allel != null && !allel.equals(Constants.MISSING_DATA_STRING)){
 		    	maf.setColumnValue(18,  allel.substring(0,1));
 		    	maf.setColumnValue(19, allel.substring(2,3));
-		    	maf.setColumnValue(46, Integer.toString( VcfUtils.getAltFrequency(normal, null)));
-		    	maf.setColumnValue(47, Integer.toString( VcfUtils.getAltFrequency(normal, vcf.getRef()))); 
-		    	maf.setColumnValue(48, Integer.toString( VcfUtils.getAltFrequency(normal, vcf.getAlt())));
 		    }
 		}
  			
@@ -155,14 +160,13 @@ public class Vcf2maf extends AbstractMode{
 				
 				final String effAnno = SnpEffConsequence.getWorstCaseConsequence(effString.split(","));
 				//if(effAnno == null) effAnno = effString.split(",")[0];
-				
-				
+								
 				final String ontolog = effAnno.substring(0, effAnno.indexOf("("));		
 					 
 				if(! StringUtils.isNullOrEmpty(ontolog)  ){
-					maf.setColumnValue(56, ontolog); //effect_ontology
+					maf.setColumnValue(57, ontolog); //effect_ontology
 					final String classic = SnpEffConsequence.getClassicName(ontolog);
-					if(classic != null) maf.setColumnValue(57, classic);
+					if(classic != null) maf.setColumnValue(58, classic);
 					
 					if(SnpEffConsequence.isConsequence(ontolog)) maf.setColumnValue(39, SnpEffMafRecord.Yes);
 					 
@@ -172,14 +176,15 @@ public class Vcf2maf extends AbstractMode{
 				if(! StringUtils.isNullOrEmpty(annotate)  ){					
 					final String[] effs = annotate.split(bar);
 					if(! StringUtils.isNullOrEmpty(effs[0]))  maf.setColumnValue(9, effs[0]); //VariantClassification, eg. modifier
-					if(! StringUtils.isNullOrEmpty(effs[3]))  maf.setColumnValue(50,effs[3]);
-					if(! StringUtils.isNullOrEmpty(effs[4]))  maf.setColumnValue(51,effs[4]);
+					if(! StringUtils.isNullOrEmpty(effs[3]))  maf.setColumnValue(50,effs[2]);
+					if(! StringUtils.isNullOrEmpty(effs[3]))  maf.setColumnValue(51,effs[3]);
+					if(! StringUtils.isNullOrEmpty(effs[4]))  maf.setColumnValue(52,effs[4]);
 					if(! StringUtils.isNullOrEmpty(effs[5]))  maf.setColumnValue(1, effs[5]);
-					if(! StringUtils.isNullOrEmpty(effs[6]))  maf.setColumnValue(52,effs[6]);
-					if(! StringUtils.isNullOrEmpty(effs[7]))  maf.setColumnValue(53,effs[7]);					
+					if(! StringUtils.isNullOrEmpty(effs[6]))  maf.setColumnValue(53,effs[6]);
+					if(! StringUtils.isNullOrEmpty(effs[7]))  maf.setColumnValue(54,effs[7]);					
 					if(! StringUtils.isNullOrEmpty(effs[8]))  maf.setColumnValue(49,effs[8]);
-					if(! StringUtils.isNullOrEmpty(effs[9]))  maf.setColumnValue(54,effs[9]);
-					if(! StringUtils.isNullOrEmpty(effs[10])) maf.setColumnValue(55,effs[10]);				
+					if(! StringUtils.isNullOrEmpty(effs[9]))  maf.setColumnValue(55,effs[9]);
+					if(! StringUtils.isNullOrEmpty(effs[10])) maf.setColumnValue(56,effs[10]);				
 				}
 			}catch(final Exception e ){	
 				throw new Exception("missing EFF information or EFF info field format wrong: " + effString );
@@ -190,23 +195,17 @@ public class Vcf2maf extends AbstractMode{
 	 SnpEffMafRecord converter1(VcfRecord vcf){
 		 final SnpEffMafRecord maf = new SnpEffMafRecord();
 		
-		 /*	
-		    setCenter(Unknown);
-
+		 /* setCenter(Unknown);
 		    setChromosome(String chromosome);
 		    setStartPosition(int startPosition);
 		    setEndPosition(int endPosition);
-
 		    setVariantType(MutationType variantType);        
 		    setRef(String ref);       
 		    setTumourAllele1(String tumourAllele1);
-		    setTumourAllele2(String tumourAllele2);
-		    
-		    setDbSnpId(null);        
- 		    
+		    setTumourAllele2(String tumourAllele2);		    
+		    setDbSnpId(null);         		    
 		    setNormalAllele1(String normalAllele1);
-		    setNormalAllele2(String normalAllele2);
-		    
+		    setNormalAllele2(String normalAllele2);		    
   		    setSequencingSource(Other);  
 		    setValidationMethod(none);	    
 		    setSequencer(String sequencer);
