@@ -121,7 +121,7 @@ public class GatkUniqueSnps {
 		addGermlineDBData(cmdLineInputFiles[5]);
 		
 		int noAnnotation = 0;
-		for (QSnpRecord qpr : qPileupRecords) if (null == qpr.getAnnotation()) noAnnotation++;
+		for (final QSnpRecord qpr : qPileupRecords) if (null == qpr.getAnnotation()) noAnnotation++;
 		logger.info("class A after addition of germlinedb data: " + noAnnotation );
 		
 		
@@ -160,25 +160,26 @@ public class GatkUniqueSnps {
 		int existsInNormalAndTumour = 0, sameGenotype = 0;
 		// loop through the tumour map
 		
-		for (Entry<ChrPosition,QSnpGATKRecord> tumourEntry : tumourRecords.entrySet()) {
+		for (final Entry<ChrPosition,QSnpGATKRecord> tumourEntry : tumourRecords.entrySet()) {
 			
 			// see if a position exists in the normal map
-			QSnpGATKRecord normalRecord = normalRecords.get(tumourEntry.getKey());
+			final QSnpGATKRecord normalRecord = normalRecords.get(tumourEntry.getKey());
 			if (null != normalRecord) {
 				existsInNormalAndTumour++;
 				
-				GenotypeEnum normalGenotype = normalRecord.getGenotypeEnum();
-				GenotypeEnum tumourGenotype = tumourEntry.getValue().getGenotypeEnum();
+				final GenotypeEnum normalGenotype = normalRecord.getGenotypeEnum();
+				final GenotypeEnum tumourGenotype = tumourEntry.getValue().getGenotypeEnum();
 				
 				if (normalGenotype == tumourGenotype) {
 					sameGenotype++;
 				} else {
 					if (tumourGenotype.containsAllele(normalRecord.getAlt().charAt(0))) {
-						tumourEntry.getValue().getVCFRecord().addInfo("MIN");
+						//tumourEntry.getValue().getVCFRecord().addInfo("MIN");
+						tumourEntry.getValue().getVCFRecord().appendInfo("MIN");;
 					}
 					if ( tumourGenotype.isHeterozygous() && ! tumourGenotype.containsAllele(tumourEntry.getValue().getRef().charAt(0)))
-						tumourEntry.getValue().getVCFRecord().addInfo("tumour heterozygous for two non-reference alleles");
-					
+						//tumourEntry.getValue().getVCFRecord().addInfo("tumour heterozygous for two non-reference alleles");
+						tumourEntry.getValue().getVCFRecord().appendInfo("tumour heterozygous for two non-reference alleles");
 					if (null == tumourEntry.getValue().getAnnotation()) {
 						qPileupRecords.add(getQPileupRecord(tumourEntry.getValue()));
 					}
@@ -194,7 +195,7 @@ public class GatkUniqueSnps {
 		logger.info("potential number of class A&B's before pileup: " + qPileupRecords.size() );
 		
 		int noAnnotation = 0, count = 0;
-		for (QSnpRecord qpr : qPileupRecords) {
+		for (final QSnpRecord qpr : qPileupRecords) {
 			getPileup(jumper1, qpr);
 			
 			if (++count % 100 == 0)
@@ -209,9 +210,9 @@ public class GatkUniqueSnps {
 	}
 	
 	private static void loadChromosomeConversionData(String chrConvFile) throws IOException  {
-		ChrConvFileReader reader = new ChrConvFileReader(new File(chrConvFile));
+		final ChrConvFileReader reader = new ChrConvFileReader(new File(chrConvFile));
 		try {
-			for (ChromosomeConversionRecord record : reader) {
+			for (final ChromosomeConversionRecord record : reader) {
 				// add extra map inserts here as required
 				ensembleToQCMG.put(record.getEnsembleV55(), record.getQcmg());
 			}
@@ -223,18 +224,18 @@ public class GatkUniqueSnps {
 	private void writeOutputForDCC(String dccSomaticFile) throws IOException {
 		if (dccSomaticFile.contains("Germline_DB.txt")) throw new IOException("Wrong output file!!!");
 		
-		FileWriter somaticWriter = new FileWriter(new File(dccSomaticFile));
+		final FileWriter somaticWriter = new FileWriter(new File(dccSomaticFile));
 			
-		String somaticHeader = "analysis_id\ttumour_sample_id\tmutation_id\tmutation_type\tchromosome\tchromosome_start\tchromosome_end\tchromosome_strand\trefsnp_allele\trefsnp_strand\treference_genome_allele\tcontrol_genotype\ttumour_genotype\tmutation\tquality_score\tprobability\tread_count\tis_annotated\tvalidation_status\tvalidation_platform\txref_ensembl_var_id\tnote\tQCMGflag\n";
-		int counter = 1;
+		final String somaticHeader = "analysis_id\ttumour_sample_id\tmutation_id\tmutation_type\tchromosome\tchromosome_start\tchromosome_end\tchromosome_strand\trefsnp_allele\trefsnp_strand\treference_genome_allele\tcontrol_genotype\ttumour_genotype\tmutation\tquality_score\tprobability\tread_count\tis_annotated\tvalidation_status\tvalidation_platform\txref_ensembl_var_id\tnote\tQCMGflag\n";
+		final int counter = 1;
 		try {
 			
 			somaticWriter.write(somaticHeader);
-			for (QSnpRecord record : qPileupRecords) {
+			for (final QSnpRecord record : qPileupRecords) {
 				
 				String ensemblChr = null;
 				// get ensembl chromosome
-				for (Map.Entry<String, String> entry : ensembleToQCMG.entrySet()) {
+				for (final Map.Entry<String, String> entry : ensembleToQCMG.entrySet()) {
 					if (record.getChromosome().equals(entry.getValue())) {
 						ensemblChr = entry.getKey();
 						break;
@@ -249,7 +250,7 @@ public class GatkUniqueSnps {
 	}
 	
 	private static QSnpRecord getQPileupRecord(QSnpGATKRecord vcfRec) {
-		QSnpRecord qpr = new QSnpRecord(vcfRec.getChromosome(), vcfRec.getPosition(), vcfRec.getRef());
+		final QSnpRecord qpr = new QSnpRecord(vcfRec.getChromosome(), vcfRec.getPosition(), vcfRec.getRef());
 		qpr.setTumourGenotype(vcfRec.getGenotypeEnum());
 		qpr.setMutation(vcfRec.getRef() + Constants.MUT_DELIM + vcfRec.getAlt());
 		qpr.getVcfRecord().setFilter(vcfRec.getAnnotation());
@@ -260,7 +261,7 @@ public class GatkUniqueSnps {
 	
 	public static void getPileup(QJumper jumper, QSnpRecord record) throws Exception {
 		
-		List<SAMRecord> firstSet = jumper.getRecordsAtPosition(record.getChromosome(), record.getPosition());
+		final List<SAMRecord> firstSet = jumper.getRecordsAtPosition(record.getChromosome(), record.getPosition());
 //		List<SAMRecord> secondSet = jumper2.getRecordsAtPosition(record.getChromosome(), record.getPosition());
 		
 		
@@ -299,10 +300,10 @@ public class GatkUniqueSnps {
 	
 	public static void examinePileup(List<SAMRecord> sams, QSnpRecord record) throws Exception {
 		
-		char mutation = record.getMutation().charAt(record.getMutation().length() -1);
+		final char mutation = record.getMutation().charAt(record.getMutation().length() -1);
 		boolean mutationFoundInNormal = false;
 		int normalCoverage = 0;
-		for (SAMRecord sam : sams ) {
+		for (final SAMRecord sam : sams ) {
 			if ( ! sam.getDuplicateReadFlag()) {
 				++normalCoverage;
 				
@@ -362,28 +363,28 @@ public class GatkUniqueSnps {
 	
 	private static void addGermlineDBData(String germlineDBFile) throws IOException {
 		
-		GermlineDBFileReader reader = new GermlineDBFileReader(new File(germlineDBFile));
+		final GermlineDBFileReader reader = new GermlineDBFileReader(new File(germlineDBFile));
 		// create map of SOMATIC classified SNPs
-		Map<ChrPosition, QSnpRecord> somaticPileupMap = new HashMap<ChrPosition, QSnpRecord>(qPileupRecords.size(), 1);
-		for (QSnpRecord pileupRecord : qPileupRecords) {
+		final Map<ChrPosition, QSnpRecord> somaticPileupMap = new HashMap<ChrPosition, QSnpRecord>(qPileupRecords.size(), 1);
+		for (final QSnpRecord pileupRecord : qPileupRecords) {
 			somaticPileupMap.put(new ChrPosition(pileupRecord.getChromosome(), pileupRecord.getPosition()), pileupRecord);
 		}
 		
 		int updateCount = 0, count = 0;
 		try {
-			for (GermlineDBRecord rec : reader) {
+			for (final GermlineDBRecord rec : reader) {
 				
 				// get QCMG chromosome from map
-				String chr = ensembleToQCMG.get(rec.getChromosome());
-				ChrPosition id = new ChrPosition(chr, rec.getPosition());
+				final String chr = ensembleToQCMG.get(rec.getChromosome());
+				final ChrPosition id = new ChrPosition(chr, rec.getPosition());
 				
-				QSnpRecord qpr = somaticPileupMap.get(id);
+				final QSnpRecord qpr = somaticPileupMap.get(id);
 				if (null != qpr && null != qpr.getMutation() && (null == qpr.getAnnotation() || ! qpr.getAnnotation().contains(VcfHeaderUtils.FILTER_GERMLINE))) {
-					String mutation = qpr.getMutation();
+					final String mutation = qpr.getMutation();
 					if (mutation.length() == 3) {
-						char c = mutation.charAt(2);
+						final char c = mutation.charAt(2);
 						
-						GenotypeEnum germlineDBGenotype = BaseUtils.getGenotypeEnum(rec.getNormalGenotype());
+						final GenotypeEnum germlineDBGenotype = BaseUtils.getGenotypeEnum(rec.getNormalGenotype());
 						if (germlineDBGenotype.containsAllele(c)) {
 							updateCount++;
 							
@@ -409,9 +410,9 @@ public class GatkUniqueSnps {
 	private static void loadGATKData(String pileupFile, Map<ChrPosition,QSnpGATKRecord> map) throws Exception {
 		if (FileUtils.canFileBeRead(pileupFile)) {
 			
-			VCFFileReader reader  = new VCFFileReader(new File(pileupFile));
+			final VCFFileReader reader  = new VCFFileReader(new File(pileupFile));
 			try {
-				for (VcfRecord qpr : reader) {
+				for (final VcfRecord qpr : reader) {
 					map.put(new ChrPosition(qpr.getChromosome(), qpr.getPosition()), new QSnpGATKRecord(qpr));
 				}
 			} finally {
@@ -421,8 +422,8 @@ public class GatkUniqueSnps {
 	}
 	
 	public static void main(String[] args) throws Exception {
-		GatkUniqueSnps gus = new GatkUniqueSnps();
-		int exitStatus = gus.setup(args);
+		final GatkUniqueSnps gus = new GatkUniqueSnps();
+		final int exitStatus = gus.setup(args);
 		if (null != logger)
 			logger.logFinalExecutionStats(exitStatus);
 		
@@ -431,7 +432,7 @@ public class GatkUniqueSnps {
 	
 	protected int setup(String args[]) throws Exception{
 		int returnStatus = -1;
-		Options options = new Options(args);
+		final Options options = new Options(args);
 
 		if (options.hasHelpOption()) {
 			System.err.println(Messages.USAGE);
@@ -465,7 +466,7 @@ public class GatkUniqueSnps {
 			// check supplied output files can be written to
 			if (null != options.getOutputFileNames()) {
 				cmdLineOutputFiles = options.getOutputFileNames();
-				for (String outputFile : cmdLineOutputFiles) {
+				for (final String outputFile : cmdLineOutputFiles) {
 					if ( ! FileUtils.canFileBeWrittenTo(outputFile))
 						throw new QMuleException("OUTPUT_FILE_WRITE_ERROR", outputFile);
 				}
