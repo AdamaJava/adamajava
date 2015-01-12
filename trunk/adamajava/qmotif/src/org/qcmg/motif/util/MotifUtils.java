@@ -62,8 +62,10 @@ public class MotifUtils {
 		Map<ChrPosition, RegionCounter> results = new HashMap<>();
 
 		for (int i = 0 ; i < noOfBins ; i++) {
-			ChrPosition cp = new ChrPosition(chr, (i * windowSize) + 1, (i + 1) * windowSize);
-			results.put(cp, new RegionCounter(isUnmapped ? RegionType.UNMAPPED : RegionType.GENOMIC));
+			if ( ((i * windowSize) + 1) <= length) {
+				ChrPosition cp = new ChrPosition(chr, (i * windowSize) + 1, Math.min((i + 1) * windowSize, length));
+				results.put(cp, new RegionCounter(isUnmapped ? RegionType.UNMAPPED : RegionType.GENOMIC));
+			}
 		}
 		
 		// now go through the includes/excludes and if there are any overlaps - remove the OTHER ones and keep the inc/exc
