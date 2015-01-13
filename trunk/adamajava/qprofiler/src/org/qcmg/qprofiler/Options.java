@@ -28,6 +28,7 @@ final class Options {
 	private static final String OUTPUT_FILE_DESCRIPTION = Messages.getMessage("OUTPUT_FILE_DESCRIPTION");
 	private static final String INPUT_FILE_DESCRIPTION = Messages.getMessage("INPUT_FILE_DESCRIPTION");
 	private static final String VALIDATION_STRINGENCY_OPTION_DESCRIPTION = Messages.getMessage("VALIDATION_STRINGENCY_DESCRIPTION");
+	private static final String NO_HTML_DESCRIPTION = Messages.getMessage("NO_HTML_OPTION_DESCRIPTION");
 	
 	private final OptionParser parser = new OptionParser();
 	private final OptionSet options;
@@ -64,6 +65,7 @@ final class Options {
 		parser.accepts("tagsInt", TAGS_INT_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
 		parser.accepts("tagsChar", TAGS_CHAR_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
 		parser.accepts("validation", VALIDATION_STRINGENCY_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
+		parser.accepts("nohtml", NO_HTML_DESCRIPTION);
 		parser.posixlyCorrect(true);
 
 		options = parser.parse(args);
@@ -131,6 +133,10 @@ final class Options {
 
 	boolean hasHelpOption() {
 		return options.has("help");
+	}
+	
+	boolean hasNoHtmlOption() {
+		return options.has("nohtml");
 	}
 	
 	boolean hasLogOption() {
