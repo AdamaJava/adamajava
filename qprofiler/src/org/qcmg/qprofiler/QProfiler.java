@@ -70,6 +70,7 @@ public class QProfiler {
 	private int maxRecords;
 	private String logFile;
 	private String validation;
+	private boolean noHtml; 
 	
 //	private boolean useDisruptor;
 //	private List<Element> reportElements;
@@ -148,25 +149,15 @@ public class QProfiler {
 		root.setAttribute("finish_time", sol.getFinishTime());
 		sol.asXmlText(root, outputFile);
 		
-		boolean runHTMLReport = true;
 		
-		if (null != cmdLineInclude) {
-			for (String exclude : cmdLineInclude) {
-				if ("html".equalsIgnoreCase(exclude)) {
-					runHTMLReport = false;
-					break;
-				}
-			}
-		}
-		
-		if (runHTMLReport) {
-			String [] args = {"-i",outputFile, "-log", logFile};
+		if ( ! noHtml) {
+			String qVisLogFile = logFile.replace("log", "html.log");
+			String [] args = {"-i",outputFile, "-log", qVisLogFile};
 			logger.info("about to run qVisualise on qProfiler output");
 			try {
-//				QVisualise.main(args);
 				int exitstatus = new QVisualise().setup(args);
 				if (exitstatus == 0) logger.info("qVisualise output generated: " + outputFile + ".html");
-				else logger.warn("Problem occurred in qVisualise - please refer to log file for (hopefully) more details"); 
+				else logger.warn("Problem occurred in qVisualise - please refer to log file [" + qVisLogFile + "] for (hopefully) more details"); 
 			} catch (Exception e) {
 				// just log this and continue
 				logger.warn("qVisualise failed for qprofiler output: " + outputFile);
@@ -331,6 +322,8 @@ public class QProfiler {
 			cmdLineTagsInt = options.getTagsInt();
 			cmdLineTagsChar = options.getTagsChar();
 			validation = options.getValidation();
+			
+			noHtml = options.hasNoHtmlOption();
 			
 			// get no of threads
 			noOfConsumerThreads = options.getNoOfConsumerThreads();
