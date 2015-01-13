@@ -3,9 +3,7 @@ package org.qcmg.snp;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,7 +23,8 @@ import org.qcmg.vcf.VCFFileReader;
 public class PileupPipelineTest {
  
 	@org.junit.Rule
-	public  TemporaryFolder testFolder = new TemporaryFolder();
+	
+ 	public  TemporaryFolder testFolder = new TemporaryFolder();
 	
 	@org.junit.Rule
     public ExpectedException thrown= ExpectedException.none();
@@ -50,13 +49,11 @@ public class PileupPipelineTest {
 	
 	@Test
 	public void testPileupPipelineGenerateVCFOnly() throws Exception {
- 		final File logFile = testFolder.newFile("qsnp.log");
-		final File iniFile = testFolder.newFile("qsnp.ini");
-		
-		
+		final File logFile = testFolder.newFile("qsnp.log");
+		final File iniFile = testFolder.newFile("qsnp.ini");	
 		final File pileupInput = testFolder.newFile("input.pileup");
 		final File vcfOutput = testFolder.newFile("output.vcf");
- 		
+  		
 		PileupFileGenerator.createPileupFile(pileupInput);
 		IniFileGenerator.createRulesOnlyIni(iniFile);
 		IniFileGenerator.addInputFiles(iniFile, false, "pileup = " + pileupInput.getAbsolutePath());
@@ -69,20 +66,8 @@ public class PileupPipelineTest {
 		ExpectedException.none();
 		final String command = "-log " + logFile.getAbsolutePath() + " -i " + iniFile.getAbsolutePath();
 		final Executor exec = new Executor(command, "org.qcmg.snp.Main");
-//		String [] lines = exec.getErrorStreamConsumer().getLines();
-//		for (String s : lines) {
-//			System.out.println("s: " + s);
-//		}
-		assertEquals(0, exec.getErrCode());
+ 		assertEquals(0, exec.getErrCode());		
 		assertTrue(0 == exec.getOutputStreamConsumer().getLines().length);
-		
-		//debug		  
-		 final BufferedReader bufferReader = new BufferedReader(new FileReader(vcfOutput));
-		 String line;
-		while ((line = bufferReader.readLine()) != null)   {
-	            System.out.println(line);
-	    }
-		
 		// check the vcf output file
 		assertEquals(1, noOfLinesInVCFOutputFile(vcfOutput));
 	}
@@ -109,7 +94,7 @@ public class PileupPipelineTest {
 		ExpectedException.none();
 		final String command = "-log " + logFile.getAbsolutePath() + " -i " + iniFile.getAbsolutePath();
 		final Executor exec = new Executor(command, "org.qcmg.snp.Main");
-		assertEquals(0, exec.getErrCode());
+		assertEquals(0, exec.getErrCode());		
 		assertTrue(0 == exec.getOutputStreamConsumer().getLines().length);
 		
 		// check the vcf output file

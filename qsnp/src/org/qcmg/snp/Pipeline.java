@@ -637,7 +637,7 @@ public abstract class Pipeline {
 		logger.info("number of SOMATIC snps that have evidence of mutation in unfiltered normal: " + noOfAffectedRecords);
 	}
 	
-	public  VcfRecord convertQSnpToVCF(QSnpRecord rec) {
+	public  VcfRecord convertQSnpToVCF(QSnpRecord rec) throws Exception {
 //		VCFRecord vcf = VcfUtils.createVcfRecord(rec.getChrPos(), rec.getDbSnpId(), rec.getRef() + "");
 		final VcfRecord vcf = rec.getVcfRecord();
 		
@@ -656,11 +656,13 @@ public abstract class Pipeline {
 					
 		vcf.addFilter(rec.getAnnotation());		// don't overwrite existing annotations
 		
+		
+		//work with INFO field 
 		String info = "";
 //		StringBuilder info = new StringBuilder();
 		if (Classification.SOMATIC == rec.getClassification()) {
 //			info.append(rec.getClassification().toString());
-			info = StringUtils.addToString(info, Classification.SOMATIC.toString(), Constants.SEMI_COLON);
+			info = StringUtils.addToString(info, Classification.SOMATIC.toString(), Constants.SEMI_COLON);			
 		}
 		
 		// add Number of Mutations (MR - Mutated Reads)
@@ -689,11 +691,15 @@ public abstract class Pipeline {
 			info = StringUtils.addToString(info, VcfHeaderUtils.INFO_FLANKING_SEQUENCE +Constants.EQ +rec.getFlankingSequence()  , Constants.SEMI_COLON);
 		}
 		
+		vcf.setInfo(info);
+		
+		
+		//Alt Field
 		final String [] altAndGTs = VcfUtils.getMutationAndGTs(rec.getRef(), rec.getNormalGenotype(), rec.getTumourGenotype());
 		vcf.setAlt(altAndGTs[0]);
 		
 		
-		
+		//FORMAT fields should be three columns here
 		// get existing format field info from vcf record
 		final List<String> additionalformatFields = new ArrayList<>();
 		
@@ -730,8 +736,8 @@ public abstract class Pipeline {
 		additionalformatFields.add(formatField.toString());
 		
 		VcfUtils.addFormatFieldsToVcf(vcf, additionalformatFields);
-//		vcf.addFormatField(singleSampleMode ? 1 : 2, formatField.toString());
-		vcf.addInfo(info);
+
+//		vcf.addFormatField(singleSampleMode ? 1 : 2, formatField.toString());		
 //		vcf.setFormatField(formatField.toString());
 		return vcf;
 	}
@@ -1754,7 +1760,7 @@ public abstract class Pipeline {
 	}
 	
 	
-	void compoundSnps() {
+	void compoundSnps() throws Exception {
 		logger.info("in compound snp");
 		// loop through our snps
 		// if we have adjacent ones, need to do some digging to see if they might be compoundium snps
@@ -1945,11 +1951,14 @@ public abstract class Pipeline {
 					// create new VCFRecord with start position
 					final VcfRecord cs = VcfUtils.createVcfRecord(csChrPos, null, ref, alt);
 					if (somatic) {
-						cs.addInfo(Classification.SOMATIC.toString());
+						cs.appendInfo(Classification.SOMATIC.toString());
+					//	cs.addInfo(Classification.SOMATIC.toString());
 					}
 					cs.setFilter(uniqueFlagsSb.toString());		// unique list of filters seen by snps making up this cs
-					cs.setFormatField(Arrays.asList(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP,
-						 normalSb.toString(), tumourSb.toString())); 
+					cs.setSampleFormatField(Arrays.asList(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP,
+						 normalSb.toString(), tumourSb.toString()));
+					//cs.setFormatField(Arrays.asList(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP,
+					//	 normalSb.toString(), tumourSb.toString())); 
 					
 					compoundSnps.put(csChrPos, cs);
 					

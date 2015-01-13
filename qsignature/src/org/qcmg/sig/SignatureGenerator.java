@@ -298,7 +298,7 @@ public class SignatureGenerator {
 		}
 	}
 	
-	private void updateResults() {
+	private void updateResults() throws Exception {
 		// update the snps list with the details from the results map
 		
 		for (final Entry<VcfRecord, List<BaseStrandPosition>> entry : results.entrySet()) {
@@ -335,7 +335,7 @@ public class SignatureGenerator {
 		}
 	}
 	
-	private void updateResultsIllumina(Map<ChrPosition, IlluminaRecord> iIlluminaMap) {
+	private void updateResultsIllumina(Map<ChrPosition, IlluminaRecord> iIlluminaMap) throws Exception {
 		
 		// update the snps list with the details from the results map
 		for (final VcfRecord snp : snps) {
@@ -354,7 +354,7 @@ public class SignatureGenerator {
 	}
 	
 	
-	private void writeVCFOutput(File bamFile, VcfHeader header) throws IOException {
+	private void writeVCFOutput(File bamFile, VcfHeader header) throws Exception {
 		// if we have an output folder defined, place the vcf files there, otherwise they will live next to the bams
 		File outputVCFFile = null;
 		if (null != outputDirectory) {
@@ -788,7 +788,7 @@ public class SignatureGenerator {
 		
 		@Override
 		public void run() {
-			int intervalSize = 1000000;
+			final int intervalSize = 1000000;
 			try {
 				// reset some key values
 				arrayPosition = 0;

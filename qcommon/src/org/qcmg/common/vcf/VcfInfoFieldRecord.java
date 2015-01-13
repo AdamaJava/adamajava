@@ -1,7 +1,7 @@
 package org.qcmg.common.vcf;
 
-import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.qcmg.common.util.Constants;
@@ -9,32 +9,35 @@ import org.qcmg.common.util.Constants;
 public class VcfInfoFieldRecord {
 //	static final String NULL = "NULL";
 	
-	Map<String,String> field = new HashMap<>();	
+	Map<String,String> field = new LinkedHashMap<>();	
 	
 	/**
 	 * parse line into <key, value> pairs. eg. "CONF;NNS=5" will be parsed to <CONF,NULL>, <NNS,5>
 	 * @param line
+	 * @throws Exception 
 	 */
-	public VcfInfoFieldRecord(String line){
+	public VcfInfoFieldRecord(String line) throws Exception{
 		//incase for some testing data
-		if(line == null){
-			field.put(Constants.MISSING_DATA_STRING, Constants.EMPTY_STRING);
+		if(line == null || line.equals(Constants.EMPTY_STRING)){
+			field.clear();
 			return;
 		}
 		
 		final String[] infos = line.trim().split(";");			
 		for(final String str: infos){
 			final int index = str.indexOf("=");			 
-			if(index >= 0)
+			if(index > 0)
 				field.put(str.substring(0,index), str.substring(index+1));
+			else if(index == 0)
+				throw new Exception(String.format("missing short key for value %s in INFO string: %s", str, line));
 			else
-				field.put(str,Constants.EMPTY_STRING);			
+				field.put(str,Constants.NULL_STRING);			
 		}
 	}
 	
 	public void setfield(String key, String value){
 		if(value == null)
-			field.put(key, Constants.EMPTY_STRING);
+			field.put(key, Constants.NULL_STRING);
 		else
 			field.put(key, value);
 	}

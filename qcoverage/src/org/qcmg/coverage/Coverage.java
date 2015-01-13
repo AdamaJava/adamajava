@@ -159,7 +159,7 @@ public final class Coverage {
 	}
 	
 	
-	private static VcfRecord convertCoverageToVCFRecord(org.qcmg.coverage.CoverageReport covReport) {
+	private static VcfRecord convertCoverageToVCFRecord(org.qcmg.coverage.CoverageReport covReport) throws Exception {
 		
 		// tab delimited string containing loads of useful stuff 
 		final String feature = covReport.getFeature();
