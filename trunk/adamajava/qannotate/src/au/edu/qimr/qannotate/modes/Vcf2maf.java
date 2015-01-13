@@ -219,8 +219,9 @@ public class Vcf2maf extends AbstractMode{
 	/**
 	 * testing method only to retrive EFF types 
 	 * @param vcf
+	 * @throws Exception 
 	 */
-	private void splitEFF(VcfRecord vcf ){
+	private void splitEFF(VcfRecord vcf ) throws Exception{
 		
 		final VcfInfoFieldRecord info =  new VcfInfoFieldRecord(vcf.getInfo());
 		try{

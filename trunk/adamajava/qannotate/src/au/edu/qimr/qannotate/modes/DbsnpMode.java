@@ -117,7 +117,7 @@ public class DbsnpMode extends AbstractMode{
 	
 
 	
-	private String getCAF(String info){
+	private String getCAF(String info) throws Exception{
 
 		final String gmaf =  new VcfInfoFieldRecord(info).getfield(VcfHeaderUtils.INFO_GMAF);
 		final String caf =  new VcfInfoFieldRecord(info).getfield(VcfHeaderUtils.INFO_CAF);

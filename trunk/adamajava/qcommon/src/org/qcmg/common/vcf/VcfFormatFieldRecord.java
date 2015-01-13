@@ -27,10 +27,6 @@ public class VcfFormatFieldRecord {
 		
 		for(int i = 0; i < keys.length; i ++)
 			field.put(keys[i], Constants.MISSING_DATA_STRING);
-		
-//		sampleId = id;
-//		this.sample = sample;
-//		if(sample == null) return;
 	
 		final String[] values= sample.split(Constants.COLON_STRING);
 		for(int i = 0; i < field.size(); i ++) 
@@ -52,7 +48,7 @@ public class VcfFormatFieldRecord {
 	
 	/**
 	 * 
-	 * @return Format column String. eg.  GT:GQ:DP:HQ
+	 * @return Format column String. eg.  GT:GQ:DP:HQ, it will auto remove ":." at the end of string for missing key values
 	 */
 	public String getFormatColumnString(){
 		String str = "";
@@ -80,6 +76,11 @@ public class VcfFormatFieldRecord {
 			sample += (sample != "")? Constants.COLON_STRING : "";
 			sample += field.get(key);
 		}
+		
+		sample = sample.trim();
+		final int last = sample.lastIndexOf(Constants.COLON_STRING);
+		if( last >= 0 && sample.substring(last+1).equals(Constants.MISSING_DATA_STRING))
+			sample = sample.substring(0, last);
 		
 		return (sample == "")? null: sample;
 	}

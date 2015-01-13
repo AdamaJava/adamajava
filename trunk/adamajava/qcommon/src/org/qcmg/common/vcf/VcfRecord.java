@@ -62,7 +62,7 @@ public class VcfRecord {
 		this(new ChrPosition(chr, position, end), id, ref, alt);
 	}
 	
-	public VcfRecord(String [] params) {
+	public VcfRecord(String [] params) throws Exception {
 //		this(params[0], Integer.parseInt(params[1]), params[2], params[3], params[4]);				
 		this(params[0], Integer.parseInt(params[1]), Integer.parseInt(params[1]) + params[3].length() - 1, params[2], params[3], params[4]);			
 		
@@ -104,12 +104,19 @@ public class VcfRecord {
 	/**
 	 * 
 	 * @param info INFO column value. eg. SOMATIC:RSPOS=100:END=102
+	 * @throws Exception If the info String didn't follow pattern : <key>=<data> joined by ';'
 	 */
-	public void setInfo(String info) {  this.infoRecord = new VcfInfoFieldRecord(info); }
+	public void setInfo(String info) throws Exception {  this.infoRecord = new VcfInfoFieldRecord(info); }
+	
+	/**
+	 * 
+	 * @param additionalInfo 
+	 */
 	
 	/**
 	 * append additional info record into info column
-	 * @param additionalInfo eg. RSPOS=99;END=100;
+	 * @param additionalInfo: eg. RSPOS=99;END=100;
+	 * @throws Exception if sub string of additionalInfo split by ';',  didn't follow pattern: <key>=<data>
 	 */
 	public void appendInfo(String additionalInfo) throws Exception{
 		if( StringUtils.isNullOrEmpty( additionalInfo ))
@@ -132,7 +139,7 @@ public class VcfRecord {
 				}
 		}
 	}
-	public String getInfo() { 	return (infoRecord == null)? null: infoRecord.toString(); }	
+	public String getInfo() { 	return (infoRecord == null)? Constants.MISSING_DATA_STRING: infoRecord.toString(); }	
 	public VcfInfoFieldRecord getInfoRecord() { return infoRecord; }
 	
 //	public void addFormatField(int position, String field) {
@@ -142,10 +149,15 @@ public class VcfRecord {
 	
 	/**
 	 * add/replace new format fields, it will wipe off old format column data if exits
-	 * @param field: a list of format string start with FORMAT string.
+	 * @param field: a list of format string start with FORMAT string. Empty FORMAT and Sample columns if field is null.
 	 * @throws Exception if list size smaller than two 
 	 */
 	public void setSampleFormatField(List<String> field) throws Exception {
+		if(field == null) {
+			formatRecords.clear();
+			return;
+		}
+		
 		if(field.size() == 1) 
 			throw new Exception("missing sample column information");
 		
@@ -159,10 +171,8 @@ public class VcfRecord {
 	 * @param index: the column number of sample. eg. 1 means the first column after "FORMAT" column
 	 * @return a VcfFormatFieldRecord for specified sample 
 	 */
-	public VcfFormatFieldRecord getSampleFormatRecord(int index){
-		
-		return (index > formatRecords.size())? null: formatRecords.get(index-1);
-		
+	public VcfFormatFieldRecord getSampleFormatRecord(int index){		
+		return (index > formatRecords.size())? null: formatRecords.get(index-1);		
 	}
 	
 	
@@ -184,7 +194,7 @@ public class VcfRecord {
 	}
 	
 	public String getFormatFieldStrings(){ 
-		if(formatRecords.size() == 0 ) return "";		
+		if(formatRecords.size() == 0 ) return Constants.EMPTY_STRING;		
 		
 		String str =  formatRecords.get(0).getFormatColumnString();
 		for(int i = 0; i < formatRecords.size(); i ++)

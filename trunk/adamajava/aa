@@ -1,0 +1,1250 @@
+Index: qannotate/src/au/edu/qimr/qannotate/messages.properties
+===================================================================
+--- qannotate/src/au/edu/qimr/qannotate/messages.properties	(revision 398)
++++ qannotate/src/au/edu/qimr/qannotate/messages.properties	(working copy)
+@@ -8,6 +8,7 @@
+ GERMLINE_USAGE = usage: qannotate --mode Germline  -i <input> -o <output> -d <database>  [options]
+ CONFIDENCE_USAGE = usage: qannotate --mode confidence  -i <input> -o <output> -d <database>  [options]
+ CUSTOMERCONFIDENCE_USAGE = usage: qannotate --mode customerConfidence  -i <input> -o <output>   [options]
++VCF2MAF_USAGE = usage: qannotate --mode vcf2maf -i <input vcf> -o <output vcf>
+ 
+ TOO_MANY_ARGUMENTS =  more than two arguments are typed in command line
+ LESS_ARGUMENTS = less than two arguments are typed in command line
+@@ -41,5 +42,10 @@
+ MIN_READ_COUNT_DESCRIPTION = Annotate variants which alleles reads counts reached this specified number
+ MIN_MUTANT_RATE_DESCRIPTION = Annotate variants which mutanted reads number over this specified percentage . eg. 25 means at least 25% reads contain this variant
+ 
++//vcf2maf
++TUMOUR_SAMPLEID_DESCRIPTION = specify sample id here from vcf header line, this column will convert to maf file as tumour information, default is "TEST"; set to "null" if tumour sample column is not exists.    
++NORMAL_SAMPLEID_DESCRIPTION = specify sample id here from vcf header line, this column will convert to maf file as normal information, default is "CONTROL"; set to "null" if normal sample column is not exists. 
++ 
++
+ VERSION_OPTION_DESCRIPTION = Print version info.
+ HELP_OPTION_DESCRIPTION = Shows this help message.
+\ No newline at end of file
+Index: qannotate/src/au/edu/qimr/qannotate/modes/ConfidenceMode.java
+===================================================================
+--- qannotate/src/au/edu/qimr/qannotate/modes/ConfidenceMode.java	(revision 398)
++++ qannotate/src/au/edu/qimr/qannotate/modes/ConfidenceMode.java	(working copy)
+@@ -10,6 +10,7 @@
+ import org.qcmg.common.model.TorrentVerificationStatus;
+ import org.qcmg.common.util.DonorUtils;
+ import org.qcmg.common.util.SnpUtils;
++import org.qcmg.common.vcf.VcfFormatFieldRecord;
+ import org.qcmg.common.vcf.VcfInfoFieldRecord;
+ import org.qcmg.common.vcf.VcfRecord;
+ import org.qcmg.common.vcf.VcfUtils;
+@@ -33,6 +34,14 @@
+ 	public static final int LOW_CONF_ALT_FREQ_PASSING_SCORE = 4;	
+ 	public static final String SOMATIC = "SOMATIC";
+ 	public static final String NOVEL_STARTS = "NNS";
++	
++	//filters 
++	public static final String PASS = "PASS";
++	public static final String LESS_THAN_12_READS_NORMAL = "COVN12";
++	public static final String LESS_THAN_3_READS_NORMAL = "SAN3";
++	public static final String MUTATION_IN_UNFILTERED_NORMAL = "MIUN";
++	public static final String LESS_THAN_12_READS_NORMAL_AND_UNFILTERED= LESS_THAN_12_READS_NORMAL + ";" + MUTATION_IN_UNFILTERED_NORMAL;
++	public static final String LESS_THAN_3_READS_NORMAL_AND_UNFILTERED= LESS_THAN_3_READS_NORMAL + ";" + MUTATION_IN_UNFILTERED_NORMAL;
+ 
+ 	public enum Confidence{	HIGH , LOW, ZERO ; }
+ 	private final String patientId;
+@@ -78,20 +87,43 @@
+ 	    	final ChrPosition pos = it.next();
+ 	    	final VcfRecord vcf = positionRecordMap.get(pos);
+ 	    	final VcfInfoFieldRecord infoRecord = new VcfInfoFieldRecord(vcf.getInfo());	
++	    	
++	    	//debug
++    	if(vcf.getPosition() == 2675825) 
++    		System.out.println(vcf.toString() + "\n" + infoRecord.toString());
++    	
++    	if(SnpUtils.LESS_THAN_12_READS_NORMAL_AND_UNFILTERED.equals(vcf.getFilter() ))
++    		System.out.println("equal");
++    	else
++    		System.out.println(SnpUtils.LESS_THAN_12_READS_NORMAL_AND_UNFILTERED + " vs " + vcf.getFilter());
++	    	
+ 	    		    	
+ 	        if (VerifiedData != null && VerifiedData.get(pos) != null && VerifiedData.get(pos).equals( TorrentVerificationStatus.YES))  
+ 	        	 infoRecord.setfield(VcfHeaderUtils.INFO_CONFIDENT, Confidence.HIGH.toString());		        
+ 	        else if (checkNovelStarts(HIGH_CONF_NOVEL_STARTS_PASSING_SCORE, infoRecord) 
+-					&& ( VcfUtils.getAltFrequency(vcf) >=  HIGH_CONF_ALT_FREQ_PASSING_SCORE)
+-					&& SnpUtils.isClassA(vcf.getFilter()))  
++					&& ( getAltFrequency(vcf) >=  HIGH_CONF_ALT_FREQ_PASSING_SCORE)
++					&& PASS.equals(vcf.getFilter()))  
+ 	        	 infoRecord.setfield(VcfHeaderUtils.INFO_CONFIDENT, Confidence.HIGH.toString());		        	 				 				
+ 			else if (checkNovelStarts(LOW_CONF_NOVEL_STARTS_PASSING_SCORE, infoRecord) 
+-					&& ( VcfUtils.getAltFrequency(vcf) >= LOW_CONF_ALT_FREQ_PASSING_SCORE )
+-					&& SnpUtils.isClassAorB( vcf.getFilter() )) 
++					&& ( getAltFrequency(vcf) >= LOW_CONF_ALT_FREQ_PASSING_SCORE )
++					&& (PASS.equals(vcf.getFilter()) 
++						|| LESS_THAN_12_READS_NORMAL.equals(vcf.getFilter())
++						|| LESS_THAN_3_READS_NORMAL.equals(vcf.getFilter())
++						|| MUTATION_IN_UNFILTERED_NORMAL.equals(vcf.getFilter())
++						|| LESS_THAN_12_READS_NORMAL_AND_UNFILTERED.equals(vcf.getFilter())
++						|| LESS_THAN_3_READS_NORMAL_AND_UNFILTERED.equals(vcf.getFilter())))
+ 				 infoRecord.setfield(VcfHeaderUtils.INFO_CONFIDENT, Confidence.LOW.toString());					 
+ 			 else
+-				 infoRecord.setfield(VcfHeaderUtils.INFO_CONFIDENT, Confidence.ZERO.toString());		        
++				 infoRecord.setfield(VcfHeaderUtils.INFO_CONFIDENT, Confidence.ZERO.toString());		  
++	        
+ 	        vcf.setInfo(infoRecord.toString());
++	        
++		    	//debug
++	    	if(vcf.getPosition() == 2675825) 
++	    		System.out.println(vcf.toString() + "\n" + infoRecord.toString());
++        
++	        
++	        
+ 	    } 	
+  
+ 	    
+@@ -104,6 +136,15 @@
+ 	     
+ 	}
+ 	
++	private int getAltFrequency(VcfRecord vcf){
++		 final String info =  vcf.getInfo();
++		 final String allel = (info.contains(VcfHeaderUtils.INFO_SOMATIC)) ? vcf.getFormatFields().get(2) :  vcf.getFormatFields().get(1); 		 
++		 final VcfFormatFieldRecord re = new VcfFormatFieldRecord(vcf.getFormatFields().get(0) ,  allel);
++		 
++		 return VcfUtils.getAltFrequency(re, vcf.getAlt());
++		 
++	 
++	}
+  
+ 	 private boolean   checkNovelStarts(int score, VcfInfoFieldRecord infoRecord ) {
+ 		 try{			 
+Index: qannotate/src/au/edu/qimr/qannotate/modes/CustomerConfidenceMode.java
+===================================================================
+--- qannotate/src/au/edu/qimr/qannotate/modes/CustomerConfidenceMode.java	(revision 398)
++++ qannotate/src/au/edu/qimr/qannotate/modes/CustomerConfidenceMode.java	(working copy)
+@@ -4,6 +4,7 @@
+ import java.util.Iterator;
+ 
+ import org.qcmg.common.log.QLogger;
++import org.qcmg.common.vcf.VcfFormatFieldRecord;
+ import org.qcmg.common.vcf.VcfInfoFieldRecord;
+ import org.qcmg.common.vcf.VcfRecord;
+ import org.qcmg.common.vcf.VcfUtils;
+@@ -73,8 +74,9 @@
+ 			//only annotate record passed filters
+ 			if(passOnly && !re.getFilter().toUpperCase().contains(VcfHeaderUtils.FILTER_PASS))
+ 				continue;
+- 			
+-			final int total = VcfUtils.getAltFrequency(re);				
++			  
++			final String allel = (re.getInfo().contains(VcfHeaderUtils.INFO_SOMATIC)) ? re.getFormatFields().get(2) :  re.getFormatFields().get(1); 		 
++			final int total =  VcfUtils.getAltFrequency(new VcfFormatFieldRecord(re.getFormatFields().get(0) ,  allel), null );
+ 			if( total <  min_read_counts) continue;
+ 			
+ 			final int mutants = Integer.parseInt( infoRecord.getfield(VcfHeaderUtils.INFO_MUTANT_READS));			  
+Index: qannotate/src/au/edu/qimr/qannotate/modes/Vcf2maf.java
+===================================================================
+--- qannotate/src/au/edu/qimr/qannotate/modes/Vcf2maf.java	(revision 398)
++++ qannotate/src/au/edu/qimr/qannotate/modes/Vcf2maf.java	(working copy)
+@@ -4,12 +4,15 @@
+ import java.io.IOException;
+ import java.io.PrintWriter;
+ import java.util.HashMap;
++import java.util.List;
+ import java.util.Map;
+-import java.util.Map.Entry;
+ 
+ import org.qcmg.common.log.QLogger;
++import org.qcmg.common.util.Constants;
++import org.qcmg.common.vcf.VcfFormatFieldRecord;
+ import org.qcmg.common.vcf.VcfInfoFieldRecord;
+ import org.qcmg.common.vcf.VcfRecord;
++import org.qcmg.common.vcf.VcfUtils;
+ import org.qcmg.common.vcf.header.VcfHeaderUtils;
+ import org.qcmg.vcf.VCFFileReader;
+ 
+@@ -17,39 +20,162 @@
+ import au.edu.qimr.qannotate.utils.SnpEffMafRecord;
+ 
+ public class Vcf2maf extends AbstractMode{
+-//	protected VcfHeader header;
+-//	protected String inputUuid;
+ 	
++	protected final  Map<String,String> effRanking = new HashMap<String,String>();	
++	private final String center;
++	private final String sequencer;
++	private final String tumourid;
++	private final String normalid;
+ 	
+-	//extra field for new maf
+-//	String Tumor_Sample_UUID;
+-//	String Matched_Norm_Sample_UUID;
++	public static String  bar = "\\|";
++	private int tumour_column = -2; //can't be -1 since will "+1"
++	private int normal_column = -2;
+ 	
+-	protected final  Map<String,String> effRanking = new HashMap<String,String>();					
+-	
+ 	// org.qcmg.common.dcc.DccConsequence.getWorstCaseConsequence(MutationType, String...)
+ 	
+-	public Vcf2maf(){   }
++	//for unit test
++	Vcf2maf(){
++		this.tumourid = Vcf2mafOptions.normalid_Default;
++		this.normalid = Vcf2mafOptions.tumourid_Default;
++
++		center = SnpEffMafRecord.Unknown; 
++		sequencer = SnpEffMafRecord.Unknown; 
++	}
++
+ 	
+ 
+ 	//EFF= Effect ( Effect_Impact | Functional_Class | Codon_Change | Amino_Acid_Change| Amino_Acid_Length | Gene_Name | Transcript_BioType | Gene_Coding | Transcript_ID | Exon_Rank  | Genotype_Number [ | ERRORS | WARNINGS ] )
+ 	
+ 	public Vcf2maf(Vcf2mafOptions option, QLogger logger) throws IOException, Exception {
+ 		// TODO Auto-generated constructor stub
+-		
+-		
++		 
++		this.center = option.getCenter();
++		this.sequencer = option.getSequencer();
++		this.tumourid = option.getTumourid();
++		this.normalid = option.getNormalid();
+ 		try(VCFFileReader reader = new VCFFileReader(new File( option.getInputFileName()));
+ 				PrintWriter out = new PrintWriter(option.getOutputFileName())){
+ 			
+-        	for (final VcfRecord vcf : reader) 
+-        		splitEFF(  vcf );
+-        	
+-        	for(final Entry<String, String> set : effRanking.entrySet())
+-        		out.println(  set.getValue() + "\t" + set.getKey());
+-  
+-		} 
++			final String[] samples = reader.getHeader().getSampleId();
++			for(int i = 0; i < samples.length; i++)
++				if(samples[i].equalsIgnoreCase(tumourid))
++					tumour_column = i + 1;
++				else if(samples[i].equalsIgnoreCase(normalid))
++					normal_column = i + 1;
++		 			
++			if(tumour_column < 0  && tumourid != null)
++				throw new Exception("can't find tumour sample id from vcf header line: " + tumourid);
++			if(normal_column < 0  && normalid != null)
++				throw new Exception("can't find normal sample id from vcf header line: " + normalid);	 
++				
++			out.println(SnpEffMafRecord.toFormatHeaderline());
++        	for (final VcfRecord vcf : reader){ 
++        		try{
++        		 out.println(converter(vcf).toFormattedString());
++        		}catch(final Exception e){       			
++        			logger.warn("Error message during vcf2maf: " + e.getMessage());
++        		}
++        	}  
++		}
+ 	}
++	//Effect ( Effect_Impact | Functional_Class | Codon_Change | Amino_Acid_Change| Amino_Acid_length | Gene_Name | Transcript_BioType | Gene_Coding | Transcript_ID | Exon_Rank  | Genotype_Number [ | ERRORS | WARNINGS ] )
++	 SnpEffMafRecord converter(VcfRecord vcf) throws Exception{
++		final SnpEffMafRecord maf = new SnpEffMafRecord();
++		
++		//set common value;				 
++		maf.setCenter(center);
++		maf.setChromosome(vcf.getChromosome());
++		maf.setStartPosition(vcf.getPosition());
++		maf.setEndPosition(vcf.getChrPosition().getEndPosition());
++		 
++		maf.setRef(vcf.getRef());	
++		maf.setFlag(vcf.getFilter());
++		maf.setDbSnpId(vcf.getId());
++
++		final VcfInfoFieldRecord info =  new VcfInfoFieldRecord(vcf.getInfo());
++		if(info.getfield(VcfHeaderUtils.INFO_NOVEL_STARTS) != null) maf.setNovelStartCount(Integer.parseInt(info.getfield(VcfHeaderUtils.INFO_NOVEL_STARTS)));
++		if(info.getfield(VcfHeaderUtils.INFO_CONFIDENT) != null)	maf.setStringConfidence(info.getfield(VcfHeaderUtils.INFO_CONFIDENT) );
++		if(info.getfield(VcfHeaderUtils.INFO_FS) != null) maf.setCpg(info.getfield(VcfHeaderUtils.INFO_FS));
++		if(info.getfield(VcfHeaderUtils.INFO_GMAF) != null) maf.set_Population_frequence(info.getfield(VcfHeaderUtils.INFO_GMAF));
++
++		try{						 
++			final String[] eles = info.getfield(VcfHeaderUtils.INFO_EFFECT).split(",")[0].replace("(", " ").replace(")", "").split(" ");
++			maf.setVariantClassification(eles[0]);
++			maf.setHugoSymbol(eles[1].split(bar)[5] );	//5			
++		}catch(final Exception e ){	
++			throw new Exception("missing EFF information or EFF info field format wrong: " + info.getfield(VcfHeaderUtils.INFO_EFFECT));
++		}
++		
++		//format & sample field
++		final List<String> formats =  vcf.getFormatFields();
++		if(   formats.size() <= Math.max(tumour_column, normal_column)  )	
++			throw new Exception("Missing sample column for "+ tumourid + " or " + normalid + ", in below vcf:\n"+ vcf.toString());
++		
++		final VcfFormatFieldRecord tumour = ( tumour_column > 0) ? new VcfFormatFieldRecord(formats.get(0), formats.get(tumour_column )) : null;
++		
++		if(tumour != null){
++			final String allel =  tumour.getfield(VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS);		
++			maf.setTd(tumour.toString());
++		    if(allel != null && !allel.equals(Constants.MISSING_DATA_STRING)){		    	
++		    	maf.setTumourAllele1(allel.substring(0,1));
++		    	maf.setTumourAllele2(allel.substring(2,3));
++		    	maf.set_t_depth(VcfUtils.getAltFrequency(tumour, null));
++		    	maf.set_t_ref_count(VcfUtils.getAltFrequency(tumour, vcf.getRef()));
++		    	maf.set_t_alt_count(VcfUtils.getAltFrequency(tumour, vcf.getAlt()));//?? multi allel
++		    }
++		}
++		
++		
++		final VcfFormatFieldRecord normal= ( normal_column > 0) ? new VcfFormatFieldRecord(formats.get(0), formats.get(normal_column )): null;
++		if(normal != null){
++			final String allel =  normal.getfield(VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS);		
++			maf.setNd(normal.toString());
++		    if(allel != null && !allel.equals(Constants.MISSING_DATA_STRING)){
++		    	maf.setNormalAllele1(allel.substring(0,1));
++		    	maf.setNormalAllele2(allel.substring(2,3));
++		    	maf.set_n_depth(VcfUtils.getAltFrequency(normal, null));
++		    	maf.set_n_ref_count(VcfUtils.getAltFrequency(normal, vcf.getRef()));
++		    	maf.set_n_alt_count(VcfUtils.getAltFrequency(normal, vcf.getAlt()));//?? multi allel
++		    }
++		}
++ 			
++		return maf;
++	}
++	 
++	 SnpEffMafRecord converter1(VcfRecord vcf){
++		 final SnpEffMafRecord maf = new SnpEffMafRecord();
++		
++		 /*	
++		    setCenter(Unknown);
++
++		    setChromosome(String chromosome);
++		    setStartPosition(int startPosition);
++		    setEndPosition(int endPosition);
++
++		    setVariantType(MutationType variantType);        
++		    setRef(String ref);       
++		    setTumourAllele1(String tumourAllele1);
++		    setTumourAllele2(String tumourAllele2);
++		    
++		    setDbSnpId(null);        
++ 		    
++		    setNormalAllele1(String normalAllele1);
++		    setNormalAllele2(String normalAllele2);
++		    
++  		    setSequencingSource(Other);  
++		    setValidationMethod(none);	    
++		    setSequencer(String sequencer);
++		*/	
++
++		 return maf;
++	 }
++	 
+ 	
++	
++	/**
++	 * testing method only to retrive EFF types 
++	 * @param vcf
++	 */
+ 	private void splitEFF(VcfRecord vcf ){
+ 		
+ 		final VcfInfoFieldRecord info =  new VcfInfoFieldRecord(vcf.getInfo());
+Index: qannotate/src/au/edu/qimr/qannotate/options/GermlineOptions.java
+===================================================================
+--- qannotate/src/au/edu/qimr/qannotate/options/GermlineOptions.java	(revision 398)
++++ qannotate/src/au/edu/qimr/qannotate/options/GermlineOptions.java	(working copy)
+@@ -1,9 +1,9 @@
+ package au.edu.qimr.qannotate.options;
+ 
+ import static java.util.Arrays.asList;
++//import au.edu.qimr.qannotate.options.Options.MODE;
++import joptsimple.OptionSet;
+ import au.edu.qimr.qannotate.Messages;
+-import au.edu.qimr.qannotate.options.Options.MODE;
+-import joptsimple.OptionSet;
+ 
+ 
+ /*
+@@ -27,7 +27,7 @@
+         parser.accepts("mode", "run germline mode").withRequiredArg().ofType(String.class).describedAs("germline");
+         parser.accepts("log", LOG_DESCRIPTION).withRequiredArg().ofType(String.class);
+         parser.accepts("loglevel",  LOG_LEVEL_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
+-        OptionSet options = parser.parse(args);   
++        final OptionSet options = parser.parse(args);   
+         
+         if(options.has("h") || options.has("help")){
+         	displayHelp(Messages.getMessage("GERMLINE_USAGE"));
+@@ -47,9 +47,9 @@
+         inputFileName = (String) options.valueOf("i") ;      	 
+         outputFileName = (String) options.valueOf("o") ; 
+         databaseFileName = (String) options.valueOf("d") ;      
+-        String[] inputs = new String[]{ inputFileName,databaseFileName} ;
+-        String[] outputs = new String[]{outputFileName};
+-        String [] ios = new String[inputs.length + outputs.length];
++        final String[] inputs = new String[]{ inputFileName,databaseFileName} ;
++        final String[] outputs = new String[]{outputFileName};
++        final String [] ios = new String[inputs.length + outputs.length];
+         System.arraycopy(inputs, 0, ios, 0, inputs.length);
+         System.arraycopy(outputs, 0, ios, inputs.length, outputs.length);
+         
+Index: qannotate/src/au/edu/qimr/qannotate/options/Vcf2mafOptions.java
+===================================================================
+--- qannotate/src/au/edu/qimr/qannotate/options/Vcf2mafOptions.java	(revision 398)
++++ qannotate/src/au/edu/qimr/qannotate/options/Vcf2mafOptions.java	(working copy)
+@@ -4,15 +4,36 @@
+ import joptsimple.OptionSet;
+ import au.edu.qimr.qannotate.Messages;
+ 
++
+ public class Vcf2mafOptions extends Options {
+ 	 public Vcf2mafOptions( ) {  super(Options.MODE.vcf2maf);	  }
+ 	 
++	 public static final String tumourid_Default = "TEST";
++	 public static final String normalid_Default = "CONTROL";
++	 public static final String unkown = "unkown";
++	 public static final String null_String = "null";
++	 
++	 String center ; 
++	 String sequencer; 
++	 String tumourid;
++	 String normalid;
++	 
++	 
++	 final String  Description_sequencer = "eg.  <Illumina GAIIx, Illumina HiSeq,SOLID,454, ABI 3730xl, Ion Torrent PGM,Ion Torrent Proton,PacBio RS, Illumina MiSeq,Illumina HiSeq 2500,454 GS FLX Titanium,AB SOLiD 4 System>";
++	 
+ 	 @Override
+ 	    public boolean parseArgs(final String[] args) throws Exception{  	
+ 	    	 
+ 	        parser.acceptsAll( asList("h", "help"), Messages.getMessage("HELP_OPTION_DESCRIPTION"));
+ 	        parser.acceptsAll( asList("i", "input"), Messages.getMessage("INPUT_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("input vcf");
+-	        parser.acceptsAll( asList("o", "output"), Messages.getMessage("OUTPUT_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("output vcf"); 
++	        parser.acceptsAll( asList("o", "output"),  "output maf file with full path").withRequiredArg().ofType(String.class).describedAs("output maf"); 
++	        
++	        parser.accepts("tumour",  Messages.getMessage("TUMOUR_SAMPLEID_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("tumourSample");
++	        parser.accepts("normal", Messages.getMessage("NORMAL_SAMPLEID_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("normalSample");	        
++	        parser.accepts("center", "Genome sequencing center").withRequiredArg().ofType(String.class).describedAs("center");
++	        parser.accepts("sequencer", Description_sequencer).withRequiredArg().ofType(String.class).describedAs("Sequencer");
++	        
++	        
+ 	        parser.accepts("mode", "run vcf2maf").withRequiredArg().ofType(String.class).describedAs("vcf2maf");
+ 	       // "(compulsary) database location"
+  	        parser.accepts("log", LOG_DESCRIPTION).withRequiredArg().ofType(String.class);
+@@ -20,7 +41,7 @@
+ 	        final OptionSet options = parser.parse(args);   
+ 	        
+ 	        if(options.has("h") || options.has("help")){
+-	        	displayHelp(Messages.getMessage("SNPEFF_USAGE"));
++	        	displayHelp(Messages.getMessage("VCF2MAF_USAGE"));
+ 	            return false;
+ 	        }
+ 	                               
+@@ -37,8 +58,17 @@
+ 	        inputFileName = (String) options.valueOf("i") ;      	 
+ 	        outputFileName = (String) options.valueOf("o") ; 
+ 	        
++	        center = (options.has("center"))? (String)options.valueOf("center") : unkown;
++	        sequencer = (options.has("sequencer"))? (String)options.valueOf("sequencer") : unkown;	        
++	        tumourid = (options.has("tumour"))? (String)options.valueOf("tumour") : tumourid_Default;
++	        normalid = (options.has("normal"))? (String)options.valueOf("normal") : normalid_Default;
+ 	        
+-  	        	return true;
++  	        return true;
+ 	     } 
+ 	 
++	 public String getCenter(){  return center; }
++	 public String getSequencer(){  return sequencer; }
++	 public String getTumourid(){  return (tumourid.equalsIgnoreCase(null_String))? null:tumourid; }
++	 public String getNormalid(){  return (normalid.equalsIgnoreCase(null_String))? null:normalid; }
++	 
+ }
+Index: qannotate/src/au/edu/qimr/qannotate/utils/SnpEffMafRecord.java
+===================================================================
+--- qannotate/src/au/edu/qimr/qannotate/utils/SnpEffMafRecord.java	(revision 398)
++++ qannotate/src/au/edu/qimr/qannotate/utils/SnpEffMafRecord.java	(working copy)
+@@ -4,12 +4,38 @@
+  
+ 
+ public class SnpEffMafRecord extends MAFRecord {	
++	
++	public static final String Unknown = "Unknown";
++	public static final String Other = "Other";
++//	public static final String Valid = "Valid";
++//	public static final String Invalid = "Invalid";
++	public static final String novel = "novel";
++	public static final char positive = '+';
++	public static final String none  = "none";
++	public static final String No = "No";
++	 
++	
++	
++	public enum mutation_status{  
++		None, Germline,Somatic,LOH,PostTranscriptional, modification,Unknown;
++		@Override
++		public String toString() {
++			switch (this) {
++				case PostTranscriptional:
++					return "Post-transcriptional";			 
++				default:
++					return name();		 		
++			}
++		}
++	};
++	public enum Validation_Status { Untested,Inconclusive, Valid,Invalid };
++	
++
+ 	//extra field for new maf
+ 	String Tumor_Sample_UUID;
+ 	String Matched_Norm_Sample_UUID;
+-	
+-	
+-	
++
++	private String population_frequence;
+ 	private int t_depth;  //total coverage for tumor sample
+ 	private int t_ref_count;
+ 	private int t_alt_count;	
+@@ -26,8 +52,6 @@
+ 	private int  Exon_Rank; 
+ 	private int Genotype_Number;
+ 		
+- 
+-	
+ 	public int get_t_depth(){	 return t_depth; }	
+ 	public void set_t_depth(int t){	  t_depth = t; }
+ 	
+@@ -46,18 +70,223 @@
+ 	public int get_n_alt_count(){	 return n_alt_count; }	
+ 	public void set_n_alt_count(int t){	  n_alt_count = t; }
+ 	
+-	public void snpEff2maf(String eff_string){
++	public void set_Tumor_Sample_UUID(String id){ Tumor_Sample_UUID = id;}
++	public String get_Tumor_Sample_UUID(){ return Tumor_Sample_UUID; }	 
++	
++	public void set_Matched_Norm_Sample_UUID(String id){ Matched_Norm_Sample_UUID = id;}
++	public String get_Matched_Norm_Sample_UUID(){ return Matched_Norm_Sample_UUID; }
++	
++	public void set_Population_frequence(String i){population_frequence = i;}
++	public String get_Population_frequence( ){return population_frequence; }
++	
++	
++	String confidence;
++	public void setStringConfidence(String string) {
++		this.confidence = string;
++	}
++	
++	public String geStringConfidence() {
++		return this.confidence;
++	}
++	
++	
++	//set default value;
++	public SnpEffMafRecord(){
++		setHugoSymbol(Unknown);
++		setEntrezGeneId("0");
++	    setCenter(Unknown);
++	    setNcbiBuild(37);
++	    
++	  //  setChromosome(String chromosome);
++	  //  setStartPosition(int startPosition);
++	  //  setEndPosition(int endPosition);
++	    
++	    setStrand(positive);
++	    
++	    //??Variant_Classification try snpEff
++	 //   setVariantClassification(String variantClassification);
++	            
++	  //  setVariantType(MutationType variantType);        
++	  //  setRef(String ref);       
++	   // setTumourAllele1(String tumourAllele1);
++	   // setTumourAllele2(String tumourAllele2);
++	    
++	    setDbSnpId(null);        
++	    setDbSnpValStatus(null);       
++	    setTumourSampleBarcode(Unknown);
++	    setNormalSampleBarcode(Unknown);
++	    
++	   // setNormalAllele1(String normalAllele1);
++	   // setNormalAllele2(String normalAllele2);
++	    
++	    setTumourValidationAllele1(Unknown);
++	    setTumourValidationAllele2(Unknown);
++	    setNormalValidationAllele1(Unknown);
++	    setNormalValidationAllele2(Unknown);
++	    
++	    setVerificationStatus(Unknown);
++	    setValidationStatus(Validation_Status.Untested.toString());	    
++	    setMutationStatus(mutation_status.Unknown.toString());	    
++	    setSequencingPhase(Unknown);
++	    setSequencingSource(Other);	    
++	    setValidationMethod( none );	    
++	    setScore(null);  
++	    setBamFile(null);  	    
++	    setSequencer(Unknown);	
++	    set_Tumor_Sample_UUID(Unknown);
++		set_Matched_Norm_Sample_UUID(Unknown);
+ 		
+ 		
+-	}
++		//extra field
++		set_Population_frequence(Unknown);
++        setFlag(Unknown) ;     
++        setTd(No) ;       
++        setNd(No);        
++        setCanonicalTranscriptId(Unknown);
++        setCanonicalAAChange(Unknown);
++        setCanonicalBaseChange(Unknown);
++        setAlternateTranscriptId(Unknown);
++        setAlternateAAChange(Unknown);
++        setAlternateBaseChange(Unknown);
++        setCpg(Unknown);
++        
++        set_t_depth(-1 );
++        set_n_depth(-1 );
++        set_t_ref_count(-1 );
++        set_n_ref_count(-1 );
++        set_t_alt_count(-1 );
++        set_n_alt_count(-1 );
++	}	
++	
+ 	 
+-	
+-	public String toFormattedStringSnpEff() {
+-		return toFormattedStringBasic() + T +
+-		getConfidence() + T +
+-		getCpg() + T +
+-		getNovelStartCount();
++	@Override
++	public String toFormattedString() {
++		final StringBuilder sb = new StringBuilder();
++		sb.append(hugoSymbol).append(T);
++		sb.append(entrezGeneId).append(T);
++		sb.append(center).append(T);
++		sb.append(ncbiBuild).append(T);
++		sb.append(chromosome).append(T);
++		sb.append(startPosition).append(T);
++		sb.append(endPosition).append(T);
++		sb.append(strand).append(T);
++		sb.append(variantClassification).append(T);
++		sb.append(variantType).append(T);
++		sb.append(ref).append(T);
++		sb.append(tumourAllele1).append(T);
++		sb.append(tumourAllele2).append(T);
++		sb.append(dbSnpId).append(T);
++		sb.append(dbSnpValStatus).append(T);
++		sb.append(tumourSampleBarcode).append(T);
++		sb.append(normalSampleBarcode).append(T);
++		sb.append(normalAllele1).append(T);
++		sb.append(normalAllele2).append(T);
++		sb.append(tumourValidationAllele1).append(T);
++		sb.append(tumourValidationAllele2).append(T);
++		sb.append(normalValidationAllele1).append(T);
++		sb.append(normalValidationAllele2).append(T);
++		sb.append(verificationStatus).append(T);
++		sb.append(validationStatus).append(T);
++		sb.append(mutationStatus).append(T);
++		sb.append(sequencingPhase).append(T);
++		sb.append(sequencingSource).append(T);
++		sb.append(validationMethod).append(T);
++		sb.append(score).append(T);
++		sb.append(bamFile).append(T);
++		sb.append(sequencer).append(T);
++		sb.append(Tumor_Sample_UUID).append(T);
++		sb.append(Matched_Norm_Sample_UUID).append(T);
++		sb.append(flag).append(T);
++		sb.append(nd).append(T);
++		sb.append(td).append(T);
++		sb.append(canonicalTranscriptId).append(T);
++		sb.append(canonicalAAChange).append(T);
++		sb.append(canonicalBaseChange).append(T);
++		sb.append(alternateTranscriptId).append(T);
++		sb.append(alternateAAChange).append(T);
++		sb.append(alternateBaseChange).append(T);
++		
++		sb.append(confidence).append(T); 
++		sb.append(cpg).append(T); 
++		sb.append(novelStartCount).append(T); 
++		
++		sb.append( population_frequence).append(T); 
++		sb.append(t_depth).append(T);
++		sb.append(t_ref_count).append(T);
++		sb.append(t_alt_count).append(T);
++		sb.append(n_depth).append(T);
++		sb.append(n_ref_count).append(T);
++		sb.append(n_alt_count);
++			
++		return sb.toString();
++ 
+ 	}
+ 	
++ 
++	
++ 
++	
++ 
++ 	
++	public static String toFormatHeaderline(){
++		final StringBuilder sb = new StringBuilder();
++		sb.append("Hugo_Symbol").append(T);  //1
++		sb.append("Entrez_Gene_Id").append(T);  //2
++		sb.append("Center").append(T);  //3
++		sb.append("NCBI_Build").append(T);  //4
++		sb.append("Chromosome").append(T);  //5
++		sb.append("Start_Position").append(T);  //6
++		sb.append("End_Position").append(T);  //7
++		sb.append("Strand").append(T);  //8
++		sb.append("Variant_Classification").append(T);  //9
++		sb.append("Variant_Type").append(T);  //10
++		sb.append("Reference_Allele").append(T);  //11
++		sb.append("Tumor_Seq_Allele1").append(T);  //12
++		sb.append("Tumor_Seq_Allele2").append(T);  //13
++		sb.append("dbSNP_RS").append(T);  //14
++		sb.append("dbSNP_Val_Status").append(T);  //15
++		sb.append("Tumor_Sample_Barcode").append(T);  //16
++		sb.append("Matched_Norm_Sample_Barcode").append(T);  //17
++		sb.append("Match_Norm_Seq_Allele1").append(T);  //18
++		sb.append("Match_Norm_Seq_Allele2").append(T);  //19
++		sb.append("Tumor_Validation_Allele1").append(T);  //20
++		sb.append("Tumor_Validation_Allele2").append(T);  //21
++		sb.append("Match_Norm_Validation_Allele1").append(T);  //22
++		sb.append("Match_Norm_Validation_Allele2").append(T);  //23
++		sb.append("Verification_Status4").append(T);  //24
++		sb.append("Validation_Status4").append(T);  //25
++		sb.append("Mutation_Status").append(T);  //26
++		sb.append("Sequencing_Phase").append(T);  //27
++		sb.append("Sequence_Source").append(T);  //28
++		sb.append("Validation_Method").append(T);  //29
++		sb.append("Score").append(T);  //30
++		sb.append("BAM_File").append(T);  //31
++		sb.append("Sequencer").append(T);  //32
++		sb.append("Tumor_Sample_UUID").append(T);  //33
++		sb.append("Matched_Norm_Sample_UUID").append(T);  //34
++		sb.append("QCMG_Flag").append(T);
++		sb.append("ND").append(T);
++		sb.append("TD").append(T);
++		sb.append("Canonical_Transcript_Id").append(T);
++		sb.append("Canonical_AA_Change").append(T);
++		sb.append( "Canonical_Base_Change").append(T); 
++		sb.append("Alternate_Transcript_Id").append(T);
++		sb.append("Alternate_AA_Change").append(T);
++		sb.append("Alternate_Base_Change").append(T);
++		sb.append("Confidence").append(T); 
++		sb.append("CPG").append(T); 
++		sb.append("Novel_Starts").append(T); 
++		sb.append( "populatiohn_frequence").append(T); 
++		sb.append("t_depth").append(T);
++		sb.append("t_ref_count").append(T);
++		sb.append("t_alt_count").append(T);
++		sb.append("n_depth").append(T);
++		sb.append("n_ref_count").append(T);
++		sb.append("n_alt_count").append(T);
+ 
++		return sb.toString();
++	}
++
++
++
+ }
+Index: qannotate/test/au/edu/qimr/qannotate/modes/ConfidenceModeTest.java
+===================================================================
+--- qannotate/test/au/edu/qimr/qannotate/modes/ConfidenceModeTest.java	(revision 398)
++++ qannotate/test/au/edu/qimr/qannotate/modes/ConfidenceModeTest.java	(working copy)
+@@ -12,8 +12,8 @@
+ import org.junit.AfterClass;
+ import org.junit.BeforeClass;
+ import org.junit.Test;
++import org.qcmg.common.vcf.VcfInfoFieldRecord;
+ import org.qcmg.common.vcf.VcfRecord;
+-import org.qcmg.common.vcf.VcfInfoFieldRecord;
+ import org.qcmg.common.vcf.header.VcfHeaderUtils;
+ import org.qcmg.vcf.VCFFileReader;
+ 
+@@ -57,7 +57,7 @@
+ 			for (final VcfRecord re : reader) {		
+ 				final VcfInfoFieldRecord infoRecord = new VcfInfoFieldRecord(re.getInfo()); 				
+ 				if(re.getPosition() == 2675825) 
+-					assertTrue(infoRecord.getfield(VcfHeaderUtils.INFO_CONFIDENT).equals(Confidence.ZERO.toString())); 
++					assertTrue(infoRecord.getfield(VcfHeaderUtils.INFO_CONFIDENT).equals(Confidence.LOW.toString())); 
+ 				else if(re.getPosition() == 22012840)
+ 					assertTrue(infoRecord.getfield(VcfHeaderUtils.INFO_CONFIDENT).equals(Confidence.ZERO.toString()));
+ 				else
+@@ -67,7 +67,20 @@
+ 	
+ 	}
+ 	
++	@Test
++	public void CompoundSNPTest() throws IOException, Exception{	
++		
++ 	 	//test coumpound snp
++		final String str =  "chrY\t2675825\t.\tTTG\tTCA\t.\tMIN;MIUN\tSOMATIC;END=2675826\tACCS\tTTG,5,37,TCA,0,2\tTAA,1,1,TCA,4,1,TCT,3,1,TTA,11,76,TTG,2,2,_CA,0,3,TTG,0,1" ;
++		final VcfRecord vcf  = new VcfRecord(str.split("\t"));
++		
++	 
++		
++
++		
++	}
+ 	
++	
+ 	/**
+ 	 * a mini dbSNP vcf file 
+ 	 */
+Index: qannotate/test/au/edu/qimr/qannotate/modes/DbsnpModeTest.java
+===================================================================
+--- qannotate/test/au/edu/qimr/qannotate/modes/DbsnpModeTest.java	(revision 398)
++++ qannotate/test/au/edu/qimr/qannotate/modes/DbsnpModeTest.java	(working copy)
+@@ -58,8 +58,8 @@
+ 					assertTrue(re.getMetaType().equals(MetaType.META) && re.toString().equals( "##dbSNP_BUILD_ID=135\n"));
+ 				else if(i == 2)  
+ 					assertTrue(re.getMetaType().equals(MetaType.INFO) && re.toString().equals("##INFO=<ID=GMAF,Number=1,Type=Float,Description=\"Global Minor Allele Frequency [0, 0.5]; global population is 1000GenomesProject phase 1 genotype data from 629 individuals, released in the 08-04-2010 dataset\">\n"));
+-				else
+-					assertFalse(true);
++			//	else
++				//	assertFalse(true);
+ 				
+ 				i ++;
+ 			} 
+@@ -87,7 +87,7 @@
+         final List<String> data = new ArrayList<String>();
+         data.add("##fileformat=VCFv4.0");
+         data.add("chrY\t14923588\t.\tG\tA\t.\tSBIAS\tMR=15;NNS=13;FS=GTGATATTCCC\tGT:GD:AC\t0/1:G/A:A0[0],15[36.2],G11[36.82],9[33]\t0/1:G/A:A0[0],33[35.73],G6[30.5],2[34]"); 
+-        data.add("chrY\t2675825\t.\tTTG\tTCA\t.\tMIN;MIUN\tSOMATIC;END=2675826\tACCS\tTTG,5,37,TCA,0,2\tTAA,1,1,TCA,4,1,TCT,3,1,TTA,11,76,TTG,2,2,_CA,0,3,TTG,0,1");
++        data.add("chrY\t2675825\t.\tTTG\tTCA\t.\tCOVN12;MIUN\tSOMATIC;NNS=4;END=2675826\tACCS\tTTG,5,37,TCA,0,2\tTAA,1,1,TCA,4,1,TCT,3,1,TTA,11,76,TTG,2,2,_CA,0,3,TTG,0,1");
+         data.add("chrY\t22012840\t.\tC\tA\t.\tSBIAS\tMR=15;NNS=13;FS=GTGATATTCCC\tGT:GD:AC\t0/1:C/A:A0[0],15[36.2],C11[36.82],9[33]\t0/1:C/A:A0[0],33[35.73],C6[30.5],2[34]"); 
+         
+         try(BufferedWriter out = new BufferedWriter(new FileWriter(inputName));) {          
+Index: qcommon/src/org/qcmg/common/maf/MAFRecord.java
+===================================================================
+--- qcommon/src/org/qcmg/common/maf/MAFRecord.java	(revision 398)
++++ qcommon/src/org/qcmg/common/maf/MAFRecord.java	(working copy)
+@@ -12,69 +12,69 @@
+ 	
+ 	protected final static char T = '\t';
+ 
+-	private String hugoSymbol;
+-	private String entrezGeneId;
+-	private String center;
+-	private Number ncbiBuild;
+-	private String chromosome;
+-	private int startPosition;
+-	private int endPosition;
+-	private char strand;
+-	private String variantClassification;
+-	private MutationType variantType;
+-//	private String variantType;
+-	private String ref;
+-	private String tumourAllele1;
+-	private String tumourAllele2;
+-	private String dbSnpId;
+-	private String dbSnpValStatus;
+-	private String tumourSampleBarcode;
+-	private String normalSampleBarcode;
+-	private String normalAllele1;
+-	private String normalAllele2;
+-	private String tumourValidationAllele1;
+-	private String tumourValidationAllele2;
+-	private String normalValidationAllele1;
+-	private String normalValidationAllele2;
+-	private String verificationStatus;
+-	private String validationStatus;
+-	private String mutationStatus;
+-	private String sequencingPhase;
+-	private String sequencingSource;
+-	private String validationMethod;
+-	private String score;
+-	private String bamFile;
+-	private String sequencer;
++	protected String hugoSymbol;
++	protected String entrezGeneId;
++	protected String center;
++	protected Number ncbiBuild;
++	protected String chromosome;
++	protected int startPosition;
++	protected int endPosition;
++	protected char strand;
++	protected String variantClassification;
++	protected MutationType variantType;
++//	protected String variantType;
++	protected String ref;
++	protected String tumourAllele1;
++	protected String tumourAllele2;
++	protected String dbSnpId;
++	protected String dbSnpValStatus;
++	protected String tumourSampleBarcode;
++	protected String normalSampleBarcode;
++	protected String normalAllele1;
++	protected String normalAllele2;
++	protected String tumourValidationAllele1;
++	protected String tumourValidationAllele2;
++	protected String normalValidationAllele1;
++	protected String normalValidationAllele2;
++	protected String verificationStatus;
++	protected String validationStatus;
++	protected String mutationStatus;
++	protected String sequencingPhase;
++	protected String sequencingSource;
++	protected String validationMethod;
++	protected String score;
++	protected String bamFile;
++	protected String sequencer;
+ 	
+ 	// QCMG specific fields
+-	private String flag;
+-	private String nd;
+-	private String td;
+-	private String canonicalTranscriptId;
+-	private String canonicalAAChange;
+-	private String canonicalBaseChange;
+-	private String alternateTranscriptId;
+-	private String alternateAAChange;
+-	private String alternateBaseChange;
++	protected String flag;
++	protected String nd;
++	protected String td;
++	protected String canonicalTranscriptId;
++	protected String canonicalAAChange;
++	protected String canonicalBaseChange;
++	protected String alternateTranscriptId;
++	protected String alternateAAChange;
++	protected String alternateBaseChange;
+ 	
+ 	
+-	private String cpg;  //eg. FS=AGAGAGTAATT
+-	private String gffBait;
+-//	private String confidence;
+-	private String ranking;
+-	private int novelStartCount;
+-	private String novelStartBases;
++	protected String cpg;  //eg. FS=AGAGAGTAATT
++	protected String gffBait;
++//	protected String confidence;
++	protected String ranking;
++	protected int novelStartCount;
++	protected String novelStartBases;
+ 	
+-	private String patient;	
+-	private MafConfidence confidence;
+-	private MafType mafType;
++	protected String patient;	
++	protected MafConfidence confidence;
++	protected MafType mafType;
+ 	
+ 	
+ 	//COSMIC fields
+-	private String cosmicId;
+-	private int cosmicIdFreq;
+-	private int cosmicFreq;
+-	private int cosmicGene;
++	protected String cosmicId;
++	protected int cosmicIdFreq;
++	protected int cosmicFreq;
++	protected int cosmicGene;
+ 	
+ 	
+ 	public String getHugoSymbol() {
+@@ -374,6 +374,12 @@
+ 		sb.append(alternateAAChange).append(T);
+ 		sb.append(alternateBaseChange);
+ 		return sb.toString();
++		
++		
++		
++		
++
++ 
+ 	}
+ 	
+ 	public String toFormattedString() {
+@@ -502,8 +508,8 @@
+ 	public int getNovelStartCount() {
+ 		return novelStartCount;
+ 	}
+-	public void setConfidence(MafConfidence confidence) {
+-		this.confidence = confidence;
++	public void setConfidence(MafConfidence string) {
++		this.confidence = string;
+ 	}
+ 	public MafConfidence getConfidence() {
+ 		return confidence;
+Index: qcommon/src/org/qcmg/common/vcf/VcfRecord.java
+===================================================================
+--- qcommon/src/org/qcmg/common/vcf/VcfRecord.java	(revision 398)
++++ qcommon/src/org/qcmg/common/vcf/VcfRecord.java	(working copy)
+@@ -32,6 +32,7 @@
+ //	private String format;
+ 	private List<String> format = new ArrayList<>(4);
+ 	
++	
+ 	public VcfRecord(ChrPosition cp, String id, String ref, String alt) {
+ 		this.chrPos = cp;
+ 		this.id = id;
+@@ -144,7 +145,11 @@
+ 	public void setFormatField(List<String> field) {
+ 		format = field;		// 1 for header, 1 for control and 1 for test
+ 	}
+-	
++	/**
++	 * 
++	 * @return the first element is value of FORMAT column: eg. GT:GD:AC
++	 * the second  and third element are values of normal and tumor column: eg. 0/1:A/G:A15[38.93],15[38.67],G1[39],1[39]
++	 */
+ 	public List<String> getFormatFields() {
+ 		return format;
+ 	}
+Index: qcommon/src/org/qcmg/common/vcf/VcfUtils.java
+===================================================================
+--- qcommon/src/org/qcmg/common/vcf/VcfUtils.java	(revision 398)
++++ qcommon/src/org/qcmg/common/vcf/VcfUtils.java	(working copy)
+@@ -36,43 +36,51 @@
+ 	public static final Pattern pattern_AC = Pattern.compile("[ACGT][0-9]+\\[[0-9]+.?[0-9]*\\],[0-9]+\\[[0-9]+.?[0-9]*\\]");
+ 	public static final Pattern pattern_ACCS = Pattern.compile("[ACGT]+,[0-9]+,[0-9]+");
+ 
+-
+-	public static int getAltFrequency( VcfRecord vcf){
+-		 
+-		 final String info =  vcf.getInfo();
+-		 //set to TD if somatic, otherwise set to normal
+-		 String allel = (info.contains(VcfHeaderUtils.INFO_SOMATIC)) ? vcf.getFormatFields().get(0) :  vcf.getFormatFields().get(1); 
+-		 allel = allel.substring(allel.lastIndexOf(":") + 1, allel.length());
+-		 
++ 
++ /**
++  * 
++  * @param re: String record from sample format column. eg. eg. 0/1:A/C:A2[17.5],34[25.79],C2[28.5],3[27.67]
++  * @param base: allel base, eg. [A,T,G,C] for SNP, [AAT, GC...] for compound SNP
++  * @return the counts for specified base or return total allels counts if base is null;
++  */
++	public static int getAltFrequency( VcfFormatFieldRecord re, String base){
++		int count = 0;
++ 		 
+ 		final List<PileupElement> result = new ArrayList<PileupElement>();
+ 		
+ 		final Matcher m;
+-		int count = 0;
+-		if(vcf.getFormatFields().contains(VcfHeaderUtils.FORMAT_ALLELE_COUNT)){
++		String countString = null;
++		if( (countString = re.getfield(VcfHeaderUtils.FORMAT_ALLELE_COUNT) )  != null ){
+ 			// eg. 0/1:A/C:A2[17.5],34[25.79],C2[28.5],3[27.67]
+-			m = pattern_AC.matcher(allel);			
++			m = pattern_AC.matcher(countString);			
+ 			while (m.find()) {
+-				final String pileup = m.group();				
+-				final char base = pileup.charAt(0);			
+-				if(base == vcf.getAlt().charAt(0))
++				final String pileup = m.group();
++				if(base == null){
++					count += Integer.parseInt(pileup.substring(1, pileup.indexOf('['))) +
++								Integer.parseInt(pileup.substring(pileup.indexOf(',')+1, pileup.indexOf('[', pileup.indexOf(','))));
++				}else if(base.equalsIgnoreCase(pileup.substring(0,1))){
+ 					count = Integer.parseInt(pileup.substring(1, pileup.indexOf('['))) +
+-							Integer.parseInt(pileup.substring(pileup.indexOf(',')+1, pileup.indexOf('[', pileup.indexOf(','))));		 
++							Integer.parseInt(pileup.substring(pileup.indexOf(',')+1, pileup.indexOf('[', pileup.indexOf(','))));
++					break;
++				}	 
+ 			}					
+-		}else if(vcf.getFormatFields().contains(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP)){
++		}else if((countString = re.getfield(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP)) != null){
+ 			// eg. AA,1,1,CA,4,1,CT,3,1,TA,11,76,TT,2,2,_A,0,3,TG,0,1
+-			m = pattern_ACCS.matcher(allel);
++			m = pattern_ACCS.matcher(countString);
+ 			while (m.find()) {
+ 				final String[] pileup = m.group().split(Constants.COMMA_STRING);
+-				final String base = pileup[0];
+-				if(base.equals(vcf.getAlt()))
+-				count = Integer.parseInt(pileup[1]) + Integer.parseInt(pileup[2]);
++				if(base == null){
++					count += Integer.parseInt(pileup[1]) + Integer.parseInt(pileup[2]);
++					
++				}else if(base.equalsIgnoreCase(pileup[0])){	 
++					count = Integer.parseInt(pileup[1]) + Integer.parseInt(pileup[2]);
++					break;
++				}
+ 			}	
+ 		} 
+ 		 
+ 		 return count;
+ 	 }   
+- 
+- 
+ 	 
+ 	
+ 	public static String getPileupElementAsString(List<PileupElement> pileups, boolean novelStart) {
+Index: qcommon/src/org/qcmg/common/vcf/header/VcfHeader.java
+===================================================================
+--- qcommon/src/org/qcmg/common/vcf/header/VcfHeader.java	(revision 398)
++++ qcommon/src/org/qcmg/common/vcf/header/VcfHeader.java	(working copy)
+@@ -1,12 +1,14 @@
+ package org.qcmg.common.vcf.header;
+ 
+ import java.util.ArrayList;
++import java.util.Arrays;
+ import java.util.Collection;
+ import java.util.HashMap;
+ import java.util.Iterator;
+ import java.util.List;
+ import java.util.Map;
+ 
++import org.qcmg.common.util.Constants;
+ import org.qcmg.common.vcf.header.VcfHeaderRecord.MetaType;
+ 
+ /**
+@@ -19,6 +21,9 @@
+  */
+ 
+ public class VcfHeader implements Iterable<VcfHeaderRecord> {	
++	
++	static final String format = "FORMAT";
++	
+ 	//default first 4 lines as standard
+ 	VcfHeaderRecord version = null;
+ 	VcfHeaderRecord fileDate = null;	
+@@ -33,7 +38,7 @@
+ 	final List<VcfHeaderRecord> others;
+ 	VcfHeaderRecord chromLine = null;
+ 	
+-	ArrayList<String> sampleNames;
++	
+ //	private boolean VcfHeaderRecord;
+ 	
+ 	
+@@ -54,6 +59,10 @@
+ 		for (final String record : headerRecords) {
+ 			add(new VcfHeaderRecord(record));
+ 		}
++		
++		//in case missing header line
++		if(chromLine == null)
++			chromLine = new VcfHeaderRecord(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE);
+ 	 }
+ 	
+ 	//only meta data header line can be replaced
+@@ -74,7 +83,9 @@
+ 	
+ 	public VcfHeaderRecord get(MetaType type, final String key) throws Exception{
+ 		
+-		final String id = ( key.endsWith("=") )? key.substring(0,key.length() - 1) : key;
++		//remove "=" and space
++		String id = ( key.endsWith("=") )? key.substring(0,key.length() - 1) : key;
++		id = id.replaceAll(" ", "");
+  		
+ 		Iterator<VcfHeaderRecord> it;
+ 		switch (type) {
+@@ -104,6 +115,18 @@
+ 		return null;	 
+ 	}
+ 
++	public String[] getSampleId() throws Exception{
++		if(chromLine == null)
++			throw new Exception("missing vcf header line, eg. " + VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE);
++		
++		final String[] column = chromLine.toString().trim().split(Constants.TAB+"");
++		
++		if(column[8].equalsIgnoreCase(format) && column.length > 9)
++			return Arrays.copyOfRange(column, 9, column.length);
++		
++		return null;
++		
++	}
+  
+ 	public void add(VcfHeaderRecord record) throws Exception {
+ 		if(record.type.equals(MetaType.FILTER)  ) 
+Index: qcommon/src/org/qcmg/common/vcf/header/VcfHeaderRecord.java
+===================================================================
+--- qcommon/src/org/qcmg/common/vcf/header/VcfHeaderRecord.java	(revision 398)
++++ qcommon/src/org/qcmg/common/vcf/header/VcfHeaderRecord.java	(working copy)
+@@ -151,7 +151,6 @@
+ 		return record;
+ 	}
+   
+-
+ 	
+ 	public MetaType getMetaType() throws Exception{		return parseRecord().type;	}
+ 	
+@@ -161,9 +160,7 @@
+ 		return "" + (number >= 0 ? number : vcfInfoNumber.toString());
+ 	}
+ 	
+-	
+ 
+-	
+ 	public void parseLine(String line){
+ 		
+ 		if(!type.equals(MetaType.FILTER) && !type.equals(MetaType.FORMAT) && ! type.equals(MetaType.INFO))
+Index: qcommon/src/org/qcmg/common/vcf/header/VcfHeaderUtils.java
+===================================================================
+--- qcommon/src/org/qcmg/common/vcf/header/VcfHeaderUtils.java	(revision 398)
++++ qcommon/src/org/qcmg/common/vcf/header/VcfHeaderUtils.java	(working copy)
+@@ -44,6 +44,7 @@
+ 	public static final String INFO_SOMATIC = "SOMATIC";
+ 	public static final String INFO_CONFIDENT = "CONF";
+ 	public static final String INFO_GMAF = "GMAF";
++	public static final String INFO_FS = "FS";
+ 	public static final String INFO_FILLCOV =  "FULLCOV";
+ 	
+ 	//FORMAT FIELDS
+Index: qcommon/test/org/qcmg/common/vcf/VcfUtilsTest.java
+===================================================================
+--- qcommon/test/org/qcmg/common/vcf/VcfUtilsTest.java	(revision 398)
++++ qcommon/test/org/qcmg/common/vcf/VcfUtilsTest.java	(working copy)
+@@ -15,7 +15,40 @@
+ 
+ public class VcfUtilsTest {
+ 	
++	
+ 	@Test
++	public void getAltFrequencyTest(){
++		
++        //"chrY\t14923588\t.\tG\tA\t.\tSBIAS\tMR=15;NNS=13;FS=GTGATATTCCC\tGT:GD:AC\t0/1:G/A:A0[0],15[36.2],G11[36.82],9[33]\t0/1:G/A:A0[0],33[35.73],G6[30.5],2[34]"); 
++        //"chrY\t2675825\t.\tTTG\tTCA\t.\tMIN;MIUN\tSOMATIC;END=2675826\tACCS\tTTG,5,37,TCA,0,2\tTAA,1,1,TCA,4,1,TCT,3,1,TTA,11,76,TTG,2,2,_CA,0,3,TTG,0,1");
++
++		String str = "chrY\t14923588\t.\tG\tA\t.\tSBIAS\tMR=15;NNS=13;FS=GTGATATTCCC\tGT:GD:AC\t0/1:G/A:A0[0],15[36.2],G11[36.82],9[33]\t0/1:G/A:A0[0],33[35.73],G6[30.5],2[34]" ; 
++		VcfRecord  vcf  = new VcfRecord(str.split("\t"));
++		VcfFormatFieldRecord format = new VcfFormatFieldRecord(vcf.getFormatFields().get(0), vcf.getFormatFields().get(1));
++		int count = VcfUtils.getAltFrequency(format, null);
++		assertEquals(count,35);
++		
++		count = VcfUtils.getAltFrequency(format, "G");
++		assertEquals(count,20);
++		
++		count = VcfUtils.getAltFrequency(format, "W");
++		assertEquals(count,0);
++		
++
++		//test coumpound snp
++		str =  "chrY\t2675825\t.\tTTG\tTCA\t.\tMIN;MIUN\tSOMATIC;END=2675826\tACCS\tTTG,5,37,TCA,0,2\tTAA,1,1,TCA,4,1,TCT,3,1,TTA,11,76,TTG,2,2,_CA,0,3,TTG,0,1" ;
++		vcf  = new VcfRecord(str.split("\t"));
++		format = new VcfFormatFieldRecord(vcf.getFormatFields().get(0), vcf.getFormatFields().get(2));
++		count = VcfUtils.getAltFrequency(format, "TCT");
++		assertEquals(count,4);
++		
++		count = VcfUtils.getAltFrequency(format, null);
++		assertEquals(count,106);
++		System.out.println(count);
++		
++	}
++	
++	@Test
+ 	public void testGetADFromGenotypeField() {
+ 		String genotype = "";
+ 		assertEquals(0, VcfUtils.getADFromGenotypeField(genotype));
+@@ -62,10 +95,10 @@
+ 	public void testGetPileupElementAsString() {
+ 		assertEquals("FULLCOV=A:0,C:0,G:0,T:0,N:0,TOTAL:0", VcfUtils.getPileupElementAsString(null, false));
+ 		assertEquals("NOVELCOV=A:0,C:0,G:0,T:0,N:0,TOTAL:0", VcfUtils.getPileupElementAsString(null, true));
+-		List<PileupElement> pileups = new ArrayList<PileupElement>();
+-		PileupElement pA = new PileupElement('A');
++		final List<PileupElement> pileups = new ArrayList<PileupElement>();
++		final PileupElement pA = new PileupElement('A');
+ 		pA.incrementForwardCount();
+-		PileupElement pC = new PileupElement('C');
++		final PileupElement pC = new PileupElement('C');
+ 		pC.incrementForwardCount();
+ 		pileups.add(pA);
+ 		assertEquals("NOVELCOV=A:1,C:0,G:0,T:0,N:0,TOTAL:1", VcfUtils.getPileupElementAsString(pileups, true));
+@@ -113,7 +146,7 @@
+ 	@Test
+ 	public void testGetStringFromCharSet() {
+ 		assertEquals("", VcfUtils.getStringFromCharSet(null));
+-		Set<Character> set = new TreeSet<Character>();
++		final Set<Character> set = new TreeSet<Character>();
+ 		
+ 		assertEquals("", VcfUtils.getStringFromCharSet(set));
+ 		set.add('T');
+@@ -164,7 +197,7 @@
+ 	@Test
+ 	public void isRecordAMnpCheckIndels() {
+ 		
+-		VcfRecord rec = VcfUtils.createVcfRecord("1", 1, "ACCACCACC");
++		final VcfRecord rec = VcfUtils.createVcfRecord("1", 1, "ACCACCACC");
+ 		assertEquals(false, VcfUtils.isRecordAMnp(rec));
+ 		
+ 		rec.setAlt("A,AACCACC");

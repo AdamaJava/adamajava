@@ -25,7 +25,7 @@ public final class VCFSerializer {
 	}
 	
 	public static VcfHeader readHeader(final BufferedReader reader) throws Exception {
-		List<String> headerLines = new ArrayList<>();
+		final List<String> headerLines = new ArrayList<>();
 
 		String line = reader.readLine();
 		while (null != line && line.startsWith("#")) {
@@ -38,7 +38,7 @@ public final class VCFSerializer {
 	public static VcfRecord nextRecord(final BufferedReader reader)
 			throws IOException , Exception {
 		VcfRecord result = null;
-		String line = nextNonheaderLine(reader);
+		final String line = nextNonheaderLine(reader);	
 		if (null != line) {
 			result = parseRecord(line);
 		}
@@ -46,12 +46,12 @@ public final class VCFSerializer {
 	}
 
 	static VcfRecord parseRecord(final String line) throws Exception {
-		String[] params = TabTokenizer.tokenize(line);
-		int arrayLength = params.length; 
+		final String[] params = TabTokenizer.tokenize(line);
+		final int arrayLength = params.length; 
 		if (8 > arrayLength) {
 			throw new Exception("Bad VCF format. Insufficient columns: '" + line + "'");
 		}
-		VcfRecord result = new VcfRecord(params);
+		final VcfRecord result = new VcfRecord(params);
 		
 		
 		return result;

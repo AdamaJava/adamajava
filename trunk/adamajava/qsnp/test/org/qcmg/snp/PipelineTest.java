@@ -12,6 +12,7 @@ import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.model.Accumulator;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.GenotypeEnum;
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.Pair;
 import org.qcmg.common.util.SnpUtils;
 import org.qcmg.common.vcf.VcfRecord;
@@ -53,15 +54,15 @@ public class PipelineTest {
 	}
 	
 	@Test
-	public void compoundSnp() {
-		Pipeline pipeline = new TestPipeline();
-		QSnpRecord snp = new QSnpRecord("chr1", 100, "A");
+	public void compoundSnp() throws Exception {
+		final Pipeline pipeline = new TestPipeline();
+		final QSnpRecord snp = new QSnpRecord("chr1", 100, "A");
 //		snp.setDbSnpId("rs12345");
 		snp.setMutation("A>C");
 		snp.setClassification(Classification.SOMATIC);
 		assertEquals(null, snp.getAnnotation());
 		
-		QSnpRecord snp2 = new QSnpRecord("chr1", 101, "C");
+		final QSnpRecord snp2 = new QSnpRecord("chr1", 101, "C");
 		snp2.setMutation("C>G");
 		snp2.setClassification(Classification.SOMATIC);
 		assertEquals(null, snp.getAnnotation());
@@ -69,9 +70,9 @@ public class PipelineTest {
 		pipeline.positionRecordMap.put(new ChrPosition("chr1", 100), snp);
 		pipeline.positionRecordMap.put(new ChrPosition("chr1", 101), snp2);
 		
-		Accumulator tumour100 = new Accumulator(100);
+		final Accumulator tumour100 = new Accumulator(100);
 		tumour100.addBase((byte)'C', (byte)30, true, 100, 100, 200, 1);
-		Accumulator tumour101 = new Accumulator(101);
+		final Accumulator tumour101 = new Accumulator(101);
 		tumour101.addBase((byte)'G', (byte)30, true, 101, 101, 200, 1);
 		
 		pipeline.accumulators.put(new ChrPosition("chr1", 100), new Pair<Accumulator, Accumulator>(null, tumour100));
@@ -93,19 +94,19 @@ public class PipelineTest {
 	}
 	
 	@Test
-	public void compoundSnpWithNormalSnps() {
-		Pipeline pipeline = new TestPipeline();
-		QSnpRecord snp98 = new QSnpRecord("chr1", 98, "A");
+	public void compoundSnpWithNormalSnps() throws Exception {
+		final Pipeline pipeline = new TestPipeline();
+		final QSnpRecord snp98 = new QSnpRecord("chr1", 98, "A");
 //		snp98.setDbSnpId("rs12345678");
 		snp98.setMutation("A>C");
 		snp98.setClassification(Classification.SOMATIC);
 		
-		QSnpRecord snp100 = new QSnpRecord("chr1", 100, "A");
+		final QSnpRecord snp100 = new QSnpRecord("chr1", 100, "A");
 //		snp100.setDbSnpId("rs12345");
 		snp100.setMutation("A>C");
 		snp100.setClassification(Classification.SOMATIC);
 		
-		QSnpRecord snp101 = new QSnpRecord("chr1", 101, "C");
+		final QSnpRecord snp101 = new QSnpRecord("chr1", 101, "C");
 		snp101.setMutation("C>G");
 		snp101.setClassification(Classification.SOMATIC);
 		
@@ -113,15 +114,15 @@ public class PipelineTest {
 		pipeline.positionRecordMap.put(snp100.getChrPos(), snp100);
 		pipeline.positionRecordMap.put(snp101.getChrPos(), snp101);
 		
-		Accumulator tumour98 = new Accumulator(98);
+		final Accumulator tumour98 = new Accumulator(98);
 		tumour98.addBase((byte)'C', (byte)30, true, 98, 98, 200, 1);
 		tumour98.addBase((byte)'C', (byte)30, true, 98, 98, 200, 2);
 		tumour98.addBase((byte)'C', (byte)30, true, 98, 98, 200, 4);
-		Accumulator tumour100 = new Accumulator(100);
+		final Accumulator tumour100 = new Accumulator(100);
 		tumour100.addBase((byte)'C', (byte)30, true, 100, 100, 200, 1);
 		tumour100.addBase((byte)'A', (byte)30, true, 100, 100, 200, 2);
 		tumour100.addBase((byte)'C', (byte)30, true, 100, 100, 200, 4);
-		Accumulator tumour101 = new Accumulator(101);
+		final Accumulator tumour101 = new Accumulator(101);
 		tumour101.addBase((byte)'G', (byte)30, true, 101, 101, 200, 1);
 		tumour101.addBase((byte)'G', (byte)30, true, 101, 101, 200, 2);
 		tumour101.addBase((byte)'G', (byte)30, true, 101, 101, 200, 3);
@@ -149,8 +150,8 @@ public class PipelineTest {
 	
 	@Test
 	public void testCheckForEndsOfReadSomatic() {
-		Pipeline pipeline = new TestPipeline();
-		QSnpRecord snp = new QSnpRecord("chr1", 100, "A");
+		final Pipeline pipeline = new TestPipeline();
+		final QSnpRecord snp = new QSnpRecord("chr1", 100, "A");
 //		snp.setDbSnpId("rs12345");
 		snp.setMutation("A>C");
 		snp.setClassification(Classification.SOMATIC);
@@ -229,8 +230,8 @@ public class PipelineTest {
 	
 	@Test
 	public void testCheckForStrandBiasGermline() {
-		Pipeline pipeline = new TestPipeline();
-		QSnpRecord snp = new QSnpRecord("chr1", 100, "A");
+		final Pipeline pipeline = new TestPipeline();
+		final QSnpRecord snp = new QSnpRecord("chr1", 100, "A");
 //		snp.setDbSnpId("rs12345");
 		snp.setMutation("A>C");
 		snp.setClassification(Classification.GERMLINE);
@@ -238,7 +239,7 @@ public class PipelineTest {
 		assertEquals(null, snp.getAnnotation());
 		pipeline.checkForStrandBias(snp, null, null, '\u0000');
 		assertEquals(null, snp.getAnnotation());
-		Accumulator normal = new Accumulator(100);
+		final Accumulator normal = new Accumulator(100);
 		normal.addBase((byte)'C', (byte)30, true, 100, 100, 200, 1);
 		pipeline.checkForStrandBias(snp, normal, null, 'A');
 		assertEquals(SnpUtils.STRAND_BIAS, snp.getAnnotation());
@@ -251,7 +252,7 @@ public class PipelineTest {
 		assertEquals(null, snp.getAnnotation());
 		
 		// setup a tumour acc 
-		Accumulator tumour = new Accumulator(100);
+		final Accumulator tumour = new Accumulator(100);
 		tumour.addBase((byte)'C', (byte)30, true, 100, 100, 200, 1);
 		tumour.addBase((byte)'C', (byte)30, true, 100, 100, 200, 1);
 		pipeline.checkForStrandBias(snp, normal, tumour, 'A');
@@ -271,8 +272,8 @@ public class PipelineTest {
 	
 	@Test
 	public void testCheckForStrandBiasSomatic() {
-		Pipeline pipeline = new TestPipeline();
-		QSnpRecord snp = new QSnpRecord("chr1", 100, "A");
+		final Pipeline pipeline = new TestPipeline();
+		final QSnpRecord snp = new QSnpRecord("chr1", 100, "A");
 //		snp.setDbSnpId("rs12345");
 		snp.setMutation("A>C");
 		snp.setClassification(Classification.SOMATIC);
@@ -280,7 +281,7 @@ public class PipelineTest {
 		assertEquals(null, snp.getAnnotation());
 		pipeline.checkForStrandBias(snp, null, null, '\u0000');
 		assertEquals(null, snp.getAnnotation());
-		Accumulator tumour = new Accumulator(100);
+		final Accumulator tumour = new Accumulator(100);
 		tumour.addBase((byte)'C', (byte)30, true, 100, 100, 200, 1);
 		pipeline.checkForStrandBias(snp, null, tumour, 'A');
 		assertEquals(SnpUtils.STRAND_BIAS, snp.getAnnotation());
@@ -293,7 +294,7 @@ public class PipelineTest {
 		assertEquals(null, snp.getAnnotation());
 		
 		// setup a normal acc 
-		Accumulator normal = new Accumulator(100);
+		final Accumulator normal = new Accumulator(100);
 		normal.addBase((byte)'C', (byte)30, true, 100, 100, 200, 1);
 		normal.addBase((byte)'C', (byte)30, true, 100, 100, 200, 1);
 		pipeline.checkForStrandBias(snp, normal, tumour, 'A');
@@ -314,39 +315,39 @@ public class PipelineTest {
 	@Test
 	public void testConvertQSnpToVCFSomatic() throws SnpException, IOException, Exception {
 		// create qsnp record
-		QSnpRecord snp = new QSnpRecord("chr1", 100, "A");
+		final QSnpRecord snp = new QSnpRecord("chr1", 100, "A");
 //		snp.setDbSnpId("rs12345");
 		snp.setMutation("A>C");
 		snp.setNormalGenotype(GenotypeEnum.AA);
 		snp.setTumourGenotype(GenotypeEnum.AC);
 		
-		Pipeline pipeline = new TestPipeline();
+		final Pipeline pipeline = new TestPipeline();
 		VcfRecord vcf = pipeline.convertQSnpToVCF(snp);
 		
 		assertEquals(snp.getChromosome(), vcf.getChromosome());
 		assertEquals(snp.getPosition(), vcf.getPosition());
 		assertEquals(snp.getRef(), vcf.getRef());
 		assertEquals("C", vcf.getAlt());
-		assertEquals("", vcf.getInfo());
+		assertEquals(Constants.MISSING_DATA_STRING, vcf.getInfo());
 //		assertEquals(VcfUtils.INFO_MUTATION + "=A>C", vcf.getInfo());
 		
 		// add SOMATIC
 		snp.setClassification(Classification.SOMATIC);
-		vcf.setFormatField(null);
+		vcf.setSampleFormatField(null);
 		
 		vcf = pipeline.convertQSnpToVCF(snp);
 		assertEquals(Classification.SOMATIC.toString(), vcf.getInfo());
 
 		// add in tumour nucleotides
-		String tumourNucleotides = "C:15[18.95],19[19.35],A:2[27.02],3[29.03]"; 
+		final String tumourNucleotides = "C:15[18.95],19[19.35],A:2[27.02],3[29.03]"; 
 		snp.setTumourNucleotides(tumourNucleotides);
-		vcf.setFormatField(null);
+		vcf.setSampleFormatField(null);
 		vcf = pipeline.convertQSnpToVCF(snp);
 		assertEquals(Classification.SOMATIC + SC + VcfHeaderUtils.INFO_MUTANT_READS + "=34" , vcf.getInfo());
 		
 		// add in Novel starts
 		snp.setTumourNovelStartCount(5);
-		vcf.setFormatField(null);
+		vcf.setSampleFormatField(null);
 		vcf = pipeline.convertQSnpToVCF(snp);
 		assertEquals(Classification.SOMATIC + SC + VcfHeaderUtils.INFO_MUTANT_READS + "=34;" 
 				+ VcfHeaderUtils.INFO_NOVEL_STARTS + "=5" , vcf.getInfo());
@@ -356,7 +357,7 @@ public class PipelineTest {
 //				+ ".:.:." + T + ".:.:" + tumourNucleotides.replace(":", "")
 //				, vcf.getExtraFields().get(0));
 //		
-		String normalNucleotides = "A:19[26.47],14[23.7],C:0[0],1[1]"; 
+		final String normalNucleotides = "A:19[26.47],14[23.7],C:0[0],1[1]"; 
 		snp.setNormalNucleotides(normalNucleotides);
 //		vcf = pipeline.convertQSnpToVCF(snp);
 //		assertEquals(VcfUtils.FORMAT_GENOTYPE + C + VcfUtils.FORMAT_GENOTYPE_DETAILS + C + VcfUtils.FORMAT_ALLELE_COUNT + T
@@ -365,7 +366,7 @@ public class PipelineTest {
 		
 //		snp.setNormalGenotype(GenotypeEnum.AA);
 //		snp.setTumourGenotype(GenotypeEnum.AC);
-		vcf.setFormatField(null);
+		vcf.setSampleFormatField(null);
 		vcf = pipeline.convertQSnpToVCF(snp);
 		assertEquals(VcfHeaderUtils.FORMAT_GENOTYPE + C + VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS + C + VcfHeaderUtils.FORMAT_ALLELE_COUNT,
 				vcf.getFormatFields().get(0));
@@ -376,39 +377,38 @@ public class PipelineTest {
 //				+ "0/0:A/A:" + normalNucleotides.replace(":", "") + T + "0/1:A/C:" + tumourNucleotides.replace(":", "")
 //				, vcf.getFormatFields().get(0));
 		
-		System.out.println(vcf.toString());
 	}
 	@Test
 	public void testConvertQSnpToVCFGermline() throws SnpException, IOException, Exception {
 		// create qsnp record
-		QSnpRecord snp = new QSnpRecord("chr1", 100, "G");
+		final QSnpRecord snp = new QSnpRecord("chr1", 100, "G");
 //		snp.setDbSnpId("rs12345");
 		snp.setMutation("G>A");
 		snp.setNormalGenotype(GenotypeEnum.AG);
 		snp.setTumourGenotype(GenotypeEnum.AG);
 		
-		Pipeline pipeline = new TestPipeline();
+		final Pipeline pipeline = new TestPipeline();
 		VcfRecord vcf = pipeline.convertQSnpToVCF(snp);
 		
 		assertEquals(snp.getChromosome(), vcf.getChromosome());
 		assertEquals(snp.getPosition(), vcf.getPosition());
 		assertEquals(snp.getRef() + "", vcf.getRef());
 		assertEquals("A", vcf.getAlt());
-		assertEquals("", vcf.getInfo());
+		assertEquals(Constants.MISSING_DATA_STRING, vcf.getInfo());
 //		assertEquals(VcfUtils.INFO_MUTATION + "=G>A", vcf.getInfo());
 		
 		// add GERMLINE
 		snp.setClassification(Classification.GERMLINE);
 		vcf = pipeline.convertQSnpToVCF(snp);
-		assertEquals("", vcf.getInfo());
+		assertEquals(Constants.MISSING_DATA_STRING, vcf.getInfo());
 		
 		// add in tumour nucleotides
-		String tumourNucleotides = "A:12[26.65],5[28.2],G:1[20],8[24.33]"; 
+		final String tumourNucleotides = "A:12[26.65],5[28.2],G:1[20],8[24.33]"; 
 		snp.setTumourNucleotides(tumourNucleotides);
 		vcf = pipeline.convertQSnpToVCF(snp);
-		assertEquals("", vcf.getInfo());
+		assertEquals(Constants.MISSING_DATA_STRING, vcf.getInfo());
 		
-		String normalNucleotides = "A:5[28.01],10[26.6],G:9[19.34],4[25.51]"; 
+		final String normalNucleotides = "A:5[28.01],10[26.6],G:9[19.34],4[25.51]"; 
 		snp.setNormalNucleotides(normalNucleotides);
 		vcf = pipeline.convertQSnpToVCF(snp);
 		assertEquals(VcfHeaderUtils.INFO_MUTANT_READS + "=15", vcf.getInfo());
@@ -416,7 +416,7 @@ public class PipelineTest {
 		// add in Novel starts
 		snp.setNormalNovelStartCount(7);
 		
-		vcf.setFormatField(null);	// reset format fields
+		vcf.setSampleFormatField(null);	// reset format fields
 		vcf = pipeline.convertQSnpToVCF(snp);
 		assertEquals(VcfHeaderUtils.INFO_MUTANT_READS + "=15;" 
 				+ VcfHeaderUtils.INFO_NOVEL_STARTS + "=7" , vcf.getInfo());
@@ -437,26 +437,25 @@ public class PipelineTest {
 		assertEquals("0/1:A/G:" + normalNucleotides.replace(":", ""), vcf.getFormatFields().get(1));
 		assertEquals("0/1:A/G:" + tumourNucleotides.replace(":", ""), vcf.getFormatFields().get(2));
 		
-		System.out.println(vcf.toString());
 	}
 	@Test
 	public void testConvertQSnpToVCFFilter() throws SnpException, IOException, Exception {
 		// create qsnp record
-		QSnpRecord snp = new QSnpRecord("chr1", 100, "G");
+		final QSnpRecord snp = new QSnpRecord("chr1", 100, "G");
 //		snp.setDbSnpId("rs12345");
 		snp.setMutation("G>A");
 		snp.setClassification(Classification.SOMATIC);
 		// add in tumour nucleotides
 		String tumourNucleotides = "A:0[26.65],4[28.2],G:1[20],8[24.33]"; 
 		snp.setTumourNucleotides(tumourNucleotides);
-		String normalNucleotides = "A:5[28.01],10[26.6],G:9[19.34],4[25.51]"; 
+		final String normalNucleotides = "A:5[28.01],10[26.6],G:9[19.34],4[25.51]"; 
 		snp.setNormalNucleotides(normalNucleotides);
 		snp.setNormalGenotype(GenotypeEnum.GG);
 		snp.setTumourGenotype(GenotypeEnum.AG);
 		// add in Novel starts
 		snp.setTumourNovelStartCount(3);
 		
-		Pipeline pipeline = new TestPipeline();
+		final Pipeline pipeline = new TestPipeline();
 		pipeline.classifyPileupRecord(snp);
 		assertEquals(SnpUtils.LESS_THAN_12_READS_NORMAL + SC + SnpUtils.MUTANT_READS + SC + SnpUtils.NOVEL_STARTS , snp.getAnnotation());
 		VcfRecord vcf = pipeline.convertQSnpToVCF(snp);
@@ -477,11 +476,10 @@ public class PipelineTest {
 		vcf = pipeline.convertQSnpToVCF(snp);
 		assertEquals(SnpUtils.PASS , vcf.getFilter());
 		
-		System.out.println(vcf.toString());
 	}
 	
 	private void createVcfFile(File vcfFile, String data) throws IOException {
-		FileWriter writer = new FileWriter(vcfFile);
+		final FileWriter writer = new FileWriter(vcfFile);
 		try {
 			// add data
 			writer.write(data);
