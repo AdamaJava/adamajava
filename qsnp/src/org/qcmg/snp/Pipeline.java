@@ -120,7 +120,7 @@ public abstract class Pipeline {
 	
 	final Map<ChrPosition,VcfRecord> compoundSnps = new HashMap<>();
 	
-	final Map<ChrPosition, Pair<Accumulator, Accumulator>> accumulators = new HashMap<>(); 
+	final ConcurrentMap<ChrPosition, Pair<Accumulator, Accumulator>> accumulators = new ConcurrentHashMap<>(); 
 	
 	int[] controlStartPositions;
 	int[] testStartPositions;
@@ -373,6 +373,12 @@ public abstract class Pipeline {
 				} else {
 					// get from copoundSnp map
 					final VcfRecord vcf = compoundSnps.get(position);
+					
+					// if filter is set to missing data, then set to PASS
+					if (Constants.MISSING_DATA_STRING.equals(vcf.getFilter())) {
+						vcf.setFilter(SnpUtils.PASS);
+					}
+					
 					writer.add(vcf);
 					
 				}
@@ -638,56 +644,34 @@ public abstract class Pipeline {
 	}
 	
 	public  VcfRecord convertQSnpToVCF(QSnpRecord rec) throws Exception {
-//		VCFRecord vcf = VcfUtils.createVcfRecord(rec.getChrPos(), rec.getDbSnpId(), rec.getRef() + "");
 		final VcfRecord vcf = rec.getVcfRecord();
 		
 		final String altString = null != rec.getMutation() ? SnpUtils.getAltFromMutationString(rec.getMutation()) : null;
-//		char alt = '\u0000';
-//		if (null == altString || altString.length() > 1) {
-//			logger.warn("altString: " + altString + " in Pipeline.convertQSnpToVCF");
-//		} else {
-//			alt = altString.charAt(0);
-//		}
 		final int mutantReadCount = SnpUtils.getCountFromNucleotideString(
 				Classification.GERMLINE != rec.getClassification() ? rec.getTumourNucleotides() : rec.getNormalNucleotides(), altString);
 		final int novelStartCount = Classification.GERMLINE != rec.getClassification() 
 					? rec.getTumourNovelStartCount() : rec.getNormalNovelStartCount();
 		
-					
 		vcf.addFilter(rec.getAnnotation());		// don't overwrite existing annotations
 		
 		
 		//work with INFO field 
 		String info = "";
-//		StringBuilder info = new StringBuilder();
 		if (Classification.SOMATIC == rec.getClassification()) {
-//			info.append(rec.getClassification().toString());
 			info = StringUtils.addToString(info, Classification.SOMATIC.toString(), Constants.SEMI_COLON);			
 		}
 		
 		// add Number of Mutations (MR - Mutated Reads)
 		if (mutantReadCount > 0) {
-//			if (info.length() > 0) {
-//				info.append(Constants.SEMI_COLON);
-//			}
-//			info.append(VcfUtils.INFO_MUTANT_READS).append(Constants.EQ).append(mutantReadCount);
 			info = StringUtils.addToString(info,VcfHeaderUtils.INFO_MUTANT_READS +Constants.EQ +mutantReadCount  , Constants.SEMI_COLON);
 		}
 		
 		if (novelStartCount > 0) {
-//			if (info.length() > 0) {
-//				info.append(Constants.SEMI_COLON);
-//			}
-//			info.append(VcfUtils.INFO_NOVEL_STARTS).append(Constants.EQ).append(novelStartCount);
 			info = StringUtils.addToString(info, VcfHeaderUtils.INFO_NOVEL_STARTS +Constants.EQ +novelStartCount  , Constants.SEMI_COLON);
 		}
 		
 		// cpg data
 		if ( ! StringUtils.isNullOrEmpty(rec.getFlankingSequence())) {
-//			if (info.length() > 0) {
-//				info.append(Constants.SEMI_COLON);
-//			}
-//			info.append(VcfUtils.INFO_FLANKING_SEQUENCE).append(Constants.EQ).append(rec.getFlankingSequence());
 			info = StringUtils.addToString(info, VcfHeaderUtils.INFO_FLANKING_SEQUENCE +Constants.EQ +rec.getFlankingSequence()  , Constants.SEMI_COLON);
 		}
 		
@@ -698,8 +682,6 @@ public abstract class Pipeline {
 		final String [] altAndGTs = VcfUtils.getMutationAndGTs(rec.getRef(), rec.getNormalGenotype(), rec.getTumourGenotype());
 		vcf.setAlt(altAndGTs[0]);
 		
-		
-		//FORMAT fields should be three columns here
 		// get existing format field info from vcf record
 		final List<String> additionalformatFields = new ArrayList<>();
 		
@@ -1848,7 +1830,7 @@ public abstract class Pipeline {
 				}
 				
 				// get unique list of flags
-				final String [] flagArray = flag.split(""+Constants.SEMI_COLON);
+				final String [] flagArray = flag.split(Constants.SEMI_COLON_STRING);
 				final Set<String> uniqueFlags = new HashSet<>(Arrays.asList(flagArray));
 				
 				final StringBuilder uniqueFlagsSb = new StringBuilder();
@@ -1867,6 +1849,7 @@ public abstract class Pipeline {
 				for (int j = startPosition ; j <= endPosition ; j++) {
 					final ChrPosition cp = new ChrPosition(csChrPos.getChromosome(), j);
 					final Pair<Accumulator, Accumulator> accums = accumulators.get(cp);
+					
 					final Accumulator normal = accums.getLeft();
 					final Accumulator tumour = accums.getRight();
 					if (null != normal) {
@@ -1877,6 +1860,9 @@ public abstract class Pipeline {
 					}
 				}
 				
+//				logger.info("found " + normalReadSeqMap.size() + " entries in normalReadSeqMap");
+//				logger.info("found " + tumourReadSeqMap.size() + " entries in tumourReadSeqMap");
+				
 				final Map<String, AtomicInteger> normalMutationCount = new HashMap<>();
 				for (final Entry<Long, StringBuilder> entry : normalReadSeqMap.entrySet()) {
 					final AtomicInteger count = normalMutationCount.get(entry.getValue().toString());
@@ -1886,6 +1872,9 @@ public abstract class Pipeline {
 						count.incrementAndGet();
 					}
 				}
+				
+//				logger.info("found " + normalMutationCount.size() + " entries in normalMutationCount");
+				
 				final Map<String, AtomicInteger> tumourMutationCount = new HashMap<>();
 				for (final Entry<Long, StringBuilder> entry : tumourReadSeqMap.entrySet()) {
 					final AtomicInteger count = tumourMutationCount.get(entry.getValue().toString());
@@ -1895,6 +1884,7 @@ public abstract class Pipeline {
 						count.incrementAndGet();
 					}
 				}
+//				logger.info("found " + tumourMutationCount.size() + " entries in tumourMutationCount");
 				
 				final AtomicInteger normalAltCountFS = normalMutationCount.get(alt);
 				final AtomicInteger tumourAltCountFS = tumourMutationCount.get(alt);
@@ -1955,7 +1945,7 @@ public abstract class Pipeline {
 					//	cs.addInfo(Classification.SOMATIC.toString());
 					}
 					cs.setFilter(uniqueFlagsSb.toString());		// unique list of filters seen by snps making up this cs
-					cs.setSampleFormatField(Arrays.asList(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP,
+					cs.setFormatFields(Arrays.asList(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP,
 						 normalSb.toString(), tumourSb.toString()));
 					//cs.setFormatField(Arrays.asList(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP,
 					//	 normalSb.toString(), tumourSb.toString())); 

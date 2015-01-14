@@ -349,18 +349,36 @@ public class VcfUtils {
 		}
 		return isSnp;
 	}
+	
 	/**
+	 * Adds missing data '.' to the specified column
 	 * 
 	 * @param vcf
-	 * @param additionalFormatFields, any non existing attributes will be appended to existing FORMAT
-	 * @throws Exception
+	 * @param position
 	 */
-	public static void addFormatFieldsToVcf(VcfRecord vcf, List<String> additionalFormatFields) throws Exception {
+	public static void addMissingDataToFormatFields(VcfRecord vcf, int position) {
+		// need to get the number of missing data elements to be added
+		List<String> formatFields = vcf.getFormatFields();
+		if ( ! formatFields.isEmpty()) {
+			String formatColumns = formatFields.get(0);
+			//split by ":"
+			int noOfColumns = formatColumns.split(":").length;
+			String missingData = ".";
+			for (int i = 1 ; i < noOfColumns ; i++) {
+				missingData +=":.";
+			}
+			formatFields.add(position, missingData);
+			vcf.setFormatFields(formatFields);
+		}
+		
+	}
+	
+	public static void addFormatFieldsToVcf(VcfRecord vcf, List<String> additionalFormatFields) {
 		if ( null != additionalFormatFields && ! additionalFormatFields.isEmpty()) {
 			// if there are no existing format fields, set field to be additional..
 			if (null == vcf.getFormatFields() || vcf.getFormatFields().isEmpty()) {
 				//vcf.setFormatField(additionalFormatFields);
-				vcf.setSampleFormatField(additionalFormatFields);
+				vcf.setFormatFields(additionalFormatFields);
 			} else {
 				
 				// check that the 2 lists of the same size
@@ -368,6 +386,8 @@ public class VcfUtils {
 					logger.warn("format field size mismatch. Exiting record has " 
 				+ vcf.getFormatFields().size() + " entries, whereas additionalFormatFields has " 
 							+ additionalFormatFields.size() + " entries - skipping addition");
+					logger.info("vcf: " + vcf.toString() + ", additional fields: " + Arrays.deepToString(additionalFormatFields.toArray(new String[]{})));
+					
 				} else {
 					final List<String> newFF =  vcf.getFormatFields();
 					
@@ -397,16 +417,14 @@ public class VcfUtils {
 					}
 					
 					if ( ! newFF.isEmpty()) {
-						vcf.setSampleFormatField(newFF);
-					//	vcf.setFormatField(newFF);
+						vcf.setFormatFields(newFF);
 					}
-					
 				}
 			}
 		}
 	}
 	/**
-	 * Checks to see if the existing annotation is a PASS.
+	 * Checks to see if the existing annotation is a PASS (or missing data symbol (".")).
 	 * If it is, then the annotation is replaced with the supplied annotation.
 	 * If its not, the supplied annotation is appended to the existing annotation(s)
 	 * 
@@ -419,7 +437,7 @@ public class VcfUtils {
 		// perform some null guarding
 		if (null == rec) throw new IllegalArgumentException("Null vcf record passed to updateFilter");
 		
-		if (SnpUtils.PASS.equals(rec.getFilter()) || SnpUtils.PASS.equals(ann)) {
+		if (SnpUtils.PASS.equals(rec.getFilter()) || Constants.MISSING_DATA_STRING.equals(rec.getFilter()) || SnpUtils.PASS.equals(ann)) {
 			rec.setFilter(ann);
 		} else {
 			rec.addFilter(ann);

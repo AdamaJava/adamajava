@@ -111,7 +111,7 @@ public class ChrPositionUtilsTest {
 		
 		assertEquals(true, ChrPositionUtils.areAdjacent(new ChrPosition("1", 1, 10), new ChrPosition("1", 11, 20)));
 		assertEquals(true, ChrPositionUtils.areAdjacent(new ChrPosition("2", 1, 10), new ChrPosition("2", 11, 20)));
-		assertEquals(true, ChrPositionUtils.areAdjacent(new ChrPosition("2", 11, 20), new ChrPosition("2", 1, 10)));
+		assertEquals(true, ChrPositionUtils.areAdjacent(new ChrPosition("1", 11, 20), new ChrPosition("1", 1, 10)));
 		assertEquals(true, ChrPositionUtils.areAdjacent(new ChrPosition("2", 11, 20), new ChrPosition("2", 1, 10)));
 		
 		assertEquals(true, ChrPositionUtils.areAdjacent(new ChrPosition("1", 123456, 123456), new ChrPosition("1", 123457, 123457)));

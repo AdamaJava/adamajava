@@ -62,7 +62,7 @@ public class VcfRecord {
 		this(new ChrPosition(chr, position, end), id, ref, alt);
 	}
 	
-	public VcfRecord(String [] params) throws Exception {
+	public VcfRecord(String [] params) {
 //		this(params[0], Integer.parseInt(params[1]), params[2], params[3], params[4]);				
 		this(params[0], Integer.parseInt(params[1]), Integer.parseInt(params[1]) + params[3].length() - 1, params[2], params[3], params[4]);			
 		
@@ -118,7 +118,7 @@ public class VcfRecord {
 	 * @param additionalInfo: eg. RSPOS=99;END=100;
 	 * @throws Exception if sub string of additionalInfo split by ';',  didn't follow pattern: <key>=<data>
 	 */
-	public void appendInfo(String additionalInfo) throws Exception{
+	public void appendInfo(String additionalInfo) {
 		if( StringUtils.isNullOrEmpty( additionalInfo ))
 			return;
 		
@@ -128,13 +128,14 @@ public class VcfRecord {
 			// need to check that we are not duplicating info
 			final String [] infoParam = additionalInfo.split(Constants.SEMI_COLON_STRING);
 			for (final String s : infoParam) 
-				if( !s.contains(Constants.EQ+""))
+				if(  ! s.contains(Constants.EQ_STRING))
 						infoRecord.setfield(s,null);
-				else{
+				else {
 					final String key = s.substring(0, s.indexOf(Constants.EQ));
-					final String data = s.substring(s.indexOf(Constants.EQ) );
-				    if(key.isEmpty() || data.isEmpty())
-				    	throw new Exception("Sub INFO string didn't follow format <key>=<data>:" + s);
+					final String data = s.substring(s.indexOf(Constants.EQ) +1 );
+				    if (key.isEmpty() || data.isEmpty()) {
+				    		throw new IllegalArgumentException("Sub INFO string didn't follow format <key>=<data>:" + s);
+				    }
 				    infoRecord.setfield(key, data);					 
 				}
 		}
@@ -152,14 +153,15 @@ public class VcfRecord {
 	 * @param field: a list of format string start with FORMAT string. Empty FORMAT and Sample columns if field is null.
 	 * @throws Exception if list size smaller than two 
 	 */
-	public void setSampleFormatField(List<String> field) throws Exception {
+	public void setFormatFields(List<String> field) {
 		if(field == null) {
 			formatRecords.clear();
 			return;
 		}
 		
-		if(field.size() == 1) 
-			throw new Exception("missing sample column information");
+		if (field.size() == 1) {
+			throw new IllegalArgumentException("missing sample column information");
+		}
 		
 		formatRecords.clear();
 		for(int i = 1; i < field.size(); i ++)

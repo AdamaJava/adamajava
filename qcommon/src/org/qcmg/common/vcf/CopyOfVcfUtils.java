@@ -486,7 +486,7 @@ public class CopyOfVcfUtils {
 			// if there are no existing format fields, set field to be additional..
 			if (null == vcf.getFormatFields() || vcf.getFormatFields().isEmpty()) {
 				//vcf.setFormatField(additionalFormatFields);
-				vcf.setSampleFormatField(additionalFormatFields);
+				vcf.setFormatFields(additionalFormatFields);
 			} else {
 				
 				
@@ -525,7 +525,7 @@ public class CopyOfVcfUtils {
 					
 					if ( ! newFF.isEmpty()) {
 						//vcf.setFormatField(newFF);
-						vcf.setSampleFormatField(newFF);
+						vcf.setFormatFields(newFF);
 					}
 					
 				}

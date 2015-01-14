@@ -333,7 +333,7 @@ public class PipelineTest {
 		
 		// add SOMATIC
 		snp.setClassification(Classification.SOMATIC);
-		vcf.setSampleFormatField(null);
+		vcf.setFormatFields(null);
 		
 		vcf = pipeline.convertQSnpToVCF(snp);
 		assertEquals(Classification.SOMATIC.toString(), vcf.getInfo());
@@ -341,13 +341,13 @@ public class PipelineTest {
 		// add in tumour nucleotides
 		final String tumourNucleotides = "C:15[18.95],19[19.35],A:2[27.02],3[29.03]"; 
 		snp.setTumourNucleotides(tumourNucleotides);
-		vcf.setSampleFormatField(null);
+		vcf.setFormatFields(null);
 		vcf = pipeline.convertQSnpToVCF(snp);
 		assertEquals(Classification.SOMATIC + SC + VcfHeaderUtils.INFO_MUTANT_READS + "=34" , vcf.getInfo());
 		
 		// add in Novel starts
 		snp.setTumourNovelStartCount(5);
-		vcf.setSampleFormatField(null);
+		vcf.setFormatFields(null);
 		vcf = pipeline.convertQSnpToVCF(snp);
 		assertEquals(Classification.SOMATIC + SC + VcfHeaderUtils.INFO_MUTANT_READS + "=34;" 
 				+ VcfHeaderUtils.INFO_NOVEL_STARTS + "=5" , vcf.getInfo());
@@ -366,7 +366,7 @@ public class PipelineTest {
 		
 //		snp.setNormalGenotype(GenotypeEnum.AA);
 //		snp.setTumourGenotype(GenotypeEnum.AC);
-		vcf.setSampleFormatField(null);
+		vcf.setFormatFields(null);
 		vcf = pipeline.convertQSnpToVCF(snp);
 		assertEquals(VcfHeaderUtils.FORMAT_GENOTYPE + C + VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS + C + VcfHeaderUtils.FORMAT_ALLELE_COUNT,
 				vcf.getFormatFields().get(0));
@@ -416,7 +416,7 @@ public class PipelineTest {
 		// add in Novel starts
 		snp.setNormalNovelStartCount(7);
 		
-		vcf.setSampleFormatField(null);	// reset format fields
+		vcf.setFormatFields(null);	// reset format fields
 		vcf = pipeline.convertQSnpToVCF(snp);
 		assertEquals(VcfHeaderUtils.INFO_MUTANT_READS + "=15;" 
 				+ VcfHeaderUtils.INFO_NOVEL_STARTS + "=7" , vcf.getInfo());

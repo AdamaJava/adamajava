@@ -6,8 +6,6 @@ package org.qcmg.common.util;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.string.StringUtils;
-import org.qcmg.common.vcf.VcfUtils;
-import org.qcmg.common.vcf.header.VcfHeaderUtils;
 
 public class SnpUtils {
 	
@@ -19,6 +17,7 @@ public class SnpUtils {
 	//TUMOUR
 	public static final String LESS_THAN_8_READS_TUMOUR = "COVT";
 	public static final String LESS_THAN_3_READS_TUMOUR = "SAT3";
+	public static final String NO_CALL_IN_TEST = "NCIT";
 	
 	//COMPOUND_SNP
 	public static final String COMPOUND_SNP = "COMPOUNDMUTATION";
