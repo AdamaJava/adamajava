@@ -39,6 +39,7 @@ import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.PileupElement;
 import org.qcmg.common.model.ReferenceNameComparator;
 import org.qcmg.common.string.StringUtils;
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.ListUtils;
 import org.qcmg.common.util.TabTokenizer;
@@ -373,7 +374,9 @@ public class SignatureGenerator {
 					writer.addHeader(re.toString() );
 				
 				for (final VcfRecord vcf : snps) {
-					if (StringUtils.isNullOrEmpty(vcf.getInfo())) vcf.setInfo(SignatureUtil.EMPTY_COVERAGE);
+					if (StringUtils.isNullOrEmpty(vcf.getInfo()) || Constants.MISSING_DATA_STRING.equals(vcf.getInfo())) {
+						vcf.setInfo(SignatureUtil.EMPTY_COVERAGE);
+					}
 					writer.add(vcf);
 				}
 				

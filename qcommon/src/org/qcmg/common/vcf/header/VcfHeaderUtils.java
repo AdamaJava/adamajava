@@ -30,7 +30,8 @@ public class VcfHeaderUtils {
 	public static final String FILTER_MUTANT_READS = SnpUtils.MUTANT_READS;
 	public static final String FILTER_MUTATION_EQUALS_REF = SnpUtils.MUTATION_EQUALS_REF;
 	public static final String FILTER_LOW_QUAL = "LowQual";
-
+	public static final String FILTER_NO_CALL_IN_TEST = SnpUtils.NO_CALL_IN_TEST;
+	
 	
 	//INFO FIELDS
 	public static final String INFO_MUTANT_READS = FILTER_MUTANT_READS;
@@ -53,7 +54,11 @@ public class VcfHeaderUtils {
 	public static final String FORMAT_GENOTYPE = "GT";
 	public static final String FORMAT_GENOTYPE_DETAILS = "GD";
 	public static final String FORMAT_ALLELE_COUNT = "AC";
-	public static final String FORMAT_ALLELE_COUNT_COMPOUND_SNP = "ACCS";	
+	public static final String FORMAT_ALLELE_COUNT_COMPOUND_SNP = "ACCS";
+	//GATK specific format fields
+	public static final String FORMAT_ALLELIC_DEPTHS = "AD";
+	public static final String FORMAT_READ_DEPTH = "DP";
+	public static final String FORMAT_GENOTYPE_QUALITY = "GQ";
 	
 	//Header lines
 	public static final String CURRENT_FILE_VERSION = "##fileformat=VCFv4.2";

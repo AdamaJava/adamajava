@@ -158,6 +158,11 @@ public class SnpUtilsTest {
 	}
 	
 	@Test
+	public void missingMRField() {
+		assertEquals(29, SnpUtils.getCountFromNucleotideString("C:22[36.91],21[26.67],G:27[36.93],2[31]","G"));
+	}
+	
+	@Test
 	public void testGetNNumberFromAnnotation() {
 		assertEquals(9, SnpUtils.getNNumberFromAnnotation("PASS;HOMCON_9;", SnpUtils.INDEL_HOM_CON));
 		assertEquals(10, SnpUtils.getNNumberFromAnnotation("PASS;MIN;HOMCON_10;", SnpUtils.INDEL_HOM_CON));

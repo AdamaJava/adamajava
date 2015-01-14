@@ -301,8 +301,8 @@ public class StringUtils {
 	}
 	
 	/**
-	 * REturns true if string contains only numbers, false otherwise.
-	 * NOTE that this will return true if there are a large number of  numbers in the string which could lead to overflow issues when parsing to integer
+	 * Returns true if string contains only numbers, false otherwise.
+	 * NOTE that this will return true if there are a large number of numbers in the string which could lead to overflow issues when parsing to integer (or smaller)
 	 * @param str
 	 * @return
 	 */
