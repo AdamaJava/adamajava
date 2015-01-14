@@ -430,11 +430,15 @@ public abstract class Pipeline {
 		header.add( new VcfHeaderFilter( VcfHeaderUtils.FILTER_NOVEL_STARTS,"Less than 4 novel starts not considering read pair"));  
 		header.add( new VcfHeaderFilter( VcfHeaderUtils.FILTER_MUTANT_READS,"Less than 5 mutant reads")); 
 		header.add( new VcfHeaderFilter( VcfHeaderUtils.FILTER_MUTATION_EQUALS_REF,"Mutation equals reference")); 
+		header.add( new VcfHeaderFilter( VcfHeaderUtils.FILTER_NO_CALL_IN_TEST,"No call in test")); 
 	
 		header.add( new VcfHeaderFormat(VcfHeaderUtils.FORMAT_GENOTYPE, VcfInfoNumber.NUMBER, 1, VcfInfoType.String,"Genotype: 0/0 homozygous reference; 0/1 heterozygous for alternate allele; 1/1 homozygous for alternate allele"));
 		header.add( new VcfHeaderFormat(VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS, VcfInfoNumber.NUMBER, 1, VcfInfoType.String,"Genotype details: specific alleles (A,G,T or C)"));
 		header.add( new VcfHeaderFormat(VcfHeaderUtils.FORMAT_ALLELE_COUNT, VcfInfoNumber.NUMBER, 1, VcfInfoType.String,"Allele Count: lists number of reads on forward strand [avg base quality], reverse strand [avg base quality]"));
 		header.add( new VcfHeaderFormat(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP,VcfInfoNumber.NUMBER, 1, VcfInfoType.String,"Allele Count Compound Snp: lists read sequence and count (forward strand, reverse strand)"));
+		header.add( new VcfHeaderFormat(VcfHeaderUtils.FORMAT_ALLELIC_DEPTHS,VcfInfoNumber.NUMBER, 1, VcfInfoType.String,"Allelic depths for the ref and alt alleles in the order listed"));
+		header.add( new VcfHeaderFormat(VcfHeaderUtils.FORMAT_READ_DEPTH,VcfInfoNumber.NUMBER, 1, VcfInfoType.String,"Approximate read depth (reads with MQ=255 or with bad mates are filtered)"));
+		header.add( new VcfHeaderFormat(VcfHeaderUtils.FORMAT_GENOTYPE_QUALITY,VcfInfoNumber.NUMBER, 1, VcfInfoType.String,"Genotype Quality"));
 
 		header.add(new VcfHeaderRecord(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE));
 		return  header;
@@ -646,13 +650,23 @@ public abstract class Pipeline {
 	public  VcfRecord convertQSnpToVCF(QSnpRecord rec) throws Exception {
 		final VcfRecord vcf = rec.getVcfRecord();
 		
-		final String altString = null != rec.getMutation() ? SnpUtils.getAltFromMutationString(rec.getMutation()) : null;
+		String altString = null != rec.getMutation() ? SnpUtils.getAltFromMutationString(rec.getMutation()) : null;
+		// if this is null, see if we can get it from vcf record
+		if (null == altString) {
+			altString = vcf.getAlt();
+		}
+		
 		final int mutantReadCount = SnpUtils.getCountFromNucleotideString(
 				Classification.GERMLINE != rec.getClassification() ? rec.getTumourNucleotides() : rec.getNormalNucleotides(), altString);
 		final int novelStartCount = Classification.GERMLINE != rec.getClassification() 
 					? rec.getTumourNovelStartCount() : rec.getNormalNovelStartCount();
 		
 		vcf.addFilter(rec.getAnnotation());		// don't overwrite existing annotations
+		
+		// if filter field is set to "." - update to PASS
+		if (Constants.MISSING_DATA_STRING.equals(vcf.getFilter())) {
+			VcfUtils.updateFilter(vcf, SnpUtils.PASS);
+		}
 		
 		
 		//work with INFO field 
