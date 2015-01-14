@@ -349,7 +349,8 @@ public class BamSummaryReport extends SummaryReport {
 		}
 		
 		Element p1AveLenghtE = createSubElement(summaryElement, "FirstInPairAveLength");
-		p1AveLenghtE.setAttribute("value", (runningTally / total) + "");
+		long averageLength = total > 0 ? (runningTally / total) : 0;
+		p1AveLenghtE.setAttribute("value", averageLength + "");
 		p1AveLenghtE.setAttribute("count", total + "");
 		
 		runningTally = 0;
@@ -362,7 +363,8 @@ public class BamSummaryReport extends SummaryReport {
 			}
 		}
 		Element p2AveLenghtE = createSubElement(summaryElement, "SecondInPairAveLength");
-		p2AveLenghtE.setAttribute("value", (runningTally / total) + "");
+		averageLength = total > 0 ? (runningTally / total) : 0;
+		p2AveLenghtE.setAttribute("value", averageLength + "");
 		p2AveLenghtE.setAttribute("count", total + "");
 
 		
