@@ -96,7 +96,9 @@ public class VcfRecord {
 
 	public void setQualString(String qualString) { this.qualString = qualString; }
 	
-	public void addFilter(String additionalFilter) { this.filter = StringUtils.addToString(this.filter, additionalFilter, SEMI_COLON); }
+	public void addFilter(String additionalFilter) { 
+		this.filter = StringUtils.addToString(this.filter, additionalFilter, SEMI_COLON);
+	}
 	
 	public void setFilter(String filter) { this.filter = filter; }
 	public String getFilter() { return filter; }
@@ -106,7 +108,9 @@ public class VcfRecord {
 	 * @param info INFO column value. eg. SOMATIC:RSPOS=100:END=102
 	 * @throws Exception If the info String didn't follow pattern : <key>=<data> joined by ';'
 	 */
-	public void setInfo(String info) throws Exception {  this.infoRecord = new VcfInfoFieldRecord(info); }
+	public void setInfo(String info) {  
+		this.infoRecord = new VcfInfoFieldRecord(info);
+	}
 	
 	/**
 	 * 
