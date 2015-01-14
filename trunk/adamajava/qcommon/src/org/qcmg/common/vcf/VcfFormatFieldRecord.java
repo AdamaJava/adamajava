@@ -33,7 +33,7 @@ public class VcfFormatFieldRecord {
 			if(values.length > i ) // && values[i] != null)
 				field.put(keys[i], values[i] );
 			else
-				field.put(keys[i], Constants.MISSING_DATA+"");
+				field.put(keys[i], Constants.MISSING_DATA_STRING);
 	}
 	
 

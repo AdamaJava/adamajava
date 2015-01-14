@@ -53,6 +53,11 @@ public class VcfUtilsTest {
 	}
 	
 	@Test
+	public void missingDataToFormatField() {
+		
+	}
+	
+	@Test
 	public void testGetADFromGenotypeField() {
 		String genotype = "";
 		assertEquals(0, VcfUtils.getADFromGenotypeField(genotype));

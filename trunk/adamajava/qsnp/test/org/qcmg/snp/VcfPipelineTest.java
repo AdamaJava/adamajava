@@ -18,6 +18,7 @@ import org.qcmg.common.commandline.Executor;
 import org.qcmg.common.model.PileupElement;
 import org.qcmg.common.model.Rule;
 import org.qcmg.common.vcf.VcfRecord;
+import org.qcmg.pileup.QSnpRecord;
 import org.qcmg.tab.TabbedFileReader;
 import org.qcmg.tab.TabbedRecord;
 import org.qcmg.vcf.VCFFileReader;
@@ -40,6 +41,29 @@ public class VcfPipelineTest {
 				writer.write(s + NL);
 			}
 		}  
+	}
+	
+	@Test
+	public void doesQsnpRecordMergeTheUnderlyingVcfRecords() {
+		String [] params1 = "chr1	568824	.	C	T	351.77	.;MIN	AC=1;AF=0.500;AN=2;BaseQRankSum=0.662;ClippingRankSum=-0.489;DP=52;FS=33.273;MLEAC=1;MLEAF=0.500;MQ=36.25;MQ0=0;MQRankSum=-0.576;QD=6.76;ReadPosRankSum=1.835;SOR=2.608;SOMATIC;MR=25;NNS=25	GT:AD:DP:GQ:PL	0/1:40,12:52:99:380,0,2518".split("\t");
+		String [] params2 = "chr1	568824	.	C	T	351.77	.;MIN	AC=1;AF=0.500;AN=2;BaseQRankSum=0.662;ClippingRankSum=-0.489;DP=52;FS=33.273;MLEAC=1;MLEAF=0.500;MQ=36.25;MQ0=0;MQRankSum=-0.576;QD=6.76;ReadPosRankSum=1.835;SOR=2.608;SOMATIC;MR=15;NNS=15	GT:AD:DP:GQ:PL	1/1:50,22:62:99:380,0,2518".split("\t");
+		VcfRecord vcf1 = new VcfRecord(params1);
+		VcfRecord vcf2 = new VcfRecord(params2);
+		assertEquals(vcf1.getFormatFields().size(), 2);
+		assertEquals(vcf2.getFormatFields().size(), 2);
+		QSnpRecord snp1 = new QSnpRecord(vcf1);
+		QSnpRecord snp2 = new QSnpRecord(vcf2);
+		
+		TestVcfPipeline vp = new TestVcfPipeline();
+		QSnpRecord merged = vp.getQSnpRecord(snp1, snp2);
+		assertEquals(merged.getVcfRecord().getFormatFields().size(), 3);
+		
+		// header
+		assertEquals("GT:AD:DP:GQ:PL", merged.getVcfRecord().getFormatFields().get(0));
+		// control
+		assertEquals("0/1:40,12:52:99:380,0,2518", merged.getVcfRecord().getFormatFields().get(1));
+		// test
+		assertEquals("1/1:50,22:62:99:380,0,2518", merged.getVcfRecord().getFormatFields().get(2));
 	}
 	
 	@Test
