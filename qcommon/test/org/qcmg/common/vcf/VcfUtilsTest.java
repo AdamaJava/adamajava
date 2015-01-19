@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.junit.Assert;
 import org.junit.Test;
 import org.qcmg.common.model.GenotypeEnum;
 import org.qcmg.common.model.PileupElement;
@@ -38,6 +39,9 @@ public class VcfUtilsTest {
 		count = VcfUtils.getAltFrequency(format, "W");
 		assertEquals(count,0);
 		
+		count = VcfUtils.getAltFrequency(format, "");
+		assertEquals(count,0);
+		
 
 		//test coumpound snp
 		str =  "chrY\t2675825\t.\tTTG\tTCA\t.\tMIN;MIUN\tSOMATIC;END=2675826\tACCS\tTTG,5,37,TCA,0,2\tTAA,1,1,TCA,4,1,TCT,3,1,TTA,11,76,TTG,2,2,_CA,0,3,TTG,0,1" ;
@@ -54,7 +58,73 @@ public class VcfUtilsTest {
 	
 	@Test
 	public void missingDataToFormatField() {
+		try {
+			VcfUtils.addMissingDataToFormatFields(null, 0);
+			Assert.fail("Should have thrown an illegalArgumentException");
+		} catch (IllegalArgumentException iae) {}
 		
+		VcfRecord rec = VcfUtils.createVcfRecord("1", 1, "A");
+		VcfUtils.addMissingDataToFormatFields(rec, 1);
+		assertEquals(null, rec.getFormatFields());
+		
+		// add in an empty list for the ff
+		List<String> ff = new ArrayList<>();
+		ff.add("header info here");
+		ff.add("first bit of data");
+		rec.setFormatFields(ff);
+		
+		try {
+			VcfUtils.addMissingDataToFormatFields(rec, 0);
+			Assert.fail("Should have thrown an illegalArgumentException");
+		} catch (IllegalArgumentException iae) {}
+		
+		try {
+			VcfUtils.addMissingDataToFormatFields(rec, 10);
+			Assert.fail("Should have thrown an illegalArgumentException");
+		} catch (IllegalArgumentException iae) {}
+		
+		VcfUtils.addMissingDataToFormatFields(rec, 1);
+		ff = rec.getFormatFields();
+		assertEquals(3, ff.size());
+		assertEquals("header info here", ff.get(0));
+		assertEquals(".", ff.get(1));
+		assertEquals("first bit of data", ff.get(2));
+		
+		VcfUtils.addMissingDataToFormatFields(rec, 3);
+		ff = rec.getFormatFields();
+		assertEquals(4, ff.size());
+		assertEquals("header info here", ff.get(0));
+		assertEquals(".", ff.get(1));
+		assertEquals("first bit of data", ff.get(2));
+		assertEquals(".", ff.get(3));
+		
+		VcfUtils.addMissingDataToFormatFields(rec, 1);
+		ff = rec.getFormatFields();
+		assertEquals(5, ff.size());
+		assertEquals("header info here", ff.get(0));
+		assertEquals(".", ff.get(1));
+		assertEquals(".", ff.get(2));
+		assertEquals("first bit of data", ff.get(3));
+		assertEquals(".", ff.get(4));
+	}
+	
+	@Test
+	public void missingDataAgain() {
+		VcfRecord rec = VcfUtils.createVcfRecord("1", 1, "A");
+		VcfUtils.addMissingDataToFormatFields(rec, 1);
+		assertEquals(null, rec.getFormatFields());
+		
+		// add in an empty list for the ff
+		List<String> ff = new ArrayList<>();
+		ff.add("AC:DC:12:3");
+		ff.add("0/1:1/1:45,45,:xyz");
+		rec.setFormatFields(ff);
+		
+		VcfUtils.addMissingDataToFormatFields(rec, 1);
+		ff = rec.getFormatFields();
+		assertEquals(3, ff.size());
+		assertEquals("AC:DC:12:3", ff.get(0));
+		assertEquals(".:.:.:.", ff.get(1));
 	}
 	
 	@Test
