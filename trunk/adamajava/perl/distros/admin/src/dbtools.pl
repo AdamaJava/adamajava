@@ -28,6 +28,7 @@ use QCMG::FileDir::QSnpDirParser;
 use QCMG::FileDir::GatkDirParser;
 use QCMG::IO::EnsemblDomainsReader;
 use QCMG::IO::FastaReader;
+use QCMG::IO::SamHeader;
 use QCMG::IO::SamReader;
 use QCMG::PDF::Document;
 use QCMG::QInspect::Sam2Pdf;
@@ -65,7 +66,8 @@ MAIN: {
     # independence in terms of processing input parameters and taking
     # action based on the parameters.
 
-    my @valid_modes = qw( help man version qsnpdir finalbampairs );
+    my @valid_modes = qw( help man version qsnpdir finalbampairs
+                          aligner_from_mapset_bam );
 
     if ($mode =~ /^$valid_modes[0]$/i or $mode =~ /\?/) {
         pod2usage( -exitval  => 0,
@@ -84,6 +86,9 @@ MAIN: {
     }
     elsif ($mode =~ /^$valid_modes[4]/i) {
         finalbampairs();
+    }
+    elsif ($mode =~ /^$valid_modes[5]/i) {
+        aligner_from_mapset_bam()
     }
     else {
         die "dbtools mode [$mode] is unrecognised; valid modes are: " .
@@ -274,6 +279,62 @@ sub autonames {
 
     qlogend();
 }
+
+
+
+sub aligner_from_mapset_bam {
+    qlogbegin();
+
+    #my $dir = '/mnt/seq_results/smgres_oesophageal/OESO_0384';
+    #my $dir = '/mnt/seq_results/smgres_oesophageal/';
+    my $dir = '/mnt/seq_results/';
+    my %tally = ();
+
+    my $find = QCMG::FileDir::Finder->new( verbose => 0 );
+
+    my @bam_files = $find->find_file( $dir, '\.bam$' );
+
+    foreach my $bam_file (@bam_files) {
+        # We only want mapset-level BAMs
+        next unless ($bam_file =~ /\/seq_mapped\//);
+
+        my $bam = QCMG::IO::SamReader->new( filename => $bam_file );
+        my $head = QCMG::IO::SamHeader->new( header => $bam->headers_text );
+
+        my $bwa_found = 0;
+
+        my @pgs = @{ $head->PG };
+        foreach my $pg (@pgs) {
+            my @fields = split /\t/, $pg;
+            if ($pg =~ /:bwa/) {
+                $bwa_found = 1;
+                if ($pg =~ /(^.*\sCL:.{10})/) {
+                    $pg = $1;
+                    push @{ $tally{ $pg } }, $bam_file;
+                }
+                else {
+                    push @{ $tally{ $pg } }, $bam_file;
+                }
+            }
+        }
+
+        # Catch any mapsets where we couldn't get the aligner.
+        if (! $bwa_found) {
+            push @{ $tally{ 'unknown' } }, $bam_file;
+        }
+    }
+    
+    #print Dumper \%tally;
+    foreach my $aligner (sort keys %tally) {
+        my @found_bams = @{ $tally{ $aligner } };
+        qlogprint( scalar(@found_bams), " - $aligner\n" );
+        print "[$aligner]\n";
+        print "\t$_\n" foreach @found_bams;
+    }
+
+    qlogend();
+}
+
 
 
 sub gatk_variantdir {
