@@ -7,9 +7,6 @@ import static org.qcmg.common.util.Constants.COLON;
 import static org.qcmg.common.util.Constants.COLON_STRING;
 import static org.qcmg.common.util.Constants.MISSING_DATA_STRING;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -31,8 +28,6 @@ public class VcfUtils {
 	
 	private static final QLogger logger = QLoggerFactory.getLogger(VcfUtils.class);
 	
-	private final static DateFormat df = new SimpleDateFormat("yyyyMMdd");
-	
 	public static final Pattern pattern_AC = Pattern.compile("[ACGT][0-9]+\\[[0-9]+.?[0-9]*\\],[0-9]+\\[[0-9]+.?[0-9]*\\]");
 	public static final Pattern pattern_ACCS = Pattern.compile("[ACGT]+,[0-9]+,[0-9]+");
 
@@ -47,11 +42,9 @@ public class VcfUtils {
 		
 		int count = 0;
  		 
-		final List<PileupElement> result = new ArrayList<PileupElement>();
-		
 		final Matcher m;
 		String countString = null;
-		if( (countString = re.getfield(VcfHeaderUtils.FORMAT_ALLELE_COUNT) )  != null ){
+		if( (countString = re.getField(VcfHeaderUtils.FORMAT_ALLELE_COUNT) )  != null ){
 			// eg. 0/1:A/C:A2[17.5],34[25.79],C2[28.5],3[27.67]
 			m = pattern_AC.matcher(countString);			
 			while (m.find()) {
@@ -65,7 +58,7 @@ public class VcfUtils {
 					break;
 				}	 
 			}					
-		}else if((countString = re.getfield(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP)) != null){
+		}else if((countString = re.getField(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP)) != null){
 			// eg. AA,1,1,CA,4,1,CT,3,1,TA,11,76,TT,2,2,_A,0,3,TG,0,1
 			m = pattern_ACCS.matcher(countString);
 			while (m.find()) {
@@ -351,15 +344,31 @@ public class VcfUtils {
 	}
 	
 	/**
-	 * Adds missing data '.' to the specified column
+	 * Adds missing data '.' to the format field for the specified vcf record.
+	 * The position parameter indicates which column should have the missing data added to it.
+	 * If the position is less than 1 (the format header should always be at position 0) or greater than the 
+	 * number of entries already in the format field, and IllegalArgumentException will be thrown.
+	 * An insert into the list is performed ( {@link java.util.List#add(int, Object)})
+	 * which shifts existing elements if required.
 	 * 
 	 * @param vcf
 	 * @param position
 	 */
 	public static void addMissingDataToFormatFields(VcfRecord vcf, int position) {
+		if (null == vcf) {
+			throw new IllegalArgumentException("null vcf parameter passed to addMissingDataToFormatFields");
+		}
+		if (position < 1) {
+			throw new IllegalArgumentException("position parameter passed to addMissingDataToFormatFields should not be less than 1: " + position);
+		}
 		// need to get the number of missing data elements to be added
 		List<String> formatFields = vcf.getFormatFields();
-		if ( ! formatFields.isEmpty()) {
+		if (null != formatFields && ! formatFields.isEmpty()) {
+			
+			if (position > formatFields.size()) {
+				throw new IllegalArgumentException("position parameter passed to addMissingDataToFormatFields should not be > " + formatFields.size() + " : "+ position);
+			}
+			
 			String formatColumns = formatFields.get(0);
 			//split by ":"
 			int noOfColumns = formatColumns.split(":").length;

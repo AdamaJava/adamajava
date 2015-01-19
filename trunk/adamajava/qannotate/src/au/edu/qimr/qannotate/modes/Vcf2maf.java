@@ -123,7 +123,7 @@ public class Vcf2maf extends AbstractMode{
 	    	maf.setColumnValue(44, Integer.toString( VcfUtils.getAltFrequency(tumour, vcf.getRef()))); 
 	    	maf.setColumnValue(45, Integer.toString( VcfUtils.getAltFrequency(tumour, vcf.getAlt())));
 			
-			final String allel =  tumour.getfield(VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS);		
+			final String allel =  tumour.getField(VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS);		
 			if(allel != null && !allel.equals(Constants.MISSING_DATA_STRING)){		    	
 		    	maf.setColumnValue(12,  allel.substring(0,1));
 		    	maf.setColumnValue(13, allel.substring(2,3));
@@ -141,7 +141,7 @@ public class Vcf2maf extends AbstractMode{
 	    	maf.setColumnValue(47, Integer.toString( VcfUtils.getAltFrequency(normal, vcf.getRef()))); 
 	    	maf.setColumnValue(48, Integer.toString( VcfUtils.getAltFrequency(normal, vcf.getAlt())));
 
-			final String allel =  normal.getfield(VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS);	
+			final String allel =  normal.getField(VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS);	
 		    if(allel != null && !allel.equals(Constants.MISSING_DATA_STRING)){
 		    	maf.setColumnValue(18,  allel.substring(0,1));
 		    	maf.setColumnValue(19, allel.substring(2,3));

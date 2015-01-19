@@ -28,13 +28,8 @@ public class VcfRecord {
 	private String alt;
 	private String qualString;
 	private String filter;
-//	private String info;
 	private VcfInfoFieldRecord infoRecord;
 	private final List<VcfFormatFieldRecord> formatRecords = new ArrayList<VcfFormatFieldRecord>();
-	
-//	private String format;
-//	private List<String> format = new ArrayList<>(4);
-	
 	
 	public VcfRecord(ChrPosition cp, String id, String ref, String alt) {
 		this.chrPos = cp;
@@ -63,20 +58,24 @@ public class VcfRecord {
 	}
 	
 	public VcfRecord(String [] params) {
-//		this(params[0], Integer.parseInt(params[1]), params[2], params[3], params[4]);				
 		this(params[0], Integer.parseInt(params[1]), Integer.parseInt(params[1]) + params[3].length() - 1, params[2], params[3], params[4]);			
 		
 		qualString = (params.length >= 6) ?  params[5] : null ;
 		filter = (params.length >= 7) ? params[6] : null;
 		infoRecord = (params.length >= 8) ?  new VcfInfoFieldRecord(params[7]): null;
 		
-		for(int i = 9; i < params.length; i ++)
+		for (int i = 9; i < params.length; i ++) {
 			formatRecords.add(new VcfFormatFieldRecord(params[8], params[i]));
+		}
 	}
 	
-	public ChrPosition getChrPosition() {		return this.chrPos;	}
+	public ChrPosition getChrPosition() {		
+		return this.chrPos;	
+	}
 
-	public String getRef() {	return ref;	}
+	public String getRef() {	
+		return ref;	
+	}
 	
 	public char getRefChar() {
 		final int len = null != ref ? ref.length() : 0;
@@ -126,15 +125,15 @@ public class VcfRecord {
 		if( StringUtils.isNullOrEmpty( additionalInfo ))
 			return;
 		
-		if(infoRecord == null)
+		if (infoRecord == null) {
 			infoRecord = new VcfInfoFieldRecord(additionalInfo);
-		else {
+		} else {
 			// need to check that we are not duplicating info
 			final String [] infoParam = additionalInfo.split(Constants.SEMI_COLON_STRING);
-			for (final String s : infoParam) 
-				if(  ! s.contains(Constants.EQ_STRING))
+			for (final String s : infoParam) {
+				if(  ! s.contains(Constants.EQ_STRING)) {
 						infoRecord.setfield(s,null);
-				else {
+				} else {
 					final String key = s.substring(0, s.indexOf(Constants.EQ));
 					final String data = s.substring(s.indexOf(Constants.EQ) +1 );
 				    if (key.isEmpty() || data.isEmpty()) {
@@ -142,6 +141,7 @@ public class VcfRecord {
 				    }
 				    infoRecord.setfield(key, data);					 
 				}
+			}
 		}
 	}
 	public String getInfo() { 	return (infoRecord == null)? Constants.MISSING_DATA_STRING: infoRecord.toString(); }	
@@ -168,8 +168,9 @@ public class VcfRecord {
 		}
 		
 		formatRecords.clear();
-		for(int i = 1; i < field.size(); i ++)
+		for(int i = 1; i < field.size(); i ++) {
 			formatRecords.add(new VcfFormatFieldRecord(field.get(0), field.get(i)));
+		}
 	}
 	
 	/**
@@ -193,8 +194,9 @@ public class VcfRecord {
 		final List<String> list = new ArrayList<String>();
 		list.add( formatRecords.get(0).getFormatColumnString() );
 				 
-		for(int i = 0; i < formatRecords.size(); i ++)
+		for(int i = 0; i < formatRecords.size(); i ++) {
 			list.add( formatRecords.get(i).toString());
+		}
 		
 		return list;
 	}
@@ -203,8 +205,9 @@ public class VcfRecord {
 		if(formatRecords.size() == 0 ) return Constants.EMPTY_STRING;		
 		
 		String str =  formatRecords.get(0).getFormatColumnString();
-		for(int i = 0; i < formatRecords.size(); i ++)
+		for(int i = 0; i < formatRecords.size(); i ++) {
 			str += Constants.TAB +  formatRecords.get(i).toString();
+		}
 		
 		return str;	
 	}
