@@ -59,6 +59,10 @@ public class SnpEffMafRecord  {
 		
 		maf[colNum - 1] = value;		
 	}
+	public String getColumnValue(int colNum ) throws Exception{
+		return maf[colNum - 1]  ;		
+	}	
+	
 	
 	public static String getSnpEffMafHeaderline(){
 		final String[] str = new String[58];
@@ -119,7 +123,6 @@ public class SnpEffMafRecord  {
 		str[54] = "Exon_Rank";
 		str[55] = "Genotype_Number";
 		str[56] = "effect_ontology";
-		str[56] = "effect_class";
 		str[57] = "effect_class";
 		String line = str[0];
 		for (int i = 1; i <= 57; i++)
