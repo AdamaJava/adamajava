@@ -99,7 +99,7 @@ public class Vcf2maf extends AbstractMode{
 		maf.setColumnValue(14,  vcf.getId());
 
 		final VcfInfoFieldRecord info =  new VcfInfoFieldRecord(vcf.getInfo());
-		if(info.getfield(VcfHeaderUtils.INFO_NOVEL_STARTS) != null) maf.setColumnValue(40,  info.getfield(VcfHeaderUtils.INFO_NOVEL_STARTS));
+		if(info.getfield(VcfHeaderUtils.FORMAT_NOVEL_STARTS) != null) maf.setColumnValue(40,  info.getfield(VcfHeaderUtils.FORMAT_NOVEL_STARTS));
 		if(info.getfield(VcfHeaderUtils.INFO_CONFIDENT) != null)	maf.setColumnValue(38,  info.getfield(VcfHeaderUtils.INFO_CONFIDENT) );
 		if(info.getfield(VcfHeaderUtils.INFO_FS) != null) maf.setColumnValue(41,  info.getfield(VcfHeaderUtils.INFO_FS));
 		if(info.getfield(VcfHeaderUtils.INFO_GMAF) != null) maf.setColumnValue(42,  info.getfield(VcfHeaderUtils.INFO_GMAF));
