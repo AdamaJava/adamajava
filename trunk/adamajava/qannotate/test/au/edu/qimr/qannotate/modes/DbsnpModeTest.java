@@ -14,6 +14,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.qcmg.common.vcf.VcfRecord;
+import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderRecord.MetaType;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
@@ -43,26 +44,33 @@ public class DbsnpModeTest {
 	
 	@Test
 	public void CompoundTest() throws IOException, Exception{
-	
 		final DbsnpMode mode = new DbsnpMode();		
 		mode.inputRecord(new File(inputName));
 		mode.addAnnotation(dbSNPName);
 		mode.writeVCF(new File(outputName));
 		
-		 try(VCFFileReader reader = new VCFFileReader(outputName)){ 
+		 try(VCFFileReader reader = new VCFFileReader(outputName)){
 			int i = 0; 
-			for (final VcfHeaderRecord re : reader.getHeader()){
-				if(i == 0)  
+			VcfHeader header = reader.getHeader();
+			for (final VcfHeaderRecord re : header){
+				if(i == 0)  {
 					assertTrue(re.getMetaType().equals(MetaType.META)  && re.toString().equals( "##fileformat=VCFv4.0\n"));
-				else if(i == 1)  
+				} else if(i == 1)  {
+					assertTrue(re.getMetaType().equals(MetaType.OTHER) && re.toString().equals( "##\n"));
+				} else if(i == 2) {  
 					assertTrue(re.getMetaType().equals(MetaType.META) && re.toString().equals( "##dbSNP_BUILD_ID=135\n"));
-				else if(i == 2)  
+				} else  if (i == 3) {  
+					assertTrue(re.getMetaType().equals(MetaType.OTHER) && re.toString().equals( "##\n"));
+				} else  if (i == 4) {  
+					assertTrue(re.getMetaType().equals(MetaType.OTHER) && re.toString().equals( "##\n"));
+				} else  if (i == 5) {  
+					assertTrue(re.getMetaType().equals(MetaType.OTHER) && re.toString().equals( "##\n"));
+				} else  if (i == 6) {  
 					assertTrue(re.getMetaType().equals(MetaType.INFO) && re.toString().equals("##INFO=<ID=GMAF,Number=1,Type=Float,Description=\"Global Minor Allele Frequency [0, 0.5]; global population is 1000GenomesProject phase 1 genotype data from 629 individuals, released in the 08-04-2010 dataset\">\n"));
-			//	else
-				//	assertFalse(true);
+			}
 				
 				i ++;
-			} 
+			}
 			 
 			for (final VcfRecord re : reader) {					
 				if(re.getPosition() == 2675826){
