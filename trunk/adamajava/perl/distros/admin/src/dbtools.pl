@@ -283,17 +283,47 @@ sub autonames {
 
 
 sub aligner_from_mapset_bam {
+
+    pod2usage( -exitval  => 0,
+               -verbose  => 99,
+               -sections => 'COMMAND DETAILS/ALIGNER_FROM_MAPSET_BAM' )
+        unless (scalar @ARGV > 0);
+
+    # Setup defaults for important variables.
+
+    my %params = ( dir      => '',
+                   outfile  => '',
+                   logfile  => '',
+                   verbose  => 0 );
+
+    my $results = GetOptions (
+           'd|dir=s'              => \$params{dir},           # -d
+           'o|outfile=s'          => \$params{outfile},       # -o
+           'l|logfile=s'          => \$params{logfile},       # -l
+           'v|verbose+'           => \$params{verbose},       # -v
+           );
+
+    # It is mandatory to supply a directory and output file
+    die "You must specify a directory (-d)\n" unless $params{dir};
+    die "You must specify an output file (-o)\n" unless $params{outfile};
+
+    # Set up logging
+    qlogfile($params{logfile}) if $params{logfile};
     qlogbegin();
+    qlogprint( {l=>'EXEC'}, "CommandLine $CMDLINE\n");
+    qlogparams( \%params );
 
-    #my $dir = '/mnt/seq_results/smgres_oesophageal/OESO_0384';
-    #my $dir = '/mnt/seq_results/smgres_oesophageal/';
-    my $dir = '/mnt/seq_results/';
-    my %tally = ();
-
+    # Find BAM files
     my $find = QCMG::FileDir::Finder->new( verbose => 0 );
+    my @bam_files = $find->find_file( $params{dir}, '\.bam$' );
 
-    my @bam_files = $find->find_file( $dir, '\.bam$' );
+    # Create output file
+    my $outfh = IO::File->new( $params{outfile}, 'w' );
+    croak 'Unable to open ', $params{outfile}, " for writing: $!"
+        unless defined $outfh;
 
+    # Parse the header of each BAM file and tally the results
+    my %tally = ();
     foreach my $bam_file (@bam_files) {
         # We only want mapset-level BAMs
         next unless ($bam_file =~ /\/seq_mapped\//);
@@ -301,37 +331,85 @@ sub aligner_from_mapset_bam {
         my $bam = QCMG::IO::SamReader->new( filename => $bam_file );
         my $head = QCMG::IO::SamHeader->new( header => $bam->headers_text );
 
-        my $bwa_found = 0;
+        my $aligner_found = 0;
 
         my @pgs = @{ $head->PG };
         foreach my $pg (@pgs) {
+
+            # Parse @PG line
             my @fields = split /\t/, $pg;
-            if ($pg =~ /:bwa/) {
-                $bwa_found = 1;
-                if ($pg =~ /(^.*\sCL:.{10})/) {
-                    $pg = $1;
-                    push @{ $tally{ $pg } }, $bam_file;
+            my %fields = ();
+            foreach my $field (@fields) {
+                my ($key,$val) = split /:/, $field, 2;
+                $fields{ $key } = $val;
+            }
+
+
+            if (exists $fields{PN} and $fields{PN} =~ /bwa/) {
+                $aligner_found = 1;
+
+                # bwa mem runs can only be told by looking at CL:
+                if (exists $fields{CL} and $fields{CL} =~ /^bwa\smem/) {
+                    $fields{PN} = 'bwamem';
                 }
-                else {
-                    push @{ $tally{ $pg } }, $bam_file;
+
+                my $key = join '_', $fields{PN}, $fields{VN};
+                push @{ $tally{ $key } }, $bam_file;
+                # Once we have a match we can exit the @pgs loop
+                last;
+            }
+            elsif (exists $fields{ID} and $fields{ID} =~ /tmap/) {
+                $aligner_found = 1;
+                my $key = join '_', 'tmap', $fields{VN};
+                push @{ $tally{ $key } }, $bam_file;
+                # Once we have a match we can exit the @pgs loop
+                last;
+            }
+            elsif (exists $fields{ID} and $fields{ID} =~ /MiSeq Reporter/) {
+                $aligner_found = 1;
+                my $key = 'miseqreporter';
+                push @{ $tally{ $key } }, $bam_file;
+                # Once we have a match we can exit the @pgs loop
+                last;
+            }
+        }
+
+        # SOLID/bioscope runs need to use the @RG lines.
+        if (! $aligner_found) {
+            my @rgs = @{ $head->RG };
+            foreach my $rg (@rgs) {
+
+                # Parse @RG line
+                my @fields = split /\t/, $rg;
+                my %fields = ();
+                foreach my $field (@fields) {
+                    my ($key,$val) = split /:/, $field, 2;
+                    $fields{ $key } = $val;
+                }
+
+                if (exists $fields{PU} and $fields{PU} =~ /bioscope/) {
+                    $aligner_found = 1;
+                    my $key = $fields{PU};
+                    push @{ $tally{ $key } }, $bam_file;
+                    # Once we have a match we can exit the @rgs loop
+                    last;
                 }
             }
         }
 
         # Catch any mapsets where we couldn't get the aligner.
-        if (! $bwa_found) {
+        if (! $aligner_found) {
             push @{ $tally{ 'unknown' } }, $bam_file;
         }
     }
     
-    #print Dumper \%tally;
     foreach my $aligner (sort keys %tally) {
         my @found_bams = @{ $tally{ $aligner } };
         qlogprint( scalar(@found_bams), " - $aligner\n" );
-        print "[$aligner]\n";
-        print "\t$_\n" foreach @found_bams;
+        $outfh->print( "$aligner\t$_\n") foreach @found_bams;
     }
 
+    $outfh->close;
     qlogend();
 }
 
@@ -381,6 +459,7 @@ suitable for importing into QCMGschema.
 
  qsnpdir        - progress of qSNP calling
  finalbampairs  - list of callable pairs of BAMs
+ aligner_from_mapset_bam - drive aligner from mapset bam
  version        - print version number and exit immediately
  help           - display usage summary
  man            - display full man page
@@ -423,6 +502,19 @@ subdirectory looking for seq_final BAMs.  It sorts the BAMs by
 parent_project and project and tries to identify "callable pairs" of
 BAMs.
 
+=head2 ALIGNER_FROM_MAPSET_BAM
+
+Examine BAM header to determine which aligner was used.
+
+ -d | --dir           root directory under which to search
+ -o | --outfile       output file
+ -l | --logfile       Log file; optional
+ -v | --verbose       print progress and diagnostic messages
+
+This mode starts at the specified directory and recursively parses every 
+subdirectory looking for seq_mapped BAMs.  It looks at the @PG lines in
+the BAM header to work out which aligner was used for the BAM.
+
 
 =head1 DESCRIPTION
 
@@ -444,6 +536,7 @@ $Id: dbtools.pl 4667 2014-07-24 10:09:43Z j.pearson $
 =head1 COPYRIGHT
 
 Copyright (c) The University of Queensland 2013-2014
+Copyright (c) QIMR Berghofer Medical Research Institute 2015
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation files (the "Software"),
