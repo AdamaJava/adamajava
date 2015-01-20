@@ -11,6 +11,7 @@ public final class VcfHeaderInfo extends VcfHeaderRecord{
 		if (line.startsWith(MetaType.INFO.toString())) {			
 			 parseLine(line);
 		} else throw new IllegalArgumentException("Can't create VcfHeaderInfo - line provided is not an INFO definition: '" + line + "'");
+	
 		record = this;
 
 	}

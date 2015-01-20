@@ -80,6 +80,7 @@ public class VcfHeaderUtils {
 	public static final String HEADER_LINE_FILTER = "##FILTER";
 	public static final String HEADER_LINE_INFO = "##INFO";
 	public static final String HEADER_LINE_FORMAT = "##FORMAT";	
+	public static final String HEADER_LINE_QPG = "##qPG";	
 	public static final String STANDARD_FINAL_HEADER_LINE = "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO";
 	public static final String STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT = STANDARD_FINAL_HEADER_LINE + "\tFORMAT\t";
 	
@@ -103,14 +104,14 @@ public class VcfHeaderUtils {
 		}
 		
 		int currentLargestOrder = 0;
-		List<QPG> currentQPGLines = header.getqPGLines();
+		final List<VcfHeaderQPG> currentQPGLines = header.getqPGLines();
 		if ( ! currentQPGLines.isEmpty()) {
 			Collections.sort(currentQPGLines);
 			currentLargestOrder = currentQPGLines.get(0).getOrder();
 		}
 		
 		// create and add to existing collection
-		QPG qpg = new QPG(currentLargestOrder + 1, tool, version, commandLine);
+		final VcfHeaderQPG qpg = new VcfHeaderQPG(currentLargestOrder + 1, tool, version, commandLine);
 		currentQPGLines.add(qpg);
 		
 	}

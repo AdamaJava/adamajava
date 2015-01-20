@@ -14,59 +14,60 @@ public class QPGTest {
 	@Test
 	public void nullCtor() {
 		try {
-			new QPG(null);
+			new VcfHeaderQPG(null);
 			Assert.fail("Should have thrown an IAE");
-		} catch (IllegalArgumentException iae){}
+		} catch (final IllegalArgumentException iae){}
 	}
 	@Test
 	public void emptyCtor() {
 		try {
-			new QPG("");
+			new VcfHeaderQPG("");
 			Assert.fail("Should have thrown an IAE");
-		} catch (IllegalArgumentException iae){}
+		} catch (final IllegalArgumentException iae){}
 		
 	}
 	@Test
 	public void exampleCtor() {
 		
-		String line = "##qPG=<ORDER=1,TOOL=qannotate,TVER=0.01,DATE=20140106,CL=\"/opt/local/q3/bin/qannotate mode=snpEff ...\">";
-		QPG qpg = new QPG(line);
+		final String line = "##qPG=<ID=1,Source=qannotate,Version=0.01,DATE=20140106,Description=\"/opt/local/q3/bin/qannotate mode=snpEff ...\">";
+		
+		final VcfHeaderQPG qpg = new VcfHeaderQPG(line);
 		assertEquals(1, qpg.getOrder());
-		assertEquals("qannotate", qpg.getTool());
+		assertEquals("qannotate", qpg.getSource());
 		assertEquals("0.01", qpg.getVersion());
 		assertEquals("20140106", qpg.getISODate());
-		assertEquals("\"/opt/local/q3/bin/qannotate mode=snpEff ...\"", qpg.getCommandLine());
+		assertEquals("/opt/local/q3/bin/qannotate mode=snpEff ...", qpg.getDescription());
 		
 	}
 	
 	@Test
 	public void exampleCtorMultiArg() {
-		int order = 12345;
-		String tool = "grep";
-		String ver = "v14.3";
-		String cl = "grep -w \"hello???\" my_big_file.txt";
+		final int order = 12345;
+		final String tool = "grep";
+		final String ver = "v14.3";
+		final String cl = "grep -w \"hello???\" my_big_file.txt";
 		
-		QPG qpg = new QPG(order, tool, ver, cl);
+		final VcfHeaderQPG qpg = new VcfHeaderQPG(order, tool, ver, cl);
 		assertEquals(order, qpg.getOrder());
-		assertEquals(tool, qpg.getTool());
+		assertEquals(tool, qpg.getSource());
 		assertEquals(ver, qpg.getVersion());
 		System.out.println("date: " + qpg.getISODate());
-		assertEquals(cl, qpg.getCommandLine());
+		assertEquals(cl, qpg.getDescription());
 	}
 	
 	@Test
 	public void doesTheComparatorWork() {
-		int order = 12345;
-		String tool = "grep";
-		String ver = "v14.3";
-		String cl = "grep -w \"hello???\" my_big_file.txt";
+		final int order = 12345;
+		final String tool = "grep";
+		final String ver = "v14.3";
+		final String cl = "grep -w \"hello???\" my_big_file.txt";
 		
-		QPG qpg = new QPG(order, tool, ver, cl);
-		QPG qpg2 = new QPG(order + 1, tool, ver, cl);
+		final VcfHeaderQPG qpg = new VcfHeaderQPG(order, tool, ver, cl);
+		final VcfHeaderQPG qpg2 = new VcfHeaderQPG(order + 1, tool, ver, cl);
 		
 		assertEquals(true, qpg.compareTo(qpg2) > 0);
 		
-		List<QPG> list = new ArrayList<>();
+		final List<VcfHeaderQPG> list = new ArrayList<>();
 		list.add(qpg);
 		list.add(qpg2);
 		Collections.sort(list);
@@ -74,7 +75,7 @@ public class QPGTest {
 		assertEquals(qpg2, list.get(0));
 		assertEquals(qpg, list.get(1));
 		
-		QPG qpg3 = new QPG(order - 1, tool, ver, cl);
+		final VcfHeaderQPG qpg3 = new VcfHeaderQPG(order - 1, tool, ver, cl);
 		list.add(qpg3);
 		Collections.sort(list);
 		
@@ -85,17 +86,19 @@ public class QPGTest {
 	
 	@Test
 	public void doesToStringWork() {
-		String line = "##qPG=<ORDER=1,TOOL=qannotate,TVER=0.01,DATE=20140106,CL=\"/opt/local/q3/bin/qannotate mode=snpEff ...\">";
-		QPG qpg = new QPG(line);
+	    String line = "##qPG=<ID=1,Source=qannotate,Version=0.01,DATE=20140106,Description=\"/opt/local/q3/bin/qannotate mode=snpEff ...\">";
+		final VcfHeaderQPG qpg = new VcfHeaderQPG(line);
 		
+		//different order
+		line = "##qPG=<ID=1,Description=\"/opt/local/q3/bin/qannotate mode=snpEff ...\",Source=qannotate,Version=0.01,DATE=20140106>";
 		assertEquals(line + "\n", qpg.toString());
 	}
 	
 	@Test
 	public void equals() {
-		String line = "##qPG=<ORDER=1,TOOL=qannotate,TVER=0.01,DATE=20140106,CL=\"/opt/local/q3/bin/qannotate mode=snpEff ...\">";
-		QPG qpg = new QPG(line);
-		QPG qpg2 = new QPG(line);
+		final String line = "##qPG=<ID=1,Source=qannotate,Version=0.01,DATE=20140106,Description=\"/opt/local/q3/bin/qannotate mode=snpEff ...\">";
+		final VcfHeaderQPG qpg2 = new VcfHeaderQPG(line);
+		final VcfHeaderQPG qpg = new VcfHeaderQPG(line);		
 		assertEquals(true, qpg.equals(qpg2));
 	}
 

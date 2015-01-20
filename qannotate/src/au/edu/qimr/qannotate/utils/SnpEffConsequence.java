@@ -6,6 +6,8 @@
  */
 package au.edu.qimr.qannotate.utils;
 
+import org.qcmg.common.string.StringUtils;
+
 
 public enum SnpEffConsequence {
 	
@@ -53,6 +55,12 @@ public enum SnpEffConsequence {
 
 	private String ontologName;
 	private int snpRank;
+	
+	
+	public static String HIGH_IMPACT = "HIGH";
+	public static String LOW_IMPACT = "LOW";
+	public static String MODERATE_IMPACT = "MODERATE";
+	public static String MODIFIER_IMPACT = "MODIFIER";
 
 
 	private SnpEffConsequence(String name,   int snpRank ) {
@@ -90,16 +98,39 @@ public enum SnpEffConsequence {
 		
 		for (final String consequence : strings) {
 			for (final SnpEffConsequence dcEnum : values())  
-				if (  dcEnum.ontologName.equals(consequence.subSequence(0, consequence.indexOf("("))) ) 
+				if (  dcEnum.ontologName.equals(consequence.subSequence(0, consequence.indexOf("("))) ){ 
 					if (null == worstConsequence || dcEnum.snpRank < worstConsequence.snpRank)  {
 						worstConsequence = dcEnum;
 						worstConsequencestr = consequence;
-					}			 
+					}		
+					break;  //stop seeking in SnpEffConsequence elements
+				}	 
 		}
-		
+				
 		return null != worstConsequence ? worstConsequencestr : null;
 	}
 	
+	
+	 public static String getUndefinedConsequence( String ...strings ) {
+		 final String[] annotations = new String[4];
+		for (final String consequence : strings) {
+			final String impact = consequence.substring(consequence.indexOf("(") + 1,consequence.indexOf("|" )).trim();
+			if(impact.equalsIgnoreCase(SnpEffConsequence.HIGH_IMPACT))  
+				annotations[0] = consequence;
+			else if(impact.equalsIgnoreCase(SnpEffConsequence.MODERATE_IMPACT))  
+				annotations[1] = consequence;
+			else if(impact.equalsIgnoreCase(SnpEffConsequence.LOW_IMPACT))  
+				annotations[2] = consequence;
+			else
+				annotations[3] = consequence;
+		}
+		 
+		for(int i = 0; i < 4; i++)
+			if(! StringUtils.isNullOrEmpty( annotations[i]  ))
+				return annotations[i];
+		 
+		  return null;
+	 }
 
 }
 
