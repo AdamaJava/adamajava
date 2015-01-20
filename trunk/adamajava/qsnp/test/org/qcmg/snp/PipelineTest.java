@@ -343,17 +343,16 @@ public class PipelineTest {
 		snp.setTumourNucleotides(tumourNucleotides);
 		vcf.setFormatFields(null);
 		vcf = pipeline.convertQSnpToVCF(snp);
-		//debug
-		System.out.println("check mutant reads" + vcf.getInfo());
-		
-//???		assertEquals(Classification.SOMATIC + SC + VcfHeaderUtils.INFO_MUTANT_READS + "=34" , vcf.getInfo());
+		assertEquals(Classification.SOMATIC + "", vcf.getInfo());
+//		assertEquals(Classification.SOMATIC + SC + VcfHeaderUtils.FORMAT_MUTANT_READS + "=34" , vcf.getInfo());
 		
 		// add in Novel starts
 		snp.setTumourNovelStartCount(5);
 		vcf.setFormatFields(null);
 		vcf = pipeline.convertQSnpToVCF(snp);
-//		assertEquals(Classification.SOMATIC + SC + VcfHeaderUtils.INFO_MUTANT_READS + "=34;" 
-//				+ VcfHeaderUtils.INFO_NOVEL_STARTS + "=5" , vcf.getInfo());
+		assertEquals(Classification.SOMATIC + "" , vcf.getInfo());
+//		assertEquals(Classification.SOMATIC + SC + VcfHeaderUtils.FORMAT_MUTANT_READS + "=34;" 
+//				+ VcfHeaderUtils.FORMAT_NOVEL_STARTS + "=5" , vcf.getInfo());
 		
 		// format field
 //		assertEquals(VcfUtils.FORMAT_GENOTYPE + C + VcfUtils.FORMAT_GENOTYPE_DETAILS + C + VcfUtils.FORMAT_ALLELE_COUNT + T
@@ -371,10 +370,10 @@ public class PipelineTest {
 //		snp.setTumourGenotype(GenotypeEnum.AC);
 		vcf.setFormatFields(null);
 		vcf = pipeline.convertQSnpToVCF(snp);
-		assertEquals(VcfHeaderUtils.FORMAT_GENOTYPE + C + VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS + C + VcfHeaderUtils.FORMAT_ALLELE_COUNT,
-				vcf.getFormatFields().get(0));
-		assertEquals("0/0:A/A:" + normalNucleotides.replace(":", ""), vcf.getFormatFields().get(1));
-		assertEquals("0/1:A/C:" + tumourNucleotides.replace(":", ""), vcf.getFormatFields().get(2));
+		assertEquals(VcfHeaderUtils.FORMAT_GENOTYPE + C + VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS + C + VcfHeaderUtils.FORMAT_ALLELE_COUNT + C + 
+				VcfHeaderUtils.FORMAT_MUTANT_READS + C + VcfHeaderUtils.FORMAT_NOVEL_STARTS, vcf.getFormatFields().get(0));
+		assertEquals("0/0:A/A:" + normalNucleotides.replace(":", "") + C + "1:0", vcf.getFormatFields().get(1));
+		assertEquals("0/1:A/C:" + tumourNucleotides.replace(":", "") + C + "34:5", vcf.getFormatFields().get(2));
 		
 //		assertEquals(VcfUtils.FORMAT_GENOTYPE + C + VcfUtils.FORMAT_GENOTYPE_DETAILS + C + VcfUtils.FORMAT_ALLELE_COUNT + T
 //				+ "0/0:A/A:" + normalNucleotides.replace(":", "") + T + "0/1:A/C:" + tumourNucleotides.replace(":", "")
@@ -414,15 +413,18 @@ public class PipelineTest {
 		final String normalNucleotides = "A:5[28.01],10[26.6],G:9[19.34],4[25.51]"; 
 		snp.setNormalNucleotides(normalNucleotides);
 		vcf = pipeline.convertQSnpToVCF(snp);
-//???		assertEquals(VcfHeaderUtils.INFO_MUTANT_READS + "=15", vcf.getInfo());
+		assertEquals(Constants.MISSING_DATA_STRING, vcf.getInfo());
+//		assertEquals(VcfHeaderUtils.FORMAT_MUTANT_READS + "=15", vcf.getFormatFieldStrings());
 		
 		// add in Novel starts
 		snp.setNormalNovelStartCount(7);
+		snp.setTumourNovelStartCount(3);
 		
 		vcf.setFormatFields(null);	// reset format fields
 		vcf = pipeline.convertQSnpToVCF(snp);
-//???		assertEquals(VcfHeaderUtils.INFO_MUTANT_READS + "=15;" 
-//???				+ VcfHeaderUtils.INFO_NOVEL_STARTS + "=7" , vcf.getInfo());
+		assertEquals(Constants.MISSING_DATA_STRING, vcf.getInfo());
+//		assertEquals(VcfHeaderUtils.FORMAT_MUTANT_READS + "=15;" 
+//				+ VcfHeaderUtils.FORMAT_NOVEL_STARTS + "=7" , vcf.getInfo());
 		
 		// format field
 //		assertEquals(VcfUtils.FORMAT_GENOTYPE + C + VcfUtils.FORMAT_GENOTYPE_DETAILS + C + VcfUtils.FORMAT_ALLELE_COUNT + T
@@ -435,10 +437,10 @@ public class PipelineTest {
 //				+ "0/1:A/G:" + normalNucleotides.replace(":", "") + T + "0/1:A/G:" + tumourNucleotides.replace(":", "")
 //				, vcf.getFormatFields().get(0));
 		
-		assertEquals(VcfHeaderUtils.FORMAT_GENOTYPE + C + VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS + C + VcfHeaderUtils.FORMAT_ALLELE_COUNT,
-				vcf.getFormatFields().get(0));
-		assertEquals("0/1:A/G:" + normalNucleotides.replace(":", ""), vcf.getFormatFields().get(1));
-		assertEquals("0/1:A/G:" + tumourNucleotides.replace(":", ""), vcf.getFormatFields().get(2));
+		assertEquals(VcfHeaderUtils.FORMAT_GENOTYPE + C + VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS + C + VcfHeaderUtils.FORMAT_ALLELE_COUNT + C + 
+				VcfHeaderUtils.FORMAT_MUTANT_READS + C + VcfHeaderUtils.FORMAT_NOVEL_STARTS, vcf.getFormatFields().get(0));
+		assertEquals("0/1:A/G:" + normalNucleotides.replace(":", "") + C + "15:7", vcf.getFormatFields().get(1));
+		assertEquals("0/1:A/G:" + tumourNucleotides.replace(":", "") + C + "17:3", vcf.getFormatFields().get(2));
 		
 	}
 	@Test
