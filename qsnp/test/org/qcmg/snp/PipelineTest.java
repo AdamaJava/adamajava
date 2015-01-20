@@ -2,8 +2,6 @@ package org.qcmg.snp;
 
 import static org.junit.Assert.assertEquals;
 
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 
 import org.junit.Rule;
@@ -57,7 +55,6 @@ public class PipelineTest {
 	public void compoundSnp() throws Exception {
 		final Pipeline pipeline = new TestPipeline();
 		final QSnpRecord snp = new QSnpRecord("chr1", 100, "A");
-//		snp.setDbSnpId("rs12345");
 		snp.setMutation("A>C");
 		snp.setClassification(Classification.SOMATIC);
 		assertEquals(null, snp.getAnnotation());
@@ -97,12 +94,10 @@ public class PipelineTest {
 	public void compoundSnpWithNormalSnps() throws Exception {
 		final Pipeline pipeline = new TestPipeline();
 		final QSnpRecord snp98 = new QSnpRecord("chr1", 98, "A");
-//		snp98.setDbSnpId("rs12345678");
 		snp98.setMutation("A>C");
 		snp98.setClassification(Classification.SOMATIC);
 		
 		final QSnpRecord snp100 = new QSnpRecord("chr1", 100, "A");
-//		snp100.setDbSnpId("rs12345");
 		snp100.setMutation("A>C");
 		snp100.setClassification(Classification.SOMATIC);
 		
@@ -152,7 +147,6 @@ public class PipelineTest {
 	public void testCheckForEndsOfReadSomatic() {
 		final Pipeline pipeline = new TestPipeline();
 		final QSnpRecord snp = new QSnpRecord("chr1", 100, "A");
-//		snp.setDbSnpId("rs12345");
 		snp.setMutation("A>C");
 		snp.setClassification(Classification.SOMATIC);
 		assertEquals(null, snp.getAnnotation());
@@ -232,7 +226,6 @@ public class PipelineTest {
 	public void testCheckForStrandBiasGermline() {
 		final Pipeline pipeline = new TestPipeline();
 		final QSnpRecord snp = new QSnpRecord("chr1", 100, "A");
-//		snp.setDbSnpId("rs12345");
 		snp.setMutation("A>C");
 		snp.setClassification(Classification.GERMLINE);
 		
@@ -274,7 +267,6 @@ public class PipelineTest {
 	public void testCheckForStrandBiasSomatic() {
 		final Pipeline pipeline = new TestPipeline();
 		final QSnpRecord snp = new QSnpRecord("chr1", 100, "A");
-//		snp.setDbSnpId("rs12345");
 		snp.setMutation("A>C");
 		snp.setClassification(Classification.SOMATIC);
 		
@@ -316,7 +308,6 @@ public class PipelineTest {
 	public void testConvertQSnpToVCFSomatic() throws SnpException, IOException, Exception {
 		// create qsnp record
 		final QSnpRecord snp = new QSnpRecord("chr1", 100, "A");
-//		snp.setDbSnpId("rs12345");
 		snp.setMutation("A>C");
 		snp.setNormalGenotype(GenotypeEnum.AA);
 		snp.setTumourGenotype(GenotypeEnum.AC);
@@ -329,7 +320,6 @@ public class PipelineTest {
 		assertEquals(snp.getRef(), vcf.getRef());
 		assertEquals("C", vcf.getAlt());
 		assertEquals(Constants.MISSING_DATA_STRING, vcf.getInfo());
-//		assertEquals(VcfUtils.INFO_MUTATION + "=A>C", vcf.getInfo());
 		
 		// add SOMATIC
 		snp.setClassification(Classification.SOMATIC);
@@ -344,47 +334,28 @@ public class PipelineTest {
 		vcf.setFormatFields(null);
 		vcf = pipeline.convertQSnpToVCF(snp);
 		assertEquals(Classification.SOMATIC + "", vcf.getInfo());
-//		assertEquals(Classification.SOMATIC + SC + VcfHeaderUtils.FORMAT_MUTANT_READS + "=34" , vcf.getInfo());
 		
 		// add in Novel starts
 		snp.setTumourNovelStartCount(5);
 		vcf.setFormatFields(null);
 		vcf = pipeline.convertQSnpToVCF(snp);
 		assertEquals(Classification.SOMATIC + "" , vcf.getInfo());
-//		assertEquals(Classification.SOMATIC + SC + VcfHeaderUtils.FORMAT_MUTANT_READS + "=34;" 
-//				+ VcfHeaderUtils.FORMAT_NOVEL_STARTS + "=5" , vcf.getInfo());
 		
-		// format field
-//		assertEquals(VcfUtils.FORMAT_GENOTYPE + C + VcfUtils.FORMAT_GENOTYPE_DETAILS + C + VcfUtils.FORMAT_ALLELE_COUNT + T
-//				+ ".:.:." + T + ".:.:" + tumourNucleotides.replace(":", "")
-//				, vcf.getExtraFields().get(0));
-//		
 		final String normalNucleotides = "A:19[26.47],14[23.7],C:0[0],1[1]"; 
 		snp.setNormalNucleotides(normalNucleotides);
-//		vcf = pipeline.convertQSnpToVCF(snp);
-//		assertEquals(VcfUtils.FORMAT_GENOTYPE + C + VcfUtils.FORMAT_GENOTYPE_DETAILS + C + VcfUtils.FORMAT_ALLELE_COUNT + T
-//				+ ".:.:" + normalNucleotides.replace(":", "") + T + ".:.:" + tumourNucleotides.replace(":", "")
-//				, vcf.getExtraFields().get(0));
 		
-//		snp.setNormalGenotype(GenotypeEnum.AA);
-//		snp.setTumourGenotype(GenotypeEnum.AC);
 		vcf.setFormatFields(null);
 		vcf = pipeline.convertQSnpToVCF(snp);
 		assertEquals(VcfHeaderUtils.FORMAT_GENOTYPE + C + VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS + C + VcfHeaderUtils.FORMAT_ALLELE_COUNT + C + 
 				VcfHeaderUtils.FORMAT_MUTANT_READS + C + VcfHeaderUtils.FORMAT_NOVEL_STARTS, vcf.getFormatFields().get(0));
 		assertEquals("0/0:A/A:" + normalNucleotides.replace(":", "") + C + "1:0", vcf.getFormatFields().get(1));
 		assertEquals("0/1:A/C:" + tumourNucleotides.replace(":", "") + C + "34:5", vcf.getFormatFields().get(2));
-		
-//		assertEquals(VcfUtils.FORMAT_GENOTYPE + C + VcfUtils.FORMAT_GENOTYPE_DETAILS + C + VcfUtils.FORMAT_ALLELE_COUNT + T
-//				+ "0/0:A/A:" + normalNucleotides.replace(":", "") + T + "0/1:A/C:" + tumourNucleotides.replace(":", "")
-//				, vcf.getFormatFields().get(0));
-		
 	}
+	
 	@Test
 	public void testConvertQSnpToVCFGermline() throws SnpException, IOException, Exception {
 		// create qsnp record
 		final QSnpRecord snp = new QSnpRecord("chr1", 100, "G");
-//		snp.setDbSnpId("rs12345");
 		snp.setMutation("G>A");
 		snp.setNormalGenotype(GenotypeEnum.AG);
 		snp.setTumourGenotype(GenotypeEnum.AG);
@@ -397,7 +368,6 @@ public class PipelineTest {
 		assertEquals(snp.getRef() + "", vcf.getRef());
 		assertEquals("A", vcf.getAlt());
 		assertEquals(Constants.MISSING_DATA_STRING, vcf.getInfo());
-//		assertEquals(VcfUtils.INFO_MUTATION + "=G>A", vcf.getInfo());
 		
 		// add GERMLINE
 		snp.setClassification(Classification.GERMLINE);
@@ -414,7 +384,6 @@ public class PipelineTest {
 		snp.setNormalNucleotides(normalNucleotides);
 		vcf = pipeline.convertQSnpToVCF(snp);
 		assertEquals(Constants.MISSING_DATA_STRING, vcf.getInfo());
-//		assertEquals(VcfHeaderUtils.FORMAT_MUTANT_READS + "=15", vcf.getFormatFieldStrings());
 		
 		// add in Novel starts
 		snp.setNormalNovelStartCount(7);
@@ -423,20 +392,8 @@ public class PipelineTest {
 		vcf.setFormatFields(null);	// reset format fields
 		vcf = pipeline.convertQSnpToVCF(snp);
 		assertEquals(Constants.MISSING_DATA_STRING, vcf.getInfo());
-//		assertEquals(VcfHeaderUtils.FORMAT_MUTANT_READS + "=15;" 
-//				+ VcfHeaderUtils.FORMAT_NOVEL_STARTS + "=7" , vcf.getInfo());
 		
-		// format field
-//		assertEquals(VcfUtils.FORMAT_GENOTYPE + C + VcfUtils.FORMAT_GENOTYPE_DETAILS + C + VcfUtils.FORMAT_ALLELE_COUNT + T
-//				+ ".:.:" + normalNucleotides.replace(":", "") + T + ".:.:" + tumourNucleotides.replace(":", "") , vcf.getExtraFields().get(0));
-		
-//		snp.setNormalGenotype(GenotypeEnum.AG);
-//		snp.setTumourGenotype(GenotypeEnum.AG);
 		vcf = pipeline.convertQSnpToVCF(snp);
-//		assertEquals(VcfUtils.FORMAT_GENOTYPE + C + VcfUtils.FORMAT_GENOTYPE_DETAILS + C + VcfUtils.FORMAT_ALLELE_COUNT + T
-//				+ "0/1:A/G:" + normalNucleotides.replace(":", "") + T + "0/1:A/G:" + tumourNucleotides.replace(":", "")
-//				, vcf.getFormatFields().get(0));
-		
 		assertEquals(VcfHeaderUtils.FORMAT_GENOTYPE + C + VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS + C + VcfHeaderUtils.FORMAT_ALLELE_COUNT + C + 
 				VcfHeaderUtils.FORMAT_MUTANT_READS + C + VcfHeaderUtils.FORMAT_NOVEL_STARTS, vcf.getFormatFields().get(0));
 		assertEquals("0/1:A/G:" + normalNucleotides.replace(":", "") + C + "15:7", vcf.getFormatFields().get(1));
@@ -447,7 +404,6 @@ public class PipelineTest {
 	public void testConvertQSnpToVCFFilter() throws SnpException, IOException, Exception {
 		// create qsnp record
 		final QSnpRecord snp = new QSnpRecord("chr1", 100, "G");
-//		snp.setDbSnpId("rs12345");
 		snp.setMutation("G>A");
 		snp.setClassification(Classification.SOMATIC);
 		// add in tumour nucleotides
@@ -483,15 +439,4 @@ public class PipelineTest {
 		
 	}
 	
-	private void createVcfFile(File vcfFile, String data) throws IOException {
-		final FileWriter writer = new FileWriter(vcfFile);
-		try {
-			// add data
-			writer.write(data);
-		} finally {
-			writer.close();
-		}
-	}
-	
-
 }
