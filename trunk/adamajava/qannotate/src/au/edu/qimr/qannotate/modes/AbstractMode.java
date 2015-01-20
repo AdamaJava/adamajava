@@ -84,6 +84,8 @@ public abstract class AbstractMode {
 				new VcfHeaderRecord(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + fileDate ),
 				new VcfHeaderRecord(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + uuid ),
 				new VcfHeaderRecord(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=" + pg+"-"+version) );
+		
+		 VcfHeaderUtils.addQPGLineToHeader(header, pg, version, cmd);
 
 	}	
 }
