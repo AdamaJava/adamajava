@@ -7,7 +7,7 @@ import java.util.Date;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
 
-public class QPG implements Comparable<QPG> {
+public class QPG extends VcfHeaderRecord implements Comparable<QPG> {
 	
 	public static final DateFormat DF = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	
@@ -26,6 +26,7 @@ public class QPG implements Comparable<QPG> {
 	private final String commandLine;
 	
 	public QPG(String line) {
+		super(null);
 		if (StringUtils.isNullOrEmpty(line)) {
 			throw new IllegalArgumentException("null or empty string passed to QPG ctor");
 		}
@@ -61,6 +62,7 @@ public class QPG implements Comparable<QPG> {
 		return null;
 	}
 	public QPG(int order, String tool, String version, String cl) {
+		super(null);
 		this.order = order;
 		this.tool = tool;
 		this.version = version;
@@ -76,6 +78,7 @@ public class QPG implements Comparable<QPG> {
 		return tool;
 	}
 	
+	@Override
 	public String getVersion() {
 		return version;
 	}
@@ -97,7 +100,7 @@ public class QPG implements Comparable<QPG> {
 				Constants.COMMA + VERSION + Constants.EQ + version +
 				Constants.COMMA + DATE + Constants.EQ + date +
 				Constants.COMMA + COMMAND_LINE + Constants.EQ + commandLine +
-				">";
+				">\n";
 	}
 
 	@Override
@@ -149,7 +152,7 @@ public class QPG implements Comparable<QPG> {
 
 	@Override
 	public int compareTo(QPG arg0) {
-		return Integer.compare(this.order, arg0.order);
+		return Integer.compare(arg0.order, this.order);
 	}
 
 }

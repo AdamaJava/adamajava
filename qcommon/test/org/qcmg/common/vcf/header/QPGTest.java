@@ -64,23 +64,23 @@ public class QPGTest {
 		QPG qpg = new QPG(order, tool, ver, cl);
 		QPG qpg2 = new QPG(order + 1, tool, ver, cl);
 		
-		assertEquals(true, qpg.compareTo(qpg2) < 1);
+		assertEquals(true, qpg.compareTo(qpg2) > 0);
 		
 		List<QPG> list = new ArrayList<>();
 		list.add(qpg);
 		list.add(qpg2);
 		Collections.sort(list);
 		
-		assertEquals(qpg, list.get(0));
-		assertEquals(qpg2, list.get(1));
+		assertEquals(qpg2, list.get(0));
+		assertEquals(qpg, list.get(1));
 		
 		QPG qpg3 = new QPG(order - 1, tool, ver, cl);
 		list.add(qpg3);
 		Collections.sort(list);
 		
-		assertEquals(qpg3, list.get(0));
+		assertEquals(qpg2, list.get(0));
 		assertEquals(qpg, list.get(1));
-		assertEquals(qpg2, list.get(2));
+		assertEquals(qpg3, list.get(2));
 	}
 	
 	@Test
@@ -88,7 +88,7 @@ public class QPGTest {
 		String line = "##qPG=<ORDER=1,TOOL=qannotate,TVER=0.01,DATE=20140106,CL=\"/opt/local/q3/bin/qannotate mode=snpEff ...\">";
 		QPG qpg = new QPG(line);
 		
-		assertEquals(line, qpg.toString());
+		assertEquals(line + "\n", qpg.toString());
 	}
 	
 	@Test

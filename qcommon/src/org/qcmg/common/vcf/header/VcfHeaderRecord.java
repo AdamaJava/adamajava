@@ -110,7 +110,7 @@ public class VcfHeaderRecord {
 		else if (line.toUpperCase().startsWith(MetaType.CHROM.toString())  ) 
 			type = MetaType.CHROM;
 		else{  
-			if(!line.startsWith(MetaType.OTHER.toString())) {
+			if( ! line.startsWith(MetaType.OTHER.toString())) {
 				throw new IllegalArgumentException("can't convert String into VcfHeaderRecord since missing \"##\" at the begin of line: " + line);
 			}
 			
@@ -168,7 +168,7 @@ public class VcfHeaderRecord {
 	}
 	
 	public String getNumber() {
-		return "" + (number >= 0 ? number : vcfInfoNumber.toString());
+		return (number >= 0 ? number + "": vcfInfoNumber.toString());
 	}
 	
 

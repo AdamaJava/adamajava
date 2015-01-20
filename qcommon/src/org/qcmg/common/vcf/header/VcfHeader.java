@@ -3,6 +3,7 @@ package org.qcmg.common.vcf.header;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -36,6 +37,7 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 	final Map<String, VcfHeaderFilter> vcfFilterById;
 	final List<VcfHeaderRecord> meta;
 	final List<VcfHeaderRecord> others;
+	final List<QPG> qPGLines;
 	VcfHeaderRecord chromLine = null;
 	
 	
@@ -45,6 +47,8 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 		vcfFormatById = new HashMap<String, VcfHeaderFormat>();
 		vcfInfoById = new HashMap<String, VcfHeaderInfo>();
 		vcfFilterById = new HashMap<String, VcfHeaderFilter>();
+		
+		qPGLines = new ArrayList<>();
 		
 		//set default version & chrom line to new vcf header
 		//headers.add(0, new VcfHeaderRecord(VCFHeaderUtils.CURRENT_FILE_VERSION));	
@@ -111,7 +115,7 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 										
 		return null;	 
 	}
-
+	
 	public String[] getSampleId() throws Exception{
 		if(chromLine == null)
 			throw new Exception("missing vcf header line, eg. " + VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE);
@@ -123,6 +127,11 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 		
 		return null;
 		
+	}
+	
+	public List<QPG> getqPGLines() {
+		Collections.sort(qPGLines);
+		return qPGLines;
 	}
  
 	public void add(VcfHeaderRecord record)  {
@@ -215,21 +224,32 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 		final List<VcfHeaderRecord> records = new ArrayList<>();
 		if (version != null)  
 			records.add(version);
-		 
+		
 		if (fileDate != null)  
 			records.add(fileDate);
+		
+		// add in some blank lines
+		records.add(VcfHeaderUtils.BLANK_HEADER_LINE);
 	 
 		if (uuid != null)  
 			records.add(uuid);
 	 
 		if (source != null)  
 			records.add(source);
-		 		
+		
+		// want these sorted
+		Collections.sort(qPGLines);
+		for (QPG record : qPGLines)  
+			records.add(record);
+		
 		for (final VcfHeaderRecord record : meta)  
 			records.add(record);
 		 
 		for (final VcfHeaderRecord record : others) 
 			records.add(record);
+		
+		// add in some blank lines
+		records.add(VcfHeaderUtils.BLANK_HEADER_LINE);
 		 
 		for (final VcfHeaderRecord record : vcfInfoById.values()) 
 			records.add(record);

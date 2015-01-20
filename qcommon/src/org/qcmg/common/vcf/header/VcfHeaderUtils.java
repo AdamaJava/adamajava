@@ -4,10 +4,18 @@
 package org.qcmg.common.vcf.header;
 
 
+import java.util.Collections;
+import java.util.List;
+
+import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.SnpUtils;
 
 
 public class VcfHeaderUtils {
+	
+//	public static final int ORDER_START_VALUE = 1;
+	
+	public static final VcfHeaderRecord BLANK_HEADER_LINE = new VcfHeaderRecord("##");
 	
 	public static final String DESCRITPION_FILTER_GERMLINE = "Mutation is a germline variant in another patient";
 	public static final String DESCRITPION_INFO_CONFIDENCE = "set to HIGH if more than 5 novel starts, 5 allels and passed all filter;"
@@ -34,8 +42,6 @@ public class VcfHeaderUtils {
 	
 	
 	//INFO FIELDS
-	public static final String INFO_MUTANT_READS = FILTER_MUTANT_READS;
-	public static final String INFO_NOVEL_STARTS = FILTER_NOVEL_STARTS;
 	public static final String INFO_MUTATION = "MU";
 	public static final String INFO_FLANKING_SEQUENCE = "FS";
 	public static final String INFO_DONOR = "DON";	
@@ -55,6 +61,8 @@ public class VcfHeaderUtils {
 	public static final String FORMAT_GENOTYPE_DETAILS = "GD";
 	public static final String FORMAT_ALLELE_COUNT = "AC";
 	public static final String FORMAT_ALLELE_COUNT_COMPOUND_SNP = "ACCS";
+	public static final String FORMAT_MUTANT_READS = FILTER_MUTANT_READS;
+	public static final String FORMAT_NOVEL_STARTS = FILTER_NOVEL_STARTS;
 	//GATK specific format fields
 	public static final String FORMAT_ALLELIC_DEPTHS = "AD";
 	public static final String FORMAT_READ_DEPTH = "DP";
@@ -64,8 +72,8 @@ public class VcfHeaderUtils {
 	public static final String CURRENT_FILE_VERSION = "##fileformat=VCFv4.2";
 	public static final String STANDARD_FILE_VERSION = "##fileformat"; 
 	public static final String STANDARD_FILE_DATE = "##fileDate";
-	public static final String STANDARD_SOURCE_LINE = "##source";
-	public static final String STANDARD_UUID_LINE = "##uuid";
+	public static final String STANDARD_SOURCE_LINE = "##qSource";
+	public static final String STANDARD_UUID_LINE = "##qUUID";
 	public static final String PREVIOUS_UUID_LINE = "##preUuid";
 	public static final String STANDARD_DBSNP_LINE = "##dbSNP_BUILD_ID";
 	public static final String STANDARD_INPUT_LINE = "##INPUT";
@@ -73,7 +81,7 @@ public class VcfHeaderUtils {
 	public static final String HEADER_LINE_INFO = "##INFO";
 	public static final String HEADER_LINE_FORMAT = "##FORMAT";	
 	public static final String STANDARD_FINAL_HEADER_LINE = "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO";
-	public static final String PATIENT_ID = "##patient_id";
+	public static final String STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT = STANDARD_FINAL_HEADER_LINE + "\tFORMAT\t";
 	
 	public static int parseIntSafe(String s) {
 		try {
@@ -81,6 +89,30 @@ public class VcfHeaderUtils {
 		} catch (final Exception e) {
 			return 0;
 		}
+	}
+	
+	public static void addQPGLineToHeader(VcfHeader header, String tool, String version, String commandLine) {
+		if (null == header) {
+			throw new IllegalArgumentException("null vcf header object passed to VcfHeaderUtils.addQPGLineToHeader");
+		}
+		if (StringUtils.isNullOrEmpty(tool) 
+				|| StringUtils.isNullOrEmpty(version)
+				|| StringUtils.isNullOrEmpty(commandLine) ) {
+			
+			throw new IllegalArgumentException("null or empty tool, version and/or command line values passed to VcfHeaderUtils.addQPGLineToHeader, tool: " + tool + ", version: " + version + ", cl: " + commandLine);
+		}
+		
+		int currentLargestOrder = 0;
+		List<QPG> currentQPGLines = header.getqPGLines();
+		if ( ! currentQPGLines.isEmpty()) {
+			Collections.sort(currentQPGLines);
+			currentLargestOrder = currentQPGLines.get(0).getOrder();
+		}
+		
+		// create and add to existing collection
+		QPG qpg = new QPG(currentLargestOrder + 1, tool, version, commandLine);
+		currentQPGLines.add(qpg);
+		
 	}
 	
 	/**

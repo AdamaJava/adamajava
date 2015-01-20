@@ -77,6 +77,9 @@ public final class Main {
 			// configure logging
 			logFile = options.getLogFile();
 			version = Main.class.getPackage().getImplementationVersion();
+			if (null == version) {
+				version = "test";
+			}
 			logger = QLoggerFactory.getLogger(Main.class, logFile, options.getLogLevel());
 			QExec qexec = StringUtils.isNullOrEmpty(uuid) ? logger.logInitialExecutionStats("qsnp", version, args) : logger.logInitialExecutionStats("qsnp", version, args, uuid);
 			

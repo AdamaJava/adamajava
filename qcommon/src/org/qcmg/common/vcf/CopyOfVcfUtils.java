@@ -155,8 +155,8 @@ public class CopyOfVcfUtils {
 		"##\n##\n" +
 		
 		// INFO field options
-		"##INFO=<ID=" + VcfHeaderUtils.INFO_MUTANT_READS + ",Number=1,Type=Integer,Description=\"Number of mutant/variant reads\">\n" +
-		"##INFO=<ID=" + VcfHeaderUtils.INFO_NOVEL_STARTS + ",Number=1,Type=Integer,Description=\"Number of novel starts not considering read pair\">\n" +
+		"##INFO=<ID=" + VcfHeaderUtils.FORMAT_MUTANT_READS + ",Number=1,Type=Integer,Description=\"Number of mutant/variant reads\">\n" +
+		"##INFO=<ID=" + VcfHeaderUtils.FORMAT_NOVEL_STARTS + ",Number=1,Type=Integer,Description=\"Number of novel starts not considering read pair\">\n" +
 		"##INFO=<ID=" + VcfHeaderUtils.INFO_FLANKING_SEQUENCE + ",Number=1,Type=String,Description=\"Reference bases either side of mutation\">\n" +
 //		"##INFO=<ID=" + INFO_MUTATION + ",Number=1,Type=String,Description=\"mutation/variant\">\n" +
 		
