@@ -103,7 +103,7 @@ public class VcfRecord {
 	public String getFilter() { return filter; }
 	
 	/**
-	 * 
+	 * the existing INFO column value will be replaced by this new info string
 	 * @param info INFO column value. eg. SOMATIC:RSPOS=100:END=102
 	 * @throws Exception If the info String didn't follow pattern : <key>=<data> joined by ';'
 	 */
@@ -112,12 +112,7 @@ public class VcfRecord {
 	}
 	
 	/**
-	 * 
-	 * @param additionalInfo 
-	 */
-	
-	/**
-	 * append additional info record into info column
+	 * append additional info record into info column, however existing sub string data will be replace for same key.
 	 * @param additionalInfo: eg. RSPOS=99;END=100;
 	 * @throws Exception if sub string of additionalInfo split by ';',  didn't follow pattern: <key>=<data>
 	 */

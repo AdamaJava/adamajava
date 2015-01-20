@@ -1,19 +1,28 @@
 package org.qcmg.common.vcf;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
 public class VcfRecordTest {
+
 	
 	@Test
-	public void qSignatureInfoField() {
-		VcfRecord vcf =VcfUtils.createVcfRecord("chr1", 47851, "C");
+	public void InfoFieldTest(){
 		
-		assertEquals(".", vcf.getInfo());
-		vcf.setInfo("FULLCOV=A:0,C:0,G:0,T:0,N:0,TOTAL:0;NOVELCOV=A:0,C:0,G:0,T:0,N:0,TOTAL:0");
-		assertEquals("FULLCOV=A:0,C:0,G:0,T:0,N:0,TOTAL:0;NOVELCOV=A:0,C:0,G:0,T:0,N:0,TOTAL:0", vcf.getInfo());
-		assertEquals(true, vcf.toString().contains("FULLCOV=A:0,C:0,G:0,T:0,N:0,TOTAL:0;NOVELCOV=A:0,C:0,G:0,T:0,N:0,TOTAL:0"));
+		final String[] parms = {"chrY","2675826",".","TG","CA",".","COVN12;MIUN","SOMATIC;NNS=4;END=2675826","ACCS","TG,5,37,CA,0,2","AA,1,1,CA,4,1,CT,3,1,TA,11,76,TG,2,2,TG,0,1"};
+	
+		final VcfRecord re = new VcfRecord(parms);
+		System.out.println(re.getInfo());
+		
+		
+		assertTrue(re.getInfo().equals("SOMATIC;NNS=4;END=2675826"));
+		re.appendInfo("NNS=5");
+		assertTrue(re.getInfoRecord().getfield("NNS").equals("5"));
+		assertTrue(re.getInfo().equals("SOMATIC;NNS=5;END=2675826"));
+		
+		re.setInfo("NNS=6");
+		assertTrue(re.getInfo().equals("NNS=6"));
+		
 	}
-
 }

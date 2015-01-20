@@ -4,15 +4,27 @@ package org.qcmg.common.vcf.header;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
 
 public class VcfHeaderRecord {
-	static final Pattern pattern_id = Pattern.compile("ID=([^,]+),");	
-	static final Pattern pattern_description = Pattern.compile("Description=\\\"(.+)\\\"");
-	static final Pattern pattern_number = Pattern.compile("Number=([^,]+),");
-	static final Pattern pattern_type = Pattern.compile("Type=([^,]+),");
-	static final Pattern pattern_source = Pattern.compile("Source=\\\"(.+)\\\"");
-	static final Pattern pattern_version = Pattern.compile("Version=\\\"(.+)\\\"");	
+	public static final String ID = "ID";
+
+	public static final String NUMBER = "Number";
+	public static final String TYPE = "Type";	
+	public static final String DESCRIPTION = "Description";	
+	public static final String SOURCE = "Source";
+	public static final String VERSION = "Version";	
+
+
+	static final Pattern pattern_description = Pattern.compile(DESCRIPTION + "=\\\"(.+)\\\"");
+//	static final Pattern pattern_number = Pattern.compile(NUMBER + "=([^,]+),");
+//	static final Pattern pattern_type = Pattern.compile(TYPE + "=([^,]+),");
+//	static final Pattern pattern_source = Pattern.compile(SOURCE + "=\\\"(.+)\\\"");
+//	static final Pattern pattern_version = Pattern.compile(VERSION + "=\\\"(.+)\\\"");	
+//	static final Pattern pattern_id = Pattern.compile(ID + "=([^,]+),");		
+	
+	
 	
 	
 	protected String line = null;
@@ -55,6 +67,9 @@ public class VcfHeaderRecord {
 		UNKNOWN, String, Integer, Float, Flag, Character;
 
 		public static VcfInfoType parse(String str) {
+			if(StringUtils.isNullOrEmpty(str))
+				return null;
+			
 			str = str.toUpperCase();
 			if (str.equals("STRING")) return VcfInfoType.String;
 			if (str.equals("INTEGER")) return VcfInfoType.Integer;
@@ -67,7 +82,7 @@ public class VcfHeaderRecord {
 	} 	
 	
 	public enum MetaType {
-		FORMAT, FILTER, INFO, CHROM, META, OTHER;
+		FORMAT, FILTER, INFO,QPG, CHROM, META, OTHER;
 		@Override
 		public String toString() {
 			switch (this) {
@@ -77,6 +92,8 @@ public class VcfHeaderRecord {
 				return VcfHeaderUtils.HEADER_LINE_FILTER + "=";
 			case INFO:
 				return VcfHeaderUtils.HEADER_LINE_INFO + "=";
+			case QPG:
+				return VcfHeaderUtils.HEADER_LINE_QPG + "=";
 			case CHROM:
 				return VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE;
 			case META:
@@ -93,6 +110,7 @@ public class VcfHeaderRecord {
 	 * @param line
 	 */
 	public VcfHeaderRecord(String line)  {
+	
 		if(line == null) return;
 		
 		String Hline = line.trim();
@@ -107,6 +125,8 @@ public class VcfHeaderRecord {
 			type = MetaType.FILTER;		 
 		else if (line.toUpperCase().startsWith(MetaType.INFO.toString()) )  
 			type = MetaType.INFO;
+		else if (line.toUpperCase().startsWith(MetaType.QPG.toString().toUpperCase()) )  
+			type = MetaType.QPG;		
 		else if (line.toUpperCase().startsWith(MetaType.CHROM.toString())  ) 
 			type = MetaType.CHROM;
 		else{  
@@ -150,6 +170,10 @@ public class VcfHeaderRecord {
 			case INFO:
 				record =  new VcfHeaderInfo(line);
 				break;
+			case QPG:
+				record =  new VcfHeaderQPG(line);
+				break;
+		
 			default:
 				record = this;
 				break;
@@ -174,15 +198,39 @@ public class VcfHeaderRecord {
 
 	public void parseLine(String line){
 		
-		if(!type.equals(MetaType.FILTER) && !type.equals(MetaType.FORMAT) && ! type.equals(MetaType.INFO))
+		if(!type.equals(MetaType.FILTER) && !type.equals(MetaType.FORMAT) && ! type.equals(MetaType.INFO) && ! type.equals(MetaType.QPG))
 			return ;
 		
 		final int start = line.indexOf('<');
 		final int end = line.lastIndexOf('>');
+		
+		if (start == -1 || end == -1) {
+			throw new IllegalArgumentException("string passed to QPG ctor doesn't contain < and >  : " + line);
+		}
+		
+		
 		final String params = line.substring(start + 1, end);
+		
+		// Find description	 
+		final Matcher matcher = pattern_description.matcher(params);
+		if (matcher.find()) description = matcher.group(1);
+		
+//		start = params.indexOf(DESCRIPTION);
+//		end = params.lastIndexOf("\"");
+		
+		//do rest string without \"
+//		params = params.replace(DESCRIPTION + "=\\\"(.+)\\\"", "");
+		final String[] elements = params.replace(DESCRIPTION + "=\"" + description +  "\"", "").split(Constants.COMMA_STRING); 
+		
+		id = getStringValueFromArray(elements, ID, Constants.EQ_STRING);
+		parseNumber(getStringValueFromArray(elements, NUMBER, Constants.EQ_STRING));
+		if( getStringValueFromArray(elements, TYPE, Constants.EQ_STRING) != null)
+			vcfInfoType = VcfInfoType.parse(getStringValueFromArray(elements, TYPE, Constants.EQ_STRING).toUpperCase());
+		source  = getStringValueFromArray(elements, SOURCE, Constants.EQ_STRING);
+		version = getStringValueFromArray(elements, VERSION, Constants.EQ_STRING);
 
 		// Find ID
-		Matcher matcher = pattern_id.matcher(params);
+/*		 matcher = pattern_id.matcher(params);
 		if (matcher.find()) id = matcher.group(1);
 		else throw new RuntimeException("Cannot find 'ID' in info line: '" + line + "'");
 
@@ -196,9 +244,6 @@ public class VcfHeaderRecord {
 		matcher = pattern_type.matcher(params);
 		if (matcher.find()) vcfInfoType = VcfInfoType.parse(matcher.group(1).toUpperCase());
 
-		// Find description	 
-		matcher = pattern_description.matcher(params);
-		if (matcher.find()) description = matcher.group(1);
 		
 		// Find description
 		matcher = pattern_source.matcher(params);
@@ -206,10 +251,13 @@ public class VcfHeaderRecord {
 		
 		// Find description
 		matcher = pattern_version.matcher(params);
-		if (matcher.find()) version = matcher.group(1);
+		if (matcher.find()) version = matcher.group(1);*/
 	}
 	
 	void parseNumber(String number) {
+		if(StringUtils.isNullOrEmpty(number))
+			return;
+		
 		// Parse number field
 		if (number.equals("A")) vcfInfoNumber = VcfInfoNumber.ALLELE;
 		else if (number.equals("R")) vcfInfoNumber = VcfInfoNumber.ALL_ALLELES;
@@ -226,5 +274,33 @@ public class VcfHeaderRecord {
 			return (line.endsWith(Constants.NL_STRING))? line : line + Constants.NL  ;
 		return Constants.NULL_STRING;
 		
+	}
+	
+	/**
+	 * 
+	 * @param array
+	 * @param string: 
+	 * @return 
+	 */
+	
+	
+	/**
+	 * 
+	 * @param array
+	 * @param string: seek element contain this string 
+	 * @param sep: a  separator mark, eg "="
+	 * @return substring (value) of matched element after the sep
+	 */
+	public static String getStringValueFromArray(String [] array, String string, String sep) {
+		//ignor case
+		String value = null;
+		for (final String arr : array) {
+			if (arr.toUpperCase().startsWith(string.toUpperCase())) value = arr;
+		}
+		
+		if(value != null)
+			value = value.substring(value.indexOf(sep)+1).trim();
+		
+		return value;
 	}
 }

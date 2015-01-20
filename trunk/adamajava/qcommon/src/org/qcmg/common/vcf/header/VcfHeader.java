@@ -37,7 +37,7 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 	final Map<String, VcfHeaderFilter> vcfFilterById;
 	final List<VcfHeaderRecord> meta;
 	final List<VcfHeaderRecord> others;
-	final List<QPG> qPGLines;
+	final List<VcfHeaderQPG> qPGLines;
 	VcfHeaderRecord chromLine = null;
 	
 	
@@ -129,7 +129,7 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 		
 	}
 	
-	public List<QPG> getqPGLines() {
+	public List<VcfHeaderQPG> getqPGLines() {
 		Collections.sort(qPGLines);
 		return qPGLines;
 	}
@@ -140,7 +140,9 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 		else if(record.type.equals(MetaType.FORMAT)  ) 
 			vcfFormatById.put(record.getId(), (VcfHeaderFormat) record.parseRecord() );
 		else if(record.type.equals(MetaType.INFO)  )
-			vcfInfoById.put(record.getId(), (VcfHeaderInfo) record.parseRecord());				
+			vcfInfoById.put(record.getId(), (VcfHeaderInfo) record.parseRecord());	
+		else if(record.type.equals(MetaType.QPG)  )
+			qPGLines.add((VcfHeaderQPG) record.parseRecord()); 	
 		else if(record.type.equals(MetaType.CHROM) )
 			chromLine = record;
 		else if(record.type.equals(MetaType.OTHER ) )
@@ -239,7 +241,7 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 		
 		// want these sorted
 		Collections.sort(qPGLines);
-		for (QPG record : qPGLines)  
+		for (final VcfHeaderQPG record : qPGLines)  
 			records.add(record);
 		
 		for (final VcfHeaderRecord record : meta)  

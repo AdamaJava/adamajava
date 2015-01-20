@@ -1,5 +1,7 @@
 package org.qcmg.common.vcf.header;
 
+//import static org.qcmg.common.vcf.header.VcfHeaderRecord.getStringFromArray;
+
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -7,35 +9,46 @@ import java.util.Date;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
 
-public class QPG extends VcfHeaderRecord implements Comparable<QPG> {
+public class VcfHeaderQPG extends VcfHeaderRecord implements Comparable<VcfHeaderQPG> {
 	
 	public static final DateFormat DF = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	
 	public static final String ORDER = "ORDER";
-	public static final String TOOL = "TOOL";
-
-	public static final String VERSION = "TVER";
+//	public static final String TOOL = "TOOL";
 	public static final String DATE = "DATE";
-	public static final String COMMAND_LINE = "CL";
-	public static final String QPG_PREFIX = "##qPG";
+//	public static final String COMMAND_LINE = "CL";
+//	public static final String QPG_PREFIX = "##qPG";
 	
 	private final int order;
-	private final String tool;
+/*	private final String tool;
 	private final String version;
-	private final String date;
 	private final String commandLine;
+*/	
+	private final String date;
+
 	
-	public QPG(String line) {
-		super(null);
+	public VcfHeaderQPG(String line) {
+		super(line);
+		
 		if (StringUtils.isNullOrEmpty(line)) {
 			throw new IllegalArgumentException("null or empty string passed to QPG ctor");
 		}
 		
 		// if line doesn't start with "##qPG" bomb
-		if ( ! line.startsWith(QPG_PREFIX)) {
-			throw new IllegalArgumentException("string passed to QPG ctor doesn't start with " + QPG_PREFIX + " : " + line);
+		if ( ! line.startsWith(VcfHeaderUtils.HEADER_LINE_QPG)) {
+			throw new IllegalArgumentException("string passed to QPG ctor doesn't start with " + VcfHeaderUtils.HEADER_LINE_QPG + " : " + line);
 		}
 		
+		
+		parseLine(line);
+		
+		final String [] params = line.split(Constants.COMMA_STRING);
+		order =  Integer.parseInt(id);
+		date =  getStringValueFromArray(params, DATE, Constants.EQ_STRING);
+
+		//get date
+		
+/*		
 		final int start = line.indexOf('<');
 		final int end = line.lastIndexOf('>');
 		
@@ -43,7 +56,7 @@ public class QPG extends VcfHeaderRecord implements Comparable<QPG> {
 			throw new IllegalArgumentException("string passed to QPG ctor doesn't contain < and >  : " + line);
 		}
 		
-		String [] params = line.substring(start + 1, end).split(Constants.COMMA_STRING);
+		final String [] params = line.substring(start + 1, end).split(Constants.COMMA_STRING);
 		if (null == params || params.length == 0) {
 			throw new IllegalArgumentException("string passed to QPG ctor doesn't contain < and >  : " + line);
 		}
@@ -52,28 +65,38 @@ public class QPG extends VcfHeaderRecord implements Comparable<QPG> {
 		version =  getStringFromArray(params, VERSION).substring(VERSION.length() + 1);
 		date =  getStringFromArray(params, DATE).substring(DATE.length() + 1);
 		commandLine =  getStringFromArray(params, COMMAND_LINE).substring(COMMAND_LINE.length() + 1);
-		
+*/		
 	}
 	
-	private static String getStringFromArray(String [] array, String string) {
-		for (String arr : array) {
-			if (arr.startsWith(string)) return arr;
-		}
-		return null;
-	}
-	public QPG(int order, String tool, String version, String cl) {
+
+	public VcfHeaderQPG(int order, String tool, String version, String cl) {
 		super(null);
+		
 		this.order = order;
-		this.tool = tool;
+		this.id = Integer.toString(order);
+		this.source = tool;
+	//	this.tool = tool;
 		this.version = version;
 		this.date = DF.format(new Date());
-		this.commandLine = cl;
+		this.description = cl;
+	//	this.commandLine = cl;
+		
+		this.type = MetaType.QPG; //type should bf line otherwise exception
+		this.line = type.toString() + "<ID=" + order + 
+				Constants.COMMA + DESCRIPTION + Constants.EQ + "\"" + description + "\"" +
+				Constants.COMMA + VERSION + Constants.EQ + version +
+				Constants.COMMA + DATE + Constants.EQ + date +
+				">";
+		
+
+		record = this;
+		
 	}
 	
 	public int getOrder() {
 		return order;
 	}
-	
+/*	
 	public String getTool() {
 		return tool;
 	}
@@ -83,24 +106,27 @@ public class QPG extends VcfHeaderRecord implements Comparable<QPG> {
 		return version;
 	}
 	
-	public String getISODate() {
-		return date;
-	}
-	
 	public String getCommandLine() {
 		return commandLine;
 	}
 	
-
+*/	
+	public String getISODate() {
+		return date;
+	}
+	
 
 	@Override
 	public String toString() {
-		return "##qPG=<" + ORDER + Constants.EQ + order + 
-				Constants.COMMA + TOOL + Constants.EQ + tool +
+
+		
+		return type.toString() + "<ID=" + order + 
+				Constants.COMMA + DESCRIPTION + Constants.EQ + "\"" + description + "\"" +
+				Constants.COMMA + SOURCE + Constants.EQ + source +
 				Constants.COMMA + VERSION + Constants.EQ + version +
 				Constants.COMMA + DATE + Constants.EQ + date +
-				Constants.COMMA + COMMAND_LINE + Constants.EQ + commandLine +
-				">\n";
+				">" + Constants.NL;  
+				
 	}
 
 	@Override
@@ -108,10 +134,10 @@ public class QPG extends VcfHeaderRecord implements Comparable<QPG> {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result
-				+ ((commandLine == null) ? 0 : commandLine.hashCode());
+				+ ((description == null) ? 0 : description.hashCode());
 		result = prime * result + ((date == null) ? 0 : date.hashCode());
 		result = prime * result + order;
-		result = prime * result + ((tool == null) ? 0 : tool.hashCode());
+		result = prime * result + ((source == null) ? 0 : source.hashCode());
 		result = prime * result + ((version == null) ? 0 : version.hashCode());
 		return result;
 	}
@@ -124,11 +150,11 @@ public class QPG extends VcfHeaderRecord implements Comparable<QPG> {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		QPG other = (QPG) obj;
-		if (commandLine == null) {
-			if (other.commandLine != null)
+		final VcfHeaderQPG other = (VcfHeaderQPG) obj;
+		if (description == null) {
+			if (other.description != null)
 				return false;
-		} else if (!commandLine.equals(other.commandLine))
+		} else if (!description.equals(other.description))
 			return false;
 		if (date == null) {
 			if (other.date != null)
@@ -137,10 +163,10 @@ public class QPG extends VcfHeaderRecord implements Comparable<QPG> {
 			return false;
 		if (order != other.order)
 			return false;
-		if (tool == null) {
-			if (other.tool != null)
+		if (source == null) {
+			if (other.source != null)
 				return false;
-		} else if (!tool.equals(other.tool))
+		} else if (!source.equals(other.source))
 			return false;
 		if (version == null) {
 			if (other.version != null)
@@ -151,7 +177,7 @@ public class QPG extends VcfHeaderRecord implements Comparable<QPG> {
 	}
 
 	@Override
-	public int compareTo(QPG arg0) {
+	public int compareTo(VcfHeaderQPG arg0) {
 		return Integer.compare(arg0.order, this.order);
 	}
 
