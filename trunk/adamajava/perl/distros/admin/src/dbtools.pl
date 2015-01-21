@@ -331,7 +331,7 @@ sub aligner_from_mapset_bam {
         my $bam = QCMG::IO::SamReader->new( filename => $bam_file );
         my $head = QCMG::IO::SamHeader->new( header => $bam->headers_text );
 
-        my $aligner_found = 0;
+        my $aligner = '';
 
         my @pgs = @{ $head->PG };
         foreach my $pg (@pgs) {
@@ -344,38 +344,47 @@ sub aligner_from_mapset_bam {
                 $fields{ $key } = $val;
             }
 
-
             if (exists $fields{PN} and $fields{PN} =~ /bwa/) {
-                $aligner_found = 1;
-
                 # bwa mem runs can only be told by looking at CL:
                 if (exists $fields{CL} and $fields{CL} =~ /^bwa\smem/) {
                     $fields{PN} = 'bwamem';
                 }
 
-                my $key = join '_', $fields{PN}, $fields{VN};
-                push @{ $tally{ $key } }, $bam_file;
-                # Once we have a match we can exit the @pgs loop
-                last;
+                $aligner = join '_', $fields{PN}, $fields{VN};
+                last;  # Once we have a match we can exit the @pgs loop
+            }
+            elsif (exists $fields{PN} and $fields{PN} =~ /novoalign/) {
+                $aligner = join '_', $fields{PN}, $fields{VN};
+                last;  # Once we have a match we can exit the @pgs loop
+            }
+            elsif (exists $fields{PN} and $fields{PN} =~ /LifeScope/) {
+                $aligner = join '_', lc($fields{PN}), $fields{VN};
+                last;  # Once we have a match we can exit the @pgs loop
+            }
+            elsif (exists $fields{PN} and $fields{PN} =~ /bowtie/) {
+                $aligner = join '_', $fields{PN}, $fields{VN};
+                last;  # Once we have a match we can exit the @pgs loop
             }
             elsif (exists $fields{ID} and $fields{ID} =~ /tmap/) {
-                $aligner_found = 1;
-                my $key = join '_', 'tmap', $fields{VN};
-                push @{ $tally{ $key } }, $bam_file;
-                # Once we have a match we can exit the @pgs loop
-                last;
+                $aligner = join '_', 'tmap', $fields{VN};
+                last;  # Once we have a match we can exit the @pgs loop
             }
             elsif (exists $fields{ID} and $fields{ID} =~ /MiSeq Reporter/) {
-                $aligner_found = 1;
-                my $key = 'miseqreporter';
-                push @{ $tally{ $key } }, $bam_file;
-                # Once we have a match we can exit the @pgs loop
-                last;
+                $aligner = 'miseqreporter';
+                last;  # Once we have a match we can exit the @pgs loop
+            }
+            elsif (exists $fields{ID} and $fields{ID} =~ /Isis/) {
+                $aligner = 'isis';
+                last;  # Once we have a match we can exit the @pgs loop
+            }
+            elsif (exists $fields{ID} and $fields{ID} =~ /bioscope-genome-mapping/) {
+                $aligner = $fields{VN};
+                last;  # Once we have a match we can exit the @pgs loop
             }
         }
 
         # SOLID/bioscope runs need to use the @RG lines.
-        if (! $aligner_found) {
+        if (! $aligner) {
             my @rgs = @{ $head->RG };
             foreach my $rg (@rgs) {
 
@@ -388,25 +397,28 @@ sub aligner_from_mapset_bam {
                 }
 
                 if (exists $fields{PU} and $fields{PU} =~ /bioscope/) {
-                    $aligner_found = 1;
-                    my $key = $fields{PU};
-                    push @{ $tally{ $key } }, $bam_file;
-                    # Once we have a match we can exit the @rgs loop
-                    last;
+                    $aligner = $fields{PU};
+                    last;  # Once we have a match we can exit the @rgs loop
+                }
+                elsif (exists $fields{PL} and $fields{PL} =~ /SOLiD/) {
+                    $aligner = 'solid';
+                    last;  # Once we have a match we can exit the @rgs loop
                 }
             }
         }
 
         # Catch any mapsets where we couldn't get the aligner.
-        if (! $aligner_found) {
-            push @{ $tally{ 'unknown' } }, $bam_file;
-        }
+        $aligner = 'unknown' if (! $aligner);
+
+        # Print out the aligner and keep tally
+        push @{ $tally{ $aligner } }, $bam_file;
+        $outfh->print( "$aligner\t$bam_file\n");
     }
     
+    # Log the final tallies
     foreach my $aligner (sort keys %tally) {
         my @found_bams = @{ $tally{ $aligner } };
         qlogprint( scalar(@found_bams), " - $aligner\n" );
-        $outfh->print( "$aligner\t$_\n") foreach @found_bams;
     }
 
     $outfh->close;
