@@ -313,9 +313,14 @@ sub aligner_from_mapset_bam {
     qlogprint( {l=>'EXEC'}, "CommandLine $CMDLINE\n");
     qlogparams( \%params );
 
+
+    qlogprint( "Looking for BAM files ...\n");
+
     # Find BAM files
     my $find = QCMG::FileDir::Finder->new( verbose => 0 );
     my @bam_files = $find->find_file( $params{dir}, '\.bam$' );
+
+    qlogprint( "Parsing BAM file headers ...\n");
 
     # Create output file
     my $outfh = IO::File->new( $params{outfile}, 'w' );
