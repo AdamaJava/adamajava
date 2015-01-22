@@ -194,10 +194,10 @@ public class VcfRecord {
 	 */
 	public List<String> getFormatFields() {
 		// return a copy of this
+		if( formatRecords.size() == 0 ) return null;		
 		return new ArrayList<String>(formatRecords);
 //		return formatRecords;
 		
-//		if( formatRecords.size() == 0 ) return null;		
 //		
 //		final List<String> list = new ArrayList<String>();
 //		list.add( formatRecords.get(0) );

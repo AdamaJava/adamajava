@@ -1,5 +1,6 @@
 package org.qcmg.common.vcf;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
@@ -19,7 +20,10 @@ public class VcfRecordTest {
 		assertTrue(re.getInfo().equals("SOMATIC;NNS=4;END=2675826"));
 		re.appendInfo("NNS=5");
 		assertTrue(re.getInfoRecord().getField("NNS").equals("5"));
-		assertTrue(re.getInfo().equals("SOMATIC;NNS=5;END=2675826"));
+		
+		assertEquals(true, re.getInfo().contains("SOMATIC"));
+		assertEquals(true, re.getInfo().contains("NNS=5"));
+		assertEquals(true, re.getInfo().contains("END=2675826"));
 		
 		re.setInfo("NNS=6");
 		assertTrue(re.getInfo().equals("NNS=6"));
