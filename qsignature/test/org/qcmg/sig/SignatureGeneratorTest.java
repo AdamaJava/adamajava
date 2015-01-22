@@ -264,7 +264,8 @@ public class SignatureGeneratorTest {
 	    		recs.add(rec);
     	}
        	
-    	assertEquals(6, recs.size());	
+    	//assertEquals(6, recs.size());
+    	assertEquals(5, recs.size());	
     		
     }
     
