@@ -69,7 +69,8 @@ public class PileupPipelineTest {
  		assertEquals(0, exec.getErrCode());		
 		assertTrue(0 == exec.getOutputStreamConsumer().getLines().length);
 		// check the vcf output file
-		assertEquals(1, noOfLinesInVCFOutputFile(vcfOutput));
+//		assertEquals(1, noOfLinesInVCFOutputFile(vcfOutput));
+		assertEquals(0, noOfLinesInVCFOutputFile(vcfOutput));
 	}
 	
 	@Test
@@ -98,7 +99,8 @@ public class PileupPipelineTest {
 		assertTrue(0 == exec.getOutputStreamConsumer().getLines().length);
 		
 		// check the vcf output file
-		assertEquals(2, noOfLinesInVCFOutputFile(vcfOutput));
+		//assertEquals(2, noOfLinesInVCFOutputFile(vcfOutput));
+		assertEquals(1, noOfLinesInVCFOutputFile(vcfOutput));
 	}
 	
 //	@Test

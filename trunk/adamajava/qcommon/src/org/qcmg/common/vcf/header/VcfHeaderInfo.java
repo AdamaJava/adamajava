@@ -12,7 +12,8 @@ public final class VcfHeaderInfo extends VcfHeaderRecord{
 			 parseLine(line);
 		} else throw new IllegalArgumentException("Can't create VcfHeaderInfo - line provided is not an INFO definition: '" + line + "'");
 	
-		record = this;
+		this.line = toString();
+		this.record = this;
 
 	}
  
@@ -39,19 +40,12 @@ public final class VcfHeaderInfo extends VcfHeaderRecord{
 		this.source = source;
 		 
 		this.type = MetaType.INFO; //type should bf line otherwise exception
-		this.line = type.toString() + "<ID=" + id//
-				+ ",Number=" + (number >= 0 ? number : vcfInfoNumber.toString()) //
-				+ ",Type=" + vcfInfoType.toString() //
-				+ ",Description=\"" + description + "\"" //
-				+ (source == null ? "" : ",Source=\"" + source + "\"" )//
-				+ (version == null ? "" : ",Version=\"" + version + "\"" ) + ">" ;
-		record = this;
+		this.line = toString();
+		this.record = this;
 	}
 	
 	@Override
 	public String toString() {
-		if (line != Constants.NULL_STRING) 
-			return (line.endsWith(Constants.NL_STRING))? line : line + Constants.NL  ;
 
 		return type.toString() + "<ID=" + id//
 				+ ",Number=" + (number >= 0 ? number : vcfInfoNumber) //
@@ -59,7 +53,7 @@ public final class VcfHeaderInfo extends VcfHeaderRecord{
 				+ ",Description=\"" + description + "\"" //
 				+ (source == null ? "" : ",Source=\"" + source + "\"" )//
 				+ (version == null ? "" : ",Version=\"" + version + "\"" )//
-				+ ">" + Constants.NL;  
+				+ ">";  
 	}
 
 	

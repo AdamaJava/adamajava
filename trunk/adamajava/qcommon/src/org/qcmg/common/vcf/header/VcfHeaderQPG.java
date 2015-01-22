@@ -5,25 +5,32 @@ package org.qcmg.common.vcf.header;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
+import org.qcmg.common.vcf.header.VcfHeaderRecord.MetaType;
+import org.qcmg.common.vcf.header.VcfHeaderRecord.VcfInfoType;
 
 public class VcfHeaderQPG extends VcfHeaderRecord implements Comparable<VcfHeaderQPG> {
 	
-	public static final DateFormat DF = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	
-	public static final String ORDER = "ORDER";
-//	public static final String TOOL = "TOOL";
-	public static final String DATE = "DATE";
-//	public static final String COMMAND_LINE = "CL";
+//	public static final String ORDER = "ORDER";
+	public static final String TOOL = "Tool";
+	public static final String DATE = "Date";
+	public static final String COMMAND_LINE = "CL";
 //	public static final String QPG_PREFIX = "##qPG";
 	
+	
+	public static final DateFormat DF = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	static final Pattern pattern_CL = Pattern.compile(COMMAND_LINE + "=\\\"(.+)\\\"");
+	
 	private final int order;
-/*	private final String tool;
-	private final String version;
-	private final String commandLine;
-*/	
+ 	private final String tool;
+//	private final String version;
+	private String commandLine;
+ 	
 	private final String date;
 
 	
@@ -40,32 +47,32 @@ public class VcfHeaderQPG extends VcfHeaderRecord implements Comparable<VcfHeade
 		}
 		
 		
-		parseLine(line);
-		
-		final String [] params = line.split(Constants.COMMA_STRING);
-		order =  Integer.parseInt(id);
-		date =  getStringValueFromArray(params, DATE, Constants.EQ_STRING);
-
-		//get date
-		
-/*		
-		final int start = line.indexOf('<');
+		//parse line		
+ 		final int start = line.indexOf('<');
 		final int end = line.lastIndexOf('>');
 		
-		if (start == -1 || end == -1) {
-			throw new IllegalArgumentException("string passed to QPG ctor doesn't contain < and >  : " + line);
-		}
+		if (start == -1 || end == -1)  
+			throw new IllegalArgumentException("string passed to QPG ctor doesn't contain < and >  : " + line);	
 		
-		final String [] params = line.substring(start + 1, end).split(Constants.COMMA_STRING);
-		if (null == params || params.length == 0) {
-			throw new IllegalArgumentException("string passed to QPG ctor doesn't contain < and >  : " + line);
-		}
-		order =  Integer.parseInt(getStringFromArray(params, ORDER).substring(ORDER.length() + 1));
-		tool =  getStringFromArray(params, TOOL).substring(TOOL.length() + 1);
-		version =  getStringFromArray(params, VERSION).substring(VERSION.length() + 1);
-		date =  getStringFromArray(params, DATE).substring(DATE.length() + 1);
-		commandLine =  getStringFromArray(params, COMMAND_LINE).substring(COMMAND_LINE.length() + 1);
-*/		
+		final String params = line.substring(start + 1, end);
+		
+		// Find description	 
+		final Matcher matcher = pattern_CL.matcher(params);
+		if (matcher.find()) commandLine = matcher.group(1);
+
+		
+		//do rest string without \"
+		final String[] elements = params.replace(COMMAND_LINE + "=\"" + commandLine +  "\"", "").split(Constants.COMMA_STRING); 
+		
+		id = getStringValueFromArray(elements, ID, Constants.EQ_STRING);
+		order =  Integer.parseInt(id);		
+		tool  = getStringValueFromArray(elements, TOOL, Constants.EQ_STRING);
+		version = getStringValueFromArray(elements, VERSION, Constants.EQ_STRING);
+		date =  getStringValueFromArray(elements, DATE, Constants.EQ_STRING);
+		
+		line = toString();
+		this.record = this;
+		
 	}
 	
 
@@ -74,29 +81,21 @@ public class VcfHeaderQPG extends VcfHeaderRecord implements Comparable<VcfHeade
 		
 		this.order = order;
 		this.id = Integer.toString(order);
-		this.source = tool;
-	//	this.tool = tool;
+		this.tool = tool;
 		this.version = version;
 		this.date = DF.format(new Date());
-		this.description = cl;
-	//	this.commandLine = cl;
+		this.commandLine = cl;
 		
 		this.type = MetaType.QPG; //type should bf line otherwise exception
-		this.line = type.toString() + "<ID=" + order + 
-				Constants.COMMA + DESCRIPTION + Constants.EQ + "\"" + description + "\"" +
-				Constants.COMMA + VERSION + Constants.EQ + version +
-				Constants.COMMA + DATE + Constants.EQ + date +
-				">";
-		
-
-		record = this;
+		this.line = toString();		
+		this.record = this;
 		
 	}
 	
 	public int getOrder() {
 		return order;
 	}
-/*	
+	
 	public String getTool() {
 		return tool;
 	}
@@ -110,23 +109,19 @@ public class VcfHeaderQPG extends VcfHeaderRecord implements Comparable<VcfHeade
 		return commandLine;
 	}
 	
-*/	
 	public String getISODate() {
 		return date;
 	}
 	
 
 	@Override
-	public String toString() {
-
-		
-		return type.toString() + "<ID=" + order + 
-				Constants.COMMA + DESCRIPTION + Constants.EQ + "\"" + description + "\"" +
-				Constants.COMMA + SOURCE + Constants.EQ + source +
+	public String toString() {		
+		return this.line = type.toString() + "<ID=" + order + 
+				Constants.COMMA + TOOL + Constants.EQ + tool +				
 				Constants.COMMA + VERSION + Constants.EQ + version +
 				Constants.COMMA + DATE + Constants.EQ + date +
-				">" + Constants.NL;  
-				
+				Constants.COMMA + COMMAND_LINE + Constants.EQ + "\"" + commandLine + "\"" +
+				">";  				
 	}
 
 	@Override
