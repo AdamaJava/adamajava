@@ -11,6 +11,7 @@ import java.util.List;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.qcmg.common.vcf.VcfInfoFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
@@ -44,7 +45,7 @@ public class ConfidenceModeTest {
 	 }
 	
 	
-	@Test
+	@Ignore
 	public void ConfidenceTest() throws IOException, Exception{
 		final ConfidenceMode mode = new ConfidenceMode(patient);		
 		mode.inputRecord(new File(DbsnpModeTest.inputName));
