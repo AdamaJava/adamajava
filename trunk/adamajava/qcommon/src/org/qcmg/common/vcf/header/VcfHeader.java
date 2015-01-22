@@ -230,7 +230,8 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 		if (fileDate != null)  
 			records.add(fileDate);
 		
-		// add in some blank lines
+		// add in a blank line
+//		System.out.println("adding a blank header line");
 		records.add(VcfHeaderUtils.BLANK_HEADER_LINE);
 	 
 		if (uuid != null)  
@@ -241,26 +242,33 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 		
 		// want these sorted
 		Collections.sort(qPGLines);
-		for (final VcfHeaderQPG record : qPGLines)  
+		for (VcfHeaderQPG record : qPGLines)  {
 			records.add(record);
+		}
 		
-		for (final VcfHeaderRecord record : meta)  
+		for (final VcfHeaderRecord record : meta){  
 			records.add(record);
+		}
 		 
-		for (final VcfHeaderRecord record : others) 
+		for (final VcfHeaderRecord record : others) {
 			records.add(record);
+		}
 		
-		// add in some blank lines
+		// add in a blank line
+//		System.out.println("adding a blank header line");
 		records.add(VcfHeaderUtils.BLANK_HEADER_LINE);
 		 
-		for (final VcfHeaderRecord record : vcfInfoById.values()) 
+		for (final VcfHeaderRecord record : vcfInfoById.values()) {
 			records.add(record);
+		}
 		 
-		for (final VcfHeaderRecord record : vcfFilterById.values()) 
+		for (final VcfHeaderRecord record : vcfFilterById.values()) {
 			records.add(record);
+		}
 		 
-		for (final VcfHeaderRecord record : vcfFormatById.values()) 
+		for (final VcfHeaderRecord record : vcfFormatById.values()){ 
 			records.add(record);	 
+		}
 		 
 		if (chromLine != null)
 			records.add(chromLine);		

@@ -3,11 +3,12 @@
  */
 package org.qcmg.common.util;
 
+import gnu.trove.list.TIntList;
+import gnu.trove.list.array.TIntArrayList;
+import gnu.trove.procedure.TIntProcedure;
+
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Queue;
 
 import org.qcmg.common.model.Accumulator;
 import org.qcmg.common.model.PileupElementLite;
@@ -140,32 +141,41 @@ public class PileupElementLiteUtil {
 	
 	public static String getBaseAndReadIds(final PileupElementLite pel, final String base) {
 		
-		StringBuilder sb = new StringBuilder(base);
+		final StringBuilder sb = new StringBuilder(base);
 		sb.append(":");
 		
-		List<Long> forwardReadIds = null;
-		List<Long> reverseReadIds = null;
+		TIntList forwardReadIds = null;
+		TIntList reverseReadIds = null;
+//		List<Long> forwardReadIds = null;
+//		List<Long> reverseReadIds = null;
 		
-		Queue<Long> ids = pel.getForwardReadIds();
+		TIntArrayList ids = pel.getForwardReadIds();
 		if (null != ids) {
-			forwardReadIds = new ArrayList<>(ids);
+			forwardReadIds = new TIntArrayList(ids);
 		}
 		ids = pel.getReverseReadIds();
 		if (null != ids) {
-			reverseReadIds = new ArrayList<>(ids);
+			reverseReadIds =new TIntArrayList(ids);
 		}
 		
 		if (null != forwardReadIds) {
-			for (Long s : forwardReadIds) {
-				sb.append(s).append(',');
-			}
+			forwardReadIds.forEach(new TIntProcedure() {
+				@Override
+				public boolean execute(int s) {
+					sb.append(s).append(',');
+					return true;
+				}});
 		}
+		
 		sb.append('-');
 		
 		if (null != reverseReadIds) {
-			for (Long s : reverseReadIds) {
-				sb.append(s).append(',');
-			}
+			reverseReadIds.forEach(new TIntProcedure() {
+				@Override
+				public boolean execute(int s) {
+					sb.append(s).append(',');
+					return true;
+				}});
 		}
 		
 		return sb.toString();

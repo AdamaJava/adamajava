@@ -57,11 +57,11 @@ public class ConfidenceModeTest {
 			for (final VcfRecord re : reader) {		
 				final VcfInfoFieldRecord infoRecord = new VcfInfoFieldRecord(re.getInfo()); 				
 				if(re.getPosition() == 2675826) 
-					assertTrue(infoRecord.getfield(VcfHeaderUtils.INFO_CONFIDENT).equals(Confidence.LOW.toString())); 
+					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(Confidence.LOW.toString())); 
 				else if(re.getPosition() == 22012840)
-					assertTrue(infoRecord.getfield(VcfHeaderUtils.INFO_CONFIDENT).equals(Confidence.ZERO.toString()));
+					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(Confidence.ZERO.toString()));
 				else if(re.getPosition() == 2675825)
-					assertTrue(infoRecord.getfield(VcfHeaderUtils.INFO_CONFIDENT).equals(Confidence.HIGH.toString()));
+					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(Confidence.HIGH.toString()));
 			}
 		 }		
 	

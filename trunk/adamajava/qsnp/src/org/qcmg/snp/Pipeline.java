@@ -4,6 +4,8 @@
 
 package org.qcmg.snp;
 
+import gnu.trove.map.TIntCharMap;
+
 import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
@@ -120,7 +122,8 @@ public abstract class Pipeline {
 	
 	final Map<ChrPosition,VcfRecord> compoundSnps = new HashMap<>();
 	
-	final ConcurrentMap<ChrPosition, Pair<Accumulator, Accumulator>> accumulators = new ConcurrentHashMap<>(); 
+	// just used to store adjacent accumulators used by compound snp process
+	final ConcurrentMap<ChrPosition, Pair<Accumulator, Accumulator>> adjacentAccumulators = new ConcurrentHashMap<>(); 
 	
 	int[] controlStartPositions;
 	int[] testStartPositions;
@@ -131,8 +134,8 @@ public abstract class Pipeline {
 	
 //	boolean vcfOnlyMode;
 	
-	List<Rule> controlRules = new ArrayList<>();
-	List<Rule> testRules = new ArrayList<>();
+	List<Rule> controlRules = new ArrayList<>(4);
+	List<Rule> testRules = new ArrayList<>(4);
 	
 	String validation;
 	String skipAnnotation;
@@ -1094,6 +1097,7 @@ public abstract class Pipeline {
 		private long passedFilterCount = 0;
 		private long invalidCount = 0;
 		private long counter = 0;
+		private int chrCounter = 0;
 		private final CyclicBarrier barrier;
 		private final boolean includeDups;
 		private final boolean runqBamFilter;
@@ -1126,7 +1130,7 @@ public abstract class Pipeline {
 				
 				while (iter.hasNext()) {
 					final SAMRecord record = iter.next();
-					
+					chrCounter++;
 					if (++ counter % 1000000 == 0) {
 						int qSize = queue.size();
 						logger.info("hit " + counter/1000000 + "M sam records, passed filter: " + passedFilterCount + ", qsize: " + qSize);
@@ -1146,8 +1150,6 @@ public abstract class Pipeline {
 					
 					if (record.getReferenceName().equals(currentChr)) {
 						processRecord(record);
-						
-						
 					} else if (null == currentChr) {
 						// no longer have reference details - exit
 						logger.warn("Exiting Producer despite records remaining in file - null reference chromosome");
@@ -1166,6 +1168,9 @@ public abstract class Pipeline {
 							logger.error("Producer: BrokenBarrier exception caught whilst processing record: " + SAMUtils.getSAMRecordAsSting(record), e);
 							throw e;
 						}
+						
+						// reset counter
+						chrCounter = 1;
 						
 						// wait until queues are empty
 						int qSize = queue.size();
@@ -1196,7 +1201,7 @@ public abstract class Pipeline {
 		
 		private void processRecord(SAMRecord record) throws Exception {
 			
-			// if record is not valid for variatn calling - discard
+			// if record is not valid for variant calling - discard
 			if ( ! SAMUtils.isSAMRecordValidForVariantCalling(record, includeDups)) {
 				invalidCount++;
 				return;
@@ -1205,15 +1210,15 @@ public abstract class Pipeline {
 			if (runqBamFilter) {
 				final boolean passesFilter = qbamFilter.Execute(record);
 				if (isControl || passesFilter) {
-					addRecordToQueue(record, counter, passesFilter);
+					addRecordToQueue(record, passesFilter);
 				}
 			} else {
 				// didn't have any filtering defined - add all
-				addRecordToQueue(record, counter, true);
+				addRecordToQueue(record, true);
 			}
 		}
 		
-		private void addRecordToQueue(final SAMRecord record, final long counter, final boolean passesFilter) {
+		private void addRecordToQueue(final SAMRecord record,  final boolean passesFilter) {
 			
 			record.getReadBases();					// cache read bases in object
 			if (passesFilter) {
@@ -1224,7 +1229,7 @@ public abstract class Pipeline {
 			record.getAlignmentEnd();		// cache alignment end for all records
 //			if (record.getReadNegativeStrandFlag()) record.getAlignmentEnd();		// cache alignment end if its on reverse strand
 			
-			final SAMRecordFilterWrapper wrapper = new SAMRecordFilterWrapper(record, counter);
+			final SAMRecordFilterWrapper wrapper = new SAMRecordFilterWrapper(record, chrCounter);
 			wrapper.setPassesFilter(passesFilter);
 			queue.add(wrapper);
 		}
@@ -1281,7 +1286,7 @@ public abstract class Pipeline {
 					// we have a number (length) of bases that can be advanced.
 					updateMapWithAccums(startPosition, bases,
 							qualities, forwardStrand, offset, length, referenceOffset, 
-							record.getPassesFilter(), endPosition, record.getPosition());
+							record.getPassesFilter(), endPosition, (int) record.getPosition());
 					// advance offsets
 					referenceOffset += length;
 					offset += length;
@@ -1308,7 +1313,7 @@ public abstract class Pipeline {
 		 * @param readStartPosition start position of the read - depends on strand as to whether this is the alignemtnEnd or alignmentStart
 		 */
 		public void updateMapWithAccums(int startPosition, final byte[] bases, final byte[] qualities,
-				boolean forwardStrand, int offset, int length, int referenceOffset, final boolean passesFilter, final int readEndPosition, long readId) {
+				boolean forwardStrand, int offset, int length, int referenceOffset, final boolean passesFilter, final int readEndPosition, int readId) {
 			
 			final int startPosAndRefOffset = startPosition + referenceOffset;
 			
@@ -1765,12 +1770,36 @@ public abstract class Pipeline {
 			qRecord.setId(++mutationId);
 			logger.debug("adding: " + qRecord.getDCCDataNSFlankingSeq(null, null));
 			positionRecordMap.put(qRecord.getChrPos(), qRecord);
-			accumulators.put(qRecord.getChrPos(), new Pair<Accumulator, Accumulator>(normal, tumour));
+			
+			// to save on space, only put entry into acculumators map if it is empty, or if there is a position just before the current position
+			
+			adjacentAccumulators.put(qRecord.getChrPos(), new Pair<Accumulator, Accumulator>(normal, tumour));
+			if (mutationId % 1000 == 0) {
+				purgeNonAdjacentAccumulators();
+			}
 		}
 	}
 	
+	void purgeNonAdjacentAccumulators() {
+		int noRemoved = 0;
+		List<ChrPosition> list = new ArrayList<>(adjacentAccumulators.keySet());
+		Collections.sort(list);
+		ChrPosition previous = null;
+		for (ChrPosition cp : list) {
+			if (null != previous) {
+				if ( ! ChrPositionUtils.areAdjacent(cp, previous)) {
+					// remove previous from adjacentAccums
+					adjacentAccumulators.remove(previous);
+					noRemoved++;
+				}
+			}
+			previous = cp;
+		}
+		logger.debug("removed " +noRemoved + " from adjacentAccumulators");
+	}
 	
-	void compoundSnps() throws Exception {
+	
+	void compoundSnps() {
 		logger.info("in compound snp");
 		// loop through our snps
 		// if we have adjacent ones, need to do some digging to see if they might be compoundium snps
@@ -1876,7 +1905,8 @@ public abstract class Pipeline {
 				// get accumulation objects for this position
 				for (int j = startPosition ; j <= endPosition ; j++) {
 					final ChrPosition cp = new ChrPosition(csChrPos.getChromosome(), j);
-					final Pair<Accumulator, Accumulator> accums = accumulators.get(cp);
+					final Pair<Accumulator, Accumulator> accums = adjacentAccumulators.remove(cp);
+//					final Pair<Accumulator, Accumulator> accums = adjacentAccumulators.get(cp);
 					
 					final Accumulator normal = accums.getLeft();
 					final Accumulator tumour = accums.getRight();
@@ -2002,21 +2032,24 @@ public abstract class Pipeline {
 	}
 	
 	void accumulateReadBases(Accumulator acc, Map<Long, StringBuilder> readSeqMap, int position) {
-		final Map<Long, Character> map = acc.getReadIdBaseMap();
+		final TIntCharMap map = acc.getReadIdBaseMap();
 		// get existing seq for each id
-		for (final Entry<Long, Character> entry : map.entrySet()) {
-			StringBuilder seq = readSeqMap.get(entry.getKey());
+		int[] keys = map.keys();
+		
+		for (int l : keys) {
+			char c = map.get(l);
+			Long longObject = Long.valueOf(l);
+			StringBuilder seq = readSeqMap.get(longObject);
 			if (null == seq) {
 				// initialise based on how far away we are from the start
 				seq = new StringBuilder();
 				for (int q = (position) ; q > 0 ; q--) {
 					seq.append("_");
 				}
-				readSeqMap.put(entry.getKey(), seq);
+				readSeqMap.put(longObject, seq);
 			}
-			seq.append(entry.getValue());
+			seq.append(c);
 		}
-		
 		// need to check that all elements have enough data in them
 		for (final StringBuilder sb : readSeqMap.values()) {
 			if (sb.length() <= position) {
@@ -2024,6 +2057,29 @@ public abstract class Pipeline {
 			}
 		}
 	}
+//	void accumulateReadBases(Accumulator acc, Map<Long, StringBuilder> readSeqMap, int position) {
+//		final Map<Long, Character> map = acc.getReadIdBaseMap();
+//		// get existing seq for each id
+//		for (final Entry<Long, Character> entry : map.entrySet()) {
+//			StringBuilder seq = readSeqMap.get(entry.getKey());
+//			if (null == seq) {
+//				// initialise based on how far away we are from the start
+//				seq = new StringBuilder();
+//				for (int q = (position) ; q > 0 ; q--) {
+//					seq.append("_");
+//				}
+//				readSeqMap.put(entry.getKey(), seq);
+//			}
+//			seq.append(entry.getValue());
+//		}
+//		
+//		// need to check that all elements have enough data in them
+//		for (final StringBuilder sb : readSeqMap.values()) {
+//			if (sb.length() <= position) {
+//				sb.append("_");
+//			}
+//		}
+//	}
 
 	protected void strandBiasCorrection() {
 			// remove SBIAS flag should there be no reads at all on the opposite strand

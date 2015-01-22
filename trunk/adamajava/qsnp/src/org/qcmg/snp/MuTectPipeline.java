@@ -476,7 +476,7 @@ public final class MuTectPipeline extends Pipeline {
 				}
 			}
 		}
-		private void updateResults(ChrPosition cp, SAMRecord sam, long readId) {
+		private void updateResults(ChrPosition cp, SAMRecord sam, int readId) {
 			// get read index
 			final int indexInRead = SAMUtils.getIndexInReadFromPosition(sam, cp.getPosition());
 			
@@ -506,9 +506,10 @@ public final class MuTectPipeline extends Pipeline {
 				// load first VCFRecord
 				advanceCPAndPosition();
 				long recordCount = 0;
+				int chrCount = 0;
 				// take items off the queue and process
 				for (SAMRecord sam : reader) {
-						
+					chrCount++;
 					if (++recordCount % 1000000 == 0) {
 						logger.info("Processed " + recordCount/1000000 + "M records so far..");
 					}
@@ -517,7 +518,7 @@ public final class MuTectPipeline extends Pipeline {
 					if ( ! SAMUtils.isSAMRecordValidForVariantCalling(sam)) continue;
 					
 					if (match(sam, cp, true)) {
-						updateResults(cp, sam, recordCount);
+						updateResults(cp, sam, chrCount);
 						
 						// get next cp and see if it matches
 						int j = 0;
@@ -525,7 +526,7 @@ public final class MuTectPipeline extends Pipeline {
 							ChrPosition tmpCP = snps.get(arrayPosition + j++);
 							while (match(sam, tmpCP, false)) {
 								//								logger.info("got a subsequent match!");
-								updateResults(tmpCP, sam, recordCount);
+								updateResults(tmpCP, sam, chrCount);
 								if (arrayPosition + j < arraySize)
 									tmpCP = snps.get(arrayPosition + j++);
 								else tmpCP = null;

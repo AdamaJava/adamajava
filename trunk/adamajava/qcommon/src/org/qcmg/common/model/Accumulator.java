@@ -3,13 +3,15 @@
  */
 package org.qcmg.common.model;
 
+import gnu.trove.list.array.TIntArrayList;
+import gnu.trove.map.TIntCharMap;
+import gnu.trove.map.hash.TIntCharHashMap;
+import gnu.trove.procedure.TIntProcedure;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Queue;
 
 import org.qcmg.common.util.PileupElementLiteUtil;
 
@@ -27,7 +29,6 @@ public class Accumulator {
 	
 	private static final char DOT = '.';
 	private static final char COMMA = ',';
-	
 	public static final int END_OF_READ_DISTANCE = 5;
 	
 	private PileupElementLite A;
@@ -38,8 +39,8 @@ public class Accumulator {
 	private int nCount;
 	
 	private final int position;
-	private final int positionOfInterestANDEndOfReadLength;
-	private final int positionOfInterestMINUSEndOfReadLength;
+//	private final int positionOfInterestANDEndOfReadLength;
+//	private final int positionOfInterestMINUSEndOfReadLength;
 	
 	private boolean unfilteredA;
 	private boolean unfilteredC;
@@ -53,8 +54,8 @@ public class Accumulator {
 	
 	public Accumulator(int position) {
 		this.position = position;
-		this.positionOfInterestANDEndOfReadLength = position + END_OF_READ_DISTANCE;
-		this.positionOfInterestMINUSEndOfReadLength = position - END_OF_READ_DISTANCE;
+//		this.positionOfInterestANDEndOfReadLength = position + END_OF_READ_DISTANCE;
+//		this.positionOfInterestMINUSEndOfReadLength = position - END_OF_READ_DISTANCE;
 	}
 	
 	public int getPosition() {
@@ -90,15 +91,15 @@ public class Accumulator {
 		}
 	}
 	
-	public void addBase(final byte base, final byte qual, final boolean forwardStrand, final int startPosition, final int position, final int endPosition, long readId) {
+	public void addBase(final byte base, final byte qual, final boolean forwardStrand, final int startPosition, final int position, final int endPosition, int readId) {
 		
 		if (this.position != position) throw new IllegalArgumentException("Attempt to add data for wrong position. " +
 				"This position: " + this.position + ", position: " + position);
 		
-		boolean endOfRead = startPosition > positionOfInterestMINUSEndOfReadLength 
-				|| endPosition < positionOfInterestANDEndOfReadLength;
+		boolean endOfRead = startPosition > (position - END_OF_READ_DISTANCE) 
+				|| endPosition < (position + END_OF_READ_DISTANCE);
 		
-		// if on the reverse strand, start position is actiually endPosition
+		// if on the reverse strand, start position is actually endPosition
 		int startPositionToUse = forwardStrand ? startPosition : endPosition;
 		
 		switch (base) {
@@ -124,7 +125,7 @@ public class Accumulator {
 		}
 	}
 	
-	private void update(final PileupElementLite peLite, final byte qual, final boolean forwardStrand, final int startPosition, boolean endOfRead, long readId) {
+	private void update(final PileupElementLite peLite, final byte qual, final boolean forwardStrand, final int startPosition, boolean endOfRead, int readId) {
 		if (forwardStrand)
 			peLite.addForwardQuality(qual, startPosition, readId, endOfRead);
 		else
@@ -446,67 +447,146 @@ public class Accumulator {
 		
 	}
 	
-	public Map<Long, Character> getReadIdBaseMap() {
-		Map<Long, Character> map = new HashMap<>();
+	public TIntCharMap getReadIdBaseMap() {
+//		Map<Long, Character> map = new HashMap<>();
+		final TIntCharMap map = new TIntCharHashMap();
 		
 		if (null != A) {
-			Queue<Long> ids = A.getForwardReadIds();
-			if (ids != null) {
-				for (Long s : ids) {
+			
+			TIntProcedure aProc = new TIntProcedure(){
+				@Override
+				public boolean execute(int s) {
 					map.put(s, 'A');
-				}
-			}
-			 ids = A.getReverseReadIds();
-				if (ids != null) {
-					for (Long s : ids) {
-						map.put(s, 'a');
-					}
-				}
-		}
-		if (null != C) {
-			Queue<Long> ids = C.getForwardReadIds();
+					return true;
+				}};
+				
+			TIntArrayList ids = A.getForwardReadIds();
 			if (ids != null) {
-				for (Long s : ids) {
+				ids.forEach(aProc);
+			}
+			ids = A.getReverseReadIds();
+			if (ids != null) {
+				ids.forEach(aProc);
+			}
+		}
+		
+		if (null != C) {
+			TIntProcedure cProc = new TIntProcedure(){
+				@Override
+				public boolean execute(int s) {
 					map.put(s, 'C');
-				}
+					return true;
+				}};
+				
+			TIntArrayList ids = C.getForwardReadIds();
+			if (ids != null) {
+				ids.forEach(cProc);
 			}
 			 ids = C.getReverseReadIds();
 				if (ids != null) {
-					for (Long s : ids) {
-						map.put(s, 'c');
-					}
+					ids.forEach(cProc);
 				}
 		}
+		
 		if (null != G) {
-			Queue<Long> ids = G.getForwardReadIds();
-			if (ids != null) {
-				for (Long s : ids) {
+			TIntProcedure gProc = new TIntProcedure(){
+				@Override
+				public boolean execute(int s) {
 					map.put(s, 'G');
-				}
+					return true;
+				}};
+			
+			TIntArrayList ids = G.getForwardReadIds();
+			if (ids != null) {
+				ids.forEach(gProc);
 			}
 			 ids = G.getReverseReadIds();
 				if (ids != null) {
-					for (Long s : ids) {
-						map.put(s, 'g');
-					}
+					ids.forEach(gProc);
 				}
 		}
+		
 		if (null != T) {
-			Queue<Long> ids = T.getForwardReadIds();
-			if (ids != null) {
-				for (Long s : ids) {
+			TIntProcedure tProc = new TIntProcedure(){
+				@Override
+				public boolean execute(int s) {
 					map.put(s, 'T');
-				}
+					return true;
+				}};
+				
+			TIntArrayList ids = T.getForwardReadIds();
+			if (ids != null) {
+				ids.forEach(tProc);
 			}
 			 ids = T.getReverseReadIds();
 				if (ids != null) {
-					for (Long s : ids) {
-						map.put(s, 't');
-					}
+					ids.forEach(tProc);
 				}
 		}
 		
 		return map;
 	}
+//	public Map<Long, Character> getReadIdBaseMap() {
+//		Map<Long, Character> map = new HashMap<>();
+//		
+//		if (null != A) {
+//			Queue<Long> ids = A.getForwardReadIds();
+//			if (ids != null) {
+//				for (Long s : ids) {
+//					map.put(s, 'A');
+//				}
+//			}
+//			ids = A.getReverseReadIds();
+//			if (ids != null) {
+//				for (Long s : ids) {
+//					map.put(s, 'a');
+//				}
+//			}
+//		}
+//		if (null != C) {
+//			Queue<Long> ids = C.getForwardReadIds();
+//			if (ids != null) {
+//				for (Long s : ids) {
+//					map.put(s, 'C');
+//				}
+//			}
+//			ids = C.getReverseReadIds();
+//			if (ids != null) {
+//				for (Long s : ids) {
+//					map.put(s, 'c');
+//				}
+//			}
+//		}
+//		if (null != G) {
+//			Queue<Long> ids = G.getForwardReadIds();
+//			if (ids != null) {
+//				for (Long s : ids) {
+//					map.put(s, 'G');
+//				}
+//			}
+//			ids = G.getReverseReadIds();
+//			if (ids != null) {
+//				for (Long s : ids) {
+//					map.put(s, 'g');
+//				}
+//			}
+//		}
+//		if (null != T) {
+//			Queue<Long> ids = T.getForwardReadIds();
+//			if (ids != null) {
+//				for (Long s : ids) {
+//					map.put(s, 'T');
+//				}
+//			}
+//			ids = T.getReverseReadIds();
+//			if (ids != null) {
+//				for (Long s : ids) {
+//					map.put(s, 't');
+//				}
+//			}
+//		}
+//		
+//		return map;
+//	}
 	
 }

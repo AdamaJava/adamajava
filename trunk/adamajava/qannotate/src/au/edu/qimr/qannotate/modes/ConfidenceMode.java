@@ -147,7 +147,7 @@ public class ConfidenceMode extends AbstractMode{
  
 	 private boolean   checkNovelStarts(int score, VcfInfoFieldRecord infoRecord ) {
 		 try{			 
-			 if(   Integer.parseInt(  infoRecord.getfield( VcfHeaderUtils.FORMAT_NOVEL_STARTS  )  ) >= score ) 
+			 if(   Integer.parseInt(  infoRecord.getField( VcfHeaderUtils.FORMAT_NOVEL_STARTS  )  ) >= score ) 
 				 return true;
 		 }catch(final Exception e){
 			 return false;

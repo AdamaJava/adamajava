@@ -3,10 +3,9 @@
  */
 package org.qcmg.common.model;
 
-import java.util.ArrayDeque;
-import java.util.HashSet;
-import java.util.Queue;
-import java.util.Set;
+import gnu.trove.list.array.TIntArrayList;
+import gnu.trove.set.TIntSet;
+import gnu.trove.set.hash.TIntHashSet;
 
 
 /**
@@ -18,9 +17,14 @@ import java.util.Set;
  */
 public class PileupElementLite implements Comparable<PileupElementLite> {
 	
-	private Queue<Integer> reverseStrandStartPositions;
-	private Queue<Long> reverseReadIds;
-	private Queue<Long> forwardReadIds;
+	private TIntArrayList reverseStrandStartPositions;
+	private TIntArrayList reverseReadIds;
+	private TIntArrayList forwardReadIds;
+//	private TLongArrayList reverseReadIds;
+//	private TLongArrayList forwardReadIds;
+//	private Queue<Integer> reverseStrandStartPositions;
+//	private Queue<Long> reverseReadIds;
+//	private Queue<Long> forwardReadIds;
 	
 	private volatile int forwardCount;
 	private volatile int reverseCount;
@@ -35,13 +39,20 @@ public class PileupElementLite implements Comparable<PileupElementLite> {
 
 	
 	
-	public Queue<Long> getForwardReadIds() {
+	public TIntArrayList getForwardReadIds() {
 		return forwardReadIds;
 	}
 
-	public Queue<Long> getReverseReadIds() {
+	public TIntArrayList getReverseReadIds() {
 		return reverseReadIds;
 	}
+//	public Queue<Long> getForwardReadIds() {
+//		return forwardReadIds;
+//	}
+//	
+//	public Queue<Long> getReverseReadIds() {
+//		return reverseReadIds;
+//	}
 	
 	/**
 	 * 
@@ -56,13 +67,14 @@ public class PileupElementLite implements Comparable<PileupElementLite> {
 			}
 		} else {
 			if (null == reverseStrandStartPositions) {
-				reverseStrandStartPositions = new ArrayDeque<Integer>();
+				reverseStrandStartPositions = new TIntArrayList();
 			}
 			reverseStrandStartPositions.add(startPosition);
 		}
 	}
 	
 	public int getForwardCount() {
+		// set volatile variable so that we don't have to recalculate each time this method is called
 		int total = forwardCount;
 		if (total == 0) {
 			if (null != forwardQualitiesArray) {
@@ -76,6 +88,7 @@ public class PileupElementLite implements Comparable<PileupElementLite> {
 	}
 	
 	public int getReverseCount() {
+		// set volatile variable so that we don't have to recalculate each time this method is called
 		int total = reverseCount;
 		if (total == 0) {
 			if (null != reverseQualitiesArray) {
@@ -100,17 +113,17 @@ public class PileupElementLite implements Comparable<PileupElementLite> {
 		return getForwardCount() - endOfReadCountFS > 0 && getReverseCount() - endOfReadCountRS > 0;
 	}
 	
-	public void addForwardQuality(byte b, int startPosition, long readId) {
+	public void addForwardQuality(byte b, int startPosition, int readId) {
 		addForwardQuality(b, startPosition, readId, false);
 	}
-	public void addReverseQuality(byte b, int startPosition, long readId) {
+	public void addReverseQuality(byte b, int startPosition, int readId) {
 		addReverseQuality(b, startPosition, readId, false);
 	}
 	
-	public void addForwardQuality(byte b, int startPosition, long readId, boolean endOfRead) {
+	public void addForwardQuality(byte b, int startPosition, int readId, boolean endOfRead) {
 		if (null == forwardQualitiesArray) {
 			forwardQualitiesArray = new QCMGIntArray(100);
-			forwardReadIds = new ArrayDeque<>();
+			forwardReadIds =new TIntArrayList();
 		}
 		
 		forwardReadIds.add(readId);
@@ -119,10 +132,10 @@ public class PileupElementLite implements Comparable<PileupElementLite> {
 		if (endOfRead) endOfReadCountFS++;
 	}
 
-	public void addReverseQuality(byte b, int startPosition, long readId, boolean endOfRead) {
+	public void addReverseQuality(byte b, int startPosition, int readId, boolean endOfRead) {
 		if (null == reverseQualitiesArray) {
 			reverseQualitiesArray = new QCMGIntArray(100);
-			reverseReadIds = new ArrayDeque<>();
+			reverseReadIds = new TIntArrayList();
 		}
 		
 		reverseReadIds.add(readId);
@@ -141,7 +154,7 @@ public class PileupElementLite implements Comparable<PileupElementLite> {
 	
 	public int getNovelStartCount() {
 		if (null != reverseStrandStartPositions) {
-			Set<Integer> set = new HashSet<>(reverseStrandStartPositions);
+			TIntSet set = new TIntHashSet(reverseStrandStartPositions);
 			return forwardNovelStartCount + set.size();
 		}
 		return forwardNovelStartCount;

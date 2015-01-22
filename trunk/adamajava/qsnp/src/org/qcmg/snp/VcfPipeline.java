@@ -136,7 +136,7 @@ public final class VcfPipeline extends Pipeline {
 		// identify potential compound snps up from and only store accumulators for those positions
 		logger.info("about to preidentify compound snps");
 		preIdentifyCompoundSnps();
-		logger.info("about to preidentify compound snps - DONE [" + accumulators.size() + "]");
+		logger.info("about to preidentify compound snps - DONE [" + adjacentAccumulators.size() + "]");
 		
 		// add pileup from the normal bam file
 		logger.info("adding pileup to vcf records map[" + positionRecordMap.size() + "]");
@@ -145,7 +145,7 @@ public final class VcfPipeline extends Pipeline {
 		
 		logger.info("about to populate accumulators");
 		populateAccumulators();
-		logger.info("about to populate accumulators - DONE [" + accumulators.size() + "]");
+		logger.info("about to populate accumulators - DONE [" + adjacentAccumulators.size() + "]");
 		
 		logger.info("about to clean snp map[" + positionRecordMap.size() + "]");
 		cleanSnpMap();
@@ -177,7 +177,7 @@ public final class VcfPipeline extends Pipeline {
 			Accumulator control = controlPileupCS.get(cp);
 			Accumulator test = testPileupCS.get(cp);
 			
-			accumulators.put(cp, new Pair<Accumulator, Accumulator>(control, test));
+			adjacentAccumulators.put(cp, new Pair<Accumulator, Accumulator>(control, test));
 		}
 	}
 	
@@ -193,8 +193,8 @@ public final class VcfPipeline extends Pipeline {
 				if (ChrPositionUtils.areAdjacent(previousCP, cp)) {
 //					logger.info("in preIdentifyCompoundSnps with potential adjacent snps: " + previousCP.toString() + " and " + cp.toString());
 					// add to accumulators
-					accumulators.put(previousCP, new Pair<Accumulator,Accumulator>(null, null));
-					accumulators.put(cp, new Pair<Accumulator,Accumulator>(null, null));
+					adjacentAccumulators.put(previousCP, new Pair<Accumulator,Accumulator>(null, null));
+					adjacentAccumulators.put(cp, new Pair<Accumulator,Accumulator>(null, null));
 				}
 			}
 			previousCP = cp;
@@ -508,7 +508,7 @@ public final class VcfPipeline extends Pipeline {
 				if (null != acc) {
 					
 					// if position is a potential CS, keep accumulation data
-					if (accumulators.containsKey(cp)) {
+					if (adjacentAccumulators.containsKey(cp)) {
 						if (isNormal) {
 							controlPileupCS.put(cp, acc);
 						} else {
@@ -576,7 +576,7 @@ public final class VcfPipeline extends Pipeline {
 				}
 			}
 		}
-		private void updateResults(ChrPosition cp, SAMRecord sam, long readId) {
+		private void updateResults(ChrPosition cp, SAMRecord sam, int readId) {
 			// get read index
 			final int indexInRead = SAMUtils.getIndexInReadFromPosition(sam, cp.getPosition());
 			
@@ -606,9 +606,16 @@ public final class VcfPipeline extends Pipeline {
 				// load first VCFRecord
 				advanceCPAndPosition();
 				long recordCount = 0;
+				
+				// don't think int overflow will affect us here.
+				// if we have more than the 2 billion records in the bam, then it will oveflow to be -ve, but that should be ok
+				// if we get more than 4 billion reads, it *should* go back to 0 - will test this
+				// and that should be ok because 
+				
+				int chrCounter = 0;
 				// take items off the queue and process
 				for (final SAMRecord sam : reader) {
-						
+					chrCounter++;
 					if (++recordCount % 1000000 == 0) {
 						logger.info("Processed " + recordCount/1000000 + "M records so far..");
 					}
@@ -617,14 +624,14 @@ public final class VcfPipeline extends Pipeline {
 					if ( ! SAMUtils.isSAMRecordValidForVariantCalling(sam)) continue;
 					
 					if (match(sam, cp, true)) {
-						updateResults(cp, sam, recordCount);
+						updateResults(cp, sam, chrCounter);
 						
 						// get next cp and see if it matches
 						int j = 0;
 						if (arrayPosition < arraySize) {
 							ChrPosition tmpCP = snps.get(arrayPosition + j++);
 							while (match(sam, tmpCP, false)) {
-								updateResults(tmpCP, sam, recordCount);
+								updateResults(tmpCP, sam, chrCounter);
 								if (arrayPosition + j < arraySize)
 									tmpCP = snps.get(arrayPosition + j++);
 								else tmpCP = null;

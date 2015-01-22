@@ -1,7 +1,12 @@
 package org.qcmg.common.model;
 
 import static org.junit.Assert.assertEquals;
+import gnu.trove.list.array.TIntArrayList;
 
+import java.util.ArrayDeque;
+import java.util.Queue;
+
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class PileupElementLiteTest {
@@ -149,6 +154,37 @@ public class PileupElementLiteTest {
 		// doesn't increment count as we are adding a value less than current forward start position of 100
 		pel.addForwardQuality((byte) 0, 99,1, false);
 		assertEquals(5, pel.getNovelStartCount());
+	}
+	
+	@Ignore
+	public void speedTest() {
+		// add some ints and Integers into a queue and a trove array to see what wins...
+		
+		int no = 10000000;
+		
+		Queue<Integer> queue = new ArrayDeque<Integer>();
+		long start = System.currentTimeMillis();
+		for (int i = 0 ; i < no ; i++) {
+			queue.add(Integer.valueOf(i));
+		}
+		System.out.println("time taken: " + (System.currentTimeMillis() - start));
+		
+		// and now the trove list
+		TIntArrayList trove = new TIntArrayList();
+		start = System.currentTimeMillis();
+		for (int i = 0 ; i < no ; i++) {
+			trove.add(i);
+		}
+		System.out.println("time taken trove: " + (System.currentTimeMillis() - start));
+		
+		queue = new ArrayDeque<Integer>();
+		
+		start = System.currentTimeMillis();
+		for (int i = 0 ; i < no ; i++) {
+			queue.add(Integer.valueOf(i));
+		}
+		System.out.println("time taken: " + (System.currentTimeMillis() - start));
+		
 	}
 
 }

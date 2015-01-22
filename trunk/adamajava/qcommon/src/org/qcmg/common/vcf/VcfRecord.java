@@ -29,7 +29,8 @@ public class VcfRecord {
 	private String qualString;
 	private String filter;
 	private VcfInfoFieldRecord infoRecord;
-	private final List<VcfFormatFieldRecord> formatRecords = new ArrayList<VcfFormatFieldRecord>();
+	private final List<String> formatRecords = new ArrayList<String>(4);
+//	private final List<VcfFormatFieldRecord> formatRecords = new ArrayList<VcfFormatFieldRecord>();
 	
 	public VcfRecord(ChrPosition cp, String id, String ref, String alt) {
 		this.chrPos = cp;
@@ -64,9 +65,12 @@ public class VcfRecord {
 		filter = (params.length >= 7) ? params[6] : null;
 		infoRecord = (params.length >= 8) ?  new VcfInfoFieldRecord(params[7]): null;
 		
-		for (int i = 9; i < params.length; i ++) {
-			formatRecords.add(new VcfFormatFieldRecord(params[8], params[i]));
+		for (int i = 8; i < params.length; i ++) {
+			formatRecords.add( params[i]);
 		}
+//		for (int i = 9; i < params.length; i ++) {
+//			formatRecords.add(new VcfFormatFieldRecord(params[8], params[i]));
+//		}
 	}
 	
 	public ChrPosition getChrPosition() {		
@@ -107,8 +111,10 @@ public class VcfRecord {
 	 * @param info INFO column value. eg. SOMATIC:RSPOS=100:END=102
 	 * @throws Exception If the info String didn't follow pattern : <key>=<data> joined by ';'
 	 */
-	public void setInfo(String info) {  
-		this.infoRecord = new VcfInfoFieldRecord(info);
+	public void setInfo(String info) {
+		if ( ! StringUtils.isNullOrEmpty(info)) {
+			this.infoRecord = new VcfInfoFieldRecord(info);
+		}
 	}
 	
 	/**
@@ -163,9 +169,10 @@ public class VcfRecord {
 		}
 		
 		formatRecords.clear();
-		for(int i = 1; i < field.size(); i ++) {
-			formatRecords.add(new VcfFormatFieldRecord(field.get(0), field.get(i)));
-		}
+		formatRecords.addAll(field);
+//		for(int i = 1; i < field.size(); i ++) {
+//			formatRecords.add(new VcfFormatFieldRecord(field.get(0), field.get(i)));
+//		}
 	}
 	
 	/**
@@ -173,8 +180,10 @@ public class VcfRecord {
 	 * @param index: the column number of sample. eg. 1 means the first column after "FORMAT" column
 	 * @return a VcfFormatFieldRecord for specified sample 
 	 */
-	public VcfFormatFieldRecord getSampleFormatRecord(int index){		
-		return (index > formatRecords.size())? null: formatRecords.get(index-1);		
+	public VcfFormatFieldRecord getSampleFormatRecord(int index){
+		String s = (index > formatRecords.size())? null: formatRecords.get(index-1);
+		return new VcfFormatFieldRecord(formatRecords.get(0), s);
+//		return (index > formatRecords.size())? null: formatRecords.get(index-1);		
 	}
 	
 	
@@ -184,27 +193,44 @@ public class VcfRecord {
 	 * the second  and third element are values of normal and tumor column: eg. 0/1:A/G:A15[38.93],15[38.67],G1[39],1[39]
 	 */
 	public List<String> getFormatFields() {
-		if( formatRecords.size() == 0 ) return null;		
+		// return a copy of this
+		return new ArrayList<String>(formatRecords);
+//		return formatRecords;
 		
-		final List<String> list = new ArrayList<String>();
-		list.add( formatRecords.get(0).getFormatColumnString() );
-				 
-		for(int i = 0; i < formatRecords.size(); i ++) {
-			list.add( formatRecords.get(i).toString());
-		}
-		
-		return list;
+//		if( formatRecords.size() == 0 ) return null;		
+//		
+//		final List<String> list = new ArrayList<String>();
+//		list.add( formatRecords.get(0) );
+////		list.add( formatRecords.get(0).getFormatColumnString() );
+//				 
+//		for(int i = 0; i < formatRecords.size(); i ++) {
+//			list.add( formatRecords.get(i).toString());
+//		}
+////		for(int i = 0; i < formatRecords.size(); i ++) {
+////			list.add( formatRecords.get(i).toString());
+////		}
+//		
+//		return list;
 	}
 	
 	public String getFormatFieldStrings(){ 
 		if(formatRecords.size() == 0 ) return Constants.EMPTY_STRING;		
 		
-		String str =  formatRecords.get(0).getFormatColumnString();
-		for(int i = 0; i < formatRecords.size(); i ++) {
-			str += Constants.TAB +  formatRecords.get(i).toString();
-		}
+//		String str =  formatRecords.get(0);
+//		String str =  formatRecords.get(0).getFormatColumnString();
 		
-		return str;	
+		StringBuffer sb = new StringBuffer();
+		for (String s : formatRecords) {
+			if (sb.length() > 0) {
+				sb.append(Constants.TAB);
+			}
+			sb.append(s);
+		}
+//		for(int i = 0; i < formatRecords.size(); i ++) {
+//			str += Constants.TAB +  formatRecords.get(i).toString();
+//		}
+		
+		return sb.toString();	
 	}
 	
 	public String getChromosome() { 	return chrPos.getChromosome(); }

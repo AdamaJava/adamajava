@@ -1,6 +1,7 @@
 package org.qcmg.common.model;
 
 import static org.junit.Assert.assertEquals;
+import gnu.trove.map.TIntCharMap;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -349,6 +350,30 @@ public class AccumulatorTest {
 		acc.addBase((byte)'C', (byte)'\'', true, 1010100, 1010101, 1010102, 1);
 		assertEquals("EBHBHIIGG", acc.getPileupQualities());
 	}
+	
+	@Test
+	public void readIdBaseMap() {
+		
+		Accumulator acc = new Accumulator(1);
+		for (int i = 0 ; i < 10 ; i++) acc.addBase((byte)'A', (byte)10, true, 1, 1, 2, i);
+		
+		TIntCharMap map = acc.getReadIdBaseMap();
+		assertEquals(10, map.size());
+		
+		for (int i = 10 ; i < 20 ; i++) acc.addBase((byte)'C', (byte)10, true, 1, 1, 2, i);
+		
+		map = acc.getReadIdBaseMap();
+		assertEquals(20, map.size());
+		
+		for (int i = 0 ; i < 20 ; i++ ) {
+			if (i < 10) {
+				assertEquals('A', map.get(i));
+			} else if (i < 20) {
+				assertEquals('C', map.get(i));
+			}
+		}
+	}
+	
 	
 	@Test
 	public void testAddBase() {
