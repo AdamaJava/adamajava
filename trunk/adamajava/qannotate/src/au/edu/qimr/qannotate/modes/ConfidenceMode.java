@@ -88,17 +88,17 @@ public class ConfidenceMode extends AbstractMode{
 	    	final VcfInfoFieldRecord infoRecord = new VcfInfoFieldRecord(vcf.getInfo());	
 	    		    	
 	        if (VerifiedData != null && VerifiedData.get(pos) != null && VerifiedData.get(pos).equals( TorrentVerificationStatus.YES))  
-	        	 infoRecord.setfield(VcfHeaderUtils.INFO_CONFIDENT, Confidence.HIGH.toString());		        
-	        else if (checkNovelStarts(HIGH_CONF_NOVEL_STARTS_PASSING_SCORE, infoRecord) 
+	        	 infoRecord.setField(VcfHeaderUtils.INFO_CONFIDENT, Confidence.HIGH.toString());		        
+	        else if (checkNovelStarts(HIGH_CONF_NOVEL_STARTS_PASSING_SCORE, vcf) 
 					&& ( getAltFrequency(vcf) >=  HIGH_CONF_ALT_FREQ_PASSING_SCORE)
 					&& PASS.equals(vcf.getFilter()))  
-	        	 infoRecord.setfield(VcfHeaderUtils.INFO_CONFIDENT, Confidence.HIGH.toString());		        	 				 				
-			else if (checkNovelStarts(LOW_CONF_NOVEL_STARTS_PASSING_SCORE, infoRecord) 
+	        	 infoRecord.setField(VcfHeaderUtils.INFO_CONFIDENT, Confidence.HIGH.toString());		        	 				 				
+			else if (checkNovelStarts(LOW_CONF_NOVEL_STARTS_PASSING_SCORE, vcf) 
 					&& ( getAltFrequency(vcf) >= LOW_CONF_ALT_FREQ_PASSING_SCORE )
 					&& isClassB(vcf.getFilter()) )
-				 infoRecord.setfield(VcfHeaderUtils.INFO_CONFIDENT, Confidence.LOW.toString());					 
+				 infoRecord.setField(VcfHeaderUtils.INFO_CONFIDENT, Confidence.LOW.toString());					 
 			 else
-				 infoRecord.setfield(VcfHeaderUtils.INFO_CONFIDENT, Confidence.ZERO.toString());		  
+				 infoRecord.setField(VcfHeaderUtils.INFO_CONFIDENT, Confidence.ZERO.toString());		  
 	        
 	        vcf.setInfo(infoRecord.toString());	        
 	    } 	
@@ -145,9 +145,11 @@ public class ConfidenceMode extends AbstractMode{
 		 return VcfUtils.getAltFrequency(re, vcf.getAlt());	 
 	}
  
-	 private boolean   checkNovelStarts(int score, VcfInfoFieldRecord infoRecord ) {
+	 private boolean   checkNovelStarts(int score, VcfRecord vcf ) {
+		 
+		 final VcfFormatFieldRecord re = (vcf.getInfo().contains(VcfHeaderUtils.INFO_SOMATIC)) ? vcf.getSampleFormatRecord(2) :  vcf.getSampleFormatRecord(1);
 		 try{			 
-			 if(   Integer.parseInt(  infoRecord.getField( VcfHeaderUtils.FORMAT_NOVEL_STARTS  )  ) >= score ) 
+			 if(   Integer.parseInt(  re.getField( VcfHeaderUtils.FORMAT_NOVEL_STARTS  )  ) >= score ) 
 				 return true;
 		 }catch(final Exception e){
 			 return false;

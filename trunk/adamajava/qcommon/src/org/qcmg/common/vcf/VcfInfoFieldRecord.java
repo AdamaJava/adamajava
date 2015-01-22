@@ -42,7 +42,7 @@ public class VcfInfoFieldRecord {
 	 * @param key
 	 * @param value
 	 */
-	public void setfield(String key, String value){
+	public void setField(String key, String value){
 		int existingKeyIndex = line.indexOf(key); 
 		if (existingKeyIndex == -1) {
 			// nothing to replace - have at it
@@ -51,7 +51,7 @@ public class VcfInfoFieldRecord {
 		} else {
 			// replace existing key (and potentially value)
 			// if there is no value, don't need to do anything...
-			removefield(key);
+			removeField(key);
 			addField(key, value);
 		}
 		
@@ -61,7 +61,7 @@ public class VcfInfoFieldRecord {
 	/**
 	 * This method will add the supplied key and value to the underlying string buffer with an '=' as the seperator.
 	 * No check is performed to ensure that an existing entry with the same key is present.
-	 * Please use {@link #setfield(String, String)} if this is the behaviour you want.
+	 * Please use {@link #setField(String, String)} if this is the behaviour you want.
 	 * 
 	 * @param key
 	 * @param value
@@ -93,13 +93,27 @@ public class VcfInfoFieldRecord {
 //		return field.get(key);
 	}
 	
-	public void removefield(String key){
+	public void removeField(String key){
 		int index = line.indexOf(key);
 		if (index > -1) {
 		
 			int scIndex = line.indexOf(Constants.SEMI_COLON_STRING, index);
 			String kv = line.substring(index, (scIndex == -1 ? line.length() : scIndex) );
-			line.delete(index, (index + kv.length()));
+			
+			// check to see if there was a semi colon preceding the key
+			int scOffset = 0;
+			if ((index - 1) > -1) {
+				if (line.charAt(index - 1) == Constants.SEMI_COLON) {
+					scOffset = 1;
+				}
+			}
+			int endScOffset = 0;
+			if (index == 0 && scIndex > -1) {
+				// we are first entry - if scIndex is > -1, add 1 t
+				endScOffset = 1;
+			}
+			
+			line.delete(index - scOffset, (index + kv.length() + endScOffset));
 		
 		}
 //		field.remove(key);

@@ -133,14 +133,14 @@ public class VcfRecord {
 			final String [] infoParam = additionalInfo.split(Constants.SEMI_COLON_STRING);
 			for (final String s : infoParam) {
 				if(  ! s.contains(Constants.EQ_STRING)) {
-						infoRecord.setfield(s,null);
+						infoRecord.setField(s,null);
 				} else {
 					final String key = s.substring(0, s.indexOf(Constants.EQ));
 					final String data = s.substring(s.indexOf(Constants.EQ) +1 );
 				    if (key.isEmpty() || data.isEmpty()) {
 				    		throw new IllegalArgumentException("Sub INFO string didn't follow format <key>=<data>:" + s);
 				    }
-				    infoRecord.setfield(key, data);					 
+				    infoRecord.setField(key, data);					 
 				}
 			}
 		}

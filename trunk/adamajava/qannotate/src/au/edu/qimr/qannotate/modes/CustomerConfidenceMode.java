@@ -69,7 +69,7 @@ public class CustomerConfidenceMode extends AbstractMode{
 			
 			//remove previous annotaion about CONF
 			final VcfInfoFieldRecord infoRecord = new VcfInfoFieldRecord(re.getInfo());
-			infoRecord.removefield(VcfHeaderUtils.INFO_CONFIDENT);
+			infoRecord.removeField(VcfHeaderUtils.INFO_CONFIDENT);
 			 			
 			//only annotate record passed filters
 			if(passOnly && !re.getFilter().toUpperCase().contains(VcfHeaderUtils.FILTER_PASS))
@@ -82,7 +82,7 @@ public class CustomerConfidenceMode extends AbstractMode{
 			final int mutants = Integer.parseInt( infoRecord.getField(VcfHeaderUtils.FORMAT_MUTANT_READS));			  
 			if( ((100 * mutants) / total) < variants_rate  ) continue;
 							 
-			infoRecord.setfield(VcfHeaderUtils.INFO_CONFIDENT, null);
+			infoRecord.setField(VcfHeaderUtils.INFO_CONFIDENT, null);
 			re.setInfo(infoRecord.toString());			
 		}		
 	}				
