@@ -69,6 +69,10 @@ public class ChrPositionUtils {
 		return new ChrPosition(chr, start, end, name);
 	}
 	
+	public static ChrPosition getPrecedingChrPosition(ChrPosition cp) {
+		return new ChrPosition(cp.getChromosome(), cp.getPosition() - 1, cp.getEndPosition() - 1);
+	}
+	
 	/**
 	 * Returns a list of ChrPosition objects based on the contents of the supplied String array
 	 *  

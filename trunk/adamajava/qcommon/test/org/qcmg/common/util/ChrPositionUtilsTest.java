@@ -131,4 +131,16 @@ public class ChrPositionUtilsTest {
 		assertEquals(true, ChrPositionUtils.doChrPositionsOverlapPositionOnly(new ChrPosition("1", 10, 20), new ChrPosition("1", 1, 100)));
 		assertEquals(true, ChrPositionUtils.doChrPositionsOverlapPositionOnly(new ChrPosition("1", 123456, 123456), new ChrPosition("1", 123456, 123456)));
 	}
+	
+	@Test
+	public void getPreceedingPosition() {
+		ChrPosition cp = new ChrPosition("1", 10, 10);
+		ChrPosition preceedingCP = ChrPositionUtils.getPrecedingChrPosition(cp);
+		ChrPosition preceedingCP2 = ChrPositionUtils.getPrecedingChrPosition(preceedingCP);
+		assertEquals(true, ChrPositionUtils.areAdjacent(cp, preceedingCP));
+		assertEquals(true, ChrPositionUtils.areAdjacent(preceedingCP2, preceedingCP));
+		assertEquals(false, ChrPositionUtils.areAdjacent(preceedingCP2, cp));
+		assertEquals(false, ChrPositionUtils.areAdjacent(cp, preceedingCP2));
+	}
+	
 }
