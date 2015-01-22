@@ -198,7 +198,7 @@ public class VcfHeaderRecord {
 
 	public void parseLine(String line){
 		
-		if(!type.equals(MetaType.FILTER) && !type.equals(MetaType.FORMAT) && ! type.equals(MetaType.INFO) && ! type.equals(MetaType.QPG))
+		if(!type.equals(MetaType.FILTER) && !type.equals(MetaType.FORMAT) && ! type.equals(MetaType.INFO) )
 			return ;
 		
 		final int start = line.indexOf('<');
@@ -215,9 +215,6 @@ public class VcfHeaderRecord {
 		final Matcher matcher = pattern_description.matcher(params);
 		if (matcher.find()) description = matcher.group(1);
 		
-//		start = params.indexOf(DESCRIPTION);
-//		end = params.lastIndexOf("\"");
-		
 		//do rest string without \"
 //		params = params.replace(DESCRIPTION + "=\\\"(.+)\\\"", "");
 		final String[] elements = params.replace(DESCRIPTION + "=\"" + description +  "\"", "").split(Constants.COMMA_STRING); 
@@ -229,29 +226,6 @@ public class VcfHeaderRecord {
 		source  = getStringValueFromArray(elements, SOURCE, Constants.EQ_STRING);
 		version = getStringValueFromArray(elements, VERSION, Constants.EQ_STRING);
 
-		// Find ID
-/*		 matcher = pattern_id.matcher(params);
-		if (matcher.find()) id = matcher.group(1);
-		else throw new RuntimeException("Cannot find 'ID' in info line: '" + line + "'");
-
-		// Find and parse 'Number'
-		number = -1;
-		vcfInfoNumber = VcfInfoNumber.UNLIMITED;
-		matcher = pattern_number.matcher(params);
-		if (matcher.find()) parseNumber(matcher.group(1));
-
-		// Find type
-		matcher = pattern_type.matcher(params);
-		if (matcher.find()) vcfInfoType = VcfInfoType.parse(matcher.group(1).toUpperCase());
-
-		
-		// Find description
-		matcher = pattern_source.matcher(params);
-		if (matcher.find()) source = matcher.group(1);
-		
-		// Find description
-		matcher = pattern_version.matcher(params);
-		if (matcher.find()) version = matcher.group(1);*/
 	}
 	
 	void parseNumber(String number) {
@@ -270,18 +244,13 @@ public class VcfHeaderRecord {
 	}	
 	@Override
 	public String toString() {	
-		if (line != Constants.NULL_STRING) 
+		return line;
+		
+/*		if (line != Constants.NULL_STRING) 
 			return (line.endsWith(Constants.NL_STRING))? line : line + Constants.NL  ;
 		return Constants.NULL_STRING;
-		
+*/		
 	}
-	
-	/**
-	 * 
-	 * @param array
-	 * @param string: 
-	 * @return 
-	 */
 	
 	
 	/**

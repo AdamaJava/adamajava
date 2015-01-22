@@ -54,19 +54,19 @@ public class DbsnpModeTest {
 			VcfHeader header = reader.getHeader();
 			for (final VcfHeaderRecord re : header){
 				if(i == 0)  {
-					assertTrue(re.getMetaType().equals(MetaType.META)  && re.toString().equals( "##fileformat=VCFv4.0\n"));
+					assertTrue(re.getMetaType().equals(MetaType.META)  && re.toString().equals( "##fileformat=VCFv4.0"));
 				} else if(i == 1)  {
-					assertTrue(re.getMetaType().equals(MetaType.OTHER) && re.toString().equals( "##\n"));
+					assertTrue(re.getMetaType().equals(MetaType.OTHER) && re.toString().equals( "##"));
 				} else if(i == 2) {  
-					assertTrue(re.getMetaType().equals(MetaType.META) && re.toString().equals( "##dbSNP_BUILD_ID=135\n"));
+					assertTrue(re.getMetaType().equals(MetaType.META) && re.toString().equals( "##dbSNP_BUILD_ID=135"));
 				} else  if (i == 3) {  
-					assertTrue(re.getMetaType().equals(MetaType.OTHER) && re.toString().equals( "##\n"));
+					assertTrue(re.getMetaType().equals(MetaType.OTHER) && re.toString().equals( "##"));
 				} else  if (i == 4) {  
-					assertTrue(re.getMetaType().equals(MetaType.OTHER) && re.toString().equals( "##\n"));
+					assertTrue(re.getMetaType().equals(MetaType.OTHER) && re.toString().equals( "##"));
 				} else  if (i == 5) {  
-					assertTrue(re.getMetaType().equals(MetaType.OTHER) && re.toString().equals( "##\n"));
+					assertTrue(re.getMetaType().equals(MetaType.OTHER) && re.toString().equals( "##"));
 				} else  if (i == 6) {  
-					assertTrue(re.getMetaType().equals(MetaType.INFO) && re.toString().equals("##INFO=<ID=GMAF,Number=1,Type=Float,Description=\"Global Minor Allele Frequency [0, 0.5]; global population is 1000GenomesProject phase 1 genotype data from 629 individuals, released in the 08-04-2010 dataset\">\n"));
+					assertTrue(re.getMetaType().equals(MetaType.INFO) && re.toString().equals("##INFO=<ID=GMAF,Number=1,Type=Float,Description=\"Global Minor Allele Frequency [0, 0.5]; global population is 1000GenomesProject phase 1 genotype data from 629 individuals, released in the 08-04-2010 dataset\">"));
 			}
 				
 				i ++;

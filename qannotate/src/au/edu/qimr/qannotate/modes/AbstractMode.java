@@ -22,6 +22,7 @@ import org.qcmg.vcf.VCFFileWriter;
 
 import au.edu.qimr.qannotate.Main;
 import au.edu.qimr.qannotate.Messages;
+import org.qcmg.common.util.Constants;
 
 public abstract class AbstractMode {
 	private static final DateFormat df = new SimpleDateFormat("yyyyMMdd");
@@ -60,7 +61,7 @@ public abstract class AbstractMode {
 		Collections.sort(orderedList);
 		
 		try(VCFFileWriter writer = new VCFFileWriter( outputFile)) {			
-			for(final VcfHeaderRecord record: header)  writer.addHeader(record.toString());
+			for(final VcfHeaderRecord record: header)  writer.addHeader(record.toString() + Constants.NL_STRING);
 			for (final ChrPosition position : orderedList) {				
 				final VcfRecord record = positionRecordMap.get(position); 
 				writer.add( record );				 

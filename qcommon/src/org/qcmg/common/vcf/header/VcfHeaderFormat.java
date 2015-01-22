@@ -50,7 +50,8 @@ public final class VcfHeaderFormat extends VcfHeaderRecord{
 			parseLine(line);
 		} else throw new IllegalArgumentException("Can't create VcfHeaderFormat = line provided is not an FORMAT definition: '" + line + "'");
 		
-		record = this;
+		this.line = toString();
+		this.record = this;
 
 	}
 	
@@ -75,11 +76,8 @@ public final class VcfHeaderFormat extends VcfHeaderRecord{
 			this.description = description;
 			 
 			this.type = MetaType.FORMAT; //type should bf line otherwise exception
-			this.line = type.toString() + "<ID=" + id//
-					+ ",Number=" + (number >= 0 ? number : vcfInfoNumber.toString()) //
-					+ ",Type=" + vcfInfoType.toString() //
-					+ ",Description=\"" + description + "\"" + ">" ;			
-			record = this;
+			this.line = toString() ;			
+			this.record = this;
 		}
 
 	public boolean isNumberAllAlleles() {
@@ -104,15 +102,12 @@ public final class VcfHeaderFormat extends VcfHeaderRecord{
 
 	@Override
 	public String toString() {
-		if (line != Constants.NULL_STRING) 
-			return (line.endsWith(Constants.NL_STRING))? line : line + Constants.NL  ;
-		 
 
 		return type.toString() + "=<ID=" + id//
 				+ ",Number=" + (number >= 0 ? number : vcfInfoNumber) //
 				+ ",Type=" + vcfInfoType //
 				+ ",Description=\"" + description + "\"" //
-				+ ">"  + Constants.NL  ;
+				+ ">"   ;
 	 
 	}
 

@@ -29,14 +29,14 @@ public class QPGTest {
 	@Test
 	public void exampleCtor() {
 		
-		final String line = "##qPG=<ID=1,Source=qannotate,Version=0.01,DATE=20140106,Description=\"/opt/local/q3/bin/qannotate mode=snpEff ...\">";
+		final String line = "##qPG=<ID=1,Tool=qannotate,Version=0.01,Date=20140106,CL=\"/opt/local/q3/bin/qannotate mode=snpEff ...\">";
 		
 		final VcfHeaderQPG qpg = new VcfHeaderQPG(line);
 		assertEquals(1, qpg.getOrder());
-		assertEquals("qannotate", qpg.getSource());
+		assertEquals("qannotate", qpg.getTool());
 		assertEquals("0.01", qpg.getVersion());
 		assertEquals("20140106", qpg.getISODate());
-		assertEquals("/opt/local/q3/bin/qannotate mode=snpEff ...", qpg.getDescription());
+		assertEquals("/opt/local/q3/bin/qannotate mode=snpEff ...", qpg.getCommandLine());
 		
 	}
 	
@@ -49,10 +49,10 @@ public class QPGTest {
 		
 		final VcfHeaderQPG qpg = new VcfHeaderQPG(order, tool, ver, cl);
 		assertEquals(order, qpg.getOrder());
-		assertEquals(tool, qpg.getSource());
+		assertEquals(tool, qpg.getTool());
 		assertEquals(ver, qpg.getVersion());
 		System.out.println("date: " + qpg.getISODate());
-		assertEquals(cl, qpg.getDescription());
+		assertEquals(cl, qpg.getCommandLine());
 	}
 	
 	@Test
@@ -86,12 +86,12 @@ public class QPGTest {
 	
 	@Test
 	public void doesToStringWork() {
-	    String line = "##qPG=<ID=1,Source=qannotate,Version=0.01,DATE=20140106,Description=\"/opt/local/q3/bin/qannotate mode=snpEff ...\">";
+	    String line = "##qPG=<ID=1,Source=qannotate,Version=0.01,DATE=20140106,CL=\"/opt/local/q3/bin/qannotate mode=snpEff ...\">";
 		final VcfHeaderQPG qpg = new VcfHeaderQPG(line);
 		
-		//different order
-		line = "##qPG=<ID=1,Description=\"/opt/local/q3/bin/qannotate mode=snpEff ...\",Source=qannotate,Version=0.01,DATE=20140106>";
-		assertEquals(line + "\n", qpg.toString());
+		//different order, can't convert Source to Tool
+		line = "##qPG=<ID=1,Tool=null,Version=0.01,Date=20140106,CL=\"/opt/local/q3/bin/qannotate mode=snpEff ...\">";
+		assertEquals(line, qpg.toString());
 	}
 	
 	@Test

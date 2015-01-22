@@ -38,17 +38,17 @@ public class VcfHeaderUtilsTest {
 		VcfHeaderUtils.addQPGLineToHeader(header, tool, version, cl);
 		assertEquals(1, header.getqPGLines().size());
 		assertEquals(1, header.getqPGLines().get(0).getOrder());
-		assertEquals(tool, header.getqPGLines().get(0).getSource());
+		assertEquals(tool, header.getqPGLines().get(0).getTool());
 		assertEquals(version, header.getqPGLines().get(0).getVersion());
-		assertEquals(cl, header.getqPGLines().get(0).getDescription());
+		assertEquals(cl, header.getqPGLines().get(0).getCommandLine());
 		
 		VcfHeaderUtils.addQPGLineToHeader(header, tool, version, cl);
 		assertEquals(2, header.getqPGLines().size());
 		assertEquals(2, header.getqPGLines().get(0).getOrder());
 		assertEquals(1, header.getqPGLines().get(1).getOrder());
-		assertEquals(tool, header.getqPGLines().get(0).getSource());
+		assertEquals(tool, header.getqPGLines().get(0).getTool());
 		assertEquals(version, header.getqPGLines().get(0).getVersion());
-		assertEquals(cl, header.getqPGLines().get(0).getDescription());
+		assertEquals(cl, header.getqPGLines().get(0).getCommandLine());
 		
 		
 		VcfHeaderUtils.addQPGLineToHeader(header, tool, version, cl);

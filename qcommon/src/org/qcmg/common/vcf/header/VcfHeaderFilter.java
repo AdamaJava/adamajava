@@ -21,6 +21,7 @@ public final class  VcfHeaderFilter extends VcfHeaderRecord{
 			 parseLine(line);
 		else throw new IllegalArgumentException("Can't create VcfHeaderFilter - line provided is not an FILTER definition: '" + line + "'");
 		
+		
 		record = this;
 	}
 	
@@ -29,20 +30,16 @@ public final class  VcfHeaderFilter extends VcfHeaderRecord{
 		 this.id = id;
 		 this.description = description;
 		 type = MetaType.FILTER;
-		 line = type.toString() +  "<ID=" + id//
-	 				+ ",Description=\"" + description + "\"" + ">" ;
-		 
+		 line = toString();		 
 		 record = this;
 	}
 	
 	@Override
 	public String toString() {
-		if (line != Constants.NULL_STRING) 
-			return (line.endsWith(Constants.NL_STRING))? line : line + Constants.NL  ;
-  
+ 
 		return  type.toString() +  "=<ID=" + id//
  				+ ",Description=\"" + description + "\"" //
-				+ ">" +Constants.NL;
+				+ ">";
 	 
 	}
 }
