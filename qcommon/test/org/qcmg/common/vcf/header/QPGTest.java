@@ -40,6 +40,16 @@ public class QPGTest {
 		
 	}
 	
+	@Test (expected=NumberFormatException.class)
+	public void ExceptionTest() {
+		
+		final String line = "##qPG=<ORDER=1,TOOL=qsnp,TVER=2.0 (439),DATE=2015-01-21 07:59:42,CL=qsnp -i /mnt/seq_results/melanoma/MELA_0188/variants/qSNP/c55237e9_23e8_4825_8610_ec69624d4273/MELA_0188.ini -log /mnt/seq_results/melanoma/MELA_0188/variants/qSNP/c55237e9_23e8_4825_8610_ec69624d4273/qsnp_cs.log>";
+		
+		final VcfHeaderQPG qpg = new VcfHeaderQPG(line);
+ 
+		
+	}	
+	
 	@Test
 	public void exampleCtorMultiArg() {
 		final int order = 12345;
