@@ -148,7 +148,7 @@ public class SAMUtils {
 		
 		Accumulator acc = new Accumulator(position);
 		
-		long counter = 0;
+		int counter = 0;
 		for (SAMRecord sam : sams) {
 			counter++;
 			int positionInReadString = getIndexInReadFromPosition(sam, position);

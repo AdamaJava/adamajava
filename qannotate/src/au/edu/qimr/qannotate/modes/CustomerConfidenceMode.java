@@ -79,7 +79,7 @@ public class CustomerConfidenceMode extends AbstractMode{
 			final int total =  VcfUtils.getAltFrequency(new VcfFormatFieldRecord(re.getFormatFields().get(0) ,  allel), null );
 			if( total <  min_read_counts) continue;
 			
-			final int mutants = Integer.parseInt( infoRecord.getfield(VcfHeaderUtils.FORMAT_MUTANT_READS));			  
+			final int mutants = Integer.parseInt( infoRecord.getField(VcfHeaderUtils.FORMAT_MUTANT_READS));			  
 			if( ((100 * mutants) / total) < variants_rate  ) continue;
 							 
 			infoRecord.setfield(VcfHeaderUtils.INFO_CONFIDENT, null);

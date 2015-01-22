@@ -71,7 +71,7 @@ public class DbsnpMode extends AbstractMode{
 			
 				// vcf dbSNP record chromosome does not contain "chr", whereas the positionRecordMap does - add
 				final VcfInfoFieldRecord info = new VcfInfoFieldRecord(dbSNPVcf.getInfo());	
-				final int start = Integer.parseInt(info.getfield("RSPOS"));
+				final int start = Integer.parseInt(info.getField("RSPOS"));
 				final int end =  dbSNPVcf.getRef().length() +  dbSNPVcf.getPosition() -1;		
 				final VcfRecord inputVcf = positionRecordMap.get(new ChrPosition("chr" + dbSNPVcf. getChromosome(), start, end ));	
 				if (null == inputVcf) continue;
@@ -119,8 +119,8 @@ public class DbsnpMode extends AbstractMode{
 	
 	private String getCAF(String info) throws Exception{
 
-		final String gmaf =  new VcfInfoFieldRecord(info).getfield(VcfHeaderUtils.INFO_GMAF);
-		final String caf =  new VcfInfoFieldRecord(info).getfield(VcfHeaderUtils.INFO_CAF);
+		final String gmaf =  new VcfInfoFieldRecord(info).getField(VcfHeaderUtils.INFO_GMAF);
+		final String caf =  new VcfInfoFieldRecord(info).getField(VcfHeaderUtils.INFO_CAF);
 		 
 		if(gmaf != null) return StringUtils.addToString(VcfHeaderUtils.INFO_GMAF, gmaf, EQ);
 		if(caf != null) return StringUtils.addToString(VcfHeaderUtils.INFO_CAF, caf, EQ);

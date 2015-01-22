@@ -3,6 +3,9 @@ package org.qcmg.snp;
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -52,6 +55,25 @@ public class PipelineTest {
 	}
 	
 	@Test
+	public void accumulateReadBases() {
+		final Pipeline pipeline = new TestPipeline();
+		
+		Map<Long, StringBuilder>readSeqMap = new HashMap<>();
+		Accumulator acc = new Accumulator(100);
+		acc.addBase((byte)'C', (byte)30, true, 100, 100, 200, 1);
+		
+		pipeline.accumulateReadBases(acc, readSeqMap, 100);
+		
+		assertEquals(1, readSeqMap.size());
+		
+		Accumulator acc2 = new Accumulator(101);
+		acc2.addBase((byte)'C', (byte)30, true, 101, 101, 200, 1);
+		
+		pipeline.accumulateReadBases(acc2, readSeqMap, 101);
+//		assertEquals(2, readSeqMap.size());
+	}
+	
+	@Test
 	public void compoundSnp() throws Exception {
 		final Pipeline pipeline = new TestPipeline();
 		final QSnpRecord snp = new QSnpRecord("chr1", 100, "A");
@@ -72,8 +94,8 @@ public class PipelineTest {
 		final Accumulator tumour101 = new Accumulator(101);
 		tumour101.addBase((byte)'G', (byte)30, true, 101, 101, 200, 1);
 		
-		pipeline.accumulators.put(new ChrPosition("chr1", 100), new Pair<Accumulator, Accumulator>(null, tumour100));
-		pipeline.accumulators.put(new ChrPosition("chr1", 101), new Pair<Accumulator, Accumulator>(null, tumour101));
+		pipeline.adjacentAccumulators.put(new ChrPosition("chr1", 100), new Pair<Accumulator, Accumulator>(null, tumour100));
+		pipeline.adjacentAccumulators.put(new ChrPosition("chr1", 101), new Pair<Accumulator, Accumulator>(null, tumour101));
 		pipeline.compoundSnps();
 		
 		assertEquals(0, pipeline.compoundSnps.size());
@@ -85,9 +107,100 @@ public class PipelineTest {
 		tumour101.addBase((byte)'G', (byte)30, true, 101, 101, 200, 3);
 		tumour100.addBase((byte)'C', (byte)30, true, 100, 100, 200, 4);
 		tumour101.addBase((byte)'G', (byte)30, true, 101, 101, 200, 4);
+		pipeline.adjacentAccumulators.put(new ChrPosition("chr1", 100), new Pair<Accumulator, Accumulator>(null, tumour100));
+		pipeline.adjacentAccumulators.put(new ChrPosition("chr1", 101), new Pair<Accumulator, Accumulator>(null, tumour101));
 		pipeline.compoundSnps();
 		
 		assertEquals(1, pipeline.compoundSnps.size());
+		VcfRecord vcf = pipeline.compoundSnps.get(new ChrPosition("chr1", 100, 101));
+		
+		List<String> ff = vcf.getFormatFields();
+		assertEquals("CG,4,0", ff.get(2));	// tumour
+	}
+	
+	@Test
+	public void compoundSnpWithOverlappingReads() {
+		final Pipeline pipeline = new TestPipeline();
+		final QSnpRecord snp = new QSnpRecord("chr1", 100, "A");
+		snp.setMutation("A>C");
+		snp.setClassification(Classification.SOMATIC);
+		assertEquals(null, snp.getAnnotation());
+		
+		final QSnpRecord snp2 = new QSnpRecord("chr1", 101, "C");
+		snp2.setMutation("C>G");
+		snp2.setClassification(Classification.SOMATIC);
+		assertEquals(null, snp.getAnnotation());
+		
+		pipeline.positionRecordMap.put(new ChrPosition("chr1", 100), snp);
+		pipeline.positionRecordMap.put(new ChrPosition("chr1", 101), snp2);
+		
+		final Accumulator tumour100 = new Accumulator(100);
+		tumour100.addBase((byte)'C', (byte)30, true, 100, 100, 200, 1);
+		final Accumulator tumour101 = new Accumulator(101);
+		tumour101.addBase((byte)'G', (byte)30, true, 101, 101, 200, 1);
+		
+		pipeline.adjacentAccumulators.put(new ChrPosition("chr1", 100), new Pair<Accumulator, Accumulator>(null, tumour100));
+		pipeline.adjacentAccumulators.put(new ChrPosition("chr1", 101), new Pair<Accumulator, Accumulator>(null, tumour101));
+		
+		// need 4 reads with the cs to register
+		tumour100.addBase((byte)'C', (byte)30, true, 100, 100, 200, 2);
+		tumour101.addBase((byte)'G', (byte)30, true, 101, 101, 200, 2);
+		tumour100.addBase((byte)'C', (byte)30, true, 100, 100, 200, 3);
+		tumour101.addBase((byte)'G', (byte)30, true, 101, 101, 200, 3);
+		tumour100.addBase((byte)'C', (byte)30, true, 100, 100, 200, 4);
+		tumour101.addBase((byte)'G', (byte)30, true, 101, 101, 200, 4);
+		tumour101.addBase((byte)'G', (byte)30, true, 101, 101, 200, 5);
+
+		pipeline.compoundSnps();
+		
+		assertEquals(1, pipeline.compoundSnps.size());
+		VcfRecord vcf = pipeline.compoundSnps.get(new ChrPosition("chr1", 100, 101));
+		
+		List<String> ff = vcf.getFormatFields();
+		assertEquals("CG,4,0,_G,1,0", ff.get(2));	// tumour
+	}
+	
+	@Test
+	public void compoundSnpWithOverlappingReadsOtherEnd() {
+		final Pipeline pipeline = new TestPipeline();
+		final QSnpRecord snp = new QSnpRecord("chr1", 100, "A");
+		snp.setMutation("A>C");
+		snp.setClassification(Classification.SOMATIC);
+		assertEquals(null, snp.getAnnotation());
+		
+		final QSnpRecord snp2 = new QSnpRecord("chr1", 101, "C");
+		snp2.setMutation("C>G");
+		snp2.setClassification(Classification.SOMATIC);
+		assertEquals(null, snp.getAnnotation());
+		
+		pipeline.positionRecordMap.put(new ChrPosition("chr1", 100), snp);
+		pipeline.positionRecordMap.put(new ChrPosition("chr1", 101), snp2);
+		
+		final Accumulator tumour100 = new Accumulator(100);
+		tumour100.addBase((byte)'C', (byte)30, true, 100, 100, 200, 1);
+		final Accumulator tumour101 = new Accumulator(101);
+		tumour101.addBase((byte)'G', (byte)30, true, 101, 101, 200, 1);
+		
+		pipeline.adjacentAccumulators.put(new ChrPosition("chr1", 100), new Pair<Accumulator, Accumulator>(null, tumour100));
+		pipeline.adjacentAccumulators.put(new ChrPosition("chr1", 101), new Pair<Accumulator, Accumulator>(null, tumour101));
+		
+		// need 4 reads with the cs to register
+		tumour100.addBase((byte)'C', (byte)30, true, 100, 100, 200, 2);
+		tumour101.addBase((byte)'G', (byte)30, true, 101, 101, 200, 2);
+		tumour100.addBase((byte)'C', (byte)30, true, 100, 100, 200, 3);
+		tumour101.addBase((byte)'G', (byte)30, true, 101, 101, 200, 3);
+		tumour100.addBase((byte)'C', (byte)30, true, 100, 100, 200, 4);
+		tumour101.addBase((byte)'G', (byte)30, true, 101, 101, 200, 4);
+		tumour100.addBase((byte)'C', (byte)30, true, 100, 100, 200, 5);
+		
+		pipeline.compoundSnps();
+		
+		assertEquals(1, pipeline.compoundSnps.size());
+		VcfRecord vcf = pipeline.compoundSnps.get(new ChrPosition("chr1", 100, 101));
+		
+		List<String> ff = vcf.getFormatFields();
+		assertEquals("CG,4,0,C_,1,0", ff.get(2));	// tumour
+		
 	}
 	
 	@Test
@@ -122,9 +235,9 @@ public class PipelineTest {
 		tumour101.addBase((byte)'G', (byte)30, true, 101, 101, 200, 2);
 		tumour101.addBase((byte)'G', (byte)30, true, 101, 101, 200, 3);
 		
-		pipeline.accumulators.put(new ChrPosition("chr1", 98), new Pair<Accumulator, Accumulator>(null, tumour98));
-		pipeline.accumulators.put(new ChrPosition("chr1", 100), new Pair<Accumulator, Accumulator>(null, tumour100));
-		pipeline.accumulators.put(new ChrPosition("chr1", 101), new Pair<Accumulator, Accumulator>(null, tumour101));
+		pipeline.adjacentAccumulators.put(new ChrPosition("chr1", 98), new Pair<Accumulator, Accumulator>(null, tumour98));
+		pipeline.adjacentAccumulators.put(new ChrPosition("chr1", 100), new Pair<Accumulator, Accumulator>(null, tumour100));
+		pipeline.adjacentAccumulators.put(new ChrPosition("chr1", 101), new Pair<Accumulator, Accumulator>(null, tumour101));
 		pipeline.compoundSnps();
 		
 		assertEquals(0, pipeline.compoundSnps.size());
@@ -134,11 +247,17 @@ public class PipelineTest {
 		tumour100.addBase((byte)'C', (byte)30, true, 100, 100, 200, 6);
 		tumour101.addBase((byte)'G', (byte)30, true, 101, 101, 200, 5);
 		tumour101.addBase((byte)'G', (byte)30, true, 101, 101, 200, 6);
+		pipeline.adjacentAccumulators.put(new ChrPosition("chr1", 98), new Pair<Accumulator, Accumulator>(null, tumour98));
+		pipeline.adjacentAccumulators.put(new ChrPosition("chr1", 100), new Pair<Accumulator, Accumulator>(null, tumour100));
+		pipeline.adjacentAccumulators.put(new ChrPosition("chr1", 101), new Pair<Accumulator, Accumulator>(null, tumour101));
 		pipeline.compoundSnps();
 		assertEquals(0, pipeline.compoundSnps.size());
 		
 		tumour100.addBase((byte)'C', (byte)30, true, 100, 100, 200, 7);
 		tumour101.addBase((byte)'G', (byte)30, true, 101, 101, 200, 7);
+		pipeline.adjacentAccumulators.put(new ChrPosition("chr1", 98), new Pair<Accumulator, Accumulator>(null, tumour98));
+		pipeline.adjacentAccumulators.put(new ChrPosition("chr1", 100), new Pair<Accumulator, Accumulator>(null, tumour100));
+		pipeline.adjacentAccumulators.put(new ChrPosition("chr1", 101), new Pair<Accumulator, Accumulator>(null, tumour101));
 		pipeline.compoundSnps();
 		assertEquals(1, pipeline.compoundSnps.size());
 	}
@@ -346,6 +465,9 @@ public class PipelineTest {
 		
 		vcf.setFormatFields(null);
 		vcf = pipeline.convertQSnpToVCF(snp);
+		
+		assertEquals(3, vcf.getFormatFields().size());
+		
 		assertEquals(VcfHeaderUtils.FORMAT_GENOTYPE + C + VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS + C + VcfHeaderUtils.FORMAT_ALLELE_COUNT + C + 
 				VcfHeaderUtils.FORMAT_MUTANT_READS + C + VcfHeaderUtils.FORMAT_NOVEL_STARTS, vcf.getFormatFields().get(0));
 		assertEquals("0/0:A/A:" + normalNucleotides.replace(":", "") + C + "1:0", vcf.getFormatFields().get(1));
@@ -393,7 +515,10 @@ public class PipelineTest {
 		vcf = pipeline.convertQSnpToVCF(snp);
 		assertEquals(Constants.MISSING_DATA_STRING, vcf.getInfo());
 		
-		vcf = pipeline.convertQSnpToVCF(snp);
+//		vcf = pipeline.convertQSnpToVCF(snp);
+		
+		assertEquals(3, vcf.getFormatFields().size());
+		
 		assertEquals(VcfHeaderUtils.FORMAT_GENOTYPE + C + VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS + C + VcfHeaderUtils.FORMAT_ALLELE_COUNT + C + 
 				VcfHeaderUtils.FORMAT_MUTANT_READS + C + VcfHeaderUtils.FORMAT_NOVEL_STARTS, vcf.getFormatFields().get(0));
 		assertEquals("0/1:A/G:" + normalNucleotides.replace(":", "") + C + "15:7", vcf.getFormatFields().get(1));

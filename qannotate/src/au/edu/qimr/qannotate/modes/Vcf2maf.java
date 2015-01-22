@@ -109,13 +109,13 @@ public class Vcf2maf extends AbstractMode{
 		maf.setColumnValue(14,  vcf.getId());
 
 		final VcfInfoFieldRecord info =  new VcfInfoFieldRecord(vcf.getInfo());
-		if(info.getfield(VcfHeaderUtils.FORMAT_NOVEL_STARTS) != null) maf.setColumnValue(40,  info.getfield(VcfHeaderUtils.FORMAT_NOVEL_STARTS));
-		if(info.getfield(VcfHeaderUtils.INFO_CONFIDENT) != null)	maf.setColumnValue(38,  info.getfield(VcfHeaderUtils.INFO_CONFIDENT) );
-		if(info.getfield(VcfHeaderUtils.INFO_FS) != null) maf.setColumnValue(41,  info.getfield(VcfHeaderUtils.INFO_FS));
-		if(info.getfield(VcfHeaderUtils.INFO_GMAF) != null) maf.setColumnValue(42,  info.getfield(VcfHeaderUtils.INFO_GMAF));
+		if(info.getField(VcfHeaderUtils.FORMAT_NOVEL_STARTS) != null) maf.setColumnValue(40,  info.getField(VcfHeaderUtils.FORMAT_NOVEL_STARTS));
+		if(info.getField(VcfHeaderUtils.INFO_CONFIDENT) != null)	maf.setColumnValue(38,  info.getField(VcfHeaderUtils.INFO_CONFIDENT) );
+		if(info.getField(VcfHeaderUtils.INFO_FS) != null) maf.setColumnValue(41,  info.getField(VcfHeaderUtils.INFO_FS));
+		if(info.getField(VcfHeaderUtils.INFO_GMAF) != null) maf.setColumnValue(42,  info.getField(VcfHeaderUtils.INFO_GMAF));
 
 		String eff; 
-		if( (eff = info.getfield(VcfHeaderUtils.INFO_EFFECT)) != null)
+		if( (eff = info.getField(VcfHeaderUtils.INFO_EFFECT)) != null)
 			getSnpEffAnnotation( maf, eff);
 
 		
@@ -232,7 +232,7 @@ public class Vcf2maf extends AbstractMode{
 		
 		final VcfInfoFieldRecord info =  new VcfInfoFieldRecord(vcf.getInfo());
 		try{
-			final String[] effs = info.getfield(VcfHeaderUtils.INFO_EFFECT).split(",");
+			final String[] effs = info.getField(VcfHeaderUtils.INFO_EFFECT).split(",");
 			for(final String str : effs){
 				final String[] eles = str.replace("(", " ").replace("|", " ").split(" ");
 				if(effRanking.containsKey(eles[0])  && !effRanking.get(eles[0]).contains(eles[1]))
