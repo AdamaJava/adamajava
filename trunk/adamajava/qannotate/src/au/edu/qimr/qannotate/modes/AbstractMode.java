@@ -44,9 +44,9 @@ public abstract class AbstractMode {
         	
         	//no chr in front of position
 			for (final VcfRecord qpr : reader) 
-				positionRecordMap.put(new ChrPosition(qpr.getChromosome(), qpr.getPosition(), qpr.getPosition() + qpr.getRef().length() - 1 ), qpr);
-			
-		}  
+				positionRecordMap.put(new ChrPosition(qpr.getChromosome(), qpr.getPosition(), qpr.getPosition() + qpr.getRef().length() - 1 ), qpr);	
+		} 
+        
         
 	}
 
@@ -71,22 +71,27 @@ public abstract class AbstractMode {
 	}
 	
 	protected void reheader(String cmd, String inputVcfName) throws Exception{	
-
+//		System.out.println("package: " + Main.class.getPackage());
 		final String version = Main.class.getPackage().getImplementationVersion();
-		final String pg = Messages.getProgramName();
+		final String pg = Main.class.getPackage().getImplementationTitle();
 		final String fileDate = df.format(Calendar.getInstance().getTime());
 		final String uuid = QExec.createUUid();
 
 		//move input uuid into preuuid
 		header.replace(new VcfHeaderRecord(VcfHeaderUtils.STANDARD_INPUT_LINE + "=" + inputUuid + ":"+ inputVcfName) );
-		header.add( new VcfHeaderRecord( MetaType.OTHER.toString() + cmd));
+//		header.add( new VcfHeaderRecord( MetaType.OTHER.toString() + cmd));
 		
 		header.updateHeader( new VcfHeaderRecord(VcfHeaderUtils.CURRENT_FILE_VERSION),
 				new VcfHeaderRecord(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + fileDate ),
 				new VcfHeaderRecord(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + uuid ),
 				new VcfHeaderRecord(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=" + pg+"-"+version) );
 		
-		 VcfHeaderUtils.addQPGLineToHeader(header, pg, version, cmd);
+		// VcfHeaderUtils.addQPGLineToHeader(header, pg, version, cmd);
+		
+		//for eclipse run only
+		VcfHeaderUtils.addQPGLineToHeader(header, "qanno", "01", cmd);
+		
+		
 
 	}	
 }

@@ -95,7 +95,7 @@ public class VcfInfoFieldRecord {
 	
 	public void removeField(String key){
 		int index = line.indexOf(key);
-		if (index > -1) {
+				if (index > -1) {
 		
 			int scIndex = line.indexOf(Constants.SEMI_COLON_STRING, index);
 			String kv = line.substring(index, (scIndex == -1 ? line.length() : scIndex) );
@@ -116,11 +116,35 @@ public class VcfInfoFieldRecord {
 			line.delete(index - scOffset, (index + kv.length() + endScOffset));
 		
 		}
-//		field.remove(key);
+		
+/* mine
+		final Iterator<String> it = field.keySet().iterator();
+		while(it.hasNext()){
+			final String key = it.next();
+			if(key.equals(Constants.MISSING_DATA_STRING)) //remove "." key
+				continue;
+			if( ! Constants.EMPTY_STRING.equals(str)) {
+				str +=  Constants.SEMI_COLON;
+		}
+ 	field.remove(key);
+ */
 	}
-	
+	/**
+	 * re-orginize info column string
+	 */
 	@Override
 	public String toString(){
+		 
+		int index = line.indexOf(Constants.MISSING_DATA_STRING + Constants.SEMI_COLON); 
+		if(index < 0)	 
+			index =  line.indexOf( Constants.SEMI_COLON  + Constants.MISSING_DATA_STRING);
+		
+		if(index >= 0)
+			line.delete(index, index+2);
+		
+		if(line.length() == 0)
+			return Constants.MISSING_DATA_STRING;
+		
 		return line.toString();
 //		String str = Constants.EMPTY_STRING;
 //		

@@ -23,6 +23,8 @@ public class VcfHeaderUtils {
 			+ "set to ZERO for remaining mutations";
 	
 	public static final String DESCRITPION_FORMAT_COMPOUND_SNP_ALLELE_COUNT = "Allele Count Compound Snp: lists read sequence and count (forward strand, reverse strand) ";
+	public static final String DESCRITPION_INFO_DB = "dbSNP Membership";
+	
 	
 	//FILTER FIELDS
 	public static final String FILTER_PASS = "PASS";
@@ -52,7 +54,9 @@ public class VcfHeaderUtils {
 	public static final String INFO_CONFIDENT = "CONF";
 	public static final String INFO_GMAF = "GMAF";
 	public static final String INFO_CAF = "CAF";
-
+	public static final String INFO_DB = "DB";
+	public static final String INFO_VLD = "VLD";
+	
 	public static final String INFO_FS = "FS";
 	public static final String INFO_FILLCOV =  "FULLCOV";
 	

@@ -16,6 +16,7 @@ import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderRecord.MetaType;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
+import org.qcmg.common.util.Constants;
 
 import au.edu.qimr.qannotate.options.DbsnpOptions;
 
@@ -49,6 +50,7 @@ public class DbsnpMode extends AbstractMode{
  	    while (it.hasNext()) {
 	        final VcfRecord vcf = it.next();
 	        vcf.setId(".");
+	        vcf.getInfoRecord().removeField(VcfHeaderUtils.INFO_DB);
  	    }
 		 				 
 		try(VCFFileReader reader= new VCFFileReader( dbSNPFile )) {
@@ -56,7 +58,10 @@ public class DbsnpMode extends AbstractMode{
 			final VcfHeader snpHeader = reader.getHeader();
 			for (final VcfHeaderRecord hr : snpHeader) 
 				if(hr.getMetaType().equals(MetaType.META) &&  hr.getId().equalsIgnoreCase(VcfHeaderUtils.STANDARD_DBSNP_LINE)) 
-					header.replace(hr);  					 				
+				//if( hr.getMetaType().equals(MetaType.INFO) && hr.getId().equalsIgnoreCase(VcfHeaderUtils.INFO_DB) ) 
+					header.replace(new VcfHeaderRecord(
+							String.format("##INFO=<ID=%s,Number=0,Type=%s,Description=\"%s\",Source=%s,Version=%s>",
+									VcfHeaderUtils.INFO_DB, VcfHeaderRecord.VcfInfoType.Flag.name(),VcfHeaderUtils.DESCRITPION_INFO_DB, dbSNPFile, hr.getDescription())));  					 				
 				else if( hr.getMetaType().equals(MetaType.INFO) && hr.getId().equalsIgnoreCase(VcfHeaderUtils.INFO_GMAF) ) 
 					header.replace(hr);				 
 				 else if( hr.getMetaType().equals(MetaType.INFO) && hr.getId().equalsIgnoreCase(VcfHeaderUtils.INFO_CAF) ) 
@@ -75,16 +80,6 @@ public class DbsnpMode extends AbstractMode{
 				final int end =  dbSNPVcf.getRef().length() +  dbSNPVcf.getPosition() -1;		
 				final VcfRecord inputVcf = positionRecordMap.get(new ChrPosition("chr" + dbSNPVcf. getChromosome(), start, end ));	
 				if (null == inputVcf) continue;
-			
-				//debug untill find vcf inside
-				
-				/*VcfRecord inputVcf = null;
-				while(inputVcf == null && end >= start){
-					inputVcf = positionRecordMap.get(new ChrPosition("chr" + dbSNPVcf. getChromosome(), start, end ));
-					end --;
-				}
-				end ++;
-				if (null == inputVcf) continue;*/
 				
 				//reference base must be same
 				final String dbRef = dbSNPVcf.getRef().substring(start - dbSNPVcf.getPosition());
@@ -104,31 +99,49 @@ public class DbsnpMode extends AbstractMode{
 					alts = new String[] {dbSNPVcf.getAlt()};		//single allel	
 				}
 				
-				for (final String alt : alts)  
+				int altOrder = 0;
+				for (final String alt : alts){  
+					altOrder ++;
 					//if(dbSNPVcf.getAlt().toUpperCase().contains(alt.toUpperCase()) ){
  					if(inputVcf.getAlt().equalsIgnoreCase(alt.substring(start-dbSNPVcf.getPosition())  )  ){
-						inputVcf.appendInfo(getCAF(dbSNPVcf.getInfo()));
+						inputVcf.appendInfo(getCAF(dbSNPVcf.getInfo(), altOrder));
 						inputVcf.setId(dbSNPVcf.getId());	
+						inputVcf.appendInfo(VcfHeaderUtils.INFO_DB);
+						if(dbSNPVcf.getInfoRecord().getField(VcfHeaderUtils.INFO_VLD) != null)
+							inputVcf.appendInfo(VcfHeaderUtils.INFO_VLD);
 						break;
 					} 
+ 					
 				}
+			}
 		}
 	}
 	
 
 	
-	private String getCAF(String info) throws Exception{
+	private String getCAF(String info, int order) throws Exception{
 
-		final String gmaf =  new VcfInfoFieldRecord(info).getField(VcfHeaderUtils.INFO_GMAF);
+//		final String gmaf =  new VcfInfoFieldRecord(info).getfield(VcfHeaderUtils.INFO_GMAF);
 		final String caf =  new VcfInfoFieldRecord(info).getField(VcfHeaderUtils.INFO_CAF);
-		 
-		if(gmaf != null) return StringUtils.addToString(VcfHeaderUtils.INFO_GMAF, gmaf, EQ);
-		if(caf != null) return StringUtils.addToString(VcfHeaderUtils.INFO_CAF, caf, EQ);
+		if(caf != null) {
+			String[] cafs = caf.split(Constants.COMMA_STRING);
+			if(cafs.length > order)			
+				return StringUtils.addToString(VcfHeaderUtils.INFO_CAF, cafs[order], EQ);			
+		}
 		
 		return null;
 	}
 	
 }
+
+/*error
+chrY	9930004	rs74440257	C	A	35.63	NCIT	.	GT:AD:DP:GQ:PL:GD:AC:MR:NNS	1/1:0,2:2:6.02:67,6,0:A/A:A2[35],0[0]:2:2	.:.:.:.:.:.:A3[27.33],0[0]:3:3
+[christix@QIMR13479:~/Documents/Eclipse/data]$grep 9930004 output.vcf 
+chrY	9930004	rs74440257	C	A	35.63	NCIT	.;DB	GT:AD:DP:GQ:PL:GD:AC:MR:NNS	1/1:0,2:2:6.02:67,6,0:A/A:A2[35],0[0]:2:2	.:.:.:.:.:.:A3[27.33],0[0]:3:3
+
+ * 
+ * 
+ */
 
 
 	 

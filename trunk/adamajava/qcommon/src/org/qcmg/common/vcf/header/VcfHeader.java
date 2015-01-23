@@ -9,7 +9,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.qcmg.common.log.QLogger;
+import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.util.Constants;
+import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeaderRecord.MetaType;
 
 /**
@@ -21,9 +24,11 @@ import org.qcmg.common.vcf.header.VcfHeaderRecord.MetaType;
  *
  */
 
+
 public class VcfHeader implements Iterable<VcfHeaderRecord> {	
 	
 	static final String format = "FORMAT";
+	private static final QLogger logger = QLoggerFactory.getLogger(VcfHeader.class);
 	
 	//default first 4 lines as standard
 	VcfHeaderRecord version = null;
@@ -56,9 +61,13 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 	}
 
 	public VcfHeader(final List<String> headerRecords) throws Exception {
-		this();		
-		for (final String record : headerRecords) {
-			add(new VcfHeaderRecord(record));
+		this();	
+		try{
+			for (final String record : headerRecords)  
+				add(new VcfHeaderRecord(record));
+		}catch(Exception e){
+			logger.error("Exception may be caused by incorrect Vcf Header");
+			throw e;
 		}
 		
 		//in case missing header line
@@ -251,7 +260,8 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 		}
 		 
 		for (final VcfHeaderRecord record : others) {
-			records.add(record);
+			if( !record.toString().equals( "##"))
+				records.add(record);
 		}
 		
 		// add in a blank line
