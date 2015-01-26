@@ -51,7 +51,7 @@ public class AbstractModeTest {
 	       
 		DbsnpMode db = new DbsnpMode();
 		db.inputRecord(new File(inputName));
-		db.reheader("testing run",   "inputTest.vcf");
+		db.reheader("testing run",   "inputTest.vcf");  //without .jar file can't pass unit test???????
 		db.writeVCF(new File(outputName));
 		
         try(VCFFileReader reader = new VCFFileReader(new File(outputName))) {

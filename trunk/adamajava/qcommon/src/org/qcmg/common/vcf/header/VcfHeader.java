@@ -125,9 +125,9 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 		return null;	 
 	}
 	
-	public String[] getSampleId() throws Exception{
+	public String[] getSampleId() {
 		if(chromLine == null)
-			throw new Exception("missing vcf header line, eg. " + VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE);
+			throw new RuntimeException("missing vcf header line, eg. " + VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE);
 		
 		final String[] column = chromLine.toString().trim().split(Constants.TAB+"");
 		

@@ -18,6 +18,7 @@ import org.qcmg.common.vcf.header.VcfHeaderRecord.VcfInfoNumber;
 import org.qcmg.common.vcf.header.VcfHeaderRecord.VcfInfoType;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.maf.util.MafUtils;
+import org.qcmg.vcf.VCFFileReader;
 
 import au.edu.qimr.qannotate.options.ConfidenceOptions;
 
@@ -56,7 +57,12 @@ public class ConfidenceMode extends AbstractMode{
         logger.tool("logger file " + options.getLogFileName());
         logger.tool("logger level " + options.getLogLevel());
  		
-		inputRecord(new File( options.getInputFileName())   );		
+		inputRecord(new File( options.getInputFileName())   );	
+		
+		//get control and test sample column; here use the header from inputRecord(...)
+		retriveSampleColumn(options.getTestSample(), options.getControlSample(), null );
+
+
 		//if(options.getpatientid == null)
 		patientId = DonorUtils.getDonorFromFilename(options.getInputFileName());		
 		addAnnotation( options.getDatabaseFileName() );
@@ -138,7 +144,7 @@ public class ConfidenceMode extends AbstractMode{
 	private int getAltFrequency(VcfRecord vcf){
 		 final String info =  vcf.getInfo();
 //		 final String allel = (info.contains(VcfHeaderUtils.INFO_SOMATIC)) ? vcf.getFormatFields().get(2) :  vcf.getFormatFields().get(1); 		 
-		 final VcfFormatFieldRecord re = (info.contains(VcfHeaderUtils.INFO_SOMATIC)) ? vcf.getSampleFormatRecord(2) :  vcf.getSampleFormatRecord(1);
+		 final VcfFormatFieldRecord re = (info.contains(VcfHeaderUtils.INFO_SOMATIC)) ? vcf.getSampleFormatRecord(test_column) :  vcf.getSampleFormatRecord(control_column);
 				 
 		//		 new VcfFormatFieldRecord(vcf.getFormatFields().get(0) ,  allel);		 
 		 
@@ -147,7 +153,7 @@ public class ConfidenceMode extends AbstractMode{
  
 	 private boolean   checkNovelStarts(int score, VcfRecord vcf ) {
 		 
-		 final VcfFormatFieldRecord re = (vcf.getInfo().contains(VcfHeaderUtils.INFO_SOMATIC)) ? vcf.getSampleFormatRecord(2) :  vcf.getSampleFormatRecord(1);
+		 final VcfFormatFieldRecord re = (vcf.getInfo().contains(VcfHeaderUtils.INFO_SOMATIC)) ? vcf.getSampleFormatRecord(test_column) :  vcf.getSampleFormatRecord(control_column);
 		 try{			 
 			 if(   Integer.parseInt(  re.getField( VcfHeaderUtils.FORMAT_NOVEL_STARTS  )  ) >= score ) 
 				 return true;

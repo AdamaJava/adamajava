@@ -403,19 +403,19 @@ public abstract class Pipeline {
 		header.add( new VcfHeaderRecord(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + QExec.createUUid() ));
 		header.add( new VcfHeaderRecord(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=" + source ) );
 		
-		header.add( new VcfHeaderRecord("##qPatientId=" + patientId ));
-		header.add( new VcfHeaderRecord("##qControlSample=" + normalSampleId ));
-		header.add( new VcfHeaderRecord("##qTestSample=" + tumourSampleId ));
+		header.add( new VcfHeaderRecord(VcfHeaderUtils.STANDARD_PATIENTID   +  "=" + patientId ));
+		header.add( new VcfHeaderRecord(VcfHeaderUtils.STANDARD_CONTROLSAMPLE + "=" + normalSampleId ));
+		header.add( new VcfHeaderRecord(VcfHeaderUtils.STANDARD_TESTSAMPLE + "=" + tumourSampleId ));
 		
 		if (null != normalBamIds)  
 			for (final QBamId s : normalBamIds) {
-				header.add( new VcfHeaderRecord("##qControlBam=" + s.getBamName()));
+				header.add( new VcfHeaderRecord(VcfHeaderUtils.STANDARD_CONTROLBAM  + "=" + s.getBamName()));
 				header.add( new VcfHeaderRecord("##qControlBamUUID=" + s.getUUID()));
  			}
 
 		if (null != tumourBamIds)  
 			for (final QBamId s : tumourBamIds) {
-				header.add( new VcfHeaderRecord("##qTestBam=" + s.getBamName()));
+				header.add( new VcfHeaderRecord(VcfHeaderUtils.STANDARD_TESTBAM  + "=" + s.getBamName()));
 				header.add( new VcfHeaderRecord("##qTestBamUUID=" + s.getUUID()));
 			}		
 		header.add( new VcfHeaderRecord( "##qAnalysisId=" + uuid ) );

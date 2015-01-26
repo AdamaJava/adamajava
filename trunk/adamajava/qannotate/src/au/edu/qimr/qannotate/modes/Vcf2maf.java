@@ -15,6 +15,7 @@ import org.qcmg.common.vcf.VcfFormatFieldRecord;
 import org.qcmg.common.vcf.VcfInfoFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
+import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 
@@ -29,25 +30,19 @@ public class Vcf2maf extends AbstractMode{
 	protected final  Map<String,String> effRanking = new HashMap<String,String>();	
 	private final String center;
 	private final String sequencer;
-	private final String tumourid;
-	private final String normalid;
+//	private final String tumourid;
+//	private final String normalid;
 	
 	public static String  bar = "\\|";
-	private int tumour_column = -2; //can't be -1 since will "+1"
-	private int normal_column = -2;
 	
 	// org.qcmg.common.dcc.DccConsequence.getWorstCaseConsequence(MutationType, String...)
 	
 	//for unit test
-	Vcf2maf(int tumour_column, int normal_column){
-		this.tumourid = Vcf2mafOptions.normalid_Default;
-		this.normalid = Vcf2mafOptions.tumourid_Default;
-
+	Vcf2maf(int test_column, int control_column){
+ 
 		center = SnpEffMafRecord.Unknown; 
 		sequencer = SnpEffMafRecord.Unknown; 
-		this.tumour_column = tumour_column;		 
-		this.normal_column = normal_column;
-		
+ 		
 		logger = QLoggerFactory.getLogger(Main.class, null,  null);	
 	}
 
@@ -60,12 +55,27 @@ public class Vcf2maf extends AbstractMode{
 		 
 		this.logger = logger;
 		this.center = option.getCenter();
-		this.sequencer = option.getSequencer();		this.tumourid = option.getTumourid();
-		this.normalid = option.getNormalid();
-			
+		this.sequencer = option.getSequencer();		
+		
+		
+		
 		try(VCFFileReader reader = new VCFFileReader(new File( option.getInputFileName()));
 				PrintWriter out = new PrintWriter(option.getOutputFileName())){
 			
+			//get control and test sample column
+			retriveSampleColumn(option.getTestSample(), option.getControlSample(), reader.getHeader());
+			
+			out.println(SnpEffMafRecord.getSnpEffMafHeaderline());
+	       	for (final VcfRecord vcf : reader){ 
+        		try{
+        		  out.println(converter(vcf).getMafLine());
+          		}catch(final Exception e){  	
+        			logger.warn("Error message during vcf2maf: " + e.getMessage());
+        		}
+        	}  
+		}			
+			
+/*				
 			final String[] samples = reader.getHeader().getSampleId();
 			
 			//incase both point into same column
@@ -73,7 +83,7 @@ public class Vcf2maf extends AbstractMode{
 				if(samples[i].equalsIgnoreCase(tumourid))
 					tumour_column = i + 1;
 				if(samples[i].equalsIgnoreCase(normalid))
-					normal_column = i + 1;
+					test_column = i + 1;
 			}
 			
 			
@@ -82,15 +92,8 @@ public class Vcf2maf extends AbstractMode{
 			if(normal_column <= 0  && normalid != null)
 				throw new Exception("can't find normal sample id from vcf header line: " + normalid);	 
 				
-			out.println(SnpEffMafRecord.getSnpEffMafHeaderline());
-        	for (final VcfRecord vcf : reader){ 
-        		try{
-        		  out.println(converter(vcf).getMafLine());
-          		}catch(final Exception e){  	
-        			logger.warn("Error message during vcf2maf: " + e.getMessage());
-        		}
-        	}  
-		}
+			*/
+ 
 	}
 	//Effect ( Effect_Impact | Functional_Class | Codon_Change | Amino_Acid_Change| Amino_Acid_length | Gene_Name | Transcript_BioType | Gene_Coding | Transcript_ID | Exon_Rank  | Genotype_Number [ | ERRORS | WARNINGS ] )
 	 SnpEffMafRecord converter(VcfRecord vcf) throws Exception{
@@ -122,10 +125,10 @@ public class Vcf2maf extends AbstractMode{
 		//format & sample field
 		final List<String> formats =  vcf.getFormatFields();
 //		if(   formats.size() <= Math.max(tumour_column, normal_column)  )
-		if(   formats.size() < Math.max(tumour_column, normal_column)  )	
-			throw new Exception("Missing sample column for "+ tumourid + " or " + normalid + ", in below vcf:\n"+ vcf.toString());
+		if(   formats.size() < Math.max(test_column, control_column)  )	
+			throw new Exception("Missing sample column in below vcf:\n"+ vcf.toString());
 		
-		final VcfFormatFieldRecord tumour = ( tumour_column > 0) ? new VcfFormatFieldRecord(formats.get(0), formats.get(tumour_column)) : null;
+		final VcfFormatFieldRecord tumour = ( test_column > 0) ? new VcfFormatFieldRecord(formats.get(0), formats.get(test_column)) : null;
 		
 		if(tumour != null){	
 			maf.setColumnValue(37,  tumour.toString());
@@ -140,7 +143,7 @@ public class Vcf2maf extends AbstractMode{
 		    } 	 
 		}
 
-		final VcfFormatFieldRecord normal= ( normal_column > 0) ? new VcfFormatFieldRecord(formats.get(0), formats.get(normal_column )): null;
+		final VcfFormatFieldRecord normal= ( control_column > 0) ? new VcfFormatFieldRecord(formats.get(0), formats.get(control_column )): null;
 		if(normal != null){				
 			maf.setColumnValue(36,  normal.toString());
 	    	maf.setColumnValue(46, Integer.toString( VcfUtils.getAltFrequency(normal, null)));

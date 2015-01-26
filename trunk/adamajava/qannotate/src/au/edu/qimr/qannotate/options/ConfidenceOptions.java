@@ -28,6 +28,11 @@ public class ConfidenceOptions extends Options {
         parser.accepts("mode", "run confident mode").withRequiredArg().ofType(String.class).describedAs("dbsnp");
         parser.accepts("log", LOG_DESCRIPTION).withRequiredArg().ofType(String.class);
         parser.accepts("loglevel",  LOG_LEVEL_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
+        
+        parser.accepts(test,  Messages.getMessage("TUMOUR_SAMPLEID_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("testSample");
+        parser.accepts(control, Messages.getMessage("NORMAL_SAMPLEID_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("controlSample");	        
+
+        
         final OptionSet options = parser.parse(args);   
         
         if(options.has("h") || options.has("help")){
@@ -45,6 +50,10 @@ public class ConfidenceOptions extends Options {
         }   
         
         commandLine = Messages.reconstructCommandLine(args) ;
+        
+        testSample = (options.has(test))? (String)options.valueOf(test) : null;
+        controlSample = (options.has(control))? (String)options.valueOf(control) : null;
+ 
         
         //check IO
         inputFileName = (String) options.valueOf("i") ;      	 

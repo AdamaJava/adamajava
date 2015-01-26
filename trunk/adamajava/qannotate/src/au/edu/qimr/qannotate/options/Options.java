@@ -22,7 +22,10 @@ public class Options {
     
    protected static final String LOG_DESCRIPTION = Messages.getMessage("LOG_OPTION_DESCRIPTION");
    protected static final String LOG_LEVEL_OPTION_DESCRIPTION = Messages.getMessage("LOG_LEVEL_OPTION_DESCRIPTION");
-   	
+   
+   protected static final String test = "test";
+   protected static final String control = "control";
+
     
     private final boolean commandCheck = false;
     protected String commandLine;
@@ -39,6 +42,11 @@ public class Options {
 	protected String outputFileName = null;
 	protected String inputFileName = null;
 	protected String databaseFileName = null;
+		
+	protected  String testSample = null;
+	protected  String controlSample = null;
+	
+	
     
 	protected String logFileName = null;
 	protected  String logLevel;  
@@ -215,5 +223,10 @@ public class Options {
 		parser.printHelpOn(System.err);
 		      
     }
+    
+    
+	 public String getTestSample(){  return testSample; }
+	 public String getControlSample(){  return controlSample; }
+
  
 }
