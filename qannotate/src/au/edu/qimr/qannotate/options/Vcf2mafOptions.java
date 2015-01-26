@@ -8,15 +8,12 @@ import au.edu.qimr.qannotate.Messages;
 public class Vcf2mafOptions extends Options {
 	 public Vcf2mafOptions( ) {  super(Options.MODE.vcf2maf);	  }
 	 
-	 public static final String tumourid_Default = "TEST";
-	 public static final String normalid_Default = "CONTROL";
 	 public static final String unkown = "unkown";
 	 public static final String null_String = "null";
 	 
 	 String center ; 
 	 String sequencer; 
-	 String tumourid;
-	 String normalid;
+
 	 
 	 
 	 final String  Description_sequencer = "eg.  <Illumina GAIIx, Illumina HiSeq,SOLID,454, ABI 3730xl, Ion Torrent PGM,Ion Torrent Proton,PacBio RS, Illumina MiSeq,Illumina HiSeq 2500,454 GS FLX Titanium,AB SOLiD 4 System>";
@@ -28,11 +25,10 @@ public class Vcf2mafOptions extends Options {
 	        parser.acceptsAll( asList("i", "input"), Messages.getMessage("INPUT_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("input vcf");
 	        parser.acceptsAll( asList("o", "output"),  "output maf file with full path").withRequiredArg().ofType(String.class).describedAs("output maf"); 
 	        
-	        parser.accepts("tumour",  Messages.getMessage("TUMOUR_SAMPLEID_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("tumourSample");
-	        parser.accepts("normal", Messages.getMessage("NORMAL_SAMPLEID_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("normalSample");	        
+	        parser.accepts(test,  Messages.getMessage("TUMOUR_SAMPLEID_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("testSample");
+	        parser.accepts(control, Messages.getMessage("NORMAL_SAMPLEID_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("controlSample");	        
 	        parser.accepts("center", "Genome sequencing center").withRequiredArg().ofType(String.class).describedAs("center");
-	        parser.accepts("sequencer", Description_sequencer).withRequiredArg().ofType(String.class).describedAs("Sequencer");
-	        
+	        parser.accepts("sequencer", Description_sequencer).withRequiredArg().ofType(String.class).describedAs("Sequencer");	        
 	        
 	        parser.accepts("mode", "run vcf2maf").withRequiredArg().ofType(String.class).describedAs("vcf2maf");
 	       // "(compulsary) database location"
@@ -59,16 +55,15 @@ public class Vcf2mafOptions extends Options {
 	        outputFileName = (String) options.valueOf("o") ; 
 	        
 	        center = (options.has("center"))? (String)options.valueOf("center") : unkown;
-	        sequencer = (options.has("sequencer"))? (String)options.valueOf("sequencer") : unkown;	        
-	        tumourid = (options.has("tumour"))? (String)options.valueOf("tumour") : tumourid_Default;
-	        normalid = (options.has("normal"))? (String)options.valueOf("normal") : normalid_Default;
+	        sequencer = (options.has("sequencer"))? (String)options.valueOf("sequencer") : unkown;	 
+	        
+	        testSample = (options.has(test))? (String)options.valueOf(test) : null;
+	        controlSample = (options.has(control))? (String)options.valueOf(control) : null;
 	        
   	        return true;
 	     } 
 	 
 	 public String getCenter(){  return center; }
 	 public String getSequencer(){  return sequencer; }
-	 public String getTumourid(){  return (tumourid.equalsIgnoreCase(null_String))? null:tumourid; }
-	 public String getNormalid(){  return (normalid.equalsIgnoreCase(null_String))? null:normalid; }
 	 
 }

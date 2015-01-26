@@ -22,6 +22,7 @@ import org.qcmg.vcf.VCFFileWriter;
 
 import au.edu.qimr.qannotate.Main;
 import au.edu.qimr.qannotate.Messages;
+
 import org.qcmg.common.util.Constants;
 
 public abstract class AbstractMode {
@@ -29,6 +30,10 @@ public abstract class AbstractMode {
 	protected final Map<ChrPosition,VcfRecord> positionRecordMap = new HashMap<ChrPosition,VcfRecord>();
 	protected VcfHeader header;
 	protected String inputUuid;
+	
+	protected int test_column = -2; //can't be -1 since will "+1"
+	protected int control_column = -2;
+
  	
 	protected void inputRecord(File f) throws Exception{
 		
@@ -48,6 +53,46 @@ public abstract class AbstractMode {
 		} 
         
         
+	}
+ 
+	
+	/**
+	 * 
+	 * @param testSample:   testSample column name located after "FORMAT" column
+	 * @param controlSample:  controlSample column name located after "FORMAT" column
+	 * @param header: if null, it will point to this class's header; 
+	 */
+	protected void retriveSampleColumn(String testSample, String controlSample, VcfHeader header){
+		if(header == null)
+			header = this.header;
+		
+		for(final VcfHeaderRecord hr : header)
+    		if( hr.getMetaType().equals(MetaType.META) && hr.getId().equalsIgnoreCase(VcfHeaderUtils.STANDARD_CONTROLSAMPLE)) 
+    				 testSample = (testSample == null)? hr.getDescription(): testSample; 
+    		 else if( hr.getMetaType().equals(MetaType.META) && hr.getId().equalsIgnoreCase(VcfHeaderUtils.STANDARD_TESTSAMPLE)) 
+    				 controlSample = (controlSample == null)? hr.getDescription(): controlSample;    				 
+     		 
+	    				 
+	   if(testSample == null || controlSample == null)
+		   throw new RuntimeException(" Missing qControlSample or qTestSample  from VcfHeader; please speify on command line!");
+	   
+	   final String[] samples = header.getSampleId();	
+	   
+	   
+		//incase both point into same column
+		for(int i = 0; i < samples.length; i++) 
+			if(samples[i].equalsIgnoreCase(testSample))
+				test_column = i + 1;
+			else if(samples[i].equalsIgnoreCase(controlSample))
+				control_column = i + 1;
+		
+		
+		if(test_column <= 0 )
+			throw new RuntimeException("can't find test sample id from vcf header line: " + testSample);
+		if(control_column <= 0  )
+			throw new RuntimeException("can't find normal sample id from vcf header line: " + controlSample);	  				 
+	    				 
+			 
 	}
 
 	abstract void addAnnotation(String dbfile) throws Exception;
@@ -86,10 +131,10 @@ public abstract class AbstractMode {
 				new VcfHeaderRecord(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + uuid ),
 				new VcfHeaderRecord(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=" + pg+"-"+version) );
 		
-		// VcfHeaderUtils.addQPGLineToHeader(header, pg, version, cmd);
+		 VcfHeaderUtils.addQPGLineToHeader(header, pg, version, cmd);
 		
 		//for eclipse run only
-		VcfHeaderUtils.addQPGLineToHeader(header, "qanno", "01", cmd);
+		//VcfHeaderUtils.addQPGLineToHeader(header, "qanno", "01", cmd);
 		
 		
 

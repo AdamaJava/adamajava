@@ -78,6 +78,13 @@ public class VcfHeaderUtils {
 	public static final String STANDARD_FILE_DATE = "##fileDate";
 	public static final String STANDARD_SOURCE_LINE = "##qSource";
 	public static final String STANDARD_UUID_LINE = "##qUUID";
+	public static final String STANDARD_PATIENTID = "##qPatientId";
+	public static final String STANDARD_CONTROLSAMPLE = "##qControlSample";
+	public static final String STANDARD_TESTSAMPLE = "##qTestSample";
+	public static final String STANDARD_CONTROLBAM = "##qControlBam";
+	public static final String STANDARD_TESTBAM = "##qTestBam";
+	
+  
 	public static final String PREVIOUS_UUID_LINE = "##preUuid";
 	public static final String STANDARD_DBSNP_LINE = "##dbSNP_BUILD_ID";
 	public static final String STANDARD_INPUT_LINE = "##INPUT";
@@ -100,13 +107,13 @@ public class VcfHeaderUtils {
 		if (null == header) {
 			throw new IllegalArgumentException("null vcf header object passed to VcfHeaderUtils.addQPGLineToHeader");
 		}
-		if (StringUtils.isNullOrEmpty(tool) 
+/*		if (StringUtils.isNullOrEmpty(tool) 
 				|| StringUtils.isNullOrEmpty(version)
 				|| StringUtils.isNullOrEmpty(commandLine) ) {
 			
 			throw new IllegalArgumentException("null or empty tool, version and/or command line values passed to VcfHeaderUtils.addQPGLineToHeader, tool: " + tool + ", version: " + version + ", cl: " + commandLine);
 		}
-		
+*/		
 		int currentLargestOrder = 0;
 		final List<VcfHeaderQPG> currentQPGLines = header.getqPGLines();
 		if ( ! currentQPGLines.isEmpty()) {

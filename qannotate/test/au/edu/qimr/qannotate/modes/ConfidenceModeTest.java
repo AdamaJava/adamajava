@@ -44,6 +44,14 @@ public class ConfidenceModeTest {
 		 
 	 }
 	
+	 
+	 //??add here to test checkNovelStarts(int score, VcfRecord vcf ) 
+	  
+	 @Test
+	 public void getNNSTest(){
+		 
+		 
+	 }
 	
 	@Ignore
 	public void ConfidenceTest() throws IOException, Exception{

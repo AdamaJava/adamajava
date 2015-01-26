@@ -32,6 +32,9 @@ public class CustomerConfidenceOptions extends Options {
         parser.accepts("minReadCount", Messages.getMessage("MIN_READ_COUNT_DESCRIPTION")).withRequiredArg().ofType(Integer.class);
         parser.accepts("minMutantRate", Messages.getMessage("MIN_MUTANT_RATE_DESCRIPTION")).withRequiredArg().ofType(Integer.class) ;
         
+        parser.accepts(test,  Messages.getMessage("TUMOUR_SAMPLEID_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("testSample");
+        parser.accepts(control, Messages.getMessage("NORMAL_SAMPLEID_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("controlSample");	        
+
         
         parser.accepts("log", LOG_DESCRIPTION).withRequiredArg().ofType(String.class);
         parser.accepts("loglevel",  LOG_LEVEL_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
@@ -56,7 +59,9 @@ public class CustomerConfidenceOptions extends Options {
         if(options.has("min_mutant_rate"))
         	min_mutant_rate = (Integer) options.valueOf("min_mutant_rate");
        
-        
+        testSample = (options.has(test))? (String)options.valueOf(test) : null;
+        controlSample = (options.has(control))? (String)options.valueOf(control) : null;
+ 
         
         commandLine = Messages.reconstructCommandLine(args) ;
         

@@ -76,7 +76,7 @@ public class DbsnpModeTest {
 				else if(re.getMetaType().equals(MetaType.QPG)){
 					VcfHeaderQPG re1 = (VcfHeaderQPG) re;
 					  assertTrue( re1.getOrder() == 1);
-					  assertTrue(re1.getTool().equalsIgnoreCase("qanno"));
+					  assertTrue(re1.getTool().equalsIgnoreCase(Constants.NULL_STRING));
 					  assertTrue(re1.getISODate()!= null);
 					  assertTrue(re1.getCommandLine()!= null);
 					count[5] ++;	
