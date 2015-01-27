@@ -53,9 +53,13 @@ public abstract class AbstractMode {
         
 	}
  
+	protected void retriveDefaultSampleColumn(){
+		retriveSampleColumn(null, null, null);
+		
+	}
 	
 	/**
-	 * 
+	 * it retrive the sample column number. eg. if the second column after "FORMAT" is for the sample named "testSample", then it will report "2" to related variable
 	 * @param testSample:   testSample column name located after "FORMAT" column
 	 * @param controlSample:  controlSample column name located after "FORMAT" column
 	 * @param header: if null, it will point to this class's header; 
@@ -66,31 +70,27 @@ public abstract class AbstractMode {
 		
 		for(final VcfHeaderRecord hr : header)
     		if( hr.getMetaType().equals(MetaType.META) && hr.getId().equalsIgnoreCase(VcfHeaderUtils.STANDARD_CONTROLSAMPLE)) 
-    				 testSample = (testSample == null)? hr.getDescription(): testSample; 
+    				 controlSample = (controlSample == null)? hr.getDescription(): controlSample; 
     		 else if( hr.getMetaType().equals(MetaType.META) && hr.getId().equalsIgnoreCase(VcfHeaderUtils.STANDARD_TESTSAMPLE)) 
-    				 controlSample = (controlSample == null)? hr.getDescription(): controlSample;    				 
-     		 
+    				 testSample = (testSample == null)? hr.getDescription(): testSample; 
 	    				 
 	   if(testSample == null || controlSample == null)
 		   throw new RuntimeException(" Missing qControlSample or qTestSample  from VcfHeader; please speify on command line!");
 	   
 	   final String[] samples = header.getSampleId();	
-	   
-	   
+	   	   
 		//incase both point into same column
 		for(int i = 0; i < samples.length; i++) 
 			if(samples[i].equalsIgnoreCase(testSample))
-				test_column = i + 1;
+				test_column = i ;
 			else if(samples[i].equalsIgnoreCase(controlSample))
-				control_column = i + 1;
-		
-		
+				control_column = i;
+				
 		if(test_column <= 0 )
 			throw new RuntimeException("can't find test sample id from vcf header line: " + testSample);
 		if(control_column <= 0  )
 			throw new RuntimeException("can't find normal sample id from vcf header line: " + controlSample);	  				 
-	    				 
-			 
+	    				 		 
 	}
 
 	abstract void addAnnotation(String dbfile) throws Exception;
@@ -110,6 +110,7 @@ public abstract class AbstractMode {
 				writer.add( record );				 
 			}
 		}  
+		
 		
 	}
 	

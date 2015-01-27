@@ -61,7 +61,6 @@ public class DbsnpModeTest {
 			VcfHeader header = reader.getHeader();
 		 
 			for (final VcfHeaderRecord re : header){
-					System.out.println(i + re.toString());
 				if( re.getMetaType().equals(MetaType.META)  && re.toString().startsWith(VcfHeaderUtils.CURRENT_FILE_VERSION)) 
 					count[0] ++;
 				else if( re.getMetaType().equals(MetaType.META) && re.toString().startsWith( VcfHeaderUtils.STANDARD_FILE_DATE))  
@@ -109,7 +108,7 @@ public class DbsnpModeTest {
 				}
 				if(re.getPosition() == 22012840){
 					assertTrue(re.getId().equals("rs111477956"));
-					assertTrue(re.getInfo().replace(VcfHeaderUtils.INFO_VLD,"").replace(VcfHeaderUtils.INFO_DB, "").equals(Constants.SEMI_COLON_STRING));
+					assertTrue(re.getInfo().replace(VcfHeaderUtils.INFO_VLD,"").replace(VcfHeaderUtils.INFO_DB, "").replace(VcfHeaderUtils.INFO_SOMATIC,"").equals(Constants.SEMI_COLON_STRING + Constants.SEMI_COLON_STRING));
 				}
 			}
 			assertTrue(i == 4);
@@ -125,15 +124,10 @@ public class DbsnpModeTest {
 	public static void createVcf() throws IOException{
         final List<String> data = new ArrayList<String>();
         data.add("##fileformat=VCFv4.0");
-//<<<<<<< .mine
-       // data.add("chrY\t14923588\t.\tG\tA\t.\tSBIAS\tMR=15;NNS=13;FS=GTGATATTCCC\tGT:GD:AC\t0/1:G/A:A0[0],15[36.2],G11[36.82],9[33]\t0/1:G/A:A0[0],33[35.73],G6[30.5],2[34]"); 
-       // data.add("chrY\t2675826\t.\tTG\tCA\t.\tCOVN12;MIUN\tSOMATIC;NNS=4;END=2675826\tACCS\tTG,5,37,CA,0,2\tAA,1,1,CA,4,1,CT,3,1,TA,11,76,TG,2,2,TG,0,1");
-       // data.add("chrY\t22012840\t.\tC\tA\t.\tSBIAS\t.\tGT:GD:AC\t0/1:C/A:A0[0],15[36.2],C11[36.82],9[33]\t0/1:C/A:A0[0],33[35.73],C6[30.5],2[34]"); 
  
         data.add("chrY\t14923588\t.\tG\tA\t.\tSBIAS\t;FS=GTGATATTCCC\tGT:GD:AC:MR:NNS\t0/1:G/A:A0[0],15[36.2],G11[36.82],9[33]\t0/1:G/A:A0[0],33[35.73],G6[30.5],2[34]:15:13"); 
         data.add("chrY\t2675826\t.\tTG\tCA\t.\tCOVN12;MIUN\tSOMATIC;END=2675826\tACCS\tTG,5,37,CA,0,2\tAA,1,1,CA,4,1,CT,3,1,TA,11,76,TG,2,2,TG,0,1");
-        data.add("chrY\t22012840\t.\tC\tA\t.\tSBIAS\t.\tGT:GD:AC:MR:NNS\t0/1:C/A:A0[0],15[36.2],C11[36.82],9[33]\t0/1:C/A:A0[0],33[35.73],C6[30.5],2[34]:15:13"); 
- 
+        data.add("chrY\t22012840\t.\tC\tA\t.\tMIUN\tSOMATIC\tGT:GD:AC:MR:NNS\t0/1:C/A:A0[0],15[36.2],C11[36.82],9[33]\t0/1:C/A:A0[0],33[35.73],C6[30.5],2[34]:15:13");  
         data.add("chrY\t77242678\t.\tCA\tTG\t.\tPASS\tEND=77242679\tACCS\tCA,10,14,TG,6,7\tCA,14,9,TG,23,21");
         
         try(BufferedWriter out = new BufferedWriter(new FileWriter(inputName));) {          

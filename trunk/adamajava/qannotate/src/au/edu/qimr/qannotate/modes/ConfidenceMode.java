@@ -19,6 +19,7 @@ import org.qcmg.common.vcf.header.VcfHeaderRecord.VcfInfoType;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.maf.util.MafUtils;
 import org.qcmg.vcf.VCFFileReader;
+import org.qcmg.common.util.*;
 
 import au.edu.qimr.qannotate.options.ConfidenceOptions;
 
@@ -128,7 +129,7 @@ public class ConfidenceMode extends AbstractMode{
 		
 		//remove MUTATION_IN_UNFILTERED_NORMAL
 		final String f = filter.replace(MUTATION_IN_UNFILTERED_NORMAL, "").replace(";","").trim();
-		if(LESS_THAN_12_READS_NORMAL.equals(f)  ||   LESS_THAN_3_READS_NORMAL.equals(f) )
+		if(f.equals(Constants.EMPTY_STRING) ||  LESS_THAN_12_READS_NORMAL.equals(f)  ||   LESS_THAN_3_READS_NORMAL.equals(f))
 			 return true;
 		
 		return false;
