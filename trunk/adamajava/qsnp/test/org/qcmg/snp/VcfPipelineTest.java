@@ -112,8 +112,7 @@ public class VcfPipelineTest {
 		assertTrue(0 == exec.getOutputStreamConsumer().getLines().length);
 		
 		// check the vcf output file
-		//assertEquals(1, noOfLinesInVCFOutputFile(vcfOutput));
-		assertEquals(0, noOfLinesInVCFOutputFile(vcfOutput));
+		assertEquals(1, noOfLinesInVCFOutputFile(vcfOutput));
 	}
 	
 	@Test
@@ -142,8 +141,7 @@ public class VcfPipelineTest {
 		assertTrue(0 == exec.getOutputStreamConsumer().getLines().length);
 		
 		// check the vcf output file
-		//assertEquals(2, noOfLinesInVCFOutputFile(vcfOutput));
-		assertEquals(1, noOfLinesInVCFOutputFile(vcfOutput));
+		assertEquals(2, noOfLinesInVCFOutputFile(vcfOutput));
 	}
 	
 	@Test
@@ -175,8 +173,7 @@ public class VcfPipelineTest {
 		assertTrue(0 == exec.getOutputStreamConsumer().getLines().length);
 		
 		// check the vcf output file
-		//assertEquals(2, noOfLinesInVCFOutputFile(vcfOutput));
-		assertEquals(1, noOfLinesInVCFOutputFile(vcfOutput));
+		assertEquals(2, noOfLinesInVCFOutputFile(vcfOutput));
 	}
 	
 	private int noOfLinesInVCFOutputFile(File vcfOutput) throws Exception {
