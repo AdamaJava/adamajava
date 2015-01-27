@@ -117,8 +117,8 @@ public abstract class AbstractMode {
 	
 	protected void reheader(String cmd, String inputVcfName) throws Exception{	
 //		System.out.println("package: " + Main.class.getPackage());
-		final String version = Main.class.getPackage().getImplementationVersion();
-		final String pg = Main.class.getPackage().getImplementationTitle();
+		String version = Main.class.getPackage().getImplementationVersion();
+		String pg = Main.class.getPackage().getImplementationTitle();
 		final String fileDate = df.format(Calendar.getInstance().getTime());
 		final String uuid = QExec.createUUid();
 
@@ -131,12 +131,11 @@ public abstract class AbstractMode {
 				new VcfHeaderRecord(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + uuid ),
 				new VcfHeaderRecord(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=" + pg+"-"+version) );
 		
+	    if(version == null) version = Constants.NULL_STRING;
+	    if(pg == null ) pg = Constants.NULL_STRING;
+	    if(cmd == null) cmd = Constants.NULL_STRING;
+		
 		 VcfHeaderUtils.addQPGLineToHeader(header, pg, version, cmd);
 		
-		//for eclipse run only
-		//VcfHeaderUtils.addQPGLineToHeader(header, "qanno", "01", cmd);
-		
-		
-
 	}	
 }

@@ -107,13 +107,13 @@ public class VcfHeaderUtils {
 		if (null == header) {
 			throw new IllegalArgumentException("null vcf header object passed to VcfHeaderUtils.addQPGLineToHeader");
 		}
-/*		if (StringUtils.isNullOrEmpty(tool) 
+		if (StringUtils.isNullOrEmpty(tool) 
 				|| StringUtils.isNullOrEmpty(version)
 				|| StringUtils.isNullOrEmpty(commandLine) ) {
 			
 			throw new IllegalArgumentException("null or empty tool, version and/or command line values passed to VcfHeaderUtils.addQPGLineToHeader, tool: " + tool + ", version: " + version + ", cl: " + commandLine);
 		}
-*/		
+		
 		int currentLargestOrder = 0;
 		final List<VcfHeaderQPG> currentQPGLines = header.getqPGLines();
 		if ( ! currentQPGLines.isEmpty()) {
