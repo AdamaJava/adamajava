@@ -15,6 +15,8 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.qcmg.common.vcf.VcfInfoFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
+import org.qcmg.common.vcf.header.VcfHeader;
+import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 
@@ -40,7 +42,7 @@ public class ConfidenceModeTest {
 
 		 new File(DbsnpModeTest.inputName).delete();
 		 new File(VerifiedFileName).delete();
-		 new File(DbsnpModeTest.outputName).delete();
+	//	 new File(DbsnpModeTest.outputName).delete();
 		 
 	 }
 	
@@ -53,28 +55,50 @@ public class ConfidenceModeTest {
 		 
 	 }
 	
-	@Ignore
-	public void ConfidenceTest() throws IOException, Exception{
+	//@Ignore 
+	 @Test (expected=Exception.class)
+	public void SampleColumnTest() throws IOException, Exception{
 		final ConfidenceMode mode = new ConfidenceMode(patient);		
 		mode.inputRecord(new File(DbsnpModeTest.inputName));
-		mode.addAnnotation(VerifiedFileName);
-		mode.writeVCF(new File(DbsnpModeTest.outputName));
 		
-		 try(VCFFileReader reader = new VCFFileReader(DbsnpModeTest.outputName)){
-			 
-			 
-			for (final VcfRecord re : reader) {		
-				final VcfInfoFieldRecord infoRecord = new VcfInfoFieldRecord(re.getInfo()); 				
-				if(re.getPosition() == 2675826) 
-					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(Confidence.LOW.toString())); 
-				else if(re.getPosition() == 22012840)
-					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(Confidence.ZERO.toString()));
-				else if(re.getPosition() == 2675825)
-					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(Confidence.HIGH.toString()));
-			}
-		 }		
+		//
+		
+		mode.retriveDefaultSampleColumn();
+ 	 
 	
 	}
+	 
+	 @Test
+	 public void ConfidenceTest() throws IOException, Exception{	
+			final ConfidenceMode mode = new ConfidenceMode(patient);		
+			mode.inputRecord(new File(DbsnpModeTest.inputName));
+			mode.header.add(new VcfHeaderRecord("##qControlSample=Control") );
+			mode.header.add( new VcfHeaderRecord("##qTestSample=Test")  );
+			mode.header.add( new VcfHeaderRecord(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "\tControl\tTest")  );
+			//
+			mode.retriveDefaultSampleColumn();
+			mode.addAnnotation(VerifiedFileName);
+			mode.reheader("unitTest", DbsnpModeTest.inputName);
+			mode.writeVCF( new File(DbsnpModeTest.outputName)  );
+			
+  			try(VCFFileReader reader = new VCFFileReader(DbsnpModeTest.outputName)){				 				 
+				for (final VcfRecord re : reader) {		
+					final VcfInfoFieldRecord infoRecord = new VcfInfoFieldRecord(re.getInfo()); 				
+					if(re.getPosition() == 2675826) 
+						//compound SNPs
+						assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(Confidence.ZERO.toString())); 
+					else if(re.getPosition() == 22012840)
+						//isClassB
+						assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(Confidence.LOW.toString()));
+					else if(re.getPosition() == 14923588)  
+						//listed on verified file
+						assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(Confidence.HIGH.toString()));
+				}
+			 }		
+ 	 	 
+	 }
+	 
+	 
 	
 	@Test
 	public void CompoundSNPTest() throws IOException, Exception{	

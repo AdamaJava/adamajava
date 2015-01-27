@@ -16,6 +16,7 @@ import org.junit.Test;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
+import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 
 public class AbstractModeTest {
@@ -62,6 +63,28 @@ public class AbstractModeTest {
         }		
 		
 		
+	}
+	
+	@Test
+	public void  retriveSampleColumnTest(){
+		final String control = "Control";
+		final String test = "Test";
+		
+		VcfHeader header = new VcfHeader();
+		 
+		header.add(new VcfHeaderRecord("##qControlSample=" + control) );
+		header.add( new VcfHeaderRecord("##qTestSample=" + test)  );
+		header.add( new VcfHeaderRecord(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "\t"+ control + "\t" + "test")  );
+		
+		final ConfidenceMode mode = new ConfidenceMode("");		
+		 
+		mode.retriveSampleColumn(null,null, header);
+		
+		System.out.println(mode.control_column );
+		 
+		assertTrue( mode.control_column == 1);
+		assertTrue( mode.test_column == 2);
+
 	}
 	
 	public static void createVcf() throws IOException{

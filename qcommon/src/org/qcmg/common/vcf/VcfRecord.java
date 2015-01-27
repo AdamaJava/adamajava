@@ -181,7 +181,7 @@ public class VcfRecord {
 	 * @return a VcfFormatFieldRecord for specified sample 
 	 */
 	public VcfFormatFieldRecord getSampleFormatRecord(int index){
-		String s = (index > formatRecords.size())? null: formatRecords.get(index-1);
+		String s = (index > formatRecords.size())? null: formatRecords.get(index);
 		return new VcfFormatFieldRecord(formatRecords.get(0), s);
 //		return (index > formatRecords.size())? null: formatRecords.get(index-1);		
 	}
