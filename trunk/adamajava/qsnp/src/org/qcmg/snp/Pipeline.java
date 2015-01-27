@@ -420,7 +420,7 @@ public abstract class Pipeline {
 			}		
 		header.add( new VcfHeaderRecord( "##qAnalysisId=" + uuid ) );
 		
-		header.add( new VcfHeaderInfo(VcfHeaderUtils.INFO_FLANKING_SEQUENCE, VcfInfoNumber.NUMBER, 1, VcfInfoType.String,"Reference bases either side of mutation", null, null)); 																		
+		header.add( new VcfHeaderInfo(VcfHeaderUtils.INFO_FLANKING_SEQUENCE, VcfInfoNumber.NUMBER, 1, VcfInfoType.String,"Flanking sequence either side of variant", null, null)); 																		
 
 		header.add( new VcfHeaderFilter( VcfHeaderUtils.FILTER_COVERAGE_NORMAL_12, "Less than 12 reads coverage in normal"));
 		header.add( new VcfHeaderFilter( VcfHeaderUtils.FILTER_COVERAGE_NORMAL_8,"Less than 8 reads coverage in normal"));  
