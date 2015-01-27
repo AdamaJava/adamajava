@@ -3,13 +3,12 @@ package org.qcmg.common.vcf.header;
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class VcfHeaderUtilsTest {
 	
 	//@Test unit test don't have jar file so won't have tool name and version
-	@Ignore 
+	@Test
 	public void addQPGEntryNullOrEmpty() {
 		
 		try {

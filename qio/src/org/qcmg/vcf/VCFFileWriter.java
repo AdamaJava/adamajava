@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.zip.GZIPOutputStream;
 
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.vcf.VcfRecord;
 
 public final class VCFFileWriter implements Closeable {
@@ -27,7 +28,7 @@ public final class VCFFileWriter implements Closeable {
 	}
 	
 	public void addHeader(final String headerString) throws IOException {
-		outputStream.write(headerString.getBytes());
+		outputStream.write((headerString + Constants.NL).getBytes());
 		outputStream.flush();
 	}
 

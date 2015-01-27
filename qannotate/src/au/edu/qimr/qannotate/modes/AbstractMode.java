@@ -12,6 +12,7 @@ import java.util.Map;
 
 import org.qcmg.common.meta.QExec;
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
@@ -21,9 +22,6 @@ import org.qcmg.vcf.VCFFileReader;
 import org.qcmg.vcf.VCFFileWriter;
 
 import au.edu.qimr.qannotate.Main;
-import au.edu.qimr.qannotate.Messages;
-
-import org.qcmg.common.util.Constants;
 
 public abstract class AbstractMode {
 	private static final DateFormat df = new SimpleDateFormat("yyyyMMdd");
@@ -106,7 +104,7 @@ public abstract class AbstractMode {
 		Collections.sort(orderedList);
 		
 		try(VCFFileWriter writer = new VCFFileWriter( outputFile)) {			
-			for(final VcfHeaderRecord record: header)  writer.addHeader(record.toString() + Constants.NL_STRING);
+			for(final VcfHeaderRecord record: header)  writer.addHeader(record.toString());
 			for (final ChrPosition position : orderedList) {				
 				final VcfRecord record = positionRecordMap.get(position); 
 				writer.add( record );				 
