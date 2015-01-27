@@ -252,10 +252,6 @@ public class SignatureGeneratorTest {
     	final int exitStatus = qss.setup(new String[] {"--log" , logFile.getAbsolutePath(), "-i" , positionsOfInterestFile.getAbsolutePath(), "-i" , snpChipFile.getAbsolutePath(),  "-i" , illuminaArraysDesignFile.getAbsolutePath()} );
     	assertEquals(0, exitStatus);
     	
-//    	ExpectedException.none();
-//    	Executor exec = execute("--log " + logFile.getAbsolutePath() + " -i " + positionsOfInterestFile.getAbsolutePath() + " -i " + snpChipFile.getAbsolutePath() + " -i " + illuminaArraysDesignFile.getAbsolutePath());
-//    	assertTrue(0 == exec.getErrCode());
-    	
     	assertTrue(outputFile.exists());
    	
     	final List<VcfRecord> recs = new ArrayList<>();
@@ -264,9 +260,7 @@ public class SignatureGeneratorTest {
 	    		recs.add(rec);
     	}
        	
-    	//assertEquals(6, recs.size());
-    	assertEquals(5, recs.size());	
-    		
+    	assertEquals(6, recs.size());
     }
     
     private void writeSnpChipFile(File snpChipFile) throws IOException {
