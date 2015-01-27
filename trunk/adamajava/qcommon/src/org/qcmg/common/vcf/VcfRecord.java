@@ -219,7 +219,7 @@ public class VcfRecord {
 //		String str =  formatRecords.get(0);
 //		String str =  formatRecords.get(0).getFormatColumnString();
 		
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		for (String s : formatRecords) {
 			if (sb.length() > 0) {
 				sb.append(Constants.TAB);

@@ -13,6 +13,7 @@ import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.model.Accumulator;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.GenotypeEnum;
+import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.Pair;
 import org.qcmg.common.util.SnpUtils;
@@ -202,6 +203,216 @@ public class PipelineTest {
 		assertEquals("CG,4,0,C_,1,0", ff.get(2));	// tumour
 		
 	}
+	
+	@Test
+	public void purgeAdjacentAccums() {
+		final Pipeline pipeline = new TestPipeline();
+		ChrPosition cp = new ChrPosition("1",100,100);
+		
+		pipeline.adjacentAccumulators.put(cp, new Pair<Accumulator, Accumulator>(null,null));
+		assertEquals(1, pipeline.adjacentAccumulators.size());
+		pipeline.purgeNonAdjacentAccumulators();
+		assertEquals(1, pipeline.adjacentAccumulators.size());
+		
+		ChrPosition cp2 = ChrPositionUtils.getPrecedingChrPosition(cp);
+		pipeline.adjacentAccumulators.put(cp2, new Pair<Accumulator, Accumulator>(null,null));
+		assertEquals(2, pipeline.adjacentAccumulators.size());
+		pipeline.purgeNonAdjacentAccumulators();
+		assertEquals(2, pipeline.adjacentAccumulators.size());
+		
+		ChrPosition cp3 = new ChrPosition("1", 102);
+		pipeline.adjacentAccumulators.put(cp3, new Pair<Accumulator, Accumulator>(null,null));
+		pipeline.purgeNonAdjacentAccumulators();
+		assertEquals(3, pipeline.adjacentAccumulators.size());
+		assertEquals(true, pipeline.adjacentAccumulators.containsKey(cp));
+		assertEquals(true, pipeline.adjacentAccumulators.containsKey(cp2));
+		
+		ChrPosition cp4 = new ChrPosition("1", 104);
+		pipeline.adjacentAccumulators.put(cp4, new Pair<Accumulator, Accumulator>(null,null));
+		pipeline.purgeNonAdjacentAccumulators();
+		assertEquals(3, pipeline.adjacentAccumulators.size());
+		assertEquals(true, pipeline.adjacentAccumulators.containsKey(cp));
+		assertEquals(true, pipeline.adjacentAccumulators.containsKey(cp2));
+		assertEquals(true, pipeline.adjacentAccumulators.containsKey(cp4));
+	}
+	@Test
+	public void purgeAdjacentAccums2() {
+		Pipeline pipeline = new TestPipeline();
+		ChrPosition cp117113 = new ChrPosition("1",117113);
+		ChrPosition cp118087 = new ChrPosition("1",118087);
+		ChrPosition cp118090 = new ChrPosition("1",118090);
+		ChrPosition cp118124 = new ChrPosition("1",118124);
+		ChrPosition cp118125 = new ChrPosition("1",118125);
+		ChrPosition cp118575 = new ChrPosition("1",118575);
+		ChrPosition cp118602 = new ChrPosition("1",118602);
+		
+		pipeline.adjacentAccumulators.put(cp117113, new Pair<Accumulator, Accumulator>(null,null));
+		pipeline.adjacentAccumulators.put(cp118087, new Pair<Accumulator, Accumulator>(null,null));
+		pipeline.adjacentAccumulators.put(cp118090, new Pair<Accumulator, Accumulator>(null,null));
+		pipeline.adjacentAccumulators.put(cp118124, new Pair<Accumulator, Accumulator>(null,null));
+		pipeline.adjacentAccumulators.put(cp118125, new Pair<Accumulator, Accumulator>(null,null));
+		pipeline.adjacentAccumulators.put(cp118575, new Pair<Accumulator, Accumulator>(null,null));
+		pipeline.adjacentAccumulators.put(cp118602, new Pair<Accumulator, Accumulator>(null,null));
+		assertEquals(7, pipeline.adjacentAccumulators.size());
+		pipeline.purgeNonAdjacentAccumulators();
+		assertEquals(4, pipeline.adjacentAccumulators.size());
+		
+		pipeline = new TestPipeline();
+		pipeline.adjacentAccumulators.put(cp117113, new Pair<Accumulator, Accumulator>(null,null));
+		pipeline.adjacentAccumulators.put(cp118087, new Pair<Accumulator, Accumulator>(null,null));
+		pipeline.adjacentAccumulators.put(cp118090, new Pair<Accumulator, Accumulator>(null,null));
+		pipeline.adjacentAccumulators.put(cp118124, new Pair<Accumulator, Accumulator>(null,null));
+		assertEquals(4, pipeline.adjacentAccumulators.size());
+		pipeline.purgeNonAdjacentAccumulators();
+		assertEquals(2, pipeline.adjacentAccumulators.size());
+		
+		// add in the next batch
+		pipeline.adjacentAccumulators.put(cp118125, new Pair<Accumulator, Accumulator>(null,null));
+		pipeline.adjacentAccumulators.put(cp118575, new Pair<Accumulator, Accumulator>(null,null));
+		pipeline.adjacentAccumulators.put(cp118602, new Pair<Accumulator, Accumulator>(null,null));
+		assertEquals(5, pipeline.adjacentAccumulators.size());
+		pipeline.purgeNonAdjacentAccumulators();
+		assertEquals(4, pipeline.adjacentAccumulators.size());
+		
+		pipeline = new TestPipeline();
+		pipeline.adjacentAccumulators.put(cp117113, new Pair<Accumulator, Accumulator>(null,null));
+		pipeline.adjacentAccumulators.put(cp118087, new Pair<Accumulator, Accumulator>(null,null));
+		pipeline.adjacentAccumulators.put(cp118090, new Pair<Accumulator, Accumulator>(null,null));
+		pipeline.adjacentAccumulators.put(cp118124, new Pair<Accumulator, Accumulator>(null,null));
+		pipeline.adjacentAccumulators.put(cp118125, new Pair<Accumulator, Accumulator>(null,null));
+		assertEquals(5, pipeline.adjacentAccumulators.size());
+		pipeline.purgeNonAdjacentAccumulators();
+		assertEquals(3, pipeline.adjacentAccumulators.size());
+		
+		// add in the next batch
+		pipeline.adjacentAccumulators.put(cp118575, new Pair<Accumulator, Accumulator>(null,null));
+		pipeline.adjacentAccumulators.put(cp118602, new Pair<Accumulator, Accumulator>(null,null));
+		assertEquals(5, pipeline.adjacentAccumulators.size());
+		pipeline.purgeNonAdjacentAccumulators();
+		assertEquals(4, pipeline.adjacentAccumulators.size());
+		
+		pipeline = new TestPipeline();
+		pipeline.adjacentAccumulators.put(cp117113, new Pair<Accumulator, Accumulator>(null,null));
+		pipeline.adjacentAccumulators.put(cp118087, new Pair<Accumulator, Accumulator>(null,null));
+		pipeline.adjacentAccumulators.put(cp118090, new Pair<Accumulator, Accumulator>(null,null));
+		pipeline.adjacentAccumulators.put(cp118124, new Pair<Accumulator, Accumulator>(null,null));
+		pipeline.adjacentAccumulators.put(cp118125, new Pair<Accumulator, Accumulator>(null,null));
+		pipeline.adjacentAccumulators.put(cp118575, new Pair<Accumulator, Accumulator>(null,null));
+		assertEquals(6, pipeline.adjacentAccumulators.size());
+		pipeline.purgeNonAdjacentAccumulators();
+		assertEquals(4, pipeline.adjacentAccumulators.size());
+		
+		// add in the next batch
+		pipeline.adjacentAccumulators.put(cp118602, new Pair<Accumulator, Accumulator>(null,null));
+		assertEquals(5, pipeline.adjacentAccumulators.size());
+		pipeline.purgeNonAdjacentAccumulators();
+		assertEquals(4, pipeline.adjacentAccumulators.size());
+		
+		pipeline = new TestPipeline();
+		pipeline.adjacentAccumulators.put(cp117113, new Pair<Accumulator, Accumulator>(null,null));
+		pipeline.adjacentAccumulators.put(cp118087, new Pair<Accumulator, Accumulator>(null,null));
+		pipeline.adjacentAccumulators.put(cp118090, new Pair<Accumulator, Accumulator>(null,null));
+		pipeline.adjacentAccumulators.put(cp118124, new Pair<Accumulator, Accumulator>(null,null));
+		pipeline.adjacentAccumulators.put(cp118125, new Pair<Accumulator, Accumulator>(null,null));
+		pipeline.adjacentAccumulators.put(cp118575, new Pair<Accumulator, Accumulator>(null,null));
+		pipeline.adjacentAccumulators.put(cp118602, new Pair<Accumulator, Accumulator>(null,null));
+		assertEquals(7, pipeline.adjacentAccumulators.size());
+		pipeline.purgeNonAdjacentAccumulators();
+		assertEquals(4, pipeline.adjacentAccumulators.size());
+		
+		pipeline = new TestPipeline();
+		pipeline.adjacentAccumulators.put(cp117113, new Pair<Accumulator, Accumulator>(null,null));
+		pipeline.adjacentAccumulators.put(cp118087, new Pair<Accumulator, Accumulator>(null,null));
+		pipeline.adjacentAccumulators.put(cp118090, new Pair<Accumulator, Accumulator>(null,null));
+		assertEquals(3, pipeline.adjacentAccumulators.size());
+		pipeline.purgeNonAdjacentAccumulators();
+		assertEquals(2, pipeline.adjacentAccumulators.size());
+		
+		// add in the next batch
+		pipeline.adjacentAccumulators.put(cp118124, new Pair<Accumulator, Accumulator>(null,null));
+		pipeline.adjacentAccumulators.put(cp118125, new Pair<Accumulator, Accumulator>(null,null));
+		pipeline.adjacentAccumulators.put(cp118575, new Pair<Accumulator, Accumulator>(null,null));
+		pipeline.adjacentAccumulators.put(cp118602, new Pair<Accumulator, Accumulator>(null,null));
+		assertEquals(6, pipeline.adjacentAccumulators.size());
+		pipeline.purgeNonAdjacentAccumulators();
+		assertEquals(4, pipeline.adjacentAccumulators.size());
+		
+		pipeline = new TestPipeline();
+		pipeline.adjacentAccumulators.put(cp117113, new Pair<Accumulator, Accumulator>(null,null));
+		pipeline.adjacentAccumulators.put(cp118087, new Pair<Accumulator, Accumulator>(null,null));
+		assertEquals(2, pipeline.adjacentAccumulators.size());
+		pipeline.purgeNonAdjacentAccumulators();
+		assertEquals(2, pipeline.adjacentAccumulators.size());
+		
+		// add in the next batch
+		pipeline.adjacentAccumulators.put(cp118090, new Pair<Accumulator, Accumulator>(null,null));
+		pipeline.adjacentAccumulators.put(cp118124, new Pair<Accumulator, Accumulator>(null,null));
+		pipeline.adjacentAccumulators.put(cp118125, new Pair<Accumulator, Accumulator>(null,null));
+		pipeline.adjacentAccumulators.put(cp118575, new Pair<Accumulator, Accumulator>(null,null));
+		pipeline.adjacentAccumulators.put(cp118602, new Pair<Accumulator, Accumulator>(null,null));
+		assertEquals(7, pipeline.adjacentAccumulators.size());
+		pipeline.purgeNonAdjacentAccumulators();
+		assertEquals(4, pipeline.adjacentAccumulators.size());
+		
+		pipeline = new TestPipeline();
+		pipeline.adjacentAccumulators.put(cp117113, new Pair<Accumulator, Accumulator>(null,null));
+		assertEquals(1, pipeline.adjacentAccumulators.size());
+		pipeline.purgeNonAdjacentAccumulators();
+		assertEquals(1, pipeline.adjacentAccumulators.size());
+		
+		// add in the next batch
+		pipeline.adjacentAccumulators.put(cp118087, new Pair<Accumulator, Accumulator>(null,null));
+		pipeline.adjacentAccumulators.put(cp118090, new Pair<Accumulator, Accumulator>(null,null));
+		pipeline.adjacentAccumulators.put(cp118124, new Pair<Accumulator, Accumulator>(null,null));
+		pipeline.adjacentAccumulators.put(cp118125, new Pair<Accumulator, Accumulator>(null,null));
+		pipeline.adjacentAccumulators.put(cp118575, new Pair<Accumulator, Accumulator>(null,null));
+		pipeline.adjacentAccumulators.put(cp118602, new Pair<Accumulator, Accumulator>(null,null));
+		assertEquals(7, pipeline.adjacentAccumulators.size());
+		pipeline.purgeNonAdjacentAccumulators();
+		assertEquals(4, pipeline.adjacentAccumulators.size());
+	}
+	
+	@Test
+	public void purge3() {
+//		chrY    58976671        .       C       A       .       PASS    FS=GCATTATATTC  GT:GD:AC:MR:NNS 0/1:A/C:A20[37.7],12[38],C52[36.02],39[35.95]:32:27     0/1:A/C:A18[37.94],12[38.67],C35[36.43],27[38.48],T1[2],0[0]:30:26
+//				chrY    58976688        .       GC      AT      .       PASS    END=58976689    ACCS    A,1,0,AT,40,0,G,1,0     A,1,0,AT,30,0
+//				chrY    58976702        .       C       A       .       PASS    FS=CATTGAATTCC  GT:GD:AC:MR:NNS 0/1:A/C:A18[37.5],7[36],C21[36],14[36.71]:25:18 0/1:A/C:A18[38.28],6[36.17],C15[36.67],6[37.67]:24:20
+//				chrY    58976707        .       C       T       .       PASS    FS=CATTCTATTGC  GT:GD:AC:MR:NNS 0/1:C/T:C38[36.24],16[35.62],T4[40],3[37.33]:7:3        0/0:C/C:C33[36.33],13[34.38],T2[41],0[0]:2:1
+//				chrY    58976712        .       C       A       .       PASS    FS=CATTGAATTCC  GT:GD:AC:MR:NNS 0/1:A/C:A6[37.33],4[37.5],C26[37],11[35.36],T4[34.25],2[37]:10:6        0/1:A/C:A7[34],2[41],C32[37.94],13[34.23],T1[37],0[0]:9:7
+//				chrY    58976743        .       A       T       .       PASS    FS=ATTCCTTTCCG  GT:GD:AC:MR:NNS 0/1:A/T:A33[38.7],16[34.31],T23[39.26],11[34.45]:34:25  0/1:A/T:A35[37.2],19[34.89],T9[39.78],7[34.29]:16:14
+//				chrY    58976781        .       CA      TG      .       PASS    END=58976782    ACCS    C,6,0,CG,77,0,TG,6,0    C,2,0,CG,64,0,TG,10,0,_G,1,0
+//				chrY    58976804        .       T       C       .       PASS    FS=CTCCACTCCAC  GT:GD:AC:MR:NNS 1/1:C/C:C63[37.06],30[31.53],T0[0],1[10]:93:68  1/1:C/C:C43[36.77],35[33.09]:78:66
+//				chrY    58976811        .       G       T
+				
+		Pipeline pipeline = new TestPipeline();
+		ChrPosition cp58976671 = new ChrPosition("chrY",58976671);
+		ChrPosition cp58976688 = new ChrPosition("chrY",58976688);
+		ChrPosition cp58976689 = new ChrPosition("chrY",58976689);
+		ChrPosition cp58976702 = new ChrPosition("chrY",58976702);
+		ChrPosition cp58976707 = new ChrPosition("chrY",58976707);
+		ChrPosition cp58976712 = new ChrPosition("chrY",58976712);
+		ChrPosition cp58976743 = new ChrPosition("chrY",58976743);
+		ChrPosition cp58976781 = new ChrPosition("chrY",58976781);
+		ChrPosition cp58976782 = new ChrPosition("chrY",58976782);
+		ChrPosition cp58976804 = new ChrPosition("chrY",58976804);
+		ChrPosition cp58976811 = new ChrPosition("chrY",58976811);
+		
+		pipeline.adjacentAccumulators.put(cp58976671, new Pair<Accumulator, Accumulator>(null,null));
+		pipeline.adjacentAccumulators.put(cp58976688, new Pair<Accumulator, Accumulator>(null,null));
+		pipeline.adjacentAccumulators.put(cp58976689, new Pair<Accumulator, Accumulator>(null,null));
+		pipeline.adjacentAccumulators.put(cp58976702, new Pair<Accumulator, Accumulator>(null,null));
+		pipeline.adjacentAccumulators.put(cp58976707, new Pair<Accumulator, Accumulator>(null,null));
+		pipeline.adjacentAccumulators.put(cp58976712, new Pair<Accumulator, Accumulator>(null,null));
+		pipeline.adjacentAccumulators.put(cp58976743, new Pair<Accumulator, Accumulator>(null,null));
+		pipeline.adjacentAccumulators.put(cp58976781, new Pair<Accumulator, Accumulator>(null,null));
+		pipeline.adjacentAccumulators.put(cp58976782, new Pair<Accumulator, Accumulator>(null,null));
+		pipeline.adjacentAccumulators.put(cp58976804, new Pair<Accumulator, Accumulator>(null,null));
+		pipeline.adjacentAccumulators.put(cp58976811, new Pair<Accumulator, Accumulator>(null,null));
+		assertEquals(11, pipeline.adjacentAccumulators.size());
+		pipeline.purgeNonAdjacentAccumulators();
+		assertEquals(6, pipeline.adjacentAccumulators.size());
+	}
+	
 	
 	@Test
 	public void compoundSnpWithNormalSnps() throws Exception {

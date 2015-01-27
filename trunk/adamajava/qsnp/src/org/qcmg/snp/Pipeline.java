@@ -1539,6 +1539,8 @@ public abstract class Pipeline {
 						logger.info("Cleaner: about to hit barrier - running processMapsAll");
 						
 						processMapsAll();
+						// lets try purging here...
+						purgeNonAdjacentAccumulators();
 						try {
 							previousPosition = 0;
 							barrier.await();
@@ -1774,26 +1776,38 @@ public abstract class Pipeline {
 			// to save on space, only put entry into acculumators map if it is empty, or if there is a position just before the current position
 			
 			adjacentAccumulators.put(qRecord.getChrPos(), new Pair<Accumulator, Accumulator>(normal, tumour));
-			if (mutationId % 1000 == 0) {
-				purgeNonAdjacentAccumulators();
-			}
+//			if (mutationId % 1000 == 0) {
+//				purgeNonAdjacentAccumulators();
+//			}
 		}
 	}
 	
+	/**
+	 * Need 3 ChrPos objects to be able to make a decision as to whether the middle one is adjacent to either of its neighbouring objects
+	 */
 	void purgeNonAdjacentAccumulators() {
 		int noRemoved = 0;
 		List<ChrPosition> list = new ArrayList<>(adjacentAccumulators.keySet());
 		Collections.sort(list);
-		ChrPosition previous = null;
-		for (ChrPosition cp : list) {
-			if (null != previous) {
-				if ( ! ChrPositionUtils.areAdjacent(cp, previous)) {
-					// remove previous from adjacentAccums
-					adjacentAccumulators.remove(previous);
+
+		ChrPosition left = null;
+		ChrPosition middle = null;
+		
+		for (ChrPosition right : list) {
+			if (null != left && null != middle) {
+				if ( ! ChrPositionUtils.areAdjacent(left, middle)
+						&& ! ChrPositionUtils.areAdjacent(middle, right)) {
+					// remove middle from adjacentAccums
+//					if ( (middle.getPosition() == 118124 || middle.getPosition() == 118125)
+//							&& middle.getChromosome().startsWith("GL000216") ) {
+//						logger.warn("removing middle : " + middle + ", left: " + left + ", right: " + right);
+//					}
+					adjacentAccumulators.remove(middle);
 					noRemoved++;
 				}
 			}
-			previous = cp;
+			left = middle;
+			middle = right;
 		}
 		logger.debug("removed " +noRemoved + " from adjacentAccumulators");
 	}
@@ -1907,6 +1921,11 @@ public abstract class Pipeline {
 					final ChrPosition cp = new ChrPosition(csChrPos.getChromosome(), j);
 					final Pair<Accumulator, Accumulator> accums = adjacentAccumulators.remove(cp);
 //					final Pair<Accumulator, Accumulator> accums = adjacentAccumulators.get(cp);
+					
+					if (null == accums) {
+						logger.warn("null accums in adjacentAccumulators for cp: " + cp);
+						logger.warn("chChrPos: " + csChrPos);
+					}
 					
 					final Accumulator normal = accums.getLeft();
 					final Accumulator tumour = accums.getRight();
