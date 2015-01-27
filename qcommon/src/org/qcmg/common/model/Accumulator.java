@@ -453,74 +453,117 @@ public class Accumulator {
 		
 		if (null != A) {
 			
-			TIntProcedure aProc = new TIntProcedure(){
-				@Override
-				public boolean execute(int s) {
-					map.put(s, 'A');
-					return true;
-				}};
-				
 			TIntArrayList ids = A.getForwardReadIds();
 			if (ids != null) {
+				
+				TIntProcedure aProc = new TIntProcedure(){
+					@Override
+					public boolean execute(int s) {
+						map.put(s, 'A');
+						return true;
+					}};
 				ids.forEach(aProc);
 			}
+			
 			ids = A.getReverseReadIds();
+			
 			if (ids != null) {
+				
+				TIntProcedure aProc = new TIntProcedure(){
+					@Override
+					public boolean execute(int s) {
+						map.put(s, 'a');
+						return true;
+					}};
 				ids.forEach(aProc);
 			}
 		}
 		
 		if (null != C) {
-			TIntProcedure cProc = new TIntProcedure(){
-				@Override
-				public boolean execute(int s) {
-					map.put(s, 'C');
-					return true;
-				}};
 				
 			TIntArrayList ids = C.getForwardReadIds();
 			if (ids != null) {
+				
+				TIntProcedure cProc = new TIntProcedure(){
+					@Override
+					public boolean execute(int s) {
+						map.put(s, 'C');
+						return true;
+					}};
+					
 				ids.forEach(cProc);
 			}
+			
 			 ids = C.getReverseReadIds();
+			 
 				if (ids != null) {
+					
+					TIntProcedure cProc = new TIntProcedure(){
+						@Override
+						public boolean execute(int s) {
+							map.put(s, 'c');
+							return true;
+						}};
+						
 					ids.forEach(cProc);
 				}
 		}
 		
 		if (null != G) {
-			TIntProcedure gProc = new TIntProcedure(){
-				@Override
-				public boolean execute(int s) {
-					map.put(s, 'G');
-					return true;
-				}};
 			
 			TIntArrayList ids = G.getForwardReadIds();
 			if (ids != null) {
+				
+				TIntProcedure gProc = new TIntProcedure(){
+					@Override
+					public boolean execute(int s) {
+						map.put(s, 'G');
+						return true;
+					}};
+					
 				ids.forEach(gProc);
+				
 			}
 			 ids = G.getReverseReadIds();
-				if (ids != null) {
-					ids.forEach(gProc);
+			 
+			if (ids != null) {
+				
+				TIntProcedure gProcRS = new TIntProcedure(){
+					@Override
+					public boolean execute(int s) {
+						map.put(s, 'g');
+						return true;
+					}};
+						
+					ids.forEach(gProcRS);
 				}
 		}
 		
 		if (null != T) {
-			TIntProcedure tProc = new TIntProcedure(){
-				@Override
-				public boolean execute(int s) {
-					map.put(s, 'T');
-					return true;
-				}};
 				
 			TIntArrayList ids = T.getForwardReadIds();
 			if (ids != null) {
+				
+				TIntProcedure tProc = new TIntProcedure(){
+					@Override
+					public boolean execute(int s) {
+						map.put(s, 'T');
+						return true;
+					}};
 				ids.forEach(tProc);
+				
 			}
 			 ids = T.getReverseReadIds();
 				if (ids != null) {
-					ids.forEach(tProc);
+					
+					TIntProcedure tProcRS = new TIntProcedure(){
+						@Override
+						public boolean execute(int s) {
+							map.put(s, 't');
+							return true;
+						}};
+						
+					ids.forEach(tProcRS);
 				}
 		}
 		

@@ -374,6 +374,31 @@ public class AccumulatorTest {
 		}
 	}
 	
+	@Test
+	public void readIdBaseMapStrand() {
+		
+		Accumulator acc = new Accumulator(1);
+		acc.addBase((byte)'T', (byte)10, true, 1, 1, 2, 1);
+		acc.addBase((byte)'T', (byte)10, true, 1, 1, 2, 2);
+		acc.addBase((byte)'T', (byte)10, true, 1, 1, 2, 3);
+		acc.addBase((byte)'T', (byte)10, false, 1, 1, 2, 4);
+		acc.addBase((byte)'T', (byte)10, false, 1, 1, 2, 5);
+		acc.addBase((byte)'T', (byte)10, false, 1, 1, 2, 6);
+		acc.addBase((byte)'T', (byte)10, false, 1, 1, 2, 7);
+		 
+		// should have both forward and reverse strand info here
+		TIntCharMap map = acc.getReadIdBaseMap();
+		assertEquals(7, map.size());
+		for (int i = 1 ; i < 8 ; i++) {
+			if (i < 4) {
+				assertEquals('T', map.get(i));
+			} else {
+				assertEquals('t', map.get(i));
+			}
+		}
+		 
+	}
+	
 	
 	@Test
 	public void testAddBase() {
