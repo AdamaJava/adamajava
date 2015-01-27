@@ -45,7 +45,7 @@ public class VcfHeaderUtils {
 	
 	//INFO FIELDS
 	public static final String INFO_MUTATION = "MU";
-	public static final String INFO_FLANKING_SEQUENCE = "FS";
+	public static final String INFO_FLANKING_SEQUENCE = "FLANK";
 	public static final String INFO_DONOR = "DON";	
 	public static final String INFO_EFFECT = "EFF";
 	public static final String INFO_LOSS_FUNCTION = "LOF";

@@ -296,8 +296,8 @@ public class GenotypeComparisonUtil {
 			}
 		}
 		
-		if (null != note)
-			record.setNote(note);
+//		if (null != note)
+//			record.setNote(note);
 		record.setMutation(mutation);
 	}
 

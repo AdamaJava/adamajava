@@ -30,7 +30,7 @@ public class QSnpRecord {
 	private int tumourNovelStartCount;
 	private Classification classification;
 //	private String annotation;
-	private String note;
+//	private String note;
 	private String mutation;
 	private String normalPileup;
 	private String unfilteredNormalPileup;
@@ -166,8 +166,8 @@ public class QSnpRecord {
 		+ (null != tumourGenotype ? tumourGenotype.getDisplayString() : "") + TAB 
 		+ classification + TAB
 		+ (null != mutation ? mutation : "") + TAB
-		+ (StringUtils.isNullOrEmpty(vcf.getFilter()) ? "" : vcf.getFilter()) + TAB
-		+ (null != note ? note : "") + TAB;
+		+ (StringUtils.isNullOrEmpty(vcf.getFilter()) ? "" : vcf.getFilter()) + TAB;
+//		+ (null != note ? note : "") + TAB;
 //		+ (null != dbSnpId ? dbSnpId : "--") + TAB
 //		+ (null != dbSnpGenotype ? dbSnpGenotype.getDisplayString() : "-888") + TAB
 //		+ (('+' == dbSnpStrand ? "1" : ('-' == dbSnpStrand? "-1" : "-888"))) + TAB
@@ -190,7 +190,7 @@ public class QSnpRecord {
 		+ classification + TAB
 		+ (null != mutation ? mutation : "") + TAB
 		+ (StringUtils.isNullOrEmpty(vcf.getFilter()) ? "" : vcf.getFilter()) + TAB
-		+ (null != note ? note : "") + TAB
+//		+ (null != note ? note : "") + TAB
 //		+ (null != dbSnpId ? dbSnpId : "--") + TAB
 //		+ (null != dbSnpGenotype ? dbSnpGenotype.getDisplayString() : "-888") + TAB
 //		+ (('+' == dbSnpStrand ? "1" : ('-' == dbSnpStrand? "-1" : "-888"))) + TAB
@@ -227,7 +227,7 @@ public class QSnpRecord {
 //		sb.append(getValidStatus()).append(TAB);
 //		sb.append(getValidPlatform()).append(TAB);
 //		sb.append(getXRef()).append(TAB);
-		sb.append(null != note ? note : "-999").append(TAB);
+//		sb.append(null != note ? note : "-999").append(TAB);
 		sb.append(StringUtils.isNullOrEmpty(vcf.getFilter()) ? "--" : vcf.getFilter()).append(TAB);
 		sb.append(StringUtils.isNullOrEmpty(normalNucleotides) ? "--" : normalNucleotides).append(TAB);
 		sb.append(StringUtils.isNullOrEmpty(tumourNucleotides) ? "--" : tumourNucleotides);
@@ -301,12 +301,12 @@ public class QSnpRecord {
 //			return -888;
 //		else return 48;
 //	}
-	public void setNote(String note) {
-		this.note = note;
-	}
-	public String getNote() {
-		return note;
-	}
+//	public void setNote(String note) {
+//		this.note = note;
+//	}
+//	public String getNote() {
+//		return note;
+//	}
 	public void setId(int id) {
 		this.id = id;
 	}
