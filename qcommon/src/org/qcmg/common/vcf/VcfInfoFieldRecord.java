@@ -117,17 +117,7 @@ public class VcfInfoFieldRecord {
 		
 		}
 		
-/* mine
-		final Iterator<String> it = field.keySet().iterator();
-		while(it.hasNext()){
-			final String key = it.next();
-			if(key.equals(Constants.MISSING_DATA_STRING)) //remove "." key
-				continue;
-			if( ! Constants.EMPTY_STRING.equals(str)) {
-				str +=  Constants.SEMI_COLON;
-		}
- 	field.remove(key);
- */
+
 	}
 	/**
 	 * re-orginize info column string
@@ -146,19 +136,7 @@ public class VcfInfoFieldRecord {
 			return Constants.MISSING_DATA_STRING;
 		
 		return line.toString();
-//		String str = Constants.EMPTY_STRING;
-//		
-//		final Iterator<String> it = field.keySet().iterator();
-//		while(it.hasNext()){
-//			final String key = it.next();
-//			if( ! Constants.EMPTY_STRING.equals(str)) {
-//				str +=  Constants.SEMI_COLON;
-//			}
-//			str += key;
-//			str += (field.get(key) == Constants.NULL_STRING ? Constants.EMPTY_STRING :  Constants.EQ + field.get(key));			
-//		}
-//		
-//		return Constants.EMPTY_STRING.equals(str) ? Constants.MISSING_DATA_STRING : str;
+
 	}
  
 }

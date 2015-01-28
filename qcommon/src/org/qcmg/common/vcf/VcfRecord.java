@@ -100,11 +100,28 @@ public class VcfRecord {
 	public void setQualString(String qualString) { this.qualString = qualString; }
 	
 	public void addFilter(String additionalFilter) { 
-		this.filter = StringUtils.addToString(this.filter, additionalFilter, SEMI_COLON);
+		if(StringUtils.isNullOrEmpty(   this.filter)  || 
+				this.filter .equals(Constants.MISSING_DATA_STRING) )
+			setFilter(additionalFilter);
+		else
+			this.filter = StringUtils.addToString(this.filter, additionalFilter, SEMI_COLON);
 	}
 	
 	public void setFilter(String filter) { this.filter = filter; }
-	public String getFilter() { return filter; }
+	
+	/**
+	 * 
+	 * @return filter column value
+	 */
+	public String getFilter() { 
+		
+		if(! StringUtils.isNullOrEmpty(this.filter)){
+			filter = filter.replace(Constants.MISSING_DATA_STRING + Constants.SEMI_COLON, "");
+			filter = filter.replace(Constants.SEMI_COLON + Constants.MISSING_DATA_STRING,"");
+		} 		
+		
+		return filter; 
+	}
 	
 	/**
 	 * the existing INFO column value will be replaced by this new info string

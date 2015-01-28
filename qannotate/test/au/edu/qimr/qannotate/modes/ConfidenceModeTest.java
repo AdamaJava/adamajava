@@ -42,7 +42,7 @@ public class ConfidenceModeTest {
 
 		 new File(DbsnpModeTest.inputName).delete();
 		 new File(VerifiedFileName).delete();
-	//	 new File(DbsnpModeTest.outputName).delete();
+		 new File(DbsnpModeTest.outputName).delete();
 		 
 	 }
 	
@@ -110,7 +110,8 @@ public class ConfidenceModeTest {
 	
 	
 	/**
-	 * a mini dbSNP vcf file 
+	 * 
+ 	 * a mini dbSNP vcf file 
 	 */
 	public static void createVerifiedFile() throws IOException{
         final List<String> data = new ArrayList<String>();
@@ -120,9 +121,9 @@ public class ConfidenceModeTest {
         data.add("APGI_1127\txxx\tchr10:70741311-70741311\tTD\tDDX21\tsomaticclassA\tC>T\txxx\txxx\t84\tF\t\"59.547,59.22\"\tACGCGAGTAT\txxx\txxx\txxx\txxx\txxx\tqSNP\tNON_SYNONYMOUS_CODING\t--\t\"C:14[38.53],30[30.86],T:0[0],6[40]\"\t\"C:26[39.58],25[36.13]\"\t6\tAPGI_1127\tchr10\t70741311\tC\tA:1\tC:1603\tG:0\tT:0\tN:0\t1604\tchr10:70741311-70741311\tAPGI_1127\tchr10\t70741311\tC\tA:0\tC:1264\tG:0\tT:0\tN:0\t1264\tchr10:70741311-70741311\tAPGI_1127\tchr10:70741311-70741311\tC>T\tC\tT\t1603\t0\t1264\t0\t0\t0\tno");
         data.add(patient +"\txxx\tchrY:14923588-14923588\tTD\tUSP9Y\tsomaticclassA\tG>A\txxx\txxx\t98\tF\t\"61.078,59.793\"\tTACTCTCGTG\txxx\txxx\txxx\txxx\txxx\tqSNP\tNON_SYNONYMOUS_CODING\t--\t\"A:23[40],0[0],G:12[36.84],10[36.91]\"\t\"G:29[34.2],11[35.19]\"\t23\tAPGI_2001\tchrY\t14923588\tG\tA:0\tC:1\tG:1283\tT:0\tN:0\t1284\tchrY:14923588-14923588\tAPGI_2001\tchrY\t14923588\tG\tA:0\tC:0\tG:33\tT:0\tN:0\t33\tchrY:14923588-14923588\tAPGI_2001\tchrY:14923588-14923588\tG>A\tG\tA\t1283\t0\t33\t0\t0\t0\tyes");
                
-        try(BufferedWriter out = new BufferedWriter(new FileWriter(VerifiedFileName));) {          
+        try(BufferedWriter out = new BufferedWriter(new FileWriter(VerifiedFileName));){      
            for (final String line : data)  out.write(line + "\n");
-        }  
+        }
           
 	}
 	

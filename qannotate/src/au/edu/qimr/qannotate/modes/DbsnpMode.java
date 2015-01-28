@@ -66,6 +66,8 @@ public class DbsnpMode extends AbstractMode{
 					header.replace(hr);				 
 				 else if( hr.getMetaType().equals(MetaType.INFO) && hr.getId().equalsIgnoreCase(VcfHeaderUtils.INFO_CAF) ) 
 					header.replace(hr);
+				 else if( hr.getMetaType().equals(MetaType.INFO) && hr.getId().equalsIgnoreCase(VcfHeaderUtils.INFO_VLD) ) 
+						header.replace(hr);
 				 							 
 			//below algorithm only work for SNP and compound SNP
 			for (final VcfRecord dbSNPVcf : reader) {

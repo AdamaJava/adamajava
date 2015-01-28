@@ -20,14 +20,11 @@ public class OptionsTest {
 		
 		for(int i = 0 ; i < list.size(); i ++)
 			if(list.get(i).equalsIgnoreCase("-m")){
-				System.out.println(i +" find: " + list.get(i));
 				list.remove(i);
-				System.out.println(i +" find: " + list.get(i));
+
 				list.remove(i);
 			}
 		
-		System.out.println("bf:" + Arrays.toString(args));
-		System.out.println("af:" + Arrays.toString(list.toArray()));
 		
 		int x = Integer.parseInt("1100110", 2);
 		int y = 0b1100110;
@@ -47,7 +44,7 @@ public class OptionsTest {
 		String filter = "OK;PASS;YES;PASS";
 		filter = "PASS";
 		filter = filter.replaceAll("PASS;|;?PASS$", "");
-		System.out.println("after replace: " + filter);
+//		System.out.println("after replace: " + filter);
  
 	}
 	

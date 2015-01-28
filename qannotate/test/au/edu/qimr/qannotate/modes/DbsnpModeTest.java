@@ -39,15 +39,15 @@ public class DbsnpModeTest {
 	 @AfterClass
 	 public static void deleteIO(){
 
-	//	 new File(inputName).delete();
-	//	 new File(dbSNPName).delete();
-	//	 new File(outputName).delete();
+		 new File(inputName).delete();
+		 new File(dbSNPName).delete();
+		 new File(outputName).delete();
 		 
 	 }
 	 
 	
 	@Test
-	public void CompoundTest() throws IOException, Exception{
+	public void annotationTest() throws IOException, Exception{
 		final DbsnpMode mode = new DbsnpMode();		
 		mode.inputRecord(new File(inputName));
 		mode.addAnnotation(dbSNPName);
@@ -88,15 +88,16 @@ public class DbsnpModeTest {
 					count[8] ++; 
 				else if(re.getMetaType().equals(MetaType.OTHER) && re.equals(VcfHeaderUtils.BLANK_HEADER_LINE))
 					count[9] ++;
-				else
-					count[10] ++;
+				else 
+					count[10] ++; 
 			}
 			
 			for (i = 0; i < 9; i++)
 				assertTrue(count[i] == 1);
-			assertTrue(count[9] == 2);
-			assertTrue(count[10] == 0);
 			
+			assertTrue(count[9] == 2);			
+ 			assertTrue(count[10] == 0);
+						
 			i = 0;
 			for (final VcfRecord re : reader) {	
  				i ++;
@@ -116,6 +117,36 @@ public class DbsnpModeTest {
 		  
 		
 	}
+	
+	/**
+	 * The VLD info should add to output vcf if it appear on the dbSNP header
+	 * @throws IOException
+	 * @throws Exception
+	 */
+	
+	@Test
+	public void VLDTest() throws IOException, Exception{
+		createDbsnpHeader();
+		
+		final DbsnpMode mode = new DbsnpMode();		
+		mode.inputRecord(new File(inputName));
+		mode.addAnnotation(dbSNPName);
+		mode.reheader("testing run",   "inputTest.vcf");
+		mode.writeVCF(new File(outputName));
+		
+		int i = 0; 
+		try(VCFFileReader reader = new VCFFileReader(outputName)){
+			VcfHeader header = reader.getHeader();
+			for (final VcfHeaderRecord re : header)
+				if(re.getMetaType().equals(MetaType.INFO) && re.getId().equals(VcfHeaderUtils.INFO_VLD))
+					i++;			
+		 }
+			
+		assertTrue(i == 1);
+		 
+	}	
+	
+	
 	
 	/**
 	 * create input vcf file containing 2 dbSNP SNPs and one verified SNP
@@ -154,5 +185,21 @@ public class DbsnpModeTest {
         }  
           
 	}
+	public static void createDbsnpHeader() throws IOException{
+        final List<String> data = new ArrayList<String>();
+        data.add("##fileformat=VCFv4.0");
+        data.add("##dbSNP_BUILD_ID=135");  
+        data.add("##INFO=<ID=CAF,Number=.,Type=String,Description=\"An ordered, comma delimited list of allele frequencies based on 1000Genomes, starting with the reference allele followed by alternate alleles as ordered in the ALT column. "
+        		+ "Where a 1000Genomes alternate allele is not in the dbSNPs alternate allele set, the allele is added to the ALT column. "
+        		+ " The minor allele is the second largest value in the list, and was previuosly reported in VCF as the GMAF.  This is the GMAF reported on the RefSNP and EntrezSNP pages and VariationReporter\">");  
+      
+        data.add("##INFO=<ID=VLD,Number=0,Type=Flag,Description=\"Is Validated. This bit is set if the variant has 2+ minor allele count based on frequency or genotype data.\">");
+        
+        
+        try(BufferedWriter out = new BufferedWriter(new FileWriter(dbSNPName));) {          
+           for (final String line : data)  out.write(line + "\n");
+        }  
+          
+	}	
 
 }

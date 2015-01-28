@@ -7,12 +7,20 @@ import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfRecord;
+import org.qcmg.common.vcf.header.VcfHeaderFilter;
+import org.qcmg.common.vcf.header.VcfHeaderInfo;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
+import org.qcmg.common.vcf.header.VcfHeaderRecord.VcfInfoNumber;
+import org.qcmg.common.vcf.header.VcfHeaderRecord.VcfInfoType;
 import org.qcmg.vcf.VCFFileReader;
 
 import au.edu.qimr.qannotate.options.GermlineOptions;
 
 public class GermlineMode extends AbstractMode{
+	
+	//for unit Test only
+	GermlineMode(){}
+	
  	public GermlineMode(GermlineOptions options, QLogger logger) throws Exception{
 		
 		//this.logger = logger;		
@@ -40,43 +48,50 @@ public class GermlineMode extends AbstractMode{
 	 */
  	@Override	
 	void addAnnotation(String dbGermlineFile) throws Exception{
+ 		
+ 		//add header line first
+		header.add(new VcfHeaderFilter(VcfHeaderUtils.FILTER_GERMLINE, VcfHeaderUtils.DESCRITPION_FILTER_GERMLINE ) );
+
+ 		
  		try(VCFFileReader reader = new VCFFileReader(new File(dbGermlineFile))){
 	 
-		 String filter = null;
-		 for (final VcfRecord dbGermlineVcf : reader) {
-			final VcfRecord inputVcf = positionRecordMap.get(new ChrPosition("chr"+ dbGermlineVcf.getChromosome(), dbGermlineVcf.getPosition()));
-			if (null == inputVcf) continue;
-					 	
-			// only proceed if we have a SOMATIC variant record
-			if ( ! StringUtils.doesStringContainSubString(inputVcf.getInfo(), "SOMATIC", false)) continue;
-			
-			//reference base must be same
-			//?? maybe errif( dbGermlineVcf.getRef() != dbGermlineVcf.getRef() )
-			if( !dbGermlineVcf.getRef().equals(  inputVcf.getRef()) )
-				throw new Exception("reference base are different ");
-			 
- 			String [] alts = null; 
-			try{
-				//multi allels
-				alts = TabTokenizer.tokenize(inputVcf.getAlt(), ',');
-			}catch(final IllegalArgumentException e){
-				//single allel
-				alts = new String[] {inputVcf.getAlt()};		
-			}
-						
-			if (null == alts)  continue;			
-			//annotation if at least one alts matches dbSNP alt
-			for (final String alt : alts)  
-				if(dbGermlineVcf.getAlt().toUpperCase().contains(alt.toUpperCase()) ){					
-					filter = inputVcf.getFilter();
-					//remove "PASS" or "PASS;" then append GERM
-					filter = filter.replaceAll("PASS;|;?PASS$", "");
-					inputVcf.setFilter(filter);
-					inputVcf.addFilter(VcfHeaderUtils.FILTER_GERMLINE);
-					break;
-					
+			 String filter = null;
+			 for (final VcfRecord dbGermlineVcf : reader) {
+				final VcfRecord inputVcf = positionRecordMap.get(new ChrPosition("chr"+ dbGermlineVcf.getChromosome(), dbGermlineVcf.getPosition()));
+				if (null == inputVcf) continue;
+						 	
+				// only proceed if we have a SOMATIC variant record
+				if ( ! StringUtils.doesStringContainSubString(inputVcf.getInfo(), "SOMATIC", false)) continue;
+				
+				//reference base must be same
+				//?? maybe errif( dbGermlineVcf.getRef() != dbGermlineVcf.getRef() )
+				if( !dbGermlineVcf.getRef().equals(  inputVcf.getRef()) )
+					throw new Exception("reference base are different ");
+				 
+	 			String [] alts = null; 
+				try{
+					//multi allels
+					alts = TabTokenizer.tokenize(inputVcf.getAlt(), ',');
+				}catch(final IllegalArgumentException e){
+					//single allel
+					alts = new String[] {inputVcf.getAlt()};		
 				}
-		 	}
+				
+				
+							
+				if (null == alts)  continue;			
+				//annotation if at least one alts matches dbSNP alt
+				for (final String alt : alts)  
+					if(dbGermlineVcf.getAlt().toUpperCase().contains(alt.toUpperCase()) ){					
+						filter = inputVcf.getFilter();
+						//remove "PASS" or "PASS;" then append GERM
+						filter = filter.replaceAll("PASS;|;?PASS$", "");
+						inputVcf.setFilter(filter);
+						inputVcf.addFilter(VcfHeaderUtils.FILTER_GERMLINE);
+						break;
+						
+					}
+			 	}
  		}
 	}
 
