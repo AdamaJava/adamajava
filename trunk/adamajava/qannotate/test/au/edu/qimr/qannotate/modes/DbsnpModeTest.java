@@ -31,7 +31,7 @@ public class DbsnpModeTest {
 	
 	 @BeforeClass
 	public static void createInput() throws IOException{
-		createVcf();
+//		createVcf();
 		createDbsnp();   
  	}
 	 
@@ -48,6 +48,8 @@ public class DbsnpModeTest {
 	
 	@Test
 	public void annotationTest() throws IOException, Exception{
+		createVcf();
+		
 		final DbsnpMode mode = new DbsnpMode();		
 		mode.inputRecord(new File(inputName));
 		mode.addAnnotation(dbSNPName);
@@ -88,8 +90,10 @@ public class DbsnpModeTest {
 					count[8] ++; 
 				else if(re.getMetaType().equals(MetaType.OTHER) && re.equals(VcfHeaderUtils.BLANK_HEADER_LINE))
 					count[9] ++;
-				else 
-					count[10] ++; 
+				else{ 
+					//debug
+					System.out.println("else: " + re.toString());
+					count[10] ++; }
 			}
 			
 			for (i = 0; i < 9; i++)
