@@ -58,7 +58,7 @@ public final class JobQueue {
 	private final List<ChrPosition> includes;
 	private final List<ChrPosition> excludes;
 	private final Integer windowSize;
-	private int cutoff = 10;
+//	private int cutoff = 10;
 	private final AbstractQueue<SAMRecord> outputQueue = new ConcurrentLinkedQueue<>();
 	private final SAMOrBAMWriterFactory bamWriterFactory;
 	private final MotifsAndRegexes motifsAndRegexes;
@@ -114,7 +114,7 @@ public final class JobQueue {
 		// and now sort so that the largest is first
 		Collections.sort(contigs, new SAMSequenceRecodComparator());
 	
-		if (null != invariants.getCutoff()) cutoff = invariants.getCutoff(); 
+//		if (null != invariants.getCutoff()) cutoff = invariants.getCutoff(); 
 		
 		execute();
 	}
@@ -288,7 +288,8 @@ public final class JobQueue {
 		}
 		
 		if ( ! resultsList.isEmpty()) {
-			logger.info("SUMMARY: (window size: " + windowSize + ", cutoff: " + cutoff + ")");
+			logger.info("SUMMARY: (window size: " + windowSize + ")");
+//			logger.info("SUMMARY: (window size: " + windowSize + ", cutoff: " + cutoff + ")");
 			for (String s : resultsList) logger.info(s);
 			
 			logger.info("motif details:");
@@ -302,7 +303,7 @@ public final class JobQueue {
 		long totalReadCount = countIn.get();
 		
 		ss.setWindowSize(windowSize);
-		ss.setCutoff(cutoff);
+//		ss.setCutoff(cutoff);
 		ss.setResults(results);
 		ss.setUniqueMotifCount(allMotifs.size());
 		ss.setTotalReadCount(totalReadCount);

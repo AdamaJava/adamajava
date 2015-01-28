@@ -30,7 +30,7 @@ public final class Configuration {
 	private final List<ChrPosition> excludes;
 	private final List<ChrPosition> includes;
 	private final Integer windowSize;
-	private final Integer cutoff;
+//	private final Integer cutoff;
 	private final String outputBamFileName;
 	private final  Ini iniFile;
 	private final MotifsAndRegexes mAndR;
@@ -96,7 +96,7 @@ public final class Configuration {
 		countReadFromInput = new AtomicLong();
 		countReadToCoverage = new AtomicLong();
 		
-		cutoff = Integer.parseInt(IniUtils.getEntry(iniFile, MotifConstants.PARAMS, "cutoff_size"));
+//		cutoff = Integer.parseInt(IniUtils.getEntry(iniFile, MotifConstants.PARAMS, "cutoff_size"));
 	}
 	
 	public AtomicLong getInputReadsCount(){
@@ -171,9 +171,9 @@ public final class Configuration {
 		return windowSize;
 	}
 
-	public Integer getCutoff() {
-		return cutoff;
-	}
+//	public Integer getCutoff() {
+//		return cutoff;
+//	}
 
 	public String getOutputBam() {
 		return outputBamFileName;
