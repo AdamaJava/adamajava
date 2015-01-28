@@ -72,11 +72,21 @@ public class ConfidenceModeTest {
 	 public void ConfidenceTest() throws IOException, Exception{	
 			final ConfidenceMode mode = new ConfidenceMode(patient);		
 			mode.inputRecord(new File(DbsnpModeTest.inputName));
-			mode.header.add(new VcfHeaderRecord("##qControlSample=Control") );
-			mode.header.add( new VcfHeaderRecord("##qTestSample=Test")  );
-			mode.header.add( new VcfHeaderRecord(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "\tControl\tTest")  );
-			//
-			mode.retriveDefaultSampleColumn();
+			
+			
+			//mode.header.add(new VcfHeaderRecord("##qControlSample=Control") );
+			//mode.header.add( new VcfHeaderRecord("##qTestSample=Test")  );
+			//mode.header.add( new VcfHeaderRecord(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "\tControl\tTest")  );	
+			
+			String Scontrol = "EXTERN-MELA-20140505-001";
+			String Stest = "EXTERN-MELA-20140505-002";
+			mode.header.add(new VcfHeaderRecord("##qControlSample=" + Scontrol));
+			mode.header.add(new VcfHeaderRecord("##qTestSample="+ Stest));	
+			mode.header.add( new VcfHeaderRecord("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tEXTERN-MELA-20140505-001\tEXTERN-MELA-20140505-002"));			
+			
+			//mode.retriveDefaultSampleColumn();
+			mode.retriveSampleColumn(Stest, Scontrol, null);
+			
 			mode.addAnnotation(VerifiedFileName);
 			mode.reheader("unitTest", DbsnpModeTest.inputName);
 			mode.writeVCF( new File(DbsnpModeTest.outputName)  );
@@ -99,20 +109,9 @@ public class ConfidenceModeTest {
 	 }
 	 
 	 
+
 	
-	@Test
-	public void CompoundSNPTest() throws IOException, Exception{	
-		
- 	 	//test coumpound snp
-		final String str =  "chrY\t2675825\t.\tTTG\tTCA\t.\tMIN;MIUN\tSOMATIC;RSPOS=2675825;END=2675826\tACCS\tTTG,5,37,TCA,0,2\tTAA,1,1,TCA,4,1,TCT,3,1,TTA,11,76,TTG,2,2,_CA,0,3,TTG,0,1" ;
-		final VcfRecord vcf  = new VcfRecord(str.split("\t"));
-	}
-	
-	
-	/**
-	 * 
- 	 * a mini dbSNP vcf file 
-	 */
+
 	public static void createVerifiedFile() throws IOException{
         final List<String> data = new ArrayList<String>();
         data.add("#version 3.0 all SNP and indel verification (not including APGI_1830)");
@@ -126,6 +125,9 @@ public class ConfidenceModeTest {
         }
           
 	}
+ 
+	
+
 	
 
 }

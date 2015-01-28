@@ -31,14 +31,15 @@ public class DbsnpModeTest {
 	
 	 @BeforeClass
 	public static void createInput() throws IOException{
-//		createVcf();
-		createDbsnp();   
+		createVcf();
+	//	createDbsnp();   
  	}
 	 
 	 
 	 @AfterClass
 	 public static void deleteIO(){
 
+		 
 		 new File(inputName).delete();
 		 new File(dbSNPName).delete();
 		 new File(outputName).delete();
@@ -48,7 +49,7 @@ public class DbsnpModeTest {
 	
 	@Test
 	public void annotationTest() throws IOException, Exception{
-		createVcf();
+		createDbsnp(); 
 		
 		final DbsnpMode mode = new DbsnpMode();		
 		mode.inputRecord(new File(inputName));

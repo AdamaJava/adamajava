@@ -30,7 +30,7 @@ public class GermlineModeTest {
   	
 	@BeforeClass
 	public static void createInput() throws IOException{	
-		createVcf();
+	
 		createGermlineFile();
 	}
 	
@@ -46,6 +46,7 @@ public class GermlineModeTest {
 	 
 		@Test
 		public void GermlineModeTest() throws IOException, Exception{
+			createVcf();
 			final GermlineMode mode = new GermlineMode();		
 			mode.inputRecord(new File(inputName));
 			mode.addAnnotation(GermlineFileName);
