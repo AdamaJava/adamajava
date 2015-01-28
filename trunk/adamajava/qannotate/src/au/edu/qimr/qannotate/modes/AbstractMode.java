@@ -82,9 +82,9 @@ public abstract class AbstractMode {
 		//incase both point into same column
 		for(int i = 0; i < samples.length; i++) 
 			if(samples[i].equalsIgnoreCase(testSample))
-				test_column = i ;
+				test_column = i + 1;
 			else if(samples[i].equalsIgnoreCase(controlSample))
-				control_column = i;
+				control_column = i + 1;
 				
 		if(test_column <= 0 )
 			throw new RuntimeException("can't find test sample id from vcf header line: " + testSample);

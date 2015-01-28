@@ -80,7 +80,7 @@ public class AbstractModeTest {
 		 
 		header.add(new VcfHeaderRecord("##qControlSample=" + control) );
 		header.add( new VcfHeaderRecord("##qTestSample=" + test)  );
-		header.add( new VcfHeaderRecord(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "\t"+ control + "\t" + "test")  );
+		header.add( new VcfHeaderRecord(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + control + "\t" + "test")  );
 		
 		final ConfidenceMode mode = new ConfidenceMode("");		
 		 
