@@ -1,4 +1,4 @@
-version = '1.1pre'
+version = '1.2pre'
 
 def mainclass = 'au.edu.qimr.qannotate.Main'
 def scriptname = 'qannotate'

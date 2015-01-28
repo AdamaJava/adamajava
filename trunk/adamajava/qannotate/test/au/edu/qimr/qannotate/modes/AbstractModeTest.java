@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.qcmg.common.vcf.VcfRecord;
@@ -28,16 +29,21 @@ public class AbstractModeTest {
 		createVcf();
 	}
 	
+	
+	 @AfterClass
+	 public static void deleteIO(){
+
+		 new File(inputName).delete();
+		 new File(outputName).delete();
+		 
+	 }	
+	
 	//test data
 	@Test
 	public void inputRecordCompoundSnp() throws Exception{
 		
-		//final String[] params =  {"chr1","10180",".","T","C","."," MIN;MIUN","SOMATIC","ACCS","TA,5,37,CA,0,2", "AA,1,1,CA,4,1,CT,3,1,TA,11,76,TT,2,2,_A,0,3,TG,0,1"};
-
 		final String[] params =  {"chr1","10180",".","TA","CT","."," MIN;MIUN","SOMATIC;END=10181","ACCS","TA,5,37,CA,0,2", "AA,1,1,CA,4,1,CT,3,1,TA,11,76,TT,2,2,_A,0,3,TG,0,1"};
 		final VcfRecord record = new VcfRecord(params);
-		
-		//System.out.println(record.getChrPosition().toString());
 		 
 	}
 	
@@ -57,7 +63,7 @@ public class AbstractModeTest {
 		
         try(VCFFileReader reader = new VCFFileReader(new File(outputName))) {
         	int i = 0;
-        	for(VcfHeaderRecord re :  reader.getHeader()){ i ++;System.out.println(re.toString());}
+        	for(VcfHeaderRecord re :  reader.getHeader()){ i ++;}
         	assertTrue(i == 9);	
         	
         }		
@@ -79,9 +85,7 @@ public class AbstractModeTest {
 		final ConfidenceMode mode = new ConfidenceMode("");		
 		 
 		mode.retriveSampleColumn(null,null, header);
-		
-		System.out.println(mode.control_column );
-		 
+				 
 		assertTrue( mode.control_column == 1);
 		assertTrue( mode.test_column == 2);
 
