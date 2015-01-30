@@ -65,7 +65,9 @@ public class DbsnpMode extends AbstractMode{
 				else if( hr.getMetaType().equals(MetaType.INFO) && hr.getId().equalsIgnoreCase(VcfHeaderUtils.INFO_GMAF) ) 
 					header.replace(hr);				 
 				 else if( hr.getMetaType().equals(MetaType.INFO) && hr.getId().equalsIgnoreCase(VcfHeaderUtils.INFO_CAF) ) 
-					header.replace(hr);
+					header.replace(new VcfHeaderRecord(
+							String.format("##INFO=<ID=%s,Number=.,Type=String,Description=\"%s\">", VcfHeaderUtils.INFO_VAF, VcfHeaderUtils.DESCRITPION_INFO_VAF  )	));
+							 
 				 else if( hr.getMetaType().equals(MetaType.INFO) && hr.getId().equalsIgnoreCase(VcfHeaderUtils.INFO_VLD) ) 
 						header.replace(hr);
 				 							 
@@ -126,7 +128,7 @@ public class DbsnpMode extends AbstractMode{
 //		final String gmaf =  new VcfInfoFieldRecord(info).getfield(VcfHeaderUtils.INFO_GMAF);
 		final String caf =  new VcfInfoFieldRecord(info).getField(VcfHeaderUtils.INFO_CAF);
 		if(caf != null) {
-			String[] cafs = caf.split(Constants.COMMA_STRING);
+			String[] cafs = caf.replace("[", "").replace("]", "").split(Constants.COMMA_STRING);
 			if(cafs.length > order)			
 				return StringUtils.addToString(VcfHeaderUtils.INFO_CAF, cafs[order], EQ);			
 		}

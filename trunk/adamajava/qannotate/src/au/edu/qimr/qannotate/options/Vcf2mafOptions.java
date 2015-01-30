@@ -10,6 +10,7 @@ public class Vcf2mafOptions extends Options {
 	 
 	 public static final String unkown = "unkown";
 	 public static final String null_String = "null";
+	 public static final String default_center = "QIMR Berghofer"; 
 	 
 	 String center ; 
 	 String sequencer; 
@@ -54,8 +55,8 @@ public class Vcf2mafOptions extends Options {
 	        inputFileName = (String) options.valueOf("i") ;      	 
 	        outputFileName = (String) options.valueOf("o") ; 
 	        
-	        center = (options.has("center"))? (String)options.valueOf("center") : unkown;
-	        sequencer = (options.has("sequencer"))? (String)options.valueOf("sequencer") : unkown;	 
+	        center = (options.has("center"))? (String)options.valueOf("center") : null;
+	        sequencer = (options.has("sequencer"))? (String)options.valueOf("sequencer") : null;	 
 	        
 	        testSample = (options.has(test))? (String)options.valueOf(test) : null;
 	        controlSample = (options.has(control))? (String)options.valueOf(control) : null;

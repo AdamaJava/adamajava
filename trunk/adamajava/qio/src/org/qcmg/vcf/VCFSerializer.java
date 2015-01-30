@@ -24,7 +24,7 @@ public final class VCFSerializer {
 		return line;
 	}
 	
-	public static VcfHeader readHeader(final BufferedReader reader) throws Exception {
+	public static VcfHeader readHeader(final BufferedReader reader) throws IOException {
 		final List<String> headerLines = new ArrayList<>();
 
 		String line = reader.readLine();

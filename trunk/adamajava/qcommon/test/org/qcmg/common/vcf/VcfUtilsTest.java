@@ -52,8 +52,11 @@ public class VcfUtilsTest {
 		
 		count = VcfUtils.getAltFrequency(format, null);
 		assertEquals(count,106);
-		System.out.println(count);
+		//System.out.println(count);
 		
+		
+		count = VcfUtils.getAltFrequency(format, "_CA");
+		assertEquals(count,3);		;
 	}
 	
 	@Test

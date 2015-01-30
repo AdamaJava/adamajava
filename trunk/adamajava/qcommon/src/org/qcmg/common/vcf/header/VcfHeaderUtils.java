@@ -24,8 +24,9 @@ public class VcfHeaderUtils {
 	
 	public static final String DESCRITPION_FORMAT_COMPOUND_SNP_ALLELE_COUNT = "Allele Count Compound Snp: lists read sequence and count (forward strand, reverse strand) ";
 	public static final String DESCRITPION_INFO_DB = "dbSNP Membership";
-	
-	
+	public static final String DESCRITPION_INFO_VAF = "Variant allele frequencies based on 1000Genomes from dbSNP as the CAF. CAF starting with the reference allele followed " +
+			 "by alternate alleles as ordered in the ALT column.   Here we only take the related allel frequency.";
+ 	
 	//FILTER FIELDS
 	public static final String FILTER_PASS = "PASS";
 	public static final String FILTER_COVERAGE_NORMAL_12 = SnpUtils.LESS_THAN_12_READS_NORMAL;
@@ -54,6 +55,7 @@ public class VcfHeaderUtils {
 	public static final String INFO_CONFIDENT = "CONF";
 	public static final String INFO_GMAF = "GMAF";
 	public static final String INFO_CAF = "CAF";
+	public static final String INFO_VAF = "VAF";
 	public static final String INFO_DB = "DB";
 	public static final String INFO_VLD = "VLD";
 	

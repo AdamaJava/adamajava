@@ -78,6 +78,12 @@ public class VcfInfoFieldRecord {
 		}
 	}
 	
+	/**
+	 * 
+	 * @param key
+	 * @return null if the key field do not exist
+	 *  @return "." if the key field exists but no value
+	 */
 	public String getField(String key){
 		int index = line.indexOf(key);
 		
