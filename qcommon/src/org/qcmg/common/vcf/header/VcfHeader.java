@@ -60,15 +60,11 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 		//chromLine = VCFHeaderUtils.STANDARD_FINAL_HEADER_LINE;
 	}
 
-	public VcfHeader(final List<String> headerRecords) throws Exception {
+	public VcfHeader(final List<String> headerRecords)   {
 		this();	
-		try{
-			for (final String record : headerRecords)  
+		
+		for (final String record : headerRecords)  
 				add(new VcfHeaderRecord(record));
-		}catch(Exception e){
-			logger.error("Exception may be caused by incorrect Vcf Header");
-			throw e;
-		}
 		
 		//in case missing header line
 		if(chromLine == null)

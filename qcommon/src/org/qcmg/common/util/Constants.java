@@ -3,6 +3,8 @@ package org.qcmg.common.util;
 public class Constants {
 	public  static final char TAB = '\t';
 	public static final char SC = ';';
+	public static final char BAR = '|';
+	public static final char SLASH = '/';
 	public static final String NEW_LINE = System.getProperty("line.separator");
 	
 	public static final char NL = '\n';
@@ -21,6 +23,8 @@ public class Constants {
 	public static final String SEMI_COLON_STRING = SC+"";
 	public static final String COLON_STRING = COLON + "";
 	public static final String NL_STRING = NL + "";
+	public static final String BAR_STRING = BAR + "";
+	public static final String SLASH_STRING = SLASH + "";
 	
 	//at moment only for VcfInfoFieldRecord
 	public static final String NULL_STRING = "NULL";

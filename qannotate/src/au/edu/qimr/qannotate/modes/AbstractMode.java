@@ -26,12 +26,13 @@ import au.edu.qimr.qannotate.Main;
 public abstract class AbstractMode {
 	private static final DateFormat df = new SimpleDateFormat("yyyyMMdd");
 	protected final Map<ChrPosition,VcfRecord> positionRecordMap = new HashMap<ChrPosition,VcfRecord>();
-	protected VcfHeader header;
-	protected String inputUuid;
 	
+	protected VcfHeader header;
+	protected String inputUuid;	
 	protected int test_column = -2; //can't be -1 since will "+1"
 	protected int control_column = -2;
-
+	protected String controlSample = null; 
+	protected String testSample = null; 
  	
 	protected void inputRecord(File f) throws Exception{
 		
@@ -50,7 +51,6 @@ public abstract class AbstractMode {
 				positionRecordMap.put(new ChrPosition(qpr.getChromosome(), qpr.getPosition(), qpr.getPosition() + qpr.getRef().length() - 1 ), qpr);	
 		} 
         
-        
 	}
  
 	protected void retriveDefaultSampleColumn(){
@@ -64,15 +64,15 @@ public abstract class AbstractMode {
 	 * @param controlSample:  controlSample column name located after "FORMAT" column
 	 * @param header: if null, it will point to this class's header; 
 	 */
-	protected void retriveSampleColumn(String testSample, String controlSample, VcfHeader header){
+	protected void retriveSampleColumn(final String test, final String control, VcfHeader header){
 		if(header == null)
 			header = this.header;
 		
 		for(final VcfHeaderRecord hr : header)
     		if( hr.getMetaType().equals(MetaType.META) && hr.getId().equalsIgnoreCase(VcfHeaderUtils.STANDARD_CONTROLSAMPLE)) 
-    				 controlSample = (controlSample == null)? hr.getDescription(): controlSample; 
+    				controlSample = (control == null)? hr.getDescription(): control; 
     		 else if( hr.getMetaType().equals(MetaType.META) && hr.getId().equalsIgnoreCase(VcfHeaderUtils.STANDARD_TESTSAMPLE)) 
-    				 testSample = (testSample == null)? hr.getDescription(): testSample; 
+    				 testSample = (test == null)? hr.getDescription(): test; 
 	    				 
 	   if(testSample == null || controlSample == null)
 		   throw new RuntimeException(" Missing qControlSample or qTestSample  from VcfHeader; please speify on command line!");

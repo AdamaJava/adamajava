@@ -85,7 +85,7 @@ public class DbsnpModeTest {
 				}
 				else if(re.getMetaType().equals(MetaType.CHROM) && re.toString().startsWith(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE))
 					count[6] ++; 
-				else if(re.getMetaType().equals(MetaType.INFO) && re.getId().equals(VcfHeaderUtils.INFO_CAF))
+				else if(re.getMetaType().equals(MetaType.INFO) && re.getId().equals(VcfHeaderUtils.INFO_VAF))
 					count[7] ++; 
 				else if(re.getMetaType().equals(MetaType.INFO) && re.getId().equals(VcfHeaderUtils.INFO_DB))
 					count[8] ++; 
@@ -181,7 +181,7 @@ public class DbsnpModeTest {
         data.add("##INFO=<ID=CAF,Number=.,Type=String,Description=\"An ordered, comma delimited list of allele frequencies based on 1000Genomes, starting with the reference allele followed by alternate alleles as ordered in the ALT column. "
         		+ "Where a 1000Genomes alternate allele is not in the dbSNPs alternate allele set, the allele is added to the ALT column. "
         		+ " The minor allele is the second largest value in the list, and was previuosly reported in VCF as the GMAF.  This is the GMAF reported on the RefSNP and EntrezSNP pages and VariationReporter\">");  
-        data.add("Y\t2675825\trs71432129\tTTG\tTGG,TCA\t.\t.\tRSPOS=2675826;RV;dbSNPBuildID=130;SSR=0;SAO=0;VP=050100000008000100000800;WGT=0;VC=MNV;SLO;CFL;GNO;CAF=0.33,0.23,0.39");
+        data.add("Y\t2675825\trs71432129\tTTG\tTGG,TCA\t.\t.\tRSPOS=2675826;RV;dbSNPBuildID=130;SSR=0;SAO=0;VP=050100000008000100000800;WGT=0;VC=MNV;SLO;CFL;GNO;CAF=[0.33,0.23,0.39]");
         data.add("Y\t2675829\trs112502114\tA\tC\t.\t.\tRSPOS=2675829;RV;dbSNPBuildID=132;SSR=0;SAO=0;VP=050100000008000100000100;WGT=0;VC=SNV;SLO;CFL;GNO");
         data.add("Y\t22012840\trs111477956\tC\tA\t.\t.\tRSPOS=22012840;RV;GMAF=0.113802559414991;dbSNPBuildID=132;SSR=0;SAO=0;VP=050100000000000100000100;WGT=0;VC=SNV;SLO;GNO;VLD");  
         data.add("Y\t77242677\trs386662672\tCCA\tCTG\t.\t.\tRS=386662672;RSPOS=77242678;dbSNPBuildID=138;SSR=0;SAO=0;VP=0x050000080005000002000800;WGT=1;VC=MNV;INT;ASP;OTHERKG");

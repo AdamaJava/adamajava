@@ -38,11 +38,24 @@ public class VcfFormatFieldRecord {
 			}
 		}
 	}
-
+	/**
+	 * 
+	 * @param key
+	 * @return the value of the key; 
+	 * @return "." if the key exists but value is null or empty;
+	 * @return null if the key is not exists
+	 */
 	public String getField(String key){
 		if (null == key) {
 			throw new IllegalArgumentException("null key passed to getField");
 		}
+		
+		if( ! field.containsKey(key))
+			return null; 
+		
+		if(StringUtils.isNullOrEmpty(field.get(key)))
+			return Constants.MISSING_DATA_STRING;
+		
 		return field.get(key);
 	}
 	

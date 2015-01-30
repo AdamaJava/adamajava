@@ -1,6 +1,7 @@
 package org.qcmg.common.vcf;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
+import org.qcmg.common.util.Constants;
 
 import org.junit.Test;
 
@@ -31,6 +32,28 @@ public class VcfFormatFieldRecordTest {
 		
 		rec = new VcfFormatFieldRecord("A:B:C:D:E:F:G", ".:.:.:.:.:.:.");
 		assertEquals(".:.:.:.:.:.:.", rec.toString());
+	}
+	
+	
+	
+	@Test //(expected=IllegalArgumentException.class)
+	public void getFieldTest(){
+		
+		VcfFormatFieldRecord format = new VcfFormatFieldRecord( "GT:GD:AC:MR:NNS", ".:.:A1[39],0[0],T1[35],0[0]:1");
+		
+		assertTrue(format.getField("ok") == null);
+		assertTrue(format.getField("MR").equals("1"));
+		assertTrue(format.getField("NNS").equals(Constants.MISSING_DATA_STRING));
+		assertTrue(format.getField("GT").equals(Constants.MISSING_DATA_STRING));
+		
+		
+		try {
+			format.getField(null);
+		    fail( "My method didn't throw when I expected it to" );
+		} catch (IllegalArgumentException expectedException) {
+			assertTrue(true);
+		}
+
 	}
 
 }

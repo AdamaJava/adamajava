@@ -29,7 +29,7 @@ public class VcfUtils {
 	private static final QLogger logger = QLoggerFactory.getLogger(VcfUtils.class);
 	
 	public static final Pattern pattern_AC = Pattern.compile("[ACGT][0-9]+\\[[0-9]+.?[0-9]*\\],[0-9]+\\[[0-9]+.?[0-9]*\\]");
-	public static final Pattern pattern_ACCS = Pattern.compile("[ACGT]+,[0-9]+,[0-9]+");
+	public static final Pattern pattern_ACCS = Pattern.compile("[ACGT_]+,[0-9]+,[0-9]+");
 
  
  /**

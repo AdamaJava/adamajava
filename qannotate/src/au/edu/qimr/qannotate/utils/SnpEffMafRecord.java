@@ -74,13 +74,13 @@ public class SnpEffMafRecord  {
 		str[5] = "Start_Position";
 		str[6] = "End_Position";
 		str[7] = "Strand";
-		str[8] = "Variant_Classification";
+		str[8] = "Variant_Classification"; // maf specification
 		str[9] = "Variant_Type";
 		str[10] = "Reference_Allele";
 		str[11] = "Tumor_Seq_Allele1";
 		str[12] = "Tumor_Seq_Allele2";
 		str[13] = "dbSNP_RS";
-		str[14] = "dbSNP_Val_Status";
+		str[14] = "dbSNP_Val_Status";   //VLD 
 		str[15] = "Tumor_Sample_Barcode";
 		str[16] = "Matched_Norm_Sample_Barcode";
 		str[17] = "Match_Norm_Seq_Allele1";
@@ -104,10 +104,10 @@ public class SnpEffMafRecord  {
 		str[35] = "ND";
 		str[36] = "TD";
 		str[37] = "confidence";
-		str[38] = "consequence";
+		str[38] = "Eff_Impact"; //old "consequence";
 		str[39] = "novel_starts";
-		str[40] = "CpG";
-		str[41] = "GMAF";
+		str[40] = "Var_Plus_Flank"; //old"CpG";
+		str[41] = "Variant_AF";//old"GMAF";
 		str[42] = "t_depth";
 		str[43] = "t_ref_count";
 		str[44] = "t_alt_count";
@@ -115,12 +115,12 @@ public class SnpEffMafRecord  {
 		str[46] = "n_ref_count";
 		str[47] = "n_alt_count";
 		str[48] = "Transcript_ID";
-		str[49] = "Amino_Acid_Change";
-		str[50] = "CDS_change";	
-		str[51] = "Amino_Acid_Length";
+		str[49] = "Amino_Acid_Change"; //must be p. or unkown
+		str[50] = "CDS_change";		
+		str[51] =  "Condon_Change";//old"Amino_Acid_Length";
 		str[52] = "Transcript_BioType";
 		str[53] = "Gene_Coding";
-		str[54] = "Exon_Rank";
+		str[54] = "Exon/Intron_Rank";//"Exon_Rank";
 		str[55] = "Genotype_Number";
 		str[56] = "effect_ontology";
 		str[57] = "effect_class";
@@ -134,17 +134,17 @@ public class SnpEffMafRecord  {
 	public void setDefaultValue(){
 		maf[0] = Unknown; //Hugo_Symbol
 		maf[1] = "0"; //??Entrez_Gene_Id  Entrez gene ID (an integer). If no gene exists within 3kb enter "0". 
-		maf[2] = "qimr"; //Center
+		maf[2] =  "QIMR Berghofer"; //Center
 		maf[3] = "37"; //NCBI_Build
-		//maf[4] = ? //Chromosome is compulsary with correct value
-		//maf[5] = ? //Start_Position
-		//maf[6] = ? //End_Position
+		maf[4] = Null; //Chromosome is compulsary with correct value
+		maf[5] = Null; //Start_Position
+		maf[6] = Null; //End_Position
 		maf[7] = "+"; //Strand
 		maf[8] = Unknown; //Variant_Classification =snpeff Impact
 		maf[9] = "SNP"; //Variant_Type
-		//maf[10] = ? //Reference_Allele
-		//maf[11] = ? //Tumor_Seq_Allele1
-		//maf[12] = ? //Tumor_Seq_Allele2
+		maf[10] = Null; //Reference_Allele
+		maf[11] = Null; //Tumor_Seq_Allele1
+		maf[12] = Null; //Tumor_Seq_Allele2
 		maf[13] = "novel"; //dbSNP_RS
 		maf[14] = Null; //dbSNP_Val_Status
 		maf[15] = Unknown; //Tumor_Sample_Barcode, eg. ##tumourSample=ICGC-ABMJ-20120706-01
@@ -171,10 +171,10 @@ public class SnpEffMafRecord  {
 		maf[36] = Null; //TD
 		
 		maf[37]= Unknown;  //"confidence";
-		maf[38]= No;  //"consequence";
+		maf[38]= Unknown;  //"Eff_Impact";"consequence";
 		maf[39]= Unknown; //"novel_starts";
-		maf[40]= Unknown;  //"Cpg";
-		maf[41]= Unknown; //"GMAF";
+		maf[40]= Unknown;  //"Var_Plus_Flank"; "Cpg";
+		maf[41]= Unknown; //"Variant_AF""GMAF";
 	
 		maf[42] = "-1"; //t_depth
 		maf[43] = "-1"; //t_ref_count
@@ -185,15 +185,15 @@ public class SnpEffMafRecord  {
 		maf[48] = Null; //Transcript_ID
 		maf[49] = Null; //Amino_Acid_Change
 		maf[50] = Null;  //CDS_change
-		maf[51] = Null; //Amino_Acid_Length
+		maf[51] = Null; //"Condon_Change",Amino_Acid_Length
 		maf[52] = Null;  //Transcript_BioType
 		maf[53] = Null;  //Gene_Coding
-		maf[54] = Null;  //Exon_Rank
+		maf[54] = Null;  //"Exon/Intron_Rank",Exon_Rank
 		maf[55] = Null;  //Genotype_Number
 		maf[56] = Null;  //effect_ontology
 		maf[57] = Null;  //effect_class
 		
- 
+
 	}
 
 }

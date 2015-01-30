@@ -7,6 +7,7 @@ import java.io.BufferedReader;
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -23,7 +24,7 @@ public final class VCFFileReader implements Closeable, Iterable<VcfRecord> {
     private final InputStream inputStream;
     private VcfHeader header;
 
-    public VCFFileReader(final File file) throws Exception {
+    public VCFFileReader(final File file) throws IOException    {
         this.file = file;
                
         if (FileUtils.isFileGZip(file)) {
@@ -51,9 +52,6 @@ public final class VCFFileReader implements Closeable, Iterable<VcfRecord> {
 		        
 	    		inputStream = new FileInputStream(file);
 	    	}
-//        
-//        FileInputStream fileStream = new FileInputStream(file);
-//        inputStream = fileStream;
         
     }
 
