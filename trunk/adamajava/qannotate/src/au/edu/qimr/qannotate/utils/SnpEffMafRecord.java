@@ -1,5 +1,7 @@
 package au.edu.qimr.qannotate.utils;
 
+import au.edu.qimr.qannotate.options.Vcf2mafOptions;
+
  
 
 public class SnpEffMafRecord  {	
@@ -134,7 +136,7 @@ public class SnpEffMafRecord  {
 	public void setDefaultValue(){
 		maf[0] = Unknown; //Hugo_Symbol
 		maf[1] = "0"; //??Entrez_Gene_Id  Entrez gene ID (an integer). If no gene exists within 3kb enter "0". 
-		maf[2] =  "QIMR Berghofer"; //Center
+		maf[2] =  Vcf2mafOptions.default_center; //Center"
 		maf[3] = "37"; //NCBI_Build
 		maf[4] = Null; //Chromosome is compulsary with correct value
 		maf[5] = Null; //Start_Position
