@@ -21,6 +21,7 @@ import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 import org.qcmg.vcf.VCFFileWriter;
 
+import au.edu.qimr.qannotate.options.Vcf2mafOptions;
 import au.edu.qimr.qannotate.utils.SnpEffMafRecord;
 
 public class Vcf2mafTest {
@@ -67,9 +68,11 @@ public class Vcf2mafTest {
 		 		assertTrue(maf.getColumnValue(19).equals("CA"));   //ND allel2
 		 		
 		 		
-		 		//we get consequnce with high rank, then long length
-
-		 
+		 		//we get consequnce with high rank, then long length, should be second annotation
+		 		maf.getColumnValue(50).equals("p.Thr329Pro");
+		 		maf.getColumnValue(49).equals("ENST00000341065");
+		 		maf.getColumnValue(51).equals("c.985A>C");
+		 		
 	 }
 	 
 	 @Test 
@@ -108,7 +111,7 @@ public class Vcf2mafTest {
 	 		
 	 		//for other columns after A.M confirmation
 	 		assertTrue(maf.getColumnValue(2).equals(Dmaf.getColumnValue(2) ));		
-	 		assertTrue(maf.getColumnValue(3).equals("QIMR Berghofer" ));		
+	 		assertTrue(maf.getColumnValue(3).equals(Vcf2mafOptions.default_center ));		
 	 		assertTrue(maf.getColumnValue(4).equals(Dmaf.getColumnValue(4) ));		
 	 		assertTrue(maf.getColumnValue(5).equals("Y"));		
 	 		assertTrue(maf.getColumnValue(6).equals(parms[1] ));		
@@ -149,8 +152,8 @@ public class Vcf2mafTest {
 	 		final SnpEffMafRecord maf = v2m.converter(vcf);
 	 		
 	 		
-//	 		for(int i = 1 ; i < 58; i++)
-//	 			System.out.println( i + ">>>> " + maf.getColumnValue(i) + " : " + Dmaf.getColumnValue(i));
+	 		for(int i = 1 ; i < 58; i++)
+	 			System.out.println( i + ">>>> " + maf.getColumnValue(i) + " : " + Dmaf.getColumnValue(i));
 	 		
 	 		//5:Y, 6:22012840, 7:22012840, 11:C, 35:.
 	 		
