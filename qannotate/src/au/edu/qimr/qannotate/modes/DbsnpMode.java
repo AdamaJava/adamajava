@@ -130,7 +130,7 @@ public class DbsnpMode extends AbstractMode{
 		if(caf != null) {
 			String[] cafs = caf.replace("[", "").replace("]", "").split(Constants.COMMA_STRING);
 			if(cafs.length > order)			
-				return StringUtils.addToString(VcfHeaderUtils.INFO_CAF, cafs[order], EQ);			
+				return StringUtils.addToString(VcfHeaderUtils.INFO_VAF, cafs[order], EQ);			
 		}
 		
 		return null;

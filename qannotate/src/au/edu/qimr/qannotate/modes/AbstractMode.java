@@ -60,20 +60,24 @@ public abstract class AbstractMode {
 	
 	/**
 	 * it retrive the sample column number. eg. if the second column after "FORMAT" is for the sample named "testSample", then it will report "2" to related variable
-	 * @param testSample:   testSample column name located after "FORMAT" column
-	 * @param controlSample:  controlSample column name located after "FORMAT" column
+	 * @param testSample:   testSample column name located after "FORMAT" column, put null here if vcf header already exisit qControlSample
+	 * @param controlSample:  controlSample column name located after "FORMAT" column, put null here if vcf header already exisit qTestSample
 	 * @param header: if null, it will point to this class's header; 
 	 */
-	protected void retriveSampleColumn(final String test, final String control, VcfHeader header){
+	protected void retriveSampleColumn(String test, String control, VcfHeader header){
 		if(header == null)
 			header = this.header;
 		
+		 controlSample = control;
+		 testSample = test;
+		
 		for(final VcfHeaderRecord hr : header)
     		if( hr.getMetaType().equals(MetaType.META) && hr.getId().equalsIgnoreCase(VcfHeaderUtils.STANDARD_CONTROLSAMPLE)) 
-    				controlSample = (control == null)? hr.getDescription(): control; 
+    			controlSample = (control == null)? hr.getDescription(): control; 
     		 else if( hr.getMetaType().equals(MetaType.META) && hr.getId().equalsIgnoreCase(VcfHeaderUtils.STANDARD_TESTSAMPLE)) 
-    				 testSample = (test == null)? hr.getDescription(): test; 
-	    				 
+    			 testSample = (test == null)? hr.getDescription(): test; 
+	    
+ 
 	   if(testSample == null || controlSample == null)
 		   throw new RuntimeException(" Missing qControlSample or qTestSample  from VcfHeader; please speify on command line!");
 	   
