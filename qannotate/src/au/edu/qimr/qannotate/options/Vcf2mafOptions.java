@@ -10,7 +10,7 @@ public class Vcf2mafOptions extends Options {
 	 
 	 public static final String unkown = "unkown";
 	 public static final String null_String = "null";
-	 public static final String default_center = "QIMR Berghofer"; 
+	 public static final String default_center = "QIMR_Berghofer"; 
 	 
 	 String center ; 
 	 String sequencer; 
