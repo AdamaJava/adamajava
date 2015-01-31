@@ -39,7 +39,6 @@ public class DbsnpModeTest {
 	 @AfterClass
 	 public static void deleteIO(){
 
-		 
 		 new File(inputName).delete();
 		 new File(dbSNPName).delete();
 		 new File(outputName).delete();
@@ -109,7 +108,7 @@ public class DbsnpModeTest {
 				if(re.getPosition() == 2675826){
 					assertTrue(re.getId().equals("rs71432129"));
 					assertFalse(re.getInfo().contains(VcfHeaderUtils.INFO_GMAF));
-					assertTrue(re.getInfoRecord().getField(VcfHeaderUtils.INFO_CAF).equals("0.39") );	
+					assertTrue(re.getInfoRecord().getField(VcfHeaderUtils.INFO_VAF).equals("0.39") );	
 					
 				}
 				if(re.getPosition() == 22012840){
