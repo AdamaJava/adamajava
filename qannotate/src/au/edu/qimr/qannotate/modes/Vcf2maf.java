@@ -24,6 +24,7 @@ import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 
 import au.edu.qimr.qannotate.Main;
+import au.edu.qimr.qannotate.modes.ConfidenceMode.Confidence;
 import au.edu.qimr.qannotate.options.Vcf2mafOptions;
 import au.edu.qimr.qannotate.utils.SnpEffConsequence;
 import au.edu.qimr.qannotate.utils.SnpEffMafRecord;
@@ -44,7 +45,7 @@ public class Vcf2maf extends AbstractMode{
 	//for unit test
 	Vcf2maf(int test_column, int control_column){
  
-		center = "QIMR Berghofer";
+		center = Vcf2mafOptions.default_center;
 		sequencer = SnpEffMafRecord.Unknown; 
 		this.control_column = control_column;
 		this.test_column = test_column;
@@ -61,42 +62,53 @@ public class Vcf2maf extends AbstractMode{
 		 
 		this.logger = logger;		
 		this.center = option.getCenter();
-		this.sequencer = option.getSequencer();				
+		this.sequencer = option.getSequencer();			
+		
+		String SHCC  = option.getOutputFileName().replace(".maf", "SomaticHighConfidentConsequence.maf") ;
+		String SHC = option.getOutputFileName().replace(".maf", "SomaticHighConfident.maf") ;
+		String GHCC  = option.getOutputFileName().replace(".maf", "GermlineHighConfidentConsequence.maf") ;
+		String GHC = option.getOutputFileName().replace(".maf", "GermlineHighConfident.maf") ;;
+		
 			
 		try(VCFFileReader reader = new VCFFileReader(new File( option.getInputFileName()));
-				PrintWriter out = new PrintWriter(option.getOutputFileName())){
+				PrintWriter out = new PrintWriter(option.getOutputFileName());
+				PrintWriter out_SHCC = new PrintWriter(SHCC);
+				PrintWriter out_SHC = new PrintWriter(SHC);
+				PrintWriter out_GHCC = new PrintWriter(GHCC);
+				PrintWriter out_GHC = new PrintWriter(GHC)){
 			
 			//get control and test sample column
 			retriveSampleColumn(option.getTestSample(), option.getControlSample(), reader.getHeader());
 			
 			out.println(SnpEffMafRecord.getSnpEffMafHeaderline());
-	       	for (final VcfRecord vcf : reader){ 
+			out_SHCC.println(SnpEffMafRecord.getSnpEffMafHeaderline());
+			out_SHC.println(SnpEffMafRecord.getSnpEffMafHeaderline());
+			out_GHCC.println(SnpEffMafRecord.getSnpEffMafHeaderline());
+			out_GHC.println(SnpEffMafRecord.getSnpEffMafHeaderline());
+			
+	       	for (final VcfRecord vcf : reader)
         		try{
-        		  out.println(converter(vcf).getMafLine());
+        			SnpEffMafRecord maf = converter(vcf);
+        			String Smaf = maf.getMafLine();
+        			out.println(Smaf);
+        			
+        			if(maf.getColumnValue(38).equalsIgnoreCase(Confidence.HIGH.name()))
+        				if(maf.getColumnValue(26).equalsIgnoreCase(VcfHeaderUtils.INFO_SOMATIC)){
+        					out_SHC.println(Smaf);
+        					if(maf.getColumnValue(53).equalsIgnoreCase("protein_coding"))
+        						out_SHCC.println(Smaf);
+        				}else{
+        					out_GHC.println(Smaf);
+        					if(maf.getColumnValue(53).equalsIgnoreCase("protein_coding"))
+        						out_GHCC.println(Smaf);
+        				}
+        		  
           		}catch(final Exception e){  	
         			logger.warn("Error message during vcf2maf: " + e.getMessage());
         		}
-        	}  
+         
 		}			
 			
-/*				
-			final String[] samples = reader.getHeader().getSampleId();
-			
-			//incase both point into same column
-			for(int i = 0; i < samples.length; i++){
-				if(samples[i].equalsIgnoreCase(tumourid))
-					tumour_column = i + 1;
-				if(samples[i].equalsIgnoreCase(normalid))
-					test_column = i + 1;
-			}
-			
-			
-			if(tumour_column <= 0  && tumourid != null)
-				throw new Exception("can't find tumour sample id from vcf header line: " + tumourid);
-			if(normal_column <= 0  && normalid != null)
-				throw new Exception("can't find normal sample id from vcf header line: " + normalid);	 
-				
-			*/
  
 	}
 	//Effect ( Effect_Impact | Functional_Class | Codon_Change | Amino_Acid_Change| Amino_Acid_length | Gene_Name | Transcript_BioType | Gene_Coding | Transcript_ID | Exon_Rank  | Genotype_Number [ | ERRORS | WARNINGS ] )
