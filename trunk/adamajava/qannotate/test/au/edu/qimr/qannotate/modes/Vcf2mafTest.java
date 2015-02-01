@@ -152,8 +152,8 @@ public class Vcf2mafTest {
 	 		final SnpEffMafRecord maf = v2m.converter(vcf);
 	 		
 	 		
-	 		for(int i = 1 ; i < 58; i++)
-	 			System.out.println( i + ">>>> " + maf.getColumnValue(i) + " : " + Dmaf.getColumnValue(i));
+//	 		for(int i = 1 ; i < 58; i++)
+//	 			System.out.println( i + ">>>> " + maf.getColumnValue(i) + " : " + Dmaf.getColumnValue(i));
 	 		
 	 		//5:Y, 6:22012840, 7:22012840, 11:C, 35:.
 	 		
