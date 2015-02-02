@@ -191,8 +191,10 @@ public class ReportBuilder {
 					}
 				});
 				
+				int magicNumber = Math.min(number,  list.size());
+				
 				Map<String, AtomicLong> top100Entries = new LinkedHashMap<>();
-				for (int i = 0 ; i < number ; i++) {
+				for (int i = 0 ; i < magicNumber ; i++) {
 					String entry =  list.get(i);
 					
 					int dashIndex = entry.indexOf("-");
