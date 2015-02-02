@@ -396,9 +396,7 @@ public class AccumulatorTest {
 				assertEquals('t', map.get(i));
 			}
 		}
-		 
 	}
-	
 	
 	@Test
 	public void testAddBase() {
@@ -415,7 +413,6 @@ public class AccumulatorTest {
 	
 	@Test
 	public void testIntToCollection() {
-		Accumulator acc = new Accumulator(100000);
 		int noOfLoops = 1000000;
 		Random random = new Random();
 		List<Integer> list = new ArrayList<Integer>(32);
