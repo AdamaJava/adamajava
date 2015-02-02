@@ -30,7 +30,6 @@ public class VcfRecord {
 	private String filter;
 	private VcfInfoFieldRecord infoRecord;
 	private final List<String> formatRecords = new ArrayList<String>(4);
-//	private final List<VcfFormatFieldRecord> formatRecords = new ArrayList<VcfFormatFieldRecord>();
 	
 	public VcfRecord(ChrPosition cp, String id, String ref, String alt) {
 		this.chrPos = cp;
@@ -68,9 +67,6 @@ public class VcfRecord {
 		for (int i = 8; i < params.length; i ++) {
 			formatRecords.add( params[i]);
 		}
-//		for (int i = 9; i < params.length; i ++) {
-//			formatRecords.add(new VcfFormatFieldRecord(params[8], params[i]));
-//		}
 	}
 	
 	public ChrPosition getChrPosition() {		
@@ -165,10 +161,6 @@ public class VcfRecord {
 	public String getInfo() { 	return (infoRecord == null)? Constants.MISSING_DATA_STRING: infoRecord.toString(); }	
 	public VcfInfoFieldRecord getInfoRecord() { return infoRecord; }
 	
-//	public void addFormatField(int position, String field) {
-//		if (null == format) format = new ArrayList<String>(4);		// 1 for header, 1 for control and 1 for test
-//		format.set(position, field);
-//	}
 	
 	/**
 	 * add/replace new format fields, it will wipe off old format column data if exits
@@ -187,9 +179,6 @@ public class VcfRecord {
 		
 		formatRecords.clear();
 		formatRecords.addAll(field);
-//		for(int i = 1; i < field.size(); i ++) {
-//			formatRecords.add(new VcfFormatFieldRecord(field.get(0), field.get(i)));
-//		}
 	}
 	
 	/**
@@ -200,7 +189,6 @@ public class VcfRecord {
 	public VcfFormatFieldRecord getSampleFormatRecord(int index){
 		String s = (index > formatRecords.size())? null: formatRecords.get(index);
 		return new VcfFormatFieldRecord(formatRecords.get(0), s);
-//		return (index > formatRecords.size())? null: formatRecords.get(index-1);		
 	}
 	
 	
@@ -213,28 +201,11 @@ public class VcfRecord {
 		// return a copy of this
 		if( formatRecords.size() == 0 ) return null;		
 		return new ArrayList<String>(formatRecords);
-//		return formatRecords;
 		
-//		
-//		final List<String> list = new ArrayList<String>();
-//		list.add( formatRecords.get(0) );
-////		list.add( formatRecords.get(0).getFormatColumnString() );
-//				 
-//		for(int i = 0; i < formatRecords.size(); i ++) {
-//			list.add( formatRecords.get(i).toString());
-//		}
-////		for(int i = 0; i < formatRecords.size(); i ++) {
-////			list.add( formatRecords.get(i).toString());
-////		}
-//		
-//		return list;
 	}
 	
 	public String getFormatFieldStrings(){ 
 		if(formatRecords.size() == 0 ) return Constants.EMPTY_STRING;		
-		
-//		String str =  formatRecords.get(0);
-//		String str =  formatRecords.get(0).getFormatColumnString();
 		
 		StringBuilder sb = new StringBuilder();
 		for (String s : formatRecords) {
@@ -243,10 +214,6 @@ public class VcfRecord {
 			}
 			sb.append(s);
 		}
-//		for(int i = 0; i < formatRecords.size(); i ++) {
-//			str += Constants.TAB +  formatRecords.get(i).toString();
-//		}
-		
 		return sb.toString();	
 	}
 	
@@ -260,13 +227,9 @@ public class VcfRecord {
 	public String toString(){
 		
 		//add END position into info column for compound SNP
-		if (! chrPos.isSinglePoint())
-			try {
+		if (! chrPos.isSinglePoint()) {
 				appendInfo("END=" + chrPos.getEndPosition()  );
-			} catch (final Exception e) {
-				// This exception shouldn't happen
-				e.printStackTrace();
-			}
+		}
 		
 		final StringBuilder builder = new StringBuilder();
 		builder.append(chrPos.getChromosome()).append(TAB);
@@ -276,7 +239,6 @@ public class VcfRecord {
 		builder.append(StringUtils.isNullOrEmpty(alt) ? MISSING_DATA_STRING : alt).append(TAB);
 		builder.append(StringUtils.isNullOrEmpty(qualString) ? MISSING_DATA_STRING : qualString).append(TAB);
 		builder.append(StringUtils.isNullOrEmpty(filter) ? MISSING_DATA_STRING : filter).append(TAB);
-		// add END to info field if this record spans more than 1 base
 		builder.append( (infoRecord == null) ? MISSING_DATA_STRING : getInfo()).append(TAB);
 		builder.append( getFormatFieldStrings() );
 		builder.append(NL);
