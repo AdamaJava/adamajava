@@ -37,10 +37,7 @@ public class Accumulator {
 	private PileupElementLite T;
 	
 	private int nCount;
-	
 	private final int position;
-//	private final int positionOfInterestANDEndOfReadLength;
-//	private final int positionOfInterestMINUSEndOfReadLength;
 	
 	private boolean unfilteredA;
 	private boolean unfilteredC;
@@ -54,8 +51,6 @@ public class Accumulator {
 	
 	public Accumulator(int position) {
 		this.position = position;
-//		this.positionOfInterestANDEndOfReadLength = position + END_OF_READ_DISTANCE;
-//		this.positionOfInterestMINUSEndOfReadLength = position - END_OF_READ_DISTANCE;
 	}
 	
 	public int getPosition() {
@@ -448,7 +443,6 @@ public class Accumulator {
 	}
 	
 	public TIntCharMap getReadIdBaseMap() {
-//		Map<Long, Character> map = new HashMap<>();
 		final TIntCharMap map = new TIntCharHashMap();
 		
 		if (null != A) {
@@ -569,67 +563,5 @@ public class Accumulator {
 		
 		return map;
 	}
-//	public Map<Long, Character> getReadIdBaseMap() {
-//		Map<Long, Character> map = new HashMap<>();
-//		
-//		if (null != A) {
-//			Queue<Long> ids = A.getForwardReadIds();
-//			if (ids != null) {
-//				for (Long s : ids) {
-//					map.put(s, 'A');
-//				}
-//			}
-//			ids = A.getReverseReadIds();
-//			if (ids != null) {
-//				for (Long s : ids) {
-//					map.put(s, 'a');
-//				}
-//			}
-//		}
-//		if (null != C) {
-//			Queue<Long> ids = C.getForwardReadIds();
-//			if (ids != null) {
-//				for (Long s : ids) {
-//					map.put(s, 'C');
-//				}
-//			}
-//			ids = C.getReverseReadIds();
-//			if (ids != null) {
-//				for (Long s : ids) {
-//					map.put(s, 'c');
-//				}
-//			}
-//		}
-//		if (null != G) {
-//			Queue<Long> ids = G.getForwardReadIds();
-//			if (ids != null) {
-//				for (Long s : ids) {
-//					map.put(s, 'G');
-//				}
-//			}
-//			ids = G.getReverseReadIds();
-//			if (ids != null) {
-//				for (Long s : ids) {
-//					map.put(s, 'g');
-//				}
-//			}
-//		}
-//		if (null != T) {
-//			Queue<Long> ids = T.getForwardReadIds();
-//			if (ids != null) {
-//				for (Long s : ids) {
-//					map.put(s, 'T');
-//				}
-//			}
-//			ids = T.getReverseReadIds();
-//			if (ids != null) {
-//				for (Long s : ids) {
-//					map.put(s, 't');
-//				}
-//			}
-//		}
-//		
-//		return map;
-//	}
 	
 }
