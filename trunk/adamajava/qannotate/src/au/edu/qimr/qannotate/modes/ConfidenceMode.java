@@ -154,16 +154,30 @@ public class ConfidenceMode extends AbstractMode{
  
 	 private boolean   checkNovelStarts(int score, VcfRecord vcf ) {
 		 
+		 //if marked "NNS" on filter, return false
+		 String[] filters = vcf.getFilter().split(Constants.SEMI_COLON_STRING);
+		 for(int i = 0; i < filters.length; i ++)
+			 if(filters[i].equals(VcfHeaderUtils.FILTER_NOVEL_STARTS))
+				 return false;
+		 
+		 
+		 return true;
+						 
+		 	
+/*		 //if no "NNS" maybe >=4; maybe not yet applied this filter, so check the counts
 		 final VcfFormatFieldRecord re = (vcf.getInfo().contains(VcfHeaderUtils.INFO_SOMATIC)) ? vcf.getSampleFormatRecord(test_column) :  vcf.getSampleFormatRecord(control_column);
 		 try{			 
 			 if(   Integer.parseInt(  re.getField( VcfHeaderUtils.FORMAT_NOVEL_STARTS  )  ) >= score ) 
 				 return true;
 		 }catch(final Exception e){
+			 //for compound SNP at moment only
+			 if(vcf.getFormatFields().get(0).equals(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP)  )
+				 return true;
 			 return false;
-		 }
+		 } 
 		 
-		 return false;
-	 }   
+		 return false;*/
+	 }  
 }	
 	
   

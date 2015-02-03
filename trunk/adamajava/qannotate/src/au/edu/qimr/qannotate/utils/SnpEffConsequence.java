@@ -59,9 +59,18 @@ public enum SnpEffConsequence {
 	MICRO_RNA("miRNA",100,"RNA"),
 	REGULATION("regulatory_region_variant",100,"IGR"),
 	TRANSCRIPT("transcript_variant",100,"RNA"),
-	UPSTREAM("upstream_gene_variant",100,"5'Flank");
+	UPSTREAM("upstream_gene_variant",100,"5'Flank"),
+	
+	//below require snpEff classic run
+	EXON_NON_CODING("non_coding_exon_variant",100,"unknown"),  //should be "EXON"
+	NEXT_PROT("sequence_feature",100,"unknown") ,
+	MOTIF("TF_binding_site_variant", 100, "unknown");
+
 	
 	
+//[MA0093.1:USF1](LOW||||||||||1)	
+//	sequence_feature[compositionally_biased_region:Asp/Glu-rich__acidic_](LOW|||c.2144A>G|749|NOC2L|protein_coding|CODING|ENST00000327044|18|1)
+
 	private static final QLogger logger = QLoggerFactory.getLogger(SnpEffConsequence.class);
 	public static String PROTEIN_CODING = "protein_coding";
 	
@@ -87,29 +96,46 @@ public enum SnpEffConsequence {
 	public static String getClassicName(String name ) {
 		
 		if (null != name) {
+			String ontolog = (name.contains("["))? name.substring(0, name.indexOf("[")) : name;
 			for (final SnpEffConsequence dcEnum : values())  
-				if (dcEnum.ontologName.equals(name) )  
+				if (dcEnum.ontologName.equals(ontolog) )  
 					return dcEnum.name();
 		}
+		
 		return null;
 	}
 	
 	public static String getMafClassification(String name ) {
 		if (null != name) {
+			String ontolog = (name.contains("["))? name.substring(0, name.indexOf("[")) : name;
+		
 			for (final SnpEffConsequence dcEnum : values())  
-				if (dcEnum.ontologName.equals(name) )  
+				if (dcEnum.ontologName.equals(ontolog) )  
 					return dcEnum.maf_calssification;
 		}
-		return null;
 		
+		return null;
 	}
 	
-	public static boolean isConsequence(String name) {
-		if (null != name) 
+	public static int getConsequenceRank(String name ) {
+		if (null != name) {
+			String ontolog = (name.contains("["))? name.substring(0, name.indexOf("[")) : name;
 			for (final SnpEffConsequence dcEnum : values())  
-				if ( dcEnum.snpRank < 100 &&  (dcEnum.ontologName.equals(name)  || dcEnum.name().equals(name)) )
+				if (dcEnum.ontologName.equals(ontolog) )  
+					return dcEnum.snpRank;
+		}
+		return -1;
+	}	
+	
+	public static boolean isConsequence(String name) {
+		if (null != name){
+			
+			String str = (name.contains("["))? name.substring(0, name.indexOf("[")) : name;		
+			for (final SnpEffConsequence dcEnum : values())  
+				if ( dcEnum.snpRank < 100 &&  (dcEnum.ontologName.equals(str)  || dcEnum.name().equals(str)) )
 					return true;
-
+			
+		 }
 		return false;
 	}
 	
@@ -135,6 +161,7 @@ public enum SnpEffConsequence {
 		
 		for (final String consequence : strings) {
 			String ontolog = consequence.substring(0, consequence.indexOf("("));
+			ontolog = (ontolog.contains("["))? ontolog.substring(0, ontolog.indexOf("[")) : ontolog;
 			String[] conse = consequence.split(Constants.BAR_STRING );
 			int lconse = (StringUtils.isNumeric(conse[6])) ? Integer.getInteger(conse[6]) : 0; 
 			boolean onList = false;
