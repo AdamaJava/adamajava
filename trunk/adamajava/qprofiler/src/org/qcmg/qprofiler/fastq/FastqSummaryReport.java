@@ -92,31 +92,33 @@ public class FastqSummaryReport extends SummaryReport {
 		Element element = init(parent, ProfileType.FASTQ, null, excludes, null);
 		if ( ! excludeAll) {
 			
+			Element readNameElement = createSubElement(element, "ReadNameAnalysis");
+			
 			// header breakdown
-			SummaryReportUtils.lengthMapToXml(element, "INSTRUMENTS", instruments);
-			SummaryReportUtils.lengthMapToXml(element, "RUN_IDS", runIds);
-			SummaryReportUtils.lengthMapToXml(element, "FLOW_CELL_IDS", flowCellIds);
-			SummaryReportUtils.lengthMapToXml(element, "FLOW_CELL_LANES", flowCellLanes);
-			SummaryReportUtils.lengthMapToXml(element, "TILE_NUMBERS", tileNumbers);
+			SummaryReportUtils.lengthMapToXml(readNameElement, "INSTRUMENTS", instruments);
+			SummaryReportUtils.lengthMapToXml(readNameElement, "RUN_IDS", runIds);
+			SummaryReportUtils.lengthMapToXml(readNameElement, "FLOW_CELL_IDS", flowCellIds);
+			SummaryReportUtils.lengthMapToXml(readNameElement, "FLOW_CELL_LANES", flowCellLanes);
+			SummaryReportUtils.lengthMapToXml(readNameElement, "TILE_NUMBERS", tileNumbers);
 			
 			Map<String, AtomicLong> pairs = new HashMap<>();
 			pairs.put("1", firstInPair);
 			pairs.put("2", secondInPair);
-			SummaryReportUtils.lengthMapToXml(element, "PAIR_INFO", pairs);
+			SummaryReportUtils.lengthMapToXml(readNameElement, "PAIR_INFO", pairs);
 			
 			Map<String, AtomicLong> filtered = new HashMap<>();
 			filtered.put("Y", filteredY);
 			filtered.put("N", filteredN);
-			SummaryReportUtils.lengthMapToXml(element, "FILTER_INFO", filtered);
-			SummaryReportUtils.lengthMapToXml(element, "INDEXES", indexes);
+			SummaryReportUtils.lengthMapToXml(readNameElement, "FILTER_INFO", filtered);
+			SummaryReportUtils.lengthMapToXml(readNameElement, "INDEXES", indexes);
 			
 			Map<String, AtomicLong> qualHeaders = new HashMap<>();
 			qualHeaders.put("non +", qualHeaderNotEqualToPlus);
 			qualHeaders.put("+", new AtomicLong(getRecordsParsed() - qualHeaderNotEqualToPlus.longValue()));
-			SummaryReportUtils.lengthMapToXml(element, "QUAL_HEADERS", qualHeaders);
+			SummaryReportUtils.lengthMapToXml(readNameElement, "QUAL_HEADERS", qualHeaders);
 			
 			logger.info("no of kmers: " + kmers.size());
-			SummaryReportUtils.lengthMapToXml(element, "KMERS", kmers);
+			SummaryReportUtils.lengthMapToXml(readNameElement, "KMERS", kmers);
 			
 			// create the length maps here from the cycles objects
 			seqLineLengths = SummaryByCycleUtils.getLengthsFromSummaryByCycle(seqByCycle, getRecordsParsed());
@@ -212,69 +214,76 @@ public class FastqSummaryReport extends SummaryReport {
 				if (record.getReadHeader().contains(":")) {
 					String [] headerDetails = TabTokenizer.tokenize(record.getReadHeader(), ':');
 					if (null != headerDetails && headerDetails.length > 0) {
-						String key = headerDetails[0];
-						updateMap(instruments, key);
 						
-						// run Id
-						if (headerDetails.length > 1) {
-							key = headerDetails[1];
-							updateMap(runIds, key);
+						//if length is equal to 10, we have the classic Casava 1.8 format
+						
+						int headerLength = headerDetails.length;
+						
+					if (headerLength == 5) {
+						//@ERR091788.3104 HSQ955_155:2:1101:13051:2071/2
+						//@ERR091788 - machine id
+						//3104 - read position in file
+						// HSQ955 - flowcell
+						// 155 - run_id
+						// 2 - flowcell lane
+						// 1101 - tile
+						// 13051 - x
+						// 2071 - y
+						// 2 - 2nd in pair
+						parseFiveElementHeader(headerDetails);
+					} else {
+						
+							String key = headerDetails[0];
+							updateMap(instruments, key);
 							
-							// flow cell id
-							if (headerDetails.length > 2) {
-								key = headerDetails[2];
-								updateMap(flowCellIds, key);
+							// run Id
+							if (headerLength > 1) {
+								key = headerDetails[1];
+								updateMap(runIds, key);
 								
-								// flow cell lanes
-								if (headerDetails.length > 3) {
-									key = headerDetails[3];
-									updateMap(flowCellLanes, key);
+								// flow cell id
+								if (headerLength > 2) {
+									key = headerDetails[2];
+									updateMap(flowCellIds, key);
 									
-									// tile numbers within flow cell lane
-									if (headerDetails.length > 4) {
-										key = headerDetails[4];
-										try {
-											Integer intKey = Integer.valueOf(key);
-											updateMap(tileNumbers, intKey);
-										} catch (NumberFormatException nfe) {
-											logger.error("Can't convert string to integer: " + key, nfe);
-										}
+									// flow cell lanes
+									if (headerLength > 3) {
+										key = headerDetails[3];
+										updateMap(flowCellLanes, key);
 										
-										// skip x, y coords for now
-										if (headerDetails.length > 6) {
-											key = headerDetails[6];
-											// this may contain member of pair information
-											int index = key.indexOf(" ");
-											if (index == -1) {
-												index = key.indexOf("/");
-											}
-											if (index != -1) {
-												char c = key.charAt(index + 1);
-												if (c == '1') {
-													firstInPair.incrementAndGet();
-												} else if (c == '2') {
-													firstInPair.incrementAndGet();
-												} else {
-													logger.warn("unexpected value for member of pair: " + c + " from " + key);
-												}
+										// tile numbers within flow cell lane
+										if (headerLength > 4) {
+											key = headerDetails[4];
+											try {
+												Integer intKey = Integer.valueOf(key);
+												updateMap(tileNumbers, intKey);
+											} catch (NumberFormatException nfe) {
+												logger.error("Can't convert string to integer: " + key, nfe);
 											}
 											
-											// filtered
-											if (headerDetails.length > 7) {
-												key = headerDetails[7];
-												if ("Y".equals(key)) {
-													filteredY.incrementAndGet();
-												} else if ("N".equals(key)) {
-													filteredN.incrementAndGet();
+											// skip x, y coords for now
+											if (headerLength > 6) {
+												key = headerDetails[6];
+												// this may contain member of pair information
+												getPairInfo(key);
+												
+												// filtered
+												if (headerLength > 7) {
+													key = headerDetails[7];
+													if ("Y".equals(key)) {
+														filteredY.incrementAndGet();
+													} else if ("N".equals(key)) {
+														filteredN.incrementAndGet();
+													}
+													
+													// skip control bit for now
+													
+													// indexes
+													if (headerLength > 9) {
+														key = headerDetails[9];
+														updateMap(indexes, key);
+													}	// thats it!!
 												}
-												
-												// skip control bit for now
-												
-												// indexes
-												if (headerDetails.length > 9) {
-													key = headerDetails[9];
-													updateMap(indexes, key);
-												}	// thats it!!
 											}
 										}
 									}
@@ -293,6 +302,62 @@ public class FastqSummaryReport extends SummaryReport {
 				
 			}
 		}
+	}
+
+	private void getPairInfo(String key) {
+		int index = key.indexOf(" ");
+		if (index == -1) {
+			index = key.indexOf("/");
+		}
+		if (index != -1) {
+			char c = key.charAt(index + 1);
+			if (c == '1') {
+				firstInPair.incrementAndGet();
+			} else if (c == '2') {
+				secondInPair.incrementAndGet();
+			} else {
+				logger.warn("unexpected value for member of pair: " + c + " from " + key);
+			}
+		}
+	}
+	
+	/**
+	 * 	//@ERR091788.3104 HSQ955_155:2:1101:13051:2071/2
+							//@ERR091788 - machine id
+							//3104 - read position in file
+							// HSQ955 - flowcell
+							// 155 - run_id
+							// 2 - flowcell lane
+							// 1101 - tile
+							// 13051 - x
+							// 2071 - y
+							// 2 - 2nd in pair
+	 */
+	void parseFiveElementHeader(String [] params) {
+		// split by space
+		String [] firstElementParams = params[0].split(" ");
+		if (firstElementParams.length != 2) {
+			throw new UnsupportedOperationException("Incorrect header format encountered in parseFiveElementHeader. Expected '@ERR091788.3104 HSQ955_155:2:1101:13051:2071/2' but recieved: " + Arrays.deepToString(params));
+		}
+		String [] machineAndReadPosition = firstElementParams[0].split("\\.");
+		if (machineAndReadPosition.length != 2) {
+			throw new UnsupportedOperationException("Incorrect header format encountered in parseFiveElementHeader. Expected '@ERR091788.3104 HSQ955_155:2:1101:13051:2071/2' but recieved: " + Arrays.deepToString(params));
+		}
+		
+		updateMap(instruments, machineAndReadPosition[0]);
+		
+		String [] flowCellAndRunId = firstElementParams[1].split("_");
+		if (flowCellAndRunId.length != 2) {
+			throw new UnsupportedOperationException("Incorrect header format encountered in parseFiveElementHeader. Expected '@ERR091788.3104 HSQ955_155:2:1101:13051:2071/2' but recieved: " + Arrays.deepToString(params));
+		}
+		
+		updateMap(flowCellIds, flowCellAndRunId[0]);
+		updateMap(runIds, flowCellAndRunId[1]);
+		
+		updateMap(flowCellLanes, params[1]);
+		updateMap(tileNumbers, Integer.parseInt(params[2]));
+		// skip x, and y coords for now..
+		getPairInfo(params[4]);
 	}
 
 	private <T> void updateMap(ConcurrentMap<T, AtomicLong> map , T key) {
