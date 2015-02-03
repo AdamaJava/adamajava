@@ -20,7 +20,6 @@ import org.qcmg.common.log.QLoggerFactory;
 
 public class FastqSummarizerTest {
 	private static final QLogger logger = QLoggerFactory.getLogger(FastqSummarizerTest.class);
-//	private static final Logger logger = LoggerFactory.getLogger(FastqSummarizerTest.class);
 	
 	private static final String FASTQ_INPUT_FILE = "testInputFile.fastq";
 	private static final String FASTQ_DODGY_INPUT_FILE = "testInputFileDodgy.fastq";
@@ -162,6 +161,17 @@ BCCFDFFFHHHHHJJJJIJJJJJIJIJJJJJJJGHJJJJJJJJJJIJFHIJJJHHHFFDDDDDCDCDDDDDDDDDDDDDD
 	}
 	
 	@Test
+	public void testSummarizeActualDataShouldWork() throws Exception {
+		logger.info("in testSummarizeActualDataShouldWork()");
+		createDodgyDataFile(createFastqDataBodyShouldWork());
+		
+		FastqSummarizer qs = new FastqSummarizer();
+		qs.summarize(new File(FASTQ_DODGY_INPUT_FILE));
+		
+		deleteDodgyDataFile();
+	}
+	
+	@Test
 	public void testSummarizeCrapData() throws Exception {
 		logger.info("in testSummarizeCrapData()");
 		createDodgyDataFile(createFastqDataCrapBody());
@@ -247,14 +257,22 @@ BCCFDFFFHHHHHJJJJIJJJJJIJIJJJJJJJGHJJJJJJJJJJIJFHIJJJHHHFFDDDDDCDCDDDDDDDDDDDDDD
 		data.add("GATTTGGGGTTCAAAGCAGTATCGATCAAATAGTAAATCCATTTGTTCAACTCACAGTTT");
 		data.add("+2_1234_999_F5");
 		data.add("@''*((((***+))%%%++)(%%%%).1***-+*''))**55CCF>>>>>>CCCCCCC65");
-		data.add("@SRR001666.1 071112_SLXA-EAS1_s_7:5:1:817:345 length=36");
+		data.add("@ERR091788.1 HSQ955_155:2:1101:1473:2037/1");
 		data.add("GGGTGATGGCCGCTGCCGATGGCGTCAAATCCCACC");
 		data.add("+SRR001666.1 071112_SLXA-EAS1_s_7:5:1:817:345 length=36");
 		data.add("@IIIIIIIIIIIIIIIIIIIIIIIIIIIII9IG9IC");
-		data.add("@QCMG001666.1 071112_SLXA-EAS1_s_7:5:1:817:345 length=40");
+		data.add("@ERR091788.1 HSQ955_155:2:1101:1473:2037/1");
 		data.add("GGGTGATGGCCGCTGCCGATGGCGTCAAATCCCACCACGT");
 		data.add("+QCMG001666.1 071112_SLXA-EAS1_s_7:5:1:817:345 length=40");
 		data.add("+IIIIIIIIIIIIIIIIIIIIIIIIIIIII9IG9IC++@@");
+		return data;
+	}
+	private static List<String> createFastqDataBodyShouldWork() {
+		List<String> data = new ArrayList<String>();
+		data.add("@ERR091788.1 HSQ955_155:2:1101:1473:2037/1");
+		data.add("GGGCANCCAGCAGCCCTCGGGGCTTCTCTGTTTATGGAGTAGCCATTCTCGTATCCTTCTACTTTCTTAAACTTTCTTTCACTTACAAAAAAATAGTGGA");
+		data.add("+");
+		data.add("<@@DD#2AFFHHH<FHFF@@FEG@DF?BF4?FFGDIBC?B?=FHIEFHGGG@CGHIIHDHFHFECDEEEECCCCCCAC@CCC>CCCCCCBBBBAC>:@<C");
 		return data;
 	}
 	
