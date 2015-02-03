@@ -20,6 +20,7 @@ import org.qcmg.common.vcf.header.VcfHeaderRecord.MetaType;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 import org.qcmg.vcf.VCFFileWriter;
+import org.qcmg.common.util.Constants;
 
 import au.edu.qimr.qannotate.options.Vcf2mafOptions;
 import au.edu.qimr.qannotate.utils.SnpEffMafRecord;
@@ -37,7 +38,7 @@ public class Vcf2mafTest {
 	        final List<String> data = new ArrayList<String>();
 	        data.add("##fileformat=VCFv4.0");
 	        data.add(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tCONTROL\tTEST");
-	        data.add("chrY\t2675826\t.\tTG\tCA\t.\tCOVN12;MIUN\tSOMATIC;END=2675826;CONF=ZERO;EFF="
+	        data.add("chrY\t2675826\trs75454623\tTG\tCA\t.\tCOVN12;MIUN\tSOMATIC;END=2675826;CONF=ZERO;EFF="
 	        		+ "missense_variant(MODERATE|MISSENSE|Acc/Ccc|p.Thr248Pro/c.742A>C|540|SAMD11|protein_coding|CODING|ENST00000455979|5|1|WARNING_TRANSCRIPT_NO_START_CODON),"		
 	        		+ "missense_variant(MODERATE|MISSENSE|Acc/Ccc|p.Thr329Pro/c.985A>C|588|SAMD11|protein_coding|CODING|ENST00000341065|9|1|WARNING_TRANSCRIPT_NO_START_CODON)," 
 	        		+ "downstream_gene_variant(MODIFIER||1446||749|NOC2L|protein_coding|CODING|ENST00000327044||1)"
@@ -59,6 +60,8 @@ public class Vcf2mafTest {
 				}
 				
 				assertFalse(maf == null);
+				
+				assertTrue(maf.getColumnValue(14).equals("rs75454623"));
 					 
 		 		assertTrue(maf.getColumnValue(36).equals("TG,5,37,CA,0,2" ));			//ND
 		 		assertTrue(maf.getColumnValue(37).equals("AA,1,1,CA,4,1,CT,3,1,TA,11,76,TG,2,2,_G,0,1" ));	//TD
@@ -69,9 +72,9 @@ public class Vcf2mafTest {
 		 		
 		 		
 		 		//we get consequnce with high rank, then long length, should be second annotation
-		 		maf.getColumnValue(50).equals("p.Thr329Pro");
-		 		maf.getColumnValue(49).equals("ENST00000341065");
-		 		maf.getColumnValue(51).equals("c.985A>C");
+		 		maf.getColumnValue(51).equals("p.Thr329Pro");
+		 		maf.getColumnValue(50).equals("ENST00000341065");
+		 		maf.getColumnValue(52).equals("c.985A>C");
 		 		
 	 }
 	 
@@ -100,14 +103,14 @@ public class Vcf2mafTest {
 	 		assertTrue(maf.getColumnValue(39).equals("HIGH" ));
 	 		assertTrue(maf.getColumnValue(9).equals("Splice_Site" ));
 	 		
-	 		assertTrue(maf.getColumnValue(50).equals(Dmaf.getColumnValue(50) ));
-	 		assertTrue(maf.getColumnValue(51).equals(Dmaf.getColumnValue(51) ));
+	 		assertTrue(maf.getColumnValue(51).equals(Dmaf.getColumnValue(50) ));
+	 		assertTrue(maf.getColumnValue(52).equals(Dmaf.getColumnValue(51) ));
 	 		assertTrue(maf.getColumnValue(1).equals("CCDC148-AS1" ));
-	 		assertTrue(maf.getColumnValue(53).equals("antisense" ));
-	 		assertTrue(maf.getColumnValue(54).equals("NON_CODING"));
-	 		assertTrue(maf.getColumnValue(49).equals("ENST00000412781" ));
-	 		assertTrue(maf.getColumnValue(55).equals("5" ));
-	 		assertTrue(maf.getColumnValue(56).equals("1" ));		
+	 		assertTrue(maf.getColumnValue(54).equals("antisense" ));
+	 		assertTrue(maf.getColumnValue(55).equals("NON_CODING"));
+	 		assertTrue(maf.getColumnValue(50).equals("ENST00000412781" ));
+	 		assertTrue(maf.getColumnValue(56).equals("5" ));
+	 		assertTrue(maf.getColumnValue(57).equals("1" ));		
 	 		
 	 		//for other columns after A.M confirmation
 	 		assertTrue(maf.getColumnValue(2).equals(Dmaf.getColumnValue(2) ));		
@@ -134,11 +137,33 @@ public class Vcf2mafTest {
 	 		assertTrue(maf.getColumnValue(36).equals("A1[5],0[0],C6[6.67],0[0],T1[6],21[32.81]" ));			//ND
 	 		assertTrue(maf.getColumnValue(37).equals("C8[7.62],2[2],A2[8],28[31.18]" ));		
 	 		assertTrue(maf.getColumnValue(38).equals(Dmaf.getColumnValue(38)  )); //not yet run confidence
-	 		assertTrue(maf.getColumnValue(40).equals(Dmaf.getColumnValue(40)  )); //NNS unkown
-	 		assertTrue(maf.getColumnValue(41).equals("GTGATATTCCC"  )); //Var_Plus_Flank	 
-	 		assertTrue(maf.getColumnValue(42).equals("0.11"  )); //Var_Plus_Flank	 	
+	 		assertTrue(maf.getColumnValue(41).equals(Dmaf.getColumnValue(41)  )); //NNS unkown
+	 		assertTrue(maf.getColumnValue(42).equals("GTGATATTCCC"  )); //Var_Plus_Flank	 
+	 		assertTrue(maf.getColumnValue(43).equals("0.11"  )); //Var_Plus_Flank	 	
 	 }
 
+	 @Test    (expected=Exception.class)
+	 public void indexTest() throws Exception{
+		 String[] str = {"chr1\t204429212\trs71495004\tAT\tTG\t.\tSAT3;5BP4\tDB;CONF=ZERO;"
+		 		+ "EFF=upstream_gene_variant(MODIFIER||3793|||PIK3C2B|processed_transcript|CODING|ENST00000496872||1),"
+		 		+ "downstream_gene_variant(MODIFIER||4368||172|PIK3C2B|protein_coding|CODING|ENST00000367184||1|WARNING_TRANSCRIPT_INCOMPLETE),"
+		 		+ "intron_variant(MODIFIER|||c.1503-143AT>CA|1634|PIK3C2B|protein_coding|CODING|ENST00000367187|8|1),"
+		 		+ "intron_variant(MODIFIER|||c.1503-143AT>CA|1606|PIK3C2B|protein_coding|CODING|ENST00000424712|8|1);"
+		 		+ "END=204429213\tACCS\tTG,1,3,_T,0,1"};
+		 createVcf(str);
+		 
+		 final File input = new File( DbsnpModeTest.inputName);
+		 final Vcf2maf v2m = new Vcf2maf(1,2);	
+	 	 try(VCFFileReader reader = new VCFFileReader(input); ){
+	 		for (final VcfRecord vcf : reader){  		
+	 			SnpEffMafRecord maf  = v2m.converter(vcf);
+	 			System.out.println(maf.getMafLine());
+	 		}	
+         }	 
+		 
+	 }
+	 
+	 
 	 
 	 @Test
 	 public void DefaultValueTest() throws Exception{
@@ -158,14 +183,23 @@ public class Vcf2mafTest {
 	 		//5:Y, 6:22012840, 7:22012840, 11:C, 35:.
 	 		
 	 		for(int i = 1 ; i < 5; i++) 			
-	 			assertTrue(maf.getColumnValue(i).equals(Dmaf.getColumnValue(i)  )); //not yet run confidence	
+	 			assertTrue(maf.getColumnValue(i).equals(Dmaf.getColumnValue(i)  ));  	
 
 	 		for(int i = 8 ; i < 11; i++)
-	 			assertTrue(maf.getColumnValue(i).equals(Dmaf.getColumnValue(i)  )); //not yet run confidence
+	 			assertTrue(maf.getColumnValue(i).equals(Dmaf.getColumnValue(i)  ));  
 	 		
-	 		for(int i = 12 ; i < 35; i++)
-	 			assertTrue(maf.getColumnValue(i).equals(Dmaf.getColumnValue(i)  )); //not yet run confidence
-	 
+	 		assertTrue(maf.getColumnValue(11).equals("C"  ));  
+	 		
+	 		for(int i = 12 ; i < 26; i++)
+	 			assertTrue(maf.getColumnValue(i).equals(Dmaf.getColumnValue(i)  ));  
+	 		
+	 		assertTrue(maf.getColumnValue(26).equals(VcfHeaderUtils.FILTER_GERMLINE ));  
+	 		
+	 		for(int i = 27 ; i < 35; i++)
+	 			assertTrue(maf.getColumnValue(i).equals(Dmaf.getColumnValue(i)  ));  
+
+	 		assertTrue(maf.getColumnValue(35).equals(Constants.MISSING_DATA_STRING ));  
+	 		
 	 		for(int i = 36 ; i < 58; i++)
 	 			assertTrue(maf.getColumnValue(i).equals(Dmaf.getColumnValue(i)  )); //not yet run confidence
 
@@ -200,6 +234,17 @@ public class Vcf2mafTest {
            try(BufferedWriter out = new BufferedWriter(new FileWriter(DbsnpModeTest.inputName));) {          
             for (final String line : data)   out.write(line + "\n");                  
          }  
+	}
+	
+	public static void createVcf(String[] str) throws IOException{
+		 final List<String> data = new ArrayList<String>();
+		 for(int i = 0; i < str.length; i++)
+			 data.add(str[i]);
+		 
+         try(BufferedWriter out = new BufferedWriter(new FileWriter(DbsnpModeTest.inputName));) {          
+             for (final String line : data)   out.write(line + "\n");                  
+          }  
+		
 	}
 
 }

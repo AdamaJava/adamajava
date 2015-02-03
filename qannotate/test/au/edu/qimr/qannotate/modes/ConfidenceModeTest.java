@@ -33,7 +33,7 @@ public class ConfidenceModeTest {
 	@BeforeClass
 	public static void createInput() throws IOException{
 	
-		DbsnpModeTest.createVcf();
+
 		createVerifiedFile();
 	}
 	
@@ -50,7 +50,10 @@ public class ConfidenceModeTest {
 	 //??add here to test checkNovelStarts(int score, VcfRecord vcf ) 
 	  
 	 @Test
-	 public void getNNSTest(){
+	 public void getNNSTest() throws IOException{
+		
+
+		 
 		 
 		 
 	 }
@@ -70,6 +73,10 @@ public class ConfidenceModeTest {
 	 
 	 @Test
 	 public void ConfidenceTest() throws IOException, Exception{	
+		 		DbsnpModeTest.createVcf();
+		 
+		 
+		 
 			final ConfidenceMode mode = new ConfidenceMode(patient);		
 			mode.inputRecord(new File(DbsnpModeTest.inputName));
 			
@@ -96,13 +103,13 @@ public class ConfidenceModeTest {
 					final VcfInfoFieldRecord infoRecord = new VcfInfoFieldRecord(re.getInfo()); 				
 					if(re.getPosition() == 2675826) 
 						//compound SNPs
-						assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(Confidence.ZERO.toString())); 
+						assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(Confidence.LOW.name())); 
 					else if(re.getPosition() == 22012840)
 						//isClassB
-						assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(Confidence.LOW.toString()));
+						assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(Confidence.LOW.name())); 
 					else if(re.getPosition() == 14923588)  
 						//listed on verified file
-						assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(Confidence.HIGH.toString()));
+						assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(Confidence.HIGH.name())); 
 				}
 			 }		
  	 	 
