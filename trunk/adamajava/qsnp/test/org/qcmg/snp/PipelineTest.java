@@ -117,6 +117,7 @@ public class PipelineTest {
 		
 		List<String> ff = vcf.getFormatFields();
 		assertEquals("CG,4,0", ff.get(2));	// tumour
+		assertEquals(".", ff.get(1));	// control
 	}
 	
 	@Test
@@ -160,6 +161,7 @@ public class PipelineTest {
 		
 		List<String> ff = vcf.getFormatFields();
 		assertEquals("CG,0,4", ff.get(2));	// tumour
+		assertEquals(".", ff.get(1));	// control
 	}
 	
 	@Test
@@ -203,6 +205,7 @@ public class PipelineTest {
 		
 		List<String> ff = vcf.getFormatFields();
 		assertEquals("CG,2,2", ff.get(2));	// tumour
+		assertEquals(".", ff.get(1));	// control
 	}
 	
 	@Test
@@ -245,6 +248,7 @@ public class PipelineTest {
 		
 		List<String> ff = vcf.getFormatFields();
 		assertEquals("CG,4,0,_G,1,0", ff.get(2));	// tumour
+		assertEquals(".", ff.get(1));	// control
 	}
 	
 	@Test
@@ -287,6 +291,7 @@ public class PipelineTest {
 		
 		List<String> ff = vcf.getFormatFields();
 		assertEquals("CG,4,0,C_,1,0", ff.get(2));	// tumour
+		assertEquals(".", ff.get(1));	// control
 		
 	}
 	
