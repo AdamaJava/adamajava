@@ -114,8 +114,6 @@ public abstract class Pipeline {
 	/*///////////////////////
 	 * COLLECTIONS
 	 *///////////////////////
-	// map to hold chromosome conversion data
-//	final Map<String, String> ensembleToQCMG = new HashMap<>(128);
 	
 	// ChrPosition chromosome consists of "chr" and then the number/letter
 	final Map<ChrPosition,QSnpRecord> positionRecordMap = new HashMap<>(100000);
@@ -131,8 +129,6 @@ public abstract class Pipeline {
 	int noOfTestFiles;
 	boolean includeIndels;
 	int mutationId;
-	
-//	boolean vcfOnlyMode;
 	
 	List<Rule> controlRules = new ArrayList<>(4);
 	List<Rule> testRules = new ArrayList<>(4);
@@ -228,10 +224,6 @@ public abstract class Pipeline {
 		// ADDITIONAL SETUP	
 		mutationIdPrefix = qexec.getUuid().getValue() + "_SNP_";
 		
-//		// VCF ONLY MODE
-//		String vcfModeString = IniFileUtil.getEntry(ini, "parameters", "annotateMode"); 
-//		vcfOnlyMode = (null == vcfModeString || "vcf".equalsIgnoreCase(vcfModeString));
-		
 		final String novelStartsFilterValueString = IniFileUtil.getEntry(ini, "parameters", "numberNovelStarts");
 		// default to 4 if not specified
 		if ( ! StringUtils.isNullOrEmpty(novelStartsFilterValueString)) {
@@ -280,7 +272,6 @@ public abstract class Pipeline {
 		logger.tool("vcf: " + vcfFile);
 		
 		logger.tool("**** CONFIG ****");
-//		logger.tool("vcfOnlyMode: " + vcfOnlyMode);
 		logger.tool("mutantReadsFilterValue: " + mutantReadsFilterValue);
 		logger.tool("novelStartsFilterValue: " + novelStartsFilterValue);
 		if ( ! StringUtils.isNullOrEmpty(query)) {
@@ -311,12 +302,6 @@ public abstract class Pipeline {
 		return dccMeta.getDCCMetaDataToString();
 	}
 	
-//	String getLimsMetaData(String type, String bamFileName) throws Exception {
-//		SAMFileHeader header = SAMFileReaderFactory.createSAMFileReader(bamFileName).getFileHeader();
-//		QLimsMeta limsMeta = QLimsMetaFactory.getLimsMeta(type, bamFileName, header);
-//		return limsMeta.getLimsMetaDataToString();
-//	}
-	
 	QBamId [] getBamIdDetails(String [] bamFileName) throws Exception {
 		if (null != bamFileName && bamFileName.length > 0) {
 			final QBamId [] bamIds = new QBamId[bamFileName.length];
@@ -339,15 +324,11 @@ public abstract class Pipeline {
 			logger.warn("No vcf output file scpecified so can't output vcf");
 			return;
 		}
-		
  
 		logger.info("Writing VCF output");
 		
-		
-		
 		final QBamId[] normalBamIds = getBamIdDetails(controlBams);
 		final QBamId[] tumourBamIds = getBamIdDetails(testBams);
-		
 		
 		// if 
 /*		final String existingHeaders = getExistingVCFHeaderDetails();
@@ -1820,15 +1801,14 @@ public abstract class Pipeline {
 		
 		final int size = positionRecordMap.size();
 		
-		
-		
 		final List<ChrPosition> keys = new ArrayList<>(positionRecordMap.keySet());
 		Collections.sort(keys);
 		
-		final int noOfCompSnpsSOM = 0;
-		final int noOfCompSnpsGERM = 0;
-		final int noOfCompSnpsMIXED = 0;
-		final int [] compSnpSize = new int[10000];
+		 int noOfCompSnpsSOM = 0;
+		 int noOfCompSnpsGERM = 0;
+		 int noOfCompSnpsMIXED = 0;
+		 int noOfCompSnpsLowAltCount = 0;
+		 int [] compSnpSize = new int[10000];
 		Arrays.fill(compSnpSize, 0);
  		
 		for (int i = 0 ; i < size-1 ; ) {
@@ -1937,9 +1917,6 @@ public abstract class Pipeline {
 					}
 				}
 				
-//				logger.info("found " + normalReadSeqMap.size() + " entries in normalReadSeqMap");
-//				logger.info("found " + tumourReadSeqMap.size() + " entries in tumourReadSeqMap");
-				
 				final Map<String, AtomicInteger> normalMutationCount = new HashMap<>();
 				for (final Entry<Long, StringBuilder> entry : normalReadSeqMap.entrySet()) {
 					final AtomicInteger count = normalMutationCount.get(entry.getValue().toString());
@@ -1950,8 +1927,6 @@ public abstract class Pipeline {
 					}
 				}
 				
-//				logger.info("found " + normalMutationCount.size() + " entries in normalMutationCount");
-				
 				final Map<String, AtomicInteger> tumourMutationCount = new HashMap<>();
 				for (final Entry<Long, StringBuilder> entry : tumourReadSeqMap.entrySet()) {
 					final AtomicInteger count = tumourMutationCount.get(entry.getValue().toString());
@@ -1961,7 +1936,6 @@ public abstract class Pipeline {
 						count.incrementAndGet();
 					}
 				}
-//				logger.info("found " + tumourMutationCount.size() + " entries in tumourMutationCount");
 				
 				final AtomicInteger normalAltCountFS = normalMutationCount.get(alt);
 				final AtomicInteger tumourAltCountFS = tumourMutationCount.get(alt);
@@ -1976,7 +1950,7 @@ public abstract class Pipeline {
 				// don't care about UNKNOWNs at the moment...
 				
 				if (totalAltCount >= 4 && ! (somatic && germline)) {
-					logger.info("will create CS, totalAltCount: " + totalAltCount + " classification: " + classification + " : " + csChrPos.toString());
+//					logger.info("will create CS, totalAltCount: " + totalAltCount + " classification: " + classification + " : " + csChrPos.toString());
 					
 					
 					final StringBuilder normalSb = new StringBuilder();
@@ -2013,17 +1987,20 @@ public abstract class Pipeline {
 						}
 					}
 					
-					logger.info(csChrPos.toString() + " - ref bases: " + ref + ", alt: " + alt + " : " + classification + ", flag: " + flag + "\nnormal: " + normalSb.toString() + "\ntumour: " + tumourSb.toString());
+//					qlogger.info(csChrPos.toString() + " - ref bases: " + ref + ", alt: " + alt + " : " + classification + ", flag: " + flag + "\nnormal: " + normalSb.toString() + "\ntumour: " + tumourSb.toString());
 					
 					// create new VCFRecord with start position
 					final VcfRecord cs = VcfUtils.createVcfRecord(csChrPos, null, ref, alt);
 					if (somatic) {
 						cs.appendInfo(Classification.SOMATIC.toString());
-					//	cs.addInfo(Classification.SOMATIC.toString());
+						noOfCompSnpsSOM++;
+					} else {
+						noOfCompSnpsGERM++;
 					}
 					cs.setFilter(uniqueFlagsSb.toString());		// unique list of filters seen by snps making up this cs
 					cs.setFormatFields(Arrays.asList(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP,
-						 normalSb.toString(), tumourSb.toString()));
+						 StringUtils.isNullOrEmpty(normalSb.toString()) ? Constants.MISSING_DATA_STRING : normalSb.toString(), 
+								 StringUtils.isNullOrEmpty(tumourSb.toString()) ? Constants.MISSING_DATA_STRING : tumourSb.toString()));
 					//cs.setFormatField(Arrays.asList(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP,
 					//	 normalSb.toString(), tumourSb.toString())); 
 					
@@ -2035,13 +2012,18 @@ public abstract class Pipeline {
 					}
 					compSnpSize[noOfBases] ++;
 				} else {
-					logger.info("won't create CS, totalAltCount: " + totalAltCount + " classification: " + classification + " : " + csChrPos.toString());
+					if (somatic && germline) {
+						noOfCompSnpsMIXED++;
+					} else {
+						noOfCompSnpsLowAltCount++;
+					}
+//					logger.info("won't create CS, totalAltCount: " + totalAltCount + " classification: " + classification + " : " + csChrPos.toString());
 				}
 			}
 		}
 		
 		logger.info("found " + (noOfCompSnpsSOM +noOfCompSnpsGERM + noOfCompSnpsMIXED)  + " compound snps - no in map: " + compoundSnps.size());
-		logger.info("noOfCompSnpsSOM: " + noOfCompSnpsSOM + ", noOfCompSnpsGERM: " + noOfCompSnpsGERM +", noOfCompSnpsMIXED: " + noOfCompSnpsMIXED);
+		logger.info("noOfCompSnpsSOM: " + noOfCompSnpsSOM + ", noOfCompSnpsGERM: " + noOfCompSnpsGERM +", noOfCompSnpsMIXED: " + noOfCompSnpsMIXED + ", noOfCompSnpsLowAltCount" + noOfCompSnpsLowAltCount);
 		
 		for (int i = 0 ; i < compSnpSize.length ; i++) {
 			if (compSnpSize[i] > 0) {
