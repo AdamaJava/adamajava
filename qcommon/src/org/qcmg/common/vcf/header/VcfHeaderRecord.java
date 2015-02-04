@@ -144,9 +144,13 @@ public class VcfHeaderRecord {
 		}
 		
 	}
-	public String getDescription() { 
-		return parseRecord().description;
-	}
+	
+	/**
+	 * Equivalent to method getValue().
+	 * @return Description for INFO, FILTER, FORMAT, qPR Vcf Header record, or other Meta vcf header Record: "##<ID>=<Description>, "
+	 */
+	public String getDescription() { return parseRecord().description; }
+	
 	public String getId() {
 		return parseRecord().id;
 	}

@@ -23,6 +23,7 @@ import org.qcmg.vcf.VCFFileWriter;
 import org.qcmg.common.util.Constants;
 
 import au.edu.qimr.qannotate.options.Vcf2mafOptions;
+import au.edu.qimr.qannotate.utils.SnpEffConsequence;
 import au.edu.qimr.qannotate.utils.SnpEffMafRecord;
 
 public class Vcf2mafTest {
@@ -72,10 +73,9 @@ public class Vcf2mafTest {
 		 		
 		 		
 		 		//we get consequnce with high rank, then long length, should be second annotation
-		 		maf.getColumnValue(51).equals("p.Thr329Pro");
-		 		maf.getColumnValue(50).equals("ENST00000341065");
-		 		maf.getColumnValue(52).equals("c.985A>C");
-		 		
+		 		assertTrue(maf.getColumnValue(51).equals("p.Thr329Pro"));
+		 		assertTrue(maf.getColumnValue(50).equals("ENST00000341065"));
+		 		assertTrue(maf.getColumnValue(52).equals("c.985A>C"));
 	 }
 	 
 	 @Test 
@@ -100,17 +100,25 @@ public class Vcf2mafTest {
 	 		//select the annotation with "HIGH" impact
 	 		//str: HIGH|||n.356G>C||CCDC148-AS1|antisense|NON_CODING|ENST00000412781|5|1
 	 		//array: 0| 1|2|3     |4|5         |6        |7         |8              |9|10	 
-	 		assertTrue(maf.getColumnValue(39).equals("HIGH" ));
-	 		assertTrue(maf.getColumnValue(9).equals("Splice_Site" ));
 	 		
-	 		assertTrue(maf.getColumnValue(51).equals(Dmaf.getColumnValue(50) ));
-	 		assertTrue(maf.getColumnValue(52).equals(Dmaf.getColumnValue(51) ));
+	 		
+	 		assertTrue(maf.getColumnValue(39).equals("HIGH" ));
+	 		assertTrue(maf.getColumnValue(51).equals(Dmaf.getColumnValue(51) ));
+	 		assertTrue(maf.getColumnValue(52).equals(Dmaf.getColumnValue(52) ));
+	 		assertTrue(maf.getColumnValue(53).equals(Dmaf.getColumnValue(53) ));
 	 		assertTrue(maf.getColumnValue(1).equals("CCDC148-AS1" ));
 	 		assertTrue(maf.getColumnValue(54).equals("antisense" ));
 	 		assertTrue(maf.getColumnValue(55).equals("NON_CODING"));
 	 		assertTrue(maf.getColumnValue(50).equals("ENST00000412781" ));
 	 		assertTrue(maf.getColumnValue(56).equals("5" ));
-	 		assertTrue(maf.getColumnValue(57).equals("1" ));		
+	 		assertTrue(maf.getColumnValue(57).equals("1" ));	
+	 		String ontology = "splice_acceptor_variant";
+	 		assertTrue(maf.getColumnValue(58).equals(ontology ));
+	 		assertTrue(maf.getColumnValue(59).equals( SnpEffConsequence.getClassicName(ontology) ));	 		
+	 		assertTrue(maf.getColumnValue(40).equals(SnpEffConsequence.getConsequenceRank(ontology)+""));	 		
+	 		assertTrue(maf.getColumnValue(9).equals(SnpEffConsequence.getMafClassification(ontology) ));
+	 		
+	 		
 	 		
 	 		//for other columns after A.M confirmation
 	 		assertTrue(maf.getColumnValue(2).equals(Dmaf.getColumnValue(2) ));		
@@ -140,6 +148,21 @@ public class Vcf2mafTest {
 	 		assertTrue(maf.getColumnValue(41).equals(Dmaf.getColumnValue(41)  )); //NNS unkown
 	 		assertTrue(maf.getColumnValue(42).equals("GTGATATTCCC"  )); //Var_Plus_Flank	 
 	 		assertTrue(maf.getColumnValue(43).equals("0.11"  )); //Var_Plus_Flank	 	
+	 		
+	 		//"chrY","22012840",".","C","A",
+	 		//"GT:GD:AC","0/0:T/C:A1[5],0[0],C6[6.67],0[0],T1[6],21[32.81]","0/0:A/C:C8[7.62],2[2],A2[8],28[31.18]"};
+	 		assertTrue(maf.getColumnValue(44).equals("40"));  //t_deep column2
+	 		assertTrue(maf.getColumnValue(45).equals("10"));  //t_ref C8[7.62],2[2]
+	 		assertTrue(maf.getColumnValue(46).equals("30"));  //t_allel A2[8],28[31.18]
+	 		
+	 		assertTrue(maf.getColumnValue(47).equals("29"));  //n_deep column1
+	 		assertTrue(maf.getColumnValue(48).equals("6")); //C6[6.67],0[0]
+	 		assertTrue(maf.getColumnValue(49).equals("1"));  //A1[5],0[0]
+	 		
+	 		//other column
+	 		assertTrue(maf.getColumnValue(41).equals(SnpEffMafRecord.Unknown));  //NNS
+	 		assertTrue(maf.getColumnValue(26).equals(VcfHeaderUtils.FILTER_GERMLINE));  //somatic
+
 	 }
 
 	 @Test    (expected=Exception.class)
@@ -157,10 +180,50 @@ public class Vcf2mafTest {
 	 	 try(VCFFileReader reader = new VCFFileReader(input); ){
 	 		for (final VcfRecord vcf : reader){  		
 	 			SnpEffMafRecord maf  = v2m.converter(vcf);
-	 			System.out.println(maf.getMafLine());
+	 			//System.out.println(maf.getMafLine());
 	 		}	
          }	 
 		 
+	 }
+	 
+	 
+	 @Test
+	 public void ConsequenceTest() throws Exception{
+		 
+		 
+		 String[] str = {"chr7\t140453136\trs121913227\tAC\tTT\t.\tPASS\tSOMATIC;DB;CONF=HIGH;"
+		 		+ "EFF=missense_variant(MODERATE||gtg/AAg|p.Val207Lys/c.619GT>AA|374|BRAF|protein_coding|CODING|ENST00000496384||1|WARNING_TRANSCRIPT_NO_START_CODON),"
+		 		+ "missense_variant(MODERATE||gtg/AAg|p.Val600Lys/c.1798GT>AA|766|BRAF|protein_coding|CODING|ENST00000288602||1),"
+		 		+ "sequence_feature[domain:Protein_kinase](LOW|||c.1798AC>TT|766|BRAF|protein_coding|CODING|ENST00000288602|16|1),"
+		 		+ "sequence_feature[domain:Protein_kinase](LOW|||c.1798AC>TT|766|BRAF|protein_coding|CODING|ENST00000288602|12|1),"
+		 		+ "sequence_feature[domain:Protein_kinase](LOW|||c.1798AC>TT|766|BRAF|protein_coding|CODING|ENST00000288602|14|1),"
+		 		+ "sequence_feature[domain:Protein_kinase](LOW|||c.1798AC>TT|766|BRAF|protein_coding|CODING|ENST00000288602|18|1),"
+		 		+ "sequence_feature[domain:Protein_kinase](LOW|||c.1798AC>TT|766|BRAF|protein_coding|CODING|ENST00000288602|15|1),"
+		 		+ "sequence_feature[domain:Protein_kinase](LOW|||c.1798AC>TT|766|BRAF|protein_coding|CODING|ENST00000288602|11|1),"
+		 		+ "sequence_feature[domain:Protein_kinase](LOW|||c.1798AC>TT|766|BRAF|protein_coding|CODING|ENST00000288602|17|1),"
+		 		+ "sequence_feature[domain:Protein_kinase](LOW|||c.1798AC>TT|766|BRAF|protein_coding|CODING|ENST00000288602|13|1),"
+		 		+ "sequence_feature[beta_strand](LOW|||c.1798AC>TT|766|BRAF|protein_coding|CODING|ENST00000288602|15|1),"
+		 		+ "3_prime_UTR_variant(MODIFIER||54958|n.*1248GT>AA||BRAF|nonsense_mediated_decay|CODING|ENST00000497784|16|1),"
+		 		+ "non_coding_exon_variant(MODIFIER|||n.82GT>AA||BRAF|nonsense_mediated_decay|CODING|ENST00000479537|2|1);END=140453137	"
+		 		+ "ACCS	AC,14,20,A_,1,0	AC,33,36,A_,1,0,TC,1,0,TT,8,10,_C,0,2"};
+		 		
+		 createVcf(str);
+		 
+		 final File input = new File( DbsnpModeTest.inputName);
+		 final Vcf2maf v2m = new Vcf2maf(1,2);	
+	 	 try(VCFFileReader reader = new VCFFileReader(input); ){
+	 		for (final VcfRecord vcf : reader){  		
+	 			SnpEffMafRecord maf  = v2m.converter(vcf);
+		 		//we get consequnce with high rank, then long length, should be second annotation
+		 		assertTrue(maf.getColumnValue(51).equals("p.Val600Lys"));
+		 		assertTrue(maf.getColumnValue(50).equals("ENST00000288602"));
+		 		assertTrue(maf.getColumnValue(52).equals("c.1798GT>AA"));
+
+	 		}	
+         }			 
+		 
+		 
+
 	 }
 	 
 	 
@@ -175,12 +238,6 @@ public class Vcf2mafTest {
 
 	 		final VcfRecord vcf = new VcfRecord(parms);
 	 		final SnpEffMafRecord maf = v2m.converter(vcf);
-	 		
-	 		
-//	 		for(int i = 1 ; i < 58; i++)
-//	 			System.out.println( i + ">>>> " + maf.getColumnValue(i) + " : " + Dmaf.getColumnValue(i));
-	 		
-	 		//5:Y, 6:22012840, 7:22012840, 11:C, 35:.
 	 		
 	 		for(int i = 1 ; i < 5; i++) 			
 	 			assertTrue(maf.getColumnValue(i).equals(Dmaf.getColumnValue(i)  ));  	
