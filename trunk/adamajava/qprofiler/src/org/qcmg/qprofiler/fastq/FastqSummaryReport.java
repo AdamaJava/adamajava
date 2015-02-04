@@ -259,6 +259,7 @@ public class FastqSummaryReport extends SummaryReport {
 												updateMap(tileNumbers, intKey);
 											} catch (NumberFormatException nfe) {
 												logger.error("Can't convert string to integer: " + key, nfe);
+												throw nfe;
 											}
 											
 											// skip x, y coords for now
