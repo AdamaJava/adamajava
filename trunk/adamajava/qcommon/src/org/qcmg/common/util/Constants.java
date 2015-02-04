@@ -23,7 +23,7 @@ public class Constants {
 	public static final String SEMI_COLON_STRING = SC+"";
 	public static final String COLON_STRING = COLON + "";
 	public static final String NL_STRING = NL + "";
-	public static final String BAR_STRING = BAR + "";
+	public static final String BAR_STRING = "\\|";
 	public static final String SLASH_STRING = SLASH + "";
 	
 	//at moment only for VcfInfoFieldRecord

@@ -20,6 +20,7 @@ import org.qcmg.common.vcf.VcfInfoFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
+import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderRecord.MetaType;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
@@ -80,12 +81,12 @@ public class Vcf2maf extends AbstractMode{
 			retriveSampleColumn(option.getTestSample(), option.getControlSample(), reader.getHeader());
 			patientId = reader.getHeader().get(MetaType.META, VcfHeaderUtils.STANDARD_PATIENTID).getDescription();
 			
-			out.println(SnpEffMafRecord.getSnpEffMafHeaderline());
-			out_SHCC.println(SnpEffMafRecord.getSnpEffMafHeaderline());
-			out_SHC.println(SnpEffMafRecord.getSnpEffMafHeaderline());
-			out_GHCC.println(SnpEffMafRecord.getSnpEffMafHeaderline());
-			out_GHC.println(SnpEffMafRecord.getSnpEffMafHeaderline());
-			
+			createMafHeader(out, option.getCommandLine(), option.getInputFileName());
+			createMafHeader(out_SHCC, option.getCommandLine(), option.getInputFileName());
+			createMafHeader(out_SHC, option.getCommandLine(), option.getInputFileName());
+			createMafHeader(out_GHCC, option.getCommandLine(), option.getInputFileName());
+			createMafHeader(out_GHC, option.getCommandLine(), option.getInputFileName());
+						
 	       	for (final VcfRecord vcf : reader)
         		try{
         			SnpEffMafRecord maf = converter(vcf);
@@ -112,9 +113,27 @@ public class Vcf2maf extends AbstractMode{
         		}
          
 		}			
-			
- 
 	}
+	
+	private void createMafHeader(PrintWriter write, String cmd, String inputVcfName) throws Exception{
+		if(header == null)
+			try(VCFFileReader reader = new VCFFileReader(inputVcfName)) {
+	        	header = reader.getHeader();
+			}
+		
+		reheader(cmd, inputVcfName);
+		
+		for(final VcfHeaderRecord record: header) 
+			if(record.getMetaType().equals(MetaType.META) && 
+					!record.getId().equals(VcfHeaderUtils.STANDARD_FILE_VERSION ))
+				 write.println(record.toString());
+			else if(record.getMetaType().equals(MetaType.QPG) )
+					 write.println(record.toString());
+
+		write.println(SnpEffMafRecord.getSnpEffMafHeaderline());
+	}
+	
+	
 	//Effect ( Effect_Impact | Functional_Class | Codon_Change | Amino_Acid_Change| Amino_Acid_length | Gene_Name | Transcript_BioType | Gene_Coding | Transcript_ID | Exon_Rank  | Genotype_Number [ | ERRORS | WARNINGS ] )
 	 SnpEffMafRecord converter(VcfRecord vcf) throws Exception{
 		final SnpEffMafRecord maf = new SnpEffMafRecord();
@@ -163,30 +182,30 @@ public class Vcf2maf extends AbstractMode{
 		//format & sample field
 		final List<String> formats =  vcf.getFormatFields();
 		if(   formats.size() <= Math.max(test_column, control_column)  )	// format include "FORMAT" column, must bigger than sample column
-			throw new Exception("Missing sample column in below vcf:\n"+ vcf.toString());
+			throw new Exception(" Varint missing sample column on :"+ vcf.getChromosome() + "\t" + vcf.getPosition());
 
 		
-		final VcfFormatFieldRecord tumour =  new VcfFormatFieldRecord(formats.get(0), formats.get(test_column));
-		final String[] Tvalues = readFormatField(tumour) ;		
+		VcfFormatFieldRecord sample =  new VcfFormatFieldRecord(formats.get(0), formats.get(test_column));
+		final String[] Tvalues = readFormatField(sample) ;		
 		
 		if(Tvalues[1] != null){	//allesls counts
 			maf.setColumnValue(37,  Tvalues[1]);
-	    	maf.setColumnValue(43+1, Integer.toString( VcfUtils.getAltFrequency(tumour, null)));
-	    	maf.setColumnValue(44+1, Integer.toString( VcfUtils.getAltFrequency(tumour, vcf.getRef()))); 
-	    	maf.setColumnValue(45+1, Integer.toString( VcfUtils.getAltFrequency(tumour, vcf.getAlt())));
+	    	maf.setColumnValue(43+1, Integer.toString( VcfUtils.getAltFrequency(sample, null)));
+	    	maf.setColumnValue(44+1, Integer.toString( VcfUtils.getAltFrequency(sample, vcf.getRef()))); 
+	    	maf.setColumnValue(45+1, Integer.toString( VcfUtils.getAltFrequency(sample, vcf.getAlt())));
 	    	maf.setColumnValue(12,  Tvalues[2] );  //TD allele1
 	    	maf.setColumnValue(13, Tvalues[3]);	//TD allele2
 		}
 		
 		
-		final VcfFormatFieldRecord normal =  new VcfFormatFieldRecord(formats.get(0), formats.get(control_column));
-		final String[] Nvalues = readFormatField(normal) ;		
+		sample =  new VcfFormatFieldRecord(formats.get(0), formats.get(control_column));
+		final String[] Nvalues = readFormatField(sample) ;		
 		
 		if(Nvalues[1] != null){	//allesls counts
 			maf.setColumnValue(36,  Nvalues[1]);
-	    	maf.setColumnValue(46+1, Integer.toString( VcfUtils.getAltFrequency(tumour, null)));
-	    	maf.setColumnValue(47+1, Integer.toString( VcfUtils.getAltFrequency(tumour, vcf.getRef()))); 
-	    	maf.setColumnValue(48+1, Integer.toString( VcfUtils.getAltFrequency(tumour, vcf.getAlt())));
+	    	maf.setColumnValue(46+1, Integer.toString( VcfUtils.getAltFrequency(sample, null)));
+	    	maf.setColumnValue(47+1, Integer.toString( VcfUtils.getAltFrequency(sample, vcf.getRef()))); 
+	    	maf.setColumnValue(48+1, Integer.toString( VcfUtils.getAltFrequency(sample, vcf.getAlt())));
 	    	maf.setColumnValue(18,  Nvalues[2] );  //ND allele1
 	    	maf.setColumnValue(19, Nvalues[3]);	//ND allele2
 		}
@@ -202,7 +221,12 @@ public class Vcf2maf extends AbstractMode{
 		return maf;
 
 	}
-	 
+	 /**
+	  * 
+	  * @param format
+	  * @return array[nns, allele_counts, allele1, allele2]
+	  * @throws Exception
+	  */
 	 private String[] readFormatField(VcfFormatFieldRecord format) throws Exception{
 		
 		 //String nns = null;

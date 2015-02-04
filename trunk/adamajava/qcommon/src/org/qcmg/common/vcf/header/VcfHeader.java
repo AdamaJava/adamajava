@@ -93,7 +93,7 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 		String id = ( key.endsWith("=") )? key.substring(0,key.length() - 1) : key;
 		id = id.replaceAll(" ", "");
  		
-		Iterator<VcfHeaderRecord> it;
+	//	Iterator<VcfHeaderRecord> it = null;
 		switch (type) {
 			case FORMAT:
 				return vcfFormatById.get(id);
@@ -104,19 +104,19 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 			case CHROM:
 				return chromLine;
 			case META:
-				it = meta.iterator();
-				break;
+				Iterator<VcfHeaderRecord> it = meta.iterator();
+				while(it.hasNext()){
+					final VcfHeaderRecord re = it.next();
+					if( re.getId().equalsIgnoreCase(id)){
+						return re; 
+					}
+				}
 			case OTHER:
 			default:
-				throw new Exception(" can't retrive vcf header record by (metaTyp, id): (" + type.name() + ", " + id +").");
+				break;
+			//	throw new Exception(" can't retrive vcf header record by (metaTyp, id): (" + type.name() + ", " + id +").");
 		}
 		 					 
-		while(it.hasNext()){
-			final VcfHeaderRecord re = it.next();
-			if( re.getId().equalsIgnoreCase(id)){
-				return re; 
-			}
-		}
 										
 		return null;	 
 	}

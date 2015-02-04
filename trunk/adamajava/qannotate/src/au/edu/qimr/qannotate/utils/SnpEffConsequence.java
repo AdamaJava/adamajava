@@ -63,8 +63,8 @@ public enum SnpEffConsequence {
 	
 	//below require snpEff classic run
 	EXON_NON_CODING("non_coding_exon_variant",100,"unknown"),  //should be "EXON"
-	NEXT_PROT("sequence_feature",100,"unknown") ,
-	MOTIF("TF_binding_site_variant", 100, "unknown");
+	NEXT_PROT("sequence_feature",200,"unknown") ,
+	MOTIF("TF_binding_site_variant", 200, "unknown");
 
 	
 	
@@ -163,7 +163,9 @@ public enum SnpEffConsequence {
 			String ontolog = consequence.substring(0, consequence.indexOf("("));
 			ontolog = (ontolog.contains("["))? ontolog.substring(0, ontolog.indexOf("[")) : ontolog;
 			String[] conse = consequence.split(Constants.BAR_STRING );
-			int lconse = (StringUtils.isNumeric(conse[6])) ? Integer.getInteger(conse[6]) : 0; 
+			
+			//here Integer.getInteger(conse[4]) return null
+			int lconse = (StringUtils.isNumeric(conse[4])) ? Integer.parseInt(conse[4]) : 0; 
 			boolean onList = false;
 			for (final SnpEffConsequence dcEnum : values())  
 				if (  dcEnum.ontologName.equals(ontolog) ){ 
