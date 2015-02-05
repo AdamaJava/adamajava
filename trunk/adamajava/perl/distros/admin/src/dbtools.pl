@@ -30,6 +30,7 @@ use QCMG::IO::EnsemblDomainsReader;
 use QCMG::IO::FastaReader;
 use QCMG::IO::SamHeader;
 use QCMG::IO::SamReader;
+use QCMG::IO::VcfReader;
 use QCMG::PDF::Document;
 use QCMG::QInspect::Sam2Pdf;
 use QCMG::Util::FileManipulator;
@@ -67,7 +68,8 @@ MAIN: {
     # action based on the parameters.
 
     my @valid_modes = qw( help man version qsnpdir finalbampairs
-                          aligner_from_mapset_bam );
+                          aligner_from_mapset_bam
+                          qsnp_vcf_info );
 
     if ($mode =~ /^$valid_modes[0]$/i or $mode =~ /\?/) {
         pod2usage( -exitval  => 0,
@@ -90,10 +92,112 @@ MAIN: {
     elsif ($mode =~ /^$valid_modes[5]/i) {
         aligner_from_mapset_bam()
     }
+    elsif ($mode =~ /^$valid_modes[6]/i) {
+        qsnp_vcf_info()
+    }
     else {
         die "dbtools mode [$mode] is unrecognised; valid modes are: " .
             join(' ',@valid_modes) ."\n";
     }
+}
+
+
+sub qsnp_vcf_info {
+    my $class = shift;
+
+    pod2usage( -exitval  => 0,
+               -verbose  => 99,
+               -sections => 'COMMAND DETAILS/QSNP_VCF_INFO' )
+        unless (scalar @ARGV > 0);
+
+    # Setup defaults for important variables.
+
+    my %params = ( dirs     => [],
+                   outfile  => '',
+                   logfile  => '',
+                   verbose  => 0 );
+
+    my $results = GetOptions (
+           'd|dir=s'              =>  $params{dirs},          # -d
+           'o|outfile=s'          => \$params{outfile},       # -o
+           'l|logfile=s'          => \$params{logfile},       # -l
+           'v|verbose+'           => \$params{verbose},       # -v
+           );
+
+    # It is mandatory to supply an infile or directory
+    die "You must specify a directory (-d)\n"
+        unless ( scalar( @{ $params{dirs} } ) );
+    
+    # Set up logging
+    qlogfile($params{logfile}) if $params{logfile};
+    qlogbegin();
+    qlogprint( {l=>'EXEC'}, "CommandLine $CMDLINE\n");
+    qlogparams( \%params );
+
+    warn "No output file specified\n" unless $params{outfile};
+
+    my $outfh = IO::File->new( $params{outfile}, 'w' );
+    croak 'Unable to open ', $params{outfile}, " for writing: $!"
+        unless defined $outfh;
+    $outfh->print( join( "\t", qw( qSnpDir VCF RecordCount
+                                   fileformat fileDate
+                                   qSource qPatientId
+                                   qUUID qAnalysisId
+                                   qControlBamUUID qTestBamUUID
+                                   qControlBam qTestBam ) ),
+                   "\n" );
+
+    my $fact = QCMG::FileDir::QSnpDirParser->new( verbose => $params{verbose} );
+    
+    # Find all variants/qSNP directories and check for VCF files
+    my $header_written = 0;
+    foreach my $dir (@{ $params{dirs} }) {
+        my $ra_qsnps = $fact->parse( $dir );
+        foreach my $qsnp (@{ $ra_qsnps }) {
+            my $vcffile = $qsnp->get_file( 'main_vcf' );
+            if (! defined $vcffile) {
+                $outfh->print( join("\t", $qsnp->dir, 'NoVcf' ), "\n" );
+            }
+            else {
+                my $vcf = QCMG::IO::VcfReader->new(
+                              filename => $vcffile->full_pathname,
+                              verbose  => $params{verbose} );
+                my $rec_ctr = 0;
+                #my $rec1 = $vcf->next_record;
+                while ($vcf->next_record_as_line) { $rec_ctr++ };
+                my @fields = ( $qsnp->dir, $vcffile->name );
+                push @fields, $rec_ctr;
+                push @fields, _vcf_header( $vcf, 'fileformat' );
+                push @fields, _vcf_header( $vcf, 'fileDate' );
+                # Where possible, handle the older format files
+                if (_vcf_header( $vcf, 'qSource' )) {
+                    push @fields, _vcf_header( $vcf, 'qSource' );
+                    push @fields, _vcf_header( $vcf, 'qPatientId' );
+                }
+                else {
+                    push @fields, _vcf_header( $vcf, 'source' );
+                    push @fields, _vcf_header( $vcf, 'patient_id' );
+                }
+                push @fields, _vcf_header( $vcf, 'qUUID' );
+                push @fields, _vcf_header( $vcf, 'qAnalysisId' );
+                push @fields, _vcf_header( $vcf, 'qControlBamUUID' );
+                push @fields, _vcf_header( $vcf, 'qTestBamUUID' );
+                push @fields, _vcf_header( $vcf, 'qControlBam' );
+                push @fields, _vcf_header( $vcf, 'qTestBam' );
+                $outfh->print( join("\t", @fields ), "\n" );
+            }
+        }
+    }
+
+    qlogend();
+}
+
+
+sub _vcf_header {
+    my $vcf  = shift;
+    my $name = shift;
+    # Return the value if defined and an empty string otherwise
+    return defined $vcf->headers->{$name} ? $vcf->headers->{$name} : '.';
 }
 
 
