@@ -69,7 +69,8 @@ MAIN: {
 
     my @valid_modes = qw( help man version qsnpdir finalbampairs
                           aligner_from_mapset_bam
-                          qsnp_vcf_info );
+                          qsnp_vcf_info
+                          gatk_vcf_info );
 
     if ($mode =~ /^$valid_modes[0]$/i or $mode =~ /\?/) {
         pod2usage( -exitval  => 0,
@@ -93,7 +94,10 @@ MAIN: {
         aligner_from_mapset_bam()
     }
     elsif ($mode =~ /^$valid_modes[6]/i) {
-        qsnp_vcf_info()
+        qsnp_vcf_info( 'qsnp' )
+    }
+    elsif ($mode =~ /^$valid_modes[7]/i) {
+        qsnp_vcf_info( 'gatk' )
     }
     else {
         die "dbtools mode [$mode] is unrecognised; valid modes are: " .
@@ -103,16 +107,17 @@ MAIN: {
 
 
 sub qsnp_vcf_info {
-    my $class = shift;
+    my $mode = shift;
 
     pod2usage( -exitval  => 0,
                -verbose  => 99,
-               -sections => 'COMMAND DETAILS/QSNP_VCF_INFO' )
+               -sections => 'COMMAND DETAILS/VCF_INFO' )
         unless (scalar @ARGV > 0);
 
     # Setup defaults for important variables.
 
-    my %params = ( dirs     => [],
+    my %params = ( mode     => $mode,
+                   dirs     => [],
                    outfile  => '',
                    logfile  => '',
                    verbose  => 0 );
@@ -139,7 +144,7 @@ sub qsnp_vcf_info {
     my $outfh = IO::File->new( $params{outfile}, 'w' );
     croak 'Unable to open ', $params{outfile}, " for writing: $!"
         unless defined $outfh;
-    $outfh->print( join( "\t", qw( qSnpDir VCF RecordCount
+    $outfh->print( join( "\t", qw( AnalysisDir VCF RecordCount
                                    fileformat fileDate
                                    qSource qPatientId
                                    qUUID qAnalysisId
@@ -147,16 +152,26 @@ sub qsnp_vcf_info {
                                    qControlBam qTestBam ) ),
                    "\n" );
 
-    my $fact = QCMG::FileDir::QSnpDirParser->new( verbose => $params{verbose} );
+    my $fact = undef;
+
+    if ($mode eq 'qsnp') {
+        $fact = QCMG::FileDir::QSnpDirParser->new( verbose => $params{verbose} );
+    }
+    elsif ($mode eq 'gatk') {
+        $fact = QCMG::FileDir::GatkDirParser->new( verbose => $params{verbose} );
+    }
+    else {
+        die "mode [$mode] is not understood";
+    }
     
-    # Find all variants/qSNP directories and check for VCF files
+    # Find all relevant variant directories and check for VCF files
     my $header_written = 0;
     foreach my $dir (@{ $params{dirs} }) {
-        my $ra_qsnps = $fact->parse( $dir );
-        foreach my $qsnp (@{ $ra_qsnps }) {
-            my $vcffile = $qsnp->get_file( 'main_vcf' );
+        my $ra_analyses = $fact->parse( $dir );
+        foreach my $analysis (@{ $ra_analyses }) {
+            my $vcffile = $analysis->get_file( 'main_vcf' );
             if (! defined $vcffile) {
-                $outfh->print( join("\t", $qsnp->dir, 'NoVcf' ), "\n" );
+                $outfh->print( join("\t", $analysis->dir, 'NoVcf' ), "\n" );
             }
             else {
                 my $vcf = QCMG::IO::VcfReader->new(
@@ -165,12 +180,12 @@ sub qsnp_vcf_info {
                 my $rec_ctr = 0;
                 #my $rec1 = $vcf->next_record;
                 while ($vcf->next_record_as_line) { $rec_ctr++ };
-                my @fields = ( $qsnp->dir, $vcffile->name );
+                my @fields = ( $analysis->dir, $vcffile->name );
                 push @fields, $rec_ctr;
                 push @fields, _vcf_header( $vcf, 'fileformat' );
                 push @fields, _vcf_header( $vcf, 'fileDate' );
                 # Where possible, handle the older format files
-                if (_vcf_header( $vcf, 'qSource' )) {
+                if (_vcf_header( $vcf, 'qSource' ) ne '.') {
                     push @fields, _vcf_header( $vcf, 'qSource' );
                     push @fields, _vcf_header( $vcf, 'qPatientId' );
                 }
@@ -189,6 +204,7 @@ sub qsnp_vcf_info {
         }
     }
 
+    $outfh->close;
     qlogend();
 }
 
@@ -196,13 +212,12 @@ sub qsnp_vcf_info {
 sub _vcf_header {
     my $vcf  = shift;
     my $name = shift;
-    # Return the value if defined and an empty string otherwise
+    # Return the value if defined and a '.' string otherwise
     return defined $vcf->headers->{$name} ? $vcf->headers->{$name} : '.';
 }
 
 
 sub qsnpdir {
-    my $class = shift;
 
     pod2usage( -exitval  => 0,
                -verbose  => 99,
@@ -259,7 +274,6 @@ sub qsnpdir {
 
 
 sub finalbampairs {
-    my $class = shift;
 
     pod2usage( -exitval  => 0,
                -verbose  => 99,
