@@ -89,7 +89,7 @@ sub completion_report  {
     my $self = shift;
 
     # Put in field names as header
-    my @fields = QCMG::FileDir::QSnpDirRecord->variant_run_fields;
+    my @fields = QCMG::FileDir::GatkDirRecord->variant_run_fields;
     my $text = join("\t", @fields). "\n";
 
     # Write a line for each qSNP variant call directory

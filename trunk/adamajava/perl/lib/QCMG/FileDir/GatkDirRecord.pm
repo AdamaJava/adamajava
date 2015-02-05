@@ -69,7 +69,8 @@ BEGIN {
                      germl_mafall => '^(.*\.Germline.ALL.snv.maf)$',
                      germl_mafhc  => '^(.*\.Germline.HighConfidence.snv.maf)$',
                      germl_mafhcc => '^(.*\.Germline.HighConfidenceConsequence.snv.maf)$',
-                     germl_maflog => '^(.*mafPipelineGermline.*\.log)$'
+                     germl_maflog => '^(.*mafPipelineGermline.*\.log)$',
+                     main_vcf     => '^(.*\d+\.vcf)$'
                    );
 
     # The only GATK-specific files in the dir are the 2 VCF files and

@@ -55,6 +55,7 @@ BEGIN {
     # Patterns used to match filename in qSNP directory
     my %patterns = ( ini          => '^(\w+_\d+\.ini)$',
                      qsnp_log     => '^(.*qsnp.log)$',
+                     qsnp_cs_log  => '^(.*qsnp_cs.log)$',
                      somat_dcc1   => '^(.*\.SomaticSNV.dcc1)$',
                      somat_dcc2   => '^(.*\.SomaticSNV.dcc2)$',
                      somat_dccq   => '^(.*\.SomaticSNV.dccq)$',
@@ -70,7 +71,8 @@ BEGIN {
                      germl_mafall => '^(.*\.Germline.ALL.snv.maf)$',
                      germl_mafhc  => '^(.*\.Germline.HighConfidence.snv.maf)$',
                      germl_mafhcc => '^(.*\.Germline.HighConfidenceConsequence.snv.maf)$',
-                     germl_maflog => '^(.*mafPipelineGermline.*\.log)$'
+                     germl_maflog => '^(.*mafPipelineGermline.*\.log)$',
+                     main_vcf     => '^(.*\d+\.vcf)$'
                    );
 
     # This is our list of completion statuses.  In general, the higher
