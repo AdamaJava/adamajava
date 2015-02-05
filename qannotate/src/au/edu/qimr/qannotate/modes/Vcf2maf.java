@@ -171,8 +171,7 @@ public class Vcf2maf extends AbstractMode{
 //		if(info.getField(VcfHeaderUtils.FORMAT_NOVEL_STARTS) != null) maf.setColumnValue(40,  info.getField(VcfHeaderUtils.FORMAT_NOVEL_STARTS));
 		if(info.getField(VcfHeaderUtils.INFO_CONFIDENT) != null)	maf.setColumnValue(38,  info.getField(VcfHeaderUtils.INFO_CONFIDENT) );
 		if(info.getField(VcfHeaderUtils.INFO_FS) != null) maf.setColumnValue(41+1,  info.getField(VcfHeaderUtils.INFO_FS));
-		if(info.getField(VcfHeaderUtils.INFO_VAF) != null) maf.setColumnValue(42+1,  info.getField(VcfHeaderUtils.INFO_VAF));
-		
+		if(info.getField(VcfHeaderUtils.INFO_VAF) != null) maf.setColumnValue(42+1,  info.getField(VcfHeaderUtils.INFO_VAF));		
 
 		String eff; 
 		if( (eff = info.getField(VcfHeaderUtils.INFO_EFFECT)) != null)
@@ -194,7 +193,7 @@ public class Vcf2maf extends AbstractMode{
 	    	maf.setColumnValue(44+1, Integer.toString( VcfUtils.getAltFrequency(sample, vcf.getRef()))); 
 	    	maf.setColumnValue(45+1, Integer.toString( VcfUtils.getAltFrequency(sample, vcf.getAlt())));
 	    	maf.setColumnValue(12,  Tvalues[2] );  //TD allele1
-	    	maf.setColumnValue(13, Tvalues[3]);	//TD allele2
+	    	maf.setColumnValue(13, Tvalues[3]);		//TD allele2
 		}
 		
 		
