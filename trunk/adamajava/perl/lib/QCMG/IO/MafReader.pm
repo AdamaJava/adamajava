@@ -101,7 +101,7 @@ sub _parse_headers {
 
     # Set default
     if (! $version) {
-        $version = '2.2'
+        $version = '2.2';
         qlogprint( "no version header in MAF file - defaulting to $version\n" );
     }
 
