@@ -117,6 +117,14 @@ sub headers {
 }
 
 
+sub header {
+    my $self = shift;
+    my $name = shift;
+    return (exists $self->{headers}->{$name} and defined $self->{headers}->{$name}) 
+           ? $self->{headers}->{$name} : undef;
+}
+
+
 sub _incr_record_count {
     my $self = shift;
     return $self->{record_count}++;
@@ -124,6 +132,25 @@ sub _incr_record_count {
 
 
 sub next_record {
+    my $self = shift;
+
+    # Parse next line into object
+    my $line = $self->_next_record;
+    my $rec = QCMG::IO::VcfRecord->new( $line );
+    return $rec;
+}
+
+
+sub next_record_as_line {
+    my $self = shift;
+
+    # Return next line as is, unparsed
+    my $line = $self->_next_record;
+    return $line;
+}
+
+
+sub _next_record {
     my $self = shift;
 
     # Read lines, checking for and processing any headers
@@ -141,15 +168,12 @@ sub next_record {
         }
 
         $self->_incr_record_count;
-        my $vcf = QCMG::IO::VcfRecord->new( $line );
-        #warn $vcf->debug if ($self->verbose > 1);
-
         if ($self->verbose) {
             # Print progress messages for every 1M records
             qlogprint( $self->record_count/1000000, "M VCF records processed\n" )
                 if ($self->record_count % 1000000 == 0);
         }
-        return $vcf;
+        return $line;
     }
 }
 
@@ -160,7 +184,9 @@ sub _process_header_line {
 
     if ($line =~ /^##/) {
         $line =~ s/^\##//;
-        my ($key,$value) = split /=/, $line, 2;
+        return unless $line;  # skip blanks
+        # Splitting on /=+/ to cope with some VCFs with 'FORMAT==<'
+        my ($key,$value) = split /=+/, $line, 2;
         if ($key =~ /INFO/ or $key =~ /FILTER/) {
            if ($value =~ /ID=(\w+)/) {
                $self->{headers}->{$key}->{$1} = $value;
@@ -173,8 +199,9 @@ sub _process_header_line {
             $self->{headers}->{$key} = $value;
         }
     }
-    else {
+    elsif ($line =~ /^#/) {
         $line =~ s/^\#//;
+        return unless $line;  # skip blanks
         my @columns = split /\t/, $line;
         my $problems = 0;
     
@@ -194,6 +221,9 @@ sub _process_header_line {
         }
         die "Unable to continue until all column problems have been resolved\n"
            if ($problems > 0);
+    }
+    else {
+        die "header parser borked on line: [$line]\n";
     }
 }
 
@@ -238,7 +268,7 @@ Flag to force increased warnings.  Defaults to 0 (off);
 
  my $rec = $vcf->next_record();
 
-This method will rteunr the next record as an QCMG::IO::VCFFile
+This method will return the next record as an QCMG::IO::VcfRecord
 object.
 
 =back
