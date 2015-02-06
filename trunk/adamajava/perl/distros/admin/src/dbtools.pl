@@ -70,7 +70,8 @@ MAIN: {
     my @valid_modes = qw( help man version qsnpdir finalbampairs
                           aligner_from_mapset_bam
                           qsnp_vcf_info
-                          gatk_vcf_info );
+                          gatk_vcf_info
+                          vcf_info_compare );
 
     if ($mode =~ /^$valid_modes[0]$/i or $mode =~ /\?/) {
         pod2usage( -exitval  => 0,
@@ -99,10 +100,103 @@ MAIN: {
     elsif ($mode =~ /^$valid_modes[7]/i) {
         qsnp_vcf_info( 'gatk' )
     }
+    elsif ($mode =~ /^$valid_modes[8]/i) {
+        vcf_info_compare();
+    }
     else {
         die "dbtools mode [$mode] is unrecognised; valid modes are: " .
             join(' ',@valid_modes) ."\n";
     }
+}
+
+
+sub vcf_info_compare {
+
+    pod2usage( -exitval  => 0,
+               -verbose  => 99,
+               -sections => 'COMMAND DETAILS/VCF_INFO_COMPARE' )
+        unless (scalar @ARGV > 0);
+
+    # Setup defaults for important variables.
+
+    my %params = ( infile1  => '',
+                   infile2  => '',
+                   outfile  => 'vcf_info_compare.txt',
+                   logfile  => '',
+                   verbose  => 0 );
+
+    my $results = GetOptions (
+             'infile1=s'          => \$params{infile1},
+             'infile2=s'          => \$params{infile2},
+           'o|outfile=s'          => \$params{outfile},       # -o
+           'l|logfile=s'          => \$params{logfile},       # -l
+           'v|verbose+'           => \$params{verbose},       # -v
+           );
+
+    # It is mandatory to supply two infiles
+    die "You must specify --infile1 and --infile2\n"
+       unless ( $params{infile1} and $params{infile2} );
+    
+    # Set up logging
+    qlogfile($params{logfile}) if $params{logfile};
+    qlogbegin();
+    qlogprint( {l=>'EXEC'}, "CommandLine $CMDLINE\n");
+    qlogparams( \%params );
+
+
+    my @in_headers = qw( AnalysisDir VCF RecordCount
+                         fileformat fileDate
+                         qSource qPatientId
+                         qUUID qAnalysisId
+                         qControlBamUUID qTestBamUUID
+                         qControlBam qTestBam );
+    my @out_headers = ( 'Source', @in_headers );
+
+    my $in1 = QCMG::IO::TsvReader->new(
+                  filename => $params{infile1},
+                  headers  => \@in_headers,
+                  verbose  => $params{vernose} );
+
+    my $in2 = QCMG::IO::TsvReader->new(
+                  filename => $params{infile2},
+                  headers  => \@in_headers,
+                  verbose  => $params{vernose} );
+
+    # Roll through both files tallying on donor and bams
+    my %analyses = ();
+    while (my $line = $in1->next_record) {
+        my @fields = split /\t/, $line;
+        # Create key from donor and both BAM UUIDs
+        next unless ( defined $fields[6] and $fields[6] ne '.' and
+                      defined $fields[9] and $fields[9] ne '.' and
+                      defined $fields[10] and $fields[10] ne '.');
+        my $key = join(' ', $fields[6], $fields[9], $fields[10]);
+        push @{ $analyses{$key} }, [ '1', @fields ];
+    }
+    while (my $line = $in2->next_record) {
+        my @fields = split /\t/, $line;
+        # Create key from donor and both BAM UUIDs
+        next unless ( defined $fields[6] and $fields[6] ne '.' and
+                      defined $fields[9] and $fields[9] ne '.' and
+                      defined $fields[10] and $fields[10] ne '.');
+        my $key = join(' ', $fields[6], $fields[9], $fields[10]);
+        push @{ $analyses{$key} }, [ '2', @fields ];
+    }
+
+    my $outfh = IO::File->new( $params{outfile}, 'w' );
+    croak 'Unable to open ', $params{outfile}, " for writing: $!"
+        unless defined $outfh;
+    $outfh->print( join( "\t", @out_headers ), "\n" );
+
+    foreach my $key (sort keys %analyses) {
+        $outfh->print( "# $key\n" );
+        foreach my $ra_rec (@{ $analyses{$key} }) {
+            $outfh->print( join( "\t", @{ $ra_rec } ), "\n" );
+        }
+    }
+
+    $outfh->close;
+    qlogend();
 }
 
 
