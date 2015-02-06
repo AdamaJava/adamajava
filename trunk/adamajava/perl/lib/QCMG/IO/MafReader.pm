@@ -98,6 +98,13 @@ sub _parse_headers {
             last;
         }
     }
+
+    # Set default
+    if (! $version) {
+        $version = '2.2'
+        qlogprint( "no version header in MAF file - defaulting to $version\n" );
+    }
+
     qlogprint( "MAF version $version\n" );
     qlogprint( 'MAF file header count ', scalar(@headers), "\n" );
 
