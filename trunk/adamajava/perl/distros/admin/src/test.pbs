@@ -24,6 +24,12 @@
 module load java/1.7.13
 module load adama/nightly
 
+# Perl code is now in sourceforge so to get the latest version, we'll
+# need to point to JP's local subversion copy:
+export
+PERL5LIB=/panfs/home/jpearson/Devel/sourceforge/adamajava/adamajava/perl/lib:$PER5LIB
+
+
 function co_test {
     #CO="'QCMG:hohoho    HO:JP'"
     #CO="QCMG:hohoho    HO:JP"
@@ -65,7 +71,6 @@ START_DATE=`/bin/date`
 START_SECOND=`/bin/date +%s`
 
 # 2013-07-23  testing how we might automate qverify
-my_qverify_test
 
 END_SECOND=`/bin/date +%s`
 ELAPSED=$(($END_SECOND-$START_SECOND))
