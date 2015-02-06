@@ -1,6 +1,5 @@
 package org.qcmg.common.vcf.header;
 
-import org.qcmg.common.util.Constants;
 /**
  * Represents a info elements in a VCF file
  *
@@ -37,7 +36,7 @@ public final class  VcfHeaderFilter extends VcfHeaderRecord{
 	@Override
 	public String toString() {
  
-		return  type.toString() +  "=<ID=" + id//
+		return  type.toString() +  "<ID=" + id//
  				+ ",Description=\"" + description + "\"" //
 				+ ">";
 	 
