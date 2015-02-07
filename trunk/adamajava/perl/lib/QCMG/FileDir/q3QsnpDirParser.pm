@@ -58,10 +58,11 @@ sub parse  {
 
     my $dirs = `find $dir -type d | grep 'variants/qSNP'`;
     my @dirs = split /\n/, $dirs;
-
-    my @qsnp_objs = ();
+    qlogprint( 'found ',scalar(@dirs),
+               " directories matching variants/qSNP\n" );
 
     # Find all qSNP runs (hopefully in UUID format)
+    my @qsnp_objs = ();
     foreach my $dir (sort @dirs) {
         if ($dir =~ /.*\/variants\/qSNP\/[^\/]+$/) {
             my $obj = QCMG::FileDir::q3QsnpDirRecord->new( dir     => $dir,
@@ -79,7 +80,7 @@ sub duplicate_report  {
     my $self = shift;
 
     # Put in field names as header
-    my @fields = QCMG::FileDir::QSnpDirRecord->variant_run_fields;
+    my @fields = QCMG::FileDir::q3QsnpDirRecord->variant_run_fields;
     my $text = join("\t", @fields). "\n\n";
 
     # Place all of the variant calls into a hash keyed on the names of
