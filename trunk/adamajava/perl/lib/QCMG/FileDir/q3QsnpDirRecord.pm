@@ -9,7 +9,7 @@ package QCMG::FileDir::q3QsnpDirRecord;
 #  This class is based on QSnpDirRecord but modified for the new q3 qSNP
 #  which does not create DCC files and the new qannotate pipeline.
 #
-#  $Id: QSnpDirRecord.pm 4662 2014-07-23 12:39:59Z j.pearson $
+#  $Id$
 #
 ##############################################################################
 
@@ -24,8 +24,8 @@ use QCMG::Util::QLog;
 
 use vars qw( $SVNID $REVISION %CLASS_GLOBALS );
 
-( $REVISION ) = '$Revision: 4662 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: QSnpDirRecord.pm 4662 2014-07-23 12:39:59Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 # Establish class global list of filename search patterns
@@ -603,12 +603,13 @@ and any other value (traditionally 1) sets verbose mode on.
 
 =head1 VERSION
 
-$Id: QSnpDirRecord.pm 4662 2014-07-23 12:39:59Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT
 
 Copyright (c) The University of Queensland 2009-2014
+Copyright (c) QIMR Berghofer Medical Research Institute 2015
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation files (the "Software"),
