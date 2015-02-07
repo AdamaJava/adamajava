@@ -76,7 +76,7 @@ sub new {
     my $class  = shift;
     my %params = @_;
 
-    die "You must supply a dir parameter to a new QSnpDirRecord"
+    die "You must supply a dir parameter to a new q3QsnpDirRecord"
        unless (exists $params{dir} and $params{dir});
 
     my $self = { dir                 => $params{dir},
@@ -114,7 +114,6 @@ sub new {
     # and store QCMG::FileDir::FileObject's for each in $self->{files}
 
     $self->_search_for_expected_files;
-    $self->_parse_qsnp_log_file;
 
     return $self;
 }
@@ -217,23 +216,6 @@ sub get_file {
 }
 
 
-sub _parse_qsnp_log_file {
-    my $self = shift;
-
-    # If qsnp_log file does not exist then ditch
-    my $fileobj = $self->get_file( 'qsnp_cs_log' );
-    return undef unless defined $fileobj;
-    my $name = $fileobj->full_pathname;
-
-    qlogprint "parsing log file: $name\n" if $self->verbose;
-
-    my $qsnplog = QCMG::FileDir::QLogFile->new( file    => $name,
-                                                verbose => $self->verbose );
-
-    $self->{qsnp_log_obj} = $qsnplog;
-}
-
-
 sub completion_report {
     my $self = shift;
   
@@ -254,40 +236,7 @@ sub completion_report {
         $status = 20;  # qannotate running
     }
 
-    # Get info from qsnp.log file if it exists:
-    my $rh_qsnplog_exec_attributes = {};
-    my $rh_qsnplog_tool_attributes = {};
-    my $qsnp_log = $self->qsnp_log;
-    if (defined $qsnp_log) {
-        $rh_qsnplog_exec_attributes = $qsnp_log->attributes_from_exec_lines;
-        $rh_qsnplog_tool_attributes = $self->_parse_qsnp_log_tool_attributes;
-    }
-    
-    my $nbam_name  = $rh_qsnplog_tool_attributes->{normal_bam};
-    my $nbam_epoch = ( stat( $nbam_name ) )[9];
-    my $tbam_name  = $rh_qsnplog_tool_attributes->{tumour_bam};
-    my $tbam_epoch = ( stat( $tbam_name ) )[9];
-
-    # If you add or change any fields here, you need to make the same
-    # changes (including order) to the @variant_run array in CLASS_GLOBALS.
-
-    my %report = ( qsnp_run_status            => $qsnp_complete,
-                   annotation_status          => $annotation_complete,
-                   overall_status             => $status.' - '.$CLASS_GLOBALS{statuses}->{$status},
-                   qsnplog_toolversion        => $rh_qsnplog_exec_attributes->{ToolVersion},
-                   qsnplog_starttime          => $rh_qsnplog_exec_attributes->{StartTime},
-                   qsnplog_project            => $rh_qsnplog_tool_attributes->{project},
-                   qsnplog_analysis_uuid      => $rh_qsnplog_tool_attributes->{analysis_uuid},
-                   analysis_dir               => $self->dir,
-                   qsnplog_normal_bam         => $nbam_name,
-                   qsnplog_normal_bam_epoch   => $nbam_epoch,
-                   qsnplog_tumour_bam         => $tbam_name,
-                   qsnplog_tumour_bam_epoch   => $tbam_epoch,
-                   oldest_non_ini_file_name   => $self->oldest_non_ini_file->name,
-                   oldest_non_ini_file_epoch  => $self->oldest_non_ini_file->filestat(9),
-                   );
-
-    return \%report;
+    return $status;
 }
 
 
@@ -308,48 +257,6 @@ sub completion_report_header {
     
     my @fields = @{ $CLASS_GLOBALS{variant_run} };
     return join( "\t", @fields ) ."\n";
-}
-
-
-sub _parse_qsnp_log_tool_attributes {
-    my $self = shift;
-
-    # Extract info from the TOOL lines
-    my $qsnplog = $self->{qsnp_log_obj};
-    my %attribs = ();
-    foreach my $rh_line (@{ $qsnplog->lines_by_loglevel( 'TOOL' ) }) {
-        if ($rh_line->{message} =~ /qPatientId: (\w*)/) {
-            $attribs{project} = $1;
-        }
-        elsif ($rh_line->{message} =~ /qAnalysisId: (\w*)/) {
-            $attribs{analysis_uuid} = $1;
-        }
-        elsif ($rh_line->{message} =~ /qNormalSampleId:\s(.*)$/) {
-            $attribs{normal_sample_id} = $1;
-        }
-        elsif ($rh_line->{message} =~ /qTestSampleId:\s(.*)$/) {
-            $attribs{tumour_sample_id} = $1;
-        }
-        elsif ($rh_line->{message} =~ /qNormalBam: \[(.*)\]/) {
-            $attribs{normal_bam} = $1;
-        }
-        elsif ($rh_line->{message} =~ /qTestBam: \[(.*)\]/) {
-            $attribs{tumour_bam} = $1;
-        }
-    }
-
-    return \%attribs;
-}
-
-
-sub get_log_file_attribute {
-    my $self = shift;
-    my $file = shift;
-    my $type = shift;
-    my $name = shift;
-
-    return '' unless exists $self->{ $file .'_attrs' }->{ $type }->{ $name };
-    return $self->{ $file .'_attrs' }->{ $type }->{ $name };
 }
 
 
@@ -423,7 +330,7 @@ sub _is_complete {
 
 sub variant_run_fields {
     my $self = shift;
-    # Can be called OO or QCMG:FileDir::QSnpDirRecord->... style
+    # Can be called OO or QCMG:FileDir::q3QsnpDirRecord->... style
     return @{ $CLASS_GLOBALS{variant_run} };
 }
 
@@ -435,15 +342,15 @@ __END__
 
 =head1 NAME
 
-QCMG::FileDir::QSnpDirRecord - data structure for qSNP call directory
+QCMG::FileDir::q3QsnpDirRecord - data structure for q3 qSNP call directory
 
 
 =head1 SYNOPSIS
 
- use QCMG::FileDir::QSnpDirParser;
+ use QCMG::FileDir::q3QsnpDirParser;
 
  my $dir = '/mnt/seq_results/icgc_ovarian/AOCS_001/variants/qSNP/4NormalVs7Primary';
- my $fact = QCMG::FileDir::QSnpDirParser->new( verbose => 1 );
+ my $fact = QCMG::FileDir::q3QsnpDirParser->new( verbose => 1 );
  my $ra_dirs = $fact->parse( $dir );
 
 
@@ -452,7 +359,7 @@ QCMG::FileDir::QSnpDirRecord - data structure for qSNP call directory
 This module is a data structure to hold key information about a qSNP variant 
 calling directory.  You would not typically create one of these via the
 new method, rather you would use the parse() method from the factory
-module QCMG::FileDir::QSnpDirParser to parse a directory and get back an
+module QCMG::FileDir::q3QsnpDirParser to parse a directory and get back an
 array of objects of this class.
 
 This class is closely related to QCMG::FileDir::GatkDirRecord since GATK
@@ -465,17 +372,17 @@ variant runs are usually post-processed by qSNP in GATK mode.
 
 =item B<new()>
  
- my $obj = QCMG::FileDir::QSnpDirRecord( dir => /my/qsnp/dir',
-                                         verbose => 1 );
+ my $obj = QCMG::FileDir::q3QsnpDirRecord( dir => /my/qsnp/dir',
+                                           verbose => 1 );
 
 iF you really must create objects of this class outside of
-QCMG::FileDir::QSnpDirParse then this method takes one compulsory value
+QCMG::FileDir::q3QsnpDirParse then this method takes one compulsory value
 (dir) and one optional (verbose).
 
 =item B<get_file()>
 
  $qsnp->get_file( 'ini' );
- $qsnp->get_file( 'somat_dccq' );
+ $qsnp->get_file( 'main_vcf' );
 
 This method takes a string representing the "type" of file that is
 wanted and it returns a QCMG::FileDir::FileObject instance.  The text
@@ -496,91 +403,9 @@ as incomplete.
 
  Type           Pattern
  ---------------------------------------------------------
- ini            '^(\w+_\d+\.ini)$'
- qsnp_log       '^(qsnp.log)$'
- somat_dcc1     '^(.*\.SomaticSNV.dcc1)$'
- somat_dcc2     '^(.*\.SomaticSNV.dcc2)$'
- somat_dccq     '^(.*\.SomaticSNV.dccq)$'
- somat_annot    '^(.*\.SomaticSNV.dccq.annotation.log)$'
- somat_mafall   '^(.*\.Somatic.ALL.snv.maf)$'
- somat_mafhc    '^(.*\.Somatic.HighConfidence.snv.maf)$'
- somat_mafhcc   '^(.*\.Somatic.HighConfidenceConsequence.snv.maf)$'
- germl_dcc1     '^(.*\.GermlineSNV.dcc1)$'
- germl_dcc2     '^(.*\.GermlineSNV.dcc2)$'
- germl_dccq     '^(.*\.GermlineSNV.dccq)$'
- germl_annot    '^(.*\.GermlineSNV.dccq.annotation.log)$'
- germl_mafall   '^(.*\.Germline.ALL.snv.maf)$'
- germl_mafhc    '^(.*\.Germline.HighConfidence.snv.maf)$'
- germl_mafhcc   '^(.*\.Germline.HighConfidenceConsequence.snv.maf)$'
-
-=item B<completion_report()>
-
- print $qsnp->completion_report;
-
-Returns a hash containing the values in the following table.
-This can be used to create reports including database tables.
-The values returned are:
-
- qsnp_complete                : see below
- somatic_annotation_complete  : see below
- somatic_maf_complete         : see below
- germline_annotation_complete : see below
- germline_maf_complete        : see below
- status                       : numeric summary of fields 1-5
- tool_version                 : qSNP version
- start_time                   : qSNP run start time
- project                      : project (donor)
- analysis_uuid                : UUID for this analysis
- run_directory                : run directory
- normal_bam                   : full pathname of normal BAM
- tumour_bam                   : full pathname of tumour BAM
-
-The first 5 fields in this report are integers taken directly from
-methods:
-B<qsnp_complete_status()>
-B<somatic_annotation_complete_status()>
-B<somatic_maf_complete_status()>
-B<germline_annotation_complete_status()>
-B<germline_maf_complete_status()>.
-See below for more details about the values returned from these methods
-
-=item B<completion_report_text()>
-
- print $qsnp->completion_report_text;
-
-This is a text equivalent of the B<completion_report()> routine and
-contains the same information in a tab-separated line of text with a
-terminating newline.  This is intended to be used to create reports
-including database tables and can be used with
-completion_report_header() which will give you a matching header line
-for the report.
-
-=item B<completion_report_header()>
-
-This returns a single newline-terminated line of text containing the
-tab-separated names of the fields output by B<completion_report_text()>
-and in the same order.  It is useful when writing text reports.
-
-=item B<qsnp_complete_status()>
-
-=item B<somatic_annotation_complete_status()>
-
-=item B<somatic_maf_complete_status()>
-
-=item B<germline_annotation_complete_status()>
-
-=item B<germline_maf_complete_status()>
-
-All of these methods return integer values denoting the completion
-status of the named qSNP process.  The 5 processes are qSNP itself, the
-somatic and germline annotations of variants and generation of somatic
-and germline MAF files.  In all cases, a "0" value means that all of the
-files are present and more than an hour old so we assume that that piece
-of the process is complete.  If a file is missing, which includes cases
-where the file exists but is not named in a way that matches the expected
-pattern, then a "1" is returned.  If all of the files are present but
-one or more have been modified in the past hour then we assume they may
-still be being written to so a "2" is returned.
+ ini            '^([A-Z]+_\d+\.ini)$'
+ qsnp_cs_log    '^([A-Z]+_\d+\.cs\.log)$'
+ ...
 
 =item B<verbose()>
 
