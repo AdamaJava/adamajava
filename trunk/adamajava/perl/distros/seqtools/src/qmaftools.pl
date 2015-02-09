@@ -177,6 +177,7 @@ BEGIN {
                        ],
         'oeso' => [ qw( Patient Age Sex Alcohol Smoking Reflux ) ],
         'panc_sv' => [ qw( Donor FINAL type ) ],
+        'mela' => [ qw( Donor type ) ],
     );
 
     $VERBOSE = 1;
