@@ -43,8 +43,8 @@ public class PileupRecordTest {
 		Wini ini = new Wini(iniFile);
 //		Wini ini = new Wini(new File("../../../../defaultRules.ini"));
 		// create rules based on entries in ini file
-		normalRules = IniFileUtil.getRules(ini, "normal");
-		tumourRules = IniFileUtil.getRules(ini, "tumour");
+		normalRules = IniFileUtil.getRules(ini, "control");
+		tumourRules = IniFileUtil.getRules(ini, "test");
 		
 		int noOfNormalFiles = IniFileUtil.getNumberOfFiles(ini, 'N');
 		int noOfTumourFiles = IniFileUtil.getNumberOfFiles(ini, 'T');
