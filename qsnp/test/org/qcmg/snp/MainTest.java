@@ -204,8 +204,8 @@ public class MainTest {
 	private void addRulesToIniFile(File iniFile) throws IOException {
 		FileWriter writer = new FileWriter(iniFile, true);
 		try {
-			writer.write("\n[rules]\nnormal1=0,20,3");
-			writer.write("\ntumour1=0,20,3");
+			writer.write("\n[rules]\ncontrol1=0,20,3");
+			writer.write("\ntest1=0,20,3");
 		} finally {
 			writer.close();
 		}
