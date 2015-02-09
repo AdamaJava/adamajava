@@ -322,8 +322,8 @@ public final class TorrentPipeline extends Pipeline {
 //		logger.tool("unfilteredNormalBamFile: " + unfilteredNormalBamFile);
 		
 		logger.tool("**** OTHER CONFIG ****");
-		logger.tool("No of normal rules: " + controlRules.size());
-		logger.tool("No of tumour rules: " + testRules.size());
+		logger.tool("No of control rules: " + controlRules.size());
+		logger.tool("No of test rules: " + testRules.size());
 		logger.tool("min coverage count for initial test: " + initialTestSumOfCountsLimit);
 //		logger.tool("number of normal files in pileup: " + noOfControlFiles);
 //		logger.tool("number of tumour files in pileup: " + noOfTestFiles);

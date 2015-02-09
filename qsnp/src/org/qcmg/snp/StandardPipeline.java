@@ -54,8 +54,8 @@ public class StandardPipeline extends Pipeline {
 		super.ingestIni(ini);
 		
 		// RULES
-		controlRules = IniFileUtil.getRules(ini, "normal");
-		testRules = IniFileUtil.getRules(ini, "tumour");
+		controlRules = IniFileUtil.getRules(ini, "control");
+		testRules = IniFileUtil.getRules(ini, "test");
 		initialTestSumOfCountsLimit = IniFileUtil.getLowestRuleValue(ini);
 		
 		// ADDITIONAL INPUT FILES
