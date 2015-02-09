@@ -19,7 +19,8 @@ use Carp qw( carp croak confess );
 use Data::Dumper;
 use XML::LibXML;
 
-use QCMG::Util::QLog;
+use Grz::Util::Log;
+
 use QCMG::Util::XML qw( get_attr_by_name get_node_by_name );
 
 use vars qw( $SVNID $REVISION );
@@ -191,7 +192,7 @@ sub log_top_motif_percentages {
         my $pc_genomic  = ( exists $rh_percents->{$motif}->{genomic} ) ?
                             $rh_percents->{$motif}->{genomic} : 0;
 
-        qlogprint join("\t", $motif,
+        glogprint join("\t", $motif,
                              sprintf( "%.3f", $pc_overall ),
                              sprintf( "%.3f", $pc_includes ),
                              sprintf( "%.3f", $pc_unmapped ),
@@ -212,7 +213,7 @@ sub _initialise {
     my $file = $self->file;
     my $root = $self->xmlnode;
 
-    qlogprint( "parsing XML\n" ) if $self->verbose;
+    glogprint( "parsing XML\n" ) if $self->verbose;
 
     # Key values from summary element
     my %values = ();
@@ -289,7 +290,7 @@ sub _initialise {
         # up (remembering to multiply by $number);
 
         foreach my $motif (@motifs) {
-            my $id     = $motif->getAttribute('id');
+            my $id     = $motif->getAttribute('motifRef');
             my $number = $motif->getAttribute('number');
             my $strand = $motif->getAttribute('strand');
 
