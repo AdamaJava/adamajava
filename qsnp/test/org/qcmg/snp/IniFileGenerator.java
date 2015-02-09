@@ -65,12 +65,12 @@ public class IniFileGenerator {
 	public static List<String> generateIniFileData() {
 		List<String> data  = new ArrayList<String>();
 		data.add("[rules]");
-		data.add("normal1=0,20,3");
-		data.add("normal2=21,50,4");
-		data.add("normal3=51,,10");
-		data.add("tumour1=0,20,3");
-		data.add("tumour2=21,50,4");
-		data.add("tumour3=51,,5");
+		data.add("control1=0,20,3");
+		data.add("control2=21,50,4");
+		data.add("control3=51,,10");
+		data.add("test1=0,20,3");
+		data.add("test2=21,50,4");
+		data.add("test3=51,,5");
 		data.add("[parameters]");
 		data.add("minimumBaseQuality = 10");
 		data.add("pileupOrder=NT");
