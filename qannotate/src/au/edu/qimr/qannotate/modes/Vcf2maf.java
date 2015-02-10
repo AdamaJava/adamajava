@@ -30,6 +30,7 @@ import au.edu.qimr.qannotate.modes.ConfidenceMode.Confidence;
 import au.edu.qimr.qannotate.options.Vcf2mafOptions;
 import au.edu.qimr.qannotate.utils.SnpEffConsequence;
 import au.edu.qimr.qannotate.utils.SnpEffMafRecord;
+import au.edu.qimr.qannotate.utils.SnpEffMafRecord.Variant_Type;
 
 public class Vcf2maf extends AbstractMode{
 	
@@ -38,8 +39,6 @@ public class Vcf2maf extends AbstractMode{
 	private final String center;
 	private final String sequencer;
 	private final String patientId;
-	
-	public static String  bar = "\\|";
 	
 	// org.qcmg.common.dcc.DccConsequence.getWorstCaseConsequence(MutationType, String...)
 	//for unit test
@@ -145,6 +144,10 @@ public class Vcf2maf extends AbstractMode{
 		maf.setColumnValue(5,  vcf.getChromosome().toUpperCase().replace("CHR", ""));
 		maf.setColumnValue(6,  Integer.toString(vcf.getPosition()));
 		maf.setColumnValue(7, Integer.toString(vcf.getChrPosition().getEndPosition()));
+		
+		
+		//Variant Type
+		maf.setColumnValue(10,Variant_Type.getType(vcf.getRef(), vcf.getAlt()));
 		 
 		maf.setColumnValue(11,  vcf.getRef());	
 		maf.setColumnValue(35,  vcf.getFilter());
@@ -189,9 +192,9 @@ public class Vcf2maf extends AbstractMode{
 		
 		if(Tvalues[1] != null){	//allesls counts
 			maf.setColumnValue(37,  Tvalues[1]);
-	    	maf.setColumnValue(43+1, Integer.toString( VcfUtils.getAltFrequency(sample, null)));
-	    	maf.setColumnValue(44+1, Integer.toString( VcfUtils.getAltFrequency(sample, vcf.getRef()))); 
-	    	maf.setColumnValue(45+1, Integer.toString( VcfUtils.getAltFrequency(sample, vcf.getAlt())));
+	    	maf.setColumnValue(44, Integer.toString( VcfUtils.getAltFrequency(sample, null)));
+	    	maf.setColumnValue(45, Integer.toString( VcfUtils.getAltFrequency(sample, vcf.getRef()))); 
+	    	maf.setColumnValue(46, Integer.toString( VcfUtils.getAltFrequency(sample, vcf.getAlt())));
 	    	maf.setColumnValue(12,  Tvalues[2] );  //TD allele1
 	    	maf.setColumnValue(13, Tvalues[3]);		//TD allele2
 		}
@@ -202,9 +205,9 @@ public class Vcf2maf extends AbstractMode{
 		
 		if(Nvalues[1] != null){	//allesls counts
 			maf.setColumnValue(36,  Nvalues[1]);
-	    	maf.setColumnValue(46+1, Integer.toString( VcfUtils.getAltFrequency(sample, null)));
-	    	maf.setColumnValue(47+1, Integer.toString( VcfUtils.getAltFrequency(sample, vcf.getRef()))); 
-	    	maf.setColumnValue(48+1, Integer.toString( VcfUtils.getAltFrequency(sample, vcf.getAlt())));
+	    	maf.setColumnValue(47, Integer.toString( VcfUtils.getAltFrequency(sample, null)));
+	    	maf.setColumnValue(48, Integer.toString( VcfUtils.getAltFrequency(sample, vcf.getRef()))); 
+	    	maf.setColumnValue(49, Integer.toString( VcfUtils.getAltFrequency(sample, vcf.getAlt())));
 	    	maf.setColumnValue(18,  Nvalues[2] );  //ND allele1
 	    	maf.setColumnValue(19, Nvalues[3]);	//ND allele2
 		}
@@ -327,22 +330,25 @@ public class Vcf2maf extends AbstractMode{
 			final String ontolog = effAnno.substring(0, effAnno.indexOf("("));		
 			final String annotate = effAnno.substring( effAnno.indexOf("(") + 1, effAnno.indexOf(")"));	
 	
-			maf.setColumnValue(57+1, ontolog); //effect_ontology
+			maf.setColumnValue(58, ontolog); //effect_ontology
 			String str = SnpEffConsequence.getClassicName(ontolog);
-			if(str != null) maf.setColumnValue(58+1, str);
+			if(str != null) maf.setColumnValue(59, str);
 			str = SnpEffConsequence.getMafClassification(ontolog);
 			if(str != null) maf.setColumnValue(9, str); //eg. RNA
 			
 			maf.setColumnValue(40,  SnpEffConsequence.getConsequenceRank(ontolog)+""); //get A.M consequence's rank
 	
-			final String[] effs = annotate.split(bar);
+			final String[] effs = annotate.split(Constants.BAR_STRING);
 //			if(! StringUtils.isNullOrEmpty(effs[0]))  maf.setColumnValue(9, effs[0]); //VariantClassification, AM. list			
 			if(! StringUtils.isNullOrEmpty(effs[0]))  maf.setColumnValue(39, effs[0]); //Eff Impact, eg. modifier	
 			
 			if(effs[3].startsWith("p.")){
 				int pos = effs[3].indexOf(Constants.SLASH_STRING);
-				maf.setColumnValue(50+1,effs[3].substring(0, pos));
-				maf.setColumnValue(51+1,effs[3].substring(pos+1));
+				if(pos >= 0 ){
+					maf.setColumnValue(50+1,effs[3].substring(0, pos));
+					maf.setColumnValue(51+1,effs[3].substring(pos+1));
+				}else
+					maf.setColumnValue(50+1,effs[3]);
 				if(! StringUtils.isNullOrEmpty(effs[2]))  maf.setColumnValue(52+1,effs[2]);
 			}
 						

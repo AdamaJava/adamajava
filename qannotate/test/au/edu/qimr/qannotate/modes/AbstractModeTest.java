@@ -76,18 +76,36 @@ public class AbstractModeTest {
 		final String control = "Control";
 		final String test = "Test";
 		
-		VcfHeader header = new VcfHeader();
-		 
+		VcfHeader header = new VcfHeader();		 
 		header.add(new VcfHeaderRecord("##qControlSample=" + control) );
 		header.add( new VcfHeaderRecord("##qTestSample=" + test)  );
 		header.add( new VcfHeaderRecord(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + control + "\t" + "test")  );
 		
-		final ConfidenceMode mode = new ConfidenceMode("");		
-		 
+		ConfidenceMode mode = new ConfidenceMode("");			 
 		mode.retriveSampleColumn(null,null, header);
 				 
 		assertTrue( mode.control_column == 1);
 		assertTrue( mode.test_column == 2);
+		
+		//point to sample column 1: "control"	 
+		mode.retriveSampleColumn(control,control, header);
+		assertTrue( mode.control_column == 1);
+		assertTrue( mode.test_column == 1);
+		
+		
+		//point to sample column 1: "test"	 
+		mode.retriveSampleColumn(test,test, header);
+		assertTrue( mode.control_column == 2);
+		assertTrue( mode.test_column == 2);
+		
+		
+		//point to unexsit sample id 
+		try{
+			mode.retriveSampleColumn(test+control,test, header);
+		}catch(Exception e){
+			System.out.println(e.getMessage());
+		}
+
 
 	}
 	

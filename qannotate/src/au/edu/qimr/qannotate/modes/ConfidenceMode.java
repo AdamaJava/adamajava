@@ -61,7 +61,7 @@ public class ConfidenceMode extends AbstractMode{
 		inputRecord(new File( options.getInputFileName())   );	
 		
 		//get control and test sample column; here use the header from inputRecord(...)
-		retriveSampleColumn(options.getTestSample(), options.getControlSample(), null );
+		retriveSampleColumn(options.getTestSample(), options.getControlSample(), this.header );
 
 
 		//if(options.getpatientid == null)

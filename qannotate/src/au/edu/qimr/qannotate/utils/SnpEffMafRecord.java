@@ -31,6 +31,27 @@ public class SnpEffMafRecord {
 		}
 	};
 	public enum Validation_Status { Untested,Inconclusive, Valid,Invalid };
+	
+	public enum Variant_Type{
+		SNP, DNP,TNP,ONP,INDEL,Unknown;
+		
+		public static String getType(String base, String alt){
+			try{ 
+				if(base.length() == alt.length() ){
+					if(base.length()  == 1) return SNP.name();	
+					else if(base.length()  == 2) return DNP.name();	
+					else if(base.length()  == 3) return TNP.name();	
+					else if(base.length()  > 3) return ONP.name();	
+				}else  
+					return INDEL.name();
+			}catch(Exception e){
+				 //do nothing
+			}
+			
+			return Unknown.name();
+		}
+	
+	};
 		
 	String[] maf = new String[59];
 	
@@ -146,7 +167,7 @@ public class SnpEffMafRecord {
 		maf[6] = Null; //End_Position
 		maf[7] = "+"; //Strand
 		maf[8] = Unknown; //Variant_Classification =snpeff Impact
-		maf[9] = "SNP"; //Variant_Type
+		maf[9] = Variant_Type.Unknown.toString(); //Variant_Type
 		maf[10] = Null; //Reference_Allele
 		maf[11] = Null; //Tumor_Seq_Allele1
 		maf[12] = Null; //Tumor_Seq_Allele2
