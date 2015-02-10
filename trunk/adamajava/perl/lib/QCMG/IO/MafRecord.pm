@@ -347,8 +347,8 @@ sub is_cpg {
     return undef unless (defined $cpg_seq);
 
     # Assume CPG has 11 bases - the SNP plus 5 bases before and after so
-    # if by some chance we don't have 11 then we must be an indel so we
-    # exit, even though this should have been caught above.
+    # if we don't have 11 then we must be an indel or MNP or something
+    # weird so we exit.
     return undef unless (length($cpg_seq) == 11);
 
     # Check that the reference is in the correct place
@@ -380,12 +380,17 @@ sub snp_mutation {
 
     my $id   = $self->Tumor_Sample_Barcode;
     my $gene = $self->Hugo_Symbol;
-    my $type = $self->Variant_Type;
+    my $var  = $self->Variant_Type;
+    my $refl = length($self->Reference_Allele);
 
-    #print "type in: $type";
-
-    # This code is SNV only
-    if ($type eq 'SNP') {
+    # Code 'MNP' for DNP/TNP/ONP
+    my $type = undef;
+    if ($var eq 'SNP' and $refl > 1) {
+        #warn "found an MNP : $id $gene $var($refl)\n";
+        $type = 'MNP';
+    }
+    elsif ($var eq 'SNP') {
+        # This code handles the standard SNP case
         $type = $self->Reference_Allele .' -> ';
         if ($self->Tumor_Seq_Allele1 ne $self->Reference_Allele and
             $self->Tumor_Seq_Allele2 ne $self->Reference_Allele and
@@ -405,6 +410,10 @@ sub snp_mutation {
         }
     }
 
+    # Indels and other weird cases should fall through and so return
+    # undef which is the behaviour we rely on elsewhere so DO NOT place
+    # an else{ die; } at the end of the conditional block above!
+
     return $type;
 }
 
@@ -421,8 +430,12 @@ sub categorise_jones {
     if ($type eq 'INS' or $type eq 'DEL') {
         return 'indel';
     }
+    elsif ($type eq 'MNP') {
+        return 'MNP';
+    }
 
-    # For SNPs we must have both type and cpg
+    # For SNPs we must have both type and cpg.  Also not that is_cpg()
+    # will barf on MNPs so they mus be handled before this check.
     return undef unless (defined $type and defined $cpg);
 
     my $code = undef;
@@ -445,6 +458,7 @@ sub categorise_jones {
         $code = 'T:A to A:T';
     }
     else {
+        print Dumper $self, $type, $cpg;
         confess "cannot categorise (jones) variant type [$type]\n";
     }
 
@@ -464,6 +478,9 @@ sub categorise_kassahn {
     # Assuming $cpg==1 means CpG positive:
     if ($type eq 'INS' or $type eq 'DEL') {
         return 'indel';
+    }
+    elsif ($type eq 'MNP') {
+        return 'MNP';
     }
 
     # For SNPs we must have both type and cpg
@@ -515,6 +532,9 @@ sub categorise_stransky {
     # Assuming $cpg==1 means CpG positive:
     if ($type eq 'INS' or $type eq 'DEL') {
         return 'indel';
+    }
+    elsif ($type eq 'MNP') {
+        return 'MNP';
     }
 
     # For SNPs we must have both type and cpg
