@@ -25,6 +25,7 @@ import org.qcmg.common.util.Constants;
 import au.edu.qimr.qannotate.options.Vcf2mafOptions;
 import au.edu.qimr.qannotate.utils.SnpEffConsequence;
 import au.edu.qimr.qannotate.utils.SnpEffMafRecord;
+import au.edu.qimr.qannotate.utils.SnpEffMafRecord.Variant_Type;
 
 public class Vcf2mafTest {
  
@@ -128,7 +129,7 @@ public class Vcf2mafTest {
 	 		assertTrue(maf.getColumnValue(6).equals(parms[1] ));		
 	 		assertTrue(maf.getColumnValue(7).equals(parms[1] ));		
 	 		assertTrue(maf.getColumnValue(8).equals(Dmaf.getColumnValue(8) ));		
-	 		assertTrue(maf.getColumnValue(10).equals(Dmaf.getColumnValue(10) ));	
+	 		assertTrue(maf.getColumnValue(10).equals(Variant_Type.SNP.name() ));	
 	 		assertTrue(maf.getColumnValue(11).equals(parms[3] ));		
 	 		
 	 		//check format field	
@@ -164,7 +165,39 @@ public class Vcf2mafTest {
 	 		assertTrue(maf.getColumnValue(26).equals(VcfHeaderUtils.FILTER_GERMLINE));  //somatic
 
 	 }
-
+	 
+	 /**
+	  * deal with p.Met1? column missing "/" 
+	  * @throws Exception: unit tests will failed
+	  */
+	 @Test     
+	 public void snpEffTest() throws Exception{
+ 		 
+		 String[] str = {"chr10\t87489317\trs386746181\tTG\tCC\t.\tPASS\tSOMATIC;DB;CONF=HIGH;"
+		 + "EFF=start_lost(HIGH||atg/GGtg|p.Met1?|580|GRID1|protein_coding|CODING|ENST00000536331||1);"
+		 + "LOF=(GRID1|ENSG00000182771|4|0.25);END=87489318\tACCS\tTG,29,36,_G,0,1\tCC,4,12,TG,15,12"};
+		 
+		 createVcf(str);
+		 
+		 final File input = new File( DbsnpModeTest.inputName);
+		 final Vcf2maf v2m = new Vcf2maf(1,2);	
+	 	 try(VCFFileReader reader = new VCFFileReader(input); ){
+	 		for (final VcfRecord vcf : reader){  		
+	 			SnpEffMafRecord maf  = v2m.converter(vcf);
+	 			
+	 			assertTrue(maf.getColumnValue(51).equals("p.Met1?"));
+	 			assertTrue(maf.getColumnValue(52).equals(SnpEffMafRecord.Null));
+ 			 
+	 		}	
+         }	  
+		 
+	 
+	 }
+	 
+	 /**
+	  * 
+	  * @throws Exception missing one sample column
+	  */
 	 @Test    (expected=Exception.class)
 	 public void indexTest() throws Exception{
 		 String[] str = {"chr1\t204429212\trs71495004\tAT\tTG\t.\tSAT3;5BP4\tDB;CONF=ZERO;"
@@ -173,6 +206,8 @@ public class Vcf2mafTest {
 		 		+ "intron_variant(MODIFIER|||c.1503-143AT>CA|1634|PIK3C2B|protein_coding|CODING|ENST00000367187|8|1),"
 		 		+ "intron_variant(MODIFIER|||c.1503-143AT>CA|1606|PIK3C2B|protein_coding|CODING|ENST00000424712|8|1);"
 		 		+ "END=204429213\tACCS\tTG,1,3,_T,0,1"};
+
+		 
 		 createVcf(str);
 		 
 		 final File input = new File( DbsnpModeTest.inputName);
@@ -180,7 +215,7 @@ public class Vcf2mafTest {
 	 	 try(VCFFileReader reader = new VCFFileReader(input); ){
 	 		for (final VcfRecord vcf : reader){  		
 	 			SnpEffMafRecord maf  = v2m.converter(vcf);
-	 			//System.out.println(maf.getMafLine());
+//	 			System.out.println(maf.getMafLine());
 	 		}	
          }	 
 		 
@@ -234,7 +269,7 @@ public class Vcf2mafTest {
 			Dmaf.setDefaultValue();
 			
 			final Vcf2maf v2m = new Vcf2maf(2,1);	//test column2; normal column 1
-			final String[] parms = {"chrY","22012840",".","C","A","."  ,  "."  ,  "."  ,  "."  ,  "." ,  "."};
+			final String[] parms = {"chrY","22012840",".","CT","AT","."  ,  "."  ,  "."  ,  "."  ,  "." ,  "."};
 
 	 		final VcfRecord vcf = new VcfRecord(parms);
 	 		final SnpEffMafRecord maf = v2m.converter(vcf);
@@ -242,10 +277,11 @@ public class Vcf2mafTest {
 	 		for(int i = 1 ; i < 5; i++) 			
 	 			assertTrue(maf.getColumnValue(i).equals(Dmaf.getColumnValue(i)  ));  	
 
-	 		for(int i = 8 ; i < 11; i++)
-	 			assertTrue(maf.getColumnValue(i).equals(Dmaf.getColumnValue(i)  ));  
-	 		
-	 		assertTrue(maf.getColumnValue(11).equals("C"  ));  
+	 		for(int i = 8 ; i < 9; i++)
+	 			assertTrue(maf.getColumnValue(i).equals(Dmaf.getColumnValue(i) ));  
+ 
+	 		assertTrue(maf.getColumnValue(10).equals(Variant_Type.DNP.name() ));  
+	 		assertTrue(maf.getColumnValue(11).equals("CT"  ));  
 	 		
 	 		for(int i = 12 ; i < 26; i++)
 	 			assertTrue(maf.getColumnValue(i).equals(Dmaf.getColumnValue(i)  ));  

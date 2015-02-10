@@ -65,9 +65,9 @@ public abstract class AbstractMode {
 	 * @param header: if null, it will point to this class's header; 
 	 */
 	protected void retriveSampleColumn(String test, String control, VcfHeader header){
-		if(header == null)
-			header = this.header;
-		
+		test_column = -2; //can't be -1 since will "+1"
+		control_column = -2;
+
 		 controlSample = control;
 		 testSample = test;
 		
@@ -84,12 +84,14 @@ public abstract class AbstractMode {
 	   final String[] samples = header.getSampleId();	
 	   	   
 		//incase both point into same column
-		for(int i = 0; i < samples.length; i++) 
+		for(int i = 0; i < samples.length; i++){ 
 			if(samples[i].equalsIgnoreCase(testSample))
 				test_column = i + 1;
-			else if(samples[i].equalsIgnoreCase(controlSample))
+			//else if(samples[i].equalsIgnoreCase(controlSample))
+			if(samples[i].equalsIgnoreCase(controlSample))
 				control_column = i + 1;
-				
+		}
+		
 		if(test_column <= 0 )
 			throw new RuntimeException("can't find test sample id from vcf header line: " + testSample);
 		if(control_column <= 0  )

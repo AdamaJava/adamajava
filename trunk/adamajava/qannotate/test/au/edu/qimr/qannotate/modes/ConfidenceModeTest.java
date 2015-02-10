@@ -70,20 +70,11 @@ public class ConfidenceModeTest {
  	 
 	
 	}
-	 
 	 @Test
-	 public void ConfidenceTest() throws IOException, Exception{	
-		 		DbsnpModeTest.createVcf();
-		 
-		 
-		 
+	 public void SingleSampleTest() throws IOException, Exception{	
+		 	DbsnpModeTest.createVcf();
 			final ConfidenceMode mode = new ConfidenceMode(patient);		
 			mode.inputRecord(new File(DbsnpModeTest.inputName));
-			
-			
-			//mode.header.add(new VcfHeaderRecord("##qControlSample=Control") );
-			//mode.header.add( new VcfHeaderRecord("##qTestSample=Test")  );
-			//mode.header.add( new VcfHeaderRecord(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "\tControl\tTest")  );	
 			
 			String Scontrol = "EXTERN-MELA-20140505-001";
 			String Stest = "EXTERN-MELA-20140505-002";
@@ -92,7 +83,44 @@ public class ConfidenceModeTest {
 			mode.header.add( new VcfHeaderRecord("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tEXTERN-MELA-20140505-001\tEXTERN-MELA-20140505-002"));			
 			
 			//mode.retriveDefaultSampleColumn();
-			mode.retriveSampleColumn(Stest, Scontrol, null);
+			mode.retriveSampleColumn(Stest, Scontrol, mode.header);
+			
+			mode.addAnnotation(VerifiedFileName);
+			mode.reheader("unitTest", DbsnpModeTest.inputName);
+			mode.writeVCF( new File(DbsnpModeTest.outputName)  );
+			
+  			try(VCFFileReader reader = new VCFFileReader(DbsnpModeTest.outputName)){				 				 
+				for (final VcfRecord re : reader) {		
+					final VcfInfoFieldRecord infoRecord = new VcfInfoFieldRecord(re.getInfo()); 				
+					if(re.getPosition() == 2675826) 
+						//compound SNPs
+						assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(Confidence.LOW.name())); 
+					else if(re.getPosition() == 22012840)
+						//isClassB
+						assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(Confidence.LOW.name())); 
+					else if(re.getPosition() == 14923588)  
+						//listed on verified file
+						assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(Confidence.HIGH.name())); 
+				}
+			 }		
+ 	 	 
+	 }	 
+	 
+	 
+	 @Test
+	 public void ConfidenceTest() throws IOException, Exception{	
+		 	DbsnpModeTest.createVcf();
+			final ConfidenceMode mode = new ConfidenceMode(patient);		
+			mode.inputRecord(new File(DbsnpModeTest.inputName));
+			
+			String Scontrol = "EXTERN-MELA-20140505-001";
+			String Stest = "EXTERN-MELA-20140505-002";
+			mode.header.add(new VcfHeaderRecord("##qControlSample=" + Scontrol));
+			mode.header.add(new VcfHeaderRecord("##qTestSample="+ Stest));	
+			mode.header.add( new VcfHeaderRecord("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tEXTERN-MELA-20140505-001\tEXTERN-MELA-20140505-002"));			
+			
+			//mode.retriveDefaultSampleColumn();
+			mode.retriveSampleColumn(Stest, Scontrol, mode.header);
 			
 			mode.addAnnotation(VerifiedFileName);
 			mode.reheader("unitTest", DbsnpModeTest.inputName);

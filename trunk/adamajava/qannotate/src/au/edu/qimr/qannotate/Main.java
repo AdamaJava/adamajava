@@ -8,6 +8,7 @@ import org.qcmg.common.util.LoadReferencedClasses;
 import au.edu.qimr.qannotate.modes.ConfidenceMode;
 import au.edu.qimr.qannotate.modes.CustomerConfidenceMode;
 import au.edu.qimr.qannotate.modes.DbsnpMode;
+import au.edu.qimr.qannotate.modes.FixMode;
 import au.edu.qimr.qannotate.modes.GermlineMode;
 import au.edu.qimr.qannotate.modes.SnpEffMode;
 import au.edu.qimr.qannotate.modes.Vcf2maf;
@@ -18,6 +19,7 @@ import au.edu.qimr.qannotate.options.GermlineOptions;
 import au.edu.qimr.qannotate.options.Options;
 import au.edu.qimr.qannotate.options.SnpEffOptions;
 import au.edu.qimr.qannotate.options.Vcf2mafOptions;
+import au.edu.qimr.qannotate.options.FixOptions;
 
 public class Main {
 	 
@@ -33,7 +35,10 @@ public class Main {
                logger = QLoggerFactory.getLogger(Main.class, options.getOption().getLogFileName(),  options.getOption().getLogLevel());	            		               
                logger.logInitialExecutionStats(options.getPGName(), options.getVersion(),args);	        
                
-               if(options.getOption().getMode() == Options.MODE.dbSNP)
+               if(options.getOption().getMode() == Options.MODE.fix)
+            	   new FixMode( (FixOptions) options.getOption() , logger  );
+               
+               else if(options.getOption().getMode() == Options.MODE.dbSNP)
             	   new DbsnpMode( (DbsnpOptions) options.getOption() , logger  );
                else if(options.getOption().getMode() == Options.MODE.germline)
             	   new GermlineMode( (GermlineOptions) options.getOption(), logger );

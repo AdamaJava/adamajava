@@ -13,6 +13,7 @@ import org.qcmg.common.vcf.header.VcfHeaderRecord.VcfInfoNumber;
 import org.qcmg.common.vcf.header.VcfHeaderRecord.VcfInfoType;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 
+import au.edu.qimr.qannotate.modes.ConfidenceMode.Confidence;
 import au.edu.qimr.qannotate.options.CustomerConfidenceOptions;
 
 
@@ -28,7 +29,10 @@ public class CustomerConfidenceMode extends AbstractMode{
 	String description = null;
 	int min_read_counts = 50;
 	int variants_rate = 10 ;
-	boolean passOnly = true;
+	boolean passOnly = false;
+	
+	//unit test only
+	CustomerConfidenceMode( ){}
 	
 	public CustomerConfidenceMode(CustomerConfidenceOptions options, QLogger logger) throws Exception{				 
 		logger.tool("input: " + options.getInputFileName());
@@ -38,12 +42,12 @@ public class CustomerConfidenceMode extends AbstractMode{
         
         min_read_counts = options.get_min_read_count();
         variants_rate = options.get_min_mutant_rate();
-         passOnly = options.isPassOnly();
+        passOnly = options.isPassOnly();
         
 		inputRecord(new File( options.getInputFileName())   );	
 		
 		//get control and test sample column; here use the header from inputRecord(...)
-		retriveSampleColumn(options.getTestSample(), options.getControlSample(), null );
+		retriveSampleColumn(options.getTestSample(), options.getControlSample(), this.header );
 		
 		addAnnotation( options.getDatabaseFileName() );
 		reheader(options.getCommandLine(),options.getInputFileName())	;	
@@ -60,7 +64,7 @@ public class CustomerConfidenceMode extends AbstractMode{
 	void addAnnotation(String verificationFile) {		
 	    
 		//add header line
-		String description = "Set CONF to HIGH once the variants meet conditions: ";
+		String description = "Set CONF to HIGH once the variants meet conditions otherwise set to ZERO : ";
 		description += 	(passOnly) ? "passed filter," : "";
 		description += "total read counts more than " +  Integer.toString(min_read_counts) + ", more than ";
 		description += Integer.toString( variants_rate) + "% reads contains variants";		
@@ -74,11 +78,14 @@ public class CustomerConfidenceMode extends AbstractMode{
 			//remove previous annotaion about CONF
 			final VcfInfoFieldRecord infoRecord = new VcfInfoFieldRecord(re.getInfo());
 			infoRecord.removeField(VcfHeaderUtils.INFO_CONFIDENT);
-			 			
-			//only annotate record passed filters
-			if(passOnly && !re.getFilter().toUpperCase().contains(VcfHeaderUtils.FILTER_PASS))
-				continue;
+			re.setInfo(infoRecord.toString());	//must reset here
 			
+			
+			
+			//only annotate record passed filters
+			if(passOnly && !re.getFilter().toUpperCase().contains(VcfHeaderUtils.FILTER_PASS)) 							
+				continue;
+		 
 			
 			 final VcfFormatFieldRecord allel = (re.getInfo().contains(VcfHeaderUtils.INFO_SOMATIC)) ? re.getSampleFormatRecord(test_column) :  re.getSampleFormatRecord(control_column);
 
@@ -95,7 +102,7 @@ public class CustomerConfidenceMode extends AbstractMode{
 			}	
 			
 			
-			infoRecord.setField(VcfHeaderUtils.INFO_CONFIDENT, null);
+			infoRecord.setField(VcfHeaderUtils.INFO_CONFIDENT, Confidence.HIGH.toString());
 			re.setInfo(infoRecord.toString());			
 		}		
 	}				
