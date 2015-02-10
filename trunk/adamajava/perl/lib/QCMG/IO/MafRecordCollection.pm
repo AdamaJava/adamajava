@@ -432,7 +432,7 @@ sub _categorise_variants {
         # requested scheme
         next unless defined $variant;
 
-        # This blovk is not needed now that we are returning a
+        # This block is not needed now that we are returning a
         # QCMG::Variants::VariantSummary object.
         #$rh_summaries->{'By_Gene'}->{ $gene }++;
         #$rh_summaries->{'By_Gene_Variant'}->{ $gene }->{ $variant }++;
