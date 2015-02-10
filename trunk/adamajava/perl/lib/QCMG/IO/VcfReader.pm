@@ -47,6 +47,8 @@ sub new {
                                       $params{zipname} : 0),
                  version         => '2',
                  headers         => {},
+                 records         => [],
+                 slurped         => 0,
                  record_count    => 0,
                  verbose         => ($params{verbose} ?
                                      $params{verbose} : 0),
@@ -108,6 +110,14 @@ sub close {
 sub record_count {
     my $self = shift;
     return $self->{record_count};
+}
+
+
+sub records_from_slurp {
+    my $self = shift;
+    die "cannot call records_from_slurp unless slurp() has been called\n"
+        unless ($self->{slurped});
+    return $self->{records};
 }
 
 
@@ -178,6 +188,52 @@ sub _next_record {
 }
 
 
+sub slurp {
+    my $self = shift;
+
+    my $data = '';
+    {
+        # Use of anonymous block makes $/ local and saves close
+        open my $fh, '<', $self->filename or die;
+        $/ = undef;
+        $data = <$fh>;
+    }
+    my @lines = split /\n/, $data;
+
+    $self->{slurped} = 1;
+    my $line_ctr = 0;
+    my $max_lines = scalar(@lines);
+
+    # Read lines, checking for and processing any headers
+    while ($line_ctr < $max_lines) {
+        my $line = $lines[$line_ctr];
+        $line_ctr++;
+        next unless $line;
+
+        if ($line =~ /^#/) {
+            $self->_process_header_line( $line );
+            next;
+        }
+
+        # If we got here then we have got past the headers and hit the
+        # first real record so save it and exit from the headers loop
+        $self->_incr_record_count;
+        push @{ $self->{records} }, $line;
+        last;
+    }
+
+    # Read lines processing as records
+    while ($line_ctr < $max_lines) {
+        my $line = $lines[$line_ctr];
+        $line_ctr++;
+        next unless $line;
+
+        $self->_incr_record_count;
+        push @{ $self->{records} }, $line;
+    }
+}
+
+
 sub _process_header_line {
     my $self = shift;
     my $line = shift;
@@ -187,7 +243,7 @@ sub _process_header_line {
         return unless $line;  # skip blanks
         # Splitting on /=+/ to cope with some VCFs with 'FORMAT==<'
         my ($key,$value) = split /=+/, $line, 2;
-        if ($key =~ /INFO/ or $key =~ /FILTER/) {
+        if ($key =~ /INFO/ or $key =~ /FILTER/ or $key =~ /FORMAT/) {
            if ($value =~ /ID=(\w+)/) {
                $self->{headers}->{$key}->{$1} = $value;
            }
@@ -196,6 +252,9 @@ sub _process_header_line {
            }
         }
         else {
+            warn "duplicate header line for [$key=]\n"
+                if (exists $self->{headers}->{$key} and
+                    defined $self->{headers}->{$key});
             $self->{headers}->{$key} = $value;
         }
     }
