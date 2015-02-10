@@ -85,7 +85,7 @@ BEGIN {
     # previous scheme and leave it unchanged in the hash so we have a
     # record of the old schemes.
     #
-    # N.B. - the descriptions and num`bers below MUST match those used to
+    # N.B. - the descriptions and numbers below MUST match those used to
     # create the colScheme objects in the R code that plots this stuff.
 
     $CAT_2_INT  = { 'stransky' =>
@@ -94,7 +94,8 @@ BEGIN {
                            'CpG+ C -> G/A'  => 3,
                            'CpG+ C -> T'    => 4,
                            'CpG- G -> A/C'  => 5,
-                           'CpG- G -> T'    => 6 },
+                           'CpG- G -> T'    => 6,
+                           'MNP'            => 7 },
                     'synonymous' =>
                          { 'synonymous'     => 1,
                            'non-synonymous' => 2 },
@@ -113,7 +114,8 @@ BEGIN {
                            'C:G to A:T' => 4,
                            'T:A to C:G' => 5,
                            'T:A to G:C' => 6,
-                           'T:A to A:T' => 7 },
+                           'T:A to A:T' => 7,
+                           'MNP'        => 8 },
                     'kassahn' =>
                          { 'A.T -> G.C'      => 1,
                            'CpG- C.G -> T.A' => 2,
@@ -123,7 +125,8 @@ BEGIN {
                            'C.G -> G.C'      => 6,
                            'CpG- C.G -> A.T' => 7,
                            'CpG+ C.G -> A.T' => 8,
-                           'indel'           => 9 },
+                           'indel'           => 9,
+                           'MNP'             => 10 },
                     'quiddell' =>
                          { 'non-silent SNV'                   => 1,
                            'indel'                            => 2,
