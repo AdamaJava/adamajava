@@ -304,55 +304,9 @@ public class VcfHeader implements Iterable<VcfHeader.Record> {
 			}
 		}
 		
-//		if(record.type.equals(MetaType.META)){
-//			final Iterator<VcfHeaderRecord> it = meta.iterator();
-//			while(it.hasNext()) {
-//				if(it.next().getId().equalsIgnoreCase(record.getId())) {
-//					it.remove();
-//				}
-//			}
-//		}
-		
 		//others go to add method directly
 		parseHeaderLine(record);
 	}
-	
-//	public VcfHeader.Record get(MetaType type, final String key) throws Exception{
-//		
-//		//remove "=" and space
-//		String id = ( key.endsWith("=") )? key.substring(0,key.length() - 1) : key;
-//		id = id.replaceAll(" ", "");
-// 		
-//		SimpleRecords records = null;
-//		switch (type) {
-//			case FORMAT:
-//				return formatRecords.get(id);
-//			case FILTER:
-//				return filterRecords.get(id);
-//			case INFO:
-//				return infoRecords.get(id);
-//			case CHROM:
-//				return chromLine;
-//			case META:
-//				records = metaRecords;
-//				break;
-//			case OTHER:
-//				records = otherRecords;
-//				break;
-//			default:
-//				throw new Exception(" can't retrive vcf header record by (metaTyp, id): (" + type.name() + ", " + id +").");
-//		}
-//		
-//		if (null != records) {
-//			for (Record r : records.getRecords()) {
-//				if (r.getData().contains(key)) {
-//					return r;
-//				}
-//			}
-//		}
-//		 					 
-//		return null;	 
-//	}
 	
 	public String[] getSampleId() {
 		if(chromLine == null)
@@ -372,48 +326,6 @@ public class VcfHeader implements Iterable<VcfHeader.Record> {
 		return qpgRecords;
 	}
  
-//	public void add(VcfHeaderRecord record)  {
-//		if (record.type.equals(MetaType.FILTER)  ) { 
-//			vcfFilterById.put(record.getId(), (VcfHeaderFilter) record );
-//		} else if (record.type.equals(MetaType.FORMAT)  ) { 
-//			vcfFormatById.put(record.getId(), (VcfHeaderFormat) record );
-//		} else if (record.type.equals(MetaType.INFO)  ) {
-//			vcfInfoById.put(record.getId(), (VcfHeaderInfo) record);	
-//		} else if (record.type.equals(MetaType.QPG)  ) {
-//			qPGLines.add((VcfHeaderQPG) record); 	
-//		} else if (record.type.equals(MetaType.CHROM) ) {
-//			chromLine = record;
-//		} else if (record.type.equals(MetaType.OTHER ) ) {
-//			others.add(record);
-//		} else if (record.type.equals(MetaType.META)) {	
-//			if (record.getId().equalsIgnoreCase(VcfHeaderUtils.STANDARD_FILE_VERSION)){
-//				version = record;				
-//			} else if (record.getId().equalsIgnoreCase(VcfHeaderUtils.STANDARD_FILE_DATE)){
-//				fileDate = record;
-//			} else if (record.getId().equalsIgnoreCase(VcfHeaderUtils.STANDARD_UUID_LINE )){
-//				uuid = record;			 
-//			} else if (record.getId().equalsIgnoreCase(VcfHeaderUtils.STANDARD_SOURCE_LINE )){
-//				source = record; 
-//			} else if (record.getId().equalsIgnoreCase(VcfHeaderUtils.PREVIOUS_UUID_LINE )){
-//				preuuid = record;
-//			} else { 
-//				meta.add(record);		
-//			}	
-//		} else {
-//			throw new IllegalArgumentException("invalid or duplicated Vcf header record: " + record.toString());
-//		}
-//
-//	}
-
-	/**
-	 * Add line to header (can add many lines)
-	 * @return
-	 * @throws Exception 
-	 */
-//	public void addLine(String newHeaderLine) throws Exception {
-//		add(new VcfHeaderRecord(newHeaderLine));		 
-//	}
-
 	/**
 	 * Get all VcfInfo entries
 	 * @return
@@ -471,41 +383,9 @@ public class VcfHeader implements Iterable<VcfHeader.Record> {
 		return chromLine;
 	} 
 	
-	
-	/**
- 	 * it will keep same for version, date, uuid and source if all parameters are null
-	 * @param updateVersion: replace version with new value
-	 * @param updateDate: replace fileDate with new value
-	 * @param updateuuid: replace uuid with new value, push previous uuid to "preuuid"
-	 * @param source: replace source with new value
-	 * @throws Exception 
-	 */
-//	public void updateHeader(String updateVersion, String updateDate, String updateUuid, String updateSource) {
-//		if (updateVersion != null) {
-//			version = new Record(updateVersion);
-//		}
-//		if (updateDate != null) {
-//			fileDate = new Record(updateDate);		
-//		}
-//		if (updateSource != null) {
-//			source = new Record(updateSource);
-//		}
-//		if (updateUuid != null) {
-//			uuid = new Record(updateUuid);	
-//		}
-//	}
-	
 	boolean containsQIMRDetails() {
 		return (null != uuid && ! qpgRecords.isEmpty() );
 	}
-//	public void updateHeader(VcfHeaderRecord updateVersion, VcfHeaderRecord updateDate, 
-//			VcfHeaderRecord updateUuid, VcfHeaderRecord updateSource) throws Exception{
-//		if(updateVersion != null) version = updateVersion;
-//		if(updateDate != null) fileDate = updateDate;		
-//		if(updateSource != null) source = updateSource;
-//		if(updateUuid != null) uuid = updateUuid;	
-//		
-//	}
 	/**
 	 * return (internally) sorted vcf header iterator
 	 */

@@ -44,19 +44,6 @@ public abstract class AbstractMode {
         		if (null != uuidRecord) {
         			inputUuid = StringUtils.getValueFromKey(uuidRecord.getData(), VcfHeaderUtils.STANDARD_UUID_LINE);
         		}
-//           	for (final VcfHeader.Record hr : header.getMetaRecords()) {
-//           		
-//           		
-//           		if (hr.getData().indexOf(VcfHeaderUtils.STANDARD_UUID_LINE) != -1) {
-//           			inputUuid = StringUtils.getValueFromKey(hr.getData(), VcfHeaderUtils.STANDARD_UUID_LINE);
-//           			break;
-//           		}
-//           		
-////	        		if (hr.getId().equalsIgnoreCase(VcfHeaderUtils.STANDARD_UUID_LINE)) {
-////	        			inputUuid = hr.getDescription();
-////	        			break;
-////	        		}
-//           	}
         	
         	//no chr in front of position
 			for (final VcfRecord qpr : reader) {
@@ -140,7 +127,6 @@ public abstract class AbstractMode {
 	}
 	
 	protected void reheader(String cmd, String inputVcfName) {	
-//		System.out.println("package: " + Main.class.getPackage());
 		String version = Main.class.getPackage().getImplementationVersion();
 		String pg = Main.class.getPackage().getImplementationTitle();
 		final String fileDate = df.format(Calendar.getInstance().getTime());
@@ -148,21 +134,12 @@ public abstract class AbstractMode {
 
 		//move input uuid into preuuid
 		header.replace(VcfHeaderUtils.STANDARD_INPUT_LINE + "=" + inputUuid + ":"+ inputVcfName);
-//		header.add( VcfHeaderUtils.parseHeaderLine( MetaType.OTHER.toString() + cmd));
 		
 		header.parseHeaderLine(VcfHeaderUtils.CURRENT_FILE_VERSION);
 		header.parseHeaderLine(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + fileDate);
 		header.parseHeaderLine(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + uuid);
 		header.parseHeaderLine(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=" + pg+"-"+version);
 		
-//		header.updateHeader( VcfHeaderUtils.CURRENT_FILE_VERSION,
-//				VcfHeaderUtils.STANDARD_FILE_DATE + "=" + fileDate ,
-//				VcfHeaderUtils.STANDARD_UUID_LINE + "=" + uuid ,
-//				VcfHeaderUtils.STANDARD_SOURCE_LINE + "=" + pg+"-"+version);
-//		header.updateHeader( VcfHeaderUtils.parseHeaderLine(VcfHeaderUtils.CURRENT_FILE_VERSION),
-//				VcfHeaderUtils.parseHeaderLine(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + fileDate ),
-//				VcfHeaderUtils.parseHeaderLine(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + uuid ),
-//				VcfHeaderUtils.parseHeaderLine(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=" + pg+"-"+version) );
 		
 	    if(version == null) version = Constants.NULL_STRING;
 	    if(pg == null ) pg = Constants.NULL_STRING;
