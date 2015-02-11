@@ -1,17 +1,14 @@
 package au.edu.qimr.qannotate.modes;
 
 import java.io.File;
+import java.io.IOException;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfRecord;
-import org.qcmg.common.vcf.header.VcfHeaderFilter;
-import org.qcmg.common.vcf.header.VcfHeaderInfo;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-import org.qcmg.common.vcf.header.VcfHeaderRecord.VcfInfoNumber;
-import org.qcmg.common.vcf.header.VcfHeaderRecord.VcfInfoType;
 import org.qcmg.vcf.VCFFileReader;
 
 import au.edu.qimr.qannotate.options.GermlineOptions;
@@ -47,10 +44,10 @@ public class GermlineMode extends AbstractMode{
        		0/1:C/T:C0[0],9[5],T2[20.5],12[17.92]
 	 */
  	@Override	
-	void addAnnotation(String dbGermlineFile) throws Exception{
+	void addAnnotation(String dbGermlineFile) throws IOException {
  		
  		//add header line first
-		header.add(new VcfHeaderFilter(VcfHeaderUtils.FILTER_GERMLINE, VcfHeaderUtils.DESCRITPION_FILTER_GERMLINE ) );
+		header.addFilterLine(VcfHeaderUtils.FILTER_GERMLINE, VcfHeaderUtils.DESCRITPION_FILTER_GERMLINE );
 
  		
  		try(VCFFileReader reader = new VCFFileReader(new File(dbGermlineFile))){
@@ -66,7 +63,7 @@ public class GermlineMode extends AbstractMode{
 				//reference base must be same
 				//?? maybe errif( dbGermlineVcf.getRef() != dbGermlineVcf.getRef() )
 				if( !dbGermlineVcf.getRef().equals(  inputVcf.getRef()) )
-					throw new Exception("reference base are different ");
+					throw new RuntimeException("reference base are different ");
 				 
 	 			String [] alts = null; 
 				try{

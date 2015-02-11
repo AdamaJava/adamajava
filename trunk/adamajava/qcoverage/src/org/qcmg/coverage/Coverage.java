@@ -29,10 +29,6 @@ import org.qcmg.common.vcf.VcfPositionComparator;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
-import org.qcmg.common.vcf.header.VcfHeaderFilter;
-import org.qcmg.common.vcf.header.VcfHeaderInfo;
-import org.qcmg.common.vcf.header.VcfHeaderRecord;
-import org.qcmg.common.vcf.header.VcfHeaderRecord.VcfInfoNumber;
 import org.qcmg.common.vcf.header.VcfHeaderRecord.VcfInfoType;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileWriter;
@@ -123,9 +119,12 @@ public final class Coverage {
 			Collections.sort(vcfs, new VcfPositionComparator());
 			try(final VCFFileWriter writer = new VCFFileWriter(file)) {
 				final VcfHeader header = getHeaderForQCoverage(options.getBAMFileNames()[0], options.getInputGFF3FileNames()[0]);
-				for(final VcfHeaderRecord record: header)  writer.addHeader(record.toString()+"\n");
-				for (final VcfRecord vcf : vcfs)
+				for(final VcfHeader.Record record: header) {
+					writer.addHeader(record.toString()+"\n");
+				}
+				for (final VcfRecord vcf : vcfs) {
 					writer.add(vcf);				
+				}
 			}  
 		}
 		
@@ -141,19 +140,19 @@ public final class Coverage {
 		final String uuid = QExec.createUUid();
 
 		//move input uuid into preuuid
-		header.add(new VcfHeaderRecord(VcfHeaderUtils.CURRENT_FILE_VERSION));		
-		header.add(new VcfHeaderRecord(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + fileDate ));
-		header.add(new VcfHeaderRecord(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + uuid ));
-		header.add(new VcfHeaderRecord(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=" + pg+"-"+version));
-		header.add(new VcfHeaderRecord( "##bam_file=" + bamFileName ) );
-		header.add( new VcfHeaderRecord("##gff_file=" + gffFile  ));
-		header.add( new VcfHeaderFilter("LowQual","REQUIRED: QUAL < 50.0") );
-		header.add( new VcfHeaderInfo("B", VcfInfoNumber.UNKNOWN, -1, VcfInfoType.String, "Bait end position", null, null) );
-		header.add( new VcfHeaderInfo("BE", VcfInfoNumber.UNKNOWN, -1, VcfInfoType.String, "Bait end position", null, null)  );
-		header.add( new VcfHeaderInfo("ZC", VcfInfoNumber.UNKNOWN, -1, VcfInfoType.String, "bases with Zero Coverage", null, null)  );
-		header.add( new VcfHeaderInfo("NZC", VcfInfoNumber.UNKNOWN, -1, VcfInfoType.String, "bases with Non Zero Coverage", null, null)  );
-		header.add( new VcfHeaderInfo("TOT", VcfInfoNumber.UNKNOWN, -1, VcfInfoType.String, "Total number of sequenced bases", null, null)  );
-		header.add(new VcfHeaderRecord(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE));		
+		header.parseHeaderLine(VcfHeaderUtils.CURRENT_FILE_VERSION);		
+		header.parseHeaderLine(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + fileDate);
+		header.parseHeaderLine(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + uuid );
+		header.parseHeaderLine(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=" + pg+"-"+version);
+		header.parseHeaderLine( "##bam_file=" + bamFileName);
+		header.parseHeaderLine("##gff_file=" + gffFile);
+		header.addFilterLine(VcfHeaderUtils.FILTER_LOW_QUAL,"REQUIRED: QUAL < 50.0");
+		header.addInfoLine("B", "-1", VcfInfoType.String.toString(), "Bait end position");
+		header.addInfoLine("BE", "-1", VcfInfoType.String.toString(), "Bait end position");
+		header.addInfoLine("ZC",  "-1", VcfInfoType.String.toString(), "bases with Zero Coverage");
+		header.addInfoLine("NZC","-1", VcfInfoType.String.toString(), "bases with Non Zero Coverage");
+		header.addInfoLine("TOT", "-1", VcfInfoType.String.toString(), "Total number of sequenced bases");
+		header.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE);		
  		
 		return  header;
 	}

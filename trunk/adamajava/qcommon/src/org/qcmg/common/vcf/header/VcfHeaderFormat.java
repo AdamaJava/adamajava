@@ -50,7 +50,7 @@ public final class VcfHeaderFormat extends VcfHeaderRecord{
 		} else throw new IllegalArgumentException("Can't create VcfHeaderFormat = line provided is not an FORMAT definition: '" + line + "'");
 		
 		this.line = toString();
-		this.record = this;
+//		this.record = this;
 
 	}
 	
@@ -76,7 +76,7 @@ public final class VcfHeaderFormat extends VcfHeaderRecord{
 			 
 			this.type = MetaType.FORMAT; //type should bf line otherwise exception
 			this.line = toString() ;			
-			this.record = this;
+//			this.record = this;
 		}
 
 	public boolean isNumberAllAlleles() {

@@ -25,9 +25,6 @@ import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
-import org.qcmg.common.vcf.header.VcfHeaderInfo;
-import org.qcmg.common.vcf.header.VcfHeaderRecord;
-import org.qcmg.common.vcf.header.VcfHeaderRecord.VcfInfoNumber;
 import org.qcmg.common.vcf.header.VcfHeaderRecord.VcfInfoType;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.tab.TabbedFileReader;
@@ -166,7 +163,7 @@ public class BuildCommonSnpsVcf {
 		
 		try (VCFFileWriter writer = new VCFFileWriter(new File(outputFileName));) {
 			final VcfHeader header = getHeaderForCommonSnps(searchString, searchDirectory, additionalSearchStrings, mapOfFilesAndIds);
-			for(final VcfHeaderRecord re : header)
+			for(final VcfHeader.Record re : header)
 				writer.addHeader(re.toString());
 			for (final ChrPosition position : orderedList) {
 				writer.add(snpPositions.get(position));
@@ -181,24 +178,24 @@ public class BuildCommonSnpsVcf {
 
 
 		//move input uuid into preuuid
-		header.add( new VcfHeaderRecord(VcfHeaderUtils.CURRENT_FILE_VERSION));		
-		header.add( new VcfHeaderRecord(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + df.format(Calendar.getInstance().getTime()) ));
-		header.add( new VcfHeaderRecord(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + QExec.createUUid() ));
-		header.add( new VcfHeaderRecord(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=" + Messages.getProgramName() + Main.class.getPackage().getImplementationVersion() ) );
-		header.add( new VcfHeaderRecord("##search_string=" + searchString ));
-		header.add( new VcfHeaderRecord( "##search_directory=" + searchDirectory));
-		header.add( new VcfHeaderRecord( "##additional_search_directory=" + Arrays.deepToString(additionalSearchStrings) ));
+		header.parseHeaderLine(VcfHeaderUtils.CURRENT_FILE_VERSION);	
+		header.parseHeaderLine(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + df.format(Calendar.getInstance().getTime()));
+		header.parseHeaderLine(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + QExec.createUUid() );
+		header.parseHeaderLine(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=" + Messages.getProgramName() + Main.class.getPackage().getImplementationVersion());
+		header.parseHeaderLine("##search_string=" + searchString );
+		header.parseHeaderLine( "##search_directory=" + searchDirectory);
+		header.parseHeaderLine( "##additional_search_directory=" + Arrays.deepToString(additionalSearchStrings));
 		
 		if (null != mapOfFilesAndIds && mapOfFilesAndIds.size() > 0) {			
 			final List<File> files = new ArrayList<File>(mapOfFilesAndIds.keySet());
 			Collections.sort(files);			
 			for (final File f : files) {
-				header.add( new VcfHeaderInfo(mapOfFilesAndIds.get(f).toString(), VcfInfoNumber.NUMBER, 0, VcfInfoType.Flag, f.getAbsolutePath() , null, null));
+				header.addInfoLine( mapOfFilesAndIds.get(f).toString(),  "0", VcfInfoType.Flag.toString(), f.getAbsolutePath());
 				//filesMapSB .append("##INFO=<ID=" + mapOfFilesAndIds.get(f) + ",Number=0,Type=Flag,Description=\"" + f.getAbsolutePath() + "\">\n");
 			}
 		}
 		
-		header.add(new VcfHeaderRecord(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE));
+		header.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE);
 		return header;
 /*		return "##fileformat=VCFv4.0\n" +
 		"##search_string=" + searchString + "\n" +

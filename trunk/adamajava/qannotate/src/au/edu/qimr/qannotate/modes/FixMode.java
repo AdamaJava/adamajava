@@ -10,7 +10,7 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.vcf.VcfRecord;
-import org.qcmg.common.vcf.header.VcfHeaderRecord;
+import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.vcf.VCFFileReader;
 
 import au.edu.qimr.qannotate.Main;
@@ -41,7 +41,7 @@ public class FixMode extends AbstractMode{
 			//add vcf header	 
 			header = reader.getHeader();
 			reheader(options.getCommandLine(), options.getInputFileName());
-			for(final VcfHeaderRecord record: header) 
+			for(final VcfHeader.Record record: header) 
 				out.println(record.toString());
 			
 			//add fixed vcf

@@ -1,6 +1,6 @@
 package au.edu.qimr.qannotate.modes;
 
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.BufferedWriter;
@@ -16,10 +16,7 @@ import org.junit.Test;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
-import org.qcmg.common.vcf.header.VcfHeaderQPG;
-import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-import org.qcmg.common.vcf.header.VcfHeaderRecord.MetaType;
 import org.qcmg.vcf.VCFFileReader;
 
 public class GermlineModeTest {
@@ -40,12 +37,10 @@ public class GermlineModeTest {
 		 new File(inputName).delete();
 		 new File(GermlineFileName).delete();
 		 new File(outputName).delete();
-		 
 	 }	
 	 
-	 
 		@Test
-		public void GermlineModeTest() throws IOException, Exception{
+		public void germlineModeTest() throws Exception {
 			createVcf();
 			final GermlineMode mode = new GermlineMode();		
 			mode.inputRecord(new File(inputName));
@@ -59,11 +54,7 @@ public class GermlineModeTest {
 				int i = 0; 
 				VcfHeader header = reader.getHeader();
 			 
-				for (final VcfHeaderRecord re : header) 
-					 if(re.getMetaType().equals(MetaType.FILTER) && re.getId().equals(VcfHeaderUtils.FILTER_GERMLINE))
-						 i++;
-	 
-				assertTrue(i == 1);
+				assertEquals(true, header.getFilterRecords().containsKey(VcfHeaderUtils.FILTER_GERMLINE));
 				
 				//check records
  				i = 0;
@@ -109,16 +100,14 @@ public class GermlineModeTest {
  				int i = 0;
 				for (final VcfRecord re : reader) {	
 	 				i ++;
-	 				if(re.getPosition() == 14923588)
-						assertTrue(re.getFilter().equals(Constants.MISSING_DATA_STRING));		
+	 				if (re.getPosition() == 14923588) {
+						assertTrue(re.getFilter().equals(Constants.MISSING_DATA_STRING));
+	 				}
  					
 				}
 				assertTrue(i == 1);
 			 }	        
-	        
-			
 		}
-	 
 	
 	/**
 	 * create input vcf file containing 2 dbSNP SNPs and one verified SNP
@@ -163,7 +152,5 @@ public class GermlineModeTest {
         try(BufferedWriter out = new BufferedWriter(new FileWriter(GermlineFileName));) {          
            for (final String line : data)  out.write(line + "\n");
         }  
-          
 	}	
-
 }

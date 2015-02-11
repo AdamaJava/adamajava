@@ -1,6 +1,6 @@
 /**
  * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
- * © Copyright QIMR Berghofer Medical Research Institute 2014.  This code is released under the terms outlined in the included LICENSE file.
+ * © Copyright QIMR Berghofer Medical Research Institute 2014-2015.  This code is released under the terms outlined in the included LICENSE file.
  */
 /**
  * All source code distributed as part of the AdamaJava project is released

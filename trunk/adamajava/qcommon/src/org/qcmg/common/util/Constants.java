@@ -18,6 +18,7 @@ public class Constants {
 	public static final char EQ = '=';
 	public static final String EQ_STRING = EQ + "";
 	public static final char HASH = '#';
+	public static final String HASH_STRING = HASH + "";
 	public static final String DOUBLE_HASH = "##";
 	public static final String MUT_DELIM = ">";
 	public static final String SEMI_COLON_STRING = SC+"";

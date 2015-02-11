@@ -1,6 +1,5 @@
 package org.qcmg.common.vcf.header;
 
-import org.qcmg.common.util.Constants;
 
 public final class VcfHeaderInfo extends VcfHeaderRecord{
 
@@ -13,7 +12,7 @@ public final class VcfHeaderInfo extends VcfHeaderRecord{
 		} else throw new IllegalArgumentException("Can't create VcfHeaderInfo - line provided is not an INFO definition: '" + line + "'");
 	
 		this.line = toString();
-		this.record = this;
+//		this.record = this;
 
 	}
  
@@ -41,7 +40,7 @@ public final class VcfHeaderInfo extends VcfHeaderRecord{
 		 
 		this.type = MetaType.INFO; //type should bf line otherwise exception
 		this.line = toString();
-		this.record = this;
+//		this.record = this;
 	}
 	
 	@Override

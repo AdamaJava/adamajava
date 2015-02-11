@@ -34,14 +34,12 @@ import org.qcmg.common.model.PileupElementLite;
 import org.qcmg.common.model.ReferenceNameComparator;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.ChrPositionUtils;
-import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.Pair;
 import org.qcmg.common.util.SnpUtils;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
-import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.util.QDccMetaFactory;
 import org.qcmg.picard.util.SAMUtils;
@@ -202,26 +200,54 @@ public final class VcfPipeline extends Pipeline {
 	}
 	
 	@Override
-	String getExistingVCFHeaderDetails()  {
-		final StringBuilder sb = new StringBuilder();
-		
+	VcfHeader getExistingVCFHeaderDetails()  {
+		VcfHeader existingHeader = new VcfHeader();
 		
 		if ( ! singleSampleMode) {
-			
-			for (final VcfHeaderRecord rec : controlVcfHeader) {
-				sb.append(rec.toString()).append(Constants.NEW_LINE);
+			for (VcfHeader.Record rec : controlVcfHeader.getInfoRecords().values()) {
+				existingHeader.addInfo(rec);
 			}
-			sb.append(Constants.DOUBLE_HASH).append(Constants.NEW_LINE);
+			for (VcfHeader.Record rec : controlVcfHeader.getFormatRecords().values()) {
+				existingHeader.addFormat(rec);
+			}
+			for (VcfHeader.Record rec : controlVcfHeader.getFilterRecords().values()) {
+				existingHeader.addFilter(rec);
+			}
 		}
 		
-		for (final VcfHeaderRecord rec : testVcfHeader) {
-			sb.append(rec.toString()).append(Constants.NEW_LINE);
+		for (VcfHeader.Record rec : testVcfHeader.getInfoRecords().values()) {
+			existingHeader.addInfo(rec);
 		}
-		sb.append(Constants.DOUBLE_HASH).append(Constants.NEW_LINE);
+		for (VcfHeader.Record rec : testVcfHeader.getFormatRecords().values()) {
+			existingHeader.addFormat(rec);
+		}
+		for (VcfHeader.Record rec : testVcfHeader.getFilterRecords().values()) {
+			existingHeader.addFilter(rec);
+		}
 		
 		// override this if dealing with input VCFs and the existing headers are to be kept
-		return sb.toString();
+		return existingHeader;
 	}
+//	VcfHeader getExistingVCFHeaderDetails()  {
+//		VcfHeader existingHeader = new VcfHeader();
+//		
+//		if ( ! singleSampleMode) {
+//			for (final VcfHeaderRecord rec : controlVcfHeader) {
+//				if (rec.type.includeInGatkMerge()) {
+//					existingHeader.add(rec);
+//				}
+//			}
+//		}
+//		
+//		for (final VcfHeaderRecord rec : testVcfHeader) {
+//			if (rec.type.includeInGatkMerge()) {
+//				existingHeader.add(rec);
+//			}
+//		}
+//		
+//		// override this if dealing with input VCFs and the existing headers are to be kept
+//		return existingHeader;
+//	}
 	
 	@Override
 	String getDccMetaData() throws Exception {

@@ -165,7 +165,6 @@ public class VcfRecord {
 	/**
 	 * add/replace new format fields, it will wipe off old format column data if exits
 	 * @param field: a list of format string start with FORMAT string. Empty FORMAT and Sample columns if field is null.
-	 * @throws Exception if list size smaller than two 
 	 */
 	public void setFormatFields(List<String> field) {
 		if(field == null) {

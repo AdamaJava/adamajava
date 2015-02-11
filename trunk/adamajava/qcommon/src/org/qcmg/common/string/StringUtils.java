@@ -128,6 +128,19 @@ public class StringUtils {
 		return doesStringContainSubString(outerString, subString, true);
 	}
 	
+	public static String getStringFromArray(String [] array, String string) {
+		for (String arr : array) {
+			if (arr.startsWith(string)) return arr;
+		}
+		return null;
+	}
+	public static String getStringFromArray(String [] array, String string, boolean ignoreCase) {
+		for (String arr : array) {
+			if (arr.startsWith(string)) return arr;
+		}
+		return null;
+	}
+	
 	/**
 	 * Examines the supplied outer string to see if it contains the supplied inner string.<br>
 	 * If it does, return true, otherwise, return false.<br>

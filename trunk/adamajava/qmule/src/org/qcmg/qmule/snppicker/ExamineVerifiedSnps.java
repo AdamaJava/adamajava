@@ -179,19 +179,11 @@ public class ExamineVerifiedSnps {
 		}
 	}
 	
-
-	
 	private static String getAnnotationAndNote(QSnpRecord record) {
 		if ( isNull(record.getAnnotation())) return "\tClassA";
 		else if (isNull(record.getAnnotation())) return "\tClassB";
 		else return "\tClassB\t" + record.getAnnotation();
 	}
-//	private static String getAnnotationAndNote(QSnpRecord record) {
-//		if ( isNull(record.getAnnotation()) && isNull(record.getNote())) return "\tClassA";
-//		else if (isNull(record.getAnnotation())) return "\tClassB\t" + record.getNote();
-//		else if (isNull(record.getNote())) return "\tClassB\t" + record.getAnnotation();
-//		else return "\tClassB\t" + record.getAnnotation() + "\t" + record.getNote();
-//	}
 	
 	private static boolean isNull(String string) {
 		return null == string || "null".equals(string) || 0 == string.length();

@@ -1,8 +1,9 @@
 package au.edu.qimr.qannotate.modes;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.qcmg.common.util.Constants.EQ;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -14,13 +15,9 @@ import java.util.List;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
-import org.qcmg.common.vcf.header.VcfHeaderQPG;
-import org.qcmg.common.vcf.header.VcfHeaderRecord;
-import org.qcmg.common.vcf.header.VcfHeaderRecord.MetaType;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 
@@ -45,7 +42,6 @@ public class DbsnpModeTest {
 		 
 	 }
 	 
-	
 	@Test
 	public void annotationTest() throws IOException, Exception{
 		createDbsnp(); 
@@ -61,43 +57,94 @@ public class DbsnpModeTest {
 		 try(VCFFileReader reader = new VCFFileReader(outputName)){
 			int i = 0; 
 			VcfHeader header = reader.getHeader();
+			
+			if (null != header.getFileVersion()) {
+				count[0] ++;
+			}
+			if (null != header.getFileDate()) {
+				count[1] ++;
+			}
+			if (null != header.getUUID()) {
+				count[2] ++;
+			}
+			if (null != header.getSource()) {
+				count[3] ++;
+			}
 		 
-			for (final VcfHeaderRecord re : header){
-				if( re.getMetaType().equals(MetaType.META)  && re.toString().startsWith(VcfHeaderUtils.CURRENT_FILE_VERSION)) 
-					count[0] ++;
-				else if( re.getMetaType().equals(MetaType.META) && re.toString().startsWith( VcfHeaderUtils.STANDARD_FILE_DATE))  
-					count[1] ++;						
-				else if(re.getMetaType().equals(MetaType.META) && re.toString().startsWith( VcfHeaderUtils.STANDARD_UUID_LINE))  
-					count[2] ++;
-					
-				else if(re.getMetaType().equals(MetaType.META) && re.toString().startsWith( VcfHeaderUtils.STANDARD_SOURCE_LINE))  
-					count[3] ++;					
-				else if(re.getMetaType().equals(MetaType.META) && re.toString().startsWith( VcfHeaderUtils.STANDARD_INPUT_LINE))  
+			for (final VcfHeader.Record re : header.getMetaRecords()){
+//				if( re.getMetaType().equals(MetaType.META)  && re.toString().startsWith(VcfHeaderUtils.CURRENT_FILE_VERSION)) 
+//					count[0] ++;
+//				else if( re.getMetaType().equals(MetaType.META) && re.toString().startsWith( VcfHeaderUtils.STANDARD_FILE_DATE))  
+//					count[1] ++;						
+//				else if(re.getMetaType().equals(MetaType.META) && re.toString().startsWith( VcfHeaderUtils.STANDARD_UUID_LINE))  
+//					count[2] ++;
+//					
+//				else if(re.getMetaType().equals(MetaType.META) && re.toString().startsWith( VcfHeaderUtils.STANDARD_SOURCE_LINE))  
+//					count[3] ++;					
+				if(re.getData().startsWith( VcfHeaderUtils.STANDARD_INPUT_LINE)) {  
 					count[4] ++;	
-				else if(re.getMetaType().equals(MetaType.QPG)){
-					VcfHeaderQPG re1 = (VcfHeaderQPG) re;
-					  assertTrue( re1.getOrder() == 1);
-					  assertTrue(re1.getTool().equalsIgnoreCase(Constants.NULL_STRING));
-					  assertTrue(re1.getISODate()!= null);
-					  assertTrue(re1.getCommandLine()!= null);
-					count[5] ++;	
-				}
-				else if(re.getMetaType().equals(MetaType.CHROM) && re.toString().startsWith(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE))
-					count[6] ++; 
-				else if(re.getMetaType().equals(MetaType.INFO) && re.getId().equals(VcfHeaderUtils.INFO_VAF))
-					count[7] ++; 
-				else if(re.getMetaType().equals(MetaType.INFO) && re.getId().equals(VcfHeaderUtils.INFO_DB))
-					count[8] ++; 
-				else if(re.getMetaType().equals(MetaType.OTHER) && re.equals(VcfHeaderUtils.BLANK_HEADER_LINE))
-					count[9] ++;
-				else{ 
-					//debug
-					System.out.println("else: " + re.toString());
-					count[10] ++; }
+				} 
 			}
 			
-			for (i = 0; i < 9; i++)
+			//QPG next
+			for (final VcfHeader.Record re : header.getqPGLines()) {
+				
+				VcfHeader.QPGRecord re1 = (VcfHeader.QPGRecord) re;
+				assertEquals(1,  re1.getOrder());
+				assertEquals(Constants.NULL_STRING, re1.getTool());
+				assertNotNull(re1.getDate());
+				assertNotNull(re1.getCommandLine());
+				count[5] ++;	
+				
+			}
+				
+			VcfHeader.Record chrom = header.getChrom();
+			if (chrom.getData().startsWith(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE)) {
+				count[6] ++; 
+			}
+			for (final String re : header.getInfoRecords().keySet()) {
+				if (re.equals(VcfHeaderUtils.INFO_VAF)) {
+					count[7] ++; 
+				} else if (re.equals(VcfHeaderUtils.INFO_DB)) {
+					count[8] ++; 
+				}
+			}
+				
+//				else if(re.getMetaType().equals(MetaType.QPG)){
+//					VcfHeader.QPGRecord re1 = (VcfHeader.FormattedRecord) re;
+//					  assertTrue( re1.getOrder() == 1);
+//					  assertTrue(re1.getTool().equalsIgnoreCase(Constants.NULL_STRING));
+//					  assertTrue(re1.getISODate()!= null);
+//					  assertTrue(re1.getCommandLine()!= null);
+//					count[5] ++;	
+//				}
+//				else if(re.getMetaType().equals(MetaType.CHROM) && re.toString().startsWith(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE))
+//					count[6] ++; 
+//				else if(re.getMetaType().equals(MetaType.INFO) && re.getId().equals(VcfHeaderUtils.INFO_VAF))
+//					count[7] ++; 
+//				else if(re.getMetaType().equals(MetaType.INFO) && re.getId().equals(VcfHeaderUtils.INFO_DB))
+//					count[8] ++; 
+			
+			
+			
+			for (final VcfHeader.Record re : header.getOtherRecords()) {
+				
+				if (re.getData().startsWith(VcfHeaderUtils.BLANK_HEADER_LINE)) {
+					count[9] ++;; 
+				}
+			}
+			
+//				else if(re.getMetaType().equals(MetaType.OTHER) && re.equals(VcfHeaderUtils.BLANK_HEADER_LINE))
+//					count[9] ++;
+//				else{ 
+//					//debug
+//					System.out.println("else: " + re.toString());
+//					count[10] ++; }
+//			}
+			
+			for (i = 0; i < 9; i++) {
 				assertTrue(count[i] == 1);
+			}
 			
 			assertTrue(count[9] == 2);			
  			assertTrue(count[10] == 0);
@@ -139,14 +186,19 @@ public class DbsnpModeTest {
 		mode.writeVCF(new File(outputName));
 		
 		int i = 0; 
-		try(VCFFileReader reader = new VCFFileReader(outputName)){
+		try (VCFFileReader reader = new VCFFileReader(outputName)) {
 			VcfHeader header = reader.getHeader();
-			for (final VcfHeaderRecord re : header)
-				if(re.getMetaType().equals(MetaType.INFO) && re.getId().equals(VcfHeaderUtils.INFO_VLD))
-					i++;			
-		 }
 			
-		assertTrue(i == 1);
+			assertEquals(true, header.getInfoRecords().containsKey(VcfHeaderUtils.INFO_VLD));
+		}
+//			for (final VcfHeader.Record re : header.getInfoRecords().values()) {
+//				if(re.getData().equals(VcfHeaderUtils.INFO_VLD)) {
+//					i++;			
+//				}
+//			}
+//		 }
+			
+//		assertTrue(i == 1);
 		 
 	}	
 	

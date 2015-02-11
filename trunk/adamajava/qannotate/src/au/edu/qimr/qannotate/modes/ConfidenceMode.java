@@ -8,18 +8,15 @@ import java.util.Map;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.TorrentVerificationStatus;
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.DonorUtils;
 import org.qcmg.common.vcf.VcfFormatFieldRecord;
 import org.qcmg.common.vcf.VcfInfoFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
-import org.qcmg.common.vcf.header.VcfHeaderInfo;
-import org.qcmg.common.vcf.header.VcfHeaderRecord.VcfInfoNumber;
 import org.qcmg.common.vcf.header.VcfHeaderRecord.VcfInfoType;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.maf.util.MafUtils;
-import org.qcmg.vcf.VCFFileReader;
-import org.qcmg.common.util.*;
 
 import au.edu.qimr.qannotate.options.ConfidenceOptions;
 
@@ -110,12 +107,8 @@ public class ConfidenceMode extends AbstractMode{
 	        vcf.setInfo(infoRecord.toString());	        
 	    } 	
  
-	    
 		//add header line  set number to 1
-		header.add(new VcfHeaderInfo(VcfHeaderUtils.INFO_CONFIDENT, 
-				VcfInfoNumber.NUMBER, 1,  VcfInfoType.String, 
-				VcfHeaderUtils.DESCRITPION_INFO_CONFIDENCE, null,null) );
-	     
+		header.addInfoLine(VcfHeaderUtils.INFO_CONFIDENT, "1", VcfInfoType.String.toString(), VcfHeaderUtils.DESCRITPION_INFO_CONFIDENCE);
 	}
 
 	/**
