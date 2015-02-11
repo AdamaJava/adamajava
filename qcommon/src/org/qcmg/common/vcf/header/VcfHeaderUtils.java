@@ -4,18 +4,26 @@
 package org.qcmg.common.vcf.header;
 
 
-import java.util.Collections;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.qcmg.common.string.StringUtils;
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.SnpUtils;
+import org.qcmg.common.vcf.header.VcfHeader.QPGRecord;
 
 
 public class VcfHeaderUtils {
 	
+	public static final DateFormat DF = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	
 //	public static final int ORDER_START_VALUE = 1;
 	
-	public static final VcfHeaderRecord BLANK_HEADER_LINE = new VcfHeaderRecord("##");
+//	public static final VcfHeaderRecord BLANK_HEADER_LINE = new VcfHeaderRecord("##");
+	public static final String BLANK_HEADER_LINE = Constants.DOUBLE_HASH;
 	
 	public static final String DESCRITPION_FILTER_GERMLINE = "Mutation is a germline variant in another patient";
 	public static final String DESCRITPION_INFO_CONFIDENCE = "set to HIGH if more than 5 novel starts, 5 allels and passed all filter;"
@@ -80,7 +88,8 @@ public class VcfHeaderUtils {
 	public static final String STANDARD_FILE_DATE = "##fileDate";
 	public static final String STANDARD_SOURCE_LINE = "##qSource";
 	public static final String STANDARD_UUID_LINE = "##qUUID";
-	public static final String STANDARD_PATIENTID = "##qPatientId";
+	public static final String STANDARD_DONOR_ID = "##qDonorId";
+//	public static final String STANDARD_PATIENTID = "##qPatientId";
 	public static final String STANDARD_CONTROLSAMPLE = "##qControlSample";
 	public static final String STANDARD_TESTSAMPLE = "##qTestSample";
 	public static final String STANDARD_CONTROLBAM = "##qControlBam";
@@ -117,17 +126,107 @@ public class VcfHeaderUtils {
 		}
 		
 		int currentLargestOrder = 0;
-		final List<VcfHeaderQPG> currentQPGLines = header.getqPGLines();
+		List<QPGRecord> currentQPGLines = new ArrayList<>(header.getqPGLines());	// returns a sorted collection
 		if ( ! currentQPGLines.isEmpty()) {
-			Collections.sort(currentQPGLines);
+//			Collections.sort(currentQPGLines, new Comparator<FormattedRecord>() {
+//				
+//				@Override
+//				public int compare(FormattedRecord arg0, FormattedRecord arg1) {
+//					// compare int version of id
+//					int id1 = Integer.parseInt(arg0.getId());
+//					int id2 = Integer.parseInt(arg1.getId());
+//					return Integer.compare(id1, id2);
+//				}
+//				
+//			});
 			currentLargestOrder = currentQPGLines.get(0).getOrder();
 		}
 		
 		// create and add to existing collection
-		final VcfHeaderQPG qpg = new VcfHeaderQPG(currentLargestOrder + 1, tool, version, commandLine);
-		currentQPGLines.add(qpg);
+		header.addQPGLine(currentLargestOrder + 1, tool, version, commandLine,  DF.format(new Date()));
 		
 	}
+//	public static void addQPGLineToHeader(VcfHeader header, String tool, String version, String commandLine) {
+//		if (null == header) {
+//			throw new IllegalArgumentException("null vcf header object passed to VcfHeaderUtils.addQPGLineToHeader");
+//		}
+//		if (StringUtils.isNullOrEmpty(tool) 
+//				|| StringUtils.isNullOrEmpty(version)
+//				|| StringUtils.isNullOrEmpty(commandLine) ) {
+//			
+//			throw new IllegalArgumentException("null or empty tool, version and/or command line values passed to VcfHeaderUtils.addQPGLineToHeader, tool: " + tool + ", version: " + version + ", cl: " + commandLine);
+//		}
+//		
+//		int currentLargestOrder = 0;
+//		final List<VcfHeaderQPG> currentQPGLines = header.getqPGLines();
+//		if ( ! currentQPGLines.isEmpty()) {
+//			Collections.sort(currentQPGLines);
+//			currentLargestOrder = currentQPGLines.get(0).getOrder();
+//		}
+//		
+//		// create and add to existing collection
+//		VcfHeaderQPG qpg = new VcfHeaderQPG(currentLargestOrder + 1, tool, version, commandLine);
+//		currentQPGLines.add(qpg);
+//		
+//	}
+	
+//	public static VcfHeaderRecord parseHeaderLine(String line) {
+//		
+//		if (StringUtils.isNullOrEmpty(line)) {
+//			throw new IllegalArgumentException("null or empty string passed to VcfHeaderUtils.parseHeaderLine: " + line);
+//		}
+//		
+//		line = line.trim().replaceAll("\n", "");
+//		// get type of header line
+//		MetaType type = null;
+//		
+//		// Is this an Info line?
+//		if (line.toUpperCase().startsWith(MetaType.FORMAT.toString()) )  
+//			type = MetaType.FORMAT;	 
+//		else if (line.toUpperCase().startsWith(MetaType.FILTER.toString()) )  
+//			type = MetaType.FILTER;		 
+//		else if (line.toUpperCase().startsWith(MetaType.INFO.toString()) )  
+//			type = MetaType.INFO;
+//		else if (line.toUpperCase().startsWith(MetaType.QPG.toString().toUpperCase()) )  
+//			type = MetaType.QPG;		
+//		else if (line.toUpperCase().startsWith(MetaType.CHROM.toString())  ) 
+//			type = MetaType.CHROM;
+//		else {
+//			if( ! line.startsWith(MetaType.OTHER.toString())) {
+//				throw new IllegalArgumentException("can't convert String into VcfHeaderRecord since missing \"##\" at the begin of line: " + line);
+//			}
+//			
+//			if (line.indexOf('=') >= 0) {
+//				type = MetaType.META; 
+//			} else {
+//				type = MetaType.OTHER;
+//			}
+//		}
+//		VcfHeaderRecord record = null;
+//
+//		switch (type) {
+//			case FORMAT:
+//				record = new VcfHeaderFormat(line);
+//				break;
+//			case FILTER:
+//				record = new VcfHeaderFilter(line);
+//				break;
+//			case INFO:
+//				record =  new VcfHeaderInfo(line);
+//				break;
+//			case QPG:
+//				record =  new VcfHeaderQPG(line);
+//				break;
+//			case CHROM:
+//			case OTHER:
+//			case META:
+//			default:
+//				record = new VcfHeaderRecord(line);
+//				break;
+//		}
+//		
+//		return record;
+//	}
 	
 	/**
 	 * first four keys are required, source and version are recommended

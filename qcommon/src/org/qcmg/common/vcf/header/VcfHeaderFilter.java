@@ -21,7 +21,7 @@ public final class  VcfHeaderFilter extends VcfHeaderRecord{
 		else throw new IllegalArgumentException("Can't create VcfHeaderFilter - line provided is not an FILTER definition: '" + line + "'");
 		
 		
-		record = this;
+//		record = this;
 	}
 	
 	public VcfHeaderFilter(String id, String description) throws Exception{ 
@@ -30,7 +30,7 @@ public final class  VcfHeaderFilter extends VcfHeaderRecord{
 		 this.description = description;
 		 type = MetaType.FILTER;
 		 line = toString();		 
-		 record = this;
+//		 record = this;
 	}
 	
 	@Override

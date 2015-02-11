@@ -1,6 +1,7 @@
 package au.edu.qimr.qannotate.modes;
 
 import java.io.File;
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -12,11 +13,10 @@ import java.util.Map;
 
 import org.qcmg.common.meta.QExec;
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
-import org.qcmg.common.vcf.header.VcfHeaderRecord;
-import org.qcmg.common.vcf.header.VcfHeaderRecord.MetaType;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 import org.qcmg.vcf.VCFFileWriter;
@@ -34,21 +34,34 @@ public abstract class AbstractMode {
 	protected String controlSample = null; 
 	protected String testSample = null; 
  	
-	protected void inputRecord(File f) throws Exception{
+	protected void inputRecord(File f) throws IOException{
 		
         //read record into RAM, meanwhile wipe off the ID field value;
  
-        try(VCFFileReader reader = new VCFFileReader(f)) {
-        	header = reader.getHeader();
-           	for(final VcfHeaderRecord hr : header)
-        		if(hr.getMetaType().equals(MetaType.META) && hr.getId().equalsIgnoreCase(VcfHeaderUtils.STANDARD_UUID_LINE)){
-        			inputUuid = hr.getDescription();
-        			break;
+        try (VCFFileReader reader = new VCFFileReader(f)) {
+        		header = reader.getHeader();
+        		VcfHeader.Record uuidRecord = header.getUUID();
+        		if (null != uuidRecord) {
+        			inputUuid = StringUtils.getValueFromKey(uuidRecord.getData(), VcfHeaderUtils.STANDARD_UUID_LINE);
         		}
+//           	for (final VcfHeader.Record hr : header.getMetaRecords()) {
+//           		
+//           		
+//           		if (hr.getData().indexOf(VcfHeaderUtils.STANDARD_UUID_LINE) != -1) {
+//           			inputUuid = StringUtils.getValueFromKey(hr.getData(), VcfHeaderUtils.STANDARD_UUID_LINE);
+//           			break;
+//           		}
+//           		
+////	        		if (hr.getId().equalsIgnoreCase(VcfHeaderUtils.STANDARD_UUID_LINE)) {
+////	        			inputUuid = hr.getDescription();
+////	        			break;
+////	        		}
+//           	}
         	
         	//no chr in front of position
-			for (final VcfRecord qpr : reader) 
-				positionRecordMap.put(new ChrPosition(qpr.getChromosome(), qpr.getPosition(), qpr.getPosition() + qpr.getRef().length() - 1 ), qpr);	
+			for (final VcfRecord qpr : reader) {
+				positionRecordMap.put(qpr.getChrPosition(), qpr);
+			}
 		} 
         
 	}
@@ -65,21 +78,25 @@ public abstract class AbstractMode {
 	 * @param header: if null, it will point to this class's header; 
 	 */
 	protected void retriveSampleColumn(String test, String control, VcfHeader header){
-		test_column = -2; //can't be -1 since will "+1"
-		control_column = -2;
-
+		if (header == null) {
+			header = this.header;
+		}
+		
 		 controlSample = control;
 		 testSample = test;
 		
-		for(final VcfHeaderRecord hr : header)
-    		if( hr.getMetaType().equals(MetaType.META) && hr.getId().equalsIgnoreCase(VcfHeaderUtils.STANDARD_CONTROLSAMPLE)) 
-    			controlSample = (control == null)? hr.getDescription(): control; 
-    		 else if( hr.getMetaType().equals(MetaType.META) && hr.getId().equalsIgnoreCase(VcfHeaderUtils.STANDARD_TESTSAMPLE)) 
-    			 testSample = (test == null)? hr.getDescription(): test; 
-	    
+		 if (null == controlSample || null == testSample) {
+			for (final VcfHeader.Record hr : header.getMetaRecords()) {
+		    		if (null == controlSample &&  hr.getData().indexOf(VcfHeaderUtils.STANDARD_CONTROLSAMPLE) != -1) {
+		    			controlSample =  StringUtils.getValueFromKey(hr.getData(), VcfHeaderUtils.STANDARD_CONTROLSAMPLE);
+		    		} else if ( null == testSample &&  hr.getData().indexOf(VcfHeaderUtils.STANDARD_TESTSAMPLE) != -1) { 
+		    			 testSample = StringUtils.getValueFromKey(hr.getData(), VcfHeaderUtils.STANDARD_TESTSAMPLE);
+		    		}
+			}
+		 }
  
 	   if(testSample == null || controlSample == null)
-		   throw new RuntimeException(" Missing qControlSample or qTestSample  from VcfHeader; please speify on command line!");
+		   throw new RuntimeException(" Missing qControlSample or qTestSample  from VcfHeader; please specify on command line!");
 	   
 	   final String[] samples = header.getSampleId();	
 	   	   
@@ -102,7 +119,7 @@ public abstract class AbstractMode {
 	abstract void addAnnotation(String dbfile) throws Exception;
 	
 	
-	protected void writeVCF(File outputFile ) throws Exception {
+	protected void writeVCF(File outputFile ) throws IOException {
 		 
 //		logger.info("Writing VCF output");	 		
 		//get Q_EXEC or #Q_DCCMETA  org.qcmg.common.meta.KeyValue.java or org.qcmg.common.meta.QExec.java	
@@ -110,9 +127,11 @@ public abstract class AbstractMode {
 		Collections.sort(orderedList);
 		
 		try(VCFFileWriter writer = new VCFFileWriter( outputFile)) {			
-			for(final VcfHeaderRecord record: header)  writer.addHeader(record.toString());
+			for(final VcfHeader.Record record: header)  {
+				writer.addHeader(record.toString());
+			}
 			for (final ChrPosition position : orderedList) {				
-				final VcfRecord record = positionRecordMap.get(position); 
+				VcfRecord record = positionRecordMap.get(position); 
 				writer.add( record );				 
 			}
 		}  
@@ -120,7 +139,7 @@ public abstract class AbstractMode {
 		
 	}
 	
-	protected void reheader(String cmd, String inputVcfName) throws Exception{	
+	protected void reheader(String cmd, String inputVcfName) {	
 //		System.out.println("package: " + Main.class.getPackage());
 		String version = Main.class.getPackage().getImplementationVersion();
 		String pg = Main.class.getPackage().getImplementationTitle();
@@ -128,13 +147,22 @@ public abstract class AbstractMode {
 		final String uuid = QExec.createUUid();
 
 		//move input uuid into preuuid
-		header.replace(new VcfHeaderRecord(VcfHeaderUtils.STANDARD_INPUT_LINE + "=" + inputUuid + ":"+ inputVcfName) );
-//		header.add( new VcfHeaderRecord( MetaType.OTHER.toString() + cmd));
+		header.replace(VcfHeaderUtils.STANDARD_INPUT_LINE + "=" + inputUuid + ":"+ inputVcfName);
+//		header.add( VcfHeaderUtils.parseHeaderLine( MetaType.OTHER.toString() + cmd));
 		
-		header.updateHeader( new VcfHeaderRecord(VcfHeaderUtils.CURRENT_FILE_VERSION),
-				new VcfHeaderRecord(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + fileDate ),
-				new VcfHeaderRecord(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + uuid ),
-				new VcfHeaderRecord(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=" + pg+"-"+version) );
+		header.parseHeaderLine(VcfHeaderUtils.CURRENT_FILE_VERSION);
+		header.parseHeaderLine(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + fileDate);
+		header.parseHeaderLine(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + uuid);
+		header.parseHeaderLine(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=" + pg+"-"+version);
+		
+//		header.updateHeader( VcfHeaderUtils.CURRENT_FILE_VERSION,
+//				VcfHeaderUtils.STANDARD_FILE_DATE + "=" + fileDate ,
+//				VcfHeaderUtils.STANDARD_UUID_LINE + "=" + uuid ,
+//				VcfHeaderUtils.STANDARD_SOURCE_LINE + "=" + pg+"-"+version);
+//		header.updateHeader( VcfHeaderUtils.parseHeaderLine(VcfHeaderUtils.CURRENT_FILE_VERSION),
+//				VcfHeaderUtils.parseHeaderLine(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + fileDate ),
+//				VcfHeaderUtils.parseHeaderLine(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + uuid ),
+//				VcfHeaderUtils.parseHeaderLine(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=" + pg+"-"+version) );
 		
 	    if(version == null) version = Constants.NULL_STRING;
 	    if(pg == null ) pg = Constants.NULL_STRING;

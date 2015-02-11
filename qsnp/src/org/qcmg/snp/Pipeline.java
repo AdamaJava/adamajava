@@ -65,11 +65,6 @@ import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
-import org.qcmg.common.vcf.header.VcfHeaderFilter;
-import org.qcmg.common.vcf.header.VcfHeaderFormat;
-import org.qcmg.common.vcf.header.VcfHeaderInfo;
-import org.qcmg.common.vcf.header.VcfHeaderRecord;
-import org.qcmg.common.vcf.header.VcfHeaderRecord.VcfInfoNumber;
 import org.qcmg.common.vcf.header.VcfHeaderRecord.VcfInfoType;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.maths.FisherExact;
@@ -141,6 +136,7 @@ public abstract class Pipeline {
 	
 	String referenceFile;
 	String query;
+	String runMode;
 	
 	FastaSequenceFile sequenceFile;
 	byte[] referenceBases;
@@ -221,6 +217,9 @@ public abstract class Pipeline {
 		if (null != sFailFilter)
 			noOfRecordsFailingFilter = Long.parseLong(sFailFilter);
 		
+		// run mode
+		runMode =  IniFileUtil.getEntry(ini, "parameters", "runMode");
+		
 		// ADDITIONAL SETUP	
 		mutationIdPrefix = qexec.getUuid().getValue() + "_SNP_";
 		
@@ -251,6 +250,10 @@ public abstract class Pipeline {
 		}
 		
 		// LOG
+		if ( ! StringUtils.isNullOrEmpty(runMode)) {
+			logger.tool("**** RUN MODE ****");
+			logger.tool("runMode: " + runMode);
+		}
 		logger.tool("**** IDS ****");
 		logger.tool("patient ID: " + patientId);
 		logger.tool("analysisId: " + qexec.getUuid().getValue());
@@ -314,7 +317,7 @@ public abstract class Pipeline {
 		}
 	}
 	
-	String getExistingVCFHeaderDetails() {
+	VcfHeader getExistingVCFHeaderDetails() {
 		// override this if dealing with input VCFs and the existing headers are to be kept
 		return null;
 	}
@@ -330,35 +333,43 @@ public abstract class Pipeline {
 		final QBamId[] normalBamIds = getBamIdDetails(controlBams);
 		final QBamId[] tumourBamIds = getBamIdDetails(testBams);
 		
-		// if 
-/*		final String existingHeaders = getExistingVCFHeaderDetails();
-		if (null != existingHeaders) {
-			header += existingHeaders;
-		}
-*/		
+		VcfHeader existingHeader = getExistingVCFHeaderDetails();
+		
 		final List<ChrPosition> orderedList = new ArrayList<ChrPosition>(positionRecordMap.keySet());
 		orderedList.addAll(compoundSnps.keySet());
 		Collections.sort(orderedList);
 		
-		
 
 		try (VCFFileWriter writer = new VCFFileWriter(new File(outputFileName));) {			
-			final VcfHeader header = getHeaderForQSnp(patientId, controlSampleId, testSampleId, "qSNP v" + Main.version, normalBamIds, tumourBamIds, qexec.getUuid().getValue(), singleSampleMode);
-			VcfHeaderUtils.addQPGLineToHeader(header, qexec.getToolName().getValue(), qexec.getToolVersion().getValue(), qexec.getCommandLine().getValue());
-			for(final VcfHeaderRecord hr : header) {
+			final VcfHeader header = getHeaderForQSnp(patientId, controlSampleId, testSampleId, "qSNP v" + Main.version, normalBamIds, tumourBamIds, qexec.getUuid().getValue());
+			VcfHeaderUtils.addQPGLineToHeader(header, qexec.getToolName().getValue(), qexec.getToolVersion().getValue(), qexec.getCommandLine().getValue() 
+					+ (StringUtils.isNullOrEmpty(runMode) ? "" : " [runMode: " + runMode + "]"));
+			
+			// add in existing header details
+			if (null != existingHeader) {
+				for (VcfHeader.Record rec : existingHeader.getInfoRecords().values()) {
+					header.addInfo(rec);
+				}
+				for (VcfHeader.Record rec : existingHeader.getFormatRecords().values()) {
+					header.addFormat(rec);
+				}
+				for (VcfHeader.Record rec : existingHeader.getFilterRecords().values()) {
+					header.addFilter(rec);
+				}
+			}
+			for (VcfHeader.Record hr : header) {
 				writer.addHeader(hr.toString());
 			}
 
 			for (final ChrPosition position : orderedList) {
 				
 				final QSnpRecord record = positionRecordMap.get(position);
-				if (null != record) {									
+				if (null != record && null != record.getClassification()) {									
 					// only write output if its been classified
-					if (null != record.getClassification()) 
-						writer.add(convertQSnpToVCF(record));
+					writer.add(convertQSnpToVCF(record));
 				} else {
 					// get from copoundSnp map
-					final VcfRecord vcf = compoundSnps.get(position);
+					VcfRecord vcf = compoundSnps.get(position);
 					
 					// if filter is set to missing data, then set to PASS
 					if (Constants.MISSING_DATA_STRING.equals(vcf.getFilter())) {
@@ -366,73 +377,132 @@ public abstract class Pipeline {
 					}
 					
 					writer.add(vcf);
-					
 				}
 			}
 		}
 	}
 
 	private VcfHeader getHeaderForQSnp(final String patientId,  final String normalSampleId, final String tumourSampleId, 
-			final String source, QBamId[] normalBamIds, QBamId[] tumourBamIds, String uuid, boolean singleSampleMode) throws Exception {
+			final String source, QBamId[] normalBamIds, QBamId[] tumourBamIds, String uuid) throws Exception {
 		
 		final VcfHeader header = new VcfHeader();
 		final DateFormat df = new SimpleDateFormat("yyyyMMdd");
 
-		//move input uuid into preuuid
-		header.add( new VcfHeaderRecord(VcfHeaderUtils.CURRENT_FILE_VERSION));		
-		header.add( new VcfHeaderRecord(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + df.format(Calendar.getInstance().getTime()) ));
-		header.add( new VcfHeaderRecord(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + QExec.createUUid() ));
-		header.add( new VcfHeaderRecord(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=" + source ) );
+		header.parseHeaderLine(VcfHeaderUtils.CURRENT_FILE_VERSION);		
+		header.parseHeaderLine(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + df.format(Calendar.getInstance().getTime()));		
+		header.parseHeaderLine(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + QExec.createUUid());		
+		header.parseHeaderLine(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=" + source);		
 		
-		header.add( new VcfHeaderRecord(VcfHeaderUtils.STANDARD_PATIENTID   +  "=" + patientId ));
-		header.add( new VcfHeaderRecord(VcfHeaderUtils.STANDARD_CONTROLSAMPLE + "=" + normalSampleId ));
-		header.add( new VcfHeaderRecord(VcfHeaderUtils.STANDARD_TESTSAMPLE + "=" + tumourSampleId ));
+		header.parseHeaderLine(VcfHeaderUtils.STANDARD_DONOR_ID + "=" + patientId);
+		header.parseHeaderLine(VcfHeaderUtils.STANDARD_CONTROLSAMPLE + "=" + normalSampleId);		
+		header.parseHeaderLine(VcfHeaderUtils.STANDARD_TESTSAMPLE + "=" + tumourSampleId);		
 		
 		if (null != normalBamIds)  
 			for (final QBamId s : normalBamIds) {
-				header.add( new VcfHeaderRecord(VcfHeaderUtils.STANDARD_CONTROLBAM  + "=" + s.getBamName()));
-				header.add( new VcfHeaderRecord("##qControlBamUUID=" + s.getUUID()));
+				header.parseHeaderLine( VcfHeaderUtils.STANDARD_CONTROLBAM  + "=" + s.getBamName());
+				header.parseHeaderLine( "##qControlBamUUID=" + s.getUUID());
  			}
 
 		if (null != tumourBamIds)  
 			for (final QBamId s : tumourBamIds) {
-				header.add( new VcfHeaderRecord(VcfHeaderUtils.STANDARD_TESTBAM  + "=" + s.getBamName()));
-				header.add( new VcfHeaderRecord("##qTestBamUUID=" + s.getUUID()));
+				header.parseHeaderLine(VcfHeaderUtils.STANDARD_TESTBAM  + "=" + s.getBamName());
+				header.parseHeaderLine("##qTestBamUUID=" + s.getUUID());
 			}		
-		header.add( new VcfHeaderRecord( "##qAnalysisId=" + uuid ) );
+		header.parseHeaderLine( "##qAnalysisId=" + uuid );
 		
-		header.add( new VcfHeaderInfo(VcfHeaderUtils.INFO_FLANKING_SEQUENCE, VcfInfoNumber.NUMBER, 1, VcfInfoType.String,"Flanking sequence either side of variant", null, null)); 																		
+		header.addInfoLine(VcfHeaderUtils.INFO_FLANKING_SEQUENCE, "1", VcfInfoType.String.toString(),"Flanking sequence either side of variant");																	
 
-		header.add( new VcfHeaderFilter( VcfHeaderUtils.FILTER_COVERAGE_NORMAL_12, "Less than 12 reads coverage in normal"));
-		header.add( new VcfHeaderFilter( VcfHeaderUtils.FILTER_COVERAGE_NORMAL_8,"Less than 8 reads coverage in normal"));  
-		header.add( new VcfHeaderFilter( VcfHeaderUtils.FILTER_COVERAGE_TUMOUR,"Less than 8 reads coverage in tumour")); 
-		header.add( new VcfHeaderFilter( VcfHeaderUtils.FILTER_SAME_ALLELE_NORMAL,"Less than 3 reads of same allele in normal"));  
-		header.add( new VcfHeaderFilter( VcfHeaderUtils.FILTER_SAME_ALLELE_TUMOUR,"Less than 3 reads of same allele in tumour"));  
-		header.add( new VcfHeaderFilter( VcfHeaderUtils.FILTER_MUTATION_IN_NORMAL,"Mutation also found in pileup of normal"));  
-		header.add( new VcfHeaderFilter( VcfHeaderUtils.FILTER_MUTATION_IN_UNFILTERED_NORMAL,"Mutation also found in pileup of (unfiltered) normal"));  
-		header.add( new VcfHeaderFilter( VcfHeaderUtils.FILTER_GERMLINE,"Mutation is a germline variant in another patient"));  
-		header.add( new VcfHeaderFilter( VcfHeaderUtils.FILTER_NOVEL_STARTS,"Less than 4 novel starts not considering read pair"));  
-		header.add( new VcfHeaderFilter( VcfHeaderUtils.FILTER_MUTANT_READS,"Less than 5 mutant reads")); 
-		header.add( new VcfHeaderFilter( VcfHeaderUtils.FILTER_MUTATION_EQUALS_REF,"Mutation equals reference")); 
-		header.add( new VcfHeaderFilter( VcfHeaderUtils.FILTER_NO_CALL_IN_TEST,"No call in test")); 
+		header.addFilterLine(VcfHeaderUtils.FILTER_COVERAGE_NORMAL_12, "Less than 12 reads coverage in normal");
+		header.addFilterLine(VcfHeaderUtils.FILTER_COVERAGE_NORMAL_8,"Less than 8 reads coverage in normal");  
+		header.addFilterLine(VcfHeaderUtils.FILTER_COVERAGE_TUMOUR,"Less than 8 reads coverage in tumour"); 
+		header.addFilterLine(VcfHeaderUtils.FILTER_SAME_ALLELE_NORMAL,"Less than 3 reads of same allele in normal");  
+		header.addFilterLine(VcfHeaderUtils.FILTER_SAME_ALLELE_TUMOUR,"Less than 3 reads of same allele in tumour");  
+		header.addFilterLine(VcfHeaderUtils.FILTER_MUTATION_IN_NORMAL,"Mutation also found in pileup of normal");  
+		header.addFilterLine(VcfHeaderUtils.FILTER_MUTATION_IN_UNFILTERED_NORMAL,"Mutation also found in pileup of (unfiltered) normal");  
+		header.addFilterLine(VcfHeaderUtils.FILTER_GERMLINE,"Mutation is a germline variant in another patient");  
+		header.addFilterLine(VcfHeaderUtils.FILTER_NOVEL_STARTS,"Less than 4 novel starts not considering read pair");  
+		header.addFilterLine(VcfHeaderUtils.FILTER_MUTANT_READS,"Less than 5 mutant reads"); 
+		header.addFilterLine(VcfHeaderUtils.FILTER_MUTATION_EQUALS_REF,"Mutation equals reference"); 
+		header.addFilterLine(VcfHeaderUtils.FILTER_NO_CALL_IN_TEST,"No call in test"); 
 	
-		header.add( new VcfHeaderFormat(VcfHeaderUtils.FORMAT_GENOTYPE, VcfInfoNumber.NUMBER, 1, VcfInfoType.String,"Genotype: 0/0 homozygous reference; 0/1 heterozygous for alternate allele; 1/1 homozygous for alternate allele"));
-		header.add( new VcfHeaderFormat(VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS, VcfInfoNumber.NUMBER, 1, VcfInfoType.String,"Genotype details: specific alleles (A,G,T or C)"));
-		header.add( new VcfHeaderFormat(VcfHeaderUtils.FORMAT_ALLELE_COUNT, VcfInfoNumber.NUMBER, 1, VcfInfoType.String,"Allele Count: lists number of reads on forward strand [avg base quality], reverse strand [avg base quality]"));
-		header.add( new VcfHeaderFormat(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP,VcfInfoNumber.NUMBER, 1, VcfInfoType.String,"Allele Count Compound Snp: lists read sequence and count (forward strand, reverse strand)"));
-		header.add( new VcfHeaderFormat(VcfHeaderUtils.FORMAT_ALLELIC_DEPTHS,VcfInfoNumber.NUMBER, 1, VcfInfoType.String,"Allelic depths for the ref and alt alleles in the order listed"));
-		header.add( new VcfHeaderFormat(VcfHeaderUtils.FORMAT_READ_DEPTH,VcfInfoNumber.NUMBER, 1, VcfInfoType.String,"Approximate read depth (reads with MQ=255 or with bad mates are filtered)"));
-		header.add( new VcfHeaderFormat(VcfHeaderUtils.FORMAT_GENOTYPE_QUALITY,VcfInfoNumber.NUMBER, 1, VcfInfoType.String,"Genotype Quality"));
-		header.add( new VcfHeaderFormat(VcfHeaderUtils.FORMAT_MUTANT_READS, VcfInfoNumber.NUMBER, 1, VcfInfoType.Integer,"Number of mutant/variant reads"));
-		header.add( new VcfHeaderFormat(VcfHeaderUtils.FORMAT_NOVEL_STARTS, VcfInfoNumber.NUMBER, 1, VcfInfoType.Integer,"Number of novel starts not considering read pair"));		
+		header.addFormatLine(VcfHeaderUtils.FORMAT_GENOTYPE, "1", VcfInfoType.String.toString() ,"Genotype: 0/0 homozygous reference; 0/1 heterozygous for alternate allele; 1/1 homozygous for alternate allele");
+		header.addFormatLine(VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS, "1", VcfInfoType.String.toString(),"Genotype details: specific alleles (A,G,T or C)");
+		header.addFormatLine(VcfHeaderUtils.FORMAT_ALLELE_COUNT, "1", VcfInfoType.String.toString(),"Allele Count: lists number of reads on forward strand [avg base quality], reverse strand [avg base quality]");
+		header.addFormatLine(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP, "1", VcfInfoType.String.toString(),"Allele Count Compound Snp: lists read sequence and count (forward strand, reverse strand)");
+		header.addFormatLine(VcfHeaderUtils.FORMAT_ALLELIC_DEPTHS, "1", VcfInfoType.String.toString(),"Allelic depths for the ref and alt alleles in the order listed");
+		header.addFormatLine(VcfHeaderUtils.FORMAT_READ_DEPTH, "1", VcfInfoType.String.toString(),"Approximate read depth (reads with MQ=255 or with bad mates are filtered)");
+		header.addFormatLine(VcfHeaderUtils.FORMAT_GENOTYPE_QUALITY, "1", VcfInfoType.String.toString(),"Genotype Quality");
+		header.addFormatLine(VcfHeaderUtils.FORMAT_MUTANT_READS,  "1", VcfInfoType.Integer.toString(),"Number of mutant/variant reads");
+		header.addFormatLine(VcfHeaderUtils.FORMAT_NOVEL_STARTS, "1", VcfInfoType.Integer.toString(),"Number of novel starts not considering read pair");		
 
 		if (singleSampleMode) {
-			header.add(new VcfHeaderRecord(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + testSampleId));
+			header.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + testSampleId);
 		} else {
-			header.add(new VcfHeaderRecord(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + controlSampleId + "\t" + testSampleId));
+			header.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + controlSampleId + "\t" + testSampleId);
 		}
 		return  header;
 	}
+//	private VcfHeader getHeaderForQSnp(final String patientId,  final String normalSampleId, final String tumourSampleId, 
+//			final String source, QBamId[] normalBamIds, QBamId[] tumourBamIds, String uuid, boolean singleSampleMode) throws Exception {
+//		
+//		final VcfHeader header = new VcfHeader();
+//		final DateFormat df = new SimpleDateFormat("yyyyMMdd");
+//		
+//		//move input uuid into preuuid
+//		header.add( VcfHeaderUtils.parseHeaderLine(VcfHeaderUtils.CURRENT_FILE_VERSION));		
+//		header.add( VcfHeaderUtils.parseHeaderLine(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + df.format(Calendar.getInstance().getTime()) ));
+//		header.add( VcfHeaderUtils.parseHeaderLine(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + QExec.createUUid() ));
+//		header.add( VcfHeaderUtils.parseHeaderLine(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=" + source ) );
+//		
+//		header.add( VcfHeaderUtils.parseHeaderLine(VcfHeaderUtils.STANDARD_PATIENTID   +  "=" + patientId ));
+//		header.add( VcfHeaderUtils.parseHeaderLine(VcfHeaderUtils.STANDARD_CONTROLSAMPLE + "=" + normalSampleId ));
+//		header.add( VcfHeaderUtils.parseHeaderLine(VcfHeaderUtils.STANDARD_TESTSAMPLE + "=" + tumourSampleId ));
+//		
+//		if (null != normalBamIds)  
+//			for (final QBamId s : normalBamIds) {
+//				header.add( VcfHeaderUtils.parseHeaderLine(VcfHeaderUtils.STANDARD_CONTROLBAM  + "=" + s.getBamName()));
+//				header.add( VcfHeaderUtils.parseHeaderLine("##qControlBamUUID=" + s.getUUID()));
+//			}
+//		
+//		if (null != tumourBamIds)  
+//			for (final QBamId s : tumourBamIds) {
+//				header.add( VcfHeaderUtils.parseHeaderLine(VcfHeaderUtils.STANDARD_TESTBAM  + "=" + s.getBamName()));
+//				header.add( VcfHeaderUtils.parseHeaderLine("##qTestBamUUID=" + s.getUUID()));
+//			}		
+//		header.add( VcfHeaderUtils.parseHeaderLine( "##qAnalysisId=" + uuid ) );
+//		
+//		header.add( new VcfHeaderInfo(VcfHeaderUtils.INFO_FLANKING_SEQUENCE, VcfInfoNumber.NUMBER, 1, VcfInfoType.String,"Flanking sequence either side of variant", null, null)); 																		
+//		
+//		header.parseHeaderLine(VcfHeaderUtils.FILTER_COVERAGE_NORMAL_12, "Less than 12 reads coverage in normal"));
+//		header.parseHeaderLine(VcfHeaderUtils.FILTER_COVERAGE_NORMAL_8,"Less than 8 reads coverage in normal"));  
+//		header.parseHeaderLine(VcfHeaderUtils.FILTER_COVERAGE_TUMOUR,"Less than 8 reads coverage in tumour")); 
+//		header.parseHeaderLine(VcfHeaderUtils.FILTER_SAME_ALLELE_NORMAL,"Less than 3 reads of same allele in normal"));  
+//		header.parseHeaderLine(VcfHeaderUtils.FILTER_SAME_ALLELE_TUMOUR,"Less than 3 reads of same allele in tumour"));  
+//		header.parseHeaderLine(VcfHeaderUtils.FILTER_MUTATION_IN_NORMAL,"Mutation also found in pileup of normal"));  
+//		header.parseHeaderLine(VcfHeaderUtils.FILTER_MUTATION_IN_UNFILTERED_NORMAL,"Mutation also found in pileup of (unfiltered) normal"));  
+//		header.parseHeaderLine(VcfHeaderUtils.FILTER_GERMLINE,"Mutation is a germline variant in another patient"));  
+//		header.parseHeaderLine(VcfHeaderUtils.FILTER_NOVEL_STARTS,"Less than 4 novel starts not considering read pair"));  
+//		header.parseHeaderLine(VcfHeaderUtils.FILTER_MUTANT_READS,"Less than 5 mutant reads")); 
+//		header.parseHeaderLine(VcfHeaderUtils.FILTER_MUTATION_EQUALS_REF,"Mutation equals reference")); 
+//		header.parseHeaderLine(VcfHeaderUtils.FILTER_NO_CALL_IN_TEST,"No call in test")); 
+//		
+//		header.add( new VcfHeaderFormat(VcfHeaderUtils.FORMAT_GENOTYPE, VcfInfoNumber.NUMBER, 1, VcfInfoType.String,"Genotype: 0/0 homozygous reference; 0/1 heterozygous for alternate allele; 1/1 homozygous for alternate allele"));
+//		header.add( new VcfHeaderFormat(VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS, VcfInfoNumber.NUMBER, 1, VcfInfoType.String,"Genotype details: specific alleles (A,G,T or C)"));
+//		header.add( new VcfHeaderFormat(VcfHeaderUtils.FORMAT_ALLELE_COUNT, VcfInfoNumber.NUMBER, 1, VcfInfoType.String,"Allele Count: lists number of reads on forward strand [avg base quality], reverse strand [avg base quality]"));
+//		header.add( new VcfHeaderFormat(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP,VcfInfoNumber.NUMBER, 1, VcfInfoType.String,"Allele Count Compound Snp: lists read sequence and count (forward strand, reverse strand)"));
+//		header.add( new VcfHeaderFormat(VcfHeaderUtils.FORMAT_ALLELIC_DEPTHS,VcfInfoNumber.NUMBER, 1, VcfInfoType.String,"Allelic depths for the ref and alt alleles in the order listed"));
+//		header.add( new VcfHeaderFormat(VcfHeaderUtils.FORMAT_READ_DEPTH,VcfInfoNumber.NUMBER, 1, VcfInfoType.String,"Approximate read depth (reads with MQ=255 or with bad mates are filtered)"));
+//		header.add( new VcfHeaderFormat(VcfHeaderUtils.FORMAT_GENOTYPE_QUALITY,VcfInfoNumber.NUMBER, 1, VcfInfoType.String,"Genotype Quality"));
+//		header.add( new VcfHeaderFormat(VcfHeaderUtils.FORMAT_MUTANT_READS, VcfInfoNumber.NUMBER, 1, VcfInfoType.Integer,"Number of mutant/variant reads"));
+//		header.add( new VcfHeaderFormat(VcfHeaderUtils.FORMAT_NOVEL_STARTS, VcfInfoNumber.NUMBER, 1, VcfInfoType.Integer,"Number of novel starts not considering read pair"));		
+//		
+//		if (singleSampleMode) {
+//			header.add(VcfHeaderUtils.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + testSampleId));
+//		} else {
+//			header.add(VcfHeaderUtils.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + controlSampleId + "\t" + testSampleId));
+//		}
+//		return  header;
+//	}
 	
 	
 	void classifyPileupRecord(QSnpRecord record) {

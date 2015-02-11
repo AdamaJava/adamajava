@@ -8,8 +8,6 @@ import org.qcmg.common.vcf.VcfFormatFieldRecord;
 import org.qcmg.common.vcf.VcfInfoFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
-import org.qcmg.common.vcf.header.VcfHeaderInfo;
-import org.qcmg.common.vcf.header.VcfHeaderRecord.VcfInfoNumber;
 import org.qcmg.common.vcf.header.VcfHeaderRecord.VcfInfoType;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 
@@ -23,9 +21,6 @@ import au.edu.qimr.qannotate.options.CustomerConfidenceOptions;
  */
 public class CustomerConfidenceMode extends AbstractMode{
 	
-//	public static final String SOMATIC = "SOMATIC";
-//	public static final String NOVEL_STARTS = "NNS";
-
 	String description = null;
 	int min_read_counts = 50;
 	int variants_rate = 10 ;
@@ -54,7 +49,6 @@ public class CustomerConfidenceMode extends AbstractMode{
 		writeVCF(new File(options.getOutputFileName()) );	
 	}
 	
-	
 	/**
 	 * add dbsnp version
 	 * @throws Exception
@@ -68,8 +62,7 @@ public class CustomerConfidenceMode extends AbstractMode{
 		description += 	(passOnly) ? "passed filter," : "";
 		description += "total read counts more than " +  Integer.toString(min_read_counts) + ", more than ";
 		description += Integer.toString( variants_rate) + "% reads contains variants";		
-		header.add(new VcfHeaderInfo(VcfHeaderUtils.INFO_CONFIDENT, 
-				VcfInfoNumber.NUMBER,0, VcfInfoType.Flag, description, null,null) );
+		header.addInfoLine(VcfHeaderUtils.INFO_CONFIDENT, "0", VcfInfoType.Flag.toString(), description);
 	      
 		final Iterator<VcfRecord>  it =  positionRecordMap.values().iterator();
 		while( it.hasNext() ){
@@ -80,16 +73,12 @@ public class CustomerConfidenceMode extends AbstractMode{
 			infoRecord.removeField(VcfHeaderUtils.INFO_CONFIDENT);
 			re.setInfo(infoRecord.toString());	//must reset here
 			
-			
-			
 			//only annotate record passed filters
 			if(passOnly && !re.getFilter().toUpperCase().contains(VcfHeaderUtils.FILTER_PASS)) 							
 				continue;
-		 
 			
 			 final VcfFormatFieldRecord allel = (re.getInfo().contains(VcfHeaderUtils.INFO_SOMATIC)) ? re.getSampleFormatRecord(test_column) :  re.getSampleFormatRecord(control_column);
 
-			  
 			//final String allel = (re.getInfo().contains(VcfHeaderUtils.INFO_SOMATIC)) ? re.getFormatFields().get(test_column) :  re.getFormatFields().get(control_column); 		 
 			final int total =  VcfUtils.getAltFrequency(  allel, null );
 			if( total <  min_read_counts) continue;
@@ -101,18 +90,8 @@ public class CustomerConfidenceMode extends AbstractMode{
 				return; 
 			}	
 			
-			
 			infoRecord.setField(VcfHeaderUtils.INFO_CONFIDENT, Confidence.HIGH.toString());
 			re.setInfo(infoRecord.toString());			
 		}		
 	}				
-	
-	
-	 
-	
-	 
 }	
-	
-  
-	
- 

@@ -10,8 +10,6 @@ import java.util.regex.Pattern;
 
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
-import org.qcmg.common.vcf.header.VcfHeaderRecord.MetaType;
-import org.qcmg.common.vcf.header.VcfHeaderRecord.VcfInfoType;
 
 public class VcfHeaderQPG extends VcfHeaderRecord implements Comparable<VcfHeaderQPG> {
 	
@@ -51,14 +49,17 @@ public class VcfHeaderQPG extends VcfHeaderRecord implements Comparable<VcfHeade
  		final int start = line.indexOf('<');
 		final int end = line.lastIndexOf('>');
 		
-		if (start == -1 || end == -1)  
-			throw new IllegalArgumentException("string passed to QPG ctor doesn't contain < and >  : " + line);	
+		if (start == -1 || end == -1) {
+			throw new IllegalArgumentException("string passed to QPG ctor doesn't contain < and >  : " + line);
+		}
 		
 		final String params = line.substring(start + 1, end);
 		
 		// Find description	 
 		final Matcher matcher = pattern_CL.matcher(params);
-		if (matcher.find()) commandLine = matcher.group(1);
+		if (matcher.find()) {
+			commandLine = matcher.group(1);
+		}
 
 		
 		//do rest string without \"
@@ -70,8 +71,8 @@ public class VcfHeaderQPG extends VcfHeaderRecord implements Comparable<VcfHeade
 		version = getStringValueFromArray(elements, VERSION, Constants.EQ_STRING);
 		date =  getStringValueFromArray(elements, DATE, Constants.EQ_STRING);
 		
-		line = toString();
-		this.record = this;
+//		line = toString();
+//		this.record = this;
 		
 	}
 	
@@ -88,7 +89,7 @@ public class VcfHeaderQPG extends VcfHeaderRecord implements Comparable<VcfHeade
 		
 		this.type = MetaType.QPG; //type should bf line otherwise exception
 		this.line = toString();		
-		this.record = this;
+//		this.record = this;
 		
 	}
 	

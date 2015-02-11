@@ -47,10 +47,6 @@ import org.qcmg.common.vcf.VcfPositionComparator;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
-import org.qcmg.common.vcf.header.VcfHeaderFilter;
-import org.qcmg.common.vcf.header.VcfHeaderInfo;
-import org.qcmg.common.vcf.header.VcfHeaderRecord;
-import org.qcmg.common.vcf.header.VcfHeaderRecord.VcfInfoNumber;
 import org.qcmg.common.vcf.header.VcfHeaderRecord.VcfInfoType;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.illumina.IlluminaFileReader;
@@ -370,7 +366,7 @@ public class SignatureGenerator {
 			
 			try (VCFFileWriter writer = new VCFFileWriter(outputVCFFile, true);){
 				// write header
-				for(final VcfHeaderRecord re: header)
+				for(final VcfHeader.Record re: header)
 					writer.addHeader(re.toString() );
 				
 				for (final VcfRecord vcf : snps) {
@@ -404,19 +400,19 @@ public class SignatureGenerator {
 		final String uuid = QExec.createUUid();
 
 		//move input uuid into preuuid
-		header.add(new VcfHeaderRecord(VcfHeaderUtils.CURRENT_FILE_VERSION));		
-		header.add(new VcfHeaderRecord(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + fileDate ));
-		header.add(new VcfHeaderRecord(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + uuid ));
-		header.add(new VcfHeaderRecord( "##bam_file=" + bamName ) );
-		header.add( new VcfHeaderRecord("##snp_file=" + snpFile  ));
-		header.add( new VcfHeaderFilter("BASE_QUALITY", "Base quality < " + minBaseQuality ) );
-		header.add( new VcfHeaderFilter("MAPPING_QUALITY", "Mapping quality < " + minMappingQuality ) );
+		header.parseHeaderLine(VcfHeaderUtils.CURRENT_FILE_VERSION);	
+		header.parseHeaderLine(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + fileDate);
+		header.parseHeaderLine(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + uuid );
+		header.parseHeaderLine( "##bam_file=" + bamName);
+		header.parseHeaderLine("##snp_file=" + snpFile);
+		header.addFilterLine("BASE_QUALITY", "Base quality < " + minBaseQuality);
+		header.addFilterLine("MAPPING_QUALITY", "Mapping quality < " + minMappingQuality);
 //		header.add( new VcfHeaderFilter("##filter_q_score=10") );
-//		header.add( new VcfHeaderRecord("##filter_match_qual=10"));		
-//		header.add( new VcfHeaderRecord(VcfHeaderUtils.FILTER_LOW_QUAL,"REQUIRED: QUAL < 50.0") );
-		header.add( new VcfHeaderInfo("FULLCOV", VcfInfoNumber.UNKNOWN, -1, VcfInfoType.String, "all bases at position", null, null) );
-		header.add( new VcfHeaderInfo("NOVELCOV", VcfInfoNumber.UNKNOWN, -1, VcfInfoType.String, "bases at position from reads with novel starts", null, null)  );
-  		header.add(new VcfHeaderRecord(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE));
+//		header.add( VcfHeaderUtils.parseHeaderLine("##filter_match_qual=10"));		
+//		header.add( VcfHeaderUtils.parseHeaderLine(VcfHeaderUtils.FILTER_LOW_QUAL,"REQUIRED: QUAL < 50.0") );
+		header.addInfoLine("FULLCOV", "-1", VcfInfoType.String.toString(), "all bases at position");
+		header.addInfoLine("NOVELCOV",  "-1", VcfInfoType.String.toString(), "bases at position from reads with novel starts");
+  		header.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE);
 		return  header;
 		
 /*		
@@ -445,23 +441,23 @@ public class SignatureGenerator {
 		final String uuid = QExec.createUUid();
 
 		//move input uuid into preuuid
-		header.add( new VcfHeaderRecord(VcfHeaderUtils.CURRENT_FILE_VERSION));		
-		header.add( new VcfHeaderRecord(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + fileDate ));
-		header.add( new VcfHeaderRecord(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + uuid ));
-		header.add( new VcfHeaderRecord(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=" + pg+"-"+version) );
-		header.add( new VcfHeaderRecord("##patient_id=" + patientId));
-		header.add( new VcfHeaderRecord("##input_type=" + inputType ));
-		header.add( new VcfHeaderRecord( "##sample=" + sample ) );
-		header.add( new VcfHeaderRecord( "##bam_file=" + illuminaFileName ) );		
-		header.add( new VcfHeaderRecord("##snp_file=" + snpFile  ));
-		header.add( new VcfHeaderRecord("##genome=GRCh37_ICGC_standard_v2.fa\n"));		
-		header.add( new VcfHeaderRecord("##filter_q_score=10") );
-		header.add( new VcfHeaderRecord("##filter_match_qual=10"));	
+		header.parseHeaderLine(VcfHeaderUtils.CURRENT_FILE_VERSION);		
+		header.parseHeaderLine(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + fileDate );
+		header.parseHeaderLine(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + uuid );
+		header.parseHeaderLine(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=" + pg+"-"+version) ;
+		header.parseHeaderLine(VcfHeaderUtils.STANDARD_DONOR_ID + "=" + patientId);
+		header.parseHeaderLine("##input_type=" + inputType );
+		header.parseHeaderLine( "##sample=" + sample ) ;
+		header.parseHeaderLine( "##bam_file=" + illuminaFileName ) ;		
+		header.parseHeaderLine("##snp_file=" + snpFile  );
+		header.parseHeaderLine("##genome=GRCh37_ICGC_standard_v2.fa\n");		
+		header.parseHeaderLine("##filter_q_score=10");
+		header.parseHeaderLine("##filter_match_qual=10");	
 		
-		header.add( new VcfHeaderFilter(VcfHeaderUtils.FILTER_LOW_QUAL,"REQUIRED: QUAL < 50.0") );
-		header.add( new VcfHeaderInfo("FULLCOV", VcfInfoNumber.UNKNOWN, -1, VcfInfoType.String, "all bases at position", null, null) );
-		header.add( new VcfHeaderInfo("NOVELCOV", VcfInfoNumber.UNKNOWN, -1, VcfInfoType.String, "bases at position from reads with novel starts", null, null)  );
-  		header.add(new VcfHeaderRecord(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE));
+		header.addFilterLine(VcfHeaderUtils.FILTER_LOW_QUAL,"REQUIRED: QUAL < 50.0");
+		header.addInfoLine("FULLCOV", "-1", VcfInfoType.String.toString(), "all bases at position");
+		header.addInfoLine("NOVELCOV", "-1", VcfInfoType.String.toString(), "bases at position from reads with novel starts");
+  		header.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE);
 		return  header;
 		
 		

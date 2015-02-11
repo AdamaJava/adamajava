@@ -7,7 +7,6 @@ import java.io.BufferedReader;
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -55,8 +54,8 @@ public final class VCFFileReader implements Closeable, Iterable<VcfRecord> {
         
     }
 
-    public VCFFileReader(final String file) throws Exception {
-    	this(new File(file));
+    public VCFFileReader(final String file) throws IOException  {
+    		this (new File(file));
     }
     
     @Override

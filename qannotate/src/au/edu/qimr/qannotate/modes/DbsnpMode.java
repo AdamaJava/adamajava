@@ -4,19 +4,19 @@ import static org.qcmg.common.util.Constants.EQ;
 
 import java.io.File;
 import java.util.Iterator;
+import java.util.Map;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.string.StringUtils;
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfInfoFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
-import org.qcmg.common.vcf.header.VcfHeaderRecord.MetaType;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
-import org.qcmg.common.util.Constants;
 
 import au.edu.qimr.qannotate.options.DbsnpOptions;
 
@@ -53,28 +53,46 @@ public class DbsnpMode extends AbstractMode{
 	        vcf.getInfoRecord().removeField(VcfHeaderUtils.INFO_DB);
  	    }
 		 				 
-		try(VCFFileReader reader= new VCFFileReader( dbSNPFile )) {
+		try (VCFFileReader reader= new VCFFileReader( dbSNPFile )) {
 			//add dbSNP version into header	
 			final VcfHeader snpHeader = reader.getHeader();
-			for (final VcfHeaderRecord hr : snpHeader) 
-				if(hr.getMetaType().equals(MetaType.META) &&  hr.getId().equalsIgnoreCase(VcfHeaderUtils.STANDARD_DBSNP_LINE)) 
+			for (final VcfHeader.Record hr : snpHeader.getMetaRecords()) { 
+				if (hr.getData().startsWith(VcfHeaderUtils.STANDARD_DBSNP_LINE)) {
 				//if( hr.getMetaType().equals(MetaType.INFO) && hr.getId().equalsIgnoreCase(VcfHeaderUtils.INFO_DB) ) 
-					header.replace(new VcfHeaderRecord(
-							String.format("##INFO=<ID=%s,Number=0,Type=%s,Description=\"%s\",Source=%s,Version=%s>",
-									VcfHeaderUtils.INFO_DB, VcfHeaderRecord.VcfInfoType.Flag.name(),VcfHeaderUtils.DESCRITPION_INFO_DB, dbSNPFile, hr.getDescription())));  					 				
-				else if( hr.getMetaType().equals(MetaType.INFO) && hr.getId().equalsIgnoreCase(VcfHeaderUtils.INFO_GMAF) ) 
-					header.replace(hr);				 
-				 else if( hr.getMetaType().equals(MetaType.INFO) && hr.getId().equalsIgnoreCase(VcfHeaderUtils.INFO_CAF) ) 
-					header.replace(new VcfHeaderRecord(
-							String.format("##INFO=<ID=%s,Number=.,Type=String,Description=\"%s\">", VcfHeaderUtils.INFO_VAF, VcfHeaderUtils.DESCRITPION_INFO_VAF  )	));
-							 
-				 else if( hr.getMetaType().equals(MetaType.INFO) && hr.getId().equalsIgnoreCase(VcfHeaderUtils.INFO_VLD) ) 
-						header.replace(hr);
-				 							 
+					header.parseHeaderLine(String.format("##INFO=<ID=%s,Number=0,Type=%s,Description=\"%s\",Source=%s,Version=%s>",
+									VcfHeaderUtils.INFO_DB, VcfHeaderRecord.VcfInfoType.Flag.name(),VcfHeaderUtils.DESCRITPION_INFO_DB, dbSNPFile, 
+									StringUtils.getValueFromKey(hr.getData(), VcfHeaderUtils.STANDARD_DBSNP_LINE)));
+				}
+			}
+			
+			Map<String, VcfHeader.FormattedRecord> infoRecords = snpHeader.getInfoRecords();
+			
+			if (infoRecords.containsKey(VcfHeaderUtils.INFO_GMAF)) {
+				header.addInfo(infoRecords.get(VcfHeaderUtils.INFO_GMAF));
+			}
+			if (infoRecords.containsKey(VcfHeaderUtils.INFO_CAF)) {
+				header.parseHeaderLine(String.format("##INFO=<ID=%s,Number=.,Type=String,Description=\"%s\">", VcfHeaderUtils.INFO_VAF, VcfHeaderUtils.DESCRITPION_INFO_VAF));
+			}
+			if (infoRecords.containsKey(VcfHeaderUtils.INFO_VLD)) {
+				header.addInfo(infoRecords.get(VcfHeaderUtils.INFO_VLD));
+			}
+			
+//			for (final VcfHeader.Record hr : snpHeader.get()) { 
+//			
+//				} else if( hr.getMetaType().equals(MetaType.INFO) && hr.getId().equalsIgnoreCase(VcfHeaderUtils.INFO_GMAF) ) { 
+//					header.replace(hr);				 
+//				} else if( hr.getMetaType().equals(MetaType.INFO) && hr.getId().equalsIgnoreCase(VcfHeaderUtils.INFO_CAF) ) {
+//					header.replace(VcfHeaderUtils.parseHeaderLine(
+//							String.format("##INFO=<ID=%s,Number=.,Type=String,Description=\"%s\">", VcfHeaderUtils.INFO_VAF, VcfHeaderUtils.DESCRITPION_INFO_VAF  )	));
+//							 
+//				} else if( hr.getMetaType().equals(MetaType.INFO) && hr.getId().equalsIgnoreCase(VcfHeaderUtils.INFO_VLD)) {
+//									header.replace(hr);
+//				}
+//			}
 			//below algorithm only work for SNP and compound SNP
 			for (final VcfRecord dbSNPVcf : reader) {
-				if ( !StringUtils.doesStringContainSubString(dbSNPVcf.getInfo(), "VC=SNV", false) &&
-						!StringUtils.doesStringContainSubString(dbSNPVcf.getInfo(), "VC=MNV", false))
+				if ( ! StringUtils.doesStringContainSubString(dbSNPVcf.getInfo(), "VC=SNV", false) &&
+						! StringUtils.doesStringContainSubString(dbSNPVcf.getInfo(), "VC=MNV", false))
 					continue;
 
 			
@@ -88,7 +106,7 @@ public class DbsnpMode extends AbstractMode{
 				//reference base must be same
 				final String dbRef = dbSNPVcf.getRef().substring(start - dbSNPVcf.getPosition());
 				final String inputRef = inputVcf.getRef();
-				if( ! dbRef.equals( inputRef )){ 
+				if ( ! dbRef.equals( inputRef )){ 
 					logger.warn(String.format( "dbSNP reference base (%s) are different to vcf Record (%s) for variant at position: %s", dbRef, inputRef, inputVcf.getPosition()));			 
 					continue;
 				}
@@ -99,20 +117,21 @@ public class DbsnpMode extends AbstractMode{
 				String [] alts = {}; 
 				try{					
 					alts = TabTokenizer.tokenize(dbSNPVcf.getAlt(), ','); //multi allels
-				}catch(final IllegalArgumentException e){				
+				} catch (final IllegalArgumentException e){				
 					alts = new String[] {dbSNPVcf.getAlt()};		//single allel	
 				}
 				
 				int altOrder = 0;
-				for (final String alt : alts){  
+				for (final String alt : alts) {
 					altOrder ++;
 					//if(dbSNPVcf.getAlt().toUpperCase().contains(alt.toUpperCase()) ){
- 					if(inputVcf.getAlt().equalsIgnoreCase(alt.substring(start-dbSNPVcf.getPosition())  )  ){
+ 					if(inputVcf.getAlt().equalsIgnoreCase(alt.substring(start-dbSNPVcf.getPosition()))) {
 						inputVcf.appendInfo(getCAF(dbSNPVcf.getInfo(), altOrder));
 						inputVcf.setId(dbSNPVcf.getId());	
 						inputVcf.appendInfo(VcfHeaderUtils.INFO_DB);
-						if(dbSNPVcf.getInfoRecord().getField(VcfHeaderUtils.INFO_VLD) != null)
+						if(dbSNPVcf.getInfoRecord().getField(VcfHeaderUtils.INFO_VLD) != null) {
 							inputVcf.appendInfo(VcfHeaderUtils.INFO_VLD);
+						}
 						break;
 					} 
  					

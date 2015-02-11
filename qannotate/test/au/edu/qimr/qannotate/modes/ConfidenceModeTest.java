@@ -11,12 +11,9 @@ import java.util.List;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.qcmg.common.vcf.VcfInfoFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
-import org.qcmg.common.vcf.header.VcfHeader;
-import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 
@@ -24,11 +21,8 @@ import au.edu.qimr.qannotate.modes.ConfidenceMode.Confidence;
 
 public class ConfidenceModeTest {
 	
-	//final static String inputName = "input.vcf";
 	final static String VerifiedFileName = "verify.vcf";
 	final static String patient = "APGI_2001";
-	//final static String outputName = "output.vcf";
-
 	
 	@BeforeClass
 	public static void createInput() throws IOException{
@@ -46,15 +40,12 @@ public class ConfidenceModeTest {
 		 
 	 }
 	
-	 
 	 //??add here to test checkNovelStarts(int score, VcfRecord vcf ) 
 	  
 	 @Test
 	 public void getNNSTest() throws IOException{
 		
 
-		 
-		 
 		 
 	 }
 	
@@ -67,8 +58,6 @@ public class ConfidenceModeTest {
 		//
 		
 		mode.retriveDefaultSampleColumn();
- 	 
-	
 	}
 	 @Test
 	 public void SingleSampleTest() throws IOException, Exception{	
@@ -78,9 +67,9 @@ public class ConfidenceModeTest {
 			
 			String Scontrol = "EXTERN-MELA-20140505-001";
 			String Stest = "EXTERN-MELA-20140505-002";
-			mode.header.add(new VcfHeaderRecord("##qControlSample=" + Scontrol));
-			mode.header.add(new VcfHeaderRecord("##qTestSample="+ Stest));	
-			mode.header.add( new VcfHeaderRecord("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tEXTERN-MELA-20140505-001\tEXTERN-MELA-20140505-002"));			
+			mode.header.parseHeaderLine("##qControlSample=" + Scontrol);
+			mode.header.parseHeaderLine("##qTestSample="+ Stest);	
+			mode.header.parseHeaderLine("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tEXTERN-MELA-20140505-001\tEXTERN-MELA-20140505-002");			
 			
 			//mode.retriveDefaultSampleColumn();
 			mode.retriveSampleColumn(Stest, Scontrol, mode.header);
@@ -113,11 +102,16 @@ public class ConfidenceModeTest {
 			final ConfidenceMode mode = new ConfidenceMode(patient);		
 			mode.inputRecord(new File(DbsnpModeTest.inputName));
 			
+			
+			//mode.header.add(VcfHeaderUtils.parseHeaderLine("##qControlSample=Control") );
+			//mode.header.add( VcfHeaderUtils.parseHeaderLine("##qTestSample=Test")  );
+			//mode.header.add( VcfHeaderUtils.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "\tControl\tTest")  );	
+			
 			String Scontrol = "EXTERN-MELA-20140505-001";
 			String Stest = "EXTERN-MELA-20140505-002";
-			mode.header.add(new VcfHeaderRecord("##qControlSample=" + Scontrol));
-			mode.header.add(new VcfHeaderRecord("##qTestSample="+ Stest));	
-			mode.header.add( new VcfHeaderRecord("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tEXTERN-MELA-20140505-001\tEXTERN-MELA-20140505-002"));			
+			mode.header.parseHeaderLine("##qControlSample=" + Scontrol);
+			mode.header.parseHeaderLine("##qTestSample="+ Stest);	
+			mode.header.parseHeaderLine("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tEXTERN-MELA-20140505-001\tEXTERN-MELA-20140505-002");			
 			
 			//mode.retriveDefaultSampleColumn();
 			mode.retriveSampleColumn(Stest, Scontrol, mode.header);
@@ -142,10 +136,6 @@ public class ConfidenceModeTest {
 			 }		
  	 	 
 	 }
-	 
-	 
-
-	
 
 	public static void createVerifiedFile() throws IOException{
         final List<String> data = new ArrayList<String>();
@@ -160,9 +150,4 @@ public class ConfidenceModeTest {
         }
           
 	}
- 
-	
-
-	
-
 }

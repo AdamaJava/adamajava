@@ -32,7 +32,7 @@ public class DateUtils {
 	
 	/**
 	 * Returns the current date in the specified format
-	 * @param format String containing the required date format
+	 * @param FORMAT String containing the required date format
 	 * @return String containing the current date formatted according to the supplied format
 	 */
 	public static String getCurrentTimeAsString() {

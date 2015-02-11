@@ -18,6 +18,7 @@ import org.qcmg.common.commandline.Executor;
 import org.qcmg.common.model.PileupElement;
 import org.qcmg.common.model.Rule;
 import org.qcmg.common.vcf.VcfRecord;
+import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.pileup.QSnpRecord;
 import org.qcmg.tab.TabbedFileReader;
 import org.qcmg.tab.TabbedRecord;
@@ -42,6 +43,256 @@ public class VcfPipelineTest {
 			}
 		}  
 	}
+	
+//	@Test
+//	public void doesEqualsWork() throws Exception {
+//		VcfHeader header = new VcfHeader();
+//		header.parseHeaderLine("##FILTER==<ID=LowQual,Description=\"Low quality\">");
+//		header.parseHeaderLine("##FILTER==<ID=LowQual,Description=\"Low quality\">");
+//		VcfHeader.Record rec1 = VcfHeaderUtils.parseHeaderLine("##FILTER==<ID=LowQual,Description=\"Low quality\">");
+//		VcfHeaderRecord rec2 = VcfHeaderUtils.parseHeaderLine("##FILTER==<ID=LowQual,Description=\"Low quality\">");
+//		assertEquals(true, rec1.equals(rec1));
+//		assertEquals(true, rec2.equals(rec2));
+//		assertEquals(true, rec1.equals(rec2));
+//		assertEquals(false, rec1 == rec2);
+//		
+//		// and now as VcfHeaderFilter objects
+//		VcfHeaderFilter rec3 = new VcfHeaderFilter("##FILTER==<ID=LowQual,Description=\"Low quality\">");
+//		assertEquals(true, rec1.equals(rec3));
+//		
+//		
+//		// last one - serialise and de-serialise
+//		header.add(rec1);
+//		
+//		File vcfFile = testFolder.newFile();
+//		try (VCFFileWriter writer = new VCFFileWriter(vcfFile)) {
+//			for (VcfHeaderRecord hr : header) {
+//				writer.addHeader(hr.toString());
+//			}
+//		}
+//		
+//		// and now read from file
+//		VcfHeader headerFromFile = null;
+//		try (VCFFileReader reader = new VCFFileReader(vcfFile)) {
+//			headerFromFile = reader.getHeader();
+//		}
+//		List<VcfHeaderRecord> recordsFromFile = new ArrayList<>();
+//		for (VcfHeaderRecord rec : headerFromFile) {
+//			recordsFromFile.add(rec);
+//		}
+//		
+//		assertEquals(2, recordsFromFile.size());		// we add the final header line by default
+//		assertEquals(true, recordsFromFile.contains(rec1));
+//		
+//		
+//		// and now when integrating from qsnp
+//		  TestVcfPipeline vp = new TestVcfPipeline(true);
+//		  TestVcfPipeline.testVcfHeader = headerFromFile;
+//		  File qsnpVcfFile = testFolder.newFile();
+//		  vp.writeVCF(qsnpVcfFile.getAbsolutePath());
+//		  
+//		  VcfHeader finalHeader = null;
+//		  try (VCFFileReader reader2 = new VCFFileReader(qsnpVcfFile);) {
+//		  		finalHeader = reader2.getHeader();
+//		  }
+//		  Collection<VcfHeaderRecord> finalHeaderRecords = new ArrayList<>();
+//		  for (VcfHeaderRecord rec : finalHeader) {
+//			  finalHeaderRecords.add(rec);
+//		  }
+//		  
+//		  assertEquals(true, finalHeaderRecords.contains(rec1));
+//		
+//	}
+	
+	@Test
+	public void getExistingVcfHeader() throws Exception {
+		// create an actual GATK vcf header
+		List<String> header = new ArrayList<>();
+		
+		  header.add("##fileformat=VCFv4.1");
+		  header.add("##FILTER=<ID=LowQual,Description=\"Low quality\">");
+		  header.add("##FORMAT=<ID=AD,Number=.,Type=Integer,Description=\"Allelic depths for the ref and alt alleles in the order listed\">");
+		  header.add("##FORMAT=<ID=DP,Number=1,Type=Integer,Description=\"Approximate read depth (reads with MQ=255 or with bad mates are filtered)\">");
+		  header.add("##FORMAT=<ID=GQ,Number=1,Type=Integer,Description=\"Genotype Quality\">");
+		  header.add("##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">");
+		  header.add("##FORMAT=<ID=PL,Number=G,Type=Integer,Description=\"Normalized, Phred-scaled likelihoods for genotypes as defined in the VCF specification\">");
+		  header.add("##GATKCommandLine=<ID=HaplotypeCaller,Version=3.3-0-g37228af,Date=\"Tue Feb 03 06:10:18 EST 2015\",Epoch=1422907818839,CommandLineOptions=\"analysis_type=HaplotypeCaller input_file=[/mnt/genomeinfo_projects/data/oesophageal/OESO_2804/seq_final/SmgresOesophageal_OESO2804_1DNA_7PrimaryTumour_OESOABNW2012061454TD_IlluminaIGNOutsourcing_NoCapture_Bwa_HiSeq.jpearson.bam] showFullBamList=false read_buffer_size=null phone_home=AWS gatk_key=null tag=NA read_filter=[] intervals=[/mnt/genomeinfo_projects/data/oesophageal/OESO_2804/seq_final/SmgresOesophageal_OESO2804_1DNA_7PrimaryTumour_OESOABNW2012061454TD_IlluminaIGNOutsourcing_NoCapture_Bwa_HiSeq.jpearson.bam.queue/HC_C_OESO_2804-1-sg/temp_01_of_25/scatter.intervals] excludeIntervals=null interval_set_rule=UNION interval_merging=ALL interval_padding=0 reference_sequence=/opt/local/genomeinfo/genomes/GRCh37_ICGC_standard_v2/GRCh37_ICGC_standard_v2.fa nonDeterministicRandomSeed=false disableDithering=false maxRuntime=-1 maxRuntimeUnits=MINUTES downsampling_type=BY_SAMPLE downsample_to_fraction=null downsample_to_coverage=250 baq=OFF baqGapOpenPenalty=40.0 refactor_NDN_cigar_string=false fix_misencoded_quality_scores=false allow_potentially_misencoded_quality_scores=false useOriginalQualities=false defaultBaseQualities=-1 performanceLog=null BQSR=null quantize_quals=0 disable_indel_quals=false emit_original_quals=false preserve_qscores_less_than=6 globalQScorePrior=-1.0 validation_strictness=SILENT remove_program_records=false keep_program_records=false sample_rename_mapping_file=null unsafe=null disable_auto_index_creation_and_locking_when_reading_rods=false no_cmdline_in_header=false sites_only=false never_trim_vcf_format_field=false bcf=false bam_compression=null simplifyBAM=false disable_bam_indexing=false generate_md5=false num_threads=1 num_cpu_threads_per_data_thread=1 num_io_threads=0 monitorThreadEfficiency=false num_bam_file_handles=null read_group_black_list=null pedigree=[] pedigreeString=[] pedigreeValidationType=STRICT allow_intervals_with_unindexed_bam=false generateShadowBCF=false variant_index_type=DYNAMIC_SEEK variant_index_parameter=-1 logging_level=INFO log_to_file=null help=false version=false out=org.broadinstitute.gatk.engine.io.stubs.VariantContextWriterStub likelihoodCalculationEngine=PairHMM heterogeneousKmerSizeResolution=COMBO_MIN graphOutput=null bamOutput=null bamWriterType=CALLED_HAPLOTYPES disableOptimizations=false dbsnp=(RodBinding name=dbsnp source=/opt/local/genomeinfo/dbsnp/135/00-All_chr.vcf) dontTrimActiveRegions=false maxDiscARExtension=25 maxGGAARExtension=300 paddingAroundIndels=150 paddingAroundSNPs=20 comp=[] annotation=[ClippingRankSumTest, DepthPerSampleHC] excludeAnnotation=[SpanningDeletions, TandemRepeatAnnotator] debug=false useFilteredReadsForAnnotations=false emitRefConfidence=NONE annotateNDA=false heterozygosity=0.001 indel_heterozygosity=1.25E-4 standard_min_confidence_threshold_for_calling=30.0 standard_min_confidence_threshold_for_emitting=30.0 max_alternate_alleles=6 input_prior=[] sample_ploidy=2 genotyping_mode=DISCOVERY alleles=(RodBinding name= source=UNBOUND) contamination_fraction_to_filter=0.0 contamination_fraction_per_sample_file=null p_nonref_model=null exactcallslog=null output_mode=EMIT_VARIANTS_ONLY allSitePLs=false sample_name=null kmerSize=[10, 25] dontIncreaseKmerSizesForCycles=false allowNonUniqueKmersInRef=false numPruningSamples=1 recoverDanglingHeads=false doNotRecoverDanglingBranches=false minDanglingBranchLength=4 consensus=false GVCFGQBands=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 70, 80, 90, 99] indelSizeToEliminateInRefModel=10 min_base_quality_score=10 minPruning=2 gcpHMM=10 includeUmappedReads=false useAllelesTrigger=false phredScaledGlobalReadMismappingRate=45 maxNumHaplotypesInPopulation=128 mergeVariantsViaLD=false doNotRunPhysicalPhasing=true pair_hmm_implementation=VECTOR_LOGLESS_CACHING keepRG=null justDetermineActiveRegions=false dontGenotype=false errorCorrectKmers=false debugGraphTransformations=false dontUseSoftClippedBases=false captureAssemblyFailureBAM=false allowCyclesInKmerGraphToGeneratePaths=false noFpga=false errorCorrectReads=false kmerLengthForReadErrorCorrection=25 minObservationsForKmerToBeSolid=20 pcr_indel_model=CONSERVATIVE maxReadsInRegionPerSample=1000 minReadsPerAlignmentStart=5 activityProfileOut=null activeRegionOut=null activeRegionIn=null activeRegionExtension=null forceActive=false activeRegionMaxSize=null bandPassSigma=null maxProbPropagationDistance=50 activeProbabilityThreshold=0.002 min_mapping_quality_score=20 filter_reads_with_N_cigar=false filter_mismatching_base_and_quals=false filter_bases_not_stored=false\">");
+		  header.add("##INFO=<ID=AC,Number=A,Type=Integer,Description=\"Allele count in genotypes, for each ALT allele, in the same order as listed\">");
+		  header.add("##INFO=<ID=AF,Number=A,Type=Float,Description=\"Allele Frequency, for each ALT allele, in the same order as listed\">");
+		  header.add("##INFO=<ID=AN,Number=1,Type=Integer,Description=\"Total number of alleles in called genotypes\">");
+		  header.add("##INFO=<ID=BaseQRankSum,Number=1,Type=Float,Description=\"Z-score from Wilcoxon rank sum test of Alt Vs. Ref base qualities\">");
+		  header.add("##INFO=<ID=ClippingRankSum,Number=1,Type=Float,Description=\"Z-score From Wilcoxon rank sum test of Alt vs. Ref number of hard clipped bases\">");
+		  header.add("##INFO=<ID=DB,Number=0,Type=Flag,Description=\"dbSNP Membership\">");
+		  header.add("##INFO=<ID=DP,Number=1,Type=Integer,Description=\"Approximate read depth; some reads may have been filtered\">");
+		  header.add("##INFO=<ID=DS,Number=0,Type=Flag,Description=\"Were any of the samples downsampled?\">");
+		  header.add("##INFO=<ID=FS,Number=1,Type=Float,Description=\"Phred-scaled p-value using Fisher's exact test to detect strand bias\">");
+		  header.add("##INFO=<ID=HaplotypeScore,Number=1,Type=Float,Description=\"Consistency of the site with at most two segregating haplotypes\">");
+		  header.add("##INFO=<ID=InbreedingCoeff,Number=1,Type=Float,Description=\"Inbreeding coefficient as estimated from the genotype likelihoods per-sample when compared against the Hardy-Weinberg expectation\">");
+		  header.add("##INFO=<ID=MLEAC,Number=A,Type=Integer,Description=\"Maximum likelihood expectation (MLE) for the allele counts (not necessarily the same as the AC), for each ALT allele, in the same order as listed\">");
+		  header.add("##INFO=<ID=MLEAF,Number=A,Type=Float,Description=\"Maximum likelihood expectation (MLE) for the allele frequency (not necessarily the same as the AF), for each ALT allele, in the same order as listed\">");
+		  header.add("##INFO=<ID=MQ,Number=1,Type=Float,Description=\"RMS Mapping Quality\">");
+		  header.add("##INFO=<ID=MQ0,Number=1,Type=Integer,Description=\"Total Mapping Quality Zero Reads\">");
+		  header.add("##INFO=<ID=MQRankSum,Number=1,Type=Float,Description=\"Z-score From Wilcoxon rank sum test of Alt vs. Ref read mapping qualities\">");
+		  header.add("##INFO=<ID=QD,Number=1,Type=Float,Description=\"Variant Confidence/Quality by Depth\">");
+		  header.add("##INFO=<ID=ReadPosRankSum,Number=1,Type=Float,Description=\"Z-score from Wilcoxon rank sum test of Alt vs. Ref read position bias\">");
+		  header.add("##INFO=<ID=SOR,Number=1,Type=Float,Description=\"Symmetric Odds Ratio of 2x2 contingency table to detect strand bias\">");
+		  header.add("##contig=<ID=chr1,length=249250621>");
+		  header.add("##contig=<ID=chr2,length=243199373>");
+		  header.add("##contig=<ID=chr3,length=198022430>");
+		  header.add("##contig=<ID=chr4,length=191154276>");
+		  header.add("##contig=<ID=chr5,length=180915260>");
+		  header.add("##contig=<ID=chr6,length=171115067>");
+		  header.add("##contig=<ID=chr7,length=159138663>");
+		  header.add("##contig=<ID=chr8,length=146364022>");
+		  header.add("##contig=<ID=chr9,length=141213431>");
+		  header.add("##contig=<ID=chr10,length=135534747>");
+		  header.add("##contig=<ID=chr11,length=135006516>");
+		  header.add("##contig=<ID=chr12,length=133851895>");
+		  header.add("##contig=<ID=chr13,length=115169878>");
+		  header.add("##contig=<ID=chr14,length=107349540>");
+		  header.add("##contig=<ID=chr15,length=102531392>");
+		  header.add("##contig=<ID=chr16,length=90354753>");
+		  header.add("##contig=<ID=chr17,length=81195210>");
+		  header.add("##contig=<ID=chr18,length=78077248>");
+		  header.add("##contig=<ID=chr19,length=59128983>");
+		  header.add("##contig=<ID=chr20,length=63025520>");
+		  header.add("##reference=file:///opt/local/genomeinfo/genomes/GRCh37_ICGC_standard_v2/GRCh37_ICGC_standard_v2.fa");
+		  header.add("#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	OESO_2804");
+		  
+		  // create tmp file and shove this stuff in
+		  File vcfFile = testFolder.newFile();
+		  createVcfFile(vcfFile, header);
+		  TestVcfPipeline vp = new TestVcfPipeline(true);
+		  VcfHeader headerFromFile = null;
+		  try (VCFFileReader reader = new VCFFileReader(vcfFile);) {
+			  headerFromFile = reader.getHeader();
+		  }
+		  TestVcfPipeline.testVcfHeader = headerFromFile;
+		  
+		  // check that header order is ok
+		  int i = 0;
+		  for (VcfHeader.Record rec : headerFromFile) {
+			  i++;
+			  if (i == 1) {
+				  assertEquals("##fileformat=VCFv4.1", rec.getData());
+			  } else if (i == 2) {
+				  assertEquals(true, rec.getData().startsWith("##GATKCommandLine"));
+			  } else if (i >=3 && i < 23) {
+				  assertEquals(true, rec.getData().startsWith("##contig"));
+			  } else if (i == 23) {
+				  assertEquals(true, rec.getData().startsWith("##reference"));
+			  } else if (i > 23 && i < 43) {
+				  assertEquals(true, rec.getData().startsWith("##INFO"));
+			  } else if (i == 43) {
+				  assertEquals(true, rec.getData().startsWith("##FILTER"));
+			  } else if (i > 43 && i < 49) {
+				  assertEquals(true, rec.getData().startsWith("##FORMAT"));
+			  } else {
+				  assertEquals(true, rec.getData().startsWith("#CHROM"));
+			  }
+		  }
+		  assertEquals(49, i);	// no additional header added at this stage
+		  
+		  VcfHeader existingHeader = vp.getExistingVCFHeaderDetails();
+		  
+		  // this should only contain entries that are marked for inclusion
+		  for (VcfHeader.Record rec : existingHeader) {
+			  assertEquals(true, rec instanceof VcfHeader.FormattedRecord);
+		  }
+		  
+		  // now check that when calling writeToVcf that we get this along with standard qsnp vcf header
+		  
+		  File qsnpVcfFile = testFolder.newFile();
+		  vp.writeVCF(qsnpVcfFile.getAbsolutePath());
+		  
+		  VcfHeader finalHeader = null;
+		  try (VCFFileReader reader2 = new VCFFileReader(qsnpVcfFile);) {
+		  		finalHeader = reader2.getHeader();
+		  }
+		  
+		  List<VcfHeader.Record> finalHeaderRecords = new ArrayList<>();
+		  for (VcfHeader.Record rec : finalHeader) {
+			  finalHeaderRecords.add(rec);
+		  }
+		  
+		  List<VcfHeader.Record> existingHeaderRecords = new ArrayList<>();
+		  for (VcfHeader.Record rec : existingHeader) {
+			  existingHeaderRecords.add(rec);
+		  }
+		  System.out.println("finalHeaderRecords.size(): " + finalHeaderRecords.size());
+		  System.out.println("existingHeaderRecords.size(): " + existingHeaderRecords.size());
+		  
+		  for (VcfHeader.Record rec : existingHeaderRecords) {
+			  if ( ! finalHeaderRecords.contains(rec)) {
+				  System.out.println("rec not contained in final: " + rec);
+				  if (rec.toString().contains("BaseQRankSum")) {
+					  
+					  System.out.println("rec BaseQRankSum hashCode: " + rec.hashCode());
+//					  System.out.println("rec LowQual getDescription: " + rec.getDescription());
+//					  System.out.println("rec LowQual getDescription.hashCode: " + rec.getDescription().hashCode());
+//					  System.out.println("rec LowQual getDescription.hashCode: " + rec.getDescription().hashCode());
+//					  System.out.println("rec LowQual getId: " + rec.getId());
+//					  System.out.println("rec LowQual getId.hashCode(): " + rec.getId().hashCode());
+//					  System.out.println("rec LowQual getSource: " + rec.getSource());
+////					  System.out.println("rec LowQual getSource.hashCode(): " + rec.getSource().hashCode());
+//					  System.out.println("rec LowQual type: " + rec.type);
+//					  System.out.println("rec LowQual type.hashCode(): " + rec.type.hashCode());
+//					  System.out.println("rec LowQual getVersion: " + rec.getVersion());
+////					  System.out.println("rec LowQual getVersion.hashCode(): " + rec.getVersion().hashCode());
+//					  System.out.println("rec LowQual getVcfInfoType: " + rec.getVcfInfoType());
+////					  System.out.println("rec LowQual getVcfInfoType.hashCode(): " + rec.getVcfInfoType().hashCode());
+//					  System.out.println("rec LowQual rec.line: " + rec.toString());
+//					  System.out.println("rec LowQual rec.line.hashCode: " + rec.toString().hashCode());
+//					  System.out.println("rec LowQual getVcfInfoType.hashCode(): " + rec.hashCode());
+					  // loop through finals
+					  for (VcfHeader.Record finalRec : finalHeaderRecords) {
+						  if (finalRec.toString().contains("BaseQRankSum")) {
+							  System.out.println("finalRec: " + finalRec);
+							  assertEquals(rec, finalRec);
+							  
+							  String line1 = rec.toString();
+							  String line2 = finalRec.toString();
+							  assertEquals(true, line1.equals(line2));
+							  assertEquals(line1.hashCode(), line1.hashCode());
+							  
+//							  String desc1 = ((FormattedRecord) rec).getDescription();
+//							  String desc2 = ((FormattedRecord) finalRec).getDescription();
+//							  assertEquals(true, desc1.equals(desc2));
+//							  assertEquals(desc1.hashCode(), desc2.hashCode());
+							  
+//							  String id1 = ((FormattedRecord) rec).getDescription();
+//							  String id2 = ((FormattedRecord) finalRec).getDescription();
+//							  assertEquals(true, id1.equals(id2));
+//							  assertEquals(id1.hashCode(), id2.hashCode());
+							  
+							  
+							  System.out.println("finalRec: BaseQRankSum hashCode: " + finalRec.hashCode());
+//							  System.out.println("finalRec LowQual getDescription: " + finalRec.getDescription());
+//							  System.out.println("finalRec LowQual getDescription.hashCode(): " + finalRec.getDescription().hashCode());
+//							  System.out.println("finalRec LowQual getId: " + finalRec.getId());
+//							  System.out.println("finalRec LowQual getId.hashCode(): " + finalRec.getId().hashCode());
+//							  System.out.println("finalRec LowQual getSource: " + finalRec.getSource());
+////							  System.out.println("finalRec LowQual getSource.hashCode(): " + finalRec.getSource().hashCode());
+//							  System.out.println("finalRec LowQual type: " + finalRec.type);
+//							  System.out.println("finalRec LowQual type.hashCode(): " + finalRec.type.hashCode());
+//							  System.out.println("finalRec LowQual getVersion: " + finalRec.getVersion());
+////							  System.out.println("finalRec LowQual getVersion.hashCode(): " + finalRec.getVersion().hashCode());
+//							  System.out.println("finalRec LowQual getVcfInfoType: " + finalRec.getVcfInfoType());
+////							  System.out.println("finalRec LowQual getVcfInfoType.hashCode(): " + finalRec.getVcfInfoType().hashCode());
+//							  System.out.println("finalRec LowQual line: " + finalRec.toString());
+//							  System.out.println("finalRec LowQual rec.line.hashCode: " + finalRec.toString().hashCode());
+//							  System.out.println("finalRec LowQual getVcfInfoType.hashCode(): " + finalRec.hashCode());
+						  }
+					  }
+				  }
+			  } else {
+				  System.out.println("rec IS contained in final: " + rec);
+			  }
+		  }
+		  
+		  assertEquals(true, finalHeaderRecords.containsAll(existingHeaderRecords));
+	}
+	
 	
 	@Test
 	public void doesQsnpRecordMergeTheUnderlyingVcfRecords() {

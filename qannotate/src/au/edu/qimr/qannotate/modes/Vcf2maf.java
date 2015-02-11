@@ -1,13 +1,9 @@
 package au.edu.qimr.qannotate.modes;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.PrintWriter;
-import java.security.InvalidAlgorithmParameterException;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.IllegalFormatConversionException;
-import java.util.IllegalFormatException;
 import java.util.List;
 import java.util.Map;
 
@@ -20,8 +16,6 @@ import org.qcmg.common.vcf.VcfInfoFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
-import org.qcmg.common.vcf.header.VcfHeaderRecord;
-import org.qcmg.common.vcf.header.VcfHeaderRecord.MetaType;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 
@@ -38,7 +32,7 @@ public class Vcf2maf extends AbstractMode{
 	protected final  Map<String,String> effRanking = new HashMap<String,String>();	
 	private final String center;
 	private final String sequencer;
-	private final String patientId;
+	private String patientId;
 	
 	// org.qcmg.common.dcc.DccConsequence.getWorstCaseConsequence(MutationType, String...)
 	//for unit test
@@ -78,7 +72,13 @@ public class Vcf2maf extends AbstractMode{
 			
 			//get control and test sample column
 			retriveSampleColumn(option.getTestSample(), option.getControlSample(), reader.getHeader());
-			patientId = reader.getHeader().get(MetaType.META, VcfHeaderUtils.STANDARD_PATIENTID).getDescription();
+			patientId = null;
+			for (VcfHeader.Record rec : reader.getHeader().getMetaRecords()) {
+				if (rec.getData().startsWith(VcfHeaderUtils.STANDARD_DONOR_ID)) {
+					patientId = StringUtils.getValueFromKey(rec.getData(), VcfHeaderUtils.STANDARD_DONOR_ID);
+				}
+			}
+//			patientId = (MetaType.META, VcfHeaderUtils.STANDARD_DONOR_ID).getDescription();
 			
 			createMafHeader(out, option.getCommandLine(), option.getInputFileName());
 			createMafHeader(out_SHCC, option.getCommandLine(), option.getInputFileName());
@@ -122,12 +122,22 @@ public class Vcf2maf extends AbstractMode{
 		
 		reheader(cmd, inputVcfName);
 		
-		for(final VcfHeaderRecord record: header) 
-			if(record.getMetaType().equals(MetaType.META) && 
-					!record.getId().equals(VcfHeaderUtils.STANDARD_FILE_VERSION ))
-				 write.println(record.toString());
-			else if(record.getMetaType().equals(MetaType.QPG) )
-					 write.println(record.toString());
+		
+		
+		VcfHeader.Record fileFormat = header.getFileVersion();
+		if (null != fileFormat) {
+			write.println(fileFormat.toString());
+		}
+		for (VcfHeader.QPGRecord rec : header.getqPGLines()) {
+			write.println(rec.toString());
+		}
+		
+//		for(final VcfHeader.Record record: header) 
+//			if(record.getMetaType().equals(MetaType.META) && 
+//					!record.getId().equals(VcfHeaderUtils.STANDARD_FILE_VERSION ))
+//				 write.println(record.toString());
+//			else if(record.getMetaType().equals(MetaType.QPG) )
+//					 write.println(record.toString());
 
 		write.println(SnpEffMafRecord.getSnpEffMafHeaderline());
 	}

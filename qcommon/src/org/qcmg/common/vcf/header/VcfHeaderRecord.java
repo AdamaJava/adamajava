@@ -27,10 +27,10 @@ public class VcfHeaderRecord {
 	
 	
 	
-	protected String line = null;
+	protected String line;
 	public MetaType type = null;
 	
-	VcfHeaderRecord record = null;		
+//	VcfHeaderRecord record = null;		
 	String id = null ;
 	String description  = null;		
  	VcfInfoNumber vcfInfoNumber;
@@ -77,12 +77,16 @@ public class VcfHeaderRecord {
 			if (str.equals("FLAG")) return VcfInfoType.Flag;
 			if (str.equals("CHARACTER")) return VcfInfoType.Character;
 			if (str.equals("UNKNOWN")) return VcfInfoType.UNKNOWN;
-			throw new RuntimeException("Unknown VcfInfoType '" + str + "'");
+			throw new IllegalArgumentException("Unknown VcfInfoType '" + str + "'");
 		}
 	} 	
 	
 	public enum MetaType {
-		FORMAT, FILTER, INFO,QPG, CHROM, META, OTHER;
+		FORMAT(true), FILTER(true), INFO(true), QPG(false), CHROM(false), META(false), OTHER(false);
+		private boolean includeInGatkMerge;
+		private MetaType(boolean bool) {
+			this.includeInGatkMerge = bool;
+		}
 		@Override
 		public String toString() {
 			switch (this) {
@@ -102,6 +106,10 @@ public class VcfHeaderRecord {
 				return "##";
 			}
 		}
+		
+		public boolean includeInGatkMerge() {
+			return includeInGatkMerge;
+		}
 	}
 		
 
@@ -109,15 +117,18 @@ public class VcfHeaderRecord {
 	 * Constructor using a "##INFO" line from a VCF file
 	 * @param line
 	 */
-	public VcfHeaderRecord(String line)  {
+	VcfHeaderRecord(String line)  {
 	
-		if(line == null) return;
+		if (line == null) {
+			this.line = line;
+			return;
+		}
 		
 		String Hline = line.trim();
 		while (Hline.endsWith("\n"))
 			Hline = Hline.substring(0, line.length() - 1);
 		this.line = Hline;
-
+		
 		// Is this an Info line?
 		if (line.toUpperCase().startsWith(MetaType.FORMAT.toString()) )  
 			type = MetaType.FORMAT;	 
@@ -129,30 +140,27 @@ public class VcfHeaderRecord {
 			type = MetaType.QPG;		
 		else if (line.toUpperCase().startsWith(MetaType.CHROM.toString())  ) 
 			type = MetaType.CHROM;
-		else{  
+		else {
 			if( ! line.startsWith(MetaType.OTHER.toString())) {
 				throw new IllegalArgumentException("can't convert String into VcfHeaderRecord since missing \"##\" at the begin of line: " + line);
 			}
 			
 			final int index = line.indexOf('=');
-			if(index >= 0){
+			if (index >= 0) {
 				type = MetaType.META; 
 				id = line.substring(0, index); 
 				description = line.substring(index + 1);
-			}else
-				type = MetaType.OTHER;				
+			} else {
+				type = MetaType.OTHER;
+			}
 		}
 		
 	}
-	
-	/**
-	 * Equivalent to method getValue().
-	 * @return Description for INFO, FILTER, FORMAT, qPR Vcf Header record, or other Meta vcf header Record: "##<ID>=<Description>, "
-	 */
-	public String getDescription() { return parseRecord().description; }
-	
+	public String getDescription() { 
+		return description;
+	}
 	public String getId() {
-		return parseRecord().id;
+		return id;
 	}
 	public String getSource()  {
 		return source; 
@@ -161,46 +169,23 @@ public class VcfHeaderRecord {
 		return version; 
 	}
 	
-	public VcfHeaderRecord parseRecord() {			
-		if(record != null)	return record;
 
-		switch (type) {
-			case FORMAT:
-				record = new VcfHeaderFormat(line);
-				break;
-			case FILTER:
-				record = new VcfHeaderFilter(line);
-				break;
-			case INFO:
-				record =  new VcfHeaderInfo(line);
-				break;
-			case QPG:
-				record =  new VcfHeaderQPG(line);
-				break;
-		
-			default:
-				record = this;
-				break;
-		}
-	
-		return record;
-	}
   
 	
 	public MetaType getMetaType() {
-		return parseRecord().type;	
+		return type;	
 	}
 	
 	public VcfInfoType getVcfInfoType()  { 
-		return parseRecord().vcfInfoType; 
+		return vcfInfoType; 
 	}
 	
-	public String getNumber() {
-		return (number >= 0 ? number + "": vcfInfoNumber.toString());
-	}
+//	public String getNumber() {
+//		return (number >= 0 ? number + "": vcfInfoNumber.toString());
+//	}
 	
 
-	public void parseLine(String line){
+	protected void parseLine(String line){
 		
 		if(!type.equals(MetaType.FILTER) && !type.equals(MetaType.FORMAT) && ! type.equals(MetaType.INFO) )
 			return ;
@@ -225,8 +210,10 @@ public class VcfHeaderRecord {
 		
 		id = getStringValueFromArray(elements, ID, Constants.EQ_STRING);
 		parseNumber(getStringValueFromArray(elements, NUMBER, Constants.EQ_STRING));
-		if( getStringValueFromArray(elements, TYPE, Constants.EQ_STRING) != null)
+		
+		if( getStringValueFromArray(elements, TYPE, Constants.EQ_STRING) != null) {
 			vcfInfoType = VcfInfoType.parse(getStringValueFromArray(elements, TYPE, Constants.EQ_STRING).toUpperCase());
+		}
 		source  = getStringValueFromArray(elements, SOURCE, Constants.EQ_STRING);
 		version = getStringValueFromArray(elements, VERSION, Constants.EQ_STRING);
 
@@ -276,4 +263,77 @@ public class VcfHeaderRecord {
 		
 		return value;
 	}
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result
+				+ ((description == null) ? 0 : description.hashCode());
+		System.out.println("result so far: " + result);
+		result = prime * result + ((id == null) ? 0 : id.hashCode());
+		System.out.println("result so far: " + result);
+		result = prime * result + ((line == null) ? 0 : line.hashCode());
+		System.out.println("result so far: " + result);
+		result = prime * result + number;
+		System.out.println("result so far: " + result);
+		result = prime * result + ((source == null) ? 0 : source.hashCode());
+		System.out.println("result so far: " + result);
+		result = prime * result + ((type == null) ? 0 : type.hashCode());
+		System.out.println("result so far: " + result);
+		result = prime * result
+				+ ((vcfInfoNumber == null) ? 0 : vcfInfoNumber.hashCode());
+		System.out.println("result so far: " + result);
+		result = prime * result
+				+ ((vcfInfoType == null) ? 0 : vcfInfoType.hashCode());
+		System.out.println("result so far: " + result);
+		result = prime * result + ((version == null) ? 0 : version.hashCode());
+		System.out.println("final result: " + result);
+		return result;
+	}
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		VcfHeaderRecord other = (VcfHeaderRecord) obj;
+		if (description == null) {
+			if (other.description != null)
+				return false;
+		} else if (!description.equals(other.description))
+			return false;
+		if (id == null) {
+			if (other.id != null)
+				return false;
+		} else if (!id.equals(other.id))
+			return false;
+		if (line == null) {
+			if (other.line != null)
+				return false;
+		} else if (!line.equals(other.line))
+			return false;
+		if (number != other.number)
+			return false;
+		if (source == null) {
+			if (other.source != null)
+				return false;
+		} else if (!source.equals(other.source))
+			return false;
+		if (type != other.type)
+			return false;
+		if (vcfInfoNumber != other.vcfInfoNumber)
+			return false;
+		if (vcfInfoType != other.vcfInfoType)
+			return false;
+		if (version == null) {
+			if (other.version != null)
+				return false;
+		} else if (!version.equals(other.version))
+			return false;
+		return true;
+	}
+	
+	
 }
