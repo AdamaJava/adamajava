@@ -65,7 +65,6 @@ import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
-import org.qcmg.common.vcf.header.VcfHeaderRecord.VcfInfoType;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.maths.FisherExact;
 import org.qcmg.picard.MultiSAMFileIterator;
@@ -410,7 +409,7 @@ public abstract class Pipeline {
 			}		
 		header.parseHeaderLine( "##qAnalysisId=" + uuid );
 		
-		header.addInfoLine(VcfHeaderUtils.INFO_FLANKING_SEQUENCE, "1", VcfInfoType.String.toString(),"Flanking sequence either side of variant");																	
+		header.addInfoLine(VcfHeaderUtils.INFO_FLANKING_SEQUENCE, "1", "String","Flanking sequence either side of variant");																	
 
 		header.addFilterLine(VcfHeaderUtils.FILTER_COVERAGE_NORMAL_12, "Less than 12 reads coverage in normal");
 		header.addFilterLine(VcfHeaderUtils.FILTER_COVERAGE_NORMAL_8,"Less than 8 reads coverage in normal");  
@@ -425,15 +424,15 @@ public abstract class Pipeline {
 		header.addFilterLine(VcfHeaderUtils.FILTER_MUTATION_EQUALS_REF,"Mutation equals reference"); 
 		header.addFilterLine(VcfHeaderUtils.FILTER_NO_CALL_IN_TEST,"No call in test"); 
 	
-		header.addFormatLine(VcfHeaderUtils.FORMAT_GENOTYPE, "1", VcfInfoType.String.toString() ,"Genotype: 0/0 homozygous reference; 0/1 heterozygous for alternate allele; 1/1 homozygous for alternate allele");
-		header.addFormatLine(VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS, "1", VcfInfoType.String.toString(),"Genotype details: specific alleles (A,G,T or C)");
-		header.addFormatLine(VcfHeaderUtils.FORMAT_ALLELE_COUNT, "1", VcfInfoType.String.toString(),"Allele Count: lists number of reads on forward strand [avg base quality], reverse strand [avg base quality]");
-		header.addFormatLine(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP, "1", VcfInfoType.String.toString(),"Allele Count Compound Snp: lists read sequence and count (forward strand, reverse strand)");
-		header.addFormatLine(VcfHeaderUtils.FORMAT_ALLELIC_DEPTHS, "1", VcfInfoType.String.toString(),"Allelic depths for the ref and alt alleles in the order listed");
-		header.addFormatLine(VcfHeaderUtils.FORMAT_READ_DEPTH, "1", VcfInfoType.String.toString(),"Approximate read depth (reads with MQ=255 or with bad mates are filtered)");
-		header.addFormatLine(VcfHeaderUtils.FORMAT_GENOTYPE_QUALITY, "1", VcfInfoType.String.toString(),"Genotype Quality");
-		header.addFormatLine(VcfHeaderUtils.FORMAT_MUTANT_READS,  "1", VcfInfoType.Integer.toString(),"Number of mutant/variant reads");
-		header.addFormatLine(VcfHeaderUtils.FORMAT_NOVEL_STARTS, "1", VcfInfoType.Integer.toString(),"Number of novel starts not considering read pair");		
+		header.addFormatLine(VcfHeaderUtils.FORMAT_GENOTYPE, "1", "String" ,"Genotype: 0/0 homozygous reference; 0/1 heterozygous for alternate allele; 1/1 homozygous for alternate allele");
+		header.addFormatLine(VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS, "1", "String","Genotype details: specific alleles (A,G,T or C)");
+		header.addFormatLine(VcfHeaderUtils.FORMAT_ALLELE_COUNT, "1", "String","Allele Count: lists number of reads on forward strand [avg base quality], reverse strand [avg base quality]");
+		header.addFormatLine(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP, "1", "String","Allele Count Compound Snp: lists read sequence and count (forward strand, reverse strand)");
+		header.addFormatLine(VcfHeaderUtils.FORMAT_ALLELIC_DEPTHS, "1", "String","Allelic depths for the ref and alt alleles in the order listed");
+		header.addFormatLine(VcfHeaderUtils.FORMAT_READ_DEPTH, "1", "String","Approximate read depth (reads with MQ=255 or with bad mates are filtered)");
+		header.addFormatLine(VcfHeaderUtils.FORMAT_GENOTYPE_QUALITY, "1", "String","Genotype Quality");
+		header.addFormatLine(VcfHeaderUtils.FORMAT_MUTANT_READS,  "1", "String","Number of mutant/variant reads");
+		header.addFormatLine(VcfHeaderUtils.FORMAT_NOVEL_STARTS, "1", "String","Number of novel starts not considering read pair");		
 
 		if (singleSampleMode) {
 			header.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + testSampleId);

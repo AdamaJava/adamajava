@@ -101,6 +101,7 @@ public class VcfHeaderUtils {
 	public static final String HEADER_LINE_INFO = "##INFO";
 	public static final String HEADER_LINE_FORMAT = "##FORMAT";	
 	public static final String HEADER_LINE_QPG = "##qPG";	
+	public static final String HEADER_LINE_CHROM = "#CHROM";	
 	public static final String STANDARD_FINAL_HEADER_LINE = "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO";
 	public static final String STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT = STANDARD_FINAL_HEADER_LINE + "\tFORMAT\t";
 	

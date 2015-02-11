@@ -14,7 +14,6 @@ import org.qcmg.common.vcf.VcfFormatFieldRecord;
 import org.qcmg.common.vcf.VcfInfoFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
-import org.qcmg.common.vcf.header.VcfHeaderRecord.VcfInfoType;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.maf.util.MafUtils;
 
@@ -108,7 +107,7 @@ public class ConfidenceMode extends AbstractMode{
 	    } 	
  
 		//add header line  set number to 1
-		header.addInfoLine(VcfHeaderUtils.INFO_CONFIDENT, "1", VcfInfoType.String.toString(), VcfHeaderUtils.DESCRITPION_INFO_CONFIDENCE);
+		header.addInfoLine(VcfHeaderUtils.INFO_CONFIDENT, "1", "String", VcfHeaderUtils.DESCRITPION_INFO_CONFIDENCE);
 	}
 
 	/**

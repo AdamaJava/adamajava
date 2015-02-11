@@ -47,7 +47,6 @@ import org.qcmg.common.vcf.VcfPositionComparator;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
-import org.qcmg.common.vcf.header.VcfHeaderRecord.VcfInfoType;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.illumina.IlluminaFileReader;
 import org.qcmg.illumina.IlluminaRecord;
@@ -410,8 +409,8 @@ public class SignatureGenerator {
 //		header.add( new VcfHeaderFilter("##filter_q_score=10") );
 //		header.add( VcfHeaderUtils.parseHeaderLine("##filter_match_qual=10"));		
 //		header.add( VcfHeaderUtils.parseHeaderLine(VcfHeaderUtils.FILTER_LOW_QUAL,"REQUIRED: QUAL < 50.0") );
-		header.addInfoLine("FULLCOV", "-1", VcfInfoType.String.toString(), "all bases at position");
-		header.addInfoLine("NOVELCOV",  "-1", VcfInfoType.String.toString(), "bases at position from reads with novel starts");
+		header.addInfoLine("FULLCOV", "-1", "String", "all bases at position");
+		header.addInfoLine("NOVELCOV",  "-1", "String", "bases at position from reads with novel starts");
   		header.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE);
 		return  header;
 		
@@ -455,8 +454,8 @@ public class SignatureGenerator {
 		header.parseHeaderLine("##filter_match_qual=10");	
 		
 		header.addFilterLine(VcfHeaderUtils.FILTER_LOW_QUAL,"REQUIRED: QUAL < 50.0");
-		header.addInfoLine("FULLCOV", "-1", VcfInfoType.String.toString(), "all bases at position");
-		header.addInfoLine("NOVELCOV", "-1", VcfInfoType.String.toString(), "bases at position from reads with novel starts");
+		header.addInfoLine("FULLCOV", "-1", "String", "all bases at position");
+		header.addInfoLine("NOVELCOV", "-1", "String", "bases at position from reads with novel starts");
   		header.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE);
 		return  header;
 		

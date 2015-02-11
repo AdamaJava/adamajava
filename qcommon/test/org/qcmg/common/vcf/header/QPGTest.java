@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 import org.junit.Assert;
@@ -14,14 +15,14 @@ public class QPGTest {
 	@Test
 	public void nullCtor() {
 		try {
-			new VcfHeaderQPG(null);
+			new VcfHeader.QPGRecord(null);
 			Assert.fail("Should have thrown an IAE");
 		} catch (final IllegalArgumentException iae){}
 	}
 	@Test
 	public void emptyCtor() {
 		try {
-			new VcfHeaderQPG("");
+			new VcfHeader.QPGRecord("");
 			Assert.fail("Should have thrown an IAE");
 		} catch (final IllegalArgumentException iae){}
 		
@@ -31,12 +32,12 @@ public class QPGTest {
 		
 		final String line = "##qPG=<ID=1,Tool=qannotate,Version=0.01,Date=20140106,CL=\"/opt/local/q3/bin/qannotate mode=snpEff ...\">";
 		
-		final VcfHeaderQPG qpg = new VcfHeaderQPG(line);
+		final VcfHeader.QPGRecord qpg = new VcfHeader.QPGRecord(line);
 		assertEquals(1, qpg.getOrder());
 		assertEquals("qannotate", qpg.getTool());
 		assertEquals("0.01", qpg.getVersion());
-		assertEquals("20140106", qpg.getISODate());
-		assertEquals("/opt/local/q3/bin/qannotate mode=snpEff ...", qpg.getCommandLine());
+		assertEquals("20140106", qpg.getDate());
+		assertEquals("\"/opt/local/q3/bin/qannotate mode=snpEff ...\"", qpg.getCommandLine());
 		
 	}
 	
@@ -45,7 +46,7 @@ public class QPGTest {
 		
 		final String line = "##qPG=<ORDER=1,TOOL=qsnp,TVER=2.0 (439),DATE=2015-01-21 07:59:42,CL=qsnp -i /mnt/seq_results/melanoma/MELA_0188/variants/qSNP/c55237e9_23e8_4825_8610_ec69624d4273/MELA_0188.ini -log /mnt/seq_results/melanoma/MELA_0188/variants/qSNP/c55237e9_23e8_4825_8610_ec69624d4273/qsnp_cs.log>";
 		
-		final VcfHeaderQPG qpg = new VcfHeaderQPG(line);
+		final VcfHeader.QPGRecord qpg = new VcfHeader.QPGRecord(line);
  
 		
 	}	
@@ -57,12 +58,15 @@ public class QPGTest {
 		final String ver = "v14.3";
 		final String cl = "grep -w \"hello???\" my_big_file.txt";
 		
-		final VcfHeaderQPG qpg = new VcfHeaderQPG(order, tool, ver, cl);
+		VcfHeader header = new VcfHeader();
+		header.addQPGLine(order, tool, ver, cl, VcfHeaderUtils.DF.format(new Date()));
+		
+		final VcfHeader.QPGRecord qpg =header.getqPGLines().get(0);
 		assertEquals(order, qpg.getOrder());
 		assertEquals(tool, qpg.getTool());
 		assertEquals(ver, qpg.getVersion());
-		System.out.println("date: " + qpg.getISODate());
-		assertEquals(cl, qpg.getCommandLine());
+//		System.out.println("date: " + qpg.getISODate());
+		assertEquals("\"" + cl + "\"", qpg.getCommandLine());
 	}
 	
 	@Test
@@ -72,12 +76,16 @@ public class QPGTest {
 		final String ver = "v14.3";
 		final String cl = "grep -w \"hello???\" my_big_file.txt";
 		
-		final VcfHeaderQPG qpg = new VcfHeaderQPG(order, tool, ver, cl);
-		final VcfHeaderQPG qpg2 = new VcfHeaderQPG(order + 1, tool, ver, cl);
+		VcfHeader header = new VcfHeader();
+		header.addQPGLine(order, tool, ver, cl, VcfHeaderUtils.DF.format(new Date()));
+		header.addQPGLine(order + 1, tool, ver, cl, VcfHeaderUtils.DF.format(new Date()));
+		
+		final VcfHeader.QPGRecord qpg = header.getqPGLines().get(1);	// calling getqPGLines sorts the internal collection
+		final VcfHeader.QPGRecord qpg2 =header.getqPGLines().get(0);
 		
 		assertEquals(true, qpg.compareTo(qpg2) > 0);
 		
-		final List<VcfHeaderQPG> list = new ArrayList<>();
+		final List<VcfHeader.QPGRecord> list = new ArrayList<>();
 		list.add(qpg);
 		list.add(qpg2);
 		Collections.sort(list);
@@ -85,7 +93,8 @@ public class QPGTest {
 		assertEquals(qpg2, list.get(0));
 		assertEquals(qpg, list.get(1));
 		
-		final VcfHeaderQPG qpg3 = new VcfHeaderQPG(order - 1, tool, ver, cl);
+		header.addQPGLine(order - 1, tool, ver, cl, VcfHeaderUtils.DF.format(new Date()));
+		final VcfHeader.QPGRecord qpg3 =header.getqPGLines().get(2);
 		list.add(qpg3);
 		Collections.sort(list);
 		
@@ -97,18 +106,18 @@ public class QPGTest {
 	@Test
 	public void doesToStringWork() {
 	    String line = "##qPG=<ID=1,Source=qannotate,Version=0.01,DATE=20140106,CL=\"/opt/local/q3/bin/qannotate mode=snpEff ...\">";
-		final VcfHeaderQPG qpg = new VcfHeaderQPG(line);
+		final VcfHeader.QPGRecord qpg = new VcfHeader.QPGRecord(line);
 		
 		//different order, can't convert Source to Tool
-		line = "##qPG=<ID=1,Tool=null,Version=0.01,Date=20140106,CL=\"/opt/local/q3/bin/qannotate mode=snpEff ...\">";
+//		line = "##qPG=<ID=1,Tool=null,Version=0.01,Date=20140106,CL=\"/opt/local/q3/bin/qannotate mode=snpEff ...\">";
 		assertEquals(line, qpg.toString());
 	}
 	
 	@Test
 	public void equals() {
 		final String line = "##qPG=<ID=1,Source=qannotate,Version=0.01,DATE=20140106,Description=\"/opt/local/q3/bin/qannotate mode=snpEff ...\">";
-		final VcfHeaderQPG qpg2 = new VcfHeaderQPG(line);
-		final VcfHeaderQPG qpg = new VcfHeaderQPG(line);		
+		final VcfHeader.QPGRecord qpg2 = new VcfHeader.QPGRecord(line);
+		final VcfHeader.QPGRecord qpg = new VcfHeader.QPGRecord(line);		
 		assertEquals(true, qpg.equals(qpg2));
 	}
 
