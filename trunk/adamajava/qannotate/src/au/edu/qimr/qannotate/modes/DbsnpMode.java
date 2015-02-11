@@ -14,7 +14,6 @@ import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfInfoFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
-import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 
@@ -60,7 +59,7 @@ public class DbsnpMode extends AbstractMode{
 				if (hr.getData().startsWith(VcfHeaderUtils.STANDARD_DBSNP_LINE)) {
 				//if( hr.getMetaType().equals(MetaType.INFO) && hr.getId().equalsIgnoreCase(VcfHeaderUtils.INFO_DB) ) 
 					header.parseHeaderLine(String.format("##INFO=<ID=%s,Number=0,Type=%s,Description=\"%s\",Source=%s,Version=%s>",
-									VcfHeaderUtils.INFO_DB, VcfHeaderRecord.VcfInfoType.Flag.name(),VcfHeaderUtils.DESCRITPION_INFO_DB, dbSNPFile, 
+									VcfHeaderUtils.INFO_DB, "Flag",VcfHeaderUtils.DESCRITPION_INFO_DB, dbSNPFile, 
 									StringUtils.getValueFromKey(hr.getData(), VcfHeaderUtils.STANDARD_DBSNP_LINE)));
 				}
 			}

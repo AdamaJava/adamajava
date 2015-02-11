@@ -29,7 +29,6 @@ import org.qcmg.common.vcf.VcfPositionComparator;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
-import org.qcmg.common.vcf.header.VcfHeaderRecord.VcfInfoType;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileWriter;
 
@@ -147,11 +146,11 @@ public final class Coverage {
 		header.parseHeaderLine( "##bam_file=" + bamFileName);
 		header.parseHeaderLine("##gff_file=" + gffFile);
 		header.addFilterLine(VcfHeaderUtils.FILTER_LOW_QUAL,"REQUIRED: QUAL < 50.0");
-		header.addInfoLine("B", "-1", VcfInfoType.String.toString(), "Bait end position");
-		header.addInfoLine("BE", "-1", VcfInfoType.String.toString(), "Bait end position");
-		header.addInfoLine("ZC",  "-1", VcfInfoType.String.toString(), "bases with Zero Coverage");
-		header.addInfoLine("NZC","-1", VcfInfoType.String.toString(), "bases with Non Zero Coverage");
-		header.addInfoLine("TOT", "-1", VcfInfoType.String.toString(), "Total number of sequenced bases");
+		header.addInfoLine("B", "-1", "String", "Bait end position");
+		header.addInfoLine("BE", "-1", "String", "Bait end position");
+		header.addInfoLine("ZC",  "-1", "String", "bases with Zero Coverage");
+		header.addInfoLine("NZC","-1", "String", "bases with Non Zero Coverage");
+		header.addInfoLine("TOT", "-1", "String", "Total number of sequenced bases");
 		header.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE);		
  		
 		return  header;

@@ -10,7 +10,6 @@ import java.util.Map;
 
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
-import org.qcmg.common.vcf.header.VcfHeaderRecord.MetaType;
 
 /**
  * Represents the header of a vcf file.
@@ -54,6 +53,9 @@ public class VcfHeader implements Iterable<VcfHeader.Record> {
 	public static class Record {
 		private final String data;
 		public Record(String data) {
+			if (StringUtils.isNullOrEmpty(data)) {
+				throw new IllegalArgumentException("Null or empty string passed to Record ctor");
+			}
 			this.data = data;
 		}
 		public String getData() {
@@ -222,19 +224,19 @@ public class VcfHeader implements Iterable<VcfHeader.Record> {
 		Record record = null;
 		
 		// Is this an Info line?
-		if (line.toUpperCase().startsWith(MetaType.FORMAT.toString()) )  {
+		if (line.startsWith(VcfHeaderUtils.HEADER_LINE_FORMAT) )  {
 			record = new FormatRecord(line);
 			addFormat(record);
-		} else if (line.toUpperCase().startsWith(MetaType.FILTER.toString()) ) {  
+		} else if (line.startsWith(VcfHeaderUtils.HEADER_LINE_FILTER) ) {  
 			record = new FilterRecord(line);
 			addFilter(record);
-		} else if (line.toUpperCase().startsWith(MetaType.INFO.toString()) )  {
+		} else if (line.startsWith(VcfHeaderUtils.HEADER_LINE_INFO) )  {
 			record = new InfoRecord(line);
 			addInfo(record);
-		} else if (line.toUpperCase().startsWith(MetaType.QPG.toString().toUpperCase()) ) {  
+		} else if (line.startsWith(VcfHeaderUtils.HEADER_LINE_QPG) ) {
 			record = new QPGRecord(line);
 			addQPG((QPGRecord) record);
-		} else if (line.toUpperCase().startsWith(MetaType.CHROM.toString())) { 
+		} else if (line.startsWith(VcfHeaderUtils.HEADER_LINE_CHROM)) { 
 			chromLine = new Record(line);
 		} else if (line.startsWith(VcfHeaderUtils.STANDARD_SOURCE_LINE)) {
 			source = new Record(line);
@@ -245,7 +247,7 @@ public class VcfHeader implements Iterable<VcfHeader.Record> {
 		} else if (line.startsWith(VcfHeaderUtils.STANDARD_UUID_LINE)) {
 			uuid = new Record(line);
 		} else {
-			if( ! line.startsWith(MetaType.OTHER.toString())) {
+			if( ! line.startsWith(Constants.DOUBLE_HASH)) {
 				throw new IllegalArgumentException("can't convert String into VcfHeaderRecord since missing \"##\" at the begin of line: " + line);
 			}
 			record = new Record(line);
@@ -465,7 +467,7 @@ public class VcfHeader implements Iterable<VcfHeader.Record> {
 
 
 	public void addQPGLine(int i, String tool, String version2, String commandLine, String date) {
-		addQPG(new QPGRecord("##QPG=<ID=" + i + 
+		addQPG(new QPGRecord(VcfHeaderUtils.HEADER_LINE_QPG + "=<ID=" + i + 
 				Constants.COMMA + TOOL + Constants.EQ + tool +				
 				Constants.COMMA + VERSION + Constants.EQ + version2 +
 				Constants.COMMA + DATE + Constants.EQ + date +

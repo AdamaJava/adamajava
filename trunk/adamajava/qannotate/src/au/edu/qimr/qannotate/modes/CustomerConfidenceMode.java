@@ -8,7 +8,6 @@ import org.qcmg.common.vcf.VcfFormatFieldRecord;
 import org.qcmg.common.vcf.VcfInfoFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
-import org.qcmg.common.vcf.header.VcfHeaderRecord.VcfInfoType;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 
 import au.edu.qimr.qannotate.modes.ConfidenceMode.Confidence;
@@ -62,7 +61,7 @@ public class CustomerConfidenceMode extends AbstractMode{
 		description += 	(passOnly) ? "passed filter," : "";
 		description += "total read counts more than " +  Integer.toString(min_read_counts) + ", more than ";
 		description += Integer.toString( variants_rate) + "% reads contains variants";		
-		header.addInfoLine(VcfHeaderUtils.INFO_CONFIDENT, "0", VcfInfoType.Flag.toString(), description);
+		header.addInfoLine(VcfHeaderUtils.INFO_CONFIDENT, "0", "Flag", description);
 	      
 		final Iterator<VcfRecord>  it =  positionRecordMap.values().iterator();
 		while( it.hasNext() ){

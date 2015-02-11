@@ -25,7 +25,6 @@ import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
-import org.qcmg.common.vcf.header.VcfHeaderRecord.VcfInfoType;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.tab.TabbedFileReader;
 import org.qcmg.tab.TabbedRecord;
@@ -190,7 +189,7 @@ public class BuildCommonSnpsVcf {
 			final List<File> files = new ArrayList<File>(mapOfFilesAndIds.keySet());
 			Collections.sort(files);			
 			for (final File f : files) {
-				header.addInfoLine( mapOfFilesAndIds.get(f).toString(),  "0", VcfInfoType.Flag.toString(), f.getAbsolutePath());
+				header.addInfoLine( mapOfFilesAndIds.get(f).toString(),  "0", "Flag", f.getAbsolutePath());
 				//filesMapSB .append("##INFO=<ID=" + mapOfFilesAndIds.get(f) + ",Number=0,Type=Flag,Description=\"" + f.getAbsolutePath() + "\">\n");
 			}
 		}
