@@ -14,7 +14,7 @@ import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.SnpUtils;
 import org.qcmg.common.vcf.header.VcfHeader.QPGRecord;
-
+import org.qcmg.common.vcf.header.VcfHeader.Record;
 
 public class VcfHeaderUtils {
 	
@@ -105,6 +105,27 @@ public class VcfHeaderUtils {
 	public static final String STANDARD_FINAL_HEADER_LINE = "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO";
 	public static final String STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT = STANDARD_FINAL_HEADER_LINE + "\tFORMAT\t";
 	
+	public enum VcfInfoType {
+
+		UNKNOWN, String, Integer, Float, Flag, Character;
+
+		public static VcfInfoType parse(String str) {
+			if(StringUtils.isNullOrEmpty(str))
+				return null;
+			
+			str = str.toUpperCase();
+			if (str.equals("STRING")) return VcfInfoType.String;
+			if (str.equals("INTEGER")) return VcfInfoType.Integer;
+			if (str.equals("FLOAT")) return VcfInfoType.Float;
+			if (str.equals("FLAG")) return VcfInfoType.Flag;
+			if (str.equals("CHARACTER")) return VcfInfoType.Character;
+			if (str.equals("UNKNOWN")) return VcfInfoType.UNKNOWN;
+			throw new IllegalArgumentException("Unknown VcfInfoType '" + str + "'");
+		}
+	} 	
+	
+	
+	
 	public static int parseIntSafe(String s) {
 		try {
 			return Integer.parseInt(s);
@@ -134,4 +155,17 @@ public class VcfHeaderUtils {
 		header.addQPGLine(currentLargestOrder + 1, tool, version, commandLine,  DF.format(new Date()));
 		
 	}
+	
+
+
+	
+	public static String[] splitMetaRecords(Record record){
+		int index = record.getData().indexOf(Constants.EQ_STRING);
+		if(index >= 0)
+			return record.getData().split(Constants.EQ_STRING);
+		else  
+			return new String[]{record.getData(), null};
+		
+	}
+
 }
