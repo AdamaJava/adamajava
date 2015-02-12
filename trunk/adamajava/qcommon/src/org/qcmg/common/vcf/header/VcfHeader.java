@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
@@ -33,6 +34,7 @@ public class VcfHeader implements Iterable<VcfHeader.Record> {
 	public static final String DATE = "Date";
 	public static final String COMMAND_LINE = "CL";
 	
+	static final Pattern pattern_description = Pattern.compile(DESCRIPTION + "=\\\"(.+)\\\"");
 	
 	//default first 4 lines as standard
 	Record version = null;
@@ -47,8 +49,8 @@ public class VcfHeader implements Iterable<VcfHeader.Record> {
 	final FormattedRecords filterRecords;
 	final List<QPGRecord> qpgRecords;
 	
-	final SimpleRecords metaRecords;
-	final SimpleRecords otherRecords;
+	final SimpleRecords metaRecords;  //follow patter <ID>=<VALUE>
+	final SimpleRecords otherRecords;  //don't have "="
 	
 	public static class Record {
 		private final String data;
@@ -61,6 +63,8 @@ public class VcfHeader implements Iterable<VcfHeader.Record> {
 		public String getData() {
 			return data;
 		}
+		
+		
 		@Override
 		public final String toString() {
 			return data;
@@ -96,10 +100,11 @@ public class VcfHeader implements Iterable<VcfHeader.Record> {
 			parseData();
 		}
 		protected String id;
-		
+
 		public String getId() {
 			return id;
 		}
+		
 		private static String getStringFromArray(String [] array, String string) {
 			for (String arr : array) {
 				if (arr.toUpperCase().startsWith(string.toUpperCase())) return arr;
@@ -107,6 +112,7 @@ public class VcfHeader implements Iterable<VcfHeader.Record> {
 			return null;
 		}
 		protected void parseData() {
+
 			final int start = getData().indexOf('<');
 			final int end = getData().lastIndexOf('>');
 			
@@ -127,7 +133,7 @@ public class VcfHeader implements Iterable<VcfHeader.Record> {
 	private static  class FormatRecord extends FormattedRecord {
 		public FormatRecord(String data) {
 			super(data);
-		}
+		}		
 	}
 	
 	private static  class FilterRecord extends FormattedRecord {
@@ -193,6 +199,7 @@ public class VcfHeader implements Iterable<VcfHeader.Record> {
 		}
 	}
 	
+
 	private static class SimpleRecords  {
 		private final List<Record> lines = new ArrayList<>(2);
 		public void add(Record record) {
@@ -305,11 +312,10 @@ public class VcfHeader implements Iterable<VcfHeader.Record> {
 	 			}
 			}
 		}
-		
-		//others go to add method directly
 		parseHeaderLine(record);
 	}
-	
+		
+
 	public String[] getSampleId() {
 		if(chromLine == null)
 			throw new RuntimeException("missing vcf header line, eg. " + VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE);
@@ -320,7 +326,6 @@ public class VcfHeader implements Iterable<VcfHeader.Record> {
 			return Arrays.copyOfRange(column, 9, column.length);
 		
 		return null;
-		
 	}
 	
 	public List<QPGRecord> getqPGLines() {
@@ -385,9 +390,11 @@ public class VcfHeader implements Iterable<VcfHeader.Record> {
 		return chromLine;
 	} 
 	
+
 	boolean containsQIMRDetails() {
 		return (null != uuid && ! qpgRecords.isEmpty() );
 	}
+
 	/**
 	 * return (internally) sorted vcf header iterator
 	 */
