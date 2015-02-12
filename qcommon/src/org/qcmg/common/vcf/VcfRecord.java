@@ -64,9 +64,13 @@ public class VcfRecord {
 		filter = (params.length >= 7) ? params[6] : null;
 		infoRecord = (params.length >= 8) ?  new VcfInfoFieldRecord(params[7]): null;
 		
-		for (int i = 8; i < params.length; i ++) {
-			formatRecords.add( params[i]);
-		}
+		formatRecords.clear();
+		for (int i = 8; i < params.length; i ++)  
+			if(StringUtils.isNullOrEmpty(params[i]))
+				formatRecords.add( Constants.MISSING_DATA_STRING);
+			else
+				formatRecords.add( params[i]);
+		 
 	}
 	
 	public ChrPosition getChrPosition() {		
@@ -167,17 +171,20 @@ public class VcfRecord {
 	 * @param field: a list of format string start with FORMAT string. Empty FORMAT and Sample columns if field is null.
 	 */
 	public void setFormatFields(List<String> field) {
-		if(field == null) {
-			formatRecords.clear();
-			return;
-		}
-		
-		if (field.size() == 1) {
-			throw new IllegalArgumentException("missing sample column information");
-		}
-		
 		formatRecords.clear();
-		formatRecords.addAll(field);
+		
+		if(field == null)  return;
+	 		
+		if (field.size() == 1)  
+			throw new IllegalArgumentException("missing sample column information");
+		 
+		for (int i = 0; i < field.size(); i ++)  
+			if(StringUtils.isNullOrEmpty(field.get(i)))
+				formatRecords.add( Constants.MISSING_DATA_STRING);
+			else
+				formatRecords.add( field.get(i));
+		
+	 
 	}
 	
 	/**
@@ -210,8 +217,15 @@ public class VcfRecord {
 		for (String s : formatRecords) {
 			if (sb.length() > 0) {
 				sb.append(Constants.TAB);
-			}
+			}			
 			sb.append(s);
+			
+			//debug
+			//if(StringUtils.isNullOrEmpty(s))
+			//	sb.append(Constants.MISSING_DATA_STRING);
+			
+			
+			
 		}
 		return sb.toString();	
 	}
