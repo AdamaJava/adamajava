@@ -28,7 +28,6 @@ public abstract class AbstractMode {
 	protected final Map<ChrPosition,VcfRecord> positionRecordMap = new HashMap<ChrPosition,VcfRecord>();
 	
 	protected VcfHeader header;
-	protected String inputUuid;	
 	protected int test_column = -2; //can't be -1 since will "+1"
 	protected int control_column = -2;
 	protected String controlSample = null; 
@@ -39,12 +38,8 @@ public abstract class AbstractMode {
         //read record into RAM, meanwhile wipe off the ID field value;
  
         try (VCFFileReader reader = new VCFFileReader(f)) {
-        		header = reader.getHeader();
-        		VcfHeader.Record uuidRecord = header.getUUID();
-        		if (null != uuidRecord) {
-        			inputUuid = StringUtils.getValueFromKey(uuidRecord.getData(), VcfHeaderUtils.STANDARD_UUID_LINE);
-        		}
-        	
+        	header = reader.getHeader();
+
         	//no chr in front of position
 			for (final VcfRecord qpr : reader) {
 				positionRecordMap.put(qpr.getChrPosition(), qpr);
@@ -126,26 +121,35 @@ public abstract class AbstractMode {
 		
 	}
 	
-	protected void reheader(String cmd, String inputVcfName) {	
+
+	protected void reheader(String cmd, String inputVcfName) throws IOException {	
+		
+		if(header == null)
+	        try(VCFFileReader reader = new VCFFileReader(inputVcfName)) {
+	        	header = reader.getHeader();	
+	        	if(header == null)
+	        		throw new IOException("can't receive header from vcf file, maybe wrong format: " + inputVcfName);
+	        } 	
+		
 		String version = Main.class.getPackage().getImplementationVersion();
 		String pg = Main.class.getPackage().getImplementationTitle();
 		final String fileDate = df.format(Calendar.getInstance().getTime());
 		final String uuid = QExec.createUUid();
-
-		//move input uuid into preuuid
-		header.replace(VcfHeaderUtils.STANDARD_INPUT_LINE + "=" + inputUuid + ":"+ inputVcfName);
 		
 		header.parseHeaderLine(VcfHeaderUtils.CURRENT_FILE_VERSION);
 		header.parseHeaderLine(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + fileDate);
 		header.parseHeaderLine(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + uuid);
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=" + pg+"-"+version);
+		header.parseHeaderLine(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=" + pg+"-"+version);	
+			
+		String inputUuid = (header.getUUID() == null)? null: header.getUUID().getData();
+		header.replace(VcfHeaderUtils.STANDARD_INPUT_LINE + "=" + inputUuid + ":"+ inputVcfName);
 		
-		
-	    if(version == null) version = Constants.NULL_STRING;
+		if(version == null) version = Constants.NULL_STRING;
 	    if(pg == null ) pg = Constants.NULL_STRING;
 	    if(cmd == null) cmd = Constants.NULL_STRING;
+		VcfHeaderUtils.addQPGLineToHeader(header, pg, version, cmd);
 		
-		 VcfHeaderUtils.addQPGLineToHeader(header, pg, version, cmd);
 		
-	}	
+	}
+
 }

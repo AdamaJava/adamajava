@@ -17,6 +17,8 @@ public class SnpEffMafRecord {
 	public static final String Null = "null";
 	public static final String Yes = "Yes";
 	
+	public static final String Version = "#version 2.4.1";
+	
 	
 	public enum mutation_status{ 
 		None, Germline,Somatic,LOH,PostTranscriptional, modification,Unknown;
