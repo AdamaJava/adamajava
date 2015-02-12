@@ -122,15 +122,25 @@ public class Vcf2maf extends AbstractMode{
 		
 		reheader(cmd, inputVcfName);
 		
+
+		write.println(SnpEffMafRecord.Version);
+		
+		for(VcfHeader.Record re: header.getMetaRecords())
+			if(!re.equals(VcfHeaderUtils.STANDARD_FILE_VERSION ))
+				write.println(re.getData());
+		
+		for(VcfHeader.QPGRecord re: header.getqPGLines())
+			write.println(re.getData());
 		
 		
-		VcfHeader.Record fileFormat = header.getFileVersion();
-		if (null != fileFormat) {
-			write.println(fileFormat.toString());
-		}
-		for (VcfHeader.QPGRecord rec : header.getqPGLines()) {
-			write.println(rec.toString());
-		}
+		for(Map.Entry<String, VcfHeader.FormattedRecord> re: header.getInfoRecords().entrySet())
+			write.println(re.getValue().getData());
+ 	
+//		
+//		VcfHeader.Record fileFormat = header.getFileVersion();
+//		if (null != fileFormat) {
+//			write.println(fileFormat.toString());
+//		}
 		
 //		for(final VcfHeader.Record record: header) 
 //			if(record.getMetaType().equals(MetaType.META) && 
@@ -138,6 +148,7 @@ public class Vcf2maf extends AbstractMode{
 //				 write.println(record.toString());
 //			else if(record.getMetaType().equals(MetaType.QPG) )
 //					 write.println(record.toString());
+//>>>>>>> .r514
 
 		write.println(SnpEffMafRecord.getSnpEffMafHeaderline());
 	}

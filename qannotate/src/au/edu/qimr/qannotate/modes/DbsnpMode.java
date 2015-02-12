@@ -4,6 +4,7 @@ import static org.qcmg.common.util.Constants.EQ;
 
 import java.io.File;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import org.qcmg.common.log.QLogger;
@@ -13,8 +14,10 @@ import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfInfoFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
-import org.qcmg.common.vcf.header.VcfHeader;
+import org.qcmg.common.vcf.header.VcfHeader.Record;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
+import org.qcmg.common.vcf.header.VcfHeader.FormattedRecord;
+import org.qcmg.common.vcf.header.VcfHeaderUtils.VcfInfoType;
 import org.qcmg.vcf.VCFFileReader;
 
 import au.edu.qimr.qannotate.options.DbsnpOptions;
@@ -53,41 +56,25 @@ public class DbsnpMode extends AbstractMode{
  	    }
 		 				 
 		try (VCFFileReader reader= new VCFFileReader( dbSNPFile )) {
-			//add dbSNP version into header	
-			final VcfHeader snpHeader = reader.getHeader();
-			for (final VcfHeader.Record hr : snpHeader.getMetaRecords()) { 
-				if (hr.getData().startsWith(VcfHeaderUtils.STANDARD_DBSNP_LINE)) {
-				//if( hr.getMetaType().equals(MetaType.INFO) && hr.getId().equalsIgnoreCase(VcfHeaderUtils.INFO_DB) ) 
+			//add dbSNP version into header		
+			List<Record>  metas = reader.getHeader().getMetaRecords(); 
+			for(Record re: metas)
+				if(re.getData().startsWith(VcfHeaderUtils.STANDARD_DBSNP_LINE))  
 					header.parseHeaderLine(String.format("##INFO=<ID=%s,Number=0,Type=%s,Description=\"%s\",Source=%s,Version=%s>",
-									VcfHeaderUtils.INFO_DB, "Flag",VcfHeaderUtils.DESCRITPION_INFO_DB, dbSNPFile, 
-									StringUtils.getValueFromKey(hr.getData(), VcfHeaderUtils.STANDARD_DBSNP_LINE)));
-				}
-			}
+									VcfHeaderUtils.INFO_DB, VcfInfoType.Flag.name(),
+									VcfHeaderUtils.DESCRITPION_INFO_DB, dbSNPFile, VcfHeaderUtils.splitMetaRecords(re)[1] ));  		
+ 			
+		
+ 
 			
-			Map<String, VcfHeader.FormattedRecord> infoRecords = snpHeader.getInfoRecords();
+			Map<String, FormattedRecord> snpInfoHeader = reader.getHeader().getInfoRecords();
+			if(snpInfoHeader.get(VcfHeaderUtils.INFO_CAF) != null )
+				header.parseHeaderLine( String.format("##INFO=<ID=%s,Number=.,Type=String,Description=\"%s\">", VcfHeaderUtils.INFO_VAF, VcfHeaderUtils.DESCRITPION_INFO_VAF  )	);
 			
-			if (infoRecords.containsKey(VcfHeaderUtils.INFO_GMAF)) {
-				header.addInfo(infoRecords.get(VcfHeaderUtils.INFO_GMAF));
-			}
-			if (infoRecords.containsKey(VcfHeaderUtils.INFO_CAF)) {
-				header.parseHeaderLine(String.format("##INFO=<ID=%s,Number=.,Type=String,Description=\"%s\">", VcfHeaderUtils.INFO_VAF, VcfHeaderUtils.DESCRITPION_INFO_VAF));
-			}
-			if (infoRecords.containsKey(VcfHeaderUtils.INFO_VLD)) {
-				header.addInfo(infoRecords.get(VcfHeaderUtils.INFO_VLD));
-			}
-			
-//			for (final VcfHeader.Record hr : snpHeader.get()) { 
-//			
-//				} else if( hr.getMetaType().equals(MetaType.INFO) && hr.getId().equalsIgnoreCase(VcfHeaderUtils.INFO_GMAF) ) { 
-//					header.replace(hr);				 
-//				} else if( hr.getMetaType().equals(MetaType.INFO) && hr.getId().equalsIgnoreCase(VcfHeaderUtils.INFO_CAF) ) {
-//					header.replace(VcfHeaderUtils.parseHeaderLine(
-//							String.format("##INFO=<ID=%s,Number=.,Type=String,Description=\"%s\">", VcfHeaderUtils.INFO_VAF, VcfHeaderUtils.DESCRITPION_INFO_VAF  )	));
-//							 
-//				} else if( hr.getMetaType().equals(MetaType.INFO) && hr.getId().equalsIgnoreCase(VcfHeaderUtils.INFO_VLD)) {
-//									header.replace(hr);
-//				}
-//			}
+			if(snpInfoHeader.get(VcfHeaderUtils.INFO_VLD) != null )
+			 		header.addInfo(snpInfoHeader.get(VcfHeaderUtils.INFO_VLD));		 						 
+		 
+				
 			//below algorithm only work for SNP and compound SNP
 			for (final VcfRecord dbSNPVcf : reader) {
 				if ( ! StringUtils.doesStringContainSubString(dbSNPVcf.getInfo(), "VC=SNV", false) &&
@@ -142,8 +129,6 @@ public class DbsnpMode extends AbstractMode{
 
 	
 	private String getCAF(String info, int order) throws Exception{
-
-//		final String gmaf =  new VcfInfoFieldRecord(info).getfield(VcfHeaderUtils.INFO_GMAF);
 		final String caf =  new VcfInfoFieldRecord(info).getField(VcfHeaderUtils.INFO_CAF);
 		if(caf != null) {
 			String[] cafs = caf.replace("[", "").replace("]", "").split(Constants.COMMA_STRING);
@@ -156,17 +141,6 @@ public class DbsnpMode extends AbstractMode{
 	
 }
 
-/*error
-chrY	9930004	rs74440257	C	A	35.63	NCIT	.	GT:AD:DP:GQ:PL:GD:AC:MR:NNS	1/1:0,2:2:6.02:67,6,0:A/A:A2[35],0[0]:2:2	.:.:.:.:.:.:A3[27.33],0[0]:3:3
-[christix@QIMR13479:~/Documents/Eclipse/data]$grep 9930004 output.vcf 
-chrY	9930004	rs74440257	C	A	35.63	NCIT	.;DB	GT:AD:DP:GQ:PL:GD:AC:MR:NNS	1/1:0,2:2:6.02:67,6,0:A/A:A2[35],0[0]:2:2	.:.:.:.:.:.:A3[27.33],0[0]:3:3
-
- * 
- * 
- */
-
-
-	 
 	
 	
  

@@ -50,13 +50,13 @@ public class AbstractModeTest {
 		 
 	}
 	
-	@Test
-	public void doesInputRecordWork() throws IOException {
-		AbstractModeImpl impl = new AbstractModeImpl();
-		assertEquals(null, impl.inputUuid);
-		impl.inputRecord(new File(inputName));
-		
-	}
+//	@Test
+//	public void doesInputRecordWork() throws IOException {
+//		AbstractModeImpl impl = new AbstractModeImpl();
+//		assertEquals(null, impl.inputUuid);
+//		impl.inputRecord(new File(inputName));
+//		
+//	}
 	
 	@Test
 	public void reHeaderTest() throws Exception{
@@ -71,10 +71,18 @@ public class AbstractModeTest {
 	       
 		DbsnpMode db = new DbsnpMode();
 		db.inputRecord(new File(inputName));
-		assertEquals("abcd_12345678_xzy_999666333", db.inputUuid);
 		
-		db.reheader("testing run",   "inputTest.vcf");  //without .jar file can't pass unit test???????
+		db.reheader("testing run",   inputName);
 		db.writeVCF(new File(outputName));
+		
+		
+//<<<<<<< .mine
+//		   
+//=======
+//		assertEquals("abcd_12345678_xzy_999666333", db.inputUuid);	
+//		db.reheader("testing run",   "inputTest.vcf");  //without .jar file can't pass unit test???????
+//>>>>>>> .r514
+//		
 		
         try (VCFFileReader reader = new VCFFileReader(new File(outputName))) {
 	        	int i = 0;

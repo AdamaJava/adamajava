@@ -2,12 +2,14 @@ package au.edu.qimr.qannotate.modes;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfRecord;
+import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 
@@ -48,8 +50,6 @@ public class GermlineMode extends AbstractMode{
  		
  		//add header line first
 		header.addFilterLine(VcfHeaderUtils.FILTER_GERMLINE, VcfHeaderUtils.DESCRITPION_FILTER_GERMLINE );
-
- 		
  		try(VCFFileReader reader = new VCFFileReader(new File(dbGermlineFile))){
 	 
 			 String filter = null;
@@ -90,8 +90,7 @@ public class GermlineMode extends AbstractMode{
 					}
 			 	}
  		}
-	}
-
+ 	}
 	
 }
 	

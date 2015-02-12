@@ -49,7 +49,7 @@ public class DbsnpModeTest {
 		final DbsnpMode mode = new DbsnpMode();		
 		mode.inputRecord(new File(inputName));
 		mode.addAnnotation(dbSNPName);
-		mode.reheader("testing run",   "inputTest.vcf");
+		mode.reheader("testing run",   inputName);
 		mode.writeVCF(new File(outputName));
 		
 		int[] count = {0,0,0,0,0,0,0,0,0,0,0}; // 0-8th for non-blank header; 9th for blank header; 10th for exception case  
@@ -58,96 +58,53 @@ public class DbsnpModeTest {
 			int i = 0; 
 			VcfHeader header = reader.getHeader();
 			
-			if (null != header.getFileVersion()) {
-				count[0] ++;
-			}
-			if (null != header.getFileDate()) {
-				count[1] ++;
-			}
-			if (null != header.getUUID()) {
-				count[2] ++;
-			}
-			if (null != header.getSource()) {
-				count[3] ++;
+			if (null != header.getFileVersion())  count[0] ++;
+		 
+			if (null != header.getFileDate()) count[1] ++;
+			 
+			if (null != header.getUUID())  count[2] ++;
+			 
+			if (null != header.getSource())  count[3] ++;			 
+		 
+			for(VcfHeader.Record re : header.getMetaRecords())
+				if(re.getData().startsWith(VcfHeaderUtils.CURRENT_FILE_VERSION))
+					count[0] ++;			 
+				else if( re.getData().startsWith( VcfHeaderUtils.STANDARD_FILE_DATE))  
+					count[1] ++;						
+				else if(re.getData().startsWith( VcfHeaderUtils.STANDARD_UUID_LINE))  
+					count[2] ++;
+					
+				else if(re.getData().startsWith( VcfHeaderUtils.STANDARD_SOURCE_LINE))  
+					count[3] ++;					
+				else if(re.getData().startsWith( VcfHeaderUtils.STANDARD_INPUT_LINE))  
+					count[4] ++;							
+ 
+			for(VcfHeader.QPGRecord re : header.getqPGLines()){
+				assertEquals(re.getTool(), Constants.NULL_STRING);
+				assertNotNull(re.getDate());
+				assertNotNull(re.getCommandLine());
+				assertEquals(1,  re.getOrder());
+				count[5] ++;	
 			}
 		 
-			for (final VcfHeader.Record re : header.getMetaRecords()){
-//				if( re.getMetaType().equals(MetaType.META)  && re.toString().startsWith(VcfHeaderUtils.CURRENT_FILE_VERSION)) 
-//					count[0] ++;
-//				else if( re.getMetaType().equals(MetaType.META) && re.toString().startsWith( VcfHeaderUtils.STANDARD_FILE_DATE))  
-//					count[1] ++;						
-//				else if(re.getMetaType().equals(MetaType.META) && re.toString().startsWith( VcfHeaderUtils.STANDARD_UUID_LINE))  
-//					count[2] ++;
-//					
-//				else if(re.getMetaType().equals(MetaType.META) && re.toString().startsWith( VcfHeaderUtils.STANDARD_SOURCE_LINE))  
-//					count[3] ++;					
-				if(re.getData().startsWith( VcfHeaderUtils.STANDARD_INPUT_LINE)) {  
-					count[4] ++;	
-				} 
-			}
-			
-			//QPG next
-			for (final VcfHeader.Record re : header.getqPGLines()) {
-				
-				VcfHeader.QPGRecord re1 = (VcfHeader.QPGRecord) re;
-				assertEquals(1,  re1.getOrder());
-				assertEquals(Constants.NULL_STRING, re1.getTool());
-				assertNotNull(re1.getDate());
-				assertNotNull(re1.getCommandLine());
-				count[5] ++;	
-				
-			}
-				
 			VcfHeader.Record chrom = header.getChrom();
-			if (chrom.getData().startsWith(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE)) {
+			if (chrom.getData().startsWith(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE)) 
 				count[6] ++; 
-			}
-			for (final String re : header.getInfoRecords().keySet()) {
-				if (re.equals(VcfHeaderUtils.INFO_VAF)) {
+			 			
+			for (final String re : header.getInfoRecords().keySet()) 
+				if (re.equals(VcfHeaderUtils.INFO_VAF)) 
 					count[7] ++; 
-				} else if (re.equals(VcfHeaderUtils.INFO_DB)) {
-					count[8] ++; 
-				}
-			}
-				
-//				else if(re.getMetaType().equals(MetaType.QPG)){
-//					VcfHeader.QPGRecord re1 = (VcfHeader.FormattedRecord) re;
-//					  assertTrue( re1.getOrder() == 1);
-//					  assertTrue(re1.getTool().equalsIgnoreCase(Constants.NULL_STRING));
-//					  assertTrue(re1.getISODate()!= null);
-//					  assertTrue(re1.getCommandLine()!= null);
-//					count[5] ++;	
-//				}
-//				else if(re.getMetaType().equals(MetaType.CHROM) && re.toString().startsWith(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE))
-//					count[6] ++; 
-//				else if(re.getMetaType().equals(MetaType.INFO) && re.getId().equals(VcfHeaderUtils.INFO_VAF))
-//					count[7] ++; 
-//				else if(re.getMetaType().equals(MetaType.INFO) && re.getId().equals(VcfHeaderUtils.INFO_DB))
-//					count[8] ++; 
-			
-			
-			
-			for (final VcfHeader.Record re : header.getOtherRecords()) {
-				
-				if (re.getData().startsWith(VcfHeaderUtils.BLANK_HEADER_LINE)) {
+				 else if (re.equals(VcfHeaderUtils.INFO_DB)) 
+					count[8] ++; 			
+ 				
+			for (final VcfHeader.Record re : header.getOtherRecords())			
+				if (re.getData().startsWith(VcfHeaderUtils.BLANK_HEADER_LINE)) 
 					count[9] ++;; 
-				}
-			}
-			
-//				else if(re.getMetaType().equals(MetaType.OTHER) && re.equals(VcfHeaderUtils.BLANK_HEADER_LINE))
-//					count[9] ++;
-//				else{ 
-//					//debug
-//					System.out.println("else: " + re.toString());
-//					count[10] ++; }
-//			}
-			
-			for (i = 0; i < 9; i++) {
-				assertTrue(count[i] == 1);
-			}
-			
+	 			 
 			assertTrue(count[9] == 2);			
- 			assertTrue(count[10] == 0);
+ 			assertTrue(count[10] == 0);			
+			for (i = 0; i < 9; i++) 
+				assertTrue(count[i] == 1);		
 						
 			i = 0;
 			for (final VcfRecord re : reader) {	
@@ -156,8 +113,8 @@ public class DbsnpModeTest {
 					assertTrue(re.getId().equals("rs71432129"));
 					assertFalse(re.getInfo().contains(VcfHeaderUtils.INFO_GMAF));
 					assertTrue(re.getInfoRecord().getField(VcfHeaderUtils.INFO_VAF).equals("0.39") );	
-					
 				}
+				
 				if(re.getPosition() == 22012840){
 					assertTrue(re.getId().equals("rs111477956"));
 					assertTrue(re.getInfo().replace(VcfHeaderUtils.INFO_VLD,"").replace(VcfHeaderUtils.INFO_DB, "").replace(VcfHeaderUtils.INFO_SOMATIC,"").equals(Constants.SEMI_COLON_STRING + Constants.SEMI_COLON_STRING));
@@ -182,7 +139,7 @@ public class DbsnpModeTest {
 		final DbsnpMode mode = new DbsnpMode();		
 		mode.inputRecord(new File(inputName));
 		mode.addAnnotation(dbSNPName);
-		mode.reheader("testing run",   "inputTest.vcf");
+		mode.reheader("testing run",   inputName);
 		mode.writeVCF(new File(outputName));
 		
 		int i = 0; 

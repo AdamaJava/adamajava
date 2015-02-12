@@ -9,6 +9,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -44,26 +45,22 @@ public class GermlineModeTest {
 			createVcf();
 			final GermlineMode mode = new GermlineMode();		
 			mode.inputRecord(new File(inputName));
-			mode.addAnnotation(GermlineFileName);
-			mode.reheader("testing run",   "inputTest.vcf");
+			mode.addAnnotation(GermlineFileName);			
+			mode.reheader("testing run",   inputName);			
 			mode.writeVCF(new File(outputName));
-						
+			
 			 try(VCFFileReader reader = new VCFFileReader(outputName)){
 				 
 				 //check header
 				int i = 0; 
-				VcfHeader header = reader.getHeader();
-			 
+				VcfHeader header = reader.getHeader();				
 				assertEquals(true, header.getFilterRecords().containsKey(VcfHeaderUtils.FILTER_GERMLINE));
-				
+
 				//check records
  				i = 0;
 				for (final VcfRecord re : reader) {	
 	 				i ++;
-					if(re.getPosition() == 2675826){
-						//debug
-					//	System.out.println(re.getId() + " equals to " + Constants.MISSING_DATA);
-						
+					if(re.getPosition() == 2675826){						
 						assertTrue(re.getId().equals(Constants.MISSING_DATA_STRING));
 						assertTrue(re.getFilter().equals("COVN12;MIUN"));		
 					}else if(re.getPosition() == 14923588)
@@ -72,7 +69,6 @@ public class GermlineModeTest {
 						assertTrue(re.getFilter().equals("MIUN;" + VcfHeaderUtils.FILTER_GERMLINE));						
 					else if(re.getPosition() == 22012843)
 						assertTrue(re.getFilter().equals(Constants.MISSING_DATA_STRING));	
-					
 				}
 				assertTrue(i == 6);
 			 }
