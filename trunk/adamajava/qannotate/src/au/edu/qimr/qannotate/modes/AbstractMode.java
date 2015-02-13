@@ -23,8 +23,6 @@ import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 import org.qcmg.vcf.VCFFileWriter;
 
-import com.sun.media.jfxmedia.logging.Logger;
-
 import au.edu.qimr.qannotate.Main;
 
 public abstract class AbstractMode {
