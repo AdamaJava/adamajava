@@ -159,13 +159,20 @@ public class VcfHeaderUtils {
 
 
 	
-	public static String[] splitMetaRecords(Record record){
-		int index = record.getData().indexOf(Constants.EQ_STRING);
-		if(index >= 0)
-			return record.getData().split(Constants.EQ_STRING);
-		else  
-			return new String[]{record.getData(), null};
+	public static class SplitMetaRecord{
+		String[] pair; 
+		public SplitMetaRecord(Record record){
+			int index = record.getData().indexOf(Constants.EQ_STRING);
+			if(index >= 0)
+				pair = record.getData().split(Constants.EQ_STRING);
+			else  
+				pair = new String[]{record.getData(), null};
+		}
+		
+		public String getKey(){ return pair[0]; }
+		public String getValue(){ return pair[1]; }
 		
 	}
-
+		
+ 
 }

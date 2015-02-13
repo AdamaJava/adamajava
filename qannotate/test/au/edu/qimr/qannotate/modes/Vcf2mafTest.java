@@ -50,7 +50,7 @@ public class Vcf2mafTest {
 				
 				try(VCFFileReader reader = new VCFFileReader(new File( DbsnpModeTest.inputName))){					
 					//get control and test sample column
-					mode.retriveSampleColumn("TEST", "CONTROL", reader.getHeader());					
+				//	mode.retriveSampleColumn("TEST", "CONTROL", reader.getHeader());					
 					// SnpEffMafRecord.getSnpEffMafHeaderline();
 			       	for (final VcfRecord vcf : reader) 
 		        			maf = mode.converter(vcf);

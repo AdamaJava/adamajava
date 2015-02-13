@@ -14,9 +14,11 @@ import org.qcmg.common.vcf.VcfFormatFieldRecord;
 import org.qcmg.common.vcf.VcfInfoFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
+import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.maf.util.MafUtils;
 
+import au.edu.qimr.qannotate.modes.AbstractMode.SampleColumn;
 import au.edu.qimr.qannotate.options.ConfidenceOptions;
 
 /**
@@ -43,9 +45,14 @@ public class ConfidenceMode extends AbstractMode{
 	public enum Confidence{	HIGH , LOW, ZERO ; }
 	private final String patientId;
 	
-	//for unit testing
-	ConfidenceMode(String patient){ patientId = patient;}
+	private int test_column = -2; //can't be -1 since will "+1"
+	private int control_column  = -2;
 	
+	//for unit testing
+	ConfidenceMode(String patient){ 
+		patientId = patient;
+	}
+
 	
 	public ConfidenceMode(ConfidenceOptions options, QLogger logger) throws Exception{				 
 		logger.tool("input: " + options.getInputFileName());
@@ -56,8 +63,11 @@ public class ConfidenceMode extends AbstractMode{
  		
 		inputRecord(new File( options.getInputFileName())   );	
 		
+
 		//get control and test sample column; here use the header from inputRecord(...)
-		retriveSampleColumn(options.getTestSample(), options.getControlSample(), this.header );
+		SampleColumn column = new SampleColumn(options.getTestSample(), options.getControlSample(), this.header );
+		test_column = column.getTestSampleColumn();
+		control_column = column.getControlSampleColumn();
 
 
 		//if(options.getpatientid == null)
@@ -67,7 +77,10 @@ public class ConfidenceMode extends AbstractMode{
 		writeVCF(new File(options.getOutputFileName()) );	
 	}
 
-
+	public void setSampleColumn(int test, int control){
+		test_column = test;
+		control_column = control; 
+	}
 
 	/**
 	 * add dbsnp version
@@ -128,18 +141,13 @@ public class ConfidenceMode extends AbstractMode{
 	}
 	
 	
-	//require update
 	/**
-	 * ********error Here, default somatic is the last field, but now user can specify control and tumour, so look at vcf2maf 
 	 * @param vcf
 	 * @return
 	 */
 	private int getAltFrequency(VcfRecord vcf){
 		 final String info =  vcf.getInfo();
-//		 final String allel = (info.contains(VcfHeaderUtils.INFO_SOMATIC)) ? vcf.getFormatFields().get(2) :  vcf.getFormatFields().get(1); 		 
 		 final VcfFormatFieldRecord re = (info.contains(VcfHeaderUtils.INFO_SOMATIC)) ? vcf.getSampleFormatRecord(test_column) :  vcf.getSampleFormatRecord(control_column);
-				 
-		//		 new VcfFormatFieldRecord(vcf.getFormatFields().get(0) ,  allel);		 
 		 
 		 return VcfUtils.getAltFrequency(re, vcf.getAlt());	 
 	}
@@ -152,23 +160,7 @@ public class ConfidenceMode extends AbstractMode{
 			 if(filters[i].equals(VcfHeaderUtils.FILTER_NOVEL_STARTS))
 				 return false;
 		 
-		 
 		 return true;
-						 
-		 	
-/*		 //if no "NNS" maybe >=4; maybe not yet applied this filter, so check the counts
-		 final VcfFormatFieldRecord re = (vcf.getInfo().contains(VcfHeaderUtils.INFO_SOMATIC)) ? vcf.getSampleFormatRecord(test_column) :  vcf.getSampleFormatRecord(control_column);
-		 try{			 
-			 if(   Integer.parseInt(  re.getField( VcfHeaderUtils.FORMAT_NOVEL_STARTS  )  ) >= score ) 
-				 return true;
-		 }catch(final Exception e){
-			 //for compound SNP at moment only
-			 if(vcf.getFormatFields().get(0).equals(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP)  )
-				 return true;
-			 return false;
-		 } 
-		 
-		 return false;*/
 	 }  
 }	
 	

@@ -32,7 +32,14 @@ public class Vcf2maf extends AbstractMode{
 	protected final  Map<String,String> effRanking = new HashMap<String,String>();	
 	private final String center;
 	private final String sequencer;
-	private String patientId;
+	private String patientId = null ;
+	
+ 
+	private String testSample = null;
+	private String controlSample = null;
+	private int test_column = -2;
+	private int control_column = -2;
+	
 	
 	// org.qcmg.common.dcc.DccConsequence.getWorstCaseConsequence(MutationType, String...)
 	//for unit test
@@ -40,29 +47,28 @@ public class Vcf2maf extends AbstractMode{
  
 		center = Vcf2mafOptions.default_center;
 		sequencer = SnpEffMafRecord.Unknown; 
-		this.control_column = control_column;
-		this.test_column = test_column;
-		this.patientId = SnpEffMafRecord.Unknown; 
- 		
+		this.patientId = SnpEffMafRecord.Unknown; 		
 		logger = QLoggerFactory.getLogger(Main.class, null,  null);	
+		this.test_column = test_column;
+		this.control_column = control_column;
 	}
 
 	
 
 	//EFF= Effect ( Effect_Impact | Functional_Class | Codon_Change | Amino_Acid_Change| Amino_Acid_Length | Gene_Name | Transcript_BioType | Gene_Coding | Transcript_ID | Exon_Rank  | Genotype_Number [ | ERRORS | WARNINGS ] )	
 	public Vcf2maf(Vcf2mafOptions option, QLogger logger) throws Exception {
-		// TODO Auto-generated constructor stub
-		 
+		// TODO Auto-generated constructor stub		 
 		this.logger = logger;		
 		this.center = option.getCenter();
-		this.sequencer = option.getSequencer();			
+		this.sequencer = option.getSequencer();		
+		testSample = option.getTestSample();
+		controlSample = option.getControlSample();
 		
 		String SHCC  = option.getOutputFileName().replace(".maf", ".Somatic.HighConfidence.Consequence.maf") ;
 		String SHC = option.getOutputFileName().replace(".maf", ".Somatic.HighConfidence.maf") ;
 		String GHCC  = option.getOutputFileName().replace(".maf", ".Germline.HighConfidence.Consequence.maf") ;
 		String GHC = option.getOutputFileName().replace(".maf", ".Germline.HighConfidence.maf") ;;
-		
-			
+					
 		try(VCFFileReader reader = new VCFFileReader(new File( option.getInputFileName()));
 				PrintWriter out = new PrintWriter(option.getOutputFileName());
 				PrintWriter out_SHCC = new PrintWriter(SHCC);
@@ -70,8 +76,13 @@ public class Vcf2maf extends AbstractMode{
 				PrintWriter out_GHCC = new PrintWriter(GHCC);
 				PrintWriter out_GHC = new PrintWriter(GHC)){
 			
+			
 			//get control and test sample column
-			retriveSampleColumn(option.getTestSample(), option.getControlSample(), reader.getHeader());
+			
+			SampleColumn column = new SampleColumn(testSample, controlSample, reader.getHeader());
+			test_column = column.getTestSampleColumn();
+			control_column = column.getControlSampleColumn();
+		
 			patientId = null;
 			for (VcfHeader.Record rec : reader.getHeader().getMetaRecords()) {
 				if (rec.getData().startsWith(VcfHeaderUtils.STANDARD_DONOR_ID)) {
@@ -135,20 +146,6 @@ public class Vcf2maf extends AbstractMode{
 		
 		for(Map.Entry<String, VcfHeader.FormattedRecord> re: header.getInfoRecords().entrySet())
 			write.println(re.getValue().getData());
- 	
-//		
-//		VcfHeader.Record fileFormat = header.getFileVersion();
-//		if (null != fileFormat) {
-//			write.println(fileFormat.toString());
-//		}
-		
-//		for(final VcfHeader.Record record: header) 
-//			if(record.getMetaType().equals(MetaType.META) && 
-//					!record.getId().equals(VcfHeaderUtils.STANDARD_FILE_VERSION ))
-//				 write.println(record.toString());
-//			else if(record.getMetaType().equals(MetaType.QPG) )
-//					 write.println(record.toString());
-//>>>>>>> .r514
 
 		write.println(SnpEffMafRecord.getSnpEffMafHeaderline());
 	}
@@ -186,6 +183,11 @@ public class Vcf2maf extends AbstractMode{
 			maf.setColumnValue(26,  VcfHeaderUtils.INFO_SOMATIC);
 		else
 			maf.setColumnValue(26,  VcfHeaderUtils.FILTER_GERMLINE);
+		
+		
+
+
+		
 		
 		if(testSample != null) maf.setColumnValue(16,  patientId + ":" + testSample );
 		if(controlSample != null) maf.setColumnValue(17, patientId + ":" + controlSample );

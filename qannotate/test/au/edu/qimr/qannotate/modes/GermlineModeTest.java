@@ -45,9 +45,10 @@ public class GermlineModeTest {
 			createVcf();
 			final GermlineMode mode = new GermlineMode();		
 			mode.inputRecord(new File(inputName));
-			mode.addAnnotation(GermlineFileName);			
-			mode.reheader("testing run",   inputName);			
-			mode.writeVCF(new File(outputName));
+			mode.addAnnotation(GermlineFileName);						
+			mode.reheader("testing run",   inputName);
+			mode.writeVCF( new File(outputName));
+
 			
 			 try(VCFFileReader reader = new VCFFileReader(outputName)){
 				 
@@ -88,10 +89,10 @@ public class GermlineModeTest {
 			final GermlineMode mode = new GermlineMode();		
 			mode.inputRecord(new File(inputName));
 			mode.addAnnotation(GermlineFileName);
-			mode.writeVCF(new File(outputName));
+			mode.writeVCF( new File(outputName));
+
 	        
-			 try(VCFFileReader reader = new VCFFileReader(outputName)){
-				 
+			 try(VCFFileReader reader = new VCFFileReader(outputName)){				 
 				//check records
  				int i = 0;
 				for (final VcfRecord re : reader) {	
@@ -99,7 +100,6 @@ public class GermlineModeTest {
 	 				if (re.getPosition() == 14923588) {
 						assertTrue(re.getFilter().equals(Constants.MISSING_DATA_STRING));
 	 				}
- 					
 				}
 				assertTrue(i == 1);
 			 }	        
@@ -143,7 +143,6 @@ public class GermlineModeTest {
         data.add("Y\t22012840\t.\tC\tA\t.\t.\t86");
         data.add("Y\t22012841\t.\tC\tA\t.\t.\t86");
         data.add("Y\t22012842\t.\tC\tA\t.\t.\t86");
-//        data.add("Y\t22012843\t.\tC\tA,T\t.\t.\t86");
 
         try(BufferedWriter out = new BufferedWriter(new FileWriter(GermlineFileName));) {          
            for (final String line : data)  out.write(line + "\n");
