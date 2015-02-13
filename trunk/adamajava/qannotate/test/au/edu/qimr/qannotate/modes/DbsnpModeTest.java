@@ -50,7 +50,7 @@ public class DbsnpModeTest {
 		mode.inputRecord(new File(inputName));
 		mode.addAnnotation(dbSNPName);
 		mode.reheader("testing run",   inputName);
-		mode.writeVCF(new File(outputName));
+		mode.writeVCF( new File(outputName));
 		
 		int[] count = {0,0,0,0,0,0,0,0,0,0,0}; // 0-8th for non-blank header; 9th for blank header; 10th for exception case  
 		
@@ -138,24 +138,15 @@ public class DbsnpModeTest {
 		
 		final DbsnpMode mode = new DbsnpMode();		
 		mode.inputRecord(new File(inputName));
-		mode.addAnnotation(dbSNPName);
+		mode.addAnnotation(dbSNPName);		
 		mode.reheader("testing run",   inputName);
 		mode.writeVCF(new File(outputName));
-		
-		int i = 0; 
+
 		try (VCFFileReader reader = new VCFFileReader(outputName)) {
 			VcfHeader header = reader.getHeader();
 			
 			assertEquals(true, header.getInfoRecords().containsKey(VcfHeaderUtils.INFO_VLD));
 		}
-//			for (final VcfHeader.Record re : header.getInfoRecords().values()) {
-//				if(re.getData().equals(VcfHeaderUtils.INFO_VLD)) {
-//					i++;			
-//				}
-//			}
-//		 }
-			
-//		assertTrue(i == 1);
 		 
 	}	
 	

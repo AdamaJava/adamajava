@@ -2,6 +2,7 @@ package au.edu.qimr.qannotate.modes;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -20,6 +21,8 @@ import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
+
+import au.edu.qimr.qannotate.modes.AbstractMode.SampleColumn;
 
 public class AbstractModeTest {
 	public static String outputName = "output.vcf";
@@ -50,13 +53,7 @@ public class AbstractModeTest {
 		 
 	}
 	
-//	@Test
-//	public void doesInputRecordWork() throws IOException {
-//		AbstractModeImpl impl = new AbstractModeImpl();
-//		assertEquals(null, impl.inputUuid);
-//		impl.inputRecord(new File(inputName));
-//		
-//	}
+
 	
 	@Test
 	public void reHeaderTest() throws Exception{
@@ -70,19 +67,9 @@ public class AbstractModeTest {
 		   }
 	       
 		DbsnpMode db = new DbsnpMode();
-		db.inputRecord(new File(inputName));
-		
+		db.inputRecord(new File(inputName));		
 		db.reheader("testing run",   inputName);
 		db.writeVCF(new File(outputName));
-		
-		
-//<<<<<<< .mine
-//		   
-//=======
-//		assertEquals("abcd_12345678_xzy_999666333", db.inputUuid);	
-//		db.reheader("testing run",   "inputTest.vcf");  //without .jar file can't pass unit test???????
-//>>>>>>> .r514
-//		
 		
         try (VCFFileReader reader = new VCFFileReader(new File(outputName))) {
 	        	int i = 0;
@@ -107,29 +94,25 @@ public class AbstractModeTest {
 		header.parseHeaderLine("##qTestSample=" + test);
 		header.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + control + "\t" + "test");
 		
-		ConfidenceMode mode = new ConfidenceMode("");			 
-		mode.retriveSampleColumn(null,null, header);
-				 
-		assertTrue( mode.control_column == 1);
-		assertTrue( mode.test_column == 2);
-		
-		//point to sample column 1: "control"	 
-		mode.retriveSampleColumn(control,control, header);
-		assertTrue( mode.control_column == 1);
-		assertTrue( mode.test_column == 1);
-		
+		SampleColumn column = new SampleColumn(null,null, header);
+		assertTrue( column.getControlSampleColumn() == 1);
+		assertTrue( column.getTestSampleColumn() == 2);		
+
+		//point to sample column 1: "control"	
+		column = new SampleColumn(control,control, header);
+		assertTrue( column.getControlSampleColumn() == 1);
+		assertTrue( column.getTestSampleColumn() == 1);
 		
 		//point to sample column 1: "test"	 
-		mode.retriveSampleColumn(test,test, header);
-		assertTrue( mode.control_column == 2);
-		assertTrue( mode.test_column == 2);
-		
-		
+		column = new SampleColumn(test,test, header);
+		assertTrue( column.getControlSampleColumn() == 2);
+		assertTrue( column.getTestSampleColumn() == 2);
+				
 		//point to unexsit sample id 
 		try{
-			mode.retriveSampleColumn(test+control,test, header);
+			column = new SampleColumn(test+control,test, header);
+			fail( "My method didn't throw when I expected it to" );
 		}catch(Exception e){
-			System.out.println(e.getMessage());
 		}
 
 

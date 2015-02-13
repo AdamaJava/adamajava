@@ -14,6 +14,7 @@ import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfInfoFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
+import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeader.Record;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.common.vcf.header.VcfHeader.FormattedRecord;
@@ -36,12 +37,11 @@ public class DbsnpMode extends AbstractMode{
         logger.tool("logger file " + options.getLogFileName());
         logger.tool("logger level " + options.getLogLevel());
 		
-		inputRecord(new File( options.getInputFileName())   );
-		
+		inputRecord(new File( options.getInputFileName())   );		
 		addAnnotation(options.getDatabaseFileName() );
 		reheader(options.getCommandLine(),options.getInputFileName())	;
 		logger.info("Writing VCF output");	
-		writeVCF(new File(options.getOutputFileName()));	
+		writeVCF( new File(options.getOutputFileName()));	
 	}
 		
 	
@@ -62,11 +62,9 @@ public class DbsnpMode extends AbstractMode{
 				if(re.getData().startsWith(VcfHeaderUtils.STANDARD_DBSNP_LINE))  
 					header.parseHeaderLine(String.format("##INFO=<ID=%s,Number=0,Type=%s,Description=\"%s\",Source=%s,Version=%s>",
 									VcfHeaderUtils.INFO_DB, VcfInfoType.Flag.name(),
-									VcfHeaderUtils.DESCRITPION_INFO_DB, dbSNPFile, VcfHeaderUtils.splitMetaRecords(re)[1] ));  		
+									VcfHeaderUtils.DESCRITPION_INFO_DB, dbSNPFile, new VcfHeaderUtils.SplitMetaRecord(re).getValue()  ));  		
  			
-		
- 
-			
+					
 			Map<String, FormattedRecord> snpInfoHeader = reader.getHeader().getInfoRecords();
 			if(snpInfoHeader.get(VcfHeaderUtils.INFO_CAF) != null )
 				header.parseHeaderLine( String.format("##INFO=<ID=%s,Number=.,Type=String,Description=\"%s\">", VcfHeaderUtils.INFO_VAF, VcfHeaderUtils.DESCRITPION_INFO_VAF  )	);
