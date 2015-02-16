@@ -105,6 +105,9 @@ public class VcfHeaderUtils {
 	public static final String STANDARD_FINAL_HEADER_LINE = "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO";
 	public static final String STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT = STANDARD_FINAL_HEADER_LINE + "\tFORMAT\t";
 	
+	public static final String GATK_CMD_LINE = "##GATKCommandLine";
+	public static final String GATK_CMD_LINE_VERSION = "Version=";
+	
 	public enum VcfInfoType {
 
 		UNKNOWN, String, Integer, Float, Flag, Character;
@@ -123,16 +126,6 @@ public class VcfHeaderUtils {
 			throw new IllegalArgumentException("Unknown VcfInfoType '" + str + "'");
 		}
 	} 	
-	
-	
-	
-	public static int parseIntSafe(String s) {
-		try {
-			return Integer.parseInt(s);
-		} catch (final Exception e) {
-			return 0;
-		}
-	}
 	
 	public static void addQPGLineToHeader(VcfHeader header, String tool, String version, String commandLine) {
 		if (null == header) {
@@ -156,17 +149,56 @@ public class VcfHeaderUtils {
 		
 	}
 	
-
-
+	public static String getUUIDFromHeaderLine(VcfHeader.Record uuid) {
+		if (null == uuid) {
+			throw new IllegalArgumentException("Null record passed to VcfHeaderUtils.getUUIDFromHeaderLine");
+		}
+		String uuidString = splitMetaRecord(uuid)[1];
+		return uuidString;
+	}
+	
+	public static String getGATKVersionFromHeaderLine(VcfHeader header) {
+		if (null == header) {
+			throw new IllegalArgumentException("Null header passed to VcfHeaderUtils.getGATKVersionFromHeaderLine");
+		}
+		
+		for (VcfHeader.Record rec : header.getMetaRecords()) {
+			if (rec.getData().startsWith(GATK_CMD_LINE)) {
+				String version = null;
+				int index = rec.getData().indexOf(GATK_CMD_LINE_VERSION);
+				if (index > -1) {
+					int commaIndex = rec.getData().indexOf(Constants.COMMA, index);
+					version = rec.getData().substring(index + GATK_CMD_LINE_VERSION.length(), commaIndex);
+				}
+				return version;
+			}
+		}
+		return null;
+	}
+	
+	
+	public static String[]  splitMetaRecord(VcfHeader.Record rec) {
+		if (null == rec || null == rec.getData()) {
+			throw new IllegalArgumentException("Null record passed to VcfHeaderUtils.splitMetaRecord");
+		}
+		
+		int index = rec.getData().indexOf(Constants.EQ_STRING);
+		if (index >= 0) {
+			return  rec.getData().split(Constants.EQ_STRING);
+		}
+		
+		return new String[] {rec.getData(), null};
+	}
 	
 	public static class SplitMetaRecord{
 		String[] pair; 
 		public SplitMetaRecord(Record record){
-			int index = record.getData().indexOf(Constants.EQ_STRING);
-			if(index >= 0)
-				pair = record.getData().split(Constants.EQ_STRING);
-			else  
-				pair = new String[]{record.getData(), null};
+			this.pair =  splitMetaRecord(record);
+//			int index = record.getData().indexOf(Constants.EQ_STRING);
+//			if(index >= 0)
+//				pair = record.getData().split(Constants.EQ_STRING);
+//			else  
+//				pair = new String[]{record.getData(), null};
 		}
 		
 		public String getKey(){ return pair[0]; }
