@@ -94,23 +94,31 @@ public class AbstractModeTest {
 		header.parseHeaderLine("##qTestSample=" + test);
 		header.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + control + "\t" + "test");
 		
-		SampleColumn column = new SampleColumn(null,null, header);
+		DbsnpMode mode = new DbsnpMode();
+		
+		SampleColumn column = mode.new SampleColumn(null,null, header);
 		assertTrue( column.getControlSampleColumn() == 1);
 		assertTrue( column.getTestSampleColumn() == 2);		
-
+		assertEquals( column.getControlSample() , control);
+		assertEquals( column.getTestSample() , test);		
+		
 		//point to sample column 1: "control"	
-		column = new SampleColumn(control,control, header);
+		column = mode.new SampleColumn(control,control, header);
 		assertTrue( column.getControlSampleColumn() == 1);
-		assertTrue( column.getTestSampleColumn() == 1);
+		assertTrue( column.getTestSampleColumn() == 1);		
+		assertEquals( column.getControlSample() , control);
+		assertEquals( column.getTestSample() , control);		
 		
 		//point to sample column 1: "test"	 
-		column = new SampleColumn(test,test, header);
+		column = mode.new SampleColumn(test,test, header);
 		assertTrue( column.getControlSampleColumn() == 2);
 		assertTrue( column.getTestSampleColumn() == 2);
+		assertEquals( column.getControlSample() , test);
+		assertEquals( column.getTestSample() , test);		
 				
 		//point to unexsit sample id 
 		try{
-			column = new SampleColumn(test+control,test, header);
+			column = mode.new SampleColumn(test+control,test, header);
 			fail( "My method didn't throw when I expected it to" );
 		}catch(Exception e){
 		}

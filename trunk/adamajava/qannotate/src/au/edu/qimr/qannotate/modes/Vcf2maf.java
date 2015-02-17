@@ -32,18 +32,18 @@ public class Vcf2maf extends AbstractMode{
 	protected final  Map<String,String> effRanking = new HashMap<String,String>();	
 	private final String center;
 	private final String sequencer;
-	private String patientId = null ;
+	private final String patientId ;
 	
  
-	private String testSample = null;
-	private String controlSample = null;
-	private int test_column = -2;
-	private int control_column = -2;
+	private final String testSample ;
+	private final String controlSample ;
+	private final int test_column;
+	private final int control_column;
 	
 	
 	// org.qcmg.common.dcc.DccConsequence.getWorstCaseConsequence(MutationType, String...)
 	//for unit test
-	Vcf2maf(int test_column, int control_column){
+	Vcf2maf(int test_column, int control_column, String test, String control){
  
 		center = Vcf2mafOptions.default_center;
 		sequencer = SnpEffMafRecord.Unknown; 
@@ -51,19 +51,23 @@ public class Vcf2maf extends AbstractMode{
 		logger = QLoggerFactory.getLogger(Main.class, null,  null);	
 		this.test_column = test_column;
 		this.control_column = control_column;
+		this.testSample = test;
+		this.controlSample = control;
+		
 	}
 
-	
-
+ 
 	//EFF= Effect ( Effect_Impact | Functional_Class | Codon_Change | Amino_Acid_Change| Amino_Acid_Length | Gene_Name | Transcript_BioType | Gene_Coding | Transcript_ID | Exon_Rank  | Genotype_Number [ | ERRORS | WARNINGS ] )	
 	public Vcf2maf(Vcf2mafOptions option, QLogger logger) throws Exception {
 		// TODO Auto-generated constructor stub		 
 		this.logger = logger;		
 		this.center = option.getCenter();
 		this.sequencer = option.getSequencer();		
-		testSample = option.getTestSample();
-		controlSample = option.getControlSample();
 		
+		
+//		testSample = option.getTestSample();
+//		controlSample = option.getControlSample();
+ 		
 		String SHCC  = option.getOutputFileName().replace(".maf", ".Somatic.HighConfidence.Consequence.maf") ;
 		String SHC = option.getOutputFileName().replace(".maf", ".Somatic.HighConfidence.maf") ;
 		String GHCC  = option.getOutputFileName().replace(".maf", ".Germline.HighConfidence.Consequence.maf") ;
@@ -74,21 +78,23 @@ public class Vcf2maf extends AbstractMode{
 				PrintWriter out_SHCC = new PrintWriter(SHCC);
 				PrintWriter out_SHC = new PrintWriter(SHC);
 				PrintWriter out_GHCC = new PrintWriter(GHCC);
-				PrintWriter out_GHC = new PrintWriter(GHC)){
+				PrintWriter out_GHC = new PrintWriter(GHC)){			
 			
-			
-			//get control and test sample column
-			
-			SampleColumn column = new SampleColumn(testSample, controlSample, reader.getHeader());
+			//get control and test sample column			
+			SampleColumn column = new SampleColumn(option.getTestSample(), option.getControlSample() , reader.getHeader());
 			test_column = column.getTestSampleColumn();
 			control_column = column.getControlSampleColumn();
+			testSample = column.getTestSample();
+			controlSample = column.getControlSample();		
 		
-			patientId = null;
+			String id = null;
 			for (VcfHeader.Record rec : reader.getHeader().getMetaRecords()) {
 				if (rec.getData().startsWith(VcfHeaderUtils.STANDARD_DONOR_ID)) {
-					patientId = StringUtils.getValueFromKey(rec.getData(), VcfHeaderUtils.STANDARD_DONOR_ID);
+					id = StringUtils.getValueFromKey(rec.getData(), VcfHeaderUtils.STANDARD_DONOR_ID);
 				}
 			}
+			patientId = id; 
+			
 //			patientId = (MetaType.META, VcfHeaderUtils.STANDARD_DONOR_ID).getDescription();
 			
 			createMafHeader(out, option.getCommandLine(), option.getInputFileName());
@@ -185,10 +191,6 @@ public class Vcf2maf extends AbstractMode{
 			maf.setColumnValue(26,  VcfHeaderUtils.FILTER_GERMLINE);
 		
 		
-
-
-		
-		
 		if(testSample != null) maf.setColumnValue(16,  patientId + ":" + testSample );
 		if(controlSample != null) maf.setColumnValue(17, patientId + ":" + controlSample );
 		
@@ -233,8 +235,7 @@ public class Vcf2maf extends AbstractMode{
 	    	maf.setColumnValue(49, Integer.toString( VcfUtils.getAltFrequency(sample, vcf.getAlt())));
 	    	maf.setColumnValue(18,  Nvalues[2] );  //ND allele1
 	    	maf.setColumnValue(19, Nvalues[3]);	//ND allele2
-		}
-		
+		}		
 
 		//NNS eg, ND5:TD7
 		String nns = SnpEffMafRecord.Unknown;
