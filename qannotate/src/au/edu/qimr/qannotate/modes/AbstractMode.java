@@ -32,13 +32,16 @@ public abstract class AbstractMode {
 	
 	private final static QLogger logger = QLoggerFactory.getLogger(Main.class, null,  null);	
 	
+	/**
+	 * 
+	 * @param f: read variants from input into RAM hash map
+	 * @throws IOException
+	 */
 	protected void inputRecord(File f) throws IOException{
 		
         //read record into RAM, meanwhile wipe off the ID field value;
- 
         try (VCFFileReader reader = new VCFFileReader(f)) {
         	header = reader.getHeader();
-
         	//no chr in front of position
 			for (final VcfRecord qpr : reader) {
 				positionRecordMap.put(qpr.getChrPosition(), qpr);
@@ -47,9 +50,11 @@ public abstract class AbstractMode {
         
 	}
  
-	public static class SampleColumn{
-		private int test_column = -2; //can't be -1 since will "+1"
-		private int control_column = -2;
+	public class SampleColumn{
+		private final int test_column ; //can't be -1 since will "+1"
+		private final int control_column ;
+		private final String test_Sample ;
+		private final String control_Sample ; 
 		
 		/**
 		 * it retrive the sample column number. eg. if the second column after "FORMAT" is for the sample named "testSample", then it will report "2" to related variable
@@ -58,44 +63,40 @@ public abstract class AbstractMode {
 		 * @param header: if null, it will point to this class's header; 
 		 */		
 		public SampleColumn(String test, String control, VcfHeader header){
-			if (header == null){  
-				logger.warn("can't get sample information since the vcf header is null");
-				return;
-			} 
-				
-			String controlSample = control;
-			String testSample = test;
+
+			if (header == null)
+				   throw new RuntimeException(" invalid header to null!");
 			
-			 if (null == controlSample || null == testSample) {
-				for (final VcfHeader.Record hr : header.getMetaRecords()) {
-			    		if (null == controlSample &&  hr.getData().indexOf(VcfHeaderUtils.STANDARD_CONTROLSAMPLE) != -1) {
-			    			controlSample =  StringUtils.getValueFromKey(hr.getData(), VcfHeaderUtils.STANDARD_CONTROLSAMPLE);
-			    		} else if ( null == testSample &&  hr.getData().indexOf(VcfHeaderUtils.STANDARD_TESTSAMPLE) != -1) { 
-			    			 testSample = StringUtils.getValueFromKey(hr.getData(), VcfHeaderUtils.STANDARD_TESTSAMPLE);
-			    		}
-				}
-			 }
-	 
-		   if(testSample == null || controlSample == null)
+//			String cs = control, ts = test; 
+			for (final VcfHeader.Record hr : header.getMetaRecords()) 
+				if(control == null && hr.getData().indexOf(VcfHeaderUtils.STANDARD_CONTROLSAMPLE) != -1)
+					control =  StringUtils.getValueFromKey(hr.getData(), VcfHeaderUtils.STANDARD_CONTROLSAMPLE);
+				else if (test == null &&  hr.getData().indexOf(VcfHeaderUtils.STANDARD_TESTSAMPLE) != -1) 
+					test = StringUtils.getValueFromKey(hr.getData(), VcfHeaderUtils.STANDARD_TESTSAMPLE);
+								
+		    if(test == null || control == null)
 			   throw new RuntimeException(" Missing qControlSample or qTestSample  from VcfHeader; please specify on command line!");
-		   
-		   final String[] samples = header.getSampleId();	
-		   	   
+		    
+			int tc = -2, cc = -2;					    
+		   final String[] samples = header.getSampleId();			   	   
 			//incase both point into same column
 			for(int i = 0; i < samples.length; i++){ 
-				if(samples[i].equalsIgnoreCase(testSample))
-					test_column = i + 1;
+				if(samples[i].equalsIgnoreCase(test))
+					tc = i + 1;
 				//else if(samples[i].equalsIgnoreCase(controlSample))
-				if(samples[i].equalsIgnoreCase(controlSample))
-					control_column = i + 1;
+				if(samples[i].equalsIgnoreCase(control))
+					cc = i + 1;
 			}
 			
-			if(test_column <= 0 )
-				throw new RuntimeException("can't find test sample id from vcf header line: " + testSample);
-			if(control_column <= 0  )
-				throw new RuntimeException("can't find normal sample id from vcf header line: " + controlSample);	  	
+			if( tc <= 0 || cc <= 0 )
+				throw new RuntimeException("can't find test sample id  or normal sample id from vcf header line: " + test + "" + control );
+
+			control_Sample =control;
+			test_Sample = test;
+			test_column = tc; 
+			control_column = cc; 				
 			
-		}
+ 		}
 		
 		public int getTestSampleColumn(){
 			return test_column;
@@ -105,14 +106,26 @@ public abstract class AbstractMode {
 			return control_column;
 		}
 		
+		public String getTestSample(){
+			return test_Sample;
+		}
+		
+		public String getControlSample(){
+			return control_Sample;
+		}
+
+		
 	}
 
 	abstract void addAnnotation(String dbfile) throws Exception;
 	
 
-	
-	protected void writeVCF(File outputFile ) throws IOException {
-		 
+	/**
+	 * 
+	 * @param outputFile: add annotate variants from RAM hash map intp the output file
+	 * @throws IOException
+	 */
+	protected void writeVCF(File outputFile ) throws IOException {		 
 		logger.info("Writing VCF output");	 		
 		final List<ChrPosition> orderedList = new ArrayList<ChrPosition>(positionRecordMap.keySet());
 		Collections.sort(orderedList);
@@ -126,8 +139,6 @@ public abstract class AbstractMode {
 				writer.add( record );				 
 			}
 		}  
-		
-		
 	}
 	
 
@@ -135,13 +146,9 @@ public abstract class AbstractMode {
 	 * 
 	 * @param cmd: add this cmd string into vcf header
 	 * @param inputVcfName: add input file name into vcf header
-	 * @param he: input Vcf header, if null will get header from the inputVcf file
-	 * @return a new vcf header
 	 * @throws IOException
 	 */
-//	protected VcfHeader reheader(String cmd, String inputVcfName, final VcfHeader he) throws IOException {	
 	protected void reheader(String cmd, String inputVcfName) throws IOException {	
-		
  
 		if(header == null)
 	        try(VCFFileReader reader = new VCFFileReader(inputVcfName)) {
@@ -168,8 +175,7 @@ public abstract class AbstractMode {
 	    if(pg == null ) pg = Constants.NULL_STRING;
 	    if(cmd == null) cmd = Constants.NULL_STRING;
 		VcfHeaderUtils.addQPGLineToHeader(header, pg, version, cmd);
-	
-		
+			
 	}
 
 }

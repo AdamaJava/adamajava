@@ -67,7 +67,7 @@ public class ConfidenceModeTest {
 			mode.header.parseHeaderLine("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tEXTERN-MELA-20140505-001\tEXTERN-MELA-20140505-002");			
 			
 			//mode.retriveDefaultSampleColumn();
-			SampleColumn column = new SampleColumn(Stest, Scontrol, mode.header);
+			SampleColumn column = mode.new SampleColumn(Stest, Scontrol, mode.header);
 			mode.setSampleColumn(column.getTestSampleColumn(), column.getControlSampleColumn() );
 			
 			mode.addAnnotation(VerifiedFileName);
@@ -103,7 +103,7 @@ public class ConfidenceModeTest {
 			mode.header.parseHeaderLine("##qTestSample="+ Stest);	
 			mode.header.parseHeaderLine("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tEXTERN-MELA-20140505-001\tEXTERN-MELA-20140505-002");			
 			
-			SampleColumn column = new SampleColumn(Stest, Scontrol, mode.header);
+			SampleColumn column = mode.new SampleColumn(Stest, Scontrol, mode.header);
 			mode.setSampleColumn(column.getTestSampleColumn(), column.getControlSampleColumn() );
 			
 			mode.addAnnotation(VerifiedFileName);

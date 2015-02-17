@@ -45,7 +45,7 @@ public class Vcf2mafTest {
 	           }  	    
 	 
 	          
-				final Vcf2maf mode = new Vcf2maf(2, 1);		
+				final Vcf2maf mode = new Vcf2maf(2, 1, "TEST", "CONTROL");		
 				SnpEffMafRecord maf = null;
 				
 				try(VCFFileReader reader = new VCFFileReader(new File( DbsnpModeTest.inputName))){					
@@ -67,6 +67,10 @@ public class Vcf2mafTest {
 		 		assertTrue(maf.getColumnValue(18).equals("TG"));   //ND allel1
 		 		assertTrue(maf.getColumnValue(19).equals("CA"));   //ND allel2
 		 		
+		 		assertTrue(maf.getColumnValue(16).equals("Unknown:TEST"));   //tumour sample
+		 		assertTrue(maf.getColumnValue(17).equals("Unknown:CONTROL"));   //normal sample
+		 		
+		 		
 		 		
 		 		//we get consequnce with high rank, then long length, should be second annotation
 		 		assertTrue(maf.getColumnValue(51).equals("p.Thr329Pro"));
@@ -80,7 +84,7 @@ public class Vcf2mafTest {
 		 	final SnpEffMafRecord Dmaf = new SnpEffMafRecord();
 			Dmaf.setDefaultValue();
 			
-			final Vcf2maf v2m = new Vcf2maf(2,1);	//test column2; normal column 1
+			final Vcf2maf v2m = new Vcf2maf(2,1, null, null);	//test column2; normal column 1
 			final String[] parms = {"chrY","22012840",".","C","A",".","SBIAS","VLD;FS=GTGATATTCCC;VAF=0.11;"
 					+ "EFF=sequence_feature[compositionally_biased_region:Glu/Lys-rich](LOW|||c.1252G>C|591|CCDC148|protein_coding|CODING|ENST00000283233|10|1),"
 					+ "splice_acceptor_variant(HIGH|||n.356G>C||CCDC148-AS1|antisense|NON_CODING|ENST00000412781|5|1)",
@@ -175,7 +179,7 @@ public class Vcf2mafTest {
 		 createVcf(str);
 		 
 		 final File input = new File( DbsnpModeTest.inputName);
-		 final Vcf2maf v2m = new Vcf2maf(1,2);	
+		 final Vcf2maf v2m = new Vcf2maf(1,2, null, null);	
 	 	 try(VCFFileReader reader = new VCFFileReader(input); ){
 	 		for (final VcfRecord vcf : reader){  		
 	 			SnpEffMafRecord maf  = v2m.converter(vcf);
@@ -206,7 +210,7 @@ public class Vcf2mafTest {
 		 createVcf(str);
 		 
 		 final File input = new File( DbsnpModeTest.inputName);
-		 final Vcf2maf v2m = new Vcf2maf(1,2);	
+		 final Vcf2maf v2m = new Vcf2maf(1,2, null, null);	
 	 	 try(VCFFileReader reader = new VCFFileReader(input); ){
 	 		for (final VcfRecord vcf : reader){  		
 	 			SnpEffMafRecord maf  = v2m.converter(vcf);
@@ -240,7 +244,7 @@ public class Vcf2mafTest {
 		 createVcf(str);
 		 
 		 final File input = new File( DbsnpModeTest.inputName);
-		 final Vcf2maf v2m = new Vcf2maf(1,2);	
+		 final Vcf2maf v2m = new Vcf2maf(1,2, null, null);	
 	 	 try(VCFFileReader reader = new VCFFileReader(input); ){
 	 		for (final VcfRecord vcf : reader){  		
 	 			SnpEffMafRecord maf  = v2m.converter(vcf);
@@ -263,7 +267,7 @@ public class Vcf2mafTest {
 		 	final SnpEffMafRecord Dmaf = new SnpEffMafRecord();
 			Dmaf.setDefaultValue();
 			
-			final Vcf2maf v2m = new Vcf2maf(2,1);	//test column2; normal column 1
+			final Vcf2maf v2m = new Vcf2maf(2,1, null, null);	//test column2; normal column 1
 			final String[] parms = {"chrY","22012840",".","CT","AT","."  ,  "."  ,  "."  ,  "."  ,  "." ,  "."};
 
 	 		final VcfRecord vcf = new VcfRecord(parms);
@@ -297,12 +301,12 @@ public class Vcf2mafTest {
 	 public  void singleSampleTest() throws IOException, Exception{
  		 createVcf();
 		 final File input = new File( DbsnpModeTest.inputName);
-		 final Vcf2maf v2m = new Vcf2maf(1,1);	
+		 final Vcf2maf v2m = new Vcf2maf(1,1, null, null);	
 	 	try(VCFFileReader reader = new VCFFileReader(input); ){
 	 		for (final VcfRecord vcf : reader){  		
 	 			SnpEffMafRecord maf  = v2m.converter(vcf);
 	 			assertTrue( maf.getColumnValue(36).equals(maf.getColumnValue(37)) );
-	 			
+	 			assertTrue( maf.getColumnValue(16).equals(maf.getColumnValue(17)) );
 	 			
 	 		}	
         }

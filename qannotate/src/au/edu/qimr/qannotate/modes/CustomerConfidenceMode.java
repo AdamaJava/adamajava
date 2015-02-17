@@ -26,10 +26,14 @@ public final class CustomerConfidenceMode extends AbstractMode{
 	private int test_column = -2; //can't be -1 since will "+1"
 	private int control_column  = -2;
 	
+	private QLogger logger; 
+	
 //	//unit test only
 	CustomerConfidenceMode( ){	}
 	
-	public CustomerConfidenceMode(CustomerConfidenceOptions options, QLogger logger) throws Exception{				 
+	public CustomerConfidenceMode(CustomerConfidenceOptions options, QLogger logger) throws Exception{	
+		this.logger = logger;
+		
 		logger.tool("input: " + options.getInputFileName());
         logger.tool("output annotated records: " + options.getOutputFileName());
         logger.tool("logger file " + options.getLogFileName());
@@ -74,30 +78,52 @@ public final class CustomerConfidenceMode extends AbstractMode{
 		while( it.hasNext() ){
 			final VcfRecord re = it.next();
 			
+			boolean flag = false;
+			if( !passOnly || re.getFilter().toUpperCase().contains(VcfHeaderUtils.FILTER_PASS)){
+				final VcfFormatFieldRecord allel = (re.getInfo().contains(VcfHeaderUtils.INFO_SOMATIC)) ? re.getSampleFormatRecord(test_column) :  re.getSampleFormatRecord(control_column);
+				final int total =  VcfUtils.getAltFrequency(  allel, null );
+				if( total >=  min_read_counts) 
+					try{
+						final int mutants = Integer.parseInt( allel.getField(VcfHeaderUtils.FORMAT_MUTANT_READS));			  
+						if( ((100 * mutants) / total) >= variants_rate  ) flag = true;
+					}catch(Exception e ){
+						logger.error("err during caculating mutants rate for variants: " + re.toString() + "\n" + e.getMessage());
+					}				
+			} 							
+			
+			if(flag)
+				re.getInfoRecord().setField(VcfHeaderUtils.INFO_CONFIDENT, Confidence.HIGH.toString());
+			else
+				re.getInfoRecord().setField(VcfHeaderUtils.INFO_CONFIDENT, Confidence.ZERO.toString());
+			
 			//remove previous annotaion about CONF
-			final VcfInfoFieldRecord infoRecord = new VcfInfoFieldRecord(re.getInfo());
-			infoRecord.removeField(VcfHeaderUtils.INFO_CONFIDENT);
-			re.setInfo(infoRecord.toString());	//must reset here
-			
-			//only annotate record passed filters
-			if(passOnly && !re.getFilter().toUpperCase().contains(VcfHeaderUtils.FILTER_PASS)) 							
-				continue;
-			
-			final VcfFormatFieldRecord allel = (re.getInfo().contains(VcfHeaderUtils.INFO_SOMATIC)) ? re.getSampleFormatRecord(test_column) :  re.getSampleFormatRecord(control_column);
-			final int total =  VcfUtils.getAltFrequency(  allel, null );
-			if( total <  min_read_counts) continue;
-			
-			try{
-				final int mutants = Integer.parseInt( allel.getField(VcfHeaderUtils.FORMAT_MUTANT_READS));			  
-				if( ((100 * mutants) / total) < variants_rate  ) continue;
-			}catch(Exception e ){
-				return; 
-			}	
-			
-			infoRecord.setField(VcfHeaderUtils.INFO_CONFIDENT, Confidence.HIGH.toString());
-			re.setInfo(infoRecord.toString());			
+//			final VcfInfoFieldRecord infoRecord = new VcfInfoFieldRecord(re.getInfo());
+//			infoRecord.removeField(VcfHeaderUtils.INFO_CONFIDENT);
+//			re.setInfo(infoRecord.toString());	//must reset here
+//			
+//			//only annotate record passed filters
+//			if(passOnly && !re.getFilter().toUpperCase().contains(VcfHeaderUtils.FILTER_PASS)) 							
+//				continue;
+//			
+//			final VcfFormatFieldRecord allel = (re.getInfo().contains(VcfHeaderUtils.INFO_SOMATIC)) ? re.getSampleFormatRecord(test_column) :  re.getSampleFormatRecord(control_column);
+//			final int total =  VcfUtils.getAltFrequency(  allel, null );
+//			if( total <  min_read_counts) continue;
+//			
+//			try{
+//				final int mutants = Integer.parseInt( allel.getField(VcfHeaderUtils.FORMAT_MUTANT_READS));			  
+//				if( ((100 * mutants) / total) < variants_rate  ) continue;
+//			}catch(Exception e ){
+//				return; 
+//			}	
+//			
+//			infoRecord.setField(VcfHeaderUtils.INFO_CONFIDENT, Confidence.HIGH.toString());
+//			re.setInfo(infoRecord.toString());			
 		}		
 	}
+	
+	
+	
+	
 
 	@Override
 	void addAnnotation(String dbfile) throws Exception {

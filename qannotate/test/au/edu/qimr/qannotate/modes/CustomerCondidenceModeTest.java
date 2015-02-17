@@ -33,7 +33,7 @@ public class CustomerCondidenceModeTest {
 		final CustomerConfidenceMode mode = new CustomerConfidenceMode();		
 		mode.inputRecord(new File(DbsnpModeTest.inputName));
 			 
-		SampleColumn column = new SampleColumn(null,null,  mode.header);
+		SampleColumn column =  mode.new SampleColumn(null,null,  mode.header);
 		mode.setSampleColumn(column.getTestSampleColumn(), column.getControlSampleColumn() );
 
 		mode.addAnnotation();
@@ -46,7 +46,7 @@ public class CustomerCondidenceModeTest {
 				if(re.getPosition() == 41281388) 
 					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(Confidence.HIGH.toString())); 
 				else if(re.getPosition() == 41281389) 
-					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT) == null); 
+					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(Confidence.ZERO.toString())); 
 			}		
 		}
 		 
