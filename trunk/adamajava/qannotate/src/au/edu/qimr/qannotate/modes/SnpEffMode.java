@@ -2,6 +2,7 @@ package au.edu.qimr.qannotate.modes;
 
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -22,7 +23,7 @@ public class SnpEffMode extends AbstractMode{
 //	private String cmd;
 	private final  String tmpFile;
 	private final QLogger logger;
-	public SnpEffMode(SnpEffOptions options, QLogger logger) throws Exception{
+	public SnpEffMode(SnpEffOptions options, QLogger logger) throws IOException {
 		this.logger = logger;
 		
 		logger.tool("input: " + options.getInputFileName());
@@ -35,34 +36,38 @@ public class SnpEffMode extends AbstractMode{
 		      
         tmpFile = options.getOutputFileName() + ".tmp";
         
-    	logger.tool("running snpEFF, output to " + tmpFile);
-    	final boolean ok = addAnnotation( options , tmpFile );
-
-    	logger.tool("exit snpEFF: " + ok);
+	    	logger.tool("running snpEFF, output to " + tmpFile);
+	    	final boolean ok = addAnnotation( options , tmpFile );
+	
+	    	logger.tool("exit snpEFF: " + ok);
 		
 		//reheader
-        if(ok){ 
-        	header = new VCFFileReader(tmpFile).getHeader();
-        	reheader(options.getCommandLine(),options.getInputFileName())	;	
-        	writeVCF(new File( options.getOutputFileName()) );
+        if (ok) { 
+	        	header = new VCFFileReader(tmpFile).getHeader();
+	        	reheader(options.getCommandLine(),options.getInputFileName())	;	
+	        	writeVCF(new File( options.getOutputFileName()) );
 			logger.tool("reheader snpEFF output to " +   options.getOutputFileName());
-		}else{
+		} else {
 			logger.info("run SnpEff failed!");
 			System.exit(1);
 		}
-	
 	}
+	
 	@Override
 	protected void writeVCF(File outputFile )  throws IOException{
 		try(VCFFileReader reader = new VCFFileReader(new File( tmpFile));
 				VCFFileWriter writer = new VCFFileWriter(outputFile )){
 								
-        	for(final VcfHeader.Record record: header)  writer.addHeader(record.toString());
-        	for (final VcfRecord qpr : reader) writer.add(qpr);
-		} 
+	        	for(final VcfHeader.Record record: header) {
+	        		writer.addHeader(record.toString());
+	        	}
+	        	for (final VcfRecord qpr : reader) {
+	        		writer.add(qpr);
+	        	}
+		}
 	}
 		//throws Exception
-	private boolean addAnnotation(SnpEffOptions options, String tmpFile ) throws Exception{	
+	private boolean addAnnotation(SnpEffOptions options, String tmpFile ) throws FileNotFoundException{	
 		
 		final List<String> command = new ArrayList<String>();
 		final File fdata = new File(options.getDatabaseFileName());
@@ -100,13 +105,9 @@ public class SnpEffMode extends AbstractMode{
 		return ok; 		
 	}
 	
-	
 	@Override
 	void addAnnotation(String dbSNPFile) throws Exception {
 		// TODO Auto-generated method stub
 		
 	}
- 
-	
- 
 }

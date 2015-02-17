@@ -346,15 +346,7 @@ public abstract class Pipeline {
 			
 			// add in existing header details
 			if (null != existingHeader) {
-				for (VcfHeader.Record rec : existingHeader.getInfoRecords().values()) {
-					header.addInfo(rec);
-				}
-				for (VcfHeader.Record rec : existingHeader.getFormatRecords().values()) {
-					header.addFormat(rec);
-				}
-				for (VcfHeader.Record rec : existingHeader.getFilterRecords().values()) {
-					header.addFilter(rec);
-				}
+				VcfHeader mergedHeader = VcfHeaderUtils.mergeHeaders(header, existingHeader, true);
 			}
 			for (VcfHeader.Record hr : header) {
 				writer.addHeader(hr.toString());
@@ -441,68 +433,6 @@ public abstract class Pipeline {
 		}
 		return  header;
 	}
-//	private VcfHeader getHeaderForQSnp(final String patientId,  final String normalSampleId, final String tumourSampleId, 
-//			final String source, QBamId[] normalBamIds, QBamId[] tumourBamIds, String uuid, boolean singleSampleMode) throws Exception {
-//		
-//		final VcfHeader header = new VcfHeader();
-//		final DateFormat df = new SimpleDateFormat("yyyyMMdd");
-//		
-//		//move input uuid into preuuid
-//		header.add( VcfHeaderUtils.parseHeaderLine(VcfHeaderUtils.CURRENT_FILE_VERSION));		
-//		header.add( VcfHeaderUtils.parseHeaderLine(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + df.format(Calendar.getInstance().getTime()) ));
-//		header.add( VcfHeaderUtils.parseHeaderLine(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + QExec.createUUid() ));
-//		header.add( VcfHeaderUtils.parseHeaderLine(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=" + source ) );
-//		
-//		header.add( VcfHeaderUtils.parseHeaderLine(VcfHeaderUtils.STANDARD_PATIENTID   +  "=" + patientId ));
-//		header.add( VcfHeaderUtils.parseHeaderLine(VcfHeaderUtils.STANDARD_CONTROLSAMPLE + "=" + normalSampleId ));
-//		header.add( VcfHeaderUtils.parseHeaderLine(VcfHeaderUtils.STANDARD_TESTSAMPLE + "=" + tumourSampleId ));
-//		
-//		if (null != normalBamIds)  
-//			for (final QBamId s : normalBamIds) {
-//				header.add( VcfHeaderUtils.parseHeaderLine(VcfHeaderUtils.STANDARD_CONTROLBAM  + "=" + s.getBamName()));
-//				header.add( VcfHeaderUtils.parseHeaderLine("##qControlBamUUID=" + s.getUUID()));
-//			}
-//		
-//		if (null != tumourBamIds)  
-//			for (final QBamId s : tumourBamIds) {
-//				header.add( VcfHeaderUtils.parseHeaderLine(VcfHeaderUtils.STANDARD_TESTBAM  + "=" + s.getBamName()));
-//				header.add( VcfHeaderUtils.parseHeaderLine("##qTestBamUUID=" + s.getUUID()));
-//			}		
-//		header.add( VcfHeaderUtils.parseHeaderLine( "##qAnalysisId=" + uuid ) );
-//		
-//		header.add( new VcfHeaderInfo(VcfHeaderUtils.INFO_FLANKING_SEQUENCE, VcfInfoNumber.NUMBER, 1, VcfInfoType.String,"Flanking sequence either side of variant", null, null)); 																		
-//		
-//		header.parseHeaderLine(VcfHeaderUtils.FILTER_COVERAGE_NORMAL_12, "Less than 12 reads coverage in normal"));
-//		header.parseHeaderLine(VcfHeaderUtils.FILTER_COVERAGE_NORMAL_8,"Less than 8 reads coverage in normal"));  
-//		header.parseHeaderLine(VcfHeaderUtils.FILTER_COVERAGE_TUMOUR,"Less than 8 reads coverage in tumour")); 
-//		header.parseHeaderLine(VcfHeaderUtils.FILTER_SAME_ALLELE_NORMAL,"Less than 3 reads of same allele in normal"));  
-//		header.parseHeaderLine(VcfHeaderUtils.FILTER_SAME_ALLELE_TUMOUR,"Less than 3 reads of same allele in tumour"));  
-//		header.parseHeaderLine(VcfHeaderUtils.FILTER_MUTATION_IN_NORMAL,"Mutation also found in pileup of normal"));  
-//		header.parseHeaderLine(VcfHeaderUtils.FILTER_MUTATION_IN_UNFILTERED_NORMAL,"Mutation also found in pileup of (unfiltered) normal"));  
-//		header.parseHeaderLine(VcfHeaderUtils.FILTER_GERMLINE,"Mutation is a germline variant in another patient"));  
-//		header.parseHeaderLine(VcfHeaderUtils.FILTER_NOVEL_STARTS,"Less than 4 novel starts not considering read pair"));  
-//		header.parseHeaderLine(VcfHeaderUtils.FILTER_MUTANT_READS,"Less than 5 mutant reads")); 
-//		header.parseHeaderLine(VcfHeaderUtils.FILTER_MUTATION_EQUALS_REF,"Mutation equals reference")); 
-//		header.parseHeaderLine(VcfHeaderUtils.FILTER_NO_CALL_IN_TEST,"No call in test")); 
-//		
-//		header.add( new VcfHeaderFormat(VcfHeaderUtils.FORMAT_GENOTYPE, VcfInfoNumber.NUMBER, 1, VcfInfoType.String,"Genotype: 0/0 homozygous reference; 0/1 heterozygous for alternate allele; 1/1 homozygous for alternate allele"));
-//		header.add( new VcfHeaderFormat(VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS, VcfInfoNumber.NUMBER, 1, VcfInfoType.String,"Genotype details: specific alleles (A,G,T or C)"));
-//		header.add( new VcfHeaderFormat(VcfHeaderUtils.FORMAT_ALLELE_COUNT, VcfInfoNumber.NUMBER, 1, VcfInfoType.String,"Allele Count: lists number of reads on forward strand [avg base quality], reverse strand [avg base quality]"));
-//		header.add( new VcfHeaderFormat(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP,VcfInfoNumber.NUMBER, 1, VcfInfoType.String,"Allele Count Compound Snp: lists read sequence and count (forward strand, reverse strand)"));
-//		header.add( new VcfHeaderFormat(VcfHeaderUtils.FORMAT_ALLELIC_DEPTHS,VcfInfoNumber.NUMBER, 1, VcfInfoType.String,"Allelic depths for the ref and alt alleles in the order listed"));
-//		header.add( new VcfHeaderFormat(VcfHeaderUtils.FORMAT_READ_DEPTH,VcfInfoNumber.NUMBER, 1, VcfInfoType.String,"Approximate read depth (reads with MQ=255 or with bad mates are filtered)"));
-//		header.add( new VcfHeaderFormat(VcfHeaderUtils.FORMAT_GENOTYPE_QUALITY,VcfInfoNumber.NUMBER, 1, VcfInfoType.String,"Genotype Quality"));
-//		header.add( new VcfHeaderFormat(VcfHeaderUtils.FORMAT_MUTANT_READS, VcfInfoNumber.NUMBER, 1, VcfInfoType.Integer,"Number of mutant/variant reads"));
-//		header.add( new VcfHeaderFormat(VcfHeaderUtils.FORMAT_NOVEL_STARTS, VcfInfoNumber.NUMBER, 1, VcfInfoType.Integer,"Number of novel starts not considering read pair"));		
-//		
-//		if (singleSampleMode) {
-//			header.add(VcfHeaderUtils.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + testSampleId));
-//		} else {
-//			header.add(VcfHeaderUtils.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + controlSampleId + "\t" + testSampleId));
-//		}
-//		return  header;
-//	}
-	
 	
 	void classifyPileupRecord(QSnpRecord record) {
 		if (null != record.getNormalGenotype() && null != record.getTumourGenotype()) {
