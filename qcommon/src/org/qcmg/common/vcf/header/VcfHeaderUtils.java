@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.qcmg.common.log.QLogger;
+import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.SnpUtils;
@@ -17,6 +19,8 @@ import org.qcmg.common.vcf.header.VcfHeader.QPGRecord;
 import org.qcmg.common.vcf.header.VcfHeader.Record;
 
 public class VcfHeaderUtils {
+	
+	public static final QLogger logger = QLoggerFactory.getLogger(VcfHeaderUtils.class);
 	
 	public static final DateFormat DF = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	
@@ -92,6 +96,12 @@ public class VcfHeaderUtils {
 	public static final String STANDARD_TESTSAMPLE = "##qTestSample";
 	public static final String STANDARD_CONTROLBAM = "##qControlBam";
 	public static final String STANDARD_TESTBAM = "##qTestBam";
+	public static final String STANDARD_CONTROL_VCF = "##qControlVcf";
+	public static final String STANDARD_TEST_VCF = "##qTestVcf";
+	public static final String STANDARD_CONTROL_VCF_UUID = "##qControlVcfUUID";
+	public static final String STANDARD_TEST_VCF_UUID = "##qTestVcfUUID";
+	public static final String STANDARD_CONTROL_VCF_GATK_VER = "##qControlVcfGATKVersion";
+	public static final String STANDARD_TEST_VCF_GATK_VER = "##qTestVcfGATKVersion";
 	
   
 	public static final String PREVIOUS_UUID_LINE = "##preUuid";
@@ -149,9 +159,20 @@ public class VcfHeaderUtils {
 		
 	}
 	
+	/**
+	 * Retrieves the UUID from the uuid VcfHeader.Record supplied to the method.
+	 * If this object is null, then null is returned.
+	 * Otherwise, the record is split by '=' and the second parameter is returned to the user.
+	 * Again, if the record does not contain '=', then null is returned
+	 * 
+	 * 
+	 * @param uuid VcfHEader.Record uuid of the vcf file
+	 * @return null if the supplied uuid record is null
+	 */
 	public static String getUUIDFromHeaderLine(VcfHeader.Record uuid) {
 		if (null == uuid) {
-			throw new IllegalArgumentException("Null record passed to VcfHeaderUtils.getUUIDFromHeaderLine");
+			logger.warn("null uuid record passed to getUUIDFromHeaderLine!!!");
+			return null;
 		}
 		String uuidString = splitMetaRecord(uuid)[1];
 		return uuidString;
@@ -177,6 +198,49 @@ public class VcfHeaderUtils {
 	}
 	
 	
+	/**
+	 * Merge 2 VcfHEader objects together.
+	 * Only merges the FILTER, INFO, FORMAT and META header lines.
+	 * qPG and the standard lines (fileformat etc) are left untouched
+	 * 
+	 * @param original
+	 * @param additional
+	 * @param overwrite
+	 * @return
+	 */
+	public static VcfHeader mergeHeaders(VcfHeader original, VcfHeader additional, boolean overwrite) {
+		if (null == original && null == additional) {
+			throw new IllegalArgumentException("Null headers passed to VcfHeaderUtils.mergeHeaders");
+		} else if (null == original) {
+			return additional;
+		} else if (null == additional) {
+			return original;
+		}
+		
+		// only merging format, filter, info and meta
+		
+		for (VcfHeader.Record rec : additional.getInfoRecords().values()) {
+			original.addInfo(rec, overwrite);
+		}
+		for (VcfHeader.Record rec : additional.getFormatRecords().values()) {
+			original.addFormat(rec, overwrite);
+		}
+		for (VcfHeader.Record rec : additional.getFilterRecords().values()) {
+			original.addFilter(rec, overwrite);
+		}
+		for (VcfHeader.Record rec : additional.getMetaRecords()) {
+			original.addMeta(rec, overwrite);
+		}
+		return original;
+	}
+	
+	
+	/**
+	 * Splits a VcfHeader.Record meta object on '=' and returns a String array with the results of the split command.
+	 * If the record does not contain '=' then a 2 element array is returned, with the first element containing record.getData(), and the second element containing null
+	 * @param rec VcfHeader.Record
+	 * @return String [] containing the result of rec.getData().split("=")
+	 */
 	public static String[]  splitMetaRecord(VcfHeader.Record rec) {
 		if (null == rec || null == rec.getData()) {
 			throw new IllegalArgumentException("Null record passed to VcfHeaderUtils.splitMetaRecord");
@@ -194,17 +258,10 @@ public class VcfHeaderUtils {
 		String[] pair; 
 		public SplitMetaRecord(Record record){
 			this.pair =  splitMetaRecord(record);
-//			int index = record.getData().indexOf(Constants.EQ_STRING);
-//			if(index >= 0)
-//				pair = record.getData().split(Constants.EQ_STRING);
-//			else  
-//				pair = new String[]{record.getData(), null};
 		}
 		
 		public String getKey(){ return pair[0]; }
 		public String getValue(){ return pair[1]; }
-		
 	}
-		
  
 }

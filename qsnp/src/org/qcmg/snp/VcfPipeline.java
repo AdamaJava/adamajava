@@ -34,12 +34,14 @@ import org.qcmg.common.model.PileupElementLite;
 import org.qcmg.common.model.ReferenceNameComparator;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.ChrPositionUtils;
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.Pair;
 import org.qcmg.common.util.SnpUtils;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
+import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.util.QDccMetaFactory;
 import org.qcmg.picard.util.SAMUtils;
@@ -213,6 +215,12 @@ public final class VcfPipeline extends Pipeline {
 			for (VcfHeader.Record rec : controlVcfHeader.getFilterRecords().values()) {
 				existingHeader.addFilter(rec);
 			}
+			
+			// add in the vcf filename, gatk version and the uuid
+			existingHeader.parseHeaderLine(VcfHeaderUtils.STANDARD_CONTROL_VCF + Constants.EQ + controlVcfFile);
+			existingHeader.parseHeaderLine(VcfHeaderUtils.STANDARD_CONTROL_VCF_UUID + Constants.EQ + VcfHeaderUtils.getUUIDFromHeaderLine(controlVcfHeader.getUUID()));
+			existingHeader.parseHeaderLine(VcfHeaderUtils.STANDARD_CONTROL_VCF_GATK_VER + Constants.EQ + VcfHeaderUtils.getGATKVersionFromHeaderLine(controlVcfHeader));
+			
 		}
 		
 		for (VcfHeader.Record rec : testVcfHeader.getInfoRecords().values()) {
@@ -224,6 +232,10 @@ public final class VcfPipeline extends Pipeline {
 		for (VcfHeader.Record rec : testVcfHeader.getFilterRecords().values()) {
 			existingHeader.addFilter(rec);
 		}
+		// add in the vcf filename, gatk version and the uuid
+		existingHeader.parseHeaderLine(VcfHeaderUtils.STANDARD_TEST_VCF + Constants.EQ + testVcfFile);
+		existingHeader.parseHeaderLine(VcfHeaderUtils.STANDARD_TEST_VCF_UUID + Constants.EQ + VcfHeaderUtils.getUUIDFromHeaderLine(testVcfHeader.getUUID()));
+		existingHeader.parseHeaderLine(VcfHeaderUtils.STANDARD_TEST_VCF_GATK_VER + Constants.EQ + VcfHeaderUtils.getGATKVersionFromHeaderLine(testVcfHeader));
 		
 		// override this if dealing with input VCFs and the existing headers are to be kept
 		return existingHeader;
@@ -403,8 +415,13 @@ public final class VcfPipeline extends Pipeline {
 				}
 				for (final VcfRecord qpr : reader) {
 					
+					
+					
+//					if (SnpUtils.PASS.equals(qpr.getFilter())) {	// only deal with top notch snps
+					
+					
 					// if the length of the reference bases != length of the alt bases, its not a snp (or compound snp)
-					if (VcfUtils.isRecordAMnp(qpr)) {
+					if (VcfUtils.isRecordAMnp(qpr)) {	// input file should be snps only
 						final QSnpRecord snpRecord = new QSnpRecord(qpr);
 						if (null != qpr.getFormatFields() && ! qpr.getFormatFields().isEmpty()) {
 							//	 set genotype

@@ -19,6 +19,7 @@ import org.qcmg.common.model.PileupElement;
 import org.qcmg.common.model.Rule;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
+import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.pileup.QSnpRecord;
 import org.qcmg.tab.TabbedFileReader;
 import org.qcmg.tab.TabbedRecord;
@@ -44,65 +45,6 @@ public class VcfPipelineTest {
 		}  
 	}
 	
-//	@Test
-//	public void doesEqualsWork() throws Exception {
-//		VcfHeader header = new VcfHeader();
-//		header.parseHeaderLine("##FILTER==<ID=LowQual,Description=\"Low quality\">");
-//		header.parseHeaderLine("##FILTER==<ID=LowQual,Description=\"Low quality\">");
-//		VcfHeader.Record rec1 = VcfHeaderUtils.parseHeaderLine("##FILTER==<ID=LowQual,Description=\"Low quality\">");
-//		VcfHeaderRecord rec2 = VcfHeaderUtils.parseHeaderLine("##FILTER==<ID=LowQual,Description=\"Low quality\">");
-//		assertEquals(true, rec1.equals(rec1));
-//		assertEquals(true, rec2.equals(rec2));
-//		assertEquals(true, rec1.equals(rec2));
-//		assertEquals(false, rec1 == rec2);
-//		
-//		// and now as VcfHeaderFilter objects
-//		VcfHeaderFilter rec3 = new VcfHeaderFilter("##FILTER==<ID=LowQual,Description=\"Low quality\">");
-//		assertEquals(true, rec1.equals(rec3));
-//		
-//		
-//		// last one - serialise and de-serialise
-//		header.add(rec1);
-//		
-//		File vcfFile = testFolder.newFile();
-//		try (VCFFileWriter writer = new VCFFileWriter(vcfFile)) {
-//			for (VcfHeaderRecord hr : header) {
-//				writer.addHeader(hr.toString());
-//			}
-//		}
-//		
-//		// and now read from file
-//		VcfHeader headerFromFile = null;
-//		try (VCFFileReader reader = new VCFFileReader(vcfFile)) {
-//			headerFromFile = reader.getHeader();
-//		}
-//		List<VcfHeaderRecord> recordsFromFile = new ArrayList<>();
-//		for (VcfHeaderRecord rec : headerFromFile) {
-//			recordsFromFile.add(rec);
-//		}
-//		
-//		assertEquals(2, recordsFromFile.size());		// we add the final header line by default
-//		assertEquals(true, recordsFromFile.contains(rec1));
-//		
-//		
-//		// and now when integrating from qsnp
-//		  TestVcfPipeline vp = new TestVcfPipeline(true);
-//		  TestVcfPipeline.testVcfHeader = headerFromFile;
-//		  File qsnpVcfFile = testFolder.newFile();
-//		  vp.writeVCF(qsnpVcfFile.getAbsolutePath());
-//		  
-//		  VcfHeader finalHeader = null;
-//		  try (VCFFileReader reader2 = new VCFFileReader(qsnpVcfFile);) {
-//		  		finalHeader = reader2.getHeader();
-//		  }
-//		  Collection<VcfHeaderRecord> finalHeaderRecords = new ArrayList<>();
-//		  for (VcfHeaderRecord rec : finalHeader) {
-//			  finalHeaderRecords.add(rec);
-//		  }
-//		  
-//		  assertEquals(true, finalHeaderRecords.contains(rec1));
-//		
-//	}
 	
 	@Test
 	public void getExistingVcfHeader() throws Exception {
@@ -110,6 +52,7 @@ public class VcfPipelineTest {
 		List<String> header = new ArrayList<>();
 		
 		  header.add("##fileformat=VCFv4.1");
+		  header.add("##qUUID=5072595e-8aa2-42df-b5da-dc90a5f2e057");
 		  header.add("##FILTER=<ID=LowQual,Description=\"Low quality\">");
 		  header.add("##FORMAT=<ID=AD,Number=.,Type=Integer,Description=\"Allelic depths for the ref and alt alleles in the order listed\">");
 		  header.add("##FORMAT=<ID=DP,Number=1,Type=Integer,Description=\"Approximate read depth (reads with MQ=255 or with bad mates are filtered)\">");
@@ -163,6 +106,7 @@ public class VcfPipelineTest {
 		  File vcfFile = testFolder.newFile();
 		  createVcfFile(vcfFile, header);
 		  TestVcfPipeline vp = new TestVcfPipeline(true);
+		  vp.testVcfFile = vcfFile.getAbsolutePath();
 		  VcfHeader headerFromFile = null;
 		  try (VCFFileReader reader = new VCFFileReader(vcfFile);) {
 			  headerFromFile = reader.getHeader();
@@ -176,28 +120,36 @@ public class VcfPipelineTest {
 			  if (i == 1) {
 				  assertEquals("##fileformat=VCFv4.1", rec.getData());
 			  } else if (i == 2) {
+				  assertEquals(true, rec.getData().startsWith(VcfHeaderUtils.STANDARD_UUID_LINE));
+			  } else if (i == 3) {
 				  assertEquals(true, rec.getData().startsWith("##GATKCommandLine"));
-			  } else if (i >=3 && i < 23) {
+			  } else if (i >=4 && i < 24) {
 				  assertEquals(true, rec.getData().startsWith("##contig"));
-			  } else if (i == 23) {
+			  } else if (i == 24) {
 				  assertEquals(true, rec.getData().startsWith("##reference"));
-			  } else if (i > 23 && i < 43) {
-				  assertEquals(true, rec.getData().startsWith("##INFO"));
-			  } else if (i == 43) {
-				  assertEquals(true, rec.getData().startsWith("##FILTER"));
-			  } else if (i > 43 && i < 49) {
-				  assertEquals(true, rec.getData().startsWith("##FORMAT"));
+			  } else if (i > 24 && i < 44) {
+				  assertEquals(true, rec.getData().startsWith(VcfHeaderUtils.HEADER_LINE_INFO));
+			  } else if (i == 44) {
+				  assertEquals(true, rec.getData().startsWith(VcfHeaderUtils.HEADER_LINE_FILTER));
+			  } else if (i > 44 && i < 50) {
+				  assertEquals(true, rec.getData().startsWith(VcfHeaderUtils.HEADER_LINE_FORMAT));
 			  } else {
 				  assertEquals(true, rec.getData().startsWith("#CHROM"));
 			  }
 		  }
-		  assertEquals(49, i);	// no additional header added at this stage
+		  assertEquals(50, i);	// no additional header added at this stage
 		  
 		  VcfHeader existingHeader = vp.getExistingVCFHeaderDetails();
 		  
 		  // this should only contain entries that are marked for inclusion
 		  for (VcfHeader.Record rec : existingHeader) {
-			  assertEquals(true, rec instanceof VcfHeader.FormattedRecord);
+			  assertEquals(true, rec instanceof VcfHeader.FormattedRecord 
+							  || rec.getData().startsWith(VcfHeaderUtils.STANDARD_CONTROL_VCF)
+							  || rec.getData().startsWith(VcfHeaderUtils.STANDARD_CONTROL_VCF_UUID)
+							  || rec.getData().startsWith(VcfHeaderUtils.STANDARD_CONTROL_VCF_GATK_VER)
+							  || rec.getData().startsWith(VcfHeaderUtils.STANDARD_TEST_VCF)
+							  || rec.getData().startsWith(VcfHeaderUtils.STANDARD_TEST_VCF_GATK_VER)
+							  || rec.getData().startsWith(VcfHeaderUtils.STANDARD_TEST_VCF_UUID));
 		  }
 		  
 		  // now check that when calling writeToVcf that we get this along with standard qsnp vcf header
@@ -228,22 +180,6 @@ public class VcfPipelineTest {
 				  if (rec.toString().contains("BaseQRankSum")) {
 					  
 					  System.out.println("rec BaseQRankSum hashCode: " + rec.hashCode());
-//					  System.out.println("rec LowQual getDescription: " + rec.getDescription());
-//					  System.out.println("rec LowQual getDescription.hashCode: " + rec.getDescription().hashCode());
-//					  System.out.println("rec LowQual getDescription.hashCode: " + rec.getDescription().hashCode());
-//					  System.out.println("rec LowQual getId: " + rec.getId());
-//					  System.out.println("rec LowQual getId.hashCode(): " + rec.getId().hashCode());
-//					  System.out.println("rec LowQual getSource: " + rec.getSource());
-////					  System.out.println("rec LowQual getSource.hashCode(): " + rec.getSource().hashCode());
-//					  System.out.println("rec LowQual type: " + rec.type);
-//					  System.out.println("rec LowQual type.hashCode(): " + rec.type.hashCode());
-//					  System.out.println("rec LowQual getVersion: " + rec.getVersion());
-////					  System.out.println("rec LowQual getVersion.hashCode(): " + rec.getVersion().hashCode());
-//					  System.out.println("rec LowQual getVcfInfoType: " + rec.getVcfInfoType());
-////					  System.out.println("rec LowQual getVcfInfoType.hashCode(): " + rec.getVcfInfoType().hashCode());
-//					  System.out.println("rec LowQual rec.line: " + rec.toString());
-//					  System.out.println("rec LowQual rec.line.hashCode: " + rec.toString().hashCode());
-//					  System.out.println("rec LowQual getVcfInfoType.hashCode(): " + rec.hashCode());
 					  // loop through finals
 					  for (VcfHeader.Record finalRec : finalHeaderRecords) {
 						  if (finalRec.toString().contains("BaseQRankSum")) {
@@ -255,33 +191,7 @@ public class VcfPipelineTest {
 							  assertEquals(true, line1.equals(line2));
 							  assertEquals(line1.hashCode(), line1.hashCode());
 							  
-//							  String desc1 = ((FormattedRecord) rec).getDescription();
-//							  String desc2 = ((FormattedRecord) finalRec).getDescription();
-//							  assertEquals(true, desc1.equals(desc2));
-//							  assertEquals(desc1.hashCode(), desc2.hashCode());
-							  
-//							  String id1 = ((FormattedRecord) rec).getDescription();
-//							  String id2 = ((FormattedRecord) finalRec).getDescription();
-//							  assertEquals(true, id1.equals(id2));
-//							  assertEquals(id1.hashCode(), id2.hashCode());
-							  
-							  
 							  System.out.println("finalRec: BaseQRankSum hashCode: " + finalRec.hashCode());
-//							  System.out.println("finalRec LowQual getDescription: " + finalRec.getDescription());
-//							  System.out.println("finalRec LowQual getDescription.hashCode(): " + finalRec.getDescription().hashCode());
-//							  System.out.println("finalRec LowQual getId: " + finalRec.getId());
-//							  System.out.println("finalRec LowQual getId.hashCode(): " + finalRec.getId().hashCode());
-//							  System.out.println("finalRec LowQual getSource: " + finalRec.getSource());
-////							  System.out.println("finalRec LowQual getSource.hashCode(): " + finalRec.getSource().hashCode());
-//							  System.out.println("finalRec LowQual type: " + finalRec.type);
-//							  System.out.println("finalRec LowQual type.hashCode(): " + finalRec.type.hashCode());
-//							  System.out.println("finalRec LowQual getVersion: " + finalRec.getVersion());
-////							  System.out.println("finalRec LowQual getVersion.hashCode(): " + finalRec.getVersion().hashCode());
-//							  System.out.println("finalRec LowQual getVcfInfoType: " + finalRec.getVcfInfoType());
-////							  System.out.println("finalRec LowQual getVcfInfoType.hashCode(): " + finalRec.getVcfInfoType().hashCode());
-//							  System.out.println("finalRec LowQual line: " + finalRec.toString());
-//							  System.out.println("finalRec LowQual rec.line.hashCode: " + finalRec.toString().hashCode());
-//							  System.out.println("finalRec LowQual getVcfInfoType.hashCode(): " + finalRec.hashCode());
 						  }
 					  }
 				  }
@@ -289,7 +199,6 @@ public class VcfPipelineTest {
 				  System.out.println("rec IS contained in final: " + rec);
 			  }
 		  }
-		  
 		  assertEquals(true, finalHeaderRecords.containsAll(existingHeaderRecords));
 	}
 	

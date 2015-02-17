@@ -197,6 +197,9 @@ public class VcfHeader implements Iterable<VcfHeader.Record> {
 		public Map<String, FormattedRecord> getAll() {
 			return lines;
 		}
+		public boolean contains(FormattedRecord rec) {
+			return lines.containsKey(rec.getId());
+		}
 	}
 	
 
@@ -207,6 +210,9 @@ public class VcfHeader implements Iterable<VcfHeader.Record> {
 		}
 		public List<Record> getRecords() {
 			return lines;
+		}
+		public boolean contains(Record rec) {
+			return lines.contains(rec);
 		}
 	}
 	
@@ -221,6 +227,10 @@ public class VcfHeader implements Iterable<VcfHeader.Record> {
 	}
 	
 	public void parseHeaderLine(String line) {
+		parseHeaderLine(line, true);
+	}
+	
+	public void parseHeaderLine(String line, boolean replaceExisting) {
 		
 		if (StringUtils.isNullOrEmpty(line)) {
 			throw new IllegalArgumentException("null or empty string passed to VcfHeaderUtils.parseHeaderLine: " + line);
@@ -233,13 +243,13 @@ public class VcfHeader implements Iterable<VcfHeader.Record> {
 		// Is this an Info line?
 		if (line.startsWith(VcfHeaderUtils.HEADER_LINE_FORMAT) )  {
 			record = new FormatRecord(line);
-			addFormat(record);
+			addFormat(record, replaceExisting);
 		} else if (line.startsWith(VcfHeaderUtils.HEADER_LINE_FILTER) ) {  
 			record = new FilterRecord(line);
-			addFilter(record);
+			addFilter(record, replaceExisting);
 		} else if (line.startsWith(VcfHeaderUtils.HEADER_LINE_INFO) )  {
 			record = new InfoRecord(line);
-			addInfo(record);
+			addInfo(record, replaceExisting);
 		} else if (line.startsWith(VcfHeaderUtils.HEADER_LINE_QPG) ) {
 			record = new QPGRecord(line);
 			addQPG((QPGRecord) record);
@@ -267,13 +277,36 @@ public class VcfHeader implements Iterable<VcfHeader.Record> {
 	}
 	
 	public void addInfo(Record rec) {
-		infoRecords.add((FormattedRecord) rec);
+		addInfo(rec, true);
+	}
+	public void addInfo(Record rec, boolean replaceExisting) {
+		if (replaceExisting || ! infoRecords.contains((FormattedRecord) rec)) {
+			infoRecords.add((FormattedRecord) rec);
+		}
 	}
 	public void addFormat(Record rec) {
-		formatRecords.add((FormattedRecord) rec);
+		addFormat(rec, true);
+	}
+	public void addFormat(Record rec, boolean replaceExisting) {
+		if (replaceExisting ||  ! formatRecords.contains((FormattedRecord) rec)) {
+			formatRecords.add((FormattedRecord) rec);
+		}
 	}
 	public void addFilter(Record rec) {
-		filterRecords.add((FormattedRecord) rec);
+		addFilter(rec, true);
+	}
+	public void addFilter(Record rec, boolean replaceExisting) {
+		if (replaceExisting ||  ! filterRecords.contains((FormattedRecord) rec)) {
+			filterRecords.add((FormattedRecord) rec);
+		}
+	}
+	public void addMeta(Record rec) {
+		addMeta(rec, true);
+	}
+	public void addMeta(Record rec, boolean replaceExisting) {
+		if (replaceExisting ||  ! metaRecords.contains(rec)) {
+			metaRecords.add(rec);
+		}
 	}
 
 	public VcfHeader(final List<String> headerRecords)   {
@@ -357,22 +390,6 @@ public class VcfHeader implements Iterable<VcfHeader.Record> {
 		return otherRecords.getRecords();
 	}
 
-	/**
-	 * Get Info type for a given ID
-	 * @param id
-	 * @return
-	 */
-	public FormattedRecord getVcfInfo(String id) {		 
-		return infoRecords.get(id);
-	}
-	
-	public FormatRecord getVcfFormat(String id) {		 
-		return (FormatRecord) formatRecords.get(id);
-	}
-	
-	public FilterRecord getVcfFilter(String id) {	
-		return (FilterRecord) filterRecords.get(id);
-	}
 	
 	public Record getUUID() {
 		return uuid;
@@ -390,7 +407,6 @@ public class VcfHeader implements Iterable<VcfHeader.Record> {
 		return chromLine;
 	} 
 	
-
 	boolean containsQIMRDetails() {
 		return (null != uuid && ! qpgRecords.isEmpty() );
 	}
