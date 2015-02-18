@@ -11,16 +11,18 @@ import org.qcmg.qsv.isize.CalculateISize;
 
 public class RunTypeRecord {    
     
-	private String rgId;
+	public static final int MAX_I_SIZE = 50000;
+	public static final int INITIAL_I_SIZE_BUCKET_SIZE = 10;
+	public static final int FINAL_I_SIZE_BUCKET_SIZE = 5000;
+	public static final int MAX_CURVE_ISIZE = 5000;
+	
+	private final String rgId;
 	private Integer lower;
 	private Integer upper;
 	private final String seqMapped;
 	private final ConcurrentHashMap<Integer, AtomicInteger> isizeMap;
 	private final AtomicInteger count;
-	public static final int MAX_I_SIZE = 50000;
-	public static final int INITIAL_I_SIZE_BUCKET_SIZE = 10;
-	public static final int FINAL_I_SIZE_BUCKET_SIZE = 5000;
-	public static final int MAX_CURVE_ISIZE = 5000;
+	
 
 	 
     public RunTypeRecord(String rgId, Integer lower, Integer upper, String seqMapped) {
@@ -34,10 +36,6 @@ public class RunTypeRecord {
 
     public String getRgId() {
         return rgId;
-    }
-
-    public void setRgId(String rgId) {
-        this.rgId = rgId;
     }
 
     public int getLower() {

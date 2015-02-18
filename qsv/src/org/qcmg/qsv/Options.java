@@ -10,14 +10,15 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import joptsimple.OptionParser;
+import joptsimple.OptionSet;
+
 import org.ini4j.Ini;
 import org.ini4j.InvalidFileFormatException;
 import org.ini4j.Profile.Section;
+import org.qcmg.common.string.StringUtils;
 import org.qcmg.qsv.util.QSVConstants;
 import org.qcmg.qsv.util.QSVUtil;
-
-import joptsimple.OptionParser;
-import joptsimple.OptionSet;
 
 
 /**
@@ -32,7 +33,7 @@ public class Options {
 	private static final String LOG_LEVEL_OPTION = Messages.getMessage("LOG_LEVEL_OPTION");
 	private static final String INI_OPTION = Messages.getMessage("INI_OPTION");
 	private static final String TEMPDIR_OPTION = Messages.getMessage("TEMPDIR_OPTION");
-	private String RANGE_OPTION = Messages.getMessage("RANGE_OPTION");;
+	private final String RANGE_OPTION = Messages.getMessage("RANGE_OPTION");;
 	private final OptionParser parser = new OptionParser();
 	private final OptionSet options;
 	private String log;
@@ -49,7 +50,7 @@ public class Options {
 	private String comparisonFileAbbreviation;
 	private String inputFileAbbreviation;
 	private String pairingType;
-	private String iniFile;
+	private final String iniFile;
 	private String query;
 	private Integer qPrimerThreshold;
 	private String inputSampleId;
@@ -397,7 +398,7 @@ public class Options {
 		} else if (!directoryExists(tempDirName)) {
 			throw new QSVException("NO_TEMP_DIR");		
 		//check for name of output files
-		} else if (null == sampleName || sampleName.equals("")) {
+		} else if (StringUtils.isNullOrEmpty(sampleName)) {
 			throw new QSVException("NO_DONOR");
 		//check cluster size
 		} else if (null == filterSize || filterSize.equals(0)) {

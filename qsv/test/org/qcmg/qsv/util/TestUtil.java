@@ -42,7 +42,7 @@ public class TestUtil {
 	public static String[] getValidOptions(final TemporaryFolder testFolder,
             final String normalBam, final String tumorBam, final String preprocessMode,
             final String analysisMode) throws IOException {
-			String iniFile = setUpIniFile(testFolder, preprocessMode, analysisMode, normalBam, tumorBam, 5, 2, testFolder.getRoot().toString(), testFolder.getRoot().toString());
+			String iniFile = setUpIniFile(testFolder, preprocessMode, analysisMode, normalBam, tumorBam, 3, 1, testFolder.getRoot().toString(), testFolder.getRoot().toString());
 			
             return new String[] {"--ini", iniFile, "--tmp",  testFolder.getRoot().toString()};
     }
@@ -502,16 +502,16 @@ public class TestUtil {
 	        // create sam header and records
 	        data.addAll(createSamHeader(SortOrder.unsorted));	     
 	       
-	        BufferedWriter out;
-	        out = new BufferedWriter(new FileWriter(file));
-	        for (final String line : data) {
-	            out.write(line + "" + NEWLINE);
+	        try (BufferedWriter out = new BufferedWriter(new FileWriter(file));) {
+		        for (final String line : data) {
+		            out.write(line + "" + NEWLINE);
+		        }
 	        }
-	        out.close();
 	        
-	        SAMFileReader sam = new SAMFileReader(new File(file));
-			SAMFileHeader header =  sam.getFileHeader();
-			sam.close();
+	        SAMFileHeader header = null;
+	        try (SAMFileReader sam = new SAMFileReader(new File(file));) {
+	        		header =  sam.getFileHeader();
+	        }
 	        return header;
 		}
 
@@ -520,16 +520,17 @@ public class TestUtil {
 			File testDir = new File(dirName + pc.getPairingClassification());
 			testDir.mkdir();
 			String outFile = testDir + FILE_SEPERATOR + fileName;
-			BufferedWriter writer = new BufferedWriter(new FileWriter(new File(outFile)));
 			
-			if (pc.equals(PairClassification.AAC)) {
-				writeAACPairs(writer);
-			} 
-			if (pc.equals(PairClassification.Cxx)) {
-				writeCxxPairs(writer);
+			try (BufferedWriter writer = new BufferedWriter(new FileWriter(new File(outFile)));) {
+			
+				if (pc.equals(PairClassification.AAC)) {
+					writeAACPairs(writer);
+				} 
+				if (pc.equals(PairClassification.Cxx)) {
+					writeCxxPairs(writer);
+				}
 			}
 			
-			writer.close();
 			return outFile;
 		}
 		
@@ -596,7 +597,7 @@ public class TestUtil {
 			        String value2 = "46\t0\t0\t2\t0\t0\t0\t0\t-\tchr10-89700299-false-neg\t66\t0\t48\tchr10\t135534747\t89712340\t89712388\t1\t48,\t18,\t89712340,";
 					b.setMateBreakpoint(89712341);
 					b.setMateReference("chr10");
-					b.setMateStrand("-");
+					b.setMateStrand(QSVUtil.MINUS);
 					b.setBlatRecord(new BLATRecord(value2.split("\t")));
 					return new SoftClipCluster(b);
 				} else {
@@ -617,13 +618,22 @@ public class TestUtil {
 			} else {
 				clips=getRightClips(nCount);
 				breakpoint = new Breakpoint(89700299, "chr10", isLeft, consensus, 50);
-			}	
-			breakpoint.setTumourClips(clips);
+			}
+			for (Clip c : clips) {
+				breakpoint.addTumourClip(c);
+			}
+//			breakpoint.setTumourClips(clips);
 			if (isGermline) {
 				if (isLeft) {
-					breakpoint.setNormalClips(getLeftClips(false));
+					for (Clip c : getLeftClips(false)) {
+						breakpoint.addNormalClip(c);
+					}
+//					breakpoint.setNormalClips(getLeftClips(false));
 				} else {
-					breakpoint.setNormalClips(getRightClips(false));
+					for (Clip c : getRightClips(false)) {
+						breakpoint.addNormalClip(c);
+					}
+//					breakpoint.setNormalClips(getRightClips(false));
 				}
 			}	
 			breakpoint.defineBreakpoint(3, false, null);
@@ -634,10 +644,10 @@ public class TestUtil {
 				String value = "48\t1\t0\t0\t2\t0\t3\t0\t+\tchr10-89712341-true-pos\t66\t0\t48\tchr10\t135534747\t89700251\t89700299\t1\t48,\t0,\t89700251,";
 				breakpoint.setBlatRecord(new BLATRecord(value.split("\t")));
 			}
-			if (breakpoint.getStrand().equals("+")) {
-				breakpoint.setMateStrand("+");
+			if (breakpoint.getStrand() == QSVUtil.PLUS) {
+				breakpoint.setMateStrand(QSVUtil.PLUS);
 			} else {
-				breakpoint.setMateStrand("-");
+				breakpoint.setMateStrand(QSVUtil.MINUS);
 			}
 			
 			return breakpoint;

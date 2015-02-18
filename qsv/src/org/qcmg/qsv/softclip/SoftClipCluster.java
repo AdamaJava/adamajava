@@ -24,26 +24,27 @@ import org.qcmg.qsv.util.QSVUtil;
 
 public class SoftClipCluster implements Comparable<SoftClipCluster> {
 	
-	String name;
+	private static final char TAB = '\t';
+	
+	final String name;
 	Breakpoint leftBreakpointObject;
 	Breakpoint rightBreakpointObject;
 //	int buffer = 20;
 	private String mutationType;
 	private String leftReference;
 	private String rightReference;
-	private String leftStrand;
-	private String rightStrand;
+	private char leftStrand;
+	private char rightStrand;
 	private Integer leftBreakpoint;
 	private Integer rightBreakpoint;
 	private boolean hasClusterMatch = false;
 	private boolean hasMatchingBreakpoints;
-	private String rightMateStrand;
-	private String leftMateStrand;
+	private char rightMateStrand;
+	private char leftMateStrand;
 	private boolean hasClipMatch;
-	private boolean oneSide = false;
+	private boolean oneSide;
 	private boolean rescuedClips;
 	private boolean alreadyMatched;
-	private static final char TAB = '\t';
 	private String orientationCategory = "";
 
 
@@ -57,27 +58,27 @@ public class SoftClipCluster implements Comparable<SoftClipCluster> {
 	}
 	
 	public SoftClipCluster(Breakpoint leftBreakpoint, Breakpoint rightBreakpoint) throws Exception {
-		setName(leftBreakpoint.getName(), rightBreakpoint.getName());
+//		setName(leftBreakpoint.getName(), rightBreakpoint.getName());
+		this.name = (leftBreakpoint.getName().compareTo(rightBreakpoint.getName()) > 0) 
+				? rightBreakpoint.getName() + ":" + leftBreakpoint.getName() : leftBreakpoint.getName() + ":" + rightBreakpoint.getName(); 
 		this.leftBreakpointObject = leftBreakpoint;
 		this.rightBreakpointObject = rightBreakpoint;
 		this.hasMatchingBreakpoints = true;
 		
-		if (leftBreakpoint.getClipsSize() == 0 || rightBreakpoint.getClipsSize() == 0) {
-			this.oneSide = true;
-		}
+		this.oneSide = leftBreakpoint.getClipsSize() == 0 || rightBreakpoint.getClipsSize() == 0;
 		setStartAndEnd();
 		this.mutationType = defineMutationType();
 	}
 
 
-	private void setName(String nameOne, String nameTwo) {
-		
-		if (nameOne.compareTo(nameTwo) > 0) {
-			this.name = nameTwo + ":" + nameOne;
-		} else {
-			this.name = nameOne + ":" + nameTwo;
-		}
-	}
+//	private void setName(String nameOne, String nameTwo) {
+//		
+//		if (nameOne.compareTo(nameTwo) > 0) {
+//			this.name = nameTwo + ":" + nameOne;
+//		} else {
+//			this.name = nameOne + ":" + nameTwo;
+//		}
+//	}
 
 	private void setStartAndEnd() {
 		if (this.leftBreakpointObject == null) {
@@ -134,7 +135,7 @@ public class SoftClipCluster implements Comparable<SoftClipCluster> {
 	public String findTwoSidedMutationType() {
 			if (!leftBreakpointObject.isLeft() && rightBreakpointObject.isLeft()) {
 			
-			if (leftBreakpointObject.getStrand().equals(leftBreakpointObject.getMateStrand()) && rightBreakpointObject.getStrand().equals(rightBreakpointObject.getMateStrand())) {
+			if (leftBreakpointObject.getStrand() == leftBreakpointObject.getMateStrand() && rightBreakpointObject.getStrand() == rightBreakpointObject.getMateStrand()) {
 				orientationCategory = "1";				
 				if (!leftReference.equals(rightReference)) {
 					return "CTX";
@@ -144,7 +145,7 @@ public class SoftClipCluster implements Comparable<SoftClipCluster> {
 			} 				
 			
 		} else if (leftBreakpointObject.isLeft() && !rightBreakpointObject.isLeft()) {
-			if (leftBreakpointObject.getStrand().equals(leftBreakpointObject.getMateStrand()) && rightBreakpointObject.getStrand().equals(rightBreakpointObject.getMateStrand())) {
+			if (leftBreakpointObject.getStrand() == leftBreakpointObject.getMateStrand() && rightBreakpointObject.getStrand() == rightBreakpointObject.getMateStrand()) {
 				orientationCategory = QSVConstants.ORIENTATION_2;				
 				if (!leftReference.equals(rightReference)) {
 					return "CTX";
@@ -154,7 +155,7 @@ public class SoftClipCluster implements Comparable<SoftClipCluster> {
 			}			
 		} else if ((leftBreakpointObject.isLeft() && rightBreakpointObject.isLeft()) ||
 				(!leftBreakpointObject.isLeft() && !rightBreakpointObject.isLeft())) {
-			if (!leftBreakpointObject.getStrand().equals(leftBreakpointObject.getMateStrand()) && !rightBreakpointObject.getStrand().equals(rightBreakpointObject.getMateStrand())) {
+			if (leftBreakpointObject.getStrand() != leftBreakpointObject.getMateStrand() && rightBreakpointObject.getStrand() != rightBreakpointObject.getMateStrand()) {
 				if (leftBreakpointObject.isLeft() && rightBreakpointObject.isLeft()) {
 					orientationCategory = QSVConstants.ORIENTATION_4;
 				}
@@ -172,7 +173,7 @@ public class SoftClipCluster implements Comparable<SoftClipCluster> {
 		return "ITX";	
 	}
 
-	public String findSingleSideMutationType() throws Exception {	
+	public String findSingleSideMutationType() throws Exception {
 		Breakpoint bpObject = getSingleBreakpoint();
 
 		if (bpObject.isLeft()) {
@@ -596,7 +597,7 @@ public class SoftClipCluster implements Comparable<SoftClipCluster> {
 
 		if (maxLengthBp != null) {			
 			
-			if (maxLengthBp.getMateConsensus().length() > 20) {			
+			if (maxLengthBp.getMateConsensus().length() > 20) {
 				boolean match = maxLengthBp.findRescuedMateBreakpoint(blat, p, softclipDir);
 				
 				if (match) {

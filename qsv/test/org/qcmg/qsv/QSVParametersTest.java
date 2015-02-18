@@ -1,6 +1,9 @@
 package org.qcmg.qsv;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import java.io.File;
 import java.io.IOException;
 
@@ -46,7 +49,7 @@ public class QSVParametersTest {
         assertEquals("normalBam.discordantpair.filtered.bam",
                 TestUtil.getFilename(p.getFilteredBamFile()));    
         assertEquals("ND", p.getFindType());
-        assertEquals(Integer.valueOf(5), p.getClusterSize());
+        assertEquals(3, p.getClusterSize().intValue());
         assertEquals(640, p.getLowerInsertSize().intValue());
         assertEquals(2360, p.getUpperInsertSize().intValue());
         assertEquals("ICGC-DBLG-20110506-01-ND", p.getSampleId());
@@ -65,7 +68,7 @@ public class QSVParametersTest {
         assertEquals("tumorBam.discordantpair.filtered.bam",
                 TestUtil.getFilename(p.getFilteredBamFile()));
         assertEquals("TD", p.getFindType());
-        assertEquals(Integer.valueOf(5), p.getClusterSize());
+        assertEquals(3, p.getClusterSize().intValue());
         assertEquals(2360, p.getUpperInsertSize().intValue());
         assertEquals(640, p.getLowerInsertSize().intValue());
         assertEquals(1500, p.getAverageInsertSize());

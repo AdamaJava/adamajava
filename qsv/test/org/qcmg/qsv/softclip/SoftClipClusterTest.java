@@ -24,6 +24,7 @@ import org.qcmg.qsv.QSVParameters;
 import org.qcmg.qsv.blat.BLAT;
 import org.qcmg.qsv.blat.BLATRecord;
 import org.qcmg.qsv.discordantpair.PairGroup;
+import org.qcmg.qsv.util.QSVUtil;
 import org.qcmg.qsv.util.TestUtil;
 
 public class SoftClipClusterTest {
@@ -61,7 +62,7 @@ public class SoftClipClusterTest {
 		Breakpoint b = TestUtil.getBreakpoint(true, false, 20, false);
 		b.setMateBreakpoint(89700299);
 		b.setMateReference("chr10");
-		b.setMateStrand("-");
+		b.setMateStrand(QSVUtil.MINUS);
 		clip = new SoftClipCluster(b);
 
 		assertEquals(new Integer(89712341), clip.getRightBreakpointObject()
@@ -78,7 +79,7 @@ public class SoftClipClusterTest {
 		Breakpoint b = TestUtil.getBreakpoint(false, false, 20, false);
 		b.setMateBreakpoint(89712341);
 		b.setMateReference("chr10");
-		b.setMateStrand("-");
+		b.setMateStrand(QSVUtil.MINUS);
 		clip = new SoftClipCluster(b);
 
 		assertEquals(new Integer(89700299), clip.getLeftBreakpointObject()
@@ -93,8 +94,8 @@ public class SoftClipClusterTest {
 	@Test
 	public void testDefineMutationTypeAs2SidedDEL() throws Exception {
 		clip = new SoftClipCluster(
-				getBreakpoint("chr1", 1234, false, "+", "+"), getBreakpoint(
-						"chr1", 12345, true, "+", "+"));
+				getBreakpoint("chr1", 1234, false, QSVUtil.PLUS, QSVUtil.PLUS), getBreakpoint(
+						"chr1", 12345, true, QSVUtil.PLUS, QSVUtil.PLUS));
 		assertFalse(clip.getLeftBreakpointObject().isLeft());
 		assertTrue(clip.getRightBreakpointObject().isLeft());
 		assertEquals("DEL/ITX", clip.defineMutationType());
@@ -102,8 +103,8 @@ public class SoftClipClusterTest {
 
 	@Test
 	public void testDefineMutationTypeAs2SidedDUP() throws Exception {
-		clip = new SoftClipCluster(getBreakpoint("chr1", 1234, true, "+", "+"),
-				getBreakpoint("chr1", 12345, false, "+", "+"));
+		clip = new SoftClipCluster(getBreakpoint("chr1", 1234, true, QSVUtil.PLUS, QSVUtil.PLUS),
+				getBreakpoint("chr1", 12345, false, QSVUtil.PLUS, QSVUtil.PLUS));
 		assertTrue(clip.getLeftBreakpointObject().isLeft());
 		assertFalse(clip.getRightBreakpointObject().isLeft());
 		assertEquals("DUP/INS/ITX", clip.defineMutationType());
@@ -111,8 +112,8 @@ public class SoftClipClusterTest {
 
 	@Test
 	public void testDefineMutationTypeAs2SidedINVLeft() throws Exception {
-		clip = new SoftClipCluster(getBreakpoint("chr1", 1234, true, "+", "-"),
-				getBreakpoint("chr1", 12345, true, "+", "-"));
+		clip = new SoftClipCluster(getBreakpoint("chr1", 1234, true, QSVUtil.PLUS, QSVUtil.MINUS),
+				getBreakpoint("chr1", 12345, true, QSVUtil.PLUS, QSVUtil.MINUS));
 		assertTrue(clip.getLeftBreakpointObject().isLeft());
 		assertTrue(clip.getRightBreakpointObject().isLeft());
 		assertEquals("INV/ITX", clip.defineMutationType());
@@ -121,8 +122,8 @@ public class SoftClipClusterTest {
 	@Test
 	public void testDefineMutationTypeAs2SidedINVWithRight() throws Exception {
 		clip = new SoftClipCluster(
-				getBreakpoint("chr1", 1234, false, "+", "-"), getBreakpoint(
-						"chr1", 12345, false, "+", "-"));
+				getBreakpoint("chr1", 1234, false, QSVUtil.PLUS, QSVUtil.MINUS), getBreakpoint(
+						"chr1", 12345, false, QSVUtil.PLUS, QSVUtil.MINUS));
 		assertFalse(clip.getLeftBreakpointObject().isLeft());
 		assertFalse(clip.getRightBreakpointObject().isLeft());
 		assertEquals("INV/ITX", clip.defineMutationType());
@@ -131,8 +132,8 @@ public class SoftClipClusterTest {
 	@Test
 	public void testDefineMutationTypeAs2SidedITX() throws Exception {
 		clip = new SoftClipCluster(
-				getBreakpoint("chr1", 1234, false, "+", "+"), getBreakpoint(
-						"chr1", 12345, false, "+", "+"));
+				getBreakpoint("chr1", 1234, false, QSVUtil.PLUS, QSVUtil.PLUS), getBreakpoint(
+						"chr1", 12345, false, QSVUtil.PLUS, QSVUtil.PLUS));
 		assertFalse(clip.getLeftBreakpointObject().isLeft());
 		assertFalse(clip.getRightBreakpointObject().isLeft());
 		assertEquals("ITX", clip.defineMutationType());
@@ -141,45 +142,45 @@ public class SoftClipClusterTest {
 	@Test
 	public void testDefineMutationTypeAs2SidedCTX() throws Exception {
 		clip = new SoftClipCluster(
-				getBreakpoint("chr1", 1234, false, "+", "-"), getBreakpoint(
-						"chr2", 12345, false, "+", "-"));
+				getBreakpoint("chr1", 1234, false, QSVUtil.PLUS, QSVUtil.MINUS), getBreakpoint(
+						"chr2", 12345, false, QSVUtil.PLUS, QSVUtil.MINUS));
 		assertEquals("CTX", clip.defineMutationType());
 	}
 
 	@Test
 	public void testDefineMutationTypeAs1SidedDUP() throws Exception {
 		clip = new SoftClipCluster(getSingleBreakpoint("chr1", 1234, 12345,
-				true, "+", "+"));
+				true, QSVUtil.PLUS, QSVUtil.PLUS));
 		assertEquals("DUP/INS/ITX", clip.defineMutationType());
 
 		clip = new SoftClipCluster(getSingleBreakpoint("chr1", 12345, 1234,
-				false, "+", "+"));
+				false, QSVUtil.PLUS, QSVUtil.PLUS));
 		assertEquals("DUP/INS/ITX", clip.defineMutationType());
 	}
 
 	@Test
 	public void testDefineMutationTypeAs1SidedDEL() throws Exception {
 		clip = new SoftClipCluster(getSingleBreakpoint("chr1", 12345, 1234,
-				true, "+", "+"));
+				true, QSVUtil.PLUS, QSVUtil.PLUS));
 		assertEquals("DEL/ITX", clip.defineMutationType());
 
 		clip = new SoftClipCluster(getSingleBreakpoint("chr1", 1234, 12345,
-				false, "+", "+"));
+				false, QSVUtil.PLUS, QSVUtil.PLUS));
 		assertEquals("DEL/ITX", clip.defineMutationType());
 	}
 
 	@Test
 	public void testDefineMutationTypeAs1SidedITX() throws Exception {
 		clip = new SoftClipCluster(getSingleBreakpoint("chr1", 12345, 1234,
-				true, "+", "-"));
+				true, QSVUtil.PLUS, QSVUtil.MINUS));
 		assertEquals("ITX", clip.defineMutationType());
 	}
 
 	@Test
 	public void testSwapBreakpoints() throws Exception {
 		clip = new SoftClipCluster(
-				getBreakpoint("chr1", 1234, false, "+", "+"), getBreakpoint(
-						"chr2", 12345, false, "+", "+"));
+				getBreakpoint("chr1", 1234, false, QSVUtil.PLUS, QSVUtil.PLUS), getBreakpoint(
+						"chr2", 12345, false, QSVUtil.PLUS, QSVUtil.PLUS));
 		assertEquals(1234, clip.getLeftBreakpointObject().getBreakpoint()
 				.intValue());
 		assertEquals(12345, clip.getRightBreakpointObject().getBreakpoint()
@@ -194,9 +195,9 @@ public class SoftClipClusterTest {
 	@Test
 	public void testFindMatchingBreakpointsIsTrue() throws Exception {
 		clip = new SoftClipCluster(getSingleBreakpoint("chr1", 12345, 1234,
-				true, "+", "-"));
+				true, QSVUtil.PLUS, QSVUtil.MINUS));
 		SoftClipCluster compareClip = new SoftClipCluster(getSingleBreakpoint(
-				"chr1", 1234, 12345, true, "+", "-"));
+				"chr1", 1234, 12345, true, QSVUtil.PLUS, QSVUtil.MINUS));
 
 		assertTrue(clip.findMatchingBreakpoints(compareClip));
 	}
@@ -204,9 +205,9 @@ public class SoftClipClusterTest {
 	@Test
 	public void testFindMatchingBreakpointsIsFalse() throws Exception {
 		clip = new SoftClipCluster(getSingleBreakpoint("chr1", 12345, 1234,
-				true, "+", "-"));
+				true, QSVUtil.PLUS, QSVUtil.MINUS));
 		SoftClipCluster compareClip = new SoftClipCluster(getSingleBreakpoint(
-				"chr1", 1245, 12345, true, "+", "-"));
+				"chr1", 1245, 12345, true, QSVUtil.PLUS, QSVUtil.MINUS));
 
 		assertFalse(clip.findMatchingBreakpoints(compareClip));
 	}
@@ -214,7 +215,7 @@ public class SoftClipClusterTest {
 	@Test
 	public void isGermlineWithSingleBreakpoint() throws Exception {
 		clip = new SoftClipCluster(getSingleBreakpoint("chr1", 12345, 1234,
-				true, "+", "-"));
+				true, QSVUtil.PLUS, QSVUtil.MINUS));
 		assertFalse(clip.isGermline());
 		clip.getSingleBreakpoint().setGermline(true);
 		assertTrue(clip.isGermline());
@@ -223,8 +224,8 @@ public class SoftClipClusterTest {
 	@Test
 	public void isGermlineWithTwoBreakpoints() throws Exception {
 		clip = new SoftClipCluster(
-				getBreakpoint("chr1", 1234, false, "+", "+"), getBreakpoint(
-						"chr2", 12345, false, "+", "+"));
+				getBreakpoint("chr1", 1234, false, QSVUtil.PLUS, QSVUtil.PLUS), getBreakpoint(
+						"chr2", 12345, false, QSVUtil.PLUS, QSVUtil.PLUS));
 		assertFalse(clip.isGermline());
 		clip.getLeftBreakpointObject().setGermline(true);
 		assertTrue(clip.isGermline());
@@ -279,38 +280,44 @@ public class SoftClipClusterTest {
 	@Test
 	public void testGetOrphanBreakpoint() throws Exception {
 		clip = new SoftClipCluster(getSingleBreakpoint("chr1", 12345, 1234,
-				true, "+", "-"));
+				true, QSVUtil.PLUS, QSVUtil.MINUS));
 		assertEquals(1234, clip.getOrphanBreakpoint().intValue());
 
 		clip = new SoftClipCluster(getSingleBreakpoint("chr1", 1234, 12345,
-				true, "+", "+"));
+				true, QSVUtil.PLUS, QSVUtil.PLUS));
 		assertEquals(12345, clip.getOrphanBreakpoint().intValue());
 	}
 
 	public Breakpoint getSingleBreakpoint(String chr, int breakpoint,
-			int mateBreakpoint, boolean isLeft, String strand, String mateStrand)
+			int mateBreakpoint, boolean isLeft, char strand, char mateStrand)
 			throws Exception {
 		Breakpoint b = new Breakpoint(breakpoint, chr, isLeft, 20, 50);
 		HashSet<Clip> clips = new HashSet<Clip>();
 		clips.add(new Clip(
 				"HWI-ST1240:47:D12NAACXX:1:2307:8115:32717:20120608115535190,chr10,89700299,-,right,GCAAAGATCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAAGAGATTATACTTTGTGTAAGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAG,GAGATTATACTTTGTGTAAGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAG,GCAAAGATCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAA"));
-		b.setTumourClips(clips);
+		for (Clip c : clips) {
+			b.addTumourClip(c);
+		}
+//		b.setTumourClips(clips);
 		b.setMateReference(chr);
 		b.setMateBreakpoint(mateBreakpoint);
-//		b.setName("chr1-" + breakpoint + "-" + isLeft);
+//		b.setName("chr1-" + breakpoint + QSVUtil.MINUS + isLeft);
 		b.setStrand(strand);
 		b.setMateStrand(mateStrand);
 		return b;
 	}
 
 	public Breakpoint getBreakpoint(String chr, int breakpoint, boolean isLeft,
-			String strand, String mateStrand) throws Exception {
+			char strand, char mateStrand) throws Exception {
 		Breakpoint b = new Breakpoint(breakpoint, chr, isLeft, 20, 50);
 		HashSet<Clip> clips = new HashSet<Clip>();
 		clips.add(new Clip(
 				"HWI-ST1240:47:D12NAACXX:1:2307:8115:32717:20120608115535190,chr10,89700299,-,right,GCAAAGATCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAAGAGATTATACTTTGTGTAAGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAG,GAGATTATACTTTGTGTAAGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAG,GCAAAGATCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAA"));
-		b.setTumourClips(clips);
-//		b.setName("chr1-" + breakpoint + "-" + isLeft);
+		for (Clip c : clips) {
+			b.addTumourClip(c);
+		}
+//		b.setTumourClips(clips);
+//		b.setName("chr1-" + breakpoint + QSVUtil.MINUS + isLeft);
 		b.setStrand(strand);
 		b.setMateStrand(mateStrand);
 		return b;

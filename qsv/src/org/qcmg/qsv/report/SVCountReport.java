@@ -7,56 +7,47 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map.Entry;
-import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.qcmg.qsv.discordantpair.PairGroup;
 import org.qcmg.qsv.util.QSVUtil;
 
 public class SVCountReport extends QSVReport {
 
-    private Map<String, Integer> somatic;
-	private Map<String, Integer> germline;
-    private Map<String, Integer> normalGermline;
-    private String sampleName;
+    private final ConcurrentMap<String, AtomicInteger> somatic;
+	private final ConcurrentMap<String, AtomicInteger> germline;
+    private final ConcurrentMap<String, AtomicInteger> normalGermline;
+    private final String sampleName;
     
     public SVCountReport(File countFile, String sampleName) {
         super(countFile);
         this.sampleName = sampleName;
-        setUpClusterCountMap();
-    } 
+        
+        this.somatic = singleCountMap();
+        this.germline = singleCountMap();
+        this.normalGermline =  singleCountMap();
+    }
     
-    public Map<String, Integer> getSomatic() {
+    public ConcurrentMap<String, AtomicInteger> getSomatic() {
 		return somatic;
 	}
 
-	public void setSomatic(Map<String, Integer> somatic) {
-		this.somatic = somatic;
-	}
-
-	public Map<String, Integer> getGermline() {
+	public ConcurrentMap<String, AtomicInteger> getGermline() {
 		return germline;
 	}
 
-	public void setGermline(Map<String, Integer> germline) {
-		this.germline = germline;
-	}
-
-	public Map<String, Integer> getNormalGermline() {
+	public ConcurrentMap<String, AtomicInteger> getNormalGermline() {
 		return normalGermline;
-	}
-
-	public void setNormalGermline(Map<String, Integer> normalGermline) {
-		this.normalGermline = normalGermline;
 	}
 
 	public String getSampleName() {
 		return sampleName;
-	}
-
-	public void setSampleName(String sampleName) {
-		this.sampleName = sampleName;
 	}
 
     
@@ -72,16 +63,10 @@ public class SVCountReport extends QSVReport {
         return headings.toString();
     }
     
-    private void setUpClusterCountMap() {
-        somatic = singleCountMap();
-        germline = singleCountMap();
-        normalGermline = singleCountMap();
-    }
-    
-    private Map<String, Integer> singleCountMap() {
-        Map<String, Integer> map = new TreeMap<String, Integer>();
+    private synchronized ConcurrentMap<String, AtomicInteger> singleCountMap() {
+        ConcurrentMap<String, AtomicInteger> map = new ConcurrentHashMap<String, AtomicInteger>();
         for (PairGroup zp : PairGroup.values()) {
-            map.put(zp.toString(), Integer.valueOf(0));
+            map.put(zp.toString(), new AtomicInteger());
         }
         return map;
     }  
@@ -94,7 +79,7 @@ public class SVCountReport extends QSVReport {
         return sb.toString();
     }
 
-    public String getCountString(String type, Map<String, Integer> mapOfCounts) {
+    public String getCountString(String type, ConcurrentMap<String, AtomicInteger> mapOfCounts) {
         String line = "";
         
         StringBuffer sb = new StringBuffer();
@@ -119,47 +104,46 @@ public class SVCountReport extends QSVReport {
 
     @Override
     public void writeReport() throws Exception {
-        BufferedWriter writer = new BufferedWriter (new FileWriter(file, append));  
-        writer.write(getHeader());
-        writer.write(generateReport());        
-        writer.close();        
+        try (BufferedWriter writer = new BufferedWriter (new FileWriter(file, append));) {  
+	        writer.write(getHeader());
+	        writer.write(generateReport());        
+        }
     }
 
-    private void addCounts(Map<String, Integer> map, String zp, int count) {
-        Integer totalCount = map.get(zp);
-        if (totalCount != null) {
-            totalCount += count;
-            map.put(zp, totalCount);
-        }        
+    private void addCounts(ConcurrentMap<String, AtomicInteger> map, String zp, int count) {
+        map.get(zp).addAndGet(count);
     }
 
 	public synchronized void addCountsToMap(PairGroup zp, int somaticCount,
-			int germlineCount, int normalgermlineCount) {		
+			int germlineCount, int normalgermlineCount) {
 			addCounts(somatic, zp.toString(), somaticCount);
-			addCounts(germline, zp.toString(), germlineCount);  
-			addCounts(normalGermline, zp.toString(), normalgermlineCount);    
+			addCounts(germline, zp.toString(), germlineCount);
+			addCounts(normalGermline, zp.toString(), normalgermlineCount);
 	}
 
 	public int getSomaticCounts() {
 		int count = 0;
-		for (Entry<String, Integer> entry: somatic.entrySet()) {
-			count += entry.getValue();
+		List<String> keys = new ArrayList<>(somatic.keySet());
+		Collections.sort(keys);
+		for (String k : keys) {
+			AtomicInteger value = somatic.get(k);
+			count += value.intValue();
 		}
 		return count;
 	}
 
 	public int getGermlineCounts() {
 		int count = 0;
-		for (Entry<String, Integer> entry: germline.entrySet()) {
-			count += entry.getValue();
+		for (Entry<String, AtomicInteger> entry: germline.entrySet()) {
+			count += entry.getValue().intValue();
 		}
 		return count;
 	}
 
 	public int getNormalGermlineCounts() {
 		int count = 0;
-		for (Entry<String, Integer> entry: normalGermline.entrySet()) {
-			count += entry.getValue();
+		for (Entry<String, AtomicInteger> entry: normalGermline.entrySet()) {
+			count += entry.getValue().intValue();
 		}
 		return count;
 	}

@@ -7,14 +7,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
-
-
 public class Alignment {
-	private int length;
 
 	private final List<ReadMatch> matchedReads;
-	private int start;
 	private final Read seed;
+	
+	private int start;
+	private int length;
 	
 	public Alignment(Read seed) {
 		this.seed = seed;
@@ -37,35 +36,38 @@ public class Alignment {
 		start = 0;
 		length = seed.length();
 		
-		for (int i = 0 , len = matchedReads.size() ; i < len ; i++) {
-			ReadMatch nextMatch = matchedReads.get(i);
-			Read read = nextMatch.read();
-			int pos = nextMatch.matchedPos();
-			if (read.length() + pos > length) {
-				length = read.length() + pos;
-			}
-			if (pos < start) {
-				start = pos;
-			}
+		for (ReadMatch nextMatch : matchedReads) {
+			
+			length = Math.max(length, nextMatch.read().length() + nextMatch.matchedPos());
+			start = Math.min(start, nextMatch.matchedPos());
+			
+//			Read read = nextMatch.read();
+//			int pos = nextMatch.matchedPos();
+//			if (read.length() + pos > length) {
+//				length = read.length() + pos;
+//			}
+//			if (pos < start) {
+//				start = pos;
+//			}
 		}
 		return length - start;
 	}
 	
-	public void determingMatchingReads() {
-		start = 0;
-		length = seed.length();
-		
-		final int len = matchedReads.size();
-		for (int i = 0 ; i < len ; i ++) {
-			ReadMatch arw = matchedReads.get(i);
-			if (arw.read().length() + arw.matchedPos() > length) {
-				length = arw.read().length() + arw.matchedPos();
-			}
-			if (arw.matchedPos() < start) {
-				start = arw.matchedPos();
-			}
-		}
-	}
+//	public void determingMatchingReads() {
+//		start = 0;
+//		length = seed.length();
+//		
+//		final int len = matchedReads.size();
+//		for (int i = 0 ; i < len ; i ++) {
+//			ReadMatch arw = matchedReads.get(i);
+//			if (arw.read().length() + arw.matchedPos() > length) {
+//				length = arw.read().length() + arw.matchedPos();
+//			}
+//			if (arw.matchedPos() < start) {
+//				start = arw.matchedPos();
+//			}
+//		}
+//	}
 	
 	
 	

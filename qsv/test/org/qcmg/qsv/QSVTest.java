@@ -15,6 +15,7 @@ import net.sf.samtools.SAMFileHeader.SortOrder;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -124,7 +125,7 @@ public class QSVTest {
         cleanUpStreams();
     }
 
-    @Test
+    @Ignore
     public void testQSVWithModePairBoth() throws Exception {
         String[] args = TestUtil.getValidOptions(testFolder, normalBam.getAbsolutePath(), tumorBam.getAbsolutePath(), "pair","pair");
         QSV qsv = new QSV();

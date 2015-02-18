@@ -4,22 +4,23 @@
 package org.qcmg.qsv.splitread;
 
 import org.qcmg.qsv.blat.BLATRecord;
+import org.qcmg.qsv.util.QSVUtil;
 
 public class SplitReadAlignment {
 	
-	final boolean  positiveStrand;
-	final int startPos;
-	final int endPos;
-	final int queryStart;
-	final int queryEnd;
+	private final boolean  positiveStrand;
+	private final int startPos;
+	private final int endPos;
+	private final int queryStart;
+	private final int queryEnd;
 	private final String reference;
 
 
-	public SplitReadAlignment(String reference, String strand, Integer startPos, Integer endPos,
+	public SplitReadAlignment(String reference, char strand, Integer startPos, Integer endPos,
 			Integer queryStart, Integer queryEnd) {
 		super();
 		this.reference = reference;
-		this.positiveStrand = strand.equals("+");
+		this.positiveStrand = strand == QSVUtil.PLUS;
 		this.startPos = startPos;
 		this.endPos = endPos;
 		this.queryStart = queryStart;
@@ -28,7 +29,7 @@ public class SplitReadAlignment {
 	
 	public SplitReadAlignment(BLATRecord r) {
 		this.reference = r.getReference();
-		this.positiveStrand = r.getStrand().equals("+");
+		this.positiveStrand = r.getStrand()  == QSVUtil.PLUS;
 		this.startPos = r.getStartPos();
 		this.endPos = r.getEndPos();
 		this.queryStart = r.getQueryStart();
@@ -43,8 +44,8 @@ public class SplitReadAlignment {
 		return ! positiveStrand;
 	}
 
-	public String getStrand() {
-		return positiveStrand ? "+" : "-";
+	public char getStrand() {
+		return positiveStrand ? QSVUtil.PLUS : QSVUtil.MINUS;
 	}
 
 	public Integer getStartPos() {

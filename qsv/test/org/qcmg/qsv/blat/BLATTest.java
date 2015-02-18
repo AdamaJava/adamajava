@@ -57,7 +57,7 @@ public class BLATTest {
 		assertEquals(record.getQueryEnd(), (48));
 		assertEquals(record.getStartPos(), (89700252));
 		assertEquals(record.getEndPos(), (89700299));
-		assertEquals(record.getStrand(), "+");
+		assertEquals(record.getStrand(), QSVUtil.PLUS);
 	}
 	
 	public String setUpBlatOutputFile() throws IOException {

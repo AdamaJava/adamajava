@@ -11,12 +11,12 @@ import net.sf.samtools.SAMRecord;
  *
  */
 public class PairedEndRecord {
+	private static final int nullNHZ = 0;
     
     private final SAMRecord record;
     private String zpAnnotation;
     private final int isizeUpperLimit;
     private final int isizeLowerLimit;
-    private final int nullNHZ = 0;
     private int endZ = 0;
     private int sameStrandZ = 0;
 	private int diffStrandNullZ = 0;
@@ -36,7 +36,7 @@ public class PairedEndRecord {
 	 */
 	public void createZPAnnotation() {
         
-        if (!record.getDuplicateReadFlag()) {
+        if ( ! record.getDuplicateReadFlag()) {
         	
         	Integer nh = record.getIntegerAttribute("NH");
         	

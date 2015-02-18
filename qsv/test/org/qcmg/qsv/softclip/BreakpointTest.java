@@ -46,7 +46,7 @@ public class BreakpointTest {
 		assertTrue(breakpoint.defineBreakpoint(3, false, null));
 		assertFalse(breakpoint.isGermline());
 		assertEquals("somatic", breakpoint.getType());
-		assertEquals("-", breakpoint.getStrand());
+		assertEquals(QSVUtil.MINUS, breakpoint.getStrand());
 		assertEquals("chr10_89700299_false_-", breakpoint.getName());
 		assertEquals("CCCTGCCCTAAGAGCAGCAAATTGCTGAACTCCTCTGGTGGACCTCTTACACAAAGTATAATCTC", breakpoint.getMateConsensus());
 	}
@@ -57,7 +57,7 @@ public class BreakpointTest {
 		assertTrue(breakpoint.defineBreakpoint(3, false, null));
 		assertTrue(breakpoint.isGermline());
 		assertEquals("germline", breakpoint.getType());
-		assertEquals("+", breakpoint.getStrand());
+		assertEquals(QSVUtil.PLUS, breakpoint.getStrand());
 		assertEquals("chr10_89712341_true_+", breakpoint.getName());
 		assertEquals("AAAGATCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAAGAGATTATACTTTGTGTA", breakpoint.getMateConsensus());
 	}
@@ -88,7 +88,7 @@ public class BreakpointTest {
 		
 		breakpoint = TestUtil.getBreakpoint(true, false, 20, false);
 		assertTrue(breakpoint.findMateBreakpoint(record));
-		assertEquals("+", breakpoint.getMateStrand());
+		assertEquals(QSVUtil.PLUS, breakpoint.getMateStrand());
 		assertEquals("chr10", breakpoint.getMateReference());
 		assertEquals(89700299, breakpoint.getMateBreakpoint());
 		assertEquals("chr10:chr10", breakpoint.getReferenceKey());
@@ -107,7 +107,7 @@ public class BreakpointTest {
 	
 	@Test
 	public void calculateConsensus() {
-		breakpoint = new Breakpoint();
+		breakpoint = new Breakpoint(1, "reference", true, 1, 1);
 		assertEquals("A", breakpoint.getBaseCountString(setUpBases(1,0,0,0,0)));
 		assertEquals("C", breakpoint.getBaseCountString(setUpBases(0,1,0,0,0)));
 		assertEquals("T", breakpoint.getBaseCountString(setUpBases(0,0,1,0,0)));
@@ -119,15 +119,15 @@ public class BreakpointTest {
 	
 	@Test
 	public void calculateStrand() {
-		assertStrand("+", "+", false, 2,0);
-		assertStrand("-", "-", false, 0, 2);
-		assertStrand("+", "+", true, 4,0);
-		assertStrand("-", "-", true, 0, 4);
+		assertStrand(QSVUtil.PLUS, QSVUtil.PLUS, false, 2,0);
+		assertStrand(QSVUtil.MINUS, QSVUtil.MINUS, false, 0, 2);
+		assertStrand(QSVUtil.PLUS, QSVUtil.PLUS, true, 4,0);
+		assertStrand(QSVUtil.MINUS, QSVUtil.MINUS, true, 0, 4);
 	}
 	
 	@Test
 	public void testCompare() {
-		breakpoint = new Breakpoint();
+		breakpoint = new Breakpoint(1, "reference", true, 1, 1);
 		breakpoint.setMateBreakpoint(12345);
 		breakpoint.setMateReference("chr1");
 		assertNull(breakpoint.compare("chr2", 12345));
@@ -140,14 +140,17 @@ public class BreakpointTest {
 //		breakpoint = new Breakpoint();	
 		breakpoint = new Breakpoint(89712341, "chr10", true, -1, -1);	
 		HashSet<Clip> set = new HashSet<Clip>();
-		set.add(new Clip("test,chr10,89712341,+,left,ACTTTGAAAAAACAGTAATTAA,ACTTTGAAAAAACAGTAATT,AA"));		
-		set.add(new Clip("test2,chr10,89712341,+,left,ACTTTGAAAAAACAGTAATTAA,ACTTTGAAAAAACAGTAATT,AA"));		
-		breakpoint.setTumourClips(set);	
+		set.add(new Clip("test,chr10,89712341,+,left,ACTTTGAAAAAACAGTAATTAA,ACTTTGAAAAAACAGTAATT,AA"));	
+		set.add(new Clip("test2,chr10,89712341,+,left,ACTTTGAAAAAACAGTAATTAA,ACTTTGAAAAAACAGTAATT,AA"));
+		for (Clip c : set) {
+			breakpoint.addTumourClip(c);
+		}
+//		breakpoint.setTumourClips(set);	
 //		breakpoint.setName("chr10_89712341_true_+");
 //		breakpoint.setReference("chr10");
-//		breakpoint.setStrand("+");
+//		breakpoint.setStrand(QSVUtil.PLUS);
 //		breakpoint.setBreakpoint(89712341);
-		breakpoint.setStrand("+");
+		breakpoint.setStrand(QSVUtil.PLUS);
 		String name = breakpoint.getName();
 		BLAT blat = createMock(BLAT.class);
 		String softClipDir = testFolder.newFolder().getAbsolutePath();
@@ -159,26 +162,32 @@ public class BreakpointTest {
         QSVParameters p = createMock(QSVParameters.class);             
         
         assertTrue(breakpoint.findRescuedMateBreakpoint(blat, p, softClipDir));
-        assertEquals("-", breakpoint.getMateStrand());
+        assertEquals(QSVUtil.MINUS, breakpoint.getMateStrand());
         // not so because we have now set isLeft to be true, rather than the default value which is false
 //        assertEquals(89700299, breakpoint.getMateBreakpoint());
         assertEquals(89700252, breakpoint.getMateBreakpoint());
         assertEquals("chr10", breakpoint.getMateReference());
 	}
 
-	private void assertStrand(String strand1, String strand2, boolean isGermline,
+	private void assertStrand(char strand1, char strand2, boolean isGermline,
 			int posStrandCount, int negStrandCount) {
-		breakpoint = new Breakpoint();	
+		breakpoint = new Breakpoint(1, "reference", true, 1, 1);	
 		HashSet<Clip> set = new HashSet<Clip>();
 		set.add(new Clip("test,chr10,89712341,"+strand1+",left,ACTTTGAAAAAACAGTAATTAA,ACTTTGAAAAAACAGTAATT,AA"));		
-		set.add(new Clip("test2,chr10,89712341,"+strand2+",left,ACTTTGAAAAAACAGTAATTAA,ACTTTGAAAAAACAGTAATT,AA"));		
-		breakpoint.setTumourClips(set);		
+		set.add(new Clip("test2,chr10,89712341,"+strand2+",left,ACTTTGAAAAAACAGTAATTAA,ACTTTGAAAAAACAGTAATT,AA"));
+		for (Clip c : set) {
+			breakpoint.addTumourClip(c);
+		}
+//		breakpoint.setTumourClips(set);		
 		if (isGermline) {
 			breakpoint.setGermline(true);
 			set.clear();
 			set.add(new Clip("test3,chr10,89712341,"+strand1+",left,ACTTTGAAAAAACAGTAATTAA,ACTTTGAAAAAACAGTAATT,AA"));		
-			set.add(new Clip("test4,chr10,89712341,"+strand2+",left,ACTTTGAAAAAACAGTAATTAA,ACTTTGAAAAAACAGTAATT,AA"));				
-			breakpoint.setNormalClips(set);		
+			set.add(new Clip("test4,chr10,89712341,"+strand2+",left,ACTTTGAAAAAACAGTAATTAA,ACTTTGAAAAAACAGTAATT,AA"));
+			for (Clip c : set) {
+				breakpoint.addNormalClip(c);
+			}
+//			breakpoint.setNormalClips(set);		
 		}
 		breakpoint.calculateStrand();
 		assertEquals(strand1, breakpoint.getStrand());
@@ -188,14 +197,14 @@ public class BreakpointTest {
 	
 	@Test
 	public void testConsensusRead() throws Exception {
-		breakpoint = new Breakpoint();
-		breakpoint.setStrand("+");
+		breakpoint = new Breakpoint(1, "reference", true, 1, 1);
+		breakpoint.setStrand(QSVUtil.PLUS);
 		breakpoint.setConsensusRead(new ConsensusRead("test", "ACTTTGAAAAAACAGTAATTAA","ACTTTGAAAAAACAGTAATT","AA"));
 		
 		assertEquals("ACTTTGAAAAAACAGTAATTAA", breakpoint.getCompleteConsensus());
 		assertEquals("ACTTTGAAAAAACAGTAATT", breakpoint.getMateConsensus());
 		assertEquals("AA", breakpoint.getBreakpointConsenus());
-		breakpoint.setStrand("-");
+		breakpoint.setStrand(QSVUtil.MINUS);
 		assertEquals("TTAATTACTGTTTTTTCAAAGT", breakpoint.getCompleteConsensus());
 		assertEquals("ACTTTGAAAAAACAGTAATT", breakpoint.getMateConsensus());
 		assertEquals("TT", breakpoint.getBreakpointConsenus());

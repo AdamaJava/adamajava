@@ -14,12 +14,13 @@ import org.qcmg.qsv.splitread.UnmappedRead;
 import org.qcmg.qsv.util.QSVUtil;
 
 public class QSVAssemble {
+	
 	private static final QLogger logger = QLoggerFactory.getLogger(QSVAssemble.class);
-
-	private List<Read> clipReads;
-	private Read outputRead;
 	static final int MINIMUM_READ_EXTEND = 1;
 	static final int SEED_LENGTH = 10;
+	
+	private List<Read> clipReads;
+	private Read outputRead;
 	private List<Read> splitReads;
 	private String fullContigSequence;
 	private int matchingSplitReads = 0;
@@ -225,7 +226,7 @@ public class QSVAssemble {
 		
 		findMatches(currentIndex, seed, matches, reads);	
 		Alignment alignment = new Alignment(matches, seed);
-		alignment.determingMatchingReads();
+//		alignment.determingMatchingReads();
 		
 		if (alignmentSizeGreater(alignment.calculateLength())) {
 			Read contig = alignment.constructConsensusSequence();		
@@ -270,7 +271,7 @@ public class QSVAssemble {
 	
 	private int getIndex(List<Read> reads, Read read) {
 		int index = -1;
-		for (int i=0; i<reads.size(); i++) {
+		for (int i=0, size = reads.size() ; i < size ; i++) {
 			if (read.getHeader().equals(reads.get(i).getHeader())) {
 				index = i;
 				break;
@@ -282,7 +283,7 @@ public class QSVAssemble {
 	private void findMatches(int currentIndex, Read seed,
 			ConcurrentHashMap<Integer, ReadMatch> matches, List<Read> reads) {
 		int position;
-		for (int j=0; j<reads.size(); j++) {
+		for (int j=0, size = reads.size() ; j < size ; j++) {
 			if (j != currentIndex){
 
 				Read read = reads.get(j);

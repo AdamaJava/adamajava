@@ -7,18 +7,17 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.List;
 
-import net.sf.samtools.Cigar;
 import net.sf.samtools.CigarElement;
 import net.sf.samtools.CigarOperator;
 import net.sf.samtools.SAMRecord;
 
 import org.qcmg.qsv.QSVParameters;
-import org.qcmg.qsv.util.QSVConstants;
 import org.qcmg.qsv.util.QSVUtil;
 
 public class SoftClipStaticMethods {
 	
-	public static synchronized void writeSoftClipRecord(BufferedWriter writer, SAMRecord record, Integer start, Integer end, String chromosome, String type, String softClipDir) throws IOException {
+	public static void writeSoftClipRecord(BufferedWriter writer, SAMRecord record, Integer start, Integer end, String chromosome) throws IOException {
+//		public static synchronized void writeSoftClipRecord(BufferedWriter writer, SAMRecord record, Integer start, Integer end, String chromosome) throws IOException {
 
 		Clip clipRecord = createSoftClipRecord(record, start, end, chromosome);
 		
@@ -32,32 +31,29 @@ public class SoftClipStaticMethods {
 	}
 
 	
-	public static Clip createSoftClipRecord(SAMRecord record, Integer start, Integer end,
-			String chromosome) {
-		if (!record.getReadUnmappedFlag()) {
+	public static Clip createSoftClipRecord(SAMRecord record, Integer start, Integer end, String chromosome) {
+		if ( ! record.getReadUnmappedFlag()) {
 			List<CigarElement> elements = record.getCigar().getCigarElements();
 			
 			CigarElement first = elements.get(0);
 			CigarElement last = elements.get(elements.size()-1);
-			String sequenceString = record.getReadString();
 			
 			if (first.getOperator().equals(CigarOperator.S) && last.getOperator().equals(CigarOperator.S)) {
 				return null;
-			}
-			if (first.getOperator().equals(CigarOperator.S)) {
+			} else if (first.getOperator().equals(CigarOperator.S)) {
+				
+				String sequenceString = record.getReadString();
 				int bpPos = record.getAlignmentStart();
-				boolean createRecord = QSVUtil.createRecord(bpPos, start, end);		
-				if (createRecord) {
+				if (QSVUtil.createRecord(bpPos, start, end)) {
 					String sequence = sequenceString.substring(0, first.getLength());
 					String alignedSequence = sequenceString.substring(first.getLength(), sequenceString.length());
 					return new Clip(record, bpPos, sequence,alignedSequence, "left");
 				}			
-			}
-			
-			if (last.getOperator().equals(CigarOperator.S)) {
+			} else if (last.getOperator().equals(CigarOperator.S)) {
+				
+				String sequenceString = record.getReadString();
 				int bpPos = record.getAlignmentEnd();
-				boolean createRecord = QSVUtil.createRecord(bpPos, start, end);				
-				if (createRecord) {
+				if (QSVUtil.createRecord(bpPos, start, end)) {
 					String sequence = sequenceString.substring(sequenceString.length()-last.getLength(), sequenceString.length());
 					String alignedSequence = sequenceString.substring(0, sequenceString.length()-last.getLength());
 					return new Clip(record, bpPos, sequence, alignedSequence, "right");				

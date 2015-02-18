@@ -72,11 +72,11 @@ public class Clip implements Comparable<Clip>{
 		return isReverse;
 	}
 
-	public String getStrand() {
+	public char getStrand() {
 		if (isReverse) {
-			return "-";
+			return QSVUtil.MINUS;
 		} 
-		return "+";
+		return QSVUtil.PLUS;
 	}
 	
 	public boolean getIsReverse() {

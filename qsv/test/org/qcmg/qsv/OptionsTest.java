@@ -1,6 +1,8 @@
 package org.qcmg.qsv;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
@@ -70,12 +72,12 @@ public class OptionsTest {
         assertTrue(options.isQCMG());
         assertEquals(options.getPairingType(), "lmp");
         assertEquals(options.getPairQuery(), "and(Cigar_M > 35,option_SM > 14,MD_mismatch < 3,Flag_DuplicateRead == false)");
-        assertEquals(options.getClusterSize(), new Integer(5));
-        assertEquals(options.getFilterSize(), new Integer(2));
-        assertEquals(options.getQPrimerThreshold(), new Integer(3));
+        assertEquals(options.getClusterSize().intValue(), 3);
+        assertEquals(options.getFilterSize().intValue(), 1);
+        assertEquals(options.getQPrimerThreshold().intValue(), 3);
         assertEquals(options.getMapper(), "bioscope");
         assertEquals(options.getClipQuery(), "and(Cigar_M > 35,option_SM > 14,MD_mismatch < 3,Flag_DuplicateRead == false)");
-        assertEquals(options.getClipSize(), new Integer(3));
+        assertEquals(options.getClipSize().intValue(), 3);
         assertEquals(options.getConsensusLength(), new Integer(20));
         assertEquals(options.getBlatPath(), "/home/Software/BLAT");
         assertEquals(options.getBlatServer(), "localhost");
