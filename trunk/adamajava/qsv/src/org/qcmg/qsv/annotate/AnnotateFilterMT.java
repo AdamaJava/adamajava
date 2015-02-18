@@ -411,7 +411,7 @@ public class AnnotateFilterMT implements Runnable {
 	        boolean result = true;
 	        
 	        for (String s : readGroupIds) {
-	        	logger.info("readGroupId: [" + s + "]");
+	        	logger.debug("readGroupId: [" + s + "]");
 	        }
 	        
 	        while (iter.hasNext()) {
@@ -446,23 +446,23 @@ public class AnnotateFilterMT implements Runnable {
 		            
 		            //check to make sure there aren't any errors
 		            if ( ! pileupResult || ! writersResult) {
-		            	if ( ! pileupResult) {	            		
-		            		logger.error("Error finding soft clip records in " + chromosome.toString());
-		            	}
-		            	if ( ! writersResult) {
-		            		logger.error("Error finding discordant read records in " + chromosome.toString());
-		            	}
-		            	
-		            	if (exitStatus.intValue() == 0) {
-		            		exitStatus.incrementAndGet();
-		            	}
-		        		result =  false;
+			            	if ( ! pileupResult) {	            		
+			            		logger.error("Error finding soft clip records in " + chromosome.toString());
+			            	}
+			            	if ( ! writersResult) {
+			            		logger.error("Error finding discordant read records in " + chromosome.toString());
+			            	}
+			            	
+			            	if (exitStatus.intValue() == 0) {
+			            		exitStatus.incrementAndGet();
+			            	}
+			        		result =  false;
 		        		
 		        	}
 	            } else {
-	            	logger.warn("SAMReadGroupRecord : " + srgr + ":" + record.getSAMString());
-	            	logger.warn("SAMReadGroupRecord was null, or id was not in collection: " + srgr.getId() + ":" + record.getSAMString());
-	            	throw new Exception("Null SAMReadGroupRecord");
+		            	logger.warn("SAMReadGroupRecord : " + srgr + ":" + record.getSAMString());
+		            	logger.warn("SAMReadGroupRecord was null, or id was not in collection: " + srgr.getId() + ":" + record.getSAMString());
+		            	throw new Exception("Null SAMReadGroupRecord");
 	            }
 	        }
 	       
@@ -497,16 +497,16 @@ public class AnnotateFilterMT implements Runnable {
 		 */
 		private boolean addToPairWriter(SAMRecord record, int count) throws Exception {
 
-			if (!record.getReadUnmappedFlag()) {     
+			if ( ! record.getReadUnmappedFlag()) {
 				
-                if ((translocationsOnly && QSVUtil.isTranslocationPair(record)) || !translocationsOnly) { 
+                if ((translocationsOnly && QSVUtil.isTranslocationPair(record)) || !translocationsOnly) {
                 	
                 	//annotate the read
                 	parameters.getAnnotator().annotate(record);
                 	String zp = (String) record.getAttribute("ZP");
                     
                 	//make sure it is discordat
-                	if (zp.contains("A") || zp.equals("C**") || zp.contains("B")) {                	
+                	if (zp.contains("A") || zp.equals("C**") || zp.contains("B")) {        	
                 		if (!zp.equals("AAA")) {
                 			//check if it passes the filter
                     		if (pairQueryEx.Execute(record)) {  
@@ -623,7 +623,7 @@ public class AnnotateFilterMT implements Runnable {
 	                
 	                while (run) {
 	                    // when queue is empty,maybe filtering is done
-	                    if ((record = queue.poll()) == null) {	                    	
+	                    if ((record = queue.poll()) == null) {       	
 	                        
 	                        try {
 	                            Thread.sleep(sleepUnit);
