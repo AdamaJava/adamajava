@@ -22,6 +22,7 @@ import org.qcmg.qsv.QSVParameters;
 import org.qcmg.qsv.blat.BLAT;
 import org.qcmg.qsv.blat.BLATRecord;
 import org.qcmg.qsv.util.QSVConstants;
+import org.qcmg.qsv.util.QSVUtil;
 
 
 public class SplitReadContigTest {
@@ -75,7 +76,7 @@ public class SplitReadContigTest {
 		
 		assertCorrectSplitReadAlignmentOrder(null);
 		
-		left = new SplitReadAlignment("chr15", "+", 89700210, 89700299, 1, 90);
+		left = new SplitReadAlignment("chr15", QSVUtil.PLUS, 89700210, 89700299, 1, 90);
 		splitReadContig.setSplitReadAlignments(left, right);
 		assertEquals("chr15", splitReadContig.getLeft().getReference());
 		assertCorrectSplitReadAlignmentOrder("chr10");		
@@ -157,13 +158,13 @@ public class SplitReadContigTest {
 	@Test
 	public void testNeedToReverseComplement() {	
 		createStandardObject(1);
-		left = new SplitReadAlignment("chr10", "-", 89700210, 89700299, 1, 90);
-		right = new SplitReadAlignment("chr10", "-", 89712341, 89712514, 109, 282);
+		left = new SplitReadAlignment("chr10", QSVUtil.MINUS, 89700210, 89700299, 1, 90);
+		right = new SplitReadAlignment("chr10", QSVUtil.MINUS, 89712341, 89712514, 109, 282);
 		splitReadContig.setSplitReadAlignments(left, right);
 		assertTrue(splitReadContig.needToReverseComplement(QSVConstants.ORIENTATION_1));
 	
-		left = new SplitReadAlignment("chr10", "+", 89700210, 89700299, 1, 90);
-		right = new SplitReadAlignment("chr10", "-", 89712341, 89712514, 109, 282);
+		left = new SplitReadAlignment("chr10", QSVUtil.PLUS, 89700210, 89700299, 1, 90);
+		right = new SplitReadAlignment("chr10", QSVUtil.MINUS, 89712341, 89712514, 109, 282);
 		splitReadContig.setSplitReadAlignments(left, right);
 		assertTrue(splitReadContig.needToReverseComplement(QSVConstants.ORIENTATION_4));
 	}	
@@ -174,8 +175,8 @@ public class SplitReadContigTest {
 		splitReadContig.setCat1and2NonTemplate();
 		assertEquals("GAGATTATACTTTGTGTA", splitReadContig.getNonTemplateSequence());
 	
-		left = new SplitReadAlignment("chr10", "-", 89700210, 89700299,109, 282);
-		right = new SplitReadAlignment("chr10", "-", 89712341, 89712514,  1, 90);
+		left = new SplitReadAlignment("chr10", QSVUtil.MINUS, 89700210, 89700299,109, 282);
+		right = new SplitReadAlignment("chr10", QSVUtil.MINUS, 89712341, 89712514,  1, 90);
 		splitReadContig.setSplitReadAlignments(left, right);
 		splitReadContig.setCat1and2NonTemplate();
 		assertEquals("GAGATTATACTTTGTGTA", splitReadContig.getNonTemplateSequence());	
@@ -184,20 +185,20 @@ public class SplitReadContigTest {
 	@Test
 	public void testCat3and4Nontemplate() {
 		createStandardObject(1);
-		right = new SplitReadAlignment("chr10", "+", 89712341, 89712514,  1, 90);
-		left = new SplitReadAlignment("chr10", "-", 89700210, 89700299,109, 282);
+		right = new SplitReadAlignment("chr10", QSVUtil.PLUS, 89712341, 89712514,  1, 90);
+		left = new SplitReadAlignment("chr10", QSVUtil.MINUS, 89700210, 89700299,109, 282);
 		assertCat3and4NonTemplate(left, right, "3");
 		
-		right = new SplitReadAlignment("chr10", "-", 89712341, 89712514,  1, 90);
-		left = new SplitReadAlignment("chr10", "+", 89700210, 89700299,109, 282);
+		right = new SplitReadAlignment("chr10", QSVUtil.MINUS, 89712341, 89712514,  1, 90);
+		left = new SplitReadAlignment("chr10", QSVUtil.PLUS, 89700210, 89700299,109, 282);
 		assertCat3and4NonTemplate(left, right, "4");
 		
-		left = new SplitReadAlignment("chr10", "-", 89712341, 89712514,  109, 282);
-		right = new SplitReadAlignment("chr10", "+", 89700210, 89700299,1, 90);
+		left = new SplitReadAlignment("chr10", QSVUtil.MINUS, 89712341, 89712514,  109, 282);
+		right = new SplitReadAlignment("chr10", QSVUtil.PLUS, 89700210, 89700299,1, 90);
 		assertCat3and4NonTemplate(left, right, "3");
 		
-		left = new SplitReadAlignment("chr10", "+", 89712341, 89712514,  109, 282);
-		right = new SplitReadAlignment("chr10", "-", 89700210, 89700299,1, 90);
+		left = new SplitReadAlignment("chr10", QSVUtil.PLUS, 89712341, 89712514,  109, 282);
+		right = new SplitReadAlignment("chr10", QSVUtil.MINUS, 89700210, 89700299,1, 90);
 		assertCat3and4NonTemplate(left, right, "4");		
 	}
 	
@@ -218,8 +219,8 @@ public class SplitReadContigTest {
 		assertTrue(splitReadContig.passesBreakpointFilter(left, right));
 		
 		splitReadContig.setConfidenceLevel(QSVConstants.LEVEL_SINGLE_CLIP);
-		left = new SplitReadAlignment("chr10", "+", 89700210, 89719299, 1, 90);
-		right = new SplitReadAlignment("chr10", "-", 89712341, 89712514, 109, 282);
+		left = new SplitReadAlignment("chr10", QSVUtil.PLUS, 89700210, 89719299, 1, 90);
+		right = new SplitReadAlignment("chr10", QSVUtil.MINUS, 89712341, 89712514, 109, 282);
 		assertTrue(splitReadContig.passesBreakpointFilter(left, right));
 		splitReadContig.setConfidenceLevel(QSVConstants.LEVEL_HIGH);
 		assertFalse(splitReadContig.passesBreakpointFilter(left, right));		
@@ -230,12 +231,12 @@ public class SplitReadContigTest {
 		createStandardObject(1);
 		assertTrue(splitReadContig.passesQueryPositionFilter(right, left));
 		
-		left = new SplitReadAlignment("chr10", "+", 89700210, 89700299, 1, 200);
-		right = new SplitReadAlignment("chr10", "+", 89712341, 89712514, 20, 232);
+		left = new SplitReadAlignment("chr10", QSVUtil.PLUS, 89700210, 89700299, 1, 200);
+		right = new SplitReadAlignment("chr10", QSVUtil.PLUS, 89712341, 89712514, 20, 232);
 		assertFalse(splitReadContig.passesQueryPositionFilter(left, right));
 		
-		left = new SplitReadAlignment("chr10", "+", 89700210, 89700299, 1, 120);
-		right = new SplitReadAlignment("chr10", "+", 89712341, 89712514, 110, 232);
+		left = new SplitReadAlignment("chr10", QSVUtil.PLUS, 89700210, 89700299, 1, 120);
+		right = new SplitReadAlignment("chr10", QSVUtil.PLUS, 89712341, 89712514, 110, 232);
 		assertTrue(splitReadContig.passesQueryPositionFilter(left, right));
 	}
 	
@@ -244,14 +245,14 @@ public class SplitReadContigTest {
 		createStandardObject(1);
 		assertTrue(splitReadContig.queryLengthFilter(right, left));
 		
-		left = new SplitReadAlignment("chr10", "+", 89700210, 89700299, 1, 10);
+		left = new SplitReadAlignment("chr10", QSVUtil.PLUS, 89700210, 89700299, 1, 10);
 		assertFalse(splitReadContig.queryLengthFilter(left, right));
 		
-		left = new SplitReadAlignment("chr10", "+", 89700210, 89700299, 0, 290);
+		left = new SplitReadAlignment("chr10", QSVUtil.PLUS, 89700210, 89700299, 0, 290);
 		assertFalse(splitReadContig.queryLengthFilter(left, right));
 		
-		left = new SplitReadAlignment("chr10", "+", 89700210, 89700299, 1, 90);
-		right = new SplitReadAlignment("chr10", "+", 89712341, 89712514, 1, 200);
+		left = new SplitReadAlignment("chr10", QSVUtil.PLUS, 89700210, 89700299, 1, 90);
+		right = new SplitReadAlignment("chr10", QSVUtil.PLUS, 89712341, 89712514, 1, 200);
 		assertFalse(splitReadContig.queryLengthFilter(left, right));
 		assertFalse(splitReadContig.queryLengthFilter(right, left));	
 	}
@@ -259,9 +260,9 @@ public class SplitReadContigTest {
 	@Test
 	public void testPassesSizeFilter() {
 		createStandardObject(1);
-		assertFalse(splitReadContig.passesSizeFilter(new SplitReadAlignment("chr10", "+", 2970200, 2970220, 1, 19)));
-		assertFalse(splitReadContig.passesSizeFilter(new SplitReadAlignment("chr10", "+", 2970200, 2970220, 1, 270)));
-		assertTrue(splitReadContig.passesSizeFilter(new SplitReadAlignment("chr10", "+", 2970200, 2970220, 1, 100)));
+		assertFalse(splitReadContig.passesSizeFilter(new SplitReadAlignment("chr10", QSVUtil.PLUS, 2970200, 2970220, 1, 19)));
+		assertFalse(splitReadContig.passesSizeFilter(new SplitReadAlignment("chr10", QSVUtil.PLUS, 2970200, 2970220, 1, 270)));
+		assertTrue(splitReadContig.passesSizeFilter(new SplitReadAlignment("chr10", QSVUtil.PLUS, 2970200, 2970220, 1, 100)));
 	}
 	
 	@Test
@@ -271,7 +272,7 @@ public class SplitReadContigTest {
 		assertTrue(splitReadContig.passesBreakpointFilter(left));
 		assertTrue(splitReadContig.passesBreakpointFilter(right));
 		
-		right = new SplitReadAlignment("chr10", "+", 100, 200, 1, 200);
+		right = new SplitReadAlignment("chr10", QSVUtil.PLUS, 100, 200, 1, 200);
 		
 		assertFalse(splitReadContig.passesBreakpointFilter(right));
 	}
@@ -301,6 +302,7 @@ public class SplitReadContigTest {
 	
 	private void createStandardObject(int num) {
 		p = createMock(QSVParameters.class);
+		expect(p.isTumor()).andReturn(false);
 		expect(p.getPairingType()).andReturn("pe");
 		expect(p.getPairingType()).andReturn("pe");
 		if (num ==1) {
@@ -315,8 +317,8 @@ public class SplitReadContigTest {
 		replay(blat);
 		splitReadContig = new SplitReadContig(blat, p, "chr10", "chr10", 89700299, 89712341, QSVConstants.ORIENTATION_1);
 		splitReadContig.setConsensus("CAGATAGGCAACAGATCGAGACCTTGTTTCACAAAACGAACAGATCTGCAAAGATCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAAGAGATTATACTTTGTGTAAGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAGGGCAGGGATCAATTCCTTAATATCTTAGGAAGACTAGGTATTGACAGTAATGGTGACAAAGCAATGAAAAGGAAAGGAAGAAGTGATAAGACATGGCAGCAAGCTGAAGTATGATGAGTAAAGAATAGGAATCA");				
-		left = new SplitReadAlignment("chr10", "+", 89700210, 89700299, 1, 90);
-		right = new SplitReadAlignment("chr10", "+", 89712341, 89712514, 109, 282);
+		left = new SplitReadAlignment("chr10", QSVUtil.PLUS, 89700210, 89700299, 1, 90);
+		right = new SplitReadAlignment("chr10", QSVUtil.PLUS, 89712341, 89712514, 109, 282);
 		splitReadContig.setSplitReadAlignments(left, right);
 	}
 

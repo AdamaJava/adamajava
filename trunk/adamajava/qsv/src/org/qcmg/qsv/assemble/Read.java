@@ -7,11 +7,13 @@ import gnu.trove.map.hash.TObjectIntHashMap;
 
 import java.util.Arrays;
 
+import org.qcmg.common.util.BaseUtils;
+
 
 public class Read {
 	private String header;
 	private char[] sequence;
-	private int sequenceLength;
+	private final int sequenceLength;
 	private final String forwordSeed;
 	private final String reverseSeed;
 	private TObjectIntHashMap<String> seeds;
@@ -63,8 +65,8 @@ public class Read {
 	 */
 	private void checkSequence() throws Exception {
 		for (char c : sequence) {
-			if (c != 'A' && c != 'T' && c != 'G' && c != 'C' && c != 'N') {				
-				throw new Exception("Fileformatting error. Is there are incorrectly formated read in the file or have you chosen the correct file format?");
+			if ( ! BaseUtils.isACGTN(c)) {
+				throw new Exception("Fileformatting error. Are there incorrectly formated read in the file or have you chosen the correct file format?");
 			}
 		}
 	}

@@ -32,7 +32,7 @@ public class StructuralVariant {
 		return leftReference;
 	}
 
-	public void setLeftReference(String leftReference) {
+	private void setLeftReference(String leftReference) {
 		this.leftReference = leftReference;
 	}
 
@@ -40,7 +40,7 @@ public class StructuralVariant {
 		return rightReference;
 	}
 
-	public void setRightReference(String rightReference) {
+	private void setRightReference(String rightReference) {
 		this.rightReference = rightReference;
 	}
 
@@ -64,10 +64,11 @@ public class StructuralVariant {
 		return orientationCategory;
 	}
 
-	public void setOrientationCategory(String orientationCategory) {
+	private void setOrientationCategory(String orientationCategory) {
 		this.orientationCategory = orientationCategory;
 	}
 	
+	@Override
 	public String toString() {
 		return leftReference + "_" + leftBreakpoint + "_" + rightReference + "_" + rightBreakpoint + "_"+ orientationCategory; 
 	}

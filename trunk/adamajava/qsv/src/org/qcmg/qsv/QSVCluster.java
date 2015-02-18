@@ -12,9 +12,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import net.sf.picard.reference.IndexedFastaSequenceFile;
-import net.sf.picard.reference.ReferenceSequence;
+import java.util.concurrent.ConcurrentMap;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -36,7 +34,6 @@ import org.qcmg.qsv.util.QSVUtil;
 public class QSVCluster {
 	
 	private static final QLogger logger = QLoggerFactory.getLogger(QSVCluster.class);
-	private static final String NEWLINE = System.getProperty("line.separator");
 	private static final  char TAB = '\t';
 	
 	private final DiscordantPairCluster pairRecord;
@@ -91,17 +88,17 @@ public class QSVCluster {
 		return leftReferenceFlank;
 	}
 
-	public void setLeftReferenceFlank(String leftReferenceFlank) {
-		this.leftReferenceFlank = leftReferenceFlank;
-	}
+//	public void setLeftReferenceFlank(String leftReferenceFlank) {
+//		this.leftReferenceFlank = leftReferenceFlank;
+//	}
 
 	public String getRightReferenceFlank() {
 		return rightReferenceFlank;
 	}
 
-	public void setRightReferenceFlank(String rightReferenceFlank) {
-		this.rightReferenceFlank = rightReferenceFlank;
-	}
+//	public void setRightReferenceFlank(String rightReferenceFlank) {
+//		this.rightReferenceFlank = rightReferenceFlank;
+//	}
 
 	public String getSvId() {
 		return svId;
@@ -741,11 +738,11 @@ public class QSVCluster {
 		boolean rescue = false;
 		
 		
-		if (!isGermline && !rescued) {			
+		if ( ! isGermline && ! rescued) {
 			
 			//if running split read mode, try to get a split read contig
-			if (isSplitRead) {				
-					if (this.splitReadContig != null) {				
+			if (isSplitRead) {
+					if (this.splitReadContig != null) {
 					    this.splitReadContig.findSplitRead();			
 						this.consensus = splitReadContig.getConsensus();
 						
@@ -761,9 +758,8 @@ public class QSVCluster {
 			if (referenceFile != null) {
 				if (leftReferenceFlank == null && rightReferenceFlank == null ||
 						leftReferenceFlank.equals("") && rightReferenceFlank.equals("")) {
-					if (referenceFile != null) {
-						getReferenceFlank(new File(referenceFile), p.getChromosomes());
-					}
+					
+					getReferenceFlank(new File(referenceFile), p.getChromosomes());
 				}
 			}
 
@@ -782,12 +778,16 @@ public class QSVCluster {
 	 */
 	private void getReferenceFlank(File referenceFile, Map<String, List<Chromosome>> chromosomes) throws QSVException, IOException {
 		if (referenceFile != null) {
-			IndexedFastaSequenceFile f = QSVUtil.getReferenceFile(referenceFile);
+//			IndexedFastaSequenceFile f = QSVUtil.getReferenceFile(referenceFile);
+			ConcurrentMap<String, byte[]> referenceMap = QSVUtil.getReferenceMap();
     		
-			if (f != null) {
-				leftReferenceFlank = getCurrentFlankSeq(f, leftReference, getLeftBreakpoint(), chromosomes.get(leftReference));
-				rightReferenceFlank = getCurrentFlankSeq(f, rightReference, getRightBreakpoint(), chromosomes.get(rightReference));
-				f.close();
+			if (referenceMap != null) {
+//				if (f != null) {
+				leftReferenceFlank = getCurrentFlankSeq(referenceMap, leftReference, getLeftBreakpoint(), chromosomes.get(leftReference));
+				rightReferenceFlank = getCurrentFlankSeq(referenceMap, rightReference, getRightBreakpoint(), chromosomes.get(rightReference));
+//				leftReferenceFlank = getCurrentFlankSeq(f, leftReference, getLeftBreakpoint(), chromosomes.get(leftReference));
+//				rightReferenceFlank = getCurrentFlankSeq(f, rightReference, getRightBreakpoint(), chromosomes.get(rightReference));
+//				f.close();
 			}
 			
 		}				
@@ -796,7 +796,7 @@ public class QSVCluster {
 	/*
 	 * For dcc file - get the 200bp upstream and downstream of a breakpoint
 	 */
-	private String getCurrentFlankSeq(IndexedFastaSequenceFile f, String reference,
+	private String getCurrentFlankSeq(ConcurrentMap<String, byte[]> referenceMap, String reference,
 			int breakpoint, List<Chromosome> list) throws UnsupportedEncodingException {
 		Chromosome c = null;
 		if (list != null) {
@@ -814,8 +814,13 @@ public class QSVCluster {
 			}
 			
 			try {
-				ReferenceSequence subset = f.getSubsequenceAt(reference, start, end);
-				bases = new String(subset.getBases(), "UTF-8");
+				byte[] basesArray = referenceMap.get(reference);
+				// array is 0-based, whereas picard is 1-based
+//				bases = new String(Arrays.copyOfRange(basesArray, start -1, end -1));
+				bases = new String(basesArray, start -1, (end - start) + 1);
+				
+//				ReferenceSequence subset = f.getSubsequenceAt(reference, start, end);
+//				bases = new String(subset.getBases(), "UTF-8");
 			} catch (Exception e) {
 				logger.info("Trying to get " + reference + " " + start + " " + end + " from chr " + c.toString());
 				logger.info(QSVUtil.getStrackTrace(e));
@@ -823,6 +828,33 @@ public class QSVCluster {
 		} 
 		return bases;		
 	}
+//	private String getCurrentFlankSeq(IndexedFastaSequenceFile f, String reference,
+//			int breakpoint, List<Chromosome> list) throws UnsupportedEncodingException {
+//		Chromosome c = null;
+//		if (list != null) {
+//			c = list.get(0);
+//		}
+//		String bases = "";
+//		if (c != null) {
+//			int start = breakpoint - 200;
+//			if (start < 0) {
+//				start = 1;
+//			}
+//			int end = breakpoint + 200;
+//			if (end > c.getTotalLength()) {
+//				end = c.getTotalLength();
+//			}
+//			
+//			try {
+//				ReferenceSequence subset = f.getSubsequenceAt(reference, start, end);
+//				bases = new String(subset.getBases(), "UTF-8");
+//			} catch (Exception e) {
+//				logger.info("Trying to get " + reference + " " + start + " " + end + " from chr " + c.toString());
+//				logger.info(QSVUtil.getStrackTrace(e));
+//			}
+//		} 
+//		return bases;		
+//	}
 
 	/*
 	 * Return true if it is a potential repeat region. Potiential repeat
@@ -874,7 +906,7 @@ public class QSVCluster {
 	private void rescueClipping(BLAT blat, QSVParameters p, QSVParameters n, String softclipDir, int consensusLength, int minInsertSize) throws Exception {
 		if (clipRecords != null) {
 			for (SoftClipCluster r: clipRecords) {
-				if (!r.hasMatchingBreakpoints()) {
+				if ( ! r.hasMatchingBreakpoints()) {
 					if (n == null) {
 						r.rescueClips(p, blat, p.getClippedBamFile(), null, softclipDir, consensusLength, 5, minInsertSize);
 					} else {
@@ -1226,13 +1258,12 @@ public class QSVCluster {
 	 * @throws IOException 
 	 */
 	public void checkReferenceFlank(String referenceFile, Map<String, List<Chromosome>> chromosomes) throws QSVException, IOException {
-		if (!isGermline) {					
+		if ( ! isGermline) {
 			if (referenceFile != null) {
 				if (leftReferenceFlank == null && rightReferenceFlank == null ||
 						leftReferenceFlank.equals("") && rightReferenceFlank.equals("")) {
-					if (referenceFile != null) {
-						getReferenceFlank(new File(referenceFile), chromosomes);
-					}
+					
+					getReferenceFlank(new File(referenceFile), chromosomes);
 				}
 			}
 		}
@@ -1328,11 +1359,11 @@ public class QSVCluster {
 	public void rescueClippping(BLAT blat, QSVParameters tumourParameters,
 			QSVParameters normalParameters, String softclipDir,
 			Integer consensusLength, Integer minInsertSize) throws Exception {
-		if (!isGermline && !rescued) {
+		if ( ! isGermline && ! rescued) {
 			
 			//one sided evidence or none at all
 			if (clipRecords != null) {				
-				if (!hasMatchingBreakpoints()) {					
+				if ( ! hasMatchingBreakpoints()) {					
 					rescueClipping(blat, tumourParameters, normalParameters, softclipDir, consensusLength, minInsertSize);
 				}
 			}
@@ -1360,9 +1391,9 @@ public class QSVCluster {
 			Integer minInsertSize, boolean singleSided, boolean isSplitRead,
 			String reference, String blatFile) throws Exception {
 		
-		if (!isGermline && !rescued) {			
+		if (!isGermline && !rescued) {
 			
-			if (isSplitRead) {						
+			if (isSplitRead) {	
 			    this.splitReadContig = new SplitReadContig(blat, tumourParameters, softclipDir, leftReference, rightReference, 
 						getLeftBreakpoint(), getRightBreakpoint(), 
 						findExpectedPairClassifications(), getClipContigSequence(), getConfidenceLevel(), 
@@ -1514,15 +1545,15 @@ public class QSVCluster {
 		builder.append(getHeader(svId));
 		
 		if (pairRecord != null) {
-			builder.append(">>DISCORDANT_PAIRS:" + NEWLINE + pairRecord.toVerboseString(compareType, isQCMG));
+			builder.append(">>DISCORDANT_PAIRS:" + QSVUtil.NEW_LINE + pairRecord.toVerboseString(compareType, isQCMG));
 		}
 		
 		if (clipRecords != null) {
-			builder.append(">>" + NEWLINE);
-			builder.append(">>SOFT_CLIPS:" + NEWLINE + clipRecordsVerboseString(findType, compareType));
+			builder.append(">>" + QSVUtil.NEW_LINE);
+			builder.append(">>SOFT_CLIPS:" + QSVUtil.NEW_LINE + clipRecordsVerboseString(findType, compareType));
 		}
 		
-		builder.append(NEWLINE);
+		builder.append(QSVUtil.NEW_LINE);
 		
 		return builder.toString();
 	}
@@ -1538,17 +1569,17 @@ public class QSVCluster {
 		String right = getClipBreakpointString(false, findType, compareType);
 		if (getOrientationCategory().equals(QSVConstants.ORIENTATION_2)) {
 			if (!right.equals("")) {
-				builder.append(">>POS1_CLIPS" + NEWLINE + right);
+				builder.append(">>POS1_CLIPS" + QSVUtil.NEW_LINE + right);
 			}			
 			if (!left.equals("")) {
-				builder.append(">>POS2_CLIPS" + NEWLINE + left);
+				builder.append(">>POS2_CLIPS" + QSVUtil.NEW_LINE + left);
 			}			
 		} else {
 			if (!left.equals("")) {
-				builder.append(">>POS1_CLIPS" + NEWLINE + left);
+				builder.append(">>POS1_CLIPS" + QSVUtil.NEW_LINE + left);
 			}			
 			if (!right.equals("")) {
-				builder.append(">>POS2_CLIPS" + NEWLINE + right);
+				builder.append(">>POS2_CLIPS" + QSVUtil.NEW_LINE + right);
 			}
 		}
 		
@@ -1568,16 +1599,16 @@ public class QSVCluster {
 		String lowND = c.getLowConfClips(isLeft, false);
 		
 		if (!td.equals("")) {
-			b.append(">>"+findType+"_clips" + NEWLINE + td);
+			b.append(">>"+findType+"_clips" + QSVUtil.NEW_LINE + td);
 		}	
 		if (!nd.equals("")) {
-			b.append(">>"+compareType+"_clips" + NEWLINE + nd);
+			b.append(">>"+compareType+"_clips" + QSVUtil.NEW_LINE + nd);
 		}
 		if (!lowTD.equals("")) {
-			b.append(">>"+findType+"_rescued_clips" + NEWLINE + lowTD);
+			b.append(">>"+findType+"_rescued_clips" + QSVUtil.NEW_LINE + lowTD);
 		}	
 		if (!lowND.equals("")) {
-			b.append(">>"+compareType+"_rescued_clips" + NEWLINE + lowND);
+			b.append(">>"+compareType+"_rescued_clips" + QSVUtil.NEW_LINE + lowND);
 		}
 		return b.toString();
 	}
@@ -1620,11 +1651,11 @@ public class QSVCluster {
 		}
 		
 		String bp = leftReference + ":" + getFinalLeftBreakpoint() + " | " + rightReference + ":" + getFinalRightBreakpoint();
-		header.append(">>"+id+NEWLINE);
-		header.append(">>Breakpoints: "+bp+NEWLINE);
-		header.append(">>Discordant pair signature: "+dis+NEWLINE);
-		header.append(">>Soft clipping signature:"+clip+NEWLINE);
-		header.append(">>" + NEWLINE);
+		header.append(">>"+id+QSVUtil.NEW_LINE);
+		header.append(">>Breakpoints: "+bp+QSVUtil.NEW_LINE);
+		header.append(">>Discordant pair signature: "+dis+QSVUtil.NEW_LINE);
+		header.append(">>Soft clipping signature:"+clip+QSVUtil.NEW_LINE);
+		header.append(">>" + QSVUtil.NEW_LINE);
 
 		return header.toString();
 	}	

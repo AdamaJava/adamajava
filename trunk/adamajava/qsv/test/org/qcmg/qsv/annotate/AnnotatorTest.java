@@ -46,8 +46,7 @@ public class AnnotatorTest {
     
     private void setupSequencingRuns() {
     	sequencingRuns = new ArrayList<RunTypeRecord>();
-		RunTypeRecord r = new RunTypeRecord("testFile", 300, 2700, "seq_mapped");
-		r.setRgId("20110221052813657");
+		RunTypeRecord r = new RunTypeRecord("20110221052813657", 300, 2700, "seq_mapped");
 		sequencingRuns.add(r);
 	}
     
@@ -100,8 +99,7 @@ public class AnnotatorTest {
     		
     		
 //    	   	sequencingRuns = new ArrayList<RunTypeRecord>();
-    		RunTypeRecord r = new RunTypeRecord("testFile", 300, 2700, "seq_mapped");
-    		r.setRgId("20141216163713333");
+    		RunTypeRecord r = new RunTypeRecord("20141216163713333", 300, 2700, "seq_mapped");
     		sequencingRuns.add(r);
     		
     		 Annotator annotator = new Annotator(250, 2790, testFolder.newFile("testFile"), "pe", sequencingRuns, "pe", "bwa");
@@ -178,8 +176,7 @@ public class AnnotatorTest {
     	
     	
 //    	   	sequencingRuns = new ArrayList<RunTypeRecord>();
-    	RunTypeRecord r = new RunTypeRecord("testFile", 300, 1700, "seq_mapped");
-    	r.setRgId("20141216163712514");
+    	RunTypeRecord r = new RunTypeRecord("20141216163712514", 300, 1700, "seq_mapped");
     	sequencingRuns.add(r);
     	
     	Annotator annotator = new Annotator(250, 1790, testFolder.newFile("testFile"), "pe", sequencingRuns, "pe", "bwa");

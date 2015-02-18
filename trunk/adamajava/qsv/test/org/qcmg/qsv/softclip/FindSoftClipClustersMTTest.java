@@ -1,6 +1,8 @@
 package org.qcmg.qsv.softclip;
 
-import static org.easymock.EasyMock.*;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
 
 import java.io.BufferedWriter;
@@ -23,7 +25,6 @@ import org.qcmg.qsv.blat.BLAT;
 import org.qcmg.qsv.blat.BLATRecord;
 import org.qcmg.qsv.discordantpair.DiscordantPairCluster;
 import org.qcmg.qsv.discordantpair.PairGroup;
-import org.qcmg.qsv.softclip.FindClipClustersMT;
 import org.qcmg.qsv.util.QSVUtil;
 import org.qcmg.qsv.util.TestUtil;
 
@@ -33,6 +34,13 @@ public class FindSoftClipClustersMTTest {
 	
 	@Rule
     public TemporaryFolder testFolder = new TemporaryFolder();
+	
+	@Test
+	public void doesUnaryOperatorWorkWithObjects() {
+		Integer INT_OBJECT = Integer.valueOf(1);
+		INT_OBJECT--;
+		assertEquals(0, INT_OBJECT.intValue());
+	}
 		
 
 	@Test
@@ -77,7 +85,7 @@ public class FindSoftClipClustersMTTest {
         
         expected.put("chr10_89712341_true_+", new BLATRecord(value.split("\t")));
         expected.put("chr10_89700299_false_-", new BLATRecord(value2.split("\t")));
-        expect(blat.align(softClipDir.getAbsolutePath() + QSVUtil.getFileSeparator() + ("TD_breakpoint.chr10.fa"), softClipDir.getAbsolutePath() + QSVUtil.getFileSeparator() + ("TD_breakpoint.chr10.fa.psl"))).andReturn(expected);
+        expect(blat.align(softClipDir.getAbsolutePath() + QSVUtil.getFileSeparator() + ("TD_breakpoint.chr10.fa"), softClipDir.getAbsolutePath() + QSVUtil.getFileSeparator() + ("TD_breakpoint.chr10.psl"))).andReturn(expected);
        
         List<BLATRecord> splitList1 = new ArrayList<BLATRecord>();
         String value3 = "262\t1\t0\t\t1\t18\t1\t12041\t+\tsplitcon-chr10-89700299-chr10-89712341\t281\t0\t281\tchr10\t135534747\t89700191\t89712495\t2\t108,155,\t0,126,\t89700191,89712340,";        
@@ -99,7 +107,7 @@ public class FindSoftClipClustersMTTest {
 
 
 	private void writeSoftClipFiles(File softClipDir) throws IOException {
-		BufferedWriter writer = new BufferedWriter(new FileWriter(new File(softClipDir + QSVUtil.getFileSeparator() + "TD.chr10.clip")));
+		try (BufferedWriter writer = new BufferedWriter(new FileWriter(new File(softClipDir + QSVUtil.getFileSeparator() + "TD.chr10.clip")));) {
 		writer.write("HWI-ST1240:47:D12NAACXX:6:1213:16584:89700:20120608110941621,chr10,89700299,-,right,TTGTTTCACAAAACGAACAGATCTGCAAAGATCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAAGAGATTATACTTTGTGTAAGAGGTCCACCAGAGG,GAGATTATACTTTGTGTAAGAGGTCCACCAGAGG,TTGTTTCACAAAACGAACAGATCTGCAAAGATCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAA\n");
 		writer.write("HWI-ST1240:47:D12NAACXX:4:2208:21187:49506:20120608092353631,chr10,89700299,-,right,GTTTCACAAAACGAACAGATCTGCAAAGATCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAAGAGATTATACTTTGTGTAAGAGGTCCACCAGAGGAG,GAGATTATACTTTGTGTAAGAGGTCCACCAGAGGAG,GTTTCACAAAACGAACAGATCTGCAAAGATCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAA\n");
 		writer.write("HWI-ST1240:47:D12NAACXX:1:2312:16545:35061:20120608115535190,chr10,89700299,-,right,TTCACAAAACGAACAGATCTGCAAAGATCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAAGAGATTATACTTTGTGTAAGAGGTCCACCAGAGGAGTT,GAGATTATACTTTGTGTAAGAGGTCCACCAGAGGAGTT,TTCACAAAACGAACAGATCTGCAAAGATCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAA\n");
@@ -122,7 +130,7 @@ public class FindSoftClipClustersMTTest {
 		//writer.write("HWI-ST1240:47:D12NAACXX:5:2313:2867:30879:20120607102754932,chr10,89712341,+,left,AGTCATATAATCTCTTTGTGTAAGAGATTATACTTTGTGTA\n");
 		//writer.write("HWI-ST1240:47:D12NAACXX:6:1112:4715:61725:20120608110941621,chr10,89712341,+,left,TCATATAATCTCTTTGTGTAAGAGATTATACTTTGTGTA\n");
 		//writer.write("HWI-ST1240:47:D12NAACXX:6:2115:13249:50856:20120608110941621,chr10,89712341,+,left,ATCTGCAAAGATCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAAGAGATTATACTTTGTGTA\n");
-		writer.close();
+		}
 	}
 	
 	

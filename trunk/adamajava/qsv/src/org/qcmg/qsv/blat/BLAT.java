@@ -7,6 +7,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -26,7 +27,7 @@ import org.qcmg.tab.TabbedRecord;
  */
 public class BLAT {
 	
-	private ArrayList<String> commands;
+	private final ArrayList<String> commands;
 
 	public BLAT(String server, String port, String path) {
 		this.commands = new ArrayList<String>();
@@ -39,10 +40,6 @@ public class BLAT {
 	
 	public ArrayList<String> getCommands() {
 		return commands;
-	}
-
-	public void setCommands(ArrayList<String> commands) {
-		this.commands = commands;
 	}
 
 	/**
@@ -68,22 +65,23 @@ public class BLAT {
 	 */
 	public Map<String, BLATRecord> parseResults(String blatOutputFile) throws Exception {
 		Map<String, BLATRecord> records = new HashMap<String, BLATRecord>();
-		TabbedFileReader reader = new TabbedFileReader(new File(blatOutputFile));
-		for (TabbedRecord tab: reader) {
-			BLATRecord record = new BLATRecord(tab.getData().split("\t")); 
-			if (record.isValid()) {
-					if (records.containsKey(record.getName())) {
-						BLATRecord previous = records.get(record.getName());
-						if (record.getScore() > previous.getScore()) {
+		File blatOutput = new File(blatOutputFile);
+		
+		try (TabbedFileReader reader = new TabbedFileReader(blatOutput);) {
+			for (TabbedRecord tab: reader) {
+				BLATRecord record = new BLATRecord(tab.getData().split("\t")); 
+				if (record.isValid()) {
+						if (records.containsKey(record.getName())) {
+							BLATRecord previous = records.get(record.getName());
+							if (record.getScore() > previous.getScore()) {
+								records.put(record.getName(), record);
+							}
+						} else {
 							records.put(record.getName(), record);
-						}
-					} else {
-						records.put(record.getName(), record);
-					}								
+						}								
+				}
 			}
 		}
-		
-		reader.close();
 		
 		return records;
 	}
@@ -169,65 +167,70 @@ public class BLAT {
 	 */
 	public List<BLATRecord> alignConsensus(String softclipDir, String name, String consensus, String leftReference, String rightReference) throws Exception {
 		String base = softclipDir + QSVUtil.getFileSeparator() + name;
-		String fa = base + ".fa";
-		BufferedWriter writer = new BufferedWriter(new FileWriter(new File(fa)));		
+		File faFile = new File(base + ".fa");
+		
+		try (FileWriter fw = new FileWriter(faFile);
+				BufferedWriter writer = new BufferedWriter(fw);) {
 			
-		writer.write(">" +name + QSVUtil.getNewLine());
-		writer.write(consensus + QSVUtil.getNewLine());		
-		writer.close();
+			writer.write(">" +name + QSVUtil.getNewLine());
+			writer.write(consensus + QSVUtil.getNewLine());		
+		}
 		
 		String outFile = base + ".psl";
 		
-		execute(fa, outFile);
+		execute(faFile.getAbsolutePath(), outFile);
+		
+		// delete generated files
+		Files.deleteIfExists(faFile.toPath());
 		
 		List<BLATRecord> records = new ArrayList<BLATRecord>();
 		
-		TabbedFileReader reader = new TabbedFileReader(new File(outFile));
+		File out = new File(outFile);
+		try (TabbedFileReader reader = new TabbedFileReader(out);) {
 
-		for (TabbedRecord tab: reader) {
-			BLATRecord record = new BLATRecord(tab.getData().split("\t")); 
-			if (record.isValid()) {
-				if (leftReference != null && rightReference != null) {
-					if (record.getReference().equals(leftReference) || record.getReference().equals(rightReference)) {
-						records.add(record);				
+			for (TabbedRecord tab: reader) {
+				BLATRecord record = new BLATRecord(tab.getData().split("\t"));
+				if (record.isValid()) {
+					if (leftReference != null && rightReference != null) {
+						if (record.getReference().equals(leftReference) || record.getReference().equals(rightReference)) {
+							records.add(record);				
+						}
+					} else {
+						records.add(record);
 					}
-				} else {
-					records.add(record);
 				}
 			}
 		}
 		
-		reader.close();
-		new File(fa).delete();
-		new File(outFile).delete();
+		// delete generated files
+		Files.deleteIfExists(out.toPath());
 		
 		Collections.sort(records);		
-		
 		return records;		
 	}
 
 	public List<BLATRecord> getBlatResults(String blatFile, String leftReference, String rightReference, String name) throws Exception {
-		String outFile = blatFile.replace(".fa", ".psl");
+		File outFile = new File(blatFile.replace(".fa", ".psl"));
 		
 		List<BLATRecord> records = new ArrayList<BLATRecord>();
 		
-		TabbedFileReader reader = new TabbedFileReader(new File(outFile));
+		try (TabbedFileReader reader = new TabbedFileReader(outFile);) {
 
-		for (TabbedRecord tab: reader) {
-			BLATRecord record = new BLATRecord(tab.getData().split("\t")); 	
-			
-			if (record.isValid() && record.getName().equals(name)) {
-				if (leftReference != null && rightReference != null) {
-					if (record.getReference().equals(leftReference) || record.getReference().equals(rightReference)) {
-						records.add(record);				
+			for (TabbedRecord tab: reader) {
+				BLATRecord record = new BLATRecord(tab.getData().split("\t")); 	
+				
+				if (record.isValid() && record.getName().equals(name)) {
+					if (leftReference != null && rightReference != null) {
+						if (record.getReference().equals(leftReference) || record.getReference().equals(rightReference)) {
+							records.add(record);				
+						}
+					} else {
+						records.add(record);
 					}
-				} else {
-					records.add(record);
 				}
 			}
 		}
 		
-		reader.close();
 		Collections.sort(records);	
 		return records;
 	}

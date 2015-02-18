@@ -4,6 +4,7 @@
 package org.qcmg.qsv.discordantpair;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,13 +24,13 @@ public class QPrimerCategory {
 	private int startRight;
 	private int endRight;
 	private String reverseFlag;
-	private String zpType;
+	private final String zpType;
 	private String leftChr;
 	private String rightChr;
-	private String id;
-	private String outLeft;
-	private String outRight;
-	private String pairType;
+//	private final String id;
+//	private final String outLeft;
+//	private final String outRight;
+	private final String pairType;
 
 	public QPrimerCategory(String zpType, String leftChr, String rightChr, String id, String pairType) {
 		this.map = new HashMap<String,Integer>();
@@ -37,9 +38,9 @@ public class QPrimerCategory {
 		this.leftChr = leftChr;
 		this.rightChr = rightChr;
 		this.mixedCategories = "";
-		this.id = id;
-		this.outLeft = new String();
-		this.outRight = new String();
+//		this.id = id;
+//		this.outLeft = new String();
+//		this.outRight = new String();
 		this.pairType = pairType;
 	}
 
@@ -67,9 +68,9 @@ public class QPrimerCategory {
 	}
 
 
-	public void setMixedCategories(String mixedCategories) {
-		this.mixedCategories = mixedCategories;
-	}
+//	public void setMixedCategories(String mixedCategories) {
+//		this.mixedCategories = mixedCategories;
+//	}
 
 
 	public int getStartLeft() {
@@ -77,9 +78,9 @@ public class QPrimerCategory {
 	}
 
 
-	public void setStartLeft(int startLeft) {
-		this.startLeft = startLeft;
-	}
+//	public void setStartLeft(int startLeft) {
+//		this.startLeft = startLeft;
+//	}
 
 
 	public int getEndLeft() {
@@ -87,9 +88,9 @@ public class QPrimerCategory {
 	}
 
 
-	public void setEndLeft(int endLeft) {
-		this.endLeft = endLeft;
-	}
+//	public void setEndLeft(int endLeft) {
+//		this.endLeft = endLeft;
+//	}
 
 
 	public int getStartRight() {
@@ -97,9 +98,9 @@ public class QPrimerCategory {
 	}
 
 
-	public void setStartRight(int startRight) {
-		this.startRight = startRight;
-	}
+//	public void setStartRight(int startRight) {
+//		this.startRight = startRight;
+//	}
 
 
 	public int getEndRight() {
@@ -107,9 +108,9 @@ public class QPrimerCategory {
 	}
 
 
-	public void setEndRight(int endRight) {
-		this.endRight = endRight;
-	}
+//	public void setEndRight(int endRight) {
+//		this.endRight = endRight;
+//	}
 
 
 	public String getReverseFlag() {
@@ -117,9 +118,9 @@ public class QPrimerCategory {
 	}
 
 
-	public void setReverseFlag(String reverseFlag) {
-		this.reverseFlag = reverseFlag;
-	}
+//	public void setReverseFlag(String reverseFlag) {
+//		this.reverseFlag = reverseFlag;
+//	}
 
 
 	public String getZpType() {
@@ -127,9 +128,9 @@ public class QPrimerCategory {
 	}
 
 
-	public void setZpType(String zpType) {
-		this.zpType = zpType;
-	}
+//	public void setZpType(String zpType) {
+//		this.zpType = zpType;
+//	}
 
 
 	public String getLeftChr() {
@@ -137,9 +138,9 @@ public class QPrimerCategory {
 	}
 
 
-	public void setLeftChr(String leftChr) {
-		this.leftChr = leftChr;
-	}
+//	public void setLeftChr(String leftChr) {
+//		this.leftChr = leftChr;
+//	}
 
 
 	public String getRightChr() {
@@ -147,39 +148,39 @@ public class QPrimerCategory {
 	}
 
 
-	public void setRightChr(String rightChr) {
-		this.rightChr = rightChr;
-	}
+//	public void setRightChr(String rightChr) {
+//		this.rightChr = rightChr;
+//	}
 
 
-	public String getId() {
-		return id;
-	}
+//	public String getId() {
+//		return id;
+//	}
 
 
-	public void setId(String id) {
-		this.id = id;
-	}
+//	public void setId(String id) {
+//		this.id = id;
+//	}
 
 
-	public String getOutLeft() {
-		return outLeft;
-	}
+//	public String getOutLeft() {
+//		return outLeft;
+//	}
 
 
-	public void setOutLeft(String outLeft) {
-		this.outLeft = outLeft;
-	}
+//	public void setOutLeft(String outLeft) {
+//		this.outLeft = outLeft;
+//	}
 
 
-	public String getOutRight() {
-		return outRight;
-	}
+//	public String getOutRight() {
+//		return outRight;
+//	}
 
 
-	public void setOutRight(String outRight) {
-		this.outRight = outRight;
-	}
+//	public void setOutRight(String outRight) {
+//		this.outRight = outRight;
+//	}
 
 
 	public void findClusterCategory(List<MatePair> clusterMatePairs, int clusterLeftStart, int clusterLeftEnd, int clusterRightStart, int clusterRightEnd) throws Exception {
@@ -376,12 +377,12 @@ public class QPrimerCategory {
 	}
 
 	private void addToCategoryMap(String key) {
-		if (map.containsKey(key)) {
-		 	Integer newValue = new Integer(map.get(key).intValue() + 1);
-		 	map.put(key, newValue);
+		Integer value = map.get(key);
+		if (null == value) {
+			map.put(key, Integer.valueOf(1));
 		} else {
-			map.put(key, new Integer(1));
-		}		
+			map.put(key, Integer.valueOf(value.intValue() + 1));
+		}
 	}
 	
 	public void findCategoryNo() throws Exception {
@@ -396,13 +397,21 @@ public class QPrimerCategory {
 				} else {
 					List<String> categoryNos = new ArrayList<String>();
 					int max = -1;
-					//find the max no of pairs
-					for (Entry<String, Integer> entry: map.entrySet()) {
-						mixedCategories += "Cat" + entry.getKey() + "(" + entry.getValue() + "),";
-						if (entry.getValue().intValue() > max) {
-							max = entry.getValue().intValue();
+					
+					// sort keys so that tests pass....
+					List<String> keys = new ArrayList<>(map.keySet());
+					Collections.sort(keys);
+					Collections.reverse(keys);
+					
+					for (String key : keys) {
+						Integer value = map.get(key);
+						mixedCategories += "Cat" + key + "(" + value + "),";
+						if (value.intValue() > max) {
+							max = value.intValue();
 						}
+						
 					}
+					
 					//see if it happens more than once
 					for (Entry<String, Integer> entry: map.entrySet()) {
 						if (entry.getValue().intValue() == max) {

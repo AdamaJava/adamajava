@@ -33,7 +33,7 @@ public class QSV {
 
 		QSV qsv = new QSV();
 		
-		int	exitStatus = qsv.runQSV(args);
+		int	 exitStatus = qsv.runQSV(args);
 
 		if (null != logger) {
 			logger.logFinalExecutionStats(exitStatus);
