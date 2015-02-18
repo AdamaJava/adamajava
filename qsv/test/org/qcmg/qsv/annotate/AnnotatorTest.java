@@ -1,23 +1,23 @@
 package org.qcmg.qsv.annotate;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.sf.samtools.SAMFileReader;
-import net.sf.samtools.SAMRecord;
+import net.sf.samtools.DefaultSAMRecordFactory;
+import net.sf.samtools.SAMFileHeader;
 import net.sf.samtools.SAMFileHeader.SortOrder;
+import net.sf.samtools.SAMFileReader;
+import net.sf.samtools.SAMReadGroupRecord;
+import net.sf.samtools.SAMRecord;
 
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.qcmg.qsv.QSVParameters;
-import org.qcmg.qsv.annotate.Annotator;
-import org.qcmg.qsv.annotate.RunTypeRecord;
 import org.qcmg.qsv.util.TestUtil;
 
 public class AnnotatorTest {   
@@ -50,6 +50,86 @@ public class AnnotatorTest {
 		r.setRgId("20110221052813657");
 		sequencingRuns.add(r);
 	}
+    
+    
+    @Test
+    public void setNHAttributeWhenMappedWithBWAMEM() throws IOException, Exception {
+    	
+    	//HS2000-1262_116:6:1208:4223:25933	99	chr1	10012	40	97M3S	=	10258	344	CTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACC
+    	//CTAACCCTAACCCTAACCCTAACCCCAA	CCCFFFFFHHHHHIJJJJJHIIJJJJJJJJJIJJJIJ?GHIJJGHIJJJGGIJEHCGGHJHAAEEBD>D@>AC;C?=?B95AB?B9?CA??#########	ZC:i:6	MD:Z:97	PG:Z:MarkDuplicates.7
+    //			RG:Z:20141216163713333	NM:i:0	AS:i:97	XS:i:98
+    	
+    		SAMReadGroupRecord rg = new SAMReadGroupRecord("20141216163713333");
+    		rg.setDescription("20141216163713333");
+    		List<SAMReadGroupRecord> rgs = new ArrayList<SAMReadGroupRecord>();
+    		rgs.add(rg);
+    		SAMFileHeader header = new SAMFileHeader();
+    		header.setReadGroups(rgs);
+    		SAMRecord rec = new DefaultSAMRecordFactory().createSAMRecord(header);
+    		rec.setReadName("HS2000-1262_116:6:1208:4223:25933");
+    		rec.setFlags(99);
+    		rec.setReferenceName("chr1");
+    		rec.setAlignmentStart(10012);
+    		rec.setMappingQuality(40);
+    		rec.setCigarString("97M3S");
+    		rec.setMateReferenceName("=");
+    		rec.setMateAlignmentStart(10258);
+    		rec.setInferredInsertSize(344);
+    		rec.setReadString("CTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCCAA");
+    		rec.setBaseQualityString("CCCFFFFFHHHHHIJJJJJHIIJJJJJJJJJIJJJIJ?GHIJJGHIJJJGGIJEHCGGHJHAAEEBD>D@>AC;C?=?B95AB?B9?CA??#########");
+    		rec.setAttribute("ZC", 6);
+    		rec.setAttribute("MD", 97);
+    		rec.setAttribute("PG", "MarkDuplicates.7");
+    		rec.setAttribute("RG", "20141216163713333");
+    		rec.setAttribute("NM", 0);
+    		rec.setAttribute("AS", 97);
+    		rec.setAttribute("XS", 98);
+    		
+    		
+    		assertEquals("HS2000-1262_116:6:1208:4223:25933", rec.getReadName());
+    		assertEquals(99, rec.getFlags());
+    		assertEquals("chr1", rec.getReferenceName());
+    		// only care about the attribures really...
+    		assertEquals(6, rec.getAttribute("ZC"));
+    		assertEquals(97, rec.getAttribute("MD"));
+    		assertEquals("MarkDuplicates.7", rec.getAttribute("PG"));
+    		assertEquals("20141216163713333", rec.getAttribute("RG"));
+    		assertEquals(0, rec.getAttribute("NM"));
+    		assertEquals(97, rec.getAttribute("AS"));
+    		assertEquals(98, rec.getAttribute("XS"));
+    		
+    		
+//    	   	sequencingRuns = new ArrayList<RunTypeRecord>();
+    		RunTypeRecord r = new RunTypeRecord("testFile", 300, 2700, "seq_mapped");
+    		r.setRgId("20141216163713333");
+    		sequencingRuns.add(r);
+    		
+    		 Annotator annotator = new Annotator(250, 2790, testFolder.newFile("testFile"), "pe", sequencingRuns, "pe", "bwa");
+    		 annotator.setNHAttribute("bwa", rec);
+    		 assertEquals(0, rec.getAttribute("NH"));
+    		 
+    		 // try running the whole annotation
+    		 rec.setAttribute("NH", null);
+    		 annotator.annotate(rec);
+    		 assertEquals("AAA", rec.getAttribute("ZP"));
+    		 
+    		 
+    		 //reset the ZP and NH atributes and try again with bwa-mem
+    		 rec.setAttribute("ZP", null);
+    		 rec.setAttribute("NH", null);
+    		 
+    		 annotator.setNHAttribute("bwa-mem", rec);
+    		 assertEquals(1, rec.getAttribute("NH"));
+    		 
+    		 rec.setAttribute("NH", null);
+    		 // try running the whole annotation
+    		 annotator.annotate(rec);
+    		 assertEquals("AAA", rec.getAttribute("ZP"));
+    		 
+    		 //clean up
+    		 sequencingRuns.remove(r);
+    }
+    
 
 	@Test
     public void testLMPAnnotate() throws Exception {
@@ -75,17 +155,17 @@ public class AnnotatorTest {
         r6.setFlags(129);        
     
         lmp.annotate(r1);
-        assertEquals("V**", (String)r1.getAttribute("ZP"));
+        assertEquals("V**", r1.getAttribute("ZP"));
         lmp.annotate(r2);
-        assertEquals("AAC", (String)r2.getAttribute("ZP"));
+        assertEquals("AAC", r2.getAttribute("ZP"));
         lmp.annotate(r3);
-        assertEquals("ABC", (String)r3.getAttribute("ZP"));
+        assertEquals("ABC", r3.getAttribute("ZP"));
         lmp.annotate(r4);
-        assertEquals("X**", (String)r4.getAttribute("ZP"));
+        assertEquals("X**", r4.getAttribute("ZP"));
         lmp.annotate(r5);
-        assertEquals("W**", (String)r5.getAttribute("ZP"));
+        assertEquals("W**", r5.getAttribute("ZP"));
         lmp.annotate(r6);
-        assertEquals("ABC", (String)r6.getAttribute("ZP"));
+        assertEquals("ABC", r6.getAttribute("ZP"));
         
 //        System.out.println(r1.getSAMString());
 //        System.out.println(r2.getSAMString());
