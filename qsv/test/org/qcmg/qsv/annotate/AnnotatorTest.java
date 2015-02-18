@@ -130,6 +130,77 @@ public class AnnotatorTest {
     		 sequencingRuns.remove(r);
     }
     
+    @Test
+    public void annotateRecordWhenMappedWithBWAMEM() throws IOException, Exception {
+    	
+    	//HS2000-1262_116:5:1101:15754:19035	81	chr4	181878334	60	100M	=	181876623	-1811	CTTGCATGTTACCCAGTTGTGAAAGGAGATGTGATTCCTATTGCATAGGATTGCAG
+    	//GGTGCACTCACTACCGCATCTGCAACACACCAGGCACTCAATAA	DCDDDCDDDCADDDDDEEEEEFEDEFFGHGHHHJJJJJJJIHIIJJJJJIIJJJIJJJGGD:HIG?HFDGIGJGHJJGIHFGFGCJJHHHHHFFDFFCCB	ZC:i:7	MD:Z:100
+    			//PG:Z:MarkDuplicates.7	RG:Z:20141216163712514	NH:i:1	NM:i:0	ZP:Z:AAC	AS:i:100	XS:i:19
+    	
+    	SAMReadGroupRecord rg = new SAMReadGroupRecord("20141216163712514");
+    	rg.setDescription("20141216163712514");
+    	List<SAMReadGroupRecord> rgs = new ArrayList<SAMReadGroupRecord>();
+    	rgs.add(rg);
+    	SAMFileHeader header = new SAMFileHeader();
+    	header.setReadGroups(rgs);
+    	SAMRecord rec = new DefaultSAMRecordFactory().createSAMRecord(header);
+    	rec.setReadName("HS2000-1262_116:5:1101:15754:19035");
+    	rec.setFlags(81);
+    	rec.setReferenceName("chr4");
+    	rec.setAlignmentStart(181878334);
+    	rec.setMappingQuality(60);
+    	rec.setCigarString("100M");
+    	rec.setMateReferenceName("=");
+    	rec.setMateAlignmentStart(181876623);
+    	rec.setInferredInsertSize(-1811);
+    	rec.setReadString("CTTGCATGTTACCCAGTTGTGAAAGGAGATGTGATTCCTATTGCATAGGATTGCAGGGTGCACTCACTACCGCATCTGCAACACACCAGGCACTCAATAA");
+    	rec.setBaseQualityString("DCDDDCDDDCADDDDDEEEEEFEDEFFGHGHHHJJJJJJJIHIIJJJJJIIJJJIJJJGGD:HIG?HFDGIGJGHJJGIHFGFGCJJHHHHHFFDFFCCB");
+    	rec.setAttribute("ZC", 7);
+    	rec.setAttribute("MD", 100);
+    	rec.setAttribute("PG", "MarkDuplicates.7");
+    	rec.setAttribute("RG", "20141216163712514");
+    	rec.setAttribute("NM", 0);
+    	rec.setAttribute("AS", 100);
+    	rec.setAttribute("XS", 19);
+    	
+    	
+    	assertEquals("HS2000-1262_116:5:1101:15754:19035", rec.getReadName());
+    	assertEquals(81, rec.getFlags());
+    	assertEquals("chr4", rec.getReferenceName());
+    	// only care about the attribures really...
+    	assertEquals(7, rec.getAttribute("ZC"));
+    	assertEquals(100, rec.getAttribute("MD"));
+    	assertEquals("MarkDuplicates.7", rec.getAttribute("PG"));
+    	assertEquals("20141216163712514", rec.getAttribute("RG"));
+    	assertEquals(0, rec.getAttribute("NM"));
+    	assertEquals(100, rec.getAttribute("AS"));
+    	assertEquals(19, rec.getAttribute("XS"));
+    	
+    	
+//    	   	sequencingRuns = new ArrayList<RunTypeRecord>();
+    	RunTypeRecord r = new RunTypeRecord("testFile", 300, 1700, "seq_mapped");
+    	r.setRgId("20141216163712514");
+    	sequencingRuns.add(r);
+    	
+    	Annotator annotator = new Annotator(250, 1790, testFolder.newFile("testFile"), "pe", sequencingRuns, "pe", "bwa");
+    	
+    	annotator.annotate(rec);
+    	assertEquals(0, rec.getAttribute("NH"));
+    	assertEquals("Z**", rec.getAttribute("ZP"));		// Z** are not considered discordant
+    	
+    	
+    	//reset the ZP and NH atributes and try again with bwa-mem
+    	rec.setAttribute("ZP", null);
+    	rec.setAttribute("NH", null);
+    	
+    	annotator = new Annotator(250, 1790, testFolder.newFile("testFile"), "pe", sequencingRuns, "pe", "bwa-mem");
+    	annotator.annotate(rec);
+    	assertEquals("AAC", rec.getAttribute("ZP"));	// AAC are considered discordant
+    	
+    	//clean up
+    	sequencingRuns.remove(r);
+    }
+    
 
 	@Test
     public void testLMPAnnotate() throws Exception {
