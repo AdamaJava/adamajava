@@ -8,7 +8,7 @@
 #
 #  Read multiple qProfiler XML report files to compare libraries using iSize
 #
-#  $Id: qlibcompare.pl 4669 2014-07-24 10:48:22Z j.pearson $
+#  $Id: qlibcompare.pl 4770 2014-12-02 02:29:46Z m.anderson $
 #
 ##############################################################################
 
@@ -31,8 +31,8 @@ use QCMG::Util::QLog;
 
 use vars qw( $SVNID $REVISION $CMDLINE );
 
-( $REVISION ) = '$Revision: 4669 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: qlibcompare.pl 4669 2014-07-24 10:48:22Z j.pearson $'
+( $REVISION ) = '$Revision: 4770 $ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id: qlibcompare.pl 4770 2014-12-02 02:29:46Z m.anderson $'
     =~ /\$Id:\s+(.*)\s+/;
     
 MAIN: {
@@ -63,7 +63,6 @@ MAIN: {
            'v|verbose+'           => \$params{verbose},       # -v
            );
     
-    die "You must specify at least 2 input file\n" unless scalar @{$params{infiles}} >= 2;
     
     # Set up logging
     qlogfile($params{logfile}) if $params{logfile};
@@ -72,19 +71,21 @@ MAIN: {
     
     
     # Validate files
-    qlogprint( {l=>'INFO'}, "Validataing files\n");
-    print "Validataing files\n";
+    qlogprint( "Validating files\n");
     my $xml_files = validate_files($params{infiles}, "qProfiler");
     
     # Find read groups in file headers
-    qlogprint( {l=>'INFO'}, "Collecting Read Groups\n");
-    print "Collecting Read Groups\n";
+    qlogprint( "Collecting Read Groups\n" );
     my $read_groups = collect_header_readgroups($xml_files);
+    
+    print Dumper scalar @{$params{infiles}}, $read_groups;
+    die "You must specify at least 2 input files or an imput file with at least 2 read groups\n" 
+      unless scalar @{$params{infiles}} >= 2 or scalar @{$read_groups} >= 2;
+    
     #print Dumper $read_groups;
     
     # Collect Metadata from LIMS where avalibale
-    qlogprint( {l=>'INFO'}, "Obtaining Metadata\n");
-    print "Obtaining Metadata\n";
+    qlogprint( "Obtaining Metadata\n");
     collect_metadata($xml_files);
     
     #print Dumper $xml_files;
@@ -98,8 +99,7 @@ MAIN: {
     }    
     
     # Collect counts at postions to build a master collection of counts to compare
-    qlogprint( {l=>'INFO'}, "Collecting posistion counts\n");
-    print "Collecting posistion counts\n";
+    qlogprint( "Collecting posistion counts\n");
     collect_positions ($posistitions, $xml_files, $read_groups, $params{start}, $params{end}, $params{binsize} );
     
     # Create an index of positions.
@@ -109,12 +109,10 @@ MAIN: {
     $indexed_posistitions->[$_] = $posistitions->{$_} for keys %{$posistitions};
     
     # Compare positions
-    qlogprint( {l=>'INFO'}, "Comparing positions\n");
-    print "Comparing positions\n";
+    qlogprint( "Comparing positions\n");
     my $compared_readgroups = compare_positions( $indexed_posistitions, $xml_files, $read_groups, $params{start}, $params{binsize} );
     
-    
-    print "Writting XML file\n";
+    qlogprint( "Writing XML file\n" );
     write_xml($params{outfile}, 
               $xml_files, 
               $read_groups, 
@@ -141,7 +139,7 @@ sub validate_files {
   
   # Foreach input file.
   foreach my $file ( @{$infiles} ){
-    qlogprint( {l=>'INFO'}, "Checking file $file_id - $file\n");
+    qlogprint( "Checking file $file_id - $file\n");
     
     my $doc = undef;
     eval { $doc = $parser->load_xml( location => $file ); };
@@ -172,8 +170,7 @@ sub validate_files {
              unless exists $xml_files->[$file_id];
         }
         else {
-          print "$file\n";
-          die "XML doc appears to have no child nodes ???";
+          die "XML doc [$file] appears to have no child nodes ???";
         }
     
         $file_id +=1;
@@ -235,12 +232,10 @@ sub collect_positions {
   my $xml_path = "/qProfiler/BAMReport/ISIZE"; #
   my $file_count = scalar @{$xml_files};
   
-  print "\nFile ID\t\tRead group\t\t\tcount\n";
   for (my $file_index = 0; $file_index < $file_count; $file_index++) {
     my $file = $xml_files->[$file_index];
     
     # TODO BY Read Groups
-    print "#$file_index\n";
     my $results = collect_counts($file->{xmlnode}, $xml_path, $start, $end);
     
     foreach my $file_read_group ( @{$file->{read_groups}} ){
@@ -267,7 +262,8 @@ sub collect_positions {
         $positions->{ $tally->{start} }[$RG_index] = $tally;
       }
       
-      printf "\t\t\@RG -- %s \tcount: %d \n", $RG_id, $read_group_positions->{sum_count};
+      qlogprint( "File:$file_index  start:$start  end:$end  \@RG:$RG_id  count:",
+                 $read_group_positions->{sum_count}, "\n");
     }
   }
   
@@ -358,18 +354,21 @@ sub compare_positions {
     for (my $index_b = 0; $index_b < $read_group_count; $index_b++) { 
       my $RG_b =  $read_groups->[$index_b];
       
-      #next();
-      my $value = 0;
+      # Calculate and sum differences between these 2 read groups for
+      # each bin position.
+      my $total_difference = 0;
       for (my $bin = $start; $bin < $bin_count; $bin +=$binsize) {
+        my $difference = 0;
         # If file are not the same and both files have inserts sizes
         if ( $index_a != $index_b and ! $RG_a->{no_inserts} and ! $RG_b->{no_inserts} ) {
           my $percent_a = exists $indexed_posistitions->[$bin][$index_a]->{percent} ? $indexed_posistitions->[$bin][$index_a]->{percent} : 0;
           my $percent_b = exists $indexed_posistitions->[$bin][$index_b]->{percent} ? $indexed_posistitions->[$bin][$index_b]->{percent} : 0;
-          $value = abs ($percent_a - $percent_b);
+          $difference = abs ($percent_a - $percent_b);
+          $total_difference += $difference;
         }
-        $compared_positions->[$index_a][$index_b][$bin] = $value;
+        $compared_positions->[$index_a][$index_b][$bin] = $difference;
       }
-      print "$index_a - ", $RG_a->{ID}, " VS $index_b - ",$RG_b->{ID}," = $value\n";  
+      qlogprint( "$index_a (", $RG_a->{ID}, ") vs $index_b (",$RG_b->{ID},") = $total_difference\n" ); 
     }
   }
   return $compared_positions;
@@ -379,7 +378,9 @@ sub compare_positions {
 sub collect_metadata {
   my $xml_files   = shift;
   my $file_count  = scalar @{$xml_files};
-  my $metadata = QCMG::DB::Metadata->new();
+  
+  #my $metadata = QCMG::DB::Metadata->new();
+  my $metadata = {};
   
   my @metadata_elements = (
     "aligner",
@@ -408,13 +409,13 @@ sub collect_metadata {
     #my $resource_type = $file->{type};
     
     my $resource_metadata = undef;
-    foreach my $resource_type ( ("mapset", "mergedbam") ) {
-      if ( $metadata->find_metadata($resource_type, $resource) ) {
-        $resource_metadata = $metadata->mapset_metadata($resource);
-        $file->{type} = $resource_type;
-        last();
-      }  
-    }
+#    foreach my $resource_type ( ("mapset", "mergedbam") ) {
+#      if ( $metadata->find_metadata($resource_type, $resource) ) {
+#        $resource_metadata = $metadata->mapset_metadata($resource);
+#        $file->{type} = $resource_type;
+#        last();
+#      }  
+#    }
     
     foreach my $element ( @metadata_elements ){
       my $value = "Not Available";
