@@ -60,7 +60,7 @@ public class ConfidenceOptions extends Options {
         outputFileName = (String) options.valueOf("o") ; 
         databaseFileName = (String) options.valueOf("d") ; 
 
-        final String[] inputs = new String[]{ inputFileName,databaseFileName} ;
+        final String[] inputs= (databaseFileName != null) ? new String[]{ inputFileName,databaseFileName}: new String[]{ inputFileName} ;
         final String[] outputs = new String[]{outputFileName};
         final String [] ios = new String[inputs.length + outputs.length];
         System.arraycopy(inputs, 0, ios, 0, inputs.length);

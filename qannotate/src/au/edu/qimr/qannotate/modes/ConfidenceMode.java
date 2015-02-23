@@ -90,11 +90,15 @@ public class ConfidenceMode extends AbstractMode{
 	//inherited method from super
 	void addAnnotation(String verificationFile) throws Exception{
 
-		
+		final Map<ChrPosition, TorrentVerificationStatus> VerifiedData;
 		//load verified file
-		final Map<String, Map<ChrPosition, TorrentVerificationStatus>> verifiedDataAll = new HashMap<String, Map<ChrPosition, TorrentVerificationStatus>>();
-		MafUtils.getVerifiedData(verificationFile, patientId,verifiedDataAll );
-		final Map<ChrPosition, TorrentVerificationStatus> VerifiedData = verifiedDataAll.get(patientId);		
+		if(verificationFile != null){
+			final Map<String, Map<ChrPosition, TorrentVerificationStatus>> verifiedDataAll = new HashMap<String, Map<ChrPosition, TorrentVerificationStatus>>();
+			MafUtils.getVerifiedData(verificationFile, patientId,verifiedDataAll );
+			VerifiedData = verifiedDataAll.get(patientId);		
+		 }else
+			 VerifiedData = null;
+		
 		
 		//check high, low nns...
 		final Iterator<  ChrPosition > it = positionRecordMap.keySet().iterator();

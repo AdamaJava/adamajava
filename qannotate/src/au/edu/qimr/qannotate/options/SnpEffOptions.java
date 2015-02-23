@@ -15,15 +15,20 @@ public class SnpEffOptions extends Options {
 	public static final String DEFAULT_GENES_FILE_SUFFIX = ".snpEff_genes.txt";
 	public static final String DEFAULT_SUMMARY_FILE_SUFFIX = ".snpEff_summary.html";
 	public static final String DEFAULT_CONFIG_FILE = "snpEff.config";
-	 
+	public static final String CONF_DESCRIPTION = "(optional) configure file with full path, by default will be " + 
+			DEFAULT_CONFIG_FILE + " under database file directory";
+
+	public static final String Summary_DESCRIPTION = "(optional) output stats file with full path, "
+			+ "by default will be output file name plus " + DEFAULT_SUMMARY_FILE_SUFFIX ;
+			 
+
+	
     private String configFileName ;
     private String summaryFileName ;
     
  
 
     public SnpEffOptions( ) {  super(Options.MODE.snpEff);	  }
-
-//    public SnpEffOptions(final String[] args) throws Exception{   super(); parseArgs( args);  }
 
     /**
      * check command line and store arguments and option information
@@ -35,11 +40,9 @@ public class SnpEffOptions extends Options {
         parser.acceptsAll( asList("i", "input"), Messages.getMessage("INPUT_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("input vcf");
         parser.acceptsAll( asList("o", "output"), Messages.getMessage("OUTPUT_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("output vcf"); 
         parser.accepts("mode", "run snpeff mode").withRequiredArg().ofType(String.class).describedAs("snpEff");
-       // "(compulsary) database location"
-        parser.acceptsAll( asList("d", "database"), Messages.getMessage("DATABASE_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("database file"); 
-        parser.accepts("config", "(optional) configure file with full path").withRequiredArg().ofType(String.class).describedAs("config file");
-        parser.accepts("summaryFile", "(optional) output stats file with full path").withRequiredArg().ofType(String.class).describedAs("stat output");
-//        parser.acceptsAll( asList("m", "mode"), "snpEff").withRequiredArg().ofType(String.class);
+        parser.acceptsAll( asList("d", "database"), Messages.getMessage("SNPEFF_DATABSE_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("database file"); 
+        parser.accepts("config", CONF_DESCRIPTION).withRequiredArg().ofType(String.class).describedAs("config file");
+        parser.accepts("summaryFile", Summary_DESCRIPTION).withRequiredArg().ofType(String.class).describedAs("stat output");
         parser.accepts("log", LOG_DESCRIPTION).withRequiredArg().ofType(String.class);
         parser.accepts("loglevel",  LOG_LEVEL_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
         OptionSet options = parser.parse(args);   
