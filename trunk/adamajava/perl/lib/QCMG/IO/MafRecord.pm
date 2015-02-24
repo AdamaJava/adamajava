@@ -63,10 +63,11 @@ BEGIN {
            Score BAM_File Sequencer );
 
     $VALID_HEADERS = {
-       '1.0' => \@v_1,
-       '2.0' => \@v_2,
-       '2.1' => \@v_2,
-       '2.2' => \@v_2,
+       '1.0'   => \@v_1,
+       '2.0'   => \@v_2,
+       '2.1'   => \@v_2,
+       '2.2'   => \@v_2,
+       '2.4.1' => \@v_2,
     };
 
     # The version-specific headers are doubly important to use because
