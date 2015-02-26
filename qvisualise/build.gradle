@@ -26,8 +26,7 @@ dependencies {
 }
 
 jar.doFirst {
-
- // classpath = configurations.runtime.collect { it.name }.join(' ')
+	def classpath = configurations.runtime.collect { it.name }.join(' ')
   jar {
      manifest {
         attributes 'Implementation-Title': project.name,
