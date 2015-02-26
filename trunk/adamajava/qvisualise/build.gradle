@@ -35,9 +35,8 @@ jar.doFirst {
                    'SVN-Version': svnVersion,
                    'Built-By': System.properties['user.name'],
                    'Date': new java.util.Date().toString(),
-                   'Main-Class' : mainclass
-                   //'Main-Class' : mainclass,
-                   //'Class-Path' : classpath
+                   'Main-Class' : mainclass,
+                   'Class-Path' : classpath
      }
   }
 }
