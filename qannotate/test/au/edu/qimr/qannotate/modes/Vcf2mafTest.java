@@ -1,7 +1,9 @@
 package au.edu.qimr.qannotate.modes;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -11,7 +13,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.qcmg.common.commandline.Executor;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
@@ -23,11 +29,35 @@ import au.edu.qimr.qannotate.utils.SnpEffMafRecord;
 import au.edu.qimr.qannotate.utils.SnpEffMafRecord.Variant_Type;
 
 public class Vcf2mafTest {
- 
+	static String outputDir = new File(DbsnpModeTest.inputName).getAbsoluteFile().getParent() + "/output";
+	
+	
+	 @BeforeClass
+	 public static void createIO(){
+		 File out = new File(outputDir);
+		 
+		 if(  out.exists() && out.isDirectory())
+			 return;
+		 
+		 new File(outputDir).mkdir();
+	 }
+	
 	 @AfterClass
 	 public static void deleteIO(){
 
-		 new File(DbsnpModeTest.inputName).delete();	 }
+		 new File(DbsnpModeTest.inputName).delete();
+		 
+		 File out = new File(outputDir);
+		 if(! out.exists() || !out.isDirectory())
+			 return;
+		 
+		String[] files = new File(outputDir).list(); 
+		for(int i = 0; i < files.length; i++)
+			new File(outputDir, files[i]).delete();
+
+		assertTrue(new File(outputDir).delete());	 
+		 
+	}
 	 
 	 @Test
 	 public void compoundSNPTest() throws Exception{
@@ -205,10 +235,8 @@ public class Vcf2mafTest {
 		 		+ "intron_variant(MODIFIER|||c.1503-143AT>CA|1634|PIK3C2B|protein_coding|CODING|ENST00000367187|8|1),"
 		 		+ "intron_variant(MODIFIER|||c.1503-143AT>CA|1606|PIK3C2B|protein_coding|CODING|ENST00000424712|8|1);"
 		 		+ "END=204429213\tACCS\tTG,1,3,_T,0,1"};
-
-		 
-		 createVcf(str);
-		 
+	 
+		 createVcf(str);		 
 		 final File input = new File( DbsnpModeTest.inputName);
 		 final Vcf2maf v2m = new Vcf2maf(1,2, null, null);	
 	 	 try(VCFFileReader reader = new VCFFileReader(input); ){
@@ -219,8 +247,7 @@ public class Vcf2mafTest {
          }	 
 		 
 	 }
-	 
-	 
+	 	 
 	 @Test
 	 public void ConsequenceTest() throws Exception{
 		 
@@ -259,9 +286,7 @@ public class Vcf2mafTest {
 		 
 
 	 }
-	 
-	 
-	 
+	 	 
 	 @Test
 	 public void DefaultValueTest() throws Exception{
 		 	final SnpEffMafRecord Dmaf = new SnpEffMafRecord();
@@ -313,20 +338,15 @@ public class Vcf2mafTest {
        
 	 }	 
 	 
-
-	public static void createVcf() throws IOException{
+	 public static void createVcf() throws IOException{
         final List<String> data = new ArrayList<String>();
         data.add("##fileformat=VCFv4.0");
         data.add(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tCONTROL\tTEST");
-       // data.add("chrY\t22012840\t.\tC\tA\t.\tSBIAS\tMR=15;NNS=13;FS=GTGATATTCCC;EFF=sequence_feature[compositionally_biased_region:Glu/Lys-rich](LOW|||c.1252G>C|591|CCDC148|protein_coding|CODING|ENST00000283233|10|1),splice_acceptor_variant(HIGH|||n.356G>C||CCDC148-AS1|antisense|NON_CODING|ENST00000412781|5|1)\tGT:GD:AC\t0/0:C/A:A1[5],0[0],C6[6.67],0[0],T1[6],21[32.81]\t0/1:C/A:C8[7.62],2[2],A2[8],28[31.18]");        
-       // data.add("chr2\t91888700\trs78405093\tG\tA\t.\tPASS\tMR=1217;NNS=1;FS=TGAGCACCTAC;GMAF=0.113802559414991;EFF=intron_variant(MODIFIER|||n.376-566C>T||AC027612.3|processed_transcript|NON_CODING|ENST00000436174|4|1),intron_variant(MODIFIER|||n.478-123C>T||AC027612.3|transcribed_unprocessed_pseudogene|NON_CODING|ENST00000445955|4|1)\tGT:GD:AC\t1/1:G/T:G0[0],1217[35.41],T0[0],5[26.8],A0[0],7[34],C0[0],7[31]\t1/1:A/A:A0[0],1217[35.41],C0[0],5[26.8],G0[0],7[34],T0[0],7[31]"); 
-    //    data.add("chrY\t2675825\t.\tTTG\tTCA\t.\tMIN;MIUN\tSOMATIC;END=2675826\tACCS\tTTG,5,37,TCA,0,2\tTAA,1,1,TCA,4,1,TCT,3,1,TTA,11,76,TTG,2,2,_CA,0,3,TTG,0,1");
-    
         data.add("GL000236.1\t7127\t.\tT\tC\t.\tMR;MIUN\tSOMATIC;MR=4;NNS=4;FS=CCAGCCTATTT;EFF=non_coding_exon_variant(MODIFIER|||n.1313T>C||CU179654.1|processed_pseudogene|NON_CODING|ENST00000400789|1|1);CONF=ZERO\tGT:GD:AC:MR:NNS\t0/0:T/T:T9[37.11],18[38.33]:.:4\t0/1:C/T:C1[12],3[41],T19[35.58],30[33.63]:.:5");
            try(BufferedWriter out = new BufferedWriter(new FileWriter(DbsnpModeTest.inputName));) {          
             for (final String line : data)   out.write(line + "\n");                  
          }  
-	}
+	 }
 	
 	public static void createVcf(String[] str) throws IOException{
 		 final List<String> data = new ArrayList<String>();
@@ -336,6 +356,87 @@ public class Vcf2mafTest {
          try(BufferedWriter out = new BufferedWriter(new FileWriter(DbsnpModeTest.inputName));) {          
              for (final String line : data)   out.write(line + "\n");                  
           }  
+		
+	}
+
+	@Test
+	public void FileNameTest() throws IOException{
+		String[] str = {"##fileformat=VCFv4.0",			
+				"##qPatientId=MELA_0264",
+				"##qControlSample=CONTROL",
+				"##qTestSample=TEST",				
+				VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tCONTROL\tTEST"	
+		};
+
+        createVcf(str);
+        
+        File input = new File(DbsnpModeTest.inputName); 
+       // input.getAbsolutePath(); 
+        
+        try{
+ 			final String command = "--mode vcf2maf --log " + outputDir + "/output.log  -i " + DbsnpModeTest.inputName + " --outdir " + outputDir;			
+			final Executor exec = new Executor(command, "au.edu.qimr.qannotate.Main");        	
+			assertEquals(0, exec.getErrCode());
+			assertTrue(0 == exec.getOutputStreamConsumer().getLines().length);
+			
+			assertTrue(new File(outputDir + "/MELA_0264.CONTROL.TEST.maf").exists());
+			assertTrue(new File(outputDir + "/MELA_0264.CONTROL.TEST.Germline.HighConfidence.Consequence.maf").exists());
+			assertTrue(new File(outputDir + "/MELA_0264.CONTROL.TEST.Somatic.HighConfidence.Consequence.maf").exists());
+			assertTrue(new File(outputDir + "/MELA_0264.CONTROL.TEST.Germline.HighConfidence.maf").exists());
+			assertTrue(new File(outputDir + "/MELA_0264.CONTROL.TEST.Somatic.HighConfidence.maf").exists());
+			
+        }catch(Exception e){
+        	fail(e.getMessage()); 
+        }
+		
+	}
+
+	@Test
+	public void FileNameWithNOpatientidTest() throws IOException{
+		String[] str = {"##fileformat=VCFv4.0",			
+				"##qControlSample=CONTROL",
+				"##qTestSample=TEST",				
+				VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tCONTROL\tTEST" };
+
+        createVcf(str);
+        
+
+        try{
+  
+        	
+			final String command = "--mode vcf2maf --log " + outputDir + "/output.log  -i " + DbsnpModeTest.inputName + " --outdir " + outputDir;			
+			final Executor exec = new Executor(command, "au.edu.qimr.qannotate.Main");        	
+			assertEquals(1, exec.getErrCode());			
+			
+        }catch(Exception e){
+        	 fail(e.getMessage());
+        }	
+	}
+	
+	
+	@Test
+	public void FileNameWithNoSampleidTest() throws IOException{
+		String[] str = {"##fileformat=VCFv4.0",			
+				"##qPatientId=MELA_0264",
+				"##qTestSample=TEST",				
+				VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tCONTROL\tTEST"};
+
+        createVcf(str);
+        
+        try{
+  
+			final String command = "--mode vcf2maf --control control  --log " + outputDir + "/output.log  -i " + DbsnpModeTest.inputName + " --outdir " + outputDir;			
+			final Executor exec = new Executor(command, "au.edu.qimr.qannotate.Main");        	
+			assertEquals(0, exec.getErrCode());	
+			
+			String[] files = new File(outputDir).list(); 
+			for(int i = 0; i < files.length; i++)
+				new File(outputDir, files[i]).delete();
+
+			assertTrue(new File(outputDir).delete());	
+        }catch(Exception e){
+        	 fail(e.getMessage());
+        }
 		
 	}
 

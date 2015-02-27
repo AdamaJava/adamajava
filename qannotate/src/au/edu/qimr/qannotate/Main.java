@@ -18,13 +18,11 @@ import au.edu.qimr.qannotate.options.GermlineOptions;
 import au.edu.qimr.qannotate.options.Options;
 import au.edu.qimr.qannotate.options.SnpEffOptions;
 import au.edu.qimr.qannotate.options.Vcf2mafOptions;
-import au.edu.qimr.qannotate.options.FixOptions;
 
 public class Main {
 	 
 	private static QLogger logger;
 	public static void main(final String[] args) throws Exception {	
-
  		
       try {
             final Options options = new Options();

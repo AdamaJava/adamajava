@@ -16,6 +16,7 @@ import org.qcmg.common.vcf.VcfInfoFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
+import org.qcmg.common.vcf.header.VcfHeader.Record;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 
@@ -28,12 +29,13 @@ import au.edu.qimr.qannotate.utils.SnpEffMafRecord.Variant_Type;
 
 public class Vcf2maf extends AbstractMode{
 	
+	public static String PROTEINCODE = "protein_coding";
+	
 	private final QLogger logger;
 	protected final  Map<String,String> effRanking = new HashMap<String,String>();	
 	private final String center;
 	private final String sequencer;
-	private final String patientId ;
-	
+	private final String dornorId ;	
  
 	private final String testSample ;
 	private final String controlSample ;
@@ -47,7 +49,7 @@ public class Vcf2maf extends AbstractMode{
  
 		center = Vcf2mafOptions.default_center;
 		sequencer = SnpEffMafRecord.Unknown; 
-		this.patientId = SnpEffMafRecord.Unknown; 		
+		this.dornorId = SnpEffMafRecord.Unknown; 		
 		logger = QLoggerFactory.getLogger(Main.class, null,  null);	
 		this.test_column = test_column;
 		this.control_column = control_column;
@@ -64,38 +66,50 @@ public class Vcf2maf extends AbstractMode{
 		this.center = option.getCenter();
 		this.sequencer = option.getSequencer();		
 		
-		
-//		testSample = option.getTestSample();
-//		controlSample = option.getControlSample();
- 		
-		String SHCC  = option.getOutputFileName().replace(".maf", ".Somatic.HighConfidence.Consequence.maf") ;
-		String SHC = option.getOutputFileName().replace(".maf", ".Somatic.HighConfidence.maf") ;
-		String GHCC  = option.getOutputFileName().replace(".maf", ".Germline.HighConfidence.Consequence.maf") ;
-		String GHC = option.getOutputFileName().replace(".maf", ".Germline.HighConfidence.maf") ;;
-					
-		try(VCFFileReader reader = new VCFFileReader(new File( option.getInputFileName()));
-				PrintWriter out = new PrintWriter(option.getOutputFileName());
-				PrintWriter out_SHCC = new PrintWriter(SHCC);
-				PrintWriter out_SHC = new PrintWriter(SHC);
-				PrintWriter out_GHCC = new PrintWriter(GHCC);
-				PrintWriter out_GHC = new PrintWriter(GHC)){			
-			
+		//make output file name		 
+		try(VCFFileReader reader = new VCFFileReader(new File( option.getInputFileName()))){
 			//get control and test sample column			
 			SampleColumn column = new SampleColumn(option.getTestSample(), option.getControlSample() , reader.getHeader());
 			test_column = column.getTestSampleColumn();
 			control_column = column.getControlSampleColumn();
 			testSample = column.getTestSample();
-			controlSample = column.getControlSample();		
-		
-			String id = null;
-			for (VcfHeader.Record rec : reader.getHeader().getMetaRecords()) {
-				if (rec.getData().startsWith(VcfHeaderUtils.STANDARD_DONOR_ID)) {
-					id = StringUtils.getValueFromKey(rec.getData(), VcfHeaderUtils.STANDARD_DONOR_ID);
-				}
-			}
-			patientId = id; 
+			controlSample = column.getControlSample();	
 			
-//			patientId = (MetaType.META, VcfHeaderUtils.STANDARD_DONOR_ID).getDescription();
+			String id = null;
+			for (VcfHeader.Record rec : reader.getHeader().getMetaRecords())
+				if (rec.getData().startsWith(VcfHeaderUtils.STANDARD_PATIENTID)) 
+					id = StringUtils.getValueFromKey(rec.getData(), VcfHeaderUtils.STANDARD_PATIENTID);
+			dornorId = id; 
+			
+			logger.info(String.format("Test Sample %s is located on column %d after FORMAT", testSample, test_column));
+			logger.info(String.format("Control Sample %s is located on column %d after FORMAT", controlSample, control_column));
+			logger.info("Dornor id is " + dornorId);
+			
+		}
+					
+		String outputname;
+		if(option.getOutputFileName() != null) 
+			outputname =  option.getOutputFileName();
+		else if( option.getOutputDir() != null){
+			if(dornorId != null && controlSample != null && testSample != null)
+				outputname = String.format("%s//%s.%s.%s.maf", option.getOutputDir(), dornorId, controlSample , testSample);
+			else
+				throw new Exception("can't formate output file name: <dornorId_controlSample_testSample.maf>, missing realted information on input vcf header!");
+		}else
+			throw new Exception("Please specify output file name or output file directory on command line");
+	
+		String SHCC  = outputname.replace(".maf", ".Somatic.HighConfidence.Consequence.maf") ;
+		String SHC = outputname.replace(".maf", ".Somatic.HighConfidence.maf") ;
+		String GHCC  = outputname.replace(".maf", ".Germline.HighConfidence.Consequence.maf") ;
+		String GHC = outputname.replace(".maf", ".Germline.HighConfidence.maf") ;
+		
+					
+		try(VCFFileReader reader = new VCFFileReader(new File( option.getInputFileName()));
+				PrintWriter out = new PrintWriter(outputname);
+				PrintWriter out_SHCC = new PrintWriter(SHCC);
+				PrintWriter out_SHC = new PrintWriter(SHC);
+				PrintWriter out_GHCC = new PrintWriter(GHCC);
+				PrintWriter out_GHC = new PrintWriter(GHC)){			
 			
 			createMafHeader(out, option.getCommandLine(), option.getInputFileName());
 			createMafHeader(out_SHCC, option.getCommandLine(), option.getInputFileName());
@@ -113,12 +127,12 @@ public class Vcf2maf extends AbstractMode{
         				if(maf.getColumnValue(26).equalsIgnoreCase(VcfHeaderUtils.INFO_SOMATIC)){
         					out_SHC.println(Smaf);
         					
-        					if(maf.getColumnValue(53+1).equalsIgnoreCase("protein_coding") && rank <=5 )
+        					if(maf.getColumnValue(53+1).equalsIgnoreCase( PROTEINCODE ) && rank <=5 )
         						out_SHCC.println(Smaf);
         				}else{
         					out_GHC.println(Smaf);
         					 
-        					if(maf.getColumnValue(53+1).equalsIgnoreCase("protein_coding") && rank <=5 )
+        					if(maf.getColumnValue(53+1).equalsIgnoreCase( PROTEINCODE ) && rank <=5 )
         						out_GHCC.println(Smaf);
         				}
         		  
@@ -127,7 +141,6 @@ public class Vcf2maf extends AbstractMode{
         			e.printStackTrace();
         			
         		}
-         
 		}			
 	}
 	
@@ -155,8 +168,7 @@ public class Vcf2maf extends AbstractMode{
 
 		write.println(SnpEffMafRecord.getSnpEffMafHeaderline());
 	}
-	
-	
+
 	//Effect ( Effect_Impact | Functional_Class | Codon_Change | Amino_Acid_Change| Amino_Acid_length | Gene_Name | Transcript_BioType | Gene_Coding | Transcript_ID | Exon_Rank  | Genotype_Number [ | ERRORS | WARNINGS ] )
 	 SnpEffMafRecord converter(VcfRecord vcf) throws Exception{
 		final SnpEffMafRecord maf = new SnpEffMafRecord();
@@ -191,8 +203,8 @@ public class Vcf2maf extends AbstractMode{
 			maf.setColumnValue(26,  VcfHeaderUtils.FILTER_GERMLINE);
 		
 		
-		if(testSample != null) maf.setColumnValue(16,  patientId + ":" + testSample );
-		if(controlSample != null) maf.setColumnValue(17, patientId + ":" + controlSample );
+		if(testSample != null) maf.setColumnValue(16,  dornorId + ":" + testSample );
+		if(controlSample != null) maf.setColumnValue(17, dornorId + ":" + controlSample );
 		
 
 		final VcfInfoFieldRecord info =  new VcfInfoFieldRecord(vcf.getInfo());
@@ -274,9 +286,7 @@ public class Vcf2maf extends AbstractMode{
     	
 	    return values;
 	 }
-	 
-	 
-	 
+	 	 
 	//should unti test to check it
 	private String[] getAlleles(VcfFormatFieldRecord format) throws Exception {
 		
@@ -335,8 +345,7 @@ public class Vcf2maf extends AbstractMode{
 		//format.getField(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP) != null && 
 		return null; 
 	}
-	 
-	 
+	 	 
 	 void getSnpEffAnnotation(SnpEffMafRecord maf, String effString) throws Exception  {
 		 	String effAnno = SnpEffConsequence.getWorstCaseConsequence(effString.split(","));		 
 				//Effect 			   ( Effect_Impact | Functional_Class | Codon_Change | Amino_Acid_Change| Amino_Acid_length | Gene_Name | Transcript_BioType | Gene_Coding 				| Transcript_ID | Exon_Rank  | Genotype_Number [ | ERRORS | WARNINGS ] )
@@ -383,9 +392,7 @@ public class Vcf2maf extends AbstractMode{
 			if(! StringUtils.isNullOrEmpty(effs[9]))  maf.setColumnValue(55+1,effs[9]);
 			if(! StringUtils.isNullOrEmpty(effs[10])) maf.setColumnValue(56+1,effs[10]);		
  	 }
-	 
-
-	
+	 	
 	/**
 	 * testing method only to retrive EFF types 
 	 * @param vcf

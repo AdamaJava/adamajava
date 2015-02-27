@@ -89,7 +89,7 @@ public abstract class AbstractMode {
 			}
 			
 			if( tc <= 0 || cc <= 0 )
-				throw new RuntimeException("can't find test sample id  or normal sample id from vcf header line: " + test + "" + control );
+				throw new RuntimeException("can't find test sample id  " + test + ", or normal sample id from vcf header line: " + control );
 
 			control_Sample =control;
 			test_Sample = test;

@@ -70,9 +70,7 @@ public class Options {
         
         if(options.has("mode")){  
          	final String	m = ((String) options.valueOf("mode")).toLowerCase();
-         	if(m.equalsIgnoreCase(MODE.fix.name())) 	
-         		modeOptions = new FixOptions();
-         	else if(m.equalsIgnoreCase(MODE.dbSNP.name())) 			 
+         	if(m.equalsIgnoreCase(MODE.dbSNP.name())) 			 
 				modeOptions = new DbsnpOptions();
 			else if( m.equalsIgnoreCase(MODE.germline.name())) 			 
 				modeOptions = new  GermlineOptions();

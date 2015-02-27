@@ -90,8 +90,8 @@ public class VcfHeaderUtils {
 	public static final String STANDARD_FILE_DATE = "##fileDate";
 	public static final String STANDARD_SOURCE_LINE = "##qSource";
 	public static final String STANDARD_UUID_LINE = "##qUUID";
-	public static final String STANDARD_DONOR_ID = "##qDonorId";
-//	public static final String STANDARD_PATIENTID = "##qPatientId";
+//	public static final String STANDARD_DONOR_ID = "##qDonorId";
+	public static final String STANDARD_PATIENTID = "##qPatientId";
 	public static final String STANDARD_CONTROLSAMPLE = "##qControlSample";
 	public static final String STANDARD_TESTSAMPLE = "##qTestSample";
 	public static final String STANDARD_CONTROLBAM = "##qControlBam";
@@ -104,9 +104,9 @@ public class VcfHeaderUtils {
 	public static final String STANDARD_TEST_VCF_GATK_VER = "##qTestVcfGATKVersion";
 	
   
-	public static final String PREVIOUS_UUID_LINE = "##preUuid";
+//	public static final String PREVIOUS_UUID_LINE = "##preUuid";
 	public static final String STANDARD_DBSNP_LINE = "##dbSNP_BUILD_ID";
-	public static final String STANDARD_INPUT_LINE = "##INPUT";
+	public static final String STANDARD_INPUT_LINE = "##qINPUT";
 	public static final String HEADER_LINE_FILTER = "##FILTER";
 	public static final String HEADER_LINE_INFO = "##INFO";
 	public static final String HEADER_LINE_FORMAT = "##FORMAT";	
