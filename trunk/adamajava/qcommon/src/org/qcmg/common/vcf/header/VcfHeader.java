@@ -40,9 +40,10 @@ public class VcfHeader implements Iterable<VcfHeader.Record> {
 	Record version = null;
 	Record fileDate = null;	
 	Record uuid = null;
-	Record preuuid = null;
+//	Record preuuid = null;
 	Record source = null;
 	Record chromLine = null;
+//	Record dornor = null; 
 		
 	final FormattedRecords infoRecords;
 	final FormattedRecords formatRecords;
@@ -257,7 +258,7 @@ public class VcfHeader implements Iterable<VcfHeader.Record> {
 			chromLine = new Record(line);
 		} else if (line.startsWith(VcfHeaderUtils.STANDARD_SOURCE_LINE)) {
 			source = new Record(line);
-		} else if (line.startsWith(VcfHeaderUtils.STANDARD_FILE_VERSION)) {
+		}else if (line.startsWith(VcfHeaderUtils.STANDARD_FILE_VERSION)) {
 			version = new Record(line);
 		} else if (line.startsWith(VcfHeaderUtils.STANDARD_FILE_DATE)) {
 			fileDate = new Record(line);
@@ -394,6 +395,7 @@ public class VcfHeader implements Iterable<VcfHeader.Record> {
 	public Record getUUID() {
 		return uuid;
 	}
+	
 	public Record getFileVersion() {
 		return version;
 	}
@@ -437,13 +439,7 @@ public class VcfHeader implements Iterable<VcfHeader.Record> {
 		if (source != null)  {
 			records.add(source);
 		}
-		
-		// want these sorted
-		Collections.sort(qpgRecords);
-		for (Record record : qpgRecords)  {
-			records.add(record);
-		}
-		
+			
 		for (Record record : metaRecords.getRecords()){  
 			records.add(record);
 		}
@@ -452,6 +448,12 @@ public class VcfHeader implements Iterable<VcfHeader.Record> {
 			if( !record.toString().equals( "##"))
 				records.add(record);
 		}
+		
+		// want these sorted
+		Collections.sort(qpgRecords);
+		for (Record record : qpgRecords)  {
+			records.add(record);
+		}				
 		
 		// add in a blank line if we have existing data
 		if ( ! records.isEmpty() && containsQIMRDetails()) {

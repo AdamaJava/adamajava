@@ -14,6 +14,8 @@ public class Vcf2mafOptions extends Options {
 	 
 	 String center ; 
 	 String sequencer; 
+	 String outputDir;
+	 boolean appendSample = false; 
 
 	 
 	 
@@ -25,6 +27,7 @@ public class Vcf2mafOptions extends Options {
 	        parser.acceptsAll( asList("h", "help"), Messages.getMessage("HELP_OPTION_DESCRIPTION"));
 	        parser.acceptsAll( asList("i", "input"), Messages.getMessage("INPUT_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("input vcf");
 	        parser.acceptsAll( asList("o", "output"),  "output maf file with full path").withRequiredArg().ofType(String.class).describedAs("output maf"); 
+	        parser.accepts("outdir", Messages.getMessage("MAF_OUTPUT_DIRECTORY_OPTION_DESCRIPTION") ).withRequiredArg().ofType(String.class).describedAs("output file location");
 	        
 	        parser.accepts(test,  Messages.getMessage("TUMOUR_SAMPLEID_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("testSample");
 	        parser.accepts(control, Messages.getMessage("NORMAL_SAMPLEID_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("controlSample");	        
@@ -35,6 +38,7 @@ public class Vcf2mafOptions extends Options {
 	       // "(compulsary) database location"
  	        parser.accepts("log", LOG_DESCRIPTION).withRequiredArg().ofType(String.class);
 	        parser.accepts("loglevel",  LOG_LEVEL_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
+//	        parser.accepts("sampleFlag",  Messages.getMessage("SAMPLE_FLAG_DESCRIPTION")).withRequiredArg().ofType(String.class);
 	        final OptionSet options = parser.parse(args);   
 	        
 	        if(options.has("h") || options.has("help")){
@@ -54,7 +58,7 @@ public class Vcf2mafOptions extends Options {
 	        //check IO
 	        inputFileName = (String) options.valueOf("i") ;      	 
 	        outputFileName = (String) options.valueOf("o") ; 
-	        
+	        outputDir = (options.has("outdir"))? (String)options.valueOf("outdir") : null;
 	        center = (options.has("center"))? (String)options.valueOf("center") : null;
 	        sequencer = (options.has("sequencer"))? (String)options.valueOf("sequencer") : null;	 
 	        
@@ -66,5 +70,6 @@ public class Vcf2mafOptions extends Options {
 	 
 	 public String getCenter(){  return center; }
 	 public String getSequencer(){  return sequencer; }
+	 public String getOutputDir(){return outputDir;}
 	 
 }

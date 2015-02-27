@@ -1,6 +1,9 @@
 package au.edu.qimr.qannotate.options;
 
 import static java.util.Arrays.asList;
+
+import java.awt.List;
+
 import au.edu.qimr.qannotate.Messages;
 import au.edu.qimr.qannotate.options.Options.MODE;
 import joptsimple.OptionSet;
@@ -10,7 +13,13 @@ import joptsimple.OptionSet;
  */
 public class DbsnpOptions extends Options {
  	
- //	 public final Options.MODE Mode = Options.MODE.dbSNP;
+  boolean div = false;
+  boolean mnv = false;
+  boolean snv = false;  
+    
+    enum Variants{ 	MNV  , SNV  , DIV  ;  }
+    
+    Variants Div, Mnv, Snv; 
 
     /**
      * check command line and store arguments and option information
@@ -27,6 +36,7 @@ public class DbsnpOptions extends Options {
         parser.acceptsAll( asList("o", "output"), Messages.getMessage("OUTPUT_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("output vcf"); 
         parser.acceptsAll( asList("d", "database"), Messages.getMessage("DATABASE_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("database file"); 
         parser.accepts("mode", "run dbSNP mode").withRequiredArg().ofType(String.class).describedAs("dbsnp");
+        parser.accepts("VC", "Variation Class").withRequiredArg().ofType(String.class).describedAs("must be DIV, SNV or MNV. By default is SNV and MNV");        
         parser.accepts("log", LOG_DESCRIPTION).withRequiredArg().ofType(String.class);
         parser.accepts("loglevel",  LOG_LEVEL_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
         OptionSet options = parser.parse(args);   
@@ -35,8 +45,7 @@ public class DbsnpOptions extends Options {
         	displayHelp(Messages.getMessage("DBSNP_USAGE"));
             return false;
         }
-        
-        
+               
         if( !options.has("log")){
             System.out.println(Messages.getMessage("LOG_OPTION_DESCRIPTION"));            
             return false;
@@ -51,6 +60,21 @@ public class DbsnpOptions extends Options {
         inputFileName = (String) options.valueOf("i") ;      	 
         outputFileName = (String) options.valueOf("o") ; 
         databaseFileName = (String) options.valueOf("d") ; 
+ 
+        
+        String[] variants =   options.valuesOf("VC").toArray(new String[options.valuesOf("VC").size()]);
+     
+       
+        for(int  i = 0; i < variants.length; i ++)
+        	if(variants[i].equalsIgnoreCase(Variants.DIV.name()))
+        		div = true; 
+        	else if(variants[i].equalsIgnoreCase(Variants.MNV.name()))
+        		mnv = true;
+        	else if(variants[i].equalsIgnoreCase(Variants.SNV.name()))
+        	    snv = true; 
+        	else
+        		throw new Exception(variants[i] + " is invalid value set to option: VC, please set MNV, SNV or DIV");
+        
 
         String[] inputs = new String[]{ inputFileName,databaseFileName} ;
         String[] outputs = new String[]{outputFileName};
@@ -58,13 +82,15 @@ public class DbsnpOptions extends Options {
         System.arraycopy(inputs, 0, ios, 0, inputs.length);
         System.arraycopy(outputs, 0, ios, inputs.length, outputs.length);
         return checkInputs(inputs )  && checkOutputs(outputs ) && checkUnique(ios);
+     
         
   
     } 
 
 
-    
-
+   public boolean isDIV(){ return div; }
+   public boolean isMNV(){ return mnv; }
+   public boolean isSNV(){ return snv; }
 
    
 }
