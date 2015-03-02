@@ -91,10 +91,10 @@ public class VcfHeaderUtils {
 	public static final String STANDARD_SOURCE_LINE = "##qSource";
 	public static final String STANDARD_UUID_LINE = "##qUUID";
 	public static final String STANDARD_DONOR_ID = "##qDonorId";
-	public static final String STANDARD_CONTROLSAMPLE = "##qControlSample";
-	public static final String STANDARD_TESTSAMPLE = "##qTestSample";
-	public static final String STANDARD_CONTROLBAM = "##qControlBam";
-	public static final String STANDARD_TESTBAM = "##qTestBam";
+	public static final String STANDARD_CONTROL_SAMPLE = "##qControlSample";
+	public static final String STANDARD_TEST_SAMPLE = "##qTestSample";
+	public static final String STANDARD_CONTROL_BAM = "##qControlBam";
+	public static final String STANDARD_TEST_BAM = "##qTestBam";
 	public static final String STANDARD_CONTROL_VCF = "##qControlVcf";
 	public static final String STANDARD_TEST_VCF = "##qTestVcf";
 	public static final String STANDARD_CONTROL_VCF_UUID = "##qControlVcfUUID";
