@@ -13,10 +13,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.qcmg.common.commandline.Executor;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.vcf.VcfRecord;
@@ -361,10 +359,10 @@ public class Vcf2mafTest {
 
 	@Test
 	public void FileNameTest() throws IOException{
-		String[] str = {"##fileformat=VCFv4.0",			
-				"##qPatientId=MELA_0264",
-				"##qControlSample=CONTROL",
-				"##qTestSample=TEST",				
+		String[] str = {VcfHeaderUtils.STANDARD_FILE_VERSION + "=VCFv4.0",			
+				VcfHeaderUtils.STANDARD_DONOR_ID + "=MELA_0264",
+				VcfHeaderUtils.STANDARD_CONTROL_SAMPLE + "=CONTROL",
+				VcfHeaderUtils.STANDARD_TEST_SAMPLE + "=TEST",				
 				VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tCONTROL\tTEST"	
 		};
 
@@ -417,8 +415,8 @@ public class Vcf2mafTest {
 	@Test
 	public void FileNameWithNoSampleidTest() throws IOException{
 		String[] str = {"##fileformat=VCFv4.0",			
-				"##qPatientId=MELA_0264",
-				"##qTestSample=TEST",				
+				VcfHeaderUtils.STANDARD_DONOR_ID +"=MELA_0264",
+				VcfHeaderUtils.STANDARD_TEST_SAMPLE +"=TEST",				
 				VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tCONTROL\tTEST"};
 
         createVcf(str);

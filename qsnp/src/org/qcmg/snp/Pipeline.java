@@ -385,18 +385,18 @@ public abstract class Pipeline {
 		header.parseHeaderLine(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=" + source);		
 		
 		header.parseHeaderLine(VcfHeaderUtils.STANDARD_DONOR_ID + "=" + patientId);
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_CONTROLSAMPLE + "=" + normalSampleId);		
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_TESTSAMPLE + "=" + tumourSampleId);		
+		header.parseHeaderLine(VcfHeaderUtils.STANDARD_CONTROL_SAMPLE + "=" + normalSampleId);		
+		header.parseHeaderLine(VcfHeaderUtils.STANDARD_TEST_SAMPLE + "=" + tumourSampleId);		
 		
 		if (null != normalBamIds)  
 			for (final QBamId s : normalBamIds) {
-				header.parseHeaderLine( VcfHeaderUtils.STANDARD_CONTROLBAM  + "=" + s.getBamName());
+				header.parseHeaderLine( VcfHeaderUtils.STANDARD_CONTROL_BAM  + "=" + s.getBamName());
 				header.parseHeaderLine( "##qControlBamUUID=" + s.getUUID());
  			}
 
 		if (null != tumourBamIds)  
 			for (final QBamId s : tumourBamIds) {
-				header.parseHeaderLine(VcfHeaderUtils.STANDARD_TESTBAM  + "=" + s.getBamName());
+				header.parseHeaderLine(VcfHeaderUtils.STANDARD_TEST_BAM  + "=" + s.getBamName());
 				header.parseHeaderLine("##qTestBamUUID=" + s.getUUID());
 			}		
 		header.parseHeaderLine( "##qAnalysisId=" + uuid );

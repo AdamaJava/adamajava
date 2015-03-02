@@ -69,10 +69,10 @@ public abstract class AbstractMode {
 			
 //			String cs = control, ts = test; 
 			for (final VcfHeader.Record hr : header.getMetaRecords()) 
-				if(control == null && hr.getData().indexOf(VcfHeaderUtils.STANDARD_CONTROLSAMPLE) != -1)
-					control =  StringUtils.getValueFromKey(hr.getData(), VcfHeaderUtils.STANDARD_CONTROLSAMPLE);
-				else if (test == null &&  hr.getData().indexOf(VcfHeaderUtils.STANDARD_TESTSAMPLE) != -1) 
-					test = StringUtils.getValueFromKey(hr.getData(), VcfHeaderUtils.STANDARD_TESTSAMPLE);
+				if(control == null && hr.getData().indexOf(VcfHeaderUtils.STANDARD_CONTROL_SAMPLE) != -1)
+					control =  StringUtils.getValueFromKey(hr.getData(), VcfHeaderUtils.STANDARD_CONTROL_SAMPLE);
+				else if (test == null &&  hr.getData().indexOf(VcfHeaderUtils.STANDARD_TEST_SAMPLE) != -1) 
+					test = StringUtils.getValueFromKey(hr.getData(), VcfHeaderUtils.STANDARD_TEST_SAMPLE);
 								
 		    if(test == null || control == null)
 			   throw new RuntimeException(" Missing qControlSample or qTestSample  from VcfHeader; please specify on command line!");
