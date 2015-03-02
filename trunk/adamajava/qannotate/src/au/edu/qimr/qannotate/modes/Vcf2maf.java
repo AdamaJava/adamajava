@@ -16,7 +16,6 @@ import org.qcmg.common.vcf.VcfInfoFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
-import org.qcmg.common.vcf.header.VcfHeader.Record;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 
@@ -77,8 +76,8 @@ public class Vcf2maf extends AbstractMode{
 			
 			String id = null;
 			for (VcfHeader.Record rec : reader.getHeader().getMetaRecords())
-				if (rec.getData().startsWith(VcfHeaderUtils.STANDARD_PATIENTID)) 
-					id = StringUtils.getValueFromKey(rec.getData(), VcfHeaderUtils.STANDARD_PATIENTID);
+				if (rec.getData().startsWith(VcfHeaderUtils.STANDARD_DONOR_ID)) 
+					id = StringUtils.getValueFromKey(rec.getData(), VcfHeaderUtils.STANDARD_DONOR_ID);
 			dornorId = id; 
 			
 			logger.info(String.format("Test Sample %s is located on column %d after FORMAT", testSample, test_column));

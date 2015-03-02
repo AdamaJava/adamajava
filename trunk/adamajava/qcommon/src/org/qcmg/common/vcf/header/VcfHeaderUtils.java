@@ -91,7 +91,6 @@ public class VcfHeaderUtils {
 	public static final String STANDARD_SOURCE_LINE = "##qSource";
 	public static final String STANDARD_UUID_LINE = "##qUUID";
 	public static final String STANDARD_DONOR_ID = "##qDonorId";
-	public static final String STANDARD_PATIENTID = "##qPatientId";
 	public static final String STANDARD_CONTROLSAMPLE = "##qControlSample";
 	public static final String STANDARD_TESTSAMPLE = "##qTestSample";
 	public static final String STANDARD_CONTROLBAM = "##qControlBam";
