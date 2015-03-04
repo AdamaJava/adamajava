@@ -5,6 +5,7 @@ package org.qcmg.motif;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.BlockingQueue;
 
 import org.qcmg.common.log.QLogger;
@@ -45,8 +46,11 @@ class WorkerThread extends Thread {
 				job.run();
 				logger.info(getName() + " completed job [" + job + "]");
 				reducedResults.putAll(job.getResults());
-				logger.debug(getName() + " added job results "
-						+ job.getResults());
+				for (Entry<ChrPosition, RegionCounter> entry : job.getResults().entrySet()) {
+					logger.debug(getName() + " added job results " + entry.getKey() + ":" + entry.getValue());
+				}
+//				logger.debug(getName() + " added job results "
+//						+ job.getResults());
 			} catch (InterruptedException e) {
 				throw new RuntimeException(e.getMessage());
 			} catch (Exception e) {

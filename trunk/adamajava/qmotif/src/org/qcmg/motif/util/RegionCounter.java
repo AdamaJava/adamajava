@@ -8,8 +8,10 @@ import org.qcmg.common.string.StringUtils;
 public class RegionCounter {
 	
 	private final RegionType type;
-	private String motifsFS;
-	private String motifsRS;
+//	private Map<String, AtomicInteger> motifsFS;
+//	private Map<String, AtomicInteger> motifsRS;
+	private StringBuilder motifsFS;
+	private StringBuilder motifsRS;
 	private int totalCoverage;
 	private int stage1Cov;
 	private int stage2Cov;
@@ -25,15 +27,29 @@ public class RegionCounter {
 		// should we check the type here and only increment if its an incremental type? - I think so
 		if (type.acceptRead(isMapped)) {
 			if (forwardStrand) {
-				motifsFS = MotifUtils.addMotifToString(motifsFS, motif);
+				if (null == motifsFS) {
+					motifsFS = new StringBuilder();
+				}
+				MotifUtils.addMotifToString(motifsFS, motif);
 			} else {
-				motifsRS = MotifUtils.addMotifToString(motifsRS, motif);
+				if (null == motifsRS) {
+					motifsRS =  new StringBuilder();
+				}
+				MotifUtils.addMotifToString(motifsRS, motif);
 			}
 		}
 	}
 	
 	public boolean hasMotifs() {
-		return ! StringUtils.isNullOrEmpty(motifsFS) || ! StringUtils.isNullOrEmpty(motifsRS); 
+		
+//		return null != motifsFS && ! motifsFS.isEmpty() 
+//				|| null != motifsRS && ! motifsRS.isEmpty();
+		
+		return (null != motifsFS && motifsFS.length() > 0)
+				|| (null != motifsRS && motifsRS.length() > 0);
+		
+		
+//		return ! StringUtils.isNullOrEmpty(motifsFS.toString()) || ! StringUtils.isNullOrEmpty(motifsRS.toString()); 
 	}
 	
 	public RegionType getType() {
@@ -47,10 +63,14 @@ public class RegionCounter {
 	}
 
 	public String getMotifsForwardStrand() {
-		return motifsFS;
+//		public Map<String, AtomicInteger> getMotifsForwardStrand() {
+//		return motifsFS ;
+		return null == motifsFS ? null :  motifsFS.toString();
 	}
-	public String getMotifsReverseStrand() {
-		return motifsRS;
+	public  String getMotifsReverseStrand() {
+//		public  Map<String, AtomicInteger> getMotifsReverseStrand() {
+//		return motifsRS;
+		return null == motifsRS ? null :  motifsRS.toString();
 	}
 	
 	public void updateTotalCoverage() {

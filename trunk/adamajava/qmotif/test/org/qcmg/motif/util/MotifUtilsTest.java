@@ -60,15 +60,35 @@ public class MotifUtilsTest {
 	
 	@Test
 	public void addMotifToString() {
-		String existingMotif = null;
-		existingMotif = MotifUtils.addMotifToString(existingMotif, null);
-		assertEquals(null,  existingMotif);
+		
+		StringBuilder existingMotif =new StringBuilder();
+		MotifUtils.addMotifToString(existingMotif, null);
+		
+		assertEquals(0, existingMotif.length() );
 		String newMotif = "ABCDEFG";
-		existingMotif = MotifUtils.addMotifToString(existingMotif, newMotif);
-		assertEquals(newMotif, existingMotif);
-		existingMotif = MotifUtils.addMotifToString(existingMotif, newMotif);
-		assertEquals(newMotif + MotifUtils.M_D + newMotif, existingMotif);
+		MotifUtils.addMotifToString(existingMotif, newMotif);
+		assertEquals(newMotif,  existingMotif.toString());
+		MotifUtils.addMotifToString(existingMotif, newMotif);
+		assertEquals(newMotif + ":" + newMotif, existingMotif.toString());
+		MotifUtils.addMotifToString(existingMotif, newMotif);
+		assertEquals("ABCDEFG:ABCDEFG:ABCDEFG", existingMotif.toString());
+//		assertEquals(newMotif + MotifUtils.M_D + newMotif, existingMotif.toString());
 	}
+//	@Test
+//	public void addMotifToString() {
+//		Map<String, AtomicInteger> existingMotif = null;
+//		MotifUtils.addMotifToString(existingMotif, null);
+//		assertEquals(null,  existingMotif);
+//		String newMotif = "ABCDEFG";
+//		MotifUtils.addMotifToString(existingMotif, newMotif);
+//		assertEquals(null,  existingMotif);
+//		existingMotif =new HashMap<>();
+//		MotifUtils.addMotifToString(existingMotif, newMotif);
+//		assertEquals(true, existingMotif.containsKey(newMotif));
+//		MotifUtils.addMotifToString(existingMotif, newMotif);
+//		assertEquals(2, existingMotif.get(newMotif).intValue());
+////		assertEquals(newMotif + MotifUtils.M_D + newMotif, existingMotif.toString());
+//	}
 	
 	@Test(expected=IllegalArgumentException.class)
 	public void nullChromosome() {

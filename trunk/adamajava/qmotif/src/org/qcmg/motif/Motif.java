@@ -233,6 +233,7 @@ public final class Motif {
 		for (RegionCounter rc : rcs) {
 			if (rc.hasMotifs()) {
 				if (null != rc.getMotifsForwardStrand()) {
+//					Map<String, AtomicInteger> motifsFS = rc.getMotifsForwardStrand();
 					Map<String, AtomicInteger> motifsFS = MotifUtils.convertStringArrayToMap(rc.getMotifsForwardStrand());
 					for (Entry<String, AtomicInteger> entry : motifsFS.entrySet()) {
 						// add to allMotifs if not already there
@@ -240,6 +241,7 @@ public final class Motif {
 					}
 				}
 				if (null != rc.getMotifsReverseStrand()) {
+//					Map<String, AtomicInteger> motifsRS = rc.getMotifsReverseStrand();
 					Map<String, AtomicInteger> motifsRS = MotifUtils.convertStringArrayToMap(rc.getMotifsReverseStrand());
 					for (Entry<String, AtomicInteger> entry : motifsRS.entrySet()) {
 						// add to allMotifs if not already there
@@ -282,6 +284,7 @@ public final class Motif {
 				
 				// set motifs
 				if (null != rc.getMotifsForwardStrand()) {
+//					Map<String, AtomicInteger> motifsFS = rc.getMotifsForwardStrand();
 					Map<String, AtomicInteger> motifsFS = MotifUtils.convertStringArrayToMap(rc.getMotifsForwardStrand());
 					for (Entry<String, AtomicInteger> entry : motifsFS.entrySet()) {
 						Element motifFSE = doc.createElement("motif");
@@ -292,6 +295,7 @@ public final class Motif {
 					}
 				}
 				if (null != rc.getMotifsReverseStrand()) {
+//					Map<String, AtomicInteger> motifsRS = rc.getMotifsReverseStrand();
 					Map<String, AtomicInteger> motifsRS = MotifUtils.convertStringArrayToMap(rc.getMotifsReverseStrand());
 					for (Entry<String, AtomicInteger> entry : motifsRS.entrySet()) {
 						Element motifFSE = doc.createElement("motif");

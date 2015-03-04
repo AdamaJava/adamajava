@@ -169,12 +169,27 @@ public class MotifUtils {
 		return exisitingOverlaps;
 	}
 
-	static String addMotifToString(String existingString, String motif) {
-		if (StringUtils.isNullOrEmpty(existingString)) {
-			existingString = motif;
-		} else {
-			existingString += M_D + motif;
+//	static void addMotifToString(Map<String, AtomicInteger> existingString, String motif) {
+//		if (null != existingString) {
+//			if (StringUtils.isNullOrEmpty(motif)) {
+//				// do nowt
+//			} else {
+//		
+//				AtomicInteger ai = existingString.get(motif);
+//				if (null == ai) {
+//					ai = new AtomicInteger();
+//					existingString.put(motif, ai);
+//				}
+//				ai.incrementAndGet();
+//			}
+//		}
+//	}
+	static void addMotifToString(StringBuilder existingString, String motif) {
+		if (null != existingString && ! StringUtils.isNullOrEmpty(motif)) {
+			if (existingString.length() > 0) {
+				existingString.append(M_D);
+			}
+			existingString.append(motif);
 		}
-		return existingString;
 	}
 }
