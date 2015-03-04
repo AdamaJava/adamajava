@@ -233,6 +233,7 @@ public final class JobQueue {
 				
 				StringBuilder fs = null;
 				if (null != rc.getMotifsForwardStrand()) {
+//					Map<String, AtomicInteger> motifsFS = rc.getMotifsForwardStrand();
 					Map<String, AtomicInteger> motifsFS = MotifUtils.convertStringArrayToMap(rc.getMotifsForwardStrand());
 					noOfMotifsFS = motifsFS.size();
 					fs = new StringBuilder("FS: ");
@@ -248,6 +249,7 @@ public final class JobQueue {
 				}
 				StringBuilder rs = null;
 				if (null != rc.getMotifsReverseStrand()) {
+//					Map<String, AtomicInteger> motifsRS = rc.getMotifsReverseStrand();
 					Map<String, AtomicInteger> motifsRS = MotifUtils.convertStringArrayToMap(rc.getMotifsReverseStrand());
 					noOfMotifsRS = motifsRS.size();
 					rs = new StringBuilder("RS: ");

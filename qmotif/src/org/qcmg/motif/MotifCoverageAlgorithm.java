@@ -79,10 +79,11 @@ public class MotifCoverageAlgorithm implements Algorithm {
 			rc.updateStage1Coverage();
 			
 			// get motifs
-			String stageTwoMotifs = getStageTwoMotifs(readString);
-			if ( ! StringUtils.isNullOrEmpty(stageTwoMotifs)) {
+//			getStageTwoMotifs(readString,  ! read.getReadNegativeStrandFlag(), ! read.getReadUnmappedFlag(), rc);
+			String stm = getStageTwoMotifs(readString);
+			if ( ! StringUtils.isNullOrEmpty(stm)) {
 				
-				rc.addMotif(stageTwoMotifs, ! read.getReadNegativeStrandFlag(), ! read.getReadUnmappedFlag());
+				rc.addMotif(stm, ! read.getReadNegativeStrandFlag(), ! read.getReadUnmappedFlag());
 				rc.updateStage2Coverage();
 				
 			}
@@ -91,32 +92,70 @@ public class MotifCoverageAlgorithm implements Algorithm {
 		return false;
 	}
 	
+//	void getStageTwoMotifs(String readString, boolean forwardStrand, boolean mapped, RegionCounter rc) {
+//		if ( ! StringUtils.isNullOrEmpty(readString)) {
+//			
+//			boolean updateCoverage = false;
+//		
+//			if (mode.stageTwoString()) {
+//				
+//				for (int i = 0 ; i < stageTwoMotifsSize ; i++) {
+//					String motif = stageTwoMotifs.get(i);
+//					int index = readString.indexOf(motif);
+//					if (index >= 0) {
+//						updateCoverage = true;
+//						rc.addMotif(motif, forwardStrand, mapped);
+//					}
+//				}
+//			} else {
+//				
+//				Matcher matcher = stageTwoRegex.matcher(readString);
+//				while (matcher.find()) {
+//					updateCoverage = true;
+//					rc.addMotif(matcher.group(), forwardStrand, mapped);
+//				}
+//			}
+//			
+//			if (updateCoverage) {
+//				rc.updateStage2Coverage();
+//			}
+//		}
+//	}
 	String getStageTwoMotifs(String readString) {
-		if (StringUtils.isNullOrEmpty(readString)) return null;
-		
-		String motifs = "";
-		if (mode.stageTwoString()) {
+		if ( ! StringUtils.isNullOrEmpty(readString)) {
 			
-			for (int i = 0 ; i < stageTwoMotifsSize ; i++) {
-				String motif = stageTwoMotifs.get(i);
-				int index = readString.indexOf(motif);
-				if (index >= 0) {
-					
-					if (motifs.length() > 0) motifs += MotifUtils.M_D;
-					motifs += motif;
+			StringBuilder motifs = new StringBuilder();
+			if (mode.stageTwoString()) {
+				
+				for (int i = 0 ; i < stageTwoMotifsSize ; i++) {
+					String motif = stageTwoMotifs.get(i);
+					int index = readString.indexOf(motif);
+					if (index >= 0) {
+						
+						if (motifs.length() > 0) {
+							motifs.append(MotifUtils.M_D);
+						}
+						motifs.append(motif);
+					}
 				}
+				
+			} else {
+				
+				Matcher matcher = stageTwoRegex.matcher(readString);
+				while (matcher.find()) {
+					if (motifs.length() > 0) {
+						motifs.append(MotifUtils.M_D);
+					}
+					motifs.append(matcher.group());
+//					if (motifs.length() > 0) motifs += MotifUtils.M_D;
+//					motifs +=matcher.group();
+				}
+				
 			}
-			
+			return motifs.length() == 0 ? null : motifs.toString();
 		} else {
-			
-			Matcher matcher = stageTwoRegex.matcher(readString);
-			while (matcher.find()) {
-				if (motifs.length() > 0) motifs += MotifUtils.M_D;
-				motifs +=matcher.group();
-			}
-			
+			return null;
 		}
-		return motifs;
 	}
 	
 	RegionCounter getCounterFromMap(Map<ChrPosition, RegionCounter> regions, ChrPosition read) {
