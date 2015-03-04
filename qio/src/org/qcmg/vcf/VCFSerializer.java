@@ -45,7 +45,7 @@ public final class VCFSerializer {
 		return result;
 	}
 
-	static VcfRecord parseRecord(final String line) throws Exception {
+	public static VcfRecord parseRecord(final String line) throws Exception {
 		final String[] params = TabTokenizer.tokenize(line);
 		final int arrayLength = params.length; 
 		if (8 > arrayLength) {
