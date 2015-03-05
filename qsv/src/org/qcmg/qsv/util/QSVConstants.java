@@ -3,6 +3,8 @@
  */
 package org.qcmg.qsv.util;
 
+import net.sf.samtools.SAMTagUtil;
+
 public class QSVConstants {
 	
 	//General options	
@@ -78,5 +80,9 @@ public class QSVConstants {
 	public static final String CTX = "CTX";
 	
 	public static final String INV = "INV/ITX";
+	
+	public static final String ZP = "ZP";
+	public static final short  ZP_SHORT = SAMTagUtil.getSingleton().makeBinaryTag(ZP);
+	public static final String AAA = "AAA";
 	
 }
