@@ -1,15 +1,21 @@
 package org.qcmg.qbamfilter.query;
 
-import java.util.*;
-import static org.junit.Assert.*;
-import org.junit.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.util.ArrayList;
+import java.util.List;
 
 import net.sf.samtools.SAMFileReader;
 import net.sf.samtools.SAMRecord;
 
-import java.io.FileWriter;
-import java.io.BufferedWriter;
-import java.io.File;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import org.qcmg.qbamfilter.filter.TestFile;
 
 public class QueryExecutorTest {
@@ -66,6 +72,67 @@ public class QueryExecutorTest {
                i ++;
             }
             inreader.close();
+    }
+    
+    @Test
+    public void nullOrEmptyQuery() throws Exception {
+    		try {
+    			new QueryExecutor(null);
+    			Assert.fail("Should have thrown an exception");
+    		} catch (IllegalArgumentException aie) {}
+    		try {
+    			new QueryExecutor("");
+    			Assert.fail("Should have thrown an exception");
+    		} catch (IllegalArgumentException aie) {}
+    }
+    
+    @Test
+    public void queryContainsQuotes() throws Exception {
+    		// if the query passed to QueryExecutor contains quotes, then antlr with eventually give an OOM error
+    	
+	    	String  query = "\"and (mapq > 16 , cigar_M >= 40 , or (option_ZM == 0, option_ZM > 200))\"";
+  		try {
+  			QueryExecutor myExecutor = new QueryExecutor(query);
+    			Assert.fail("Should have thrown an exception");
+    		} catch (IllegalArgumentException aie) {}
+  		 query = "and (mapq > 16 , cigar_M >= 40 , or (option_ZM == 0, option_ZM > 200))\"";
+   		try {
+   			QueryExecutor myExecutor = new QueryExecutor(query);
+     			Assert.fail("Should have thrown an exception");
+     		} catch (IllegalArgumentException aie) {}
+   		query = "\"and (mapq > 16 , cigar_M >= 40 , or (option_ZM == 0, option_ZM > 200))";
+   		try {
+   			QueryExecutor myExecutor = new QueryExecutor(query);
+   			Assert.fail("Should have thrown an exception");
+   		} catch (IllegalArgumentException aie) {}
+   		query = "and (mapq > 16 , cigar_M >= \"40\" , or (option_ZM == 0, option_ZM > 200))";
+   		try {
+   			QueryExecutor myExecutor = new QueryExecutor(query);
+   			Assert.fail("Should have thrown an exception");
+   		} catch (IllegalArgumentException aie) {}
+   		
+   		
+   		query = "\'and (mapq > 16 , cigar_M >= 40 , or (option_ZM == 0, option_ZM > 200))\'";
+   		try {
+   			QueryExecutor myExecutor = new QueryExecutor(query);
+   			Assert.fail("Should have thrown an exception");
+   		} catch (IllegalArgumentException aie) {}
+   		query = "and (mapq > 16 , cigar_M >= 40 , or (option_ZM == 0, option_ZM > 200))\'";
+   		try {
+   			QueryExecutor myExecutor = new QueryExecutor(query);
+   			Assert.fail("Should have thrown an exception");
+   		} catch (IllegalArgumentException aie) {}
+   		query = "\'and (mapq > 16 , cigar_M >= 40 , or (option_ZM == 0, option_ZM > 200))";
+   		try {
+   			QueryExecutor myExecutor = new QueryExecutor(query);
+   			Assert.fail("Should have thrown an exception");
+   		} catch (IllegalArgumentException aie) {}
+   		query = "and (mapq > 16 , cigar_M >= \'40\' , or (option_ZM == 0, option_ZM > 200))";
+   		try {
+   			QueryExecutor myExecutor = new QueryExecutor(query);
+   			Assert.fail("Should have thrown an exception");
+   		} catch (IllegalArgumentException aie) {}
+    	
     }
 
     /**

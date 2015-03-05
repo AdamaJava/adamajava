@@ -14,6 +14,7 @@ import org.antlr.runtime.tree.CommonTree;
 import org.antlr.runtime.tree.CommonTreeNodeStream;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.string.StringUtils;
 import org.qcmg.qbamfilter.grammars.queryLexer;
 import org.qcmg.qbamfilter.grammars.queryParser;
 import org.qcmg.qbamfilter.grammars.queryTree;
@@ -28,7 +29,15 @@ public class QueryExecutor {
      * @param query
      * It Check the query and create an CommonTree. it run once for each query from command line.
      */
-    public QueryExecutor(String query) throws Exception{
+    public QueryExecutor(String query) throws Exception {
+    		if (StringUtils.isNullOrEmpty(query)) {
+    			throw new IllegalArgumentException("Null or empty query passed to QueryExecutor");
+    		}
+    		// perform a check to see if query starts and ends with quotation marks
+    		// if it does, print a warning to the user, as qbamfilter will OOM
+		if (query.contains("\"") || query.contains("\'")) {
+    			throw new IllegalArgumentException("query passed to QueryExecutor contains quotation marks - please revise your query so that it does not contain quotation marks: " + query);
+    		}
     		
         try{
             queryLexer myLexer = new queryLexer(new ANTLRStringStream( query ));
