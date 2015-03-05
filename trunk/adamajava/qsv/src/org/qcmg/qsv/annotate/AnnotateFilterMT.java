@@ -28,6 +28,7 @@ import net.sf.samtools.SAMRecordIterator;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.string.StringUtils;
 import org.qcmg.picard.HeaderUtils;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qbamfilter.query.QueryExecutor;
@@ -38,6 +39,7 @@ import org.qcmg.qsv.QSVException;
 import org.qcmg.qsv.QSVParameters;
 import org.qcmg.qsv.softclip.SoftClipStaticMethods;
 import org.qcmg.qsv.util.CustomThreadPoolExecutor;
+import org.qcmg.qsv.util.QSVConstants;
 import org.qcmg.qsv.util.QSVUtil;
 
 /**
@@ -69,6 +71,7 @@ public class AnnotateFilterMT implements Runnable {
 	private boolean runPair;
 	private boolean runClip;
 	private final boolean isSplitRead;
+//	private final Map<String, Boolean> readGroupIds;
 	private final List<String> readGroupIds;
 	private final AtomicLong goodClipCount = new AtomicLong(); 
 	private final AtomicLong unmappedCount = new AtomicLong();
@@ -279,7 +282,7 @@ public class AnnotateFilterMT implements Runnable {
 	 * Class to annotate and filter discordant pairs, clips and unmapped readsS
 	 *
 	 */
-	private class AnnotationFiltering implements Runnable {
+	class AnnotationFiltering implements Runnable {
 
 		private final AbstractQueue<List<Chromosome>> queueIn;
 		private final AbstractQueue<SAMRecord> queueOutPair;
@@ -290,9 +293,9 @@ public class AnnotateFilterMT implements Runnable {
 		private int countOutputSleep;
 		private final AbstractQueue<SAMRecord> queueOutClip;
 		private CountDownLatch clipLatch;
-		QueryExecutor pairQueryEx = new QueryExecutor(query);		
+		QueryExecutor pairQueryEx ;
 		QueryExecutor lifescopeQueryEx;		
-		QueryExecutor clipQueryEx = new QueryExecutor(clipQuery);
+		QueryExecutor clipQueryEx;
 
 
 		public AnnotationFiltering(AbstractQueue<List<Chromosome>> readQueue,
@@ -306,6 +309,12 @@ public class AnnotateFilterMT implements Runnable {
 			this.readLatch = readLatch;
 			this.filterLatch = fLatch;
 			this.writeLatch = wGoodLatch;
+			if (runPair && ! StringUtils.isNullOrEmpty(query)) {
+				pairQueryEx = new QueryExecutor(query);
+			}
+			 if (runClip && ! StringUtils.isNullOrEmpty(clipQuery)) {
+				 clipQueryEx = new QueryExecutor(clipQuery);
+			 }
 			if (parameters.getPairingType().equals("lmp") && parameters.getMapper().equals("bioscope")) {
 				lifescopeQueryEx = new QueryExecutor("and(Cigar_M > 35, MD_mismatch < 3, MAPQ > 0, flag_DuplicateRead == false)");
 			}
@@ -321,9 +330,8 @@ public class AnnotateFilterMT implements Runnable {
 			try {
 
 				List<Chromosome> chromosomes = null;
-
 				while (run) {
-					chromosomes = queueIn.poll();                    
+					chromosomes = queueIn.poll();               
 
 					if (chromosomes == null) {
 						// must check whether reading thread finished first.
@@ -408,7 +416,8 @@ public class AnnotateFilterMT implements Runnable {
 					final SAMReadGroupRecord srgr = record.getReadGroup();
 					if (null != srgr 
 							&& null != srgr.getId() 
-							&& readGroupIds.contains(srgr.getId())) {
+//							&& readGroupIds.containsKey(srgr.getId())) {
+						&& readGroupIds.contains(srgr.getId())) {
 	
 						//discordant pairs
 						if (runPair && record.getAlignmentStart() >= startPos && record.getAlignmentStart() <= endPos) {
@@ -483,11 +492,11 @@ public class AnnotateFilterMT implements Runnable {
 
 					//annotate the read
 					parameters.getAnnotator().annotate(record);
-					final String zp = (String) record.getAttribute("ZP");
+					final String zp = (String) record.getAttribute(QSVConstants.ZP_SHORT);
 
 					//make sure it is discordant
 					if (zp.contains("A") || zp.equals("C**") || zp.contains("B")) {
-						if ( ! zp.equals("AAA")) {
+						if ( ! zp.equals(QSVConstants.AAA)) {
 							//check if it passes the filter
 							if (pairQueryEx.Execute(record)) {
 								goodPairRecordCount.incrementAndGet();                 		    
@@ -498,7 +507,7 @@ public class AnnotateFilterMT implements Runnable {
 									goodPairRecordCount.incrementAndGet();
 									return add2queue(record, queueOutPair, count, writeLatch);
 								} else {
-									record.setAttribute("ZP", record.getAttribute("XC"));
+									record.setAttribute(QSVConstants.ZP, record.getAttribute("XC"));
 									if (lifescopeQueryEx.Execute(record)) {
 										return add2queue(record, queueOutPair, count, writeLatch);
 									}
