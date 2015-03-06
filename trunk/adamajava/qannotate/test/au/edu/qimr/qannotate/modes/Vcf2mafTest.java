@@ -37,7 +37,7 @@ public class Vcf2mafTest {
 		 if(  out.exists() && out.isDirectory())
 			 return;
 		 
-		 new File(outputDir).mkdir();
+		 assertTrue(new File(outputDir).mkdir());
 	 }
 	
 	 @AfterClass
@@ -53,8 +53,7 @@ public class Vcf2mafTest {
 		for(int i = 0; i < files.length; i++)
 			new File(outputDir, files[i]).delete();
 
-		assertTrue(new File(outputDir).delete());	 
-		 
+		assertTrue(new File(outputDir).delete());	 		 
 	}
 	 
 	 @Test
@@ -70,8 +69,7 @@ public class Vcf2mafTest {
 	        		+ "\tACCS\tTG,5,37,CA,0,2\tAA,1,1,CA,4,1,CT,3,1,TA,11,76,TG,2,2,_G,0,1");
 	          try(BufferedWriter out = new BufferedWriter(new FileWriter(DbsnpModeTest.inputName));) {          
 	              for (final String line : data)   out.write(line + "\n");                  
-	           }  	    
-	 
+	           }  	    	 
 	          
 				final Vcf2maf mode = new Vcf2maf(2, 1, "TEST", "CONTROL");		
 				SnpEffMafRecord maf = null;
@@ -373,7 +371,7 @@ public class Vcf2mafTest {
         
         try{
  			final String command = "--mode vcf2maf --log " + outputDir + "/output.log  -i " + DbsnpModeTest.inputName + " --outdir " + outputDir;			
-			final Executor exec = new Executor(command, "au.edu.qimr.qannotate.Main");        	
+			final Executor exec = new Executor(command, "au.edu.qimr.qannotate.Main");    
 			assertEquals(0, exec.getErrCode());
 			assertTrue(0 == exec.getOutputStreamConsumer().getLines().length);
 			
@@ -381,8 +379,7 @@ public class Vcf2mafTest {
 			assertTrue(new File(outputDir + "/MELA_0264.CONTROL.TEST.Germline.HighConfidence.Consequence.maf").exists());
 			assertTrue(new File(outputDir + "/MELA_0264.CONTROL.TEST.Somatic.HighConfidence.Consequence.maf").exists());
 			assertTrue(new File(outputDir + "/MELA_0264.CONTROL.TEST.Germline.HighConfidence.maf").exists());
-			assertTrue(new File(outputDir + "/MELA_0264.CONTROL.TEST.Somatic.HighConfidence.maf").exists());
-			
+			assertTrue(new File(outputDir + "/MELA_0264.CONTROL.TEST.Somatic.HighConfidence.maf").exists());			
         }catch(Exception e){
         	fail(e.getMessage()); 
         }
@@ -390,7 +387,7 @@ public class Vcf2mafTest {
 	}
 
 	@Test
-	public void FileNameWithNOpatientidTest() throws IOException{
+	public void FileNameWithNODonorTest() throws IOException{
 		String[] str = {"##fileformat=VCFv4.0",			
 				"##qControlSample=CONTROL",
 				"##qTestSample=TEST",				
@@ -398,10 +395,7 @@ public class Vcf2mafTest {
 
         createVcf(str);
         
-
-        try{
-  
-        	
+        try{        	
 			final String command = "--mode vcf2maf --log " + outputDir + "/output.log  -i " + DbsnpModeTest.inputName + " --outdir " + outputDir;			
 			final Executor exec = new Executor(command, "au.edu.qimr.qannotate.Main");        	
 			assertEquals(1, exec.getErrCode());			
@@ -421,17 +415,10 @@ public class Vcf2mafTest {
 
         createVcf(str);
         
-        try{
-  
+        try{  
 			final String command = "--mode vcf2maf --control control  --log " + outputDir + "/output.log  -i " + DbsnpModeTest.inputName + " --outdir " + outputDir;			
 			final Executor exec = new Executor(command, "au.edu.qimr.qannotate.Main");        	
 			assertEquals(0, exec.getErrCode());	
-			
-			String[] files = new File(outputDir).list(); 
-			for(int i = 0; i < files.length; i++)
-				new File(outputDir, files[i]).delete();
-
-			assertTrue(new File(outputDir).delete());	
         }catch(Exception e){
         	 fail(e.getMessage());
         }
