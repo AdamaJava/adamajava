@@ -15,6 +15,7 @@ public class Vcf2mafOptions extends Options {
 	 String center ; 
 	 String sequencer; 
 	 String outputDir;
+	 String donorId; 
 	 boolean appendSample = false; 
 
 	 
@@ -28,6 +29,7 @@ public class Vcf2mafOptions extends Options {
 	        parser.acceptsAll( asList("i", "input"), Messages.getMessage("INPUT_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("input vcf");
 	        parser.acceptsAll( asList("o", "output"),  "output maf file with full path").withRequiredArg().ofType(String.class).describedAs("output maf"); 
 	        parser.accepts("outdir", Messages.getMessage("MAF_OUTPUT_DIRECTORY_OPTION_DESCRIPTION") ).withRequiredArg().ofType(String.class).describedAs("output file location");
+	        parser.accepts("donor",  Messages.getMessage("DONOR_ID_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("donor id");
 	        
 	        parser.accepts(test,  Messages.getMessage("TUMOUR_SAMPLEID_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("testSample");
 	        parser.accepts(control, Messages.getMessage("NORMAL_SAMPLEID_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("controlSample");	        
@@ -64,6 +66,7 @@ public class Vcf2mafOptions extends Options {
 	        
 	        testSample = (options.has(test))? (String)options.valueOf(test) : null;
 	        controlSample = (options.has(control))? (String)options.valueOf(control) : null;
+	        donorId = (options.has("donor"))? (String)options.valueOf("donor") : null;
 	        
   	        return true;
 	     } 
@@ -71,5 +74,6 @@ public class Vcf2mafOptions extends Options {
 	 public String getCenter(){  return center; }
 	 public String getSequencer(){  return sequencer; }
 	 public String getOutputDir(){return outputDir;}
+	 public String getDonorId(){return donorId; }
 	 
 }
