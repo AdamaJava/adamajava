@@ -22,9 +22,9 @@ import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 
 public class DbsnpModeTest {
-	final static String inputName = "input.vcf";
-	final static String dbSNPName = "dbSNP.vcf";
-	final static String outputName = "output.vcf";
+	final static String inputName = "./input.vcf";
+	final static String dbSNPName = "./dbSNP.vcf";
+	final static String outputName = "./output.vcf";
 	
 	 @BeforeClass
 	public static void createInput() throws IOException{
