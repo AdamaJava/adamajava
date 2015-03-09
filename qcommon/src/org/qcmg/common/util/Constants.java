@@ -30,4 +30,5 @@ public class Constants {
 	//at moment only for VcfInfoFieldRecord
 	public static final String NULL_STRING = "NULL";
 	public static final String EMPTY_STRING = "";
+	public static final String CHR = "chr";
 }
