@@ -28,6 +28,8 @@ public class VcfHeaderUtils {
 	public static final String BLANK_HEADER_LINE = Constants.DOUBLE_HASH;
 	
 	public static final String DESCRITPION_FILTER_GERMLINE = "Mutation is a germline variant in another patient";
+	public static final String DESCRITPION_INFO_GERMLINE = "Counts of donor occurs this mutation, total recorded donor number";
+	
 	public static final String DESCRITPION_INFO_CONFIDENCE = "set to HIGH if more than 5 novel starts, 5 allels and passed all filter;"
 			+ "otherwise set to LOW if 4 novel starts, 4 allels and passed one of filter of \"MIUN\" \"MIN\" or \"GERM\";" 			
 			+ "set to ZERO for remaining mutations";
@@ -67,10 +69,10 @@ public class VcfHeaderUtils {
 	public static final String INFO_CAF = "CAF";
 	public static final String INFO_VAF = "VAF";
 	public static final String INFO_DB = "DB";
-	public static final String INFO_VLD = "VLD";
-	
-	public static final String INFO_FS = "FS";
+	public static final String INFO_VLD = "VLD";	
+	public static final String INFO_FS = "FS";    //previous qSNP used, now changed to FLANK
 	public static final String INFO_FILLCOV =  "FULLCOV";
+	public static final String INFO_GERMLINE = FILTER_GERMLINE; 
 	
 	//FORMAT FIELDS
 	public static final String FORMAT_GENOTYPE = "GT";
@@ -101,6 +103,7 @@ public class VcfHeaderUtils {
 	public static final String STANDARD_TEST_VCF_UUID = "##qTestVcfUUID";
 	public static final String STANDARD_CONTROL_VCF_GATK_VER = "##qControlVcfGATKVersion";
 	public static final String STANDARD_TEST_VCF_GATK_VER = "##qTestVcfGATKVersion";
+	public static final String GERMDB_DONOR_NUMBER = "##dornorNumber";
 	
   
 //	public static final String PREVIOUS_UUID_LINE = "##preUuid";
