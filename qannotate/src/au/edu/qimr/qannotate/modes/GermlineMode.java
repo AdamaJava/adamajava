@@ -2,6 +2,7 @@ package au.edu.qimr.qannotate.modes;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.Map;
 
 import org.qcmg.common.log.QLogger;
@@ -9,7 +10,7 @@ import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfRecord;
-import org.qcmg.common.vcf.header.VcfHeader;
+import org.qcmg.common.vcf.header.VcfHeader.Record;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 
@@ -46,22 +47,39 @@ public class GermlineMode extends AbstractMode{
        		0/1:C/T:C0[0],9[5],T2[20.5],12[17.92]
 	 */
  	@Override	
-	void addAnnotation(String dbGermlineFile) throws IOException {
- 		
- 		//add header line first
+	void addAnnotation(String dbGermlineFile) throws Exception {
+//		//init remove all exsiting GERM
+//		final Iterator<VcfRecord> it = positionRecordMap.values().iterator(); 
+// 	    while (it.hasNext()) {
+//	        final VcfRecord vcf = it.next();
+//	        String filter = vcf.getFilter();
+//			//remove "PASS" or "PASS;" then append GERM
+//			filter = filter.replaceAll("GERM;|;?GERM$", "");
+//			vcf.setFilter(filter);
+//	        vcf.getInfoRecord().removeField(VcfHeaderUtils.FILTER_GERMLINE);
+// 	    }
+
+ 	    //add header line first
 		header.addFilterLine(VcfHeaderUtils.FILTER_GERMLINE, VcfHeaderUtils.DESCRITPION_FILTER_GERMLINE );
- 		try(VCFFileReader reader = new VCFFileReader(new File(dbGermlineFile))){
-	 
+		File germFile = new File(dbGermlineFile);
+  		try(VCFFileReader reader = new VCFFileReader(germFile)){
+  			String date = (reader.getHeader().getFileDate() == null)? null: new VcfHeaderUtils.SplitMetaRecord(reader.getHeader().getFileDate()).getValue();
+	 		String germ = String.format("%s=<ID=%s,Number=1,Type=Integer,Description=\"%s\",Source=%s,FileDate=%s>", 
+				VcfHeaderUtils.HEADER_LINE_INFO, VcfHeaderUtils.INFO_GERMLINE,VcfHeaderUtils.DESCRITPION_INFO_GERMLINE,
+				germFile.getAbsolutePath(),  date);
+	 		header.parseHeaderLine(germ, true);
+	 		
+	 		int total = -1;	 				
+			for(Record re : reader.getHeader().getMetaRecords())
+				if(re.getData().startsWith(VcfHeaderUtils.GERMDB_DONOR_NUMBER))
+					total = Integer.parseInt( new VcfHeaderUtils.SplitMetaRecord(re).getValue());
+	 			 		
 			 String filter = null;
 			 for (final VcfRecord dbGermlineVcf : reader) {
 				final VcfRecord inputVcf = positionRecordMap.get(new ChrPosition("chr"+ dbGermlineVcf.getChromosome(), dbGermlineVcf.getPosition()));
 				if (null == inputVcf) continue;
-						 	
-				// only proceed if we have a SOMATIC variant record
-				if ( ! StringUtils.doesStringContainSubString(inputVcf.getInfo(), "SOMATIC", false)) continue;
-				
+								
 				//reference base must be same
-				//?? maybe errif( dbGermlineVcf.getRef() != dbGermlineVcf.getRef() )
 				if( !dbGermlineVcf.getRef().equals(  inputVcf.getRef()) )
 					throw new RuntimeException("reference base are different ");
 				 
@@ -73,18 +91,27 @@ public class GermlineMode extends AbstractMode{
 					//single allel
 					alts = new String[] {inputVcf.getAlt()};		
 				}
-				
-				
 							
 				if (null == alts)  continue;			
 				//annotation if at least one alts matches dbSNP alt
 				for (final String alt : alts)  
-					if(dbGermlineVcf.getAlt().toUpperCase().contains(alt.toUpperCase()) ){					
-						filter = inputVcf.getFilter();
-						//remove "PASS" or "PASS;" then append GERM
-						filter = filter.replaceAll("PASS;|;?PASS$", "");
-						inputVcf.setFilter(filter);
-						inputVcf.addFilter(VcfHeaderUtils.FILTER_GERMLINE);
+					if(dbGermlineVcf.getAlt().toUpperCase().contains(alt.toUpperCase()) ){	
+					 	
+						//remove "PASS" or "PASS;" then append GERM for somatic variants
+						if (  StringUtils.doesStringContainSubString(inputVcf.getInfo(), "SOMATIC", false)) {
+							filter = inputVcf.getFilter().replaceAll("PASS;|;?PASS$", "");
+							inputVcf.setFilter(filter);
+							inputVcf.addFilter(VcfHeaderUtils.FILTER_GERMLINE);
+						}
+						
+						try{
+							int no = Integer.parseInt(dbGermlineVcf.getInfo()); 
+							String info = (total > 0) ?  String.valueOf(no) + "," + total: String.valueOf(no);
+							inputVcf.appendInfo(VcfHeaderUtils.FILTER_GERMLINE + "=" + info);
+						}catch(Exception e){
+							throw new Exception("Exception caused by germline database vcf formart, can't find patient counts from INFO field!");
+							 
+						}
 						break;
 						
 					}
