@@ -99,9 +99,9 @@ public class Vcf2mafTest {
 		 		
 		 		
 		 		//we get consequnce with high rank, then long length, should be second annotation
-		 		assertTrue(maf.getColumnValue(51).equals("p.Thr329Pro"));
-		 		assertTrue(maf.getColumnValue(50).equals("ENST00000341065"));
-		 		assertTrue(maf.getColumnValue(52).equals("c.985A>C"));
+		 		assertTrue(maf.getColumnValue(51+1).equals("p.Thr329Pro"));
+		 		assertTrue(maf.getColumnValue(50+1).equals("ENST00000341065"));
+		 		assertTrue(maf.getColumnValue(52+1).equals("c.985A>C"));
 	 }
 	 
 	 @Test 
@@ -111,7 +111,7 @@ public class Vcf2mafTest {
 			Dmaf.setDefaultValue();
 			
 			final Vcf2maf v2m = new Vcf2maf(2,1, null, null);	//test column2; normal column 1
-			final String[] parms = {"chrY","22012840",".","C","A",".","SBIAS","VLD;FS=GTGATATTCCC;VAF=0.11;"
+			final String[] parms = {"chrY","22012840",".","C","A",".","SBIAS","VLD;FLANK=GTGATATTCCC;VAF=0.11;"
 					+ "EFF=sequence_feature[compositionally_biased_region:Glu/Lys-rich](LOW|||c.1252G>C|591|CCDC148|protein_coding|CODING|ENST00000283233|10|1),"
 					+ "splice_acceptor_variant(HIGH|||n.356G>C||CCDC148-AS1|antisense|NON_CODING|ENST00000412781|5|1)",
 					"GT:GD:AC","0/0:T/C:A1[5],0[0],C6[6.67],0[0],T1[6],21[32.81]","0/0:A/C:C8[7.62],2[2],A2[8],28[31.18]"};
@@ -129,18 +129,18 @@ public class Vcf2mafTest {
 	 		
 	 		
 	 		assertTrue(maf.getColumnValue(39).equals("HIGH" ));
-	 		assertTrue(maf.getColumnValue(51).equals(Dmaf.getColumnValue(51) ));
-	 		assertTrue(maf.getColumnValue(52).equals(Dmaf.getColumnValue(52) ));
-	 		assertTrue(maf.getColumnValue(53).equals(Dmaf.getColumnValue(53) ));
+	 		assertTrue(maf.getColumnValue(51+1).equals(Dmaf.getColumnValue(51) ));
+	 		assertTrue(maf.getColumnValue(52+1).equals(Dmaf.getColumnValue(52) ));
+	 		assertTrue(maf.getColumnValue(53+1).equals(Dmaf.getColumnValue(53) ));
 	 		assertTrue(maf.getColumnValue(1).equals("CCDC148-AS1" ));
-	 		assertTrue(maf.getColumnValue(54).equals("antisense" ));
-	 		assertTrue(maf.getColumnValue(55).equals("NON_CODING"));
-	 		assertTrue(maf.getColumnValue(50).equals("ENST00000412781" ));
-	 		assertTrue(maf.getColumnValue(56).equals("5" ));
-	 		assertTrue(maf.getColumnValue(57).equals("1" ));	
+	 		assertTrue(maf.getColumnValue(54+1).equals("antisense" ));
+	 		assertTrue(maf.getColumnValue(55+1).equals("NON_CODING"));
+	 		assertTrue(maf.getColumnValue(50+1).equals("ENST00000412781" ));
+	 		assertTrue(maf.getColumnValue(56+1).equals("5" ));
+	 		assertTrue(maf.getColumnValue(57+1).equals("1" ));	
 	 		String ontology = "splice_acceptor_variant";
-	 		assertTrue(maf.getColumnValue(58).equals(ontology ));
-	 		assertTrue(maf.getColumnValue(59).equals( SnpEffConsequence.getClassicName(ontology) ));	 		
+	 		assertTrue(maf.getColumnValue(58+1).equals(ontology ));
+	 		assertTrue(maf.getColumnValue(59+1).equals( SnpEffConsequence.getClassicName(ontology) ));	 		
 	 		assertTrue(maf.getColumnValue(40).equals(SnpEffConsequence.getConsequenceRank(ontology)+""));	 		
 	 		assertTrue(maf.getColumnValue(9).equals(SnpEffConsequence.getMafClassification(ontology) ));
 	 		
@@ -177,13 +177,13 @@ public class Vcf2mafTest {
 	 		
 	 		//"chrY","22012840",".","C","A",
 	 		//"GT:GD:AC","0/0:T/C:A1[5],0[0],C6[6.67],0[0],T1[6],21[32.81]","0/0:A/C:C8[7.62],2[2],A2[8],28[31.18]"};
-	 		assertTrue(maf.getColumnValue(44).equals("40"));  //t_deep column2
-	 		assertTrue(maf.getColumnValue(45).equals("10"));  //t_ref C8[7.62],2[2]
-	 		assertTrue(maf.getColumnValue(46).equals("30"));  //t_allel A2[8],28[31.18]
+	 		assertTrue(maf.getColumnValue(44+1).equals("40"));  //t_deep column2
+	 		assertTrue(maf.getColumnValue(45+1).equals("10"));  //t_ref C8[7.62],2[2]
+	 		assertTrue(maf.getColumnValue(46+1).equals("30"));  //t_allel A2[8],28[31.18]
 	 		
-	 		assertTrue(maf.getColumnValue(47).equals("29"));  //n_deep column1
-	 		assertTrue(maf.getColumnValue(48).equals("6")); //C6[6.67],0[0]
-	 		assertTrue(maf.getColumnValue(49).equals("1"));  //A1[5],0[0]
+	 		assertTrue(maf.getColumnValue(47+1).equals("29"));  //n_deep column1
+	 		assertTrue(maf.getColumnValue(48+1).equals("6")); //C6[6.67],0[0]
+	 		assertTrue(maf.getColumnValue(49+1).equals("1"));  //A1[5],0[0]
 	 		
 	 		//other column
 	 		assertTrue(maf.getColumnValue(41).equals(SnpEffMafRecord.Unknown));  //NNS
@@ -210,8 +210,8 @@ public class Vcf2mafTest {
 	 		for (final VcfRecord vcf : reader){  		
 	 			SnpEffMafRecord maf  = v2m.converter(vcf);
 	 			
-	 			assertTrue(maf.getColumnValue(51).equals("p.Met1?"));
-	 			assertTrue(maf.getColumnValue(52).equals(SnpEffMafRecord.Null));
+	 			assertTrue(maf.getColumnValue(51+1).equals("p.Met1?"));
+	 			assertTrue(maf.getColumnValue(52+1).equals(SnpEffMafRecord.Null));
  			 
 	 		}	
          }	  
@@ -272,9 +272,9 @@ public class Vcf2mafTest {
 	 		for (final VcfRecord vcf : reader){  		
 	 			SnpEffMafRecord maf  = v2m.converter(vcf);
 		 		//we get consequnce with high rank, then long length, should be second annotation
-		 		assertTrue(maf.getColumnValue(51).equals("p.Val600Lys"));
-		 		assertTrue(maf.getColumnValue(50).equals("ENST00000288602"));
-		 		assertTrue(maf.getColumnValue(52).equals("c.1798GT>AA"));
+		 		assertTrue(maf.getColumnValue(51+1).equals("p.Val600Lys"));
+		 		assertTrue(maf.getColumnValue(50+1).equals("ENST00000288602"));
+		 		assertTrue(maf.getColumnValue(52+1).equals("c.1798GT>AA"));
 
 	 		}	
          }			 

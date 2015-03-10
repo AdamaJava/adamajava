@@ -19,6 +19,8 @@ public class SnpEffMafRecord {
 	
 	public static final String Version = "#version 2.4.1";
 	
+	public final static int column = 60; 
+	private String[] maf = new String[column];	
 	
 	public enum mutation_status{ 
 		None, Germline,Somatic,LOH,PostTranscriptional, modification,Unknown;
@@ -55,10 +57,8 @@ public class SnpEffMafRecord {
 	
 	};
 		
-	String[] maf = new String[59];
-	
-	//all 58 set methods
 
+	//all 58 set methods
 	public String getMafLine() {
 		String line = maf[0];
 		for (int i = 1; i < maf.length; i++)
@@ -90,7 +90,8 @@ public class SnpEffMafRecord {
 	
 	
 	public static String getSnpEffMafHeaderline(){
-		final String[] str = new String[59];
+
+		final String[] str = new String[column];
 		str[0] = "Hugo_Symbol";
 		str[1] = "Entrez_Gene_Id";
 		str[2] = "Center";
@@ -129,31 +130,31 @@ public class SnpEffMafRecord {
 		str[35] = "ND";
 		str[36] = "TD";
 		str[37] = "confidence";
-		str[38] = "Eff_Impact"; //old "consequence";
-	
+		str[38] = "Eff_Impact"; //old "consequence";	
 		str[39] = "Consequnce_rank";
 		str[40] = "novel_starts"; //old CpG 
 		str[41] = "Var_Plus_Flank"; 
 		str[42] = "Variant_AF";//old GMAF 
-		str[43] = "t_depth"; 
-		str[44] = "t_ref_count"; 
-		str[45] = "t_alt_count"; 
-		str[46] = "n_depth"; 
-		str[47] = "n_ref_count"; 
-		str[48] = "n_alt_count"; 
-		str[49] = "Transcript_ID"; //must be p. or unkown
-		str[50] = "Amino_Acid_Change"; 
-		str[51] = "CDS_change";  
-		str[52] = "Condon_Change";//old Amino_Acid_Length 
-		str[53] = "Transcript_BioType";  
-		str[54] = "Gene_Coding"; 
-		str[55] = "Exon/Intron_Rank";//Exon_Rank 
-		str[56] = "Genotype_Number"; 
-		str[57] = "effect_ontology"; 
-		str[58] = "effect_class"; 		
+		str[43] = "Germ_Counts"; //frequency in germline DB
+		str[44] = "t_depth";     
+		str[45] = "t_ref_count";     
+		str[46] = "t_alt_count";     
+		str[47] = "n_depth";     
+		str[48] = "n_ref_count";     
+		str[49] = "n_alt_count";     
+		str[50] = "Transcript_ID"; //must be p. or unkown
+		str[51] = "Amino_Acid_Change";     
+		str[52] = "CDS_change";     
+		str[53] = "Condon_Change";//old Amino_Acid_Length    
+		str[54] = "Transcript_BioType";     
+		str[55] = "Gene_Coding";     
+		str[56] = "Exon/Intron_Rank";//Exon_Rank     
+		str[57] = "Genotype_Number";     
+		str[58] = "effect_ontology";     
+		str[59] = "effect_class"; 
 		
 		String line = str[0];
-		for (int i = 1; i < 59; i++)
+		for (int i = 1; i < column; i++)
 			line += "\t" + str[i];
 		
 		return line;
@@ -205,25 +206,24 @@ public class SnpEffMafRecord {
 		maf[40] = Unknown; //"novel_starts";  
 		maf[41] = Unknown; //"Var_Plus_Flank"; Cpg;  
 		maf[42] = Unknown; //"Variant_AF""GMAF"; 
-		maf[43] = "-1"; //t_depth  
-		maf[44] = "-1"; //t_ref_count 
-		maf[45] = "-1"; //t_alt_count 
-		maf[46] = "-1"; //n_depth  
-		maf[47] = "-1"; //n_ref_count 
-		maf[48] = "-1"; //n_alt_count   
-		maf[49] = Null; //Transcript_ID 
-		maf[50] = Null; //Amino_Acid_Change  
-		maf[51] = Null; //CDS_change 
-		maf[52] =  Null; //"Condon_Change",Amino_Acid_Length 
-		maf[53] = Null; //Transcript_BioType 
-		maf[54] = Null; //Gene_Coding 
-		maf[55] = Null; //"Exon/Intron_Rank",Exon_Rank 
-		maf[56] = Null; //Genotype_Number 
-		maf[57] = Null; //effect_ontology 
-		maf[58] = Null; //effect_class 
+		maf[43] = "0,0"; //germ_counts  		
+		maf[44] = "-1"; //t_depth
+		maf[45] = "-1"; //t_ref_count
+		maf[46] = "-1"; //t_alt_count
+		maf[47] = "-1"; //n_depth
+		maf[48] = "-1"; //n_ref_count
+		maf[49] = "-1"; //n_alt_count
+		maf[50] = Null; //Transcript_ID
+		maf[51] = Null; //Amino_Acid_Change
+		maf[52] = Null; //CDS_change
+		maf[53] = Null; //Condon_Change"",Amino_Acid_Length"
+		maf[54] = Null; //Transcript_BioType
+		maf[55] = Null; //Gene_Coding
+		maf[56] = Null; //Exon/Intron_Rank"",Exon_Rank"
+		maf[57] = Null; //Genotype_Number
+		maf[58] = Null; //effect_ontology
+		maf[59] = Null; //effect_class
 		
-		
-
 	}
 
 }

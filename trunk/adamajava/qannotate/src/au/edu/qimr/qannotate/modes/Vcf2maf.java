@@ -213,8 +213,10 @@ public class Vcf2maf extends AbstractMode{
 		final VcfInfoFieldRecord info =  new VcfInfoFieldRecord(vcf.getInfo());
 //		if(info.getField(VcfHeaderUtils.FORMAT_NOVEL_STARTS) != null) maf.setColumnValue(40,  info.getField(VcfHeaderUtils.FORMAT_NOVEL_STARTS));
 		if(info.getField(VcfHeaderUtils.INFO_CONFIDENT) != null)	maf.setColumnValue(38,  info.getField(VcfHeaderUtils.INFO_CONFIDENT) );
-		if(info.getField(VcfHeaderUtils.INFO_FS) != null) maf.setColumnValue(41+1,  info.getField(VcfHeaderUtils.INFO_FS));
+//		if(info.getField(VcfHeaderUtils.INFO_FS) != null) maf.setColumnValue(41+1,  info.getField(VcfHeaderUtils.INFO_FS));
+		if(info.getField(VcfHeaderUtils.INFO_FLANKING_SEQUENCE) != null) maf.setColumnValue(41+1,  info.getField(VcfHeaderUtils.INFO_FLANKING_SEQUENCE));
 		if(info.getField(VcfHeaderUtils.INFO_VAF) != null) maf.setColumnValue(42+1,  info.getField(VcfHeaderUtils.INFO_VAF));		
+		if(info.getField(VcfHeaderUtils.INFO_GERMLINE) != null) maf.setColumnValue(44,  info.getField(VcfHeaderUtils.INFO_GERMLINE));		
 
 		String eff; 
 		if( (eff = info.getField(VcfHeaderUtils.INFO_EFFECT)) != null)
@@ -232,9 +234,9 @@ public class Vcf2maf extends AbstractMode{
 		
 		if(Tvalues[1] != null){	//allesls counts
 			maf.setColumnValue(37,  Tvalues[1]);
-	    	maf.setColumnValue(44, Integer.toString( VcfUtils.getAltFrequency(sample, null)));
-	    	maf.setColumnValue(45, Integer.toString( VcfUtils.getAltFrequency(sample, vcf.getRef()))); 
-	    	maf.setColumnValue(46, Integer.toString( VcfUtils.getAltFrequency(sample, vcf.getAlt())));
+	    	maf.setColumnValue(44+1, Integer.toString( VcfUtils.getAltFrequency(sample, null)));
+	    	maf.setColumnValue(45+1, Integer.toString( VcfUtils.getAltFrequency(sample, vcf.getRef()))); 
+	    	maf.setColumnValue(46+1, Integer.toString( VcfUtils.getAltFrequency(sample, vcf.getAlt())));
 	    	maf.setColumnValue(12,  Tvalues[2] );  //TD allele1
 	    	maf.setColumnValue(13, Tvalues[3]);		//TD allele2
 		}
@@ -245,9 +247,9 @@ public class Vcf2maf extends AbstractMode{
 		
 		if(Nvalues[1] != null){	//allesls counts
 			maf.setColumnValue(36,  Nvalues[1]);
-	    	maf.setColumnValue(47, Integer.toString( VcfUtils.getAltFrequency(sample, null)));
-	    	maf.setColumnValue(48, Integer.toString( VcfUtils.getAltFrequency(sample, vcf.getRef()))); 
-	    	maf.setColumnValue(49, Integer.toString( VcfUtils.getAltFrequency(sample, vcf.getAlt())));
+	    	maf.setColumnValue(47+1, Integer.toString( VcfUtils.getAltFrequency(sample, null)));
+	    	maf.setColumnValue(48+1, Integer.toString( VcfUtils.getAltFrequency(sample, vcf.getRef()))); 
+	    	maf.setColumnValue(49+1, Integer.toString( VcfUtils.getAltFrequency(sample, vcf.getAlt())));
 	    	maf.setColumnValue(18,  Nvalues[2] );  //ND allele1
 	    	maf.setColumnValue(19, Nvalues[3]);	//ND allele2
 		}		
@@ -366,9 +368,9 @@ public class Vcf2maf extends AbstractMode{
 			final String ontolog = effAnno.substring(0, effAnno.indexOf("("));		
 			final String annotate = effAnno.substring( effAnno.indexOf("(") + 1, effAnno.indexOf(")"));	
 	
-			maf.setColumnValue(58, ontolog); //effect_ontology
+			maf.setColumnValue(58+1, ontolog); //effect_ontology
 			String str = SnpEffConsequence.getClassicName(ontolog);
-			if(str != null) maf.setColumnValue(59, str);
+			if(str != null) maf.setColumnValue(59+1, str);
 			str = SnpEffConsequence.getMafClassification(ontolog);
 			if(str != null) maf.setColumnValue(9, str); //eg. RNA
 			
@@ -381,19 +383,19 @@ public class Vcf2maf extends AbstractMode{
 			if(effs[3].startsWith("p.")){
 				int pos = effs[3].indexOf(Constants.SLASH_STRING);
 				if(pos >= 0 ){
-					maf.setColumnValue(50+1,effs[3].substring(0, pos));
-					maf.setColumnValue(51+1,effs[3].substring(pos+1));
+					maf.setColumnValue(50+1+1,effs[3].substring(0, pos));
+					maf.setColumnValue(51+1+1,effs[3].substring(pos+1));
 				}else
-					maf.setColumnValue(50+1,effs[3]);
-				if(! StringUtils.isNullOrEmpty(effs[2]))  maf.setColumnValue(52+1,effs[2]);
+					maf.setColumnValue(50+1+1,effs[3]);
+				if(! StringUtils.isNullOrEmpty(effs[2]))  maf.setColumnValue(52+1+1,effs[2]);
 			}
 						
 			if(! StringUtils.isNullOrEmpty(effs[5]))  maf.setColumnValue(1, effs[5]);//Gene_Name DDX11L1		
-			if(! StringUtils.isNullOrEmpty(effs[6]))  maf.setColumnValue(53+1,effs[6]);//bioType 	protein_coding		
-			if(! StringUtils.isNullOrEmpty(effs[7]))  maf.setColumnValue(54+1,effs[7]);				
-			if(! StringUtils.isNullOrEmpty(effs[8]))  maf.setColumnValue(49+1,effs[8]);
-			if(! StringUtils.isNullOrEmpty(effs[9]))  maf.setColumnValue(55+1,effs[9]);
-			if(! StringUtils.isNullOrEmpty(effs[10])) maf.setColumnValue(56+1,effs[10]);		
+			if(! StringUtils.isNullOrEmpty(effs[6]))  maf.setColumnValue(53+1+1,effs[6]);//bioType 	protein_coding		
+			if(! StringUtils.isNullOrEmpty(effs[7]))  maf.setColumnValue(54+1+1,effs[7]);				
+			if(! StringUtils.isNullOrEmpty(effs[8]))  maf.setColumnValue(49+1+1,effs[8]);
+			if(! StringUtils.isNullOrEmpty(effs[9]))  maf.setColumnValue(55+1+1,effs[9]);
+			if(! StringUtils.isNullOrEmpty(effs[10])) maf.setColumnValue(56+1+1,effs[10]);		
  	 }
 	 	
 	/**
