@@ -74,17 +74,20 @@ public class SnpEffMafRecord {
 	 * @param value: column value number will show on maf file
 	 * @throws Exception if column number byond [1,57] or non integer string for column 2, 4, 6, 7, 43-48
 	 */
+	
 	public void setColumnValue(int colNum, String value) throws Exception{
 		if(colNum > maf.length || colNum < 1)
 			throw new Exception("invalid column number byond maf record column size: " + colNum);
-		
-		if(colNum == 2 || colNum == 4 || colNum == 6 || colNum == 7 || (colNum > 43 && colNum <= 48 ))
+
+		//		if(colNum == 2 || colNum == 4 || colNum == 6 || colNum == 7 || (colNum > 43 && colNum <= 48 ))		
+		if(colNum == 2 || colNum == 4 || colNum == 6 || colNum == 7 || (colNum >= 45 && colNum <= 50 ))
 			if(!value.matches("\\d+")) 
 				throw new Exception(String.format("Column %d can't accept non Integer number: %s.", colNum, value)) ;
 		
 		maf[colNum - 1] = value;		
 	}
-	public String getColumnValue(int colNum ) throws Exception{
+	
+	public String getColumnValue(int colNum ) throws Exception{		
 		return maf[colNum - 1] ;		
 	}	
 	

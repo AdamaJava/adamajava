@@ -16,9 +16,10 @@ import org.qcmg.common.log.*;
  * Consequence are happened at protein_coding with impact HIGH, MODERATE or LOW
  */
 public enum SnpEffConsequence {
-	
+	//decide whether DEL or Ins 
+//frameshift_variant 	FRAME_SHIFT	Insertion or deletion causes a frame shift	HIGH	Frame_Shift_Del, Frame_Shift_Ins (depends on variant type)	1	Frame_Shift_DelORFrame_Shift_Ins(dependsonvarianttype)			
+//+	
 
-	 
 	CHROMOSOME_LARGE_DELETION("chromosome",50,"RNA"),   //???
 	EXON_DELETED("exon_loss_variant",50,"RNA"),
 	FRAME_SHIFT("frameshift_variant",1,"Frame_Shift_DelORFrame_Shift_Ins(dependsonvarianttype)"),
@@ -61,10 +62,58 @@ public enum SnpEffConsequence {
 	TRANSCRIPT("transcript_variant",100,"RNA"),
 	UPSTREAM("upstream_gene_variant",100,"5'Flank"),
 	
+	
+		//below calssic Effect are guessing only
+	FRAME_SHIFT_GAIN("frameshift_variant+stop_gained", 1,"Frame_Shift_DelORFrame_Shift_Ins(dependsonvarianttype)"),
+	UTR_5_PRIME1( "5_prime_UTR_truncation+exon_loss_variant", 1, "notSure"),
+	INFRAME_DEL( "disruptive_inframe_deletion+synonymous_variant", 1, "notSure"),
+	INFRAME_INS( "disruptive_inframe_insertion+synonymous_variant", 1, "notSure"),
+	EXON_LOSS1( "exon_loss_variant+frameshift_variant+start_lost+synonymous_variant", 1, "notSure"),
+	EXON_LOSS2( "exon_loss_variant+frameshift_variant+stop_gained", 1, "notSure"),
+	EXON_LOSS3( "exon_loss_variant+start_lost", 1, "notSure"),
+	EXON_LOSS4( "exon_loss_variant+start_lost+synonymous_variant", 1, "notSure"),
+	EXON_LOSS5( "exon_loss_variant+stop_gained+synonymous_variant", 1, "notSure"),
+	EXON_LOSS6( "exon_loss_variant+stop_lost", 1, "notSure"),
+	EXON_LOSS7( "exon_loss_variant+stop_lost+synonymous_variant", 1, "notSure"),
+	EXON_LOSS8( "exon_loss_variant+synonymous_variant", 1, "notSure"),
+	FRAME_SHIFT1( "frameshift_variant+missense_variant", 1, "notSure"),
+	FRAME_SHIFT2( "frameshift_variant+start_lost", 1, "notSure"),
+	FRAME_SHIFT3( "frameshift_variant+stop_gained", 1, "notSure"),
+	FRAME_SHIFT4( "frameshift_variant+stop_gained+missense_variant", 1, "notSure"),
+	FRAME_SHIFT5( "frameshift_variant+stop_lost", 1, "notSure"),
+	FRAME_SHIFT6( "frameshift_variant+stop_lost+stop_retained_variant", 1, "notSure"),
+	FRAME_SHIFT7( "frameshift_variant+stop_lost+synonymous_variant", 1, "notSure"),
+	FRAME_SHIFT8( "frameshift_variant+stop_retained_variant", 1, "notSure"),
+	FRAME_SHIFT9( "frameshift_variant+synonymous_variant", 1, "notSure"),
+	FRAME_SHIFT10( "inframe_deletion+synonymous_variant", 1, "notSure"),
+	MISSENSE( "missense_variant+disruptive_inframe_deletion", 1, "notSure"),
+	MISSENSE1( "missense_variant+disruptive_inframe_insertion", 1, "notSure"),
+	MISSENSE2( "missense_variant+inframe_deletion", 1, "notSure"),
+	MISSENSE3( "missense_variant+inframe_insertion", 1, "notSure"),
+	START_LOSS1( "start_lost+inframe_deletion", 1, "notSure"),
+	START_LOSS2( "start_lost+inframe_deletion+initiator_codon_variant+non_canonical_start_codon", 1, "notSure"),
+	START_LOSS3( "start_lost+inframe_insertion", 1, "notSure"),
+	START_LOSS4( "start_lost+inframe_insertion+initiator_codon_variant", 1, "notSure"),
+	START_LOSS5( "start_lost+initiator_codon_variant", 1, "notSure"),
+	STOP_GAIN1( "stop_gained+disruptive_inframe_insertion", 1, "notSure"),
+	STOP_GAIN2( "stop_gained+inframe_deletion", 1, "notSure"),
+	STOP_GAIN3( "stop_gained+inframe_insertion", 1, "notSure"),
+	STOP_GAIN4( "stop_gained+missense_variant", 1, "notSure"),
+	STOP_GAIN5( "stop_gained+missense_variant+disruptive_inframe_deletion", 1, "notSure"),
+	STOP_GAIN6( "stop_gained+missense_variant+inframe_insertion", 1, "notSure"),
+	STOP_GAIN7( "stop_gained+start_lost", 1, "notSure"),
+	STOP_GAIN8( "stop_lost+inframe_deletion", 1, "notSure"),
+	STOP_GAIN9( "stop_lost+inframe_deletion+synonymous_variant", 1, "notSure"),
+	STOP_GAIN10( "stop_lost+missense_variant+inframe_deletion", 1, "notSure"),
+	STOP_GAIN11( "stop_lost+stop_retained_variant", 1, "notSure"),
+
+//	FRAME_SHIFT("frameshift_variant",1,"Frame_Shift_DelORFrame_Shift_Ins(dependsonvarianttype)"),
+
 	//below require snpEff classic run
 	EXON_NON_CODING("non_coding_exon_variant",100,"unknown"),  //should be "EXON"
 	NEXT_PROT("sequence_feature",200,"unknown") ,
 	MOTIF("TF_binding_site_variant", 200, "unknown");
+	
 
 	
 	

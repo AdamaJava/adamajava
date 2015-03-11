@@ -71,51 +71,54 @@ public class GermlineMode extends AbstractMode{
 	 		
 	 		int total = -1;	 				
 			for(Record re : reader.getHeader().getMetaRecords())
-				if(re.getData().startsWith(VcfHeaderUtils.GERMDB_DONOR_NUMBER))
-					total = Integer.parseInt( new VcfHeaderUtils.SplitMetaRecord(re).getValue());
+				if(re.getData().startsWith(VcfHeaderUtils.GERMDB_DONOR_NUMBER)) 
+					try{
+						total = Integer.parseInt( new VcfHeaderUtils.SplitMetaRecord(re).getValue());
+					}catch(Exception e){
+						total = 0; 
+					}
+				 
 	 			 		
 			 String filter = null;
 			 for (final VcfRecord dbGermlineVcf : reader) {
 				final VcfRecord inputVcf = positionRecordMap.get(new ChrPosition("chr"+ dbGermlineVcf.getChromosome(), dbGermlineVcf.getPosition()));
-				if (null == inputVcf) continue;
+				if (null == inputVcf) 
+					continue;
 								
 				//reference base must be same
 				if( !dbGermlineVcf.getRef().equals(  inputVcf.getRef()) )
-					throw new RuntimeException("reference base are different ");
+					throw new RuntimeException("reference base are different ");	
+								
+				int counts = 0; 
+//				String germInfo = (total > 0 )? "0," + total: "0";							
 				 
 	 			String [] alts = null; 
-				try{
-					//multi allels
-					alts = TabTokenizer.tokenize(inputVcf.getAlt(), ',');
-				}catch(final IllegalArgumentException e){
-					//single allel
-					alts = new String[] {inputVcf.getAlt()};		
+				try{					
+					alts = TabTokenizer.tokenize(inputVcf.getAlt(), ',');	//multi allels
+				}catch(final IllegalArgumentException e){					
+					alts = new String[] {inputVcf.getAlt()};		//single allel
 				}
 							
-				if (null == alts)  continue;			
-				//annotation if at least one alts matches dbSNP alt
-				for (final String alt : alts)  
-					if(dbGermlineVcf.getAlt().toUpperCase().contains(alt.toUpperCase()) ){	
-					 	
-						//remove "PASS" or "PASS;" then append GERM for somatic variants
-						if (  StringUtils.doesStringContainSubString(inputVcf.getInfo(), "SOMATIC", false)) {
-							filter = inputVcf.getFilter().replaceAll("PASS;|;?PASS$", "");
-							inputVcf.setFilter(filter);
-							inputVcf.addFilter(VcfHeaderUtils.FILTER_GERMLINE);
-						}
-						
-						try{
-							int no = Integer.parseInt(dbGermlineVcf.getInfo()); 
-							String info = (total > 0) ?  String.valueOf(no) + "," + total: String.valueOf(no);
-							inputVcf.appendInfo(VcfHeaderUtils.FILTER_GERMLINE + "=" + info);
-						}catch(Exception e){
-							throw new Exception("Exception caused by germline database vcf formart, can't find patient counts from INFO field!");
-							 
-						}
-						break;
-						
-					}
-			 	}
+				if (null != alts)					
+					for (final String alt : alts)  //annotation if at least one alts matches dbSNP alt
+						if(dbGermlineVcf.getAlt().toUpperCase().contains(alt.toUpperCase()) ){							 	
+							//remove "PASS" or "PASS;" then append GERM for somatic variants
+							if (  StringUtils.doesStringContainSubString(inputVcf.getInfo(), "SOMATIC", false)) {
+								filter = inputVcf.getFilter().replaceAll("PASS;|;?PASS$", "");
+								inputVcf.setFilter(filter);
+								inputVcf.addFilter(VcfHeaderUtils.FILTER_GERMLINE);
+							}							
+							try{
+								counts = Integer.parseInt(dbGermlineVcf.getInfo()); 
+							}catch(Exception e){
+								throw new Exception("Exception caused by germline database vcf formart, can't find patient counts from INFO field!");								 
+							}
+							break;							
+						} 
+				
+				String germInfo = (total > 0) ?  String.valueOf(counts) + "," + total: String.valueOf(counts);									
+				inputVcf.appendInfo(VcfHeaderUtils.FILTER_GERMLINE + "=" + germInfo);
+			 }
  		}
  	}
 	
