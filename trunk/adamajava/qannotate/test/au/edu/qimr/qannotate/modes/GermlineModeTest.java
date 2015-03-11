@@ -63,13 +63,17 @@ public class GermlineModeTest {
 	 				i ++;
 					if(re.getPosition() == 2675826){						
 						assertTrue(re.getId().equals(Constants.MISSING_DATA_STRING));
-						assertTrue(re.getFilter().equals("COVN12;MIUN"));		
+						assertTrue(re.getFilter().equals("COVN12;MIUN"));	
+						assertTrue(re.getInfoRecord().getField(VcfHeaderUtils.INFO_GERMLINE).equals("0,185"));	
 					}else if(re.getPosition() == 14923588)
 						assertTrue(re.getFilter().equals(VcfHeaderUtils.FILTER_GERMLINE));		
-					else if(re.getPosition() == 22012840 || re.getPosition() == 22012841 ||re.getPosition() == 22012842 )
-						assertTrue(re.getFilter().equals("MIUN;" + VcfHeaderUtils.FILTER_GERMLINE));						
-					else if(re.getPosition() == 22012843)
+					else if(re.getPosition() == 22012840 || re.getPosition() == 22012841 ||re.getPosition() == 22012842 ){
+						assertTrue(re.getFilter().equals("MIUN;" + VcfHeaderUtils.FILTER_GERMLINE));	
+						assertTrue(re.getInfoRecord().getField(VcfHeaderUtils.INFO_GERMLINE).equals("86,185"));	
+					}else if(re.getPosition() == 22012843){
 						assertTrue(re.getFilter().equals(Constants.MISSING_DATA_STRING));	
+						assertTrue(re.getInfoRecord().getField(VcfHeaderUtils.INFO_GERMLINE).equals("0,185"));	
+					}
 				}
 				assertTrue(i == 6);
 			 }
@@ -99,6 +103,7 @@ public class GermlineModeTest {
 	 				i ++;
 	 				if (re.getPosition() == 14923588) {
 						assertTrue(re.getFilter().equals(Constants.MISSING_DATA_STRING));
+						assertTrue(re.getInfoRecord().getField(VcfHeaderUtils.INFO_GERMLINE).equals("86,185"));
 	 				}
 				}
 				assertTrue(i == 1);
@@ -137,6 +142,7 @@ public class GermlineModeTest {
         final List<String> data = new ArrayList<String>();
         data.add("##fileformat=VCFv4.0");
         data.add("##search_string=GermlineSNV.dcc1");  
+        data.add("##dornorNumber=185");
         data.add("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO");
         data.add("Y\t2675826\t.\tC\tA\t.\t.\t86");
         data.add("Y\t14923588\t.\tG\tA,T\t.\t.\t86");
