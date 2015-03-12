@@ -12,7 +12,6 @@ package org.qcmg.qprofiler.fastq;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -43,7 +42,7 @@ public class FastqSummaryReport extends SummaryReport {
 	
 	
 	ConcurrentMap<String, AtomicLong> kmers = new ConcurrentHashMap<>();
-	ConcurrentMap<String, AtomicLongArray> kmerArrays = new ConcurrentHashMap<>();
+//	ConcurrentMap<String, AtomicLongArray> kmerArrays = new ConcurrentHashMap<>();
 
 	//QUAL
 	private final SummaryByCycleNew2<Integer> qualByCycleInteger = new SummaryByCycleNew2<Integer>(i, 512);
@@ -140,42 +139,42 @@ public class FastqSummaryReport extends SummaryReport {
 			// print some stats on the kmerArray
 			
 			// first need to get kmer length and largest read length
-			int readLength = 0;
-			for (Integer i : seqLineLengths.keySet()) {
-				if (i.intValue() > readLength) {
-					readLength = i.intValue();
-				}
-			}
-			// kmer lengths should all be the same
-			int kmerLength = kmers.entrySet().iterator().next().getKey().length();
-			
-			int allowedDiff = 100000;
-			int binSize = 10;
-			
-			for (Entry<String, AtomicLongArray> entry : kmerArrays.entrySet()) {
-				String kmer = entry.getKey();
-				AtomicLongArray ala = entry.getValue();
-				long firstBinAve = 0, lastBinAve = 10;
-				long firstBinCounter = 0, lastBinCounter = 0;
-				for (int i = 0 ; i < readLength - kmerLength; i++) {
-					long currentValue = ala.get(i);
-					if (i < binSize) {
-						firstBinAve +=currentValue;
-						firstBinCounter++;
-					} else if ( i >= (readLength - kmerLength - 10)) {
-						lastBinAve += currentValue;
-						lastBinCounter++;
-					}
-				}
-				// calculate the averages
-				long ftAve = firstBinAve / firstBinCounter;
-				long ltAve = lastBinAve / lastBinCounter;
-				long diff = ltAve - ftAve;
-				if (Math.abs(diff) > allowedDiff) {
-					logger.info("distribution differs by more than " + allowedDiff + " between first " + binSize + " and last " + binSize + " for kmer: " + kmer);
-					logger.info("ftAve: " + ftAve + ", ltAve: " + ltAve + ", firstBinCounter: " + firstBinCounter + ", lastBinCounter: " + lastBinCounter);
-				}
-			}
+//			int readLength = 0;
+//			for (Integer i : seqLineLengths.keySet()) {
+//				if (i.intValue() > readLength) {
+//					readLength = i.intValue();
+//				}
+//			}
+//			// kmer lengths should all be the same
+//			int kmerLength = kmers.entrySet().iterator().next().getKey().length();
+//			
+//			int allowedDiff = 100000;
+//			int binSize = 10;
+//			
+//			for (Entry<String, AtomicLongArray> entry : kmerArrays.entrySet()) {
+//				String kmer = entry.getKey();
+//				AtomicLongArray ala = entry.getValue();
+//				long firstBinAve = 0, lastBinAve = 10;
+//				long firstBinCounter = 0, lastBinCounter = 0;
+//				for (int i = 0 ; i < readLength - kmerLength; i++) {
+//					long currentValue = ala.get(i);
+//					if (i < binSize) {
+//						firstBinAve +=currentValue;
+//						firstBinCounter++;
+//					} else if ( i >= (readLength - kmerLength - 10)) {
+//						lastBinAve += currentValue;
+//						lastBinCounter++;
+//					}
+//				}
+//				// calculate the averages
+//				long ftAve = firstBinAve / firstBinCounter;
+//				long ltAve = lastBinAve / lastBinCounter;
+//				long diff = ltAve - ftAve;
+//				if (Math.abs(diff) > allowedDiff) {
+//					logger.info("distribution differs by more than " + allowedDiff + " between first " + binSize + " and last " + binSize + " for kmer: " + kmer);
+//					logger.info("ftAve: " + ftAve + ", ltAve: " + ltAve + ", firstBinCounter: " + firstBinCounter + ", lastBinCounter: " + lastBinCounter);
+//				}
+//			}
 		}
 	}
 	
@@ -197,11 +196,12 @@ public class FastqSummaryReport extends SummaryReport {
 				SummaryReportUtils.tallyBadReadsAsString(readBases, seqBadReadLineLengths);
 				
 				// split read into 6-mers and tally
-				int kmerLength = 6;
+				int kmerLength = 12;
+//				int kmerLength = 6;
 				for (int i = 0, len = readBases.length - kmerLength ; i < len ; i++) {
 					String kmer = new String(Arrays.copyOfRange(readBases, i, i+kmerLength));
 					updateMap(kmers, kmer);
-					updateMapAndPosition(kmerArrays, kmer, i);
+//					updateMapAndPosition(kmerArrays, kmer, i);
 				}
 				
 

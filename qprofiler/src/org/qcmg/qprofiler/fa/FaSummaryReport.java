@@ -47,7 +47,7 @@ public class FaSummaryReport extends SummaryReport {
 			updateRecordsParsed();
 				
 			// split read into 6-mers and tally
-			int kmerLength = 6;
+			int kmerLength = 12;
 			for (int i = 0, len = record.length - kmerLength ; i < len ; i++) {
 				String kmer = new String(Arrays.copyOfRange(record, i, i+kmerLength));
 				updateMap(kmers, kmer);
