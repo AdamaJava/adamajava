@@ -656,7 +656,7 @@ public class PipelineTest {
 		final Accumulator normal = new Accumulator(100);
 		normal.addBase((byte)'C', (byte)30, true, 100, 100, 200, 1);
 		pipeline.checkForStrandBias(snp, normal, null, 'A');
-		assertEquals(SnpUtils.STRAND_BIAS, snp.getAnnotation());
+		assertEquals(SnpUtils.STRAND_BIAS_ALT, snp.getAnnotation());
 		// reset
 		snp.getVcfRecord().setFilter(null);
 		
@@ -675,7 +675,7 @@ public class PipelineTest {
 		// switch to germline and try again
 		snp.setClassification(Classification.SOMATIC);
 		pipeline.checkForStrandBias(snp, normal, tumour, 'A');
-		assertEquals(SnpUtils.STRAND_BIAS, snp.getAnnotation());
+		assertEquals(SnpUtils.STRAND_BIAS_ALT, snp.getAnnotation());
 		
 		// reset
 		snp.getVcfRecord().setFilter(null);
@@ -697,7 +697,7 @@ public class PipelineTest {
 		final Accumulator tumour = new Accumulator(100);
 		tumour.addBase((byte)'C', (byte)30, true, 100, 100, 200, 1);
 		pipeline.checkForStrandBias(snp, null, tumour, 'A');
-		assertEquals(SnpUtils.STRAND_BIAS, snp.getAnnotation());
+		assertEquals(SnpUtils.STRAND_BIAS_ALT, snp.getAnnotation());
 		// reset
 		snp.getVcfRecord().setFilter(null);
 		
@@ -716,7 +716,7 @@ public class PipelineTest {
 		// switch to germline and try again
 		snp.setClassification(Classification.GERMLINE);
 		pipeline.checkForStrandBias(snp, normal, tumour, 'A');
-		assertEquals(SnpUtils.STRAND_BIAS, snp.getAnnotation());
+		assertEquals(SnpUtils.STRAND_BIAS_ALT, snp.getAnnotation());
 		
 		// reset
 		snp.getVcfRecord().setFilter(null);

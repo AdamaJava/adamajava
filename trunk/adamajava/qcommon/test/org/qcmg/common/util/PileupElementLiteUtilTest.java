@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Assert;
 import org.junit.Test;
 import org.qcmg.common.model.Accumulator;
+import org.qcmg.common.model.PileupElementLite;
 import org.qcmg.common.model.Rule;
 
 public class PileupElementLiteUtilTest {
@@ -35,6 +36,68 @@ public class PileupElementLiteUtilTest {
 		
 		assertEquals(false, PileupElementLiteUtil.passesWeightedVotingCheck(100, 2, (double)5/2));
 		assertEquals(true, PileupElementLiteUtil.passesWeightedVotingCheck(100, 3, (double)5/2));
+	}
+	
+	@Test
+	public void strandBias() {
+		try {
+			PileupElementLiteUtil.areBothStrandsRepresented(null, -1);
+			Assert.fail("Should have thrown an exception");
+		} catch (IllegalArgumentException iae) {}
+		
+		PileupElementLite pel = new PileupElementLite();
+		try {
+			PileupElementLiteUtil.areBothStrandsRepresented(pel, -1);
+			Assert.fail("Should have thrown an exception");
+		} catch (IllegalArgumentException iae) {}
+		
+		assertEquals(false, PileupElementLiteUtil.areBothStrandsRepresented(pel,0));
+		assertEquals(false, PileupElementLiteUtil.areBothStrandsRepresented(pel,10));
+		assertEquals(false, PileupElementLiteUtil.areBothStrandsRepresented(pel,100));
+		
+		// add some data to pel
+		pel.addForwardQuality((byte) 64, 100, 1);
+		assertEquals(false, PileupElementLiteUtil.areBothStrandsRepresented(pel,0));
+		assertEquals(false, PileupElementLiteUtil.areBothStrandsRepresented(pel,10));
+		assertEquals(false, PileupElementLiteUtil.areBothStrandsRepresented(pel,100));
+		
+		// now add in some reverse strand data
+		pel.addReverseQuality((byte) 64, 100, 1);
+		assertEquals(true, PileupElementLiteUtil.areBothStrandsRepresented(pel,0));
+		assertEquals(true, PileupElementLiteUtil.areBothStrandsRepresented(pel,49));
+		assertEquals(true, PileupElementLiteUtil.areBothStrandsRepresented(pel,50));
+		assertEquals(false, PileupElementLiteUtil.areBothStrandsRepresented(pel,51));
+	}
+	
+	@Test
+	public void strandBiasRealData() {
+		try {
+			PileupElementLiteUtil.areBothStrandsRepresented(null, -1);
+			Assert.fail("Should have thrown an exception");
+		} catch (IllegalArgumentException iae) {}
+		
+		PileupElementLite pel = new PileupElementLite();
+		try {
+			PileupElementLiteUtil.areBothStrandsRepresented(pel, -1);
+			Assert.fail("Should have thrown an exception");
+		} catch (IllegalArgumentException iae) {}
+		
+		assertEquals(false, PileupElementLiteUtil.areBothStrandsRepresented(pel,0));
+		assertEquals(false, PileupElementLiteUtil.areBothStrandsRepresented(pel,10));
+		assertEquals(false, PileupElementLiteUtil.areBothStrandsRepresented(pel,100));
+		
+		// add some data to pel
+		pel.addForwardQuality((byte) 64, 100, 1);
+		assertEquals(false, PileupElementLiteUtil.areBothStrandsRepresented(pel,0));
+		assertEquals(false, PileupElementLiteUtil.areBothStrandsRepresented(pel,10));
+		assertEquals(false, PileupElementLiteUtil.areBothStrandsRepresented(pel,100));
+		
+		// now add in some reverse strand data
+		pel.addReverseQuality((byte) 64, 100, 1);
+		assertEquals(true, PileupElementLiteUtil.areBothStrandsRepresented(pel,0));
+		assertEquals(true, PileupElementLiteUtil.areBothStrandsRepresented(pel,49));
+		assertEquals(true, PileupElementLiteUtil.areBothStrandsRepresented(pel,50));
+		assertEquals(false, PileupElementLiteUtil.areBothStrandsRepresented(pel,51));
 	}
 	
 	

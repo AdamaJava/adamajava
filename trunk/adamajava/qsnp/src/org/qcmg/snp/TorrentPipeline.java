@@ -40,6 +40,7 @@ public final class TorrentPipeline extends Pipeline {
 //	private String pileupFile;
 //	private String unfilteredNormalBamFile;
 	
+	
 	private final Map<ChrPosition, Pair<List<PileupElement>, List<PileupElement>>> filteredPEs = 
 		new HashMap<>();
 	

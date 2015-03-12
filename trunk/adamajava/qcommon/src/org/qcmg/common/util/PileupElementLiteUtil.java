@@ -112,6 +112,24 @@ public class PileupElementLiteUtil {
 	}
 	
 	
+	public static boolean areBothStrandsRepresented(PileupElementLite pel, int percentage) {
+		
+		if (null == pel) {
+			throw new IllegalArgumentException("Null PileupElementLite obj passed to PileupElementLiteUtil.areBothStrandsRepresented");
+		}
+		if (percentage < 0) {
+			throw new IllegalArgumentException("Negative percentage passed to PileupElementLiteUtil.areBothStrandsRepresented: " + percentage);
+		}
+		if ( ! pel.isFoundOnBothStrands()) {
+			return false;
+		}
+		
+		int total = pel.getTotalCount();
+		int min = Math.min(pel.getForwardCount(), pel.getReverseCount());
+		
+		return ((double) min / total) * 100 > percentage;
+	}
+	
 	public static boolean passesWeightedVotingCheck(final int totalQualityScore, 
 			final int variantQualityScore,  double percentage) {
 		return passesWeightedVotingCheck(totalQualityScore, variantQualityScore, percentage, false);

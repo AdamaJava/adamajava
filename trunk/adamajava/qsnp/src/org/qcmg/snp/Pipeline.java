@@ -94,6 +94,9 @@ public abstract class Pipeline {
 	static int initialTestSumOfCountsLimit = 3;
 	static int baseQualityPercentage = 10;
 	
+	static int sBiasAltPercentage = 5;
+	static int sBiasCovPercentage = 5;
+	
 	// STATS FOR CLASSIFIER
 	long classifyCount = 0;
 	long classifyGermlineCount = 0;
@@ -244,8 +247,19 @@ public abstract class Pipeline {
 		final String skipAnnotationString = IniFileUtil.getEntry(ini, "parameters", "skipAnnotation");
 		if ( ! StringUtils.isNullOrEmpty(skipAnnotationString)) {
 			skipAnnotation = skipAnnotationString;
-			if (skipAnnotation.contains(SnpUtils.STRAND_BIAS)) 
+			if (skipAnnotation.contains(SnpUtils.STRAND_BIAS_ALT)) 
 				runSBIASAnnotation = false; 
+		}
+		
+		final String sBiasAltPercentageString = IniFileUtil.getEntry(ini, "parameters", "sBiasAltPercentage");
+		// default to 5 if not specified
+		if ( ! StringUtils.isNullOrEmpty(sBiasAltPercentageString)) {
+			sBiasAltPercentage = Integer.parseInt(sBiasAltPercentageString);
+		}
+		final String sBiasCovPercentageString = IniFileUtil.getEntry(ini, "parameters", "sBiasCovPercentage");
+		// default to 5 if not specified
+		if ( ! StringUtils.isNullOrEmpty(sBiasCovPercentageString)) {
+			sBiasCovPercentage = Integer.parseInt(sBiasCovPercentageString);
 		}
 		
 		// LOG
@@ -415,6 +429,8 @@ public abstract class Pipeline {
 		header.addFilterLine(VcfHeaderUtils.FILTER_MUTANT_READS,"Less than 5 mutant reads"); 
 		header.addFilterLine(VcfHeaderUtils.FILTER_MUTATION_EQUALS_REF,"Mutation equals reference"); 
 		header.addFilterLine(VcfHeaderUtils.FILTER_NO_CALL_IN_TEST,"No call in test"); 
+		header.addFilterLine(VcfHeaderUtils.FILTER_STRAND_BIAS_ALT,"Mutation only found on 1 strand (or percentage on other strand is less than " + sBiasAltPercentage + "%)"); 
+		header.addFilterLine(VcfHeaderUtils.FILTER_STRAND_BIAS_COV,"No coverage on other strand (or percentage on other strand is less than " + sBiasCovPercentage + "%)"); 
 	
 		header.addFormatLine(VcfHeaderUtils.FORMAT_GENOTYPE, "1", "String" ,"Genotype: 0/0 homozygous reference; 0/1 heterozygous for alternate allele; 1/1 homozygous for alternate allele");
 		header.addFormatLine(VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS, "1", "String","Genotype details: specific alleles (A,G,T or C)");
@@ -1598,9 +1614,12 @@ public abstract class Pipeline {
 			final PileupElementLite pel = Classification.GERMLINE != rec.getClassification() ? (null != tumour? tumour.getLargestVariant(ref) : null) : 
 				(null != normal ? normal.getLargestVariant(ref) : null);
 			
-			if (null != pel && ! pel.isFoundOnBothStrands()) {
-				VcfUtils.updateFilter(rec.getVcfRecord(), SnpUtils.STRAND_BIAS);
+			if (null != pel && ! PileupElementLiteUtil.areBothStrandsRepresented(pel, sBiasAltPercentage)) {
+				VcfUtils.updateFilter(rec.getVcfRecord(), SnpUtils.STRAND_BIAS_ALT);
 			}
+//			if (null != pel && ! pel.isFoundOnBothStrands()) {
+//				VcfUtils.updateFilter(rec.getVcfRecord(), SnpUtils.STRAND_BIAS);
+//			}
 		}
 	}
 	
@@ -2022,7 +2041,7 @@ public abstract class Pipeline {
 		}
 		
 		logger.info("found " + (noOfCompSnpsSOM +noOfCompSnpsGERM + noOfCompSnpsMIXED)  + " compound snps - no in map: " + compoundSnps.size());
-		logger.info("noOfCompSnpsSOM: " + noOfCompSnpsSOM + ", noOfCompSnpsGERM: " + noOfCompSnpsGERM +", noOfCompSnpsMIXED: " + noOfCompSnpsMIXED + ", noOfCompSnpsLowAltCount" + noOfCompSnpsLowAltCount);
+		logger.info("noOfCompSnpsSOM: " + noOfCompSnpsSOM + ", noOfCompSnpsGERM: " + noOfCompSnpsGERM +", noOfCompSnpsMIXED: " + noOfCompSnpsMIXED + ", noOfCompSnpsLowAltCount: " + noOfCompSnpsLowAltCount);
 		
 		for (int i = 0 ; i < compSnpSize.length ; i++) {
 			if (compSnpSize[i] > 0) {
@@ -2085,17 +2104,18 @@ public abstract class Pipeline {
 			// remove SBIAS flag should there be no reads at all on the opposite strand
 			int noOfSnpsWithSBIAS = 0, removed = 0;
 			for (final QSnpRecord record : positionRecordMap.values()) {
-				if (record.getAnnotation().contains(SnpUtils.STRAND_BIAS)) {
+				if (record.getAnnotation().contains(SnpUtils.STRAND_BIAS_ALT)) {
 					noOfSnpsWithSBIAS++;
 					
 					// check to see if we have any reads at all on the opposite strand
 					// just checking the germline for the moment as we are currently in single file mode
-					final String ND = record.getNormalNucleotides();
+					final String ND = singleSampleMode ? record.getTumourNucleotides() : record.getNormalNucleotides();
 	//				logger.info("sending ND to check for strand bias: " + ND);
-					final boolean onBothStrands = SnpUtils.doesNucleotideStringContainReadsOnBothStrands(ND);
+					final boolean onBothStrands = SnpUtils.doesNucleotideStringContainReadsOnBothStrands(ND, sBiasCovPercentage);
 					if ( ! onBothStrands) {
 	//					logger.info("removing SBIAS annotation for ND: " + ND);
-						VcfUtils.removeFilter(record.getVcfRecord(), SnpUtils.STRAND_BIAS);
+						VcfUtils.removeFilter(record.getVcfRecord(), SnpUtils.STRAND_BIAS_ALT);
+						VcfUtils.updateFilter(record.getVcfRecord(), SnpUtils.STRAND_BIAS_COVERAGE);
 						removed++;
 					}
 				}
