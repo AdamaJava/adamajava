@@ -35,11 +35,15 @@ public class QueryExecutor {
     		}
     		// perform a check to see if query starts and ends with quotation marks
     		// if it does, print a warning to the user, as qbamfilter will OOM
-		if (query.contains("\"") || query.contains("\'")) {
-    			throw new IllegalArgumentException("query passed to QueryExecutor contains quotation marks - please revise your query so that it does not contain quotation marks: " + query);
+		if (query.contains("\"") 
+				|| query.contains("\\")
+				|| query.contains("\'")) {
+    			throw new IllegalArgumentException("query passed to QueryExecutor contains invalid characters - please revise your query so that it does not contain invalid characters: " + query);
     		}
     		
-        try{
+		logger.info("Setting up QueryExecutor with query: " + query);
+		
+        try {
             queryLexer myLexer = new queryLexer(new ANTLRStringStream( query ));
             queryParser myParser = new queryParser(new CommonTokenStream(myLexer));
             queryParser.script_return myScript = myParser.script();
@@ -48,11 +52,11 @@ public class QueryExecutor {
             queryTree  myAST = new queryTree(myStream);      
             queryTree.script_return result = myAST.script();
             queryExecutor =  result.exp;
-        }catch(RecognitionException e ){
-        	logger.error("RecognitionException caught while instantiating QueryExecutor", e);
-        	throw  e;
+        } catch(RecognitionException e ){
+        		logger.error("RecognitionException caught while instantiating QueryExecutor", e);
+        		throw  e;
         }
-        logger.info("Setting up QueryExecutor with query: " + query);
+        logger.info("Setting up QueryExecutor with query: " + query + " - DONE");
         
     }
 
