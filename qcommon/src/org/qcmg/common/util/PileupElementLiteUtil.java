@@ -111,7 +111,13 @@ public class PileupElementLiteUtil {
 		}
 	}
 	
-	
+	/**
+	 * returns true if the PEL object has reads on both strands, 
+	 * and that the lesser strand as a percentage of the total is greater than or equal to the supplied value
+	 * @param pel
+	 * @param percentage
+	 * @return
+	 */
 	public static boolean areBothStrandsRepresented(PileupElementLite pel, int percentage) {
 		
 		if (null == pel) {
@@ -127,7 +133,7 @@ public class PileupElementLiteUtil {
 		int total = pel.getTotalCount();
 		int min = Math.min(pel.getForwardCount(), pel.getReverseCount());
 		
-		return ((double) min / total) * 100 > percentage;
+		return ((double) min / total) * 100 >= percentage;
 	}
 	
 	public static boolean passesWeightedVotingCheck(final int totalQualityScore, 
