@@ -134,6 +134,23 @@ public class QueryExecutorTest {
    		} catch (IllegalArgumentException aie) {}
     	
     }
+    @Test
+    public void queryContainsDodgyCharacters() throws Exception {
+    	// if the query passed to QueryExecutor contains quotes, then antlr with eventually give an OOM error
+    	
+	    	String  query = "\\ and (mapq > 16 , cigar_M >= 40 , or (option_ZM == 0, option_ZM > 200))";
+	    	try {
+	    		QueryExecutor myExecutor = new QueryExecutor(query);
+	    		Assert.fail("Should have thrown an exception");
+	    	} catch (IllegalArgumentException aie) {}
+	    	
+	    	query = "and mapq > 16 , cigar_M >= 40 , or (option_ZM == 0, option_ZM > 200))";
+	    	try {
+	    		QueryExecutor myExecutor = new QueryExecutor(query);
+	    		Assert.fail("Should have thrown an exception");
+	    	} catch (RuntimeException aie) {}
+    	
+    }
 
     /**
      * test invalid read: Flag is 0 but it's mate mapping positon is 100
