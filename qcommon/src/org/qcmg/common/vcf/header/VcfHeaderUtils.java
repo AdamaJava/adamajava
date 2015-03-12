@@ -54,6 +54,8 @@ public class VcfHeaderUtils {
 	public static final String FILTER_MUTATION_EQUALS_REF = SnpUtils.MUTATION_EQUALS_REF;
 	public static final String FILTER_LOW_QUAL = "LowQual";
 	public static final String FILTER_NO_CALL_IN_TEST = SnpUtils.NO_CALL_IN_TEST;
+	public static final String FILTER_STRAND_BIAS_ALT = SnpUtils.STRAND_BIAS_ALT;
+	public static final String FILTER_STRAND_BIAS_COV = SnpUtils.STRAND_BIAS_COVERAGE;
 	
 	
 	//INFO FIELDS

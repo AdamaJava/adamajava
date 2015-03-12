@@ -221,19 +221,52 @@ public class SnpUtilsTest {
 	
 	@Test
 	public void oneStrandOnly() {
-		assertFalse(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("A0[0],2[33.5]"));
-		assertFalse(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("A10[10],0[0]"));
-		assertFalse(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("A0[0],2[33.5],C0[0],1[34],G0[0],888[33.34]"));
-		assertFalse(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("A2[33.5],0[0],C1[34],0[0],G888[33.34],0[0]"));
-		assertFalse(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("A0[0],306[38.77],G0[0],179[38.5],T0[0],2[27.5]"));
-		assertFalse(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("A0[0],848[37.74],C0[0],3[23],G0[0],393[38.01],T0[0],4[21.5]"));
-		assertFalse(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("A:0[0],1[33],C:0[0],29[32.55],T:0[0],156[31.74]"));
+		assertFalse(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("A0[0],2[33.5]", 0));
+		assertFalse(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("A0[0],2[33.5]", 10));
+		assertFalse(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("A0[0],2[33.5]", 100));
+		assertFalse(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("A10[10],0[0]", 0));
+		assertFalse(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("A10[10],0[0]", 10));
+		assertFalse(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("A10[10],0[0]", 100));
+		assertFalse(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("A0[0],2[33.5],C0[0],1[34],G0[0],888[33.34]", 0));
+		assertFalse(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("A0[0],2[33.5],C0[0],1[34],G0[0],888[33.34]", 10));
+		assertFalse(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("A0[0],2[33.5],C0[0],1[34],G0[0],888[33.34]", 100));
+		assertFalse(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("A2[33.5],0[0],C1[34],0[0],G888[33.34],0[0]", 1));
+		assertFalse(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("A2[33.5],0[0],C1[34],0[0],G888[33.34],0[0]", 10));
+		assertFalse(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("A2[33.5],0[0],C1[34],0[0],G888[33.34],0[0]", 100));
+		assertFalse(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("A0[0],306[38.77],G0[0],179[38.5],T0[0],2[27.5]", 0));
+		assertFalse(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("A0[0],306[38.77],G0[0],179[38.5],T0[0],2[27.5]", 10));
+		assertFalse(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("A0[0],306[38.77],G0[0],179[38.5],T0[0],2[27.5]", 100));
+		assertFalse(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("A0[0],848[37.74],C0[0],3[23],G0[0],393[38.01],T0[0],4[21.5]", 0));
+		assertFalse(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("A0[0],848[37.74],C0[0],3[23],G0[0],393[38.01],T0[0],4[21.5]", 10));
+		assertFalse(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("A0[0],848[37.74],C0[0],3[23],G0[0],393[38.01],T0[0],4[21.5]", 100));
+		assertFalse(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("A:0[0],1[33],C:0[0],29[32.55],T:0[0],156[31.74]", 2));
+		assertFalse(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("A:0[0],1[33],C:0[0],29[32.55],T:0[0],156[31.74]", 20));
 	}
 	@Test
 	public void twoStrands() {
-		assertTrue(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("A10[10],2[33.5]"));
-		assertTrue(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("A2[33.5],0[0],C0[0],1[34],G888[33.34],0[0]"));
-		assertTrue(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("A2[33.5],10[10],C10[10],1[34],G888[33.34],10[10]"));
+		assertTrue(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("A10[10],2[33.5]", 0));
+		assertTrue(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("A10[10],2[33.5]", 1));
+		assertTrue(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("A10[10],2[33.5]", 10));
+		assertTrue(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("A10[10],2[33.5]", 16));
+		assertFalse(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("A10[10],2[33.5]", 17));
+		assertFalse(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("A10[10],2[33.5]", 20));
+		assertFalse(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("A10[10],2[33.5]", 100));
+		assertTrue(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("C8[34.62],0[0],T0[0],4[38]", 1));
+		assertTrue(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("C8[34.62],0[0],T0[0],4[38]", 10));
+		assertTrue(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("C8[34.62],0[0],T0[0],4[38]", 20));
+		assertTrue(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("C8[34.62],0[0],T0[0],4[38]", 33));
+		assertFalse(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("C8[34.62],0[0],T0[0],4[38]", 34));
+		assertFalse(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("C8[34.62],0[0],T0[0],4[38]", 100));
+		assertTrue(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("A2[33.5],0[0],C0[0],1[34],G888[33.34],0[0]", 0));
+		assertFalse(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("A2[33.5],0[0],C0[0],1[34],G888[33.34],0[0]", 1));
+		assertFalse(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("A2[33.5],0[0],C0[0],1[34],G888[33.34],0[0]", 10));
+		assertFalse(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("A2[33.5],0[0],C0[0],1[34],G888[33.34],0[0]", 100));
+		assertTrue(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("A2[33.5],10[10],C10[10],1[34],G888[33.34],10[10]", 0));
+		assertTrue(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("A2[33.5],10[10],C10[10],1[34],G888[33.34],10[10]", 1));
+		assertTrue(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("A2[33.5],10[10],C10[10],1[34],G888[33.34],10[10]", 2));
+		assertFalse(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("A2[33.5],10[10],C10[10],1[34],G888[33.34],10[10]", 3));
+		assertFalse(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("A2[33.5],10[10],C10[10],1[34],G888[33.34],10[10]", 30));
+		assertFalse(SnpUtils.doesNucleotideStringContainReadsOnBothStrands("A2[33.5],10[10],C10[10],1[34],G888[33.34],10[10]", 300));
 	}
 	
 }

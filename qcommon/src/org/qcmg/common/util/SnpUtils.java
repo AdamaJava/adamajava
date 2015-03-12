@@ -28,7 +28,9 @@ public class SnpUtils {
 	public static final String MUTATION_IN_NORMAL = "MIN";
 	public static final String MUTATION_GERMLINE_IN_ANOTHER_PATIENT = "GERM";	//mutation is a germline variant in another patient
 	
-	public static final String STRAND_BIAS = "SBIAS";	// mutation only found on one strand
+//	public static final String STRAND_BIAS = "SBIAS";	// mutation only found on one strand
+	public static final String STRAND_BIAS_ALT = "SBIASALT";	// mutation only found on one strand
+	public static final String STRAND_BIAS_COVERAGE = "SBIASCOV";	// mutation only found on 1 strand, and no (or v. little) coverage at all found on other strand
 	public static final String ALLELIC_FRACTION = "AF";	// allelic fraction of mutation is less than appended number eg. AF20
 	public static final String END_OF_READ = "5BP";	// allelic fraction of mutation is less than appended number eg. AF20
 	
@@ -292,7 +294,7 @@ public class SnpUtils {
 		
 //		logger.info("in doesNucleotideStringContainReadsOnBothStrands with : " + bases);
 		
-		String [] basesArray = TabTokenizer.tokenize(bases, ',');
+		String [] basesArray = TabTokenizer.tokenize(bases, Constants.COMMA);
 		// should always have an even number of bases (1 for each strand)
 		if (basesArray.length % 2 != 0) {
 			logger.warn("Incorrect number of basesArray elements: " + basesArray.length);
@@ -307,7 +309,7 @@ public class SnpUtils {
 				
 				arrayValue = arrayValue.substring(1);
 				// check to see if first char is now a colon
-				if (':' == arrayValue.charAt(0)) {
+				if (Constants.COLON == arrayValue.charAt(0)) {
 					arrayValue = arrayValue.substring(1);
 				}
 			}
@@ -325,6 +327,55 @@ public class SnpUtils {
 //		logger.info("zeroOnFS : " + zeroOnFS + ", zeroOnRS: " + zeroOnRS + ", basesArray.length / 2: " + (basesArray.length / 2));
 		
 		return (zeroOnFS != (basesArray.length / 2)) &&  (zeroOnRS != (basesArray.length / 2));
+	}
+	
+	public static boolean doesNucleotideStringContainReadsOnBothStrands(String bases, int sBiasCovPercentage) {
+		
+		if (StringUtils.isNullOrEmpty(bases)) return false;
+		
+//		logger.info("in doesNucleotideStringContainReadsOnBothStrands with : " + bases);
+		
+//		A0[0],848[37.74],C0[0],3[23],G0[0],393[38.01],T0[0],4[21.5]
+		
+		String [] basesArray = TabTokenizer.tokenize(bases, Constants.COMMA);
+		// should always have an even number of bases (1 for each strand)
+		if (basesArray.length % 2 != 0) {
+			logger.warn("Incorrect number of basesArray elements: " + basesArray.length);
+		}
+		
+		int fsCount = 0, rsCount = 0;
+		for (int i = 0 ; i < basesArray.length ; i++) {
+			// strip leading character if it is a letter
+			String arrayValue = basesArray[i];
+			
+			if (Character.isAlphabetic(arrayValue.charAt(0))) {
+				// forward strand
+				// strip colon if it exists.
+				int startPos = 1;
+				if (arrayValue.charAt(1) == Constants.COLON) {
+					startPos++;
+				}
+				int endPos = arrayValue.indexOf('[');
+				fsCount += Integer.parseInt(arrayValue.substring(startPos, endPos));
+					
+			} else {
+				// reverse strand
+				int startPos = 0;
+				if (arrayValue.charAt(1) == Constants.COLON) {
+					startPos++;
+				}
+				int endPos = arrayValue.indexOf('[');
+				rsCount += Integer.parseInt(arrayValue.substring(startPos, endPos));
+			}
+		}
+//		logger.info("fsCount : " + fsCount + ", rsCount: " + rsCount + ", basesArray.length / 2: " + (basesArray.length / 2));
+		
+		int total = fsCount + rsCount;
+		int min = Math.min(rsCount, fsCount);
+		
+		return ((double) min / total) * 100 > sBiasCovPercentage;
+		
+//		return (zeroOnFS != (basesArray.length / 2)) &&  (zeroOnRS != (basesArray.length / 2));
 	}
 	
 }

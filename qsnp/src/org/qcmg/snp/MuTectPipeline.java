@@ -164,7 +164,7 @@ public final class MuTectPipeline extends Pipeline {
 				// check for strand bias
 				PileupElementLite pel = acc.getLargestVariant(ref);
 				if (null != pel && ! pel.isFoundOnBothStrands()) {
-					VcfUtils.updateFilter(rec.getVcfRecord(), SnpUtils.STRAND_BIAS);
+					VcfUtils.updateFilter(rec.getVcfRecord(), SnpUtils.STRAND_BIAS_ALT);
 				}
 			}
 		}
