@@ -10,7 +10,10 @@ package org.qcmg.qprofiler.util;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
@@ -25,6 +28,8 @@ import net.sf.samtools.Cigar;
 import net.sf.samtools.CigarElement;
 import net.sf.samtools.CigarOperator;
 
+import org.qcmg.common.log.QLogger;
+import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.QCMGAtomicLongArray;
 import org.qcmg.common.model.ReferenceNameComparator;
 import org.qcmg.common.model.SummaryByCycle;
@@ -48,6 +53,8 @@ public class SummaryReportUtils {
 	private static final Pattern badReadPattern = Pattern.compile("([.N])");
 	
 	private static final NumberFormat nf = new DecimalFormat("0.0#%");
+	
+	private static final QLogger logger = QLoggerFactory.getLogger(SummaryReportUtils.class);
 
 	/**
 	 * Calls <code>lengthMapToXml(Element parent, String elementName,
@@ -168,28 +175,41 @@ public class SummaryReportUtils {
 	public static <T> void lengthMapToXmlTallyItem(Element parent, 
 			String elementName, Map<T, AtomicLong> mapOfLengths, Comparator<T> comparator) {
 		
-		long mapTotal = getCountOfMapValues(mapOfLengths);
-		Map <T, AtomicLong> sortedMap = null;
-		// sort the map
-		if (null == comparator) {
-			sortedMap = new TreeMap<T, AtomicLong>(mapOfLengths);
-		} else {
-			// create map, and loop through values inserting....
-			sortedMap = new TreeMap<T, AtomicLong>(comparator);
-			sortedMap.putAll(mapOfLengths);
-		}
+//		Map <T, AtomicLong> sortedMap = null;
+//		// sort the map
+//		if (null == comparator) {
+//			sortedMap = new TreeMap<T, AtomicLong>(mapOfLengths);
+//		} else {
+//			// create map, and loop through values inserting....
+//			sortedMap = new TreeMap<T, AtomicLong>(comparator);
+//			sortedMap.putAll(mapOfLengths);
+//		}
+		
+		
 		
 		if (null != mapOfLengths && ! mapOfLengths.isEmpty()) {
 			Document doc = parent.getOwnerDocument();
 			Element element = doc.createElement(elementName);
 			parent.appendChild(element);
 			
+			long mapTotal = getCountOfMapValues(mapOfLengths);
+			
+			// get keys and sort them
+			List<T> sortedKeys = new ArrayList<>(mapOfLengths.keySet());
+			logger.info("about to sort keys");
+			Collections.sort(sortedKeys, comparator);
+			logger.info("about to sort keys - DONE");
+			
+			int counter = 0;
 			try {
-				for (Map.Entry<T, AtomicLong> lineLength : sortedMap.entrySet()) {
+				for (T key : sortedKeys) {
+					if (++counter % 1000000 == 0) {
+						logger.info("added " + (counter / 1000000) + "M entries to Document");
+					}
 					Element cycleE = doc.createElement("TallyItem");
-					AtomicLong ml = lineLength.getValue();
+					AtomicLong ml = mapOfLengths.get(key);
 					double percentage = (((double)ml.get() / mapTotal));
-					cycleE.setAttribute("value", lineLength.getKey().toString());
+					cycleE.setAttribute("value", key.toString());
 					cycleE.setAttribute("count", ml.get()+"");
 					cycleE.setAttribute("percent", nf.format(percentage));
 					element.appendChild(cycleE);
@@ -199,6 +219,40 @@ public class SummaryReportUtils {
 			}
 		}
 	}
+//	public static <T> void lengthMapToXmlTallyItem(Element parent, 
+//			String elementName, Map<T, AtomicLong> mapOfLengths, Comparator<T> comparator) {
+//		
+//		long mapTotal = getCountOfMapValues(mapOfLengths);
+//		Map <T, AtomicLong> sortedMap = null;
+//		// sort the map
+//		if (null == comparator) {
+//			sortedMap = new TreeMap<T, AtomicLong>(mapOfLengths);
+//		} else {
+//			// create map, and loop through values inserting....
+//			sortedMap = new TreeMap<T, AtomicLong>(comparator);
+//			sortedMap.putAll(mapOfLengths);
+//		}
+//		
+//		if (null != mapOfLengths && ! mapOfLengths.isEmpty()) {
+//			Document doc = parent.getOwnerDocument();
+//			Element element = doc.createElement(elementName);
+//			parent.appendChild(element);
+//			
+//			try {
+//				for (Map.Entry<T, AtomicLong> lineLength : sortedMap.entrySet()) {
+//					Element cycleE = doc.createElement("TallyItem");
+//					AtomicLong ml = lineLength.getValue();
+//					double percentage = (((double)ml.get() / mapTotal));
+//					cycleE.setAttribute("value", lineLength.getKey().toString());
+//					cycleE.setAttribute("count", ml.get()+"");
+//					cycleE.setAttribute("percent", nf.format(percentage));
+//					element.appendChild(cycleE);
+//				}
+//			} catch (DOMException e) {
+//				e.printStackTrace();
+//			}
+//		}
+//	}
 	public static <T> void lengthMapToXmlTallyItem(Element parent, 
 			String elementName, Map<T, AtomicLong> mapOfLengths) {
 		lengthMapToXmlTallyItem(parent, elementName, mapOfLengths, null);
