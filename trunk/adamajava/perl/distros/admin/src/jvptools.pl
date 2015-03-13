@@ -2240,10 +2240,10 @@ sub illumina_panel_manifest {
     die "unable to open file $params{infile} for reading: $!" unless
         defined $ini;
 
-    foreach my $section ($ini->section_names) {
-        my @rules = @{ $ini->unprocessed_section( $section ) };
-        print Dumper $section, scalar( @rules );
-    }
+    #foreach my $section ($ini->section_names) {
+    #    my @rules = @{ $ini->unprocessed_section( $section ) };
+    #    print Dumper $section, scalar( @rules );
+    #}
 
     # Process [Probes]
 
@@ -2282,21 +2282,23 @@ sub illumina_panel_manifest {
     }
 
     my $tbfh = _open_file_and_write_header( $target_bed_file );
-    foreach my $probe (@probes) {
-        my @fields = split /\t/, $probe;
-        $pbfh->print( join(' ', $fields[3], $fields[4], $fields[5]), "\n" );
+    foreach my $target (@targets) {
+        my @fields = split /\t/, $target;
+        $tbfh->print( join(' ', $fields[3], $fields[4], $fields[5]), "\n" );
     }
 
     glogend;
 }
 
 
-sub _open_file_with_header {
+sub _open_file_and_write_header {
     my $filename = shift;
 
     my $ofh = IO::File->new( $filename, 'w' );
     die "unable to open file $filename for writing: $!" unless
         defined $ofh;
+
+    glogprint( "opened $filename for writing\n" );
 
     $ofh->print ( "# Filename: $filename\n" .
                   "# Creator:  ". current_user() ."\n" .
@@ -2779,11 +2781,11 @@ in the output file are not going to line up properly.
  -v | --verbose    print progress and diagnostic messages
 
 Takes the manifest file from an Illumina capture panel platform
-(standard or custom) and creates 3 files - a GFF3 for use with
-qcoverage, and two BED files for IGV use, one for the Probes and 
-one for the Targets.
+(standard or custom) and creates 4 files - two GFF3 files for use with
+qcoverage and two BED files for IGV use.  In both cases, one file is for
+the Probes and one for the Targets.
 
-The Illumina manifest file is somewhat like a mult-section INI file but
+The Illumina manifest file is somewhat like a multi-section INI file but
 all of the lines (including those in the [Header] are tab-separated and
 are right padded with the correct number of tabs:
 
