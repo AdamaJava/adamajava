@@ -100,6 +100,9 @@ public enum SnpEffConsequence {
 	STOP_GAINED_PLUS_CODON_INSERTION("stop_gained+inframe_insertion",1,"indel"), 
 	STOP_GAINED_PLUS_START_LOST("stop_gained+start_lost",1,"indel"), 
 	STOP_LOST_PLUS_CODON_DELETION("stop_lost+inframe_deletion",1,"indel"), 
+ 	CODON_DELETION_PLUS_SYNONYMOUS_CODING("inframe_deletion+synonymous_variant",5,"indel"),
+ 	STOP_GAINED_PLUS_NON_SYNONYMOUS_CODING("stop_gained+missense_variant",1,"indle"),
+ 	STOP_LOST_PLUS_NON_SYNONYMOUS_STOP("stop_lost+stop_retained_variant",1,"indle"),
 
  
 //	FRAME_SHIFT("frameshift_variant",1,"Frame_Shift_DelORFrame_Shift_Ins(dependsonvarianttype)"),
