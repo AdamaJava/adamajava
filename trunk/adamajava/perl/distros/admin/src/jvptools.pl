@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/bin/env perl
 
 ##############################################################################
 #
@@ -23,6 +23,8 @@ use Pod::Usage;
 use POSIX qw( floor );
 use Storable qw(dclone);
 use XML::Simple;
+
+use Grz::Util::Util qw( current_user new_timestamp );
 
 use QCMG::DB::Metadata;
 use QCMG::FileDir::Finder;
@@ -88,6 +90,7 @@ MAIN: {
                           Nruns_vs_telomere_motifs
                           align_2_csvs
                           wikitable_media2moin
+                          illumina_panel_manifest
                           );
 
     if ($mode =~ /^$valid_modes[0]$/i or $mode =~ /\?/) {
@@ -151,6 +154,9 @@ MAIN: {
     }
     elsif ($mode =~ /^$valid_modes[19]/i) {
         wikitable_media2moin();
+    }
+    elsif ($mode =~ /^$valid_modes[20]/i) {
+        illumina_panel_manifest();
     }
     else {
         die "jvptools mode [$mode] is unrecognised; valid modes are:\n   ".
@@ -2192,33 +2198,30 @@ sub align_2_csvs {
 }
 
 
-sub align_2_csvs {
+sub illumina_panel_manifest {
    
     # Print help message if no CLI params
     pod2usage( -exitval  => 0,
                -verbose  => 99,
-               -sections => 'SYNOPSIS|COMMAND DETAILS/align_2_csvs' )
+               -sections => 'SYNOPSIS|COMMAND DETAILS/illumina_panel_manifest' )
         unless (scalar @ARGV > 0);
 
     # Setup defaults for CLI params
-    my %params = ( primary     => '',
-                   secondary   => '',
-                   outfile     => '',
+    my %params = ( infile      => '',
+                   outstem     => '',
                    logfile     => '',
                    verbose     => 0 );
 
     my $results = GetOptions (
-           'p|primary=s'          => \$params{primary},       # -p
-           's|secondary=s'        => \$params{secondary},     # -s
-           'o|outfile=s'          => \$params{outfile},       # -o
+           'i|infile=s'           => \$params{infile},        # -i
+           'o|outstem=s'          => \$params{outstem},       # -o
            'l|logfile=s'          => \$params{logfile},       # -l
            'v|verbose+'           => \$params{verbose},       # -v
            );
 
-    # It is mandatory to supply primary, secondary and output file names
-    die "You must specify a primary CSV file\n" unless $params{primary};
-    die "You must specify a secondary CSV file\n" unless $params{secondary};
-    die "You must specify an output CSV file\n" unless $params{outfile};
+    # It is mandatory to supply input and outstem parameters
+    die "You must specify an input file\n" unless $params{infile};
+    die "You must specify a stem for output file names\n" unless $params{outstem};
 
     # Set up logging
     glogfile($params{logfile}) if $params{logfile};
@@ -2226,41 +2229,82 @@ sub align_2_csvs {
     glogprint( {l=>'EXEC'}, "CommandLine $CMDLINE\n" );
     glogparams( \%params );
 
-    my $ofh = IO::File->new( $params{outfile}, 'w');
-    die "unable to open file $params{outfile} for writing: $!" unless
-        defined $ofh;
+    my $probe_bed_file     = $params{outstem} . 'probes.bed';
+    my $target_bed_file    = $params{outstem} . 'targets.bed';
+    my $probe_gff_file     = $params{outstem} . 'probes.gff';
+    my $target_gff_file    = $params{outstem} . 'targets.gff';
 
-    my %d1 = ();
-    my $pfh = IO::File->new( $params{primary}, 'r');
-    die "unable to open file $params{primary} for reading: $!" unless
-        defined $pfh;
-    while (<$pfh>) {
-        chomp $_;
-        my @fields = split /\t/, $_;
-        $d1{$fields[0]} = \@fields;
-    }
-    $pfh->close;
+    my $ini = QCMG::IO::INIFile->new( file    => $params{infile},
+                                      verbose => $params{verbose},
+                                      unprocessed_rules => 1 );
+    die "unable to open file $params{infile} for reading: $!" unless
+        defined $ini;
 
-    my $sfh = IO::File->new( $params{secondary}, 'r');
-    die "unable to open file $params{secondary} for reading: $!" unless
-        defined $sfh;
-    while (<$sfh>) {
-        chomp $_;
-        my @fields = split /\t/, $_;
-        if (exists $d1{ $fields[0] }) {
-            $ofh->print( join("\t", @fields,
-                                    @{ $d1{ $fields[0] } }), "\n" );
-        }
-        else {
-            $ofh->print( join("\t", @fields),"\n" );
-        }
+    foreach my $section ($ini->section_names) {
+        my @rules = @{ $ini->unprocessed_section( $section ) };
+        print Dumper $section, scalar( @rules );
     }
-    $sfh->close;
-    $ofh->close;
+
+    # Process [Probes]
+
+    my @probes = @{ $ini->unprocessed_section( 'Probes' ) };
+
+    # The first line should be the column headers so use it to check
+    # that the critical columns are where we expect them to be.
+    my @headers = split /\t/, shift(@probes);
+    my %probe_columns = ( 5 => 'Chromosome',
+                          6 => 'Start Position',
+                          7 => 'End Position' );
+    foreach my $pos (sort keys %probe_columns) {
+        die "Column $pos should be [$probe_columns{$pos}}] but is [$headers[$pos]]\n"
+            unless $headers[$pos] eq $probe_columns{$pos}; 
+    }
+
+    my $pbfh = _open_file_and_write_header( $probe_bed_file );
+    foreach my $probe (@probes) {
+        my @fields = split /\t/, $probe;
+        $pbfh->print( join(' ', $fields[5], $fields[6], $fields[7]), "\n" );
+    }
+
+    # Process [Targets]
+
+    my @targets = @{ $ini->unprocessed_section( 'Targets' ) };
+
+    # The first line should be the column headers so use it to check
+    # that the critical columns are where we expect them to be.
+    @headers = split /\t/, shift(@targets);
+    my %target_columns = ( 3 => 'Chromosome',
+                           4 => 'Start Position',
+                           5 => 'End Position' );
+    foreach my $pos (sort keys %target_columns) {
+        die "Column $pos should be [$target_columns{$pos}}] but is [$headers[$pos]]\n"
+            unless $headers[$pos] eq $target_columns{$pos}; 
+    }
+
+    my $tbfh = _open_file_and_write_header( $target_bed_file );
+    foreach my $probe (@probes) {
+        my @fields = split /\t/, $probe;
+        $pbfh->print( join(' ', $fields[3], $fields[4], $fields[5]), "\n" );
+    }
 
     glogend;
 }
 
+
+sub _open_file_with_header {
+    my $filename = shift;
+
+    my $ofh = IO::File->new( $filename, 'w' );
+    die "unable to open file $filename for writing: $!" unless
+        defined $ofh;
+
+    $ofh->print ( "# Filename: $filename\n" .
+                  "# Creator:  ". current_user() ."\n" .
+                  "# Software: $0 version $REVISION\n" .
+                  "# DateTime: ". new_timestamp(). "\n" );
+
+    return $ofh;
+}
 
 __END__
 
@@ -2727,6 +2771,39 @@ lines from the 2 files are just concatenated so if every line in the
 primary file does not contain the full number of fields then the columns
 in the output file are not going to line up properly.
 
+=head2 illumina_panel_manifest
+
+ -i | --input      Illumina manifest file
+ -o | --outstem    Stem for names of 3 output files
+ -l | --logfile    log file (optional)
+ -v | --verbose    print progress and diagnostic messages
+
+Takes the manifest file from an Illumina capture panel platform
+(standard or custom) and creates 3 files - a GFF3 for use with
+qcoverage, and two BED files for IGV use, one for the Probes and 
+one for the Targets.
+
+The Illumina manifest file is somewhat like a mult-section INI file but
+all of the lines (including those in the [Header] are tab-separated and
+are right padded with the correct number of tabs:
+
+ [Header]
+ Customer Name       "ILLUMINA, INC."
+ Product Type        15032433
+ Date Manufactured   25/10/2012
+ Lot                 35105
+ DesignStudio ID     NA
+ Target Plexity      212
+
+ [Probes]
+ Target Region Name   Target Region ID   Target ID   Species ...
+ MPL1_2   MPL1_2.chr1.43815008.43815009 ...
+ ...
+
+ [Targets]
+ TargetA   TargetB   Target Number   Chromosome   Start Position ...
+ MPL1_2.chr1.43815008.43815009_tile_1 ...
+ ...
 
 =head1 AUTHOR
 
