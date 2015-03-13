@@ -100,10 +100,6 @@ public final class CustomerConfidenceMode extends AbstractMode{
 		}		
 	}
 	
-	
-	
-	
-
 	@Override
 	void addAnnotation(String dbfile) throws Exception {
 		// TODO Auto-generated method stub
