@@ -43,9 +43,11 @@ sub new {
                  'verbose'               => ( $params{'verbose'} || 0 ),
                  'CreationTime'          => localtime().'',
                  'Version'               => $VERSION, 
-                 'sections'              => {},
                  'section_order'         => [],
+                 'sections'              => {},
+                 'unprocessed_sections'  => {},
                  'allow_duplicate_rules' => 0,
+                 'unprocessed_rules'     => 0,
                };
     bless $self, $class;
 
@@ -54,6 +56,13 @@ sub new {
     $self->_allow_duplicate_rules( 1 )
         if (exists $params{allow_duplicate_rules} and
             defined $params{allow_duplicate_rules});
+
+    # Check whether user asked to have the rules also made available in
+    # unprocessed form, i.e. an array of lines exactly as they were in
+    # the original INI file.
+    $self->_unprocessed_rules( 1 )
+        if (exists $params{unprocessed_rules} and
+            defined $params{unprocessed_rules});
 
     $self->_read_config_file;
 
@@ -83,16 +92,27 @@ sub section_names {
 
 sub section {
     my $self = shift;
-    my $sect = uc(shift);
+    my $sect = shift;
+    #my $sect = uc(shift);
     return undef unless exists $self->{sections}->{$sect};
     return $self->{sections}->{$sect};
+}
+
+
+sub unprocessed_section {
+    my $self = shift;
+    my $sect = shift;
+    return undef unless exists $self->{unprocessed_sections}->{$sect};
+    my @params = @{ $self->{unprocessed_sections}->{$sect} };
+    return \@params;
 }
 
 
 sub param {
     my $self  = shift;
     my $sect  = shift;
-    my $param = uc(shift);
+    my $param = shift;
+    #my $param = uc(shift);
     my $section = $self->section($sect);
     return undef unless defined $section;
     return undef unless exists $self->section($sect)->{$param};
@@ -144,30 +164,38 @@ sub _read_config_file {
     }
 
     # Split contents so it ends up as a sequence of pairs of [title] and
-    # "rules" eleements.
+    # "rules" elements.
     my @sections = split /^\[([\w:]+)\]\s*\n/m, $text;
     shift @sections;  # ditch leading blank element
 
     while (@sections) {
         # Read off a pair of title/rules elements
-        my $section_name = uc( shift @sections );
+        #my $section_name = uc( shift @sections );
+        my $section_name = shift @sections;
         my @params  = split /\n/, shift @sections;
         my %params  = ();
         foreach my $param (@params) {
-            my ($key,$val) = split /=/, $param, 2;
-            $key =~ s/\s+$//;
-            $val =~ s/^\s+//;
-            $key = uc($key);
-            # Special handling if duplicate rules are allowed
-            if ($self->_allow_duplicate_rules) {
-                push @{ $params{$key} }, $val;
+            # If unprocessed_rules, push the param onto an array
+            if ($self->_unprocessed_rules) {
+                push @{ $self->{unprocessed_sections}->{ $section_name } }, $param;
             }
             else {
-                if (exists $params{$key}) {
-                    warn "in section $section_name, rule $key has duplicate values: ",
-                         $params{$key},', ',$val,"\n";
+                my ($key,$val) = split /=/, $param, 2;
+                $key =~ s/\s+$//;
+                $val =~ s/^\s+//;
+                #$key = uc($key);
+                $key = $key;
+                # Special handling if duplicate rules are allowed
+                if ($self->_allow_duplicate_rules) {
+                    push @{ $params{$key} }, $val;
                 }
-                $params{ $key } = $val;
+                else {
+                    if (exists $params{$key}) {
+                        warn "in section $section_name, rule $key has duplicate values: ",
+                             $params{$key},', ',$val,"\n";
+                    }
+                    $params{ $key } = $val;
+                }
             }
         }
         push @{ $self->{'section_order'} }, $section_name;
@@ -186,6 +214,13 @@ sub _allow_duplicate_rules {
     my $self = shift;
     return $self->{'allow_duplicate_rules'} = shift if @_;
     return $self->{'allow_duplicate_rules'};
+}
+
+
+sub _unprocessed_rules {
+    my $self = shift;
+    return $self->{'unprocessed_rules'} = shift if @_;
+    return $self->{'unprocessed_rules'};
 }
 
 
@@ -223,6 +258,11 @@ This module reads a INI-style configuration file.
                file    => 'qpindel_APGI_2353.ini',
                verbose => 1 );
 
+ my $ini = QCMG::IO::INIFile->new( 
+               file                  => 'qpindel_APGI_2353.ini',
+               allow_duplicate_rules => 1,
+               unprocessed_rules     => 1 );
+
 The new() method accepts the following parameters:
 
 =over 4
@@ -235,6 +275,26 @@ The configuration file to be processed (Windows INI-style).
 
 Verbose level as documented below in L<verbose()>.
 
+=item B<allow_duplicate_rules>
+
+Normal behaviour is that if multiple rules with the same name appear
+within the same section, a warning is output for the second and
+subsequent rules and the LAST rule is the one that has it's value
+stored, i.e. each duplicate rule writes over the valeu for the previous
+rule so the last rule wins!  If you set this parameter, the rules will
+be stored in arrays, even if there is only one occurrence of a rule. 
+
+=item B<unprocessed_rules>
+
+Normal behaviour is that rules are stored in a hash so (a) there is no
+way to get back the original order of the rules, and (b) if the rules
+are not of the form name=value then then entire line will end up as they
+key in the hash - not useful for cases where a data file is in
+psuedo-INI file format but the rules are actually CSV lines.  In this
+case, you specify this parameter and the rules are stored in an
+array for each section.  In this case you need to use a different method
+to access the arrays of rules - unprocessed_section().
+
 =back
 
 =item B<creator_module_version()>
@@ -245,6 +305,36 @@ not the same as the VERSION of the currently loaded software module.
 =item B<creation_time()>
 
 String showing time of object creation.
+
+=item B<filename()>
+
+=item B<section_names()>
+
+ @section_names = $ini->section_names();
+
+Array of names of sections in the order they appeared in the INI file.
+
+=item B<section()>
+
+Returns a pointer to the hash of riules for the named section.
+
+=item B<unprocessed_section()>
+
+ $ra_rules = $ini->unprocessed_section( 'Header' );
+
+Returns a pointer to an array of the unprocessed rules lines for the
+given section.
+
+=item B<param()>
+
+Pass a section name and a rule name and it given you back the value.
+
+=item B<to_text()>
+
+Returns a string representation of the original file.  Does NOT
+currently work if the rules lines were not name=valu format, i.e. any
+file where the user needed to specify 'unprocessed_rules' will not work
+correctly.
 
 =item B<verbose()>
 
