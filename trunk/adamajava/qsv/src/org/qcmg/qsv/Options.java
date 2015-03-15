@@ -252,7 +252,7 @@ public class Options {
 		
 		//Clippping params
 		Section clipSection = ini.get("clip");
-		if (clipSection != null) {			
+		if (clipSection != null) {
 			clipQuery = clipSection.get("clip_query");
 			if (clipQuery == null) {
 				clipQuery = QSVConstants.DEFAULT_CLIP_QUERY;

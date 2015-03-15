@@ -376,7 +376,7 @@ public class QSVCluster {
 		int potentialRightEnd =  clipRecords.get(0).getRightBreakpoint();
 		
 		
-		for (int i=1; i < clipRecords.size(); i++) {
+		for (int i=1, size = clipRecords.size() ; i < size ; i++) {
 			SoftClipCluster clip = clipRecords.get(i);
 			if (clip.getLeftBreakpoint() < potentialLeftStart) {
 				potentialLeftStart = clip.getLeftBreakpoint();
@@ -435,8 +435,8 @@ public class QSVCluster {
 			//if the clip record has matching breakpoints, check to make sure the predicted mutation
 			//types are the same
 			if (clipRecord.hasMatchingBreakpoints()) {				
-				if (!clipRecord.getMutationType().equals(pairRecord.getRealMutationType()) 
-				&& !clipRecord.getOrientationCategory().equals(pairRecord.getOrientationCategory())) {			 
+				if ( ! clipRecord.getMutationType().equals(pairRecord.getRealMutationType()) 
+				&& ! clipRecord.getOrientationCategory().equals(pairRecord.getOrientationCategory())) {			 
 					return false;
 				}
 			}
@@ -675,7 +675,7 @@ public class QSVCluster {
 			//only one record
 			if (clipRecords.size() == 1) {
 				return clipRecords.get(0);
-			} else {				
+			} else {
 				
 				int maxCount = 0;
 				SoftClipCluster match = null;
@@ -1362,7 +1362,7 @@ public class QSVCluster {
 		if ( ! isGermline && ! rescued) {
 			
 			//one sided evidence or none at all
-			if (clipRecords != null) {				
+			if (clipRecords != null) {	
 				if ( ! hasMatchingBreakpoints()) {					
 					rescueClipping(blat, tumourParameters, normalParameters, softclipDir, consensusLength, minInsertSize);
 				}
