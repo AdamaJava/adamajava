@@ -512,7 +512,9 @@ public class QSVPipeline {
 		this.somaticCounts = worker.getQSVRecordWriter().getSomaticCount().intValue();
 		this.germlineCounts = worker.getQSVRecordWriter().getGermlineCount().intValue();
 
-
+		// log some blat stats
+		logger.info("BLAT server was accessed " + blat.getExecuteCount() + " times");
+		
 		if (worker.getExitStatus().intValue() >= 1) {
 			throw new QSVException("CLIP_CLUSTER_EXCEPTION");
 		}          

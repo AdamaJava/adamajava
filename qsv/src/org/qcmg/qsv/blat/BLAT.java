@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.qcmg.common.commandline.BlockingExecutor;
+import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.qsv.QSVException;
 import org.qcmg.qsv.QSVParameters;
 import org.qcmg.qsv.util.QSVUtil;
@@ -28,9 +29,11 @@ import org.qcmg.tab.TabbedRecord;
 public class BLAT {
 	
 	private final ArrayList<String> commands;
+	private String cmdString = null;
+	private int executeCount = 0;
 
 	public BLAT(String server, String port, String path) {
-		this.commands = new ArrayList<String>();
+		this.commands = new ArrayList<>(6);
 		commands.add(path + QSVParameters.FILE_SEPERATOR +  "gfClient");
 	    commands.add(server);
 	    commands.add(port);
@@ -40,6 +43,17 @@ public class BLAT {
 	
 	public ArrayList<String> getCommands() {
 		return commands;
+	}
+	
+	private String getCommandsAsString() {
+		if (null == cmdString) {
+			StringBuilder sb = new StringBuilder();
+			for (String c : commands) {
+				sb.append(c).append(" ");
+			}
+			cmdString = sb.toString();
+		} 
+		return cmdString;
 	}
 
 	/**
@@ -69,16 +83,12 @@ public class BLAT {
 		
 		try (TabbedFileReader reader = new TabbedFileReader(blatOutput);) {
 			for (TabbedRecord tab: reader) {
-				BLATRecord record = new BLATRecord(tab.getData().split("\t")); 
+				BLATRecord record = new BLATRecord(TabTokenizer.tokenize(tab.getData())); 
 				if (record.isValid()) {
-						if (records.containsKey(record.getName())) {
-							BLATRecord previous = records.get(record.getName());
-							if (record.getScore() > previous.getScore()) {
-								records.put(record.getName(), record);
-							}
-						} else {
-							records.put(record.getName(), record);
-						}								
+					BLATRecord previous = records.get(record.getName());
+					if (null == previous || record.getScore() > previous.getScore()) {
+						records.put(record.getName(), record);
+					}
 				}
 			}
 		}
@@ -93,16 +103,13 @@ public class BLAT {
 	 * @throws QSVException
 	 */
 	public void execute(String fastaFile, String blatOutputFile) throws QSVException {
-		List<String> coms = new ArrayList<String>();
-		coms.addAll(commands);
-		coms.add(fastaFile);
-		coms.add(blatOutputFile);
-		String cmd = "";
-		for (String c: coms) {
-			cmd += c + " ";
-		}
+		executeCount++;
+		StringBuilder sb = new StringBuilder(getCommandsAsString());
+		sb.append(fastaFile).append(" ");
+		sb.append(blatOutputFile);
+		
 		try {
-			BlockingExecutor blex = new BlockingExecutor(cmd);
+			BlockingExecutor blex = new BlockingExecutor(sb.toString());
 			
 			if (blex.isFailure()) {
 				String message = "Failed blat execution: "
@@ -113,36 +120,6 @@ public class BLAT {
 				}
 				throw new QSVException("BLAT_ERROR", message);
 			}
-		
-//			ProcessBuilder pb = new ProcessBuilder(coms);
-//		    Process process = pb.start();
-//	
-//		     
-//	        // any error message?
-//	        ProcessStreamHandler error = new 
-//	            ProcessStreamHandler(process.getErrorStream(), "ERROR");            
-//	        
-//	        // any output?
-//	        ProcessStreamHandler output = new 
-//	            ProcessStreamHandler(process.getInputStream(), "OUTPUT");
-//	            
-//	        // kick them off
-//	        error.start();
-//	        output.start();       
-//	       
-//	                                
-//	        // any error???
-//	        int exitVal;
-//		
-//			exitVal = process.waitFor();
-//			if (exitVal > 0) {
-//		      	  throw new QSVException("BLAT_ERROR", error.toString());
-//	        }			
-//			process.getInputStream().close();
-//			process.getOutputStream().close();
-//			process.getErrorStream().close(); 
-	        
-	       
 		} catch (InterruptedException e) {
 			 throw new QSVException("BLAT_ERROR", QSVUtil.getStrackTrace(e));
 		} catch (IOException e) {
@@ -150,8 +127,6 @@ public class BLAT {
 		} catch (Exception e) {
 			 throw new QSVException("BLAT_ERROR", QSVUtil.getStrackTrace(e));
 		}
-        
-        coms = null;
 	}
 
 	/**
@@ -189,7 +164,7 @@ public class BLAT {
 		try (TabbedFileReader reader = new TabbedFileReader(out);) {
 
 			for (TabbedRecord tab: reader) {
-				BLATRecord record = new BLATRecord(tab.getData().split("\t"));
+				BLATRecord record = new BLATRecord(TabTokenizer.tokenize(tab.getData()));
 				if (record.isValid()) {
 					if (leftReference != null && rightReference != null) {
 						if (record.getReference().equals(leftReference) || record.getReference().equals(rightReference)) {
@@ -217,7 +192,7 @@ public class BLAT {
 		try (TabbedFileReader reader = new TabbedFileReader(outFile);) {
 
 			for (TabbedRecord tab: reader) {
-				BLATRecord record = new BLATRecord(tab.getData().split("\t")); 	
+				BLATRecord record = new BLATRecord(TabTokenizer.tokenize(tab.getData())); 	
 				
 				if (record.isValid() && record.getName().equals(name)) {
 					if (leftReference != null && rightReference != null) {
@@ -233,5 +208,9 @@ public class BLAT {
 		
 		Collections.sort(records);	
 		return records;
+	}
+
+	public int getExecuteCount() {
+		return executeCount;
 	}
 }
