@@ -71,7 +71,6 @@ public class AnnotateFilterMT implements Runnable {
 	private boolean runPair;
 	private boolean runClip;
 	private final boolean isSplitRead;
-//	private final Map<String, Boolean> readGroupIds;
 	private final List<String> readGroupIds;
 	private final AtomicLong goodClipCount = new AtomicLong(); 
 	private final AtomicLong unmappedCount = new AtomicLong();
@@ -416,6 +415,7 @@ public class AnnotateFilterMT implements Runnable {
 					final SAMReadGroupRecord srgr = record.getReadGroup();
 					if (null != srgr 
 							&& null != srgr.getId() 
+//							&& readGroupIds.containsKey(srgr.getId())) {
 //							&& readGroupIds.containsKey(srgr.getId())) {
 						&& readGroupIds.contains(srgr.getId())) {
 	
