@@ -8,7 +8,7 @@
 #
 #  Coverage-related modes.
 #
-#  $Id: jvptools.pl 8281 2014-06-20 06:32:55Z j.pearson $
+#  $Id$
 #
 ##############################################################################
 
@@ -49,8 +49,8 @@ use Grz::Util::Log;
 
 use vars qw( $SVNID $REVISION $CMDLINE $VERSION $VERBOSE );
 
-( $REVISION ) = '$Revision: 8281 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: jvptools.pl 8281 2014-06-20 06:32:55Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 # Setup global data structures
@@ -96,7 +96,7 @@ MAIN: {
         illumina_panel_manifest();
     }
     else {
-        die "jvptools mode [$mode] is unrecognised; valid modes are:\n   ".
+        die "qcovtools mode [$mode] is unrecognised; valid modes are:\n   ".
             join("\n   ",@valid_modes) ."\n";
     }
 }
@@ -416,7 +416,7 @@ are right padded with the correct number of tabs:
 
 =head1 VERSION
 
-$Id: jvptools.pl 8281 2014-06-20 06:32:55Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT
