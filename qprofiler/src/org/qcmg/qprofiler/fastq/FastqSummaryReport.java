@@ -41,7 +41,7 @@ public class FastqSummaryReport extends SummaryReport {
 	private final QCMGAtomicLongArray seqBadReadLineLengths = new QCMGAtomicLongArray(128);
 	
 	
-	ConcurrentMap<String, AtomicLong> kmers = new ConcurrentHashMap<>();
+//	ConcurrentMap<String, AtomicLong> kmers = new ConcurrentHashMap<>();
 //	ConcurrentMap<String, AtomicLongArray> kmerArrays = new ConcurrentHashMap<>();
 
 	//QUAL
@@ -116,8 +116,8 @@ public class FastqSummaryReport extends SummaryReport {
 			qualHeaders.put("+", new AtomicLong(getRecordsParsed() - qualHeaderNotEqualToPlus.longValue()));
 			SummaryReportUtils.lengthMapToXml(readNameElement, "QUAL_HEADERS", qualHeaders);
 			
-			logger.info("no of kmers: " + kmers.size());
-			SummaryReportUtils.lengthMapToXml(readNameElement, "KMERS", kmers);
+//			logger.info("no of kmers: " + kmers.size());
+//			SummaryReportUtils.lengthMapToXml(readNameElement, "KMERS", kmers);
 			
 			// create the length maps here from the cycles objects
 			seqLineLengths = SummaryByCycleUtils.getLengthsFromSummaryByCycle(seqByCycle, getRecordsParsed());
@@ -196,13 +196,13 @@ public class FastqSummaryReport extends SummaryReport {
 				SummaryReportUtils.tallyBadReadsAsString(readBases, seqBadReadLineLengths);
 				
 				// split read into 6-mers and tally
-				int kmerLength = 12;
+//				int kmerLength = 12;
 //				int kmerLength = 6;
-				for (int i = 0, len = readBases.length - kmerLength ; i < len ; i++) {
-					String kmer = new String(Arrays.copyOfRange(readBases, i, i+kmerLength));
-					updateMap(kmers, kmer);
+//				for (int i = 0, len = readBases.length - kmerLength ; i < len ; i++) {
+//					String kmer = new String(Arrays.copyOfRange(readBases, i, i+kmerLength));
+//					updateMap(kmers, kmer);
 //					updateMapAndPosition(kmerArrays, kmer, i);
-				}
+//				}
 				
 
 				// QUAL
