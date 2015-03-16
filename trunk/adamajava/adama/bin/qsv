@@ -5,4 +5,4 @@ if [ -z "$ADAMA_HOME" ]; then
     exit 1
 fi
 
-java -jar ${ADAMA_HOME}/build/lib/qsv-0.2pre.jar "$@"
+java -Xmx40g -jar ${ADAMA_HOME}/build/lib/qsv-0.2pre.jar "$@"
