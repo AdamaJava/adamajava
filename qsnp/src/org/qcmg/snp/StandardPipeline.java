@@ -31,6 +31,8 @@ public class StandardPipeline extends Pipeline {
 		
 		incorporateUnfilteredNormal();
 		
+		strandBiasCorrection();
+		
 		compoundSnps();
 		
 		// write output
