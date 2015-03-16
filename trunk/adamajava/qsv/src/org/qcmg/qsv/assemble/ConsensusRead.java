@@ -40,12 +40,4 @@ public class ConsensusRead extends Read {
 		s += ("READ:"+ this.getReferenceSequence() + "\n");
 		return s;
 	}
-
-	public int getHeaderCount() {
-		
-		if (getHeader().split(",") != null) {
-			return getHeader().split(",").length;
-		}
-		return 0;		
-	}
 }
