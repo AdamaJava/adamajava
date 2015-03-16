@@ -157,6 +157,8 @@ public final class VcfPipeline extends Pipeline {
 		logger.info("about to classify - DONE[" + positionRecordMap.size() + "]");
 		
 		
+		strandBiasCorrection();
+		
 		// compound snps!
 		logger.info("about to do compound snps");
 		compoundSnps();
