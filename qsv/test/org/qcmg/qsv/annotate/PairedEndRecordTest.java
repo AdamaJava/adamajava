@@ -9,39 +9,39 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.sf.samtools.SAMFileHeader.SortOrder;
 import net.sf.samtools.SAMFileReader;
 import net.sf.samtools.SAMRecord;
-import net.sf.samtools.SAMFileHeader.SortOrder;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.qcmg.qsv.annotate.PairedEndRecord;
+import org.qcmg.qsv.util.QSVConstants;
 import org.qcmg.qsv.util.TestUtil;
 
 public class PairedEndRecordTest {
     
     
-    private List<SAMRecord> records = new ArrayList<SAMRecord>();
+    private final List<SAMRecord> records = new ArrayList<SAMRecord>();
     
     @Rule
     public TemporaryFolder testFolder = new TemporaryFolder();
     
     @Before
     public void setUp() throws IOException {
-    	File file = TestUtil.createSamFile(testFolder.newFile("test.bam").getAbsolutePath(), SortOrder.unsorted, true);
+    		File file = TestUtil.createSamFile(testFolder.newFile("test.bam").getAbsolutePath(), SortOrder.unsorted, true);
         final SAMFileReader sam = new SAMFileReader(file);
         for (final SAMRecord samRecord : sam) {
-        	records.add(samRecord);
+        		records.add(samRecord);
         }
         sam.close();
     }
     
     @After
     public void after() throws IOException {
-    	records.clear();
+    		records.clear();
     }   
     
     
@@ -224,11 +224,63 @@ public class PairedEndRecordTest {
     }
     
     @Test
+    public void createZPAnnotationAAA() {
+    		// read is left of mate, read is forward, mate is reverse && normal distance
+    		SAMRecord rec = records.get(0);
+//    		rec.setReadNegativeStrandFlag(true);
+//    		rec.setMateNegativeStrandFlag(false);
+    		rec.setAttribute("NH", Integer.valueOf(1));
+    		rec.setInferredInsertSize(1000);
+    		assertZPAnnotation(rec, 35, QSVConstants.AAA);
+    		rec.setAttribute("NH", Integer.valueOf(0));
+    		assertZPAnnotation(rec, 35, QSVConstants.AAA);
+    		
+    		// alternatively, NH is null, and we are on dif strands
+    		rec.setAttribute("NH", null);
+    		assertZPAnnotation(rec, 35, QSVConstants.AAA);
+    }
+    
+    @Test
+    public void createZPAnnotationB() {
+    	// same strandread is left of mate, read is forward, mate is reverse && normal distance
+    	SAMRecord rec = records.get(0);
+//    		rec.setReadNegativeStrandFlag(true);
+//    		rec.setMateNegativeStrandFlag(false);
+    	rec.setAttribute("NH", Integer.valueOf(1));
+    	rec.setInferredInsertSize(119);
+    	assertZPAnnotation(rec, 131, "BBB");
+    	
+    }
+    
+    @Test
+    public void createZPAnnotation() {
+    		SAMRecord rec = records.get(0);
+//    		rec.setDuplicateReadFlag(true);
+    		assertZPAnnotation(rec, 1024, QSVConstants.Z_STAR_STAR);
+    		
+    		// set NH attribute
+    		rec.setAttribute("NH", Integer.valueOf(1));
+    		assertZPAnnotation(rec, 1024, QSVConstants.Z_STAR_STAR);
+    		
+    		assertZPAnnotation(rec, 11, QSVConstants.D_STAR_STAR);
+    		assertZPAnnotation(rec, 515, QSVConstants.E_STAR_STAR);
+    		
+    		// set NH to zero and set mate to diff strand
+    		rec.setAttribute("NH", Integer.valueOf(0));
+//    		rec.setReadNegativeStrandFlag(false);
+//    		rec.setMateNegativeStrandFlag(true);
+    		assertZPAnnotation(rec, 3, QSVConstants.Z_STAR_STAR);
+    		rec.setAttribute("NH", null);
+    		assertZPAnnotation(rec, 3, QSVConstants.Z_STAR_STAR);
+    		assertZPAnnotation(rec, 19, QSVConstants.Z_STAR_STAR);
+    }
+    
+    @Test
     public void testCreateZPAnnotation() {
     	
     	assertZPAnnotation(records.get(0), 97, "AAC");
     	assertZPAnnotation(records.get(14), 147, "ABA");
-    	assertZPAnnotation(records.get(0), 1169, "Z**");
+    	assertZPAnnotation(records.get(0), 1169, QSVConstants.Z_STAR_STAR);
     	assertZPAnnotation(records.get(16), 147, "C**");
     	assertZPAnnotation(records.get(0), 9, "D**");
     	assertZPAnnotation(records.get(0), 513, "E**");    	
