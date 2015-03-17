@@ -796,7 +796,7 @@ public class QSVCluster {
 	/*
 	 * For dcc file - get the 200bp upstream and downstream of a breakpoint
 	 */
-	private String getCurrentFlankSeq(ConcurrentMap<String, byte[]> referenceMap, String reference,
+	public static String getCurrentFlankSeq(ConcurrentMap<String, byte[]> referenceMap, String reference,
 			int breakpoint, List<Chromosome> list) throws UnsupportedEncodingException {
 		Chromosome c = null;
 		if (list != null) {
@@ -804,31 +804,22 @@ public class QSVCluster {
 		}
 		String bases = "";
 		if (c != null) {
-			int start = breakpoint - 200;
-			if (start < 0) {
-				start = 1;
-			}
-			int end = breakpoint + 200;
-			if (end > c.getTotalLength()) {
-				end = c.getTotalLength();
-			}
+			int start = Math.max(breakpoint - 200, 1);
+			int end = Math.min(breakpoint + 200, c.getTotalLength()); 
 			
 			try {
 				byte[] basesArray = referenceMap.get(reference);
 				// array is 0-based, whereas picard is 1-based
-//				bases = new String(Arrays.copyOfRange(basesArray, start -1, end -1));
-				bases = new String(basesArray, start -1, (end - start) + 1);
+				bases = new String(basesArray, start - 1 , (end - start) + 1);
 				
-//				ReferenceSequence subset = f.getSubsequenceAt(reference, start, end);
-//				bases = new String(subset.getBases(), "UTF-8");
 			} catch (Exception e) {
-				logger.info("Trying to get " + reference + " " + start + " " + end + " from chr " + c.toString());
-				logger.info(QSVUtil.getStrackTrace(e));
+				logger.warn("Trying to get " + reference + " " + start + " " + end + " from chr " + c.toString());
+				logger.warn(QSVUtil.getStrackTrace(e));
 			}
 		} 
 		return bases;		
 	}
-//	private String getCurrentFlankSeq(IndexedFastaSequenceFile f, String reference,
+//	public static String getCurrentFlankSeq(IndexedFastaSequenceFile f, String reference,
 //			int breakpoint, List<Chromosome> list) throws UnsupportedEncodingException {
 //		Chromosome c = null;
 //		if (list != null) {

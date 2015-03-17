@@ -1,17 +1,20 @@
 package org.qcmg.qsv;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.ConcurrentMap;
 
 import net.sf.samtools.SAMFileHeader.SortOrder;
 
@@ -26,6 +29,7 @@ import org.qcmg.qsv.discordantpair.PairGroup;
 import org.qcmg.qsv.softclip.SoftClipCluster;
 import org.qcmg.qsv.splitread.SplitReadContig;
 import org.qcmg.qsv.util.QSVConstants;
+import org.qcmg.qsv.util.QSVUtil;
 import org.qcmg.qsv.util.TestUtil;
 
 public class QSVClusterTest {
@@ -197,6 +201,97 @@ public class QSVClusterTest {
     	//6
     	record = new QSVCluster(TestUtil.setUpClipRecord("chr10", "chr10", false, true), "test");
     	assertEquals(QSVConstants.LEVEL_SINGLE_CLIP, record.getConfidenceLevel());
+    }
+    
+    
+    @Test
+    public void getCurrentFlankSeqUsingFile() throws IOException, QSVException {
+    	
+    		File refFile = testFolder.newFile("blah.fa");
+    		File indexFile = testFolder.newFile("blah.fa.fai");
+    		setupReferenceFile(refFile, indexFile);
+    		QSVUtil.setupReferenceMap(refFile);
+    		ConcurrentMap<String, byte[]> referenceMap = QSVUtil.getReferenceMap();
+    		String reference = "chr25";
+    		byte[] bases = referenceMap.get(reference);
+    		String basesString = new String(bases);
+    		
+	    	int breakpoint = 200;
+	    	List<Chromosome> chrs = new ArrayList<>();
+	    	chrs.add(new Chromosome("chr25", bases.length));
+	    	
+//	    	IndexedFastaSequenceFile isff = new IndexedFastaSequenceFile(refFile);
+	    	String fs = QSVCluster.getCurrentFlankSeq(referenceMap, reference, breakpoint, chrs);
+	    	assertEquals(400, fs.length());
+	    	assertEquals(true, basesString.startsWith(fs));
+	    	
+	    	breakpoint = 201;
+	    	fs = QSVCluster.getCurrentFlankSeq(referenceMap, reference, breakpoint, chrs);
+	    	assertEquals(401, fs.length());
+	    	assertEquals(true, basesString.startsWith(fs));
+	    	
+	    	breakpoint = 202;
+	    	fs = QSVCluster.getCurrentFlankSeq(referenceMap, reference, breakpoint, chrs);
+	    	assertEquals(401, fs.length());
+	    	assertEquals(false, basesString.startsWith(fs));
+	    	
+	    	breakpoint = 203;
+	    	fs = QSVCluster.getCurrentFlankSeq(referenceMap, reference, breakpoint, chrs);
+	    	assertEquals(401, fs.length());
+	    	assertEquals(false, basesString.startsWith(fs));
+	    	
+	    	breakpoint = 199;
+	    	fs = QSVCluster.getCurrentFlankSeq(referenceMap, reference, breakpoint, chrs);
+	    	assertEquals(399, fs.length());
+	    	assertEquals(true, basesString.startsWith(fs));
+    }
+    
+    private void setupReferenceFile(File file, File indexFile) throws IOException {
+    	
+    		try (BufferedWriter writer = new BufferedWriter(new FileWriter(file));) {
+    			writer.write(">chr25\n");
+    			writer.write("GATCACAGGTCTATCACCCTATTAACCACTCACGGGAGCTCTCCATGCATTTGGTATTTTCGTCTGGGGG\n");
+    			writer.write("GTATGCACGCGATAGCATTGCGAGACGCTGGAGCCGGAGCACCCTATGTCGCAGTATCTGTCTTTGATTC\n");
+    			writer.write("CTGCCTCATCCTATTATTTATCGCACCTACGTTCAATATTACAGGCGAACATACTTACTAAAGTGTGTTA\n");
+    			writer.write("ATTAATTAATGCTTGTAGGACATAATAATAACAATTGAATGTCTGCACAGCCACTTTCCACACAGACATC\n");
+    			writer.write("ATAACAAAAAATTTCCACCAAACCCCCCCTCCCCCGCTTCTGGCCACAGCACTTAAACACATCTCTGCCA\n");
+    			writer.write("AACCCCAAAAACAAAGAACCCTAACACCAGCCTAACCAGATTTCAAATTTTATCTTTTGGCGGTATGCAC\n");
+    			writer.write("TTTTAACAGTCACCCCCCAACTAACACATTATTTTCCCCTCCCACTCCCATACTACTAATCTCATCAATA\n");
+    			writer.write("CAACCCCCGCCCATCCTACCCAGCACACACACACCGCTGCTAACCCCATACCCCGAACCAACCAAACCCC\n");
+    			writer.write("AAAGACACCCCCCACAGTTTATGTAGCTTACCTCCTCAAAGCAATACACTGAAAATGTTTAGACGGGCTC\n");
+    			writer.write("ACATCACCCCATAAACAAATAGGTTTGGTCCTAGCCTTTCTATTAGCTCTTAGTAAGATTACACATGCAA\n");
+    			writer.write("GCATCCCCGTTCCAGTGAGTTCACCCTCTAAATCACCACGATCAAAAGGAACAAGCATCAAGCACGCAGC\n");
+    			writer.write("AATGCAGCTCAAAACGCTTAGCCTAGCCACACCCCCACGGGAAACAGCAGTGATTAACCTTTAGCAATAA\n");
+    			writer.write("ACGAAAGTTTAACTAAGCTATACTAACCCCAGGGTTGGTCAATTTCGTGCCAGCCACCGCGGTCACACGA\n");
+    			writer.write("TTAACCCAAGTCAATAGAAGCCGGCGTAAAGAGTGTTTTAGATCACCCCCTCCCCAATAAAGCTAAAACT\n");
+    			writer.write("CACCTGAGTTGTAAAAAACTCCAGTTGACACAAAATAGACTACGAAAGTGGCTTTAACATATCTGAACAC\n");
+    			writer.write("ACAATAGCTAAGACCCAAACTGGGATTAGATACCCCACTATGCTTAGCCCTAAACCTCAACAGTTAAATC\n");
+    			writer.write("AACAAAACTGCTCGCCAGAACACTACGAGCCACAGCTTAAAACTCAAAGGACCTGGCGGTGCTTCATATC\n");
+    			writer.write("CCTCTAGAGGAGCCTGTTCTGTAATCGATAAACCCCGATCAACCTCACCACCTCTTGCTCAGCCTATATA\n");
+    			writer.write("CCGCCATCTTCAGCAAACCCTGATGAAGGCTACAAAGTAAGCGCAAGTACCCACGTAAAGACGTTAGGTC\n");
+    			writer.write("AAGGTGTAGCCCATGAGGTGGCAAGAAATGGGCTACATTTTCTACCCCAGAAAACTACGATAGCCCTTAT\n");
+    			writer.write("GAAACTTAAGGGTCGAAGGTGGATTTAGCAGTAAACTAAGAGTAGAGTGCTTAGTTGAACAGGGCCCTGA\n");
+    			writer.write("AGCGCGTACACACCGCCCGTCACCCTCCTCAAGTATACTTCAAAGGACATTTAACTAAAACCCCTACGCA\n");
+    			writer.write("TTTATATAGAGGAGACAAGTCGTAACATGGTAAGTGTACTGGAAAGTGCACTTGGACGAACCAGAGTGTA\n");
+    			writer.write("GCTTAACACAAAGCACCCAACTTACACTTAGGAGATTTCAACTTAACTTGACCGCTCTGAGCTAAACCTA\n");
+    			writer.write("GCCCCAAACCCACTCCACCTTACTACCAGACAACCTTAGCCAAACCATTTACCCAAATAAAGTATAGGCG\n");
+    			writer.write("ATAGAAATTGAAACCTGGCGCAATAGATATAGTACCGCAAGGGAAAGATGAAAAATTATAACCAAGCATA\n");
+    			writer.write("ATATAGCAAGGACTAACCCCTATACCTTCTGCATAATGAATTAACTAGAAATAACTTTGCAAGGAGAGCC\n");
+    			writer.write("AAAGCTAAGACCCCCGAAACCAGACGAGCTACCTAAGAACAGCTAAAAGAGCACACCCGTCTATGTAGCA\n");
+    			writer.write("AAATAGTGGGAAGATTTATAGGTAGAGGCGACAAACCTACCGAGCCTGGTGATAGCTGGTTGTCCAAGAT\n");
+    			writer.write("AGAATCTTAGTTCAACTTTAAATTTGCCCACAGAACCCTCTAAATCCCCTTGTAAATTTAACTGTTAGTC\n");
+    			writer.write("CAAAGAGGAACAGCTCTTTGGACACTAGGAAAAAACCTTGTAGAGAGAGTAAAAAATTTAACACCCATAG\n");
+    			writer.write("TAGGCCTAAAAGCAGCCACCAATTAAGAAAGCGTTCAAGCTCAACACCCACTACCTAAAAAATCCCAAAC\n");
+    			writer.write("ATATAACTGAACTCCTCACACCCAATTGGACCAATCTATCACCCTATAGAAGAACTAATGTTAGTATAAG\n");
+    			writer.write("TAACATGAAAACATTCTCCTCCGCATAAGCCTGCGTCAGATTAAAACACTGAACTGACAATTAACAGCCC\n");
+    			writer.write("AATATCTACAATCAACCAACAAGTCATTATTACCCTCACTGTCAACCCAACACAGGCATGCTCATAAGGA\n");
+    			writer.write("AAGGTTAAAAAAAGTAAAAGGAACTCGGCAAATCTTACCCCGCCTGTTTACCAAAAACATCACCTCTAGC\n");
+    			writer.write("ATCACCAGTATTAGAGGCACCGCCTGCCCAGTGACACATGTTTAACGGCCGCGGTACCCTAACCGTGCAA\n");
+    		}
+    		
+    		try (BufferedWriter writer = new BufferedWriter(new FileWriter(indexFile));) {
+    			writer.write("chr25\t16571\t7\t50\t51\n");
+    		}
     }
 	
 }
