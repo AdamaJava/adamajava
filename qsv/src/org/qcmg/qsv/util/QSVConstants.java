@@ -84,5 +84,11 @@ public class QSVConstants {
 	public static final String ZP = "ZP";
 	public static final short  ZP_SHORT = SAMTagUtil.getSingleton().makeBinaryTag(ZP);
 	public static final String AAA = "AAA";
+	public static final String NH = "NH";
+
+	public static final String Z_STAR_STAR = "Z**";
+	public static final String C_STAR_STAR = "C**";
+	public static final String D_STAR_STAR = "D**";
+	public static final String E_STAR_STAR = "E**";
 	
 }
