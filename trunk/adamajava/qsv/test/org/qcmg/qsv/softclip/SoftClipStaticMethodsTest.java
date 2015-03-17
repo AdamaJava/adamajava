@@ -9,16 +9,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.sf.samtools.SAMFileHeader.SortOrder;
 import net.sf.samtools.SAMFileReader;
 import net.sf.samtools.SAMRecord;
-import net.sf.samtools.SAMFileHeader.SortOrder;
 
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.qcmg.qsv.softclip.Breakpoint;
-import org.qcmg.qsv.softclip.Clip;
-import org.qcmg.qsv.softclip.SoftClipStaticMethods;
 import org.qcmg.qsv.util.QSVUtil;
 import org.qcmg.qsv.util.TestUtil;
 
@@ -37,9 +34,9 @@ public class SoftClipStaticMethodsTest {
         //left clip
 		Clip leftClip = SoftClipStaticMethods.createSoftClipRecord(record, 89712340, 89712350, "chr10");
 		assertTrue(leftClip.isLeft());
-		assertEquals(59, leftClip.getLength().intValue());
+		assertEquals(59, leftClip.getLength());
 		assertEquals("AAAGATCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAAGAGATTATACTTTGTGTA", leftClip.getClipSequence());
-		assertEquals(record.getAlignmentStart(), leftClip.getBpPos().intValue());
+		assertEquals(record.getAlignmentStart(), leftClip.getBpPos());
 	}
 	
 	@Test
@@ -48,9 +45,9 @@ public class SoftClipStaticMethodsTest {
 		SAMRecord record = getSAMRecords(5); 
 		//right clip		
 		Clip rightClip = SoftClipStaticMethods.createSoftClipRecord(record, 89699960, 89700400, "chr10");
-		assertEquals(14, rightClip.getLength().intValue());
+		assertEquals(14, rightClip.getLength());
 		assertEquals("GAGATTATACTTTG", rightClip.getClipSequence());
-		assertEquals(record.getAlignmentEnd(), rightClip.getBpPos().intValue());
+		assertEquals(record.getAlignmentEnd(), rightClip.getBpPos());
 	}
 	
 	@Test
