@@ -5,6 +5,7 @@ package org.qcmg.qsv.annotate;
 
 import net.sf.samtools.SAMRecord;
 
+import org.qcmg.common.util.Constants;
 import org.qcmg.qsv.util.QSVConstants;
 
 /**
@@ -15,10 +16,6 @@ import org.qcmg.qsv.util.QSVConstants;
 public class PairedEndRecord {
 //	private static final int nullNHZ = 0;
     
-    private static final String Z_STAR_STAR = "Z**";
-	private static final String AAA = "AAA";
-	private static final String ZP = "ZP";
-	
 	private final SAMRecord record;
     private String zpAnnotation;
     private final int isizeUpperLimit;
@@ -39,129 +36,52 @@ public class PairedEndRecord {
         
         if ( ! record.getDuplicateReadFlag()) {
         	
-        	Integer nh = record.getIntegerAttribute("NH");
+        	Integer nh = record.getIntegerAttribute(QSVConstants.NH);
         	
-//        	if (null != nh) {
-//        		
-//        		if (1 == nh) {
-//        			if (record.getMateUnmappedFlag()) {
-//        				zpAnnotation = "D**";
-//        	            record.setAttribute(ZP, zpAnnotation);                
-//        			} else if ( ! record.getReferenceName().equals(record.getMateReferenceName())
-//        							&& ! record.getMateReferenceName().equals("=")) {
-//        				zpAnnotation = "C**";
-//                    record.setAttribute(ZP, zpAnnotation);
-//                } else if (record.getReadFailsVendorQualityCheckFlag()) {
-//                	 	zpAnnotation = "E**";
-//                    record.setAttribute(ZP, zpAnnotation);
-//                } else if (isDifferentStrand()) {
-//                	  	zpAnnotation = "A";
-//                    handleOrientation();
-//                    handleIntervalSize();
-//                    record.setAttribute(ZP, zpAnnotation);
-//                } else if (isSameStrand()) {
-//                		zpAnnotation = "B";
-//                    handleOrientation();
-//                    handleIntervalSize();
-//                    record.setAttribute(ZP, zpAnnotation);
-//                }
-//        		} else {
-//        			if (isDifferentStrand()) {
-//        				zpAnnotation = "A";
-//        	            handleOrientation();
-//        	            handleIntervalSize();
-//        	            if (zpAnnotation.equals(QSVConstants.AAA)) {
-//        	                record.setAttribute(ZP, zpAnnotation);
-//        	            } else {
-//        	                zpAnnotation = "Z**";
-//        	                record.setAttribute(ZP, "Z**");
-//        	            }                
-//        			}
-//        		}
-//        	} else {
-//        		
-//        		if (isDifferentStrand()) {
-//        			   zpAnnotation = "A";
-//                   handleOrientation();
-//                   handleIntervalSize();
-//                   if (zpAnnotation.equals(QSVConstants.AAA)) {
-//                       	record.setAttribute(ZP, zpAnnotation);
-//                   } else {      
-//                   		zpAnnotation = "Z**";
-//                   		record.setAttribute(ZP, "Z**");
-//                   }
-//        		} else {
-//        		   	zpAnnotation = "Z**";
-//                record.setAttribute(ZP, "Z**"); 
-//        		}
-//        	}
-        	
-        	
-        	
-        	
-            if (null != nh && 1 == nh && record.getMateUnmappedFlag()) {
-                zpAnnotation = "D**";
-                record.setAttribute(ZP, zpAnnotation);                
+            if (null != nh && 1 == nh.intValue() && record.getMateUnmappedFlag()) {
+                zpAnnotation = QSVConstants.D_STAR_STAR;
             } else if (null != nh
-                    && 1 == nh
+                    && 1 == nh.intValue()
                     && !record.getReferenceName().equals(
                             record.getMateReferenceName())
-                    && !record.getMateReferenceName().equals("=")) {
-                zpAnnotation = "C**";
-                record.setAttribute(ZP, zpAnnotation);
+                    && !record.getMateReferenceName().equals(Constants.EQ_STRING)) {
+                zpAnnotation = QSVConstants.C_STAR_STAR;
                 
-            } else if (null != nh && 1 == nh
+            } else if (null != nh && 1 == nh.intValue()
                     && record.getReadFailsVendorQualityCheckFlag()) {
-                zpAnnotation = "E**";
-                record.setAttribute(ZP, zpAnnotation);
+                zpAnnotation = QSVConstants.E_STAR_STAR;
                 
-            } else if (null != nh && 1 == nh && isDifferentStrand()) {
+            } else if (null != nh && 1 == nh.intValue() && isDifferentStrand()) {
                 zpAnnotation = "A";
                 handleOrientation();
                 handleIntervalSize();
-                record.setAttribute(ZP, zpAnnotation);                
-            } else if (null != nh && 1 != nh && isDifferentStrand()) {
+            } else if (null != nh && 1 != nh.intValue() && isDifferentStrand()) {
                 zpAnnotation = "A";
                 handleOrientation();
                 handleIntervalSize();
-                if (zpAnnotation.equals(AAA)) {
-                    record.setAttribute(ZP, zpAnnotation);
-                } else {
-//                	diffStrandZ += 1;
-                	zpAnnotation = Z_STAR_STAR;
-                    record.setAttribute(ZP, Z_STAR_STAR);
+                if ( ! zpAnnotation.equals(QSVConstants.AAA)) {
+                		zpAnnotation = QSVConstants.Z_STAR_STAR;
                 }                
             } else if (null == nh && isDifferentStrand()) {
                 zpAnnotation = "A";
                 handleOrientation();
                 handleIntervalSize();
-                if (zpAnnotation.equals(AAA)) {
-                    record.setAttribute(ZP, zpAnnotation);
-                } else {      
-//                	diffStrandNullZ += 1;
-                	zpAnnotation = Z_STAR_STAR;
-                    record.setAttribute(ZP, Z_STAR_STAR);
+                if ( ! zpAnnotation.equals(QSVConstants.AAA)) {
+                		zpAnnotation = QSVConstants.Z_STAR_STAR;
                 }
                 
             } else if (null != nh && 1 == nh && isSameStrand()) {
                 zpAnnotation = "B";
                 handleOrientation();
                 handleIntervalSize();
-                record.setAttribute(ZP, zpAnnotation);                
-//            } else if (null == nh && isSameStrand()) {
-//            	zpAnnotation = Z_STAR_STAR;
-//                record.setAttribute(ZP, Z_STAR_STAR); 
-//                sameStrandNullZ  += 1;               
             } else {
-//           	 	sameStrandZ += 1;
-           	 zpAnnotation = Z_STAR_STAR;
-                record.setAttribute(ZP, Z_STAR_STAR);                
+            		zpAnnotation = QSVConstants.Z_STAR_STAR;
             }
         } else {
-        		zpAnnotation = Z_STAR_STAR;
-            record.setAttribute(QSVConstants.ZP, Z_STAR_STAR);            
+        		zpAnnotation = QSVConstants.Z_STAR_STAR;
         }
-
+        record.setAttribute(QSVConstants.ZP, zpAnnotation);
+        	
     }
     
     public String handleOrientation() {
@@ -219,19 +139,19 @@ public class PairedEndRecord {
     }
 
     public boolean isReadForward() {
-        return !record.getReadNegativeStrandFlag();
+        return ! record.getReadNegativeStrandFlag();
     }
 
     public boolean isReadReverse() {
-        return !isReadForward();
+        return ! isReadForward();
     }
 
     public boolean isMateForward() {
-        return !record.getMateNegativeStrandFlag();
+        return ! record.getMateNegativeStrandFlag();
     }
 
     public boolean isMateReverse() {
-        return !isMateForward();
+        return ! isMateForward();
     }
 
     /**
