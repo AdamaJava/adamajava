@@ -9,6 +9,8 @@ import org.qcmg.qsv.util.QSVUtil;
 
 public class Clip implements Comparable<Clip>{
 	
+	private static final String LEFT = "left";
+	
 	private final String reference;
 	private final int bpPos;
 	private final int length;
@@ -28,7 +30,7 @@ public class Clip implements Comparable<Clip>{
 		this.clipSequence = sequence;
 		this.referenceSequence = aligned;
 		this.isReverse = record.getReadNegativeStrandFlag();
-		this.isLeft = side.equals("left");
+		this.isLeft = side.equals(LEFT);
 	}
 
 	public Clip(String line) {
@@ -38,7 +40,7 @@ public class Clip implements Comparable<Clip>{
 		this.reference = values[1];
 		this.bpPos = Integer.parseInt(values[2]);
 		this.isReverse = values[3].equals("-");
-		this.isLeft = values[4].equals("left");
+		this.isLeft = values[4].equals(LEFT);
 		this.readSequence = values[5];
 		this.clipSequence = values[6];
 		this.length = clipSequence.length();
@@ -56,7 +58,7 @@ public class Clip implements Comparable<Clip>{
 		return isLeft;
 	}
 
-	public Integer getLength() {
+	public int getLength() {
 		return length;
 	}
 
@@ -89,20 +91,20 @@ public class Clip implements Comparable<Clip>{
 
 	@Override
 	public String toString() {
-		return this.readName + "," + this.reference + "," + this.bpPos + "," + getStrand() + "," + (this.isLeft ? "left" : "right") + "," + this.readSequence + "," + this.clipSequence + "," + this.referenceSequence +  QSVUtil.getNewLine();		
+		return this.readName + "," + this.reference + "," + this.bpPos + "," + getStrand() + "," + (this.isLeft ? LEFT : "right") + "," + this.readSequence + "," + this.clipSequence + "," + this.referenceSequence +  QSVUtil.getNewLine();		
 	}
 
 	@Override
 	public int compareTo(Clip other) {
-		int diff = Integer.compare(this.bpPos, other.getBpPos());
+		int diff = Integer.compare(this.bpPos, other.bpPos);
 		if (diff == 0) {
-			return this.readName.compareTo(other.getReadName());
+			return this.readName.compareTo(other.readName);
 		} else {
 			return diff;
 		}
 	}
 	
-	public Integer getBpPos() {
+	public int getBpPos() {
 		return this.bpPos;
 	}
 
@@ -117,9 +119,9 @@ public class Clip implements Comparable<Clip>{
 
 		Clip other = (Clip) aThat;
 
-		int diff = Integer.compare(bpPos, other.getBpPos());
+		int diff = Integer.compare(bpPos, other.bpPos);
 		if (diff == 0) {
-			return this.readName.equals(other.getReadName());
+			return this.readName.equals(other.readName);
 		} else {			
 			return false;
 		}
