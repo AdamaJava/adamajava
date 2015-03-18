@@ -3,8 +3,9 @@
  */
 package org.qcmg.qsv.blat;
 
+import org.qcmg.common.util.Constants;
+import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.qsv.QSVException;
-import org.qcmg.qsv.splitread.SplitReadAlignment;
 import org.qcmg.qsv.util.QSVUtil;
 
 /**
@@ -24,17 +25,17 @@ public class BLATRecord implements Comparable<BLATRecord> {
 	private int queryStart;
 	private int queryEnd;
 	private int mismatch;
-	private int repMatch;
+//	private int repMatch;
 	private int tGapCount;
 	private int qGapCount;
 	private boolean valid;
 	private int size;
-	private int tGapBases;
+//	private int tGapBases;
 	private int blockCount;
 	private String[] tStarts;
 	private String[] blockSizes;
 	private String[] qStarts;
-	private String[] revQStarts;
+//	private String[] revQStarts;
 	private String recordString = "";
 	private int nonTempBases = 0;
 
@@ -48,7 +49,7 @@ public class BLATRecord implements Comparable<BLATRecord> {
 				this.valid = true;
 				this.match = Integer.parseInt(values[0]);
 				this.mismatch = Integer.parseInt(values[1]);
-				this.repMatch = Integer.parseInt(values[2]);
+//				this.repMatch = Integer.parseInt(values[2]);
 				this.tGapCount = Integer.parseInt(values[6]);
 				this.qGapCount = Integer.parseInt(values[4]);
 				this.name = values[9];
@@ -59,22 +60,22 @@ public class BLATRecord implements Comparable<BLATRecord> {
 				this.queryStart = Integer.parseInt(values[11]);
 				this.queryEnd = Integer.parseInt(values[12]);
 				this.strand = values[8].charAt(0);
-				this.tGapBases = Integer.parseInt(values[5]);
+//				this.tGapBases = Integer.parseInt(values[5]);
 				this.blockCount = Integer.parseInt(values[17]);
 				if (blockCount > 1) {				
 					this.blockSizes = values[18].split(",");
 					this.qStarts = values[19].split(",");				
 					this.tStarts = values[20].split(",");
-					if (strand == QSVUtil.MINUS) {
-						this.revQStarts = values[19].split(",");			
-					}
+//					if (strand == QSVUtil.MINUS) {
+//						this.revQStarts = values[19].split(",");			
+//					}
 				}
 			} catch (Exception e) {
 				this.valid = false;
 			}
 			StringBuilder b = new StringBuilder();
 			for (String s: values) {
-				b.append(s).append("\t");
+				b.append(s).append(Constants.TAB);
 			}
 			this.recordString = b.toString();
 				//fix start positions
@@ -88,9 +89,9 @@ public class BLATRecord implements Comparable<BLATRecord> {
 						} else {
 							int newInt = Integer.parseInt(qStarts[i]) + 1;						
 							qStarts[i] = newInt + "";
-							if (strand == QSVUtil.MINUS) {
-								revQStarts[i] = newInt + "";
-							}
+//							if (strand == QSVUtil.MINUS) {
+//								revQStarts[i] = newInt + "";
+//							}
 						}
 					}
 				}
@@ -104,7 +105,8 @@ public class BLATRecord implements Comparable<BLATRecord> {
 	}
 	
 	public BLATRecord(String line) throws QSVException {
-		this(line.split("\t"));
+		this(TabTokenizer.tokenize(line));
+//		this(line.split("\t"));
 	}
 
 	public int getSize() {
@@ -170,9 +172,9 @@ public class BLATRecord implements Comparable<BLATRecord> {
 		return mismatch;
 	}
 
-	public int getRepMatch() {
-		return repMatch;
-	}
+//	public int getRepMatch() {
+//		return repMatch;
+//	}
 
 	public int gettGapCount() {
 		return tGapCount;
@@ -182,9 +184,9 @@ public class BLATRecord implements Comparable<BLATRecord> {
 		return qGapCount;
 	}
 
-	public int gettGapBases() {
-		return tGapBases;
-	}
+//	public int gettGapBases() {
+//		return tGapBases;
+//	}
 
 	public int getBlockCount() {
 		return blockCount;
@@ -196,9 +198,9 @@ public class BLATRecord implements Comparable<BLATRecord> {
 
 	public Integer calculateMateBreakpoint(boolean isLeft, String knownReference, Integer knownBreakpoint, char knownStrand) {		
 		if (getBlockCount() == 1) {			
-			Integer mateBp = calculateSingleMateBreakpoint(isLeft, knownReference, knownBreakpoint, knownStrand);
+			int mateBp = calculateSingleMateBreakpoint(isLeft, knownReference, knownBreakpoint, knownStrand);
 			
-			return mateBp;
+			return Integer.valueOf(mateBp);
 		} else {
 			if (getBlockCount() == 2) {
 				
@@ -206,7 +208,7 @@ public class BLATRecord implements Comparable<BLATRecord> {
 				Integer mateBp = calculateDoubleMateBreakpoint(isLeft, knownReference, knownBreakpoint, knownStrand);	
 				
 				if (mateBp == null) {
-					return calculateSingleMateBreakpoint(isLeft, knownReference, knownBreakpoint, knownStrand);
+					return Integer.valueOf(calculateSingleMateBreakpoint(isLeft, knownReference, knownBreakpoint, knownStrand));
 				}
 				
 				return mateBp;
@@ -221,9 +223,9 @@ public class BLATRecord implements Comparable<BLATRecord> {
 				if (knownStrand == strand) {
 					
 					for (int i=0; i<2; i++) {
-						Integer currentBp = getCurrentBp(i, isLeft, knownStrand, knownBreakpoint);							
+						int currentBp = getCurrentBp(i, isLeft, knownStrand, knownBreakpoint);							
 						
-						if (currentBp >= knownBreakpoint-5 &(currentBp <=knownBreakpoint+5)) {
+						if (currentBp >= knownBreakpoint.intValue() - 5 & (currentBp <= knownBreakpoint.intValue() + 5)) {
 							nonTempBases = 0;
 							if (i==0) {
 								return getMateCurrentBp(1, isLeft, knownStrand, knownBreakpoint);
@@ -238,9 +240,9 @@ public class BLATRecord implements Comparable<BLATRecord> {
 	}
 
 
-	private Integer calculateSingleMateBreakpoint(boolean isLeft,
+	private int calculateSingleMateBreakpoint(boolean isLeft,
 			String knownReference, Integer knownBreakpoint, char knownStrand) {
-		Integer mateBp = null;
+		int mateBp;
 		nonTempBases = 0;
 		if (isLeft) {
 			mateBp =  knownStrand == strand ? endPos : startPos;
@@ -264,36 +266,21 @@ public class BLATRecord implements Comparable<BLATRecord> {
 		return mateBp;	
 	}
 
-	private Integer getCurrentBp(int i, boolean isLeft, char knownStrand, Integer knownBreakpoint) {
+	private int getCurrentBp(int i, boolean isLeft, char knownStrand, Integer knownBreakpoint) {
 		int startPos = Integer.parseInt(tStarts[i]);
 		int endPos = Integer.parseInt(tStarts[i]) + Integer.parseInt(blockSizes[i]);
-		Integer currentBp = null;
-		int buffer = 0;
-		if (strand == QSVUtil.MINUS) {
-			buffer = 0;
-		}
 		
 		if (knownStrand == (strand)) {
-			if (isLeft) {
-				currentBp = startPos + buffer;
-			} else {
-				currentBp = endPos - buffer;	
-			}
+			return isLeft ?  startPos : endPos;
 		} else {
-			if (isLeft) {
-				currentBp = endPos - buffer;
-			} else {
-				currentBp = startPos + buffer;	
-			}
+			return isLeft ? endPos : startPos;
 		}
-
-		return currentBp;
 	}
 	
 	private Integer getMateCurrentBp(int i, boolean isLeft, char knownStrand, Integer knownBreakpoint) {
 		int startPos = Integer.parseInt(tStarts[i]);
 		int endPos = Integer.parseInt(tStarts[i]) + Integer.parseInt(blockSizes[i]) - 1;
-		Integer currentBp = null;
+		int currentBp;
 				
 		boolean isStart = true;
 		if (knownStrand == strand) {
@@ -325,7 +312,7 @@ public class BLATRecord implements Comparable<BLATRecord> {
 				nonTempBases = queryStart;
 			}
 		}
-		return currentBp;
+		return Integer.valueOf(currentBp);
 	}
 	
 	
@@ -340,23 +327,9 @@ public class BLATRecord implements Comparable<BLATRecord> {
 		}
 	}
 
-	public SplitReadAlignment getSplitReadAlignment(int i) {
-		int startPos = Integer.parseInt(tStarts[i]);
-		int endPos = Integer.parseInt(tStarts[i]) + Integer.parseInt(blockSizes[i]) -1;
-		int queryStart = Integer.parseInt(qStarts[i]);
-		int queryEnd = Integer.parseInt(qStarts[i]) + Integer.parseInt(blockSizes[i]) - 1;
-		SplitReadAlignment s = new SplitReadAlignment(reference, strand, startPos, endPos, queryStart, queryEnd);
-		
-		return s;
-	}
-	
 	@Override 
 	public String toString() {
 		return getScore() + "\t" + this.recordString;
-	}
-
-	public String getRecordString() {
-		return recordString;
 	}
 
 	public String[] getUnmodifiedStarts() {
