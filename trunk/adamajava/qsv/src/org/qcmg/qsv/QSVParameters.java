@@ -5,6 +5,7 @@ package org.qcmg.qsv;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -47,7 +48,8 @@ public class QSVParameters {
 	private final Integer qPrimerThreshold;
 	private final String mapper;
 	private final boolean runSoftClipAnalysis;
-	private final List<String> readGroupIds = new ArrayList<String>();
+	private Collection<String> readGroupIds;
+//	private final List<String> readGroupIds = new ArrayList<String>();
 	private final int repeatCountCutoff;
 
 	private File inputBamFile;   
@@ -176,16 +178,23 @@ public class QSVParameters {
 			//			}
 			//			this.sequencingRuns = est.getRunRecords();
 		} else {
-			if (options.runClipAnalysis() && !options.runPairAnalysis()) {
+			if (options.runClipAnalysis() && ! options.runPairAnalysis()) {
 				//still need to getread groups
-				final SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(inputBamFile, "silent");
-				for (final SAMReadGroupRecord record: reader.getFileHeader().getReadGroups()) {
-					readGroupIds.add(record.getId());
+				try (final SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(inputBamFile, "silent");) {
+					
+					int rgCount = reader.getFileHeader().getReadGroups().size();
+					readGroupIds = rgCount == 1 ? new ArrayList<String>(2) : new HashSet<String>(rgCount);
 					lowerInsertSize = 0;
 					upperInsertSize = 1000;
+					
+					for (final SAMReadGroupRecord record: reader.getFileHeader().getReadGroups()) {
+						readGroupIds.add(record.getId());
+					}
 				}
 
 			} else {
+				int rgCount = sequencingRuns.size();
+				readGroupIds = rgCount == 1 ? new ArrayList<String>(2) : new HashSet<String>(rgCount);
 				for (final RunTypeRecord r: sequencingRuns) {
 					readGroupIds.add(r.getRgId());
 					logger.info("Insert size for sample " + findType + ": " + r.toString());					
@@ -688,7 +697,7 @@ public class QSVParameters {
 	 *
 	 * @return the read group ids
 	 */
-	public List<String> getReadGroupIds() {
+	public Collection<String> getReadGroupIds() {
 		return readGroupIds;
 	}
 	
