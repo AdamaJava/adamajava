@@ -7,6 +7,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.util.AbstractQueue;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -71,7 +72,7 @@ public class AnnotateFilterMT implements Runnable {
 	private boolean runPair;
 	private boolean runClip;
 	private final boolean isSplitRead;
-	private final List<String> readGroupIds;
+	private final Collection<String> readGroupIds;
 	private final AtomicLong goodClipCount = new AtomicLong(); 
 	private final AtomicLong unmappedCount = new AtomicLong();
 	private final boolean translocationsOnly; 
@@ -393,7 +394,7 @@ public class AnnotateFilterMT implements Runnable {
 			
 			try ( SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(input, "silent");) {
 				int queryStart = startPos - 100;
-				if (queryStart < 0) {
+				if (queryStart <= 0) {
 					queryStart = 1;
 				}
 				final int queryEnd = endPos + 100;
@@ -401,10 +402,6 @@ public class AnnotateFilterMT implements Runnable {
 				final SAMRecordIterator iter = reader.queryOverlapping(chromosome.getName(), queryStart, queryEnd);
 	
 				int count = 0;
-	
-//				for (final String s : readGroupIds) {
-//					logger.info("readGroupId: [" + s + "]");
-//				}
 	
 				while (iter.hasNext()) {
 					final SAMRecord record = iter.next();
@@ -415,9 +412,7 @@ public class AnnotateFilterMT implements Runnable {
 					final SAMReadGroupRecord srgr = record.getReadGroup();
 					if (null != srgr 
 							&& null != srgr.getId() 
-//							&& readGroupIds.containsKey(srgr.getId())) {
-//							&& readGroupIds.containsKey(srgr.getId())) {
-						&& readGroupIds.contains(srgr.getId())) {
+							&& readGroupIds.contains(srgr.getId())) {
 	
 						//discordant pairs
 						if (runPair && record.getAlignmentStart() >= startPos && record.getAlignmentStart() <= endPos) {
@@ -600,13 +595,9 @@ public class AnnotateFilterMT implements Runnable {
 					final SAMFileWriter writer = writeFactory.makeBAMWriter(header, false, file, 1);
 
 					// debug
-					final File tmpLocation = net.sf.samtools.util.IOUtil
-							.getDefaultTmpDir();
-					logger.info("all tmp BAMs are located on "
-							+ tmpLocation.getCanonicalPath());
-					logger.info("default maxRecordsInRam "
-							+ net.sf.samtools.SAMFileWriterImpl
-							.getDefaultMaxRecordsInRam());
+					final File tmpLocation = net.sf.samtools.util.IOUtil.getDefaultTmpDir();
+					logger.info("all tmp BAMs are located on " + tmpLocation.getCanonicalPath());
+					logger.info("default maxRecordsInRam " + net.sf.samtools.SAMFileWriterImpl.getDefaultMaxRecordsInRam());
 
 					SAMRecord record;
 					try {
@@ -647,6 +638,9 @@ public class AnnotateFilterMT implements Runnable {
 								count++;
 							}
 						}
+					} catch (Exception e) {
+						logger.error("Exception caught whilst writing SAMRecords to bam file: " + file.getAbsolutePath() + " : " + QSVUtil.getStrackTrace(e));
+						throw e;
 					} finally {
 						writer.close();
 					}
