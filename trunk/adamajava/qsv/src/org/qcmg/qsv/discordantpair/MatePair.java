@@ -3,6 +3,9 @@
  */
 package org.qcmg.qsv.discordantpair;
 
+import static org.qcmg.common.util.Constants.COMMA;
+import static org.qcmg.common.util.Constants.TAB;
+
 import java.io.Serializable;
 import java.util.Comparator;
 
@@ -16,8 +19,6 @@ import org.qcmg.qsv.util.QSVUtil;
 
 public class MatePair implements Comparable<MatePair> {
 
-	private static final char TAB = '\t';
-	private static final char COMMA = ',';
 	private static final QLogger logger = QLoggerFactory.getLogger(MatePair.class);
 
 	private final String readName;
@@ -59,7 +60,7 @@ public class MatePair implements Comparable<MatePair> {
 				Integer.parseInt(readPairArray[12]), 
 				Boolean.valueOf(readPairArray[13]));
 
-		if (zpString.equals("C**")) {
+		if (zpString.equals(QSVConstants.C_STAR_STAR)) {
 			zpString = "Cxx";
 		}
 		this.zp = PairClassification.valueOf(zpString);
@@ -68,8 +69,8 @@ public class MatePair implements Comparable<MatePair> {
 	}
 
 	private String getPairClassificationFromSamRecord(SAMRecord samRecord) {
-		String zp = (String) samRecord.getAttribute("ZP");
-		if (zp.equals("C**")) {
+		String zp = (String) samRecord.getAttribute(QSVConstants.ZP_SHORT);
+		if (zp.equals(QSVConstants.C_STAR_STAR)) {
 			zp = "Cxx";
 		}
 		return zp;
