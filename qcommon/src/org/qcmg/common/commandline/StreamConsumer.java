@@ -10,7 +10,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.List;
 
 public class StreamConsumer extends Thread {
 	final InputStream is;
@@ -22,10 +23,9 @@ public class StreamConsumer extends Thread {
 
 	@Override
 	public void run() {
-		Vector<String> results = new Vector<String>();
-		try {
-			InputStreamReader isr = new InputStreamReader(is);
-			BufferedReader br = new BufferedReader(isr);
+		List<String> results = new ArrayList<>();
+		try (InputStreamReader isr = new InputStreamReader(is);
+			BufferedReader br = new BufferedReader(isr);) {
 			String line = null;
 			while ((line = br.readLine()) != null) {
 				results.add(line);
