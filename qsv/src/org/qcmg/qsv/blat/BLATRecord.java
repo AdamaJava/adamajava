@@ -16,81 +16,59 @@ import org.qcmg.qsv.util.QSVUtil;
 public class BLATRecord implements Comparable<BLATRecord> {
 
 	
-	private String name;
-	private String reference;
-	private char strand;
-	private int match;
-	private int startPos;
-	private int endPos;
-	private int queryStart;
-	private int queryEnd;
-	private int mismatch;
-	private int tGapCount;
-	private int qGapCount;
-	private boolean valid;
-	private int size;
-	private int blockCount;
-	private String[] tStarts;
-	private String[] blockSizes;
-	private String[] qStarts;
-	private String recordString = "";
+	private final String[] rawData;
+	private final String name;
+	private final String reference;
+//	private final char strand;
+	
+	private final int score;
+	
+//	private int match;
+//	private final int startPos;
+//	private final int endPos;
+//	private final int queryStart;
+//	private final int queryEnd;
+//	private int mismatch;
+//	private int tGapCount;
+//	private int qGapCount;
+	private final boolean valid;
+//	private final int size;
+//	private final int blockCount;
+//	private String[] tStarts;
+//	private String[] blockSizes;
+//	private String[] qStarts;
+//	private final String recordString = "";
 	private int nonTempBases = 0;
-
+	
 
 	public BLATRecord(String[] values) throws QSVException {
-		if (values.length < 21) {
-			this.valid = false;
-		} else {
-			try {
-
-				this.valid = true;
-				this.match = Integer.parseInt(values[0]);
-				this.mismatch = Integer.parseInt(values[1]);
-				this.tGapCount = Integer.parseInt(values[6]);
-				this.qGapCount = Integer.parseInt(values[4]);
-				this.name = values[9];
-				this.reference = values[13];
-				this.size = Integer.parseInt(values[10]);
-				this.startPos = Integer.parseInt(values[15]);
-				this.endPos= Integer.parseInt (values[16]);
-				this.queryStart = Integer.parseInt(values[11]);
-				this.queryEnd = Integer.parseInt(values[12]);
-				this.strand = values[8].charAt(0);
-				this.blockCount = Integer.parseInt(values[17]);
-				if (blockCount > 1) {				
-					this.blockSizes = values[18].split(",");
-					this.qStarts = values[19].split(",");				
-					this.tStarts = values[20].split(",");
-				}
-			} catch (Exception e) {
-				this.valid = false;
-			}
-			StringBuilder b = new StringBuilder();
-			for (String s: values) {
-				b.append(s).append(Constants.TAB);
-			}
-			this.recordString = b.toString();
-				//fix start positions
-				startPos++;
-				queryStart++;
-				if (qStarts != null) {
-					for (int i=0; i<qStarts.length; i++) {
-						if (strand == QSVUtil.MINUS) {
-							int newInt = size - Integer.parseInt(qStarts[i]) - Integer.parseInt(blockSizes[i]) + 1;							
-							qStarts[i] =  newInt + "";						
-						} else {
-							int newInt = Integer.parseInt(qStarts[i]) + 1;						
-							qStarts[i] = newInt + "";
-						}
-					}
-				}
-				if (tStarts != null) {
-					for (int i=0; i<tStarts.length; i++) {						
-						int newInt = Integer.parseInt(tStarts[i]) + 1;						
-						tStarts[i] = newInt + "";
-					}
-				}
-		}
+		this.rawData = values;
+		this.valid = rawData.length >= 21;
+				
+		this.score = Integer.parseInt(rawData[0]) - Integer.parseInt(rawData[1]) - Integer.parseInt(rawData[6]) - Integer.parseInt(rawData[4]);
+		this.name = rawData[9];
+		this.reference = rawData[13];
+		
+//		this.size = Integer.parseInt(rawData[10]);
+//		this.startPos = Integer.parseInt(rawData[15]) + 1;
+//		this.endPos= Integer.parseInt (rawData[16]);
+//		this.queryStart = Integer.parseInt(rawData[11]) + 1;
+//		this.queryEnd = Integer.parseInt(rawData[12]);
+//		this.strand = rawData[8].charAt(0);
+//		this.blockCount = Integer.parseInt(rawData[17]);
+//		if (blockCount > 1) {				
+//			this.blockSizes = rawData[18].split(",");
+//			this.qStarts = rawData[19].split(",");
+//			this.tStarts = rawData[20].split(",");
+			
+			
+//			if (tStarts != null) {
+//				for (int i=0; i<tStarts.length; i++) {						
+//					int newInt = Integer.parseInt(tStarts[i]) + 1;						
+//					tStarts[i] = newInt + "";
+//				}
+//			}
+//		}
 	}
 	
 	public BLATRecord(String line) throws QSVException {
@@ -98,9 +76,6 @@ public class BLATRecord implements Comparable<BLATRecord> {
 //		this(line.split("\t"));
 	}
 
-	public int getSize() {
-		return size;
-	}
 
 	/**
 	 * Calculate blat score based on web BLAT
@@ -114,7 +89,12 @@ public class BLATRecord implements Comparable<BLATRecord> {
 		 // - psl->tNumInsert;
 		//}
 		
-		return match - mismatch - tGapCount - qGapCount;		
+		return score;
+//		return match - mismatch - tGapCount - qGapCount;		
+	}
+	
+	public int getSize() {
+		return Integer.parseInt(rawData[10]);
 	}
 
 	public String getName() {
@@ -126,55 +106,66 @@ public class BLATRecord implements Comparable<BLATRecord> {
 	}
 
 	public char getStrand() {
-		return strand;
+		return rawData[8].charAt(0);
 	}
 
 	public int getStartPos() {
-		return startPos;
+		return Integer.parseInt(rawData[15]) + 1;
 	}
 
 	public int getEndPos() {
-		return endPos;
+		return Integer.parseInt (rawData[16]);
 	}
 
 	public int getQueryStart() {
-		return queryStart;
+		return Integer.parseInt(rawData[11]) + 1;
 	}
 
 	public int getQueryEnd() {
-		return queryEnd;
+		return Integer.parseInt(rawData[12]);
 	}
 	
-	public int getMatch() {
-		return match;
-	}
+//	public int getMatch() {
+//		return match;
+//	}
 
 	public int getScore() {
-		return calculateScore();
+		return score;
 	}
 	
 	public boolean isValid() {
 		return valid;
 	}
 	
-	public int getMismatch() {
-		return mismatch;
-	}
+//	public int getMismatch() {
+//		return mismatch;
+//	}
 
-	public int gettGapCount() {
-		return tGapCount;
-	}
+//	public int gettGapCount() {
+//		return tGapCount;
+//	}
 
-	public int getqGapCount() {
-		return qGapCount;
-	}
+//	public int getqGapCount() {
+//		return qGapCount;
+//	}
 
 	public int getBlockCount() {
-		return blockCount;
+		return Integer.parseInt(rawData[17]);
 	}
 
 	public String[] gettStarts() {
-		return tStarts;
+		if (getBlockCount() > 1) {
+			String [] tStarts = rawData[20].split(",");
+			if (tStarts != null) {
+				for (int i=0; i<tStarts.length; i++) {						
+					int newInt = Integer.parseInt(tStarts[i]) + 1;						
+					tStarts[i] = newInt + "";
+				}
+			}
+			
+			return tStarts;
+		} 
+		return null;
 	}
 
 	public Integer calculateMateBreakpoint(boolean isLeft, String knownReference, Integer knownBreakpoint, char knownStrand) {		
@@ -201,7 +192,7 @@ public class BLATRecord implements Comparable<BLATRecord> {
 	private Integer calculateDoubleMateBreakpoint(boolean isLeft,
 			String knownReference, Integer knownBreakpoint, char knownStrand) {
 			if (this.reference.equals(knownReference)) {			
-				if (knownStrand == strand) {
+				if (knownStrand == getStrand()) {
 					
 					for (int i=0; i<2; i++) {
 						int currentBp = getCurrentBp(i, isLeft, knownStrand, knownBreakpoint);							
@@ -223,6 +214,12 @@ public class BLATRecord implements Comparable<BLATRecord> {
 
 	private int calculateSingleMateBreakpoint(boolean isLeft,
 			String knownReference, Integer knownBreakpoint, char knownStrand) {
+		int startPos = getStartPos();
+		int endPos = getEndPos();
+		int queryStart = getQueryStart();
+		int queryEnd = getQueryEnd();
+		int size = getSize();
+		char strand = getStrand();
 		int mateBp;
 		nonTempBases = 0;
 		if (isLeft) {
@@ -248,8 +245,10 @@ public class BLATRecord implements Comparable<BLATRecord> {
 	}
 
 	private int getCurrentBp(int i, boolean isLeft, char knownStrand, Integer knownBreakpoint) {
+		String [] tStarts = gettStarts();
 		int startPos = Integer.parseInt(tStarts[i]);
-		int endPos = Integer.parseInt(tStarts[i]) + Integer.parseInt(blockSizes[i]);
+		int endPos = Integer.parseInt(tStarts[i]) + Integer.parseInt(getBlockSizes()[i]);
+		char strand = getStrand();
 		
 		if (knownStrand == (strand)) {
 			return isLeft ?  startPos : endPos;
@@ -259,9 +258,14 @@ public class BLATRecord implements Comparable<BLATRecord> {
 	}
 	
 	private Integer getMateCurrentBp(int i, boolean isLeft, char knownStrand, Integer knownBreakpoint) {
+		String [] tStarts = gettStarts();
+		int size = getSize();
 		int startPos = Integer.parseInt(tStarts[i]);
-		int endPos = Integer.parseInt(tStarts[i]) + Integer.parseInt(blockSizes[i]) - 1;
+		int endPos = Integer.parseInt(tStarts[i]) + Integer.parseInt(getBlockSizes()[i]) - 1;
 		int currentBp;
+		int queryStart = getQueryStart();
+		int queryEnd = getQueryEnd();
+		char strand = getStrand();
 				
 		boolean isStart = true;
 		if (knownStrand == strand) {
@@ -310,15 +314,40 @@ public class BLATRecord implements Comparable<BLATRecord> {
 
 	@Override 
 	public String toString() {
-		return getScore() + "\t" + this.recordString;
+		StringBuilder b = new StringBuilder();
+		for (String s: rawData) {
+			b.append(s).append(Constants.TAB);
+		}
+		return getScore() + Constants.TAB + b.toString();
 	}
 
 	public String[] getUnmodifiedStarts() {
+		if (getBlockCount() > 1) {
+			String[] qStarts = rawData[19].split(",");
+			String [] blockSizes = getBlockSizes();
+			if (qStarts != null) {
+				char strand = getStrand();
+				for (int i=0; i<qStarts.length; i++) {
+					if (strand == QSVUtil.MINUS) {
+						int newInt = getSize() - Integer.parseInt(qStarts[i]) - Integer.parseInt(blockSizes[i]) + 1;							
+						qStarts[i] =  newInt + "";						
+					} else {
+						int newInt = Integer.parseInt(qStarts[i]) + 1;						
+						qStarts[i] = newInt + "";
+					}
+				}
+			}
+			
 			return qStarts;
+		} 
+		return null;
 	}
 
 	public String[] getBlockSizes() {
-		return this.blockSizes;
+		if (getBlockCount() > 1) {
+			return rawData[18].split(",");
+		}
+		return null;
 	}
 
 	public int getNonTempBases() {
