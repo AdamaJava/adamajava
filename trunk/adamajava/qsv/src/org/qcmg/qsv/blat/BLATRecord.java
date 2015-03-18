@@ -25,17 +25,14 @@ public class BLATRecord implements Comparable<BLATRecord> {
 	private int queryStart;
 	private int queryEnd;
 	private int mismatch;
-//	private int repMatch;
 	private int tGapCount;
 	private int qGapCount;
 	private boolean valid;
 	private int size;
-//	private int tGapBases;
 	private int blockCount;
 	private String[] tStarts;
 	private String[] blockSizes;
 	private String[] qStarts;
-//	private String[] revQStarts;
 	private String recordString = "";
 	private int nonTempBases = 0;
 
@@ -49,7 +46,6 @@ public class BLATRecord implements Comparable<BLATRecord> {
 				this.valid = true;
 				this.match = Integer.parseInt(values[0]);
 				this.mismatch = Integer.parseInt(values[1]);
-//				this.repMatch = Integer.parseInt(values[2]);
 				this.tGapCount = Integer.parseInt(values[6]);
 				this.qGapCount = Integer.parseInt(values[4]);
 				this.name = values[9];
@@ -60,15 +56,11 @@ public class BLATRecord implements Comparable<BLATRecord> {
 				this.queryStart = Integer.parseInt(values[11]);
 				this.queryEnd = Integer.parseInt(values[12]);
 				this.strand = values[8].charAt(0);
-//				this.tGapBases = Integer.parseInt(values[5]);
 				this.blockCount = Integer.parseInt(values[17]);
 				if (blockCount > 1) {				
 					this.blockSizes = values[18].split(",");
 					this.qStarts = values[19].split(",");				
 					this.tStarts = values[20].split(",");
-//					if (strand == QSVUtil.MINUS) {
-//						this.revQStarts = values[19].split(",");			
-//					}
 				}
 			} catch (Exception e) {
 				this.valid = false;
@@ -89,9 +81,6 @@ public class BLATRecord implements Comparable<BLATRecord> {
 						} else {
 							int newInt = Integer.parseInt(qStarts[i]) + 1;						
 							qStarts[i] = newInt + "";
-//							if (strand == QSVUtil.MINUS) {
-//								revQStarts[i] = newInt + "";
-//							}
 						}
 					}
 				}
@@ -172,10 +161,6 @@ public class BLATRecord implements Comparable<BLATRecord> {
 		return mismatch;
 	}
 
-//	public int getRepMatch() {
-//		return repMatch;
-//	}
-
 	public int gettGapCount() {
 		return tGapCount;
 	}
@@ -183,10 +168,6 @@ public class BLATRecord implements Comparable<BLATRecord> {
 	public int getqGapCount() {
 		return qGapCount;
 	}
-
-//	public int gettGapBases() {
-//		return tGapBases;
-//	}
 
 	public int getBlockCount() {
 		return blockCount;
