@@ -15,6 +15,8 @@ import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicLongArray;
 
+import org.qcmg.common.log.QLogger;
+import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.CigarStringComparator;
 import org.qcmg.common.model.MAPQMiniMatrix;
 import org.qcmg.common.model.ProfileType;
@@ -30,6 +32,8 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 public class ReportBuilder {
+	
+	private static final QLogger logger = QLoggerFactory.getLogger(ReportBuilder.class);
 	
 	private static final String ISIZE = "iSize";
 	private static final String UNMAPPED = "Unmapped";
@@ -160,9 +164,14 @@ public class ReportBuilder {
 		
 		parentCT.addChild(ct);
 		
-		parentCT.addChild(addTop100Chart(reportElement, "KMERS", "Kmer", "kmer", "Top 100 6-mers seen in fastq sequencing reads", 100, false));
-		parentCT.addChild(addTop100Chart(reportElement, "INDEXES", "Index", "index", "Top 50 indexes seen in fastq sequencing reads", 50, true));
-		
+		ChartTab kmerTab = addTop100Chart(reportElement, "KMERS", "Kmer", "kmer", "Top 100 6-mers seen in fastq sequencing reads", 100, false);
+		if (null != kmerTab) {
+			parentCT.addChild(kmerTab);
+		}
+		ChartTab indexesTab = addTop100Chart(reportElement, "INDEXES", "Index", "index", "Top 50 indexes seen in fastq sequencing reads", 50, true);
+		if (null != indexesTab) {
+			parentCT.addChild(indexesTab);
+		}
 		
 		report.addTab(parentCT);
 	}
