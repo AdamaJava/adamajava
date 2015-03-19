@@ -34,18 +34,15 @@ public class Vcf2maf extends AbstractMode{
 	protected final  Map<String,String> effRanking = new HashMap<String,String>();	
 	private final String center;
 	private final String sequencer;
-	private final String dornorId ;	
- 
+	private final String dornorId ;	 
 	private final String testSample ;
 	private final String controlSample ;
 	private final int test_column;
 	private final int control_column;
-	
-	
+
 	// org.qcmg.common.dcc.DccConsequence.getWorstCaseConsequence(MutationType, String...)
 	//for unit test
-	Vcf2maf(int test_column, int control_column, String test, String control){
- 
+	Vcf2maf(int test_column, int control_column, String test, String control){ 
 		center = Vcf2mafOptions.default_center;
 		sequencer = SnpEffMafRecord.Unknown; 
 		this.dornorId = SnpEffMafRecord.Unknown; 		
@@ -53,10 +50,8 @@ public class Vcf2maf extends AbstractMode{
 		this.test_column = test_column;
 		this.control_column = control_column;
 		this.testSample = test;
-		this.controlSample = control;
-		
+		this.controlSample = control;		
 	}
-
  
 	//EFF= Effect ( Effect_Impact | Functional_Class | Codon_Change | Amino_Acid_Change| Amino_Acid_Length | Gene_Name | Transcript_BioType | Gene_Coding | Transcript_ID | Exon_Rank  | Genotype_Number [ | ERRORS | WARNINGS ] )	
 	public Vcf2maf(Vcf2mafOptions option, QLogger logger) throws Exception {
@@ -114,11 +109,8 @@ public class Vcf2maf extends AbstractMode{
 				PrintWriter out_GHCC = new PrintWriter(GHCC);
 				PrintWriter out_GHC = new PrintWriter(GHC)){			
 			
-			createMafHeader(out, option.getCommandLine(), option.getInputFileName());
-			createMafHeader(out_SHCC, option.getCommandLine(), option.getInputFileName());
-			createMafHeader(out_SHC, option.getCommandLine(), option.getInputFileName());
-			createMafHeader(out_GHCC, option.getCommandLine(), option.getInputFileName());
-			createMafHeader(out_GHC, option.getCommandLine(), option.getInputFileName());
+			reheader( option.getCommandLine(), option.getInputFileName());			
+			createMafHeader(out,out_SHCC,out_SHC,out_GHCC,out_GHC);
 						
 	       	for (final VcfRecord vcf : reader)
         		try{
@@ -130,46 +122,37 @@ public class Vcf2maf extends AbstractMode{
         				if(maf.getColumnValue(26).equalsIgnoreCase(VcfHeaderUtils.INFO_SOMATIC)){
         					out_SHC.println(Smaf);
         					
-        					if(maf.getColumnValue(53+1).equalsIgnoreCase( PROTEINCODE ) && rank <=5 )
+        					if(maf.getColumnValue(55).equalsIgnoreCase( PROTEINCODE ) && rank <=5 )
         						out_SHCC.println(Smaf);
         				}else{
         					out_GHC.println(Smaf);
         					 
-        					if(maf.getColumnValue(53+1).equalsIgnoreCase( PROTEINCODE ) && rank <=5 )
+        					if(maf.getColumnValue(55).equalsIgnoreCase( PROTEINCODE ) && rank <=5 )
         						out_GHCC.println(Smaf);
-        				}
-        		  
+        				}        		  
           		}catch(final Exception e){  	
         			logger.warn("Error message during vcf2maf: " + e.getMessage() + "\n" + vcf.toString());
         			e.printStackTrace();
-        			
         		}
 		}			
 	}
-	
-	private void createMafHeader(PrintWriter write, String cmd, String inputVcfName) throws Exception{
-		if(header == null)
-			try(VCFFileReader reader = new VCFFileReader(inputVcfName)) {
-	        	header = reader.getHeader();
-			}
 		
-		reheader(cmd, inputVcfName);
-		
-
-		write.println(SnpEffMafRecord.Version);
-		
-		for(VcfHeader.Record re: header.getMetaRecords())
-			if(!re.equals(VcfHeaderUtils.STANDARD_FILE_VERSION ))
+	private void createMafHeader(PrintWriter ... writers) throws Exception{
+		 for(PrintWriter write:writers){
+			write.println(SnpEffMafRecord.Version);
+			
+			for(VcfHeader.Record re: header.getMetaRecords())
+				if(!re.equals(VcfHeaderUtils.STANDARD_FILE_VERSION ))
+					write.println(re.getData());
+			
+			for(VcfHeader.QPGRecord re: header.getqPGLines())
 				write.println(re.getData());
-		
-		for(VcfHeader.QPGRecord re: header.getqPGLines())
-			write.println(re.getData());
-		
-		
-		for(Map.Entry<String, VcfHeader.FormattedRecord> re: header.getInfoRecords().entrySet())
-			write.println(re.getValue().getData());
-
-		write.println(SnpEffMafRecord.getSnpEffMafHeaderline());
+						
+			for(Map.Entry<String, VcfHeader.FormattedRecord> re: header.getInfoRecords().entrySet())
+				write.println(re.getValue().getData());
+	
+			write.println(SnpEffMafRecord.getSnpEffMafHeaderline());	 
+		 }	 
 	}
 
 	//Effect ( Effect_Impact | Functional_Class | Codon_Change | Amino_Acid_Change| Amino_Acid_length | Gene_Name | Transcript_BioType | Gene_Coding | Transcript_ID | Exon_Rank  | Genotype_Number [ | ERRORS | WARNINGS ] )
@@ -214,8 +197,8 @@ public class Vcf2maf extends AbstractMode{
 //		if(info.getField(VcfHeaderUtils.FORMAT_NOVEL_STARTS) != null) maf.setColumnValue(40,  info.getField(VcfHeaderUtils.FORMAT_NOVEL_STARTS));
 		if(info.getField(VcfHeaderUtils.INFO_CONFIDENT) != null)	maf.setColumnValue(38,  info.getField(VcfHeaderUtils.INFO_CONFIDENT) );
 //		if(info.getField(VcfHeaderUtils.INFO_FS) != null) maf.setColumnValue(41+1,  info.getField(VcfHeaderUtils.INFO_FS));
-		if(info.getField(VcfHeaderUtils.INFO_FLANKING_SEQUENCE) != null) maf.setColumnValue(41+1,  info.getField(VcfHeaderUtils.INFO_FLANKING_SEQUENCE));
-		if(info.getField(VcfHeaderUtils.INFO_VAF) != null) maf.setColumnValue(42+1,  info.getField(VcfHeaderUtils.INFO_VAF));		
+		if(info.getField(VcfHeaderUtils.INFO_FLANKING_SEQUENCE) != null) maf.setColumnValue(42,  info.getField(VcfHeaderUtils.INFO_FLANKING_SEQUENCE));
+		if(info.getField(VcfHeaderUtils.INFO_VAF) != null) maf.setColumnValue(43,  info.getField(VcfHeaderUtils.INFO_VAF));		
 		if(info.getField(VcfHeaderUtils.INFO_GERMLINE) != null) maf.setColumnValue(44,  info.getField(VcfHeaderUtils.INFO_GERMLINE));		
 
 		String eff; 
@@ -234,9 +217,9 @@ public class Vcf2maf extends AbstractMode{
 		
 		if(Tvalues[1] != null){	//allesls counts
 			maf.setColumnValue(37,  Tvalues[1]);
-	    	maf.setColumnValue(44+1, Integer.toString( VcfUtils.getAltFrequency(sample, null)));
-	    	maf.setColumnValue(45+1, Integer.toString( VcfUtils.getAltFrequency(sample, vcf.getRef()))); 
-	    	maf.setColumnValue(46+1, Integer.toString( VcfUtils.getAltFrequency(sample, vcf.getAlt())));
+	    	maf.setColumnValue(45, Integer.toString( VcfUtils.getAltFrequency(sample, null)));
+	    	maf.setColumnValue(46, Integer.toString( VcfUtils.getAltFrequency(sample, vcf.getRef()))); 
+	    	maf.setColumnValue(47, Integer.toString( VcfUtils.getAltFrequency(sample, vcf.getAlt())));
 	    	maf.setColumnValue(12,  Tvalues[2] );  //TD allele1
 	    	maf.setColumnValue(13, Tvalues[3]);		//TD allele2
 		}
@@ -247,9 +230,9 @@ public class Vcf2maf extends AbstractMode{
 		
 		if(Nvalues[1] != null){	//allesls counts
 			maf.setColumnValue(36,  Nvalues[1]);
-	    	maf.setColumnValue(47+1, Integer.toString( VcfUtils.getAltFrequency(sample, null)));
-	    	maf.setColumnValue(48+1, Integer.toString( VcfUtils.getAltFrequency(sample, vcf.getRef()))); 
-	    	maf.setColumnValue(49+1, Integer.toString( VcfUtils.getAltFrequency(sample, vcf.getAlt())));
+	    	maf.setColumnValue(48, Integer.toString( VcfUtils.getAltFrequency(sample, null)));
+	    	maf.setColumnValue(49, Integer.toString( VcfUtils.getAltFrequency(sample, vcf.getRef()))); 
+	    	maf.setColumnValue(50, Integer.toString( VcfUtils.getAltFrequency(sample, vcf.getAlt())));
 	    	maf.setColumnValue(18,  Nvalues[2] );  //ND allele1
 	    	maf.setColumnValue(19, Nvalues[3]);	//ND allele2
 		}		
@@ -259,7 +242,7 @@ public class Vcf2maf extends AbstractMode{
 		if(Nvalues[0].equals(SnpEffMafRecord.Unknown)) nns = (!Tvalues[0].equals(SnpEffMafRecord.Unknown) )? "TD"+Tvalues[0] : SnpEffMafRecord.Unknown;
 		else if (Tvalues[0].equals(SnpEffMafRecord.Unknown)) nns = (!Nvalues[0].equals(SnpEffMafRecord.Unknown) )? "ND"+Nvalues[0] : SnpEffMafRecord.Unknown;
 		else nns = String.format("ND%s:TD%s",Nvalues[0], Tvalues[0]);
-		maf.setColumnValue(40+1, nns);	
+		maf.setColumnValue(41, nns);	
 
 		return maf;
 
@@ -368,9 +351,9 @@ public class Vcf2maf extends AbstractMode{
 			final String ontolog = effAnno.substring(0, effAnno.indexOf("("));		
 			final String annotate = effAnno.substring( effAnno.indexOf("(") + 1, effAnno.indexOf(")"));	
 	
-			maf.setColumnValue(58+1, ontolog); //effect_ontology
+			maf.setColumnValue(59, ontolog); //effect_ontology
 			String str = SnpEffConsequence.getClassicName(ontolog);
-			if(str != null) maf.setColumnValue(59+1, str);
+			if(str != null) maf.setColumnValue(60, str);
 			str = SnpEffConsequence.getMafClassification(ontolog);
 			if(str != null) maf.setColumnValue(9, str); //eg. RNA
 			
@@ -383,42 +366,20 @@ public class Vcf2maf extends AbstractMode{
 			if(effs[3].startsWith("p.")){
 				int pos = effs[3].indexOf(Constants.SLASH_STRING);
 				if(pos >= 0 ){
-					maf.setColumnValue(50+1+1,effs[3].substring(0, pos));
-					maf.setColumnValue(51+1+1,effs[3].substring(pos+1));
+					maf.setColumnValue(52,effs[3].substring(0, pos));
+					maf.setColumnValue(53,effs[3].substring(pos+1));
 				}else
-					maf.setColumnValue(50+1+1,effs[3]);
+					maf.setColumnValue(52,effs[3]);
 				if(! StringUtils.isNullOrEmpty(effs[2]))  maf.setColumnValue(52+1+1,effs[2]);
 			}
 						
 			if(! StringUtils.isNullOrEmpty(effs[5]))  maf.setColumnValue(1, effs[5]);//Gene_Name DDX11L1		
-			if(! StringUtils.isNullOrEmpty(effs[6]))  maf.setColumnValue(53+1+1,effs[6]);//bioType 	protein_coding		
-			if(! StringUtils.isNullOrEmpty(effs[7]))  maf.setColumnValue(54+1+1,effs[7]);				
-			if(! StringUtils.isNullOrEmpty(effs[8]))  maf.setColumnValue(49+1+1,effs[8]);
-			if(! StringUtils.isNullOrEmpty(effs[9]))  maf.setColumnValue(55+1+1,effs[9]);
-			if(! StringUtils.isNullOrEmpty(effs[10])) maf.setColumnValue(56+1+1,effs[10]);		
+			if(! StringUtils.isNullOrEmpty(effs[6]))  maf.setColumnValue(55,effs[6]);//bioType 	protein_coding		
+			if(! StringUtils.isNullOrEmpty(effs[7]))  maf.setColumnValue(56,effs[7]);				
+			if(! StringUtils.isNullOrEmpty(effs[8]))  maf.setColumnValue(51,effs[8]);
+			if(! StringUtils.isNullOrEmpty(effs[9]))  maf.setColumnValue(57,effs[9]);
+			if(! StringUtils.isNullOrEmpty(effs[10])) maf.setColumnValue(58,effs[10]);		
  	 }
-	 	
-	/**
-	 * testing method only to retrive EFF types 
-	 * @param vcf
-	 * @throws Exception 
-	 */
-	private void splitEFF(VcfRecord vcf ) throws Exception{
-		
-		final VcfInfoFieldRecord info =  new VcfInfoFieldRecord(vcf.getInfo());
-		try{
-			final String[] effs = info.getField(VcfHeaderUtils.INFO_EFFECT).split(",");
-			for(final String str : effs){
-				final String[] eles = str.replace("(", " ").replace("|", " ").split(" ");
-				if(effRanking.containsKey(eles[0])  && !effRanking.get(eles[0]).contains(eles[1]))
-					effRanking.put(eles[0], effRanking.get(eles[0]).concat( ";").concat(eles[1]));					 
-				else
-					effRanking.put(eles[0], eles[1]);	
-			}
-		}catch(final Exception e ){
-			return;
-		}
-	}
 
 
 	@Override
