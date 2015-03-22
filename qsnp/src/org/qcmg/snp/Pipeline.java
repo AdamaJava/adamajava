@@ -1911,8 +1911,8 @@ public abstract class Pipeline {
 				}
 				
 				
-				final Map<Long, StringBuilder> normalReadSeqMap = new HashMap<>();
-				final Map<Long, StringBuilder> tumourReadSeqMap = new HashMap<>();
+				final Map<Long, StringBuilder> controlReadSeqMap = new HashMap<>();
+				final Map<Long, StringBuilder> testReadSeqMap = new HashMap<>();
 				
 				// get accumulation objects for this position
 				for (int j = startPosition ; j <= endPosition ; j++) {
@@ -1925,42 +1925,42 @@ public abstract class Pipeline {
 						logger.warn("chChrPos: " + csChrPos);
 					}
 					
-					final Accumulator normal = accums.getLeft();
-					final Accumulator tumour = accums.getRight();
-					if (null != normal) {
-						accumulateReadBases(normal, normalReadSeqMap, (j - startPosition));
+					final Accumulator control = accums.getLeft();
+					final Accumulator test = accums.getRight();
+					if (null != control) {
+						accumulateReadBases(control, controlReadSeqMap, (j - startPosition));
 					}
-					if (null != tumour) {
-						accumulateReadBases(tumour, tumourReadSeqMap, (j - startPosition));
+					if (null != test) {
+						accumulateReadBases(test, testReadSeqMap, (j - startPosition));
 					}
 				}
 				
-				final Map<String, AtomicInteger> normalMutationCount = new HashMap<>();
-				for (final Entry<Long, StringBuilder> entry : normalReadSeqMap.entrySet()) {
-					final AtomicInteger count = normalMutationCount.get(entry.getValue().toString());
+				final Map<String, AtomicInteger> controlMutationCount = new HashMap<>();
+				for (final Entry<Long, StringBuilder> entry : controlReadSeqMap.entrySet()) {
+					final AtomicInteger count = controlMutationCount.get(entry.getValue().toString());
 					if (null == count) {
-						normalMutationCount.put(entry.getValue().toString(), new AtomicInteger(1));
+						controlMutationCount.put(entry.getValue().toString(), new AtomicInteger(1));
 					} else {
 						count.incrementAndGet();
 					}
 				}
 				
-				final Map<String, AtomicInteger> tumourMutationCount = new HashMap<>();
-				for (final Entry<Long, StringBuilder> entry : tumourReadSeqMap.entrySet()) {
-					final AtomicInteger count = tumourMutationCount.get(entry.getValue().toString());
+				final Map<String, AtomicInteger> testMutationCount = new HashMap<>();
+				for (final Entry<Long, StringBuilder> entry : testReadSeqMap.entrySet()) {
+					final AtomicInteger count = testMutationCount.get(entry.getValue().toString());
 					if (null == count) {
-						tumourMutationCount.put(entry.getValue().toString(), new AtomicInteger(1));
+						testMutationCount.put(entry.getValue().toString(), new AtomicInteger(1));
 					} else {
 						count.incrementAndGet();
 					}
 				}
 				
-				final AtomicInteger normalAltCountFS = normalMutationCount.get(alt);
-				final AtomicInteger tumourAltCountFS = tumourMutationCount.get(alt);
-				final AtomicInteger normalAltCountRS = normalMutationCount.get(alt.toLowerCase());
-				final AtomicInteger tumourAltCountRS = tumourMutationCount.get(alt.toLowerCase());
-				final int nc = (null != normalAltCountFS ? normalAltCountFS.get() : 0) + (null != normalAltCountRS ? normalAltCountRS.get() : 0) ;
-				final int tc = (null != tumourAltCountFS ? tumourAltCountFS.get() : 0) + (null != tumourAltCountRS ? tumourAltCountRS.get() : 0);
+				final AtomicInteger controlAltCountFS = controlMutationCount.get(alt);
+				final AtomicInteger testAltCountFS = testMutationCount.get(alt);
+				final AtomicInteger controlAltCountRS = controlMutationCount.get(alt.toLowerCase());
+				final AtomicInteger testAltCountRS = testMutationCount.get(alt.toLowerCase());
+				final int nc = (null != controlAltCountFS ? controlAltCountFS.get() : 0) + (null != controlAltCountRS ? controlAltCountRS.get() : 0) ;
+				final int tc = (null != testAltCountFS ? testAltCountFS.get() : 0) + (null != testAltCountRS ? testAltCountRS.get() : 0);
 				
 				final int totalAltCount = nc + tc;
 				final boolean somatic = classification.contains(Classification.SOMATIC.toString());
@@ -1971,37 +1971,37 @@ public abstract class Pipeline {
 //					logger.info("will create CS, totalAltCount: " + totalAltCount + " classification: " + classification + " : " + csChrPos.toString());
 					
 					
-					final StringBuilder normalSb = new StringBuilder();
-					List<String> bases = new ArrayList<>(normalMutationCount.keySet());
+					final StringBuilder controlSb = new StringBuilder();
+					List<String> bases = new ArrayList<>(controlMutationCount.keySet());
 					Collections.sort(bases);
 					
 					for (final String key : bases) {
 						final String upperCaseKey = key.toUpperCase();
-						if (normalSb.indexOf(upperCaseKey) == -1) {
-							if (normalSb.length() > 0) {
-								normalSb.append(",");
+						if (controlSb.indexOf(upperCaseKey) == -1) {
+							if (controlSb.length() > 0) {
+								controlSb.append(",");
 							}
-							final AtomicInteger fsAI = normalMutationCount.get(upperCaseKey);
-							final AtomicInteger rsAI = normalMutationCount.get(upperCaseKey.toLowerCase());
+							final AtomicInteger fsAI = controlMutationCount.get(upperCaseKey);
+							final AtomicInteger rsAI = controlMutationCount.get(upperCaseKey.toLowerCase());
 							final int fs = null != fsAI ? fsAI.get() : 0;
 							final int rs = null != rsAI ? rsAI.get() : 0;
-							normalSb.append(upperCaseKey + "," + fs + "," + rs);
+							controlSb.append(upperCaseKey + "," + fs + "," + rs);
 						}
 					}
-					final StringBuilder tumourSb = new StringBuilder();
-					bases = new ArrayList<>(tumourMutationCount.keySet());
+					final StringBuilder testSb = new StringBuilder();
+					bases = new ArrayList<>(testMutationCount.keySet());
 					Collections.sort(bases);
 					for (final String key : bases) {
 						final String upperCaseKey = key.toUpperCase();
-						if (tumourSb.indexOf(upperCaseKey) == -1) {
-							if (tumourSb.length() > 0) {
-								tumourSb.append(",");
+						if (testSb.indexOf(upperCaseKey) == -1) {
+							if (testSb.length() > 0) {
+								testSb.append(",");
 							}
-							final AtomicInteger fsAI = tumourMutationCount.get(upperCaseKey);
-							final AtomicInteger rsAI = tumourMutationCount.get(upperCaseKey.toLowerCase());
+							final AtomicInteger fsAI = testMutationCount.get(upperCaseKey);
+							final AtomicInteger rsAI = testMutationCount.get(upperCaseKey.toLowerCase());
 							final int fs = null != fsAI ? fsAI.get() : 0;
 							final int rs = null != rsAI ? rsAI.get() : 0;
-							tumourSb.append(upperCaseKey + "," + fs + "," + rs);
+							testSb.append(upperCaseKey + "," + fs + "," + rs);
 						}
 					}
 					
@@ -2016,9 +2016,14 @@ public abstract class Pipeline {
 						noOfCompSnpsGERM++;
 					}
 					cs.setFilter(uniqueFlagsSb.toString());		// unique list of filters seen by snps making up this cs
-					cs.setFormatFields(Arrays.asList(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP,
-						 StringUtils.isNullOrEmpty(normalSb.toString()) ? Constants.MISSING_DATA_STRING : normalSb.toString(), 
-								 StringUtils.isNullOrEmpty(tumourSb.toString()) ? Constants.MISSING_DATA_STRING : tumourSb.toString()));
+					if (singleSampleMode) {
+						cs.setFormatFields(Arrays.asList(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP,
+										StringUtils.isNullOrEmpty(testSb.toString()) ? Constants.MISSING_DATA_STRING : testSb.toString()));
+					} else {
+						cs.setFormatFields(Arrays.asList(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP,
+							 StringUtils.isNullOrEmpty(controlSb.toString()) ? Constants.MISSING_DATA_STRING : controlSb.toString(), 
+									 StringUtils.isNullOrEmpty(testSb.toString()) ? Constants.MISSING_DATA_STRING : testSb.toString()));
+					}
 					//cs.setFormatField(Arrays.asList(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP,
 					//	 normalSb.toString(), tumourSb.toString())); 
 					
