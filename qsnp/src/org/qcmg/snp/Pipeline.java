@@ -916,12 +916,12 @@ public abstract class Pipeline {
 	void checkRules() throws SnpException {
 		String rulesErrors = RulesUtil.examineRules(controlRules);
 		if (null != rulesErrors) {
-			logger.warn("Problem with Normal Rules: " + rulesErrors);
+			logger.warn("Problem with Control Rules: " + rulesErrors);
 		}
 		
 		rulesErrors = RulesUtil.examineRules(testRules);
 		if (null != rulesErrors) {
-			logger.warn("Problem with Tumour Rules: " + rulesErrors);
+			logger.warn("Problem with Test Rules: " + rulesErrors);
 		}
 	}
 	
