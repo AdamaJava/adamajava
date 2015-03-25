@@ -17,6 +17,7 @@ public class Vcf2mafOptions extends Options {
 	 String outputDir;
 	 String donorId; 
 	 boolean appendSample = false; 
+	 boolean lowMaf = false; 
 
 	 
 	 
@@ -34,7 +35,8 @@ public class Vcf2mafOptions extends Options {
 	        parser.accepts(test,  Messages.getMessage("TUMOUR_SAMPLEID_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("testSample");
 	        parser.accepts(control, Messages.getMessage("NORMAL_SAMPLEID_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("controlSample");	        
 	        parser.accepts("center", "Genome sequencing center").withRequiredArg().ofType(String.class).describedAs("center");
-	        parser.accepts("sequencer", Description_sequencer).withRequiredArg().ofType(String.class).describedAs("Sequencer");	        
+	        parser.accepts("sequencer", Description_sequencer).withRequiredArg().ofType(String.class).describedAs("Sequencer");	 
+	        parser.accepts("lowMaf", Messages.getMessage("LOW_MAF_DESCRIPTION"));
 	        
 	        parser.accepts("mode", "run vcf2maf").withRequiredArg().ofType(String.class).describedAs("vcf2maf");
 	       // "(compulsary) database location"
@@ -68,6 +70,8 @@ public class Vcf2mafOptions extends Options {
 	        controlSample = (options.has(control))? (String)options.valueOf(control) : null;
 	        donorId = (options.has("donor"))? (String)options.valueOf("donor") : null;
 	        
+	        if( options.has("lowMaf"))	lowMaf = true;
+	        
   	        return true;
 	     } 
 	 
@@ -75,5 +79,6 @@ public class Vcf2mafOptions extends Options {
 	 public String getSequencer(){  return sequencer; }
 	 public String getOutputDir(){return outputDir;}
 	 public String getDonorId(){return donorId; }
+	 public boolean doOutputLowMaf(){ return lowMaf; }
 	 
 }

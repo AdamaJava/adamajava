@@ -2,13 +2,16 @@ package au.edu.qimr.qannotate.modes;
 
 import java.io.File;
 import java.util.Iterator;
+
 import org.qcmg.common.log.QLogger;
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.vcf.VcfFormatFieldRecord;
 import org.qcmg.common.vcf.VcfInfoFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
+
 import au.edu.qimr.qannotate.modes.ConfidenceMode.Confidence;
 import au.edu.qimr.qannotate.options.CustomerConfidenceOptions;
 
@@ -17,6 +20,10 @@ import au.edu.qimr.qannotate.options.CustomerConfidenceOptions;
  *
  */
 public final class CustomerConfidenceMode extends AbstractMode{
+	
+	final String PASS = "PASS";
+	final String BP = "5BP"; 
+	final String SBIASCOV = "SBIASCOV"; 
 	
 	String description = null;
 	int min_read_counts = 50;
@@ -66,37 +73,47 @@ public final class CustomerConfidenceMode extends AbstractMode{
 	 */
 	//inherited method from super
 	void addAnnotation() {		
+//		public static final String DESCRITPION_INFO_CONFIDENCE = "set to HIGH if more than 5 novel starts, 5 allels and passed all filter;"
+//				+ "otherwise set to LOW if 4 novel starts, 4 allels and passed one of filter of \"MIUN\" \"MIN\" or \"GERM\";" 			
+//				+ "set to ZERO for remaining mutations";
 	    
 		//add header line
-		String description = "Set CONF to HIGH once the variants meet conditions otherwise set to ZERO : ";
-		description += 	(passOnly) ? "passed filter," : "";
-		description += "total read counts more than " +  Integer.toString(min_read_counts) + ", more than ";
-		description += Integer.toString( variants_rate) + "% reads contains variants";		
-		header.addInfoLine(VcfHeaderUtils.INFO_CONFIDENT, "0", "Flag", description);
+		String description = "Set CONF to HIGH if total read counts more than " +  Integer.toString(min_read_counts) + "; and more than  "
+				+ Integer.toString( variants_rate) + "% reads contains variants; and filter column contains \"PASS\" or \"5BP\". ";	
+			 
+		description += 	"Set CONF to LOW if filter column contains \"PASS\", \"5BP\" or \"SBIASCOV\". Set ZERO to remaining mutations ";	
+
+		header.addInfoLine(VcfHeaderUtils.INFO_CONFIDENT, "1", "String", description);
 	      
 		final Iterator<VcfRecord>  it =  positionRecordMap.values().iterator();
 		while( it.hasNext() ){
 			final VcfRecord re = it.next();
 			
-			boolean flag = false;
-			if( !passOnly || re.getFilter().toUpperCase().contains(VcfHeaderUtils.FILTER_PASS)){
+			boolean  flag = false;
+			String filter = re.getFilter().toUpperCase();
+			if(!filter.contains(Constants.SEMI_COLON_STRING) && 
+					(  filter.contains(BP) || filter.contains(PASS) ||  filter.contains(SBIASCOV))  ){
+			 
 				final VcfFormatFieldRecord format = (re.getInfo().contains(VcfHeaderUtils.INFO_SOMATIC)) ? re.getSampleFormatRecord(test_column) :  re.getSampleFormatRecord(control_column);
 				final int total =  VcfUtils.getAltFrequency(  format, null );
 				if( total >=  min_read_counts) 
 					try{
 						//final int mutants = Integer.parseInt( allel.getField(VcfHeaderUtils.FORMAT_MUTANT_READS));	
 						final int mutants =  VcfUtils.getAltFrequency(  format, re.getAlt() );
-						if( ((100 * mutants) / total) >= variants_rate  ) flag = true;
+						if( ((100 * mutants) / total) >= variants_rate  ) flag = true;  
+						
+//		{re.getInfoRecord().setField(VcfHeaderUtils.INFO_CONFIDENT, Confidence.HIGH.toString());
+//			continue;  //set to High then go to next record    }  
+						
 					}catch(Exception e ){
 						logger.error("err during caculating mutants rate for variants: " + re.toString() + "\n" + e.getMessage());
-					}				
+					}
 			} 							
-			
+				
 			if(flag)
-				re.getInfoRecord().setField(VcfHeaderUtils.INFO_CONFIDENT, Confidence.HIGH.toString());
-			else
+				re.getInfoRecord().setField(VcfHeaderUtils.INFO_CONFIDENT, Confidence.HIGH.toString());				 
+			else	
 				re.getInfoRecord().setField(VcfHeaderUtils.INFO_CONFIDENT, Confidence.ZERO.toString());
-		
 		}		
 	}
 	

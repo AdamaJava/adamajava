@@ -76,8 +76,8 @@ public class GermlineMode extends AbstractMode{
 		        final VcfRecord vcf = it.next();
 		        String filter = vcf.getFilter();
 				//remove "PASS" or "PASS;" then append GERM
-				filter = filter.replaceAll("GERM;|;?GERM$", "");
-				vcf.setFilter(filter);
+				//filter = filter.replaceAll("GERM;|;?GERM$", "");
+				//vcf.setFilter(filter);
 		        vcf.appendInfo(VcfHeaderUtils.INFO_GERMLINE + "=" + germInfo);
 	 	    }
 			

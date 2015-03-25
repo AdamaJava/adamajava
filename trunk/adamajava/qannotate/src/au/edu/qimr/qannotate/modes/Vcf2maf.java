@@ -1,6 +1,11 @@
 package au.edu.qimr.qannotate.modes;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -101,16 +106,25 @@ public class Vcf2maf extends AbstractMode{
 		String GHCC  = outputname.replace(".maf", ".Germline.HighConfidence.Consequence.maf") ;
 		String GHC = outputname.replace(".maf", ".Germline.HighConfidence.maf") ;
 		
-					
+		String SLCC  = outputname.replace(".maf", ".Somatic.LowConfidence.Consequence.maf") ;
+		String SLC = outputname.replace(".maf", ".Somatic.LowConfidence.maf") ;
+		String GLCC  = outputname.replace(".maf", ".Germline.LowConfidence.Consequence.maf") ;
+		String GLC = outputname.replace(".maf", ".Germline.LowConfidence.maf") ;
+
 		try(VCFFileReader reader = new VCFFileReader(new File( option.getInputFileName()));
 				PrintWriter out = new PrintWriter(outputname);
 				PrintWriter out_SHCC = new PrintWriter(SHCC);
 				PrintWriter out_SHC = new PrintWriter(SHC);
 				PrintWriter out_GHCC = new PrintWriter(GHCC);
-				PrintWriter out_GHC = new PrintWriter(GHC)){			
+				PrintWriter out_GHC = new PrintWriter(GHC);
+
+				PrintWriter out_SLCC = new PrintWriter(SLCC);
+				PrintWriter out_SLC = new PrintWriter(SLC);
+				PrintWriter out_GLCC = new PrintWriter(GLCC);
+				PrintWriter out_GLC = new PrintWriter(GLC)){			
 			
 			reheader( option.getCommandLine(), option.getInputFileName());			
-			createMafHeader(out,out_SHCC,out_SHC,out_GHCC,out_GHC);
+			createMafHeader(out,out_SHCC,out_SHC,out_GHCC,out_GHC,out_SLCC,out_SLC,out_GLCC,out_GLC);
 						
 	       	for (final VcfRecord vcf : reader)
         		try{
@@ -129,14 +143,50 @@ public class Vcf2maf extends AbstractMode{
         					 
         					if(maf.getColumnValue(55).equalsIgnoreCase( PROTEINCODE ) && rank <=5 )
         						out_GHCC.println(Smaf);
-        				}        		  
+        				}   
+        			else if(option.doOutputLowMaf() && maf.getColumnValue(38).equalsIgnoreCase(Confidence.LOW.name()))
+        				if(maf.getColumnValue(26).equalsIgnoreCase(VcfHeaderUtils.INFO_SOMATIC)){
+        					out_SLC.println(Smaf);
+        					
+        					if(maf.getColumnValue(55).equalsIgnoreCase( PROTEINCODE ) && rank <=5 )
+        						out_SLCC.println(Smaf);
+        				}else{
+        					out_GLC.println(Smaf);
+        					 
+        					if(maf.getColumnValue(55).equalsIgnoreCase( PROTEINCODE ) && rank <=5 )
+        						out_GLCC.println(Smaf);
+        				}          			
           		}catch(final Exception e){  	
         			logger.warn("Error message during vcf2maf: " + e.getMessage() + "\n" + vcf.toString());
         			e.printStackTrace();
-        		}
-		}			
+        		}       	
+		}	
+		
+		//delete empty maf files
+		deleteEmptyMaf(SHCC, SHC,GHCC,GHC,SLCC,SLC,GLCC,GLC );
+		
+		
 	}
 		
+	private void deleteEmptyMaf(String ...fileNames){
+		for(String str : fileNames){
+			File f = new File(str);		
+			String line = null; //boolean flag = false;
+	        try( BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(f))); ){        	 
+	        	while (null != (line = reader.readLine()) ) 
+	        		if(line.startsWith("#") || line.equals(SnpEffMafRecord.getSnpEffMafHeaderline())) 
+	        			line = null;         
+	        		else
+	        			break; //find non header line	        	
+	        }catch(Exception e){
+	        	logger.warn("Exception during check whether maf if empty or not : " + str);
+	        }
+		        	
+			if(line == null) f.delete();
+			 
+		}
+		
+	}
 	private void createMafHeader(PrintWriter ... writers) throws Exception{
 		 for(PrintWriter write:writers){
 			write.println(SnpEffMafRecord.Version);

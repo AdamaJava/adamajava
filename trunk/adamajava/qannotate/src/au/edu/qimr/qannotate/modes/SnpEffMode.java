@@ -16,7 +16,7 @@ import org.qcmg.vcf.VCFFileWriter;
 
 import au.edu.qimr.qannotate.options.SnpEffOptions;
 import ca.mcgill.mcb.pcingola.snpEffect.commandLine.SnpEff;
-
+//import ca.mcgill.mcb.pcingola.snpEffect.commandLine.SnpEff;
 
 public class SnpEffMode extends AbstractMode{
 
@@ -76,6 +76,7 @@ public class SnpEffMode extends AbstractMode{
 		command.add(i, "eff");
 		command.add(++i, "-o");
 		command.add(++i, "VCF");
+		command.add(++i, "-v"); //verbose
 		//command.add(++i, "-c");
 		command.add(++i, "-config");
 		command.add(++i, options.getConfigFileName());
