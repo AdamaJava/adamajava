@@ -44,7 +44,6 @@ public class DbsnpMode extends AbstractMode{
 			addAnnotation(options.getDatabaseFileName() );
 		
 		reheader(options.getCommandLine(),options.getInputFileName())	;
-		logger.info("Writing VCF output");	
 		writeVCF( new File(options.getOutputFileName()));	
 	}
 		

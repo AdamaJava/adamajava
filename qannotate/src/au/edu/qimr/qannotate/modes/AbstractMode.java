@@ -29,7 +29,7 @@ public abstract class AbstractMode {
 	private static final DateFormat df = new SimpleDateFormat("yyyyMMdd");
 	protected final Map<ChrPosition,VcfRecord> positionRecordMap = new HashMap<ChrPosition,VcfRecord>();
 	protected VcfHeader header = null;
-	
+
 	private final static QLogger logger = QLoggerFactory.getLogger(Main.class, null,  null);	
 	
 	/**
@@ -134,11 +134,40 @@ public abstract class AbstractMode {
 			for(final VcfHeader.Record record: header)  {
 				writer.addHeader(record.toString());
 			}
+			long count = 0; 
 			for (final ChrPosition position : orderedList) {				
 				VcfRecord record = positionRecordMap.get(position); 
-				writer.add( record );				 
+				writer.add( record );	
+				count ++;
 			}
+			logger.info("outputed VCF record:  " + count);
 		}  
+	}
+	
+	public static VcfHeader reheader(VcfHeader header, String cmd, String inputVcfName) throws IOException {	
+		 
+		VcfHeader myHeader = header;  	
+ 		
+		String version = Main.class.getPackage().getImplementationVersion();
+		String pg = Main.class.getPackage().getImplementationTitle();
+		final String fileDate = df.format(Calendar.getInstance().getTime());
+		final String uuid = QExec.createUUid();
+		
+		myHeader.parseHeaderLine(VcfHeaderUtils.CURRENT_FILE_VERSION);
+		myHeader.parseHeaderLine(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + fileDate);
+		myHeader.parseHeaderLine(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + uuid);
+		myHeader.parseHeaderLine(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=" + pg+"-"+version);	
+			
+		String inputUuid = (myHeader.getUUID() == null)? null: new VcfHeaderUtils.SplitMetaRecord(myHeader.getUUID()).getValue();   
+		myHeader.replace(VcfHeaderUtils.STANDARD_INPUT_LINE + "=" + inputUuid + ":"+ inputVcfName);
+		
+		if(version == null) version = Constants.NULL_STRING;
+	    if(pg == null ) pg = Constants.NULL_STRING;
+	    if(cmd == null) cmd = Constants.NULL_STRING;
+		VcfHeaderUtils.addQPGLineToHeader(myHeader, pg, version, cmd);
+		
+		return myHeader;
+			
 	}
 	
 
@@ -157,8 +186,10 @@ public abstract class AbstractMode {
 	        		throw new IOException("can't receive header from vcf file, maybe wrong format: " + inputVcfName);
 	        } 	
  
+		header = reheader(header, cmd, inputVcfName);
 		
-		String version = Main.class.getPackage().getImplementationVersion();
+		
+/*		String version = Main.class.getPackage().getImplementationVersion();
 		String pg = Main.class.getPackage().getImplementationTitle();
 		final String fileDate = df.format(Calendar.getInstance().getTime());
 		final String uuid = QExec.createUUid();
@@ -175,6 +206,7 @@ public abstract class AbstractMode {
 	    if(pg == null ) pg = Constants.NULL_STRING;
 	    if(cmd == null) cmd = Constants.NULL_STRING;
 		VcfHeaderUtils.addQPGLineToHeader(header, pg, version, cmd);
+*/
 			
 	}
 
