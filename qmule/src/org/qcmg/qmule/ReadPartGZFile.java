@@ -62,11 +62,7 @@ public class ReadPartGZFile {
 				System.out.println(line);
 			} 
        }
-       
-       
-       
-       
-       TabixReader tabix=new TabixReader("knownGene.txt.gz");
+//       TabixReader tabix=new TabixReader("knownGene.txt.gz");
        
 	}
 	static void countLines(File input_gzip_file) throws FileNotFoundException, IOException, InterruptedException{
