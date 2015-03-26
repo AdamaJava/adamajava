@@ -62,22 +62,27 @@ public class ReadPartGZFile {
 				System.out.println(line);
 			} 
        }
+       
+       
+       
+       
+       TabixReader tabix=new TabixReader("knownGene.txt.gz");
+       
 	}
-	static void countLines(File input_gzip_file) throws FileNotFoundException, IOException{
-		InputStream inputStream = getInputStream(input_gzip_file);
-		  try(BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream) )){
-			  
-			  long startTime = System.currentTimeMillis();
-		      long num = 0;
-		       String line; 
-				while( (line = reader.readLine() ) != null){
+	static void countLines(File input_gzip_file) throws FileNotFoundException, IOException, InterruptedException{
+		  long startTime = System.currentTimeMillis();
+		  long num = 0;	
+		  InputStream inputStream = getInputStream(input_gzip_file);		   
+		  try(BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream) )){			 
+				String line;
+				while( (line = reader.readLine() ) != null)
 					num ++;
-				} 
-				
-			  String time = QLogger.getRunTime(startTime, System.currentTimeMillis());
-			  
-			  System.out.println(String.format("Read file: %s\nLine number: %d\nTime: %s", input_gzip_file.getAbsoluteFile(), num, time));
-	       }
+		  }
+			
+		  long endTime = System.currentTimeMillis();
+		  String time = QLogger.getRunTime(startTime, endTime);	  
+		  System.out.println(String.format("Read file: %s\nLine number: %d\nTime: %s", input_gzip_file.getAbsoluteFile(), num, time));
+	  
 	}
 
 	public static void main(String[] args) {
