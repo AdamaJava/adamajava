@@ -9,8 +9,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
 
-import org.qcmg.qmule.Messages;
-
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 
@@ -53,10 +51,10 @@ public final class Options {
 	private final String commandLine;
 	
 	/** The input file names. */
-	private String[] inputFileNames;
+	private final String[] inputFileNames;
 	
 	/** The output file names. */
-	private  String[] outputFileNames;
+	private final  String[] outputFileNames;
 	
 	/** The log file  */
 	private  String logFile;
@@ -72,6 +70,7 @@ public final class Options {
 	private   String position;
 	private   String pileupFormat;
 	private int normalCoverage;
+	private int numberOfThreads;
 	private int tumourCoverage;
 	private int minCoverage;
 	private  String mafMode;
@@ -127,6 +126,8 @@ public final class Options {
 		.describedAs("pileupFormat");
 		parser.accepts("normalCoverage", INPUT_DESCRIPTION).withRequiredArg().ofType(Integer.class)
 		.describedAs("normalCoverage");
+		parser.accepts("numberOfThreads", INPUT_DESCRIPTION).withRequiredArg().ofType(Integer.class)
+		.describedAs("numberOfThreads");
 		parser.accepts("tumourCoverage", INPUT_DESCRIPTION).withRequiredArg().ofType(Integer.class)
 		.describedAs("tumourCoverage");
 		parser.accepts("minCoverage", INPUT_DESCRIPTION).withRequiredArg().ofType(Integer.class)
@@ -214,7 +215,10 @@ public final class Options {
 		
 		// qsignature
 		if (null != options.valueOf("minCoverage"))
-			minCoverage = (Integer) options.valueOf("minCoverage");	 
+			minCoverage = (Integer) options.valueOf("minCoverage");
+		
+		if (null != options.valueOf("numberOfThreads"))
+			numberOfThreads = (Integer) options.valueOf("numberOfThreads");
 		
 	}
 
@@ -389,6 +393,9 @@ public final class Options {
 	}
 	public int getMinCoverage() {
 		return minCoverage;
+	}
+	public int getNumberOfThreads() {
+		return numberOfThreads;
 	}
 	public String getMafMode() {
 		return mafMode;
