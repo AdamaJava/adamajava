@@ -209,7 +209,7 @@ public class SnpEffMafRecord {
 		maf[40] = Unknown; //"novel_starts";  
 		maf[41] = Unknown; //"Var_Plus_Flank"; Cpg;  
 		maf[42] = Unknown; //"Variant_AF""GMAF"; 
-		maf[43] = "0,0"; //germ_counts  		
+		maf[43] = Null;; //germ_counts  		
 		maf[44] = "-1"; //t_depth
 		maf[45] = "-1"; //t_ref_count
 		maf[46] = "-1"; //t_alt_count
