@@ -48,12 +48,12 @@ public class GermlineMode extends AbstractMode{
 	 */
  	@Override	
 	void addAnnotation(String dbGermlineFile) throws Exception {
-
-
- 	    //add header line first
-		header.addFilterLine(VcfHeaderUtils.FILTER_GERMLINE, VcfHeaderUtils.DESCRITPION_FILTER_GERMLINE );
+//		header.addFilterLine(VcfHeaderUtils.FILTER_GERMLINE, VcfHeaderUtils.DESCRITPION_FILTER_GERMLINE );
+ 		
 		File germFile = new File(dbGermlineFile);
   		try(VCFFileReader reader = new VCFFileReader(germFile)){
+  			
+  			//add header line first
   			String date = (reader.getHeader().getFileDate() == null)? null: new VcfHeaderUtils.SplitMetaRecord(reader.getHeader().getFileDate()).getValue();
 	 		String germ = String.format("%s=<ID=%s,Number=1,Type=Integer,Description=\"%s\",Source=%s,FileDate=%s>", 
 				VcfHeaderUtils.HEADER_LINE_INFO, VcfHeaderUtils.INFO_GERMLINE,VcfHeaderUtils.DESCRITPION_INFO_GERMLINE,
