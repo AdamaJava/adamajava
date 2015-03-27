@@ -55,24 +55,24 @@ public class GermlineModeTest {
 				 //check header
 				int i = 0; 
 				VcfHeader header = reader.getHeader();				
-				assertEquals(true, header.getFilterRecords().containsKey(VcfHeaderUtils.FILTER_GERMLINE));
-
+//				assertEquals(true, header.getFilterRecords().containsKey(VcfHeaderUtils.FILTER_GERMLINE));
+				assertEquals(true, header.getInfoRecords().containsKey(VcfHeaderUtils.INFO_GERMLINE));
 				//check records
  				i = 0;
 				for (final VcfRecord re : reader) {	
 	 				i ++;
 					if(re.getPosition() == 2675826){						
 						assertTrue(re.getId().equals(Constants.MISSING_DATA_STRING));
-						assertTrue(re.getFilter().equals("COVN12;MIUN"));	
-						assertTrue(re.getInfoRecord().getField(VcfHeaderUtils.INFO_GERMLINE).equals("0,185"));	
+						assertTrue(re.getFilter().equals("COVN12;MIUN"));							
+						assertTrue(re.getInfoRecord().getField(VcfHeaderUtils.INFO_GERMLINE) == null );	
 					}else if(re.getPosition() == 14923588)
-						assertTrue(re.getFilter().equals(VcfHeaderUtils.FILTER_GERMLINE));		
+						//assertTrue(re.getFilter().equals(VcfHeaderUtils.FILTER_GERMLINE));	
+						assertTrue(re.getInfoRecord().getField(VcfHeaderUtils.INFO_GERMLINE).equals("6,185"));	
 					else if(re.getPosition() == 22012840 || re.getPosition() == 22012841 ||re.getPosition() == 22012842 ){
-						assertTrue(re.getFilter().equals("MIUN;" + VcfHeaderUtils.FILTER_GERMLINE));	
 						assertTrue(re.getInfoRecord().getField(VcfHeaderUtils.INFO_GERMLINE).equals("86,185"));	
 					}else if(re.getPosition() == 22012843){
 						assertTrue(re.getFilter().equals(Constants.MISSING_DATA_STRING));	
-						assertTrue(re.getInfoRecord().getField(VcfHeaderUtils.INFO_GERMLINE).equals("0,185"));	
+						assertTrue(re.getInfoRecord().getField(VcfHeaderUtils.INFO_GERMLINE) ==null );	
 					}
 				}
 				assertTrue(i == 6);
@@ -103,7 +103,8 @@ public class GermlineModeTest {
 	 				i ++;
 	 				if (re.getPosition() == 14923588) {
 						assertTrue(re.getFilter().equals(Constants.MISSING_DATA_STRING));
-						assertTrue(re.getInfoRecord().getField(VcfHeaderUtils.INFO_GERMLINE).equals("86,185"));
+						//assertTrue(re.getInfoRecord().getField(VcfHeaderUtils.INFO_GERMLINE).equals("86,185"));
+						assertTrue(re.getInfoRecord().getField(VcfHeaderUtils.INFO_GERMLINE) == null);
 	 				}
 				}
 				assertTrue(i == 1);
@@ -145,7 +146,7 @@ public class GermlineModeTest {
         data.add("##dornorNumber=185");
         data.add("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO");
         data.add("Y\t2675826\t.\tC\tA\t.\t.\t86");
-        data.add("Y\t14923588\t.\tG\tA,T\t.\t.\t86");
+        data.add("Y\t14923588\t.\tG\tA,T\t.\t.\t6");
         data.add("Y\t22012840\t.\tC\tA\t.\t.\t86");
         data.add("Y\t22012841\t.\tC\tA\t.\t.\t86");
         data.add("Y\t22012842\t.\tC\tA\t.\t.\t86");

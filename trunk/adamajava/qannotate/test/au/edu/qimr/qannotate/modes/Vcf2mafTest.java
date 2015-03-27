@@ -111,10 +111,16 @@ public class Vcf2mafTest {
 			Dmaf.setDefaultValue();
 			
 			final Vcf2maf v2m = new Vcf2maf(2,1, null, null);	//test column2; normal column 1
-			final String[] parms = {"chrY","22012840",".","C","A",".","SBIAS","VLD;FLANK=GTGATATTCCC;VAF=0.11;GERM=0,185;"
+//			final String[] parms = {"chrY","22012840",".","C","A",".","SBIAS","VLD;FLANK=GTGATATTCCC;VAF=0.11;GERM=0,185;"
+//					+ "EFF=sequence_feature[compositionally_biased_region:Glu/Lys-rich](LOW|||c.1252G>C|591|CCDC148|protein_coding|CODING|ENST00000283233|10|1),"
+//					+ "splice_acceptor_variant(HIGH|||n.356G>C||CCDC148-AS1|antisense|NON_CODING|ENST00000412781|5|1)",
+//					"GT:GD:AC","0/0:T/C:A1[5],0[0],C6[6.67],0[0],T1[6],21[32.81]","0/0:A/C:C8[7.62],2[2],A2[8],28[31.18]"};
+			
+			final String[] parms = {"chrY","22012840",".","C","A",".","SBIAS","VLD;FLANK=GTGATATTCCC;VAF=0.11;"
 					+ "EFF=sequence_feature[compositionally_biased_region:Glu/Lys-rich](LOW|||c.1252G>C|591|CCDC148|protein_coding|CODING|ENST00000283233|10|1),"
 					+ "splice_acceptor_variant(HIGH|||n.356G>C||CCDC148-AS1|antisense|NON_CODING|ENST00000412781|5|1)",
 					"GT:GD:AC","0/0:T/C:A1[5],0[0],C6[6.67],0[0],T1[6],21[32.81]","0/0:A/C:C8[7.62],2[2],A2[8],28[31.18]"};
+
 
 			
 	 		final VcfRecord vcf = new VcfRecord(parms);
@@ -174,7 +180,7 @@ public class Vcf2mafTest {
 	 		assertTrue(maf.getColumnValue(41).equals(Dmaf.getColumnValue(41)  )); //NNS unkown
 	 		assertTrue(maf.getColumnValue(42).equals("GTGATATTCCC"  )); //Var_Plus_Flank	 
 	 		assertTrue(maf.getColumnValue(43).equals("0.11"  )); //Var_Plus_Flank	 
-	 		assertTrue(maf.getColumnValue(44).equals("0,185"  )); //Germ=0,185 
+	 		assertTrue(maf.getColumnValue(44).equals(Dmaf.getColumnValue(44)  )); //Germ=0,185 
 	 		
 	 		//"chrY","22012840",".","C","A",
 	 		//"GT:GD:AC","0/0:T/C:A1[5],0[0],C6[6.67],0[0],T1[6],21[32.81]","0/0:A/C:C8[7.62],2[2],A2[8],28[31.18]"};
@@ -188,7 +194,7 @@ public class Vcf2mafTest {
 	 		
 	 		//other column
 	 		assertTrue(maf.getColumnValue(41).equals(SnpEffMafRecord.Unknown));  //NNS
-	 		assertTrue(maf.getColumnValue(26).equals(VcfHeaderUtils.FILTER_GERMLINE));  //somatic
+	 		assertTrue(maf.getColumnValue(26).equals(VcfHeaderUtils.INFO_GERMLINE));  //somatic
 
 	 }
 	 
@@ -307,7 +313,7 @@ public class Vcf2mafTest {
 	 		for(int i = 12 ; i < 26; i++)
 	 			assertTrue(maf.getColumnValue(i).equals(Dmaf.getColumnValue(i)  ));  
 	 		
-	 		assertTrue(maf.getColumnValue(26).equals(VcfHeaderUtils.FILTER_GERMLINE ));  
+	 		assertTrue(maf.getColumnValue(26).equals(VcfHeaderUtils.INFO_GERMLINE ));  
 	 		
 	 		for(int i = 27 ; i < 35; i++)
 	 			assertTrue(maf.getColumnValue(i).equals(Dmaf.getColumnValue(i)  ));  

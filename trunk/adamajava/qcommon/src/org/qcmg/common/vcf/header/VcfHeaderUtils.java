@@ -4,19 +4,23 @@
 package org.qcmg.common.vcf.header;
 
 
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.meta.QExec;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.SnpUtils;
 import org.qcmg.common.vcf.header.VcfHeader.QPGRecord;
 import org.qcmg.common.vcf.header.VcfHeader.Record;
+
 
 public class VcfHeaderUtils {
 	
@@ -74,7 +78,7 @@ public class VcfHeaderUtils {
 	public static final String INFO_VLD = "VLD";	
 	public static final String INFO_FS = "FS";    //previous qSNP used, now changed to FLANK
 	public static final String INFO_FILLCOV =  "FULLCOV";
-	public static final String INFO_GERMLINE = FILTER_GERMLINE; 
+	public static final String INFO_GERMLINE = SnpUtils.MUTATION_GERMLINE_IN_ANOTHER_PATIENT;
 	
 	//FORMAT FIELDS
 	public static final String FORMAT_GENOTYPE = "GT";
@@ -267,5 +271,8 @@ public class VcfHeaderUtils {
 		public String getKey(){ return pair[0]; }
 		public String getValue(){ return pair[1]; }
 	}
+	
+	
+
  
 }

@@ -236,7 +236,7 @@ public class Vcf2maf extends AbstractMode{
 		if(vcf.getInfoRecord().getField(VcfHeaderUtils.INFO_SOMATIC) != null)
 			maf.setColumnValue(26,  VcfHeaderUtils.INFO_SOMATIC);
 		else
-			maf.setColumnValue(26,  VcfHeaderUtils.FILTER_GERMLINE);
+			maf.setColumnValue(26,  VcfHeaderUtils.INFO_GERMLINE);
 		
 		
 		if(testSample != null) maf.setColumnValue(16,  dornorId + ":" + testSample );

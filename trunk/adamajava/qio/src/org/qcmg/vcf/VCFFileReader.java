@@ -40,7 +40,7 @@ public final class VCFFileReader implements Closeable, Iterable<VcfRecord> {
 	        	inputStream = new GZIPInputStream(new FileInputStream(file));
 	    	} else {
 		        FileInputStream stream = new FileInputStream(file);
-		    try {
+		        try {
 		        	InputStreamReader streamReader = new InputStreamReader(stream);
 		        	BufferedReader in = new BufferedReader(streamReader);
 		        

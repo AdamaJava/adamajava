@@ -78,7 +78,9 @@ public class GermlineMode extends AbstractMode{
 				//remove "PASS" or "PASS;" then append GERM
 				//filter = filter.replaceAll("GERM;|;?GERM$", "");
 				//vcf.setFilter(filter);
-		        vcf.appendInfo(VcfHeaderUtils.INFO_GERMLINE + "=" + germInfo);
+		        vcf.getInfoRecord().removeField(VcfHeaderUtils.INFO_GERMLINE);
+		        
+//		        vcf.appendInfo(VcfHeaderUtils.INFO_GERMLINE + "=" + germInfo);
 	 	    }
 			
 	 	    
@@ -107,18 +109,20 @@ public class GermlineMode extends AbstractMode{
 						if(dbGermlineVcf.getAlt().toUpperCase().contains(alt.toUpperCase()) ){							 	
 							//remove "PASS" or "PASS;" then append GERM for somatic variants
 							if (  StringUtils.doesStringContainSubString(inputVcf.getInfo(), "SOMATIC", false)) {
-								filter = inputVcf.getFilter().replaceAll("PASS;|;?PASS$", "");
-								inputVcf.setFilter(filter);
-								inputVcf.addFilter(VcfHeaderUtils.FILTER_GERMLINE);
+								try{
+									counts = Integer.parseInt(dbGermlineVcf.getInfo()); 
+									germInfo = (total > 0) ?  String.valueOf(counts) + "," + total: String.valueOf(counts);
+									inputVcf.appendInfo(VcfHeaderUtils.INFO_GERMLINE + "=" + germInfo);
+								}catch(Exception e){
+									throw new Exception("Exception caused by germline database vcf formart, can't find patient counts from INFO field!");								 
+								}
+								break;
+								
+//								filter = inputVcf.getFilter().replaceAll("PASS;|;?PASS$", "");
+//								inputVcf.setFilter(filter);
+//								inputVcf.addFilter(VcfHeaderUtils.FILTER_GERMLINE);
 							}							
-							try{
-								counts = Integer.parseInt(dbGermlineVcf.getInfo()); 
-								germInfo = (total > 0) ?  String.valueOf(counts) + "," + total: String.valueOf(counts);
-								inputVcf.appendInfo(VcfHeaderUtils.INFO_GERMLINE + "=" + germInfo);
-							}catch(Exception e){
-								throw new Exception("Exception caused by germline database vcf formart, can't find patient counts from INFO field!");								 
-							}
-							break;							
+														
 						} 								
 			 }
  		}

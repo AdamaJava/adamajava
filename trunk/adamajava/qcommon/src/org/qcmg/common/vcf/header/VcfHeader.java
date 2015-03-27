@@ -128,6 +128,7 @@ public class VcfHeader implements Iterable<VcfHeader.Record> {
 			
 			String idString = getStringFromArray(params, ID);
 			this.id =  StringUtils.isNullOrEmpty(idString) ? null : idString.substring(ID.length() + 1);
+			
 		}
 	}
 	
