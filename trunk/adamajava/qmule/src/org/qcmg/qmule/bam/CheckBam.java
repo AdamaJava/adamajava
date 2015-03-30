@@ -12,6 +12,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicLongArray;
 
 import net.sf.samtools.SAMFileHeader;
 import net.sf.samtools.SAMFileReader;
@@ -39,10 +40,28 @@ public class CheckBam {
 	private File bamFIle;
 	private int numberOfThreads = 1;
 	
+	
+	private static final int READ_PAIRED_FLAG = 0x1;
+    private static final int PROPER_PAIR_FLAG = 0x2;
+    private static final int READ_UNMAPPED_FLAG = 0x4;
+    private static final int MATE_UNMAPPED_FLAG = 0x8;
+    private static final int READ_STRAND_FLAG = 0x10;
+    private static final int MATE_STRAND_FLAG = 0x20;
+    private static final int FIRST_OF_PAIR_FLAG = 0x40;
+    private static final int SECOND_OF_PAIR_FLAG = 0x80;
+    private static final int NOT_PRIMARY_ALIGNMENT_FLAG = 0x100;
+    private static final int READ_FAILS_VENDOR_QUALITY_CHECK_FLAG = 0x200;
+    private static final int DUPLICATE_READ_FLAG = 0x400;
+    private static final int SUPPLEMENTARY_ALIGNMENT_FLAG = 0x800;
+	
+	
 	private int exitStatus;
 	private static QLogger logger;
 	
 	private final AtomicLong counter = new AtomicLong();
+	
+//	long [] flagCounter = new long[5000];
+	AtomicLongArray flags = new AtomicLongArray(5000);
 	
 	
 	public int engage() throws Exception {
@@ -93,13 +112,53 @@ public class CheckBam {
 		// don't allow any new threads to start
 		producerThreads.shutdown();
 		
-			logger.info("waiting for Producer thread to finish (max wait will be 20 hours)");
-			if ( ! pLatch.await(20, TimeUnit.HOURS)) {
-				// we've hit the 20 hour limit - shutdown the threads and throw an exception
-				producerThreads.shutdownNow();
-				throw new Exception("Producer thread has timed out");
+		logger.info("waiting for Producer thread to finish (max wait will be 20 hours)");
+		if ( ! pLatch.await(20, TimeUnit.HOURS)) {
+			// we've hit the 20 hour limit - shutdown the threads and throw an exception
+			producerThreads.shutdownNow();
+			throw new Exception("Producer thread has timed out");
+		}
+		logger.info("Producer thread finished, counter size: " + counter.longValue());
+		// output flag stats too
+		long dups = 0;
+		long mapped = 0;
+		long paired = 0;
+		long properPair = 0;
+		long r1 = 0;
+		long r2 = 0;
+		for (int i = 0 ; i < flags.length() ; i++) {
+			long l = flags.get(i);
+			if (l > 0) {
+				
+				if ((i & READ_PAIRED_FLAG)  != 0) {
+					paired += l;
+				}
+				if ((i & PROPER_PAIR_FLAG)  != 0) {
+					properPair += l;
+				}
+				if ((i & READ_UNMAPPED_FLAG)  == 0) {
+					mapped += l;
+				}
+				if ((i & FIRST_OF_PAIR_FLAG)  != 0) {
+					r1 += l;
+				}
+				if ((i & SECOND_OF_PAIR_FLAG)  != 0) {
+					r2 += l;
+				}
+				if ((i & DUPLICATE_READ_FLAG)  != 0) {
+					dups += l;
+				}
+				logger.info("flag: " + i + " : " + l + " hits");
 			}
-			logger.info("Producer thread finished, counter size: " + counter.longValue());
+		}
+		logger.info("dups: " + dups + " (" + (((double) dups / counter.longValue()) * 100) + "%)");
+		logger.info("mapped: " + mapped + " (" + (((double) mapped / counter.longValue()) * 100) + "%)");
+		logger.info("paired: " + paired + " (" + (((double) paired / counter.longValue()) * 100) + "%)");
+		logger.info("properPair: " + properPair + " (" + (((double)properPair / counter.longValue()) * 100) + "%)");
+		logger.info("r1: " + r1 + " (" + (((double) r1 / counter.longValue()) * 100) + "%)");
+		logger.info("r2: " + r2 + " (" + (((double) r2 / counter.longValue()) * 100) + "%)");
+		
+		
 			
 		
 //		logger.info("SUMMARY: ");
@@ -133,6 +192,9 @@ public class CheckBam {
 		private final AbstractQueue<String> sequences;
 		private final QLogger log = QLoggerFactory.getLogger(Producer.class);
 		
+//		private final Map<Integer, AtomicLong> flags = new HashMap<>();
+		private final long [] flagCounter = new long[5000];
+		
 		Producer(Thread mainThread, CountDownLatch pLatch, AbstractQueue<String> sequences) {
 			this.mainThread = mainThread;
 			this.pLatch = pLatch;
@@ -153,7 +215,9 @@ public class CheckBam {
 					SAMRecordIterator iter = UNMAPPED_READS.equals(sequence) ? reader.queryUnmapped() : reader.query(sequence, 0, 0, false) ;
 					log.info("retrieving records for sequence: " + sequence);
 					while (iter.hasNext()) {
-						iter.next();
+						int flag = iter.next().getFlags();
+						flagCounter[flag] ++ ;
+						// update count for this flag
 						if (++count % 2000000 == 0) {
 							log.info("added " + count/1000000 + "M");
 						}
@@ -169,6 +233,14 @@ public class CheckBam {
 			}
 			// update the shared counter
 			counter.addAndGet(count);
+			//update the flag Counter
+			int i = 0 ;
+			for (long l : flagCounter) {
+				if (l > 0) {
+					flags.addAndGet(i, l);
+				}
+				i++;
+			}
 		}
 	}
 	
