@@ -78,21 +78,24 @@ public class ReadPartGZFile {
 	//       TabixReader tabix = new TabixReader( input_gzip_file, indexFile);
 		TabixReader tabix = new TabixReader( input_gzip_file);
 		Set<String> chrs = tabix.getChromosomes();
-		
+		long total_uniq = 0; 
+		long num = 0;	
 		System.out.println("total reference number is " + chrs.size() + " from " + input_gzip_file);
 		for(String str : chrs){
 			
 			HashSet<String> uniqPos = new HashSet<String>();
 			TabixReader.Iterator it = tabix.query(str);
 			String line; 
-			while(( line = it.next())!= null)
+			while(( line = it.next())!= null){
 				uniqPos.add(line.split("\\t")[1]);
-				 
-				
+				num ++;
+			} 
+			total_uniq += 	uniqPos.size();
 			System.out.println("There are " + uniqPos.size() + " uniq position recorded in reference " + str);
-			
-			
 		}
+		
+		System.out.println("Total uniq position recorded in all reference is " + total_uniq);
+		System.out.println("Total records in whole file is " + total_uniq);
 		
 	}
 
