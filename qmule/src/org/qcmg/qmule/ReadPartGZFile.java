@@ -3,33 +3,22 @@
  */
 package org.qcmg.qmule;
 
+import htsjdk.tribble.readers.TabixReader;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
 import java.util.Set;
 import java.util.zip.GZIPInputStream;
-import java.lang.Math;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.util.FileUtils;
-import org.qcmg.vcf.VCFSerializer;
 
-import net.sf.samtools.BAMIndex;
-import net.sf.samtools.BAMIndexMetaData;
-import net.sf.samtools.SAMFileReader;
-import net.sf.samtools.SAMRecord;
 
 public class ReadPartGZFile {
 	
@@ -62,34 +51,67 @@ public class ReadPartGZFile {
 				System.out.println(line);
 			} 
        }
-//       TabixReader tabix=new TabixReader("knownGene.txt.gz");
+
        
 	}
 	static void countLines(File input_gzip_file) throws FileNotFoundException, IOException, InterruptedException{
+		  HashSet<String> uniqRef = new HashSet();
+		  
 		  long startTime = System.currentTimeMillis();
 		  long num = 0;	
 		  InputStream inputStream = getInputStream(input_gzip_file);		   
 		  try(BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream) )){			 
 				String line;
-				while( (line = reader.readLine() ) != null)
+				while( (line = reader.readLine() ) != null){
+					uniqRef.add(line.split("\\t")[0]);
 					num ++;
+				}
 		  }
-			
-		  long endTime = System.currentTimeMillis();
-		  String time = QLogger.getRunTime(startTime, endTime);	  
-		  System.out.println(String.format("Read file: %s\nLine number: %d\nTime: %s", input_gzip_file.getAbsoluteFile(), num, time));
+		  
+		  System.out.println(String.format("Read file: %s\nLine number: %d", input_gzip_file.getAbsoluteFile(), num));	 
+		  System.out.println("Uniq reference name are " + uniqRef );
+
 	  
+	}
+	
+	static void countUniqPosition(String input_gzip_file, String indexFile) throws IOException{
+	//       TabixReader tabix = new TabixReader( input_gzip_file, indexFile);
+		TabixReader tabix = new TabixReader( input_gzip_file);
+		Set<String> chrs = tabix.getChromosomes();
+		
+		System.out.println("total reference number is " + chrs.size() + " from " + input_gzip_file);
+		for(String str : chrs){
+			
+			HashSet<String> uniqPos = new HashSet<String>();
+			TabixReader.Iterator it = tabix.query(str);
+			String line; 
+			while(( line = it.next())!= null)
+				uniqPos.add(line.split("\\t")[1]);
+				 
+				
+			System.out.println("There are " + uniqPos.size() + " uniq position recorded in reference " + str);
+			
+			
+		}
+		
 	}
 
 	public static void main(String[] args) {
 		try{
+			long startTime = System.currentTimeMillis();
 			File input = new File(args[0]);
 			int no = Integer.parseInt(args[1]);
 			
 			if(no > 0)
 				new ReadPartGZFile(input, no );	
+			else if (no == 0)
+				countUniqPosition(args[0], null);
 			else
 				countLines(input);
+			
+			  long endTime = System.currentTimeMillis();
+			  String time = QLogger.getRunTime(startTime, endTime);	  
+			  System.out.println("run Time is " + time);
 			
 		}catch(Exception e){
 			e.printStackTrace();
