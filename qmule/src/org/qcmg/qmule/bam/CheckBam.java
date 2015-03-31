@@ -151,35 +151,13 @@ public class CheckBam {
 				logger.info("flag: " + i + " : " + l + " hits");
 			}
 		}
+		logger.info("total read count: " + counter.longValue());
 		logger.info("dups: " + dups + " (" + (((double) dups / counter.longValue()) * 100) + "%)");
 		logger.info("mapped: " + mapped + " (" + (((double) mapped / counter.longValue()) * 100) + "%)");
 		logger.info("paired: " + paired + " (" + (((double) paired / counter.longValue()) * 100) + "%)");
 		logger.info("properPair: " + properPair + " (" + (((double)properPair / counter.longValue()) * 100) + "%)");
 		logger.info("r1: " + r1 + " (" + (((double) r1 / counter.longValue()) * 100) + "%)");
 		logger.info("r2: " + r2 + " (" + (((double) r2 / counter.longValue()) * 100) + "%)");
-		
-		
-			
-		
-//		logger.info("SUMMARY: ");
-//		logger.info("Total no of records: " + records.size() );
-//		logger.info("No of records with a base at position: " + readsWithBaseAtPosition);
-//		logger.info("No of duplicate records (that have a base at position): " + duplicateCount);
-//		logger.info("No of unique records (that have a base at position): " + (readsWithBaseAtPosition-duplicateCount));
-//		logger.info("No of unique paired records (that have a base at position): " + paired);
-//		logger.info("No of unique properly paired records (that have a base at position): " + properlyPaired);
-//		logger.info("No of records not primary aligned (that have a base at position): " + notPrimaryAlignment);
-//		logger.info("No of records not mapped (that have a base at position): " + unmapped);
-//		logger.info("unmappedSecondaryDuplicates (that have a base at position): " + unmappedSecondaryDuplicates);
-//		logger.info("unmappedSecondaryDuplicatesProperly (that have a base at position): " + unmappedSecondaryDuplicatesProperly);
-//		logger.info("No of paired records (all): " + pairedAll);
-//		logger.info("No of properly paired records (all): " + properlyPairedAll);
-//		logger.info("Unique record bases: " + baseString.substring(0,baseString.length() > 0 ? baseString.length() : 0));
-//		logger.info("Unique record base qualities: " + qualityString.substring(0,qualityString.length() > 0 ? qualityString.length() : 0));
-//		logger.info("Unique record base qualities (phred): " + qualityPhredString.substring(0,qualityPhredString.length() > 0 ? qualityPhredString.length() : 0));
-//		logger.info("filtered read count: " + filteredCount + " out of " + records.size() );
-//		logger.info("Novel start bases: " + new String(novelStartBases));
-		
 		
 		return exitStatus;
 	}
@@ -192,7 +170,6 @@ public class CheckBam {
 		private final AbstractQueue<String> sequences;
 		private final QLogger log = QLoggerFactory.getLogger(Producer.class);
 		
-//		private final Map<Integer, AtomicLong> flags = new HashMap<>();
 		private final long [] flagCounter = new long[5000];
 		
 		Producer(Thread mainThread, CountDownLatch pLatch, AbstractQueue<String> sequences) {
@@ -248,6 +225,7 @@ public class CheckBam {
 		private final Thread mainThread;
 		private final QLogger log = QLoggerFactory.getLogger(SingleProducer.class);
 		private final CountDownLatch pLatch;
+		private final long [] flagCounter = new long[5000];
 		
 		SingleProducer(Thread mainThread, CountDownLatch pLatch) {
 			this.mainThread = mainThread;
@@ -256,13 +234,15 @@ public class CheckBam {
 		
 		@Override
 		public void run() {
-			log.debug("Start Producer ");
+			log.debug("Start SingleProducer ");
 			
 			long count = 0;
 			
 			try (SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(bamFIle);) {
 				
 				for (SAMRecord r : reader) {
+					int flag = r.getFlags();
+					flagCounter[flag] ++ ;
 					if (++count % 2000000 == 0) {
 						log.info("added " + count/1000000 + "M");
 					}
@@ -276,10 +256,16 @@ public class CheckBam {
 			}
 			// update the shared counter
 			counter.addAndGet(count);
+			//update the flag Counter
+			int i = 0 ;
+			for (long l : flagCounter) {
+				if (l > 0) {
+					flags.addAndGet(i, l);
+				}
+				i++;
+			}
 		}
 	}
-	
-	
 	
 	public static void main(String[] args) throws Exception {
 		CheckBam sp = new CheckBam();
