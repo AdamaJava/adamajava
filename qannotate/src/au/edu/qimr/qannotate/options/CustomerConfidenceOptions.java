@@ -10,7 +10,7 @@ import joptsimple.OptionSet;
  */
 public class CustomerConfidenceOptions extends Options {
  	
-    private boolean passOnly = false;
+//    private boolean passOnly = false;
     private int min_read_count = 50;
     private int min_mutant_rate = 10;
 
@@ -28,7 +28,7 @@ public class CustomerConfidenceOptions extends Options {
         parser.acceptsAll( asList("i", "input"), Messages.getMessage("INPUT_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("input vcf");
         parser.acceptsAll( asList("o", "output"), Messages.getMessage("OUTPUT_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("output vcf"); 
         parser.accepts("mode", "run customer confident mode").withRequiredArg().ofType(String.class).describedAs("customerConfidence");
-        parser.accepts("passOnly", Messages.getMessage("PASSONLY_DESCRIPTION"));
+//        parser.accepts("passOnly", Messages.getMessage("PASSONLY_DESCRIPTION"));
         parser.accepts("minReadCount", Messages.getMessage("MIN_READ_COUNT_DESCRIPTION")).withRequiredArg().ofType(Integer.class);
         parser.accepts("minMutantRate", Messages.getMessage("MIN_MUTANT_RATE_DESCRIPTION")).withRequiredArg().ofType(Integer.class) ;
         
@@ -53,7 +53,7 @@ public class CustomerConfidenceOptions extends Options {
         	logLevel = (String) options.valueOf("loglevel");
         }   
         
-        if(options.has("passOnly")) passOnly = true; 
+//        if(options.has("passOnly")) passOnly = true; 
         if(options.has("min_read_count"))
         	min_read_count = (Integer) options.valueOf("min_read_count");
         if(options.has("min_mutant_rate"))
@@ -80,7 +80,7 @@ public class CustomerConfidenceOptions extends Options {
     } 
 
    
-     public boolean isPassOnly(){  	 return passOnly; }
+//     public boolean isPassOnly(){  	 return passOnly; }
      
      public int get_min_read_count(){ return min_read_count; }
      

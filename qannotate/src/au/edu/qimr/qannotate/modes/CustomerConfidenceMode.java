@@ -28,7 +28,7 @@ public final class CustomerConfidenceMode extends AbstractMode{
 	String description = null;
 	int min_read_counts = 50;
 	int variants_rate = 10 ;
-	boolean passOnly = false;
+//	boolean passOnly = false;
 	
 	private int test_column = -2; //can't be -1 since will "+1"
 	private int control_column  = -2;
@@ -48,7 +48,7 @@ public final class CustomerConfidenceMode extends AbstractMode{
         
         min_read_counts = options.get_min_read_count();
         variants_rate = options.get_min_mutant_rate();
-        passOnly = options.isPassOnly();
+//        passOnly = options.isPassOnly();
         
 		inputRecord(new File( options.getInputFileName())   );	
 		
@@ -79,9 +79,7 @@ public final class CustomerConfidenceMode extends AbstractMode{
 	    
 		//add header line
 		String description = "Set CONF to HIGH if total read counts more than " +  Integer.toString(min_read_counts) + "; and more than  "
-				+ Integer.toString( variants_rate) + "% reads contains variants; and filter column contains \"PASS\" or \"5BP\". ";	
-			 
-		description += 	"Set CONF to LOW if filter column contains \"PASS\", \"5BP\" or \"SBIASCOV\". Set ZERO to remaining mutations ";	
+				+ Integer.toString( variants_rate) + "% reads contains variants; plus filter column is , \"5BP\" or \"SBIASCOV\". Set ZERO to remaining mutations ";	
 
 		header.addInfoLine(VcfHeaderUtils.INFO_CONFIDENT, "1", "String", description);
 	      
