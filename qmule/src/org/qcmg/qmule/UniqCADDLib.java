@@ -26,7 +26,10 @@ public class UniqCADDLib {
         	 HashSet<String> uniqPos = new HashSet<String>();
         	 String line; 
         	 while ((line = in.readLine()) != null){
-        		 if(line.startsWith("#"))   continue;
+        		 if(line.startsWith("#")){   
+        			 output.write((line+"\n").getBytes() );
+        			 continue;
+        		 }
         		num ++;
         		String[] eles = line.split("\\t");
         		
@@ -35,10 +38,10 @@ public class UniqCADDLib {
 				//System.out.println(line + "\n" +pos);
 				if(!uniqPos.contains(pos)){
 					uniqPos.add(pos);
-					output.write(line.getBytes());
+					output.write((line+"\n").getBytes() );
 				}
         	  }
-        	 System.out.println(String.format("There are %d unique position of %d record in file:\n %s",   uniqPos.size(),num,  input_gzip_file));
+        	 System.out.println(String.format("There are  total %d records including %d unique positions in file:\n %s",num,   uniqPos.size(),  input_gzip_file));
         	 
     	}
 		
