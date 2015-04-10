@@ -25,7 +25,7 @@ public final class CustomerConfidenceMode extends AbstractMode{
 	final String BP = "5BP"; 
 	final String SBIASCOV = "SBIASCOV"; 
 	
-	String description = null;
+//	String description = null;
 	int min_read_counts = 50;
 	int variants_rate = 10 ;
 //	boolean passOnly = false;
@@ -35,6 +35,7 @@ public final class CustomerConfidenceMode extends AbstractMode{
 	
 	private QLogger logger; 
 	
+ 	
 //	//unit test only
 	CustomerConfidenceMode( ){	}
 	
@@ -73,14 +74,10 @@ public final class CustomerConfidenceMode extends AbstractMode{
 	 */
 	//inherited method from super
 	void addAnnotation() {		
-//		public static final String DESCRITPION_INFO_CONFIDENCE = "set to HIGH if more than 5 novel starts, 5 allels and passed all filter;"
-//				+ "otherwise set to LOW if 4 novel starts, 4 allels and passed one of filter of \"MIUN\" \"MIN\" or \"GERM\";" 			
-//				+ "set to ZERO for remaining mutations";
-	    
 		//add header line
 		String description = "Set CONF to HIGH if total read counts more than " +  Integer.toString(min_read_counts) + "; and more than  "
 				+ Integer.toString( variants_rate) + "% reads contains variants; plus filter column is , \"5BP\" or \"SBIASCOV\". Set ZERO to remaining mutations ";	
-
+ 
 		header.addInfoLine(VcfHeaderUtils.INFO_CONFIDENT, "1", "String", description);
 	      
 		final Iterator<VcfRecord>  it =  positionRecordMap.values().iterator();
@@ -99,9 +96,6 @@ public final class CustomerConfidenceMode extends AbstractMode{
 						//final int mutants = Integer.parseInt( allel.getField(VcfHeaderUtils.FORMAT_MUTANT_READS));	
 						final int mutants =  VcfUtils.getAltFrequency(  format, re.getAlt() );
 						if( ((100 * mutants) / total) >= variants_rate  ) flag = true;  
-						
-//		{re.getInfoRecord().setField(VcfHeaderUtils.INFO_CONFIDENT, Confidence.HIGH.toString());
-//			continue;  //set to High then go to next record    }  
 						
 					}catch(Exception e ){
 						logger.error("err during caculating mutants rate for variants: " + re.toString() + "\n" + e.getMessage());
