@@ -34,9 +34,6 @@ public class VcfHeaderUtils {
 	public static final String DESCRITPION_FILTER_GERMLINE = "Mutation is a germline variant in another patient";
 	public static final String DESCRITPION_INFO_GERMLINE = "Counts of donor occurs this mutation, total recorded donor number";
 	
-	public static final String DESCRITPION_INFO_CONFIDENCE = "set to HIGH if more than 5 novel starts, 5 allels and passed all filter;"
-			+ "otherwise set to LOW if 4 novel starts, 4 allels and passed one of filter of \"MIUN\" \"MIN\" or \"GERM\";" 			
-			+ "set to ZERO for remaining mutations";
 	
 	public static final String DESCRITPION_FORMAT_COMPOUND_SNP_ALLELE_COUNT = "Allele Count Compound Snp: lists read sequence and count (forward strand, reverse strand) ";
 	public static final String DESCRITPION_INFO_DB = "dbSNP Membership";
