@@ -475,7 +475,10 @@ qcoverage.pl - quick-n-dirty coverage tool
 
 =head1 DESCRIPTION
 
-B<qcoverage.pl> is very basic.
+B<qcoverage.pl> is very basic.  This cod should B<not> be used in
+production - it is a prototype that was used as the basis for the
+qcoverage java tools which is also part of the AdamaJava sourceforge
+tree and which is much faster and has many newer features.
 
 
 =head2 Command-line options
