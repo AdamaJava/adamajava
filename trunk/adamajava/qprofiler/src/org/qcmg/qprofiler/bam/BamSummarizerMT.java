@@ -31,6 +31,7 @@ import net.sf.samtools.SAMSequenceRecord;
 import org.qcmg.common.date.DateUtils;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.picard.HeaderUtils;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qprofiler.report.SummaryReport;
 import org.qcmg.qprofiler.summarise.Summarizer;
@@ -114,7 +115,8 @@ public class BamSummarizerMT implements Summarizer {
 			}
 			
 			samSeqDict = reader.getFileHeader().getSequenceDictionary();
-			bamHeader = reader.getFileHeader().getTextHeader();
+			bamHeader = HeaderUtils.getHeaderStringFromHeader(header);
+			
 			List<SAMProgramRecord> pgLines = header.getProgramRecords();
 			for (SAMProgramRecord pgLine : pgLines) {
 				if ("tmap".equals(pgLine.getId())) torrentBam = true;
