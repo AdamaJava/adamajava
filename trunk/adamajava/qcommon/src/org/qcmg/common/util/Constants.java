@@ -31,4 +31,11 @@ public class Constants {
 	public static final String NULL_STRING = "NULL";
 	public static final String EMPTY_STRING = "";
 	public static final String CHR = "chr";
+	
+	// SAM Header Prefixes
+	public static final String HEADER_PREFIX = "@HD";
+	public static final String SEQUENCE_PREFIX = "@SQ";
+	public static final String READ_GROUP_PREFIX = "@RG";
+	public static final String PROGRAM_PREFIX = "@PG";
+	public static final String COMMENT_PREFIX = "@CO";
 }
