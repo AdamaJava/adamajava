@@ -18,6 +18,7 @@ import java.util.concurrent.atomic.AtomicLongArray;
 
 import org.qcmg.common.model.MAPQMiniMatrix;
 import org.qcmg.common.model.SummaryByCycle;
+import org.qcmg.common.util.Constants;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
@@ -288,15 +289,15 @@ public class QProfilerCollectionsUtils {
 			for (String param : params) {
 				
 				String key = null;
-				if (param.startsWith("@HD")) {
+				if (param.startsWith(Constants.HEADER_PREFIX)) {
 					key = "Header";
-				} else if (param.startsWith("@SQ")) {
+				} else if (param.startsWith(Constants.SEQUENCE_PREFIX)) {
 					key = "Sequence";
-				} else if (param.startsWith("@RG")) {
+				} else if (param.startsWith(Constants.READ_GROUP_PREFIX)) {
 					key = "Read Group";
-				} else if (param.startsWith("@PG")) {
+				} else if (param.startsWith(Constants.PROGRAM_PREFIX)) {
 					key = "Program";
-				} else if (param.startsWith("@CO")) {
+				} else if (param.startsWith(Constants.COMMENT_PREFIX)) {
 					key = "Comments";
 				} else {
 					key = "Other";
@@ -336,29 +337,21 @@ public class QProfilerCollectionsUtils {
 	public static Map<String, List<String>> convertHeaderTextToMap(String headerText) {
 		if (null == headerText) return null;
 		
-//		Pattern p = Pattern.compile("^@[A-Za-z][A-Za-z](\t[A-Za-z][A-Za-z]:[ -~])+$/.");
-////		Pattern p = Pattern.compile("/^@[A-Za-z][A-Za-z](\t[A-Za-z][A-Za-z]:[ -~])+$/.");
-//		Matcher m = p.matcher(headerText);
-//		if (m.matches()) {
-//			String result = m.group();
-//		}
-//		String [] params = p.split(headerText, -1);
-//		String [] params = headerText.split("(@[HSRPC][DQGO])");
 		String [] params = headerText.split("\n");
 		Map<String, List<String>> results = new LinkedHashMap<String ,List<String>>();
 		if (params.length > 1) {
 			for (String param : params) {
 				
 				String key = null;
-				if (param.startsWith("@HD")) {
+				if (param.startsWith(Constants.HEADER_PREFIX)) {
 					key = "Header";
-				} else if (param.startsWith("@SQ")) {
+				} else if (param.startsWith(Constants.SEQUENCE_PREFIX)) {
 					key = "Sequence";
-				} else if (param.startsWith("@RG")) {
+				} else if (param.startsWith(Constants.READ_GROUP_PREFIX)) {
 					key = "Read Group";
-				} else if (param.startsWith("@PG")) {
+				} else if (param.startsWith(Constants.PROGRAM_PREFIX)) {
 					key = "Program";
-				} else if (param.startsWith("@CO")) {
+				} else if (param.startsWith(Constants.COMMENT_PREFIX)) {
 					key = "Comments";
 				} else {
 					key = "Other";
@@ -394,32 +387,6 @@ public class QProfilerCollectionsUtils {
 		}
 		return results;
 	}
-//	public static Map<String, List<String>> convertHeaderTextToMap(String headerText) {
-//		if (null == headerText) return null;
-//		
-//		String [] params = headerText.split("\n");
-//		Map<String, List<String>> results = new LinkedHashMap<String ,List<String>>();
-//		for (String param : params) {
-//			
-//			String key = null;
-//			if (param.startsWith("@HD")) {
-//				key = "Header";
-//			} else if (param.startsWith("@SQ")) {
-//				key = "Sequence";
-//			} else if (param.startsWith("@RG")) {
-//				key = "Read Group";
-//			} else if (param.startsWith("@PG")) {
-//				key = "Program";
-//			} else if (param.startsWith("@CO")) {
-//				key = "Comments";
-//			} else {
-//				key = "Other";
-//			}
-//			addDataToList(results, key, param);
-//		}
-//		
-//		return results;
-//	}
 	
 	private static void addDataToList(Map<String, List<String>> map, String key, String data) {
 		List<String> tmpList = map.get(key);
