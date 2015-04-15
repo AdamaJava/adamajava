@@ -117,7 +117,8 @@ public final class HeaderUtils {
 			
 			// and finally comments
 			for (String co : header.getComments()) {
-				sb.append(Constants.COMMENT_PREFIX).append(Constants.TAB).append(co).append(Constants.NL);
+				sb.append(co).append(Constants.NL);
+//				sb.append(Constants.COMMENT_PREFIX).append(Constants.TAB).append(co).append(Constants.NL);
 			}
 			
 			headerText = sb.toString();
