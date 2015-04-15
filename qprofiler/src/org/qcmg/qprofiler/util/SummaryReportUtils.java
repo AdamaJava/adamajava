@@ -785,45 +785,45 @@ public class SummaryReportUtils {
 		}
 	}
 	
-	/**
-	 * Records the position and and corresponding sequence base where a mismatch occurred.
-	 * Don't care about deletions here at the moment  
-	 * 
-	 * @param mdData md tag
-	 * @param summary SummaryByCycle object that is keeping track of this info
-	 * @param readBases String of sequence bases
-	 */
-	public static void tallyMDMismatches(String mdData, SummaryByCycle<Character> summary, byte[] readBases) {
-		if (null != mdData) {
-			boolean deletion = false;
-			int position = 1;
-			for (int i = 0, size = mdData.length() ; i < size ; ) {
-				
-				if (Character.isDigit(mdData.charAt(i))) {
-					
-					int numberLength = 1;
-					while (++i < size && Character.isDigit(mdData.charAt(i))) {
-						numberLength++;
-					}
-					position += Integer.parseInt(mdData.substring(i-numberLength, i));
-					
-				} else if ('^' == mdData.charAt(i)) {
-					deletion = true;
-					i++;
-				} else if (isInValidExtended(mdData.charAt(i))) {
-					// got a letter - update summary with position
-					if (! deletion) {
-						summary.increment(position, (char)readBases[position-1]);
-						i++;
-						position++;
-					} else {
-						while (++i < size && isInValidExtendedInDelete(mdData.charAt(i))) {}
-					}
-					deletion = false;
-				} else i++;	// need to increment this or could end up with infinite loop...
-			}
-		}
-	}
+//	/**
+//	 * Records the position and and corresponding sequence base where a mismatch occurred.
+//	 * Don't care about deletions here at the moment  
+//	 * 
+//	 * @param mdData md tag
+//	 * @param summary SummaryByCycle object that is keeping track of this info
+//	 * @param readBases String of sequence bases
+//	 */
+//	public static void tallyMDMismatches(String mdData, SummaryByCycle<Character> summary, byte[] readBases) {
+//		if (null != mdData) {
+//			boolean deletion = false;
+//			int position = 1;
+//			for (int i = 0, size = mdData.length() ; i < size ; ) {
+//				
+//				if (Character.isDigit(mdData.charAt(i))) {
+//					
+//					int numberLength = 1;
+//					while (++i < size && Character.isDigit(mdData.charAt(i))) {
+//						numberLength++;
+//					}
+//					position += Integer.parseInt(mdData.substring(i-numberLength, i));
+//					
+//				} else if ('^' == mdData.charAt(i)) {
+//					deletion = true;
+//					i++;
+//				} else if (isInValidExtended(mdData.charAt(i))) {
+//					// got a letter - update summary with position
+//					if (! deletion) {
+//						summary.increment(position, (char)readBases[position-1]);
+//						i++;
+//						position++;
+//					} else {
+//						while (++i < size && isInValidExtendedInDelete(mdData.charAt(i))) {}
+//					}
+//					deletion = false;
+//				} else i++;	// need to increment this or could end up with infinite loop...
+//			}
+//		}
+//	}
 	
 	public static void tallyMDMismatches(final String mdData, final SummaryByCycleNew2<Character> summary, 
 			final byte[] readBases, final boolean reverse, QCMGAtomicLongArray mdRefAltLengthsForward, 
