@@ -121,6 +121,7 @@ public class CheckBam {
 		logger.info("Producer thread finished, counter size: " + counter.longValue());
 		// output flag stats too
 		long dups = 0;
+		long sups = 0;
 		long mapped = 0;
 		long paired = 0;
 		long properPair = 0;
@@ -148,11 +149,15 @@ public class CheckBam {
 				if ((i & DUPLICATE_READ_FLAG)  != 0) {
 					dups += l;
 				}
+				if ((i & SUPPLEMENTARY_ALIGNMENT_FLAG)  != 0) {
+					sups += l;
+				}
 				logger.info("flag: " + i + " : " + l + " hits");
 			}
 		}
 		logger.info("total read count: " + counter.longValue());
 		logger.info("dups: " + dups + " (" + (((double) dups / counter.longValue()) * 100) + "%)");
+		logger.info("sups: " + sups + " (" + (((double) sups / counter.longValue()) * 100) + "%)");
 		logger.info("mapped: " + mapped + " (" + (((double) mapped / counter.longValue()) * 100) + "%)");
 		logger.info("paired: " + paired + " (" + (((double) paired / counter.longValue()) * 100) + "%)");
 		logger.info("properPair: " + properPair + " (" + (((double)properPair / counter.longValue()) * 100) + "%)");
