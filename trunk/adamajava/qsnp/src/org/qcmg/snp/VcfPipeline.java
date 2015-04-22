@@ -385,23 +385,6 @@ public final class VcfPipeline extends Pipeline {
 			VcfUtils.addMissingDataToFormatFields(qpr.getVcfRecord(), 1);
 		}
 		
-		
-		
-//		if (null != normal) {
-//			qpr.setRef(normal.getRef());
-//			qpr.setNormalGenotype(normal.getGenotypeEnum());
-//			qpr.setAnnotation(normal.getAnnotation());
-			// tumour fields
-//			qpr.setTumourGenotype(null == tumour ? null : tumour.getTumourGenotype());
-//			qpr.setTumourCount(null == tumour ? 0 :  VcfUtils.getDPFromFormatField(tumour.getVcfRecord().getFormatFields().get(1)));
-			
-//		} else if (null != tumour) {
-//			qpr = new QSnpRecord(tumour.getChromosome(), tumour.getPosition(), tumour.getRef());
-//			qpr.setRef(tumour.getRef());
-//			qpr.setTumourGenotype(tumour.getGenotypeEnum());
-//			qpr.setTumourCount(VcfUtils.getDPFromFormatField(tumour.getGenotype()));
-//		}
-		
 		qpr.setId(++mutationId);
 		return qpr;
 	}
@@ -428,10 +411,12 @@ public final class VcfPipeline extends Pipeline {
 						if (null != qpr.getFormatFields() && ! qpr.getFormatFields().isEmpty()) {
 							//	 set genotype
 							if (isControl) {
-								snpRecord.setNormalNucleotides(VcfUtils.getGenotypeFromGATKVCFRecord(qpr));
+								snpRecord.setNormalNucleotides(Constants.MISSING_DATA_STRING);
+//								snpRecord.setNormalNucleotides(VcfUtils.getGenotypeFromGATKVCFRecord(qpr));
 								snpRecord.setNormalGenotype(VcfUtils.getGEFromGATKVCFRec(qpr));
 							} else {
-								snpRecord.setTumourNucleotides(VcfUtils.getGenotypeFromGATKVCFRecord(qpr));
+								snpRecord.setTumourNucleotides(Constants.MISSING_DATA_STRING);
+//								snpRecord.setTumourNucleotides(VcfUtils.getGenotypeFromGATKVCFRecord(qpr));
 								snpRecord.setTumourGenotype(VcfUtils.getGEFromGATKVCFRec(qpr));
 							}
 						}
