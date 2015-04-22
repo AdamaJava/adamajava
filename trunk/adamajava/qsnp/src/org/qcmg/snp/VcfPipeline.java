@@ -665,8 +665,13 @@ public final class VcfPipeline extends Pipeline {
 						logger.info("Processed " + recordCount/1000000 + "M records so far..");
 					}
 					
-					// quality checks
-					if ( ! SAMUtils.isSAMRecordValidForVariantCalling(sam)) continue;
+					if (includeDuplicates) {
+						// we are in amplicon mode and so we want to keep dups - just check to see if we have the failed vendor flag set
+						if ( ! SAMUtils.isSAMRecordValid(sam)) continue;
+					} else {
+						// quality checks
+						if ( ! SAMUtils.isSAMRecordValidForVariantCalling(sam)) continue;
+					}
 					
 					if (match(sam, cp, true)) {
 						updateResults(cp, sam, chrCounter);
