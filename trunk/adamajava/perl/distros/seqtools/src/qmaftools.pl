@@ -181,6 +181,7 @@ BEGIN {
         'oeso' => [ qw( Patient Age Sex Alcohol Smoking Reflux ) ],
         'panc_sv' => [ qw( Donor FINAL type ) ],
         'mela' => [ qw( Donor type ) ],
+        'pnet' => [ qw( Donor CNV_type ) ],
     );
 
     $VERBOSE = 1;
@@ -711,7 +712,7 @@ sub mode_compare {
     die "No records found in $params{infile2}\n" unless $count2;
 
     # If the versions do not match then it's too hard to keep going
-    die( "MAF versions do not match ($maf1->maf_version vs $maf2->maf_version)\n" )
+    die( "MAF versions do not match ($maf1->{'maf_version'} vs $maf2->{'maf_version'})\n" )
        if ($maf1->maf_version ne $maf2->maf_version);
 
     # We should output a warning if the column lists are not identical
@@ -1959,7 +1960,8 @@ sub mode_dcc_filter {
             my $compstat = $rec->extra_field( 'CompareStatus' );
             my $validstat = $rec->Validation_Status;
             if (($compstat =~ /BothFiles/i) or
-                ($compstat =~ /qSNPOnly/i and $validstat =~ /verified/i)) {
+                ($compstat =~ /qSNPOnly/i and $validstat =~ /verified/i) or
+                ($compstat =~ /GATKOnly/i and $validstat =~ /verified/i)) {
                 $outmaf->write( $rec );
             }
         }
