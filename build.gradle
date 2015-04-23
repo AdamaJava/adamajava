@@ -1,0 +1,83 @@
+version = '0.1pre'
+
+def mainclass = 'au.edu.qimr.clinvar.Q3ClinVar'
+def scriptname = 'q3clinvar'
+def isExecutable = true
+
+repositories {
+	jcenter()
+	flatDir {
+		dirs '/Users/oliverh/development/sf/trunk/adamajava/qcommon/build/lib'
+	}
+    //flatDir(dirs:"$projectDir/../lib")
+}
+
+
+dependencies {
+    configurations.compile.transitive = true
+
+    //compile project(':qcommon')
+    //compile project(':qpicard')
+    //compile project(':qio')
+    //compile project(':qvisualise')
+
+	//copy { 
+     //from zipTree("../lib/findbugs-1.3.9.zip")
+     //into 'build/deps'
+     //include '**/*.jar'
+//	} 
+
+    compile group: 'net.sf.jopt-simple',name: 'jopt-simple', version: '4.6'
+    	compile group: 'com.io7m.xom',name: 'xom', version: '1.2.10'
+    compile name: 'picard', version: '1.110'
+    compile name: 'sam', version: '1.110'
+    compile name: 'qcommon', version: '0.1pre'
+
+    testCompile name: 'junit', version: '4.10'
+}
+
+jar.doFirst {
+
+  def classpath = configurations.runtime.collect { it.name }.join(' ')
+  jar {
+     manifest {
+        attributes 'Implementation-Title': project.name,
+                   'Implementation-Version': "$version ($svnVersion)",
+                   'SVN-Version': svnVersion,
+                   'Built-By': System.properties['user.name'],
+                   'Date': new java.util.Date().toString(),
+                   'Main-Class' : mainclass,
+                   'Class-Path' : classpath
+     }
+  }
+}
+
+build.doLast {
+    //jarname = project.name
+//    ant {
+//       copy(file: "bin/${scriptname}", todir: "build/bin")
+//       replace(file: "build/bin/${scriptname}", token: "VERSION", value: "${version}")
+//       chmod(file: "build/bin/${scriptname}", perm: "a+rwx")
+//    }
+    ant {
+       echo(file: "build/flat/${scriptname}", message: "#!/bin/bash\njava -jar ${project.name}-${version}.jar \$@")
+       chmod(file: "build/flat/${scriptname}", perm: "u+rwx")
+    }
+    copy {
+       from configurations.compile
+       from 'build/lib'
+       into file('build/flat')
+    }
+}
+
+task findbugs(dependsOn: build) << {
+	def outputFileName = project.name
+    ant {
+        taskdef(name:'findbugs', classname:'edu.umd.cs.findbugs.anttask.FindBugsTask', classpath: 'build/deps/findbugs-1.3.9/lib/findbugs.jar')
+
+        findbugs(home: 'build/deps/findbugs-1.3.9/lib', output:'xml', outputFile:'findbugs_' + "${outputFileName}-${version}" + '.xml') {
+                sourcePath(path: 'src')
+                "class"(location: 'build/lib/qprofiler-' + "$version" + '.jar')
+        }
+    }
+}
