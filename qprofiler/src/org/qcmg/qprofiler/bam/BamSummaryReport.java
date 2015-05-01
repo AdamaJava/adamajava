@@ -141,8 +141,6 @@ public class BamSummaryReport extends SummaryReport {
 	private final ConcurrentMap<String, QCMGAtomicLongArray> rgReadLength = 
 			new ConcurrentSkipListMap<String, QCMGAtomicLongArray>();
 	
-	
-
 	private final static SAMTagUtil STU = SAMTagUtil.getSingleton();
 	private final short CS = STU.CS;
 	private final short CQ = STU.CQ;
@@ -157,9 +155,6 @@ public class BamSummaryReport extends SummaryReport {
 	private final short ZM = STU.makeBinaryTag("ZM");
 	private final short ZP = STU.makeBinaryTag("ZP");
 	private final short ZF = STU.makeBinaryTag("ZF");
-
-
-
 
 	private int zeroCoverageCount;
 
@@ -484,19 +479,12 @@ public class BamSummaryReport extends SummaryReport {
 		}
 		
 		//Xu code : rgClipElement code clip 2 xml: there are three page unger RG
-			//add below method to stat min, max, medium, mode of clips or length	
-		Element rgClipElement = createSubElement(bamReportElement, "RG");
-		//debug
-	 
-		SummaryReportUtils.lengthMapToXml(rgClipElement, "ReadLength", getRGStats("debug ReadLength...", rgReadLength));	
-
-		SummaryReportUtils.lengthMapToXml(rgClipElement, "HardClips", getRGStats("debug RHardClips...",rgHardClip));	
-
-		SummaryReportUtils.lengthMapToXml(rgClipElement, "SoftClips", getRGStats("debug SoftClips...", rgSoftClip));	
-		
-		
-//		SummaryReportUtils.lengthMapToXml(rgClipElement, "ReadNumber", getTagRGLineLengths());
-		
+		//add below method to stat min, max, medium, mode of clips or length	
+		Element rgClipElement = createSubElement(bamReportElement, "RG");		
+		SummaryReportUtils.ToXmlWithoutPercentage(rgClipElement, "ReadCounts", getRGCounts());	
+		SummaryReportUtils.ToXmlWithoutPercentage(rgClipElement, "ReadLength", getRGStats(rgReadLength) );	
+		SummaryReportUtils.ToXmlWithoutPercentage(rgClipElement, "HardClips", getRGStats( rgHardClip) );	
+		SummaryReportUtils.ToXmlWithoutPercentage(rgClipElement, "SoftClips", getRGStats( rgSoftClip) );	
 
 		// MRNM
 		if (null != samSeqDictionary) {
@@ -742,6 +730,7 @@ public class BamSummaryReport extends SummaryReport {
 				 
 		harray.increment(lhard);
 		sarray.increment(lsoft);
+			
 	}
 
 	private void parseTAGs(final SAMRecord record, final MAPQMatrix matrix, final byte[] readBases, final boolean reverseStrand) {
@@ -1048,8 +1037,6 @@ public class BamSummaryReport extends SummaryReport {
 			}
 		}
 
-
-
 		// first add in the 10 binned array, then the 1M
 		//		for (int i = 0 ; i < iSizeLengths10.length() ; i++) {
 		//			long l = iSizeLengths10.get(i);
@@ -1087,10 +1074,29 @@ public class BamSummaryReport extends SummaryReport {
 	}
 	
 	//xu code:
-	//return the min, max, mode and median of read length, clips length for each group
-	ConcurrentMap<String, AtomicLong> getRGStats(String debug, ConcurrentMap<String, QCMGAtomicLongArray> rgClips) {
-  
+	
+	//get counts of clip reads 
+	ConcurrentMap<String, AtomicLong>  getRGCounts(){
+		ConcurrentMap<String, AtomicLong> counts = new ConcurrentHashMap<String, AtomicLong>();
+	
+		for (Entry<String, QCMGAtomicLongArray> entry : rgSoftClip.entrySet()) {
+
+			long Scount = 0, Hcount = 0;
+			 
+			QCMGAtomicLongArray array = entry.getValue();
+			long noSoft = array.get(0);
+			for (int i = 0 ; i < array.length() ; i++) 
+				Scount += array.get(i);
+			
+			counts.put(entry.getKey() + ":total", new AtomicLong(Scount));
+			counts.put(entry.getKey() + ":noSoftClip", new AtomicLong(array.get(0)));
+			counts.put(entry.getKey() + ":noHardClip", new AtomicLong(rgHardClip.get(entry.getKey()).get(0)));
+		}
+		return counts;
 		
+	}
+	//return the min, max, mode and median of read length, clips length for each group
+	ConcurrentMap<String, AtomicLong> getRGStats( ConcurrentMap<String, QCMGAtomicLongArray> rgClips) {
 		ConcurrentMap<String, AtomicLong> clips = new ConcurrentHashMap<String, AtomicLong>();
 
 		// now for the binned map
@@ -1098,14 +1104,16 @@ public class BamSummaryReport extends SummaryReport {
 			QCMGAtomicLongArray array = entry.getValue();
 			
 			//get the position of median
-			long sum = 0;
-			for (int i = 0 ; i < array.length() ; i++)
-				sum += array.get(i);			
-			long mth = sum / 2;
-
+			long sum = 1,counts = 0;
+			for (int i = 1 ; i < array.length() ; i++){
+				counts += array.get(i);
+				sum += i * array.get(i);
+			}
+			int mean = (int) (sum / counts);
+			
 			int min = 0, max = 0, mode = 0, median = 0; 
 			long count = 0,highest = 0;
-			for (int i = 0 ; i < array.length() ; i++) {
+			for (int i = 1 ; i < array.length() ; i++) {
 				if(array.get(i) > 0){
 					//last non-zero position
 					max = i;
@@ -1113,41 +1121,25 @@ public class BamSummaryReport extends SummaryReport {
 					//first non-zero position
 					min = ( min == 0 ) ? i : min; 
 					
-					//once find the mth position, only assign once
-					count += array.get(i);
-					if(count >= mth && median == 0 ) median = i; 
-					
 					//mode is the number of read which length is most popular
 					if(array.get(i) > highest){
 						highest = array.get(i);
 						mode = i; 
 					}  
 				}
-			}	
-				//debug
-				System.out.println(debug + entry.getKey() +":min is " + min);
-				System.out.println(debug + entry.getKey() +":max is " + max);
-				System.out.println(debug + entry.getKey() +":mode is " + mode);
-				System.out.println(debug + entry.getKey() +":median is " + median);
-				
-				
-				//add stats to Map				
-				clips.put(entry.getKey() +":min", new AtomicLong(min) );
-				clips.put(entry.getKey() +":max", new AtomicLong(max) );
-				clips.put(entry.getKey() +":mode", new AtomicLong(mode)) ;
-				clips.put(entry.getKey() +":median", new AtomicLong(median) );
+			}
 			
+			long highestBar = (array.get(mode) > array.get(0)) ? mode : 0;
+			//add stats to Map				
+			clips.put(entry.getKey() +":min", new AtomicLong(min) );
+			clips.put(entry.getKey() +":max", new AtomicLong(max) );
+			clips.put(entry.getKey() +":mode", new AtomicLong(mode)) ;
+			clips.put(entry.getKey() +":mean", new AtomicLong(mean) );
+			clips.put(entry.getKey() +":highestBar", new AtomicLong(highestBar));
 		}
-
-
+		
 		return clips;		 
 	}
-	
-	
-	
-	
-	
-	
 	
 	ConcurrentMap<String, AtomicLong> getTagRGLineLengths() {
 

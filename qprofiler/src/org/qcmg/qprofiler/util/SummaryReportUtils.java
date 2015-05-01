@@ -86,6 +86,31 @@ public class SummaryReportUtils {
 		lengthMapToXml(parent, elementName, map, null);
 	}
 	
+	//Xu code
+	public static <T> void ToXmlWithoutPercentage(Element parent, String elementName, Map<T, AtomicLong> map) {
+		//lengthMapToXml(parent, elementName, map, null);
+		Document doc = parent.getOwnerDocument();
+		Element element = doc.createElement(elementName);
+		parent.appendChild(element);
+				
+		if (null != map && ! map.isEmpty()) {		
+		// get keys and sort them
+			List<T> sortedKeys = new ArrayList<>(map.keySet());
+			Collections.sort(sortedKeys, null);
+			try {
+				for (T key : sortedKeys) {
+					Element cycleE = doc.createElement("TallyItem");
+					AtomicLong ml = map.get(key);					
+					cycleE.setAttribute("value", key.toString());
+					cycleE.setAttribute("count", ml.get()+"");					
+					element.appendChild(cycleE);
+				}
+			} catch (DOMException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
 	public static ConcurrentMap<String, ConcurrentMap<Integer, AtomicLong>> binIsize(int binSize, Map<String, AtomicLongArray> iSizeByReadGroupMap, Map<String, QCMGAtomicLongArray> iSizeByReadGroupMapBinned) {
 		ConcurrentMap<String, ConcurrentMap<Integer, AtomicLong>> results = new ConcurrentHashMap<>();
 		for (Entry<String, AtomicLongArray> entry : iSizeByReadGroupMap.entrySet()) {
