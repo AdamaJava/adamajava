@@ -8,11 +8,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import net.sf.picard.fastq.FastqReader;
@@ -28,16 +28,15 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.LoadReferencedClasses;
-import org.qcmg.common.util.Pair;
-import org.w3c.dom.DOMImplementation;
-//import org.w3c.dom.Document;
-//import org.w3c.dom.Element;
 
+import au.edu.qimr.clinvar.model.Bin;
 import au.edu.qimr.clinvar.model.FastqProbeMatch;
 import au.edu.qimr.clinvar.model.MatchScore;
 import au.edu.qimr.clinvar.model.Probe;
 import au.edu.qimr.clinvar.util.ClinVarUtil;
 import au.edu.qimr.clinvar.util.FastqProbeMatchUtil;
+//import org.w3c.dom.Document;
+//import org.w3c.dom.Element;
 
 public class Q3ClinVar {
 	
@@ -45,53 +44,26 @@ private static QLogger logger;
 	
 	
 	private static String[] fastqFiles;
-	private static String[] cmdLineInclude;
-	private static String[] cmdLineTags;
-	private static String[] cmdLineTagsInt;
-	private static String[] cmdLineTagsChar;
-	private static DOMImplementation domImpl;
-//	private static Document doc;
-//	private static Element root ;
-	private static ExecutorService exec;
 	private static String version;
 	private String logFile;
 	private String xmlFile;
 	private String outputFile;
 	
-
 	private final Map<Integer, Map<String, Probe>> probeLengthMapR1 = new HashMap<>();
 	private final Map<Integer, Map<String, Probe>> probeLengthMapR2 = new HashMap<>();
 	
 	private final Set<Probe> probeSet = new HashSet<>();
-	
-//	private final Map<String, Probe> dlsoProbeMap = new HashMap<>();
-//	private final Map<String, Probe> dlsoProbeMapSameLength = new HashMap<>();
 	private final Map<Probe, AtomicInteger> probeDist = new HashMap<>();
-//	private final Map<Pair<Probe, Probe>, AtomicInteger> multiProbeDist = new HashMap<>();
 	
 	// used to check for uniqueness
 	private final Set<String> probeSequences = new HashSet<>();
-//	private final Set<String> probeSequencesSameLength = new HashSet<>();
 	
 	private final Set<FastqProbeMatch> matches = new HashSet<>();
 	
 	
-//	private final Map<Pair<FastqRecord, FastqRecord>, Probe> matchedBothReads = new HashMap<>();
-//	private final Map<Pair<FastqRecord, FastqRecord>, Probe> matchedFirstRead = new HashMap<>();
-//	private final Map<Pair<FastqRecord, FastqRecord>, Probe> matchedSecondRead = new HashMap<>();
-//	private final Map<Pair<FastqRecord, FastqRecord>, Probe> matchedNoRead = new HashMap<>();
-	
-	private final static Map<Pair<FastqRecord, FastqRecord>, List<Probe>> multiMatchingReads = new HashMap<>();
+//	private final static Map<Pair<FastqRecord, FastqRecord>, List<Probe>> multiMatchingReads = new HashMap<>();
 	
 	private int exitStatus;
-	public static void listChildren(Element current, int depth) {
-		System.out.println(current.getQualifiedName());
-		Elements children = current.getChildElements();
-		for (int i = 0; i < children.size(); i++) {
-			listChildren(children.get(i), depth+1);
-		}
-		
-	}
 	
 	protected int engage() throws Exception {
 		
@@ -100,7 +72,6 @@ private static QLogger logger;
 			Document doc = parser.build(xmlFile);
 			Element root = doc.getRootElement();
 			
-//			listChildren(probes, 1);
 			// get probes from doc
 			Element probes = root.getFirstChildElement("Probes");
 			Elements probesElements = probes.getChildElements();
@@ -151,16 +122,8 @@ private static QLogger logger;
 				
 				Probe p = new Probe(id, dlsoSeq, dlsoSeqRC, ulsoSeq, ulsoSeqRC, p1Start, p1End, p2Start, p2End);
 				probeSet.add(p);
-//				int primerLengthR1 = p.getDlsoPrimerLength();
-//				int primerLengthR2 = p.getUlsoPrimerLength();
 				int primerLengthR1 = dlsoSeqRC.length();
 				int primerLengthR2 = ulsoSeq.length();
-//				if (primerLength != ulsoSeq.length() 
-//						|| primerLength != ulsoSeqRC.length()
-//						|| primerLength != dlsoSeq.length()) {
-//					
-//					logger.warn("inconsistent primer lengths for probe: " + p.toString());
-//				}
 				
 				Map<String, Probe> mapR1 = probeLengthMapR1.get(primerLengthR1);
 				if (null == mapR1) {
@@ -176,20 +139,11 @@ private static QLogger logger;
 				}
 				mapR2.put(ulsoSeq, p);
 				
-//				logger.info("found probe with id: " + id + " and dlso seq: " + dlsoSeq + ", and ulso seq: " + ulsoSeq);
-//				dlsoProbeMap.put(dlsoSeqRC, p);
-				
 				probeSequences.add(dlsoSeq);
 				probeSequences.add(dlsoSeqRC);
 				probeSequences.add(ulsoSeq);
 				probeSequences.add(ulsoSeqRC);
 				
-//				probeSequencesMap.put(ulsoSeq, dlsoSeq);
-//				probeSequencesMap.put(ulsoSeqRC, dlsoSeqRC);
-//				probeSequencesMap.put(dlsoSeq, ulsoSeq);
-//				probeSequencesMap.put(dlsoSeqRC, ulsoSeqRC);
-//				probeSequencesMap.put(dlsoSeq, ulsoSeqRC);
-//				probeSequencesMap.put(dlsoSeqRC, ulsoSeq);
 			}
 			
 			logger.info("Found " + i + " probes in xml doc. No of entries in seq set is: " + probeSequences.size() + " which should be equals to : " + (4 * i));
@@ -230,7 +184,6 @@ private static QLogger logger;
 				final String read1 = fpm.getRead1().getReadString();
 				final String read2 = fpm.getRead2().getReadString();
 					
-				boolean firstReadMatchFound = false;
 				boolean secondReadMatchFound = false;
 				// loop through the maps searching for a match
 				for (Integer pl : primerLengthsR1) {
@@ -239,7 +192,6 @@ private static QLogger logger;
 					Map<String, Probe> map = probeLengthMapR1.get(pl);
 						
 						if (map.containsKey(read)) {
-							firstReadMatchFound = true;
 							Probe p = map.get(read);
 							matchCount++;
 							// set read1 probe
@@ -266,13 +218,10 @@ private static QLogger logger;
 							Map<String, Probe> map = probeLengthMapR2.get(pl);
 							
 							if (map.containsKey(read)) {
-								secondReadMatchFound = true;
 								Probe p = map.get(read);
 								
 								// set read2 probe
 								fpm.setRead2Probe(p, 0);
-//								matchedSecondRead.put(new Pair<FastqRecord, FastqRecord>(rec, rec2), p);
-//								matchedSecondRead.put(rec, rec2);
 								// no need to look at other maps
 								break;
 							}
@@ -280,11 +229,9 @@ private static QLogger logger;
 					}
 			}
 					
-					
 			logger.info("no of records in fastq file: " + fastqCount + ", and no of records that started with a probe in our set: " + matchCount + " and no whose mate also matched: " + mateMatchCount);
 			
 			FastqProbeMatchUtil.getStats(matches);
-			
 			
 			//TODO - PUT THIS BACK IN
 			logger.info("Rescue reads using edit distances");
@@ -292,11 +239,246 @@ private static QLogger logger;
 			FastqProbeMatchUtil.getStats(matches);
 			
 			setupFragments();
+			binFragments();
 			
 //			writeOutput();
 		} finally {
 		}
 		return exitStatus;
+	}
+
+	private void binFragments() {
+	int noOfProbesWithLargeSecondaryBin = 0;
+		
+		Map<Probe, List<FastqProbeMatch>> probeDist = new HashMap<>();
+		Map<Probe, Map<String, AtomicInteger>> probeFragments = new HashMap<>();
+		Map<Probe, Map<MatchScore, AtomicInteger>> probeMatchMap = new HashMap<>();
+		
+		for (FastqProbeMatch fpm : matches) {
+			if (FastqProbeMatchUtil.isProperlyMatched(fpm)) {
+				
+				Probe p = fpm.getRead1Probe();
+				
+				FastqProbeMatchUtil.createFragment(fpm);
+				List<FastqProbeMatch> fpms = probeDist.get(p);
+				if (null == fpms) {
+					fpms = new ArrayList<>();
+					probeDist.put(p, fpms);
+				}
+				fpms.add(fpm);
+				
+				
+				Map<String, AtomicInteger> probeFragment = probeFragments.get(p);
+				if (null == probeFragment) {
+					probeFragment = new HashMap<>();
+					probeFragments.put(p, probeFragment);
+				}
+				updateMap(fpm.getFragment(), probeFragment);
+				
+				// get match scores
+				Map<MatchScore, AtomicInteger> matchMap = probeMatchMap.get(p);
+				if (null == matchMap) {
+					matchMap = new HashMap<>();
+					probeMatchMap.put(p, matchMap);
+				}
+				updateMap(fpm.getScore(), matchMap);
+			}
+		}
+		
+		
+		// logging and writing to file
+		Element amplicons = new Element("Amplicons");
+		amplicons.addAttribute(new Attribute("amplicon_file", xmlFile));
+		amplicons.addAttribute(new Attribute("fastq_file_1", fastqFiles[0]));
+		amplicons.addAttribute(new Attribute("fastq_file_2", fastqFiles[1]));
+		
+		List<Probe> sortedProbes = new ArrayList<>(probeDist.keySet());
+		Collections.sort(sortedProbes);		// sorts on id of probe
+		
+		for (Probe p : sortedProbes) {
+			
+			Element amplicon = new Element("Amplicon");
+			amplicons.appendChild(amplicon);
+			
+			// attributes
+			amplicon.addAttribute(new Attribute("probe_id", "" + p.getId()));
+			amplicon.addAttribute(new Attribute("fragment_length", "" + p.getExpectedFragmentLength()));
+			
+			List<FastqProbeMatch> fpms = probeDist.get(p);
+			
+			Element fragments = new Element("Fragments");
+			if (null != fpms && ! fpms.isEmpty()) {
+				amplicon.appendChild(fragments);
+				
+				int fragmentExists = 0;
+				for (FastqProbeMatch fpm : fpms) {
+					if (FastqProbeMatchUtil.doesFPMMatchProbe(fpm, p)) {
+						
+						String frag = fpm.getFragment();
+						if (null != frag) {
+							fragmentExists++;
+						}
+					}
+				}
+				// add some attributtes
+				fragments.addAttribute(new Attribute("total_number_of_reads", "" + fpms.size()));
+				fragments.addAttribute(new Attribute("reads_containing_fragments", "" + fragmentExists));
+				Map<MatchScore, AtomicInteger> matchMap = probeMatchMap.get(p);
+				if (null != matchMap) {
+					StringBuilder sb = new StringBuilder();
+					for (Entry<MatchScore, AtomicInteger> entry : matchMap.entrySet()) {
+						sb.append(entry.getKey().getRead1EditDistance()).append("/").append(entry.getKey().getRead2EditDistance());
+						sb.append(":").append(entry.getValue().get()).append(',');
+					}
+					fragments.addAttribute(new Attribute("probe_match_breakdown", sb.toString()));
+				}
+			}
+			
+			// fragments next
+			Map<String, AtomicInteger> frags = probeFragments.get(p);
+			if (null != frags && ! frags.isEmpty()) {
+				
+				// I want the old fragment breakdown so that a comparison can be made
+				List<Integer> fragMatches = new ArrayList<>();
+				for (Entry<String, AtomicInteger> entry : frags.entrySet()) {
+					if (entry.getKey() != null) {
+						fragMatches.add(entry.getValue().get());
+					}
+				}
+				if (fragMatches.size() > 1) {
+					Collections.sort(fragMatches);
+					Collections.reverse(fragMatches);
+					
+					fragments.addAttribute(new Attribute("old_fragment_breakdown", "" + ClinVarUtil.breakdownEditDistanceDistribution(fragMatches)));
+				}
+				
+				List<Bin> bins = convertFragmentsToBins(frags);
+				Collections.sort(bins);
+				
+				//reset
+				fragMatches = new ArrayList<>();
+				for (Bin b : bins) {
+						Element fragment = new Element("Fragment");
+						fragments.appendChild(fragment);
+						fragment.addAttribute(new Attribute("fragment_length", "" + b.getLength()));
+						fragment.addAttribute(new Attribute("record_count", "" + b.getReadCount()));
+						fragment.addAttribute(new Attribute("diffs", "" + b.getDifferences()));
+						fragment.appendChild(b.getSequence());
+//						logger.info("frag: " + entry.getKey() + ", count: " + entry.getValue().get());
+						fragMatches.add(b.getReadCount());
+				}
+//				for (Entry<String, AtomicInteger> entry : frags.entrySet()) {
+//					if (entry.getKey() != null) {
+//						Element fragment = new Element("Fragment");
+//						fragments.appendChild(fragment);
+//						fragment.addAttribute(new Attribute("fragment_length", "" + (entry.getKey().startsWith("+++") || entry.getKey().startsWith("---") ? entry.getKey().length() - 3 : entry.getKey().length())));
+//						fragment.addAttribute(new Attribute("record_count", "" + entry.getValue().get()));
+//						fragment.appendChild(entry.getKey());
+////						logger.info("frag: " + entry.getKey() + ", count: " + entry.getValue().get());
+//						fragMatches.add(entry.getValue().get());
+//					}
+//				}
+				if (fragMatches.size() > 1) {
+					Collections.sort(fragMatches);
+					Collections.reverse(fragMatches);
+					
+					fragments.addAttribute(new Attribute("fragment_breakdown", "" + ClinVarUtil.breakdownEditDistanceDistribution(fragMatches)));
+					
+					
+					int total = 0;
+					for (Integer i : fragMatches) {
+						total += i;
+					}
+					int secondLargestCount = fragMatches.get(1);
+					if (secondLargestCount > 1) {
+						int secondLargestPercentage = (100 * secondLargestCount) / total;
+						if (secondLargestPercentage > 10) {
+							
+							for (Entry<String, AtomicInteger> entry : frags.entrySet()) {
+								if (entry.getKey() != null) {
+//									logger.info("frag: " + entry.getKey() + ", count: " + entry.getValue().get());
+//									fragMatches.add(entry.getValue().get());
+								}
+							}
+							
+							noOfProbesWithLargeSecondaryBin++;
+							logger.info("secondLargestPercentage is greater than 10%!!!: " + secondLargestPercentage);
+							logger.info("fragMatches: " + ClinVarUtil.breakdownEditDistanceDistribution(fragMatches));
+						}
+					}
+				}
+			}
+			
+		}
+		logger.info("no of probes with secondary bin contains > 10% of reads: " + noOfProbesWithLargeSecondaryBin);
+		
+		
+		// write output
+		Document doc = new Document(amplicons);
+		File binnedOutput = new File(outputFile.replace(".xml", "_binned.xml"));
+		try (OutputStream os = new FileOutputStream(binnedOutput);){
+			 Serializer serializer = new Serializer(os, "ISO-8859-1");
+		        serializer.setIndent(4);
+		        serializer.setMaxLength(64);
+		        serializer.write(doc);  
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+	}
+	
+	private List<Bin> convertFragmentsToBins(Map<String, AtomicInteger> frags) {
+		List<Bin> singleBins = new ArrayList<>();
+		List<Bin> multipleBins = new ArrayList<>();
+		
+		for (Entry<String, AtomicInteger> entry : frags.entrySet()) {
+			int tally = entry.getValue().get();
+			String sequence = entry.getKey();
+			if (null != sequence) {
+				if (sequence.startsWith("+++") || sequence.startsWith("---")) {
+					sequence = sequence.substring(3);
+				}
+				Bin b = new Bin(sequence, tally);
+				if (tally > 1) {
+					multipleBins.add(b);
+				} else {
+					singleBins.add(b);
+				}
+			}
+		}
+		
+		// sort multiple bins so that the largest is first
+		Collections.sort(multipleBins);
+		
+		// loop through single bins and see if we can assign to a bigger bin
+		Iterator<Bin> iter = singleBins.iterator();
+		while(iter.hasNext()) {
+			Bin sb = iter.next();
+			// loop through multi bins
+			for (Bin mb : multipleBins) {
+				// nned to have the same length
+				if (sb.getLength() == mb.getLength()) {
+					// need to have a BED of 1
+					int basicEditDistance = ClinVarUtil.getBasicEditDistance(sb.getSequence(), mb.getSequence());
+					if (basicEditDistance == 1) {
+						
+						// roll sb into mb
+						mb.addSequence(sb.getSequence());
+						
+						// remove this single bin from singleBins
+						iter.remove();
+						
+						// no need to look at other multi bins
+						break;
+					}
+				}
+			}
+		}
+		
+		//combine and return
+		multipleBins.addAll(singleBins);
+		
+		return multipleBins;
 	}
 
 	private void writeOutput() {
@@ -365,7 +547,6 @@ private static QLogger logger;
 
 	private void findNonExactMatches() {
 		int maxSingleEditDistance = 2;
-//			int maxDoubleEditDistance = 3;
 		for (FastqProbeMatch fpm : matches) {
 			if (FastqProbeMatchUtil.neitherReadsHaveAMatch(fpm)) {
 				// both reads missing probes
@@ -602,7 +783,7 @@ private static QLogger logger;
 							
 							for (Entry<String, AtomicInteger> entry : frags.entrySet()) {
 								if (entry.getKey() != null) {
-									logger.info("frag: " + entry.getKey() + ", count: " + entry.getValue().get());
+//									logger.info("frag: " + entry.getKey() + ", count: " + entry.getValue().get());
 //									fragMatches.add(entry.getValue().get());
 								}
 							}

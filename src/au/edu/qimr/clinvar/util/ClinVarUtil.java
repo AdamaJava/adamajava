@@ -32,6 +32,8 @@ public class ClinVarUtil {
 			throw new IllegalArgumentException("read or primer (or both) supplied to ClinVarUtil.getEditDistance were null. read: " + read + ", primer: " + primer);
 		}
 		
+		//TODO see if doing a basic edit distance here and only running levenshtein of bed > cutoff would save time
+		
 		return StringUtils.getLevenshteinDistance(primer, read.substring(0, primer.length()));
 	}
 	
