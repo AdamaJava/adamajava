@@ -47,7 +47,7 @@ final class Options {
 		parser.accepts("version", VERSION_DESCRIPTION);
 		
 		parser.accepts("xml", INPUT_FILE_DESCRIPTION).withRequiredArg().ofType(String.class);
-//		parser.accepts("output", OUTPUT_FILE_DESCRIPTION).withRequiredArg().ofType(String.class);
+		parser.accepts("output", OUTPUT_FILE_DESCRIPTION).withRequiredArg().ofType(String.class);
 //		parser.accepts("exclude", EXCLUDES_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
 		parser.accepts("log", LOG_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("loglevel", LOG_LEVEL_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);

@@ -1,6 +1,9 @@
 package au.edu.qimr.clinvar;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -14,12 +17,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import net.sf.picard.fastq.FastqReader;
 import net.sf.picard.fastq.FastqRecord;
+import nu.xom.Attribute;
 import nu.xom.Builder;
 import nu.xom.Document;
 import nu.xom.Element;
 import nu.xom.Elements;
+import nu.xom.Serializer;
 
-import org.apache.commons.lang3.StringUtils;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.util.FileUtils;
@@ -30,6 +34,7 @@ import org.w3c.dom.DOMImplementation;
 //import org.w3c.dom.Element;
 
 import au.edu.qimr.clinvar.model.FastqProbeMatch;
+import au.edu.qimr.clinvar.model.MatchScore;
 import au.edu.qimr.clinvar.model.Probe;
 import au.edu.qimr.clinvar.util.ClinVarUtil;
 import au.edu.qimr.clinvar.util.FastqProbeMatchUtil;
@@ -62,11 +67,11 @@ private static QLogger logger;
 //	private final Map<String, Probe> dlsoProbeMap = new HashMap<>();
 //	private final Map<String, Probe> dlsoProbeMapSameLength = new HashMap<>();
 	private final Map<Probe, AtomicInteger> probeDist = new HashMap<>();
-	private final Map<Pair<Probe, Probe>, AtomicInteger> multiProbeDist = new HashMap<>();
+//	private final Map<Pair<Probe, Probe>, AtomicInteger> multiProbeDist = new HashMap<>();
 	
 	// used to check for uniqueness
 	private final Set<String> probeSequences = new HashSet<>();
-	private final Set<String> probeSequencesSameLength = new HashSet<>();
+//	private final Set<String> probeSequencesSameLength = new HashSet<>();
 	
 	private final Set<FastqProbeMatch> matches = new HashSet<>();
 	
@@ -104,13 +109,16 @@ private static QLogger logger;
 			for ( ; i < probesElements.size() ; i++) {
 				Element probe = probesElements.get(i);
 				int id = Integer.parseInt(probe.getAttribute("id").getValue());
-				
-
 			
 				String dlsoSeq = "";
 				String ulsoSeq = "";
 				String dlsoSeqRC = "";
 				String ulsoSeqRC = "";
+				int p1Start = -1;
+				int p1End = -1;
+				int p2Start = -1;
+				int p2End = -1;
+				
 				Elements probeElements = probe.getChildElements();
 			
 				for (int j = 0 ; j < probeElements.size() ; j++) {
@@ -127,10 +135,24 @@ private static QLogger logger;
  					if ("ulsoRevCompSeq".equals(probeSubElement.getQualifiedName())) {
  						ulsoSeqRC = probeSubElement.getValue();
  					}
+ 					if ("primer1Start".equals(probeSubElement.getQualifiedName())) {
+ 						p1Start = Integer.parseInt(probeSubElement.getValue());
+ 					}
+ 					if ("primer1End".equals(probeSubElement.getQualifiedName())) {
+ 						p1End = Integer.parseInt(probeSubElement.getValue());
+ 					}
+ 					if ("primer2Start".equals(probeSubElement.getQualifiedName())) {
+ 						p2Start = Integer.parseInt(probeSubElement.getValue());
+ 					}
+ 					if ("primer2End".equals(probeSubElement.getQualifiedName())) {
+ 						p2End = Integer.parseInt(probeSubElement.getValue());
+ 					}
 				}
 				
-				Probe p = new Probe(id, dlsoSeq, dlsoSeqRC, ulsoSeq, ulsoSeqRC);
+				Probe p = new Probe(id, dlsoSeq, dlsoSeqRC, ulsoSeq, ulsoSeqRC, p1Start, p1End, p2Start, p2End);
 				probeSet.add(p);
+//				int primerLengthR1 = p.getDlsoPrimerLength();
+//				int primerLengthR2 = p.getUlsoPrimerLength();
 				int primerLengthR1 = dlsoSeqRC.length();
 				int primerLengthR2 = ulsoSeq.length();
 //				if (primerLength != ulsoSeq.length() 
@@ -221,7 +243,7 @@ private static QLogger logger;
 							Probe p = map.get(read);
 							matchCount++;
 							// set read1 probe
-							fpm.setRead1Probe(p);
+							fpm.setRead1Probe(p, 0);
 							
 							// now check to see if mate starts with the value in the map
 							String mate = p.getUlsoSeq();
@@ -229,9 +251,9 @@ private static QLogger logger;
 								secondReadMatchFound = true;
 								
 								// set read2 probe
-								fpm.setRead2Probe(p);
+								fpm.setRead2Probe(p, 0);
 								mateMatchCount++;
-								updateProbeDist(p, probeDist);
+								updateMap(p, probeDist);
 							}
 							// no need to look at other maps
 							break;
@@ -248,7 +270,7 @@ private static QLogger logger;
 								Probe p = map.get(read);
 								
 								// set read2 probe
-								fpm.setRead2Probe(p);
+								fpm.setRead2Probe(p, 0);
 //								matchedSecondRead.put(new Pair<FastqRecord, FastqRecord>(rec, rec2), p);
 //								matchedSecondRead.put(rec, rec2);
 								// no need to look at other maps
@@ -263,186 +285,356 @@ private static QLogger logger;
 			
 			FastqProbeMatchUtil.getStats(matches);
 			
-			logger.info("Rescue reads using edit distances");
 			
-			int maxSingleEditDistance = 2;
-			int maxDoubleEditDistance = 3;
+			//TODO - PUT THIS BACK IN
+			logger.info("Rescue reads using edit distances");
+			findNonExactMatches();
+			FastqProbeMatchUtil.getStats(matches);
+			
+			setupFragments();
+			
+//			writeOutput();
+		} finally {
+		}
+		return exitStatus;
+	}
+
+	private void writeOutput() {
+		Element amplicons = new Element("Amplicons");
+		
+		List<Probe> orderedProbes = new ArrayList<>(probeSet);
+		Collections.sort(orderedProbes);
+		
+		for (Probe p : orderedProbes) {
+			Element amplicon = new Element("Amplicon");
+			amplicons.appendChild(amplicon);
+			
+			// attributes
+			amplicon.addAttribute(new Attribute("probe_id", "" + p.getId()));
+			amplicon.addAttribute(new Attribute("fragment_length", "" + p.getExpectedFragmentLength()));
+			
+			// fragments
+			int perfectMatch = 0;
+			int totalCount = 0;
+			int fragmentExists = 0;
+			Map<String, AtomicInteger> fragmentMap = new HashMap<>();
 			for (FastqProbeMatch fpm : matches) {
-				if (FastqProbeMatchUtil.neitherReadsHaveAMatch(fpm)) {
-					// both reads missing probes
-					String read1 = fpm.getRead1().getReadString();
-					String read2 = fpm.getRead2().getReadString();
+				if (FastqProbeMatchUtil.doesFPMMatchProbe(fpm, p)) {
+					totalCount++;
+					if (FastqProbeMatchUtil.isProperlyMatched(fpm)) {
+						perfectMatch++;
+					}
 					
+					String frag = fpm.getFragment();
+					if (null != frag) {
+						fragmentExists++;
+						updateMap(frag, fragmentMap);
+					}
+				}
+			}
+			
+			Element fragments = new Element("Fragments");
+			amplicon.appendChild(fragments);
+			
+			// attributes for the fragments element
+			fragments.addAttribute(new Attribute("total_count", "" + totalCount));
+			fragments.addAttribute(new Attribute("perfect_probe_match", "" + perfectMatch));
+			fragments.addAttribute(new Attribute("fragment_count", "" + fragmentExists));
+			
+			for (Entry<String, AtomicInteger> entry : fragmentMap.entrySet()) {
+				Element fragment = new Element("Fragment");
+				fragments.appendChild(fragment);
+				
+				fragment.addAttribute(new Attribute("fragment_length", "" + entry.getKey().length()));
+				fragment.addAttribute(new Attribute("record_count", "" + entry.getValue().get()));
+				fragment.appendChild(entry.getKey());
+			}
+		}
+		
+		Document doc = new Document(amplicons);
+		try (OutputStream os = new FileOutputStream(new File(outputFile));){
+			 Serializer serializer = new Serializer(os, "ISO-8859-1");
+		        serializer.setIndent(4);
+		        serializer.setMaxLength(64);
+		        serializer.write(doc);  
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+	}
+
+	private void findNonExactMatches() {
+		int maxSingleEditDistance = 2;
+//			int maxDoubleEditDistance = 3;
+		for (FastqProbeMatch fpm : matches) {
+			if (FastqProbeMatchUtil.neitherReadsHaveAMatch(fpm)) {
+				// both reads missing probes
+				String read1 = fpm.getRead1().getReadString();
+				String read2 = fpm.getRead2().getReadString();
+				
+				for (Probe p : probeSet) {
+					String dlsoRC = p.getDlsoSeqRC();
+					String ulso = p.getUlsoSeq();
+					
+					
+					int [] editDistances = ClinVarUtil.getDoubleEditDistance(read1, read2, dlsoRC, ulso, maxSingleEditDistance);
+					if (editDistances[0] <= maxSingleEditDistance 
+							&& editDistances[1] <= maxSingleEditDistance) {
+						
+						// it could be the case that we have already found a matching probe, so make sure this match is better!!!
+						
+						if (FastqProbeMatchUtil.neitherReadsHaveAMatch(fpm)) {
+							fpm.setRead1Probe(p, editDistances[0]);
+							fpm.setRead2Probe(p, editDistances[1]);
+						} else {
+							// already have some probes set...
+							logger.warn("have to determine which match is best...");
+						}
+					} else if (editDistances[0] <= maxSingleEditDistance) {
+						// it could be the case that we have already found a matching probe, so make sure this match is better!!!
+						
+						if (FastqProbeMatchUtil.neitherReadsHaveAMatch(fpm)) {
+							fpm.setRead1Probe(p, editDistances[0]);
+						} else {
+							// already have some probes set...
+							logger.warn("have to determine which match is best...");
+						}
+						
+					} else if (editDistances[1] <= maxSingleEditDistance) {
+						// it could be the case that we have already found a matching probe, so make sure this match is better!!!
+						
+						if (FastqProbeMatchUtil.neitherReadsHaveAMatch(fpm)) {
+							fpm.setRead2Probe(p, editDistances[1]);
+						} else {
+							// already have some probes set...
+							logger.warn("have to determine which match is best...");
+						}
+						
+					}
+				}
+				
+			} else if ( ! FastqProbeMatchUtil.bothReadsHaveAMatch(fpm)) {
+				// just 1 is missing a probe - find out which one, and try and
+				String read = null;
+				Probe existingProbe = null;
+				boolean updateFirstReadProbe = null == fpm.getRead1Probe();
+				
+				if (updateFirstReadProbe) {
+					read = fpm.getRead1().getReadString();
+					existingProbe = fpm.getRead2Probe();
+				} else {
+					read = fpm.getRead2().getReadString();
+					existingProbe = fpm.getRead1Probe();
+				}
+				
+				// lets see if we are close to the existing probe
+				int editDistance = ClinVarUtil.getEditDistance(read,  existingProbe.getDlsoSeqRC());
+				if (editDistance <= maxSingleEditDistance) {
+					if (updateFirstReadProbe) {
+						fpm.setRead1Probe(existingProbe, editDistance);
+					} else {
+						fpm.setRead2Probe(existingProbe, editDistance);
+					}
+				} else {
+					// loop through the probes
 					for (Probe p : probeSet) {
-						String dlsoRC = p.getDlsoSeqRC();
-						String ulso = p.getUlsoSeq();
+						String primer = updateFirstReadProbe ? p.getDlsoSeqRC() :  p.getUlsoSeq();
+						editDistance = ClinVarUtil.getEditDistance(read, primer);
 						
-						
-						int [] editDistances = ClinVarUtil.getDoubleEditDistance(read1, read2, dlsoRC, ulso, maxSingleEditDistance);
-						if (editDistances[0] < maxSingleEditDistance 
-								&& editDistances[1] < maxSingleEditDistance) {
-							
+						if (editDistance <= maxSingleEditDistance) {
 							// it could be the case that we have already found a matching probe, so make sure this match is better!!!
 							
-							if (FastqProbeMatchUtil.neitherReadsHaveAMatch(fpm)) {
-								fpm.setRead1Probe(p);
-								fpm.setRead2Probe(p);
-								fpm.setRead1EditDistance(editDistances[0]);
-								fpm.setRead2EditDistance(editDistances[1]);
+							if (updateFirstReadProbe && null == fpm.getRead1Probe()) {
+								fpm.setRead1Probe(p, editDistance);
+							} else if ( ! updateFirstReadProbe && null == fpm.getRead2Probe()) {
+								fpm.setRead2Probe(p, editDistance);
 							} else {
 								// already have some probes set...
 								logger.warn("have to determine which match is best...");
 							}
 						}
+					}						
+				}
+			}
+		}
+	}
+	
+	public void setupFragments() {
+		
+		int noOfProbesWithLargeSecondaryBin = 0;
+		
+		Map<Probe, List<FastqProbeMatch>> probeDist = new HashMap<>();
+		Map<Probe, Map<String, AtomicInteger>> probeFragments = new HashMap<>();
+		Map<Probe, Map<MatchScore, AtomicInteger>> probeMatchMap = new HashMap<>();
+		
+		for (FastqProbeMatch fpm : matches) {
+			if (FastqProbeMatchUtil.isProperlyMatched(fpm)) {
+				
+				Probe p = fpm.getRead1Probe();
+				
+				FastqProbeMatchUtil.createFragment(fpm);
+				List<FastqProbeMatch> fpms = probeDist.get(p);
+				if (null == fpms) {
+					fpms = new ArrayList<>();
+					probeDist.put(p, fpms);
+				}
+				fpms.add(fpm);
+				
+				
+				Map<String, AtomicInteger> probeFragment = probeFragments.get(p);
+				if (null == probeFragment) {
+					probeFragment = new HashMap<>();
+					probeFragments.put(p, probeFragment);
+				}
+				updateMap(fpm.getFragment(), probeFragment);
+				
+				// get match scores
+				Map<MatchScore, AtomicInteger> matchMap = probeMatchMap.get(p);
+				if (null == matchMap) {
+					matchMap = new HashMap<>();
+					probeMatchMap.put(p, matchMap);
+				}
+				updateMap(fpm.getScore(), matchMap);
+			}
+		}
+		
+		
+		// logging and writing to file
+		Element amplicons = new Element("Amplicons");
+		amplicons.addAttribute(new Attribute("amplicon_file", xmlFile));
+		amplicons.addAttribute(new Attribute("fastq_file_1", fastqFiles[0]));
+		amplicons.addAttribute(new Attribute("fastq_file_2", fastqFiles[1]));
+		
+		List<Probe> sortedProbes = new ArrayList<>(probeDist.keySet());
+		Collections.sort(sortedProbes);		// sorts on id of probe
+		
+		for (Probe p : sortedProbes) {
+			
+			Element amplicon = new Element("Amplicon");
+			amplicons.appendChild(amplicon);
+			
+			// attributes
+			amplicon.addAttribute(new Attribute("probe_id", "" + p.getId()));
+			amplicon.addAttribute(new Attribute("fragment_length", "" + p.getExpectedFragmentLength()));
+			
+			List<FastqProbeMatch> fpms = probeDist.get(p);
+			
+			Element fragments = new Element("Fragments");
+			if (null != fpms && ! fpms.isEmpty()) {
+				amplicon.appendChild(fragments);
+				
+				int perfectMatch = 0;
+				int fragmentExists = 0;
+				for (FastqProbeMatch fpm : fpms) {
+					if (FastqProbeMatchUtil.doesFPMMatchProbe(fpm, p)) {
+						if (FastqProbeMatchUtil.isProperlyMatched(fpm)) {
+							perfectMatch++;
+						}
 						
-						
+						String frag = fpm.getFragment();
+						if (null != frag) {
+							fragmentExists++;
+						}
 					}
-					
-				} else if ( ! FastqProbeMatchUtil.bothReadsHaveAMatch(fpm)) {
-					// just 1 is missing a probe
 				}
-			}
-			
-			FastqProbeMatchUtil.getStats(matches);
-			
-//			logger.info("matched both reads: " + matchedBothReads.size() + " (" + (100 * matchedBothReads.size() / fastqCount) + "%)");
-//			logger.info("matched first reads: " + matchedFirstRead.size() + " (" + (100 * matchedFirstRead.size() / fastqCount) + "%)");
-//			logger.info("matched second reads: " + matchedSecondRead.size() + " (" + (100 * matchedSecondRead.size() / fastqCount) + "%)");
-//			logger.info("matched no reads: " + matchedNoRead.size() + " (" + (100 * matchedNoRead.size() / fastqCount) + "%)");
-				
-			
-//			// rescue the reads that had no matches first
-//			int editDistance = 3;
-//			logger.info("Will try and rescue reads where neither pair matched a probe" );
-//			rescueReads(matchedNoRead, true, true, matchedBothReads, editDistance, probeSet);
-//			
-//			logger.info("after rescuing reads that had no matches... with edit distance of " + editDistance);
-//			logger.info("matched both reads: " + matchedBothReads.size() + " (" + (100 * matchedBothReads.size() / fastqCount) + "%)");
-//			logger.info("matched first reads: " + matchedFirstRead.size() + " (" + (100 * matchedFirstRead.size() / fastqCount) + "%)");
-//			logger.info("matched second reads: " + matchedSecondRead.size() + " (" + (100 * matchedSecondRead.size() / fastqCount) + "%)");
-//			logger.info("matched no reads: " + matchedNoRead.size() + " (" + (100 * matchedNoRead.size() / fastqCount) + "%)");
-//			logger.info("matched different probes: " + multiMatchingReads.size() + " (" + (100 * multiMatchingReads.size() / fastqCount) + "%)");
-//			
-//			// next, rescue the reads that had matches on the first read, but not the second
-//			editDistance = 2;
-//			logger.info("Will try and rescue reads where only the first read matched a probe" );
-//			rescueReads(matchedFirstRead, false, true, matchedBothReads, editDistance, probeSet);
-//			
-//			logger.info("after rescuing reads that had matches on the first read, but not the second... with edit distance of " + editDistance);
-//			logger.info("matched both reads: " + matchedBothReads.size() + " (" + (100 * matchedBothReads.size() / fastqCount) + "%)");
-//			logger.info("matched first reads: " + matchedFirstRead.size() + " (" + (100 * matchedFirstRead.size() / fastqCount) + "%)");
-//			logger.info("matched second reads: " + matchedSecondRead.size() + " (" + (100 * matchedSecondRead.size() / fastqCount) + "%)");
-//			logger.info("matched no reads: " + matchedNoRead.size() + " (" + (100 * matchedNoRead.size() / fastqCount) + "%)");
-//			logger.info("matched different probes: " + multiMatchingReads.size() + " (" + (100 * multiMatchingReads.size() / fastqCount) + "%)");
-//			
-//			
-//			// finally, rescue the reads that had matches on the second read, but not the first
-//			logger.info("Will try and rescue reads where only the second read matched a probe" );
-//			rescueReads(matchedSecondRead, true, false, matchedBothReads, editDistance, probeSet);
-//			
-//			logger.info("after rescuing reads that had matches on the second read, but not the first... with edit distance of " + editDistance);
-//			logger.info("matched both reads: " + matchedBothReads.size() + " (" + (100 * matchedBothReads.size() / fastqCount) + "%)");
-//			logger.info("matched first reads: " + matchedFirstRead.size() + " (" + (100 * matchedFirstRead.size() / fastqCount) + "%)");
-//			logger.info("matched second reads: " + matchedSecondRead.size() + " (" + (100 * matchedSecondRead.size() / fastqCount) + "%)");
-//			logger.info("matched no reads: " + matchedNoRead.size() + " (" + (100 * matchedNoRead.size() / fastqCount) + "%)");
-//			logger.info("matched different probes: " + multiMatchingReads.size() + " (" + (100 * multiMatchingReads.size() / fastqCount) + "%)");
-			
-			
-		} finally {
-		}
-		return exitStatus;
-	}
-	
-	
-	public static final void rescueReads(Map<Pair<FastqRecord, FastqRecord>, Probe> map, boolean rescueFirst, boolean rescueSecond, Map<Pair<FastqRecord, FastqRecord>, Probe> rescuedReads, int allowedEditDistance, Set<Probe> probeSet) {
-		Set<Pair<FastqRecord,FastqRecord>> toRemove = new HashSet<>();
-		int [] noMatchEditDistanceDist = new int[100];	// should not be more than 50ish ( 2 x primer length)
-		
-		for (Entry<Pair<FastqRecord, FastqRecord>, Probe> entry : map.entrySet()) {
-			String r1 = entry.getKey().getLeft().getReadString();
-			String r2 = entry.getKey().getRight().getReadString();
-			final Probe mateProbe = entry.getValue();
-			
-			Probe closestMatch = null;
-			int lowestEditDistance = Integer.MAX_VALUE; 
-			int noOfHitsWithinAllowedEditDistance = 0;
-			for (Probe p : probeSet) {
-				String dlsoRC = p.getDlsoSeqRC();
-				String ulso = p.getUlsoSeq();
-				
-				int editDistance = 0;
-				if (rescueFirst) {
-					String r1SubString = r1.substring(0, dlsoRC.length());
-					editDistance = StringUtils.getLevenshteinDistance(dlsoRC, r1SubString);
+				// add some attributtes
+				fragments.addAttribute(new Attribute("total_number_of_reads", "" + fpms.size()));
+				fragments.addAttribute(new Attribute("reads_containing_fragments", "" + fragmentExists));
+//				fragments.addAttribute(new Attribute("perfect_probe_match", "" + perfectMatch));
+				Map<MatchScore, AtomicInteger> matchMap = probeMatchMap.get(p);
+				if (null != matchMap) {
+					StringBuilder sb = new StringBuilder();
+					for (Entry<MatchScore, AtomicInteger> entry : matchMap.entrySet()) {
+						sb.append(entry.getKey().getRead1EditDistance()).append("/").append(entry.getKey().getRead2EditDistance());
+						sb.append(":").append(entry.getValue().get()).append(',');
+					}
+					fragments.addAttribute(new Attribute("probe_match_breakdown", sb.toString()));
 				}
 				
-				if (rescueSecond && editDistance <= allowedEditDistance) {
-					String r2SubString = r2.substring(0, ulso.length());
-					editDistance += StringUtils.getLevenshteinDistance(ulso, r2SubString);
-				}
-//				if (editDistance == 0) {
-//					if (rescueFirst) {
-//						logger.warn("Found reads with edit distance of 0, r1: " + r1 + ", primer: " + dlsoRC);
-//					} else {
-//						logger.warn("Found reads with edit distance of 0, r2: " + r2 + ", primer: " + ulso);
+//				Map<Integer, List<Integer>> overlapEditDist = new HashMap<>();
+//				logger.info("probe: " + p.getId() + ", no of hits: " + fpms.size());
+//				for (FastqProbeMatch fpm : fpms) {
+//					List<Integer> editDistances = overlapEditDist.get(fpm.getExpectedReadOverlapLength());
+//					if (null == editDistances) {
+//						editDistances = new ArrayList<>();
+//						overlapEditDist.put(fpm.getExpectedReadOverlapLength(), editDistances);
 //					}
+//					editDistances.add(fpm.getOverlapBasicEditDistance());
 //				}
-				
-				if (editDistance < lowestEditDistance) {
-					closestMatch = p;
-					lowestEditDistance = editDistance;
-				}
-				
-				if (editDistance <= allowedEditDistance) {
-					noOfHitsWithinAllowedEditDistance++;
-//					logger.info("got editDistance of 1 for each read");
-				}
-			}
-//			if (noOfHitsWithinAllowedEditDistance > 1) {
-//				logger.warn("Got more than 1 probe matching with edit distance of 2: " + noOfHitsWithinAllowedEditDistance);
-//			}
-			
-			// if edit distance is low enough, rescue this read
-			if (lowestEditDistance <= allowedEditDistance) {
-				
-				if (null != mateProbe && closestMatch.equals(mateProbe)) {
-					rescuedReads.put(entry.getKey(), closestMatch);
-				} else if (null != mateProbe) {
-					// 2 different probes!!!
-					List<Probe> list = new ArrayList<>();
-					list.add(mateProbe);
-					list.add(closestMatch);
-					multiMatchingReads.put(entry.getKey(),list);
-				} else {
-					// mate probe is null so set
-					rescuedReads.put(entry.getKey(), closestMatch);
-				}
-				toRemove.add(entry.getKey());
-				
+////				logger.info("distribution breakdown:");
+////				for (Entry<Integer, List<Integer>> entry : overlapEditDist.entrySet()) {
+////					logger.info("overlap: " + entry.getKey() + ", edit distances: " + ClinVarUtil.breakdownEditDistanceDistribution(entry.getValue()));
+////				}
 			}
 			
-//			logger.info("lowest edit distance: " + lowestEditDistance);
-			if (lowestEditDistance < noMatchEditDistanceDist.length) {
-				// don't want to update if we still have lowestEditDistance set to Integer.MAX_VALUE
-				noMatchEditDistanceDist[lowestEditDistance]++;
+			// fragments next
+			Map<String, AtomicInteger> frags = probeFragments.get(p);
+			if (null != frags && ! frags.isEmpty()) {
+				
+				
+				List<Integer> fragMatches = new ArrayList<>();
+				for (Entry<String, AtomicInteger> entry : frags.entrySet()) {
+					if (entry.getKey() != null) {
+						Element fragment = new Element("Fragment");
+						fragments.appendChild(fragment);
+						fragment.addAttribute(new Attribute("fragment_length", "" + (entry.getKey().startsWith("+++") || entry.getKey().startsWith("---") ? entry.getKey().length() - 3 : entry.getKey().length())));
+						fragment.addAttribute(new Attribute("record_count", "" + entry.getValue().get()));
+						fragment.appendChild(entry.getKey());
+//						logger.info("frag: " + entry.getKey() + ", count: " + entry.getValue().get());
+						fragMatches.add(entry.getValue().get());
+					}
+				}
+				if (fragMatches.size() > 1) {
+					Collections.sort(fragMatches);
+					Collections.reverse(fragMatches);
+					
+					fragments.addAttribute(new Attribute("fragment_breakdown", "" + ClinVarUtil.breakdownEditDistanceDistribution(fragMatches)));
+					
+					
+					int total = 0;
+					for (Integer i : fragMatches) {
+						total += i;
+					}
+					int secondLargestCount = fragMatches.get(1);
+					if (secondLargestCount > 1) {
+						int secondLargestPercentage = (100 * secondLargestCount) / total;
+						if (secondLargestPercentage > 10) {
+							
+							for (Entry<String, AtomicInteger> entry : frags.entrySet()) {
+								if (entry.getKey() != null) {
+									logger.info("frag: " + entry.getKey() + ", count: " + entry.getValue().get());
+//									fragMatches.add(entry.getValue().get());
+								}
+							}
+							
+							noOfProbesWithLargeSecondaryBin++;
+							logger.info("secondLargestPercentage is greater than 10%!!!: " + secondLargestPercentage);
+							logger.info("fragMatches: " + ClinVarUtil.breakdownEditDistanceDistribution(fragMatches));
+						}
+					}
+				}
 			}
+			
 		}
+		logger.info("no of probes with secondary bin contains > 10% of reads: " + noOfProbesWithLargeSecondaryBin);
 		
-		for (int k = 0 ; k < noMatchEditDistanceDist.length ; k++) {
-			if (noMatchEditDistanceDist[k] > 0) {
-				logger.info("editDistance: " + k + ", no of read pairs: " + noMatchEditDistanceDist[k]);
-			}
+		
+		// write output
+		Document doc = new Document(amplicons);
+		try (OutputStream os = new FileOutputStream(new File(outputFile));){
+			 Serializer serializer = new Serializer(os, "ISO-8859-1");
+		        serializer.setIndent(4);
+		        serializer.setMaxLength(64);
+		        serializer.write(doc);  
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
-		
-		// remove
-		for (Pair<FastqRecord,FastqRecord> rec : toRemove) {
-			map.remove(rec);
-		}
-		
 	}
 	
 	
-	public static final void updateProbeDist(Probe p, Map<Probe, AtomicInteger> map) {
+	
+	
+	public static final <P> void updateMap(P p, Map<P, AtomicInteger> map) {
 		AtomicInteger ai = map.get(p);
 		if (null == ai) {
 			ai = new AtomicInteger(1);

@@ -1,6 +1,6 @@
 package au.edu.qimr.clinvar.model;
 
-public class Probe {
+public class Probe implements Comparable<Probe>{
 	
 	private final int id;
 	private final String dlsoSeq;
@@ -8,12 +8,21 @@ public class Probe {
 	private final String ulsoSeq;
 	private final String ulsoSeqRC;
 	
-	public Probe(int id, String dlsoSeq, String dlsoSeqRC, String ulsoSeq, String ulsoSeqRC) {
+	private final int primer1Start;
+	private final int primer1End;
+	private final int primer2Start;
+	private final int primer2End;
+	
+	public Probe(int id, String dlsoSeq, String dlsoSeqRC, String ulsoSeq, String ulsoSeqRC, int p1Start, int p1End, int p2Start, int p2End) {
 		this.id = id;
 		this.dlsoSeq = dlsoSeq;
 		this.dlsoSeqRC = dlsoSeqRC;
 		this.ulsoSeq = ulsoSeq;
 		this.ulsoSeqRC = ulsoSeqRC;
+		this.primer1Start = p1Start;
+		this.primer1End = p1End;
+		this.primer2Start = p2Start;
+		this.primer2End = p2End;
 	}
 
 	@Override
@@ -49,6 +58,16 @@ public class Probe {
 			return false;
 		return true;
 	}
+	
+	public int getDlsoPrimerLength() {
+		return primer1End - primer1Start + 1;
+	}
+	public int getUlsoPrimerLength() {
+		return primer2End - primer2Start + 1;
+	}
+	public int getExpectedFragmentLength() {
+		return primer2End - primer1Start + 1;
+	}
 
 	public int getId() {
 		return id;
@@ -75,6 +94,11 @@ public class Probe {
 		return "Probe [id=" + id + ", dlsoSeq=" + dlsoSeq + ", dlsoSeqRC="
 				+ dlsoSeqRC + ", ulsoSeq=" + ulsoSeq + ", ulsoSeqRC="
 				+ ulsoSeqRC + "]";
+	}
+
+	@Override
+	public int compareTo(Probe o) {
+		return id - o.id;
 	}
 
 }
