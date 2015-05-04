@@ -1121,7 +1121,8 @@ public class BamSummaryReport extends SummaryReport {
 				counts += array.get(i);
 				sum += i * array.get(i);
 			}
-			int mean = (int) (sum / counts);
+			
+			int mean = (counts == 0) ? 0: (int) (sum / counts);
 			
 			int min = 0, max = 0, mode = 0, median = 0; 
 			long count = 0,highest = 0;
