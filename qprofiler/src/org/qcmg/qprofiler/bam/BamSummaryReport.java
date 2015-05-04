@@ -480,7 +480,7 @@ public class BamSummaryReport extends SummaryReport {
 		
 		//Xu code : rgClipElement code clip 2 xml: there are three page unger RG
 		//add below method to stat min, max, medium, mode of clips or length	
-		Element rgClipElement = createSubElement(bamReportElement, "RG");		
+		Element rgClipElement = createSubElement(bamReportElement, "RG_Counts");		
 		SummaryReportUtils.ToXmlWithoutPercentage(rgClipElement, "ReadCounts", getRGCounts());	
 		SummaryReportUtils.ToXmlWithoutPercentage(rgClipElement, "ReadLength", getRGStats(rgReadLength) );	
 		SummaryReportUtils.ToXmlWithoutPercentage(rgClipElement, "HardClips", getRGStats( rgHardClip) );	
@@ -664,6 +664,18 @@ public class BamSummaryReport extends SummaryReport {
 				parseCoverage(record);
 			}
 		}
+		
+		
+		// TODO - delete this once Steve has finished testing
+//		// ISIZE
+//		String readGroup = (String) record.getAttribute(RG);
+//		if (null == readGroup) {
+//			SAMReadGroupRecord srgr = record.getReadGroup();
+//			if (null != srgr)
+//				readGroup = record.getReadGroup().getReadGroupId();
+//		}
+//		parseISize(record.getInferredInsertSize(), readGroup);
+		//TODO - end of code to delete
 
 		//TODO mapping qual normally sits in the non-duplicate section - is this correct?
 		// MAPQ (Mapping Quality)
