@@ -18,6 +18,7 @@ import java.util.zip.GZIPInputStream;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.util.FileUtils;
+import org.qcmg.common.util.TabTokenizer;
 
 
 public class ReadPartGZFile {
@@ -86,17 +87,28 @@ public class ReadPartGZFile {
 			
 			uniqPos.clear();
 			TabixReader.Iterator it = tabix.query(str);
+			
+			
 			String line; 
 			while(( line = it.next())!= null){
-				uniqPos.add(line.split("\\t")[1]);
+			//	String[] eles = TabTokenizer.tokenize(line, '\t');
+			//	uniqPos.add(eles[1]);
+			//	uniqPos.add(line.split("\\t")[1]);
 				num ++;
 			} 
-			total_uniq += 	uniqPos.size();
-			System.out.println("There are " + uniqPos.size() + " uniq position recorded in reference " + str);
+			
+			//debug
+			System.out.println("There are " + num+ " position recorded in reference "  + str);
+			num ++;
+			
+			
+		//	total_uniq += 	uniqPos.size();
+		//	System.out.println("There are " + uniqPos.size() + " uniq position recorded in reference " + str);
+			
 		}
 		
-		System.out.println("Total uniq position recorded in all reference is " + total_uniq);
-		System.out.println("Total records in whole file is " + num);
+//		System.out.println("Total uniq position recorded in all reference is " + total_uniq);
+//		System.out.println("Total records in whole file is " + num);
 		
 	}
 
