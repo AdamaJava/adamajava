@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.model.ChrPosition;
@@ -49,13 +50,21 @@ public class QueryCADDLib {
 					//s1: query(chr:start:pos), and output
 					if(chr != null){
 				    	if(chr.startsWith("chr"))  	chr = chr.substring(3);
-						TabixReader.Iterator it = tabix.query(chr, start, pos);
+						TabixReader.Iterator it = tabix.query(chr, start-1, pos);
 						//debug	
 						System.out.print(String.format("%8d: query(%s, %8d, %8d) ", blockNo++, chr, start, pos));						
 						query( it, writer );
 
 					}
 					//s2: reset
+					
+					//debug bf clear
+					for( Entry<ChrPosition, VcfRecord> entry: positionRecordMap.entrySet()){
+						if(entry.getValue().getFilter() == null)
+							System.out.println(entry.getValue().toString());
+						
+					}
+					
 					positionRecordMap.clear();
 					chr = re.getChromosome();
 					start = re.getPosition();
@@ -100,6 +109,8 @@ public class QueryCADDLib {
 		if(chr.getChromosome().startsWith("chr"))
 			chr =  new ChrPosition(re.getChromosome().substring(3), re.getChrPosition().getPosition(), re.getChrPosition().getEndPosition());   // orig.getChromosome().substring(3);
 				
+		
+		re.setFilter(null); //for debug
 		positionRecordMap.put(chr, re);			
 	}
 	
@@ -125,27 +136,34 @@ public class QueryCADDLib {
  			if(entry.equals(last)) continue;
  			else last = entry;
 
-    		VcfRecord inputVcf = positionRecordMap.get(new ChrPosition(eles[0], s, e ));	
-     		
+    		VcfRecord inputVcf = positionRecordMap.get(new ChrPosition(eles[0], s, e ));	     		
     		//walk through queried chrunk until find matched variants
-			if ( (null == inputVcf) || !inputVcf.getRef().equalsIgnoreCase(eles[2]) ||  
-					!inputVcf.getAlt().equalsIgnoreCase(eles[4]))  
-				continue;
-   					
-			//output found variant, since CADD only output found variant too
-			writer.append(line + "\n");
-			outputSize ++;
+//			if ( (null == inputVcf) || !inputVcf.getRef().equalsIgnoreCase(eles[2]) ||  
+//					!inputVcf.getAlt().equalsIgnoreCase(eles[4]))  
+//				continue;
+    		
+    		if ( (null == inputVcf) || !inputVcf.getRef().equalsIgnoreCase(eles[2])) continue; 
+    		
+    		String[] allels = {inputVcf.getAlt()};
+    		 if(inputVcf.getAlt().contains(","))
+    			 allels = TabTokenizer.tokenize(inputVcf.getAlt(), ',');
+    			
+    		for(String al : allels)
+    			if(al.equalsIgnoreCase(eles[4])){
+    				//output found variant, since CADD only output found variant too
+    				writer.append(line + "\n");
+    				outputSize ++;
+    				inputVcf.setFilter("CADD");
+    			}
     	}
-    	
+    	    	
        	//get stats   	
 		long endTime = System.currentTimeMillis();
 		String time = QLogger.getRunTime(startTime, endTime);	  
 		System.out.println(String.format("[ %8d,%8d,%8d, %s ] ",  blockSize, positionRecordMap.size(), outputSize, time));
     	inputNo += positionRecordMap.size();   	
     	outputNo += outputSize;
-
     	
-
     }
 	
 	 
