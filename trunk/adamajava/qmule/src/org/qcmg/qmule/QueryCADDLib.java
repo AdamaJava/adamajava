@@ -29,6 +29,7 @@ public class QueryCADDLib {
 	protected static long outputNo = 0;
 	protected static long blockNo = 0;	
 	protected static long inputNo = 0;
+	final String CADD = "CADD";
 	
 	public QueryCADDLib(final String input_gzip_file,  final String vcf, final String output, final int gap) throws IOException{
 		
@@ -56,14 +57,12 @@ public class QueryCADDLib {
 						query( it, writer );
 
 					}
-					//s2: reset
-					
-					//debug bf clear
-					for( Entry<ChrPosition, VcfRecord> entry: positionRecordMap.entrySet()){
-						if(entry.getValue().getFilter() == null)
-							System.out.println(entry.getValue().toString());
-						
-					}
+					//s2: reset					
+//					//debug bf clear
+//					for( Entry<ChrPosition, VcfRecord> entry: positionRecordMap.entrySet()){
+//						if(entry.getValue().getFilter() == null)
+//							System.out.println(entry.getValue().toString());						
+//					}
 					
 					positionRecordMap.clear();
 					chr = re.getChromosome();
@@ -77,23 +76,10 @@ public class QueryCADDLib {
 		    	if(chr.startsWith("chr"))  	chr = chr.substring(3);
 				TabixReader.Iterator it = tabix.query(chr, start, pos);
 				query( it, writer );
-
 			}
-			
-			
+	
 		}//end try	
-		
-//		int totalInput = 0;
-//		int totalOutput = 0;
-//		
-//		for(int i = 0; i < libBlocks.size(); i ++){
-//			totalOutput += outputBlocks.get(i);
-//			totalInput += inputBlocks.get(i);
-//			System.out.print(String.format(", [ %d: %d,%d,%d]", i, libBlocks.get(i), inputBlocks.get(i), outputBlocks.get(i)));
-//			
-//		}
-		
-		
+
 		 System.out.println("total input variants is  " + inputNo);
 		 System.out.println("total outputed and annotated variants is  " + outputNo);
 		 System.out.println("total query CADD library time is " + blockNo);
@@ -137,25 +123,28 @@ public class QueryCADDLib {
  			else last = entry;
 
     		VcfRecord inputVcf = positionRecordMap.get(new ChrPosition(eles[0], s, e ));	     		
-    		//walk through queried chrunk until find matched variants
-//			if ( (null == inputVcf) || !inputVcf.getRef().equalsIgnoreCase(eles[2]) ||  
-//					!inputVcf.getAlt().equalsIgnoreCase(eles[4]))  
-//				continue;
     		
     		if ( (null == inputVcf) || !inputVcf.getRef().equalsIgnoreCase(eles[2])) continue; 
     		
     		String[] allels = {inputVcf.getAlt()};
     		 if(inputVcf.getAlt().contains(","))
     			 allels = TabTokenizer.tokenize(inputVcf.getAlt(), ',');
-    			
+    			   		 
+    		String cadd = "";
+    		
+    		//it will exit loop once find the matched allele
     		for(String al : allels)
     			if(al.equalsIgnoreCase(eles[4])){
-    				//output found variant, since CADD only output found variant too
-    				writer.append(line + "\n");
+    				cadd =	String.format("(%s=>%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s)", eles[2],eles[4],eles[8],eles[10],eles[11],eles[12],eles[17],
+    						eles[21],eles[26],eles[35],eles[39],eles[72],eles[82],eles[83],eles[86],eles[92],eles[92],eles[93],eles[96]);  
+    				String info = inputVcf.getInfoRecord().getField(CADD);
+    				info = (info == null)? CADD + "=" + cadd : CADD + "=" + info + "," + cadd;
+    				inputVcf.appendInfo( info);
+    				
+    				writer.append(inputVcf.toString() + "\n");
     				outputSize ++;
-    				inputVcf.setFilter("CADD");
     			}
-    	}
+    		}
     	    	
        	//get stats   	
 		long endTime = System.currentTimeMillis();
@@ -163,7 +152,6 @@ public class QueryCADDLib {
 		System.out.println(String.format("[ %8d,%8d,%8d, %s ] ",  blockSize, positionRecordMap.size(), outputSize, time));
     	inputNo += positionRecordMap.size();   	
     	outputNo += outputSize;
-    	
     }
 	
 	 
@@ -191,45 +179,3 @@ public class QueryCADDLib {
 	}
 }
 
-
-//	static void getUniqPosition(String input_gzip_file,   String output_file) throws IOException{
-//
-//	TabixReader tabix = new TabixReader( input_gzip_file);
-//	Set<String> chrs = tabix.getChromosomes();
-////	HashSet<String> uniqVariant = new HashSet<String>();
-//	long total_uniq = 0; 
-//	long total_number = 0; 
-//	
-//	String line;
-//	System.out.println("total reference number is " + chrs.size() + " from " + input_gzip_file);
-//	
-//	try( FileWriter writer = new FileWriter(new File(output_file)) ){  		
-//		//get header line
-//		while( (line = tabix.readLine()) != null) 
-//			 if(line.startsWith("#"))  writer.append(line+"\n");
-//			 else break;
-//     		 
-//		//query each chrome to avoid out off memory
-//		for(String str : chrs){
-////			uniqVariant.clear();
-//			String entry = null;
-//			long num = 0;	
-//			TabixReader.Iterator it = tabix.query(str);			 
-//			while(( line = it.next())!= null){
-//				total_number ++;
-//				String[] eles = TabTokenizer.tokenize(line, '\t');
-//				String pos =  eles[1]+ ":" +eles[2]+ ":" +  eles[4] ;
-//				if(!pos.equalsIgnoreCase(entry) ){
-//					entry = pos;
-//					writer.append(line+"\n");
-//					num ++;
-//				} 
-//			} 
-// 			total_uniq += num; 
-//			System.out.println("There are " + num + " uniq variants recorded in reference " + str);		
-//		} 
-//	}	
-//	System.out.println("Total uniq variants recorded in all reference is " + total_uniq);
-//	System.out.println("Total records in whole file is " +total_number);
-//	
-//}
