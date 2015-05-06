@@ -12,6 +12,7 @@ import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
+import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 import org.qcmg.vcf.VCFFileWriter;
 
@@ -26,7 +27,8 @@ public class  CaddMode extends AbstractMode{
 	final String CADD = "CADD";
 	private final QLogger logger;
 	
-	
+	String description = "query CADD library for this variant. Format: (Ref>Alt|isDerived|Consequence|ConsScore|ConsDetail|scoreSegDup|priPhyloP|GerpRS|mirSVR-E|cHmmTssA|motifDist|ESP_AFR|ESP_EUR|TG_AMR|FeatureID|FeatureID|CCDS|relcDNApos)";	
+		
 	public CaddMode( CaddOptions options, QLogger logger) throws Exception {		
 		
 		this.logger = logger; 
@@ -42,7 +44,16 @@ public class  CaddMode extends AbstractMode{
 	
 		try (VCFFileReader reader = new VCFFileReader(input);
 				VCFFileWriter writer = new VCFFileWriter( output)){
-				 
+			
+			//reheader first
+        	reheader(options.getCommandLine(),options.getInputFileName())	;
+        	header.addInfoLine(VcfHeaderUtils.INFO_CADD, "1", "String", description);
+        	for(final VcfHeader.Record record: header)  
+        		writer.addHeader(record.toString());
+        	 
+			
+			
+			//read chrunk and annotateion	 
 			for (final VcfRecord re : reader){ 
 				//annotation
 				if( !re.getChromosome().equals(chr) || (re.getPosition() - pos) > gap){
@@ -105,7 +116,7 @@ public class  CaddMode extends AbstractMode{
 	    		
 	    		for(String al : allels)
 	    			if(al.equalsIgnoreCase(eles[4])){
-	    				String cadd =	String.format("(%s=>%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s)", eles[2],eles[4],eles[8],eles[10],eles[11],eles[12],eles[17],
+	    				String cadd =	String.format("(%s>%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s)", eles[2],eles[4],eles[8],eles[10],eles[11],eles[12],eles[17],
 	    						eles[21],eles[26],eles[35],eles[39],eles[72],eles[82],eles[83],eles[86],eles[92],eles[92],eles[93],eles[96]);  
 	    				String info = inputVcf.getInfoRecord().getField(CADD);
 	    				info = (info == null)? CADD + "=" + cadd : CADD + "=" + info + "," + cadd;
