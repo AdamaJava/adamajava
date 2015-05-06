@@ -18,6 +18,7 @@ dependencies {
 
 	compile name: 'snpEff', version: '4.0e'	
 //	compile name: 'snpEff', version: '4.1b'	
+    compile name: 'htsjdk', version: '1.130'
     compile name: 'jopt-simple', version: '4.6'  
     testCompile name: 'junit', version: '4.10'
 }

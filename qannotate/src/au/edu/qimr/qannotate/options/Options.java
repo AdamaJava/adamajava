@@ -14,7 +14,7 @@ import au.edu.qimr.qannotate.Messages;
  * parse command line to options. 
  */
 public class Options {
-	public enum MODE {fix, dbSNP, germline, snpEff,confidence,customerConfidence,vcf2maf }
+	public enum MODE {fix, dbSNP, germline, snpEff,confidence,customerConfidence,vcf2maf, cadd}
 	
    protected static final String VERSION_DESCRIPTION = Messages.getMessage("VERSION_OPTION_DESCRIPTION");
 	 
@@ -82,6 +82,8 @@ public class Options {
 				modeOptions = new CustomerConfidenceOptions();
 			else if(m.equalsIgnoreCase(MODE.vcf2maf.name()))
 				modeOptions = new Vcf2mafOptions();
+			else if(m.equalsIgnoreCase(MODE.cadd.name()))
+				modeOptions = new CaddOptions();
 			
 			else{ 
 				System.err.println("err on command line : \n\t" + commandLine);
