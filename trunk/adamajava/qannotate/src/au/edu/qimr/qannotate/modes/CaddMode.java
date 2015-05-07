@@ -35,13 +35,18 @@ public class  CaddMode extends AbstractMode{
 		
 		final String input = options.getInputFileName();
 		final File output =  new File( options.getOutputFileName() );
-		final String[] database = options.getDatabaseFiles();
 		final int gap = options.getGapSize();
+		
+		final String[] database = options.getDatabaseFiles();
+		final TabixReader[] tabixs = new TabixReader[database.length];
+		for(int i = 0; i < database.length; i ++)
+			tabixs[i] = new TabixReader( database[i] );
+		
 		
 		String chr = null;
 		int pos = 0; 
 		int start = 1;
-	
+		
 		try (VCFFileReader reader = new VCFFileReader(input);
 				VCFFileWriter writer = new VCFFileWriter( output)){
 			
@@ -50,16 +55,14 @@ public class  CaddMode extends AbstractMode{
         	header.addInfoLine(VcfHeaderUtils.INFO_CADD, "1", "String", description);
         	for(final VcfHeader.Record record: header)  
         		writer.addHeader(record.toString());
-        	 
-			
-			
+
 			//read chrunk and annotateion	 
 			for (final VcfRecord re : reader){ 
 				//annotation
 				if( !re.getChromosome().equals(chr) || (re.getPosition() - pos) > gap){
 					//s1: annotate variants in hash map
 					if(chr != null) 
-						addAnnotation( chr, start-1, pos , database, writer );
+						addAnnotation( chr, start-1, pos + 1, tabixs, writer );
 						
 					//s2: reset	hash map				
 					positionRecordMap.clear();
@@ -74,7 +77,7 @@ public class  CaddMode extends AbstractMode{
 			
 			//last block
 			if(chr != null)
-		    	addAnnotation( chr, start-1, pos , database, writer );			
+		    	addAnnotation( chr, start-1, pos+1 , tabixs, writer );			
 		}//end try	
 
 		logger.info("total input variants is  " + inputNo);		 
@@ -82,8 +85,7 @@ public class  CaddMode extends AbstractMode{
 		logger.info("total query CADD library time is " + blockNo);
 	}
 	
-	void addAnnotation(String chr, int start, int end, String[] database, VCFFileWriter writer) throws Exception {
-		logger.debug(String.format("%8d: query(%s, %8d, %8d) ", blockNo++, chr, start, end));
+	void addAnnotation(String chr, int start, int end, TabixReader[] tabixs, VCFFileWriter writer) throws Exception {
 		
     	String line; 
     	String[] eles;
@@ -91,10 +93,11 @@ public class  CaddMode extends AbstractMode{
 
     	int blockSize = 0; 
     	int outputSize = 0;
-    	TabixReader tabix = null;
+    	if(chr.startsWith("chr"))  chr = chr.substring(3);
+    	if(chr.equalsIgnoreCase("m")) chr = "MT"; 
+
     	
-		for(String db : database){			
-			tabix = new TabixReader( db );
+		for(TabixReader tabix : tabixs){						
 			TabixReader.Iterator it = tabix.query(chr, start, end);
 			while(( line = it.next())!= null){
 				blockSize ++;  
@@ -104,11 +107,13 @@ public class  CaddMode extends AbstractMode{
 	 			String entry =  eles[0] + ":" + eles[1] + ":" +eles[2]+ ":" +  eles[4]; //chr:pos:ref:allel
 	 			if(entry.equals(last)) continue;
 	 			else last = entry;
+	 			
 	
 	    		int s = Integer.parseInt(eles[1]);  //start position = second column
 	    		int e = s + eles[2].length() - 1;   //start position + length -1
 	    		VcfRecord inputVcf = positionRecordMap.get(new ChrPosition(chr, s, e ));	    
 				if ( (null == inputVcf) || !inputVcf.getRef().equalsIgnoreCase(eles[2])) continue; 
+				
 								
 				String[] allels = {inputVcf.getAlt()};
 	    		if(inputVcf.getAlt().contains(","))
