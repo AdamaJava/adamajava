@@ -43,12 +43,12 @@ BEGIN {
     # line in the format '@CO field_name:value' where field_name is the
     # field name but with the leading 'co_' removed.
 
-    my @v_3 = qw( ra_gID rg_CN rg_DT rg_LB
+    my @v_3 = qw( rg_ID rg_CN rg_DT rg_LB
                   rg_PI rg_PL rg_PM rg_PU rg_SM
                   co_dcc_project_code
                   co_submitter_donor_id
                   co_submitter_specimen_id
-                  co_submitter_smaple_id
+                  co_submitter_sample_id
                   co_dcc_specimen_type
                   co_use_cntl
                 );
@@ -123,7 +123,7 @@ sub AUTOLOAD {
     my $type       = ref($self) or confess "$self is not an object";
     my $invocation = $AUTOLOAD;
     my $method     = undef;
-    my $version    = $self->{maf_version};
+    my $version    = $self->version;
 
     if ($invocation =~ m/^.*::([^:]*)$/) {
         $method = $1;
@@ -201,12 +201,16 @@ sub to_text {
                           if defined $self->{fields}->{$_} }
                     @rg_fields;
 
+    # Strip off leading rg_ strings
+    ($rg_values[$_] =~ s/^rg_//) foreach (0..$#rg_values);
+
     $text .= "\@RG\t" . join( "\t", @rg_values ) ."\n";
 
-    my @co_values = map { $_ .':'. $self->{fields}->{$_}
-                         if defined $self->{fields}->{$_} }
+    my @co_values = map  { $_ .':'. $self->{fields}->{$_} }
+                    grep { defined $self->{fields}->{$_} }
                     @co_fields;
 
+    # Strip off leading co_ strings
     ($co_values[$_] =~ s/^co_//) foreach (0..$#co_values);
 
     foreach my $value (@co_values) {
