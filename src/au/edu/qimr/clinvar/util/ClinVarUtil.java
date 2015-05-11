@@ -3,11 +3,13 @@ package au.edu.qimr.clinvar.util;
 import gnu.trove.map.hash.TIntIntHashMap;
 import gnu.trove.procedure.TIntIntProcedure;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.util.Pair;
 
 public class ClinVarUtil {
 	
@@ -32,7 +34,11 @@ public class ClinVarUtil {
 			throw new IllegalArgumentException("read or primer (or both) supplied to ClinVarUtil.getEditDistance were null. read: " + read + ", primer: " + primer);
 		}
 		
-		//TODO see if doing a basic edit distance here and only running levenshtein of bed > cutoff would save time
+//		//TODO see if doing a basic edit distance here and only running levenshtein of bed > cutoff would save time
+//		int bed = getBasicEditDistance(primer, read.substring(0, primer.length()));
+//		if (bed <= 1) {
+//			return bed;
+//		}
 		
 		return StringUtils.getLevenshteinDistance(primer, read.substring(0, primer.length()));
 	}
@@ -77,6 +83,132 @@ public class ClinVarUtil {
 		return ed;
 	}
 	
+	public static int getOutwardSlideCount(final String overlap1, final String overlap2) {
+		// it is assumed that the 2 char sequences do not match as they are
+		if (StringUtils.isEmpty(overlap1) || StringUtils.isEmpty(overlap2)) {
+			throw new IllegalArgumentException("Null string passed to ClinVarUtil.getOutwardSlideCount(). s: " + overlap1 + ", t: " + overlap2);
+		}
+		
+		// s and t need to be the same length
+		if (overlap1.length() != overlap2.length()) {
+			throw new IllegalArgumentException("Strings passed to ClinVarUtil.getOutwardSlideCount() are not the same length s: " + overlap1 + ", t: " + overlap2);
+		}
+		String s = overlap1;
+		String t = overlap2;
+		
+		int initialLength = overlap1.length();
+		int noOfSlides = 0;
+		
+		while (noOfSlides < initialLength &&  ! t.equals(s)) {
+			noOfSlides++;
+			s = s.substring(1);
+			t = t.substring(0, t.length() -1);
+		}
+		// want a -ve number for outward slide
+		return 0 - noOfSlides;
+	}
+	
+//	public static String getFragmentUsingSlide(final String fullSeq1, final String fullSeq2, int expectedOverlap) {
+//		// it is assumed that the 2 char sequences do not match as they are
+//		if (StringUtils.isEmpty(fullSeq1) || StringUtils.isEmpty(fullSeq2)) {
+//			throw new IllegalArgumentException("Null string passed to ClinVarUtil.getInwardSlideCount(). s: " + fullSeq1 + ", t: " + fullSeq2);
+//		}
+//		
+//		if (fullSeq1.length() <= expectedOverlap || fullSeq2.length() <= expectedOverlap) {
+//			throw new IllegalArgumentException("Strings passed to ClinVarUtil.getInwardSlideCount(). s: " + fullSeq1 + ", t: " + fullSeq2 +", are not longer than the expectedOverlap: " + expectedOverlap);
+//		}
+//		
+////		String s = fullSeq1.substring(fullSeq1.length() - expectedOverlap);
+//		String t = fullSeq2.substring(0, expectedOverlap);
+//		
+//		// get index of t occurring in fullSeq1
+//		int index = fullSeq1.lastIndexOf(t);
+//		int noOfShifts = 0;
+//		while (noOfShifts < expectedOverlap &&  index == -1) {
+//			noOfShifts++;
+//			t = t.substring(0, t.length() -1);
+//			index = fullSeq1.lastIndexOf(t);
+//		}
+//		if (index == -1) {
+//			// can't create fragment
+//			logger.info("unable to create fragment for fullSeq1: " + fullSeq1 + ", fullSeq2: " + fullSeq2 + ", expectedOverlap: " + expectedOverlap);
+//			return null;
+//		}
+//		
+//		index = fullSeq1.length() - expectedOverlap - index;
+//		
+//		return index;
+		
+//		int initialLength = fullSeq1.length();
+//		int noOfSlides = 0;
+//		
+//		while (noOfSlides < initialLength &&  ! t.equals(s)) {
+//			noOfSlides++;
+//			s = s.substring(1);
+//			t = t.substring(0, t.length() -1);
+//		}
+//		// want a -ve number for outward slide
+//		return 0 - noOfSlides;
+//	}
+	
+	
+	/**
+	 * 
+	 * @param smithWatermanDiffs
+	 * @return
+	 */
+	public static List<Pair<Integer, String>> getPositionRefAndAltFromSW(String [] smithWatermanDiffs) {
+		List<Pair<Integer, String>> mutations = new ArrayList<>();
+		
+		String refSeq = smithWatermanDiffs[0];
+		String diffs = smithWatermanDiffs[1];
+		String binSeq = smithWatermanDiffs[2];
+		
+		if (null != diffs && ! diffs.isEmpty()) {
+			
+			int position = 0;
+			int span = 0;
+			int indelStartPos = 0;
+			for (char c : diffs.toCharArray()) {
+				if (c != ' ') {
+					if (span >0) {
+						// create indel
+						
+						String ref = refSeq.substring(indelStartPos,indelStartPos + span);
+						String alt = binSeq.substring(indelStartPos,indelStartPos + span);
+						mutations.add(new Pair<Integer, String>(indelStartPos, ref +"/" +  alt));
+						// reset span
+						span = 0;
+					}
+					if (c == '.') {
+						// snp
+						char ref = refSeq.charAt(position);
+						char alt = binSeq.charAt(position);
+						mutations.add(new Pair<Integer, String>(position, ref + "/" + alt));
+//						createMutation(p, b, position, ref + "", alt + "");
+					}
+					
+				} else {
+					if (span == 0) {
+						indelStartPos = position;
+					}
+					span++;
+					// indel
+				}
+				position++;
+			}
+			if (span >0) {
+				// create indel
+				
+				String ref = refSeq.substring(indelStartPos,indelStartPos + span);
+				String alt = binSeq.substring(indelStartPos,indelStartPos + span);
+				mutations.add(new Pair<Integer, String>(indelStartPos, ref +"/" +  alt));
+			}
+		}
+		return mutations;
+	}
+	
+	
 	
 	public static int noOfSlidesToGetPerfectMatch(final String s1, final String t1) {
 		// it is assumed that the 2 char sequences do not match as they are
@@ -114,9 +246,9 @@ public class ClinVarUtil {
 				t = t.substring(0, t.length() -1);
 			}
 			
-			if (noOfSlides >= initialLength -1) {
-				logger.info("RHS and LHS slide gave us nothing....");
-			}
+//			if (Math.abs(noOfSlides) >= initialLength -1) {
+//				logger.info("RHS and LHS slide gave us nothing....");
+//			}
 		}
 		
 		return noOfSlides;

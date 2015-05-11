@@ -14,12 +14,14 @@ public class Bin implements Comparable<Bin> {
 	private final static int MAX_NUMBER_OF_DIFFERENCES = 16;		// increase this if we want to allow reads containing more than 16 bases diff from sequence
 	private final static QLogger logger = QLoggerFactory.getLogger(Bin.class);
 	
+	private final int id;
 	private final String sequence;
 	private final int length;
 	private final int[] counts;
 	private final Map<PosBase, AtomicInteger> diffs = new HashMap<>();
 	
-	public Bin(String sequence, int exactMatches) {
+	public Bin(int id,String sequence, int exactMatches) {
+		this.id = id;
 		this.sequence = sequence;
 		this.length = this.sequence.length();
 		counts = new int[MAX_NUMBER_OF_DIFFERENCES];	
@@ -127,6 +129,10 @@ public class Bin implements Comparable<Bin> {
 	@Override
 	public int compareTo(Bin b) {
 		return  b.getReadCount() - getReadCount();
+	}
+
+	public int getId() {
+		return id;
 	}
 
 }

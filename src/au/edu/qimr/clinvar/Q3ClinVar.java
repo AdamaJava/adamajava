@@ -2,6 +2,7 @@ package au.edu.qimr.clinvar;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -17,6 +18,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import net.sf.picard.fastq.FastqReader;
 import net.sf.picard.fastq.FastqRecord;
+import net.sf.samtools.util.SequenceUtil;
 import nu.xom.Attribute;
 import nu.xom.Builder;
 import nu.xom.Document;
@@ -26,12 +28,18 @@ import nu.xom.Serializer;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.model.Accumulator;
+import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.LoadReferencedClasses;
+import org.qcmg.common.util.Pair;
+import org.qcmg.common.vcf.VcfRecord;
+import org.qcmg.common.vcf.VcfUtils;
+import org.qcmg.qmule.SmithWatermanGotoh;
 
 import au.edu.qimr.clinvar.model.Bin;
 import au.edu.qimr.clinvar.model.FastqProbeMatch;
-import au.edu.qimr.clinvar.model.MatchScore;
+import au.edu.qimr.clinvar.model.IntPair;
 import au.edu.qimr.clinvar.model.Probe;
 import au.edu.qimr.clinvar.util.ClinVarUtil;
 import au.edu.qimr.clinvar.util.FastqProbeMatchUtil;
@@ -48,12 +56,17 @@ private static QLogger logger;
 	private String logFile;
 	private String xmlFile;
 	private String outputFile;
+	private int binId = 1;
 	
 	private final Map<Integer, Map<String, Probe>> probeLengthMapR1 = new HashMap<>();
 	private final Map<Integer, Map<String, Probe>> probeLengthMapR2 = new HashMap<>();
 	
 	private final Set<Probe> probeSet = new HashSet<>();
 	private final Map<Probe, AtomicInteger> probeDist = new HashMap<>();
+	private final Map<Probe, List<Bin>> probeBinDist = new HashMap<>();
+	
+	private final Map<VcfRecord, List<Pair<Probe, Bin>>> mutations = new HashMap<>();
+	private final Map<Probe, IntPair> probeReadCountMap = new HashMap<>();
 	
 	// used to check for uniqueness
 	private final Set<String> probeSequences = new HashSet<>();
@@ -85,10 +98,17 @@ private static QLogger logger;
 				String ulsoSeq = "";
 				String dlsoSeqRC = "";
 				String ulsoSeqRC = "";
+				String subseq = "";
+				String chr = "";
+				boolean forwardStrand = false;
 				int p1Start = -1;
 				int p1End = -1;
 				int p2Start = -1;
 				int p2End = -1;
+				int ssStart = -1;
+				int ssEnd = -1;
+//				int start = -1;
+//				int end = -1;
 				
 				Elements probeElements = probe.getChildElements();
 			
@@ -96,31 +116,40 @@ private static QLogger logger;
 					Element probeSubElement = probeElements.get(j);
  					if ("DLSO_Sequence".equals(probeSubElement.getQualifiedName())) {
  						dlsoSeq = probeSubElement.getValue();
- 					}
- 					if ("ULSO_Sequence".equals(probeSubElement.getQualifiedName())) {
+ 					} else  if ("ULSO_Sequence".equals(probeSubElement.getQualifiedName())) {
  						ulsoSeq = probeSubElement.getValue();
- 					}
- 					if ("dlsoRevCompSeq".equals(probeSubElement.getQualifiedName())) {
+ 					} else if ("dlsoRevCompSeq".equals(probeSubElement.getQualifiedName())) {
  						dlsoSeqRC = probeSubElement.getValue();
- 					}
- 					if ("ulsoRevCompSeq".equals(probeSubElement.getQualifiedName())) {
+ 					} else  if ("ulsoRevCompSeq".equals(probeSubElement.getQualifiedName())) {
  						ulsoSeqRC = probeSubElement.getValue();
- 					}
- 					if ("primer1Start".equals(probeSubElement.getQualifiedName())) {
+ 					} else  if ("primer1Start".equals(probeSubElement.getQualifiedName())) {
  						p1Start = Integer.parseInt(probeSubElement.getValue());
- 					}
- 					if ("primer1End".equals(probeSubElement.getQualifiedName())) {
+ 					} else  if ("primer1End".equals(probeSubElement.getQualifiedName())) {
  						p1End = Integer.parseInt(probeSubElement.getValue());
- 					}
- 					if ("primer2Start".equals(probeSubElement.getQualifiedName())) {
+ 					} else  if ("primer2Start".equals(probeSubElement.getQualifiedName())) {
  						p2Start = Integer.parseInt(probeSubElement.getValue());
- 					}
- 					if ("primer2End".equals(probeSubElement.getQualifiedName())) {
+ 					} else  if ("primer2End".equals(probeSubElement.getQualifiedName())) {
  						p2End = Integer.parseInt(probeSubElement.getValue());
- 					}
+ 					} else  if ("subseq".equals(probeSubElement.getQualifiedName())) {
+ 						subseq = probeSubElement.getValue();
+ 					} else  if ("subseqStart".equals(probeSubElement.getQualifiedName())) {
+ 						ssStart =  Integer.parseInt(probeSubElement.getValue());
+ 					} else  if ("subseqEnd".equals(probeSubElement.getQualifiedName())) {
+ 						ssEnd =  Integer.parseInt(probeSubElement.getValue());
+ 					} else  if ("Chromosome".equals(probeSubElement.getQualifiedName())) {
+ 						chr =  probeSubElement.getValue();
+ 					} else  if ("Probe_Strand".equals(probeSubElement.getQualifiedName())) {
+ 						forwardStrand =  "+".equals(probeSubElement.getValue());
+ 					} 
+// 					if ("Start_Position".equals(probeSubElement.getQualifiedName())) {
+// 						start =  Integer.parseInt(probeSubElement.getValue());
+// 					}
+// 					if ("End_Position".equals(probeSubElement.getQualifiedName())) {
+// 						end =  Integer.parseInt(probeSubElement.getValue());
+// 					}
 				}
 				
-				Probe p = new Probe(id, dlsoSeq, dlsoSeqRC, ulsoSeq, ulsoSeqRC, p1Start, p1End, p2Start, p2End);
+				Probe p = new Probe(id, dlsoSeq, dlsoSeqRC, ulsoSeq, ulsoSeqRC, p1Start, p1End, p2Start, p2End, subseq, ssStart, ssEnd, chr, forwardStrand);
 				probeSet.add(p);
 				int primerLengthR1 = dlsoSeqRC.length();
 				int primerLengthR2 = ulsoSeq.length();
@@ -234,12 +263,14 @@ private static QLogger logger;
 			FastqProbeMatchUtil.getStats(matches);
 			
 			//TODO - PUT THIS BACK IN
-			logger.info("Rescue reads using edit distances");
-			findNonExactMatches();
-			FastqProbeMatchUtil.getStats(matches);
+//			logger.info("Rescue reads using edit distances");
+//			findNonExactMatches();
+//			FastqProbeMatchUtil.getStats(matches);
 			
 			setupFragments();
 			binFragments();
+			
+			writeCsv();
 			
 //			writeOutput();
 		} finally {
@@ -247,12 +278,219 @@ private static QLogger logger;
 		return exitStatus;
 	}
 
+	private void writeCsv() throws IOException {
+		// TODO Auto-generated method stub
+		List<VcfRecord> allVcfs = new ArrayList<>();
+		int noOfProbesWithLargestBinDiffFromRef = 0;
+		int noOfProbesWithLargestBinEqRef = 0;
+		for (Entry<Probe, List<Bin>> entry : probeBinDist.entrySet()) {
+			Probe p = entry.getKey();
+			List<Bin> bins = entry.getValue();
+			String ref = p.getReferenceSequence();
+			boolean forwardStrand = p.isOnForwardStrand();
+			
+			// get largest bin
+			if (null != bins && ! bins.isEmpty()) {
+				
+				
+				for (Bin b : bins) {
+				
+					// only care about bins that have more than 10 reads
+					int minReadsPerBin = 10;
+					if (b.getReadCount() > minReadsPerBin) {
+					
+						String binSeq = forwardStrand ? SequenceUtil.reverseComplement(b.getSequence()) : b.getSequence() ;
+						
+						if ( ! binSeq.equals(ref)) {
+	//						logger.info("probe " + p.getId() + ", forwardStrand: " + forwardStrand + ", largest bin does not equal ref!! ref: " + ref + ", binSeq: " + binSeq);
+							
+							SmithWatermanGotoh nm = new SmithWatermanGotoh(ref, binSeq, 5, -4, 16, 4);
+							String [] diffs = nm.traceback();
+							if (p.getId() == 21) {
+								logger.info("probe: " + p.getId() + ", forward strand: " + p.isOnForwardStrand() + ", ref: " + ref + ", binSeq: " + binSeq);
+								for (String s : diffs) {
+									logger.info(s);
+								}
+							}
+							if ( ! diffs[0].contains("-") && ! diffs[2].contains("-")) {
+								// snps only for now
+								createMutations(p, b, diffs);
+							} else {
+								for (String s : diffs) {
+									logger.info(s);
+								}
+							}
+	//						probeBinsSWDiffs.put(b, diffs);
+							
+	//						logger.info("snp diffs: " + diffs);
+	//						List<VcfRecord> vcfs = createVcfRecords(p.getCp().getChromosome(), p.getCp().getEndPosition(), diffs, b, p, bins);
+	//						allVcfs.addAll(vcfs);
+	//						noOfProbesWithLargestBinDiffFromRef++;
+	//					} else {
+	//						noOfProbesWithLargestBinEqRef++;
+						}
+					}
+					
+					// now create the vcf records using the map of bins and their SW diffs
+	//				if ( ! probeBinsSWDiffs.isEmpty()) {
+	//					createVcfRecords(p, probeBinsSWDiffs);
+	//				}
+				}
+			}
+		}
+		logger.info("noOfProbesWithLargestBinDiffFromRef: " + noOfProbesWithLargestBinDiffFromRef + ", noOfProbesWithLargestBinEqRef: " + noOfProbesWithLargestBinEqRef);
+		logger.info("no of mutataions: " + mutations.size());
+		
+		
+		try (FileWriter writer = new FileWriter(new File(outputFile+".mutations.snps.only.csv"))){;
+			writer.write("chr,position,ref,alt,probe_id,probe_total_reads,probe_total_frags,bin_id,bin_record_count" );
+			writer.write("\n");
+			
+			for (Entry<VcfRecord, List<Pair<Probe, Bin>>> entry : mutations.entrySet()) {
+				VcfRecord vcf = entry.getKey();
+				List<Pair<Probe, Bin>> list = entry.getValue();
+				for (Pair<Probe, Bin> pair : list) {
+					Probe p = pair.getLeft();
+					Bin b = pair.getRight();
+					// get some probe stats
+					
+					//loop through fmps and for this probe, get number that have frags, and number that don't
+					IntPair ip = probeReadCountMap.get(p);
+					int totalReads = ip.getInt1();
+					int totalFrags = ip.getInt2();
+//					for (FastqProbeMatch fpm : matches) {
+//						if (FastqProbeMatchUtil.isProperlyMatched(fpm) && fpm.getRead1Probe().equals(p)) {
+//							totalReads++;
+//							if (null != fpm.getFragment()) {
+//								totalFrags++;
+//							}
+//						}
+//					}
+					
+					writer.write(vcf.getChromosome() + "," + vcf.getPosition() + "," + vcf.getRef() + "," + vcf.getAlt() + "," + p.getId() + "," + totalReads + "," + totalFrags + "," + b.getId() + "," + b.getReadCount());
+					writer.write("\n");
+				}
+			}
+			writer.flush();
+		}
+		
+	}
+	
+	private void createMutations(Probe p, Bin b, String [] smithWatermanDiffs) {
+		//just snps for now
+		String refSeq = smithWatermanDiffs[0];
+		String diffs = smithWatermanDiffs[1];
+		String binSeq = smithWatermanDiffs[2];
+		if (null != diffs && ! diffs.isEmpty()) {
+			
+			int position = 0;
+			int span = 0;
+			int indelStartPos = 0;
+			for (char c : diffs.toCharArray()) {
+				if (c != ' ') {
+					if (span >0) {
+						// create indel
+						
+						String ref = refSeq.substring(indelStartPos,indelStartPos + span);
+						String alt = binSeq.substring(indelStartPos,indelStartPos + span);
+						createMutation(p, b, indelStartPos, ref, alt);
+						// reset span
+						span = 0;
+					}
+					if (c == '.') {
+						// snp
+						char ref = refSeq.charAt(position);
+						char alt = binSeq.charAt(position);
+						createMutation(p, b, position, ref + "", alt + "");
+					}
+					
+				} else {
+					if (span == 0) {
+						indelStartPos = position;
+					}
+					span++;
+					// indel
+				}
+				position++;
+			}
+		}
+	}
+	
+	private void createMutation(Probe p, Bin b, int position, String ref, String alt) {
+		VcfRecord vcf = VcfUtils.createVcfRecord(new ChrPosition(p.getCp().getChromosome(),  p.getCp().getPosition() + position + 1), ".", ref, alt);
+		List<Pair<Probe, Bin>> existingBins = mutations.get(vcf);
+		if (null == existingBins) {
+			existingBins = new ArrayList<>();
+			mutations.put(vcf, existingBins);
+		}
+		existingBins.add(new Pair<Probe,Bin>(p,b));
+	}
+	
+//	private List<VcfRecord> createVcfRecords(Probe p, Map<Bin, String> binSWDiffs) {
+//		List<VcfRecord> vcfs = new ArrayList<>();
+//		String [] diffArray = diffs.split(",");
+//		for (String diff: diffArray) {
+//			 logger.info("createVcfRecords:diff: " + diff);
+//			 int colonIndex = diff.indexOf(':');
+//			 if (colonIndex > -1) {	// only care about snps for now
+//				 int pos = Integer.parseInt(diff.substring(0, colonIndex));
+//				 int vcfPos = refEndPos - pos + 2;
+//				 VcfRecord vcf = VcfUtils.createVcfRecord(new ChrPosition(chr, vcfPos), ".", diff.charAt(colonIndex + 1)+"", ""+diff.charAt(colonIndex + 3));
+//				 List<String> ff = new ArrayList<>();
+//				 ff.add("AC:PID");
+//				 String alleleCounts = getAlleleCountsFromBins(bins, bin, vcfPos, pos);
+//				 
+//				 ff.add(alleleCounts+ ":" + p.getId());
+//				 vcf.setFormatFields(ff);
+//				 vcfs.add(vcf);
+//				 logger.info("vcf: " + vcf);
+//			 }
+//		 }
+//		return vcfs;
+//	}
+	
+//	private List<VcfRecord> createVcfRecords(String chr, int refEndPos, String diffs, Bin bin, Probe p, List<Bin> bins) {
+//		List<VcfRecord> vcfs = new ArrayList<>();
+//		String [] diffArray = diffs.split(",");
+//		for (String diff: diffArray) {
+//			logger.info("createVcfRecords:diff: " + diff);
+//			int colonIndex = diff.indexOf(':');
+//			if (colonIndex > -1) {	// only care about snps for now
+//				int pos = Integer.parseInt(diff.substring(0, colonIndex));
+//				int vcfPos = refEndPos - pos + 2;
+//				VcfRecord vcf = VcfUtils.createVcfRecord(new ChrPosition(chr, vcfPos), ".", diff.charAt(colonIndex + 1)+"", ""+diff.charAt(colonIndex + 3));
+//				List<String> ff = new ArrayList<>();
+//				ff.add("AC:PID");
+//				String alleleCounts = getAlleleCountsFromBins(bins, bin, vcfPos, pos);
+//				
+//				ff.add(alleleCounts+ ":" + p.getId());
+//				vcf.setFormatFields(ff);
+//				vcfs.add(vcf);
+//				logger.info("vcf: " + vcf);
+//			}
+//		}
+//		
+//		return vcfs;
+//		
+//	}
+	
+	public static String getAlleleCountsFromBins(List<Bin> bins, Bin originatingBin, int vcfPos, int positionInOrigBin) {
+		Accumulator acc = new Accumulator(vcfPos);
+		
+		for (int i = 0; i < originatingBin.getReadCount() ; i++) {
+			acc.addBase((byte)originatingBin.getSequence().charAt(positionInOrigBin), (byte)33, true, vcfPos - positionInOrigBin , vcfPos, vcfPos - positionInOrigBin +originatingBin.getSequence().length() , 1);
+		}
+		
+		
+		return acc.getPileupElementString();
+	}
+
 	private void binFragments() {
 	int noOfProbesWithLargeSecondaryBin = 0;
 		
 		Map<Probe, List<FastqProbeMatch>> probeDist = new HashMap<>();
 		Map<Probe, Map<String, AtomicInteger>> probeFragments = new HashMap<>();
-		Map<Probe, Map<MatchScore, AtomicInteger>> probeMatchMap = new HashMap<>();
+		Map<Probe, Map<IntPair, AtomicInteger>> probeMatchMap = new HashMap<>();
 		
 		for (FastqProbeMatch fpm : matches) {
 			if (FastqProbeMatchUtil.isProperlyMatched(fpm)) {
@@ -276,7 +514,7 @@ private static QLogger logger;
 				updateMap(fpm.getFragment(), probeFragment);
 				
 				// get match scores
-				Map<MatchScore, AtomicInteger> matchMap = probeMatchMap.get(p);
+				Map<IntPair, AtomicInteger> matchMap = probeMatchMap.get(p);
 				if (null == matchMap) {
 					matchMap = new HashMap<>();
 					probeMatchMap.put(p, matchMap);
@@ -323,11 +561,11 @@ private static QLogger logger;
 				// add some attributtes
 				fragments.addAttribute(new Attribute("total_number_of_reads", "" + fpms.size()));
 				fragments.addAttribute(new Attribute("reads_containing_fragments", "" + fragmentExists));
-				Map<MatchScore, AtomicInteger> matchMap = probeMatchMap.get(p);
+				Map<IntPair, AtomicInteger> matchMap = probeMatchMap.get(p);
 				if (null != matchMap) {
 					StringBuilder sb = new StringBuilder();
-					for (Entry<MatchScore, AtomicInteger> entry : matchMap.entrySet()) {
-						sb.append(entry.getKey().getRead1EditDistance()).append("/").append(entry.getKey().getRead2EditDistance());
+					for (Entry<IntPair, AtomicInteger> entry : matchMap.entrySet()) {
+						sb.append(entry.getKey().getInt1()).append("/").append(entry.getKey().getInt2());
 						sb.append(":").append(entry.getValue().get()).append(',');
 					}
 					fragments.addAttribute(new Attribute("probe_match_breakdown", sb.toString()));
@@ -354,6 +592,8 @@ private static QLogger logger;
 				
 				List<Bin> bins = convertFragmentsToBins(frags);
 				Collections.sort(bins);
+				// keep this for vcf building
+				probeBinDist.put(p, bins);
 				
 				//reset
 				fragMatches = new ArrayList<>();
@@ -394,16 +634,16 @@ private static QLogger logger;
 						int secondLargestPercentage = (100 * secondLargestCount) / total;
 						if (secondLargestPercentage > 10) {
 							
-							for (Entry<String, AtomicInteger> entry : frags.entrySet()) {
-								if (entry.getKey() != null) {
-//									logger.info("frag: " + entry.getKey() + ", count: " + entry.getValue().get());
-//									fragMatches.add(entry.getValue().get());
-								}
-							}
+//							for (Entry<String, AtomicInteger> entry : frags.entrySet()) {
+//								if (entry.getKey() != null) {
+////									logger.info("frag: " + entry.getKey() + ", count: " + entry.getValue().get());
+////									fragMatches.add(entry.getValue().get());
+//								}
+//							}
 							
 							noOfProbesWithLargeSecondaryBin++;
-							logger.info("secondLargestPercentage is greater than 10%!!!: " + secondLargestPercentage);
-							logger.info("fragMatches: " + ClinVarUtil.breakdownEditDistanceDistribution(fragMatches));
+//							logger.info("secondLargestPercentage is greater than 10%!!!: " + secondLargestPercentage);
+//							logger.info("fragMatches: " + ClinVarUtil.breakdownEditDistanceDistribution(fragMatches));
 						}
 					}
 				}
@@ -435,10 +675,10 @@ private static QLogger logger;
 			int tally = entry.getValue().get();
 			String sequence = entry.getKey();
 			if (null != sequence) {
-				if (sequence.startsWith("+++") || sequence.startsWith("---")) {
-					sequence = sequence.substring(3);
-				}
-				Bin b = new Bin(sequence, tally);
+//				if (sequence.startsWith("+++") || sequence.startsWith("---")) {
+//					sequence = sequence.substring(3);
+//				}
+				Bin b = new Bin(binId++, sequence, tally);
 				if (tally > 1) {
 					multipleBins.add(b);
 				} else {
@@ -646,7 +886,7 @@ private static QLogger logger;
 		
 		Map<Probe, List<FastqProbeMatch>> probeDist = new HashMap<>();
 		Map<Probe, Map<String, AtomicInteger>> probeFragments = new HashMap<>();
-		Map<Probe, Map<MatchScore, AtomicInteger>> probeMatchMap = new HashMap<>();
+		Map<Probe, Map<IntPair, AtomicInteger>> probeMatchMap = new HashMap<>();
 		
 		for (FastqProbeMatch fpm : matches) {
 			if (FastqProbeMatchUtil.isProperlyMatched(fpm)) {
@@ -670,7 +910,7 @@ private static QLogger logger;
 				updateMap(fpm.getFragment(), probeFragment);
 				
 				// get match scores
-				Map<MatchScore, AtomicInteger> matchMap = probeMatchMap.get(p);
+				Map<IntPair, AtomicInteger> matchMap = probeMatchMap.get(p);
 				if (null == matchMap) {
 					matchMap = new HashMap<>();
 					probeMatchMap.put(p, matchMap);
@@ -718,15 +958,34 @@ private static QLogger logger;
 						}
 					}
 				}
+				
+				// check ratio of fragments and total reads
+				// if less than 10%, log...
+				if ((100 * fragmentExists / fpms.size()) <= 10) {
+					logger.info("fewer than 10% of reads made it to fragments for probe: " + p.getId() + " frag count: " + fragmentExists + ", total read count: " + fpms.size() + ", expected frag length: " + p.getExpectedFragmentLength());
+						Set<Pair<String, String>> r1Set = new HashSet<>();
+						for (FastqProbeMatch fpm : fpms) {
+							if (null == fpm.getFragment()) {
+								r1Set.add(new Pair<String, String>(fpm.getRead1().getReadString(), fpm.getRead2().getReadString()));
+								if (p.getId() == 48) {
+											logger.info("p: " + p.getId() + ", exp overlap: " + fpm.getExpectedReadOverlapLength() + ", r1: " + fpm.getRead1().getReadString() + ", r2: " + fpm.getRead2().getReadString());
+								}
+							}
+						}
+						logger.info("no of unique r1,r2 pairs: " + r1Set.size());
+				}
+				
+				
 				// add some attributtes
+				probeReadCountMap.put(p, new IntPair(fpms.size(), fragmentExists));
 				fragments.addAttribute(new Attribute("total_number_of_reads", "" + fpms.size()));
 				fragments.addAttribute(new Attribute("reads_containing_fragments", "" + fragmentExists));
 //				fragments.addAttribute(new Attribute("perfect_probe_match", "" + perfectMatch));
-				Map<MatchScore, AtomicInteger> matchMap = probeMatchMap.get(p);
+				Map<IntPair, AtomicInteger> matchMap = probeMatchMap.get(p);
 				if (null != matchMap) {
 					StringBuilder sb = new StringBuilder();
-					for (Entry<MatchScore, AtomicInteger> entry : matchMap.entrySet()) {
-						sb.append(entry.getKey().getRead1EditDistance()).append("/").append(entry.getKey().getRead2EditDistance());
+					for (Entry<IntPair, AtomicInteger> entry : matchMap.entrySet()) {
+						sb.append(entry.getKey().getInt1()).append("/").append(entry.getKey().getInt2());
 						sb.append(":").append(entry.getValue().get()).append(',');
 					}
 					fragments.addAttribute(new Attribute("probe_match_breakdown", sb.toString()));
@@ -789,8 +1048,8 @@ private static QLogger logger;
 							}
 							
 							noOfProbesWithLargeSecondaryBin++;
-							logger.info("secondLargestPercentage is greater than 10%!!!: " + secondLargestPercentage);
-							logger.info("fragMatches: " + ClinVarUtil.breakdownEditDistanceDistribution(fragMatches));
+//							logger.info("secondLargestPercentage is greater than 10%!!!: " + secondLargestPercentage);
+//							logger.info("fragMatches: " + ClinVarUtil.breakdownEditDistanceDistribution(fragMatches));
 						}
 					}
 				}

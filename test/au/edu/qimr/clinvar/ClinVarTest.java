@@ -3,6 +3,7 @@ package au.edu.qimr.clinvar;
 import static org.junit.Assert.assertEquals;
 import net.sf.samtools.util.SequenceUtil;
 
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
 import au.edu.qimr.clinvar.util.ClinVarUtil;
@@ -144,7 +145,112 @@ public class ClinVarTest {
 		
 		assertEquals(-1, ClinVarUtil.noOfSlidesToGetPerfectMatch(r1Overlap, r2OverlapRC));
 //		String frag =  "---" + r1.substring(0, r1.length() - Math.abs(-1)) + SequenceUtil.reverseComplement(r2.substring(0,r2.length() - expectedOverlap - Math.abs(-1)));
-		String frag =  "---" + r1 + SequenceUtil.reverseComplement(r2.substring(0,r2.length() - (expectedOverlap - Math.abs(-1))));
+		String frag =  r1 + SequenceUtil.reverseComplement(r2.substring(0,r2.length() - (expectedOverlap - Math.abs(-1))));
+		System.out.println("frag: " + frag);
+	}
+	
+	@Test
+	public void testRHSSlideLarge() {
+		/*
+		 *  slide value: -13 expected value: 31, r1: GTCCCCGGCCAGCCATGGGCCCTTGGAGCCGCAGCCTCTCGGCGCTGCTGCTGCTGCTGCAGGTACCTCGGATCCCCTGACTTGCGAGGGACGCATTCGGGCCGCAAGCTCCGCGCCCCAGCCCCGTGCCCCAGCCCTGCGCCCCTTCCTC r2: AAAGCCGCGCTCGCCCCTCACCACCCACGCCCCACTCCCATCACTGGGGGGTCCGGAGCGCGCGAGGCTTCCAGGCCGCTCCGCTCCTCAGGACCCGAACTTTCTTGGAAGAAGGGAAGCGGTGACGACGGGAGAGGAAGGGGCGCAGGGC
+		 */
+		int expectedOverlap = 31;
+		String r1 = "GTCCCCGGCCAGCCATGGGCCCTTGGAGCCGCAGCCTCTCGGCGCTGCTGCTGCTGCTGCAGGTACCTCGGATCCCCTGACTTGCGAGGGACGCATTCGGGCCGCAAGCTCCGCGCCCCAGCCCCGTGCCCCAGCCCTGCGCCCCTTCCTC";
+		String r2 = "AAAGCCGCGCTCGCCCCTCACCACCCACGCCCCACTCCCATCACTGGGGGGTCCGGAGCGCGCGAGGCTTCCAGGCCGCTCCGCTCCTCAGGACCCGAACTTTCTTGGAAGAAGGGAAGCGGTGACGACGGGAGAGGAAGGGGCGCAGGGC";
+		int slideValue = -13;
+		String r1Overlap = r1.substring(r1.length() - expectedOverlap);
+		String r2Overlap = r2.substring(r2.length() - expectedOverlap);
+		String r2OverlapRC = SequenceUtil.reverseComplement(r2Overlap);
+		
+		System.out.println("r1: " + r1);
+		System.out.println("r2RC: " + SequenceUtil.reverseComplement(r2));
+		System.out.println("r1Overlap: " + r1Overlap);
+		System.out.println("r2OverlapRC: " + r2OverlapRC);
+		
+		assertEquals(slideValue, ClinVarUtil.noOfSlidesToGetPerfectMatch(r1Overlap, r2OverlapRC));
+		String frag =   r1 + SequenceUtil.reverseComplement(r2.substring(0,r2.length() - (expectedOverlap - Math.abs(slideValue))));
+		System.out.println(slideValue + " frag: " + frag);
+		frag =   r1.substring(0,  r1.length() - (expectedOverlap + slideValue)) + SequenceUtil.reverseComplement(r2);
+		System.out.println("new frag: " + frag);
+	}
+	
+	@Test
+	public void testRHSSlideLarger() {
+		/*
+		 *  slide value: 32 expected value: 66, r1: AAAAATTCAATGCTGACACAAATAAGGTTTCAATTAAACAACTTCTTTTTTTTTTTTTAAATTATCTGTTTCAGGAAGAAGAACGATTATCCATTCAAAATTTTTTTCTTTTTATAGAAGTAAGTATTTTATAATCTTTTTTTTTTTCCTT r2: GAGCGCACGCCAATAAAGACATATGAAAAATGTTGTCATTCAGAAGTTTGCTAAAGGAAAAAAAAAAAGATTATAAAATACTTACTTCTATAAAAAGAAAAAAATTTTGAATGGATAATCGTTCTTCTTCCTGAAACAGATAATTTAAAAA
+
+		 */
+		int expectedOverlap = 66;
+		int slideValue = 32;
+		String r1 = "AAAAATTCAATGCTGACACAAATAAGGTTTCAATTAAACAACTTCTTTTTTTTTTTTTAAATTATCTGTTTCAGGAAGAAGAACGATTATCCATTCAAAATTTTTTTCTTTTTATAGAAGTAAGTATTTTATAATCTTTTTTTTTTTCCTT";
+		String r2 = "GAGCGCACGCCAATAAAGACATATGAAAAATGTTGTCATTCAGAAGTTTGCTAAAGGAAAAAAAAAAAGATTATAAAATACTTACTTCTATAAAAAGAAAAAAATTTTGAATGGATAATCGTTCTTCTTCCTGAAACAGATAATTTAAAAA";
+		String r1Overlap = r1.substring(r1.length() - expectedOverlap);
+		String r2Overlap = r2.substring(r2.length() - expectedOverlap);
+		String r2OverlapRC = SequenceUtil.reverseComplement(r2Overlap);
+		
+		System.out.println("r1: " + r1);
+		System.out.println("r2RC: " + SequenceUtil.reverseComplement(r2));
+		System.out.println("r1Overlap: " + r1Overlap);
+		System.out.println("r2OverlapRC: " + r2OverlapRC);
+		
+		assertEquals(slideValue, ClinVarUtil.noOfSlidesToGetPerfectMatch(r1Overlap, r2OverlapRC));
+		String frag =   r1.substring(0,  r1.length() - expectedOverlap - slideValue) + SequenceUtil.reverseComplement(r2);
+		System.out.println(slideValue + " frag: " + frag);
+		System.out.println(slideValue + " frag prependIfMissing: " + StringUtils.prependIfMissing(SequenceUtil.reverseComplement(r2), r1));
+	}
+	
+	@Test
+	public void testLHSSlide() {
+		/*
+		 *  - slide value: 1 expected value: 27, r1: GGGTCCTGGTATGGGGAACGCCATTTTCATTAACTAGAAAATCAAAACACATTTACCTGGAATTTTATATAATTTTCCAAGAATTGCTCCTAGAATAAATTAAAAAAAAAAAGAAACATTAACAGCTACTAATTCAATATACTGATATAAA r2: CACAGATGGTAAAATATTTGCCCTACATCTAGGCTTTCTAAAAGACCTGAGTAAATATGATTTTTAAAGATTTTTGCATGGTTATAATTTAACTTCTAATTATTTCTGTCAGTTAAATACTATTTTATATCAGTATATTGAATTAGTAGCT
+		 */
+		int expectedOverlap = 27;
+		String r1 = "GGGTCCTGGTATGGGGAACGCCATTTTCATTAACTAGAAAATCAAAACACATTTACCTGGAATTTTATATAATTTTCCAAGAATTGCTCCTAGAATAAATTAAAAAAAAAAAGAAACATTAACAGCTACTAATTCAATATACTGATATAAA";
+		String r2 = "CACAGATGGTAAAATATTTGCCCTACATCTAGGCTTTCTAAAAGACCTGAGTAAATATGATTTTTAAAGATTTTTGCATGGTTATAATTTAACTTCTAATTATTTCTGTCAGTTAAATACTATTTTATATCAGTATATTGAATTAGTAGCT";
+		
+		String r1Overlap = r1.substring(r1.length() - expectedOverlap);
+		String r2Overlap = r2.substring(r2.length() - expectedOverlap);
+		String r2OverlapRC = SequenceUtil.reverseComplement(r2Overlap);
+		
+		System.out.println("r1: " + r1);
+		System.out.println("r2RC: " + SequenceUtil.reverseComplement(r2));
+		System.out.println("r1Overlap: " + r1Overlap);
+		System.out.println("r2OverlapRC: " + r2OverlapRC);
+		
+		int slideValue = ClinVarUtil.noOfSlidesToGetPerfectMatch(r1Overlap, r2OverlapRC);
+		assertEquals(1, slideValue);
+//		String frag =   r1.substring(0, r1.length() - slideValue) + SequenceUtil.reverseComplement(r2.substring(0,r2.length() - expectedOverlap - slideValue));
+		String frag =   r1.substring(0,  r1.length() - expectedOverlap - slideValue) + SequenceUtil.reverseComplement(r2);
+		System.out.println("frag: " + frag);
+		frag =   r1.substring(0,  r1.length() - (expectedOverlap + slideValue)) + SequenceUtil.reverseComplement(r2);
+		System.out.println("new frag: " + frag);
+		
+		
+	}
+	
+	@Test
+	public void testLHSSlideNoMatch() {
+		/*
+		 * CTCCATCAGGTTCATCACCTCCATCGTGGCTACTGGGGGCACAAAGGAGGAAGTCAGGAAGCAGGAAGTCACCTGGCCCAGCCCCCAGCTTCAGCCCGTCACCAAGCCCCGCCTGTCTTCCCACATCATCACCATGGCCCAGGGATTTCAA, r2: ATCTCGTCGTGGGCAGCCCCTCCCTGGGCCTGGTGCCCTTCTGGGCAGTCCCCCCATCCCCAGCCTGCATCCTCATTGAAATCCCTGGGCCATGGTGATGATGTGGGAAGACAGGCGGGGGCTGGTGGAGGGGTGGAGCTGGGGGGTGGGG
+		 * CTCCATCAGGTTCATCACCTCCATCGTGGCTACTGGGGGCACAAAGGAGGAAGTCAGGAAGCAGGAAGTCACCTGGCCCAGCCCCCAGCTTCAGCCCGTCACCAAGCCCCGCCTGTCTTCCCACATCATCACCATGGCCCAGGGATTTCAA, r2: ATCTCGTCGTGGGCAGCCCCTCCCTGGGCCTGGTGCCCTTCTGGGCAGTCCCCCCATCCCCAGCCTGCATCCTCATTGAAATCCCTGGGCCATGGTGATGATGTGGGAAGACAGGCGGGGCTTGGTGGCGGGCGGAAGCTGGGGGGGGGGG
+		 */
+		int expectedOverlap = 69;
+		String r1 = "CTCCATCAGGTTCATCACCTCCATCGTGGCTACTGGGGGCACAAAGGAGGAAGTCAGGAAGCAGGAAGTCACCTGGCCCAGCCCCCAGCTTCAGCCCGTCACCAAGCCCCGCCTGTCTTCCCACATCATCACCATGGCCCAGGGATTTCAA";
+		String r2 = "ATCTCGTCGTGGGCAGCCCCTCCCTGGGCCTGGTGCCCTTCTGGGCAGTCCCCCCATCCCCAGCCTGCATCCTCATTGAAATCCCTGGGCCATGGTGATGATGTGGGAAGACAGGCGGGGGCTGGTGGAGGGGTGGAGCTGGGGGGTGGGG";
+		
+		String r1Overlap = r1.substring(r1.length() - expectedOverlap);
+		String r2Overlap = r2.substring(r2.length() - expectedOverlap);
+		String r2OverlapRC = SequenceUtil.reverseComplement(r2Overlap);
+		
+		System.out.println("r1: " + r1);
+		System.out.println("r2RC: " + SequenceUtil.reverseComplement(r2));
+		System.out.println("r1Overlap: " + r1Overlap);
+		System.out.println("r2OverlapRC: " + r2OverlapRC);
+		
+		int slideValue = ClinVarUtil.noOfSlidesToGetPerfectMatch(r1Overlap, r2OverlapRC);
+		assertEquals(expectedOverlap, Math.abs(slideValue));
+//		String frag =   r1.substring(0, r1.length() - slideValue) + SequenceUtil.reverseComplement(r2.substring(0,r2.length() - expectedOverlap - slideValue));
+		String frag =  r1.substring(0,  r1.length() - (expectedOverlap + slideValue)) + SequenceUtil.reverseComplement(r2);
 		System.out.println("frag: " + frag);
 		
 		

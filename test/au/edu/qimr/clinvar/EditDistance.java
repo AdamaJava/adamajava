@@ -35,7 +35,7 @@ public class EditDistance {
 		
 		String r1OverlapRC = SequenceUtil.reverseComplement(r1Overlap);
 		System.out.println("r1 overlap RC: " + r1OverlapRC);
-		assertEquals(0, StringUtils.getLevenshteinDistance(r2Overlap,r1OverlapRC));
+		assertEquals(1, StringUtils.getLevenshteinDistance(r2Overlap,r1OverlapRC));
 	}
 
 }

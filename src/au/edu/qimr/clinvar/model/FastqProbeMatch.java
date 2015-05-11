@@ -10,7 +10,7 @@ public class FastqProbeMatch {
 	private  Probe read1Probe;
 	private Probe read2Probe;
 	
-	private final MatchScore score;
+	private final IntPair score;
 	
 	private int expectedReadOverlapLength;
 	private int overlapBasicEditDistance;
@@ -25,7 +25,7 @@ public class FastqProbeMatch {
 		this.id = id;
 		this.read1 = read1;
 		this.read2 = read2;
-		score = new MatchScore();
+		score = new IntPair();
 	}
 
 	public int getId() {
@@ -53,21 +53,21 @@ public class FastqProbeMatch {
 	}
 
 	public int getRead1EditDistance() {
-		return score.getRead1EditDistance();
+		return score.getInt1();
 	}
 
 	public int getRead2EditDistance() {
-		return score.getRead2EditDistance();
+		return score.getInt2();
 	}
 
 	public void setRead1Probe(Probe read1Probe, int distance) {
 		this.read1Probe = read1Probe;
-		this.score.setRead1EditDistance(distance);
+		this.score.setInt1(distance);
 	}
 
 	public void setRead2Probe(Probe read2Probe, int distance) {
 		this.read2Probe = read2Probe;
-		this.score.setRead2EditDistance(distance);
+		this.score.setInt2(distance);
 	}
 
 //	public void setRead1EditDistance(int read1EditDistance) {
@@ -80,7 +80,7 @@ public class FastqProbeMatch {
 ////		this.read2EditDistance = read2EditDistance;
 //	}
 	
-	public MatchScore getScore() {
+	public IntPair getScore() {
 		return score;
 	}
 	

@@ -14,7 +14,7 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 
 import au.edu.qimr.clinvar.model.FastqProbeMatch;
-import au.edu.qimr.clinvar.model.MatchScore;
+import au.edu.qimr.clinvar.model.IntPair;
 import au.edu.qimr.clinvar.model.Probe;
 
 public class FastqProbeMatchUtil {
@@ -82,12 +82,12 @@ public class FastqProbeMatchUtil {
 		
 		int bothReadsHaveAMatch = 0;
 		int sameMatch = 0;
-		Map<MatchScore, AtomicInteger> sameMatchScores = new HashMap<>();
+		Map<IntPair, AtomicInteger> sameMatchScores = new HashMap<>();
 		int differentMatches = 0;
-		Map<MatchScore, AtomicInteger> differentMatchesScores = new HashMap<>();
+		Map<IntPair, AtomicInteger> differentMatchesScores = new HashMap<>();
 		int neitherHaveAMatch = 0;
 		int justOneMatch = 0;
-		Map<MatchScore, AtomicInteger> justOneMatchScores = new HashMap<>();
+		Map<IntPair, AtomicInteger> justOneMatchScores = new HashMap<>();
 		int count = set.size();
 		
 		for (FastqProbeMatch fpm : set) {
@@ -118,7 +118,7 @@ public class FastqProbeMatchUtil {
 //		logger.info("Neither read matches: " + neitherHaveAMatch + " (" + ((100 * neitherHaveAMatch) / count) + "%)");
 //		logger.info("One read has a match: " + justOneMatch + " (" + ((100 * justOneMatch) / count) + "%)");
 		
-		List<MatchScore> scores = new ArrayList<>(justOneMatchScores.keySet());
+		List<IntPair> scores = new ArrayList<>(justOneMatchScores.keySet());
 		Collections.sort(scores);
 //		for (MatchScore score : scores) {
 //			logger.info("just one match score: " + score + ", count: " + justOneMatchScores.get(score).get());
@@ -181,22 +181,26 @@ public class FastqProbeMatchUtil {
 				int slideValue = ClinVarUtil.noOfSlidesToGetPerfectMatch(r1Overlap, r2OverlapRC);
 				fpm.setSlideValue(slideValue);
 				
+//				if (Math.abs(slideValue) > 10 && Math.abs(slideValue) < (expectedOverlap / 2)) {
+//					logger.info("slide value: "+ slideValue + " expected value: " + expectedOverlap + ", r1: " + r1 + " r2: " + r2);
+//				}
+				
 //				if (slideValue == expectedOverlap || Math.abs(slideValue) == 1) {
 //					logger.info("slide value: "+ slideValue + " expected value: " + expectedOverlap + ", r1: " + r1 + " r2: " + r2);
 //				}
 				
 				// if sliding value is less that the overlap, then try and create a fragment
-				if (Math.abs(slideValue) < (expectedOverlap / 10)) {
+				if (Math.abs(slideValue) < (expectedOverlap / 2)) {
 //					logger.info("attempting to create a fragment with slideValue: " + slideValue);
-					String frag = "";
-					if (slideValue > 0) {
-						frag =  "+++" + r1.substring(0, r1.length() - slideValue) + SequenceUtil.reverseComplement(r2.substring(0,r2.length() - expectedOverlap - slideValue));
-					} else {
-						frag =  "---" + r1 + SequenceUtil.reverseComplement(r2.substring(0,r2.length() - (expectedOverlap - Math.abs(slideValue))));
-
-//						frag =  "---" + r1.substring(0, r1.length() - Math.abs(slideValue)) + SequenceUtil.reverseComplement(r2.substring(0,r2.length() - expectedOverlap - Math.abs(slideValue)));
-					}
+					String frag = r1.substring(0,  r1.length() - (expectedOverlap + slideValue)) + SequenceUtil.reverseComplement(r2);
 					fpm.setFragment(frag);
+//					if (slideValue > 0) {
+//						frag =  r1.substring(0,  r1.length() - expectedOverlap - slideValue) + SequenceUtil.reverseComplement(r2);
+//					} else {
+//						frag =  r1 + SequenceUtil.reverseComplement(r2.substring(0,r2.length() - (expectedOverlap - Math.abs(slideValue))));
+//
+////						frag =  "---" + r1.substring(0, r1.length() - Math.abs(slideValue)) + SequenceUtil.reverseComplement(r2.substring(0,r2.length() - expectedOverlap - Math.abs(slideValue)));
+//					}
 				}
 			}
 			

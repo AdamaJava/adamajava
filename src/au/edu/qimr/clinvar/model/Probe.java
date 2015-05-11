@@ -1,5 +1,7 @@
 package au.edu.qimr.clinvar.model;
 
+import org.qcmg.common.model.ChrPosition;
+
 public class Probe implements Comparable<Probe>{
 	
 	private final int id;
@@ -7,13 +9,20 @@ public class Probe implements Comparable<Probe>{
 	private final String dlsoSeqRC;
 	private final String ulsoSeq;
 	private final String ulsoSeqRC;
+	private final String subseq;
+	
+	private final boolean forwardStrand;
 	
 	private final int primer1Start;
 	private final int primer1End;
 	private final int primer2Start;
 	private final int primer2End;
+	private final int subseqStart;
+	private final int subseqEnd;
 	
-	public Probe(int id, String dlsoSeq, String dlsoSeqRC, String ulsoSeq, String ulsoSeqRC, int p1Start, int p1End, int p2Start, int p2End) {
+	private final ChrPosition cp;
+	
+	public Probe(int id, String dlsoSeq, String dlsoSeqRC, String ulsoSeq, String ulsoSeqRC, int p1Start, int p1End, int p2Start, int p2End, String subseq, int ssStart, int ssEnd, String chr, boolean forwardStrand) {
 		this.id = id;
 		this.dlsoSeq = dlsoSeq;
 		this.dlsoSeqRC = dlsoSeqRC;
@@ -23,6 +32,11 @@ public class Probe implements Comparable<Probe>{
 		this.primer1End = p1End;
 		this.primer2Start = p2Start;
 		this.primer2End = p2End;
+		this.subseq = subseq;
+		this.subseqStart = ssStart;
+		this.subseqEnd = ssEnd;
+		this.forwardStrand = forwardStrand;
+		this.cp = new ChrPosition(chr, primer1Start, primer2End);
 	}
 
 	@Override
@@ -57,6 +71,19 @@ public class Probe implements Comparable<Probe>{
 		} else if (!ulsoSeq.equals(other.ulsoSeq))
 			return false;
 		return true;
+	}
+	
+	public String getReferenceSequence() {
+		int start = cp.getPosition();
+		int end = cp.getEndPosition();
+		int seqStartPos = start - subseqStart;
+		String ref = subseq.substring(seqStartPos, (end - start) + seqStartPos + 1);
+
+		// we want to report the reference on the forward strand so RC if we are on the reverse
+		
+		// reference sequence is always reported on the +ve strand in the primer xml files
+		return ref; 	
+//		return forwardStrand ? ref : SequenceUtil.reverseComplement(ref); 	
 	}
 	
 	public int getDlsoPrimerLength() {
@@ -99,6 +126,18 @@ public class Probe implements Comparable<Probe>{
 	@Override
 	public int compareTo(Probe o) {
 		return id - o.id;
+	}
+
+	public String getSubseq() {
+		return subseq;
+	}
+
+	public boolean isOnForwardStrand() {
+		return forwardStrand;
+	}
+
+	public ChrPosition getCp() {
+		return cp;
 	}
 
 }
