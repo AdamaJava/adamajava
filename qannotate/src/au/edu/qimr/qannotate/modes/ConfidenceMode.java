@@ -1,5 +1,11 @@
 package au.edu.qimr.qannotate.modes;
 
+import static org.qcmg.common.util.Constants.SEMI_COLON_STRING;
+import static org.qcmg.common.util.SnpUtils.LESS_THAN_12_READS_NORMAL;
+import static org.qcmg.common.util.SnpUtils.LESS_THAN_3_READS_NORMAL;
+import static org.qcmg.common.util.SnpUtils.MUTATION_IN_UNFILTERED_NORMAL;
+import static org.qcmg.common.util.SnpUtils.PASS;
+
 import java.io.File;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -10,15 +16,14 @@ import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.TorrentVerificationStatus;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.DonorUtils;
+import org.qcmg.common.util.SnpUtils;
 import org.qcmg.common.vcf.VcfFormatFieldRecord;
 import org.qcmg.common.vcf.VcfInfoFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
-import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.maf.util.MafUtils;
 
-import au.edu.qimr.qannotate.modes.AbstractMode.SampleColumn;
 import au.edu.qimr.qannotate.options.ConfidenceOptions;
 
 /**
@@ -28,19 +33,14 @@ import au.edu.qimr.qannotate.options.ConfidenceOptions;
 public class ConfidenceMode extends AbstractMode{
 	
 	public static final int HIGH_CONF_NOVEL_STARTS_PASSING_SCORE = 4;
-	public static final int HIGH_CONF_ALT_FREQ_PASSING_SCORE = 5;	
 	public static final int LOW_CONF_NOVEL_STARTS_PASSING_SCORE = 4;
+	
+	public static final int HIGH_CONF_ALT_FREQ_PASSING_SCORE = 5;	
 	public static final int LOW_CONF_ALT_FREQ_PASSING_SCORE = 4;	
-	public static final String SOMATIC = "SOMATIC";
-	public static final String NOVEL_STARTS = "NNS";
 	
 	//filters 
-	public static final String PASS = "PASS";
-	public static final String LESS_THAN_12_READS_NORMAL = "COVN12";
-	public static final String LESS_THAN_3_READS_NORMAL = "SAN3";
-	public static final String MUTATION_IN_UNFILTERED_NORMAL = "MIUN";
-	public static final String LESS_THAN_12_READS_NORMAL_AND_UNFILTERED= LESS_THAN_12_READS_NORMAL + ";" + MUTATION_IN_UNFILTERED_NORMAL;
-	public static final String LESS_THAN_3_READS_NORMAL_AND_UNFILTERED= LESS_THAN_3_READS_NORMAL + ";" + MUTATION_IN_UNFILTERED_NORMAL;
+	public static final String LESS_THAN_12_READS_NORMAL_AND_UNFILTERED= LESS_THAN_12_READS_NORMAL + SEMI_COLON_STRING + MUTATION_IN_UNFILTERED_NORMAL;
+	public static final String LESS_THAN_3_READS_NORMAL_AND_UNFILTERED= LESS_THAN_3_READS_NORMAL + SEMI_COLON_STRING + MUTATION_IN_UNFILTERED_NORMAL;
 	
 	
 	public static final String DESCRITPION_INFO_CONFIDENCE = String.format( "set to HIGH if the variants passed all filter, "
@@ -141,11 +141,11 @@ public class ConfidenceMode extends AbstractMode{
 	 * @return true if the filter string match "PASS", "MIUN","SAN3" and "COVN12";
 	 */
 	private boolean isClassB(String filter){
-		if (PASS.equals(filter))
+		if (SnpUtils.PASS.equals(filter))
 				return true;
 		
 		//remove MUTATION_IN_UNFILTERED_NORMAL
-		final String f = filter.replace(MUTATION_IN_UNFILTERED_NORMAL, "").replace(";","").trim();
+		final String f = filter.replace(MUTATION_IN_UNFILTERED_NORMAL, "").replace(SEMI_COLON_STRING,"").trim();
 		if(f.equals(Constants.EMPTY_STRING) ||  LESS_THAN_12_READS_NORMAL.equals(f)  ||   LESS_THAN_3_READS_NORMAL.equals(f))
 			 return true;
 		
@@ -167,7 +167,7 @@ public class ConfidenceMode extends AbstractMode{
 	 private boolean   checkNovelStarts(int score, VcfRecord vcf ) {
 		 
 		 //if marked "NNS" on filter, return false
-		 String[] filters = vcf.getFilter().split(Constants.SEMI_COLON_STRING);
+		 String[] filters = vcf.getFilter().split(SEMI_COLON_STRING);
 		 for(int i = 0; i < filters.length; i ++)
 			 if(filters[i].equals(VcfHeaderUtils.FILTER_NOVEL_STARTS))
 				 return false;
