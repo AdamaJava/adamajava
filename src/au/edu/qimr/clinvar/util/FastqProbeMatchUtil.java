@@ -191,9 +191,16 @@ public class FastqProbeMatchUtil {
 				
 				// if sliding value is less that the overlap, then try and create a fragment
 				if (Math.abs(slideValue) < (expectedOverlap / 2)) {
+					
+					
+					
+					
 //					logger.info("attempting to create a fragment with slideValue: " + slideValue);
 					String frag = r1.substring(0,  r1.length() - (expectedOverlap + slideValue)) + SequenceUtil.reverseComplement(r2);
 					fpm.setFragment(frag);
+//					if (fpm.getRead1Probe().getId() == 542) {
+//						logger.info("r1: " + r1 + ", r2: " + r2 + ", frag: " + frag + ", r1Overlap: " + r1Overlap + ", r2OverlapRC: " + r2OverlapRC );
+//					}
 //					if (slideValue > 0) {
 //						frag =  r1.substring(0,  r1.length() - expectedOverlap - slideValue) + SequenceUtil.reverseComplement(r2);
 //					} else {

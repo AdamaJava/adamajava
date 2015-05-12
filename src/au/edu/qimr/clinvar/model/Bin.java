@@ -48,6 +48,7 @@ public class Bin implements Comparable<Bin> {
 			
 			if (a != b) {
 				totalDiffs++;
+				//TODO this should not be done unless we are keeping the added sequence - move to section below...
 				updateDiffs(b, i);
 			}
 		}

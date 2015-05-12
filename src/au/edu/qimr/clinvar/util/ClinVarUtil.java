@@ -185,7 +185,6 @@ public class ClinVarUtil {
 						char ref = refSeq.charAt(position);
 						char alt = binSeq.charAt(position);
 						mutations.add(new Pair<Integer, String>(position, ref + "/" + alt));
-//						createMutation(p, b, position, ref + "", alt + "");
 					}
 					
 				} else {

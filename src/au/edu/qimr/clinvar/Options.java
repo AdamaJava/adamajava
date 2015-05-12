@@ -72,8 +72,8 @@ final class Options {
 		// output
 		outputFileName = (String) options.valueOf("output");
 		
-		if ( ! options.nonOptionArguments().isEmpty())
-			throw new IllegalArgumentException(Messages.getMessage("USAGE"));
+		if ( ! options.nonOptionArguments().isEmpty()) {}
+//			throw new IllegalArgumentException(Messages.getMessage("USAGE"));
 		
 //		List<String> nonoptions = options.nonOptionArguments();
 //		fileNames = new String[nonoptions.size()];

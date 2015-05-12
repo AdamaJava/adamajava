@@ -263,9 +263,9 @@ private static QLogger logger;
 			FastqProbeMatchUtil.getStats(matches);
 			
 			//TODO - PUT THIS BACK IN
-//			logger.info("Rescue reads using edit distances");
-//			findNonExactMatches();
-//			FastqProbeMatchUtil.getStats(matches);
+			logger.info("Rescue reads using edit distances");
+			findNonExactMatches();
+			FastqProbeMatchUtil.getStats(matches);
 			
 			setupFragments();
 			binFragments();
@@ -281,8 +281,6 @@ private static QLogger logger;
 	private void writeCsv() throws IOException {
 		// TODO Auto-generated method stub
 		List<VcfRecord> allVcfs = new ArrayList<>();
-		int noOfProbesWithLargestBinDiffFromRef = 0;
-		int noOfProbesWithLargestBinEqRef = 0;
 		for (Entry<Probe, List<Bin>> entry : probeBinDist.entrySet()) {
 			Probe p = entry.getKey();
 			List<Bin> bins = entry.getValue();
@@ -304,43 +302,27 @@ private static QLogger logger;
 						if ( ! binSeq.equals(ref)) {
 	//						logger.info("probe " + p.getId() + ", forwardStrand: " + forwardStrand + ", largest bin does not equal ref!! ref: " + ref + ", binSeq: " + binSeq);
 							
+							
 							SmithWatermanGotoh nm = new SmithWatermanGotoh(ref, binSeq, 5, -4, 16, 4);
 							String [] diffs = nm.traceback();
-							if (p.getId() == 21) {
-								logger.info("probe: " + p.getId() + ", forward strand: " + p.isOnForwardStrand() + ", ref: " + ref + ", binSeq: " + binSeq);
-								for (String s : diffs) {
-									logger.info(s);
-								}
+//							if (p.getId() == 542) {
+//								logger.info("probe: " + p.getId() + ", forward strand: " + p.isOnForwardStrand() + ", size: " + b.getReadCount() + ", ref: " + ref + ", binSeq: " + binSeq);
+//								for (String s : diffs) {
+//									logger.info(s);
+//								}
+//							}
+							if (ref.length() != binSeq.length() &&  ! diffs[0].contains("-") && ! diffs[2].contains("-")) {
+								logger.warn("ref length != binSeq and no indels!!! p id: " + p.getId() + ", bin id: " + b.getId() + ", fs: " + p.isOnForwardStrand());
 							}
-							if ( ! diffs[0].contains("-") && ! diffs[2].contains("-")) {
-								// snps only for now
-								createMutations(p, b, diffs);
-							} else {
-								for (String s : diffs) {
-									logger.info(s);
-								}
-							}
-	//						probeBinsSWDiffs.put(b, diffs);
 							
-	//						logger.info("snp diffs: " + diffs);
-	//						List<VcfRecord> vcfs = createVcfRecords(p.getCp().getChromosome(), p.getCp().getEndPosition(), diffs, b, p, bins);
-	//						allVcfs.addAll(vcfs);
-	//						noOfProbesWithLargestBinDiffFromRef++;
-	//					} else {
-	//						noOfProbesWithLargestBinEqRef++;
+							createMutations(p, b, diffs);
 						}
 					}
-					
-					// now create the vcf records using the map of bins and their SW diffs
-	//				if ( ! probeBinsSWDiffs.isEmpty()) {
-	//					createVcfRecords(p, probeBinsSWDiffs);
-	//				}
 				}
 			}
 		}
-		logger.info("noOfProbesWithLargestBinDiffFromRef: " + noOfProbesWithLargestBinDiffFromRef + ", noOfProbesWithLargestBinEqRef: " + noOfProbesWithLargestBinEqRef);
-		logger.info("no of mutataions: " + mutations.size());
 		
+		logger.info("no of mutataions: " + mutations.size());
 		
 		try (FileWriter writer = new FileWriter(new File(outputFile+".mutations.snps.only.csv"))){;
 			writer.write("chr,position,ref,alt,probe_id,probe_total_reads,probe_total_frags,bin_id,bin_record_count" );
@@ -377,47 +359,33 @@ private static QLogger logger;
 	}
 	
 	private void createMutations(Probe p, Bin b, String [] smithWatermanDiffs) {
-		//just snps for now
-		String refSeq = smithWatermanDiffs[0];
-		String diffs = smithWatermanDiffs[1];
-		String binSeq = smithWatermanDiffs[2];
-		if (null != diffs && ! diffs.isEmpty()) {
-			
-			int position = 0;
-			int span = 0;
-			int indelStartPos = 0;
-			for (char c : diffs.toCharArray()) {
-				if (c != ' ') {
-					if (span >0) {
-						// create indel
-						
-						String ref = refSeq.substring(indelStartPos,indelStartPos + span);
-						String alt = binSeq.substring(indelStartPos,indelStartPos + span);
-						createMutation(p, b, indelStartPos, ref, alt);
-						// reset span
-						span = 0;
-					}
-					if (c == '.') {
-						// snp
-						char ref = refSeq.charAt(position);
-						char alt = binSeq.charAt(position);
-						createMutation(p, b, position, ref + "", alt + "");
-					}
-					
-				} else {
-					if (span == 0) {
-						indelStartPos = position;
-					}
-					span++;
-					// indel
-				}
-				position++;
-			}
+		
+		List<Pair<Integer, String>> mutations = ClinVarUtil.getPositionRefAndAltFromSW(smithWatermanDiffs);
+		
+		String probeRef = p.getReferenceSequence();
+		// remove any indel characters - only checking
+		String swRef = smithWatermanDiffs[0].replace("-", "");
+		int offset = probeRef.indexOf(swRef);
+		
+		if ( offset == -1) {
+			logger.warn("probeRef.indexOf(swRef) == -1!!! probe (id:bin.id: " + p.getId() + ":" + b.getId() + ") , probe ref: " + probeRef + ", swRef: " + swRef);
+		}
+		
+		for (Pair<Integer, String> mutation : mutations) {
+			int position = mutation.getLeft().intValue();
+			String mutString = mutation.getRight();
+			int slashIndex = mutString.indexOf('/');
+			String ref = mutString.substring(0, slashIndex);
+			String alt = mutString.substring(slashIndex + 1);
+//			if (p.getId() == 542 && b.getId() == 87424 ) {
+//				logger.info("position: " + position + ", mutString: " + mutString);
+//			}
+			createMutation(p, b, position + offset, ref, alt);
 		}
 	}
 	
 	private void createMutation(Probe p, Bin b, int position, String ref, String alt) {
-		VcfRecord vcf = VcfUtils.createVcfRecord(new ChrPosition(p.getCp().getChromosome(),  p.getCp().getPosition() + position + 1), ".", ref, alt);
+		VcfRecord vcf = VcfUtils.createVcfRecord(new ChrPosition(p.getCp().getChromosome(),  p.getCp().getPosition() + position + 1, p.getCp().getPosition() + position + ref.length()), "."/*id*/, ref, alt);
 		List<Pair<Probe, Bin>> existingBins = mutations.get(vcf);
 		if (null == existingBins) {
 			existingBins = new ArrayList<>();
@@ -675,9 +643,6 @@ private static QLogger logger;
 			int tally = entry.getValue().get();
 			String sequence = entry.getKey();
 			if (null != sequence) {
-//				if (sequence.startsWith("+++") || sequence.startsWith("---")) {
-//					sequence = sequence.substring(3);
-//				}
 				Bin b = new Bin(binId++, sequence, tally);
 				if (tally > 1) {
 					multipleBins.add(b);
@@ -1113,8 +1078,8 @@ private static QLogger logger;
 			returnStatus = 0;
 		} else if (options.getFastqs().length < 1) {
 			System.err.println(Messages.USAGE);
-		} else if ( ! options.hasLogOption()) {
-			System.err.println(Messages.USAGE);
+//		} else if ( ! options.hasLogOption()) {
+//			System.err.println(Messages.USAGE);
 		} else {
 			// configure logging
 			logFile = options.getLog();
