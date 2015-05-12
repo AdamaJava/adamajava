@@ -33,9 +33,7 @@ public class TorrentPipelineTest {
 		TestPipeline tp = new TestPipeline();
 		tp.positionRecordMap.put(cp, snp);
 		tp.classifyPileup();
-		Assert.assertEquals(true, snp.getAnnotation().contains(SnpUtils.MUTATION_IN_NORMAL));
-		
-		tp.checkForMutationInNormal();
+		// less than 3% of normal reads support the alt
 		Assert.assertEquals(false, snp.getAnnotation().contains(SnpUtils.MUTATION_IN_NORMAL));
 		
 		
@@ -56,10 +54,11 @@ public class TorrentPipelineTest {
 		
 		tp.positionRecordMap.put(cp, snp);		//overwrite the old snp
 		tp.classifyPileup();
+		// more than 3% of normal reads support the alt
 		Assert.assertEquals(true, snp.getAnnotation().contains(SnpUtils.MUTATION_IN_NORMAL));
 		
-		tp.checkForMutationInNormal();
-		Assert.assertEquals(true, snp.getAnnotation().contains(SnpUtils.MUTATION_IN_NORMAL));
+//		tp.checkForMutationInNormal();
+//		Assert.assertEquals(true, snp.getAnnotation().contains(SnpUtils.MUTATION_IN_NORMAL));
 		
 		// and finally another keeper
 		/*
@@ -76,9 +75,8 @@ public class TorrentPipelineTest {
 		
 		tp.positionRecordMap.put(cp, snp);		//overwrite the old snp
 		tp.classifyPileup();
+		// more than 3% of normal reads support the alt
 		Assert.assertEquals(true, snp.getAnnotation().contains(SnpUtils.MUTATION_IN_NORMAL));
 		
-		tp.checkForMutationInNormal();
-		Assert.assertEquals(true, snp.getAnnotation().contains(SnpUtils.MUTATION_IN_NORMAL));
 	}
 }

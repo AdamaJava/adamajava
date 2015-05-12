@@ -291,7 +291,15 @@ public class GenotypeComparisonUtil {
 				char M = mutation.charAt(mutation.length()-1);
 				
 				if (StringUtils.isCharPresentInString(record.getNormalPileup(), M)) {
-					VcfUtils.updateFilter(record.getVcfRecord(), SnpUtils.MUTATION_IN_NORMAL);
+					final String ND = record.getNormalNucleotides();
+					final int normalCount = record.getNormalCount();
+					final String alt = SnpUtils.getAltFromMutationString(record.getMutation());
+					final int altCount = SnpUtils.getCountFromNucleotideString(ND, alt);
+					
+					// only add MIN annotation if more than 3% of reads in normal support the alt
+					if (( (double) altCount / normalCount) * 100 >= 3.0 ) {
+						VcfUtils.updateFilter(record.getVcfRecord(), SnpUtils.MUTATION_IN_NORMAL);
+					}
 				}
 			}
 		}
