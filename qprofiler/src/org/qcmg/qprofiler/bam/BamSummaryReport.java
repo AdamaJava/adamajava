@@ -21,6 +21,7 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicLongArray;
 
+import net.sf.samtools.AbstractSAMHeaderRecord;
 import net.sf.samtools.AlignmentBlock;
 import net.sf.samtools.Cigar;
 import net.sf.samtools.CigarElement;
@@ -47,7 +48,7 @@ import org.qcmg.qprofiler.util.FlagUtil;
 import org.qcmg.qprofiler.util.SummaryReportUtils;
 import org.w3c.dom.Element;
 
-public class BamSummaryReport extends SummaryReport {
+public class BamSummaryReport extends SummaryReport {	
 
 	private final AtomicLong duplicateCount = new AtomicLong();
 	private final AtomicLong failedVendorQualityCheckCount = new AtomicLong();
@@ -134,12 +135,11 @@ public class BamSummaryReport extends SummaryReport {
 			new ConcurrentSkipListMap<String, ConcurrentSkipListMap<Character, AtomicLong>>();
 	
 	//Xu Code: each RG softclips, hardclips, read length; 
-	private final ConcurrentMap<String, QCMGAtomicLongArray> rgSoftClip = 
-			new ConcurrentSkipListMap<String, QCMGAtomicLongArray>();
-	private final ConcurrentMap<String, QCMGAtomicLongArray> rgHardClip = 
-			new ConcurrentSkipListMap<String, QCMGAtomicLongArray>();
-	private final ConcurrentMap<String, QCMGAtomicLongArray> rgReadLength = 
-			new ConcurrentSkipListMap<String, QCMGAtomicLongArray>();
+	private final ConcurrentMap<String, QCMGAtomicLongArray> rgSoftClip = new ConcurrentSkipListMap<String, QCMGAtomicLongArray>();
+	private final ConcurrentMap<String, QCMGAtomicLongArray> rgHardClip = new ConcurrentSkipListMap<String, QCMGAtomicLongArray>();
+	private final ConcurrentMap<String, QCMGAtomicLongArray> rawReadLength = new ConcurrentSkipListMap<String, QCMGAtomicLongArray>();
+	private final ConcurrentMap<String, QCMGAtomicLongArray> rgReadOverlap = new ConcurrentSkipListMap<String, QCMGAtomicLongArray>();
+ 	 
 	
 	private final static SAMTagUtil STU = SAMTagUtil.getSingleton();
 	private final short CS = STU.CS;
@@ -205,7 +205,7 @@ public class BamSummaryReport extends SummaryReport {
 				+  ", includeMDTag: " +  includeMDTag + ", tags: " + Arrays.deepToString(tags));
 	}
 
-	private void setupAdditionalTagMaps() {
+	private void setupAdditionalTagMaps(){
 		if (null != tags) {
 			for (String tag : tags)
 				additionalTags.put(tag, new ConcurrentSkipListMap<String, AtomicLong>());
@@ -324,6 +324,7 @@ public class BamSummaryReport extends SummaryReport {
 			modalISizeE.setAttribute("rg", s + "");
 			modalISizeE.setAttribute("value", iSize + "");
 		}
+		
 		
 		// md cycles
 //		StringBuilder mismatchingCycles = new StringBuilder();
@@ -481,10 +482,9 @@ public class BamSummaryReport extends SummaryReport {
 		//Xu code : rgClipElement code clip 2 xml: there are three page unger RG
 		//add below method to stat min, max, medium, mode of clips or length	
 		Element rgClipElement = createSubElement(bamReportElement, "RG_Counts");		
-		SummaryReportUtils.ToXmlWithoutPercentage(rgClipElement, "ReadCounts", getRGCounts());	
-		SummaryReportUtils.ToXmlWithoutPercentage(rgClipElement, "ReadLength", getRGStats(rgReadLength) );	
-		SummaryReportUtils.ToXmlWithoutPercentage(rgClipElement, "HardClips", getRGStats( rgHardClip) );	
-		SummaryReportUtils.ToXmlWithoutPercentage(rgClipElement, "SoftClips", getRGStats( rgSoftClip) );	
+		RGCounts2Xml(rgClipElement, summaryElement);
+	 
+
 
 		// MRNM
 		if (null != samSeqDictionary) {
@@ -549,6 +549,49 @@ public class BamSummaryReport extends SummaryReport {
 			zmSmMatrix.toXml(bamReportElement, "ZmSmMatrix");
 		}
 		//		}
+	}
+
+	private void RGCounts2Xml(Element rgClipElement, Element summaryElement) {
+		//get stats
+		ConcurrentMap<String, ConcurrentHashMap<String, AtomicLong>> softClipStats = getRGStats( rgSoftClip );		
+		ConcurrentMap<String, ConcurrentHashMap<String, AtomicLong>> hardClipStats = getRGStats( rgHardClip );		
+		ConcurrentMap<String, ConcurrentHashMap<String, AtomicLong>> overlapStats = getRGStats( rgReadOverlap );		
+		ConcurrentMap<String, ConcurrentHashMap<String, AtomicLong>> rawLengthStats = getRGStats( rawReadLength);		
+		
+		
+		// add into RG_Counts section
+		for (Entry<String, QCMGAtomicLongArray> entry : rawReadLength.entrySet()){
+			long rawTotalBase = rawLengthStats.get(entry.getKey()).get("totalbase").get();
+
+			Element rgElement = createSubElement(rgClipElement, "RG");
+			rgElement.setAttribute("value", entry.getKey());
+			
+//			Element stats = createSubElement(rgElement, "rawReadLength");
+//			presentStats(stats, rawLengthStats.get(entry.getKey()), rawTotalBase);
+			
+			Element stats = createSubElement(rgElement, "softClip");
+			presentStats(stats, softClipStats.get(entry.getKey()), rawTotalBase);
+			
+			stats = createSubElement(rgElement, "hardClip");
+			presentStats(stats, hardClipStats.get(entry.getKey()), rawTotalBase);
+				 
+			stats = createSubElement(rgElement, "overlap");
+			presentStats(stats, overlapStats.get(entry.getKey()), rawTotalBase);
+			
+		}
+
+	//add to summary section
+	}
+	
+	private void presentStats(Element element, ConcurrentHashMap<String, AtomicLong> stats , long rawTotalBase){
+		for(Entry<String, AtomicLong> en : stats.entrySet()){
+			element.setAttribute(en.getKey(),  en.getValue()+"");
+			if(en.getKey().equals("totalbase")){
+				float percentage =  (float) en.getValue().get() / (float) rawTotalBase ;
+				element.setAttribute("lostPercentage",  String.format("%.2f", percentage ));
+			}		
+		
+		}
 	}
 
 	void generateMAPQSubMaps(Map<MAPQMiniMatrix, AtomicLong> cmMatrix,
@@ -638,7 +681,8 @@ public class BamSummaryReport extends SummaryReport {
 			
 			//Xu code for soft, hard clips and readlenthg
 			//private final ConcurrentMap<String, QCMGAtomicLongArray> 
-			parseClipsByRG(record.getReadString(), record.getCigar(), readGroup);				
+			int softClip = parseClipsByRG(record.getReadLength(), record.getCigar(), readGroup);	
+			parseOverlapByRG(record, readGroup, softClip );
 			
 			// MRNM
 			final int mateRefNameIndex = record.getMateReferenceIndex();
@@ -706,17 +750,41 @@ public class BamSummaryReport extends SummaryReport {
 	
 	
 	//Xu code
-	void parseClipsByRG(final String seq, final Cigar cigar, String readGroup) {
+//	private final ConcurrentMap<String, QCMGAtomicLongArray> rgReadOverlap = new ConcurrentSkipListMap<String, QCMGAtomicLongArray>();
+	void parseOverlapByRG(SAMRecord record, String readGroup, int softClip){
+		 //only look at one of the pair, so choose Tlen > 0; Tlen==0 is not overlap
+		 if(record.getInferredInsertSize() <= 0) return;
+		 
+		 int overlap = 0;
+		 //both forward or both reverse
+		if(record.getReadNegativeStrandFlag() == record.getMateNegativeStrandFlag())
+			overlap = record.getReadLength() - softClip -record.getInferredInsertSize(); 
+		else if(record.getReadNegativeStrandFlag()) //delegate reverse if mate is forward
+			return;
+		else{
+			int mate_end = record.getInferredInsertSize() + record.getAlignmentStart();
+			overlap = Math.min(record.getAlignmentEnd(), mate_end) - Math.max(record.getAlignmentStart(), record.getMateAlignmentStart());
+			//overlap = Math.min(record.getAlignmentEnd(), record.getMateAlignmentEnd()) - Math.max(record.getAlignmentStart(), record.getMateAlignmentStart());
+					
+		}
+		
+		if(overlap <= 0) return;
 		
 		if (null == readGroup) readGroup = "EMPTY"; 
-				
-		QCMGAtomicLongArray larray = rgReadLength.get(readGroup);
-		 if( larray == null){
-			 rgReadLength.putIfAbsent(readGroup, new QCMGAtomicLongArray(128));		
-			 larray = rgReadLength.get(readGroup);
-		 }
-		 larray.increment(seq.length());
-		 		 
+		QCMGAtomicLongArray oarry = rgReadOverlap.get(readGroup);
+		 if( oarry == null){
+			 rgReadOverlap.putIfAbsent(readGroup, new QCMGAtomicLongArray(128));		
+			 oarry = rgReadOverlap.get(readGroup);
+		 }	
+		 oarry.increment(overlap);
+
+	}
+	
+	
+	int parseClipsByRG(int readLength, final Cigar cigar, String readGroup) {
+		 if (null == cigar) return 0;
+		 
+		 if (null == readGroup) readGroup = "EMPTY"; 
 		 QCMGAtomicLongArray harray = rgHardClip.get(readGroup);
 		 if( harray == null){
 			 rgHardClip.putIfAbsent(readGroup, new QCMGAtomicLongArray(128));	
@@ -726,9 +794,8 @@ public class BamSummaryReport extends SummaryReport {
 		 if( sarray == null){
 			rgSoftClip.putIfAbsent(readGroup, new QCMGAtomicLongArray(128));	
 			sarray = rgSoftClip.get(readGroup);
-		 }
-		 if (null == cigar) return;
-		 
+		 }			
+		  
 		 int lhard = 0;
 		 int lsoft = 0;
 		 for(CigarElement ce : cigar.getCigarElements()) 
@@ -736,13 +803,20 @@ public class BamSummaryReport extends SummaryReport {
 				 lhard += ce.getLength();
 			 else if(ce.getOperator().equals(CigarOperator.SOFT_CLIP))
 				 lsoft += ce.getLength();
-		 
-		 //debug
-//		 if(lsoft > 0) System.out.println(cigar.toString()+  ", find soft clips: " + lsoft);
 				 
 		harray.increment(lhard);
 		sarray.increment(lsoft);
-			
+		
+		
+		QCMGAtomicLongArray larray = rawReadLength.get(readGroup);
+		 if( larray == null){
+			 rawReadLength.putIfAbsent(readGroup, new QCMGAtomicLongArray(128));		
+			 larray = rawReadLength.get(readGroup);
+		 }
+		 larray.increment(readLength+lhard);
+
+		
+		return lsoft;
 	}
 
 	private void parseTAGs(final SAMRecord record, final MAPQMatrix matrix, final byte[] readBases, final boolean reverseStrand) {
@@ -944,7 +1018,6 @@ public class BamSummaryReport extends SummaryReport {
 		final int absISize = Math.abs(iSize);
 
 		if (absISize < SummaryReportUtils.MAX_I_SIZE) {
-
 			AtomicLongArray readGroupArray = iSizeByReadGroupMap.get(readGroup);
 			if (null == readGroupArray) {
 				readGroupArray = new AtomicLongArray(SummaryReportUtils.MAX_I_SIZE);
@@ -955,7 +1028,6 @@ public class BamSummaryReport extends SummaryReport {
 			}
 
 			readGroupArray.incrementAndGet(absISize);
-
 		} else {
 
 			QCMGAtomicLongArray readGroupArray = iSizeByReadGroupMapBinned.get(readGroup);
@@ -1085,32 +1157,31 @@ public class BamSummaryReport extends SummaryReport {
 		return tagCQByCycle;
 	}
 	
-	//xu code:
-	
+	//xu code:	
 	//get counts of clip reads 
 	ConcurrentMap<String, AtomicLong>  getRGCounts(){
 		ConcurrentMap<String, AtomicLong> counts = new ConcurrentHashMap<String, AtomicLong>();
 	
 		for (Entry<String, QCMGAtomicLongArray> entry : rgSoftClip.entrySet()) {
 
-			long Scount = 0, Hcount = 0;
+			long Scount = 0;//, Hcount = 0;
 			 
 			QCMGAtomicLongArray array = entry.getValue();
-			long noSoft = array.get(0);
+		//	long noSoft = array.get(0);
 			for (int i = 0 ; i < array.length() ; i++) 
 				Scount += array.get(i);
 			
-			counts.put(entry.getKey() + ":total", new AtomicLong(Scount));
-			counts.put(entry.getKey() + ":noSoftClip", new AtomicLong(array.get(0)));
-			counts.put(entry.getKey() + ":noHardClip", new AtomicLong(rgHardClip.get(entry.getKey()).get(0)));
+			counts.put(entry.getKey() + ":total", new AtomicLong(Scount));  //total read number
+			counts.put(entry.getKey() + ":noSoftClip", new AtomicLong(array.get(0))); //read number without soft clips
+			counts.put(entry.getKey() + ":noHardClip", new AtomicLong(rgHardClip.get(entry.getKey()).get(0))); //read number without hard clips
 		}
 		return counts;
 		
 	}
 	//return the min, max, mode and median of read length, clips length for each group
-	ConcurrentMap<String, AtomicLong> getRGStats( ConcurrentMap<String, QCMGAtomicLongArray> rgClips) {
-		ConcurrentMap<String, AtomicLong> clips = new ConcurrentHashMap<String, AtomicLong>();
-
+	ConcurrentMap<String, ConcurrentHashMap<String, AtomicLong>> getRGStats( ConcurrentMap<String, QCMGAtomicLongArray> rgClips) {
+		//ConcurrentMap<String, AtomicLong> stats = new ConcurrentHashMap<String, AtomicLong>();
+		ConcurrentMap<String, ConcurrentHashMap<String, AtomicLong>> stats = new ConcurrentHashMap<String, ConcurrentHashMap<String, AtomicLong>>();
 		// now for the binned map
 		for (Entry<String, QCMGAtomicLongArray> entry : rgClips.entrySet()) {
 			QCMGAtomicLongArray array = entry.getValue();
@@ -1142,16 +1213,16 @@ public class BamSummaryReport extends SummaryReport {
 				}
 			}
 			
-			long highestBar = (array.get(mode) > array.get(0)) ? mode : 0;
-			//add stats to Map				
-			clips.put(entry.getKey() +":min", new AtomicLong(min) );
-			clips.put(entry.getKey() +":max", new AtomicLong(max) );
-			clips.put(entry.getKey() +":mode", new AtomicLong(mode)) ;
-			clips.put(entry.getKey() +":mean", new AtomicLong(mean) );
-			clips.put(entry.getKey() +":highestBar", new AtomicLong(highestBar));
-		}
-		
-		return clips;		 
+			ConcurrentHashMap<String, AtomicLong> map = new ConcurrentHashMap<String, AtomicLong>();
+			map.put( "min", new AtomicLong(min));
+			map.put( "max", new AtomicLong(max) );
+			map.put( "totalbase", new AtomicLong(sum) );
+			map.put( "mode", new AtomicLong(mode)) ;
+			map.put( "mean", new AtomicLong(mean) );	
+			map.put("totalReads",new AtomicLong(counts));
+			stats.put(entry.getKey(), map);			
+		}		
+		return stats;		 
 	}
 	
 	ConcurrentMap<String, AtomicLong> getTagRGLineLengths() {
