@@ -1639,25 +1639,25 @@ public abstract class Pipeline {
 		}
 	}
 	
-	void checkForMutationInNormal() {
-		int minCount = 0;
-		for (final QSnpRecord record : positionRecordMap.values()) {
-			if (null != record.getAnnotation() && record.getAnnotation().contains(SnpUtils.MUTATION_IN_NORMAL)) {
-				// check to see if mutant count in normal is 3% or more
-				// if not, remove annotation
-				final String ND = record.getNormalNucleotides();
-				final int normalCount = record.getNormalCount();
-				final String alt = SnpUtils.getAltFromMutationString(record.getMutation());
-				final int altCount = SnpUtils.getCountFromNucleotideString(ND, alt);
-				
-				if (((float)altCount / normalCount) * 100 < 3.0f) {
-					VcfUtils.removeFilter(record.getVcfRecord(), SnpUtils.MUTATION_IN_NORMAL);
-					minCount++;
-				}
-			}
-		}
-		logger.info("no of records with " + SnpUtils.MUTATION_IN_NORMAL + " annotation removed: " + minCount);
-	}
+//	void checkForMutationInNormal() {
+//		int minCount = 0;
+//		for (final QSnpRecord record : positionRecordMap.values()) {
+//			if (null != record.getAnnotation() && record.getAnnotation().contains(SnpUtils.MUTATION_IN_NORMAL)) {
+//				// check to see if mutant count in normal is 3% or more
+//				// if not, remove annotation
+//				final String ND = record.getNormalNucleotides();
+//				final int normalCount = record.getNormalCount();
+//				final String alt = SnpUtils.getAltFromMutationString(record.getMutation());
+//				final int altCount = SnpUtils.getCountFromNucleotideString(ND, alt);
+//				
+//				if (((float)altCount / normalCount) * 100 < 3.0f) {
+//					VcfUtils.removeFilter(record.getVcfRecord(), SnpUtils.MUTATION_IN_NORMAL);
+//					minCount++;
+//				}
+//			}
+//		}
+//		logger.info("no of records with " + SnpUtils.MUTATION_IN_NORMAL + " annotation removed: " + minCount);
+//	}
 	
 	private void interrogateAccumulations(final Accumulator normal, final Accumulator tumour) {
 		
