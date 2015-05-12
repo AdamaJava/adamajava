@@ -64,13 +64,13 @@ public class VcfRecord {
 		filter = (params.length >= 7) ? params[6] : null;
 		infoRecord = (params.length >= 8) ?  new VcfInfoFieldRecord(params[7]): null;
 		
-		formatRecords.clear();
-		for (int i = 8; i < params.length; i ++)  
-			if(StringUtils.isNullOrEmpty(params[i]))
+		for (int i = 8; i < params.length; i ++)  {
+			if (StringUtils.isNullOrEmpty(params[i])) {
 				formatRecords.add( Constants.MISSING_DATA_STRING);
-			else
+			} else {
 				formatRecords.add( params[i]);
-		 
+			}
+		}
 	}
 	
 	public ChrPosition getChrPosition() {		
@@ -256,6 +256,43 @@ public class VcfRecord {
 		builder.append( getFormatFieldStrings() );
 		builder.append(NL);
 		return builder.toString();
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((alt == null) ? 0 : alt.hashCode());
+		result = prime * result + ((chrPos == null) ? 0 : chrPos.hashCode());
+		result = prime * result + ((ref == null) ? 0 : ref.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		VcfRecord other = (VcfRecord) obj;
+		if (alt == null) {
+			if (other.alt != null)
+				return false;
+		} else if (!alt.equals(other.alt))
+			return false;
+		if (chrPos == null) {
+			if (other.chrPos != null)
+				return false;
+		} else if (!chrPos.equals(other.chrPos))
+			return false;
+		if (ref == null) {
+			if (other.ref != null)
+				return false;
+		} else if (!ref.equals(other.ref))
+			return false;
+		return true;
 	}
 
 	
