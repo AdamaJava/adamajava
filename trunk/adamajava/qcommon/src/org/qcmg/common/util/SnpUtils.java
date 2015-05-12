@@ -226,7 +226,7 @@ public class SnpUtils {
 		if (StringUtils.isNullOrEmpty(mutation)) {
 			throw new IllegalArgumentException("invalid mutation string supplied to getAltFromMutationString (null or empty)");
 		}
-		int index = mutation.indexOf(">");
+		int index = mutation.indexOf(Constants.MUT_DELIM);
 		return mutation.substring(index + 1);
 	}
 	
