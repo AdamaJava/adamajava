@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import net.sf.picard.fastq.FastqReader;
@@ -30,6 +31,7 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.Accumulator;
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.LoadReferencedClasses;
 import org.qcmg.common.util.Pair;
@@ -61,7 +63,7 @@ private static QLogger logger;
 	private final Map<Integer, Map<String, Probe>> probeLengthMapR1 = new HashMap<>();
 	private final Map<Integer, Map<String, Probe>> probeLengthMapR2 = new HashMap<>();
 	
-	private final Set<Probe> probeSet = new HashSet<>();
+	private final Set<Probe> probeSet = new TreeSet<>();
 	private final Map<Probe, AtomicInteger> probeDist = new HashMap<>();
 	private final Map<Probe, List<Bin>> probeBinDist = new HashMap<>();
 	
@@ -272,10 +274,94 @@ private static QLogger logger;
 			
 			writeCsv();
 			
+			writeDiagnosticOutput();
+			
 //			writeOutput();
 		} finally {
 		}
 		return exitStatus;
+	}
+
+	private void writeDiagnosticOutput() throws IOException {
+		
+		List<FastqProbeMatch> multiMatched = new ArrayList<>();
+		List<FastqProbeMatch> oneEndMatched = new ArrayList<>();
+		List<FastqProbeMatch> noEndsMatched = new ArrayList<>();
+		List<FastqProbeMatch> noFragment = new ArrayList<>();
+		
+		for (FastqProbeMatch fpm : matches) {
+			
+			if (FastqProbeMatchUtil.isMultiMatched(fpm)) {
+				multiMatched.add(fpm);
+			} else if (FastqProbeMatchUtil.neitherReadsHaveAMatch(fpm)) {
+				noEndsMatched.add(fpm);
+			} else if (FastqProbeMatchUtil.onlyOneReadHasAMatch(fpm)) {
+				oneEndMatched.add(fpm);
+			} else if (StringUtils.isNullOrEmpty(fpm.getFragment())) {
+				noFragment.add(fpm);
+			}
+		}
+		
+		logger.info("multiMatched: " + multiMatched.size());
+		logger.info("oneEndMatched: " + oneEndMatched.size());
+		logger.info("noEndsMatched: " + noEndsMatched.size());
+		logger.info("noFragment: " + noFragment.size());
+		
+		
+		if ( ! multiMatched.isEmpty()) {
+			try (FileWriter writer = new FileWriter(new File(outputFile+".diagnostic.multi.matched.csv"))){;
+				writer.write("r1_probe_id,r2_probe_id,r1,r2" );
+				writer.write("\n");
+				
+				for (FastqProbeMatch fpm : multiMatched) {
+					writer.write(fpm.getRead1Probe().getId() + "," + fpm.getRead2Probe().getId() + "," + fpm.getRead1().getReadString() + "," + fpm.getRead2().getReadString());
+					writer.write("\n");
+				}
+				writer.flush();
+			}
+		}
+		if ( ! noFragment.isEmpty()) {
+			try (FileWriter writer = new FileWriter(new File(outputFile+".diagnostic.no.fragment.csv"))){;
+			writer.write("r1_probe_id,r2_probe_id,r1,r2" );
+			writer.write("\n");
+			
+			for (FastqProbeMatch fpm : noFragment) {
+				writer.write(fpm.getRead1Probe().getId() + "," + fpm.getRead2Probe().getId() + "," + fpm.getRead1().getReadString() + "," + fpm.getRead2().getReadString());
+				writer.write("\n");
+			}
+			writer.flush();
+			}
+		}
+		if ( ! oneEndMatched.isEmpty()) {
+			try (FileWriter writer = new FileWriter(new File(outputFile+".diagnostic.one.end.matched.csv"))){;
+			writer.write("r1_probe_id,r2_probe_id,r1,r2" );
+			writer.write("\n");
+			
+			for (FastqProbeMatch fpm : oneEndMatched) {
+				String p1 = null != fpm.getRead1Probe() ? fpm.getRead1Probe().getId() + "" : "-";
+				String p2 = null != fpm.getRead2Probe() ? fpm.getRead2Probe().getId() + "" : "-";
+				writer.write(p1 + "," + p2 + "," + fpm.getRead1().getReadString() + "," + fpm.getRead2().getReadString());
+				writer.write("\n");
+			}
+			writer.flush();
+			}
+		}
+		if ( ! noEndsMatched.isEmpty()) {
+			try (FileWriter writer = new FileWriter(new File(outputFile+".diagnostic.no.end.matched.csv"))){;
+			writer.write("r1,r2" );
+			writer.write("\n");
+			
+			for (FastqProbeMatch fpm : noEndsMatched) {
+				writer.write(fpm.getRead1().getReadString() + "," + fpm.getRead2().getReadString());
+				writer.write("\n");
+			}
+			writer.flush();
+			}
+		}
+		
+	
+		
+		
 	}
 
 	private void writeCsv() throws IOException {
@@ -311,9 +397,9 @@ private static QLogger logger;
 //									logger.info(s);
 //								}
 //							}
-							if (ref.length() != binSeq.length() &&  ! diffs[0].contains("-") && ! diffs[2].contains("-")) {
-								logger.warn("ref length != binSeq and no indels!!! p id: " + p.getId() + ", bin id: " + b.getId() + ", fs: " + p.isOnForwardStrand());
-							}
+//							if (ref.length() != binSeq.length() &&  ! diffs[0].contains("-") && ! diffs[2].contains("-")) {
+//								logger.warn("ref length != binSeq and no indels!!! p id: " + p.getId() + ", bin id: " + b.getId() + ", fs: " + p.isOnForwardStrand());
+//							}
 							
 							createMutations(p, b, diffs);
 						}
@@ -324,7 +410,7 @@ private static QLogger logger;
 		
 		logger.info("no of mutataions: " + mutations.size());
 		
-		try (FileWriter writer = new FileWriter(new File(outputFile+".mutations.snps.only.csv"))){;
+		try (FileWriter writer = new FileWriter(new File(outputFile+".mutations.csv"))){;
 			writer.write("chr,position,ref,alt,probe_id,probe_total_reads,probe_total_frags,bin_id,bin_record_count" );
 			writer.write("\n");
 			
@@ -498,10 +584,7 @@ private static QLogger logger;
 		amplicons.addAttribute(new Attribute("fastq_file_1", fastqFiles[0]));
 		amplicons.addAttribute(new Attribute("fastq_file_2", fastqFiles[1]));
 		
-		List<Probe> sortedProbes = new ArrayList<>(probeDist.keySet());
-		Collections.sort(sortedProbes);		// sorts on id of probe
-		
-		for (Probe p : sortedProbes) {
+		for (Probe p : probeSet) {
 			
 			Element amplicon = new Element("Amplicon");
 			amplicons.appendChild(amplicon);
@@ -572,26 +655,13 @@ private static QLogger logger;
 						fragment.addAttribute(new Attribute("record_count", "" + b.getReadCount()));
 						fragment.addAttribute(new Attribute("diffs", "" + b.getDifferences()));
 						fragment.appendChild(b.getSequence());
-//						logger.info("frag: " + entry.getKey() + ", count: " + entry.getValue().get());
 						fragMatches.add(b.getReadCount());
 				}
-//				for (Entry<String, AtomicInteger> entry : frags.entrySet()) {
-//					if (entry.getKey() != null) {
-//						Element fragment = new Element("Fragment");
-//						fragments.appendChild(fragment);
-//						fragment.addAttribute(new Attribute("fragment_length", "" + (entry.getKey().startsWith("+++") || entry.getKey().startsWith("---") ? entry.getKey().length() - 3 : entry.getKey().length())));
-//						fragment.addAttribute(new Attribute("record_count", "" + entry.getValue().get()));
-//						fragment.appendChild(entry.getKey());
-////						logger.info("frag: " + entry.getKey() + ", count: " + entry.getValue().get());
-//						fragMatches.add(entry.getValue().get());
-//					}
-//				}
 				if (fragMatches.size() > 1) {
 					Collections.sort(fragMatches);
 					Collections.reverse(fragMatches);
 					
 					fragments.addAttribute(new Attribute("fragment_breakdown", "" + ClinVarUtil.breakdownEditDistanceDistribution(fragMatches)));
-					
 					
 					int total = 0;
 					for (Integer i : fragMatches) {
@@ -601,22 +671,11 @@ private static QLogger logger;
 					if (secondLargestCount > 1) {
 						int secondLargestPercentage = (100 * secondLargestCount) / total;
 						if (secondLargestPercentage > 10) {
-							
-//							for (Entry<String, AtomicInteger> entry : frags.entrySet()) {
-//								if (entry.getKey() != null) {
-////									logger.info("frag: " + entry.getKey() + ", count: " + entry.getValue().get());
-////									fragMatches.add(entry.getValue().get());
-//								}
-//							}
-							
 							noOfProbesWithLargeSecondaryBin++;
-//							logger.info("secondLargestPercentage is greater than 10%!!!: " + secondLargestPercentage);
-//							logger.info("fragMatches: " + ClinVarUtil.breakdownEditDistanceDistribution(fragMatches));
 						}
 					}
 				}
 			}
-			
 		}
 		logger.info("no of probes with secondary bin contains > 10% of reads: " + noOfProbesWithLargeSecondaryBin);
 		
@@ -632,7 +691,6 @@ private static QLogger logger;
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
 	}
 	
 	private List<Bin> convertFragmentsToBins(Map<String, AtomicInteger> frags) {
@@ -682,17 +740,16 @@ private static QLogger logger;
 		
 		//combine and return
 		multipleBins.addAll(singleBins);
-		
 		return multipleBins;
 	}
 
 	private void writeOutput() {
 		Element amplicons = new Element("Amplicons");
 		
-		List<Probe> orderedProbes = new ArrayList<>(probeSet);
-		Collections.sort(orderedProbes);
+//		List<Probe> orderedProbes = new ArrayList<>(probeSet);
+//		Collections.sort(orderedProbes);
 		
-		for (Probe p : orderedProbes) {
+		for (Probe p : probeSet) {
 			Element amplicon = new Element("Amplicon");
 			amplicons.appendChild(amplicon);
 			
@@ -814,7 +871,7 @@ private static QLogger logger;
 				}
 				
 				// lets see if we are close to the existing probe
-				int editDistance = ClinVarUtil.getEditDistance(read,  existingProbe.getDlsoSeqRC());
+				int editDistance = ClinVarUtil.getEditDistance(read,  existingProbe.getDlsoSeqRC(), maxSingleEditDistance + 1);
 				if (editDistance <= maxSingleEditDistance) {
 					if (updateFirstReadProbe) {
 						fpm.setRead1Probe(existingProbe, editDistance);
@@ -825,7 +882,7 @@ private static QLogger logger;
 					// loop through the probes
 					for (Probe p : probeSet) {
 						String primer = updateFirstReadProbe ? p.getDlsoSeqRC() :  p.getUlsoSeq();
-						editDistance = ClinVarUtil.getEditDistance(read, primer);
+						editDistance = ClinVarUtil.getEditDistance(read, primer, maxSingleEditDistance + 1);
 						
 						if (editDistance <= maxSingleEditDistance) {
 							// it could be the case that we have already found a matching probe, so make sure this match is better!!!
@@ -891,10 +948,10 @@ private static QLogger logger;
 		amplicons.addAttribute(new Attribute("fastq_file_1", fastqFiles[0]));
 		amplicons.addAttribute(new Attribute("fastq_file_2", fastqFiles[1]));
 		
-		List<Probe> sortedProbes = new ArrayList<>(probeDist.keySet());
-		Collections.sort(sortedProbes);		// sorts on id of probe
+//		List<Probe> sortedProbes = new ArrayList<>(probeDist.keySet());
+//		Collections.sort(sortedProbes);		// sorts on id of probe
 		
-		for (Probe p : sortedProbes) {
+		for (Probe p : probeSet) {
 			
 			Element amplicon = new Element("Amplicon");
 			amplicons.appendChild(amplicon);
@@ -932,9 +989,9 @@ private static QLogger logger;
 						for (FastqProbeMatch fpm : fpms) {
 							if (null == fpm.getFragment()) {
 								r1Set.add(new Pair<String, String>(fpm.getRead1().getReadString(), fpm.getRead2().getReadString()));
-								if (p.getId() == 48) {
-											logger.info("p: " + p.getId() + ", exp overlap: " + fpm.getExpectedReadOverlapLength() + ", r1: " + fpm.getRead1().getReadString() + ", r2: " + fpm.getRead2().getReadString());
-								}
+//								if (p.getId() == 48) {
+//											logger.info("p: " + p.getId() + ", exp overlap: " + fpm.getExpectedReadOverlapLength() + ", r1: " + fpm.getRead1().getReadString() + ", r2: " + fpm.getRead2().getReadString());
+//								}
 							}
 						}
 						logger.info("no of unique r1,r2 pairs: " + r1Set.size());

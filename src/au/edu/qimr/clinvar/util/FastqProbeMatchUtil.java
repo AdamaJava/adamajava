@@ -54,6 +54,14 @@ public class FastqProbeMatchUtil {
 		return null == fpm.getRead1Probe() 
 				&& null == fpm.getRead2Probe();
 	}
+	/**
+	 * Both reads have a match, although they may not be the same...
+	 */
+	public static boolean onlyOneReadHasAMatch(FastqProbeMatch fpm) {
+		
+		return (null != fpm.getRead1Probe() && null == fpm.getRead2Probe()
+				|| null == fpm.getRead1Probe() && null != fpm.getRead2Probe());
+	}
 	
 	
 	public static boolean doesFPMMatchProbe(FastqProbeMatch fpm, Probe p) {
@@ -114,32 +122,32 @@ public class FastqProbeMatchUtil {
 			}
 		}
 		
-//		logger.info("Total count: " + count);
-//		logger.info("Neither read matches: " + neitherHaveAMatch + " (" + ((100 * neitherHaveAMatch) / count) + "%)");
-//		logger.info("One read has a match: " + justOneMatch + " (" + ((100 * justOneMatch) / count) + "%)");
+		logger.info("Total count: " + count);
+		logger.info("Neither read matches: " + neitherHaveAMatch + " (" + ((100 * neitherHaveAMatch) / count) + "%)");
+		logger.info("One read has a match: " + justOneMatch + " (" + ((100 * justOneMatch) / count) + "%)");
 		
 		List<IntPair> scores = new ArrayList<>(justOneMatchScores.keySet());
 		Collections.sort(scores);
-//		for (MatchScore score : scores) {
-//			logger.info("just one match score: " + score + ", count: " + justOneMatchScores.get(score).get());
-//		}
+		for (IntPair score : scores) {
+			logger.info("just one match score: " + score + ", count: " + justOneMatchScores.get(score).get());
+		}
 		
-//		logger.info("Both reads have a match: " + bothReadsHaveAMatch + " (" + ((100 * bothReadsHaveAMatch) / count) + "%)");
-//		logger.info("Both reads have the same match: " + sameMatch + " (" + ((100 * sameMatch) / count) + "%)");
+		logger.info("Both reads have a match: " + bothReadsHaveAMatch + " (" + ((100 * bothReadsHaveAMatch) / count) + "%)");
+		logger.info("Both reads have the same match: " + sameMatch + " (" + ((100 * sameMatch) / count) + "%)");
 		// some stats on edit distances used
 		scores = new ArrayList<>(sameMatchScores.keySet());
 		Collections.sort(scores);
-//		for (MatchScore score : scores) {
-//			logger.info("same match score: " + score + ", count: " + sameMatchScores.get(score).get());
-//		}
-		
-//		logger.info("Reads have a different match: " + differentMatches + " (" + ((100 * differentMatches) / count) + "%)");
+////		for (MatchScore score : scores) {
+////			logger.info("same match score: " + score + ", count: " + sameMatchScores.get(score).get());
+////		}
+//		
+////		logger.info("Reads have a different match: " + differentMatches + " (" + ((100 * differentMatches) / count) + "%)");
 		
 		scores = new ArrayList<>(differentMatchesScores.keySet());
 		Collections.sort(scores);
-//		for (MatchScore score : scores) {
-//			logger.info("different match score: " + score + ", count: " + differentMatchesScores.get(score).get());
-//		}
+		for (IntPair score : scores) {
+			logger.info("different match score: " + score + ", count: " + differentMatchesScores.get(score).get());
+		}
 	}
 	
 	

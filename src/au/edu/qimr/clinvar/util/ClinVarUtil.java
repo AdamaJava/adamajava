@@ -17,7 +17,7 @@ public class ClinVarUtil {
 	
 	public static int [] getDoubleEditDistance(String read1, String read2, String primer1, String primer2, int editDistanceCutoff) {
 		
-		int editDistance = getEditDistance(read1, primer1);
+		int editDistance = getEditDistance(read1, primer1, editDistanceCutoff + 1);
 		int editDistance2 = Integer.MAX_VALUE;
 		
 		if (editDistance <= editDistanceCutoff) {
@@ -41,6 +41,16 @@ public class ClinVarUtil {
 //		}
 		
 		return StringUtils.getLevenshteinDistance(primer, read.substring(0, primer.length()));
+	}
+	
+	public static int  getEditDistance(String read, String primer, int editDistanceCutoff) {
+//		if (org.qcmg.common.string.StringUtils.isNullOrEmpty(read)
+//				|| org.qcmg.common.string.StringUtils.isNullOrEmpty(primer)) {
+//			throw new IllegalArgumentException("read or primer (or both) supplied to ClinVarUtil.getEditDistance were null. read: " + read + ", primer: " + primer);
+//		}
+		int led = StringUtils.getLevenshteinDistance(primer, read.substring(0, primer.length()), editDistanceCutoff);
+		
+		return led >= 0 ? led : Integer.MAX_VALUE;
 	}
 	
 	public static String breakdownEditDistanceDistribution(List<Integer> editDistances) {
