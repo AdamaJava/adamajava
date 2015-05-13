@@ -480,7 +480,6 @@ public class BamSummaryReport extends SummaryReport {
 		}
 		
 		//Xu code : rgClipElement code clip 2 xml: there are three page unger RG
-		//add below method to stat min, max, medium, mode of clips or length	
 		Element rgClipElement = createSubElement(bamReportElement, "RG_Counts");		
 		RGCounts2Xml(rgClipElement, summaryElement);
 	 
@@ -551,6 +550,7 @@ public class BamSummaryReport extends SummaryReport {
 		//		}
 	}
 
+	//xu code
 	private void RGCounts2Xml(Element rgClipElement, Element summaryElement) {
 		//get stats
 		ConcurrentMap<String, ConcurrentHashMap<String, AtomicLong>> softClipStats = getRGStats( rgSoftClip );		
@@ -562,21 +562,28 @@ public class BamSummaryReport extends SummaryReport {
 		// add into RG_Counts section
 		for (Entry<String, QCMGAtomicLongArray> entry : rawReadLength.entrySet()){
 			long rawTotalBase = rawLengthStats.get(entry.getKey()).get("totalbase").get();
+			
+			Element baseElement = createSubElement(summaryElement, "BaseCount");
+			baseElement.setAttribute("rg", entry.getKey());
 
 			Element rgElement = createSubElement(rgClipElement, "RG");
 			rgElement.setAttribute("value", entry.getKey());
 			
-//			Element stats = createSubElement(rgElement, "rawReadLength");
-//			presentStats(stats, rawLengthStats.get(entry.getKey()), rawTotalBase);
+			Element stats = createSubElement(rgElement, "rawReadLength");
+			presentStats(stats, rawLengthStats.get(entry.getKey()), rawTotalBase);  //set RG_Counts section
+			baseElement.setAttribute("totalBase", stats.getAttribute("totalbase")); //set to summary section		
 			
-			Element stats = createSubElement(rgElement, "softClip");
+			stats = createSubElement(rgElement, "softClip");
 			presentStats(stats, softClipStats.get(entry.getKey()), rawTotalBase);
-			
+			baseElement.setAttribute("softClip", stats.getAttribute("percentage")); //set to summary section		
+		
 			stats = createSubElement(rgElement, "hardClip");
 			presentStats(stats, hardClipStats.get(entry.getKey()), rawTotalBase);
+			baseElement.setAttribute("hardClip", stats.getAttribute("percentage")); //set to summary section		
 				 
 			stats = createSubElement(rgElement, "overlap");
 			presentStats(stats, overlapStats.get(entry.getKey()), rawTotalBase);
+			baseElement.setAttribute("overlap", stats.getAttribute("percentage")); //set to summary section		
 			
 		}
 
@@ -587,8 +594,8 @@ public class BamSummaryReport extends SummaryReport {
 		for(Entry<String, AtomicLong> en : stats.entrySet()){
 			element.setAttribute(en.getKey(),  en.getValue()+"");
 			if(en.getKey().equals("totalbase")){
-				float percentage =  (float) en.getValue().get() / (float) rawTotalBase ;
-				element.setAttribute("lostPercentage",  String.format("%.2f", percentage ));
+				float percentage = 100 * (float) en.getValue().get() / (float) rawTotalBase ;
+				element.setAttribute("percentage",  String.format("%2.2f%%", percentage   ));
 			}		
 		
 		}
