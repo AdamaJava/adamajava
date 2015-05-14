@@ -759,6 +759,13 @@ public class BamSummaryReport extends SummaryReport {
 	//Xu code
 //	private final ConcurrentMap<String, QCMGAtomicLongArray> rgReadOverlap = new ConcurrentSkipListMap<String, QCMGAtomicLongArray>();
 	void parseOverlapByRG(SAMRecord record, String readGroup, int softClip){
+		if (null == readGroup) readGroup = "EMPTY"; 
+		QCMGAtomicLongArray oarry = rgReadOverlap.get(readGroup);
+		 if( oarry == null){
+			 rgReadOverlap.putIfAbsent(readGroup, new QCMGAtomicLongArray(128));		
+			 oarry = rgReadOverlap.get(readGroup);
+		 }		
+ 		
 		 //only look at one of the pair, so choose Tlen > 0; Tlen==0 is not overlap
 		 if(record.getInferredInsertSize() <= 0) return;
 		 
@@ -771,27 +778,17 @@ public class BamSummaryReport extends SummaryReport {
 		else{
 			int mate_end = record.getInferredInsertSize() + record.getAlignmentStart();
 			overlap = Math.min(record.getAlignmentEnd(), mate_end) - Math.max(record.getAlignmentStart(), record.getMateAlignmentStart());
-			//overlap = Math.min(record.getAlignmentEnd(), record.getMateAlignmentEnd()) - Math.max(record.getAlignmentStart(), record.getMateAlignmentStart());
-					
 		}
 		
 		if(overlap <= 0) return;
 		
-		if (null == readGroup) readGroup = "EMPTY"; 
-		QCMGAtomicLongArray oarry = rgReadOverlap.get(readGroup);
-		 if( oarry == null){
-			 rgReadOverlap.putIfAbsent(readGroup, new QCMGAtomicLongArray(128));		
-			 oarry = rgReadOverlap.get(readGroup);
-		 }	
-		 oarry.increment(overlap);
-
+		oarry.increment(overlap);
 	}
 	
 	
 	int parseClipsByRG(int readLength, final Cigar cigar, String readGroup) {
-		 if (null == cigar) return 0;
-		 
-		 if (null == readGroup) readGroup = "EMPTY"; 
+		if (null == readGroup) readGroup = "EMPTY"; 
+ 
 		 QCMGAtomicLongArray harray = rgHardClip.get(readGroup);
 		 if( harray == null){
 			 rgHardClip.putIfAbsent(readGroup, new QCMGAtomicLongArray(128));	
@@ -802,7 +799,16 @@ public class BamSummaryReport extends SummaryReport {
 			rgSoftClip.putIfAbsent(readGroup, new QCMGAtomicLongArray(128));	
 			sarray = rgSoftClip.get(readGroup);
 		 }			
-		  
+		 
+		QCMGAtomicLongArray larray = rawReadLength.get(readGroup);
+		 if( larray == null){
+			 rawReadLength.putIfAbsent(readGroup, new QCMGAtomicLongArray(128));		
+			 larray = rawReadLength.get(readGroup);
+		 }	
+		 
+		 
+		 if (null == cigar) return 0;
+		 
 		 int lhard = 0;
 		 int lsoft = 0;
 		 for(CigarElement ce : cigar.getCigarElements()) 
@@ -813,15 +819,7 @@ public class BamSummaryReport extends SummaryReport {
 				 
 		harray.increment(lhard);
 		sarray.increment(lsoft);
-		
-		
-		QCMGAtomicLongArray larray = rawReadLength.get(readGroup);
-		 if( larray == null){
-			 rawReadLength.putIfAbsent(readGroup, new QCMGAtomicLongArray(128));		
-			 larray = rawReadLength.get(readGroup);
-		 }
-		 larray.increment(readLength+lhard);
-
+		larray.increment(readLength+lhard);
 		
 		return lsoft;
 	}
