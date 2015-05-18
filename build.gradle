@@ -5,12 +5,13 @@ def scriptname = 'q3clinvar'
 def isExecutable = true
 
 repositories {
-	jcenter()
+	//jcenter()
 	flatDir {
 		dirs '/Users/oliverh/development/sf/trunk/adamajava/lib'
 		dirs '/Users/oliverh/development/sf/trunk/adamajava/qcommon/build/lib'
 		dirs '/Users/oliverh/development/sf/trunk/adamajava/qmule/build/lib'
 		dirs '/home/genomelocal/devel/adamajava/adamajava/adama/build/lib'
+		dirs '/home/genomelocal/devel/adamajava/adamajava/lib'
 	}
     //flatDir(dirs:"$projectDir/../lib")
 }
