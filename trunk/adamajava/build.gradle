@@ -83,6 +83,12 @@ subprojects {
 build.doLast {
   delete('adama/build/lib')
   mkdir ('adama/build/lib')
+	copy {
+	   from 'lib'
+           into 'adama/build/lib'
+           include '**/*.so'
+	}
+	println "should have copied from ${libsDirName} to adama/build/lib"
 
     subprojects.each {project ->
          println "copying ${project} libs to adama"
