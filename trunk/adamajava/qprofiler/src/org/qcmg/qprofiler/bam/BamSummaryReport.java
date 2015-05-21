@@ -571,8 +571,10 @@ public class BamSummaryReport extends SummaryReport {
 			
 			Element stats = createSubElement(rgElement, "rawReadLength");
 			presentStats(stats, rawLengthStats.get(entry.getKey()), rawTotalBase);  //set RG_Counts section
-			baseElement.setAttribute("totalBase", stats.getAttribute("totalbase")); //set to summary section		
-			
+			baseElement.setAttribute("totalBase", stats.getAttribute("totalbase")); //set to summary section	
+			baseElement.setAttribute("maxLength", stats.getAttribute("max")); //set to summary section		
+			baseElement.setAttribute("modeLength", stats.getAttribute("mode")); //set to summary section		
+
 			stats = createSubElement(rgElement, "softClip");
 			presentStats(stats, softClipStats.get(entry.getKey()), rawTotalBase);
 			baseElement.setAttribute("softClip", stats.getAttribute("percentage")); //set to summary section		
@@ -586,8 +588,6 @@ public class BamSummaryReport extends SummaryReport {
 			baseElement.setAttribute("overlap", stats.getAttribute("percentage")); //set to summary section		
 			
 		}
-
-	//add to summary section
 	}
 	
 	private void presentStats(Element element, ConcurrentHashMap<String, AtomicLong> stats , long rawTotalBase){
