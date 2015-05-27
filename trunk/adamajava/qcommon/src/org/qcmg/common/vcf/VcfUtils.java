@@ -7,7 +7,9 @@ import static org.qcmg.common.util.Constants.COLON;
 import static org.qcmg.common.util.Constants.COLON_STRING;
 import static org.qcmg.common.util.Constants.MISSING_DATA_STRING;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -432,6 +434,84 @@ public class VcfUtils {
 			}
 		}
 	}
+	
+	/**
+	 * Attempts to merge a number of vcf records that have the same start position
+	 * NOTE that only the first 8 columns are merged, info, format fields will be empty
+	 * 
+	 * 
+	 * 
+	 * @param records
+	 * @return
+	 */
+	public static VcfRecord mergeVcfRecords(Set<VcfRecord> records) {
+		
+		VcfRecord mergeRecord = null;
+		
+		if ( ! records.isEmpty()) {
+			String chr = null;
+			int startPos = -1;
+			String ref = "";
+			String alt = "";
+			
+			for (VcfRecord vcf : records) {
+				if (null == chr) {
+					chr = vcf.getChrPosition().getChromosome();
+				}
+				if (chr.equals(vcf.getChrPosition().getChromosome())) {
+					
+					if (-1 == startPos) {
+						startPos = vcf.getChrPosition().getPosition();
+					}
+					if (startPos == vcf.getChrPosition().getPosition()) {
+						
+						if (ref.length() < vcf.getRef().length()) {
+							ref = vcf.getRef();
+						}
+						
+						if (alt.length() > 0) {
+							alt += ",";
+						}
+						alt += vcf.getAlt();
+					}
+				}
+			}
+			if (ref.length() == 0 || alt.length() == 0) {
+				logger.warn("Got zero length ref or alt!!! ref: " + ref + ", alt: " + alt + ", entries in set: " + records.size());
+			}
+			mergeRecord = VcfUtils.createVcfRecord(new ChrPosition(chr, startPos, startPos + ref.length() -1 ), ".", ref, getUpdateAltString(ref,alt));
+		}
+		return mergeRecord;
+	}
+	
+	public static String getUpdateAltString(String ref, String alt) {
+		if (alt.contains(",")) {
+			
+			StringBuilder sb = new StringBuilder();
+			List<String> altStrings = new ArrayList<>();
+			String [] alts = alt.split(",");
+			for (int i = 0 ; i < alts.length ; i++) {
+				String s = alts[i];
+				if (s.length() > 1) {
+					// add last base in ref to this alt string
+					alts[i] = s + ref.charAt(ref.length() -1);
+				}
+				altStrings.add(alts[i]);
+			}
+			Collections.sort(altStrings);
+			for (String s : altStrings) {
+				if (sb.length() > 0) {
+					sb.append(",");
+				}
+				sb.append(s);
+			}
+			return sb.toString();
+		}
+		return null;
+	}
+	
+	
+	
 	/**
 	 * Checks to see if the existing annotation is a PASS (or missing data symbol (".")).
 	 * If it is, then the annotation is replaced with the supplied annotation.

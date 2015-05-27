@@ -5,12 +5,14 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.GenotypeEnum;
 import org.qcmg.common.model.PileupElement;
 
@@ -249,6 +251,22 @@ public class VcfUtilsTest {
 		set.add('Z');
 		assertEquals("ACGTXYZ", VcfUtils.getStringFromCharSet(set));
 	}
+	
+	
+	@Test
+	public void mergeVcfs() {
+		ChrPosition cp = new ChrPosition("1",100);
+		VcfRecord vcf1 = VcfUtils.createVcfRecord(cp, ".", "A", "AT");
+		VcfRecord vcf2 = VcfUtils.createVcfRecord(cp, ".", "AT", "A");
+		Set<VcfRecord> records = new HashSet<>();
+		records.add(vcf1);
+		records.add(vcf2);
+		VcfRecord mergedRecord = VcfUtils.mergeVcfRecords(records);
+		assertEquals("AT", mergedRecord.getRef());
+		assertEquals("A,ATT", mergedRecord.getAlt());
+	}
+	
+	
 	
 	@Test
 	public void isRecordAMnp() {

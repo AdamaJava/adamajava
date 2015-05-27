@@ -18,7 +18,7 @@ import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
 
-public class VcfRecord {
+public class VcfRecord implements Comparable<VcfRecord>{
 	
 	private static final QLogger logger = QLoggerFactory.getLogger(VcfRecord.class);
 	
@@ -293,6 +293,11 @@ public class VcfRecord {
 		} else if (!ref.equals(other.ref))
 			return false;
 		return true;
+	}
+
+	@Override
+	public int compareTo(VcfRecord arg0) {
+		return chrPos.compareTo(arg0.chrPos);
 	}
 
 	
