@@ -5,7 +5,10 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -29,6 +32,7 @@ import nu.xom.Serializer;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.meta.QExec;
 import org.qcmg.common.model.Accumulator;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.string.StringUtils;
@@ -37,7 +41,11 @@ import org.qcmg.common.util.LoadReferencedClasses;
 import org.qcmg.common.util.Pair;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
+import org.qcmg.common.vcf.header.VcfHeader;
+import org.qcmg.common.vcf.header.VcfHeader.Record;
+import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.qmule.SmithWatermanGotoh;
+import org.qcmg.vcf.VCFFileWriter;
 
 import au.edu.qimr.clinvar.model.Bin;
 import au.edu.qimr.clinvar.model.FastqProbeMatch;
@@ -59,6 +67,8 @@ private static QLogger logger;
 	private String xmlFile;
 	private String outputFile;
 	private int binId = 1;
+	
+	private int minBinSize = 10;
 	
 	private final Map<Integer, Map<String, Probe>> probeLengthMapR1 = new HashMap<>();
 	private final Map<Integer, Map<String, Probe>> probeLengthMapR2 = new HashMap<>();
@@ -125,19 +135,19 @@ private static QLogger logger;
  					} else  if ("ulsoRevCompSeq".equals(probeSubElement.getQualifiedName())) {
  						ulsoSeqRC = probeSubElement.getValue();
  					} else  if ("primer1Start".equals(probeSubElement.getQualifiedName())) {
- 						p1Start = Integer.parseInt(probeSubElement.getValue());
+ 						p1Start = Integer.parseInt(probeSubElement.getValue()) + 1;						// add 1 to make it 1-based
  					} else  if ("primer1End".equals(probeSubElement.getQualifiedName())) {
- 						p1End = Integer.parseInt(probeSubElement.getValue());
+ 						p1End = Integer.parseInt(probeSubElement.getValue()) + 1;						// add 1 to make it 1-based
  					} else  if ("primer2Start".equals(probeSubElement.getQualifiedName())) {
- 						p2Start = Integer.parseInt(probeSubElement.getValue());
+ 						p2Start = Integer.parseInt(probeSubElement.getValue()) + 1;						// add 1 to make it 1-based
  					} else  if ("primer2End".equals(probeSubElement.getQualifiedName())) {
- 						p2End = Integer.parseInt(probeSubElement.getValue());
+ 						p2End = Integer.parseInt(probeSubElement.getValue()) + 1;						// add 1 to make it 1-based
  					} else  if ("subseq".equals(probeSubElement.getQualifiedName())) {
  						subseq = probeSubElement.getValue();
  					} else  if ("subseqStart".equals(probeSubElement.getQualifiedName())) {
- 						ssStart =  Integer.parseInt(probeSubElement.getValue());
+ 						ssStart =  Integer.parseInt(probeSubElement.getValue()) + 1;						// add 1 to make it 1-based
  					} else  if ("subseqEnd".equals(probeSubElement.getQualifiedName())) {
- 						ssEnd =  Integer.parseInt(probeSubElement.getValue());
+ 						ssEnd =  Integer.parseInt(probeSubElement.getValue()) + 1;						// add 1 to make it 1-based
  					} else  if ("Chromosome".equals(probeSubElement.getQualifiedName())) {
  						chr =  probeSubElement.getValue();
  					} else  if ("Probe_Strand".equals(probeSubElement.getQualifiedName())) {
@@ -380,43 +390,45 @@ private static QLogger logger;
 				for (Bin b : bins) {
 				
 					// only care about bins that have more than 10 reads
-					int minReadsPerBin = 10;
-					if (b.getReadCount() > minReadsPerBin) {
+					if (b.getRecordCount() >= minBinSize) {
 					
 						String binSeq = forwardStrand ? SequenceUtil.reverseComplement(b.getSequence()) : b.getSequence() ;
 						
-						if ( ! binSeq.equals(ref)) {
 	//						logger.info("probe " + p.getId() + ", forwardStrand: " + forwardStrand + ", largest bin does not equal ref!! ref: " + ref + ", binSeq: " + binSeq);
 							
 							
-							SmithWatermanGotoh nm = new SmithWatermanGotoh(ref, binSeq, 5, -4, 16, 4);
-							String [] diffs = nm.traceback();
-//							if (p.getId() == 542) {
-//								logger.info("probe: " + p.getId() + ", forward strand: " + p.isOnForwardStrand() + ", size: " + b.getReadCount() + ", ref: " + ref + ", binSeq: " + binSeq);
-//								for (String s : diffs) {
-//									logger.info(s);
-//								}
-//							}
+						SmithWatermanGotoh nm = new SmithWatermanGotoh(ref, binSeq, 5, -4, 16, 4);
+						String [] diffs = nm.traceback();
+						b.setSWDiffs(diffs);
+							
+						if (p.getId() == 96) {
+							logger.info("probe: " + p.getId() + ", forward strand: " + p.isOnForwardStrand() + ", size: " + b.getRecordCount() + ", ref: " + ref + ", binSeq: " + binSeq);
+							for (String s : diffs) {
+								logger.info(s);
+							}
+						}
+						if ( ! binSeq.equals(ref)) {
 //							if (ref.length() != binSeq.length() &&  ! diffs[0].contains("-") && ! diffs[2].contains("-")) {
 //								logger.warn("ref length != binSeq and no indels!!! p id: " + p.getId() + ", bin id: " + b.getId() + ", fs: " + p.isOnForwardStrand());
 //							}
 							
-							createMutations(p, b, diffs);
+							createMutations(p, b);
 						}
 					}
 				}
 			}
 		}
 		
-		logger.info("no of mutataions: " + mutations.size());
+		List<VcfRecord> sortedPositions = new ArrayList<>(mutations.keySet());
+		Collections.sort(sortedPositions);
 		
-		try (FileWriter writer = new FileWriter(new File(outputFile+".mutations.csv"))){;
+		try (FileWriter writer = new FileWriter(new File(outputFile+".mutations.csv"))) {
 			writer.write("chr,position,ref,alt,probe_id,probe_total_reads,probe_total_frags,bin_id,bin_record_count" );
 			writer.write("\n");
 			
-			for (Entry<VcfRecord, List<Pair<Probe, Bin>>> entry : mutations.entrySet()) {
-				VcfRecord vcf = entry.getKey();
-				List<Pair<Probe, Bin>> list = entry.getValue();
+			
+			for (VcfRecord vcf : sortedPositions) {
+				List<Pair<Probe, Bin>> list = mutations.get(vcf);
 				for (Pair<Probe, Bin> pair : list) {
 					Probe p = pair.getLeft();
 					Bin b = pair.getRight();
@@ -435,43 +447,148 @@ private static QLogger logger;
 //						}
 //					}
 					
-					writer.write(vcf.getChromosome() + "," + vcf.getPosition() + "," + vcf.getRef() + "," + vcf.getAlt() + "," + p.getId() + "," + totalReads + "," + totalFrags + "," + b.getId() + "," + b.getReadCount());
+					writer.write(vcf.getChromosome() + "," + vcf.getPosition() + "," + vcf.getRef() + "," + vcf.getAlt() + "," + p.getId() + "," + totalReads + "," + totalFrags + "," + b.getId() + "," + b.getRecordCount());
 					writer.write("\n");
 				}
 			}
 			writer.flush();
 		}
 		
+		
+		logger.info("pre-rollup no of mutataions: " + mutations.size());
+		
+		rollupMutations();
+		
+		logger.info("post-rollup no of mutataions: " + mutations.size());
+		
+		sortedPositions = new ArrayList<>(mutations.keySet());
+		Collections.sort(sortedPositions);
+		logger.info("no of vcf positions for vcf file: " + sortedPositions.size());
+		
+		try (VCFFileWriter writer = new VCFFileWriter(new File(outputFile+".mutations.vcf"))) {
+			
+			/*
+			 * Setup the VcfHeader
+			 */
+			final DateFormat df = new SimpleDateFormat("yyyyMMdd");
+			VcfHeader header = new VcfHeader();
+			header.parseHeaderLine(VcfHeaderUtils.CURRENT_FILE_VERSION);		
+			header.parseHeaderLine(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + df.format(Calendar.getInstance().getTime()));		
+			header.parseHeaderLine(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + QExec.createUUid());		
+			header.parseHeaderLine(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=q3ClinVar");		
+			header.addFormatLine("BB", ".","String","Breakdown of Bins containing more than 1 read at this position in the following format: Base,NumberOfReadsSupportingBase,AmpliconID-BinID(# of reads in bin),AmpliconID-BinID(# of reads in bin).... "
+					+ "NOTE that only bins with number of reads greater than " + minBinSize + " will be shown here");
+			header.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT);
+			
+			Iterator<Record> iter = header.iterator();
+			while (iter.hasNext()) {
+				writer.addHeader(iter.next().toString() );
+			}
+			
+			for (VcfRecord vcf : sortedPositions) {
+				
+				
+				/*
+				 * get amplicons that overlap this position
+				 */
+				List<Probe> overlappingProbes = ClinVarUtil.getAmpliconsOverlappingPosition(vcf.getChrPosition(), probeSet);
+//				logger.info("no of amplicons overlapping position: " + overlappingProbes.size());
+				
+				if (overlappingProbes.isEmpty()) {
+					logger.warn("Found no amplicons overlapping position: " + vcf.getChrPosition());
+				}
+				String format = ClinVarUtil.getAmpliconDistribution(vcf, overlappingProbes, probeBinDist, minBinSize);
+				List<String> ff = new ArrayList<>();
+				ff.add("BB");
+				ff.add(format);
+				vcf.setFormatFields(ff);
+				
+				writer.add(vcf);
+			}
+		}
 	}
 	
-	private void createMutations(Probe p, Bin b, String [] smithWatermanDiffs) {
+	
+	private void rollupMutations() {
 		
-		List<Pair<Integer, String>> mutations = ClinVarUtil.getPositionRefAndAltFromSW(smithWatermanDiffs);
+		Map<ChrPosition, Set<VcfRecord>> potentialRollups = new HashMap<>();
+		for (VcfRecord vcf : mutations.keySet()) {
+			/*
+			 * check to see if there are other mutations in this collection that are at the same position
+			 */
+			for (VcfRecord vcf2 : mutations.keySet()) {
+				if (vcf != vcf2) {
+					if (vcf.getChrPosition().getChromosome().equals(vcf2.getChrPosition().getChromosome()) && vcf.getChrPosition().getPosition() == vcf2.getChrPosition().getPosition()) {
+						
+						ChrPosition cp = new ChrPosition(vcf.getChrPosition().getChromosome(), vcf.getChrPosition().getPosition());
+						Set<VcfRecord> records = potentialRollups.get(cp);
+						if (null == records) {
+							records = new HashSet<>();
+							potentialRollups.put(cp, records);
+						}
+						records.add(vcf);
+						records.add(vcf2);
+					}
+				}
+			}
+		}
+		logger.info("no of positions in potentialRollups: " + potentialRollups.size());
 		
-		String probeRef = p.getReferenceSequence();
-		// remove any indel characters - only checking
-		String swRef = smithWatermanDiffs[0].replace("-", "");
-		int offset = probeRef.indexOf(swRef);
 		
-		if ( offset == -1) {
-			logger.warn("probeRef.indexOf(swRef) == -1!!! probe (id:bin.id: " + p.getId() + ":" + b.getId() + ") , probe ref: " + probeRef + ", swRef: " + swRef);
+		for (Entry<ChrPosition, Set<VcfRecord>> entry : potentialRollups.entrySet()) {
+			for (VcfRecord vcf: entry.getValue()) {
+				logger.info("vcf: " + vcf.toString());
+			}
 		}
 		
-		for (Pair<Integer, String> mutation : mutations) {
-			int position = mutation.getLeft().intValue();
-			String mutString = mutation.getRight();
-			int slashIndex = mutString.indexOf('/');
-			String ref = mutString.substring(0, slashIndex);
-			String alt = mutString.substring(slashIndex + 1);
-//			if (p.getId() == 542 && b.getId() == 87424 ) {
-//				logger.info("position: " + position + ", mutString: " + mutString);
-//			}
-			createMutation(p, b, position + offset, ref, alt);
+		/*
+		 * Rollup
+		 */
+		for (Entry<ChrPosition, Set<VcfRecord>> entry : potentialRollups.entrySet()) {
+			VcfRecord mergedRecord = VcfUtils.mergeVcfRecords(entry.getValue());
+			
+			for (VcfRecord vcf: entry.getValue()) {
+				mutations.remove(vcf);
+			}
+			mutations.put(mergedRecord,null);
+		}
+		
+	}
+
+	private void createMutations(Probe p, Bin b) {
+		
+		String [] smithWatermanDiffs = b.getSmithWatermanDiffs();
+		List<Pair<Integer, String>> mutations = ClinVarUtil.getPositionRefAndAltFromSW(smithWatermanDiffs);
+		
+		if ( ! mutations.isEmpty()) {
+		
+			String probeRef = p.getReferenceSequence();
+			// remove any indel characters - only checking
+			String swRef = smithWatermanDiffs[0].replace("-", "");
+			int offset = probeRef.indexOf(swRef);
+			
+			if ( offset == -1) {
+				logger.warn("probeRef.indexOf(swRef) == -1!!! probe (id:bin.id: " + p.getId() + ":" + b.getId() + ") , probe ref: " + probeRef + ", swRef: " + swRef);
+			}
+			
+			for (Pair<Integer, String> mutation : mutations) {
+				int position = mutation.getLeft().intValue();
+				String mutString = mutation.getRight();
+				int slashIndex = mutString.indexOf('/');
+				String ref = mutString.substring(0, slashIndex);
+				String alt = mutString.substring(slashIndex + 1);
+	//			if (p.getId() == 542 && b.getId() == 87424 ) {
+	//				logger.info("position: " + position + ", mutString: " + mutString);
+	//			}
+				createMutation(p, b, position + offset, ref, alt);
+			}
 		}
 	}
 	
 	private void createMutation(Probe p, Bin b, int position, String ref, String alt) {
-		VcfRecord vcf = VcfUtils.createVcfRecord(new ChrPosition(p.getCp().getChromosome(),  p.getCp().getPosition() + position + 1, p.getCp().getPosition() + position + ref.length()), "."/*id*/, ref, alt);
+		int startPos = p.getCp().getPosition() + position;
+		int endPos = ref.length() > 1 ? startPos + (ref.length() -1 ) : startPos;
+		VcfRecord vcf = VcfUtils.createVcfRecord(new ChrPosition(p.getCp().getChromosome(),  startPos, endPos), "."/*id*/, ref, alt);
 		List<Pair<Probe, Bin>> existingBins = mutations.get(vcf);
 		if (null == existingBins) {
 			existingBins = new ArrayList<>();
@@ -480,58 +597,10 @@ private static QLogger logger;
 		existingBins.add(new Pair<Probe,Bin>(p,b));
 	}
 	
-//	private List<VcfRecord> createVcfRecords(Probe p, Map<Bin, String> binSWDiffs) {
-//		List<VcfRecord> vcfs = new ArrayList<>();
-//		String [] diffArray = diffs.split(",");
-//		for (String diff: diffArray) {
-//			 logger.info("createVcfRecords:diff: " + diff);
-//			 int colonIndex = diff.indexOf(':');
-//			 if (colonIndex > -1) {	// only care about snps for now
-//				 int pos = Integer.parseInt(diff.substring(0, colonIndex));
-//				 int vcfPos = refEndPos - pos + 2;
-//				 VcfRecord vcf = VcfUtils.createVcfRecord(new ChrPosition(chr, vcfPos), ".", diff.charAt(colonIndex + 1)+"", ""+diff.charAt(colonIndex + 3));
-//				 List<String> ff = new ArrayList<>();
-//				 ff.add("AC:PID");
-//				 String alleleCounts = getAlleleCountsFromBins(bins, bin, vcfPos, pos);
-//				 
-//				 ff.add(alleleCounts+ ":" + p.getId());
-//				 vcf.setFormatFields(ff);
-//				 vcfs.add(vcf);
-//				 logger.info("vcf: " + vcf);
-//			 }
-//		 }
-//		return vcfs;
-//	}
-	
-//	private List<VcfRecord> createVcfRecords(String chr, int refEndPos, String diffs, Bin bin, Probe p, List<Bin> bins) {
-//		List<VcfRecord> vcfs = new ArrayList<>();
-//		String [] diffArray = diffs.split(",");
-//		for (String diff: diffArray) {
-//			logger.info("createVcfRecords:diff: " + diff);
-//			int colonIndex = diff.indexOf(':');
-//			if (colonIndex > -1) {	// only care about snps for now
-//				int pos = Integer.parseInt(diff.substring(0, colonIndex));
-//				int vcfPos = refEndPos - pos + 2;
-//				VcfRecord vcf = VcfUtils.createVcfRecord(new ChrPosition(chr, vcfPos), ".", diff.charAt(colonIndex + 1)+"", ""+diff.charAt(colonIndex + 3));
-//				List<String> ff = new ArrayList<>();
-//				ff.add("AC:PID");
-//				String alleleCounts = getAlleleCountsFromBins(bins, bin, vcfPos, pos);
-//				
-//				ff.add(alleleCounts+ ":" + p.getId());
-//				vcf.setFormatFields(ff);
-//				vcfs.add(vcf);
-//				logger.info("vcf: " + vcf);
-//			}
-//		}
-//		
-//		return vcfs;
-//		
-//	}
-	
 	public static String getAlleleCountsFromBins(List<Bin> bins, Bin originatingBin, int vcfPos, int positionInOrigBin) {
 		Accumulator acc = new Accumulator(vcfPos);
 		
-		for (int i = 0; i < originatingBin.getReadCount() ; i++) {
+		for (int i = 0; i < originatingBin.getRecordCount() ; i++) {
 			acc.addBase((byte)originatingBin.getSequence().charAt(positionInOrigBin), (byte)33, true, vcfPos - positionInOrigBin , vcfPos, vcfPos - positionInOrigBin +originatingBin.getSequence().length() , 1);
 		}
 		
@@ -652,10 +721,11 @@ private static QLogger logger;
 						Element fragment = new Element("Fragment");
 						fragments.appendChild(fragment);
 						fragment.addAttribute(new Attribute("fragment_length", "" + b.getLength()));
-						fragment.addAttribute(new Attribute("record_count", "" + b.getReadCount()));
+						fragment.addAttribute(new Attribute("record_count", "" + b.getRecordCount()));
 						fragment.addAttribute(new Attribute("diffs", "" + b.getDifferences()));
+						fragment.addAttribute(new Attribute("id", "" + b.getId()));
 						fragment.appendChild(b.getSequence());
-						fragMatches.add(b.getReadCount());
+						fragMatches.add(b.getRecordCount());
 				}
 				if (fragMatches.size() > 1) {
 					Collections.sort(fragMatches);
@@ -1012,21 +1082,6 @@ private static QLogger logger;
 					}
 					fragments.addAttribute(new Attribute("probe_match_breakdown", sb.toString()));
 				}
-				
-//				Map<Integer, List<Integer>> overlapEditDist = new HashMap<>();
-//				logger.info("probe: " + p.getId() + ", no of hits: " + fpms.size());
-//				for (FastqProbeMatch fpm : fpms) {
-//					List<Integer> editDistances = overlapEditDist.get(fpm.getExpectedReadOverlapLength());
-//					if (null == editDistances) {
-//						editDistances = new ArrayList<>();
-//						overlapEditDist.put(fpm.getExpectedReadOverlapLength(), editDistances);
-//					}
-//					editDistances.add(fpm.getOverlapBasicEditDistance());
-//				}
-////				logger.info("distribution breakdown:");
-////				for (Entry<Integer, List<Integer>> entry : overlapEditDist.entrySet()) {
-////					logger.info("overlap: " + entry.getKey() + ", edit distances: " + ClinVarUtil.breakdownEditDistanceDistribution(entry.getValue()));
-////				}
 			}
 			
 			// fragments next
@@ -1080,7 +1135,6 @@ private static QLogger logger;
 		}
 		logger.info("no of probes with secondary bin contains > 10% of reads: " + noOfProbesWithLargeSecondaryBin);
 		
-		
 		// write output
 		Document doc = new Document(amplicons);
 		try (OutputStream os = new FileOutputStream(new File(outputFile));){
@@ -1092,9 +1146,6 @@ private static QLogger logger;
 			e.printStackTrace();
 		}
 	}
-	
-	
-	
 	
 	public static final <P> void updateMap(P p, Map<P, AtomicInteger> map) {
 		AtomicInteger ai = map.get(p);
@@ -1168,6 +1219,10 @@ private static QLogger logger;
 			}
 			
 			xmlFile = options.getXml();
+			if (options.hasMinBinSizeOption()) {
+				this.minBinSize = options.getMinBinSize().intValue();
+			}
+			logger.info("minBinSize is " + minBinSize);
 			
 			
 				return engage();

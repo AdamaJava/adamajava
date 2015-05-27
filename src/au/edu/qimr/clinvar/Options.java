@@ -24,6 +24,7 @@ final class Options {
 	private static final String TAGS_CHAR_OPTION_DESCRIPTION = Messages.getMessage("TAGS_CHAR_OPTION_DESCRIPTION");
 	private static final String MAX_RECORDS_OPTION_DESCRIPTION = Messages.getMessage("MAX_RECORDS_OPTION_DESCRIPTION");
 	private static final String LOG_OPTION_DESCRIPTION = Messages.getMessage("LOG_OPTION_DESCRIPTION");
+	private static final String MIN_BIN_SIZE_OPTION_DESCRIPTION = Messages.getMessage("MIN_BIN_SIZE_OPTION_DESCRIPTION");
 	private static final String LOG_LEVEL_OPTION_DESCRIPTION = Messages.getMessage("LOG_LEVEL_OPTION_DESCRIPTION");
 	private static final String OUTPUT_FILE_DESCRIPTION = Messages.getMessage("OUTPUT_FILE_DESCRIPTION");
 	private static final String INPUT_FILE_DESCRIPTION = Messages.getMessage("INPUT_FILE_DESCRIPTION");
@@ -36,6 +37,7 @@ final class Options {
 	private final String[] fastqs;
 	private final String outputFileName;
 	private final String log;
+	private final Integer minBinSize;
 	private final String xml;
 	private final String logLevel;
 
@@ -49,6 +51,7 @@ final class Options {
 		parser.accepts("xml", INPUT_FILE_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("output", OUTPUT_FILE_DESCRIPTION).withRequiredArg().ofType(String.class);
 //		parser.accepts("exclude", EXCLUDES_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
+		parser.accepts("minBinSize", MIN_BIN_SIZE_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
 		parser.accepts("log", LOG_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("loglevel", LOG_LEVEL_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("fastqs", TAGS_CHAR_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
@@ -61,6 +64,7 @@ final class Options {
 		// logLevel
 		logLevel = (String) options.valueOf("loglevel");
 		
+		minBinSize =  (Integer) options.valueOf("minBinSize");
 		xml = (String) options.valueOf("xml");
 		
 		// inputs
@@ -87,6 +91,9 @@ final class Options {
 	boolean hasHelpOption() {
 		return options.has("help");
 	}
+	boolean hasMinBinSizeOption() {
+		return options.has("minBinSize");
+	}
 	
 	boolean hasNoHtmlOption() {
 		return options.has("nohtml");
@@ -98,6 +105,10 @@ final class Options {
 	
 	boolean hasLogLevelOption() {
 		return options.has("loglevel");
+	}
+	
+	Integer getMinBinSize() {
+		return minBinSize;
 	}
 	
 	String getXml() {

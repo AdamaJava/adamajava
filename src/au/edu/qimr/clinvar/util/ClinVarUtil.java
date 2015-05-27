@@ -4,12 +4,23 @@ import gnu.trove.map.hash.TIntIntHashMap;
 import gnu.trove.procedure.TIntIntProcedure;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.util.ChrPositionUtils;
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.Pair;
+import org.qcmg.common.vcf.VcfRecord;
+
+import au.edu.qimr.clinvar.model.Bin;
+import au.edu.qimr.clinvar.model.Probe;
 
 public class ClinVarUtil {
 	
@@ -184,9 +195,10 @@ public class ClinVarUtil {
 					if (span >0) {
 						// create indel
 						
-						String ref = refSeq.substring(indelStartPos,indelStartPos + span);
-						String alt = binSeq.substring(indelStartPos,indelStartPos + span);
-						mutations.add(new Pair<Integer, String>(indelStartPos, ref +"/" +  alt));
+						int start = Math.max(0, indelStartPos - 1);
+						String ref = refSeq.substring(start, indelStartPos + span);
+						String alt = binSeq.substring(start, indelStartPos + span);
+						mutations.add(new Pair<Integer, String>(indelStartPos - 1, ref.replaceAll("-","") +"/" +  alt.replaceAll("-","")));
 						// reset span
 						span = 0;
 					}
@@ -209,12 +221,295 @@ public class ClinVarUtil {
 			if (span >0) {
 				// create indel
 				
-				String ref = refSeq.substring(indelStartPos,indelStartPos + span);
-				String alt = binSeq.substring(indelStartPos,indelStartPos + span);
-				mutations.add(new Pair<Integer, String>(indelStartPos, ref +"/" +  alt));
+				int start = Math.max(0, indelStartPos - 1);
+				String ref = refSeq.substring(start, indelStartPos + span);
+				String alt = binSeq.substring(start, indelStartPos + span);
+				mutations.add(new Pair<Integer, String>(indelStartPos - 1, ref.replaceAll("-","") +"/" +  alt.replaceAll("-","")));
 			}
 		}
 		return mutations;
+	}
+	
+	public static List<Probe> getAmpliconsOverlappingPosition(ChrPosition cp, Set<Probe> probes) {
+		List<Probe> overlappingProbes = new ArrayList<>();
+		for (Probe p : probes) {
+			if (ChrPositionUtils.isChrPositionContained(p.getCp(), cp)) {
+				overlappingProbes.add(p);
+			}
+		}
+		return overlappingProbes;
+	}
+	
+	/**
+	 * Returns a representation of the supplied position as seen in the supplied amplicon and bins in the following format:
+	 * base,count, ampliconId(total reads in amplicon),binId1(count),binId2(count).....
+	 * @param cp
+	 * @param overlappingProbes
+	 * @param probeBinDist
+	 * @return
+	 */
+	public static String getAmpliconDistribution(VcfRecord vcf, List<Probe> overlappingProbes, Map<Probe, List<Bin>> probeBinDist, int minBinSize) {
+		StringBuilder sb = new StringBuilder();
+		
+		Map<String, List<Pair<Probe, Bin>>> baseDist = new HashMap<>();
+		
+		for (Probe amplicon : overlappingProbes) {
+			
+			List<Bin> bins = probeBinDist.get(amplicon);
+			
+			for (Bin b : bins) {
+				/*
+				 * only deal with bins that have >= minBinSize read in them
+				 */
+				if (b.getRecordCount() >= minBinSize) {
+					String binSeq = getBaseAtPosition(vcf, amplicon, b);
+					if (null != binSeq) {
+						List<Pair<Probe, Bin>> probeBinPair = baseDist.get(binSeq);
+						if (null == probeBinPair) {
+							probeBinPair = new ArrayList<>();
+							baseDist.put(binSeq, probeBinPair);
+						}
+						probeBinPair.add(new Pair<Probe, Bin>(amplicon, b));
+					}
+				}
+			}
+		}
+		
+		
+		// convert map to sb
+		for (Entry<String, List<Pair<Probe, Bin>>> entry : baseDist.entrySet()) {
+			String bases = entry.getKey();
+			List <Pair<Probe, Bin>> probeBinList = entry.getValue();
+			int tally = 0;
+			for (Pair<Probe, Bin> pair : probeBinList) {
+				tally += pair.getRight().getRecordCount();
+			}
+			
+			StringBuilder s = new StringBuilder(bases);
+			s.append(Constants.COMMA);
+			s.append(tally);
+			for (Pair<Probe, Bin> pair : probeBinList) {
+				s.append(Constants.COMMA);
+				s.append(pair.getLeft().getId()).append("/");
+				s.append(pair.getRight().getId()).append("(").append(pair.getRight().getRecordCount()).append(")");
+			}
+			if (sb.length() > 0) {
+				sb.append(Constants.SEMI_COLON);
+			}
+			sb.append(s);
+		}
+		
+		return sb.toString();
+	}
+	
+	public static int getZeroBasedPositionInString(int mutationStartPosition, int binStartPosition) {
+		return mutationStartPosition - binStartPosition;
+	}
+	
+	public static String getBaseAtPosition(VcfRecord vcf, Probe amplicon, Bin bin) {
+		
+		String [] smithWatermanDiffs = bin.getSmithWatermanDiffs();
+		if (null == smithWatermanDiffs) {
+			logger.warn("bin does not contain sw diffs!!! bin: " + bin.getId() + ", probe: " + amplicon.getId() + ", vcf cp: " + vcf.getChrPosition().toIGVString());
+		}
+		String probeRef = amplicon.getReferenceSequence();
+		// remove any indel characters - only checking
+		String swRef = smithWatermanDiffs[0].replace("-", "");
+		int offset = probeRef.indexOf(swRef);
+		
+		if ( offset == -1) {
+			logger.warn("probeRef.indexOf(swRef) == -1!!! probe (id:bin.id: " + amplicon.getId() + ":" + bin.getId() + ") , probe ref: " + probeRef + ", swRef: " + swRef);
+		}
+		
+		
+//		int positionInAmplicon = amplicon.getCp().getPosition() + offset;
+//		int positionInString = vcf.getChrPosition().getPosition() - positionInAmplicon;
+		int length = vcf.getChrPosition().getLength();
+		
+		int positionInString = getZeroBasedPositionInString(vcf.getChrPosition().getPosition(), amplicon.getCp().getPosition() + offset);
+		
+		if (amplicon.getId() == 96) {
+			logger.info("positionInString: " + positionInString +", from offset: " + offset + ", vcf.getChrPosition().getPosition(): " + vcf.getChrPosition().getPosition() +", amplicon.getCp().getPosition(): " + amplicon.getCp().getPosition());
+		}
+		
+		return getMutationString(positionInString, length, smithWatermanDiffs);
+		
+//		int expectedStart = vcf.getChrPosition().getPosition() - positionInAmplicon;
+//		int expectedEnd = vcf.getChrPosition().getEndPosition() - positionInAmplicon + 1;
+//		
+//		if (expectedStart < 0) {
+//			/*
+//			 * This happens when the bin is shorter than (starts after) the amplicon.
+//			 * In this situation, we need to log and return null
+//			 */
+//			logger.info("bin " + bin.getId() + ", in amplicon " + amplicon.getId() + " has an offset of " + offset + ", which means that it starts after the position we are interested in " + vcf.getChrPosition().toIGVString());
+//			return null;
+//		}
+//		
+//		boolean insertion = vcf.getRef().length() < vcf.getAlt().length();
+//		boolean deletion = vcf.getRef().length() > vcf.getAlt().length();
+//		
+//		
+//		int safeExpectedEnd = Math.min(expectedEnd -1, smithWatermanDiffs[1].length());
+//		int additionalOffset = 0;
+//		String swDiffRegion = smithWatermanDiffs[1].substring(0, safeExpectedEnd); 
+//		if (swDiffRegion.contains(" ")) {
+//			
+//			// keep track of number of insertions and deletions
+//			
+//			for (int i = 0 ; i < safeExpectedEnd ; i++) {
+//				char c = swDiffRegion.charAt(i);
+//				if (c == ' ') {
+//					if ('-' == smithWatermanDiffs[0].charAt(i)) {
+//						// insertion
+//						additionalOffset++;
+//					} else if ('-' == smithWatermanDiffs[2].charAt(i)) {
+//						//deleteion
+//						additionalOffset--;
+//					} else {
+//						//!@##$!!! something else-tion
+//						logger.warn("Should have found either an indel at position " + i + " in smithWatermanDiffs[0] or smithWatermanDiffs[2]");
+//					}
+//				}
+//			}
+//			
+//			
+//		} else {
+//			// no additional offset required 
+//		}
+//		
+//		
+//		/*
+//		 *  next get the span of the event
+//		 *  If we have an insertion after the position we are dealing with, get the type and length
+//		 */
+//		int span = 0;
+//		int i = 0;
+//		while (expectedStart + i < smithWatermanDiffs[1].length() && smithWatermanDiffs[1].charAt(expectedStart + i) == ' ') {
+//			if (smithWatermanDiffs[0].charAt(expectedStart + i) == '-') {
+//				span++;
+//			} else if (smithWatermanDiffs[2].charAt(expectedStart + i) == '-') {
+//				span--;
+//			}
+//			i++;
+//		}
+//		
+//		
+//		
+//		if (amplicon.getId() == 96) {
+//			logger.info("amplicon id: " + amplicon.getId() + ", bin id: " + bin.getId());
+//			logger.info("expectedStart: " + expectedStart + ", expectedEnd: " + expectedEnd + ", positionInAmplicon: " + positionInAmplicon + ", offset: " + offset + ", additionalOffset: " + additionalOffset + ", span: " + span);
+//		}
+//		
+//		int seqLength = bin.getLength();
+//		int finalStart = expectedStart + additionalOffset;		
+//		int finalEnd = expectedEnd + additionalOffset + span;		
+//		if (finalEnd > seqLength || finalEnd < 0) {
+//			logger.warn("end position is less than zero or greater than length of string! expectedEnd: " + expectedEnd + ", offset: " + offset + ", additionalOffset: " + additionalOffset + ", finalEnd: " +finalEnd + " seq length: " + seqLength + ", vcf cp: " + vcf.getChrPosition().toIGVString() + ", amplicon cp: " + amplicon.getCp().toIGVString());
+//			for (String s : smithWatermanDiffs) {
+//				logger.info(s);
+//			}
+//		}
+//		if (finalStart < 0 || finalStart > seqLength) {
+//			logger.warn("start position is less than zero or greater than length of string! expectedStart: " + expectedStart + ", offset: " + offset + ", additionalOffset: " + additionalOffset + ", finalStart: " +finalStart + " seq length: " + seqLength + ", vcf cp: " + vcf.getChrPosition().toIGVString() + ", amplicon cp: " + amplicon.getCp().toIGVString());
+//			for (String s : smithWatermanDiffs) {
+//				logger.info(s);
+//			}
+//		}
+//		
+//		String binSeq = bin.getSequence().substring(Math.max(0,finalStart), Math.min(seqLength, finalEnd));
+//		
+//		if (binSeq.length() != vcf.getChrPosition().getLength()) {
+//			logger.warn("length of bin sequence does not equal cp. binseq: " + binSeq + ", vcf cp: " + vcf.getChrPosition().toIGVString());
+//		}
+//		
+//		return binSeq; 
+	}
+	
+	
+	public static String getMutationString(final int positionInString, final int eventLength, String [] smithWatermanDiffs) {
+		
+		int expectedStart = positionInString;
+		int expectedEnd = expectedStart + eventLength;
+		int binSequenceLength = smithWatermanDiffs[2].length();
+		
+		if (expectedStart < 0) {
+			/*
+			 * This happens when the bin is shorter than (starts after) the amplicon.
+			 * In this situation, we need to log and return null
+			 */
+//			logger.info("bin " + bin.getId() + ", in amplicon " + amplicon.getId() + " has an offset of " + offset + ", which means that it starts after the position we are interested in " + vcf.getChrPosition().toIGVString());
+			return null;
+		}
+		if (expectedEnd > binSequenceLength) {
+			logger.warn("Expected end: " + expectedEnd + ", is greater than the length of the bin sequence: " + binSequenceLength);
+			return null;
+		}
+		
+		
+//		int safeExpectedEnd = Math.min(expectedEnd -1, smithWatermanDiffs[1].length());
+		int additionalOffset = 0;
+		String swDiffRegion = smithWatermanDiffs[1].substring(0, expectedStart); 
+		if (swDiffRegion.contains(" ")) {
+			
+			// keep track of number of insertions and deletions
+			
+			for (int i = 0 ; i < expectedStart ; i++) {
+				char c = swDiffRegion.charAt(i);
+				if (c == ' ') {
+					if ('-' == smithWatermanDiffs[0].charAt(i)) {
+						// insertion
+						additionalOffset++;
+					} else if ('-' == smithWatermanDiffs[2].charAt(i)) {
+						//deleteion
+						additionalOffset--;
+					} else {
+						//!@##$!!! something else-tion
+						logger.warn("Should have found either an indel at position " + i + " in smithWatermanDiffs[0] or smithWatermanDiffs[2]");
+					}
+				}
+			}
+		} else {
+			// no additional offset required 
+		}
+		
+		
+		/*
+		 *  next get the span of the event
+		 *  If we have an insertion after the position we are dealing with, get the type and length
+		 */
+		int span = 0;
+		int i = 1;
+		while (expectedStart + i < binSequenceLength && smithWatermanDiffs[1].charAt(expectedStart + i) == ' ') {
+			if (smithWatermanDiffs[0].charAt(expectedStart + i) == '-') {
+				span++;
+			} else if (smithWatermanDiffs[2].charAt(expectedStart + i) == '-') {
+				/*
+				 * only decrement span if we are dealing with a deletion, in which case the event length is > 1
+				 */
+//				if (eventLength > 1) {
+//					span--;
+//				}
+			}
+			i++;
+		}
+		
+		int finalStart = expectedStart + additionalOffset;
+		int finalEnd = expectedEnd + additionalOffset + span;
+		
+		if (finalStart >=finalEnd) {
+			logger.warn("finalStart: " + finalStart + " is greater than finalEnd: " + finalEnd);
+		} else if (finalStart < 0) {
+			logger.warn("finalStart: " + finalStart + " is less than 0");
+		} else if (finalEnd < 0) {
+			logger.warn("finalEnd: " + finalEnd + " is less than 0");
+		} else if (finalEnd > smithWatermanDiffs[1].length()) {
+			logger.warn("finalEnd: " + finalEnd + " is > than smithWatermanDiffs[1].length(): " + smithWatermanDiffs[1].length());
+		} else {
+			return smithWatermanDiffs[2].substring(finalStart, finalEnd).replace("-", "");
+		}
+		
+		return null;
 	}
 	
 	

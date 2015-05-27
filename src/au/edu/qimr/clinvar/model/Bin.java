@@ -19,6 +19,7 @@ public class Bin implements Comparable<Bin> {
 	private final int length;
 	private final int[] counts;
 	private final Map<PosBase, AtomicInteger> diffs = new HashMap<>();
+	private String [] smithWatermanDiffs;
 	
 	public Bin(int id,String sequence, int exactMatches) {
 		this.id = id;
@@ -26,6 +27,13 @@ public class Bin implements Comparable<Bin> {
 		this.length = this.sequence.length();
 		counts = new int[MAX_NUMBER_OF_DIFFERENCES];	
 		counts[0] = exactMatches;
+	}
+	
+	public void setSWDiffs(String [] diffs) {
+		this.smithWatermanDiffs = diffs;
+	}
+	public String [] getSmithWatermanDiffs() {
+		return smithWatermanDiffs;
 	}
 	
 	public void addSequence(String sequenceToAdd) {
@@ -80,7 +88,7 @@ public class Bin implements Comparable<Bin> {
 		}
 	}
 	
-	public int getReadCount() {
+	public int getRecordCount() {
 		int totalCount = 0;
 		for (int i : counts) {
 			if (i > 0) {
@@ -129,7 +137,7 @@ public class Bin implements Comparable<Bin> {
 
 	@Override
 	public int compareTo(Bin b) {
-		return  b.getReadCount() - getReadCount();
+		return  b.getRecordCount() - getRecordCount();
 	}
 
 	public int getId() {

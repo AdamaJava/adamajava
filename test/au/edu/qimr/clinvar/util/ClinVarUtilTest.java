@@ -145,8 +145,8 @@ public class ClinVarUtilTest {
 		List<Pair<Integer, String>> mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
 		assertEquals(1, mutations.size());
 		Pair<Integer, String> p = mutations.get(0);
-		assertEquals(Integer.valueOf(0), p.getLeft());
-		assertEquals("A/-", p.getRight());
+		assertEquals(Integer.valueOf(-1), p.getLeft());
+		assertEquals("A/", p.getRight());
 		
 		swData[0] = "ACGT";
 		swData[1] = "| ||";
@@ -155,8 +155,8 @@ public class ClinVarUtilTest {
 		mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
 		assertEquals(1, mutations.size());
 		p = mutations.get(0);
-		assertEquals(Integer.valueOf(1), p.getLeft());
-		assertEquals("C/-", p.getRight());
+		assertEquals(Integer.valueOf(0), p.getLeft());
+		assertEquals("AC/A", p.getRight());
 		
 		swData[0] = "ACGT";
 		swData[1] = "|| |";
@@ -165,8 +165,8 @@ public class ClinVarUtilTest {
 		mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
 		assertEquals(1, mutations.size());
 		p = mutations.get(0);
-		assertEquals(Integer.valueOf(2), p.getLeft());
-		assertEquals("G/-", p.getRight());
+		assertEquals(Integer.valueOf(1), p.getLeft());
+		assertEquals("CG/C", p.getRight());
 		
 		swData[0] = "ACGT";
 		swData[1] = "||| ";
@@ -175,8 +175,8 @@ public class ClinVarUtilTest {
 		mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
 		assertEquals(1, mutations.size());
 		p = mutations.get(0);
-		assertEquals(Integer.valueOf(3), p.getLeft());
-		assertEquals("T/-", p.getRight());
+		assertEquals(Integer.valueOf(2), p.getLeft());
+		assertEquals("GT/G", p.getRight());
 	}
 	
 	@Test
@@ -189,8 +189,8 @@ public class ClinVarUtilTest {
 		List<Pair<Integer, String>> mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
 		assertEquals(1, mutations.size());
 		Pair<Integer, String> p = mutations.get(0);
-		assertEquals(Integer.valueOf(0), p.getLeft());
-		assertEquals("AC/--", p.getRight());
+		assertEquals(Integer.valueOf(-1), p.getLeft());
+		assertEquals("AC/", p.getRight());
 		
 		swData[0] = "ACGT";
 		swData[1] = "|  |";
@@ -199,8 +199,8 @@ public class ClinVarUtilTest {
 		mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
 		assertEquals(1, mutations.size());
 		p = mutations.get(0);
-		assertEquals(Integer.valueOf(1), p.getLeft());
-		assertEquals("CG/--", p.getRight());
+		assertEquals(Integer.valueOf(0), p.getLeft());
+		assertEquals("ACG/A", p.getRight());
 		
 		swData[0] = "ACGT";
 		swData[1] = "||  ";
@@ -209,8 +209,8 @@ public class ClinVarUtilTest {
 		mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
 		assertEquals(1, mutations.size());
 		p = mutations.get(0);
-		assertEquals(Integer.valueOf(2), p.getLeft());
-		assertEquals("GT/--", p.getRight());
+		assertEquals(Integer.valueOf(1), p.getLeft());
+		assertEquals("CGT/C", p.getRight());
 	}
 	
 	@Test
@@ -223,8 +223,8 @@ public class ClinVarUtilTest {
 		List<Pair<Integer, String>> mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
 		assertEquals(1, mutations.size());
 		Pair<Integer, String> p = mutations.get(0);
-		assertEquals(Integer.valueOf(0), p.getLeft());
-		assertEquals("--/AC", p.getRight());
+		assertEquals(Integer.valueOf(-1), p.getLeft());
+		assertEquals("/AC", p.getRight());
 		
 		swData[0] = "A--T";
 		swData[1] = "|  |";
@@ -233,8 +233,8 @@ public class ClinVarUtilTest {
 		mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
 		assertEquals(1, mutations.size());
 		p = mutations.get(0);
-		assertEquals(Integer.valueOf(1), p.getLeft());
-		assertEquals("--/CG", p.getRight());
+		assertEquals(Integer.valueOf(0), p.getLeft());
+		assertEquals("A/ACG", p.getRight());
 		
 		swData[0] = "AC--";
 		swData[1] = "||  ";
@@ -243,8 +243,8 @@ public class ClinVarUtilTest {
 		mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
 		assertEquals(1, mutations.size());
 		p = mutations.get(0);
-		assertEquals(Integer.valueOf(2), p.getLeft());
-		assertEquals("--/GT", p.getRight());
+		assertEquals(Integer.valueOf(1), p.getLeft());
+		assertEquals("C/CGT", p.getRight());
 	}
 	
 	@Test
@@ -257,12 +257,12 @@ public class ClinVarUtilTest {
 		List<Pair<Integer, String>> mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
 		assertEquals(2, mutations.size());
 		Pair<Integer, String> p = mutations.get(0);
-		assertEquals(Integer.valueOf(0), p.getLeft());
-		assertEquals("--/AC", p.getRight());
+		assertEquals(Integer.valueOf(-1), p.getLeft());
+		assertEquals("/AC", p.getRight());
 		
 		p = mutations.get(1);
-		assertEquals(Integer.valueOf(4), p.getLeft());
-		assertEquals("AC/--", p.getRight());
+		assertEquals(Integer.valueOf(3), p.getLeft());
+		assertEquals("TAC/T", p.getRight());
 	}
 	
 	@Test
@@ -275,8 +275,8 @@ public class ClinVarUtilTest {
 		List<Pair<Integer, String>> mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
 		assertEquals(2, mutations.size());
 		Pair<Integer, String> p = mutations.get(0);
-		assertEquals(Integer.valueOf(0), p.getLeft());
-		assertEquals("--/AC", p.getRight());
+		assertEquals(Integer.valueOf(-1), p.getLeft());
+		assertEquals("/AC", p.getRight());
 		
 		p = mutations.get(1);
 		assertEquals(Integer.valueOf(6), p.getLeft());
@@ -293,8 +293,8 @@ public class ClinVarUtilTest {
 		assertEquals("G/T", p.getRight());
 		
 		p = mutations.get(1);
-		assertEquals(Integer.valueOf(4), p.getLeft());
-		assertEquals("A/-", p.getRight());
+		assertEquals(Integer.valueOf(3), p.getLeft());
+		assertEquals("TA/T", p.getRight());
 	}
 	
 	@Test
@@ -307,8 +307,8 @@ public class ClinVarUtilTest {
 		List<Pair<Integer, String>> mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
 		assertEquals(1, mutations.size());
 		Pair<Integer, String> p = mutations.get(0);
-		assertEquals(Integer.valueOf(0), p.getLeft());
-		assertEquals("-/A", p.getRight());
+		assertEquals(Integer.valueOf(-1), p.getLeft());
+		assertEquals("/A", p.getRight());
 		
 		swData[0] = "A-GT";
 		swData[1] = "| ||";
@@ -317,8 +317,8 @@ public class ClinVarUtilTest {
 		mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
 		assertEquals(1, mutations.size());
 		p = mutations.get(0);
-		assertEquals(Integer.valueOf(1), p.getLeft());
-		assertEquals("-/C", p.getRight());
+		assertEquals(Integer.valueOf(0), p.getLeft());
+		assertEquals("A/AC", p.getRight());
 		
 		swData[0] = "AC-T";
 		swData[1] = "|| |";
@@ -327,8 +327,8 @@ public class ClinVarUtilTest {
 		mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
 		assertEquals(1, mutations.size());
 		p = mutations.get(0);
-		assertEquals(Integer.valueOf(2), p.getLeft());
-		assertEquals("-/G", p.getRight());
+		assertEquals(Integer.valueOf(1), p.getLeft());
+		assertEquals("C/CG", p.getRight());
 		
 		swData[0] = "ACG-";
 		swData[1] = "||| ";
@@ -337,8 +337,8 @@ public class ClinVarUtilTest {
 		mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
 		assertEquals(1, mutations.size());
 		p = mutations.get(0);
-		assertEquals(Integer.valueOf(3), p.getLeft());
-		assertEquals("-/T", p.getRight());
+		assertEquals(Integer.valueOf(2), p.getLeft());
+		assertEquals("G/GT", p.getRight());
 	}
 	
 	
@@ -352,8 +352,8 @@ public class ClinVarUtilTest {
 		List<Pair<Integer, String>> mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
 		assertEquals(1, mutations.size());
 		Pair<Integer, String> p = mutations.get(0);
-		assertEquals(Integer.valueOf(135), p.getLeft());
-		assertEquals("-/A", p.getRight());
+		assertEquals(Integer.valueOf(134), p.getLeft());
+		assertEquals("C/CA", p.getRight());
 	}
 	@Test
 	public void getMutationFromSWDataSingleSmallDeletion() {
@@ -371,8 +371,8 @@ public class ClinVarUtilTest {
 		List<Pair<Integer, String>> mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
 		assertEquals(1, mutations.size());
 		Pair<Integer, String> p = mutations.get(0);
-		assertEquals(Integer.valueOf(93), p.getLeft());
-		assertEquals("T/-", p.getRight());
+		assertEquals(Integer.valueOf(92), p.getLeft());
+		assertEquals("AT/A", p.getRight());
 	}
 	
 	@Test
@@ -393,8 +393,8 @@ public class ClinVarUtilTest {
 		assertEquals(Integer.valueOf(33), p.getLeft());
 		assertEquals("G/A", p.getRight());
 		p = mutations.get(1);
-		assertEquals(Integer.valueOf(139), p.getLeft());
-		assertEquals("CAACAA/------", p.getRight());
+		assertEquals(Integer.valueOf(138), p.getLeft());
+		assertEquals("TCAACAA/T", p.getRight());
 	}
 	
 	@Test
@@ -422,8 +422,8 @@ public class ClinVarUtilTest {
 		assertEquals(Integer.valueOf(145), p.getLeft());
 		assertEquals("A/G", p.getRight());
 		p = mutations.get(3);
-		assertEquals(Integer.valueOf(184), p.getLeft());
-		assertEquals("T/-", p.getRight());
+		assertEquals(Integer.valueOf(183), p.getLeft());
+		assertEquals("AT/A", p.getRight());
 		p = mutations.get(4);
 		assertEquals(Integer.valueOf(190), p.getLeft());
 		assertEquals("T/A", p.getRight());
@@ -536,6 +536,134 @@ n] INFO au.edu.qimr.clinvar.Q3ClinVar - TACAAATAAGGTTCAAGCACTGTATTTAAATATTTAAAAG
 		p = mutations.get(4);
 		assertEquals(Integer.valueOf(20), p.getLeft());
 		assertEquals("T/C", p.getRight());
+	}
+	
+	
+	
+	@Test
+	public void getMutationString() {
+		/*
+		 * - AACCCTGGCTATCATTCTGCTTTTCTTGGCTGTCTTTCAGATTTGACTTTATTTCTAAAAATATTTCAATGGGTCATATCACAGATTCTTTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGATTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCTTAC
+14:41:59.598 [main] INFO au.edu.qimr.clinvar.Q3ClinVar - ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+14:41:59.598 [main] INFO au.edu.qimr.clinvar.Q3ClinVar - AACCCTGGCTATCATTCTGCTTTTCTTGGCTGTCTTTCAGATTTGACTTTATTTCTAAAAATATTTCAATGGGTCATATCACAGATTCTTTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGATTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCTTAC
+
+		 */
+		
+		String [] swDiffs = new String[3];
+		swDiffs[0] = "AACCCTGGCTATCATTCTGCTTTTCTTGGCTGTCTTTCAGATTTGACTTTATTTCTAAAAATATTTCAATGGGTCATATCACAGATTCTTTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGATTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCTTAC";
+		swDiffs[1] = "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||";
+		swDiffs[2] = "AACCCTGGCTATCATTCTGCTTTTCTTGGCTGTCTTTCAGATTTGACTTTATTTCTAAAAATATTTCAATGGGTCATATCACAGATTCTTTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGATTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCTTAC";
+		
+		
+		
+		assertEquals(null, ClinVarUtil.getMutationString(-1, 1, swDiffs));
+		assertEquals(null, ClinVarUtil.getMutationString(0, 0, swDiffs));
+		assertEquals("A", ClinVarUtil.getMutationString(0, 1, swDiffs));
+		assertEquals("A", ClinVarUtil.getMutationString(1, 1, swDiffs));
+		assertEquals("C", ClinVarUtil.getMutationString(2, 1, swDiffs));
+		assertEquals("C", ClinVarUtil.getMutationString(3, 1, swDiffs));
+		
+		
+		swDiffs[0] = "ACAGATTCTTTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGATTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCTTAC";
+		swDiffs[1] = "|||||||| |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||";
+		swDiffs[2] = "ACAGATTC-TTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGATTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCTTAC";
+		
+		assertEquals("C", ClinVarUtil.getMutationString(7, 1, swDiffs));
+		assertEquals("C", ClinVarUtil.getMutationString(7, 2, swDiffs));
+		assertEquals("CT", ClinVarUtil.getMutationString(7, 3, swDiffs));
+//		assertEquals("C-", ClinVarUtil.getMutationString(7, 2, swDiffs));
+//		assertEquals("C-T", ClinVarUtil.getMutationString(7, 3, swDiffs));
+//		 posInAmplicon = 13;	// want position 88
+//		 rec = VcfUtils.createVcfRecord(new ChrPosition("1", 100, 101), "CT");
+//		 assertEquals("C-", ClinVarUtil.getMutationString(rec, posInAmplicon, swDiffs));
+		 
+		 // this data has no mutations - should just get CT back
+		swDiffs[0] = "AACCCTGGCTATCATTCTGCTTTTCTTGGCTGTCTTTCAGATTTGACTTTATTTCTAAAAATATTTCAATGGGTCATATCACAGATTCTTTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGATTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCTTAC";
+		swDiffs[1] = "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||";
+		swDiffs[2] = "AACCCTGGCTATCATTCTGCTTTTCTTGGCTGTCTTTCAGATTTGACTTTATTTCTAAAAATATTTCAATGGGTCATATCACAGATTCTTTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGATTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCTTAC";
+		assertEquals("TTTTCT", ClinVarUtil.getMutationString(20, 6, swDiffs));
+		
+//		assertEquals("CT", ClinVarUtil.getMutationString(rec, posInAmplicon, swDiffs));
+		
+		// insertion
+		swDiffs[0] = "ATTTCTAAAAATATTTCAATGGGTCATATCACAGATTC-TTTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGATTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCTTAC";
+		swDiffs[1] = "|||||||||||||||||||||||||||||||||||||| ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||";
+		swDiffs[2] = "ATTTCTAAAAATATTTCAATGGGTCATATCACAGATTCTTTTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGATTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCTTAC";
+		assertEquals("CT", ClinVarUtil.getMutationString(37, 1, swDiffs));
+		
+		
+		
+		
+
+		/*
+		 * And a single snp
+		 * - AACCCTGGCTATCATTCTGCTTTTCTTGGCTGTCTTTCAGATTTGACTTTATTTCTAAAAATATTTCAATGGGTCATATCACAGATTCTTTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGATTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCTTAC
+09:18:08.023 [main] INFO au.edu.qimr.clinvar.Q3ClinVar - |.||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+09:18:08.023 [main] INFO au.edu.qimr.clinvar.Q3ClinVar - ACCCCTGGCTATCATTCTGCTTTTCTTGGCTGTCTTTCAGATTTGACTTTATTTCTAAAAATATTTCAATGGGTCATATCACAGATTCTTTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGATTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCTTAC
+
+		 */
+		swDiffs[0] = "AACCCTGGCTATCATTCTGCTTTTCTTGGCTGTCTTTCAGATTTGACTTTATTTCTAAAAATATTTCAATGGGTCATATCACAGATTCTTTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGATTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCTTAC";
+		swDiffs[1] = "|.||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||";
+		swDiffs[2] = "ACCCCTGGCTATCATTCTGCTTTTCTTGGCTGTCTTTCAGATTTGACTTTATTTCTAAAAATATTTCAATGGGTCATATCACAGATTCTTTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGATTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCTTAC";
+//		rec = VcfUtils.createVcfRecord(new ChrPosition("1", 100, 100), "A");
+//		posInAmplicon = 99;	// want position 2
+//		assertEquals("C", ClinVarUtil.getMutationString(rec, posInAmplicon, swDiffs));
+		 
+	}
+	
+	@Test
+	public void getPositionInString() {
+		assertEquals(0, ClinVarUtil.getZeroBasedPositionInString(0, 0));
+		assertEquals(0, ClinVarUtil.getZeroBasedPositionInString(1, 1));
+		assertEquals(0, ClinVarUtil.getZeroBasedPositionInString(2, 2));
+		assertEquals(1, ClinVarUtil.getZeroBasedPositionInString(3, 2));
+		
+		
+		assertEquals(1, ClinVarUtil.getZeroBasedPositionInString(41265867, 41265865));
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	@Test
+	public void getMutationFromSWRealLifeData() {
+		/*
+16:06:35.984 [main] INFO au.edu.qimr.clinvar.Q3ClinVar - TAACCCTGGCTATCATTCTGCTTTTCTTGGCTGTCTTTCAGATTTGACTTTATTTCTAAAAATATTTCAATGGGTCATATCACAGATTCTTTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGATTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCTTAC
+16:06:35.984 [main] INFO au.edu.qimr.clinvar.Q3ClinVar - ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||| |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+16:06:35.985 [main] INFO au.edu.qimr.clinvar.Q3ClinVar - TAACCCTGGCTATCATTCTGCTTTTCTTGGCTGTCTTTCAGATTTGACTTTATTTCTAAAAATATTTCAATGGGTCATATCACAGATTC-TTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGATTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCTTAC
+		 */
+		
+		// I have deleted the first 25 bases from each string to make things easier...
+		String [] swData = new String[3];
+		swData[0] = "TAACCCTGGCTATCATTCTGCTTTTCTTGGCTGTCTTTCAGATTTGACTTTATTTCTAAAAATATTTCAATGGGTCATATCACAGATTCTTTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGATTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCTTAC";
+		swData[1] = "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||| |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||";
+		swData[2] = "TAACCCTGGCTATCATTCTGCTTTTCTTGGCTGTCTTTCAGATTTGACTTTATTTCTAAAAATATTTCAATGGGTCATATCACAGATTC-TTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGATTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCTTAC";
+		
+		List<Pair<Integer, String>> mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
+		assertEquals(1, mutations.size());
+//		Pair<Integer, String> p = mutations.get(0);
+//		assertEquals(Integer.valueOf(4), p.getLeft());
+//		assertEquals("G/T", p.getRight());
+//		
+//		p = mutations.get(1);
+//		assertEquals(Integer.valueOf(5), p.getLeft());
+//		assertEquals("G/T", p.getRight());
+//		
+//		p = mutations.get(2);
+//		assertEquals(Integer.valueOf(18), p.getLeft());
+//		assertEquals("A/G", p.getRight());
+//		
+//		p = mutations.get(3);
+//		assertEquals(Integer.valueOf(19), p.getLeft());
+//		assertEquals("C/T", p.getRight());
+//		
+//		p = mutations.get(4);
+//		assertEquals(Integer.valueOf(20), p.getLeft());
+//		assertEquals("T/C", p.getRight());
 	}
 	
 	
