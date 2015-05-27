@@ -619,7 +619,7 @@ n] INFO au.edu.qimr.clinvar.Q3ClinVar - TACAAATAAGGTTCAAGCACTGTATTTAAATATTTAAAAG
 		assertEquals(1, ClinVarUtil.getZeroBasedPositionInString(3, 2));
 		
 		
-		assertEquals(1, ClinVarUtil.getZeroBasedPositionInString(41265867, 41265865));
+		assertEquals(2, ClinVarUtil.getZeroBasedPositionInString(41265867, 41265865));
 	}
 	
 	
