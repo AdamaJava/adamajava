@@ -23,7 +23,12 @@ public class ChrPositionUtils {
 		return true;
 	}
 	
-	
+	/**
+	 * All of ChrPosition b must be within ChrPosition a
+	 * @param a
+	 * @param b
+	 * @return
+	 */
 	public static boolean isChrPositionContained(ChrPosition a, ChrPosition b) {
 		
 		if (doChrPositionsOverlap(a, b)) {
