@@ -476,7 +476,7 @@ private static QLogger logger;
 			header.parseHeaderLine(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + df.format(Calendar.getInstance().getTime()));		
 			header.parseHeaderLine(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + QExec.createUUid());		
 			header.parseHeaderLine(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=q3ClinVar");		
-			header.addFormatLine("BB", ".","String","Breakdown of Bins containing more than 1 read at this position in the following format: Base,NumberOfReadsSupportingBase,AmpliconID-BinID(# of reads in bin),AmpliconID-BinID(# of reads in bin).... "
+			header.addFormatLine("BB", ".","String","Breakdown of Bins containing more than 1 read at this position in the following format: Base,NumberOfReadsSupportingBase,NumberOfAmplicons/NumberOfBins.... "
 					+ "NOTE that only bins with number of reads greater than " + minBinSize + " will be shown here");
 			header.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT);
 			
@@ -498,6 +498,47 @@ private static QLogger logger;
 					logger.warn("Found no amplicons overlapping position: " + vcf.getChrPosition());
 				}
 				String format = ClinVarUtil.getAmpliconDistribution(vcf, overlappingProbes, probeBinDist, minBinSize);
+				List<String> ff = new ArrayList<>();
+				ff.add("BB");
+				ff.add(format);
+				vcf.setFormatFields(ff);
+				
+				writer.add(vcf);
+			}
+		}
+		try (VCFFileWriter writer = new VCFFileWriter(new File(outputFile+".diagnostic.mutations.vcf"))) {
+			
+			/*
+			 * Setup the VcfHeader
+			 */
+			final DateFormat df = new SimpleDateFormat("yyyyMMdd");
+			VcfHeader header = new VcfHeader();
+			header.parseHeaderLine(VcfHeaderUtils.CURRENT_FILE_VERSION);		
+			header.parseHeaderLine(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + df.format(Calendar.getInstance().getTime()));		
+			header.parseHeaderLine(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + QExec.createUUid());		
+			header.parseHeaderLine(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=q3ClinVar");		
+			header.addFormatLine("BB", ".","String","Breakdown of Bins containing more than 1 read at this position in the following format: Base,NumberOfReadsSupportingBase,AmpliconID/BinID(# of reads in bin),AmpliconID/BinID(# of reads in bin).... "
+					+ "NOTE that only bins with number of reads greater than " + minBinSize + " will be shown here");
+			header.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT);
+			
+			Iterator<Record> iter = header.iterator();
+			while (iter.hasNext()) {
+				writer.addHeader(iter.next().toString() );
+			}
+			
+			for (VcfRecord vcf : sortedPositions) {
+				
+				
+				/*
+				 * get amplicons that overlap this position
+				 */
+				List<Probe> overlappingProbes = ClinVarUtil.getAmpliconsOverlappingPosition(vcf.getChrPosition(), probeSet);
+//				logger.info("no of amplicons overlapping position: " + overlappingProbes.size());
+				
+				if (overlappingProbes.isEmpty()) {
+					logger.warn("Found no amplicons overlapping position: " + vcf.getChrPosition());
+				}
+				String format = ClinVarUtil.getAmpliconDistribution(vcf, overlappingProbes, probeBinDist, minBinSize, true);
 				List<String> ff = new ArrayList<>();
 				ff.add("BB");
 				ff.add(format);

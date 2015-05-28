@@ -2,6 +2,8 @@ package au.edu.qimr.clinvar.util;
 
 import gnu.trove.map.hash.TIntIntHashMap;
 import gnu.trove.procedure.TIntIntProcedure;
+import gnu.trove.set.TIntSet;
+import gnu.trove.set.hash.TIntHashSet;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -260,6 +262,9 @@ public class ClinVarUtil {
 	 * @return
 	 */
 	public static String getAmpliconDistribution(VcfRecord vcf, List<Probe> overlappingProbes, Map<Probe, List<Bin>> probeBinDist, int minBinSize) {
+		return getAmpliconDistribution(vcf, overlappingProbes, probeBinDist, minBinSize, false);
+	}
+	public static String getAmpliconDistribution(VcfRecord vcf, List<Probe> overlappingProbes, Map<Probe, List<Bin>> probeBinDist, int minBinSize, boolean diagnosticMode) {
 		StringBuilder sb = new StringBuilder();
 		
 		Map<String, List<Pair<Probe, Bin>>> baseDist = new HashMap<>();
@@ -299,10 +304,23 @@ public class ClinVarUtil {
 			StringBuilder s = new StringBuilder(bases);
 			s.append(Constants.COMMA);
 			s.append(tally);
-			for (Pair<Probe, Bin> pair : probeBinList) {
+			if (diagnosticMode) {
+				for (Pair<Probe, Bin> pair : probeBinList) {
+					s.append(Constants.COMMA);
+					s.append(pair.getLeft().getId()).append("/");
+					s.append(pair.getRight().getId()).append("(").append(pair.getRight().getRecordCount()).append(")");
+				}
+			} else {
+				TIntSet probeSet = new TIntHashSet();
+				TIntSet binSet = new TIntHashSet();
+				
+				for (Pair<Probe, Bin> pair : probeBinList) {
+					probeSet.add(pair.getLeft().getId());
+					binSet.add(pair.getRight().getId());
+				}
 				s.append(Constants.COMMA);
-				s.append(pair.getLeft().getId()).append("/");
-				s.append(pair.getRight().getId()).append("(").append(pair.getRight().getRecordCount()).append(")");
+				s.append(probeSet.size()).append("/").append(binSet.size());
+				
 			}
 			if (sb.length() > 0) {
 				sb.append(Constants.SEMI_COLON);
