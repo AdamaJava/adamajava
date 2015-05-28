@@ -138,15 +138,15 @@ public class ClinVarUtilTest {
 	@Test
 	public void getMutationFromSWDataDel() {
 		String [] swData = new String[3];
-		swData[0] = "ACGT";
-		swData[1] = " |||";
-		swData[2] = "-CGT";
+		swData[0] = "AACGT";
+		swData[1] = "| |||";
+		swData[2] = "A-CGT";
 		
 		List<Pair<Integer, String>> mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
 		assertEquals(1, mutations.size());
 		Pair<Integer, String> p = mutations.get(0);
-		assertEquals(Integer.valueOf(-1), p.getLeft());
-		assertEquals("A/", p.getRight());
+		assertEquals(Integer.valueOf(0), p.getLeft());
+		assertEquals("AA/A", p.getRight());
 		
 		swData[0] = "ACGT";
 		swData[1] = "| ||";
@@ -216,25 +216,28 @@ public class ClinVarUtilTest {
 	@Test
 	public void getMutationFromSWDataMultiBaseIns() {
 		String [] swData = new String[3];
-		swData[0] = "--GT";
-		swData[1] = "  ||";
-		swData[2] = "ACGT";
+		swData[0] = "A--GT";
+		swData[1] = "|  ||";
+		swData[2] = "AACGT";
 		
 		List<Pair<Integer, String>> mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
 		assertEquals(1, mutations.size());
 		Pair<Integer, String> p = mutations.get(0);
-		assertEquals(Integer.valueOf(-1), p.getLeft());
-		assertEquals("/AC", p.getRight());
+		assertEquals(Integer.valueOf(0), p.getLeft());
+		assertEquals("A/AAC", p.getRight());
 		
-		swData[0] = "A--T";
-		swData[1] = "|  |";
-		swData[2] = "ACGT";
+		swData[0] = "A--TAC--A";
+		swData[1] = "|  |||  |";
+		swData[2] = "ACGTACGTA";
 		
 		mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
-		assertEquals(1, mutations.size());
+		assertEquals(2, mutations.size());
 		p = mutations.get(0);
 		assertEquals(Integer.valueOf(0), p.getLeft());
 		assertEquals("A/ACG", p.getRight());
+		p = mutations.get(1);
+		assertEquals(Integer.valueOf(3), p.getLeft());
+		assertEquals("C/CGT", p.getRight());
 		
 		swData[0] = "AC--";
 		swData[1] = "||  ";
@@ -250,36 +253,36 @@ public class ClinVarUtilTest {
 	@Test
 	public void getMutationFromSWDataMultiBaseInsAndDel() {
 		String [] swData = new String[3];
-		swData[0] = "--GTACGT";
-		swData[1] = "  ||  ||";
-		swData[2] = "ACGT--GT";
+		swData[0] = "A--GTACGT";
+		swData[1] = "|  ||  ||";
+		swData[2] = "AACGT--GT";
 		
 		List<Pair<Integer, String>> mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
 		assertEquals(2, mutations.size());
 		Pair<Integer, String> p = mutations.get(0);
-		assertEquals(Integer.valueOf(-1), p.getLeft());
-		assertEquals("/AC", p.getRight());
+		assertEquals(Integer.valueOf(0), p.getLeft());
+		assertEquals("A/AAC", p.getRight());
 		
 		p = mutations.get(1);
-		assertEquals(Integer.valueOf(3), p.getLeft());
+		assertEquals(Integer.valueOf(2), p.getLeft());
 		assertEquals("TAC/T", p.getRight());
 	}
 	
 	@Test
 	public void getMutationFromSWDataMultiBaseIndelAndSnp() {
 		String [] swData = new String[3];
-		swData[0] = "--GTACGT";
-		swData[1] = "  ||||.|";
-		swData[2] = "ACGTACAT";
+		swData[0] = "A--GTACGT";
+		swData[1] = "|  ||||.|";
+		swData[2] = "AACGTACAT";
 		
 		List<Pair<Integer, String>> mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
 		assertEquals(2, mutations.size());
 		Pair<Integer, String> p = mutations.get(0);
-		assertEquals(Integer.valueOf(-1), p.getLeft());
-		assertEquals("/AC", p.getRight());
+		assertEquals(Integer.valueOf(0), p.getLeft());
+		assertEquals("A/AAC", p.getRight());
 		
 		p = mutations.get(1);
-		assertEquals(Integer.valueOf(6), p.getLeft());
+		assertEquals(Integer.valueOf(5), p.getLeft());
 		assertEquals("G/A", p.getRight());
 		
 		swData[0] = "ACGTACGT";
@@ -295,6 +298,31 @@ public class ClinVarUtilTest {
 		p = mutations.get(1);
 		assertEquals(Integer.valueOf(3), p.getLeft());
 		assertEquals("TA/T", p.getRight());
+		
+		
+		swData[0] = "AC-TACGT";
+		swData[1] = "|| |.|||";
+		swData[2] = "ACGTTCGT";
+		
+		mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
+		assertEquals(2, mutations.size());
+		p = mutations.get(0);
+		assertEquals(Integer.valueOf(1), p.getLeft());
+		assertEquals("C/CG", p.getRight());
+		
+		p = mutations.get(1);
+		assertEquals(Integer.valueOf(3), p.getLeft());
+		assertEquals("A/T", p.getRight());
+		
+		swData[0] = "ACGTACGT";
+		swData[1] = "||||.|||";
+		swData[2] = "ACGTTCGT";
+		
+		mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
+		assertEquals(1, mutations.size());
+		p = mutations.get(0);
+		assertEquals(Integer.valueOf(4), p.getLeft());
+		assertEquals("A/T", p.getRight());
 	}
 	
 	@Test
@@ -539,119 +567,45 @@ n] INFO au.edu.qimr.clinvar.Q3ClinVar - TACAAATAAGGTTCAAGCACTGTATTTAAATATTTAAAAG
 	}
 	
 	
-	
 	@Test
-	public void getMutationString() {
+	public void getMutationFromSWDataMultipleSnpAndIndel() {
 		/*
-		 * - AACCCTGGCTATCATTCTGCTTTTCTTGGCTGTCTTTCAGATTTGACTTTATTTCTAAAAATATTTCAATGGGTCATATCACAGATTCTTTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGATTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCTTAC
-14:41:59.598 [main] INFO au.edu.qimr.clinvar.Q3ClinVar - ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-14:41:59.598 [main] INFO au.edu.qimr.clinvar.Q3ClinVar - AACCCTGGCTATCATTCTGCTTTTCTTGGCTGTCTTTCAGATTTGACTTTATTTCTAAAAATATTTCAATGGGTCATATCACAGATTCTTTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGATTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCTTAC
+		 * swData
+ATCCTTATTTGATGAAATATCTGCAGTAGACACCTAT-AAAAAGCAAAATACACAGAATACGAAGTTATATTTTTCACTTGTTTTACACTTAACTGGAAAGCTTCAGAAAATTCATAATCAAAACATATATTTTGGCTAAGGTCTAGAATAACAATTCCAAATATTAATGCTAAGATACTACCGTAAAATGGAGTCGTGACATTTTATTATTCACCTAATTCTCTCTTTAGAGGTAG
+||||||||||||||||||||||||||||||||||||| |||||||||||||||||.||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||.|||||||||||||||||||||||||||||||||||||||||||.|||..||||||||||||.||||||||||||||||||||||||||||||||||||||||
+ATCCTTATTTGATGAAATATCTGCAGTAGACACCTATAAAAAAGCAAAATACACAAAATACGAAGTTATATTTTTCACTTGTTTTACACTTAACTGGAAAGCTTCAGAAAATTCATAATCAAAACATATATTTTTGCTAAGGTCTAGAATAACAATTCCAAATATTAATGCTAAGATAGTACTATAAAATGGAGTCATGACATTTTATTATTCACCTAATTCTCTCTTTAGAGGTAG
 
-		 */
-		
-		String [] swDiffs = new String[3];
-		swDiffs[0] = "AACCCTGGCTATCATTCTGCTTTTCTTGGCTGTCTTTCAGATTTGACTTTATTTCTAAAAATATTTCAATGGGTCATATCACAGATTCTTTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGATTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCTTAC";
-		swDiffs[1] = "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||";
-		swDiffs[2] = "AACCCTGGCTATCATTCTGCTTTTCTTGGCTGTCTTTCAGATTTGACTTTATTTCTAAAAATATTTCAATGGGTCATATCACAGATTCTTTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGATTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCTTAC";
-		
-		
-		
-		assertEquals(null, ClinVarUtil.getMutationString(-1, 1, swDiffs));
-		assertEquals(null, ClinVarUtil.getMutationString(0, 0, swDiffs));
-		assertEquals("A", ClinVarUtil.getMutationString(0, 1, swDiffs));
-		assertEquals("A", ClinVarUtil.getMutationString(1, 1, swDiffs));
-		assertEquals("C", ClinVarUtil.getMutationString(2, 1, swDiffs));
-		assertEquals("C", ClinVarUtil.getMutationString(3, 1, swDiffs));
-		
-		
-		swDiffs[0] = "ACAGATTCTTTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGATTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCTTAC";
-		swDiffs[1] = "|||||||| |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||";
-		swDiffs[2] = "ACAGATTC-TTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGATTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCTTAC";
-		
-		assertEquals("C", ClinVarUtil.getMutationString(7, 1, swDiffs));
-		assertEquals("C", ClinVarUtil.getMutationString(7, 2, swDiffs));
-		assertEquals("CT", ClinVarUtil.getMutationString(7, 3, swDiffs));
-//		assertEquals("C-", ClinVarUtil.getMutationString(7, 2, swDiffs));
-//		assertEquals("C-T", ClinVarUtil.getMutationString(7, 3, swDiffs));
-//		 posInAmplicon = 13;	// want position 88
-//		 rec = VcfUtils.createVcfRecord(new ChrPosition("1", 100, 101), "CT");
-//		 assertEquals("C-", ClinVarUtil.getMutationString(rec, posInAmplicon, swDiffs));
-		 
-		 // this data has no mutations - should just get CT back
-		swDiffs[0] = "AACCCTGGCTATCATTCTGCTTTTCTTGGCTGTCTTTCAGATTTGACTTTATTTCTAAAAATATTTCAATGGGTCATATCACAGATTCTTTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGATTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCTTAC";
-		swDiffs[1] = "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||";
-		swDiffs[2] = "AACCCTGGCTATCATTCTGCTTTTCTTGGCTGTCTTTCAGATTTGACTTTATTTCTAAAAATATTTCAATGGGTCATATCACAGATTCTTTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGATTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCTTAC";
-		assertEquals("TTTTCT", ClinVarUtil.getMutationString(20, 6, swDiffs));
-		
-//		assertEquals("CT", ClinVarUtil.getMutationString(rec, posInAmplicon, swDiffs));
-		
-		// insertion
-		swDiffs[0] = "ATTTCTAAAAATATTTCAATGGGTCATATCACAGATTC-TTTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGATTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCTTAC";
-		swDiffs[1] = "|||||||||||||||||||||||||||||||||||||| ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||";
-		swDiffs[2] = "ATTTCTAAAAATATTTCAATGGGTCATATCACAGATTCTTTTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGATTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCTTAC";
-		assertEquals("CT", ClinVarUtil.getMutationString(37, 1, swDiffs));
-		
-		
-		
-		
+xxData - missing the initial insertion
+ ATCCTTATTTGATGAAATATCTGCAGTAGACACCTATAAAAAGCAAAATACACAGAATACGAAGTTATATTTTTCACTTGTTTTACACTTAACTGGAAAGCTTCAGAAAATTCATAATCAAAACATATATTTTGGCTAAGGTCTAGAATAACAATTCCAAATATTAATGCTAAGATACTACCGTAAAATGGAGTCGTGACATTTTATTATTCACCTAATTCTCTCTTTAGAGGTAG
+||||||||||||||||||||||||||||||||||||||||||||||||||||||.||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||.|||||||||||||||||||||||||||||||||||||||||||.|||..||||||||||||.||||||||||||||||||||||||||||||||||||||||
+ATCCTTATTTGATGAAATATCTGCAGTAGACACCTATAAAAAGCAAAATACACAAAATACGAAGTTATATTTTTCACTTGTTTTACACTTAACTGGAAAGCTTCAGAAAATTCATAATCAAAACATATATTTTTGCTAAGGTCTAGAATAACAATTCCAAATATTAATGCTAAGATAGTACTATAAAATGGAGTCATGACATTTTATTATTCACCTAATTCTCTCTTTAGAGGTAG
 
-		/*
-		 * And a single snp
-		 * - AACCCTGGCTATCATTCTGCTTTTCTTGGCTGTCTTTCAGATTTGACTTTATTTCTAAAAATATTTCAATGGGTCATATCACAGATTCTTTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGATTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCTTAC
-09:18:08.023 [main] INFO au.edu.qimr.clinvar.Q3ClinVar - |.||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-09:18:08.023 [main] INFO au.edu.qimr.clinvar.Q3ClinVar - ACCCCTGGCTATCATTCTGCTTTTCTTGGCTGTCTTTCAGATTTGACTTTATTTCTAAAAATATTTCAATGGGTCATATCACAGATTCTTTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGATTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCTTAC
-
-		 */
-		swDiffs[0] = "AACCCTGGCTATCATTCTGCTTTTCTTGGCTGTCTTTCAGATTTGACTTTATTTCTAAAAATATTTCAATGGGTCATATCACAGATTCTTTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGATTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCTTAC";
-		swDiffs[1] = "|.||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||";
-		swDiffs[2] = "ACCCCTGGCTATCATTCTGCTTTTCTTGGCTGTCTTTCAGATTTGACTTTATTTCTAAAAATATTTCAATGGGTCATATCACAGATTCTTTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGATTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCTTAC";
-//		rec = VcfUtils.createVcfRecord(new ChrPosition("1", 100, 100), "A");
-//		posInAmplicon = 99;	// want position 2
-//		assertEquals("C", ClinVarUtil.getMutationString(rec, posInAmplicon, swDiffs));
-		 
-	}
-	
-	@Test
-	public void getPositionInString() {
-		assertEquals(0, ClinVarUtil.getZeroBasedPositionInString(0, 0));
-		assertEquals(0, ClinVarUtil.getZeroBasedPositionInString(1, 1));
-		assertEquals(0, ClinVarUtil.getZeroBasedPositionInString(2, 2));
-		assertEquals(1, ClinVarUtil.getZeroBasedPositionInString(3, 2));
-		
-		
-		assertEquals(2, ClinVarUtil.getZeroBasedPositionInString(41265867, 41265865));
-	}
-	
-	
-	
-	
-	
-	
-	
-	
-	@Test
-	public void getMutationFromSWRealLifeData() {
-		/*
-16:06:35.984 [main] INFO au.edu.qimr.clinvar.Q3ClinVar - TAACCCTGGCTATCATTCTGCTTTTCTTGGCTGTCTTTCAGATTTGACTTTATTTCTAAAAATATTTCAATGGGTCATATCACAGATTCTTTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGATTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCTTAC
-16:06:35.984 [main] INFO au.edu.qimr.clinvar.Q3ClinVar - ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||| |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-16:06:35.985 [main] INFO au.edu.qimr.clinvar.Q3ClinVar - TAACCCTGGCTATCATTCTGCTTTTCTTGGCTGTCTTTCAGATTTGACTTTATTTCTAAAAATATTTCAATGGGTCATATCACAGATTC-TTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGATTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCTTAC
 		 */
 		
 		// I have deleted the first 25 bases from each string to make things easier...
 		String [] swData = new String[3];
-		swData[0] = "TAACCCTGGCTATCATTCTGCTTTTCTTGGCTGTCTTTCAGATTTGACTTTATTTCTAAAAATATTTCAATGGGTCATATCACAGATTCTTTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGATTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCTTAC";
-		swData[1] = "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||| |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||";
-		swData[2] = "TAACCCTGGCTATCATTCTGCTTTTCTTGGCTGTCTTTCAGATTTGACTTTATTTCTAAAAATATTTCAATGGGTCATATCACAGATTC-TTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGATTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCTTAC";
+		swData[0] = "ATCCTTATTTGATGAAATATCTGCAGTAGACACCTAT-AAAAAGCAAAATACACAGAATACGAAGTTATATTTTTCACTTGTTTTACACTTAACTGGAAAGCTTCAGAAAATTCATAATCAAAACATATATTTTGGCTAAGGTCTAGAATAACAATTCCAAATATTAATGCTAAGATACTACCGTAAAATGGAGTCGTGACATTTTATTATTCACCTAATTCTCTCTTTAGAGGTAG";
+		swData[1] = "||||||||||||||||||||||||||||||||||||| |||||||||||||||||.||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||.|||||||||||||||||||||||||||||||||||||||||||.|||..||||||||||||.||||||||||||||||||||||||||||||||||||||||";
+		swData[2] = "ATCCTTATTTGATGAAATATCTGCAGTAGACACCTATAAAAAAGCAAAATACACAAAATACGAAGTTATATTTTTCACTTGTTTTACACTTAACTGGAAAGCTTCAGAAAATTCATAATCAAAACATATATTTTTGCTAAGGTCTAGAATAACAATTCCAAATATTAATGCTAAGATAGTACTATAAAATGGAGTCATGACATTTTATTATTCACCTAATTCTCTCTTTAGAGGTAG";
+		String [] xxData = new String[3];
+		xxData[0] = "ATCCTTATTTGATGAAATATCTGCAGTAGACACCTATAAAAAGCAAAATACACAGAATACGAAGTTATATTTTTCACTTGTTTTACACTTAACTGGAAAGCTTCAGAAAATTCATAATCAAAACATATATTTTGGCTAAGGTCTAGAATAACAATTCCAAATATTAATGCTAAGATACTACCGTAAAATGGAGTCGTGACATTTTATTATTCACCTAATTCTCTCTTTAGAGGTAG";
+		xxData[1] = "||||||||||||||||||||||||||||||||||||||||||||||||||||||.||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||.|||||||||||||||||||||||||||||||||||||||||||.|||..||||||||||||.||||||||||||||||||||||||||||||||||||||||";
+		xxData[2] = "ATCCTTATTTGATGAAATATCTGCAGTAGACACCTATAAAAAGCAAAATACACAAAATACGAAGTTATATTTTTCACTTGTTTTACACTTAACTGGAAAGCTTCAGAAAATTCATAATCAAAACATATATTTTTGCTAAGGTCTAGAATAACAATTCCAAATATTAATGCTAAGATAGTACTATAAAATGGAGTCATGACATTTTATTATTCACCTAATTCTCTCTTTAGAGGTAG";
 		
 		List<Pair<Integer, String>> mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
-		assertEquals(1, mutations.size());
-//		Pair<Integer, String> p = mutations.get(0);
-//		assertEquals(Integer.valueOf(4), p.getLeft());
-//		assertEquals("G/T", p.getRight());
-//		
-//		p = mutations.get(1);
-//		assertEquals(Integer.valueOf(5), p.getLeft());
-//		assertEquals("G/T", p.getRight());
+		assertEquals(7, mutations.size());
+		List<Pair<Integer, String>> mutations2 = ClinVarUtil.getPositionRefAndAltFromSW(xxData);
+		assertEquals(6, mutations2.size());
+		Pair<Integer, String> p = mutations.get(0);
+		assertEquals(Integer.valueOf(36), p.getLeft());
+		assertEquals("T/TA", p.getRight());
+		
+		p = mutations.get(1);
+		assertEquals(Integer.valueOf(54), p.getLeft());
+		assertEquals("G/A", p.getRight());
+		Pair<Integer, String> p2 = mutations2.get(0);
+		assertEquals(Integer.valueOf(54), p2.getLeft());
+		assertEquals("G/A", p2.getRight());
 //		
 //		p = mutations.get(2);
 //		assertEquals(Integer.valueOf(18), p.getLeft());
@@ -666,46 +620,107 @@ n] INFO au.edu.qimr.clinvar.Q3ClinVar - TACAAATAAGGTTCAAGCACTGTATTTAAATATTTAAAAG
 //		assertEquals("T/C", p.getRight());
 	}
 	
+	@Test
+	public void getMutationString() {
+		/*
+		 * AACCCTGGCTATCATTCTGCTTTTCTTGGCTGTCTTTCAGATTTGACTTTATTTCTAAAAATATTTCAATGGGTCATATCACAGATTCTTTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGATTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCTTAC
+ ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+ AACCCTGGCTATCATTCTGCTTTTCTTGGCTGTCTTTCAGATTTGACTTTATTTCTAAAAATATTTCAATGGGTCATATCACAGATTCTTTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGATTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCTTAC
+
+		 */
+		
+		String [] swDiffs = new String[3];
+		swDiffs[0] = "AACCCTGGCTATCATTCTGCTTTTCTTGGCTGTCTTTCAGATTTGACTTTATTTCTAAAAATATTTCAATGGGTCATATCACAGATTCTTTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGATTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCTTAC";
+		swDiffs[1] = "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||";
+		swDiffs[2] = "AACCCTGGCTATCATTCTGCTTTTCTTGGCTGTCTTTCAGATTTGACTTTATTTCTAAAAATATTTCAATGGGTCATATCACAGATTCTTTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGATTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCTTAC";
+		
+		assertEquals(null, ClinVarUtil.getMutationString(-1, 1, swDiffs));
+		assertEquals(null, ClinVarUtil.getMutationString(0, 0, swDiffs));
+		assertEquals("A", ClinVarUtil.getMutationString(0, 1, swDiffs));
+		assertEquals("A", ClinVarUtil.getMutationString(1, 1, swDiffs));
+		assertEquals("C", ClinVarUtil.getMutationString(2, 1, swDiffs));
+		assertEquals("C", ClinVarUtil.getMutationString(3, 1, swDiffs));
+		
+		swDiffs[0] = "ACAGATTCTTTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGATTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCTTAC";
+		swDiffs[1] = "|||||||| |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||";
+		swDiffs[2] = "ACAGATTC-TTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGATTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCTTAC";
+		
+		assertEquals("C", ClinVarUtil.getMutationString(7, 1, swDiffs));
+		assertEquals("C", ClinVarUtil.getMutationString(7, 2, swDiffs));
+		assertEquals("CT", ClinVarUtil.getMutationString(7, 3, swDiffs));
+		 
+		 // this data has no mutations - should just get CT back
+		swDiffs[0] = "AACCCTGGCTATCATTCTGCTTTTCTTGGCTGTCTTTCAGATTTGACTTTATTTCTAAAAATATTTCAATGGGTCATATCACAGATTCTTTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGATTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCTTAC";
+		swDiffs[1] = "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||";
+		swDiffs[2] = "AACCCTGGCTATCATTCTGCTTTTCTTGGCTGTCTTTCAGATTTGACTTTATTTCTAAAAATATTTCAATGGGTCATATCACAGATTCTTTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGATTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCTTAC";
+		assertEquals("TTTTCT", ClinVarUtil.getMutationString(20, 6, swDiffs));
+		
+		
+		// insertion
+		swDiffs[0] = "ATTTCTAAAAATATTTCAATGGGTCATATCACAGATTC-TTTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGATTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCTTAC";
+		swDiffs[1] = "|||||||||||||||||||||||||||||||||||||| ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||";
+		swDiffs[2] = "ATTTCTAAAAATATTTCAATGGGTCATATCACAGATTCTTTTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGATTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCTTAC";
+		assertEquals("CT", ClinVarUtil.getMutationString(37, 1, swDiffs));
+	}
 	
 	@Test
-	public void doesSlidingMethodWork() {
-//	14:07:58.810 [main] INFO au.edu.qimr.clinvar.util.FastqProbeMatchUtil - probe 784, r2Overlap: CATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAGA, r1OverlapRC: CCATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAG, basicED: 51, led: 2
-//	14:07:58.919 [main] INFO au.edu.qimr.clinvar.util.FastqProbeMatchUtil - probe 784, r2Overlap: CCATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAG, r1OverlapRC: CATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAGA, basicED: 51, led: 2
-//	14:07:58.963 [main] INFO au.edu.qimr.clinvar.util.FastqProbeMatchUtil - probe 784, r2Overlap: ATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAGAC, r1OverlapRC: CATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAGA, basicED: 52, led: 2
-//	14:07:59.105 [main] INFO au.edu.qimr.clinvar.util.FastqProbeMatchUtil - probe 784, r2Overlap: ATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAGAC, r1OverlapRC: CATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAGA, basicED: 52, led: 2
-//	14:07:59.137 [main] INFO au.edu.qimr.clinvar.util.FastqProbeMatchUtil - probe 784, r2Overlap: CATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAGA, r1OverlapRC: CCATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAG, basicED: 51, led: 2
-//	14:07:59.300 [main] INFO au.edu.qimr.clinvar.util.FastqProbeMatchUtil - probe 784, r2Overlap: ATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAGAC, r1OverlapRC: CATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAGA, basicED: 52, led: 2
-//	14:07:59.352 [main] INFO au.edu.qimr.clinvar.util.FastqProbeMatchUtil - probe 784, r2Overlap: CCATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAG, r1OverlapRC: CATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAGA, basicED: 51, led: 2
-//	14:07:59.761 [main] INFO au.edu.qimr.clinvar.util.FastqProbeMatchUtil - probe 784, r2Overlap: ATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAGAC, r1OverlapRC: CATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAGA, basicED: 52, led: 2
-//	14:07:59.812 [main] INFO au.edu.qimr.clinvar.util.FastqProbeMatchUtil - probe 784, r2Overlap: CATTCGTGCAAGTAGGCATAGTCCCGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAGG, r1OverlapRC: CATTCGTTCAAGTAGTCATACTCCCGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAGA, basicED: 4, led: 4
-//	14:07:59.930 [main] INFO au.edu.qimr.clinvar.util.FastqProbeMatchUtil - probe 784, r2Overlap: ATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAGAC, r1OverlapRC: CATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAGA, basicED: 52, led: 2
-//	14:07:59.947 [main] INFO au.edu.qimr.clinvar.util.FastqProbeMatchUtil - probe 784, r2Overlap: ATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAGAC, r1OverlapRC: CATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAGA, basicED: 52, led: 2
+	public void getMutationStringRealLife() {
+		/*
+		 * 	AGGGGAAAAATATGACAAAGAAAGCTATATAAGATATTATTTTATTTTACAGAGTAACAGACTAGCTAGAGACAATGAATTAAGGGAAAATGACAAAGAACAGCTCAAAGCAATTTCTACACGAGATCCTCTCTCTGAAATCACTGAGCAGGAGAAAGATTTTCTATGGAGTCACAGGTAAGTGCTAAAATGGAGATTCTCTGTTTCTTTTTCTTTATTACAGAAAAAATAACTGAATTTGGCTGATCTCAGC
+			||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||.||||||||||||||||||||||| .|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+			AGGGGAAAAATATGACAAAGAAAGCTATATAAGATATTATTTTATTTTACAGAGTAACAGACTAGCTAGAGACAATGAATTAAGGGAAAATGACAAAGAACAGCTCAAAGCAATTTCTACACGAGATCCTCTCTCTGAAATCACTGCGCAGGAGAAAGATTTTCTATGGA-CCACAGGTAAGTGCTAAAATGGAGATTCTCTGTTTCTTTTTCTTTATTACAGAAAAAATAACTGAATTTGGCTGATCTCAGC
+		 */
+		String [] swDiffs = new String[3];
+		swDiffs[0] = "AGGGGAAAAATATGACAAAGAAAGCTATATAAGATATTATTTTATTTTACAGAGTAACAGACTAGCTAGAGACAATGAATTAAGGGAAAATGACAAAGAACAGCTCAAAGCAATTTCTACACGAGATCCTCTCTCTGAAATCACTGAGCAGGAGAAAGATTTTCTATGGAGTCACAGGTAAGTGCTAAAATGGAGATTCTCTGTTTCTTTTTCTTTATTACAGAAAAAATAACTGAATTTGGCTGATCTCAGC";
+		swDiffs[1] = "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||.||||||||||||||||||||||| .|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||";
+		swDiffs[2] = "AGGGGAAAAATATGACAAAGAAAGCTATATAAGATATTATTTTATTTTACAGAGTAACAGACTAGCTAGAGACAATGAATTAAGGGAAAATGACAAAGAACAGCTCAAAGCAATTTCTACACGAGATCCTCTCTCTGAAATCACTGCGCAGGAGAAAGATTTTCTATGGA-CCACAGGTAAGTGCTAAAATGGAGATTCTCTGTTTCTTTTTCTTTATTACAGAAAAAATAACTGAATTTGGCTGATCTCAGC";
+		assertEquals("C", ClinVarUtil.getMutationString(146, 1, swDiffs));
+		assertEquals("A", ClinVarUtil.getMutationString(169, 2, swDiffs));
+		assertEquals("C", ClinVarUtil.getMutationString(171, 1, swDiffs));
+	}
+	
+	@Test
+	public void getMutationStringRealLife2() {
+		/*
+		 * 	AGGGGAAAAATATGACAAAGAAAGCTATATAAGATATTATTTTATTTTACAGAGTAACAGACTAGCTAGAGACAATGAATTAAGGGAAAATGACAAAGAACAGCTCAAAGCAATTTCTACACGAGATCCTCTCTCTGAAATCACTGAGCAGGAGAAAGATTTTCTATGGAGTCACAGGTAAGTGCTAAAATGGAGATTCTCTGTTTCTTTTTCTTTATTACAGAAAAAATAACTGAATTTGGCTGATCTCAGC
+			||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||.||||||||||||||||||||||| .|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+			AGGGGAAAAATATGACAAAGAAAGCTATATAAGATATTATTTTATTTTACAGAGTAACAGACTAGCTAGAGACAATGAATTAAGGGAAAATGACAAAGAACAGCTCAAAGCAATTTCTACACGAGATCCTCTCTCTGAAATCACTGCGCAGGAGAAAGATTTTCTATGGA-CCACAGGTAAGTGCTAAAATGGAGATTCTCTGTTTCTTTTTCTTTATTACAGAAAAAATAACTGAATTTGGCTGATCTCAGC
+		 */
+		String [] swDiffs = new String[3];
+		swDiffs[0] = "AGGGGAAAAATATGACAAAGAAAGCTATATAAGATATTATTTTATTTTACAGAGTAACAGACTAGCTAGAGACAATGAATTAAGGGAAAATGACAAAGAACAGCTCAAAGCAATTTCTACACGAGATCCTCTCTCTGAAATCACTGAGCAGGAGAAAGATTTTCTATGGAGTCACAGGTAAGTGCTAAAATGGAGATTCTCTGTTTCTTTTTCTTTATTACAGAAAAAATAACTGAATTTGGCTGATCTCAGC";
+		swDiffs[1] = "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||.||||||||||||||||||||||| .|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||";
+		swDiffs[2] = "AGGGGAAAAATATGACAAAGAAAGCTATATAAGATATTATTTTATTTTACAGAGTAACAGACTAGCTAGAGACAATGAATTAAGGGAAAATGACAAAGAACAGCTCAAAGCAATTTCTACACGAGATCCTCTCTCTGAAATCACTGCGCAGGAGAAAGATTTTCTATGGA-CCACAGGTAAGTGCTAAAATGGAGATTCTCTGTTTCTTTTTCTTTATTACAGAAAAAATAACTGAATTTGGCTGATCTCAGC";
+		assertEquals("C", ClinVarUtil.getMutationString(146, 1, swDiffs));
+		assertEquals("A", ClinVarUtil.getMutationString(169, 2, swDiffs));
+		assertEquals("C", ClinVarUtil.getMutationString(171, 1, swDiffs));
+	}
+	
+	@Test
+	public void getPositionInString() {
+		assertEquals(0, ClinVarUtil.getZeroBasedPositionInString(0, 0));
+		assertEquals(0, ClinVarUtil.getZeroBasedPositionInString(1, 1));
+		assertEquals(0, ClinVarUtil.getZeroBasedPositionInString(2, 2));
+		assertEquals(1, ClinVarUtil.getZeroBasedPositionInString(3, 2));
 		
+		assertEquals(2, ClinVarUtil.getZeroBasedPositionInString(41265867, 41265865));
+	}
+	
+	@Test
+	public void getMutationFromSWRealLifeData() {
+		/*
+TAACCCTGGCTATCATTCTGCTTTTCTTGGCTGTCTTTCAGATTTGACTTTATTTCTAAAAATATTTCAATGGGTCATATCACAGATTCTTTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGATTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCTTAC
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||| |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+TAACCCTGGCTATCATTCTGCTTTTCTTGGCTGTCTTTCAGATTTGACTTTATTTCTAAAAATATTTCAATGGGTCATATCACAGATTC-TTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGATTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCTTAC
+		 */
 		
-//		System.out.println("no of slides: " + ClinVarUtil.noOfSlidesToGetPerfectMatch("CATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAGA", "CCATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAG"));
-//		System.out.println("no of slides: " + ClinVarUtil.noOfSlidesToGetPerfectMatch("CCATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAG", "CATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAGA"));
-//		System.out.println("no of slides: " + ClinVarUtil.noOfSlidesToGetPerfectMatch("ATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAGAC", "CATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAGA"));
-//		System.out.println("no of slides: " + ClinVarUtil.noOfSlidesToGetPerfectMatch("ATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAGAC", "CATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAGA"));
-//		System.out.println("no of slides: " + ClinVarUtil.noOfSlidesToGetPerfectMatch("CATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAGA", "CCATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAG"));
-//		System.out.println("no of slides: " + ClinVarUtil.noOfSlidesToGetPerfectMatch("ATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAGAC", "CATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAGA"));
-//		System.out.println("no of slides: " + ClinVarUtil.noOfSlidesToGetPerfectMatch("CCATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAG", "CATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAGA"));
-//		System.out.println("no of slides: " + ClinVarUtil.noOfSlidesToGetPerfectMatch("ATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAGAC", "CATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAGA"));
-//		System.out.println("no of slides: " + ClinVarUtil.noOfSlidesToGetPerfectMatch("CATTCGTGCAAGTAGGCATAGTCCCGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAGG", "CATTCGTTCAAGTAGTCATACTCCCGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAGA"));
-//		System.out.println("no of slides: " + ClinVarUtil.noOfSlidesToGetPerfectMatch("ATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAGAC", "CATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAGA"));
-//		System.out.println("no of slides: " + ClinVarUtil.noOfSlidesToGetPerfectMatch("ATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAGAC", "CATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAGA"));
-//		System.out.println("and the new way...");
-//		System.out.println("no of slides NW: " + ClinVarUtil.getOutwardSlideCount("CATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAGA", "CCATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAG"));
-//		System.out.println("no of slidesNW: " + ClinVarUtil.getOutwardSlideCount("CCATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAG", "CATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAGA"));
-//		System.out.println("no of slidesNW: " + ClinVarUtil.getOutwardSlideCount("ATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAGAC", "CATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAGA"));
-//		System.out.println("no of slidesNW: " + ClinVarUtil.getOutwardSlideCount("ATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAGAC", "CATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAGA"));
-//		System.out.println("no of slidesNW: " + ClinVarUtil.getOutwardSlideCount("CATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAGA", "CCATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAG"));
-//		System.out.println("no of slidesNW: " + ClinVarUtil.getOutwardSlideCount("ATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAGAC", "CATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAGA"));
-//		System.out.println("no of slidesNW: " + ClinVarUtil.getOutwardSlideCount("CCATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAG", "CATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAGA"));
-//		System.out.println("no of slidesNW: " + ClinVarUtil.getOutwardSlideCount("ATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAGAC", "CATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAGA"));
-//		System.out.println("no of slidesNW: " + ClinVarUtil.getOutwardSlideCount("CATTCGTGCAAGTAGGCATAGTCCCGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAGG", "CATTCGTTCAAGTAGTCATACTCCCGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAGA"));
-//		System.out.println("no of slidesNW: " + ClinVarUtil.getOutwardSlideCount("ATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAGAC", "CATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAGA"));
-//		System.out.println("no of slidesNW: " + ClinVarUtil.getOutwardSlideCount("ATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAGAC", "CATTCGTTCAAGTAGTCATAGTCCTGGTCTTTGTCTGACTCTGAGGAGTTCAGGGAGCTCAGA"));
+		// I have deleted the first 25 bases from each string to make things easier...
+		String [] swData = new String[3];
+		swData[0] = "TAACCCTGGCTATCATTCTGCTTTTCTTGGCTGTCTTTCAGATTTGACTTTATTTCTAAAAATATTTCAATGGGTCATATCACAGATTCTTTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGATTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCTTAC";
+		swData[1] = "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||| |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||";
+		swData[2] = "TAACCCTGGCTATCATTCTGCTTTTCTTGGCTGTCTTTCAGATTTGACTTTATTTCTAAAAATATTTCAATGGGTCATATCACAGATTC-TTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGATTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCTTAC";
 		
+		List<Pair<Integer, String>> mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
+		assertEquals(1, mutations.size());
 	}
 	
 }

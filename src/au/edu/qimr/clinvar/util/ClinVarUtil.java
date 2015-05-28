@@ -185,20 +185,26 @@ public class ClinVarUtil {
 		String diffs = smithWatermanDiffs[1];
 		String binSeq = smithWatermanDiffs[2];
 		
+		
 		if (null != diffs && ! diffs.isEmpty()) {
-			
+		
+			if (diffs.charAt(0) == ' ') {
+				logger.warn("First char in diffs string is empty string!!!");
+			}
 			int position = 0;
 			int span = 0;
-			int indelStartPos = 0;
+			int indelStartPosDiff = 0;
+			int indelStartPosRef = 0;
+			int insertionBaseCount = 0;
 			for (char c : diffs.toCharArray()) {
 				if (c != ' ') {
 					if (span >0) {
 						// create indel
 						
-						int start = Math.max(0, indelStartPos - 1);
-						String ref = refSeq.substring(start, indelStartPos + span);
-						String alt = binSeq.substring(start, indelStartPos + span);
-						mutations.add(new Pair<Integer, String>(indelStartPos - 1, ref.replaceAll("-","") +"/" +  alt.replaceAll("-","")));
+						int start = Math.max(0, indelStartPosDiff - 1);
+						String ref = refSeq.substring(start, indelStartPosDiff + span);
+						String alt = binSeq.substring(start, indelStartPosDiff + span);
+						mutations.add(new Pair<Integer, String>(indelStartPosRef - 1, ref.replaceAll("-","") +"/" +  alt.replaceAll("-","")));
 						// reset span
 						span = 0;
 					}
@@ -206,25 +212,30 @@ public class ClinVarUtil {
 						// snp
 						char ref = refSeq.charAt(position);
 						char alt = binSeq.charAt(position);
-						mutations.add(new Pair<Integer, String>(position, ref + "/" + alt));
+						mutations.add(new Pair<Integer, String>(position - insertionBaseCount, ref + "/" + alt));
 					}
 					
 				} else {
 					if (span == 0) {
-						indelStartPos = position;
+						indelStartPosRef = position - insertionBaseCount;
+						indelStartPosDiff = position;
 					}
 					span++;
 					// indel
+					// if this is an insertion, update insertionBaseCount
+					if (refSeq.charAt(position) == '-') {
+						insertionBaseCount++;
+					}
 				}
 				position++;
 			}
 			if (span >0) {
 				// create indel
 				
-				int start = Math.max(0, indelStartPos - 1);
-				String ref = refSeq.substring(start, indelStartPos + span);
-				String alt = binSeq.substring(start, indelStartPos + span);
-				mutations.add(new Pair<Integer, String>(indelStartPos - 1, ref.replaceAll("-","") +"/" +  alt.replaceAll("-","")));
+				int start = Math.max(0, indelStartPosDiff - 1);
+				String ref = refSeq.substring(start, indelStartPosDiff + span);
+				String alt = binSeq.substring(start, indelStartPosDiff + span);
+				mutations.add(new Pair<Integer, String>(indelStartPosRef - 1, ref.replaceAll("-","") +"/" +  alt.replaceAll("-","")));
 			}
 		}
 		return mutations;
@@ -321,111 +332,16 @@ public class ClinVarUtil {
 			logger.warn("probeRef.indexOf(swRef) == -1!!! probe (id:bin.id: " + amplicon.getId() + ":" + bin.getId() + ") , probe ref: " + probeRef + ", swRef: " + swRef);
 		}
 		
-		
-//		int positionInAmplicon = amplicon.getCp().getPosition() + offset;
-//		int positionInString = vcf.getChrPosition().getPosition() - positionInAmplicon;
 		int length = vcf.getChrPosition().getLength();
-		
 		int positionInString = getZeroBasedPositionInString(vcf.getChrPosition().getPosition(), amplicon.getCp().getPosition() + offset);
 		
-		if (amplicon.getId() == 96) {
+		if (amplicon.getId() == 241) {
 			logger.info("positionInString: " + positionInString +", from offset: " + offset + ", vcf.getChrPosition().getPosition(): " + vcf.getChrPosition().getPosition() +", amplicon.getCp().getPosition(): " + amplicon.getCp().getPosition());
 		}
 		
 		return getMutationString(positionInString, length, smithWatermanDiffs);
 		
-//		int expectedStart = vcf.getChrPosition().getPosition() - positionInAmplicon;
-//		int expectedEnd = vcf.getChrPosition().getEndPosition() - positionInAmplicon + 1;
-//		
-//		if (expectedStart < 0) {
-//			/*
-//			 * This happens when the bin is shorter than (starts after) the amplicon.
-//			 * In this situation, we need to log and return null
-//			 */
-//			logger.info("bin " + bin.getId() + ", in amplicon " + amplicon.getId() + " has an offset of " + offset + ", which means that it starts after the position we are interested in " + vcf.getChrPosition().toIGVString());
-//			return null;
-//		}
-//		
-//		boolean insertion = vcf.getRef().length() < vcf.getAlt().length();
-//		boolean deletion = vcf.getRef().length() > vcf.getAlt().length();
-//		
-//		
-//		int safeExpectedEnd = Math.min(expectedEnd -1, smithWatermanDiffs[1].length());
-//		int additionalOffset = 0;
-//		String swDiffRegion = smithWatermanDiffs[1].substring(0, safeExpectedEnd); 
-//		if (swDiffRegion.contains(" ")) {
-//			
-//			// keep track of number of insertions and deletions
-//			
-//			for (int i = 0 ; i < safeExpectedEnd ; i++) {
-//				char c = swDiffRegion.charAt(i);
-//				if (c == ' ') {
-//					if ('-' == smithWatermanDiffs[0].charAt(i)) {
-//						// insertion
-//						additionalOffset++;
-//					} else if ('-' == smithWatermanDiffs[2].charAt(i)) {
-//						//deleteion
-//						additionalOffset--;
-//					} else {
-//						//!@##$!!! something else-tion
-//						logger.warn("Should have found either an indel at position " + i + " in smithWatermanDiffs[0] or smithWatermanDiffs[2]");
-//					}
-//				}
-//			}
-//			
-//			
-//		} else {
-//			// no additional offset required 
-//		}
-//		
-//		
-//		/*
-//		 *  next get the span of the event
-//		 *  If we have an insertion after the position we are dealing with, get the type and length
-//		 */
-//		int span = 0;
-//		int i = 0;
-//		while (expectedStart + i < smithWatermanDiffs[1].length() && smithWatermanDiffs[1].charAt(expectedStart + i) == ' ') {
-//			if (smithWatermanDiffs[0].charAt(expectedStart + i) == '-') {
-//				span++;
-//			} else if (smithWatermanDiffs[2].charAt(expectedStart + i) == '-') {
-//				span--;
-//			}
-//			i++;
-//		}
-//		
-//		
-//		
-//		if (amplicon.getId() == 96) {
-//			logger.info("amplicon id: " + amplicon.getId() + ", bin id: " + bin.getId());
-//			logger.info("expectedStart: " + expectedStart + ", expectedEnd: " + expectedEnd + ", positionInAmplicon: " + positionInAmplicon + ", offset: " + offset + ", additionalOffset: " + additionalOffset + ", span: " + span);
-//		}
-//		
-//		int seqLength = bin.getLength();
-//		int finalStart = expectedStart + additionalOffset;		
-//		int finalEnd = expectedEnd + additionalOffset + span;		
-//		if (finalEnd > seqLength || finalEnd < 0) {
-//			logger.warn("end position is less than zero or greater than length of string! expectedEnd: " + expectedEnd + ", offset: " + offset + ", additionalOffset: " + additionalOffset + ", finalEnd: " +finalEnd + " seq length: " + seqLength + ", vcf cp: " + vcf.getChrPosition().toIGVString() + ", amplicon cp: " + amplicon.getCp().toIGVString());
-//			for (String s : smithWatermanDiffs) {
-//				logger.info(s);
-//			}
-//		}
-//		if (finalStart < 0 || finalStart > seqLength) {
-//			logger.warn("start position is less than zero or greater than length of string! expectedStart: " + expectedStart + ", offset: " + offset + ", additionalOffset: " + additionalOffset + ", finalStart: " +finalStart + " seq length: " + seqLength + ", vcf cp: " + vcf.getChrPosition().toIGVString() + ", amplicon cp: " + amplicon.getCp().toIGVString());
-//			for (String s : smithWatermanDiffs) {
-//				logger.info(s);
-//			}
-//		}
-//		
-//		String binSeq = bin.getSequence().substring(Math.max(0,finalStart), Math.min(seqLength, finalEnd));
-//		
-//		if (binSeq.length() != vcf.getChrPosition().getLength()) {
-//			logger.warn("length of bin sequence does not equal cp. binseq: " + binSeq + ", vcf cp: " + vcf.getChrPosition().toIGVString());
-//		}
-//		
-//		return binSeq; 
 	}
-	
 	
 	public static String getMutationString(final int positionInString, final int eventLength, String [] smithWatermanDiffs) {
 		
@@ -436,7 +352,7 @@ public class ClinVarUtil {
 		if (expectedStart < 0) {
 			/*
 			 * This happens when the bin is shorter than (starts after) the amplicon.
-			 * In this situation, we need to log and return null
+			 * In this situation, we need to return null
 			 */
 //			logger.info("bin " + bin.getId() + ", in amplicon " + amplicon.getId() + " has an offset of " + offset + ", which means that it starts after the position we are interested in " + vcf.getChrPosition().toIGVString());
 			return null;
@@ -446,8 +362,6 @@ public class ClinVarUtil {
 			return null;
 		}
 		
-		
-//		int safeExpectedEnd = Math.min(expectedEnd -1, smithWatermanDiffs[1].length());
 		int additionalOffset = 0;
 		String swDiffRegion = smithWatermanDiffs[1].substring(0, expectedStart); 
 		if (swDiffRegion.contains(" ")) {
@@ -460,12 +374,12 @@ public class ClinVarUtil {
 					if ('-' == smithWatermanDiffs[0].charAt(i)) {
 						// insertion
 						additionalOffset++;
-					} else if ('-' == smithWatermanDiffs[2].charAt(i)) {
-						//deleteion
-						additionalOffset--;
-					} else {
-						//!@##$!!! something else-tion
-						logger.warn("Should have found either an indel at position " + i + " in smithWatermanDiffs[0] or smithWatermanDiffs[2]");
+//					} else if ('-' == smithWatermanDiffs[2].charAt(i)) {
+//						//deleteion
+//						additionalOffset--;
+//					} else {
+//						//!@##$!!! something else-tion
+//						logger.warn("Should have found either an indel at position " + i + " in smithWatermanDiffs[0] or smithWatermanDiffs[2]");
 					}
 				}
 			}
@@ -483,13 +397,6 @@ public class ClinVarUtil {
 		while (expectedStart + i < binSequenceLength && smithWatermanDiffs[1].charAt(expectedStart + i) == ' ') {
 			if (smithWatermanDiffs[0].charAt(expectedStart + i) == '-') {
 				span++;
-			} else if (smithWatermanDiffs[2].charAt(expectedStart + i) == '-') {
-				/*
-				 * only decrement span if we are dealing with a deletion, in which case the event length is > 1
-				 */
-//				if (eventLength > 1) {
-//					span--;
-//				}
 			}
 			i++;
 		}
@@ -549,10 +456,6 @@ public class ClinVarUtil {
 				s = s.substring(1);
 				t = t.substring(0, t.length() -1);
 			}
-			
-//			if (Math.abs(noOfSlides) >= initialLength -1) {
-//				logger.info("RHS and LHS slide gave us nothing....");
-//			}
 		}
 		
 		return noOfSlides;

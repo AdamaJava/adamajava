@@ -401,7 +401,7 @@ private static QLogger logger;
 						String [] diffs = nm.traceback();
 						b.setSWDiffs(diffs);
 							
-						if (p.getId() == 96) {
+						if (p.getId() == 241) {
 							logger.info("probe: " + p.getId() + ", forward strand: " + p.isOnForwardStrand() + ", size: " + b.getRecordCount() + ", ref: " + ref + ", binSeq: " + binSeq);
 							for (String s : diffs) {
 								logger.info(s);
