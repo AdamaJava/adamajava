@@ -452,7 +452,27 @@ public class VcfUtils {
 			String chr = null;
 			int startPos = -1;
 			String ref = "";
-			String alt = "";
+			
+			/*
+			 * get largest ref string first
+			 */
+			for (VcfRecord vcf : records) {
+				if (null == chr) {
+					chr = vcf.getChrPosition().getChromosome();
+				}
+				if (chr.equals(vcf.getChrPosition().getChromosome())) {
+					if (-1 == startPos) {
+						startPos = vcf.getChrPosition().getPosition();
+					}
+					if (startPos == vcf.getChrPosition().getPosition()) {
+						if (ref.length() < vcf.getRef().length()) {
+							ref = vcf.getRef();
+						}
+					}
+				}
+			}
+			
+			List<String> altStrings = new ArrayList<>();
 			
 			for (VcfRecord vcf : records) {
 				if (null == chr) {
@@ -465,39 +485,15 @@ public class VcfUtils {
 					}
 					if (startPos == vcf.getChrPosition().getPosition()) {
 						
-						if (ref.length() < vcf.getRef().length()) {
-							ref = vcf.getRef();
-						}
 						
-						if (alt.length() > 0) {
-							alt += ",";
-						}
-						alt += vcf.getAlt();
+						// get alt based on this ref and the largest ref
+						altStrings.add(getUpdateAltString(ref, vcf.getRef(), vcf.getAlt()));
+						
 					}
 				}
 			}
-			if (ref.length() == 0 || alt.length() == 0) {
-				logger.warn("Got zero length ref or alt!!! ref: " + ref + ", alt: " + alt + ", entries in set: " + records.size());
-			}
-			mergeRecord = VcfUtils.createVcfRecord(new ChrPosition(chr, startPos, startPos + ref.length() -1 ), ".", ref, getUpdateAltString(ref,alt));
-		}
-		return mergeRecord;
-	}
-	
-	public static String getUpdateAltString(String ref, String alt) {
-		if (alt.contains(",")) {
 			
 			StringBuilder sb = new StringBuilder();
-			List<String> altStrings = new ArrayList<>();
-			String [] alts = alt.split(",");
-			for (int i = 0 ; i < alts.length ; i++) {
-				String s = alts[i];
-				if (s.length() > 1) {
-					// add last base in ref to this alt string
-					alts[i] = s + ref.charAt(ref.length() -1);
-				}
-				altStrings.add(alts[i]);
-			}
 			Collections.sort(altStrings);
 			for (String s : altStrings) {
 				if (sb.length() > 0) {
@@ -505,10 +501,62 @@ public class VcfUtils {
 				}
 				sb.append(s);
 			}
-			return sb.toString();
+			
+			if (ref.length() == 0) {
+				logger.warn("Got zero length ref!!! ref: " + ref + ", entries in set: " + records.size());
+			}
+			mergeRecord = VcfUtils.createVcfRecord(new ChrPosition(chr, startPos, startPos + ref.length() -1 ), ".", ref, sb.toString());
 		}
-		return null;
+		return mergeRecord;
 	}
+	
+	
+	public static String getUpdateAltString(String newRef, String origRef, String origAlt) {
+		/*
+		 * Perform some checks on input strings
+		 */
+		if (StringUtils.isNullOrEmpty(origRef) || StringUtils.isNullOrEmpty(newRef) || StringUtils.isNullOrEmpty(origAlt)) {
+			throw new IllegalArgumentException("Null or empty string(s) passed to getUpdateAltString, newRef: " + newRef + ", origRef: " + origRef + ", origAlt: " + origAlt);
+		}
+		// newRef should be longer than origRef
+		if (origRef.length() > newRef.length()) {
+			throw new IllegalArgumentException("Orig ref is longer than new ref! newRef: " + newRef + ", origRef: " + origRef + ", origAlt: " + origAlt);
+		}
+		
+		if (newRef.equals(origRef)) {
+			return origAlt;
+		} else {
+			// get extra chars to add onto origAlt
+			String additionalAlt = newRef.substring(origRef.length());
+			return origAlt + additionalAlt;
+		}
+	}
+	
+//	public static String getUpdateAltString(String ref, String alt) {
+//		if (alt.contains(",")) {
+//			
+//			StringBuilder sb = new StringBuilder();
+//			List<String> altStrings = new ArrayList<>();
+//			String [] alts = alt.split(",");
+//			for (int i = 0 ; i < alts.length ; i++) {
+//				String s = alts[i];
+//				if (s.length() > 1) {
+//					// add last base in ref to this alt string
+//					alts[i] = s + ref.charAt(ref.length() -1);
+//				}
+//				altStrings.add(alts[i]);
+//			}
+//			Collections.sort(altStrings);
+//			for (String s : altStrings) {
+//				if (sb.length() > 0) {
+//					sb.append(",");
+//				}
+//				sb.append(s);
+//			}
+//			return sb.toString();
+//		}
+//		return null;
+//	}
 	
 	
 	
