@@ -266,6 +266,62 @@ public class VcfUtilsTest {
 		assertEquals("A,ATT", mergedRecord.getAlt());
 	}
 	
+	@Test
+	public void mergeVcfsRealLife1() {
+		// chr10	89725293	.	CT	C
+		// chr10	89725293	.	CTT	C
+		// chr10	89725293	.	C	CT
+		// chr10	89725293	.	CTTT	C
+		ChrPosition cp = new ChrPosition("10",89725293);
+		VcfRecord vcf2 = VcfUtils.createVcfRecord(cp, ".", "CT", "C");
+		VcfRecord vcf1 = VcfUtils.createVcfRecord(cp, ".", "CTT", "C");
+		VcfRecord vcf3 = VcfUtils.createVcfRecord(cp, ".", "C", "CT");
+		VcfRecord vcf4 = VcfUtils.createVcfRecord(cp, ".", "CTTT", "C");
+		Set<VcfRecord> records = new HashSet<>();
+		records.add(vcf1);
+		records.add(vcf2);
+		records.add(vcf3);
+		records.add(vcf4);
+		VcfRecord mergedRecord = VcfUtils.mergeVcfRecords(records);
+		assertEquals("CTTT", mergedRecord.getRef());
+		assertEquals("C,CT,CTT,CTTTT", mergedRecord.getAlt());
+	}
+	
+	@Test
+	public void updateAltString() {
+		assertEquals("C", VcfUtils.getUpdateAltString("CT", "CT", "C"));
+	}
+	@Test
+	public void updateAltStringRealData() {
+		assertEquals("CTT", VcfUtils.getUpdateAltString("CTTT", "CT", "C"));
+		assertEquals("CT", VcfUtils.getUpdateAltString("CTTT", "CTT", "C"));
+		assertEquals("CTTTT", VcfUtils.getUpdateAltString("CTTT", "C", "CT"));
+		assertEquals("C", VcfUtils.getUpdateAltString("CTTT", "CTTT", "C"));
+		
+		assertEquals("T", VcfUtils.getUpdateAltString("TAAA", "TAAA", "T"));
+		assertEquals("TAA", VcfUtils.getUpdateAltString("TAAA", "TA", "T"));
+		assertEquals("TAAAA", VcfUtils.getUpdateAltString("TAAA", "T", "TA"));
+		
+		assertEquals("A", VcfUtils.getUpdateAltString("ATTTG", "ATTTG", "A"));
+		assertEquals("TTTTG", VcfUtils.getUpdateAltString("ATTTG", "A", "T"));
+		assertEquals("CTTTG", VcfUtils.getUpdateAltString("ATTTG", "A", "C"));
+		
+		/*
+		 * r7	151921032	.	CAT	C	.	.	END=151921034	
+09:52:23.555 [main] INFO au.edu.qimr.clinvar.Q3ClinVar - vcf: chr7	151921032	.	CATTT	C	.	.	END=151921036	
+09:52:23.555 [main] INFO au.edu.qimr.clinvar.Q3ClinVar - vcf: chr7	151921032	.	CATTTG	C	.	.	END=151921037	
+09:52:23.556 [main] INFO au.edu.qimr.clinvar.Q3ClinVar - vcf: chr7	151921032	.	CATTTGT	C	.	.	END=151921038	
+09:52:23.556 [main] INFO au.edu.qimr.clinvar.Q3ClinVar - vcf: chr7	151921032	.	CATT	C	.	.	END=151921035	
+09:52:23.556 [main] INFO au.edu.qimr.clinvar.Q3ClinVar - vcf: chr7	151921032	.	CA	C	.	.	END=151921033	
+		 */
+		assertEquals("CGT", VcfUtils.getUpdateAltString("CATTTGT", "CATTT", "C"));
+		assertEquals("CT", VcfUtils.getUpdateAltString("CATTTGT", "CATTTG", "C"));
+		assertEquals("C", VcfUtils.getUpdateAltString("CATTTGT", "CATTTGT", "C"));
+		assertEquals("CTGT", VcfUtils.getUpdateAltString("CATTTGT", "CATT", "C"));
+		assertEquals("CTTTGT", VcfUtils.getUpdateAltString("CATTTGT", "CA", "C"));
+		assertEquals("CTTGT", VcfUtils.getUpdateAltString("CATTTGT", "CAT", "C"));
+	}
+	
 	
 	
 	@Test
