@@ -500,7 +500,7 @@ private static QLogger logger;
 				String format = ClinVarUtil.getAmpliconDistribution(vcf, overlappingProbes, probeBinDist, minBinSize);
 				List<String> ff = new ArrayList<>();
 				ff.add("BB");
-				ff.add(format);
+				ff.add(ClinVarUtil.getSortedBBString(format, vcf.getRef()));
 				vcf.setFormatFields(ff);
 				
 				writer.add(vcf);
@@ -541,7 +541,7 @@ private static QLogger logger;
 				String format = ClinVarUtil.getAmpliconDistribution(vcf, overlappingProbes, probeBinDist, minBinSize, true);
 				List<String> ff = new ArrayList<>();
 				ff.add("BB");
-				ff.add(format);
+				ff.add(ClinVarUtil.getSortedBBString(format, vcf.getRef()));
 				vcf.setFormatFields(ff);
 				
 				writer.add(vcf);

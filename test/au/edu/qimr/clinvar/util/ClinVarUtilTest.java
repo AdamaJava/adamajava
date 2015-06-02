@@ -11,6 +11,23 @@ import org.qcmg.common.util.Pair;
 public class ClinVarUtilTest {
 	
 	@Test
+	public void doesComparatorWork() {
+		String origBB = "A,471,1/4;C,17,1/1";
+		assertEquals("C,17,1/1;A,471,1/4", ClinVarUtil.getSortedBBString(origBB, "A"));
+		assertEquals(origBB, ClinVarUtil.getSortedBBString(origBB, "C"));
+		assertEquals(origBB, ClinVarUtil.getSortedBBString(origBB, "G"));
+		assertEquals(origBB, ClinVarUtil.getSortedBBString(origBB, "T"));
+		
+	}
+	@Test
+	public void doesComparatorWorkINdel() {
+		//CT	C,CTT	.	.	END=41265954	BB	C,29,96/11579(29);CT,431,96/11790(396),96/11834(18),96/11722(17);CTT,28,96/11736(28)
+		String origBB = "C,29,96/11579(29);CT,431,96/11790(396),96/11834(18),96/11722(17);CTT,28,96/11736(28)";
+		assertEquals("C,29,96/11579(29);CTT,28,96/11736(28);CT,431,96/11790(396),96/11834(18),96/11722(17)", ClinVarUtil.getSortedBBString(origBB, "CT"));
+		
+	}
+	
+	@Test
 	public void basicEditDistance() {
 		assertEquals(0, ClinVarUtil.getBasicEditDistance("hello", "hello"));
 		assertEquals(1, ClinVarUtil.getBasicEditDistance("hello", "hallo"));

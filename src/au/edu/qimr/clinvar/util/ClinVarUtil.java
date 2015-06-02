@@ -6,6 +6,8 @@ import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -253,6 +255,53 @@ public class ClinVarUtil {
 		return overlappingProbes;
 	}
 	
+	
+	public static String getSortedBBString(String bb, String ref) {
+		String [] params = bb.split(";");
+		int length = params.length;
+		if (length == 1) {
+			return bb;
+		}
+		
+		List<String> sizeSortedList = new ArrayList<>();
+		for (String s : params) {
+			String sRef = s.substring(0, s.indexOf(","));
+			if ( ! sRef.equals(ref)) {
+				sizeSortedList.add(s);
+			}
+		}
+		
+		Collections.sort(sizeSortedList, new Comparator<String>(){
+
+			@Override
+			public int compare(String arg0, String arg1) {
+				int arg0Tally = Integer.valueOf(arg0.split(",")[1]);
+				int arg1Tally = Integer.valueOf(arg1.split(",")[1]);
+				return arg1Tally - arg0Tally;
+			}
+			
+		});
+		
+		// now add in the ref
+		for (String s : params) {
+			String sRef = s.substring(0, s.indexOf(","));
+			if (sRef.equals(ref)) {
+				sizeSortedList.add(s);
+			}
+		}
+		
+		//stringify
+		StringBuilder sb = new StringBuilder();
+		for (String s : sizeSortedList) {
+			if (sb.length() > 0) {
+				sb.append(";");
+			}
+			sb.append(s);
+		}
+		
+		return sb.toString();
+	}
+	
 	/**
 	 * Returns a representation of the supplied position as seen in the supplied amplicon and bins in the following format:
 	 * base,count, ampliconId(total reads in amplicon),binId1(count),binId2(count).....
@@ -261,10 +310,13 @@ public class ClinVarUtil {
 	 * @param probeBinDist
 	 * @return
 	 */
-	public static String getAmpliconDistribution(VcfRecord vcf, List<Probe> overlappingProbes, Map<Probe, List<Bin>> probeBinDist, int minBinSize) {
+	public static String getAmpliconDistribution(VcfRecord vcf, List<Probe> overlappingProbes, 
+			Map<Probe, List<Bin>> probeBinDist, int minBinSize) {
 		return getAmpliconDistribution(vcf, overlappingProbes, probeBinDist, minBinSize, false);
 	}
-	public static String getAmpliconDistribution(VcfRecord vcf, List<Probe> overlappingProbes, Map<Probe, List<Bin>> probeBinDist, int minBinSize, boolean diagnosticMode) {
+	
+	public static String getAmpliconDistribution(VcfRecord vcf, List<Probe> overlappingProbes, 
+			Map<Probe, List<Bin>> probeBinDist, int minBinSize, boolean diagnosticMode) {
 		StringBuilder sb = new StringBuilder();
 		
 		Map<String, List<Pair<Probe, Bin>>> baseDist = new HashMap<>();
