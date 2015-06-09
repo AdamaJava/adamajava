@@ -4,6 +4,13 @@ import gnu.trove.map.hash.TIntIntHashMap;
 import gnu.trove.procedure.TIntIntProcedure;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
+import htsjdk.samtools.Cigar;
+import htsjdk.samtools.CigarElement;
+import htsjdk.samtools.CigarOperator;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SAMSequenceDictionary;
+import htsjdk.samtools.SAMSequenceRecord;
+import htsjdk.samtools.SAMTag;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -177,6 +184,26 @@ public class ClinVarUtil {
 //	}
 	
 	
+	public static Cigar getCigarFromSWDiffs(String  [] smithWatermanDiffs, String refSeq) {
+		
+		if (smithWatermanDiffs[1].contains(" ")) {
+
+			
+			
+			
+			
+		} else {
+			// if we don't have any indels - easy
+			CigarElement ce = new CigarElement(smithWatermanDiffs[1].length(), CigarOperator.MATCH_OR_MISMATCH);
+			List<CigarElement> ces = new ArrayList<>();
+			ces.add(ce);
+			return new Cigar(ces);
+		}
+		
+		return null;
+	}
+	
+	
 	/**
 	 * 
 	 * @param smithWatermanDiffs
@@ -254,6 +281,97 @@ public class ClinVarUtil {
 		}
 		return overlappingProbes;
 	}
+	
+	public static SAMSequenceDictionary getSequenceDictionaryFromProbes(List<Probe> probes) {
+		
+		SAMSequenceDictionary dict = new SAMSequenceDictionary();
+		
+		for (Probe p : probes) {
+			String chr = p.getCp().getChromosome();
+			int len = p.getCp().getEndPosition();
+			
+			SAMSequenceRecord ssr = dict.getSequence(chr);
+			if (null == ssr) {
+				ssr = new SAMSequenceRecord(chr, len);
+				dict.addSequence(ssr);
+			} else {
+				// check to see if length is already greater than this length
+				if (ssr.getSequenceLength() < len) {
+					ssr.setSequenceLength(len);
+				}
+			}
+		}
+		
+		return dict;
+	}
+	
+	
+	public static void calculateMdAndNmTags(final SAMRecord record, final byte[] ref, final boolean calcMD, final boolean calcNM) {
+		if (!calcMD && !calcNM)
+		return;
+		
+		final Cigar cigar = record.getCigar();
+		final List<CigarElement> cigarElements = cigar.getCigarElements();
+		final byte[] seq = record.getReadBases();
+		final int start = record.getAlignmentStart() - 1;
+		int i, x, y, u = 0;
+		int nm = 0;
+		final StringBuilder str = new StringBuilder();
+		
+		final int size = cigarElements.size();
+		for (i = y = 0, x = start; i < size; ++i) {
+			final CigarElement ce = cigarElements.get(i);
+			int j;
+			final int length = ce.getLength();
+			final CigarOperator op = ce.getOperator();
+			if (op == CigarOperator.MATCH_OR_MISMATCH || op == CigarOperator.EQ || op == CigarOperator.X) {
+				for (j = 0; j < length; ++j) {
+					final int z = y + j;
+					
+					if (ref.length <= x + j) break; // out of boundary
+					
+					int c1 = 0;
+					int c2 = 0;
+					// try {
+					c1 = seq[z];
+					c2 = ref[x + j];
+					
+					if ((c1 == c2) || c1 == 0) {
+						// a match
+						++u;
+					} else {
+						str.append(u);
+						str.appendCodePoint(ref[x + j]);
+						u = 0;
+						++nm;
+					}
+				}
+				if (j < length) break;
+				x += length;
+				y += length;
+			} else if (op == CigarOperator.DELETION) {
+				str.append(u);
+				str.append('^');
+				for (j = 0; j < length; ++j) {
+				if (ref[x + j] == 0) break;
+				str.appendCodePoint(ref[x + j]);
+				}
+				u = 0;
+				if (j < length) break;
+				x += length;
+				nm += length;
+			} else if (op == CigarOperator.INSERTION || op == CigarOperator.SOFT_CLIP) {
+				y += length;
+				if (op == CigarOperator.INSERTION) nm += length;
+			} else if (op == CigarOperator.SKIPPED_REGION) {
+				x += length;
+			}
+		}
+		str.append(u);
+		
+		if (calcMD) record.setAttribute(SAMTag.MD.name(), str.toString());
+		if (calcNM) record.setAttribute(SAMTag.NM.name(), nm);
+}
 	
 	
 	public static String getSortedBBString(String bb, String ref) {
@@ -445,7 +563,7 @@ public class ClinVarUtil {
 						// insertion
 						additionalOffset++;
 //					} else if ('-' == smithWatermanDiffs[2].charAt(i)) {
-//						//deleteion
+//						//deletion
 //						additionalOffset--;
 //					} else {
 //						//!@##$!!! something else-tion

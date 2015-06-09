@@ -1,6 +1,7 @@
 package au.edu.qimr.clinvar.model;
 
-import net.sf.picard.fastq.FastqRecord;
+import htsjdk.samtools.fastq.FastqRecord;
+
 
 public class FastqProbeMatch {
 

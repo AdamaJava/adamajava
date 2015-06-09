@@ -2,13 +2,80 @@ package au.edu.qimr.clinvar.util;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import htsjdk.samtools.Cigar;
+import htsjdk.samtools.CigarElement;
+import htsjdk.samtools.CigarOperator;
+import htsjdk.samtools.SAMRecord;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Test;
 import org.qcmg.common.util.Pair;
 
 public class ClinVarUtilTest {
+	
+	@Test
+	public void addMDAndNMTags() {
+		SAMRecord rec = new SAMRecord(null);
+		rec.setAlignmentStart(1);
+		rec.setReferenceName("chr1");
+		CigarElement ce = new CigarElement(225, CigarOperator.MATCH_OR_MISMATCH);
+		List<CigarElement> ces = new ArrayList<>();
+		ces.add(ce);
+		rec.setCigar(new Cigar(ces));
+		rec.setReadString("TGGGGGTCTGAGTGATGGGGTCCAGGAATACATTTAGGTCCAATGGCAAGCTGGCTGAAATTCTTGTATAATAAAATAGGTTGGTAATATGGCTCTTCTCAGACATGTGATCAAGATTCCTTGACTAACAAGATATATATATATATCTTTCTAGCTCATCATACTGGCTAGTGGTGGACCCCAAGCTTTAGTAAATATAATGAGGACCTATACTTACGAAAAACT");
+		rec.setReadName("1_1_1");
+		ClinVarUtil.calculateMdAndNmTags(rec, "TGGGGGTCTGAGTGATGGGGTCCAGGAATACATTTAGGTCCAATGGCAAGCTGGCTGAAATTCTTGTATAATAAAATAGGTTGGTAATATGGCTCTTCTCAGACATGTGATCAAGATTCCTTGACTAACAAGATATATATATATATCTTTCTAGCTCATCATACTGGCTAGTGGTGGACCCCAAGCTTTAGTAAATATAATGAGGACCTATACTTACGAAAAACT".getBytes(), true, true);
+		rec.setAlignmentStart(100);
+		
+		assertEquals("225", rec.getAttribute("MD"));
+		
+		ce = new CigarElement(230, CigarOperator.MATCH_OR_MISMATCH);
+		ces = new ArrayList<>();
+		ces.add(ce);
+		rec.setCigar(new Cigar(ces));
+		rec.setReadString("CCAAGCACCTCAGGGGAACAGGCTCCTCCCGCCGCGGGAGTCCGACCGTCCTCGACCTGCGGTGGCGGCTCGGCGGGGACTGAAGCTGCTCCTCAGACCTTCCTCCGTCTCCGCCTCCCCTCGCTCTCCGCTCCCGGGGCCGGGCCAACGCTGCTGCCACAGACCGAGAGGCTTAAAATGGCGCCGCACAAGGAGCTCTTATAAGTCGCGCAGAAGCCGCTGTATCCTGC");
+		rec.setReadName("1_1_1");
+		rec.setAlignmentStart(1);
+		ClinVarUtil.calculateMdAndNmTags(rec, "CCAAGCACCTCAGGGGAACAGGCTCCTCCCGCCGCGGGAGTCCGACCGTCCTCGACCTGCGGTGGCGGCTCGGCGGGGACTGAAGCTGCTCCTCAGACCTTCCTCCGTCTCCGCCTCCCCTCGCTCTCCGCTCCCGGGGCCGGGCCAACGCTGCTGCCACAGACCGAGAGGCTTAAAATGGCGCCGCACAAGGAGCTCTTATAAGTCGCGCAGAAGCCGCTGTATCCTGC".getBytes(), true, true);
+		rec.setAlignmentStart(100);
+		
+		assertEquals("230", rec.getAttribute("MD"));
+		
+		ces = new ArrayList<>();
+		CigarElement indel = new CigarElement(1, CigarOperator.SOFT_CLIP);
+		ce = new CigarElement(226, CigarOperator.MATCH_OR_MISMATCH);
+		ces.add(indel);
+		ces.add(ce);
+		rec.setCigar(new Cigar(ces));
+		rec.setReadString("GAGAATCATCTGGATTATAGACCAGTGGCACTGTTGTTTCACAAGATGATGTTTGAAACTATTCCAATGTTCAGTGGCGGAACTTGCAGTAAGTGCTTGAAATTCTCATCCTTCCATGTATTGGAACAGTTTTCTTAACCATATCTAGAAGTTTACATAAAAATTTAGAAAGAAATTTACCACATTTGAAATTTATGCAGGAGACTATATTTCTGAAGCATTTGAAC");
+		rec.setReadName("1_1_1");
+		rec.setAlignmentStart(1);
+		ClinVarUtil.calculateMdAndNmTags(rec, "AGAATCATCTGGATTATAGACCAGTGGCACTGTTGTTTCACAAGATGATGTTTGAAACTATTCCAATGTTCAGTGGCGGAACTTGCAGTAAGTGCTTGAAATTCTCATCCTTCCATGTATTGGAACAGTTTTCTTAACCATATCTAGAAGTTTACATAAAAATTTAGAAAGAAATTTACCACATTTGAAATTTATGCAGGAGACTATATTTCTGAAGCATTTGAAC".getBytes(), true, true);
+		rec.setAlignmentStart(100);
+		
+		assertEquals("226", rec.getAttribute("MD"));
+		
+		/*
+		 * 56M1I171M
+		 */
+		ces = new ArrayList<>();
+		ce = new CigarElement(56, CigarOperator.MATCH_OR_MISMATCH);
+		indel = new CigarElement(1, CigarOperator.INSERTION);
+		CigarElement match = new CigarElement(170, CigarOperator.MATCH_OR_MISMATCH);
+		ces.add(ce);
+		ces.add(indel);
+		ces.add(match);
+		rec.setCigar(new Cigar(ces));
+		rec.setReadString("TTATCAAGAGGGATAAAACACCATGAAAATAAACTTGAATAAACTGAAAATGGACCTTTTTTTTTTTTAATGGCAATAGGACATTGTGTCAGATTACCAGTTATAGGAACAATTCTCTTTTCCTGACCAATCTTGTTTTACCCTATACATCCACAGGGTTTTGACACTTGTTGTCCAGTTGAAAAAAGGTTGTGTAGCTGTGTCATGTATATACCTTTTTGTGTCAA");
+		rec.setReadName("1_1_1");
+		rec.setAlignmentStart(1);
+		ClinVarUtil.calculateMdAndNmTags(rec, "TTATCAAGAGGGATAAAACACCATGAAAATAAACTTGAATAAACTGAAAATGGACCTTTTTTTTTTTAATGGCAATAGGACATTGTGTCAGATTACCAGTTATAGGAACAATTCTCTTTTCCTGACCAATCTTGTTTTACCCTATACATCCACAGGGTTTTGACACTTGTTGTCCAGTTGAAAAAAGGTTGTGTAGCTGTGTCATGTATATACCTTTTTGTGTCAA".getBytes(), true, true);
+		rec.setAlignmentStart(100);
+		
+		assertEquals("226", rec.getAttribute("MD"));
+	}
 	
 	@Test
 	public void doesComparatorWork() {
@@ -50,7 +117,7 @@ public class ClinVarUtilTest {
 		
 		assertArrayEquals(new int[]{3,2}, ClinVarUtil.getBasicAndLevenshteinEditDistances("AACCGGTT", "ACCGGTTT"));
 		
-		assertArrayEquals(new int[]{3,2}, ClinVarUtil.getBasicAndLevenshteinEditDistances("grog", "gog "));
+		assertArrayEquals(new int[]{3,2}, ClinVarUtil.getBasicAndLevenshteinEditDistances("frog", "fog "));
 		
 		assertArrayEquals(new int[]{13,12}, ClinVarUtil.getBasicAndLevenshteinEditDistances("GCCCCGTGCCCCAGCCCTGCGCCCCTTCCTC", "GCCCTGCGCCCCTTCCTCTCCCGTCGTCACC"));
 	}
@@ -384,6 +451,27 @@ public class ClinVarUtilTest {
 		p = mutations.get(0);
 		assertEquals(Integer.valueOf(2), p.getLeft());
 		assertEquals("G/GT", p.getRight());
+	}
+	
+	@Test
+	public void areDeletionPositionsAccurate() {
+		/*
+		 * TAACCCTGGCTATCATTCTGCTTTTCTTGGCTGTCTTTCAGATTTGACTTTATTTCTAAAAATATTTCAATGGGTCATATCACAGATTCTTTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGATTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCTTAC
+||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||| |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+TAACCCTGGCTATCATTCTGCTTTTCTTGGCTGTCTTTCAGATTTGACTTTATTTCTAAAAATATTTCAATGGGTCATATCACAGATTC-TTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGATTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCTTAC
+
+		* expecting a single deletion at position 89
+		 */
+		String [] swData = new String[3];
+		swData[0] = "TAACCCTGGCTATCATTCTGCTTTTCTTGGCTGTCTTTCAGATTTGACTTTATTTCTAAAAATATTTCAATGGGTCATATCACAGATTCTTTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGATTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCTTAC";
+		swData[1] = "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||| |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||";
+		swData[2] = "TAACCCTGGCTATCATTCTGCTTTTCTTGGCTGTCTTTCAGATTTGACTTTATTTCTAAAAATATTTCAATGGGTCATATCACAGATTC-TTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGATTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCTTAC";
+		
+		List<Pair<Integer, String>> mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
+		assertEquals(1, mutations.size());
+		Pair<Integer, String> p = mutations.get(0);
+		assertEquals(Integer.valueOf(88), p.getLeft());
+		assertEquals("CT/C", p.getRight());
 	}
 	
 	

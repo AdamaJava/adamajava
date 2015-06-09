@@ -1,5 +1,17 @@
 package au.edu.qimr.clinvar;
 
+import htsjdk.samtools.Cigar;
+import htsjdk.samtools.CigarElement;
+import htsjdk.samtools.CigarOperator;
+import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SAMFileHeader.SortOrder;
+import htsjdk.samtools.SAMFileWriter;
+import htsjdk.samtools.SAMFileWriterFactory;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.fastq.FastqReader;
+import htsjdk.samtools.fastq.FastqRecord;
+import htsjdk.samtools.util.SequenceUtil;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
@@ -10,6 +22,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -20,9 +33,6 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import net.sf.picard.fastq.FastqReader;
-import net.sf.picard.fastq.FastqRecord;
-import net.sf.samtools.util.SequenceUtil;
 import nu.xom.Attribute;
 import nu.xom.Builder;
 import nu.xom.Document;
@@ -286,6 +296,8 @@ private static QLogger logger;
 			
 			writeDiagnosticOutput();
 			
+			writeBam();
+			
 //			writeOutput();
 		} finally {
 		}
@@ -368,15 +380,300 @@ private static QLogger logger;
 			writer.flush();
 			}
 		}
-		
+	}
 	
+	private void addSAMRecordToWriter(SAMFileHeader header, SAMFileWriter writer, Cigar cigar, int probeId, int binId, int binSize, String referenceSeq, String chr, int position, int offset, String binSeq) {
+		/*
+		 * Setup some common properties on the sam record
+		 */
+		for (int i = 0 ; i < binSize ; i++) {
+			SAMRecord rec = new SAMRecord(header);
+			rec.setReferenceName(chr);
+			rec.setReadString(binSeq);
+			rec.setAttribute("ai", probeId);
+			rec.setAttribute("bi", binId);
+			rec.setMappingQuality(60);
+			rec.setCigar(cigar);
+			/*
+			 * Set the alignemnt start to 1, which is a hack to get around picards calculateMdAndNmTags method which is expecting the entire ref for the chromosome in question
+			 * and we only have the amplicon ref seq.
+			 * Reset once MD and NM have been calculated and set
+			 */
+			rec.setAlignmentStart(1);
+			SequenceUtil.calculateMdAndNmTags(rec, referenceSeq.substring(offset).getBytes(), true, true);
+			rec.setAlignmentStart(position + offset);
+		
+			rec.setReadName(probeId + "_" + binId + "_" + (i + 1) + "_of_" + binSize);
+			writer.addAlignment(rec);
+		}
+		
+	}
+	
+	private void writeBam() throws IOException {
+		
+		List<Probe> coordSortedProbes = new ArrayList<>(probeSet);
+		Collections.sort(coordSortedProbes, new Comparator<Probe>() {
+			@Override
+			public int compare(Probe o1, Probe o2) {
+				return o1.getCp().compareTo(o2.getCp());
+			}
+		});
 		
 		
+		File bamFile = new File(outputFile+".bam");
+		SAMFileHeader header = new SAMFileHeader();
+		header.setSequenceDictionary(ClinVarUtil.getSequenceDictionaryFromProbes(coordSortedProbes));
+		header.setSortOrder(SortOrder.coordinate);
+		SAMFileWriterFactory.setDefaultCreateIndexWhileWriting(true);
+		SAMFileWriterFactory factory = new SAMFileWriterFactory();
+		factory.setCreateIndex(true);
+		SAMFileWriter writer = factory.makeSAMOrBAMWriter(header, false, bamFile);
+		
+		long recordCount = 0;
+		int indelCount = 0;
+		int indelSameLength = 0;
+		int indelDiffLength = 0;
+		int sameSize = 0, diffSize = 0, noDiffInFirs20 = 0;
+		try {
+
+			/*
+			 * loop through probes
+			 * output bins of size greater than minBinSize 
+			 */
+			for (Probe p : coordSortedProbes) {
+				int probeId = p.getId();
+				boolean forwardStrand = p.isOnForwardStrand();
+				List<Bin> bins = probeBinDist.get(p);
+				if (null != bins) {
+					for (Bin b : bins) {
+						int binId = b.getId();
+						recordCount += b.getRecordCount();
+						
+						String binSeq = forwardStrand ? SequenceUtil.reverseComplement(b.getSequence()) : b.getSequence() ;
+						
+						/*
+						 * Just print ones that match the ref for now - makes ceegar easier..
+						 */
+						int offset = p.getReferenceSequence().indexOf(binSeq);
+						if (offset != -1) {
+							
+							CigarElement ce = new CigarElement(b.getLength(), CigarOperator.MATCH_OR_MISMATCH);
+							List<CigarElement> ces = new ArrayList<>();
+							ces.add(ce);
+							
+							addSAMRecordToWriter(header, writer, new Cigar(ces), probeId, binId,  b.getRecordCount(), p.getReferenceSequence(), p.getCp().getChromosome(), p.getCp().getPosition(), offset, binSeq);
+							
+						} else {
+							
+							String [] swDiffs = b.getSmithWatermanDiffs();
+							
+							if (null != swDiffs) {
+								if ( ! swDiffs[1].contains(" ")) {
+									if (swDiffs[1].length() == p.getReferenceSequence().length()) {
+										// just snps and same length
+										CigarElement ce = new CigarElement(b.getLength(), CigarOperator.MATCH_OR_MISMATCH);
+										List<CigarElement> ces = new ArrayList<>();
+										ces.add(ce);
+										
+										addSAMRecordToWriter(header, writer, new Cigar(ces), probeId, binId,  b.getRecordCount(), p.getReferenceSequence(), p.getCp().getChromosome(), p.getCp().getPosition(), 0, binSeq);
+									} else {
+										CigarElement ce = new CigarElement(b.getLength(), CigarOperator.MATCH_OR_MISMATCH);
+										List<CigarElement> ces = new ArrayList<>();
+										ces.add(ce);
+										
+										addSAMRecordToWriter(header, writer, new Cigar(ces), probeId, binId,  b.getRecordCount(), p.getReferenceSequence(), p.getCp().getChromosome(), p.getCp().getPosition(), 0, binSeq);
+//										List<CigarElement> ces = new ArrayList<>();
+//										// add in some soft-clipping
+//										
+//										int initialOffset = binSeq.indexOf(swDiffs[2]);
+//										if (initialOffset > 0) {
+//											CigarElement sc = new CigarElement(initialOffset, CigarOperator.SOFT_CLIP);
+//											ces.add(sc);
+//										}
+//										int finalOffset = p.getReferenceSequence().length() - (initialOffset + swDiffs[1].length());
+//										
+//										CigarElement match = new CigarElement(b.getLength() - initialOffset - finalOffset, CigarOperator.MATCH_OR_MISMATCH);
+//										ces.add(match);
+//										
+//										if (finalOffset > 0) {
+//											CigarElement sc = new CigarElement(finalOffset, CigarOperator.SOFT_CLIP);
+//											ces.add(sc);
+//										}
+//										
+//										addSAMRecordToWriter(header, writer, new Cigar(ces), probeId, binId,  b.getRecordCount(), p.getReferenceSequence().substring(initialOffset), p.getCp().getChromosome(), p.getCp().getPosition(), 0, binSeq);
+									}
+								} else {
+									if (swDiffs[0].replaceAll("-","").length() == p.getReferenceSequence().length()) {
+										indelSameLength++;
+										
+										
+										List<CigarElement> ces = new ArrayList<>();
+//										// get mutations
+										List<Pair<Integer, String>> mutations = ClinVarUtil.getPositionRefAndAltFromSW(swDiffs);
+										
+										
+										
+										int lastPosition = 0;
+										for (Pair<Integer, String> mutation : mutations) {
+											if (probeId == 96 && binId == 11579) {
+												logger.info("mutation: " + mutation.getLeft().intValue() + ":" + mutation.getRight());
+												for (String s : swDiffs) {
+													logger.info(s);
+												}
+											}
+											/*
+											 * only care about indels
+											 */
+											String mutationString = mutation.getRight();
+											String [] mutArray = mutationString.split("/");
+											
+											if (mutArray[0].length() != mutArray[1].length()) {
+												int indelPosition = mutation.getLeft().intValue() + 1;
+												
+												if (mutArray[0].length() == 1) {
+//													// insertion
+													if (indelPosition > 0) {
+														// create cigar element up to this position
+														CigarElement match = new CigarElement(indelPosition - lastPosition, CigarOperator.MATCH_OR_MISMATCH);
+														CigarElement insertion = new CigarElement(mutArray[1].length() - 1, CigarOperator.INSERTION);
+														ces.add(match);
+														ces.add(insertion);
+														lastPosition = indelPosition;
+													}
+												} else {
+													// deletion
+													if (indelPosition > 0) {
+														// create cigar element up to this position
+														if (indelPosition - lastPosition > 0) {
+															CigarElement match = new CigarElement(indelPosition - lastPosition, CigarOperator.MATCH_OR_MISMATCH);
+															ces.add(match);
+														}
+														CigarElement deletion = new CigarElement(mutArray[0].length() - 1, CigarOperator.DELETION);
+														ces.add(deletion);
+														lastPosition = indelPosition;
+													}
+												}
+											}
+										}
+										if (lastPosition + 1 < b.getLength()) {
+											CigarElement match = new CigarElement(b.getLength() - (lastPosition + 1), CigarOperator.MATCH_OR_MISMATCH);
+											ces.add(match);
+										}
+										Cigar cigar = new Cigar(ces);
+										addSAMRecordToWriter(header, writer, cigar, probeId, binId,  b.getRecordCount(), p.getReferenceSequence(), p.getCp().getChromosome(), p.getCp().getPosition(), 0, binSeq);
+										
+									} else {
+										logger.info("diff length indel at: " + p.getCp().toIGVString());
+										indelDiffLength++;
+									}
+								}
+							}
+							
+							
+							// won't have these for bins where count is less the minBinSize
+//							if (null == swDiffs) {
+//								SmithWatermanGotoh nm = new SmithWatermanGotoh(p.getReferenceSequence(), binSeq, 5, -4, 16, 4);
+//								swDiffs  = nm.traceback();
+//								b.setSWDiffs(swDiffs);
+//							}
+//							
+//							if (swDiffs[1].contains(" ")) {
+//								/*
+//								 * TODO deal with indels
+//								 */
+//								indelCount++;
+//								List<CigarElement> ces = new ArrayList<>();
+//								// get mutations
+//								List<Pair<Integer, String>> mutations = ClinVarUtil.getPositionRefAndAltFromSW(swDiffs);
+//								int lastPosition = 0;
+//								for (Pair<Integer, String> mutation : mutations) {
+//									/*
+//									 * only care about indels
+//									 */
+//									String mutationString = mutation.getRight();
+//									String [] mutArray = mutationString.split("/");
+//									
+//									if (mutArray[0].length() != mutArray[1].length()) {
+//										int indelPosition = mutation.getLeft().intValue() + 1;
+//										
+//										if (mutArray[0].length() == 1) {
+//											// insertion
+//											if (indelPosition > 0) {
+//												// create cigar element up to this position
+//												CigarElement match = new CigarElement(indelPosition - lastPosition, CigarOperator.MATCH_OR_MISMATCH);
+//												CigarElement insertion = new CigarElement(mutArray[1].length() - 1, CigarOperator.INSERTION);
+//												ces.add(match);
+//												ces.add(insertion);
+//												lastPosition = indelPosition;
+//											}
+//										} else {
+//											// deletion
+//											if (indelPosition > 0) {
+//												// create cigar element up to this position
+//												if (indelPosition - lastPosition > 0) {
+//													CigarElement match = new CigarElement(indelPosition - lastPosition, CigarOperator.MATCH_OR_MISMATCH);
+//													ces.add(match);
+//												}
+//												CigarElement deletion = new CigarElement(mutArray[0].length() - 1, CigarOperator.DELETION);
+//												ces.add(deletion);
+//												lastPosition = indelPosition;
+//											}
+//										}
+//									}
+//								}
+//								// add in final match
+//								if (lastPosition < b.getLength()) {
+//									CigarElement match = new CigarElement(b.getLength() - lastPosition, CigarOperator.MATCH_OR_MISMATCH);
+//									ces.add(match);
+//								}
+//								Cigar cigar = new Cigar(ces);
+//								
+//								logger.info("about to call calculateMdAndNmTags with cigar: " + cigar.toString());
+//								for (String s : swDiffs) {
+//									logger.info("swDiffs: " + s);
+//								}
+//								addSAMRecordToWriter(header, writer, cigar, probeId, binId,  b.getRecordCount(), p.getReferenceSequence(), p.getCp().getChromosome(), p.getCp().getPosition() , 0, binSeq);
+//								
+//							} else {
+//								/*
+//								 * snps - no need to adjust cigar
+//								 */
+//								
+//								if (p.getReferenceSequence().length() == swDiffs[0].length()) {
+////									if (p.getReferenceSequence().length() == swDiffs[0].replaceAll("-", "").length()) {
+//									offset = 0;
+//									sameSize++;
+//								} else {
+////									logger.warn("need to calculate an offset");
+//									int indexOfFirstDot = swDiffs[1].indexOf('.');
+//									if (indexOfFirstDot >= 20) { // say...
+//										noDiffInFirs20++;
+//										offset = p.getReferenceSequence().indexOf(swDiffs[2].substring(0, indexOfFirstDot));
+//									} else {
+//										offset = 0;
+//									}
+//									diffSize++;
+//								}
+//								
+//								CigarElement ce = new CigarElement(b.getLength(), CigarOperator.MATCH_OR_MISMATCH);
+//								List<CigarElement> ces = new ArrayList<>();
+//								ces.add(ce);
+//								Cigar cigar = new Cigar(ces);
+//								addSAMRecordToWriter(header, writer, cigar, probeId, binId,  b.getRecordCount(), p.getReferenceSequence(), p.getCp().getChromosome(), p.getCp().getPosition() , offset, binSeq);
+//							}
+						}
+					}
+				}
+			}
+			
+		} finally {
+			writer.close();
+		}
+		logger.info("indelDiffLength: " + indelDiffLength + ", indelSameLength: " + indelSameLength);
+		logger.info("No of records written to bam file: " + recordCount + ", no of bins with same seq size as ref: " + sameSize +", and diff size: " + diffSize + ", indelCount: " + indelCount + ", noDiffInFirs20: " + noDiffInFirs20);
 	}
 
 	private void writeCsv() throws IOException {
-		// TODO Auto-generated method stub
-		List<VcfRecord> allVcfs = new ArrayList<>();
 		for (Entry<Probe, List<Bin>> entry : probeBinDist.entrySet()) {
 			Probe p = entry.getKey();
 			List<Bin> bins = entry.getValue();
@@ -393,10 +690,6 @@ private static QLogger logger;
 					if (b.getRecordCount() >= minBinSize) {
 					
 						String binSeq = forwardStrand ? SequenceUtil.reverseComplement(b.getSequence()) : b.getSequence() ;
-						
-	//						logger.info("probe " + p.getId() + ", forwardStrand: " + forwardStrand + ", largest bin does not equal ref!! ref: " + ref + ", binSeq: " + binSeq);
-							
-							
 						SmithWatermanGotoh nm = new SmithWatermanGotoh(ref, binSeq, 5, -4, 16, 4);
 						String [] diffs = nm.traceback();
 						b.setSWDiffs(diffs);
