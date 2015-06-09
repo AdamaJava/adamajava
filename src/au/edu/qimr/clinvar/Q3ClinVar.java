@@ -503,7 +503,17 @@ private static QLogger logger;
 //										addSAMRecordToWriter(header, writer, new Cigar(ces), probeId, binId,  b.getRecordCount(), p.getReferenceSequence().substring(initialOffset), p.getCp().getChromosome(), p.getCp().getPosition(), 0, binSeq);
 									}
 								} else {
+									
+									
 									if (swDiffs[0].replaceAll("-","").length() == p.getReferenceSequence().length()) {
+										offset = 0;
+									} else {
+										int posOfFistIndel = swDiffs[1].indexOf(" ");
+										if (posOfFistIndel < 10) {
+											logger.warn("posOfFistIndel is < 10 : " + posOfFistIndel);
+										}
+										offset = binSeq.indexOf(swDiffs[2].substring(0, posOfFistIndel - 1));
+									}
 										indelSameLength++;
 										
 										
@@ -515,12 +525,6 @@ private static QLogger logger;
 										
 										int lastPosition = 0;
 										for (Pair<Integer, String> mutation : mutations) {
-											if (probeId == 96 && binId == 11579) {
-												logger.info("mutation: " + mutation.getLeft().intValue() + ":" + mutation.getRight());
-												for (String s : swDiffs) {
-													logger.info(s);
-												}
-											}
 											/*
 											 * only care about indels
 											 */
@@ -528,7 +532,7 @@ private static QLogger logger;
 											String [] mutArray = mutationString.split("/");
 											
 											if (mutArray[0].length() != mutArray[1].length()) {
-												int indelPosition = mutation.getLeft().intValue() + 1;
+												int indelPosition = mutation.getLeft().intValue() + 1 + offset;
 												
 												if (mutArray[0].length() == 1) {
 //													// insertion
@@ -560,12 +564,16 @@ private static QLogger logger;
 											ces.add(match);
 										}
 										Cigar cigar = new Cigar(ces);
-										addSAMRecordToWriter(header, writer, cigar, probeId, binId,  b.getRecordCount(), p.getReferenceSequence(), p.getCp().getChromosome(), p.getCp().getPosition(), 0, binSeq);
+										addSAMRecordToWriter(header, writer, cigar, probeId, binId,  b.getRecordCount(), p.getReferenceSequence(), p.getCp().getChromosome(), p.getCp().getPosition(), offset, binSeq);
 										
-									} else {
-										logger.info("diff length indel at: " + p.getCp().toIGVString());
-										indelDiffLength++;
-									}
+//									} else {
+//										logger.info("diff length indel at: " + p.getCp().toIGVString());
+//										logger.info("binSeq: " + binSeq);
+//										for (String s : swDiffs) {
+//											logger.info(s);
+//										}
+//										indelDiffLength++;
+//									}
 								}
 							}
 							
