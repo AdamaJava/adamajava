@@ -31,7 +31,7 @@ public final class Configuration {
 	private final List<ChrPosition> includes;
 	private final Integer windowSize;
 	private final String outputBamFileName;
-	private final boolean includesOnlyMode;
+	private boolean includesOnlyMode;
 	private final  Ini iniFile;
 	private final MotifsAndRegexes mAndR;
 	
@@ -96,8 +96,10 @@ public final class Configuration {
 		countReadFromInput = new AtomicLong();
 		countReadToCoverage = new AtomicLong();
 		
-		includesOnlyMode = Boolean.getBoolean(IniUtils.getEntry(iniFile, MotifConstants.PARAMS, MotifConstants.INCLUDES_ONLY_MODE));
-		System.out.println("includesOnlyMode: " + includesOnlyMode);
+		String includesOnlyModeS = IniUtils.getEntry(iniFile, MotifConstants.PARAMS, MotifConstants.INCLUDES_ONLY_MODE);
+		if (null != includesOnlyModeS) {
+			includesOnlyMode = Boolean.parseBoolean(includesOnlyModeS);
+		}
 		
 	}
 	
