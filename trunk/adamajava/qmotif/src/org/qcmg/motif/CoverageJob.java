@@ -90,12 +90,12 @@ class CoverageJob implements Job {
 	@Override
 	synchronized public void run() throws Exception{
 		try {
-			logger.info("Starting job for: " + refName);
-			logger.debug("Constructing storage for coverage: " + refName);
+			logger.info("Starting job for: " + refName + ":" + startPosition + "-" + stopPosition);
+			logger.debug("Constructing storage for coverage: " + refName + ":" + startPosition + "-" + stopPosition);
 			constructCoverageMap();
-			logger.info("Performing coverage for: " + refName);
+			logger.info("Performing coverage for: " + refName + ":" + startPosition + "-" + stopPosition);
 			performCoverage();
-			logger.info("Ending job for: " + refName);
+			logger.info("Ending job for: " + refName + ":" + startPosition + "-" + stopPosition);
 		} catch (Exception ex) {
 			logger.error("Exception caught in run method of CoverageJob", ex);
 			throw ex;
@@ -108,7 +108,7 @@ class CoverageJob implements Job {
 		List<ChrPosition> chrExcludes = MotifUtils.getPositionsForChromosome(refName, excludes);
 		
 		chrSpecificRegions = MotifUtils.getRegionMap(refName, refLength, windowSize, chrIncludes, chrExcludes, "unmapped".equals(refName) );
-		logger.info("created " + chrSpecificRegions.size() + " regions for " + refName + " with " + chrIncludes.size() + " includes and " + chrExcludes.size() + " excludes");
+		logger.info("created " + chrSpecificRegions.size() + " regions for " + refName + ":" + startPosition + "-" + stopPosition + " with " + chrIncludes.size() + " includes and " + chrExcludes.size() + " excludes");
 	}
 
 	private void performCoverage() throws Exception {
@@ -143,7 +143,7 @@ class CoverageJob implements Job {
 			fileReader.close();
 			
 			StringBuilder sb = new StringBuilder();
-			sb.append(refName).append(":\n");
+			sb.append(refName).append(":").append(startPosition).append("-").append(stopPosition).append(":\n");
 			sb.append("read ").append(recordCounterIn).append(" records, of which ").append(recordCounterOut).append(" satisfied the query\n");
 			sb.append("number in counterIn instance is: ").append(counterIn.get()).append("\n");
 			sb.append("number in counterOut instance is: ").append(counterOut.get()).append("\n");
