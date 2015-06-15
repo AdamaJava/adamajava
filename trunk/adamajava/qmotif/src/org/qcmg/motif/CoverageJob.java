@@ -27,6 +27,8 @@ import org.qcmg.qbamfilter.query.QueryExecutor;
 class CoverageJob implements Job {
 	
 	private final int refLength;
+	private final int startPosition;
+	private final int stopPosition;
 	private final String refName;
 	private final QLogger logger;
 	private final QueryExecutor filter;
@@ -40,19 +42,21 @@ class CoverageJob implements Job {
 	private int windowSize = 1000000;		// default to a mill
 	private final AbstractQueue<SAMRecord> outputQueue;
 
-	CoverageJob(final String refName, final int refLength,
+	CoverageJob(final String refName,int startPosition, int stopPosition,  final int refLength,
 			final HashSet<Pair<File, File>> filePairs, final QueryExecutor filter,
 			final Algorithm algorithm, final AtomicLong counterIn,final AtomicLong counterOut, 
 			Integer windowSize, Pattern regex, AbstractQueue<SAMRecord> outputQueue) throws Exception {
-		this(refName, refLength, filePairs, filter, algorithm, counterIn, counterOut, null, windowSize, outputQueue, null, null);
+		this(refName, startPosition, stopPosition, refLength, filePairs, filter, algorithm, counterIn, counterOut, null, windowSize, outputQueue, null, null);
 	}
-	CoverageJob(final String refName, final int refLength,
+	CoverageJob(final String refName, int startPosition, int stopPosition, final int refLength,
 			final HashSet<Pair<File, File>> filePairs, final QueryExecutor filter,
 			final Algorithm algorithm, final AtomicLong counterIn, final AtomicLong counterOut, final String validation,
 			 Integer windowSize, AbstractQueue<SAMRecord> outputQueue,
 			List<ChrPosition> includes, List<ChrPosition> excludes) throws Exception {
 		assert (refLength > -1);
 		this.refLength = refLength;
+		this.startPosition = startPosition;
+		this.stopPosition = stopPosition;
 		this.alg = algorithm;
 		this.counterIn = counterIn;
 		this.counterOut = counterOut;
@@ -110,7 +114,7 @@ class CoverageJob implements Job {
 	private void performCoverage() throws Exception {
  		for (final SAMFileReader fileReader : fileReaders) {
  			
-			Iterator<SAMRecord> iter = "unmapped".equals(refName) ? fileReader.queryUnmapped() : fileReader.query(refName, 0, 0, false);
+			Iterator<SAMRecord> iter = "unmapped".equals(refName) ? fileReader.queryUnmapped() : fileReader.query(refName, startPosition, stopPosition, false);
 			long recordCounterIn = 0;
 			long recordCounterOut = 0; 
 			while (iter.hasNext()) {
