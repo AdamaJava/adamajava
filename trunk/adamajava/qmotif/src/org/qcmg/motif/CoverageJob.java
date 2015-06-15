@@ -112,7 +112,7 @@ class CoverageJob implements Job {
 	private void performCoverage() throws Exception {
  		for (final SAMFileReader fileReader : fileReaders) {
  			
-			Iterator<SAMRecord> iter = "unmapped".equals(cp.getChromosome()) ? fileReader.queryUnmapped() : fileReader.query(cp.getChromosome(), cp.getPosition(), cp.getEndPosition(), false);
+			Iterator<SAMRecord> iter = "unmapped".equals(cp.getChromosome()) ? fileReader.queryUnmapped() : fileReader.query(cp.getChromosome(), cp.getPosition(), cp.getEndPosition(), true);
 			long recordCounterIn = 0;
 			long recordCounterOut = 0; 
 			while (iter.hasNext()) {
