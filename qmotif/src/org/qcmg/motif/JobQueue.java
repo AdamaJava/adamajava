@@ -98,6 +98,7 @@ public final class JobQueue {
 		
 		contigs = new ArrayList<>();
 		
+		logger.info("running with invariants.isIncludesOnlyMode: " + invariants.isIncludesOnlyMode());
 		if (invariants.isIncludesOnlyMode()) {
 			contigs.addAll(includes);
 			boolean addUnmapped = true;
