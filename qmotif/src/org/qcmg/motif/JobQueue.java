@@ -96,21 +96,40 @@ public final class JobQueue {
 		header.setSortOrder(SortOrder.coordinate);
 		bamWriterFactory = new SAMOrBAMWriterFactory(header, false, new File(invariants.getOutputBam()));
 		
-		List<SAMSequenceRecord> bamFileContigs = header.getSequenceDictionary().getSequences();
-		// create a copy of this as we can't modify the original
 		contigs = new ArrayList<>();
-		// add in unmapped as this is not usually in the bam header
-		boolean containsUnmapped = false;
-		for (SAMSequenceRecord ssr : bamFileContigs) {
-			if (ssr.getSequenceName().equalsIgnoreCase(UNMAPPED)) {
-				containsUnmapped = true;
-				break;
+		
+		if (invariants.isIncludesOnlyMode()) {
+			contigs.addAll(includes);
+			boolean addUnmapped = true;
+			// check to see if unmapped is included
+			for (ChrPosition cp : includes) {
+ 				if (cp.getChromosome().equals(UNMAPPED)) {
+ 					addUnmapped = false;
+ 					break;
+ 				}
 			}
-			contigs.add(new ChrPosition(ssr.getSequenceName(), 0, ssr.getSequenceLength()));
+			if (addUnmapped) {
+				contigs.add(new ChrPosition(UNMAPPED, 0, 1000 * 1000 * 128));
+			}
+			
+		} else {
+			
+			List<SAMSequenceRecord> bamFileContigs = header.getSequenceDictionary().getSequences();
+			// create a copy of this as we can't modify the original
+			// add in unmapped as this is not usually in the bam header
+			boolean containsUnmapped = false;
+			for (SAMSequenceRecord ssr : bamFileContigs) {
+				if (ssr.getSequenceName().equalsIgnoreCase(UNMAPPED)) {
+					containsUnmapped = true;
+					break;
+				}
+				contigs.add(new ChrPosition(ssr.getSequenceName(), 0, ssr.getSequenceLength()));
+			}
+			if ( ! containsUnmapped) {
+				contigs.add(new ChrPosition(UNMAPPED, 0, 1000 * 1000 * 128));
+			}
 		}
-		if ( ! containsUnmapped) {
-			contigs.add(new ChrPosition(UNMAPPED, 0, 1000 * 1000 * 128));
-		}
+		
 		
 		// and now sort so that the largest is first
 		Collections.sort(contigs);
