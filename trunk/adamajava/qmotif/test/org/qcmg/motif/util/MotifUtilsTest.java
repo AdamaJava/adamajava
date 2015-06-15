@@ -390,6 +390,30 @@ public class MotifUtilsTest {
 	}
 	
 	@Test
+	public void realLifeChr16() {
+		int windowSize = 10000;
+		ChrPosition contig = new ChrPosition("chr16", 1, 90354753);
+		
+		//chr16p  chr16:60001-62033
+//		chr16q  chr16:90292753-90294752
+		ChrPosition include1 = new ChrPosition("chr16", 60001,62033);
+		ChrPosition include2 = new ChrPosition("chr16", 90292753,90294752);
+		
+		List<ChrPosition> includes = new ArrayList<>();
+		includes.add(include1);
+		includes.add(include2);
+		Map<ChrPosition, RegionCounter> map = MotifUtils.getRegionMap(contig, windowSize, includes, null);
+		List<ChrPosition> list = new ArrayList<>(map.keySet());
+		Collections.sort(list);
+		
+		int expectedRegions = contig.getLength() / windowSize;
+		Collections.reverse(list);
+		
+		assertEquals(expectedRegions + 4, map.size());
+		
+	}
+	
+	@Test
 	public void realLifeDataChrYGetRegions() {
 		int size = 59373566;
 		int windowSize = 10000;

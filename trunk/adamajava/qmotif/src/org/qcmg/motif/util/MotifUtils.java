@@ -65,7 +65,7 @@ public class MotifUtils {
 		int startPos = contig.getPosition();
 
 		for (int i = 0 ; i < noOfBins ; i++) {
-			if ( ((i * windowSize) + 1) <= contig.getLength()) {
+			if ( ((i * windowSize) + startPos) <= contig.getLength()) {
 				ChrPosition cp = new ChrPosition(contig.getChromosome(), (i * windowSize) + startPos, Math.min((i + startPos) * windowSize, contig.getEndPosition()));
 				results.put(cp, new RegionCounter(isUnmapped ? RegionType.UNMAPPED : RegionType.GENOMIC));
 			}
