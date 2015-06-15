@@ -19,6 +19,7 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.util.Pair;
+import org.qcmg.motif.util.MotifConstants;
 import org.qcmg.motif.util.MotifUtils;
 import org.qcmg.motif.util.RegionCounter;
 import org.qcmg.picard.SAMFileReaderFactory;
@@ -124,7 +125,7 @@ class CoverageJob implements Job {
 					logger.debug("Hit " + recordCounterIn + " record for " + cp.toIGVString());
 				}
 
-				if (JobQueue.UNMAPPED.equals(cp.getChromosome()) || read.getReferenceName().equals(cp.getChromosome())) {
+				if (MotifConstants.UNMAPPED.equals(cp.getChromosome()) || read.getReferenceName().equals(cp.getChromosome())) {
 					if (null == filter) {
 						recordCounterOut ++;
 						counterOut.incrementAndGet();    //count output read number
