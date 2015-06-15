@@ -97,6 +97,7 @@ public final class Configuration {
 		countReadToCoverage = new AtomicLong();
 		
 		includesOnlyMode = Boolean.getBoolean(IniUtils.getEntry(iniFile, MotifConstants.PARAMS, MotifConstants.INCLUDES_ONLY_MODE));
+		System.out.println("includesOnlyMode: " + includesOnlyMode);
 		
 	}
 	
