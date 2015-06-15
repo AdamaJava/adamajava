@@ -26,10 +26,11 @@ import org.qcmg.qbamfilter.query.QueryExecutor;
 
 class CoverageJob implements Job {
 	
-	private final int refLength;
-	private final int startPosition;
-	private final int stopPosition;
-	private final String refName;
+//	private final int refLength;
+//	private final int startPosition;
+//	private final int stopPosition;
+//	private final String refName;
+	private final ChrPosition cp;
 	private final QLogger logger;
 	private final QueryExecutor filter;
 	private final HashSet<SAMFileReader> fileReaders = new HashSet<SAMFileReader>();
@@ -42,27 +43,24 @@ class CoverageJob implements Job {
 	private int windowSize = 1000000;		// default to a mill
 	private final AbstractQueue<SAMRecord> outputQueue;
 
-	CoverageJob(final String refName,int startPosition, int stopPosition,  final int refLength,
+	CoverageJob(final ChrPosition cp,
 			final HashSet<Pair<File, File>> filePairs, final QueryExecutor filter,
 			final Algorithm algorithm, final AtomicLong counterIn,final AtomicLong counterOut, 
 			Integer windowSize, Pattern regex, AbstractQueue<SAMRecord> outputQueue) throws Exception {
-		this(refName, startPosition, stopPosition, refLength, filePairs, filter, algorithm, counterIn, counterOut, null, windowSize, outputQueue, null, null);
+		this(cp, filePairs, filter, algorithm, counterIn, counterOut, null, windowSize, outputQueue, null, null);
 	}
-	CoverageJob(final String refName, int startPosition, int stopPosition, final int refLength,
+	CoverageJob(final ChrPosition cp,
 			final HashSet<Pair<File, File>> filePairs, final QueryExecutor filter,
 			final Algorithm algorithm, final AtomicLong counterIn, final AtomicLong counterOut, final String validation,
 			 Integer windowSize, AbstractQueue<SAMRecord> outputQueue,
 			List<ChrPosition> includes, List<ChrPosition> excludes) throws Exception {
-		assert (refLength > -1);
-		this.refLength = refLength;
-		this.startPosition = startPosition;
-		this.stopPosition = stopPosition;
+		assert (cp.getLength() > -1);
+		this.cp = cp;
 		this.alg = algorithm;
 		this.counterIn = counterIn;
 		this.counterOut = counterOut;
 		this.filter = filter;
 		this.logger = QLoggerFactory.getLogger(CoverageJob.class);
-		this.refName = refName;
 		this.includes = includes;
 		this.excludes = excludes;
 		if (null != windowSize) {
@@ -74,7 +72,7 @@ class CoverageJob implements Job {
 			SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile, validation);
 			fileReaders.add(reader);
 		}
-		logger.debug("Length of sequence to be processed by job '" + toString() + "':" + refLength);
+		logger.debug("Length of sequence to be processed by job '" + cp.toIGVString() + " : " + cp.getLength());
 	}
 
 	@Override
@@ -84,18 +82,18 @@ class CoverageJob implements Job {
 
 	@Override
 	public String toString() {
-		return refName + " coverage";
+		return cp.toIGVString() + " coverage";
 	}
 
 	@Override
 	synchronized public void run() throws Exception{
 		try {
-			logger.info("Starting job for: " + refName + ":" + startPosition + "-" + stopPosition);
-			logger.debug("Constructing storage for coverage: " + refName + ":" + startPosition + "-" + stopPosition);
+			logger.info("Starting job for: " + cp.toIGVString() );
+			logger.debug("Constructing storage for coverage: " + cp.toIGVString());
 			constructCoverageMap();
-			logger.info("Performing coverage for: " + refName + ":" + startPosition + "-" + stopPosition);
+			logger.info("Performing coverage for: " + cp.toIGVString());
 			performCoverage();
-			logger.info("Ending job for: " + refName + ":" + startPosition + "-" + stopPosition);
+			logger.info("Ending job for: " + cp.toIGVString() );
 		} catch (Exception ex) {
 			logger.error("Exception caught in run method of CoverageJob", ex);
 			throw ex;
@@ -104,17 +102,17 @@ class CoverageJob implements Job {
 
 	void constructCoverageMap() {
 		
-		List<ChrPosition> chrIncludes = MotifUtils.getPositionsForChromosome(refName, includes);
-		List<ChrPosition> chrExcludes = MotifUtils.getPositionsForChromosome(refName, excludes);
+		List<ChrPosition> chrIncludes = MotifUtils.getPositionsForChromosome(cp, includes);
+		List<ChrPosition> chrExcludes = MotifUtils.getPositionsForChromosome(cp, excludes);
 		
-		chrSpecificRegions = MotifUtils.getRegionMap(refName, refLength, windowSize, chrIncludes, chrExcludes, "unmapped".equals(refName) );
-		logger.info("created " + chrSpecificRegions.size() + " regions for " + refName + ":" + startPosition + "-" + stopPosition + " with " + chrIncludes.size() + " includes and " + chrExcludes.size() + " excludes");
+		chrSpecificRegions = MotifUtils.getRegionMap(cp, windowSize, chrIncludes, chrExcludes, "unmapped".equals(cp.getChromosome()) );
+		logger.info("created " + chrSpecificRegions.size() + " regions for " + cp.toIGVString() + " with " + chrIncludes.size() + " includes and " + chrExcludes.size() + " excludes");
 	}
 
 	private void performCoverage() throws Exception {
  		for (final SAMFileReader fileReader : fileReaders) {
  			
-			Iterator<SAMRecord> iter = "unmapped".equals(refName) ? fileReader.queryUnmapped() : fileReader.query(refName, startPosition, stopPosition, false);
+			Iterator<SAMRecord> iter = "unmapped".equals(cp.getChromosome()) ? fileReader.queryUnmapped() : fileReader.query(cp.getChromosome(), cp.getPosition(), cp.getEndPosition(), false);
 			long recordCounterIn = 0;
 			long recordCounterOut = 0; 
 			while (iter.hasNext()) {
@@ -123,10 +121,10 @@ class CoverageJob implements Job {
 				counterIn.incrementAndGet();   //count input read number
 				
 				if (++recordCounterIn % 10000000 == 0) {
-					logger.debug("Hit " + recordCounterIn + " record for " + refName);
+					logger.debug("Hit " + recordCounterIn + " record for " + cp.toIGVString());
 				}
 
-				if (JobQueue.UNMAPPED.equals(refName) || read.getReferenceName().equals(refName)) {
+				if (JobQueue.UNMAPPED.equals(cp.getChromosome()) || read.getReferenceName().equals(cp.getChromosome())) {
 					if (null == filter) {
 						recordCounterOut ++;
 						counterOut.incrementAndGet();    //count output read number
@@ -143,7 +141,7 @@ class CoverageJob implements Job {
 			fileReader.close();
 			
 			StringBuilder sb = new StringBuilder();
-			sb.append(refName).append(":").append(startPosition).append("-").append(stopPosition).append(":\n");
+			sb.append(cp.toIGVString()).append(":\n");
 			sb.append("read ").append(recordCounterIn).append(" records, of which ").append(recordCounterOut).append(" satisfied the query\n");
 			sb.append("number in counterIn instance is: ").append(counterIn.get()).append("\n");
 			sb.append("number in counterOut instance is: ").append(counterOut.get()).append("\n");

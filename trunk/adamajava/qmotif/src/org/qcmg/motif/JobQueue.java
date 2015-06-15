@@ -193,11 +193,10 @@ public final class JobQueue {
 
 	private void queueCoverageJobs() throws Exception {
 		for (ChrPosition cp : contigs) {
-			String refName = cp.getChromosome();
-			int refLength = cp.getLength();
+//			String refName = cp.getChromosome();
+//			int refLength = cp.getLength();
 			
-			Job job = new CoverageJob(refName, cp.getPosition(), cp.getEndPosition(),
-					refLength, filePairs, filter,
+			Job job = new CoverageJob(cp, filePairs, filter,
 					algorithm, countIn, countOut, validation, windowSize, outputQueue, includes, excludes);
 			jobQueue.add(job);
 		}
