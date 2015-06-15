@@ -36,7 +36,6 @@ import org.qcmg.motif.util.RegionCounter;
 import org.qcmg.motif.util.SummaryStats;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.SAMOrBAMWriterFactory;
-import org.qcmg.picard.util.SAMSequenceRecodComparator;
 import org.qcmg.qbamfilter.query.QueryExecutor;
 
 public final class JobQueue {
@@ -64,7 +63,8 @@ public final class JobQueue {
 	private final MotifsAndRegexes motifsAndRegexes;
 	private final SummaryStats ss = new SummaryStats();
 	
-	private List<SAMSequenceRecord> contigs;
+	private final List<ChrPosition> contigs;
+//	private List<SAMSequenceRecord> contigs;
 	
 	public JobQueue(final Configuration invariants)
 			throws Exception {
@@ -96,23 +96,25 @@ public final class JobQueue {
 		header.setSortOrder(SortOrder.coordinate);
 		bamWriterFactory = new SAMOrBAMWriterFactory(header, false, new File(invariants.getOutputBam()));
 		
-		contigs = header.getSequenceDictionary().getSequences();
+		List<SAMSequenceRecord> bamFileContigs = header.getSequenceDictionary().getSequences();
+		// create a copy of this as we can't modify the original
+		contigs = new ArrayList<>();
 		// add in unmapped as this is not usually in the bam header
 		boolean containsUnmapped = false;
-		for (SAMSequenceRecord ssr : contigs) {
+		for (SAMSequenceRecord ssr : bamFileContigs) {
 			if (ssr.getSequenceName().equalsIgnoreCase(UNMAPPED)) {
 				containsUnmapped = true;
 				break;
 			}
+			contigs.add(new ChrPosition(ssr.getSequenceName(), 0, ssr.getSequenceLength()));
 		}
-		// create a copy of this as we can't modify the original
-		contigs = new ArrayList<SAMSequenceRecord>(contigs);
 		if ( ! containsUnmapped) {
-			contigs.add(new SAMSequenceRecord(UNMAPPED, 1000 * 1000 * 128));
+			contigs.add(new ChrPosition(UNMAPPED, 0, 1000 * 1000 * 128));
 		}
 		
 		// and now sort so that the largest is first
-		Collections.sort(contigs, new SAMSequenceRecodComparator());
+		Collections.sort(contigs);
+//		Collections.sort(contigs, new SAMSequenceRecodComparator());
 	
 //		if (null != invariants.getCutoff()) cutoff = invariants.getCutoff(); 
 		
@@ -170,20 +172,20 @@ public final class JobQueue {
 	}
 
 	private void queueCoverageJobs() throws Exception {
-		for (SAMSequenceRecord ssr : contigs) {
-			String refName = ssr.getSequenceName();
-			int refLength = ssr.getSequenceLength();
+		for (ChrPosition ssr : contigs) {
+			String refName = ssr.getChromosome();
+			int refLength = ssr.getLength();
 			
 			Job job = new CoverageJob(refName,
 					refLength, filePairs, filter,
 					algorithm, countIn, countOut, validation, windowSize, outputQueue, includes, excludes);
 			jobQueue.add(job);
 		}
-//		for (String refname : refnameExecutionOrder) {
-//			int refLength = perRefnameLengths.get(refname);
-//			HashSet<Pair<File, File>> filePairs = refnameFilePairs.get(refname);
+//		for (SAMSequenceRecord ssr : contigs) {
+//			String refName = ssr.getSequenceName();
+//			int refLength = ssr.getSequenceLength();
 //			
-//			Job job = new CoverageJob(refname,
+//			Job job = new CoverageJob(refName,
 //					refLength, filePairs, filter,
 //					algorithm, countIn, countOut, validation, windowSize, outputQueue, includes, excludes);
 //			jobQueue.add(job);

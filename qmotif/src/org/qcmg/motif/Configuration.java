@@ -30,8 +30,8 @@ public final class Configuration {
 	private final List<ChrPosition> excludes;
 	private final List<ChrPosition> includes;
 	private final Integer windowSize;
-//	private final Integer cutoff;
 	private final String outputBamFileName;
+	private final boolean includesOnlyMode;
 	private final  Ini iniFile;
 	private final MotifsAndRegexes mAndR;
 	
@@ -63,7 +63,7 @@ public final class Configuration {
 			stageTwoMotifs = new Motifs(Boolean.parseBoolean(IniUtils.getEntry(iniFile, MotifConstants.PARAMS, MotifConstants.STAGE_2_STRING_REV_COMP)), s2Motifs.split(Constants.COMMA_STRING));
 		}
 		
-		mAndR = new MotifsAndRegexes(stageOneMotifs, stageOneRegex, stageTwoMotifs, stageTwoRegex, windowSize);
+		mAndR = new MotifsAndRegexes(stageOneMotifs, stageOneRegex, stageTwoMotifs, stageTwoRegex, windowSize.intValue());
 		algorithm = new MotifCoverageAlgorithm(mAndR);
 		
 		// get excludes and includes
@@ -96,7 +96,8 @@ public final class Configuration {
 		countReadFromInput = new AtomicLong();
 		countReadToCoverage = new AtomicLong();
 		
-//		cutoff = Integer.parseInt(IniUtils.getEntry(iniFile, MotifConstants.PARAMS, "cutoff_size"));
+		includesOnlyMode = Boolean.getBoolean(IniUtils.getEntry(iniFile, MotifConstants.PARAMS, MotifConstants.INCLUDES_ONLY_MODE));
+		
 	}
 	
 	public AtomicLong getInputReadsCount(){
@@ -110,7 +111,6 @@ public final class Configuration {
 	public int getNumberThreads() {
 		return numberThreads;
 	}
-
 
 	public File getOutputFile() {
 		return outputFile;
@@ -146,14 +146,12 @@ public final class Configuration {
 		for (Pair<File, File> entry : filePairs) {
 			if (null != entry.getLeft()) {
 				if ( ! entry.getLeft().exists()) {
-					throw new Exception("Input BAM file '" + entry.getLeft().getAbsolutePath()
-							+ "' does not exist");
+					throw new Exception("Input BAM file '" + entry.getLeft().getAbsolutePath() + "' does not exist");
 				}
 			}
 			if (null != entry.getRight()) {
 				if ( ! entry.getRight().exists()) {
-					throw new Exception("Input BAI file '" + entry.getRight().getAbsolutePath()
-							+ "' does not exist");
+					throw new Exception("Input BAI file '" + entry.getRight().getAbsolutePath() + "' does not exist");
 				}
 			}
 		}
@@ -171,15 +169,14 @@ public final class Configuration {
 		return windowSize;
 	}
 
-//	public Integer getCutoff() {
-//		return cutoff;
-//	}
-
 	public String getOutputBam() {
 		return outputBamFileName;
 	}
 
 	public MotifsAndRegexes getRegex() {
 		return mAndR;
+	}
+	public boolean isIncludesOnlyMode() {
+		return includesOnlyMode;
 	}
 }
