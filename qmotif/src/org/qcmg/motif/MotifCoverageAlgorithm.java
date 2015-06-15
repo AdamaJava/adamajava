@@ -13,6 +13,7 @@ import net.sf.samtools.SAMRecord;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.ChrPositionUtils;
+import org.qcmg.motif.util.MotifConstants;
 import org.qcmg.motif.util.MotifMode;
 import org.qcmg.motif.util.MotifUtils;
 import org.qcmg.motif.util.MotifsAndRegexes;
@@ -63,11 +64,17 @@ public class MotifCoverageAlgorithm implements Algorithm {
 		
 		if (stageOneSearch(readString)) {
 			int readStart = read.getAlignmentStart();
-			if (readStart == 0 && read.getReadUnmappedFlag()) {
-				// set the start position to be 1 as we are dealing with 1-based chrPos objects
-				readStart = 1;
+			String readChr = read.getReferenceName();
+			if (read.getReadUnmappedFlag()) {
+				if (readStart == 0) {
+					// set the start position to be 1 as we are dealing with 1-based chrPos objects
+					readStart = 1;
+				}
+				if ("*".equals(readChr)) {
+					readChr = MotifConstants.UNMAPPED;
+				}
 			}
-			ChrPosition cp = new ChrPosition(read.getReferenceName(), readStart);
+			ChrPosition cp = new ChrPosition(readChr, readStart);
 			RegionCounter rc = getCounterFromMap(regions, cp);
 			
 			// throw exception if we don't have a region for this read

@@ -30,6 +30,7 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.util.Pair;
+import org.qcmg.motif.util.MotifConstants;
 import org.qcmg.motif.util.MotifUtils;
 import org.qcmg.motif.util.MotifsAndRegexes;
 import org.qcmg.motif.util.RegionCounter;
@@ -40,7 +41,7 @@ import org.qcmg.qbamfilter.query.QueryExecutor;
 
 public final class JobQueue {
 	
-	public static final String UNMAPPED = "unmapped";
+//	public static final String UNMAPPED = "unmapped";
 	
 	private final HashMap<String, HashMap<Integer, AtomicLong>> perIdPerCoverageBaseCounts = new HashMap<String, HashMap<Integer, AtomicLong>>();
 	private final int numberThreads;
@@ -104,13 +105,13 @@ public final class JobQueue {
 			boolean addUnmapped = true;
 			// check to see if unmapped is included
 			for (ChrPosition cp : includes) {
- 				if (cp.getChromosome().equals(UNMAPPED)) {
+ 				if (cp.getChromosome().equals(MotifConstants.UNMAPPED)) {
  					addUnmapped = false;
  					break;
  				}
 			}
 			if (addUnmapped) {
-				contigs.add(new ChrPosition(UNMAPPED, 0, 1000 * 1000 * 128));
+				contigs.add(new ChrPosition(MotifConstants.UNMAPPED, 0, 1000 * 1000 * 128));
 			}
 			
 		} else {
@@ -120,14 +121,14 @@ public final class JobQueue {
 			// add in unmapped as this is not usually in the bam header
 			boolean containsUnmapped = false;
 			for (SAMSequenceRecord ssr : bamFileContigs) {
-				if (ssr.getSequenceName().equalsIgnoreCase(UNMAPPED)) {
+				if (ssr.getSequenceName().equalsIgnoreCase(MotifConstants.UNMAPPED)) {
 					containsUnmapped = true;
 					break;
 				}
 				contigs.add(new ChrPosition(ssr.getSequenceName(), 1, ssr.getSequenceLength()));
 			}
 			if ( ! containsUnmapped) {
-				contigs.add(new ChrPosition(UNMAPPED, 1, 1000 * 1000 * 128));
+				contigs.add(new ChrPosition(MotifConstants.UNMAPPED, 1, 1000 * 1000 * 128));
 			}
 		}
 		
