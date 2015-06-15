@@ -374,6 +374,21 @@ public class MotifUtilsTest {
 		
 	}
 	
+	
+	@Test
+	public void realLifeChr1() {
+		int windowSize = 10000;
+		ChrPosition contig = new ChrPosition("chr1", 1, 249250621);
+		
+		ChrPosition include = new ChrPosition("chr1", 10001,12464);
+		List<ChrPosition> includes = new ArrayList<>();
+		includes.add(include);
+		
+		int expectedRegions = contig.getLength() / windowSize;
+		assertEquals(expectedRegions + 2, MotifUtils.getRegionMap(contig, windowSize, includes, null).size());
+		
+	}
+	
 	@Test
 	public void realLifeDataChrYGetRegions() {
 		int size = 59373566;
