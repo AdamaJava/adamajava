@@ -57,16 +57,29 @@ public class MotifUtils {
 	}
 	
 	public static Map<ChrPosition, RegionCounter> getRegionMap(ChrPosition contig, int windowSize, List<ChrPosition> includes, List<ChrPosition> excludes, boolean isUnmapped) {
+		/*
+		 * Add buffer around the CP as we are getting reads that overlap the cp rather than reads that are wholly contained within the CP.
+		 * And so we need to cater for reads that start/end outwith the CP
+		 * Assuming that a buffer of 1000 should be sufficient for now...
+		 */
+//		int buffer = 1000;
+		int startPos = contig.getPosition();
+		// we don't want a -ve startPos
+//		if (startPos > 1) {
+//			startPos = Math.max(1, startPos - buffer);
+//		}
+		int stopPos = contig.getEndPosition();
+//		int stopPos = contig.getEndPosition() + buffer;
+		int length = stopPos - startPos  + 1;
 		
-		int noOfBins = (contig.getLength() / windowSize) + 1;
+		int noOfBins = (length / windowSize) + 1;
 		
 		// create an initial map of OTHER ChrPos objects
 		Map<ChrPosition, RegionCounter> results = new HashMap<>();
-		int startPos = contig.getPosition();
 
 		for (int i = 0 ; i < noOfBins ; i++) {
-			if ( ((i * windowSize) + startPos) <= contig.getLength()) {
-				ChrPosition cp = new ChrPosition(contig.getChromosome(), (i * windowSize) + startPos, Math.min((i + startPos) * windowSize, contig.getEndPosition()));
+			if ( ((i * windowSize) + startPos) <= length) {
+				ChrPosition cp = new ChrPosition(contig.getChromosome(), (i * windowSize) + startPos, Math.min((i + startPos) * windowSize, stopPos));
 				results.put(cp, new RegionCounter(isUnmapped ? RegionType.UNMAPPED : RegionType.GENOMIC));
 			}
 		}
