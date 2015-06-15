@@ -124,10 +124,10 @@ public final class JobQueue {
 					containsUnmapped = true;
 					break;
 				}
-				contigs.add(new ChrPosition(ssr.getSequenceName(), 0, ssr.getSequenceLength()));
+				contigs.add(new ChrPosition(ssr.getSequenceName(), 1, ssr.getSequenceLength()));
 			}
 			if ( ! containsUnmapped) {
-				contigs.add(new ChrPosition(UNMAPPED, 0, 1000 * 1000 * 128));
+				contigs.add(new ChrPosition(UNMAPPED, 1, 1000 * 1000 * 128));
 			}
 		}
 		
