@@ -110,9 +110,10 @@ public final class JobQueue {
  					break;
  				}
 			}
-			if (addUnmapped) {
-				contigs.add(new ChrPosition(MotifConstants.UNMAPPED, 1, 1000 * 1000 * 128));
-			}
+			// don't add unmapped to includes only mode for now...
+//			if (addUnmapped) {
+//				contigs.add(new ChrPosition(MotifConstants.UNMAPPED, 1, 1000 * 1000 * 128));
+//			}
 			
 		} else {
 			
