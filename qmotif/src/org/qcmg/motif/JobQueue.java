@@ -111,7 +111,7 @@ public final class JobQueue {
  				}
 			}
 			if (addUnmapped) {
-				contigs.add(new ChrPosition(MotifConstants.UNMAPPED, 0, 1000 * 1000 * 128));
+				contigs.add(new ChrPosition(MotifConstants.UNMAPPED, 1, 1000 * 1000 * 128));
 			}
 			
 		} else {
