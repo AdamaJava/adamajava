@@ -9,42 +9,29 @@ import java.io.File;
 import java.util.List;
 import java.util.Vector;
 
-import net.sf.samtools.SAMFileReader;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
+import net.sf.samtools.SAMFileReader;
 
 /**
  * The Class Options.
  */
 public final class Options {
-	private static final String HELP_DESCRIPTION = Messages
-			.getMessage("HELP_OPTION_DESCRIPTION");
-	private static final String FORCE_DESCRIPTION = Messages
-			.getMessage("FORCE_OPTION_DESCRIPTION");
-	private static final String REPLACE_DESCRIPTION = Messages
-			.getMessage("REPLACE_OPTION_DESCRIPTION");
-	private static final String VERSION_DESCRIPTION = Messages
-			.getMessage("VERSION_OPTION_DESCRIPTION");
-	private static final String INPUT_DESCRIPTION = Messages
-			.getMessage("INPUT_OPTION_DESCRIPTION");
-	private static final String OUTPUT_DESCRIPTION = Messages
-			.getMessage("OUTPUT_OPTION_DESCRIPTION");
-	private static final String MERGE_DESCRIPTION = Messages
-			.getMessage("MERGE_OPTION_DESCRIPTION");
-	private static final String NUMBER_RECORDS_DESCRIPTION = Messages
-			.getMessage("NUMBER_RECORDS_DESCRIPTION");
-	private static final String LOG_OPTION_DESCRIPTION = Messages
-			.getMessage("LOG_OPTION_DESCRIPTION");
-	private static final String LOG_LEVEL_OPTION_DESCRIPTION = Messages
-			.getMessage("LOG_LEVEL_OPTION_DESCRIPTION");
-	private static final String INDEX_OPTION_DESCRIPTION = Messages
-			.getMessage("INDEX_OPTION_DESCRIPTION");
-	private static final String VALIDATION_STRINGENCY_OPTION_DESCRIPTION = Messages
-	.getMessage("VALIDATION_STRINGENCY_DESCRIPTION");
-	private static final String COMMENT_OPTION_DESCRIPTION = Messages
-	.getMessage("COMMENT_OPTION_DESCRIPTION");	 
-	private static final String TMPDIR_OPTION_DESCRIPTION = Messages
-			.getMessage("TMPDIR_OPTION_DESCRIPTION");
+	private static final String HELP_DESCRIPTION = Messages.getMessage("HELP_OPTION_DESCRIPTION");
+	private static final String FORCE_DESCRIPTION = Messages.getMessage("FORCE_OPTION_DESCRIPTION");
+	private static final String REPLACE_DESCRIPTION = Messages.getMessage("REPLACE_OPTION_DESCRIPTION");
+	private static final String VERSION_DESCRIPTION = Messages.getMessage("VERSION_OPTION_DESCRIPTION");
+	private static final String INPUT_DESCRIPTION = Messages.getMessage("INPUT_OPTION_DESCRIPTION");
+	private static final String OUTPUT_DESCRIPTION = Messages.getMessage("OUTPUT_OPTION_DESCRIPTION");
+	private static final String MERGE_DESCRIPTION = Messages.getMessage("MERGE_OPTION_DESCRIPTION");
+	private static final String NUMBER_RECORDS_DESCRIPTION = Messages.getMessage("NUMBER_RECORDS_DESCRIPTION");
+	private static final String LOG_OPTION_DESCRIPTION = Messages.getMessage("LOG_OPTION_DESCRIPTION");
+	private static final String LOG_LEVEL_OPTION_DESCRIPTION = Messages.getMessage("LOG_LEVEL_OPTION_DESCRIPTION");
+	private static final String INDEX_OPTION_DESCRIPTION = Messages.getMessage("INDEX_OPTION_DESCRIPTION");
+	private static final String VALIDATION_STRINGENCY_OPTION_DESCRIPTION = Messages.getMessage("VALIDATION_STRINGENCY_DESCRIPTION");
+	private static final String COMMENT_OPTION_DESCRIPTION = Messages.getMessage("COMMENT_OPTION_DESCRIPTION");	 
+	private static final String TMPDIR_OPTION_DESCRIPTION = Messages.getMessage("TMPDIR_OPTION_DESCRIPTION");
+	private static final String UUID_OPTION_DESCRIPTION = Messages.getMessage("UUID_OPTION_DESCRIPTION");
 	private final OptionParser parser = new OptionParser();
 	private final OptionSet options;
 	private final String[] inputFileNames;
@@ -52,8 +39,8 @@ public final class Options {
 	private final String[] outputFileNames;
 	private final Integer[] numberRecords;
 	private final List<GroupReplacement> groupReplacements = new Vector<GroupReplacement>();
-	private String[] groupReplacementStrings;
-	private String[] types;
+	private final String[] groupReplacementStrings;
+	private final String[] types;
 	private final String log;
 	private final String logLevel;
 	private final String validation;	
@@ -71,38 +58,21 @@ public final class Options {
 	@SuppressWarnings("unchecked")
 	public Options(final String[] args) throws Exception {
 		parser.acceptsAll(asList("h", "help"), HELP_DESCRIPTION);
-		parser.acceptsAll(asList("r", "replace"), REPLACE_DESCRIPTION)
-				.withRequiredArg().ofType(String.class).describedAs(
-						"inputfile:oldgroup:newgroup");
+		parser.acceptsAll(asList("r", "replace"), REPLACE_DESCRIPTION).withRequiredArg().ofType(String.class).describedAs("inputfile:oldgroup:newgroup");
 		parser.acceptsAll(asList("f", "force"), FORCE_DESCRIPTION);
-		parser.acceptsAll(asList("o", "output"), OUTPUT_DESCRIPTION)
-				.withRequiredArg().ofType(String.class).describedAs(
-						"outputfile");
-		parser.acceptsAll(asList("i", "input"), INPUT_DESCRIPTION)
-				.withRequiredArg().ofType(String.class)
-				.describedAs("inputfile");
-		parser.acceptsAll(asList("m", "merge"), MERGE_DESCRIPTION)
-				.withRequiredArg().ofType(String.class)
-				.describedAs("mergefile");
+		parser.acceptsAll(asList("o", "output"), OUTPUT_DESCRIPTION).withRequiredArg().ofType(String.class).describedAs("outputfile");
+		parser.acceptsAll(asList("i", "input"), INPUT_DESCRIPTION).withRequiredArg().ofType(String.class).describedAs("inputfile");
+		parser.acceptsAll(asList("m", "merge"), MERGE_DESCRIPTION).withRequiredArg().ofType(String.class).describedAs("mergefile");
 		parser.acceptsAll(asList("v", "V", "version"), VERSION_DESCRIPTION);
-		parser.acceptsAll(asList("n", "number"), NUMBER_RECORDS_DESCRIPTION)
-				.withRequiredArg().ofType(Integer.class).describedAs(
-						"numberRecords");
-		parser.accepts("log", LOG_OPTION_DESCRIPTION).withRequiredArg().ofType(
-				String.class);
-		parser.accepts("loglevel", LOG_LEVEL_OPTION_DESCRIPTION)
-				.withRequiredArg().ofType(String.class);		
-		parser.accepts("validation", VALIDATION_STRINGENCY_OPTION_DESCRIPTION)
-		.withRequiredArg().ofType(String.class); 
-		 
-		parser.accepts("tmpdir", TMPDIR_OPTION_DESCRIPTION)
-		.withRequiredArg().ofType(String.class); 
-		
-		
-		parser.accepts("co", COMMENT_OPTION_DESCRIPTION)
-		.withRequiredArg().ofType(String.class);
-		
+		parser.acceptsAll(asList("n", "number"), NUMBER_RECORDS_DESCRIPTION).withRequiredArg().ofType(Integer.class).describedAs("numberRecords");
+		parser.accepts("log", LOG_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
+		parser.accepts("loglevel", LOG_LEVEL_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);		
+		parser.accepts("validation", VALIDATION_STRINGENCY_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class); 
+		parser.accepts("tmpdir", TMPDIR_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class); 
+		parser.accepts("co", COMMENT_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
+		parser.accepts("uuid", UUID_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("bai", INDEX_OPTION_DESCRIPTION);
+		
 		options = parser.parse(args);
 
 		List replaceList = options.valuesOf("r");
@@ -153,6 +123,9 @@ public final class Options {
 	 */
 	public boolean hasCommentOption(){
 		return options.has("co");
+	}
+	public boolean hasUUIDOption(){
+		return options.has("uuid");
 	}
 	public boolean hasInputOption() {
 		return options.has("i") || options.has("input");
@@ -241,6 +214,10 @@ public final class Options {
 			return null;
 		
 		return comments;
+	}
+	
+	String getUUID() {
+		return hasUUIDOption() ? (String) options.valueOf("uuid") : null;
 	}
 
 	/**

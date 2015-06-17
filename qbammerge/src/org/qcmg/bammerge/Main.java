@@ -47,7 +47,8 @@ public final class Main {
 						options.hasCreateIndexOption(), 
 						options.getTmpDir(),
 						options.getValidation(),
-						options.getComment());
+						options.getComment(),
+						options.getUUID());
  
 				exitStatus = 0;// SUCCESS
 			}
