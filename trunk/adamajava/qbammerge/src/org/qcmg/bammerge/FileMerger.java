@@ -28,6 +28,7 @@ import net.sf.samtools.SAMRecord;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.util.Constants;
 import org.qcmg.picard.HeaderUtils;
 import org.qcmg.picard.MultiSAMFileIterator;
 import org.qcmg.picard.MultiSAMFileReader;
@@ -115,6 +116,8 @@ public final class FileMerger {
 	private  SAMOrBAMWriterFactory outputWriterfactory;
 	/**The merged header obtained from combining the input SAM/BAM file headers.*/
 	private SAMFileHeader mergedHeader;
+	
+	private final String uuid;
 
 	
 	/**
@@ -170,6 +173,7 @@ public final class FileMerger {
 	
 	/**
 	 * 
+	 * @param uuid 
 	 * @param outputFileName: the filename for the output SAM/BAM. Must have a .bam or .sam extension.
 	 * @param inputFileNames: the list of SAM/BAM filenames intended for merging. File names must end in .sam or .bam file extensions.
 	 * @param groupReplacements: the list of read group replacements.
@@ -188,7 +192,7 @@ public final class FileMerger {
 	public FileMerger(final String outputFileName, final String[] inputFileNames, final String[] groupReplacements,
 			final String commandLine, final int numberRecords, final boolean includeOutputFile,
 			final boolean ignoreReadGroupClashes, final boolean createIndex, final String tmpdir,
-			final SAMFileReader.ValidationStringency validation, final String[] comments) throws BamMergeException, IOException, Exception {
+			final SAMFileReader.ValidationStringency validation, final String[] comments, String uuid) throws BamMergeException, IOException, Exception {
 		this.includeOutputFile = includeOutputFile;
 		this.ignoreReadGroupClashes = ignoreReadGroupClashes;
 		this.createIndex = createIndex;
@@ -197,10 +201,8 @@ public final class FileMerger {
 		this.mergeCount = 0;		
 	    this.validation = validation;
 	    this.comments = comments;
-	    if(tmpdir != null)
-	    	this.tmpdir = new File(tmpdir);
-	    else 
-	    	this.tmpdir = null;
+	    	this.tmpdir = tmpdir != null ? new File(tmpdir) : null;
+	    	this.uuid = uuid;
 		resolveFiles(outputFileName, inputFileNames, includeOutputFile);
 		resolveReplacements(groupReplacements);
 		performMerge();
@@ -242,19 +244,7 @@ public final class FileMerger {
 			final int numberRecords, final boolean includeOutputFile, final boolean ignoreReadGroupClashes)
 			throws BamMergeException, IOException, Exception {
 		
-		this(outputFileName, inputFileNames, null, commandLine, -1, false, ignoreReadGroupClashes, false,null,null,null);		
-/*		this.includeOutputFile = includeOutputFile;
-		this.ignoreReadGroupClashes = ignoreReadGroupClashes;
-		this.numberRecords = numberRecords;
-		this.commandLine = commandLine;
-		this.mergeCount = 0;
-		this.createIndex = false;
-		this.validation = null;
-		this.comments = null;
-		resolveFiles(outputFileName, inputFileNames, includeOutputFile);
-		resolveReplacements();
-		performMerge();
-		cleanUpTemporaries(outputFileName);*/
+		this(outputFileName, inputFileNames, null, commandLine, -1, false, ignoreReadGroupClashes, false,null,null,null, null);		
 	}
 
 	/**
@@ -282,7 +272,7 @@ public final class FileMerger {
 	 */
 	public FileMerger(final String outputFileName, final String[] inputFileNames, final String[] replacements,
 			final String commandLine, final boolean ignoreReadGroupClashes) throws IOException, Exception {
-		this(outputFileName, inputFileNames, replacements, commandLine, -1, false, ignoreReadGroupClashes, false,null,null,null);
+		this(outputFileName, inputFileNames, replacements, commandLine, -1, false, ignoreReadGroupClashes, false,null,null,null, null);
  
 	}
 
@@ -309,7 +299,7 @@ public final class FileMerger {
 	 */
 	public FileMerger(final String outputFileName, final String[] inputFileNames, final String[] groupReplacements,
 			final String commandLine) throws IOException, Exception {
-		this(outputFileName, inputFileNames, groupReplacements, commandLine, -1, false, false, false,null,null,null);
+		this(outputFileName, inputFileNames, groupReplacements, commandLine, -1, false, false, false,null,null,null, null);
 	}
 
 	/**
@@ -332,7 +322,7 @@ public final class FileMerger {
 	 */
 	public FileMerger(final String outputFileName, final String[] inputFileNames, final String[] groupReplacements)
 			throws IOException, Exception {
-		this(outputFileName, inputFileNames, groupReplacements, "", -1, false, false, false,null,null,null);
+		this(outputFileName, inputFileNames, groupReplacements, "", -1, false, false, false,null,null,null, null);
 	}
 
 	/**
@@ -865,7 +855,24 @@ public final class FileMerger {
 		mergedHeader.setReadGroups(newGroups);
 		addHeaderProgramGroup();
 		addHeaderComments();
+		replaceUUIDInHeader();
 	}
+
+	private void replaceUUIDInHeader() {
+		if (uuid != null) {
+			List<String> commentsToKeep = new ArrayList<>();
+			for (String s : mergedHeader.getComments()) {
+				if ( ! s.startsWith(Constants.COMMENT_Q3BAM_UUID_PREFIX)) {
+					commentsToKeep.add(s);
+				}
+			}
+			
+			// add in the new uuid
+			commentsToKeep.add(Constants.COMMENT_Q3BAM_UUID_PREFIX + ":" + uuid);
+			mergedHeader.setComments(commentsToKeep);
+		}
+	}
+
 
 	/**
 	 * Creates the program group record for the merged header.
