@@ -38,9 +38,7 @@ public class VcfRecord implements Comparable<VcfRecord>{
 		this.alt = alt;
 		// check to see if the length of the reference is equal to the length of the ChrPosition
 		if ( ! StringUtils.isNullOrEmpty(ref)) {
-			final int refLength = ref.length();
-			final int chrPosLength = chrPos.getLength();
-			if (refLength != chrPosLength) {
+			if (ref.length() != chrPos.getLength()) {
 				logger.warn("In VCFRecord constructor, ref length != chrPos length! ref: " + ref + ", chrPos: " + chrPos);
 			}
 		}
