@@ -517,9 +517,9 @@ public final class FileMerger {
 			File inputFile = FileUtils.getCanonicalFile(fileName);
 			detectBadFile(fileName, inputFile);
 			Map<String, GroupReplacement> groupMappings = groupReplacements.getGroupMappings(fileName);
-			if ( null != groupMappings && ! groupMappings.isEmpty()) {
+//			if ( null != groupMappings && ! groupMappings.isEmpty()) {
 				replacementMap.put(inputFile, groupMappings);
-			}
+//			}
 		}
 		detectSameInputFiles();
 		detectFileUsedAsInputAndOutput();
@@ -771,17 +771,19 @@ public final class FileMerger {
 		for (SAMFileReader reader : inputReader.getSAMFileReaders()) {
 			File file = inputReader.getFile(reader);
 			Map<String, GroupReplacement> mappings = replacementMap.get(file);
-			List<SAMReadGroupRecord> oldGroups = reader.getFileHeader().getReadGroups();
-			for (SAMReadGroupRecord oldGroup : oldGroups) {
-				GroupReplacement replacement = mappings.get(oldGroup.getId());
-				if (null == replacement) {
-					newGroups.add(oldGroup);
-				} else {
-					String newId = replacement.getNewGroup();
-					SAMReadGroupRecord newGroup = new SAMReadGroupRecord(newId, oldGroup);
-					newGroups.add(newGroup);
+//			if (null != mappings) {
+				List<SAMReadGroupRecord> oldGroups = reader.getFileHeader().getReadGroups();
+				for (SAMReadGroupRecord oldGroup : oldGroups) {
+					GroupReplacement replacement = mappings.get(oldGroup.getId());
+					if (null == replacement) {
+						newGroups.add(oldGroup);
+					} else {
+						String newId = replacement.getNewGroup();
+						SAMReadGroupRecord newGroup = new SAMReadGroupRecord(newId, oldGroup);
+						newGroups.add(newGroup);
+					}
 				}
-			}
+//			}
 		}
 		SamFileHeaderMerger merger = new SamFileHeaderMerger( SAMFileHeader.SortOrder.coordinate, inputReader.getSAMFileHeaders(), true);		
 		mergedHeader = merger.getMergedHeader();
@@ -845,14 +847,14 @@ public final class FileMerger {
 				throw new BamMergeException("BAD_RECORD_RG");
 			
 			SAMFileReader fileReader = iter.getCurrentSAMFileReader();
-			if ( ! replacementMap.isEmpty()) {
+//			if ( ! replacementMap.isEmpty()) {
 				String oldGroup = record.getReadGroup().getReadGroupId();
 				File file = inputReader.getFile(fileReader);
 				String newGroup = getReplacementGroup(file, oldGroup);
 				if (null != newGroup) {
 					record.setAttribute("RG", newGroup);
 				}
-			}
+//			}
 			Integer oldZc = record.getIntegerAttribute("ZC");
 			if (null == oldZc) {
 				Integer zc = inputReader.getDefaultZc(fileReader);
