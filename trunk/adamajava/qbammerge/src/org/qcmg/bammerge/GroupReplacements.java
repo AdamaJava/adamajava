@@ -78,9 +78,9 @@ public final class GroupReplacements {
 					groupMappings.put(oldGroup, replacement);
 				}
 			}
-			if ( ! groupMappings.isEmpty()) {
+//			if ( ! groupMappings.isEmpty()) {
 				fileNameMappings.put(fileName, groupMappings);
-			}
+//			}
 		}
 	}
 
@@ -102,9 +102,8 @@ public final class GroupReplacements {
 	 *             the bam merge exception
 	 */
 	private void detectBadReplacementFileNames() throws BamMergeException {
-		for (Object obj : replacements) {
-			GroupReplacement r = (GroupReplacement) obj;
-			if (!isInputFileName(r.getFileName())) {
+		for (GroupReplacement r : replacements) {
+			if ( ! isInputFileName(r.getFileName())) {
 				throw new BamMergeException("BAD_GROUP_REPLACEMENT_FILENAME", r
 						.getRawForm(), r.getFileName());
 			}
@@ -134,12 +133,10 @@ public final class GroupReplacements {
 	 *             the bam merge exception
 	 */
 	private void detectBadReplacementGroups() throws BamMergeException {
-		for (Object basisObj : replacements) {
-			GroupReplacement basis = (GroupReplacement) basisObj;
-			for (Object obj : replacements) {
-				GroupReplacement r = (GroupReplacement) obj;
-				detectBadOldGroup(r, basis);
-				detectBadNewGroup(r, basis);
+		for (GroupReplacement basis : replacements) {
+			for (GroupReplacement obj : replacements) {
+				detectBadOldGroup(obj, basis);
+				detectBadNewGroup(obj, basis);
 			}
 		}
 	}
