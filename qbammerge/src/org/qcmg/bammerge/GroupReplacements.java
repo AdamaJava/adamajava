@@ -4,8 +4,8 @@
 package org.qcmg.bammerge;
 
 import java.util.HashMap;
-import java.util.Map;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 
 /**
@@ -55,15 +55,11 @@ public final class GroupReplacements {
 	/**
 	 * Instantiates a new group replacements.
 	 * 
-	 * @param groupReplacements
-	 *            the group replacements
-	 * @param inputFileNameArray
-	 *            the input file name array
-	 * @throws BamMergeException
-	 *             the bam merge exception
+	 * @param groupReplacements the group replacements
+	 * @param inputFileNameArray the input file name array
+	 * @throws BamMergeException the bam merge exception
 	 */
-	public GroupReplacements(final String[] groupReplacements,
-			final String[] inputFileNameArray) throws BamMergeException {
+	public GroupReplacements(final String[] groupReplacements, final String[] inputFileNameArray) throws BamMergeException {
 		replacements = new Vector<GroupReplacement>();
 		for (String value : groupReplacements) {
 			GroupReplacement details = new GroupReplacement(value);
@@ -82,7 +78,9 @@ public final class GroupReplacements {
 					groupMappings.put(oldGroup, replacement);
 				}
 			}
-			fileNameMappings.put(fileName, groupMappings);
+			if ( ! groupMappings.isEmpty()) {
+				fileNameMappings.put(fileName, groupMappings);
+			}
 		}
 	}
 

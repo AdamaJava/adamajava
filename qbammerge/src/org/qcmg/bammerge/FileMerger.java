@@ -4,12 +4,8 @@
 package org.qcmg.bammerge;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -29,6 +25,7 @@ import net.sf.samtools.SAMRecord;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.util.Constants;
+import org.qcmg.common.util.FileUtils;
 import org.qcmg.picard.HeaderUtils;
 import org.qcmg.picard.MultiSAMFileIterator;
 import org.qcmg.picard.MultiSAMFileReader;
@@ -102,7 +99,7 @@ public final class FileMerger {
 	private final int numberRecords;
 
 	/** Counter for summing the total number of records merged. */
-	private int mergeCount;
+	private long mergeCount;
 
 	/** The output file for the merge results. */
 	private File outputFile;
@@ -391,7 +388,7 @@ public final class FileMerger {
 			outputFile = createTemporaryFile(outputFileName);
 		} else {
 			allInputFileNames = inputFileNames;
-			outputFile = getCanonicalFile(outputFileName);
+			outputFile = FileUtils.getCanonicalFile(outputFileName);
 		}
 		if (null == allInputFileNames || 1 > allInputFileNames.length) {
 			throw new BamMergeException("INSUFFICIENT_INPUT_FILES");
@@ -427,7 +424,7 @@ public final class FileMerger {
 	 *             if problems are encountered in opening the file.
 	 */
 	private File createTemporaryFile(final String fileName) throws BamMergeException, IOException {
-		String outputDirectory = getParentDirectory(fileName);
+		String outputDirectory = FileUtils.getParentDirectory(fileName);
 		File outDir;
 		if(tmpdir == null)
 			outDir = new File(outputDirectory);
@@ -435,7 +432,7 @@ public final class FileMerger {
 			outDir = tmpdir;
 		
 		File file = new File(fileName);
-		String ext = getExtension(file);
+		String ext = FileUtils.getExtension(file);
 		if (null == ext) {
 			throw new BamMergeException("UNSUITABLE_MERGE_FILE");
 		}
@@ -475,7 +472,7 @@ public final class FileMerger {
 			BamMergeException {
 		if (includeOutputFile) {
 			File mergeFile = new File(mergeFileName);
-			copyFile(outputFile, mergeFile);
+			FileUtils.copyFile(outputFile, mergeFile);
 			if (!outputFile.delete()) {
 				throw new BamMergeException("CANNOT_DELETE_TEMPORARY_FILE");
 			}
@@ -517,10 +514,12 @@ public final class FileMerger {
 	private void openReader() throws IOException, BamMergeException, Exception {
 		for (int i = 0; i < allInputFileNames.length; i++) {
 			String fileName = allInputFileNames[i];
-			File inputFile = getCanonicalFile(fileName);
+			File inputFile = FileUtils.getCanonicalFile(fileName);
 			detectBadFile(fileName, inputFile);
 			Map<String, GroupReplacement> groupMappings = groupReplacements.getGroupMappings(fileName);
-			replacementMap.put(inputFile, groupMappings);
+			if ( null != groupMappings && ! groupMappings.isEmpty()) {
+				replacementMap.put(inputFile, groupMappings);
+			}
 		}
 		detectSameInputFiles();
 		detectFileUsedAsInputAndOutput();
@@ -534,36 +533,6 @@ public final class FileMerger {
 	}
 
 	/**
-	 * Extracts the file extension for the specified File instance.
-	 * 
-	 * @param f
-	 * @return
-	 */
-	private static String getExtension(File f) {
-		String ext = null;
-		String s = f.getName();
-		int i = s.lastIndexOf('.');
-		if (f.isDirectory())
-			ext = null;
-		else if (i > 0 && i < s.length() - 1) {
-			ext = s.substring(i + 1).toLowerCase();
-		}
-		return ext;
-	}
-
-	/**
-	 * Returns the parent directory for the specified file name.
-	 * 
-	 * @param fileName
-	 * @return
-	 * @throws IOException
-	 */
-	private static String getParentDirectory(final String fileName) throws IOException {
-		File file = getCanonicalFile(fileName);
-		return file.getParent();
-	}
-
-	/**
 	 * Throws an exception if the output File instance has been used as an input
 	 * file. The check is performed using canonical file instances, so that
 	 * alternative pathings to the same file are detected.
@@ -573,11 +542,11 @@ public final class FileMerger {
 	private void detectFileUsedAsInputAndOutput() throws BamMergeException {
 		for (final File basisFile : inputFiles) {
 			checkSameness(basisFile, outputFile);
-			for (final File file : inputFiles) {
-				if (outputFile.equals(file)) {
-					throw new BamMergeException("FILE_USED_BOTH_AS_INPUT_AND_OUTPUT", outputFile.getName());
-				}
-			}
+//			for (final File file : inputFiles) {
+//				if (outputFile.equals(file)) {
+//					throw new BamMergeException("FILE_USED_BOTH_AS_INPUT_AND_OUTPUT", outputFile.getName());
+//				}
+//			}
 		}
 	}
 
@@ -612,42 +581,6 @@ public final class FileMerger {
 			Object[] params = { fileA.getName(), fileB.getName() };
 			throw new BamMergeException("SAME_FILES", params);
 		}
-	}
-
-	/**
-	 * Returns the unique canonical File instance for the specified file name.
-	 * 
-	 * @param fileName
-	 * @return
-	 * @throws IOException
-	 */
-	private static File getCanonicalFile(final String fileName) throws IOException {
-		final File file = new File(fileName);
-		return file.getCanonicalFile();
-	}
-
-	/**
-	 * Performs a byte copy of one File instance to another File instance.
-	 * 
-	 * @param fromFile
-	 *            the original file instance.
-	 * @param toFile
-	 *            the copied file instance.
-	 * @throws IOException
-	 *             if IO problems are encountered in the merge.
-	 * @throws FileNotFoundException
-	 *             if either of the files cannot be found in the filesystem.
-	 */
-	private static void copyFile(final File fromFile, final File toFile) throws IOException, FileNotFoundException {
-		InputStream instream = new FileInputStream(fromFile);
-		OutputStream outstream = new FileOutputStream(toFile);
-		byte[] buf = new byte[1024];
-		int len;
-		while ((len = instream.read(buf)) > 0) {
-			outstream.write(buf, 0, len);
-		}
-		instream.close();
-		outstream.close();
 	}
 
 	/**
@@ -911,12 +844,14 @@ public final class FileMerger {
 			if (null == record.getReadGroup())
 				throw new BamMergeException("BAD_RECORD_RG");
 			
-			String oldGroup = record.getReadGroup().getReadGroupId();
 			SAMFileReader fileReader = iter.getCurrentSAMFileReader();
-			File file = inputReader.getFile(fileReader);
-			String newGroup = getReplacementGroup(file, oldGroup);
-			if (null != newGroup) {
-				record.setAttribute("RG", newGroup);
+			if ( ! replacementMap.isEmpty()) {
+				String oldGroup = record.getReadGroup().getReadGroupId();
+				File file = inputReader.getFile(fileReader);
+				String newGroup = getReplacementGroup(file, oldGroup);
+				if (null != newGroup) {
+					record.setAttribute("RG", newGroup);
+				}
 			}
 			Integer oldZc = record.getIntegerAttribute("ZC");
 			if (null == oldZc) {

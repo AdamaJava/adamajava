@@ -5,8 +5,13 @@ package org.qcmg.common.util;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.FileVisitOption;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -307,6 +312,72 @@ public class FileUtils {
 			}
 		}
 		return true;
+	}
+
+	/**
+	 * Returns the unique canonical File instance for the specified file name.
+	 * 
+	 * @param fileName
+	 * @return
+	 * @throws IOException
+	 */
+	public static File getCanonicalFile(final String fileName) throws IOException {
+		final File file = new File(fileName);
+		return file.getCanonicalFile();
+	}
+
+	/**
+	 * Performs a byte copy of one File instance to another File instance.
+	 * 
+	 * @param fromFile
+	 *            the original file instance.
+	 * @param toFile
+	 *            the copied file instance.
+	 * @throws IOException
+	 *             if IO problems are encountered in the merge.
+	 * @throws FileNotFoundException
+	 *             if either of the files cannot be found in the filesystem.
+	 */
+	public static void copyFile(final File fromFile, final File toFile) throws IOException, FileNotFoundException {
+		InputStream instream = new FileInputStream(fromFile);
+		OutputStream outstream = new FileOutputStream(toFile);
+		byte[] buf = new byte[1024];
+		int len;
+		while ((len = instream.read(buf)) > 0) {
+			outstream.write(buf, 0, len);
+		}
+		instream.close();
+		outstream.close();
+	}
+
+	/**
+	 * Returns the parent directory for the specified file name.
+	 * 
+	 * @param fileName
+	 * @return
+	 * @throws IOException
+	 */
+	public static String getParentDirectory(final String fileName) throws IOException {
+		File file = getCanonicalFile(fileName);
+		return file.getParent();
+	}
+
+	/**
+	 * Extracts the file extension for the specified File instance.
+	 * 
+	 * @param f
+	 * @return
+	 */
+	public static String getExtension(File f) {
+		String ext = null;
+		String s = f.getName();
+		int i = s.lastIndexOf('.');
+		if (f.isDirectory())
+			ext = null;
+		else if (i > 0 && i < s.length() - 1) {
+			ext = s.substring(i + 1).toLowerCase();
+		}
+		return ext;
 	}
 
 }
