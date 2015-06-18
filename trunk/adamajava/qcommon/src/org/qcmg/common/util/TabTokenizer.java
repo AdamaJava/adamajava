@@ -16,6 +16,9 @@ public class TabTokenizer {
 	public static String[] tokenize(final String data) {
 		return tokenize(data, DELIM);
 	}
+	public static String[] tokenize(final String data, int requiredEntries) {
+		return tokenize(data, DELIM, requiredEntries);
+	}
 	
 	public static String[] tokenize(final String data, final char delim) {
 		int nextIndex = data.indexOf(delim);
@@ -30,6 +33,31 @@ public class TabTokenizer {
 		nextIndex = data.indexOf(delim, currentIndex);
 		while (nextIndex != -1) {
 			resultList.add(data.substring(currentIndex, nextIndex));
+			currentIndex = nextIndex + 1;
+			nextIndex = data.indexOf(delim, currentIndex);
+		}
+		// get last string
+		resultList.add(data.substring(currentIndex));
+		
+		return resultList.toArray(stringArrayType);
+	}
+	
+	public static String[] tokenize(final String data, final char delim, final int requiredEntries) {
+		int noOfEntries = 0;
+		int nextIndex = data.indexOf(delim);
+		if (nextIndex < 0) throw new IllegalArgumentException("no delimiters '" + delim + "' found in string: " + data);
+		
+		int currentIndex = 0;
+		final List<String> resultList = new ArrayList<String>();
+		
+		resultList.add(data.substring(currentIndex, nextIndex));
+		noOfEntries++;
+		currentIndex = nextIndex + 1;
+		
+		nextIndex = data.indexOf(delim, currentIndex);
+		while ((noOfEntries <= requiredEntries) && nextIndex != -1) {
+			resultList.add(data.substring(currentIndex, nextIndex));
+			noOfEntries++;
 			currentIndex = nextIndex + 1;
 			nextIndex = data.indexOf(delim, currentIndex);
 		}
