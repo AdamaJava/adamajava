@@ -11,8 +11,10 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -39,7 +41,7 @@ public class BuildCommonSnpsVcf {
 	
 	// INPUTS
 	private static String logFile;
-	private String searchDirectory;
+	private String [] searchDirectory;
 	private String outputVcfFile;
 	private String searchString;
 	private String [] additionalSearchStrings;
@@ -52,19 +54,21 @@ public class BuildCommonSnpsVcf {
 	
 	private int engage() throws Exception {
 		
-		// get list of dcc1 files to process
-		File[] dcc1Files = FileUtils.findFilesEndingWithFilter(searchDirectory, searchString, true);
-		
-		Arrays.sort(dcc1Files);
+		Set<File> filesToProcess = new HashSet<>(); 
+		for (String s : searchDirectory) {
+			// get list of dcc1 files to process
+			File[] dcc1Files = FileUtils.findFilesEndingWithFilter(s, searchString, true);
+			filesToProcess.addAll(Arrays.asList(dcc1Files));
+		}
 		
 		logger.info("UNFILTERED LIST");
-		for (final File f : dcc1Files) logger.info(f.getAbsolutePath());
+		for (final File f : filesToProcess) logger.info(f.getAbsolutePath());
 		logger.info("UNFILTERED LIST - END");
 		
 		if (null != additionalSearchStrings && additionalSearchStrings.length > 0) {
 			int i = 1;
 			// additional filtering of files
-			for (final File f : dcc1Files) {
+			for (final File f : filesToProcess) {
 				boolean passesFilter = true;
 				for (final String filter : additionalSearchStrings) {
 					if ( ! f.getAbsolutePath().contains(filter)) {
@@ -74,14 +78,14 @@ public class BuildCommonSnpsVcf {
 				}
 				if (passesFilter) mapOfFilesAndIds.put(f, i++);
 			}
-			dcc1Files = mapOfFilesAndIds.keySet().toArray(dcc1Files);
+//			dcc1Files = mapOfFilesAndIds.keySet().toArray(dcc1Files);
 		} else {
 			int i = 1;
 			// need to populate the map
-			for (final File f : dcc1Files) mapOfFilesAndIds.put(f, i++);
+			for (final File f : filesToProcess) mapOfFilesAndIds.put(f, i++);
 		}
 		
-		logger.info("Will create an output file based on the contents of " + dcc1Files.length + " files matching " + searchString);
+		logger.info("Will create an output file based on the contents of " + filesToProcess.size() + " files matching " + searchString);
 		
 		if ( ! mapOfFilesAndIds.isEmpty()) {
 			
@@ -169,7 +173,7 @@ public class BuildCommonSnpsVcf {
 			}
 		}
 	}
-	private VcfHeader getHeaderForCommonSnps(final String searchString, final String searchDirectory, String[] additionalSearchStrings, Map<File, Integer> mapOfFilesAndIds) throws Exception {
+	private VcfHeader getHeaderForCommonSnps(final String searchString, final String [] searchDirectory, String[] additionalSearchStrings, Map<File, Integer> mapOfFilesAndIds) throws Exception {
 		final VcfHeader header = new VcfHeader();
 		final DateFormat df = new SimpleDateFormat("yyyyMMdd");
  //		final String fileDate = df.format(Calendar.getInstance().getTime());
@@ -182,7 +186,7 @@ public class BuildCommonSnpsVcf {
 		header.parseHeaderLine(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + QExec.createUUid() );
 		header.parseHeaderLine(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=" + Messages.getProgramName() + Main.class.getPackage().getImplementationVersion());
 		header.parseHeaderLine("##search_string=" + searchString );
-		header.parseHeaderLine( "##search_directory=" + searchDirectory);
+		header.parseHeaderLine( "##search_directory=" + Arrays.deepToString(searchDirectory));
 		header.parseHeaderLine( "##additional_search_directory=" + Arrays.deepToString(additionalSearchStrings));
 		
 		if (null != mapOfFilesAndIds && mapOfFilesAndIds.size() > 0) {			
@@ -374,8 +378,8 @@ public class BuildCommonSnpsVcf {
 			logger.logInitialExecutionStats("qsnp", version, args);
 			
 			// get search directory 
-			if (options.getInputFileNames().length == 1) {
-				searchDirectory = options.getInputFileNames()[0];
+			if (options.getInputFileNames().length >=1 ) {
+				searchDirectory = options.getInputFileNames();
 			} else {
 				throw new SnpException("MISSING_INI_FILE");
 			}
