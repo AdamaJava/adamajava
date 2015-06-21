@@ -3,10 +3,10 @@
  */
 package org.qcmg.bammerge;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Vector;
 
 /**
  * The Class GroupReplacements.
@@ -41,8 +41,7 @@ public final class GroupReplacements {
 		for (int i = 0; i < inputFileNames.length; i++) {
 			String fileName = inputFileNames[i];
 			Map<String, GroupReplacement> groupMappings = new HashMap<String, GroupReplacement>();
-			for (Object obj : replacements) {
-				GroupReplacement replacement = (GroupReplacement) obj;
+			for (GroupReplacement replacement : replacements) {
 				if (replacement.getFileName().equals(fileName)) {
 					String oldGroup = replacement.getOldGroup();
 					groupMappings.put(oldGroup, replacement);
@@ -60,7 +59,7 @@ public final class GroupReplacements {
 	 * @throws BamMergeException the bam merge exception
 	 */
 	public GroupReplacements(final String[] groupReplacements, final String[] inputFileNameArray) throws BamMergeException {
-		replacements = new Vector<GroupReplacement>();
+		replacements = new ArrayList<>();
 		for (String value : groupReplacements) {
 			GroupReplacement details = new GroupReplacement(value);
 			replacements.add(details);
@@ -71,8 +70,7 @@ public final class GroupReplacements {
 		for (int i = 0; i < inputFileNames.length; i++) {
 			String fileName = inputFileNames[i];
 			Map<String, GroupReplacement> groupMappings = new HashMap<String, GroupReplacement>();
-			for (Object obj : replacements) {
-				GroupReplacement replacement = (GroupReplacement) obj;
+			for (GroupReplacement replacement : replacements) {
 				if (replacement.getFileName().equals(fileName)) {
 					String oldGroup = replacement.getOldGroup();
 					groupMappings.put(oldGroup, replacement);
