@@ -24,6 +24,7 @@ import net.sf.samtools.SAMRecord;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.picard.HeaderUtils;
@@ -922,7 +923,10 @@ public final class FileMerger {
 		//close output write and rename index if needed 
 		if (null != outputWriterfactory) {
 			outputWriterfactory.closeWriter();
-			logger.info(outputWriterfactory.getLogMessage());
+			String logMessage = outputWriterfactory.getLogMessage();
+			if ( ! StringUtils.isNullOrEmpty(logMessage)) {
+				logger.info(logMessage);
+			}
 		}
 	 
 		try {
@@ -933,17 +937,6 @@ public final class FileMerger {
 			throw new BamMergeException("CANNOT_CLOSE_FILES");
 		}
 	 
-	}
-
-	/**
-	 * Closes all readers and writers quietly by consuming any thrown
-	 * exceptions.
-	 */
-	private void closeQuietly() {
-		try {
-			close();
-		} catch (Exception e) {
-		}
 	}
 
 	/**
