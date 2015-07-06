@@ -1,6 +1,6 @@
 version = '0.1pre'
 
-def mainclass = 'au.edu.qimr.clinvar.Q3TiledAligner'
+def mainclass = 'au.edu.qimr.tiledaligner.Q3TiledAligner'
 def scriptname = 'q3tiledaligner'
 def isExecutable = true
 
