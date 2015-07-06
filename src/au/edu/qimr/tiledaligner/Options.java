@@ -8,8 +8,6 @@
  */
 package au.edu.qimr.tiledaligner;
 
-import java.util.List;
-
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 
@@ -34,7 +32,7 @@ final class Options {
 	private final OptionParser parser = new OptionParser();
 	private final OptionSet options;
 //	private final List<String> fileNames;
-	private final String[] fastqs;
+//	private final String[] fastqs;
 	private final String outputFileName;
 	private final String log;
 	private final Integer minBinSize;
@@ -68,9 +66,9 @@ final class Options {
 		input = (String) options.valueOf("input");
 		
 		// inputs
-		List<String> inputs = (List<String>) options.valuesOf("fastqs");
-		fastqs = new String[inputs.size()];
-		inputs.toArray(fastqs);
+//		List<String> inputs = (List<String>) options.valuesOf("fastqs");
+//		fastqs = new String[inputs.size()];
+//		inputs.toArray(fastqs);
 		
 		
 		// output
@@ -115,9 +113,9 @@ final class Options {
 		return input;
 	}
 
-	String[] getFastqs() {
-		return fastqs;
-	}
+//	String[] getFastqs() {
+//		return fastqs;
+//	}
 //	List<String> getFileNames() {
 //		return fileNames;
 //	}

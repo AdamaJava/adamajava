@@ -135,8 +135,8 @@ private static QLogger logger;
 		} else if (options.hasVersionOption()) {
 			System.err.println(Messages.getVersionMessage());
 			returnStatus = 0;
-		} else if (options.getFastqs().length < 1) {
-			System.err.println(Messages.USAGE);
+//		} else if (options.getFastqs().length < 1) {
+//			System.err.println(Messages.USAGE);
 //		} else if ( ! options.hasLogOption()) {
 //			System.err.println(Messages.USAGE);
 		} else {
@@ -144,7 +144,7 @@ private static QLogger logger;
 			logFile = options.getLog();
 			version = Q3TiledAligner.class.getPackage().getImplementationVersion();
 			logger = QLoggerFactory.getLogger(Q3TiledAligner.class, logFile, options.getLogLevel());
-			logger.logInitialExecutionStats("q3clinvar", version, args);
+			logger.logInitialExecutionStats("q3tiledaligner", version, args);
 			
 			// get list of file names
 			inputFile = options.getInput();
