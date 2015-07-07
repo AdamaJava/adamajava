@@ -19,6 +19,8 @@ public abstract class SummaryReport {
 	
 //	private final Counter recordsParsed = new Counter();
 	private final AtomicLong recordsParsed = new AtomicLong();
+//	private final AtomicLong recordsinputed = new AtomicLong();
+	
 	private String startTime;
 	private String finishTime;
 	private String generatedBy;
@@ -35,14 +37,16 @@ public abstract class SummaryReport {
 		logger = QLoggerFactory.getLogger(getClass());
 	}
 
-
+//	public long getRecordsInputed() {
+//		return recordsinputed.get();
+//	}
+// 	public void updateRecordsInputed() {
+// 		recordsinputed.incrementAndGet();
+//	}
 	public long getRecordsParsed() {
 		return recordsParsed.get();
 	}
-//	public void setRecordsParsed(int recordsParsed) {
-//		this.recordsParsed = recordsParsed;
-//	}
-	public void updateRecordsParsed() {
+ 	public void updateRecordsParsed() {
 		recordsParsed.incrementAndGet();
 	}
 
@@ -90,7 +94,10 @@ public abstract class SummaryReport {
 		element.setAttribute("file", getFileName());
 		element.setAttribute("execution_started", getStartTime());
 		element.setAttribute("execution_finished", getFinishTime());
-		element.setAttribute("records_parsed", ""+getRecordsParsed() );
+//		if(getRecordsInputed() != 0)
+//			element.setAttribute("records_inputed", "" + getRecordsInputed() );
+//		else if(getRecordsParsed() != 0)
+		element.setAttribute("records_parsed", "" + getRecordsParsed() );
 		if (null != maxRecords)
 			element.setAttribute("max_no_of_records", maxRecords.toString());
 		if (null != noOfDuplicates)
@@ -103,8 +110,7 @@ public abstract class SummaryReport {
 				excludesString.append(ex);
 			}
 			element.setAttribute("excludes", excludesString.toString());
-		}
-			
+		}			
 		return element;
 	}
 	

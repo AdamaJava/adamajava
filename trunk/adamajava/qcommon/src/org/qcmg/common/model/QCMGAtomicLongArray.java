@@ -24,6 +24,22 @@ public class QCMGAtomicLongArray {
 	
 	public void increment(final int arrayPosition) {
 		
+		increment(arrayPosition, 1);
+		
+//		if (arrayPosition >= capacity) {
+//			resize(arrayPosition);
+//		}
+//		
+//		if (resizingInProgress.get()) {
+//			// cas until resizing is complete
+//			while  ( ! resizingInProgress.compareAndSet(false, false) ) {}
+//		}
+//		array.addAndGet(arrayPosition, 1);
+		
+	}
+
+	public void increment(final int arrayPosition, final long value) {
+		
 		if (arrayPosition >= capacity) {
 			resize(arrayPosition);
 		}
@@ -32,7 +48,7 @@ public class QCMGAtomicLongArray {
 			// cas until resizing is complete
 			while  ( ! resizingInProgress.compareAndSet(false, false) ) {}
 		}
-		array.addAndGet(arrayPosition, 1);
+		array.addAndGet(arrayPosition, value);
 	}
 	
 	public long get(int arrayPosition) {

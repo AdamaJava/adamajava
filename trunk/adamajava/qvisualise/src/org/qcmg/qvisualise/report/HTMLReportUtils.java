@@ -44,20 +44,6 @@ public class HTMLReportUtils {
 		// new tabbing lib
 		sb.append("<script src=\"http://cdn.jquerytools.org/1.2.5/full/jquery.tools.min.js\"></script>\n");
 		
-//		sb.append("<script type=\"text/javascript\" src='http://magic-table.googlecode.com/svn/trunk/magic-table/javascript/magic_table.js'></script>\n");
-		
-//		sb.append(createStyleSheet());
-//		sb.append(getStyle());
-		
-		
-		// ext js info
-//		sb.append("<link rel=\"stylesheet\" type=\"text/css\" href=\"/home/oholmes/development/thirdparty/ext-3.2.1/resources/css/ext-all.css\" />\n");
-//		sb.append("<script type=\"text/javascript\" src=\"/home/oholmes/development/thirdparty/ext-3.2.1/adapter/ext/ext-base.js\"></script>\n");
-//		sb.append("<script type=\"text/javascript\" src=\"/home/oholmes/development/thirdparty/ext-3.2.1/ext-all-debug.js\"></script>\n");
-//		sb.append("<script type=\"text/javascript\" src=\"/home/oholmes/development/thirdparty/ext-3.2.1/examples/ux/TabCloseMenu.js\"></script>\n ");
-//		sb.append("<link rel=\"stylesheet\" type=\"text/css\" href=\"tabs-example.css\" />");
-		// END of Ext js
-		
 		sb.append("<script type=\"text/javascript\">")
 		.append("google.setOnLoadCallback(drawChart);\n")
 		.append("function drawChart() \n{");
@@ -153,37 +139,7 @@ public class HTMLReportUtils {
 	public static <T, R> String generateGoogleData(
 			Map<T, R> dataSet, String name, boolean isValueString) {
 		return generateGoogleData(dataSet, name, isValueString, "Count", "value");
-//		Map<Integer, Integer> dataSet, String name, boolean isValueString) {
-		
-//		StringBuilder sb = new StringBuilder("\nvar ");
-//
-//		sb.append(name)
-//		.append(" = new google.visualization.DataTable(\n{cols: [{id: 'value', label: 'value', type: '"
-//				+ (isValueString ? "string" : "number") +"'}, {id: 'Count', label: 'Count', type: 'number'}], ");
-//		
-//		// now for the data
-//		sb.append("\nrows: [");
-//
-//		int i = 0;
-//		for (Entry<T, R> entry : dataSet.entrySet()) {
-//			if (i++ > 0)
-//				sb.append(",\n");
-//			
-//			sb.append("{c:[{v: ");
-//			
-//			if (isValueString) {
-//				sb.append("'").append(entry.getKey()).append("'}, ");
-//			} else {
-//				sb.append(entry.getKey()).append("}, ");
-//			}
-//
-//			sb.append("{v: " + entry.getValue() + "}]}");
-//		}
-//		
-//		// end of rows
-//		sb.append("]}, 0.6);");
-//		
-//		return sb.toString();
+
 	}
 	
 	public static <T, R> String generateGoogleData(
@@ -336,13 +292,17 @@ public class HTMLReportUtils {
 		return sb.toString();
 	}
 	
-	public static String generateGoogleDataForTableStringMap(Map<String, String> dataSet, String name) {
+	//xu code
+	public static String generateGoogleDataForTableStringMap(Map<String, String> dataSet, String ...names) {
 //		public static String generateGoogleDataForTable(Map<String, String> dataSet, String name) {
 		StringBuilder sb = new StringBuilder();
 			sb .append("\nvar ");
-			sb.append(name)
-			.append(" = new google.visualization.DataTable(\n{cols: [{id: 'header', label: 'Summary', type: 'string'}, {id: 'value', label: 'Value', type: 'string'}], ");
-			
+			sb.append(names[0])
+			.append(" = new google.visualization.DataTable(\n{cols: [{id: 'header', label: '" + names[1] + "', type: 'string'}");
+			for(int i = 2; i < names.length; i++)
+				sb.append( ", {id: 'value', label: '" + names[i] + "', type: 'string'}");
+			sb.append("],");
+				
 			
 			// now for the data
 			sb.append("\nrows: [");
@@ -359,10 +319,10 @@ public class HTMLReportUtils {
 			}
 			// end of rows
 			sb.append("]}, 0.6);");
-			
+		 			
 		return sb.toString();
 	}
-	
+		
 	public static String generateGoogleMatrixData(
 			Map<MAPQMiniMatrix, AtomicLong> dataSet, String name, boolean isValueString) {
 		
@@ -437,51 +397,51 @@ public class HTMLReportUtils {
 		
 		return sb.toString();
 	}
-	
-	public static String generateGoogleTable(String dataName, int numberOfTables, String tableTitle) {
-		String title = null != tableTitle ? "title: \"" + tableTitle + "\"": "";
-		StringBuilder sb = new StringBuilder();
-		if (numberOfTables > 1) {
-		for (int i = 1 ; i <= numberOfTables ; i++) {
-			String chartName = dataName + i + "Chart";
-			
-			initialTableSetup(sb, chartName);
-			
-			sb.append(chartName + ".draw(" + dataName + i +", {width:1000, height: " + dataName + i+ ".getNumberOfRows() > 50 ?400:0, showRowNumber: " + dataName + i + ".getNumberOfRows() > 1");
-			sb.append("});");
-		}
-		} else {
-			
-			String chartName = dataName + "Chart";
-			
-			initialTableSetup(sb, chartName);
-			
-			sb.append(chartName + ".draw(" + dataName +", {allowHtml: 'true', width: 700, height: 500, " + title + ", showRowNumber: false});");
-		}
-		return sb.toString();
-	}
-	public static String generateGoogleTable(String dataName, int numberOfTables) {
-		
-		return generateGoogleTable(dataName, numberOfTables, null);
+	/**
+	 * 
+	 * @param dataName
+	 * @param numberOfTables
+	 * @param tableTitle
+	 * @param height: specify table height here, otherwise put 0 by using default value
+	 * @param width: specify table width here, otherwise put 0 by using default value
+	 * @return
+	 */
+//	public static String generateGoogleMultiTable(String dataName, int numberOfTables, int height, int width) {
+////		String title = (null != tableTitle) ? "title: \"" + tableTitle + "\"": "";
 //		StringBuilder sb = new StringBuilder();
-//		if (numberOfTables > 1) {
-//			for (int i = 1 ; i <= numberOfTables ; i++) {
-//				String chartName = dataName + i + "Chart";
-//				
-//				initialTableSetup(sb, chartName);
-//				
-//				sb.append(chartName + ".draw(" + dataName + i +", {width:1000, height: " + dataName + i+ ".getNumberOfRows() > 50 ?400:0, showRowNumber: " + dataName + i + ".getNumberOfRows() > 1");
-//				sb.append("});");
-//			}
-//		} else {
-//			
-//			String chartName = dataName + "Chart";
-//			
+//		
+//		if(numberOfTables <= 1){
+//			height = (height <= 0) ? 500 : height;
+//			width = (width <= 0) ? 700 : width;
+//		}
+//		
+//		for (int i = 1 ; i <= numberOfTables ; i++) {
+//			String chartName = dataName + i + "Chart";			
 //			initialTableSetup(sb, chartName);
-//			
-//			sb.append(chartName + ".draw(" + dataName +", {width: 300, height: 300, showRowNumber: false});");
+//			String heightStr = (height <= 0) ? "height: " + dataName + i+ ".getNumberOfRows() > 50 ?400:0" : "height:" + height; 			
+//			String widthStr = (width <= 0) ? "width:" + dataName + i+ ".getNumberOfColumns() > 2 ?1300:450" : "width:" + width; 		 
+//			sb.append(chartName + ".draw(" + dataName + i +", {" + widthStr + "," +  heightStr + ", allowHtml: true,  showRowNumber:false");			
+//			sb.append("});");
 //		}
 //		return sb.toString();
+//	}
+	
+	
+	//single table	
+	public static String generateGoogleSingleTable(String dataName, Integer height, Integer width) {
+		StringBuilder sb = new StringBuilder();		
+		String chartName = dataName + "Chart";
+		initialTableSetup(sb, chartName);
+//		String heightStr = (height == null  ) ? "height: " + chartName +  ".getNumberOfRows() > 50 ?400:0" : "height:" + height; 			
+//		String widthStr = (width == null) ? "width:" + chartName +  ".getNumberOfColumns() > 2 ?1300:450" : "width:" + width; 		 
+		String heightStr = (height == null  ) ? "height: " + dataName +  ".getNumberOfRows() > 50 ?400:0" : "height:" + height; 			
+		String widthStr = (width == null) ? "width:" + dataName +  ".getNumberOfColumns() > 2 ?1300:450" : "width:" + width; 		 
+
+		sb.append(chartName + ".draw(" + dataName +", {" + widthStr + "," +  heightStr + ", allowHtml: true,  showRowNumber:true");
+		
+		sb.append("});");
+		
+		return sb.toString();
 	}
 	
 	public static String generateRenderingTableInfoSummary(List<String> dataNames) {
@@ -497,8 +457,6 @@ public class HTMLReportUtils {
 			String title = dn.contains("md") ? " title=\"cycles with mismatches over 1%\"" : "";
 			
 			sb.append("<td  id = \"" + dn + "ChartSummary_div\"" + title + "></td>");
-//			String colSpan = dn.startsWith("is") ? "colspan=2" : "";
-//			sb.append("<td " + colSpan + " id = \"" + dn + "ChartSummary_div\"></td>");
 				
 			if (i % 2 == 1) {
 				sb.append("</tr>\n");
@@ -514,22 +472,63 @@ public class HTMLReportUtils {
 		sb.append("</table>\n</div>");
 		return sb.toString();
 	}
-	public static String generateRenderingTableInfo(String dataName, int numberOfTables) {
+	public static String generateRenderingTableInfo(String dataName, int numberOfTables, boolean addBlank  ) {
 		StringBuilder sb = new StringBuilder("\n<div class=\"pane\">\n<table>");
 		
-		if (numberOfTables > 1) {
 			for (int i = 1 ; i <= numberOfTables ; i++) {
 				String chartName = dataName + i + "Chart_div";
 				sb.append("<tr><td id = \"" + chartName + "\"></td></tr>\n");
+				//add blank line between each table
+				if(addBlank && i < numberOfTables)
+					sb.append("<td bgcolor=\"#FFFFFF\" style=\"line-height:30px;\" colspan=3>&nbsp;</td>\n"); 
 			}
-		} else {
-			String chartName = dataName + "Chart_div";
-			sb.append("<tr><td id = \"" + chartName + "\"></td></tr>\n");
-		}
-		
+			 		
 		sb.append("</table>\n</div>");
 		return sb.toString();
 	}
+
+	//debug xu
+	public static String generateDescriptionButton(String dataName, String description, String buttname ) {
+//		StringBuilder sb = new StringBuilder("\n<div class=\"pane\">");
+		String DescriptionButton = (buttname == null)? "Description" : buttname; 
+		StringBuilder sb = new StringBuilder();
+		sb.append("<button onclick=\"toggleDiv('" + dataName  + "Desc_div" + "');\" class=\"butt\">" + DescriptionButton + "</button>");
+		sb.append("<div id=\"" +  dataName  + "Desc_div\" class=\"desc\">");
+		sb.append(description);
+		sb.append("</div>");
+//		sb.append("<p id=\"" + dataName  + "Chart_div\"></p>");
+//		sb.append("\n</div>");
+		
+	 
+		return sb.toString();
+ 
+	}
+	
+	
+	//for summary page table only
+	public static String generateSummaryTableInfo(String dataName, int numberOfTables  ) {
+		StringBuilder sb = new StringBuilder("\n<div class=\"pane\">\n<table>");
+		
+		
+		
+		
+		
+//		if (numberOfTables > 1) {
+//			for (int i = 1 ; i <= numberOfTables ; i++) {
+//				String chartName = dataName + i + "Chart_div";
+//				sb.append("<tr><td id = \"" + chartName + "\"></td></tr>\n");
+//				//add blank line between each table
+// 				sb.append("<td bgcolor=\"#FFFFFF\" style=\"line-height:30px;\" colspan=3>&nbsp;</td>\n"); 
+//			}
+//		} else {
+//			String chartName = dataName + "Chart_div";
+//			sb.append("<tr><td id = \"" + chartName + "\"></td></tr>\n");
+//		}
+		
+		sb.append("</table>\n</div>");
+		return sb.toString();
+	}	
+	
 	public static String generateRenderingTableInfo(List<String> data) {
 		StringBuilder sb = new StringBuilder("\n<div class=\"pane\">\n<table>");
 		
@@ -831,6 +830,8 @@ public class HTMLReportUtils {
 		.append("font-size: 15px;}\n")
 		.append(".desc{padding: 5px 10px;font-family: Verdana, Helvetica, Arial; font-size:12px}\n")
 		.append(".butt{font-family: Verdana, Helvetica, Arial; font-size:12px}\n")
+	//xu added for show table under description 	
+		.append("table { font-family: Verdana, Helvetica, Arial; font-size:12px }\n")
 		.append("</style>\n");
 		
 		return sb.toString();

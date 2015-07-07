@@ -272,7 +272,7 @@ public class QProfiler {
 		System.exit(exitStatus);
 	}
 	
-	protected int setup(String args[]) throws Exception{
+	public int setup(String args[]) throws Exception{
 		int returnStatus = 1;
 		Options options = new Options(args);
 

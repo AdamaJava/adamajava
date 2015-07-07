@@ -79,8 +79,8 @@ public class BamSummarizer implements Summarizer {
 				}
 				
 				// if maxRecords is non-zero, stop when we hit it
-				if (currentRecordCount == maxRecords) {
-	//				if (maxRecords > 0 && currentRecordCount == maxRecords) {
+	//			if (currentRecordCount == maxRecords) {
+				if (maxRecords > 0 && currentRecordCount == maxRecords) {
 					break;
 				}
 			}

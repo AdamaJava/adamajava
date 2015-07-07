@@ -35,7 +35,7 @@ public class QProfilerCollectionsUtils {
 	 */
 	@SuppressWarnings("unchecked")
 	public static <T> Map<T, AtomicLong> splitFlagTallyByDistinguisher(Map<T, AtomicLong> flags, Map<String, T> distinguisherMap, T nonDistDesc) {
-		Map<T, AtomicLong> splitFlags = new HashMap<T, AtomicLong>();
+		Map<T, AtomicLong> splitFlags = new LinkedHashMap<T, AtomicLong>();
 		
 		// loop through flags, if <T> contains the specified value, add to value 
 		for (Entry<T, AtomicLong> entry : flags.entrySet()) {
@@ -173,22 +173,7 @@ public class QProfilerCollectionsUtils {
 						
 						map.put(isInteger ? (T) Integer.valueOf(tallyItemElement.getAttribute("value")) 
 								: (T) tallyItemElement.getAttribute("value") , new AtomicLong(count));
-						
-						
-//						if (null != type && type.isAssignableFrom(Integer.class)) {
-//							// this maintains the ordering
-//							map.put((T) Integer.valueOf(tallyItemElement.getAttribute("value")), new AtomicLong(count));
-//						} else {
-////							if (switchFromASCII) {
-////								if (Character.isDigit(tallyItemElement.getAttribute("value").charAt(0))) {
-////									map.put((T) tallyItemElement.getAttribute("value"), new AtomicLong(count));
-////								} else {
-////									map.put((T) Integer.valueOf(tallyItemElement.getAttribute("value").charAt(0) - 64), new AtomicLong(count));
-////								}
-////							} else {
-//								map.put((T) tallyItemElement.getAttribute("value"), new AtomicLong(count));
-////							}
-//						}
+												
 					}
 				}
 			}
@@ -199,8 +184,6 @@ public class QProfilerCollectionsUtils {
 			Map<MAPQMiniMatrix, AtomicLong> map) {
 		if (null != cycleElement) {
 			NodeList tallyItemsNL = cycleElement.getElementsByTagName("TallyItem"); 
-//			NodeList tallyItemsNL = cycleElement.getChildNodes(); 
-			// Map<T, Integer> cycleCount = new TreeMap<T, Integer>();
 			for (int j = 0, size = tallyItemsNL.getLength() ; j < size ; j++) {
 				Element tallyItemElement = (Element) tallyItemsNL.item(j);
 				long count = Long.parseLong(tallyItemElement
@@ -338,7 +321,14 @@ public class QProfilerCollectionsUtils {
 		if (null == headerText) return null;
 		
 		String [] params = headerText.split("\n");
+		 
 		Map<String, List<String>> results = new LinkedHashMap<String ,List<String>>();
+		
+		//init the map for order
+		String[] heads = {"Header","Sequence","Read Group","Program","Comments","Other"};
+		for(String key : heads)
+			results.put(key, null);
+		
 		if (params.length > 1) {
 			for (String param : params) {
 				
@@ -385,6 +375,12 @@ public class QProfilerCollectionsUtils {
 				}
 			}
 		}
+				
+		//remove not exit head field
+ 		for(String key : heads)
+ 			if(results.get(key) == null)
+ 				results.remove(key);
+
 		return results;
 	}
 	

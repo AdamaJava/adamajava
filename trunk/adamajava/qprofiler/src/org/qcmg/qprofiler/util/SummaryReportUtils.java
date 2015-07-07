@@ -925,14 +925,18 @@ public class SummaryReportUtils {
 		}
 	}
 	
-	public static void tallyMDMismatches(final String mdData, Cigar cigar, final SummaryByCycleNew2<Character> summary, 
+//	public static void tallyMDMismatches(final String mdData, Cigar cigar, final SummaryByCycleNew2<Character> summary, 
+	public static String tallyMDMismatches(final String mdData, Cigar cigar, final SummaryByCycleNew2<Character> summary, 
 			final byte[] readBases, final boolean reverse, QCMGAtomicLongArray mdRefAltLengthsForward, 
 			QCMGAtomicLongArray mdRefAltLengthsReverse) {
 		
-		if (null != mdData) {
+		String errMessage = null; 
 		
+		if (null != mdData) {		
 			int readLength = readBases.length;
-			if (readLength == 0) return;	// secondary alignments can have * as their sequence (which picard doesn't seem to report), which we can't do much with
+			// secondary alignments can have * as their sequence (which picard doesn't seem to report), which we can't do much with
+			if (readLength == 0) 
+				return  errMessage;	
 		
 			boolean deletion = false;
 			if (reverse) {
@@ -953,17 +957,16 @@ public class SummaryReportUtils {
 						i++;
 					} else if (isInValidExtended(mdData.charAt(i))) {
 						// got a letter - update summary with position
-						if (! deletion) {
-							
+						if (! deletion) {							
 							// check cigar to see if we need to adjust our offset due to insertions etc
 							int additionalOffset = getInsertionAdjustedReadOffset(cigar, position);
 							char readBase = BaseUtils.getComplement((char)readBases[position-1 + additionalOffset]);
-//							char refBase = mdData.charAt(i);
 							char refBase = BaseUtils.getComplement(mdData.charAt(i));
-							if (refBase == readBase) {
-								System.out.println("Found refBase == altBase, md: " + mdData + " , cigar: " + cigar.toString() + ", seq: " + new String(readBases) + ", reverse strand: " +reverse); 
-							}
-							
+ 						
+							if (refBase == readBase) 
+								errMessage =  "Found refBase == altBase, md: " + mdData + " , cigar: " + cigar.toString() + ", seq: " + new String(readBases) + ", reverse strand: " +reverse; 
+																			
+							//	System.out.println("Found refBase == altBase, md: " + mdData + " , cigar: " + cigar.toString() + ", seq: " + new String(readBases) + ", reverse strand: " +reverse); 							 							
 							summary.increment(readLength - position + 1, readBase);
 							int intFromChar =getIntFromChars(refBase, readBase);
 							mdRefAltLengthsReverse.increment(intFromChar);
@@ -974,15 +977,12 @@ public class SummaryReportUtils {
 						}
 						deletion = false;
 					} else i++;	// need to increment this or could end up with infinite loop...
-				}
-				
+				}				
 			} else {
 				
 				int position = 1;
-				for (int i = 0, size = mdData.length() ; i < size ; ) {
-				
-					if (Character.isDigit(mdData.charAt(i))) {
-						
+				for (int i = 0, size = mdData.length() ; i < size ; ) {				
+					if (Character.isDigit(mdData.charAt(i))) {						
 						int numberLength = 1;
 						while (++i < size && Character.isDigit(mdData.charAt(i))) {
 							numberLength++;
@@ -1000,9 +1000,12 @@ public class SummaryReportUtils {
 							int additionalOffset = getInsertionAdjustedReadOffset(cigar, position);
 							char readBase = (char)readBases[position-1 + additionalOffset];
 							char refBase = mdData.charAt(i);
-							if (refBase == readBase) {
-								System.out.println("Found refBase == altBase, md: " + mdData + " , cigar: " + cigar.toString() + ", seq: " + new String(readBases) + ", reverse strand: " +reverse); 
-							}
+//							if (refBase == readBase) {
+//								System.out.println("Found refBase == altBase, md: " + mdData + " , cigar: " + cigar.toString() + ", seq: " + new String(readBases) + ", reverse strand: " +reverse); 
+//							}
+							if (refBase == readBase) 
+								errMessage =  "Found refBase == altBase, md: " + mdData + " , cigar: " + cigar.toString() + ", seq: " + new String(readBases) + ", reverse strand: " +reverse; 
+
 									
 							summary.increment(position, readBase);
 							
@@ -1017,7 +1020,9 @@ public class SummaryReportUtils {
 					} else i++;	// need to increment this or could end up with infinite loop...
 				}
 			}
+			
 		}
+		return errMessage;
 	}
 	
 	public static int getInsertionAdjustedReadOffset(Cigar cigar, int i) {
@@ -1168,7 +1173,7 @@ public class SummaryReportUtils {
 	}
 	
 	public static int getIntFromChars(final char ref, final char alt) {
-		if (ref == alt) System.out.println("REF == ALT!!! : ref: " + ref + ", alt: " + alt);
+//		if (ref == alt) System.out.println("REF == ALT!!! : ref: " + ref + ", alt: " + alt);
 		switch (ref) {
 		case 'A':
 			return 'A' == alt ? 1 : ('C' == alt ? 2 : ('G' == alt ? 3 : ('T' == alt ? 4 : 5)));

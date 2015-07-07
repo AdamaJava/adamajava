@@ -40,6 +40,7 @@ public class BamSummarizerTest {
 				SAM_INPUT_FILE));
 
 		Assert.assertNotNull(sr);
+		
 		Assert.assertEquals(5, sr.getRecordsParsed());		// should be 5 records
 		testSummaryReport(sr);
 	}
@@ -50,7 +51,7 @@ public class BamSummarizerTest {
 			BamSummarizer bs = new BamSummarizer(null, i, null, null, null, null);
 			BamSummaryReport sr = (BamSummaryReport) bs.summarize(new File(
 					SAM_INPUT_FILE));
-			
+
 			Assert.assertNotNull(sr);
 			Assert.assertEquals(i, sr.getRecordsParsed());
 		}
@@ -317,10 +318,36 @@ public class BamSummarizerTest {
 		return data;
 	}
 	
+//	private static List<String> createSamDataBody() {
+//		List<String> data = new ArrayList<String>();
+//		//reverse
+//		data.add("243_146_202	115	chr1	10075	6	13H37M	=	10167	142	" +
+//				"ACCCTAACCCTAACCCTAACCNTAACCCTAACCCAAC	+3?GH##;9@D7HI5,:IIB\"!\"II##>II$$BIIC3	" +
+//				"RG:Z:1959T	CS:Z:T11010020320310312010320010320013320012232201032202	CQ:Z:**:921$795*#5:;##):<5&'/=,,9(2*#453-'%(.2$6&39$+4'");
+//		//reverse
+//		data.add("642_1887_1862	83	chr1	10167	1	15H35M	=	10176	59	" +
+//				"CCTAACNCTAACCTAACCCTAACCCTAACCCTAAC	.(01(\"!\"&####07=?$$246/##<>,($3HC3+	RG:Z:1959T	" +
+//				"CS:Z:T11032031032301032201032311322310320133320110020210	CQ:Z:#)+90$*(%:##').',$,4*.####$#*##&,%$+$,&&)##$#'#$$)");
+//		//forward
+//		data.add("970_1290_1068	163	chr1	10176	3	42M8H	=	10167	-59	" +
+//				"AACCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTA	I&&HII%%IIII4CII=4?IIF0B((!!7F@+129G))I>.6	RG:Z:1959T	" +
+//				"CS:Z:G202023020023010023010023000.2301002302002330000000	CQ:Z:@A&*?=9%;?:A-(<?8&/1@?():(9!,,;&&,'35)69&)./?11)&=");
+//		//reverse
+//		data.add("681_1482_392	115	chr1	10236	20	10H40M	=	10242	56	" +
+//				"AACCCTAACCCTAAACCCTAAACCCTAACCCTAACCCTAA	IIIIIIIIEBIIIIFFIIIIIIIIIIIIIIIIIIIIIIII	RG:Z:1959T	" +
+//				"CS:Z:T00320010320010320010032001003200103200100320000320	CQ:Z::<=>:<==8;<;<==9=9?;5>8:<+<;795.89>2;;8<:.78<)1=5;");
+//		//reverse
+//		data.add("1997_1173_1256	177	chr1	10242	100	22H28M	chr1	10236	0	" +
+//				"AACCCTAAACCCTAAACCCTAACCCTAA	IIII27IICHIIIIHIIIHIIIII$$II	RG:Z:1959T	" +
+//				"CS:Z:G10300010320010032001003000100320000032000020001220	CQ:Z:5?8$2;>;:458=27597:/5;7:2973:3/9;18;6/:5+4,/85-,'(");
+//		return data;
+//	}
+	
+	//updated qprofiler won't parse same strand pairs, so change it
 	private static List<String> createSamDataBody() {
 		List<String> data = new ArrayList<String>();
 		//reverse
-		data.add("243_146_202	115	chr1	10075	6	13H37M	=	10167	142	" +
+		data.add("243_146_202	83	chr1	10075	6	13H37M	=	10167	142	" +
 				"ACCCTAACCCTAACCCTAACCNTAACCCTAACCCAAC	+3?GH##;9@D7HI5,:IIB\"!\"II##>II$$BIIC3	" +
 				"RG:Z:1959T	CS:Z:T11010020320310312010320010320013320012232201032202	CQ:Z:**:921$795*#5:;##):<5&'/=,,9(2*#453-'%(.2$6&39$+4'");
 		//reverse
@@ -332,11 +359,11 @@ public class BamSummarizerTest {
 				"AACCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTA	I&&HII%%IIII4CII=4?IIF0B((!!7F@+129G))I>.6	RG:Z:1959T	" +
 				"CS:Z:G202023020023010023010023000.2301002302002330000000	CQ:Z:@A&*?=9%;?:A-(<?8&/1@?():(9!,,;&&,'35)69&)./?11)&=");
 		//reverse
-		data.add("681_1482_392	115	chr1	10236	20	10H40M	=	10242	56	" +
+		data.add("681_1482_392	83	chr1	10236	20	10H40M	=	10242	56	" +
 				"AACCCTAACCCTAAACCCTAAACCCTAACCCTAACCCTAA	IIIIIIIIEBIIIIFFIIIIIIIIIIIIIIIIIIIIIIII	RG:Z:1959T	" +
 				"CS:Z:T00320010320010320010032001003200103200100320000320	CQ:Z::<=>:<==8;<;<==9=9?;5>8:<+<;795.89>2;;8<:.78<)1=5;");
 		//reverse
-		data.add("1997_1173_1256	177	chr1	10242	100	22H28M	chr1	10236	0	" +
+		data.add("1997_1173_1256	83	chr1	10242	100	22H28M	chr1	10236	0	" +
 				"AACCCTAAACCCTAAACCCTAACCCTAA	IIII27IICHIIIIHIIIHIIIII$$II	RG:Z:1959T	" +
 				"CS:Z:G10300010320010032001003000100320000032000020001220	CQ:Z:5?8$2;>;:458=27597:/5;7:2973:3/9;18;6/:5+4,/85-,'(");
 		return data;
