@@ -58,14 +58,17 @@ public class HTMLReportGenerator {
 		
 		// loop through all tabs, if we have descriptions set, disable them initially so they are not 'on' by default
 		for (Report report : reports) {
-			for (ChartTab tab: report.getTabs()) {
-				if (null != tab.getDescription()) {
-					sb.append(" $(\"#" + tab.getName() + "Desc_div\").toggle(false);\n");
+			for (ChartTab tab: report.getTabs()) {	
+				//special case for summary table description, it is not belong to tab
+				if (null != tab.getDescription() || (tab != null && tab.getName() != null && tab.getName().equals("summ1"))) {
+					sb.append(" $(\"#" + tab.getName() + "1Desc_div\").toggle(false);\n");
+					sb.append(" $(\"#" + tab.getName() + "2Desc_div\").toggle(false);\n");
 				}
-				for (ChartTab child: tab.getChildren()) {
-					if (null != child.getDescription()) {
+				for (ChartTab child: tab.getChildren()) {				
+					if (null != child.getDescription() ) {
 						sb.append(" $(\"#" + child.getName() + "Desc_div\").toggle(false);\n");
 					}
+ 
 				}
 			}
 		}
@@ -75,21 +78,6 @@ public class HTMLReportGenerator {
 		
 		sb.append("<body>");
 		
-		// add google chart info
-//		HTMLReportUtils.generateHTMLHeader(sb);
-//		
-//		// get header info from each report
-//		for (Report report : reports) {
-//			sb.append(getReportHeaderInfo(report));
-//		}
-//		// end of chart info
-//		sb.append("}");
-//		// end of scripts
-//		sb.append( "\n</script>\n");
-//		sb.append( "\n</script>\n</head>\n");
-		
-		// body section
-//		sb.append("<body>");
 		
 		if (reports.size() > 1) {
 			// don't want tab for report if it is the only one
@@ -106,10 +94,6 @@ public class HTMLReportGenerator {
 			sb.append(getReportBodyInfo(report));
 		}
 //		getReportBodyInfo(sb);
-		
-	
-		
-		
 		// add google chart info
 		HTMLReportUtils.generateHTMLHeader(sb);
 		
@@ -145,18 +129,11 @@ public class HTMLReportGenerator {
 		
 		
 		sb.append("\n<div class=\"header\">File: ").append(report.getFileName()).append(END_DIV);
-//		sb.append("\n<div class=\"header\">Record count: ").append(report.getRecordCount()).append(END_DIV);
-		sb.append("\n<div class=\"header\">Record count: ").append(report.getRecordCount());
-		if (report.getDuplicatesCount() > 0)
-			sb.append(" (duplicates: ").append(report.getDuplicatesCount()).append(")");
-		sb.append(END_DIV);
-		sb.append("\n<div class=\"header\">&nbsp</div>");
-		
+		sb.append(String.format("\n<div class=\"header\">RecordParsed:%s, RunBy: %s, RunOn: %s, Version: qprofiler-%s.",report.getRecordParsed(), report.getRunBy(), report.getRunOn(), report.getVersion())).append(END_DIV);		
+		sb.append(END_DIV);	
+		sb.append("\n<div class=\"header\">&nbsp</div>");		
 		// and add the tabs to the body
 		sb.append("\n<ul class=\"tabs\">");
-//		sb.append("<div class=\"tab-pane\" id=\"tab-pane-1\">");
-		
-		
 		// display parent tabs
 		for (ChartTab tab : report.getTabs()) {
 			sb.append("\n<li><a href=\"#\">");
@@ -164,24 +141,15 @@ public class HTMLReportGenerator {
 		}
 		sb.append("\n</ul>");
 		
-		// get kids
 		
 		for (ChartTab tab : report.getTabs()) {
 			if (null == tab.getChildren() || tab.getChildren().isEmpty()) {
 				if (null == tab.getRenderingInfo()) {
 					if (null == tab.getDescription()) {
-//						if (tab.isIncludeInSummary()) {
-//							sb.append("\n<div class=\"pane\" id=\"" + tab.getName() + "ChartSummary_div\">");
-//						} else {
-							sb.append("\n<div class=\"pane\" id=\"" + tab.getName() + "Chart_div\">");
-//						}
-						sb.append(END_DIV);
+ 						sb.append("\n<div class=\"pane\" id=\"" + tab.getName() + "Chart_div\">");
+ 						sb.append(END_DIV);						
 					} else {
 						sb.append("\n<div class=\"pane\">");
-						sb.append("<button onclick=\"toggleDiv('" + tab.getName() + "Desc_div" + "');\" class=\"butt\">Description</button>");
-						sb.append("<div id=\"" +  tab.getName() + "Desc_div\" class=\"desc\">");
-						sb.append(tab.getDescription());
-						sb.append(END_DIV);
 						sb.append("<p id=\"" + tab.getName() + "Chart_div\"></p>");
 						sb.append(END_DIV);
 					}
@@ -202,10 +170,7 @@ public class HTMLReportGenerator {
 						sb.append(END_DIV);
 					} else {
 						sb.append("\n<div class=\"pane\">");
-						sb.append("<button onclick=\"toggleDiv('" + child.getName() + "Desc_div" + "');\" class=\"butt\">Description</button>");
-						sb.append("<div id=\"" +  child.getName() + "Desc_div\" class=\"desc\">");
-						sb.append(child.getDescription());
-						sb.append(END_DIV);
+						sb.append(HTMLReportUtils.generateDescriptionButton(child.getName(), child.getDescription(), null));							
 						sb.append("<p id=\"" + child.getName() + "Chart_div\"></p>");
 						sb.append(END_DIV);
 					}
@@ -215,6 +180,7 @@ public class HTMLReportGenerator {
 				sb.append(END_DIV);
 			}
 		}
+		
 		
 		if (reports.size() > 1)
 			sb.append(END_DIV);

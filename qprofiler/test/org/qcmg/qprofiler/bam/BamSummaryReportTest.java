@@ -33,15 +33,13 @@ public class BamSummaryReportTest {
 		// large no of values between 0 and BUCKET_SIZE * 3
 		Random random = new Random();
 		for (int i = 0 ; i < counter ; i++) {
-			int j = random.nextInt(counter);
-			
+			int j = random.nextInt(counter);			
 			if (i % 2 == 0) {
 				j = -j;
 				bsr.parseISize(j, "RG1");
 			} else {
 				bsr.parseISize(j, "RG2");
-			}
-			
+			}	
 		}
 		
 		Assert.assertFalse(bsr.getISizeLengths().isEmpty());
@@ -51,8 +49,7 @@ public class BamSummaryReportTest {
 		for (Integer value : bsr.getISizeLengths().keySet()) {
 			if (value < 0)
 				Assert.fail("Should not have negative values in iSize collection");
-		}
-		
+		}		
 	}
 	
 	@Test
@@ -143,13 +140,14 @@ public class BamSummaryReportTest {
 		ConcurrentMap<MAPQMiniMatrix, AtomicLong> mapQNHMatrix = new ConcurrentSkipListMap<MAPQMiniMatrix, AtomicLong>();
 		ConcurrentMap<MAPQMiniMatrix, AtomicLong> mapQZMMatrix = new ConcurrentSkipListMap<MAPQMiniMatrix, AtomicLong>();
 //		Map<Integer, MAPQMatrix> mapQMatrix = new ConcurrentSkipListMap<Integer, MAPQMatrix>();
-		Random r = new Random();
+		Random r = new Random(); //so it will pass parseRecord
 		
 		for (int i = 0 ; i < 10000 ; i++) {
 			Integer mapQ = r.nextInt(100);
 			
 			SAMRecord record = new SAMRecord(new SAMFileHeader());
 			record.setMappingQuality(mapQ.intValue());
+			record.setFlags(83);
 			
 			int cm = r.nextInt(12);
 			int sm = r.nextInt(102);

@@ -11,6 +11,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicLongArray;
@@ -28,14 +29,14 @@ import org.qcmg.qvisualise.QVisualiseException;
 import org.qcmg.qvisualise.util.CycleDetailUtils;
 import org.qcmg.qvisualise.util.QProfilerCollectionsUtils;
 import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 public class ReportBuilder {
 	
-	private static final QLogger logger = QLoggerFactory.getLogger(ReportBuilder.class);
-	
-	private static final String ISIZE = "iSize";
+	private static final QLogger logger = QLoggerFactory.getLogger(ReportBuilder.class);	
+	private static final String ISIZE = "TLEN";
 	private static final String UNMAPPED = "Unmapped";
 	private static final String DUPLICATE = "Duplicate";
 	private static final String MD = "TAG MD";
@@ -52,13 +53,28 @@ public class ReportBuilder {
 	private static final String BAD_QUALS_DESCRIPTION = Messages.getMessage("BAD_QUALS_DESCRIPTION");
 	private static final String LINE_LENGTH_DESCRIPTION = Messages.getMessage("LINE_LENGTH_DESCRIPTION");
 	private static final String TAG_MD_DESCRIPTION = Messages.getMessage("TAG_MD_DESCRIPTION");
+	private static final String SUMMARY_DESCRIPTION = Messages.getMessage("SUMMARY_DESCRIPTION");
+	private static final String SUMMARY_NOTES = Messages.getMessage("SUMMARY_NOTES");
+		
+	public static Report buildReport(ProfileType type, Element reportElement, int reportNumberId, Element qProfilerElement) throws QVisualiseException {
+		final Report report = buildReport(  type,  reportElement,  reportNumberId);
+	
+		report.setRunBy( qProfilerElement.getAttribute("run_by_user") );
+		report.setRunOn( qProfilerElement.getAttribute("start_time") );
+		report.setVersion( qProfilerElement.getAttribute("version") );
+		
+		return report;
+	}
 
 	public static Report buildReport(ProfileType type, Element reportElement, int reportNumberId) throws QVisualiseException {
 		final String fileName = reportElement.getAttribute("file");
-		final String recordCount = reportElement.getAttribute("records_parsed");
+		
+		final String recordParsed = reportElement.getAttribute("records_parsed");
+//		final String recordInputed = reportElement.getAttribute("records_inputed");
 		final String duplicateRecordCount = reportElement.getAttribute("duplicate_records");
 		Long dupsCount = (null != duplicateRecordCount && ! duplicateRecordCount.isEmpty())?  Long.parseLong(duplicateRecordCount) : 0;
-		final Report report = new Report(type, fileName, Long.parseLong(recordCount), dupsCount);
+		final Report report = new Report(type, fileName, Long.parseLong(recordParsed), dupsCount);		
+//		final Report report = new Report(type, fileName, Long.parseLong(recordCount), dupsCount);		
 		reportID = reportNumberId;
 		
 		switch (type) {
@@ -74,9 +90,9 @@ public class ReportBuilder {
 			createMAPQ(reportElement, report);
 			createFLAGS(reportElement, report);
 			createCoverage(reportElement, report);
-			//
 			createMatrix(reportElement, report);
 			createSummary(reportElement, report);
+			
 			break;
 		case QUAL:
 			for (ChartTab ct : buildMultiTabCycles(false,"Qual", reportElement, "qual",
@@ -159,8 +175,9 @@ public class ReportBuilder {
 		
 		ChartTab ct = new ChartTab("Summary", "summ" + reportID);
 		ct.setData(HTMLReportUtils.generateGoogleDataForTableStringMapPair(summaryMap, ct.getName()));
-		ct.setChartInfo(HTMLReportUtils.generateGoogleTable(ct.getName(), 1, "Summary"));
-		ct.setRenderingInfo(HTMLReportUtils.generateRenderingTableInfo(ct.getName(), 1));
+		ct.setChartInfo(HTMLReportUtils.generateGoogleSingleTable(ct.getName(), 0, 1300));
+		
+		ct.setRenderingInfo(HTMLReportUtils.generateRenderingTableInfo(ct.getName(), 1, false));
 		
 		parentCT.addChild(ct);
 		
@@ -230,6 +247,89 @@ public class ReportBuilder {
 		return null;
 	}
 	
+	//xu code
+	private static Map<String, String>  createRgMap(Element reportElement ) {		
+		final NodeList summaryNL = reportElement.getElementsByTagName("SUMMARY");
+		if (null == summaryNL) return null;
+						
+		final Element summaryElement = (Element) summaryNL.item(0);
+		if (null == summaryElement)  return null;
+							 
+		NodeList summaryNodes = summaryElement.getChildNodes();		
+		if (null == summaryNodes)  return null;
+		
+		//get rg number from "ModalISize		
+ 		Map<String, String> duplicateMap = new LinkedHashMap<>();
+//		Map<String, String> failedVendorMap = new LinkedHashMap<>();
+		Map<String, String> maxLengthMap = new LinkedHashMap<>();
+		Map<String, String> aveLengthMap = new LinkedHashMap<>();
+//		Map<String, String> secondaryMap = new LinkedHashMap<>();
+//		Map<String, String> supplementaryMap = new LinkedHashMap<>();
+		Map<String, String> totalReadsMap = new LinkedHashMap<>();
+		Map<String, String> unmappedMap = new LinkedHashMap<>(); 	
+		Map<String, String> nonCanonicalMap = new LinkedHashMap<>(); 	
+		Map<String, String> isizeMap = new LinkedHashMap<>();
+		Map<String, String> hardClipMap = new LinkedHashMap<>();
+		Map<String, String> softClipMap = new LinkedHashMap<>();
+		Map<String, String> overlapMap = new LinkedHashMap<>();
+		Map<String, String> lostMap = new LinkedHashMap<>();
+		Map<String, String> trimmedMap = new LinkedHashMap<>();
+		 
+				
+		for (int i = 0 ; i < summaryNodes.getLength() ; i++)  
+			 if(summaryNodes.item(i).getNodeName().equals("ModalISize")){
+				NamedNodeMap node =  summaryNodes.item(i).getAttributes();
+				isizeMap.put(node.getNamedItem("rg").getNodeValue(),  node.getNamedItem("value").getNodeValue());	
+			 }
+			 else if(summaryNodes.item(i).getNodeName().equals("BaseCount")){
+				 NamedNodeMap node =  summaryNodes.item(i).getAttributes();
+				 String rg = node.getNamedItem("rg").getNodeValue();
+				 hardClipMap.put(rg, node.getNamedItem("hardClip").getNodeValue());
+				 softClipMap.put(rg, node.getNamedItem("softClip").getNodeValue());
+				 overlapMap.put(rg, node.getNamedItem("overlap").getNodeValue());
+				 duplicateMap.put(rg, node.getNamedItem("duplicate").getNodeValue());
+				maxLengthMap.put(rg, node.getNamedItem("maxLength").getNodeValue());				
+				aveLengthMap.put(rg, node.getNamedItem("aveLength").getNodeValue());
+				totalReadsMap.put(rg, node.getNamedItem("totalReads").getNodeValue());
+				unmappedMap.put(rg, node.getNamedItem("unmapped").getNodeValue());
+				nonCanonicalMap.put(rg, node.getNamedItem("nonCanonicalPair").getNodeValue());
+				trimmedMap.put(rg, node.getNamedItem("trimmedBase").getNodeValue());
+				lostMap.put(rg, node.getNamedItem("totalLost").getNodeValue());
+			 }
+				
+		Map<String, String> summaryMap = new LinkedHashMap<>();
+		final String startVBlock = "{v: '";
+		final String endVBlock = "'}";
+		final String finalVBlock = "]}";	
+		
+		//add header line
+		summaryMap.put("Read Group", "TableName,Read Group,Read Count,Average Read Length,Max Read Length,Mode TLEN,Unmapped Reads,Non Canonical Read Pair,Duplicate Reads,"
+				+ "Within Read Pair Overlap,Soft Clipping (CIGAR),Hard Clipping (CIGAR),Adaptor Trimming,Total Bases Lost");
+		
+		for (  String rg : unmappedMap.keySet()) {	
+			float lost =  Float.valueOf(lostMap.get(rg).replace("%", "").trim());
+			String color = (lost > 40)? "tomato":"yellow"; 
+			color = (lost < 20 ) ? "palegreen" : color; 
+			
+			String ele  = startVBlock + totalReadsMap.get(rg) + endVBlock  
+					+ "," + startVBlock + aveLengthMap.get(rg) + endVBlock 
+					+ "," + startVBlock + maxLengthMap.get(rg) + endVBlock  						 	
+					+ "," + startVBlock + (isizeMap.get(rg) == null ? "-" : isizeMap.get(rg) ) + endVBlock  					
+					+ "," + startVBlock + unmappedMap.get(rg) + endVBlock  
+ 					+ "," + startVBlock + nonCanonicalMap.get(rg) + endVBlock 
+ 					+ "," + startVBlock + duplicateMap.get(rg) + endVBlock  
+ 					+ "," + startVBlock + overlapMap.get(rg) + endVBlock  
+					+ "," + startVBlock + softClipMap.get(rg) + endVBlock  
+					+ "," + startVBlock + hardClipMap.get(rg) + endVBlock 
+					+ "," + startVBlock + trimmedMap.get(rg) + endVBlock
+					+ "," + startVBlock + lostMap.get(rg) + "', p: {style: 'background-color:" + color +";'}}" 					
+					+ finalVBlock;
+			summaryMap.put(rg, ele);			
+		}
+
+		return summaryMap;
+	}
+	
 	private static void createSummary(Element reportElement, Report report) {
 		
 		final NodeList summaryNL = reportElement.getElementsByTagName("SUMMARY");
@@ -249,23 +349,6 @@ public class ReportBuilder {
 						final String startVBlock = "{v: '";
 						final String endVBlock = "'}]}";
 						switch (nodeName) {
-						case "ReadCount":
-							summaryMap.put("Number of reads", startVBlock + n.getAttributes().getNamedItem("value").getNodeValue() + endVBlock);
-							break;
-						case "DuplicatePercentage":
-							double percentage = Double.parseDouble(n.getAttributes().getNamedItem("value").getNodeValue());
-							String rag = "', p:{style:'background-color: ";
-							rag += (percentage > 20) ? "tomato;'}}]}" : (percentage > 10) ? "yellow;'}}]}" : "palegreen;'}}]}" ;
-							
-							summaryMap.put("Percentage of duplicate reads", startVBlock + String.format("%.2f", percentage) + rag);
-							break;
-						case "UnmappedPercentage":
-							percentage = Double.parseDouble(n.getAttributes().getNamedItem("value").getNodeValue());
-							rag = "', p:{style:'background-color: ";
-							rag += (percentage > 20) ? "tomato;'}}]}" : (percentage > 10) ? "yellow;'}}]}" : "palegreen;'}}]}" ;
-							
-							summaryMap.put("Percentage of unmapped reads", startVBlock + String.format("%.2f", percentage)+ rag);
-							break;
 						case "FirstInPairAveLength":
 							summaryMap.put("Average read length of first in pair reads", startVBlock + n.getAttributes().getNamedItem("value").getNodeValue()+ endVBlock);
 							break;
@@ -275,28 +358,51 @@ public class ReportBuilder {
 						case "MDMismatchCycles":
 							int noOfCylces =  Integer.parseInt(n.getAttributes().getNamedItem("value").getNodeValue());
 							
-							rag = "', p:{style:'background-color: ";
+							String rag = "', p:{style:'background-color: ";
 							rag += (noOfCylces > 20) ? "tomato;'}}]}" : (noOfCylces > 10) ? "yellow;'}}]}" : "palegreen;'}}]}" ;
 							
 							summaryMap.put("Number of cycles with >1% mismatches", startVBlock + noOfCylces+ rag);
 							break;
-						case "ModalISize":
-							summaryMap.put("Modal ISize for read group: "  + n.getAttributes().getNamedItem("rg").getNodeValue(), startVBlock + n.getAttributes().getNamedItem("value").getNodeValue()+ endVBlock);
-							break;
 						}
-					}
+					}					
+					
+					//*****start xu					
 					
 					ChartTab ct = new ChartTab("Summary", "summ" + reportID);
-					ct.setData(HTMLReportUtils.generateGoogleDataForTableStringMap(summaryMap, ct.getName()));
-					ct.setChartInfo(HTMLReportUtils.generateGoogleTable(ct.getName(), 1, "Summary"));
-					ct.setRenderingInfo(HTMLReportUtils.generateRenderingTableInfo(ct.getName(), 1));
+					String str = HTMLReportUtils.generateGoogleDataForTableStringMap(summaryMap, ct.getName()+1, "Property", "Value"  );					
+					
+					//add RG table
+					summaryMap = createRgMap(  reportElement ); //coding
+					String[] arr = summaryMap.remove("Read Group").split(",");  //table header
+					arr[0] = ct.getName()+2; 					
+					str += HTMLReportUtils.generateGoogleDataForTableStringMap(summaryMap,  arr  );
+					ct.setData(str);	
+					
+//					ct.setChartInfo(HTMLReportUtils.generateGoogleTable(ct.getName(), 2,   0 , 0));							
+					str = HTMLReportUtils.generateGoogleSingleTable(ct.getName() + 1, 0, 600);
+					str += HTMLReportUtils.generateGoogleSingleTable(ct.getName() + 2, 0, 1300);
+					ct.setChartInfo(str); 					
+					
+//					String description = SUMMARY_DESCRIPTION;
+							//"Description for summary, here we discard supplementary reads";
+					str = "\n<div class=\"pane\">" 
+							+" <p id=\"" + ct.getName() + 1 + "Chart_div\"></p>"
+							+" <p id=\"" + ct.getName() + 2 + "Chart_div\"></p>"
+ //							+ HTMLReportUtils.generateDescriptionButton(ct.getName(), Messages.getMessage("XU_SUMMARY_DESCRIPTION"), null)
+							+ HTMLReportUtils.generateDescriptionButton(ct.getName()+1, SUMMARY_NOTES, "Summary Notes")
+							+ HTMLReportUtils.generateDescriptionButton(ct.getName()+2, SUMMARY_DESCRIPTION, "Column Description")							
+							+ "</div>";
+ 					ct.setRenderingInfo( str );
 					
 					
 					// add summary report to the front
 					List<ChartTab> chartTabs = report.getTabs();
-					chartTabs.add(0, ct);
+					chartTabs.add(0, ct);				
 					report.setTabs(chartTabs);
 					
+ 
+					
+					//*****end xu		
 				} else {
 					System.out.println("summaryNodes was null");
 				}
@@ -388,7 +494,7 @@ public class ReportBuilder {
 		primaryMap.put("S", "Supplementary");
 		final Map<String, AtomicLong> primaryFlags = QProfilerCollectionsUtils.splitFlagTallyByDistinguisher(flags, primaryMap, "Primary");
 		flagTab.addChild(getChartTabFromMap("Primary", "fls", HTMLReportUtils.PIE_CHART, true, primaryFlags));
-		
+
 		report.addTab(flagTab);
 	}
 
@@ -505,8 +611,12 @@ public class ReportBuilder {
 				if (null != headerList && ! headerList.isEmpty()) {
 					ChartTab ct = new ChartTab("BAMHeader", "head" + reportID);
 					ct.setData(HTMLReportUtils.generateGoogleDataForTable(headerList, ct.getName()));
-					ct.setChartInfo(HTMLReportUtils.generateGoogleTable(ct.getName(), headerList.size()));
-					ct.setRenderingInfo(HTMLReportUtils.generateRenderingTableInfo(ct.getName(), headerList.size()));
+					String str = "";
+					for(int i = 1; i<= headerList.size(); i ++)
+						str += HTMLReportUtils.generateGoogleSingleTable(ct.getName() + i,null, 1300);
+					ct.setChartInfo(str);
+//					ct.setChartInfo(HTMLReportUtils.generateGoogleMultiTable(ct.getName(), headerList.size(),0,1300));
+					ct.setRenderingInfo(HTMLReportUtils.generateRenderingTableInfo(ct.getName(), headerList.size(),false));
 					report.addTab(ct);
 				}
 			}
@@ -627,7 +737,7 @@ public class ReportBuilder {
 			onePercentCT = new ChartTab(MD + " 1 PERC", "tmd1pc");
 			onePercentCT.setData(HTMLReportUtils.generateGoogleData(sortedPercentageMap, onePercentCT
 					.getName(),false, "Error Percentage", "Cycle"));
-			onePercentCT.setChartInfo(HTMLReportUtils.generateGoogleTable(onePercentCT.getName(), 1, "Cycles with > 1% md mismatch rate"));
+			onePercentCT.setChartInfo(HTMLReportUtils.generateGoogleSingleTable(onePercentCT.getName(), 0 , null));
 //			onePercentCT.setDescription(TAG_MD_DESCRIPTION);
 		}
 		
@@ -661,7 +771,7 @@ public class ReportBuilder {
 	
 	private static ChartTab createRNMChartTab(Element element) {
 		ChartTab parentCT = null;
-		String title = "rName";
+		String title = "RNAME";
 		String id = "rnm" + reportID;
 		
 		final NodeList nlTop = element.getElementsByTagName("RNAME");
@@ -989,8 +1099,6 @@ public class ReportBuilder {
 			ct.setData(HTMLReportUtils.generateGoogleMatrixData(tallys, ct.getName(), true));
 			ct.setChartInfo(HTMLReportUtils.generateGoogleBioHeatMap(ct.getName(),
 					title + " BioHeatMap", tallys.size() > 1000 ? 12 : 18));
-//			ct.setChartInfo(HTMLReportUtils.generateGoogleBioHeatMap(ct.getName(),
-//					title + " BioHeatMap", MAX_REPORT_WIDTH, MAX_REPORT_HEIGHT));
 		}
 		return ct;
 	}

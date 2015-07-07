@@ -38,7 +38,7 @@ public class QVisualise {
 	private int exitStatus;
 	
 	protected int engage() throws Exception {
-		Document doc = XmlReportReader.createDocumentFromFile(new File(inputFile));
+		Document doc = XmlReportReader.createDocumentFromFile(new File(inputFile));		
 		
 		if (null != doc) {
 			final List<ProfileType> reportElements = new ArrayList<ProfileType>();
@@ -49,14 +49,14 @@ public class QVisualise {
 					reportElements.add(type);
 			}
 			
-			for (ProfileType type : reportElements) {
-				
-				String reportName = type.getReportName();
-				
+ 
+			for (ProfileType type : reportElements) {				
+				String reportName = type.getReportName();				
 				// we could have more than 1 report of a particular type
 				NodeList reportNL = doc.getElementsByTagName(reportName + REPORT);
 				for (int i = 0 ; i < reportNL.getLength() ; i++) {
-					Report report = ReportBuilder.buildReport(type, (Element) reportNL.item(i), i+1);
+//					Report report = ReportBuilder.buildReport(type, (Element) reportNL.item(i), i+1);
+					Report report = ReportBuilder.buildReport(type, (Element) reportNL.item(i), i+1,  (Element) doc.getElementsByTagName("qProfiler").item(0) );
 					if (null != report && ! report.getTabs().isEmpty())
 						reports.add(report);
 					else
@@ -78,7 +78,6 @@ public class QVisualise {
 					out.close();
 				}
 			}
-			
 		} else {
 			logger.error("Unable to create Document object from file: "+ inputFile);
 			exitStatus = 1;
