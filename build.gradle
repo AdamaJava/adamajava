@@ -23,6 +23,8 @@ dependencies {
 
     compile group: 'net.sf.jopt-simple',name: 'jopt-simple', version: '4.6'
     	compile name: 'htsjdk', version: '1.130'
+	compile name: 'trove', version: '3.1a1'
+	compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.4'
     compile name: 'qcommon', version: '0.1pre'
     compile name: 'qmule', version: '0.1pre'
 
