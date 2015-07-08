@@ -513,6 +513,11 @@ private static QLogger logger;
 											logger.warn("posOfFistIndel is < 10 : " + posOfFistIndel);
 										}
 										offset = binSeq.indexOf(swDiffs[2].substring(0, posOfFistIndel - 1));
+										logger.info("diff length indel at: " + p.getCp().toIGVString() + ", offset: " + offset);
+										logger.info("binSeq: " + binSeq);
+										for (String s : swDiffs) {
+											logger.info(s);
+										}
 									}
 										indelSameLength++;
 										
@@ -564,7 +569,7 @@ private static QLogger logger;
 											ces.add(match);
 										}
 										Cigar cigar = new Cigar(ces);
-										addSAMRecordToWriter(header, writer, cigar, probeId, binId,  b.getRecordCount(), p.getReferenceSequence(), p.getCp().getChromosome(), p.getCp().getPosition(), offset, binSeq);
+										addSAMRecordToWriter(header, writer, cigar, probeId, binId,  b.getRecordCount(), p.getReferenceSequence(), p.getCp().getChromosome(), p.getCp().getPosition(), 0, binSeq);
 										
 //									} else {
 //										logger.info("diff length indel at: " + p.getCp().toIGVString());
