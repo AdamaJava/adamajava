@@ -155,7 +155,7 @@ public class QSamToFastq extends CommandLineProgram {
                         currentRecord.getFirstOfPairFlag() ? firstRecord : currentRecord;
                     writeRecord(read1, 1, fq.get(0), READ1_TRIM, READ1_MAX_BASES_TO_WRITE);
                     writeRecord(read2, 2, fq.get(1), READ2_TRIM, READ2_MAX_BASES_TO_WRITE);
-
+ 
                 }
             } else {
                 writeRecord(currentRecord, null, fq.get(0), READ1_TRIM, READ1_MAX_BASES_TO_WRITE);
@@ -165,7 +165,12 @@ public class QSamToFastq extends CommandLineProgram {
         }
 
         reader.close();
-
+        
+      //XU: add rescue code to create empty sequence for missing mate reads
+        for(String readName :  firstSeenMates.keySet())     
+        	rescueLonelyRecord(  firstSeenMates.get(readName),  writers);
+        firstSeenMates.clear(); 
+        
         // Close all the fastq writers being careful to close each one only once!
         final IdentityHashMap<FastqWriter,FastqWriter> seen = new IdentityHashMap<FastqWriter, FastqWriter>();
         for (final List<FastqWriter> listOfWriters : writers.values()) {
@@ -183,6 +188,30 @@ public class QSamToFastq extends CommandLineProgram {
 
         return 0;
     }
+    
+  /**
+   * Create an mate read with empty sequence and base, so any paired read can stay with its fake partner
+   * @param read : read to be rescued
+   * @param writers: a hash map of all writers
+   */
+    
+    protected void rescueLonelyRecord(final SAMRecord read, Map<SAMReadGroupRecord, List<FastqWriter>> writers) {
+
+    	SAMRecord emptyRead = new SAMRecord(read.getHeader());
+    	emptyRead.setReadName(read.getReadName());
+    	emptyRead.setReadBases( "".getBytes() );
+    	emptyRead.setReadString("");
+    	
+        final List<FastqWriter> fq = writers.get(read.getReadGroup());
+   	
+        final SAMRecord read1 = read.getFirstOfPairFlag() ? read : emptyRead;
+        final SAMRecord read2 = read.getFirstOfPairFlag() ? emptyRead : read;
+        
+        writeRecord(read1, 1, fq.get(0), READ1_TRIM, READ1_MAX_BASES_TO_WRITE);
+        writeRecord(read2, 2, fq.get(1), READ2_TRIM, READ2_MAX_BASES_TO_WRITE);   	
+    }
+    
+    
 
     /**
      * Gets the pair of writers for a given read group or, if we are not sorting by read group,
