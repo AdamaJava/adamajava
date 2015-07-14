@@ -298,8 +298,14 @@ sub write_maf_file {
         unless (exists $params{file});
     my $version = (exists $params{version}) ? $params{version} : 2.2;
 
-    # Use the first record to look for extra fields
+    # Make sure we have something to write
     my @records = $self->records;
+    unless (scalar @records) {
+        carp 'no records to be written to MAF file ',$params{file};
+        return;
+    }
+
+    # Use the first record to look for extra fields
     my @extra_fields = $records[0]->extra_fields;
 
     # Get the detailed output file ready
