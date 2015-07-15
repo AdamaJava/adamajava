@@ -1,4 +1,4 @@
-version = '0.1pre'
+version = '1.0'
 
 def isExecutable = false
 
