@@ -1,5 +1,9 @@
 package au.edu.qimr.clinvar;
 
+import gnu.trove.list.array.TIntArrayList;
+import gnu.trove.list.array.TLongArrayList;
+import gnu.trove.procedure.TLongProcedure;
+import gnu.trove.set.hash.TIntHashSet;
 import htsjdk.samtools.Cigar;
 import htsjdk.samtools.CigarElement;
 import htsjdk.samtools.CigarOperator;
@@ -20,16 +24,20 @@ import java.io.OutputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.NavigableMap;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -49,12 +57,15 @@ import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.LoadReferencedClasses;
 import org.qcmg.common.util.Pair;
+import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeader.Record;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.qmule.SmithWatermanGotoh;
+import org.qcmg.tab.TabbedFileReader;
+import org.qcmg.tab.TabbedRecord;
 import org.qcmg.vcf.VCFFileWriter;
 
 import au.edu.qimr.clinvar.model.Bin;
@@ -71,11 +82,13 @@ public class Q3ClinVar {
 private static QLogger logger;
 	
 	
+private static final int TILE_SIZE = 13;
 	private static String[] fastqFiles;
 	private static String version;
 	private String logFile;
 	private String xmlFile;
 	private String outputFile;
+	private String refTiledAlignmentFile;
 	private int binId = 1;
 	
 	private int minBinSize = 10;
@@ -94,6 +107,10 @@ private static QLogger logger;
 	private final Set<String> probeSequences = new HashSet<>();
 	
 	private final Set<FastqProbeMatch> matches = new HashSet<>();
+	
+	
+	private final Set<String> frequentlyOccurringRefTiles = new HashSet<>();
+	private final Map<String, TLongArrayList> refTilesPositions = new HashMap<>();
 	
 	
 //	private final static Map<Pair<FastqRecord, FastqRecord>, List<Probe>> multiMatchingReads = new HashMap<>();
@@ -298,10 +315,200 @@ private static QLogger logger;
 			
 			writeBam();
 			
+			loadTiledAlignerData();
+			
 //			writeOutput();
 		} finally {
 		}
 		return exitStatus;
+	}
+	
+	
+	private void loadTiledAlignerData() throws Exception {
+		
+		/*
+		 * Loop through all our amplicons, split into 13mers and add to ampliconTiles 
+		 */
+		Set<String> ampliconTiles = new HashSet<>();
+		for (Entry<Probe, List<Bin>> entry : probeBinDist.entrySet()) {
+			List<Bin> bins = entry.getValue();
+			boolean reverseComplementSequence = entry.getKey().reverseComplementSequence();
+			for (Bin b : bins) {
+				String s = reverseComplementSequence ? SequenceUtil.reverseComplement(b.getSequence()) :  b.getSequence();
+//				String s = b.getSequence();
+				int sLength = s.length();
+				int noOfTiles = sLength / TILE_SIZE;
+				
+				for (int i = 0 ; i < noOfTiles ; i++) {
+					ampliconTiles.add(s.substring(i * TILE_SIZE, (i + 1) * TILE_SIZE));
+				}
+			}
+		}
+		logger.info("Number of amplicon tiles: " + ampliconTiles.size());
+		
+		
+		logger.info("loading genome tiles alignment data");
+		
+		try (TabbedFileReader reader = new TabbedFileReader(new File(refTiledAlignmentFile))) {
+//			try (TabbedFileReader reader = new TabbedFileReader(new File(refTiledAlignmentFile));
+//					FileWriter writer = new FileWriter(new File(refTiledAlignmentFile + ".condensed"))) {
+			
+//			TabbedHeader header = reader.getHeader(); 
+//			for (String head : header) {
+//				writer.write(head + "\n");
+//			}
+			int i = 0;
+			for (TabbedRecord rec : reader) {
+				if (++i % 1000000 == 0) {
+					logger.info("hit " + (i / 1000000) + "M records");
+				}
+				String tile = rec.getData().substring(0, TILE_SIZE);
+				if (ampliconTiles.contains(tile)) {
+					String countOrPosition = rec.getData().substring(rec.getData().indexOf('\t') + 1);
+					if (countOrPosition.charAt(0) == 'C') {
+						frequentlyOccurringRefTiles.add(tile);
+					} else {
+						
+						TLongArrayList positionsList = new TLongArrayList();
+						if (countOrPosition.indexOf(',') == -1) {
+							positionsList.add(Long.parseLong(countOrPosition));
+						} else {
+							String [] positions =  TabTokenizer.tokenize(countOrPosition, ',');
+							for (String pos : positions) {
+								positionsList.add(Long.parseLong(pos));
+							}
+						}
+						
+						// create TLongArrayList from 
+						refTilesPositions.put(tile, positionsList);
+						
+					}
+//					writer.write(rec.getData() + "\n");
+				}
+			}
+		}
+		int refTilesCountSize =  frequentlyOccurringRefTiles.size();
+		int refTilesPositionsSize =  refTilesPositions.size();
+		int total = refTilesCountSize + refTilesPositionsSize;
+		int diff = ampliconTiles.size() - total;
+		logger.info("finished reading the genome tiles alignment data");
+		logger.info("no of entries in refTilesCount: " + refTilesCountSize);
+		logger.info("no of entries in refTilesPositions: " + refTilesPositionsSize);
+		logger.info("Unique tiles in amplicons: " + diff);
+		
+		for (Entry<Probe,List<Bin>> entry : probeBinDist.entrySet()) {
+			int binCount = 0;
+			int noOfBins = entry.getValue().size();
+			Probe p = entry.getKey();
+			logger.info("Looking at probe: " + p.getId() +", which has " + noOfBins + " bins");
+			boolean reverseComplementSequence = p.reverseComplementSequence();
+			int[] maxTileCountPerBin = new int[noOfBins];
+			TreeMap<Long, TIntArrayList> positionCounter  = new TreeMap<>();
+			
+			for (Bin b : entry.getValue()) {
+//				logger.info("Looking at bin: " + b.getId());
+				String s = reverseComplementSequence ? SequenceUtil.reverseComplement(b.getSequence()) :  b.getSequence();
+				int sLength = s.length();
+				int noOfTiles = sLength / TILE_SIZE;
+				
+				Map<String, TLongArrayList> binSpecificTiles = new LinkedHashMap<>();
+				for (int i = 0 ; i < noOfTiles ; i++) {
+					String bt = s.substring(i * TILE_SIZE, (i + 1) * TILE_SIZE);
+					
+					if (frequentlyOccurringRefTiles.contains(bt)) {
+						TLongArrayList list = new TLongArrayList();
+						list.add(Long.MAX_VALUE);
+						binSpecificTiles.put(bt, list);
+					} else if (refTilesPositions.containsKey(bt)) {
+						binSpecificTiles.put(bt, refTilesPositions.get(bt));
+					} else {
+						TLongArrayList list = new TLongArrayList();
+						binSpecificTiles.put(bt, list);
+					}
+				}
+				final TreeMap<Long, TIntArrayList> hash = new TreeMap<>();
+//				final TLongHashSet set = new TLongHashSet();
+				int i = 0;
+				for (Entry <String, TLongArrayList> entry2 : binSpecificTiles.entrySet()) {
+					i++;
+					final int tilePosition = i;
+					entry2.getValue().forEach(new TLongProcedure(){
+						@Override
+						public boolean execute(long l) {
+							TIntArrayList tiles = hash.get(l);
+							if (tiles == null) {
+								tiles = new TIntArrayList();
+								hash.put(l, tiles);
+							}
+							tiles.add(tilePosition);
+							return true;
+						}});
+					
+					
+//					logger.info("tile: " + entry2.getKey() + " has " + entry2.getValue().size() + " locations");
+				}
+				TreeMap<Integer, TLongArrayList>noOfTilesAndStartPositions = new TreeMap<>();
+//				TreeMap<Integer, List<Long>>noOfTilesAndStartPositions = new TreeMap<>();
+				
+//				TIntLongHashMap noOfTilesAndStartPosition = new TIntLongHashMap();
+				for (Entry<Long, TIntArrayList> entry2 : hash.entrySet()) {
+					Long from = entry2.getKey();
+					if (from.longValue() != Long.MAX_VALUE) {
+						Long to = entry2.getKey().longValue() + 400;
+						//logger.info("from: " + from.longValue() + ", to: " + to.longValue());
+						NavigableMap<Long, TIntArrayList> subMap = hash.subMap(from, true, to, true);
+//						Set<Integer> uniqueTileIds = new HashSet<>();
+						TIntHashSet uniqueTileIds = new TIntHashSet();
+						for (TIntArrayList values : subMap.values()) {
+							uniqueTileIds.addAll(values);
+						}
+						TLongArrayList existingStartPositions = noOfTilesAndStartPositions.get(uniqueTileIds.size());
+						if (null == existingStartPositions) {
+							existingStartPositions = new TLongArrayList();
+							noOfTilesAndStartPositions.put(uniqueTileIds.size(), existingStartPositions);
+						}
+						existingStartPositions.add(entry2.getKey());
+					}
+				}
+				long position = noOfTilesAndStartPositions.lastEntry().getValue().get(0);
+				int noOfPositions = noOfTilesAndStartPositions.lastEntry().getValue().size();
+				if (noOfPositions > 1) {
+					logger.info("Found more than 1 start positions for bin: " + b.getId() +", with no of tiles: " + noOfTilesAndStartPositions.lastKey().intValue() + ": " + noOfTilesAndStartPositions.lastEntry().getValue().toString());
+				}
+//				logger.info("best matching tile count: " + noOfTilesAndStartPositions.lastKey().intValue() + " at position(0): " + position + ", with matching position count: " + noOfTilesAndStartPositions.lastEntry().getValue().size());
+//				logger.info("no of unique locations for bin: " + set.size() + " all unique: " + allUnique);
+				maxTileCountPerBin[binCount++] = noOfTilesAndStartPositions.lastKey().intValue();
+				TIntArrayList currentBinIds = positionCounter.get(position);
+				if (null == currentBinIds) {
+					currentBinIds = new TIntArrayList();
+					positionCounter.put(position, currentBinIds);
+				}
+				currentBinIds.add(b.getId());
+			}
+			if (entry.getValue().size() > 0) {
+				Arrays.sort(maxTileCountPerBin);
+				int largestTileCount = maxTileCountPerBin[entry.getValue().size()-1];
+				if (largestTileCount < 10) {
+					logger.info("probe: " + p.getId() + ", has no bins with tile count < 10. Largest value: " + largestTileCount);
+				}
+			}
+			if ( ! positionCounter.isEmpty()) {
+				
+				/*
+				 * If first and last positions for a probe differ by more than 500 (say) then log
+				 */
+				long firstPosition = positionCounter.firstKey().longValue();
+				long lastPosition = positionCounter.lastKey().longValue();
+				if (lastPosition - firstPosition > 500) {
+					logger.info("*** First and last positions differ by more than 500!!! first position: " + firstPosition + ", last position: " + lastPosition);
+					for (Entry<Long, TIntArrayList> entry3 : positionCounter.entrySet()) {
+						logger.info("position: " + entry3.getKey().longValue() +", noOfBins: " + entry3.getValue().size() + ", bin Ids: "  + entry3.getValue().toString());
+					}
+				}
+				
+			}
+		}
+		
 	}
 
 	private void writeDiagnosticOutput() throws IOException {
@@ -442,14 +649,14 @@ private static QLogger logger;
 			 */
 			for (Probe p : coordSortedProbes) {
 				int probeId = p.getId();
-				boolean forwardStrand = p.isOnForwardStrand();
+				boolean reverseComplementSequence = p.reverseComplementSequence();
 				List<Bin> bins = probeBinDist.get(p);
 				if (null != bins) {
 					for (Bin b : bins) {
 						int binId = b.getId();
 						recordCount += b.getRecordCount();
 						
-						String binSeq = forwardStrand ? SequenceUtil.reverseComplement(b.getSequence()) : b.getSequence() ;
+						String binSeq = reverseComplementSequence ?  SequenceUtil.reverseComplement(b.getSequence()) : b.getSequence() ;
 						
 						/*
 						 * Just print ones that match the ref for now - makes ceegar easier..
@@ -691,7 +898,8 @@ private static QLogger logger;
 			Probe p = entry.getKey();
 			List<Bin> bins = entry.getValue();
 			String ref = p.getReferenceSequence();
-			boolean forwardStrand = p.isOnForwardStrand();
+			boolean reverseComplementSequence = p.reverseComplementSequence();
+//			boolean forwardStrand = p.isOnForwardStrand();
 			
 			// get largest bin
 			if (null != bins && ! bins.isEmpty()) {
@@ -702,7 +910,7 @@ private static QLogger logger;
 					// only care about bins that have more than 10 reads
 					if (b.getRecordCount() >= minBinSize) {
 					
-						String binSeq = forwardStrand ? SequenceUtil.reverseComplement(b.getSequence()) : b.getSequence() ;
+						String binSeq = reverseComplementSequence ? SequenceUtil.reverseComplement(b.getSequence()) :  b.getSequence();
 						SmithWatermanGotoh nm = new SmithWatermanGotoh(ref, binSeq, 5, -4, 16, 4);
 						String [] diffs = nm.traceback();
 						b.setSWDiffs(diffs);
@@ -1564,6 +1772,8 @@ private static QLogger logger;
 					throw new Exception("OUTPUT_FILE_WRITE_ERROR");
 				}
 			}
+			
+			refTiledAlignmentFile = options.getRefFileName();
 			
 			xmlFile = options.getXml();
 			if (options.hasMinBinSizeOption()) {

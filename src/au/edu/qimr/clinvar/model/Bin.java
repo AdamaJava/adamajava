@@ -21,6 +21,9 @@ public class Bin implements Comparable<Bin> {
 	private final Map<PosBase, AtomicInteger> diffs = new HashMap<>();
 	private String [] smithWatermanDiffs;
 	
+	private long position;
+	private int noOfTiles;
+	
 	public Bin(int id,String sequence, int exactMatches) {
 		this.id = id;
 		this.sequence = sequence;
@@ -142,6 +145,22 @@ public class Bin implements Comparable<Bin> {
 
 	public int getId() {
 		return id;
+	}
+
+	public long getPosition() {
+		return position;
+	}
+
+	public void setPosition(long position) {
+		this.position = position;
+	}
+
+	public int getNoOfTiles() {
+		return noOfTiles;
+	}
+
+	public void setNoOfTiles(int noOfTiles) {
+		this.noOfTiles = noOfTiles;
 	}
 
 }

@@ -133,7 +133,10 @@ public class Probe implements Comparable<Probe>{
 	}
 
 	public boolean isOnForwardStrand() {
-		return forwardStrand;
+		return  forwardStrand;
+	}
+	public boolean reverseComplementSequence() {
+		return  forwardStrand;
 	}
 
 	public ChrPosition getCp() {

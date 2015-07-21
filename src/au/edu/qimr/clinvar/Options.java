@@ -36,6 +36,7 @@ final class Options {
 //	private final List<String> fileNames;
 	private final String[] fastqs;
 	private final String outputFileName;
+	private final String refFileName;
 	private final String log;
 	private final Integer minBinSize;
 	private final String xml;
@@ -50,6 +51,7 @@ final class Options {
 		
 		parser.accepts("xml", INPUT_FILE_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("output", OUTPUT_FILE_DESCRIPTION).withRequiredArg().ofType(String.class);
+		parser.accepts("ref", OUTPUT_FILE_DESCRIPTION).withRequiredArg().ofType(String.class);
 //		parser.accepts("exclude", EXCLUDES_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
 		parser.accepts("minBinSize", MIN_BIN_SIZE_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
 		parser.accepts("log", LOG_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
@@ -75,6 +77,7 @@ final class Options {
 		
 		// output
 		outputFileName = (String) options.valueOf("output");
+		refFileName = (String) options.valueOf("ref");
 		
 		if ( ! options.nonOptionArguments().isEmpty()) {}
 //			throw new IllegalArgumentException(Messages.getMessage("USAGE"));
@@ -131,6 +134,9 @@ final class Options {
 	}
 	public String getOutputFileName() {
 		return outputFileName;
+	}
+	public String getRefFileName() {
+		return refFileName;
 	}
 
 	void displayHelp() throws Exception {
