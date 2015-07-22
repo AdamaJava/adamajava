@@ -14,6 +14,9 @@ import htsjdk.samtools.SAMFileWriterFactory;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.fastq.FastqReader;
 import htsjdk.samtools.fastq.FastqRecord;
+import htsjdk.samtools.reference.FastaSequenceIndex;
+import htsjdk.samtools.reference.IndexedFastaSequenceFile;
+import htsjdk.samtools.reference.ReferenceSequence;
 import htsjdk.samtools.util.SequenceUtil;
 
 import java.io.File;
@@ -51,9 +54,9 @@ import nu.xom.Serializer;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.meta.QExec;
-import org.qcmg.common.model.Accumulator;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.string.StringUtils;
+import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.LoadReferencedClasses;
 import org.qcmg.common.util.Pair;
@@ -65,12 +68,14 @@ import org.qcmg.common.vcf.header.VcfHeader.Record;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.qmule.SmithWatermanGotoh;
 import org.qcmg.tab.TabbedFileReader;
+import org.qcmg.tab.TabbedHeader;
 import org.qcmg.tab.TabbedRecord;
 import org.qcmg.vcf.VCFFileWriter;
 
 import au.edu.qimr.clinvar.model.Bin;
 import au.edu.qimr.clinvar.model.FastqProbeMatch;
 import au.edu.qimr.clinvar.model.IntPair;
+import au.edu.qimr.clinvar.model.PositionChrPositionMap;
 import au.edu.qimr.clinvar.model.Probe;
 import au.edu.qimr.clinvar.util.ClinVarUtil;
 import au.edu.qimr.clinvar.util.FastqProbeMatchUtil;
@@ -89,6 +94,7 @@ private static final int TILE_SIZE = 13;
 	private String xmlFile;
 	private String outputFile;
 	private String refTiledAlignmentFile;
+	private String refFileName;
 	private int binId = 1;
 	
 	private int minBinSize = 10;
@@ -111,6 +117,10 @@ private static final int TILE_SIZE = 13;
 	
 	private final Set<String> frequentlyOccurringRefTiles = new HashSet<>();
 	private final Map<String, TLongArrayList> refTilesPositions = new HashMap<>();
+	
+	private final PositionChrPositionMap positionToActualLocation = new PositionChrPositionMap();
+	
+	private final Map<String, byte[]> referenceCache = new HashMap<>();
 	
 	
 //	private final static Map<Pair<FastqRecord, FastqRecord>, List<Probe>> multiMatchingReads = new HashMap<>();
@@ -353,7 +363,12 @@ private static final int TILE_SIZE = 13;
 //			try (TabbedFileReader reader = new TabbedFileReader(new File(refTiledAlignmentFile));
 //					FileWriter writer = new FileWriter(new File(refTiledAlignmentFile + ".condensed"))) {
 			
-//			TabbedHeader header = reader.getHeader(); 
+			TabbedHeader header = reader.getHeader();
+			List<String> headerList = new ArrayList<>();
+			for (String head : header) {
+				headerList.add(head);
+			}
+			positionToActualLocation.loadMap(headerList);
 //			for (String head : header) {
 //				writer.write(head + "\n");
 //			}
@@ -448,16 +463,12 @@ private static final int TILE_SIZE = 13;
 //					logger.info("tile: " + entry2.getKey() + " has " + entry2.getValue().size() + " locations");
 				}
 				TreeMap<Integer, TLongArrayList>noOfTilesAndStartPositions = new TreeMap<>();
-//				TreeMap<Integer, List<Long>>noOfTilesAndStartPositions = new TreeMap<>();
-				
-//				TIntLongHashMap noOfTilesAndStartPosition = new TIntLongHashMap();
 				for (Entry<Long, TIntArrayList> entry2 : hash.entrySet()) {
 					Long from = entry2.getKey();
 					if (from.longValue() != Long.MAX_VALUE) {
 						Long to = entry2.getKey().longValue() + 400;
 						//logger.info("from: " + from.longValue() + ", to: " + to.longValue());
 						NavigableMap<Long, TIntArrayList> subMap = hash.subMap(from, true, to, true);
-//						Set<Integer> uniqueTileIds = new HashSet<>();
 						TIntHashSet uniqueTileIds = new TIntHashSet();
 						for (TIntArrayList values : subMap.values()) {
 							uniqueTileIds.addAll(values);
@@ -499,10 +510,60 @@ private static final int TILE_SIZE = 13;
 				 */
 				long firstPosition = positionCounter.firstKey().longValue();
 				long lastPosition = positionCounter.lastKey().longValue();
+				ChrPosition cpFromAmplicon = p.getCp();
 				if (lastPosition - firstPosition > 500) {
-					logger.info("*** First and last positions differ by more than 500!!! first position: " + firstPosition + ", last position: " + lastPosition);
+					ChrPosition cpFromFirstPosition = positionToActualLocation.getChrPositionFromLongPosition(firstPosition);
+					ChrPosition cpFromLastPosition = positionToActualLocation.getChrPositionFromLongPosition(lastPosition);
+					logger.info("*** First and last positions differ by more than 500!!! first position: " + cpFromFirstPosition.toIGVString() + ", last position: " + cpFromLastPosition.toIGVString() + ", amplicon: " + cpFromAmplicon.toIGVString());
 					for (Entry<Long, TIntArrayList> entry3 : positionCounter.entrySet()) {
-						logger.info("position: " + entry3.getKey().longValue() +", noOfBins: " + entry3.getValue().size() + ", bin Ids: "  + entry3.getValue().toString());
+						TIntArrayList binList = entry3.getValue();
+						ChrPosition cpPosition = positionToActualLocation.getChrPositionFromLongPosition(entry3.getKey().longValue());
+						ChrPosition cpPositionBuffered = new ChrPosition(cpPosition.getChromosome(), cpPosition.getPosition() - 100, cpPosition.getPosition() + 100);
+						if (ChrPositionUtils.doChrPositionsOverlap(cpFromAmplicon, cpPositionBuffered)) {
+							// great
+							logger.info("match! position: " + cpPosition.toIGVString() +", noOfBins: " + binList.size() + ", bin Ids: "  + binList.toString());
+						} else {
+							logger.info("NO match! position: " + cpPosition.toIGVString() +", noOfBins: " + binList.size() + ", bin Ids: "  + binList.toString());
+							// get bins that don't match
+							for (Bin b : entry.getValue()) {
+								if (binList.contains(b.getId())) {
+									/*
+									 *	print existing sw diffs and calculate new ones
+									 * Buffer the ChrPosition (cpNewReferenceSeq) used to get the reference as the start position may not be acurate if we have any variants occurring at the beginning of the bin
+									 * 200 is a good value - should have no impact on the Smith Waterman result (perhaps the time take to calculate will be increased mind you...)
+									 * 
+									 */
+									ChrPosition cpNewReferenceSeq = new ChrPosition(cpPosition.getChromosome(), cpPosition.getPosition() -200, b.getLength() + cpPosition.getPosition() + 200);
+									String ref = getRefFromChrPos(cpNewReferenceSeq);
+									String binSeq = reverseComplementSequence ? SequenceUtil.reverseComplement(b.getSequence()) :  b.getSequence();
+									SmithWatermanGotoh nm = new SmithWatermanGotoh(ref, binSeq, 5, -4, 16, 4);
+									String [] newSwDiffs = nm.traceback();
+									
+									if (null == b.getSmithWatermanDiffs()) {
+										nm = new SmithWatermanGotoh(p.getReferenceSequence(), binSeq, 5, -4, 16, 4);
+										String [] diffs = nm.traceback();
+										b.setSWDiffs(diffs);
+									}
+									int oldSwScore = org.apache.commons.lang3.StringUtils.countMatches(b.getSmithWatermanDiffs()[1],'|');
+									int newSwScore = org.apache.commons.lang3.StringUtils.countMatches(newSwDiffs[1],'|');
+									if (oldSwScore >= newSwScore) {
+										logger.info("bin: " + b.getId() + ", old sw score: " +oldSwScore + ", new sw diffs: " + newSwScore);
+										logger.info("bin: " + b.getId() + ", old sw: " + Arrays.deepToString(b.getSmithWatermanDiffs()) + ", new sw diffs: " + Arrays.deepToString(newSwDiffs));
+									}
+								}
+							}
+						}
+					}
+				} else {
+					/*
+					 * Looks like we are ok - check to see if start positions for bins is same as expected (within 100b either side)
+					 */
+					ChrPosition cpFromPosition = positionToActualLocation.getChrPositionFromLongPosition(firstPosition);
+					ChrPosition cpFromPositionBuffered = new ChrPosition(cpFromPosition.getChromosome(), cpFromPosition.getPosition() - 100, cpFromPosition.getPosition() + 100);
+					if (ChrPositionUtils.doChrPositionsOverlap(cpFromAmplicon, cpFromPositionBuffered)) {
+						// great
+					} else {
+						logger.info("cp from amplicon: " + cpFromAmplicon.toIGVString() + ", cp from position (buffered): " + cpFromPositionBuffered.toIGVString() + ", don't overlap!!!");
 					}
 				}
 				
@@ -510,6 +571,28 @@ private static final int TILE_SIZE = 13;
 		}
 		
 	}
+
+	private String getRefFromChrPos(ChrPosition cp) {
+		String referenceSeq = null;
+		String chr = cp.getChromosome();
+		if ( ! referenceCache.containsKey(chr)) {
+			/*
+			 * Load from file
+			 */
+			FastaSequenceIndex index = new FastaSequenceIndex(new File(refFileName + ".fai"));
+			try (IndexedFastaSequenceFile refFile = new IndexedFastaSequenceFile(new File(refFileName), index);) {;
+				ReferenceSequence refSeq = refFile.getSequence(chr);
+				referenceCache.put(chr,  refSeq.getBases());
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		byte [] ref = Arrays.copyOfRange(referenceCache.get(chr), cp.getPosition(), cp.getEndPosition());
+		referenceSeq = new String(ref);
+		
+		return referenceSeq;
+	}
+
 
 	private void writeDiagnosticOutput() throws IOException {
 		
@@ -689,28 +772,8 @@ private static final int TILE_SIZE = 13;
 										ces.add(ce);
 										
 										addSAMRecordToWriter(header, writer, new Cigar(ces), probeId, binId,  b.getRecordCount(), p.getReferenceSequence(), p.getCp().getChromosome(), p.getCp().getPosition(), 0, binSeq);
-//										List<CigarElement> ces = new ArrayList<>();
-//										// add in some soft-clipping
-//										
-//										int initialOffset = binSeq.indexOf(swDiffs[2]);
-//										if (initialOffset > 0) {
-//											CigarElement sc = new CigarElement(initialOffset, CigarOperator.SOFT_CLIP);
-//											ces.add(sc);
-//										}
-//										int finalOffset = p.getReferenceSequence().length() - (initialOffset + swDiffs[1].length());
-//										
-//										CigarElement match = new CigarElement(b.getLength() - initialOffset - finalOffset, CigarOperator.MATCH_OR_MISMATCH);
-//										ces.add(match);
-//										
-//										if (finalOffset > 0) {
-//											CigarElement sc = new CigarElement(finalOffset, CigarOperator.SOFT_CLIP);
-//											ces.add(sc);
-//										}
-//										
-//										addSAMRecordToWriter(header, writer, new Cigar(ces), probeId, binId,  b.getRecordCount(), p.getReferenceSequence().substring(initialOffset), p.getCp().getChromosome(), p.getCp().getPosition(), 0, binSeq);
 									}
 								} else {
-									
 									
 									if (swDiffs[0].replaceAll("-","").length() == p.getReferenceSequence().length()) {
 										offset = 0;
@@ -777,110 +840,8 @@ private static final int TILE_SIZE = 13;
 										}
 										Cigar cigar = new Cigar(ces);
 										addSAMRecordToWriter(header, writer, cigar, probeId, binId,  b.getRecordCount(), p.getReferenceSequence(), p.getCp().getChromosome(), p.getCp().getPosition(), 0, binSeq);
-										
-//									} else {
-//										logger.info("diff length indel at: " + p.getCp().toIGVString());
-//										logger.info("binSeq: " + binSeq);
-//										for (String s : swDiffs) {
-//											logger.info(s);
-//										}
-//										indelDiffLength++;
-//									}
 								}
 							}
-							
-							
-							// won't have these for bins where count is less the minBinSize
-//							if (null == swDiffs) {
-//								SmithWatermanGotoh nm = new SmithWatermanGotoh(p.getReferenceSequence(), binSeq, 5, -4, 16, 4);
-//								swDiffs  = nm.traceback();
-//								b.setSWDiffs(swDiffs);
-//							}
-//							
-//							if (swDiffs[1].contains(" ")) {
-//								/*
-//								 * TODO deal with indels
-//								 */
-//								indelCount++;
-//								List<CigarElement> ces = new ArrayList<>();
-//								// get mutations
-//								List<Pair<Integer, String>> mutations = ClinVarUtil.getPositionRefAndAltFromSW(swDiffs);
-//								int lastPosition = 0;
-//								for (Pair<Integer, String> mutation : mutations) {
-//									/*
-//									 * only care about indels
-//									 */
-//									String mutationString = mutation.getRight();
-//									String [] mutArray = mutationString.split("/");
-//									
-//									if (mutArray[0].length() != mutArray[1].length()) {
-//										int indelPosition = mutation.getLeft().intValue() + 1;
-//										
-//										if (mutArray[0].length() == 1) {
-//											// insertion
-//											if (indelPosition > 0) {
-//												// create cigar element up to this position
-//												CigarElement match = new CigarElement(indelPosition - lastPosition, CigarOperator.MATCH_OR_MISMATCH);
-//												CigarElement insertion = new CigarElement(mutArray[1].length() - 1, CigarOperator.INSERTION);
-//												ces.add(match);
-//												ces.add(insertion);
-//												lastPosition = indelPosition;
-//											}
-//										} else {
-//											// deletion
-//											if (indelPosition > 0) {
-//												// create cigar element up to this position
-//												if (indelPosition - lastPosition > 0) {
-//													CigarElement match = new CigarElement(indelPosition - lastPosition, CigarOperator.MATCH_OR_MISMATCH);
-//													ces.add(match);
-//												}
-//												CigarElement deletion = new CigarElement(mutArray[0].length() - 1, CigarOperator.DELETION);
-//												ces.add(deletion);
-//												lastPosition = indelPosition;
-//											}
-//										}
-//									}
-//								}
-//								// add in final match
-//								if (lastPosition < b.getLength()) {
-//									CigarElement match = new CigarElement(b.getLength() - lastPosition, CigarOperator.MATCH_OR_MISMATCH);
-//									ces.add(match);
-//								}
-//								Cigar cigar = new Cigar(ces);
-//								
-//								logger.info("about to call calculateMdAndNmTags with cigar: " + cigar.toString());
-//								for (String s : swDiffs) {
-//									logger.info("swDiffs: " + s);
-//								}
-//								addSAMRecordToWriter(header, writer, cigar, probeId, binId,  b.getRecordCount(), p.getReferenceSequence(), p.getCp().getChromosome(), p.getCp().getPosition() , 0, binSeq);
-//								
-//							} else {
-//								/*
-//								 * snps - no need to adjust cigar
-//								 */
-//								
-//								if (p.getReferenceSequence().length() == swDiffs[0].length()) {
-////									if (p.getReferenceSequence().length() == swDiffs[0].replaceAll("-", "").length()) {
-//									offset = 0;
-//									sameSize++;
-//								} else {
-////									logger.warn("need to calculate an offset");
-//									int indexOfFirstDot = swDiffs[1].indexOf('.');
-//									if (indexOfFirstDot >= 20) { // say...
-//										noDiffInFirs20++;
-//										offset = p.getReferenceSequence().indexOf(swDiffs[2].substring(0, indexOfFirstDot));
-//									} else {
-//										offset = 0;
-//									}
-//									diffSize++;
-//								}
-//								
-//								CigarElement ce = new CigarElement(b.getLength(), CigarOperator.MATCH_OR_MISMATCH);
-//								List<CigarElement> ces = new ArrayList<>();
-//								ces.add(ce);
-//								Cigar cigar = new Cigar(ces);
-//								addSAMRecordToWriter(header, writer, cigar, probeId, binId,  b.getRecordCount(), p.getReferenceSequence(), p.getCp().getChromosome(), p.getCp().getPosition() , offset, binSeq);
-//							}
 						}
 					}
 				}
@@ -899,11 +860,9 @@ private static final int TILE_SIZE = 13;
 			List<Bin> bins = entry.getValue();
 			String ref = p.getReferenceSequence();
 			boolean reverseComplementSequence = p.reverseComplementSequence();
-//			boolean forwardStrand = p.isOnForwardStrand();
 			
 			// get largest bin
 			if (null != bins && ! bins.isEmpty()) {
-				
 				
 				for (Bin b : bins) {
 				
@@ -1000,8 +959,6 @@ private static final int TILE_SIZE = 13;
 			}
 			
 			for (VcfRecord vcf : sortedPositions) {
-				
-				
 				/*
 				 * get amplicons that overlap this position
 				 */
@@ -1041,8 +998,6 @@ private static final int TILE_SIZE = 13;
 			}
 			
 			for (VcfRecord vcf : sortedPositions) {
-				
-				
 				/*
 				 * get amplicons that overlap this position
 				 */
@@ -1152,19 +1107,18 @@ private static final int TILE_SIZE = 13;
 		existingBins.add(new Pair<Probe,Bin>(p,b));
 	}
 	
-	public static String getAlleleCountsFromBins(List<Bin> bins, Bin originatingBin, int vcfPos, int positionInOrigBin) {
-		Accumulator acc = new Accumulator(vcfPos);
-		
-		for (int i = 0; i < originatingBin.getRecordCount() ; i++) {
-			acc.addBase((byte)originatingBin.getSequence().charAt(positionInOrigBin), (byte)33, true, vcfPos - positionInOrigBin , vcfPos, vcfPos - positionInOrigBin +originatingBin.getSequence().length() , 1);
-		}
-		
-		
-		return acc.getPileupElementString();
-	}
+//	public static String getAlleleCountsFromBins(List<Bin> bins, Bin originatingBin, int vcfPos, int positionInOrigBin) {
+//		Accumulator acc = new Accumulator(vcfPos);
+//		
+//		for (int i = 0; i < originatingBin.getRecordCount() ; i++) {
+//			acc.addBase((byte)originatingBin.getSequence().charAt(positionInOrigBin), (byte)33, true, vcfPos - positionInOrigBin , vcfPos, vcfPos - positionInOrigBin +originatingBin.getSequence().length() , 1);
+//		}
+//		
+//		return acc.getPileupElementString();
+//	}
 
 	private void binFragments() {
-	int noOfProbesWithLargeSecondaryBin = 0;
+		int noOfProbesWithLargeSecondaryBin = 0;
 		
 		Map<Probe, List<FastqProbeMatch>> probeDist = new HashMap<>();
 		Map<Probe, Map<String, AtomicInteger>> probeFragments = new HashMap<>();
@@ -1200,7 +1154,6 @@ private static final int TILE_SIZE = 13;
 				updateMap(fpm.getScore(), matchMap);
 			}
 		}
-		
 		
 		// logging and writing to file
 		Element amplicons = new Element("Amplicons");
@@ -1304,7 +1257,6 @@ private static final int TILE_SIZE = 13;
 		}
 		logger.info("no of probes with secondary bin contains > 10% of reads: " + noOfProbesWithLargeSecondaryBin);
 		
-		
 		// write output
 		Document doc = new Document(amplicons);
 		File binnedOutput = new File(outputFile.replace(".xml", "_binned.xml"));
@@ -1370,9 +1322,6 @@ private static final int TILE_SIZE = 13;
 
 	private void writeOutput() {
 		Element amplicons = new Element("Amplicons");
-		
-//		List<Probe> orderedProbes = new ArrayList<>(probeSet);
-//		Collections.sort(orderedProbes);
 		
 		for (Probe p : probeSet) {
 			Element amplicon = new Element("Amplicon");
@@ -1573,11 +1522,7 @@ private static final int TILE_SIZE = 13;
 		amplicons.addAttribute(new Attribute("fastq_file_1", fastqFiles[0]));
 		amplicons.addAttribute(new Attribute("fastq_file_2", fastqFiles[1]));
 		
-//		List<Probe> sortedProbes = new ArrayList<>(probeDist.keySet());
-//		Collections.sort(sortedProbes);		// sorts on id of probe
-		
 		for (Probe p : probeSet) {
-			
 			Element amplicon = new Element("Amplicon");
 			amplicons.appendChild(amplicon);
 			
@@ -1605,7 +1550,6 @@ private static final int TILE_SIZE = 13;
 						}
 					}
 				}
-				
 				// check ratio of fragments and total reads
 				// if less than 10%, log...
 				if ((100 * fragmentExists / fpms.size()) <= 10) {
@@ -1621,7 +1565,6 @@ private static final int TILE_SIZE = 13;
 						}
 						logger.info("no of unique r1,r2 pairs: " + r1Set.size());
 				}
-				
 				
 				// add some attributtes
 				probeReadCountMap.put(p, new IntPair(fpms.size(), fragmentExists));
@@ -1643,7 +1586,6 @@ private static final int TILE_SIZE = 13;
 			Map<String, AtomicInteger> frags = probeFragments.get(p);
 			if (null != frags && ! frags.isEmpty()) {
 				
-				
 				List<Integer> fragMatches = new ArrayList<>();
 				for (Entry<String, AtomicInteger> entry : frags.entrySet()) {
 					if (entry.getKey() != null) {
@@ -1661,7 +1603,6 @@ private static final int TILE_SIZE = 13;
 					Collections.reverse(fragMatches);
 					
 					fragments.addAttribute(new Attribute("fragment_breakdown", "" + ClinVarUtil.breakdownEditDistanceDistribution(fragMatches)));
-					
 					
 					int total = 0;
 					for (Integer i : fragMatches) {
@@ -1686,7 +1627,6 @@ private static final int TILE_SIZE = 13;
 					}
 				}
 			}
-			
 		}
 		logger.info("no of probes with secondary bin contains > 10% of reads: " + noOfProbesWithLargeSecondaryBin);
 		
@@ -1741,8 +1681,6 @@ private static final int TILE_SIZE = 13;
 			returnStatus = 0;
 		} else if (options.getFastqs().length < 1) {
 			System.err.println(Messages.USAGE);
-//		} else if ( ! options.hasLogOption()) {
-//			System.err.println(Messages.USAGE);
 		} else {
 			// configure logging
 			logFile = options.getLog();
@@ -1773,7 +1711,8 @@ private static final int TILE_SIZE = 13;
 				}
 			}
 			
-			refTiledAlignmentFile = options.getRefFileName();
+			refTiledAlignmentFile = options.getTiledRefFileName();
+			refFileName = options.getRefFileName();
 			
 			xmlFile = options.getXml();
 			if (options.hasMinBinSizeOption()) {
