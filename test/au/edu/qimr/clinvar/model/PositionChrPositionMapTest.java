@@ -32,6 +32,8 @@ public class PositionChrPositionMapTest {
 		assertEquals(1, map.getChrPositionFromLongPosition(249250622).getPosition());
 		assertEquals("chr2", map.getChrPositionFromLongPosition(249250622).getChromosome());
 		
+		System.out.println("pos: " + map.getChrPositionFromLongPosition(2792625622l).toIGVString());
+		
 	}
 	
 	@BeforeClass

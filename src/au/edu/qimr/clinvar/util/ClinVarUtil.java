@@ -1,7 +1,12 @@
 package au.edu.qimr.clinvar.util;
 
+import gnu.trove.list.TLongList;
+import gnu.trove.list.array.TLongArrayList;
+import gnu.trove.map.TLongIntMap;
 import gnu.trove.map.hash.TIntIntHashMap;
+import gnu.trove.map.hash.TLongIntHashMap;
 import gnu.trove.procedure.TIntIntProcedure;
+import gnu.trove.procedure.TLongIntProcedure;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
 import htsjdk.samtools.Cigar;
@@ -13,6 +18,7 @@ import htsjdk.samtools.SAMSequenceRecord;
 import htsjdk.samtools.SAMTag;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -202,6 +208,104 @@ public class ClinVarUtil {
 		
 		return null;
 	}
+	
+	
+	public static long[] getBestStartPosition(long [][] tilePositions, int tileLength, int indelOffset) {
+		TLongIntMap positionAndTiles = new TLongIntHashMap();
+//		Map<Long, AtomicInteger> positionAndTiles = new HashMap<>();
+//		Map<Long, List<Integer>> positionAndTiles = new HashMap<>();
+		int noOfTiles = tilePositions.length;
+		long startPos = -1;
+		for (int i = 0 ; i < noOfTiles ; i++) {
+			/*
+			 * get first entry, search subsequent arrays
+			 */
+			long [] positions = tilePositions[i];
+			int positionsLength = positions.length;
+			
+			for (int j = 0 ; j < positionsLength ; j++) {
+//				List<Integer> tiles = new ArrayList<>();
+//				tiles.add(i);
+				startPos = positions[j];
+				int tileDepth = 1;
+				if (startPos == Long.MAX_VALUE || startPos == Long.MIN_VALUE) {
+					// this either does not occur or occurs very frequently - in either case - ignore for now...
+					continue;
+				}
+				positionAndTiles.put(startPos, 1);
+				
+				for (int k = i +1; k < noOfTiles ; k++) {
+					/*
+					 * Exact matching only for the moment - need to traverse array and use indelOffset
+					 */
+					long from = startPos + (tileDepth * tileLength) - indelOffset;
+					long to = startPos + (tileDepth * tileLength) + indelOffset;
+					tileDepth++;
+					for (long l : tilePositions[k]) {
+						if (l > to) {
+							// array i sorted, if we are past to, we are done
+							break;
+						}
+						if (l >= from) {
+							// match!
+							positionAndTiles.increment(startPos);
+							break;
+						}
+					}
+//					int positionInArray = Arrays.binarySearch(tilePositions[k], startPos + (k * tileLength));
+//					if (positionInArray >= 0) {
+//						// match!
+//						positionAndTiles.increment(startPos);
+//					}
+				}
+			}
+			
+			
+			/*
+			 * If we have a match for all tiles, exit!
+			 * Only do this at the first iteration
+			 */
+			if (positionAndTiles.containsValue(noOfTiles - i)) {
+				return reduceStartPositionsAndTileCount(positionAndTiles);
+			}
+//			if (i == 0 && positionAndTiles.values().contains( new AtomicInteger(noOfTiles))) {
+//				return reduceStartPositionsAndTileCount(positionAndTiles);
+//			}
+		}
+		return reduceStartPositionsAndTileCount(positionAndTiles);
+	}
+	
+	public static long[] reduceStartPositionsAndTileCount(TLongIntMap positionAndTiles) {
+		int [] tileCounts = positionAndTiles.values();
+		Arrays.sort(tileCounts);
+		int tileCountsLength = tileCounts.length;
+		final int bestTileCount = tileCounts[tileCountsLength -1];
+		
+		final TLongList results = new TLongArrayList();
+		positionAndTiles.forEachEntry(new TLongIntProcedure() {
+			@Override
+			public boolean execute(long l, int i) {
+				if (i == bestTileCount) {
+					results.add(l);
+					results.add(i);
+				}
+				return true;
+			}
+		});
+		return results.toArray();
+	}
+//	public static long[] reduceStartPositionsAndTileCount(Map<Long, AtomicInteger> positionAndTiles) {
+//		TreeSet<AtomicInteger> uniqueTileCounts = new TreeSet<>(positionAndTiles.values());
+//		AtomicInteger bestTileCountAI = uniqueTileCounts.last();
+//		TLongList results = new TLongArrayList();
+//		for (Entry<Long, AtomicInteger> entry : positionAndTiles.entrySet()) {
+//			if (entry.getValue().equals(bestTileCountAI)) {
+//				results.add(entry.getKey().longValue());
+//				results.add(bestTileCountAI.longValue());
+//			}
+//		}
+//		return results.toArray();
+//	}
 	
 	
 	/**
