@@ -8,7 +8,7 @@ package QCMG::IO::BedReader;
 #
 #  Reads BED files.
 #
-#  $Id: BedReader.pm 4663 2014-07-24 06:39:00Z j.pearson $
+#  $Id: BedReader.pm 740 2015-07-16 13:29:33Z grendeloz $
 #
 ###########################################################################
 
@@ -20,8 +20,8 @@ use Carp qw( carp croak );
 
 use vars qw( $SVNID $REVISION $VERSION $VERBOSE );
 
-( $REVISION ) = '$Revision: 4663 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: BedReader.pm 4663 2014-07-24 06:39:00Z j.pearson $'
+( $REVISION ) = '$Revision: 740 $ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id: BedReader.pm 740 2015-07-16 13:29:33Z grendeloz $'
     =~ /\$Id:\s+(.*)\s+/;
 
 
@@ -180,17 +180,20 @@ sub current_record_end {
     return $self->{_record}->[2];
 }
 
-sub current_record_strand {
-    my $self = shift;
-    return undef unless defined $self->{_record};
-    return $self->{_record}->[3];
-}
-
-sub current_record_count {
-    my $self = shift;
-    return undef unless defined $self->{_record};
-    return $self->{_record}->[4];
-}
+# These 2 don't seem to match the expected BED fields as shown on the
+# UCSC website at http://genome.ucsc.edu/FAQ/FAQformat.html#format1
+#
+#sub current_record_strand {
+#    my $self = shift;
+#    return undef unless defined $self->{_record};
+#    return $self->{_record}->[3];
+#}
+#
+#sub current_record_count {
+#    my $self = shift;
+#    return undef unless defined $self->{_record};
+#    return $self->{_record}->[4];
+#}
 
 
 
@@ -206,27 +209,55 @@ QCMG::IO::BedReader - BED file IO
 
 =head1 SYNOPSIS
 
- use QCMG::IO::SamReader;
+ use QCMG::IO::BedReader;
 
 
 =head1 DESCRIPTION
 
-This module provides an interface for reading SAm and BAM files.
+This module provides an interface for reading BED files.
 
+=over 4
+
+=item B<new()>
+
+=item B<filename()>
+
+=item B<name()>
+
+=item B<filehandle()>
+
+=item B<verbose()>
+
+=item B<record_ctr()>
+
+=item B<next_record_as_text()>
+
+=item B<next_record()>
+
+=item B<current_record()>
+
+=item B<current_record_seq()>
+
+=item B<current_record_start()>
+
+=item B<current_record_end()>
+
+=back
 
 =head1 AUTHORS
 
-John Pearson L<mailto:j.pearson@uq.edu.au>
+John Pearson L<mailto:grendeloz@gmail.com>
 
 
 =head1 VERSION
 
-$Id: BedReader.pm 4663 2014-07-24 06:39:00Z j.pearson $
+$Id: BedReader.pm 740 2015-07-16 13:29:33Z grendeloz $
 
 
 =head1 COPYRIGHT
 
 Copyright (c) The University of Queensland 2010-2014
+Copyright (c) QIMR Berghofer Medical Research Institute 2015
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation files (the "Software"),

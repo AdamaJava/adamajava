@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl
 
 ##############################################################################
 #
@@ -6,10 +6,7 @@
 #  Author:   John V Pearson
 #  Created:  2011-05-11
 #
-#  Read in output file from tally_feature_coverage.pl and based on
-#  user-specified min/max values for coverage_per_base_per_file (column
-#  7), convert labels from bait to badbait for any features with
-#  coverages outside the specified limits.
+#  Create a GFF3 file ready for reading by the qcoverage java tool.
 #
 #  $Id: simple_segmenter.pl 4667 2014-07-24 10:09:43Z j.pearson $
 #
