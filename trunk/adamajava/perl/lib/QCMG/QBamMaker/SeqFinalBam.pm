@@ -8,7 +8,7 @@ package QCMG::QBamMaker::SeqFinalBam;
 #
 #  Data container for information about a QCMG seq_final BAM.
 #
-#  $Id: SeqFinalBam.pm 4665 2014-07-24 08:54:04Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -26,8 +26,8 @@ use QCMG::Util::QLog;
 use vars qw( $SVNID $REVISION $QLIMS_META $VALID_AUTOLOAD_METHODS
              $T_OLD2NEW $T_NEW2OLD );
 
-( $REVISION ) = '$Revision: 4665 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: SeqFinalBam.pm 4665 2014-07-24 08:54:04Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 our $AUTOLOAD;  # it's a package global
@@ -502,7 +502,7 @@ John Pearson L<mailto:j.pearson@uq.edu.au>
 
 =head1 VERSION
 
-$Id: SeqFinalBam.pm 4665 2014-07-24 08:54:04Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

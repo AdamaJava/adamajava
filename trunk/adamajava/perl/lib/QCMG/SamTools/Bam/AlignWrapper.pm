@@ -1,6 +1,6 @@
 package QCMG::SamTools::Bam::AlignWrapper;
 
-# $Id: AlignWrapper.pm 1290 2011-10-19 03:43:58Z l.fink $
+# $Id$
 
 =head1 NAME
 

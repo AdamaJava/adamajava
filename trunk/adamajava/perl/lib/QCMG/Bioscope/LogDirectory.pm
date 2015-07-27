@@ -22,8 +22,8 @@ use QCMG::Bioscope::LogModule;
 
 use vars qw( $SVNID $REVISION );
 
-( $REVISION ) = '$Revision: 4660 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: LogDirectory.pm 4660 2014-07-23 12:18:43Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 
@@ -269,7 +269,7 @@ Bioscope log directory.
 
 =head1 VERSION
 
-$Id: LogDirectory.pm 4660 2014-07-23 12:18:43Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

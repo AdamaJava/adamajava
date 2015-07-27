@@ -8,7 +8,7 @@ package QCMG::Bioscope::Ini::GlobalIniFile;
 #
 #  Create global.ini file.
 #
-#  $Id: GlobalIniFile.pm 4660 2014-07-23 12:18:43Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -27,7 +27,7 @@ use QCMG::Bioscope::Ini::TextBlock;
 
 @ISA = qw( QCMG::Bioscope::Ini::IniFile );
 
-( $VERSION ) = '$Revision: 4660 $ ' =~ /\$Revision:\s+([^\s]+)/;
+( $VERSION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
 
 
 ###########################################################################
@@ -319,7 +319,7 @@ See documentation for the superclass QCMG::Bioscope::Ini::IniFile.
 
 =head1 VERSION
 
-$Id: GlobalIniFile.pm 4660 2014-07-23 12:18:43Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

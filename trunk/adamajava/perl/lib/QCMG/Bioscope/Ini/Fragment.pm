@@ -132,7 +132,7 @@ All the user-supplied values must be specified in the call to B<new()>.
 
 =head1 VERSION
 
-$Id: Fragment.pm 4660 2014-07-23 12:18:43Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

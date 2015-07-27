@@ -15,7 +15,7 @@ package QCMG::Package::ParseScript;
 #  modules (may require use'ing the modules), inline the manifest and 
 #  renamed modules, and write out the reworked scripts.
 #
-#  $Id: ParseScript.pm 4664 2014-07-24 08:17:04Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -29,8 +29,8 @@ use QCMG::Package::Collection;
 use QCMG::Util::QLog;
 use vars qw( $SVNID $REVISION );
 
-( $REVISION ) = '$Revision: 4664 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: ParseScript.pm 4664 2014-07-24 08:17:04Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 

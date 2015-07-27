@@ -8,7 +8,7 @@ package QCMG::Annotate::Util;
 #
 #  Non-OO utility functions for key annotation operations.
 #
-#  $Id: Util.pm 4660 2014-07-23 12:18:43Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -24,8 +24,8 @@ use QCMG::Util::QLog;
 
 use vars qw( $SVNID $REVISION @EXPORT_OK %PATTERNS );
 
-( $REVISION ) = '$Revision: 4660 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: Util.pm 4660 2014-07-23 12:18:43Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 @EXPORT_OK = qw( load_ensembl_API_modules initialise_dcc2_file
@@ -566,7 +566,7 @@ required for Ensembl annotation.
 
 =head1 VERSION
 
-$Id: Util.pm 4660 2014-07-23 12:18:43Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

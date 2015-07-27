@@ -8,7 +8,7 @@ package QCMG::Annotate::Gff;
 #
 # Logic for annotating a file with features in a GFF
 #
-#  $Id: Gff.pm 4660 2014-07-23 12:18:43Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -28,8 +28,8 @@ use QCMG::Util::QLog;
 
 use vars qw( $SVNID $REVISION );
 
-( $REVISION ) = '$Revision: 3242 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: Gff.pm 4660 2014-07-23 12:18:43Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 
@@ -383,7 +383,7 @@ perldoc on the script.
 
 =head1 VERSION
 
-$Id: Gff.pm 4660 2014-07-23 12:18:43Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

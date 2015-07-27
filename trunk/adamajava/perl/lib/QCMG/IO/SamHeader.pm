@@ -8,7 +8,7 @@ package QCMG::IO::SamHeader;
 #
 #  Parses SAM/BAM file header
 #
-#  $Id: SamHeader.pm 4643 2014-06-16 07:16:11Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -23,8 +23,8 @@ use QCMG::Util::QLog;
 
 use vars qw( $SVNID $REVISION $VERSION $VERBOSE );
 
-( $REVISION ) = '$Revision: 4643 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: SamHeader.pm 4643 2014-06-16 07:16:11Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 
@@ -212,7 +212,7 @@ John Pearson L<mailto:john.pearson@qimrberghofer.edu.au>
 
 =head1 VERSION
 
-$Id: SamHeader.pm 4643 2014-06-16 07:16:11Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

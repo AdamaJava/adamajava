@@ -9,7 +9,7 @@ package QCMG::FileDir::DirectoryObject;
 #  This internal class implements a directory which can contain other
 #  directories and files.
 #
-#  $Id: DirectoryObject.pm 4662 2014-07-23 12:39:59Z j.pearson $
+#  $Id$
 #
 ##############################################################################
 
@@ -20,8 +20,8 @@ use Data::Dumper;
 use QCMG::FileDir::FileObject;
 use vars qw( $SVNID $REVISION );
 
-( $REVISION ) = '$Revision: 4662 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: DirectoryObject.pm 4662 2014-07-23 12:39:59Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 
@@ -375,7 +375,7 @@ and any other value (traditionally 1) sets verbose mode on.
 
 =head1 VERSION
 
-$Id: DirectoryObject.pm 4662 2014-07-23 12:39:59Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

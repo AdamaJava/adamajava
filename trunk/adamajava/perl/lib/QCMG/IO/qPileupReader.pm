@@ -8,7 +8,7 @@ package QCMG::IO::qPileupReader;
 #
 #  Reads qPileup export files.
 #
-#  $Id: qPileupReader.pm 4663 2014-07-24 06:39:00Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -20,8 +20,8 @@ use Carp qw( confess );
 use QCMG::IO::qPileupRecord;
 use vars qw( $SVNID $REVISION @VALID_COLUMNS );
 
-( $REVISION ) = '$Revision: 4663 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: qPileupReader.pm 4663 2014-07-24 06:39:00Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 
@@ -226,7 +226,7 @@ Flag to force increased warnings.  Defaults to 0 (off);
 
 =head1 VERSION
 
-$Id: qPileupReader.pm 4663 2014-07-24 06:39:00Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

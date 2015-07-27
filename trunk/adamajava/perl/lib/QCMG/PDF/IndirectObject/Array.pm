@@ -9,7 +9,7 @@ package QCMG::PDF::IndirectObject::Array;
 #  Store contents of a PDF Array Indirect Object. See section 3.2.5
 #  Array Objects, p58 of the sixth edition of the v1.7 PDF spec.
 #
-#  $Id: Array.pm 4664 2014-07-24 08:17:04Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -20,8 +20,8 @@ use Data::Dumper;
 use Carp qw( croak );
 use vars qw( $SVNID $REVISION );
 
-( $REVISION ) = '$Revision: 4664 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: Array.pm 4664 2014-07-24 08:17:04Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 
@@ -159,7 +159,7 @@ John Pearson L<mailto:j.pearson@uq.edu.au>
 
 =head1 VERSION
 
-$Id: Array.pm 4664 2014-07-24 08:17:04Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

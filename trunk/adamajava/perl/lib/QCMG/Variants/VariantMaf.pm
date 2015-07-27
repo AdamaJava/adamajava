@@ -10,7 +10,7 @@ package QCMG::Variants::VariantMaf;
 #  calling pipeline.  In particular, it parses the headers to extract
 #  useful information.
 #
-#  $Id: VariantMaf.pm 4665 2014-07-24 08:54:04Z j.pearson $
+#  $Id$
 #
 ##############################################################################
 
@@ -23,8 +23,8 @@ use QCMG::Util::QLog;
 
 use vars qw( $SVNID $REVISION %CLASS_GLOBALS );
 
-( $REVISION ) = '$Revision: 4665 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: VariantMaf.pm 4665 2014-07-24 08:54:04Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 
@@ -164,7 +164,7 @@ and any other value (traditionally 1) sets verbose mode on.
 
 =head1 VERSION
 
-$Id: VariantMaf.pm 4665 2014-07-24 08:54:04Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

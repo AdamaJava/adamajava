@@ -1,6 +1,6 @@
 package QCMG::Automation::LiveArc;
 
-# $Id: LiveArc.pm 4660 2014-07-23 12:18:43Z j.pearson $
+# $Id$
 
 =pod
 

@@ -8,7 +8,7 @@ package QCMG::Package::PerlCodeFile;
 #
 #  Data container for a file containing perl code (script or module).
 #
-#  $Id: PerlCodeFile.pm 4664 2014-07-24 08:17:04Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -19,8 +19,8 @@ use Data::Dumper;
 use Pod::Strip;
 use vars qw( $SVNID $REVISION );
 
-( $REVISION ) = '$Revision: 4664 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: PerlCodeFile.pm 4664 2014-07-24 08:17:04Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 
@@ -267,7 +267,7 @@ John Pearson L<mailto:j.pearson@uq.edu.au>
 
 =head1 VERSION
 
-$Id: PerlCodeFile.pm 4664 2014-07-24 08:17:04Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

@@ -9,7 +9,7 @@ package QCMG::Ingest::TorrentSuite3;
 #  This class contains methods for automating the ingest into Mediaflux/LiveArc
 #  of Ion Torrent sequencing  data
 #
-#  $Id: Torrent.pm 3285 2012-12-21 02:39:56Z l.fink $
+#  $Id$
 #
 ##############################################################################
 

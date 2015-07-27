@@ -9,7 +9,7 @@ package QCMG::Google::Chart::Table;
 #  Convenience class for creating javascript to define and display a
 #  Google Chart Table.
 #
-#  $Id: Table.pm 4662 2014-07-23 12:39:59Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -21,7 +21,7 @@ use Data::Dumper;
 use vars qw( $VERSION @ISA );
 
 @ISA = qw( QCMG::Google::Charts );  # inherit Common methods
-( $VERSION ) = '$Revision: 4662 $ ' =~ /\$Revision:\s+([^\s]+)/;
+( $VERSION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
 
 
 ###########################################################################
@@ -135,7 +135,7 @@ Takes compulsory name and optional verbose parameters.
 
 =head1 VERSION
 
-$Id: Table.pm 4662 2014-07-23 12:39:59Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

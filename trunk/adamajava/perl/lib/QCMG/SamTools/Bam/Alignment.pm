@@ -1,6 +1,6 @@
 package QCMG::SamTools::Bam::Alignment;
 
-# $Id: Alignment.pm 1289 2011-10-19 03:43:42Z l.fink $
+# $Id$
 
 =head1 NAME
 

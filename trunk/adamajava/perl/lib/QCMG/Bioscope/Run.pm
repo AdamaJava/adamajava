@@ -9,7 +9,7 @@ package QCMG::Bioscope::Run;
 #  This class contains methods for automating the running of Bioscope on raw
 #  sequencing data files
 #
-# $Id: Run.pm 4660 2014-07-23 12:18:43Z j.pearson $
+# $Id$
 #
 ##############################################################################
 

@@ -10,7 +10,7 @@ package QCMG::IO::MafRecord;
 #  specified by NCI and used by TCGA and the QCMG/Baylor/OICR ABO
 #  collaboration.
 #
-#  $Id: MafRecord.pm 4663 2014-07-24 06:39:00Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -24,8 +24,8 @@ use vars qw( $SVNID $REVISION $VALID_HEADERS $VALID_AUTOLOAD_METHODS );
 
 use QCMG::Util::QLog;
 
-( $REVISION ) = '$Revision: 4663 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: MafRecord.pm 4663 2014-07-24 06:39:00Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 our $AUTOLOAD;  # it's a package global
@@ -746,7 +746,7 @@ John Pearson L<mailto:j.pearson@uq.edu.au>
 
 =head1 VERSION
 
-$Id: MafRecord.pm 4663 2014-07-24 06:39:00Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

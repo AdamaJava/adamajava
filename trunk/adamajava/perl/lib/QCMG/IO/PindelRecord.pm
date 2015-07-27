@@ -8,7 +8,7 @@ package QCMG::IO::PindelRecord;
 #
 #  Data container for a pindel report file record.
 #
-#  $Id: PindelRecord.pm 4663 2014-07-24 06:39:00Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -20,8 +20,8 @@ use Data::Dumper;
 use Memoize;
 use vars qw( $SVNID $REVISION $VALID_AUTOLOAD_METHODS );
 
-( $REVISION ) = '$Revision: 4663 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: PindelRecord.pm 4663 2014-07-24 06:39:00Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 our $AUTOLOAD;  # it's a package global
@@ -386,7 +386,7 @@ John Pearson L<mailto:j.pearson@uq.edu.au>
 
 =head1 VERSION
 
-$Id: PindelRecord.pm 4663 2014-07-24 06:39:00Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

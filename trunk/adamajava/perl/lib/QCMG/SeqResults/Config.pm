@@ -19,8 +19,8 @@ use QCMG::Util::QLog;           # QCMG Log module
 
 use vars qw( $SVNID $REVISION );
 
-( $REVISION ) = '$Revision: 3390 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: GeneusReader.pm 3390 2013-02-19 01:33:02Z m.anderson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 

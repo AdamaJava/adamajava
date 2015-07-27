@@ -9,7 +9,7 @@ package QCMG::QBamMaker::SeqFinalDirectory;
 #
 #  This module collects information about the BAMs in a seq_final directory.
 #
-#  $Id: SeqFinalDirectory.pm 4665 2014-07-24 08:54:04Z j.pearson $
+#  $Id$
 #
 ##############################################################################
 
@@ -33,8 +33,8 @@ use QCMG::Util::QLog;
 
 use vars qw( $SVNID $REVISION );
 
-( $REVISION ) = '$Revision: 4665 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: SeqFinalDirectory.pm 4665 2014-07-24 08:54:04Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 
@@ -164,7 +164,7 @@ John Pearson L<mailto:j.pearson@uq.edu.au>
 
 =head1 VERSION
 
-$Id: SeqFinalDirectory.pm 4665 2014-07-24 08:54:04Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

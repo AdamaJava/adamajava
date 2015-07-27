@@ -10,7 +10,7 @@ package QCMG::SamTools::BaseConcordance;
 # deconvoluting their CIGAR string to return a base-for-base position
 # concordance with the reference genome.
 #
-#  $Id: BaseConcordance.pm 4665 2014-07-24 08:54:04Z j.pearson $
+#  $Id$
 #
 ##############################################################################
 

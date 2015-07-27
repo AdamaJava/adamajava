@@ -8,7 +8,7 @@ package QCMG::IO::FastqReader;
 #
 #  Generic FASTQ file parser.  Expects that lines are in groups of 4.
 #
-#  $Id: FastqReader.pm 4663 2014-07-24 06:39:00Z j.pearson $
+#  $Id$
 #
 ##############################################################################
 
@@ -21,8 +21,8 @@ use Data::Dumper;
 use Carp qw( carp croak confess );
 use vars qw( $SVNID $REVISION );
 
-( $REVISION ) = '$Revision: 4663 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: FastqReader.pm 4663 2014-07-24 06:39:00Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 has 'filename'    => ( is => 'ro', isa => 'Str', required => 1 );
@@ -170,7 +170,7 @@ and any other value (traditionally 1) sets verbose mode on.
 
 =head1 VERSION
 
-$Id: FastqReader.pm 4663 2014-07-24 06:39:00Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

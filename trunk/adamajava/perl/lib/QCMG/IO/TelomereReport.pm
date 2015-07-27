@@ -8,7 +8,7 @@ package QCMG::IO::TelomereReport;
 #
 #  Parse telomere count data and provide reporting functions.
 #
-#  $Id: TelomereReport.pm 4663 2014-07-24 06:39:00Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -21,8 +21,8 @@ use vars qw( $SVNID $REVISION );
 
 use QCMG::Util::QLog;
 
-( $REVISION ) = '$Revision: 4663 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: TelomereReport.pm 4663 2014-07-24 06:39:00Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 
@@ -300,7 +300,7 @@ John Pearson L<mailto:j.pearson@uq.edu.au>
 
 =head1 VERSION
 
-$Id: TelomereReport.pm 4663 2014-07-24 06:39:00Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

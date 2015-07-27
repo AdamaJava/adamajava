@@ -9,7 +9,7 @@ package QCMG::IO::BamListReader;
 #  Reads manually created files that list seq_final BAMs along with
 #  properties about the constituent seq_mapped mapsets.
 #
-#  $Id: BamListReader.pm 4663 2014-07-24 06:39:00Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -27,8 +27,8 @@ use vars qw( $SVNID $REVISION @ISA );
 
 @ISA = qw( QCMG::IO::TsvReader );
 
-( $REVISION ) = '$Revision: 4663 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: BamListReader.pm 4663 2014-07-24 06:39:00Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 
@@ -136,7 +136,7 @@ John Pearson L<mailto:j.pearson@uq.edu.au>
 
 =head1 VERSION
 
-$Id: BamListReader.pm 4663 2014-07-24 06:39:00Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

@@ -237,7 +237,7 @@ Returns undef if the contig specified does not exist.
 
 =head1 VERSION
 
-$Id: Properties.pm 4660 2014-07-23 12:18:43Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

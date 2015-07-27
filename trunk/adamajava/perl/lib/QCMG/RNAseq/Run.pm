@@ -9,7 +9,7 @@ package QCMG::RNAseq::Run;
 #  This class contains methods for automating the running of programs on raw
 #  RNA sequencing data files
 #
-# $Id: Run.pm 4665 2014-07-24 08:54:04Z j.pearson $
+# $Id$
 #
 ##############################################################################
 

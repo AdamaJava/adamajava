@@ -9,7 +9,7 @@ package QCMG::QInspect::PdfPath;
 #  Data container for a PDF Path which is a sequence of points defined
 #  in 2-D space (x and y coordinates).
 #
-#  $Id: PdfPath.pm 4665 2014-07-24 08:54:04Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -19,8 +19,8 @@ use warnings;
 use Data::Dumper;
 use vars qw( $SVNID $REVISION );
 
-( $REVISION ) = '$Revision: 4665 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: PdfPath.pm 4665 2014-07-24 08:54:04Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 
@@ -223,7 +223,7 @@ John Pearson L<mailto:j.pearson@uq.edu.au>
 
 =head1 VERSION
 
-$Id: PdfPath.pm 4665 2014-07-24 08:54:04Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

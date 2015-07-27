@@ -8,7 +8,7 @@ package QCMG::IO::qSnpGermlineReader;
 #
 #  Reads Germline DCC files as created by qSNP.
 #
-#  $Id: qSnpGermlineReader.pm 4663 2014-07-24 06:39:00Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -24,8 +24,8 @@ use QCMG::Util::QLog;
 
 use vars qw( $SVNID $REVISION );
 
-( $REVISION ) = '$Revision: 4663 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: qSnpGermlineReader.pm 4663 2014-07-24 06:39:00Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 
@@ -172,7 +172,7 @@ John Pearson L<mailto:j.pearson@uq.edu.au>
 
 =head1 VERSION
 
-$Id: qSnpGermlineReader.pm 4663 2014-07-24 06:39:00Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

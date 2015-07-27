@@ -11,7 +11,7 @@ package QCMG::FileDir::GatkDirRecord;
 #  you make substantial changes here, you ay need to sync with
 #  QSnpDirRecord.
 #
-#  $Id: GatkDirRecord.pm 4662 2014-07-23 12:39:59Z j.pearson $
+#  $Id$
 #
 ##############################################################################
 
@@ -27,8 +27,8 @@ use QCMG::Variants::VariantMaf;
 
 use vars qw( $SVNID $REVISION %CLASS_GLOBALS );
 
-( $REVISION ) = '$Revision: 4662 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: GatkDirRecord.pm 4662 2014-07-23 12:39:59Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 # Establish class global list of filename search patterns
@@ -769,7 +769,7 @@ and any other value (traditionally 1) sets verbose mode on.
 
 =head1 VERSION
 
-$Id: GatkDirRecord.pm 4662 2014-07-23 12:39:59Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

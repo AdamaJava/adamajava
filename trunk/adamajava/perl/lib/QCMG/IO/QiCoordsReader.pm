@@ -11,7 +11,7 @@ package QCMG::IO::QiCoordsReader;
 #  use a separate "record" module but rather directly parses the file in
 #  its entirety.
 #
-#  $Id: QiCoordsReader.pm 4663 2014-07-24 06:39:00Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -26,8 +26,8 @@ use QCMG::IO::MafRecord;
 
 use vars qw( $SVNID $REVISION );
 
-( $REVISION ) = '$Revision: 4663 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: QiCoordsReader.pm 4663 2014-07-24 06:39:00Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 
@@ -182,7 +182,7 @@ John Pearson L<mailto:j.pearson@uq.edu.au>
 
 =head1 VERSION
 
-$Id: QiCoordsReader.pm 4663 2014-07-24 06:39:00Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

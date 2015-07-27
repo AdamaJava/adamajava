@@ -7,7 +7,7 @@ package QCMG::AlexaSeq::Bam;
 #
 #  This class contains methods for converting AlexaSeq output into a BAM file
 #
-#  $Id: Bam.pm 1777 2012-04-16 05:35:42Z l.fink $
+#  $Id$
 #
 ##############################################################################
 

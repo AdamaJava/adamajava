@@ -6,7 +6,7 @@ package QCMG::HTML::BootstrapPage;
 #  Author:   Matthew J Anderson
 #  Created:  2013-07-04
 #
-#  $Id: BootstrapPage.pm 4676 2014-08-07 02:13:29Z m.anderson $
+#  $Id$
 #
 ##############################################################################
 
@@ -25,8 +25,8 @@ use QCMG::Util::QLog;
 
 use vars qw( $SVNID $REVISION  );
 
-( $REVISION ) = '$Revision: 4676 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: BootstrapPage.pm 4676 2014-08-07 02:13:29Z m.anderson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 sub new {

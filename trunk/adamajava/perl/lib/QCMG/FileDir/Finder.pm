@@ -9,7 +9,7 @@ package QCMG::FileDir::Finder;
 #  This module finds files or directories based on regular expression
 #  matches.
 #
-#  $Id: Finder.pm 4662 2014-07-23 12:39:59Z j.pearson $
+#  $Id$
 #
 ##############################################################################
 
@@ -24,8 +24,8 @@ use QCMG::Util::QLog;
 
 use vars qw( $SVNID $REVISION );
 
-( $REVISION ) = '$Revision: 4662 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: Finder.pm 4662 2014-07-23 12:39:59Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 
@@ -270,7 +270,7 @@ and any other value (traditionally 1) sets verbose mode on.
 
 =head1 VERSION
 
-$Id: Finder.pm 4662 2014-07-23 12:39:59Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

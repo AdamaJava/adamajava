@@ -9,7 +9,7 @@ package QCMG::Visualise::DirectorySizeReport;
 #  Parse and visualise the DirectorySizeReport XML element from
 #  solidstatsreport XML files.
 #
-#  $Id: DirectorySizeReport.pm 4666 2014-07-24 09:03:04Z j.pearson $
+#  $Id$
 #
 ##############################################################################
 
@@ -29,8 +29,8 @@ use QCMG::Util::XML qw( get_attr_by_name get_node_by_name );
 
 use vars qw( $SVNID $REVISION );
 
-( $REVISION ) = '$Revision: 4666 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: DirectorySizeReport.pm 4666 2014-07-24 09:03:04Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 sub new {
@@ -266,7 +266,7 @@ reports from SolidStatsReport XML reports
 
 =head1 VERSION
 
-$Id: DirectorySizeReport.pm 4666 2014-07-24 09:03:04Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

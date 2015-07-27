@@ -243,7 +243,7 @@ the next match file record.
 
 =head1 VERSION
 
-$Id: MatchFile.pm 4660 2014-07-23 12:18:43Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

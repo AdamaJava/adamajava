@@ -8,7 +8,7 @@ package QCMG::SeqResults::Report;
 #
 #  Superclass for reports.
 #
-#  $Id: Report.pm 4665 2014-07-24 08:54:04Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -25,8 +25,8 @@ use QCMG::SeqResults::Util qw( qmail );
 use QCMG::Util::QLog;
 
 
-( $REVISION ) = '$Revision: 4665 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: Report.pm 4665 2014-07-24 08:54:04Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 
@@ -228,7 +228,7 @@ one, it will be fatal.  Fair warning given.
 
 =head1 VERSION
 
-$Id: Report.pm 4665 2014-07-24 08:54:04Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

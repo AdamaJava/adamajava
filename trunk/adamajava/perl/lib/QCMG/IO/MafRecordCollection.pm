@@ -8,7 +8,7 @@ package QCMG::IO::MafRecordCollection;
 #
 #  Operations on a collection of QCMG::IO::MafRecord objects.
 #
-#  $Id: MafRecordCollection.pm 4663 2014-07-24 06:39:00Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -28,8 +28,8 @@ use QCMG::Variants::VariantSummary;
 
 use vars qw( $SVNID $REVISION $MAF_VAR_PRIORITY );
 
-( $REVISION ) = '$Revision: 4663 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: MafRecordCollection.pm 4663 2014-07-24 06:39:00Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 our $AUTOLOAD;  # it's a package global
@@ -629,7 +629,7 @@ John Pearson L<mailto:j.pearson@uq.edu.au>
 
 =head1 VERSION
 
-$Id: MafRecordCollection.pm 4663 2014-07-24 06:39:00Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

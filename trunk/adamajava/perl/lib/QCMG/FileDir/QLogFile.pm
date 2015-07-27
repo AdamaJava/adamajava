@@ -9,7 +9,7 @@ package QCMG::FileDir::QLogFile;
 #  This class implements a parser and data structure for files in the
 #  QCMG standard log file format as written by QCMG::Util::QLog.pm.
 #
-#  $Id: QLogFile.pm 4662 2014-07-23 12:39:59Z j.pearson $
+#  $Id$
 #
 ##############################################################################
 
@@ -23,8 +23,8 @@ use QCMG::Util::QLog;
 
 use vars qw( $SVNID $REVISION );
 
-( $REVISION ) = '$Revision: 4662 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: QLogFile.pm 4662 2014-07-23 12:39:59Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 
@@ -210,7 +210,7 @@ and any other value (traditionally 1) sets verbose mode on.
 
 =head1 VERSION
 
-$Id: QLogFile.pm 4662 2014-07-23 12:39:59Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

@@ -9,7 +9,7 @@ package QCMG::Bioscope::Ini::GenerateFiles;
 #  This module is the entry point for the Bioscope Ini File generation
 #  system (QCMG::Bioscope::Ini::*)
 #
-#  $Id: GenerateFiles.pm 4660 2014-07-23 12:18:43Z j.pearson $
+#  $Id$
 #
 ##############################################################################
 
@@ -31,8 +31,8 @@ use QCMG::FileDir::SeqRawParser;
 
 use vars qw( $SVNID $REVISION );
 
-( $REVISION ) = '$Revision: 4660 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: GenerateFiles.pm 4660 2014-07-23 12:18:43Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 
@@ -644,7 +644,7 @@ set these secondary values in cases where you wish to override the defaults.
 
 =head1 VERSION
 
-$Id: GenerateFiles.pm 4660 2014-07-23 12:18:43Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

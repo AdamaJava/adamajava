@@ -9,7 +9,7 @@ package QCMG::Util::Reporter;
 #  This non-OO perl module contains static methods for parsing various
 #  reports and producing other reports - often summaries.
 #
-#  $Id: Reporter.pm 4665 2014-07-24 08:54:04Z j.pearson $
+#  $Id$
 #
 ##############################################################################
 
@@ -23,8 +23,8 @@ use vars qw( $REVISION $SVNID @ISA @EXPORT @EXPORT_OK );
 
 use QCMG::Util::QLog;
 
-( $REVISION ) = '$Revision: 4665 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID )    = '$Id: Reporter.pm 4665 2014-07-24 08:54:04Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID )    = '$Id$'
                  =~ /\$Id:\s+(.*)\s+/;
 
 BEGIN {
@@ -492,7 +492,7 @@ MAIN namespace.
 
 =head1 VERSION
 
-$Id: Reporter.pm 4665 2014-07-24 08:54:04Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

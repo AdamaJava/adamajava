@@ -9,7 +9,7 @@ package QCMG::Automation::Common;
 #  This class contains common methods for automating the ingest into Mediaflux
 #  of raw sequencing  data; intended to be inherited via another QCMG module
 #
-#  $Id: Common.pm 4660 2014-07-23 12:18:43Z j.pearson $
+#  $Id$
 #
 ##############################################################################
 

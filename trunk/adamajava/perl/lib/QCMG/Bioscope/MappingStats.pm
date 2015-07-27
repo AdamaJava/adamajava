@@ -10,7 +10,7 @@ package QCMG::Bioscope::MappingStats;
 #  each .ma file -  in the s_mapping directory for fragment runs and the
 #  F3/s_mapping and R3/s_mapping directories for LMP runs.
 #
-#  $Id: MappingStats.pm 4660 2014-07-23 12:18:43Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -25,8 +25,8 @@ use POSIX;
 
 use vars qw( $SVNID $REVISION );
 
-( $REVISION ) = '$Revision: 4660 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: MappingStats.pm 4660 2014-07-23 12:18:43Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 
@@ -493,7 +493,7 @@ and any other value (traditionally 1) sets verbose mode on.
 
 =head1 VERSION
 
-$Id: MappingStats.pm 4660 2014-07-23 12:18:43Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

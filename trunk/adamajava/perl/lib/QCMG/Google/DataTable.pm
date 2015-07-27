@@ -11,7 +11,7 @@ package QCMG::Google::DataTable;
 #  http://code.google.com/apis/chart/interactive/docs/reference.html#DataTable
 #  http://code.google.com/apis/chart/interactive/docs/reference.html#dataparam
 #
-#  $Id: DataTable.pm 4662 2014-07-23 12:39:59Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -24,7 +24,7 @@ use POSIX qw( floor ceil );
 use QCMG::Util::QLog;
 use vars qw( $VERSION );
 
-( $VERSION ) = '$Revision: 4662 $ ' =~ /\$Revision:\s+([^\s]+)/;
+( $VERSION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
 
 
 ###########################################################################
@@ -969,7 +969,7 @@ to the Google Chart javascript.  Stick to trimming digits.
 
 =head1 VERSION
 
-$Id: DataTable.pm 4662 2014-07-23 12:39:59Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

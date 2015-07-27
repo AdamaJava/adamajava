@@ -8,7 +8,7 @@ package QCMG::Lifescope::Ini::GenerateFiles;
 #  This module is the entry point for the Lifescope Ini File generation
 #  system (QCMG::Lifescope::Ini::*)
 #
-#  $Id: GenerateFiles.pm 1406 2011-12-05 23:28:03Z l.fink $
+#  $Id$
 #
 ##############################################################################
 
@@ -53,8 +53,8 @@ use Carp qw( carp croak );
 
 use vars qw( $SVNID $REVISION );
 
-( $REVISION ) = '$Revision: 1406 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: GenerateFiles.pm 1406 2011-12-05 23:28:03Z l.fink $' =~ /\$Id:\s+(.*)\s+/;
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$' =~ /\$Id:\s+(.*)\s+/;
 
 
 ###########################################################################
@@ -785,7 +785,7 @@ __END__
 
 =head1 VERSION
 
-$Id: GenerateFiles.pm 1406 2011-12-05 23:28:03Z l.fink $
+$Id$
 
 
 =head1 COPYRIGHT

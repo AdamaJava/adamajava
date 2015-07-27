@@ -9,7 +9,7 @@ package QCMG::Automation::Config;
 #  This class contains variables common to the automated sequencing data
 #  processing pipeline
 #
-#  $Id: Config.pm 4660 2014-07-23 12:18:43Z j.pearson $
+#  $Id$
 #
 ##############################################################################
 

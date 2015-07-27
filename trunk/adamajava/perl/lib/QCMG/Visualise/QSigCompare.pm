@@ -9,7 +9,7 @@ package QCMG::Visualise::QSigCompare;
 #  Read a qsignature XML file and create a HTML file that uses the
 #  Google chart API to display appropriate graphs and summary tables.
 #
-#  $Id: QSigCompare.pm 4666 2014-07-24 09:03:04Z j.pearson $
+#  $Id$
 #
 ##############################################################################
 
@@ -32,8 +32,8 @@ use QCMG::Visualise::Util qw( parse_xml_table );
 
 use vars qw( $SVNID $REVISION );
 
-( $REVISION ) = '$Revision: 4666 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: QSigCompare.pm 4666 2014-07-24 09:03:04Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 
@@ -243,7 +243,7 @@ from qsignature XML reports
 
 =head1 VERSION
 
-$Id: QSigCompare.pm 4666 2014-07-24 09:03:04Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

@@ -1,6 +1,6 @@
 package qBamMaker::GetMapsets;
 
-# $Id: $
+# $Id$
 
 use strict;
 use Carp;

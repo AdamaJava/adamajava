@@ -8,7 +8,7 @@ package QCMG::PDF::OutlineMaker;
 #
 #  Construct a tree from the annotations pulled from a QiRecord array.
 #
-#  $Id: OutlineMaker.pm 4664 2014-07-24 08:17:04Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -19,8 +19,8 @@ use Data::Dumper;
 use Carp qw( croak );
 use vars qw( $SVNID $REVISION %ENTRIES );
 
-( $REVISION ) = '$Revision: 4664 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: OutlineMaker.pm 4664 2014-07-24 08:17:04Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 sub new {
@@ -196,7 +196,7 @@ John Pearson L<mailto:j.pearson@uq.edu.au>
 
 =head1 VERSION
 
-$Id: OutlineMaker.pm 4664 2014-07-24 08:17:04Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

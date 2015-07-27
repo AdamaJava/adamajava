@@ -6,7 +6,7 @@ package QCMG::SeqResults::qshipshape_checks;
 #  Creator:  Matthew J Anderson
 #  Created:  2012-07-10
 #
-#  $Id: qshipshape_checks.pm 4665 2014-07-24 08:54:04Z j.pearson $
+#  $Id$
 #
 ##############################################################################
 
@@ -21,8 +21,8 @@ use QCMG::DB::Metadata;
 
 use vars qw( $SVNID $REVISION $DEBUG);
 
-$REVISION = '$Revision: 4665 $ ' =~ /\$Revision:\s+([^\s]+)/;
-$SVNID 	= '$Id: qshipshape_checks.pm 4665 2014-07-24 08:54:04Z j.pearson $'
+$REVISION = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+$SVNID 	= '$Id$'
     	=~ /\$Id:\s+(.*)\s+/;
 
 $DEBUG = 1;

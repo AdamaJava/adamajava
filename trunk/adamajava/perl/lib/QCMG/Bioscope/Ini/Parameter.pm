@@ -8,7 +8,7 @@ package QCMG::Bioscope::Ini::Parameter;
 #
 #  A single Bioscope INI file parameter.
 #
-#  $Id: Parameter.pm 4660 2014-07-23 12:18:43Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -21,7 +21,7 @@ use Data::Dumper;
 use Carp qw( croak );
 use vars qw( $VERSION @ISA );
 
-( $VERSION ) = '$Revision: 4660 $ ' =~ /\$Revision:\s+([^\s]+)/;
+( $VERSION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
 
 
 ###########################################################################
@@ -306,7 +306,7 @@ B<as_text()> parameters.
 
 =head1 VERSION
 
-$Id: Parameter.pm 4660 2014-07-23 12:18:43Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

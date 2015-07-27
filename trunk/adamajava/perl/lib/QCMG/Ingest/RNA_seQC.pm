@@ -9,7 +9,7 @@ package QCMG::Ingest::RNA_seQC;
 #  This class contains methods for automating the ingest into LiveArc
 #  of RNAseq QC data
 #
-#  $Id: RNA_seQC.pm 4663 2014-07-24 06:39:00Z j.pearson $
+#  $Id$
 #
 ##############################################################################
 

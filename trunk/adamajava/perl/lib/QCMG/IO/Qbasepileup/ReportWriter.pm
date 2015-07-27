@@ -9,7 +9,7 @@ package QCMG::IO::Qbasepileup::ReportWriter;
 #  Writes qBasepileup text files in the same format as is written by the 
 #  java qbasepileup utility.
 #
-#  $Id: ReportWriter.pm 4683 2014-08-07 23:24:18Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -26,8 +26,8 @@ use QCMG::Util::QLog;
 
 use vars qw( $SVNID $REVISION );
 
-( $REVISION ) = '$Revision: 4683 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: ReportWriter.pm 4683 2014-08-07 23:24:18Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 
@@ -207,7 +207,7 @@ John Pearson L<mailto:john.pearson@qimrberghofer.edu.au>
 
 =head1 VERSION
 
-$Id: ReportWriter.pm 4683 2014-08-07 23:24:18Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

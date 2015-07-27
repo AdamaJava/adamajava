@@ -8,7 +8,7 @@ package QCMG::Bioscope::Ini::ParameterCollection;
 #
 #  A collection of Bioscope INI file parameter objects.
 #
-#  $Id: ParameterCollection.pm 4660 2014-07-23 12:18:43Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -21,7 +21,7 @@ use Data::Dumper;
 use Carp qw( croak );
 use vars qw( $VERSION @ISA );
 
-( $VERSION ) = '$Revision: 4660 $ ' =~ /\$Revision:\s+([^\s]+)/;
+( $VERSION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
 
 
 ###########################################################################
@@ -360,7 +360,7 @@ has been returned, you'll have to use Perl's ref() statement.
 
 =head1 VERSION
 
-$Id: ParameterCollection.pm 4660 2014-07-23 12:18:43Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

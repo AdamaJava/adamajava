@@ -9,7 +9,7 @@ package QCMG::DB::Geneus;
 #  This class is a portal to information held in the Genologic Geneus
 #  LIMS database.
 #
-#  $Id: Geneus.pm 4661 2014-07-23 12:26:01Z j.pearson $
+#  $Id$
 #
 ##############################################################################
 
@@ -115,8 +115,8 @@ use QCMG::DB::GeneusResult;
 
 use vars qw( $SVNID $REVISION );
 
-( $REVISION ) = '$Revision: 4661 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: Geneus.pm 4661 2014-07-23 12:26:01Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 ################################################################################

@@ -12,7 +12,7 @@ package QCMG::Verify::AutoNames;
 #  The advantage of abstracting this code out into a separate module is
 #  that it can easily be shared between multiple other classes.
 #
-#  $Id: AutoQbasepileup.pm 4151 2013-07-29 06:06:23Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -29,8 +29,8 @@ use QCMG::QBamMaker::SeqFinalDirectory;
 
 use vars qw( $SVNID $REVISION %BAM_CATEGORY %LIMITS );
 
-( $REVISION ) = '$Revision: 4151 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: AutoQbasepileup.pm 4151 2013-07-29 06:06:23Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 
@@ -181,7 +181,7 @@ higher levels of verbosity.
 
 =head1 VERSION
 
-$Id: AutoQbasepileup.pm 4151 2013-07-29 06:06:23Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

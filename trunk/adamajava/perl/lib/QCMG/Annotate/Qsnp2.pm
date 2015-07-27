@@ -10,7 +10,7 @@ package QCMG::Annotate::Qsnp2;
 #  version uses the new EnsemblConsequences module which gives us a much
 #  better level of abstraction on annotation.
 #
-#  $Id: Qsnp2.pm 4660 2014-07-23 12:18:43Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -45,8 +45,8 @@ use QCMG::Util::Util qw( qexec_header );
 
 use vars qw( $SVNID $REVISION );
 
-( $REVISION ) = '$Revision: 4660 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: Qsnp2.pm 4660 2014-07-23 12:18:43Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 
@@ -597,7 +597,7 @@ wiki in the qsnp mode section of the qannotate.pl page.
 
 =head1 VERSION
 
-$Id: Qsnp2.pm 4660 2014-07-23 12:18:43Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

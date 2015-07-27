@@ -8,7 +8,7 @@ package QCMG::PDF::Document;
 #
 #  Writes out version 1.7 PDF documents.
 #
-#  $Id: Document.pm 4664 2014-07-24 08:17:04Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -32,8 +32,8 @@ use QCMG::PDF::IndirectObject::Stream;
 use QCMG::PDF::OutlineMaker;
 use QCMG::PDF::Util;
 
-( $REVISION ) = '$Revision: 4664 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: Document.pm 4664 2014-07-24 08:17:04Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 
@@ -435,7 +435,7 @@ John Pearson L<mailto:j.pearson@uq.edu.au>
 
 =head1 VERSION
 
-$Id: Document.pm 4664 2014-07-24 08:17:04Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

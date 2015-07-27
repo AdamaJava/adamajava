@@ -9,7 +9,7 @@ package QCMG::Visualise::TimelordReport;
 #  Read a timelord.pl XML file and create a HTML file that uses the
 #  Google chart API to display appropriate graphs and summary tables.
 #
-#  $Id: TimelordReport.pm 4666 2014-07-24 09:03:04Z j.pearson $
+#  $Id$
 #
 ##############################################################################
 
@@ -32,8 +32,8 @@ use QCMG::Util::XML qw( get_attr_by_name get_node_by_name );
 
 use vars qw( $SVNID $REVISION );
 
-( $REVISION ) = '$Revision: 4666 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: TimelordReport.pm 4666 2014-07-24 09:03:04Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 
@@ -559,7 +559,7 @@ from timelord.pl XML reports
 
 =head1 VERSION
 
-$Id: TimelordReport.pm 4666 2014-07-24 09:03:04Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

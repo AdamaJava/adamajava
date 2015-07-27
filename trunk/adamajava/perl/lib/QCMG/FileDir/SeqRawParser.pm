@@ -10,7 +10,7 @@ package QCMG::FileDir::SeqRawParser;
 #  of the run including the barcodes (if any), the primary directories
 #  and the run type (LMP, PE, Frag, etc)
 #
-#  $Id: SeqRawParser.pm 4662 2014-07-23 12:39:59Z j.pearson $
+#  $Id$
 #
 ##############################################################################
 
@@ -24,8 +24,8 @@ use vars qw( $SVNID $REVISION );
 
 use QCMG::FileDir::Finder;
 
-( $REVISION ) = '$Revision: 4662 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: SeqRawParser.pm 4662 2014-07-23 12:39:59Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 # Establish class global list of valid tags
@@ -539,7 +539,7 @@ and any other value (traditionally 1) sets verbose mode on.
 
 =head1 VERSION
 
-$Id: SeqRawParser.pm 4662 2014-07-23 12:39:59Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

@@ -8,7 +8,7 @@ package QCMG::Annotate::Strelka;
 #
 #  Module to provide annotation for variants called by strelka.
 #
-#  $Id: Strelka.pm 4660 2014-07-23 12:18:43Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -45,8 +45,8 @@ use QCMG::Util::Util qw( qexec_header timestamp);
 
 use vars qw( $SVNID $REVISION );
 
-( $REVISION ) = '$Revision: 3746 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: Strelka.pm 4660 2014-07-23 12:18:43Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 
@@ -753,7 +753,7 @@ perldoc on the script.
 
 =head1 VERSION
 
-$Id: Strelka.pm 4660 2014-07-23 12:18:43Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

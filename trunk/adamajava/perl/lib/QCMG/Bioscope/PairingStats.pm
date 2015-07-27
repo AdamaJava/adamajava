@@ -9,7 +9,7 @@ package QCMG::Bioscope::PairingStats;
 #  Parses the pairingStats.txt files created by Bioscope in the pairing
 #  directory for each LMP or PE run along with the final paired BAM.
 #
-#  $Id: PairingStats.pm 4660 2014-07-23 12:18:43Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -24,8 +24,8 @@ use POSIX;
 
 use vars qw( $SVNID $REVISION );
 
-( $REVISION ) = '$Revision: 4660 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: PairingStats.pm 4660 2014-07-23 12:18:43Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 
@@ -524,7 +524,7 @@ and any other value (traditionally 1) sets verbose mode on.
 
 =head1 VERSION
 
-$Id: PairingStats.pm 4660 2014-07-23 12:18:43Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

@@ -1,5 +1,5 @@
 package QCMG::SamTools::Sam;
-# $Id: Sam.pm 1288 2011-10-19 03:43:13Z l.fink $
+# $Id$
 
 our $VERSION = '1.24';
 

@@ -9,7 +9,7 @@ package QCMG::BwaMem::Run;
 #  This class contains methods for automating the running of bwa on raw
 #  sequencing data files
 #
-# $Id: Run.pm 1287 2011-10-19 03:40:38Z l.fink $
+# $Id$
 #
 ##############################################################################
 

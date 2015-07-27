@@ -8,7 +8,7 @@ package QCMG::IO::BedReader;
 #
 #  Reads BED files.
 #
-#  $Id: BedReader.pm 740 2015-07-16 13:29:33Z grendeloz $
+#  $Id$
 #
 ###########################################################################
 
@@ -20,8 +20,8 @@ use Carp qw( carp croak );
 
 use vars qw( $SVNID $REVISION $VERSION $VERBOSE );
 
-( $REVISION ) = '$Revision: 740 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: BedReader.pm 740 2015-07-16 13:29:33Z grendeloz $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 
@@ -251,7 +251,7 @@ John Pearson L<mailto:grendeloz@gmail.com>
 
 =head1 VERSION
 
-$Id: BedReader.pm 740 2015-07-16 13:29:33Z grendeloz $
+$Id$
 
 
 =head1 COPYRIGHT

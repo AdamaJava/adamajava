@@ -10,7 +10,7 @@ package QCMG::IO::EnsemblTranscriptMapReader;
 #  installed Ensembl database using script:
 #    QCMGScripts/j.pearson/annotation/ensembl_domains_from_mysql.sh
 #
-#  $Id: EnsemblTranscriptMapReader.pm 4663 2014-07-24 06:39:00Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -28,8 +28,8 @@ use vars qw( $SVNID $REVISION @ISA );
 
 @ISA = qw( QCMG::IO::TsvReader );
 
-( $REVISION ) = '$Revision: 4663 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: EnsemblTranscriptMapReader.pm 4663 2014-07-24 06:39:00Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 
@@ -139,7 +139,7 @@ John Pearson L<mailto:j.pearson@uq.edu.au>
 
 =head1 VERSION
 
-$Id: EnsemblTranscriptMapReader.pm 4663 2014-07-24 06:39:00Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

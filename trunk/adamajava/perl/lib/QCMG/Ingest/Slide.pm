@@ -7,7 +7,7 @@ package QCMG::Ingest::Slide;
 #
 #    Authors: Stephen Kazakoff
 #
-#    $Id: Slide.pm 4663 2014-07-24 06:39:00Z j.pearson $
+#    $Id$
 #
 ################################################################################
 # # #
@@ -19,7 +19,7 @@ use warnings;
 ################################################################################
 $ENV{'PERL5LIB'} = "/share/software/QCMGPerl/lib/";
 (
-    my $version = '$Id: Slide.pm 4663 2014-07-24 06:39:00Z j.pearson $'
+    my $version = '$Id$'
 )
     =~ s/.*Id: (?:\S+) (\d+).*/$1/;
 

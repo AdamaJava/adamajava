@@ -9,7 +9,7 @@ package QCMG::Visualise::LifeScopeDirectory;
 #  Read a solidstatsreport XML file and create a HTML file that uses the
 #  Google chart API to display appropriate graphs and summary tables.
 #
-#  $Id: LifeScopeDirectory.pm 4666 2014-07-24 09:03:04Z j.pearson $
+#  $Id$
 #
 ##############################################################################
 
@@ -29,8 +29,8 @@ use QCMG::Util::XML qw( get_attr_by_name get_node_by_name );
 
 use vars qw( $SVNID $REVISION %LFSCHT_PATTERNS $CHT_CTR );
 
-( $REVISION ) = '$Revision: 4666 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: LifeScopeDirectory.pm 4666 2014-07-24 09:03:04Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 
@@ -652,7 +652,7 @@ from LifeScope SolidStatsReport XML reports
 
 =head1 VERSION
 
-$Id: LifeScopeDirectory.pm 4666 2014-07-24 09:03:04Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

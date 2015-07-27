@@ -8,7 +8,7 @@ package QCMG::Util::Util;
 #
 #  Non-OO utility functions for key QCMG operations.
 #
-#  $Id: Util.pm 4665 2014-07-24 08:54:04Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -27,8 +27,8 @@ use QCMG::Util::QLog;
 
 use vars qw( $SVNID $REVISION %QCMG_DEFAULTS %QCMG_MAPS );
 
-( $REVISION ) = '$Revision: 4665 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: Util.pm 4665 2014-07-24 08:54:04Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 our @ISA = qw( Exporter );
@@ -696,7 +696,7 @@ sub db_credentials {
 
 =head1 VERSION
 
-$Id: Util.pm 4665 2014-07-24 08:54:04Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

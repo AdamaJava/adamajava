@@ -16,7 +16,7 @@ package QCMG::Verify::AutoQverify;
 #  the java qbasepileup tool, runs qbasepileup, and puts the output and
 #  log files back into the same directory as the MAF file.
 #
-#  $Id: AutoQbasepileup.pm 4151 2013-07-29 06:06:23Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -37,8 +37,8 @@ use QCMG::QBamMaker::SeqFinalDirectory;
 
 use vars qw( $SVNID $REVISION %BAM_CATEGORY %LIMITS );
 
-( $REVISION ) = '$Revision: 4151 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: AutoQbasepileup.pm 4151 2013-07-29 06:06:23Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 
@@ -185,7 +185,7 @@ higher levels of verbosity.
 
 =head1 VERSION
 
-$Id: AutoQbasepileup.pm 4151 2013-07-29 06:06:23Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

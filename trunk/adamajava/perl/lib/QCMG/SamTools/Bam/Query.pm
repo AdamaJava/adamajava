@@ -1,6 +1,6 @@
 package QCMG::SamTools::Bam::Query;
 
-# $Id: Query.pm 22675 2010-02-08 21:57:02Z lstein $
+# $Id$
 
 =head1 NAME
 

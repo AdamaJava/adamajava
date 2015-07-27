@@ -11,7 +11,7 @@ package QCMG::PDF::PdfPrimitives;
 #  and all start with 'pp' to denote "PDF primtive" and are named in
 #  CamelCase to mke them visually distinctive.
 #
-#  $Id: PdfPrimitives.pm 4664 2014-07-24 08:17:04Z j.pearson $
+#  $Id$
 #
 ##############################################################################
 
@@ -25,8 +25,8 @@ use QCMG::Util::QLog;
 
 use vars qw( $SVNID $REVISION @ISA @EXPORT_OK );
 
-( $REVISION ) = '$Revision: 4664 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: PdfPrimitives.pm 4664 2014-07-24 08:17:04Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 @ISA = qw(Exporter);
@@ -142,7 +142,7 @@ primitives are not object-oriented.
 
 =head1 VERSION
 
-$Id: PdfPrimitives.pm 4664 2014-07-24 08:17:04Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

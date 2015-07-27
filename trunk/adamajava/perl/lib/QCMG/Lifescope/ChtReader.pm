@@ -9,7 +9,7 @@ package QCMG::Lifescope::ChtReader;
 #  Parses the .cht and .csv files created by LifeScope in the output/
 #  directory tree.  This module uses the Moose OO framework.
 #
-#  $Id: Cht.pm 1068 2011-09-08 11:29:36Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -22,8 +22,8 @@ use QCMG::Lifescope::Cht;
 use Carp qw( carp croak cluck confess );
 use vars qw( $SVNID $REVISION );
 
-( $REVISION ) = '$Revision: 1068 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: Cht.pm 1068 2011-09-08 11:29:36Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 has 'filecount' => ( is => 'rw', isa => 'Int', default => 0 );
@@ -191,7 +191,7 @@ and any other value (traditionally 1) sets verbose mode on.
 
 =head1 VERSION
 
-$Id: Cht.pm 1068 2011-09-08 11:29:36Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

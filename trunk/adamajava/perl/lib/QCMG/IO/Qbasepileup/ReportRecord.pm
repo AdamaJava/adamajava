@@ -8,7 +8,7 @@ package QCMG::IO::Qbasepileup::ReportRecord;
 #
 #  Data container for a qBasepileup file record.
 #
-#  $Id: ReportRecord.pm 4683 2014-08-07 23:24:18Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -22,8 +22,8 @@ use vars qw( $SVNID $REVISION $VALID_HEADERS $VALID_AUTOLOAD_METHODS );
 
 use QCMG::Util::QLog;
 
-( $REVISION ) = '$Revision: 4683 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: ReportRecord.pm 4683 2014-08-07 23:24:18Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 our $AUTOLOAD;  # it's a package global
@@ -211,7 +211,7 @@ John Pearson L<mailto:john.pearson@qimrberghofer.edu.au>
 
 =head1 VERSION
 
-$Id: ReportRecord.pm 4683 2014-08-07 23:24:18Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

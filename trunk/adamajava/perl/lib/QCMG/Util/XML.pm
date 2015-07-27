@@ -10,7 +10,7 @@ package QCMG::Util::XML;
 #  of methods (some OO and some not) that relate to operating on XML
 #  files and objects.
 #
-#  $Id: XML.pm 4665 2014-07-24 08:54:04Z j.pearson $
+#  $Id$
 #
 ##############################################################################
 
@@ -25,8 +25,8 @@ use vars qw( $SVNID $REVISION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS );
 BEGIN {
     use Exporter ();
 
-    $REVISION = '$Revision: 4665 $ ' =~ /\$Revision:\s+([^\s]+)/;
-    $SVNID = '$Id: XML.pm 4665 2014-07-24 08:54:04Z j.pearson $'
+    $REVISION = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+    $SVNID = '$Id$'
               =~ /\$Id:\s+(.*)\s+/;
 
     @ISA = qw(Exporter);
@@ -136,7 +136,7 @@ containing the name of the attribute you want to retrieve.
 
 =head1 VERSION
 
-$Id: XML.pm 4665 2014-07-24 08:54:04Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

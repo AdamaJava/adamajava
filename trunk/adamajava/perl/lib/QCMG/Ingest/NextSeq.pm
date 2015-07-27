@@ -5,7 +5,7 @@ package QCMG::Ingest::NextSeq;
 #
 #    Authors: Stephen Kazakoff
 #
-#    $Id: NextSeq.pm 4705 2014-09-02 02:49:14Z s.kazakoff $
+#    $Id$
 #
 #    This software is copyright 2010 by the Queensland Centre for Medical
 #    Genomics. All rights reserved. This License is limited to, and you may

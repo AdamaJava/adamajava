@@ -158,7 +158,7 @@ user but should be subclassed in any new runtype module.
 
 =head1 VERSION
 
-$Id: RunType.pm 4660 2014-07-23 12:18:43Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

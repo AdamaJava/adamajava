@@ -8,7 +8,7 @@ package QCMG::Annotate::GATKindel;
 #
 #  Module to provide annotation for indels called by GATK.
 #
-#  $Id: GATKindel.pm 3923 2013-06-14 03:54:46Z l.fink $
+#  $Id$
 #
 ###########################################################################
 
@@ -45,8 +45,8 @@ use QCMG::Util::Util qw( qexec_header timestamp);
 
 use vars qw( $SVNID $REVISION );
 
-( $REVISION ) = '$Revision: 3746 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: GATKindel.pm 3923 2013-06-14 03:54:46Z l.fink $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 
@@ -1833,7 +1833,7 @@ perldoc on the script.
 
 =head1 VERSION
 
-$Id: GATKindel.pm 3923 2013-06-14 03:54:46Z l.fink $
+$Id$
 
 
 =head1 COPYRIGHT

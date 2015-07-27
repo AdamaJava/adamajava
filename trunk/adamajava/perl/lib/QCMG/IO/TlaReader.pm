@@ -8,7 +8,7 @@ package QCMG::IO::TlaReader;
 #
 #  Reads TLA files.
 #
-#  $Id: TlaReader.pm 756 2011-05-05 09:54:27Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -20,8 +20,8 @@ use Carp qw( carp croak );
 
 use vars qw( $SVNID $REVISION $VERSION $VERBOSE @HEADERS);
 
-( $REVISION ) = '$Revision: 756 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: TlaReader.pm 756 2011-05-05 09:54:27Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 @HEADERS	= (

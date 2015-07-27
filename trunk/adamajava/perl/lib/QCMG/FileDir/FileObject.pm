@@ -8,7 +8,7 @@ package QCMG::FileDir::FileObject;
 #
 #  This class implements a file object.
 #
-#  $Id: FileObject.pm 4662 2014-07-23 12:39:59Z j.pearson $
+#  $Id$
 #
 ##############################################################################
 
@@ -22,8 +22,8 @@ use QCMG::Util::QLog;
 
 use vars qw( $SVNID $REVISION $BYTES_PER_BLOCK );
 
-( $REVISION ) = '$Revision: 4662 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: FileObject.pm 4662 2014-07-23 12:39:59Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 

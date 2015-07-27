@@ -8,7 +8,7 @@ package QCMG::IO::MafWriter;
 #
 #  Creates v4.1 MAF file (1000 Genomes) to hold variant information.
 #
-#  $Id: MafWriter.pm 4663 2014-07-24 06:39:00Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -21,8 +21,8 @@ use vars qw( $SVNID $REVISION );
 use QCMG::IO::MafRecord;
 use QCMG::Util::QLog;
 
-( $REVISION ) = '$Revision: 4663 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: MafWriter.pm 4663 2014-07-24 06:39:00Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 
@@ -173,7 +173,7 @@ MAF file.
 
 =head1 VERSION
 
-$Id: MafWriter.pm 4663 2014-07-24 06:39:00Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

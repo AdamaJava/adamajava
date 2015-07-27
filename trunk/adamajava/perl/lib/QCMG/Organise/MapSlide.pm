@@ -7,7 +7,7 @@ package QCMG::Organise::MapSlide;
 #
 #    Authors: Stephen Kazakoff
 #
-#    $Id: MapSlide.pm 4714 2014-09-16 02:35:55Z s.kazakoff $
+#    $Id$
 #
 ################################################################################
 # # #
@@ -19,7 +19,7 @@ use warnings;
 ################################################################################
 $ENV{'PERL5LIB'} = "/share/software/QCMGPerl/lib/";
 (
-    my $version = '$Id: MapSlide.pm 4714 2014-09-16 02:35:55Z s.kazakoff $'
+    my $version = '$Id$'
 )
     =~ s/.*Id: (?:\S+) (\d+).*/$1/;
 

@@ -9,7 +9,7 @@ package QCMG::Automation::QPrimer;
 #
 #  This class contains methods for optimizing primer for Torrent Sequencing
 #
-# $Id: QPrimer.pm 4660 2014-07-23 12:18:43Z j.pearson $
+# $Id$
 #
 ##############################################################################
 

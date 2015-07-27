@@ -20,7 +20,7 @@ package QCMG::SeqResults::Mapsets;
 #  8  input_type
 #  9  experiment_type
 #
-#  $Id: Mapsets.pm 4665 2014-07-24 08:54:04Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -39,8 +39,8 @@ use QCMG::SeqResults::Util qw( qmail is_valid_mapset_name
 
 use vars qw( $SVNID $REVISION );
 
-( $REVISION ) = '$Revision: 4665 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: Mapsets.pm 4665 2014-07-24 08:54:04Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 

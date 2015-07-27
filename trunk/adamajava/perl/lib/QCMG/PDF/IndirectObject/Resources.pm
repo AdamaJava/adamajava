@@ -8,7 +8,7 @@ package QCMG::PDF::IndirectObject::Resources;
 #
 #  Store contents of a PDF Resources Indirect Object.
 #
-#  $Id: Resources.pm 4664 2014-07-24 08:17:04Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -19,8 +19,8 @@ use Data::Dumper;
 use Carp qw( croak );
 use vars qw( $SVNID $REVISION @ISA );
 
-( $REVISION ) = '$Revision: 4664 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: Resources.pm 4664 2014-07-24 08:17:04Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 @ISA = qw( QCMG::PDF::IndirectObject::Dictionary );
@@ -74,7 +74,7 @@ John Pearson L<mailto:j.pearson@uq.edu.au>
 
 =head1 VERSION
 
-$Id: Resources.pm 4664 2014-07-24 08:17:04Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

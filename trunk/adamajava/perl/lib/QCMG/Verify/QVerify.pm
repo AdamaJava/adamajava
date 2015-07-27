@@ -8,7 +8,7 @@ package QCMG::Verify::QVerify;
 #
 #  Contains logic previously in qverify.pl.
 #
-#  $Id: QVerify.pm 4665 2014-07-24 08:54:04Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -31,8 +31,8 @@ use QCMG::Verify::VoteCounter;
 
 use vars qw( $SVNID $REVISION %BAM_CATEGORY %LIMITS );
 
-( $REVISION ) = '$Revision: 4665 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: QVerify.pm 4665 2014-07-24 08:54:04Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 
@@ -547,7 +547,7 @@ higher levels of verbosity.
 
 =head1 VERSION
 
-$Id: QVerify.pm 4665 2014-07-24 08:54:04Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

@@ -9,7 +9,7 @@ package QCMG::IO::VcfReader;
 #  Reads Variant Call Format (VCF) files as specified by the 1000
 #  Genomes project.  Loosely based on an NHGRI module.
 #
-#  $Id: VcfReader.pm 4663 2014-07-24 06:39:00Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -23,8 +23,8 @@ use vars qw( $SVNID $REVISION @VALID_COLUMNS );
 
 use QCMG::Util::QLog;
 
-( $REVISION ) = '$Revision: 4663 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: VcfReader.pm 4663 2014-07-24 06:39:00Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 
@@ -344,7 +344,7 @@ object.
 
 =head1 VERSION
 
-$Id: VcfReader.pm 4663 2014-07-24 06:39:00Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

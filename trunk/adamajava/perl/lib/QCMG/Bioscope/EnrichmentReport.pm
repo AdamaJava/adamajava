@@ -6,7 +6,7 @@ package QCMG::Bioscope::EnrichmentReport;
 #  Creator:  John V Pearson
 #  Created:  2010-11-25
 #
-#  $Id: PairingStats.pm 295 2010-09-14 12:01:04Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -21,8 +21,8 @@ use POSIX;
 
 use vars qw( $SVNID $REVISION );
 
-( $REVISION ) = '$Revision: 295 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: PairingStats.pm 295 2010-09-14 12:01:04Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 
@@ -521,7 +521,7 @@ and any other value (traditionally 1) sets verbose mode on.
 
 =head1 VERSION
 
-$Id: PairingStats.pm 295 2010-09-14 12:01:04Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

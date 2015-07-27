@@ -8,7 +8,7 @@ package QCMG::QBamMaker::SeqFinalBamCollection;
 #
 #  Operations on a collection of QCMG::QBamMaker::SeqFinalBam objects.
 #
-#  $Id: SeqFinalBamCollection.pm 4665 2014-07-24 08:54:04Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -29,8 +29,8 @@ use QCMG::Verify::VoteCounter;
 
 use vars qw( $SVNID $REVISION );
 
-( $REVISION ) = '$Revision: 4665 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: SeqFinalBamCollection.pm 4665 2014-07-24 08:54:04Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 our $AUTOLOAD;  # it's a package global
@@ -335,7 +335,7 @@ John Pearson L<mailto:j.pearson@uq.edu.au>
 
 =head1 VERSION
 
-$Id: SeqFinalBamCollection.pm 4665 2014-07-24 08:54:04Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

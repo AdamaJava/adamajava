@@ -9,7 +9,7 @@ package QCMG::Ingest::Bam2Fastq;
 #  This class contains methods for automating the ingest into LiveArc
 #  IGN BAMs and bam2fastq coverted FASTQ files
 #
-#  $Id: Bam2Fastq.pm 1777 2012-04-16 05:35:42Z l.fink $
+#  $Id$
 #
 ##############################################################################
 

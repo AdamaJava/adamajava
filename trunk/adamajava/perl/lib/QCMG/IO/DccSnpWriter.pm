@@ -8,7 +8,7 @@ package QCMG::IO::DccSnpWriter;
 #
 #  Writes ICGC DCC SNP data submission tab-separated text file tables.
 #
-#  $Id: DccSnpWriter.pm 4663 2014-07-24 06:39:00Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -24,8 +24,8 @@ use QCMG::Util::QLog;
 
 use vars qw( $SVNID $REVISION );
 
-( $REVISION ) = '$Revision: 4663 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: DccSnpWriter.pm 4663 2014-07-24 06:39:00Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 
@@ -230,7 +230,7 @@ Returns a count of how many records have been written.
 
 =head1 VERSION
 
-$Id: DccSnpWriter.pm 4663 2014-07-24 06:39:00Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

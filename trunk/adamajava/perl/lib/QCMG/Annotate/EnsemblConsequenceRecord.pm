@@ -8,7 +8,7 @@ package QCMG::Annotate::EnsemblConsequenceRecord;
 #
 #  Data container for Ensembl annotated DCC1 records.
 #
-#  $Id: EnsemblConsequenceRecord.pm 4660 2014-07-23 12:18:43Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -29,8 +29,8 @@ use QCMG::Util::QLog;
 
 use vars qw( $SVNID $REVISION );
 
-( $REVISION ) = '$Revision: 4660 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: EnsemblConsequenceRecord.pm 4660 2014-07-23 12:18:43Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 sub new {
@@ -354,7 +354,7 @@ of suitable DCCQ and DCC2 records.
 
 =head1 VERSION
 
-$Id: EnsemblConsequenceRecord.pm 4660 2014-07-23 12:18:43Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

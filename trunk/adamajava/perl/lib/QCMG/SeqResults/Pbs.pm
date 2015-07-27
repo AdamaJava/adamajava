@@ -8,7 +8,7 @@ package QCMG::SeqResults::Pbs;
 #
 #  Create PBS file stubs.
 #
-#  $Id: Pbs.pm 4665 2014-07-24 08:54:04Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -20,7 +20,7 @@ use IO::Zlib;
 use Data::Dumper;
 use vars qw( $VERSION @ISA $TODAY );
 
-( $VERSION ) = '$Revision: 4665 $ ' =~ /\$Revision:\s+([^\s]+)/;
+( $VERSION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
 
 BEGIN {
     # Construct a class static variable
@@ -239,7 +239,7 @@ See documentation for the superclass QCMG::Bioscope::Ini::IniFile.
 
 =head1 VERSION
 
-$Id: Pbs.pm 4665 2014-07-24 08:54:04Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

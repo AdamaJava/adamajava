@@ -8,7 +8,7 @@ package QCMG::Compare::GenomeLocations;
 #
 #  For comparing overlaping genome locations.
 #  
-#  $Id: GenomeLocations.pm 4661 2014-07-23 12:26:01Z j.pearson $
+#  $Id$
 #
 ################################################################################
 
@@ -23,8 +23,8 @@ use QCMG::Compare::GenomeLocationsPositions;
 
 use vars qw( $SVNID $REVISION );
 
-( $REVISION ) = '$Revision: 4661 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: GenomeLocations.pm 4661 2014-07-23 12:26:01Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 

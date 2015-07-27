@@ -8,7 +8,7 @@ package QCMG::IO::RmskRecord;
 #
 #  Data container for a Repeat Masker Regions.
 #
-#  $Id: VCFRecord.pm 1192 2011-09-30 12:41:50Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -19,8 +19,8 @@ use Data::Dumper;
 use Memoize;
 use vars qw( $SVNID $REVISION );
 
-( $REVISION ) = '$Revision: 1192 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: VCFRecord.pm 1192 2011-09-30 12:41:50Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
     
 

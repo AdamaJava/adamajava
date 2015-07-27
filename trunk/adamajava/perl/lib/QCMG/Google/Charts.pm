@@ -8,7 +8,7 @@ package QCMG::Google::Charts;
 #
 #  Entry point for QCMG classes to implement Google charts API.
 #
-#  $Id: Charts.pm 4662 2014-07-23 12:39:59Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -27,7 +27,7 @@ use QCMG::Google::Chart::Table;
 use QCMG::Google::Chart::PieChart;
 use vars qw( $VERSION $GC_UNIQUE_CTR );
 
-( $VERSION ) = '$Revision: 4662 $ ' =~ /\$Revision:\s+([^\s]+)/;
+( $VERSION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
 BEGIN { $GC_UNIQUE_CTR = 0; }
 
 
@@ -685,7 +685,7 @@ Table.
 
 =head1 VERSION
 
-$Id: Charts.pm 4662 2014-07-23 12:39:59Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

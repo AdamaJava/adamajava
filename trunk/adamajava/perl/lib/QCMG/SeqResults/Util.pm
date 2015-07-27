@@ -8,7 +8,7 @@ package QCMG::SeqResults::Util;
 #
 #  Non-OO utility functions for QCMG::SeqResults collection.
 #
-#  $Id: Util.pm 4665 2014-07-24 08:54:04Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -25,8 +25,8 @@ use QCMG::SamTools::Sam;
 
 use vars qw( $SVNID $REVISION @EXPORT_OK %PATTERNS );
 
-( $REVISION ) = '$Revision: 4665 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: Util.pm 4665 2014-07-24 08:54:04Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 @EXPORT_OK = qw( is_valid_library_name

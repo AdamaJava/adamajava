@@ -7,7 +7,7 @@ package QCMG::Organise::Slide;
 #
 #    Authors: Stephen Kazakoff
 #
-#    $Id: Slide.pm 4709 2014-09-15 02:25:26Z s.kazakoff $
+#    $Id$
 #
 ################################################################################
 # # #

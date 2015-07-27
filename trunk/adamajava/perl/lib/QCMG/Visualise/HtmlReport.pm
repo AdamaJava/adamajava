@@ -6,7 +6,7 @@ package QCMG::Visualise::HtmlReport;
 #  Author:   Matthew J Anderson
 #  Created:  2013-06-26
 #
-#  $Id: HtmlReport.pm 4692 2014-08-26 05:13:43Z m.anderson $
+#  $Id$
 #
 ##############################################################################
 
@@ -31,8 +31,8 @@ use QCMG::HTML::BootstrapPage;
 
 use vars qw( $SVNID $REVISION );
 
-( $REVISION ) = '$Revision: 4692 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: HtmlReport.pm 4692 2014-08-26 05:13:43Z m.anderson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
 	 =~ /\$Id:\s+(.*)\s+/;
 	 
 

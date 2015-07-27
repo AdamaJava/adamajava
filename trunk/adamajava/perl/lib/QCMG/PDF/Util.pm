@@ -8,7 +8,7 @@ package QCMG::PDF::Util;
 #
 #  Writes out version 1.7 PDF documents.
 #
-#  $Id: Util.pm 4664 2014-07-24 08:17:04Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -21,8 +21,8 @@ use Digest::MD5 qw( md5_hex );
 use vars qw( $SVNID $REVISION %FONTS %FONT_WIDTHS @ISA @EXPORT );
 
 
-( $REVISION ) = '$Revision: 4664 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: Util.pm 4664 2014-07-24 08:17:04Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 @ISA = qw(Exporter);
@@ -398,7 +398,7 @@ John Pearson L<mailto:j.pearson@uq.edu.au>
 
 =head1 VERSION
 
-$Id: Util.pm 4664 2014-07-24 08:17:04Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

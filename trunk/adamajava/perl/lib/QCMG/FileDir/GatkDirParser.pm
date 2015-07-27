@@ -11,7 +11,7 @@ package QCMG::FileDir::GatkDirParser;
 #  files associated with running qSNP in HATK mode so a raw GATK
 #  directory will not be parsed well (maybe not at all).
 #
-#  $Id: GatkDirParser.pm 4662 2014-07-23 12:39:59Z j.pearson $
+#  $Id$
 #
 ##############################################################################
 
@@ -27,8 +27,8 @@ use QCMG::FileDir::Finder;
 use QCMG::FileDir::GatkDirRecord;
 use QCMG::Util::QLog;
 
-( $REVISION ) = '$Revision: 4662 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: GatkDirParser.pm 4662 2014-07-23 12:39:59Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 
@@ -212,7 +212,7 @@ and any other value (traditionally 1) sets verbose mode on.
 
 =head1 VERSION
 
-$Id: GatkDirParser.pm 4662 2014-07-23 12:39:59Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

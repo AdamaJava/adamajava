@@ -1,6 +1,6 @@
 package QCMG::SamTools::SeqFeature;
 
-# $Id: SeqFeature.pm 4665 2014-07-24 08:54:04Z j.pearson $
+# $Id$
 
 =pod
 

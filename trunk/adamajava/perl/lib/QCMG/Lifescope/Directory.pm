@@ -8,7 +8,7 @@ package QCMG::Lifescope::Directory;
 #
 #  Parses files from a LifeScope-created reports directory
 #
-#  $Id: $
+#  $Id$
 #
 ###########################################################################
 
@@ -23,8 +23,8 @@ use QCMG::Lifescope::Tbl;
 use QCMG::Lifescope::TblReader;
 use vars qw( $SVNID $REVISION %PATTERNS );
 
-( $REVISION ) = '$Revision: 1021 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: LogDirectory.pm 1021 2011-08-04 03:19:58Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 
@@ -463,7 +463,7 @@ and any other value (traditionally 1) sets verbose mode on.
 
 =head1 VERSION
 
-$Id: LogDirectory.pm 1021 2011-08-04 03:19:58Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

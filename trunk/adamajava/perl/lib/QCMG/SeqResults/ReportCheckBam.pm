@@ -8,7 +8,7 @@ package QCMG::SeqResults::ReportCheckBam;
 #
 #  Logic for command checkbam that looks for BAMs with malformed names.
 #
-#  $Id: ReportCheckBam.pm 4665 2014-07-24 08:54:04Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -28,8 +28,8 @@ use QCMG::Util::QLog;
 
 @ISA = qw( QCMG::SeqResults::Report );
 
-( $REVISION ) = '$Revision: 4665 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: ReportCheckBam.pm 4665 2014-07-24 08:54:04Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 

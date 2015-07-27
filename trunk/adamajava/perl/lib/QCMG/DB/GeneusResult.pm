@@ -9,7 +9,7 @@ package QCMG::DB::GeneusResult;
 #  This class is a data container to hold information about the results
 #  of a query run against the QCMG LIMS using Geneus.pm.
 #
-#  $Id: GeneusResult.pm 4661 2014-07-23 12:26:01Z j.pearson $
+#  $Id$
 #
 ##############################################################################
 
@@ -55,8 +55,8 @@ use Carp qw( carp croak );
 
 use vars qw( $SVNID $REVISION );
 
-( $REVISION ) = '$Revision: 4661 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: GeneusResult.pm 4661 2014-07-23 12:26:01Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 ################################################################################

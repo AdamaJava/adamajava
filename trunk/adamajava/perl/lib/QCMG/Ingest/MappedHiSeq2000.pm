@@ -9,7 +9,7 @@ package QCMG::Ingest::MappedHiSeq2000;
 #  This class contains methods for automating the ingest into LiveArc
 #  of mapped sequenced data
 #
-#  $Id: Mapped.pm 1353 2011-11-11 01:40:50Z l.fink $
+#  $Id$
 #
 ##############################################################################
 

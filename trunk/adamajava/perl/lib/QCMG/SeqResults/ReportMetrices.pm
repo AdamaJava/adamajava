@@ -9,7 +9,7 @@ package QCMG::SeqResults::ReportMetrices;
 #
 #  This Module is a collection of tools for retiving report metrix values.
 #
-#  $Id: ReportMetrices.pm 4665 2014-07-24 08:54:04Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -27,8 +27,8 @@ use Exporter qw( import );
 
 use vars qw( $SVNID $REVISION @EXPORT_OK );
 
-( $REVISION ) = '$Revision: 4665 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: ReportMetrices.pm 4665 2014-07-24 08:54:04Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 @EXPORT_OK = qw( coverage_report_metrics );

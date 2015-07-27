@@ -9,7 +9,7 @@ package QCMG::Annotate::QsnpCompoundMutations;
 # Logic for annotating a DCC1 qSNP file to label mutations that occur in a
 # single codon
 #
-#  $Id: QsnpCompoundMutations.pm 4660 2014-07-23 12:18:43Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -31,8 +31,8 @@ use QCMG::Util::Util qw( qexec_header );
 
 use vars qw( $SVNID $REVISION );
 
-( $REVISION ) = '$Revision: 3242 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: QsnpCompoundMutations.pm 4660 2014-07-23 12:18:43Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 sub new {

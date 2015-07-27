@@ -10,7 +10,7 @@ package QCMG::QBamMaker::MapsetCollection;
 #  This module is derived from the original qBamMaker.pl script whcih
 #  got too complicated and needed to be broken up.
 #
-#  $Id: MapsetCollection.pm 4665 2014-07-24 08:54:04Z j.pearson $
+#  $Id$
 #
 ##############################################################################
 
@@ -33,8 +33,8 @@ use QCMG::Util::QLog;
 
 use vars qw( $SVNID $REVISION %CONSTRAINTS $FORCE_PBS );
 
-( $REVISION ) = '$Revision: 4665 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: MapsetCollection.pm 4665 2014-07-24 08:54:04Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 # Setup global data structures
@@ -1024,7 +1024,7 @@ John Pearson L<mailto:j.pearson@uq.edu.au>
 
 =head1 VERSION
 
-$Id: MapsetCollection.pm 4665 2014-07-24 08:54:04Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

@@ -9,7 +9,7 @@ package QCMG::DB::TrackLite;
 #  This class is a portal to information held in the Tracklite MySQL
 #  (formerly SQLLite) database.
 #
-#  $Id: FileObject.pm 317 2010-09-24 03:21:24Z j.pearson $
+#  $Id$
 #
 ##############################################################################
 
@@ -57,8 +57,8 @@ use DBI;
 
 use vars qw( $SVNID $REVISION );
 
-( $REVISION ) = '$Revision: 317 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: FileObject.pm 317 2010-09-24 03:21:24Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 ################################################################################

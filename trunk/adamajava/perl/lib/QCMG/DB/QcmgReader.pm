@@ -11,7 +11,7 @@ package QCMG::DB::QcmgReader;
 # This class's primary purpose is for retiving metadata on sequencing runs
 # and microarray assays from the qcmg database schema.
 #  
-#  $Id: QcmgReader.pm 4661 2014-07-23 12:26:01Z j.pearson $:
+#  $Id$:
 #
 ################################################################################
 
@@ -69,8 +69,8 @@ use QCMG::Util::QLog;           # QCMG logging module
 
 use vars qw( $SVNID $REVISION );
 
-( $REVISION ) = '$Revision: 4661 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: QcmgReader.pm 4661 2014-07-23 12:26:01Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 

@@ -50,8 +50,8 @@ use QCMG::Util::QLog;                 # QCMG loging module
 
 use vars qw( $SVNID $REVISION );
 
-( $REVISION ) = '$Revision: 4694 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: QcmgWriter.pm 4694 2014-08-29 04:30:06Z m.anderson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 

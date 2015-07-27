@@ -8,7 +8,7 @@ package QCMG::IO::RmskReader;
 #
 #  Reads a USCS dump of a list of Repeating Elements generaged by RepeatMasker.
 #
-#  $Id: DccReader.pm 1273 2011-10-18 04:20:09Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -20,8 +20,8 @@ use Carp qw( croak confess );
 use QCMG::IO::RmskRecord;
 use vars qw( $SVNID $REVISION );
 
-( $REVISION ) = '$Revision: 1273 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: DccReader.pm 1273 2011-10-18 04:20:09Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
     
 # Useage file name, verbose    

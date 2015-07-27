@@ -8,7 +8,7 @@ package QCMG::Visualise::QSigResults;
 #
 #  Parse and visualise the Results XML element from qsignature XML files.
 #
-#  $Id: QSigBam.pm 1632 2012-02-18 20:23:18Z j.pearson $
+#  $Id$
 #
 ##############################################################################
 
@@ -28,8 +28,8 @@ use QCMG::Visualise::Util qw( parse_xml_table );
 
 use vars qw( $SVNID $REVISION );
 
-( $REVISION ) = '$Revision: 1632 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: QSigBam.pm 1632 2012-02-18 20:23:18Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 sub new {
@@ -522,7 +522,7 @@ from qsignature XML reports
 
 =head1 VERSION
 
-$Id: QSigBam.pm 1632 2012-02-18 20:23:18Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

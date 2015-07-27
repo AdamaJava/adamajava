@@ -8,7 +8,7 @@ package QCMG::IO::Dcc1IndelWriter;
 #
 #  Writes ICGC DCC1 indel data submission tab-separated text file tables.
 #
-#  $Id: Dcc1IndelWriter.pm 4663 2014-07-24 06:39:00Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -23,8 +23,8 @@ use QCMG::Util::QLog;
 
 use vars qw( $SVNID $REVISION );
 
-( $REVISION ) = '$Revision: 3692 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: Dcc1IndelWriter.pm 4663 2014-07-24 06:39:00Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 
@@ -245,7 +245,7 @@ Returns a count of how many records have been written.
 
 =head1 VERSION
 
-$Id: Dcc1IndelWriter.pm 4663 2014-07-24 06:39:00Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

@@ -10,7 +10,7 @@ package QCMG::SeqResults::ReportInspectBam;
 #  information - were the records aligned against the correct reference,
 #  have MD tags been calculated, has markDuplicates been run, etc?
 #
-#  $Id: ReportInspectBam.pm 4665 2014-07-24 08:54:04Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -30,8 +30,8 @@ use QCMG::SeqResults::Util qw( qmail bams_in_directory
 
 use vars qw( $SVNID $REVISION );
 
-( $REVISION ) = '$Revision: 4665 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: ReportInspectBam.pm 4665 2014-07-24 08:54:04Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 

@@ -9,7 +9,7 @@ package QCMG::Lifescope::TblReader;
 #  Parses the .tbl files created by LifeScope in the output/
 #  directory tree.  This module uses the Moose OO framework.
 #
-#  $Id: TblReader.pm 4663 2014-07-24 06:39:00Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -22,8 +22,8 @@ use QCMG::Lifescope::Tbl;
 use Carp qw( carp croak cluck confess );
 use vars qw( $SVNID $REVISION );
 
-( $REVISION ) = '$Revision: 4663 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: TblReader.pm 4663 2014-07-24 06:39:00Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 has 'filecount' => ( is => 'rw', isa => 'Int', default => 0 );
@@ -169,7 +169,7 @@ and any other value (traditionally 1) sets verbose mode on.
 
 =head1 VERSION
 
-$Id: TblReader.pm 4663 2014-07-24 06:39:00Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

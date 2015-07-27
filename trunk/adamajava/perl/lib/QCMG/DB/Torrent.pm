@@ -8,7 +8,7 @@ package QCMG::DB::Torrent;
 #
 #  This class is an interface to the Torrent Suite API
 #
-#  $Id: Torrent.pm 1394 2011-12-01 01:23:29Z l.fink $
+#  $Id$
 #
 ##############################################################################
 
@@ -81,8 +81,8 @@ use JSON;
 
 use vars qw( $SVNID $REVISION );
 
-( $REVISION ) = '$Revision: 1394 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: Torrent.pm 1394 2011-12-01 01:23:29Z l.fink $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 ################################################################################

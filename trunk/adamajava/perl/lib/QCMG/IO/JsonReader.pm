@@ -12,7 +12,7 @@ package QCMG::IO::JsonReader;
 #  Requires:
 #    JSON		- From CPAN
 #
-#  $Id: JsonReader.pm 4663 2014-07-24 06:39:00Z j.pearson $
+#  $Id$
 #
 ##############################################################################
 
@@ -22,8 +22,8 @@ use JSON qw( decode_json );     # From CPAN
 
 use vars qw( $SVNID $REVISION );
 
-( $REVISION ) = '$Revision: 4663 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: JsonReader.pm 4663 2014-07-24 06:39:00Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 

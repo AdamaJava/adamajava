@@ -8,7 +8,7 @@ package QCMG::HTML::Tab;
 #
 #  Data container for HTML Tabs
 #
-#  $Id: Tab.pm 4663 2014-07-24 06:39:00Z j.pearson $
+#  $Id$
 #
 ##############################################################################
 
@@ -21,8 +21,8 @@ use Pod::Usage;
 use QCMG::Util::QLog;
 use vars qw( $SVNID $REVISION  );
 
-( $REVISION ) = '$Revision: 4663 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: Tab.pm 4663 2014-07-24 06:39:00Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 
@@ -177,7 +177,7 @@ QCMG::HTML::TabbedPage and has no real use outside that context.
 
 =head1 VERSION
 
-$Id: Tab.pm 4663 2014-07-24 06:39:00Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

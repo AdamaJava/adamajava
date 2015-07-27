@@ -9,7 +9,7 @@ package QCMG::IO::VerificationReader;
 #  Reads verification summary text file format as specified by QCMG
 #  Research Team (Nic and Karin).
 #
-#  $Id: VerificationReader.pm 4663 2014-07-24 06:39:00Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -20,8 +20,8 @@ use Data::Dumper;
 use Carp qw( confess );
 use vars qw( $SVNID $REVISION @VALID_COLUMNS );
 
-( $REVISION ) = '$Revision: 4663 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: VerificationReader.pm 4663 2014-07-24 06:39:00Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 
@@ -272,7 +272,7 @@ Returns the number of records read from file so far.
 
 =head1 VERSION
 
-$Id: VerificationReader.pm 4663 2014-07-24 06:39:00Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

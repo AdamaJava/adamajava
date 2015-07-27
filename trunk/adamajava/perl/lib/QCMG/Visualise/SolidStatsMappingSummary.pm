@@ -10,7 +10,7 @@ package QCMG::Visualise::SolidStatsMappingSummary;
 #  file that uses the Google chart API to display graphs and summary tables
 #  describing the mapping.
 #
-#  $Id: SolidStatsMappingSummary.pm 4666 2014-07-24 09:03:04Z j.pearson $
+#  $Id$
 #
 ##############################################################################
 
@@ -32,8 +32,8 @@ use QCMG::Visualise::Coverage;
 
 use vars qw( $SVNID $REVISION );
 
-( $REVISION ) = '$Revision: 4666 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: SolidStatsMappingSummary.pm 4666 2014-07-24 09:03:04Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 
@@ -668,7 +668,7 @@ Here's a list of reports we probably need to see:
 
 =head1 VERSION
 
-$Id: SolidStatsMappingSummary.pm 4666 2014-07-24 09:03:04Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

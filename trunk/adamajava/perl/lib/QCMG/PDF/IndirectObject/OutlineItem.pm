@@ -10,7 +10,7 @@ package QCMG::PDF::IndirectObject::OutlineItem;
 #  the Outline object hierachy.  See section 8.2 Document-Level
 #  navigation on p581 of the PDF Reference sixth edition v1.7.
 #
-#  $Id: OutlineItem.pm 4664 2014-07-24 08:17:04Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -22,8 +22,8 @@ use Carp qw( croak );
 use vars qw( $SVNID $REVISION @ISA );
 
 
-( $REVISION ) = '$Revision: 4664 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: OutlineItem.pm 4664 2014-07-24 08:17:04Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 @ISA = qw( QCMG::PDF::IndirectObject::Dictionary );
@@ -110,7 +110,7 @@ John Pearson L<mailto:j.pearson@uq.edu.au>
 
 =head1 VERSION
 
-$Id: OutlineItem.pm 4664 2014-07-24 08:17:04Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

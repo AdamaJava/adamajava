@@ -7,7 +7,7 @@ package QCMG::Organise::Project;
 #
 #    Authors: Stephen Kazakoff
 #
-#    $Id: Project.pm 4703 2014-09-01 02:06:15Z s.kazakoff $
+#    $Id$
 #
 ################################################################################
 # # #

@@ -15,7 +15,7 @@ package QCMG::QBamMaker::AutoMode;
 #  lifescope and bioscope exome collapsed but not HiSeq, etc, etc.  We
 #  will call these different systems "profiles".
 #
-#  $Id: AutoMode.pm 4665 2014-07-24 08:54:04Z j.pearson $
+#  $Id$
 #
 ##############################################################################
 
@@ -37,8 +37,8 @@ use QCMG::Util::QLog;
 
 use vars qw( $SVNID $REVISION %CONSTRAINTS %PROFILES );
 
-( $REVISION ) = '$Revision: 4665 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: AutoMode.pm 4665 2014-07-24 08:54:04Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 # Setup global data structures
@@ -800,7 +800,7 @@ John Pearson L<mailto:j.pearson@uq.edu.au>
 
 =head1 VERSION
 
-$Id: AutoMode.pm 4665 2014-07-24 08:54:04Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

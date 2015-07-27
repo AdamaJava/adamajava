@@ -9,7 +9,7 @@ package QCMG::Visualise::qCoverage;
 #  Read a qcoverage XML report and create a HTML file that uses the Google
 #  chart API to display graphs and summary tables describing the coverage.
 #
-#  $Id: qCoverage.pm 4666 2014-07-24 09:03:04Z j.pearson $
+#  $Id$
 #
 ##############################################################################
 
@@ -30,8 +30,8 @@ use QCMG::Visualise::Coverage;
 
 use vars qw( $SVNID $REVISION );
 
-( $REVISION ) = '$Revision: 4666 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: qCoverage.pm 4666 2014-07-24 09:03:04Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 
@@ -471,7 +471,7 @@ from qCoverage XML reports
 
 =head1 VERSION
 
-$Id: qCoverage.pm 4666 2014-07-24 09:03:04Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

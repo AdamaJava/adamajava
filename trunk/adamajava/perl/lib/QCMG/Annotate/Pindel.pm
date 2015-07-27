@@ -23,7 +23,7 @@ package QCMG::Annotate::Pindel;
 #
 #  
 #
-#  $Id: Pindel.pm 4660 2014-07-23 12:18:43Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -62,8 +62,8 @@ use QCMG::Util::Util qw( qexec_header );
 
 use vars qw( $SVNID $REVISION );
 
-( $REVISION ) = '$Revision: 4660 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: Pindel.pm 4660 2014-07-23 12:18:43Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 
@@ -2468,7 +2468,7 @@ perldoc on the script.
 
 =head1 VERSION
 
-$Id: Pindel.pm 4660 2014-07-23 12:18:43Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

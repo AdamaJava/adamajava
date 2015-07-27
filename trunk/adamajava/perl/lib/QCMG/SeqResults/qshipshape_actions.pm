@@ -8,7 +8,7 @@ package QCMG::SeqResults::qshipshape_actions;
 #
 #  This script is a template framework for a command-line perl script.
 #
-#  $Id: qshipshape_actions.pm 4665 2014-07-24 08:54:04Z j.pearson $
+#  $Id$
 #
 ##############################################################################
 

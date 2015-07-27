@@ -1,6 +1,6 @@
 package QCMG::SamTools::Sam::Constants;
 
-# $Id: Constants.pm 22410 2009-12-15 16:23:24Z lstein $
+# $Id$
 
 =head1 NAME
 

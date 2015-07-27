@@ -11,7 +11,7 @@ package QCMG::DB::GeneusReader;
 #  This class's primary purpose is for retiving metadata on sequencing runs
 #  store in the Genologic LIMS database "Geneus". 
 #  
-#  $Id: GeneusReader.pm 4661 2014-07-23 12:26:01Z j.pearson $:
+#  $Id$:
 #
 ################################################################################
 
@@ -67,8 +67,8 @@ use DBI;
 
 use vars qw( $SVNID $REVISION );
 
-( $REVISION ) = '$Revision: 4661 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: GeneusReader.pm 4661 2014-07-23 12:26:01Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 

@@ -9,7 +9,7 @@ package QCMG::PDF::IndirectObject::Stream;
 #  Store contents of a PDF Content Stream Indirect Object. See section 3.2.7
 #  Stream Objects, p60 of the PDF Reference sixth edition v1.7.
 #
-#  $Id: Stream.pm 4664 2014-07-24 08:17:04Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -20,8 +20,8 @@ use Data::Dumper;
 use Carp qw( croak );
 use vars qw( $SVNID $REVISION );
 
-( $REVISION ) = '$Revision: 4664 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: Stream.pm 4664 2014-07-24 08:17:04Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 
@@ -150,7 +150,7 @@ John Pearson L<mailto:j.pearson@uq.edu.au>
 
 =head1 VERSION
 
-$Id: Stream.pm 4664 2014-07-24 08:17:04Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

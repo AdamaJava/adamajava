@@ -9,7 +9,7 @@ package QCMG::Automation::amp2QAmplicon;
 #
 #  This class contains methods for optimizing primer design for Torrent Sequencing
 #
-# $Id: QAmplicon.pm 1285 2011-10-19 03:38:30Z l.fink $
+# $Id$
 #
 ##############################################################################
 

@@ -9,7 +9,7 @@ package QCMG::Util::QLog;
 #  This module represents an attempt at a generic logging framework for
 #  QCMG perl modules and scripts.
 #
-#  $Id: QLog.pm 4665 2014-07-24 08:54:04Z j.pearson $
+#  $Id$
 #
 ##############################################################################
 
@@ -23,8 +23,8 @@ use Time::HiRes qw( gettimeofday );
 use POSIX qw( strftime );
 use vars qw( $SVNID $REVISION @ISA @EXPORT $QLOGFH @LEVELS );
 
-( $REVISION ) = '$Revision: 4665 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: QLog.pm 4665 2014-07-24 08:54:04Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
               =~ /\$Id:\s+(.*)\s+/;
 
 @ISA = qw(Exporter);
@@ -463,7 +463,7 @@ or die statements.
 
 =head1 VERSION
 
-$Id: QLog.pm 4665 2014-07-24 08:54:04Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

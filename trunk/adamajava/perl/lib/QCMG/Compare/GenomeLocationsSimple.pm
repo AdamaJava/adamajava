@@ -14,7 +14,7 @@ package QCMG::Compare::GenomeLocationsSimple;
 #  my $genomeLocations = QCMG::Compare::GenomeLocationsSimple->new();
 #  my $matches = $genomeLocations->compare( $list_1, $list_2, $window_size );
 #
-# $Id: GenomeLocationsSimple.pm 4661 2014-07-23 12:26:01Z j.pearson $
+# $Id$
 #
 ##############################################################################
 

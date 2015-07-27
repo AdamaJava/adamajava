@@ -11,7 +11,7 @@ package QCMG::PDF::IndirectObject::Pages;
 #  tree while the leaves are Page objects. See section 3.6.2
 #  Page Tree (p59 v1.7 PDF spec 6th ed).
 #
-#  $Id: Pages.pm 4664 2014-07-24 08:17:04Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -22,8 +22,8 @@ use Data::Dumper;
 use Carp qw( croak confess );
 use vars qw( $SVNID $REVISION );
 
-( $REVISION ) = '$Revision: 4664 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: Pages.pm 4664 2014-07-24 08:17:04Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 
@@ -214,7 +214,7 @@ John Pearson L<mailto:j.pearson@uq.edu.au>
 
 =head1 VERSION
 
-$Id: Pages.pm 4664 2014-07-24 08:17:04Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

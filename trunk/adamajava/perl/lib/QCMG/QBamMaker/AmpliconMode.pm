@@ -15,7 +15,7 @@ package QCMG::QBamMaker::AmpliconMode;
 #     MapsetCollections based on the BAMs we find.
 #  2. We will be guessing many attributes for the disk-only BAMs.
 #
-#  $Id: AmpliconMode.pm 4665 2014-07-24 08:54:04Z j.pearson $
+#  $Id$
 #
 ##############################################################################
 
@@ -36,8 +36,8 @@ use QCMG::Util::QLog;
 
 use vars qw( $SVNID $REVISION %CONSTRAINTS %PROFILES );
 
-( $REVISION ) = '$Revision: 4665 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: AmpliconMode.pm 4665 2014-07-24 08:54:04Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 # Setup global data structures
@@ -507,7 +507,7 @@ John Pearson L<mailto:j.pearson@uq.edu.au>
 
 =head1 VERSION
 
-$Id: AmpliconMode.pm 4665 2014-07-24 08:54:04Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

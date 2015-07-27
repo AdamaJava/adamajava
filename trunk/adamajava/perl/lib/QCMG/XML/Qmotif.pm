@@ -8,7 +8,7 @@ package QCMG::XML::Qmotif;
 #
 #  Read qMotif XML report files.
 #
-#  $Id: Qmotif.pm 4666 2014-07-24 09:03:04Z j.pearson $
+#  $Id$
 #
 ##############################################################################
 
@@ -25,8 +25,8 @@ use QCMG::Util::XML qw( get_attr_by_name get_node_by_name );
 
 use vars qw( $SVNID $REVISION );
 
-( $REVISION ) = '$Revision: 4666 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: Qmotif.pm 4666 2014-07-24 09:03:04Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 
@@ -417,7 +417,7 @@ An example output (with leading text on each line elided):
 
 =head1 VERSION
 
-$Id: Qmotif.pm 4666 2014-07-24 09:03:04Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

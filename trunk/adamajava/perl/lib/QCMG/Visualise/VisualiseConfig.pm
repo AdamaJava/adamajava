@@ -6,7 +6,7 @@ package QCMG::Visualise::VisualiseConfig;
 #  Author:   Matthew J Anderson
 #  Created:  2013-06-26
 #
-#  $Id: VisualiseConfig.pm 4666 2014-07-24 09:03:04Z j.pearson $
+#  $Id$
 #
 ##############################################################################
 
@@ -25,8 +25,8 @@ use QCMG::Util::QLog;       # QCMG Module for Logging
 
 use vars qw( $SVNID $REVISION $INDEXES );
 
-( $REVISION ) = '$Revision: 4666 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: VisualiseConfig.pm 4666 2014-07-24 09:03:04Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
 	 =~ /\$Id:\s+(.*)\s+/;
 ( $INDEXES ) = {
      dynamic_tab => 'dynamic_tab_id',

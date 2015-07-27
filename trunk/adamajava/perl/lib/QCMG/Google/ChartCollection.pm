@@ -10,7 +10,7 @@ package QCMG::Google::ChartCollection;
 #  single (tabbed) document containing multiple Google Chart
 #  visualisations of various types.
 #
-#  $Id: ChartCollection.pm 4662 2014-07-23 12:39:59Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -27,7 +27,7 @@ use QCMG::Google::Chart::Bar;
 
 use vars qw( $VERSION @ISA );
 
-( $VERSION ) = '$Revision: 4662 $ ' =~ /\$Revision:\s+([^\s]+)/;
+( $VERSION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
 
 
 ###########################################################################
@@ -247,7 +247,7 @@ to use Perl's ref() statement.
 
 =head1 VERSION
 
-$Id: ChartCollection.pm 4662 2014-07-23 12:39:59Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

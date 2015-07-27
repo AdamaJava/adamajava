@@ -10,7 +10,7 @@ package QCMG::Visualise::Util;
 #  of methods (some OO and some not) that relate to operating on XML
 #  files and objects.
 #
-#  $Id: Util.pm 4666 2014-07-24 09:03:04Z j.pearson $
+#  $Id$
 #
 ##############################################################################
 
@@ -25,8 +25,8 @@ use vars qw( $SVNID $REVISION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS );
 BEGIN {
     use Exporter ();
 
-    $REVISION = '$Revision: 4666 $ ' =~ /\$Revision:\s+([^\s]+)/;
-    $SVNID = '$Id: Util.pm 4666 2014-07-24 09:03:04Z j.pearson $'
+    $REVISION = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+    $SVNID = '$Id$'
               =~ /\$Id:\s+(.*)\s+/;
 
     @ISA = qw(Exporter);
@@ -115,7 +115,7 @@ BarcodeCounts, MappedReads, PairingClassifications.  Returns a hash with
 
 =head1 VERSION
 
-$Id: Util.pm 4666 2014-07-24 09:03:04Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

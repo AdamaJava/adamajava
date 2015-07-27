@@ -9,7 +9,7 @@ package QCMG::SeqResults::ValidateReports;
 # This Module is a collection of tools for checking if Reports have been
 # run with the correct parameters. 
 #
-#  $Id: $
+#  $Id$
 #
 ###########################################################################
 
@@ -32,8 +32,8 @@ use QCMG::Util::QLog;
 
 use vars qw( $SVNID $REVISION @EXPORT_OK );
 
-( $REVISION ) = '$Revision: 2871 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: Util.pm 2871 2012-08-28 03:35:45Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 @EXPORT_OK = qw( prefetch_metadata_by_parent_project check_seqmapped_coverage_report );

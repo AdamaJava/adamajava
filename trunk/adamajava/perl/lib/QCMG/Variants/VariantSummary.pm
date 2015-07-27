@@ -10,7 +10,7 @@ package QCMG::Variants::VariantSummary;
 #  track of observed variants.  There can only be one variant per
 #  patient/gene so setting a second value will overwrite the first.
 #
-#  $Id: VariantSummary.pm 4665 2014-07-24 08:54:04Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -28,8 +28,8 @@ use QCMG::Util::QLog;
 
 use vars qw( $SVNID $REVISION $MAF_VAR_PRIORITY );
 
-( $REVISION ) = '$Revision: 4665 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: VariantSummary.pm 4665 2014-07-24 08:54:04Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 our $AUTOLOAD;  # it's a package global
@@ -401,7 +401,7 @@ John Pearson L<mailto:j.pearson@uq.edu.au>
 
 =head1 VERSION
 
-$Id: VariantSummary.pm 4665 2014-07-24 08:54:04Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

@@ -7,7 +7,7 @@ package QCMG::Organise::ScrapeSchema;
 #
 #    Authors: Stephen Kazakoff
 #
-#    $Id: ScrapeSchema.pm 4672 2014-07-26 07:04:40Z s.kazakoff $
+#    $Id$
 #
 ################################################################################
 # # #

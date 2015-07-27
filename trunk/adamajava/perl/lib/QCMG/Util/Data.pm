@@ -9,7 +9,7 @@ package QCMG::Util::Data;
 #  This non-OO perl module contains static methods for returning various
 #  data structures relevant to QCMG.
 #
-#  $Id: Data.pm 4665 2014-07-24 08:54:04Z j.pearson $
+#  $Id$
 #
 ##############################################################################
 
@@ -21,8 +21,8 @@ use IO::File;
 use Carp qw( croak carp );
 use vars qw( $REVISION $SVNID @ISA @EXPORT @EXPORT_OK );
 
-( $REVISION ) = '$Revision: 4665 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID )    = '$Id: Data.pm 4665 2014-07-24 08:54:04Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID )    = '$Id$'
                  =~ /\$Id:\s+(.*)\s+/;
 
 BEGIN {
@@ -103,7 +103,7 @@ Returns a hash where the keys are the numeric IDs of QCMG sequencers
 
 =head1 VERSION
 
-$Id: Data.pm 4665 2014-07-24 08:54:04Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

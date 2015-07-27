@@ -8,7 +8,7 @@ package QCMG::Annotate::EnsemblConsequences;
 #
 #  Module for generic annotation using local Ensembl API and database
 #
-#  $Id: EnsemblConsequences.pm 4660 2014-07-23 12:18:43Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -26,8 +26,8 @@ use QCMG::Util::QLog;
 
 use vars qw( $SVNID $REVISION );
 
-( $REVISION ) = '$Revision: 4660 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: EnsemblConsequences.pm 4660 2014-07-23 12:18:43Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 sub new {
@@ -413,7 +413,7 @@ different Ensembl versions.
 
 =head1 VERSION
 
-$Id: EnsemblConsequences.pm 4660 2014-07-23 12:18:43Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

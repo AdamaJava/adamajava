@@ -11,7 +11,7 @@ package QCMG::IO::INIFile;
 #  outlined in the POD for the program.  This class does not do any
 #  checking of the INI file.
 #
-#  $Id: INIFile.pm 4663 2014-07-24 06:39:00Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -25,7 +25,7 @@ use vars qw($VERSION);
 
 use QCMG::Util::QLog;
 
-( $VERSION ) = '$Revision: 4663 $ ' =~ /\$Revision:\s+([^\s]+)/;
+( $VERSION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
 
 
 ###########################################################################
@@ -362,7 +362,7 @@ positive integer.  The larger the value, the more detailed the output.
 
 =head1 VERSION
 
-$Id: INIFile.pm 4663 2014-07-24 06:39:00Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

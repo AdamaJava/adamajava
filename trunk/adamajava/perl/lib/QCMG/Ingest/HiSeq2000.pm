@@ -9,7 +9,7 @@ package QCMG::Ingest::HiSeq2000;
 #  This class contains methods for automating the ingest into LiveArc
 #  of raw Illumina HiSeq2000 sequencing data
 #
-#  $Id: HiSeq2000.pm 1777 2012-04-16 05:35:42Z l.fink $
+#  $Id$
 #
 ##############################################################################
 

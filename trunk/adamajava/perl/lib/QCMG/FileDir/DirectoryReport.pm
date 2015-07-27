@@ -8,7 +8,7 @@ package QCMG::FileDir::DirectoryReport;
 #
 #  This module summarizes disk usage by directory and (optionally) file.
 #
-#  $Id: DirectoryReport.pm 4662 2014-07-23 12:39:59Z j.pearson $
+#  $Id$
 #
 ##############################################################################
 
@@ -22,8 +22,8 @@ use QCMG::FileDir::DirectoryObject;
 
 use vars qw( $SVNID $REVISION );
 
-( $REVISION ) = '$Revision: 4662 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: DirectoryReport.pm 4662 2014-07-23 12:39:59Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 

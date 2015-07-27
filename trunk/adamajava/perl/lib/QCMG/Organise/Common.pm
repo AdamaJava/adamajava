@@ -7,7 +7,7 @@ package QCMG::Organise::Common;
 #
 #    Authors: Stephen Kazakoff
 #
-#    $Id: Common.pm 4672 2014-07-26 07:04:40Z s.kazakoff $
+#    $Id$
 #
 ################################################################################
 # # #

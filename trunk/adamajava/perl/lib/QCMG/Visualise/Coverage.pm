@@ -9,7 +9,7 @@ package QCMG::Visualise::Coverage;
 #  Parse a XML::LibXML::Element that contains a <coverage> element take
 #  from a qcoverage XML Report.
 #
-#  $Id: Coverage.pm 4666 2014-07-24 09:03:04Z j.pearson $
+#  $Id$
 #
 ##############################################################################
 
@@ -26,8 +26,8 @@ use QCMG::Util::XML qw( get_attr_by_name get_node_by_name );
 
 use vars qw( $SVNID $REVISION );
 
-( $REVISION ) = '$Revision: 4666 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: Coverage.pm 4666 2014-07-24 09:03:04Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 
@@ -213,7 +213,7 @@ Returns the verbosity level.
 
 =head1 VERSION
 
-$Id: Coverage.pm 4666 2014-07-24 09:03:04Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT

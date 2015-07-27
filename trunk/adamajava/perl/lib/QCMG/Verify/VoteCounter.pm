@@ -10,7 +10,7 @@ package QCMG::Verify::VoteCounter;
 #  qbasepileup records for final BAMs.  This object should be instantiated
 #  for each donor/position and used for all matching qbasepileup records.
 #
-#  $Id: VoteCounter.pm 4665 2014-07-24 08:54:04Z j.pearson $
+#  $Id$
 #
 ###########################################################################
 
@@ -24,8 +24,8 @@ use QCMG::Util::QLog;
 
 use vars qw( $SVNID $REVISION %BAM_CATEGORY %LIMITS );
 
-( $REVISION ) = '$Revision: 4665 $ ' =~ /\$Revision:\s+([^\s]+)/;
-( $SVNID ) = '$Id: VoteCounter.pm 4665 2014-07-24 08:54:04Z j.pearson $'
+( $REVISION ) = '$Revision$ ' =~ /\$Revision:\s+([^\s]+)/;
+( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
 
@@ -355,7 +355,7 @@ John Pearson L<mailto:j.pearson@uq.edu.au>
 
 =head1 VERSION
 
-$Id: VoteCounter.pm 4665 2014-07-24 08:54:04Z j.pearson $
+$Id$
 
 
 =head1 COPYRIGHT
