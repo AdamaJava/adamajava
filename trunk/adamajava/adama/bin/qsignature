@@ -6,7 +6,7 @@ if [ -z "$ADAMA_HOME" ]; then
 fi
 
 if [ ${#@} == 0 ]; then
-    echo "qsignature: Please see the qsignature wiki page (http://qcmg-wiki.imb.uq.edu.au/index.php/Qsignature) for usage information"
+    echo "qsignature: Please see the qsignature wiki page (https://sourceforge.net/p/adamajava/wiki/qSignature) for usage information"
     exit 1
 fi
 
