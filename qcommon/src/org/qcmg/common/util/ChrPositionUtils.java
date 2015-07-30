@@ -23,6 +23,18 @@ public class ChrPositionUtils {
 		return true;
 	}
 	
+	public static boolean doChrPositionsOverlap(ChrPosition a, ChrPosition b, int buffer) {
+		
+		// check chromosome first
+		if ( ! a.getChromosome().equals(b.getChromosome())) return false;
+		
+		// now positions
+		if (a.getEndPosition() < b.getPosition() - buffer) return false;
+		if (a.getPosition() > b.getEndPosition() + buffer) return false;
+		
+		return true;
+	}
+	
 	/**
 	 * All of ChrPosition b must be within ChrPosition a
 	 * @param a
