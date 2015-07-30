@@ -8,6 +8,21 @@ import org.qcmg.common.model.ChrPosition;
 
 public class ChrPositionUtilsTest {
 	
+	
+	@Test
+	public void overlapWithBuffer() {
+		
+		ChrPosition cp1 = new ChrPosition("1", 100, 200);
+		
+		// true
+		assertEquals(true, ChrPositionUtils.doChrPositionsOverlap(cp1, new ChrPosition("1", 300, 400), 100));
+		assertEquals(true, ChrPositionUtils.doChrPositionsOverlap(new ChrPosition("1", 300, 400), cp1,100));
+		
+		assertEquals(false, ChrPositionUtils.doChrPositionsOverlap(cp1, new ChrPosition("1", 300, 400), 99));
+		assertEquals(false, ChrPositionUtils.doChrPositionsOverlap(new ChrPosition("1", 300, 400), cp1,99));
+		
+	}
+	
 	@Test
 	public void testOverlap() {
 		ChrPosition cp1 = new ChrPosition("1", 100, 200);
