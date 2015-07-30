@@ -15,6 +15,17 @@ import org.qcmg.common.util.Pair;
 
 public class ClinVarUtilTest {
 	
+	@Test
+	public void getPositionOfLargestInArray() {
+		assertEquals(0, ClinVarUtil.getPositionWithLargestValue(new int[] {1}));
+		assertEquals(0, ClinVarUtil.getPositionWithLargestValue(new int[] {10}));
+		assertEquals(0, ClinVarUtil.getPositionWithLargestValue(new int[] {100}));
+		assertEquals(0, ClinVarUtil.getPositionWithLargestValue(new int[] {100,1}));
+		assertEquals(1, ClinVarUtil.getPositionWithLargestValue(new int[] {1,100,1}));
+		assertEquals(-1, ClinVarUtil.getPositionWithLargestValue(new int[] {100,100,1}));
+		assertEquals(0, ClinVarUtil.getPositionWithLargestValue(new int[] {101,100,1}));
+		assertEquals(2, ClinVarUtil.getPositionWithLargestValue(new int[] {101,100,103}));
+	}
 	
 	@Test
 	public void getBestPosition() {

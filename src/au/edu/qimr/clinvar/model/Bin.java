@@ -7,6 +7,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.string.StringUtils;
 
 public class Bin implements Comparable<Bin> {
@@ -21,6 +22,7 @@ public class Bin implements Comparable<Bin> {
 	private final Map<PosBase, AtomicInteger> diffs = new HashMap<>();
 	private String [] smithWatermanDiffs;
 	
+	private ChrPosition bestTiledLocation;
 	private long position;
 	private int noOfTiles;
 	
@@ -161,6 +163,13 @@ public class Bin implements Comparable<Bin> {
 
 	public void setNoOfTiles(int noOfTiles) {
 		this.noOfTiles = noOfTiles;
+	}
+	
+	public void setBestTiledLocation(ChrPosition cp) {
+		this.bestTiledLocation = cp;
+	}
+	public ChrPosition getBestTiledLocation() {
+		return bestTiledLocation;
 	}
 
 }

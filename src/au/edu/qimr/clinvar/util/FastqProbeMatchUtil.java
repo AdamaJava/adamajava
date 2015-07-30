@@ -1,5 +1,7 @@
 package au.edu.qimr.clinvar.util;
 
+import htsjdk.samtools.util.SequenceUtil;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -7,8 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import net.sf.samtools.util.SequenceUtil;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;

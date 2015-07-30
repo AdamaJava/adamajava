@@ -10,6 +10,7 @@ repositories {
 		dirs '/Users/oliverh/development/sf/trunk/adamajava/lib'
 		dirs '/Users/oliverh/development/sf/trunk/adamajava/qcommon/build/lib'
 		dirs '/Users/oliverh/development/sf/trunk/adamajava/qmule/build/lib'
+		dirs '/Users/oliverh/development/sf/trunk/adamajava/qio/build/lib'
 		dirs '/home/genomelocal/devel/adamajava/adamajava/adama/build/lib'
 		dirs '/home/genomelocal/devel/adamajava/adamajava/lib'
 		dirs '../lib'
@@ -40,6 +41,7 @@ dependencies {
     	compile name: 'htsjdk', version: '1.130'
     compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.4'
     compile name: 'qcommon', version: '0.1pre'
+    compile name: 'qio', version: '0.1pre'
     compile name: 'qmule', version: '0.1pre'
 
     testCompile name: 'junit', version: '4.10'

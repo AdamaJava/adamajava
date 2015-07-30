@@ -11,6 +11,8 @@ public class Probe implements Comparable<Probe>{
 	private final String ulsoSeqRC;
 	private final String subseq;
 	
+	private final String name;
+	
 	private final boolean forwardStrand;
 	
 	private final int primer1Start;
@@ -22,7 +24,7 @@ public class Probe implements Comparable<Probe>{
 	
 	private final ChrPosition cp;
 	
-	public Probe(int id, String dlsoSeq, String dlsoSeqRC, String ulsoSeq, String ulsoSeqRC, int p1Start, int p1End, int p2Start, int p2End, String subseq, int ssStart, int ssEnd, String chr, boolean forwardStrand) {
+	public Probe(int id, String dlsoSeq, String dlsoSeqRC, String ulsoSeq, String ulsoSeqRC, int p1Start, int p1End, int p2Start, int p2End, String subseq, int ssStart, int ssEnd, String chr, boolean forwardStrand, String name) {
 		this.id = id;
 		this.dlsoSeq = dlsoSeq;
 		this.dlsoSeqRC = dlsoSeqRC;
@@ -36,6 +38,7 @@ public class Probe implements Comparable<Probe>{
 		this.subseqStart = ssStart;
 		this.subseqEnd = ssEnd;
 		this.forwardStrand = forwardStrand;
+		this.name = name;
 		this.cp = new ChrPosition(chr, primer1Start, primer2End);
 	}
 
@@ -141,6 +144,10 @@ public class Probe implements Comparable<Probe>{
 
 	public ChrPosition getCp() {
 		return cp;
+	}
+	
+	public String getName() {
+		return name;
 	}
 
 }

@@ -1,9 +1,6 @@
 package au.edu.qimr.clinvar;
 
-import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.list.array.TLongArrayList;
-import gnu.trove.procedure.TLongProcedure;
-import gnu.trove.set.hash.TIntHashSet;
 import htsjdk.samtools.Cigar;
 import htsjdk.samtools.CigarElement;
 import htsjdk.samtools.CigarOperator;
@@ -25,6 +22,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.text.DateFormat;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,13 +32,10 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.NavigableMap;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -49,7 +44,9 @@ import nu.xom.Builder;
 import nu.xom.Document;
 import nu.xom.Element;
 import nu.xom.Elements;
+import nu.xom.ParsingException;
 import nu.xom.Serializer;
+import nu.xom.ValidityException;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -57,6 +54,7 @@ import org.qcmg.common.meta.QExec;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.ChrPositionUtils;
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.LoadReferencedClasses;
 import org.qcmg.common.util.Pair;
@@ -130,188 +128,14 @@ private static final int TILE_SIZE = 13;
 	protected int engage() throws Exception {
 		
 		try {
-			Builder parser = new Builder();
-			Document doc = parser.build(xmlFile);
-			Element root = doc.getRootElement();
+			parseAmpliconManifestXmlFile();
 			
-			// get probes from doc
-			Element probes = root.getFirstChildElement("Probes");
-			Elements probesElements = probes.getChildElements();
+			readFastqFiles();
 			
-			int i = 0;
-			for ( ; i < probesElements.size() ; i++) {
-				Element probe = probesElements.get(i);
-				int id = Integer.parseInt(probe.getAttribute("id").getValue());
-			
-				String dlsoSeq = "";
-				String ulsoSeq = "";
-				String dlsoSeqRC = "";
-				String ulsoSeqRC = "";
-				String subseq = "";
-				String chr = "";
-				boolean forwardStrand = false;
-				int p1Start = -1;
-				int p1End = -1;
-				int p2Start = -1;
-				int p2End = -1;
-				int ssStart = -1;
-				int ssEnd = -1;
-//				int start = -1;
-//				int end = -1;
-				
-				Elements probeElements = probe.getChildElements();
-			
-				for (int j = 0 ; j < probeElements.size() ; j++) {
-					Element probeSubElement = probeElements.get(j);
- 					if ("DLSO_Sequence".equals(probeSubElement.getQualifiedName())) {
- 						dlsoSeq = probeSubElement.getValue();
- 					} else  if ("ULSO_Sequence".equals(probeSubElement.getQualifiedName())) {
- 						ulsoSeq = probeSubElement.getValue();
- 					} else if ("dlsoRevCompSeq".equals(probeSubElement.getQualifiedName())) {
- 						dlsoSeqRC = probeSubElement.getValue();
- 					} else  if ("ulsoRevCompSeq".equals(probeSubElement.getQualifiedName())) {
- 						ulsoSeqRC = probeSubElement.getValue();
- 					} else  if ("primer1Start".equals(probeSubElement.getQualifiedName())) {
- 						p1Start = Integer.parseInt(probeSubElement.getValue()) + 1;						// add 1 to make it 1-based
- 					} else  if ("primer1End".equals(probeSubElement.getQualifiedName())) {
- 						p1End = Integer.parseInt(probeSubElement.getValue()) + 1;						// add 1 to make it 1-based
- 					} else  if ("primer2Start".equals(probeSubElement.getQualifiedName())) {
- 						p2Start = Integer.parseInt(probeSubElement.getValue()) + 1;						// add 1 to make it 1-based
- 					} else  if ("primer2End".equals(probeSubElement.getQualifiedName())) {
- 						p2End = Integer.parseInt(probeSubElement.getValue()) + 1;						// add 1 to make it 1-based
- 					} else  if ("subseq".equals(probeSubElement.getQualifiedName())) {
- 						subseq = probeSubElement.getValue();
- 					} else  if ("subseqStart".equals(probeSubElement.getQualifiedName())) {
- 						ssStart =  Integer.parseInt(probeSubElement.getValue()) + 1;						// add 1 to make it 1-based
- 					} else  if ("subseqEnd".equals(probeSubElement.getQualifiedName())) {
- 						ssEnd =  Integer.parseInt(probeSubElement.getValue()) + 1;						// add 1 to make it 1-based
- 					} else  if ("Chromosome".equals(probeSubElement.getQualifiedName())) {
- 						chr =  probeSubElement.getValue();
- 					} else  if ("Probe_Strand".equals(probeSubElement.getQualifiedName())) {
- 						forwardStrand =  "+".equals(probeSubElement.getValue());
- 					} 
-// 					if ("Start_Position".equals(probeSubElement.getQualifiedName())) {
-// 						start =  Integer.parseInt(probeSubElement.getValue());
-// 					}
-// 					if ("End_Position".equals(probeSubElement.getQualifiedName())) {
-// 						end =  Integer.parseInt(probeSubElement.getValue());
-// 					}
-				}
-				
-				Probe p = new Probe(id, dlsoSeq, dlsoSeqRC, ulsoSeq, ulsoSeqRC, p1Start, p1End, p2Start, p2End, subseq, ssStart, ssEnd, chr, forwardStrand);
-				probeSet.add(p);
-				int primerLengthR1 = dlsoSeqRC.length();
-				int primerLengthR2 = ulsoSeq.length();
-				
-				Map<String, Probe> mapR1 = probeLengthMapR1.get(primerLengthR1);
-				if (null == mapR1) {
-					mapR1 = new HashMap<>();
-					probeLengthMapR1.put(primerLengthR1, mapR1);
-				}
-				mapR1.put(dlsoSeqRC, p);
-				
-				Map<String, Probe> mapR2 = probeLengthMapR2.get(primerLengthR2);
-				if (null == mapR2) {
-					mapR2 = new HashMap<>();
-					probeLengthMapR2.put(primerLengthR2, mapR2);
-				}
-				mapR2.put(ulsoSeq, p);
-				
-				probeSequences.add(dlsoSeq);
-				probeSequences.add(dlsoSeqRC);
-				probeSequences.add(ulsoSeq);
-				probeSequences.add(ulsoSeqRC);
-				
-			}
-			
-			logger.info("Found " + i + " probes in xml doc. No of entries in seq set is: " + probeSequences.size() + " which should be equals to : " + (4 * i));
-			
-			
-			List<Integer> primerLengthsR1 = new ArrayList<>(probeLengthMapR1.keySet());
-			Collections.sort(primerLengthsR1);
-			Collections.reverse(primerLengthsR1);
-			for (Integer xyz : primerLengthsR1) {
-				logger.info("no of probes with primer length " + xyz.intValue() + ": " + probeLengthMapR1.get(xyz).size());
-			}
-			
-			List<Integer> primerLengthsR2 = new ArrayList<>(probeLengthMapR2.keySet());
-			Collections.sort(primerLengthsR2);
-			Collections.reverse(primerLengthsR2);
-			for (Integer xyz : primerLengthsR2) {
-				logger.info("no of probes with primer length " + xyz.intValue() + ": " + probeLengthMapR2.get(xyz).size());
-			}
-			
-			int fastqCount = 0;
-			// read in a fastq file and lits see if we get some matches
-			try (FastqReader reader1 = new FastqReader(new File(fastqFiles[0]));
-					FastqReader reader2 = new FastqReader(new File(fastqFiles[1]));) {
-				
-				for (FastqRecord rec : reader1) {
-					FastqRecord rec2 = reader2.next();
-					
-					FastqProbeMatch fpm = new FastqProbeMatch(fastqCount++, rec, rec2);
-					matches.add(fpm);
-				}
-			}
-			
-			int matchCount = 0;
-			int mateMatchCount = 0;
-			
-			for (FastqProbeMatch fpm : matches) {
-				
-				final String read1 = fpm.getRead1().getReadString();
-				final String read2 = fpm.getRead2().getReadString();
-					
-				boolean secondReadMatchFound = false;
-				// loop through the maps searching for a match
-				for (Integer pl : primerLengthsR1) {
-					String read =read1.substring(0, pl.intValue());
-						
-					Map<String, Probe> map = probeLengthMapR1.get(pl);
-						
-						if (map.containsKey(read)) {
-							Probe p = map.get(read);
-							matchCount++;
-							// set read1 probe
-							fpm.setRead1Probe(p, 0);
-							
-							// now check to see if mate starts with the value in the map
-							String mate = p.getUlsoSeq();
-							if (read2.startsWith(mate)) {
-								secondReadMatchFound = true;
-								
-								// set read2 probe
-								fpm.setRead2Probe(p, 0);
-								mateMatchCount++;
-								updateMap(p, probeDist);
-							}
-							// no need to look at other maps
-							break;
-						}
-					}
-					
-					if ( ! secondReadMatchFound) {
-						for (Integer pl : primerLengthsR2) {
-							String read = read2.substring(0, pl.intValue());
-							Map<String, Probe> map = probeLengthMapR2.get(pl);
-							
-							if (map.containsKey(read)) {
-								Probe p = map.get(read);
-								
-								// set read2 probe
-								fpm.setRead2Probe(p, 0);
-								// no need to look at other maps
-								break;
-							}
-						}
-					}
-			}
-					
-			logger.info("no of records in fastq file: " + fastqCount + ", and no of records that started with a probe in our set: " + matchCount + " and no whose mate also matched: " + mateMatchCount);
+			matchReadsToProbes();
 			
 			FastqProbeMatchUtil.getStats(matches);
 			
-			//TODO - PUT THIS BACK IN
 			logger.info("Rescue reads using edit distances");
 			findNonExactMatches();
 			FastqProbeMatchUtil.getStats(matches);
@@ -319,18 +143,225 @@ private static final int TILE_SIZE = 13;
 			setupFragments();
 			binFragments();
 			
-			writeCsv();
+			/*
+			 * Loops through the bins, and populates the mutations collection
+			 * This needs to be run before we can output any variants
+			 */
+			extractMutationsFromBins(false, minBinSize);
 			
-			writeDiagnosticOutput();
+			writeCsv(false);
 			
-			writeBam();
+			writeDiagnosticOutput(false);
+			
+			writeBam(false);
 			
 			loadTiledAlignerData();
+			/*
+			 * Write output files again, this time filtering out bins if they don't sit close to the amplicon they have been assigned to
+			 */
+			mutations.clear();
+			extractMutationsFromBins(true, minBinSize);
+			writeCsv(true);
+			writeDiagnosticOutput(true);
+			writeBam(true);
+			writeAmpliconPerformanceCsv();
 			
 //			writeOutput();
 		} finally {
 		}
 		return exitStatus;
+	}
+
+	private void matchReadsToProbes() {
+		
+		/*
+		 * Create lists of probe lengths
+		 */
+		List<Integer> primerLengthsR1 = new ArrayList<>(probeLengthMapR1.keySet());
+		Collections.sort(primerLengthsR1);
+		Collections.reverse(primerLengthsR1);
+		for (Integer xyz : primerLengthsR1) {
+			logger.info("no of probes with primer length " + xyz.intValue() + ": " + probeLengthMapR1.get(xyz).size());
+		}
+		
+		List<Integer> primerLengthsR2 = new ArrayList<>(probeLengthMapR2.keySet());
+		Collections.sort(primerLengthsR2);
+		Collections.reverse(primerLengthsR2);
+		for (Integer xyz : primerLengthsR2) {
+			logger.info("no of probes with primer length " + xyz.intValue() + ": " + probeLengthMapR2.get(xyz).size());
+		}
+		
+		int matchCount = 0;
+		int mateMatchCount = 0;
+		
+		for (FastqProbeMatch fpm : matches) {
+			
+			final String read1 = fpm.getRead1().getReadString();
+			final String read2 = fpm.getRead2().getReadString();
+				
+			boolean secondReadMatchFound = false;
+			// loop through the maps searching for a match
+			for (Integer pl : primerLengthsR1) {
+				String read =read1.substring(0, pl.intValue());
+					
+				Map<String, Probe> map = probeLengthMapR1.get(pl);
+					
+					if (map.containsKey(read)) {
+						Probe p = map.get(read);
+						matchCount++;
+						// set read1 probe
+						fpm.setRead1Probe(p, 0);
+						
+						// now check to see if mate starts with the value in the map
+						String mate = p.getUlsoSeq();
+						if (read2.startsWith(mate)) {
+							secondReadMatchFound = true;
+							
+							// set read2 probe
+							fpm.setRead2Probe(p, 0);
+							mateMatchCount++;
+							updateMap(p, probeDist);
+						}
+						// no need to look at other maps
+						break;
+					}
+				}
+				
+				if ( ! secondReadMatchFound) {
+					for (Integer pl : primerLengthsR2) {
+						String read = read2.substring(0, pl.intValue());
+						Map<String, Probe> map = probeLengthMapR2.get(pl);
+						
+						if (map.containsKey(read)) {
+							Probe p = map.get(read);
+							
+							// set read2 probe
+							fpm.setRead2Probe(p, 0);
+							// no need to look at other maps
+							break;
+						}
+					}
+				}
+		}
+				
+		logger.info("no of records in fastq file: " + matches.size() + ", and no of records that started with a probe in our set: " + matchCount + " and no whose mate also matched: " + mateMatchCount);
+	}
+	
+
+	private void readFastqFiles() {
+		int fastqCount = 0;
+		// read in a fastq file and lits see if we get some matches
+		try (FastqReader reader1 = new FastqReader(new File(fastqFiles[0]));
+				FastqReader reader2 = new FastqReader(new File(fastqFiles[1]));) {
+			
+			for (FastqRecord rec : reader1) {
+				FastqRecord rec2 = reader2.next();
+				
+				FastqProbeMatch fpm = new FastqProbeMatch(fastqCount++, rec, rec2);
+				matches.add(fpm);
+			}
+		}
+	}
+
+
+	private void parseAmpliconManifestXmlFile() throws ParsingException, ValidityException, IOException {
+		Builder parser = new Builder();
+		Document doc = parser.build(xmlFile);
+		Element root = doc.getRootElement();
+		
+		// get probes from doc
+		Element probes = root.getFirstChildElement("Probes");
+		Elements probesElements = probes.getChildElements();
+		
+		int i = 0;
+		for ( ; i < probesElements.size() ; i++) {
+			Element probe = probesElements.get(i);
+			int id = Integer.parseInt(probe.getAttribute("id").getValue());
+		
+			String dlsoSeq = "";
+			String ulsoSeq = "";
+			String dlsoSeqRC = "";
+			String ulsoSeqRC = "";
+			String subseq = "";
+			String chr = "";
+			String name = "";
+			boolean forwardStrand = false;
+			int p1Start = -1;
+			int p1End = -1;
+			int p2Start = -1;
+			int p2End = -1;
+			int ssStart = -1;
+			int ssEnd = -1;
+//				int start = -1;
+//				int end = -1;
+			
+			Elements probeElements = probe.getChildElements();
+		
+			for (int j = 0 ; j < probeElements.size() ; j++) {
+				Element probeSubElement = probeElements.get(j);
+				if ("DLSO_Sequence".equals(probeSubElement.getQualifiedName())) {
+					dlsoSeq = probeSubElement.getValue();
+				} else  if ("ULSO_Sequence".equals(probeSubElement.getQualifiedName())) {
+					ulsoSeq = probeSubElement.getValue();
+				} else if ("dlsoRevCompSeq".equals(probeSubElement.getQualifiedName())) {
+					dlsoSeqRC = probeSubElement.getValue();
+				} else  if ("ulsoRevCompSeq".equals(probeSubElement.getQualifiedName())) {
+					ulsoSeqRC = probeSubElement.getValue();
+				} else  if ("primer1Start".equals(probeSubElement.getQualifiedName())) {
+					p1Start = Integer.parseInt(probeSubElement.getValue()) + 1;						// add 1 to make it 1-based
+				} else  if ("primer1End".equals(probeSubElement.getQualifiedName())) {
+					p1End = Integer.parseInt(probeSubElement.getValue()) + 1;						// add 1 to make it 1-based
+				} else  if ("primer2Start".equals(probeSubElement.getQualifiedName())) {
+					p2Start = Integer.parseInt(probeSubElement.getValue()) + 1;						// add 1 to make it 1-based
+				} else  if ("primer2End".equals(probeSubElement.getQualifiedName())) {
+					p2End = Integer.parseInt(probeSubElement.getValue()) + 1;						// add 1 to make it 1-based
+				} else  if ("subseq".equals(probeSubElement.getQualifiedName())) {
+					subseq = probeSubElement.getValue();
+				} else  if ("subseqStart".equals(probeSubElement.getQualifiedName())) {
+					ssStart =  Integer.parseInt(probeSubElement.getValue()) + 1;						// add 1 to make it 1-based
+				} else  if ("subseqEnd".equals(probeSubElement.getQualifiedName())) {
+					ssEnd =  Integer.parseInt(probeSubElement.getValue()) + 1;						// add 1 to make it 1-based
+				} else  if ("Chromosome".equals(probeSubElement.getQualifiedName())) {
+					chr =  probeSubElement.getValue();
+				} else  if ("Probe_Strand".equals(probeSubElement.getQualifiedName())) {
+					forwardStrand =  "+".equals(probeSubElement.getValue());
+				} else  if ("Name_no_spaces".equals(probeSubElement.getQualifiedName())) {
+					name =  probeSubElement.getValue();
+				} 
+// 					if ("Start_Position".equals(probeSubElement.getQualifiedName())) {
+// 						start =  Integer.parseInt(probeSubElement.getValue());
+// 					}
+// 					if ("End_Position".equals(probeSubElement.getQualifiedName())) {
+// 						end =  Integer.parseInt(probeSubElement.getValue());
+// 					}
+			}
+			
+			Probe p = new Probe(id, dlsoSeq, dlsoSeqRC, ulsoSeq, ulsoSeqRC, p1Start, p1End, p2Start, p2End, subseq, ssStart, ssEnd, chr, forwardStrand, name);
+			probeSet.add(p);
+			int primerLengthR1 = dlsoSeqRC.length();
+			int primerLengthR2 = ulsoSeq.length();
+			
+			Map<String, Probe> mapR1 = probeLengthMapR1.get(primerLengthR1);
+			if (null == mapR1) {
+				mapR1 = new HashMap<>();
+				probeLengthMapR1.put(primerLengthR1, mapR1);
+			}
+			mapR1.put(dlsoSeqRC, p);
+			
+			Map<String, Probe> mapR2 = probeLengthMapR2.get(primerLengthR2);
+			if (null == mapR2) {
+				mapR2 = new HashMap<>();
+				probeLengthMapR2.put(primerLengthR2, mapR2);
+			}
+			mapR2.put(ulsoSeq, p);
+			
+			probeSequences.add(dlsoSeq);
+			probeSequences.add(dlsoSeqRC);
+			probeSequences.add(ulsoSeq);
+			probeSequences.add(ulsoSeqRC);
+			
+		}
+		logger.info("Found " + i + " probes in xml doc. No of entries in seq set is: " + probeSequences.size() + " which should be equals to : " + (4 * i));
 	}
 	
 	
@@ -342,13 +373,18 @@ private static final int TILE_SIZE = 13;
 		Set<String> ampliconTiles = new HashSet<>();
 		for (Entry<Probe, List<Bin>> entry : probeBinDist.entrySet()) {
 			List<Bin> bins = entry.getValue();
-			boolean reverseComplementSequence = entry.getKey().reverseComplementSequence();
 			for (Bin b : bins) {
-				String s = reverseComplementSequence ? SequenceUtil.reverseComplement(b.getSequence()) :  b.getSequence();
-//				String s = b.getSequence();
+				String s = b.getSequence();
 				int sLength = s.length();
 				int noOfTiles = sLength / TILE_SIZE;
 				
+				for (int i = 0 ; i < noOfTiles ; i++) {
+					ampliconTiles.add(s.substring(i * TILE_SIZE, (i + 1) * TILE_SIZE));
+				}
+				/*
+				 * Now get the rev comp tiles
+				 */
+				s = SequenceUtil.reverseComplement(b.getSequence());
 				for (int i = 0 ; i < noOfTiles ; i++) {
 					ampliconTiles.add(s.substring(i * TILE_SIZE, (i + 1) * TILE_SIZE));
 				}
@@ -411,190 +447,205 @@ private static final int TILE_SIZE = 13;
 		logger.info("no of entries in refTilesPositions: " + refTilesPositionsSize);
 		logger.info("Unique tiles in amplicons: " + diff);
 		
+		
+		int singleLocation = 0;
+		int perfectMatch = 0;
+		int multiLoci = 0;
+		int unknown = 0;
+		int existingStrandWins = 0;
+		int rcStrandWins = 0;
+		int bothStrandsWin = 0;
 		for (Entry<Probe,List<Bin>> entry : probeBinDist.entrySet()) {
-			int binCount = 0;
+			Map<ChrPosition, AtomicInteger> binLocationDistribution = new HashMap<>();
 			int noOfBins = entry.getValue().size();
 			Probe p = entry.getKey();
 			logger.info("Looking at probe: " + p.getId() +", which has " + noOfBins + " bins");
-			boolean reverseComplementSequence = p.reverseComplementSequence();
-			int[] maxTileCountPerBin = new int[noOfBins];
-			TreeMap<Long, TIntArrayList> positionCounter  = new TreeMap<>();
 			
 			for (Bin b : entry.getValue()) {
-//				logger.info("Looking at bin: " + b.getId());
-				String s = reverseComplementSequence ? SequenceUtil.reverseComplement(b.getSequence()) :  b.getSequence();
-				int sLength = s.length();
+				String fragment = b.getSequence();
+				int sLength = fragment.length();
 				int noOfTiles = sLength / TILE_SIZE;
-				
-				Map<String, TLongArrayList> binSpecificTiles = new LinkedHashMap<>();
-				for (int i = 0 ; i < noOfTiles ; i++) {
-					String bt = s.substring(i * TILE_SIZE, (i + 1) * TILE_SIZE);
-					
-					if (frequentlyOccurringRefTiles.contains(bt)) {
-						TLongArrayList list = new TLongArrayList();
-						list.add(Long.MAX_VALUE);
-						binSpecificTiles.put(bt, list);
-					} else if (refTilesPositions.containsKey(bt)) {
-						binSpecificTiles.put(bt, refTilesPositions.get(bt));
-					} else {
-						TLongArrayList list = new TLongArrayList();
-						binSpecificTiles.put(bt, list);
-					}
-				}
-				final TreeMap<Long, TIntArrayList> hash = new TreeMap<>();
-//				final TLongHashSet set = new TLongHashSet();
-				int i = 0;
-				for (Entry <String, TLongArrayList> entry2 : binSpecificTiles.entrySet()) {
-					i++;
-					final int tilePosition = i;
-					entry2.getValue().forEach(new TLongProcedure(){
-						@Override
-						public boolean execute(long l) {
-							TIntArrayList tiles = hash.get(l);
-							if (tiles == null) {
-								tiles = new TIntArrayList();
-								hash.put(l, tiles);
-							}
-							tiles.add(tilePosition);
-							return true;
-						}});
-					
-					
-//					logger.info("tile: " + entry2.getKey() + " has " + entry2.getValue().size() + " locations");
-				}
-				TreeMap<Integer, TLongArrayList>noOfTilesAndStartPositions = new TreeMap<>();
-				for (Entry<Long, TIntArrayList> entry2 : hash.entrySet()) {
-					Long from = entry2.getKey();
-					if (from.longValue() != Long.MAX_VALUE) {
-						Long to = entry2.getKey().longValue() + 400;
-						//logger.info("from: " + from.longValue() + ", to: " + to.longValue());
-						NavigableMap<Long, TIntArrayList> subMap = hash.subMap(from, true, to, true);
-						TIntHashSet uniqueTileIds = new TIntHashSet();
-						for (TIntArrayList values : subMap.values()) {
-							uniqueTileIds.addAll(values);
-						}
-						TLongArrayList existingStartPositions = noOfTilesAndStartPositions.get(uniqueTileIds.size());
-						if (null == existingStartPositions) {
-							existingStartPositions = new TLongArrayList();
-							noOfTilesAndStartPositions.put(uniqueTileIds.size(), existingStartPositions);
-						}
-						existingStartPositions.add(entry2.getKey());
-					}
-				}
-				long position = noOfTilesAndStartPositions.lastEntry().getValue().get(0);
-				int noOfPositions = noOfTilesAndStartPositions.lastEntry().getValue().size();
-				if (noOfPositions > 1) {
-					logger.info("Found more than 1 start positions for bin: " + b.getId() +", with no of tiles: " + noOfTilesAndStartPositions.lastKey().intValue() + ": " + noOfTilesAndStartPositions.lastEntry().getValue().toString());
-				}
-//				logger.info("best matching tile count: " + noOfTilesAndStartPositions.lastKey().intValue() + " at position(0): " + position + ", with matching position count: " + noOfTilesAndStartPositions.lastEntry().getValue().size());
-//				logger.info("no of unique locations for bin: " + set.size() + " all unique: " + allUnique);
-				maxTileCountPerBin[binCount++] = noOfTilesAndStartPositions.lastKey().intValue();
-				TIntArrayList currentBinIds = positionCounter.get(position);
-				if (null == currentBinIds) {
-					currentBinIds = new TIntArrayList();
-					positionCounter.put(position, currentBinIds);
-				}
-				currentBinIds.add(b.getId());
-			}
-			if (entry.getValue().size() > 0) {
-				Arrays.sort(maxTileCountPerBin);
-				int largestTileCount = maxTileCountPerBin[entry.getValue().size()-1];
-				if (largestTileCount < 10) {
-					logger.info("probe: " + p.getId() + ", has no bins with tile count < 10. Largest value: " + largestTileCount);
-				}
-			}
-			if ( ! positionCounter.isEmpty()) {
+				long[][] tilePositions = new long[noOfTiles][];
 				
 				/*
-				 * If first and last positions for a probe differ by more than 500 (say) then log
+				 * Break fragment up into tiles, and see if we have seen these tiles in the tiled genome file
 				 */
-				long firstPosition = positionCounter.firstKey().longValue();
-				long lastPosition = positionCounter.lastKey().longValue();
-				ChrPosition cpFromAmplicon = p.getCp();
-				if (lastPosition - firstPosition > 500) {
-					ChrPosition cpFromFirstPosition = positionToActualLocation.getChrPositionFromLongPosition(firstPosition);
-					ChrPosition cpFromLastPosition = positionToActualLocation.getChrPositionFromLongPosition(lastPosition);
-					logger.info("*** First and last positions differ by more than 500!!! first position: " + cpFromFirstPosition.toIGVString() + ", last position: " + cpFromLastPosition.toIGVString() + ", amplicon: " + cpFromAmplicon.toIGVString());
-					for (Entry<Long, TIntArrayList> entry3 : positionCounter.entrySet()) {
-						TIntArrayList binList = entry3.getValue();
-						ChrPosition cpPosition = positionToActualLocation.getChrPositionFromLongPosition(entry3.getKey().longValue());
-						ChrPosition cpPositionBuffered = new ChrPosition(cpPosition.getChromosome(), cpPosition.getPosition() - 100, cpPosition.getPosition() + 100);
-						if (ChrPositionUtils.doChrPositionsOverlap(cpFromAmplicon, cpPositionBuffered)) {
-							// great
-							logger.info("match! position: " + cpPosition.toIGVString() +", noOfBins: " + binList.size() + ", bin Ids: "  + binList.toString());
-						} else {
-							logger.info("NO match! position: " + cpPosition.toIGVString() +", noOfBins: " + binList.size() + ", bin Ids: "  + binList.toString());
-							// get bins that don't match
-							for (Bin b : entry.getValue()) {
-								if (binList.contains(b.getId())) {
-									/*
-									 *	print existing sw diffs and calculate new ones
-									 * Buffer the ChrPosition (cpNewReferenceSeq) used to get the reference as the start position may not be acurate if we have any variants occurring at the beginning of the bin
-									 * 200 is a good value - should have no impact on the Smith Waterman result (perhaps the time take to calculate will be increased mind you...)
-									 * 
-									 */
-									ChrPosition cpNewReferenceSeq = new ChrPosition(cpPosition.getChromosome(), cpPosition.getPosition() -200, b.getLength() + cpPosition.getPosition() + 200);
-									String ref = getRefFromChrPos(cpNewReferenceSeq);
-									String binSeq = reverseComplementSequence ? SequenceUtil.reverseComplement(b.getSequence()) :  b.getSequence();
-									SmithWatermanGotoh nm = new SmithWatermanGotoh(ref, binSeq, 5, -4, 16, 4);
-									String [] newSwDiffs = nm.traceback();
-									
-									if (null == b.getSmithWatermanDiffs()) {
-										nm = new SmithWatermanGotoh(p.getReferenceSequence(), binSeq, 5, -4, 16, 4);
-										String [] diffs = nm.traceback();
-										b.setSWDiffs(diffs);
-									}
-									int oldSwScore = org.apache.commons.lang3.StringUtils.countMatches(b.getSmithWatermanDiffs()[1],'|');
-									int newSwScore = org.apache.commons.lang3.StringUtils.countMatches(newSwDiffs[1],'|');
-									if (oldSwScore >= newSwScore) {
-										logger.info("bin: " + b.getId() + ", old sw score: " +oldSwScore + ", new sw diffs: " + newSwScore);
-										logger.info("bin: " + b.getId() + ", old sw: " + Arrays.deepToString(b.getSmithWatermanDiffs()) + ", new sw diffs: " + Arrays.deepToString(newSwDiffs));
-									}
-								}
+				for (int i = 0 ; i < noOfTiles ; i++) {
+					String bt = fragment.substring(i * TILE_SIZE, (i + 1) * TILE_SIZE);
+					
+					if (frequentlyOccurringRefTiles.contains(bt)) {
+						tilePositions[i] = new long[]{Long.MAX_VALUE};
+					} else if (refTilesPositions.containsKey(bt)) {
+						TLongArrayList refPositions = refTilesPositions.get(bt);
+						tilePositions[i] = refPositions.toArray();
+						Arrays.sort(tilePositions[i]);
+					} else {
+						tilePositions[i] = new long[]{Long.MIN_VALUE};
+					}
+				}
+				
+				/*
+				 * And now reverse complement and run again
+				 */
+				long[][] rcTilePositions = new long[noOfTiles][];
+				String rcFragment = SequenceUtil.reverseComplement(fragment);
+				for (int i = 0 ; i < noOfTiles ; i++) {
+					String bt = rcFragment.substring(i * TILE_SIZE, (i + 1) * TILE_SIZE);
+					
+					if (frequentlyOccurringRefTiles.contains(bt)) {
+						rcTilePositions[i] = new long[]{Long.MAX_VALUE};
+					} else if (refTilesPositions.containsKey(bt)) {
+						TLongArrayList refPositions = refTilesPositions.get(bt);
+						rcTilePositions[i] = refPositions.toArray();
+						Arrays.sort(tilePositions[i]);
+					} else {
+						rcTilePositions[i] = new long[]{Long.MIN_VALUE};
+					}
+				}
+				
+				/*
+				 * See if we can walk through binSpecificTiles
+				 */
+				long [] results = ClinVarUtil.getBestStartPosition(tilePositions, TILE_SIZE, 5);
+				long [] rcResults = ClinVarUtil.getBestStartPosition(rcTilePositions, TILE_SIZE, 5);
+				
+				long bestTileCount = results[1];
+				long rcBestTileCount = rcResults[1];
+				
+//				logger.info("best current strand score: " + bestTileCount + ", best rc score: "  + rcBestTileCount);
+				ChrPosition bestTiledCp = null;
+				if (bestTileCount == rcBestTileCount) {
+					/*
+					 * Ignore for now ...
+					 */
+					bothStrandsWin++;
+					logger.info("tile counts same for both strands, existing: " + Arrays.toString(results) + ", rc: " + Arrays.toString(rcResults) + " for fragment: " + fragment);
+				} else if (bestTileCount > rcBestTileCount) {
+					/*
+					 * existing strand - need to see if we have more than 1 position on this strand
+					 */
+					if (results.length > 2) {
+						/*
+						 * SmithWaterman to see which position (if any) wins
+						 * Only do this if matching tile count is greater than 1 
+						 */
+						if (bestTileCount > 1) {
+							
+							int [] scores = getSWScores(results, b.getSequence());
+							logger.info("sw scores: " + Arrays.toString(scores));
+							int positionInArray = ClinVarUtil.getPositionWithLargestValue(scores);
+							if (-1 == positionInArray) {
+								/*
+								 * Ignore
+								 */
+							} else {
+								bestTiledCp = positionToActualLocation.getChrPositionFromLongPosition(results[positionInArray * 2]);
 							}
 						}
+					} else {
+						bestTiledCp = positionToActualLocation.getChrPositionFromLongPosition(results[0]);
 					}
 				} else {
 					/*
-					 * Looks like we are ok - check to see if start positions for bins is same as expected (within 100b either side)
+					 * reverse strand - need to see if we have more than 1 position on this strand
 					 */
-					ChrPosition cpFromPosition = positionToActualLocation.getChrPositionFromLongPosition(firstPosition);
-					ChrPosition cpFromPositionBuffered = new ChrPosition(cpFromPosition.getChromosome(), cpFromPosition.getPosition() - 100, cpFromPosition.getPosition() + 100);
-					if (ChrPositionUtils.doChrPositionsOverlap(cpFromAmplicon, cpFromPositionBuffered)) {
-						// great
+					if (rcResults.length > 2) {
+						/*
+						 * SmithWaterman to see which position (if any) wins
+						 * Only do this if matching tile count is greater than 1 
+						 */
+						if (rcBestTileCount > 1) {
+							
+							int [] scores = getSWScores(rcResults, SequenceUtil.reverseComplement(b.getSequence()));
+							logger.info("sw (rc) scores: " + Arrays.toString(scores));
+							int positionInArray = ClinVarUtil.getPositionWithLargestValue(scores);
+							if (-1 == positionInArray) {
+								/*
+								 * Ignore
+								 */
+							} else {
+								bestTiledCp = positionToActualLocation.getChrPositionFromLongPosition(rcResults[positionInArray * 2]);
+							}
+						}
 					} else {
-						logger.info("cp from amplicon: " + cpFromAmplicon.toIGVString() + ", cp from position (buffered): " + cpFromPositionBuffered.toIGVString() + ", don't overlap!!!");
+						bestTiledCp = positionToActualLocation.getChrPositionFromLongPosition(rcResults[0]);
 					}
 				}
 				
+				if (null != bestTiledCp) {
+					b.setBestTiledLocation(bestTiledCp);
+					updateMap(bestTiledCp, binLocationDistribution);
+				}
+			}
+			/*
+			 * Check to see if the bins sit close to the amplicon
+			 */
+			ChrPosition ampliconCP = p.getCp();
+			boolean logProbeDetails = false;
+			for (Entry<ChrPosition, AtomicInteger> entry4 : binLocationDistribution.entrySet()) {
+				if ( ! ChrPositionUtils.doChrPositionsOverlap(ampliconCP, entry4.getKey(), 200)) {
+					logProbeDetails = true;
+					break;
+				}
+			}
+			if (logProbeDetails) {
+				logger.info("probe: " + p.getId() + " : " + p.getCp().toIGVString() + " has following distribution: ");
+				for (Entry<ChrPosition, AtomicInteger> entry4 : binLocationDistribution.entrySet()) {
+					logger.info("cp: " + entry4.getKey().toIGVString() + " : " + entry4.getValue().intValue());
+				}
 			}
 		}
+		logger.info("singleLocation: " + singleLocation + ", perfectMatch: " + perfectMatch + ", multiple Loci: " + multiLoci + ", unknown: " + unknown);
+		logger.info("bothStrandsWin: " + bothStrandsWin + ", existingStrandWins: " + existingStrandWins + ", rcStrandWins: " + rcStrandWins);
+	}
+	
+	private int[] getSWScores(long [] positionCountArray, String binSequence ) throws IOException {
 		
+		int noOfCompetingPositions = positionCountArray.length / 2;
+		int [] scores = new int[noOfCompetingPositions];
+		int bestScore = 0;
+		for (int i = 0 ; i < noOfCompetingPositions ; i++) {
+			long position = positionCountArray[i * 2];
+			ChrPosition cp = positionToActualLocation.getBufferedChrPositionFromLongPosition(position, binSequence.length(), 200);
+			String ref = getRefFromChrPos(cp);
+			SmithWatermanGotoh nm = new SmithWatermanGotoh(ref, binSequence, 5, -4, 16, 4);
+			String [] diffs = nm.traceback();
+			scores[i] = ClinVarUtil.getSmithWatermanScore(diffs);
+			if (scores[i] > bestScore) {
+				bestScore = scores[i];
+			}
+		}
+		return scores;
 	}
 
 	private String getRefFromChrPos(ChrPosition cp) {
 		String referenceSeq = null;
 		String chr = cp.getChromosome();
-		if ( ! referenceCache.containsKey(chr)) {
+		byte[] ref = referenceCache.get(chr);
+		if ( null == ref) {
 			/*
 			 * Load from file
 			 */
 			FastaSequenceIndex index = new FastaSequenceIndex(new File(refFileName + ".fai"));
 			try (IndexedFastaSequenceFile refFile = new IndexedFastaSequenceFile(new File(refFileName), index);) {;
 				ReferenceSequence refSeq = refFile.getSequence(chr);
-				referenceCache.put(chr,  refSeq.getBases());
+				ref = refSeq.getBases();
+				referenceCache.put(chr, ref);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}
-		byte [] ref = Arrays.copyOfRange(referenceCache.get(chr), cp.getPosition(), cp.getEndPosition());
-		referenceSeq = new String(ref);
+		if (cp.getPosition() <= 0 || cp.getEndPosition() > ref.length) {
+			logger.warn("ChrPosition goes beyond edge of contig: " + cp.toIGVString() + ", ref length: " + ref.length);
+		}
+		byte [] refPortion = Arrays.copyOfRange(referenceCache.get(chr), cp.getPosition(), cp.getEndPosition());
+		referenceSeq = new String(refPortion);
 		
 		return referenceSeq;
 	}
 
 
-	private void writeDiagnosticOutput() throws IOException {
+	private void writeDiagnosticOutput(boolean filter) throws IOException {
 		
 		List<FastqProbeMatch> multiMatched = new ArrayList<>();
 		List<FastqProbeMatch> oneEndMatched = new ArrayList<>();
@@ -619,9 +670,10 @@ private static final int TILE_SIZE = 13;
 		logger.info("noEndsMatched: " + noEndsMatched.size());
 		logger.info("noFragment: " + noFragment.size());
 		
+		String outputFileName = filter ? outputFile+".diagnostic.multi.matched.filtered.csv" : outputFile+".diagnostic.multi.matched.csv";
 		
 		if ( ! multiMatched.isEmpty()) {
-			try (FileWriter writer = new FileWriter(new File(outputFile+".diagnostic.multi.matched.csv"))){;
+			try (FileWriter writer = new FileWriter(new File(outputFileName))){;
 				writer.write("r1_probe_id,r2_probe_id,r1,r2" );
 				writer.write("\n");
 				
@@ -632,8 +684,10 @@ private static final int TILE_SIZE = 13;
 				writer.flush();
 			}
 		}
+		
+		outputFileName = filter ? outputFile+".diagnostic.no.fragment.filtered.csv" : outputFile+".diagnostic.no.fragment.csv";
 		if ( ! noFragment.isEmpty()) {
-			try (FileWriter writer = new FileWriter(new File(outputFile+".diagnostic.no.fragment.csv"))){;
+			try (FileWriter writer = new FileWriter(new File(outputFileName))){;
 			writer.write("r1_probe_id,r2_probe_id,r1,r2" );
 			writer.write("\n");
 			
@@ -644,8 +698,10 @@ private static final int TILE_SIZE = 13;
 			writer.flush();
 			}
 		}
+		
+		outputFileName = filter ? outputFile+".diagnostic.one.end.matched.filtered.csv" : outputFile+".diagnostic.one.end.matched.csv";
 		if ( ! oneEndMatched.isEmpty()) {
-			try (FileWriter writer = new FileWriter(new File(outputFile+".diagnostic.one.end.matched.csv"))){;
+			try (FileWriter writer = new FileWriter(new File(outputFileName))){;
 			writer.write("r1_probe_id,r2_probe_id,r1,r2" );
 			writer.write("\n");
 			
@@ -658,8 +714,10 @@ private static final int TILE_SIZE = 13;
 			writer.flush();
 			}
 		}
+		
+		outputFileName = filter ? outputFile+".diagnostic.no.end.matched.filtered.csv" : outputFile+".diagnostic.no.end.matched.csv";
 		if ( ! noEndsMatched.isEmpty()) {
-			try (FileWriter writer = new FileWriter(new File(outputFile+".diagnostic.no.end.matched.csv"))){;
+			try (FileWriter writer = new FileWriter(new File(outputFileName))){;
 			writer.write("r1,r2" );
 			writer.write("\n");
 			
@@ -699,7 +757,10 @@ private static final int TILE_SIZE = 13;
 		
 	}
 	
-	private void writeBam() throws IOException {
+	
+	private void writeAmpliconPerformanceCsv() throws IOException {
+		
+		DecimalFormat df = new DecimalFormat("#.##");
 		
 		List<Probe> coordSortedProbes = new ArrayList<>(probeSet);
 		Collections.sort(coordSortedProbes, new Comparator<Probe>() {
@@ -709,8 +770,60 @@ private static final int TILE_SIZE = 13;
 			}
 		});
 		
+		final int fastqRecordCount = matches.size();
 		
-		File bamFile = new File(outputFile+".bam");
+		try (FileWriter writer = new FileWriter(new File(outputFile+".amplicon.performance.csv" ))) {
+			writer.write("#amplicon manifest file: " + xmlFile + Constants.NEW_LINE);
+			writer.write("#fastq r1 file: " + fastqFiles[0] + Constants.NEW_LINE);
+			writer.write("#fastq r2 file: " + fastqFiles[1] + Constants.NEW_LINE);
+			writer.write("#Number of fastq records: " + fastqRecordCount + Constants.NEW_LINE);
+			writer.write("#Number of amplicons: " + probeSet.size() + Constants.NEW_LINE);
+			writer.write("#\n");
+			writer.write("amplicon_id,amplicon_name,amplicon_position,number_of_reads,numbe_of_reads_percentage,number_of_bins,bins_on_target,bins_on_target_percentage,reads_on_target,reads_on_target_percentage\n" );
+			
+			
+			for (Probe p : coordSortedProbes) {
+				ChrPosition ampliconCP = p.getCp();
+				List<Bin> bins = probeBinDist.get(p);
+				int recordCount = 0;
+				int binsOnTarget = 0;
+				int readsOnTarget = 0;
+				int binCount = 0;
+				if (null != bins) {
+					binCount = bins.size();
+					for (Bin b : bins) {
+						recordCount += b.getRecordCount();
+						if ( null != b.getBestTiledLocation() && ChrPositionUtils.doChrPositionsOverlap(ampliconCP, b.getBestTiledLocation(), 200)) {
+							binsOnTarget++;
+							readsOnTarget += b.getRecordCount();
+						}
+					}
+				}
+				double recordCountPercentage = fastqRecordCount > 0 ? ((double)recordCount / fastqRecordCount) * 100 : 0;
+				double binsOnTargetPercentage = binCount > 0 ? ((double)binsOnTarget / binCount) * 100 : 0;
+				double readsOnTargetPercentage = recordCount > 0 ? ((double)readsOnTarget / recordCount) * 100 : 0;
+				
+				writer.write(p.getId() + "," + p.getName() + "," + p.getCp().toIGVString() + "," + recordCount + "," +df.format(recordCountPercentage) + "," 
+				+ binCount + "," + binsOnTarget + "," +df.format(binsOnTargetPercentage) + "," + readsOnTarget + "," + df.format(readsOnTargetPercentage) + "\n");
+				
+			}
+		
+			writer.flush();
+		}
+	}
+	
+	private void writeBam(boolean filter) throws IOException {
+		
+		List<Probe> coordSortedProbes = new ArrayList<>(probeSet);
+		Collections.sort(coordSortedProbes, new Comparator<Probe>() {
+			@Override
+			public int compare(Probe o1, Probe o2) {
+				return o1.getCp().compareTo(o2.getCp());
+			}
+		});
+		
+		String outputFileName = filter ? outputFile+".filtered.bam" : outputFile+".bam";
+		File bamFile = new File(outputFileName);
 		SAMFileHeader header = new SAMFileHeader();
 		header.setSequenceDictionary(ClinVarUtil.getSequenceDictionaryFromProbes(coordSortedProbes));
 		header.setSortOrder(SortOrder.coordinate);
@@ -731,115 +844,120 @@ private static final int TILE_SIZE = 13;
 			 * output bins of size greater than minBinSize 
 			 */
 			for (Probe p : coordSortedProbes) {
+				ChrPosition ampliconCP = p.getCp();
 				int probeId = p.getId();
 				boolean reverseComplementSequence = p.reverseComplementSequence();
 				List<Bin> bins = probeBinDist.get(p);
 				if (null != bins) {
 					for (Bin b : bins) {
-						int binId = b.getId();
-						recordCount += b.getRecordCount();
 						
-						String binSeq = reverseComplementSequence ?  SequenceUtil.reverseComplement(b.getSequence()) : b.getSequence() ;
+						if ( ! filter || (null != b.getBestTiledLocation() && ChrPositionUtils.doChrPositionsOverlap(ampliconCP, b.getBestTiledLocation(), 100))) {
 						
-						/*
-						 * Just print ones that match the ref for now - makes ceegar easier..
-						 */
-						int offset = p.getReferenceSequence().indexOf(binSeq);
-						if (offset != -1) {
+							int binId = b.getId();
+							recordCount += b.getRecordCount();
 							
-							CigarElement ce = new CigarElement(b.getLength(), CigarOperator.MATCH_OR_MISMATCH);
-							List<CigarElement> ces = new ArrayList<>();
-							ces.add(ce);
+							String binSeq = reverseComplementSequence ?  SequenceUtil.reverseComplement(b.getSequence()) : b.getSequence() ;
 							
-							addSAMRecordToWriter(header, writer, new Cigar(ces), probeId, binId,  b.getRecordCount(), p.getReferenceSequence(), p.getCp().getChromosome(), p.getCp().getPosition(), offset, binSeq);
-							
-						} else {
-							
-							String [] swDiffs = b.getSmithWatermanDiffs();
-							
-							if (null != swDiffs) {
-								if ( ! swDiffs[1].contains(" ")) {
-									if (swDiffs[1].length() == p.getReferenceSequence().length()) {
-										// just snps and same length
-										CigarElement ce = new CigarElement(b.getLength(), CigarOperator.MATCH_OR_MISMATCH);
-										List<CigarElement> ces = new ArrayList<>();
-										ces.add(ce);
-										
-										addSAMRecordToWriter(header, writer, new Cigar(ces), probeId, binId,  b.getRecordCount(), p.getReferenceSequence(), p.getCp().getChromosome(), p.getCp().getPosition(), 0, binSeq);
-									} else {
-										CigarElement ce = new CigarElement(b.getLength(), CigarOperator.MATCH_OR_MISMATCH);
-										List<CigarElement> ces = new ArrayList<>();
-										ces.add(ce);
-										
-										addSAMRecordToWriter(header, writer, new Cigar(ces), probeId, binId,  b.getRecordCount(), p.getReferenceSequence(), p.getCp().getChromosome(), p.getCp().getPosition(), 0, binSeq);
-									}
-								} else {
-									
-									if (swDiffs[0].replaceAll("-","").length() == p.getReferenceSequence().length()) {
-										offset = 0;
-									} else {
-										int posOfFistIndel = swDiffs[1].indexOf(" ");
-										if (posOfFistIndel < 10) {
-											logger.warn("posOfFistIndel is < 10 : " + posOfFistIndel);
-										}
-										offset = binSeq.indexOf(swDiffs[2].substring(0, posOfFistIndel - 1));
-										logger.info("diff length indel at: " + p.getCp().toIGVString() + ", offset: " + offset);
-										logger.info("binSeq: " + binSeq);
-										for (String s : swDiffs) {
-											logger.info(s);
-										}
-									}
-										indelSameLength++;
-										
-										
-										List<CigarElement> ces = new ArrayList<>();
-//										// get mutations
-										List<Pair<Integer, String>> mutations = ClinVarUtil.getPositionRefAndAltFromSW(swDiffs);
-										
-										
-										
-										int lastPosition = 0;
-										for (Pair<Integer, String> mutation : mutations) {
-											/*
-											 * only care about indels
-											 */
-											String mutationString = mutation.getRight();
-											String [] mutArray = mutationString.split("/");
+							/*
+							 * Just print ones that match the ref for now - makes ceegar easier..
+							 */
+							int offset = p.getReferenceSequence().indexOf(binSeq);
+							if (offset != -1) {
+								
+								CigarElement ce = new CigarElement(b.getLength(), CigarOperator.MATCH_OR_MISMATCH);
+								List<CigarElement> ces = new ArrayList<>();
+								ces.add(ce);
+								
+								addSAMRecordToWriter(header, writer, new Cigar(ces), probeId, binId,  b.getRecordCount(), p.getReferenceSequence(), p.getCp().getChromosome(), p.getCp().getPosition(), offset, binSeq);
+								
+							} else {
+								
+								String [] swDiffs = b.getSmithWatermanDiffs();
+								
+								if (null != swDiffs) {
+									if ( ! swDiffs[1].contains(" ")) {
+										if (swDiffs[1].length() == p.getReferenceSequence().length()) {
+											// just snps and same length
+											CigarElement ce = new CigarElement(b.getLength(), CigarOperator.MATCH_OR_MISMATCH);
+											List<CigarElement> ces = new ArrayList<>();
+											ces.add(ce);
 											
-											if (mutArray[0].length() != mutArray[1].length()) {
-												int indelPosition = mutation.getLeft().intValue() + 1 + offset;
+											addSAMRecordToWriter(header, writer, new Cigar(ces), probeId, binId,  b.getRecordCount(), p.getReferenceSequence(), p.getCp().getChromosome(), p.getCp().getPosition(), 0, binSeq);
+										} else {
+											CigarElement ce = new CigarElement(b.getLength(), CigarOperator.MATCH_OR_MISMATCH);
+											List<CigarElement> ces = new ArrayList<>();
+											ces.add(ce);
+											
+											addSAMRecordToWriter(header, writer, new Cigar(ces), probeId, binId,  b.getRecordCount(), p.getReferenceSequence(), p.getCp().getChromosome(), p.getCp().getPosition(), 0, binSeq);
+										}
+									} else {
+										
+										if (swDiffs[0].replaceAll("-","").length() == p.getReferenceSequence().length()) {
+											offset = 0;
+										} else {
+											int posOfFistIndel = swDiffs[1].indexOf(" ");
+											if (posOfFistIndel < 10) {
+												logger.warn("posOfFistIndel is < 10 : " + posOfFistIndel);
+											}
+											offset = binSeq.indexOf(swDiffs[2].substring(0, posOfFistIndel - 1));
+											logger.info("diff length indel at: " + p.getCp().toIGVString() + ", offset: " + offset);
+											logger.info("binSeq: " + binSeq);
+											for (String s : swDiffs) {
+												logger.info(s);
+											}
+										}
+											indelSameLength++;
+											
+											
+											List<CigarElement> ces = new ArrayList<>();
+	//										// get mutations
+											List<Pair<Integer, String>> mutations = ClinVarUtil.getPositionRefAndAltFromSW(swDiffs);
+											
+											
+											
+											int lastPosition = 0;
+											for (Pair<Integer, String> mutation : mutations) {
+												/*
+												 * only care about indels
+												 */
+												String mutationString = mutation.getRight();
+												String [] mutArray = mutationString.split("/");
 												
-												if (mutArray[0].length() == 1) {
-//													// insertion
-													if (indelPosition > 0) {
-														// create cigar element up to this position
-														CigarElement match = new CigarElement(indelPosition - lastPosition, CigarOperator.MATCH_OR_MISMATCH);
-														CigarElement insertion = new CigarElement(mutArray[1].length() - 1, CigarOperator.INSERTION);
-														ces.add(match);
-														ces.add(insertion);
-														lastPosition = indelPosition;
-													}
-												} else {
-													// deletion
-													if (indelPosition > 0) {
-														// create cigar element up to this position
-														if (indelPosition - lastPosition > 0) {
+												if (mutArray[0].length() != mutArray[1].length()) {
+													int indelPosition = mutation.getLeft().intValue() + 1 + offset;
+													
+													if (mutArray[0].length() == 1) {
+	//													// insertion
+														if (indelPosition > 0) {
+															// create cigar element up to this position
 															CigarElement match = new CigarElement(indelPosition - lastPosition, CigarOperator.MATCH_OR_MISMATCH);
+															CigarElement insertion = new CigarElement(mutArray[1].length() - 1, CigarOperator.INSERTION);
 															ces.add(match);
+															ces.add(insertion);
+															lastPosition = indelPosition;
 														}
-														CigarElement deletion = new CigarElement(mutArray[0].length() - 1, CigarOperator.DELETION);
-														ces.add(deletion);
-														lastPosition = indelPosition;
+													} else {
+														// deletion
+														if (indelPosition > 0) {
+															// create cigar element up to this position
+															if (indelPosition - lastPosition > 0) {
+																CigarElement match = new CigarElement(indelPosition - lastPosition, CigarOperator.MATCH_OR_MISMATCH);
+																ces.add(match);
+															}
+															CigarElement deletion = new CigarElement(mutArray[0].length() - 1, CigarOperator.DELETION);
+															ces.add(deletion);
+															lastPosition = indelPosition;
+														}
 													}
 												}
 											}
-										}
-										if (lastPosition + 1 < b.getLength()) {
-											CigarElement match = new CigarElement(b.getLength() - (lastPosition + 1), CigarOperator.MATCH_OR_MISMATCH);
-											ces.add(match);
-										}
-										Cigar cigar = new Cigar(ces);
-										addSAMRecordToWriter(header, writer, cigar, probeId, binId,  b.getRecordCount(), p.getReferenceSequence(), p.getCp().getChromosome(), p.getCp().getPosition(), 0, binSeq);
+											if (lastPosition + 1 < b.getLength()) {
+												CigarElement match = new CigarElement(b.getLength() - (lastPosition + 1), CigarOperator.MATCH_OR_MISMATCH);
+												ces.add(match);
+											}
+											Cigar cigar = new Cigar(ces);
+											addSAMRecordToWriter(header, writer, cigar, probeId, binId,  b.getRecordCount(), p.getReferenceSequence(), p.getCp().getChromosome(), p.getCp().getPosition(), 0, binSeq);
+									}
 								}
 							}
 						}
@@ -853,10 +971,13 @@ private static final int TILE_SIZE = 13;
 		logger.info("indelDiffLength: " + indelDiffLength + ", indelSameLength: " + indelSameLength);
 		logger.info("No of records written to bam file: " + recordCount + ", no of bins with same seq size as ref: " + sameSize +", and diff size: " + diffSize + ", indelCount: " + indelCount + ", noDiffInFirs20: " + noDiffInFirs20);
 	}
-
-	private void writeCsv() throws IOException {
+	
+	
+	private void extractMutationsFromBins(boolean onlyUseBinsThatMatchAmplicons, int binRecordCount) {
+		
 		for (Entry<Probe, List<Bin>> entry : probeBinDist.entrySet()) {
 			Probe p = entry.getKey();
+			ChrPosition ampliconCP = p.getCp();
 			List<Bin> bins = entry.getValue();
 			String ref = p.getReferenceSequence();
 			boolean reverseComplementSequence = p.reverseComplementSequence();
@@ -865,37 +986,116 @@ private static final int TILE_SIZE = 13;
 			if (null != bins && ! bins.isEmpty()) {
 				
 				for (Bin b : bins) {
-				
-					// only care about bins that have more than 10 reads
-					if (b.getRecordCount() >= minBinSize) {
 					
-						String binSeq = reverseComplementSequence ? SequenceUtil.reverseComplement(b.getSequence()) :  b.getSequence();
-						SmithWatermanGotoh nm = new SmithWatermanGotoh(ref, binSeq, 5, -4, 16, 4);
-						String [] diffs = nm.traceback();
-						b.setSWDiffs(diffs);
+					// only care about bins that have more than 10 reads
+					if (b.getRecordCount() >= binRecordCount) {
+						
+						if ( ! onlyUseBinsThatMatchAmplicons || (null != b.getBestTiledLocation() && ChrPositionUtils.doChrPositionsOverlap(ampliconCP, b.getBestTiledLocation(), 100))) {
 							
-						if (p.getId() == 241) {
-							logger.info("probe: " + p.getId() + ", forward strand: " + p.isOnForwardStrand() + ", size: " + b.getRecordCount() + ", ref: " + ref + ", binSeq: " + binSeq);
-							for (String s : diffs) {
-								logger.info(s);
-							}
-						}
-						if ( ! binSeq.equals(ref)) {
-//							if (ref.length() != binSeq.length() &&  ! diffs[0].contains("-") && ! diffs[2].contains("-")) {
-//								logger.warn("ref length != binSeq and no indels!!! p id: " + p.getId() + ", bin id: " + b.getId() + ", fs: " + p.isOnForwardStrand());
+							String binSeq = reverseComplementSequence ? SequenceUtil.reverseComplement(b.getSequence()) :  b.getSequence();
+							SmithWatermanGotoh nm = new SmithWatermanGotoh(ref, binSeq, 5, -4, 16, 4);
+							String [] diffs = nm.traceback();
+							b.setSWDiffs(diffs);
+							
+//							if (p.getId() == 241) {
+//								logger.info("probe: " + p.getId() + ", forward strand: " + p.isOnForwardStrand() + ", size: " + b.getRecordCount() + ", ref: " + ref + ", binSeq: " + binSeq);
+//								for (String s : diffs) {
+//									logger.info(s);
+//								}
 //							}
-							
-							createMutations(p, b);
+							if ( ! binSeq.equals(ref)) {
+								//							if (ref.length() != binSeq.length() &&  ! diffs[0].contains("-") && ! diffs[2].contains("-")) {
+								//								logger.warn("ref length != binSeq and no indels!!! p id: " + p.getId() + ", bin id: " + b.getId() + ", fs: " + p.isOnForwardStrand());
+								//							}
+								
+								createMutations(p, b);
+							}
 						}
 					}
 				}
+			}
+		}
+	}
+
+	private void writeCsv(boolean filter) throws IOException {
+		
+		/*
+		 * Write haplotype file before rolling up mutations
+		 */
+		if (filter) {
+			Map<Probe,Map<Bin,List<VcfRecord>>> mutationsByBin = new HashMap<>();
+			for (Entry<VcfRecord, List<Pair<Probe,Bin>>> entry : mutations.entrySet()) {
+				List<Pair<Probe,Bin>> list = entry.getValue();
+				
+				if (null == list) {
+					logger.info("Found null list for vcf: " + entry.getKey().toString());
+					continue;
+				}
+				
+				
+				for (Pair<Probe,Bin> pair : list) {
+					Map<Bin, List<VcfRecord>> binVcfs = mutationsByBin.get(pair.getLeft());
+					if (null == binVcfs) {
+						binVcfs = new HashMap<>();
+						mutationsByBin.put(pair.getLeft(), binVcfs);
+					}
+					List<VcfRecord> vcfs = binVcfs.get(pair.getRight());
+					if (null == vcfs) {
+						vcfs = new ArrayList<>();
+						binVcfs.put(pair.getRight(), vcfs);
+					}
+					vcfs.add(entry.getKey());
+				}
+			}
+			
+			List<Probe> orderedProbes = new ArrayList<>(mutationsByBin.keySet());
+			Collections.sort(orderedProbes);
+		
+			try (FileWriter writer = new FileWriter(new File(outputFile+".haplotype.txt"))) {
+				
+				/*
+				 * Setup the header
+				 */
+				writer.write("#amplicon_id,amplicon_name,bin_id,bin_read_count,mutations\n");
+				
+				for (Probe probe : orderedProbes) {
+					
+					Set<Bin> binsSet = new TreeSet<>(mutationsByBin.get(probe).keySet());
+					binsSet.addAll( getEligibleBins(probe));
+					
+					for (Bin b : binsSet) {
+						
+						StringBuilder sb = new StringBuilder();
+						sb.append(probe.getId());
+						sb.append(Constants.COMMA);
+						sb.append(probe.getName());
+						sb.append(Constants.COMMA);
+						sb.append(b.getId());
+						sb.append(Constants.COMMA);
+						sb.append(b.getRecordCount());
+						
+						List<VcfRecord> vcfs = mutationsByBin.get(probe).get(b);
+						if (null != vcfs &&  ! vcfs.isEmpty()) {
+							sb.append(Constants.COMMA);
+							Collections.sort(vcfs);
+							for (VcfRecord vcf : vcfs) {
+								sb.append(vcf.getChromosome()).append(Constants.COLON).append(vcf.getPosition()).append(vcf.getRef()).append(">").append(vcf.getAlt()).append(Constants.SEMI_COLON);
+							}
+							sb.deleteCharAt(sb.length() -1);
+						}
+						sb.append("\n");
+						writer.write(sb.toString());
+					}
+				}
+				writer.flush();
 			}
 		}
 		
 		List<VcfRecord> sortedPositions = new ArrayList<>(mutations.keySet());
 		Collections.sort(sortedPositions);
 		
-		try (FileWriter writer = new FileWriter(new File(outputFile+".mutations.csv"))) {
+		String outputFileName = filter ?  outputFile+".mutations.filtered.csv" : outputFile+".mutations.csv";
+		try (FileWriter writer = new FileWriter(new File(outputFileName))) {
 			writer.write("chr,position,ref,alt,probe_id,probe_total_reads,probe_total_frags,bin_id,bin_record_count" );
 			writer.write("\n");
 			
@@ -938,7 +1138,8 @@ private static final int TILE_SIZE = 13;
 		Collections.sort(sortedPositions);
 		logger.info("no of vcf positions for vcf file: " + sortedPositions.size());
 		
-		try (VCFFileWriter writer = new VCFFileWriter(new File(outputFile+".mutations.vcf"))) {
+		outputFileName = filter ?  outputFile+".mutations.filtered.vcf" : outputFile+".mutations.vcf";
+		try (VCFFileWriter writer = new VCFFileWriter(new File(outputFileName))) {
 			
 			/*
 			 * Setup the VcfHeader
@@ -977,7 +1178,8 @@ private static final int TILE_SIZE = 13;
 				writer.add(vcf);
 			}
 		}
-		try (VCFFileWriter writer = new VCFFileWriter(new File(outputFile+".diagnostic.mutations.vcf"))) {
+		outputFileName = filter ?  outputFile+".diagnostic.mutations.filtered.vcf" : outputFile+".diagnostic.mutations.vcf";
+		try (VCFFileWriter writer = new VCFFileWriter(new File(outputFileName))) {
 			
 			/*
 			 * Setup the VcfHeader
@@ -1016,9 +1218,23 @@ private static final int TILE_SIZE = 13;
 				writer.add(vcf);
 			}
 		}
+		
 	}
 	
 	
+	private List<Bin> getEligibleBins(Probe p) {
+		List<Bin> bins = new ArrayList<>();
+		List<Bin> allBins = probeBinDist.get(p);
+		for (Bin b : allBins) {
+			if (b.getRecordCount() >= 10 && null != b.getBestTiledLocation() && ChrPositionUtils.doChrPositionsOverlap(p.getCp(), b.getBestTiledLocation(), 100)) {
+				bins.add(b);
+			}
+		}
+		
+		return bins;
+	}
+
+
 	private void rollupMutations() {
 		
 		Map<ChrPosition, Set<VcfRecord>> potentialRollups = new HashMap<>();
@@ -1107,16 +1323,6 @@ private static final int TILE_SIZE = 13;
 		existingBins.add(new Pair<Probe,Bin>(p,b));
 	}
 	
-//	public static String getAlleleCountsFromBins(List<Bin> bins, Bin originatingBin, int vcfPos, int positionInOrigBin) {
-//		Accumulator acc = new Accumulator(vcfPos);
-//		
-//		for (int i = 0; i < originatingBin.getRecordCount() ; i++) {
-//			acc.addBase((byte)originatingBin.getSequence().charAt(positionInOrigBin), (byte)33, true, vcfPos - positionInOrigBin , vcfPos, vcfPos - positionInOrigBin +originatingBin.getSequence().length() , 1);
-//		}
-//		
-//		return acc.getPileupElementString();
-//	}
-
 	private void binFragments() {
 		int noOfProbesWithLargeSecondaryBin = 0;
 		

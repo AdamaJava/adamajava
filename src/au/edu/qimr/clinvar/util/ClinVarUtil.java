@@ -1,6 +1,7 @@
 package au.edu.qimr.clinvar.util;
 
 import gnu.trove.list.TLongList;
+import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.list.array.TLongArrayList;
 import gnu.trove.map.TLongIntMap;
 import gnu.trove.map.hash.TIntIntHashMap;
@@ -212,8 +213,6 @@ public class ClinVarUtil {
 	
 	public static long[] getBestStartPosition(long [][] tilePositions, int tileLength, int indelOffset) {
 		TLongIntMap positionAndTiles = new TLongIntHashMap();
-//		Map<Long, AtomicInteger> positionAndTiles = new HashMap<>();
-//		Map<Long, List<Integer>> positionAndTiles = new HashMap<>();
 		int noOfTiles = tilePositions.length;
 		long startPos = -1;
 		for (int i = 0 ; i < noOfTiles ; i++) {
@@ -224,8 +223,6 @@ public class ClinVarUtil {
 			int positionsLength = positions.length;
 			
 			for (int j = 0 ; j < positionsLength ; j++) {
-//				List<Integer> tiles = new ArrayList<>();
-//				tiles.add(i);
 				startPos = positions[j];
 				int tileDepth = 1;
 				if (startPos == Long.MAX_VALUE || startPos == Long.MIN_VALUE) {
@@ -252,14 +249,8 @@ public class ClinVarUtil {
 							break;
 						}
 					}
-//					int positionInArray = Arrays.binarySearch(tilePositions[k], startPos + (k * tileLength));
-//					if (positionInArray >= 0) {
-//						// match!
-//						positionAndTiles.increment(startPos);
-//					}
 				}
 			}
-			
 			
 			/*
 			 * If we have a match for all tiles, exit!
@@ -268,17 +259,45 @@ public class ClinVarUtil {
 			if (positionAndTiles.containsValue(noOfTiles - i)) {
 				return reduceStartPositionsAndTileCount(positionAndTiles);
 			}
-//			if (i == 0 && positionAndTiles.values().contains( new AtomicInteger(noOfTiles))) {
-//				return reduceStartPositionsAndTileCount(positionAndTiles);
-//			}
 		}
 		return reduceStartPositionsAndTileCount(positionAndTiles);
 	}
 	
+	public static int getPositionWithLargestValue(int [] array) {
+		TIntArrayList intArrayList = new TIntArrayList(array);
+		int maxValue = intArrayList.max();
+		
+		int positionOfMaxValue = intArrayList.indexOf(maxValue);
+		if (intArrayList.indexOf(positionOfMaxValue + 1, maxValue) > -1) {
+			return -1;
+		}
+		return positionOfMaxValue;
+	}
+	
+	
+	public static int getSmithWatermanScore(String [] diffs) {
+		int score = -1;
+		if (null != diffs && diffs.length == 3) {
+			score = StringUtils.countMatches(diffs[1], '|');
+		}
+		return score;
+	}
+	
+	/**
+	 * Returns a long[] containing a position, and count for each result.
+	 * eg. long[]{12345,10,23456,10}
+	 * This tells us that at position 12345 we had a count of 10, and that at position 23456 we also had a count of ten
+	 * 
+	 * @param positionAndTiles
+	 * @return
+	 */
 	public static long[] reduceStartPositionsAndTileCount(TLongIntMap positionAndTiles) {
 		int [] tileCounts = positionAndTiles.values();
-		Arrays.sort(tileCounts);
 		int tileCountsLength = tileCounts.length;
+		if (tileCountsLength == 0) {
+			return new long[]{0,0};
+		}
+		Arrays.sort(tileCounts);
 		final int bestTileCount = tileCounts[tileCountsLength -1];
 		
 		final TLongList results = new TLongArrayList();

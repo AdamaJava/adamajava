@@ -56,6 +56,31 @@ public class PositionChrPositionMap {
 		return null;
 	}
 	
+	public ChrPosition getBufferedChrPositionFromLongPosition(long position, int length, int buffer) {
+		/*
+		 * Need to loop through our map values, and check each one to see if the position falls within the range.
+		 * Should only every have 1 range that encompases a position....
+		 */
+		
+		for (Entry<ChrPosition, LongRange> entry : chrPosToPositionRange.entrySet()) {
+			LongRange lr = entry.getValue();
+			if (lr.isPositionWithinRange(position)) {
+				/*
+				 * Calculate position within contig
+				 */
+				long positionWithinContig = (position - lr.getFrom()) + 1;
+				if (positionWithinContig > Integer.MAX_VALUE) {
+					// oops
+					logger.warn("positionWithinContig can't be cast to int without overflow!!!");
+				}
+				
+				return new ChrPosition(entry.getKey().getChromosome(), Math.max(1, (int) positionWithinContig - buffer), (int) positionWithinContig + length + buffer);
+			}
+		}
+		logger.warn("Could not find ChrPosition for postion: " + position);
+		return null;
+	}
+	
 	private static class LongRange {
 		private final long from;
 		private final long to;
