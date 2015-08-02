@@ -359,7 +359,7 @@ sub is_cpg {
         return undef;
     }
 
-    # If we got this far then it time to make a decision about the
+    # If we got this far then it is time to make a decision about the
     # CPG-ness of this SNP
  
     if ($ref eq 'C') {
@@ -379,6 +379,11 @@ sub is_cpg {
 sub snp_mutation {
     my $self = shift;
 
+    # This routine returns the following values:
+    # 1. 'MNP' for substitutions of greater than one base (DNP, TNP etc)
+    # 2. a string of the form 'Ref -> Alt' for SNPs, e.g 'A -> C'
+    # 3. undef for anything else including indels
+
     my $id   = $self->Tumor_Sample_Barcode;
     my $gene = $self->Hugo_Symbol;
     my $var  = $self->Variant_Type;
@@ -386,7 +391,7 @@ sub snp_mutation {
 
     # Code 'MNP' for DNP/TNP/ONP
     my $type = undef;
-    if ($var eq 'SNP' and $refl > 1) {
+    if ($var =~ /^.NP$/ and $refl > 1) {
         #warn "found an MNP : $id $gene $var($refl)\n";
         $type = 'MNP';
     }
@@ -422,45 +427,43 @@ sub snp_mutation {
 sub categorise_jones {
     my $self = shift;
 
-    my $type = $self->snp_mutation;
-    my $cpg  = $self->is_cpg;
+    my $var = $self->Variant_Type;
+    my $snp = $self->snp_mutation;
 
-    # We can't do indel categorisation without type
-    return undef unless (defined $type);
-
-    if ($type eq 'INS' or $type eq 'DEL') {
+    # Return immediately for indels and MNPs
+    if ($var eq 'INS' or $var eq 'DEL') {
         return 'indel';
     }
-    elsif ($type eq 'MNP') {
+    elsif ($snp eq 'MNP') {
         return 'MNP';
     }
 
     # For SNPs we must have both type and cpg.  Also not that is_cpg()
-    # will barf on MNPs so they mus be handled before this check.
-    return undef unless (defined $type and defined $cpg);
+    # will barf on MNPs so they must be handled before this check.
+    #return undef unless (defined $type and defined $cpg);
 
     my $code = undef;
-    if ($type eq 'C -> T' or $type eq 'G -> A') {
+    if ($snp eq 'C -> T' or $snp eq 'G -> A') {
         $code= 'C:G to T:A';
     }
-    elsif ($type eq 'C -> G' or $type eq 'G -> C') {
+    elsif ($snp eq 'C -> G' or $snp eq 'G -> C') {
         $code = 'C:G to G:C';
     }
-    elsif ($type eq 'C -> A' or $type eq 'G -> T') {
+    elsif ($snp eq 'C -> A' or $snp eq 'G -> T') {
         $code = 'C:G to A:T';
     }
-    elsif ($type eq 'T -> C' or $type eq 'A -> G') {
+    elsif ($snp eq 'T -> C' or $snp eq 'A -> G') {
         $code = 'T:A to C:G';
     }
-    elsif ($type eq 'T -> G' or $type eq 'A -> C') {
+    elsif ($snp eq 'T -> G' or $snp eq 'A -> C') {
         $code = 'T:A to G:C';
     }
-    elsif ($type eq 'T -> A' or $type eq 'A -> T') {
+    elsif ($snp eq 'T -> A' or $snp eq 'A -> T') {
         $code = 'T:A to A:T';
     }
     else {
-        print Dumper $self, $type, $cpg;
-        confess "cannot categorise (jones) variant type [$type]\n";
+        print Dumper $self, $var, $snp;
+        confess "cannot categorise (jones) variant type [$var]\n";
     }
 
     return $code;
@@ -470,53 +473,53 @@ sub categorise_jones {
 sub categorise_kassahn {
     my $self = shift;
 
-    my $type = $self->snp_mutation;
-    my $cpg  = $self->is_cpg;
+    my $var = $self->Variant_Type;
+    my $snp = $self->snp_mutation;
+    my $cpg = $self->is_cpg;
 
-    # We can't do indel categorisation without type
-    return undef unless (defined $type);
-
-    # Assuming $cpg==1 means CpG positive:
-    if ($type eq 'INS' or $type eq 'DEL') {
+    # Return immediately for indels and MNPs
+    if ($var eq 'INS' or $var eq 'DEL') {
         return 'indel';
     }
-    elsif ($type eq 'MNP') {
+    elsif ($snp eq 'MNP') {
         return 'MNP';
     }
 
-    # For SNPs we must have both type and cpg
-    return undef unless (defined $type and defined $cpg);
+    # For SNPs we must have both $snp and $cpg and we assume that
+    # $cpg == 1 means CpG positive.
+
+    return undef unless (defined $snp and defined $cpg);
 
     my $code = undef;
-    if ($type eq 'A -> G' or $type eq 'T -> C') {
+    if ($snp eq 'A -> G' or $snp eq 'T -> C') {
         $code = 'A.T -> G.C';
     }
-    elsif ($cpg == 1 and ($type eq 'C -> T' or $type eq 'G -> A')) {
+    elsif ($cpg == 1 and ($snp eq 'C -> T' or $snp eq 'G -> A')) {
         $code = 'CpG+ C.G -> T.A';
     }
-    elsif ($cpg == 0 and ($type eq 'C -> T' or $type eq 'G -> A')) {
+    elsif ($cpg == 0 and ($snp eq 'C -> T' or $snp eq 'G -> A')) {
         $code = 'CpG- C.G -> T.A';
     }
-    elsif ($type eq 'A -> C' or $type eq 'T -> G') {
+    elsif ($snp eq 'A -> C' or $snp eq 'T -> G') {
         $code = 'A.T -> C.G';
     }
-    elsif ($type eq 'A -> T' or $type eq 'T -> A') {
+    elsif ($snp eq 'A -> T' or $snp eq 'T -> A') {
         $code = 'A.T -> T.A';
     }
-    elsif ($type eq 'C -> G' or $type eq 'G -> C') {
+    elsif ($snp eq 'C -> G' or $snp eq 'G -> C') {
         $code = 'C.G -> G.C';
     }
-    elsif ($cpg == 1 and ($type eq 'C -> A' or $type eq 'G -> T')) {
+    elsif ($cpg == 1 and ($snp eq 'C -> A' or $snp eq 'G -> T')) {
         $code = 'CpG+ C.G -> A.T';
     }
-    elsif ($cpg == 0 and ($type eq 'C -> A' or $type eq 'G -> T')) {
+    elsif ($cpg == 0 and ($snp eq 'C -> A' or $snp eq 'G -> T')) {
         $code = 'CpG- C.G -> A.T';
     }
     else {
-        croak "cannot categorise (kassahn) variant type [$type]\n";
+        print Dumper $self, $var, $snp, $cpg;
+        confess "cannot categorise (kassahn) variant type [$var]\n";
     }
 
-    #print join("\t",'kassahn categorisation: ',$type,$cpg,$code),"\n";
     return $code;
 }
 
@@ -524,48 +527,48 @@ sub categorise_kassahn {
 sub categorise_stransky {
     my $self = shift;
 
-    my $type = $self->snp_mutation;
-    my $cpg  = $self->is_cpg;
+    my $var = $self->Variant_Type;
+    my $snp = $self->snp_mutation;
+    my $cpg = $self->is_cpg;
     
-    # We can't do indel categorisation without type
-    return undef unless (defined $type);
-
-    # Assuming $cpg==1 means CpG positive:
-    if ($type eq 'INS' or $type eq 'DEL') {
+    # Return immediately for indels and MNPs
+    if ($var eq 'INS' or $var eq 'DEL') {
         return 'indel';
     }
-    elsif ($type eq 'MNP') {
+    elsif ($snp eq 'MNP') {
         return 'MNP';
     }
 
-    # For SNPs we must have both type and cpg
-    return undef unless (defined $type and defined $cpg);
+    # For SNPs we must have both $snp and $cpg and we assume that
+    # $cpg == 1 means CpG positive.
+
+    return undef unless (defined $snp and defined $cpg);
 
     my $code = undef;
-    if ($type eq 'A -> G' or $type eq 'T -> C' or
-           $type eq 'A -> C' or $type eq 'T -> G' or
-           $type eq 'A -> T' or $type eq 'T -> A') {
+    if ($snp eq 'A -> G' or $snp eq 'T -> C' or
+        $snp eq 'A -> C' or $snp eq 'T -> G' or
+        $snp eq 'A -> T' or $snp eq 'T -> A') {
         $code = 'A -> mut';
     }
-    elsif ($cpg == 1 and ($type eq 'C -> G' or $type eq 'C -> A' or
-                          $type eq 'G -> C' or $type eq 'G -> T')) {
+    elsif ($cpg == 1 and ($snp eq 'C -> G' or $snp eq 'C -> A' or
+                          $snp eq 'G -> C' or $snp eq 'G -> T')) {
         $code = 'CpG+ C -> G/A';
     }
-    elsif ($cpg == 1 and ($type eq 'C -> T' or $type eq 'G -> A')) {
+    elsif ($cpg == 1 and ($snp eq 'C -> T' or $snp eq 'G -> A')) {
         $code = 'CpG+ C -> T';
     }
-    elsif ($cpg == 0 and ($type eq 'G -> A' or $type eq 'G -> C' or
-                          $type eq 'C -> T' or $type eq 'C -> G')) {
+    elsif ($cpg == 0 and ($snp eq 'G -> A' or $snp eq 'G -> C' or
+                          $snp eq 'C -> T' or $snp eq 'C -> G')) {
         $code = 'CpG- G -> A/C';
     }
-    elsif ($cpg == 0 and ($type eq 'C -> A' or $type eq 'G -> T')) {
+    elsif ($cpg == 0 and ($snp eq 'C -> A' or $snp eq 'G -> T')) {
         $code = 'CpG- G -> T';
     }
     else {
-        croak "cannot categorise (stransky) variant type [$type]\n";
+        print Dumper $self, $var, $snp, $cpg;
+        croak "cannot categorise (stransky) variant type [$var]\n";
     }
 
-    #print join("\t",$type,$cpg,$code),"\n";
     return $code;
 }
 
@@ -573,28 +576,28 @@ sub categorise_stransky {
 sub categorise_quiddell {
     my $self = shift;
 
-    my $type  = $self->Variant_Type;
+    my $var   = $self->Variant_Type;
     my $class = $self->Variant_Classification;
 
     # Codes:
-    # non-silent SNV
+    # non-silent substitution
     # indel
 
     my $code = undef;
-    if ($type eq 'INS' or $type eq 'DEL') {
+    if ($var eq 'INS' or $var eq 'DEL') {
         $code = 'indel';
     }
-    elsif ($type eq 'SNP' and $class !~ /^silent$/i) {
-        $code = 'non-silent SNV';
+    elsif ($var =~ /^.NP$/ and $class !~ /^silent$/i) {
+        $code = 'non-silent substitution';
     }
-    elsif ($type eq 'SNP' and $class =~ /^silent$/i) {
-        # we cannot categorise silent SNPs
+    elsif ($var =~ /^.NP$/ and $class =~ /^silent$/i) {
+        # we cannot categorise silent substitutions
     }
-    elsif ($type eq 'SV') {
+    elsif ($var eq 'SV') {
         # we cannot categorise SVs in quiddell system
     }
     else {
-        confess "cannot categorise (quiddell) variant type/class [$type/$class]\n";
+        confess "cannot categorise (quiddell) variant type/class [$var/$class]\n";
     }
 
     return $code;
@@ -604,7 +607,7 @@ sub categorise_quiddell {
 sub categorise_synonymous {
     my $self = shift;
 
-    my $type  = $self->Variant_Type;
+    my $var   = $self->Variant_Type;
     my $class = $self->Variant_Classification;
 
     # Codes:
@@ -627,24 +630,59 @@ sub categorise_synonymous {
     #       3 Splice_Site         INS   -
     #    2058 Splice_Site         SNP   -
 
+    # 2015-08
+    # Updated example summary from the melanoma project showing the info
+    # we have available to make the synon/nonsynon decision.  A couple
+    # of differeneces to note - we now have DNP and TNP in addition to
+    # SNP.
+    #
+    #   Count Class                  Type  Syn/NonSyn
+    # ---------------------------===----------------- 
+    #     396 Frame_Shift_Del         DEL  NS
+    #     140 Frame_Shift_Ins         INS  NS
+    #     100 In_Frame_Del            DEL  NS
+    #    4686 Missense_Mutation       DNP  NS
+    #   90527 Missense_Mutation       SNP  NS
+    #      36 Missense_Mutation       TNP  NS
+    #     346 Nonsense_Mutation       DNP  NS
+    #       3 Nonsense_Mutation       INS  NS
+    #    5788 Nonsense_Mutation       SNP  NS
+    #       1 Nonstop_Mutation        DNP  NS
+    #      40 Nonstop_Mutation        SNP  NS
+    #     360 RNA                     DNP  -
+    #   11018 RNA                     SNP  -
+    #       1 RNA                     TNP  -
+    #     130 Silent                  DNP  S
+    #   48819 Silent                  SNP  S
+    #     140 Splice_Site             DEL  -
+    #     154 Splice_Site             DNP  -
+    #      33 Splice_Site             INS  -
+    #    1665 Splice_Site             SNP  -
+    #       2 Splice_Site             TNP  -
+    #       6 Translation_Start_Site  DNP  -
+    #    3757 Translation_Start_Site  SNP  -
+
     my $code = undef;
-    if ($class =~ /^splice_/i) {
+    if ($class =~ /^Splice_/i or
+        $class =~ /^Translation_/i or
+        $class =~ /^RNA/i) {
         # do nothing - we are not counting splice sites in either category
     }
-    elsif ($type eq 'SV') {
+    elsif ($var eq 'SV') {
         # do nothing - we are not counting structural variants in either category
     }
-    elsif ($type eq 'INS' or $type eq 'DEL' ) {
+    elsif ($var eq 'INS' or $var eq 'DEL' ) {
+        # All # do nothing - we are not counting structural variants in either category
         $code = 'non-synonymous';
     }
-    elsif ($type eq 'SNP' and $class !~ /^silent$/i) {
+    elsif ($var =~ /^.NP/ and $class !~ /^silent$/i) {
         $code = 'non-synonymous';
     }
-    elsif ($type eq 'SNP' and $class =~ /^silent$/i) {
+    elsif ($var =~ /^.NP/ and $class =~ /^silent$/i) {
         $code = 'synonymous';
     }
     else {
-        confess "cannot categorise (synonymous) variant type/class [$type/$class]\n";
+        confess "cannot categorise (synonymous) variant type/class [$var/$class]\n";
     }
 
     return $code;
@@ -710,19 +748,132 @@ the 6th char) then the routine returns undef.
 =item B<snp_mutation()>
 
 For records with Variant_Type of 'SNP', it returns the mutation as a
-string of the form 'Ref -> Alt', e.g. 'A -> C'.  For non-SNP records,
-the Variant_Type is returned (INS, DEL etc).
+string of the form 'Ref -> Alt', e.g. 'A -> C'.  For
+substitutions of greater than 1 base (DNP, TNP, etc) it returns 'MNP'
+and for anything else (indels and odd cases), it returns undef.
 
 
 =item B<categorise_jones()>
 
+ indel
+ MNP
+ C:G to T:A
+ C:G to G:C
+ C:G to A:T
+ T:A to C:G
+ T:A to G:C
+ T:A to A:T
+
+Return values are shown above.
+Undef is returned if the variant could not be categorised using this scheme.
+This scheme does not distinguish between silent and non-silent mutations.
+
 =item B<categorise_kassahn()>
+
+ indel
+ MNP
+ A.T -> G.C
+ CpG+ C.G -> T.A
+ CpG- C.G -> T.A
+ A.T -> C.G
+ A.T -> T.A
+ C.G -> G.C
+ CpG+ C.G -> A.T
+ CpG- C.G -> A.T
+
+Return values are shown above.
+Undef is returned if the variant could not be categorised using this scheme.
+This scheme does not distinguish between silent and non-silent mutations.
 
 =item B<categorise_stransky()>
 
+ indel
+ MNP
+ A -> mut
+ CpG+ C -> G/A
+ CpG+ C -> T
+ CpG- G -> A/C
+ CpG- G -> T
+
+Return values are shown above.
+Undef is returned if the variant could not be categorised using this scheme.
+This scheme does not distinguish between silent and non-silent mutations.
+
+sub categorise_quiddell {
+
+ non-silent substitution
+ indel
+
+
 =item B<categorise_synonymous()>
 
+ synonymous
+ non-synonymous
+
+Return values are shown above.
+Undef is returned if the variant could not be categorised using this scheme.
+For all it's apparent simplicity, this is one of the more complicated
+categorisation scheme because it has to also tak int account the
+Variant_Classification value.
+
+This table is from plotting the brain_met project MAF file in 2014.  It
+shows the information we have available to make the synon/non-synon
+decision.
+
+    Count Class               Type  Syn/NonSyn
+  -------------------------------------------- 
+      191 Frame_Shift_Del     DEL   NS
+       49 Frame_Shift_Ins     INS   NS
+       53 In_Frame_Del        DEL   NS
+    12466 Missense_Mutation   SNP   NS
+      975 Nonsense_Mutation   SNP   NS
+       20 Nonstop_Mutation    SNP   NS
+     5598 Silent              SNP   S
+       33 Splice_Site         DEL   -
+        3 Splice_Site         INS   -
+     2058 Splice_Site         SNP   -
+
+In August 2015, we plotting the MAF for the melanoma project and saw a
+significant change.  In part this is because between the 2014 QCMG logic
+and the 2015 QIMR logic, we have swapped annotation engines from Ensembl
+to SNPEff.  We have also updated qSNP to call multi-base substitutions
+so we can now see di- and tri- nucleotide polymorphisms (DNP, TNP).
+
+    Count Class                  Type  Syn/NonSyn
+  ---------------------------===----------------- 
+      396 Frame_Shift_Del         DEL  NS
+      140 Frame_Shift_Ins         INS  NS
+      100 In_Frame_Del            DEL  NS
+     4686 Missense_Mutation       DNP  NS
+    90527 Missense_Mutation       SNP  NS
+       36 Missense_Mutation       TNP  NS
+      346 Nonsense_Mutation       DNP  NS
+        3 Nonsense_Mutation       INS  NS
+     5788 Nonsense_Mutation       SNP  NS
+        1 Nonstop_Mutation        DNP  NS
+       40 Nonstop_Mutation        SNP  NS
+      360 RNA                     DNP  -
+    11018 RNA                     SNP  -
+        1 RNA                     TNP  -
+      130 Silent                  DNP  S
+    48819 Silent                  SNP  S
+      140 Splice_Site             DEL  -
+      154 Splice_Site             DNP  -
+       33 Splice_Site             INS  -
+     1665 Splice_Site             SNP  -
+        2 Splice_Site             TNP  -
+        6 Translation_Start_Site  DNP  -
+     3757 Translation_Start_Site  SNP  -
+
 =item B<categorise_quiddell()>
+
+ non-silent substitution
+ indel
+
+Return values are shown above.
+Undef is returned if the variant could not be categorised using this scheme.
+This scheme distinguishes between silent and non-silent mutations for
+substitutions but assumes all indels are non-silent.
 
 =item B<categorise_stratton()>
 
@@ -752,6 +903,7 @@ $Id$
 =head1 COPYRIGHT
 
 Copyright (c) The University of Queensland 2010-2014
+Copyright (c) QIMR Berghofer Medical Research Institute 2015
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation files (the "Software"),
