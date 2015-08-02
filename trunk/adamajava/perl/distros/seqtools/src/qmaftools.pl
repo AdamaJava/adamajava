@@ -2278,7 +2278,8 @@ sub category_order {
     my $mode = shift;
     if (exists $INT_2_CAT->{$mode}) {
         my @cats = map { $INT_2_CAT->{$mode}->{ $_ } }
-                   sort keys %{ $INT_2_CAT->{$mode} };
+                   sort { $a <=> $b }
+                   keys %{ $INT_2_CAT->{$mode} };
         return @cats;
     }
     else {
