@@ -116,7 +116,7 @@ sub motif_percentages {
     my $self = shift;
 
     my %motifs_by_category = %{ $self->{motifs_by_category} };
-    my @categories = qw( includes unmapped genomic);
+    my @categories = qw( includes unmapped genomic );
 
     # Get totals by category so we can do percentages later
     my $unmapped_total = 0;
