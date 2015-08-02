@@ -100,13 +100,13 @@ BEGIN {
                          { 'synonymous'     => 1,
                            'non-synonymous' => 2 },
                     'stratton' =>
-                         { 'non-silent SNV'       => 1,
+                         { 'non-silent sub'       => 1,
                            'CNV'                  => 2,
-                           'non-silent SNV + CNV' => 3 },
+                           'non-silent sub + CNV' => 3 },
                     'stratton2' =>
-                         { 'non-silent SNV'       => 1,
+                         { 'non-silent sub'       => 1,
                            'loss/high-gain CNV'   => 2,
-                           'non-silent SNV + loss/high-gain CNV' => 3 },
+                           'non-silent sub + loss/high-gain CNV' => 3 },
                     'jones' =>
                          { 'indel'      => 1,
                            'C:G to T:A' => 2,
@@ -128,28 +128,28 @@ BEGIN {
                            'indel'           => 9,
                            'MNP'             => 10 },
                     'quiddell' =>
-                         { 'non-silent SNV'                   => 1,
+                         { 'non-silent substitution'          => 1,
                            'indel'                            => 2,
                            'high-gain (copy number > 5)'      => 3,
                            'loss (copy number < 2)'           => 4,
-                           'indel/non-silent SNV + high-gain' => 5,
-                           'indel/non-silent SNV + loss'      => 6 },
+                           'indel/non-silent sub + high-gain' => 5,
+                           'indel/non-silent sub + loss'      => 6 },
                     'nones' =>
-                         { 'non-silent SNV'                   => 1,
+                         { 'non-silent sub'                   => 1,
                            'indel'                            => 2,
                            'high-gain (copy number > 5)'      => 3,
                            'loss (copy number < 2)'           => 4,
-                           'indel/non-silent SNV + high-gain' => 5,
-                           'indel/non-silent SNV + loss'      => 6,
+                           'indel/non-silent sub + high-gain' => 5,
+                           'indel/non-silent sub + loss'      => 6,
                            'SV'                               => 7,
                            'SV + other mutation'              => 8 },
                     'grimmond' =>
-                         { 'indel/non-silent SNV'             => 1,
+                         { 'indel/non-silent sub'             => 1,
                            'Amplification (copy number > 4)'  => 2,
                            'Loss (copy number < 2 or CN-LOH)' => 3,
                            'SV'                               => 4,
-                           'SV + indel/non-silent SNV/CNV'    => 5,
-                           'CNV + indel/non-silent SNV'       => 6 },
+                           'SV + indel/non-silent sub/CNV'    => 5,
+                           'CNV + indel/non-silent sub'       => 6 },
                   };
 
     # This is the exact reverse of $CAT_2_INT so it is created
@@ -2841,7 +2841,7 @@ sub create_stratton_matrix {
     # CNVs come in coded as actual copy number
 
     # Collapse all SNV and CNV data to 3 numbers:
-    # 1 = any non-silent SNV
+    # 1 = any non-silent sub
     # 2 = any CNV
     # 3 = both 1 and 2
 
@@ -2907,7 +2907,7 @@ sub create_stratton2_matrix {
     # CNVs come in coded as actual copy number
 
     # Collapse all SNV and CNV data to 3 numbers:
-    # 1 = any non-silent SNV
+    # 1 = any non-silent sub
     # 2 = loss/high-gain CNV
     # 3 = both 1 and 2
 
@@ -2978,7 +2978,7 @@ sub create_quiddell_matrix {
     my $cnvs = shift; # QCMG::Variants::VariantSummary
 
     # SNVs come in coded as: 'indel'
-    #                        'non-silent SNV'
+    #                        'non-silent sub'
     #                        'silent SNV'
     # CNVs come in coded as actual copy number
 
@@ -3016,20 +3016,20 @@ sub create_quiddell_matrix {
             my $new_var = undef;
 
             if (defined $old_var) {
-                if ($old_var eq 'non-silent SNV') {
+                if ($old_var eq 'non-silent sub') {
                     if ($copynum > 5) {
-                        $new_var = 'indel/non-silent SNV + high-gain';
+                        $new_var = 'indel/non-silent sub + high-gain';
                     }
                     elsif ($copynum < 2) {
-                        $new_var = 'indel/non-silent SNV + loss';
+                        $new_var = 'indel/non-silent sub + loss';
                     }
                 }
                 elsif ($old_var eq 'indel') {
                     if ($copynum > 5) {
-                        $new_var = 'indel/non-silent SNV + high-gain';
+                        $new_var = 'indel/non-silent sub + high-gain';
                     }
                     elsif ($copynum < 2) {
-                        $new_var = 'indel/non-silent SNV + loss';
+                        $new_var = 'indel/non-silent sub + loss';
                     }
                 }
             }
@@ -3068,7 +3068,7 @@ sub create_nones_matrix {
     # the future.
 
     # SNVs come in coded as: 'indel'
-    #                        'non-silent SNV'
+    #                        'non-silent sub'
     #                        'silent SNV'
     # CNVs come in coded as actual copy number
     # SVs come in coded as '1'
@@ -3109,20 +3109,20 @@ sub create_nones_matrix {
             my $new_var = undef;
 
             if (defined $old_var) {
-                if ($old_var eq 'non-silent SNV') {
+                if ($old_var eq 'non-silent sub') {
                     if ($copynum > 5) {
-                        $new_var = 'indel/non-silent SNV + high-gain';
+                        $new_var = 'indel/non-silent sub + high-gain';
                     }
                     elsif ($copynum < 2) {
-                        $new_var = 'indel/non-silent SNV + loss';
+                        $new_var = 'indel/non-silent sub + loss';
                     }
                 }
                 elsif ($old_var eq 'indel') {
                     if ($copynum > 5) {
-                        $new_var = 'indel/non-silent SNV + high-gain';
+                        $new_var = 'indel/non-silent sub + high-gain';
                     }
                     elsif ($copynum < 2) {
-                        $new_var = 'indel/non-silent SNV + loss';
+                        $new_var = 'indel/non-silent sub + loss';
                     }
                 }
             }
@@ -3180,19 +3180,19 @@ sub create_grimmond_matrix {
     # This routine is base on create_nones_matrix().
 
     # SNVs come in coded as: 'indel'
-    #                        'non-silent SNV'
+    #                        'non-silent sub'
     #                        'silent SNV'
     # CNVs come in coded as actual copy number
     # SVs come in coded as '1'
     #
     # Output MUST be in the scheme as it appears in CAT_2_INT
     # 
-    #  { 'indel/non-silent SNV'             => 1,
+    #  { 'indel/non-silent sub'             => 1,
     #    'Amplification (copy number > 4)'  => 2,
     #    'Loss (copy number < 2 or CN-LOH)' => 3,
     #    'SV'                               => 4,
-    #    'SV + indel/non-silent SNV/CNV'    => 5,      
-    #    'CNV + indel/non-silent SNV'       => 6 },
+    #    'SV + indel/non-silent sub/CNV'    => 5,      
+    #    'CNV + indel/non-silent sub'       => 6 },
 
     # We are going to build a big old hash where for each id/gene
     # combination we have a hash of all of the observed variants.  This
@@ -3207,7 +3207,7 @@ sub create_grimmond_matrix {
             my $var = $snvs->variant_by_patient_and_gene( $id, $gene );
             next unless defined $var;
             if ($var !~ /^silent SNV$/i) {
-                $vars{ $id }->{ $gene }->{ 'indel/non-silent SNV' }++;
+                $vars{ $id }->{ $gene }->{ 'indel/non-silent sub' }++;
             }
         }
     }
@@ -3254,30 +3254,30 @@ sub create_grimmond_matrix {
             # falling through to test for the simpler single-variant
             # scenarios.
             if ( exists $here->{'SV'} and
-                    ( exists $here->{'indel/non-silent SNV'} or
+                    ( exists $here->{'indel/non-silent sub'} or
                       exists $here->{'Amplification (copy number > 4)'} or
                       exists $here->{'Loss (copy number < 2 or CN-LOH)'} )
                       ) {
                 $new_vs->add_variant( patient => $id, 
                                       gene    => $gene,
-                                      variant => 'SV + indel/non-silent SNV/CNV' );
+                                      variant => 'SV + indel/non-silent sub/CNV' );
             }
             elsif (scalar(@variants) > 2) {
                 warn "unable to categorise $id/$gene in grimmond scheme: ",
                      join(',',@variants),"\n"; 
             }
-            elsif ( exists $here->{'indel/non-silent SNV'} and
+            elsif ( exists $here->{'indel/non-silent sub'} and
                     ( exists $here->{'Amplification (copy number > 4)'} or
                       exists $here->{'Loss (copy number < 2 or CN-LOH)'} )
                       ) {
                 $new_vs->add_variant( patient => $id, 
                                       gene    => $gene,
-                                      variant => 'CNV + indel/non-silent SNV' );
+                                      variant => 'CNV + indel/non-silent sub' );
             }
-            elsif ( exists $here->{'indel/non-silent SNV'} ) {
+            elsif ( exists $here->{'indel/non-silent sub'} ) {
                 $new_vs->add_variant( patient => $id, 
                                       gene    => $gene,
-                                      variant => 'indel/non-silent SNV' );
+                                      variant => 'indel/non-silent sub' );
             }
             elsif ( exists $here->{'SV'} ) {
                 $new_vs->add_variant( patient => $id, 
