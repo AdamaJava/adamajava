@@ -128,7 +128,7 @@ BEGIN {
                            'indel'           => 9,
                            'MNP'             => 10 },
                     'quiddell' =>
-                         { 'non-silent substitution'          => 1,
+                         { 'non-silent sub'                   => 1,
                            'indel'                            => 2,
                            'high-gain (copy number > 5)'      => 3,
                            'loss (copy number < 2)'           => 4,
