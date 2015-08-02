@@ -154,13 +154,28 @@ sub qsnp_log {
 sub _search_for_expected_files {
     my $self = shift;
 
-    my $finder = QCMG::FileDir::Finder->new( verbose => $self->verbose );
-    
-    my %patterns = %{ $CLASS_GLOBALS{patterns} };
+    my $dir   = $self->dir;
+    my $files = `find $dir -type f`;
 
-    # Look for our signature files using the patterns above
+    # Remove directory path from file name
+    my @files = map { s/.*\///g; $_ } split /\n/, $files;
+    qlogprint( 'found ',scalar(@files), " files in $dir\n" );
+
+
+    # Look for key files using the globally-defined patterns
+
+    my %patterns = %{ $CLASS_GLOBALS{patterns} };
     foreach my $key (keys %patterns) {
-        my @files = $finder->find_file( $self->dir, $patterns{$key} );
+        my $pattern = $patterns{$key};
+
+        my @matching_files = ();
+        foreach my $file (@files) {
+            # Find matching files
+            if ($file =~ /$pattern/) {
+                push @matching_files, $file;
+            }
+
+        }
 
         # We are expecting one and only one file to match each pattern.
         # If we got no matches then that could be because it's not
@@ -168,11 +183,11 @@ sub _search_for_expected_files {
         # BUT more than one match is always a big problem so whinge
         # straight away and DO NOT choose between the files.
 
-        my $file_count = scalar(@files);
+        my $file_count = scalar(@matching_files);
         if ($file_count > 1) {
             # More than one file matching pattern is a problem
             warn "more than one file found matching pattern for $key: ".
-                 join(',',@files). "\n";
+                 join(',',@matching_files). "\n";
         }
         elsif ($file_count == 0) {
             # No files file matching pattern *may* be a problem
@@ -181,7 +196,7 @@ sub _search_for_expected_files {
         }
         else {
             # There can be only one ...
-            $self->_set_file( $key, $files[0] );
+            $self->_set_file( $key, $matching_files[0] );
         }
     }
 }
@@ -421,7 +436,7 @@ and any other value (traditionally 1) sets verbose mode on.
 
 =over
 
-=item John Pearson L<mailto:j.pearson@uq.edu.au>
+=item John Pearson L<mailto:grendeloz@gmail.com>
 
 =back
 

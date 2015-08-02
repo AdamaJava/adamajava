@@ -580,7 +580,7 @@ sub categorise_quiddell {
     my $class = $self->Variant_Classification;
 
     # Codes:
-    # non-silent substitution
+    # non-silent sub
     # indel
 
     my $code = undef;
@@ -588,7 +588,7 @@ sub categorise_quiddell {
         $code = 'indel';
     }
     elsif ($var =~ /^.NP$/ and $class !~ /^silent$/i) {
-        $code = 'non-silent substitution';
+        $code = 'non-silent sub';
     }
     elsif ($var =~ /^.NP$/ and $class =~ /^silent$/i) {
         # we cannot categorise silent substitutions
@@ -801,7 +801,7 @@ This scheme does not distinguish between silent and non-silent mutations.
 
 sub categorise_quiddell {
 
- non-silent substitution
+ non-silent sub
  indel
 
 
@@ -867,7 +867,7 @@ so we can now see di- and tri- nucleotide polymorphisms (DNP, TNP).
 
 =item B<categorise_quiddell()>
 
- non-silent substitution
+ non-silent sub
  indel
 
 Return values are shown above.
@@ -892,7 +892,7 @@ text matrices used in R to generate the plots.
 
 =head1 AUTHORS
 
-John Pearson L<mailto:j.pearson@uq.edu.au>
+John Pearson L<mailto:grendeloz@gmail.com>
 
 
 =head1 VERSION

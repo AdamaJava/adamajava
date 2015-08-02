@@ -70,7 +70,7 @@ BEGIN {
                      germl_mafhc  => '^(.*\.Germline.HighConfidence.snv.maf)$',
                      germl_mafhcc => '^(.*\.Germline.HighConfidenceConsequence.snv.maf)$',
                      germl_maflog => '^(.*mafPipelineGermline.*\.log)$',
-                     main_vcf     => '^(.*\d+\.vcf)$'
+                     main_vcf     => '^([A-Z]+_\d+\.vcf)$'
                    );
 
     # The only GATK-specific files in the dir are the 2 VCF files and
@@ -775,6 +775,7 @@ $Id$
 =head1 COPYRIGHT
 
 Copyright (c) The University of Queensland 2009-2014
+Copyright (c) QIMR Berghofer Medical Research Institute 2015
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation files (the "Software"),

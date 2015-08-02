@@ -78,7 +78,7 @@ sub _search_for_directories {
     # Append '/' to dir if not already present;
     $dir .= '/' unless ($dir =~ /\/$/);
  
-    qlogprint "processing dir $dir\n" if ($self->verbose > 1);
+    qlogprint "searching for dirs in $dir\n" if ($self->verbose > 1);
 
     opendir(DIR, $dir) || croak "Can't opendir [$dir]: $!";
     my @everything = readdir(DIR);
@@ -121,7 +121,7 @@ sub _search_for_files {
     # Append '/' to dir if not already present;
     $dir .= '/' unless ($dir =~ /\/$/);
  
-    qlogprint "processing dir $dir\n" if ($self->verbose > 1);
+    qlogprint "searching for files in $dir\n" if ($self->verbose > 1);
 
     opendir(DIR, $dir) || croak "Can't opendir [$dir]: $!";
     my @everything = readdir(DIR);
@@ -263,7 +263,7 @@ and any other value (traditionally 1) sets verbose mode on.
 
 =over
 
-=item John Pearson L<mailto:j.pearson@uq.edu.au>
+=item John Pearson L<mailto:grendeloz@gmail.com>
 
 =back
 
@@ -276,6 +276,7 @@ $Id$
 =head1 COPYRIGHT
 
 Copyright (c) The University of Queensland 2009-2014
+Copyright (c) QIMR Berghofer Medical Research Institute 2015
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation files (the "Software"),
