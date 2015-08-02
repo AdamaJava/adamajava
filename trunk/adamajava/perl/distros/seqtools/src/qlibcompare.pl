@@ -63,12 +63,10 @@ MAIN: {
            'v|verbose+'           => \$params{verbose},       # -v
            );
     
-    
     # Set up logging
     qlogfile($params{logfile}) if $params{logfile};
     qlogbegin();
     qlogprint( {l=>'EXEC'}, "CommandLine $CMDLINE\n");
-    
     
     # Validate files
     qlogprint( "Validating files\n");
@@ -78,19 +76,13 @@ MAIN: {
     qlogprint( "Collecting Read Groups\n" );
     my $read_groups = collect_header_readgroups($xml_files);
     
-    print Dumper scalar @{$params{infiles}}, $read_groups;
-    die "You must specify at least 2 input files or an imput file with at least 2 read groups\n" 
+    #print Dumper scalar @{$params{infiles}}, $read_groups;
+    die "You must specify at least 2 input files or an input file with at least 2 read groups\n" 
       unless scalar @{$params{infiles}} >= 2 or scalar @{$read_groups} >= 2;
-    
-    #print Dumper $read_groups;
     
     # Collect Metadata from LIMS where avalibale
     qlogprint( "Obtaining Metadata\n");
     collect_metadata($xml_files);
-    
-    #print Dumper $xml_files;
-    #my $file_count = scalar keys %{$xml_files};
-    
     
     # Build a Refernce of all positions
     my $posistitions = {};
@@ -145,10 +137,10 @@ sub validate_files {
     eval { $doc = $parser->load_xml( location => $file ); };
       #die $@ if $@; # Nobody is dieing today
       if (ref($@)) {
-        print "Handle a structured error (XML::LibXML::Error object)\n";
+        die "Handle a structured error (XML::LibXML::Error object)\n";
       } 
       elsif ($@) {
-        print  "Error, but not an XML::LibXML::Error object\n";
+        die  "Error, but not an XML::LibXML::Error object\n";
       }
       else{
         if ($doc->hasChildNodes) {
@@ -243,7 +235,7 @@ sub collect_positions {
       my $RG_index = $file_read_group->{index};
       
       if ( ! exists $results->{$RG_id} ) {
-        qlogprint( {l=>'WARN'}, "No positions found for \@RG $RG_id \n");
+        warn "No positions found for \@RG $RG_id \n";
         $results->{$RG_id}{tallies} = [];
         $results->{$RG_id}{sum_count} = 0;
         #next();
@@ -291,7 +283,7 @@ sub collect_counts {
     return $read_group_tallies;
   }
   else{
-    qlogprint( {l=>'WARN'}, "xml_path $xml_path not found\n");
+    warn"xml_path $xml_path not found\n";
   }
 }
 
@@ -404,7 +396,7 @@ sub collect_metadata {
     my $file = $xml_files->[$index];
     $file->{metadata} = {};
     
-    printf ("#%s\t %s -> %s\n", $index, $file->{lims_identifier}, $file->{path});
+    #printf ("#%s\t %s -> %s\n", $index, $file->{lims_identifier}, $file->{path});
     my $resource = $file->{lims_identifier};
     #my $resource_type = $file->{type};
     
@@ -460,7 +452,7 @@ sub write_xml {
 	$writer->startTag( 'qLibCompare', 'version'=>"0.1");
   
   # FILES
-  print "Files\n";
+  #print "Files\n";
   $writer->startTag( 'files' );
     for (my $file_index = 0; $file_index < $file_count; $file_index++) {    
       my $file = $files->[$file_index];
@@ -482,7 +474,7 @@ sub write_xml {
   $writer->endTag(  );	# /files
   
   # Read Groups
-  print "Read Groups\n";
+  #print "Read Groups\n";
   $writer->startTag( 'read_groups' );
     for (my $RG_index = 0; $RG_index < $read_group_count; $RG_index++) {    
       my $RG = $read_groups->[$RG_index];
@@ -504,7 +496,7 @@ sub write_xml {
   $writer->startTag( 'BAMReport' );
   # ISIZE
     $writer->startTag( 'ISIZE' );
-      print "RangeTally\n";
+      #print "RangeTally\n";
       $writer->startTag( 'RangeTally' );
       for (my $bin = $bin_start; $bin < $bin_count; $bin +=$bin_size) {
         my $start = $bin;
@@ -533,7 +525,7 @@ sub write_xml {
   $writer->endTag(  );	# /BAMReport
   
   # COMPARES
-  print "Compares\n";
+  #print "Compares\n";
   $writer->startTag( 'Compares' );
   for (my $index_a = 0; $index_a < $compared_count; $index_a++) {
     $writer->startTag( 'RG', 'index'=> $index_a+0);    
