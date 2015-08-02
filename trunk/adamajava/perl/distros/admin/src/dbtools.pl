@@ -26,6 +26,8 @@ use QCMG::FileDir::Finder;
 use QCMG::FileDir::QLogFile;
 use QCMG::FileDir::QSnpDirParser;
 use QCMG::FileDir::GatkDirParser;
+use QCMG::FileDir::q3QsnpDirParser;
+use QCMG::FileDir::q3GatkDirParser;
 use QCMG::IO::EnsemblDomainsReader;
 use QCMG::IO::FastaReader;
 use QCMG::IO::SamHeader;
@@ -71,7 +73,8 @@ MAIN: {
                           aligner_from_mapset_bam
                           qsnp_vcf_info
                           gatk_vcf_info
-                          vcf_info_compare );
+                          vcf_info_compare
+                        );
 
     if ($mode =~ /^$valid_modes[0]$/i or $mode =~ /\?/) {
         pod2usage( -exitval  => 0,
@@ -95,10 +98,10 @@ MAIN: {
         aligner_from_mapset_bam()
     }
     elsif ($mode =~ /^$valid_modes[6]/i) {
-        qsnp_vcf_info( 'qsnp' )
+        vcf_info( 'qsnp' )
     }
     elsif ($mode =~ /^$valid_modes[7]/i) {
-        qsnp_vcf_info( 'gatk' )
+        vcf_info( 'gatk' )
     }
     elsif ($mode =~ /^$valid_modes[8]/i) {
         vcf_info_compare();
@@ -107,6 +110,103 @@ MAIN: {
         die "dbtools mode [$mode] is unrecognised; valid modes are: " .
             join(' ',@valid_modes) ."\n";
     }
+}
+
+
+sub vcf_info {
+    my $mode = shift;
+
+    pod2usage( -exitval  => 0,
+               -verbose  => 99,
+               -sections => 'COMMAND DETAILS/VCF_INFO' )
+        unless (scalar @ARGV > 0);
+
+    # Setup defaults for important variables.
+
+    my %params = ( dirs     => [],
+                   outfile  => '',
+                   logfile  => '',
+                   verbose  => 0 );
+
+    my $results = GetOptions (
+           'd|dir=s'              =>  $params{dirs},          # -d
+           'o|outfile=s'          => \$params{outfile},       # -o
+           'l|logfile=s'          => \$params{logfile},       # -l
+           'v|verbose+'           => \$params{verbose},       # -v
+           );
+
+    # It is mandatory to supply an infile or directory
+    die "You must specify a directory (-d)\n"
+        unless ( scalar( @{ $params{dirs} } ) );
+    die "You must specify an outfile (-o)\n" unless $params{outfile};
+    
+    # Set up logging
+    qlogfile($params{logfile}) if $params{logfile};
+    qlogbegin();
+    qlogprint( {l=>'EXEC'}, "CommandLine $CMDLINE\n");
+    qlogparams( \%params );
+
+    # Set up output file
+    my $outfh = IO::File->new( $params{outfile}, 'w' );
+    croak 'Unable to open ', $params{outfile}, " for writing: $!"
+        unless defined $outfh;
+    $outfh->autoflush(1);
+    $outfh->print( join( "\t", qw( AnalysisDir VCF RecordCount
+                                   fileformat fileDate
+                                   qSource qPatientId
+                                   qUUID qAnalysisId
+                                   qControlBamUUID qTestBamUUID
+                                   qControlBam qTestBam ) ),
+                   "\n" );
+
+    # Parse directories
+    my $fact = undef;
+    if ($mode eq 'qsnp') {
+        $fact = QCMG::FileDir::q3QsnpDirParser->new( verbose => $params{verbose} );
+    }
+    elsif ($mode eq 'gatk') {
+        $fact = QCMG::FileDir::q3GatkDirParser->new( verbose => $params{verbose} );
+    }
+
+    foreach my $dir (@{ $params{dirs} }) {
+        # Arrayref of q3-*-DirRecord objects
+        my $ra_analyses = $fact->parse( $dir );
+        foreach my $analysis (@{ $ra_analyses }) {
+            my $vcffile = $analysis->get_file( 'main_vcf' );
+            if (! defined $vcffile) {
+                $outfh->print( join("\t", $analysis->dir, 'NoVcf' ), "\n" );
+            }
+            else {
+                my $vcf = QCMG::IO::VcfReader->new(
+                              filename => $vcffile->full_pathname,
+                              verbose  => $params{verbose} );
+                $vcf->slurp;
+                my @fields = ( $analysis->dir, $vcffile->name );
+                push @fields, $vcf->record_count;
+                push @fields, _vcf_header( $vcf, 'fileformat' );
+                push @fields, _vcf_header( $vcf, 'fileDate' );
+                # Where possible, handle the older format files
+                if (_vcf_header( $vcf, 'qSource' ) ne '.') {
+                    push @fields, _vcf_header( $vcf, 'qSource' );
+                    push @fields, _vcf_header( $vcf, 'qPatientId' );
+                }
+                else {
+                    push @fields, _vcf_header( $vcf, 'source' );
+                    push @fields, _vcf_header( $vcf, 'patient_id' );
+                }
+                push @fields, _vcf_header( $vcf, 'qUUID' );
+                push @fields, _vcf_header( $vcf, 'qAnalysisId' );
+                push @fields, _vcf_header( $vcf, 'qControlBamUUID' );
+                push @fields, _vcf_header( $vcf, 'qTestBamUUID' );
+                push @fields, _vcf_header( $vcf, 'qControlBam' );
+                push @fields, _vcf_header( $vcf, 'qTestBam' );
+                $outfh->print( join("\t", @fields ), "\n" );
+            }
+        }
+    }
+
+    $outfh->close;
+    qlogend();
 }
 
 
@@ -188,10 +288,76 @@ sub vcf_info_compare {
         unless defined $outfh;
     $outfh->print( join( "\t", @out_headers ), "\n" );
 
+    # Now we need to do some reporting.
+
+    # Report 1 - full dump of groups and at the same time, classify each
+    # group as one of:
+    # a. singleton exome
+    # b. singleton genome
+    # c. pair exome
+    # d. pair genome
+    # e. too-many exome
+    # f. too-many genome
+    # g. unknown
+
+    my %grouped_analyses = ();
+
+    $outfh->print( "[GROUPS]\n" );
     foreach my $key (sort keys %analyses) {
         $outfh->print( "# $key\n" );
+        my @records = @{ $analyses{$key} };
+
+        my $caller = 'caller_' . $records[0]->[0];
+        my $count = scalar @records;
+        # Regex against first qControlBam field to guess type
+        my $type = $records[0]->[12] =~ /_NoCapture_/ ? 'genome' :
+                   $records[0]->[12] =~ /_HumanAllExon50MbSureSelect_/ ? 'exome_sslct' :
+                   $records[0]->[12] =~ /_HumanTruSEQExomeEnrichmentTruSEQ_/ ? 'exome_truseq' :
+                   $records[0]->[12] =~ /_SeqCapEZHumanExomeLibraryV30Nimbelgen_/ ?  'exome_nmblgn' :
+                   'unknown';
+
         foreach my $ra_rec (@{ $analyses{$key} }) {
             $outfh->print( join( "\t", @{ $ra_rec } ), "\n" );
+        }
+
+        my $category = $count == 1 ? join( ' ', 'singleton', $caller, $type ) :
+                       $count == 2 ? join( ' ', 'pair', $type ) :
+                       join( ' ', $count, $type );
+        push @{ $grouped_analyses{ $category } }, $analyses{$key};
+    }
+
+    my @category_headers = ( qw( File Donor AnalysisID 
+                                 qControlBamUUID qTestBamUUID ) );
+    $outfh->print( "\n\n[CATEGORIES]\n" );
+    foreach my $key (sort keys %grouped_analyses) {
+        $outfh->print( "\n[Category: $key]\n" );
+        $outfh->print( join( "\t", @category_headers ), "\n" );
+        foreach my $ra_group (@{ $grouped_analyses{$key} }) {
+            foreach my $ra_rec (@{ $ra_group }) {
+                $outfh->print( join( "\t", $ra_rec->[0],
+                                           $ra_rec->[7],
+                                           $ra_rec->[9],
+                                           $ra_rec->[10],
+                                           $ra_rec->[11] ), "\n" );
+            }
+            $outfh->print( "\n" );
+        }
+    }
+
+    @category_headers = ( qw( Type Donor AnalysisID1 AnalysisID2
+                              qControlBamUUID qTestBamUUID ) );
+    $outfh->print( "\n\n[PAIRS]\n" );
+    $outfh->print( join( "\t", @category_headers ), "\n" );
+    foreach my $key (sort keys %grouped_analyses) {
+        next unless ($key =~ /^pair/);
+        foreach my $ra_group (@{ $grouped_analyses{$key} }) {
+            $outfh->print( join( "\t", $key,
+                                       $ra_group->[0]->[7],
+                                       $ra_group->[0]->[9],
+                                       $ra_group->[1]->[9],
+                                       $ra_group->[0]->[10],
+                                       $ra_group->[0]->[11],
+                                ), "\n" );
         }
     }
 
@@ -200,8 +366,12 @@ sub vcf_info_compare {
 }
 
 
-sub qsnp_vcf_info {
+sub vcf_info_old {
     my $mode = shift;
+
+    # This routine is way too slow because it relies on the
+    # QSnpDirParser and GatkDirParser classes.  The new q3 versions of
+    # both of those classes are way (5x) faster.
 
     pod2usage( -exitval  => 0,
                -verbose  => 99,
@@ -226,6 +396,7 @@ sub qsnp_vcf_info {
     # It is mandatory to supply an infile or directory
     die "You must specify a directory (-d)\n"
         unless ( scalar( @{ $params{dirs} } ) );
+    die "You must specify an outfile (-o)\n" unless $params{outfile};
     
     # Set up logging
     qlogfile($params{logfile}) if $params{logfile};
@@ -233,11 +404,10 @@ sub qsnp_vcf_info {
     qlogprint( {l=>'EXEC'}, "CommandLine $CMDLINE\n");
     qlogparams( \%params );
 
-    warn "No output file specified\n" unless $params{outfile};
-
     my $outfh = IO::File->new( $params{outfile}, 'w' );
     croak 'Unable to open ', $params{outfile}, " for writing: $!"
         unless defined $outfh;
+    $outfh->autoflush(1);
     $outfh->print( join( "\t", qw( AnalysisDir VCF RecordCount
                                    fileformat fileDate
                                    qSource qPatientId
@@ -247,7 +417,6 @@ sub qsnp_vcf_info {
                    "\n" );
 
     my $fact = undef;
-
     if ($mode eq 'qsnp') {
         $fact = QCMG::FileDir::QSnpDirParser->new( verbose => $params{verbose} );
     }
@@ -686,6 +855,9 @@ suitable for importing into QCMGschema.
 
 =head1 COMMANDS
 
+ qsnp_vcf_info  - info about qSNP v2.0 VCFs
+ gatk_vcf_info  - info about qSNP v2.0 GATK VCFs
+ vcf_info_compare - compare qsnp_vcf_info and gatk_vcf_info
  qsnpdir        - progress of qSNP calling
  finalbampairs  - list of callable pairs of BAMs
  aligner_from_mapset_bam - drive aligner from mapset bam
@@ -695,6 +867,33 @@ suitable for importing into QCMGschema.
 
 
 =head1 COMMAND DETAILS
+
+=head2 VCF_INFO_COMPARE
+
+Compare output files from modes qsp_vcf_info and gatk_vcf_info.
+
+      --infile1       qsnp_vcf_info output file
+      --infile2       gatk_vcf_info output file
+ -o | --outfile       output file
+ -l | --logfile       Log file; optional
+ -v | --verbose       print progress and diagnostic messages
+
+This mode compares output files from modes qsnp_vcf_info and
+gatk_vcf_info to try to identify pairs of calls that were done on the
+same BAM files.
+
+=head2 VCF_INFO
+
+Process calling directories for VCFs.
+
+ -d | --dir           root directory(s) under which to search
+ -o | --outfile       output file
+ -l | --logfile       Log file; optional
+ -v | --verbose       print progress and diagnostic messages
+
+This mode comes in 2 flavours - qsnp_vcf_info and gatk_vcf_info.
+It will look for DONOR.vcf files and parse the information out of them.
+You can specify multiple search directories.
 
 =head2 QSNPDIR
 
@@ -752,7 +951,7 @@ the BAM header to work out which aligner was used for the BAM.
 
 =over 2
 
-=item John Pearson, L<mailto:j.pearson@uq.edu.au>
+=item John Pearson, L<mailto:grendeloz@gmail.com>
 
 =back
 
