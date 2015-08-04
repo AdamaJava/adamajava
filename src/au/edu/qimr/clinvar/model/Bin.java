@@ -45,6 +45,9 @@ public class Bin implements Comparable<Bin> {
 	public String [] getSmithWatermanDiffs(ChrPosition cp) {
 		return possiblePositionSWDiffsMap.get(cp);
 	}
+	public Map<ChrPosition, String [] > getSmithWatermanDiffsMap() {
+		return possiblePositionSWDiffsMap;
+	}
 	
 	public void addPossiblePosition(ChrPosition cp, String [] seDiffs) {
 		possiblePositionSWDiffsMap.put(cp, seDiffs);

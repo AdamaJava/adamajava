@@ -175,7 +175,7 @@ private static QLogger logger;
 			/*
 			 * Setup the header
 			 */
-			writer.write("#amplicon_id,amplicon_name,amplicon_position,bin_id,bin_read_count,bin_sequence_length,bin_position,amplicon_sw_score,bin_sw_score\n");
+			writer.write("#amplicon_id,amplicon_name,amplicon_position,bin_id,bin_read_count,bin_sequence_length,bin_position,amplicon_sw_score,bin_sw_score,amplicon_sw,bin_sw\n");
 			
 			for (Entry<Probe, List<Bin>> entry : probeBinDist.entrySet()) {
 				Probe probe = entry.getKey();
@@ -189,6 +189,42 @@ private static QLogger logger;
 				}
 				
 				for (Bin b : binsSet) {
+					
+					String [] ampliconPositionSWDiffs = b.getSmithWatermanDiffs();
+					if (null == ampliconPositionSWDiffs) {
+						String sequence = probe.reverseComplementSequence() ? SequenceUtil.reverseComplement(b.getSequence()) : b.getSequence();
+						SmithWatermanGotoh nm = new SmithWatermanGotoh(probe.getReferenceSequence(), sequence, 5, -4, 16, 4);
+						ampliconPositionSWDiffs =  nm.traceback();
+					}
+					
+					StringBuilder tiledLocations = new StringBuilder();
+					StringBuilder tiledLocationScores = new StringBuilder();
+					StringBuilder tiledLocationDiffs = new StringBuilder();
+					if (null != b.getBestTiledLocation()) {
+						tiledLocations.append(b.getBestTiledLocation().toIGVString());
+						tiledLocationScores.append(ClinVarUtil.getSmithWatermanScore(b.getSmithWatermanDiffs(b.getBestTiledLocation())));
+						tiledLocationDiffs.append(b.getSmithWatermanDiffs(b.getBestTiledLocation())[0]);
+						tiledLocationDiffs.append(b.getSmithWatermanDiffs(b.getBestTiledLocation())[1]);
+						tiledLocationDiffs.append(b.getSmithWatermanDiffs(b.getBestTiledLocation())[2]);
+					} else if (null != b.getSmithWatermanDiffsMap() && ! b.getSmithWatermanDiffsMap().isEmpty()) {
+						for (Entry<ChrPosition, String []> entry2 : b.getSmithWatermanDiffsMap().entrySet()) {
+							if (tiledLocations.length() > 0) {
+								tiledLocations.append(Constants.SEMI_COLON);
+								tiledLocationScores.append(Constants.SEMI_COLON);
+								tiledLocationDiffs.append(Constants.SEMI_COLON);
+							}
+							tiledLocations.append(entry2.getKey().toIGVString());
+							tiledLocationScores.append(ClinVarUtil.getSmithWatermanScore(entry2.getValue()));
+							tiledLocationDiffs.append(entry2.getValue()[0]);
+							tiledLocationDiffs.append(entry2.getValue()[1]);
+							tiledLocationDiffs.append(entry2.getValue()[2]);
+						}
+					} else {
+						tiledLocations.append("-");
+						tiledLocationScores.append("-");
+						tiledLocationDiffs.append("-");
+					}
+					
 					StringBuilder sb = new StringBuilder();
 					sb.append(probe.getId());
 					sb.append(Constants.COMMA);
@@ -202,16 +238,17 @@ private static QLogger logger;
 					sb.append(Constants.COMMA);
 					sb.append(b.getLength());
 					sb.append(Constants.COMMA);
-					sb.append(null != b.getBestTiledLocation() ? b.getBestTiledLocation().toIGVString() : "-");
+					sb.append(tiledLocations.toString());
 					sb.append(Constants.COMMA);
-					sb.append(ClinVarUtil.getSmithWatermanScore(b.getSmithWatermanDiffs()));
+					sb.append(ClinVarUtil.getSmithWatermanScore(ampliconPositionSWDiffs));
 					sb.append(Constants.COMMA);
-					if (null != b.getBestTiledLocation()) {
-						sb.append(ClinVarUtil.getSmithWatermanScore(b.getSmithWatermanDiffs(b.getBestTiledLocation())));
-					} else {
-						sb.append("-");
-					}
-					
+					sb.append(tiledLocationScores.toString());
+					sb.append(Constants.COMMA);
+					sb.append(ampliconPositionSWDiffs[0]);
+					sb.append(ampliconPositionSWDiffs[1]);
+					sb.append(ampliconPositionSWDiffs[2]);
+					sb.append(Constants.COMMA);
+					sb.append(tiledLocationDiffs.toString());
 					sb.append("\n");
 					writer.write(sb.toString());
 				}
@@ -291,7 +328,6 @@ private static QLogger logger;
 					}
 				}
 		}
-				
 		logger.info("no of records in fastq file: " + matches.size() + ", and no of records that started with a probe in our set: " + matchCount + " and no whose mate also matched: " + mateMatchCount);
 	}
 	
@@ -412,9 +448,7 @@ private static QLogger logger;
 		logger.info("Found " + i + " probes in xml doc. No of entries in seq set is: " + probeSequences.size() + " which should be equals to : " + (4 * i));
 	}
 	
-	
 	private void loadTiledAlignerData() throws Exception {
-		
 		/*
 		 * Loop through all our amplicons, split into 13mers and add to ampliconTiles 
 		 */
@@ -439,7 +473,6 @@ private static QLogger logger;
 			}
 		}
 		logger.info("Number of amplicon tiles: " + ampliconTiles.size());
-		
 		
 		logger.info("loading genome tiles alignment data");
 		
@@ -480,7 +513,6 @@ private static QLogger logger;
 						
 						// create TLongArrayList from 
 						refTilesPositions.put(tile, positionsList);
-						
 					}
 //					writer.write(rec.getData() + "\n");
 				}
@@ -495,7 +527,6 @@ private static QLogger logger;
 		logger.info("no of entries in refTilesPositions: " + refTilesPositionsSize);
 		logger.info("Unique tiles in amplicons: " + diff);
 		
-		
 		int singleLocation = 0;
 		int perfectMatch = 0;
 		int multiLoci = 0;
@@ -506,6 +537,7 @@ private static QLogger logger;
 		for (Entry<Probe,List<Bin>> entry : probeBinDist.entrySet()) {
 			Map<ChrPosition, AtomicInteger> binLocationDistribution = new HashMap<>();
 			Probe p = entry.getKey();
+			ChrPosition ampliconCP = p.getCp();
 //			logger.info("Looking at probe: " + p.getId() +", which has " +  entry.getValue().size() + " bins");
 			
 			for (Bin b : entry.getValue()) {
@@ -559,79 +591,116 @@ private static QLogger logger;
 				long bestTileCount = results[1];
 				long rcBestTileCount = rcResults[1];
 				
-//				logger.info("best current strand score: " + bestTileCount + ", best rc score: "  + rcBestTileCount);
+				/*
+				 * Only perform sw on positions if the best tile position is not next to the amplicon position
+				 */
 				ChrPosition bestTiledCp = null;
-				if (bestTileCount == rcBestTileCount) {
-					/*
-					 * Ignore for now ...
-					 */
-					bothStrandsWin++;
-					logger.info("tile counts same for both strands, existing: " + Arrays.toString(results) + ", rc: " + Arrays.toString(rcResults) + " for fragment: " + fragment);
-				} else if (bestTileCount > rcBestTileCount) {
-					/*
-					 * existing strand - need to see if we have more than 1 position on this strand
-					 */
-					if (results.length > 2) {
-						/*
-						 * SmithWaterman to see which position (if any) wins
-						 * Only do this if matching tile count is greater than 1 
-						 */
-						if (bestTileCount > 1) {
-							
-							Map<ChrPosition, String[]> scores = getSWScores(results, b.getSequence());
-							b.addPossiblePositions(scores);
-//							int [] scores = getSWScores(results, b.getSequence());
-//							logger.info("sw scores: " + Arrays.toString(scores));
-							bestTiledCp = ClinVarUtil.getPositionWithBestScore(scores);
-//							if (-1 == positionInArray) {
-//								/*
-//								 * Ignore
-//								 */
-//							} else {
-//								bestTiledCp = positionToActualLocation.getChrPositionFromLongPosition(results[positionInArray * 2]);
-//							}
-						}
-					} else {
+				if (bestTileCount > rcBestTileCount) {
+					if (results.length == 2) {
 						bestTiledCp = positionToActualLocation.getChrPositionFromLongPosition(results[0]);
 					}
-				} else {
-					/*
-					 * reverse strand - need to see if we have more than 1 position on this strand
-					 */
-					if (rcResults.length > 2) {
-						/*
-						 * SmithWaterman to see which position (if any) wins
-						 * Only do this if matching tile count is greater than 1 
-						 */
-						if (rcBestTileCount > 1) {
-							
-							Map<ChrPosition, String[]> scores = getSWScores(rcResults, SequenceUtil.reverseComplement(b.getSequence()));
-							b.addPossiblePositions(scores);
-//							int [] scores = getSWScores(rcResults, SequenceUtil.reverseComplement(b.getSequence()));
-//							logger.info("sw (rc) scores: " + Arrays.toString(scores));
-							bestTiledCp = ClinVarUtil.getPositionWithBestScore(scores);
-//							if (-1 == positionInArray) {
-//								/*
-//								 * Ignore
-//								 */
-//							} else {
-//								bestTiledCp = positionToActualLocation.getChrPositionFromLongPosition(rcResults[positionInArray * 2]);
-//							}
-						}
-					} else {
+				} else if (bestTileCount < rcBestTileCount) {
+					if (rcResults.length == 2) {
 						bestTiledCp = positionToActualLocation.getChrPositionFromLongPosition(rcResults[0]);
 					}
 				}
 				
-				if (null != bestTiledCp) {
+				if (null != bestTiledCp && ClinVarUtil.doChrPosOverlap(ampliconCP, bestTiledCp)) {
 					b.setBestTiledLocation(bestTiledCp);
 					updateMap(bestTiledCp, binLocationDistribution);
+				} else {
+				
+					/*
+					 * Haven't got a best tiled location, or the location is nor near the amplicon, so lets generate some SW diffs, and choose the best location based on those
+					 */
+				
+					if (bestTileCount > 1) {
+						Map<ChrPosition, String[]> scores = getSWScores(results, b.getSequence());
+						b.addPossiblePositions(scores);
+					}
+					if (rcBestTileCount > 1) {
+						Map<ChrPosition, String[]> scores = getSWScores(rcResults, SequenceUtil.reverseComplement(b.getSequence()));
+						b.addPossiblePositions(scores);
+					}
+					bestTiledCp = ClinVarUtil.getPositionWithBestScore(b.getSmithWatermanDiffsMap());
+					if (null != bestTiledCp) {
+						b.setBestTiledLocation(bestTiledCp);
+						updateMap(bestTiledCp, binLocationDistribution);
+					}
 				}
+				
+//				logger.info("best current strand score: " + bestTileCount + ", best rc score: "  + rcBestTileCount);
+//				ChrPosition bestTiledCp = null;
+//				if (bestTileCount == rcBestTileCount) {
+//					/*
+//					 * Ignore for now ...
+//					 */
+//					bothStrandsWin++;
+//					logger.info("tile counts same for both strands, existing: " + Arrays.toString(results) + ", rc: " + Arrays.toString(rcResults) + " for fragment: " + fragment);
+//				} else if (bestTileCount > rcBestTileCount) {
+//					/*
+//					 * existing strand - need to see if we have more than 1 position on this strand
+//					 */
+//					if (results.length > 2) {
+//						/*
+//						 * SmithWaterman to see which position (if any) wins
+//						 * Only do this if matching tile count is greater than 1 
+//						 */
+//						if (bestTileCount > 1) {
+//							
+//							Map<ChrPosition, String[]> scores = getSWScores(results, b.getSequence());
+//							b.addPossiblePositions(scores);
+////							int [] scores = getSWScores(results, b.getSequence());
+////							logger.info("sw scores: " + Arrays.toString(scores));
+//							bestTiledCp = ClinVarUtil.getPositionWithBestScore(scores);
+////							if (-1 == positionInArray) {
+////								/*
+////								 * Ignore
+////								 */
+////							} else {
+////								bestTiledCp = positionToActualLocation.getChrPositionFromLongPosition(results[positionInArray * 2]);
+////							}
+//						}
+//					} else {
+//						bestTiledCp = positionToActualLocation.getChrPositionFromLongPosition(results[0]);
+//					}
+//				} else {
+//					/*
+//					 * reverse strand - need to see if we have more than 1 position on this strand
+//					 */
+//					if (rcResults.length > 2) {
+//						/*
+//						 * SmithWaterman to see which position (if any) wins
+//						 * Only do this if matching tile count is greater than 1 
+//						 */
+//						if (rcBestTileCount > 1) {
+//							
+//							Map<ChrPosition, String[]> scores = getSWScores(rcResults, SequenceUtil.reverseComplement(b.getSequence()));
+//							b.addPossiblePositions(scores);
+////							int [] scores = getSWScores(rcResults, SequenceUtil.reverseComplement(b.getSequence()));
+////							logger.info("sw (rc) scores: " + Arrays.toString(scores));
+//							bestTiledCp = ClinVarUtil.getPositionWithBestScore(scores);
+////							if (-1 == positionInArray) {
+////								/*
+////								 * Ignore
+////								 */
+////							} else {
+////								bestTiledCp = positionToActualLocation.getChrPositionFromLongPosition(rcResults[positionInArray * 2]);
+////							}
+//						}
+//					} else {
+//						bestTiledCp = positionToActualLocation.getChrPositionFromLongPosition(rcResults[0]);
+//					}
+//				}
+//				
+//				if (null != bestTiledCp) {
+//					b.setBestTiledLocation(bestTiledCp);
+//					updateMap(bestTiledCp, binLocationDistribution);
+//				}
 			}
 			/*
 			 * Check to see if the bins sit close to the amplicon
 			 */
-			ChrPosition ampliconCP = p.getCp();
 			boolean logProbeDetails = false;
 			for (Entry<ChrPosition, AtomicInteger> entry4 : binLocationDistribution.entrySet()) {
 				if ( ! ClinVarUtil.doChrPosOverlap(ampliconCP, entry4.getKey())) {
@@ -661,8 +730,8 @@ private static QLogger logger;
 			
 			String ref = getRefFromChrPos(refCp);
 			SmithWatermanGotoh nm = new SmithWatermanGotoh(ref, binSequence, 5, -4, 16, 4);
-			String [] diffs = nm.traceback();
-			positionSWDiffMap.put(cp, diffs);
+//			String [] diffs = nm.traceback();
+			positionSWDiffMap.put(cp, nm.traceback());
 		}
 		return positionSWDiffMap;
 	}
