@@ -10,19 +10,96 @@ import htsjdk.samtools.SAMRecord;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Test;
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.Pair;
 
+import au.edu.qimr.clinvar.model.Probe;
+
 public class ClinVarUtilTest {
+	
+	@Test
+	public void getOverlappingProbes() {
+		ChrPosition cp = ChrPositionUtils.getChrPositionFromString("chr1:100-200");
+		try {
+			ClinVarUtil.getAmpliconsOverlappingPosition(null, null);
+			Assert.fail("Should have thrown an IllegalArgumentException");
+		} catch (IllegalArgumentException iae) {}
+		try {
+			ClinVarUtil.getAmpliconsOverlappingPosition(cp, null);
+			Assert.fail("Should have thrown an IllegalArgumentException");
+		} catch (IllegalArgumentException iae) {}
+		
+		Set<Probe> set = new HashSet<>();
+		assertEquals(0, ClinVarUtil.getAmpliconsOverlappingPosition(cp, set).size());
+		
+		// setup some probes
+		Probe p1 = new Probe(1, null, null, null, null, 100, 0, 0, 200, null, 0, 0, "chr1", false, null);
+		assertEquals(p1.getCp(), cp);
+		
+		set.add(p1);
+		assertEquals(1, ClinVarUtil.getAmpliconsOverlappingPosition(cp, set).size());
+		assertEquals(p1, ClinVarUtil.getAmpliconsOverlappingPosition(cp, set).get(0));
+		Probe p2 = new Probe(2, null, null, null, null, 100, 0, 0, 200, null, 0, 0, "chr2", false, null);
+		set.add(p2);
+		assertEquals(1, ClinVarUtil.getAmpliconsOverlappingPosition(cp, set).size());
+		assertEquals(p1, ClinVarUtil.getAmpliconsOverlappingPosition(cp, set).get(0));
+		Probe p3 = new Probe(3, null, null, null, null, 99, 0, 0, 201, null, 0, 0, "chr1", false, null);
+		set.add(p3);
+		assertEquals(2, ClinVarUtil.getAmpliconsOverlappingPosition(cp, set).size());
+		assertEquals(true, ClinVarUtil.getAmpliconsOverlappingPosition(cp, set).contains(p1));
+		assertEquals(true, ClinVarUtil.getAmpliconsOverlappingPosition(cp, set).contains(p3));
+		Probe p4 = new Probe(4, null, null, null, null, 201, 0, 0, 202, null, 0, 0, "chr1", false, null);
+		set.add(p4);
+		assertEquals(2, ClinVarUtil.getAmpliconsOverlappingPosition(cp, set).size());
+		assertEquals(true, ClinVarUtil.getAmpliconsOverlappingPosition(cp, set).contains(p1));
+		assertEquals(true, ClinVarUtil.getAmpliconsOverlappingPosition(cp, set).contains(p3));
+		Probe p5 = new Probe(5, null, null, null, null, 200, 0, 0, 202, null, 0, 0, "chr1", false, null);
+		set.add(p5);
+		assertEquals(2, ClinVarUtil.getAmpliconsOverlappingPosition(cp, set).size());
+		assertEquals(true, ClinVarUtil.getAmpliconsOverlappingPosition(cp, set).contains(p1));
+		assertEquals(true, ClinVarUtil.getAmpliconsOverlappingPosition(cp, set).contains(p3));
+		Probe p6 = new Probe(6, null, null, null, null, 10, 0, 0, 2000, null, 0, 0, "chr1", false, null);
+		set.add(p6);
+		assertEquals(3, ClinVarUtil.getAmpliconsOverlappingPosition(cp, set).size());
+		assertEquals(true, ClinVarUtil.getAmpliconsOverlappingPosition(cp, set).contains(p1));
+		assertEquals(true, ClinVarUtil.getAmpliconsOverlappingPosition(cp, set).contains(p3));
+		assertEquals(true, ClinVarUtil.getAmpliconsOverlappingPosition(cp, set).contains(p6));
+		
+	}
+	
 	
 	@Test
 	public void getMapEntryWithHighestSWScore() {
 		assertEquals(null, ClinVarUtil.getPositionWithBestScore(null));
 		assertEquals(null, ClinVarUtil.getPositionWithBestScore(new HashMap<ChrPosition, String[]>()));
+		
+		HashMap<ChrPosition, String[]> map = new HashMap<>();
+		ChrPosition cp = ChrPositionUtils.getChrPositionFromString("chr1:12345-12345");
+		map.put(cp, new String[3]);
+		
+		assertEquals(cp, ClinVarUtil.getPositionWithBestScore(map));
+		ChrPosition cp2 = ChrPositionUtils.getChrPositionFromString("chr1:12346-12346");
+		map.put(cp2, new String[3]);
+		
+		assertEquals(null, ClinVarUtil.getPositionWithBestScore(map));
+		
+		String[] swDiffs = new String[]{"ABCDEFG","|||||||","ABCDEFG"};
+		map.put(cp2, swDiffs);
+		assertEquals(cp2, ClinVarUtil.getPositionWithBestScore(map));
+		map.put(cp, swDiffs);
+		assertEquals(null, ClinVarUtil.getPositionWithBestScore(map));
+		
+		String[] swDiffs2 = new String[]{"ABCDEFGH","||||||||","ABCDEFGH"};
+		ChrPosition cp3 = ChrPositionUtils.getChrPositionFromString("chr1:12347-12347");
+		map.put(cp3, swDiffs2);
+		assertEquals(cp3, ClinVarUtil.getPositionWithBestScore(map));
 	}
 	
 	

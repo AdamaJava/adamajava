@@ -335,6 +335,12 @@ public class ClinVarUtil {
 	}
 	
 	public static List<Probe> getAmpliconsOverlappingPosition(ChrPosition cp, Set<Probe> probes) {
+		if (null == cp) {
+			throw new IllegalArgumentException("Null ChrPosition object passed to CLinVarUtil.getAmpliconsOverlappingPosition");
+		}
+		if (null == probes) {
+			throw new IllegalArgumentException("Null Set<Probe> object passed to CLinVarUtil.getAmpliconsOverlappingPosition");
+		}
 		List<Probe> overlappingProbes = new ArrayList<>();
 		for (Probe p : probes) {
 			if (ChrPositionUtils.isChrPositionContained(p.getCp(), cp)) {
