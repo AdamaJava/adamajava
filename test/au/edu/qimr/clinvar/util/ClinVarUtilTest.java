@@ -2,6 +2,7 @@ package au.edu.qimr.clinvar.util;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import gnu.trove.list.array.TIntArrayList;
 import htsjdk.samtools.Cigar;
 import htsjdk.samtools.CigarElement;
 import htsjdk.samtools.CigarOperator;
@@ -10,10 +11,48 @@ import htsjdk.samtools.SAMRecord;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.junit.Assert;
 import org.junit.Test;
 import org.qcmg.common.util.Pair;
 
 public class ClinVarUtilTest {
+	
+	
+	@Test
+	public void editDistanceDist() {
+		try {
+			assertEquals("", ClinVarUtil.breakdownEditDistanceDistribution(null));
+			Assert.fail("sHould have thrown an IllegalArgumentException");
+		} catch (IllegalArgumentException iae) {}
+		assertEquals("", ClinVarUtil.breakdownEditDistanceDistribution(new TIntArrayList()));
+		assertEquals("1:1", ClinVarUtil.breakdownEditDistanceDistribution(new TIntArrayList(new int[]{1})));
+	}
+	
+	
+	@Test
+	public void basicEditDistanceDouble() {
+		try {
+			assertArrayEquals(new int[]{0,0}, ClinVarUtil.getDoubleEditDistance(null, null, null, null,0));
+			Assert.fail("sHould have thrown an IllegalArgumentException");
+		} catch (IllegalArgumentException iae) {}
+		try {
+			assertArrayEquals(new int[]{0,0}, ClinVarUtil.getDoubleEditDistance("hello", "ello", "hello", null,0));
+			Assert.fail("sHould have thrown an IllegalArgumentException");
+		} catch (IllegalArgumentException iae) {}
+		
+		assertArrayEquals(new int[] {3,Integer.MAX_VALUE}, ClinVarUtil.getDoubleEditDistance("ABCDEFG", "HIJKLMNOP", "XXX", "YYY", 2));
+		assertArrayEquals(new int[] {3,3}, ClinVarUtil.getDoubleEditDistance("ABCDEFG", "HIJKLMNOP", "XXX", "YYY", 3));
+		assertArrayEquals(new int[] {0,3}, ClinVarUtil.getDoubleEditDistance("ABCDEFG", "HIJKLMNOP", "ABC", "YYY", 2));
+		assertArrayEquals(new int[] {3,Integer.MAX_VALUE}, ClinVarUtil.getDoubleEditDistance("ABCDEFG", "HIJKLMNOP", "DEF", "NOP", 2));
+		assertArrayEquals(new int[] {3,Integer.MAX_VALUE}, ClinVarUtil.getDoubleEditDistance("ABCDEFG", "HIJKLMNOP", "EFG", "NOP", 2));
+		assertArrayEquals(new int[] {0,3}, ClinVarUtil.getDoubleEditDistance("ABCDEFG", "HIJKLMNOP", "ABC", "NOP", 2));
+		assertArrayEquals(new int[] {0,3}, ClinVarUtil.getDoubleEditDistance("ABCDEFG", "HIJKLMNOP", "ABC", "KLM", 2));
+		assertArrayEquals(new int[] {0,3}, ClinVarUtil.getDoubleEditDistance("ABCDEFG", "HIJKLMNOP", "ABC", "KLM", 2));
+		assertArrayEquals(new int[] {0,3}, ClinVarUtil.getDoubleEditDistance("ABCDEFG", "HIJKLMNOP", "ABC", "JKL", 2));
+		assertArrayEquals(new int[] {0,2}, ClinVarUtil.getDoubleEditDistance("ABCDEFG", "HIJKLMNOP", "ABC", "IJK", 2));
+		assertArrayEquals(new int[] {0,1}, ClinVarUtil.getDoubleEditDistance("ABCDEFG", "HIJKLMNOP", "ABC", "XIJ", 2));
+		assertArrayEquals(new int[] {0,0}, ClinVarUtil.getDoubleEditDistance("ABCDEFG", "HIJKLMNOP", "ABC", "HIJ", 2));
+	}
 	
 //	@Test
 //	public void getPositionOfLargestInArray() {
@@ -177,7 +216,15 @@ QIMR13579:data oliverh$
 	
 	@Test
 	public void getEditDistances() {
-		assertArrayEquals(new int[]{0,0}, ClinVarUtil.getBasicAndLevenshteinEditDistances("", ""));
+		try {
+			assertArrayEquals(new int[]{0,0}, ClinVarUtil.getBasicAndLevenshteinEditDistances(null, null));
+			Assert.fail("sHould have thrown an IllegalArgumentException");
+		} catch (IllegalArgumentException iae) {}
+		try {
+			assertArrayEquals(new int[]{0,0}, ClinVarUtil.getBasicAndLevenshteinEditDistances("", ""));
+			Assert.fail("sHould have thrown an IllegalArgumentException");
+		} catch (IllegalArgumentException iae) {}
+		
 		assertArrayEquals(new int[]{0,0}, ClinVarUtil.getBasicAndLevenshteinEditDistances("A", "A"));
 		assertArrayEquals(new int[]{0,0}, ClinVarUtil.getBasicAndLevenshteinEditDistances("AC", "AC"));
 		assertArrayEquals(new int[]{0,0}, ClinVarUtil.getBasicAndLevenshteinEditDistances("ACG", "ACG"));

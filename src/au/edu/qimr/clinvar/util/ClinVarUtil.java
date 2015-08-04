@@ -65,26 +65,23 @@ public class ClinVarUtil {
 			throw new IllegalArgumentException("read or primer (or both) supplied to ClinVarUtil.getEditDistance were null. read: " + read + ", primer: " + primer);
 		}
 		
-//		//TODO see if doing a basic edit distance here and only running levenshtein of bed > cutoff would save time
-//		int bed = getBasicEditDistance(primer, read.substring(0, primer.length()));
-//		if (bed <= 1) {
-//			return bed;
-//		}
-		
 		return StringUtils.getLevenshteinDistance(primer, read.substring(0, primer.length()));
 	}
 	
 	public static int  getEditDistance(String read, String primer, int editDistanceCutoff) {
-//		if (org.qcmg.common.string.StringUtils.isNullOrEmpty(read)
-//				|| org.qcmg.common.string.StringUtils.isNullOrEmpty(primer)) {
-//			throw new IllegalArgumentException("read or primer (or both) supplied to ClinVarUtil.getEditDistance were null. read: " + read + ", primer: " + primer);
-//		}
+		if (org.qcmg.common.string.StringUtils.isNullOrEmpty(read)
+				|| org.qcmg.common.string.StringUtils.isNullOrEmpty(primer)) {
+			throw new IllegalArgumentException("read or primer (or both) supplied to ClinVarUtil.getEditDistance were null. read: " + read + ", primer: " + primer);
+		}
 		int led = StringUtils.getLevenshteinDistance(primer, read.substring(0, primer.length()), editDistanceCutoff);
 		
 		return led >= 0 ? led : Integer.MAX_VALUE;
 	}
 	
 	public static String breakdownEditDistanceDistribution(TIntArrayList editDistances) {
+		if (null == editDistances) {
+			throw new IllegalArgumentException("Null TIntArrayList passed to ClinVarUtil.breakdownEditDistanceDistribution");
+		}
 		editDistances.reverse();
 		final TIntIntHashMap dist = new TIntIntHashMap();
 		final StringBuilder sb = new StringBuilder();
@@ -99,7 +96,10 @@ public class ClinVarUtil {
 		dist.forEachEntry(new TIntIntProcedure() {
 			@Override
 			public boolean execute(int arg0, int arg1) {
-				sb.append(arg0).append(":").append(arg1).append(",");
+				if (sb.length() > 0) {
+					sb.append(Constants.COMMA);
+				}
+				sb.append(arg0).append(Constants.COLON).append(arg1);
 				return true;
 			}
 
@@ -907,12 +907,15 @@ public class ClinVarUtil {
 	
 	
 	public static int[] getBasicAndLevenshteinEditDistances(CharSequence s, CharSequence t) {
+		if (StringUtils.isEmpty(s) || StringUtils.isEmpty(t)) {
+			throw new IllegalArgumentException("Null or empty CharSequence passed to ClinVarUtil.getBasicAndLevenshteinEditDistances");
+		}
 		// do exact match first
 		if (s.equals(t)) {
 			return new int[]{0,0};			// we have a match - set both distances to 0
 		} else {
 			// do basic distancing next
-			int ed = ClinVarUtil.getBasicEditDistance(s, t);
+			int ed = getBasicEditDistance(s, t);
 			return ed > 1 ? new int[]{ ed, StringUtils.getLevenshteinDistance(s,t) } :  new int[]{ ed, ed };
 			
 		}
