@@ -106,25 +106,6 @@ public class ClinVarUtil {
 		});
 		return sb.toString();
 	}
-//	public static String breakdownEditDistanceDistribution(List<Integer> editDistances) {
-//		TIntIntHashMap dist = new TIntIntHashMap();
-//		final StringBuilder sb = new StringBuilder();
-//		for (Integer ed : editDistances) {
-//			int existingValue = dist.get(ed);
-//			dist.put(ed, existingValue + 1);
-//		}
-//		dist.forEachEntry(new TIntIntProcedure() {
-//			
-//			@Override
-//			public boolean execute(int arg0, int arg1) {
-//				sb.append(arg0).append(":").append(arg1).append(",");
-//				return true;
-//			}
-//			
-//		});
-//		return sb.toString();
-//	}
-	
 	
 	public static int getBasicEditDistance(CharSequence s, CharSequence t) {
 		if (StringUtils.isEmpty(s) || StringUtils.isEmpty(t)) {
@@ -143,98 +124,8 @@ public class ClinVarUtil {
 				ed ++;
 			}
 		}
-		
 		return ed;
 	}
-	
-	public static int getOutwardSlideCount(final String overlap1, final String overlap2) {
-		// it is assumed that the 2 char sequences do not match as they are
-		if (StringUtils.isEmpty(overlap1) || StringUtils.isEmpty(overlap2)) {
-			throw new IllegalArgumentException("Null string passed to ClinVarUtil.getOutwardSlideCount(). s: " + overlap1 + ", t: " + overlap2);
-		}
-		
-		// s and t need to be the same length
-		if (overlap1.length() != overlap2.length()) {
-			throw new IllegalArgumentException("Strings passed to ClinVarUtil.getOutwardSlideCount() are not the same length s: " + overlap1 + ", t: " + overlap2);
-		}
-		String s = overlap1;
-		String t = overlap2;
-		
-		int initialLength = overlap1.length();
-		int noOfSlides = 0;
-		
-		while (noOfSlides < initialLength &&  ! t.equals(s)) {
-			noOfSlides++;
-			s = s.substring(1);
-			t = t.substring(0, t.length() -1);
-		}
-		// want a -ve number for outward slide
-		return 0 - noOfSlides;
-	}
-	
-//	public static String getFragmentUsingSlide(final String fullSeq1, final String fullSeq2, int expectedOverlap) {
-//		// it is assumed that the 2 char sequences do not match as they are
-//		if (StringUtils.isEmpty(fullSeq1) || StringUtils.isEmpty(fullSeq2)) {
-//			throw new IllegalArgumentException("Null string passed to ClinVarUtil.getInwardSlideCount(). s: " + fullSeq1 + ", t: " + fullSeq2);
-//		}
-//		
-//		if (fullSeq1.length() <= expectedOverlap || fullSeq2.length() <= expectedOverlap) {
-//			throw new IllegalArgumentException("Strings passed to ClinVarUtil.getInwardSlideCount(). s: " + fullSeq1 + ", t: " + fullSeq2 +", are not longer than the expectedOverlap: " + expectedOverlap);
-//		}
-//		
-////		String s = fullSeq1.substring(fullSeq1.length() - expectedOverlap);
-//		String t = fullSeq2.substring(0, expectedOverlap);
-//		
-//		// get index of t occurring in fullSeq1
-//		int index = fullSeq1.lastIndexOf(t);
-//		int noOfShifts = 0;
-//		while (noOfShifts < expectedOverlap &&  index == -1) {
-//			noOfShifts++;
-//			t = t.substring(0, t.length() -1);
-//			index = fullSeq1.lastIndexOf(t);
-//		}
-//		if (index == -1) {
-//			// can't create fragment
-//			logger.info("unable to create fragment for fullSeq1: " + fullSeq1 + ", fullSeq2: " + fullSeq2 + ", expectedOverlap: " + expectedOverlap);
-//			return null;
-//		}
-//		
-//		index = fullSeq1.length() - expectedOverlap - index;
-//		
-//		return index;
-		
-//		int initialLength = fullSeq1.length();
-//		int noOfSlides = 0;
-//		
-//		while (noOfSlides < initialLength &&  ! t.equals(s)) {
-//			noOfSlides++;
-//			s = s.substring(1);
-//			t = t.substring(0, t.length() -1);
-//		}
-//		// want a -ve number for outward slide
-//		return 0 - noOfSlides;
-//	}
-	
-	
-	public static Cigar getCigarFromSWDiffs(String  [] smithWatermanDiffs, String refSeq) {
-		
-		if (smithWatermanDiffs[1].contains(" ")) {
-
-			
-			
-			
-			
-		} else {
-			// if we don't have any indels - easy
-			CigarElement ce = new CigarElement(smithWatermanDiffs[1].length(), CigarOperator.MATCH_OR_MISMATCH);
-			List<CigarElement> ces = new ArrayList<>();
-			ces.add(ce);
-			return new Cigar(ces);
-		}
-		
-		return null;
-	}
-	
 	
 	public static long[] getBestStartPosition(long [][] tilePositions, int tileLength, int indelOffset) {
 		TLongIntMap positionAndTiles = new TLongIntHashMap();

@@ -9,13 +9,21 @@ import htsjdk.samtools.CigarOperator;
 import htsjdk.samtools.SAMRecord;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.util.Pair;
 
 public class ClinVarUtilTest {
+	
+	@Test
+	public void getMapEntryWithHighestSWScore() {
+		assertEquals(null, ClinVarUtil.getPositionWithBestScore(null));
+		assertEquals(null, ClinVarUtil.getPositionWithBestScore(new HashMap<ChrPosition, String[]>()));
+	}
 	
 	
 	@Test
@@ -26,6 +34,11 @@ public class ClinVarUtilTest {
 		} catch (IllegalArgumentException iae) {}
 		assertEquals("", ClinVarUtil.breakdownEditDistanceDistribution(new TIntArrayList()));
 		assertEquals("1:1", ClinVarUtil.breakdownEditDistanceDistribution(new TIntArrayList(new int[]{1})));
+		assertEquals("1:2", ClinVarUtil.breakdownEditDistanceDistribution(new TIntArrayList(new int[]{1,1})));
+		assertEquals("1:3", ClinVarUtil.breakdownEditDistanceDistribution(new TIntArrayList(new int[]{1,1,1})));
+		assertEquals("2:1,1:3", ClinVarUtil.breakdownEditDistanceDistribution(new TIntArrayList(new int[]{1,1,1,2})));
+		assertEquals("2:2,1:3", ClinVarUtil.breakdownEditDistanceDistribution(new TIntArrayList(new int[]{1,1,2,1,2})));
+		assertEquals("12:1,2:2,1:3", ClinVarUtil.breakdownEditDistanceDistribution(new TIntArrayList(new int[]{1,1,2,12,2,1})));
 	}
 	
 	
@@ -207,6 +220,18 @@ QIMR13579:data oliverh$
 	
 	@Test
 	public void basicEditDistance() {
+		try {
+			assertEquals("", ClinVarUtil.getBasicEditDistance(null,null));
+			Assert.fail("sHould have thrown an IllegalArgumentException");
+		} catch (IllegalArgumentException iae) {}
+		try {
+			assertEquals("", ClinVarUtil.getBasicEditDistance("",""));
+			Assert.fail("sHould have thrown an IllegalArgumentException");
+		} catch (IllegalArgumentException iae) {}
+		try {
+			assertEquals("", ClinVarUtil.getBasicEditDistance("hello","oh my goodness"));
+			Assert.fail("sHould have thrown an IllegalArgumentException");
+		} catch (IllegalArgumentException iae) {}
 		assertEquals(0, ClinVarUtil.getBasicEditDistance("hello", "hello"));
 		assertEquals(1, ClinVarUtil.getBasicEditDistance("hello", "hallo"));
 		assertEquals(4, ClinVarUtil.getBasicEditDistance("hello", " hell"));
