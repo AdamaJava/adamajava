@@ -137,11 +137,6 @@ public class FastqProbeMatchUtil {
 		// some stats on edit distances used
 		scores = new ArrayList<>(sameMatchScores.keySet());
 		Collections.sort(scores);
-////		for (MatchScore score : scores) {
-////			logger.info("same match score: " + score + ", count: " + sameMatchScores.get(score).get());
-////		}
-//		
-////		logger.info("Reads have a different match: " + differentMatches + " (" + ((100 * differentMatches) / count) + "%)");
 		
 		scores = new ArrayList<>(differentMatchesScores.keySet());
 		Collections.sort(scores);
@@ -157,7 +152,7 @@ public class FastqProbeMatchUtil {
 			Probe p = fpm.getRead1Probe();
 			int expectedFragLen = p.getExpectedFragmentLength();
 			int combinedReadLen = fpm.getCombnedReadLength();
-			int expectedOverlap = combinedReadLen - expectedFragLen;
+			final int expectedOverlap = combinedReadLen - expectedFragLen;
 			String r1 = fpm.getRead1().getReadString();
 			String r2 = fpm.getRead2().getReadString();
 			String r1Overlap = r1.substring(r1.length() - expectedOverlap);
@@ -168,7 +163,12 @@ public class FastqProbeMatchUtil {
 			int [] distances = ClinVarUtil.getBasicAndLevenshteinEditDistances(r1Overlap, r2OverlapRC);
 			fpm.setOverlapBasicEditDistance(distances[0]);
 			fpm.setOverlapLevenshteinEditDistance(distances[1]);
+			fpm.setExpectedReadOverlapLength(expectedOverlap);
 			
+			/*
+			 * Only deal with instances where we have an exact match on the overlap.
+			 * Also look to see if we can slide the overlapping regions to create an exact match if the baseic edit distance score is large (~10)
+			 */
 			
 			if (distances[0] == 0 && distances[1] == 0) {
 				// lets create a fragment!!!
@@ -181,46 +181,17 @@ public class FastqProbeMatchUtil {
 //				logger.info("r2Overlap: " + r2Overlap);
 //				logger.info("r1OverlapRC: " + r1OverlapRC);
 //				logger.info("frag length: " + frag.length() + ", expectedFragLen: " + expectedFragLen);
-			}
-			
-			
-			if (distances[0] > 10) {
+			} else if (distances[0] > 10) {
 				// calculate sliding value
 				int slideValue = ClinVarUtil.noOfSlidesToGetPerfectMatch(r1Overlap, r2OverlapRC);
 				fpm.setSlideValue(slideValue);
 				
-//				if (Math.abs(slideValue) > 10 && Math.abs(slideValue) < (expectedOverlap / 2)) {
-//					logger.info("slide value: "+ slideValue + " expected value: " + expectedOverlap + ", r1: " + r1 + " r2: " + r2);
-//				}
-				
-//				if (slideValue == expectedOverlap || Math.abs(slideValue) == 1) {
-//					logger.info("slide value: "+ slideValue + " expected value: " + expectedOverlap + ", r1: " + r1 + " r2: " + r2);
-//				}
-				
 				// if sliding value is less that the overlap, then try and create a fragment
 				if (Math.abs(slideValue) < (expectedOverlap / 2)) {
-					
-					
-					
-					
-//					logger.info("attempting to create a fragment with slideValue: " + slideValue);
 					String frag = r1.substring(0,  r1.length() - (expectedOverlap + slideValue)) + SequenceUtil.reverseComplement(r2);
 					fpm.setFragment(frag);
-//					if (fpm.getRead1Probe().getId() == 542) {
-//						logger.info("r1: " + r1 + ", r2: " + r2 + ", frag: " + frag + ", r1Overlap: " + r1Overlap + ", r2OverlapRC: " + r2OverlapRC );
-//					}
-//					if (slideValue > 0) {
-//						frag =  r1.substring(0,  r1.length() - expectedOverlap - slideValue) + SequenceUtil.reverseComplement(r2);
-//					} else {
-//						frag =  r1 + SequenceUtil.reverseComplement(r2.substring(0,r2.length() - (expectedOverlap - Math.abs(slideValue))));
-//
-////						frag =  "---" + r1.substring(0, r1.length() - Math.abs(slideValue)) + SequenceUtil.reverseComplement(r2.substring(0,r2.length() - expectedOverlap - Math.abs(slideValue)));
-//					}
 				}
 			}
-			
-			fpm.setExpectedReadOverlapLength(expectedOverlap);
 		}
 	}
-
 }

@@ -7,6 +7,7 @@ import gnu.trove.map.TLongIntMap;
 import gnu.trove.map.hash.TIntIntHashMap;
 import gnu.trove.map.hash.TLongIntHashMap;
 import gnu.trove.procedure.TIntIntProcedure;
+import gnu.trove.procedure.TIntProcedure;
 import gnu.trove.procedure.TLongIntProcedure;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
@@ -27,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeMap;
 
 import org.apache.commons.lang3.StringUtils;
 import org.qcmg.common.log.QLogger;
@@ -82,15 +84,19 @@ public class ClinVarUtil {
 		return led >= 0 ? led : Integer.MAX_VALUE;
 	}
 	
-	public static String breakdownEditDistanceDistribution(List<Integer> editDistances) {
-		TIntIntHashMap dist = new TIntIntHashMap();
+	public static String breakdownEditDistanceDistribution(TIntArrayList editDistances) {
+		editDistances.reverse();
+		final TIntIntHashMap dist = new TIntIntHashMap();
 		final StringBuilder sb = new StringBuilder();
-		for (Integer ed : editDistances) {
-			int existingValue = dist.get(ed);
-			dist.put(ed, existingValue + 1);
-		}
+		
+		editDistances.forEach(new TIntProcedure(){
+			@Override
+			public boolean execute(int ed) {
+				int existingValue = dist.get(ed);
+				dist.put(ed, existingValue + 1);
+				return true;
+		}});
 		dist.forEachEntry(new TIntIntProcedure() {
-
 			@Override
 			public boolean execute(int arg0, int arg1) {
 				sb.append(arg0).append(":").append(arg1).append(",");
@@ -100,6 +106,24 @@ public class ClinVarUtil {
 		});
 		return sb.toString();
 	}
+//	public static String breakdownEditDistanceDistribution(List<Integer> editDistances) {
+//		TIntIntHashMap dist = new TIntIntHashMap();
+//		final StringBuilder sb = new StringBuilder();
+//		for (Integer ed : editDistances) {
+//			int existingValue = dist.get(ed);
+//			dist.put(ed, existingValue + 1);
+//		}
+//		dist.forEachEntry(new TIntIntProcedure() {
+//			
+//			@Override
+//			public boolean execute(int arg0, int arg1) {
+//				sb.append(arg0).append(":").append(arg1).append(",");
+//				return true;
+//			}
+//			
+//		});
+//		return sb.toString();
+//	}
 	
 	
 	public static int getBasicEditDistance(CharSequence s, CharSequence t) {
@@ -108,12 +132,13 @@ public class ClinVarUtil {
 		}
 		
 		// s and t need to be the same length
-		if (s.length() != t.length()) {
+		int len = s.length();
+		if (len != t.length()) {
 			throw new IllegalArgumentException("Strings passed to ClinVarUtil.getBasicEditDistance() are not the same length s: " + s + ", t: " + t);
 		}
 		
 		int ed = 0;
-		for (int i = 0 , len = s.length() ; i < len ; i++) {
+		for (int i = 0 ; i < len ; i++) {
 			if (s.charAt(i) != t.charAt(i)) {
 				ed ++;
 			}
@@ -263,15 +288,38 @@ public class ClinVarUtil {
 		return reduceStartPositionsAndTileCount(positionAndTiles);
 	}
 	
-	public static int getPositionWithLargestValue(int [] array) {
-		TIntArrayList intArrayList = new TIntArrayList(array);
-		int maxValue = intArrayList.max();
-		
-		int positionOfMaxValue = intArrayList.indexOf(maxValue);
-		if (intArrayList.indexOf(positionOfMaxValue + 1, maxValue) > -1) {
-			return -1;
+	/**
+	 * Calculates the sw score for each entry in the map.
+	 * If there is a winner, return the position to which it corresponds.
+	 * If there is no winner (ie. empty map, or more than 1 position share the top score), return null 
+	 * 
+	 * @param scores
+	 * @return
+	 */
+	public static ChrPosition getPositionWithBestScore(Map<ChrPosition, String[]> scores) {
+		if (null == scores || scores.isEmpty()) {
+			return null;
 		}
-		return positionOfMaxValue;
+		
+		/*
+		 * Calculate the sw diffs score for each entry
+		 */
+		TreeMap<Integer, List<ChrPosition>> scoresToPositionMap = new TreeMap<>();
+		for (Entry<ChrPosition, String[]> entry : scores.entrySet()) {
+			int cpScore = getSmithWatermanScore(entry.getValue());
+			List<ChrPosition> positionsWithThisScore = scoresToPositionMap.get(cpScore);
+			if (null == positionsWithThisScore) {
+				positionsWithThisScore = new ArrayList<>();
+				scoresToPositionMap.put(cpScore, positionsWithThisScore);
+			}
+			positionsWithThisScore.add(entry.getKey());
+		}
+		
+		/*
+		 * Get maximum score, and see how many matching ChrPositions we have
+		 */
+		List<ChrPosition> maxScoringPositions = scoresToPositionMap.lastEntry().getValue();
+		return maxScoringPositions.size() == 1 ? maxScoringPositions.get(0) : null;
 	}
 	
 	
@@ -497,6 +545,84 @@ public class ClinVarUtil {
 }
 	
 	
+	public static String[] rescueSWData(String[] diffs, String ref, String binSeq) {
+		
+		/*
+		 * Check length of binSequence returned from SW calc, as leading/trailing mutations will have been dropped
+		 */
+		String swBinSeq = diffs[2].replaceAll("-", "");
+		int lengthDiff = binSeq.length() - swBinSeq.length();
+		if (lengthDiff > 0) {
+			logger.warn("Missing data in sw diffs. lengthDiff:  " + lengthDiff);
+			
+			String swRef = diffs[0].replaceAll("-", "");
+			
+			if (binSeq.startsWith(swBinSeq)) {
+				
+				// need to get the last few bases
+				String missingBinSeqBases = binSeq.substring(binSeq.length()  - lengthDiff);
+				
+				int refIndex = ref.indexOf(swRef); 
+				if (refIndex > -1) {
+					int positionInRef = refIndex + swRef.length();
+					if (ref.length() < positionInRef + lengthDiff) {
+						logger.warn("ref.length() < positionInRef + lengthDiff");
+					} else {
+						
+						String missingRefBases = ref.substring(positionInRef, positionInRef + lengthDiff);
+						
+						
+						if (missingBinSeqBases.equals(missingRefBases) || missingBinSeqBases.length() != missingRefBases.length()) {
+							logger.info("missingBinSeqBases.equals(missingRefBases) || missingBinSeqBases.length() != missingRefBases.length(), missingBinSeqBases: " + missingBinSeqBases + ", missingRefBases: " + missingRefBases);
+							// oh dear
+						} else {
+							logger.info("adding " + missingRefBases + ">" + missingBinSeqBases + " to sw diffs");
+							diffs[0] += missingRefBases;
+							for (int i = 0 ; i < lengthDiff ; i++) {
+								diffs[1] += ".";
+							}
+							diffs[2] += missingBinSeqBases;
+						}
+						
+					}
+				} else {
+					logger.warn(" refIndex = ref.indexOf(swRef) == -1!!!");
+				}
+				
+				
+			} else if (binSeq.endsWith(swBinSeq)) {
+				// need to get the first few bases
+				String missingBinSeqBases = binSeq.substring(0, lengthDiff);
+				
+				int refIndex = ref.indexOf(swRef); 
+				if (refIndex > -1) {
+					String missingRefBases = ref.substring(refIndex - lengthDiff, refIndex);
+					
+					if (missingBinSeqBases.equals(missingRefBases) || missingBinSeqBases.length() != missingRefBases.length()) {
+						logger.info("missingBinSeqBases.equals(missingRefBases) || missingBinSeqBases.length() != missingRefBases.length(), missingBinSeqBases: " + missingBinSeqBases + ", missingRefBases: " + missingRefBases);
+						// oh dear
+					} else {
+						logger.info("adding " + missingRefBases + ">" + missingBinSeqBases + " to sw diffs");
+						diffs[0] = missingRefBases + diffs[0];
+						for (int i = 0 ; i < lengthDiff ; i++) {
+							diffs[1] = "." + diffs[1];
+						}
+						diffs[2] = missingBinSeqBases + diffs[2];
+					}
+						
+				} else {
+					logger.warn(" refIndex = ref.indexOf(swRef) == -1!!!");
+				}
+				
+			} else {
+				
+			}
+		}
+		
+		return diffs;
+	}
+	
+	
 	public static String getSortedBBString(String bb, String ref) {
 		String [] params = bb.split(";");
 		int length = params.length;
@@ -652,6 +778,13 @@ public class ClinVarUtil {
 		
 		return getMutationString(positionInString, length, smithWatermanDiffs);
 		
+	}
+	
+	public static boolean doChrPosOverlap(ChrPosition cp1, ChrPosition cp2) {
+		/*
+		 * Use a consistent buffer value
+		 */
+		return ChrPositionUtils.doChrPositionsOverlap(cp1, cp2, 100);
 	}
 	
 	public static String getMutationString(final int positionInString, final int eventLength, String [] smithWatermanDiffs) {

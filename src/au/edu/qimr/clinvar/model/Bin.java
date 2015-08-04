@@ -22,6 +22,8 @@ public class Bin implements Comparable<Bin> {
 	private final Map<PosBase, AtomicInteger> diffs = new HashMap<>();
 	private String [] smithWatermanDiffs;
 	
+	private final Map<ChrPosition, String [] > possiblePositionSWDiffsMap = new HashMap<>(4);
+	
 	private ChrPosition bestTiledLocation;
 	private long position;
 	private int noOfTiles;
@@ -39,6 +41,20 @@ public class Bin implements Comparable<Bin> {
 	}
 	public String [] getSmithWatermanDiffs() {
 		return smithWatermanDiffs;
+	}
+	public String [] getSmithWatermanDiffs(ChrPosition cp) {
+		return possiblePositionSWDiffsMap.get(cp);
+	}
+	
+	public void addPossiblePosition(ChrPosition cp, String [] seDiffs) {
+		possiblePositionSWDiffsMap.put(cp, seDiffs);
+	}
+	/**
+	 * Clears and populates the possivlePositionsSWDiffsMap with the supplied map
+	 * @param seDiffs
+	 */
+	public void addPossiblePositions(Map<ChrPosition, String []> seDiffs) {
+		possiblePositionSWDiffsMap.putAll(seDiffs);
 	}
 	
 	public void addSequence(String sequenceToAdd) {
