@@ -1133,23 +1133,15 @@ private static QLogger logger;
 							String [] diffs = nm.traceback();
 							
 							diffs = ClinVarUtil.rescueSWData(diffs, ref, binSeq);
-							
-						
 							b.setSWDiffs(diffs);
 							
-							
-							
-							if (p.getId() == 42) {
-								logger.info("probe: " + p.getId() + ", forward strand: " + p.isOnForwardStrand() + ", size: " + b.getRecordCount() + ", ref: " + ref + ", binSeq: " + binSeq);
-								for (String s : b.getSmithWatermanDiffs()) {
-									logger.info(s);
-								}
-							}
+//							if (p.getId() == 42) {
+//								logger.info("probe: " + p.getId() + ", forward strand: " + p.isOnForwardStrand() + ", size: " + b.getRecordCount() + ", ref: " + ref + ", binSeq: " + binSeq);
+//								for (String s : b.getSmithWatermanDiffs()) {
+//									logger.info(s);
+//								}
+//							}
 							if ( ! binSeq.equals(ref)) {
-								//							if (ref.length() != binSeq.length() &&  ! diffs[0].contains("-") && ! diffs[2].contains("-")) {
-								//								logger.warn("ref length != binSeq and no indels!!! p id: " + p.getId() + ", bin id: " + b.getId() + ", fs: " + p.isOnForwardStrand());
-								//							}
-								
 								createMutations(p, b);
 							}
 						}
@@ -1173,7 +1165,6 @@ private static QLogger logger;
 					logger.info("Found null list for vcf: " + entry.getKey().toString());
 					continue;
 				}
-				
 				
 				for (Pair<Probe,Bin> pair : list) {
 					Map<Bin, List<VcfRecord>> binVcfs = mutationsByBin.get(pair.getLeft());
@@ -1470,9 +1461,6 @@ private static QLogger logger;
 		
 	private void writeAmpliconDetailsAgain() {
 		
-		int noOfProbesWithLargeSecondaryBin = 0;
-		
-		
 		// logging and writing to file
 		Element amplicons = new Element("Amplicons");
 		amplicons.addAttribute(new Attribute("amplicon_file", xmlFile));
@@ -1489,16 +1477,12 @@ private static QLogger logger;
 				
 				// I want the old fragment breakdown so that a comparison can be made
 				TIntArrayList fragMatches = new TIntArrayList();
-//				List<Integer> fragMatches = new ArrayList<>();
 				for (Entry<String, AtomicInteger> entry : frags.entrySet()) {
 					if (entry.getKey() != null) {
 						fragMatches.add(entry.getValue().get());
 					}
 				}
 				if (fragMatches.size() > 1) {
-//					Collections.sort(fragMatches);
-//					Collections.reverse(fragMatches);
-					
 					fragments.addAttribute(new Attribute("pre-rescue_fragment_breakdown", "" + ClinVarUtil.breakdownEditDistanceDistribution(fragMatches)));
 				}
 				
@@ -1517,26 +1501,10 @@ private static QLogger logger;
 						fragMatches.add(b.getRecordCount());
 				}
 				if (fragMatches.size() > 1) {
-//					Collections.sort(fragMatches);
-//					Collections.reverse(fragMatches);
-					
 					fragments.addAttribute(new Attribute("fragment_breakdown", "" + ClinVarUtil.breakdownEditDistanceDistribution(fragMatches)));
-					
-//					int total = 0;
-//					for (Integer i : fragMatches) {
-//						total += i;
-//					}
-//					int secondLargestCount = fragMatches.get(1);
-//					if (secondLargestCount > 1) {
-//						int secondLargestPercentage = (100 * secondLargestCount) / total;
-//						if (secondLargestPercentage > 10) {
-//							noOfProbesWithLargeSecondaryBin++;
-//						}
-//					}
 				}
 			}
 		}
-//		logger.info("no of probes with secondary bin contains > 10% of reads: " + noOfProbesWithLargeSecondaryBin);
 		
 		// write output
 		Document doc = new Document(amplicons);
@@ -1732,7 +1700,6 @@ private static QLogger logger;
 
 	private void writeAmpliconDetails() {
 		// logging and writing to file
-		int noOfProbesWithLargeSecondaryBin = 0;
 		Element amplicons = new Element("Amplicons");
 		amplicons.addAttribute(new Attribute("amplicon_file", xmlFile));
 		amplicons.addAttribute(new Attribute("fastq_file_1", fastqFiles[0]));
@@ -1745,7 +1712,6 @@ private static QLogger logger;
 			Map<String, AtomicInteger> frags = probeFragments.get(p);
 			if (null != frags && ! frags.isEmpty()) {
 				
-//				List<Integer> fragMatches = new ArrayList<>();
 				TIntArrayList fragMatches = new TIntArrayList();
 				for (Entry<String, AtomicInteger> entry : frags.entrySet()) {
 					if (entry.getKey() != null) {
@@ -1758,22 +1724,7 @@ private static QLogger logger;
 					}
 				}
 				if (fragMatches.size() > 1) {
-//					Collections.sort(fragMatches);
-//					Collections.reverse(fragMatches);
-					
 					fragments.addAttribute(new Attribute("fragment_breakdown", "" + ClinVarUtil.breakdownEditDistanceDistribution(fragMatches)));
-					
-//					int total = 0;
-//					for (Integer i : fragMatches) {
-//						total += i;
-//					}
-//					int secondLargestCount = fragMatches.get(1);
-//					if (secondLargestCount > 1) {
-//						int secondLargestPercentage = (100 * secondLargestCount) / total;
-//						if (secondLargestPercentage > 10) {
-//							noOfProbesWithLargeSecondaryBin++;
-//						}
-//					}
 				}
 			}
 		}

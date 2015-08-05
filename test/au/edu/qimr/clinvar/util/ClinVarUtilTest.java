@@ -24,6 +24,66 @@ import au.edu.qimr.clinvar.model.Probe;
 
 public class ClinVarUtilTest {
 	
+//	@Test
+//	public void fixSWResultsBothEndsDiff() {
+//		assertArrayEquals(new String[] {"AABCDE",".||||.","XABCDF"}, ClinVarUtil.rescueSWData(new String[] {"ABCD","||||","ABCD"}, "AABCDE", "XABCDF"));
+//	}
+	
+	@Test
+	public void fixSWResultsOneEndDiff() {
+		assertArrayEquals(new String[] {"ABCD","||||","ABCD"}, ClinVarUtil.rescueSWData(new String[] {"ABCD","||||","ABCD"}, "ABCD", "ABCD"));
+		assertArrayEquals(new String[] {"ABCDE","||||.","ABCDF"}, ClinVarUtil.rescueSWData(new String[] {"ABCD","||||","ABCD"}, "ABCDE", "ABCDF"));
+		assertArrayEquals(new String[] {"ABCDEF","||||..","ABCDFG"}, ClinVarUtil.rescueSWData(new String[] {"ABCD","||||","ABCD"}, "ABCDEF", "ABCDFG"));
+		assertArrayEquals(new String[] {"AABCD",".||||","XABCD"}, ClinVarUtil.rescueSWData(new String[] {"ABCD","||||","ABCD"}, "AABCD", "XABCD"));
+		assertArrayEquals(new String[] {"AAABCD","..||||","ZXABCD"}, ClinVarUtil.rescueSWData(new String[] {"ABCD","||||","ABCD"}, "AAABCD", "ZXABCD"));
+	}
+	
+	@Test
+	public void fixSWResultsNullOrEmpty() {
+		try {
+			ClinVarUtil.rescueSWData(null, null, null);
+			Assert.fail("Should have thrown an IllegalArgumentException");
+		} catch (IllegalArgumentException iae) {}
+		try {
+			ClinVarUtil.rescueSWData(null, "", null);
+			Assert.fail("Should have thrown an IllegalArgumentException");
+		} catch (IllegalArgumentException iae) {}
+		try {
+			ClinVarUtil.rescueSWData(null, null, "");
+			Assert.fail("Should have thrown an IllegalArgumentException");
+		} catch (IllegalArgumentException iae) {}
+		try {
+			ClinVarUtil.rescueSWData(null, "", "");
+			Assert.fail("Should have thrown an IllegalArgumentException");
+		} catch (IllegalArgumentException iae) {}
+	}
+	
+	@Test
+	public void getSequenceDictonaryFromProbes() {
+		List<Probe> list = new ArrayList<>();
+		try {
+			ClinVarUtil.getSequenceDictionaryFromProbes(null);
+			Assert.fail("Should have thrown an IllegalArgumentException");
+		} catch (IllegalArgumentException iae) {}
+		
+		assertEquals(0, ClinVarUtil.getSequenceDictionaryFromProbes(list).getReferenceLength());
+		
+		Probe p1 = new Probe(1, null, null, null, null, 100, 0, 0, 200, null, 0, 0, "chr1", false, null);
+		list.add(p1);
+		assertEquals(200, ClinVarUtil.getSequenceDictionaryFromProbes(list).getSequence("chr1").getSequenceLength());
+		Probe p2 = new Probe(2, null, null, null, null, 100, 0, 0, 250, null, 0, 0, "chr1", false, null);
+		list.add(p2);
+		assertEquals(250, ClinVarUtil.getSequenceDictionaryFromProbes(list).getSequence("chr1").getSequenceLength());
+		Probe p3 = new Probe(3, null, null, null, null, 100, 0, 0, 300, null, 0, 0, "chr2", false, null);
+		list.add(p3);
+		assertEquals(250, ClinVarUtil.getSequenceDictionaryFromProbes(list).getSequence("chr1").getSequenceLength());
+		assertEquals(300, ClinVarUtil.getSequenceDictionaryFromProbes(list).getSequence("chr2").getSequenceLength());
+		Probe p4 = new Probe(4, null, null, null, null, 100, 0, 0, 250, null, 0, 0, "chr2", false, null);
+		list.add(p4);
+		assertEquals(250, ClinVarUtil.getSequenceDictionaryFromProbes(list).getSequence("chr1").getSequenceLength());
+		assertEquals(300, ClinVarUtil.getSequenceDictionaryFromProbes(list).getSequence("chr2").getSequenceLength());
+	}
+	
 	@Test
 	public void getOverlappingProbes() {
 		ChrPosition cp = ChrPositionUtils.getChrPositionFromString("chr1:100-200");

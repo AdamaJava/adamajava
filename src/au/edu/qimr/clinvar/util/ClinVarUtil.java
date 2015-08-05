@@ -252,19 +252,6 @@ public class ClinVarUtil {
 		});
 		return results.toArray();
 	}
-//	public static long[] reduceStartPositionsAndTileCount(Map<Long, AtomicInteger> positionAndTiles) {
-//		TreeSet<AtomicInteger> uniqueTileCounts = new TreeSet<>(positionAndTiles.values());
-//		AtomicInteger bestTileCountAI = uniqueTileCounts.last();
-//		TLongList results = new TLongArrayList();
-//		for (Entry<Long, AtomicInteger> entry : positionAndTiles.entrySet()) {
-//			if (entry.getValue().equals(bestTileCountAI)) {
-//				results.add(entry.getKey().longValue());
-//				results.add(bestTileCountAI.longValue());
-//			}
-//		}
-//		return results.toArray();
-//	}
-	
 	
 	/**
 	 * 
@@ -351,6 +338,9 @@ public class ClinVarUtil {
 	}
 	
 	public static SAMSequenceDictionary getSequenceDictionaryFromProbes(List<Probe> probes) {
+		if (null == probes) {
+			throw new IllegalArgumentException("Null List<Probe> passed to ClinVarUtil.getSequenceDictionaryFromProbes");
+		}
 		
 		SAMSequenceDictionary dict = new SAMSequenceDictionary();
 		
@@ -443,6 +433,15 @@ public class ClinVarUtil {
 	
 	
 	public static String[] rescueSWData(String[] diffs, String ref, String binSeq) {
+		if (null == diffs) {
+			throw new IllegalArgumentException("Null String []  passed to CLinVarUtil.rescueSWData");
+		}
+		if (org.qcmg.common.string.StringUtils.isNullOrEmpty(ref)) {
+			throw new IllegalArgumentException("Null or empty ref passed to CLinVarUtil.rescueSWData: " + ref);
+		}
+		if (org.qcmg.common.string.StringUtils.isNullOrEmpty(binSeq)) {
+			throw new IllegalArgumentException("Null or empty binSeq passed to CLinVarUtil.rescueSWData: " + binSeq);
+		}
 		
 		/*
 		 * Check length of binSequence returned from SW calc, as leading/trailing mutations will have been dropped
@@ -450,7 +449,7 @@ public class ClinVarUtil {
 		String swBinSeq = diffs[2].replaceAll("-", "");
 		int lengthDiff = binSeq.length() - swBinSeq.length();
 		if (lengthDiff > 0) {
-			logger.warn("Missing data in sw diffs. lengthDiff:  " + lengthDiff);
+//			logger.warn("Missing data in sw diffs. lengthDiff:  " + lengthDiff);
 			
 			String swRef = diffs[0].replaceAll("-", "");
 			
@@ -512,7 +511,7 @@ public class ClinVarUtil {
 				}
 				
 			} else {
-				
+				logger.warn("binSeq neither startsWith norEndsWith swBinSeq. binSeq: " + binSeq + ", swBinSeq: " + swBinSeq);
 			}
 		}
 		
@@ -669,9 +668,9 @@ public class ClinVarUtil {
 		int length = vcf.getChrPosition().getLength();
 		int positionInString = getZeroBasedPositionInString(vcf.getChrPosition().getPosition(), amplicon.getCp().getPosition() + offset);
 		
-		if (amplicon.getId() == 241) {
-			logger.info("positionInString: " + positionInString +", from offset: " + offset + ", vcf.getChrPosition().getPosition(): " + vcf.getChrPosition().getPosition() +", amplicon.getCp().getPosition(): " + amplicon.getCp().getPosition());
-		}
+//		if (amplicon.getId() == 241) {
+//			logger.info("positionInString: " + positionInString +", from offset: " + offset + ", vcf.getChrPosition().getPosition(): " + vcf.getChrPosition().getPosition() +", amplicon.getCp().getPosition(): " + amplicon.getCp().getPosition());
+//		}
 		
 		return getMutationString(positionInString, length, smithWatermanDiffs);
 		
@@ -700,6 +699,9 @@ public class ClinVarUtil {
 		}
 		if (expectedEnd > binSequenceLength) {
 			logger.warn("Expected end: " + expectedEnd + ", is greater than the length of the bin sequence: " + binSequenceLength);
+			for (String s : smithWatermanDiffs) {
+				logger.warn("s: " + s);
+			}
 			return null;
 		}
 		
