@@ -1,8 +1,12 @@
 package au.edu.qimr.clinvar.model;
 
+import org.qcmg.common.log.QLogger;
+import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
 
 public class Probe implements Comparable<Probe>{
+	
+	private static QLogger logger = QLoggerFactory.getLogger(Probe.class);
 	
 	private final int id;
 	private final String dlsoSeq;
@@ -76,17 +80,48 @@ public class Probe implements Comparable<Probe>{
 		return true;
 	}
 	
+	public int getSubReferencePosition(String refSubString) {
+		int offset = subseq.indexOf(refSubString);
+		
+		if (offset == -1) {
+			logger.warn("Probe: " + id + ", could not find refSubString in subseq!!! refSubString: " + refSubString);
+			return -1;
+		} else {
+			return  subseqStart + offset;
+		}
+	}
+	
 	public String getReferenceSequence() {
 		int start = cp.getPosition();
-		int end = cp.getEndPosition();
+//		int end = cp.getEndPosition();
 		int seqStartPos = start - subseqStart;
-		String ref = subseq.substring(seqStartPos, (end - start) + seqStartPos + 1);
+		String ref = subseq.substring(seqStartPos, cp.getLength() + seqStartPos);
 
-		// we want to report the reference on the forward strand so RC if we are on the reverse
+		// reference sequence is always reported on the +ve strand in the primer xml files
+		return ref; 	
+	}
+	public String getBufferedReferenceSequence() {
+		return getBufferedReferenceSequence(10);
+	}
+	
+	public String getBufferedReferenceSequence(int buffer) {
+		int start = cp.getPosition();
+//		int end = cp.getEndPosition();
+		int seqStartPos = Math.max(0, start - subseqStart - buffer);
+		int seqEndPos = Math.min(cp.getLength() + seqStartPos + buffer, subseq.length());
+		
+		// reference sequence is always reported on the +ve strand in the primer xml files
+		return subseq.substring(seqStartPos, seqEndPos);
+	}
+	
+	public String getReferenceSequence(int additionalLength) {
+		int start = cp.getPosition();
+//		int end = cp.getEndPosition();
+		int seqStartPos = start - subseqStart;
+		String ref = subseq.substring(seqStartPos, cp.getLength() + seqStartPos  + additionalLength);
 		
 		// reference sequence is always reported on the +ve strand in the primer xml files
 		return ref; 	
-//		return forwardStrand ? ref : SequenceUtil.reverseComplement(ref); 	
 	}
 	
 	public int getDlsoPrimerLength() {
@@ -96,7 +131,8 @@ public class Probe implements Comparable<Probe>{
 		return primer2End - primer2Start + 1;
 	}
 	public int getExpectedFragmentLength() {
-		return primer2End - primer1Start + 1;
+		return cp.getLength();
+//		return primer2End - primer1Start + 1;
 	}
 
 	public int getId() {
@@ -135,9 +171,6 @@ public class Probe implements Comparable<Probe>{
 		return subseq;
 	}
 
-	public boolean isOnForwardStrand() {
-		return  forwardStrand;
-	}
 	public boolean reverseComplementSequence() {
 		return  forwardStrand;
 	}

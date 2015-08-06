@@ -9,7 +9,6 @@ import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMFileHeader.SortOrder;
 import htsjdk.samtools.SAMFileWriter;
 import htsjdk.samtools.SAMFileWriterFactory;
-import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.fastq.FastqReader;
 import htsjdk.samtools.fastq.FastqRecord;
 import htsjdk.samtools.reference.FastaSequenceIndex;
@@ -64,7 +63,6 @@ import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeader.Record;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-import org.qcmg.qmule.SmithWatermanGotoh;
 import org.qcmg.tab.TabbedFileReader;
 import org.qcmg.tab.TabbedHeader;
 import org.qcmg.tab.TabbedRecord;
@@ -77,12 +75,10 @@ import au.edu.qimr.clinvar.model.PositionChrPositionMap;
 import au.edu.qimr.clinvar.model.Probe;
 import au.edu.qimr.clinvar.util.ClinVarUtil;
 import au.edu.qimr.clinvar.util.FastqProbeMatchUtil;
-//import org.w3c.dom.Document;
-//import org.w3c.dom.Element;
 
 public class Q3ClinVar {
 	
-private static QLogger logger;
+	private static QLogger logger;
 	
 	
 	private static final int TILE_SIZE = 13;
@@ -193,8 +189,7 @@ private static QLogger logger;
 					String [] ampliconPositionSWDiffs = b.getSmithWatermanDiffs();
 					if (null == ampliconPositionSWDiffs) {
 						String sequence = probe.reverseComplementSequence() ? SequenceUtil.reverseComplement(b.getSequence()) : b.getSequence();
-						SmithWatermanGotoh nm = new SmithWatermanGotoh(probe.getReferenceSequence(), sequence, 5, -4, 16, 4);
-						ampliconPositionSWDiffs =  nm.traceback();
+						ampliconPositionSWDiffs =  ClinVarUtil.getSwDiffs(probe.getReferenceSequence(), sequence);
 					}
 					
 					StringBuilder tiledLocations = new StringBuilder();
@@ -613,7 +608,6 @@ private static QLogger logger;
 					/*
 					 * Haven't got a best tiled location, or the location is nor near the amplicon, so lets generate some SW diffs, and choose the best location based on those
 					 */
-				
 					if (bestTileCount > 1) {
 						Map<ChrPosition, String[]> scores = getSWScores(results, b.getSequence());
 						b.addPossiblePositions(scores);
@@ -628,75 +622,6 @@ private static QLogger logger;
 						updateMap(bestTiledCp, binLocationDistribution);
 					}
 				}
-				
-//				logger.info("best current strand score: " + bestTileCount + ", best rc score: "  + rcBestTileCount);
-//				ChrPosition bestTiledCp = null;
-//				if (bestTileCount == rcBestTileCount) {
-//					/*
-//					 * Ignore for now ...
-//					 */
-//					bothStrandsWin++;
-//					logger.info("tile counts same for both strands, existing: " + Arrays.toString(results) + ", rc: " + Arrays.toString(rcResults) + " for fragment: " + fragment);
-//				} else if (bestTileCount > rcBestTileCount) {
-//					/*
-//					 * existing strand - need to see if we have more than 1 position on this strand
-//					 */
-//					if (results.length > 2) {
-//						/*
-//						 * SmithWaterman to see which position (if any) wins
-//						 * Only do this if matching tile count is greater than 1 
-//						 */
-//						if (bestTileCount > 1) {
-//							
-//							Map<ChrPosition, String[]> scores = getSWScores(results, b.getSequence());
-//							b.addPossiblePositions(scores);
-////							int [] scores = getSWScores(results, b.getSequence());
-////							logger.info("sw scores: " + Arrays.toString(scores));
-//							bestTiledCp = ClinVarUtil.getPositionWithBestScore(scores);
-////							if (-1 == positionInArray) {
-////								/*
-////								 * Ignore
-////								 */
-////							} else {
-////								bestTiledCp = positionToActualLocation.getChrPositionFromLongPosition(results[positionInArray * 2]);
-////							}
-//						}
-//					} else {
-//						bestTiledCp = positionToActualLocation.getChrPositionFromLongPosition(results[0]);
-//					}
-//				} else {
-//					/*
-//					 * reverse strand - need to see if we have more than 1 position on this strand
-//					 */
-//					if (rcResults.length > 2) {
-//						/*
-//						 * SmithWaterman to see which position (if any) wins
-//						 * Only do this if matching tile count is greater than 1 
-//						 */
-//						if (rcBestTileCount > 1) {
-//							
-//							Map<ChrPosition, String[]> scores = getSWScores(rcResults, SequenceUtil.reverseComplement(b.getSequence()));
-//							b.addPossiblePositions(scores);
-////							int [] scores = getSWScores(rcResults, SequenceUtil.reverseComplement(b.getSequence()));
-////							logger.info("sw (rc) scores: " + Arrays.toString(scores));
-//							bestTiledCp = ClinVarUtil.getPositionWithBestScore(scores);
-////							if (-1 == positionInArray) {
-////								/*
-////								 * Ignore
-////								 */
-////							} else {
-////								bestTiledCp = positionToActualLocation.getChrPositionFromLongPosition(rcResults[positionInArray * 2]);
-////							}
-//						}
-//					} else {
-//						bestTiledCp = positionToActualLocation.getChrPositionFromLongPosition(rcResults[0]);
-//					}
-//				}
-//				
-//				if (null != bestTiledCp) {
-//					b.setBestTiledLocation(bestTiledCp);
-//					updateMap(bestTiledCp, binLocationDistribution);
-//				}
 			}
 			/*
 			 * Check to see if the bins sit close to the amplicon
@@ -722,37 +647,16 @@ private static QLogger logger;
 	private Map<ChrPosition, String[]> getSWScores(long [] positionCountArray, String binSequence ) throws IOException {
 		Map<ChrPosition, String[]> positionSWDiffMap = new HashMap<>(positionCountArray.length);
 		int noOfCompetingPositions = positionCountArray.length / 2;
-//		int [] scores = new int[noOfCompetingPositions];
 		for (int i = 0 ; i < noOfCompetingPositions ; i++) {
 			long position = positionCountArray[i * 2];
 			ChrPosition cp = positionToActualLocation.getChrPositionFromLongPosition(position);
 			ChrPosition refCp = positionToActualLocation.getBufferedChrPositionFromLongPosition(position, binSequence.length(), 200);
 			
 			String ref = getRefFromChrPos(refCp);
-			SmithWatermanGotoh nm = new SmithWatermanGotoh(ref, binSequence, 5, -4, 16, 4);
-//			String [] diffs = nm.traceback();
-			positionSWDiffMap.put(cp, nm.traceback());
+			positionSWDiffMap.put(cp, ClinVarUtil.getSwDiffs(ref, binSequence));
 		}
 		return positionSWDiffMap;
 	}
-//	private int[] getSWScores(long [] positionCountArray, String binSequence ) throws IOException {
-//		
-//		int noOfCompetingPositions = positionCountArray.length / 2;
-//		int [] scores = new int[noOfCompetingPositions];
-//		int bestScore = 0;
-//		for (int i = 0 ; i < noOfCompetingPositions ; i++) {
-//			long position = positionCountArray[i * 2];
-//			ChrPosition cp = positionToActualLocation.getBufferedChrPositionFromLongPosition(position, binSequence.length(), 200);
-//			String ref = getRefFromChrPos(cp);
-//			SmithWatermanGotoh nm = new SmithWatermanGotoh(ref, binSequence, 5, -4, 16, 4);
-//			String [] diffs = nm.traceback();
-//			scores[i] = ClinVarUtil.getSmithWatermanScore(diffs);
-//			if (scores[i] > bestScore) {
-//				bestScore = scores[i];
-//			}
-//		}
-//		return scores;
-//	}
 
 	private String getRefFromChrPos(ChrPosition cp) {
 		String referenceSeq = null;
@@ -779,7 +683,6 @@ private static QLogger logger;
 		
 		return referenceSeq;
 	}
-
 
 	private void writeDiagnosticOutput(boolean filter) throws IOException {
 		
@@ -866,34 +769,6 @@ private static QLogger logger;
 		}
 	}
 	
-	private void addSAMRecordToWriter(SAMFileHeader header, SAMFileWriter writer, Cigar cigar, int probeId, int binId, int binSize, String referenceSeq, String chr, int position, int offset, String binSeq) {
-		/*
-		 * Setup some common properties on the sam record
-		 */
-		for (int i = 0 ; i < binSize ; i++) {
-			SAMRecord rec = new SAMRecord(header);
-			rec.setReferenceName(chr);
-			rec.setReadString(binSeq);
-			rec.setAttribute("ai", probeId);
-			rec.setAttribute("bi", binId);
-			rec.setMappingQuality(60);
-			rec.setCigar(cigar);
-			/*
-			 * Set the alignemnt start to 1, which is a hack to get around picards calculateMdAndNmTags method which is expecting the entire ref for the chromosome in question
-			 * and we only have the amplicon ref seq.
-			 * Reset once MD and NM have been calculated and set
-			 */
-			rec.setAlignmentStart(1);
-			SequenceUtil.calculateMdAndNmTags(rec, referenceSeq.substring(offset).getBytes(), true, true);
-			rec.setAlignmentStart(position + offset);
-		
-			rec.setReadName(probeId + "_" + binId + "_" + (i + 1) + "_of_" + binSize);
-			writer.addAlignment(rec);
-		}
-		
-	}
-	
-	
 	private void writeAmpliconPerformanceCsv() throws IOException {
 		
 		DecimalFormat df = new DecimalFormat("#.##");
@@ -916,7 +791,6 @@ private static QLogger logger;
 			writer.write("#Number of amplicons: " + probeSet.size() + Constants.NEW_LINE);
 			writer.write("#\n");
 			writer.write("amplicon_id,amplicon_name,amplicon_position,number_of_reads,numbe_of_reads_percentage,number_of_bins,bins_on_target,bins_on_target_percentage,reads_on_target,reads_on_target_percentage\n" );
-			
 			
 			for (Probe p : coordSortedProbes) {
 				ChrPosition ampliconCP = p.getCp();
@@ -943,7 +817,6 @@ private static QLogger logger;
 				+ binCount + "," + binsOnTarget + "," +df.format(binsOnTargetPercentage) + "," + readsOnTarget + "," + df.format(readsOnTargetPercentage) + "\n");
 				
 			}
-		
 			writer.flush();
 		}
 	}
@@ -983,6 +856,8 @@ private static QLogger logger;
 				ChrPosition ampliconCP = p.getCp();
 				int probeId = p.getId();
 				boolean reverseComplementSequence = p.reverseComplementSequence();
+				final String referenceSequence = p.getReferenceSequence();
+				final String bufferedReferenceSequence = p.getBufferedReferenceSequence();
 				List<Bin> bins = probeBinDist.get(p);
 				if (null != bins) {
 					for (Bin b : bins) {
@@ -997,38 +872,37 @@ private static QLogger logger;
 							/*
 							 * Just print ones that match the ref for now - makes ceegar easier..
 							 */
-							int offset = p.getReferenceSequence().indexOf(binSeq);
+							int offset = referenceSequence.indexOf(binSeq);
+							if (offset == -1) {
+								/*
+								 *  try running against bufferedRefSeq
+								 */
+								if (bufferedReferenceSequence.indexOf(binSeq) != -1) {
+									logger.info("got a match against the buffered reference!!! p: " + p.getId() + ", bin: " + b.getId());
+								}
+							}
 							if (offset != -1) {
-								
-								CigarElement ce = new CigarElement(b.getLength(), CigarOperator.MATCH_OR_MISMATCH);
-								List<CigarElement> ces = new ArrayList<>();
-								ces.add(ce);
-								
-								addSAMRecordToWriter(header, writer, new Cigar(ces), probeId, binId,  b.getRecordCount(), p.getReferenceSequence(), p.getCp().getChromosome(), p.getCp().getPosition(), offset, binSeq);
+								Cigar cigar = ClinVarUtil.getCigarForMatchMisMatchOnly(b.getLength());
+								ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, probeId, binId,  b.getRecordCount(), referenceSequence, p.getCp().getChromosome(), p.getCp().getPosition(), offset, binSeq);
 								
 							} else {
+								
 								
 								String [] swDiffs = b.getSmithWatermanDiffs();
 								
 								if (null != swDiffs) {
 									if ( ! swDiffs[1].contains(" ")) {
-										if (swDiffs[1].length() == p.getReferenceSequence().length()) {
+										if (swDiffs[1].length() == referenceSequence.length()) {
 											// just snps and same length
-											CigarElement ce = new CigarElement(b.getLength(), CigarOperator.MATCH_OR_MISMATCH);
-											List<CigarElement> ces = new ArrayList<>();
-											ces.add(ce);
-											
-											addSAMRecordToWriter(header, writer, new Cigar(ces), probeId, binId,  b.getRecordCount(), p.getReferenceSequence(), p.getCp().getChromosome(), p.getCp().getPosition(), 0, binSeq);
+											Cigar cigar = ClinVarUtil.getCigarForMatchMisMatchOnly(b.getLength());
+											ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, probeId, binId,  b.getRecordCount(), referenceSequence, p.getCp().getChromosome(), p.getCp().getPosition(), 0, binSeq);
 										} else {
-											CigarElement ce = new CigarElement(b.getLength(), CigarOperator.MATCH_OR_MISMATCH);
-											List<CigarElement> ces = new ArrayList<>();
-											ces.add(ce);
-											
-											addSAMRecordToWriter(header, writer, new Cigar(ces), probeId, binId,  b.getRecordCount(), p.getReferenceSequence(), p.getCp().getChromosome(), p.getCp().getPosition(), 0, binSeq);
+											Cigar cigar = ClinVarUtil.getCigarForMatchMisMatchOnly(b.getLength());
+											ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, probeId, binId,  b.getRecordCount(), referenceSequence, p.getCp().getChromosome(), p.getCp().getPosition(), 0, binSeq);
 										}
 									} else {
 										
-										if (swDiffs[0].replaceAll("-","").length() == p.getReferenceSequence().length()) {
+										if (swDiffs[0].replaceAll("-","").length() == referenceSequence.length()) {
 											offset = 0;
 										} else {
 											int posOfFistIndel = swDiffs[1].indexOf(" ");
@@ -1044,12 +918,9 @@ private static QLogger logger;
 										}
 											indelSameLength++;
 											
-											
 											List<CigarElement> ces = new ArrayList<>();
 	//										// get mutations
 											List<Pair<Integer, String>> mutations = ClinVarUtil.getPositionRefAndAltFromSW(swDiffs);
-											
-											
 											
 											int lastPosition = 0;
 											for (Pair<Integer, String> mutation : mutations) {
@@ -1092,7 +963,7 @@ private static QLogger logger;
 												ces.add(match);
 											}
 											Cigar cigar = new Cigar(ces);
-											addSAMRecordToWriter(header, writer, cigar, probeId, binId,  b.getRecordCount(), p.getReferenceSequence(), p.getCp().getChromosome(), p.getCp().getPosition(), 0, binSeq);
+											ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, probeId, binId,  b.getRecordCount(), referenceSequence, p.getCp().getChromosome(), p.getCp().getPosition(), 0, binSeq);
 									}
 								}
 							}
@@ -1115,7 +986,7 @@ private static QLogger logger;
 			Probe p = entry.getKey();
 			ChrPosition ampliconCP = p.getCp();
 			List<Bin> bins = entry.getValue();
-			String ref = p.getReferenceSequence();
+			String bufferedRef = p.getBufferedReferenceSequence();
 			boolean reverseComplementSequence = p.reverseComplementSequence();
 			
 			// get largest bin
@@ -1129,10 +1000,18 @@ private static QLogger logger;
 						if ( ! onlyUseBinsThatMatchAmplicons || (null != b.getBestTiledLocation() && ClinVarUtil.doChrPosOverlap(ampliconCP, b.getBestTiledLocation()))) {
 							
 							String binSeq = reverseComplementSequence ? SequenceUtil.reverseComplement(b.getSequence()) :  b.getSequence();
-							SmithWatermanGotoh nm = new SmithWatermanGotoh(ref, binSeq, 5, -4, 16, 4);
-							String [] diffs = nm.traceback();
 							
-							diffs = ClinVarUtil.rescueSWData(diffs, ref, binSeq);
+							// check that ref length is equal to bin length
+							// if shorter, get a longer ref
+							int lengthDiff = binSeq.length() - bufferedRef.length();
+							if (lengthDiff > 0) {
+								logger.warn("bufferef ref length is less than bin length!!!");
+								bufferedRef = p.getBufferedReferenceSequence(lengthDiff);
+							}
+							
+							
+							String [] diffs =  ClinVarUtil.getSwDiffs(bufferedRef, binSeq, true);
+							
 							b.setSWDiffs(diffs);
 							
 //							if (p.getId() == 42) {
@@ -1141,9 +1020,12 @@ private static QLogger logger;
 //									logger.info(s);
 //								}
 //							}
-							if ( ! binSeq.equals(ref)) {
+							if ( ! bufferedRef.contains(binSeq)) {
 								createMutations(p, b);
 							}
+//							if ( ! binSeq.equals(bufferedRef)) {
+//								createMutations(p, b);
+//							}
 						}
 					}
 				}
@@ -1288,13 +1170,12 @@ private static QLogger logger;
 				 * get amplicons that overlap this position
 				 */
 				List<Probe> overlappingProbes = ClinVarUtil.getAmpliconsOverlappingPosition(vcf.getChrPosition(), probeSet);
-//				logger.info("no of amplicons overlapping position: " + overlappingProbes.size());
 				
 				if (overlappingProbes.isEmpty()) {
 					logger.warn("Found no amplicons overlapping position: " + vcf.getChrPosition());
 				}
-				String format = ClinVarUtil.getAmpliconDistribution(vcf, overlappingProbes, probeBinDist, minBinSize);
-				List<String> ff = new ArrayList<>();
+				String format = ClinVarUtil.getAmpliconDistribution(vcf, overlappingProbes, probeBinDist, minBinSize, false, filter);
+				List<String> ff = new ArrayList<>(4);
 				ff.add("BB");
 				ff.add(ClinVarUtil.getSortedBBString(format, vcf.getRef()));
 				vcf.setFormatFields(ff);
@@ -1302,7 +1183,6 @@ private static QLogger logger;
 				writer.add(vcf);
 			}
 		}
-		
 		
 		outputFileName = filter ?  outputFileNameBase+"diag.detailed.vcf" : outputFileNameBase+"diag.unfiltered_detailed.vcf";
 		try (VCFFileWriter writer = new VCFFileWriter(new File(outputFileName))) {
@@ -1330,13 +1210,12 @@ private static QLogger logger;
 				 * get amplicons that overlap this position
 				 */
 				List<Probe> overlappingProbes = ClinVarUtil.getAmpliconsOverlappingPosition(vcf.getChrPosition(), probeSet);
-//				logger.info("no of amplicons overlapping position: " + overlappingProbes.size());
 				
 				if (overlappingProbes.isEmpty()) {
 					logger.warn("Found no amplicons overlapping position: " + vcf.getChrPosition());
 				}
-				String format = ClinVarUtil.getAmpliconDistribution(vcf, overlappingProbes, probeBinDist, minBinSize, true);
-				List<String> ff = new ArrayList<>();
+				String format = ClinVarUtil.getAmpliconDistribution(vcf, overlappingProbes, probeBinDist, minBinSize, true, filter);
+				List<String> ff = new ArrayList<>(4);
 				ff.add("BB");
 				ff.add(ClinVarUtil.getSortedBBString(format, vcf.getRef()));
 				vcf.setFormatFields(ff);
@@ -1356,7 +1235,6 @@ private static QLogger logger;
 		}
 		return bins;
 	}
-
 
 	private void rollupMutations() {
 		
@@ -1411,14 +1289,19 @@ private static QLogger logger;
 		
 		if ( ! mutations.isEmpty()) {
 		
-			String probeRef = p.getReferenceSequence();
+//			String probeRef = p.getReferenceSequence();
 			// remove any indel characters - only checking
 			String swRef = smithWatermanDiffs[0].replace("-", "");
-			int offset = probeRef.indexOf(swRef);
+			int startPositionOfSWDiffs = p.getSubReferencePosition(swRef);
 			
-			if ( offset == -1) {
-				logger.warn("probeRef.indexOf(swRef) == -1!!! probe (id:bin.id: " + p.getId() + ":" + b.getId() + ") , probe ref: " + probeRef + ", swRef: " + swRef);
+			if ( startPositionOfSWDiffs == -1) {
+				logger.warn("p.getSubReferencePosition(swRef) == -1!!! probe (id:bin.id: " + p.getId() + ":" + b.getId() + ") , swRef: " + swRef);
 			}
+//			int offset = probeRef.indexOf(swRef);
+//			
+//			if ( offset == -1) {
+//				logger.warn("probeRef.indexOf(swRef) == -1!!! probe (id:bin.id: " + p.getId() + ":" + b.getId() + ") , probe ref: " + probeRef + ", swRef: " + swRef);
+//			}
 			
 			for (Pair<Integer, String> mutation : mutations) {
 				int position = mutation.getLeft().intValue();
@@ -1429,15 +1312,15 @@ private static QLogger logger;
 	//			if (p.getId() == 542 && b.getId() == 87424 ) {
 	//				logger.info("position: " + position + ", mutString: " + mutString);
 	//			}
-				createMutation(p, b, position + offset, ref, alt);
+				createMutation(p, b, position + startPositionOfSWDiffs, ref, alt);
 			}
 		}
 	}
 	
 	private void createMutation(Probe p, Bin b, int position, String ref, String alt) {
-		int startPos = p.getCp().getPosition() + position;
-		int endPos = ref.length() > 1 ? startPos + (ref.length() -1 ) : startPos;
-		VcfRecord vcf = VcfUtils.createVcfRecord(new ChrPosition(p.getCp().getChromosome(),  startPos, endPos), "."/*id*/, ref, alt);
+//		int startPos = p.getCp().getPosition() + position;
+//		int endPos = ref.length() > 1 ? startPos + (ref.length() -1 ) : startPos;
+		VcfRecord vcf = VcfUtils.createVcfRecord(new ChrPosition(p.getCp().getChromosome(),  position, (position + ref.length() -1)), "."/*id*/, ref, alt);
 		List<Pair<Probe, Bin>> existingBins = mutations.get(vcf);
 		if (null == existingBins) {
 			existingBins = new ArrayList<>();
@@ -1509,7 +1392,6 @@ private static QLogger logger;
 		// write output
 		Document doc = new Document(amplicons);
 		File binnedOutput = new File(outputFileNameBase + "amplicons.xml");
-//		File binnedOutput = new File(outputDir.replace(".xml", "_binned.xml"));
 		try (OutputStream os = new FileOutputStream(binnedOutput);){
 			 Serializer serializer = new Serializer(os, "ISO-8859-1");
 		        serializer.setIndent(4);
@@ -1733,7 +1615,6 @@ private static QLogger logger;
 		// write output
 		Document doc = new Document(amplicons);
 		try (OutputStream os = new FileOutputStream(new File(outputFileNameBase + "diag.unbinned_amplicons.xml"));){
-//			try (OutputStream os = new FileOutputStream(new File(outputDir));){
 			 Serializer serializer = new Serializer(os, "ISO-8859-1");
 		        serializer.setIndent(4);
 		        serializer.setMaxLength(64);
@@ -1831,7 +1712,6 @@ private static QLogger logger;
 			logger = QLoggerFactory.getLogger(Q3ClinVar.class, logFile, options.getLogLevel());
 			qexec = logger.logInitialExecutionStats("q3clinvar", version, args);
 			
-			
 			// get list of file names
 			fastqFiles = options.getFastqs();
 			if (fastqFiles.length < 1) {
@@ -1869,8 +1749,8 @@ private static QLogger logger;
 			logger.info("minBinSize is " + minBinSize);
 			
 			
-				return engage();
-			}
+			return engage();
+		}
 		return returnStatus;
 	}
 

@@ -43,5 +43,16 @@ public class ProbeTest {
 		assertEquals(true, subseq.contains(bin));
 		assertEquals(probeRef, bin);
 	}
+	
+	@Test
+	public void getPositinOfOffset() {
+		String subseq = "AAAAAAAAAABBBBBBBBBBCCCCCCCCCCDDDDDDDDDDEEEEEEEEEEFFFFFFFFFFGGGGGGGGGGHHHHHHHHHH";
+		Probe p = new Probe(7, "", "", "", "", 11, 20, 71, 70, subseq, 1, 80, "chrOllie", false,"name1");
+		
+		assertEquals(1, p.getSubReferencePosition(subseq));
+		assertEquals(11, p.getSubReferencePosition("BBBBBBBBBB"));
+		assertEquals(21, p.getSubReferencePosition("CCCCCCCCCC"));
+		assertEquals(-1, p.getSubReferencePosition("XYZ"));
+	}
 
 }

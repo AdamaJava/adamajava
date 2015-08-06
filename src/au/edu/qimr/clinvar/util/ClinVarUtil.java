@@ -14,10 +14,13 @@ import gnu.trove.set.hash.TIntHashSet;
 import htsjdk.samtools.Cigar;
 import htsjdk.samtools.CigarElement;
 import htsjdk.samtools.CigarOperator;
+import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SAMFileWriter;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.SAMSequenceRecord;
 import htsjdk.samtools.SAMTag;
+import htsjdk.samtools.util.SequenceUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,6 +41,7 @@ import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.Pair;
 import org.qcmg.common.vcf.VcfRecord;
+import org.qcmg.qmule.SmithWatermanGotoh;
 
 import au.edu.qimr.clinvar.model.Bin;
 import au.edu.qimr.clinvar.model.Probe;
@@ -45,6 +49,25 @@ import au.edu.qimr.clinvar.model.Probe;
 public class ClinVarUtil {
 	
 	private static final QLogger logger = QLoggerFactory.getLogger(ClinVarUtil.class);
+	
+	public static String[] getSwDiffs(String ref, String sequence) {
+		return getSwDiffs(ref, sequence, false);
+	}
+	
+	public static String[] getSwDiffs(String ref, String sequence, boolean rescueSequence) {
+		if (org.qcmg.common.string.StringUtils.isNullOrEmpty(ref)
+				|| org.qcmg.common.string.StringUtils.isNullOrEmpty(sequence)) {
+			throw new IllegalArgumentException("ref or sequence (or both) supplied to ClinVarUtil.getSwDiffs were null. ref: " + ref + ", sequence: " + sequence);
+		}
+		
+		SmithWatermanGotoh nm = new SmithWatermanGotoh(ref, sequence, 5, -4, 16, 4);
+		String [] diffs = nm.traceback();
+		if (rescueSequence) {
+			rescueSWData(diffs, ref, sequence);
+		}
+		return diffs;
+		
+	}
 	
 	public static int [] getDoubleEditDistance(String read1, String read2, String primer1, String primer2, int editDistanceCutoff) {
 		
@@ -462,7 +485,7 @@ public class ClinVarUtil {
 				if (refIndex > -1) {
 					int positionInRef = refIndex + swRef.length();
 					if (ref.length() < positionInRef + lengthDiff) {
-						logger.warn("ref.length() < positionInRef + lengthDiff");
+						logger.warn("ref.length() < positionInRef + lengthDiff, ref.length(): " + ref.length() + ", positionInRef: " + positionInRef + ", lengthDiff: " + lengthDiff + ", ref: " + ref + ", binSeq: " + binSeq);
 					} else {
 						
 						String missingRefBases = ref.substring(positionInRef, positionInRef + lengthDiff);
@@ -472,7 +495,9 @@ public class ClinVarUtil {
 							logger.info("missingBinSeqBases.equals(missingRefBases) || missingBinSeqBases.length() != missingRefBases.length(), missingBinSeqBases: " + missingBinSeqBases + ", missingRefBases: " + missingRefBases);
 							// oh dear
 						} else {
-							logger.info("adding " + missingRefBases + ">" + missingBinSeqBases + " to sw diffs");
+							if (lengthDiff > 1) {
+								logger.info("adding " + missingRefBases + ">" + missingBinSeqBases + " to sw diffs");
+							}
 							diffs[0] += missingRefBases;
 							for (int i = 0 ; i < lengthDiff ; i++) {
 								diffs[1] += ".";
@@ -492,13 +517,21 @@ public class ClinVarUtil {
 				
 				int refIndex = ref.indexOf(swRef); 
 				if (refIndex > -1) {
-					String missingRefBases = ref.substring(refIndex - lengthDiff, refIndex);
+					if (refIndex - lengthDiff < 0) {
+						logger.warn("refIndex - lengthDiff is lt 0, refIndex:  " + refIndex + ", lengthDiff: " + lengthDiff + ", ref: " + ref + ", binSeq: " + binSeq);
+						for (String s : diffs) {
+							logger.warn("s: " + s);
+						}
+					}
+					String missingRefBases = ref.substring(Math.max(0, refIndex - lengthDiff), refIndex);
 					
 					if (missingBinSeqBases.equals(missingRefBases) || missingBinSeqBases.length() != missingRefBases.length()) {
 						logger.info("missingBinSeqBases.equals(missingRefBases) || missingBinSeqBases.length() != missingRefBases.length(), missingBinSeqBases: " + missingBinSeqBases + ", missingRefBases: " + missingRefBases);
 						// oh dear
 					} else {
-						logger.info("adding " + missingRefBases + ">" + missingBinSeqBases + " to sw diffs");
+						if (lengthDiff > 1) {
+							logger.info("adding " + missingRefBases + ">" + missingBinSeqBases + " to sw diffs");
+						}
 						diffs[0] = missingRefBases + diffs[0];
 						for (int i = 0 ; i < lengthDiff ; i++) {
 							diffs[1] = "." + diffs[1];
@@ -573,13 +606,13 @@ public class ClinVarUtil {
 	 * @param probeBinDist
 	 * @return
 	 */
-	public static String getAmpliconDistribution(VcfRecord vcf, List<Probe> overlappingProbes, 
-			Map<Probe, List<Bin>> probeBinDist, int minBinSize) {
-		return getAmpliconDistribution(vcf, overlappingProbes, probeBinDist, minBinSize, false);
-	}
+//	public static String getAmpliconDistribution(VcfRecord vcf, List<Probe> overlappingProbes, 
+//			Map<Probe, List<Bin>> probeBinDist, int minBinSize) {
+//		return getAmpliconDistribution(vcf, overlappingProbes, probeBinDist, minBinSize, false);
+//	}
 	
 	public static String getAmpliconDistribution(VcfRecord vcf, List<Probe> overlappingProbes, 
-			Map<Probe, List<Bin>> probeBinDist, int minBinSize, boolean diagnosticMode) {
+			Map<Probe, List<Bin>> probeBinDist, int minBinSize, boolean diagnosticMode, boolean useBinsCloseToAmplicon) {
 		StringBuilder sb = new StringBuilder();
 		
 		Map<String, List<Pair<Probe, Bin>>> baseDist = new HashMap<>();
@@ -591,8 +624,12 @@ public class ClinVarUtil {
 			for (Bin b : bins) {
 				/*
 				 * only deal with bins that have >= minBinSize read in them
+				 * and if useBinsCloseToAmplicon then probe and bin ChrPositions must overlap
 				 */
-				if (b.getRecordCount() >= minBinSize) {
+				if (b.getRecordCount() >= minBinSize 
+						&& ( ! useBinsCloseToAmplicon 
+								|| (b.getBestTiledLocation() != null && doChrPosOverlap(amplicon.getCp(), b.getBestTiledLocation())))) {
+					
 					String binSeq = getBaseAtPosition(vcf, amplicon, b);
 					if (null != binSeq) {
 						List<Pair<Probe, Bin>> probeBinPair = baseDist.get(binSeq);
@@ -656,17 +693,21 @@ public class ClinVarUtil {
 		if (null == smithWatermanDiffs) {
 			logger.warn("bin does not contain sw diffs!!! bin: " + bin.getId() + ", probe: " + amplicon.getId() + ", vcf cp: " + vcf.getChrPosition().toIGVString());
 		}
-		String probeRef = amplicon.getReferenceSequence();
+//		String probeRef = amplicon.getReferenceSequence();
 		// remove any indel characters - only checking
 		String swRef = smithWatermanDiffs[0].replace("-", "");
-		int offset = probeRef.indexOf(swRef);
+		int subRefPosition = amplicon.getSubReferencePosition(swRef);
+//		int offset = probeRef.indexOf(swRef);
 		
-		if ( offset == -1) {
-			logger.warn("probeRef.indexOf(swRef) == -1!!! probe (id:bin.id: " + amplicon.getId() + ":" + bin.getId() + ") , probe ref: " + probeRef + ", swRef: " + swRef);
+		if ( subRefPosition == -1) {
+			logger.warn("amplicon.getSubReferencePosition(swRef) == -1!!! probe (id:bin.id: " + amplicon.getId() + ":" + bin.getId() + "), swRef: " + swRef);
 		}
+//		if ( offset == -1) {
+//			logger.warn("probeRef.indexOf(swRef) == -1!!! probe (id:bin.id: " + amplicon.getId() + ":" + bin.getId() + ") , probe ref: " + probeRef + ", swRef: " + swRef);
+//		}
 		
 		int length = vcf.getChrPosition().getLength();
-		int positionInString = getZeroBasedPositionInString(vcf.getChrPosition().getPosition(), amplicon.getCp().getPosition() + offset);
+		int positionInString = getZeroBasedPositionInString(vcf.getChrPosition().getPosition(), subRefPosition);
 		
 //		if (amplicon.getId() == 241) {
 //			logger.info("positionInString: " + positionInString +", from offset: " + offset + ", vcf.getChrPosition().getPosition(): " + vcf.getChrPosition().getPosition() +", amplicon.getCp().getPosition(): " + amplicon.getCp().getPosition());
@@ -676,10 +717,47 @@ public class ClinVarUtil {
 		
 	}
 	
-	public static boolean doChrPosOverlap(ChrPosition cp1, ChrPosition cp2) {
+	public static Cigar getCigarForMatchMisMatchOnly(int length) {
+		CigarElement ce = new CigarElement(length, CigarOperator.MATCH_OR_MISMATCH);
+		List<CigarElement> ces = new ArrayList<>(2);
+		ces.add(ce);
+		return new Cigar(ces);
+	}
+	
+	
+	public static void addSAMRecordToWriter(SAMFileHeader header, SAMFileWriter writer, Cigar cigar, int probeId, int binId, int binSize, String referenceSeq, String chr, int position, int offset, String binSeq) {
 		/*
-		 * Use a consistent buffer value
+		 * Setup some common properties on the sam record
 		 */
+		for (int i = 0 ; i < binSize ; i++) {
+			SAMRecord rec = new SAMRecord(header);
+			rec.setReferenceName(chr);
+			rec.setReadString(binSeq);
+			rec.setAttribute("ai", probeId);
+			rec.setAttribute("bi", binId);
+			rec.setMappingQuality(60);
+			rec.setCigar(cigar);
+			/*
+			 * Set the alignemnt start to 1, which is a hack to get around picards calculateMdAndNmTags method which is expecting the entire ref for the chromosome in question
+			 * and we only have the amplicon ref seq.
+			 * Reset once MD and NM have been calculated and set
+			 */
+			rec.setAlignmentStart(1);
+			SequenceUtil.calculateMdAndNmTags(rec, referenceSeq.substring(offset).getBytes(), true, true);
+			rec.setAlignmentStart(position + offset);
+		
+			rec.setReadName(probeId + "_" + binId + "_" + (i + 1) + "_of_" + binSize);
+			writer.addAlignment(rec);
+		}
+	}
+	
+	/**
+	 * Calls ChrPositionUtils.doChrPositionsOverlap with 100 as the overlap
+	 * @param cp1
+	 * @param cp2
+	 * @return
+	 */
+	public static boolean doChrPosOverlap(ChrPosition cp1, ChrPosition cp2) {
 		return ChrPositionUtils.doChrPositionsOverlap(cp1, cp2, 100);
 	}
 	
@@ -698,10 +776,14 @@ public class ClinVarUtil {
 			return null;
 		}
 		if (expectedEnd > binSequenceLength) {
-			logger.warn("Expected end: " + expectedEnd + ", is greater than the length of the bin sequence: " + binSequenceLength);
-			for (String s : smithWatermanDiffs) {
-				logger.warn("s: " + s);
-			}
+			/*
+			 * This happens when the bin is shorter (ends before) the amplicon.
+			 * Return null
+			 */
+//			logger.warn("Expected end: " + expectedEnd + ", is greater than the length of the bin sequence: " + binSequenceLength);
+//			for (String s : smithWatermanDiffs) {
+//				logger.warn("s: " + s);
+//			}
 			return null;
 		}
 		
