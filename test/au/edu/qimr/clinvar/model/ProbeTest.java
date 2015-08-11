@@ -54,5 +54,12 @@ public class ProbeTest {
 		assertEquals(21, p.getSubReferencePosition("CCCCCCCCCC"));
 		assertEquals(-1, p.getSubReferencePosition("XYZ"));
 	}
+	@Test
+	public void getBufferedReference() {
+		String reference = "AAAAAAAAAABBBBBBBBBBCCCCCCCCCCDDDDDDDDDDEEEEEEEEEEFFFFFFFFFFGGGGGGGGGGHHHHHHHHHH";
+		Probe p = new Probe(7, "", "", "", "", 11, 20, 71, 70, reference, 1, 80, "chrOllie", false,"name1");
+		
+		assertEquals("AAAAAAAAAABBBBBBBBBBCCCCCCCCCCDDDDDDDDDDEEEEEEEEEEFFFFFFFFFFGGGGGGGGGGHHHHHHHHHH", p.getBufferedReferenceSequence());
+	}
 
 }

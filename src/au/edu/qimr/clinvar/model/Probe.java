@@ -105,23 +105,11 @@ public class Probe implements Comparable<Probe>{
 	}
 	
 	public String getBufferedReferenceSequence(int buffer) {
-		int start = cp.getPosition();
-//		int end = cp.getEndPosition();
-		int seqStartPos = Math.max(0, start - subseqStart - buffer);
-		int seqEndPos = Math.min(cp.getLength() + seqStartPos + buffer, subseq.length());
+		int seqStartPos = Math.max(0, primer1Start - subseqStart - buffer);
+		int seqEndPos = Math.min(primer2End - subseqStart + 1 + buffer, subseq.length());
 		
 		// reference sequence is always reported on the +ve strand in the primer xml files
 		return subseq.substring(seqStartPos, seqEndPos);
-	}
-	
-	public String getReferenceSequence(int additionalLength) {
-		int start = cp.getPosition();
-//		int end = cp.getEndPosition();
-		int seqStartPos = start - subseqStart;
-		String ref = subseq.substring(seqStartPos, cp.getLength() + seqStartPos  + additionalLength);
-		
-		// reference sequence is always reported on the +ve strand in the primer xml files
-		return ref; 	
 	}
 	
 	public int getDlsoPrimerLength() {
