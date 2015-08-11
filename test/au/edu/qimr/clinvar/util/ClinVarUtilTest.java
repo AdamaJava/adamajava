@@ -24,6 +24,30 @@ import au.edu.qimr.clinvar.model.Probe;
 
 public class ClinVarUtilTest {
 	
+	
+	@Test
+	public void createSAMRecord() {
+		try {
+			ClinVarUtil.createSAMRecord(null, null, 1, 1, 1, "", "", 1, 1, "", 0);
+			Assert.fail("Should have thrown an IllegalArgumentException");
+		} catch (IllegalArgumentException iae) {}
+		try {
+			ClinVarUtil.createSAMRecord(null, null, 1, 1, 1, "ABCD", "", 1, 1, "", 0);
+			Assert.fail("Should have thrown an IllegalArgumentException");
+		} catch (IllegalArgumentException iae) {}
+		Cigar cigar = new Cigar();
+		SAMRecord rec = ClinVarUtil.createSAMRecord(null, cigar, 1, 1, 1, "ABCD", "chr1", 1, 1, "AAAA", 0);
+		assertEquals("0", rec.getAttribute("MD"));	// no cigar elements defined
+		
+		CigarElement ce = new CigarElement(4, CigarOperator.MATCH_OR_MISMATCH);
+		cigar.add(ce);
+		rec = ClinVarUtil.createSAMRecord(null, cigar, 1, 1, 1, "AAAA", "chr1", 1, 0, "AAAA", 0);
+		assertEquals("4", rec.getAttribute("MD"));
+		rec = ClinVarUtil.createSAMRecord(null, cigar, 1, 1, 1, "ABCA", "chr1", 1, 0, "AAAA", 0);
+//		System.out.println("rec: " + rec.getSAMString());
+		assertEquals("1B0C1", rec.getAttribute("MD"));
+	}
+	
 //	@Test
 //	public void fixSWResultsBothEndsDiff() {
 //		assertArrayEquals(new String[] {"AABCDE",".||||.","XABCDF"}, ClinVarUtil.rescueSWData(new String[] {"ABCD","||||","ABCD"}, "AABCDE", "XABCDF"));

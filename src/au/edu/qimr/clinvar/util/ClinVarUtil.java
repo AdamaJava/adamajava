@@ -730,25 +730,37 @@ public class ClinVarUtil {
 		 * Setup some common properties on the sam record
 		 */
 		for (int i = 0 ; i < binSize ; i++) {
-			SAMRecord rec = new SAMRecord(header);
-			rec.setReferenceName(chr);
-			rec.setReadString(binSeq);
-			rec.setAttribute("ai", probeId);
-			rec.setAttribute("bi", binId);
-			rec.setMappingQuality(60);
-			rec.setCigar(cigar);
-			/*
-			 * Set the alignemnt start to 1, which is a hack to get around picards calculateMdAndNmTags method which is expecting the entire ref for the chromosome in question
-			 * and we only have the amplicon ref seq.
-			 * Reset once MD and NM have been calculated and set
-			 */
-			rec.setAlignmentStart(1);
-			SequenceUtil.calculateMdAndNmTags(rec, referenceSeq.substring(offset).getBytes(), true, true);
-			rec.setAlignmentStart(position + offset);
-		
-			rec.setReadName(probeId + "_" + binId + "_" + (i + 1) + "_of_" + binSize);
+			SAMRecord rec = createSAMRecord(header, cigar,probeId, binId, binSize, referenceSeq, chr, position, offset, binSeq, i);
 			writer.addAlignment(rec);
 		}
+	}
+	
+	public static SAMRecord createSAMRecord(SAMFileHeader header, Cigar cigar, int probeId, int binId, int binSize, String referenceSeq, String chr, int position, int offset, String binSeq, int i) {
+		if (org.qcmg.common.string.StringUtils.isNullOrEmpty(referenceSeq)) {
+			throw new IllegalArgumentException("Null or empty reference passed to ClinVarUtil.createSAMRecord: " + referenceSeq);
+		}
+		if (null == cigar) {
+			throw new IllegalArgumentException("Null cigar passed to ClinVarUtil.createSAMRecord");
+		}
+		SAMRecord rec = new SAMRecord(header);
+		rec.setReferenceName(chr);
+		rec.setReadString(binSeq);
+		rec.setAttribute("ai", probeId);
+		rec.setAttribute("bi", binId);
+		rec.setMappingQuality(60);
+		rec.setCigar(cigar);
+		/*
+		 * Set the alignemnt start to 1, which is a hack to get around picards calculateMdAndNmTags method which is expecting the entire ref for the chromosome in question
+		 * and we only have the amplicon ref seq.
+		 * Reset once MD and NM have been calculated and set
+		 */
+		rec.setAlignmentStart(1);
+		
+		SequenceUtil.calculateMdAndNmTags(rec, referenceSeq.substring(offset).getBytes(), true, true);
+		rec.setAlignmentStart(position + offset);
+	
+		rec.setReadName(probeId + "_" + binId + "_" + (i + 1) + "_of_" + binSize);
+		return rec;
 	}
 	
 	/**
