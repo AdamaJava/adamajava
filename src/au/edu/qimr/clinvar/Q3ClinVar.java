@@ -3,8 +3,6 @@ package au.edu.qimr.clinvar;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.list.array.TLongArrayList;
 import htsjdk.samtools.Cigar;
-import htsjdk.samtools.CigarElement;
-import htsjdk.samtools.CigarOperator;
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMFileHeader.SortOrder;
 import htsjdk.samtools.SAMFileWriter;
@@ -873,98 +871,66 @@ public class Q3ClinVar {
 							 * Just print ones that match the ref for now - makes ceegar easier..
 							 */
 							int offset = referenceSequence.indexOf(binSeq);
+							int bufferedOffset = -1;
 							if (offset == -1) {
 								/*
 								 *  try running against bufferedRefSeq
 								 */
-								if (bufferedReferenceSequence.indexOf(binSeq) != -1) {
+								bufferedOffset = bufferedReferenceSequence.indexOf(binSeq);
+								if (bufferedOffset >= 0) {
 									logger.info("got a match against the buffered reference!!! p: " + p.getId() + ", bin: " + b.getId());
+//									if (p.getId() == 121 && b.getId() == 1272) {
+//										logger.info("referenceSequence: " + referenceSequence);
+//										logger.info("bufferedReferenceSequence: " + bufferedReferenceSequence);
+//										logger.info("binSeq: " + binSeq);
+//									}
 								}
 							}
-							if (offset != -1) {
+							if (offset >= 0) {
+								/*
+								 * Perfect Match
+								 */
 								Cigar cigar = ClinVarUtil.getCigarForMatchMisMatchOnly(b.getLength());
 								ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, probeId, binId,  b.getRecordCount(), referenceSequence, p.getCp().getChromosome(), p.getCp().getPosition(), offset, binSeq);
 								
+							} else if (bufferedOffset >= 0) {
+								/*
+								 * Perfect Match against buffered reference
+								 */
+								Cigar cigar = ClinVarUtil.getCigarForMatchMisMatchOnly(b.getLength());
+								ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, probeId, binId,  b.getRecordCount(), bufferedReferenceSequence, p.getCp().getChromosome(), p.getCp().getPosition() - 10, bufferedOffset, binSeq);
+								
 							} else {
 								
-								
+								/*
+								 * bin sequence differs from reference
+								 */
 								String [] swDiffs = b.getSmithWatermanDiffs();
 								
 								if (null != swDiffs) {
 									if ( ! swDiffs[1].contains(" ")) {
+										/*
+										 * Only snps
+										 */
 										if (swDiffs[1].length() == referenceSequence.length()) {
 											// just snps and same length
 											Cigar cigar = ClinVarUtil.getCigarForMatchMisMatchOnly(b.getLength());
 											ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, probeId, binId,  b.getRecordCount(), referenceSequence, p.getCp().getChromosome(), p.getCp().getPosition(), 0, binSeq);
 										} else {
+											logger.info("only snps but diff length to ref. bin: " + b.getId() + ", p: " + p.getId() + ", binSeq: " + binSeq + ", ref: " + referenceSequence);
+											for (String s : swDiffs) {
+												logger.info("s: " + s);
+											}
 											Cigar cigar = ClinVarUtil.getCigarForMatchMisMatchOnly(b.getLength());
 											ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, probeId, binId,  b.getRecordCount(), referenceSequence, p.getCp().getChromosome(), p.getCp().getPosition(), 0, binSeq);
 										}
 									} else {
 										
-										if (swDiffs[0].replaceAll("-","").length() == referenceSequence.length()) {
-											offset = 0;
-										} else {
-											int posOfFistIndel = swDiffs[1].indexOf(" ");
-											if (posOfFistIndel < 10) {
-												logger.warn("posOfFistIndel is < 10 : " + posOfFistIndel);
-											}
-											offset = binSeq.indexOf(swDiffs[2].substring(0, posOfFistIndel - 1));
-											logger.info("diff length indel at: " + p.getCp().toIGVString() + ", offset: " + offset);
-											logger.info("binSeq: " + binSeq);
-											for (String s : swDiffs) {
-												logger.info(s);
-											}
-										}
-											indelSameLength++;
-											
-											List<CigarElement> ces = new ArrayList<>();
-	//										// get mutations
-											List<Pair<Integer, String>> mutations = ClinVarUtil.getPositionRefAndAltFromSW(swDiffs);
-											
-											int lastPosition = 0;
-											for (Pair<Integer, String> mutation : mutations) {
-												/*
-												 * only care about indels
-												 */
-												String mutationString = mutation.getRight();
-												String [] mutArray = mutationString.split("/");
-												
-												if (mutArray[0].length() != mutArray[1].length()) {
-													int indelPosition = mutation.getLeft().intValue() + 1 + offset;
-													
-													if (mutArray[0].length() == 1) {
-	//													// insertion
-														if (indelPosition > 0) {
-															// create cigar element up to this position
-															CigarElement match = new CigarElement(indelPosition - lastPosition, CigarOperator.MATCH_OR_MISMATCH);
-															CigarElement insertion = new CigarElement(mutArray[1].length() - 1, CigarOperator.INSERTION);
-															ces.add(match);
-															ces.add(insertion);
-															lastPosition = indelPosition;
-														}
-													} else {
-														// deletion
-														if (indelPosition > 0) {
-															// create cigar element up to this position
-															if (indelPosition - lastPosition > 0) {
-																CigarElement match = new CigarElement(indelPosition - lastPosition, CigarOperator.MATCH_OR_MISMATCH);
-																ces.add(match);
-															}
-															CigarElement deletion = new CigarElement(mutArray[0].length() - 1, CigarOperator.DELETION);
-															ces.add(deletion);
-															lastPosition = indelPosition;
-														}
-													}
-												}
-											}
-											if (lastPosition + 1 < b.getLength()) {
-												CigarElement match = new CigarElement(b.getLength() - (lastPosition + 1), CigarOperator.MATCH_OR_MISMATCH);
-												ces.add(match);
-											}
-											Cigar cigar = new Cigar(ces);
-											ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, probeId, binId,  b.getRecordCount(), referenceSequence, p.getCp().getChromosome(), p.getCp().getPosition(), 0, binSeq);
+										Cigar cigar = ClinVarUtil.getCigarForIndels( referenceSequence,  binSeq, swDiffs,  p,  b);
+										ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, probeId, binId,  b.getRecordCount(), referenceSequence, p.getCp().getChromosome(), p.getCp().getPosition(), 0, binSeq);
 									}
+								} else {
+//									logger.warn("Not generating SAMRecord for bin: " + b.getId() + " as no sw diffs. getRecordCount: " + b.getRecordCount());
 								}
 							}
 						}

@@ -63,10 +63,43 @@ public class ClinVarUtil {
 		SmithWatermanGotoh nm = new SmithWatermanGotoh(ref, sequence, 5, -4, 16, 4);
 		String [] diffs = nm.traceback();
 		if (rescueSequence) {
-			rescueSWData(diffs, ref, sequence);
+			
+			int swSeqLength = diffs[2].replace("-", "").length();
+			if (swSeqLength == sequence.length()) {
+				/*
+				 * Perfect Match!
+				 */
+			} else {
+				/*
+				 * try a more lenient sw calculation to see if we can get a better score
+				 */
+				nm = new SmithWatermanGotoh(ref, sequence, 5, -4, 8, 2);
+				String [] lenientDiffs = nm.traceback();
+				int swLenientScore =  lenientDiffs[2].replace("-", "").length();
+				if (swLenientScore > swSeqLength) {
+					logger.info("got a better score when using a more lenient sw setup!!!");
+					for (String s : diffs) {
+						logger.info("old s: " + s);
+					}
+					for (String s : lenientDiffs) {
+						logger.info("new s: " + s);
+					}
+				}
+				
+				if (swLenientScore == sequence.length()) {
+					/*
+					 * Lenient sw puts all our bases down
+					 */
+					diffs = lenientDiffs;
+				} else {
+					if (swLenientScore > swSeqLength) {
+						diffs = lenientDiffs;
+					}
+					rescueSWData(diffs, ref, sequence);
+				}
+			}
 		}
 		return diffs;
-		
 	}
 	
 	public static int [] getDoubleEditDistance(String read1, String read2, String primer1, String primer2, int editDistanceCutoff) {
@@ -503,6 +536,9 @@ public class ClinVarUtil {
 								diffs[1] += ".";
 							}
 							diffs[2] += missingBinSeqBases;
+//							for (String s : diffs) {
+//								logger.info("s: " + s);
+//							}
 						}
 						
 					}
@@ -537,6 +573,9 @@ public class ClinVarUtil {
 							diffs[1] = "." + diffs[1];
 						}
 						diffs[2] = missingBinSeqBases + diffs[2];
+//						for (String s : diffs) {
+//							logger.info("s: " + s);
+//						}
 					}
 						
 				} else {
@@ -742,6 +781,10 @@ public class ClinVarUtil {
 		if (null == cigar) {
 			throw new IllegalArgumentException("Null cigar passed to ClinVarUtil.createSAMRecord");
 		}
+		
+		if (probeId == 720 && binId == 111261) {
+			logger.info("pid: " + probeId + ", bid: " + binId + ", cigar: " + cigar.toString());
+		}
 		SAMRecord rec = new SAMRecord(header);
 		rec.setReferenceName(chr);
 		rec.setReadString(binSeq);
@@ -912,5 +955,77 @@ public class ClinVarUtil {
 			return ed > 1 ? new int[]{ ed, StringUtils.getLevenshteinDistance(s,t) } :  new int[]{ ed, ed };
 			
 		}
+	}
+
+	public static Cigar getCigarForIndels(String referenceSequence, String binSeq, String [] swDiffs, Probe p, Bin b) {
+		if (p.getId() == 720 && b.getId() == 111261) {
+			logger.info("pid: " + p.getId() + ", bid: " + b.getId() + ", ref: " + referenceSequence + ", binSeq: " + binSeq);
+			for (String s : swDiffs) {
+				logger.info("s: " + s);
+			}
+		}
+		int offset = 0;
+		if (swDiffs[0].replaceAll("-","").length() == referenceSequence.length()) {
+			offset = 0;
+		} else {
+			int posOfFistIndel = swDiffs[1].indexOf(" ");
+			if (posOfFistIndel < 10) {
+				logger.warn("posOfFistIndel is < 10 : " + posOfFistIndel);
+			}
+			offset = binSeq.indexOf(swDiffs[2].substring(0, posOfFistIndel - 1));
+			logger.info("diff length indel at: " + p.getCp().toIGVString() + ", offset: " + offset);
+			logger.info("binSeq: " + binSeq);
+			for (String s : swDiffs) {
+				logger.info(s);
+			}
+		}
+//			indelSameLength++;
+			
+			List<CigarElement> ces = new ArrayList<>();
+//										// get mutations
+			List<Pair<Integer, String>> mutations = ClinVarUtil.getPositionRefAndAltFromSW(swDiffs);
+			
+			int lastPosition = 0;
+			for (Pair<Integer, String> mutation : mutations) {
+				/*
+				 * only care about indels
+				 */
+				String mutationString = mutation.getRight();
+				String [] mutArray = mutationString.split("/");
+				
+				if (mutArray[0].length() != mutArray[1].length()) {
+					int indelPosition = mutation.getLeft().intValue() + 1 + offset;
+					
+					if (mutArray[0].length() == 1) {
+//													// insertion
+						if (indelPosition > 0) {
+							// create cigar element up to this position
+							CigarElement match = new CigarElement(indelPosition - lastPosition, CigarOperator.MATCH_OR_MISMATCH);
+							CigarElement insertion = new CigarElement(mutArray[1].length() - 1, CigarOperator.INSERTION);
+							ces.add(match);
+							ces.add(insertion);
+							lastPosition = indelPosition;
+						}
+					} else {
+						// deletion
+						if (indelPosition > 0) {
+							// create cigar element up to this position
+							if (indelPosition - lastPosition > 0) {
+								CigarElement match = new CigarElement(indelPosition - lastPosition, CigarOperator.MATCH_OR_MISMATCH);
+								ces.add(match);
+							}
+							CigarElement deletion = new CigarElement(mutArray[0].length() - 1, CigarOperator.DELETION);
+							ces.add(deletion);
+							lastPosition = indelPosition;
+						}
+					}
+				}
+			}
+			if (lastPosition + 1 < b.getLength()) {
+				CigarElement match = new CigarElement(b.getLength() - (lastPosition + 1), CigarOperator.MATCH_OR_MISMATCH);
+				ces.add(match);
+			}
+			Cigar cigar = new Cigar(ces);
+			return cigar;
 	}
 }
