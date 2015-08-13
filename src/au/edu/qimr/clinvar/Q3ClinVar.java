@@ -1669,9 +1669,10 @@ public class Q3ClinVar {
 		} else {
 			// configure logging
 			logFile = options.getLog();
+			String uuid = options.hasUUIDOption() ? options.getUUID() : null;
 			version = Q3ClinVar.class.getPackage().getImplementationVersion();
 			logger = QLoggerFactory.getLogger(Q3ClinVar.class, logFile, options.getLogLevel());
-			qexec = logger.logInitialExecutionStats("q3clinvar", version, args);
+			qexec = logger.logInitialExecutionStats("q3clinvar", version, args, uuid);
 			
 			// get list of file names
 			fastqFiles = options.getFastqs();

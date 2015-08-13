@@ -42,6 +42,7 @@ final class Options {
 	private final Integer minBinSize;
 	private final String xml;
 	private final String logLevel;
+	private final String uuid;
 
 	@SuppressWarnings("unchecked")
 	Options(final String[] args) throws Exception {
@@ -58,6 +59,7 @@ final class Options {
 		parser.accepts("minBinSize", MIN_BIN_SIZE_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
 		parser.accepts("log", LOG_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("loglevel", LOG_LEVEL_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
+		parser.accepts("uuid", LOG_LEVEL_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("fastqs", TAGS_CHAR_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
 		parser.posixlyCorrect(true);
 
@@ -81,6 +83,7 @@ final class Options {
 		outputFileName = (String) options.valueOf("output");
 		tiledRefFileName = (String) options.valueOf("tiledRef");
 		refFileName = (String) options.valueOf("ref");
+		uuid = (String) options.valueOf("uuid");
 		
 		if ( ! options.nonOptionArguments().isEmpty()) {}
 //			throw new IllegalArgumentException(Messages.getMessage("USAGE"));
@@ -108,6 +111,9 @@ final class Options {
 	boolean hasLogOption() {
 		return options.has("log");
 	}
+	boolean hasUUIDOption() {
+		return options.has("uuid");
+	}
 	
 	boolean hasLogLevelOption() {
 		return options.has("loglevel");
@@ -119,6 +125,10 @@ final class Options {
 	
 	String getXml() {
 		return xml;
+	}
+	
+	String getUUID() {
+		return uuid;
 	}
 
 	String[] getFastqs() {
