@@ -77,12 +77,12 @@ public class ClinVarUtil {
 				String [] lenientDiffs = nm.traceback();
 				int swLenientScore =  lenientDiffs[2].replace("-", "").length();
 				if (swLenientScore > swSeqLength) {
-					logger.info("got a better score when using a more lenient sw setup!!!");
+					logger.debug("got a better score when using a more lenient sw setup!!!");
 					for (String s : diffs) {
-						logger.info("old s: " + s);
+						logger.debug("old s: " + s);
 					}
 					for (String s : lenientDiffs) {
-						logger.info("new s: " + s);
+						logger.debug("new s: " + s);
 					}
 				}
 				
@@ -782,9 +782,9 @@ public class ClinVarUtil {
 			throw new IllegalArgumentException("Null cigar passed to ClinVarUtil.createSAMRecord");
 		}
 		
-		if (probeId == 720 && binId == 111261) {
-			logger.info("pid: " + probeId + ", bid: " + binId + ", cigar: " + cigar.toString());
-		}
+//		if (probeId == 720 && binId == 111261) {
+//			logger.info("pid: " + probeId + ", bid: " + binId + ", cigar: " + cigar.toString());
+//		}
 		SAMRecord rec = new SAMRecord(header);
 		rec.setReferenceName(chr);
 		rec.setReadString(binSeq);
@@ -958,12 +958,12 @@ public class ClinVarUtil {
 	}
 
 	public static Cigar getCigarForIndels(String referenceSequence, String binSeq, String [] swDiffs, Probe p, Bin b) {
-		if (p.getId() == 720 && b.getId() == 111261) {
-			logger.info("pid: " + p.getId() + ", bid: " + b.getId() + ", ref: " + referenceSequence + ", binSeq: " + binSeq);
-			for (String s : swDiffs) {
-				logger.info("s: " + s);
-			}
-		}
+//		if (p.getId() == 720 && b.getId() == 111261) {
+//			logger.info("pid: " + p.getId() + ", bid: " + b.getId() + ", ref: " + referenceSequence + ", binSeq: " + binSeq);
+//			for (String s : swDiffs) {
+//				logger.info("s: " + s);
+//			}
+//		}
 		int offset = 0;
 		if (swDiffs[0].replaceAll("-","").length() == referenceSequence.length()) {
 			offset = 0;
@@ -983,7 +983,7 @@ public class ClinVarUtil {
 			
 			List<CigarElement> ces = new ArrayList<>();
 //										// get mutations
-			List<Pair<Integer, String>> mutations = ClinVarUtil.getPositionRefAndAltFromSW(swDiffs);
+			List<Pair<Integer, String>> mutations = getPositionRefAndAltFromSW(swDiffs);
 			
 			int lastPosition = 0;
 			for (Pair<Integer, String> mutation : mutations) {

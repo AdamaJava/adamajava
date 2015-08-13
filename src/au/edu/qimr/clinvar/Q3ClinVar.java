@@ -259,14 +259,14 @@ public class Q3ClinVar {
 		Collections.sort(primerLengthsR1);
 		Collections.reverse(primerLengthsR1);
 		for (Integer xyz : primerLengthsR1) {
-			logger.info("no of probes with primer length " + xyz.intValue() + ": " + probeLengthMapR1.get(xyz).size());
+			logger.info("number of r1 probes with primer length " + xyz.intValue() + ": " + probeLengthMapR1.get(xyz).size());
 		}
 		
 		List<Integer> primerLengthsR2 = new ArrayList<>(probeLengthMapR2.keySet());
 		Collections.sort(primerLengthsR2);
 		Collections.reverse(primerLengthsR2);
 		for (Integer xyz : primerLengthsR2) {
-			logger.info("no of probes with primer length " + xyz.intValue() + ": " + probeLengthMapR2.get(xyz).size());
+			logger.info("number of r2 probes with primer length " + xyz.intValue() + ": " + probeLengthMapR2.get(xyz).size());
 		}
 		
 		int matchCount = 0;
@@ -438,7 +438,7 @@ public class Q3ClinVar {
 			probeSequences.add(ulsoSeqRC);
 			
 		}
-		logger.info("Found " + i + " probes in xml doc. No of entries in seq set is: " + probeSequences.size() + " which should be equals to : " + (4 * i));
+		logger.info("Found " + i + " probes in xml doc. Number of entries in seq set is: " + probeSequences.size() + " which should be equals to : " + (4 * i));
 	}
 	
 	private void loadTiledAlignerData() throws Exception {
@@ -520,13 +520,13 @@ public class Q3ClinVar {
 		logger.info("no of entries in refTilesPositions: " + refTilesPositionsSize);
 		logger.info("Unique tiles in amplicons: " + diff);
 		
-		int singleLocation = 0;
-		int perfectMatch = 0;
-		int multiLoci = 0;
-		int unknown = 0;
-		int existingStrandWins = 0;
-		int rcStrandWins = 0;
-		int bothStrandsWin = 0;
+//		int singleLocation = 0;
+//		int perfectMatch = 0;
+//		int multiLoci = 0;
+//		int unknown = 0;
+//		int existingStrandWins = 0;
+//		int rcStrandWins = 0;
+//		int bothStrandsWin = 0;
 		for (Entry<Probe,List<Bin>> entry : probeBinDist.entrySet()) {
 			Map<ChrPosition, AtomicInteger> binLocationDistribution = new HashMap<>();
 			Probe p = entry.getKey();
@@ -632,14 +632,14 @@ public class Q3ClinVar {
 				}
 			}
 			if (logProbeDetails) {
-				logger.info("probe: " + p.getId() + " : " + p.getCp().toIGVString() + " has following distribution: ");
+				logger.info("probe: " + p.getId() + " at position: " + p.getCp().toIGVString() + " has bins at the following locations:");
 				for (Entry<ChrPosition, AtomicInteger> entry4 : binLocationDistribution.entrySet()) {
-					logger.info("cp: " + entry4.getKey().toIGVString() + " : " + entry4.getValue().intValue());
+					logger.info("position: " + entry4.getKey().toIGVString() + ", number of bins: " + entry4.getValue().intValue());
 				}
 			}
 		}
-		logger.info("singleLocation: " + singleLocation + ", perfectMatch: " + perfectMatch + ", multiple Loci: " + multiLoci + ", unknown: " + unknown);
-		logger.info("bothStrandsWin: " + bothStrandsWin + ", existingStrandWins: " + existingStrandWins + ", rcStrandWins: " + rcStrandWins);
+//		logger.info("singleLocation: " + singleLocation + ", perfectMatch: " + perfectMatch + ", multiple Loci: " + multiLoci + ", unknown: " + unknown);
+//		logger.info("bothStrandsWin: " + bothStrandsWin + ", existingStrandWins: " + existingStrandWins + ", rcStrandWins: " + rcStrandWins);
 	}
 	
 	private Map<ChrPosition, String[]> getSWScores(long [] positionCountArray, String binSequence ) throws IOException {
@@ -840,10 +840,10 @@ public class Q3ClinVar {
 		SAMFileWriter writer = factory.makeSAMOrBAMWriter(header, false, bamFile);
 		
 		long recordCount = 0;
-		int indelCount = 0;
-		int indelSameLength = 0;
-		int indelDiffLength = 0;
-		int sameSize = 0, diffSize = 0, noDiffInFirs20 = 0;
+//		int indelCount = 0;
+//		int indelSameLength = 0;
+//		int indelDiffLength = 0;
+//		int sameSize = 0, diffSize = 0, noDiffInFirs20 = 0;
 		try {
 
 			/*
@@ -878,7 +878,7 @@ public class Q3ClinVar {
 								 */
 								bufferedOffset = bufferedReferenceSequence.indexOf(binSeq);
 								if (bufferedOffset >= 0) {
-									logger.info("got a match against the buffered reference!!! p: " + p.getId() + ", bin: " + b.getId());
+									logger.debug("got a match against the buffered reference!!! p: " + p.getId() + ", bin: " + b.getId());
 //									if (p.getId() == 121 && b.getId() == 1272) {
 //										logger.info("referenceSequence: " + referenceSequence);
 //										logger.info("bufferedReferenceSequence: " + bufferedReferenceSequence);
@@ -917,9 +917,9 @@ public class Q3ClinVar {
 											Cigar cigar = ClinVarUtil.getCigarForMatchMisMatchOnly(b.getLength());
 											ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, probeId, binId,  b.getRecordCount(), referenceSequence, p.getCp().getChromosome(), p.getCp().getPosition(), 0, binSeq);
 										} else {
-											logger.info("only snps but diff length to ref. bin: " + b.getId() + ", p: " + p.getId() + ", binSeq: " + binSeq + ", ref: " + referenceSequence);
+											logger.debug("only snps but diff length to ref. bin: " + b.getId() + ", p: " + p.getId() + ", binSeq: " + binSeq + ", ref: " + referenceSequence);
 											for (String s : swDiffs) {
-												logger.info("s: " + s);
+												logger.debug("s: " + s);
 											}
 											Cigar cigar = ClinVarUtil.getCigarForMatchMisMatchOnly(b.getLength());
 											ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, probeId, binId,  b.getRecordCount(), referenceSequence, p.getCp().getChromosome(), p.getCp().getPosition(), 0, binSeq);
@@ -937,12 +937,12 @@ public class Q3ClinVar {
 					}
 				}
 			}
-			
 		} finally {
 			writer.close();
 		}
-		logger.info("indelDiffLength: " + indelDiffLength + ", indelSameLength: " + indelSameLength);
-		logger.info("No of records written to bam file: " + recordCount + ", no of bins with same seq size as ref: " + sameSize +", and diff size: " + diffSize + ", indelCount: " + indelCount + ", noDiffInFirs20: " + noDiffInFirs20);
+//		logger.info("indelDiffLength: " + indelDiffLength + ", indelSameLength: " + indelSameLength);
+		logger.info("No of records written to bam file: " + recordCount);
+//		logger.info("No of records written to bam file: " + recordCount + ", no of bins with same seq size as ref: " + sameSize +", and diff size: " + diffSize + ", indelCount: " + indelCount + ", noDiffInFirs20: " + noDiffInFirs20);
 	}
 	
 	
@@ -975,9 +975,7 @@ public class Q3ClinVar {
 								bufferedRef = p.getBufferedReferenceSequence(lengthDiff);
 							}
 							
-							
 							String [] diffs =  ClinVarUtil.getSwDiffs(bufferedRef, binSeq, true);
-							
 							b.setSWDiffs(diffs);
 							
 //							if (p.getId() == 42) {
@@ -989,9 +987,6 @@ public class Q3ClinVar {
 							if ( ! bufferedRef.contains(binSeq)) {
 								createMutations(p, b);
 							}
-//							if ( ! binSeq.equals(bufferedRef)) {
-//								createMutations(p, b);
-//							}
 						}
 					}
 				}
@@ -1100,11 +1095,11 @@ public class Q3ClinVar {
 //		}
 		
 		
-		logger.info("pre-rollup no of mutataions: " + mutations.size());
+		logger.info("pre-rollup no of mutations: " + mutations.size());
 		
 		rollupMutations();
 		
-		logger.info("post-rollup no of mutataions: " + mutations.size());
+		logger.info("post-rollup no of mutations: " + mutations.size());
 		
 		sortedPositions = new ArrayList<>(mutations.keySet());
 		Collections.sort(sortedPositions);
@@ -1225,7 +1220,7 @@ public class Q3ClinVar {
 				}
 			}
 		}
-		logger.info("no of positions in potentialRollups: " + potentialRollups.size());
+		logger.info("number of positions in potentialRollups: " + potentialRollups.size() );
 		
 		
 //		for (Entry<ChrPosition, Set<VcfRecord>> entry : potentialRollups.entrySet()) {
@@ -1702,8 +1697,8 @@ public class Q3ClinVar {
 			}
 			// setup output file name base - use UUID
 			//TODO switch to UUID from qexec when ready to roll
-//			outputFileNameBase = outputDir + Constants.FILE_SEPARATOR + qexec.getUuid() + ".q3cv.";
-			outputFileNameBase = outputDir + Constants.FILE_SEPARATOR +  "UUID.q3cv.";
+			outputFileNameBase = outputDir + Constants.FILE_SEPARATOR + qexec.getUuid().getValue() + ".q3cv.";
+//			outputFileNameBase = outputDir + Constants.FILE_SEPARATOR +  "UUID.q3cv.";
 			
 			refTiledAlignmentFile = options.getTiledRefFileName();
 			refFileName = options.getRefFileName();
