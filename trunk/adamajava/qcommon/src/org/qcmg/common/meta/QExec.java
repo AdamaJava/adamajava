@@ -28,16 +28,16 @@ public class QExec {
 	private final KeyValue commandLine;
 	
 	public QExec(String programName, String programVersion, String[] args) {
-		this(programName, programVersion, args, createUUid());
+		this(programName, programVersion, args, null);
 	}	
 
 	public static String createUUid() {
-		return UUID.randomUUID().toString().replace("-", "_");
+		return UUID.randomUUID().toString();
+//		return UUID.randomUUID().toString().replace("-", "_");
 	}
 
-	public QExec(String programName, String programVersion, String[] args,
-			String uuid) {		
-		this.uuid = new KeyValue("Uuid", uuid);
+	public QExec(String programName, String programVersion, String[] args, String uuid) {
+		this.uuid = new KeyValue("Uuid", null != uuid ? uuid : createUUid());
 		this.startTime = new KeyValue("StartTime", DateUtils.getCurrentDateAsString());
 		this.osName = new KeyValue("OsName",System.getProperty("os.name"));
 		this.osArch = new KeyValue("OsArch",System.getProperty("os.arch"));
