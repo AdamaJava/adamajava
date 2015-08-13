@@ -1155,8 +1155,7 @@ public class SummaryReportUtils {
 				
 				Element rangeTallyE = doc.createElement("RangeTally");
 				rNameE.appendChild(rangeTallyE);
-				
-				
+								
 				// insert map of coverage here
 				for (Map.Entry<Integer, AtomicLong> entry : ps.getCoverage()
 						.entrySet()) {
