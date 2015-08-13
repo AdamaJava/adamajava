@@ -79,11 +79,11 @@ public class ReportBuilder {
 		
 		switch (type) {
 		case BAM:
-			createBamHeader(reportElement, report);
+ 			createBamHeader(reportElement, report);
 			createSEQ(reportElement, report);
 			createQUALS(reportElement, report);
 			createTAGS(reportElement, report);
-			createISIZE(reportElement, report);
+ 			createISIZE(reportElement, report);
 			createRNM(reportElement, report);
 			createRNEXT(reportElement, report);
 			createCIGAR(reportElement, report);
@@ -786,7 +786,9 @@ public class ReportBuilder {
 			String chromosome =  nameElementTop.getAttribute("value");
 			int contigLength = Integer.parseInt(nameElementTop.getAttribute("maxPosition"));
 			
-			if (null != chromosome && contigLength > 1 * 1000 * 1000) {
+			//viral have 6000 contig's lots of them big then 1M, it cause html can't show well on browers
+			//but all small than 10M. human chr1-chrY small than 59M
+			if (null != chromosome && contigLength > 50 * 1000 * 1000) {
 				chromos.add(chromosome);
 		
 				final NodeList nl = nameElementTop.getElementsByTagName("RangeTally");
