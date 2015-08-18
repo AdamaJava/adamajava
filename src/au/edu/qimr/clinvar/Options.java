@@ -40,6 +40,10 @@ final class Options {
 	private final String refFileName;
 	private final String log;
 	private final Integer minBinSize;
+	private final Integer tiledDiffThreshold;
+	private final Integer swDiffThreshold;
+	private final Integer tileMatchThreshold;
+	private final Integer maxIndelLength;
 	private final String xml;
 	private final String logLevel;
 	private final String uuid;
@@ -57,6 +61,10 @@ final class Options {
 		parser.accepts("ref", OUTPUT_FILE_DESCRIPTION).withRequiredArg().ofType(String.class);
 //		parser.accepts("exclude", EXCLUDES_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
 		parser.accepts("minBinSize", MIN_BIN_SIZE_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
+		parser.accepts("tiledDiffThreshold", MIN_BIN_SIZE_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
+		parser.accepts("swDiffThreshold", MIN_BIN_SIZE_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
+		parser.accepts("tileMatchThreshold", MIN_BIN_SIZE_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
+		parser.accepts("maxIndelLength", MIN_BIN_SIZE_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
 		parser.accepts("log", LOG_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("loglevel", LOG_LEVEL_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("uuid", LOG_LEVEL_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
@@ -71,6 +79,10 @@ final class Options {
 		logLevel = (String) options.valueOf("loglevel");
 		
 		minBinSize =  (Integer) options.valueOf("minBinSize");
+		tiledDiffThreshold =  (Integer) options.valueOf("tiledDiffThreshold");
+		swDiffThreshold =  (Integer) options.valueOf("swDiffThreshold");
+		tileMatchThreshold =  (Integer) options.valueOf("tileMatchThreshold");
+		maxIndelLength =  (Integer) options.valueOf("maxIndelLength");
 		xml = (String) options.valueOf("xml");
 		
 		// inputs
@@ -103,6 +115,18 @@ final class Options {
 	boolean hasMinBinSizeOption() {
 		return options.has("minBinSize");
 	}
+	boolean hasTiledDiffThresholdOption() {
+		return options.has("tiledDiffThreshold");
+	}
+	boolean hasSwDiffThresholdOption() {
+		return options.has("swDiffThreshold");
+	}
+	boolean hasTileMatchThresholdOption() {
+		return options.has("tileMatchThreshold");
+	}
+	boolean hasMaxIndelLengthOption() {
+		return options.has("maxIndelLength");
+	}
 	
 	boolean hasNoHtmlOption() {
 		return options.has("nohtml");
@@ -121,6 +145,18 @@ final class Options {
 	
 	Integer getMinBinSize() {
 		return minBinSize;
+	}
+	Integer getTiledDiffThreshold() {
+		return tiledDiffThreshold;
+	}
+	Integer getSwDiffThreshold() {
+		return swDiffThreshold;
+	}
+	Integer getTileMatchThreshold() {
+		return tileMatchThreshold;
+	}
+	Integer getMaxIndelLength() {
+		return maxIndelLength;
 	}
 	
 	String getXml() {
