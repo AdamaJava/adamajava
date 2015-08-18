@@ -1,6 +1,7 @@
 package au.edu.qimr.clinvar;
 
 import gnu.trove.list.array.TLongArrayList;
+import gnu.trove.map.hash.TIntObjectHashMap;
 import htsjdk.samtools.fastq.FastqReader;
 import htsjdk.samtools.fastq.FastqRecord;
 import htsjdk.samtools.util.SequenceUtil;
@@ -330,11 +331,24 @@ private static final int TILE_SIZE = 13;
 			/*
 			 * See if we can walk through binSpecificTiles
 			 */
-			long [] results = ClinVarUtil.getBestStartPosition(tilePositions, TILE_SIZE, 2);
-			long [] rcResults = ClinVarUtil.getBestStartPosition(rcTilePositions, TILE_SIZE, 2);
+			TIntObjectHashMap<TLongArrayList> resultsMap = ClinVarUtil.getBestStartPosition(tilePositions, TILE_SIZE, 5, 0, 2);
+			TIntObjectHashMap<TLongArrayList> rcResultsMap = ClinVarUtil.getBestStartPosition(rcTilePositions, TILE_SIZE, 5, 0, 2);
+			int [] results = resultsMap.keys();
+			if (results.length > 1) {
+				Arrays.sort(results);
+			}
+			int [] rcResults = rcResultsMap.keys();
+			if (rcResults.length > 1) {
+				Arrays.sort(rcResults);
+			}
 			
-			long bestTileCount = results[1];
-			long rcBestTileCount = rcResults[1];
+			int bestTileCount = results[results.length -1];
+			int rcBestTileCount = rcResults[rcResults.length -1];
+//			long [] results = ClinVarUtil.getBestStartPosition(tilePositions, TILE_SIZE, 2, 0);
+//			long [] rcResults = ClinVarUtil.getBestStartPosition(rcTilePositions, TILE_SIZE, 2, 0);
+			
+//			long bestTileCount = results[1];
+//			long rcBestTileCount = rcResults[1];
 			
 			if (bestTileCount >= rcBestTileCount) {
 				if (bestTileCount == rcBestTileCount) {

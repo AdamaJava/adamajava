@@ -2,6 +2,8 @@ package au.edu.qimr.clinvar;
 
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.list.array.TLongArrayList;
+import gnu.trove.map.hash.TIntObjectHashMap;
+import gnu.trove.procedure.TLongProcedure;
 import htsjdk.samtools.Cigar;
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMFileHeader.SortOrder;
@@ -92,6 +94,10 @@ public class Q3ClinVar {
 	private int binId = 1;
 	private int minBinSize = 10;
 	private int exitStatus;
+	private int tiledDiffThreshold = 1;
+	private int swDiffThreshold = 2;
+	private int tileMatchThreshold = 2;
+	private int maxIndelLength = 5;
 	
 	private final Map<Integer, Map<String, Probe>> probeLengthMapR1 = new HashMap<>();
 	private final Map<Integer, Map<String, Probe>> probeLengthMapR2 = new HashMap<>();
@@ -520,13 +526,8 @@ public class Q3ClinVar {
 		logger.info("no of entries in refTilesPositions: " + refTilesPositionsSize);
 		logger.info("Unique tiles in amplicons: " + diff);
 		
-//		int singleLocation = 0;
-//		int perfectMatch = 0;
-//		int multiLoci = 0;
-//		int unknown = 0;
-//		int existingStrandWins = 0;
-//		int rcStrandWins = 0;
-//		int bothStrandsWin = 0;
+		int bestLocationSet = 0, bestLocationNotSet = 0;
+		
 		for (Entry<Probe,List<Bin>> entry : probeBinDist.entrySet()) {
 			Map<ChrPosition, AtomicInteger> binLocationDistribution = new HashMap<>();
 			Probe p = entry.getKey();
@@ -569,34 +570,66 @@ public class Q3ClinVar {
 					} else if (refTilesPositions.containsKey(bt)) {
 						TLongArrayList refPositions = refTilesPositions.get(bt);
 						rcTilePositions[i] = refPositions.toArray();
-						Arrays.sort(tilePositions[i]);
+						Arrays.sort(rcTilePositions[i]);
 					} else {
 						rcTilePositions[i] = new long[]{Long.MIN_VALUE};
 					}
 				}
 				
 				/*
-				 * See if we can walk through binSpecificTiles
+				 * Get the best (ie. positions with more than 2 tiles aligned to it) positions for each strand
 				 */
-				long [] results = ClinVarUtil.getBestStartPosition(tilePositions, TILE_SIZE, 5);
-				long [] rcResults = ClinVarUtil.getBestStartPosition(rcTilePositions, TILE_SIZE, 5);
+				TIntObjectHashMap<TLongArrayList> resultsMap = ClinVarUtil.getBestStartPosition(tilePositions, TILE_SIZE, maxIndelLength, tiledDiffThreshold, tileMatchThreshold);
+				TIntObjectHashMap<TLongArrayList> rcResultsMap = ClinVarUtil.getBestStartPosition(rcTilePositions, TILE_SIZE, maxIndelLength, tiledDiffThreshold, tileMatchThreshold);
+//				long [] results = ClinVarUtil.getBestStartPosition(tilePositions, TILE_SIZE, 5, tiledDiffThreshold);
+//				long [] rcResults = ClinVarUtil.getBestStartPosition(rcTilePositions, TILE_SIZE, 5, tiledDiffThreshold);
+				int [] results = resultsMap.keys();
+				if (results.length > 1) {
+					Arrays.sort(results);
+				}
+				int [] rcResults = rcResultsMap.keys();
+				if (rcResults.length > 1) {
+					Arrays.sort(rcResults);
+				}
 				
-				long bestTileCount = results[1];
-				long rcBestTileCount = rcResults[1];
+				/*
+				 * get best tile counts - could be zero if no matches above our threshold of 2...
+				 */
+				int bestTileCount = results.length > 0 ? results[results.length -1] : 0;
+				int rcBestTileCount = rcResults.length > 0 ? rcResults[rcResults.length -1] : 0;
+				
 				
 				/*
 				 * Only perform sw on positions if the best tile position is not next to the amplicon position
 				 */
 				ChrPosition bestTiledCp = null;
-				if (bestTileCount > rcBestTileCount) {
-					if (results.length == 2) {
-						bestTiledCp = positionToActualLocation.getChrPositionFromLongPosition(results[0]);
+				if (bestTileCount > rcBestTileCount + tiledDiffThreshold) {
+					/*
+					 * Only set bestTiledCp if we have a single key in the resultsMap, that only has a single long in its TLongArrayList value
+					 */
+					if (results.length == 1 && resultsMap.get(bestTileCount).size() == 1) {
+						bestTiledCp = positionToActualLocation.getChrPositionFromLongPosition(resultsMap.get(bestTileCount).get(0));
 					}
-				} else if (bestTileCount < rcBestTileCount) {
-					if (rcResults.length == 2) {
-						bestTiledCp = positionToActualLocation.getChrPositionFromLongPosition(rcResults[0]);
+				} else if (tiledDiffThreshold + bestTileCount < rcBestTileCount) {
+					/*
+					* Only set bestTiledCp if we have a single key in the resultsMap, that only has a single long in its TLongArrayList value
+					*/
+					if (rcResults.length == 1 && rcResultsMap.get(rcBestTileCount).size() == 1) {
+						bestTiledCp = positionToActualLocation.getChrPositionFromLongPosition(rcResultsMap.get(rcBestTileCount).get(0));
 					}
+//					if (rcResults.length == 2) {
+//						bestTiledCp = positionToActualLocation.getChrPositionFromLongPosition(rcResults[0]);
+//					}
 				}
+//				if (bestTileCount > rcBestTileCount + tiledDiffThreshold) {
+//					if (results.length == 2) {
+//						bestTiledCp = positionToActualLocation.getChrPositionFromLongPosition(results[0]);
+//					}
+//				} else if (tiledDiffThreshold + bestTileCount < rcBestTileCount) {
+//					if (rcResults.length == 2) {
+//						bestTiledCp = positionToActualLocation.getChrPositionFromLongPosition(rcResults[0]);
+//					}
+//				}
 				
 				if (null != bestTiledCp && ClinVarUtil.doChrPosOverlap(ampliconCP, bestTiledCp)) {
 					b.setBestTiledLocation(bestTiledCp);
@@ -604,21 +637,37 @@ public class Q3ClinVar {
 				} else {
 				
 					/*
-					 * Haven't got a best tiled location, or the location is nor near the amplicon, so lets generate some SW diffs, and choose the best location based on those
+					 * Haven't got a best tiled location, or the location is not near the amplicon, so lets generate some SW diffs, and choose the best location based on those
 					 */
+//					logger.info("about to run a bunch of sw");
+					
 					if (bestTileCount > 1) {
-						Map<ChrPosition, String[]> scores = getSWScores(results, b.getSequence());
+						TLongArrayList list = ClinVarUtil.getSingleArray(resultsMap);
+//						logger.info("list size: " + list.size() + ", bestTileCount: " + bestTileCount);
+						Map<ChrPosition, String[]> scores = getSWScores(list, b.getSequence());
 						b.addPossiblePositions(scores);
 					}
 					if (rcBestTileCount > 1) {
-						Map<ChrPosition, String[]> scores = getSWScores(rcResults, SequenceUtil.reverseComplement(b.getSequence()));
+						TLongArrayList rclist = ClinVarUtil.getSingleArray(rcResultsMap);
+//						logger.info("rclist size: " + rclist.size() + ", rcBestTileCount: " + rcBestTileCount);
+						Map<ChrPosition, String[]> scores = getSWScores(rclist, SequenceUtil.reverseComplement(b.getSequence()));
 						b.addPossiblePositions(scores);
 					}
-					bestTiledCp = ClinVarUtil.getPositionWithBestScore(b.getSmithWatermanDiffsMap());
+					bestTiledCp = ClinVarUtil.getPositionWithBestScore(b.getSmithWatermanDiffsMap(), swDiffThreshold);
 					if (null != bestTiledCp) {
 						b.setBestTiledLocation(bestTiledCp);
 						updateMap(bestTiledCp, binLocationDistribution);
+					} else {
+						logger.info("not able to set best tiled location for bin: " + b.getId() + ", no in b.getSmithWatermanDiffsMap(): " + b.getSmithWatermanDiffsMap().size());
 					}
+				}
+				/*
+				 * has best location been set?
+				 */
+				if (null != b.getBestTiledLocation()) {
+					bestLocationSet++;
+				} else {
+					bestLocationNotSet++;
 				}
 			}
 			/*
@@ -638,6 +687,7 @@ public class Q3ClinVar {
 				}
 			}
 		}
+		logger.info("bestLocationSet count: " + bestLocationSet + ", not set count: " + bestLocationNotSet);
 //		logger.info("singleLocation: " + singleLocation + ", perfectMatch: " + perfectMatch + ", multiple Loci: " + multiLoci + ", unknown: " + unknown);
 //		logger.info("bothStrandsWin: " + bothStrandsWin + ", existingStrandWins: " + existingStrandWins + ", rcStrandWins: " + rcStrandWins);
 	}
@@ -653,6 +703,22 @@ public class Q3ClinVar {
 			String ref = getRefFromChrPos(refCp);
 			positionSWDiffMap.put(cp, ClinVarUtil.getSwDiffs(ref, binSequence));
 		}
+		return positionSWDiffMap;
+	}
+	
+	private Map<ChrPosition, String[]> getSWScores(TLongArrayList positionsList, final String binSequence ) throws IOException {
+		final Map<ChrPosition, String[]> positionSWDiffMap = new HashMap<>(positionsList.size() * 2);
+		
+		positionsList.forEach(new TLongProcedure() {
+			@Override
+			public boolean execute(long position) {
+				ChrPosition cp = positionToActualLocation.getChrPositionFromLongPosition(position);
+				ChrPosition refCp = positionToActualLocation.getBufferedChrPositionFromLongPosition(position, binSequence.length(), 200);
+				String ref = getRefFromChrPos(refCp);
+				positionSWDiffMap.put(cp, ClinVarUtil.getSwDiffs(ref, binSequence));
+				return true;
+			}
+		});
 		return positionSWDiffMap;
 	}
 
@@ -1707,6 +1773,18 @@ public class Q3ClinVar {
 			xmlFile = options.getXml();
 			if (options.hasMinBinSizeOption()) {
 				this.minBinSize = options.getMinBinSize().intValue();
+			}
+			if (options.hasTiledDiffThresholdOption()) {
+				this.tiledDiffThreshold = options.getTiledDiffThreshold().intValue();
+			}
+			if (options.hasSwDiffThresholdOption()) {
+				this.swDiffThreshold = options.getSwDiffThreshold().intValue();
+			}
+			if (options.hasTileMatchThresholdOption()) {
+				this.tileMatchThreshold = options.getTileMatchThreshold().intValue();
+			}
+			if (options.hasMaxIndelLengthOption()) {
+				this.maxIndelLength = options.getMaxIndelLength().intValue();
 			}
 			logger.info("minBinSize is " + minBinSize);
 			

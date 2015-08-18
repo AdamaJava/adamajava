@@ -1,16 +1,19 @@
 package au.edu.qimr.clinvar.util;
 
-import gnu.trove.list.TLongList;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.list.array.TLongArrayList;
 import gnu.trove.map.TLongIntMap;
 import gnu.trove.map.hash.TIntIntHashMap;
+import gnu.trove.map.hash.TIntObjectHashMap;
 import gnu.trove.map.hash.TLongIntHashMap;
 import gnu.trove.procedure.TIntIntProcedure;
+import gnu.trove.procedure.TIntObjectProcedure;
 import gnu.trove.procedure.TIntProcedure;
 import gnu.trove.procedure.TLongIntProcedure;
+import gnu.trove.procedure.TLongProcedure;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
+import gnu.trove.set.hash.TLongHashSet;
 import htsjdk.samtools.Cigar;
 import htsjdk.samtools.CigarElement;
 import htsjdk.samtools.CigarOperator;
@@ -31,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.SortedMap;
 import java.util.TreeMap;
 
 import org.apache.commons.lang3.StringUtils;
@@ -100,6 +104,20 @@ public class ClinVarUtil {
 			}
 		}
 		return diffs;
+	}
+	
+	
+	public static TLongArrayList getSingleArray(TIntObjectHashMap<TLongArrayList> map) {
+		final TLongArrayList results = new TLongArrayList();
+		map.forEachEntry(new TIntObjectProcedure<TLongArrayList>(){
+			@Override
+			public boolean execute(int i, TLongArrayList longList) {
+//				if (i > 1) {
+					results.addAll(longList);
+//				}
+				return true;
+			}});
+		return results;
 	}
 	
 	public static int [] getDoubleEditDistance(String read1, String read2, String primer1, String primer2, int editDistanceCutoff) {
@@ -183,7 +201,8 @@ public class ClinVarUtil {
 		return ed;
 	}
 	
-	public static long[] getBestStartPosition(long [][] tilePositions, int tileLength, int indelOffset) {
+	public static TIntObjectHashMap<TLongArrayList> getBestStartPosition(long [][] tilePositions, int tileLength, int indelOffset, int tiledDiffThreshold, int minNumberOfTiles) {
+//		public static long[] getBestStartPosition(long [][] tilePositions, int tileLength, int indelOffset, int tiledDiffThreshold) {
 		TLongIntMap positionAndTiles = new TLongIntHashMap();
 		int noOfTiles = tilePositions.length;
 		long startPos = -1;
@@ -229,10 +248,10 @@ public class ClinVarUtil {
 			 * Only do this at the first iteration
 			 */
 			if (positionAndTiles.containsValue(noOfTiles - i)) {
-				return reduceStartPositionsAndTileCount(positionAndTiles);
+				return reduceStartPositionsAndTileCount(positionAndTiles, tiledDiffThreshold, minNumberOfTiles, tileLength);
 			}
 		}
-		return reduceStartPositionsAndTileCount(positionAndTiles);
+		return reduceStartPositionsAndTileCount(positionAndTiles, tiledDiffThreshold, minNumberOfTiles, tileLength);
 	}
 	
 	/**
@@ -243,7 +262,7 @@ public class ClinVarUtil {
 	 * @param scores
 	 * @return
 	 */
-	public static ChrPosition getPositionWithBestScore(Map<ChrPosition, String[]> scores) {
+	public static ChrPosition getPositionWithBestScore(Map<ChrPosition, String[]> scores, int swDiffThreshold) {
 		if (null == scores || scores.isEmpty()) {
 			return null;
 		}
@@ -265,8 +284,14 @@ public class ClinVarUtil {
 		/*
 		 * Get maximum score, and see how many matching ChrPositions we have
 		 */
-		List<ChrPosition> maxScoringPositions = scoresToPositionMap.lastEntry().getValue();
-		return maxScoringPositions.size() == 1 ? maxScoringPositions.get(0) : null;
+		Integer maxKey = scoresToPositionMap.lastKey();
+		SortedMap<Integer, List<ChrPosition>> map = scoresToPositionMap.tailMap(maxKey  - swDiffThreshold);
+		if (map.size() == 1 & map.get(maxKey).size() == 1) {
+			return map.get(maxKey).get(0);
+		}
+		return null;
+//		List<ChrPosition> maxScoringPositions = scoresToPositionMap.lastEntry().getValue();
+//		return maxScoringPositions.size() == 1 ? maxScoringPositions.get(0) : null;
 	}
 	
 	
@@ -286,27 +311,76 @@ public class ClinVarUtil {
 	 * @param positionAndTiles
 	 * @return
 	 */
-	public static long[] reduceStartPositionsAndTileCount(TLongIntMap positionAndTiles) {
+	public static TIntObjectHashMap<TLongArrayList> reduceStartPositionsAndTileCount(final TLongIntMap positionAndTiles, int tiledDiffThreshold, int minNoOfTiles, int tileLength) {
+//		public static long[] reduceStartPositionsAndTileCount(TLongIntMap positionAndTiles, int tiledDiffThreshold) {
+
+		/*
+		 * remove from positionAndTiles values that are a tiles length from each other with n-1 tile counts
+		 */
+		TLongHashSet toRemove = new TLongHashSet();
+		long [] sortedPositions = positionAndTiles.keys();
+		int sortedPositionsLength = sortedPositions.length;
+		if (sortedPositionsLength > 1) {
+			Arrays.sort(sortedPositions);
+			for (int i = 0 ; i < sortedPositionsLength ; i++) {
+				long thisPosition = sortedPositions[i];
+				int thisPositionTileCount = positionAndTiles.get(thisPosition) ;
+				int j = 1;
+				while ((i + j) < sortedPositionsLength) {
+					long nextPosition =  sortedPositions[i + j];
+					long diff = nextPosition - thisPosition;
+					if (diff > 10000) {
+						break;
+					}
+					if (diff % tileLength < 5 // indel Offset
+							&& thisPositionTileCount == positionAndTiles.get(nextPosition) + j ) {
+//						if (diff == (tileLength * j)
+//								&& thisPositionTileCount == positionAndTiles.get(nextPosition) + j ) {
+						// remove
+						toRemove.add(nextPosition);
+					}
+					j++;
+				}
+			}
+			// do the removal
+			toRemove.forEach(new TLongProcedure(){
+				@Override
+				public boolean execute(long l) {
+					positionAndTiles.remove(l);
+					return true;
+				}});
+		}
+		
 		int [] tileCounts = positionAndTiles.values();
 		int tileCountsLength = tileCounts.length;
 		if (tileCountsLength == 0) {
-			return new long[]{0,0};
+			return new TIntObjectHashMap<TLongArrayList>(0);
 		}
 		Arrays.sort(tileCounts);
 		final int bestTileCount = tileCounts[tileCountsLength -1];
+		final int tileCountCutoff = Math.max(bestTileCount - tiledDiffThreshold, minNoOfTiles);
 		
-		final TLongList results = new TLongArrayList();
+		final TIntObjectHashMap<TLongArrayList> resultsMap = new TIntObjectHashMap<>(tileCountsLength);
+		
+//		final TLongList results = new TLongArrayList();
 		positionAndTiles.forEachEntry(new TLongIntProcedure() {
 			@Override
 			public boolean execute(long l, int i) {
-				if (i == bestTileCount) {
-					results.add(l);
-					results.add(i);
+				if (i >= tileCountCutoff) {
+					TLongArrayList list = resultsMap.get(i);
+					if (null == list) {
+						list = new TLongArrayList();
+						resultsMap.put(i, list);
+					}
+					list.add(l);
+//					results.add(l);
+//					results.add(i);
 				}
 				return true;
 			}
 		});
-		return results.toArray();
+//		return results.toArray();
+		return resultsMap;
 	}
 	
 	/**
