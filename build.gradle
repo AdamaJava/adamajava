@@ -6,7 +6,7 @@ def isExecutable = true
 
 repositories {
 	//jcenter()
-	/*
+	
 		flatDir {
 			dirs '/Users/oliverh/development/sf/trunk/adamajava/lib'
 			dirs '/Users/oliverh/development/sf/trunk/adamajava/qcommon/build/lib'
@@ -16,8 +16,8 @@ repositories {
 			dirs '/home/genomelocal/devel/adamajava/adamajava/lib'
 			dirs '../lib'
 		}
-		*/
-    flatDir(dirs:"$projectDir/../lib")
+		
+    //flatDir(dirs:"$projectDir/../lib")
 }
 
 
