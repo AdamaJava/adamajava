@@ -6,16 +6,18 @@ def isExecutable = true
 
 repositories {
 	//jcenter()
-	flatDir {
-		dirs '/Users/oliverh/development/sf/trunk/adamajava/lib'
-		dirs '/Users/oliverh/development/sf/trunk/adamajava/qcommon/build/lib'
-		dirs '/Users/oliverh/development/sf/trunk/adamajava/qmule/build/lib'
-		dirs '/Users/oliverh/development/sf/trunk/adamajava/qio/build/lib'
-		dirs '/home/genomelocal/devel/adamajava/adamajava/adama/build/lib'
-		dirs '/home/genomelocal/devel/adamajava/adamajava/lib'
-		dirs '../lib'
-	}
-    //flatDir(dirs:"$projectDir/../lib")
+	/*
+		flatDir {
+			dirs '/Users/oliverh/development/sf/trunk/adamajava/lib'
+			dirs '/Users/oliverh/development/sf/trunk/adamajava/qcommon/build/lib'
+			dirs '/Users/oliverh/development/sf/trunk/adamajava/qmule/build/lib'
+			dirs '/Users/oliverh/development/sf/trunk/adamajava/qio/build/lib'
+			dirs '/home/genomelocal/devel/adamajava/adamajava/adama/build/lib'
+			dirs '/home/genomelocal/devel/adamajava/adamajava/lib'
+			dirs '../lib'
+		}
+		*/
+    flatDir(dirs:"$projectDir/../lib")
 }
 
 
