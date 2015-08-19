@@ -329,10 +329,10 @@ public class ClinVarUtil {
 				while ((i + j) < sortedPositionsLength) {
 					long nextPosition =  sortedPositions[i + j];
 					long diff = nextPosition - thisPosition;
-					if (diff > 10000) {
+					if (diff > 1000) {
 						break;
 					}
-					if (diff % tileLength < 5 // indel Offset
+					if (Math.abs(diff % tileLength) < 5 // indel Offset
 							&& thisPositionTileCount == positionAndTiles.get(nextPosition) + j ) {
 //						if (diff == (tileLength * j)
 //								&& thisPositionTileCount == positionAndTiles.get(nextPosition) + j ) {
