@@ -429,9 +429,15 @@ public class SplitReadContig {
 							break;
 						}
 						//forward and reverse sequence
-						splitReads.add(new UnmappedRead(r, true));
-						if (r.getReadUnmappedFlag()) {
-							splitReads.add(new UnmappedRead(r, true, true));
+						/*
+						 * Check that the read sequence is longer than the QSVAssemble.SEED_LENGTH
+						 * otherwise we will get exceptions later on...
+						 */
+						if (r.getReadLength() >= QSVAssemble.SEED_LENGTH) {
+							splitReads.add(new UnmappedRead(r, true));
+							if (r.getReadUnmappedFlag()) {
+								splitReads.add(new UnmappedRead(r, true, true));
+							}
 						}
 					} else {
 
@@ -446,16 +452,18 @@ public class SplitReadContig {
 								logger.info("Greater than " +getMaxReadCount()+" records found for rescue of : " + knownSV.toString());
 								break;
 							} else {
-								String key = r.getReadName() + ":" + r.getReadGroup().getId();
-								UnmappedRead[] arr = map.get(key);
-								
-								if (null == arr) {
-									arr = new UnmappedRead[]{new UnmappedRead(r, true), null};
-									map.put(key, arr);
-								} else {
-									UnmappedRead newRead = new UnmappedRead(r, true);
-									if (newRead.getBpPos().intValue() != arr[0].getBpPos().intValue()) {
-										arr[1] = newRead;
+								if (r.getReadLength() >= QSVAssemble.SEED_LENGTH) {
+									String key = r.getReadName() + ":" + r.getReadGroup().getId();
+									UnmappedRead[] arr = map.get(key);
+									
+									if (null == arr) {
+										arr = new UnmappedRead[]{new UnmappedRead(r, true), null};
+										map.put(key, arr);
+									} else {
+										UnmappedRead newRead = new UnmappedRead(r, true);
+										if (newRead.getBpPos().intValue() != arr[0].getBpPos().intValue()) {
+											arr[1] = newRead;
+										}
 									}
 								}
 							}

@@ -13,7 +13,7 @@ public class UnmappedRead {
 	private final int bpPos;
 	private final String readName;
 	private final String sequence;
-	private boolean isTumour;
+	private final boolean isTumour;
 
 	public UnmappedRead(SAMRecord record, boolean isTumour) {
 		this(record, isTumour, false);
@@ -33,6 +33,7 @@ public class UnmappedRead {
 		this.reference = record.getReferenceName();		
 		this.bpPos = record.getAlignmentStart();
 		this.sequence = isReverse ? QSVUtil.reverseComplement(record.getReadString()) : record.getReadString() ;
+		this.isTumour = isTumour;
 	}
 
 	public String getReference() {

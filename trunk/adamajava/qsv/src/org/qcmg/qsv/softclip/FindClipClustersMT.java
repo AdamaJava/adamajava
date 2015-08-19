@@ -15,6 +15,7 @@ import java.nio.file.Paths;
 import java.util.AbstractQueue;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -64,8 +65,10 @@ public class FindClipClustersMT  {
 	private final BLAT blat;
 	private final boolean singleSided;
 	private final boolean isSplitRead;
-	private final Integer CONSENSUS_LENGTH;
-	private final Integer MIN_INSERT_SIZE;
+	private final int CONSENSUS_LENGTH;
+	private final int MIN_INSERT_SIZE;
+//	private final Integer CONSENSUS_LENGTH;
+//	private final Integer MIN_INSERT_SIZE;
 	private final String reference;
 	private final String platform;
 	private final boolean translocationOnly;
@@ -77,15 +80,16 @@ public class FindClipClustersMT  {
 	private final boolean isQCMG;
 	private final String lowConfidenceFile;
 	private final QSVClusterWriter qsvRecordWriter;
-	private final Integer CLIP_SIZE;
+	private final int CLIP_SIZE;
+//	private final Integer CLIP_SIZE;
 
 	public FindClipClustersMT(QSVParameters tumourParameters, QSVParameters normalParameters, String softclipDir, BLAT blat2, Map<PairGroup, Map<String, List<DiscordantPairCluster>>> tumorClusterRecords, Options options, String analysisId, long clipCount) throws Exception {
 		this.noOfThreads = clipCount > 5000000 ? 1 : 3;
 		this.noOfFinalThreads = clipCount > 5000000 ? 4 : 10;
 		this.defineThreadNo = clipCount > 5000000 ? 2 : 4;
 
+		logger.info("Total clips: " + clipCount + ", will use " + noOfThreads + " main threads, " + noOfFinalThreads + " final threads and " + defineThreadNo + " define threads");
 //		if (clipCount > 5000000) {
-//			logger.info("Total clips: " + clipCount);
 //			noOfThreads = 1;
 //			defineThreadNo = 2;
 //			noOfFinalThreads = 4;
@@ -99,9 +103,9 @@ public class FindClipClustersMT  {
 		this.tumorClusterRecords = new ConcurrentHashMap<PairGroup, Map<String, List<DiscordantPairCluster>>>(tumorClusterRecords);        
 		this.isQCMG = options.isQCMG();
 		this.singleSided = options.singleSided();
-		this.CONSENSUS_LENGTH = options.getConsensusLength();
-		this.CLIP_SIZE = options.getClipSize() -1;
-		this.MIN_INSERT_SIZE = options.getMinInsertSize();
+		this.CONSENSUS_LENGTH = options.getConsensusLength().intValue();
+		this.CLIP_SIZE = options.getClipSize().intValue() -1;
+		this.MIN_INSERT_SIZE =  options.getMinInsertSize().intValue();
 		this.reference = options.getReference();
 		this.runClip = ! options.getAnalysisMode().equals("pair");
 		this.platform = options.getPlatform();
@@ -109,11 +113,7 @@ public class FindClipClustersMT  {
 		this.allChromosomes = options.allChromosomes();
 		this.lowConfidenceFile = tumourParameters.getResultsDir() + "_no_blat_alignment.txt";
 
-//		if (options.getAnalysisMode().equals("pair")) {
-//			runClip = false;
-//		}
-
-		logger.info("Minimum clip size: " + CLIP_SIZE + 1);
+		logger.info("Minimum clip size: " + (CLIP_SIZE + 1));
 		logger.info("Minimum clip consensus length: " + CONSENSUS_LENGTH);
 //		this.CLIP_SIZE--;
 		createLowConfidenceFile();
@@ -242,22 +242,23 @@ public class FindClipClustersMT  {
 	}
 
 	private Set<String> getReferenceKeys() {
-		Set<String> referenceKeys = new HashSet<String>();
+		Set<String> referenceKeys = new HashSet<String>(clipRecordsMap.keySet());
 
-		Set<String> clipKeys = clipRecordsMap.keySet();
-
-		for (String s: clipKeys) {
-			referenceKeys.add(s);
-		}    	 
+//		Set<String> clipKeys = clipRecordsMap.keySet();
+//
+//		for (String s: clipKeys) {
+//			referenceKeys.add(s);
+//		}    	 
 
 		for (Entry<PairGroup, Map<String, List<DiscordantPairCluster>>> record : tumorClusterRecords.entrySet()) {
 			Set<String> keys = record.getValue().keySet();
+			referenceKeys.addAll(keys);
 
-			for (String s: keys) {				 
-				if (!referenceKeys.contains(s)) {
-					referenceKeys.add(s);
-				}
-			}    		
+//			for (String s: keys) {				 
+//				if (!referenceKeys.contains(s)) {
+//					referenceKeys.add(s);
+//				}
+//			}    		
 		}
 		return referenceKeys;
 	}
@@ -277,7 +278,7 @@ public class FindClipClustersMT  {
 			for (DiscordantPairCluster c: clusters) {
 				records.add(new QSVCluster(c, false, tumourParameters.getSampleId()));
 			}
-		} else {    	
+		} else {
 			logger.info(referenceKey + "- number of clips: "  + clips.size());
 			if (translocation) {
 				List<SoftClipCluster> properClips = getProperClipSVs(referenceKey, clips);
@@ -293,26 +294,27 @@ public class FindClipClustersMT  {
 		}
 	}
 
-	private List<SoftClipCluster> getProperClipSVs(String key, List<SoftClipCluster> bpList) throws Exception {
+	List<SoftClipCluster> getProperClipSVs(String key, List<SoftClipCluster> bpList) throws Exception {
 		logger.info("Potential records to find SVs in " + key + " is: " + bpList.size());
 		Collections.sort(bpList);		 
-		List<SoftClipCluster> clipRecords = new ArrayList<SoftClipCluster>();		  
+		Map<SoftClipCluster, Boolean> clipRecords = new HashMap<>();
+//		List<SoftClipCluster> clipRecords = new ArrayList<SoftClipCluster>();
 		SoftClipCluster newRecord = null;
 		Iterator<SoftClipCluster> iterator = bpList.iterator();
 		int i=0;
 		int count = 0;
 		while (iterator.hasNext()) {
 			SoftClipCluster recordOne = iterator.next();
-			for (int j=i; j<bpList.size(); j++) {
+			for (int j=i ; j < bpList.size() ; j++) {
 				SoftClipCluster recordTwo = bpList.get(j);
-				if (!recordOne.equals(recordTwo) && !recordTwo.alreadyMatched()) {	
+				if ( ! recordOne.equals(recordTwo) && ! recordTwo.alreadyMatched()) {
 					if (recordOne.findMatchingBreakpoints(recordTwo)) {
 						recordOne.setAlreadyMatched(true);
 						recordTwo.setAlreadyMatched(true);
 						newRecord = new SoftClipCluster(recordOne.getSingleBreakpoint(), recordTwo.getSingleBreakpoint());
-						if (!clipRecords.contains(newRecord)) {		
+						if ( ! clipRecords.containsKey(newRecord)) {
 							count++;
-							clipRecords.add(newRecord);
+							clipRecords.put(newRecord, Boolean.TRUE);
 						}
 						newRecord = null;
 						break;
@@ -320,14 +322,14 @@ public class FindClipClustersMT  {
 				}					
 			}
 
-			if (!recordOne.alreadyMatched()) {				
-				clipRecords.add(recordOne);
+			if ( ! recordOne.alreadyMatched()) {				
+				clipRecords.put(recordOne, Boolean.TRUE);
 			}
 			iterator.remove();
 		}
 		logger.info("Total Clip SVs found for  " + key + " is: " + clipRecords.size() + " matched count: " + count);
 
-		return clipRecords;
+		return new ArrayList<SoftClipCluster>(clipRecords.keySet());
 	}
 
 	private void findOverlaps(String key, List<QSVCluster> records, List<DiscordantPairCluster> clusters, List<SoftClipCluster> clips) throws Exception {
@@ -338,10 +340,11 @@ public class FindClipClustersMT  {
 			DiscordantPairCluster cluster = iter.next();
 
 			QSVCluster record = new QSVCluster(cluster, false, tumourParameters.getSampleId());
-			Iterator<SoftClipCluster> clipIter = clips.iterator();
-			while (clipIter.hasNext()) {
+			for (SoftClipCluster potentialClip : clips) {
+//			Iterator<SoftClipCluster> clipIter = clips.iterator();
+//			while (clipIter.hasNext()) {
 
-				SoftClipCluster potentialClip = clipIter.next();	
+//				SoftClipCluster potentialClip = clipIter.next();	
 
 				if (record.findClusterOverlap(potentialClip)) {					
 					potentialClip.setHasClusterMatch(true);
@@ -353,23 +356,66 @@ public class FindClipClustersMT  {
 		}
 
 		// remaining soft clips
-		for (int i=0; i<clips.size(); i++) {			
+		int i = 0, size = clips.size();
+		for (SoftClipCluster clip : clips) {			
 
 			//already added elsewhere
-			if (!clips.get(i).hasClipMatch() && !clips.get(i).hasClusterMatch()) {
+			if ( ! clip.hasClipMatch() && ! clip.hasClusterMatch()) {
 
-				QSVCluster record = new QSVCluster(clips.get(i), tumourParameters.getSampleId());
+				QSVCluster record = new QSVCluster(clip, tumourParameters.getSampleId());
 				//find matches
-				for (int j=i+1; j<clips.size(); j++) {
-					if (record.findClipOverlap(clips.get(j))) {
-						clips.get(j).setHasClipMatch(true);
-					}			
+				for (int j=i+1; j < size ; j++) {
+					SoftClipCluster clip2 = clips.get(j);
+					if (record.findClipOverlap(clip2)) {
+						clip2.setHasClipMatch(true);
+					}
 				}
 				//then add
 				records.add(record);
-			}			
+			}
+			i++;
 		}
 	}
+//	private void findOverlaps(String key, List<QSVCluster> records, List<DiscordantPairCluster> clusters, List<SoftClipCluster> clips) throws Exception {
+//		Iterator<DiscordantPairCluster> iter = clusters.iterator();
+//		
+//		// look for matches
+//		while (iter.hasNext()) {
+//			DiscordantPairCluster cluster = iter.next();
+//			
+//			QSVCluster record = new QSVCluster(cluster, false, tumourParameters.getSampleId());
+//			Iterator<SoftClipCluster> clipIter = clips.iterator();
+//			while (clipIter.hasNext()) {
+//				
+//				SoftClipCluster potentialClip = clipIter.next();	
+//				
+//				if (record.findClusterOverlap(potentialClip)) {					
+//					potentialClip.setHasClusterMatch(true);
+//				}
+//			}
+//			
+//			records.add(record);			
+//			iter.remove();
+//		}
+//		
+//		// remaining soft clips
+//		for (int i=0; i<clips.size(); i++) {			
+//			
+//			//already added elsewhere
+//			if (!clips.get(i).hasClipMatch() && !clips.get(i).hasClusterMatch()) {
+//				
+//				QSVCluster record = new QSVCluster(clips.get(i), tumourParameters.getSampleId());
+//				//find matches
+//				for (int j=i+1; j<clips.size(); j++) {
+//					if (record.findClipOverlap(clips.get(j))) {
+//						clips.get(j).setHasClipMatch(true);
+//					}			
+//				}
+//				//then add
+//				records.add(record);
+//			}			
+//		}
+//	}
 
 	private void rescueQSVRecords(String key, List<QSVCluster> inputClusters) throws Exception {
 
@@ -549,7 +595,7 @@ public class FindClipClustersMT  {
 		}
 
 		private TreeMap<String, List<Breakpoint>> defineClipPositions(TreeMap<Integer, Breakpoint> leftClipPositions, TreeMap<Integer, Breakpoint> rightClipPositions,TreeMap<Integer, List<UnmappedRead>> splitReads) throws Exception {
-			int buffer = tumourParameters.getUpperInsertSize() + 100;
+			int buffer = tumourParameters.getUpperInsertSize().intValue() + 100;
 			AbstractQueue<Breakpoint> queueIn = new ConcurrentLinkedQueue<Breakpoint>(); 			
 			//			int count = 0;
 			logger.info("Before " +  chromosome.getName() + " left: " + leftClipPositions.size() + " right:" + rightClipPositions.size()) ;
@@ -558,9 +604,9 @@ public class FindClipClustersMT  {
 				Breakpoint leftBP = entry.getValue();
 
 				Breakpoint rightBP = rightClipPositions.remove(key);
-
-				Integer start = leftBP.getBreakpoint() - buffer;
-				Integer end  = leftBP.getBreakpoint() + buffer;
+				int leftBreakpoint = leftBP.getBreakpoint().intValue();
+				Integer start = Integer.valueOf(leftBreakpoint - buffer);
+				Integer end  = Integer.valueOf(leftBreakpoint + buffer);
 				NavigableMap<Integer, List<UnmappedRead>> splitReadsMap = splitReads.subMap(start, true, end, true);
 				if (splitReadsMap.size() > 10000) {
 					logger.warn("Large number (" + splitReadsMap.size() + ") of unmapped reads for breakpoint: " + leftBP.getName());
@@ -575,9 +621,10 @@ public class FindClipClustersMT  {
 			}
 
 			for (Entry<Integer, Breakpoint> entry : rightClipPositions.entrySet()) {
-				Breakpoint rightBP = entry.getValue();					
-				Integer start = rightBP.getBreakpoint() - buffer;
-				Integer end  = rightBP.getBreakpoint() + buffer;
+				Breakpoint rightBP = entry.getValue();		
+				int rightBreakpoint = rightBP.getBreakpoint().intValue();
+				Integer start = Integer.valueOf(rightBreakpoint - buffer);
+				Integer end  = Integer.valueOf(rightBreakpoint + buffer);
 				NavigableMap<Integer, List<UnmappedRead>> splitReadsMap = splitReads.subMap(start, true, end, true);
 				if (splitReadsMap.size() > 10000) {
 					logger.warn("Large number (" + splitReadsMap.size() + ") of unmapped reads for breakpoint: " + rightBP.getName());
@@ -621,23 +668,22 @@ public class FindClipClustersMT  {
 			}		         
 
 			// blat for the matching breakpoint
-			logger.info("Running BLAT to find matching positions for " + breakpoints.size() + " breakpoints on " + chromosome.getName());
+			int size = breakpoints.size();
+			logger.info("Running BLAT to find matching positions for " + size + " breakpoints on " + chromosome.getName());
 			TreeMap<String, List<Breakpoint>> breakpointMap = blatBreakpoints(breakpoints);	
-			logger.info("Finished running BLAT to find matching positions for " + breakpoints.size() + " breakpoints on " + chromosome.getName());
+			logger.info("Finished running BLAT to find matching positions for " + size + " breakpoints on " + chromosome.getName());
 			return breakpointMap;
 		}
 
 		private void findMatchingClipBreakpoint(TreeMap<String, List<Breakpoint>> leftMap) throws Exception {
 			logger.info("Finding matching clip breakpoint for " + chromosome.getName());
 
-			for (String key : leftMap.keySet()) {
+			for (Entry<String, List<Breakpoint>> entry : leftMap.entrySet()) {
+				String key = entry.getKey();
 				//at this stage only match intra-chromosomal
-				List<SoftClipCluster> bpList = new ArrayList<SoftClipCluster>();
-				if (leftMap.containsKey(key)) {
-					List<Breakpoint> left = leftMap.get(key);
-					for (Breakpoint b : left) {
-						bpList.add(new SoftClipCluster(b));
-					}
+				List<SoftClipCluster> bpList = new ArrayList<>();
+				for (Breakpoint b : entry.getValue()) {
+					bpList.add(new SoftClipCluster(b));
 				}
 
 				if (key.equals(currentReferenceKey)) {
@@ -655,6 +701,31 @@ public class FindClipClustersMT  {
 					}
 				}				 
 			}
+//			for (String key : leftMap.keySet()) {
+//				//at this stage only match intra-chromosomal
+//				List<SoftClipCluster> bpList = new ArrayList<SoftClipCluster>();
+//				if (leftMap.containsKey(key)) {
+//					List<Breakpoint> left = leftMap.get(key);
+//					for (Breakpoint b : left) {
+//						bpList.add(new SoftClipCluster(b));
+//					}
+//				}
+//				
+//				if (key.equals(currentReferenceKey)) {
+//					List<SoftClipCluster> properClipRecords = getProperClipSVs(key, bpList);
+//					if (clipRecordsMap.containsKey(key)) {
+//						clipRecordsMap.get(key).addAll(properClipRecords);
+//					} else {
+//						clipRecordsMap.put(key, properClipRecords);	
+//					}
+//				} else {
+//					if (clipRecordsMap.containsKey(key)) {
+//						clipRecordsMap.get(key).addAll(bpList);
+//					} else {
+//						clipRecordsMap.put(key, bpList);	
+//					}
+//				}				 
+//			}
 
 			leftMap = null;
 		}
@@ -707,13 +778,14 @@ public class FindClipClustersMT  {
 						//if running translocations, only get the matches on different chromosomes
 						if (allChromosomes || (translocationOnly && r.isTranslocation()) || (!translocationOnly && !r.isTranslocation())) {
 							count++;
-							if (breakpointMap.containsKey(r.getReferenceKey())) {
-								breakpointMap.get(r.getReferenceKey()).add(r);
-							} else {			
-								List<Breakpoint> list = new ArrayList<Breakpoint>();
-								list.add(r);
-								breakpointMap.put(r.getReferenceKey(), list);
-							}							
+							
+							List<Breakpoint> list = breakpointMap.get(r.getReferenceKey());
+							if (null == list) {
+								 list = new ArrayList<Breakpoint>();
+								 breakpointMap.put(r.getReferenceKey(), list);
+							}
+							list.add(r);
+							
 						}
 
 					} else {
@@ -729,7 +801,17 @@ public class FindClipClustersMT  {
 					}
 				}
 			}
-			writeToLowConfidenceFile(nonBlatAligned);
+			// check to see if we have somatic results to write out
+			boolean somaticExists = false;
+			for (Breakpoint b :  nonBlatAligned) {
+				if ( ! b.isGermline()) {
+					somaticExists = true;
+					break;
+				}
+			}
+			if (somaticExists) {
+				writeToLowConfidenceFile(nonBlatAligned);
+			}
 			nonBlatAligned = null;
 			breakpoints.clear();
 
@@ -739,7 +821,7 @@ public class FindClipClustersMT  {
 
 		private void getClipPositions(boolean isTumour, TreeMap<Integer, Breakpoint> leftPositions,
 				TreeMap<Integer, Breakpoint> rightPositions, TreeMap<Integer, List<UnmappedRead>> splitReads, String type)
-						throws Exception {
+						throws IOException {
 			File file = new File(SoftClipStaticMethods.getSoftClipFile(chromosome.getName(), type, softClipDir));			
 
 			logger.info("Getting  " + type + " clips for " + chromosome.getName());
@@ -765,44 +847,35 @@ public class FindClipClustersMT  {
 
 							//if (record.getLength() >= CONSENSUS_LENGTH) {
 							if (record.getBpPos() >= chromosome.getStartPosition()
-									&& record.getBpPos() <= chromosome.getEndPosition()
-									|| record.getBpPos() >= chromosome.getStartPosition()
 									&& record.getBpPos() <= chromosome.getEndPosition()) {
+								
+								Integer key = Integer.valueOf(record.getBpPos());
 								if (record.isLeft()) {
 
-									Integer key = record.getBpPos();
+									Breakpoint b = leftPositions.get(key);
 									if (isTumour) {
-										if (leftPositions.containsKey(key)) {
-											leftPositions.get(key)
-											.addTumourClip((record));
-										} else {
-											Breakpoint p = new Breakpoint(key,
-													record.getReference(), true, CONSENSUS_LENGTH, MIN_INSERT_SIZE);
-											p.addTumourClip(record);
-											leftPositions.put(key, p);
+										if (null == b) {
+											b = new Breakpoint(key, record.getReference(), true, CONSENSUS_LENGTH, MIN_INSERT_SIZE);
+											leftPositions.put(key, b);
 										}
+										b.addTumourClip(record);
+
 									} else {
-										if (leftPositions.containsKey(key)) {
-											leftPositions.get(key)
-											.addNormalClip(record);
+										if (null != b) {
+											b.addNormalClip(record);
 										}
 									}
 								} else {
-									Integer key = record.getBpPos();
+									Breakpoint b = rightPositions.get(key);
 									if (isTumour) {
-										if (rightPositions.containsKey(key)) {
-											rightPositions.get(key)
-											.addTumourClip(record);
-										} else {
-											Breakpoint p = new Breakpoint(key,
-													record.getReference(), false, CONSENSUS_LENGTH, MIN_INSERT_SIZE);
-											p.addTumourClip(record);
-											rightPositions.put(key, p);
+										if (null == b) {
+											b = new Breakpoint(key, record.getReference(), false, CONSENSUS_LENGTH, MIN_INSERT_SIZE);
+											rightPositions.put(key, b);
 										}
+										b.addTumourClip(record);
 									} else {
-										if (rightPositions.containsKey(key)) {
-											rightPositions.get(key)
-											.addNormalClip(record);
+										if (null != b) {
+											b.addNormalClip(record);
 										}
 									}
 								}
@@ -932,7 +1005,7 @@ public class FindClipClustersMT  {
 						findOverlappingClusters(referenceKey, records, clusters, clips, true);
 						rescueQSVRecords(referenceKey, records);
 						qsvRecordWriter.writeTumourSVRecords(records);
-						run = true;
+//						run = true;
 					} // end else
 				}// end while
 				logger.info("Completed clipping thread: "
@@ -1010,7 +1083,7 @@ public class FindClipClustersMT  {
 							breakpoints.add(breakpoint);
 						}
 
-						run = true;
+//						run = true;
 					} // end else
 				}// end while
 				logger.info("Completed define breakpoint thread: "
