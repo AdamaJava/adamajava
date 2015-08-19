@@ -170,12 +170,12 @@ public class Q3ClinVar {
 	}
 
 	private void writeDodgyBinReport() throws IOException {
-		try (FileWriter writer = new FileWriter(new File(outputFileNameBase +"lost_bins.csv"))) {
+		try (FileWriter writer = new FileWriter(new File(outputFileNameBase +"lost_bins.txt"))) {
 			
 			/*
 			 * Setup the header
 			 */
-			writer.write("#amplicon_id,amplicon_name,amplicon_position,bin_id,bin_read_count,bin_sequence_length,bin_position,amplicon_sw_score,bin_sw_score,amplicon_sw,bin_sw\n");
+//			writer.write("#amplicon_id,amplicon_name,amplicon_position,bin_id,bin_read_count,bin_sequence_length,bin_position,amplicon_sw_score,bin_sw_score,amplicon_sw,bin_sw\n");
 			
 			for (Entry<Probe, List<Bin>> entry : probeBinDist.entrySet()) {
 				Probe probe = entry.getKey();
@@ -187,7 +187,18 @@ public class Q3ClinVar {
 						binsSet.add(b);
 					}
 				}
-				
+				StringBuilder sb = null;
+				if ( ! binsSet.isEmpty()) {
+					sb = new StringBuilder("Amplicon: ");
+					sb.append(probe.getId());
+					sb.append(Constants.NL);
+					sb.append("Name: ");
+					sb.append(probe.getName());
+					sb.append(Constants.NL);
+					sb.append("Location: ");
+					sb.append(probe.getCp().toIGVString());
+					sb.append(Constants.NL);
+				}
 				for (Bin b : binsSet) {
 					
 					String [] ampliconPositionSWDiffs = b.getSmithWatermanDiffs();
@@ -196,65 +207,197 @@ public class Q3ClinVar {
 						ampliconPositionSWDiffs =  ClinVarUtil.getSwDiffs(probe.getReferenceSequence(), sequence);
 					}
 					
-					StringBuilder tiledLocations = new StringBuilder();
-					StringBuilder tiledLocationScores = new StringBuilder();
-					StringBuilder tiledLocationDiffs = new StringBuilder();
+//					StringBuilder tiledLocations = new StringBuilder();
+//					StringBuilder tiledLocationScores = new StringBuilder();
+//					StringBuilder tiledLocationDiffs = new StringBuilder();
+//					if (null != b.getBestTiledLocation()) {
+//						tiledLocations.append(b.getBestTiledLocation().toIGVString());
+//						tiledLocationScores.append(ClinVarUtil.getSmithWatermanScore(b.getSmithWatermanDiffs(b.getBestTiledLocation())));
+//						tiledLocationDiffs.append(b.getSmithWatermanDiffs(b.getBestTiledLocation())[0]);
+//						tiledLocationDiffs.append(b.getSmithWatermanDiffs(b.getBestTiledLocation())[1]);
+//						tiledLocationDiffs.append(b.getSmithWatermanDiffs(b.getBestTiledLocation())[2]);
+//					} else if (null != b.getSmithWatermanDiffsMap() && ! b.getSmithWatermanDiffsMap().isEmpty()) {
+//						for (Entry<ChrPosition, String []> entry2 : b.getSmithWatermanDiffsMap().entrySet()) {
+//							if (tiledLocations.length() > 0) {
+//								tiledLocations.append(Constants.SEMI_COLON);
+//								tiledLocationScores.append(Constants.SEMI_COLON);
+//								tiledLocationDiffs.append(Constants.SEMI_COLON);
+//							}
+//							tiledLocations.append(entry2.getKey().toIGVString());
+//							tiledLocationScores.append(ClinVarUtil.getSmithWatermanScore(entry2.getValue()));
+//							tiledLocationDiffs.append(entry2.getValue()[0]);
+//							tiledLocationDiffs.append(entry2.getValue()[1]);
+//							tiledLocationDiffs.append(entry2.getValue()[2]);
+//						}
+//					} else {
+//						tiledLocations.append("-");
+//						tiledLocationScores.append("-");
+//						tiledLocationDiffs.append("-");
+//					}
+					
+					
+					sb.append(Constants.NL);
+					sb.append("BinID: ");
+					sb.append(b.getId());
+					sb.append(Constants.TAB);
+					sb.append("BinReadCount: ");
+					sb.append(b.getRecordCount());
+					sb.append(Constants.TAB);
+					sb.append("SeqLength: ");
+					sb.append(b.getLength());
+					sb.append(Constants.NL);
+					sb.append(Constants.NL);
+					sb.append("Design\t");
+					sb.append(probe.getCp().toIGVString());
+					sb.append(Constants.TAB);
+					sb.append("SwScore: ");
+					sb.append(ClinVarUtil.getSmithWatermanScore(ampliconPositionSWDiffs));
+					sb.append(Constants.NL);
+					sb.append("R\t");
+					sb.append(ampliconPositionSWDiffs[0]);
+					sb.append(Constants.NL);
+					sb.append(Constants.TAB);
+					sb.append(ampliconPositionSWDiffs[1]);
+					sb.append(Constants.NL);
+					sb.append("B\t");
+					sb.append(ampliconPositionSWDiffs[2]);
+					sb.append(Constants.NL);
+					
 					if (null != b.getBestTiledLocation()) {
-						tiledLocations.append(b.getBestTiledLocation().toIGVString());
-						tiledLocationScores.append(ClinVarUtil.getSmithWatermanScore(b.getSmithWatermanDiffs(b.getBestTiledLocation())));
-						tiledLocationDiffs.append(b.getSmithWatermanDiffs(b.getBestTiledLocation())[0]);
-						tiledLocationDiffs.append(b.getSmithWatermanDiffs(b.getBestTiledLocation())[1]);
-						tiledLocationDiffs.append(b.getSmithWatermanDiffs(b.getBestTiledLocation())[2]);
+						sb.append(Constants.NL);
+						sb.append("Alternate\t");
+						sb.append(b.getBestTiledLocation().toIGVString());
+						sb.append(Constants.TAB);
+						sb.append("SwScore: ");
+						sb.append(ClinVarUtil.getSmithWatermanScore(b.getSmithWatermanDiffs(b.getBestTiledLocation())));
+						sb.append(Constants.NL);
+						sb.append("R\t");
+						sb.append(b.getSmithWatermanDiffs(b.getBestTiledLocation())[0]);
+						sb.append(Constants.NL);
+						sb.append(Constants.TAB);
+						sb.append(b.getSmithWatermanDiffs(b.getBestTiledLocation())[1]);
+						sb.append(Constants.NL);
+						sb.append("B\t");
+						sb.append(b.getSmithWatermanDiffs(b.getBestTiledLocation())[2]);
+						sb.append(Constants.NL);
 					} else if (null != b.getSmithWatermanDiffsMap() && ! b.getSmithWatermanDiffsMap().isEmpty()) {
 						for (Entry<ChrPosition, String []> entry2 : b.getSmithWatermanDiffsMap().entrySet()) {
-							if (tiledLocations.length() > 0) {
-								tiledLocations.append(Constants.SEMI_COLON);
-								tiledLocationScores.append(Constants.SEMI_COLON);
-								tiledLocationDiffs.append(Constants.SEMI_COLON);
-							}
-							tiledLocations.append(entry2.getKey().toIGVString());
-							tiledLocationScores.append(ClinVarUtil.getSmithWatermanScore(entry2.getValue()));
-							tiledLocationDiffs.append(entry2.getValue()[0]);
-							tiledLocationDiffs.append(entry2.getValue()[1]);
-							tiledLocationDiffs.append(entry2.getValue()[2]);
+							sb.append(Constants.NL);
+							sb.append("Alternate\t");
+							sb.append(entry2.getKey().toIGVString());
+							sb.append(Constants.TAB);
+							sb.append("SwScore: ");
+							sb.append(ClinVarUtil.getSmithWatermanScore(entry2.getValue()));
+							sb.append(Constants.NL);
+							sb.append("R\t");
+							sb.append(entry2.getValue()[0]);
+							sb.append(Constants.NL);
+							sb.append(Constants.TAB);
+							sb.append(entry2.getValue()[1]);
+							sb.append(Constants.NL);
+							sb.append("B\t");
+							sb.append(entry2.getValue()[2]);
+							sb.append(Constants.NL);
 						}
-					} else {
-						tiledLocations.append("-");
-						tiledLocationScores.append("-");
-						tiledLocationDiffs.append("-");
 					}
-					
-					StringBuilder sb = new StringBuilder();
-					sb.append(probe.getId());
-					sb.append(Constants.COMMA);
-					sb.append(probe.getName());
-					sb.append(Constants.COMMA);
-					sb.append(probe.getCp().toIGVString());
-					sb.append(Constants.COMMA);
-					sb.append(b.getId());
-					sb.append(Constants.COMMA);
-					sb.append(b.getRecordCount());
-					sb.append(Constants.COMMA);
-					sb.append(b.getLength());
-					sb.append(Constants.COMMA);
-					sb.append(tiledLocations.toString());
-					sb.append(Constants.COMMA);
-					sb.append(ClinVarUtil.getSmithWatermanScore(ampliconPositionSWDiffs));
-					sb.append(Constants.COMMA);
-					sb.append(tiledLocationScores.toString());
-					sb.append(Constants.COMMA);
-					sb.append(ampliconPositionSWDiffs[0]);
-					sb.append(ampliconPositionSWDiffs[1]);
-					sb.append(ampliconPositionSWDiffs[2]);
-					sb.append(Constants.COMMA);
-					sb.append(tiledLocationDiffs.toString());
-					sb.append("\n");
+				}
+				if ( ! binsSet.isEmpty()) {
+					sb.append(Constants.NL);
+					sb.append("########################");
+					sb.append(Constants.NL);
+					sb.append(Constants.NL);
 					writer.write(sb.toString());
 				}
 			}
 			writer.flush();
 		}
 	}
+//	private void writeDodgyBinReport() throws IOException {
+//		try (FileWriter writer = new FileWriter(new File(outputFileNameBase +"lost_bins.csv"))) {
+//			
+//			/*
+//			 * Setup the header
+//			 */
+//			writer.write("#amplicon_id,amplicon_name,amplicon_position,bin_id,bin_read_count,bin_sequence_length,bin_position,amplicon_sw_score,bin_sw_score,amplicon_sw,bin_sw\n");
+//			
+//			for (Entry<Probe, List<Bin>> entry : probeBinDist.entrySet()) {
+//				Probe probe = entry.getKey();
+//				
+//				Set<Bin> binsSet = new TreeSet<>();
+//				List<Bin> allBins = entry.getValue();
+//				for (Bin b : allBins) {
+//					if ( null == b.getBestTiledLocation() || ! ClinVarUtil.doChrPosOverlap(probe.getCp(), b.getBestTiledLocation())) {
+//						binsSet.add(b);
+//					}
+//				}
+//				
+//				for (Bin b : binsSet) {
+//					
+//					String [] ampliconPositionSWDiffs = b.getSmithWatermanDiffs();
+//					if (null == ampliconPositionSWDiffs) {
+//						String sequence = probe.reverseComplementSequence() ? SequenceUtil.reverseComplement(b.getSequence()) : b.getSequence();
+//						ampliconPositionSWDiffs =  ClinVarUtil.getSwDiffs(probe.getReferenceSequence(), sequence);
+//					}
+//					
+//					StringBuilder tiledLocations = new StringBuilder();
+//					StringBuilder tiledLocationScores = new StringBuilder();
+//					StringBuilder tiledLocationDiffs = new StringBuilder();
+//					if (null != b.getBestTiledLocation()) {
+//						tiledLocations.append(b.getBestTiledLocation().toIGVString());
+//						tiledLocationScores.append(ClinVarUtil.getSmithWatermanScore(b.getSmithWatermanDiffs(b.getBestTiledLocation())));
+//						tiledLocationDiffs.append(b.getSmithWatermanDiffs(b.getBestTiledLocation())[0]);
+//						tiledLocationDiffs.append(b.getSmithWatermanDiffs(b.getBestTiledLocation())[1]);
+//						tiledLocationDiffs.append(b.getSmithWatermanDiffs(b.getBestTiledLocation())[2]);
+//					} else if (null != b.getSmithWatermanDiffsMap() && ! b.getSmithWatermanDiffsMap().isEmpty()) {
+//						for (Entry<ChrPosition, String []> entry2 : b.getSmithWatermanDiffsMap().entrySet()) {
+//							if (tiledLocations.length() > 0) {
+//								tiledLocations.append(Constants.SEMI_COLON);
+//								tiledLocationScores.append(Constants.SEMI_COLON);
+//								tiledLocationDiffs.append(Constants.SEMI_COLON);
+//							}
+//							tiledLocations.append(entry2.getKey().toIGVString());
+//							tiledLocationScores.append(ClinVarUtil.getSmithWatermanScore(entry2.getValue()));
+//							tiledLocationDiffs.append(entry2.getValue()[0]);
+//							tiledLocationDiffs.append(entry2.getValue()[1]);
+//							tiledLocationDiffs.append(entry2.getValue()[2]);
+//						}
+//					} else {
+//						tiledLocations.append("-");
+//						tiledLocationScores.append("-");
+//						tiledLocationDiffs.append("-");
+//					}
+//					
+//					StringBuilder sb = new StringBuilder();
+//					sb.append(probe.getId());
+//					sb.append(Constants.COMMA);
+//					sb.append(probe.getName());
+//					sb.append(Constants.COMMA);
+//					sb.append(probe.getCp().toIGVString());
+//					sb.append(Constants.COMMA);
+//					sb.append(b.getId());
+//					sb.append(Constants.COMMA);
+//					sb.append(b.getRecordCount());
+//					sb.append(Constants.COMMA);
+//					sb.append(b.getLength());
+//					sb.append(Constants.COMMA);
+//					sb.append(tiledLocations.toString());
+//					sb.append(Constants.COMMA);
+//					sb.append(ClinVarUtil.getSmithWatermanScore(ampliconPositionSWDiffs));
+//					sb.append(Constants.COMMA);
+//					sb.append(tiledLocationScores.toString());
+//					sb.append(Constants.COMMA);
+//					sb.append(ampliconPositionSWDiffs[0]);
+//					sb.append(ampliconPositionSWDiffs[1]);
+//					sb.append(ampliconPositionSWDiffs[2]);
+//					sb.append(Constants.COMMA);
+//					sb.append(tiledLocationDiffs.toString());
+//					sb.append("\n");
+//					writer.write(sb.toString());
+//				}
+//			}
+//			writer.flush();
+//		}
+//	}
 
 	private void matchReadsToProbes() {
 		
