@@ -17,7 +17,7 @@ public class QSVAssemble {
 	
 	private static final QLogger logger = QLoggerFactory.getLogger(QSVAssemble.class);
 	static final int MINIMUM_READ_EXTEND = 1;
-	static final int SEED_LENGTH = 10;
+	public static final int SEED_LENGTH = 10;
 	
 	private List<Read> clipReads;
 	private Read outputRead;

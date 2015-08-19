@@ -38,6 +38,7 @@ import org.qcmg.qsv.Messages;
 import org.qcmg.qsv.Options;
 import org.qcmg.qsv.QSVException;
 import org.qcmg.qsv.QSVParameters;
+import org.qcmg.qsv.assemble.QSVAssemble;
 import org.qcmg.qsv.softclip.SoftClipStaticMethods;
 import org.qcmg.qsv.util.CustomThreadPoolExecutor;
 import org.qcmg.qsv.util.QSVConstants;
@@ -402,52 +403,63 @@ public class AnnotateFilterMT implements Runnable {
 				final SAMRecordIterator iter = reader.queryOverlapping(chromosome.getName(), queryStart, queryEnd);
 	
 				int count = 0;
+				int shortReadCount = 0;
 	
 				while (iter.hasNext()) {
 					final SAMRecord record = iter.next();
 					count++;
 					boolean writersResult = true;
 					boolean pileupResult = true;
+					
+					/*
+					 * only proceed with records that have sequence > QSVAssemble_SEED_LENGTH
+					 */
+					if (record.getReadLength() > QSVAssemble.SEED_LENGTH) {
 	
-					final SAMReadGroupRecord srgr = record.getReadGroup();
-					if (null != srgr 
-							&& null != srgr.getId() 
-							&& readGroupIds.contains(srgr.getId())) {
-	
-						//discordant pairs
-						if (runPair && record.getAlignmentStart() >= startPos && record.getAlignmentStart() <= endPos) {
-							writersResult = addToPairWriter(record, count);
-						}
-	
-						if (runClip) {
-							//soft clips
-							if (( ! record.getReadUnmappedFlag() && ! record.getDuplicateReadFlag() && record.getCigarString().contains("S"))
-									|| (isSplitRead && record.getReadUnmappedFlag()) ) {
-								
-								pileupResult = pileupSoftClips(writer, record, startPos, endPos, chromosome);
+						final SAMReadGroupRecord srgr = record.getReadGroup();
+						if (null != srgr 
+								&& null != srgr.getId() 
+								&& readGroupIds.contains(srgr.getId())) {
+		
+							//discordant pairs
+							if (runPair && record.getAlignmentStart() >= startPos && record.getAlignmentStart() <= endPos) {
+								writersResult = addToPairWriter(record, count);
 							}
-						}
-	
-						//check to make sure there aren't any errors
-						if ( ! pileupResult || ! writersResult) {
-							if ( ! pileupResult) {	            		
-								logger.error("Error finding soft clip records in " + chromosome.toString());
+		
+							if (runClip) {
+								//soft clips
+								if (( ! record.getReadUnmappedFlag() && ! record.getDuplicateReadFlag() && record.getCigarString().contains("S"))
+										|| (isSplitRead && record.getReadUnmappedFlag()) ) {
+									
+									pileupResult = pileupSoftClips(writer, record, startPos, endPos, chromosome);
+								}
 							}
-							if ( ! writersResult) {
-								logger.error("Error finding discordant read records in " + chromosome.toString());
+		
+							//check to make sure there aren't any errors
+							if ( ! pileupResult || ! writersResult) {
+								if ( ! pileupResult) {	            		
+									logger.error("Error finding soft clip records in " + chromosome.toString());
+								}
+								if ( ! writersResult) {
+									logger.error("Error finding discordant read records in " + chromosome.toString());
+								}
+		
+								if (exitStatus.intValue() == 0) {
+									exitStatus.incrementAndGet();
+								}
+								result =  false;
 							}
-	
-							if (exitStatus.intValue() == 0) {
-								exitStatus.incrementAndGet();
-							}
-							result =  false;
-	
+						} else {
+							logger.warn("SAMReadGroupRecord : " + srgr + ":" + record.getSAMString());
+							logger.warn("SAMReadGroupRecord was null, or id was not in collection: " + srgr.getId() + ":" + record.getSAMString());
+							throw new Exception("Null SAMReadGroupRecord");
 						}
 					} else {
-						logger.warn("SAMReadGroupRecord : " + srgr + ":" + record.getSAMString());
-						logger.warn("SAMReadGroupRecord was null, or id was not in collection: " + srgr.getId() + ":" + record.getSAMString());
-						throw new Exception("Null SAMReadGroupRecord");
+						shortReadCount++;
 					}
+				}
+				if (shortReadCount > 0) {
+					logger.warn("Ignored " + shortReadCount + " reads that had read length < " + QSVAssemble.SEED_LENGTH);
 				}
 			}
 

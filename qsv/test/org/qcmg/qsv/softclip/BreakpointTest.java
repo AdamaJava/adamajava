@@ -210,6 +210,26 @@ public class BreakpointTest {
 		assertEquals("TT", breakpoint.getBreakpointConsenus());
 	}
 	
+	@Test
+	public void belowMinInsertSizeSameBP() {
+		// same bp and mate bp
+		assertEquals(true, Breakpoint.belowMinInsertSize(0, 0, 0));
+		assertEquals(true, Breakpoint.belowMinInsertSize(1, 1, 0));
+		assertEquals(true, Breakpoint.belowMinInsertSize(12345, 12345, 0));
+		assertEquals(true, Breakpoint.belowMinInsertSize(-12345, -12345, 0));
+	}
+	@Test
+	public void belowMinInsertSizeDiffBP() {
+		// same bp and mate bp
+		assertEquals(false, Breakpoint.belowMinInsertSize(0, 1, 0));
+		assertEquals(true, Breakpoint.belowMinInsertSize(0, 1, 1));
+		assertEquals(true, Breakpoint.belowMinInsertSize(1, 0, 1));
+		assertEquals(false, Breakpoint.belowMinInsertSize(2, 0, 1));
+		assertEquals(false, Breakpoint.belowMinInsertSize(0, 2, 1));
+		assertEquals(true, Breakpoint.belowMinInsertSize(0, 2, 2));
+		assertEquals(true, Breakpoint.belowMinInsertSize(2, 1, 2));
+	}
+	
 
 	private int[][] setUpBases(int a, int b, int c, int d, int e) {
 		int[][] bases = new int[1][5];
