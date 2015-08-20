@@ -3,20 +3,26 @@ package org.qcmg.common.vcf.header;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-
+import static org.junit.Assert.fail;
 import org.junit.Assert;
 import org.junit.Test;
 
 public class VcfHeaderTest {
 
 	@Test
-	public void sampleIdTest() throws Exception{
+	public void sampleIdTest(){
 		final VcfHeader header = new VcfHeader();
 		header.parseHeaderLine("#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	Control	Test");
-		
-		final String[] sample = header.getSampleId();
+		String[] sample = header.getSampleId();
 		assertTrue(sample[0].equals("Control"));
 		assertTrue(sample[1].equals("Test"));
+		
+		header.parseHeaderLine("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tControl\tTest");
+		try {			
+			header.getSampleId(); 			
+		    fail( "My method didn't throw when I expected it to" );
+		} catch (RuntimeException expectedException) {			
+		}
 	}
 	
 	@Test
