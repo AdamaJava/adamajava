@@ -357,10 +357,15 @@ public class VcfHeader implements Iterable<VcfHeader.Record> {
 		
 		final String[] column = chromLine.toString().trim().split(Constants.TAB+"");
 		
-		if(column[8].equalsIgnoreCase(FORMAT) && column.length > 9)
-			return Arrays.copyOfRange(column, 9, column.length);
+		if(column.length <= 9)
+			return null;
 		
-		return null;
+		
+		if(column[8].equalsIgnoreCase(FORMAT) )
+			return Arrays.copyOfRange(column, 9, column.length);
+		else
+			throw new RuntimeException("missing FORMAT field before Genotyp fields");
+		
 	}
 	
 	public List<QPGRecord> getqPGLines() {
