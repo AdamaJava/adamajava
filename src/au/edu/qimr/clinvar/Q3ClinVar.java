@@ -177,11 +177,14 @@ public class Q3ClinVar {
 			 */
 //			writer.write("#amplicon_id,amplicon_name,amplicon_position,bin_id,bin_read_count,bin_sequence_length,bin_position,amplicon_sw_score,bin_sw_score,amplicon_sw,bin_sw\n");
 			
-			for (Entry<Probe, List<Bin>> entry : probeBinDist.entrySet()) {
-				Probe probe = entry.getKey();
-				
+			for (Probe probe : probeSet) {
+//			for (Entry<Probe, List<Bin>> entry : probeBinDist.entrySet()) {
+//				Probe probe = entry.getKey();
+				List<Bin> allBins = probeBinDist.get(probe);
+				if (null == allBins || allBins.isEmpty()) {
+					continue;
+				}
 				Set<Bin> binsSet = new TreeSet<>();
-				List<Bin> allBins = entry.getValue();
 				for (Bin b : allBins) {
 					if ( null == b.getBestTiledLocation() || ! ClinVarUtil.doChrPosOverlap(probe.getCp(), b.getBestTiledLocation())) {
 						binsSet.add(b);
@@ -237,7 +240,7 @@ public class Q3ClinVar {
 					if (null != b.getBestTiledLocation()) {
 						sb.append(Constants.NL);
 						sb.append("Alternate\t");
-						sb.append(b.getBestTiledLocation().toIGVString());
+						sb.append(b.getBestTiledLocation().toStartPositionString());
 						sb.append(Constants.TAB);
 						sb.append("SwScore: ");
 						sb.append(ClinVarUtil.getSmithWatermanScore(b.getSmithWatermanDiffs(b.getBestTiledLocation())));
@@ -255,7 +258,7 @@ public class Q3ClinVar {
 						for (Entry<ChrPosition, String []> entry2 : b.getSmithWatermanDiffsMap().entrySet()) {
 							sb.append(Constants.NL);
 							sb.append("Alternate\t");
-							sb.append(entry2.getKey().toIGVString());
+							sb.append(entry2.getKey().toStartPositionString());
 							sb.append(Constants.TAB);
 							sb.append("SwScore: ");
 							sb.append(ClinVarUtil.getSmithWatermanScore(entry2.getValue()));
@@ -566,7 +569,7 @@ public class Q3ClinVar {
 			for (Bin b : entry.getValue()) {
 				String fragment = b.getSequence();
 				/*
-				 * Only bin if we don't have an exact match
+				 * Only proceed if we don't have an exact match
 				 */
 				if (p.getBufferedReferenceSequence().contains(fragment) 
 						|| p.getBufferedReferenceSequence().contains(SequenceUtil.reverseComplement(fragment))) {
