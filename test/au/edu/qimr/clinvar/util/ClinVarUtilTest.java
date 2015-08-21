@@ -43,6 +43,18 @@ public class ClinVarUtilTest {
 	}
 	
 	@Test
+	public void arePositionsClose() {
+		TLongArrayList list1 = new TLongArrayList();
+		list1.add(1000);
+		assertEquals(true, ClinVarUtil.areAllListPositionsWithinBoundary(list1, 0, 2000));
+		assertEquals(true, ClinVarUtil.areAllListPositionsWithinBoundary(list1, 999, 1000));
+		assertEquals(true, ClinVarUtil.areAllListPositionsWithinBoundary(list1, 1000, 1000));
+		assertEquals(true, ClinVarUtil.areAllListPositionsWithinBoundary(list1, 1000, 1001));
+		assertEquals(false, ClinVarUtil.areAllListPositionsWithinBoundary(list1, 1001, 1001));
+		assertEquals(false, ClinVarUtil.areAllListPositionsWithinBoundary(list1, 999, 999));
+	}
+	
+	@Test
 	public void createSAMRecord() {
 		try {
 			ClinVarUtil.createSAMRecord(null, null, 1, 1, 1, "", "", 1, 1, "", 0);

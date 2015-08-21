@@ -8,6 +8,7 @@ import java.util.Map.Entry;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.util.ChrPositionUtils;
 
 public class PositionChrPositionMap {
 	
@@ -30,6 +31,24 @@ public class PositionChrPositionMap {
 		}
 	}
 	
+	/**
+	 * Return the start position of the ChrPosition object as a long primative
+	 * @param cp
+	 * @return
+	 */
+	public long getLongStartPositionFromChrPosition(ChrPosition cp) {
+		/*
+		 * loop through the keys in the map
+		 */
+		long startPosition = -1;
+		for (Entry<ChrPosition, LongRange> entry : chrPosToPositionRange.entrySet()) {
+			if (ChrPositionUtils.doChrPositionsOverlap(entry.getKey(), cp)) {
+				startPosition = entry.getValue().from + cp.getPosition() - 1;
+				break;
+			}
+		}
+		return startPosition;
+	}
 	
 	public ChrPosition getChrPositionFromLongPosition(long position) {
 		/*

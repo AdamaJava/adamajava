@@ -7,12 +7,34 @@ import java.util.List;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.qcmg.common.model.ChrPosition;
 
 public class PositionChrPositionMapTest {
 	
 	
 	private final static List<String> standardHeader = new ArrayList<>();
 	
+	@Test
+	public void  inputSameAsOutput() {
+		PositionChrPositionMap map = new PositionChrPositionMap();
+		map.loadMap(standardHeader);
+		long emily = 2;
+		ChrPosition cp =  map.getChrPositionFromLongPosition(emily);
+		assertEquals("chr1", cp.getChromosome());
+		assertEquals(2, cp.getPosition());
+		assertEquals(emily, map.getLongStartPositionFromChrPosition(cp));
+		
+		emily = 20;
+		cp =  map.getChrPositionFromLongPosition(emily);
+		assertEquals("chr1", cp.getChromosome());
+		assertEquals(20, cp.getPosition());
+		assertEquals(emily, map.getLongStartPositionFromChrPosition(cp));
+		emily = 249250622;
+		cp =  map.getChrPositionFromLongPosition(emily);
+		assertEquals("chr2", cp.getChromosome());
+		assertEquals(1, cp.getPosition());
+		assertEquals(emily, map.getLongStartPositionFromChrPosition(cp));
+	}
 	
 	@Test
 	public void positionOne() {
@@ -26,9 +48,9 @@ public class PositionChrPositionMapTest {
 		assertEquals(1, map.getChrPositionFromLongPosition(1).getPosition());
 		assertEquals("chr1", map.getChrPositionFromLongPosition(1).getChromosome());
 		assertEquals(2, map.getChrPositionFromLongPosition(2).getPosition());
-		assertEquals("chr1", map.getChrPositionFromLongPosition(1).getChromosome());
+		assertEquals("chr1", map.getChrPositionFromLongPosition(2).getChromosome());
 		assertEquals(249250621, map.getChrPositionFromLongPosition(249250621).getPosition());
-		assertEquals("chr1", map.getChrPositionFromLongPosition(1).getChromosome());
+		assertEquals("chr1", map.getChrPositionFromLongPosition(249250621).getChromosome());
 		assertEquals(1, map.getChrPositionFromLongPosition(249250622).getPosition());
 		assertEquals("chr2", map.getChrPositionFromLongPosition(249250622).getChromosome());
 		

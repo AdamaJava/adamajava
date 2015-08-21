@@ -560,10 +560,19 @@ public class Q3ClinVar {
 			Map<ChrPosition, AtomicInteger> binLocationDistribution = new HashMap<>();
 			Probe p = entry.getKey();
 			ChrPosition ampliconCP = p.getCp();
+			long ampliconStartLongPosition = positionToActualLocation.getLongStartPositionFromChrPosition(ampliconCP);
 //			logger.info("Looking at probe: " + p.getId() +", which has " +  entry.getValue().size() + " bins");
 			
 			for (Bin b : entry.getValue()) {
 				String fragment = b.getSequence();
+				/*
+				 * Only bin if we don't have an exact match
+				 */
+				if (p.getBufferedReferenceSequence().contains(fragment) 
+						|| p.getBufferedReferenceSequence().contains(SequenceUtil.reverseComplement(fragment))) {
+					b.setBestTiledLocation(ampliconCP);
+					continue;
+				}
 				int sLength = fragment.length();
 				int noOfTiles = sLength / TILE_SIZE;
 				long[][] tilePositions = new long[noOfTiles][];
@@ -611,6 +620,8 @@ public class Q3ClinVar {
 				TIntObjectHashMap<TLongArrayList> rcResultsMap = ClinVarUtil.getBestStartPosition(rcTilePositions, TILE_SIZE, maxIndelLength, tiledDiffThreshold, tileMatchThreshold);
 //				long [] results = ClinVarUtil.getBestStartPosition(tilePositions, TILE_SIZE, 5, tiledDiffThreshold);
 //				long [] rcResults = ClinVarUtil.getBestStartPosition(rcTilePositions, TILE_SIZE, 5, tiledDiffThreshold);
+				
+				ChrPosition bestTiledCp = null;
 				int [] results = resultsMap.keys();
 				if (results.length > 1) {
 					Arrays.sort(results);
@@ -625,39 +636,43 @@ public class Q3ClinVar {
 				 */
 				int bestTileCount = results.length > 0 ? results[results.length -1] : 0;
 				int rcBestTileCount = rcResults.length > 0 ? rcResults[rcResults.length -1] : 0;
-				
-				
 				/*
-				 * Only perform sw on positions if the best tile position is not next to the amplicon position
+				 * If all the best positions overlap the amplicon position - great
 				 */
-				ChrPosition bestTiledCp = null;
-				if (bestTileCount > rcBestTileCount + tiledDiffThreshold) {
+				if (ClinVarUtil.areAllPositionsClose(resultsMap.valueCollection(), rcResultsMap.valueCollection(), ampliconStartLongPosition, 200)) {
+//					logger.info("all positions are close");
+					bestTiledCp = ampliconCP;
+				} else {
+				
 					/*
-					 * Only set bestTiledCp if we have a single key in the resultsMap, that only has a single long in its TLongArrayList value
+					 * Only perform sw on positions if the best tile position is not next to the amplicon position
 					 */
-					if (results.length == 1 && resultsMap.get(bestTileCount).size() == 1) {
-						bestTiledCp = positionToActualLocation.getChrPositionFromLongPosition(resultsMap.get(bestTileCount).get(0));
+					if (bestTileCount > rcBestTileCount + tiledDiffThreshold) {
+						/*
+						 * Only set bestTiledCp if we have a single key in the resultsMap, that only has a single long in its TLongArrayList value
+						 */
+						if (results.length == 1 && resultsMap.get(bestTileCount).size() == 1) {
+							bestTiledCp = positionToActualLocation.getChrPositionFromLongPosition(resultsMap.get(bestTileCount).get(0));
+						} else {
+							if (ClinVarUtil.areAllPositionsClose(resultsMap.valueCollection(), null, ampliconStartLongPosition, 200)) {
+								logger.info("all positions on +ve strand are close");
+								bestTiledCp = ampliconCP;
+							}
+						}
+					} else if (tiledDiffThreshold + bestTileCount < rcBestTileCount) {
+						/*
+						* Only set bestTiledCp if we have a single key in the resultsMap, that only has a single long in its TLongArrayList value
+						*/
+						if (rcResults.length == 1 && rcResultsMap.get(rcBestTileCount).size() == 1) {
+							bestTiledCp = positionToActualLocation.getChrPositionFromLongPosition(rcResultsMap.get(rcBestTileCount).get(0));
+						} else {
+							if (ClinVarUtil.areAllPositionsClose(rcResultsMap.valueCollection(), null, ampliconStartLongPosition, 200)) {
+								logger.info("all positions on -ve strand are close");
+								bestTiledCp = ampliconCP;
+							}
+						}
 					}
-				} else if (tiledDiffThreshold + bestTileCount < rcBestTileCount) {
-					/*
-					* Only set bestTiledCp if we have a single key in the resultsMap, that only has a single long in its TLongArrayList value
-					*/
-					if (rcResults.length == 1 && rcResultsMap.get(rcBestTileCount).size() == 1) {
-						bestTiledCp = positionToActualLocation.getChrPositionFromLongPosition(rcResultsMap.get(rcBestTileCount).get(0));
-					}
-//					if (rcResults.length == 2) {
-//						bestTiledCp = positionToActualLocation.getChrPositionFromLongPosition(rcResults[0]);
-//					}
 				}
-//				if (bestTileCount > rcBestTileCount + tiledDiffThreshold) {
-//					if (results.length == 2) {
-//						bestTiledCp = positionToActualLocation.getChrPositionFromLongPosition(results[0]);
-//					}
-//				} else if (tiledDiffThreshold + bestTileCount < rcBestTileCount) {
-//					if (rcResults.length == 2) {
-//						bestTiledCp = positionToActualLocation.getChrPositionFromLongPosition(rcResults[0]);
-//					}
-//				}
 				
 				if (null != bestTiledCp && ClinVarUtil.doChrPosOverlap(ampliconCP, bestTiledCp)) {
 					b.setBestTiledLocation(bestTiledCp);

@@ -1,5 +1,6 @@
 package au.edu.qimr.clinvar.util;
 
+import gnu.trove.iterator.TLongIterator;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.list.array.TLongArrayList;
 import gnu.trove.map.TLongIntMap;
@@ -27,6 +28,7 @@ import htsjdk.samtools.util.SequenceUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -112,9 +114,7 @@ public class ClinVarUtil {
 		map.forEachEntry(new TIntObjectProcedure<TLongArrayList>(){
 			@Override
 			public boolean execute(int i, TLongArrayList longList) {
-//				if (i > 1) {
-					results.addAll(longList);
-//				}
+				results.addAll(longList);
 				return true;
 			}});
 		return results;
@@ -332,8 +332,10 @@ public class ClinVarUtil {
 					if (diff > 1000) {
 						break;
 					}
-					if (Math.abs(diff % tileLength) < 5 // indel Offset
+					if ((diff / tileLength) < 5 
 							&& thisPositionTileCount == positionAndTiles.get(nextPosition) + j ) {
+//						if (Math.abs(diff % tileLength) < 5 // indel Offset
+//								&& thisPositionTileCount == positionAndTiles.get(nextPosition) + j ) {
 //						if (diff == (tileLength * j)
 //								&& thisPositionTileCount == positionAndTiles.get(nextPosition) + j ) {
 						// remove
@@ -1101,5 +1103,44 @@ public class ClinVarUtil {
 			}
 			Cigar cigar = new Cigar(ces);
 			return cigar;
+	}
+	
+	public static boolean areAllListPositionsWithinBoundary(TLongArrayList list, long start, long end) {
+		TLongIterator iter = list.iterator();
+		while (iter.hasNext()) {
+			long l = iter.next();
+			if (l > end || l < start) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	public static boolean areAllPositionsClose(Collection<TLongArrayList> collection, Collection<TLongArrayList> collection2,
+			final long ampliconStartLongPosition, int buffer) {
+		/*
+		 * If both collections are null or empty - false
+		 */
+		if ((null == collection || collection.isEmpty()) && (null == collection2 || collection2.isEmpty())) {
+			return false;
+		}
+		final long start = ampliconStartLongPosition - buffer;
+		final long end = ampliconStartLongPosition + buffer;
+		
+		if (null != collection) {
+			for (TLongArrayList list :  collection) {
+				if ( ! areAllListPositionsWithinBoundary(list, start, end)) {
+					return false;
+				}
+			}
+		}
+		if (null != collection2) {
+			for (TLongArrayList list :  collection2) {
+				if ( ! areAllListPositionsWithinBoundary(list, start, end)) {
+					return false;
+				}
+			}
+		}
+		return true;
 	}
 }
