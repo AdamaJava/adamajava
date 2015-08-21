@@ -166,5 +166,8 @@ public class ChrPosition  implements Comparable<ChrPosition> {
 	public String toIGVString() {
 		return chromosome + ":" + position + "-" + endPosition;
 	}
+	public String toStartPositionString() {
+		return chromosome + ":" + position;
+	}
 	
 }
