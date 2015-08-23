@@ -883,13 +883,13 @@ public class Q3ClinVar {
 		
 		DecimalFormat df = new DecimalFormat("#.##");
 		
-		List<Probe> coordSortedProbes = new ArrayList<>(probeSet);
-		Collections.sort(coordSortedProbes, new Comparator<Probe>() {
-			@Override
-			public int compare(Probe o1, Probe o2) {
-				return o1.getCp().compareTo(o2.getCp());
-			}
-		});
+//		List<Probe> coordSortedProbes = new ArrayList<>(probeSet);
+//		Collections.sort(coordSortedProbes, new Comparator<Probe>() {
+//			@Override
+//			public int compare(Probe o1, Probe o2) {
+//				return o1.getCp().compareTo(o2.getCp());
+//			}
+//		});
 		
 		final int fastqRecordCount = matches.size();
 		
@@ -900,9 +900,10 @@ public class Q3ClinVar {
 			writer.write("#Number of fastq records: " + fastqRecordCount + Constants.NEW_LINE);
 			writer.write("#Number of amplicons: " + probeSet.size() + Constants.NEW_LINE);
 			writer.write("#\n");
-			writer.write("amplicon_id,amplicon_name,amplicon_position,number_of_reads,numbe_of_reads_percentage,number_of_bins,bins_on_target,bins_on_target_percentage,reads_on_target,reads_on_target_percentage\n" );
+			writer.write("amplicon_id,amplicon_name,amplicon_position,number_of_reads,number_of_reads_percentage,number_of_bins,bins_on_target,bins_on_target_percentage,reads_on_target,reads_on_target_percentage\n" );
 			
-			for (Probe p : coordSortedProbes) {
+//			for (Probe p : coordSortedProbes) {
+			for (Probe p : probeSet) {
 				ChrPosition ampliconCP = p.getCp();
 				List<Bin> bins = probeBinDist.get(p);
 				int recordCount = 0;
