@@ -12,6 +12,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.string.StringUtils;
 
 import au.edu.qimr.clinvar.model.FastqProbeMatch;
 import au.edu.qimr.clinvar.model.IntPair;
@@ -160,6 +161,15 @@ public class FastqProbeMatchUtil {
 			
 			String r2OverlapRC = SequenceUtil.reverseComplement(r2Overlap);
 			
+			if (StringUtils.isNullOrEmpty(r1Overlap) || StringUtils.isNullOrEmpty(r2OverlapRC)) {
+//				logger.info("frag: " + frag);
+				logger.info("r1: " + r1);
+				logger.info("r2: " + r2);
+				logger.info("r1Overlap: " + r1Overlap);
+				logger.info("r2Overlap: " + r2Overlap);
+				logger.info("r2OverlapRC: " + r2OverlapRC);
+//				logger.info("r1OverlapRC: " + r1OverlapRC);
+			}
 			int [] distances = ClinVarUtil.getBasicAndLevenshteinEditDistances(r1Overlap, r2OverlapRC);
 			fpm.setOverlapBasicEditDistance(distances[0]);
 			fpm.setOverlapLevenshteinEditDistance(distances[1]);
