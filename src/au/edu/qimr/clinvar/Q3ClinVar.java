@@ -1127,7 +1127,7 @@ public class Q3ClinVar {
 				/*
 				 * Setup the header
 				 */
-				writer.write("#amplicon_id,amplicon_name,bin_id,bin_read_count,mutations\n");
+				writer.write("#amplicon_id,amplicon_name,amplicon_position,bin_id,bin_read_count,mutations\n");
 				
 				for (Probe probe : probeSet) {
 //					for (Probe probe : orderedProbes) {
@@ -1153,6 +1153,8 @@ public class Q3ClinVar {
 						sb.append(probe.getId());
 						sb.append(Constants.COMMA);
 						sb.append(probe.getName());
+						sb.append(Constants.COMMA);
+						sb.append(probe.getCp().toIGVString());
 						sb.append(Constants.COMMA);
 						sb.append(b.getId());
 						sb.append(Constants.COMMA);
