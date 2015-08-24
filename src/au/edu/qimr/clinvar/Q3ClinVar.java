@@ -145,7 +145,7 @@ public class Q3ClinVar {
 			 */
 			extractMutationsFromBins(false, minBinSize);
 			
-			writeCsv(false);
+			writeHaplotypesCsv(false);
 			
 //			writeDiagnosticOutput(false);
 			
@@ -157,7 +157,7 @@ public class Q3ClinVar {
 			 */
 			mutations.clear();
 			extractMutationsFromBins(true, minBinSize);
-			writeCsv(true);
+			writeHaplotypesCsv(true);
 //			writeDiagnosticOutput(true);
 			writeBam(true);
 			writeAmpliconPerformanceCsv();
@@ -172,37 +172,38 @@ public class Q3ClinVar {
 	private void writeDodgyBinReport() throws IOException {
 		try (FileWriter writer = new FileWriter(new File(outputFileNameBase +"lost_bins.txt"))) {
 			
-			/*
-			 * Setup the header
-			 */
-//			writer.write("#amplicon_id,amplicon_name,amplicon_position,bin_id,bin_read_count,bin_sequence_length,bin_position,amplicon_sw_score,bin_sw_score,amplicon_sw,bin_sw\n");
-			
 			for (Probe probe : probeSet) {
-//			for (Entry<Probe, List<Bin>> entry : probeBinDist.entrySet()) {
-//				Probe probe = entry.getKey();
 				List<Bin> allBins = probeBinDist.get(probe);
 				if (null == allBins || allBins.isEmpty()) {
 					continue;
 				}
-				Set<Bin> binsSet = new TreeSet<>();
+				List<Bin> bins = new ArrayList<>();
 				for (Bin b : allBins) {
-					if ( null == b.getBestTiledLocation() || ! ClinVarUtil.doChrPosOverlap(probe.getCp(), b.getBestTiledLocation())) {
-						binsSet.add(b);
+					if ( null != b.getBestTiledLocation() && ClinVarUtil.doChrPosOverlap(probe.getCp(), b.getBestTiledLocation())) {
+						// match
+					} else {
+						bins.add(b);
 					}
 				}
+				
+//				if (probe.getId() == 544) {
+//					logger.info("no of bins: " + allBins.size() + ", binSet: " + binsSet.size());
+//				}
+				
 				StringBuilder sb = null;
-				if ( ! binsSet.isEmpty()) {
+				if ( ! bins.isEmpty()) {
+					// sort list by no of records
+					Collections.sort(bins);
+					
 					sb = new StringBuilder("Amplicon: ");
 					sb.append(probe.getId());
-					sb.append(Constants.NL);
-					sb.append("Name: ");
+					sb.append("\nName: ");
 					sb.append(probe.getName());
-					sb.append(Constants.NL);
-					sb.append("Location: ");
+					sb.append("\nLocation: ");
 					sb.append(probe.getCp().toIGVString());
 					sb.append(Constants.NL);
 				}
-				for (Bin b : binsSet) {
+				for (Bin b : bins) {
 					
 					String [] ampliconPositionSWDiffs = b.getSmithWatermanDiffs();
 					if (null == ampliconPositionSWDiffs) {
@@ -210,76 +211,57 @@ public class Q3ClinVar {
 						ampliconPositionSWDiffs =  ClinVarUtil.getSwDiffs(probe.getReferenceSequence(), sequence);
 					}
 					
-					sb.append(Constants.NL);
-					sb.append("BinID: ");
+					sb.append("\nBinID: ");
 					sb.append(b.getId());
-					sb.append(Constants.TAB);
-					sb.append("BinReadCount: ");
+					sb.append("\tBinReadCount: ");
 					sb.append(b.getRecordCount());
-					sb.append(Constants.TAB);
-					sb.append("SeqLength: ");
+					sb.append("\tSeqLength: ");
 					sb.append(b.getLength());
-					sb.append(Constants.NL);
-					sb.append(Constants.NL);
-					sb.append("Design\t");
-					sb.append(probe.getCp().toIGVString());
-					sb.append(Constants.TAB);
-					sb.append("SwScore: ");
+					sb.append("\n\nDesign\t");
+					sb.append(probe.getCp().toIGVString()).append(':').append(probe.reverseComplementSequence() ? "+" : "-");
+					sb.append("\tSwScore: ");
 					sb.append(ClinVarUtil.getSmithWatermanScore(ampliconPositionSWDiffs));
-					sb.append(Constants.NL);
-					sb.append("R\t");
+					sb.append("\nR\t");
 					sb.append(ampliconPositionSWDiffs[0]);
-					sb.append(Constants.NL);
-					sb.append(Constants.TAB);
+					sb.append(Constants.NL).append(Constants.TAB);
 					sb.append(ampliconPositionSWDiffs[1]);
-					sb.append(Constants.NL);
-					sb.append("B\t");
+					sb.append("\nB\t");
 					sb.append(ampliconPositionSWDiffs[2]);
 					sb.append(Constants.NL);
 					
 					if (null != b.getBestTiledLocation()) {
-						sb.append(Constants.NL);
-						sb.append("Alternate\t");
-						sb.append(b.getBestTiledLocation().toStartPositionString());
-						sb.append(Constants.TAB);
-						sb.append("SwScore: ");
+						sb.append("\nAlternate\t");
+						boolean sameStrandAsAmplicon = b.getSmithWatermanDiffs(b.getBestTiledLocation())[2].replace("-","").equals(b.getSequence());
+						sb.append(b.getBestTiledLocation().toStartPositionString()).append(':').append(probe.reverseComplementSequence() ? (sameStrandAsAmplicon ? "+" : "-") : (sameStrandAsAmplicon ? "-" : "+"));
+						sb.append("\tSwScore: ");
 						sb.append(ClinVarUtil.getSmithWatermanScore(b.getSmithWatermanDiffs(b.getBestTiledLocation())));
-						sb.append(Constants.NL);
-						sb.append("R\t");
+						sb.append("\nR\t");
 						sb.append(b.getSmithWatermanDiffs(b.getBestTiledLocation())[0]);
-						sb.append(Constants.NL);
-						sb.append(Constants.TAB);
+						sb.append(Constants.NL).append(Constants.TAB);
 						sb.append(b.getSmithWatermanDiffs(b.getBestTiledLocation())[1]);
-						sb.append(Constants.NL);
-						sb.append("B\t");
+						sb.append("\nB\t");
 						sb.append(b.getSmithWatermanDiffs(b.getBestTiledLocation())[2]);
 						sb.append(Constants.NL);
 					} else if (null != b.getSmithWatermanDiffsMap() && ! b.getSmithWatermanDiffsMap().isEmpty()) {
 						for (Entry<ChrPosition, String []> entry2 : b.getSmithWatermanDiffsMap().entrySet()) {
-							sb.append(Constants.NL);
-							sb.append("Alternate\t");
-							sb.append(entry2.getKey().toStartPositionString());
-							sb.append(Constants.TAB);
-							sb.append("SwScore: ");
+							sb.append("\nAlternate\t");
+							boolean sameStrandAsAmplicon = entry2.getValue()[2].replace("-","").equals(b.getSequence());
+							sb.append(entry2.getKey().toStartPositionString()).append(':').append(probe.reverseComplementSequence() ? (sameStrandAsAmplicon ? "+" : "-") : (sameStrandAsAmplicon ? "-" : "+"));
+//							sb.append(entry2.getKey().toStartPositionString());
+							sb.append("\tSwScore: ");
 							sb.append(ClinVarUtil.getSmithWatermanScore(entry2.getValue()));
-							sb.append(Constants.NL);
-							sb.append("R\t");
+							sb.append("\nR\t");
 							sb.append(entry2.getValue()[0]);
-							sb.append(Constants.NL);
-							sb.append(Constants.TAB);
+							sb.append(Constants.NL).append(Constants.TAB);
 							sb.append(entry2.getValue()[1]);
-							sb.append(Constants.NL);
-							sb.append("B\t");
+							sb.append("\nB\t");
 							sb.append(entry2.getValue()[2]);
 							sb.append(Constants.NL);
 						}
 					}
 				}
-				if ( ! binsSet.isEmpty()) {
-					sb.append(Constants.NL);
-					sb.append("########################");
-					sb.append(Constants.NL);
-					sb.append(Constants.NL);
+				if ( ! bins.isEmpty()) {
+					sb.append("\n########################\n\n");
 					writer.write(sb.toString());
 				}
 			}
@@ -1107,7 +1089,7 @@ public class Q3ClinVar {
 		}
 	}
 
-	private void writeCsv(boolean filter) throws IOException {
+	private void writeHaplotypesCsv(boolean filter) throws IOException {
 		
 		/*
 		 * Write haplotype file before rolling up mutations
@@ -1147,12 +1129,25 @@ public class Q3ClinVar {
 				 */
 				writer.write("#amplicon_id,amplicon_name,bin_id,bin_read_count,mutations\n");
 				
-				for (Probe probe : orderedProbes) {
+				for (Probe probe : probeSet) {
+//					for (Probe probe : orderedProbes) {
 					
-					Set<Bin> binsSet = new TreeSet<>(mutationsByBin.get(probe).keySet());
+					Set<Bin> binsSet = new HashSet<>();
+					if (mutationsByBin.containsKey(probe)) {
+						binsSet.addAll(mutationsByBin.get(probe).keySet());
+					}
 					binsSet.addAll( getEligibleBins(probe));
+					Bin[] orderedBins = new Bin[binsSet.size()];
+					orderedBins = binsSet.toArray(orderedBins);
+					Arrays.sort(orderedBins);
 					
-					for (Bin b : binsSet) {
+					if (probe.getId() == 531) {
+						logger.info("probe: " + probe.getId() + ", no of bins to use in haplotype report: " + orderedBins.length);
+					}
+//					List<Bin> orderedBins = new ArrayList<>(binsSet);
+//					Collections.sort(orderedBins);
+					
+					for (Bin b : orderedBins) {
 						
 						StringBuilder sb = new StringBuilder();
 						sb.append(probe.getId());
@@ -1163,14 +1158,16 @@ public class Q3ClinVar {
 						sb.append(Constants.COMMA);
 						sb.append(b.getRecordCount());
 						
-						List<VcfRecord> vcfs = mutationsByBin.get(probe).get(b);
-						if (null != vcfs &&  ! vcfs.isEmpty()) {
-							sb.append(Constants.COMMA);
-							Collections.sort(vcfs);
-							for (VcfRecord vcf : vcfs) {
-								sb.append(vcf.getChromosome()).append(Constants.COLON).append(vcf.getPosition()).append(vcf.getRef()).append(">").append(vcf.getAlt()).append(Constants.SEMI_COLON);
+						if (mutationsByBin.containsKey(probe)) {
+							List<VcfRecord> vcfs = mutationsByBin.get(probe).get(b);
+							if (null != vcfs &&  ! vcfs.isEmpty()) {
+								sb.append(Constants.COMMA);
+								Collections.sort(vcfs);
+								for (VcfRecord vcf : vcfs) {
+									sb.append(vcf.getChromosome()).append(Constants.COLON).append(vcf.getPosition()).append(vcf.getRef()).append(">").append(vcf.getAlt()).append(Constants.SEMI_COLON);
+								}
+								sb.deleteCharAt(sb.length() -1);
 							}
-							sb.deleteCharAt(sb.length() -1);
 						}
 						sb.append("\n");
 						writer.write(sb.toString());
@@ -1302,9 +1299,11 @@ public class Q3ClinVar {
 	private List<Bin> getEligibleBins(Probe p) {
 		List<Bin> bins = new ArrayList<>();
 		List<Bin> allBins = probeBinDist.get(p);
-		for (Bin b : allBins) {
-			if (b.getRecordCount() >= 10 && null != b.getBestTiledLocation() && ClinVarUtil.doChrPosOverlap(p.getCp(), b.getBestTiledLocation())) {
-				bins.add(b);
+		if (null != allBins) {
+			for (Bin b : allBins) {
+				if (b.getRecordCount() >= 10 && null != b.getBestTiledLocation() && ClinVarUtil.doChrPosOverlap(p.getCp(), b.getBestTiledLocation())) {
+					bins.add(b);
+				}
 			}
 		}
 		return bins;
