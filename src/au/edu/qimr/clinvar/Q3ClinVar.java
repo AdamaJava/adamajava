@@ -1838,6 +1838,10 @@ public class Q3ClinVar {
 				this.maxIndelLength = options.getMaxIndelLength().intValue();
 			}
 			logger.info("minBinSize is " + minBinSize);
+			logger.info("tiledDiffThreshold is " + tiledDiffThreshold);
+			logger.info("swDiffThreshold is " + swDiffThreshold);
+			logger.info("tileMatchThreshold is " + tileMatchThreshold);
+			logger.info("maxIndelLength is " + maxIndelLength);
 			
 			
 			return engage();
