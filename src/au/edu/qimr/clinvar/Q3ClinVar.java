@@ -346,15 +346,18 @@ public class Q3ClinVar {
 
 	private void readFastqFiles() {
 		int fastqCount = 0;
-		// read in a fastq file and lits see if we get some matches
-		try (FastqReader reader1 = new FastqReader(new File(fastqFiles[0]));
-				FastqReader reader2 = new FastqReader(new File(fastqFiles[1]));) {
-			
-			for (FastqRecord rec : reader1) {
-				FastqRecord rec2 = reader2.next();
+		// read in a fastq file and lets see if we get some matches
+		int noOFFastqFiles = fastqFiles.length;
+		for (int i = 0 ; i < noOFFastqFiles / 2 ; i++) {
+			try (FastqReader reader1 = new FastqReader(new File(fastqFiles[i * 2]));
+					FastqReader reader2 = new FastqReader(new File(fastqFiles[(i * 2) + 1]));) {
 				
-				FastqProbeMatch fpm = new FastqProbeMatch(fastqCount++, rec, rec2);
-				matches.add(fpm);
+				for (FastqRecord rec : reader1) {
+					FastqRecord rec2 = reader2.next();
+					
+					FastqProbeMatch fpm = new FastqProbeMatch(fastqCount++, rec, rec2);
+					matches.add(fpm);
+				}
 			}
 		}
 	}
