@@ -125,7 +125,6 @@ public class Q3ClinVar {
 			parseAmpliconManifestXmlFile();
 			
 			readFastqFiles();
-			
 			matchReadsToProbes();
 			
 			FastqProbeMatchUtil.getStats(matches);
@@ -138,6 +137,17 @@ public class Q3ClinVar {
 			writeAmpliconDetails();
 			binFragments();
 			writeAmpliconDetailsAgain();
+			
+			/*
+			 *  Empty some no longer needed collections - we may need the memory...
+			 */
+			matches.clear();
+			probeSequences.clear();
+			probeLengthMapR1.clear();
+			probeLengthMapR2.clear();
+			probeFragments.clear();
+			probeMatchMap.clear();
+			probeDist.clear();
 			
 			/*
 			 * Loops through the bins, and populates the mutations collection
