@@ -6,7 +6,7 @@ import org.qcmg.common.model.ChrPosition;
 
 public class Probe implements Comparable<Probe>{
 	
-	public static final int DEFAULT_BUFFER_SIZE = 10;
+	public static final int DEFAULT_BUFFER_SIZE = 20;
 	private static QLogger logger = QLoggerFactory.getLogger(Probe.class);
 	
 	private final int id;

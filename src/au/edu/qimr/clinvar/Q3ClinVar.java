@@ -689,7 +689,7 @@ public class Q3ClinVar {
 						b.setBestTiledLocation(bestTiledCp);
 						updateMap(bestTiledCp, binLocationDistribution);
 					} else {
-						logger.info("not able to set best tiled location for bin: " + b.getId() + ", no in b.getSmithWatermanDiffsMap(): " + b.getSmithWatermanDiffsMap().size());
+//						logger.info("not able to set best tiled location for bin: " + b.getId() + ", no in b.getSmithWatermanDiffsMap(): " + b.getSmithWatermanDiffsMap().size());
 					}
 				}
 				/*
@@ -723,28 +723,29 @@ public class Q3ClinVar {
 //		logger.info("bothStrandsWin: " + bothStrandsWin + ", existingStrandWins: " + existingStrandWins + ", rcStrandWins: " + rcStrandWins);
 	}
 	
-	private Map<ChrPosition, String[]> getSWScores(long [] positionCountArray, String binSequence ) throws IOException {
-		Map<ChrPosition, String[]> positionSWDiffMap = new HashMap<>(positionCountArray.length);
-		int noOfCompetingPositions = positionCountArray.length / 2;
-		for (int i = 0 ; i < noOfCompetingPositions ; i++) {
-			long position = positionCountArray[i * 2];
-			ChrPosition cp = positionToActualLocation.getChrPositionFromLongPosition(position);
-			ChrPosition refCp = positionToActualLocation.getBufferedChrPositionFromLongPosition(position, binSequence.length(), 200);
-			
-			String ref = getRefFromChrPos(refCp);
-			positionSWDiffMap.put(cp, ClinVarUtil.getSwDiffs(ref, binSequence));
-		}
-		return positionSWDiffMap;
-	}
+//	private Map<ChrPosition, String[]> getSWScores(long [] positionCountArray, String binSequence ) throws IOException {
+//		Map<ChrPosition, String[]> positionSWDiffMap = new HashMap<>(positionCountArray.length);
+//		int noOfCompetingPositions = positionCountArray.length / 2;
+//		for (int i = 0 ; i < noOfCompetingPositions ; i++) {
+//			long position = positionCountArray[i * 2];
+//			ChrPosition cp = positionToActualLocation.getChrPositionFromLongPosition(position);
+//			ChrPosition refCp = positionToActualLocation.getBufferedChrPositionFromLongPosition(position, binSequence.length(), 200);
+//			
+//			String ref = getRefFromChrPos(refCp);
+//			positionSWDiffMap.put(cp, ClinVarUtil.getSwDiffs(ref, binSequence));
+//		}
+//		return positionSWDiffMap;
+//	}
 	
 	private Map<ChrPosition, String[]> getSWScores(TLongArrayList positionsList, final String binSequence ) throws IOException {
 		final Map<ChrPosition, String[]> positionSWDiffMap = new HashMap<>(positionsList.size() * 2);
-		
+		final int buffer = 300;
 		positionsList.forEach(new TLongProcedure() {
 			@Override
 			public boolean execute(long position) {
 				ChrPosition cp = positionToActualLocation.getChrPositionFromLongPosition(position);
-				ChrPosition refCp = positionToActualLocation.getBufferedChrPositionFromLongPosition(position, binSequence.length(), 200);
+				ChrPosition refCp =  new ChrPosition(cp.getChromosome(), Math.max(1, cp.getPosition() - buffer), cp.getPosition() + binSequence.length() + buffer);
+//				ChrPosition refCp = positionToActualLocation.getBufferedChrPositionFromLongPosition(position, binSequence.length(), 200);
 				String ref = getRefFromChrPos(refCp);
 				positionSWDiffMap.put(cp, ClinVarUtil.getSwDiffs(ref, binSequence));
 				return true;
@@ -1069,7 +1070,7 @@ public class Q3ClinVar {
 							// if shorter, get a longer ref
 							int lengthDiff = binSeq.length() - bufferedRef.length();
 							if (lengthDiff > 0) {
-								logger.warn("bufferef ref length is less than bin length!!!");
+								logger.warn("buffered ref length is less than bin length!!!");
 								bufferedRef = p.getBufferedReferenceSequence(lengthDiff);
 							}
 							

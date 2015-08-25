@@ -466,6 +466,20 @@ public class ClinVarUtil {
 				overlappingProbes.add(p);
 			}
 		}
+		
+		if (overlappingProbes.isEmpty()) {
+			for (Probe p : probes) {
+				if (ChrPositionUtils.doChrPositionsOverlap(p.getCp(), cp, 20)) {
+					overlappingProbes.add(p);
+				}
+			}
+			if ( overlappingProbes.isEmpty()) {
+				logger.warn("no containing or overlapping (20) probes exist");
+			} else {
+				logger.warn("no containing probes exist but some overlapping (20) probes do exist");
+			}
+		}
+		
 		return overlappingProbes;
 	}
 	
@@ -578,12 +592,12 @@ public class ClinVarUtil {
 		/*
 		 * Check length of binSequence returned from SW calc, as leading/trailing mutations will have been dropped
 		 */
-		String swBinSeq = diffs[2].replaceAll("-", "");
+		String swBinSeq = diffs[2].replace("-", "");
 		int lengthDiff = binSeq.length() - swBinSeq.length();
 		if (lengthDiff > 0) {
 //			logger.warn("Missing data in sw diffs. lengthDiff:  " + lengthDiff);
 			
-			String swRef = diffs[0].replaceAll("-", "");
+			String swRef = diffs[0].replace("-", "");
 			
 			if (binSeq.startsWith(swBinSeq)) {
 				
@@ -735,24 +749,25 @@ public class ClinVarUtil {
 		for (Probe amplicon : overlappingProbes) {
 			
 			List<Bin> bins = probeBinDist.get(amplicon);
-			
-			for (Bin b : bins) {
-				/*
-				 * only deal with bins that have >= minBinSize read in them
-				 * and if useBinsCloseToAmplicon then probe and bin ChrPositions must overlap
-				 */
-				if (b.getRecordCount() >= minBinSize 
-						&& ( ! useBinsCloseToAmplicon 
-								|| (b.getBestTiledLocation() != null && doChrPosOverlap(amplicon.getCp(), b.getBestTiledLocation())))) {
-					
-					String binSeq = getBaseAtPosition(vcf, amplicon, b);
-					if (null != binSeq) {
-						List<Pair<Probe, Bin>> probeBinPair = baseDist.get(binSeq);
-						if (null == probeBinPair) {
-							probeBinPair = new ArrayList<>();
-							baseDist.put(binSeq, probeBinPair);
+			if (null != bins) {
+				for (Bin b : bins) {
+					/*
+					 * only deal with bins that have >= minBinSize read in them
+					 * and if useBinsCloseToAmplicon then probe and bin ChrPositions must overlap
+					 */
+					if (b.getRecordCount() >= minBinSize 
+							&& ( ! useBinsCloseToAmplicon 
+									|| (b.getBestTiledLocation() != null && doChrPosOverlap(amplicon.getCp(), b.getBestTiledLocation())))) {
+						
+						String binSeq = getBaseAtPosition(vcf, amplicon, b);
+						if (null != binSeq) {
+							List<Pair<Probe, Bin>> probeBinPair = baseDist.get(binSeq);
+							if (null == probeBinPair) {
+								probeBinPair = new ArrayList<>();
+								baseDist.put(binSeq, probeBinPair);
+							}
+							probeBinPair.add(new Pair<Probe, Bin>(amplicon, b));
 						}
-						probeBinPair.add(new Pair<Probe, Bin>(amplicon, b));
 					}
 				}
 			}
