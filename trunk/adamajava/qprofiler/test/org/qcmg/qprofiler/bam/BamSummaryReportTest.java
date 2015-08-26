@@ -24,6 +24,7 @@ import org.qcmg.qprofiler.util.SummaryReportUtils;
 
 
 public class BamSummaryReportTest {
+	
 
 	@Test
 	public void testParseISize() {
