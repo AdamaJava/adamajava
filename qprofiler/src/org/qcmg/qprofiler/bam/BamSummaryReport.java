@@ -31,6 +31,7 @@ import net.sf.samtools.SAMSequenceDictionary;
 import net.sf.samtools.SAMTagUtil;
 import net.sf.samtools.SAMUtils;
 
+import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 import org.qcmg.common.model.CigarStringComparator;
 import org.qcmg.common.model.MAPQMatrix;
 import org.qcmg.common.model.MAPQMatrix.MatrixType;
@@ -232,12 +233,24 @@ public class BamSummaryReport extends SummaryReport {
 	 */
 	public void cleanUp() {
 		
-		for(String rg : duplicateByReadGroupMap.keySet()) duplicateCount += duplicateByReadGroupMap.get(rg).get();
-		for(String rg : unmappedByReadGroupMap.keySet()) unmappedCount += unmappedByReadGroupMap.get(rg).get();
-		for(String rg : nonCanonicalReadGroupMap.keySet()) nonCanonicalPairCount += nonCanonicalReadGroupMap.get(rg).get();	
-		for(String rg : secondaryByReadGroupMap.keySet()) secondaryCount += secondaryByReadGroupMap.get(rg).get();
-		for(String rg : supplementaryByReadGroupMap.keySet()) supplementaryCount += supplementaryByReadGroupMap.get(rg).get();
-		for(String rg : failedVendorQualityByReadGroupMap.keySet()) failedVendorQualityCheckCount += failedVendorQualityByReadGroupMap.get(rg).get();
+		for (AtomicLong al : duplicateByReadGroupMap.values()) {
+			duplicateCount += al.get();
+		}
+		for (AtomicLong al : unmappedByReadGroupMap.values()) {
+			unmappedCount  += al.get();
+		}
+		for (AtomicLong al : nonCanonicalReadGroupMap.values()) {
+			nonCanonicalPairCount  += al.get();
+		}
+		for (AtomicLong al : secondaryByReadGroupMap.values()) {
+			secondaryCount  += al.get();
+		}
+		for (AtomicLong al : supplementaryByReadGroupMap.values()) {
+			supplementaryCount  += al.get();
+		}
+		for (AtomicLong al : failedVendorQualityByReadGroupMap.values()) {
+			failedVendorQualityCheckCount  += al.get();
+		}
 		long countedNo = getRecordsParsed() - supplementaryCount - failedVendorQualityCheckCount - secondaryCount
 				 - unmappedCount - duplicateCount - nonCanonicalPairCount;
 	
@@ -326,10 +339,10 @@ public class BamSummaryReport extends SummaryReport {
 		Element noOfUnmappedE = createSubElement(summaryElement, "UnmappedPercentage");
 		noOfUnmappedE.setAttribute("value", ((double)tally / noOfRecords) * 100 + "");
 				
-		for (String s : iSizeByReadGroupMap.keySet()) {
+		for (Entry<String, AtomicLongArray> entry : iSizeByReadGroupMap.entrySet()) {
 			Element modalISizeE = createSubElement(summaryElement, "ModalISize");
 			long mode = 0, iSize = 0;
-			AtomicLongArray rgISize = iSizeByReadGroupMap.get(s); 
+			AtomicLongArray rgISize = entry.getValue(); 
 			for (int i = 0 ; i < rgISize.length() ; i++) {
 				if ( rgISize.get(i) > mode && i > 0) {
 					mode =  rgISize.get(i);
@@ -337,12 +350,11 @@ public class BamSummaryReport extends SummaryReport {
 					iSize = i;
 				}
 			}
-			modalISizeE.setAttribute("rg", s + "");
+			modalISizeE.setAttribute("rg", entry.getKey());
 			modalISizeE.setAttribute("value", iSize + "");
 		}
 				
 		// md cycles
-		// StringBuilder mismatchingCycles = new StringBuilder();
 		int mismatchingCycles = 0;
 		for (Integer cycle : tagMDMismatchByCycle.cycles()) {
 			long mapTotal = SummaryReportUtils.getCountOfMapValues(tagMDMismatchByCycle.getValue(cycle));
@@ -483,13 +495,27 @@ public class BamSummaryReport extends SummaryReport {
 			// create new tag for this readgroup
 			Element rgElement = createSubElement(tagISizeElement, "RG");
 			rgElement.setAttribute("value", entry.getKey());
-			SummaryReportUtils
-			.binnedLengthMapToRangeTallyXml(rgElement, entry.getValue());	
+			SummaryReportUtils.binnedLengthMapToRangeTallyXml(rgElement, entry.getValue());
+
+			/*
+			 * Add in the standard deviation per RG as an attribute
+			 */
+			StandardDeviation stdDev = new StandardDeviation();
+			for (Entry<Integer, AtomicLong> entry2 : entry.getValue().entrySet()) {
+				int value = entry2.getKey().intValue();
+				if (value < 10000) {
+					long count = entry2.getValue().longValue();
+					for (long l = 0 ; l < count ; l++) {
+						stdDev.increment(value);
+					}
+				}
+			}
+			rgElement.setAttribute("stdDev", stdDev.getResult() + "");
 		}
 		
 		//Xu code : rgClipElement code clip 2 xml: there are three page unger RG
 		Element rgClipElement = createSubElement(bamReportElement, "RG_Counts");		
-		RGCounts2Xml(rgClipElement, summaryElement);
+		rGCounts2Xml(rgClipElement, summaryElement);
 
 		// MRNM
 		if (null != samSeqDictionary) {
@@ -1079,7 +1105,7 @@ public class BamSummaryReport extends SummaryReport {
 		}
 		
 		//duplicats, non canonical and unmapped will be counted, others reads just discards
-		float percentage = 100 * (float) counts.get() / (float) totalReads ;		
+		float percentage = 100 * (float) counts.get() / totalReads ;		
 		Element stats = createSubElement(rgElement, nodeName);		
 		stats.setAttribute("totalReads", counts +"");
 		stats.setAttribute("percentage",  String.format("%2.2f%%", percentage   ));
@@ -1141,7 +1167,7 @@ public class BamSummaryReport extends SummaryReport {
 			return percentage;
 	}
 	
-	private void RGCounts2Xml(Element rgClipElement, Element summaryElement) {
+	private void rGCounts2Xml(Element rgClipElement, Element summaryElement) {
 				
 		// add into RG_Counts section
 		double[] totalStats = {0,0,0,0,0,0,0,0,0,0,0};
@@ -1150,18 +1176,24 @@ public class BamSummaryReport extends SummaryReport {
 		for (Entry<String, QCMGAtomicLongArray> entry : rgReadLength.entrySet()){
 			String readGroup = entry.getKey();			
 			//set count to 0 if bad reads not exists
- 			if(! unmappedByReadGroupMap.containsKey(readGroup) )
-				unmappedByReadGroupMap.putIfAbsent(readGroup, new AtomicLong());						
-			if(!duplicateByReadGroupMap.containsKey(readGroup) )
-				duplicateByReadGroupMap.putIfAbsent(readGroup, new AtomicLong());	
-			if(!supplementaryByReadGroupMap.containsKey(readGroup))
+ 			if ( ! unmappedByReadGroupMap.containsKey(readGroup) ) {
+				unmappedByReadGroupMap.putIfAbsent(readGroup, new AtomicLong());
+ 			}
+			if( ! duplicateByReadGroupMap.containsKey(readGroup) ) {
+				duplicateByReadGroupMap.putIfAbsent(readGroup, new AtomicLong());
+			}
+			if ( !supplementaryByReadGroupMap.containsKey(readGroup)) {
 				supplementaryByReadGroupMap.putIfAbsent(readGroup, new AtomicLong());
-			if(!secondaryByReadGroupMap.containsKey(readGroup))
+			}
+			if ( !secondaryByReadGroupMap.containsKey(readGroup)) {
 				secondaryByReadGroupMap.putIfAbsent(readGroup, new AtomicLong());
-			if(!failedVendorQualityByReadGroupMap.containsKey(readGroup))
+			}
+			if ( ! failedVendorQualityByReadGroupMap.containsKey(readGroup)) {
 				failedVendorQualityByReadGroupMap.put(readGroup, new AtomicLong());
-			if(!nonCanonicalReadGroupMap.containsKey(readGroup)	)
+			}
+			if ( !nonCanonicalReadGroupMap.containsKey(readGroup)	) {
 				nonCanonicalReadGroupMap.put(readGroup, new AtomicLong());
+			}
 		
 			//get read and base number for this read group			
 			long totalcountedRead = 0,totalcountedBase = 0;
@@ -1209,8 +1241,9 @@ public class BamSummaryReport extends SummaryReport {
 			baseElement.setAttribute("maxLength", maxReadLength+""); //set to summary section	
 			baseElement.setAttribute("totalReads", noOfRecords+""); 		//set to summary section	
 			
-			for(int i = 0; i < 10; i++)
-				totalStats[i] += currentStats[i] * noOfBases;			
+			for(int i = 0; i < 10; i++) {
+				totalStats[i] += currentStats[i] * noOfBases;
+			}
 			totalBase += noOfBases; 
 			totalRecords += noOfRecords;
 		}
@@ -1229,21 +1262,14 @@ public class BamSummaryReport extends SummaryReport {
 		baseElement.setAttribute( "aveLength", "-" );	
 		baseElement.setAttribute( "totalLost", String.format("%2.2f%%", totalStats[9]/totalBase));			
 		baseElement.setAttribute("totalReads", totalRecords + ""); //set to summary section	
-		
 	}
-	
 
 	private QCMGAtomicLongArray parseTrim(QCMGAtomicLongArray readLengthArray, int maxReadLength) {
-		
-
 		QCMGAtomicLongArray array = new QCMGAtomicLongArray(  (maxReadLength+1) ); 
-		
-		for(int i = 1; i < maxReadLength; i ++)
+		for(int i = 1; i < maxReadLength; i ++) {
 			array.increment(maxReadLength - i, readLengthArray.get(i));
-		
+		}
 		return array;
-
-
 	}
 	
 	/**
@@ -1253,57 +1279,63 @@ public class BamSummaryReport extends SummaryReport {
 	 * @param readGroup
 	 * @param softClip
 	 */
-		void parseOverlapByRG(SAMRecord record, String readGroup, int softClip){
-//			if (null == readGroup) readGroup = "EMPTY"; 
-			QCMGAtomicLongArray oarry = rgReadOverlap.get(readGroup);
-			if( oarry == null){
-				 rgReadOverlap.putIfAbsent(readGroup, new QCMGAtomicLongArray(128));		
-				 oarry = rgReadOverlap.get(readGroup);
-			}		
-	 		
-			//non canonical pairs (both forward or reverse) are already discarded
-			//to avoid double the ovelap base, we only delegate all reverse strand reads and Tlen <= 0			 
-			if(record.getInferredInsertSize() <= 0 || record.getReadNegativeStrandFlag()) return;	
-			int mate_end = record.getInferredInsertSize() + record.getAlignmentStart();
-			int read_end = record.getAlignmentStart() + record.getReadLength() - softClip;
-			int overlap = Math.min(read_end, mate_end) - Math.max(record.getAlignmentStart(), record.getMateAlignmentStart());
-			if(overlap <= 0) return;
-			 
-			oarry.increment(overlap); 			
+	private void parseOverlapByRG(SAMRecord record, String readGroup, int softClip){
+		//non canonical pairs (both forward or reverse) are already discarded
+		//to avoid double the ovelap base, we only delegate all reverse strand reads and Tlen <= 0			 
+		if(record.getInferredInsertSize() <= 0 || record.getReadNegativeStrandFlag()) {
+			return;	
 		}
+		int mate_end = record.getInferredInsertSize() + record.getAlignmentStart();
+		int read_end = record.getAlignmentStart() + record.getReadLength() - softClip;
+		int overlap = Math.min(read_end, mate_end) - Math.max(record.getAlignmentStart(), record.getMateAlignmentStart());
+		if (overlap <= 0) {
+			return;
+		}
+		
+		QCMGAtomicLongArray oarry = rgReadOverlap.get(readGroup);
+		if( oarry == null){
+			 rgReadOverlap.putIfAbsent(readGroup, new QCMGAtomicLongArray(128));		
+			 oarry = rgReadOverlap.get(readGroup);
+		}		
+		oarry.increment(overlap); 			
+	}
 				
-		int parseClipsByRG(int readLength, final Cigar cigar, String readGroup) {	 
-			 QCMGAtomicLongArray harray = rgHardClip.get(readGroup);
-			 if( harray == null){
-				 rgHardClip.putIfAbsent(readGroup, new QCMGAtomicLongArray(128));	
-				 harray = rgHardClip.get(readGroup);
-			 }
-			 QCMGAtomicLongArray sarray = rgSoftClip.get(readGroup);
-			 if( sarray == null){
-				rgSoftClip.putIfAbsent(readGroup, new QCMGAtomicLongArray(128));	
-				sarray = rgSoftClip.get(readGroup);
-			 }			
-			 
-			QCMGAtomicLongArray larray = rgReadLength.get(readGroup);
-			 if( larray == null){
-				 rgReadLength.putIfAbsent(readGroup, new QCMGAtomicLongArray(128));		
-				 larray = rgReadLength.get(readGroup);
-			 }	
-			 		 
-			 if (null == cigar) return 0;		 
-			 int lhard = 0;
-			 int lsoft = 0;
-			 for(CigarElement ce : cigar.getCigarElements()) 
-				 if(ce.getOperator().equals(CigarOperator.HARD_CLIP))
-					 lhard += ce.getLength();
-				 else if(ce.getOperator().equals(CigarOperator.SOFT_CLIP))
-					 lsoft += ce.getLength();
-					 
-			harray.increment(lhard);
-			sarray.increment(lsoft);
-			larray.increment(readLength+lhard);
-			
-			return lsoft;
+	private int parseClipsByRG(int readLength, final Cigar cigar, String readGroup) {	 
+		if (null == cigar) {
+			return 0;		 
 		}
+		 QCMGAtomicLongArray harray = rgHardClip.get(readGroup);
+		 if( harray == null){
+			 rgHardClip.putIfAbsent(readGroup, new QCMGAtomicLongArray(128));	
+			 harray = rgHardClip.get(readGroup);
+		 }
+		 QCMGAtomicLongArray sarray = rgSoftClip.get(readGroup);
+		 if( sarray == null){
+			rgSoftClip.putIfAbsent(readGroup, new QCMGAtomicLongArray(128));	
+			sarray = rgSoftClip.get(readGroup);
+		 }			
+		 
+		QCMGAtomicLongArray larray = rgReadLength.get(readGroup);
+		 if( larray == null){
+			 rgReadLength.putIfAbsent(readGroup, new QCMGAtomicLongArray(128));		
+			 larray = rgReadLength.get(readGroup);
+		 }	
+		 		 
+		 int lhard = 0;
+		 int lsoft = 0;
+		 for (CigarElement ce : cigar.getCigarElements()) {
+			 if (ce.getOperator().equals(CigarOperator.HARD_CLIP)) {
+				 lhard += ce.getLength();
+			 } else if (ce.getOperator().equals(CigarOperator.SOFT_CLIP)) {
+				 lsoft += ce.getLength();
+			 }
+		 }
+				 
+		harray.increment(lhard);
+		sarray.increment(lsoft);
+		larray.increment(readLength+lhard);
+		
+		return lsoft;
+	}
 			
 }
