@@ -42,7 +42,7 @@ public class BamSummarizerMT implements Summarizer {
 	
 	private int noOfProducerThreads;
 	private final int noOfConsumerThreads;
-	private static int maxRecords;
+	private final int maxRecords;
 	private final String [] includes;
 	private static String bamHeader;
 	private static SAMSequenceDictionary samSeqDict;
@@ -59,16 +59,13 @@ public class BamSummarizerMT implements Summarizer {
 		this.noOfProducerThreads = noOfProducerThreads;
 		this.noOfConsumerThreads = noOfThreads;
 		this.includes = includes;
-		setMaxNoOfRecords( maxNoOfRecords);
+		this.maxRecords = maxNoOfRecords;
 		this.tags = tags;
 		this.tagsInt = tagsInt;
 		this.tagsChar = tagsChar;
 		this.validation = validation;
 	}
 	
-	private static void setMaxNoOfRecords(int number) {
-		maxRecords = number;
-	}
 	
 	@Override
 	public SummaryReport summarize(File file) throws Exception {
@@ -83,7 +80,7 @@ public class BamSummarizerMT implements Summarizer {
 		ConcurrentLinkedQueue<SAMRecord>[] queues = null;
 		AbstractQueue<SAMRecord> q  = null;
 		if (noOfProducerThreads == 1) {
-			q = new ConcurrentLinkedQueue<SAMRecord>();
+			q = new ConcurrentLinkedQueue<>();
 		} else {
 			queues = new ConcurrentLinkedQueue[noOfProducerThreads];
 			for (int i = 0 ; i < noOfProducerThreads ; i++) {
@@ -96,7 +93,7 @@ public class BamSummarizerMT implements Summarizer {
 		bamSummaryReport.setFileName(file.getAbsolutePath());
 		bamSummaryReport.setStartTime(DateUtils.getCurrentDateAsString());
 		
-		final AbstractQueue<String> sequences = new ConcurrentLinkedQueue<String>();
+		final AbstractQueue<String> sequences = new ConcurrentLinkedQueue<>();
 		try {
 			SAMFileHeader header = reader.getFileHeader();
 			List<SAMSequenceRecord> samSequences = header.getSequenceDictionary().getSequences();
@@ -349,7 +346,6 @@ public class BamSummarizerMT implements Summarizer {
 		private final CountDownLatch cLatch;
 		private final AbstractQueue<String> sequences;
 		private final QLogger log = QLoggerFactory.getLogger(Producer.class);
-		private final BamSummaryReport report;
 		
 		Producer(AbstractQueue<SAMRecord> q, File f, Thread mainThread, CountDownLatch pLatch, CountDownLatch cLatch, AbstractQueue<String> sequences, BamSummaryReport report) {
 			queue = q;
@@ -358,7 +354,6 @@ public class BamSummarizerMT implements Summarizer {
 			this.pLatch = pLatch;
 			this.cLatch = cLatch;
 			this.sequences = sequences;
-			this.report = report;
 		}
 
 		@Override
