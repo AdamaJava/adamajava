@@ -230,7 +230,11 @@ public class FastqSummaryReport extends SummaryReport {
 						// 13051 - x
 						// 2071 - y
 						// 2 - 2nd in pair
-						parseFiveElementHeader(headerDetails);
+						if (record.getReadHeader().contains(" ")) {
+							parseFiveElementHeaderWithSpaces(headerDetails);
+						} else {
+							parseFiveElementHeaderNoSpaces(headerDetails);
+						}
 					} else {
 						
 							String key = headerDetails[0];
@@ -334,7 +338,7 @@ public class FastqSummaryReport extends SummaryReport {
 							// 2071 - y
 							// 2 - 2nd in pair
 	 */
-	void parseFiveElementHeader(String [] params) {
+	void parseFiveElementHeaderWithSpaces(String [] params) {
 		// split by space
 		String [] firstElementParams = params[0].split(" ");
 		if (firstElementParams.length != 2) {
@@ -354,6 +358,50 @@ public class FastqSummaryReport extends SummaryReport {
 		
 		updateMap(flowCellIds, flowCellAndRunId[0]);
 		updateMap(runIds, flowCellAndRunId[1]);
+		
+		updateMap(flowCellLanes, params[1]);
+		updateMap(tileNumbers, Integer.parseInt(params[2]));
+		// skip x, and y coords for now..
+		getPairInfo(params[4]);
+	}
+	
+	/**
+	 * @HWUSI-EAS100R:6:73:941:1973#0/1
+	 * HWUSI-EAS100R	the unique instrument name
+	* 6	flowcell lane
+	* 73	tile number within the flowcell lane
+	* 941	'x'-coordinate of the cluster within the tile
+	* 1973	'y'-coordinate of the cluster within the tile
+	* #0	index number for a multiplexed sample (0 for no indexing)
+	* /1	the member of a pair, /1 or /2 (paired-end or mate-pair reads only)
+	* 
+	* 
+	* OR
+	* 
+	* @HS2000-1107_220:6:1115:6793:38143/1
+	* HS2000-1107 	the unique instrument name
+	* 220	runId 
+	* 6	flowcell lane
+	* 1115	tile number within the flowcell lane
+	* 6793	'x'-coordinate of the cluster within the tile
+	* 38143	'y'-coordinate of the cluster within the tile
+	* /1	the member of a pair, /1 or /2 (paired-end or mate-pair reads only)
+	*
+	 * @param params
+	 */
+	void parseFiveElementHeaderNoSpaces(String [] params) {
+		
+		/*
+		 * If instrument name contains an underscore, split on this and the RHS becomes the run id!
+		 * If no underscore, no run_id and the 
+		 */
+		int underscoreIndex = params[0].indexOf('_');
+		if (underscoreIndex > -1) {
+			updateMap(runIds,  params[0].substring(underscoreIndex + 1));
+			updateMap(instruments, params[0].substring(0, underscoreIndex));
+		} else {
+			updateMap(instruments, params[0]);
+		}
 		
 		updateMap(flowCellLanes, params[1]);
 		updateMap(tileNumbers, Integer.parseInt(params[2]));
