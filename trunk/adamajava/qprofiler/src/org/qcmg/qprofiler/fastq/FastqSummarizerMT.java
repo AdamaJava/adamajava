@@ -59,7 +59,7 @@ public class FastqSummarizerMT implements Summarizer {
 			consumerThreads.execute(new Consumer(q, fastqSummaryReport, Thread.currentThread(), cLatch, pLatch));
 		}
 		
-//		 setpup and kick-off single Producer thread
+//		 setup and kick-off single Producer thread
 		ExecutorService producerThreads = Executors.newFixedThreadPool(1);
 		producerThreads.execute(new Producer(q, file, Thread.currentThread(), pLatch,  cLatch));
 
