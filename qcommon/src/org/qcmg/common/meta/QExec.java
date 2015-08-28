@@ -27,16 +27,7 @@ public class QExec {
 	private final KeyValue host;
 	private final KeyValue commandLine;
 	
-	public QExec(String programName, String programVersion, String[] args) {
-		this(programName, programVersion, args, null);
-	}	
-
-	public static String createUUid() {
-		return UUID.randomUUID().toString();
-//		return UUID.randomUUID().toString().replace("-", "_");
-	}
-
-	public QExec(String programName, String programVersion, String[] args, String uuid) {
+	public QExec(String programName, String programVersion,  String[] cmd_args, String cmd, String uuid) {
 		this.uuid = new KeyValue("Uuid", null != uuid ? uuid : createUUid());
 		this.startTime = new KeyValue("StartTime", DateUtils.getCurrentDateAsString());
 		this.osName = new KeyValue("OsName",System.getProperty("os.name"));
@@ -45,11 +36,14 @@ public class QExec {
 		this.runBy = new KeyValue("RunBy",System.getProperty("user.name"));
 		this.toolName = new KeyValue("ToolName",programName);
 		this.toolVersion = new KeyValue("ToolVersion",programVersion);
+		
 		String cmdLine= "";
-		if (null != args) {
-			cmdLine = QLogger.reconstructCommandLine(programName, args);			
-		} 
+		if (null != cmd_args)  
+			cmdLine = QLogger.reconstructCommandLine(programName, cmd_args);			
+		 else if(null != cmd)
+			cmdLine = cmd; 		
 		this.commandLine = new KeyValue("CommandLine", cmdLine);
+		
 		this.javaHome = new KeyValue("JavaHome",System.getProperty("java.home"));
 		this.javaVendor = new KeyValue("JavaVendor",System.getProperty("java.vendor"));
 		this.javaVersion = new KeyValue("JavaVersion",System.getProperty("java.version"));
@@ -61,6 +55,54 @@ public class QExec {
 			h = e.getMessage();
 		}
 		this.host = new KeyValue("host", h);
+		
+	}
+	
+	public QExec(String programName, String programVersion, String[] args) {
+		this(programName, programVersion, args, null);
+	}	
+	
+	public QExec(String programName, String programVersion, String cmd, String uuid) {
+		 
+		this(programName, programVersion, null, cmd,  uuid);		
+		
+	}
+	
+	public QExec(String programName, String programVersion, String[] args, String uuid) {
+		this(programName, programVersion, args,null, uuid);		
+	}
+
+//	public QExec(String programName, String programVersion, String[] args, String uuid) {
+//		
+//		this.uuid = new KeyValue("Uuid", null != uuid ? uuid : createUUid());
+//		this.startTime = new KeyValue("StartTime", DateUtils.getCurrentDateAsString());
+//		this.osName = new KeyValue("OsName",System.getProperty("os.name"));
+//		this.osArch = new KeyValue("OsArch",System.getProperty("os.arch"));
+//		this.osVersion = new KeyValue("OsVersion",System.getProperty("os.version"));
+//		this.runBy = new KeyValue("RunBy",System.getProperty("user.name"));
+//		this.toolName = new KeyValue("ToolName",programName);
+//		this.toolVersion = new KeyValue("ToolVersion",programVersion);
+//		String cmdLine= "";
+//		if (null != args) {
+//			cmdLine = QLogger.reconstructCommandLine(programName, args);			
+//		} 
+//		this.commandLine = new KeyValue("CommandLine", cmdLine);
+//		this.javaHome = new KeyValue("JavaHome",System.getProperty("java.home"));
+//		this.javaVendor = new KeyValue("JavaVendor",System.getProperty("java.vendor"));
+//		this.javaVersion = new KeyValue("JavaVersion",System.getProperty("java.version"));
+//		
+//		String h;
+//		try {
+//			h = InetAddress.getLocalHost().getHostName();
+//		} catch (UnknownHostException e) {
+//			h = e.getMessage();
+//		}
+//		this.host = new KeyValue("host", h);
+//	}
+	
+	public static String createUUid() {
+		return UUID.randomUUID().toString();
+//		return UUID.randomUUID().toString().replace("-", "_");
 	}
 	
 	public KeyValue getUuid() {
