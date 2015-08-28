@@ -62,11 +62,11 @@ public class QExec {
 		this(programName, programVersion, args, null);
 	}	
 	
-	public QExec(String programName, String programVersion, String cmd, String uuid) {
-		 
-		this(programName, programVersion, null, cmd,  uuid);		
-		
-	}
+//	public QExec(String programName, String programVersion, String cmd, String uuid) {
+//		 
+//		this(programName, programVersion, null, cmd,  uuid);		
+//		
+//	}
 	
 	public QExec(String programName, String programVersion, String[] args, String uuid) {
 		this(programName, programVersion, args,null, uuid);		
