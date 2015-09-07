@@ -23,6 +23,9 @@ public final class Options {
 	
 	/** The Constant INPUT_DESCRIPTION. */
 	private static final String INPUT_DESCRIPTION = Messages.getMessage("INPUT_OPTION_DESCRIPTION");
+	private static final String OUTPUT_DESCRIPTION = Messages.getMessage("OUTPUT_OPTION_DESCRIPTION");
+	private static final String SEARCH_SUFFIX_DESCRIPTION = Messages.getMessage("SEARCH_SUFFIX_OPTION_DESCRIPTION");
+	private static final String DB_SNP_DESCRIPTION = Messages.getMessage("DBSNP_OPTION_DESCRIPTION");
 	
 	/** The Constant LOG_DESCRIPTION. */
 	private static final String LOG_DESCRIPTION = Messages.getMessage("LOG_OPTION_DESCRIPTION");
@@ -41,6 +44,7 @@ public final class Options {
 	
 	/** The input file names. */
 	private final String[] inputFileNames;
+	private final String[] searchSuffixNames;
 	
 	private final String logFile;
 	private final String logLevel;
@@ -59,13 +63,13 @@ public final class Options {
 		parser.acceptsAll(asList("v", "V", "version"), VERSION_DESCRIPTION);
 		parser.accepts("input", INPUT_DESCRIPTION).withRequiredArg().ofType(String.class)
 				.describedAs("inputfile");
-		parser.accepts("output", INPUT_DESCRIPTION).withRequiredArg().ofType(String.class)
+		parser.accepts("output", OUTPUT_DESCRIPTION).withRequiredArg().ofType(String.class)
 				.describedAs("outputfile");
-		parser.accepts("searchSuffix", INPUT_DESCRIPTION).withRequiredArg().ofType(String.class)
+		parser.accepts("searchSuffix", SEARCH_SUFFIX_DESCRIPTION).withRequiredArg().ofType(String.class)
 				.describedAs("Search suffix");
-		parser.accepts("additionalSearchString", INPUT_DESCRIPTION).withRequiredArg().ofType(String.class)
+		parser.accepts("additionalSearchString", SEARCH_SUFFIX_DESCRIPTION).withRequiredArg().ofType(String.class)
 				.describedAs("Additional Search string");
-		parser.accepts("dbSnp", INPUT_DESCRIPTION).withRequiredArg().ofType(String.class)
+		parser.accepts("dbSnp", DB_SNP_DESCRIPTION).withRequiredArg().ofType(String.class)
 				.describedAs("dbSnp file");
 		parser.accepts("log", LOG_DESCRIPTION).withRequiredArg().ofType(String.class)
 				.describedAs("logfile");
@@ -77,6 +81,10 @@ public final class Options {
 		List inputList = options.valuesOf("input");
 		inputFileNames = new String[inputList.size()];
 		inputList.toArray(inputFileNames);
+		
+		List searchSuffixList = options.valuesOf("searchSuffix");
+		searchSuffixNames = new String[searchSuffixList.size()];
+		searchSuffixList.toArray(searchSuffixNames);
 
 		logFile = (String) options.valueOf("log");
 		logLevel = (String) options.valueOf("loglevel");
@@ -107,8 +115,8 @@ public final class Options {
 	public boolean hasSearchSuffixOption() {
 		return options.has("searchSuffix");
 	}
-	public String getSearchSuffix() {
-		return (String) options.valueOf("searchSuffix");
+	public String [] getSearchSuffix() {
+		return searchSuffixNames;
 	}
 	
 	public boolean hasAdditionalSearchStringOption() {
