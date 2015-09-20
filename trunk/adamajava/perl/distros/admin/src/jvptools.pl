@@ -1,4 +1,4 @@
-#!/bin/env perl
+#!/usr/bin/env perl
 
 ##############################################################################
 #
@@ -91,6 +91,7 @@ MAIN: {
                           align_2_csvs
                           wikitable_media2moin
                           illumina_panel_manifest
+                          cnv_format_convert
                           );
 
     if ($mode =~ /^$valid_modes[0]$/i or $mode =~ /\?/) {
@@ -158,6 +159,9 @@ MAIN: {
     elsif ($mode =~ /^$valid_modes[20]/i) {
         moved_to_qcovtools( 'illumina_panel_manifest' );
     }
+    elsif ($mode =~ /^$valid_modes[21]/i) {
+        cnv_format_convert();
+    }
     else {
         die "jvptools mode [$mode] is unrecognised; valid modes are:\n   ".
             join("\n   ",@valid_modes) ."\n";
@@ -170,8 +174,181 @@ sub moved_to_qcovtools {
     warn "mode [$mode] has moved to qcovtools.pl\n";
 }
 
-sub verona1 {
 
+sub cnv_format_convert {
+    # Print help message if no CLI params
+    pod2usage( -exitval  => 0,
+               -verbose  => 99,
+               -sections => 'COMMAND DETAILS/cnv_format_convert' )
+        unless (scalar @ARGV > 0);
+
+    # Setup defaults for CLI params
+    my %params = ( infile      => '',
+                   outfile     => '',
+                   logfile     => '',
+                   verbose     => 0 );
+
+    my $results = GetOptions (
+           'i|infile=s'           => \$params{infile},        # -i
+           'o|outfile=s'          => \$params{outfile},       # -o
+           'l|logfile=s'          => \$params{logfile},       # -l
+           'v|verbose+'           => \$params{verbose},       # -v
+           );
+
+    # It is mandatory to supply a pattern
+    die "You must specify an infile\n" unless $params{infile};
+    die "You must specify an outfile\n" unless $params{outfile};
+
+    # Set up logging
+    glogfile($params{logfile}) if $params{logfile};
+    glogbegin();
+    glogprint( {l=>'EXEC'}, "CommandLine $CMDLINE\n" );
+
+    my @expected_headers = qw( gene_id
+                               gene_symbol
+                               chromosome 
+                               gene_start
+                               gene_end
+                               transcription_strand
+                               biotype
+                               status
+                               Deletion_SampleCount
+                               CNLOH_SampleCount
+                               HighGain_SampleCount
+                               Deletion_Copynumber_list
+                               Deletion_SampleID_list
+                               Deletion_Titancall_list
+                               Deletion_SegmentDescription_list
+                               Deletion_PercentGeneCovered_list
+                               CNLOH_Copynumber_list
+                               CNLOH_SampleID_list
+                               CNLOH_Titancall_list
+                               CNLOH_SegmentDescription_list
+                               CNLOH_PercentGeneCovered_list
+                               HighGain_Copynumber_list
+                               HighGain_SampleID_list
+                               HighGain_Titancall_list
+                               HighGain_SegmentDescription_list
+                               HighGain_PercentGeneCovered_list
+                               );
+
+    # Read the gene-centric summary spreadsheet from Nic's team that
+    # contains all of the copy number information
+    my $cnv = QCMG::IO::TsvReader->new( filename => $params{infile},
+                                        headers  => \@expected_headers,
+                                        verbose  => $params{verbose} );
+
+    my $outfh =IO::File->new( $params{outfile}, 'w' )
+        or croak 'Can\'t open file [', $params{outfile},
+                 "] for writing: $!";
+
+    my $header = "#Gene\tCNVChange\tNumberPatients\tPatients\n";
+    $outfh->print( $header );
+
+
+    # In the input file, there is a single line for each gene but in the
+    # output file there must be a separate line for each type of
+    # copynumber change for each gene.  So we will need to deconstruct
+    # each input line into one or more output lines.
+
+    while (my $line = $cnv->next_record) {
+        chomp $line;
+        my @fields = split /\t/, $line;
+        # Remove leading/trailing spaces on all fields
+        foreach my $ctr (0..$#fields) {
+            $fields[$ctr] =~ s/^\s+//g;
+            $fields[$ctr] =~ s/\s+$//g;
+        }
+
+        # Grab key fields for later use
+        my $gene_symbol = $fields[1];
+        my $del_count   = $fields[8];
+        my $cnloh_count = $fields[9];
+        my $gain_count  = $fields[10];
+
+        # The input data lines can be a problem - they are not all of
+        # the same length and some missing fields have been coded as
+        # "0" rather than as a blank.
+
+        # Do the deletions
+        if ($#fields < 12) {
+            warn "skipping - too few fields to do deletions,CNLOH,gains [$line]\n";
+            next;
+        }
+        my %dels = ();
+        my @del_vals = split /\;/, $fields[11];
+        my @del_ids  = split /\;/, $fields[12];
+        warn "Deletion ID count does not match stated count [$line]\n"
+           unless (scalar(@del_ids) == $del_count);
+        warn "Deletion ID count does not match value count [$line]\n"
+           unless (scalar(@del_vals) == scalar(@del_ids));
+        foreach my $ctr (0..$#del_vals) {
+            push @{ $dels{ $del_vals[$ctr] } }, $del_ids[$ctr];
+        }
+        foreach my $cn (sort keys %dels) {
+            my @ids = @{ $dels{ $cn } };
+            $outfh->print( join( "\t", $gene_symbol,
+                                       $cn,
+                                       scalar(@ids),
+                                       join(',',@ids) ), "\n" );
+        }
+
+        # Do the copy-neutral LOH
+        if ($#fields < 17) {
+            warn "skipping - too few fields to do CNLOH,gains [$line]\n";
+            next;
+        }
+        my %cnlohs = ();
+        my @cnloh_vals = split /\;/, $fields[16];
+        my @cnloh_ids  = split /\;/, $fields[17];
+        warn "CNLOH ID count does not match stated count [$line]\n"
+           unless (scalar(@cnloh_ids) == $cnloh_count);
+        warn "CNLOH ID count does not match value count [$line]\n"
+           unless (scalar(@cnloh_vals) == scalar(@cnloh_ids));
+        foreach my $ctr (0..$#cnloh_vals) {
+            push @{ $cnlohs{ $cnloh_vals[$ctr] } }, $cnloh_ids[$ctr];
+        }
+        foreach my $cn (sort keys %cnlohs) {
+            my @ids = @{ $cnlohs{ $cn } };
+            $outfh->print( join( "\t", $gene_symbol,
+                                       'copy-neutral LOH',
+                                       scalar(@ids),
+                                       join(',',@ids) ), "\n" );
+        }
+
+        # Do the high-gain
+        if ($#fields < 22) {
+            warn "skipping - too few fields to do gains [$line]\n";
+            next;
+        }
+        my %gains = ();
+        my @gain_vals = split /\;/, $fields[21];
+        my @gain_ids  = split /\;/, $fields[22];
+        warn "HighGain ID count does not match stated count [$line]\n"
+           unless (scalar(@gain_ids) == $gain_count);
+        warn "HighGain ID count does not match value count [$line]\n"
+           unless (scalar(@gain_vals) == scalar(@gain_ids));
+        foreach my $ctr (0..$#gain_vals) {
+            push @{ $gains{ $gain_vals[$ctr] } }, $gain_ids[$ctr];
+        }
+        foreach my $cn (sort keys %gains) {
+            my @ids = @{ $gains{ $cn } };
+            $outfh->print( join( "\t", $gene_symbol,
+                                       $cn,
+                                       scalar(@ids),
+                                       join(',',@ids) ), "\n" );
+        }
+
+        #print Dumper \%dels, \%cnlohs, \%gains;
+        #die;
+    }
+
+
+    glogend;
+}
+
+
+sub verona1 {
     # Print help message if no CLI params
     pod2usage( -exitval  => 0,
                -verbose  => 99,
@@ -2541,6 +2718,20 @@ lines from the 2 files are just concatenated so if every line in the
 primary file does not contain the full number of fields then the columns
 in the output file are not going to line up properly.
 
+=head2 cnv_format_convert
+
+ -i | --infile     CNV file in NicW summary format
+ -o | --outfile    output CNV file in GapSummary format
+ -l | --logfile    log file (optional)
+ -v | --verbose    print progress and diagnostic messages
+
+Converts one CNV file format int another.
+
+=head1 AUTHOR
+
+=over 2
+
+=item John Pearson, L<mailto:j.pearson@uq.edu.au>
 =head1 AUTHOR
 
 =over 2
