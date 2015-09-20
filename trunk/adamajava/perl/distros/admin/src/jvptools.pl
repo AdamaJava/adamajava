@@ -203,6 +203,7 @@ sub cnv_format_convert {
     glogfile($params{logfile}) if $params{logfile};
     glogbegin();
     glogprint( {l=>'EXEC'}, "CommandLine $CMDLINE\n" );
+    glogparams( \%params );
 
     my @expected_headers = qw( gene_id
                                gene_symbol
@@ -254,11 +255,11 @@ sub cnv_format_convert {
     while (my $line = $cnv->next_record) {
         chomp $line;
         my @fields = split /\t/, $line;
-        # Remove leading/trailing spaces on all fields
-        foreach my $ctr (0..$#fields) {
-            $fields[$ctr] =~ s/^\s+//g;
-            $fields[$ctr] =~ s/\s+$//g;
-        }
+#        # Remove leading/trailing spaces on all fields
+#        foreach my $ctr (0..$#fields) {
+#            $fields[$ctr] =~ s/^\s+//g;
+#            $fields[$ctr] =~ s/\s+$//g;
+#        }
 
         # Grab key fields for later use
         my $gene_symbol = $fields[1];
@@ -275,22 +276,24 @@ sub cnv_format_convert {
             warn "skipping - too few fields to do deletions,CNLOH,gains [$line]\n";
             next;
         }
-        my %dels = ();
-        my @del_vals = split /\;/, $fields[11];
-        my @del_ids  = split /\;/, $fields[12];
-        warn "Deletion ID count does not match stated count [$line]\n"
-           unless (scalar(@del_ids) == $del_count);
-        warn "Deletion ID count does not match value count [$line]\n"
-           unless (scalar(@del_vals) == scalar(@del_ids));
-        foreach my $ctr (0..$#del_vals) {
-            push @{ $dels{ $del_vals[$ctr] } }, $del_ids[$ctr];
-        }
-        foreach my $cn (sort keys %dels) {
-            my @ids = @{ $dels{ $cn } };
-            $outfh->print( join( "\t", $gene_symbol,
-                                       $cn,
-                                       scalar(@ids),
-                                       join(',',@ids) ), "\n" );
+        if ($del_count != 0) {
+            my %dels = ();
+            my @del_vals = split /\;/, $fields[11];
+            my @del_ids  = split /\;/, $fields[12];
+            warn "$#fields Deletion ID count does not match stated count [$line]\n"
+               unless (scalar(@del_ids) == $del_count);
+            warn "Deletion ID count does not match value count [$line]\n"
+               unless (scalar(@del_vals) == scalar(@del_ids));
+            foreach my $ctr (0..$#del_vals) {
+                push @{ $dels{ $del_vals[$ctr] } }, $del_ids[$ctr];
+            }
+            foreach my $cn (sort keys %dels) {
+                my @ids = @{ $dels{ $cn } };
+                $outfh->print( join( "\t", $gene_symbol,
+                                           $cn,
+                                           scalar(@ids),
+                                           join(',',@ids) ), "\n" );
+            }
         }
 
         # Do the copy-neutral LOH
@@ -298,22 +301,24 @@ sub cnv_format_convert {
             warn "skipping - too few fields to do CNLOH,gains [$line]\n";
             next;
         }
-        my %cnlohs = ();
-        my @cnloh_vals = split /\;/, $fields[16];
-        my @cnloh_ids  = split /\;/, $fields[17];
-        warn "CNLOH ID count does not match stated count [$line]\n"
-           unless (scalar(@cnloh_ids) == $cnloh_count);
-        warn "CNLOH ID count does not match value count [$line]\n"
-           unless (scalar(@cnloh_vals) == scalar(@cnloh_ids));
-        foreach my $ctr (0..$#cnloh_vals) {
-            push @{ $cnlohs{ $cnloh_vals[$ctr] } }, $cnloh_ids[$ctr];
-        }
-        foreach my $cn (sort keys %cnlohs) {
-            my @ids = @{ $cnlohs{ $cn } };
-            $outfh->print( join( "\t", $gene_symbol,
-                                       'copy-neutral LOH',
-                                       scalar(@ids),
-                                       join(',',@ids) ), "\n" );
+        if ($cnloh_count != 0) {
+            my %cnlohs = ();
+            my @cnloh_vals = split /\;/, $fields[16];
+            my @cnloh_ids  = split /\;/, $fields[17];
+            warn "$#fields CNLOH ID count does not match stated count [$line]\n"
+               unless (scalar(@cnloh_ids) == $cnloh_count);
+            warn "CNLOH ID count does not match value count [$line]\n"
+               unless (scalar(@cnloh_vals) == scalar(@cnloh_ids));
+            foreach my $ctr (0..$#cnloh_vals) {
+                push @{ $cnlohs{ $cnloh_vals[$ctr] } }, $cnloh_ids[$ctr];
+            }
+            foreach my $cn (sort keys %cnlohs) {
+                my @ids = @{ $cnlohs{ $cn } };
+                $outfh->print( join( "\t", $gene_symbol,
+                                           'copy-neutral LOH',
+                                           scalar(@ids),
+                                           join(',',@ids) ), "\n" );
+            }
         }
 
         # Do the high-gain
@@ -321,22 +326,24 @@ sub cnv_format_convert {
             warn "skipping - too few fields to do gains [$line]\n";
             next;
         }
-        my %gains = ();
-        my @gain_vals = split /\;/, $fields[21];
-        my @gain_ids  = split /\;/, $fields[22];
-        warn "HighGain ID count does not match stated count [$line]\n"
-           unless (scalar(@gain_ids) == $gain_count);
-        warn "HighGain ID count does not match value count [$line]\n"
-           unless (scalar(@gain_vals) == scalar(@gain_ids));
-        foreach my $ctr (0..$#gain_vals) {
-            push @{ $gains{ $gain_vals[$ctr] } }, $gain_ids[$ctr];
-        }
-        foreach my $cn (sort keys %gains) {
-            my @ids = @{ $gains{ $cn } };
-            $outfh->print( join( "\t", $gene_symbol,
-                                       $cn,
-                                       scalar(@ids),
-                                       join(',',@ids) ), "\n" );
+        if ($gain_count != 0) {
+            my %gains = ();
+            my @gain_vals = split /\;/, $fields[21];
+            my @gain_ids  = split /\;/, $fields[22];
+            warn "$#fields HighGain ID count does not match stated count [$line]\n"
+               unless (scalar(@gain_ids) == $gain_count);
+            warn "HighGain ID count does not match value count [$line]\n"
+               unless (scalar(@gain_vals) == scalar(@gain_ids));
+            foreach my $ctr (0..$#gain_vals) {
+                push @{ $gains{ $gain_vals[$ctr] } }, $gain_ids[$ctr];
+            }
+            foreach my $cn (sort keys %gains) {
+                my @ids = @{ $gains{ $cn } };
+                $outfh->print( join( "\t", $gene_symbol,
+                                           $cn,
+                                           scalar(@ids),
+                                           join(',',@ids) ), "\n" );
+            }
         }
 
         #print Dumper \%dels, \%cnlohs, \%gains;
