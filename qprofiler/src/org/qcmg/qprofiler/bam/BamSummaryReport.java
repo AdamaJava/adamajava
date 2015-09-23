@@ -327,7 +327,7 @@ public class BamSummaryReport extends SummaryReport {
 		Element noOfReadsE = createSubElement(summaryElement, "ReadCount");
 		noOfReadsE.setAttribute("value", noOfRecords + "");
 		Element noOfDupsE = createSubElement(summaryElement, "DuplicatePercentage");
-		noOfDupsE.setAttribute("value", (duplicateCount / noOfRecords) * 100 + "");
+		noOfDupsE.setAttribute("value", ((double)duplicateCount / noOfRecords) * 100 + "");
 		
 		// loop through flag, tallying unmapped
 		long tally = 0;
