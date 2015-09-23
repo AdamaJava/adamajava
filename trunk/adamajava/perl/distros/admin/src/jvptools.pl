@@ -1983,7 +1983,7 @@ sub telomere_analysis {
         glogprint "Processing $section_name\n";
         my $section = $ini->section( $section_name );
         die "no file= rules specified in section $section_name\n"
-            unless (exists $section->{FILE});
+            unless (exists $section->{file});
 
         my %stats = ();
 
@@ -1994,7 +1994,7 @@ sub telomere_analysis {
         # bit harder to do unless we require the config file contents to
         # be included in the logfile or output.
 
-        foreach my $file (@{ $section->{FILE} }) {
+        foreach my $file (@{ $section->{file} }) {
             $regions{ sections }->{ $section_name }->{ $file }++;
 
             # Parse BAM file name onto array of values for output report
