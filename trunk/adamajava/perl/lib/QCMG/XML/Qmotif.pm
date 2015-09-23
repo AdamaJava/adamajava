@@ -129,6 +129,8 @@ sub motif_percentages {
     my %all_motifs = ();
     my %totals     = ();
     foreach my $category (@categories) {
+        # To avoid warnings later, initialise $totals{ $category }
+        $totals{ $category } = 0 if (! defined $totals{ $category });
         foreach my $motif (keys %{ $motifs_by_category{ $category } }) {
             $totals{ $category } += $motifs_by_category{ $category }->{ $motif };
             $all_motifs{ $motif } = 1;
