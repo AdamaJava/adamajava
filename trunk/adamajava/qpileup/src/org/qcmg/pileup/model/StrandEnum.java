@@ -54,23 +54,23 @@ public enum StrandEnum{
 	    } 
 	    
 	    public static String getHeader(){
-	    	StringBuffer sb = new StringBuffer();
-	    	StrandEnum[] enums = StrandEnum.values();
-	    	
-	    	for (int i=0; i<enums.length; i++){
-	    		sb.append(enums[i].getStrandEnum()).append("_for").append(DELIMITER);
-	    	}
-	    	for (int i=0; i<enums.length; i++){
-	    		sb.append(enums[i].getStrandEnum()).append("_rev");
-	    		if (i != enums.length -1){
-	    			sb.append(DELIMITER);
-	    		}
-	    	}
-	    	return sb.toString();
+		    	StringBuilder sb = new StringBuilder();
+		    	StrandEnum[] enums = StrandEnum.values();
+		    	
+		    	for (int i=0; i<enums.length; i++){
+		    		sb.append(enums[i].getStrandEnum()).append("_for").append(DELIMITER);
+		    	}
+		    	for (int i=0; i<enums.length; i++){
+		    		sb.append(enums[i].getStrandEnum()).append("_rev");
+		    		if (i != enums.length -1){
+		    			sb.append(DELIMITER);
+		    		}
+		    	}
+		    	return sb.toString();
 	    }
 
 		public static String getHeader(List<StrandEnum> viewElements){
-			StringBuffer sb = new StringBuffer();
+			StringBuilder sb = new StringBuilder();
 	    	StrandEnum[] enums = StrandEnum.values();
 
 	    	for (int i=0; i<enums.length; i++){
@@ -95,7 +95,7 @@ public enum StrandEnum{
 
 		public static String getHeader(List<StrandEnum> groupElements, 
 				boolean getForwardElements, boolean getReverseElements){
-			StringBuffer sb = new StringBuffer();
+			StringBuilder sb = new StringBuilder();
 	    	StrandEnum[] enums = StrandEnum.values();
 
 	    	if (getForwardElements){

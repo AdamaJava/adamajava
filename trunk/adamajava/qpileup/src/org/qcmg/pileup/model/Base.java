@@ -9,12 +9,16 @@ import java.text.DecimalFormat;
 
 public class Base implements Comparable<Base>{
 	
-	char base;
-	long count;
+	final static int BEFORE = -1;
+	final static int EQUAL = 0;
+	final static int AFTER = 1;
+	
+	final char base;
+	final long count;
 	long totalQual;
 	double avgBaseQual;
-	private long forwardCount;
-	private long reverseCount;
+	private final long forwardCount;
+	private final long reverseCount;
 	private long forTotalQual;
 
 	private long revTotalQual;
@@ -45,9 +49,9 @@ public class Base implements Comparable<Base>{
 		return base;
 	}
 
-	public void setBase(char base) {
-		this.base = base;
-	}
+//	public void setBase(char base) {
+//		this.base = base;
+//	}
 
 
 	public long getCount() {
@@ -55,9 +59,9 @@ public class Base implements Comparable<Base>{
 	}
 
 
-	public void setCount(long count) {
-		this.count = count;
-	}
+//	public void setCount(long count) {
+//		this.count = count;
+//	}
 
 
 	public long getTotalQual() {
@@ -83,17 +87,17 @@ public class Base implements Comparable<Base>{
 		return forwardCount;
 	}
 
-	public void setForwardCount(long forwardCount) {
-		this.forwardCount = forwardCount;
-	}
+//	public void setForwardCount(long forwardCount) {
+//		this.forwardCount = forwardCount;
+//	}
 
 	public long getReverseCount() {
 		return reverseCount;
 	}
 
-	public void setReverseCount(long reverseCount) {
-		this.reverseCount = reverseCount;
-	}
+//	public void setReverseCount(long reverseCount) {
+//		this.reverseCount = reverseCount;
+//	}
 
 
 	public double getForAvgBaseQual() {
@@ -115,9 +119,6 @@ public class Base implements Comparable<Base>{
 
 	@Override
 	public int compareTo(Base other) {
-		final int BEFORE = -1;
-	    final int EQUAL = 0;
-	    final int AFTER = 1;
 
 	    //this optimization is usually worthwhile, and can
 	    //always be added
@@ -153,6 +154,7 @@ public class Base implements Comparable<Base>{
 	       ( this.totalQual == other.totalQual );
 	}
 	
+	@Override
 	public int hashCode() {
 		 int result = 31;
 	     result += base;

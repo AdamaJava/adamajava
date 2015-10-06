@@ -7,10 +7,10 @@ import org.qcmg.pileup.QPileupException;
 
 public class StrandElement {
 
-	String name;
+	final String name;
 	int [] intDataMembers = null;
 	long [] longDataMembers = null;
-	boolean isLong = false;
+	final boolean isLong;
 	
 	public StrandElement(String name, boolean isLong) {
 		this.name = name;
@@ -31,9 +31,9 @@ public class StrandElement {
 		return name;
 	}
 
-	public void setName(String name) {
-		this.name = name;
-	}
+//	public void setName(String name) {
+//		this.name = name;
+//	}
 
 	public int[] getIntDataMembers() {
 		return intDataMembers;
@@ -55,9 +55,9 @@ public class StrandElement {
 		return isLong;
 	}
 
-	public void setLong(boolean isLong) {
-		this.isLong = isLong;
-	}
+//	public void setLong(boolean isLong) {
+//		this.isLong = isLong;
+//	}
 	
 	public void addElement(int index, int size) {		
 			if (isLong) {

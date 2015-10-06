@@ -6,8 +6,10 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import org.junit.After;
 import org.junit.Before;
@@ -46,40 +48,62 @@ public class QPileupRecordTest {
 
 	private void setUpMap(Map<String, StrandElement> map, boolean isReverse, boolean isStrandBias) {
 		int count = 1;
-		for (Entry<String, StrandElement> entry: map.entrySet()) {
-			if (entry.getValue().isLong()) {				
-				long[] longDataMembers = new long[1];
-				if (isReverse) {
-					longDataMembers[0] = count * 2;
-				} else {
-					longDataMembers[0] = count;
-				}				
-				entry.getValue().setLongDataMembers(longDataMembers);
+		
+		/*
+		 * Need to have a consistent means of looping through the maps, as we are assigning values based on iteration order
+		 */
+		List<String> orderedList = new ArrayList<>(map.keySet());
+		Collections.sort(orderedList);
+		for (String s : orderedList) {
+			StrandElement se = map.get(s);
+			if (se.isLong()) {				
+				se.setLongDataMembers(new long[]{isReverse ? count * 2 : count});
 			} else {
-				int[] intDataMembers = new int[1];
-				if (isReverse) {
-					intDataMembers[0] = count * 2;
-				} else {
-					intDataMembers[0] = count;
-				}
-				if (entry.getKey().equals("referenceNo")) {					
-					if (isReverse) {
-						intDataMembers[0] = 24;
-					} else {
-						intDataMembers[0] = 12;
-					}
+				int[] intDataMembers = new int[]{isReverse ? count * 2 : count};
+				if (s.equals("referenceNo")) {					
+					intDataMembers[0] = isReverse ? 24 : 12;
 				} 
-				if (entry.getKey().equals("nonreferenceNo")) {
-					if (isReverse) {
-						intDataMembers[0] = 58;
-					} else {
-						intDataMembers[0] = 29;
-					}
+				if (s.equals("nonreferenceNo")) {
+					intDataMembers[0] = isReverse ? 58 : 29;
 				}				
-				entry.getValue().setIntDataMembers(intDataMembers);
+				se.setIntDataMembers(intDataMembers);
 			}
 			count++;
 		}		
+//		for (Entry<String, StrandElement> entry: map.entrySet()) {
+//			if (entry.getValue().isLong()) {				
+//				long[] longDataMembers = new long[1];
+//				if (isReverse) {
+//					longDataMembers[0] = count * 2;
+//				} else {
+//					longDataMembers[0] = count;
+//				}				
+//				entry.getValue().setLongDataMembers(longDataMembers);
+//			} else {
+//				int[] intDataMembers = new int[1];
+//				if (isReverse) {
+//					intDataMembers[0] = count * 2;
+//				} else {
+//					intDataMembers[0] = count;
+//				}
+//				if (entry.getKey().equals("referenceNo")) {					
+//					if (isReverse) {
+//						intDataMembers[0] = 24;
+//					} else {
+//						intDataMembers[0] = 12;
+//					}
+//				} 
+//				if (entry.getKey().equals("nonreferenceNo")) {
+//					if (isReverse) {
+//						intDataMembers[0] = 58;
+//					} else {
+//						intDataMembers[0] = 29;
+//					}
+//				}				
+//				entry.getValue().setIntDataMembers(intDataMembers);
+//			}
+//			count++;
+//		}		
 	}
 
 	@After
@@ -95,9 +119,12 @@ public class QPileupRecordTest {
 	
 	@Test
 	public void testGetTotalBases() {
-		assertEquals(168, record.getTotalBases(true, true));
-		assertEquals(56, record.getTotalBases(true, false));
-		assertEquals(112, record.getTotalBases(false, true));
+		assertEquals(45, record.getTotalBases(true, true));
+		assertEquals(15, record.getTotalBases(true, false));
+		assertEquals(30, record.getTotalBases(false, true));
+//		assertEquals(168, record.getTotalBases(true, true));
+//		assertEquals(56, record.getTotalBases(true, false));
+//		assertEquals(112, record.getTotalBases(false, true));
 	}
 	
 //	@Test
@@ -132,20 +159,28 @@ public class QPileupRecordTest {
 	public void createBase() {
 		Base b = record.createBase('A', true, true);
 		
-		assertEquals(12, b.getForwardCount());
-		assertEquals(24, b.getReverseCount());
-		assertEquals(36, b.getCount());
-		assertEquals(26, b.getForTotalQual());
-		assertEquals(52, b.getRevTotalQual());
-		assertEquals(2.16, b.getForAvgBaseQual(), 0.1);
-		assertEquals(2.16, b.getRevAvgBaseQual(), 0.1);
+		assertEquals(1, b.getForwardCount());
+		assertEquals(2, b.getReverseCount());
+		assertEquals(3, b.getCount());
+		assertEquals(21, b.getForTotalQual());
+		assertEquals(42, b.getRevTotalQual());
+		assertEquals(21.0, b.getForAvgBaseQual(), 0.1);
+//		assertEquals(12, b.getForwardCount());
+//		assertEquals(24, b.getReverseCount());
+//		assertEquals(36, b.getCount());
+//		assertEquals(26, b.getForTotalQual());
+//		assertEquals(52, b.getRevTotalQual());
+//		assertEquals(2.16, b.getForAvgBaseQual(), 0.1);
+		assertEquals(21.0, b.getRevAvgBaseQual(), 0.1);
 	}
 	
 	@Test
 	public void testGetGenotypeEnum() {
 		GenotypeEnum e = record.getGenotypeEnum();
-		assertEquals("AT", e.toString());
-		assertEquals("A/T", e.getDisplayString());
+		assertEquals("GT", e.toString());
+		assertEquals("G/T", e.getDisplayString());
+//		assertEquals("AT", e.toString());
+//		assertEquals("A/T", e.getDisplayString());
 	}
 	
 	@Test

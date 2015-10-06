@@ -17,14 +17,14 @@ import org.qcmg.pileup.PileupConstants;
 import org.qcmg.pileup.metrics.record.StrandBiasRecord;
 
 public class QPileupRecord {
-
-	PositionElement position;
-	Map<String, StrandElement> forwardElementMap;
-	Map<String, StrandElement> reverseElementMap;
 	final static String DELIMITER = PileupConstants.DELIMITER;
+
+	final PositionElement position;
+	final Map<String, StrandElement> forwardElementMap;
+	final Map<String, StrandElement> reverseElementMap;
 	List<Base> bases = new ArrayList<Base>();
-	private int windowStart;
-	private int windowEnd;
+//	private int windowStart;
+//	private int windowEnd;
 
 
 	public QPileupRecord(PositionElement positionElement, Map<String, StrandElement> forwardElementMap, Map<String, StrandElement> reverseElementMap) {
@@ -34,7 +34,7 @@ public class QPileupRecord {
 	}
 	
 	public String getPositionString() {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		sb.append(position.getChr()).append(DELIMITER);
 		sb.append(position.getPosition()).append(DELIMITER);
 		sb.append(position.getBase()).append(DELIMITER);
@@ -57,17 +57,17 @@ public class QPileupRecord {
 		return forwardElementMap;
 	}
 
-	public void setForwardElementMap(Map<String, StrandElement> forwardElementMap) {
-		this.forwardElementMap = forwardElementMap;
-	}
+//	public void setForwardElementMap(Map<String, StrandElement> forwardElementMap) {
+//		this.forwardElementMap = forwardElementMap;
+//	}
 
 	public Map<String, StrandElement> getReverseElementMap() {
 		return reverseElementMap;
 	}
 
-	public void setReverseElementMap(Map<String, StrandElement> reverseElementMap) {
-		this.reverseElementMap = reverseElementMap;
-	}
+//	public void setReverseElementMap(Map<String, StrandElement> reverseElementMap) {
+//		this.reverseElementMap = reverseElementMap;
+//	}
 	
 	public int getTotalBases(boolean includeForward, boolean includeReverse) {
 		int total = 0;
@@ -209,6 +209,7 @@ public class QPileupRecord {
 		return sb.toString();
 	}
 	
+	@Override
 	public String toString() {
 		StringBuffer sb = new StringBuffer();
 		sb.append(getPositionString());
@@ -315,9 +316,9 @@ public class QPileupRecord {
 	}
 
 	private double getAvgBaseQual(long totalBaseCount, Character character) {
-		double baseCount = (double)getElementCount("qual" + character);
+		double baseCount = getElementCount("qual" + character);
 		if (baseCount > 0 && totalBaseCount > 0) {
-			return baseCount/(double)totalBaseCount;
+			return baseCount/totalBaseCount;
 		} else {
 			return 0;
 		}
@@ -399,9 +400,9 @@ public class QPileupRecord {
 	}
 
 
-	public String getDistributionWindow() {
-		return windowStart + "," + windowEnd;
-	}
+//	public String getDistributionWindow() {
+//		return windowStart + "," + windowEnd;
+//	}
 	
 	public int getForwardBaseCount(char base) {
 		if (base == 'R') {
