@@ -7,9 +7,9 @@ import org.qcmg.pileup.PileupConstants;
 
 public class PositionElement {
 	
-	String chr;
-	long position;
-	char base;
+	final String chr;
+	final long position;
+	final char base;
 	final static String DELIMITER = PileupConstants.DELIMITER;
 	
 	public PositionElement(String chr, long position, char base) {
@@ -22,23 +22,23 @@ public class PositionElement {
 	public long getPosition() {
 		return position;
 	}
-	public void setPosition(long position) {
-		this.position = position;
-	}
+//	public void setPosition(long position) {
+//		this.position = position;
+//	}
 	public char getBase() {
 		return base;
 	}
-	public void setBase(char base) {
-		this.base = base;
-	}	
+//	public void setBase(char base) {
+//		this.base = base;
+//	}	
 	
 	public String getChr() {
 		return chr;
 	}
 
-	public void setChr(String chr) {
-		this.chr = chr;
-	}
+//	public void setChr(String chr) {
+//		this.chr = chr;
+//	}
 	
 	@Override
 	public String toString() {
