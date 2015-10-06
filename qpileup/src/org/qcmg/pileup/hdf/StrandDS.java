@@ -6,6 +6,9 @@ package org.qcmg.pileup.hdf;
 import java.util.HashMap;
 import java.util.Map;
 
+import ncsa.hdf.object.Datatype;
+import ncsa.hdf.object.Group;
+
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.pileup.PileupUtil;
@@ -15,20 +18,17 @@ import org.qcmg.pileup.model.PileupDataRecord;
 import org.qcmg.pileup.model.StrandElement;
 import org.qcmg.pileup.model.StrandEnum;
 
-import ncsa.hdf.object.Datatype;
-import ncsa.hdf.object.Group;
-
 public class StrandDS {
 	
-	private PileupHDF hdf;
-	private QLogger logger = QLoggerFactory.getLogger(getClass());	
+	private final PileupHDF hdf;
+	private final QLogger logger = QLoggerFactory.getLogger(getClass());	
 	private int chunk;	
 	private int datasetLength;
 	private String groupName;
-	private String reference;
-	private String direction;
-	private boolean isReverse = false;
-	private Map<String, StrandElement> elementMap;
+	private final String reference;
+//	private final String direction;
+	private final boolean isReverse;
+	private final Map<String, StrandElement> elementMap;
 
 	public StrandDS(PileupHDF hdf, int chunk, int datasetLength, String reference, boolean isReverse) throws Exception {
 		this.hdf = hdf;
@@ -36,8 +36,9 @@ public class StrandDS {
 		this.datasetLength = datasetLength;
 		this.reference = reference;	
 		this.isReverse = isReverse;
-		getDirection();
-		this.groupName = "/"+ reference + "/"+ direction;
+//		this.direction = isReverse ? "reverse" : "forward";
+//		getDirection();
+		this.groupName = "/"+ reference + "/"+ getDirection();
 		this.elementMap = setupMap(null);
 	}	
 	
@@ -45,8 +46,9 @@ public class StrandDS {
 		this.hdf= hdf2;
 		this.reference = reference;
 		this.isReverse = isReverse;
-		getDirection();
-		this.groupName = "/"+ reference + "/"+ direction; 
+//		this.direction = isReverse ? "reverse" : "forward";
+//		getDirection();
+		this.groupName = "/"+ reference + "/"+ getDirection(); 
 		this.elementMap = setupMap(null);
 	}
 	
@@ -54,8 +56,9 @@ public class StrandDS {
 		this.hdf= hdf2;
 		this.reference = reference;
 		this.isReverse = isReverse;
-		getDirection();
-		this.groupName = "/"+ reference + "/"+ direction; 
+//		this.direction = isReverse ? "reverse" : "forward";
+//		getDirection();
+		this.groupName = "/"+ reference + "/"+ getDirection(); 
 		this.elementMap =  setupSubElementMap(null, strandElements);;
 	}
 	
@@ -63,7 +66,8 @@ public class StrandDS {
 		this.hdf= null;
 		this.reference = reference;
 		this.isReverse = isReverse;
-		getDirection();
+//		this.direction = isReverse ? "reverse" : "forward";
+//		getDirection();
 		this.elementMap = setupMap(datasetLength);		
 	}
 	
@@ -110,18 +114,18 @@ public class StrandDS {
 	}
 
 	public String getDirection() {
-		this.direction = "forward";
-		if (isReverse) {
-			this.direction = "reverse";
-		}
-		return direction;
+//		this.direction = "forward";
+//		if (isReverse) {
+//			this.direction = "reverse";
+//		}
+		return isReverse ? "reverse" : "forward";
 	}
 	
 	public void createStrandGroup() throws Exception {
 		if (hdf.useHDFObject()) {
-			hdf.createGroup(direction, reference);
+			hdf.createGroup(getDirection(), reference);
 		} else {
-			String groupName = "/" + reference + "/" + direction;
+			String groupName = "/" + reference + "/" + getDirection();
 			hdf.createH5Group(groupName);
 		}
 	}
@@ -305,11 +309,11 @@ public class StrandDS {
 		}
 		return map;	
 	}
-
-	public void getPileupRecord(int index) {
-		// TODO Auto-generated method stub
-		
-	}
+//
+//	public void getPileupRecord(int index) {
+//		// TODO Auto-generated method stub
+//		
+//	}
 
 	public Map<String, StrandElement> getStrandElementMap(int i,
 			StrandEnum[] strandElements) {
