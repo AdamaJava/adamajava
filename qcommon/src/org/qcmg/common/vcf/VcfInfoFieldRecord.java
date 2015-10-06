@@ -43,7 +43,7 @@ public class VcfInfoFieldRecord {
 	 * @param value
 	 */
 	public void setField(String key, String value){
-		int existingKeyIndex = line.indexOf(key); 
+		int existingKeyIndex = line.indexOf(key); 		
 		if (existingKeyIndex == -1) {
 			// nothing to replace - have at it
 			addField(key, value);
@@ -90,7 +90,10 @@ public class VcfInfoFieldRecord {
 		if (index > -1) {
 			// get position of semi colon
 			int scIndex = line.indexOf(Constants.SEMI_COLON_STRING, index);
-			String kv = line.substring(index, (scIndex == -1 ? line.length() : scIndex) );
+			//position of last ; before key
+			int preIndex = line.substring(0, index).lastIndexOf(Constants.SEMI_COLON_STRING);
+
+			String kv = line.substring((preIndex == -1 ? 0: preIndex+1), (scIndex == -1 ? line.length() : scIndex) );
 			String value = StringUtils.getValueFromKey(kv, key, Constants.EQ);
 			
 			return value != null ? value : Constants.EMPTY_STRING;
@@ -100,12 +103,26 @@ public class VcfInfoFieldRecord {
 	}
 	
 	public void removeField(String key){
-		int index = line.indexOf(key);
-				if (index > -1) {
+		int index = line.indexOf(key);		
 		
+		//check "key" maybe a substring of exsiting field
+		if (index > -1) {
+		
+			//position of first ; after key
 			int scIndex = line.indexOf(Constants.SEMI_COLON_STRING, index);
-			String kv = line.substring(index, (scIndex == -1 ? line.length() : scIndex) );
+			//position of last ; before key
+			int preIndex = line.substring(0, index).lastIndexOf(Constants.SEMI_COLON_STRING);
 			
+			//get full field string between two ";" 
+//			String kv = line.substring( (preIndex == -1 ? 0: preIndex+1), (scIndex == -1 ? line.length() : scIndex) );
+			String kv = line.substring( preIndex+1, (scIndex == -1 ? line.length() : scIndex) );
+			int keyend =  kv.indexOf(Constants.EQ_STRING);					
+			String keyStr = (keyend > -1 ? kv.substring(0,keyend) : kv);
+			
+			//do nothing if  key just substring of current removing field
+			if(keyStr.length() != key.length())
+				return; 
+					
 			// check to see if there was a semi colon preceding the key
 			int scOffset = 0;
 			if ((index - 1) > -1) {

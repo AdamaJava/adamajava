@@ -26,6 +26,7 @@ import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.SnpUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 
+
 public class VcfUtils {
 	
 	private static final QLogger logger = QLoggerFactory.getLogger(VcfUtils.class);
@@ -214,6 +215,8 @@ public class VcfUtils {
 		if (genotype.isHomozygous()) return "1/1";
 		else return "0/1";
 	}
+	
+
 	
 	public static String[] getMutationAndGTs(String refString, GenotypeEnum control, GenotypeEnum test) {
 		final String [] results = new String[3];

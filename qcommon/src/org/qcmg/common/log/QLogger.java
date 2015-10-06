@@ -249,6 +249,20 @@ public class QLogger {
         return time;
 	}
 	
+	public static String getUsedMemory(){
+		final long MEGABYTE = 1024L * 1024L;
+
+		Runtime runtime = Runtime.getRuntime();
+		runtime.gc();	
+		long MTotal =  runtime.totalMemory() / MEGABYTE;
+//		long MUsed = MTotal - runtime.freeMemory() / MEGABYTE;
+		long MMax = runtime.maxMemory() / MEGABYTE;		 
+		
+		return   String.format("ResourcesUsed: mem=%dM; vmem=%dM.", MTotal,MMax);
+		 
+	}
+	
+	
 	public void logFinalExecutionStats(final int exitStatus, long startTime) {
 		
 		exec("StopTime " + DateUtils.getCurrentDateAsString());
