@@ -121,9 +121,8 @@ public class IndelPileup {
 		int windowStart = indelStart - window;
 		int windowEnd =  indelEnd + window;
 		
-		List<SAMRecord> nearbyPool = pool; 
-				
-				
+		List<SAMRecord> nonearbyPool = new ArrayList<SAMRecord>();
+								
 		for(SAMRecord re: pool){
 			boolean nearby = false; 
 			int refPos = re.getAlignmentStart();
@@ -150,21 +149,20 @@ public class IndelPileup {
 							(refPos + ce.getLength() < indelStart &&  refPos + ce.getLength() > windowStart ))
 						nearby = true; 
 				}
-				
-				
-				if(nearby){ //quit current samrecord
-					nearbyPool.remove(re);
-					count ++;
-					break;
-				}//go to next block
+								
+				if(nearby) break; //quit current samrecord
+				//go to next block
 				else if (ce.getOperator().consumesReferenceBases()) 
 					refPos += ce.getLength();
 			}
+			
+			if(! nearby) nonearbyPool.add(re);				
+			 else count ++;
 		}
 		
 		this.nearbyIndel = count; 
 		
-		return nearbyPool; //all nearby Reads are removed;
+		return nonearbyPool; //all nearby Reads are removed;
 		
 	}
 	
