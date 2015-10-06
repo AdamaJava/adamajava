@@ -70,40 +70,6 @@ public class QPileupRecordTest {
 			}
 			count++;
 		}		
-//		for (Entry<String, StrandElement> entry: map.entrySet()) {
-//			if (entry.getValue().isLong()) {				
-//				long[] longDataMembers = new long[1];
-//				if (isReverse) {
-//					longDataMembers[0] = count * 2;
-//				} else {
-//					longDataMembers[0] = count;
-//				}				
-//				entry.getValue().setLongDataMembers(longDataMembers);
-//			} else {
-//				int[] intDataMembers = new int[1];
-//				if (isReverse) {
-//					intDataMembers[0] = count * 2;
-//				} else {
-//					intDataMembers[0] = count;
-//				}
-//				if (entry.getKey().equals("referenceNo")) {					
-//					if (isReverse) {
-//						intDataMembers[0] = 24;
-//					} else {
-//						intDataMembers[0] = 12;
-//					}
-//				} 
-//				if (entry.getKey().equals("nonreferenceNo")) {
-//					if (isReverse) {
-//						intDataMembers[0] = 58;
-//					} else {
-//						intDataMembers[0] = 29;
-//					}
-//				}				
-//				entry.getValue().setIntDataMembers(intDataMembers);
-//			}
-//			count++;
-//		}		
 	}
 
 	@After
@@ -122,17 +88,7 @@ public class QPileupRecordTest {
 		assertEquals(45, record.getTotalBases(true, true));
 		assertEquals(15, record.getTotalBases(true, false));
 		assertEquals(30, record.getTotalBases(false, true));
-//		assertEquals(168, record.getTotalBases(true, true));
-//		assertEquals(56, record.getTotalBases(true, false));
-//		assertEquals(112, record.getTotalBases(false, true));
 	}
-	
-//	@Test
-//	public void testGetTotalReads() {
-//		assertEquals(237, record.getTotalReads(true, true));
-//		assertEquals(79, record.getTotalReads(true, false));
-//		assertEquals(158, record.getTotalReads(false, true));
-//	}
 	
 	@Test
 	public void testGetForwardElement() {
@@ -165,12 +121,6 @@ public class QPileupRecordTest {
 		assertEquals(21, b.getForTotalQual());
 		assertEquals(42, b.getRevTotalQual());
 		assertEquals(21.0, b.getForAvgBaseQual(), 0.1);
-//		assertEquals(12, b.getForwardCount());
-//		assertEquals(24, b.getReverseCount());
-//		assertEquals(36, b.getCount());
-//		assertEquals(26, b.getForTotalQual());
-//		assertEquals(52, b.getRevTotalQual());
-//		assertEquals(2.16, b.getForAvgBaseQual(), 0.1);
 		assertEquals(21.0, b.getRevAvgBaseQual(), 0.1);
 	}
 	
@@ -179,8 +129,6 @@ public class QPileupRecordTest {
 		GenotypeEnum e = record.getGenotypeEnum();
 		assertEquals("GT", e.toString());
 		assertEquals("G/T", e.getDisplayString());
-//		assertEquals("AT", e.toString());
-//		assertEquals("A/T", e.getDisplayString());
 	}
 	
 	@Test
@@ -199,6 +147,5 @@ public class QPileupRecordTest {
 		assertNotNull(record.getStrandBiasRecord(20));
 		assertNull(record.getStrandBiasRecord(60));
 	}
-	
 
 }
