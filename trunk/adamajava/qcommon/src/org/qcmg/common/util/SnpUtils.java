@@ -133,16 +133,12 @@ public class SnpUtils {
 		if (StringUtils.isNullOrEmpty(annotation)) throw new IllegalArgumentException("null or empty annotation passed to SnpUtils.isClassAIndel");
 		
 		return 
-				isClassA(annotation) 
-				|| ( ! containsIndelClassBAnnotation(annotation)
-				&&
-				((annotation.contains(INDEL_HOM_ADJ) 
+				isClassA(annotation)  || ( ! containsIndelClassBAnnotation(annotation)
+				&& ((annotation.contains(INDEL_HOM_ADJ) 
 						&& getNNumberFromAnnotation(annotation, INDEL_HOM_ADJ) <= homopolymerCutoff)
-				||
-				(annotation.contains(INDEL_HOM_CON) 
+				   || (annotation.contains(INDEL_HOM_CON) 
 						&& getNNumberFromAnnotation(annotation, INDEL_HOM_CON) <= homopolymerCutoff)
-				||
-				(annotation.contains(INDEL_HOM_EMB) 
+				   || (annotation.contains(INDEL_HOM_EMB) 
 						&& getNNumberFromAnnotation(annotation, INDEL_HOM_EMB) <= homopolymerCutoff)));
 	}
 	

@@ -18,7 +18,7 @@ import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
 
-public class VcfRecord implements Comparable<VcfRecord>{
+public class VcfRecord implements Comparable<VcfRecord>,Cloneable {
 	
 	private static final QLogger logger = QLoggerFactory.getLogger(VcfRecord.class);
 	
@@ -94,6 +94,36 @@ public class VcfRecord implements Comparable<VcfRecord>{
  
 	public String getAlt() { return alt; }
 	public void setAlt(String alt) { this.alt = alt; }
+	
+	/**
+	 * 
+	 * @param otherAlt, append this allels if not exists in exisiting allel. 
+	 */
+	public void appendAlt(String otherAlt){
+		if( StringUtils.isNullOrEmpty( otherAlt ))
+			return;
+		
+		if (   StringUtils.isNullOrEmpty(this.alt))  
+			this.alt = otherAlt;
+		
+		final String[] altParam = this.alt.split(Constants.COMMA_STRING);
+		final String[] otherParm = otherAlt.split(Constants.COMMA_STRING);
+		
+		for(final String in : otherParm){
+			boolean isExist = false; 
+			for (final String s : altParam){ 
+				if(s.equalsIgnoreCase(otherAlt)){
+					isExist = true;
+					break; 
+				}
+			}
+			
+			//append non existed alt
+			if(! isExist)
+				this.alt.concat(Constants.COMMA + in);
+			
+		}
+	}
 
 	public void setQualString(String qualString) { this.qualString = qualString; }
 	
@@ -216,13 +246,7 @@ public class VcfRecord implements Comparable<VcfRecord>{
 			if (sb.length() > 0) {
 				sb.append(Constants.TAB);
 			}			
-			sb.append(s);
-			
-			//debug
-			//if(StringUtils.isNullOrEmpty(s))
-			//	sb.append(Constants.MISSING_DATA_STRING);
-			
-			
+			sb.append(s);			
 			
 		}
 		return sb.toString();	
@@ -233,8 +257,21 @@ public class VcfRecord implements Comparable<VcfRecord>{
 	
 	public void setId(String id) { this.id = id; }
 	public String getId() { 	return id; }
+	
+	 
+	@Deprecated 
+	/**
+	 * it only do shallow copy, so both instance will point to same mutable object, such as VcfInfoFieldRecord
+	 */
+	public VcfRecord clone() throws CloneNotSupportedException{		
+		return (VcfRecord) super.clone();
+	}
 	 
 	@Override
+	/**
+	 * Join all vcf record fields into string with tab seperated. 
+	 * return a vcf string trailing with a newline 
+	 */
 	public String toString(){
 		
 		//add END position into info column for compound SNP

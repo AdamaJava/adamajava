@@ -21,6 +21,7 @@ public class ChrPosition  implements Comparable<ChrPosition> {
 	private final int position;
 	private final int endPosition;
 	private final String name;
+
 	
 	/**
 	 * Constructor that takes in the chromosome and a single position, which is used to populate the start and end positions
@@ -160,7 +161,7 @@ public class ChrPosition  implements Comparable<ChrPosition> {
 	@Override
 	public String toString() {
 		return "ChrPosition [chromosome=" + chromosome + ", startPosition="
-				+ position + ", endPosition=" + endPosition + "]";
+				+ position + ", endPosition=" + endPosition +  ", name= " + name + "]";
 	}
 	
 	public String toIGVString() {
