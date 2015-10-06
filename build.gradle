@@ -20,7 +20,7 @@ dependencies {
 
     compile group: 'net.sf.jopt-simple',name: 'jopt-simple', version: '4.6'
     compile name: 'qcommon', version: '0.1pre'
-    compile name: 'qbamfilter', version: '1.1'
+    compile name: 'qbamfilter', version: '1.1pre'
     compile name: 'qio', version: '0.1pre'
     testCompile name: 'junit', version: '4.10'
 }
