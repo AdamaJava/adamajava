@@ -38,8 +38,8 @@ public class IndelPileupTest {
 	
 	@AfterClass
 	public static void deleteInput() {	
-//		new File(inputIndel).delete();
-//		new File(inputBam).delete();
+		new File(inputIndel).delete();
+		new File(inputBam).delete();
 	}	
 	
 	
