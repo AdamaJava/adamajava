@@ -77,9 +77,9 @@ public class Homopolymer {
 		return homoType.get(index);
 	}
 	
-	public int getBaseCount(int index){
-		return homopolymerCount.get(index);
-	}
+//	public int getBaseCount(int index){
+//		return homopolymerCount.get(index);
+//	}
 	
 	public String getPolymerSequence(int index){
 		return homoString.get(index);
@@ -240,29 +240,34 @@ public class Homopolymer {
 	}
 	
 	public synchronized void getReferenceBase() {	
-		final int indelStart = position.getPosition();
-		final int  indelEnd = position.getEndPosition(); 
 
 		int MaxEnd = referenceBase.length;
 		indelReferenceBases = new ArrayList<byte[]>() ;
 	
+		int indelStart = position.getPosition() + 1;
+	    int indelEnd = position.getEndPosition(); 
+
 		try{
 	    	if (indelType.equals(SVTYPE.DEL)) {   
-	    		int wstart = Math.max(1,indelStart-homopolymerWindow); 
-	    		upstreamReference = new byte[indelStart - wstart];
+	    		//at least start from position 1
+	    		int wstart = Math.max( 0,indelStart-homopolymerWindow-1); 
+	    		upstreamReference = new byte[indelStart - wstart-1];
 	    		System.arraycopy(referenceBase, wstart, upstreamReference, 0, upstreamReference.length);
 	    		
 	    		byte[] base = new byte[indelEnd - indelStart + 1];
-	    		System.arraycopy(referenceBase, indelStart, base, 0, base.length);
+	    		System.arraycopy(referenceBase, indelStart-1, base, 0, base.length);
 	    		indelReferenceBases.add(0, base);
 	    		
-	    		int wend = Math.min(MaxEnd, indelEnd+homopolymerWindow);    			
-	    		downstreamReference = new byte[wend - indelEnd];
-	    		System.arraycopy(referenceBase, indelEnd + 1, downstreamReference, 0, downstreamReference.length);    		
+	    		int wend = Math.min(MaxEnd-1, indelEnd+homopolymerWindow);    			
+	    		downstreamReference = new byte[wend - indelEnd ];
+	    		System.arraycopy(referenceBase, indelEnd, downstreamReference, 0, downstreamReference.length);    		
 	     			 
-	    	} else if (indelType.equals(SVTYPE.INS)) {   
-	    		int wstart = Math.max(1,indelStart-homopolymerWindow + 1);    		
-	    		upstreamReference = new byte[indelStart - wstart + 1];
+	    	} else if (indelType.equals(SVTYPE.INS)) {  
+	    		indelStart = position.getPosition() ;
+	    		indelEnd = position.getEndPosition() + 1; 
+
+	    		int wstart = Math.max(0,indelStart-homopolymerWindow);    		
+	    		upstreamReference = new byte[indelStart - wstart ];
 	    		System.arraycopy(referenceBase, wstart, upstreamReference, 0, upstreamReference.length);
 	    		   		
 	    		for(int i = 0; i < motifs.size(); i ++)
@@ -270,7 +275,7 @@ public class Homopolymer {
 	    		    		
 	    		int wend = Math.min(MaxEnd-1, indelEnd+homopolymerWindow -1);  
 	    		downstreamReference = new byte[wend - indelEnd + 1];
-	    		System.arraycopy(referenceBase, indelEnd, downstreamReference, 0, downstreamReference.length);    	
+	    		System.arraycopy(referenceBase, indelEnd-1, downstreamReference, 0, downstreamReference.length);    	
 	    	}
 	    	
 		}catch(Exception e){

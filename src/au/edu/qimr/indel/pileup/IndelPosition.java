@@ -255,7 +255,7 @@ public class IndelPosition {
 		}
 				
 		if(polymer != null && !polymer.getHOMOTYPE(index).equals(HOMOTYPE.NONE)){
-			String po = String.format("%s=%d,%s", polymer.getType(index).name(), polymer.getBaseCount(index), polymer.getPolymerSequence(index) );
+			String po = String.format("%s=%d,%s", polymer.getType(index).name(), polymer.getHomopolymerCount(index), polymer.getPolymerSequence(index) );
 			re.appendInfo(po);
 		}	 
 		 

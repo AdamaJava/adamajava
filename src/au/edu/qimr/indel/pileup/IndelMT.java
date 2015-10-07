@@ -76,14 +76,14 @@ public class IndelMT {
 		@Override
 		public void run() {
 		 	List<SAMRecord> current_pool = new ArrayList<SAMRecord>();
-		 	List<SAMRecord> next_pool = new ArrayList<SAMRecord>(); 		 	
-		 	IndelPosition topPos= qIn.poll();
-			if (topPos == null) {
-		 		logger.info("There is no indel fallen in contig: " + contig.getSequenceName() );
-		 		
+		 	List<SAMRecord> next_pool = new ArrayList<SAMRecord>(); 
+		 	int size = qIn.size();	
+			if (size <= 0) {
+		 		logger.info("There is no indel fallen in contig: " + contig.getSequenceName() );		 		
 		 		return;
 		 	}
-		 	
+			
+			IndelPosition topPos= qIn.poll();
 			try (SAMFileReader Breader = new SAMFileReader(bam )){	
 				
 				SAMRecordIterator ite = Breader.query(contig.getSequenceName(), 0, contig.getSequenceLength(),false);		
@@ -129,18 +129,14 @@ public class IndelMT {
 					if( (topPos = qIn.poll()) == null) break; 
 					resetPool(topPos,  current_pool, next_pool); 							
 			 	}while( true ) ;					 					 
-				 
-				logger.info( contig.getSequenceName() + " completed pileup indels: " + qOut.size()  + " on " + bam.getName());
 			} catch (Exception e) {
 				logger.error("Exception caught in pileup thread", e);
 				mainThread.interrupt();
 			} finally {
 				pLatch.countDown();
-//				logger.debug(String.format(" total slept %d times since input queue is " +
-//						"empty and %d time since either output queue is full. " +
-//						"each sleep take %d mill-second. queue size for qIn, qOutqOutBad are %d,%d",
-//						sleepcount, countOutputSleep, sleepUnit, qIn.size(), qOut.size()));
-			}			
+				logger.info( size + " indels is completed pileup from " + contig.getSequenceName() + " on " + bam.getName());
+
+ 			}			
 		}
 	
 		
@@ -217,8 +213,9 @@ public class IndelMT {
  
 		@Override
 		public void run() {
+			int size = qIn.size();
 			try {
-  				logger.info(contig + ": seeking homopolymer of indel :" + qIn.size());
+  
 				try {
 					IndelPosition pos;					
 					while ((pos = qIn.poll()) != null)  
@@ -232,6 +229,7 @@ public class IndelMT {
 
 			} finally {
 				pLatch.countDown();
+				logger.info(size  + " indels had been checked homopolymer from " + contig);
 			}
 		}
 		
@@ -283,7 +281,7 @@ public class IndelMT {
         ExecutorService pileupThreads = Executors.newFixedThreadPool(threadNo);    	
     	
     	//each time only throw threadNo thread, the loop finish untill the last threadNo                    	
-    	for(SAMSequenceRecord contig : sortedContigs ){       		        	 
+    	for(SAMSequenceRecord contig : sortedContigs ){      		
     		pileupThreads.execute(new contigPileup(contig, getIndelList(contig), options.getTumourBam(),null ,
     				 tumourQueue, Thread.currentThread() ,pileupLatch));
     		       		
@@ -291,8 +289,7 @@ public class IndelMT {
     				normalQueue, Thread.currentThread(),pileupLatch ));
     		
     		pileupThreads.execute(new homopoPileup(contig.getSequenceName(), getIndelList(contig), options.getReference(),
-    				homopoQueue, options.nearbyHomopolymer, Thread.currentThread(),pileupLatch));
-    		
+    				homopoQueue, options.nearbyHomopolymer, Thread.currentThread(),pileupLatch));    		
     	}
     	pileupThreads.shutdown();
     	
