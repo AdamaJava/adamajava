@@ -25,6 +25,7 @@ public class Options {
 	public int nearbyIndelWindow = 3;
 	public int nearbyHomopolymer = 10;
 	public int softClipWindow = 13;
+	public int threadNo = 5;
 	
 	private File tumourBam;
 	private File normalBam;
@@ -50,17 +51,16 @@ public class Options {
 		parser.accepts("filter", Messages.getMessage("OPTION_FILTER")).withRequiredArg().ofType(String.class).describedAs("qbamfilter");
 		parser.accepts("dup", Messages.getMessage("OPTION_DUPS"));
 
-		parser.accepts("i", Messages.getMessage("OPTION_INPUT")).withRequiredArg().ofType(String.class).describedAs("input_bam");		
 		parser.accepts("o", Messages.getMessage("OPTION_OUTPUT")).withRequiredArg().ofType(String.class).describedAs("output");	
-
 		parser.accepts("tv", Messages.getMessage("OPTION_TUMOUR_INPUT")).withRequiredArg().ofType(String.class).describedAs("tumour_indel_vcf ");
 		parser.accepts("nv", Messages.getMessage("OPTION_NORMAL_INPUT")).withRequiredArg().ofType(String.class).describedAs("normal_indle_vcf");
 		parser.accepts("tb", Messages.getMessage("OPTION_INPUT_TUMOUR")).withRequiredArg().ofType(String.class).describedAs("input_tumour_bam");
 		parser.accepts("nb", Messages.getMessage("OPTION_INPUT_NORMAL")).withRequiredArg().ofType(String.class).describedAs("input_normal_bam");
 				
-		parser.accepts("sc", Messages.getMessage("OPTION_SOFTCLIP")).withRequiredArg().ofType(Integer.class).describedAs("soft_clip_window");
-		parser.accepts("hp", Messages.getMessage("OPTION_WINDOW")).withRequiredArg().ofType(Integer.class).describedAs("homopolymer_window");
-		parser.accepts("n", Messages.getMessage("OPTION_NEAR_INDELS")).withRequiredArg().ofType(Integer.class).describedAs("nearby_indel_bases");
+		parser.accepts("softwindow", Messages.getMessage("OPTION_SOFTCLIP")).withRequiredArg().ofType(Integer.class).describedAs("soft_clip_window");
+		parser.accepts("homowindow", Messages.getMessage("OPTION_WINDOW")).withRequiredArg().ofType(Integer.class).describedAs("homopolymer_window");
+		parser.accepts("nearbywindow", Messages.getMessage("OPTION_NEAR_INDELS")).withRequiredArg().ofType(Integer.class).describedAs("nearby_indel_bases");
+		parser.accepts("n", Messages.getMessage("OPTION_THREAD_NO")).withRequiredArg().ofType(Integer.class).describedAs("thread number");
 
 		parser.accepts("tumorSample", Messages.getMessage("OPTION_TUMOUR_SAMPLE")).withRequiredArg().ofType(Integer.class).describedAs("tumour sample id");
 		parser.accepts("normalSample", Messages.getMessage("OPTION_NORMAL_SAMPLE")).withRequiredArg().ofType(Integer.class).describedAs("normal sample id");
@@ -230,6 +230,10 @@ public class Options {
 
 	public int getSoftClipWindow() {
 		return softClipWindow;
+	}
+	
+	public int getThreadNo(){
+		return threadNo;
 	}
 
 	public String getTumourSample(){		

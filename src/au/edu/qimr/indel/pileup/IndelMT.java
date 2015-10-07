@@ -194,7 +194,7 @@ public class IndelMT {
 		private final AbstractQueue<Homopolymer> qOut;
 		private final Thread mainThread;
 		private File referenceFile; 
-		ReferenceSequence referenceSeq;
+		private String contig; 
 		private final byte[] referenceBase;
 		private int window; 
 		final CountDownLatch pLatch;
@@ -207,6 +207,7 @@ public class IndelMT {
 			this.referenceFile = reference; 
 			this.window = window;
 			this.pLatch = latch; 
+			this.contig = contig; 
 			
 			IndexedFastaSequenceFile indexedFasta = Homopolymer.getIndexedFastaFile(referenceFile);
 			this.referenceBase = indexedFasta.getSequence(contig).getBases();
@@ -217,14 +218,13 @@ public class IndelMT {
 		@Override
 		public void run() {
 			try {
-  				logger.info("seeking homopolymer for indel :" + qIn.size());
+  				logger.info(contig + ": seeking homopolymer of indel :" + qIn.size());
 				try {
 					IndelPosition pos;					
 					while ((pos = qIn.poll()) != null)  
 						qOut.add(new Homopolymer(pos, referenceBase, window));
 				} finally {					 
 					pLatch.countDown();
-					logger.info("Completed homopolymer threads with indel size :" + qOut.size()   );
 				}
 			}catch(Exception e){
 				logger.error("Exception caught in homopolymer thread", e);
@@ -232,7 +232,6 @@ public class IndelMT {
 
 			} finally {
 				pLatch.countDown();
-//				wBadLatch.countDown();
 			}
 		}
 		
@@ -275,22 +274,13 @@ public class IndelMT {
 		}			
 		
         final CountDownLatch pileupLatch = new CountDownLatch(sortedContigs.size() * 2); // filtering thread               
-//        final CountDownLatch homopoLatch = new CountDownLatch(threadNo); // homopolymer thread for satisfied records
+        final CountDownLatch homopoLatch = new CountDownLatch(threadNo); // homopolymer thread for satisfied records
         
         final AbstractQueue<IndelPileup> tumourQueue = new ConcurrentLinkedQueue<IndelPileup>();
         final AbstractQueue<Homopolymer> homopoQueue = new ConcurrentLinkedQueue<Homopolymer>();
         final AbstractQueue<IndelPileup> normalQueue = new ConcurrentLinkedQueue<IndelPileup>();
         // set up executor services
-        ExecutorService pileupThreads = Executors.newFixedThreadPool(threadNo);
-//        ExecutorService homopoThreads = Executors.newFixedThreadPool(threadNo);
-        
-        //homopolymer thread should be before pileupThread
-//     	final AbstractQueue<IndelPosition> qIn = getIndelList(null) ; 
-//        final AbstractQueue<IndelPosition> qIn = new ConcurrentLinkedQueue<IndelPosition>(); //debug
-//    	for (int i = 0; i < threadNo; i++)  
-//    		homopoThreads.execute(new homopoPileup(qIn, options.getReference(),homopoQueue, options.nearbyHomopolymer, Thread.currentThread(),homopoLatch));
-//    	homopoThreads.shutdown();
-    	
+        ExecutorService pileupThreads = Executors.newFixedThreadPool(threadNo);    	
     	
     	//each time only throw threadNo thread, the loop finish untill the last threadNo                    	
     	for(SAMSequenceRecord contig : sortedContigs ){       		        	 

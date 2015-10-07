@@ -58,7 +58,7 @@ public class Main {
 				process = new IndelMT(options.getTumourInputVcf(), options.getNormalInputVcf(), options, logger);
 			}			
 			
-			exitStatus = process.process(5);
+			exitStatus = process.process(options.getThreadNo());
 			
 		} catch (Exception e) {	
 		    System.err.println(Messages.USAGE);

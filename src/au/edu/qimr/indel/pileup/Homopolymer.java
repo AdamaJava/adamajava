@@ -242,36 +242,43 @@ public class Homopolymer {
 	public synchronized void getReferenceBase() {	
 		final int indelStart = position.getPosition();
 		final int  indelEnd = position.getEndPosition(); 
-//		final String fullChromosome = position.getChromosome();
 
 		int MaxEnd = referenceBase.length;
 		indelReferenceBases = new ArrayList<byte[]>() ;
-				
-    	if (indelType.equals(SVTYPE.DEL)) {   
-    		int wstart = Math.max(1,indelStart-homopolymerWindow); 
-    		upstreamReference = new byte[indelStart - wstart];
-    		System.arraycopy(referenceBase, wstart, upstreamReference, 0, upstreamReference.length);
-    		
-    		byte[] base = new byte[indelEnd - indelStart + 1];
-    		System.arraycopy(referenceBase, indelStart, base, 0, base.length);
-    		indelReferenceBases.add(0, base);
-    		
-    		int wend = Math.min(MaxEnd, indelEnd+homopolymerWindow);    			
-    		downstreamReference = new byte[wend - indelEnd];
-    		System.arraycopy(referenceBase, indelEnd + 1, downstreamReference, 0, downstreamReference.length);    		
-     			 
-    	} else if (indelType.equals(SVTYPE.INS)) {   
-    		int wstart = Math.max(1,indelStart-homopolymerWindow + 1);    		
-    		upstreamReference = new byte[indelStart - wstart + 1];
-    		System.arraycopy(referenceBase, wstart, upstreamReference, 0, upstreamReference.length);
-    		   		
-    		for(int i = 0; i < motifs.size(); i ++)
-    				this.indelReferenceBases.add(i, motifs.get(i).getBytes());
-    		    		
-    		int wend = Math.min(MaxEnd, indelEnd+homopolymerWindow -1);  
-    		downstreamReference = new byte[wend - indelEnd + 1];
-    		System.arraycopy(referenceBase, indelEnd, downstreamReference, 0, downstreamReference.length);    		   			
-    	}
+	
+		try{
+	    	if (indelType.equals(SVTYPE.DEL)) {   
+	    		int wstart = Math.max(1,indelStart-homopolymerWindow); 
+	    		upstreamReference = new byte[indelStart - wstart];
+	    		System.arraycopy(referenceBase, wstart, upstreamReference, 0, upstreamReference.length);
+	    		
+	    		byte[] base = new byte[indelEnd - indelStart + 1];
+	    		System.arraycopy(referenceBase, indelStart, base, 0, base.length);
+	    		indelReferenceBases.add(0, base);
+	    		
+	    		int wend = Math.min(MaxEnd, indelEnd+homopolymerWindow);    			
+	    		downstreamReference = new byte[wend - indelEnd];
+	    		System.arraycopy(referenceBase, indelEnd + 1, downstreamReference, 0, downstreamReference.length);    		
+	     			 
+	    	} else if (indelType.equals(SVTYPE.INS)) {   
+	    		int wstart = Math.max(1,indelStart-homopolymerWindow + 1);    		
+	    		upstreamReference = new byte[indelStart - wstart + 1];
+	    		System.arraycopy(referenceBase, wstart, upstreamReference, 0, upstreamReference.length);
+	    		   		
+	    		for(int i = 0; i < motifs.size(); i ++)
+	    				this.indelReferenceBases.add(i, motifs.get(i).getBytes());
+	    		    		
+	    		int wend = Math.min(MaxEnd-1, indelEnd+homopolymerWindow -1);  
+	    		downstreamReference = new byte[wend - indelEnd + 1];
+	    		System.arraycopy(referenceBase, indelEnd, downstreamReference, 0, downstreamReference.length);    	
+	    	}
+	    	
+		}catch(Exception e){
+		   		//debug
+	    		System.out.println(position.getChromosome() + ", " + downstreamReference.length + " (downstreamReference.length,indelEnd, MaxEnd) " + indelEnd + " , " + MaxEnd);
+	    		System.out.println(e.getMessage());
+			
+		}
 
 	}
 	
