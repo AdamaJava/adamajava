@@ -19,39 +19,39 @@ public class IndelUtils {
 	public static final String DESCRITPION_INFO_SOMATIC = "set to somatic unless there are more than three novel starts on normal BAM;"
 			+ " or more than 10% imformative reads are supporting reads; or homopolymeric sequence exists on either side with nearby indels.";
 		
-	public static final String INFO_COVN12 ="COVN12";
-	public static final String DESCRITPION_INFO_COVN12 = "For somatic calls: less than 12 reads coverage in normal BAM";
+	public static final String FILTER_COVN12 ="COVN12";
+	public static final String DESCRITPION_FILTER_COVN12 = "For somatic calls: less than 12 reads coverage in normal BAM";
 	
-	public static final String INFO_COVN8 = "COVN8";
-	public static final String DESCRITPION_INFO_COVN8 = "For germline calls: less than 8 reads coverage in normal";	
+	public static final String FILTER_COVN8 = "COVN8";
+	public static final String DESCRITPION_FILTER_COVN8 = "For germline calls: less than 8 reads coverage in normal";	
 	
-	public static final String INFO_COVT = "COVT";
-	public static final String DESCRITPION_INFO_COVT = "For germline calls: less than 8 reads coverage in tumour";
+	public static final String FILTER_COVT = "COVT";
+	public static final String DESCRITPION_FILTER_COVT = "For germline calls: less than 8 reads coverage in tumour";
 	
-	public static final String INFO_HCOVN = "HCOVN";
-	public static final String DESCRITPION_INFO_HCOVN = "more than 1000 reads in normal BAM";
+	public static final String FILTER_HCOVN = "HCOVN";
+	public static final String DESCRITPION_FILTER_HCOVN = "more than 1000 reads in normal BAM";
 	
-	public static final String INFO_HCOVT = "HCOVT";
-	public static final String DESCRITPION_INFO_HCOVT = "more than 1000 reads in tumour BAM";
+	public static final String FILTER_HCOVT = "HCOVT";
+	public static final String DESCRITPION_FILTER_HCOVT = "more than 1000 reads in tumour BAM";
 	
-	public static final String INFO_MIN = "MIN";
-	public static final String DESCRITPION_INFO_MIN = "For somatic calls: mutation also found in pileup of normal BAM";
+	public static final String FILTER_MIN = "MIN";
+	public static final String DESCRITPION_FILTER_MIN = "For somatic calls: mutation also found in pileup of normal BAM";
 	
-	public static final String INFO_NNS = "NNS";
-	public static final String DESCRITPION_INFO_NNS = "For somatic calls: less than 4 novel starts not considering read pair in tumour BAM";
+	public static final String FILTER_NNS = "NNS";
+	public static final String DESCRITPION_FILTER_NNS = "For somatic calls: less than 4 novel starts not considering read pair in tumour BAM";
 	
-	public static final String INFO_TPART = "TPART";
-	public static final String DESCRITPION_INFO_TPART = "The number in the tumour partials column is >=3 and is >10% of the total reads at that position";
+	public static final String FILTER_TPART = "TPART";
+	public static final String DESCRITPION_FILTER_TPART = "The number in the tumour partials column is >=3 and is >10% of the total reads at that position";
 
-	public static final String INFO_NPART = "NPART";
-	public static final String DESCRITPION_INFO_NPART = "The number in the normal partials column is >=3 and is >5% of the total reads at that position";
+	public static final String FILTER_NPART = "NPART";
+	public static final String DESCRITPION_FILTER_NPART = "The number in the normal partials column is >=3 and is >5% of the total reads at that position";
 
-	public static final String INFO_TBIAS = "TBIAS";
-	public static final String DESCRITPION_INFO_TBIAS = "For somatic calls: the supporting tumour reads value is >=3 and the count on one strand is =0 or >0 "
+	public static final String FILTER_TBIAS = "TBIAS";
+	public static final String DESCRITPION_FILTER_TBIAS = "For somatic calls: the supporting tumour reads value is >=3 and the count on one strand is =0 or >0 "
 			+ "and is either <10% of supporting reads or >90% of supporting reads";
 
-	public static final String INFO_NBIAS = "NBIAS";
-	public static final String DESCRITPION_INFO_NBIAS = "For germline calls: the supporting normal reads value is >=3 and the count on one strand is =0 or >0 "
+	public static final String FILTER_NBIAS = "NBIAS";
+	public static final String DESCRITPION_FILTER_NBIAS = "For germline calls: the supporting normal reads value is >=3 and the count on one strand is =0 or >0 "
 			+ "and is either <5% of supporting reads or >95% of supporting reads";
 
 	public static final String INFO_HOMADJ = "HOMADJ";
@@ -80,7 +80,7 @@ public class IndelUtils {
 			 return SVTYPE.UNKOWN;		
 		 else if(ref.length() == 1 &&  alt.length() == 1)
 			 return SVTYPE.SNP;	
-		 else if(alt.length() > MAX_INDEL_LENGTH)
+		 else if(alt.length() > MAX_INDEL_LENGTH || ref.length() > MAX_INDEL_LENGTH)
 			 return SVTYPE.CTX;
 		 else if(ref.length() == alt.length()  )
 			 return SVTYPE.MNP;		 
