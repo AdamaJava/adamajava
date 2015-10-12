@@ -17,22 +17,14 @@ import net.sf.samtools.SAMRecord;
 
 public class IndelPileup {
 	private  final int indelStart, indelEnd, nearbySoftClipWindow ,nearyIndelWindow; 
-//	private final String fullChromosome;
 	private final ChrPosition position; 
 	private final List<String> motifs ; //same chrposition but differnt allel
  	private final SVTYPE type; 
- //	private final IndelPosition position; 
  	
 	private  int coverage ;  //total counts start-end
 	private  int informativeCount; //crossover full indels start - end
 	private  int nearbysoftClip ; //reads contain softclipping in either side window
-	
-	//wiki is wrong, nearby must be informative but not necesary be supporting or 
 	private  int nearbyIndel ;//= new ArrayList<Integer>(); //must be informative	
-	
-//	int[] support; //indel match motif
-//	int[] partial; //must be infromative but not supporting	
-//	int[] novelStart;//must be supporting, 
 	
 	List<Integer> support = new ArrayList<Integer>();
 	List<Integer> forwardsupport = new ArrayList<Integer>();
@@ -49,10 +41,6 @@ public class IndelPileup {
 		this.nearbySoftClipWindow = nearbySoftClipWindow;
 		this.nearyIndelWindow = nearyIndelWindow;
 		this.motifs = pos.getMotifs();		
-		
-		//initially, in case pileup paused when there is no related reads in this region. eg somatic read 
- 
-		
 		for(int i = 0; i < motifs.size(); i ++){
 			support.add(i,0); 
 			forwardsupport.add(i,0); 
@@ -60,10 +48,6 @@ public class IndelPileup {
 			partial.add(i,0);
 			novelStart.add(i,0);
 		}
-		
-//		//debug
-//		if(pos.getIndelVcfs().size() > 1)
-//			System.out.println(pos.getChrPosition().toIGVString() + ", indelStart:"+indelStart + ", indel end: " + indelEnd);
 		
 	}
 		
@@ -95,12 +79,6 @@ public class IndelPileup {
 		
 		tmpPool = removeNearbyIndel(infoPool, nearyIndelWindow);
 		
-//		//debug
-//		if(indelStart == 198 && indelEnd == 199){
-//			for(SAMRecord re: infoPool) 
-//				 System.out.println(infoPool.size() + "(infoPoolSize) " + re.getSAMString());
-//		}				
-		
 		//assign real counts to overwrite the list init
 		for(int i = 0; i < motifs.size(); i ++){			 
 			int[] counts = getCounts(tmpPool, motifs.get(i));
@@ -109,11 +87,7 @@ public class IndelPileup {
 			backwardsupport.add(i, counts[2]);
 			partial.add(i,counts[3]);
 			novelStart.add(i, counts[4]);
-		}
-		
-
-		
-		
+		}		
 	}
 	
 	private List<SAMRecord> removeNearbyIndel(List<SAMRecord> pool, int window){
@@ -176,7 +150,8 @@ public class IndelPileup {
 		return novelStarts; 
 		
 	}	
-//	public void pileup(IndelPosition indel, List<SAMRecord> pool) throws Exception{
+	
+	//	public void pileup(IndelPosition indel, List<SAMRecord> pool) throws Exception{
 	private int[] getCounts(List<SAMRecord> pool, String motif) throws Exception{
 		int support = 0;
 		int partsupport = 0;

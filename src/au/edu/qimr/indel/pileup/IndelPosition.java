@@ -19,7 +19,6 @@ public class IndelPosition {
 	
 	private final List<VcfRecord> vcfs ; 	
 	private final ChrPosition position; 
-	//indel start end is not eauql to positon.start and end
 	private final int indelStart, indelEnd; 
 	
 	private final SVTYPE mutationType;	
@@ -92,7 +91,6 @@ public class IndelPosition {
 			throw new Exception();
 				
 		vcfs.add(vcf);
-//		motifs.add(vcf.getAlt().substring(1));		
 	}
 	
 	public SVTYPE getIndelType(){
@@ -191,12 +189,12 @@ public class IndelPosition {
 		
 		//not interested int these indels since over coverage
 		if(tumourPileup != null  && tumourPileup.getTotalCount() > 1000){
-			re.setInfo( IndelUtils.INFO_HCOVT);
+			re.setInfo( IndelUtils.FILTER_HCOVT);
 			return re; 
 		}
 		
 		if(normalPileup != null  && normalPileup.getTotalCount() > 1000){
-			re.setInfo( IndelUtils.INFO_HCOVN);
+			re.setInfo( IndelUtils.FILTER_HCOVN);
 			return re; 
 		}
 		
@@ -216,7 +214,6 @@ public class IndelPosition {
 		if(somatic) 
 			re.setFilter(VcfHeaderUtils.INFO_SOMATIC);
 		 
-		//String td = "TD=0:0:0:0:0:0:0";
 		if(tumourPileup != null){ 		
 			String td = String.format("ND=%d:%d:%d:%d[%d,%d]:%d:%d:%d", tumourPileup.getnovelStartReadCount(index),tumourPileup.getTotalCount(),tumourPileup.getInformativeCount(), 
 					tumourPileup.getsuportReadCount(index),tumourPileup.getforwardsuportReadCount(index),tumourPileup.getbackwardsuportReadCount(index),
@@ -224,14 +221,14 @@ public class IndelPosition {
 	
 			re.appendInfo(td);
 			if(!somatic && tumourPileup.getTotalCount() < 8)
-				re.addFilter(IndelUtils.INFO_COVT);
+				re.addFilter(IndelUtils.FILTER_COVT);
 			if(somatic && tumourPileup.getnovelStartReadCount(index) < 4 )
-				re.addFilter(IndelUtils.INFO_NNS);
+				re.addFilter(IndelUtils.FILTER_NNS);
 			if(tumourPileup.getparticalReadCount(index) > 3 &&
 					(100 * tumourPileup.getparticalReadCount(index) / tumourPileup.getTotalCount()) > 10)
-				re.addFilter(IndelUtils.INFO_TPART);
+				re.addFilter(IndelUtils.FILTER_TPART);
 			if(somatic && tumourPileup.getsuportReadCount(index) >=3 && tumourPileup.hasStrandBias(index, 0.1, 0.9))
-				re.addFilter(IndelUtils.INFO_TBIAS);
+				re.addFilter(IndelUtils.FILTER_TBIAS);
 		}	
 		
 		//String nd = "ND=0:0:0:0:0:0:0";
@@ -242,26 +239,22 @@ public class IndelPosition {
 			re.appendInfo(nd);	
 			
 			if(somatic && normalPileup.getTotalCount() < 12)
-				re.addFilter(IndelUtils.INFO_COVN12);
+				re.addFilter(IndelUtils.FILTER_COVN12);
 			if(!somatic && normalPileup.getTotalCount() < 8)
-				re.addFilter(IndelUtils.INFO_COVN8);			
+				re.addFilter(IndelUtils.FILTER_COVN8);			
 			if(somatic && normalPileup.getnovelStartReadCount(index) > 0)
-				re.addFilter(IndelUtils.INFO_MIN);
+				re.addFilter(IndelUtils.FILTER_MIN);
 			if(normalPileup.getparticalReadCount(index) > 3 &&
 					(100 * normalPileup.getparticalReadCount(index) / normalPileup.getTotalCount()) > 5)
-				re.addFilter(IndelUtils.INFO_NPART);
+				re.addFilter(IndelUtils.FILTER_NPART);
 			if(somatic && normalPileup.getsuportReadCount(index) >=3 && normalPileup.hasStrandBias(index, 0.05, 0.95))
-				re.addFilter(IndelUtils.INFO_TBIAS);			 
+				re.addFilter(IndelUtils.FILTER_TBIAS);			 
 		}
 				
 		if(polymer != null && !polymer.getHOMOTYPE(index).equals(HOMOTYPE.NONE)){
 			String po = String.format("%s=%d,%s", polymer.getType(index).name(), polymer.getHomopolymerCount(index), polymer.getPolymerSequence(index) );
 			re.appendInfo(po);
 		}	 
-		 
-		
-
-
 		return re; 	
 	}
  

@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.AbstractQueue;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -23,8 +24,13 @@ import net.sf.samtools.SAMSequenceRecord;
 import net.sf.samtools.SAMRecord;
 
 import org.qcmg.common.log.QLogger;
+import org.qcmg.common.meta.QExec;
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.util.Constants;
+import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.vcf.VcfRecord;
+import org.qcmg.common.vcf.header.VcfHeader;
+import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.qbamfilter.query.QueryExecutor;
 import org.qcmg.vcf.VCFFileWriter;
 
@@ -33,6 +39,7 @@ import au.edu.qimr.indel.pileup.Homopolymer;
 import au.edu.qimr.indel.pileup.IndelPileup;
 import au.edu.qimr.indel.pileup.IndelPosition;
 import au.edu.qimr.indel.pileup.ReadIndels;
+import au.edu.qimr.indel.pileup.Homopolymer.HOMOTYPE;
 
 
 public class IndelMT {
@@ -62,7 +69,7 @@ public class IndelMT {
 		 * @param fLatch : the counter for filtering thread (current type)
 		 */
 		contigPileup(SAMSequenceRecord contig,  AbstractQueue<IndelPosition> qIn, File bam, QueryExecutor exec,
-				AbstractQueue<IndelPileup> qOut, Thread mainThread, CountDownLatch latch) throws Exception {
+				AbstractQueue<IndelPileup> qOut, Thread mainThread, CountDownLatch latch)  {
 			this.qIn = qIn;
 			this.qOut = qOut;
 			this.mainThread = mainThread;
@@ -113,6 +120,10 @@ public class IndelMT {
 			 			//prepare for next indel position
 			 		//	topPos = qIn.poll();
 			 			if( (topPos = qIn.poll()) == null) break; 
+			 			//debug
+			 			if(current_pool.size() > 1000 ||next_pool.size()>1000 )
+			 			System.out.println("debug: " + topPos.getChrPosition().toIGVString() + " : " + current_pool.size() + " (current, next) " +next_pool.size());
+			 			
 			 			resetPool(topPos,  current_pool, next_pool); 	 				 			 
 			 		}
 			 	}	 	
@@ -127,6 +138,10 @@ public class IndelMT {
 		 			qOut.add(pileup);
 					
 					if( (topPos = qIn.poll()) == null) break; 
+		 			//debug
+					if(current_pool.size() > 1000 ||next_pool.size()>1000 )
+		 			System.out.println(topPos.getChrPosition().toIGVString() + " (final): " + current_pool.size() + " (current, next) " +next_pool.size());
+
 					resetPool(topPos,  current_pool, next_pool); 							
 			 	}while( true ) ;					 					 
 			} catch (Exception e) {
@@ -181,6 +196,9 @@ public class IndelMT {
 				//merge samrecord
 				currentPool.addAll(tmp_current_pool);
 		}
+		
+		
+		
 	}
 	
 	
@@ -196,7 +214,7 @@ public class IndelMT {
 		final CountDownLatch pLatch;
 		
 		homopoPileup(String contig,   AbstractQueue<IndelPosition> qIn, File reference,  
-				AbstractQueue<Homopolymer> qOut, int window, Thread mainThread, CountDownLatch latch) throws Exception {
+				AbstractQueue<Homopolymer> qOut, int window, Thread mainThread, CountDownLatch latch) {
 			this.qIn = qIn;
 			this.qOut = qOut;
 			this.mainThread = mainThread;
@@ -238,22 +256,19 @@ public class IndelMT {
 	Options options; 
 	QLogger logger; 
 	ReadIndels indelload;
-	
-	
-	private final int sleepUnit = 10;
-	
+		
 	private final List<SAMSequenceRecord> sortedContigs = new ArrayList<SAMSequenceRecord>();
 	private Map<ChrPosition, IndelPosition> positionRecordMap ;
 	
-	public IndelMT(File inputVcf, Options options, QLogger logger) throws Exception {		
+	public IndelMT(File inputVcf, Options options, QLogger logger) throws IOException  {		
 		this.options = options;	
 		this.logger = logger; 
 
-		SAMFileReader.setDefaultValidationStringency(SAMFileReader.ValidationStringency.SILENT);
-		
-		SAMFileReader TBreader = new SAMFileReader(options.getTumourBam());
-		for (final SAMSequenceRecord contig : TBreader.getFileHeader().getSequenceDictionary().getSequences())  
+		SAMFileReader.setDefaultValidationStringency(SAMFileReader.ValidationStringency.SILENT);		
+		SAMFileReader reader = new SAMFileReader(options.getTumourBam());  
+		for (final SAMSequenceRecord contig : reader.getFileHeader().getSequenceDictionary().getSequences())  
 			sortedContigs.add(contig);
+		reader.close(); 
 		
 		this.indelload = new ReadIndels(logger);
 		indelload.LoadSingleIndels(inputVcf);	
@@ -264,7 +279,7 @@ public class IndelMT {
 		indelload.appendIndels(inputNormalVcf); 		
 	}
 	
-	public int process(final int threadNo) throws Exception{
+	public int process(final int threadNo) throws Exception {
 		positionRecordMap = indelload.getIndelMap();
 		if(positionRecordMap == null || positionRecordMap.size() == 0){
 			logger.info("Exit program since there is no indels loaded from inputs");
@@ -272,7 +287,6 @@ public class IndelMT {
 		}			
 		
         final CountDownLatch pileupLatch = new CountDownLatch(sortedContigs.size() * 2); // filtering thread               
-        final CountDownLatch homopoLatch = new CountDownLatch(threadNo); // homopolymer thread for satisfied records
         
         final AbstractQueue<IndelPileup> tumourQueue = new ConcurrentLinkedQueue<IndelPileup>();
         final AbstractQueue<Homopolymer> homopoQueue = new ConcurrentLinkedQueue<Homopolymer>();
@@ -297,17 +311,14 @@ public class IndelMT {
 		try {
 			logger.info("waiting for  threads to finish (max wait will be 20 hours)");
 			pileupThreads.awaitTermination(20, TimeUnit.HOURS);
-	//		homopoThreads.awaitTermination(20, TimeUnit.HOURS);	 
 			logger.info("All threads finished");
 			
-			 writeVCF( tumourQueue, normalQueue, homopoQueue,options.getOutput());			
+			 writeVCF( tumourQueue, normalQueue, homopoQueue,options.getOutput(),indelload.getVcfHeader());			
 			
 		} catch (Exception e) {
 			logger.error("Exception caught whilst waiting for threads to finish: " + e.getMessage(), e);
 			throw e;
 		} finally {
-			// kill off any remaining threads
-//        	homopoThreads.shutdownNow();
             pileupThreads.shutdownNow();
 		}
         
@@ -315,7 +326,7 @@ public class IndelMT {
 	}
 	
 
-	private void writeVCF(AbstractQueue<IndelPileup> tumourQueue, AbstractQueue<IndelPileup> normalQueue, AbstractQueue<Homopolymer> homopoQueue, File output ) throws IOException{
+	private void writeVCF(AbstractQueue<IndelPileup> tumourQueue, AbstractQueue<IndelPileup> normalQueue, AbstractQueue<Homopolymer> homopoQueue, File output, VcfHeader header ) throws IOException{
 		IndelPileup pileup;
 		if(positionRecordMap == null ){
 			logger.warn("the indel map: positionRecordMap point to nothing");
@@ -345,7 +356,40 @@ public class IndelMT {
 		
 		final AbstractQueue<IndelPosition> orderedList = getIndelList(null);
 		logger.info("reading indel position:  " + orderedList.size() );
-		try(VCFFileWriter writer = new VCFFileWriter( output)) {						 
+		try(VCFFileWriter writer = new VCFFileWriter( output)) {	
+			
+			//reheader
+			VcfHeader newHeader = VcfHeaderUtils.reheader(header, options.getCommandLine(), options.getfirstInputVcf().getAbsolutePath(), IndelMT.class );
+			if(options.getsecondInputVcf() != null)
+				newHeader.parseHeaderLine(VcfHeaderUtils.STANDARD_INPUT_LINE + "=" +  QExec.createUUid() + ":"+ options.getsecondInputVcf().getAbsolutePath());
+			
+			newHeader.addFilterLine(IndelUtils.FILTER_COVN12, IndelUtils.DESCRITPION_FILTER_COVN12 );
+			newHeader.addFilterLine(IndelUtils.FILTER_COVN8,  IndelUtils.DESCRITPION_FILTER_COVN8 );
+			newHeader.addFilterLine(IndelUtils.FILTER_COVT,  IndelUtils.DESCRITPION_FILTER_COVT );
+			newHeader.addFilterLine(IndelUtils.FILTER_HCOVN,  IndelUtils.DESCRITPION_FILTER_HCOVN );
+			newHeader.addFilterLine(IndelUtils.FILTER_HCOVT,  IndelUtils.DESCRITPION_FILTER_HCOVT );
+			newHeader.addFilterLine(IndelUtils.FILTER_MIN,  IndelUtils.DESCRITPION_FILTER_MIN );
+			newHeader.addFilterLine(IndelUtils.FILTER_NNS,  IndelUtils.DESCRITPION_FILTER_NNS );
+			newHeader.addFilterLine(IndelUtils.FILTER_TPART,  IndelUtils.DESCRITPION_FILTER_TPART );
+			newHeader.addFilterLine(IndelUtils.FILTER_NPART,  IndelUtils.DESCRITPION_FILTER_NPART );
+			newHeader.addFilterLine(IndelUtils.FILTER_TBIAS,  IndelUtils.DESCRITPION_FILTER_TBIAS );
+			newHeader.addFilterLine(IndelUtils.FILTER_NBIAS,  IndelUtils.DESCRITPION_FILTER_NBIAS );
+			
+			
+			header.addInfoLine(VcfHeaderUtils.INFO_SOMATIC, "1", "String", "more than three novel starts on normal BAM; "
+					+ "or more than 10% (number of supporting informative reads /number of informative reads) on normal BAM;"
+					+ "or variants only appear in tumour BAM but homopolymeric sequence exists on either side, "
+					+ "or nearby indels fallen in a size defined neighbour window.");
+			
+			header.addInfoLine(IndelUtils.INFO_HOMADJ, "1", "String", IndelUtils.DESCRITPION_INFO_HOMADJ);
+			header.addInfoLine(IndelUtils.INFO_HOMCON, "1", "String", IndelUtils.DESCRITPION_INFO_HOMCON);
+			header.addInfoLine(IndelUtils.INFO_HOMEMB, "1", "String", IndelUtils.DESCRITPION_INFO_HOMEMB);
+ 			
+			
+        	for(final VcfHeader.Record record: header)  
+        		writer.addHeader(record.toString());
+			 
+        	//adding indels
 			long count = 0;
 			IndelPosition indel; 
 			while( (indel = orderedList.poll()) != null)
@@ -359,6 +403,8 @@ public class IndelMT {
 		
 	}
 	 
+ 
+
 	/**
 	 * 
 	 * @param contig: contig name or null for whole reference

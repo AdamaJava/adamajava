@@ -3,7 +3,6 @@ package au.edu.qimr.indel.pileup;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -20,18 +19,18 @@ import org.qcmg.vcf.VCFFileReader;
 
 
 public class ReadIndels {
-//	Options options; 
 	QLogger logger; 
-	VcfHeader header; 
+	private VcfHeader header; 
  
 	//here key will be uniq for indel: chr, start, end, allel 
 	private static final  Map<ChrPosition,VcfRecord> positionRecordMap = new  ConcurrentHashMap<ChrPosition,VcfRecord>();
+	
+ 
 
 	//for testing only
 	ReadIndels(){}
 	
 	public ReadIndels( QLogger logger){
-//		this.options = options;	
 		this.logger = logger; 		
 	}
 
@@ -50,7 +49,6 @@ public class ReadIndels {
 		}	
 			
 		logger.info("only keep first sample column of tumour input vcf." );
-
 		
         try (VCFFileReader reader = new VCFFileReader(f)) {
 
@@ -62,7 +60,6 @@ public class ReadIndels {
         	 int overlapCount= 0;
 			for (final VcfRecord re : reader) {	
 				inLines ++;
-//				VcfRecord vcf = null; 
     			String StrAlt = re.getAlt(); 
     			if( StrAlt.contains(",")){ 
     				for(String alt : StrAlt.split(",")){
@@ -75,8 +72,6 @@ public class ReadIndels {
          						indelnewCount ++;
          					else overlapCount ++; 
 		 	        		//merger tumour with normal		 	        	 
-//         					positionRecordMap.put(re.getChrPosition(), 
-//         							mergeIndel(	positionRecordMap.get(re.getChrPosition()),	new IndelPosition(vcf1, type)));		 	        		 
 		 	        		break; // go to next variants
 		 	        	}
     				}  		 
@@ -187,4 +182,6 @@ public class ReadIndels {
 		}		
 		return indelPositionMap;
 	}
+	
+	public VcfHeader getVcfHeader(){ return header;	}
 }

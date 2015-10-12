@@ -48,27 +48,21 @@ public class Main {
 			logger.info("Include duplicate " + options.includeDuplicates());		
 			
 			IndelMT process; 
-			if(options.getInputVcf() != null){
-				logger.info("input vcf file:" + options.getInputVcf().getAbsolutePath());
-				process = new IndelMT(options.getInputVcf(), options, logger);
+			if(options.getsecondInputVcf() == null){
+				logger.info("input vcf file:" + options.getfirstInputVcf().getAbsolutePath());
+				process = new IndelMT(options.getfirstInputVcf(), options, logger);
 			}else{
-				logger.info("normal indel input: " + options.getNormalInputVcf().getAbsolutePath());
-				logger.info("tumour indel input " + options.getTumourInputVcf().getAbsolutePath());
-//				process = new IndelProcess(options.getTumourInputVcf(), options.getNormalInputVcf(), options, logger);
-				process = new IndelMT(options.getTumourInputVcf(), options.getNormalInputVcf(), options, logger);
+				logger.info("first indel input: " + options.getfirstInputVcf().getAbsolutePath());
+				logger.info("second indel input " + options.getsecondInputVcf().getAbsolutePath());
+				process = new IndelMT(options.getfirstInputVcf(), options.getsecondInputVcf(), options, logger);
 			}			
 			
-			exitStatus = process.process(options.getThreadNo());
-			
-		} catch (Exception e) {	
-		    System.err.println(Messages.USAGE);
-			e.printStackTrace();
-			exitStatus = 1;
-			if (null != logger) {				
-				logger.error(e.getMessage());
-			} else {
-				System.err.print(e.getMessage());
-			}
+			exitStatus = process.process(options.getThreadNo());			
+		} catch (Exception e) {				
+			String errStr = Q3IndelException.getStrackTrace(e);			
+			if (null != logger)  logger.error(errStr);
+			else  System.err.print(errStr);
+			exitStatus = 1;			 
 		}
 		 
 		if (null != logger) {

@@ -12,7 +12,7 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.util.IndelUtils.SVTYPE;
 
-import au.edu.qimr.indel.Q3PileupException;
+import au.edu.qimr.indel.Q3IndelException;
 import net.sf.picard.reference.FastaSequenceIndex;
 import net.sf.picard.reference.IndexedFastaSequenceFile;
 import net.sf.picard.reference.ReferenceSequence;
@@ -21,44 +21,20 @@ public class Homopolymer {
 	
 	public enum HOMOTYPE {HOMADJ, HOMCON,HOMEMB,NONE }
 	private final List<String> motifs ; //same chrposition but differnt allel
-//	private  final int indelStart, indelEnd; 
-//	private final String fullChromosome;
 	private final ChrPosition position;
 	
-	private final SVTYPE indelType; 
-	
-	QLogger logger = QLoggerFactory.getLogger(Homopolymer.class);
-//    private IndelPosition position;
-	private List<String> sequence ;
-	
+	private final SVTYPE indelType; 	
+	QLogger logger = QLoggerFactory.getLogger(Homopolymer.class);	
 	private byte[] upstreamReference;
 	private byte[] downstreamReference;
 	private List<byte[]> indelReferenceBases;
-//	private Lbyte[] delReferenceBases;
 	private int homopolymerWindow;
 
 	private List<HOMOTYPE> homoType = new ArrayList<HOMOTYPE>();
 	private List<Integer> homopolymerCount = new ArrayList<Integer>();
 	private List<String> homoString = new ArrayList<String>();
-
-
-//	private IndexedFastaSequenceFile indexedFasta;
-//	private File referenceFile; 
 	private byte[] referenceBase;
 
-//	public Homopolymer(IndelPosition position, File reference, int homopolymerWindow) {
-//		this.position = position.getChrPosition();
-//		this.indelType = position.getIndelType();
-//		this.motifs = position.getMotifs();
-//		
-//		this.referenceFile = reference; 
-//		this.homopolymerWindow = homopolymerWindow;
-//		getReferenceSequence();
-//		
-//		for(int i = 0 ; i < position.getMotifs().size(); i ++)
-//			findHomopolymer(i);
-//	}
-	
 	
 	public Homopolymer(IndelPosition position, final byte[] referenceBase, int homopolymerWindow) {
 		this.position = position.getChrPosition();
@@ -76,10 +52,6 @@ public class Homopolymer {
 	public HOMOTYPE getHOMOTYPE(int index){
 		return homoType.get(index);
 	}
-	
-//	public int getBaseCount(int index){
-//		return homopolymerCount.get(index);
-//	}
 	
 	public String getPolymerSequence(int index){
 		return homoString.get(index);
@@ -113,10 +85,6 @@ public class Homopolymer {
  		homoString.add(index, sb.toString());
 	}
 
- 
-	
-	
-//	public void  getContiguousBasesCount(int index) {
 	public void  findHomopolymer( int index) {
 		
 		HOMOTYPE upType = HOMOTYPE.NONE;
@@ -286,46 +254,6 @@ public class Homopolymer {
 		}
 
 	}
-	
-	
-	
-//	@Deprecated
-//	public synchronized boolean getReferenceSequence() {	
-//		final int indelStart = position.getPosition();
-//		final int  indelEnd = position.getEndPosition(); 
-//		final String fullChromosome = position.getChromosome();
-//
-//		
-//		try(IndexedFastaSequenceFile indexedFasta = getIndexedFastaFile(referenceFile)) {		  		
-//			int MaxEnd = indexedFasta.getSequence(fullChromosome).length();
-//			indelReferenceBases = new ArrayList<byte[]>() ;
-//    		if (indelType.equals(SVTYPE.DEL)) {    				
-//    			this.upstreamReference = indexedFasta.getSubsequenceAt(fullChromosome, 
-//    					Math.max(1,indelStart-homopolymerWindow), indelStart-1).getBases();        		
-//    			this.indelReferenceBases.add(
-//    					indexedFasta.getSubsequenceAt(fullChromosome, indelStart, indelEnd).getBases());
-//    			this.downstreamReference = indexedFasta.getSubsequenceAt(fullChromosome, indelEnd+1, 
-//    					Math.min(MaxEnd, indelEnd+homopolymerWindow)).getBases();
-//    		} else {
-//    			this.upstreamReference = indexedFasta.getSubsequenceAt(fullChromosome, 
-//    					Math.max(1,indelStart-homopolymerWindow+1), indelStart).getBases();	
-// //   			this.indelReferenceBases = position.getMotif().getBytes();
-//    			this.downstreamReference = indexedFasta.getSubsequenceAt(fullChromosome, indelEnd, 
-//    					Math.min(MaxEnd, indelEnd+(homopolymerWindow-1)) ).getBases(); 
-//    			
-//    			for(String motif : motifs)
-//    				this.indelReferenceBases.add(motif.getBytes());
-//    		}
-//		
-//		} catch (Exception e) {
-//			
-//	        logger.info("Error retrieving reference bases for: " + fullChromosome + " [" + indelStart + "," + indelEnd + "]");
-//	        logger.info("Error: " + Q3PileupException.getStrackTrace(e));
-//		    return false;
-//		}
-//		
-//		return true;		
-//	}
 	
 	public HOMOTYPE getType(int index) {
 		return homoType.get(index);
