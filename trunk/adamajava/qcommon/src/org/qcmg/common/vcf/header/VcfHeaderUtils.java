@@ -271,6 +271,34 @@ public class VcfHeaderUtils {
 	}
 	
 	
+	
+	
+	public static VcfHeader reheader(VcfHeader header, String cmd, String inputVcfName, Class mainClass) throws IOException {	
+		DateFormat df = new SimpleDateFormat("yyyyMMdd"); 
+		VcfHeader myHeader = header;  	
+ 		
+		String version = mainClass.getPackage().getImplementationVersion();
+		String pg = mainClass.getPackage().getImplementationTitle();
+		final String fileDate = df.format(Calendar.getInstance().getTime());
+		final String uuid = QExec.createUUid();
+		
+		myHeader.parseHeaderLine(VcfHeaderUtils.CURRENT_FILE_VERSION);
+		myHeader.parseHeaderLine(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + fileDate);
+		myHeader.parseHeaderLine(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + uuid);
+		myHeader.parseHeaderLine(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=" + pg+"-"+version);	
+			
+		String inputUuid = (myHeader.getUUID() == null)? null: new VcfHeaderUtils.SplitMetaRecord(myHeader.getUUID()).getValue();   
+		myHeader.replace(VcfHeaderUtils.STANDARD_INPUT_LINE + "=" + inputUuid + ":"+ inputVcfName);
+		
+		if(version == null) version = Constants.NULL_STRING;
+	    if(pg == null ) pg = Constants.NULL_STRING;
+	    if(cmd == null) cmd = Constants.NULL_STRING;
+		VcfHeaderUtils.addQPGLineToHeader(myHeader, pg, version, cmd);
+		
+		return myHeader;
+			
+	}
+	
 
  
 }
