@@ -43,6 +43,7 @@ import au.edu.qimr.indel.pileup.Homopolymer.HOMOTYPE;
 
 
 public class IndelMT {
+	public static final int  MAXRAMREADS = 1500; //maximum number of total reads in RAM
 		
 	class contigPileup implements Runnable {
 
@@ -105,10 +106,10 @@ public class IndelMT {
 						passFilter = exec.Execute(re);
 					else
 						passFilter = !re.getReadUnmappedFlag() && (!re.getDuplicateReadFlag() || options.includeDuplicates());
-			 		if(! passFilter ) continue; 
+			 		if(! passFilter ) continue; 			 					 	 
 			 			 		
 			 		//whether in current indel region
-			 		if(re.getAlignmentStart() <= topPos.getEnd())
+			 		if(re.getAlignmentStart() <= topPos.getEnd() && current_pool.size() < MAXRAMREADS )
 			 			current_pool.add(re);
 			 		else{
 			 			next_pool.add(re); 
@@ -120,11 +121,12 @@ public class IndelMT {
 			 			//prepare for next indel position
 			 		//	topPos = qIn.poll();
 			 			if( (topPos = qIn.poll()) == null) break; 
-			 			//debug
-			 			if(current_pool.size() > 1000 ||next_pool.size()>1000 )
-			 			System.out.println("debug: " + topPos.getChrPosition().toIGVString() + " : " + current_pool.size() + " (current, next) " +next_pool.size());
 			 			
-			 			resetPool(topPos,  current_pool, next_pool); 	 				 			 
+			 			resetPool(topPos,  current_pool, next_pool); 	 
+//			 			//debug
+//			 			if(current_pool.size() > 1000 ||next_pool.size()>1000 )
+//			 			System.out.println("debug: " + topPos.getChrPosition().toIGVString() + " : " + current_pool.size() + " (current, next) " +next_pool.size());
+			 			
 			 		}
 			 	}	 	
 			
@@ -138,11 +140,11 @@ public class IndelMT {
 		 			qOut.add(pileup);
 					
 					if( (topPos = qIn.poll()) == null) break; 
-		 			//debug
-					if(current_pool.size() > 1000 ||next_pool.size()>1000 )
-		 			System.out.println(topPos.getChrPosition().toIGVString() + " (final): " + current_pool.size() + " (current, next) " +next_pool.size());
 
 					resetPool(topPos,  current_pool, next_pool); 							
+//		 			//debug
+//					if(current_pool.size() > 1000 ||next_pool.size()>1000 )
+//		 			System.out.println(topPos.getChrPosition().toIGVString() + " (final): " + current_pool.size() + " (current, next) " +next_pool.size());
 			 	}while( true ) ;					 					 
 			} catch (Exception e) {
 				logger.error("Exception caught in pileup thread", e);
@@ -163,9 +165,14 @@ public class IndelMT {
 		 * @param nextPool: a list of SAMRecord behind previous pileup Position
 		 */
 		private void resetPool( IndelPosition topPos, List<SAMRecord> currentPool, List<SAMRecord> nextPool){
-				List<SAMRecord> tmp_current_pool = new ArrayList<SAMRecord>();			
-				
+			
+			
+				List<SAMRecord> tmp_current_pool = new ArrayList<SAMRecord>();							
 				List<SAMRecord> tmp_pool = new ArrayList<SAMRecord>();	
+				
+//				if(nextPool.size() > MAXRAMREADS ) nextPool.clear();				
+//				if(currentPool.size() >  MAXRAMREADS ) currentPool.clear();
+				
 				tmp_pool.addAll(nextPool);
 				
 				//check read record behind on current position			
@@ -176,9 +183,7 @@ public class IndelMT {
 					//aligned position cross indel
 					else if(re.getAlignmentStart() <= topPos.getEnd()) 	 					 
 						tmp_current_pool.add(re);	 				 
-				}	 
-
-				
+				}	 				
 				tmp_pool.clear();
 				tmp_pool.addAll(currentPool);
 				//check already read record  for previous pileup
