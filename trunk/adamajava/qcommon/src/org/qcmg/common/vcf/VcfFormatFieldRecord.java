@@ -50,13 +50,16 @@ public class VcfFormatFieldRecord {
 			throw new IllegalArgumentException("null key passed to getField");
 		}
 		
+		
 		if( ! field.containsKey(key))
 			return null; 
 		
-		if(StringUtils.isNullOrEmpty(field.get(key)))
+		String value = field.get(key);
+		
+		if(StringUtils.isNullOrEmpty(value))
 			return Constants.MISSING_DATA_STRING;
 		
-		return field.get(key);
+		return value;
 	}
 	
 	/**
