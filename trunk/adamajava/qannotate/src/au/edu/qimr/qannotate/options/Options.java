@@ -62,7 +62,7 @@ public class Options {
         final OptionSet options  = parser.parse(args);   
         
         if(options.has("v") || options.has("version")){
-            System.out.println( "Current version is " + getVersion());
+        		System.err.println( "qannotate: Current version is " + getVersion());
             return false;
         }
         
