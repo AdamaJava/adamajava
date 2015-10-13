@@ -5,7 +5,6 @@ import org.qcmg.common.util.Constants;
 
 public class VcfInfoFieldRecord {
 	
-//	Map<String,String> field = new LinkedHashMap<>();	
 	StringBuilder line;
 	
 	/**
@@ -14,27 +13,10 @@ public class VcfInfoFieldRecord {
 	 * @throws Exception 
 	 */
 	public VcfInfoFieldRecord(String line) {
-		//incase for some testing data
-//		if (StringUtils.isNullOrEmpty(line)){
-//			field.clear();
-//			return;
-//		}
 		if (StringUtils.isNullOrEmpty(line)) {
 			throw new IllegalArgumentException("Null or empty string passed to VcfInfoFieldRecord ctor");
 		}
 		this.line = new StringBuilder(line);
-		
-//		final String[] infos = line.trim().split(Constants.SEMI_COLON_STRING);			
-//		for (final String str: infos) {
-//			final int index = str.indexOf(Constants.EQ_STRING);			 
-//			if(index > 0) {
-//				field.put(str.substring(0,index), str.substring(index+1));
-//			} else if (index == 0) {
-//				throw new IllegalArgumentException(String.format("missing short key for value %s in INFO string: %s", str, line));
-//			} else {	// -ve
-//				field.put(str,Constants.NULL_STRING);
-//			}
-//		}
 	}
 	
 	/**
@@ -54,8 +36,6 @@ public class VcfInfoFieldRecord {
 			removeField(key);
 			addField(key, value);
 		}
-		
-//		field.put(key, value == null ? Constants.NULL_STRING : value);
 	}
 
 	/**
@@ -99,7 +79,6 @@ public class VcfInfoFieldRecord {
 			return value != null ? value : Constants.EMPTY_STRING;
 		}
 		return null;
-//		return field.get(key);
 	}
 	
 	public void removeField(String key){
@@ -137,9 +116,7 @@ public class VcfInfoFieldRecord {
 			}
 			
 			line.delete(index - scOffset, (index + kv.length() + endScOffset));
-		
 		}
-		
 
 	}
 	/**
