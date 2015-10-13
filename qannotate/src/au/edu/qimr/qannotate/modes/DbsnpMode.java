@@ -3,7 +3,6 @@ package au.edu.qimr.qannotate.modes;
 import static org.qcmg.common.util.Constants.EQ;
 
 import java.io.File;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -14,10 +13,9 @@ import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfInfoFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
-import org.qcmg.common.vcf.header.VcfHeader;
+import org.qcmg.common.vcf.header.VcfHeader.FormattedRecord;
 import org.qcmg.common.vcf.header.VcfHeader.Record;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-import org.qcmg.common.vcf.header.VcfHeader.FormattedRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils.VcfInfoType;
 import org.qcmg.vcf.VCFFileReader;
 
@@ -37,9 +35,12 @@ public class DbsnpMode extends AbstractMode{
         logger.tool("logger file " + options.getLogFileName());
         logger.tool("logger level " + options.getLogLevel());
 		
-		inputRecord(new File( options.getInputFileName())   );	
+		inputRecord(new File( options.getInputFileName())   );
+		
+		removeExistingDbSnpIds();
+		
 		if(options.isDIV())
-			DivAnnotation(options.getDatabaseFileName());
+			divAnnotation(options.getDatabaseFileName());
 		else	
 			addAnnotation(options.getDatabaseFileName() );
 		
@@ -48,24 +49,19 @@ public class DbsnpMode extends AbstractMode{
 	}
 		
 	//testing at momemnt
-	void DivAnnotation(String dbSNPFile) throws Exception{
-		//init remove all exsiting dbsnpid
-		final Iterator<VcfRecord> it = positionRecordMap.values().iterator(); 
- 	    while (it.hasNext()) {
-	        final VcfRecord vcf = it.next();
-	        vcf.setId(".");
-	        vcf.getInfoRecord().removeField(VcfHeaderUtils.INFO_DB);
- 	    }
+	void divAnnotation(String dbSNPFile) throws Exception{
+ 	    
+ 	    
 		 				 
 		try (VCFFileReader reader= new VCFFileReader( dbSNPFile )) {
 			//add dbSNP version into header		
 			List<Record>  metas = reader.getHeader().getMetaRecords(); 
-			for(Record re: metas)
+			for(Record re: metas) {
 				if(re.getData().startsWith(VcfHeaderUtils.STANDARD_DBSNP_LINE))  
 					header.parseHeaderLine(String.format("##INFO=<ID=%s,Number=0,Type=%s,Description=\"%s\",Source=%s,Version=%s>",
 									VcfHeaderUtils.INFO_DB, VcfInfoType.Flag.name(),
 									VcfHeaderUtils.DESCRITPION_INFO_DB, dbSNPFile, new VcfHeaderUtils.SplitMetaRecord(re).getValue()  ));  
-			
+			}
 			for (final VcfRecord dbSNPVcf : reader) {
 //				if ( ! StringUtils.doesStringContainSubString(dbSNPVcf.getInfo(), "VC=DIV", false)  )
 //					continue;
@@ -77,8 +73,13 @@ public class DbsnpMode extends AbstractMode{
 				
 				VcfRecord inputVcf = positionRecordMap.get(new ChrPosition("chr" + dbSNPVcf. getChromosome(), start, end ));	
 				if (null == inputVcf){  
-					start = Integer.parseInt(info.getField("RSPOS"));
-						inputVcf = positionRecordMap.get(new ChrPosition("chr" + dbSNPVcf. getChromosome(), start, end ));	
+					/*
+					 * Get RSPOS start to see if we have a position there instead
+					 */
+					int rsposStart = Integer.parseInt(info.getField("RSPOS"));
+					if (start != rsposStart) {
+						inputVcf = positionRecordMap.get(new ChrPosition("chr" + dbSNPVcf. getChromosome(), rsposStart, end ));
+					}
 				}
 				
 				
@@ -95,33 +96,35 @@ public class DbsnpMode extends AbstractMode{
 		}
 	}
 	
+	private void removeExistingDbSnpIds() {
+		//init remove all exsiting dbsnpid
+		for (VcfRecord vcf : positionRecordMap.values()) {
+			vcf.setId(".");
+			vcf.getInfoRecord().removeField(VcfHeaderUtils.INFO_DB);
+		}
+		
+	}
+	
 	@Override
 	void addAnnotation(String dbSNPFile) throws Exception{
-		//init remove all exsiting dbsnpid
-		final Iterator<VcfRecord> it = positionRecordMap.values().iterator(); 
- 	    while (it.hasNext()) {
-	        final VcfRecord vcf = it.next();
-	        vcf.setId(".");
-	        vcf.getInfoRecord().removeField(VcfHeaderUtils.INFO_DB);
- 	    }
 		 				 
 		try (VCFFileReader reader= new VCFFileReader( dbSNPFile )) {
 			//add dbSNP version into header		
 			List<Record>  metas = reader.getHeader().getMetaRecords(); 
-			for(Record re: metas)
-				if(re.getData().startsWith(VcfHeaderUtils.STANDARD_DBSNP_LINE))  
+			for (Record re: metas) {
+				if (re.getData().startsWith(VcfHeaderUtils.STANDARD_DBSNP_LINE))  
 					header.parseHeaderLine(String.format("##INFO=<ID=%s,Number=0,Type=%s,Description=\"%s\",Source=%s,Version=%s>",
 									VcfHeaderUtils.INFO_DB, VcfInfoType.Flag.name(),
 									VcfHeaderUtils.DESCRITPION_INFO_DB, dbSNPFile, new VcfHeaderUtils.SplitMetaRecord(re).getValue()  ));  		
- 			
+			}
 					
 			Map<String, FormattedRecord> snpInfoHeader = reader.getHeader().getInfoRecords();
-			if(snpInfoHeader.get(VcfHeaderUtils.INFO_CAF) != null )
+			if (snpInfoHeader.get(VcfHeaderUtils.INFO_CAF) != null ) {
 				header.parseHeaderLine( String.format("##INFO=<ID=%s,Number=.,Type=String,Description=\"%s\">", VcfHeaderUtils.INFO_VAF, VcfHeaderUtils.DESCRITPION_INFO_VAF  )	);
-			
-			if(snpInfoHeader.get(VcfHeaderUtils.INFO_VLD) != null )
+			}
+			if (snpInfoHeader.get(VcfHeaderUtils.INFO_VLD) != null ) {
 			 	header.addInfo(snpInfoHeader.get(VcfHeaderUtils.INFO_VLD));		 						 
-		 
+			}
 				
 			//below algorithm only work for SNP and compound SNP
 			for (final VcfRecord dbSNPVcf : reader) {
@@ -130,8 +133,8 @@ public class DbsnpMode extends AbstractMode{
 					continue;
 			
 				// vcf dbSNP record chromosome does not contain "chr", whereas the positionRecordMap does - add
-				final VcfInfoFieldRecord info = new VcfInfoFieldRecord(dbSNPVcf.getInfo());	
-				final int start = Integer.parseInt(info.getField("RSPOS"));
+//				final VcfInfoFieldRecord info = new VcfInfoFieldRecord(dbSNPVcf.getInfo());	
+				final int start = Integer.parseInt(dbSNPVcf.getInfoRecord().getField("RSPOS"));
 				final int end =  dbSNPVcf.getRef().length() +  dbSNPVcf.getPosition() -1;		
 				final VcfRecord inputVcf = positionRecordMap.get(new ChrPosition("chr" + dbSNPVcf. getChromosome(), start, end ));	
 				if (null == inputVcf) continue;
@@ -147,19 +150,19 @@ public class DbsnpMode extends AbstractMode{
 				
 				//*eg. dbSNP: "1 100 rs12334 A G,T,C ..." dbSNP may have multiple entries
 				//*eg. input.vcf: "1 100 101 A G ..." , "1 100 101 A T,C ..." out snp vcf are single entries			  
-				String [] alts = {}; 
-				try{					
-					alts = TabTokenizer.tokenize(dbSNPVcf.getAlt(), ','); //multi allels
-				} catch (final IllegalArgumentException e){				
-					alts = new String[] {dbSNPVcf.getAlt()};		//single allel	
-				}
+				String [] alts = dbSNPVcf.getAlt().contains(Constants.COMMA_STRING) ? TabTokenizer.tokenize(dbSNPVcf.getAlt(), Constants.COMMA) : new String[] {dbSNPVcf.getAlt()}; 
+//				try{					
+//					alts = TabTokenizer.tokenize(dbSNPVcf.getAlt(), ','); //multi allels
+//				} catch (final IllegalArgumentException e){				
+//					alts = new String[] {dbSNPVcf.getAlt()};		//single allel	
+//				}
 				
 				int altOrder = 0;
 				for (final String alt : alts) {
 					altOrder ++;
 					//if(dbSNPVcf.getAlt().toUpperCase().contains(alt.toUpperCase()) ){
  					if(inputVcf.getAlt().equalsIgnoreCase(alt.substring(start-dbSNPVcf.getPosition()))) {
-						inputVcf.appendInfo(getCAF(dbSNPVcf.getInfo(), altOrder));
+						inputVcf.appendInfo(getCAF(dbSNPVcf.getInfoRecord(), altOrder));
 						inputVcf.setId(dbSNPVcf.getId());	
 						inputVcf.appendInfo(VcfHeaderUtils.INFO_DB);
 						if(dbSNPVcf.getInfoRecord().getField(VcfHeaderUtils.INFO_VLD) != null) {
@@ -175,10 +178,12 @@ public class DbsnpMode extends AbstractMode{
 	
 
 	
-	private String getCAF(String info, int order) throws Exception{
-		final String caf =  new VcfInfoFieldRecord(info).getField(VcfHeaderUtils.INFO_CAF);
-		if(caf != null) {
-			String[] cafs = caf.replace("[", "").replace("]", "").split(Constants.COMMA_STRING);
+	public static String getCAF(VcfInfoFieldRecord info, int order) {
+		final String caf =info.getField(VcfHeaderUtils.INFO_CAF);
+		if (caf != null) {
+			
+			String[] cafs = TabTokenizer.tokenize(caf.substring(1,caf.length() -1), Constants.COMMA);
+//			String[] cafs = caf.replace("[", "").replace("]", "").split(Constants.COMMA_STRING);
 			if(cafs.length > order)			
 				return StringUtils.addToString(VcfHeaderUtils.INFO_VAF, cafs[order], EQ);			
 		}
