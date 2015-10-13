@@ -16,6 +16,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.qcmg.common.util.Constants;
+import org.qcmg.common.vcf.VcfInfoFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
@@ -40,6 +41,16 @@ public class DbsnpModeTest {
 		 new File(dbSNPName).delete();
 		 new File(outputName).delete();
 		 
+	 }
+	 
+	 @Test
+	 public void getCAF() {
+		 String infoString = "RS=200367378;RSPOS=167779935;dbSNPBuildID=137;SSR=0;SAO=0;VP=0x050000080005000016000100;WGT=1;VC=SNV;INT;ASP;KGPhase1;KGPROD;OTHERKG;CAF=[0.9995,.,0.0004591];COMMON=0";
+		 
+		 assertEquals("VAF=0.9995", DbsnpMode.getCAF(new VcfInfoFieldRecord(infoString), 0));
+		 assertEquals("VAF=.", DbsnpMode.getCAF(new VcfInfoFieldRecord(infoString), 1));
+		 assertEquals("VAF=0.0004591", DbsnpMode.getCAF(new VcfInfoFieldRecord(infoString), 2));
+		 assertEquals(null, DbsnpMode.getCAF(new VcfInfoFieldRecord(infoString), 3));
 	 }
 	 
 	@Test
