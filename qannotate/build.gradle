@@ -28,7 +28,7 @@ jar.doFirst {
   jar {
      manifest {
         attributes 'Implementation-Title': project.name,
-                   'Implementation-Version': version,
+                    'Implementation-Version': "$version ($svnVersion)",
                    'SVN-Version': svnVersion,
                    'Built-By': System.properties['user.name'],
                    'Date': new java.util.Date().toString(),
