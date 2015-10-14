@@ -8,17 +8,17 @@ import static org.qcmg.common.util.SnpUtils.PASS;
 
 import java.io.File;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 import org.qcmg.common.log.QLogger;
+import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.TorrentVerificationStatus;
+import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.DonorUtils;
 import org.qcmg.common.util.SnpUtils;
 import org.qcmg.common.vcf.VcfFormatFieldRecord;
-import org.qcmg.common.vcf.VcfInfoFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
@@ -31,6 +31,7 @@ import au.edu.qimr.qannotate.options.ConfidenceOptions;
  *
  */
 public class ConfidenceMode extends AbstractMode{
+	private static final QLogger thisLogger = QLoggerFactory.getLogger(ConfidenceMode.class);
 	
 	public static final int HIGH_CONF_NOVEL_STARTS_PASSING_SCORE = 4;
 	public static final int LOW_CONF_NOVEL_STARTS_PASSING_SCORE = 4;
@@ -98,38 +99,56 @@ public class ConfidenceMode extends AbstractMode{
 	//inherited method from super
 	void addAnnotation(String verificationFile) throws Exception{
 
-		final Map<ChrPosition, TorrentVerificationStatus> VerifiedData;
+		final Map<ChrPosition, TorrentVerificationStatus> verifiedData;
 		//load verified file
-		if(verificationFile != null){
+		if (verificationFile != null){
 			final Map<String, Map<ChrPosition, TorrentVerificationStatus>> verifiedDataAll = new HashMap<String, Map<ChrPosition, TorrentVerificationStatus>>();
 			MafUtils.getVerifiedData(verificationFile, patientId,verifiedDataAll );
-			VerifiedData = verifiedDataAll.get(patientId);		
-		 }else
-			 VerifiedData = null;
+			verifiedData = verifiedDataAll.get(patientId);		
+		 } else {
+			 verifiedData = null;
+		 }
 		
+		int high = 0;
+		int low = 0;
+		int zero = 0;
 		
 		//check high, low nns...
-		final Iterator<  ChrPosition > it = positionRecordMap.keySet().iterator();
-	    while (it.hasNext()) {
-	    	final ChrPosition pos = it.next();
-	    	final VcfRecord vcf = positionRecordMap.get(pos);
-	    	final VcfInfoFieldRecord infoRecord = new VcfInfoFieldRecord(vcf.getInfo());	
+		for (VcfRecord vcf : positionRecordMap.values()) {
+		
+//		final Iterator<  ChrPosition > it = positionRecordMap.keySet().iterator();
+//	    while (it.hasNext()) {
+//		    	final ChrPosition pos = it.next();
+//		    	final VcfRecord vcf = positionRecordMap.get(pos);
+//		    	final VcfInfoFieldRecord infoRecord = new VcfInfoFieldRecord(vcf.getInfo());	
+			
+		 	final ChrPosition pos = vcf.getChrPosition();
+		 	VcfFormatFieldRecord formatField = (vcf.getInfo().contains(VcfHeaderUtils.INFO_SOMATIC)) ? vcf.getSampleFormatRecord(test_column) :  vcf.getSampleFormatRecord(control_column);
+
 	    		    	
-	        if (VerifiedData != null && VerifiedData.get(pos) != null && VerifiedData.get(pos).equals( TorrentVerificationStatus.YES))  
-	        	 infoRecord.setField(VcfHeaderUtils.INFO_CONFIDENT, Confidence.HIGH.toString());		        
-	        else if ( checkNovelStarts(HIGH_CONF_NOVEL_STARTS_PASSING_SCORE, vcf) 
-					&& ( getAltFrequency(vcf) >=  HIGH_CONF_ALT_FREQ_PASSING_SCORE)
-					&& PASS.equals(vcf.getFilter()))  
-	        	 infoRecord.setField(VcfHeaderUtils.INFO_CONFIDENT, Confidence.HIGH.toString());		        	 				 				
-			else if ( checkNovelStarts(LOW_CONF_NOVEL_STARTS_PASSING_SCORE, vcf) 
-					&& ( getAltFrequency(vcf) >= LOW_CONF_ALT_FREQ_PASSING_SCORE )
-					&& isClassB(vcf.getFilter()) )
-				 infoRecord.setField(VcfHeaderUtils.INFO_CONFIDENT, Confidence.LOW.toString());					 
-			 else
-				 infoRecord.setField(VcfHeaderUtils.INFO_CONFIDENT, Confidence.ZERO.toString());		  
-	        
-	        vcf.setInfo(infoRecord.toString());	        
-	    } 	
+	        if (verifiedData != null && verifiedData.get(pos) != null && verifiedData.get(pos).equals( TorrentVerificationStatus.YES)) {
+	        		vcf.getInfoRecord().setField(VcfHeaderUtils.INFO_CONFIDENT, Confidence.HIGH.toString());
+	        		high++;
+	        } else if ( checkNovelStarts(HIGH_CONF_NOVEL_STARTS_PASSING_SCORE, formatField)
+					&& ( getAltFrequency(formatField, vcf.getAlt()) >=  HIGH_CONF_ALT_FREQ_PASSING_SCORE)
+					&& PASS.equals(vcf.getFilter())) {
+	        	
+	        		vcf.getInfoRecord().setField(VcfHeaderUtils.INFO_CONFIDENT, Confidence.HIGH.toString());		        	 				 				
+	        		high++;
+	        } else if ( checkNovelStarts(LOW_CONF_NOVEL_STARTS_PASSING_SCORE, formatField)
+					&& ( getAltFrequency(formatField, vcf.getAlt()) >= LOW_CONF_ALT_FREQ_PASSING_SCORE )
+					&& isClassB(vcf.getFilter()) ) {
+	        	
+	        		vcf.getInfoRecord().setField(VcfHeaderUtils.INFO_CONFIDENT, Confidence.LOW.toString());					 
+	        		low++;
+	        } else {
+	        		vcf.getInfoRecord().setField(VcfHeaderUtils.INFO_CONFIDENT, Confidence.ZERO.toString());
+	        		zero++;
+	        }
+//	        vcf.setInfo(vcf.getInfoRecord().toString());
+	    }
+		
+		thisLogger.info("Confidence breakdown, high: " + high + ", low: " + low + ", zero: " + zero);
  
 		//add header line  set number to 1
 		header.addInfoLine(VcfHeaderUtils.INFO_CONFIDENT, "1", "String", DESCRITPION_INFO_CONFIDENCE);
@@ -140,16 +159,17 @@ public class ConfidenceMode extends AbstractMode{
 	 * @param filter
 	 * @return true if the filter string match "PASS", "MIUN","SAN3" and "COVN12";
 	 */
-	private boolean isClassB(String filter){
+	public static final boolean isClassB(String filter){
 		if (SnpUtils.PASS.equals(filter))
 				return true;
 		
+		if (null == filter) {
+			throw new IllegalArgumentException("Null filter string passed to ConfidenceMode.isClassB");
+		}
 		//remove MUTATION_IN_UNFILTERED_NORMAL
 		final String f = filter.replace(MUTATION_IN_UNFILTERED_NORMAL, "").replace(SEMI_COLON_STRING,"").trim();
-		if(f.equals(Constants.EMPTY_STRING) ||  LESS_THAN_12_READS_NORMAL.equals(f)  ||   LESS_THAN_3_READS_NORMAL.equals(f))
-			 return true;
 		
-		return false;
+		return f.equals(Constants.EMPTY_STRING) ||  LESS_THAN_12_READS_NORMAL.equals(f)  ||   LESS_THAN_3_READS_NORMAL.equals(f);
 	}
 	
 	
@@ -157,22 +177,25 @@ public class ConfidenceMode extends AbstractMode{
 	 * @param vcf
 	 * @return
 	 */
-	private int getAltFrequency(VcfRecord vcf){
-		 final String info =  vcf.getInfo();
-		 final VcfFormatFieldRecord re = (info.contains(VcfHeaderUtils.INFO_SOMATIC)) ? vcf.getSampleFormatRecord(test_column) :  vcf.getSampleFormatRecord(control_column);
+	public static final int getAltFrequency(VcfFormatFieldRecord re, String alt){
+//		 final String info =  vcf.getInfo();
+//		 final VcfFormatFieldRecord re = (info.contains(VcfHeaderUtils.INFO_SOMATIC)) ? vcf.getSampleFormatRecord(test_column) :  vcf.getSampleFormatRecord(control_column);
 		 
-		 return VcfUtils.getAltFrequency(re, vcf.getAlt());	 
+		 return VcfUtils.getAltFrequency(re, alt);	 
 	}
  
-	 private boolean   checkNovelStarts(int score, VcfRecord vcf ) {
-		 
-		 //if marked "NNS" on filter, return false
-		 String[] filters = vcf.getFilter().split(SEMI_COLON_STRING);
-		 for(int i = 0; i < filters.length; i ++)
-			 if(filters[i].equals(VcfHeaderUtils.FILTER_NOVEL_STARTS))
-				 return false;
-		 
-		 return true;
+	/*
+	 * Get the relevant format field, and check the NNS value 
+	 */
+	 public static final boolean checkNovelStarts(int score, VcfFormatFieldRecord formatField ) {
+		 String nnsString = formatField.getField(VcfHeaderUtils.FILTER_NOVEL_STARTS);
+		 if (StringUtils.isNullOrEmpty(nnsString) || nnsString.equals(Constants.MISSING_DATA_STRING)) {
+			 /*
+			  * If we don't have a value for NNS (I'm looking at you compound snps), then return true...
+			  */
+			 return true;
+		 }
+		 return Integer.parseInt(nnsString) >= score;
 	 }  
 }	
 	

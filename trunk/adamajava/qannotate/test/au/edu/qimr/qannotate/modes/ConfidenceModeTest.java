@@ -1,5 +1,6 @@
 package au.edu.qimr.qannotate.modes;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.BufferedWriter;
@@ -10,11 +11,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.qcmg.common.util.SnpUtils;
+import org.qcmg.common.vcf.VcfFormatFieldRecord;
 import org.qcmg.common.vcf.VcfInfoFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
-import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 
@@ -41,7 +44,64 @@ public class ConfidenceModeTest {
 		 new File(DbsnpModeTest.outputName).delete();
 		 
 	 }
+	 
+	 @Test
+	 public void classB() {
+		 try {
+			 assertEquals(false, ConfidenceMode.isClassB(null));
+			 Assert.fail();
+		 } catch (IllegalArgumentException iae) {}
+		 
+		 assertEquals(true, ConfidenceMode.isClassB(""));
+		 assertEquals(true, ConfidenceMode.isClassB(SnpUtils.PASS));
+		 assertEquals(true, ConfidenceMode.isClassB(SnpUtils.MUTATION_IN_UNFILTERED_NORMAL));
+		 assertEquals(true, ConfidenceMode.isClassB(SnpUtils.LESS_THAN_12_READS_NORMAL));
+		 assertEquals(true, ConfidenceMode.isClassB(SnpUtils.LESS_THAN_3_READS_NORMAL));
+		 assertEquals(true, ConfidenceMode.isClassB(SnpUtils.LESS_THAN_3_READS_NORMAL + ";" + SnpUtils.MUTATION_IN_UNFILTERED_NORMAL));
+		 assertEquals(false, ConfidenceMode.isClassB(SnpUtils.LESS_THAN_3_READS_NORMAL + ";" + SnpUtils.MUTATION_IN_UNFILTERED_NORMAL + ";" + SnpUtils.LESS_THAN_12_READS_NORMAL));
+		 assertEquals(false, ConfidenceMode.isClassB(SnpUtils.LESS_THAN_8_READS_TUMOUR));
+		 assertEquals(false, ConfidenceMode.isClassB(SnpUtils.LESS_THAN_8_READS_TUMOUR + ";" + SnpUtils.MUTATION_IN_UNFILTERED_NORMAL));
+	 }
+	 
+	 @Test
+	 public void novelStarts() {
+		 VcfFormatFieldRecord format = new VcfFormatFieldRecord("ACCS","GA,1,2,GT,1,0,TG,43,51,GG,0,1,TA,0,2");
+		 assertEquals(true, ConfidenceMode.checkNovelStarts(0, format));
+		 format = new VcfFormatFieldRecord("GT:GD:AC:MR:NNS","1/1:G/G:A2[40.5],0[0],G2[34],1[35]:3:3");
+		 assertEquals(true, ConfidenceMode.checkNovelStarts(0, format));
+		 assertEquals(true, ConfidenceMode.checkNovelStarts(1, format));
+		 assertEquals(true, ConfidenceMode.checkNovelStarts(2, format));
+		 assertEquals(true, ConfidenceMode.checkNovelStarts(3, format));
+		 assertEquals(false, ConfidenceMode.checkNovelStarts(4, format));
+	 }
 	
+	 @Test
+	 public void altFrequence() {
+		 /*
+		  * Compound snps first
+		  */
+		 VcfFormatFieldRecord format = new VcfFormatFieldRecord("ACCS","GA,1,2,GT,1,0,TG,43,51,GG,0,1,TA,0,2");
+		 assertEquals(101, ConfidenceMode.getAltFrequency(format, null));
+		 assertEquals(3, ConfidenceMode.getAltFrequency(format, "GA"));
+		 assertEquals(1, ConfidenceMode.getAltFrequency(format, "GT"));
+		 assertEquals(94, ConfidenceMode.getAltFrequency(format, "TG"));
+		 assertEquals(1, ConfidenceMode.getAltFrequency(format, "GG"));
+		 assertEquals(2, ConfidenceMode.getAltFrequency(format, "TA"));
+		 assertEquals(0, ConfidenceMode.getAltFrequency(format, "AB"));
+		 
+		 /*
+		  * regular snps
+		  */
+		 format = new VcfFormatFieldRecord("AC","C1[35],2[39],T2[40],1[7]");
+		 assertEquals(6, ConfidenceMode.getAltFrequency(format, null));
+		 assertEquals(3, ConfidenceMode.getAltFrequency(format, "C"));
+		 assertEquals(3, ConfidenceMode.getAltFrequency(format, "T"));
+		 assertEquals(0, ConfidenceMode.getAltFrequency(format, "A"));
+		 assertEquals(0, ConfidenceMode.getAltFrequency(format, ""));
+		 assertEquals(0, ConfidenceMode.getAltFrequency(format, "XYZ"));
+		 
+		 
+	 }
 	
 	//@Ignore 
 	 @Test (expected=Exception.class)
