@@ -389,7 +389,7 @@ public class MafEndometrialPipeline extends MafPipeline {
 //			long start = System.nanoTime();
 //			long elapsedTime = 0;
 //			
-//			SAMFileReader reader = new SAMFileReader(bamFile);
+//			SamReader reader = new SAMFileReader(bamFile);
 //			// if we have a small no of positions, no need to cache
 //			reader.enableIndexCaching(ncMafs.size() < 10);
 //			

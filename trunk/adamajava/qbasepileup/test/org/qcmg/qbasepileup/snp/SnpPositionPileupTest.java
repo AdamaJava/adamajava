@@ -18,20 +18,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import net.sf.picard.reference.IndexedFastaSequenceFile;
-import net.sf.picard.reference.ReferenceSequence;
-import net.sf.samtools.SAMFileHeader;
-import net.sf.samtools.SAMFileHeader.SortOrder;
-import net.sf.samtools.SAMFileReader;
-import net.sf.samtools.SAMFileWriter;
-import net.sf.samtools.SAMFileWriterFactory;
-import net.sf.samtools.SAMRecord;
+import htsjdk.samtools.reference.IndexedFastaSequenceFile;
+import htsjdk.samtools.reference.ReferenceSequence;
+import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SAMFileHeader.SortOrder;
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.SAMFileWriter;
+import htsjdk.samtools.SAMFileWriterFactory;
+import htsjdk.samtools.SAMRecord;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qbasepileup.InputBAM;
 import org.qcmg.qbasepileup.Options;
 import org.qcmg.qbasepileup.QBasePileupException;
@@ -305,7 +306,8 @@ public class SnpPositionPileupTest {
 	private void createBamFile() throws IOException {
 		createSAMFile();
 		
-        SAMFileReader reader = new SAMFileReader(new File(samFile));
+        SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(samFile));
+    
         SAMFileHeader header = reader.getFileHeader();
         
 		SAMFileWriterFactory factory = new SAMFileWriterFactory();

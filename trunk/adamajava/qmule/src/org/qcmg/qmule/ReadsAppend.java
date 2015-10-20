@@ -7,18 +7,11 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import net.sf.samtools.*;
-import java.io.*;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.nio.file.Files;
+import htsjdk.samtools.*;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Objects;
 
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.SAMOrBAMWriterFactory;
@@ -48,7 +41,7 @@ public class ReadsAppend {
 		//ArrayList<SAMFileReader> readers = new ArrayList<SAMFileReader>();	
 		
 		
-		ArrayList<SAMFileReader> readers = new ArrayList<SAMFileReader>();	
+		ArrayList<SamReader> readers = new ArrayList<SamReader>();	
 		for (File f: inputs) 
 			readers.add( SAMFileReaderFactory.createSAMFileReader(f));
 		
@@ -57,7 +50,7 @@ public class ReadsAppend {
 		SAMOrBAMWriterFactory factory = new SAMOrBAMWriterFactory(header, true, output,2000000 );
         SAMFileWriter writer = factory.getWriter();
         
-        for( SAMFileReader reader : readers){
+        for( SamReader reader : readers){
         	for( SAMRecord record : reader)
         		writer.addAlignment(record);
         	reader.close();

@@ -8,7 +8,7 @@
  */
 package org.qcmg.qprofiler.util;
 
-import net.sf.samtools.SAMRecord;
+import htsjdk.samtools.SAMRecord;
 
 import org.qcmg.common.string.StringUtils;
 

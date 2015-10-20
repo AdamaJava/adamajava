@@ -17,10 +17,10 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import net.sf.samtools.SAMFileHeader;
-import net.sf.samtools.SAMFileReader;
-import net.sf.samtools.SAMRecord;
-import net.sf.samtools.SAMSequenceRecord;
+import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SAMSequenceRecord;
 
 import org.ini4j.Ini;
 import org.qcmg.common.log.QLogger;
@@ -270,8 +270,8 @@ public final class VcfPipeline extends Pipeline {
 				|| null == testBams || testBams.length == 0 
 				|| StringUtils.isNullOrEmpty(testBams[0])) return null;
 		
-		final SAMFileHeader controlHeader = SAMFileReaderFactory.createSAMFileReader(controlBams[0]).getFileHeader();
-		final SAMFileHeader analysisHeader = SAMFileReaderFactory.createSAMFileReader(testBams[0]).getFileHeader();
+		final SAMFileHeader controlHeader = SAMFileReaderFactory.createSAMFileReader(new File(controlBams[0])).getFileHeader();
+		final SAMFileHeader analysisHeader = SAMFileReaderFactory.createSAMFileReader(new File(testBams[0])).getFileHeader();
 		
 		final QDccMeta dccMeta = QDccMetaFactory.getDccMeta(qexec, controlHeader, analysisHeader, "GATK");
 		
@@ -465,7 +465,7 @@ public final class VcfPipeline extends Pipeline {
 	 * 
 	 */
 	public class Pileup implements Runnable {
-		private final SAMFileReader reader;
+		private final SamReader reader;
 		private final boolean isNormal;
 		private final ConcurrentMap<ChrPosition , Accumulator> pileupMap;
 		private int arraySize;
@@ -478,12 +478,12 @@ public final class VcfPipeline extends Pipeline {
 		public Pileup(final String bamFile, final CountDownLatch latch, final boolean isNormal) {
 			this.isNormal = isNormal;
 			pileupMap = isNormal ? controlPileup : testPileup;
-			reader = SAMFileReaderFactory.createSAMFileReader(bamFile);
+			reader = SAMFileReaderFactory.createSAMFileReader(new File(bamFile));
 			snps = new ArrayList<ChrPosition>(positionRecordMap.keySet());
 			this.latch = latch;
 		}
 		
-		private void createComparatorFromSAMHeader(SAMFileReader reader) {
+		private void createComparatorFromSAMHeader(SamReader reader) {
 			final SAMFileHeader header = reader.getFileHeader();
 			
 			final List<String> sortedContigs = new ArrayList<String>();
@@ -679,6 +679,9 @@ public final class VcfPipeline extends Pipeline {
 			} finally {
 				try {
 					reader.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				} finally {
 					latch.countDown();
 				}

@@ -12,9 +12,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import net.sf.samtools.SAMFileHeader;
-import net.sf.samtools.SAMFileReader;
-import net.sf.samtools.SAMReadGroupRecord;
+import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.SAMReadGroupRecord;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -146,7 +146,7 @@ public class BAMHeaderChecker {
 	
 	private List<String> getConstituentBamFiles(File bamFile) {
 		List<String> results = new ArrayList<String>();
-		SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile);
+		SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile);
 		try {
 		
 			SAMFileHeader header = reader.getFileHeader();

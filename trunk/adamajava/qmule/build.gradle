@@ -24,9 +24,7 @@ dependencies {
     }
 
     compile name: 'jopt-simple', version: '4.6'
-    compile name: 'picard', version: '1.110'
-    compile name: 'sam', version: '1.110'
-    compile name: 'htsjdk', version: '1.130'
+    compile name: 'htsjdk', version: '1.140'
 
     testCompile name: 'junit', version: '4.10'
 }

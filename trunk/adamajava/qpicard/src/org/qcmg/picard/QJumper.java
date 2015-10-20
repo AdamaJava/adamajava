@@ -4,19 +4,20 @@
 package org.qcmg.picard;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.sf.samtools.SAMFileReader;
-import net.sf.samtools.SAMRecord;
-import net.sf.samtools.SAMRecordIterator;
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SAMRecordIterator;
 
 import org.qcmg.common.util.FileUtils;
 
 
 public class QJumper {
 	
-	private List<SAMFileReader> readers = new ArrayList<SAMFileReader>();
+	private List<SamReader> readers = new ArrayList<SamReader>();
 
 	/**
 	 * Returns all SAMRecords that have reads that are at the supplied contig and position
@@ -39,7 +40,7 @@ public class QJumper {
 		List<SAMRecord> records = null;
 		if ( ! readers.isEmpty()) {
 			records = new ArrayList<SAMRecord>();
-			for (SAMFileReader reader : readers) {
+			for (SamReader reader : readers) {
 				SAMRecordIterator iter = reader.queryOverlapping(contig, start, end);
 				while (iter.hasNext()) {
 					records.add(iter.next());
@@ -86,9 +87,9 @@ public class QJumper {
 		
 	}
 	
-	public void closeReader() {
+	public void closeReader() throws IOException {
 		if ( ! readers.isEmpty()) {
-			for (SAMFileReader smf : readers) smf.close();
+			for (SamReader smf : readers) smf.close();
 		}
 	}
 	

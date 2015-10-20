@@ -3,6 +3,8 @@
  */
 package org.qcmg.pileup.mode;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.AbstractQueue;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -19,9 +21,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import ncsa.hdf.hdf5lib.H5;
-import net.sf.samtools.SAMFileReader;
-import net.sf.samtools.SAMRecord;
-import net.sf.samtools.SAMRecordIterator;
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SAMRecordIterator;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -320,7 +322,7 @@ public class AddMT {
 	        private NonReferenceRecord forwardNonRef = null;
 	        private NonReferenceRecord reverseNonRef = null;			
 		    private Chromosome chromosome;
-		    private Map<String, SAMFileReader> bamMap = new HashMap<String, SAMFileReader>();
+		    private Map<String, SamReader> bamMap = new HashMap<String, SamReader>();
 		    
 	        public PileupAnalysis(AbstractQueue<Chromosome> qIn,
 	               Thread mainThread,
@@ -330,7 +332,7 @@ public class AddMT {
 	            this.pileupLatch = fLatch;
 	            
 	            for (String bam : bamFiles) {
-	            	bamMap.put(bam, SAMFileReaderFactory.createSAMFileReader(bam));
+	            	bamMap.put(bam, SAMFileReaderFactory.createSAMFileReader(new File(bam)));
 	            }
 	        }
 
@@ -403,12 +405,14 @@ public class AddMT {
 	                
 	                logger.info("Completed pileup thread: "
 	                        + Thread.currentThread().getName());
+	                
+	                closeBamFileReaders();
 	            } catch (Exception e) {
 	                logger.error("Setting exitstatus to 1. Exception caught in pileup thread: " + PileupUtil.getStrackTrace(e));
 	                exitStatus.incrementAndGet();	                
 	                Thread.currentThread().interrupt();
 	            } finally {
-	            	closeBamFileReaders();
+	            	
 	                logger.debug(String.format(" total slept %d times since input queue is empty and %d time since either output queue is full. each sleep take %d mill-second. queue size for qIn, qOutGood and qOutBad are %d",
 	                                sleepcount, countOutputSleep, sleepUnit,
 	                                queueIn.size()));
@@ -417,8 +421,8 @@ public class AddMT {
 	            }
 	        }
 
-			private void closeBamFileReaders() {
-				for (Entry<String, SAMFileReader> entry: bamMap.entrySet()) {
+			private void closeBamFileReaders() throws IOException {
+				for (Entry<String, SamReader> entry: bamMap.entrySet()) {
 					entry.getValue().close();
 				}
 				
@@ -431,7 +435,7 @@ public class AddMT {
 	            	forwardNonRef = new NonReferenceRecord(name, size, false, lowReadCount, nonrefThreshold);
 	            	reverseNonRef = new NonReferenceRecord(name, size, true, lowReadCount, nonrefThreshold);
 					
-					SAMFileReader reader = bamMap.get(bamFile);
+					SamReader reader = bamMap.get(bamFile);
 	            	SAMRecordIterator iterator = reader.queryOverlapping(name, queryStart, queryEnd);
 	            	
 	            	//check to make sure there are some reads

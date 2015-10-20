@@ -11,10 +11,10 @@ package org.qcmg.qprofiler.bam;
 import java.io.File;
 import java.util.List;
 
-import net.sf.samtools.SAMFileReader;
-import net.sf.samtools.SAMProgramRecord;
-import net.sf.samtools.SAMRecord;
-import net.sf.samtools.SAMSequenceDictionary;
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.SAMProgramRecord;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SAMSequenceDictionary;
 
 import org.qcmg.common.date.DateUtils;
 import org.qcmg.common.log.QLevel;
@@ -52,7 +52,7 @@ public class BamSummarizer implements Summarizer {
 	
 	@Override
 	public SummaryReport summarize(File file) throws Exception {
-		SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(file, validation);
+		SamReader reader = SAMFileReaderFactory.createSAMFileReader(file, validation);
 		
 		// create the SummaryReport
 		BamSummaryReport bamSummaryReport = new BamSummaryReport(includes, maxRecords, tags, tagsInt, tagsChar);

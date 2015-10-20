@@ -11,7 +11,8 @@ import java.util.Vector;
 
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
-import net.sf.samtools.SAMFileReader;
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.ValidationStringency;
 
 /**
  * The Class Options.
@@ -322,15 +323,15 @@ public final class Options {
 		return options.has("bai");
 	}
 	
-	public SAMFileReader.ValidationStringency getValidation() throws Exception{	
+	public ValidationStringency getValidation() throws Exception{	
 		
 		if( options.has("validation")){
 			if( options.valueOf("validation").toString().equalsIgnoreCase("LENIENT"))
-				return SAMFileReader.ValidationStringency.LENIENT;
+				return ValidationStringency.LENIENT;
 			else if( options.valueOf("validation").toString().equalsIgnoreCase("SILENT"))
-				return SAMFileReader.ValidationStringency.SILENT;
+				return ValidationStringency.SILENT;
 			else if( options.valueOf("validation").toString().equalsIgnoreCase("STRICT"))
-				return  SAMFileReader.ValidationStringency.STRICT;
+				return  ValidationStringency.STRICT;
 			else
 				throw new Exception("invalid validation option: " + options.valueOf("validation").toString() + " Possible values: {STRICT, LENIENT, SILENT}" );
 		}

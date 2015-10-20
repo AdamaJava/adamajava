@@ -10,9 +10,10 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.Vector;
 
-import net.sf.samtools.SAMFileReader;
-import net.sf.samtools.SAMRecord;
-import net.sf.samtools.SAMRecordCoordinateComparator;
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.SamReader.AssertingIterator;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SAMRecordCoordinateComparator;
 
 import org.junit.After;
 import org.junit.Before;
@@ -88,7 +89,7 @@ public class FileMergerTest {
 		new FileMerger(OUTPUT_FILE_NAME, args, "commandLine", true);
 
 		File fileA = new File(FILE_NAME_A);
-		SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(fileA);
+		SamReader reader = SAMFileReaderFactory.createSAMFileReader(fileA);
 		int countA = 0;
 		for (@SuppressWarnings("unused")
 		SAMRecord record : reader) {
@@ -123,7 +124,7 @@ public class FileMergerTest {
 		new FileMerger(OUTPUT_FILE_NAME, args, "commandLine", true);
 
 		File fileA = new File(FILE_NAME_A);
-		SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(fileA);
+		SamReader reader = SAMFileReaderFactory.createSAMFileReader(fileA);
 		int countA = 0;
 		for (@SuppressWarnings("unused")
 		SAMRecord record : reader) {
@@ -163,8 +164,8 @@ public class FileMergerTest {
 		assert (countA == splitCountA);
 		assert (countB == splitCountB);
 
-		SAMFileReader readerA = SAMFileReaderFactory.createSAMFileReader(fileA);
-		SAMFileReader splitReaderA = SAMFileReaderFactory.createSAMFileReader(splitFileA);
+		SamReader readerA = SAMFileReaderFactory.createSAMFileReader(fileA);
+		SamReader splitReaderA = SAMFileReaderFactory.createSAMFileReader(splitFileA);
 		Iterator<SAMRecord> iterA = splitReaderA.iterator();
 		for (SAMRecord record : readerA) {
 			SAMRecord splitRecord = iterA.next();
@@ -172,8 +173,8 @@ public class FileMergerTest {
 			assert (record.getFlags() == splitRecord.getFlags());
 		}
 
-		SAMFileReader readerB = SAMFileReaderFactory.createSAMFileReader(fileB);
-		SAMFileReader splitReaderB = SAMFileReaderFactory.createSAMFileReader(splitFileB);
+		SamReader readerB = SAMFileReaderFactory.createSAMFileReader(fileB);
+		SamReader splitReaderB = SAMFileReaderFactory.createSAMFileReader(splitFileB);
 		Iterator<SAMRecord> iterB = splitReaderB.iterator();
 		for (SAMRecord record : readerB) {
 			SAMRecord splitRecord = iterB.next();
@@ -198,7 +199,7 @@ public class FileMergerTest {
 		new FileMerger(OUTPUT_FILE_NAME, args2, "commandLine", true);
 
 		File fileA = new File(FILE_NAME_A);
-		SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(fileA);
+		SamReader reader = SAMFileReaderFactory.createSAMFileReader(fileA);
 		int countA = 0;
 		for (@SuppressWarnings("unused")
 		SAMRecord record : reader) {
@@ -251,7 +252,7 @@ public class FileMergerTest {
 		new FileMerger(OUTPUT_FILE_NAME, args2, "commandLine", true);
 
 		File fileA = new File(FILE_NAME_A);
-		SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(fileA);
+		SamReader reader = SAMFileReaderFactory.createSAMFileReader(fileA);
 		int countA = 0;
 		for (@SuppressWarnings("unused")
 		SAMRecord record : reader) {
@@ -324,8 +325,8 @@ public class FileMergerTest {
 		assert (countB == splitCountB);
 		assert (countC == splitCountC);
 
-		SAMFileReader readerA = SAMFileReaderFactory.createSAMFileReader(fileA);
-		SAMFileReader splitReaderA = SAMFileReaderFactory.createSAMFileReader(splitFileA);
+		SamReader readerA = SAMFileReaderFactory.createSAMFileReader(fileA);
+		SamReader splitReaderA = SAMFileReaderFactory.createSAMFileReader(splitFileA);
 		Iterator<SAMRecord> iterA = splitReaderA.iterator();
 		for (SAMRecord record : readerA) {
 			SAMRecord splitRecord = iterA.next();
@@ -333,8 +334,8 @@ public class FileMergerTest {
 			assert (record.getFlags() == splitRecord.getFlags());
 		}
 
-		SAMFileReader readerB = SAMFileReaderFactory.createSAMFileReader(fileB);
-		SAMFileReader splitReaderB = SAMFileReaderFactory.createSAMFileReader(splitFileB);
+		SamReader readerB = SAMFileReaderFactory.createSAMFileReader(fileB);
+		SamReader splitReaderB = SAMFileReaderFactory.createSAMFileReader(splitFileB);
 		Iterator<SAMRecord> iterB = splitReaderB.iterator();
 		for (SAMRecord record : readerB) {
 			SAMRecord splitRecord = iterB.next();
@@ -342,8 +343,8 @@ public class FileMergerTest {
 			assert (record.getFlags() == splitRecord.getFlags());
 		}
 
-		SAMFileReader readerC = SAMFileReaderFactory.createSAMFileReader(fileC);
-		SAMFileReader splitReaderC = SAMFileReaderFactory.createSAMFileReader(splitFileC);
+		SamReader readerC = SAMFileReaderFactory.createSAMFileReader(fileC);
+		SamReader splitReaderC = SAMFileReaderFactory.createSAMFileReader(splitFileC);
 		Iterator<SAMRecord> iterC = splitReaderC.iterator();
 		for (SAMRecord record : readerC) {
 			SAMRecord splitRecord = iterC.next();
@@ -441,7 +442,7 @@ public class FileMergerTest {
 		deleteFile("copied_file.sam");
 
 		File outputFile = new File(OUTPUT_FILE_NAME);
-		SAMFileReader reader = new SAMFileReader(outputFile);
+		SamReader reader = SAMFileReaderFactory.createSAMFileReader( outputFile) ;//new SAMFileReader(outputFile);
 		Iterator<SAMRecord> iter = reader.iterator();
 
 		assertTrue(iter.hasNext());

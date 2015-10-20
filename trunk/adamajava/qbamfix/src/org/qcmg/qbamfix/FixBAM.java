@@ -4,6 +4,7 @@
 package org.qcmg.qbamfix;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -13,16 +14,17 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.qcmg.common.log.QLogger;
-import org.qcmg.picard.RnameFile;
+
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.SAMOrBAMWriterFactory;
 
-import net.sf.samtools.BAMIndex;
-import net.sf.samtools.SAMFileHeader;
-import net.sf.samtools.SAMFileReader;
-import net.sf.samtools.SAMFileWriter;
-import net.sf.samtools.SAMFileWriterFactory;
-import net.sf.samtools.SAMRecord;
+
+import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.SAMFileWriter;
+
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.ValidationStringency;
 
 public class FixBAM {
 	
@@ -37,7 +39,7 @@ public class FixBAM {
 	private File tmpDir;
 	private QLogger log;
 	SAMFileHeader header;
-	SAMFileReader.ValidationStringency validation;
+	ValidationStringency validation;
 	
 	//constructor for unit test only
 	FixBAM(File input, File output,File tmpDir, QLogger logFile,  int length){
@@ -46,14 +48,14 @@ public class FixBAM {
 		this.tmpDir = tmpDir;
 		this.log = logFile;
 		this.seqLength = length;
-		this.validation =  SAMFileReader.ValidationStringency.SILENT;
-		SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(input, SAMFileReader.ValidationStringency.SILENT);  
+		this.validation = ValidationStringency.SILENT;
+		SamReader reader = SAMFileReaderFactory.createSAMFileReader(input, ValidationStringency.SILENT);  
 		this.header = reader.getFileHeader().clone();
 		
 	}
 	
 	FixBAM(SAMFileHeader header, String readsFileName, String outputName, 
-			String tmpdir, QLogger logFile,  int readLength,SAMFileReader.ValidationStringency validation) throws Exception {	
+			String tmpdir, QLogger logFile,  int readLength, ValidationStringency validation) throws Exception {	
 		if(header == null)
 			throw new Exception(FixBAM.class.toString() +  " Exception: SMAFileHeader is null ");		
 		else
@@ -80,7 +82,7 @@ public class FixBAM {
 			log = logFile;
 		
 		if(validation == null)
-			this.validation = SAMFileReader.ValidationStringency.LENIENT;
+			this.validation = ValidationStringency.LENIENT;
 		else
 			this.validation = validation;
 		log.info("set validation to " + this.validation);
@@ -155,7 +157,7 @@ public class FixBAM {
 	HashMap<String, Integer> checkMate(List<SAMRecord> reads, File inBAM)throws Exception{
 		
 		HashMap<String, Integer> badMateID = new HashMap<String, Integer>();
-		SAMFileReader tmpreader = SAMFileReaderFactory.createSAMFileReader(inBAM,  validation);  	
+		SamReader tmpreader = SAMFileReaderFactory.createSAMFileReader(inBAM,  validation);  	
 		if(! header.getSortOrder().equals(SAMFileHeader.SortOrder.coordinate)){
 			tmpreader.close();
 			throw new Exception("currently we can only work for output BAM with sorted by coordinate ");
@@ -177,10 +179,11 @@ public class FixBAM {
 	 * 
 	 * @param output: all qualified recorda will be stored here
 	 * @return list: unqualified records will be return  
+	 * @throws IOException 
 	 */
-	List<SAMRecord> firstFilterRun(File output){
+	List<SAMRecord> firstFilterRun(File output) throws IOException{
 		
-		SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(input,  validation);  
+		SamReader reader = SAMFileReaderFactory.createSAMFileReader(input,  validation);  
 
 		SAMOrBAMWriterFactory factory;		
 		if(reader.getFileHeader().getSortOrder().equals(header.getSortOrder()))
@@ -238,7 +241,7 @@ public class FixBAM {
 	 */
 //	void secondFilterRun(HashMap<String, Integer>  badIDs, File inBAM,  File outBAM)throws Exception{
 	void secondFilterRun(HashMap<String, Integer>  badIDs, File inBAM)throws Exception{
-		SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(inBAM, validation);
+		SamReader reader = SAMFileReaderFactory.createSAMFileReader(inBAM, validation);
 		//set presort as true since the tmpBAM already sorted. otherwise throw exception
 		SAMOrBAMWriterFactory factory = new SAMOrBAMWriterFactory(header, true, output, tmpDir, 2000000, true ); 
 		SAMFileWriter writer = factory.getWriter();

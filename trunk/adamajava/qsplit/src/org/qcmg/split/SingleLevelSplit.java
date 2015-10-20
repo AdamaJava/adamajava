@@ -16,12 +16,12 @@ import java.util.Set;
 import java.util.Vector;
 import java.util.Map.Entry;
 
-import net.sf.samtools.SAMFileHeader;
-import net.sf.samtools.SAMFileWriter;
-import net.sf.samtools.SAMFileWriterFactory;
-import net.sf.samtools.SAMProgramRecord;
-import net.sf.samtools.SAMReadGroupRecord;
-import net.sf.samtools.SAMRecord;
+import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SAMFileWriter;
+import htsjdk.samtools.SAMFileWriterFactory;
+import htsjdk.samtools.SAMProgramRecord;
+import htsjdk.samtools.SAMReadGroupRecord;
+import htsjdk.samtools.SAMRecord;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -52,7 +52,7 @@ public class SingleLevelSplit extends Split {
 		outputDirName = options.getDirNames()[0];
 		inputFileName = options.getInputFileNames()[0];
 //		inputFile = new File(inputFileName);
-		reader = SAMFileReaderFactory.createSAMFileReader(inputFileName);
+		reader = SAMFileReaderFactory.createSAMFileReader(new File(inputFileName));
 //		reader = new SAMFileReader(inputFile);
 		logger = QLoggerFactory.getLogger(SingleLevelSplit.class);
 		commandLine = options.getCommandLine();
@@ -93,7 +93,7 @@ public class SingleLevelSplit extends Split {
 		this.outputDirName = outputDirName;
 		this.useFileNames = useFileNames;
 		this.createIndex = false;
-		reader = SAMFileReaderFactory.createSAMFileReader(inputFileName);
+		reader = SAMFileReaderFactory.createSAMFileReader(new File(inputFileName));
 //		reader = new SAMFileReader(inputFile);
 		logger = QLoggerFactory.getLogger(SingleLevelSplit.class);
 //		commandLine = options.getCommandLine();

@@ -6,13 +6,14 @@ package org.qcmg.qbamannotate;
 import java.io.File;
 import java.util.Iterator;
 
-import net.sf.samtools.SAMFileHeader;
-import net.sf.samtools.SAMFileReader;
-import net.sf.samtools.SAMFileWriter;
-import net.sf.samtools.SAMFileWriterFactory;
-import net.sf.samtools.SAMRecord;
+import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.SAMFileWriter;
+import htsjdk.samtools.SAMFileWriterFactory;
+import htsjdk.samtools.SAMRecord;
 
 import org.qcmg.picard.HeaderUtils;
+import org.qcmg.picard.SAMFileReaderFactory;
 
 public final class SelfAnnotator {
 	private final boolean modifyProgramLine;
@@ -26,7 +27,7 @@ public final class SelfAnnotator {
 	private File unreportedFile;
 	private SAMFileWriter fileWriter;
 	private SAMFileHeader header;
-	private SAMFileReader samFileReader;
+	private SamReader samFileReader;
 	private AnnotatorType type = new Frag();
 	private final boolean reportBams;
 
@@ -134,7 +135,7 @@ public final class SelfAnnotator {
 
 	private void annotate() throws Exception {
 		try {
-			samFileReader = new SAMFileReader(inputFile);
+			samFileReader = SAMFileReaderFactory.createSAMFileReader( inputFile ) ;//new SAMFileReader(inputFile);
 			header = samFileReader.getFileHeader();
 			if (modifyProgramLine) {
 				HeaderUtils.addProgramRecord(header, pgProgramName,

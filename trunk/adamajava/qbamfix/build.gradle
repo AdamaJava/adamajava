@@ -22,8 +22,7 @@ dependencies {
        unzip(src: "../lib/commons-cli-1.2-bin.zip", dest: "build/deps")
     }
 
-    compile name: 'picard', version: '1.110'
-    compile name: 'sam', version: '1.110'
+    compile name: 'htsjdk', version: '1.140'
 	compile name: 'commons-cli', version: '1.2'	
     testCompile name: 'junit', version: '4.10'
 }

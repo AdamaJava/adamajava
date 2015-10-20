@@ -4,6 +4,7 @@
 package org.qcmg.maf;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -21,11 +22,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 
-import net.sf.picard.reference.IndexedFastaSequenceFile;
-import net.sf.picard.reference.ReferenceSequence;
-import net.sf.samtools.SAMFileReader;
-import net.sf.samtools.SAMRecord;
-import net.sf.samtools.SAMRecordIterator;
+import htsjdk.samtools.reference.IndexedFastaSequenceFile;
+import htsjdk.samtools.reference.ReferenceSequence;
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SAMRecordIterator;
+import htsjdk.samtools.SamReaderFactory;
 
 import org.qcmg.common.dcc.MutationType;
 import org.qcmg.common.log.QLogger;
@@ -256,9 +258,14 @@ public abstract class MafPipelineNew {
 			long start = System.nanoTime();
 			long elapsedTime = 0;
 			
-			SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile);
+			
+			SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile);
+			if(ncMafs.size() >=10)
+				 reader =   SAMFileReaderFactory.createSAMFileReader(bamFile, SamReaderFactory.Option.CACHE_FILE_BASED_INDEXES);
+			
+			
 			// if we have a small no of positions, no need to cache
-			reader.enableIndexCaching(ncMafs.size() < 10);
+//			reader.enableIndexCaching(ncMafs.size() < 10);
 			
 			int noOfRecordsRetrievedForPatient = 0, noOfPositionsRetrievedForPatient = 0, positionsWithDeletions = 0;
 			
@@ -337,6 +344,9 @@ public abstract class MafPipelineNew {
 			} finally {
 				try {
 					reader.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				} finally {
 //					latch.countDown();
 					logger.info("thread finishing, elapsedTime: " + elapsedTime);

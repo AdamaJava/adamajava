@@ -4,6 +4,7 @@
 package org.qcmg.pileup;
 
 import static java.util.Arrays.asList;
+import htsjdk.samtools.SamReader;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -23,7 +24,6 @@ import java.util.regex.Pattern;
 
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
-import net.sf.samtools.SAMFileReader;
 
 import org.ini4j.Ini;
 import org.ini4j.Profile.Section;
@@ -731,7 +731,7 @@ public final class Options {
 						throw new QPileupException("BAM_LOCK", bam);
 					} else {
 						
-						SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile, "silent");			
+						SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile, "silent");			
 						File indexLock = new File(bam + ".bai.lck");
 						//does bam have index
 						if (!reader.hasIndex()) {

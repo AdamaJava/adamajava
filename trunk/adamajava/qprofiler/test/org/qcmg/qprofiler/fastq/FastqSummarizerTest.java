@@ -9,8 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import junit.framework.Assert;
-import net.sf.picard.PicardException;
-
+//import htsjdk.samtools.PicardException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -93,7 +92,7 @@ BCCFDFFFHHHHHJJJJIJJJJJIJIJJJJJJJGHJJJJJJJJJJIJFHIJJJHHHFFDDDDDCDCDDDDDDDDDDDDDD
 		try {
 			qs.summarize(new File(FASTQ_DODGY_INPUT_FILE));
 			Assert.fail("Should have thrown an Exception");
-		} catch (PicardException e) {
+		} catch (Exception e) {
 			Assert.assertTrue(e.getMessage().startsWith("Quality header must start with +:"));
 		}
 
@@ -109,7 +108,7 @@ BCCFDFFFHHHHHJJJJIJJJJJIJIJJJJJJJGHJJJJJJJJJJIJFHIJJJHHHFFDDDDDCDCDDDDDDDDDDDDDD
 		try {
 			qs.summarize(new File(FASTQ_DODGY_INPUT_FILE));
 			Assert.fail("Should have thrown an Exception");
-		} catch (PicardException e) {
+		} catch (Exception e) {
 			Assert.assertTrue(e.getMessage().startsWith("Sequence and quality line must be the same length"));
 		}
 		
@@ -137,7 +136,7 @@ BCCFDFFFHHHHHJJJJIJJJJJIJIJJJJJJJGHJJJJJJJJJJIJFHIJJJHHHFFDDDDDCDCDDDDDDDDDDDDDD
 		try {
 			qs.summarize(new File(FASTQ_DODGY_INPUT_FILE));
 			Assert.fail("Should have thrown an Exception");
-		} catch (PicardException e) {
+		} catch (Exception e) {
 			Assert.assertTrue(e.getMessage().startsWith("Sequence header must start with @:"));
 		}
 
@@ -153,7 +152,7 @@ BCCFDFFFHHHHHJJJJIJJJJJIJIJJJJJJJGHJJJJJJJJJJIJFHIJJJHHHFFDDDDDCDCDDDDDDDDDDDDDD
 		try {
 			qs.summarize(new File(FASTQ_DODGY_INPUT_FILE));
 			Assert.fail("Should have thrown an Exception");
-		} catch (PicardException e) {
+		} catch (Exception e) {
 			Assert.assertTrue(e.getMessage().startsWith("Bad id format"));
 		}
 		

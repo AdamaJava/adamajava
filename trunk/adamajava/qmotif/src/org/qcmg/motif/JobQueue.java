@@ -19,12 +19,12 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
-import net.sf.samtools.SAMFileHeader;
-import net.sf.samtools.SAMFileHeader.SortOrder;
-import net.sf.samtools.SAMFileReader;
-import net.sf.samtools.SAMFileWriter;
-import net.sf.samtools.SAMRecord;
-import net.sf.samtools.SAMSequenceRecord;
+import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SAMFileHeader.SortOrder;
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.SAMFileWriter;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SAMSequenceRecord;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -90,7 +90,7 @@ public final class JobQueue {
 		// set bam filename in SummaryStats
 		ss.setBamFileName(bamFile.getAbsolutePath());
 		
-		SAMFileReader samReader = SAMFileReaderFactory.createSAMFileReader(bamFile);
+		SamReader samReader = SAMFileReaderFactory.createSAMFileReader(bamFile);
 		SAMFileHeader header = samReader.getFileHeader();
 		
 		// set sort order to coordinate

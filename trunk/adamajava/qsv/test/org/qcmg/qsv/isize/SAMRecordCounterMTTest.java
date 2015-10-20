@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import net.sf.samtools.SAMFileHeader.SortOrder;
+import htsjdk.samtools.SAMFileHeader.SortOrder;
 
 import org.junit.Rule;
 import org.junit.Test;

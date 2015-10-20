@@ -11,14 +11,15 @@ import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import net.sf.picard.filter.SamRecordFilter;
-import net.sf.samtools.SAMFileReader;
-import net.sf.samtools.SAMRecord;
+import htsjdk.samtools.filter.SamRecordFilter;
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.SAMRecord;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.qcmg.picard.SAMFileReaderFactory;
 
 public class MDFilterTest {
  @BeforeClass
@@ -37,7 +38,7 @@ public class MDFilterTest {
               Comparator op = Comparator.Small;
         String value = "3";
         SamRecordFilter filter = new MDFilter("mismatch",op, value);
-        SAMFileReader Inreader = new SAMFileReader(new File(TestFile.INPUT_FILE_NAME));
+        SamReader Inreader = SAMFileReaderFactory.createSAMFileReader(new File(TestFile.INPUT_FILE_NAME));    //new SAMFileReader(new File(TestFile.INPUT_FILE_NAME));
         int i = 0;
         int NumTrueRead = 0;
         int Less3Mis = 0;
@@ -75,7 +76,7 @@ public class MDFilterTest {
               Comparator op = Comparator.Small;
         String value = "3";
         SamRecordFilter filter = new MDFilter("mismatch",op, value);
-        SAMFileReader Inreader = new SAMFileReader(new File(TestFile.INPUT_FILE_NAME));
+        SamReader Inreader = SAMFileReaderFactory.createSAMFileReader(new File(TestFile.INPUT_FILE_NAME));    //new SAMFileReader(new File(TestFile.INPUT_FILE_NAME));
         int i = 0;
         int NumTrueRead = 0;
         int Less3Mis = 0;

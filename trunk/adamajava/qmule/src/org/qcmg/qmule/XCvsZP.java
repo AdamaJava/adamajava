@@ -14,16 +14,18 @@ import java.util.Map;
 import java.util.Set;
 import java.lang.Math;
 
-import net.sf.samtools.BAMIndex;
-import net.sf.samtools.BAMIndexMetaData;
-import net.sf.samtools.SAMFileReader;
-import net.sf.samtools.SAMRecord;
+import org.qcmg.picard.SAMFileReaderFactory;
+
+import htsjdk.samtools.BAMIndex;
+import htsjdk.samtools.BAMIndexMetaData;
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.SAMRecord;
 
 public class XCvsZP {
 	
 	
 	XCvsZP(File input) throws Exception{
-		SAMFileReader reader = new SAMFileReader(input);
+		SamReader reader = SAMFileReaderFactory.createSAMFileReader(input); //new SAMFileReader(input);
 		
 		HashMap<String, Float> matric = countToMatric( reader );
 		 
@@ -71,7 +73,7 @@ public class XCvsZP {
 	}
 	
 	
-	HashMap<String,Float> countToMatric( SAMFileReader reader) throws Exception{
+	HashMap<String,Float> countToMatric( SamReader reader) throws Exception{
 		
 		HashMap<String, Long> matric = new HashMap<String, Long>();
 		HashMap<String, Float> rateMatric = new HashMap<String, Float>();

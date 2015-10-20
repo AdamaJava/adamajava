@@ -9,6 +9,7 @@
 package org.qcmg.qprofiler.bam;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.AbstractQueue;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -20,13 +21,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import net.sf.samtools.SAMFileHeader;
-import net.sf.samtools.SAMFileReader;
-import net.sf.samtools.SAMProgramRecord;
-import net.sf.samtools.SAMRecord;
-import net.sf.samtools.SAMRecordIterator;
-import net.sf.samtools.SAMSequenceDictionary;
-import net.sf.samtools.SAMSequenceRecord;
+import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.SAMProgramRecord;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SAMRecordIterator;
+import htsjdk.samtools.SAMSequenceDictionary;
+import htsjdk.samtools.SAMSequenceRecord;
 
 import org.qcmg.common.date.DateUtils;
 import org.qcmg.common.log.QLogger;
@@ -71,7 +72,7 @@ public class BamSummarizerMT implements Summarizer {
 	public SummaryReport summarize(File file) throws Exception {
 		
 		// check to see if index file exists - if not, run in single producer mode as will not be able to perform indexed lookups
-		SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(file);
+		SamReader reader = SAMFileReaderFactory.createSAMFileReader(file);
 		if ( ! reader.hasIndex() && noOfProducerThreads > 1) {
 			logger.warn("Using 1 producer thread - no index found for bam file: " + file.getAbsolutePath());
 			noOfProducerThreads = 1;
@@ -360,7 +361,7 @@ public class BamSummarizerMT implements Summarizer {
 		public void run() {
 			log.debug("Start Producer ");
 			
-			SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(file, validation);
+			SamReader reader = SAMFileReaderFactory.createSAMFileReader(file, validation);
 			
 			long size = 0;
 			long count = 0;
@@ -409,6 +410,9 @@ public class BamSummarizerMT implements Summarizer {
 			} finally {
 				try {
 					reader.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				} finally {
 					pLatch.countDown();
 				}
@@ -433,7 +437,7 @@ public class BamSummarizerMT implements Summarizer {
 		@Override
 		public void run() {
 			logger.debug("Start Producer");
-			SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(file, validation);
+			SamReader reader = SAMFileReaderFactory.createSAMFileReader(file, validation);
 			
 			int size = 0;
 			long count = 0;
@@ -497,6 +501,9 @@ public class BamSummarizerMT implements Summarizer {
 			} finally {
 				try {
 					reader.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				} finally {
 					pLatch.countDown();
 				}

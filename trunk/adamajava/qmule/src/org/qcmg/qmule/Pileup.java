@@ -11,8 +11,8 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.Map.Entry;
 
-import net.sf.samtools.SAMFileReader;
-import net.sf.samtools.SAMRecord;
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.SAMRecord;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -29,7 +29,7 @@ public class Pileup {
 	
 	private void engage(String args[]) throws IOException {
 		
-		SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(new File(args[0]));
+		SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(args[0]));
 		FileWriter writer = new FileWriter(new File(args[1]));
 		
 		int counter = 0;
