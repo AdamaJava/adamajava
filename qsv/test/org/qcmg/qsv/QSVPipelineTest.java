@@ -6,7 +6,7 @@ import java.io.File;
 import java.util.Date;
 import java.util.UUID;
 
-import net.sf.samtools.SAMFileHeader.SortOrder;
+import htsjdk.samtools.SAMFileHeader.SortOrder;
 
 import org.junit.Rule;
 import org.junit.Test;

@@ -6,6 +6,7 @@ package org.qcmg.qsv.softclip;
 import static org.qcmg.common.util.Constants.TAB;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -13,9 +14,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import net.sf.samtools.SAMFileReader;
-import net.sf.samtools.SAMRecord;
-import net.sf.samtools.SAMRecordIterator;
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SAMRecordIterator;
+import htsjdk.samtools.ValidationStringency;
 
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qsv.QSVParameters;
@@ -635,7 +637,7 @@ public class SoftClipCluster implements Comparable<SoftClipCluster> {
 	}
 
 	private void readRescuedClips(File file, boolean isTumour, String reference, int bp, Map<Integer, Breakpoint> leftMap, Map<Integer, Breakpoint> rightMap, TreeMap<Integer, 
-			List<UnmappedRead>> splitReads, int consensusLength, int chrBuffer, Integer minInsertSize, Collection<String> readGroupIds, String pairingType) {
+			List<UnmappedRead>> splitReads, int consensusLength, int chrBuffer, Integer minInsertSize, Collection<String> readGroupIds, String pairingType) throws IOException {
 //		private void readRescuedClips(File file, boolean isTumour, String reference, int bp, Map<Integer, Breakpoint> leftMap, Map<Integer, Breakpoint> rightMap, TreeMap<Integer, 
 //				List<UnmappedRead>> splitReads, int consensusLength, int chrBuffer, Integer minInsertSize, List<String> readGroupIds, String pairingType) {
 		int bpStart = bp - chrBuffer;
@@ -645,27 +647,27 @@ public class SoftClipCluster implements Comparable<SoftClipCluster> {
 		int referenceEnd = bpEnd + 120;
 		int count = 0;
 		
-		SAMFileReader.setDefaultValidationStringency(SAMFileReader.ValidationStringency.SILENT);  
-        try (SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(file, "silent");) {
-        		SAMRecordIterator iter = reader.queryOverlapping(reference, referenceStart, referenceEnd);
+		SamReader reader = SAMFileReaderFactory.createSAMFileReader(file,ValidationStringency.SILENT);
         
-        		while (iter.hasNext()) {
-		        	SAMRecord r = iter.next();	
-		        	
-	        		if (readGroupIds.contains(r.getReadGroup().getId())) {
-		        		if (r.getReadUnmappedFlag()) {
-			        		count++;
-			        		if (count > 5000) {
-			    	        		break;
-			    	        }
-			        		UnmappedRead splitRead = new UnmappedRead(r, isTumour);
-			        		List<UnmappedRead> reads = splitReads.get(splitRead.getBpPos());
-			        		if (null == reads) {
-			        			reads = new ArrayList<UnmappedRead>();
-			        			splitReads.put(splitRead.getBpPos(), reads);
-			        		}
-			        		reads.add(splitRead);
-			        		
+    		SAMRecordIterator iter = reader.queryOverlapping(reference, referenceStart, referenceEnd);
+    
+    		while (iter.hasNext()) {
+	        	SAMRecord r = iter.next();	
+	        	
+        		if (readGroupIds.contains(r.getReadGroup().getId())) {
+	        		if (r.getReadUnmappedFlag()) {
+		        		count++;
+		        		if (count > 5000) {
+		    	        		break;
+		    	        }
+		        		UnmappedRead splitRead = new UnmappedRead(r, isTumour);
+		        		List<UnmappedRead> reads = splitReads.get(splitRead.getBpPos());
+		        		if (null == reads) {
+		        			reads = new ArrayList<UnmappedRead>();
+		        			splitReads.put(splitRead.getBpPos(), reads);
+		        		}
+		        		reads.add(splitRead);
+		        		
 //							if (splitReads.containsKey(splitRead.getBpPos())) {
 //								splitReads.get(splitRead.getBpPos()).add(splitRead);
 //							} else {
@@ -673,61 +675,60 @@ public class SoftClipCluster implements Comparable<SoftClipCluster> {
 //								reads.add(splitRead);
 //								splitReads.put(splitRead.getBpPos(), reads);
 //							}
-			        	} else {
-				        	if ( ! r.getDuplicateReadFlag() && r.getCigarString().contains("S")) {
-				        		count++;
-				        		if (count > 5000) {
-				        			break;
-				    	        }
-				        		Clip c = SoftClipStaticMethods.createSoftClipRecord(r, bpStart, bpEnd, reference);
-				        		if (c != null) {     			
-			        				if (c.isLeft()) {
-			        					Breakpoint b = leftMap.get(c.getBpPos());
-			        					if (null == b) {
-			        						b = new Breakpoint(c.getBpPos(), reference, true, consensusLength, minInsertSize);
+		        	} else {
+			        	if ( ! r.getDuplicateReadFlag() && r.getCigarString().contains("S")) {
+			        		count++;
+			        		if (count > 5000) {
+			        			break;
+			    	        }
+			        		Clip c = SoftClipStaticMethods.createSoftClipRecord(r, bpStart, bpEnd, reference);
+			        		if (c != null) {     			
+		        				if (c.isLeft()) {
+		        					Breakpoint b = leftMap.get(c.getBpPos());
+		        					if (null == b) {
+		        						b = new Breakpoint(c.getBpPos(), reference, true, consensusLength, minInsertSize);
+		        						b.addTumourClip(c);
+		        						leftMap.put(c.getBpPos(), b);
+		        					} else {
+		        					
+			        					if (isTumour) {
 			        						b.addTumourClip(c);
-			        						leftMap.put(c.getBpPos(), b);
 			        					} else {
-			        					
-				        					if (isTumour) {
-				        						b.addTumourClip(c);
-				        					} else {
-				        						b.addNormalClip(c);
-				        					}
+			        						b.addNormalClip(c);
 			        					}
+		        					}
 //			        					if (leftMap.containsKey(c.getBpPos())) {
 //				        				} else {
 //				        					Breakpoint b = new Breakpoint(c.getBpPos(), reference, true, consensusLength, minInsertSize);
 //				        					b.addTumourClip(c);
 //				        					leftMap.put(c.getBpPos(), b);
 //				        				}
-			        				} else {
-			        					Breakpoint b = rightMap.get(c.getBpPos());
-			        					if (null == b) {
-			        						b = new Breakpoint(c.getBpPos(), reference, false, consensusLength, minInsertSize);
-			        						b.addTumourClip(c);
-			        						rightMap.put(c.getBpPos(), b);
-			        					} else {
-			        						if (isTumour) {
-			        							b.addTumourClip(c);
-			        						} else {
-			        							b.addNormalClip(c);
-			        						}
-				        				} 
+		        				} else {
+		        					Breakpoint b = rightMap.get(c.getBpPos());
+		        					if (null == b) {
+		        						b = new Breakpoint(c.getBpPos(), reference, false, consensusLength, minInsertSize);
+		        						b.addTumourClip(c);
+		        						rightMap.put(c.getBpPos(), b);
+		        					} else {
+		        						if (isTumour) {
+		        							b.addTumourClip(c);
+		        						} else {
+		        							b.addNormalClip(c);
+		        						}
+			        				} 
 //			        					else {
 //				        					Breakpoint b = new Breakpoint(c.getBpPos(), reference, false, consensusLength, minInsertSize);
 //				        					b.addTumourClip(c);
 //				        					rightMap.put(c.getBpPos(), b);
 //				        				}
-			        				}	        				
-				        		}
-				        	}
-			        	}    		
-		        		
-		        	}	        	
-		        		        	
-	        	}        	
-        }	
+		        				}	        				
+			        		}
+			        	}
+		        	}    		
+	        		
+	        	}	        		
+        }
+    	reader.close();
 	}
 
 	public Integer getOrphanBreakpoint() throws Exception {

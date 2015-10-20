@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import net.sf.samtools.SAMRecord;
+import htsjdk.samtools.SAMRecord;
 
 import org.qcmg.chrconv.ChrConvFileReader;
 import org.qcmg.chrconv.ChromosomeConversionRecord;

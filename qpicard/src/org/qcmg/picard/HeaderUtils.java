@@ -5,10 +5,10 @@ package org.qcmg.picard;
 
 import java.util.UUID;
 
-import net.sf.samtools.SAMFileHeader;
-import net.sf.samtools.SAMProgramRecord;
-import net.sf.samtools.SAMReadGroupRecord;
-import net.sf.samtools.SAMSequenceRecord;
+import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SAMProgramRecord;
+import htsjdk.samtools.SAMReadGroupRecord;
+import htsjdk.samtools.SAMSequenceRecord;
 
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;

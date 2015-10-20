@@ -32,15 +32,15 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import net.sf.picard.reference.FastaSequenceFile;
-import net.sf.picard.reference.ReferenceSequence;
-import net.sf.samtools.Cigar;
-import net.sf.samtools.CigarElement;
-import net.sf.samtools.CigarOperator;
-import net.sf.samtools.SAMFileHeader;
-import net.sf.samtools.SAMRecord;
-import net.sf.samtools.SAMSequenceDictionary;
-import net.sf.samtools.SAMSequenceRecord;
+import htsjdk.samtools.reference.FastaSequenceFile;
+import htsjdk.samtools.reference.ReferenceSequence;
+import htsjdk.samtools.Cigar;
+import htsjdk.samtools.CigarElement;
+import htsjdk.samtools.CigarOperator;
+import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SAMSequenceDictionary;
+import htsjdk.samtools.SAMSequenceRecord;
 
 import org.ini4j.Ini;
 import org.qcmg.common.log.QLevel;
@@ -310,8 +310,8 @@ public abstract class Pipeline {
 				|| null == testBams || testBams.length == 0 
 				|| StringUtils.isNullOrEmpty(testBams[0])) return null;
 		
-		final SAMFileHeader controlHeader = SAMFileReaderFactory.createSAMFileReader(controlBams[0]).getFileHeader();
-		final SAMFileHeader analysisHeader = SAMFileReaderFactory.createSAMFileReader(testBams[0]).getFileHeader();
+		final SAMFileHeader controlHeader = SAMFileReaderFactory.createSAMFileReader(new File(controlBams[0])).getFileHeader();
+		final SAMFileHeader analysisHeader = SAMFileReaderFactory.createSAMFileReader(new File(testBams[0])).getFileHeader();
 		
 		final QDccMeta dccMeta = QDccMetaFactory.getDccMeta(qexec, controlHeader, analysisHeader, "qSNP");
 		
@@ -510,7 +510,7 @@ public abstract class Pipeline {
 	private List<SAMFileHeader> getBamFileHeaders(String[] bams) {
 		final List<SAMFileHeader> headers = new ArrayList<SAMFileHeader>();
 		for (final String bam : bams) {
-			final SAMFileHeader header = SAMFileReaderFactory.createSAMFileReader(bam).getFileHeader();
+			final SAMFileHeader header = SAMFileReaderFactory.createSAMFileReader(new File(bam)).getFileHeader();
 			headers.add(header);
 		}
 		return headers;

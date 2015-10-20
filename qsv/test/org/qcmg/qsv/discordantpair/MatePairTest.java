@@ -9,16 +9,17 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.sf.samtools.SAMFileReader;
-import net.sf.samtools.SAMRecord;
-import net.sf.samtools.SAMRecordIterator;
-import net.sf.samtools.SAMFileHeader.SortOrder;
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SAMRecordIterator;
+import htsjdk.samtools.SAMFileHeader.SortOrder;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qsv.QSVException;
 import org.qcmg.qsv.discordantpair.MatePair;
 import org.qcmg.qsv.discordantpair.PairClassification;
@@ -38,7 +39,7 @@ public class MatePairTest {
         pairs = new ArrayList<MatePair>();
         fileName = testFolder.newFile("test.bam").getCanonicalPath();
         TestUtil.createSamFile(fileName, SortOrder.coordinate, false);
-        SAMFileReader read = new SAMFileReader(new File(fileName));
+        SamReader read =  SAMFileReaderFactory.createSAMFileReader(new File(fileName));
         
         for (SAMRecord r : read) {
             records.add(r);
@@ -104,8 +105,8 @@ public class MatePairTest {
     }
       
     @Test
-    public void testGetPairClassificationFromSamRecord() throws QSVException {
-        SAMFileReader read = new SAMFileReader(new File(fileName));
+    public void testGetPairClassificationFromSamRecord() throws QSVException, IOException {
+        SamReader read = SAMFileReaderFactory.createSAMFileReader(new File(fileName));
 
         SAMRecordIterator iterator = read.iterator();
         SAMRecord record = iterator.next();

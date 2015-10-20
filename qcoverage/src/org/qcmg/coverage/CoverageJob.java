@@ -10,8 +10,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicLong;
 
-import net.sf.samtools.SAMFileReader;
-import net.sf.samtools.SAMRecord;
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.SAMRecord;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -29,7 +29,7 @@ class CoverageJob implements Job {
 	private final QLogger logger;
 	private final QueryExecutor filter;
 	private final boolean perFeatureFlag;
-	private final HashSet<SAMFileReader> fileReaders = new HashSet<SAMFileReader>();
+	private final HashSet<SamReader> fileReaders = new HashSet<SamReader>();
 	private final Algorithm alg;
 	private final ReadsNumberCounter counterIn;
 	private final ReadsNumberCounter counterOut;
@@ -58,7 +58,7 @@ class CoverageJob implements Job {
 		assert (null != features);
 		for (final Pair<File, File> pair : filePairs) {
 			File bamFile = pair.getLeft();
-			SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile, validation);
+			SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile, validation);
 			fileReaders.add(reader);
 		}
 		logger.debug("Length of sequence to be processed by job '" + toString() + "':" + refLength);
@@ -121,7 +121,7 @@ class CoverageJob implements Job {
 	}
 
 	private void performCoverage() throws Exception {
- 		for (final SAMFileReader fileReader : fileReaders) {
+ 		for (final SamReader fileReader : fileReaders) {
  			
 			Iterator<SAMRecord> iter = fileReader.query(refName, 0, 0, false);
 			long recordCounterIn = 0;

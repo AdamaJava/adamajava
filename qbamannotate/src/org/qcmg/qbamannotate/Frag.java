@@ -6,7 +6,7 @@ package org.qcmg.qbamannotate;
 import org.qcmg.ma.MADirection;
 import org.qcmg.ma.MARecord;
 
-import net.sf.samtools.SAMRecord;
+import htsjdk.samtools.SAMRecord;
 
 public class Frag extends AnnotatorType {
 

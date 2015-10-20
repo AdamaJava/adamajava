@@ -3,8 +3,7 @@
  */
 package org.qcmg.qbamfilter.grammars;
 
-import net.sf.picard.filter.SamRecordFilter;
-
+import htsjdk.samtools.filter.SamRecordFilter;
 import org.qcmg.qbamfilter.filter.CigarFilter;
 import org.qcmg.qbamfilter.filter.Comparator;
 import org.qcmg.qbamfilter.filter.FlagFilter;

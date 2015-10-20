@@ -14,12 +14,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import net.sf.samtools.SAMFileHeader;
-import net.sf.samtools.SAMFileHeader.SortOrder;
-import net.sf.samtools.SAMFileReader;
-import net.sf.samtools.SAMFileWriter;
-import net.sf.samtools.SAMFileWriterFactory;
-import net.sf.samtools.SAMRecord;
+import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SAMFileHeader.SortOrder;
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.SAMFileWriter;
+import htsjdk.samtools.SAMFileWriterFactory;
+import htsjdk.samtools.SAMRecord;
 
 import org.junit.After;
 import org.junit.Before;
@@ -184,7 +184,7 @@ public class IndelBasePileupMTTest {
 		
 		createSAMFile();
 		
-        SAMFileReader reader = new SAMFileReader(new File(samFile));
+        SamReader reader = new SAMFileReader(new File(samFile));
         SAMFileHeader header = reader.getFileHeader();
         
 		SAMFileWriterFactory factory = new SAMFileWriterFactory();

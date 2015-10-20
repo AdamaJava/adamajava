@@ -8,9 +8,9 @@ options{
 
 @header{ 
     package org.qcmg.qbamfilter.grammars;
-    import net.sf.samtools.SAMRecord;
-    import net.sf.picard.filter.SamRecordFilter;
-    import net.sf.samtools.SAMValidationError;
+    import htsjdk.samtools.SAMRecord;
+    import htsjdk.samtools.filter.SamRecordFilter;
+    import htsjdk.samtools.SAMValidationError;
     
 }
 

@@ -14,11 +14,10 @@ import java.util.TreeSet;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
-import net.sf.picard.PicardException;
-import net.sf.picard.liftover.LiftOver;
-import net.sf.picard.reference.IndexedFastaSequenceFile;
-import net.sf.picard.reference.ReferenceSequence;
-import net.sf.picard.util.Interval;
+import htsjdk.samtools.liftover.LiftOver;
+import htsjdk.samtools.reference.IndexedFastaSequenceFile;
+import htsjdk.samtools.reference.ReferenceSequence;
+import htsjdk.samtools.util.Interval;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -155,7 +154,7 @@ public class MafAddStuff {
 			ReferenceSequence seq = null;
 			try {
 				seq = fasta.getSubsequenceAt(chr, cp.getPosition() - noOfBases, cp.getEndPosition() + noOfBases);
-			} catch (PicardException pe) {
+			} catch (UnsupportedOperationException  pe) {
 				logger.error("Exception caught in getFastaData",pe);
 			}
 			if (null != seq)

@@ -2,14 +2,17 @@ package org.qcmg.qbamfilter.grammars;
 
 
 import java.io.File;
-import net.sf.samtools.*;
+
+
 
 import org.junit.*;
+
 import static org.junit.Assert.*;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.filter.SamRecordFilter;
 
-import net.sf.picard.filter.SamRecordFilter;
-
-import org.qcmg.qbamfilter.filter.Comparator;
+import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qbamfilter.filter.TestFile;
 
 public class ConditionTest {
@@ -85,7 +88,7 @@ public class ConditionTest {
         int r = 0;
         try{
 
-            SAMFileReader inreader = new SAMFileReader(new File(TestFile.INPUT_FILE_NAME));
+            SamReader inreader = SAMFileReaderFactory.createSAMFileReader(new File(TestFile.INPUT_FILE_NAME));
             for(SAMRecord record : inreader){
                 if(record.getAttribute(tag) == null){continue;}
                 if(filter.filterOut(record)){

@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import junit.framework.Assert;
-import net.sf.picard.reference.IndexedFastaSequenceFile;
+import htsjdk.samtools.reference.IndexedFastaSequenceFile;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -27,13 +27,13 @@ import au.edu.qimr.qlib.qpileup.StrandDS;
 import au.edu.qimr.qlib.qpileup.StrandElement;
 import au.edu.qimr.qlib.qpileup.StrandEnum;
 import au.edu.qimr.qlib.util.Reference;
-import net.sf.picard.reference.FastaSequenceIndex;
-import net.sf.picard.reference.IndexedFastaSequenceFile;
-import net.sf.samtools.SAMFileReader;
-import net.sf.samtools.SAMRecord;
-import net.sf.samtools.SAMRecordIterator;
-import net.sf.samtools.SAMFileReader.ValidationStringency;
-import net.sf.samtools.SAMSequenceRecord;
+import htsjdk.samtools.reference.FastaSequenceIndex;
+import htsjdk.samtools.reference.IndexedFastaSequenceFile;
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SAMRecordIterator;
+import htsjdk.samtools.ValidationStringency;
+import htsjdk.samtools.SAMSequenceRecord;
 
 public class MetricPilelineTest {
 	private String input = "./input.bam";
@@ -98,7 +98,7 @@ public class MetricPilelineTest {
  	private void readReads(Options options ){
 		SAMSequenceRecord ref =  options.getReferenceRecord();
 	 
-		SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(input,ValidationStringency.SILENT);
+		SamReader reader = SAMFileReaderFactory.createSAMFileReader(input,ValidationStringency.SILENT);
 		SAMRecordIterator ite = reader.query(ref.getSequenceName(),0, ref.getSequenceLength(), false);
 		while(ite.hasNext()){
 			SAMRecord record = ite.next();	

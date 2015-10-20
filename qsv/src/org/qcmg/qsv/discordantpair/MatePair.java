@@ -9,7 +9,7 @@ import static org.qcmg.common.util.Constants.TAB;
 import java.io.Serializable;
 import java.util.Comparator;
 
-import net.sf.samtools.SAMRecord;
+import htsjdk.samtools.SAMRecord;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;

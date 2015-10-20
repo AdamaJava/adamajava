@@ -8,9 +8,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 
-import net.sf.samtools.SAMFileReader;
-import net.sf.samtools.SAMRecord;
-import net.sf.samtools.SAMRecordIterator;
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SAMRecordIterator;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -40,7 +40,7 @@ public class SAMRecordValidationTest {
 			}
 		}
 	
-		SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(samFile);
+		SamReader reader = SAMFileReaderFactory.createSAMFileReader(samFile);
 		SAMRecordIterator iter = reader.iterator();
 		assertEquals(true, iter.hasNext());
 		SAMRecord rec = iter.next();

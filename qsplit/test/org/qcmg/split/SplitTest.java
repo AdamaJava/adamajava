@@ -17,10 +17,10 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import net.sf.samtools.SAMFileHeader;
-import net.sf.samtools.SAMFileReader;
-import net.sf.samtools.SAMReadGroupRecord;
-import net.sf.samtools.SAMRecord;
+import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.SAMReadGroupRecord;
+import htsjdk.samtools.SAMRecord;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -28,6 +28,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
+import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.testing.SamTestData;
 
 public class SplitTest {
@@ -74,9 +75,9 @@ public class SplitTest {
 		// check that output file contains all the details
 		int origFileCount = 0, splitFileCount = 0;
 		
-		SAMFileReader reader = new SAMFileReader(samFile);
+		SamReader reader = SAMFileReaderFactory.createSAMFileReader(samFile);//new SAMFileReader(samFile);
 		for (@SuppressWarnings("unused") SAMRecord record : reader) origFileCount++;
-		reader = new SAMFileReader(new File(splitFile));
+		reader =SAMFileReaderFactory.createSAMFileReader(new File(splitFile)); //new SAMFileReader(new File(splitFile));
 		for (@SuppressWarnings("unused") SAMRecord record : reader) splitFileCount++;
 	
 		Assert.assertEquals(origFileCount, splitFileCount);
@@ -107,17 +108,17 @@ public class SplitTest {
 		// check that output file contains all the details
 		int origFileCount = 0, splitFile1Count = 0, splitFile2Count = 0, splitFile3Count = 0, splitFile4Count = 0, splitFile5Count = 0;
 		
-		SAMFileReader reader = new SAMFileReader(samFile);
+		SamReader reader = SAMFileReaderFactory.createSAMFileReader(samFile);
 		for (@SuppressWarnings("unused") SAMRecord record : reader) origFileCount++;
-		reader = new SAMFileReader(new File(splitFile1));
+		reader = SAMFileReaderFactory.createSAMFileReader(new File(splitFile1));
 		for (@SuppressWarnings("unused") SAMRecord record : reader) splitFile1Count++;
-		reader = new SAMFileReader(new File(splitFile2));
+		reader = SAMFileReaderFactory.createSAMFileReader(new File(splitFile2));
 		for (@SuppressWarnings("unused") SAMRecord record : reader) splitFile2Count++;
-		reader = new SAMFileReader(new File(splitFile3));
+		reader = SAMFileReaderFactory.createSAMFileReader(new File(splitFile3));
 		for (@SuppressWarnings("unused") SAMRecord record : reader) splitFile3Count++;
-		reader = new SAMFileReader(new File(splitFile4));
+		reader = SAMFileReaderFactory.createSAMFileReader(new File(splitFile4));
 		for (@SuppressWarnings("unused") SAMRecord record : reader) splitFile4Count++;
-		reader = new SAMFileReader(new File(splitFile5));
+		reader = SAMFileReaderFactory.createSAMFileReader(new File(splitFile5));
 		for (@SuppressWarnings("unused") SAMRecord record : reader) splitFile5Count++;
 		
 		Assert.assertEquals(origFileCount, (splitFile1Count + splitFile2Count + splitFile3Count + splitFile4Count + splitFile5Count));
@@ -125,7 +126,7 @@ public class SplitTest {
 	
 	@Test
 	public void testGetAllZCs() throws Exception {
-		SAMFileReader mergedReader =  new SAMFileReader(mergedFile);
+		SamReader mergedReader =  SAMFileReaderFactory.createSAMFileReader(mergedFile);
 		Set<Integer> zcsFromFile = new HashSet<Integer>();
 		Collection<String> fileNamesFromFile = new LinkedHashSet<String>();
 		for (SAMRecord record : mergedReader) {
@@ -146,11 +147,11 @@ public class SplitTest {
 	
 	@Test
 	public void testSplitUseZCNames() throws Exception {
-		SAMFileReader mergedReader;
-		SAMFileReader reader;
+		SamReader mergedReader;
+		SamReader reader;
 		
 		// get some details from the merged file
-		mergedReader = new SAMFileReader(mergedFile);
+		mergedReader = SAMFileReaderFactory.createSAMFileReader(mergedFile);
 		int countA = 0, countB = 0, countC = 0;
 		for (SAMRecord record : mergedReader) {
 			switch (record.getIntegerAttribute("ZC")) {
@@ -170,7 +171,7 @@ public class SplitTest {
 		Integer zcC = splitPass.getZcFromOriginalFileName(tempFolder.getRoot().getAbsolutePath() + SEP + ORIG3);
 
 		File splitFileA = new File(tempFolder.getRoot().getAbsolutePath() + SEP + zcA.toString() + ".sam");
-		reader = new SAMFileReader(splitFileA);
+		reader = SAMFileReaderFactory.createSAMFileReader(splitFileA);
 		int splitCountA = 0;
 		for (@SuppressWarnings("unused")
 		SAMRecord record : reader) {
@@ -178,7 +179,7 @@ public class SplitTest {
 		}
 
 		File splitFileB = new File(tempFolder.getRoot().getAbsolutePath() + SEP + zcB.toString() + ".sam");
-		reader = new SAMFileReader(splitFileB);
+		reader = SAMFileReaderFactory.createSAMFileReader(splitFileB);
 		int splitCountB = 0;
 		for (@SuppressWarnings("unused")
 		SAMRecord record : reader) {
@@ -186,7 +187,7 @@ public class SplitTest {
 		}
 
 		File splitFileC = new File(tempFolder.getRoot().getAbsolutePath() + SEP + zcC.toString() + ".sam");
-		reader = new SAMFileReader(splitFileC);
+		reader = SAMFileReaderFactory.createSAMFileReader(splitFileC);
 		int splitCountC = 0;
 		for (@SuppressWarnings("unused")
 		SAMRecord record : reader) {
@@ -197,9 +198,9 @@ public class SplitTest {
 		assert (countB == splitCountB);
 		assert (countC == splitCountC);
 
-		SAMFileReader splitReaderA = new SAMFileReader(splitFileA);
+		SamReader splitReaderA = SAMFileReaderFactory.createSAMFileReader(splitFileA);
 		Iterator<SAMRecord> iterA = splitReaderA.iterator();
-		mergedReader = new SAMFileReader(mergedFile);
+		mergedReader = SAMFileReaderFactory.createSAMFileReader(mergedFile);
 		for (SAMRecord record : mergedReader) {
 			if (5 == record.getIntegerAttribute("ZC")) {
 				SAMRecord splitRecord = iterA.next();
@@ -208,9 +209,9 @@ public class SplitTest {
 			}
 		}
 
-		SAMFileReader splitReaderB = new SAMFileReader(splitFileB);
+		SamReader splitReaderB = SAMFileReaderFactory.createSAMFileReader(splitFileB);
 		Iterator<SAMRecord> iterB = splitReaderB.iterator();
-		mergedReader = new SAMFileReader(mergedFile);
+		mergedReader = SAMFileReaderFactory.createSAMFileReader(mergedFile);
 		for (SAMRecord record : mergedReader) {
 			if (6 == record.getIntegerAttribute("ZC")) {
 				SAMRecord splitRecord = iterB.next();
@@ -219,9 +220,9 @@ public class SplitTest {
 			}
 		}
 
-		SAMFileReader splitReaderC = new SAMFileReader(splitFileC);
+		SamReader splitReaderC = SAMFileReaderFactory.createSAMFileReader(splitFileC);
 		Iterator<SAMRecord> iterC = splitReaderC.iterator();
-		mergedReader = new SAMFileReader(mergedFile);
+		mergedReader = SAMFileReaderFactory.createSAMFileReader(mergedFile);
 		for (SAMRecord record : mergedReader) {
 			if (3 == record.getIntegerAttribute("ZC")) {
 				SAMRecord splitRecord = iterC.next();
@@ -233,11 +234,11 @@ public class SplitTest {
 	
 	@Test
 	public void testSplitUseFileNames() throws Exception {
-		SAMFileReader mergedReader;
-		SAMFileReader reader;
+		SamReader mergedReader;
+		SamReader reader;
 		
 		// get some details from the merged file
-		mergedReader = new SAMFileReader(mergedFile);
+		mergedReader = SAMFileReaderFactory.createSAMFileReader(mergedFile);
 		int countA = 0, countB = 0, countC = 0;
 		for (SAMRecord record : mergedReader) {
 			switch (record.getIntegerAttribute("ZC")) {
@@ -253,7 +254,7 @@ public class SplitTest {
 		Split splitPass = new Split(mergedFile.getAbsolutePath(), tempFolder.getRoot().getAbsolutePath(), true, new SamSplitType());
 
 		File splitFileA = new File(tempFolder.getRoot().getAbsolutePath() + SEP + ORIG1);
-		reader = new SAMFileReader(splitFileA);
+		reader = SAMFileReaderFactory.createSAMFileReader(splitFileA);
 		int splitCountA = 0;
 		for (@SuppressWarnings("unused")
 		SAMRecord record : reader) {
@@ -261,7 +262,7 @@ public class SplitTest {
 		}
 
 		File splitFileB = new File(tempFolder.getRoot().getAbsolutePath() + SEP + ORIG2);
-		reader = new SAMFileReader(splitFileB);
+		reader = SAMFileReaderFactory.createSAMFileReader(splitFileB);
 		int splitCountB = 0;
 		for (@SuppressWarnings("unused")
 		SAMRecord record : reader) {
@@ -269,7 +270,7 @@ public class SplitTest {
 		}
 
 		File splitFileC = new File(tempFolder.getRoot().getAbsolutePath() + SEP + ORIG3);
-		reader = new SAMFileReader(splitFileC);
+		reader = SAMFileReaderFactory.createSAMFileReader(splitFileC);
 		int splitCountC = 0;
 		for (@SuppressWarnings("unused")
 		SAMRecord record : reader) {
@@ -280,9 +281,9 @@ public class SplitTest {
 		assert (countB == splitCountB);
 		assert (countC == splitCountC);
 
-		SAMFileReader splitReaderA = new SAMFileReader(splitFileA);
+		SamReader splitReaderA = SAMFileReaderFactory.createSAMFileReader(splitFileA);
 		Iterator<SAMRecord> iterA = splitReaderA.iterator();
-		mergedReader = new SAMFileReader(mergedFile);
+		mergedReader = SAMFileReaderFactory.createSAMFileReader(mergedFile);
 		for (SAMRecord record : mergedReader) {
 			if (5 == record.getIntegerAttribute("ZC")) {
 				SAMRecord splitRecord = iterA.next();
@@ -291,9 +292,9 @@ public class SplitTest {
 			}
 		}
 
-		SAMFileReader splitReaderB = new SAMFileReader(splitFileB);
+		SamReader splitReaderB = SAMFileReaderFactory.createSAMFileReader(splitFileB);
 		Iterator<SAMRecord> iterB = splitReaderB.iterator();
-		mergedReader = new SAMFileReader(mergedFile);
+		mergedReader = SAMFileReaderFactory.createSAMFileReader(mergedFile);
 		for (SAMRecord record : mergedReader) {
 			if (6 == record.getIntegerAttribute("ZC")) {
 				SAMRecord splitRecord = iterB.next();
@@ -302,9 +303,9 @@ public class SplitTest {
 			}
 		}
 
-		SAMFileReader splitReaderC = new SAMFileReader(splitFileC);
+		SamReader splitReaderC = SAMFileReaderFactory.createSAMFileReader(splitFileC);
 		Iterator<SAMRecord> iterC = splitReaderC.iterator();
-		mergedReader = new SAMFileReader(mergedFile);
+		mergedReader = SAMFileReaderFactory.createSAMFileReader(mergedFile);
 		for (SAMRecord record : mergedReader) {
 			if (3 == record.getIntegerAttribute("ZC")) {
 				SAMRecord splitRecord = iterC.next();

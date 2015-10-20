@@ -4,19 +4,39 @@
 package org.qcmg.picard;
 
 import java.io.File;
+import java.util.EnumSet;
 
-import net.sf.samtools.SAMFileReader;
-import net.sf.samtools.SAMFileReader.ValidationStringency;
+import htsjdk.samtools.SamInputResource;
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.SamReaderFactory;
+import htsjdk.samtools.SamReaderFactory.Option;
+import htsjdk.samtools.ValidationStringency;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 
 public class SAMFileReaderFactory {
+	EnumSet<Option> defultOption = SamReaderFactory.Option.DEFAULTS;
+	static ValidationStringency DefaultStringency = ValidationStringency.SILENT;
 	
 	private static final QLogger logger = QLoggerFactory.getLogger(SAMFileReaderFactory.class);
 	 
-	public static SAMFileReader createSAMFileReader(final String bamFile) {
-		return createSAMFileReader(new File(bamFile));
+//	public static SamReader createSAMFileReader(final String bamFile) {
+//	//	return createSAMFileReader(new File(bamFile));
+//		
+//		return createSAMFileReader(new File(bamFile), null, ValidationStringency.SILENT, null);
+//	}
+	
+	/**
+	 * Will check to bam header to see if bwa was used to align this bam.
+	 * If it was, we will use the SILENT validation stringency
+	 * otherwise (and default) is to use STRICT
+	 * 
+	 * @param bamFile
+	 * @return
+	 */
+	public static SamReader createSAMFileReader(final File bamFile) {
+		return createSAMFileReader(bamFile,null, ValidationStringency.SILENT, null); 
 	}
 	
 	/**
@@ -27,81 +47,15 @@ public class SAMFileReaderFactory {
 	 * @param bamFile
 	 * @return
 	 */
-	public static SAMFileReader createSAMFileReader(final File bamFile) {
-//		ValidationStringency original = SAMFileReader.getDefaultValidationStringency();
-//		SAMFileReader reader = null;
-//		try {
-//			SAMFileReader.setDefaultValidationStringency(ValidationStringency.SILENT);
-//			reader = new SAMFileReader(bamFile);
-//		} finally {
-//			SAMFileReader.setDefaultValidationStringency(original);
-//		}
-//		boolean setToSilent = false;
-//		try {
-//			SAMFileHeader header = reader.getFileHeader();
-//			for (SAMProgramRecord pg : header.getProgramRecords()) {
-//				if ("bwa".equalsIgnoreCase(pg.getProgramName())) { 
-//					setToSilent = true;
-//					break;
-//				}
-//			}	
-//		} finally {
-//			reader.close();
-//		}
-//		ValidationStringency vs = setToSilent ?  ValidationStringency.SILENT : ValidationStringency.STRICT;
-		
-		// if we have bwa as a program record in the bam header, setup a reader that has a strict/lenient validation stringency
-		// otherwise use strict
-		
-		// default to SILENT
-		return createSAMFileReader(bamFile, ValidationStringency.SILENT); 
+	public static SamReader createSAMFileReader(final File bamFile, final File indexFile) { 	
+		return createSAMFileReader(bamFile, indexFile, null, null);
 	}
 	
-	/**
-	 * Will check to bam header to see if bwa was used to align this bam.
-	 * If it was, we will use the SILENT validation stringency
-	 * otherwise (and default) is to use STRICT
-	 * 
-	 * @param bamFile
-	 * @return
-	 */
-	public static SAMFileReader createSAMFileReader(final File bamFile, final File indexFile) {
-//		ValidationStringency original = SAMFileReader.getDefaultValidationStringency();
-//		SAMFileReader reader = null;
-//		try {
-//			SAMFileReader.setDefaultValidationStringency(ValidationStringency.SILENT);
-//			reader = new SAMFileReader(bamFile, indexFile);
-//		} finally {
-//			SAMFileReader.setDefaultValidationStringency(original);
-//		}
-//		boolean bwaAligned = false;
-//		try {
-//			SAMFileHeader header = reader.getFileHeader();
-//			for (SAMProgramRecord pg : header.getProgramRecords()) {
-//				if ("bwa".equalsIgnoreCase(pg.getProgramName())) {
-//					bwaAligned = true;
-//					break;
-//				}
-//			}
-//		} finally {
-//			reader.close();
-//		}
-//		ValidationStringency vs = ValidationStringency.STRICT;
-//		if (bwaAligned) vs = ValidationStringency.SILENT;
-		
-		// if we have bwa as a program record in the bam header, setup a reader that has a strict/lenient validation stringency
-		// otherwise use strict
-		
-		// default to SILENT 
-		
-		return createSAMFileReader(bamFile, indexFile, ValidationStringency.SILENT);
-	}
+//	public static SamReader createSAMFileReader(final String bamFile, final String stringency) {
+//		return createSAMFileReader(new File(bamFile), stringency);
+//	}
 	
-	public static SAMFileReader createSAMFileReader(final String bamFile, final String stringency) {
-		return createSAMFileReader(new File(bamFile), stringency);
-	}
-	
-	public static SAMFileReader createSAMFileReader(final File bamFile, final String stringency) {
+	public static SamReader createSAMFileReader(final File bamFile, final String stringency) {
 				 
 			if ("lenient".equalsIgnoreCase(stringency)) {
 				return createSAMFileReader(bamFile, ValidationStringency.LENIENT);
@@ -115,53 +69,62 @@ public class SAMFileReaderFactory {
 	}
 	
 	
-	public static SAMFileReader createSAMFileReader(final String bamFile, final ValidationStringency stringency) {
-		return createSAMFileReader(new File(bamFile), stringency);
-	}
+//	public static SamReader createSAMFileReader(final String bamFile, final ValidationStringency stringency) {
+//		return createSAMFileReader(new File(bamFile), stringency);
+//	}
 	
 	/**
-	 * Creates and returns a SAMFileReader instance based on the supplied bam file, and the supplied Validation Stringency.
+	 * Creates and returns a SamReader instance based on the supplied bam file, and the supplied Validation Stringency.
 	 * If the stringency is null, calls {@link #createSAMFileReader(File)} which will examine the bam file header
 	 * @param bamFile
 	 * @param stringency
-	 * @return SAMFileReader reader for this bam file with this validation stringency
+	 * @return SamReader reader for this bam file with this validation stringency
 	 */
-	public static SAMFileReader createSAMFileReader(final File bamFile, final ValidationStringency stringency) {
-		if (null != stringency) {
-			ValidationStringency original = SAMFileReader.getDefaultValidationStringency();
-			logger.debug("Setting Validation Stringency on SAMFileReader to: " + stringency.toString());
-			try {
-				SAMFileReader.setDefaultValidationStringency(stringency);
-				return new SAMFileReader(bamFile);
-			} finally {
-				// restore previous stringency level
-				SAMFileReader.setDefaultValidationStringency(original);
-			}
-		}
+	public static SamReader createSAMFileReader(final File bamFile, final ValidationStringency stringency) {
 		
-		return createSAMFileReader(bamFile);
+		 return createSAMFileReader(bamFile, null, stringency, null);
 	}
 	
 	/**
-	 * Creates and returns a SAMFileReader instance based on the supplied bam file, and the supplied Validation Stringency.
+	 * Creates and returns a SamReader instance based on the supplied bam file, and the supplied Validation Stringency.
 	 * If the stringency is null, calls {@link #createSAMFileReader(File)} which will examine the bam file header
 	 * @param bamFile
 	 * @param stringency
-	 * @return SAMFileReader reader for this bam file with this validation stringency
+	 * @return SamReader reader for this bam file with this validation stringency
 	 */
-	public static SAMFileReader createSAMFileReader(final File bamFile,final File indexFile, final ValidationStringency stringency) {
-		if (null != stringency) {
-			ValidationStringency original = SAMFileReader.getDefaultValidationStringency();
-			logger.debug("Setting Validation Stringency on SAMFileReader to: " + stringency.toString());
-			try {
-				SAMFileReader.setDefaultValidationStringency(stringency);
-				return new SAMFileReader(bamFile, indexFile);
-			} finally {
-				// restore previous stringency level
-				SAMFileReader.setDefaultValidationStringency(original);
-			}
-		}
-		
-		return createSAMFileReader(bamFile, indexFile);
+	public static SamReader createSAMFileReader(final File bamFile, final File indexFile, final ValidationStringency stringency) {
+		return createSAMFileReader(bamFile, indexFile, stringency, null);
 	}
+	
+	public static SamReader createSAMFileReader(final File bamFile, final SamReaderFactory.Option... options) {
+		return createSAMFileReader(bamFile, null, null, options);
+	}
+	
+	
+	public static SamReader createSAMFileReader(final File bamFile, final File indexFile,  final ValidationStringency stringency, final Option...options ) {				
+
+		SamReaderFactory samReaderFactory = SamReaderFactory.makeDefault();		
+		
+		if( options != null && options.length > 0)
+			samReaderFactory = SamReaderFactory.makeDefault().enable(options);
+		
+		
+		// only apply validationStringency(stringency) rather than static method setDefaultValidationStringency(stringency) for instance don't apply 
+		//you can only call the static method before create the instanct 
+		if (null != stringency) 
+			samReaderFactory.validationStringency(stringency);
+		else
+			samReaderFactory.validationStringency(DefaultStringency);		 
+		logger.debug("Setting Validation Stringency on SamReader to: " + samReaderFactory.validationStringency().name());	
+			
+		
+		SamInputResource resource = SamInputResource.of(bamFile);
+		if(indexFile != null)
+			resource = SamInputResource.of(bamFile).index(indexFile);
+		
+		return samReaderFactory.open(resource);
+	}
+
+
+
 }

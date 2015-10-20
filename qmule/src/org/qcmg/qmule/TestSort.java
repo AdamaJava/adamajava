@@ -9,11 +9,11 @@ import java.net.InetAddress;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
-import net.sf.samtools.SAMFileHeader;
-import net.sf.samtools.SAMFileReader;
-import net.sf.samtools.SAMFileWriter;
-import net.sf.samtools.SAMFileWriterFactory;
-import net.sf.samtools.SAMRecord;
+import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.SAMFileWriter;
+import htsjdk.samtools.SAMFileWriterFactory;
+import htsjdk.samtools.SAMRecord;
 
 import org.qcmg.picard.SAMFileReaderFactory;
 
@@ -44,11 +44,11 @@ public class TestSort {
 	}
 	
 	public void Sorting() throws Exception{
-		SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(input);
+		SamReader reader = SAMFileReaderFactory.createSAMFileReader(input);
 		SAMFileHeader header = reader.getFileHeader();
 		
 		SAMFileWriterFactory writeFactory = new SAMFileWriterFactory();                         
-	    net.sf.samtools.SAMFileWriterImpl.setDefaultMaxRecordsInRam(maxRecordsInRam );  	
+	    htsjdk.samtools.SAMFileWriterImpl.setDefaultMaxRecordsInRam(maxRecordsInRam );  	
 	    header.setSortOrder(sort);
 	    if(sort.equals(SAMFileHeader.SortOrder.coordinate))
 	    	 writeFactory.setCreateIndex(true);                                
@@ -63,7 +63,7 @@ public class TestSort {
 			num ++;
 		}
 		
-//		System.out.println(getTime() + " Merging tmp into output BAM, tmp location are " +  net.sf.samtools.util.IOUtil.getDefaultTmpDir());
+//		System.out.println(getTime() + " Merging tmp into output BAM, tmp location are " +  htsjdk.samtools.util.IOUtil.getDefaultTmpDir());
 		reader.close();
 		writer.close();
 		

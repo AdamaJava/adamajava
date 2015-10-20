@@ -4,12 +4,13 @@
 package org.qcmg.maf;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.sf.samtools.SAMFileReader;
-import net.sf.samtools.SAMRecord;
-import net.sf.samtools.SAMRecordIterator;
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SAMRecordIterator;
 
 import org.qcmg.common.log.QLevel;
 import org.qcmg.common.log.QLoggerFactory;
@@ -123,7 +124,7 @@ public class MafPipelineSNV extends MafPipelineNew {
 			
 			boolean debugEnabled = logger.isLevelEnabled(QLevel.DEBUG);
 			
-			SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile);
+			SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile);
 			// if we have a small no of positions, no need to cache
 //			reader.enableIndexCaching(ncMafs.size() < 10);
 			
@@ -230,6 +231,9 @@ public class MafPipelineSNV extends MafPipelineNew {
 			} finally {
 				try {
 					reader.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				} finally {
 //					latch.countDown();
 					logger.info("thread finishing, elapsedTime: " + elapsedTime);

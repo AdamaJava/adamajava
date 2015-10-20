@@ -3,7 +3,7 @@
  */
 package org.qcmg.pileup.model;
 
-import net.sf.samtools.SAMRecord;
+import htsjdk.samtools.SAMRecord;
 
 import org.qcmg.pileup.PileupConstants;
 import org.qcmg.pileup.QPileupException;

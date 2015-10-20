@@ -3,8 +3,8 @@
  */
 package org.qcmg.snp.filters;
 
-import net.sf.picard.filter.SamRecordFilter;
-import net.sf.samtools.SAMRecord;
+import htsjdk.samtools.filter.SamRecordFilter;
+import htsjdk.samtools.SAMRecord;
 
 public class EndOfReadFilter implements SamRecordFilter {
 	
