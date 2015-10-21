@@ -33,7 +33,7 @@ import org.w3c.dom.Element;
 
 /**
  * This class gets a list of all .qsig.vcf files from the supplied path.
- * It then performs a comparison between them all, regardles of whether they are bam or snp chip files
+ * It then performs a comparison between them all, regardless of whether they are bam or snp chip files
  * An xml output file is produced
  * If any comparison scores are less than the cutoff, they are added to a list, which is then emailed to interested parties informing them of the potential problem files
  *  
@@ -51,7 +51,7 @@ public class SignatureCompareRelatedSimple {
 	private String outputXml;
 	private String path;
 	private String donor;
-	private static final String QSIG_SUFFIX = ".qsig.vcf";
+//	private static final String QSIG_SUFFIX = ".qsig.vcf";
 	
 	private String excludeVcfsFile;
 	private List<String> excludes;
@@ -72,10 +72,10 @@ public class SignatureCompareRelatedSimple {
 		
 		// get qsig vcf files for this donor
 		logger.info("Retrieving qsig vcf files from: " + path);
-		List<File> files = FileUtils.findFilesEndingWithFilterNIO(path, QSIG_SUFFIX);
+		List<File> files = FileUtils.findFilesEndingWithFilterNIO(path, SignatureUtil.QSIG_VCF);
 		
 		if (files.isEmpty()) {
-			logger.warn("Didn't find any files ending with " + QSIG_SUFFIX + " in " + path);
+			logger.warn("Didn't find any files ending with " + SignatureUtil.QSIG_VCF + " in " + path);
 			return 0;
 		}
 		
