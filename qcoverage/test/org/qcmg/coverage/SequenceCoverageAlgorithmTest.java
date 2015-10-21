@@ -2,7 +2,7 @@ package org.qcmg.coverage;
 
 import java.util.Arrays;
 
-import htsjdk.samtools.SAMRecord;
+import net.sf.samtools.SAMRecord;
 
 import org.junit.Assert;
 import org.junit.Ignore;

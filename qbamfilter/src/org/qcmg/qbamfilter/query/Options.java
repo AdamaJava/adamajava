@@ -10,9 +10,8 @@ import java.util.Arrays;
 
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.ValidationStringency;
+import net.sf.samtools.SAMFileHeader;
+import net.sf.samtools.SAMFileReader;
 
 import org.qcmg.picard.HeaderUtils;
 import org.qcmg.picard.SAMFileReaderFactory;
@@ -155,7 +154,7 @@ public class Options {
         
         logLevel = (String) options.valueOf("loglevel");
         
-        SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(inputFileName));
+        SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(inputFileName);
         try {
         	header = reader.getFileHeader();
         	HeaderUtils.addProgramRecord(header,  getPGName(),  getVersion(), Arrays.toString(args) );
@@ -290,21 +289,21 @@ public class Options {
 	
 	/**
 	 * 
-	 * @return ValidationStringency if specified on command line; otherwise return LENIENT as default
+	 * @return SAMFileReader.ValidationStringency if specified on command line; otherwise return LENIENT as default
 	 * @throws Exception if specified invalid ValidationStringency 
 	 */
-	public ValidationStringency getValidation() throws Exception{	
+	public SAMFileReader.ValidationStringency getValidation() throws Exception{	
 		if(options.has("validation")){
 			if(options.valueOf("validation").toString().equalsIgnoreCase("LENIENT"))
-				return ValidationStringency.LENIENT;
+				return SAMFileReader.ValidationStringency.LENIENT;
 			else if(options.valueOf("validation").toString().equalsIgnoreCase("SILENT"))
-				return  ValidationStringency.SILENT;
+				return  SAMFileReader.ValidationStringency.SILENT;
 			if(options.valueOf("validation").toString().equalsIgnoreCase("STRICT"))
-				return  ValidationStringency.STRICT;
+				return  SAMFileReader.ValidationStringency.STRICT;
 			else
 				throw new Exception("invalid validation option: " + options.valueOf("validation").toString()  );
 		}
 
-		return ValidationStringency.LENIENT;
+		return SAMFileReader.ValidationStringency.LENIENT;
 	}
 }

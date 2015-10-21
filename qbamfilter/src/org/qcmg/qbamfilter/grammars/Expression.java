@@ -5,10 +5,10 @@ package org.qcmg.qbamfilter.grammars;
 
 import java.util.ArrayList;
 
-import htsjdk.samtools.filter.SamRecordFilter;
-import htsjdk.samtools.Cigar;
-import htsjdk.samtools.CigarElement;
-import htsjdk.samtools.SAMRecord;
+import net.sf.picard.filter.SamRecordFilter;
+import net.sf.samtools.Cigar;
+import net.sf.samtools.CigarElement;
+import net.sf.samtools.SAMRecord;
 
 public class Expression implements SamRecordFilter{
 

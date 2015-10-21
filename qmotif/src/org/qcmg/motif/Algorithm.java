@@ -5,7 +5,7 @@ package org.qcmg.motif;
 
 import java.util.Map;
 
-import htsjdk.samtools.SAMRecord;
+import net.sf.samtools.SAMRecord;
 
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.motif.util.RegionCounter;

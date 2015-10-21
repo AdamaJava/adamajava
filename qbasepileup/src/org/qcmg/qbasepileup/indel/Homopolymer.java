@@ -3,7 +3,7 @@
  */
 package org.qcmg.qbasepileup.indel;
 
-import htsjdk.samtools.reference.IndexedFastaSequenceFile;
+import net.sf.picard.reference.IndexedFastaSequenceFile;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;

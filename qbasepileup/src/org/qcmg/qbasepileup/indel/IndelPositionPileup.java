@@ -5,8 +5,8 @@ package org.qcmg.qbasepileup.indel;
 
 import java.util.Map;
 
-import htsjdk.samtools.reference.IndexedFastaSequenceFile;
-import htsjdk.samtools.SAMRecord;
+import net.sf.picard.reference.IndexedFastaSequenceFile;
+import net.sf.samtools.SAMRecord;
 
 import org.qcmg.qbamfilter.query.QueryExecutor;
 import org.qcmg.qbasepileup.InputBAM;

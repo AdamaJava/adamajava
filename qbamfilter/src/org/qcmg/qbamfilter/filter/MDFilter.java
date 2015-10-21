@@ -6,8 +6,8 @@ package org.qcmg.qbamfilter.filter;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import htsjdk.samtools.filter.SamRecordFilter;
-import htsjdk.samtools.SAMRecord;
+import net.sf.picard.filter.SamRecordFilter;
+import net.sf.samtools.SAMRecord;
 
 
 public class MDFilter implements SamRecordFilter{

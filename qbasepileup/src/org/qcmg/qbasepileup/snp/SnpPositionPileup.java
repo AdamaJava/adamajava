@@ -12,13 +12,13 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import htsjdk.samtools.reference.IndexedFastaSequenceFile;
-import htsjdk.samtools.Cigar;
-import htsjdk.samtools.CigarElement;
-import htsjdk.samtools.CigarOperator;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMRecordIterator;
+import net.sf.picard.reference.IndexedFastaSequenceFile;
+import net.sf.samtools.Cigar;
+import net.sf.samtools.CigarElement;
+import net.sf.samtools.CigarOperator;
+import net.sf.samtools.SAMFileReader;
+import net.sf.samtools.SAMRecord;
+import net.sf.samtools.SAMRecordIterator;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -233,7 +233,7 @@ public class SnpPositionPileup {
 		logger.debug("READ DOES NOT MAP TO POS:\t"+doesntMapCount+"");
 		logger.debug("BAD BASE/MAP QUALITY:\t\t" + basesNotPassBaseQual+ " / " + readsNotPassMapQual);		
 	}
-	public void pileup(SamReader reader) throws Exception {
+	public void pileup(SAMFileReader reader) throws Exception {
 		//logger.info("Pileup for " + position.toString());			
 		
 		if (referenceBases == null && indexedFasta != null) {
@@ -263,7 +263,7 @@ public class SnpPositionPileup {
 		}
 	}
 	
-	private void pileupFile(SamReader reader) throws Exception {
+	private void pileupFile(SAMFileReader reader) throws Exception {
 		
 		SAMRecordIterator iter = reader.queryOverlapping(position.getFullChromosome(), position.getStart(), position.getEnd());
 //		logger.info("about to get: " + position.getFullChromosome() + "-" +  position.getStart() + "-" + position.getEnd());

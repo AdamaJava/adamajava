@@ -4,7 +4,7 @@
 package org.qcmg.qmule.qcnv;
 
 import org.qcmg.common.log.*;
-import htsjdk.samtools.*;
+import net.sf.samtools.*;
 import java.util.*;
 import java.util.Map.Entry;
 import java.io.*;

@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 
-import htsjdk.samtools.SAMRecord;
+import net.sf.samtools.SAMRecord;
 
 import org.qcmg.chrconv.ChrConvFileReader;
 import org.qcmg.chrconv.ChromosomeConversionRecord;

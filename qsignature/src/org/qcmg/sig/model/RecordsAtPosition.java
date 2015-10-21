@@ -5,7 +5,7 @@ package org.qcmg.sig.model;
 
 import java.util.List;
 
-import htsjdk.samtools.SAMRecord;
+import net.sf.samtools.SAMRecord;
 
 import org.qcmg.common.model.ChrPosition;
 

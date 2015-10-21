@@ -7,18 +7,17 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import htsjdk.samtools.DefaultSAMRecordFactory;
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SAMFileHeader.SortOrder;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMReadGroupRecord;
-import htsjdk.samtools.SAMRecord;
+import net.sf.samtools.DefaultSAMRecordFactory;
+import net.sf.samtools.SAMFileHeader;
+import net.sf.samtools.SAMFileHeader.SortOrder;
+import net.sf.samtools.SAMFileReader;
+import net.sf.samtools.SAMReadGroupRecord;
+import net.sf.samtools.SAMRecord;
 
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qsv.util.TestUtil;
 
 public class AnnotatorTest {   
@@ -35,7 +34,7 @@ public class AnnotatorTest {
     	records = new ArrayList<SAMRecord>();
         tumourBam = testFolder.newFile("test.bam");
         TestUtil.createBamFile(tumourBam.getCanonicalPath(), null, SortOrder.coordinate);
-        SamReader read = SAMFileReaderFactory.createSAMFileReader(tumourBam);//new SAMFileReader(tumourBam);
+        SAMFileReader read = new SAMFileReader(tumourBam);
         
         for (SAMRecord r : read) {
             records.add(r);

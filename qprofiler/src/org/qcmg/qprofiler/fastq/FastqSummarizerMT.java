@@ -16,8 +16,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import htsjdk.samtools.fastq.FastqReader;
-import htsjdk.samtools.fastq.FastqRecord;
+import net.sf.picard.fastq.FastqReader;
+import net.sf.picard.fastq.FastqRecord;
 
 import org.qcmg.common.date.DateUtils;
 import org.qcmg.common.log.QLogger;

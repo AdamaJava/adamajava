@@ -5,8 +5,8 @@ package org.qcmg.qbasepileup;
 
 import java.io.File;
 
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.ValidationStringency;
+import net.sf.samtools.SAMFileReader;
+import net.sf.samtools.SAMFileReader.ValidationStringency;
 
 import org.qcmg.picard.SAMFileReaderFactory;
 
@@ -44,7 +44,7 @@ public class InputBAM {
 		return inputType;
 	}
 	
-	public SamReader getSAMFileReader() {
+	public SAMFileReader getSAMFileReader() {
 		return SAMFileReaderFactory.createSAMFileReader(bamFile, ValidationStringency.SILENT);
 	}
 	

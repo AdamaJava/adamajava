@@ -9,12 +9,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import htsjdk.samtools.*;
-
+import net.sf.samtools.*;
+ 
 import java.lang.Math;
 import java.io.*;
-
-import org.qcmg.picard.SAMFileReaderFactory;
 
 
 public class CNVseq {
@@ -55,8 +53,8 @@ public class CNVseq {
 	 */
 	CNVseq(File test, File ref, int window ) throws Exception {	
 		//open file
-		SamReader rtest = SAMFileReaderFactory.createSAMFileReader(test );//new SAMFileReader(test);
-		SamReader rref = SAMFileReaderFactory.createSAMFileReader(ref );//new SAMFileReader(ref);
+		SAMFileReader rtest = new SAMFileReader(test);
+		SAMFileReader rref = new SAMFileReader(ref);
 	
 		//check whether index file exist or not 
 		if(!rtest.hasIndex()){
@@ -111,8 +109,8 @@ public class CNVseq {
 //genomeSize = 3253037807L;
 
 		//count mapped record number based on index file
-		BAMIndex tIndex = rtest.indexing().getIndex();
-		BAMIndex rIndex = rref.indexing().getIndex();
+		BAMIndex tIndex = rtest.getIndex();
+		BAMIndex rIndex = rref.getIndex();
 		BAMIndexMetaData meta; 
 		int tMapped = 0;
 		int rMapped = 0;
@@ -152,7 +150,7 @@ public class CNVseq {
 	 * @param end: window end position
 	 * @return the totoal number of records mapped overlapped on this window region
 	 */
-	int  exeQuery (SamReader reader, String chr, int start, int end){
+	int  exeQuery (SAMFileReader reader, String chr, int start, int end){
   
 	 	SAMRecordIterator block_ite = reader.queryOverlapping(chr, start, end);
 	 	int num = 0;

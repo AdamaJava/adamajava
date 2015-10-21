@@ -11,25 +11,21 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.qcmg.picard.SAMFileReaderFactory;
-import picard.PicardException;
-import picard.cmdline.CommandLineProgram;
-import picard.cmdline.Option;
-import picard.cmdline.StandardOptionDefinitions;
-
-//import picard.cmdline.Usage;
-import htsjdk.samtools.util.IOUtil;
- 
-
-import htsjdk.samtools.fastq.FastqRecord;
-import htsjdk.samtools.fastq.FastqWriter;
-import htsjdk.samtools.util.Log;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMReadGroupRecord;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMUtils;
-import htsjdk.samtools.util.SequenceUtil;
-import htsjdk.samtools.util.StringUtil;
+import net.sf.picard.PicardException;
+import net.sf.picard.cmdline.CommandLineProgram;
+import net.sf.picard.cmdline.Option;
+import net.sf.picard.cmdline.StandardOptionDefinitions;
+import net.sf.picard.cmdline.Usage;
+import net.sf.picard.fastq.FastqRecord;
+import net.sf.picard.fastq.FastqWriter;
+import net.sf.picard.io.IoUtil;
+import net.sf.picard.util.Log;
+import net.sf.samtools.SAMFileReader;
+import net.sf.samtools.SAMReadGroupRecord;
+import net.sf.samtools.SAMRecord;
+import net.sf.samtools.SAMUtils;
+import net.sf.samtools.util.SequenceUtil;
+import net.sf.samtools.util.StringUtil;
 
 
 /**
@@ -44,7 +40,10 @@ import htsjdk.samtools.util.StringUtil;
  */
 public class QSamToFastq extends CommandLineProgram {
 	
- //   @Usage
+
+
+
+    @Usage
     public String USAGE = "Extracts read sequences and qualities from the input SAM/BAM file and writes them into "+
         "the output file in Sanger fastq format. In the RC mode (default is True), if the read is aligned and the alignment is to the reverse strand on the genome, "+
         "the read's sequence from input SAM file will be reverse-complemented prior to writing it to fastq in order restore correctly "+
@@ -110,11 +109,14 @@ public class QSamToFastq extends CommandLineProgram {
 
     @Override
 	protected int doWork() {
-        IOUtil.assertFileIsReadable(INPUT);
-        final SamReader reader =  SAMFileReaderFactory.createSAMFileReader( INPUT);
+        IoUtil.assertFileIsReadable(INPUT);
+        final SAMFileReader reader = new SAMFileReader(IoUtil.openFileForReading(INPUT));
         final Map<String,SAMRecord> firstSeenMates = new HashMap<String,SAMRecord>();
+//        final FastqWriterFactory factory = new FastqWriterFactory();
         final Map<SAMReadGroupRecord, List<FastqWriter>> writers = getWriters(reader.getFileHeader().getReadGroups());
+//        final Map<SAMReadGroupRecord, List<FastqWriter>> writers = getWriters(reader.getFileHeader().getReadGroups(), factory);
 
+//        final ProgressLogger progress = new ProgressLogger(log);
         for (final SAMRecord currentRecord : reader) {
             if (currentRecord.getNotPrimaryAlignmentFlag() && !INCLUDE_NON_PRIMARY_ALIGNMENTS)
                 continue;
@@ -159,7 +161,10 @@ public class QSamToFastq extends CommandLineProgram {
                 writeRecord(currentRecord, null, fq.get(0), READ1_TRIM, READ1_MAX_BASES_TO_WRITE);
             }
 
+//            progress.record(currentRecord);
         }
+
+        reader.close();
         
       //XU: add rescue code to create empty sequence for missing mate reads
         for(String readName :  firstSeenMates.keySet())     
@@ -221,8 +226,8 @@ public class QSamToFastq extends CommandLineProgram {
             // one writer for each end.
             final List<FastqWriter> fqw = new ArrayList<FastqWriter>();
 
-            IOUtil.assertFileIsWritable(FASTQ);
-            IOUtil.openFileForWriting(FASTQ);
+            IoUtil.assertFileIsWritable(FASTQ);
+            IoUtil.openFileForWriting(FASTQ);
             try {
 				fqw.add(new QFastqWriter(FASTQ));
 			} catch (IOException e1) {
@@ -232,8 +237,8 @@ public class QSamToFastq extends CommandLineProgram {
 //            fqw.add(factory.newWriter(FASTQ));
 
             if (SECOND_END_FASTQ != null) {
-                IOUtil.assertFileIsWritable(SECOND_END_FASTQ);
-                IOUtil.openFileForWriting(SECOND_END_FASTQ);
+                IoUtil.assertFileIsWritable(SECOND_END_FASTQ);
+                IoUtil.openFileForWriting(SECOND_END_FASTQ);
                 try {
 					fqw.add(new QFastqWriter(SECOND_END_FASTQ));
 				} catch (IOException e) {
@@ -269,14 +274,14 @@ public class QSamToFastq extends CommandLineProgram {
     protected File makeReadGroupFile(final SAMReadGroupRecord readGroup, final String preExtSuffix) {
         String fileName = readGroup.getPlatformUnit();
         if (fileName == null) fileName = readGroup.getReadGroupId();
-        fileName = IOUtil.makeFileNameSafe(fileName);
+        fileName = IoUtil.makeFileNameSafe(fileName);
         if(preExtSuffix != null) fileName += preExtSuffix;
         fileName += ".fastq";
 
         final File result = (OUTPUT_DIR != null)
                           ? new File(OUTPUT_DIR, fileName)
                           : new File(fileName);
-        IOUtil.assertFileIsWritable(result);
+        IoUtil.assertFileIsWritable(result);
         return result;
     }
 

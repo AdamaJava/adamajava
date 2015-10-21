@@ -24,8 +24,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMRecordIterator;
+import net.sf.samtools.SAMFileReader;
+import net.sf.samtools.SAMRecordIterator;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -342,7 +342,7 @@ public class SnpBasePileupMT {
 			}
 			
 			SAMRecordIterator iter = null;
-			SamReader reader = null;
+			SAMFileReader reader = null;
 			
 //			while (true && snpPositions.size() > 0) {
 //				
@@ -468,7 +468,7 @@ public class SnpBasePileupMT {
 //					this.exec  = new QueryExecutor(options.getFilterQuery());
 //				}
 
-				Map<InputBAM, SamReader> samReaderCache = new HashMap<>();
+				Map<InputBAM, SAMFileReader> samReaderCache = new HashMap<>();
 				while (run) {
 					position = queueIn.poll();	                    
 
@@ -494,7 +494,7 @@ public class SnpBasePileupMT {
 						}
 						StringBuilder sb = new StringBuilder();
 						for (InputBAM i : currentInputs) {
-							SamReader sfReader = samReaderCache.get(i);
+							SAMFileReader sfReader = samReaderCache.get(i);
 							if (null == sfReader) {
 								sfReader = i.getSAMFileReader();
 								samReaderCache.put(i, sfReader);

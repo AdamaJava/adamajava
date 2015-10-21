@@ -5,10 +5,10 @@ package org.qcmg.snp.util;
 
 import java.util.List;
 
-import htsjdk.samtools.Cigar;
-import htsjdk.samtools.CigarElement;
-import htsjdk.samtools.CigarOperator;
-import htsjdk.samtools.SAMRecord;
+import net.sf.samtools.Cigar;
+import net.sf.samtools.CigarElement;
+import net.sf.samtools.CigarOperator;
+import net.sf.samtools.SAMRecord;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;

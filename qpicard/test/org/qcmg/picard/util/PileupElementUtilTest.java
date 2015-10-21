@@ -6,7 +6,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import junit.framework.Assert;
-import htsjdk.samtools.SAMUtils;
+import net.sf.samtools.SAMUtils;
 
 import org.junit.Ignore;
 import org.junit.Test;

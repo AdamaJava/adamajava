@@ -7,11 +7,10 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Objects;
 
-import htsjdk.samtools.SAMFileHeader.SortOrder;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMRecordIterator;
-import htsjdk.samtools.ValidationStringency;
+import net.sf.samtools.SAMFileHeader.SortOrder;
+import net.sf.samtools.SAMFileReader;
+import net.sf.samtools.SAMRecord;
+import net.sf.samtools.SAMRecordIterator;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -21,8 +20,8 @@ import org.qcmg.picard.SAMOrBAMWriterFactory;
 public class AlignerCompare {
 		static QLogger logger = QLoggerFactory.getLogger(AlignerCompare.class);
 		boolean discardNonPrimary;	
-		SamReader firReader;
-		SamReader secReader;
+		SAMFileReader firReader;
+		SAMFileReader secReader;
 		
 		SAMOrBAMWriterFactory sameWriter;
 		SAMOrBAMWriterFactory diffWriter_first;
@@ -46,8 +45,8 @@ public class AlignerCompare {
 
 		AlignerCompare(File firBam, File secBam, String prefix, boolean flag) throws Exception{
 			//check inputs: sort by query name
-			firReader = SAMFileReaderFactory.createSAMFileReader(firBam, ValidationStringency.SILENT);
-			secReader = SAMFileReaderFactory.createSAMFileReader(secBam, ValidationStringency.SILENT);
+			firReader = SAMFileReaderFactory.createSAMFileReader(firBam, SAMFileReader.ValidationStringency.SILENT);
+			secReader = SAMFileReaderFactory.createSAMFileReader(secBam, SAMFileReader.ValidationStringency.SILENT);
 			discardNonPrimary = flag;
 			
 			if(! firReader.getFileHeader().getSortOrder().equals(SortOrder.queryname))

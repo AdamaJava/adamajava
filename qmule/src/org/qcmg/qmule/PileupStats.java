@@ -8,16 +8,15 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
-import htsjdk.samtools.Cigar;
-import htsjdk.samtools.CigarElement;
-import htsjdk.samtools.CigarOperator;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMRecordIterator;
+import net.sf.samtools.Cigar;
+import net.sf.samtools.CigarElement;
+import net.sf.samtools.CigarOperator;
+import net.sf.samtools.SAMFileReader;
+import net.sf.samtools.SAMRecord;
+import net.sf.samtools.SAMRecordIterator;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -64,8 +63,8 @@ public class PileupStats {
 				"\ttotal hard clips\ttotal spliced reads\ttotal duplicates\tmismatch counts\tsplice lengths\n";
 	}
 
-	private String pileup(String chromosome, int start, int end) throws IOException {
-		SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile, "silent");
+	private String pileup(String chromosome, int start, int end) {
+		SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile, "silent");
 		
 		SAMRecordIterator iterator = reader.queryOverlapping(chromosome, start, end);
 		

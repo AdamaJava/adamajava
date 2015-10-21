@@ -3,7 +3,7 @@
  */
 package org.qcmg.coverage;
 
-import htsjdk.samtools.SAMRecord;
+import net.sf.samtools.SAMRecord;
 
 interface Algorithm {
 	public String getName();

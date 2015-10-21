@@ -1,4 +1,4 @@
-version = '0.7pre'
+version = '0.6pre'
 
 def mainclass = 'org.qcmg.bammerge.Main'
 def scriptname = 'qbammerge'
@@ -16,7 +16,8 @@ dependencies {
     
 
     compile name: 'jopt-simple', version: '4.6'
-    compile name: 'htsjdk', version: '1.140'
+    compile name: 'picard', version: '1.110'
+    compile name: 'sam', version: '1.110'
 
     testCompile project(':qtesting')
     testCompile project(':qsplit')

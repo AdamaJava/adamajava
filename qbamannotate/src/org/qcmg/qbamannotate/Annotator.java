@@ -6,16 +6,15 @@ package org.qcmg.qbamannotate;
 import java.io.File;
 import java.util.Iterator;
 
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMFileWriter;
-import htsjdk.samtools.SAMFileWriterFactory;
-import htsjdk.samtools.SAMRecord;
+import net.sf.samtools.SAMFileHeader;
+import net.sf.samtools.SAMFileReader;
+import net.sf.samtools.SAMFileWriter;
+import net.sf.samtools.SAMFileWriterFactory;
+import net.sf.samtools.SAMRecord;
 
 import org.qcmg.ma.MAFileReader;
 import org.qcmg.ma.MARecord;
 import org.qcmg.picard.HeaderUtils;
-import org.qcmg.picard.SAMFileReaderFactory;
 
 public final class Annotator {
 	private final boolean modifyProgramLine;
@@ -28,7 +27,7 @@ public final class Annotator {
 	private final File inputMAFile;
 	private SAMFileWriter fileWriter;
 	private SAMFileHeader header;
-	private SamReader samFileReader;
+	private SAMFileReader samFileReader;
 	private MAFileReader maFileReader;
 	private Iterator<SAMRecord> samIterator;
 	private Iterator<MARecord> maIterator;
@@ -139,7 +138,7 @@ public final class Annotator {
 
 	private void marchAndAnnotate() throws Exception {
 		try {
-			samFileReader = SAMFileReaderFactory.createSAMFileReader( inputBAMFile) ; //new SAMFileReader(inputBAMFile);
+			samFileReader = new SAMFileReader(inputBAMFile);
 			maFileReader = new MAFileReader(inputMAFile);
 			header = samFileReader.getFileHeader();
 			header.setSortOrder(SAMFileHeader.SortOrder.unsorted);

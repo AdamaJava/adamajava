@@ -13,16 +13,15 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMFileHeader.SortOrder;
+import net.sf.samtools.SAMFileReader;
+import net.sf.samtools.SAMRecord;
+import net.sf.samtools.SAMFileHeader.SortOrder;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qsv.QSVParameters;
 import org.qcmg.qsv.discordantpair.FindMatePairsMT;
 import org.qcmg.qsv.discordantpair.MatePair;
@@ -52,7 +51,7 @@ public class FindMatePairsMTTest {
 
         File file = testFolder.newFile("testSamFile");
         TestUtil.createSamFile(file.getAbsolutePath(), SortOrder.queryname, false);
-        SamReader reader = SAMFileReaderFactory.createSAMFileReader(file);//new SAMFileReader(file);
+        SAMFileReader reader = new SAMFileReader(file);
 
         for (SAMRecord r : reader) {
             records.add(r);

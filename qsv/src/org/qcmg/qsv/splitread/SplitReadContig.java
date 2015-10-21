@@ -19,9 +19,9 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMRecordIterator;
+import net.sf.samtools.SAMFileReader;
+import net.sf.samtools.SAMRecord;
+import net.sf.samtools.SAMRecordIterator;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -273,8 +273,8 @@ public class SplitReadContig {
 		this.microhomology = QSVConstants.UNTESTED;
 		this.nonTemplateSequence = QSVConstants.UNTESTED;
 
-		// setup the SamReader just once
-		try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(parameters.getInputBamFile(), "silent");) {
+		// setup the SAMFileReader just once
+		try (SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(parameters.getInputBamFile(), "silent");) {
 
 			//left reads		
 			readSplitReads(reader, map, splitReads, knownSV.getLeftReference(), knownSV.getLeftBreakpoint(), expectedPairClassifications);
@@ -403,10 +403,10 @@ public class SplitReadContig {
 		}
 	}
 
-	private void readSplitReads(SamReader reader, Map<String, UnmappedRead[]> map, List<UnmappedRead> splitReads, 
+	private void readSplitReads(SAMFileReader reader, Map<String, UnmappedRead[]> map, List<UnmappedRead> splitReads, 
 			String reference, int intBreakpoint, Set<String> expectedPairClassifications) throws Exception {
-		//		SAMFileReader.setDefaultValidationStringency(ValidationStringency.SILENT);  
-		//        SamReader reader = SAMFileReaderFactory.createSAMFileReader(parameters.getInputBamFile(), "silent");
+		//		SAMFileReader.setDefaultValidationStringency(SAMFileReader.ValidationStringency.SILENT);  
+		//        SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(parameters.getInputBamFile(), "silent");
 		int buffer = parameters.getUpperInsertSize() + 200;
 		int count = 0;
 		

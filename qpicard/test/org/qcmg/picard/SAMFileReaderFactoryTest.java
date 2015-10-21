@@ -7,14 +7,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMFileWriter;
-import htsjdk.samtools.SAMProgramRecord;
-import htsjdk.samtools.SAMReadGroupRecord;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMSequenceDictionary;
-import htsjdk.samtools.SAMSequenceRecord;
+import net.sf.samtools.SAMFileHeader;
+import net.sf.samtools.SAMFileReader;
+import net.sf.samtools.SAMFileWriter;
+import net.sf.samtools.SAMProgramRecord;
+import net.sf.samtools.SAMReadGroupRecord;
+import net.sf.samtools.SAMRecord;
+import net.sf.samtools.SAMSequenceDictionary;
+import net.sf.samtools.SAMSequenceRecord;
 
 import org.junit.Assert;
 import org.junit.Rule;
@@ -31,63 +31,65 @@ public class SAMFileReaderFactoryTest {
 	private static final int inValidBamRecordCount = 6;
 	
 	@Test
-	public void testInvalidHeaderValidBody() throws IOException  {
+	public void testInvalidHeaderValidBody() throws IOException {
 		
 		File bamFile = testFolder.newFile("testInvalidHeaderValidBody.bam");
-		
 		getBamFile(bamFile, false, true);
 		// no validation set - should pick up bwa in header and set validation to silent
 		int recordCount = 0;
-//		SAMFileReaderFactory.createSAMFileReader(bamFile);
-		
-		//default stringency is slient in our SAMFileReaderFactory
-		try(SamReader reader = SAMFileReaderFactory.createSAMFileReader( bamFile) ) {
+		SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile);
+		try {
 			for (SAMRecord s : reader) {
 				recordCount++;
 			}
-		}  
-		assertEquals(validBamRecordCount, recordCount);
+			assertEquals(validBamRecordCount, recordCount);
+		} finally {
+			reader.close();
+		}
 		
 		// this time set the validation stringency to strict - should fail
 		recordCount = 0;
-		
-		try(SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile, "strict");) {			
+		try {
+			reader = SAMFileReaderFactory.createSAMFileReader(bamFile, "strict");
 			Assert.fail("Should have thrown an exception");
 		} catch (Exception e) {
-			
+		} finally {
+			reader.close();
 		}
-		
 		
 		// this time set the validation stringency to silent - should work
 		recordCount = 0;
-		try(SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile, "silent"  );) {
+		try {
+			reader = SAMFileReaderFactory.createSAMFileReader(bamFile, "silent");
 			for (SAMRecord s : reader) {
 				recordCount++;
 			}
-		}  
+		} finally {
+			reader.close();
+		}
 		assertEquals(validBamRecordCount, recordCount);
 		
 		// this time set the validation stringency to lenient - should work
 		recordCount = 0;
-		try(SamReader  reader = SAMFileReaderFactory.createSAMFileReader(bamFile, "lenient");) {
-		 
+		try {
+			reader = SAMFileReaderFactory.createSAMFileReader(bamFile, "lenient");
 			for (SAMRecord s : reader) {
 				recordCount++;
 			}
-		}  
+		} finally {
+			reader.close();
+		}
 		assertEquals(validBamRecordCount, recordCount);
 		
 	}
 	
- 
-
 	@Test
 	public void testValidHeaderInvalidBody() throws IOException {
 		File bamFile = testFolder.newFile("testValidHeaderInvalidBody.bam");
 		getBamFile(bamFile, true, false);
 		// no validation set - should pick up bwa in header and set validation to silent
 		int recordCount = 0;
-		SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile);
+		SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile);
 		try {
 			for (SAMRecord s : reader) {
 				recordCount++;
@@ -138,7 +140,7 @@ public class SAMFileReaderFactoryTest {
 		getBamFile(bamFile, false, false);
 		// no validation set - should pick up bwa in header and set validation to silent
 		int recordCount = 0;
-		SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile);
+		SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile);
 		try {
 			for (SAMRecord s : reader) recordCount++;
 			assertEquals(inValidBamRecordCount, recordCount);
@@ -186,7 +188,7 @@ public class SAMFileReaderFactoryTest {
 		getBamFile(bamFile, true, true);
 		// no validation set - should pick up bwa in header and set validation to silent
 		int recordCount = 0;
-		SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile);
+		SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile);
 		try {
 			for (SAMRecord s : reader) {
 				recordCount++;
@@ -383,7 +385,7 @@ public class SAMFileReaderFactoryTest {
 "@PG	ID:7022afd6-d0fb-47b9-90d0-c6f3ef0f98e6	PN:qbamfix	zc:9	VN:qbamfix, version 0.2pre	CL:qbamfix --input /path/130207_SN152_0756_AC1PJYACXX/130207_SN152_0756_AC1PJYACXX.lane_1.nobc.sam --output /path/130207_SN152_0756_AC1PJYACXX/130207_SN152_0756_AC1PJYACXX.lane_1.nobc.fixrg.bam --log /path/130207_SN152_0756_AC1PJYACXX/130207_SN152_0756_AC1PJYACXX.lane_1.nobc.fix.log --RGLB LP6005273-DNA_G04 --RGSM SSSS_076 --tmpdir /scratch/329416.machine"+
 "@PG	ID:9b400d65-3b8d-4f98-b246-ba4280b916ae	PN:qbamfix	zc:7	VN:qbamfix, version 0.2pre	CL:qbamfix --input /path/130207_SN152_0756_AC1PJYACXX/130207_SN152_0756_AC1PJYACXX.lane_2.nobc.sam --output /path/130207_SN152_0756_AC1PJYACXX/130207_SN152_0756_AC1PJYACXX.lane_2.nobc.fixrg.bam --log /path/130207_SN152_0756_AC1PJYACXX/130207_SN152_0756_AC1PJYACXX.lane_2.nobc.fix.log --RGLB LP6005273-DNA_G04 --RGSM SSSS_076 --tmpdir /scratch/329421.machine"+
 "@PG	ID:9c662b98-b27f-4a94-bd76-d1937d33ab9c	PN:qbamfix	zc:8	VN:qbamfix, version 0.2pre	CL:qbamfix --input /path/130207_SN152_0757_BD1U57ACXX/130207_SN152_0757_BD1U57ACXX.lane_7.nobc.sam --output /path/130207_SN152_0757_BD1U57ACXX/130207_SN152_0757_BD1U57ACXX.lane_7.nobc.fixrg.bam --log /path/130207_SN152_0757_BD1U57ACXX/130207_SN152_0757_BD1U57ACXX.lane_7.nobc.fix.log --RGLB LP6005273-DNA_G04 --RGSM SSSS_076 --tmpdir /scratch/329449.machine"+
-"@PG	ID:MarkDuplicates	PN:MarkDuplicates	zc:5	VN:1.88(1394)	QN:picard_markdups	CL:htsjdk.samtools.sam.MarkDuplicates INPUT=[/scratch/332212.machine/DNA_7PrimaryTumour_IDBPC20130205035_out_kit1_Bwa_HiSeq.Library_NEW5709A939AR2.withdups.bam] OUTPUT=/scratch/332212.machine/DNA_7PrimaryTumour_IDBPC20130205035_out_kit1_Bwa_HiSeq.Library_NEW5709A939AR2.bam METRICS_FILE=/scratch/332212.machine/DNA_7PrimaryTumour_IDBPC20130205035_out_kit1_Bwa_HiSeq.Library_NEW5709A939AR2.bam.dedup_metrics COMMENT=[CN:QCMG"+
+"@PG	ID:MarkDuplicates	PN:MarkDuplicates	zc:5	VN:1.88(1394)	QN:picard_markdups	CL:net.sf.picard.sam.MarkDuplicates INPUT=[/scratch/332212.machine/DNA_7PrimaryTumour_IDBPC20130205035_out_kit1_Bwa_HiSeq.Library_NEW5709A939AR2.withdups.bam] OUTPUT=/scratch/332212.machine/DNA_7PrimaryTumour_IDBPC20130205035_out_kit1_Bwa_HiSeq.Library_NEW5709A939AR2.bam METRICS_FILE=/scratch/332212.machine/DNA_7PrimaryTumour_IDBPC20130205035_out_kit1_Bwa_HiSeq.Library_NEW5709A939AR2.bam.dedup_metrics COMMENT=[CN:QCMG"+
 "@PG	ID:ad74545e-b36f-4587-aa46-812baa87f467	PN:qbamfix	zc:6	VN:qbamfix, version 0.2pre	CL:qbamfix --input /path/130207_SN152_0757_BD1U57ACXX/130207_SN152_0757_BD1U57ACXX.lane_8.nobc.sam --output /path/130207_SN152_0757_BD1U57ACXX/130207_SN152_0757_BD1U57ACXX.lane_8.nobc.fixrg.bam --log /path/130207_SN152_0757_BD1U57ACXX/130207_SN152_0757_BD1U57ACXX.lane_8.nobc.fix.log --RGLB LP6005273-DNA_G04 --RGSM SSSS_076 --tmpdir /scratch/329452.machine"+
 "@PG	ID:bwa	PN:bwa	zc:6	VN:0.6.1-r104"+
 "@PG	ID:bwa.1	PN:bwa	zc:7	VN:0.6.1-r104"+

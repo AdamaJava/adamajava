@@ -9,16 +9,14 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import htsjdk.samtools.reference.IndexedFastaSequenceFile;
-import htsjdk.samtools.Cigar;
-import htsjdk.samtools.CigarElement;
-import htsjdk.samtools.CigarOperator;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMRecordIterator;
-import htsjdk.samtools.ValidationStringency;
+import net.sf.picard.reference.IndexedFastaSequenceFile;
+import net.sf.samtools.Cigar;
+import net.sf.samtools.CigarElement;
+import net.sf.samtools.CigarOperator;
+import net.sf.samtools.SAMFileReader;
+import net.sf.samtools.SAMRecord;
+import net.sf.samtools.SAMRecordIterator;
 
-import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.util.SAMUtils;
 import org.qcmg.qbamfilter.query.QueryExecutor;
 import org.qcmg.qbasepileup.InputBAM;
@@ -44,11 +42,11 @@ public class IndelPileup {
 	private Set<Integer> novelStarts = new HashSet<Integer>();	
 	private boolean isTumour;	
 	private static final String SCOLON = ";";
+	private File referenceFile;
 	private Homopolymer homopolymer;
 	private boolean highCoverage;
 	private Map<String, SAMRecord> records = new HashMap<String, SAMRecord>();
 	private Options options;
-	private File referenceFile;
 
 	public IndelPileup(Options options,InputBAM inputBam, IndelPosition position, File reference, int softClipWindow, int homopolymerWindow, int nearbyIndelWindow, boolean isTumour) throws QBasePileupException {
 		this.inputBam = inputBam;
@@ -78,8 +76,8 @@ public class IndelPileup {
 	
 	public void pileupReads(QueryExecutor exec, IndexedFastaSequenceFile indexedFasta) throws Exception {
 				
-	//	setDefaultValidationStringency();
-		SamReader reader =   SAMFileReaderFactory.createSAMFileReader(inputBam.getBamFile(),  ValidationStringency.SILENT);   //new SAMFileReader(inputBam.getBamFile());			
+		SAMFileReader.setDefaultValidationStringency(SAMFileReader.ValidationStringency.SILENT);
+		SAMFileReader reader = new SAMFileReader(inputBam.getBamFile());			
 		
 		SAMRecordIterator iter = reader.queryOverlapping(position.getFullChromosome(), position.getStart(), position.getEnd());		
 		boolean passFilter;

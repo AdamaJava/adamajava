@@ -12,8 +12,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMRecord;
+import net.sf.samtools.SAMFileReader;
+import net.sf.samtools.SAMRecord;
 
 import org.junit.After;
 import org.junit.Before;
@@ -181,7 +181,7 @@ public class MultiSAMFileIteratorTest {
 		HashSet<SAMRecordWrapper> set = new HashSet<SAMRecordWrapper>();
 		long start = System.currentTimeMillis();
 		SAMRecord rec = new SAMRecord(null);
-		SamReader reader = SAMFileReaderFactory.createSAMFileReader( testInputFile ); //new SAMFileReader(testInputFile);
+		SAMFileReader reader = new SAMFileReader(testInputFile);
 		Iterator<SAMRecord> iterator = reader.iterator();
 		for (int i = 0 ; i < number ; i++) {
 			SAMRecordWrapper temp = new SAMRecordWrapper(rec, iterator, reader);
@@ -193,7 +193,7 @@ public class MultiSAMFileIteratorTest {
 		List<SAMRecordWrapper> list = new ArrayList<SAMRecordWrapper>();
 		start = System.currentTimeMillis();
 //		SAMRecord rec = new SAMRecord(null);
-//		SamReader reader = new SAMFileReader(testInputFile);
+//		SAMFileReader reader = new SAMFileReader(testInputFile);
 //		Iterator<SAMRecord> iterator = reader.iterator();
 		for (int i = 0 ; i < number ; i++) {
 			SAMRecordWrapper temp = new SAMRecordWrapper(rec, iterator, reader);

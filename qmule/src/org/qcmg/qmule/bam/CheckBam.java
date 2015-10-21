@@ -14,11 +14,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicLongArray;
 
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMRecordIterator;
-import htsjdk.samtools.SAMSequenceRecord;
+import net.sf.samtools.SAMFileHeader;
+import net.sf.samtools.SAMFileReader;
+import net.sf.samtools.SAMRecord;
+import net.sf.samtools.SAMRecordIterator;
+import net.sf.samtools.SAMSequenceRecord;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -71,7 +71,7 @@ public class CheckBam {
 		
 		final AbstractQueue<String> sequences = new ConcurrentLinkedQueue<String>();
 		
-		try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFIle);) {
+		try (SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(bamFIle);) {
 			if ( ! reader.hasIndex() && numberOfThreads > 1) {
 				logger.warn("Using 1 producer thread - no index found for bam file: " + bamFIle.getAbsolutePath());
 				numberOfThreads = 1;
@@ -189,7 +189,7 @@ public class CheckBam {
 			
 			long count = 0;
 			
-			try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFIle);) {
+			try (SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(bamFIle);) {
 			
 				while (true) {
 					String sequence = sequences.poll();
@@ -243,7 +243,7 @@ public class CheckBam {
 			
 			long count = 0;
 			
-			try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFIle);) {
+			try (SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(bamFIle);) {
 				
 				for (SAMRecord r : reader) {
 					int flag = r.getFlags();

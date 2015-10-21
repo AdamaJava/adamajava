@@ -47,11 +47,6 @@ public class MainTest {
 		String command = "--log ./logfile -f -o output.sam -i first.sam -i second.sam";
 		Executor exec = new Executor(command, "org.qcmg.bammerge.Main");
 		assertTrue(0 == exec.getErrCode());
-		
-//	   Main.main(command.split(" "));	
-		
-		
-		
 	}
 
 	@Test

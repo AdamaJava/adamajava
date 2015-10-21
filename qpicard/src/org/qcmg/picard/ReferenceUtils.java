@@ -5,11 +5,11 @@ import java.util.Arrays;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import htsjdk.samtools.reference.FastaSequenceFile;
-import htsjdk.samtools.reference.FastaSequenceIndex;
-import htsjdk.samtools.reference.IndexedFastaSequenceFile;
-import htsjdk.samtools.reference.ReferenceSequence;
-import htsjdk.samtools.reference.ReferenceSequenceFile;
+import net.sf.picard.reference.FastaSequenceFile;
+import net.sf.picard.reference.FastaSequenceIndex;
+import net.sf.picard.reference.IndexedFastaSequenceFile;
+import net.sf.picard.reference.ReferenceSequence;
+import net.sf.picard.reference.ReferenceSequenceFile;
 
 public class ReferenceUtils {
 	

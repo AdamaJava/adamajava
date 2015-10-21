@@ -3,7 +3,7 @@
  */
 package org.qcmg.qsv.util;
 
-import htsjdk.samtools.SAMTagUtil;
+import net.sf.samtools.SAMTagUtil;
 
 public class QSVConstants {
 	

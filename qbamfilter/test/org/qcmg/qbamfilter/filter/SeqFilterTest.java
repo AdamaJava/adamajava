@@ -6,14 +6,13 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 
-import htsjdk.samtools.filter.SamRecordFilter;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMRecord;
+import net.sf.picard.filter.SamRecordFilter;
+import net.sf.samtools.SAMFileReader;
+import net.sf.samtools.SAMRecord;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.qcmg.picard.SAMFileReaderFactory;
 
 public class SeqFilterTest {
 	@BeforeClass
@@ -31,7 +30,7 @@ public class SeqFilterTest {
     public void FilterTest() throws Exception{
     	
     	//only read the first read
-        SamReader Inreader = SAMFileReaderFactory.createSAMFileReader(new File(TestFile.INPUT_FILE_NAME));    //new SAMFileReader(new File(TestFile.INPUT_FILE_NAME));
+        SAMFileReader Inreader = new SAMFileReader(new File(TestFile.INPUT_FILE_NAME));
         SAMRecord record = null ;
         for( SAMRecord re : Inreader){
         	 record = re;

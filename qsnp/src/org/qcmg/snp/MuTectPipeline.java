@@ -16,11 +16,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
 
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMRecordIterator;
-import htsjdk.samtools.SAMSequenceRecord;
+import net.sf.samtools.SAMFileHeader;
+import net.sf.samtools.SAMFileReader;
+import net.sf.samtools.SAMRecord;
+import net.sf.samtools.SAMRecordIterator;
+import net.sf.samtools.SAMSequenceRecord;
 
 import org.ini4j.Ini;
 import org.qcmg.common.log.QLogger;
@@ -117,17 +117,17 @@ public final class MuTectPipeline extends Pipeline {
 				|| null == testBams || testBams.length == 0 
 				|| StringUtils.isNullOrEmpty(testBams[0])) return null;
 		
-		SAMFileHeader controlHeader = SAMFileReaderFactory.createSAMFileReader(new File(controlBams[0])).getFileHeader();
-		SAMFileHeader analysisHeader = SAMFileReaderFactory.createSAMFileReader(new File(testBams[0])).getFileHeader();
+		SAMFileHeader controlHeader = SAMFileReaderFactory.createSAMFileReader(controlBams[0]).getFileHeader();
+		SAMFileHeader analysisHeader = SAMFileReaderFactory.createSAMFileReader(testBams[0]).getFileHeader();
 		
 		QDccMeta dccMeta = QDccMetaFactory.getDccMeta(qexec, controlHeader, analysisHeader, "MuTect");
 		
 		return dccMeta.getDCCMetaDataToString();
 	}
 	
-	private void addNovelStarts() throws IOException {
+	private void addNovelStarts() {
 		
-		try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(tumourBam))) {
+		try (SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(tumourBam)) {
 			
 			for (Entry<ChrPosition, QSnpRecord> entry : positionRecordMap.entrySet()) {
 				
@@ -346,7 +346,7 @@ public final class MuTectPipeline extends Pipeline {
 	 */
 	public class Pileup implements Runnable {
 //		private final String bamFile;
-		private final SamReader reader;
+		private final SAMFileReader reader;
 		private final boolean isNormal;
 		private final ConcurrentMap<ChrPosition , Accumulator> pileupMap;
 		private int arraySize;
@@ -360,12 +360,12 @@ public final class MuTectPipeline extends Pipeline {
 //			this.bamFile = bamFile;
 			this.isNormal = isNormal;
 			pileupMap = isNormal ? normalPileup : tumourPileup;
-			reader = SAMFileReaderFactory.createSAMFileReader(new File(bamFile));
+			reader = SAMFileReaderFactory.createSAMFileReader(bamFile);
 			snps = new ArrayList<ChrPosition>(positionRecordMap.keySet());
 			this.latch = latch;
 		}
 		
-		private void createComparatorFromSAMHeader(SamReader reader) {
+		private void createComparatorFromSAMHeader(SAMFileReader reader) {
 			SAMFileHeader header = reader.getFileHeader();
 			
 			final List<String> sortedContigs = new ArrayList<String>();
@@ -539,9 +539,6 @@ public final class MuTectPipeline extends Pipeline {
 			} finally {
 				try {
 					reader.close();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
 				} finally {
 					latch.countDown();
 				}

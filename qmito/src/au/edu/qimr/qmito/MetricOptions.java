@@ -10,9 +10,9 @@ import java.util.List;
 
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMSequenceRecord;
+import net.sf.samtools.SAMFileHeader;
+import net.sf.samtools.SAMFileReader;
+import net.sf.samtools.SAMSequenceRecord;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.meta.QExec;
@@ -123,7 +123,7 @@ public class MetricOptions {
         if(options.has("refname"))
         	ref = (String) options.valueOf("refname");
       	
-		SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(inputBamNames[0]));  
+		SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(inputBamNames[0]);  
 		SAMFileHeader header = reader.getFileHeader().clone();
 		reader.close();
 		
@@ -157,7 +157,7 @@ public class MetricOptions {
 			if (bamLock.exists() )					
 				throw new Exception(Messages.getMessage("BAM_LOCK", bam));
 				
-			SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile, "silent");			
+			SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile, "silent");			
 			File indexLock = new File(bam + ".bai.lck");
 			//does bam have index
 			if (!reader.hasIndex()) {

@@ -24,9 +24,9 @@ import java.util.concurrent.atomic.AtomicLongArray;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import htsjdk.samtools.Cigar;
-import htsjdk.samtools.CigarElement;
-import htsjdk.samtools.CigarOperator;
+import net.sf.samtools.Cigar;
+import net.sf.samtools.CigarElement;
+import net.sf.samtools.CigarOperator;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;

@@ -26,11 +26,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMReadGroupRecord;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMSequenceRecord;
+import net.sf.samtools.SAMFileHeader;
+import net.sf.samtools.SAMFileReader;
+import net.sf.samtools.SAMReadGroupRecord;
+import net.sf.samtools.SAMRecord;
+import net.sf.samtools.SAMSequenceRecord;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -253,12 +253,12 @@ public class SignatureGenerator {
 		}
 	}
 	
-	void createComparatorFromSAMHeader(File fileName) throws IOException {
+	void createComparatorFromSAMHeader(File fileName) {
 		if (null == fileName) throw new IllegalArgumentException("null file passed to createComparatorFromSAMHeader");
 		
 		final List<String> sortedContigs = new ArrayList<String>();
 		
-		try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(fileName)) {
+		try (SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(fileName)) {
 			final SAMFileHeader header = reader.getFileHeader();
 			for (final SAMSequenceRecord contig : header.getSequenceDictionary().getSequences()) {
 				sortedContigs.add(contig.getSequenceName());
@@ -478,7 +478,7 @@ public class SignatureGenerator {
 	private VcfHeader generateVcfHeader(File file, String snpChipFile) throws Exception {
 		// not hitting the LIMS anymore - get what we can from the bam header
 		final String [] bamHeaderInfo = new String[2];
-		try (SamReader samReader = SAMFileReaderFactory.createSAMFileReader(file);) {
+		try (SAMFileReader samReader = SAMFileReaderFactory.createSAMFileReader(file);) {
 			
 			final SAMFileHeader header = samReader.getFileHeader();
 			for (final SAMReadGroupRecord srgr : header.getReadGroups()) {
@@ -739,7 +739,7 @@ public class SignatureGenerator {
 	* INNER CLASSES
 	*******************/
 	public class Producer implements Runnable {
-		private final SamReader reader;
+		private final SAMFileReader reader;
 		private final CountDownLatch pLatch;
 		private final Thread mainThread;
 		
@@ -765,9 +765,6 @@ public class SignatureGenerator {
 			} finally {
 				try {
 					reader.close();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
 				} finally {
 					pLatch.countDown();
 				}

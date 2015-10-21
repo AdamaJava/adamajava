@@ -10,12 +10,10 @@ package org.qcmg.qbamfilter.filter;
 import org.junit.Test;
 import org.junit.After;
 import org.junit.Before;
-import org.qcmg.picard.SAMFileReaderFactory;
 
 import static org.junit.Assert.*;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMRecord;
-
+import net.sf.samtools.SAMFileReader;
+import net.sf.samtools.SAMRecord;
 import java.io.File;
 
 
@@ -37,7 +35,7 @@ public class TagValueFilterTest {
 
         Comparator op = Comparator.Equal;
         TagValueFilter filter = new TagValueFilter(tag, op, value);
-        SamReader Inreader = SAMFileReaderFactory.createSAMFileReader(new File(TestFile.INPUT_FILE_NAME));
+        SAMFileReader Inreader = new SAMFileReader(new File(TestFile.INPUT_FILE_NAME));
         int NunRealRecord = 1;
         int i = 0;
         for(SAMRecord re : Inreader){
@@ -60,7 +58,7 @@ public class TagValueFilterTest {
 
         Comparator op = Comparator.Equal;
         TagValueFilter filter = new TagValueFilter(tag, op, value);
-        SamReader Inreader = SAMFileReaderFactory.createSAMFileReader(new File(TestFile.INPUT_FILE_NAME));
+        SAMFileReader Inreader = new SAMFileReader(new File(TestFile.INPUT_FILE_NAME));
         int i = 0;
         for(SAMRecord re : Inreader){
         	i ++;

@@ -22,7 +22,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import htsjdk.samtools.reference.IndexedFastaSequenceFile;
+import net.sf.picard.reference.IndexedFastaSequenceFile;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;

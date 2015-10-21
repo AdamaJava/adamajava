@@ -3,7 +3,7 @@
  */
 package org.qcmg.coverage;
 
-import htsjdk.samtools.SAMRecord;
+import net.sf.samtools.SAMRecord;
 
 public class PhysicalCoverageAlgorithm implements Algorithm {
 	@Override

@@ -8,8 +8,8 @@ package org.qcmg.cnv;
 import java.io.File;
 import java.util.HashSet;
 
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SamReader;
+import net.sf.samtools.SAMFileHeader;
+import net.sf.samtools.SAMFileReader;
 
 import org.apache.commons.cli.*;
 import org.qcmg.common.log.QLogger;

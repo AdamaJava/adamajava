@@ -7,7 +7,7 @@ import java.util.Deque;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
-import htsjdk.samtools.SAMRecord;
+import net.sf.samtools.SAMRecord;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;

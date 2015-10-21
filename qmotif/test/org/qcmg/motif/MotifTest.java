@@ -16,12 +16,12 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SAMFileHeader.SortOrder;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMFileWriter;
-import htsjdk.samtools.SAMFileWriterFactory;
-import htsjdk.samtools.SAMRecord;
+import net.sf.samtools.SAMFileHeader;
+import net.sf.samtools.SAMFileHeader.SortOrder;
+import net.sf.samtools.SAMFileReader;
+import net.sf.samtools.SAMFileWriter;
+import net.sf.samtools.SAMFileWriterFactory;
+import net.sf.samtools.SAMRecord;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -29,7 +29,6 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.commandline.Executor;
-import org.qcmg.picard.SAMFileReaderFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
@@ -160,14 +159,24 @@ public class MotifTest {
 		return doc;
 	}
 	
-	public static void createBam(File samFile, File bam) throws IOException {
-		 SAMFileWriterFactory factory = new SAMFileWriterFactory().setCreateIndex(true);
-		 
-		  try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(samFile);
-				SAMFileWriter writer = factory.makeBAMWriter(reader.getFileHeader(), false, bam);	 ) {			 		
-			  for (SAMRecord r: reader)  
-				writer.addAlignment(r);				 			 
-		  }		  		  
+	public static void createBam(File samFile, File bam) {
+		  try (SAMFileReader reader = new SAMFileReader(samFile);) {
+			  
+			  SAMFileHeader header = reader.getFileHeader();
+	        
+			SAMFileWriterFactory factory = new SAMFileWriterFactory();
+			factory.setCreateIndex(true);
+			SAMFileWriter writer = null;
+			try {
+				writer = factory.makeBAMWriter(header, false, bam);
+			
+				for (SAMRecord r: reader) {
+					writer.addAlignment(r);
+				}
+			} finally {
+				writer.close();
+			}
+		  }
 	}
 	
 	public static void createSam(File samFile) throws IOException {

@@ -8,8 +8,8 @@ import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMRecord;
+import net.sf.samtools.SAMFileReader;
+import net.sf.samtools.SAMRecord;
 
 import org.junit.After;
 import org.junit.Before;
@@ -18,7 +18,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.qcmg.common.commandline.StreamConsumer;
-import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.testing.SamTestData;
 import org.qcmg.testing.TestDataSolid0039_20091125_2_TD04_LMP_20100531;
 
@@ -101,7 +100,7 @@ public class AnnotatorTest {
 				new LongMatePair(580, 2400), "qbamannotate", "0.0",
 				"not applicable");
 		File fileC = new File("output.sam");
-		SamReader reader = SAMFileReaderFactory.createSAMFileReader(fileC);
+		SAMFileReader reader = new SAMFileReader(fileC);
 		boolean allRecordsHaveZM = true;
 		int count = 0;
 		for (@SuppressWarnings("unused")
@@ -121,7 +120,7 @@ public class AnnotatorTest {
 		assertTrue(3 == count);
 
 		reader.close();
-		reader = SAMFileReaderFactory.createSAMFileReader(fileC);
+		reader = new SAMFileReader(fileC);
 		for (@SuppressWarnings("unused")
 		SAMRecord record : reader) {
 			if (record.getReadName().equals("2_22_285")
@@ -170,7 +169,7 @@ public class AnnotatorTest {
 		new Annotator("output.sam", "test.sam", "f3.ma", "qbamannotate", "0.0",
 				"not applicable");
 		File fileC = new File("output.sam");
-		SamReader reader = SAMFileReaderFactory.createSAMFileReader(fileC);
+		SAMFileReader reader = new SAMFileReader(fileC);
 		boolean allRecordsHaveZM = true;
 		int count = 0;
 		for (@SuppressWarnings("unused")
@@ -189,7 +188,7 @@ public class AnnotatorTest {
 		assertTrue(allRecordsHaveZM);
 		assertTrue(3 == count);
 		reader.close();
-		reader = SAMFileReaderFactory.createSAMFileReader(fileC);
+		reader = new SAMFileReader(fileC);
 		for (@SuppressWarnings("unused")
 		SAMRecord record : reader) {
 			if (record.getReadName().equals("2_22_285")
@@ -238,7 +237,7 @@ public class AnnotatorTest {
 		new Annotator("output.sam", "test.sam", "r3.ma", new LongMatePair(0,
 				10000), "qbamannotate", "0.0", "not applicable");
 		File fileC = new File("output.sam");
-		SamReader reader = SAMFileReaderFactory.createSAMFileReader(fileC);
+		SAMFileReader reader = new SAMFileReader(fileC);
 		boolean allRecordsHaveZM = true;
 		int count = 0;
 		for (@SuppressWarnings("unused")
@@ -257,7 +256,7 @@ public class AnnotatorTest {
 		assertTrue(allRecordsHaveZM);
 		assertTrue(0 == count);
 		reader.close();
-		reader = SAMFileReaderFactory.createSAMFileReader(fileC);
+		reader = new SAMFileReader(fileC);
 		for (@SuppressWarnings("unused")
 		SAMRecord record : reader) {
 			if (record.getReadName().equals("2_22_285")

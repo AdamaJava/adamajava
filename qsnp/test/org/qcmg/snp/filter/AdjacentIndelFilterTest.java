@@ -1,9 +1,9 @@
 package org.qcmg.snp.filter;
 
-import htsjdk.samtools.Cigar;
-import htsjdk.samtools.CigarElement;
-import htsjdk.samtools.CigarOperator;
-import htsjdk.samtools.SAMRecord;
+import net.sf.samtools.Cigar;
+import net.sf.samtools.CigarElement;
+import net.sf.samtools.CigarOperator;
+import net.sf.samtools.SAMRecord;
 
 import org.junit.Assert;
 import org.junit.Test;

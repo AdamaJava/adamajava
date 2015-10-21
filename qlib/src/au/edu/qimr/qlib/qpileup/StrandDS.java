@@ -6,7 +6,7 @@ package au.edu.qimr.qlib.qpileup;
 import java.util.HashMap;
 import java.util.Map;
 
-import htsjdk.samtools.SAMSequenceRecord;
+import net.sf.samtools.SAMSequenceRecord;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 

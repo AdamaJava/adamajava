@@ -1,13 +1,10 @@
 package org.qcmg.qbamfilter.filter;
 
 import org.junit.*;
-import org.qcmg.picard.SAMFileReaderFactory;
-
 import static org.junit.Assert.*;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.filter.SamRecordFilter;
-
+import net.sf.samtools.SAMFileReader;
+import net.sf.samtools.SAMRecord;
+import net.sf.picard.filter.SamRecordFilter;
 import java.io.File;
 
 public class MRNMFilterTest {
@@ -28,7 +25,7 @@ public class MRNMFilterTest {
             SamRecordFilter filter1 = new MRNMFilter(Comparator.Equal, "rname");
             SamRecordFilter filter2 = new MRNMFilter(Comparator.NotEqual, "RNAME");
 
-            SamReader Inreader = SAMFileReaderFactory.createSAMFileReader(new File(TestFile.INPUT_FILE_NAME));    //new SAMFileReader(new File(TestFile.INPUT_FILE_NAME));
+            SAMFileReader Inreader = new SAMFileReader(new File(TestFile.INPUT_FILE_NAME));
             for(SAMRecord re : Inreader){
                 String ref = re.getReferenceName();
                 //picard will convert "=" to string from reference name

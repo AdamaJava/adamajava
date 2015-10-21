@@ -7,10 +7,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import htsjdk.samtools.*;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.ValidationStringency;
-import htsjdk.samtools.SAMRecordIterator;
+import net.sf.samtools.*;
+import net.sf.samtools.SAMRecord;
+import net.sf.samtools.SAMFileReader.ValidationStringency;
+import net.sf.samtools.SAMRecordIterator;
 
 import java.io.*;
 import java.net.InetAddress;
@@ -36,7 +36,7 @@ public class queryChrMT {
     		String outputName = inBAM.getName().replace(".bam", ".chrMT.primary.bam");
     		File output = new File(args[1], outputName);
     		
-	 		SamReader reader = SAMFileReaderFactory.createSAMFileReader(inBAM,ValidationStringency.SILENT);
+	 		SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(inBAM,ValidationStringency.SILENT);
 	 		SAMFileHeader he = reader.getFileHeader().clone();
 			SAMOrBAMWriterFactory writeFactory = new SAMOrBAMWriterFactory(he , true, output);
 			SAMRecordIterator ite = reader.query("chrMT",0,  16569, false);

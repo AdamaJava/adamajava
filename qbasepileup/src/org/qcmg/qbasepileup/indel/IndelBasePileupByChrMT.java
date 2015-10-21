@@ -24,10 +24,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
-import htsjdk.samtools.reference.IndexedFastaSequenceFile;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMRecordIterator;
+import net.sf.picard.reference.IndexedFastaSequenceFile;
+import net.sf.samtools.SAMFileReader;
+import net.sf.samtools.SAMRecord;
+import net.sf.samtools.SAMRecordIterator;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -430,7 +430,7 @@ public class IndelBasePileupByChrMT {
 
 			private void pileupReads(InputBAM bam, String chromosome, TreeMap<Integer, List<IndelPositionPileup>> positionMap, boolean isTumour) throws Exception {
 				 
-				SamReader reader = SAMFileReaderFactory.createSAMFileReader(bam.getBamFile(), "silent");
+				SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(bam.getBamFile(), "silent");
          		
          		//get chromosome length
          		String fullChromosome = QBasePileupUtil.getFullChromosome(chromosome);

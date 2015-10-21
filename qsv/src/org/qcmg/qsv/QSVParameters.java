@@ -4,7 +4,6 @@
 package org.qcmg.qsv;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -15,11 +14,11 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMReadGroupRecord;
-import htsjdk.samtools.SAMSequenceDictionary;
-import htsjdk.samtools.SAMSequenceRecord;
+import net.sf.samtools.SAMFileHeader;
+import net.sf.samtools.SAMFileReader;
+import net.sf.samtools.SAMReadGroupRecord;
+import net.sf.samtools.SAMSequenceDictionary;
+import net.sf.samtools.SAMSequenceRecord;
 
 import org.ini4j.Ini;
 import org.ini4j.Profile.Section;
@@ -181,7 +180,7 @@ public class QSVParameters {
 		} else {
 			if (options.runClipAnalysis() && ! options.runPairAnalysis()) {
 				//still need to getread groups
-				try (final SamReader reader = SAMFileReaderFactory.createSAMFileReader(inputBamFile, "silent");) {
+				try (final SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(inputBamFile, "silent");) {
 					
 					int rgCount = reader.getFileHeader().getReadGroups().size();
 					readGroupIds = rgCount == 1 ? new ArrayList<String>(2) : new HashSet<String>(rgCount);
@@ -220,9 +219,9 @@ public class QSVParameters {
 	/*
 	 * Determine which chromosomes will be analysed in this run
 	 */
-	private void getChromosomesToAnalyse(Options options) throws QSVException, IOException {
+	private void getChromosomesToAnalyse(Options options) throws QSVException {
 
-		final SamReader inputSam = SAMFileReaderFactory.createSAMFileReader(inputBamFile, "silent"); 
+		final SAMFileReader inputSam = SAMFileReaderFactory.createSAMFileReader(inputBamFile, "silent"); 
 		this.header = inputSam.getFileHeader();        
 
 		//get chromosomes to run

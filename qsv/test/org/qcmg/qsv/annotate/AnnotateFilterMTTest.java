@@ -15,10 +15,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import htsjdk.samtools.SAMFileHeader.SortOrder;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.ValidationStringency;
+import net.sf.samtools.SAMFileHeader.SortOrder;
+import net.sf.samtools.SAMFileReader;
+import net.sf.samtools.SAMRecord;
 
 import org.ini4j.InvalidFileFormatException;
 import org.junit.After;
@@ -28,7 +27,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.util.Constants;
-import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qbamfilter.query.QueryExecutor;
 import org.qcmg.qsv.Chromosome;
 import org.qcmg.qsv.Options;
@@ -227,8 +225,8 @@ public class AnnotateFilterMTTest {
 		return exit;
 	}
 
-	private void assertRecordsFound(int total, File bam) throws IOException {
-		SamReader reader =  SAMFileReaderFactory.createSAMFileReader(bam);//new SAMFileReader(bam);
+	private void assertRecordsFound(int total, File bam) {
+		SAMFileReader reader = new SAMFileReader(bam);
         
         int count = 0;
         

@@ -9,14 +9,13 @@ import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.List;
 
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMRecord;
+import net.sf.samtools.SAMFileReader;
+import net.sf.samtools.SAMRecord;
 
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qbamfilter.filter.TestFile;
 
 public class QueryExecutorTest {
@@ -61,7 +60,7 @@ public class QueryExecutorTest {
     public void InvalidFlag() throws Exception{
             String  query = "and (mapq > 16,cigar_M >= 40 , or (option_ZM == 0, option_ZM > 200))";
             QueryExecutor myExecutor = new QueryExecutor(query);
-            SamReader inreader = SAMFileReaderFactory.createSAMFileReader(new File(TestFile.INPUT_FILE_NAME));    //new SAMFileReader(new File(INPUT_FILE_NAME));
+            SAMFileReader inreader = new SAMFileReader(new File(INPUT_FILE_NAME));
 
             int i = 0;
             for(SAMRecord record : inreader){
@@ -160,7 +159,7 @@ public class QueryExecutorTest {
     public void InvalidMate() throws Exception{
             String  query = "and (mapq > 16 , cigar_M >= 40 , or (option_ZM == 0, option_ZM > 200))";
             QueryExecutor myExecutor = new QueryExecutor(query);
-            SamReader inreader = SAMFileReaderFactory.createSAMFileReader(new File(TestFile.INPUT_FILE_NAME));    //new SAMFileReader(new File(INPUT_FILE_NAME));
+            SAMFileReader inreader = new SAMFileReader(new File(INPUT_FILE_NAME));
 
             int i = 0;
             for(SAMRecord record : inreader){
@@ -179,7 +178,7 @@ public class QueryExecutorTest {
     public void mrnmRNAME() throws Exception{
             String  query = " and (rname != mrnm, mrnm != *)";
             QueryExecutor myExecutor = new QueryExecutor(query);
-            SamReader inreader = SAMFileReaderFactory.createSAMFileReader(new File(TestFile.INPUT_FILE_NAME));    //new SAMFileReader(new File(INPUT_FILE_NAME));
+            SAMFileReader inreader = new SAMFileReader(new File(INPUT_FILE_NAME));
 
             int i = 0;
             for(SAMRecord record : inreader){
@@ -205,7 +204,7 @@ public class QueryExecutorTest {
     private int checkRecord(String query) throws Exception{
         int r = 0;
         QueryExecutor myExecutor = new QueryExecutor(query);
-        SamReader inreader = SAMFileReaderFactory.createSAMFileReader(new File(TestFile.INPUT_FILE_NAME));    //new SAMFileReader(new File(INPUT_FILE_NAME));
+        SAMFileReader inreader = new SAMFileReader(new File(INPUT_FILE_NAME));
 
         for(SAMRecord record : inreader){
            if(myExecutor.Execute(record)){

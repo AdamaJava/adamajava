@@ -47,7 +47,7 @@ public class VcfInfoFieldRecord {
 	 * @param value
 	 */
 	public void addField(String key, String value) {
-		if (line.length() > 0 && line.lastIndexOf(Constants.SEMI_COLON_STRING) != line.length() - 1) {
+		if (line.length() > 0) {
 			line.append(Constants.SEMI_COLON);
 		}
 		
@@ -81,46 +81,41 @@ public class VcfInfoFieldRecord {
 		return null;
 	}
 	
-	/**
-	 * remove existing key value from vcf infor column string
-	 * @param key: will be removed if exists
-	 */
-	 
-	public void removeField(String key ){
+	public void removeField(String key){
+		int index = line.indexOf(key);		
 		
-		//must be looped, in case multi keys/subString exists
-		int pos = 0; //line.indexOf(key);	
-		while( (pos = line.indexOf(key, pos)) > -1){
+		//check "key" maybe a substring of exsiting field
+		if (index > -1) {
+		
 			//position of first ; after key
-			int scIndex = line.indexOf(Constants.SEMI_COLON_STRING, pos+1);
-			scIndex =  (scIndex == -1 ? line.length() : scIndex);
+			int scIndex = line.indexOf(Constants.SEMI_COLON_STRING, index);
 			//position of last ; before key
-			int preIndex = line.substring(0, pos).lastIndexOf(Constants.SEMI_COLON_STRING);
-						
-			//whether the matching is subString or real key
-			String kv = line.substring( preIndex+1, scIndex );
+			int preIndex = line.substring(0, index).lastIndexOf(Constants.SEMI_COLON_STRING);
+			
+			//get full field string between two ";" 
+//			String kv = line.substring( (preIndex == -1 ? 0: preIndex+1), (scIndex == -1 ? line.length() : scIndex) );
+			String kv = line.substring( preIndex+1, (scIndex == -1 ? line.length() : scIndex) );
 			int keyend =  kv.indexOf(Constants.EQ_STRING);					
 			String keyStr = (keyend > -1 ? kv.substring(0,keyend) : kv);
 			
-			//if the key is just subString of existing key
-			if(keyStr.length() != key.length()){ 
-				pos = scIndex; 
-				continue;				
+			//do nothing if  key just substring of current removing field
+			if(keyStr.length() != key.length())
+				return; 
+					
+			// check to see if there was a semi colon preceding the key
+			int scOffset = 0;
+			if ((index - 1) > -1) {
+				if (line.charAt(index - 1) == Constants.SEMI_COLON) {
+					scOffset = 1;
+				}
+			}
+			int endScOffset = 0;
+			if (index == 0 && scIndex > -1) {
+				// we are first entry - if scIndex is > -1, add 1 t
+				endScOffset = 1;
 			}
 			
-			//there are four case of the key position, eg. ND field in below info column
-			//ND=1,2,3  : subString(0,scIndex), pos = 0 ,scIndex = line.length();
-			//ND=1,2,3;OK : subString(0,scIndex) , pos = 0 ,scIndex = 8
-			//END=100;ND=1,2,3 : subString(7,scindex), pos = 8 ,scIndex = line.length();
-			//END=100;ND=1,2,3;OK : subString(8,scIndex) pos = 8,scIndex = 16
-			
-			// check to see if there was a semi colon preceding the key
-			if(pos > 0 && scIndex == line.length())
-				line.delete(pos - 1, scIndex+1);
-			else
-				line.delete(pos, scIndex+1);
-			
-			break;			
+			line.delete(index - scOffset, (index + kv.length() + endScOffset));
 		}
 
 	}

@@ -7,7 +7,7 @@ import java.util.regex.Pattern;
 
 import org.qcmg.ma.MARecord;
 
-import htsjdk.samtools.SAMRecord;
+import net.sf.samtools.SAMRecord;
 
 public abstract class AnnotatorType {
 	private static final Pattern delimiterPattern = Pattern.compile("[_]+");

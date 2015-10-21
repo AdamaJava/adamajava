@@ -8,16 +8,15 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMFileHeader.SortOrder;
+import net.sf.samtools.SAMFileReader;
+import net.sf.samtools.SAMRecord;
+import net.sf.samtools.SAMFileHeader.SortOrder;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qsv.QSVException;
 import org.qcmg.qsv.discordantpair.MatePair;
 import org.qcmg.qsv.discordantpair.PairGroup;
@@ -38,7 +37,7 @@ public class MatePairComparatorTest {
         pairs = new ArrayList<MatePair>();
         fileName = testFolder.newFile("test.bam").getCanonicalPath();
         TestUtil.createSamFile(fileName, PairGroup.AAC, SortOrder.coordinate, false);
-        SamReader read = SAMFileReaderFactory.createSAMFileReader(new File(fileName));//new SAMFileReader(new File(fileName));
+        SAMFileReader read = new SAMFileReader(new File(fileName));
         
         for (SAMRecord r : read) {
             records.add(r);

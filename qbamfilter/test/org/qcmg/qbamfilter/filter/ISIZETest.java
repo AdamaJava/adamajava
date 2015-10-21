@@ -5,14 +5,13 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 
-import htsjdk.samtools.filter.SamRecordFilter;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMRecord;
+import net.sf.picard.filter.SamRecordFilter;
+import net.sf.samtools.SAMFileReader;
+import net.sf.samtools.SAMRecord;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.qcmg.picard.SAMFileReaderFactory;
 
 public class ISIZETest {
     @BeforeClass
@@ -35,7 +34,7 @@ public class ISIZETest {
         String value = "20";
 
         SamRecordFilter filter = new IsizeFilter(op, value);
-        SamReader Inreader = SAMFileReaderFactory.createSAMFileReader(new File(TestFile.INPUT_FILE_NAME));    //new SAMFileReader(new File(TestFile.INPUT_FILE_NAME));
+        SAMFileReader Inreader = new SAMFileReader(new File(TestFile.INPUT_FILE_NAME));
         int i = 0;
         int NumRealRecord = 0;
 
@@ -57,11 +56,11 @@ public class ISIZETest {
     /**
      * In this testing case, we set an invalid mapq 256, but our filter still return true;
      * so before run this filter, we must check whether this read isValid or not.
-     * see htsjdk.samtools.SAMRecord::isValid()
+     * see net.sf.samtools.SAMRecord::isValid()
      */
     @Test
     public void testNegativeValue() throws Exception{
-        try (SamReader Inreader = SAMFileReaderFactory.createSAMFileReader(new File(TestFile.INPUT_FILE_NAME));){    //new SAMFileReader(new File(TestFile.INPUT_FILE_NAME));) {
+        try (SAMFileReader Inreader = new SAMFileReader(new File(TestFile.INPUT_FILE_NAME));) {
 	        SamRecordFilter filter = new IsizeFilter(Comparator.Great, "-101");
 	        for(SAMRecord re : Inreader){
 	        	re.setInferredInsertSize(-100);
