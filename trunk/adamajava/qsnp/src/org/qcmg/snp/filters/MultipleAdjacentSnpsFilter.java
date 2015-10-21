@@ -6,9 +6,9 @@ package org.qcmg.snp.filters;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import htsjdk.samtools.filter.SamRecordFilter;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMTagUtil;
+import net.sf.picard.filter.SamRecordFilter;
+import net.sf.samtools.SAMRecord;
+import net.sf.samtools.SAMTagUtil;
 
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.BaseUtils;

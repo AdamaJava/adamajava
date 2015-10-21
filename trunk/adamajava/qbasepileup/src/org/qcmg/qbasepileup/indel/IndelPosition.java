@@ -3,7 +3,7 @@
  */
 package org.qcmg.qbasepileup.indel;
 
-import htsjdk.samtools.CigarOperator;
+import net.sf.samtools.CigarOperator;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;

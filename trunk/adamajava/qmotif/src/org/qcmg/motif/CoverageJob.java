@@ -12,8 +12,8 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Pattern;
 
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMRecord;
+import net.sf.samtools.SAMFileReader;
+import net.sf.samtools.SAMRecord;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -34,7 +34,7 @@ class CoverageJob implements Job {
 	private final ChrPosition cp;
 	private final QLogger logger;
 	private final QueryExecutor filter;
-	private final HashSet<SamReader> fileReaders = new HashSet<SamReader>();
+	private final HashSet<SAMFileReader> fileReaders = new HashSet<SAMFileReader>();
 	private final Algorithm alg;
 	private final AtomicLong counterIn;
 	private final AtomicLong counterOut;
@@ -70,7 +70,7 @@ class CoverageJob implements Job {
 		this.outputQueue = outputQueue;
 		for (final Pair<File, File> pair : filePairs) {
 			File bamFile = pair.getLeft();
-			SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile, validation);
+			SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile, validation);
 			fileReaders.add(reader);
 		}
 		logger.debug("Length of sequence to be processed by job '" + cp.toIGVString() + " : " + cp.getLength());
@@ -111,7 +111,7 @@ class CoverageJob implements Job {
 	}
 
 	private void performCoverage() throws Exception {
- 		for (final SamReader fileReader : fileReaders) {
+ 		for (final SAMFileReader fileReader : fileReaders) {
  			
 			Iterator<SAMRecord> iter = "unmapped".equals(cp.getChromosome()) ? fileReader.queryUnmapped() : fileReader.query(cp.getChromosome(), cp.getPosition(), cp.getEndPosition(), true);
 			long recordCounterIn = 0;

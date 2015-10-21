@@ -11,10 +11,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.HashMap;
 
-import htsjdk.samtools.SAMReadGroupRecord;
+import net.sf.samtools.SAMReadGroupRecord;
 
 import junit.framework.Assert;
+import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 

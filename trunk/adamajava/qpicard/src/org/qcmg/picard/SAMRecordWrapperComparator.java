@@ -5,7 +5,7 @@ package org.qcmg.picard;
 
 import java.util.Comparator;
 
-import htsjdk.samtools.SAMRecordCoordinateComparator;
+import net.sf.samtools.SAMRecordCoordinateComparator;
 
 public final class SAMRecordWrapperComparator implements
 		Comparator<SAMRecordWrapper> {

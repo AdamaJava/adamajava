@@ -6,14 +6,13 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 
-import htsjdk.samtools.filter.SamRecordFilter;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMRecord;
+import net.sf.picard.filter.SamRecordFilter;
+import net.sf.samtools.SAMFileReader;
+import net.sf.samtools.SAMRecord;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.qcmg.picard.SAMFileReaderFactory;
 
 
 public class QualFilterTest {
@@ -34,7 +33,7 @@ public class QualFilterTest {
         Comparator op = Comparator.GreatEqual;
         String value = "20";
         SamRecordFilter filter = new QualFilter("average",op, value);
-        SamReader Inreader = SAMFileReaderFactory.createSAMFileReader(new File(TestFile.INPUT_FILE_NAME));
+        SAMFileReader Inreader = new SAMFileReader(new File(TestFile.INPUT_FILE_NAME));
 
         for(SAMRecord re : Inreader){
         	char[] quals =   re.getBaseQualityString().toCharArray();
@@ -63,7 +62,7 @@ public class QualFilterTest {
     public void SetTest() throws Exception{
     	
     	//only read the first read
-        SamReader Inreader = SAMFileReaderFactory.createSAMFileReader(new File(TestFile.INPUT_FILE_NAME));
+        SAMFileReader Inreader = new SAMFileReader(new File(TestFile.INPUT_FILE_NAME));
         SAMRecord record = null ;
         for( SAMRecord re : Inreader){
         	 record = re;

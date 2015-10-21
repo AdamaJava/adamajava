@@ -1,6 +1,6 @@
 package org.qcmg.snp.filter;
 
-import htsjdk.samtools.SAMRecord;
+import net.sf.samtools.SAMRecord;
 
 import org.junit.Assert;
 import org.junit.Test;

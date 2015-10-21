@@ -6,10 +6,10 @@ import java.io.FileWriter;
 import java.io.BufferedWriter;
 import java.util.*;
 
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMFileWriter;
-import htsjdk.samtools.SAMRecord;
+import net.sf.samtools.SAMFileHeader;
+import net.sf.samtools.SAMFileReader;
+import net.sf.samtools.SAMFileWriter;
+import net.sf.samtools.SAMRecord;
 
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.SAMOrBAMWriterFactory;
@@ -72,8 +72,8 @@ public class TestFiles {
 	}
 	
 		
-	private static void Txt2BAM(File SAM, File BAM) throws IOException{
-		SamReader reader = SAMFileReaderFactory.createSAMFileReader(SAM) ;
+	private static void Txt2BAM(File SAM, File BAM){
+		SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(SAM) ;
 		SAMFileHeader header = reader.getFileHeader().clone();
 		header.setSortOrder(SAMFileHeader.SortOrder.coordinate);
 		

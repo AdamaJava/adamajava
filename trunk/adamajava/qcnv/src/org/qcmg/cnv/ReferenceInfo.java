@@ -10,11 +10,10 @@ import java.util.Iterator;
 
 import org.qcmg.picard.SAMFileReaderFactory;
 
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMRecordIterator;
-import htsjdk.samtools.SAMSequenceRecord;
-import htsjdk.samtools.ValidationStringency;
+import net.sf.samtools.SAMFileReader;
+import net.sf.samtools.SAMRecord;
+import net.sf.samtools.SAMRecordIterator;
+import net.sf.samtools.SAMSequenceRecord;
 
 public class ReferenceInfo {
 	
@@ -49,7 +48,7 @@ public class ReferenceInfo {
 			chrArray[i] = 0;
 		
 		//check each reads start point and counts it into belonging window
-		SamReader rbam =   SAMFileReaderFactory.createSAMFileReader(new File(bam), ValidationStringency.SILENT);  
+		SAMFileReader rbam =   SAMFileReaderFactory.createSAMFileReader(bam, SAMFileReader.ValidationStringency.SILENT);  
 		SAMRecordIterator ite =	rbam.query(ref.getSequenceName(), 0, ref.getSequenceLength(),true);
 		while(ite.hasNext()){
 			SAMRecord record = ite.next();

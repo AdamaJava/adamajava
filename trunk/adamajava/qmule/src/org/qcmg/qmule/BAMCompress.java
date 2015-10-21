@@ -6,19 +6,17 @@ package org.qcmg.qmule;
 import java.io.File;
 import java.util.List;
 
-import htsjdk.samtools.SAMFileWriter;
-import htsjdk.samtools.CigarElement;
-import htsjdk.samtools.CigarOperator;
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SAMFileWriterFactory;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.ValidationStringency;
+
+import net.sf.samtools.BAMFileWriter;
+import net.sf.samtools.CigarElement;
+import net.sf.samtools.CigarOperator;
+import net.sf.samtools.SAMFileHeader;
+import net.sf.samtools.SAMFileReader;
+import net.sf.samtools.SAMRecord;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.picard.SAMFileReaderFactory;
-import org.qcmg.picard.SAMOrBAMWriterFactory;
 
 public class BAMCompress {
 		static QLogger logger = QLoggerFactory.getLogger(BAMCompress.class);
@@ -36,11 +34,14 @@ public class BAMCompress {
 	 		logger.info("compress level for output BAM: " + level);		
 		}
 
-		public void replaceSeq() throws Exception{					
-			
-			SamReader reader = SAMFileReaderFactory.createSAMFileReader( input, ValidationStringency.SILENT);					
-			SAMFileWriter writer =   new SAMFileWriterFactory() .makeBAMWriter(reader.getFileHeader(), false, output, level);  
-				
+		public void replaceSeq() throws Exception{			
+			BAMFileWriter writer = new BAMFileWriter(output, level) ;			
+			SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(
+					input, SAMFileReader.ValidationStringency.SILENT);
+					
+
+			//create header
+			writer.setHeader(reader.getFileHeader());						
 			for( SAMRecord record : reader){
 				//only replace fully mapped reads, that is no clipping, indels and pading
 				if( seekFullMppaed(record) && seekMismatch(record) ){					 

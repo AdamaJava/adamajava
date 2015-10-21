@@ -3,10 +3,7 @@
  */
 package org.qcmg.picard.util;
 
-
-import java.io.File;
-
-import htsjdk.samtools.SAMFileHeader;
+import net.sf.samtools.SAMFileHeader;
 
 import org.qcmg.common.meta.QLimsMeta;
 import org.qcmg.picard.SAMFileReaderFactory;
@@ -16,7 +13,7 @@ public class QLimsMetaFactory {
 	public static final String CN_QCMG = "CN:QCMG	QN:qlimsmeta";
 	
 	public static QLimsMeta getLimsMeta(String type, String bamFIleName) throws Exception {
-		SAMFileHeader header = SAMFileReaderFactory.createSAMFileReader(new File(bamFIleName)).getFileHeader();
+		SAMFileHeader header = SAMFileReaderFactory.createSAMFileReader(bamFIleName).getFileHeader();
 		String commentLine = getQCMGCommentLine(header);
 		return new QLimsMeta(type, bamFIleName, commentLine);
 	}

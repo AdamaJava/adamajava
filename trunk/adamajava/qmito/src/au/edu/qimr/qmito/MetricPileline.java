@@ -25,14 +25,14 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
-import htsjdk.samtools.reference.FastaSequenceIndex;
-import htsjdk.samtools.reference.IndexedFastaSequenceFile;
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMRecordIterator;
-import htsjdk.samtools.SAMSequenceRecord;
-import htsjdk.samtools.ValidationStringency;
+import net.sf.picard.reference.FastaSequenceIndex;
+import net.sf.picard.reference.IndexedFastaSequenceFile;
+import net.sf.samtools.SAMFileHeader;
+import net.sf.samtools.SAMFileReader;
+import net.sf.samtools.SAMRecord;
+import net.sf.samtools.SAMRecordIterator;
+import net.sf.samtools.SAMSequenceRecord;
+import net.sf.samtools.SAMFileReader.ValidationStringency;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -105,7 +105,7 @@ public class MetricPileline {
 
 		//output input files information		
 		for (String bam : bamFiles) {       	 
-			SAMFileHeader header = SAMFileReaderFactory.createSAMFileReader(new File(bam)).getFileHeader(); 
+			SAMFileHeader header = SAMFileReaderFactory.createSAMFileReader(bam).getFileHeader(); 
 			QLimsMeta limsMeta = QLimsMetaFactory.getLimsMeta("input", bam, header);		 
 			writer.write(limsMeta.getLimsMetaDataToString() );
 		}
@@ -179,7 +179,7 @@ public class MetricPileline {
         	reverseNonRef = new NonReferenceRecord(referenceRecord.getSequenceName(), referenceRecord.getSequenceLength(), true, lowReadCount, nonrefThreshold);
 			
         	int numReads = 0, total = 0;
-			SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(bamFile),ValidationStringency.SILENT);
+			SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile,ValidationStringency.SILENT);
 			
 			SAMRecordIterator ite = reader.query(referenceRecord.getSequenceName(),0, referenceRecord.getSequenceLength(), false);
 			while(ite.hasNext()){

@@ -1,6 +1,6 @@
 package org.qcmg.qprofiler.bam;
 
-import htsjdk.samtools.SAMTagUtil;
+import net.sf.samtools.SAMTagUtil;
 
 import org.junit.Ignore;
 

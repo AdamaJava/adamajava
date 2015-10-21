@@ -22,12 +22,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
-import htsjdk.samtools.reference.IndexedFastaSequenceFile;
-import htsjdk.samtools.reference.ReferenceSequence;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMRecordIterator;
-import htsjdk.samtools.SamReaderFactory;
+import net.sf.picard.reference.IndexedFastaSequenceFile;
+import net.sf.picard.reference.ReferenceSequence;
+import net.sf.samtools.SAMFileReader;
+import net.sf.samtools.SAMRecord;
+import net.sf.samtools.SAMRecordIterator;
 
 import org.qcmg.common.dcc.DccConsequence;
 import org.qcmg.common.dcc.MutationType;
@@ -414,12 +413,9 @@ public abstract class MafPipeline {
 			long start = System.nanoTime();
 			long elapsedTime = 0;
 			
-			
-			SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile);
+			SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile);
 			// if we have a small no of positions, no need to cache
-			//reader.enableIndexCaching(ncMafs.size() < 10);
-			if(ncMafs.size() >= 10 )
-				reader = SAMFileReaderFactory.createSAMFileReader(bamFile, SamReaderFactory.Option.CACHE_FILE_BASED_INDEXES);
+			reader.enableIndexCaching(ncMafs.size() < 10);
 			
 			int noOfRecordsRetrievedForPatient = 0, noOfPositionsRetrievedForPatient = 0, positionsWithDeletions = 0;
 			
@@ -497,9 +493,6 @@ public abstract class MafPipeline {
 			} finally {
 				try {
 					reader.close();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
 				} finally {
 //					latch.countDown();
 					logger.info("thread finishing, elapsedTime: " + elapsedTime);

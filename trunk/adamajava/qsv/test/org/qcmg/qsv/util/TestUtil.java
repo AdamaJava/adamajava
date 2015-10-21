@@ -13,15 +13,14 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SAMFileHeader.SortOrder;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMFileWriter;
-import htsjdk.samtools.SAMFileWriterFactory;
-import htsjdk.samtools.SAMRecord;
+import net.sf.samtools.SAMFileHeader;
+import net.sf.samtools.SAMFileHeader.SortOrder;
+import net.sf.samtools.SAMFileReader;
+import net.sf.samtools.SAMFileWriter;
+import net.sf.samtools.SAMFileWriterFactory;
+import net.sf.samtools.SAMRecord;
 
 import org.junit.rules.TemporaryFolder;
-import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qsv.Options;
 import org.qcmg.qsv.QSVCluster;
 import org.qcmg.qsv.QSVException;
@@ -166,7 +165,7 @@ public class TestUtil {
         
         TestUtil.createBamFile(fileName, pg, SortOrder.queryname);
         
-        SamReader read = SAMFileReaderFactory.createSAMFileReader(new File(fileName));
+        SAMFileReader read = new SAMFileReader(new File(fileName));
         
         for (SAMRecord r : read) {
             records.add(r);
@@ -240,7 +239,7 @@ public class TestUtil {
     		createSamFile(samFile, sort, true);
     	}
     	
-        SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(samFile));
+        SAMFileReader reader = new SAMFileReader(new File(samFile));
         SAMFileHeader header = reader.getFileHeader();
         
 		SAMFileWriterFactory factory = new SAMFileWriterFactory();
@@ -266,7 +265,7 @@ public class TestUtil {
     		createSamFile(samFile, sort, false);
     	}
     	
-        SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(samFile));
+        SAMFileReader reader = new SAMFileReader(new File(samFile));
         SAMFileHeader header = reader.getFileHeader();
         
 		SAMFileWriterFactory factory = new SAMFileWriterFactory();
@@ -510,7 +509,7 @@ public class TestUtil {
 	        }
 	        
 	        SAMFileHeader header = null;
-	        try (SamReader sam = SAMFileReaderFactory.createSAMFileReader(new File(file));) {
+	        try (SAMFileReader sam = new SAMFileReader(new File(file));) {
 	        		header =  sam.getFileHeader();
 	        }
 	        return header;

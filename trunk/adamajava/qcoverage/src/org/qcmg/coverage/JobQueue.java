@@ -18,9 +18,9 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
 
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMSequenceRecord;
+import net.sf.samtools.SAMFileHeader;
+import net.sf.samtools.SAMFileReader;
+import net.sf.samtools.SAMSequenceRecord;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -229,11 +229,11 @@ public final class JobQueue {
 		
 	}
 	
-	private void identifyBamRefNames() throws IOException {
+	private void identifyBamRefNames() {
 		for (final Pair<File, File> pair : filePairs) {
 			File bamFile = pair.getLeft();
 			File baiFile = pair.getRight();
-			SamReader samReader = SAMFileReaderFactory.createSAMFileReader(bamFile, baiFile);
+			SAMFileReader samReader = SAMFileReaderFactory.createSAMFileReader(bamFile, baiFile);
 			SAMFileHeader header = samReader.getFileHeader();
 			for (SAMSequenceRecord seqRecord : header.getSequenceDictionary()
 					.getSequences()) {

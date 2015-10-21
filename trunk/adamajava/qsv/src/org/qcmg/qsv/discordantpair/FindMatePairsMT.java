@@ -9,8 +9,8 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMRecord;
+import net.sf.samtools.SAMFileReader;
+import net.sf.samtools.SAMRecord;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -77,7 +77,7 @@ public class FindMatePairsMT implements Runnable {
 		// stores records with same read name to check for read groups
 		Map<String, SAMRecord> potentialMatches = new HashMap<String, SAMRecord>();
 
-		try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(qsvParameters.getFilteredBamFile(), "silent");) {
+		try (SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(qsvParameters.getFilteredBamFile(), "silent");) {
 
 			for (SAMRecord currentRecord : reader) {
 				totalCount++;

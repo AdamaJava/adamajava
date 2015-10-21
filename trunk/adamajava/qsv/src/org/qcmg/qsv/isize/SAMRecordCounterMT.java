@@ -4,7 +4,6 @@
 package org.qcmg.qsv.isize;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.AbstractQueue;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,10 +15,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMReadGroupRecord;
-import htsjdk.samtools.SAMRecord;
+
+import net.sf.samtools.SAMFileHeader;
+import net.sf.samtools.SAMFileReader;
+import net.sf.samtools.SAMReadGroupRecord;
+import net.sf.samtools.SAMRecord;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -41,7 +41,7 @@ public class SAMRecordCounterMT {
 	private int checkPoint;
 	private final int sleepUnit = 10;
 
-	public SAMRecordCounterMT(File file) throws QSVException, IOException {
+	public SAMRecordCounterMT(File file) throws QSVException {
 		this.bamFile = file;
 		this.noOfThreads = 1;
         this.maxRecords = 1000000;
@@ -50,7 +50,7 @@ public class SAMRecordCounterMT {
 		execute();
 	}
 	
-	private void execute() throws QSVException, IOException {
+	private void execute() throws QSVException {
 		
 		//getReadGroups first
 		getReadGroups();
@@ -107,11 +107,11 @@ public class SAMRecordCounterMT {
 		return r;
 	}
 	
-	private void getReadGroups() throws IOException {
+	private void getReadGroups() {
 
 			this.runRecords = new ConcurrentHashMap<String, RunTypeRecord>();
 			
-			SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile, "silent");
+			SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile, "silent");
 			
 			SAMFileHeader header = reader.getFileHeader();
 			
@@ -156,7 +156,7 @@ public class SAMRecordCounterMT {
             try {
              	
             	//read records           	 
-            	SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile);
+            	SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile);
                             
                 for (SAMRecord record : reader) {
                 	

@@ -3,11 +3,7 @@
  */
 package org.qcmg.picard.util;
 
-//import htsjkd.samtools.SAMFileHeader;
-import java.io.File;
-
-import htsjdk.samtools.SamReaderFactory;
-import htsjdk.samtools.SAMFileHeader;
+import net.sf.samtools.SAMFileHeader;
 
 import org.qcmg.common.meta.QBamId;
 import org.qcmg.picard.SAMFileReaderFactory;
@@ -17,7 +13,7 @@ public class QBamIdFactory {
 	public static final String CN_QCMG = "CN:QCMG	QN:qbamid";
 	
 	public static QBamId getBamId(String bamFIleName) throws Exception {
-		SAMFileHeader header = SAMFileReaderFactory.createSAMFileReader(new File(bamFIleName)).getFileHeader();
+		SAMFileHeader header = SAMFileReaderFactory.createSAMFileReader(bamFIleName).getFileHeader();
 		String commentLine = getQCMGCommentLine(header);
 		return new QBamId(bamFIleName, commentLine);
 	}

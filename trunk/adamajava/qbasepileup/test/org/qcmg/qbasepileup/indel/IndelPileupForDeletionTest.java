@@ -9,7 +9,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 
-import htsjdk.samtools.SAMRecord;
+import net.sf.samtools.SAMRecord;
 
 import org.junit.After;
 import org.junit.Before;

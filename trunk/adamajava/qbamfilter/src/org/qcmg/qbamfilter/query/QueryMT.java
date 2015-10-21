@@ -14,11 +14,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMFileWriter;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.ValidationStringency;
+import net.sf.samtools.SAMFileHeader;
+import net.sf.samtools.SAMFileReader;
+import net.sf.samtools.SAMFileWriter;
+import net.sf.samtools.SAMRecord;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.picard.SAMFileReaderFactory;
@@ -101,7 +100,7 @@ public class QueryMT {
 	private final SAMFileHeader.SortOrder sort;
 	private final File tmpdir;
 	private final int sleepUnit = 10;
-	private final ValidationStringency validation;
+	private final SAMFileReader.ValidationStringency validation;
 
 	public QueryMT(Options options, QLogger logger) throws Exception {
 		noOfThreads = options.getThreadNumber();
@@ -233,7 +232,7 @@ public class QueryMT {
 			int countSleep = 0;
 			long count = 0;
 			try {
-				SamReader reader = SAMFileReaderFactory.createSAMFileReader(input,validation);
+				SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(input,validation);
 				try {
 					for (SAMRecord record : reader) {
 	

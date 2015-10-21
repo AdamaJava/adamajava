@@ -18,13 +18,13 @@ import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.SAMOrBAMWriterFactory;
 import org.qcmg.picard.HeaderUtils;
 
-import htsjdk.samtools.BAMIndex;
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMFileWriter;
-import htsjdk.samtools.SAMFileWriterFactory;
-import htsjdk.samtools.SAMReadGroupRecord;
-import htsjdk.samtools.SAMRecord;
+import net.sf.samtools.BAMIndex;
+import net.sf.samtools.SAMFileHeader;
+import net.sf.samtools.SAMFileReader;
+import net.sf.samtools.SAMFileWriter;
+import net.sf.samtools.SAMFileWriterFactory;
+import net.sf.samtools.SAMReadGroupRecord;
+import net.sf.samtools.SAMRecord;
 
 public class ReheadFinalBAM {
 	
@@ -40,7 +40,7 @@ public class ReheadFinalBAM {
 		String SMvalue = matchDonor(donor, header.getReadGroups());
 		//created new header if SM value in RG line isn't match the donor
 	    if( SMvalue.length() > 0 ){
-	    	SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(options.getInputFileName()),options.getValidation() );  	    	
+	    	SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(options.getInputFileName(),options.getValidation() );  	    	
 	    	logger.info("According qlimsmeta line SM tag value " + SMvalue + " are replaced to " + donor);
 	    	refinalBAM(reader, donor, new File( options.getOutputFileName()) );
 		    reader.close();					    	
@@ -49,7 +49,7 @@ public class ReheadFinalBAM {
 	}
 	
 
-	 void refinalBAM(SamReader reader,String donor, File output) throws Exception{
+	 void refinalBAM(SAMFileReader reader,String donor, File output) throws Exception{
 		
 		//replace header
 		SAMFileHeader header = reader.getFileHeader().clone();		

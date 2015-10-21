@@ -12,11 +12,11 @@ import java.util.List;
 
 import org.qcmg.common.log.QLogger;
 
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMReadGroupRecord;
-import htsjdk.samtools.ValidationStringency;
-import htsjdk.samtools.fastq.*;
+import net.sf.samtools.SAMFileHeader;
+import net.sf.samtools.SAMFileReader;
+import net.sf.samtools.SAMReadGroupRecord;
+import net.sf.samtools.SAMFileReader.ValidationStringency;
+import net.sf.picard.fastq.*;
 import org.qcmg.picard.SAMFileReaderFactory;
 
 public class FixHeader {
@@ -24,7 +24,7 @@ public class FixHeader {
 	
 	public FixHeader(NewOptions options, QLogger logger ) throws Exception{
 		
-		SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(options.getInputFileName()),options.getValidation() );  
+		SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(options.getInputFileName(),options.getValidation() );  
 		header = reader.getFileHeader().clone();
 		reader.close();
 		

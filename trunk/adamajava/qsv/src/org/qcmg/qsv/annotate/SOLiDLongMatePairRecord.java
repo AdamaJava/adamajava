@@ -3,7 +3,7 @@
  */
 package org.qcmg.qsv.annotate;
 
-import htsjdk.samtools.SAMRecord;
+import net.sf.samtools.SAMRecord;
 
 /**
  * Class for discordant pair annotation for discordant paired end

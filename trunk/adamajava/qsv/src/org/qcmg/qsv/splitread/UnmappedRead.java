@@ -3,7 +3,7 @@
  */
 package org.qcmg.qsv.splitread;
 
-import htsjdk.samtools.SAMRecord;
+import net.sf.samtools.SAMRecord;
 
 import org.qcmg.qsv.util.QSVUtil;
 

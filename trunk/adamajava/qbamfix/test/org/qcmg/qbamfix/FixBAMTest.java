@@ -8,11 +8,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.HashMap;
 
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.ValidationStringency;
-import junit.framework.Assert;
+import net.sf.samtools.SAMFileReader;
+import net.sf.samtools.SAMRecord;
 
+import junit.framework.Assert;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -79,8 +78,8 @@ public class FixBAMTest {
 		Assert.assertEquals(countOutputRecord(new File(OUTPUT_FILE_NAME)), 4);
 	}
 	
-	private int countOutputRecord(File output) throws IOException{
-		SamReader reader = SAMFileReaderFactory.createSAMFileReader(output, ValidationStringency.SILENT);
+	private int countOutputRecord(File output){
+		SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(output, SAMFileReader.ValidationStringency.SILENT);
 		
 		int num = 0;
 		for( SAMRecord record : reader){

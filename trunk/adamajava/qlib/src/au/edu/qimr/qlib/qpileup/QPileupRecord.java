@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeSet;
 
-import htsjdk.samtools.SAMSequenceRecord;
+import net.sf.samtools.SAMSequenceRecord;
 import org.qcmg.common.model.GenotypeEnum;
 
 public class QPileupRecord {

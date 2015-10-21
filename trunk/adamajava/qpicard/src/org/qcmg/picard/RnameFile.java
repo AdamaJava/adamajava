@@ -10,7 +10,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
-import htsjdk.samtools.BAMIndex;
+import net.sf.samtools.BAMIndex;
 
 public class RnameFile {
 	/**

@@ -1,7 +1,7 @@
 package org.qcmg.qprofiler.fastq;
 
 import static org.junit.Assert.assertEquals;
-import htsjdk.samtools.fastq.FastqRecord;
+import net.sf.picard.fastq.FastqRecord;
 
 import org.junit.Ignore;
 import org.junit.Test;

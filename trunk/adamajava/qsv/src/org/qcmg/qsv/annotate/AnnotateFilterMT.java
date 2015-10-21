@@ -18,14 +18,14 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SAMFileHeader.SortOrder;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMFileWriter;
-import htsjdk.samtools.SAMFileWriterFactory;
-import htsjdk.samtools.SAMReadGroupRecord;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMRecordIterator;
+import net.sf.samtools.SAMFileHeader;
+import net.sf.samtools.SAMFileHeader.SortOrder;
+import net.sf.samtools.SAMFileReader;
+import net.sf.samtools.SAMFileWriter;
+import net.sf.samtools.SAMFileWriterFactory;
+import net.sf.samtools.SAMReadGroupRecord;
+import net.sf.samtools.SAMRecord;
+import net.sf.samtools.SAMRecordIterator;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -393,7 +393,7 @@ public class AnnotateFilterMT implements Runnable {
 
 			boolean result = true;
 			
-			try ( SamReader reader = SAMFileReaderFactory.createSAMFileReader(input, "silent");) {
+			try ( SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(input, "silent");) {
 				int queryStart = startPos - 100;
 				if (queryStart <= 0) {
 					queryStart = 1;
@@ -602,14 +602,14 @@ public class AnnotateFilterMT implements Runnable {
 					}
 					// there is a bug at current version, cause an exception but we
 					// can use below static method
-					htsjdk.samtools.SAMFileWriterImpl.setDefaultMaxRecordsInRam(maxRecords);
+					net.sf.samtools.SAMFileWriterImpl.setDefaultMaxRecordsInRam(maxRecords);
 
 					final SAMFileWriter writer = writeFactory.makeBAMWriter(header, false, file, 1);
 
 					// debug
-					final File tmpLocation = htsjdk.samtools.util.IOUtil.getDefaultTmpDir();
+					final File tmpLocation = net.sf.samtools.util.IOUtil.getDefaultTmpDir();
 					logger.info("all tmp BAMs are located on " + tmpLocation.getCanonicalPath());
-					logger.info("default maxRecordsInRam " + htsjdk.samtools.SAMFileWriterImpl.getDefaultMaxRecordsInRam());
+					logger.info("default maxRecordsInRam " + net.sf.samtools.SAMFileWriterImpl.getDefaultMaxRecordsInRam());
 
 					SAMRecord record;
 					try {

@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import javax.xml.bind.Marshaller;
 
-import htsjdk.samtools.SAMRecord;
+import net.sf.samtools.SAMRecord;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;

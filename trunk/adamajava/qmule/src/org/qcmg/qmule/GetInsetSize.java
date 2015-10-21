@@ -5,15 +5,13 @@ package org.qcmg.qmule;
 
 import java.io.File;
 
-import org.qcmg.picard.SAMFileReaderFactory;
-
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMRecord;
+import net.sf.samtools.SAMFileReader;
+import net.sf.samtools.SAMRecord;
 public class GetInsetSize {
 	public static void main(String[] args) throws Exception{
 		 
 		File input = new File(args[0]);
-		SamReader reader = SAMFileReaderFactory.createSAMFileReader(input); //new SAMFileReader(input);
+		SAMFileReader reader = new SAMFileReader(input);
 		int min =3000;
 		int max = 0;
 		String aaa = "AAA";

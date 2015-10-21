@@ -2,8 +2,8 @@
  *  Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
 package org.qcmg.qbamfilter.filter;
-import htsjdk.samtools.filter.SamRecordFilter;
-import htsjdk.samtools.SAMRecord;
+import net.sf.picard.filter.SamRecordFilter;
+import net.sf.samtools.SAMRecord;
 
 public class RNameFilter implements SamRecordFilter{
     private final String value;

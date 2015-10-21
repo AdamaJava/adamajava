@@ -14,10 +14,9 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMRecordIterator;
-import htsjdk.samtools.ValidationStringency;
+import net.sf.samtools.SAMFileReader;
+import net.sf.samtools.SAMRecord;
+import net.sf.samtools.SAMRecordIterator;
 
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qsv.QSVParameters;
@@ -600,8 +599,8 @@ public class DiscordantPairCluster {
 
 	 private void readAndAnnotateRecords(QSVParameters findParameters, QSVParameters compareParameters, Map<String, SAMRecord[]> map, String ref, int start,
 			 int end, Annotator annotator, File bamFile) throws Exception {
-		 
-		 SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile, ValidationStringency.SILENT);
+		 SAMFileReader.setDefaultValidationStringency(SAMFileReader.ValidationStringency.SILENT);  
+		 SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile, "silent");
 		 SAMRecordIterator iter = reader.queryOverlapping(ref, start-200, end+200);
 
 		 String zp1 = null;

@@ -6,9 +6,9 @@ package org.qcmg.qbasepileup.coverage;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMRecordIterator;
+import net.sf.samtools.SAMFileReader;
+import net.sf.samtools.SAMRecord;
+import net.sf.samtools.SAMRecordIterator;
 
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.util.SAMUtils;
@@ -47,7 +47,7 @@ public class RangePositionPileup {
 	}
 
 	public void pileup() throws Exception {
-		try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(inputBam.getBamFile(), "silent");) {
+		try (SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(inputBam.getBamFile(), "silent");) {
 		
 			SAMRecordIterator iterator = reader.queryOverlapping(position.getChr(), position.getStart(), position.getEnd());
 		

@@ -11,10 +11,10 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.pileup.PileupUtil;
 import org.qcmg.pileup.QPileupException;
 
-import htsjdk.samtools.CigarElement;
-import htsjdk.samtools.CigarOperator;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.util.SequenceUtil;
+import net.sf.samtools.CigarElement;
+import net.sf.samtools.CigarOperator;
+import net.sf.samtools.SAMRecord;
+import net.sf.samtools.util.SequenceUtil;
 
 public class PileupSAMRecord {
 	

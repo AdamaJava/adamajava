@@ -5,16 +5,16 @@ package org.qcmg.picard;
 
 import java.util.Iterator;
 
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMRecord;
+import net.sf.samtools.SAMFileReader;
+import net.sf.samtools.SAMRecord;
 
 public final class SAMRecordWrapper {
     private final SAMRecord record;
     private final Iterator<SAMRecord> iterator;
-    private final SamReader reader;
+    private final SAMFileReader reader;
 
     SAMRecordWrapper(final SAMRecord record, final Iterator<SAMRecord> iterator,
-                     final SamReader reader) {
+                     final SAMFileReader reader) {
         this.record = record;
         this.iterator = iterator;
         this.reader = reader;
@@ -28,7 +28,7 @@ public final class SAMRecordWrapper {
         return iterator;
     }
     
-    public SamReader getReader() {
+    public SAMFileReader getReader() {
         return reader;
     }
 }

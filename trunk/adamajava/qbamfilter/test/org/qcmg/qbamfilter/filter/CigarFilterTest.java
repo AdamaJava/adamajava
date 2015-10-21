@@ -1,13 +1,10 @@
 package org.qcmg.qbamfilter.filter;
 
 import org.junit.*;
-import org.qcmg.picard.SAMFileReaderFactory;
-
 import static org.junit.Assert.*;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.filter.SamRecordFilter;
-
+import net.sf.samtools.SAMFileReader;
+import net.sf.samtools.SAMRecord;
+import net.sf.picard.filter.SamRecordFilter;
 import java.io.File;
 
 public class CigarFilterTest {
@@ -34,8 +31,8 @@ public class CigarFilterTest {
 
         for(int i = 0; i < 7; i++){
            try{ 
-                SamRecordFilter filter = new CigarFilter(CigarOPs[i], comps[i], values[i]);                
-				SamReader Inreader = SAMFileReaderFactory.createSAMFileReader(new File(TestFile.INPUT_FILE_NAME));    
+                SamRecordFilter filter = new CigarFilter(CigarOPs[i], comps[i], values[i]);
+                SAMFileReader Inreader = new SAMFileReader(new File(TestFile.INPUT_FILE_NAME));
                 int num = 0;
             
                 for(SAMRecord re : Inreader){

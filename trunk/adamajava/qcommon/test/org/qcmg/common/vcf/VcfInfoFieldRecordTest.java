@@ -45,13 +45,7 @@ public class VcfInfoFieldRecordTest {
 		assertEquals(true, rec.toString().contains("ABCD=5678"));
 		assertEquals(true, rec.toString().contains("1234=1234"));
 		assertEquals(true, rec.toString().contains("XYZ=???"));
-				
-		rec = new VcfInfoFieldRecord("END=3;HOMLEN=0;ND=0:28:28:0[0,0]:0:0:27;");		
-		rec.setField("ND", "0:28:28:0[0,0]:0:0:27");
-		assertEquals(true, rec.toString().equals("END=3;HOMLEN=0;ND=0:28:28:0[0,0]:0:0:27"));				
-		rec.setField("ND", "0:37:36:0[0,0]:0:0:0" );
-		assertEquals(true, rec.toString().equals("END=3;HOMLEN=0;ND=0:37:36:0[0,0]:0:0:0"));				
-		
+		System.out.println(rec.toString());
 	}
 
 }

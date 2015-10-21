@@ -3,7 +3,7 @@
  */
 package org.qcmg.qsv.annotate;
 
-import htsjdk.samtools.SAMRecord;
+import net.sf.samtools.SAMRecord;
 
 import org.qcmg.common.util.Constants;
 import org.qcmg.qsv.util.QSVConstants;

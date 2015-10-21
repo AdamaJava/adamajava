@@ -15,13 +15,12 @@ import java.util.Map;
 import java.util.Vector;
 import java.util.regex.Pattern;
 
-import htsjdk.samtools.SamFileHeaderMerger;
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMProgramRecord;
-import htsjdk.samtools.SAMReadGroupRecord;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.ValidationStringency;
+import net.sf.picard.sam.SamFileHeaderMerger;
+import net.sf.samtools.SAMFileHeader;
+import net.sf.samtools.SAMFileReader;
+import net.sf.samtools.SAMProgramRecord;
+import net.sf.samtools.SAMReadGroupRecord;
+import net.sf.samtools.SAMRecord;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -127,7 +126,7 @@ public final class FileMerger {
 	/** The combined set of file names to be used in the merging process. */
 	private String[] allInputFileNames;
 	
-	private final ValidationStringency validation ;
+	private final SAMFileReader.ValidationStringency validation ;
 	
 	private final String[] comments;
 	
@@ -190,7 +189,7 @@ public final class FileMerger {
 	public FileMerger(final String outputFileName, final String[] inputFileNames, final String[] groupReplacements,
 			final String commandLine, final int numberRecords, final boolean includeOutputFile,
 			final boolean ignoreReadGroupClashes, final boolean createIndex, final String tmpdir,
-			final ValidationStringency validation, final String[] comments, String uuid) throws BamMergeException, IOException, Exception {
+			final SAMFileReader.ValidationStringency validation, final String[] comments, String uuid) throws BamMergeException, IOException, Exception {
 		this.includeOutputFile = includeOutputFile;
 		this.ignoreReadGroupClashes = ignoreReadGroupClashes;
 		this.createIndex = createIndex;
@@ -597,7 +596,7 @@ public final class FileMerger {
 		else 
 			inputReader = new MultiSAMFileReader(inputFiles);
 		
-		for (SamReader reader : inputReader.getSAMFileReaders()) {
+		for (SAMFileReader reader : inputReader.getSAMFileReaders()) {
 			
 			SAMFileHeader header = reader.getFileHeader();
 			for (SAMReadGroupRecord record : header.getReadGroups()) {
@@ -690,9 +689,9 @@ public final class FileMerger {
 	 *             into account the specified read group replacements.
 	 */
 	private void detectReadGroupOverlaps() throws BamMergeException {
-		Vector<SamReader> readers = inputReader.getSAMFileReaders();
-		for (final SamReader basisReader : readers) {
-			for (final SamReader reader : readers) {
+		Vector<SAMFileReader> readers = inputReader.getSAMFileReaders();
+		for (final SAMFileReader basisReader : readers) {
+			for (final SAMFileReader reader : readers) {
 				if (basisReader != reader) {
 					detectReadGroupOverlap(basisReader, reader);
 				}
@@ -712,7 +711,7 @@ public final class FileMerger {
 	 * @throws BamMergeException
 	 *             if read group clashes are detected.
 	 */
-	private void detectReadGroupOverlap(final SamReader readerA, final SamReader readerB)
+	private void detectReadGroupOverlap(final SAMFileReader readerA, final SAMFileReader readerB)
 			throws BamMergeException {
 		List<SAMReadGroupRecord> groupsA = readerA.getFileHeader().getReadGroups();
 		List<SAMReadGroupRecord> groupsB = readerB.getFileHeader().getReadGroups();
@@ -769,7 +768,7 @@ public final class FileMerger {
 	 */
 	private void mergeHeaders() {
 		List<SAMReadGroupRecord> newGroups = new ArrayList<>();
-		for (SamReader reader : inputReader.getSAMFileReaders()) {
+		for (SAMFileReader reader : inputReader.getSAMFileReaders()) {
 			File file = inputReader.getFile(reader);
 			List<SAMReadGroupRecord> oldGroups = reader.getFileHeader().getReadGroups();
 			Map<String, GroupReplacement> mappings = replacementMap.get(file);
@@ -851,7 +850,7 @@ public final class FileMerger {
 			if (null == record.getReadGroup())
 				throw new BamMergeException("BAD_RECORD_RG");
 			
-			SamReader fileReader = iter.getCurrentSAMFileReader();
+			SAMFileReader fileReader = iter.getCurrentSAMFileReader();
 			if ( ! replacementMap.isEmpty()) {
 				String oldGroup = record.getReadGroup().getReadGroupId();
 				File file = inputReader.getFile(fileReader);

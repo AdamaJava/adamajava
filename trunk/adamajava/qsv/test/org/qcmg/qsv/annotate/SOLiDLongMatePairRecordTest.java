@@ -7,16 +7,15 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMFileHeader.SortOrder;
+import net.sf.samtools.SAMFileReader;
+import net.sf.samtools.SAMRecord;
+import net.sf.samtools.SAMFileHeader.SortOrder;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qsv.annotate.SOLiDLongMatePairRecord;
 import org.qcmg.qsv.util.TestUtil;
 
@@ -30,7 +29,7 @@ public class SOLiDLongMatePairRecordTest {
     @Before
     public void setUp() throws IOException {
     	File file = TestUtil.createSamFile(testFolder.newFile("test.bam").getAbsolutePath(), SortOrder.unsorted, false);
-        final SamReader sam = SAMFileReaderFactory.createSAMFileReader(file);//new SAMFileReader(file);
+        final SAMFileReader sam = new SAMFileReader(file);
         for (final SAMRecord samRecord : sam) {
         	//System.out.println(samRecord.getSAMString());
             records.add(samRecord);

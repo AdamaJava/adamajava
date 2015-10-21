@@ -3,7 +3,7 @@
  */
 package org.qcmg.qsv.annotate;
 
-import htsjdk.samtools.SAMRecord;
+import net.sf.samtools.SAMRecord;
 
 import org.qcmg.qsv.discordantpair.PairGroup;
 

@@ -6,8 +6,8 @@ package org.qcmg.qbamfix;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.HashMap;
-import htsjdk.samtools.SAMSequenceDictionary;
-import htsjdk.samtools.SAMSequenceRecord;
+import net.sf.samtools.SAMSequenceDictionary;
+import net.sf.samtools.SAMSequenceRecord;
 
 public class ReplaceSQ {
 	private boolean UR_updated = false;

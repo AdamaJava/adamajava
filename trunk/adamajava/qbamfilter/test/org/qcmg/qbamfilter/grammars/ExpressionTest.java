@@ -4,14 +4,13 @@ import static org.junit.Assert.*;
 
 import java.io.File;
 
-import htsjdk.samtools.filter.SamRecordFilter;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMRecord;
+import net.sf.picard.filter.SamRecordFilter;
+import net.sf.samtools.SAMFileReader;
+import net.sf.samtools.SAMRecord;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qbamfilter.filter.TestFile;
 
 public class ExpressionTest {
@@ -43,7 +42,7 @@ public class ExpressionTest {
     	SamRecordFilter exp1 = new Condition("option_ZM", "==", "1").getFilter();
     	SamRecordFilter exp2 = new Condition("option_ZM", "!=", "1").getFilter();
         //only check the first record
-    	SamReader inreader = SAMFileReaderFactory.createSAMFileReader(new File(TestFile.INPUT_FILE_NAME));    //new SAMFileReader(new File(TestFile.INPUT_FILE_NAME));
+    	SAMFileReader inreader = new SAMFileReader(new File(TestFile.INPUT_FILE_NAME));
         for(SAMRecord record : inreader){
         	assertTrue( exp1.filterOut(record) == true);
         	assertTrue( exp2.filterOut(record) == false); 
@@ -66,7 +65,7 @@ public class ExpressionTest {
         exp2.addCondition(new Condition("option_ZM", "!=", "1").getFilter()); 
         exp2.addOperator(queryTree.Operator.AND);
       //only check the first record
-    	SamReader inreader = SAMFileReaderFactory.createSAMFileReader(new File(TestFile.INPUT_FILE_NAME));    //new SAMFileReader(new File(TestFile.INPUT_FILE_NAME));
+    	SAMFileReader inreader = new SAMFileReader(new File(TestFile.INPUT_FILE_NAME));
         for(SAMRecord record : inreader){
         	assertTrue( exp1.filterOut(record) == true);
         	assertTrue( exp2.filterOut(record) == false); 
@@ -95,7 +94,7 @@ public class ExpressionTest {
         exp3.addCondition(exp2);
                       
        //only check the first record
-    	SamReader inreader = SAMFileReaderFactory.createSAMFileReader(new File(TestFile.INPUT_FILE_NAME));    //new SAMFileReader(new File(TestFile.INPUT_FILE_NAME));
+    	SAMFileReader inreader = new SAMFileReader(new File(TestFile.INPUT_FILE_NAME));
         for(SAMRecord record : inreader){
         	assertTrue( exp1.filterOut(record) == true);
         	assertTrue( exp2.filterOut(record) == false); 

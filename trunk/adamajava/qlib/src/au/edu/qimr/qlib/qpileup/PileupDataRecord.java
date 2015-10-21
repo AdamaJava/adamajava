@@ -3,7 +3,7 @@
  */
 package au.edu.qimr.qlib.qpileup;
 
-import htsjdk.samtools.SAMRecord;
+import net.sf.samtools.SAMRecord;
 
 public class PileupDataRecord {
 

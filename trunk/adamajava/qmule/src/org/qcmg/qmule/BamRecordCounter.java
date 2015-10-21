@@ -5,8 +5,8 @@ package org.qcmg.qmule;
 
 import java.io.File;
 
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMRecord;
+import net.sf.samtools.SAMFileReader;
+import net.sf.samtools.SAMRecord;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -20,7 +20,7 @@ public class BamRecordCounter {
 		
 		if (null != args && args.length > 0) {
 			for (String filename : args) {
-				SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(filename));
+				SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(new File(filename));
 				long count = 0;
 				long duplicates = 0;
 				long startTime = System.currentTimeMillis();

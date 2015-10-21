@@ -9,20 +9,20 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
 
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMRecord;
+import net.sf.samtools.SAMFileReader;
+import net.sf.samtools.SAMRecord;
 
 public final class MultiSAMFileIterator implements Iterator<SAMRecord> {
 	private SAMRecordWrapper nextWrapper;
-	private SamReader currentFileReader;
+	private SAMFileReader currentFileReader;
 	private final SAMRecordWrapperComparator comparator = new SAMRecordWrapperComparator();
 	
 	//OJH switched this from a HashSet to a List - don't think Set properties are being used, and is more expensive when adding
 //	private final HashSet<SAMRecordWrapper> nextWrappers = new HashSet<SAMRecordWrapper>();
 	private final List<SAMRecordWrapper> nextWrappers = new ArrayList<SAMRecordWrapper>();
 
-	MultiSAMFileIterator(final Vector<SamReader> fileReaders) {
-		for (final SamReader reader : fileReaders) {
+	MultiSAMFileIterator(final Vector<SAMFileReader> fileReaders) {
+		for (final SAMFileReader reader : fileReaders) {
 			Iterator<SAMRecord> i = reader.iterator();
 			if (i.hasNext()) {
 				SAMRecord record = i.next();
@@ -44,7 +44,7 @@ public final class MultiSAMFileIterator implements Iterator<SAMRecord> {
 		return result;
 	}
 
-	public SamReader getCurrentSAMFileReader() {
+	public SAMFileReader getCurrentSAMFileReader() {
 		return currentFileReader;
 	}
 
@@ -59,7 +59,7 @@ public final class MultiSAMFileIterator implements Iterator<SAMRecord> {
 
 	private void step(final SAMRecordWrapper wrapper) {
 		Iterator<SAMRecord> iter = wrapper.getRecordIterator();
-		SamReader reader = wrapper.getReader();
+		SAMFileReader reader = wrapper.getReader();
 		nextWrappers.remove(wrapper);
 		if (iter.hasNext()) {
 			SAMRecord record = iter.next();

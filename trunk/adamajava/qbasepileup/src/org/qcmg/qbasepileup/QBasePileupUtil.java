@@ -14,8 +14,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import htsjdk.samtools.reference.FastaSequenceIndex;
-import htsjdk.samtools.reference.IndexedFastaSequenceFile;
+import net.sf.picard.reference.FastaSequenceIndex;
+import net.sf.picard.reference.IndexedFastaSequenceFile;
 
 public class QBasePileupUtil {
 	

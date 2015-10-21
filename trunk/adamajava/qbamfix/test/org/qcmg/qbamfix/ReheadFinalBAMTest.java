@@ -7,8 +7,8 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SamReader;
+import net.sf.samtools.SAMFileHeader;
+import net.sf.samtools.SAMFileReader;
 
 
 import junit.framework.Assert;
@@ -46,7 +46,7 @@ public class ReheadFinalBAMTest {
 	public void mainTest() throws Exception{
 		ReheadFinalBAM rehead = new ReheadFinalBAM();
 		
-		SAMFileHeader header = SAMFileReaderFactory.createSAMFileReader(new File(Test_FILE_NAME)).getFileHeader().clone();
+		SAMFileHeader header = SAMFileReaderFactory.createSAMFileReader(Test_FILE_NAME).getFileHeader().clone();
 		
 		//get info from header
 		Assert.assertEquals("SSSS_001",  rehead.getDonor(header.getComments()));
@@ -54,12 +54,12 @@ public class ReheadFinalBAMTest {
 		 
 		//correct the header to a new BAM
 		String Corrected_BAM = "./Test.tmp.bam";
-	    SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(Test_FILE_NAME));  	    	
+	    SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(new File(Test_FILE_NAME));  	    	
 	    rehead.refinalBAM(reader, "SSSS_001", new File(Corrected_BAM));
 		reader.close();	
 		
 		//test on the corrected BAM
-		header = SAMFileReaderFactory.createSAMFileReader(new File( Corrected_BAM)).getFileHeader().clone();
+		header = SAMFileReaderFactory.createSAMFileReader(Corrected_BAM).getFileHeader().clone();
 		Assert.assertEquals("SSSS_001",  rehead.getDonor(header.getComments()));
 		Assert.assertEquals("", rehead.matchDonor("SSSS_001", header.getReadGroups()));
 		
