@@ -65,8 +65,6 @@ public class SignatureGenerator {
 	
 	private final static ReferenceNameComparator COMPARATOR = new ReferenceNameComparator();
 	
-	private final static String QSIG_REPORT = ".txt.qsig.report.txt";
-	
 	static QLogger logger;
 	private String logFile;
 	private String[] cmdLineInputFiles;
@@ -105,7 +103,7 @@ public class SignatureGenerator {
 			final List<File> results = new LinkedList<File>();
 			// remove any files from array that are .report.txt files
 			for (final File f : illuminaFiles) {
-				if ( ! f.getName().endsWith(QSIG_REPORT)) {
+				if ( ! f.getName().endsWith(SignatureUtil.QSIG_REPORT)) {
 					// add to new list
 					results.add(f);
 				} else {
@@ -354,9 +352,9 @@ public class SignatureGenerator {
 		// if we have an output folder defined, place the vcf files there, otherwise they will live next to the bams
 		File outputVCFFile = null;
 		if (null != outputDirectory) {
-			outputVCFFile = new File(outputDirectory + FileUtils.FILE_SEPARATOR + bamFile.getName() + ".qsig.vcf.gz");
+			outputVCFFile = new File(outputDirectory + FileUtils.FILE_SEPARATOR + bamFile.getName() + SignatureUtil.QSIG_VCF_GZ);
 		} else {
-			outputVCFFile = new File(bamFile.getAbsoluteFile() + ".qsig.vcf.gz");
+			outputVCFFile = new File(bamFile.getAbsoluteFile() + SignatureUtil.QSIG_VCF_GZ);
 		}
 		logger.info("Will write output vcf to file: " + outputVCFFile.getAbsolutePath());
 		// standard output format
@@ -400,8 +398,8 @@ public class SignatureGenerator {
 
 		//move input uuid into preuuid
 		header.parseHeaderLine(VcfHeaderUtils.CURRENT_FILE_VERSION);	
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + fileDate);
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + uuid );
+		header.parseHeaderLine(VcfHeaderUtils.STANDARD_FILE_DATE + Constants.EQ + fileDate);
+		header.parseHeaderLine(VcfHeaderUtils.STANDARD_UUID_LINE + Constants.EQ + uuid );
 		header.parseHeaderLine( "##bam_file=" + bamName);
 		header.parseHeaderLine("##snp_file=" + snpFile);
 		header.addFilterLine("BASE_QUALITY", "Base quality < " + minBaseQuality);
@@ -441,10 +439,10 @@ public class SignatureGenerator {
 
 		//move input uuid into preuuid
 		header.parseHeaderLine(VcfHeaderUtils.CURRENT_FILE_VERSION);		
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + fileDate );
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + uuid );
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=" + pg+"-"+version) ;
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_DONOR_ID + "=" + patientId);
+		header.parseHeaderLine(VcfHeaderUtils.STANDARD_FILE_DATE + Constants.EQ + fileDate );
+		header.parseHeaderLine(VcfHeaderUtils.STANDARD_UUID_LINE + Constants.EQ + uuid );
+		header.parseHeaderLine(VcfHeaderUtils.STANDARD_SOURCE_LINE + Constants.EQ + pg+"-"+version) ;
+		header.parseHeaderLine(VcfHeaderUtils.STANDARD_DONOR_ID + Constants.EQ + patientId);
 		header.parseHeaderLine("##input_type=" + inputType );
 		header.parseHeaderLine( "##sample=" + sample ) ;
 		header.parseHeaderLine( "##bam_file=" + illuminaFileName ) ;		
@@ -528,7 +526,7 @@ public class SignatureGenerator {
 		//logger.info("vcf: " + thisVcf.getChromosome() + ":" + thisVcf.getPosition() + ", rec: " + rec.getReferenceName() + ":" + rec.getAlignmentStart());
 		if (null == thisVcf) return false;
 		
-		final String samChr = rec.getReferenceName().startsWith("chr") ? rec.getReferenceName() : "chr" + rec.getReferenceName();
+		final String samChr = rec.getReferenceName().startsWith(Constants.CHR) ? rec.getReferenceName() : Constants.CHR + rec.getReferenceName();
 		if (samChr.equals(thisVcf.getChromosome())) {
 			
 			if (rec.getAlignmentEnd() < thisVcf.getPosition())

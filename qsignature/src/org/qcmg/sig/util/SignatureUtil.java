@@ -40,6 +40,10 @@ public class SignatureUtil {
 	/*
 	 * CONSTANTS
 	 */
+	public final static String QSIG_REPORT = ".txt.qsig.report.txt";
+	public static final String QSIG_VCF_GZ = ".qsig.vcf.gz";
+	public static final String QSIG_VCF = ".qsig.vcf";
+	
 	public static final String SHORT_CUT_EMPTY_COVERAGE = "L:0;N";		// from ...TOTAL:0;NOVELCOV=A...
 	public static final String EMPTY_COVERAGE = "FULLCOV=A:0,C:0,G:0,T:0,N:0,TOTAL:0;NOVELCOV=A:0,C:0,G:0,T:0,N:0,TOTAL:0";
 	public static final String EMPTY_NOVEL_STARTS = ";NOVELCOV=A:0,C:0,G:0,T:0,N:0,TOTAL:0";
@@ -58,56 +62,7 @@ public class SignatureUtil {
 	
 	public static final Pattern PATIENT_REGEX_PATTERN = Pattern.compile(PATIENT_REGEX);
 	
-	public static final String BASE_QUERY = "select replace(patient_id, '-','_'), mapset,primary_library, " +
-			"substring(source_type from '(.)') ||  substring(material_type from '(.)') , " +
-			"barcode, physical_division, failed_qc " +
-			"from mapset_view";
 	
-	public static final String QS_MAPSET_QUERY = "select replace(project.name, '-','_'), mapset.name,mapset.primary_library, " +
-			"substring(sample_code from '(.)') || '.' || substring(material from '(.)') as input " +
-			"from qcmg.mapset, qcmg.sample, qcmg.project  " + 
-			"where mapset.name = '%1$s' " +
-			"and mapset.sampleid = sample.sampleid " +
-			"and sample.projectid = project.projectid;";
-	
-	public static final String QS_LIBRARY_QUERY = "select replace(project.name, '-','_'),mapset.name,mapset.primary_library, " +
-			"substring(sample_code from '(.)') || '.' || substring(material from '(.)') as input " +
-			"from qcmg.mapset, qcmg.sample, qcmg.project " +
-			"where primary_library = '%1$s' " +
-			"and mapset.sampleid = sample.sampleid " +
-			"and sample.projectid = project.projectid;";
-	
-	public static final String END_QUERY = "  AND failed_qc is null;";
-//	public static final String BASE_QUERY = "SELECT sample_set, run_name, primary_library_id, " +
-//	"input_type, barcode, individual_sample_location FROM tracklite_run ";
-//	
-//	public static final String END_QUERY = " AND run_status = 'complete'";
-	
-	public static final String CLOSED_PROJECTS_QUERY = "select distinct(name) from project where project_open = false";
-	public static final String FAILED_QC_MAPSETS_QUERY = "select distinct(name) from mapset where failed_qc = true";
-	public static final String FAILED_QC_ARRAYS_QUERY = "select distinct(name) from arrayscan where failed_qc = true";
-	
-	
-	public static final String FAILED_QC_CLOSED_PROJECTS_ALL_IN_ONE_QUERY = //"-- samples not to consider " +
-					"SELECT 'sample' entity,	s.name " +
-					"FROM 	sample s " +
-					"	JOIN project p ON s.projectid=p.projectid " + 
-					"WHERE (s.failed_qc IS true OR p.project_open IS false) " + 
-					"UNION " +
-					//"-- mapsets not to consider " +
-					"SELECT 	'mapset' entity,	m.name " + 
-					"FROM 	mapset m " +
-					"	JOIN sample s ON m.sampleid=s.sampleid " + 
-					"	JOIN project p ON s.projectid=p.projectid " +
-					"WHERE (m.failed_qc IS true OR s.failed_qc IS true OR p.project_open IS false) " +
-					"UNION " +
-					//"-- arrayscans not to consider " +
-					"SELECT 'arrayscan' entity,	a.name " +
-					"FROM 	arrayscan a " +
-					"	JOIN sample s ON a.sampleid=s.sampleid " + 
-					"	JOIN project p ON s.projectid=p.projectid " +
-					"WHERE (a.failed_qc IS true OR s.failed_qc IS true OR p.project_open IS false) " + 
-					"Order by entity, name;";
 	
 	/*
 	 * METHODS
@@ -552,5 +507,6 @@ public class SignatureUtil {
 		
 		return new int[] {aCount, cCount, gCount, tCount, total};
 	}
+
 
 }
