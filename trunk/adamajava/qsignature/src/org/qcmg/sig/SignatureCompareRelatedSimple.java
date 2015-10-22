@@ -5,10 +5,13 @@ package org.qcmg.sig;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -49,7 +52,7 @@ public class SignatureCompareRelatedSimple {
 	private float cutoff = 0.2f;
 	
 	private String outputXml;
-	private String path;
+	private String [] paths;
 	private String donor;
 //	private static final String QSIG_SUFFIX = ".qsig.vcf";
 	
@@ -71,11 +74,15 @@ public class SignatureCompareRelatedSimple {
 		excludes = SignatureUtil.getEntriesFromExcludesFile(excludeVcfsFile);
 		
 		// get qsig vcf files for this donor
-		logger.info("Retrieving qsig vcf files from: " + path);
-		List<File> files = FileUtils.findFilesEndingWithFilterNIO(path, SignatureUtil.QSIG_VCF);
+		logger.info("Retrieving qsig vcf files from: " + paths);
+		Set<File> uniqueFiles = new HashSet<>();
+		for (String path : paths) {
+			uniqueFiles.addAll(FileUtils.findFilesEndingWithFilterNIO(path, SignatureUtil.QSIG_VCF));
+		}
+		List<File> files = new ArrayList<>(uniqueFiles);
 		
 		if (files.isEmpty()) {
-			logger.warn("Didn't find any files ending with " + SignatureUtil.QSIG_VCF + " in " + path);
+			logger.warn("Didn't find any files ending with " + SignatureUtil.QSIG_VCF + " in " + Arrays.toString(paths));
 			return 0;
 		}
 		
@@ -277,12 +284,11 @@ public class SignatureCompareRelatedSimple {
 			if (null != cmdLineOutputFiles && cmdLineOutputFiles.length > 0)
 				outputXml = cmdLineOutputFiles[0];
 			
-			//TODO implement ability to search across multiple directories
 			String[] paths = options.getDirNames(); 
 			if (null != paths && paths.length > 0) {
-				path = paths[0];
+				this.paths = paths;
 			}
-			if (null == path) throw new QSignatureException("MISSING_DIRECTORY_OPTION");
+			if (null == paths) throw new QSignatureException("MISSING_DIRECTORY_OPTION");
 			
 			if (options.hasCutoff())
 				cutoff = options.getCutoff();

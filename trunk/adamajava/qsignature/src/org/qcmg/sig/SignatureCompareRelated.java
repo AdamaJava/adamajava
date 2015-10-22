@@ -5,6 +5,7 @@ package org.qcmg.sig;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -12,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeSet;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -48,14 +50,14 @@ public class SignatureCompareRelated {
 	private static QLogger logger;
 	private int exitStatus;
 	
-	private List<File> orderedSnpChipFiles;
+	private List<File> orderedSnpChipFiles = new ArrayList<>();
 	
 	private float cutoff = 0.2f;
 	
 	private String[] cmdLineInputFiles;
 	private String[] cmdLineOutputFiles;
 	private String outputXml;
-	private String path;
+	private String[] paths;
 	private String searchSuffix = ".qsig.vcf";
 	private String snpChipSearchSuffix = ".txt.qsig.vcf";
 	private String [] additionalSearchStrings;
@@ -79,20 +81,35 @@ public class SignatureCompareRelated {
 		
 		
 		// load snp chip data in map
-		orderedSnpChipFiles = SignatureUtil.populateSnpChipFilesList(path, snpChipSearchSuffix, excludes, SignatureUtil.SNP_ARRAY);
+		for (String path : paths) {
+			orderedSnpChipFiles.addAll(SignatureUtil.populateSnpChipFilesList(path, snpChipSearchSuffix, excludes, SignatureUtil.SNP_ARRAY));
+		}
 		
 		if (orderedSnpChipFiles.isEmpty()) {
-			logger.warn("No snp chip signature files found to use in the comparison based on path: " + path + ", and snpChipSearchSuffix: " + snpChipSearchSuffix + ", and " + SignatureUtil.SNP_ARRAY +". Will try without " + SignatureUtil.SNP_ARRAY);
-			orderedSnpChipFiles = SignatureUtil.populateSnpChipFilesList(path, snpChipSearchSuffix, excludes, null);
+			logger.warn("No snp chip signature files found to use in the comparison based on path: " + Arrays.toString(paths) + ", and snpChipSearchSuffix: " + snpChipSearchSuffix + ", and " + SignatureUtil.SNP_ARRAY +". Will try without " + SignatureUtil.SNP_ARRAY);
+			for (String path : paths) {
+				orderedSnpChipFiles.addAll(SignatureUtil.populateSnpChipFilesList(path, snpChipSearchSuffix, excludes, null));
+			}
 			if (orderedSnpChipFiles.isEmpty()) {
-				logger.warn("No snp chip signature files found to use in the comparison based on path: " + path + ", and snpChipSearchSuffix: " + snpChipSearchSuffix + " - giving up");
+				logger.warn("No snp chip signature files found to use in the comparison based on path: " + paths + ", and snpChipSearchSuffix: " + snpChipSearchSuffix + " - giving up");
 				exitStatus = 1;
 				return exitStatus;
 			}
 		}
 		
+		/*
+		 * just get the unique list of snp chip files
+		 */
+		if ( ! orderedSnpChipFiles.isEmpty()) {
+			Set<File> s = new TreeSet<>(orderedSnpChipFiles);
+			orderedSnpChipFiles = Arrays.asList(s.toArray(new File[]{}));
+		}
+		
 		// get other signature files out there....
-		List<File> files = FileUtils.findFilesEndingWithFilterNIO(path, searchSuffix);
+		List<File> files = new ArrayList<>(); 
+		for (String path : paths) {
+			files.addAll(FileUtils.findFilesEndingWithFilterNIO(path, searchSuffix));
+		}
 		logger.info("Total number of files to be compared: " + files.size());
 		// remove excluded files
 		files = SignatureUtil.removeExcludedFilesFromList(files, excludes);
@@ -120,7 +137,7 @@ public class SignatureCompareRelated {
 		}
 		
 		if (orderedUniqueFiles.isEmpty()) {
-			logger.warn("No signature files found based on path: " + path + ", and searchSuffix: " + searchSuffix);
+			logger.warn("No signature files found based on path: " + paths + ", and searchSuffix: " + searchSuffix);
 			exitStatus = 1;
 			return exitStatus;
 		}
@@ -393,27 +410,16 @@ public class SignatureCompareRelated {
 			
 			// get list of file names
 			cmdLineInputFiles = options.getInputFileNames();
-//			if (cmdLineInputFiles.length < 1) {
-//				throw new QSignatureException("INSUFFICIENT_ARGUMENTS");
-//			} else {
-//				// loop through supplied files - check they can be read
-//				for (int i = 0 ; i < cmdLineInputFiles.length ; i++ ) {
-//					if ( ! FileUtils.canFileBeRead(cmdLineInputFiles[i])) {
-//						throw new QSignatureException("INPUT_FILE_READ_ERROR" , cmdLineInputFiles[i]);
-//					}
-//				}
-//			}
 			
 			cmdLineOutputFiles = options.getOutputFileNames();
 			if (null != cmdLineOutputFiles && cmdLineOutputFiles.length > 0)
 				outputXml = cmdLineOutputFiles[0];
 			
-			//TODO implement ability to search across multiple directories
 			String[] paths = options.getDirNames(); 
 			if (null != paths && paths.length > 0) {
-				path = paths[0];
+				this.paths = paths;
 			}
-			if (null == path) throw new QSignatureException("MISSING_DIRECTORY_OPTION");
+			if (null == paths) throw new QSignatureException("MISSING_DIRECTORY_OPTION");
 			
 			if (options.hasCutoff())
 				cutoff = options.getCutoff();
