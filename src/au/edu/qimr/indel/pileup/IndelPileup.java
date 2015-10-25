@@ -7,12 +7,12 @@ import java.util.Set;
 
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.util.IndelUtils.SVTYPE;
-import org.qcmg.picard.util.SAMUtils;
+import au.edu.qimr.indel.SAMUtils;
 
-import net.sf.samtools.Cigar;
-import net.sf.samtools.CigarElement;
-import net.sf.samtools.CigarOperator;
-import net.sf.samtools.SAMRecord;
+import htsjdk.samtools.Cigar;
+import htsjdk.samtools.CigarElement;
+import htsjdk.samtools.CigarOperator;
+import htsjdk.samtools.SAMRecord;
 
 
 public class IndelPileup {
@@ -72,9 +72,7 @@ public class IndelPileup {
 				continue; //skip current record
 			else
 				tmpPool.add(re);
-		}	
-		
-		
+		}			
 		infoPool = tmpPool; 	
 		
 		tmpPool = removeNearbyIndel(infoPool, nearyIndelWindow);
@@ -85,6 +83,11 @@ public class IndelPileup {
 			support.add(i, counts[0]);			
 			forwardsupport.add(i, counts[1]);  
 			backwardsupport.add(i, counts[2]);
+			
+			//debug
+			if(counts[1] + counts[2] != counts[0])
+				System.out.println("forwardsupport + backwardsupport != TotalSupport: " +  counts[1] + ", " + counts[2] + " , " + counts[0]);			
+			
 			partial.add(i,counts[3]);
 			novelStart.add(i, counts[4]);
 		}		
@@ -168,8 +171,7 @@ public class IndelPileup {
 			for (CigarElement ce : cigar.getCigarElements()){					
 				if(CigarOperator.I == ce.getOperator()){ 
 					//if insert rePos go next cigar block after cigar.I, which is indel end position
-				 	if(refPos == indelEnd && type.equals(SVTYPE.INS)){
-				 		flag = true; 	
+				 	if(refPos == indelEnd && type.equals(SVTYPE.INS)){				 		 	
 				 		if(ce.getLength() != motif.length()) 				 			
 				 	 		partsupport ++;	
 				 		 else{
@@ -177,30 +179,40 @@ public class IndelPileup {
 					 		int endIndex =  SAMUtils.getIndexInReadFromPosition(re, indelEnd  );	
 				 			String base = re.getReadString().substring(startIndex+1,endIndex);
 				 			if(motif.toLowerCase().matches(base.toLowerCase())){
+				 				flag = true;
 				 				support ++;
 				 				novelStarts = addToNovelStarts(re, novelStarts);
-				 			}else
+				 			}else{
 				 				partsupport ++; 
+//				 				//debug
+//								System.out.println("support reads: " + re.getSAMString());
+				 			}
 				 		 }	 
 				 	}
 				}else if( CigarOperator.D == ce.getOperator()){					 
 					//at least some overlap
 					if((refPos <= indelStart && refPos + ce.getLength() >= indelStart) ||
 							(refPos <= indelEnd && refPos + ce.getLength() >= indelEnd)) 
-						if(type.equals(SVTYPE.DEL) ){
-							flag = true; 
+						if(type.equals(SVTYPE.DEL) ){							
 							if(refPos == indelStart && ce.getLength() == motif.length()){
+				 				flag = true; 
 				 				support ++;
 				 				novelStarts = addToNovelStarts(re, novelStarts);
 								
-							}else
+							}else{
 								partsupport ++;
+//								//debug
+//								System.out.println("support reads: " + re.getReadString());
+							}
 						}
 						//else is supporting or partial, go to next cigar block					 				 
 				}
 				
 				// match indel
-				if(flag){ 					
+				if(flag){ 	
+//					//debug
+//					System.out.println("support reads: " + re.getReadString());
+					
 					if (re.getReadNegativeStrandFlag())   backwardSupport ++;
 					else   forwardSupport ++;
 					break;
@@ -256,6 +268,9 @@ public class IndelPileup {
 					continue; 			 
 				informativePool.add(record);
 			}	
+//			//debug
+//			else
+//				System.out.println("non informativ reads: " + record.getSAMString());
 		}
 		
 		return informativePool; 
@@ -270,15 +285,21 @@ public class IndelPileup {
 			//check left hand clipping	
 			if (record.getAlignmentStart() != record.getUnclippedStart()) {
 				int clipStartPosition = record.getAlignmentStart()-1;
-				if (clipStartPosition >= windowStart && clipStartPosition <= windowEnd)  			
+				if (clipStartPosition >= windowStart && clipStartPosition <= windowEnd){  			
 					count ++;
+//					//debug
+//					System.out.println("softClip left: " + record.getSAMString());
+				}
 			}
 			//check right hand clipping
 			if (record.getAlignmentEnd() != record.getUnclippedEnd()) {
 				int clipEndPosition = record.getAlignmentEnd()+1;			
 				//clip start position is in the window to the left of the indel			
-				if (clipEndPosition >= windowStart && clipEndPosition <= windowEnd)  			
-					count ++;				 
+				if (clipEndPosition >= windowStart && clipEndPosition <= windowEnd){  			
+					count ++;	
+//					//debug
+//					System.out.println("softClip right: " + record.getSAMString());
+				}
 			}
 		}		
 		return count;

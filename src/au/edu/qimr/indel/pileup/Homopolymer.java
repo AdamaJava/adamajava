@@ -3,6 +3,9 @@
  */
 package au.edu.qimr.indel.pileup;
 
+import htsjdk.samtools.reference.FastaSequenceIndex;
+import htsjdk.samtools.reference.IndexedFastaSequenceFile;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,13 +16,10 @@ import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.util.IndelUtils.SVTYPE;
 
 import au.edu.qimr.indel.Q3IndelException;
-import net.sf.picard.reference.FastaSequenceIndex;
-import net.sf.picard.reference.IndexedFastaSequenceFile;
-import net.sf.picard.reference.ReferenceSequence;
 
 public class Homopolymer {
 	
-	public enum HOMOTYPE {HOMADJ, HOMCON,HOMEMB,NONE }
+	static final String nullValue = "-";
 	private final List<String> motifs ; //same chrposition but differnt allel
 	private final ChrPosition position;
 	
@@ -27,12 +27,12 @@ public class Homopolymer {
 	QLogger logger = QLoggerFactory.getLogger(Homopolymer.class);	
 	private byte[] upstreamReference;
 	private byte[] downstreamReference;
-	private List<byte[]> indelReferenceBases;
+//	private List<byte[]> indelReferenceBases = new ArrayList<byte[]>() ;
 	private int homopolymerWindow;
 
-	private List<HOMOTYPE> homoType = new ArrayList<HOMOTYPE>();
-	private List<Integer> homopolymerCount = new ArrayList<Integer>();
-	private List<String> homoString = new ArrayList<String>();
+	private List<String> upBase = new ArrayList<String>();
+	private List<String> downBase = new ArrayList<String>();	
+	private List<byte[]> homoString = new ArrayList<byte[]>();
 	private byte[] referenceBase;
 
 	
@@ -45,50 +45,43 @@ public class Homopolymer {
 		this.homopolymerWindow = homopolymerWindow;
 		getReferenceBase();
 		
-		for(int i = 0 ; i < position.getMotifs().size(); i ++)
+		//init
+		for( int i = 0 ; i < position.getMotifs().size(); i ++ ){
+			upBase.add(nullValue);
+			downBase.add(nullValue);
+			homoString.add(null);			
+		}
+		
+		for( int i = 0 ; i < position.getMotifs().size(); i ++ )
 			findHomopolymer(i);
 	}
  
-	public HOMOTYPE getHOMOTYPE(int index){
-		return homoType.get(index);
-	}
-	
+ 	
 	public String getPolymerSequence(int index){
-		return homoString.get(index);
+			
+		return  homoString.get(index) == null ? null : new String(   homoString.get(index));				 
 	}
-	
-	
-	private void setSequence(int index) {
-		if(homoType.get(index).equals(HOMOTYPE.NONE)){
-			homoString.add(index, null);
-			return;
-		}
 		
-		String motif = motifs.get(index);
+	private byte[] setSequence(String motif) {	
 		
-		StringBuilder sb = new StringBuilder();
+		byte[] seq = new byte[upstreamReference.length + downstreamReference.length + motif.length() ]; 
 		
-		for (int i=0; i<upstreamReference.length; i++) {
-			sb.append((Character.toString((char) upstreamReference[i])));
-		}
+		System.arraycopy(upstreamReference, 0, seq, 0, upstreamReference.length);  	 
+		int pos = upstreamReference.length;
+		System.arraycopy(downstreamReference, 0, seq, pos + motif.length(), downstreamReference.length); 
+		
 		
 		if (indelType.equals(SVTYPE.DEL))				 
 			for (int i=0; i<motif.length(); i++)
-				sb.append("_");
+				seq[pos + i] = '_';
 		else  			
-			sb.append(motif.toLowerCase());
-			 	 			
- 		for (int i=0; i<downstreamReference.length; i++) {
-			sb.append((Character.toString((char) downstreamReference[i])));
-		}
-			
- 		homoString.add(index, sb.toString());
+			System.arraycopy(motif.toLowerCase().getBytes(), 0, seq, pos , motif.length());  
+
+		return seq; 
 	}
 
 	public void  findHomopolymer( int index) {
 		
-		HOMOTYPE upType = HOMOTYPE.NONE;
-		HOMOTYPE downType = HOMOTYPE.NONE;
 		int upBaseCount = 1;
 		int downBaseCount = 1;
  		//upstream - start from end since this is the side adjacent to the indel
@@ -96,175 +89,66 @@ public class Homopolymer {
 		int finalUpIndex = upstreamReference.length-1;	
 		
 		//count upstream homopolymer bases
-		char previousBase = (char) upstreamReference[finalUpIndex];
+		char nearBase = (char) upstreamReference[finalUpIndex];
 		for (int i=finalUpIndex-1; i>=0; i--) {
-			if (previousBase == upstreamReference[i]) {
+			if (nearBase == upstreamReference[i]) {
 				upBaseCount++;
 			} else {
 				break;
 			}
 		}
 		
-		byte[] indelRefBases = indelReferenceBases.get(index);
-		
-		//if homopolymer run present, work out if it is contiguous
-		if (upBaseCount > 1) {
-			if (upstreamReference[finalUpIndex] == indelRefBases[0]) {
-				upType = HOMOTYPE.HOMCON; // CONTIGUOUS
-			} else {
-				upType = HOMOTYPE.HOMADJ;  //DISCONTIGUOUS;
-			}
-		}
+		if(upBaseCount > 1)
+			upBase.set(index, upBaseCount + "" + nearBase );
 		
 		//count downstream homopolymer
-		char previousDownBase = (char) downstreamReference[0];
+		nearBase = (char) downstreamReference[0];
 		for (int i=1; i<downstreamReference.length; i++) {
-			if (previousDownBase == downstreamReference[i]) {
+			if (nearBase == downstreamReference[i]) {
 				downBaseCount++;
 			} else {
 				break;
 			}
 		}
 		
-		//if homopolymer run present, work out if it is contiguous
-		if (downBaseCount > 1) {
-			if (downstreamReference[0] == indelRefBases[indelRefBases.length-1]) {
-				downType = HOMOTYPE.HOMCON; //CONTIGUOUS;
-			} else {
-				downType = HOMOTYPE.HOMADJ; //DISCONTIGUOUS;
-			}
-		}
-		
-		//see if it is embedded, set counts
-		if (! isEmbeddedHomopolymer(index, finalUpIndex, upType, downType, upBaseCount, downBaseCount)) {
-			//if they are both contiguous, see which one is higher, set counts
-			checkHomopolymer( index, upType, downType, upBaseCount, downBaseCount);
-			
-		}		
-		
+		if(downBaseCount > 1)
+			downBase.set(index, downBaseCount + "" + nearBase );
+		 		
 		//set ffs sequence
-		setSequence(index);
-
-	 
+		if(upBaseCount > 1 || downBaseCount > 1)
+			homoString.set(index, setSequence(motifs.get(index))); 
 	}
 	
-	/**
-	 * check and set indel homopolymers type and base counts
-	 * @param index
-	 * @param upType
-	 * @param downType
-	 * @param upBaseCount
-	 * @param downBaseCount
-	 */
-	public void checkHomopolymer(int index, HOMOTYPE upType, HOMOTYPE downType, int upBaseCount, int downBaseCount) {		
-		if(upType.equals(HOMOTYPE.NONE) && downType.equals(HOMOTYPE.NONE)){
-			homoType.add(index, HOMOTYPE.NONE);
-			homopolymerCount.add(index, 0);			 
-		}else if(upType.equals(HOMOTYPE.HOMCON) && downType.equals(HOMOTYPE.HOMCON)){
-			homoType.add(index, HOMOTYPE.HOMCON);
-			homopolymerCount.add(index, Math.max(upBaseCount, downBaseCount)); 			 
-		}else if(upType.equals(HOMOTYPE.HOMADJ) && downType.equals(HOMOTYPE.HOMADJ)){
-			homoType.add(index, HOMOTYPE.HOMADJ);
-			homopolymerCount.add(index, Math.max(upBaseCount, downBaseCount)); 			 
-		} else if(downType.equals(HOMOTYPE.NONE) || upType.equals(HOMOTYPE.HOMADJ)){
-			homoType.add(index, upType);
-			homopolymerCount.add(index, upBaseCount); 			 
-		} else {     //remaining upType is non or downType is HOMADJ
-			homoType.add(index, downType);
-			homopolymerCount.add(index, downBaseCount); 			 
-		}
-					 
-	}
-
-	/**
-	 * check and set indel homopolymers type and base counts if embeded
-	 * @param motifIndex: index number of current motif in current indel position
-	 * @param finalUpIndex
-	 * @param upType
-	 * @param downType
-	 * @param upBaseCount
-	 * @param downBaseCount
-	 * @return true if current indel motif is embeded
-	 */
-	public boolean isEmbeddedHomopolymer(int motifIndex, int finalUpIndex, HOMOTYPE upType, HOMOTYPE downType, int upBaseCount, int downBaseCount) {
-		byte[] indelRefBases = indelReferenceBases.get(motifIndex);
-		if (upstreamReference[finalUpIndex] == downstreamReference[0] && upType.equals(HOMOTYPE.HOMCON) && downType.equals(HOMOTYPE.HOMCON)) {
-			//embedded
-			char base = (char) upstreamReference[finalUpIndex];
-			boolean match = true;
-			for (int i=0; i< indelRefBases.length; i++) {
-				if ((char) indelRefBases[i] != base) {
-					match = false;
-					break;
-				}
-			}
-			if (match) {
-				homoType.add(motifIndex, HOMOTYPE.HOMEMB); // EMBEDDED;				
-				homopolymerCount.add(motifIndex,  upBaseCount + downBaseCount);
-				return true;
-			}
-		}
-		return false;
-	}
+	public String getUpBaseCount(int index){ return upBase.get(index); }
+	public String getDownBaseCount(int index){ return downBase.get(index); }
 	
-	public synchronized void getReferenceBase() {	
+	
+	public synchronized void getReferenceBase() { 	
 
 		int MaxEnd = referenceBase.length;
-		indelReferenceBases = new ArrayList<byte[]>() ;
+//		indelReferenceBases = new ArrayList<byte[]>() ;
 	
-		int indelStart = position.getPosition() + 1;
+		//eg. INS: 21 T TC or DEL: 21  TCC T
+		//both T  position.getPosition() is 21 but should be  referenceBase[20] which is end of upStream
+		//INS position.getEndPosition() is 21, downStream should start at referenceBase[21]
+		//DEL position.getEndPosition() is 23, downStream should start at referenceBase[23]
+		
+		int indelStart = position.getPosition();
 	    int indelEnd = position.getEndPosition(); 
-
-		try{
-	    	if (indelType.equals(SVTYPE.DEL)) {   
-	    		//at least start from position 1
-	    		int wstart = Math.max( 0,indelStart-homopolymerWindow-1); 
-	    		upstreamReference = new byte[indelStart - wstart-1];
-	    		System.arraycopy(referenceBase, wstart, upstreamReference, 0, upstreamReference.length);
-	    		
-	    		byte[] base = new byte[indelEnd - indelStart + 1];
-	    		System.arraycopy(referenceBase, indelStart-1, base, 0, base.length);
-	    		indelReferenceBases.add(0, base);
-	    		
-	    		int wend = Math.min(MaxEnd-1, indelEnd+homopolymerWindow);    			
-	    		downstreamReference = new byte[wend - indelEnd ];
-	    		System.arraycopy(referenceBase, indelEnd, downstreamReference, 0, downstreamReference.length);    		
-	     			 
-	    	} else if (indelType.equals(SVTYPE.INS)) {  
-	    		indelStart = position.getPosition() ;
-	    		indelEnd = position.getEndPosition() + 1; 
-
-	    		int wstart = Math.max(0,indelStart-homopolymerWindow);    		
-	    		upstreamReference = new byte[indelStart - wstart ];
-	    		System.arraycopy(referenceBase, wstart, upstreamReference, 0, upstreamReference.length);
-	    		   		
-	    		for(int i = 0; i < motifs.size(); i ++)
-	    				this.indelReferenceBases.add(i, motifs.get(i).getBytes());
-	    		    		
-	    		int wend = Math.min(MaxEnd-1, indelEnd+homopolymerWindow -1);  
-	    		downstreamReference = new byte[wend - indelEnd + 1];
-	    		System.arraycopy(referenceBase, indelEnd-1, downstreamReference, 0, downstreamReference.length);    	
-	    	}
-	    	
-		}catch(Exception e){
-		   		//debug
-	    		System.out.println(position.getChromosome() + ", " + downstreamReference.length + " (downstreamReference.length,indelEnd, MaxEnd) " + indelEnd + " , " + MaxEnd);
-	    		System.out.println(e.getMessage());
-			
-		}
-
+	    
+    	//at least start from position 1 
+    	int wstart = Math.max( 0,indelStart-homopolymerWindow); 	
+  	    upstreamReference = new byte[indelStart - wstart ]; 
+	    System.arraycopy(referenceBase, wstart, upstreamReference, 0, upstreamReference.length);
+		
+	    int wend = Math.min(MaxEnd, indelEnd + homopolymerWindow);  
+     	downstreamReference = new byte[wend - indelEnd ];     	 	
+     	System.arraycopy(referenceBase, indelEnd, downstreamReference, 0, downstreamReference.length);    	
 	}
 	
-	public HOMOTYPE getType(int index) {
-		return homoType.get(index);
-	}
 
-	public int getHomopolymerCount(int index) {
-		return homopolymerCount.get(index);
-	}
 	public ChrPosition getChrPosition(){return position; }
-	
-	
+		
 
 	public static FastaSequenceIndex getFastaIndex(File reference) {
 		File indexFile = new File(reference.getAbsolutePath() + ".fai");	    		

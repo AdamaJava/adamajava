@@ -1,6 +1,8 @@
 package au.edu.qimr.indel.pileup;
 
 import static org.junit.Assert.*;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SamReader;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -10,9 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import net.sf.samtools.SAMFileReader;
-import net.sf.samtools.SAMRecord;
-
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -21,9 +20,7 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-
-
-
+import org.qcmg.picard.SAMFileReaderFactory;
 
 public class IndelPileupTest {
 	static final String inputIndel = "indel.vcf"; 
@@ -49,8 +46,8 @@ public class IndelPileupTest {
 		read.LoadSingleIndels(new File(inputIndel));
 		Map<ChrPosition, IndelPosition> map = read.getIndelMap();
 				
-		//get pool
-		SAMFileReader inreader = new SAMFileReader(new File(inputBam));
+		//get pool		
+		SamReader inreader =  SAMFileReaderFactory.createSAMFileReader(new File(inputBam));
 		List<SAMRecord> pool = new ArrayList<SAMRecord>();
         for(SAMRecord record : inreader){
         	pool.add(record);
@@ -96,7 +93,9 @@ public class IndelPileupTest {
 		
 		//make pool
 		List<SAMRecord> pool = new ArrayList<SAMRecord>();
-		try(SAMFileReader inreader = new SAMFileReader(new File(inputBam))){		
+		
+		
+		try(SamReader inreader =  SAMFileReaderFactory.createSAMFileReader(new File(inputBam));){
 	        for(SAMRecord record : inreader){
 	        	if(record.getAlignmentStart() <= indel.getEnd())
 	        	pool.add(record);
@@ -112,8 +111,7 @@ public class IndelPileupTest {
         assertTrue(pileup.getparticalReadCount(0) == 0); 		
 	}
 
-	
-	
+		
     private static void CreateSam(){
         List<String> data = new ArrayList<String>();
         data.add("@HD	VN:1.0	SO:coordinate");

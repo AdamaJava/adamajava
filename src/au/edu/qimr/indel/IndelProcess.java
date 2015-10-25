@@ -12,20 +12,19 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import net.sf.picard.reference.FastaSequenceIndex;
-import net.sf.picard.reference.IndexedFastaSequenceFile;
-import net.sf.samtools.SAMFileReader;
-import net.sf.samtools.SAMRecordIterator;
-import net.sf.samtools.SAMSequenceRecord;
-import net.sf.samtools.SAMRecord;
+import htsjdk.samtools.reference.IndexedFastaSequenceFile;
+import htsjdk.samtools.reference.ReferenceSequence;
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.SAMRecordIterator;
+import htsjdk.samtools.SAMSequenceRecord;
+import htsjdk.samtools.SAMRecord;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
+import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qbamfilter.query.QueryExecutor;
-
-
 import org.qcmg.vcf.VCFFileWriter;
 
 import au.edu.qimr.indel.pileup.Homopolymer;
@@ -46,10 +45,8 @@ public class IndelProcess {
 	public IndelProcess(File inputVcf, Options options, QLogger logger) throws Exception {		
 		this.options = options;	
 		this.logger = logger; 
-
-		SAMFileReader.setDefaultValidationStringency(SAMFileReader.ValidationStringency.SILENT);
 		
-		SAMFileReader TBreader = new SAMFileReader(options.getTumourBam());
+		SamReader TBreader =  SAMFileReaderFactory.createSAMFileReader(options.getTumourBam());
 		for (final SAMSequenceRecord contig : TBreader.getFileHeader().getSequenceDictionary().getSequences())  
 			sortedContigs.add(contig);
 		
@@ -155,7 +152,9 @@ public class IndelProcess {
 	
 //	private Map<ChrPosition,IndelPileup> contigPileup(List<ChrPosition> list, SAMRecordIterator ite, QueryExecutor exec) throws Exception{
 	private Map<ChrPosition,IndelPileup> contigPileup(SAMSequenceRecord contig, List<ChrPosition> list, File bam, QueryExecutor exec) throws Exception{	 
-		SAMFileReader TBreader = new SAMFileReader(bam );				
+		
+		SamReader TBreader =  SAMFileReaderFactory.createSAMFileReader( bam );
+					
 		SAMRecordIterator ite = TBreader.query(contig.getSequenceName(), 0, contig.getSequenceLength(),false);		
  
 		if(list.isEmpty()) return null; 

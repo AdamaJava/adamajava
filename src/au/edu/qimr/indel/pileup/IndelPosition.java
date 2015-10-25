@@ -12,9 +12,6 @@ import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.util.IndelUtils.SVTYPE;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-
-import au.edu.qimr.indel.pileup.Homopolymer.HOMOTYPE;
-
 public class IndelPosition {
 	
 	private final List<VcfRecord> vcfs ; 	
@@ -189,25 +186,25 @@ public class IndelPosition {
 		
 		//not interested int these indels since over coverage
 		if(tumourPileup != null  && tumourPileup.getTotalCount() > 1000){
-			re.setInfo( IndelUtils.FILTER_HCOVT);
+			re.setFilter( IndelUtils.FILTER_HCOVT);
 			return re; 
 		}
 		
 		if(normalPileup != null  && normalPileup.getTotalCount() > 1000){
-			re.setInfo( IndelUtils.FILTER_HCOVN);
+			re.setFilter( IndelUtils.FILTER_HCOVN);
 			return re; 
 		}
 		
 		//decide somatic or not
 		boolean somatic = true;
-		if(polymer != null && !polymer.getType(index).equals(HOMOTYPE.NONE))  somatic = false; 
-		else if(tumourPileup != null && tumourPileup.getNearbyIndelCount() > 0 ) somatic = false;
-		else if(normalPileup != null){
-			if( normalPileup.getnovelStartReadCount(index)  >= 3) somatic = false;
+//		if(polymer != null && !polymer.getType(index).equals(HOMOTYPE.NONE))  somatic = false; 
+//		else if(tumourPileup != null && tumourPileup.getNearbyIndelCount() > 0 ) somatic = false;
+		if(normalPileup != null){
+			if( normalPileup.getnovelStartReadCount(index)  > 2 ) somatic = false;
 			else if(normalPileup.getInformativeCount() > 0){
 				int scount =   normalPileup.getsuportReadCount(index);
 				int icount =   normalPileup.getInformativeCount();
-				if((scount * 100 / icount) >= 10 ) somatic = false; 
+				if((scount * 100 / icount) >= 5 ) somatic = false; 
 			}
 		}
 		
@@ -215,7 +212,7 @@ public class IndelPosition {
 			re.setFilter(VcfHeaderUtils.INFO_SOMATIC);
 		 
 		if(tumourPileup != null){ 		
-			String td = String.format("ND=%d:%d:%d:%d[%d,%d]:%d:%d:%d", tumourPileup.getnovelStartReadCount(index),tumourPileup.getTotalCount(),tumourPileup.getInformativeCount(), 
+			String td = String.format("TD=%d:%d:%d:%d[%d,%d]:%d:%d:%d", tumourPileup.getnovelStartReadCount(index),tumourPileup.getTotalCount(),tumourPileup.getInformativeCount(), 
 					tumourPileup.getsuportReadCount(index),tumourPileup.getforwardsuportReadCount(index),tumourPileup.getbackwardsuportReadCount(index),
 					tumourPileup.getparticalReadCount(index),tumourPileup.getNearbyIndelCount(),tumourPileup.getNearybySoftclipCount());
 	
@@ -238,6 +235,9 @@ public class IndelPosition {
 					normalPileup.getparticalReadCount(index),normalPileup.getNearbyIndelCount(),normalPileup.getNearybySoftclipCount());
 			re.appendInfo(nd);	
 			
+//			//debug
+//			System.out.println("debug: + " + re.getInfo());
+			
 			if(somatic && normalPileup.getTotalCount() < 12)
 				re.addFilter(IndelUtils.FILTER_COVN12);
 			if(!somatic && normalPileup.getTotalCount() < 8)
@@ -251,10 +251,11 @@ public class IndelPosition {
 				re.addFilter(IndelUtils.FILTER_TBIAS);			 
 		}
 				
-		if(polymer != null && !polymer.getHOMOTYPE(index).equals(HOMOTYPE.NONE)){
-			String po = String.format("%s=%d,%s", polymer.getType(index).name(), polymer.getHomopolymerCount(index), polymer.getPolymerSequence(index) );
-			re.appendInfo(po);
-		}	 
+		if(polymer != null &&  polymer.getPolymerSequence(index) != null )
+			re.appendInfo(String.format("HOMCNTXT=%s,%s,%s",
+					polymer.getUpBaseCount(index), polymer.getDownBaseCount(index), polymer.getPolymerSequence(index)));
+			
+							 
 		return re; 	
 	}
  

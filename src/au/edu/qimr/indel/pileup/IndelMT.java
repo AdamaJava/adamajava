@@ -16,21 +16,19 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import net.sf.picard.reference.IndexedFastaSequenceFile;
-import net.sf.picard.reference.ReferenceSequence;
-import net.sf.samtools.SAMFileReader;
-import net.sf.samtools.SAMRecordIterator;
-import net.sf.samtools.SAMSequenceRecord;
-import net.sf.samtools.SAMRecord;
+import htsjdk.samtools.reference.IndexedFastaSequenceFile;
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.SAMRecordIterator;
+import htsjdk.samtools.SAMSequenceRecord;
+import htsjdk.samtools.SAMRecord;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.meta.QExec;
 import org.qcmg.common.model.ChrPosition;
-import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.IndelUtils;
-import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
+import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qbamfilter.query.QueryExecutor;
 import org.qcmg.vcf.VCFFileWriter;
 
@@ -39,7 +37,6 @@ import au.edu.qimr.indel.pileup.Homopolymer;
 import au.edu.qimr.indel.pileup.IndelPileup;
 import au.edu.qimr.indel.pileup.IndelPosition;
 import au.edu.qimr.indel.pileup.ReadIndels;
-import au.edu.qimr.indel.pileup.Homopolymer.HOMOTYPE;
 
 
 public class IndelMT {
@@ -51,12 +48,17 @@ public class IndelMT {
 		private final AbstractQueue<IndelPileup> qOut;
 		private final Thread mainThread;
 		final CountDownLatch pLatch;
-//		final CountDownLatch wLatch;
-		private int countOutputSleep;
 		private SAMSequenceRecord contig;
 		private File bam; 
 		private QueryExecutor exec;
-		private SAMRecordIterator ite;
+		
+		//unit Test only
+		contigPileup(){
+			this.qIn = null;
+			this.qOut = null;
+			this.mainThread = null;
+			this.pLatch = new CountDownLatch(2); // testing only
+		}
 
 		/**
 		 * 
@@ -92,8 +94,10 @@ public class IndelMT {
 		 	}
 			
 			IndelPosition topPos= qIn.poll();
-			try (SAMFileReader Breader = new SAMFileReader(bam )){	
-				
+			File index = new File(bam.getAbsolutePath() + ".bai");
+			
+//			try (SAMFileReader Breader = new SAMFileReader(bam )){	
+			try (SamReader Breader =  SAMFileReaderFactory.createSAMFileReader(bam, index); ){		
 				SAMRecordIterator ite = Breader.query(contig.getSequenceName(), 0, contig.getSequenceLength(),false);		
 			 	while (ite.hasNext()) {	
 			 		SAMRecord re = ite.next(); 
@@ -123,9 +127,9 @@ public class IndelMT {
 			 			if( (topPos = qIn.poll()) == null) break; 
 			 			
 			 			resetPool(topPos,  current_pool, next_pool); 	 
-//			 			//debug
-//			 			if(current_pool.size() > 1000 ||next_pool.size()>1000 )
-//			 			System.out.println("debug: " + topPos.getChrPosition().toIGVString() + " : " + current_pool.size() + " (current, next) " +next_pool.size());
+			 			//debug
+			 			if(current_pool.size() > 1000 ||next_pool.size()>1000 )
+			 			System.out.println("debug: " + topPos.getChrPosition().toIGVString() + " : " + current_pool.size() + " (current, next) " +next_pool.size());
 			 			
 			 		}
 			 	}	 	
@@ -164,7 +168,7 @@ public class IndelMT {
 		 * @param currentPool: a list of SAMRecord overlapped previous pileup Position
 		 * @param nextPool: a list of SAMRecord behind previous pileup Position
 		 */
-		private void resetPool( IndelPosition topPos, List<SAMRecord> currentPool, List<SAMRecord> nextPool){
+		 void resetPool( IndelPosition topPos, List<SAMRecord> currentPool, List<SAMRecord> nextPool){
 			
 			
 				List<SAMRecord> tmp_current_pool = new ArrayList<SAMRecord>();							
@@ -172,7 +176,10 @@ public class IndelMT {
 				
 //				if(nextPool.size() > MAXRAMREADS ) nextPool.clear();				
 //				if(currentPool.size() >  MAXRAMREADS ) currentPool.clear();
-				
+				//debug
+				if(currentPool.size() > MAXRAMREADS || nextPool.size() > MAXRAMREADS ){
+					System.out.println(topPos.getChrPosition().toIGVString() + ": bf moving, next pool size : " + nextPool.size() + ", current pool size: " + currentPool.size());
+				}				
 				tmp_pool.addAll(nextPool);
 				
 				//check read record behind on current position			
@@ -181,9 +188,12 @@ public class IndelMT {
 					if(re.getAlignmentEnd() < topPos.getStart())
 						nextPool.remove(re);
 					//aligned position cross indel
-					else if(re.getAlignmentStart() <= topPos.getEnd()) 	 					 
-						tmp_current_pool.add(re);	 				 
-				}	 				
+					else if(re.getAlignmentStart() <= topPos.getEnd()){ 	 					 
+						tmp_current_pool.add(re);	
+						nextPool.remove(re);
+					}			 
+				}	
+				
 				tmp_pool.clear();
 				tmp_pool.addAll(currentPool);
 				//check already read record  for previous pileup
@@ -197,6 +207,12 @@ public class IndelMT {
 						currentPool.remove(re1);
 					}
 				}
+				//debug
+				//if(topPos.getChrPosition().getPosition() ==148848273){
+				if(currentPool.size() > MAXRAMREADS || nextPool.size() > MAXRAMREADS ){
+					System.out.println("current pool reduced to " + currentPool.size());
+					System.out.println("then adding from next pool : " + tmp_current_pool.size());
+				}	
 				
 				//merge samrecord
 				currentPool.addAll(tmp_current_pool);
@@ -265,12 +281,15 @@ public class IndelMT {
 	private final List<SAMSequenceRecord> sortedContigs = new ArrayList<SAMSequenceRecord>();
 	private Map<ChrPosition, IndelPosition> positionRecordMap ;
 	
+	//unit test purpose
+	@Deprecated
+	IndelMT(){}
+	
 	public IndelMT(File inputVcf, Options options, QLogger logger) throws IOException  {		
 		this.options = options;	
 		this.logger = logger; 
 
-		SAMFileReader.setDefaultValidationStringency(SAMFileReader.ValidationStringency.SILENT);		
-		SAMFileReader reader = new SAMFileReader(options.getTumourBam());  
+		SamReader reader = SAMFileReaderFactory.createSAMFileReader(options.getTumourBam());  
 		for (final SAMSequenceRecord contig : reader.getFileHeader().getSequenceDictionary().getSequences())  
 			sortedContigs.add(contig);
 		reader.close(); 

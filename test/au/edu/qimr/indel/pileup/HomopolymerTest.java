@@ -2,62 +2,68 @@ package au.edu.qimr.indel.pileup;
 
 import static org.junit.Assert.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Test;
-import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.vcf.VcfRecord;
-
-import au.edu.qimr.indel.pileup.Homopolymer.HOMOTYPE;
-
- 
 
 public class HomopolymerTest {
 
 	@Test
 	public void testInsert(){
+		
+//		//debug
+//		List<byte[]> homoString = new ArrayList<byte[]>();
+//		for( int i = 0 ; i < 2; i ++ ){
+//			homoString.add(null);			
+//		}
+//		
+//		int index = 1; 
+//		homoString.set(index, new byte[]{'_','-' }); 
+//		String str =  homoString.get(index).equals(null) ? null : new String(   homoString.get(index));	
+//		System.out.println(index+ " : " + str);
+//		
+//		index = 0; 
+//	//	homoString.set(index, new byte[]{'_','-' }); 
+//		if(homoString.get(index) == null )
+//			System.out.println(homoString.get(index));
+//		
+//		str =  homoString.get(index)==null ? null : new String(   homoString.get(index));	
+//		System.out.println(index+ " : " + str);
+//
+		
+		
+		
 		VcfRecord vs = new VcfRecord("chr1", 21, 21, null, "T", "TTAA" );
-		IndelPosition indel = new IndelPosition (vs);
+		IndelPosition indel = new IndelPosition (vs);		
 		Homopolymer homo = new Homopolymer(indel, getReference(), 3);
-		assertTrue(homo.getType(0).equals(HOMOTYPE.HOMADJ));
-		assertTrue(homo.getHomopolymerCount(0)  == 3);
+		assertTrue(homo.getUpBaseCount(0).equals(homo.nullValue));		
+		
+		assertTrue(homo.getDownBaseCount(0).equals("3C"  ));
 		assertTrue(homo.getPolymerSequence(0).equals("GCTtaaCCC"));
 		
 		//check on edge of contig
-		homo = new Homopolymer(indel, getReference(), 100);
-		assertTrue(homo.getType(0).equals(HOMOTYPE.HOMADJ));
-		assertTrue(homo.getHomopolymerCount(0)  ==18);
-		assertTrue(homo.getPolymerSequence(0).length() == (18 + 3 + 21));		
+		homo = new Homopolymer(indel, getReference(), 100);		
+		assertTrue(homo.getUpBaseCount(0) .equals( homo.nullValue));		
+		assertTrue(homo.getDownBaseCount(0) .equals( "19C" ) );
+		assertTrue(homo.getPolymerSequence(0).length() == 43);	
 		
-//		
-// 		System.out.println(homo.getPolymerSequence(0).length());
-//		System.out.println(homo.getPolymerSequence(0)  );
-//		System.out.println(homo.getHomopolymerCount(0)  );
-
 	}
 	
 	@Test
 	public void testEmbed(){
 		VcfRecord vs = new VcfRecord("chr1", 23, 23, null, "C", "CCAC" );
-		IndelPosition indel = new IndelPosition (vs);
-		Homopolymer homo = new Homopolymer(indel, getReference(), 3);
-		assertTrue(homo.getType(0).equals(HOMOTYPE.HOMCON));
-		assertTrue(homo.getHomopolymerCount(0)  == 3);
+		Homopolymer homo = new Homopolymer(new IndelPosition (vs), getReference(), 3);		
+		assertTrue(homo.getUpBaseCount(0).equals("2C")); //   .getType(0).equals(HOMOTYPE.HOMCON));
+		assertTrue(homo.getDownBaseCount(0).equals("3C"));  //.getHomopolymerCount(0)  == 3);
 		assertTrue(homo.getPolymerSequence(0).equals("TCCcacCCC"));
-		
-		homo = new Homopolymer(indel, getReference(), 100);		
-		assertTrue(homo.getHomopolymerCount(0)  ==16);
-//		System.out.println(homo.getPolymerSequence(0) );
-//		System.out.println(homo.getPolymerSequence(0)  );
-	
-		
+				
 		vs = new VcfRecord("chr1", 23, 23, null, "C", "CCCC" );
-		indel = new IndelPosition (vs);
-		homo = new Homopolymer(indel, getReference(), 100);		
-		assertTrue(homo.getType(0).equals(HOMOTYPE.HOMEMB));
-		assertTrue(homo.getHomopolymerCount(0)  ==18);
-		assertTrue(homo.getPolymerSequence(0).length() == (18 + 3 + 21));
-		
+		homo = new Homopolymer(new IndelPosition (vs), getReference(), 100);		
+		assertTrue(homo.getUpBaseCount(0).equals("2C")); //   .getType(0).equals(HOMOTYPE.HOMCON));
+		assertTrue(homo.getDownBaseCount(0) .equals("17C" ));  //.getHomopolymerCount(0)  == 3);
+		assertTrue(homo.getPolymerSequence(0).equals("AATGCAATTGGATCGGATGCTCCcccCCCCCCCCCCCCCCCCC"));	
 	}	
 	
 	
@@ -67,14 +73,17 @@ public class HomopolymerTest {
 		VcfRecord vs = new VcfRecord("chr1", 21, 23, null, "TCC", "T" );
 		IndelPosition indel = new IndelPosition (vs);
 		Homopolymer homo = new Homopolymer(indel, getReference(), 3);
-		assertTrue(homo.getType(0).equals(HOMOTYPE.HOMCON));
-		assertTrue(homo.getHomopolymerCount(0)  == 3);
+		assertTrue(homo.getUpBaseCount(0) .equals( Homopolymer.nullValue)); //   .getType(0).equals(HOMOTYPE.HOMCON));
+		assertTrue(homo.getDownBaseCount(0).equals( "3C" ));  //.getHomopolymerCount(0)  == 3);
+		
+		//debug
+		System.out.println(homo.getPolymerSequence(0));
 		assertTrue(homo.getPolymerSequence(0).equals("GCT__CCC"));
 		
 		homo = new Homopolymer(indel, getReference(), 100);
-		assertTrue(homo.getType(0).equals(HOMOTYPE.HOMCON));
-		assertTrue(homo.getHomopolymerCount(0)  ==16);
-		assertTrue(homo.getPolymerSequence(0).length() == (16 + 2 + 21));
+		assertTrue(homo.getUpBaseCount(0).equals( Homopolymer.nullValue));
+		assertTrue(homo.getDownBaseCount(0).equals( "17C"));
+		assertTrue(homo.getPolymerSequence(0).equals("AATGCAATTGGATCGGATGCT__CCCCCCCCCCCCCCCCC"));
 	}
 	
 	private byte[] getReference(){
@@ -87,18 +96,10 @@ public class HomopolymerTest {
 		26 CCCCC
 		31 CCCCC
 		36 CCCCC
-		
-		
-		   CCCCC
-		   CCCCC
-		   CCCCC
-		   CCC
 		 */
 				
 		String ref = "AATGCAATTGGATCGGATGCTCCCCCCCCCCCCCCCCCCC";				  
 		byte[] bytes = ref.getBytes();
-		return bytes; 
-		
+		return bytes; 	
 	}
-	
 }
