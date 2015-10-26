@@ -22,10 +22,10 @@ dependencies {
     configurations.compile.transitive = true
 
     compile group: 'net.sf.jopt-simple',name: 'jopt-simple', version: '4.6'
-    	compile name: 'htsjdk', version: '1.130'
+    	compile name: 'htsjdk', version: '1.140'
 	compile name: 'trove', version: '3.1a1'
 	compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.4'
-    compile name: 'qcommon', version: '0.1pre'
+    compile name: 'qcommon', version: '0.2'
     compile name: 'qmule', version: '0.1pre'
 
     testCompile name: 'junit', version: '4.10'
