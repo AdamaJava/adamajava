@@ -46,7 +46,7 @@ public class IndelProcess {
 		this.options = options;	
 		this.logger = logger; 
 		
-		SamReader TBreader =  SAMFileReaderFactory.createSAMFileReader(options.getTumourBam());
+		SamReader TBreader =  SAMFileReaderFactory.createSAMFileReader(options.getTestBam() );
 		for (final SAMSequenceRecord contig : TBreader.getFileHeader().getSequenceDictionary().getSequences())  
 			sortedContigs.add(contig);
 		
@@ -67,13 +67,11 @@ public class IndelProcess {
 			List<ChrPosition> list = getIndelList(contig);
  			if(list.size() == 0) continue;			
  
- 			Map<ChrPosition,IndelPileup> tumourPileup = contigPileup(contig, list, options.getTumourBam(),null );			
- 			Map<ChrPosition,IndelPileup> normalPileup = contigPileup(contig, list, options.getNormalBam(),null ); 			
+ 			Map<ChrPosition,IndelPileup> tumourPileup = contigPileup(contig, list, options.getTestBam(),null );			
+ 			Map<ChrPosition,IndelPileup> normalPileup = contigPileup(contig, list, options.getControlBam(),null ); 			
 				
 			//annotateVcf with td, nd and homopolymers	 						
 			for (final ChrPosition pos : list) {
-				//debug
-//				System.out.println(pos.toIGVString());
 				IndelPosition indel = positionRecordMap.get(pos);
 				indel.setPileup(true, tumourPileup.get(pos));
 				indel.setPileup(false, normalPileup.get(pos));

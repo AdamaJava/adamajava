@@ -38,8 +38,8 @@ public class Main {
 			logger.logInitialExecutionStats("q3pileup", version, args, QExec.createUUid());
 					
 			logger.info("***INPUT FILES***");
-			logger.info("Tumour bam: " + options.getTumourBam());
-			logger.info("Normal bam: " + options.getNormalBam());
+			logger.info("Test bam: " + options.getTestBam());
+			logger.info("Control bam: " + options.getControlBam());
 			logger.info("Log file " + options.getLog());
 			logger.info("output file:" + options.getOutput().getAbsolutePath());
 			logger.info("Homopolymer window: " + options.getNearbyHomopolymerWindow());
@@ -48,13 +48,13 @@ public class Main {
 			logger.info("Include duplicate " + options.includeDuplicates());		
 			
 			IndelMT process; 
-			if(options.getsecondInputVcf() == null){
-				logger.info("input vcf file:" + options.getfirstInputVcf().getAbsolutePath());
-				process = new IndelMT(options.getfirstInputVcf(), options, logger);
+			if(options.getSecondInputVcf() == null){
+				logger.info("input vcf file:" + options.getFirstInputVcf().getAbsolutePath());
+				process = new IndelMT(options.getFirstInputVcf(), options, logger);
 			}else{
-				logger.info("first indel input: " + options.getfirstInputVcf().getAbsolutePath());
-				logger.info("second indel input " + options.getsecondInputVcf().getAbsolutePath());
-				process = new IndelMT(options.getfirstInputVcf(), options.getsecondInputVcf(), options, logger);
+				logger.info("first indel input: " + options.getFirstInputVcf().getAbsolutePath());
+				logger.info("second indel input " + options.getSecondInputVcf().getAbsolutePath());
+				process = new IndelMT(options.getFirstInputVcf(), options.getSecondInputVcf(), options, logger);
 			}			
 			
 			exitStatus = process.process(options.getThreadNo());			

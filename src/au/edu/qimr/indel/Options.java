@@ -27,16 +27,16 @@ public class Options {
 	public int softClipWindow = 13;
 	public int threadNo = 5;
 	
-	private final File tumourBam;
-	private final File normalBam;
+	private final File testBam;
+	private final File controlBam;
 	private final File reference;	
 	private final File output;
 	
 	private final File inputVcf1;
 	private final File inputVcf2;
 	
-	private String tumourSampleid;
-	private String normalSampleid;
+	private String testSampleid = "TEST";
+	private String controlSampleid = "CONTROL";
 	private String dornorid; 
 	
 	private String commandLine;
@@ -52,19 +52,21 @@ public class Options {
 		parser.accepts("dup", Messages.getMessage("OPTION_DUPS"));
 
 		parser.accepts("o", Messages.getMessage("OPTION_OUTPUT")).withRequiredArg().ofType(String.class).describedAs("output");	
-		parser.accepts("i", Messages.getMessage("OPTION_VCF_INPUT")).withRequiredArg().ofType(String.class).describedAs("tumour_indel_vcf ");
-//		parser.accepts("nv", Messages.getMessage("OPTION_NORMAL_INPUT")).withRequiredArg().ofType(String.class).describedAs("normal_indle_vcf");
-		parser.accepts("tb", Messages.getMessage("OPTION_INPUT_TUMOUR")).withRequiredArg().ofType(String.class).describedAs("input_tumour_bam");
-		parser.accepts("nb", Messages.getMessage("OPTION_INPUT_NORMAL")).withRequiredArg().ofType(String.class).describedAs("input_normal_bam");
-				
+		parser.accepts("i", Messages.getMessage("OPTION_VCF_INPUT")).withRequiredArg().ofType(String.class).describedAs("test_indel_vcf ");
+		parser.accepts("tb", Messages.getMessage("OPTION_INPUT_TEST")).withRequiredArg().ofType(String.class).describedAs("input_test_bam");
+		parser.accepts("nb", Messages.getMessage("OPTION_INPUT_CONTROL")).withRequiredArg().ofType(String.class).describedAs("input_control_bam");
+		
+		
+		//indel options
 		parser.accepts("softwindow", Messages.getMessage("OPTION_SOFTCLIP")).withRequiredArg().ofType(Integer.class).describedAs("soft_clip_window");
 		parser.accepts("homowindow", Messages.getMessage("OPTION_WINDOW")).withRequiredArg().ofType(Integer.class).describedAs("homopolymer_window");
 		parser.accepts("nearbywindow", Messages.getMessage("OPTION_NEAR_INDELS")).withRequiredArg().ofType(Integer.class).describedAs("nearby_indel_bases");
 		parser.accepts("n", Messages.getMessage("OPTION_THREAD_NO")).withRequiredArg().ofType(Integer.class).describedAs("thread number");
 
-		parser.accepts("tumorSample", Messages.getMessage("OPTION_TUMOUR_SAMPLE")).withRequiredArg().ofType(Integer.class).describedAs("tumour sample id");
-		parser.accepts("normalSample", Messages.getMessage("OPTION_NORMAL_SAMPLE")).withRequiredArg().ofType(Integer.class).describedAs("normal sample id");
-
+		parser.accepts("tumorSample", Messages.getMessage("OPTION_TEST_SAMPLE")).withRequiredArg().ofType(Integer.class).describedAs("test sample id");
+		parser.accepts("controlSample", Messages.getMessage("OPTION_CONTROL_SAMPLE")).withRequiredArg().ofType(Integer.class).describedAs("control sample id");
+		parser.accepts("dornor", "DORNOR ID").withRequiredArg().ofType(Integer.class).describedAs("donor id");
+		
 		parser.acceptsAll(asList("h", "help"), HELP_OPTION);
 		parser.acceptsAll(asList("v", "V", "version"), VERSION_OPTION);	
 		options = parser.parse(args);
@@ -87,14 +89,14 @@ public class Options {
 			output = null; 
 		
 		if(options.has("tb"))
-			tumourBam = new File( (String) options.valueOf("tb")) ;
+			testBam = new File( (String) options.valueOf("tb")) ;
 		else
-			tumourBam = null; 
+			testBam = null; 
 		
 		if(options.has("nb"))
-			normalBam = new File( (String) options.valueOf("nb")) ;	
+			controlBam = new File( (String) options.valueOf("nb")) ;	
 		else
-			normalBam = null; 
+			controlBam = null; 
 		
 		if(options.has("i")){
 			 List<String> vcfs =  (List<String>) options.valuesOf("i");
@@ -109,15 +111,9 @@ public class Options {
 			 }
 		}else{
 			 inputVcf1  = null; 
-		 	 inputVcf2 = null; 
-			
+		 	 inputVcf2 = null; 			
 		}
 		
-		//indel options
-		parser.accepts("softwindow", Messages.getMessage("OPTION_SOFTCLIP")).withRequiredArg().ofType(Integer.class).describedAs("soft_clip_window");
-		parser.accepts("homowindow", Messages.getMessage("OPTION_WINDOW")).withRequiredArg().ofType(Integer.class).describedAs("homopolymer_window");
-		parser.accepts("nearbywindow", Messages.getMessage("OPTION_NEAR_INDELS")).withRequiredArg().ofType(Integer.class).describedAs("nearby_indel_bases");
-		parser.accepts("n", Messages.getMessage("OPTION_THREAD_NO")).withRequiredArg().ofType(Integer.class).describedAs("thread number");
 
 		if (options.has("n")) {
 			this.threadNo = (Integer) options.valueOf("n");
@@ -133,6 +129,8 @@ public class Options {
 			this.nearbyIndelWindow = (Integer)options.valueOf("nearbywindow");
 		}		
 		
+		if(options.has("dornor"))
+			this.dornorid = (String) options.valueOf("dornor");
 		
  		if (options.has("filter")) {
 			this.filterQuery = (String) options.valueOf("filter");
@@ -197,16 +195,16 @@ public class Options {
 			}
 	 
 			checkReference();
-			if (!tumourBam.exists())  
-			throw new Q3IndelException("FILE_EXISTS_ERROR", tumourBam.getAbsolutePath());
+			if (!testBam.exists())  
+			throw new Q3IndelException("FILE_EXISTS_ERROR", testBam.getAbsolutePath());
 		 
-			if (!normalBam.exists()) 
-			throw new Q3IndelException("FILE_EXISTS_ERROR", normalBam.getAbsolutePath());							
+			if (!controlBam.exists()) 
+			throw new Q3IndelException("FILE_EXISTS_ERROR", controlBam.getAbsolutePath());							
  			 
 		 	if (inputVcf2 != null && !inputVcf2.exists())  
-		 		throw new Q3IndelException("FILE_EXISTS_ERROR","(normal indel vcf) " + inputVcf2.getAbsolutePath());
+		 		throw new Q3IndelException("FILE_EXISTS_ERROR","(control indel vcf) " + inputVcf2.getAbsolutePath());
 		 	if (inputVcf1 != null && !inputVcf1.exists())  
-		 		throw new Q3IndelException("FILE_EXISTS_ERROR", "(tumour indel vcf) " + inputVcf1.getAbsolutePath());			 
+		 		throw new Q3IndelException("FILE_EXISTS_ERROR", "(test indel vcf) " + inputVcf1.getAbsolutePath());			 
 		}				
 	}
 
@@ -222,18 +220,18 @@ public class Options {
 	}
 
 
-	public File getTumourBam() {
-		return tumourBam;
+	public File getTestBam() {
+		return testBam;
 	}
-	public File getNormalBam() {
-		return normalBam;
+	public File getControlBam() {
+		return controlBam;
 	}	
 	
-	public File getfirstInputVcf() {		 
+	public File getFirstInputVcf() {		 
 		return inputVcf1; 
 	}
 	
-	public File getsecondInputVcf() {		 
+	public File getSecondInputVcf() {		 
 		return inputVcf2; 
 	}
 	
@@ -263,15 +261,10 @@ public class Options {
 		return threadNo;
 	}
 
-	public String getTumourSample(){		
-		return (String) options.valueOf("tumorSample");
-	}
-	
-	public String getNormalSample(){		
-		return (String) options.valueOf("normalSample");
-	}
-
-	public String getCommandLine() {	return commandLine; }	
+	public String getCommandLine() {	return commandLine; }		
+	public String getDornorId(){ return dornorid; }
+	public String getControlSample(){ return  this.controlSampleid; }
+	public String getTestSample(){ return this.testSampleid; }
 
  
 }

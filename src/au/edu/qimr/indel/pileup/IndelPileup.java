@@ -7,7 +7,8 @@ import java.util.Set;
 
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.util.IndelUtils.SVTYPE;
-import au.edu.qimr.indel.SAMUtils;
+//import au.edu.qimr.indel.SAMUtils;
+import org.qcmg.picard.util.SAMUtils;
 
 import htsjdk.samtools.Cigar;
 import htsjdk.samtools.CigarElement;

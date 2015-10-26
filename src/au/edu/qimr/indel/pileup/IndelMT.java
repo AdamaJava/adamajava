@@ -289,7 +289,7 @@ public class IndelMT {
 		this.options = options;	
 		this.logger = logger; 
 
-		SamReader reader = SAMFileReaderFactory.createSAMFileReader(options.getTumourBam());  
+		SamReader reader = SAMFileReaderFactory.createSAMFileReader(options.getTestBam());  
 		for (final SAMSequenceRecord contig : reader.getFileHeader().getSequenceDictionary().getSequences())  
 			sortedContigs.add(contig);
 		reader.close(); 
@@ -320,10 +320,10 @@ public class IndelMT {
     	
     	//each time only throw threadNo thread, the loop finish untill the last threadNo                    	
     	for(SAMSequenceRecord contig : sortedContigs ){      		
-    		pileupThreads.execute(new contigPileup(contig, getIndelList(contig), options.getTumourBam(),null ,
+    		pileupThreads.execute(new contigPileup(contig, getIndelList(contig), options.getTestBam() ,null ,
     				 tumourQueue, Thread.currentThread() ,pileupLatch));
     		       		
-    		pileupThreads.execute(new contigPileup(contig, getIndelList(contig), options.getNormalBam(),null ,
+    		pileupThreads.execute(new contigPileup(contig, getIndelList(contig), options.getTestBam(),null ,
     				normalQueue, Thread.currentThread(),pileupLatch ));
     		
     		pileupThreads.execute(new homopoPileup(contig.getSequenceName(), getIndelList(contig), options.getReference(),
@@ -383,9 +383,9 @@ public class IndelMT {
 		try(VCFFileWriter writer = new VCFFileWriter( output)) {	
 			
 			//reheader
-			VcfHeader newHeader = VcfHeaderUtils.reheader(header, options.getCommandLine(), options.getfirstInputVcf().getAbsolutePath(), IndelMT.class );
-			if(options.getsecondInputVcf() != null)
-				newHeader.parseHeaderLine(VcfHeaderUtils.STANDARD_INPUT_LINE + "=" +  QExec.createUUid() + ":"+ options.getsecondInputVcf().getAbsolutePath());
+			VcfHeader newHeader = VcfHeaderUtils.reheader(header, options.getCommandLine(), options.getFirstInputVcf().getAbsolutePath(), IndelMT.class );
+			if(options.getSecondInputVcf() != null)
+				newHeader.parseHeaderLine(VcfHeaderUtils.STANDARD_INPUT_LINE + "=" +  QExec.createUUid() + ":"+ options.getSecondInputVcf().getAbsolutePath());
 			
 			newHeader.addFilterLine(IndelUtils.FILTER_COVN12, IndelUtils.DESCRITPION_FILTER_COVN12 );
 			newHeader.addFilterLine(IndelUtils.FILTER_COVN8,  IndelUtils.DESCRITPION_FILTER_COVN8 );
