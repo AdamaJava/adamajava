@@ -31,7 +31,8 @@ public class Homopolymer {
 	private int homopolymerWindow;
 
 	private List<String> upBase = new ArrayList<String>();
-	private List<String> downBase = new ArrayList<String>();	
+	private List<String> downBase = new ArrayList<String>();
+	private List<Integer> maxBase = new ArrayList<Integer>();
 	private List<byte[]> homoString = new ArrayList<byte[]>();
 	private byte[] referenceBase;
 
@@ -49,7 +50,8 @@ public class Homopolymer {
 		for( int i = 0 ; i < position.getMotifs().size(); i ++ ){
 			upBase.add(nullValue);
 			downBase.add(nullValue);
-			homoString.add(null);			
+			homoString.add(null);	
+			maxBase.add(0);
 		}
 		
 		for( int i = 0 ; i < position.getMotifs().size(); i ++ )
@@ -113,6 +115,10 @@ public class Homopolymer {
 		
 		if(downBaseCount > 1)
 			downBase.set(index, downBaseCount + "" + nearBase );
+		
+		int max = Math.max(downBaseCount, upBaseCount);
+		if(max > 1)
+			maxBase.set(index, max);
 		 		
 		//set ffs sequence
 		if(upBaseCount > 1 || downBaseCount > 1)
@@ -121,7 +127,7 @@ public class Homopolymer {
 	
 	public String getUpBaseCount(int index){ return upBase.get(index); }
 	public String getDownBaseCount(int index){ return downBase.get(index); }
-	
+	public int getCount(int index){return maxBase.get(index); }
 	
 	public synchronized void getReferenceBase() { 	
 

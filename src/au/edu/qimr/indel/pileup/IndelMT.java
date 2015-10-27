@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.AbstractQueue;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
@@ -360,9 +361,6 @@ public class IndelMT {
 		while((pileup = tumourQueue.poll()) != null ){
 			ChrPosition pos = pileup.getChrPosition();
 			IndelPosition indel = positionRecordMap.get(pos);
-			//debug
-			if(indel == null)
-				System.out.println("tumour indel is null for " + pos.toIGVString());
 			indel.setPileup(true, pileup);			
 		}
 		while((pileup = normalQueue.poll()) != null ){
@@ -386,6 +384,21 @@ public class IndelMT {
 			VcfHeader newHeader = VcfHeaderUtils.reheader(header, options.getCommandLine(), options.getFirstInputVcf().getAbsolutePath(), IndelMT.class );
 			if(options.getSecondInputVcf() != null)
 				newHeader.parseHeaderLine(VcfHeaderUtils.STANDARD_INPUT_LINE + "=" +  QExec.createUUid() + ":"+ options.getSecondInputVcf().getAbsolutePath());
+			
+			if(options.getDornorId() != null)
+				newHeader.replace( VcfHeaderUtils.STANDARD_DONOR_ID + "=" + options.getDornorId());
+			if(options.getTestSample() != null)
+				VcfHeaderUtils.addSampleId(newHeader, options.getTestSample(), true);
+			
+			//debug
+			System.out.println("set Test sample: " + Arrays.toString(newHeader.getSampleId() ));
+			
+			if(options.getControlSample() != null)
+				VcfHeaderUtils.addSampleId(newHeader, options.getControlSample(), false);	
+			//debug
+			System.out.println("set control sample: " + Arrays.toString(newHeader.getSampleId() ));
+			
+			
 			
 			newHeader.addFilterLine(IndelUtils.FILTER_COVN12, IndelUtils.DESCRITPION_FILTER_COVN12 );
 			newHeader.addFilterLine(IndelUtils.FILTER_COVN8,  IndelUtils.DESCRITPION_FILTER_COVN8 );

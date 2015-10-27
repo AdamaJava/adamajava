@@ -63,9 +63,9 @@ public class Options {
 		parser.accepts("nearbywindow", Messages.getMessage("OPTION_NEAR_INDELS")).withRequiredArg().ofType(Integer.class).describedAs("nearby_indel_bases");
 		parser.accepts("n", Messages.getMessage("OPTION_THREAD_NO")).withRequiredArg().ofType(Integer.class).describedAs("thread number");
 
-		parser.accepts("tumorSample", Messages.getMessage("OPTION_TEST_SAMPLE")).withRequiredArg().ofType(Integer.class).describedAs("test sample id");
-		parser.accepts("controlSample", Messages.getMessage("OPTION_CONTROL_SAMPLE")).withRequiredArg().ofType(Integer.class).describedAs("control sample id");
-		parser.accepts("dornor", "DORNOR ID").withRequiredArg().ofType(Integer.class).describedAs("donor id");
+		parser.accepts("testSample", Messages.getMessage("OPTION_TEST_SAMPLE")).withRequiredArg().ofType(String.class).describedAs("test sample id");
+		parser.accepts("controlSample", Messages.getMessage("OPTION_CONTROL_SAMPLE")).withRequiredArg().ofType(String.class).describedAs("control sample id");
+		parser.accepts("dornor", "DORNOR ID").withRequiredArg().ofType(String.class).describedAs("donor id");
 		
 		parser.acceptsAll(asList("h", "help"), HELP_OPTION);
 		parser.acceptsAll(asList("v", "V", "version"), VERSION_OPTION);	
@@ -129,8 +129,18 @@ public class Options {
 			this.nearbyIndelWindow = (Integer)options.valueOf("nearbywindow");
 		}		
 		
-		if(options.has("dornor"))
-			this.dornorid = (String) options.valueOf("dornor");
+		
+		if(options.has("testSample"))
+			this.testSampleid = (String) options.valueOf("testSample");
+		
+		if(options.has("controlSample"))
+			this.controlSampleid = (String) options.valueOf("controlSample");
+		
+		
+		System.out.println(options.valueOf("dornor"));
+ 		if(options.has("dornor"))
+ 			this.dornorid = "dornor";
+//			this.dornorid = (String) options.valueOf("dornor");
 		
  		if (options.has("filter")) {
 			this.filterQuery = (String) options.valueOf("filter");

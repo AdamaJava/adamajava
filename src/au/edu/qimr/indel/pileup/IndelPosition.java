@@ -3,8 +3,8 @@
  */
 package au.edu.qimr.indel.pileup;
 
- 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.qcmg.common.model.ChrPosition;
@@ -211,12 +211,14 @@ public class IndelPosition {
 		if(somatic) 
 			re.setFilter(VcfHeaderUtils.INFO_SOMATIC);
 		 
+		String td = ".", nd = ".";
 		if(tumourPileup != null){ 		
-			String td = String.format("TD=%d:%d:%d:%d[%d,%d]:%d:%d:%d", tumourPileup.getnovelStartReadCount(index),tumourPileup.getTotalCount(),tumourPileup.getInformativeCount(), 
+			if(tumourPileup.getTotalCount() > 0)
+			 td = String.format("%d,%d,%d,%d[%d,%d],%d,%d,%d", tumourPileup.getnovelStartReadCount(index),tumourPileup.getTotalCount(),tumourPileup.getInformativeCount(), 
 					tumourPileup.getsuportReadCount(index),tumourPileup.getforwardsuportReadCount(index),tumourPileup.getbackwardsuportReadCount(index),
 					tumourPileup.getparticalReadCount(index),tumourPileup.getNearbyIndelCount(),tumourPileup.getNearybySoftclipCount());
 	
-			re.appendInfo(td);
+			//re.appendInfo(td);
 			if(!somatic && tumourPileup.getTotalCount() < 8)
 				re.addFilter(IndelUtils.FILTER_COVT);
 			if(somatic && tumourPileup.getnovelStartReadCount(index) < 4 )
@@ -230,13 +232,12 @@ public class IndelPosition {
 		
 		//String nd = "ND=0:0:0:0:0:0:0";
 		if(normalPileup != null){
-			String nd = String.format("ND=%d:%d:%d:%d[%d,%d]:%d:%d:%d", normalPileup.getnovelStartReadCount(index),normalPileup.getTotalCount(),normalPileup.getInformativeCount(), 
+			if(normalPileup.getTotalCount() > 0)
+				nd = String.format("%d,%d,%d,%d[%d,%d],%d,%d,%d", normalPileup.getnovelStartReadCount(index),normalPileup.getTotalCount(),normalPileup.getInformativeCount(), 
 					normalPileup.getsuportReadCount(index),normalPileup.getforwardsuportReadCount(index),normalPileup.getbackwardsuportReadCount(index),
 					normalPileup.getparticalReadCount(index),normalPileup.getNearbyIndelCount(),normalPileup.getNearybySoftclipCount());
-			re.appendInfo(nd);	
-			
-//			//debug
-//			System.out.println("debug: + " + re.getInfo());
+			//re.appendInfo(nd);	
+			//re.setFormatFields(arg0);
 			
 			if(somatic && normalPileup.getTotalCount() < 12)
 				re.addFilter(IndelUtils.FILTER_COVN12);
@@ -250,12 +251,26 @@ public class IndelPosition {
 			if(somatic && normalPileup.getsuportReadCount(index) >=3 && normalPileup.hasStrandBias(index, 0.05, 0.95))
 				re.addFilter(IndelUtils.FILTER_TBIAS);			 
 		}
+		
+		re.setFormatFields( Arrays.asList( new String[]{"ACINDEL", nd, td} )); 
 				
 		if(polymer != null &&  polymer.getPolymerSequence(index) != null )
-			re.appendInfo(String.format("HOMCNTXT=%s,%s,%s",
-					polymer.getUpBaseCount(index), polymer.getDownBaseCount(index), polymer.getPolymerSequence(index)));
+			re.appendInfo(String.format("HOMCNTXT=%d,%s",polymer.getCount(index), polymer.getPolymerSequence(index)));
+//			re.appendInfo(String.format("HOMCNTXT=%s,%s,%s",
+//					polymer.getUpBaseCount(index), polymer.getDownBaseCount(index), polymer.getPolymerSequence(index)));
 			
-							 
+		
+		float nioc = 0;
+		if(somatic && tumourPileup.getTotalCount() > 0) 
+			nioc =  (float)tumourPileup.getNearbyIndelCount() / tumourPileup.getTotalCount();
+		else if(normalPileup.getTotalCount() > 0)
+			nioc = (float) normalPileup.getNearbyIndelCount() / normalPileup.getTotalCount();
+		re.appendInfo("NIOC=" + nioc);		
+		
+		re.appendInfo("SVTYPE=" + this.mutationType.name());
+		re.appendInfo("END=" + indelEnd);
+		
+			
 		return re; 	
 	}
  
