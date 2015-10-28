@@ -128,9 +128,9 @@ public class IndelMT {
 			 			if( (topPos = qIn.poll()) == null) break; 
 			 			
 			 			resetPool(topPos,  current_pool, next_pool); 	 
-			 			//debug
-			 			if(current_pool.size() > 1000 ||next_pool.size()>1000 )
-			 			System.out.println("debug: " + topPos.getChrPosition().toIGVString() + " : " + current_pool.size() + " (current, next) " +next_pool.size());
+//			 			//debug
+//			 			if(current_pool.size() > 1000 ||next_pool.size()>1000 )
+//			 			System.out.println("debug: " + topPos.getChrPosition().toIGVString() + " : " + current_pool.size() + " (current, next) " +next_pool.size());
 			 			
 			 		}
 			 	}	 	
@@ -177,10 +177,10 @@ public class IndelMT {
 				
 //				if(nextPool.size() > MAXRAMREADS ) nextPool.clear();				
 //				if(currentPool.size() >  MAXRAMREADS ) currentPool.clear();
-				//debug
-				if(currentPool.size() > MAXRAMREADS || nextPool.size() > MAXRAMREADS ){
-					System.out.println(topPos.getChrPosition().toIGVString() + ": bf moving, next pool size : " + nextPool.size() + ", current pool size: " + currentPool.size());
-				}				
+//				//debug
+//				if(currentPool.size() > MAXRAMREADS || nextPool.size() > MAXRAMREADS ){
+//					System.out.println(topPos.getChrPosition().toIGVString() + ": bf moving, next pool size : " + nextPool.size() + ", current pool size: " + currentPool.size());
+//				}				
 				tmp_pool.addAll(nextPool);
 				
 				//check read record behind on current position			
@@ -210,16 +210,14 @@ public class IndelMT {
 				}
 				//debug
 				//if(topPos.getChrPosition().getPosition() ==148848273){
-				if(currentPool.size() > MAXRAMREADS || nextPool.size() > MAXRAMREADS ){
-					System.out.println("current pool reduced to " + currentPool.size());
-					System.out.println("then adding from next pool : " + tmp_current_pool.size());
-				}	
+//				if(currentPool.size() > MAXRAMREADS || nextPool.size() > MAXRAMREADS ){
+//					System.out.println("current pool reduced to " + currentPool.size());
+//					System.out.println("then adding from next pool : " + tmp_current_pool.size());
+//				}	
 				
 				//merge samrecord
 				currentPool.addAll(tmp_current_pool);
-		}
-		
-		
+		}		
 		
 	}
 	
@@ -324,7 +322,7 @@ public class IndelMT {
     		pileupThreads.execute(new contigPileup(contig, getIndelList(contig), options.getTestBam() ,null ,
     				 tumourQueue, Thread.currentThread() ,pileupLatch));
     		       		
-    		pileupThreads.execute(new contigPileup(contig, getIndelList(contig), options.getTestBam(),null ,
+    		pileupThreads.execute(new contigPileup(contig, getIndelList(contig), options.getControlBam(),null ,
     				normalQueue, Thread.currentThread(),pileupLatch ));
     		
     		pileupThreads.execute(new homopoPileup(contig.getSequenceName(), getIndelList(contig), options.getReference(),
@@ -386,19 +384,15 @@ public class IndelMT {
 				newHeader.parseHeaderLine(VcfHeaderUtils.STANDARD_INPUT_LINE + "=" +  QExec.createUUid() + ":"+ options.getSecondInputVcf().getAbsolutePath());
 			
 			if(options.getDornorId() != null)
-				newHeader.replace( VcfHeaderUtils.STANDARD_DONOR_ID + "=" + options.getDornorId());
-			if(options.getTestSample() != null)
-				VcfHeaderUtils.addSampleId(newHeader, options.getTestSample(), true);
-			
-			//debug
-			System.out.println("set Test sample: " + Arrays.toString(newHeader.getSampleId() ));
-			
-			if(options.getControlSample() != null)
-				VcfHeaderUtils.addSampleId(newHeader, options.getControlSample(), false);	
-			//debug
-			System.out.println("set control sample: " + Arrays.toString(newHeader.getSampleId() ));
-			
-			
+				newHeader.replace( VcfHeaderUtils.STANDARD_DONOR_ID + "=" + options.getDornorId());			
+			if(options.getControlSample() != null){
+				newHeader.replace( VcfHeaderUtils.STANDARD_CONTROL_SAMPLE + "=" + options.getControlSample());
+				VcfHeaderUtils.addSampleId(newHeader, options.getControlSample(), 1);	
+			}
+			if(options.getTestSample() != null){
+				newHeader.replace( VcfHeaderUtils.STANDARD_TEST_SAMPLE + "=" + options.getTestSample());
+				VcfHeaderUtils.addSampleId(newHeader, options.getTestSample(), 2);
+			}
 			
 			newHeader.addFilterLine(IndelUtils.FILTER_COVN12, IndelUtils.DESCRITPION_FILTER_COVN12 );
 			newHeader.addFilterLine(IndelUtils.FILTER_COVN8,  IndelUtils.DESCRITPION_FILTER_COVN8 );
@@ -413,14 +407,18 @@ public class IndelMT {
 			newHeader.addFilterLine(IndelUtils.FILTER_NBIAS,  IndelUtils.DESCRITPION_FILTER_NBIAS );
 			
 			
-			header.addInfoLine(VcfHeaderUtils.INFO_SOMATIC, "1", "String", "more than three novel starts on normal BAM; "
-					+ "or more than 10% (number of supporting informative reads /number of informative reads) on normal BAM;"
-					+ "or variants only appear in tumour BAM but homopolymeric sequence exists on either side, "
-					+ "or nearby indels fallen in a size defined neighbour window.");
+			header.addInfoLine(VcfHeaderUtils.INFO_SOMATIC, "1", "String", "more than two novel starts on normal BAM; "
+					+ "or more than 5% (number of supporting informative reads /number of informative reads) on normal BAM.");
+//					+ "or variants only appear in tumour BAM but homopolymeric sequence exists on either side, "
+//					+ "or nearby indels fallen in a size defined neighbour window.");
 			
 			header.addInfoLine(IndelUtils.INFO_HOMADJ, "1", "String", IndelUtils.DESCRITPION_INFO_HOMADJ);
 			header.addInfoLine(IndelUtils.INFO_HOMCON, "1", "String", IndelUtils.DESCRITPION_INFO_HOMCON);
 			header.addInfoLine(IndelUtils.INFO_HOMEMB, "1", "String", IndelUtils.DESCRITPION_INFO_HOMEMB);
+			header.addInfoLine(IndelUtils.INFO_NIOC, "1", "String", IndelUtils.DESCRITPION_INFO_NIOC);
+			header.addFormatLine("ACINDEL", "1", "String", "counts of indels, follow formart:novelStarts,TotalCoverage,InformativeReadCount," 
+					+"suportReadCount[forwardsuportReadCount,backwardsuportReadCount],"
+					+"particalReadCount,NearbyIndelCount,NearybySoftclipCount");
  			
 			
         	for(final VcfHeader.Record record: header)  

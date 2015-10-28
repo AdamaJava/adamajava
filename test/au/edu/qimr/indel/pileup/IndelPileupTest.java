@@ -112,7 +112,7 @@ public class IndelPileupTest {
 	}
 
 		
-    private static void CreateSam(){
+    public static void CreateSam(){
         List<String> data = new ArrayList<String>();
         data.add("@HD	VN:1.0	SO:coordinate");
         data.add("@RG	ID:20140717025441134	SM:eBeads_20091110_CD	DS:rl=50");

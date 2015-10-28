@@ -8,6 +8,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.string.StringUtils;
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.util.IndelUtils.SVTYPE;
 import org.qcmg.common.vcf.VcfRecord;
@@ -209,16 +211,15 @@ public class IndelPosition {
 		}
 		
 		if(somatic) 
-			re.setFilter(VcfHeaderUtils.INFO_SOMATIC);
+			re.setInfo(VcfHeaderUtils.INFO_SOMATIC);
 		 
-		String td = ".", nd = ".";
+		String td = ".", nd = ".";		
+		List<String> genotypeField =  re.getFormatFields();
 		if(tumourPileup != null){ 		
 			if(tumourPileup.getTotalCount() > 0)
 			 td = String.format("%d,%d,%d,%d[%d,%d],%d,%d,%d", tumourPileup.getnovelStartReadCount(index),tumourPileup.getTotalCount(),tumourPileup.getInformativeCount(), 
 					tumourPileup.getsuportReadCount(index),tumourPileup.getforwardsuportReadCount(index),tumourPileup.getbackwardsuportReadCount(index),
 					tumourPileup.getparticalReadCount(index),tumourPileup.getNearbyIndelCount(),tumourPileup.getNearybySoftclipCount());
-	
-			//re.appendInfo(td);
 			if(!somatic && tumourPileup.getTotalCount() < 8)
 				re.addFilter(IndelUtils.FILTER_COVT);
 			if(somatic && tumourPileup.getnovelStartReadCount(index) < 4 )
@@ -236,9 +237,8 @@ public class IndelPosition {
 				nd = String.format("%d,%d,%d,%d[%d,%d],%d,%d,%d", normalPileup.getnovelStartReadCount(index),normalPileup.getTotalCount(),normalPileup.getInformativeCount(), 
 					normalPileup.getsuportReadCount(index),normalPileup.getforwardsuportReadCount(index),normalPileup.getbackwardsuportReadCount(index),
 					normalPileup.getparticalReadCount(index),normalPileup.getNearbyIndelCount(),normalPileup.getNearybySoftclipCount());
-			//re.appendInfo(nd);	
-			//re.setFormatFields(arg0);
-			
+			 
+			//re.appendInfo("ND=" + nd);				
 			if(somatic && normalPileup.getTotalCount() < 12)
 				re.addFilter(IndelUtils.FILTER_COVN12);
 			if(!somatic && normalPileup.getTotalCount() < 8)
@@ -252,7 +252,27 @@ public class IndelPosition {
 				re.addFilter(IndelUtils.FILTER_TBIAS);			 
 		}
 		
-		re.setFormatFields( Arrays.asList( new String[]{"ACINDEL", nd, td} )); 
+		String filter = re.getFilter().trim();
+		if( StringUtils.isNullOrEmpty(filter)  || filter .equals(Constants.MISSING_DATA_STRING) )			
+			re.setFilter(VcfHeaderUtils.FILTER_PASS);		
+		else if(filter.contains(VcfHeaderUtils.FILTER_PASS) && 
+			  !filter.equals(VcfHeaderUtils.FILTER_PASS)){
+				String[] fields = filter.split(Constants.SEMI_COLON_STRING);
+				String newfilter = "";
+				for(int  i = 0; i < fields.length; i ++)
+					if( !StringUtils.isNullOrEmpty(fields[i] ) && ! fields[i].equals(VcfHeaderUtils.FILTER_PASS))
+						newfilter += fields[i] + Constants.SEMI_COLON_STRING;
+				if(!StringUtils.isNullOrEmpty(newfilter )){
+					newfilter = newfilter.substring(0, newfilter.length()-1); //remove end ";"
+					re.setFilter(newfilter);		
+				}	
+			}
+					 
+		//future job should check GT column
+		genotypeField.set(0,  genotypeField.get(0) + ":ACINDEL");
+		genotypeField.set(1,  genotypeField.get(1) + ":" + nd);
+		genotypeField.set(2,  genotypeField.get(2) + ":" + td);
+		re.setFormatFields(  genotypeField); 
 				
 		if(polymer != null &&  polymer.getPolymerSequence(index) != null )
 			re.appendInfo(String.format("HOMCNTXT=%d,%s",polymer.getCount(index), polymer.getPolymerSequence(index)));
