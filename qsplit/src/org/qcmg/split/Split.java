@@ -11,14 +11,14 @@ import java.util.Set;
 import java.util.Vector;
 import java.util.regex.Pattern;
 
-import net.sf.samtools.SAMFileHeader;
-import net.sf.samtools.SAMFileReader;
-import net.sf.samtools.SAMFileWriter;
-import net.sf.samtools.SAMFileWriterFactory;
-import net.sf.samtools.SAMProgramRecord;
-import net.sf.samtools.SAMReadGroupRecord;
-import net.sf.samtools.SAMRecord;
-import net.sf.samtools.SAMTagUtil;
+import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.SAMFileWriter;
+import htsjdk.samtools.SAMFileWriterFactory;
+import htsjdk.samtools.SAMProgramRecord;
+import htsjdk.samtools.SAMReadGroupRecord;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SAMTagUtil;
 
 import org.qcmg.picard.RnameFile;
 import org.qcmg.picard.SAMFileReaderFactory;
@@ -35,7 +35,7 @@ public class Split {
 	String outputDirName;
 	SplitType type;
 	SAMFileHeader header;
-	SAMFileReader reader;
+	SamReader reader;
 	String inputFileName;
 	String validation;
 	
@@ -59,7 +59,7 @@ public class Split {
 		outputDirName = options.getDirNames()[0];
 		inputFileName = options.getInputFileNames()[0];
 		validation = options.getValidation();
-		reader = SAMFileReaderFactory.createSAMFileReader(inputFileName, validation);
+		reader = SAMFileReaderFactory.createSAMFileReader(new File(inputFileName), validation);
 		try {
 			header = reader.getFileHeader();
 			extractHeaderReadGroupDetails();
@@ -88,7 +88,7 @@ public class Split {
 		this.outputDirName = outputDirName;
 		this.useFileNames = useFileNames;
 		this.createIndex = false;
-		reader = SAMFileReaderFactory.createSAMFileReader(inputFileName);
+		reader = SAMFileReaderFactory.createSAMFileReader(new File(inputFileName));
 	
 		try {
 			header = reader.getFileHeader();

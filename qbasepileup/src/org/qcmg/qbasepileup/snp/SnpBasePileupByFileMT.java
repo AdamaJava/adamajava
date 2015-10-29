@@ -25,10 +25,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import net.sf.picard.reference.FastaSequenceIndex;
-import net.sf.picard.reference.IndexedFastaSequenceFile;
-import net.sf.samtools.SAMFileReader;
-import net.sf.samtools.SAMRecord;
+import htsjdk.samtools.reference.FastaSequenceIndex;
+import htsjdk.samtools.reference.IndexedFastaSequenceFile;
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.SAMRecord;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -237,7 +237,7 @@ public class SnpBasePileupByFileMT {
 						Set<String> fullChromosomeSet = new HashSet<>(snpPositions.keySet());
 
 
-						SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(file, "silent");
+						SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(file), "silent");
 
 						for (SAMRecord r: reader) {
 							//get chromosome length

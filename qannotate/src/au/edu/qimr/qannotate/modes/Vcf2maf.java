@@ -163,9 +163,7 @@ public class Vcf2maf extends AbstractMode{
 		}	
 		
 		//delete empty maf files
-		deleteEmptyMaf(SHCC, SHC,GHCC,GHC,SLCC,SLC,GLCC,GLC );
-		
-		
+		deleteEmptyMaf(SHCC, SHC,GHCC,GHC,SLCC,SLC,GLCC,GLC );		
 	}
 		
 	private void deleteEmptyMaf(String ...fileNames){

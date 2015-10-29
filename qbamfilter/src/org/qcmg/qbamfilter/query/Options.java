@@ -10,8 +10,9 @@ import java.util.Arrays;
 
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
-import net.sf.samtools.SAMFileHeader;
-import net.sf.samtools.SAMFileReader;
+import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.ValidationStringency;
 
 import org.qcmg.picard.HeaderUtils;
 import org.qcmg.picard.SAMFileReaderFactory;
@@ -154,7 +155,7 @@ public class Options {
         
         logLevel = (String) options.valueOf("loglevel");
         
-        SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(inputFileName);
+        SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(inputFileName));
         try {
         	header = reader.getFileHeader();
         	HeaderUtils.addProgramRecord(header,  getPGName(),  getVersion(), Arrays.toString(args) );
@@ -289,21 +290,21 @@ public class Options {
 	
 	/**
 	 * 
-	 * @return SAMFileReader.ValidationStringency if specified on command line; otherwise return LENIENT as default
+	 * @return ValidationStringency if specified on command line; otherwise return LENIENT as default
 	 * @throws Exception if specified invalid ValidationStringency 
 	 */
-	public SAMFileReader.ValidationStringency getValidation() throws Exception{	
+	public ValidationStringency getValidation() throws Exception{	
 		if(options.has("validation")){
 			if(options.valueOf("validation").toString().equalsIgnoreCase("LENIENT"))
-				return SAMFileReader.ValidationStringency.LENIENT;
+				return ValidationStringency.LENIENT;
 			else if(options.valueOf("validation").toString().equalsIgnoreCase("SILENT"))
-				return  SAMFileReader.ValidationStringency.SILENT;
+				return  ValidationStringency.SILENT;
 			if(options.valueOf("validation").toString().equalsIgnoreCase("STRICT"))
-				return  SAMFileReader.ValidationStringency.STRICT;
+				return  ValidationStringency.STRICT;
 			else
 				throw new Exception("invalid validation option: " + options.valueOf("validation").toString()  );
 		}
 
-		return SAMFileReader.ValidationStringency.LENIENT;
+		return ValidationStringency.LENIENT;
 	}
 }

@@ -1,7 +1,7 @@
 package org.qcmg.picard.util;
 
 import static org.junit.Assert.assertEquals;
-import net.sf.samtools.SAMFileHeader;
+import htsjdk.samtools.SAMFileHeader;
 
 import org.junit.Assert;
 import org.junit.Test;

@@ -7,15 +7,15 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
-
-import net.sf.samtools.SAMFileReader;
-import net.sf.samtools.SAMRecord;
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.SAMRecord;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.pileup.QPileupException;
 import org.qcmg.pileup.model.PileupDataRecord;
 import org.qcmg.pileup.model.StrandEnum;
@@ -37,7 +37,7 @@ public class PileupDataRecordTest {
 		
 		samRecords = new ArrayList<SAMRecord>();
 		
-		SAMFileReader reader = new SAMFileReader(testFile);
+		SamReader reader = SAMFileReaderFactory.createSAMFileReader(testFile);//new SAMFileReader(testFile);
 		
 		for (SAMRecord r: reader) {
 			samRecords.add(r);

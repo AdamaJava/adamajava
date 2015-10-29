@@ -7,8 +7,11 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Comparator;
 import java.util.HashMap;
-import net.sf.samtools.SAMFileHeader;
-import net.sf.samtools.SAMFileReader;
+
+import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.ValidationStringency;
+
 import org.apache.commons.cli.*;
 //import org.apache.commons.cli.CommandLine;
 
@@ -222,23 +225,23 @@ public class NewOptions {
 	
 	/**
 	 * 
-	 * @return SAMFileReader.ValidationStringency if specified on command line; otherwise return LENIENT as default
+	 * @return ValidationStringency if specified on command line; otherwise return LENIENT as default
 	 * @throws Exception if specified invalid ValidationStringency 
 	 */
-	public SAMFileReader.ValidationStringency getValidation() throws Exception{	
+	public ValidationStringency getValidation() throws Exception{	
 		
 		if( cmd.hasOption(OptLong.validation.toString())){
 			if( cmd.getOptionValue( OptLong.validation.toString()).equalsIgnoreCase("LENIENT"))
-				return SAMFileReader.ValidationStringency.LENIENT;
+				return ValidationStringency.LENIENT;
 			else if( cmd.getOptionValue( OptLong.validation.toString() ).equalsIgnoreCase("SILENT"))
-				return SAMFileReader.ValidationStringency.SILENT;
+				return ValidationStringency.SILENT;
 			else if( cmd.getOptionValue( OptLong.validation.toString() ).equalsIgnoreCase("STRICT"))
-				return  SAMFileReader.ValidationStringency.STRICT;
+				return  ValidationStringency.STRICT;
 			else
 				throw new Exception("invalid validation option: " + cmd.getOptionValue( OptLong.validation.toString() ) );
 		}
 
-		return SAMFileReader.ValidationStringency.LENIENT;
+		return ValidationStringency.LENIENT;
 	}
 	
 	/**

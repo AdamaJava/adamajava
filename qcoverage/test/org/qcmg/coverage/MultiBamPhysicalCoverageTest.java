@@ -7,11 +7,12 @@ import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 
-import net.sf.picard.sam.BuildBamIndex;
-import net.sf.samtools.SAMFileReader;
-import net.sf.samtools.SAMFileWriter;
-import net.sf.samtools.SAMFileWriterFactory;
-import net.sf.samtools.SAMRecord;
+import htsjdk.samtools.BAMIndexer;
+import htsjdk.samtools.SAMRecordIterator;
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.SAMFileWriter;
+import htsjdk.samtools.SAMFileWriterFactory;
+import htsjdk.samtools.SAMRecord;
 
 import org.junit.After;
 import org.junit.Before;
@@ -21,20 +22,31 @@ import org.junit.rules.ExpectedException;
 import org.qcmg.common.commandline.Executor;
 import org.qcmg.gff3.GFF3FileWriter;
 import org.qcmg.gff3.GFF3Record;
+import org.qcmg.picard.SAMFileReaderFactory;
 
 public class MultiBamPhysicalCoverageTest {
+	final String inputSam1 = "coverage.sam"; 
+	final String inputBam1 = "coverage.bam";
+	final String inputIndex1 = "coverage.bai";
+	final String inputSam2 = "coverage2.sam"; 
+	final String inputBam2 = "coverage2.bam";
+	final String inputIndex2 = "coverage2.bai";
+	final String output = "output";
+	final String gff3 = "test.gff3";
+	final String cmd =  String.format("--log ./logfile -t phys --gff3 %s --bam %s --bai %s --bam %s --bai %s -o %s",
+			gff3, inputBam1, inputIndex1, inputBam2, inputIndex2,output);
+	
 	@Rule
 	public ExpectedException thrown = ExpectedException.none();
 
 	@Before
 	public final void before() {
 		try {
-			createCoverageSam("coverage.sam");
-			createCoverageBam("coverage.sam", "coverage.bam");
-			createCoverageBamIndex("coverage.bam", "coverage.bam.bai");
-			createCoverageSam("coverage2.sam");
-			createCoverageBam("coverage2.sam", "coverage2.bam");
-			createCoverageBamIndex("coverage2.bam", "coverage2.bam.bai");
+			createCoverageSam(inputSam1);
+			createCoverageBam(inputSam1, inputBam1 ,inputIndex1 );
+
+			createCoverageSam(inputSam2);
+			createCoverageBam(inputSam2, inputBam2 , inputIndex2);
 		} catch (Exception e) {
 			System.err.println("File creation error in test harness: "
 					+ e.getMessage());
@@ -44,27 +56,28 @@ public class MultiBamPhysicalCoverageTest {
 	@After
 	public final void after() {
 		try {
-			File file = new File("coverage.sam");
+			File file = new File(inputSam1);
 			file.delete();
-			File bamFile = new File("coverage.bam");
+			File bamFile = new File(inputBam1);
 			bamFile.delete();
-			File baiFile = new File("coverage.bam.bai");
+			File baiFile = new File(inputIndex1);
 			baiFile.delete();
+			
+			file = new File(inputSam2);
+			file.delete();
+			bamFile = new File(inputBam2);
+			bamFile.delete();
+			baiFile = new File(inputIndex2);
+			baiFile.delete();			
+			
+			file = new File("output");
+			file.delete();
 		} catch (Exception e) {
-			System.err.println("File creation error in test harness: "
+			System.err.println("File deleting error in test harness: "
 					+ e.getMessage());
 		}
-		try {
-			File file = new File("coverage2.sam");
-			file.delete();
-			File bamFile = new File("coverage2.bam");
-			bamFile.delete();
-			File baiFile = new File("coverage2.bam.bai");
-			baiFile.delete();
-		} catch (Exception e) {
-			System.err.println("File creation error in test harness: "
-					+ e.getMessage());
-		}
+ 
+		
 	}
 
 	private File createGFF3File(final int start, final int end) throws Exception {
@@ -77,7 +90,7 @@ public class MultiBamPhysicalCoverageTest {
 		record.setSource(".");
 		record.setStrand("+");
 
-		File file = new File("test.gff3");
+		File file = new File(gff3);
 		GFF3FileWriter writer = new GFF3FileWriter(file);
 		writer.add(record);
 		writer.close();
@@ -98,9 +111,20 @@ public class MultiBamPhysicalCoverageTest {
     @Test
 	public final void leftDisjointRead() throws Exception {
 		File file = createGFF3File(54000, 54025);
+		
+//		String[] args = cmd.split(" ");
+//		Options options = new Options(args);
+//		Coverage operation = new Coverage(options);	
+		
 
 		ExpectedException.none();
-		Executor exec = execute("--log ./logfile -t phys --gff3 test.gff3 --bam coverage.bam --bai coverage.bam.bai --bam coverage2.bam --bai coverage2.bam.bai -o output");
+		Executor exec = execute(cmd );
+				
+			 
+		//debug
+		System.out.println(exec.getOutputStreamConsumer());
+		System.err.println(exec.getErrorStreamConsumer());
+		
 		assertTrue(0 == exec.getErrCode());
 
 		File outputFile = new File("output");
@@ -115,7 +139,8 @@ public class MultiBamPhysicalCoverageTest {
 		File file = createGFF3File(54077, 54120);
 
 		ExpectedException.none();
-		Executor exec = execute("--log ./logfile -t phys --gff3 test.gff3 --bam coverage.bam --bai coverage.bam.bai --bam coverage2.bam --bai coverage2.bam.bai -o output");
+		Executor exec = execute(cmd);
+ 
 		assertTrue(0 == exec.getErrCode());
 
 		File outputFile = new File("output");
@@ -131,7 +156,10 @@ public class MultiBamPhysicalCoverageTest {
 		File file = createGFF3File(54000, 54026);
 
 		ExpectedException.none();
-		Executor exec = execute("--log ./logfile -t phys --gff3 test.gff3 --bam coverage.bam --bai coverage.bam.bai --bam coverage2.bam --bai coverage2.bam.bai -o output");
+//		Executor exec = execute(cmd);
+		Executor exec = execute(String.format("--log ./logfile -t phys --gff3 %s --bam %s --bai %s --bam %s --bai %s -o %s",
+				gff3, inputBam1, inputIndex1, inputBam2, inputIndex2,output) );
+
 		assertTrue(0 == exec.getErrCode());
 
 		File outputFile = new File("output");
@@ -146,7 +174,7 @@ public class MultiBamPhysicalCoverageTest {
 		File file = createGFF3File(54076, 54120);
 
 		ExpectedException.none();
-		Executor exec = execute("--log ./logfile -t phys --gff3 test.gff3 --bam coverage.bam --bai coverage.bam.bai --bam coverage2.bam --bai coverage2.bam.bai -o output");
+		Executor exec = execute(cmd);
 		assertTrue(0 == exec.getErrCode());
 
 		File outputFile = new File("output");
@@ -161,7 +189,7 @@ public class MultiBamPhysicalCoverageTest {
 		File file = createGFF3File(54000, 54036);
 
 		ExpectedException.none();
-		Executor exec = execute("--log ./logfile -t phys --gff3 test.gff3 --bam coverage.bam --bai coverage.bam.bai --bam coverage2.bam --bai coverage2.bam.bai -o output");
+		Executor exec = execute(cmd);
 		assertTrue(0 == exec.getErrCode());
 
 		File outputFile = new File("output");
@@ -176,7 +204,7 @@ public class MultiBamPhysicalCoverageTest {
 		File file = createGFF3File(54050, 54120);
 
 		ExpectedException.none();
-		Executor exec = execute("--log ./logfile -t phys --gff3 test.gff3 --bam coverage.bam --bai coverage.bam.bai --bam coverage2.bam --bai coverage2.bam.bai -o output");
+		Executor exec = execute(cmd);
 		assertTrue(0 == exec.getErrCode());
 
 		File outputFile = new File("output");
@@ -191,7 +219,7 @@ public class MultiBamPhysicalCoverageTest {
 		File file = createGFF3File(54050, 54120);
 
 		ExpectedException.none();
-		Executor exec = execute("--log ./logfile -t phys --gff3 test.gff3 --bam coverage.bam --bai coverage.bam.bai --bam coverage2.bam --bai coverage2.bam.bai -o output");
+		Executor exec = execute(cmd);
 		assertTrue(0 == exec.getErrCode());
 
 		File outputFile = new File("output");
@@ -206,7 +234,7 @@ public class MultiBamPhysicalCoverageTest {
 		File file = createGFF3File(54030, 54070);
 
 		ExpectedException.none();
-		Executor exec = execute("--log ./logfile -t phys --gff3 test.gff3 --bam coverage.bam --bai coverage.bam.bai --bam coverage2.bam --bai coverage2.bam.bai -o output");
+		Executor exec = execute(cmd);
 		assertTrue(0 == exec.getErrCode());
 
 		File outputFile = new File("output");
@@ -221,7 +249,7 @@ public class MultiBamPhysicalCoverageTest {
 		File file = createGFF3File(54000, 54025);
 
 		ExpectedException.none();
-		Executor exec = execute("--log ./logfile -t phys --gff3 test.gff3 --bam coverage.bam --bam coverage2.bam  -o output");
+		Executor exec = execute(cmd);
 		assertTrue(0 == exec.getErrCode());
 
 		File outputFile = new File("output");
@@ -236,7 +264,7 @@ public class MultiBamPhysicalCoverageTest {
 		File file = createGFF3File(54077, 54120);
 
 		ExpectedException.none();
-		Executor exec = execute("--log ./logfile -t phys --gff3 test.gff3 --bam coverage.bam --bam coverage2.bam  -o output");
+		Executor exec = execute(cmd);
 		assertTrue(0 == exec.getErrCode());
 
 		File outputFile = new File("output");
@@ -252,7 +280,7 @@ public class MultiBamPhysicalCoverageTest {
 		File file = createGFF3File(54000, 54026);
 
 		ExpectedException.none();
-		Executor exec = execute("--log ./logfile -t phys --gff3 test.gff3 --bam coverage.bam --bam coverage2.bam  -o output");
+		Executor exec = execute(cmd);
 		assertTrue(0 == exec.getErrCode());
 
 		File outputFile = new File("output");
@@ -267,7 +295,7 @@ public class MultiBamPhysicalCoverageTest {
 		File file = createGFF3File(54076, 54120);
 
 		ExpectedException.none();
-		Executor exec = execute("--log ./logfile -t phys --gff3 test.gff3 --bam coverage.bam --bam coverage2.bam  -o output");
+		Executor exec = execute(cmd);
 		assertTrue(0 == exec.getErrCode());
 
 		File outputFile = new File("output");
@@ -282,7 +310,7 @@ public class MultiBamPhysicalCoverageTest {
 		File file = createGFF3File(54000, 54036);
 
 		ExpectedException.none();
-		Executor exec = execute("--log ./logfile -t phys --gff3 test.gff3 --bam coverage.bam --bam coverage2.bam  -o output");
+		Executor exec = execute(cmd);
 		assertTrue(0 == exec.getErrCode());
 
 		File outputFile = new File("output");
@@ -297,7 +325,7 @@ public class MultiBamPhysicalCoverageTest {
 		File file = createGFF3File(54050, 54120);
 
 		ExpectedException.none();
-		Executor exec = execute("--log ./logfile -t phys --gff3 test.gff3 --bam coverage.bam --bam coverage2.bam  -o output");
+		Executor exec = execute(cmd);
 		assertTrue(0 == exec.getErrCode());
 
 		File outputFile = new File("output");
@@ -312,7 +340,7 @@ public class MultiBamPhysicalCoverageTest {
 		File file = createGFF3File(54050, 54120);
 
 		ExpectedException.none();
-		Executor exec = execute("--log ./logfile -t phys --gff3 test.gff3 --bam coverage.bam --bam coverage2.bam  -o output");
+		Executor exec = execute(cmd);
 		assertTrue(0 == exec.getErrCode());
 
 		File outputFile = new File("output");
@@ -327,7 +355,7 @@ public class MultiBamPhysicalCoverageTest {
 		File file = createGFF3File(54030, 54070);
 
 		ExpectedException.none();
-		Executor exec = execute("--log ./logfile -t phys --gff3 test.gff3 --bam coverage.bam --bam coverage2.bam  -o output");
+		Executor exec = execute(cmd);
 		assertTrue(0 == exec.getErrCode());
 
 		File outputFile = new File("output");
@@ -376,25 +404,37 @@ public class MultiBamPhysicalCoverageTest {
 	}
 
 	public static final void createCoverageBam(final String inputFileName,
-			final String outputFileName) throws Exception {
+			final String outputFileName, final String index) throws Exception {
 		File inputFile = new File(inputFileName);
-		SAMFileReader reader = new SAMFileReader(inputFile);
+		SamReader reader = SAMFileReaderFactory.createSAMFileReader(inputFile);
 		File outputFile = new File(outputFileName);
-		SAMFileWriterFactory factory = new SAMFileWriterFactory();
-		SAMFileWriter outputWriter = factory.makeSAMOrBAMWriter(reader
+		
+		SAMFileWriterFactory.setDefaultCreateIndexWhileWriting(true);
+//		SAMFileWriterFactory factory = new SAMFileWriterFactory().setCreateIndex(true);		
+		SAMFileWriter outputWriter = new SAMFileWriterFactory().makeSAMOrBAMWriter(reader
 				.getFileHeader(), true, outputFile);
 		for (SAMRecord read : reader) {
 			outputWriter.addAlignment(read);
 		}
 		outputWriter.close();
+		reader.close();
+		
+//		//debug
+//		reader = SAMFileReaderFactory.createSAMFileReader(outputFile, new File(index));
+//		 SAMRecordIterator it = reader.query("chr3", 0,61775,true) ;
+//		while(it.hasNext()) {
+//			System.out.println("debug: " + it.next().getReadString());
+//		}
+//		 
+//		reader.close();
 	}
 
-	public static final void createCoverageBamIndex(final String bamFileName,
-			final String baiFileName) throws Exception {
-		File inputFile = new File(bamFileName);
-		File outputFile = new File(baiFileName);
-		SAMFileReader reader = new SAMFileReader(inputFile);
-		BuildBamIndex.createIndex(reader, outputFile);
-	}
+//	public static final void createCoverageBamIndex(final String bamFileName,
+//			final String baiFileName) throws Exception {
+//		File inputFile = new File(bamFileName);
+//		File outputFile = new File(baiFileName);
+//		SamReader reader = SAMFileReaderFactory.createSAMFileReader(inputFile);
+//		BAMIndexer.createIndex(reader, outputFile);
+//	}
 
 }

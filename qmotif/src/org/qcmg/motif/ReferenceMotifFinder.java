@@ -12,8 +12,8 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import net.sf.picard.reference.FastaSequenceFile;
-import net.sf.picard.reference.ReferenceSequence;
+import htsjdk.samtools.reference.FastaSequenceFile;
+import htsjdk.samtools.reference.ReferenceSequence;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;

@@ -13,10 +13,7 @@ dependencies {
     compile project(':qpicard')
 	compile project(':qbamfilter')
     
- 
-    compile name: 'picard', version: '1.110'
-    compile name: 'sam', version: '1.110'
- 
+    compile name: 'htsjdk', version: '1.140'
    testCompile name: 'junit', version: '4.10'
 }
 

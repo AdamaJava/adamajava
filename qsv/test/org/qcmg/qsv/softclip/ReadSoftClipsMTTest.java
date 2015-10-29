@@ -8,7 +8,7 @@
 //import java.util.concurrent.ExecutorService;
 //import java.util.concurrent.Executors;
 //
-//import net.sf.samtools.SAMFileHeader.SortOrder;
+//import htsjdk.samtools.SAMFileHeader.SortOrder;
 //
 //import org.junit.Rule;
 //import org.junit.Test;

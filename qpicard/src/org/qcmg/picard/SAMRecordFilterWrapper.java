@@ -3,7 +3,7 @@
  */
 package org.qcmg.picard;
 
-import net.sf.samtools.SAMRecord;
+import htsjdk.samtools.SAMRecord;
 
 public class SAMRecordFilterWrapper implements Comparable<SAMRecordFilterWrapper>{
 	

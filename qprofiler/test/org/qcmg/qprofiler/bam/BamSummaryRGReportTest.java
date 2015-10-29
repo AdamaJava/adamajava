@@ -19,8 +19,8 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import junit.framework.Assert;
-import net.sf.samtools.SAMFileReader;
-import net.sf.samtools.SAMRecord;
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.SAMRecord;
 
 import org.junit.After;
 import org.junit.Before;
@@ -55,7 +55,7 @@ public class BamSummaryRGReportTest {
 	
 //	@Test
 //	public void tempTest(){
-//		SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(new File(INPUT_FILE) );
+//		SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(INPUT_FILE) );
 //		for (SAMRecord samRecord : reader) {
 //			System.out.println(String.format("%s, start:%d, end:%d, readlength:%d, seq length:%d, cigar:%s",
 //					samRecord.getReadName(),  samRecord.getAlignmentStart(),samRecord.getAlignmentEnd(), 

@@ -12,11 +12,11 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
-import net.sf.samtools.CigarElement;
-import net.sf.samtools.CigarOperator; 
-import net.sf.samtools.SAMFileReader;
-import net.sf.samtools.SAMRecord;
-
+import htsjdk.samtools.CigarElement;
+import htsjdk.samtools.CigarOperator; 
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.ValidationStringency;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -118,8 +118,8 @@ public class BamMismatchCounts {
 
   	    String output = op.getOutputFileNames()[0];
 	    String input =  op.getInputFileNames()[0];	    
-	    SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(new File(input),
-					SAMFileReader.ValidationStringency.SILENT);	    
+	    SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(input),
+					ValidationStringency.SILENT);	    
 		  			
 		for(int i = 0; i < 100; i++) mismatch[i] = 0;	 	
 		for (SAMRecord r : reader){ 	

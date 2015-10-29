@@ -8,7 +8,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import net.sf.samtools.util.SequenceUtil;
+import htsjdk.samtools.util.SequenceUtil;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;

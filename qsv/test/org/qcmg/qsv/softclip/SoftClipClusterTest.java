@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
-import net.sf.samtools.SAMFileHeader.SortOrder;
+import htsjdk.samtools.SAMFileHeader.SortOrder;
 
 import org.junit.After;
 import org.junit.Before;

@@ -4,8 +4,8 @@
 
 package org.qcmg.qbamfilter.query;
 
-import net.sf.picard.filter.SamRecordFilter;
-import net.sf.samtools.SAMRecord;
+import htsjdk.samtools.filter.SamRecordFilter;
+import htsjdk.samtools.SAMRecord;
 
 import org.antlr.runtime.ANTLRStringStream;
 import org.antlr.runtime.CommonTokenStream;

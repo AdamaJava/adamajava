@@ -11,8 +11,8 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
-import net.sf.picard.reference.IndexedFastaSequenceFile;
-import net.sf.picard.reference.ReferenceSequence;
+import htsjdk.samtools.reference.IndexedFastaSequenceFile;
+import htsjdk.samtools.reference.ReferenceSequence;
 
 import org.junit.After;
 import org.junit.Before;

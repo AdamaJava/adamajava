@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -142,6 +143,40 @@ public class VcfHeaderUtils {
 			throw new IllegalArgumentException("Unknown VcfInfoType '" + str + "'");
 		}
 	} 	
+
+	/**
+	 * replace specified sample column string. It will replace empty string with "null" before specified sample column
+	 * @param header: a VcfHeader
+	 * @param id: sample id
+	 * @param noColumn: add the sample id to specified sample column. First sample column is "1"
+	 */
+	public static void addSampleId(VcfHeader header, String id, int noColumn){
+		if (null == header) {
+			throw new IllegalArgumentException("null vcf header object passed to VcfHeaderUtils.addQPGLineToHeader");
+		}
+		
+		if(noColumn < 1)
+			throw new IllegalArgumentException("invlaid sample column number, must be greater than 0");
+		
+		String[] exsitIds = header.getSampleId();				
+		if(exsitIds == null || exsitIds.length < noColumn){
+			String[] newIds = new String[noColumn];
+			
+			newIds[noColumn -1] = id;
+			
+			if(exsitIds != null)
+				System.arraycopy(exsitIds, 0, newIds, 0, exsitIds.length);
+			
+			exsitIds = newIds;						
+		}else 
+			exsitIds[noColumn-1] = id;
+				
+	   String str = VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + exsitIds[0];
+	   for(int i = 1 ; i < exsitIds.length; i ++)
+		   str += Constants.TAB + exsitIds[i]; 
+		 
+		header.parseHeaderLine(str);		
+	}
 	
 	public static void addQPGLineToHeader(VcfHeader header, String tool, String version, String commandLine) {
 		if (null == header) {

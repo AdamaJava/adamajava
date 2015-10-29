@@ -1,14 +1,31 @@
 package org.qcmg.common.vcf.header;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Test;
 
 public class VcfHeaderUtilsTest {
+	
+	 
+	 
+	@Test
+	public void addSampleIdTest(){
+		//VcfHeader header, String id, boolean isTest
+		VcfHeader header = new VcfHeader();
+		header.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE);
+		
+		VcfHeaderUtils.addSampleId(header, "TEST", 1);			
+		Assert.assertArrayEquals( header.getSampleId(), new String[]{"TEST"});
+				 
+		VcfHeaderUtils.addSampleId(header, "CONTROL", 3);	
+		String[] ids = header.getSampleId();	
+		Assert.assertArrayEquals( header.getSampleId(), new String[]{"TEST","null","CONTROL"});
+	}
 	
 	//@Test unit test don't have jar file so won't have tool name and version
 	@Test

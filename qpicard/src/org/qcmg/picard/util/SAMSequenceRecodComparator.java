@@ -5,7 +5,7 @@ package org.qcmg.picard.util;
 
 import java.util.Comparator;
 
-import net.sf.samtools.SAMSequenceRecord;
+import htsjdk.samtools.SAMSequenceRecord;
 
 public class SAMSequenceRecodComparator implements Comparator<SAMSequenceRecord> {
 

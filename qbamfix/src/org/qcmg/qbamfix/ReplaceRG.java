@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Random;
  
 
-import net.sf.samtools.SAMReadGroupRecord;
+import htsjdk.samtools.SAMReadGroupRecord;
 
 public class ReplaceRG {
 	

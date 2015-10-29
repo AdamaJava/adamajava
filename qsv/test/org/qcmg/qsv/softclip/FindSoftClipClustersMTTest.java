@@ -14,7 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import net.sf.samtools.SAMFileHeader.SortOrder;
+import htsjdk.samtools.SAMFileHeader.SortOrder;
 
 import org.junit.Rule;
 import org.junit.Test;

@@ -9,8 +9,8 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 
-import net.sf.samtools.CigarOperator;
-import net.sf.samtools.SAMRecord;
+import htsjdk.samtools.CigarOperator;
+import htsjdk.samtools.SAMRecord;
 
 import org.junit.After;
 import org.junit.Before;

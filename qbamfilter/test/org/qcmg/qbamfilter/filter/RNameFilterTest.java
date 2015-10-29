@@ -1,10 +1,13 @@
 package org.qcmg.qbamfilter.filter;
 
 import org.junit.*;
+import org.qcmg.picard.SAMFileReaderFactory;
+
 import static org.junit.Assert.*;
-import net.sf.samtools.SAMFileReader;
-import net.sf.samtools.SAMRecord;
-import net.sf.picard.filter.SamRecordFilter;
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.filter.SamRecordFilter;
+
 import java.io.File;
 
 public class RNameFilterTest {
@@ -28,7 +31,7 @@ public class RNameFilterTest {
         int NumRealRecord = 0;
         SamRecordFilter filter1 = new RNameFilter(Comparator.Equal, "chr1");
         SamRecordFilter filter2 = new RNameFilter(Comparator.NotEqual, "chr1");
-        SAMFileReader Inreader = new SAMFileReader(new File(TestFile.INPUT_FILE_NAME));
+        SamReader Inreader = SAMFileReaderFactory.createSAMFileReader(new File(TestFile.INPUT_FILE_NAME));
         for(SAMRecord re : Inreader){
             String chr = re.getReferenceName();
            if(chr.equalsIgnoreCase("chr1") ){
@@ -58,7 +61,7 @@ public class RNameFilterTest {
         SamRecordFilter filter1 = new RNameFilter(Comparator.Equal, "mrnm");
         SamRecordFilter filter2 = new RNameFilter(Comparator.NotEqual, "MRNM");
 
-        SAMFileReader Inreader = new SAMFileReader(new File(TestFile.INPUT_FILE_NAME));
+        SamReader Inreader = SAMFileReaderFactory.createSAMFileReader(new File(TestFile.INPUT_FILE_NAME));
         for(SAMRecord re : Inreader){
             String ref = re.getReferenceName();
             //picard will convert "=" to string from reference name

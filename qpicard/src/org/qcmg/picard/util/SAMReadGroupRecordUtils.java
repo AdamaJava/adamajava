@@ -5,7 +5,8 @@ package org.qcmg.picard.util;
 
 import java.text.SimpleDateFormat;
 
-import net.sf.samtools.SAMReadGroupRecord;
+ 
+import htsjdk.samtools.SAMReadGroupRecord;
 
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;

@@ -7,8 +7,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import net.sf.samtools.SAMRecord;
-import net.sf.samtools.SAMUtils;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SAMUtils;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;

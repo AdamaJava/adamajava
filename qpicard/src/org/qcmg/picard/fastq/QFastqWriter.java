@@ -11,9 +11,9 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.zip.GZIPOutputStream;
 
-import net.sf.picard.fastq.FastqConstants;
-import net.sf.picard.fastq.FastqRecord;
-import net.sf.picard.fastq.FastqWriter;
+import htsjdk.samtools.fastq.FastqConstants;
+import htsjdk.samtools.fastq.FastqRecord;
+import htsjdk.samtools.fastq.FastqWriter;
 
 import org.qcmg.common.util.FileUtils;
 
