@@ -2,7 +2,7 @@ package org.qcmg.picard;
 
 import java.util.concurrent.PriorityBlockingQueue;
 
-import net.sf.samtools.SAMRecord;
+import htsjdk.samtools.SAMRecord;
 
 import org.junit.Assert;
 import org.junit.Test;

@@ -20,12 +20,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import net.sf.samtools.SAMFileHeader;
-import net.sf.samtools.SAMFileReader;
-import net.sf.samtools.SAMRecord;
-import net.sf.samtools.SAMRecordIterator;
-import net.sf.samtools.SAMSequenceRecord;
-import net.sf.samtools.SAMFileReader.ValidationStringency;
+import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SAMRecordIterator;
+import htsjdk.samtools.SAMSequenceRecord;
+import htsjdk.samtools.ValidationStringency;
 
 import org.qcmg.common.log.*;
 import org.qcmg.picard.SAMFileReaderFactory;
@@ -62,7 +62,7 @@ public class MtCounts {
 	 * @throws Exception 
 	 */
     void callCounts() throws Exception{
-    	SAMFileReader reader = SAMFileReaderFactory.createSAMFileReader(inputs[0],ValidationStringency.SILENT );			
+    	SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(inputs[0]),ValidationStringency.SILENT );			
 		List<SAMSequenceRecord> genome = reader.getFileHeader().getSequenceDictionary().getSequences();
 		reader.close();
 		

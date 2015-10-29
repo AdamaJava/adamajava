@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import net.sf.samtools.SAMFileHeader.SortOrder;
+import htsjdk.samtools.SAMFileHeader.SortOrder;
 
 import org.junit.After;
 import org.junit.Before;

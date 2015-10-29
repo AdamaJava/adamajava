@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import net.sf.samtools.SAMRecord;
+import htsjdk.samtools.SAMRecord;
 
 import org.ini4j.Ini;
 import org.qcmg.common.log.QLogger;
@@ -254,7 +254,7 @@ public final class TorrentPipeline extends Pipeline {
 					}
 					// set base - use strand info to set case forward strand is upper case, reverse is lower
 					bases.append(sam.getReadNegativeStrandFlag() ? Character.toLowerCase((char)base) : (char)base);
-					qualities.append(net.sf.samtools.SAMUtils.phredToFastq(sam.getBaseQualities()[readPosition]));
+					qualities.append(htsjdk.samtools.SAMUtils.phredToFastq(sam.getBaseQualities()[readPosition]));
 				} else {
 					deletionCount++;
 				}

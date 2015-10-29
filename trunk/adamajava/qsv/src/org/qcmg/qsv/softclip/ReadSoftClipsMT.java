@@ -16,8 +16,8 @@
 //import java.util.concurrent.TimeUnit;
 //import java.util.concurrent.atomic.AtomicInteger;
 //
-//import net.sf.samtools.SAMRecord;
-//import net.sf.samtools.SAMRecordIterator;
+//import htsjdk.samtools.SAMRecord;
+//import htsjdk.samtools.SAMRecordIterator;
 //
 //import org.qcmg.common.log.QLogger;
 //import org.qcmg.common.log.QLoggerFactory;

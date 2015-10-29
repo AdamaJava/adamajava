@@ -7,10 +7,13 @@ package org.qcmg.qbamfilter.filter;
 
 
 import org.junit.*;
+import org.qcmg.picard.SAMFileReaderFactory;
+
 import static org.junit.Assert.*;
-import net.sf.samtools.SAMFileReader;
-import net.sf.samtools.SAMRecord;
-import net.sf.picard.filter.SamRecordFilter;
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.filter.SamRecordFilter;
+
 import java.io.File;
 
 public class FlagFilterTest {    
@@ -71,7 +74,7 @@ public class FlagFilterTest {
             throw new Exception("invalid value used in query!");
         }
 
-        SAMFileReader Inreader = new SAMFileReader(new File(TestFile.INPUT_FILE_NAME));
+        SamReader Inreader = SAMFileReaderFactory.createSAMFileReader(new File(TestFile.INPUT_FILE_NAME));    //new SAMFileReader(new File(TestFile.INPUT_FILE_NAME));
         int num = 0;
         for(SAMRecord re : Inreader){
             if( re.isValid() != null){
@@ -95,7 +98,7 @@ public class FlagFilterTest {
     private int CountFilterReads(String FlagName, Comparator comp, String value) throws Exception{
 
         SamRecordFilter filter = new FlagFilter(FlagName, comp, value);
-        SAMFileReader Inreader = new SAMFileReader(new File(TestFile.INPUT_FILE_NAME));
+        SamReader Inreader = SAMFileReaderFactory.createSAMFileReader(new File(TestFile.INPUT_FILE_NAME));    //new SAMFileReader(new File(TestFile.INPUT_FILE_NAME));
         int num = 0;
 
         for(SAMRecord re : Inreader){

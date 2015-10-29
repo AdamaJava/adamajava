@@ -9,10 +9,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
-import net.sf.samtools.BAMIndex;
-import net.sf.samtools.SAMFileHeader;
-import net.sf.samtools.SAMFileWriter;
-import net.sf.samtools.SAMFileWriterFactory;
+import htsjdk.samtools.BAMIndex;
+import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SAMFileWriter;
+import htsjdk.samtools.SAMFileWriterFactory;
 
 public class SAMOrBAMWriterFactory {
 	private final File output;
@@ -20,6 +20,8 @@ public class SAMOrBAMWriterFactory {
 	private final boolean index;
 	private String logMessage = null;
 
+	 
+	
 	public SAMOrBAMWriterFactory(SAMFileHeader header, boolean preSort, File output) {
 		this(header,preSort, output, null, 0,  true);
 	}
@@ -44,7 +46,7 @@ public class SAMOrBAMWriterFactory {
 	public SAMOrBAMWriterFactory(SAMFileHeader header,  boolean preSort, File output,File tmpDir, int RamReads, boolean createindex){
 		SAMFileWriterFactory factory = new SAMFileWriterFactory();   
 		if(RamReads != 0)
-			net.sf.samtools.SAMFileWriterImpl.setDefaultMaxRecordsInRam( RamReads );
+			htsjdk.samtools.SAMFileWriterImpl.setDefaultMaxRecordsInRam( RamReads );
 		
 		index = createindex && header.getSortOrder().equals(SAMFileHeader.SortOrder.coordinate);
 		

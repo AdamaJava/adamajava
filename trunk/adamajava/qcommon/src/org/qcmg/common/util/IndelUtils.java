@@ -65,6 +65,9 @@ public class IndelUtils {
  	public static final String INFO_HOMEMB = "HOMEMB";
 	public static final String DESCRITPION_INFO_HOMEMB = "indel is embedded in a homopolymeric sequence and the nearest, longest sequence is n bases long."
 			+ "The value format is <longest proximal homopolymer length>,< sequence bracketing indel>";
+	
+	public static final String INFO_NIOC = "NIOC";
+	public static final String DESCRITPION_INFO_NIOC = " counts of nearby indels compare with total coverage";	
 
 	public static final Pattern DOUBLE_DIGIT_PATTERN = Pattern.compile("\\d{1,2}");
 	public static final int MAX_INDEL_LENGTH = 200;

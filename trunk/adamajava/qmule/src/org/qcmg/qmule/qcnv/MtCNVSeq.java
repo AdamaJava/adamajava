@@ -16,9 +16,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import net.sf.samtools.SAMFileReader;
-import net.sf.samtools.SAMRecordIterator;
-import net.sf.samtools.SAMFileReader.ValidationStringency;
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.SAMRecordIterator;
+import htsjdk.samtools.ValidationStringency;
 
 import org.qcmg.common.log.*;
 import org.qcmg.picard.SAMFileReaderFactory;
@@ -119,8 +119,8 @@ public class MtCNVSeq {
 		public void run() {
 			try {				 
 				FileWriter writer = new FileWriter(Output);
-				SAMFileReader rTest = SAMFileReaderFactory.createSAMFileReader(Test,ValidationStringency.SILENT);						   
-				SAMFileReader rRef = SAMFileReaderFactory.createSAMFileReader(Ref,ValidationStringency.SILENT); 
+				SamReader rTest = SAMFileReaderFactory.createSAMFileReader(Test,ValidationStringency.SILENT);						   
+				SamReader rRef = SAMFileReaderFactory.createSAMFileReader(Ref,ValidationStringency.SILENT); 
 								
 				int win_num = chrSize / winSize + 1;
  

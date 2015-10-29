@@ -17,8 +17,8 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicLongArray;
 
-import net.sf.picard.fastq.FastqRecord;
-import net.sf.samtools.SAMUtils;
+import htsjdk.samtools.fastq.FastqRecord;
+import htsjdk.samtools.SAMUtils;
 
 import org.qcmg.common.model.ProfileType;
 import org.qcmg.common.model.QCMGAtomicLongArray;

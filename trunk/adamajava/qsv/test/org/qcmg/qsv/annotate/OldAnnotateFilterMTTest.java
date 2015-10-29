@@ -9,7 +9,7 @@
 //import java.util.concurrent.Executors;
 //import java.util.concurrent.atomic.AtomicInteger;
 //
-//import net.sf.samtools.SAMFileHeader.SortOrder;
+//import htsjdk.samtools.SAMFileHeader.SortOrder;
 //
 //import org.junit.After;
 //import org.junit.Before;

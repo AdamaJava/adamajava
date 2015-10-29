@@ -11,10 +11,10 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.picard.HeaderUtils;
 import org.qcmg.picard.SAMFileReaderFactory;
 
-import net.sf.samtools.*;
+import htsjdk.samtools.*;
 
 public class SubSample {
-	SAMFileReader reader;
+	SamReader reader;
 	SAMFileWriter writer;
 	double proportion;
 	QLogger logger;
@@ -35,7 +35,7 @@ public class SubSample {
 		if(!input.canRead()) 
 			throw new Exception("unreadable input: " + input.getAbsolutePath());	 			
 		
-		reader = SAMFileReaderFactory.createSAMFileReader(input,SAMFileReader.ValidationStringency.LENIENT);			
+		reader = SAMFileReaderFactory.createSAMFileReader(input,ValidationStringency.LENIENT);			
 		SAMFileHeader header = reader.getFileHeader();
 		if(header.getSortOrder() != SAMFileHeader.SortOrder.queryname){
 			throw new Exception("the input BAM is not sorted by queryname");

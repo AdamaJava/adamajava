@@ -7,7 +7,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import net.sf.samtools.*;
+import htsjdk.samtools.*;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -38,7 +38,7 @@ public class BAM2CS {
 	 */
 	void CreateCSfile() throws Exception{	
 
-		SAMFileReader reader = new SAMFileReader(inBAM);
+		SamReader reader = new SAMFileReader(inBAM);
 		int num = 0;
 		for (SAMRecord record : reader) {
 			String id = ">" + record.getReadName();

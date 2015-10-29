@@ -7,8 +7,8 @@ import java.io.File;
 import java.util.Collection;
 import java.util.HashSet;
 
-import net.sf.picard.liftover.LiftOver;
-import net.sf.picard.util.Interval;
+import htsjdk.samtools.liftover.LiftOver;
+import htsjdk.samtools.util.Interval;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;

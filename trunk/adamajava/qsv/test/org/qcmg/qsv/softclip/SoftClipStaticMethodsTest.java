@@ -9,13 +9,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.sf.samtools.SAMFileHeader.SortOrder;
-import net.sf.samtools.SAMFileReader;
-import net.sf.samtools.SAMRecord;
+import htsjdk.samtools.SAMFileHeader.SortOrder;
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.SAMRecord;
 
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qsv.util.QSVUtil;
 import org.qcmg.qsv.util.TestUtil;
 
@@ -63,7 +64,7 @@ public class SoftClipStaticMethodsTest {
 	private SAMRecord getSAMRecords(int index) throws IOException {
 		File tumourBam = testFolder.newFile("test.bam");
         TestUtil.createHiseqBamFile(tumourBam.getCanonicalPath(), null, SortOrder.coordinate);
-        SAMFileReader read = new SAMFileReader(tumourBam);
+        SamReader read = SAMFileReaderFactory.createSAMFileReader(tumourBam);
         List<SAMRecord> list = new ArrayList<SAMRecord>();
         for (SAMRecord r : read) {
         	list.add(r);        	

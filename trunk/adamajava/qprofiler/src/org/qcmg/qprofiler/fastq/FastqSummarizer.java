@@ -18,8 +18,8 @@ package org.qcmg.qprofiler.fastq;
 
 import java.io.File;
 
-import net.sf.picard.fastq.FastqReader;
-import net.sf.picard.fastq.FastqRecord;
+import htsjdk.samtools.fastq.FastqReader;
+import htsjdk.samtools.fastq.FastqRecord;
 
 import org.qcmg.common.date.DateUtils;
 import org.qcmg.common.log.QLogger;

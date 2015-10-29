@@ -3,7 +3,7 @@
  */
 package org.qcmg.qsv.discordantpair;
 
-import net.sf.samtools.SAMRecord;
+import htsjdk.samtools.SAMRecord;
 
 public class Mate {
 

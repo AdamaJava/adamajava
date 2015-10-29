@@ -3,10 +3,11 @@
  */
 package org.qcmg.qbamfix;
 
+import java.io.File;
 import java.util.Map;
 
-import net.sf.samtools.SAMFileHeader;
-import net.sf.samtools.SAMFileReader;
+import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SamReader;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -32,7 +33,7 @@ public class Main {
             logger.info("log file: " + options.getLogFileName());
             
             if(options.isFinalBAM()){ 
-            	SAMFileHeader header = SAMFileReaderFactory.createSAMFileReader(options.getInputFileName(),
+            	SAMFileHeader header = SAMFileReaderFactory.createSAMFileReader(new File(options.getInputFileName()),
             			options.getValidation() ).getFileHeader().clone(); 
             	HeaderUtils.addProgramRecord(header, options.getPGName(), options.getVersion(), Messages.reconstructCommandLine(args));
 

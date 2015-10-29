@@ -350,7 +350,10 @@ public class VcfHeader implements Iterable<VcfHeader.Record> {
 		parseHeaderLine(record);
 	}
 		
-
+	/**
+	 * 
+	 * @return sample column string after Format column on vcf final header line "#CHROM ... "
+	 */
 	public String[] getSampleId() {
 		if(chromLine == null)
 			throw new RuntimeException("missing vcf header line, eg. " + VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE);

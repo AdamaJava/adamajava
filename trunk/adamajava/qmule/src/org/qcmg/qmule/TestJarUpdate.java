@@ -10,11 +10,11 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.sf.samtools.SAMFileHeader;
-import net.sf.samtools.SAMFileReader;
-import net.sf.samtools.SAMFileWriter;
-import net.sf.samtools.SAMFileWriterFactory;
-import net.sf.samtools.SAMRecord;
+import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.SAMFileWriter;
+import htsjdk.samtools.SAMFileWriterFactory;
+import htsjdk.samtools.SAMRecord;
 
 import org.qcmg.common.util.LoadReferencedClasses;
 import org.qcmg.picard.SAMFileReaderFactory;
@@ -22,7 +22,7 @@ import org.qcmg.picard.SAMFileReaderFactory;
 public class TestJarUpdate {
 	
 	private SAMFileWriter writer;
-	private SAMFileReader reader;
+	private SamReader reader;
 	
 	private void doWork() throws Exception{
 		try {

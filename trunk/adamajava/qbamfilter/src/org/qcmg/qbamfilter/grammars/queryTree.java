@@ -1,17 +1,16 @@
 // $ANTLR 3.4 /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryTree.g 2014-05-14 11:58:13
  
     package org.qcmg.qbamfilter.grammars;
-    import net.sf.samtools.SAMRecord;
-    import net.sf.picard.filter.SamRecordFilter;
-    import net.sf.samtools.SAMValidationError;
+ 
+    import htsjdk.samtools.SAMRecord;
+    import htsjdk.samtools.filter.SamRecordFilter;
+    import htsjdk.samtools.SAMValidationError;
     
-
-
-import org.antlr.runtime.*;
-import org.antlr.runtime.tree.*;
-import java.util.Stack;
-import java.util.List;
-import java.util.ArrayList;
+    import org.antlr.runtime.*;
+    import org.antlr.runtime.tree.*;
+    import java.util.Stack;
+    import java.util.List;
+    import java.util.ArrayList;
 
 
 @SuppressWarnings({"all", "warnings", "unchecked"})

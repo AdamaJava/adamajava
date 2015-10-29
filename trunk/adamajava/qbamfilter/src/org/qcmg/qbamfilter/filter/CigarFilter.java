@@ -3,11 +3,11 @@
  */
 package org.qcmg.qbamfilter.filter;
 
-import net.sf.picard.filter.SamRecordFilter;
-import net.sf.samtools.Cigar;
-import net.sf.samtools.CigarElement;
-import net.sf.samtools.CigarOperator;
-import net.sf.samtools.SAMRecord;
+import htsjdk.samtools.filter.SamRecordFilter;
+import htsjdk.samtools.Cigar;
+import htsjdk.samtools.CigarElement;
+import htsjdk.samtools.CigarOperator;
+import htsjdk.samtools.SAMRecord;
 
 public class CigarFilter  implements SamRecordFilter{
     

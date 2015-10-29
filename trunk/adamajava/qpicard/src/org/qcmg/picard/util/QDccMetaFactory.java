@@ -3,7 +3,7 @@
  */
 package org.qcmg.picard.util;
 
-import net.sf.samtools.SAMFileHeader;
+import htsjdk.samtools.SAMFileHeader;
 
 import org.qcmg.common.meta.KeyValue;
 import org.qcmg.common.meta.QDccMeta;
