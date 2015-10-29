@@ -436,6 +436,9 @@ public class AddMT {
 	            	reverseNonRef = new NonReferenceRecord(name, size, true, lowReadCount, nonrefThreshold);
 					
 					SamReader reader = bamMap.get(bamFile);
+					
+					//debug
+					System.out.println(String.format("testing: reader.queryOverlapping(%s, %d, %d);", name,queryStart, queryEnd) );
 	            	SAMRecordIterator iterator = reader.queryOverlapping(name, queryStart, queryEnd);
 	            	
 	            	//check to make sure there are some reads
