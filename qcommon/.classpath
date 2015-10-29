@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="output" path="bin"/>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="test"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER" exported="true"/>
+	<classpathentry kind="lib" path="/Users/christix/Documents/Eclipse/sourceForge/trunk/adamajava/lib/trove-3.1a1.jar" exported="true"/>
+	<classpathentry kind="lib" path="/Users/christix/Documents/Eclipse/sourceForge/trunk/adamajava/lib/junit-4.10.jar" exported="true"/>
+</classpath>
