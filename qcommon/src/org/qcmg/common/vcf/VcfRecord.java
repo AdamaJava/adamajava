@@ -62,13 +62,15 @@ public class VcfRecord implements Comparable<VcfRecord>,Cloneable {
 		filter = (params.length >= 7) ? params[6] : null;
 		infoRecord = (params.length >= 8) ?  new VcfInfoFieldRecord(params[7]): null;
 		
+		
 		for (int i = 8; i < params.length; i ++)  {
 			if (StringUtils.isNullOrEmpty(params[i])) {
 				formatRecords.add( Constants.MISSING_DATA_STRING);
 			} else {
 				formatRecords.add( params[i]);
 			}
-		}
+		}		
+		
 	}
 	
 	public ChrPosition getChrPosition() {		
@@ -275,9 +277,9 @@ public class VcfRecord implements Comparable<VcfRecord>,Cloneable {
 	public String toString(){
 		
 		//add END position into info column for compound SNP
-		if (! chrPos.isSinglePoint()) {
-				appendInfo("END=" + chrPos.getEndPosition()  );
-		}
+//		if (! chrPos.isSinglePoint()) {
+//				appendInfo("END=" + chrPos.getEndPosition()  );
+//		}
 		
 		final StringBuilder builder = new StringBuilder();
 		builder.append(chrPos.getChromosome()).append(TAB);

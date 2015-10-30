@@ -68,6 +68,13 @@ public class IndelUtils {
 	
 	public static final String INFO_NIOC = "NIOC";
 	public static final String DESCRITPION_INFO_NIOC = " counts of nearby indels compare with total coverage";	
+	
+	public static final String INFO_HOMCNTXT = "HOMCNTXT";
+	public static final String DESCRITPION_INFO_HOMCNTXT = "nearby refernce sequence. if it is homopolymeric, the maximum repeated based counts will be added infront of sequence ";
+	
+	public static final String INFO_ACINDEL = "ACINDEL";
+	public static final String DESCRITPION_INFO_ACINDEL = "counts of indels, follow formart:novelStarts,TotalCoverage,InformativeReadCount," 
+			+"suportReadCount[forwardsuportReadCount,backwardsuportReadCount],particalReadCount,NearbyIndelCount,NearybySoftclipCount";
 
 	public static final Pattern DOUBLE_DIGIT_PATTERN = Pattern.compile("\\d{1,2}");
 	public static final int MAX_INDEL_LENGTH = 200;
