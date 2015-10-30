@@ -2,9 +2,13 @@ package org.qcmg.common.vcf;
 
 import static org.junit.Assert.*;
 
+import java.util.Arrays;
+
 import org.junit.Test;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.util.Constants;
+
+import com.sun.corba.se.impl.orbutil.closure.Constant;
 
 public class VcfRecordTest {
 
@@ -36,14 +40,20 @@ public class VcfRecordTest {
 		
 		// expecting end to be inserted by toString, and to be equal to start + 1 (compound snp)
 		String reToString = re.toString();
-		assertEquals(true, reToString.contains("END=2675827"));
+		assertEquals(true, reToString.endsWith(Constants.NEW_LINE));
+		
+		String[] parm = reToString.split(Constants.TAB + "" );
+		assertTrue(parm.length == 9);	
+		assertTrue(parm[7].equals(Constants.MISSING_DATA_STRING));	
+		
+  
 		
 		String[] parms2 = {"chrY","2675826",".","TGAA","CATT"};
 		re = new VcfRecord(parms2);
 		
 		// expecting end to be inserted by toString, and to be equal to start + 1 (compound snp)
 		reToString = re.toString();
-		assertEquals(true, reToString.contains("END=2675829"));
+		assertEquals(true, re.getChrPosition().getEndPosition() == 2675829);
 		
 	}
 	
