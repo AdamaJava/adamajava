@@ -103,7 +103,10 @@ public class VcfInfoFieldRecord {
 			String keyStr = (keyend > -1 ? kv.substring(0,keyend) : kv);
 			
 			//if the key is just subString of existing key
-			if(keyStr.length() != key.length()){ 
+			//eg.exsiting INFO: EFF=(....BEND1...); but key is END
+			//so END is subString of exsiting INFO and same length to EFF
+			//if(keyStr.length() != key.length()){ 
+			if(! keyStr.equals(key)){
 				pos = scIndex; 
 				continue;				
 			}
