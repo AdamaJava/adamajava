@@ -13,6 +13,7 @@ import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.util.IndelUtils.SVTYPE;
 import org.qcmg.common.vcf.VcfRecord;
+import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 public class IndelPosition {
 	
@@ -186,6 +187,8 @@ public class IndelPosition {
 	public VcfRecord getPileupedVcf(int index){
 		VcfRecord re = vcfs.get(index);
 		
+		
+		
 		//not interested int these indels since over coverage
 		if(tumourPileup != null  && tumourPileup.getTotalCount() > 1000){
 			re.setFilter( IndelUtils.FILTER_HCOVT);
@@ -212,6 +215,12 @@ public class IndelPosition {
 		
 		if(somatic) 
 			re.setInfo(VcfHeaderUtils.INFO_SOMATIC);
+		
+		
+		//set default filter as PASS
+		re.setFilter(VcfHeaderUtils.FILTER_PASS);
+
+
 		 
 		String td = ".", nd = ".";		
 		List<String> genotypeField =  re.getFormatFields();
@@ -221,14 +230,15 @@ public class IndelPosition {
 					tumourPileup.getsuportReadCount(index),tumourPileup.getforwardsuportReadCount(index),tumourPileup.getbackwardsuportReadCount(index),
 					tumourPileup.getparticalReadCount(index),tumourPileup.getNearbyIndelCount(),tumourPileup.getNearybySoftclipCount());
 			if(!somatic && tumourPileup.getTotalCount() < 8)
-				re.addFilter(IndelUtils.FILTER_COVT);
+				VcfUtils.updateFilter(re,  IndelUtils.FILTER_COVT);
+				 
 			if(somatic && tumourPileup.getnovelStartReadCount(index) < 4 )
-				re.addFilter(IndelUtils.FILTER_NNS);
+				VcfUtils.updateFilter(re,IndelUtils.FILTER_NNS);
 			if(tumourPileup.getparticalReadCount(index) > 3 &&
 					(100 * tumourPileup.getparticalReadCount(index) / tumourPileup.getTotalCount()) > 10)
-				re.addFilter(IndelUtils.FILTER_TPART);
+				VcfUtils.updateFilter(re,IndelUtils.FILTER_TPART);
 			if(somatic && tumourPileup.getsuportReadCount(index) >=3 && tumourPileup.hasStrandBias(index, 0.1, 0.9))
-				re.addFilter(IndelUtils.FILTER_TBIAS);
+				VcfUtils.updateFilter(re,IndelUtils.FILTER_TBIAS);
 		}	
 		
 		//String nd = "ND=0:0:0:0:0:0:0";
@@ -240,33 +250,36 @@ public class IndelPosition {
 			 
 			//re.appendInfo("ND=" + nd);				
 			if(somatic && normalPileup.getTotalCount() < 12)
-				re.addFilter(IndelUtils.FILTER_COVN12);
+				VcfUtils.updateFilter(re,IndelUtils.FILTER_COVN12);
 			if(!somatic && normalPileup.getTotalCount() < 8)
-				re.addFilter(IndelUtils.FILTER_COVN8);			
+				VcfUtils.updateFilter(re,IndelUtils.FILTER_COVN8);			
 			if(somatic && normalPileup.getnovelStartReadCount(index) > 0)
-				re.addFilter(IndelUtils.FILTER_MIN);
+				VcfUtils.updateFilter(re,IndelUtils.FILTER_MIN);
 			if(normalPileup.getparticalReadCount(index) > 3 &&
 					(100 * normalPileup.getparticalReadCount(index) / normalPileup.getTotalCount()) > 5)
-				re.addFilter(IndelUtils.FILTER_NPART);
+				VcfUtils.updateFilter(re,IndelUtils.FILTER_NPART);
 			if(somatic && normalPileup.getsuportReadCount(index) >=3 && normalPileup.hasStrandBias(index, 0.05, 0.95))
-				re.addFilter(IndelUtils.FILTER_TBIAS);			 
+				VcfUtils.updateFilter(re,IndelUtils.FILTER_TBIAS);			 
 		}
 		
-		String filter = re.getFilter().trim();
-		if( StringUtils.isNullOrEmpty(filter)  || filter .equals(Constants.MISSING_DATA_STRING) )			
-			re.setFilter(VcfHeaderUtils.FILTER_PASS);		
-		else if(filter.contains(VcfHeaderUtils.FILTER_PASS) && 
-			  !filter.equals(VcfHeaderUtils.FILTER_PASS)){
-				String[] fields = filter.split(Constants.SEMI_COLON_STRING);
-				String newfilter = "";
-				for(int  i = 0; i < fields.length; i ++)
-					if( !StringUtils.isNullOrEmpty(fields[i] ) && ! fields[i].equals(VcfHeaderUtils.FILTER_PASS))
-						newfilter += fields[i] + Constants.SEMI_COLON_STRING;
-				if(!StringUtils.isNullOrEmpty(newfilter )){
-					newfilter = newfilter.substring(0, newfilter.length()-1); //remove end ";"
-					re.setFilter(newfilter);		
-				}	
-			}
+		
+		
+		
+//		String filter = re.getFilter().trim();
+//		if( StringUtils.isNullOrEmpty(filter)  || filter .equals(Constants.MISSING_DATA_STRING) )			
+//			re.setFilter(VcfHeaderUtils.FILTER_PASS);		
+//		else if(filter.contains(VcfHeaderUtils.FILTER_PASS) && 
+//			  !filter.equals(VcfHeaderUtils.FILTER_PASS)){
+//				String[] fields = filter.split(Constants.SEMI_COLON_STRING);
+//				String newfilter = "";
+//				for(int  i = 0; i < fields.length; i ++)
+//					if( !StringUtils.isNullOrEmpty(fields[i] ) && ! fields[i].equals(VcfHeaderUtils.FILTER_PASS))
+//						newfilter += fields[i] + Constants.SEMI_COLON_STRING;
+//				if(!StringUtils.isNullOrEmpty(newfilter )){
+//					newfilter = newfilter.substring(0, newfilter.length()-1); //remove end ";"
+//					re.setFilter(newfilter);		
+//				}	
+//			}
 					 
 		//future job should check GT column
 		genotypeField.set(0,  genotypeField.get(0) + ":ACINDEL");
@@ -285,7 +298,7 @@ public class IndelPosition {
 			nioc =  (float)tumourPileup.getNearbyIndelCount() / tumourPileup.getTotalCount();
 		else if(normalPileup.getTotalCount() > 0)
 			nioc = (float) normalPileup.getNearbyIndelCount() / normalPileup.getTotalCount();
-		re.appendInfo("NIOC=" + nioc);		
+		re.appendInfo(IndelUtils.INFO_NIOC + nioc);		
 		
 		re.appendInfo("SVTYPE=" + this.mutationType.name());
 		re.appendInfo("END=" + indelEnd);

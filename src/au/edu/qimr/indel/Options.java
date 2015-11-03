@@ -37,7 +37,7 @@ public class Options {
 	
 	private String testSampleid = "TEST";
 	private String controlSampleid = "CONTROL";
-	private String dornorid; 
+	private String donorid; 
 	
 	private String commandLine;
 	
@@ -54,7 +54,7 @@ public class Options {
 		parser.accepts("o", Messages.getMessage("OPTION_OUTPUT")).withRequiredArg().ofType(String.class).describedAs("output");	
 		parser.accepts("i", Messages.getMessage("OPTION_VCF_INPUT")).withRequiredArg().ofType(String.class).describedAs("test_indel_vcf ");
 		parser.accepts("tb", Messages.getMessage("OPTION_INPUT_TEST")).withRequiredArg().ofType(String.class).describedAs("input_test_bam");
-		parser.accepts("nb", Messages.getMessage("OPTION_INPUT_CONTROL")).withRequiredArg().ofType(String.class).describedAs("input_control_bam");
+		parser.accepts("cb", Messages.getMessage("OPTION_INPUT_CONTROL")).withRequiredArg().ofType(String.class).describedAs("input_control_bam");
 		
 		
 		//indel options
@@ -65,7 +65,7 @@ public class Options {
 
 		parser.accepts("testSample", Messages.getMessage("OPTION_TEST_SAMPLE")).withRequiredArg().ofType(String.class).describedAs("test sample id");
 		parser.accepts("controlSample", Messages.getMessage("OPTION_CONTROL_SAMPLE")).withRequiredArg().ofType(String.class).describedAs("control sample id");
-		parser.accepts("dornor", "DORNOR ID").withRequiredArg().ofType(String.class).describedAs("donor id");
+		parser.accepts("donor", "DONOR ID").withRequiredArg().ofType(String.class).describedAs("donor id");
 		
 		parser.acceptsAll(asList("h", "help"), HELP_OPTION);
 		parser.acceptsAll(asList("v", "V", "version"), VERSION_OPTION);	
@@ -93,8 +93,8 @@ public class Options {
 		else
 			testBam = null; 
 		
-		if(options.has("nb"))
-			controlBam = new File( (String) options.valueOf("nb")) ;	
+		if(options.has("cb"))
+			controlBam = new File( (String) options.valueOf("cb")) ;	
 		else
 			controlBam = null; 
 		
@@ -137,10 +137,10 @@ public class Options {
 			this.controlSampleid = (String) options.valueOf("controlSample");
 		
 		
-		System.out.println(options.valueOf("dornor"));
- 		if(options.has("dornor"))
- 			this.dornorid = "dornor";
-//			this.dornorid = (String) options.valueOf("dornor");
+		System.out.println(options.valueOf("donor"));
+ 		if(options.has("donor"))
+// 			this.donorid = "donor";
+			this.donorid = (String) options.valueOf("donor");
 		
  		if (options.has("filter")) {
 			this.filterQuery = (String) options.valueOf("filter");
@@ -272,7 +272,7 @@ public class Options {
 	}
 
 	public String getCommandLine() {	return commandLine; }		
-	public String getDornorId(){ return dornorid; }
+	public String getDonorId(){ return donorid; }
 	public String getControlSample(){ return  this.controlSampleid; }
 	public String getTestSample(){ return this.testSampleid; }
 

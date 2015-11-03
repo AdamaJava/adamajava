@@ -383,8 +383,8 @@ public class IndelMT {
 			if(options.getSecondInputVcf() != null)
 				newHeader.parseHeaderLine(VcfHeaderUtils.STANDARD_INPUT_LINE + "=" +  QExec.createUUid() + ":"+ options.getSecondInputVcf().getAbsolutePath());
 			
-			if(options.getDornorId() != null)
-				newHeader.replace( VcfHeaderUtils.STANDARD_DONOR_ID + "=" + options.getDornorId());			
+			if(options.getDonorId() != null)
+				newHeader.replace( VcfHeaderUtils.STANDARD_DONOR_ID + "=" + options.getDonorId());			
 			if(options.getControlSample() != null){
 				newHeader.replace( VcfHeaderUtils.STANDARD_CONTROL_SAMPLE + "=" + options.getControlSample());
 				VcfHeaderUtils.addSampleId(newHeader, options.getControlSample(), 1);	
@@ -412,13 +412,13 @@ public class IndelMT {
 //					+ "or variants only appear in tumour BAM but homopolymeric sequence exists on either side, "
 //					+ "or nearby indels fallen in a size defined neighbour window.");
 			
-			header.addInfoLine(IndelUtils.INFO_HOMADJ, "1", "String", IndelUtils.DESCRITPION_INFO_HOMADJ);
-			header.addInfoLine(IndelUtils.INFO_HOMCON, "1", "String", IndelUtils.DESCRITPION_INFO_HOMCON);
-			header.addInfoLine(IndelUtils.INFO_HOMEMB, "1", "String", IndelUtils.DESCRITPION_INFO_HOMEMB);
+//			header.addInfoLine(IndelUtils.INFO_HOMADJ, "1", "String", IndelUtils.DESCRITPION_INFO_HOMADJ);
+//			header.addInfoLine(IndelUtils.INFO_HOMCON, "1", "String", IndelUtils.DESCRITPION_INFO_HOMCON);
+//			header.addInfoLine(IndelUtils.INFO_HOMEMB, "1", "String", IndelUtils.DESCRITPION_INFO_HOMEMB);
 			header.addInfoLine(IndelUtils.INFO_NIOC, "1", "String", IndelUtils.DESCRITPION_INFO_NIOC);
-			header.addFormatLine("ACINDEL", "1", "String", "counts of indels, follow formart:novelStarts,TotalCoverage,InformativeReadCount," 
-					+"suportReadCount[forwardsuportReadCount,backwardsuportReadCount],"
-					+"particalReadCount,NearbyIndelCount,NearybySoftclipCount");
+			header.addFormatLine(IndelUtils.INFO_ACINDEL, "1", "String", IndelUtils.DESCRITPION_INFO_ACINDEL);
+			header.addFormatLine(IndelUtils.INFO_HOMCNTXT, "1", "String", IndelUtils.DESCRITPION_INFO_HOMCNTXT); 
+					 
  			
 			
         	for(final VcfHeader.Record record: header)  
