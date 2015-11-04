@@ -261,25 +261,6 @@ public class IndelPosition {
 			if(somatic && normalPileup.getsuportReadCount(index) >=3 && normalPileup.hasStrandBias(index, 0.05, 0.95))
 				VcfUtils.updateFilter(re,IndelUtils.FILTER_TBIAS);			 
 		}
-		
-		
-		
-		
-//		String filter = re.getFilter().trim();
-//		if( StringUtils.isNullOrEmpty(filter)  || filter .equals(Constants.MISSING_DATA_STRING) )			
-//			re.setFilter(VcfHeaderUtils.FILTER_PASS);		
-//		else if(filter.contains(VcfHeaderUtils.FILTER_PASS) && 
-//			  !filter.equals(VcfHeaderUtils.FILTER_PASS)){
-//				String[] fields = filter.split(Constants.SEMI_COLON_STRING);
-//				String newfilter = "";
-//				for(int  i = 0; i < fields.length; i ++)
-//					if( !StringUtils.isNullOrEmpty(fields[i] ) && ! fields[i].equals(VcfHeaderUtils.FILTER_PASS))
-//						newfilter += fields[i] + Constants.SEMI_COLON_STRING;
-//				if(!StringUtils.isNullOrEmpty(newfilter )){
-//					newfilter = newfilter.substring(0, newfilter.length()-1); //remove end ";"
-//					re.setFilter(newfilter);		
-//				}	
-//			}
 					 
 		//future job should check GT column
 		genotypeField.set(0,  genotypeField.get(0) + ":ACINDEL");
@@ -289,21 +270,18 @@ public class IndelPosition {
 				
 		if(polymer != null &&  polymer.getPolymerSequence(index) != null )
 			re.appendInfo(String.format("HOMCNTXT=%d,%s",polymer.getCount(index), polymer.getPolymerSequence(index)));
-//			re.appendInfo(String.format("HOMCNTXT=%s,%s,%s",
-//					polymer.getUpBaseCount(index), polymer.getDownBaseCount(index), polymer.getPolymerSequence(index)));
-			
-		
-		float nioc = 0;
+					 
+		float nn = 0;
 		if(somatic && tumourPileup.getTotalCount() > 0) 
-			nioc =  (float)tumourPileup.getNearbyIndelCount() / tumourPileup.getTotalCount();
+			nn =  (float)tumourPileup.getNearbyIndelCount() / tumourPileup.getTotalCount();
 		else if(normalPileup.getTotalCount() > 0)
-			nioc = (float) normalPileup.getNearbyIndelCount() / normalPileup.getTotalCount();
-		re.appendInfo(IndelUtils.INFO_NIOC + nioc);		
+			nn = (float) normalPileup.getNearbyIndelCount() / normalPileup.getTotalCount();		
+		String nioc =   ((nn == 0 )? "0" : String.format("%.3f", nn));				
+		re.appendInfo( String.format( IndelUtils.INFO_NIOC + "=" + nioc) );		
 		
 		re.appendInfo("SVTYPE=" + this.mutationType.name());
 		re.appendInfo("END=" + indelEnd);
-		
-			
+					
 		return re; 	
 	}
  
