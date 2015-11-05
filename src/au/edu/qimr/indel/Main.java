@@ -47,17 +47,19 @@ public class Main {
 			logger.info("Soft clip window: " + options.getSoftClipWindow());
 			logger.info("Include duplicate " + options.includeDuplicates());		
 			
-			IndelMT process; 
-			if(options.getSecondInputVcf() == null){
-				logger.info("input vcf file:" + options.getFirstInputVcf().getAbsolutePath());
-				process = new IndelMT(options.getFirstInputVcf(), options, logger);
-			}else{
-				logger.info("first indel input: " + options.getFirstInputVcf().getAbsolutePath());
-				logger.info("second indel input " + options.getSecondInputVcf().getAbsolutePath());
-				process = new IndelMT(options.getFirstInputVcf(), options.getSecondInputVcf(), options, logger);
-			}			
+			IndelMT process = new IndelMT( options, logger);
+			exitStatus = process.process(options.getThreadNo());
 			
-			exitStatus = process.process(options.getThreadNo());			
+//			if(options.getSecondInputVcf() == null){
+//				logger.info("input vcf file:" + options.getFirstInputVcf().getAbsolutePath());
+//				process = new IndelMT(options.getFirstInputVcf(), options, logger);
+//			}else{
+//				logger.info("first indel input: " + options.getFirstInputVcf().getAbsolutePath());
+//				logger.info("second indel input " + options.getSecondInputVcf().getAbsolutePath());
+//				process = new IndelMT(options.getFirstInputVcf(), options.getSecondInputVcf(), options, logger);
+//			}			
+			
+					
 		} catch (Exception e) {				
 			String errStr = Q3IndelException.getStrackTrace(e);			
 			if (null != logger)  logger.error(errStr);

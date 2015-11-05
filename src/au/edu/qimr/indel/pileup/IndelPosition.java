@@ -285,6 +285,4 @@ public class IndelPosition {
 		return re; 	
 	}
  
-
-
 }

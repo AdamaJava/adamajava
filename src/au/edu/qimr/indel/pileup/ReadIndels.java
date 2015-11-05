@@ -131,42 +131,45 @@ public class ReadIndels {
 	 * @param sampleCode: replace sample code inside the input vcf file 
 	 * @throws IOException
 	 */
-	public void LoadSingleIndels(File f) throws IOException{
+	public void LoadIndels(File f) throws IOException{
 		
-        //read indel record into RAM, 
-        try (VCFFileReader reader = new VCFFileReader(f)) {
-        	header = reader.getHeader();	  	 
-        	//no chr in front of position
-        	int inVariants = 0;
-        	int inLines = 0;
-			for (final VcfRecord re : reader) {	
-				inLines ++;
-    			String StrAlt = re.getAlt(); 
-    			if( StrAlt.contains(",")){ 
-    				//here we don't split variants if ref same
-    				for(String alt : StrAlt.split(",")){
-    					inVariants ++;
-    					SVTYPE type = IndelUtils.getVariantType(re.getRef(), alt);
+ 	        try (VCFFileReader reader = new VCFFileReader(f)) {
+	        	if(header == null)
+	        		header = reader.getHeader();	
+	        	else
+	        		header = VcfHeaderUtils.mergeHeaders(header, reader.getHeader(), false);
+	        	//no chr in front of position
+	        	int inVariants = 0;
+	        	int inLines = 0;
+				for (final VcfRecord re : reader) {	
+					inLines ++;
+	    			String StrAlt = re.getAlt(); 
+	    			if( StrAlt.contains(",")){ 
+	    				//here we don't split variants if ref same
+	    				for(String alt : StrAlt.split(",")){
+	    					inVariants ++;
+	    					SVTYPE type = IndelUtils.getVariantType(re.getRef(), alt);
+			 	        	if(type.equals(SVTYPE.DEL) ||type.equals(SVTYPE.INS) ){
+			 	        		VcfRecord vcf1 = new VcfRecord(re.toString().trim().split("\t"));
+	         					vcf1.setAlt(alt);
+	         					ChrPosition pos = new ChrPosition(vcf1.getChromosome(), vcf1.getPosition(), vcf1.getChrPosition().getEndPosition(), alt);         					 
+	         					positionRecordMap.put(pos, vcf1);					 
+			 	        	}
+	    				}  		 
+	    			}else{
+	    				inVariants ++;
+	    				SVTYPE type = IndelUtils.getVariantType(re.getRef(), re.getAlt());
 		 	        	if(type.equals(SVTYPE.DEL) ||type.equals(SVTYPE.INS) ){
-		 	        		VcfRecord vcf1 = new VcfRecord(re.toString().trim().split("\t"));
-         					vcf1.setAlt(alt);
-         					ChrPosition pos = new ChrPosition(vcf1.getChromosome(), vcf1.getPosition(), vcf1.getChrPosition().getEndPosition(), alt);         					 
-         					positionRecordMap.put(pos, vcf1);					 
-		 	        	}
-    				}  		 
-    			}else{
-    				inVariants ++;
-    				SVTYPE type = IndelUtils.getVariantType(re.getRef(), re.getAlt());
-	 	        	if(type.equals(SVTYPE.DEL) ||type.equals(SVTYPE.INS) ){
-     					ChrPosition pos = new ChrPosition(re.getChromosome(), re.getPosition(), re.getChrPosition().getEndPosition(), re.getAlt());         					 
-     					positionRecordMap.put(pos, re);
-	 	        	}  	 	        		 
-    			}    			
- 			}
-			
-			logger.info(String.format("Find %d indels from %d variants (%d records lines) within file: %s",
-					positionRecordMap.size(), inVariants, inLines, f.getAbsoluteFile()));
-		} 
+	     					ChrPosition pos = new ChrPosition(re.getChromosome(), re.getPosition(), re.getChrPosition().getEndPosition(), re.getAlt());         					 
+	     					positionRecordMap.put(pos, re);
+		 	        	}  	 	        		 
+	    			}  
+	    			logger.info(String.format("Find %d indels from %d variants (%d records lines) within file: %s",
+						positionRecordMap.size(), inVariants, inLines, f.getAbsoluteFile()));
+	 			}
+				 
+			} 
+	 
 	}
 	
 	

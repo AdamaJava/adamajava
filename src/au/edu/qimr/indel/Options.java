@@ -6,7 +6,13 @@ package au.edu.qimr.indel;
 import static java.util.Arrays.asList;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+
+import org.ini4j.Ini;
+import org.ini4j.InvalidFileFormatException;
+import org.qcmg.common.util.FileUtils;
 
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
@@ -32,124 +38,64 @@ public class Options {
 	private final File reference;	
 	private final File output;
 	
-	private final File inputVcf1;
-	private final File inputVcf2;
+	private final File testVcf;
+	private final File controlVcf;
+	private final List<File> pindelVcfs = new ArrayList<File>(); 
+	private final String runMode; 
 	
-	private String testSampleid = "TEST";
-	private String controlSampleid = "CONTROL";
+	private String testSampleid ;
+	private String controlSampleid ;
 	private String donorid; 
+ 
 	
+			
 	private String commandLine;
 	
 	private String filterQuery;
 
-	public Options(final String[] args) throws Q3IndelException {
+	public Options(final String[] args) throws IOException, IOException, Q3IndelException  {
 
 		parser.accepts("log", Messages.getMessage("OPTION_LOG")).withRequiredArg().ofType(String.class);	
 		parser.accepts("loglevel", Messages.getMessage("OPTION_LOGLEVEL")).withRequiredArg().ofType(String.class);
-		parser.accepts("r", Messages.getMessage("OPTION_REFERENCE")).withRequiredArg().ofType(String.class).describedAs("reference.fa");
-		parser.accepts("filter", Messages.getMessage("OPTION_FILTER")).withRequiredArg().ofType(String.class).describedAs("qbamfilter");
-		parser.accepts("dup", Messages.getMessage("OPTION_DUPS"));
-
-		parser.accepts("o", Messages.getMessage("OPTION_OUTPUT")).withRequiredArg().ofType(String.class).describedAs("output");	
-		parser.accepts("i", Messages.getMessage("OPTION_VCF_INPUT")).withRequiredArg().ofType(String.class).describedAs("test_indel_vcf ");
-		parser.accepts("tb", Messages.getMessage("OPTION_INPUT_TEST")).withRequiredArg().ofType(String.class).describedAs("input_test_bam");
-		parser.accepts("cb", Messages.getMessage("OPTION_INPUT_CONTROL")).withRequiredArg().ofType(String.class).describedAs("input_control_bam");
 		
-		
-		//indel options
-		parser.accepts("softwindow", Messages.getMessage("OPTION_SOFTCLIP")).withRequiredArg().ofType(Integer.class).describedAs("soft_clip_window");
-		parser.accepts("homowindow", Messages.getMessage("OPTION_WINDOW")).withRequiredArg().ofType(Integer.class).describedAs("homopolymer_window");
-		parser.accepts("nearbywindow", Messages.getMessage("OPTION_NEAR_INDELS")).withRequiredArg().ofType(Integer.class).describedAs("nearby_indel_bases");
-		parser.accepts("n", Messages.getMessage("OPTION_THREAD_NO")).withRequiredArg().ofType(Integer.class).describedAs("thread number");
-
-		parser.accepts("testSample", Messages.getMessage("OPTION_TEST_SAMPLE")).withRequiredArg().ofType(String.class).describedAs("test sample id");
-		parser.accepts("controlSample", Messages.getMessage("OPTION_CONTROL_SAMPLE")).withRequiredArg().ofType(String.class).describedAs("control sample id");
-		parser.accepts("donor", "DONOR ID").withRequiredArg().ofType(String.class).describedAs("donor id");
-		
-		parser.acceptsAll(asList("h", "help"), HELP_OPTION);
-		parser.acceptsAll(asList("v", "V", "version"), VERSION_OPTION);	
+		parser.accepts("log", Messages.getMessage("OPTION_LOG")).withRequiredArg().ofType(String.class);
+		parser.accepts("i", Messages.getMessage("OPTION_INI_FILE")).withRequiredArg().ofType(String.class).describedAs("in file ");
+ 		
 		options = parser.parse(args);
-		
 		log = (String) options.valueOf("log");
-		
-
-		
 		loglevel = (String) options.valueOf("loglevel");		
 		commandLine = Messages.reconstructCommandLine(args) ;
 		
-		if(options.has("r"))
-			reference = new File( (String) options.valueOf("r"));
-		else
-			reference = null; 
-				
-		if(options.has("o"))			
-			output =new File(  (String) options.valueOf("o"));
-		else
-			output = null; 
 		
-		if(options.has("tb"))
-			testBam = new File( (String) options.valueOf("tb")) ;
-		else
-			testBam = null; 
+ 	
+		Ini iniFile = null; 
+		if(options.has("i") &&
+				FileUtils.isFileTypeValid((String) options.valueOf("i"), "ini")
+				)			
+		iniFile =  new Ini( new File(  (String) options.valueOf("i")));
+		 
+		reference = new File( IniFileUtil.getInputFile(iniFile, "ref") );
+		output =new File(  IniFileUtil.getOutputFile(iniFile, "vcf"));		
+		testBam = new File(IniFileUtil.getInputFile(iniFile, "testBam")) ;	
+		controlBam = new File( IniFileUtil.getInputFile(iniFile, "controlBam")) ;	
+		testVcf = new File( IniFileUtil.getInputFile(iniFile, "testvcf") );
+		controlVcf = new File(IniFileUtil.getInputFile(iniFile, "controlvcf"));
+		String[] inputs = IniFileUtil.getInputFiles(iniFile, "inputVcf");
+		for(int i = 0; i < inputs.length; i ++)
+			pindelVcfs.add(new File(inputs[i]));
 		
-		if(options.has("cb"))
-			controlBam = new File( (String) options.valueOf("cb")) ;	
-		else
-			controlBam = null; 
+		runMode =  IniFileUtil.getEntry(iniFile, "parameters", "runMode");
+		nearbyIndelWindow = Integer.parseInt( IniFileUtil.getEntry(iniFile, "parameters", "window.nearbyIndel"));
+		nearbyHomopolymer = Integer.parseInt( IniFileUtil.getEntry(iniFile, "parameters", "window.homopolymer"));
+		softClipWindow = Integer.parseInt( IniFileUtil.getEntry(iniFile, "parameters", "window.softClip"));
+		threadNo = Integer.parseInt( IniFileUtil.getEntry(iniFile, "parameters", "threadNo"));
+		filterQuery =  IniFileUtil.getEntry(iniFile, "parameters", "filter");
 		
-		if(options.has("i")){
-			 List<String> vcfs =  (List<String>) options.valuesOf("i");
-			 if(vcfs.size() == 1){
-				 inputVcf1  = new File(vcfs.get(0));
-			 	 inputVcf2 = null; 
-			 }else if(vcfs.size() == 2){
-				 inputVcf1  = new File(vcfs.get(0));
-				 inputVcf2 = new File(vcfs.get(1));
-			 }else{
-				 throw new Q3IndelException("INPUT_OPTION_ERROR", "please specify one or two input vcf files!");
-			 }
-		}else{
-			 inputVcf1  = null; 
-		 	 inputVcf2 = null; 			
-		}
-		
-
-		if (options.has("n")) {
-			this.threadNo = (Integer) options.valueOf("n");
-		}
-		
-		if (options.has("softwindow")) {
-			this.softClipWindow = (Integer) options.valueOf("softwindow");
-		}
-		if (options.has("homowindow")) {
-			this.nearbyHomopolymer = (Integer)options.valueOf("homowindow");
-		}
-		if (options.has("nearbywindow")) {
-			this.nearbyIndelWindow = (Integer)options.valueOf("nearbywindow");
-		}		
-		
-		
-		if(options.has("testSample"))
-			this.testSampleid = (String) options.valueOf("testSample");
-		
-		if(options.has("controlSample"))
-			this.controlSampleid = (String) options.valueOf("controlSample");
-		
-		
-		System.out.println(options.valueOf("donor"));
- 		if(options.has("donor"))
-// 			this.donorid = "donor";
-			this.donorid = (String) options.valueOf("donor");
-		
- 		if (options.has("filter")) {
-			this.filterQuery = (String) options.valueOf("filter");
-		}
- 		
- 		detectBadOptions();		
-
-	 
-		
+		testSampleid = IniFileUtil.getEntry(iniFile, "id", "testSample");
+		controlSampleid = IniFileUtil.getEntry(iniFile, "id", "controlSample");
+		donorid = IniFileUtil.getEntry(iniFile, "id", "donorid");
+ 
+  		detectBadOptions();		
 	}	
 
 	public boolean includeDuplicates() {
@@ -157,14 +103,15 @@ public class Options {
 			return true;
 		}
 		return false;
-	}
-	
+	}	
 
 	public String getFilterQuery() {
 		return filterQuery;
 	}
 
-
+	public String getRunMode(){
+		return runMode; 
+	}
  
 	public String getLog() {
 		return log;
@@ -198,23 +145,35 @@ public class Options {
 	}
 
 	public void detectBadOptions() throws Q3IndelException {
-		if (!hasHelpOption() && !hasVersionOption()) { 
-
+		if (!hasHelpOption() && !hasVersionOption()) {
+			
 			if (output.exists()) {					
 				throw new Q3IndelException("OUTPUT_EXISTS", output.getAbsolutePath());
 			}
 	 
 			checkReference();
-			if (!testBam.exists())  
+			if (testBam == null || !testBam.exists())  
 			throw new Q3IndelException("FILE_EXISTS_ERROR", testBam.getAbsolutePath());
 		 
-			if (!controlBam.exists()) 
-			throw new Q3IndelException("FILE_EXISTS_ERROR", controlBam.getAbsolutePath());							
- 			 
-		 	if (inputVcf2 != null && !inputVcf2.exists())  
-		 		throw new Q3IndelException("FILE_EXISTS_ERROR","(control indel vcf) " + inputVcf2.getAbsolutePath());
-		 	if (inputVcf1 != null && !inputVcf1.exists())  
-		 		throw new Q3IndelException("FILE_EXISTS_ERROR", "(test indel vcf) " + inputVcf1.getAbsolutePath());			 
+			if (controlBam == null || !controlBam.exists()) 
+			throw new Q3IndelException("FILE_EXISTS_ERROR", controlBam.getAbsolutePath());	
+			
+			
+			if ("gatk".equalsIgnoreCase(runMode)){ 
+				if(testVcf == null || !testVcf.exists())
+					throw new Q3IndelException("FILE_EXISTS_ERROR","(test gatk vcf) " + testVcf.getAbsolutePath());
+				if(controlVcf == null || !controlVcf.exists())
+					throw new Q3IndelException("FILE_EXISTS_ERROR","(control gatk vcf) " + controlVcf.getAbsolutePath());
+				 
+			}else if ("gatk".equalsIgnoreCase(runMode)){ 
+				if(pindelVcfs.size() == 0)
+					throw new Q3IndelException("INPUT_OPTION_ERROR","(pindel input vcf) not specified" );
+				
+				for(int i = 0; i < pindelVcfs.size(); i ++)
+				if ( pindelVcfs.get(i) != null && ! pindelVcfs.get(i).exists())  
+					throw new Q3IndelException("FILE_EXISTS_ERROR","(control indel vcf) " + pindelVcfs.get(i).getAbsolutePath());				
+			}else
+				throw new Q3IndelException("UNKNOWN_RUNMODE_ERROR", runMode);			
 		}				
 	}
 
@@ -237,12 +196,15 @@ public class Options {
 		return controlBam;
 	}	
 	
-	public File getFirstInputVcf() {		 
-		return inputVcf1; 
+	public List<File> getInputVcfs() {		 
+		return pindelVcfs; 
 	}
 	
-	public File getSecondInputVcf() {		 
-		return inputVcf2; 
+	public File getTestInputVcf() {		 
+		return testVcf; 
+	}
+	public File getControlInputVcf() {		 
+		return controlVcf; 
 	}
 	
 	public File getOutput() {

@@ -43,7 +43,7 @@ public class IndelPileupTest {
 	@Test
 	public void insertTest() throws Exception{
 		ReadIndels read = new ReadIndels(logger);
-		read.LoadSingleIndels(new File(inputIndel));
+		read.LoadIndels(new File(inputIndel));
 		Map<ChrPosition, IndelPosition> map = read.getIndelMap();
 				
 		//get pool		

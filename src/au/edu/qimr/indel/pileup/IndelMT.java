@@ -283,25 +283,41 @@ public class IndelMT {
 	//unit test purpose
 	@Deprecated
 	IndelMT(){}
-	
-	public IndelMT(File inputVcf, Options options, QLogger logger) throws IOException  {		
+	public IndelMT(Options options, QLogger logger) throws IOException  {		
 		this.options = options;	
 		this.logger = logger; 
-
+		
 		SamReader reader = SAMFileReaderFactory.createSAMFileReader(options.getTestBam());  
 		for (final SAMSequenceRecord contig : reader.getFileHeader().getSequenceDictionary().getSequences())  
 			sortedContigs.add(contig);
 		reader.close(); 
 		
-		this.indelload = new ReadIndels(logger);
-		indelload.LoadSingleIndels(inputVcf);	
-	}
-
-	public IndelMT(File inputTumourVcf, File inputNormalVcf, Options options, QLogger logger) throws Exception {
-		this(inputTumourVcf, options, logger); 
-		indelload.appendIndels(inputNormalVcf); 		
+		//loading indels 
+		this.indelload = new ReadIndels(logger);		
+		if(options.getRunMode().equalsIgnoreCase("gatk")){	
+			//first load control			
+			indelload.LoadIndels(options.getControlInputVcf());		
+			//then test
+			indelload.appendIndels(options.getTestInputVcf());
+		}else if(options.getRunMode().equalsIgnoreCase("pindel")){	
+			for(int i = 0; i < options.getInputVcfs().size(); i ++)
+				indelload.LoadIndels(options.getInputVcfs().get(i));		
+		}
 	}
 	
+	
+//	public IndelMT(File inputVcf, Options options, QLogger logger) throws IOException  {		
+//		this.options = options;	
+//		this.logger = logger; 
+//
+//		
+//	}
+//
+//	public IndelMT(File inputTumourVcf, File inputNormalVcf, Options options, QLogger logger) throws Exception {
+//		this(inputTumourVcf, options, logger); 
+//		indelload.appendIndels(inputNormalVcf); 		
+//	}
+//	
 	public int process(final int threadNo) throws Exception {
 		positionRecordMap = indelload.getIndelMap();
 		if(positionRecordMap == null || positionRecordMap.size() == 0){
@@ -378,10 +394,17 @@ public class IndelMT {
 		logger.info("reading indel position:  " + orderedList.size() );
 		try(VCFFileWriter writer = new VCFFileWriter( output)) {	
 			
+			List<File> inputs = new ArrayList<File>();
+			if(options.getRunMode().equalsIgnoreCase("gatk")){
+				inputs.add(options.getTestInputVcf());
+				inputs.add(options.getControlInputVcf());				
+			}else
+				inputs = options.getInputVcfs();
+							
 			//reheader
-			VcfHeader newHeader = VcfHeaderUtils.reheader(header, options.getCommandLine(), options.getFirstInputVcf().getAbsolutePath(), IndelMT.class );
-			if(options.getSecondInputVcf() != null)
-				newHeader.parseHeaderLine(VcfHeaderUtils.STANDARD_INPUT_LINE + "=" +  QExec.createUUid() + ":"+ options.getSecondInputVcf().getAbsolutePath());
+			VcfHeader newHeader = VcfHeaderUtils.reheader(header, options.getCommandLine(), inputs.get(0).getAbsolutePath(), IndelMT.class );		
+			for(int i = 0; i < inputs.size(); i ++)
+				newHeader.parseHeaderLine(VcfHeaderUtils.STANDARD_INPUT_LINE + "=" +  QExec.createUUid() + ":"+ inputs.get(i).getAbsolutePath());
 			
 			if(options.getDonorId() != null)
 				newHeader.replace( VcfHeaderUtils.STANDARD_DONOR_ID + "=" + options.getDonorId());			
@@ -417,9 +440,7 @@ public class IndelMT {
 //			header.addInfoLine(IndelUtils.INFO_HOMEMB, "1", "String", IndelUtils.DESCRITPION_INFO_HOMEMB);
 			header.addInfoLine(IndelUtils.INFO_NIOC, "1", "String", IndelUtils.DESCRITPION_INFO_NIOC);
 			header.addFormatLine(IndelUtils.INFO_ACINDEL, "1", "String", IndelUtils.DESCRITPION_INFO_ACINDEL);
-			header.addFormatLine(IndelUtils.INFO_HOMCNTXT, "1", "String", IndelUtils.DESCRITPION_INFO_HOMCNTXT); 
-					 
- 			
+			header.addInfoLine(IndelUtils.INFO_HOMCNTXT, "1", "String", IndelUtils.DESCRITPION_INFO_HOMCNTXT); 					  			
 			
         	for(final VcfHeader.Record record: header)  
         		writer.addHeader(record.toString());
