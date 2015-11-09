@@ -40,11 +40,9 @@ public class VcfHeader implements Iterable<VcfHeader.Record> {
 	Record version = null;
 	Record fileDate = null;	
 	Record uuid = null;
-//	Record preuuid = null;
-	Record source = null;
+ 	Record source = null;
 	Record chromLine = null;
-//	Record dornor = null; 
-		
+ 		
 	final FormattedRecords infoRecords;
 	final FormattedRecords formatRecords;
 	final FormattedRecords filterRecords;
@@ -487,23 +485,49 @@ public class VcfHeader implements Iterable<VcfHeader.Record> {
 		
 		return records.iterator();
 	}
-
+	/**
+	 *add a filter field into vcf header or replace the existing field with same id string
+	 * @param id: a unique string
+	 * @param description: description string
+	 */
 	public void addFilterLine(String id, String description) {
 		addFilter(new FilterRecord(	"##FILTER=<ID=" + id + ",Description=\"" + description + "\">"));
 	} 
-	public void addFormatLine(String id, String number2, String type, String description) {
-		addFormat(new FormatRecord(	"##FORMAT=<ID=" + id + ",Number=" + number2 + ",Type=" + type + ",Description=\"" + description + "\">"));
+	
+	/**
+	 * add a format field into vcf header or replace the existing  field with same id string
+	 * @param id: unique string 
+	 * @param number: an Integer that describes the number of values that can be included with the INFO field
+	 * @param type: Possible Types for FORMAT fields are: Integer, Float, Character, and String (this field is otherwise defined precisely as the INFO field).
+	 * @param description
+	 */
+	public void addFormatLine(String id, String number, String type, String description) {
+		addFormat(new FormatRecord(	"##FORMAT=<ID=" + id + ",Number=" + number + ",Type=" + type + ",Description=\"" + description + "\">"));
 	} 
-
+	
+	/**
+	 * add a information field into vcf header or replace the existing information field with same id string
+	 * @param id: INFO field identify name
+	 * @param number: an Integer that describes the number of values that can be included with the INFO field
+	 * @param type: Possible Types are: Integer, Float, Flag, Character, and String
+	 * @param description: description of this field
+	 */
 	public void addInfoLine(String id, String number, String type, String description) {
 		addInfo(new InfoRecord(	"##INFO=<ID=" + id + ",Number=" + number + ",Type=" + type + ",Description=\"" + description + "\">"));
 	}
 
-
-	public void addQPGLine(int i, String tool, String version2, String commandLine, String date) {
+/**
+ * append a new pg line  
+ * @param i: ith pg line
+ * @param tool : tool name
+ * @param version : tool version
+ * @param commandLine: command line
+ * @param date: date to run the tool
+ */
+	public void addQPGLine(int i, String tool, String version, String commandLine, String date) {
 		addQPG(new QPGRecord(VcfHeaderUtils.HEADER_LINE_QPG + "=<ID=" + i + 
 				Constants.COMMA + TOOL + Constants.EQ + tool +				
-				Constants.COMMA + VERSION + Constants.EQ + version2 +
+				Constants.COMMA + VERSION + Constants.EQ + version +
 				Constants.COMMA + DATE + Constants.EQ + date +
 				Constants.COMMA + COMMAND_LINE + Constants.EQ + "\"" + commandLine + "\"" +
 				">"));
