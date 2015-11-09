@@ -20,58 +20,37 @@ public class SAMFileReaderFactory {
 	static ValidationStringency DefaultStringency = ValidationStringency.SILENT;
 	
 	private static final QLogger logger = QLoggerFactory.getLogger(SAMFileReaderFactory.class);
-	 
-//	public static SamReader createSAMFileReader(final String bamFile) {
-//	//	return createSAMFileReader(new File(bamFile));
-//		
-//		return createSAMFileReader(new File(bamFile), null, ValidationStringency.SILENT, null);
-//	}
 	
 	/**
-	 * Will check to bam header to see if bwa was used to align this bam.
-	 * If it was, we will use the SILENT validation stringency
-	 * otherwise (and default) is to use STRICT
-	 * 
+	 * it read the bame with  SILENT validation stringency, without any SamReaderFactory.Option and with default index
 	 * @param bamFile
 	 * @return
 	 */
 	public static SamReader createSAMFileReader(final File bamFile) {
-		return createSAMFileReader(bamFile,null, ValidationStringency.SILENT, null); 
+		return createSAMFileReader(bamFile,null, DefaultStringency, new Option[0]);
 	}
 	
 	/**
-	 * Will check to bam header to see if bwa was used to align this bam.
-	 * If it was, we will use the SILENT validation stringency
-	 * otherwise (and default) is to use STRICT
-	 * 
+	 * it read the bame with  SILENT validation stringency, without any SamReaderFactory.Option and with specified index
 	 * @param bamFile
 	 * @return
 	 */
 	public static SamReader createSAMFileReader(final File bamFile, final File indexFile) { 	
-		return createSAMFileReader(bamFile, indexFile, null, null);
+		return createSAMFileReader(bamFile, indexFile, DefaultStringency, new Option[0]);
 	}
-	
-//	public static SamReader createSAMFileReader(final String bamFile, final String stringency) {
-//		return createSAMFileReader(new File(bamFile), stringency);
-//	}
 	
 	public static SamReader createSAMFileReader(final File bamFile, final String stringency) {
 				 
 			if ("lenient".equalsIgnoreCase(stringency)) {
-				return createSAMFileReader(bamFile, ValidationStringency.LENIENT);
-			} else if ("silent".equalsIgnoreCase(stringency)) {
-				return createSAMFileReader(bamFile, ValidationStringency.SILENT);
+				return createSAMFileReader(bamFile,null, ValidationStringency.LENIENT, new Option[0]);
 			} else if ("strict".equalsIgnoreCase(stringency)) {
-				return createSAMFileReader(bamFile, ValidationStringency.STRICT);
+				return createSAMFileReader(bamFile,null, ValidationStringency.STRICT, new Option[0]);
 			} 
 			
-			return createSAMFileReader(bamFile);
+			return createSAMFileReader(bamFile,null, DefaultStringency, new Option[0]);
+			 
 	}
 	
-	
-//	public static SamReader createSAMFileReader(final String bamFile, final ValidationStringency stringency) {
-//		return createSAMFileReader(new File(bamFile), stringency);
-//	}
 	
 	/**
 	 * Creates and returns a SamReader instance based on the supplied bam file, and the supplied Validation Stringency.
@@ -82,7 +61,7 @@ public class SAMFileReaderFactory {
 	 */
 	public static SamReader createSAMFileReader(final File bamFile, final ValidationStringency stringency) {
 		
-		 return createSAMFileReader(bamFile, null, stringency, null);
+		 return createSAMFileReader(bamFile, null, stringency, new Option[0]);
 	}
 	
 	/**
@@ -93,11 +72,11 @@ public class SAMFileReaderFactory {
 	 * @return SamReader reader for this bam file with this validation stringency
 	 */
 	public static SamReader createSAMFileReader(final File bamFile, final File indexFile, final ValidationStringency stringency) {
-		return createSAMFileReader(bamFile, indexFile, stringency, null);
+		return createSAMFileReader(bamFile, indexFile, stringency, new Option[0]);//SamReaderFactory.Option.values());   //Option.DEFAULTS.toArray());
 	}
 	
 	public static SamReader createSAMFileReader(final File bamFile, final SamReaderFactory.Option... options) {
-		return createSAMFileReader(bamFile, null, null, options);
+		return createSAMFileReader(bamFile, null, DefaultStringency, options);
 	}
 	
 	
