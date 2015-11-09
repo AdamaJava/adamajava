@@ -39,6 +39,7 @@ public final class VCFSerializer {
 			throws IOException , Exception {
 		VcfRecord result = null;
 		final String line = nextNonheaderLine(reader);	
+		
 		if (null != line) {
 			result = parseRecord(line);
 		}
@@ -51,9 +52,7 @@ public final class VCFSerializer {
 		if (8 > arrayLength) {
 			throw new Exception("Bad VCF format. Insufficient columns: '" + line + "'");
 		}
-		final VcfRecord result = new VcfRecord(params);
 		
-		
-		return result;
+		return new VcfRecord(params);
 	}
 }
