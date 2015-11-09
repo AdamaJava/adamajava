@@ -121,12 +121,12 @@ final class Messages {
 	 * @param args the args
 	 * @return the string
 	 */
-	static String reconstructCommandLine(final String[] args) {
-		String result = getProgramName() + " ";
-		for (final String arg : args) {
-			result += arg + " ";
-		}
-		return result;
-	}
+//	static String reconstructCommandLine(final String[] args) {
+//		String result = getProgramName() + " ";
+//		for (final String arg : args) {
+//			result += arg + " ";
+//		}
+//		return result;
+//	}
 
 }

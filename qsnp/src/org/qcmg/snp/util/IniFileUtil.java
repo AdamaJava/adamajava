@@ -119,7 +119,7 @@ public class IniFileUtil {
 	
 	public static String getEntry(Ini ini, String parent, String child) {
 		checkIni(ini);
-//		// use fetch rather than get to resolve any variable references
+		// use fetch rather than get to resolve any variable references
 		return ini.fetch(parent, child);
 	}
 	

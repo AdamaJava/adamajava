@@ -40,7 +40,7 @@ public final class Options {
 	private final OptionSet options;
 	
 	/** The command line. */
-	private final String commandLine;
+//	private final String commandLine;
 	
 	/** The input file names. */
 	private final String[] inputFileNames;
@@ -57,7 +57,7 @@ public final class Options {
 	 */
 	@SuppressWarnings("unchecked")
 	public Options(final String[] args) throws Exception {
-		commandLine = Messages.reconstructCommandLine(args);
+//		commandLine = Messages.reconstructCommandLine(args);
 
 		parser.accepts("help", HELP_DESCRIPTION);
 		parser.acceptsAll(asList("v", "V", "version"), VERSION_DESCRIPTION);
@@ -176,9 +176,9 @@ public final class Options {
 	 *
 	 * @return the command line
 	 */
-	public String getCommandLine() {
-		return commandLine;
-	}
+//	public String getCommandLine() {
+//		return commandLine;
+//	}
 
 	/**
 	 * Display help.
