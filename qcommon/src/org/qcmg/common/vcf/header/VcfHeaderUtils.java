@@ -247,7 +247,7 @@ public class VcfHeaderUtils {
 	 * @param original
 	 * @param additional
 	 * @param overwrite
-	 * @return
+	 * @return original header merged from additional 
 	 */
 	public static VcfHeader mergeHeaders(VcfHeader original, VcfHeader additional, boolean overwrite) {
 		if (null == original && null == additional) {
@@ -310,27 +310,27 @@ public class VcfHeaderUtils {
 	
 	public static VcfHeader reheader(VcfHeader header, String cmd, String inputVcfName, Class mainClass) throws IOException {	
 		DateFormat df = new SimpleDateFormat("yyyyMMdd"); 
-		VcfHeader myHeader = header;  	
+//		VcfHeader myHeader = header;  	
  		
 		String version = mainClass.getPackage().getImplementationVersion();
 		String pg = mainClass.getPackage().getImplementationTitle();
 		final String fileDate = df.format(Calendar.getInstance().getTime());
 		final String uuid = QExec.createUUid();
 		
-		myHeader.parseHeaderLine(VcfHeaderUtils.CURRENT_FILE_VERSION);
-		myHeader.parseHeaderLine(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + fileDate);
-		myHeader.parseHeaderLine(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + uuid);
-		myHeader.parseHeaderLine(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=" + pg+"-"+version);	
+		header.parseHeaderLine(VcfHeaderUtils.CURRENT_FILE_VERSION);
+		header.parseHeaderLine(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + fileDate);
+		header.parseHeaderLine(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + uuid);
+		header.parseHeaderLine(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=" + pg+"-"+version);	
 			
-		String inputUuid = (myHeader.getUUID() == null)? null: new VcfHeaderUtils.SplitMetaRecord(myHeader.getUUID()).getValue();   
-		myHeader.replace(VcfHeaderUtils.STANDARD_INPUT_LINE + "=" + inputUuid + ":"+ inputVcfName);
+		String inputUuid = (header.getUUID() == null)? null: new VcfHeaderUtils.SplitMetaRecord(header.getUUID()).getValue();   
+		header.replace(VcfHeaderUtils.STANDARD_INPUT_LINE + "=" + inputUuid + ":"+ inputVcfName);
 		
 		if(version == null) version = Constants.NULL_STRING;
 	    if(pg == null ) pg = Constants.NULL_STRING;
 	    if(cmd == null) cmd = Constants.NULL_STRING;
-		VcfHeaderUtils.addQPGLineToHeader(myHeader, pg, version, cmd);
+		VcfHeaderUtils.addQPGLineToHeader(header, pg, version, cmd);
 		
-		return myHeader;
+		return header;
 			
 	}
 	
