@@ -10,7 +10,7 @@ import au.edu.qimr.indel.pileup.IndelMT;
 
 public class Main {
 	
-	private static QLogger logger = QLoggerFactory.getLogger(Main.class);
+	
 	public static void main(String[] args) throws Exception {
 		
 		if (args.length == 0) {
@@ -26,16 +26,15 @@ public class Main {
 			System.err.println(Messages.getVersionMessage());	
 			System.exit( 0 );
 		} 
-		
 
 		LoadReferencedClasses.loadClasses(Main.class);
-		
+		QLogger logger = options.getLogger();
 		int exitStatus = 0;
 		try {
 					
-			String	version = Main.class.getPackage().getImplementationVersion();
-			logger = QLoggerFactory.getLogger(Main.class, options.getLog(), null);
-			logger.logInitialExecutionStats("q3pileup", version, args, QExec.createUUid());
+//			String	version = Main.class.getPackage().getImplementationVersion();
+			
+//			logger.logInitialExecutionStats("q3pileup", version, args, QExec.createUUid());
 					
 			logger.info("***INPUT FILES***");
 			logger.info("Test bam: " + options.getTestBam());
@@ -45,21 +44,11 @@ public class Main {
 			logger.info("Homopolymer window: " + options.getNearbyHomopolymerWindow());
 			logger.info("Nearby indel window: " + options.getNearbyIndelWindow());
 			logger.info("Soft clip window: " + options.getSoftClipWindow());
-			logger.info("Include duplicate " + options.includeDuplicates());		
+			logger.info("Exclude duplicate " + options.excludeDuplicates());		
 			
 			IndelMT process = new IndelMT( options, logger);
-			exitStatus = process.process(options.getThreadNo());
-			
-//			if(options.getSecondInputVcf() == null){
-//				logger.info("input vcf file:" + options.getFirstInputVcf().getAbsolutePath());
-//				process = new IndelMT(options.getFirstInputVcf(), options, logger);
-//			}else{
-//				logger.info("first indel input: " + options.getFirstInputVcf().getAbsolutePath());
-//				logger.info("second indel input " + options.getSecondInputVcf().getAbsolutePath());
-//				process = new IndelMT(options.getFirstInputVcf(), options.getSecondInputVcf(), options, logger);
-//			}			
-			
-					
+			exitStatus = process.process(options.getThreadNo());			
+ 					
 		} catch (Exception e) {				
 			String errStr = Q3IndelException.getStrackTrace(e);			
 			if (null != logger)  logger.error(errStr);

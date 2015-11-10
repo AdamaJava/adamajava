@@ -184,10 +184,8 @@ public class IndelPosition {
 		this.polymer = polymer; 
 	}
 	
-	public VcfRecord getPileupedVcf(int index){
-		VcfRecord re = vcfs.get(index);
-		
-		
+	public VcfRecord getPileupedVcf(int index, final int gematic_nns, final float gematic_soi){
+		VcfRecord re = vcfs.get(index);		
 		
 		//not interested int these indels since over coverage
 		if(tumourPileup != null  && tumourPileup.getTotalCount() > 1000){
@@ -202,14 +200,14 @@ public class IndelPosition {
 		
 		//decide somatic or not
 		boolean somatic = true;
-//		if(polymer != null && !polymer.getType(index).equals(HOMOTYPE.NONE))  somatic = false; 
-//		else if(tumourPileup != null && tumourPileup.getNearbyIndelCount() > 0 ) somatic = false;
 		if(normalPileup != null){
-			if( normalPileup.getnovelStartReadCount(index)  > 2 ) somatic = false;
+			if( normalPileup.getnovelStartReadCount(index)  > gematic_nns ) 
+				somatic = false;
 			else if(normalPileup.getInformativeCount() > 0){
 				int scount =   normalPileup.getsuportReadCount(index);
 				int icount =   normalPileup.getInformativeCount();
-				if((scount * 100 / icount) >= 5 ) somatic = false; 
+				if((float )(scount / icount) >= gematic_soi ) 
+					somatic = false; 
 			}
 		}
 		
@@ -219,7 +217,6 @@ public class IndelPosition {
 		
 		//set default filter as PASS
 		re.setFilter(VcfHeaderUtils.FILTER_PASS);
-
 
 		 
 		String td = ".", nd = ".";		

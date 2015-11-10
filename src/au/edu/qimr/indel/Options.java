@@ -3,6 +3,8 @@
  */
 package au.edu.qimr.indel;
 
+
+
 import static java.util.Arrays.asList;
 
 import java.io.File;
@@ -11,8 +13,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.ini4j.Ini;
-import org.ini4j.InvalidFileFormatException;
+import org.qcmg.common.log.QLogger;
+import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.meta.QExec;
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.FileUtils;
+
+import com.sun.corba.se.impl.orbutil.closure.Constant;
 
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
@@ -25,54 +32,61 @@ public class Options {
 	
 	private final OptionParser parser = new OptionParser();
 	private final OptionSet options;
+	private QLogger logger ;
+	private QExec qexec;
 	
-	private final String log;
-	private final String loglevel;
+	private String log;
+	private String loglevel;
 	public int nearbyIndelWindow = 3;
 	public int nearbyHomopolymer = 10;
 	public int softClipWindow = 13;
 	public int threadNo = 5;
 	
-	private final File testBam;
-	private final File controlBam;
-	private final File reference;	
-	private final File output;
+	private File testBam;
+	private File controlBam;
+	private File reference;	
+	private File output;
 	
-	private final File testVcf;
-	private final File controlVcf;
+	private File testVcf;
+	private File controlVcf;
 	private final List<File> pindelVcfs = new ArrayList<File>(); 
-	private final String runMode; 
+	private String runMode; 
 	
 	private String testSampleid ;
 	private String controlSampleid ;
 	private String donorid; 
- 
-	
-			
-	private String commandLine;
-	
+	private String analysisid; 
+	private int gematic_nns;
+	private float gematic_soi; 
+	private boolean exdup ;
+				
+//	private String commandLine;	
 	private String filterQuery;
 
-	public Options(final String[] args) throws IOException, IOException, Q3IndelException  {
+	public Options(final String[] args) throws IOException, Q3IndelException  {
+		parser.acceptsAll(asList("h", "help"), HELP_OPTION);
+		parser.acceptsAll(asList("v", "V", "version"), VERSION_OPTION);	
 
 		parser.accepts("log", Messages.getMessage("OPTION_LOG")).withRequiredArg().ofType(String.class);	
 		parser.accepts("loglevel", Messages.getMessage("OPTION_LOGLEVEL")).withRequiredArg().ofType(String.class);
-		
-		parser.accepts("log", Messages.getMessage("OPTION_LOG")).withRequiredArg().ofType(String.class);
 		parser.accepts("i", Messages.getMessage("OPTION_INI_FILE")).withRequiredArg().ofType(String.class).describedAs("in file ");
- 		
+
 		options = parser.parse(args);
+		
+		if(hasHelpOption() || hasVersionOption()){			
+			return; 
+		}
+			
 		log = (String) options.valueOf("log");
-		loglevel = (String) options.valueOf("loglevel");		
-		commandLine = Messages.reconstructCommandLine(args) ;
-		
-		
+		loglevel = (String) options.valueOf("loglevel");	
+		String	version = Main.class.getPackage().getImplementationVersion();
+		if (version == null) version = Constants.NULL_STRING; 
+		logger = QLoggerFactory.getLogger(Main.class, log, loglevel);
+		qexec = logger.logInitialExecutionStats("q3pileup", version, args, QExec.createUUid());		
  	
-		Ini iniFile = null; 
-		if(options.has("i") &&
-				FileUtils.isFileTypeValid((String) options.valueOf("i"), "ini")
-				)			
-		iniFile =  new Ini( new File(  (String) options.valueOf("i")));
+		if(!options.has("i"))
+			throw new IOException("missing ini file option \'-i \'");
+		Ini iniFile =  new Ini( new File(  (String) options.valueOf("i")));
 		 
 		reference = new File( IniFileUtil.getInputFile(iniFile, "ref") );
 		output =new File(  IniFileUtil.getOutputFile(iniFile, "vcf"));		
@@ -91,18 +105,33 @@ public class Options {
 		threadNo = Integer.parseInt( IniFileUtil.getEntry(iniFile, "parameters", "threadNo"));
 		filterQuery =  IniFileUtil.getEntry(iniFile, "parameters", "filter");
 		
-		testSampleid = IniFileUtil.getEntry(iniFile, "id", "testSample");
-		controlSampleid = IniFileUtil.getEntry(iniFile, "id", "controlSample");
-		donorid = IniFileUtil.getEntry(iniFile, "id", "donorid");
- 
-  		detectBadOptions();		
-	}	
+		testSampleid = IniFileUtil.getEntry(iniFile, "ids", "testSample");
+		controlSampleid = IniFileUtil.getEntry(iniFile, "ids", "controlSample");
+		donorid = IniFileUtil.getEntry(iniFile, "ids", "donorId");
+		analysisid = IniFileUtil.getEntry(iniFile, "ids", "analysisId");
+		
+		gematic_nns = Integer.parseInt( IniFileUtil.getEntry(iniFile, "rules", "gematic.nns"));
+		gematic_soi = Float.parseFloat( IniFileUtil.getEntry(iniFile, "rules", "gematic.soi"));
+		exdup  = Boolean.parseBoolean( IniFileUtil.getEntry( iniFile, "rules", "exclude.Duplicates"));
+				 		
+  		detectBadOptions();	  		  		
+	}
+	
+	public  QLogger getLogger(){ return logger; }
+	public QExec getQExec(){return qexec; }	
+	
+	public String getAnalysisId(){return analysisid; }
+	public int getMinGematicNovelStart(){return gematic_nns ;}
+	public float getMinGematicSupportOfInformative(){return gematic_soi; }
 
-	public boolean includeDuplicates() {
-		if (options.has("dup")) {
-			return true;
-		}
-		return false;
+	public boolean excludeDuplicates() {
+		return exdup;
+//		IniFileUtil.getEntry(ini, parent, child)
+//		
+//		if (options.has("dup")) {
+//			return true;
+//		}
+//		return false;
 	}	
 
 	public String getFilterQuery() {
@@ -165,7 +194,7 @@ public class Options {
 				if(controlVcf == null || !controlVcf.exists())
 					throw new Q3IndelException("FILE_EXISTS_ERROR","(control gatk vcf) " + controlVcf.getAbsolutePath());
 				 
-			}else if ("gatk".equalsIgnoreCase(runMode)){ 
+			}else if ("pindel".equalsIgnoreCase(runMode)){ 
 				if(pindelVcfs.size() == 0)
 					throw new Q3IndelException("INPUT_OPTION_ERROR","(pindel input vcf) not specified" );
 				
@@ -233,7 +262,7 @@ public class Options {
 		return threadNo;
 	}
 
-	public String getCommandLine() {	return commandLine; }		
+//	public String getCommandLine() {	return commandLine; }		
 	public String getDonorId(){ return donorid; }
 	public String getControlSample(){ return  this.controlSampleid; }
 	public String getTestSample(){ return this.testSampleid; }
