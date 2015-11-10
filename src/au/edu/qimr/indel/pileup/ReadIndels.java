@@ -163,10 +163,11 @@ public class ReadIndels {
 	     					ChrPosition pos = new ChrPosition(re.getChromosome(), re.getPosition(), re.getChrPosition().getEndPosition(), re.getAlt());         					 
 	     					positionRecordMap.put(pos, re);
 		 	        	}  	 	        		 
-	    			}  
-	    			logger.info(String.format("Find %d indels from %d variants (%d records lines) within file: %s",
-						positionRecordMap.size(), inVariants, inLines, f.getAbsoluteFile()));
+	    			}  	    			
 	 			}
+				
+				logger.info(String.format("Find %d indels from %d variants (%d records lines) within file: %s",
+						positionRecordMap.size(), inVariants, inLines, f.getAbsoluteFile()));
 				 
 			} 
 	 
