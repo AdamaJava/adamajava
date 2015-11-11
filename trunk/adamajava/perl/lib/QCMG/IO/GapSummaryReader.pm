@@ -83,6 +83,7 @@ sub _parse_headers {
     my @headers = ();
     while (1) {
         my $line = $self->filehandle->getline();
+        next unless defined $line;  # ditch if there are no headers
         chomp $line;
         next unless $line;        # skip blanks
         # If we got to here then we must have the header line
