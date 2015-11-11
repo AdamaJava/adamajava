@@ -10,7 +10,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.qcmg.common.log.QLoggerFactory;
@@ -24,20 +26,20 @@ public class ReadIndelsTest {
 	final static String input1 = "input1.vcf";
 	final static String input2 = "input2.vcf";
 	
-	@BeforeClass
-	public static void createInput() {	 
+	@Before  
+	public void createInput() {	 
 		createVcf();		
 	}
 	
-	@AfterClass
-	public static void clearInput() {	 		
-//		new File(input1).delete();
-//		new File(input2).delete();
+	@After 
+	public void clearInput() {	 		
+		new File(input1).delete();
+		new File(input2).delete();
 	}
 	
 	@Test
 	public void appendIndels(){
-		
+		 
 		try{
 			ReadIndels indelload = new ReadIndels(QLoggerFactory.getLogger(Main.class, null, null));		
 			indelload.LoadIndels(new File(input1));	
@@ -46,6 +48,7 @@ public class ReadIndelsTest {
 			assertTrue(getHeaderLineCounts(indelload.getVcfHeader()) == 7);
 			
 			Map<ChrPosition, IndelPosition> positionRecordMap = indelload.getIndelMap();
+			
 			assertTrue(positionRecordMap.size() == 3);		
 			for( ChrPosition key : positionRecordMap.keySet()){
 				IndelPosition indel = positionRecordMap.get(key);
@@ -75,9 +78,8 @@ public class ReadIndelsTest {
 //			for(String alt : tt[i].split(","))
 //				System.out.println(tt[i] + " splitted to " + alt);
 		
-		
-		ReadIndels indelload = new ReadIndels(QLoggerFactory.getLogger(Main.class, null, null));		
-		
+		createVcf();
+		ReadIndels indelload = new ReadIndels(QLoggerFactory.getLogger(Main.class, null, null));				
 		try{
 			//load single file
 			indelload.LoadIndels(new File(input1));	
@@ -97,9 +99,7 @@ public class ReadIndelsTest {
 					assertTrue( indel.getMotif(1).equals("CG"));
 					assertTrue(indel.getIndelVcf(0).getFormatFieldStrings().equals(indel.getIndelVcf(1).getFormatFieldStrings()  ));				 
 				}			
-	//			for(int i = 0; i < indel.getIndelVcfs().size(); i ++)
-	//				System.out.println(i + " " + key  + " : " + indel.getIndelVcf(i).getFormatFields().get(2));			 
-			}
+ 			}
 		 		
 			//change inputs order
 			indelload = new ReadIndels(QLoggerFactory.getLogger(Main.class, null, null));	
