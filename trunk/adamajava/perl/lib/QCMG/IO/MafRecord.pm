@@ -799,11 +799,15 @@ Return values are shown above.
 Undef is returned if the variant could not be categorised using this scheme.
 This scheme does not distinguish between silent and non-silent mutations.
 
-sub categorise_quiddell {
+=item B<categorise_quiddell()>
+=item B<categorise_quiddell2()>
 
  non-silent sub
  indel
 
+These 2 schemes are currently (2015-11-12) identical because the only
+deifference between the schemes is the way CNV data is overlaid on top
+of the MAF (SNV/indel) info.
 
 =item B<categorise_synonymous()>
 

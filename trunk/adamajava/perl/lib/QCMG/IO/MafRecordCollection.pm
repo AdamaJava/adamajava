@@ -391,6 +391,16 @@ sub categorise_variants_synonymous {
 }
 
 
+sub categorise_variants_quiddell2 {
+    my $self = shift;
+    qlogprint "categorising variants - quiddell2\n";
+    # At this point (2015-11-12) the quiddell and quiddell2 schemes are
+    # identical from the MAF (SNV/indel) perspective - they only differ
+    # in how thre CNV data is added so that is done later. 
+    return $self->_categorise_variants( 4 );
+}
+
+
 sub _categorise_variants {
     my $self = shift;
     my $mode = shift;
@@ -403,6 +413,8 @@ sub _categorise_variants {
     my $vs = QCMG::Variants::VariantSummary->new(
                  verbose => $self->verbose );
 
+    # Loop through each of the QCMG::IO::MafRecord records calling the
+    # correct categorise_* method on it.
     foreach my $mfr ($new_mfc->records) {
         my $patient = $mfr->Tumor_Sample_Barcode;
         my $variant = $mfr->Variant_Type;
@@ -427,6 +439,9 @@ sub _categorise_variants {
         }
         elsif ($mode == 5) {
             $variant = $mfr->categorise_synonymous;
+        }
+        elsif ($mode == 6) {
+            $variant = $mfr->categorise_quiddell2;
         }
         else {
             confess "unknown mode [$mode]";
@@ -603,6 +618,8 @@ have been split and others may have been dropped.
 
 =item B<categorise_variants_quiddell()>
 
+=item B<categorise_variants_quiddell2()>
+
 These routines all categorise variants according to different schemes and
 return an instance of the QCMG::Variants::VariantSummary class.
 In all cases they collapse the
@@ -613,9 +630,11 @@ B<filter_by_worst_consequence()> method.
 Details of the recoding schemes are documented in the script
 QCMGPerl/distros/seqtools/src/qmaftools.pl.
 
-B<categorise_variants_quiddell()> is a special case because it is not an
-implementation of the full quiddell categorisation scheme which also
-requires CNV (and SV) data.  The kassahn, stransky and jones schemes are
+B<categorise_variants_quiddell()> and B<categorise_variants_quiddell2()>
+are special cases because they are not an implementation of full
+categorisation schemes because the full schemes also require other data
+(CNV, SV etc).
+The kassahn, stransky and jones schemes are
 all complete here because they only require SNP and indel information
 which should all be in the same MAF.
 
