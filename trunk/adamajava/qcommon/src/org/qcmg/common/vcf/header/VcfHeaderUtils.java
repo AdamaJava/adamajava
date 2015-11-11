@@ -242,7 +242,7 @@ public class VcfHeaderUtils {
 	/**
 	 * Merge 2 VcfHEader objects together.
 	 * Only merges the FILTER, INFO, FORMAT and META header lines.
-	 * qPG and the standard lines (fileformat etc) are left untouched
+	 * qPG and other line which don't have '=' (eg. final CHROM line) are left untouched
 	 * 
 	 * @param original
 	 * @param additional
