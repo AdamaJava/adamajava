@@ -313,9 +313,7 @@ public class IndelMT {
 	
 //	public IndelMT(File inputVcf, Options options, QLogger logger) throws IOException  {		
 //		this.options = options;	
-//		this.logger = logger; 
-//
-//		
+//		this.logger = logger; 	
 //	}
 //
 //	public IndelMT(File inputTumourVcf, File inputNormalVcf, Options options, QLogger logger) throws Exception {
@@ -371,6 +369,7 @@ public class IndelMT {
 	
 
 	private void writeVCF(AbstractQueue<IndelPileup> tumourQueue, AbstractQueue<IndelPileup> normalQueue, AbstractQueue<Homopolymer> homopoQueue, File output, VcfHeader header ) throws Exception{
+		
 		IndelPileup pileup;
 		if(positionRecordMap == null ){
 			logger.warn("the indel map: positionRecordMap point to nothing");
@@ -407,9 +406,12 @@ public class IndelMT {
 				inputs = options.getInputVcfs();
 							
 			//reheader
-			VcfHeader newHeader = getHeaderForIndel(header);					
+			getHeaderForIndel(header);	
+		      //debug
+		    for(final VcfHeader.Record record: header)  
+		    	System.out.println( "header: " + record.toString());
 		 	
-        	for(final VcfHeader.Record record: newHeader)  
+        	for(final VcfHeader.Record record: header)  
         		writer.addHeader(record.toString());
 			 
         	//adding indels
@@ -426,35 +428,28 @@ public class IndelMT {
 		
 	}
 	
-	 	private VcfHeader getHeaderForIndel(VcfHeader existHeader ) throws Exception{
-		
-		 
-		VcfHeader header = new VcfHeader();
+	 	private void getHeaderForIndel(VcfHeader header ) throws Exception{
+
+//		VcfHeader header = existHeader; // new VcfHeader();
 		 QExec qexec = options.getQExec();
 		 
 		final DateFormat df = new SimpleDateFormat("yyyyMMdd");
  		header.parseHeaderLine(VcfHeaderUtils.CURRENT_FILE_VERSION);		
 		header.parseHeaderLine(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + df.format(Calendar.getInstance().getTime()));		
-//		header.parseHeaderLine(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + QExec.createUUid());	
 		header.parseHeaderLine(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + qexec.getUuid().getValue());
 		header.parseHeaderLine(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=" + qexec.getToolName().getValue() + " v" + qexec.getToolVersion().getValue());
 		
-//				qexec.getExecMetaDataToString());// "q3indel v" + IndelMT.class.getPackage().getImplementationVersion());		
-//		"qSNP v" + Main.version
 		header.parseHeaderLine(VcfHeaderUtils.STANDARD_DONOR_ID + "=" + options.getDonorId());
 		header.parseHeaderLine(VcfHeaderUtils.STANDARD_CONTROL_SAMPLE + "=" + options.getControlSample());		
 		header.parseHeaderLine(VcfHeaderUtils.STANDARD_TEST_SAMPLE + "=" + options.getTestSample());		
 		
-		List<File> inputs = new ArrayList<File>();
+//		List<File> inputs = new ArrayList<File>();
 		if(options.getRunMode().equalsIgnoreCase("gatk")){
-			inputs.add(options.getTestInputVcf());
-			inputs.add(options.getControlInputVcf());				
-		}else
-			inputs = options.getInputVcfs();
-				
- 		for(int i = 0; i < inputs.size(); i ++)
-			header.parseHeaderLine(VcfHeaderUtils.STANDARD_INPUT_LINE + "=" + inputs.get(i).getAbsolutePath());
-		
+			header.parseHeaderLine(VcfHeaderUtils.STANDARD_INPUT_LINE + "_GATK_TEST=" + options.getTestInputVcf().getAbsolutePath());
+			header.parseHeaderLine(VcfHeaderUtils.STANDARD_INPUT_LINE + "_GATK_CONTROL=" + options.getControlInputVcf().getAbsolutePath());
+ 		}else
+	 		for(int i = 0; i < options.getInputVcfs().size(); i ++)
+	 			header.parseHeaderLine(VcfHeaderUtils.STANDARD_INPUT_LINE + "_PINDEL=" + options.getInputVcfs().get(i).getAbsolutePath());
 
 		String normalBamName = options.getControlBam().getAbsolutePath();			
 		header.parseHeaderLine( VcfHeaderUtils.STANDARD_CONTROL_BAM  + "=" + normalBamName);
@@ -463,8 +458,7 @@ public class IndelMT {
 		header.parseHeaderLine( VcfHeaderUtils.STANDARD_CONTROL_BAM  + "=" + tumourBamName);
 		header.parseHeaderLine( "##qControlBamUUID=" + QBamIdFactory.getBamId(tumourBamName));		 			 			 	
 		header.parseHeaderLine( "##qAnalysisId=" + options.getAnalysisId() );
-		
-		
+				
 		//add filter
         header.addFilterLine(IndelUtils.FILTER_COVN12, IndelUtils.DESCRITPION_FILTER_COVN12 );
         header.addFilterLine(IndelUtils.FILTER_COVN8,  IndelUtils.DESCRITPION_FILTER_COVN8 );
@@ -487,17 +481,13 @@ public class IndelMT {
 		header.addInfoLine(IndelUtils.INFO_HOMCNTXT, "1", "String", IndelUtils.DESCRITPION_INFO_HOMCNTXT); 					  			
 		header.addFormatLine(IndelUtils.INFO_ACINDEL, "1", "String", IndelUtils.DESCRITPION_INFO_ACINDEL);
 
-       header = VcfHeaderUtils.mergeHeaders(header, existHeader, false);
-		
-//		VcfHeaderUtils.addQPGLineToHeader(header, pg, version, cmd);	
-       
-        
 		VcfHeaderUtils.addQPGLineToHeader(header, qexec.getToolName().getValue(), qexec.getToolVersion().getValue(), qexec.getCommandLine().getValue() 
-				+  " [runMode: " + options.getRunMode() + "]");
-		
-		
-		
-		return  header;
+				+  " [runMode: " + options.getRunMode() + "]");        
+        		
+		//header will automatic append CHROM line if get from input file	
+		VcfHeaderUtils.addSampleId(header, options.getControlSample(), 1);
+		VcfHeaderUtils.addSampleId(header, options.getTestSample(), 2);
+		 
 	}
 	 
  
