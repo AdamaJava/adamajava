@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.qcmg.common.log.QLogger;
+import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.util.IndelUtils.SVTYPE;
@@ -17,6 +18,8 @@ import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 
+import au.edu.qimr.indel.Main;
+
 
 public class ReadIndels {
 	QLogger logger; 
@@ -25,15 +28,12 @@ public class ReadIndels {
 	//here key will be uniq for indel: chr, start, end, allel 
 	private static final  Map<ChrPosition,VcfRecord> positionRecordMap = new  ConcurrentHashMap<ChrPosition,VcfRecord>();
 	
- 
-
 	//for testing only
-	ReadIndels(){}
+//	ReadIndels(){ QLoggerFactory.getLogger(Main.class, null, null);}
 	
 	public ReadIndels( QLogger logger){
 		this.logger = logger; 		
 	}
-
 	
 	public void appendIndels(File f) throws IOException{
 		
@@ -144,27 +144,37 @@ public class ReadIndels {
 				for (final VcfRecord re : reader) {	
 					inLines ++;
 	    			String StrAlt = re.getAlt(); 
-	    			if( StrAlt.contains(",")){ 
-	    				//here we don't split variants if ref same
-	    				for(String alt : StrAlt.split(",")){
-	    					inVariants ++;
-	    					SVTYPE type = IndelUtils.getVariantType(re.getRef(), alt);
-			 	        	if(type.equals(SVTYPE.DEL) ||type.equals(SVTYPE.INS) ){
-			 	        		VcfRecord vcf1 = new VcfRecord(re.toString().trim().split("\t"));
-	         					vcf1.setAlt(alt);
-	         					ChrPosition pos = new ChrPosition(vcf1.getChromosome(), vcf1.getPosition(), vcf1.getChrPosition().getEndPosition(), alt);         					 
-	         					positionRecordMap.put(pos, vcf1);					 
-			 	        	}
-	    				}  		 
-	    			}else{
-	    				inVariants ++;
-	    				SVTYPE type = IndelUtils.getVariantType(re.getRef(), re.getAlt());
+    				for(String alt : StrAlt.split(",")){
+						inVariants ++;
+						SVTYPE type = IndelUtils.getVariantType(re.getRef(), alt);
 		 	        	if(type.equals(SVTYPE.DEL) ||type.equals(SVTYPE.INS) ){
-	     					ChrPosition pos = new ChrPosition(re.getChromosome(), re.getPosition(), re.getChrPosition().getEndPosition(), re.getAlt());         					 
-	     					positionRecordMap.put(pos, re);
-		 	        	}  	 	        		 
-	    			}  	    			
-	 			}
+		 	        		VcfRecord vcf1 = new VcfRecord(re.toString().trim().split("\t"));
+	     					vcf1.setAlt(alt);
+	     					ChrPosition pos = new ChrPosition(vcf1.getChromosome(), vcf1.getPosition(), vcf1.getChrPosition().getEndPosition(), alt);         					 
+	     					positionRecordMap.put(pos, vcf1);					 
+		 	        	}
+					}  		 
+	    		}	
+	    				    			
+//	    			if( StrAlt.contains(",")){ 	    				 
+//	    				for(String alt : StrAlt.split(",")){
+//	    					inVariants ++;
+//	    					SVTYPE type = IndelUtils.getVariantType(re.getRef(), alt);
+//			 	        	if(type.equals(SVTYPE.DEL) ||type.equals(SVTYPE.INS) ){
+//			 	        		VcfRecord vcf1 = new VcfRecord(re.toString().trim().split("\t"));
+//	         					vcf1.setAlt(alt);
+//	         					ChrPosition pos = new ChrPosition(vcf1.getChromosome(), vcf1.getPosition(), vcf1.getChrPosition().getEndPosition(), alt);         					 
+//	         					positionRecordMap.put(pos, vcf1);					 
+//			 	        	}
+//	    				}  		 
+//	    			}else{
+//	    				inVariants ++;
+//	    				SVTYPE type = IndelUtils.getVariantType(re.getRef(), re.getAlt());
+//		 	        	if(type.equals(SVTYPE.DEL) ||type.equals(SVTYPE.INS) ){
+//	     					ChrPosition pos = new ChrPosition(re.getChromosome(), re.getPosition(), re.getChrPosition().getEndPosition(), re.getAlt());         					 
+//	     					positionRecordMap.put(pos, re);
+//		 	        	}  	 	        		 
+//	    			}  	    				 			
 				
 				logger.info(String.format("Find %d indels from %d variants (%d records lines) within file: %s",
 						positionRecordMap.size(), inVariants, inLines, f.getAbsoluteFile()));
