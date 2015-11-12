@@ -62,23 +62,37 @@ public class VcfInfoFieldRecord {
 	 * 
 	 * @param key
 	 * @return null if the key field do not exist
-	 *  @return "." if the key field exists but no value
+	 *  @return empty String if the key field exists but no value
 	 */
 	public String getField(String key){
-		int index = line.indexOf(key);
-		
-		if (index > -1) {
-			// get position of semi colon
-			int scIndex = line.indexOf(Constants.SEMI_COLON_STRING, index);
+		//must be looped, in case multi keys/subString exists
+		int pos = 0; //line.indexOf(key);
+		 
+		while( (pos = line.indexOf(key, pos)) > -1){
+			//position of first ; after key
+			int scIndex = line.indexOf(Constants.SEMI_COLON_STRING, pos+1);
+			scIndex =  (scIndex == -1 ? line.length() : scIndex);
 			//position of last ; before key
-			int preIndex = line.substring(0, index).lastIndexOf(Constants.SEMI_COLON_STRING);
-
-			String kv = line.substring((preIndex == -1 ? 0: preIndex+1), (scIndex == -1 ? line.length() : scIndex) );
-			String value = StringUtils.getValueFromKey(kv, key, Constants.EQ);
+			int preIndex = line.substring(0, pos).lastIndexOf(Constants.SEMI_COLON_STRING);
+						
+			//whether the matching is subString or real key
+			String kv = line.substring( preIndex+1, scIndex );
+			int keyend =  kv.indexOf(Constants.EQ_STRING);					
+			String keyStr = (keyend > -1 ? kv.substring(0,keyend) : kv);
 			
+			//if the key is just subString of existing key
+			//eg.exsiting INFO: EFF=(....BEND1...); but key is END
+			//so END is subString of exsiting INFO and same length to EFF
+			if(! keyStr.equals(key)){
+				pos = scIndex; 
+				continue;				
+			}
+			
+			String value =  StringUtils.getValueFromKey(kv, key, Constants.EQ);
 			return value != null ? value : Constants.EMPTY_STRING;
 		}
-		return null;
+		return null; 
+		
 	}
 	
 	/**
