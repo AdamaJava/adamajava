@@ -134,6 +134,15 @@ BEGIN {
                            'loss (copy number < 2)'           => 4,
                            'indel/non-silent sub + high-gain' => 5,
                            'indel/non-silent sub + loss'      => 6 },
+                    'quiddell2' =>
+                         { 'non-silent sub'                   => 1,
+                           'indel'                            => 2,
+                           'high-gain (copy number > 5)'      => 3,
+                           'loss (copy number < 2)'           => 4,
+                           'copy-neutral loss'                => 5,
+                           'indel/non-silent sub + high-gain' => 6,
+                           'indel/non-silent sub + loss'      => 7,
+                           'indel/non-silent sub + cnloh'     => 8 },
                     'nones' =>
                          { 'non-silent sub'                   => 1,
                            'indel'                            => 2,
@@ -1748,6 +1757,14 @@ sub mode_variant_proportion {
         qlogprint "Conflating SNV/indel and CNV calls to make quiddell matrix\n";
         $vs = create_quiddell_matrix( $snv_vs, $cnv_vs );
     }
+    elsif ($params{mode} eq 'quiddell2') {
+        # Quiddell2 plot codes combined SNVs and CNVs
+        my $snv_vs = $mfc->categorise_variants_quiddell2;
+        my $ra_cnvrecs = parse_cnvs( $params{cnvfile}, \@genes );
+        my $cnv_vs = cnv_variant_matrix( $ra_cnvrecs );
+        qlogprint "Conflating SNV/indel and CNV calls to make quiddell2 matrix\n";
+        $vs = create_quiddell2_matrix( $snv_vs, $cnv_vs );
+    }
     elsif ($params{mode} eq 'nones') {
         # Nones plot codes combined SNVs, CNVs and SVs
         my $snv_vs = $mfc->categorise_variants_quiddell;
@@ -2622,17 +2639,29 @@ sub parse_cnvs {
         $filter = 1;
     }
 
+    my $ctr = 0;
     while (my $rec = $cr->next_record) {
+        $ctr++;
         if ($filter) {
-            next unless (defined $rec->Gene and
-                         exists $genes{ $rec->Gene } );
+            #next unless (defined $rec->Gene and
+            #             exists $genes{ $rec->Gene } );
+            my $found = (defined $rec->Gene and exists $genes{ $rec->Gene }) ? 1 : 0;
+            qlogprint( join("\t", defined $rec->Gene ? $rec->Gene : 'undefGene',
+                                  exists $genes{ $rec->Gene } ? $genes{ $rec->Gene } : 'noGene',
+                                  $found), "\n"
+                       );
+                       next unless $found;
             push @cnvs, $rec;
         }
         else {
             push @cnvs, $rec;
         }
+
+        #print Dumper $rec;
+        #die;
     }
 
+    qlogprint 'while loop found '. $ctr . " CNV records in $file\n";
     qlogprint 'read '. $cr->record_ctr . " CNV records from $file\n";
     if ($filter) {
         qlogprint 'kept '. scalar(@cnvs), " CNV records after filtering by gene\n";
@@ -3040,6 +3069,97 @@ sub create_quiddell_matrix {
                 }
                 elsif ($copynum < 2) {
                     $new_var = 'loss (copy number < 2)';
+                }
+            }
+
+            # If we found a codeable variant, regardless of whether it
+            # was a new CNV variant or a recode of a SNP variant, we
+            # need to set the new_variant
+            if (defined $new_var) {
+                $new_vs->add_variant( patient => $id, 
+                                      gene    => $gene,
+                                      variant => $new_var );
+            }
+
+        }
+    }
+
+    return $new_vs;
+}
+
+
+sub create_quiddell2_matrix {
+    my $snvs = shift; # QCMG::Variants::VariantSummary
+    my $cnvs = shift; # QCMG::Variants::VariantSummary
+
+    # Primary difference between this scheme and the original quiddell
+    # scheme is that this one includes CNLOH.
+
+    # SNVs come in coded as: 'indel'
+    #                        'non-silent sub'
+    #                        'silent SNV'
+    # CNVs come in coded as actual copy number
+
+    # Recode the SNVs/indels into a new object
+    my $new_vs = QCMG::Variants::VariantSummary->new();
+
+    foreach my $id ($snvs->patients) {
+        foreach my $gene ($snvs->genes) {
+            my $var = $snvs->variant_by_patient_and_gene( $id, $gene );
+            if (defined $var and $var !~ /^silent SNV$/i) {
+                $new_vs->add_variant( patient => $id, 
+                                      gene    => $gene,
+                                      variant => $var );
+            }
+        }
+    }
+    
+    # Add in the CNV data
+    foreach my $id ($cnvs->patients) {
+        foreach my $gene ($cnvs->genes) {
+            my $copynum = $cnvs->variant_by_patient_and_gene( $id, $gene );
+
+            # Not all patient/gene combinations will have a CNV
+            # (obviously) so skip forward if empty
+            next unless defined $copynum;
+
+            # If there was already a SNV/indel then work out the new code
+            my $old_var = $new_vs->variant_by_patient_and_gene( $id, $gene );
+            my $new_var = undef;
+
+            if (defined $old_var) {
+                if ($old_var eq 'non-silent sub') {
+                    if ($copynum > 5) {
+                        $new_var = 'indel/non-silent sub + high-gain';
+                    }
+                    elsif ($copynum < 2) {
+                        $new_var = 'indel/non-silent sub + loss';
+                    }
+                    elsif ($copynum eq 'copy-neutral LOH') {
+                        $new_var = 'indel/non-silent sub + cnloh';
+                    }
+                }
+                elsif ($old_var eq 'indel') {
+                    if ($copynum > 5) {
+                        $new_var = 'indel/non-silent sub + high-gain';
+                    }
+                    elsif ($copynum < 2) {
+                        $new_var = 'indel/non-silent sub + loss';
+                    }
+                    elsif ($copynum eq 'copy-neutral LOH') {
+                        $new_var = 'indel/non-silent sub + cnloh';
+                    }
+                }
+            }
+            else {
+                if ($copynum > 5) {
+                    $new_var = 'high-gain (copy number > 5)';
+                }
+                elsif ($copynum < 2) {
+                    $new_var = 'loss (copy number < 2)';
+                }
+                elsif ($copynum eq 'copy-neutral LOH') {
+                    $new_var = 'copy-neutral loss';
                 }
             }
 
