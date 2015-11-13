@@ -96,8 +96,8 @@ public class Options {
 		runMode =  IniFileUtil.getEntry(iniFile, "parameters", "runMode");
 		
 		if(runMode.equalsIgnoreCase("gatk")){
-			testVcf = new File( IniFileUtil.getInputFile(iniFile, "testvcf") );
-			controlVcf = new File(IniFileUtil.getInputFile(iniFile, "controlvcf"));
+			testVcf = new File( IniFileUtil.getInputFile(iniFile, "testVcf") );
+			controlVcf = new File(IniFileUtil.getInputFile(iniFile, "controlVcf"));
 		}else if(runMode.equalsIgnoreCase("pindel")){
 			String[] inputs = IniFileUtil.getInputFiles(iniFile, "inputVcf");
 			for(int i = 0; i < inputs.length; i ++)
