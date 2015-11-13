@@ -92,13 +92,18 @@ public class Options {
 		output =new File(  IniFileUtil.getOutputFile(iniFile, "vcf"));		
 		testBam = new File(IniFileUtil.getInputFile(iniFile, "testBam")) ;	
 		controlBam = new File( IniFileUtil.getInputFile(iniFile, "controlBam")) ;	
-		testVcf = new File( IniFileUtil.getInputFile(iniFile, "testvcf") );
-		controlVcf = new File(IniFileUtil.getInputFile(iniFile, "controlvcf"));
-		String[] inputs = IniFileUtil.getInputFiles(iniFile, "inputVcf");
-		for(int i = 0; i < inputs.length; i ++)
-			pindelVcfs.add(new File(inputs[i]));
 		
 		runMode =  IniFileUtil.getEntry(iniFile, "parameters", "runMode");
+		
+		if(runMode.equalsIgnoreCase("gatk")){
+			testVcf = new File( IniFileUtil.getInputFile(iniFile, "testvcf") );
+			controlVcf = new File(IniFileUtil.getInputFile(iniFile, "controlvcf"));
+		}else if(runMode.equalsIgnoreCase("pindel")){
+			String[] inputs = IniFileUtil.getInputFiles(iniFile, "inputVcf");
+			for(int i = 0; i < inputs.length; i ++)
+				pindelVcfs.add(new File(inputs[i]));
+		}
+
 		nearbyIndelWindow = Integer.parseInt( IniFileUtil.getEntry(iniFile, "parameters", "window.nearbyIndel"));
 		nearbyHomopolymer = Integer.parseInt( IniFileUtil.getEntry(iniFile, "parameters", "window.homopolymer"));
 		softClipWindow = Integer.parseInt( IniFileUtil.getEntry(iniFile, "parameters", "window.softClip"));
