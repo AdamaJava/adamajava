@@ -310,17 +310,6 @@ public class IndelMT {
 		}
 	}
 	
-	
-//	public IndelMT(File inputVcf, Options options, QLogger logger) throws IOException  {		
-//		this.options = options;	
-//		this.logger = logger; 	
-//	}
-//
-//	public IndelMT(File inputTumourVcf, File inputNormalVcf, Options options, QLogger logger) throws Exception {
-//		this(inputTumourVcf, options, logger); 
-//		indelload.appendIndels(inputNormalVcf); 		
-//	}
-//	
 	public int process(final int threadNo) throws Exception {
 		positionRecordMap = indelload.getIndelMap();
 		if(positionRecordMap == null || positionRecordMap.size() == 0){
@@ -407,10 +396,6 @@ public class IndelMT {
 							
 			//reheader
 			getHeaderForIndel(header);	
-		      //debug
-		    for(final VcfHeader.Record record: header)  
-		    	System.out.println( "header: " + record.toString());
-		 	
         	for(final VcfHeader.Record record: header)  
         		writer.addHeader(record.toString());
 			 
@@ -490,7 +475,6 @@ public class IndelMT {
 		 
 	}
 	 
- 
 
 	/**
 	 * 

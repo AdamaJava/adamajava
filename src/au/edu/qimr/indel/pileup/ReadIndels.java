@@ -27,10 +27,7 @@ public class ReadIndels {
  
 	//here key will be uniq for indel: chr, start, end, allel 
 	private final  Map<ChrPosition,VcfRecord> positionRecordMap = new  ConcurrentHashMap<ChrPosition,VcfRecord>();
-	
-	//for testing only
-//	ReadIndels(){ QLoggerFactory.getLogger(Main.class, null, null);}
-	
+
 	public ReadIndels( QLogger logger){
 		this.logger = logger; 		
 	}

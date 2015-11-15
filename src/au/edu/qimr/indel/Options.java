@@ -17,9 +17,6 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.meta.QExec;
 import org.qcmg.common.util.Constants;
-import org.qcmg.common.util.FileUtils;
-
-import com.sun.corba.se.impl.orbutil.closure.Constant;
 
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
@@ -79,11 +76,14 @@ public class Options {
 			
 		log = (String) options.valueOf("log");
 		loglevel = (String) options.valueOf("loglevel");	
+		logger = QLoggerFactory.getLogger(Main.class, log, loglevel);		
+		
 		String	version = Main.class.getPackage().getImplementationVersion();
+		String pg = Main.class.getPackage().getImplementationTitle();		
 		if (version == null) version = Constants.NULL_STRING; 
-		logger = QLoggerFactory.getLogger(Main.class, log, loglevel);
-		qexec = logger.logInitialExecutionStats("q3pileup", version, args, QExec.createUUid());		
- 	
+		if (pg == null) pg = Constants.NULL_STRING; 
+				
+		qexec = logger.logInitialExecutionStats(pg , version, args, QExec.createUUid());		 	
 		if(!options.has("i"))
 			throw new IOException("missing ini file option \'-i \'");
 		Ini iniFile =  new Ini( new File(  (String) options.valueOf("i")));
