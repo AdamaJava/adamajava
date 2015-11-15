@@ -12,29 +12,7 @@ public class HomopolymerTest {
 
 	@Test
 	public void testInsert(){
-		
-//		//debug
-//		List<byte[]> homoString = new ArrayList<byte[]>();
-//		for( int i = 0 ; i < 2; i ++ ){
-//			homoString.add(null);			
-//		}
-//		
-//		int index = 1; 
-//		homoString.set(index, new byte[]{'_','-' }); 
-//		String str =  homoString.get(index).equals(null) ? null : new String(   homoString.get(index));	
-//		System.out.println(index+ " : " + str);
-//		
-//		index = 0; 
-//	//	homoString.set(index, new byte[]{'_','-' }); 
-//		if(homoString.get(index) == null )
-//			System.out.println(homoString.get(index));
-//		
-//		str =  homoString.get(index)==null ? null : new String(   homoString.get(index));	
-//		System.out.println(index+ " : " + str);
-//
-		
-		
-		
+				
 		VcfRecord vs = new VcfRecord("chr1", 21, 21, null, "T", "TTAA" );
 		IndelPosition indel = new IndelPosition (vs);		
 		Homopolymer homo = new Homopolymer(indel, getReference(), 3);

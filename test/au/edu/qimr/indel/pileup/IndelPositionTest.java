@@ -47,9 +47,7 @@ public class IndelPositionTest {
 //		for(ChrPosition pos: map.keySet()){
 //			pileup = new IndelPileup( map.get(pos), 13, 3); 		
 //				pileup.pileup(pool);
-//		}
-		
-		
+//		}		
 	}
  
 
