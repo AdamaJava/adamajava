@@ -86,8 +86,7 @@ public class Vcf2maf extends AbstractMode{
 						id = StringUtils.getValueFromKey(rec.getData(), VcfHeaderUtils.STANDARD_DONOR_ID);
 						break;			
 					}			
-			dornorId = id; 
-			
+			dornorId = id; 			
 			logger.info(String.format("Test Sample %s is located on column %d after FORMAT", testSample, test_column));
 			logger.info(String.format("Control Sample %s is located on column %d after FORMAT", controlSample, control_column));
 			logger.info("Dornor id is " + dornorId);
@@ -113,17 +112,9 @@ public class Vcf2maf extends AbstractMode{
 		String SLCC  = outputname.replace(".maf", ".Somatic.LowConfidence.Consequence.maf") ;
 		String SLC = outputname.replace(".maf", ".Somatic.LowConfidence.maf") ;
 		String GLCC  = outputname.replace(".maf", ".Germline.LowConfidence.Consequence.maf") ;
-		String GLC = outputname.replace(".maf", ".Germline.LowConfidence.maf") ;
-		
-//		//debug
-//		try(BufferedReader br = new BufferedReader(new FileReader(option.getInputFileName()))){
-//			String line;
-//			while ((line = br.readLine()) != null) {
-//				System.out.println( "debug:" + line);
-//			}
-//		}
-		
+		String GLC = outputname.replace(".maf", ".Germline.LowConfidence.maf") ;		
 
+		long noIn = 0, noOut = 0, no_SHCC = 0, no_SHC = 0, no_GHCC = 0, no_GHC = 0, no_SLCC = 0, no_SLC = 0, no_GLCC = 0, no_GLC = 0; 
 		try(VCFFileReader reader = new VCFFileReader(new File( option.getInputFileName()));
 				PrintWriter out = new PrintWriter(outputname);
 				PrintWriter out_SHCC = new PrintWriter(SHCC);
@@ -138,46 +129,61 @@ public class Vcf2maf extends AbstractMode{
 			
 			reheader( option.getCommandLine(), option.getInputFileName());			
 			createMafHeader(out,out_SHCC,out_SHC,out_GHCC,out_GHC,out_SLCC,out_SLC,out_GLCC,out_GLC);
-						
-	       	for (final VcfRecord vcf : reader)
-        		try{
-//        			//debug
-//        			if(vcf.getPosition() == 49194154)
-//        				System.out.println(vcf.toString());
-        			
+			
+		       	for (final VcfRecord vcf : reader)
+        		try{ 
+        			noIn ++;
         			SnpEffMafRecord maf = converter(vcf);
         			String Smaf = maf.getMafLine();
         			out.println(Smaf);
+        			noOut ++;
         			int rank = Integer.parseInt(maf.getColumnValue(40));
         			if(maf.getColumnValue(38).equalsIgnoreCase(Confidence.HIGH.name()))
         				if(maf.getColumnValue(26).equalsIgnoreCase(VcfHeaderUtils.INFO_SOMATIC)){
         					out_SHC.println(Smaf);
+        					no_SHC ++;
         					
-        					if(maf.getColumnValue(55).equalsIgnoreCase( PROTEINCODE ) && rank <=5 )
+        					if(maf.getColumnValue(55).equalsIgnoreCase( PROTEINCODE ) && rank <=5 ){
         						out_SHCC.println(Smaf);
+        						no_SHCC ++;
+        					}
         				}else{
         					out_GHC.println(Smaf);
+        					no_GHC ++; 
         					 
-        					if(maf.getColumnValue(55).equalsIgnoreCase( PROTEINCODE ) && rank <=5 )
+        					if(maf.getColumnValue(55).equalsIgnoreCase( PROTEINCODE ) && rank <=5 ){
         						out_GHCC.println(Smaf);
+        						no_GHCC ++;
+        					}
         				}   
         			else if(option.doOutputLowMaf() && maf.getColumnValue(38).equalsIgnoreCase(Confidence.LOW.name()))
         				if(maf.getColumnValue(26).equalsIgnoreCase(VcfHeaderUtils.INFO_SOMATIC)){
         					out_SLC.println(Smaf);
+        					no_SLC ++;
         					
-        					if(maf.getColumnValue(55).equalsIgnoreCase( PROTEINCODE ) && rank <=5 )
+        					if(maf.getColumnValue(55).equalsIgnoreCase( PROTEINCODE ) && rank <=5 ){
         						out_SLCC.println(Smaf);
+        						no_SLCC ++;
+        					}
         				}else{
         					out_GLC.println(Smaf);
-        					 
-        					if(maf.getColumnValue(55).equalsIgnoreCase( PROTEINCODE ) && rank <=5 )
+        					no_GLC ++;
+        					
+        					if(maf.getColumnValue(55).equalsIgnoreCase( PROTEINCODE ) && rank <=5 ){
         						out_GLCC.println(Smaf);
+        						no_GLCC ++;
+        					}
         				}          			
           		}catch(final Exception e){  	
         			logger.warn("Error message during vcf2maf: " + e.getMessage() + "\n" + vcf.toString());
         			e.printStackTrace();
         		}       	
 		}	
+		
+		logger.info("total input vcf record number is " + noIn);
+		logger.info("total output maf record number is " + noOut);
+		logger.info(String.format("There are somatic record: %d (high confidence), %d (high confidence consequence), %d (low confidence), %d (log confidence consequence)", no_SHC, no_SHCC, no_SLC, no_SLCC ));
+		logger.info(String.format("There are germatic record: %d (high confidence), %d (high confidence consequence), %d (low confidence), %d (log confidence consequence)", no_GHC, no_GHCC, no_GLC, no_GLCC ));
 		
 		//delete empty maf files
 		deleteEmptyMaf(SHCC, SHC,GHCC,GHC,SLCC,SLC,GLCC,GLC );		

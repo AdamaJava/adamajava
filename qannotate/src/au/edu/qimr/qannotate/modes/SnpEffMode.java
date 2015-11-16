@@ -55,6 +55,7 @@ public class SnpEffMode extends AbstractMode{
 	
 	@Override
 	protected void writeVCF(File outputFile )  throws IOException{
+		long counts = 0;
 		try(VCFFileReader reader = new VCFFileReader(new File( tmpFile));
 				VCFFileWriter writer = new VCFFileWriter(outputFile )){
 								
@@ -62,9 +63,11 @@ public class SnpEffMode extends AbstractMode{
 	        		writer.addHeader(record.toString());
 	        	}
 	        	for (final VcfRecord qpr : reader) {
+	        		counts ++;
 	        		writer.add(qpr);
 	        	}
 		}
+		logger.info("outputed VCF record: " + counts);
 	}
 		//throws Exception
 	private boolean addAnnotation(SnpEffOptions options, String tmpFile ) throws FileNotFoundException{	
