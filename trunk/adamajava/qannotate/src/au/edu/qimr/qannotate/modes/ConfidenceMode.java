@@ -7,13 +7,9 @@ import static org.qcmg.common.util.SnpUtils.MUTATION_IN_UNFILTERED_NORMAL;
 import static org.qcmg.common.util.SnpUtils.PASS;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
-import org.qcmg.common.model.TorrentVerificationStatus;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.DonorUtils;
@@ -22,7 +18,6 @@ import org.qcmg.common.vcf.VcfFormatFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-import org.qcmg.maf.util.MafUtils;
 
 import au.edu.qimr.qannotate.options.ConfidenceOptions;
 
@@ -91,45 +86,21 @@ public class ConfidenceMode extends AbstractMode{
 		control_column = control; 
 	}
 
-	/**
-	 * add dbsnp version
-	 * @throws Exception
-	 */
-	@Override
-	//inherited method from super
-	void addAnnotation(String verificationFile) throws Exception{
 
-		final Map<ChrPosition, TorrentVerificationStatus> verifiedData;
-		//load verified file
-		if (verificationFile != null){
-			final Map<String, Map<ChrPosition, TorrentVerificationStatus>> verifiedDataAll = new HashMap<String, Map<ChrPosition, TorrentVerificationStatus>>();
-			MafUtils.getVerifiedData(verificationFile, patientId,verifiedDataAll );
-			verifiedData = verifiedDataAll.get(patientId);		
-		 } else {
-			 verifiedData = null;
-		 }
+	//inherited method from super
+	void addAnnotation() throws Exception{
 		
 		int high = 0;
 		int low = 0;
 		int zero = 0;
 		
 		//check high, low nns...
-		for (VcfRecord vcf : positionRecordMap.values()) {
-		
-//		final Iterator<  ChrPosition > it = positionRecordMap.keySet().iterator();
-//	    while (it.hasNext()) {
-//		    	final ChrPosition pos = it.next();
-//		    	final VcfRecord vcf = positionRecordMap.get(pos);
-//		    	final VcfInfoFieldRecord infoRecord = new VcfInfoFieldRecord(vcf.getInfo());	
-			
+		for (VcfRecord vcf : positionRecordMap.values()) {					
 		 	final ChrPosition pos = vcf.getChrPosition();
 		 	VcfFormatFieldRecord formatField = (vcf.getInfo().contains(VcfHeaderUtils.INFO_SOMATIC)) ? vcf.getSampleFormatRecord(test_column) :  vcf.getSampleFormatRecord(control_column);
 
 	    		    	
-	        if (verifiedData != null && verifiedData.get(pos) != null && verifiedData.get(pos).equals( TorrentVerificationStatus.YES)) {
-	        		vcf.getInfoRecord().setField(VcfHeaderUtils.INFO_CONFIDENT, Confidence.HIGH.toString());
-	        		high++;
-	        } else if ( checkNovelStarts(HIGH_CONF_NOVEL_STARTS_PASSING_SCORE, formatField)
+		 	if ( checkNovelStarts(HIGH_CONF_NOVEL_STARTS_PASSING_SCORE, formatField)
 					&& ( getAltFrequency(formatField, vcf.getAlt()) >=  HIGH_CONF_ALT_FREQ_PASSING_SCORE)
 					&& PASS.equals(vcf.getFilter())) {
 	        	
@@ -196,7 +167,13 @@ public class ConfidenceMode extends AbstractMode{
 			 return true;
 		 }
 		 return Integer.parseInt(nnsString) >= score;
-	 }  
+	 }
+
+
+	@Override
+	void addAnnotation(String dbfile) throws Exception {
+		// TODO Auto-generated method stub		
+	}  
 }	
 	
   

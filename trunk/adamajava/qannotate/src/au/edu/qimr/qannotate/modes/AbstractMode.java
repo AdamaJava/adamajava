@@ -43,8 +43,9 @@ public abstract class AbstractMode {
         try (VCFFileReader reader = new VCFFileReader(f)) {
         	header = reader.getHeader();
         	//no chr in front of position
-			for (final VcfRecord qpr : reader) {
-				positionRecordMap.put(qpr.getChrPosition(), qpr);
+			for (final VcfRecord vcf : reader) {				 
+//				ChrPosition pos = new ChrPosition(vcf.getChromosome(), vcf.getPosition(), vcf.getChrPosition().getEndPosition(), vcf.getAlt() );
+				positionRecordMap.put(vcf.getChrPosition(), vcf);
 			}
 		} 
         
