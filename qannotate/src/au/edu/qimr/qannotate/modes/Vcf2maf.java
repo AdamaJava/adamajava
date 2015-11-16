@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -11,6 +12,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
+
+import jdk.nashorn.internal.runtime.options.Options;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -110,6 +114,15 @@ public class Vcf2maf extends AbstractMode{
 		String SLC = outputname.replace(".maf", ".Somatic.LowConfidence.maf") ;
 		String GLCC  = outputname.replace(".maf", ".Germline.LowConfidence.Consequence.maf") ;
 		String GLC = outputname.replace(".maf", ".Germline.LowConfidence.maf") ;
+		
+//		//debug
+//		try(BufferedReader br = new BufferedReader(new FileReader(option.getInputFileName()))){
+//			String line;
+//			while ((line = br.readLine()) != null) {
+//				System.out.println( "debug:" + line);
+//			}
+//		}
+		
 
 		try(VCFFileReader reader = new VCFFileReader(new File( option.getInputFileName()));
 				PrintWriter out = new PrintWriter(outputname);
@@ -128,6 +141,10 @@ public class Vcf2maf extends AbstractMode{
 						
 	       	for (final VcfRecord vcf : reader)
         		try{
+//        			//debug
+//        			if(vcf.getPosition() == 49194154)
+//        				System.out.println(vcf.toString());
+        			
         			SnpEffMafRecord maf = converter(vcf);
         			String Smaf = maf.getMafLine();
         			out.println(Smaf);
@@ -315,6 +332,8 @@ public class Vcf2maf extends AbstractMode{
 		//check counts
     	values[1] = format.getField(VcfHeaderUtils.FORMAT_ALLELE_COUNT);
     	values[1]= (values[1] == null) ? format.getField(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP): values[1];
+    	values[1]= (values[1] == null) ? format.getField("ACINDEL"): values[1];
+    	
     	String[] alleles = getAlleles(format);
 		 
     	if(alleles != null)

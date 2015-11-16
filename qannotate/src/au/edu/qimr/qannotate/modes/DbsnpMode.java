@@ -18,7 +18,6 @@ import org.qcmg.common.vcf.header.VcfHeader.Record;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils.VcfInfoType;
 import org.qcmg.vcf.VCFFileReader;
-
 import au.edu.qimr.qannotate.options.DbsnpOptions;
 
 public class DbsnpMode extends AbstractMode{
@@ -145,24 +144,17 @@ public class DbsnpMode extends AbstractMode{
 				if ( ! dbRef.equals( inputRef )){ 
 					logger.warn(String.format( "dbSNP reference base (%s) are different to vcf Record (%s) for variant at position: %s", dbRef, inputRef, inputVcf.getPosition()));			 
 					continue;
-				}
-				
+				}				
 				
 				//*eg. dbSNP: "1 100 rs12334 A G,T,C ..." dbSNP may have multiple entries
 				//*eg. input.vcf: "1 100 101 A G ..." , "1 100 101 A T,C ..." out snp vcf are single entries			  
-				String [] alts = dbSNPVcf.getAlt().contains(Constants.COMMA_STRING) ? TabTokenizer.tokenize(dbSNPVcf.getAlt(), Constants.COMMA) : new String[] {dbSNPVcf.getAlt()}; 
-//				try{					
-//					alts = TabTokenizer.tokenize(dbSNPVcf.getAlt(), ','); //multi allels
-//				} catch (final IllegalArgumentException e){				
-//					alts = new String[] {dbSNPVcf.getAlt()};		//single allel	
-//				}
-				
+				String [] alts = dbSNPVcf.getAlt().contains(Constants.COMMA_STRING) ? TabTokenizer.tokenize(dbSNPVcf.getAlt(), Constants.COMMA) : new String[] {dbSNPVcf.getAlt()}; 				
 				int altOrder = 0;
 				for (final String alt : alts) {
 					altOrder ++;
 					//if(dbSNPVcf.getAlt().toUpperCase().contains(alt.toUpperCase()) ){
  					if(inputVcf.getAlt().equalsIgnoreCase(alt.substring(start-dbSNPVcf.getPosition()))) {
-						inputVcf.appendInfo(getCAF(dbSNPVcf.getInfoRecord(), altOrder));
+  						inputVcf.appendInfo(getCAF(dbSNPVcf.getInfoRecord(), altOrder));						
 						inputVcf.setId(dbSNPVcf.getId());	
 						inputVcf.appendInfo(VcfHeaderUtils.INFO_DB);
 						if(dbSNPVcf.getInfoRecord().getField(VcfHeaderUtils.INFO_VLD) != null) {
@@ -181,12 +173,11 @@ public class DbsnpMode extends AbstractMode{
 	public static String getCAF(VcfInfoFieldRecord info, int order) {
 		final String caf =info.getField(VcfHeaderUtils.INFO_CAF);
 		if (caf != null) {
-			
-			String[] cafs = TabTokenizer.tokenize(caf.substring(1,caf.length() -1), Constants.COMMA);
-//			String[] cafs = caf.replace("[", "").replace("]", "").split(Constants.COMMA_STRING);
-			if(cafs.length > order)			
-				return StringUtils.addToString(VcfHeaderUtils.INFO_VAF, cafs[order], EQ);			
-		}
+			 
+				String[] cafs = TabTokenizer.tokenize(caf.substring(1,caf.length() -1), Constants.COMMA);
+				if(cafs.length > order)			
+					return StringUtils.addToString(VcfHeaderUtils.INFO_VAF, cafs[order], EQ);	
+ 		}
 		
 		return null;
 	}
