@@ -217,8 +217,6 @@ public class IndelPosition {
 		
 		//set default filter as PASS
 		re.setFilter(VcfHeaderUtils.FILTER_PASS);
-
-		 
 		String td = ".", nd = ".";		
 		List<String> genotypeField =  re.getFormatFields();
 		if(tumourPileup != null){ 		
@@ -271,9 +269,9 @@ public class IndelPosition {
 			re.appendInfo(String.format("HOMCNTXT=%d,%s",polymer.getCount(index), polymer.getPolymerSequence(index)));
 					 
 		float nn = 0;
-		if(somatic && tumourPileup.getTotalCount() > 0) 
+		if(somatic && tumourPileup != null && tumourPileup.getTotalCount() > 0) 
 			nn =  (float)tumourPileup.getNearbyIndelCount() / tumourPileup.getTotalCount();
-		else if(normalPileup.getTotalCount() > 0)
+		else if(normalPileup != null && normalPileup.getTotalCount() > 0)
 			nn = (float) normalPileup.getNearbyIndelCount() / normalPileup.getTotalCount();		
 		String nioc =   ((nn == 0 )? "0" : String.format("%.3f", nn));				
 		re.appendInfo( String.format( IndelUtils.INFO_NIOC + "=" + nioc) );		
