@@ -16,6 +16,7 @@ import org.ini4j.Ini;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.meta.QExec;
+import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
 
 import joptsimple.OptionParser;
@@ -88,10 +89,22 @@ public class Options {
 			throw new IOException("missing ini file option \'-i \'");
 		Ini iniFile =  new Ini( new File(  (String) options.valueOf("i")));
 		 
-		reference = new File( IniFileUtil.getInputFile(iniFile, "ref") );
-		output =new File(  IniFileUtil.getOutputFile(iniFile, "vcf"));		
-		testBam = new File(IniFileUtil.getInputFile(iniFile, "testBam")) ;	
-		controlBam = new File( IniFileUtil.getInputFile(iniFile, "controlBam")) ;	
+		
+		String f =  IniFileUtil.getInputFile(iniFile, "ref");
+		if(! StringUtils.isNullOrEmpty(f))
+			reference = new File( f );
+		
+		 f =IniFileUtil.getOutputFile(iniFile, "vcf");
+		 if(! StringUtils.isNullOrEmpty(f))
+			 output =new File( f );	
+				
+		 f = IniFileUtil.getInputFile(iniFile, "testBam");
+		 if(! StringUtils.isNullOrEmpty(f))
+		 	testBam = new File(f) ;	
+		
+		 f = IniFileUtil.getInputFile(iniFile, "controlBam");
+		 if(! StringUtils.isNullOrEmpty(f))
+			controlBam = new File(f ) ;	
 		
 		runMode =  IniFileUtil.getEntry(iniFile, "parameters", "runMode");
 		
@@ -186,17 +199,17 @@ public class Options {
 			}
 	 
 			checkReference();
-			if (testBam == null || !testBam.exists())  
+			if (testBam != null && !testBam.exists())  
 			throw new Q3IndelException("FILE_EXISTS_ERROR", testBam.getAbsolutePath());
 		 
-			if (controlBam == null || !controlBam.exists()) 
+			if (controlBam != null && !controlBam.exists()) 
 			throw new Q3IndelException("FILE_EXISTS_ERROR", controlBam.getAbsolutePath());	
 			
 			
 			if ("gatk".equalsIgnoreCase(runMode)){ 
-				if(testVcf == null || !testVcf.exists())
+				if(testVcf != null && !testVcf.exists())
 					throw new Q3IndelException("FILE_EXISTS_ERROR","(test gatk vcf) " + testVcf.getAbsolutePath());
-				if(controlVcf == null || !controlVcf.exists())
+				if(controlVcf != null && !controlVcf.exists())
 					throw new Q3IndelException("FILE_EXISTS_ERROR","(control gatk vcf) " + controlVcf.getAbsolutePath());
 				 
 			}else if ("pindel".equalsIgnoreCase(runMode)){ 

@@ -136,8 +136,7 @@ public class IndelMT {
 			 			resetPool(topPos,  current_pool, next_pool); 	 
 //			 			//debug
 //			 			if(current_pool.size() > 1000 ||next_pool.size()>1000 )
-//			 			System.out.println("debug: " + topPos.getChrPosition().toIGVString() + " : " + current_pool.size() + " (current, next) " +next_pool.size());
-			 			
+//			 			System.out.println("debug: " + topPos.getChrPosition().toIGVString() + " : " + current_pool.size() + " (current, next) " +next_pool.size());			 			
 			 		}
 			 	}	 	
 			
@@ -292,7 +291,12 @@ public class IndelMT {
 		this.options = options;	
 		this.logger = logger; 
 		
-		SamReader reader = SAMFileReaderFactory.createSAMFileReader(options.getTestBam());  
+		SamReader reader;
+		if(options.getTestBam() != null)
+			reader = SAMFileReaderFactory.createSAMFileReader(options.getTestBam()); 
+		else
+			reader = SAMFileReaderFactory.createSAMFileReader(options.getControlBam()); 
+		
 		for (final SAMSequenceRecord contig : reader.getFileHeader().getSequenceDictionary().getSequences())  
 			sortedContigs.add(contig);
 		reader.close(); 
@@ -300,10 +304,16 @@ public class IndelMT {
 		//loading indels 
 		this.indelload = new ReadIndels(logger);		
 		if(options.getRunMode().equalsIgnoreCase("gatk")){	
-			//first load control			
-			indelload.LoadIndels(options.getControlInputVcf());		
-			//then test
-			indelload.appendIndels(options.getTestInputVcf());
+			//first load control
+			if(options.getControlInputVcf() != null){
+				indelload.LoadIndels(options.getControlInputVcf());		
+				//then test second column
+				if(options.getTestInputVcf() != null)
+					indelload.appendIndels(options.getTestInputVcf());			
+			}else
+				//load test to first column
+				indelload.LoadIndels(options.getTestInputVcf());	
+			
 		}else if(options.getRunMode().equalsIgnoreCase("pindel")){	
 			for(int i = 0; i < options.getInputVcfs().size(); i ++)
 				indelload.LoadIndels(options.getInputVcfs().get(i));		
@@ -326,11 +336,13 @@ public class IndelMT {
         ExecutorService pileupThreads = Executors.newFixedThreadPool(threadNo);    	
     	
     	//each time only throw threadNo thread, the loop finish untill the last threadNo                    	
-    	for(SAMSequenceRecord contig : sortedContigs ){      		
-    		pileupThreads.execute(new contigPileup(contig, getIndelList(contig), options.getTestBam() ,null ,
+    	for(SAMSequenceRecord contig : sortedContigs ){  
+    		if(options.getTestBam() != null)
+    			pileupThreads.execute(new contigPileup(contig, getIndelList(contig), options.getTestBam() ,null ,
     				 tumourQueue, Thread.currentThread() ,pileupLatch));
-    		       		
-    		pileupThreads.execute(new contigPileup(contig, getIndelList(contig), options.getControlBam(),null ,
+    		
+    		if(options.getControlBam() != null)
+    			pileupThreads.execute(new contigPileup(contig, getIndelList(contig), options.getControlBam(),null ,
     				normalQueue, Thread.currentThread(),pileupLatch ));
     		
     		pileupThreads.execute(new homopoPileup(contig.getSequenceName(), getIndelList(contig), options.getReference(),
@@ -436,14 +448,18 @@ public class IndelMT {
 	 		for(int i = 0; i < options.getInputVcfs().size(); i ++)
 	 			header.parseHeaderLine(VcfHeaderUtils.STANDARD_INPUT_LINE + "_PINDEL=" + options.getInputVcfs().get(i).getAbsolutePath());
 
-		String normalBamName = options.getControlBam().getAbsolutePath();			
-		header.parseHeaderLine( VcfHeaderUtils.STANDARD_CONTROL_BAM  + "=" + normalBamName);
-		header.parseHeaderLine( "##qControlBamUUID=" + QBamIdFactory.getBamId(normalBamName));
-		String tumourBamName = options.getTestBam().getAbsolutePath();
-		header.parseHeaderLine( VcfHeaderUtils.STANDARD_CONTROL_BAM  + "=" + tumourBamName);
-		header.parseHeaderLine( "##qControlBamUUID=" + QBamIdFactory.getBamId(tumourBamName));		 			 			 	
-		header.parseHeaderLine( "##qAnalysisId=" + options.getAnalysisId() );
-				
+		if( options.getControlBam() != null ){
+			String normalBamName = options.getControlBam().getAbsolutePath();			
+			header.parseHeaderLine( VcfHeaderUtils.STANDARD_CONTROL_BAM  + "=" + normalBamName);
+			header.parseHeaderLine( "##qControlBamUUID=" + QBamIdFactory.getBamId(normalBamName));
+		}
+		if( options.getTestBam() != null ){
+			String tumourBamName = options.getTestBam().getAbsolutePath();
+			header.parseHeaderLine( VcfHeaderUtils.STANDARD_CONTROL_BAM  + "=" + tumourBamName);
+			header.parseHeaderLine( "##qControlBamUUID=" + QBamIdFactory.getBamId(tumourBamName));		 			 			 	
+			header.parseHeaderLine( "##qAnalysisId=" + options.getAnalysisId() );
+		}		
+		
 		//add filter
         header.addFilterLine(IndelUtils.FILTER_COVN12, IndelUtils.DESCRITPION_FILTER_COVN12 );
         header.addFilterLine(IndelUtils.FILTER_COVN8,  IndelUtils.DESCRITPION_FILTER_COVN8 );
