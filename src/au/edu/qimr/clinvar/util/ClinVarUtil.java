@@ -50,12 +50,26 @@ import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.qmule.SmithWatermanGotoh;
 
 import au.edu.qimr.clinvar.model.Bin;
+import au.edu.qimr.clinvar.model.Fragment;
 import au.edu.qimr.clinvar.model.Probe;
 
 public class ClinVarUtil {
 	
 	private static final QLogger logger = QLoggerFactory.getLogger(ClinVarUtil.class);
 	
+	public static boolean isSequenceExactMatch(String [] diffs, String sequecne) {
+		return ! doesSWContainSnpOrIndel(diffs) && diffs[2].equals(sequecne);
+	}
+	
+	public static boolean doesSWContainSnpOrIndel(String [] diffs) {
+		return doesSWContainSnp(diffs) || doesSWContainIndel(diffs);
+	}
+	public static boolean doesSWContainSnp(String [] diffs) {
+		return diffs[1].contains(".");
+	}
+	public static boolean doesSWContainIndel(String [] diffs) {
+		return diffs[1].contains(" ");
+	}
 	public static String[] getSwDiffs(String ref, String sequence) {
 		return getSwDiffs(ref, sequence, false);
 	}
@@ -505,6 +519,34 @@ public class ClinVarUtil {
 				}
 			}
 		}
+		
+		return dict;
+	}
+	public static SAMSequenceDictionary getSequenceDictionaryFromFragments(Collection<Fragment> fragments) {
+		if (null == fragments) {
+			throw new IllegalArgumentException("Null List<Probe> passed to ClinVarUtil.getSequenceDictionaryFromProbes");
+		}
+		
+		SAMSequenceDictionary dict = new SAMSequenceDictionary();
+		
+		fragments.stream()
+			.filter(f -> f.getActualPosition() != null)
+			.forEach(f -> {
+				String chr = f.getActualPosition().getChromosome();
+				int len = f.getActualPosition().getEndPosition();
+				
+				SAMSequenceRecord ssr = dict.getSequence(chr);
+				if (null == ssr) {
+					ssr = new SAMSequenceRecord(chr, len);
+					dict.addSequence(ssr);
+				} else {
+					// check to see if length is already greater than this length
+					if (ssr.getSequenceLength() < len) {
+						ssr.setSequenceLength(len);
+					}
+				}
+			});
+		
 		
 		return dict;
 	}
