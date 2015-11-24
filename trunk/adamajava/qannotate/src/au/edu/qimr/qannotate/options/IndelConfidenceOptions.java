@@ -34,15 +34,15 @@ public class IndelConfidenceOptions extends Options {
         parser.acceptsAll( asList("h", "help"), Messages.getMessage("HELP_OPTION_DESCRIPTION"));
         parser.acceptsAll( asList("i", "input"), Messages.getMessage("INPUT_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("input vcf");
         parser.acceptsAll( asList("o", "output"), Messages.getMessage("OUTPUT_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("output vcf"); 
-        parser.acceptsAll( asList("d", "database"), Messages.getMessage("DATABASE_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("database file"); 
-        parser.accepts("mode", "run dbSNP mode").withRequiredArg().ofType(String.class).describedAs("dbsnp");
-        parser.accepts("VC", "Variation Class").withRequiredArg().ofType(String.class).describedAs("must be DIV, SNV or MNV. By default is SNV and MNV");        
+        parser.acceptsAll( asList("d", "database"), Messages.getMessage("DATABASE_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("repeat file"); 
+        parser.accepts("mode", "run indelConfidence mode").withRequiredArg().ofType(String.class).describedAs("indelConfidence");
+//        parser.accepts("VC", "Variation Class").withRequiredArg().ofType(String.class).describedAs("must be DIV, SNV or MNV. By default is SNV and MNV");        
         parser.accepts("log", LOG_DESCRIPTION).withRequiredArg().ofType(String.class);
         parser.accepts("loglevel",  LOG_LEVEL_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
         OptionSet options = parser.parse(args);   
         
         if(options.has("h") || options.has("help")){
-        	displayHelp(Messages.getMessage("DBSNP_USAGE"));
+        	displayHelp(Messages.getMessage("INDELCONFIDENCE_USAGE"));
             return false;
         }
                
@@ -60,9 +60,7 @@ public class IndelConfidenceOptions extends Options {
         inputFileName = (String) options.valueOf("i") ;      	 
         outputFileName = (String) options.valueOf("o") ; 
         databaseFileName = (String) options.valueOf("d") ; 
- 
           
- 
         String[] inputs = new String[]{ inputFileName,databaseFileName} ;
         String[] outputs = new String[]{outputFileName};
         String [] ios = new String[inputs.length + outputs.length];
