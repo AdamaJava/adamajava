@@ -926,7 +926,7 @@ public class ClinVarUtil {
 		rec.setMappingQuality(60);
 		rec.setCigar(cigar);
 		/*
-		 * Set the alignemnt start to 1, which is a hack to get around picards calculateMdAndNmTags method which is expecting the entire ref for the chromosome in question
+		 * Set the alignment start to 1, which is a hack to get around picards calculateMdAndNmTags method which is expecting the entire ref for the chromosome in question
 		 * and we only have the amplicon ref seq.
 		 * Reset once MD and NM have been calculated and set
 		 */
@@ -1091,12 +1091,6 @@ public class ClinVarUtil {
 	}
 
 	public static Cigar getCigarForIndels(String referenceSequence, String binSeq, String [] swDiffs, Probe p, Bin b) {
-//		if (p.getId() == 720 && b.getId() == 111261) {
-//			logger.info("pid: " + p.getId() + ", bid: " + b.getId() + ", ref: " + referenceSequence + ", binSeq: " + binSeq);
-//			for (String s : swDiffs) {
-//				logger.info("s: " + s);
-//			}
-//		}
 		int offset = 0;
 		if (swDiffs[0].replaceAll("-","").length() == referenceSequence.length()) {
 			offset = 0;
@@ -1160,6 +1154,70 @@ public class ClinVarUtil {
 			}
 			Cigar cigar = new Cigar(ces);
 			return cigar;
+	}
+	
+	public static Cigar getCigarForIndels(String referenceSequence, String binSeq, String [] swDiffs, ChrPosition cp, int length) {
+		int offset = 0;
+		if (swDiffs[0].replaceAll("-","").length() != referenceSequence.length()) {
+			int posOfFistIndel = swDiffs[1].indexOf(" ");
+			if (posOfFistIndel < 10) {
+				logger.warn("posOfFistIndel is < 10 : " + posOfFistIndel);
+			}
+			offset = binSeq.indexOf(swDiffs[2].substring(0, posOfFistIndel - 1));
+			logger.info("diff length indel at: " + cp.toIGVString() + ", offset: " + offset);
+			logger.info("binSeq: " + binSeq);
+			for (String s : swDiffs) {
+				logger.info(s);
+			}
+		}
+		
+		List<CigarElement> ces = new ArrayList<>(4);
+		// get mutations
+		List<Pair<Integer, String>> mutations = getPositionRefAndAltFromSW(swDiffs);
+		
+		int lastPosition = 0;
+		for (Pair<Integer, String> mutation : mutations) {
+			/*
+			 * only care about indels
+			 */
+			String [] mutArray = mutation.getRight().split("/");
+			
+			if (mutArray[0].length() != mutArray[1].length()) {
+				int indelPosition = mutation.getLeft().intValue() + 1 + offset;
+				
+				if (mutArray[0].length() == 1) {
+					// insertion
+					if (indelPosition > 0) {
+						// create cigar element up to this position
+						int insertionLength = mutArray[1].length() - 1;
+						CigarElement match = new CigarElement(indelPosition - lastPosition, CigarOperator.MATCH_OR_MISMATCH);
+						CigarElement insertion = new CigarElement(insertionLength, CigarOperator.INSERTION);
+						ces.add(match);
+						ces.add(insertion);
+						lastPosition = indelPosition + insertionLength;
+					}
+				} else {
+					// deletion
+					if (indelPosition > 0) {
+						// create cigar element up to this position
+						if (indelPosition - lastPosition > 0) {
+							CigarElement match = new CigarElement(indelPosition - lastPosition, CigarOperator.MATCH_OR_MISMATCH);
+							ces.add(match);
+						}
+						CigarElement deletion = new CigarElement(mutArray[0].length() - 1, CigarOperator.DELETION);
+						ces.add(deletion);
+						lastPosition = indelPosition;
+					}
+				}
+			}
+		}
+		if (lastPosition + 1 < length) {
+			CigarElement match = new CigarElement(length - lastPosition, CigarOperator.MATCH_OR_MISMATCH);
+//			CigarElement match = new CigarElement(length - (lastPosition + 1), CigarOperator.MATCH_OR_MISMATCH);
+			ces.add(match);
+		}
+		Cigar cigar = new Cigar(ces);
+		return cigar;
 	}
 	
 	public static boolean areAllListPositionsWithinBoundary(TLongArrayList list, long start, long end) {

@@ -60,6 +60,7 @@ public class ClinVarUtilTest {
 		
 	}
 	
+	
 	@Test
 	public void arePositionsClose() {
 		TLongArrayList list1 = new TLongArrayList();
@@ -93,6 +94,40 @@ public class ClinVarUtilTest {
 		rec = ClinVarUtil.createSAMRecord(null, cigar, 1, 1, 1, "ABCA", "chr1", 1, 0, "AAAA", 0);
 //		System.out.println("rec: " + rec.getSAMString());
 		assertEquals("1B0C1", rec.getAttribute("MD"));
+	}
+	
+	@Test
+	public void getIndelCigarRealLife() {
+		String ref = "AGTTTGCAATAACAACTGATGTAAGTATTGCTCTTCTGCAGTCTTTATTAGCATTGTTTAAACGTACCTTTTTTTAAAAAAAAAAAAATAGGTCATTGCTTCTTGCTGATCTTGACAAAGAAGAAAAGGAAAAAGACTGGTATTACGCTCAACT";
+		String sequence = "AGTTTGCAATAACAACTGATGTAAGTATTGCTCTTCTGCAGTCTTTATTAGCATTGTTTAAACGTACCTTTTTTTAAAAAAAAAAAAAAATAGGTCATTGCTTCTTGCTGATCTTGACAAAGAAGAAAAGGAAAAAGACTGGTATTACGCTCAACT";
+		String [] swDiffs = ClinVarUtil.getSwDiffs(ref, sequence);
+		ChrPosition cp = new ChrPosition("chr5", 112111235);
+		Cigar ceegar = ClinVarUtil.getCigarForIndels(ref, sequence, swDiffs, cp, sequence.length());
+		assertEquals("75M2I79M", ceegar.toString());
+		
+	}
+	
+	@Test
+	public void createSAMRecordIndelRealLife() {
+		Cigar cigar = new Cigar();
+		CigarElement ce = new CigarElement(75, CigarOperator.MATCH_OR_MISMATCH);
+		cigar.add(ce);
+		ce = new CigarElement(2, CigarOperator.INSERTION);
+		cigar.add(ce);
+		ce = new CigarElement(79, CigarOperator.MATCH_OR_MISMATCH);
+		cigar.add(ce);
+		
+		String ref = "AGTTTGCAATAACAACTGATGTAAGTATTGCTCTTCTGCAGTCTTTATTAGCATTGTTTAAACGTACCTTTTTTTAAAAAAAAAAAAATAGGTCATTGCTTCTTGCTGATCTTGACAAAGAAGAAAAGGAAAAAGACTGGTATTACGCTCAACT";
+		String sequence = "AGTTTGCAATAACAACTGATGTAAGTATTGCTCTTCTGCAGTCTTTATTAGCATTGTTTAAACGTACCTTTTTTTAAAAAAAAAAAAAAATAGGTCATTGCTTCTTGCTGATCTTGACAAAGAAGAAAAGGAAAAAGACTGGTATTACGCTCAACT";
+		System.out.println("ref length: " + ref.length());
+		System.out.println("sequence length: " + sequence.length());
+		
+		SAMRecord rec = ClinVarUtil.createSAMRecord(null, cigar, 1, 1, 1, ref, "chr5", 112111235, 0, sequence, 0);
+		assertEquals("154", rec.getAttribute("MD"));
+		assertEquals(2, rec.getAttribute("NM"));
+		assertEquals(sequence.length(), rec.getReadLength());
+		assertEquals(112111235, rec.getAlignmentStart());
+		assertEquals(112111388, rec.getAlignmentEnd());
 	}
 	
 //	@Test

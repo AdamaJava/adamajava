@@ -71,15 +71,14 @@ private static final int TILE_SIZE = 13;
 	private static String[] fastqFiles;
 	private static String version;
 	private String logFile;
-	private String xmlFile;
 	private String outputFileNameBase;
 	private String refTiledAlignmentFile;
 	private String refFileName;
-	private final int binId = 1;
 	private final int tiledDiffThreshold = 1;
 	private final int swDiffThreshold = 2;
 	private final int tileMatchThreshold = 2;
 	private final int maxIndelLength = 5;
+	private int fastqRecordCount;
 	
 	private int minBinSize = 10;
 	
@@ -109,7 +108,7 @@ private static final int TILE_SIZE = 13;
 	protected int engage() throws Exception {
 		
 			
-		int fastqCount = readFastqs();
+		fastqRecordCount = readFastqs();
 		
 		int perfectOverlap = 0;
 		int nonPerfectOverlap = 0;
@@ -151,12 +150,6 @@ private static final int TILE_SIZE = 13;
 				if (overlapLength < 10) {
 					smallOverlap++;
 					continue;
-				}
-				if (overlapLength >= 150) {
-//					logger.info("r1 length: " + r1.length() + ", r2RevComp length: " + r2RevComp.length());
-//					for (String s : newSwDiffs) {
-//						logger.info("overlapLength >= 150 sw: " + s);
-//					}
 				}
 				AtomicInteger ai = overlapLengthDistribution.get(overlapLength);
 				if (null == ai) {
@@ -214,8 +207,8 @@ private static final int TILE_SIZE = 13;
 			}
 		}
 		
-		logger.info("Percentage of records that failed to make a fragment: " + nonFragmentRecordTally + " : " + ((double)nonFragmentRecordTally / fastqCount) * 100 + "%");
-		logger.info("Percentage of records that made a fragment: " + fragmentRecordTally + " : " + ((double)fragmentRecordTally / fastqCount) * 100 + "%");
+		logger.info("Percentage of records that failed to make a fragment: " + nonFragmentRecordTally + " : " + ((double)nonFragmentRecordTally / fastqRecordCount) * 100 + "%");
+		logger.info("Percentage of records that made a fragment: " + fragmentRecordTally + " : " + ((double)fragmentRecordTally / fastqRecordCount) * 100 + "%");
 		
 		
 		for (Entry<Integer, AtomicInteger> entry : overlapLengthDistribution.entrySet()) {
@@ -234,14 +227,14 @@ private static final int TILE_SIZE = 13;
 		logger.info("No of entries in fragAndRCFrags: " + fragAndRCFrags.size());
 		
 		loadTiledAlignerData();
-		logPositionAndFragmentCounts();
+//		logPositionAndFragmentCounts();
 		getActualLocationForFrags();
 		createMutations();
 		logger.info("no of mutations created: " + vcfFragmentMap.size());
 		writeVcf();
 		writeBam();
 		
-		logger.info("no of fastq records: " +fastqCount);
+		logger.info("no of fastq records: " +fastqRecordCount);
 		return exitStatus;
 	}
 	
@@ -287,7 +280,7 @@ private static final int TILE_SIZE = 13;
 					 */
 					if (ClinVarUtil.isSequenceExactMatch(swDiffs, fragSeq)) {
 						
-						logger.info("bam record position: " + fragCp.getPosition() + ", seq: " + fragSeq);
+//						logger.info("bam record position: " + fragCp.getPosition() + ", seq: " + fragSeq);
 						
 						Cigar cigar = ClinVarUtil.getCigarForMatchMisMatchOnly(f.getLength());
 						ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, 1, fragId,  f.getRecordCount(), swDiffs[0], fragCp.getChromosome(), fragCp.getPosition(), 0, fragSeq);
@@ -303,6 +296,17 @@ private static final int TILE_SIZE = 13;
 							logger.info("snps only but length differs, swDiffs[1].length(): " + swDiffs[1].length() + ", f.getLength(): " + f.getLength());
 						}
 						
+					} else if ( ! ClinVarUtil.doesSWContainSnp(swDiffs) && ClinVarUtil.doesSWContainIndel(swDiffs)) {
+						// indels only
+						String ref = swDiffs[0].replaceAll("-","");
+						Cigar cigar = ClinVarUtil.getCigarForIndels(ref,  fragSeq, swDiffs,  fragCp,  f.getLength());
+						if (cigar.toString().equals("75M2I80M")) {
+							logger.info("ref: " + ref);
+							logger.info("fragSeq: " + fragSeq);
+						}
+						ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, 1, fragId,  f.getRecordCount(), ref, fragCp.getChromosome(), fragCp.getPosition(), 0, fragSeq);
+					} else {
+						// snps and indels
 					}
 					
 					
@@ -432,17 +436,7 @@ private static final int TILE_SIZE = 13;
 			vcfFragmentMap.entrySet().stream()
 				.sorted((e1, e2) -> {return e1.getKey().compareTo(e2.getKey());})
 				.filter((entry) -> getRecordCountFormIntPairs(entry.getValue()) >= 10 )
-//				.filter((entry) -> entry.getValue().size() > 1 || (entry.getValue().size() == 1 && entry.getValue().get(0).getInt2() >10) )
 				.forEach(entry -> {
-				
-				/*
-				 * Only proceed if we have more than 1 read supporting this mutation
-				 */
-//				List<IntPair> ips = vcfFragmentMap.get(vcf);
-//				if (ips.size() <= 1 || ips.get(0).getInt2() == 1) {
-//					continue;
-//				}
-				
 				
 				/*
 				 * get all fragments that overlap this position 
@@ -462,7 +456,7 @@ private static final int TILE_SIZE = 13;
 														.filter(f -> f.getId() == ip.getInt1())
 														.forEach(f ->mutatationFragmentsDetails.append(f.getId()).append("(").append(f.getRecordCount()).append("),"));});
 				
-				List<String> ff = new ArrayList<>(4);
+				List<String> ff = new ArrayList<>(3);
 				ff.add("FB");
 				ff.add(mutatationFragmentsDetails.subSequence(0,mutatationFragmentsDetails.length() -1) + "/" + overlappingFragmentsDetails.subSequence(0,overlappingFragmentsDetails.length() -1));
 				entry.getKey().setFormatFields(ff);
@@ -495,6 +489,11 @@ private static final int TILE_SIZE = 13;
 		int diffOtherCount = 0;
 		int snpsOnlyCorrectLength = 0;
 		int snpsOnlyWrongLength = 0;
+		int indelsOnly = 0;
+		int snpsAndindels = 0;
+		
+		int actualCPReadCount = 0;
+		int noActualCPReadCount = 0;
 		
 		for (Fragment f : frags.values()) {
 			
@@ -507,61 +506,123 @@ private static final int TILE_SIZE = 13;
 			String bufferedReference = getRefFromChrPos(bufferedCP);
 			
 			String [] swDiffs = ClinVarUtil.getSwDiffs(bufferedReference, f.getSequence(), true);
-//			if (f.getSequence().equals("AGATAATATAACATTAAGAATATTTTAGACTGCTTAAAGCAATTGTTGTATAAAAACTTGTTTCTATTTTATTTAGAGCTTAACTTAGATAGCAGTAATTTCCCTGGAGTAAAACTGCGGTCAAAAATGTCCCTCCGTTCTTATGGAAGCCGGGAAGGA")) {
-//				logger.info("frag: AGATAATATAACATTAAGAATATTTTAGACTGCTTAAAGCAATTGTTGTATAAAAACTTGTTTCTATTTTATTTAGAGCTTAACTTAGATAGCAGTAATTTCCCTGGAGTAAAACTGCGGTCAAAAATGTCCCTCCGTTCTTATGGAAGCCGGGAAGGA");
-//				logger.info("bufferredRef: " + buffrendReference);
-//				for (String s : swDiffs) {
-//					logger.info("s: " + s);
-//				}
-//			}
 			f.setSWDiffs(swDiffs);
 			
-			if (swDiffs[1].contains(".") || swDiffs[1].contains(" ")) {
-				// snp or indel
-				mutationCount++;
-				if ( ! swDiffs[1].contains(" ")) {
-					// snps only
-					int diff = f.getLength() - swDiffs[0].length();
-					if (diff == 0) {
-						snpsOnlyCorrectLength++;
-						int offset = bufferedReference.indexOf(swDiffs[0]);
-						setActualCP(bufferedCP, offset, f);
-					} else {
-						snpsOnlyWrongLength++;
-					}
-				}
+			String swFragmentMinusDeletions = swDiffs[2].replaceAll("-", "");
+			
+			if (f.getSequence().equals(swFragmentMinusDeletions)) {
+				/*
+				 * Fragment is wholly contained in swdiffs, and so can get actual position based on that
+				 */
+				String swRefMinusDeletions = swDiffs[0].replaceAll("-", "");
+				int offset = bufferedReference.indexOf(swRefMinusDeletions);
+				setActualCP(bufferedCP, offset, f);
+				actualCPReadCount += f.getRecordCount();
 				
+//				/*
+//				 * If we don't have an insertion, then can get start position accurately from reference in swDiffs
+//				 */
+//				if ( ! swDiffs[0].contains("-")) {
+//				} else {
+//					
+//					/*
+//					 * If we can uniquely identify the start position, proceed
+//					 */
+//					
+//					int firstInsertionIndex =  swDiffs[0].indexOf("-");
+//					String refPortion = swDiffs[0].substring(0, firstInsertionIndex);
+//					int firstReferenceLocation = bufferedReference.indexOf(refPortion);
+//					if (bufferedReference.indexOf(refPortion, firstReferenceLocation + refPortion.length()) == -1) {
+//						setActualCP(bufferedCP, firstReferenceLocation, f);
+//					} else {
+//						logger.info(refPortion + " is not unique in reference");
+//						for (String s : swDiffs) {
+//							logger.info("insertion s: " + s);
+//						}
+//					}
+//				}
 			} else {
-				int diff = f.getLength() - swDiffs[0].length();
-				if (diff == 0) {
-					// perfect match - update actual location on fragment
-					int offset = bufferedReference.indexOf(swDiffs[0]);
-					if (f.getSequence().equals("CGATGCTGTTCCCAGGTACTGTTGTTGGCTGTTGGTGAGGAAGGTGAAGCACTCAGTTGCCTTCTCGGGCCTCGGCGCCCCCTATGTACGCCTCCCTGGGCTCGGGTCCGGTCGCCCCTTTGCCCGCTTCTGTACCACCCTCAGT")) {
-						logger.info("about to call setActual location with bufferredCp: " + bufferedCP.toIGVString() + ", offset: " + offset);
-					}
-					setActualCP(bufferedCP, offset, f);
-					perfectMatchCount++;
-				} else {
-					if (diff == 20) {
-						diff20Count++;
-					} else {
-						diffOtherCount++;
-					}
-					logger.info("swdiff length: " + swDiffs[0].length() + ", frag length: " + f.getLength() + ", frag fs count: " + f.getFsCount() + ", frag rs count: " + f.getRsCount());
-					logger.info("frag: " + f.getSequence());
-					for (String s : swDiffs) {
-						logger.info("s: " + s);
-					}
-				}
+				logger.info("fragment length: " + f.getLength() + ", differs from swDiffs: " + swFragmentMinusDeletions.length());
+				logger.info("frag: " + f.getSequence());
+				logger.info("swDiffs[2]: " + swDiffs[2]);
+				logger.info("bufferedRef: " + bufferedReference);
+				noActualCPReadCount += f.getRecordCount();
 			}
+			
+				
+			
+//			if (swDiffs[1].contains(".") || swDiffs[1].contains(" ")) {
+//				// snp or indel
+//				mutationCount++;
+//				if ( ! swDiffs[1].contains(" ")) {
+//					// snps only
+//					int diff = f.getLength() - swDiffs[0].length();
+//					if (diff == 0) {
+//						snpsOnlyCorrectLength++;
+//						int offset = bufferedReference.indexOf(swDiffs[0]);
+//						setActualCP(bufferedCP, offset, f);
+//					} else {
+//						snpsOnlyWrongLength++;
+//					}
+//				} else if ( ! ClinVarUtil.doesSWContainSnp(swDiffs)) {
+//					// indels only
+//					indelsOnly++;
+//					/*
+//					 * If we only have deletions, then can get start position accurately
+//					 */
+//					if ( ! swDiffs[0].contains("-")) {
+//						int offset = bufferedReference.indexOf(swDiffs[0]);
+//						setActualCP(bufferedCP, offset, f);
+//					} else {
+//						int firstIndelPosition = swDiffs[1].indexOf(' ');
+//						if (firstIndelPosition > 10) {
+//							int offset = bufferedReference.indexOf(swDiffs[0].substring(0, firstIndelPosition));
+//							setActualCP(bufferedCP, offset, f);
+//						} else {
+//							logger.info("first indel is too close to beginning of read");
+//							for (String s : swDiffs) {
+//								logger.info("indel s: " + s);
+//							}
+//						}
+//						
+//					}
+//				} else {
+//					// snps and indels
+//					snpsAndindels++;
+//				}
+//				
+//			} else {
+//				int diff = f.getLength() - swDiffs[0].length();
+//				if (diff == 0) {
+//					// perfect match - update actual location on fragment
+//					int offset = bufferedReference.indexOf(swDiffs[0]);
+//					setActualCP(bufferedCP, offset, f);
+//					perfectMatchCount++;
+//				} else {
+//					if (diff == 20) {
+//						diff20Count++;
+//					} else {
+//						diffOtherCount++;
+//					}
+//					logger.info("swdiff length: " + swDiffs[0].length() + ", frag length: " + f.getLength() + ", frag fs count: " + f.getFsCount() + ", frag rs count: " + f.getRsCount());
+//					logger.info("frag: " + f.getSequence());
+//					for (String s : swDiffs) {
+//						logger.info("s: " + s);
+//					}
+//				}
+//			}
 		}
-		logger.info("no of perfect matches: " + perfectMatchCount + ", no with mutation: " + mutationCount + ", diff20Count: " + diff20Count + ", diffOtherCount: " + diffOtherCount + ", snpsOnlyCorrectLength: " + snpsOnlyCorrectLength + ", snpsOnlyWrongLength: " + snpsOnlyWrongLength);
+		logger.info("no of perfect matches: " + perfectMatchCount + ", no with mutation: " + mutationCount + ", diff20Count: " + diff20Count + ", diffOtherCount: " + diffOtherCount + ", snpsOnlyCorrectLength: " + snpsOnlyCorrectLength + ", snpsOnlyWrongLength: " + snpsOnlyWrongLength + ", indelsOnly: " + indelsOnly + ", snpsAndindels: " + snpsAndindels);
+		logger.info("number of reads that have actual cp set: " + actualCPReadCount + " which is " + ((double)actualCPReadCount / fastqRecordCount) * 100 + "%");
+		logger.info("number of reads that DONT have actual cp set: " + noActualCPReadCount + " which is " + ((double)noActualCPReadCount / fastqRecordCount) * 100 + "%");
 	}
 	
 	
 	private void createMutations() {
 		
-		frags.values().stream().filter(f -> f.getActualPosition() != null).forEach(f -> {
+		frags.values().stream()
+			.filter(f -> f.getActualPosition() != null)
+			.forEach(f -> {
 			
 			String [] smithWatermanDiffs = f.getSmithWatermanDiffs();
 			List<Pair<Integer, String>> mutations = ClinVarUtil.getPositionRefAndAltFromSW(smithWatermanDiffs);
@@ -628,9 +689,6 @@ private static final int TILE_SIZE = 13;
 				} else {
 					ai.incrementAndGet();
 				}
-				
-				
-				
 				IntPair ip = new IntPair(rec.getReadString().length(), rec2.getReadString().length());
 				if (ip.getInt1() == ip.getInt2()) {
 					sameReadLength++;
@@ -641,8 +699,6 @@ private static final int TILE_SIZE = 13;
 					readLengthDistribution.put(ip,  atomicI);
 				}
 				atomicI.incrementAndGet();
-				
-				
 				fastqCount++;
 			}
 		}
@@ -659,42 +715,27 @@ private static final int TILE_SIZE = 13;
 	}
 	
 	private void logPositionAndFragmentCounts() {
-		frags.entrySet().stream().sorted((entry1, entry2) -> {return entry1.getValue().getBestTiledLocation().compareTo(entry2.getValue().getBestTiledLocation());}).forEach((entry) -> {
-			logger.info("cp: " + entry.getValue().getBestTiledLocation().toIGVString() + "frag: " + entry.getKey() + ", no of fragments: " + entry.getValue().getRecordCount());
-		});
+		frags.entrySet().stream()
+			.sorted((entry1, entry2) -> {return entry1.getValue().getBestTiledLocation().compareTo(entry2.getValue().getBestTiledLocation());})
+			.forEach((entry) -> {
+				logger.info("cp: " + entry.getValue().getBestTiledLocation().toIGVString() + "frag: " + entry.getKey() + ", no of fragments: " + entry.getValue().getRecordCount());
+			});
 	}
-//	private void logPositionAndFragmentCounts() {
-//		positionFragmentsMap.entrySet().stream().sorted((entry1, entry2) -> {return entry1.getKey().compareTo(entry2.getKey());}).forEach((entry) -> {
-//			logger.info("cp: " + entry.getKey().toIGVString() + ", no of fragments: " + entry.getValue().size() + ", unique fragments: " + entry.getValue().stream().distinct().count());
-//			entry.getValue().stream().forEach(frag -> {logger.info("f: " + frag);});
-//		});
-//	}
 	
 	private void loadTiledAlignerData() throws Exception {
 		/*
 		 * Loop through all our amplicons, split into 13mers and add to ampliconTiles 
 		 */
 		Set<String> ampliconTiles = new HashSet<>();
-//		for (Entry<Probe, List<Bin>> entry : probeBinDist.entrySet()) {
-//			List<Bin> bins = entry.getValue();
-//			for (Bin b : bins) {
-				for (String s : fragAndRCFrags) {
+		for (String s : fragAndRCFrags) {
 //				String s = b.getSequence();
-				int sLength = s.length();
-				int noOfTiles = sLength / TILE_SIZE;
-				
-				for (int i = 0 ; i < noOfTiles ; i++) {
-					ampliconTiles.add(s.substring(i * TILE_SIZE, (i + 1) * TILE_SIZE));
-				}
-				/*
-				 * Now get the rev comp tiles - already contained in the fragAndRCFrags collection
-				 */
-//				s = SequenceUtil.reverseComplement(s);
-//				for (int i = 0 ; i < noOfTiles ; i++) {
-//					ampliconTiles.add(s.substring(i * TILE_SIZE, (i + 1) * TILE_SIZE));
-//				}
+			int sLength = s.length();
+			int noOfTiles = sLength / TILE_SIZE;
+			
+			for (int i = 0 ; i < noOfTiles ; i++) {
+				ampliconTiles.add(s.substring(i * TILE_SIZE, (i + 1) * TILE_SIZE));
 			}
-//		}
+		}
 		logger.info("Number of amplicon tiles: " + ampliconTiles.size());
 		
 		logger.info("loading genome tiles alignment data");
@@ -751,16 +792,8 @@ private static final int TILE_SIZE = 13;
 		logger.info("Unique tiles in amplicons: " + diff);
 		
 		int bestLocationSet = 0, bestLocationNotSet = 0;
-		
-//		for (Entry<Probe,List<Bin>> entry : probeBinDist.entrySet()) {
-//			Map<ChrPosition, AtomicInteger> binLocationDistribution = new HashMap<>();
-//			Probe p = entry.getKey();
-//			ChrPosition ampliconCP = p.getCp();
-//			long ampliconStartLongPosition = positionToActualLocation.getLongStartPositionFromChrPosition(ampliconCP);
-//			logger.info("Looking at probe: " + p.getId() +", which has " +  entry.getValue().size() + " bins");
-			
-		int positionFound = 0;
-		int noPositionFound = 0;
+		int positionFound = 0, positionFoundReadCount = 0;
+		int noPositionFound = 0, noPositionFoundReadCount = 0;
 		int fragId = 1;
 		for (String fragment : fragments.keySet()) {
 			int fragLength = fragment.length();
@@ -843,7 +876,8 @@ private static final int TILE_SIZE = 13;
 						if (results.length == 1 && resultsMap.get(bestTileCount).size() == 1) {
 							bestTiledCp = positionToActualLocation.getChrPositionFromLongPosition(resultsMap.get(bestTileCount).get(0));
 						} else {
-							logger.info("(results.length != 1 &&/|| resultsMap.get(bestTileCount).size() != 1");
+							logger.info("results.length: " + results.length + ", resultsMap.get(bestTileCount).size(): " + resultsMap.get(bestTileCount).size());
+//							logger.info("(results.length != 1 &&/|| resultsMap.get(bestTileCount).size() != 1");
 //							if (ClinVarUtil.areAllPositionsClose(resultsMap.valueCollection(), null, ampliconStartLongPosition, 200)) {
 //								logger.info("all positions on +ve strand are close");
 //								bestTiledCp = ampliconCP;
@@ -857,7 +891,7 @@ private static final int TILE_SIZE = 13;
 							bestTiledCp = positionToActualLocation.getChrPositionFromLongPosition(rcResultsMap.get(rcBestTileCount).get(0));
 							forwardStrand = false;
 						} else {
-							logger.info("rcResults.length != 1 &&/|| rcResultsMap.get(rcBestTileCount).size() != 1");
+							logger.info("rcResults.length: " + rcResults.length + ", rcResultsMap.get(rcBestTileCount).size(): " + rcResultsMap.get(rcBestTileCount).size());
 //							if (ClinVarUtil.areAllPositionsClose(rcResultsMap.valueCollection(), null, ampliconStartLongPosition, 200)) {
 //								logger.info("all positions on -ve strand are close");
 //								bestTiledCp = ampliconCP;
@@ -871,6 +905,7 @@ private static final int TILE_SIZE = 13;
 					
 					String forwardStrandFragment = forwardStrand ? fragment : SequenceUtil.reverseComplement(fragment);
 					int currentCount =  fragments.get(fragment).intValue();
+					positionFoundReadCount += currentCount;
 					
 					Fragment f = frags.get(forwardStrandFragment);
 					if (null == f) {
@@ -883,17 +918,14 @@ private static final int TILE_SIZE = 13;
 							if (f.getFsCount() != 0) {
 								logger.warn("already have fs count for this fragment!!!");
 							}
-//							logger.info("updating fs count");
 							f.setForwardStrandCount(currentCount);
 						} else {
 							if (f.getRsCount() != 0) {
 								logger.warn("already have rs count for this fragment!!!");
 							}
-//							logger.info("updating rs count");
 							f.setReverseStrandCount(currentCount);
 						}
 					}
-					
 					
 //					List<String> frags = positionFragmentsMap.get(bestTiledCp);
 //					if (null == frags) {
@@ -909,10 +941,13 @@ private static final int TILE_SIZE = 13;
 				
 //					logger.info("Did NOT get a position!!!");
 //					logger.info("bestTileCount: " + bestTileCount + ", rcBestTileCount: " + rcBestTileCount);
-//					if (bestTileCount == 0 && rcBestTileCount == 0) {
-//						logger.info("frag: " + fragment);
-//					}
+					if (bestTileCount != 0 || rcBestTileCount != 0) {
+						logger.info("Did NOT get a position!!!");
+						logger.info("bestTileCount: " + bestTileCount + ", rcBestTileCount: " + rcBestTileCount);
+						logger.info("frag: " + fragment);
+					}
 					noPositionFound++;
+					noPositionFoundReadCount += fragments.get(fragment).intValue();
 					/*
 					 * Haven't got a best tiled location, or the location is not near the amplicon, so lets generate some SW diffs, and choose the best location based on those
 					 */
@@ -949,27 +984,8 @@ private static final int TILE_SIZE = 13;
 //					bestLocationNotSet++;
 //				}
 			}
-			/*
-			 * Check to see if the bins sit close to the amplicon
-			 */
-//			boolean logProbeDetails = false;
-//			for (Entry<ChrPosition, AtomicInteger> entry4 : binLocationDistribution.entrySet()) {
-//				if ( ! ClinVarUtil.doChrPosOverlap(ampliconCP, entry4.getKey())) {
-//					logProbeDetails = true;
-//					break;
-//				}
-//			}
-//			if (logProbeDetails) {
-//				logger.info("probe: " + p.getId() + " at position: " + p.getCp().toIGVString() + " has bins at the following locations:");
-//				for (Entry<ChrPosition, AtomicInteger> entry4 : binLocationDistribution.entrySet()) {
-//					logger.info("position: " + entry4.getKey().toIGVString() + ", number of bins: " + entry4.getValue().intValue());
-//				}
-//			}
-//		}
-		logger.info("positionFound count: " + positionFound + ",  noPositionFound count: " + noPositionFound);
+		logger.info("positionFound count: " + positionFound + " which contain " + positionFoundReadCount + " reads,  noPositionFound count: " + noPositionFound + ", which contain "+ noPositionFoundReadCount + " reads");
 		logger.info("bestLocationSet count: " + bestLocationSet + ", not set count: " + bestLocationNotSet);
-//		logger.info("singleLocation: " + singleLocation + ", perfectMatch: " + perfectMatch + ", multiple Loci: " + multiLoci + ", unknown: " + unknown);
-//		logger.info("bothStrandsWin: " + bothStrandsWin + ", existingStrandWins: " + existingStrandWins + ", rcStrandWins: " + rcStrandWins);
 	}
 	
 	
@@ -1267,7 +1283,6 @@ private static final int TILE_SIZE = 13;
 			refTiledAlignmentFile = options.getTiledRefFileName();
 			refFileName = options.getRefFileName();
 			
-			xmlFile = options.getXml();
 			if (options.hasMinBinSizeOption()) {
 				this.minBinSize = options.getMinBinSize().intValue();
 			}
