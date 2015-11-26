@@ -263,6 +263,23 @@ private static final int TILE_SIZE = 13;
 		return exitStatus;
 	}
 	
+	private double getMutationCoveragePercentage(VcfRecord vcf, List<IntPair> fragmentsCarryingMutation) {
+		/*
+		 * Get the total coverage at this position
+		 * Use 
+		 */
+		List<Fragment> overlappingFragments = getOverlappingFragments(vcf.getChrPosition());
+		int totalCoverage = overlappingFragments.stream()
+				.mapToInt(Fragment::getRecordCount)
+				.sum();
+		int mutationCoverage = fragmentsCarryingMutation.stream()
+				.mapToInt(IntPair::getInt2)
+				.sum();
+		
+		double percentage = totalCoverage > 0 ? ((double)mutationCoverage / totalCoverage) * 100 : 0.0;
+		return percentage;
+	}
+	
 	private int getRecordCountFormIntPairs(List<IntPair> list) {
 		return list.stream()
 			.mapToInt(IntPair::getInt2)
@@ -464,7 +481,13 @@ private static final int TILE_SIZE = 13;
 			vcfFragmentMap.entrySet().stream()
 				.sorted((e1, e2) -> {return e1.getKey().compareTo(e2.getKey());})
 				.filter((entry) -> getRecordCountFormIntPairs(entry.getValue()) >= 10 )
+				.filter((entry) -> getMutationCoveragePercentage(entry.getKey(), entry.getValue()) >= 10 )
 				.forEach(entry -> {
+//					
+//					vcfFragmentMap.entrySet().stream()
+//					.sorted((e1, e2) -> {return e1.getKey().compareTo(e2.getKey());})
+//					.filter((entry) -> getRecordCountFormIntPairs(entry.getValue()) >= 10 )
+//					.forEach(entry -> {
 				
 				/*
 				 * get all fragments that overlap this position 
