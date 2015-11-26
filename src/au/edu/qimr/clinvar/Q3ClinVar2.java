@@ -481,7 +481,7 @@ private static final int TILE_SIZE = 13;
 			vcfFragmentMap.entrySet().stream()
 				.sorted((e1, e2) -> {return e1.getKey().compareTo(e2.getKey());})
 				.filter((entry) -> getRecordCountFormIntPairs(entry.getValue()) >= 10 )
-				.filter((entry) -> getMutationCoveragePercentage(entry.getKey(), entry.getValue()) >= 10 )
+				.filter((entry) -> getMutationCoveragePercentage(entry.getKey(), entry.getValue()) >= 5 )
 				.forEach(entry -> {
 //					
 //					vcfFragmentMap.entrySet().stream()
