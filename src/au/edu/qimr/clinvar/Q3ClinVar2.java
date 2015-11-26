@@ -1,6 +1,7 @@
 package au.edu.qimr.clinvar;
 
 import gnu.trove.list.array.TLongArrayList;
+import gnu.trove.map.hash.TIntIntHashMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 import gnu.trove.procedure.TLongProcedure;
 import htsjdk.samtools.Cigar;
@@ -32,7 +33,6 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicLongArray;
 import java.util.stream.Collectors;
 
 import org.qcmg.common.log.QLogger;
@@ -113,8 +113,10 @@ private static final int TILE_SIZE = 13;
 		int perfectOverlap = 0;
 		int nonPerfectOverlap = 0;
 		int smallOverlap = 0;
-		AtomicLongArray overlapDistribution = new AtomicLongArray(50000);
-		AtomicLongArray nonOverlapDistribution = new AtomicLongArray(50000);
+		TIntIntHashMap overlapDistribution = new TIntIntHashMap();
+		TIntIntHashMap nonOverlapDistribution = new TIntIntHashMap();
+//		AtomicLongArray overlapDistribution = new AtomicLongArray(50000);
+//		AtomicLongArray nonOverlapDistribution = new AtomicLongArray(50000);
 		Map<Integer, AtomicInteger> overlapLengthDistribution = new TreeMap<>();
 		int theSame = 0, different = 0;
 		for (Entry<String, AtomicInteger> entry : reads.entrySet()) {
@@ -138,13 +140,15 @@ private static final int TILE_SIZE = 13;
 			String [] newSwDiffs = nm.traceback();
 			String overlapMatches = newSwDiffs[1];
 			if (overlapMatches.indexOf(" ") > -1 || overlapMatches.indexOf('.') > -1) {
-				nonOverlapDistribution.incrementAndGet(entry.getValue().intValue());
+				nonOverlapDistribution.adjustOrPutValue(entry.getValue().intValue(), 1, 1);
+//				nonOverlapDistribution.incrementAndGet(entry.getValue().intValue());
 				nonPerfectOverlap++;
 //				for (String s : newSwDiffs) {
 //					logger.info("non perfect overlap sw: " + s);
 //				}
 			} else {
-				overlapDistribution.incrementAndGet(entry.getValue().intValue());
+				overlapDistribution.adjustOrPutValue(entry.getValue().intValue(), 1, 1);
+//				overlapDistribution.incrementAndGet(entry.getValue().intValue());
 				String overlap = newSwDiffs[0];
 				int overlapLength = overlapMatches.length();
 				if (overlapLength < 10) {
@@ -191,21 +195,42 @@ private static final int TILE_SIZE = 13;
 		logger.info("the following distribution is of the number of reads that were not able to make fragments due to differences in r1 and r2 reads.");
 		int nonFragmentRecordTally = 0;
 		int fragmentRecordTally = 0;
-		for (int i = 0 ; i < nonOverlapDistribution.length() ; i++) {
+		int [] nonOverlapDistributionKeys = nonOverlapDistribution.keys();
+		Arrays.sort(nonOverlapDistributionKeys);
+		for (int i : nonOverlapDistributionKeys) {
 			long l = nonOverlapDistribution.get(i);
 			if (l > 0) {
 				nonFragmentRecordTally += (l * i);
 				logger.info("no fragment distribution, record count: " + i + ", appeared " + l + " times");
 			}
 		}
+		int [] overlapDistributionKeys = overlapDistribution.keys();
+		Arrays.sort(overlapDistributionKeys);
 		logger.info("the following distribution is of the number of reads that were able to make fragments.");
-		for (int i = 0 ; i < overlapDistribution.length() ; i++) {
+		for (int i : overlapDistributionKeys) {
 			long l = overlapDistribution.get(i);
 			if (l > 0) {
 				fragmentRecordTally += (l * i);
 				logger.info("fragment distribution, record count: " + i + ", appeared " + l + " times");
 			}
 		}
+		
+		
+		
+//		for (int i = 0 ; i < nonOverlapDistribution.length() ; i++) {
+//			long l = nonOverlapDistribution.get(i);
+//			if (l > 0) {
+//				nonFragmentRecordTally += (l * i);
+//				logger.info("no fragment distribution, record count: " + i + ", appeared " + l + " times");
+//			}
+//		}
+//		for (int i = 0 ; i < overlapDistribution.length() ; i++) {
+//			long l = overlapDistribution.get(i);
+//			if (l > 0) {
+//				fragmentRecordTally += (l * i);
+//				logger.info("fragment distribution, record count: " + i + ", appeared " + l + " times");
+//			}
+//		}
 		
 		logger.info("Percentage of records that failed to make a fragment: " + nonFragmentRecordTally + " : " + ((double)nonFragmentRecordTally / fastqRecordCount) * 100 + "%");
 		logger.info("Percentage of records that made a fragment: " + fragmentRecordTally + " : " + ((double)fragmentRecordTally / fastqRecordCount) * 100 + "%");
@@ -239,9 +264,12 @@ private static final int TILE_SIZE = 13;
 	}
 	
 	private int getRecordCountFormIntPairs(List<IntPair> list) {
-		final AtomicInteger tally = new AtomicInteger();
-		list.stream().forEach(ip -> tally.addAndGet(ip.getInt2()));
-		return tally.intValue();
+		return list.stream()
+			.mapToInt(IntPair::getInt2)
+			.sum();
+//		final AtomicInteger tally = new AtomicInteger();
+//		list.stream().forEach(ip -> tally.addAndGet(ip.getInt2()));
+//		return tally.intValue();
 	}
 	
 	
@@ -442,23 +470,28 @@ private static final int TILE_SIZE = 13;
 				 * get all fragments that overlap this position 
 				 */
 				List<Fragment> overlappingFragments = getOverlappingFragments(entry.getKey().getChrPosition());
-				final StringBuilder overlappingFragmentsDetails = new StringBuilder();
+				final StringBuilder overlappingFragmentsDetails = new StringBuilder(overlappingFragments.size() + "(");
 				if (overlappingFragments.isEmpty() ) {
 					// oh dear...
 					logger.warn("didn't find any overlapping fragments for vcf record: " + entry.getKey().toString());
 				} else {
-					overlappingFragments.stream()
-						.forEachOrdered(f -> overlappingFragmentsDetails.append(f.getId()).append("(").append(f.getRecordCount()).append("),"));
+					long recordCount = overlappingFragments.stream()
+						.mapToLong(Fragment::getRecordCount)
+						.sum();
+					overlappingFragmentsDetails.append(recordCount).append(")");
+//					overlappingFragments.stream()
+//					.forEachOrdered(f -> overlappingFragmentsDetails.append(f.getId()).append("(").append(f.getRecordCount()).append("),"));
 				}
-				final StringBuilder mutatationFragmentsDetails = new StringBuilder();
-				entry.getValue().stream()
-					.forEachOrdered(ip -> {frags.values().stream()
-														.filter(f -> f.getId() == ip.getInt1())
-														.forEach(f ->mutatationFragmentsDetails.append(f.getId()).append("(").append(f.getRecordCount()).append("),"));});
+				final StringBuilder mutationFragmentsDetails = new StringBuilder(entry.getValue().size() + "(");
+				mutationFragmentsDetails.append(getRecordCountFormIntPairs(entry.getValue())).append(")");
+//				entry.getValue().stream()
+//					.forEachOrdered(ip -> {frags.values().stream()
+//														.filter(f -> f.getId() == ip.getInt1())
+//														.forEach(f ->mutatationFragmentsDetails.append(f.getId()).append("(").append(f.getRecordCount()).append("),"));});
 				
 				List<String> ff = new ArrayList<>(3);
 				ff.add("FB");
-				ff.add(mutatationFragmentsDetails.subSequence(0,mutatationFragmentsDetails.length() -1) + "/" + overlappingFragmentsDetails.subSequence(0,overlappingFragmentsDetails.length() -1));
+				ff.add(mutationFragmentsDetails.toString() + "/" + overlappingFragmentsDetails.toString());
 				entry.getKey().setFormatFields(ff);
 				
 				try {
