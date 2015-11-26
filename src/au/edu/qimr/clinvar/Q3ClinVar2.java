@@ -113,8 +113,8 @@ private static final int TILE_SIZE = 13;
 		int perfectOverlap = 0;
 		int nonPerfectOverlap = 0;
 		int smallOverlap = 0;
-		AtomicLongArray overlapDistribution = new AtomicLongArray(250);
-		AtomicLongArray nonOverlapDistribution = new AtomicLongArray(250);
+		AtomicLongArray overlapDistribution = new AtomicLongArray(50000);
+		AtomicLongArray nonOverlapDistribution = new AtomicLongArray(50000);
 		Map<Integer, AtomicInteger> overlapLengthDistribution = new TreeMap<>();
 		int theSame = 0, different = 0;
 		for (Entry<String, AtomicInteger> entry : reads.entrySet()) {
