@@ -16,7 +16,6 @@ import org.qcmg.vcf.VCFFileWriter;
 
 import au.edu.qimr.qannotate.options.SnpEffOptions;
 import ca.mcgill.mcb.pcingola.snpEffect.commandLine.SnpEff;
-//import ca.mcgill.mcb.pcingola.snpEffect.commandLine.SnpEff;
 
 public class SnpEffMode extends AbstractMode{
 
