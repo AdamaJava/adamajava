@@ -30,7 +30,7 @@ subprojects {
    apply plugin: 'eclipse'
    //apply plugin: 'code-quality'
 
-   sourceCompatibility = 1.7
+   sourceCompatibility = 1.8
 
    defaultTasks "build"
    libsDirName = "lib"
