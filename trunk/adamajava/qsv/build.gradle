@@ -1,4 +1,4 @@
-version = '0.2pre'
+version = '0.3'
 
 def mainclass = 'org.qcmg.qsv.QSV'
 def scriptname = 'qsv'
