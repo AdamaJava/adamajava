@@ -186,14 +186,11 @@ public final class MultiSAMFileReader implements Closeable, Iterable<SAMRecord> 
 		return replacementZcs.get(reader);
 	}
 
-	public HashSet<Integer> getTakenZcs() {
-		return taken;
-	}
-
 	public Integer getDefaultZc(SamReader reader) {
 		return defaultZcs.get(reader);
 	}
 
+	@Override
 	public synchronized Iterator<SAMRecord> iterator() throws IllegalStateException {
 		return getMultiSAMFileIterator();
 	}
