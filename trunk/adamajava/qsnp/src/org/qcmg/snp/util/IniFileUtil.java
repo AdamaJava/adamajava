@@ -123,11 +123,6 @@ public class IniFileUtil {
 		return ini.fetch(parent, child);
 	}
 	
-	public static boolean isPatientFemale(Ini ini) {
-		String isFemale = getEntry(ini, "patient", "female");
-		return Boolean.parseBoolean(isFemale);
-	}
-	
 	private static void checkIni(Ini ini) {
 		if (null == ini) throw new IllegalArgumentException("Missing ini file reference");
 	}
