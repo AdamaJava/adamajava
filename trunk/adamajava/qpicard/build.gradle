@@ -12,7 +12,7 @@ dependencies {
     compile project(':qcommon')
 
     compile name: 'htsjdk', version: '1.140'
-    compile name: 'picard'
+    compile name: 'picard-lib'
     
     testCompile name: 'junit', version: '4.10'
 }
