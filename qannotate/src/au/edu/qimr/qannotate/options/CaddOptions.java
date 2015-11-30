@@ -4,13 +4,6 @@ import static java.util.Arrays.asList;
 
 import java.util.List;
 
-
-
-
-
-
-
-//import au.edu.qimr.qannotate.options.Options.MODE;
 import joptsimple.OptionSet;
 import au.edu.qimr.qannotate.Messages;
 
