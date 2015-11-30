@@ -17,7 +17,6 @@ dependencies {
 	compile project(':qbamfilter')
 
 	
-	compile name: 'picard', version: '1.110'
     compile name: 'htsjdk', version: '1.140'
 	compile name: 'commons-math3', version: '3.3'
     testCompile name: 'junit', version: '4.10'
