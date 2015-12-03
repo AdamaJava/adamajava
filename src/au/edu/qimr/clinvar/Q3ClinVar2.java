@@ -29,6 +29,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.OptionalInt;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -55,6 +56,7 @@ import org.qcmg.tab.TabbedHeader;
 import org.qcmg.tab.TabbedRecord;
 import org.qcmg.vcf.VCFFileWriter;
 
+import au.edu.qimr.clinvar.model.Amplicon;
 import au.edu.qimr.clinvar.model.Fragment;
 import au.edu.qimr.clinvar.model.IntPair;
 import au.edu.qimr.clinvar.model.PositionChrPositionMap;
@@ -71,6 +73,7 @@ private static final int TILE_SIZE = 13;
 	private static String[] fastqFiles;
 	private static String version;
 	private String logFile;
+	private String bedFile;
 	private String outputFileNameBase;
 	private String refTiledAlignmentFile;
 	private String refFileName;
@@ -99,7 +102,9 @@ private static final int TILE_SIZE = 13;
 	
 	private final Map<VcfRecord, List<IntPair>> vcfFragmentMap = new HashMap<>();
 	
+	private final Map<Amplicon, List<Fragment>> ampliconFragmentMap = new HashMap<>();
 	
+	private final Map<Amplicon, List<Amplicon>> bedToAmpliconMap = new HashMap<>();
 	
 //	private final static Map<Pair<FastqRecord, FastqRecord>, List<Probe>> multiMatchingReads = new HashMap<>();
 	
@@ -254,6 +259,14 @@ private static final int TILE_SIZE = 13;
 		loadTiledAlignerData();
 //		logPositionAndFragmentCounts();
 		getActualLocationForFrags();
+		
+		createAmplicons();
+		
+		mapBedToAmplicons();
+		
+		
+		
+		
 		createMutations();
 		logger.info("no of mutations created: " + vcfFragmentMap.size());
 		writeVcf();
@@ -263,6 +276,127 @@ private static final int TILE_SIZE = 13;
 		return exitStatus;
 	}
 	
+	private void mapBedToAmplicons() throws IOException, Exception {
+		/*
+		 * Only do this if we have been supplied a bed file
+		 */
+		if (bedFile != null) {
+			int bedId = 0;
+			try (TabbedFileReader reader = new TabbedFileReader(new File(bedFile));) {
+				for (TabbedRecord rec : reader) {
+					String [] params = TabTokenizer.tokenize(rec.getData());
+					ChrPosition cp = new ChrPosition(params[0], Integer.parseInt(params[1]), Integer.parseInt(params[2]));
+					bedToAmpliconMap.put(new Amplicon(++bedId, cp), new ArrayList<Amplicon>(1));
+				}
+			}
+			logger.info("Loaded " + bedToAmpliconMap.size() + " bed positions into map");
+			
+			/*
+			 * log distribution of bed lengths
+			 */
+			Map<Integer, Long> bedLengthDistribution = bedToAmpliconMap.keySet().stream()
+					.collect(Collectors.groupingBy(bed -> bed.getFragmentPosition().getLength(), Collectors.counting()));
+			bedLengthDistribution.entrySet().stream()
+				.sorted((e1, e2) -> e1.getKey().compareTo(e2.getKey()))
+				.forEach(e -> logger.info("bed length, and count: " + e.getKey().intValue() + " : " + e.getValue().longValue()));
+			/*
+			 * log distribution of amplicon lengths
+			 */
+			Map<Integer, Long> ampliconLengthDistribution = ampliconFragmentMap.keySet().stream()
+					.collect(Collectors.groupingBy(a -> a.getFragmentPosition().getLength(), Collectors.counting()));
+			ampliconLengthDistribution.entrySet().stream()
+				.sorted((e1, e2) -> e1.getKey().compareTo(e2.getKey()))
+				.forEach(e -> logger.info("amplicon length, and count: " + e.getKey().intValue() + " : " + e.getValue().longValue()));
+			
+			/*
+			 * Assign amplicons to bed poisitions
+			 */
+			ampliconFragmentMap.keySet().stream()
+				.forEach(a -> {
+					List<Amplicon> beds = bedToAmpliconMap.keySet().stream()
+						.filter(bed -> ChrPositionUtils.isChrPositionContained(a.getFragmentPosition(), bed.getFragmentPosition())
+								&& a.getFragmentPosition().getPosition() < (bed.getFragmentPosition().getPosition() + 10)
+								&& a.getFragmentPosition().getEndPosition() > (bed.getFragmentPosition().getEndPosition() + 10)
+								)
+						.collect(Collectors.toList());
+					
+					if (beds.size() > 1) {
+						logger.info("Found " + beds.size() + " bed positions that are contained by this amplicon " + a.getFragmentPosition().toIGVString());
+						beds.stream().forEach(b ->logger.info("bed: " + b.toString()));
+					}
+				});
+			
+		}
+	}
+	
+	private void createAmplicons() {
+		
+		List<ChrPosition> fragCPs = frags.values().stream()
+				.filter(f -> f.getActualPosition() != null)
+				.map(Fragment::getActualPosition)
+				.collect(Collectors.toList());
+		
+		Map<ChrPosition, Set<ChrPosition>> ampliconFragmentPositionMap = ChrPositionUtils.getAmpliconsFromFragments(fragCPs);
+		
+		logger.info("Found " + ampliconFragmentPositionMap.size() + " amplicons from " + fragCPs.size() + " fragments");
+		
+		/*
+		 * Next, try and rollup amplicons with adjacent start positions
+		 */
+		List<ChrPosition> toRemove = new ArrayList<>();
+		
+		for (Entry<ChrPosition, Set<ChrPosition>> entry : ampliconFragmentPositionMap.entrySet()) {
+			
+			
+			ChrPosition cp = entry.getKey();
+			
+			ampliconFragmentPositionMap.keySet().stream()
+				.filter(cp1 -> ! cp1.equals(cp))
+				.filter(cp1 -> ! toRemove.contains(cp1))
+				.filter(cp1 -> cp1.getChromosome().equals(cp.getChromosome()) && cp1.getPosition() > cp.getPosition() && cp1.getPosition() < cp.getPosition() + 5)
+				.forEach(cp1 -> {
+					entry.getValue().addAll(ampliconFragmentPositionMap.get(cp1));
+					toRemove.add(cp1);
+				});
+		}
+		toRemove.stream()
+			.forEach(a -> ampliconFragmentPositionMap.remove(a));
+		
+		logger.info("After rollup, found " + ampliconFragmentPositionMap.size() + " amplicons from " + fragCPs.size() + " fragments");
+		
+		/*
+		 * Now need to expand out the amplcon cp to include the largest end position of its constituents
+		 * and keep a list of the fragments associated with it 
+		 */
+		final AtomicInteger ampliconId = new AtomicInteger();
+		ampliconFragmentPositionMap.entrySet().stream()
+			.sorted((e1, e2) -> {return e1.getKey().compareTo(e2.getKey());})
+			.forEach(entry -> {
+				
+				OptionalInt maxEnd = entry.getValue().stream()
+						.mapToInt(ChrPosition::getEndPosition)
+						.max();
+				ChrPosition ampliconCP = new ChrPosition(entry.getKey().getChromosome(), entry.getKey().getPosition(), maxEnd.orElse( entry.getKey().getPosition()));
+				Amplicon amplicon = new Amplicon(ampliconId.incrementAndGet(), ampliconCP);
+				
+				ampliconFragmentMap.put(amplicon,  frags.values().stream()
+						.filter(f -> entry.getValue().contains(f.getActualPosition()))
+						.collect(Collectors.toList()));
+				});
+		
+		
+		/*
+		 * Get some stats on each Amplicon
+		 * # of fragments, and reads to start with
+		 */
+		ampliconFragmentMap.entrySet().stream()
+			.forEach(entry -> {
+				int recordCount = entry.getValue().stream().mapToInt(Fragment::getRecordCount).sum();
+				logger.info("Amplicon " + entry.getKey().getId() + " " + entry.getKey().getFragmentPosition().toIGVString() + " has " + entry.getValue().size() + " fragments with a total of " + recordCount + " records (" + ((double) recordCount / fastqRecordCount) * 100 + "%)");
+			});
+		
+	}
+
 	private double getMutationCoveragePercentage(VcfRecord vcf, List<IntPair> fragmentsCarryingMutation) {
 		/*
 		 * Get the total coverage at this position
@@ -1088,196 +1222,6 @@ private static final int TILE_SIZE = 13;
 		return referenceSeq;
 	}
 	
-//	private void loadTiledAlignerData() throws Exception {
-//		
-//		/*
-//		 * Loop through all our fragments, split into 13mers and add to ampliconTiles 
-//		 */
-//		Set<String> ampliconTiles = new HashSet<>();
-//		for (String s : fragAndRCFrags) {
-//			int sLength = s.length();
-//			int noOfTiles = sLength / TILE_SIZE;
-//				
-//			for (int i = 0 ; i < noOfTiles ; i++) {
-//				ampliconTiles.add(s.substring(i * TILE_SIZE, (i + 1) * TILE_SIZE));
-//			}
-//		}
-//		logger.info("Number of amplicon tiles: " + ampliconTiles.size());
-//		logger.info("loading genome tiles alignment data");
-//		
-//		try (TabbedFileReader reader = new TabbedFileReader(new File(refTiledAlignmentFile))) {
-////			try (TabbedFileReader reader = new TabbedFileReader(new File(refTiledAlignmentFile));
-////					FileWriter writer = new FileWriter(new File(refTiledAlignmentFile + ".condensed"))) {
-//			
-//			TabbedHeader header = reader.getHeader();
-//			List<String> headerList = new ArrayList<>();
-//			for (String head : header) {
-//				headerList.add(head);
-//			}
-//			positionToActualLocation.loadMap(headerList);
-////			for (String head : header) {
-////				writer.write(head + "\n");
-////			}
-//			int i = 0;
-//			for (TabbedRecord rec : reader) {
-//				if (++i % 1000000 == 0) {
-//					logger.info("hit " + (i / 1000000) + "M records");
-//				}
-//				String tile = rec.getData().substring(0, TILE_SIZE);
-//				if (ampliconTiles.contains(tile)) {
-//					String countOrPosition = rec.getData().substring(rec.getData().indexOf('\t') + 1);
-//					if (countOrPosition.charAt(0) == 'C') {
-//						frequentlyOccurringRefTiles.add(tile);
-//					} else {
-//						
-//						TLongArrayList positionsList = new TLongArrayList();
-//						if (countOrPosition.indexOf(',') == -1) {
-//							positionsList.add(Long.parseLong(countOrPosition));
-//						} else {
-//							String [] positions =  TabTokenizer.tokenize(countOrPosition, ',');
-//							for (String pos : positions) {
-//								positionsList.add(Long.parseLong(pos));
-//							}
-//						}
-//						
-//						// create TLongArrayList from 
-//						refTilesPositions.put(tile, positionsList);
-//						
-//					}
-////					writer.write(rec.getData() + "\n");
-//				}
-//			}
-//		}
-//		int refTilesCountSize =  frequentlyOccurringRefTiles.size();
-//		int refTilesPositionsSize =  refTilesPositions.size();
-//		int total = refTilesCountSize + refTilesPositionsSize;
-//		int diff = ampliconTiles.size() - total;
-//		logger.info("finished reading the genome tiles alignment data");
-//		logger.info("no of entries in refTilesCount: " + refTilesCountSize);
-//		logger.info("no of entries in refTilesPositions: " + refTilesPositionsSize);
-//		logger.info("Unique tiles in amplicons: " + diff);
-//		
-//		
-//		/*
-//		 * For each fragment, get best tile count
-//		 * Do same for fragment reverse complement, and see which one gives the better result
-//		 */
-//		int singleLocation = 0;
-//		int perfectMatch = 0;
-//		int multiLoci = 0;
-//		int unknown = 0;
-//		int existingStrandWins = 0;
-//		int rcStrandWins = 0;
-//		int bothStrandsWin = 0;
-//		for (String fragment : fragments.keySet()) {
-//			int fragLength = fragment.length();
-//			int noOfTiles = fragLength / TILE_SIZE;
-//			
-////			LinkedHashMap<String, TLongArrayList> binSpecificTiles = new LinkedHashMap<>();
-//			
-//			long[][] tilePositions = new long[noOfTiles][];
-//			
-//			for (int i = 0 ; i < noOfTiles ; i++) {
-//				String bt = fragment.substring(i * TILE_SIZE, (i + 1) * TILE_SIZE);
-//				
-//				if (frequentlyOccurringRefTiles.contains(bt)) {
-//					tilePositions[i] = new long[]{Long.MAX_VALUE};
-//				} else if (refTilesPositions.containsKey(bt)) {
-//					TLongArrayList refPositions = refTilesPositions.get(bt);
-//					tilePositions[i] = refPositions.toArray();
-//					Arrays.sort(tilePositions[i]);
-//				} else {
-//					tilePositions[i] = new long[]{Long.MIN_VALUE};
-//				}
-//			}
-//			
-//			long[][] rcTilePositions = new long[noOfTiles][];
-//			String rcFragment = SequenceUtil.reverseComplement(fragment);
-//			for (int i = 0 ; i < noOfTiles ; i++) {
-//				String bt = rcFragment.substring(i * TILE_SIZE, (i + 1) * TILE_SIZE);
-//				
-//				if (frequentlyOccurringRefTiles.contains(bt)) {
-//					rcTilePositions[i] = new long[]{Long.MAX_VALUE};
-//				} else if (refTilesPositions.containsKey(bt)) {
-//					TLongArrayList refPositions = refTilesPositions.get(bt);
-//					rcTilePositions[i] = refPositions.toArray();
-//					Arrays.sort(tilePositions[i]);
-//				} else {
-//					rcTilePositions[i] = new long[]{Long.MIN_VALUE};
-//				}
-//			}
-//			
-//			/*
-//			 * See if we can walk through binSpecificTiles
-//			 */
-//			TIntObjectHashMap<TLongArrayList> resultsMap = ClinVarUtil.getBestStartPosition(tilePositions, TILE_SIZE, 5, 0, 2);
-//			TIntObjectHashMap<TLongArrayList> rcResultsMap = ClinVarUtil.getBestStartPosition(rcTilePositions, TILE_SIZE, 5, 0, 2);
-//			int [] results = resultsMap.keys();
-//			if (results.length > 1) {
-//				Arrays.sort(results);
-//			}
-//			int [] rcResults = rcResultsMap.keys();
-//			if (rcResults.length > 1) {
-//				Arrays.sort(rcResults);
-//			}
-//			
-//			int bestTileCount = results.length > 0 ? results[results.length -1] : 0;
-//			int rcBestTileCount = rcResults.length > 0 ? rcResults[rcResults.length -1] : 0;
-////			long [] results = ClinVarUtil.getBestStartPosition(tilePositions, TILE_SIZE, 2, 0);
-////			long [] rcResults = ClinVarUtil.getBestStartPosition(rcTilePositions, TILE_SIZE, 2, 0);
-//			
-////			long bestTileCount = results[1];
-////			long rcBestTileCount = rcResults[1];
-//			
-//			if (bestTileCount >= rcBestTileCount) {
-//				if (bestTileCount == rcBestTileCount) {
-//					bothStrandsWin++;
-//					logger.info("tile counts same for both strands, existing: " + Arrays.toString(results) + ", rc: " + Arrays.toString(rcResults) + " for fragment: " + fragment);
-//					
-//				} else {
-//					existingStrandWins++;
-//				}
-//				
-//				if (results.length > 2) {
-//					multiLoci++;
-////					if (results[1] > 1) {		// just show larger ones for now...
-////						logger.info("Have more than 1 best start positions: " + Arrays.toString(results) + " for fragment: " + fragment);
-////					}
-//				} else if (results.length == 2) {
-//					singleLocation++;
-//					if (results[1] == noOfTiles) {
-//						perfectMatch++;
-//					}
-//				} else {
-//					unknown++;
-//				}
-//			} else {
-//				rcStrandWins++;
-//				if (rcResults.length > 2) {
-//					multiLoci++;
-////					if (rcResults[1] > 1) {		// just show larger ones for now...
-////						logger.info("Have more than 1 best start positions: " + Arrays.toString(rcResults) + " for fragment: " + fragment);
-////					}
-//				} else if (rcResults.length == 2) {
-//					singleLocation++;
-//					if (rcResults[1] == noOfTiles) {
-//						perfectMatch++;
-//					}
-//				} else {
-//					unknown++;
-//				}
-//				
-//			}
-//			
-//			
-//		}
-//		logger.info("singleLocation: " + singleLocation + ", perfectMatch: " + perfectMatch + ", multiple Loci: " + multiLoci + ", unknown: " + unknown);
-//		logger.info("bothStrandsWin: " + bothStrandsWin + ", existingStrandWins: " + existingStrandWins + ", rcStrandWins: " + rcStrandWins);
-//		
-//	}
-	
-	
-	
 	public static void main(String[] args) throws Exception {
 		// loads all classes in referenced jars into memory to avoid nightly build sheninegans
 		LoadReferencedClasses.loadClasses(Q3ClinVar2.class);
@@ -1338,6 +1282,7 @@ private static final int TILE_SIZE = 13;
 			
 			refTiledAlignmentFile = options.getTiledRefFileName();
 			refFileName = options.getRefFileName();
+			bedFile = options.getBedFile();
 			
 			if (options.hasMinBinSizeOption()) {
 				this.minBinSize = options.getMinBinSize().intValue();

@@ -59,6 +59,7 @@ final class Options {
 		parser.accepts("output", OUTPUT_FILE_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("tiledRef", OUTPUT_FILE_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("ref", OUTPUT_FILE_DESCRIPTION).withRequiredArg().ofType(String.class);
+		parser.accepts("bedFile", OUTPUT_FILE_DESCRIPTION).withRequiredArg().ofType(String.class);
 //		parser.accepts("exclude", EXCLUDES_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
 		parser.accepts("minBinSize", MIN_BIN_SIZE_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
 		parser.accepts("tiledDiffThreshold", MIN_BIN_SIZE_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
@@ -161,6 +162,10 @@ final class Options {
 	
 	String getXml() {
 		return xml;
+	}
+	
+	String getBedFile() {
+		return  (String) options.valueOf("bedFile");
 	}
 	
 	String getUUID() {
