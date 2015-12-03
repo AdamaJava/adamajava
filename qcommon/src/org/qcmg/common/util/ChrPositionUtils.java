@@ -5,6 +5,9 @@ package org.qcmg.common.util;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.string.StringUtils;
@@ -12,15 +15,7 @@ import org.qcmg.common.string.StringUtils;
 public class ChrPositionUtils {
 	
 	public static boolean doChrPositionsOverlap(ChrPosition a, ChrPosition b) {
-		
-		// check chromosome first
-		if ( ! a.getChromosome().equals(b.getChromosome())) return false;
-		
-		// now positions
-		if (a.getEndPosition() < b.getPosition()) return false;
-		if (a.getPosition() > b.getEndPosition()) return false;
-		
-		return true;
+		return doChrPositionsOverlap(a,b,0);
 	}
 	
 	public static boolean doChrPositionsOverlap(ChrPosition a, ChrPosition b, int buffer) {
@@ -48,6 +43,38 @@ public class ChrPositionUtils {
 		}
 		return false;
 		
+	}
+	
+	public static Map<ChrPosition, Set<ChrPosition>> getAmpliconsFromFragments(List<ChrPosition> fragments) {
+		
+		/*
+		 * Create a collection of start positions
+		 */
+		
+		
+//		Set<ChrPosition> amplicons = new HashSet<>();
+		
+		Map<ChrPosition, Set<ChrPosition>> ampliconFragmentMap = fragments.stream()
+			.collect(Collectors.groupingBy(cp -> {
+				return new ChrPosition(cp.getChromosome(), cp.getPosition());
+			}, Collectors.toSet()));
+		
+		
+		return ampliconFragmentMap;
+		
+	}
+	
+	public static boolean arePositionsWithinDelta(ChrPosition a, ChrPosition b, int delta) {
+		// check chromosome first
+		if ( ! a.getChromosome().equals(b.getChromosome())) return false;
+		
+		int diff = Math.abs(a.getPosition() - b.getPosition());
+		if (diff > delta) {
+			return false;
+		}
+		
+		diff += Math.abs(a.getEndPosition() - b.getEndPosition());
+		return diff <= delta;
 	}
 	
 	public static boolean doChrPositionsOverlapPositionOnly(ChrPosition a, ChrPosition b) {

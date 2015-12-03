@@ -2,11 +2,49 @@ package org.qcmg.common.util;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.junit.Assert;
 import org.junit.Test;
 import org.qcmg.common.model.ChrPosition;
 
 public class ChrPositionUtilsTest {
+	
+	
+	@Test
+	public void testDelta() {
+		ChrPosition cp1 = new ChrPosition("1", 100, 200);
+		ChrPosition cp2 = new ChrPosition("1", 100, 200);
+		assertEquals(true, ChrPositionUtils.arePositionsWithinDelta(cp1, cp2, 4));
+		
+		cp2 = new ChrPosition("1", 110, 200);
+		assertEquals(false, ChrPositionUtils.arePositionsWithinDelta(cp1, cp2, 4));
+		cp2 = new ChrPosition("1", 100, 205);
+		assertEquals(false, ChrPositionUtils.arePositionsWithinDelta(cp1, cp2, 4));
+		cp2 = new ChrPosition("1", 102, 203);
+		assertEquals(false, ChrPositionUtils.arePositionsWithinDelta(cp1, cp2, 4));
+		cp2 = new ChrPosition("1", 103, 202);
+		assertEquals(false, ChrPositionUtils.arePositionsWithinDelta(cp1, cp2, 4));
+		cp2 = new ChrPosition("1", 98, 203);
+		assertEquals(false, ChrPositionUtils.arePositionsWithinDelta(cp1, cp2, 4));
+		cp2 = new ChrPosition("1", 98, 202);
+		assertEquals(true, ChrPositionUtils.arePositionsWithinDelta(cp1, cp2, 4));
+	}
+	
+	@Test
+	public void getAmplicons() {
+		ChrPosition cp1 = new ChrPosition("1", 100, 200);
+		ChrPosition cp2 = new ChrPosition("1", 100, 200);
+		List<ChrPosition> frags = new ArrayList<>();
+		frags.add(cp1);
+		frags.add(cp2);
+		
+		assertEquals(1, ChrPositionUtils.getAmpliconsFromFragments(frags).size());
+		ChrPosition cp3 = new ChrPosition("1", 101, 200);
+		frags.add(cp3);
+		assertEquals(2, ChrPositionUtils.getAmpliconsFromFragments(frags).size());
+	}
 	
 	
 	@Test
