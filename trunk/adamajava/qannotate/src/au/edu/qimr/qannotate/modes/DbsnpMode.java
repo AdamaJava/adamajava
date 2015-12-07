@@ -3,6 +3,7 @@ package au.edu.qimr.qannotate.modes;
 import static org.qcmg.common.util.Constants.EQ;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -42,6 +43,9 @@ public class DbsnpMode extends AbstractMode{
 		
 		removeExistingDbSnpIds();
 		
+		//debug
+//		testDbSNP(options.getDatabaseFileName());
+		
 		if(options.isDIV())
 			divAnnotation(options.getDatabaseFileName());
 		else	
@@ -49,6 +53,28 @@ public class DbsnpMode extends AbstractMode{
 		
 		reheader(options.getCommandLine(),options.getInputFileName())	;
 		writeVCF( new File(options.getOutputFileName()));	
+	}
+	
+	//debug
+	void testDbSNP(String file) throws IOException{
+		try (VCFFileReader reader= new VCFFileReader( file )) {
+			for (final VcfRecord dbSNPVcf : reader) {
+				if (! StringUtils.doesStringContainSubString(dbSNPVcf.getInfo(), "VC=SNV", false) &&
+					 !StringUtils.doesStringContainSubString(dbSNPVcf.getInfo(), "VC=MNV", false))
+					continue; 
+				
+				int start;
+				String rspos = dbSNPVcf.getInfoRecord().getField("RSPOS");
+				if( !StringUtils.isNullOrEmpty(rspos)){ 		
+					start = Integer.parseInt(rspos);
+					if( dbSNPVcf.getPosition() != start   )
+						System.out.println("debug:" + dbSNPVcf.toString());
+				}
+			}
+			
+			
+		}
+		
 	}
 		
 	//testing at momemnt
@@ -142,7 +168,7 @@ public class DbsnpMode extends AbstractMode{
 				String rspos = dbSNPVcf.getInfoRecord().getField("RSPOS");
 				if( !StringUtils.isNullOrEmpty(rspos)){ 		
 					start = Integer.parseInt(rspos);
-					if(start == chrPos.getPosition()) continue; 
+					if(start == chrPos.getPosition() || start > chrPos.getEndPosition()) continue; 
 					
 					chrPos = new ChrPosition(chr, start, end );	
 					inputVcfs = positionRecordMap.get(chrPos);
@@ -177,9 +203,12 @@ public class DbsnpMode extends AbstractMode{
 		//trim the dbSNP alleles, since the first base maybe from reference if vcf second column different with "RSPOS" value 
 		String[] db_alts = dbSNPVcf.getAlt().contains(Constants.COMMA_STRING) ? 
 				TabTokenizer.tokenize(dbSNPVcf.getAlt(), Constants.COMMA) : new String[] {dbSNPVcf.getAlt()}; 				
-		for(int i = 0; i < db_alts.length; i ++)
-			db_alts[i] = db_alts[i].substring( chrPos.getPosition() - dbSNPVcf.getPosition() );
-				
+		for(int i = 0; i < db_alts.length; i ++){
+			int ll = chrPos.getPosition() - dbSNPVcf.getPosition();
+			if(db_alts[i].length() > ll )
+				db_alts[i] = db_alts[i].substring(ll);
+			
+		}		
 												
 		String[] input_alts = inputVcf.getAlt().contains(Constants.COMMA_STRING) ? 
 				TabTokenizer.tokenize(inputVcf.getAlt(), Constants.COMMA) : new String[] {inputVcf.getAlt()}; 	
