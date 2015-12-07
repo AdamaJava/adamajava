@@ -144,13 +144,11 @@ public class DbsnpMode extends AbstractMode{
 			 	header.addInfo(snpInfoHeader.get(VcfHeaderUtils.INFO_VLD));		 						 
 			}
 			
-			int inputNo = 0;
+		 
 			int dbSnpNo = 0;
 			for (final VcfRecord dbSNPVcf : reader) {
-				inputNo ++;
-				
-//				System.out.println( "VC " + VC);
-				
+				 
+								
 //				if ( ! StringUtils.doesStringContainSubString(dbSNPVcf.getInfo(), "VC=SNV", false) &&
 //						! StringUtils.doesStringContainSubString(dbSNPVcf.getInfo(), "VC=MNV", false))
 //					continue;
@@ -188,8 +186,7 @@ public class DbsnpMode extends AbstractMode{
 				}
 			}
 			 
-			System.out.println(String.format("there are %d inputed variants and found %d variants mathch dbSNP", inputNo, dbSnpNo));
-			logger.info(String.format("there are %d inputed variants and found %d variants mathch dbSNP", inputNo, dbSnpNo));
+			logger.info(String.format("found %d matched dbSNP ", dbSnpNo));
 		}
 	}
 	
