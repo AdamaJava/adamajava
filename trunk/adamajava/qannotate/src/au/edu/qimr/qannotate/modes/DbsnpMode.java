@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.qcmg.common.log.QLogger;
+import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
@@ -23,8 +24,8 @@ import org.qcmg.vcf.VCFFileReader;
 import au.edu.qimr.qannotate.options.DbsnpOptions;
 
 public class DbsnpMode extends AbstractMode{
-	QLogger logger;
-	private VcfRecord dbSNPVcf;
+	QLogger logger = QLoggerFactory.getLogger(DbsnpMode.class);
+//	private VcfRecord dbSNPVcf;
 	
 	//for unit Test
 	DbsnpMode(){}
@@ -116,8 +117,11 @@ public class DbsnpMode extends AbstractMode{
 			if (snpInfoHeader.get(VcfHeaderUtils.INFO_VLD) != null ) {
 			 	header.addInfo(snpInfoHeader.get(VcfHeaderUtils.INFO_VLD));		 						 
 			}
-				
+			
+			int inputNo = 0;
+			int dbSnpNo = 0;
 			for (final VcfRecord dbSNPVcf : reader) {
+				inputNo ++;
 //				if ( ! StringUtils.doesStringContainSubString(dbSNPVcf.getInfo(), "VC=SNV", false) &&
 //						! StringUtils.doesStringContainSubString(dbSNPVcf.getInfo(), "VC=MNV", false))
 //					continue;
@@ -130,7 +134,8 @@ public class DbsnpMode extends AbstractMode{
 				List<VcfRecord> inputVcfs = positionRecordMap.get(chrPos);
 				if (null != inputVcfs && inputVcfs.size() != 0){
 					for(VcfRecord re: inputVcfs)
-						annotateDBsnp(re, dbSNPVcf );					
+						if(annotateDBsnp(re, dbSNPVcf ))
+							dbSnpNo ++;						
 				}
 				
 				//check again if RSPOS is not same with dbSNP start
@@ -143,18 +148,14 @@ public class DbsnpMode extends AbstractMode{
 					inputVcfs = positionRecordMap.get(chrPos);
 					if (null != inputVcfs && inputVcfs.size() != 0) {
 						for(VcfRecord re: inputVcfs)
-							annotateDBsnp(re, dbSNPVcf );					
+							if(annotateDBsnp(re, dbSNPVcf ))
+								dbSnpNo ++;					
 					}
 				}
-	 							
-//				//reference base must be same
-//				final String dbRef = dbSNPVcf.getRef().substring(start - dbSNPVcf.getPosition());												
-//				final String inputRef = inputVcfs.get(0).getRef();
-//				if ( ! dbRef.equals( inputRef )){ 
-//					logger.warn(String.format( "dbSNP reference base (%s) are different to vcf Record (%s) for variant at position: %s~%s", dbRef, inputRef, chrPos.getPosition(), chrPos.getEndPosition()));			 
-//					continue;
-//				}	
 			}
+			 
+			System.out.println(String.format("there are %d inputed variants and found %d variants mathch dbSNP", inputNo, dbSnpNo));
+			logger.info(String.format("there are %d inputed variants and found %d variants mathch dbSNP", inputNo, dbSnpNo));
 		}
 	}
 	
@@ -163,13 +164,14 @@ public class DbsnpMode extends AbstractMode{
 	 * @param inputVcf: vcf record from input file
 	 * @param dbSNPVcf: position matched vcf record from dbSNP file
 	 */
-	 void annotateDBsnp(VcfRecord  inputVcf, VcfRecord dbSNPVcf ){
+	 boolean annotateDBsnp(VcfRecord  inputVcf, VcfRecord dbSNPVcf ){
+		
 		 ChrPosition chrPos = inputVcf.getChrPosition();
 		 final String dbRef = dbSNPVcf.getRef().substring(chrPos.getPosition() - dbSNPVcf.getPosition());	
 		 if(! inputVcf.getRef().equalsIgnoreCase(dbRef) ){
 			 logger.warn(String.format( "dbSNP reference base (%s) are different to vcf Record (%s) for variant at position: %s~%s", 
 					 dbRef, inputVcf.getRef(), chrPos.getPosition(), chrPos.getEndPosition()));			 
-				return;			 
+				return false; 			 
 		 }
 		 		 
 		//trim the dbSNP alleles, since the first base maybe from reference if vcf second column different with "RSPOS" value 
@@ -183,7 +185,7 @@ public class DbsnpMode extends AbstractMode{
 				TabTokenizer.tokenize(inputVcf.getAlt(), Constants.COMMA) : new String[] {inputVcf.getAlt()}; 	
 		
 		//assign dbsnp id if one of allel matches
-		boolean flag = false; 		
+		boolean flag = false; 
 		for(int i = 0; i < db_alts.length; i ++)
 			for(int j = 0; j < input_alts.length; j ++) 
 				if(db_alts[i].equalsIgnoreCase(input_alts[j])){
@@ -198,7 +200,8 @@ public class DbsnpMode extends AbstractMode{
 		//set alleles frequency
 		if(flag){
 			final String caf =dbSNPVcf.getInfoRecord().getField(VcfHeaderUtils.INFO_CAF);
-			if(caf == null) return;
+			if(caf == null) return false;
+			
 			String[] cafs = TabTokenizer.tokenize(caf.substring(1,caf.length() -1), Constants.COMMA);
 			String[] vafs = new String[input_alts.length];
 			for(int j = 0; j < input_alts.length; j ++){
@@ -216,7 +219,9 @@ public class DbsnpMode extends AbstractMode{
 					str +=   "," + vafs[i];				
 				inputVcf.appendInfo( str + "]");
 			}			
-		}		
+		}	
+		
+		return true; 
 	}	
 	
 	
