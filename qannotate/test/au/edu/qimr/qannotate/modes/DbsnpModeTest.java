@@ -43,14 +43,31 @@ public class DbsnpModeTest {
 		 
 	 }
 	 
+//	 @Test
+//	 public void getCAF() {
+//		 String infoString = "RS=200367378;RSPOS=167779935;dbSNPBuildID=137;SSR=0;SAO=0;VP=0x050000080005000016000100;WGT=1;VC=SNV;INT;ASP;KGPhase1;KGPROD;OTHERKG;CAF=[0.9995,.,0.0004591];COMMON=0";		 
+//		 assertEquals("VAF=0.9995", DbsnpMode.getCAF(new VcfInfoFieldRecord(infoString), 0));
+//		 assertEquals("VAF=.", DbsnpMode.getCAF(new VcfInfoFieldRecord(infoString), 1));
+//		 assertEquals("VAF=0.0004591", DbsnpMode.getCAF(new VcfInfoFieldRecord(infoString), 2));
+//		 assertEquals(null, DbsnpMode.getCAF(new VcfInfoFieldRecord(infoString), 3));
+//	 }
+	 
+	 
+	 
 	 @Test
-	 public void getCAF() {
-		 String infoString = "RS=200367378;RSPOS=167779935;dbSNPBuildID=137;SSR=0;SAO=0;VP=0x050000080005000016000100;WGT=1;VC=SNV;INT;ASP;KGPhase1;KGPROD;OTHERKG;CAF=[0.9995,.,0.0004591];COMMON=0";
+	 public void multiAllelesTest(){
+		 				 
+		 VcfRecord inputVcf = new VcfRecord( new String[] {"chrY","14923588",".","G","A,T",".","SBIA","FS=GTGATATTCCC"});
+		 VcfRecord dbSNPVcf = new VcfRecord( new String[] {"chrY","14923588","rs100","G","A,ATT",".","SBIA","VLD;dbSNPBuildID=129;CAF=[0.4558,0.4,0.1442]"});
+		
+		 final DbsnpMode mode = new DbsnpMode();		
+		 mode.annotateDBsnp(inputVcf, dbSNPVcf);
+		 		 
+		 assertTrue(inputVcf.getInfoRecord().getField("VAF").equals( "[0.4,.]"));
+		 assertTrue(inputVcf.getInfoRecord().getField("DB").equals(Constants.EMPTY_STRING) );
+		 assertTrue(inputVcf.getInfoRecord().getField("VLD").equals(Constants.EMPTY_STRING) );
+		 assertTrue(inputVcf.getId().equals( "rs100" ));
 		 
-		 assertEquals("VAF=0.9995", DbsnpMode.getCAF(new VcfInfoFieldRecord(infoString), 0));
-		 assertEquals("VAF=.", DbsnpMode.getCAF(new VcfInfoFieldRecord(infoString), 1));
-		 assertEquals("VAF=0.0004591", DbsnpMode.getCAF(new VcfInfoFieldRecord(infoString), 2));
-		 assertEquals(null, DbsnpMode.getCAF(new VcfInfoFieldRecord(infoString), 3));
 	 }
 	 
 	@Test
@@ -124,14 +141,29 @@ public class DbsnpModeTest {
 					assertTrue(re.getId().equals("rs71432129"));
 					assertFalse(re.getInfo().contains(VcfHeaderUtils.INFO_GMAF));
 					assertTrue(re.getInfoRecord().getField(VcfHeaderUtils.INFO_VAF).equals("0.39") );	
-				}
-				
-				if(re.getPosition() == 22012840){
+				}else if(re.getPosition() == 2675825){
+					assertTrue(re.getId().equals("rs71432129"));
+					assertFalse(re.getInfo().contains(VcfHeaderUtils.INFO_GMAF));
+					assertTrue(re.getInfoRecord().getField(VcfHeaderUtils.INFO_VAF).equals("0.23") );	
+				}else if(re.getPosition() == 22012840){
 					assertTrue(re.getId().equals("rs111477956"));
 					assertTrue(re.getInfo().replace(VcfHeaderUtils.INFO_VLD,"").replace(VcfHeaderUtils.INFO_DB, "").replace(VcfHeaderUtils.INFO_SOMATIC,"").equals(Constants.SEMI_COLON_STRING + Constants.SEMI_COLON_STRING));
+				}else if(re.getPosition() == 77242678){
+					assertTrue(re.getId().equals("rs386662672"));
+					assertTrue(re.getInfoRecord().getField(VcfHeaderUtils.INFO_VAF) == null );	
+					assertTrue(re.getInfoRecord().getField(VcfHeaderUtils.INFO_VLD) == null );	
+					assertTrue(re.getInfo().contains(VcfHeaderUtils.INFO_DB));
+
+				}else{
+					assertTrue(re.getId().equals("."));
+					assertFalse(re.getInfo().contains(VcfHeaderUtils.INFO_VLD));
+					assertFalse(re.getInfo().contains(VcfHeaderUtils.INFO_VAF));
+					assertFalse(re.getInfo().contains(VcfHeaderUtils.INFO_DB));
+
 				}
+				
 			}
-			assertTrue(i == 4);
+			assertTrue(i == 5);
 		 }
 		  
 		
@@ -154,14 +186,10 @@ public class DbsnpModeTest {
 		mode.writeVCF(new File(outputName));
 
 		try (VCFFileReader reader = new VCFFileReader(outputName)) {
-			VcfHeader header = reader.getHeader();
-			
+			VcfHeader header = reader.getHeader();			
 			assertEquals(true, header.getInfoRecords().containsKey(VcfHeaderUtils.INFO_VLD));
-		}
-		 
-	}	
-	
-	
+		}		 
+	}		
 	
 	/**
 	 * create input vcf file containing 2 dbSNP SNPs and one verified SNP
@@ -173,6 +201,8 @@ public class DbsnpModeTest {
  
         data.add("chrY\t14923588\t.\tG\tA\t.\tSBIAS\t;FS=GTGATATTCCC\tGT:GD:AC:MR:NNS\t0/1:G/A:A0[0],15[36.2],G11[36.82],9[33]\t0/1:G/A:A0[0],33[35.73],G6[30.5],2[34]:15:13"); 
         data.add("chrY\t2675826\t.\tTG\tCA\t.\tCOVN12;MIUN\tSOMATIC;END=2675826\tACCS\tTG,5,37,CA,0,2\tAA,1,1,CA,4,1,CT,3,1,TA,11,76,TG,2,2,TG,0,1");
+        data.add("chrY\t2675825\t.\tTTG\tTGG\t.\tCOVN12;MIUN\tSOMATIC;END=2675826\tACCS\tTG,5,37,CA,0,2\tAA,1,1,CA,4,1,CT,3,1,TA,11,76,TG,2,2,TG,0,1");
+
         data.add("chrY\t22012840\t.\tC\tA\t.\tMIUN\tSOMATIC\tGT:GD:AC:MR:NNS\t0/1:C/A:A0[0],15[36.2],C11[36.82],9[33]\t0/1:C/A:A0[0],33[35.73],C6[30.5],2[34]:15:13");  
         data.add("chrY\t77242678\t.\tCA\tTG\t.\tPASS\tEND=77242679\tACCS\tCA,10,14,TG,6,7\tCA,14,9,TG,23,21");
         

@@ -48,19 +48,23 @@ public class GermlineModeTest {
 			mode.addAnnotation(GermlineFileName);						
 			mode.reheader("testing run",   inputName);
 			mode.writeVCF( new File(outputName));
-
 			
-			 try(VCFFileReader reader = new VCFFileReader(outputName)){
+			try(VCFFileReader reader = new VCFFileReader(outputName)){
 				 
 				 //check header
-				int i = 0; 
+//				int i = 0; 
 				VcfHeader header = reader.getHeader();				
 				assertEquals(false, header.getFilterRecords().containsKey(VcfHeaderUtils.FILTER_GERMLINE));
 				assertEquals(true, header.getInfoRecords().containsKey(VcfHeaderUtils.INFO_GERMLINE));
 				//check records
- 				i = 0;
+ 				int inputs = 0;
+ 				int germNo = 0;
+ 				
 				for (final VcfRecord re : reader) {	
-	 				i ++;
+	 				inputs ++;
+	 				if(re.getInfoRecord().getField(VcfHeaderUtils.INFO_GERMLINE) != null)
+	 					germNo ++;
+	 				
 					if(re.getPosition() == 2675826){						
 						assertTrue(re.getId().equals(Constants.MISSING_DATA_STRING));
 						assertTrue(re.getFilter().equals("COVN12;MIUN"));							
@@ -75,7 +79,8 @@ public class GermlineModeTest {
 						assertTrue(re.getInfoRecord().getField(VcfHeaderUtils.INFO_GERMLINE) ==null );	
 					}
 				}
-				assertTrue(i == 6);
+				assertTrue(inputs == 6);
+				assertTrue(germNo == 4);
 			 }
 		}	 
 	 

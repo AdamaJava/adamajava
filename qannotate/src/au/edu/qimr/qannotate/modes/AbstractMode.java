@@ -17,6 +17,7 @@ import org.qcmg.common.meta.QExec;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
+import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
@@ -27,7 +28,7 @@ import au.edu.qimr.qannotate.Main;
 
 public abstract class AbstractMode {
 	private static final DateFormat df = new SimpleDateFormat("yyyyMMdd");
-	protected final Map<ChrPosition,VcfRecord> positionRecordMap = new HashMap<ChrPosition,VcfRecord>();
+	protected final Map<ChrPosition,List<VcfRecord>> positionRecordMap = new HashMap<ChrPosition,List<VcfRecord>>();
 	protected VcfHeader header = null;
 
 	private final static QLogger logger = QLoggerFactory.getLogger(Main.class, null,  null);	
@@ -43,9 +44,19 @@ public abstract class AbstractMode {
         try (VCFFileReader reader = new VCFFileReader(f)) {
         	header = reader.getHeader();
         	//no chr in front of position
-			for (final VcfRecord vcf : reader) {				 
+			for (final VcfRecord vcf : reader) {	
+				String chr = IndelUtils.getFullChromosome( vcf.getChromosome() );
+				ChrPosition pos = new ChrPosition(chr, vcf.getPosition(), vcf.getChrPosition().getEndPosition());
+				if( positionRecordMap.get(pos) == null){
+					List<VcfRecord> res = new ArrayList<VcfRecord>();
+					res.add(vcf);	
+					positionRecordMap.put(pos, res);
+				}else{
+					positionRecordMap.get(pos).add(vcf);
+				}
+				
 //				ChrPosition pos = new ChrPosition(vcf.getChromosome(), vcf.getPosition(), vcf.getChrPosition().getEndPosition(), vcf.getAlt() );
-				positionRecordMap.put(vcf.getChrPosition(), vcf);
+//				positionRecordMap.put(vcf.getChrPosition(), vcf);
 			}
 		} 
         
@@ -136,11 +147,11 @@ public abstract class AbstractMode {
 				writer.addHeader(record.toString());
 			}
 			long count = 0; 
-			for (final ChrPosition position : orderedList) {				
-				VcfRecord record = positionRecordMap.get(position); 
-				writer.add( record );	
-				count ++;
-			}
+			for (final ChrPosition position : orderedList)  
+				for(  VcfRecord record : positionRecordMap.get(position) ){				
+					writer.add( record );	
+					count ++;
+				}
 			logger.info("outputed VCF record:  " + count);
 		}  
 	}
