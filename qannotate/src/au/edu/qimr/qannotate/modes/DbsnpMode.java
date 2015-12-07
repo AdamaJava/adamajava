@@ -148,6 +148,9 @@ public class DbsnpMode extends AbstractMode{
 			int dbSnpNo = 0;
 			for (final VcfRecord dbSNPVcf : reader) {
 				inputNo ++;
+				
+//				System.out.println( "VC " + VC);
+				
 //				if ( ! StringUtils.doesStringContainSubString(dbSNPVcf.getInfo(), "VC=SNV", false) &&
 //						! StringUtils.doesStringContainSubString(dbSNPVcf.getInfo(), "VC=MNV", false))
 //					continue;
@@ -164,7 +167,12 @@ public class DbsnpMode extends AbstractMode{
 							dbSnpNo ++;						
 				}
 				
-				//check again if RSPOS is not same with dbSNP start
+				//check RSPOS for MNV only
+				String VC = dbSNPVcf.getInfoRecord().getField("VC");
+				if ( ! StringUtils.doesStringContainSubString(dbSNPVcf.getInfo(), "VC=MNV", false))
+					continue;
+				
+				//if RSPOS different to column 2
 				String rspos = dbSNPVcf.getInfoRecord().getField("RSPOS");
 				if( !StringUtils.isNullOrEmpty(rspos)){ 		
 					start = Integer.parseInt(rspos);
@@ -206,8 +214,7 @@ public class DbsnpMode extends AbstractMode{
 		for(int i = 0; i < db_alts.length; i ++){
 			int ll = chrPos.getPosition() - dbSNPVcf.getPosition();
 			if(db_alts[i].length() > ll )
-				db_alts[i] = db_alts[i].substring(ll);
-			
+				db_alts[i] = db_alts[i].substring(ll);			
 		}		
 												
 		String[] input_alts = inputVcf.getAlt().contains(Constants.COMMA_STRING) ? 
