@@ -54,9 +54,6 @@ public abstract class AbstractMode {
 				}else{
 					positionRecordMap.get(pos).add(vcf);
 				}
-				
-//				ChrPosition pos = new ChrPosition(vcf.getChromosome(), vcf.getPosition(), vcf.getChrPosition().getEndPosition(), vcf.getAlt() );
-//				positionRecordMap.put(vcf.getChrPosition(), vcf);
 			}
 		} 
         
