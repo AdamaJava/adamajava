@@ -55,7 +55,7 @@ public class DbsnpModeTest {
 	 @Test
 	 public void indelTest(){
 		 				 
-		 VcfRecord dbSNPVcf = new VcfRecord( new String[] {"chrY","14923588","rs100","GT","GA,GATT,G",".","SBIA","RSPOS=14923589;VLD;dbSNPBuildID=129;CAF=[0.4558,0.4,0.1442,.]"});
+		 VcfRecord dbSNPVcf = new VcfRecord( new String[] {"chrY","14923588","rs100","GT","GA,GATT,G",".","SBIA","RSPOS=14923589;VLD;dbSNPBuildID=129;VC=DIV;CAF=[0.4558,0.4,0.1442,.]"});
 		
 		 //seek RSPOS=14923589
 		 VcfRecord inputVcf = new VcfRecord( new String[] {"chrY","14923589",".","T","A",".","SBIA","FS=GTGATATTCCC"});
