@@ -2,6 +2,7 @@ package au.edu.qimr.qannotate.modes;
 
 import java.io.File;
 import java.util.Iterator;
+import java.util.List;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.util.Constants;
@@ -80,32 +81,33 @@ public final class CustomerConfidenceMode extends AbstractMode{
  
 		header.addInfoLine(VcfHeaderUtils.INFO_CONFIDENT, "1", "String", description);
 	      
-		final Iterator<VcfRecord>  it =  positionRecordMap.values().iterator();
-		while( it.hasNext() ){
-			final VcfRecord re = it.next();
-			
-			boolean  flag = false;
-			String filter = re.getFilter().toUpperCase();
-			if(!filter.contains(Constants.SEMI_COLON_STRING) && 
-					(  filter.contains(BP) || filter.contains(PASS) ||  filter.contains(SBIASCOV))  ){
-			 
-				final VcfFormatFieldRecord format = (re.getInfo().contains(VcfHeaderUtils.INFO_SOMATIC)) ? re.getSampleFormatRecord(test_column) :  re.getSampleFormatRecord(control_column);
-				final int total =  VcfUtils.getAltFrequency(  format, null );
-				if( total >=  min_read_counts) 
-					try{
-						//final int mutants = Integer.parseInt( allel.getField(VcfHeaderUtils.FORMAT_MUTANT_READS));	
-						final int mutants =  VcfUtils.getAltFrequency(  format, re.getAlt() );
-						if( ((100 * mutants) / total) >= variants_rate  ) flag = true;  
-						
-					}catch(Exception e ){
-						logger.error("err during caculating mutants rate for variants: " + re.toString() + "\n" + e.getMessage());
-					}
-			} 							
-				
-			if(flag)
-				re.getInfoRecord().setField(VcfHeaderUtils.INFO_CONFIDENT, Confidence.HIGH.toString());				 
-			else	
-				re.getInfoRecord().setField(VcfHeaderUtils.INFO_CONFIDENT, Confidence.ZERO.toString());
+//		final Iterator<VcfRecord>  it =  positionRecordMap.values().iterator();
+//		while( it.hasNext() ){
+// final VcfRecord re = it.next();			
+		for (List<VcfRecord> vcfs : positionRecordMap.values()) 
+			for(VcfRecord re : vcfs){					
+				boolean  flag = false;
+				String filter = re.getFilter().toUpperCase();
+				if(!filter.contains(Constants.SEMI_COLON_STRING) && 
+						(  filter.contains(BP) || filter.contains(PASS) ||  filter.contains(SBIASCOV))  ){
+				 
+					final VcfFormatFieldRecord format = (re.getInfo().contains(VcfHeaderUtils.INFO_SOMATIC)) ? re.getSampleFormatRecord(test_column) :  re.getSampleFormatRecord(control_column);
+					final int total =  VcfUtils.getAltFrequency(  format, null );
+					if( total >=  min_read_counts) 
+						try{
+							//final int mutants = Integer.parseInt( allel.getField(VcfHeaderUtils.FORMAT_MUTANT_READS));	
+							final int mutants =  VcfUtils.getAltFrequency(  format, re.getAlt() );
+							if( ((100 * mutants) / total) >= variants_rate  ) flag = true;  
+							
+						}catch(Exception e ){
+							logger.error("err during caculating mutants rate for variants: " + re.toString() + "\n" + e.getMessage());
+						}
+				} 							
+					
+				if(flag)
+					re.getInfoRecord().setField(VcfHeaderUtils.INFO_CONFIDENT, Confidence.HIGH.toString());				 
+				else	
+					re.getInfoRecord().setField(VcfHeaderUtils.INFO_CONFIDENT, Confidence.ZERO.toString());
 		}		
 	}
 	

@@ -111,31 +111,37 @@ public class  CaddMode extends AbstractMode{
 	
 	    		int s = Integer.parseInt(eles[1]);  //start position = second column
 	    		int e = s + eles[2].length() - 1;   //start position + length -1
-	    		VcfRecord inputVcf = positionRecordMap.get(new ChrPosition(chr, s, e ));	    
-				if ( (null == inputVcf) || !inputVcf.getRef().equalsIgnoreCase(eles[2])) continue; 
+	    		
+	    		List<VcfRecord> inputVcfs = positionRecordMap.get(new ChrPosition(chr, s, e ));	    
+				if ( (null == inputVcfs) || inputVcfs.size() == 0 ) continue; 
+				for(VcfRecord inputVcf: inputVcfs ){		
+					if(!inputVcf.getRef().equalsIgnoreCase(eles[2])) 
+						continue;
 				
 								
-				String[] allels = {inputVcf.getAlt()};
-	    		if(inputVcf.getAlt().contains(","))
-	    			 allels = TabTokenizer.tokenize(inputVcf.getAlt(), ',');
-	    		
-	    		for(String al : allels)
-	    			if(al.equalsIgnoreCase(eles[4])){
-	    				String cadd =	String.format("(%s>%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s)", eles[2],eles[4],eles[8],eles[10],eles[11],eles[12],eles[17],
-	    						eles[21],eles[26],eles[35],eles[39],eles[72],eles[82],eles[83],eles[86],eles[92],eles[92],eles[93],eles[96]);  
-	    				String info = inputVcf.getInfoRecord().getField(CADD);
-	    				info = (info == null)? CADD + "=" + cadd : CADD + "=" + info + "," + cadd;
-	    				inputVcf.appendInfo( info);
-	    				outputSize ++;
-	    			}
-	    		}
+					String[] allels = {inputVcf.getAlt()};
+		    		if(inputVcf.getAlt().contains(","))
+		    			 allels = TabTokenizer.tokenize(inputVcf.getAlt(), ',');
+		    		
+		    		for(String al : allels)
+		    			if(al.equalsIgnoreCase(eles[4])){
+		    				String cadd =	String.format("(%s>%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s)", eles[2],eles[4],eles[8],eles[10],eles[11],eles[12],eles[17],
+		    						eles[21],eles[26],eles[35],eles[39],eles[72],eles[82],eles[83],eles[86],eles[92],eles[92],eles[93],eles[96]);  
+		    				String info = inputVcf.getInfoRecord().getField(CADD);
+		    				info = (info == null)? CADD + "=" + cadd : CADD + "=" + info + "," + cadd;
+		    				inputVcf.appendInfo( info);
+		    				outputSize ++;
+		    			}
+		    		}
+				}
 			}
 		
 			//output
 			final List<ChrPosition> orderedList = new ArrayList<ChrPosition>(positionRecordMap.keySet());
 			Collections.sort(orderedList);
-			for (final ChrPosition position : orderedList)  		 
-				writer.add( positionRecordMap.get(position) );	
+			for (final ChrPosition position : orderedList)  
+				for(VcfRecord re: positionRecordMap.get(position))
+					writer.add( re );	
 				 			
 			//get stats   			
 			logger.debug(String.format("%8d: query(%s, %8d, %8d) [ %8d,%8d,%8d ] ", blockNo++, chr, start, end, blockSize, positionRecordMap.size(), outputSize ));			
@@ -155,9 +161,15 @@ public class  CaddMode extends AbstractMode{
 	    	if(chr.equalsIgnoreCase("m")) {chr = "MT";change = true;}
 			
 			if(change)
-				pos =  new ChrPosition(chr, re.getChrPosition().getPosition(), re.getChrPosition().getEndPosition());    
+				pos =  new ChrPosition(chr, re.getChrPosition().getPosition(), re.getChrPosition().getEndPosition());    			
 			
-			positionRecordMap.put(pos, re);			
+			if( positionRecordMap.get(pos) == null){
+				List<VcfRecord> res = new ArrayList<VcfRecord>();
+				res.add(re);	
+				positionRecordMap.put(pos, res);
+			}else{
+				positionRecordMap.get(pos).add(re);
+			}
 		}
 		
 		@Override

@@ -1,12 +1,14 @@
 package au.edu.qimr.qannotate.modes;
 
 import java.io.File;
+import java.util.List;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
+import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader.Record;
@@ -21,7 +23,7 @@ public class GermlineMode extends AbstractMode{
 	
 	//for unit Test only
 	GermlineMode(){}
-	
+
  	public GermlineMode(GermlineOptions options, QLogger logger) throws Exception{
 		
 		//this.logger = logger;		
@@ -48,6 +50,9 @@ public class GermlineMode extends AbstractMode{
        		0/1:C/T:C0[0],9[5],T2[20.5],12[17.92]
 	 */
  	@Override	
+ 	/**
+ 	 * At moment Ther germline database only store single SNP position. 
+ 	 */
 	void addAnnotation(String dbGermlineFile) throws Exception {
 //		header.addFilterLine(VcfHeaderUtils.FILTER_GERMLINE, VcfHeaderUtils.DESCRITPION_FILTER_GERMLINE );
  		
@@ -73,49 +78,70 @@ public class GermlineMode extends AbstractMode{
 			}
 	 	    
 			//init remove all exsiting GERM annotation
-	 	   for (VcfRecord vcf : positionRecordMap.values()) {
-	 		   vcf.getInfoRecord().removeField(VcfHeaderUtils.INFO_GERMLINE);
+	 	   for (List<VcfRecord> vcfs : positionRecordMap.values()) {
+	 		   for(VcfRecord vcf : vcfs )
+	 			   vcf.getInfoRecord().removeField(VcfHeaderUtils.INFO_GERMLINE);
 	 	   }
 	 	    
 	 	   int updatedRecordCount = 0;
 	 	   for (final VcfRecord dbGermlineVcf : reader) {
-	 		   final VcfRecord inputVcf = positionRecordMap.get(new ChrPosition("chr"+ dbGermlineVcf.getChromosome(), dbGermlineVcf.getPosition()));
-				/*
-				 * Only proceed if we have a record at this position and it is a SOMATIC record
-				 */
-				if (null == inputVcf || ! StringUtils.doesStringContainSubString(inputVcf.getInfo(), "SOMATIC", false)) {
-					continue;
-				}
-								
-				//reference base must be same; MNP or INDELs, often same length but different string
-				if( ! dbGermlineVcf.getRef().equals(  inputVcf.getRef()) )
-					throw new RuntimeException("reference base are different ");	
-								
-				int counts = 0;
-				String [] alts = inputVcf.getAlt().contains(Constants.COMMA_STRING) ? TabTokenizer.tokenize(inputVcf.getAlt(), Constants.COMMA) : new String[] {inputVcf.getAlt()}; 
-				
-				if (null != alts) {
-					//annotation if at least one alts matches dbSNP alt
-					for (final String alt : alts) {
-						if (dbGermlineVcf.getAlt().toUpperCase().contains(alt.toUpperCase()) ) {	
-//							if (StringUtils.doesStringContainSubString(inputVcf.getInfo(), "SOMATIC", false)) {
-								try {
-									counts = Integer.parseInt(dbGermlineVcf.getInfo()); 
-									inputVcf.appendInfo(VcfHeaderUtils.INFO_GERMLINE + "=" +  (total > 0 ?  counts + "," + total: ""+counts));
-									updatedRecordCount++;
-								} catch (Exception e){
-									throw new Exception("Exception caused by germline database vcf formart, can't find patient counts from INFO field!");								 
-								}
-								break;						
-//							}
-						}
-					}
-				}
+	 		   String chr = IndelUtils.getFullChromosome(dbGermlineVcf.getChromosome());
+	 		   int end =  dbGermlineVcf.getPosition() + dbGermlineVcf.getRef().length() - 1;
+	 		   
+	 		   List<VcfRecord> inputVcfs = positionRecordMap.get(new ChrPosition(chr, dbGermlineVcf.getPosition(), end ));
+	 		   if (null == inputVcfs || inputVcfs.size() == 0)
+	 			  continue; 
+	 		  
+	 		  for(VcfRecord vcf : inputVcfs )
+	 			  if(annotateGermlineSnp(vcf,  dbGermlineVcf, total ))
+	 				  updatedRecordCount ++ ;
 			 }
-	 	  thisLogger.info("Number of SOMATIC records updated with GERM annotation: " + updatedRecordCount);
- 		}
+		 	 thisLogger.info("Number of SOMATIC records updated with GERM annotation: " + updatedRecordCount);
+	 	}
+  		
+	 }	 
+ 	
+ 	/**
+ 	 * 
+ 	 * @param inputVcf: a vcf record
+ 	 * @param germlineVcf: snp listed on germline file
+ 	 * @param total: total number of listed germline snp number which is written on database file header
+ 	 * @return true if the inputVcf is matched the germline vcf
+ 	 */
+  		
+ 	boolean annotateGermlineSnp(VcfRecord inputVcf, VcfRecord germlineVcf , final int total){
+ 		boolean flag = false;
+ 		
+ 		//only annotate somatic variants
+ 		if( ! StringUtils.doesStringContainSubString(inputVcf.getInfo(), "SOMATIC", false) ) 
+ 			return flag ; 
+ 		  		
+		 if(! inputVcf.getRef().equalsIgnoreCase(germlineVcf.getRef()) ){
+			 thisLogger.warn(String.format( "germline reference base (%s) are different to vcf Record (%s) for variant at position: %s ", 
+					 germlineVcf.getRef(), inputVcf.getRef(), germlineVcf.getPosition() ));			 
+			 return flag ; 			 
+		 }
+		 
+		String [] alts = inputVcf.getAlt().contains(Constants.COMMA_STRING) ? TabTokenizer.tokenize(inputVcf.getAlt(), Constants.COMMA) : new String[] {inputVcf.getAlt()}; 
+		 
+		if (null == alts) return flag ; 
+		
+		//annotation if at least one alts matches dbSNP alt		 
+		for (final String alt : alts)  
+			if (germlineVcf.getAlt().toUpperCase().contains(alt.toUpperCase()) ) {	
+					try {
+						int counts = Integer.parseInt(germlineVcf.getInfo()); 
+						inputVcf.appendInfo(VcfHeaderUtils.INFO_GERMLINE + "=" +  (total > 0 ?  counts + "," + total: ""+counts));	
+						flag = true; 
+					} catch (Exception e){						
+						thisLogger.error("Germline database vcf formart, can't find patient counts from INFO field!");					 
+					}
+					break;						
+			}
+		
+		 return flag; 				
  	}
-	
+  			
 }
 	
 

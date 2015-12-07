@@ -7,6 +7,8 @@ import static org.qcmg.common.util.SnpUtils.MUTATION_IN_UNFILTERED_NORMAL;
 import static org.qcmg.common.util.SnpUtils.PASS;
 
 import java.io.File;
+import java.util.List;
+
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
@@ -95,29 +97,32 @@ public class ConfidenceMode extends AbstractMode{
 		int zero = 0;
 		
 		//check high, low nns...
-		for (VcfRecord vcf : positionRecordMap.values()) {					
-		 	final ChrPosition pos = vcf.getChrPosition();
-		 	VcfFormatFieldRecord formatField = (vcf.getInfo().contains(VcfHeaderUtils.INFO_SOMATIC)) ? vcf.getSampleFormatRecord(test_column) :  vcf.getSampleFormatRecord(control_column);
-
-	    		    	
-		 	if ( checkNovelStarts(HIGH_CONF_NOVEL_STARTS_PASSING_SCORE, formatField)
-					&& ( getAltFrequency(formatField, vcf.getAlt()) >=  HIGH_CONF_ALT_FREQ_PASSING_SCORE)
-					&& PASS.equals(vcf.getFilter())) {
-	        	
-	        		vcf.getInfoRecord().setField(VcfHeaderUtils.INFO_CONFIDENT, Confidence.HIGH.toString());		        	 				 				
-	        		high++;
-	        } else if ( checkNovelStarts(LOW_CONF_NOVEL_STARTS_PASSING_SCORE, formatField)
-					&& ( getAltFrequency(formatField, vcf.getAlt()) >= LOW_CONF_ALT_FREQ_PASSING_SCORE )
-					&& isClassB(vcf.getFilter()) ) {
-	        	
-	        		vcf.getInfoRecord().setField(VcfHeaderUtils.INFO_CONFIDENT, Confidence.LOW.toString());					 
-	        		low++;
-	        } else {
-	        		vcf.getInfoRecord().setField(VcfHeaderUtils.INFO_CONFIDENT, Confidence.ZERO.toString());
-	        		zero++;
-	        }
-//	        vcf.setInfo(vcf.getInfoRecord().toString());
-	    }
+		for (List<VcfRecord> vcfs : positionRecordMap.values()) 
+			for(VcfRecord vcf : vcfs){					
+			 	final ChrPosition pos = vcf.getChrPosition();
+			 	VcfFormatFieldRecord formatField = (vcf.getInfo().contains(VcfHeaderUtils.INFO_SOMATIC)) ? vcf.getSampleFormatRecord(test_column) :  vcf.getSampleFormatRecord(control_column);
+	//debug
+			 	if(pos.getPosition() == 77242678)
+			 		System.out.println(vcf.toString());
+		    		    	
+			 	if ( checkNovelStarts(HIGH_CONF_NOVEL_STARTS_PASSING_SCORE, formatField)
+						&& ( getAltFrequency(formatField, vcf.getAlt()) >=  HIGH_CONF_ALT_FREQ_PASSING_SCORE)
+						&& PASS.equals(vcf.getFilter())) {
+		        	
+		        		vcf.getInfoRecord().setField(VcfHeaderUtils.INFO_CONFIDENT, Confidence.HIGH.toString());		        	 				 				
+		        		high++;
+		        } else if ( checkNovelStarts(LOW_CONF_NOVEL_STARTS_PASSING_SCORE, formatField)
+						&& ( getAltFrequency(formatField, vcf.getAlt()) >= LOW_CONF_ALT_FREQ_PASSING_SCORE )
+						&& isClassB(vcf.getFilter()) ) {
+		        	
+		        		vcf.getInfoRecord().setField(VcfHeaderUtils.INFO_CONFIDENT, Confidence.LOW.toString());					 
+		        		low++;
+		        } else {
+		        		vcf.getInfoRecord().setField(VcfHeaderUtils.INFO_CONFIDENT, Confidence.ZERO.toString());
+		        		zero++;
+		        }
+	//	        vcf.setInfo(vcf.getInfoRecord().toString());
+		    }
 		
 		thisLogger.info("Confidence breakdown, high: " + high + ", low: " + low + ", zero: " + zero);
  

@@ -137,10 +137,12 @@ public class ConfidenceModeTest {
 				else if(re.getPosition() == 22012840)
 					//isClassB
 					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(Confidence.LOW.name())); 
-				else if(re.getPosition() == 14923588)
+//				else if(re.getPosition() == 14923588)
+				else if(re.getPosition() == 14923588 || re.getPosition() == 2675825)
 					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(Confidence.ZERO.name())); 
 				else
-					//listed on verified file
+					//"chrY\t77242678\t.\tCA\tTG\t.\tPASS\tEND=77242679\tACCS\tCA,10,14,TG,6,7\tCA,14,9,TG,23,21"
+					//TG alleles is 13 > 5 filter is PASS
 					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(Confidence.HIGH.name())); 
 			}
 		 }		 	 	 
