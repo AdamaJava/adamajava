@@ -4,12 +4,12 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="test"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER" exported="true"/>
-	<classpathentry kind="lib" path="/Users/christix/Documents/Eclipse/genomeinfo/trunk/lib/jopt-simple-4.6.jar" exported="true"/>
-	<classpathentry kind="lib" path="/Users/christix/Documents/Eclipse/genomeinfo/trunk/lib/qcommon-0.2.jar" exported="true"/>
-	<classpathentry kind="lib" path="/Users/christix/Documents/Eclipse/genomeinfo/trunk/lib/qbamfilter-1.2.jar" exported="true"/>
-	<classpathentry kind="lib" path="/Users/christix/Documents/Eclipse/genomeinfo/trunk/lib/qpicard-1.1.jar" exported="true"/>
-	<classpathentry kind="lib" path="/Users/christix/Documents/Eclipse/genomeinfo/trunk/lib/qio-0.1pre.jar" exported="true"/>
-	<classpathentry kind="lib" path="/Users/christix/Documents/Eclipse/genomeinfo/trunk/lib/htsjdk-1.140.jar" exported="true"/>
-	<classpathentry kind="lib" path="/Users/christix/Documents/Eclipse/genomeinfo/trunk/lib/ini4j-0.5.2-SNAPSHOT.jar" exported="true"/>
-	<classpathentry kind="lib" path="/Users/christix/Documents/Eclipse/genomeinfo/trunk/lib/junit-4.10.jar" exported="true"/>
+	<classpathentry kind="lib" path="/Users/christix/Documents/Eclipse/genomeinfo/java/lib/qcommon-0.2.jar" exported="true"/>
+	<classpathentry kind="lib" path="/Users/christix/Documents/Eclipse/genomeinfo/java/lib/qbamfilter-1.2.jar" exported="true"/>
+	<classpathentry kind="lib" path="/Users/christix/Documents/Eclipse/genomeinfo/java/lib/qpicard-1.1.jar" exported="true"/>
+	<classpathentry kind="lib" path="/Users/christix/Documents/Eclipse/genomeinfo/java/lib/qio-0.1pre.jar" exported="true"/>
+	<classpathentry kind="lib" path="/Users/christix/Documents/Eclipse/genomeinfo/java/lib/htsjdk-1.140.jar" exported="true"/>
+	<classpathentry kind="lib" path="/Users/christix/Documents/Eclipse/genomeinfo/java/lib/jopt-simple-4.6.jar" exported="true"/>
+	<classpathentry sourcepath="/Users/christix/Documents/Eclipse/genomeinfo/java/q3indel/build/deps/ini4j-0.5.2-SNAPSHOT/ini4j-0.5.2-SNAPSHOT-sources.jar" kind="lib" path="/Users/christix/Documents/Eclipse/genomeinfo/java/q3indel/build/deps/ini4j-0.5.2-SNAPSHOT/ini4j-0.5.2-SNAPSHOT.jar" exported="true"/>
+	<classpathentry kind="lib" path="/Users/christix/Documents/Eclipse/genomeinfo/java/lib/junit-4.10.jar" exported="true"/>
 </classpath>

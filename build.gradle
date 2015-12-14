@@ -5,27 +5,29 @@ def scriptname = 'q3pindel'
 def isExecutable = true
 
 repositories {
-        flatDir {
-                        dirs '/Users/christix/Documents/Eclipse/sourceForge/trunk/adamajava/lib'
-                        dirs '/Users/christix/Documents/Eclipse/sourceForge/trunk/adamajava/qbamfilter/build/lib'
-                        dirs '/Users/christix/Documents/Eclipse/sourceForge/trunk/adamajava/qcommon/build/lib'
-                        dirs '/Users/christix/Documents/Eclipse/sourceForge/trunk/adamajava/qio/build/lib'
-                        dirs '/home/genomelocal/devel/adamajava/adamajava/lib'
-                        dirs '/home/genomelocal/devel/adamajava/adamajava/adama/build/lib'
-                        dirs '../lib'
-                }
+	flatDir {
+            dirs '/home/genomelocal/devel/adamajava/adamajava/lib'
+            dirs '/home/genomelocal/devel/adamajava/adamajava/adama/build/lib'						
+            dirs '../lib'
+	}
+	flatDir(dirs:"$buildDir/deps/ini4j-0.5.2-SNAPSHOT")
 }
 dependencies {
-    configurations.compile.transitive = true
-    compile name: 'qcommon', version: '0.2'
-    compile name: 'qbamfilter', version: '1.2'
-    compile name: 'qpicard', version: '1.1'
-    compile name: 'qio', version: '0.1pre'
-    
-    compile name: 'htsjdk', version: '1.140'	
-    compile name: 'jopt-simple', version: '4.6'
-    compile name: 'ini4j', version: '0.5.2-SNAPSHOT'
-    testCompile name: 'junit', version: '4.10'
+    	configurations.compile.transitive = true
+	compile name: 'qcommon', version: '0.2'
+	compile name: 'qbamfilter', version: '1.2'
+	compile name: 'qpicard', version: '1.1'
+	compile name: 'qio', version: '0.1pre'
+
+	copy {
+		from zipTree("../lib/ini4j-0.5.2-SNAPSHOT-all.zip")
+     		into 'build/deps'
+        }
+
+	compile name: 'htsjdk', version: '1.140'	
+	compile name: 'jopt-simple', version: '4.6'
+	compile name: 'ini4j', version: '0.5.2-SNAPSHOT'
+	testCompile name: 'junit', version: '4.10'		
 }
 
 jar.doFirst {
