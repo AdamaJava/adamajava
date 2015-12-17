@@ -417,7 +417,7 @@ public class Q3ClinVar2 {
 		/*
 		 * Only do this if we have been supplied a bed file
 		 */
-		if (bedFile != null) {
+		if (bedFile != null && new File(bedFile).exists()) {
 			int bedId = 0;
 			try (TabbedFileReader reader = new TabbedFileReader(new File(bedFile));) {
 				for (TabbedRecord rec : reader) {
