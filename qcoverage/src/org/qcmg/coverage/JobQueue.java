@@ -3,6 +3,10 @@
  */
 package org.qcmg.coverage;
 
+import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SAMSequenceRecord;
+import htsjdk.samtools.SamReader;
+
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
@@ -17,10 +21,6 @@ import java.util.Vector;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
-
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMSequenceRecord;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -178,24 +178,18 @@ public final class JobQueue {
 	}
 
 	private void identifyGff3RefNames() throws Exception, IOException {
-		GFF3FileReader gff3Reader = new GFF3FileReader(gff3File);
-		String chr = null;
-		long maxPosition = 0;
-		for (GFF3Record record : gff3Reader) {
-			numberFeatures++;
-			String refName = record.getSeqId();
-			if ( ! refName.equals(chr)) {
-				if (chr != null)
-					gff3RefNames.put(chr, maxPosition);
-				chr = refName;	// update chr
-				maxPosition = 0;	// reset max position
+		try (GFF3FileReader gff3Reader = new GFF3FileReader(gff3File);) {
+			for (GFF3Record record : gff3Reader) {
+				numberFeatures++;
+				String refName = record.getSeqId();
+				long position = record.getEnd();
+				Long existingPosition = gff3RefNames.get(refName);
+				if (null == existingPosition || existingPosition.longValue() < position) {
+					gff3RefNames.put(refName, position);
+				}
+				checkGff3Record(record);
 			}
-			maxPosition = Math.max(record.getEnd(), maxPosition);
-			
-//			gff3RefNames.add(refName);
-			checkGff3Record(record);
 		}
-		gff3Reader.close();
 		logger.debug("Number of GFF3 features: " + numberFeatures);
 		logger.debug("GFF3 reference names: " + gff3RefNames);
 		
