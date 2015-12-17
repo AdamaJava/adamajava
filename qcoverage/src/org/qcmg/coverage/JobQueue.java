@@ -10,12 +10,14 @@ import htsjdk.samtools.SamReader;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.Vector;
 import java.util.concurrent.BlockingQueue;
@@ -24,6 +26,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.Pair;
 import org.qcmg.gff3.GFF3FileReader;
 import org.qcmg.gff3.GFF3Record;
@@ -37,9 +40,6 @@ public final class JobQueue {
 	private int numberFeatures = 0;
 	private final File gff3File;
 	private final HashSet<String> refNames = new HashSet<String>();
-	private final HashSet<String> bamRefNames = new HashSet<String>();
-	private final HashMap<String, Long> gff3RefNames = new HashMap<String, Long>();
-//	private final HashSet<String> gff3RefNames = new HashSet<String>();
 	private final HashMap<String, HashSet<GFF3Record>> perRefnameFeatures = new HashMap<String, HashSet<GFF3Record>>();
 	private final HashMap<String, Integer> perRefnameLengths = new HashMap<String, Integer>();
 	private final HashMap<Integer, HashSet<String>> perLengthRefnames = new HashMap<Integer, HashSet<String>>();
@@ -57,10 +57,8 @@ public final class JobQueue {
 	private final ReadsNumberCounter countIn;
 	private final ReadsNumberCounter countOut;
 	
-	private final List<String> gffErrors = new ArrayList<String>();
-
-	public JobQueue(final Configuration invariants)
-			throws Exception {
+	
+	public JobQueue(final Configuration invariants) throws Exception {
 		perFeatureFlag = invariants.isPerFeatureFlag();
 		gff3File = invariants.getInputGFF3File();
 		filter = invariants.getFilter();
@@ -165,86 +163,106 @@ public final class JobQueue {
 	}
 
 	private void identifyRefNames() throws Exception {
-		identifyBamRefNames();
-		identifyGff3RefNames();
-		refNames.addAll(bamRefNames);
-		refNames.retainAll(gff3RefNames.keySet());
+		Set<String> bamRefNames = identifyBamRefNames();
+		Collection<String> gff3RefNames = identifyGff3RefNames();
 		
-		// free up some space
-		bamRefNames.clear();
-		gff3RefNames.clear();
+		refNames.addAll(bamRefNames);
+		refNames.retainAll(gff3RefNames);
 		
 		logger.debug("Common reference names: " + refNames);
+		for (String s : refNames) {
+			logger.debug(s);
+		}
 	}
 
-	private void identifyGff3RefNames() throws Exception, IOException {
+	private Collection<String> identifyGff3RefNames() throws Exception, IOException {
+		
+		Map<String, Integer> gff3RefNames = new HashMap<>();
+		final StringBuilder gffErrors = new StringBuilder();
 		try (GFF3FileReader gff3Reader = new GFF3FileReader(gff3File);) {
 			for (GFF3Record record : gff3Reader) {
 				numberFeatures++;
 				String refName = record.getSeqId();
-				long position = record.getEnd();
-				Long existingPosition = gff3RefNames.get(refName);
+				int position = record.getEnd();
+				Integer existingPosition = gff3RefNames.get(refName);
 				if (null == existingPosition || existingPosition.longValue() < position) {
 					gff3RefNames.put(refName, position);
 				}
-				checkGff3Record(record);
+				if ( ! isGff3RecordValid(record)) {
+					gffErrors.append("Start position > end position at line no: ")
+						.append(numberFeatures).append(", rec: ")
+						.append(null == record ? "null" : record.getRawData()).append(Constants.NL);
+				}
 			}
 		}
 		logger.debug("Number of GFF3 features: " + numberFeatures);
 		logger.debug("GFF3 reference names: " + gff3RefNames);
 		
 		// check that we don't have any features that go beyond the lengths of the sequences as defined in the bam header
-		for (Entry<String, Long> entry : gff3RefNames.entrySet()) {
+		for (Entry<String, Integer> entry : gff3RefNames.entrySet()) {
 			// find corresponding entry in bam header collection
 			Integer bamLength = perRefnameLengths.get(entry.getKey());
 			if (null != bamLength) {
 				if (bamLength < entry.getValue()) {
-					gffErrors.add("Gff lengths are greater than bam header lengths for: " 
-							+ entry.getKey() + ", gff length: " + entry.getValue() + ", bam header length: " + bamLength);
+					gffErrors.append("Gff lengths are greater than bam header lengths for: ")
+						.append(entry.getKey()).append(", gff length: ").append(entry.getValue())
+						.append(", bam header length: ").append(bamLength).append(Constants.NL);
 				}
 			} else {
 //				gffErrors.add("Chromosome appears in gff but not in bam file: " + entry.getKey());
 			}
 		}
 		
-		if ( ! gffErrors.isEmpty()) {
-			for (String error : gffErrors) {
-				logger.error(error);
-			}
+		if (gffErrors.length() > 0) {
+			logger.error(gffErrors.toString());
 			throw new IllegalArgumentException("Errors in gff file: " + gff3File);
 		}
+		return gff3RefNames.keySet();
 	}
 	
-	private void checkGff3Record(GFF3Record record) {
-		// check that start position is before or equal to end position
-		if (record.getStart() > record.getEnd()) {
-			gffErrors.add("Start position > end position at line no: " + numberFeatures + ", rec: " + record.getRawData());
-		}
-		
+	/**
+	 * Assumes that the record is not null.
+	 * If the record is null, will return false
+	 * If the record has a start > end, returns false
+	 * true otherwise
+	 * @param record
+	 * @return
+	 */
+	public static boolean isGff3RecordValid(GFF3Record record) {
+		return null != record && record.getStart() <= record.getEnd();
 	}
 	
-	private void identifyBamRefNames() throws IOException {
+	private Set<String> identifyBamRefNames() throws IOException {
+		Set<String> bamRefNames = new HashSet<>();
 		for (final Pair<File, File> pair : filePairs) {
 			File bamFile = pair.getLeft();
 			File baiFile = pair.getRight();
-			SamReader samReader = SAMFileReaderFactory.createSAMFileReader(bamFile, baiFile);
-			SAMFileHeader header = samReader.getFileHeader();
-			for (SAMSequenceRecord seqRecord : header.getSequenceDictionary()
-					.getSequences()) {
-				String seqName = seqRecord.getSequenceName();
-				bamRefNames.add(seqName);
-				Integer seqLength = seqRecord.getSequenceLength();
-				perRefnameLengths.put(seqName, seqLength);
-				HashSet<Pair<File, File>> filePairs = refnameFilePairs.get(seqName);
-				if (null == filePairs) {
-					filePairs = new HashSet<Pair<File, File>>();
-					refnameFilePairs.put(seqName, filePairs);
+			try (SamReader samReader = SAMFileReaderFactory.createSAMFileReader(bamFile, baiFile);) {
+				SAMFileHeader header = samReader.getFileHeader();
+				for (SAMSequenceRecord seqRecord : header.getSequenceDictionary()
+						.getSequences()) {
+					String seqName = seqRecord.getSequenceName();
+					bamRefNames.add(seqName);
+					Integer seqLength = seqRecord.getSequenceLength();
+					perRefnameLengths.put(seqName, seqLength);
+					HashSet<Pair<File, File>> filePairs = refnameFilePairs.get(seqName);
+					if (null == filePairs) {
+						filePairs = new HashSet<Pair<File, File>>();
+						refnameFilePairs.put(seqName, filePairs);
+					}
+					filePairs.add(pair);
 				}
-				filePairs.add(pair);
 			}
-			logger.debug("BAM reference names: " + bamRefNames);
-			samReader.close();
+			if ( ! bamRefNames.isEmpty()) {
+				logger.debug("BAM reference names:");
+				for(String s : bamRefNames) {
+					logger.debug(s);
+				}
+			} else {
+				logger.info("No bam reference names found!");
+			}
 		}
+		return bamRefNames;
 	}
 
 	private void processJobs() throws Exception {
