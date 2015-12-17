@@ -1,7 +1,6 @@
 package au.edu.qimr.clinvar.model;
 
-import java.util.HashMap;
-import java.util.Map;
+import gnu.trove.list.array.TIntArrayList;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -15,24 +14,21 @@ public class Fragment implements Comparable<Fragment> {
 	private final int id;
 	private final String fragment;
 	private final int fragmentLength;
-	private final ChrPosition bestTiledLocation;
-	private  int fsCount;
-	private  int rsCount;
+	private final  ChrPosition bestTiledLocation;
+	private int fsCount;
+	private int rsCount;
 	private ChrPosition actualLocation;
 	private String [] smithWatermanDiffs;
+	private final TIntArrayList overlapDistribution;
 	
-	private final Map<ChrPosition, String [] > possiblePositionSWDiffsMap = new HashMap<>(4);
-	
-	private long position;
-	private int noOfTiles;
-	
-	public Fragment(int id,String sequence, int fsCount, int rsCount, ChrPosition bestTiledLocation) {
+	public Fragment(int id,String sequence, int fsCount, int rsCount, ChrPosition bestTiledLocation, TIntArrayList overlapDist) {
 		this.id = id;
 		this.fragment = sequence;
 		this.fragmentLength = this.fragment.length();
 		this.fsCount = fsCount;
 		this.rsCount = rsCount;
 		this.bestTiledLocation = bestTiledLocation;
+		this.overlapDistribution = overlapDist;
 	}
 	
 	public void setForwardStrandCount(int fsCount) {
@@ -48,23 +44,6 @@ public class Fragment implements Comparable<Fragment> {
 	public String [] getSmithWatermanDiffs() {
 		return smithWatermanDiffs;
 	}
-	public String [] getSmithWatermanDiffs(ChrPosition cp) {
-		return possiblePositionSWDiffsMap.get(cp);
-	}
-	public Map<ChrPosition, String [] > getSmithWatermanDiffsMap() {
-		return possiblePositionSWDiffsMap;
-	}
-	
-	public void addPossiblePosition(ChrPosition cp, String [] seDiffs) {
-		possiblePositionSWDiffsMap.put(cp, seDiffs);
-	}
-	/**
-	 * Clears and populates the possivlePositionsSWDiffsMap with the supplied map
-	 * @param seDiffs
-	 */
-	public void addPossiblePositions(Map<ChrPosition, String []> seDiffs) {
-		possiblePositionSWDiffsMap.putAll(seDiffs);
-	}
 	
 	public String getSequence() {
 		return fragment;
@@ -74,39 +53,9 @@ public class Fragment implements Comparable<Fragment> {
 		return fragmentLength;
 	}
 	
-//	public String getDifferences() {
-//		if ( ! diffs.isEmpty()) {
-//			StringBuilder sb =new StringBuilder();
-//			for (Entry<PosBase, AtomicInteger> entry : diffs.entrySet()) {
-//				sb.append(entry.getKey().getPos()).append(":").append(entry.getKey().getBase()).append(":").append(entry.getValue().get()).append(",");
-//			}
-//			return sb.toString();
-//		} else {
-//			return "";
-//		}
-//	}
-	
 	public int getRecordCount() {
 		return rsCount + fsCount;
-//		int totalCount = 0;
-//		for (int i : counts) {
-//			if (i > 0) {
-//				totalCount += i;
-//			}
-//		}
-//		return totalCount;
 	}
-
-//	private void updateDiffs(char b, int i) {
-//		PosBase pb = new PosBase(i, b);
-//		AtomicInteger ai = diffs.get(pb);
-//		if (null == ai) {
-//			ai = new AtomicInteger(1);
-//			diffs.put(pb, ai);
-//		} else {
-//			ai.incrementAndGet();
-//		}
-//	}
 
 	@Override
 	public int hashCode() {
@@ -143,13 +92,6 @@ public class Fragment implements Comparable<Fragment> {
 		return id;
 	}
 
-	public long getPosition() {
-		return position;
-	}
-
-	public void setPosition(long position) {
-		this.position = position;
-	}
 	public void setActualPosition(ChrPosition actualCP) {
 		this.actualLocation = actualCP;
 	}
@@ -157,17 +99,6 @@ public class Fragment implements Comparable<Fragment> {
 		return actualLocation;
 	}
 
-	public int getNoOfTiles() {
-		return noOfTiles;
-	}
-
-	public void setNoOfTiles(int noOfTiles) {
-		this.noOfTiles = noOfTiles;
-	}
-	
-//	public void setBestTiledLocation(ChrPosition cp) {
-//		this.bestTiledLocation = cp;
-//	}
 	public ChrPosition getBestTiledLocation() {
 		return bestTiledLocation;
 	}
@@ -178,6 +109,14 @@ public class Fragment implements Comparable<Fragment> {
 
 	public int getRsCount() {
 		return rsCount;
+	}
+	
+	public TIntArrayList getOverlapDistribution() {
+		return overlapDistribution;
+	}
+
+	public void addOverlapDistribution(TIntArrayList overlapDistribution2) {
+		overlapDistribution.addAll(overlapDistribution2);
 	}
 
 }

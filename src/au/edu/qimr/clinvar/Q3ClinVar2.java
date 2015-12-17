@@ -1,8 +1,10 @@
 package au.edu.qimr.clinvar;
 
+import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.list.array.TLongArrayList;
 import gnu.trove.map.hash.TIntIntHashMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
+import gnu.trove.procedure.TIntProcedure;
 import gnu.trove.procedure.TLongProcedure;
 import htsjdk.samtools.Cigar;
 import htsjdk.samtools.SAMFileHeader;
@@ -17,7 +19,9 @@ import htsjdk.samtools.reference.ReferenceSequence;
 import htsjdk.samtools.util.SequenceUtil;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -31,11 +35,16 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.OptionalInt;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
+import nu.xom.Attribute;
+import nu.xom.Document;
+import nu.xom.Element;
+import nu.xom.Serializer;
+
+import org.apache.commons.lang3.StringUtils;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.meta.QExec;
@@ -60,16 +69,17 @@ import au.edu.qimr.clinvar.model.Amplicon;
 import au.edu.qimr.clinvar.model.Fragment;
 import au.edu.qimr.clinvar.model.IntPair;
 import au.edu.qimr.clinvar.model.PositionChrPositionMap;
+import au.edu.qimr.clinvar.model.RawFragment;
 import au.edu.qimr.clinvar.util.ClinVarUtil;
 //import org.w3c.dom.Document;
 //import org.w3c.dom.Element;
 
 public class Q3ClinVar2 {
 	
-private static QLogger logger;
+	private static QLogger logger;
+	private static final int TILE_SIZE = 13;
+	private static final char [] AT = new char[]{'A','T'};
 	
-	
-private static final int TILE_SIZE = 13;
 	private static String[] fastqFiles;
 	private static String version;
 	private String logFile;
@@ -84,10 +94,10 @@ private static final int TILE_SIZE = 13;
 	private int fastqRecordCount;
 	
 	private int minBinSize = 10;
+	private int minFragmentSize = 3;
+	private  int minReadPercentage = 5;
 	
 	private final Map<String, AtomicInteger> reads = new HashMap<>();
-	private final Map<String, AtomicInteger> fragments = new HashMap<>();
-	private final Set<String> fragAndRCFrags = new HashSet<>();
 	
 	private final Set<String> frequentlyOccurringRefTiles = new HashSet<>();
 	private final Map<String, TLongArrayList> refTilesPositions = new HashMap<>();
@@ -96,8 +106,9 @@ private static final int TILE_SIZE = 13;
 	
 	private final Map<String, byte[]> referenceCache = new HashMap<>();
 	
-	private final Map<ChrPosition, List<String>> positionFragmentsMap = new HashMap<>();
+//	private final Map<ChrPosition, List<String>> positionFragmentsMap = new HashMap<>();
 	
+	private final Map<String, RawFragment> rawFragments = new HashMap<>();
 	private final Map<String, Fragment> frags = new HashMap<>();
 	
 	private final Map<VcfRecord, List<IntPair>> vcfFragmentMap = new HashMap<>();
@@ -109,94 +120,149 @@ private static final int TILE_SIZE = 13;
 //	private final static Map<Pair<FastqRecord, FastqRecord>, List<Probe>> multiMatchingReads = new HashMap<>();
 	
 	private int exitStatus;
+	private int fragmentId = 1;
+	private int rawFragmentId = 1;
 	
 	protected int engage() throws Exception {
-		
 			
 		fastqRecordCount = readFastqs();
 		
+		createFragments();
+		
+		loadTiledAlignerData();
+		
+		/*
+		 * Clear up some no longer used resources
+		 */
+		rawFragments.clear();
+		reads.clear();
+		
+		getActualLocationForFrags();
+		
+		createAmplicons();
+		
+		writeFragmentAmpliconsToXml();
+		
+		mapBedToAmplicons();
+		
+		createMutations();
+		logger.info("no of mutations created: " + vcfFragmentMap.size());
+		filterAndWriteVcfs();
+		writeBam();
+		
+		logger.info("no of fastq records: " +fastqRecordCount);
+		return exitStatus;
+	}
+
+	private void createFragments() {
 		int perfectOverlap = 0;
 		int nonPerfectOverlap = 0;
 		int smallOverlap = 0;
+		int onlyATs = 0;
+		int theSame = 0, different = 0;
+		
 		TIntIntHashMap overlapDistribution = new TIntIntHashMap();
 		TIntIntHashMap nonOverlapDistribution = new TIntIntHashMap();
-//		AtomicLongArray overlapDistribution = new AtomicLongArray(50000);
-//		AtomicLongArray nonOverlapDistribution = new AtomicLongArray(50000);
-		Map<Integer, AtomicInteger> overlapLengthDistribution = new TreeMap<>();
-		int theSame = 0, different = 0;
+		TIntIntHashMap overlapLengthDistribution = new TIntIntHashMap();
+		
 		for (Entry<String, AtomicInteger> entry : reads.entrySet()) {
+			int readCount = entry.getValue().intValue();
 			String combinedReads = entry.getKey();
 			String r1 = combinedReads.substring(0, combinedReads.indexOf(':'));
 			String r2 = combinedReads.substring(combinedReads.indexOf(':') + 1);
 			String r2RevComp = SequenceUtil.reverseComplement(r2);
 			
-			
-			/*
-			 * Check for equality
-			 */
 			boolean readsAreTheSame = r1.equals(r2RevComp);
 			if (readsAreTheSame) {
 				theSame++;
+				overlapDistribution.adjustOrPutValue(readCount, 1, 1);
+				overlapLengthDistribution.adjustOrPutValue(r1.length(), 1, 1);
+				
+				RawFragment f = rawFragments.get(r1);
+				if (null == f) {
+					f = new RawFragment(fragmentId++, r1, readCount, r1.length());
+					rawFragments.put(r1, f);
+				} else {
+					// update count and overlap
+					f.addCount(readCount);
+					f.addOverlap( r1.length(), readCount);
+				}
+				
 			} else {
 				different++;
-			}
 			
-			SmithWatermanGotoh nm = new SmithWatermanGotoh(r1, r2RevComp, 5, -4, 16, 4);
-			String [] newSwDiffs = nm.traceback();
-			String overlapMatches = newSwDiffs[1];
-			if (overlapMatches.indexOf(" ") > -1 || overlapMatches.indexOf('.') > -1) {
-				nonOverlapDistribution.adjustOrPutValue(entry.getValue().intValue(), 1, 1);
-//				nonOverlapDistribution.incrementAndGet(entry.getValue().intValue());
-				nonPerfectOverlap++;
-//				for (String s : newSwDiffs) {
-//					logger.info("non perfect overlap sw: " + s);
-//				}
-			} else {
-				overlapDistribution.adjustOrPutValue(entry.getValue().intValue(), 1, 1);
-//				overlapDistribution.incrementAndGet(entry.getValue().intValue());
-				String overlap = newSwDiffs[0];
-				int overlapLength = overlapMatches.length();
-				if (overlapLength < 10) {
-					smallOverlap++;
-					continue;
-				}
-				AtomicInteger ai = overlapLengthDistribution.get(overlapLength);
-				if (null == ai) {
-					overlapLengthDistribution.put(overlapLength, new AtomicInteger(1));
+				SmithWatermanGotoh nm = new SmithWatermanGotoh(r1, r2RevComp, 5, -4, 16, 4);
+				String [] newSwDiffs = nm.traceback();
+				String overlapMatches = newSwDiffs[1];
+				if (overlapMatches.indexOf(" ") > -1 || overlapMatches.indexOf('.') > -1) {
+					nonOverlapDistribution.adjustOrPutValue(readCount, 1, 1);
+	//				nonOverlapDistribution.incrementAndGet(entry.getValue().intValue());
+					nonPerfectOverlap++;
+	//				for (String s : newSwDiffs) {
+	//					logger.info("non perfect overlap sw: " + s);
+	//				}
 				} else {
-					ai.incrementAndGet();
-				}
-				perfectOverlap++;
-				
-				/*
-				 * Now build fragment
-				 * check to see which read starts with the overlap
-				 */
-				String fragment = null;
-				if (readsAreTheSame) {
-					fragment = r1;
-				} else if (r1.indexOf(overlap) < 2 || r2RevComp.endsWith(overlap)) {
-					fragment = r2RevComp.substring(0, r2RevComp.indexOf(overlap)) + overlap + r1.substring(r1.indexOf(overlap) + overlap.length());
-				} else if (r2RevComp.indexOf(overlap) < 2 || r1.endsWith(overlap)) {
-					fragment = r1.substring(0, r1.indexOf(overlap)) + overlap + r2RevComp.substring(r2RevComp.indexOf(overlap) + overlap.length());
-				} else {
-					logger.warn("neither r1 nor r2RevComp start with the overlap!!!");
-					logger.warn("r1: " + r1);
-					logger.warn("r2RevComp: " + r2RevComp);
-					logger.warn("overlap: " + overlap);
-					continue;
-				}
-				
-				AtomicInteger ai2 = fragments.get(fragment);
-				if (null == ai2) {
-					fragments.put(fragment, new AtomicInteger(entry.getValue().intValue()));
-				} else {
-					ai2.addAndGet(entry.getValue().intValue());
+					overlapDistribution.adjustOrPutValue(readCount, 1, 1);
+	//				overlapDistribution.incrementAndGet(entry.getValue().intValue());
+					String overlap = newSwDiffs[0];
+					int overlapLength = overlapMatches.length();
+					if (overlapLength < 10) {
+						smallOverlap++;
+						continue;
+					}
+					if (StringUtils.containsOnly(newSwDiffs[0], AT)) {
+						onlyATs++;
+						continue;
+					}
+					overlapLengthDistribution.adjustOrPutValue(overlapLength, 1, 1);
+					perfectOverlap++;
+					
+					/*
+					 * Now build fragment
+					 * check to see which read starts with the overlap
+					 */
+					String fragment = null;
+					if (r1.indexOf(overlap) < 2 || r2RevComp.endsWith(overlap)) {
+						fragment = r2RevComp.substring(0, r2RevComp.indexOf(overlap)) + overlap + r1.substring(r1.indexOf(overlap) + overlap.length());
+					} else if (r2RevComp.indexOf(overlap) < 2 || r1.endsWith(overlap)) {
+						fragment = r1.substring(0, r1.indexOf(overlap)) + overlap + r2RevComp.substring(r2RevComp.indexOf(overlap) + overlap.length());
+					} else {
+						logger.warn("neither r1 nor r2RevComp start with the overlap!!!");
+						logger.warn("r1: " + r1);
+						logger.warn("r2RevComp: " + r2RevComp);
+						logger.warn("overlap: " + overlap);
+						continue;
+					}
+					
+					if (fragment.length() > 250) {		// need to get t good number here.....
+						logger.info("Fragment has length greater than 250: " + fragment + "\nr1: " + r1 + "\nr2RevComp: " + r2RevComp);
+						for (String s  : newSwDiffs) {
+							logger.info("s: " + s);
+						}
+					} //else {
+					
+					
+					RawFragment f = rawFragments.get(fragment);
+					if (null == f) {
+						f = new RawFragment(fragmentId++, fragment, readCount, overlapLength);
+						rawFragments.put(fragment, f);
+					} else {
+						// update count and overlap
+						f.addCount(readCount);
+						f.addOverlap(overlapLength, readCount);
+					}
+					
+//						AtomicInteger ai2 = fragments.get(fragment);
+//						if (null == ai2) {
+//							fragments.put(fragment, new AtomicInteger(readCount));
+//						} else {
+//							ai2.addAndGet(entry.getValue().intValue());
+//						}
 				}
 			}
 		}
 		logger.info("theSame: " + theSame + ", different: " + different);
-		logger.info("perfectOverlap: " + perfectOverlap + ", nonPerfectOverlap: " + nonPerfectOverlap + ", small overlap: " + smallOverlap);
+		logger.info("perfectOverlap: " + perfectOverlap + ", nonPerfectOverlap: " + nonPerfectOverlap + ", small overlap: " + smallOverlap + ", onlyATs: " + onlyATs);
 		logger.info("the following distribution is of the number of reads that were not able to make fragments due to differences in r1 and r2 reads.");
 		int nonFragmentRecordTally = 0;
 		int fragmentRecordTally = 0;
@@ -220,62 +286,133 @@ private static final int TILE_SIZE = 13;
 			}
 		}
 		
-		
-		
-//		for (int i = 0 ; i < nonOverlapDistribution.length() ; i++) {
-//			long l = nonOverlapDistribution.get(i);
-//			if (l > 0) {
-//				nonFragmentRecordTally += (l * i);
-//				logger.info("no fragment distribution, record count: " + i + ", appeared " + l + " times");
-//			}
-//		}
-//		for (int i = 0 ; i < overlapDistribution.length() ; i++) {
-//			long l = overlapDistribution.get(i);
-//			if (l > 0) {
-//				fragmentRecordTally += (l * i);
-//				logger.info("fragment distribution, record count: " + i + ", appeared " + l + " times");
-//			}
-//		}
-		
 		logger.info("Percentage of records that failed to make a fragment: " + nonFragmentRecordTally + " : " + ((double)nonFragmentRecordTally / fastqRecordCount) * 100 + "%");
 		logger.info("Percentage of records that made a fragment: " + fragmentRecordTally + " : " + ((double)fragmentRecordTally / fastqRecordCount) * 100 + "%");
 		
 		
-		for (Entry<Integer, AtomicInteger> entry : overlapLengthDistribution.entrySet()) {
-			logger.info("overlapLength: " + entry.getKey().intValue() + ", count: " + entry.getValue().intValue());
+		int [] overlapLengthDistributionKeys = overlapLengthDistribution.keys();
+		Arrays.sort(overlapLengthDistributionKeys);
+		logger.info("the following distribution is of the size of overlap from reads that were able to make fragments.");
+		for (int i : overlapLengthDistributionKeys) {
+			int l = overlapLengthDistribution.get(i);
+			if (l > 0) {
+				fragmentRecordTally += (l * i);
+				logger.info("overlapLength: " + i + ", count: " +l);
+			}
 		}
 		// cleanup
 		overlapLengthDistribution.clear();
 		overlapLengthDistribution = null;
 		
-		logger.info("fragments size: " + fragments.size());
-		for (Entry<String, AtomicInteger> entry : fragments.entrySet()) {
-			fragAndRCFrags.add(entry.getKey());
-			fragAndRCFrags.add(SequenceUtil.reverseComplement(entry.getKey()));
-		}
-		
-		logger.info("No of entries in fragAndRCFrags: " + fragAndRCFrags.size());
-		
-		loadTiledAlignerData();
-//		logPositionAndFragmentCounts();
-		getActualLocationForFrags();
-		
-		createAmplicons();
-		
-		mapBedToAmplicons();
-		
-		
-		
-		
-		createMutations();
-		logger.info("no of mutations created: " + vcfFragmentMap.size());
-		writeVcf();
-		writeBam();
-		
-		logger.info("no of fastq records: " +fastqRecordCount);
-		return exitStatus;
+		logger.info("fragments size: " + rawFragments.size());
 	}
 	
+	private void createAmpliconElement(Element amplicons, Amplicon p, List<Fragment> frags) {
+		Element amplicon = new Element("Amplicon");
+		amplicons.appendChild(amplicon);
+		
+		// attributes
+		amplicon.addAttribute(new Attribute("id", "" + p.getId()));
+		amplicon.addAttribute(new Attribute("position", "" + p.getFragmentPosition().toIGVString()));
+		amplicon.addAttribute(new Attribute("amplicon_length", "" + p.getFragmentPosition().getLength()));
+		amplicon.addAttribute(new Attribute("number_of_fragments", "" + frags.size()));
+
+		AtomicInteger readCount = new AtomicInteger();
+//		int readCount = 0;
+		Element fragments = new Element("Fragments");
+		amplicon.appendChild(fragments);
+		frags.stream()
+			.sorted()
+			.forEach(f -> {
+				Element fragment = new Element("Fragment");
+				fragments.appendChild(fragment);
+				readCount.addAndGet(f.getRecordCount());
+				fragment.addAttribute(new Attribute("record_count", "" + f.getRecordCount()));
+				fragment.addAttribute(new Attribute("position", "" + f.getActualPosition().toIGVString()));
+				fragment.addAttribute(new Attribute("overlap_dist", "" + getOverlapDistributionAsString(f.getOverlapDistribution())));
+				fragment.addAttribute(new Attribute("seq", "" + f.getSequence()));
+			});
+		
+		amplicon.addAttribute(new Attribute("number_of_reads", "" + readCount.get()));
+	}
+	
+	private String getOverlapDistributionAsString(TIntArrayList dist) {
+		if (dist.size() == 1) {
+			return "" + dist.get(0) + ":1";
+		}
+		
+		TIntIntHashMap map = new TIntIntHashMap();
+		dist.forEach(new TIntProcedure() {
+			@Override
+			public boolean execute(int i) {
+				map.adjustOrPutValue(i, 1, 1);
+				return true;
+			}});
+		
+		
+		StringBuilder sb = new StringBuilder();
+		int[] keys = map.keys();
+		Arrays.sort(keys);
+		for (int i : keys) {
+			if (sb.length() > 0) {
+				sb.append(",");
+			}
+			sb.append(i).append(":").append(map.get(i));
+		}
+		return sb.toString();
+	}
+	
+	private void writeFragmentAmpliconsToXml() {
+		
+		// logging and writing to file
+		Element amplicons = new Element("Amplicons");
+		amplicons.addAttribute(new Attribute("bed_file", bedFile));
+		amplicons.addAttribute(new Attribute("fastq_file_1", fastqFiles[0]));
+		amplicons.addAttribute(new Attribute("fastq_file_2", fastqFiles[1]));
+		
+		ampliconFragmentMap.entrySet().stream()
+			.sorted((e1, e2) -> e1.getKey().getFragmentPosition().compareTo(e2.getKey().getFragmentPosition()))
+			.forEach(entry -> {
+				createAmpliconElement(amplicons, entry.getKey(), entry.getValue());
+			});
+		
+//		for (Probe p : probeSet) {
+//			
+//			// fragments next
+//			Map<String, AtomicInteger> frags = probeFragments.get(p);
+//			if (null != frags && ! frags.isEmpty()) {
+//				
+//				TIntArrayList fragMatches = new TIntArrayList();
+//				for (Entry<String, AtomicInteger> entry : frags.entrySet()) {
+//					if (entry.getKey() != null) {
+//						Element fragment = new Element("Fragment");
+//						fragments.appendChild(fragment);
+//						fragment.addAttribute(new Attribute("fragment_length", "" + (entry.getKey().startsWith("+++") || entry.getKey().startsWith("---") ? entry.getKey().length() - 3 : entry.getKey().length())));
+//						fragment.addAttribute(new Attribute("record_count", "" + entry.getValue().get()));
+//						fragment.appendChild(entry.getKey());
+//						fragMatches.add(entry.getValue().get());
+//					}
+//				}
+//				if (fragMatches.size() > 1) {
+//					fragments.addAttribute(new Attribute("fragment_breakdown", "" + ClinVarUtil.breakdownEditDistanceDistribution(fragMatches)));
+//				}
+//			}
+//		}
+//			logger.info("no of probes with secondary bin contains > 10% of reads: " + noOfProbesWithLargeSecondaryBin);
+		
+		// write output
+		Document doc = new Document(amplicons);
+		try (OutputStream os = new FileOutputStream(new File(outputFileNameBase + "diag.unbinned_amplicons.xml"));){
+			 Serializer serializer = new Serializer(os, "ISO-8859-1");
+		        serializer.setIndent(4);
+		        serializer.setMaxLength(64);
+		        serializer.write(doc);  
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+	}
+
 	private void mapBedToAmplicons() throws IOException, Exception {
 		/*
 		 * Only do this if we have been supplied a bed file
@@ -395,6 +532,16 @@ private static final int TILE_SIZE = 13;
 				logger.info("Amplicon " + entry.getKey().getId() + " " + entry.getKey().getFragmentPosition().toIGVString() + " has " + entry.getValue().size() + " fragments with a total of " + recordCount + " records (" + ((double) recordCount / fastqRecordCount) * 100 + "%)");
 			});
 		
+		/*
+		 * If amplicon length is over 200, lets list its constituents
+		 */
+		ampliconFragmentMap.entrySet().stream()
+			.filter(entry -> entry.getKey().getFragmentPosition().getLength() > 200)
+			.forEach(entry ->{
+				logger.info("Amplicon " + entry.getKey().getId() + " " + entry.getKey().getFragmentPosition().toIGVString() + " has length " + entry.getKey().getFragmentPosition().getLength());
+				entry.getValue().stream()
+					.forEach(value -> {logger.info("fragment: " + value.getActualPosition().toIGVString());});
+			});
 	}
 
 	private double getMutationCoveragePercentage(VcfRecord vcf, List<IntPair> fragmentsCarryingMutation) {
@@ -455,6 +602,10 @@ private static final int TILE_SIZE = 13;
 					String [] swDiffs = f.getSmithWatermanDiffs();
 					
 					/*
+					 * assign different mapping quality based on record count within fragment
+					 */
+					int mappingQuality = f.getRecordCount() > minFragmentSize ? 60 : 20;
+					/*
 					 * Deal with exact matches first
 					 */
 					if (ClinVarUtil.isSequenceExactMatch(swDiffs, fragSeq)) {
@@ -462,7 +613,7 @@ private static final int TILE_SIZE = 13;
 //						logger.info("bam record position: " + fragCp.getPosition() + ", seq: " + fragSeq);
 						
 						Cigar cigar = ClinVarUtil.getCigarForMatchMisMatchOnly(f.getLength());
-						ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, 1, fragId,  f.getRecordCount(), swDiffs[0], fragCp.getChromosome(), fragCp.getPosition(), 0, fragSeq);
+						ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, 1, fragId,  f.getRecordCount(), swDiffs[0], fragCp.getChromosome(), fragCp.getPosition(), 0, fragSeq, mappingQuality);
 					} else if (ClinVarUtil.doesSWContainSnp(swDiffs) && ! ClinVarUtil.doesSWContainIndel(swDiffs)) {
 						/*
 						 * Snps only here
@@ -470,7 +621,7 @@ private static final int TILE_SIZE = 13;
 						if (swDiffs[1].length() == f.getLength()) {
 							// just snps and same length
 							Cigar cigar = ClinVarUtil.getCigarForMatchMisMatchOnly(f.getLength());
-							ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, 1, fragId,  f.getRecordCount(), swDiffs[0], fragCp.getChromosome(), fragCp.getPosition(), 0, fragSeq);
+							ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, 1, fragId,  f.getRecordCount(), swDiffs[0], fragCp.getChromosome(), fragCp.getPosition(), 0, fragSeq, mappingQuality);
 						} else {
 							logger.info("snps only but length differs, swDiffs[1].length(): " + swDiffs[1].length() + ", f.getLength(): " + f.getLength());
 						}
@@ -483,7 +634,7 @@ private static final int TILE_SIZE = 13;
 							logger.info("ref: " + ref);
 							logger.info("fragSeq: " + fragSeq);
 						}
-						ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, 1, fragId,  f.getRecordCount(), ref, fragCp.getChromosome(), fragCp.getPosition(), 0, fragSeq);
+						ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, 1, fragId,  f.getRecordCount(), ref, fragCp.getChromosome(), fragCp.getPosition(), 0, fragSeq, mappingQuality);
 					} else {
 						// snps and indels
 					}
@@ -591,7 +742,7 @@ private static final int TILE_SIZE = 13;
 	}
 	
 	
-	private void writeVcf() throws IOException {
+	private void filterAndWriteVcfs() throws IOException {
 		try (VCFFileWriter writer = new VCFFileWriter(new File(outputFileNameBase + ".vcf"))) {
 			
 			final AtomicInteger outputMutations = new AtomicInteger();
@@ -613,52 +764,41 @@ private static final int TILE_SIZE = 13;
 			}
 			
 			vcfFragmentMap.entrySet().stream()
+				.filter((entry) -> getRecordCountFormIntPairs(entry.getValue()) >= minBinSize )
+				.filter((entry) -> getMutationCoveragePercentage(entry.getKey(), entry.getValue()) >= minReadPercentage )
 				.sorted((e1, e2) -> {return e1.getKey().compareTo(e2.getKey());})
-				.filter((entry) -> getRecordCountFormIntPairs(entry.getValue()) >= 10 )
-				.filter((entry) -> getMutationCoveragePercentage(entry.getKey(), entry.getValue()) >= 5 )
 				.forEach(entry -> {
-//					
-//					vcfFragmentMap.entrySet().stream()
-//					.sorted((e1, e2) -> {return e1.getKey().compareTo(e2.getKey());})
-//					.filter((entry) -> getRecordCountFormIntPairs(entry.getValue()) >= 10 )
-//					.forEach(entry -> {
 				
-				/*
-				 * get all fragments that overlap this position 
-				 */
-				List<Fragment> overlappingFragments = getOverlappingFragments(entry.getKey().getChrPosition());
-				final StringBuilder overlappingFragmentsDetails = new StringBuilder(overlappingFragments.size() + "(");
-				if (overlappingFragments.isEmpty() ) {
-					// oh dear...
-					logger.warn("didn't find any overlapping fragments for vcf record: " + entry.getKey().toString());
-				} else {
-					long recordCount = overlappingFragments.stream()
-						.mapToLong(Fragment::getRecordCount)
-						.sum();
-					overlappingFragmentsDetails.append(recordCount).append(")");
-//					overlappingFragments.stream()
-//					.forEachOrdered(f -> overlappingFragmentsDetails.append(f.getId()).append("(").append(f.getRecordCount()).append("),"));
-				}
-				final StringBuilder mutationFragmentsDetails = new StringBuilder(entry.getValue().size() + "(");
-				mutationFragmentsDetails.append(getRecordCountFormIntPairs(entry.getValue())).append(")");
-//				entry.getValue().stream()
-//					.forEachOrdered(ip -> {frags.values().stream()
-//														.filter(f -> f.getId() == ip.getInt1())
-//														.forEach(f ->mutatationFragmentsDetails.append(f.getId()).append("(").append(f.getRecordCount()).append("),"));});
-				
-				List<String> ff = new ArrayList<>(3);
-				ff.add("FB");
-				ff.add(mutationFragmentsDetails.toString() + "/" + overlappingFragmentsDetails.toString());
-				entry.getKey().setFormatFields(ff);
-				
-				try {
-					writer.add(entry.getKey());
-					outputMutations.incrementAndGet();
-				} catch (Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			});
+					/*
+					 * get all fragments that overlap this position 
+					 */
+					List<Fragment> overlappingFragments = getOverlappingFragments(entry.getKey().getChrPosition());
+					final StringBuilder overlappingFragmentsDetails = new StringBuilder(overlappingFragments.size() + "(");
+					if (overlappingFragments.isEmpty() ) {
+						// oh dear...
+						logger.warn("didn't find any overlapping fragments for vcf record: " + entry.getKey().toString());
+					} else {
+						long recordCount = overlappingFragments.stream()
+							.mapToLong(Fragment::getRecordCount)
+							.sum();
+						overlappingFragmentsDetails.append(recordCount).append(")");
+	//					overlappingFragments.stream()
+	//					.forEachOrdered(f -> overlappingFragmentsDetails.append(f.getId()).append("(").append(f.getRecordCount()).append("),"));
+					}
+					final StringBuilder mutationFragmentsDetails = new StringBuilder(entry.getValue().size() + "(");
+					mutationFragmentsDetails.append(getRecordCountFormIntPairs(entry.getValue())).append(")");
+					List<String> ff = new ArrayList<>(3);
+					ff.add("FB");
+					ff.add(mutationFragmentsDetails.toString() + "/" + overlappingFragmentsDetails.toString());
+					entry.getKey().setFormatFields(ff);
+					
+					try {
+						writer.add(entry.getKey());
+						outputMutations.incrementAndGet();
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				});
 			logger.info("no of mutations written to file: " + outputMutations.intValue());
 		}
 	}
@@ -811,7 +951,7 @@ private static final int TILE_SIZE = 13;
 	private void createMutations() {
 		
 		frags.values().stream()
-			.filter(f -> f.getActualPosition() != null)
+			.filter(f -> f.getActualPosition() != null &&  f.getRecordCount()  > minFragmentSize)
 			.forEach(f -> {
 			
 			String [] smithWatermanDiffs = f.getSmithWatermanDiffs();
@@ -914,19 +1054,20 @@ private static final int TILE_SIZE = 13;
 	
 	private void loadTiledAlignerData() throws Exception {
 		/*
-		 * Loop through all our amplicons, split into 13mers and add to ampliconTiles 
+		 * Loop through all our fragments (and reverse strand), split into 13mers and add to ampliconTiles 
 		 */
-		Set<String> ampliconTiles = new HashSet<>();
-		for (String s : fragAndRCFrags) {
-//				String s = b.getSequence();
-			int sLength = s.length();
+		Set<String> fragmentTiles = new HashSet<>();
+		for (String fragment : rawFragments.keySet()) {
+			String revComp = SequenceUtil.reverseComplement(fragment);
+			int sLength = fragment.length();
 			int noOfTiles = sLength / TILE_SIZE;
 			
 			for (int i = 0 ; i < noOfTiles ; i++) {
-				ampliconTiles.add(s.substring(i * TILE_SIZE, (i + 1) * TILE_SIZE));
+				fragmentTiles.add(fragment.substring(i * TILE_SIZE, (i + 1) * TILE_SIZE));
+				fragmentTiles.add(revComp.substring(i * TILE_SIZE, (i + 1) * TILE_SIZE));
 			}
 		}
-		logger.info("Number of amplicon tiles: " + ampliconTiles.size());
+		logger.info("Number of fragment tiles: " + fragmentTiles.size());
 		
 		logger.info("loading genome tiles alignment data");
 		
@@ -949,7 +1090,7 @@ private static final int TILE_SIZE = 13;
 					logger.info("hit " + (i / 1000000) + "M records");
 				}
 				String tile = rec.getData().substring(0, TILE_SIZE);
-				if (ampliconTiles.contains(tile)) {
+				if (fragmentTiles.contains(tile)) {
 					String countOrPosition = rec.getData().substring(rec.getData().indexOf('\t') + 1);
 					if (countOrPosition.charAt(0) == 'C') {
 						frequentlyOccurringRefTiles.add(tile);
@@ -975,7 +1116,7 @@ private static final int TILE_SIZE = 13;
 		int refTilesCountSize =  frequentlyOccurringRefTiles.size();
 		int refTilesPositionsSize =  refTilesPositions.size();
 		int total = refTilesCountSize + refTilesPositionsSize;
-		int diff = ampliconTiles.size() - total;
+		int diff = fragmentTiles.size() - total;
 		logger.info("finished reading the genome tiles alignment data");
 		logger.info("no of entries in refTilesCount: " + refTilesCountSize);
 		logger.info("no of entries in refTilesPositions: " + refTilesPositionsSize);
@@ -984,8 +1125,7 @@ private static final int TILE_SIZE = 13;
 		int bestLocationSet = 0, bestLocationNotSet = 0;
 		int positionFound = 0, positionFoundReadCount = 0;
 		int noPositionFound = 0, noPositionFoundReadCount = 0;
-		int fragId = 1;
-		for (String fragment : fragments.keySet()) {
+		for (String fragment : rawFragments.keySet()) {
 			int fragLength = fragment.length();
 			int noOfTiles = fragLength / TILE_SIZE;
 				long[][] tilePositions = new long[noOfTiles][];
@@ -1093,13 +1233,15 @@ private static final int TILE_SIZE = 13;
 				if (null != bestTiledCp) {
 					positionFound++;
 					
+					RawFragment rf = rawFragments.get(fragment);
+					
 					String forwardStrandFragment = forwardStrand ? fragment : SequenceUtil.reverseComplement(fragment);
-					int currentCount =  fragments.get(fragment).intValue();
+					int currentCount =  rf.getCount();
 					positionFoundReadCount += currentCount;
 					
 					Fragment f = frags.get(forwardStrandFragment);
 					if (null == f) {
-						f = new Fragment(fragId++, forwardStrandFragment, forwardStrand ? currentCount : 0, forwardStrand ? 0 : currentCount, bestTiledCp);
+						f = new Fragment(rawFragmentId++, forwardStrandFragment, forwardStrand ? currentCount : 0, forwardStrand ? 0 : currentCount, bestTiledCp, rf.getOverlapDistribution());
 						frags.put(forwardStrandFragment, f);
 					} else {
 						// update count
@@ -1115,6 +1257,7 @@ private static final int TILE_SIZE = 13;
 							}
 							f.setReverseStrandCount(currentCount);
 						}
+						f.addOverlapDistribution(rf.getOverlapDistribution());
 					}
 					
 //					List<String> frags = positionFragmentsMap.get(bestTiledCp);
@@ -1137,7 +1280,7 @@ private static final int TILE_SIZE = 13;
 						logger.info("frag: " + fragment);
 					}
 					noPositionFound++;
-					noPositionFoundReadCount += fragments.get(fragment).intValue();
+					noPositionFoundReadCount += rawFragments.get(fragment).getCount();
 					/*
 					 * Haven't got a best tiled location, or the location is not near the amplicon, so lets generate some SW diffs, and choose the best location based on those
 					 */
@@ -1287,7 +1430,15 @@ private static final int TILE_SIZE = 13;
 			if (options.hasMinBinSizeOption()) {
 				this.minBinSize = options.getMinBinSize().intValue();
 			}
+			if (options.hasMinFragmentSizeOption()) {
+				this.minFragmentSize = options.getMinFragmentSize().intValue();
+			}
+			if (options.hasMinReadPercentageSizeOption()) {
+				this.minReadPercentage = options.getMinReadPercentageSize().intValue();
+			}
 			logger.info("minBinSize is " + minBinSize);
+			logger.info("minFragmentSize is " + minFragmentSize);
+			logger.info("minReadPercentage is " + minReadPercentage);
 			
 			
 				return engage();

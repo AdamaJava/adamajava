@@ -40,6 +40,8 @@ final class Options {
 	private final String refFileName;
 	private final String log;
 	private final Integer minBinSize;
+	private final Integer minFragSize;
+	private final Integer minReadPercentage;
 	private final Integer tiledDiffThreshold;
 	private final Integer swDiffThreshold;
 	private final Integer tileMatchThreshold;
@@ -62,6 +64,8 @@ final class Options {
 		parser.accepts("bedFile", OUTPUT_FILE_DESCRIPTION).withRequiredArg().ofType(String.class);
 //		parser.accepts("exclude", EXCLUDES_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
 		parser.accepts("minBinSize", MIN_BIN_SIZE_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
+		parser.accepts("minFragmentSize", MIN_BIN_SIZE_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
+		parser.accepts("minReadPercentage", MIN_BIN_SIZE_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
 		parser.accepts("tiledDiffThreshold", MIN_BIN_SIZE_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
 		parser.accepts("swDiffThreshold", MIN_BIN_SIZE_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
 		parser.accepts("tileMatchThreshold", MIN_BIN_SIZE_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
@@ -80,6 +84,8 @@ final class Options {
 		logLevel = (String) options.valueOf("loglevel");
 		
 		minBinSize =  (Integer) options.valueOf("minBinSize");
+		minFragSize =  (Integer) options.valueOf("minFragmentSize");
+		minReadPercentage =  (Integer) options.valueOf("minReadPercentage");
 		tiledDiffThreshold =  (Integer) options.valueOf("tiledDiffThreshold");
 		swDiffThreshold =  (Integer) options.valueOf("swDiffThreshold");
 		tileMatchThreshold =  (Integer) options.valueOf("tileMatchThreshold");
@@ -116,6 +122,12 @@ final class Options {
 	boolean hasMinBinSizeOption() {
 		return options.has("minBinSize");
 	}
+	boolean hasMinFragmentSizeOption() {
+		return options.has("minFragmentSize");
+	}
+	boolean hasMinReadPercentageSizeOption() {
+		return options.has("minReadPercentage");
+	}
 	boolean hasTiledDiffThresholdOption() {
 		return options.has("tiledDiffThreshold");
 	}
@@ -146,6 +158,12 @@ final class Options {
 	
 	Integer getMinBinSize() {
 		return minBinSize;
+	}
+	Integer getMinFragmentSize() {
+		return minFragSize;
+	}
+	Integer getMinReadPercentageSize() {
+		return minReadPercentage;
 	}
 	Integer getTiledDiffThreshold() {
 		return tiledDiffThreshold;
