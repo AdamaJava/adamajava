@@ -6,6 +6,7 @@ package org.qcmg.gff3;
 import java.io.BufferedReader;
 import java.io.IOException;
 
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.TabTokenizer;
 
 public final class GFF3Serializer {
@@ -73,18 +74,18 @@ public final class GFF3Serializer {
 	}
 
 	public static String serialise(final GFF3Record record) throws Exception {
-		String result = record.getSeqId() + "\t";
-		result += record.getSource() + "\t";
-		result += record.getType() + "\t";
-		result += record.getStart() + "\t";
-		result += record.getEnd() + "\t";
-		result += record.getScore() + "\t";
-		result += record.getStrand() + "\t";
-		result += record.getPhase() + "\t";
+		StringBuilder result = new StringBuilder(record.getSeqId()).append(Constants.TAB);
+		result.append(record.getSource()).append(Constants.TAB);
+		result.append(record.getType()).append(Constants.TAB);
+		result.append(record.getStart()).append(Constants.TAB);
+		result.append(record.getEnd()).append(Constants.TAB);
+		result.append(record.getScore()).append(Constants.TAB);
+		result.append(record.getStrand()).append(Constants.TAB);
+		result.append(record.getPhase()).append(Constants.TAB);
 		if (null != record.getAttributes()) {
-			result += record.getAttributes();
+			result.append(record.getAttributes());
 		}
-		return result;
+		return result.toString();
 	}
 
 }
