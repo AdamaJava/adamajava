@@ -109,8 +109,18 @@ public class Options {
 		runMode =  IniFileUtil.getEntry(iniFile, "parameters", "runMode");
 		
 		if(runMode.equalsIgnoreCase("gatk")){
-			testVcf = new File( IniFileUtil.getInputFile(iniFile, "testVcf") );
-			controlVcf = new File(IniFileUtil.getInputFile(iniFile, "controlVcf"));
+			f =  IniFileUtil.getInputFile(iniFile, "testVcf") ;
+			if(f != null) 			 
+				testVcf = new File( f );
+			else
+				throw new Q3IndelException("MISSING_PARAMETER", "testVcf");
+			
+			f =  IniFileUtil.getInputFile(iniFile, "controlVcf") ;
+			if(f != null) 	
+				controlVcf = new File(f); 				 
+			else
+				throw new Q3IndelException("MISSING_PARAMETER", "controlVcf");
+			
 		}else if(runMode.equalsIgnoreCase("pindel")){
 			String[] inputs = IniFileUtil.getInputFiles(iniFile, "inputVcf");
 			for(int i = 0; i < inputs.length; i ++)

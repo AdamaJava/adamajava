@@ -32,10 +32,6 @@ public class Main {
 		int exitStatus = 0;
 		try {
 					
-//			String	version = Main.class.getPackage().getImplementationVersion();
-			
-//			logger.logInitialExecutionStats("q3pileup", version, args, QExec.createUUid());
-					
 			logger.info("***INPUT FILES***");
 			logger.info("Test bam: " + options.getTestBam());
 			logger.info("Control bam: " + options.getControlBam());
