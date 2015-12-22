@@ -189,8 +189,7 @@ public class QLogger {
 		return logInitialExecutionStats(new QExec(programName, programVersion, args));
 	}	
 
-	public QExec logInitialExecutionStats(final String programName,
-			final String programVersion, final String[] args, String uuid) {
+	public QExec logInitialExecutionStats(final String programName, final String programVersion, final String[] args, String uuid) {
 		return logInitialExecutionStats(new QExec(programName, programVersion, args, uuid));
 	}
 	
