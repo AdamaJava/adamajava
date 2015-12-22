@@ -88,7 +88,7 @@ public class Options {
 				modeOptions = new IndelConfidenceOptions();			
 			else{ 
 				System.err.println("err on command line : \n\t" + commandLine);
-				System.err.println(Messages.getMessage("INVALID_MODE_OPTION", m + " " +  MODE.snpEff.name())); 
+				System.err.println(Messages.getMessage("INVALID_MODE_OPTION", m )); 
 				}
         }else if(options.has("h") || options.has("help")) 
         	displayHelp();  

@@ -77,8 +77,9 @@ public class ConfidenceMode extends AbstractMode{
 
 
 		//if(options.getpatientid == null)
-		patientId = DonorUtils.getDonorFromFilename(options.getInputFileName());		
-		addAnnotation( options.getDatabaseFileName() );
+		patientId = DonorUtils.getDonorFromFilename(options.getInputFileName());
+		addAnnotation();
+//		addAnnotation( options.getDatabaseFileName() );
 		reheader(options.getCommandLine(),options.getInputFileName())	;	
 		writeVCF(new File(options.getOutputFileName()) );	
 	}
@@ -162,6 +163,12 @@ public class ConfidenceMode extends AbstractMode{
  
 	/*
 	 * Get the relevant format field, and check the NNS value 
+	 */
+	/**
+	 * 
+	 * @param score : integer
+	 * @param formatField : vcf formate field string
+	 * @return true if novel start value higher than score or not exists
 	 */
 	 public static final boolean checkNovelStarts(int score, VcfFormatFieldRecord formatField ) {
 		 String nnsString = formatField.getField(VcfHeaderUtils.FILTER_NOVEL_STARTS);
