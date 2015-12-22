@@ -3,6 +3,11 @@ s * © Copyright The University of Queensland 2010-2014.  This code is released 
  */
 package org.qcmg.snp;
 
+import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SAMSequenceRecord;
+import htsjdk.samtools.SamReader;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -16,11 +21,6 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMSequenceRecord;
 
 import org.ini4j.Ini;
 import org.qcmg.common.log.QLogger;
@@ -363,9 +363,12 @@ public final class VcfPipeline extends Pipeline {
 			VcfRecord mergedVcf = normal.getVcfRecord();
 			// add filter and format fields
 			mergedVcf.addFilter(tumour.getVcfRecord().getFilter());
-			List<String> formatFields = mergedVcf.getFormatFields();
-			formatFields.add(tumour.getVcfRecord().getFormatFields().get(1));
-			mergedVcf.setFormatFields(formatFields);
+			
+			VcfUtils.addAdditionalSampleToFormatField(mergedVcf, tumour.getVcfRecord().getFormatFields());
+			
+//			List<String> formatFields = mergedVcf.getFormatFields();
+//			formatFields.add(tumour.getVcfRecord().getFormatFields().get(1));
+//			mergedVcf.setFormatFields(formatFields);
 			
 			// create new QSnpRecord with the mergedVcf details
 			qpr = new QSnpRecord(mergedVcf);
