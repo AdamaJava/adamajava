@@ -327,6 +327,7 @@ public class Q3ClinVar2 {
 				Element fragment = new Element("Fragment");
 				fragments.appendChild(fragment);
 				readCount.addAndGet(f.getRecordCount());
+				fragment.addAttribute(new Attribute("id", "" + f.getId()));
 				fragment.addAttribute(new Attribute("record_count", "" + f.getRecordCount()));
 				fragment.addAttribute(new Attribute("position", "" + f.getActualPosition().toIGVString()));
 				fragment.addAttribute(new Attribute("genomic_length", "" + f.getActualPosition().getLength()));
