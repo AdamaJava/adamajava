@@ -1162,7 +1162,56 @@ public class ClinVarUtil {
 			return cigar;
 	}
 	
-	public static Cigar getCigarForIndels(String referenceSequence, String binSeq, String [] swDiffs, ChrPosition cp, int length) {
+	/**
+	 * Return a string based representation of the number of matches and indels, similar to the MD tag in a BAM record
+	 * @param swDiffs
+	 * @return
+	 */
+	public static String getSWDetails(String [] swDiffs) {
+		
+		if (doesSWContainSnpOrIndel(swDiffs)) {
+		
+			StringBuilder sb = new StringBuilder();
+			char lastChar = '\u0000';
+			int i = 0;
+			int count = 0;
+			for (char c : swDiffs[1].toCharArray()) {
+				if (i > 0 && c != lastChar) {
+					
+					
+					sb.append(getConcordanceDetail(lastChar, count, swDiffs[0].charAt(i - count) == '-'));
+//					sb.append(count);
+//					switch (lastChar) {
+//					case '|' : sb.append("="); break;
+//					case '.' : sb.append("X"); break;
+//					case ' ' :sb.append(swDiffs[0].charAt(i) == '-' ? 'I' : 'D'); break;
+//					default: break;
+//					}
+					count = 0;
+				}
+				lastChar = c;
+				count++;
+				i++;
+			}
+			if (count > 0) {
+				sb.append(getConcordanceDetail(lastChar, count, swDiffs[0].charAt(i - 1 - count) == '-'));
+			}
+			return sb.length() > 0 ? sb.toString() : null;
+		} else {
+			return swDiffs[0].length() + "=";
+		}
+	}
+	
+	private static String getConcordanceDetail(char c , int count, boolean insertion) {
+		switch (c) {
+		case '|' : return count + "=";
+		case '.' : return count + "X";
+		case ' ' : return count + (insertion ? "I" : "D");
+		default: return null;
+		}
+	}
+	
+	public static Cigar getCigarForIndels(String referenceSequence, String binSeq, String [] swDiffs, ChrPosition cp) {
 		int offset = 0;
 		if (swDiffs[0].replaceAll("-","").length() != referenceSequence.length()) {
 			int posOfFistIndel = swDiffs[1].indexOf(" ");
@@ -1210,18 +1259,22 @@ public class ClinVarUtil {
 							CigarElement match = new CigarElement(indelPosition - lastPosition, CigarOperator.MATCH_OR_MISMATCH);
 							ces.add(match);
 						}
-						CigarElement deletion = new CigarElement(mutArray[0].length() - 1, CigarOperator.DELETION);
+						int deletionLength = mutArray[0].length() - 1;
+						CigarElement deletion = new CigarElement(deletionLength, CigarOperator.DELETION);
 						ces.add(deletion);
-						lastPosition = indelPosition;
+						lastPosition = indelPosition + deletionLength;
 					}
 				}
 			}
 		}
-		if (lastPosition + 1 < length) {
-			CigarElement match = new CigarElement(length - lastPosition, CigarOperator.MATCH_OR_MISMATCH);
-//			CigarElement match = new CigarElement(length - (lastPosition + 1), CigarOperator.MATCH_OR_MISMATCH);
+		if (lastPosition + 1 < swDiffs[0].length()) {
+			CigarElement match = new CigarElement(swDiffs[0].length() - lastPosition, CigarOperator.MATCH_OR_MISMATCH);
 			ces.add(match);
 		}
+//		if (lastPosition + 1 < length) {
+//			CigarElement match = new CigarElement(length - lastPosition, CigarOperator.MATCH_OR_MISMATCH);
+//			ces.add(match);
+//		}
 		Cigar cigar = new Cigar(ces);
 		return cigar;
 	}

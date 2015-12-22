@@ -95,7 +95,7 @@ public class Q3ClinVar2 {
 	
 	private int minBinSize = 10;
 	private int minFragmentSize = 3;
-	private  int minReadPercentage = 5;
+	private  int minReadPercentage = 2;
 	
 	private final Map<String, AtomicInteger> reads = new HashMap<>();
 	
@@ -235,10 +235,10 @@ public class Q3ClinVar2 {
 					}
 					
 					if (fragment.length() > 250) {		// need to get t good number here.....
-						logger.info("Fragment has length greater than 250: " + fragment + "\nr1: " + r1 + "\nr2RevComp: " + r2RevComp);
-						for (String s  : newSwDiffs) {
-							logger.info("s: " + s);
-						}
+//						logger.info("Fragment has length greater than 250: " + fragment + "\nr1: " + r1 + "\nr2RevComp: " + r2RevComp);
+//						for (String s  : newSwDiffs) {
+//							logger.info("s: " + s);
+//						}
 					} //else {
 					
 					
@@ -329,7 +329,10 @@ public class Q3ClinVar2 {
 				readCount.addAndGet(f.getRecordCount());
 				fragment.addAttribute(new Attribute("record_count", "" + f.getRecordCount()));
 				fragment.addAttribute(new Attribute("position", "" + f.getActualPosition().toIGVString()));
+				fragment.addAttribute(new Attribute("genomic_length", "" + f.getActualPosition().getLength()));
 				fragment.addAttribute(new Attribute("overlap_dist", "" + getOverlapDistributionAsString(f.getOverlapDistribution())));
+				fragment.addAttribute(new Attribute("md", "" + ClinVarUtil.getSWDetails(f.getSmithWatermanDiffs())));
+				fragment.addAttribute(new Attribute("fragment_length", "" + f.getLength()));
 				fragment.addAttribute(new Attribute("seq", "" + f.getSequence()));
 			});
 		
@@ -486,15 +489,18 @@ public class Q3ClinVar2 {
 			
 			
 			ChrPosition cp = entry.getKey();
-			
-			ampliconFragmentPositionMap.keySet().stream()
-				.filter(cp1 -> ! cp1.equals(cp))
-				.filter(cp1 -> ! toRemove.contains(cp1))
-				.filter(cp1 -> cp1.getChromosome().equals(cp.getChromosome()) && cp1.getPosition() > cp.getPosition() && cp1.getPosition() < cp.getPosition() + 5)
-				.forEach(cp1 -> {
-					entry.getValue().addAll(ampliconFragmentPositionMap.get(cp1));
-					toRemove.add(cp1);
-				});
+			if ( ! toRemove.contains(cp)) {
+				ampliconFragmentPositionMap.keySet().stream()
+					.filter(cp1 -> ! cp1.equals(cp))
+					.filter(cp1 -> ! toRemove.contains(cp1))
+					.filter(cp1 -> cp1.getChromosome().equals(cp.getChromosome()) 
+							&& Math.abs(cp1.getPosition() - cp.getPosition()) < 5
+							&& Math.abs(cp1.getEndPosition() - cp.getEndPosition()) < 5)
+					.forEach(cp1 -> {
+						entry.getValue().addAll(ampliconFragmentPositionMap.get(cp1));
+						toRemove.add(cp1);
+					});
+			}
 		}
 		toRemove.stream()
 			.forEach(a -> ampliconFragmentPositionMap.remove(a));
@@ -535,13 +541,13 @@ public class Q3ClinVar2 {
 		/*
 		 * If amplicon length is over 200, lets list its constituents
 		 */
-		ampliconFragmentMap.entrySet().stream()
-			.filter(entry -> entry.getKey().getFragmentPosition().getLength() > 200)
-			.forEach(entry ->{
-				logger.info("Amplicon " + entry.getKey().getId() + " " + entry.getKey().getFragmentPosition().toIGVString() + " has length " + entry.getKey().getFragmentPosition().getLength());
-				entry.getValue().stream()
-					.forEach(value -> {logger.info("fragment: " + value.getActualPosition().toIGVString());});
-			});
+//		ampliconFragmentMap.entrySet().stream()
+//			.filter(entry -> entry.getKey().getFragmentPosition().getLength() > 200)
+//			.forEach(entry ->{
+//				logger.info("Amplicon " + entry.getKey().getId() + " " + entry.getKey().getFragmentPosition().toIGVString() + " has length " + entry.getKey().getFragmentPosition().getLength());
+//				entry.getValue().stream()
+//					.forEach(value -> {logger.info("fragment: " + value.getActualPosition().toIGVString());});
+//			});
 	}
 
 	private double getMutationCoveragePercentage(VcfRecord vcf, List<IntPair> fragmentsCarryingMutation) {
@@ -629,11 +635,15 @@ public class Q3ClinVar2 {
 					} else if ( ! ClinVarUtil.doesSWContainSnp(swDiffs) && ClinVarUtil.doesSWContainIndel(swDiffs)) {
 						// indels only
 						String ref = swDiffs[0].replaceAll("-","");
-						Cigar cigar = ClinVarUtil.getCigarForIndels(ref,  fragSeq, swDiffs,  fragCp,  f.getLength());
-						if (cigar.toString().equals("75M2I80M")) {
-							logger.info("ref: " + ref);
-							logger.info("fragSeq: " + fragSeq);
-						}
+						Cigar cigar = ClinVarUtil.getCigarForIndels(ref,  fragSeq, swDiffs,  fragCp);
+//						if (cigar.toString().equals("75M2I80M")) {
+//							logger.info("ref: " + ref);
+//							logger.info("fragSeq: " + fragSeq);
+//							logger.info("cigar: " + cigar.toString());
+//							for (String s : swDiffs) {
+//								logger.info("s: " + s);
+//							}
+//						}
 						ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, 1, fragId,  f.getRecordCount(), ref, fragCp.getChromosome(), fragCp.getPosition(), 0, fragSeq, mappingQuality);
 					} else {
 						// snps and indels
@@ -846,7 +856,8 @@ public class Q3ClinVar2 {
 				 */
 				String swRefMinusDeletions = swDiffs[0].replaceAll("-", "");
 				int offset = bufferedReference.indexOf(swRefMinusDeletions);
-				setActualCP(bufferedCP, offset, f);
+				int refLength = swRefMinusDeletions.length();
+				setActualCP(bufferedCP, offset, f, refLength);
 				actualCPReadCount += f.getRecordCount();
 				
 //				/*
@@ -950,7 +961,22 @@ public class Q3ClinVar2 {
 	
 	private void createMutations() {
 		
-		frags.values().stream()
+		List<Fragment> fragmentsToCallVariantsOn = new ArrayList<>();
+		
+		/*
+		 * Only call variants on amplicons that contain more than 10 reads
+		 */
+		ampliconFragmentMap.values().stream()
+			.filter(list -> list.stream().collect(Collectors.summingInt(Fragment::getRecordCount)) >= 10)
+			.forEach(list -> fragmentsToCallVariantsOn.addAll(list));
+		
+		logger.info("number of fragments we will call mutations on: " + fragmentsToCallVariantsOn.size());
+		
+
+		/*
+		 * Fragments must contain a certain number of reads (minFragmentSize)
+		 */
+		fragmentsToCallVariantsOn.stream()
 			.filter(f -> f.getActualPosition() != null &&  f.getRecordCount()  > minFragmentSize)
 			.forEach(f -> {
 			
@@ -963,13 +989,27 @@ public class Q3ClinVar2 {
 					int slashIndex = mutString.indexOf('/');
 					String ref = mutString.substring(0, slashIndex);
 					String alt = mutString.substring(slashIndex + 1);
-		//			if (p.getId() == 542 && b.getId() == 87424 ) {
-		//				logger.info("position: " + position + ", mutString: " + mutString);
-		//			}
 					createMutation(f.getActualPosition(), position , ref, alt, f.getId(), f.getRecordCount());
 				}
 			}
 		});
+//		frags.values().stream()
+//		.filter(f -> f.getActualPosition() != null &&  f.getRecordCount()  > minFragmentSize)
+//		.forEach(f -> {
+//			
+//			String [] smithWatermanDiffs = f.getSmithWatermanDiffs();
+//			List<Pair<Integer, String>> mutations = ClinVarUtil.getPositionRefAndAltFromSW(smithWatermanDiffs);
+//			if ( ! mutations.isEmpty()) {
+//				for (Pair<Integer, String> mutation : mutations) {
+//					int position = mutation.getLeft().intValue();
+//					String mutString = mutation.getRight();
+//					int slashIndex = mutString.indexOf('/');
+//					String ref = mutString.substring(0, slashIndex);
+//					String alt = mutString.substring(slashIndex + 1);
+//					createMutation(f.getActualPosition(), position , ref, alt, f.getId(), f.getRecordCount());
+//				}
+//			}
+//		});
 	}
 	
 	private void createMutation(ChrPosition actualCP, int position, String ref, String alt, int fragmentId, int fragmentRecordCount) {
@@ -988,9 +1028,10 @@ public class Q3ClinVar2 {
 	
 	
 	
-	private void setActualCP(ChrPosition bufferedCP, int offset, Fragment f) {
+	private void setActualCP(ChrPosition bufferedCP, int offset, Fragment f, int referenceLength) {
 		final int startPosition =  bufferedCP.getPosition() + offset + 1;	// we are 1 based
-		ChrPosition actualCP = new ChrPosition(bufferedCP.getChromosome(), startPosition, startPosition + f.getLength());
+		// location needs to reflect reference bases consumed rather sequence length
+		ChrPosition actualCP = new ChrPosition(bufferedCP.getChromosome(), startPosition, startPosition + referenceLength -1);
 		f.setActualPosition(actualCP);
 	}
 
