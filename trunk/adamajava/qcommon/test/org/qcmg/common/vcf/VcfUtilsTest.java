@@ -362,6 +362,48 @@ public class VcfUtilsTest {
 	}
 	
 	@Test
+	public void testAdditionalSampleFF() {
+		VcfRecord rec = VcfUtils.createVcfRecord("1", 1, "ACCACCACC");
+		VcfUtils.addFormatFieldsToVcf(rec, Arrays.asList("GT:AD:DP:GQ:PL", "0/1:6,3:9:62:62,0,150"));
+		
+		assertEquals("GT:AD:DP:GQ:PL", rec.getFormatFields().get(0));
+		assertEquals("0/1:6,3:9:62:62,0,150", rec.getFormatFields().get(1));
+		
+		// now add another sample with the same ffs
+		VcfUtils.addAdditionalSampleToFormatField(rec, Arrays.asList("GT:AD:DP:GQ:PL", "1/1:6,3:9:62:62,0,150"));
+		
+		assertEquals("GT:AD:DP:GQ:PL", rec.getFormatFields().get(0));
+		assertEquals("0/1:6,3:9:62:62,0,150", rec.getFormatFields().get(1));
+		assertEquals("1/1:6,3:9:62:62,0,150", rec.getFormatFields().get(2));
+		
+		// and now one a sample with some extra info
+		VcfUtils.addAdditionalSampleToFormatField(rec, Arrays.asList("GT:AD:DP:GQ:PL:OH", "1/1:6,3:9:62:62,0,150:blah"));
+		assertEquals("GT:AD:DP:GQ:PL:OH", rec.getFormatFields().get(0));
+		assertEquals("0/1:6,3:9:62:62,0,150:.", rec.getFormatFields().get(1));
+		assertEquals("1/1:6,3:9:62:62,0,150:.", rec.getFormatFields().get(2));
+		assertEquals("1/1:6,3:9:62:62,0,150:blah", rec.getFormatFields().get(3));
+		
+		// start afresh
+		 rec = VcfUtils.createVcfRecord("1", 1, "ACCACCACC");
+		VcfUtils.addFormatFieldsToVcf(rec, Arrays.asList("GT:AD:DP:GQ:PL", "0/1:6,3:9:62:62,0,150"));
+		VcfUtils.addAdditionalSampleToFormatField(rec, Arrays.asList("AB:DP:OH", "anythinghere:0:blah"));
+		assertEquals("GT:AD:DP:GQ:PL:AB:OH", rec.getFormatFields().get(0));
+		assertEquals("0/1:6,3:9:62:62,0,150:.:.", rec.getFormatFields().get(1));
+		assertEquals(".:.:0:.:.:anythinghere:blah", rec.getFormatFields().get(2));
+	}
+	
+	@Test
+	public void testAdditionalSampleFFRealLifeData() {
+		VcfRecord rec = VcfUtils.createVcfRecord("chr1", 1066816, "A");
+		VcfUtils.addFormatFieldsToVcf(rec, Arrays.asList("GT:AD:DP:GQ:PL", "1/1:0,22:22:75:1124,75,0"));
+		VcfUtils.addAdditionalSampleToFormatField(rec, Arrays.asList("GT:GQ:PL", "1/1:6:86,6,0"));
+		
+		assertEquals("GT:AD:DP:GQ:PL", rec.getFormatFields().get(0));
+		assertEquals("1/1:0,22:22:75:1124,75,0", rec.getFormatFields().get(1));
+		assertEquals("1/1:.:.:6:86,6,0", rec.getFormatFields().get(2));
+	}
+	
+	@Test
 	public void addFormatFields() throws Exception {
 		VcfRecord rec = VcfUtils.createVcfRecord("1", 1, "ACCACCACC");
 		VcfUtils.addFormatFieldsToVcf(rec, Arrays.asList("GT:AD:DP:GQ:PL", "0/1:6,3:9:62:62,0,150"));

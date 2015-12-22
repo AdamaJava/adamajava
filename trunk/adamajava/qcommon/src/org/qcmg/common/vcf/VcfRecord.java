@@ -18,7 +18,7 @@ import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
 
-public class VcfRecord implements Comparable<VcfRecord>,Cloneable {
+public class VcfRecord implements Comparable<VcfRecord> {
 	
 	private static final QLogger logger = QLoggerFactory.getLogger(VcfRecord.class);
 	
@@ -260,14 +260,6 @@ public class VcfRecord implements Comparable<VcfRecord>,Cloneable {
 	public void setId(String id) { this.id = id; }
 	public String getId() { 	return id; }
 	
-	 
-	@Deprecated 
-	/**
-	 * it only do shallow copy, so both instance will point to same mutable object, such as VcfInfoFieldRecord
-	 */
-	public VcfRecord clone() throws CloneNotSupportedException{		
-		return (VcfRecord) super.clone();
-	}
 	 
 	@Override
 	/**

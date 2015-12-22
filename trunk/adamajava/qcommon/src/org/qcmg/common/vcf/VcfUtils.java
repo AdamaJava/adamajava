@@ -10,7 +10,9 @@ import static org.qcmg.common.util.Constants.MISSING_DATA_STRING;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
@@ -356,6 +358,7 @@ public class VcfUtils {
 	 * An insert into the list is performed ( {@link java.util.List#add(int, Object)})
 	 * which shifts existing elements if required.
 	 * 
+	 * 
 	 * @param vcf
 	 * @param position
 	 */
@@ -385,6 +388,141 @@ public class VcfUtils {
 			vcf.setFormatFields(formatFields);
 		}
 		
+	}
+	
+	/**
+	 * Attempts to add an additional samples format field to the existing vcf records format fields.
+	 * 
+	 */
+	public static void addAdditionalSampleToFormatField(VcfRecord vcf, List<String> additionalSampleFormatFields) {
+		if ( null != additionalSampleFormatFields && additionalSampleFormatFields.size() == 2) {
+			
+			List<String> existingFF = vcf.getFormatFields();
+			
+			String newSampleFormatFields = additionalSampleFormatFields.get(0);
+			String existingFormatFields =existingFF.get(0);
+			
+			if ( newSampleFormatFields.equals(existingFormatFields)) {
+				existingFF.add(additionalSampleFormatFields.get(1));
+				vcf.setFormatFields(existingFF);
+			} else {
+				
+				Map<String, StringBuilder> ff = new HashMap<>();
+				
+				List<String [] > existingFFParams = new ArrayList<>();
+				for (String s : existingFF) {
+					existingFFParams.add(s.split(":"));
+				}
+				
+				/*
+				 * insert original data first, with missingData value at end for additional sample
+				 */
+				int i = 0;
+				int noOfExistingSamples = existingFF.size() -1;
+				for (String s : existingFFParams.get(0)) {
+					StringBuilder sb = new StringBuilder();
+					
+					for (int j = 1 ; j <= noOfExistingSamples ; j++) {
+						if (sb.length() > 0) {
+							sb.append(':');
+						}
+						sb.append(existingFFParams.get(j)[i]);
+					}
+					
+					sb.append(":.");	// for the additional sample
+					
+					ff.put(s,  sb);
+					i++;
+				}
+				
+				String [] newSampleFormatParamsHeaders = additionalSampleFormatFields.get(0).split(":");
+				String [] newSampleFormatParamsData = additionalSampleFormatFields.get(1).split(":");
+				
+				int z = 0;
+				for (String s : newSampleFormatParamsHeaders) {
+					StringBuilder sb = ff.get(s);
+					if (null == sb) {
+						sb = new StringBuilder();
+						for (int k = 0 ; k < noOfExistingSamples ; k++) {
+							if (k > 0) {
+								sb.append(':');
+							}
+							sb.append('.');
+						}
+						sb.append(':').append(newSampleFormatParamsData[z]);
+						ff.put(s,sb);
+					} else {
+						sb.deleteCharAt(sb.length() -1);
+						sb.append(newSampleFormatParamsData[z]);
+					}
+					z++;
+				}
+				
+				/*
+				 * re-populate the vcf format field
+				 */
+				StringBuilder header = new StringBuilder();
+				List<StringBuilder> values = new ArrayList<>();
+				
+				/*
+				 * try and maintain ordering
+				 */
+				String hugeHeader = existingFormatFields + ':' + newSampleFormatFields;
+				for (String s : hugeHeader.split(":")) {
+					
+					StringBuilder sb = ff.remove(s);
+					if (null != sb) {
+						if (header.length() > 0) {
+							header.append(':');
+						}
+						header.append(s);
+						
+						String [] params = sb.toString().split(":");
+						int m = 0;
+						for (String s1 : params) {
+							StringBuilder sb1 =  values.size() > m ? values.get(m) : null;
+							if (null == sb1) {
+								sb1 = new StringBuilder(s1);
+								values.add(sb1);
+							} else {
+								sb1.append(':').append(s1);
+							}
+							m++;
+						}
+					}
+				}
+				
+				
+				
+				// populate list
+//				for (Entry<String, StringBuilder> entry : ff.entrySet()) {
+//					if (header.length() > 0) {
+//						header.append(':');
+//					}
+//					header.append(entry.getKey());
+//					String [] params = entry.getValue().toString().split(":");
+//					int m = 0;
+//					for (String s : params) {
+//						StringBuilder sb =  values.size() > m ? values.get(m) : null;
+//						if (null == sb) {
+//							sb = new StringBuilder(s);
+//							values.add(sb);
+//						} else {
+//							sb.append(':').append(s);
+//						}
+//						m++;
+//					}
+//				}
+				
+				List<String> finalList = new ArrayList<>();
+				finalList.add(header.toString());
+				for (StringBuilder sb : values) {
+					finalList.add(sb.toString());
+				}
+				vcf.setFormatFields(finalList);
+				
+			}
+		}
 	}
 	
 	public static void addFormatFieldsToVcf(VcfRecord vcf, List<String> additionalFormatFields) {

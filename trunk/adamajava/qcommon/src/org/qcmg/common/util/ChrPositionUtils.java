@@ -47,17 +47,14 @@ public class ChrPositionUtils {
 	
 	public static Map<ChrPosition, Set<ChrPosition>> getAmpliconsFromFragments(List<ChrPosition> fragments) {
 		
-		/*
-		 * Create a collection of start positions
-		 */
-		
-		
-//		Set<ChrPosition> amplicons = new HashSet<>();
-		
 		Map<ChrPosition, Set<ChrPosition>> ampliconFragmentMap = fragments.stream()
 			.collect(Collectors.groupingBy(cp -> {
-				return new ChrPosition(cp.getChromosome(), cp.getPosition());
+				return new ChrPosition(cp.getChromosome(), cp.getPosition(), cp.getEndPosition());
 			}, Collectors.toSet()));
+//		Map<ChrPosition, Set<ChrPosition>> ampliconFragmentMap = fragments.stream()
+//				.collect(Collectors.groupingBy(cp -> {
+//					return new ChrPosition(cp.getChromosome(), cp.getPosition());
+//				}, Collectors.toSet()));
 		
 		
 		return ampliconFragmentMap;
