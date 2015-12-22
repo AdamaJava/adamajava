@@ -825,14 +825,14 @@ public class Q3ClinVar2 {
 	
 	private void getActualLocationForFrags() {
 		
-		int perfectMatchCount = 0;
-		int mutationCount = 0;
-		int diff20Count = 0;
-		int diffOtherCount = 0;
-		int snpsOnlyCorrectLength = 0;
-		int snpsOnlyWrongLength = 0;
-		int indelsOnly = 0;
-		int snpsAndindels = 0;
+//		int perfectMatchCount = 0;
+//		int mutationCount = 0;
+//		int diff20Count = 0;
+//		int diffOtherCount = 0;
+//		int snpsOnlyCorrectLength = 0;
+//		int snpsOnlyWrongLength = 0;
+//		int indelsOnly = 0;
+//		int snpsAndindels = 0;
 		
 		int actualCPReadCount = 0;
 		int noActualCPReadCount = 0;
@@ -955,7 +955,7 @@ public class Q3ClinVar2 {
 //				}
 //			}
 		}
-		logger.info("no of perfect matches: " + perfectMatchCount + ", no with mutation: " + mutationCount + ", diff20Count: " + diff20Count + ", diffOtherCount: " + diffOtherCount + ", snpsOnlyCorrectLength: " + snpsOnlyCorrectLength + ", snpsOnlyWrongLength: " + snpsOnlyWrongLength + ", indelsOnly: " + indelsOnly + ", snpsAndindels: " + snpsAndindels);
+//		logger.info("no of perfect matches: " + perfectMatchCount + ", no with mutation: " + mutationCount + ", diff20Count: " + diff20Count + ", diffOtherCount: " + diffOtherCount + ", snpsOnlyCorrectLength: " + snpsOnlyCorrectLength + ", snpsOnlyWrongLength: " + snpsOnlyWrongLength + ", indelsOnly: " + indelsOnly + ", snpsAndindels: " + snpsAndindels);
 		logger.info("number of reads that have actual cp set: " + actualCPReadCount + " which is " + ((double)actualCPReadCount / fastqRecordCount) * 100 + "%");
 		logger.info("number of reads that DONT have actual cp set: " + noActualCPReadCount + " which is " + ((double)noActualCPReadCount / fastqRecordCount) * 100 + "%");
 	}
