@@ -46,6 +46,7 @@ final class Options {
 	private final Integer swDiffThreshold;
 	private final Integer tileMatchThreshold;
 	private final Integer maxIndelLength;
+	private final Integer ampliconBoundary;
 	private final String xml;
 	private final String logLevel;
 	private final String uuid;
@@ -70,6 +71,7 @@ final class Options {
 		parser.accepts("swDiffThreshold", MIN_BIN_SIZE_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
 		parser.accepts("tileMatchThreshold", MIN_BIN_SIZE_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
 		parser.accepts("maxIndelLength", MIN_BIN_SIZE_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
+		parser.accepts("ampliconBoundary", MIN_BIN_SIZE_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
 		parser.accepts("log", LOG_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("loglevel", LOG_LEVEL_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("uuid", LOG_LEVEL_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
@@ -90,6 +92,7 @@ final class Options {
 		swDiffThreshold =  (Integer) options.valueOf("swDiffThreshold");
 		tileMatchThreshold =  (Integer) options.valueOf("tileMatchThreshold");
 		maxIndelLength =  (Integer) options.valueOf("maxIndelLength");
+		ampliconBoundary =  (Integer) options.valueOf("ampliconBoundary");
 		xml = (String) options.valueOf("xml");
 		
 		// inputs
@@ -140,6 +143,9 @@ final class Options {
 	boolean hasMaxIndelLengthOption() {
 		return options.has("maxIndelLength");
 	}
+	boolean hasAmpliconBoundaryOption() {
+		return options.has("ampliconBoundary");
+	}
 	
 	boolean hasNoHtmlOption() {
 		return options.has("nohtml");
@@ -176,6 +182,9 @@ final class Options {
 	}
 	Integer getMaxIndelLength() {
 		return maxIndelLength;
+	}
+	Integer getAmpliconBoundary() {
+		return ampliconBoundary;
 	}
 	
 	String getXml() {

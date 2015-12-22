@@ -96,6 +96,7 @@ public class Q3ClinVar2 {
 	private int minBinSize = 10;
 	private int minFragmentSize = 3;
 	private  int minReadPercentage = 2;
+	private int ampliconBoundary = 10;
 	
 	private final Map<String, AtomicInteger> reads = new HashMap<>();
 	
@@ -495,8 +496,8 @@ public class Q3ClinVar2 {
 					.filter(cp1 -> ! cp1.equals(cp))
 					.filter(cp1 -> ! toRemove.contains(cp1))
 					.filter(cp1 -> cp1.getChromosome().equals(cp.getChromosome()) 
-							&& Math.abs(cp1.getPosition() - cp.getPosition()) < 5
-							&& Math.abs(cp1.getEndPosition() - cp.getEndPosition()) < 5)
+							&& Math.abs(cp1.getPosition() - cp.getPosition()) <= ampliconBoundary
+							&& Math.abs(cp1.getEndPosition() - cp.getEndPosition()) <= ampliconBoundary)
 					.forEach(cp1 -> {
 						entry.getValue().addAll(ampliconFragmentPositionMap.get(cp1));
 						toRemove.add(cp1);
@@ -1478,9 +1479,13 @@ public class Q3ClinVar2 {
 			if (options.hasMinReadPercentageSizeOption()) {
 				this.minReadPercentage = options.getMinReadPercentageSize().intValue();
 			}
+			if (options.hasAmpliconBoundaryOption()) {
+				this.ampliconBoundary = options.getAmpliconBoundary().intValue();
+			}
 			logger.info("minBinSize is " + minBinSize);
 			logger.info("minFragmentSize is " + minFragmentSize);
 			logger.info("minReadPercentage is " + minReadPercentage);
+			logger.info("ampliconBoundary is " + ampliconBoundary);
 			
 			
 				return engage();
