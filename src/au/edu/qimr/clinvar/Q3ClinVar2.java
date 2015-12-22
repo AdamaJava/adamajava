@@ -407,7 +407,7 @@ public class Q3ClinVar2 {
 		
 		// write output
 		Document doc = new Document(amplicons);
-		try (OutputStream os = new FileOutputStream(new File(outputFileNameBase + "diag.unbinned_amplicons.xml"));){
+		try (OutputStream os = new FileOutputStream(new File(outputFileNameBase + ".xml"));){
 			 Serializer serializer = new Serializer(os, "ISO-8859-1");
 		        serializer.setIndent(4);
 		        serializer.setMaxLength(64);
@@ -979,7 +979,7 @@ public class Q3ClinVar2 {
 		 * Fragments must contain a certain number of reads (minFragmentSize)
 		 */
 		fragmentsToCallVariantsOn.stream()
-			.filter(f -> f.getActualPosition() != null &&  f.getRecordCount()  > minFragmentSize)
+			.filter(f -> f.getActualPosition() != null &&  f.getRecordCount()  > minFragmentSize * 2)
 			.forEach(f -> {
 			
 			String [] smithWatermanDiffs = f.getSmithWatermanDiffs();
