@@ -92,16 +92,13 @@ public class ReadIndels {
 		
  		ChrPosition pos = new ChrPosition(secondVcf.getChromosome(), secondVcf.getPosition(), secondVcf.getChrPosition().getEndPosition(), secondVcf.getAlt());     
 		VcfRecord existingvcf = positionRecordMap.get(pos);
-		//new indel
-		
-		List<String> informat = secondVcf.getFormatFields();
-		List<String> outformat  = new ArrayList<String>();
 
+		//new indel
 		if(existingvcf == null){
 			//insert missing data to first format column, shift original first column to second
 			VcfUtils.addMissingDataToFormatFields(secondVcf, 1);	
-			informat = secondVcf.getFormatFields(); //must do it again
-			
+			List<String> informat = secondVcf.getFormatFields();
+			List<String> outformat  = new ArrayList<String>();
  			outformat.add(0,informat.get(0));
  			outformat.add(1, informat.get(1));
  			outformat.add(2, informat.get(2));
@@ -110,7 +107,17 @@ public class ReadIndels {
 			return false;
 		}
 		
+		//merging to existing indel
+		//only keep first sample column for exsitingvcf since already add missing data on second column initally
+		List<String> informat = existingvcf.getFormatFields();
+		List<String> outformat = new ArrayList<String>();
+		outformat.add(0, informat.get(0));
+		outformat.add(1, informat.get(1));		
+		existingvcf.setFormatFields(outformat);	
+		
 		//add first sample column from secondVcf to exsitingvcf also check format
+		outformat = new ArrayList<String>();
+		informat = secondVcf.getFormatFields();
  		outformat.add(0,informat.get(0) );
 		outformat.add(1, informat.get(1));
 		VcfUtils.addAdditionalSampleToFormatField(existingvcf,  outformat) ;
