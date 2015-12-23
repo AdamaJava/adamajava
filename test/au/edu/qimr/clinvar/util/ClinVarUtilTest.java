@@ -14,9 +14,11 @@ import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.util.SequenceUtil;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.junit.Assert;
@@ -25,7 +27,9 @@ import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.Pair;
 
+import au.edu.qimr.clinvar.model.Amplicon;
 import au.edu.qimr.clinvar.model.Bin;
+import au.edu.qimr.clinvar.model.Fragment;
 import au.edu.qimr.clinvar.model.Probe;
 
 public class ClinVarUtilTest {
@@ -90,11 +94,39 @@ public class ClinVarUtilTest {
 		 * Reset once MD and NM have been calculated and set
 		 */
 		rec.setAlignmentStart(1);
-		
 		SequenceUtil.calculateMdAndNmTags(rec, refSeq.substring(0).getBytes(), true, true);
-		
 	}
 	
+	@Test
+	public void getAmpliconFragments() {
+		Fragment f1 = new Fragment(1, null, 1, 0, null, null);
+		Fragment f2 = new Fragment(2, null, 1, 1, null, null);
+		Fragment f3 = new Fragment(3, null, 2, 1, null, null);
+		ChrPosition cp = new ChrPosition("1", 100, 200);
+		f1.setActualPosition(cp);
+		f2.setActualPosition(cp);
+		f3.setActualPosition(cp);
+		
+		List<Fragment> list = Arrays.asList(f1, f2, f3);
+		Map<Amplicon, List<Fragment>> groupedFrags = ClinVarUtil.groupFragments(list, 10);
+		
+		assertEquals(1, groupedFrags.size());
+		assertEquals(list.size(), groupedFrags.get(new Amplicon(1,cp)).size());
+		assertEquals(true, groupedFrags.get(new Amplicon(1,cp)).containsAll(list));
+		
+		Fragment f10 = new Fragment(10, null, 1, 0, null, null);
+		Fragment f11 = new Fragment(11, null, 1, 1, null, null);
+		Fragment f12 = new Fragment(12, null, 2, 1, null, null);
+		f10.setActualPosition(new ChrPosition("1", 102, 208));
+		f11.setActualPosition(new ChrPosition("1", 102, 208));
+		f12.setActualPosition(new ChrPosition("1", 102, 208));
+		list = Arrays.asList(f1, f2, f3, f10, f11, f12);
+		
+		groupedFrags = ClinVarUtil.groupFragments(list, 10); 
+		assertEquals(1, groupedFrags.size());
+		assertEquals(list.size(), groupedFrags.get(new Amplicon(1,cp)).size());
+		assertEquals(true, groupedFrags.get(new Amplicon(1,cp)).containsAll(list));
+	}
 	
 	@Test
 	public void arePositionsClose() {
@@ -402,17 +434,6 @@ public class ClinVarUtilTest {
 		assertArrayEquals(new int[] {0,0}, ClinVarUtil.getDoubleEditDistance("ABCDEFG", "HIJKLMNOP", "ABC", "HIJ", 2));
 	}
 	
-//	@Test
-//	public void getPositionOfLargestInArray() {
-//		assertEquals(0, ClinVarUtil.getPositionWithBestScore(new int[] {1}));
-//		assertEquals(0, ClinVarUtil.getPositionWithBestScore(new int[] {10}));
-//		assertEquals(0, ClinVarUtil.getPositionWithBestScore(new int[] {100}));
-//		assertEquals(0, ClinVarUtil.getPositionWithBestScore(new int[] {100,1}));
-//		assertEquals(1, ClinVarUtil.getPositionWithBestScore(new int[] {1,100,1}));
-//		assertEquals(-1, ClinVarUtil.getPositionWithBestScore(new int[] {100,100,1}));
-//		assertEquals(0, ClinVarUtil.getPositionWithBestScore(new int[] {101,100,1}));
-//		assertEquals(2, ClinVarUtil.getPositionWithBestScore(new int[] {101,100,103}));
-//	}
 	
 	@Test
 	public void getBestPosition() {
@@ -428,33 +449,12 @@ public class ClinVarUtilTest {
 		assertEquals(1, results.size());
 		assertEquals(true, results.get(1).contains(100));
 		assertEquals(true, results.get(1).contains(1000));
-//		assertArrayEquals(new long[]{1000,1,100,1}, ClinVarUtil.getBestStartPosition(tilePositions, 13, 0, 0));
 		tilePositions[0] = new long[]{100, 1000,10000};
 		results = ClinVarUtil.getBestStartPosition(tilePositions, 13, 0, 0, 1);
 		assertEquals(1, results.size());
 		assertEquals(true, results.get(1).contains(100));
 		assertEquals(true, results.get(1).contains(1000));
 		assertEquals(true, results.get(1).contains(10000));
-//		assertArrayEquals(new long[]{10000,1,1000,1,100,1}, ClinVarUtil.getBestStartPosition(tilePositions, 13, 0, 0));
-	
-		
-//		tilePositions = new long[2][];
-//		tilePositions[0] = new long[]{100};
-//		tilePositions[1] = new long[]{113};
-//		assertArrayEquals(new long[]{100,2}, ClinVarUtil.getBestStartPosition(tilePositions, 13, 0, 0));
-//		tilePositions[0] = new long[]{100, 1000};
-//		tilePositions[1] = new long[]{113};
-//		assertArrayEquals(new long[]{100,2}, ClinVarUtil.getBestStartPosition(tilePositions, 13, 0, 0));
-//		
-//		tilePositions = new long[3][];
-//		tilePositions[0] = new long[]{100};
-//		tilePositions[1] = new long[]{113};
-//		tilePositions[2] = new long[]{126};
-//		assertArrayEquals(new long[]{100,3}, ClinVarUtil.getBestStartPosition(tilePositions, 13, 0, 0));
-//		tilePositions[0] = new long[]{100, 1000};
-//		tilePositions[1] = new long[]{113};
-//		tilePositions[2] = new long[]{126, 1013};
-//		assertArrayEquals(new long[]{100,3}, ClinVarUtil.getBestStartPosition(tilePositions, 13, 0, 0));
 	}
 	
 	@Test

@@ -33,7 +33,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.OptionalInt;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -114,7 +113,7 @@ public class Q3ClinVar2 {
 	
 	private final Map<VcfRecord, List<IntPair>> vcfFragmentMap = new HashMap<>();
 	
-	private final Map<Amplicon, List<Fragment>> ampliconFragmentMap = new HashMap<>();
+	private Map<Amplicon, List<Fragment>> ampliconFragmentMap = new HashMap<>();
 	
 	private final Map<Amplicon, List<Amplicon>> bedToAmpliconMap = new HashMap<>();
 	
@@ -314,8 +313,9 @@ public class Q3ClinVar2 {
 		
 		// attributes
 		amplicon.addAttribute(new Attribute("id", "" + p.getId()));
-		amplicon.addAttribute(new Attribute("position", "" + p.getFragmentPosition().toIGVString()));
-		amplicon.addAttribute(new Attribute("amplicon_length", "" + p.getFragmentPosition().getLength()));
+		amplicon.addAttribute(new Attribute("position", "" + p.getPosition().toIGVString()));
+		amplicon.addAttribute(new Attribute("initial_frag_position", "" + p.getInitialFragmentPosition().toIGVString()));
+		amplicon.addAttribute(new Attribute("amplicon_length", "" + p.getPosition().getLength()));
 		amplicon.addAttribute(new Attribute("number_of_fragments", "" + frags.size()));
 
 		AtomicInteger readCount = new AtomicInteger();
@@ -376,7 +376,7 @@ public class Q3ClinVar2 {
 		amplicons.addAttribute(new Attribute("fastq_file_2", fastqFiles[1]));
 		
 		ampliconFragmentMap.entrySet().stream()
-			.sorted((e1, e2) -> e1.getKey().getFragmentPosition().compareTo(e2.getKey().getFragmentPosition()))
+			.sorted((e1, e2) -> e1.getKey().compareTo(e2.getKey()))
 			.forEach(entry -> {
 				createAmpliconElement(amplicons, entry.getKey(), entry.getValue());
 			});
@@ -437,7 +437,7 @@ public class Q3ClinVar2 {
 			 * log distribution of bed lengths
 			 */
 			Map<Integer, Long> bedLengthDistribution = bedToAmpliconMap.keySet().stream()
-					.collect(Collectors.groupingBy(bed -> bed.getFragmentPosition().getLength(), Collectors.counting()));
+					.collect(Collectors.groupingBy(bed -> bed.getPosition().getLength(), Collectors.counting()));
 			bedLengthDistribution.entrySet().stream()
 				.sorted((e1, e2) -> e1.getKey().compareTo(e2.getKey()))
 				.forEach(e -> logger.info("bed length, and count: " + e.getKey().intValue() + " : " + e.getValue().longValue()));
@@ -445,7 +445,7 @@ public class Q3ClinVar2 {
 			 * log distribution of amplicon lengths
 			 */
 			Map<Integer, Long> ampliconLengthDistribution = ampliconFragmentMap.keySet().stream()
-					.collect(Collectors.groupingBy(a -> a.getFragmentPosition().getLength(), Collectors.counting()));
+					.collect(Collectors.groupingBy(a -> a.getPosition().getLength(), Collectors.counting()));
 			ampliconLengthDistribution.entrySet().stream()
 				.sorted((e1, e2) -> e1.getKey().compareTo(e2.getKey()))
 				.forEach(e -> logger.info("amplicon length, and count: " + e.getKey().intValue() + " : " + e.getValue().longValue()));
@@ -456,14 +456,14 @@ public class Q3ClinVar2 {
 			ampliconFragmentMap.keySet().stream()
 				.forEach(a -> {
 					List<Amplicon> beds = bedToAmpliconMap.keySet().stream()
-						.filter(bed -> ChrPositionUtils.isChrPositionContained(a.getFragmentPosition(), bed.getFragmentPosition())
-								&& a.getFragmentPosition().getPosition() < (bed.getFragmentPosition().getPosition() + 10)
-								&& a.getFragmentPosition().getEndPosition() > (bed.getFragmentPosition().getEndPosition() + 10)
+						.filter(bed -> ChrPositionUtils.isChrPositionContained(a.getPosition(), bed.getPosition())
+								&& a.getPosition().getPosition() < (bed.getPosition().getPosition() + 10)
+								&& a.getPosition().getEndPosition() > (bed.getPosition().getEndPosition() + 10)
 								)
 						.collect(Collectors.toList());
 					
 					if (beds.size() > 1) {
-						logger.info("Found " + beds.size() + " bed positions that are contained by this amplicon " + a.getFragmentPosition().toIGVString());
+						logger.info("Found " + beds.size() + " bed positions that are contained by this amplicon " + a.getPosition().toIGVString());
 						beds.stream().forEach(b ->logger.info("bed: " + b.toString()));
 					}
 				});
@@ -473,63 +473,66 @@ public class Q3ClinVar2 {
 	
 	private void createAmplicons() {
 		
-		List<ChrPosition> fragCPs = frags.values().stream()
-				.filter(f -> f.getActualPosition() != null)
-				.map(Fragment::getActualPosition)
-				.collect(Collectors.toList());
+//		List<ChrPosition> fragCPs = frags.values().stream()
+//				.filter(f -> f.getActualPosition() != null)
+//				.map(Fragment::getActualPosition)
+//				.collect(Collectors.toList());
+//		
+//		Map<ChrPosition, Set<ChrPosition>> ampliconFragmentPositionMap = ChrPositionUtils.getAmpliconsFromFragments(fragCPs);
+//		
+//		logger.info("Found " + ampliconFragmentPositionMap.size() + " amplicons from " + fragCPs.size() + " fragments");
+//		
+//		/*
+//		 * Next, try and rollup amplicons with adjacent start positions
+//		 */
+//		List<ChrPosition> toRemove = new ArrayList<>();
+//		
+//		for (Entry<ChrPosition, Set<ChrPosition>> entry : ampliconFragmentPositionMap.entrySet()) {
+//			
+//			
+//			ChrPosition cp = entry.getKey();
+//			if ( ! toRemove.contains(cp)) {
+//				ampliconFragmentPositionMap.keySet().stream()
+//					.filter(cp1 -> ! cp1.equals(cp))
+//					.filter(cp1 -> ! toRemove.contains(cp1))
+//					.filter(cp1 -> cp1.getChromosome().equals(cp.getChromosome()) 
+//							&& Math.abs(cp1.getPosition() - cp.getPosition()) <= ampliconBoundary
+//							&& Math.abs(cp1.getEndPosition() - cp.getEndPosition()) <= ampliconBoundary)
+//					.forEach(cp1 -> {
+//						entry.getValue().addAll(ampliconFragmentPositionMap.get(cp1));
+//						toRemove.add(cp1);
+//					});
+//			}
+//		}
+//		toRemove.stream()
+//			.forEach(a -> ampliconFragmentPositionMap.remove(a));
+//		
+//		
+//		Map<ChrPosition, Set<ChrPosition>> ampliconFragmentPositionMap = ClinVarUtil.getGroupedChrPositionsFromFragments(frags.values(), ampliconBoundary);
+//		
+//		logger.info("After rollup, found " + ampliconFragmentPositionMap.size() + " amplicons from " + frags.size() + " fragments");
+//		
+//		/*
+//		 * Now need to expand out the amplcon cp to include the largest end position of its constituents
+//		 * and keep a list of the fragments associated with it 
+//		 */
+//		final AtomicInteger ampliconId = new AtomicInteger();
+//		ampliconFragmentPositionMap.entrySet().stream()
+//			.sorted((e1, e2) -> {return e1.getKey().compareTo(e2.getKey());})
+//			.forEach(entry -> {
+//				
+//				OptionalInt maxEnd = entry.getValue().stream()
+//						.mapToInt(ChrPosition::getEndPosition)
+//						.max();
+//				ChrPosition ampliconCP = new ChrPosition(entry.getKey().getChromosome(), entry.getKey().getPosition(), maxEnd.orElse( entry.getKey().getPosition()));
+//				Amplicon amplicon = new Amplicon(ampliconId.incrementAndGet(), ampliconCP);
+//				
+//				ampliconFragmentMap.put(amplicon,  frags.values().stream()
+//						.filter(f -> entry.getValue().contains(f.getActualPosition()))
+//						.collect(Collectors.toList()));
+//				});
 		
-		Map<ChrPosition, Set<ChrPosition>> ampliconFragmentPositionMap = ChrPositionUtils.getAmpliconsFromFragments(fragCPs);
-		
-		logger.info("Found " + ampliconFragmentPositionMap.size() + " amplicons from " + fragCPs.size() + " fragments");
-		
-		/*
-		 * Next, try and rollup amplicons with adjacent start positions
-		 */
-		List<ChrPosition> toRemove = new ArrayList<>();
-		
-		for (Entry<ChrPosition, Set<ChrPosition>> entry : ampliconFragmentPositionMap.entrySet()) {
-			
-			
-			ChrPosition cp = entry.getKey();
-			if ( ! toRemove.contains(cp)) {
-				ampliconFragmentPositionMap.keySet().stream()
-					.filter(cp1 -> ! cp1.equals(cp))
-					.filter(cp1 -> ! toRemove.contains(cp1))
-					.filter(cp1 -> cp1.getChromosome().equals(cp.getChromosome()) 
-							&& Math.abs(cp1.getPosition() - cp.getPosition()) <= ampliconBoundary
-							&& Math.abs(cp1.getEndPosition() - cp.getEndPosition()) <= ampliconBoundary)
-					.forEach(cp1 -> {
-						entry.getValue().addAll(ampliconFragmentPositionMap.get(cp1));
-						toRemove.add(cp1);
-					});
-			}
-		}
-		toRemove.stream()
-			.forEach(a -> ampliconFragmentPositionMap.remove(a));
-		
-		logger.info("After rollup, found " + ampliconFragmentPositionMap.size() + " amplicons from " + fragCPs.size() + " fragments");
-		
-		/*
-		 * Now need to expand out the amplcon cp to include the largest end position of its constituents
-		 * and keep a list of the fragments associated with it 
-		 */
-		final AtomicInteger ampliconId = new AtomicInteger();
-		ampliconFragmentPositionMap.entrySet().stream()
-			.sorted((e1, e2) -> {return e1.getKey().compareTo(e2.getKey());})
-			.forEach(entry -> {
-				
-				OptionalInt maxEnd = entry.getValue().stream()
-						.mapToInt(ChrPosition::getEndPosition)
-						.max();
-				ChrPosition ampliconCP = new ChrPosition(entry.getKey().getChromosome(), entry.getKey().getPosition(), maxEnd.orElse( entry.getKey().getPosition()));
-				Amplicon amplicon = new Amplicon(ampliconId.incrementAndGet(), ampliconCP);
-				
-				ampliconFragmentMap.put(amplicon,  frags.values().stream()
-						.filter(f -> entry.getValue().contains(f.getActualPosition()))
-						.collect(Collectors.toList()));
-				});
-		
-		
+		ampliconFragmentMap = ClinVarUtil.groupFragments(frags.values(), ampliconBoundary);
 		/*
 		 * Get some stats on each Amplicon
 		 * # of fragments, and reads to start with
@@ -537,7 +540,7 @@ public class Q3ClinVar2 {
 		ampliconFragmentMap.entrySet().stream()
 			.forEach(entry -> {
 				int recordCount = entry.getValue().stream().mapToInt(Fragment::getRecordCount).sum();
-				logger.info("Amplicon " + entry.getKey().getId() + " " + entry.getKey().getFragmentPosition().toIGVString() + " has " + entry.getValue().size() + " fragments with a total of " + recordCount + " records (" + ((double) recordCount / fastqRecordCount) * 100 + "%)");
+				logger.info("Amplicon " + entry.getKey().getId() + " " + entry.getKey().getPosition().toIGVString() + " has " + entry.getValue().size() + " fragments with a total of " + recordCount + " records (" + ((double) recordCount / fastqRecordCount) * 100 + "%)");
 			});
 		
 		/*

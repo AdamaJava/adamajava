@@ -32,12 +32,15 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.OptionalInt;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.qcmg.common.log.QLogger;
@@ -49,6 +52,7 @@ import org.qcmg.common.util.Pair;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.qmule.SmithWatermanGotoh;
 
+import au.edu.qimr.clinvar.model.Amplicon;
 import au.edu.qimr.clinvar.model.Bin;
 import au.edu.qimr.clinvar.model.Fragment;
 import au.edu.qimr.clinvar.model.Probe;
@@ -547,11 +551,16 @@ public class ClinVarUtil {
 				}
 			});
 		
-		
 		return dict;
 	}
 	
-	
+	/**
+	 * Copied from Picard - used for testing only
+	 * @param record
+	 * @param ref
+	 * @param calcMD
+	 * @param calcNM
+	 */
 	public static void calculateMdAndNmTags(final SAMRecord record, final byte[] ref, final boolean calcMD, final boolean calcNM) {
 		if (!calcMD && !calcNM)
 		return;
@@ -637,7 +646,6 @@ public class ClinVarUtil {
 		String swBinSeq = diffs[2].replace("-", "");
 		int lengthDiff = binSeq.length() - swBinSeq.length();
 		if (lengthDiff > 0) {
-//			logger.warn("Missing data in sw diffs. lengthDiff:  " + lengthDiff);
 			
 			String swRef = diffs[0].replace("-", "");
 			
@@ -668,9 +676,6 @@ public class ClinVarUtil {
 								diffs[1] += ".";
 							}
 							diffs[2] += missingBinSeqBases;
-//							for (String s : diffs) {
-//								logger.info("s: " + s);
-//							}
 						}
 						
 					}
@@ -705,9 +710,6 @@ public class ClinVarUtil {
 							diffs[1] = "." + diffs[1];
 						}
 						diffs[2] = missingBinSeqBases + diffs[2];
-//						for (String s : diffs) {
-//							logger.info("s: " + s);
-//						}
 					}
 						
 				} else {
@@ -718,7 +720,6 @@ public class ClinVarUtil {
 				logger.warn("binSeq neither startsWith norEndsWith swBinSeq. binSeq: " + binSeq + ", swBinSeq: " + swBinSeq);
 			}
 		}
-		
 		return diffs;
 	}
 	
@@ -739,14 +740,12 @@ public class ClinVarUtil {
 		}
 		
 		Collections.sort(sizeSortedList, new Comparator<String>(){
-
 			@Override
 			public int compare(String arg0, String arg1) {
 				int arg0Tally = Integer.valueOf(arg0.split(",")[1]);
 				int arg1Tally = Integer.valueOf(arg1.split(",")[1]);
 				return arg1Tally - arg0Tally;
 			}
-			
 		});
 		
 		// now add in the ref
@@ -815,7 +814,6 @@ public class ClinVarUtil {
 			}
 		}
 		
-		
 		// convert map to sb
 		for (Entry<String, List<Pair<Probe, Bin>>> entry : baseDist.entrySet()) {
 			String bases = entry.getKey();
@@ -881,12 +879,7 @@ public class ClinVarUtil {
 		int length = vcf.getChrPosition().getLength();
 		int positionInString = getZeroBasedPositionInString(vcf.getChrPosition().getPosition(), subRefPosition);
 		
-//		if (amplicon.getId() == 241) {
-//			logger.info("positionInString: " + positionInString +", from offset: " + offset + ", vcf.getChrPosition().getPosition(): " + vcf.getChrPosition().getPosition() +", amplicon.getCp().getPosition(): " + amplicon.getCp().getPosition());
-//		}
-		
 		return getMutationString(positionInString, length, smithWatermanDiffs);
-		
 	}
 	
 	public static Cigar getCigarForMatchMisMatchOnly(int length) {
@@ -921,9 +914,6 @@ public class ClinVarUtil {
 			throw new IllegalArgumentException("Null cigar passed to ClinVarUtil.createSAMRecord");
 		}
 		
-//		if (probeId == 720 && binId == 111261) {
-//			logger.info("pid: " + probeId + ", bid: " + binId + ", cigar: " + cigar.toString());
-//		}
 		SAMRecord rec = new SAMRecord(header);
 		rec.setReferenceName(chr);
 		rec.setReadString(binSeq);
@@ -1038,8 +1028,6 @@ public class ClinVarUtil {
 		return null;
 	}
 	
-	
-	
 	public static int noOfSlidesToGetPerfectMatch(final String s1, final String t1) {
 		// it is assumed that the 2 char sequences do not match as they are
 		if (StringUtils.isEmpty(s1) || StringUtils.isEmpty(t1)) {
@@ -1062,7 +1050,6 @@ public class ClinVarUtil {
 			s = s.substring(0, s.length() -1);
 		}
 		
-		
 		// need a reliable check to see if noOfSlides is sufficiently large to trigger a RHS slide
 		if (noOfSlides >= initialLength -1) {
 			//perform a RHS slide
@@ -1076,7 +1063,6 @@ public class ClinVarUtil {
 				t = t.substring(0, t.length() -1);
 			}
 		}
-		
 		return noOfSlides;
 	}
 	
@@ -1112,10 +1098,7 @@ public class ClinVarUtil {
 				logger.info(s);
 			}
 		}
-//			indelSameLength++;
-			
 			List<CigarElement> ces = new ArrayList<>();
-//										// get mutations
 			List<Pair<Integer, String>> mutations = getPositionRefAndAltFromSW(swDiffs);
 			
 			int lastPosition = 0;
@@ -1177,16 +1160,7 @@ public class ClinVarUtil {
 			int count = 0;
 			for (char c : swDiffs[1].toCharArray()) {
 				if (i > 0 && c != lastChar) {
-					
-					
 					sb.append(getConcordanceDetail(lastChar, count, swDiffs[0].charAt(i - count) == '-'));
-//					sb.append(count);
-//					switch (lastChar) {
-//					case '|' : sb.append("="); break;
-//					case '.' : sb.append("X"); break;
-//					case ' ' :sb.append(swDiffs[0].charAt(i) == '-' ? 'I' : 'D'); break;
-//					default: break;
-//					}
 					count = 0;
 				}
 				lastChar = c;
@@ -1278,6 +1252,100 @@ public class ClinVarUtil {
 		Cigar cigar = new Cigar(ces);
 		return cigar;
 	}
+	
+//	public static Map<ChrPosition, Set<ChrPosition>> getGroupedChrPositionsFromFragments(Collection<Fragment> frags, int ampliconBoundary) {
+//		if (null == frags) throw new IllegalArgumentException("Null List passed to ClinVarUtil.getGroupedChrPositionsFromFragments");
+//		
+//		Map<ChrPosition, Set<ChrPosition>> groupedCPs = frags.stream()
+//				.filter(f -> f.getActualPosition() != null)
+//				.sorted((f1, f2) -> Integer.compare(f1.getRecordCount(), f2.getRecordCount()))
+//				.map(Fragment::getActualPosition)
+//				.collect(Collectors.groupingBy(cp->cp, Collectors.toSet()));
+//			
+//			
+//		/*
+//		 * Next, try and rollup cps with adjacent start positions
+//		 */
+//		List<ChrPosition> toRemove = new ArrayList<>();
+//		
+//		for (Entry<ChrPosition, Set<ChrPosition>> entry : groupedCPs.entrySet()) {
+//			ChrPosition cp = entry.getKey();
+//			
+//			if ( ! toRemove.contains(cp)) {
+//				groupedCPs.keySet().stream()
+//					.filter(cp1 -> ! cp1.equals(cp))
+//					.filter(cp1 -> ! toRemove.contains(cp1))
+//					.filter(cp1 -> cp1.getChromosome().equals(cp.getChromosome()) 
+//							&& (Math.abs(cp1.getPosition() - cp.getPosition())  + Math.abs(cp1.getEndPosition() - cp.getEndPosition())) <= ampliconBoundary)
+//					.forEach(cp1 -> {
+//						entry.getValue().addAll(groupedCPs.get(cp1));
+//						toRemove.add(cp1);
+//					});
+//			}
+//		}
+//		toRemove.stream().forEach(a -> groupedCPs.remove(a));
+//			
+//		return groupedCPs;
+//	}
+	
+	public static Map<Amplicon, List<Fragment>> groupFragments(Collection<Fragment> frags, int ampliconBoundary) {
+		if (null == frags) throw new IllegalArgumentException("Null List passed to ClinVarUtil.getGroupedChrPositionsFromFragments");
+		List<Fragment> sortedFrags = frags.stream()
+				.filter(f -> f.getActualPosition() != null)
+				.sorted(( f1, f2) -> Integer.compare(f2.getRecordCount(), f1.getRecordCount()))
+				.collect(Collectors.toList());
+//		Collections.sort(sortedFrags, (Fragment f1, Fragment  f2) -> Integer.compare(f2.getRecordCount(), f1.getRecordCount()));
+		
+		Map<Amplicon, List<Fragment>> ampliconGroupings = new HashMap<>();
+		Set<Fragment> toRemove = new HashSet<>();
+		
+		int id = 1;
+		for (Fragment f : sortedFrags) {
+			if (toRemove.contains(f)) {
+				continue;
+			}
+			logger.info("creating amplicon based on fragment record count: " + f.getRecordCount());
+			/*
+			 * create ampliconGroupings entry
+			 */
+			Amplicon a = new Amplicon(id++, f.getActualPosition());
+			List<Fragment> list = new ArrayList<>();
+			list.add(f);
+			ampliconGroupings.put(a, list);
+			
+			/*
+			 * Any other takers
+			 */
+			for (Fragment nestedF : sortedFrags) {
+				if ( ! f.equals(nestedF)
+						&& ! toRemove.contains(nestedF)
+						&& ChrPositionUtils.arePositionsWithinDelta(f.getActualPosition(), nestedF.getActualPosition(), ampliconBoundary)) {
+					list.add(nestedF);
+				}
+			}
+			
+			toRemove.addAll(list);
+		}
+		
+		for (Entry<Amplicon, List<Fragment>> entry : ampliconGroupings.entrySet()) {
+			ChrPosition initialFragCP = entry.getKey().getInitialFragmentPosition();
+			/*
+			 * get upper and lower bounds of cp and set on Amplicon
+			 */
+			OptionalInt start = entry.getValue().stream()
+										.mapToInt(f -> f.getActualPosition().getPosition())
+										.min(); 
+			OptionalInt end = entry.getValue().stream()
+										.mapToInt(f -> f.getActualPosition().getEndPosition())
+										.max(); 
+			entry.getKey().setPosition(new ChrPosition(initialFragCP.getChromosome(), start.orElse(initialFragCP.getPosition()), end.orElse(initialFragCP.getEndPosition())));
+		}
+		
+		return ampliconGroupings;
+	}
+	
+	
+	
 	
 	public static boolean areAllListPositionsWithinBoundary(TLongArrayList list, long start, long end) {
 		TLongIterator iter = list.iterator();

@@ -1,43 +1,33 @@
 package au.edu.qimr.clinvar.model;
 
-import org.qcmg.common.log.QLogger;
-import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
 
 public class Amplicon implements Comparable<Amplicon> {
 	
-	private final static QLogger logger = QLoggerFactory.getLogger(Amplicon.class);
-	
 	private final int id;
-	private final ChrPosition fragmentPosition;
+	private ChrPosition position;
+	private final ChrPosition initialFragmentPosition;
 	
 	public Amplicon(int id, ChrPosition fcp) {
 		this.id = id;
-		this.fragmentPosition = fcp;
+		this.initialFragmentPosition = fcp;
+		this.position = fcp;
 	}
 	
-//	public void addPossiblePosition(ChrPosition cp) {
-//		potentialBedPositions.add(cp);
-//	}
-
+	public void setPosition(ChrPosition cp) {
+		this.position = cp;
+	}
+	
 	public int getId() {
 		return id;
 	}
 	
-	public ChrPosition getFragmentPosition() {
-		return fragmentPosition;
+	public ChrPosition getInitialFragmentPosition() {
+		return initialFragmentPosition;
 	}
-//	public ChrPosition getExpandedFragmentPosition() {
-//		return expandedFragmentPosition;
-//	}
-
-//	public void setBestPosition(ChrPosition actualCP) {
-//		this.bestBedPosition = actualCP;
-//	}
-
-//	public ChrPosition getBestPosition() {
-//		return bestBedPosition;
-//	}
+	public ChrPosition getPosition() {
+		return position;
+	}
 
 	@Override
 	public int hashCode() {
@@ -63,13 +53,11 @@ public class Amplicon implements Comparable<Amplicon> {
 
 	@Override
 	public int compareTo(Amplicon o) {
-		return fragmentPosition.compareTo(o.fragmentPosition);
+		return position.compareTo(o.position);
 	}
 
 	@Override
 	public String toString() {
-		return "Amplicon [id=" + id + ", fragmentPosition=" + fragmentPosition.toIGVString()
-				+ "]";
+		return "Amplicon [id=" + id + ", position=" + position.toIGVString() + "]";
 	}
-
 }
