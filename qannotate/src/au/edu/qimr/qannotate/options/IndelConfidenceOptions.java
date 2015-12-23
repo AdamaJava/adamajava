@@ -61,14 +61,14 @@ public class IndelConfidenceOptions extends Options {
         outputFileName = (String) options.valueOf("o") ; 
         databaseFileName = (String) options.valueOf("d") ; 
           
-//        String[] inputs = new String[]{ inputFileName,databaseFileName} ;
-//        String[] outputs = new String[]{outputFileName};
-       
-//        System.arraycopy(inputs, 0, ios, 0, inputs.length);
-//        System.arraycopy(outputs, 0, ios, inputs.length, outputs.length);
-        String [] ios = new String[]{ inputFileName,outputFileName} ;
+        String[] inputs = new String[]{ inputFileName,databaseFileName} ;
+        String[] outputs = new String[]{outputFileName};
+        String [] ios = new String[]{ inputFileName,databaseFileName,outputFileName} ;
+        System.arraycopy(inputs, 0, ios, 0, inputs.length);
+        System.arraycopy(outputs, 0, ios, inputs.length, outputs.length);
         
-        return checkUnique(ios);
+        
+        return checkInputs(inputs) && checkOutputs(outputs) && checkUnique(ios);
      
     } 
 
