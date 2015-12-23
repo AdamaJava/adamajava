@@ -110,14 +110,14 @@ public class Options {
 		
 		if(runMode.equalsIgnoreCase("gatk")){
 			f =  IniFileUtil.getInputFile(iniFile, "testVcf") ;
-			if(f != null) 			 
+			if( ! StringUtils.isNullOrEmpty(f)) 			 
 				testVcf = new File( f );
 			else
 				throw new Q3IndelException("MISSING_PARAMETER", "testVcf");
 			
 			f =  IniFileUtil.getInputFile(iniFile, "controlVcf") ;
-			if(f != null) 	
-				controlVcf = new File(f); 				 
+			if( ! StringUtils.isNullOrEmpty(f) )
+				controlVcf = new File(f);		 
 			else
 				throw new Q3IndelException("MISSING_PARAMETER", "controlVcf");
 			

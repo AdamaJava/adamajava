@@ -399,12 +399,12 @@ public class IndelMT {
 		logger.info("reading indel position:  " + orderedList.size() );
 		try(VCFFileWriter writer = new VCFFileWriter( output)) {	
 			
-			List<File> inputs = new ArrayList<File>();
-			if(options.getRunMode().equalsIgnoreCase("gatk")){
-				inputs.add(options.getTestInputVcf());
-				inputs.add(options.getControlInputVcf());				
-			}else
-				inputs = options.getInputVcfs();
+//			List<File> inputs = new ArrayList<File>();
+//			if(options.getRunMode().equalsIgnoreCase("gatk")){
+//				inputs.add(options.getTestInputVcf());
+//				inputs.add(options.getControlInputVcf());				
+//			}else
+//				inputs = options.getInputVcfs();
 							
 			//reheader
 			getHeaderForIndel(header);	
@@ -446,7 +446,7 @@ public class IndelMT {
 			header.parseHeaderLine(VcfHeaderUtils.STANDARD_INPUT_LINE + "_GATK_CONTROL=" + options.getControlInputVcf().getAbsolutePath());
  		}else
 	 		for(int i = 0; i < options.getInputVcfs().size(); i ++)
-	 			header.parseHeaderLine(VcfHeaderUtils.STANDARD_INPUT_LINE + "_PINDEL=" + options.getInputVcfs().get(i).getAbsolutePath());
+	 			header.parseHeaderLine(VcfHeaderUtils.STANDARD_INPUT_LINE + "=" + options.getInputVcfs().get(i).getAbsolutePath());
 
 		if( options.getControlBam() != null ){
 			String normalBamName = options.getControlBam().getAbsolutePath();			
@@ -486,9 +486,9 @@ public class IndelMT {
 				+  " [runMode: " + options.getRunMode() + "]");        
         		
 		//header will automatic append CHROM line if get from input file	
-		VcfHeaderUtils.addSampleId(header, options.getControlSample(), 1);
-		VcfHeaderUtils.addSampleId(header, options.getTestSample(), 2);
-		 
+		VcfHeaderUtils.addSampleId(header, VcfHeaderUtils.STANDARD_CONTROL_SAMPLE.replaceAll("#", ""), 1 ); // "qControlSample", 1);
+		VcfHeaderUtils.addSampleId(header,  VcfHeaderUtils.STANDARD_TEST_SAMPLE.replaceAll("#", ""), 2);//"qTestSample"
+ 		 
 	}
 	 
 

@@ -32,6 +32,11 @@ public class ReadIndels {
 		this.logger = logger; 		
 	}
 	
+	/**
+	 * merge first sample column to existing variants which is stored on hash map
+	 * @param f: vcf file
+	 * @throws IOException
+	 */
 	public void appendIndels(File f) throws IOException{
 		
 		//clear second sample column of tumour vcf input
@@ -83,6 +88,7 @@ public class ReadIndels {
 	 * @param pos: a new indel with same position
 	 * @return true: if the input vcf merged into existing vcf which from first input vcf file
 	 */
+	@Deprecated
 	public boolean mergeIndel(  VcfRecord vcf){
 		
  		ChrPosition pos = new ChrPosition(vcf.getChromosome(), vcf.getPosition(), vcf.getChrPosition().getEndPosition(), vcf.getAlt());     
@@ -110,8 +116,46 @@ public class ReadIndels {
  
 		return true; 
 	}	
+	
 	/**
-	 * if multi variants with same start position and ref allel, then only the last one will be kept
+	 * new method still coding
+	 * @param vcf
+	 * @return
+	 */
+	public boolean mergeVcf(  VcfRecord vcf){
+		
+ 		ChrPosition pos = new ChrPosition(vcf.getChromosome(), vcf.getPosition(), vcf.getChrPosition().getEndPosition(), vcf.getAlt());     
+		VcfRecord existingvcf = positionRecordMap.get(pos);
+		//new indel
+		
+		if(existingvcf == null){
+			//insert missing data to first format column, shift original first column to second
+			VcfUtils.addMissingDataToFormatFields(vcf, 1);			
+ 			List<String> informat = vcf.getFormatFields();
+ 			List<String> outformat  = new ArrayList<String>();
+ 			outformat.add(0,informat.get(0));
+ 			outformat.add(1, informat.get(1));
+ 			outformat.add(2, informat.get(2));
+ 			vcf.setFormatFields(outformat);			
+			positionRecordMap.put(pos, vcf);
+			return false;
+		}
+		
+		List<String> outformat  = new ArrayList<String>();;
+		outformat.add(0, existingvcf.getFormatFields().get(0));
+		outformat.add(1, existingvcf.getFormatFields().get(1));
+		outformat.add(2, vcf.getFormatFields().get(1));
+		existingvcf.setFormatFields(outformat); 
+ 
+		return true; 
+	}	
+	
+	
+	
+	
+	
+	/**
+	 * load variants to hash map
 	 * @param f: vcf input file
 	 * @param sampleCode: replace sample code inside the input vcf file 
 	 * @throws IOException
