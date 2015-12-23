@@ -86,73 +86,37 @@ public class ReadIndels {
 	/**
 	 * @param indels a list of indels with same position
 	 * @param pos: a new indel with same position
-	 * @return true: if the input vcf merged into existing vcf which from first input vcf file
+	 * @return true: if the input vcf merged into existing vcf which from first input vcf file. otherwise return false: add a new indel vcf record
 	 */
-	@Deprecated
-	public boolean mergeIndel(  VcfRecord vcf){
+	public boolean mergeIndel(  VcfRecord secondVcf){
 		
- 		ChrPosition pos = new ChrPosition(vcf.getChromosome(), vcf.getPosition(), vcf.getChrPosition().getEndPosition(), vcf.getAlt());     
+ 		ChrPosition pos = new ChrPosition(secondVcf.getChromosome(), secondVcf.getPosition(), secondVcf.getChrPosition().getEndPosition(), secondVcf.getAlt());     
 		VcfRecord existingvcf = positionRecordMap.get(pos);
 		//new indel
 		
+		List<String> informat = secondVcf.getFormatFields();
+		List<String> outformat  = new ArrayList<String>();
+
 		if(existingvcf == null){
 			//insert missing data to first format column, shift original first column to second
-			VcfUtils.addMissingDataToFormatFields(vcf, 1);			
- 			List<String> informat = vcf.getFormatFields();
- 			List<String> outformat  = new ArrayList<String>();
+			VcfUtils.addMissingDataToFormatFields(secondVcf, 1);	
+			informat = secondVcf.getFormatFields(); //must do it again
+			
  			outformat.add(0,informat.get(0));
  			outformat.add(1, informat.get(1));
  			outformat.add(2, informat.get(2));
- 			vcf.setFormatFields(outformat);			
-			positionRecordMap.put(pos, vcf);
+ 			secondVcf.setFormatFields(outformat);			
+			positionRecordMap.put(pos, secondVcf);
 			return false;
 		}
 		
-		List<String> outformat  = new ArrayList<String>();;
-		outformat.add(0, existingvcf.getFormatFields().get(0));
-		outformat.add(1, existingvcf.getFormatFields().get(1));
-		outformat.add(2, vcf.getFormatFields().get(1));
-		existingvcf.setFormatFields(outformat); 
+		//add first sample column from secondVcf to exsitingvcf also check format
+ 		outformat.add(0,informat.get(0) );
+		outformat.add(1, informat.get(1));
+		VcfUtils.addAdditionalSampleToFormatField(existingvcf,  outformat) ;
  
 		return true; 
 	}	
-	
-	/**
-	 * new method still coding
-	 * @param vcf
-	 * @return
-	 */
-	public boolean mergeVcf(  VcfRecord vcf){
-		
- 		ChrPosition pos = new ChrPosition(vcf.getChromosome(), vcf.getPosition(), vcf.getChrPosition().getEndPosition(), vcf.getAlt());     
-		VcfRecord existingvcf = positionRecordMap.get(pos);
-		//new indel
-		
-		if(existingvcf == null){
-			//insert missing data to first format column, shift original first column to second
-			VcfUtils.addMissingDataToFormatFields(vcf, 1);			
- 			List<String> informat = vcf.getFormatFields();
- 			List<String> outformat  = new ArrayList<String>();
- 			outformat.add(0,informat.get(0));
- 			outformat.add(1, informat.get(1));
- 			outformat.add(2, informat.get(2));
- 			vcf.setFormatFields(outformat);			
-			positionRecordMap.put(pos, vcf);
-			return false;
-		}
-		
-		List<String> outformat  = new ArrayList<String>();;
-		outformat.add(0, existingvcf.getFormatFields().get(0));
-		outformat.add(1, existingvcf.getFormatFields().get(1));
-		outformat.add(2, vcf.getFormatFields().get(1));
-		existingvcf.setFormatFields(outformat); 
- 
-		return true; 
-	}	
-	
-	
-	
-	
 	
 	/**
 	 * load variants to hash map
