@@ -111,7 +111,7 @@ public class Q3ClinVar2 {
 	private final Map<String, RawFragment> rawFragments = new HashMap<>();
 	private final Map<String, Fragment> frags = new HashMap<>();
 	
-	private final Map<VcfRecord, List<IntPair>> vcfFragmentMap = new HashMap<>();
+	private final Map<VcfRecord, List<int[]>> vcfFragmentMap = new HashMap<>();
 	
 	private Map<Amplicon, List<Fragment>> ampliconFragmentMap = new HashMap<>();
 	
@@ -555,7 +555,7 @@ public class Q3ClinVar2 {
 //			});
 	}
 
-	private double getMutationCoveragePercentage(VcfRecord vcf, List<IntPair> fragmentsCarryingMutation) {
+	private double getMutationCoveragePercentage(VcfRecord vcf, List<int[]> fragmentsCarryingMutation) {
 		/*
 		 * Get the total coverage at this position
 		 * Use 
@@ -565,16 +565,17 @@ public class Q3ClinVar2 {
 				.mapToInt(Fragment::getRecordCount)
 				.sum();
 		int mutationCoverage = fragmentsCarryingMutation.stream()
-				.mapToInt(IntPair::getInt2)
+				.mapToInt( i -> i[2])
+//				.mapToInt(IntPair::getInt2)
 				.sum();
 		
 		double percentage = totalCoverage > 0 ? ((double)mutationCoverage / totalCoverage) * 100 : 0.0;
 		return percentage;
 	}
 	
-	private int getRecordCountFormIntPairs(List<IntPair> list) {
+	private int getRecordCountFormIntPairs(List<int[]> list) {
 		return list.stream()
-			.mapToInt(IntPair::getInt2)
+			.mapToInt(i -> i[2])
 			.sum();
 //		final AtomicInteger tally = new AtomicInteger();
 //		list.stream().forEach(ip -> tally.addAndGet(ip.getInt2()));
@@ -770,7 +771,7 @@ public class Q3ClinVar2 {
 			header.parseHeaderLine(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + df.format(Calendar.getInstance().getTime()));		
 			header.parseHeaderLine(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + QExec.createUUid());		
 			header.parseHeaderLine(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=q3ClinVar");		
-			header.addFormatLine("FB", ".","String","Breakdown of Fragments covering this position in the following format: FragmentId of fragments supporting the mutation(Number of reads in Fragment), .../FragmentId of fragments covering this position(Number of reads in fragment),...");
+			header.addFormatLine("FB", ".","String","Breakdown of Amplicon ids, Fragment ids and read counts supporting this mutation, along with total counts of amplicon, fragment, and reads for all reads at that location in the following format: AmpliconId-FragmentId-readCount,[...] / Sum of amplicons at this position-sum of fragments at this position-sum of read counts at this position");
 			header.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT);
 			
 			Iterator<Record> iter = header.iterator();
@@ -800,8 +801,16 @@ public class Q3ClinVar2 {
 	//					overlappingFragments.stream()
 	//					.forEachOrdered(f -> overlappingFragmentsDetails.append(f.getId()).append("(").append(f.getRecordCount()).append("),"));
 					}
-					final StringBuilder mutationFragmentsDetails = new StringBuilder(entry.getValue().size() + "(");
-					mutationFragmentsDetails.append(getRecordCountFormIntPairs(entry.getValue())).append(")");
+					final StringBuilder mutationFragmentsDetails = new StringBuilder();
+					entry.getValue().stream()
+						.forEach(i -> {
+							if (mutationFragmentsDetails.length() > 0) {
+								mutationFragmentsDetails.append(',');
+							}
+							mutationFragmentsDetails.append(i[0]).append('-').append(i[1]).append('-').append(i[2]);
+						});
+//					final StringBuilder mutationFragmentsDetails = new StringBuilder(entry.getValue().size() + "(");
+//					mutationFragmentsDetails.append(getRecordCountFormIntPairs(entry.getValue())).append(")");
 					List<String> ff = new ArrayList<>(3);
 					ff.add("FB");
 					ff.add(mutationFragmentsDetails.toString() + "/" + overlappingFragmentsDetails.toString());
@@ -966,40 +975,51 @@ public class Q3ClinVar2 {
 	
 	private void createMutations() {
 		
-		List<Fragment> fragmentsToCallVariantsOn = new ArrayList<>();
-		
 		/*
 		 * Only call variants on amplicons that contain more than 10 reads
+		 * and on fragments that have more than twice the specified minimum fragment size
 		 */
-		ampliconFragmentMap.values().stream()
-			.filter(list -> list.stream().collect(Collectors.summingInt(Fragment::getRecordCount)) >= 10)
-			.forEach(list -> fragmentsToCallVariantsOn.addAll(list));
+		ampliconFragmentMap.entrySet().stream()
+			.filter(entry -> entry.getValue().stream().collect(Collectors.summingInt(Fragment::getRecordCount)) >= 10)
+			.forEach(entry -> {
+				
+				entry.getValue().stream()
+					.filter(f -> f.getActualPosition() != null &&  f.getRecordCount()  > minFragmentSize * 2)
+					.forEach(f -> {
+						
+						String [] smithWatermanDiffs = f.getSmithWatermanDiffs();
+						List<Pair<Integer, String>> mutations = ClinVarUtil.getPositionRefAndAltFromSW(smithWatermanDiffs);
+						if ( ! mutations.isEmpty()) {
+							for (Pair<Integer, String> mutation : mutations) {
+								int position = mutation.getLeft().intValue();
+								String mutString = mutation.getRight();
+								int slashIndex = mutString.indexOf('/');
+								String ref = mutString.substring(0, slashIndex);
+								String alt = mutString.substring(slashIndex + 1);
+								createMutation(f.getActualPosition(), position , ref, alt, entry.getKey().getId(), f.getId(), f.getRecordCount());
+							}
+						}
+					});
+			});
+					
 		
-		logger.info("number of fragments we will call mutations on: " + fragmentsToCallVariantsOn.size());
-		
-
-		/*
-		 * Fragments must contain a certain number of reads (minFragmentSize)
-		 */
-		fragmentsToCallVariantsOn.stream()
-			.filter(f -> f.getActualPosition() != null &&  f.getRecordCount()  > minFragmentSize * 2)
-			.forEach(f -> {
-			
-			String [] smithWatermanDiffs = f.getSmithWatermanDiffs();
-			List<Pair<Integer, String>> mutations = ClinVarUtil.getPositionRefAndAltFromSW(smithWatermanDiffs);
-			if ( ! mutations.isEmpty()) {
-				for (Pair<Integer, String> mutation : mutations) {
-					int position = mutation.getLeft().intValue();
-					String mutString = mutation.getRight();
-					int slashIndex = mutString.indexOf('/');
-					String ref = mutString.substring(0, slashIndex);
-					String alt = mutString.substring(slashIndex + 1);
-					createMutation(f.getActualPosition(), position , ref, alt, f.getId(), f.getRecordCount());
-				}
-			}
-		});
-//		frags.values().stream()
-//		.filter(f -> f.getActualPosition() != null &&  f.getRecordCount()  > minFragmentSize)
+//		List<Fragment> fragmentsToCallVariantsOn = new ArrayList<>();
+//		
+//		/*
+//		 * Only call variants on amplicons that contain more than 10 reads
+//		 */
+//		ampliconFragmentMap.values().stream()
+//		.filter(list -> list.stream().collect(Collectors.summingInt(Fragment::getRecordCount)) >= 10)
+//		.forEach(list -> fragmentsToCallVariantsOn.addAll(list));
+//		
+//		logger.info("number of fragments we will call mutations on: " + fragmentsToCallVariantsOn.size());
+//		
+//		
+//		/*
+//		 * Fragments must contain a certain number of reads (minFragmentSize)
+//		 */
+//		fragmentsToCallVariantsOn.stream()
+//		.filter(f -> f.getActualPosition() != null &&  f.getRecordCount()  > minFragmentSize * 2)
 //		.forEach(f -> {
 //			
 //			String [] smithWatermanDiffs = f.getSmithWatermanDiffs();
@@ -1017,18 +1037,20 @@ public class Q3ClinVar2 {
 //		});
 	}
 	
-	private void createMutation(ChrPosition actualCP, int position, String ref, String alt, int fragmentId, int fragmentRecordCount) {
+	private void createMutation(ChrPosition actualCP, int position, String ref, String alt, int ampliconId, int fragmentId, int fragmentRecordCount) {
 		int startPos = actualCP.getPosition() + position;
 		int endPos =  startPos + ref.length() -1 ;
 		VcfRecord vcf = VcfUtils.createVcfRecord(new ChrPosition(actualCP.getChromosome(),  startPos, endPos), "."/*id*/, ref, alt);
 		
 		
-		List<IntPair> existingFragmentIds = vcfFragmentMap.get(vcf);
+		List<int[]> existingFragmentIds = vcfFragmentMap.get(vcf);
+//		List<IntPair> existingFragmentIds = vcfFragmentMap.get(vcf);
 		if (null == existingFragmentIds) {
 			existingFragmentIds = new ArrayList<>();
 			vcfFragmentMap.put(vcf, existingFragmentIds);
 		}
-		existingFragmentIds.add(new IntPair(fragmentId, fragmentRecordCount));
+		existingFragmentIds.add(new int[]{ampliconId, fragmentId, fragmentRecordCount});
+//		existingFragmentIds.add(new IntPair(fragmentId, fragmentRecordCount));
 	}
 	
 	
