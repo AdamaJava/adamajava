@@ -817,16 +817,6 @@ public class Q3ClinVar2 {
 	
 	
 	private void getActualLocationForFrags() {
-		
-//		int perfectMatchCount = 0;
-//		int mutationCount = 0;
-//		int diff20Count = 0;
-//		int diffOtherCount = 0;
-//		int snpsOnlyCorrectLength = 0;
-//		int snpsOnlyWrongLength = 0;
-//		int indelsOnly = 0;
-//		int snpsAndindels = 0;
-		
 		int actualCPReadCount = 0;
 		int noActualCPReadCount = 0;
 		
@@ -884,8 +874,6 @@ public class Q3ClinVar2 {
 				logger.info("bufferedRef: " + bufferedReference);
 				noActualCPReadCount += f.getRecordCount();
 			}
-			
-				
 			
 //			if (swDiffs[1].contains(".") || swDiffs[1].contains(" ")) {
 //				// snp or indel
@@ -982,40 +970,6 @@ public class Q3ClinVar2 {
 						}
 					});
 			});
-					
-		
-//		List<Fragment> fragmentsToCallVariantsOn = new ArrayList<>();
-//		
-//		/*
-//		 * Only call variants on amplicons that contain more than 10 reads
-//		 */
-//		ampliconFragmentMap.values().stream()
-//		.filter(list -> list.stream().collect(Collectors.summingInt(Fragment::getRecordCount)) >= 10)
-//		.forEach(list -> fragmentsToCallVariantsOn.addAll(list));
-//		
-//		logger.info("number of fragments we will call mutations on: " + fragmentsToCallVariantsOn.size());
-//		
-//		
-//		/*
-//		 * Fragments must contain a certain number of reads (minFragmentSize)
-//		 */
-//		fragmentsToCallVariantsOn.stream()
-//		.filter(f -> f.getActualPosition() != null &&  f.getRecordCount()  > minFragmentSize * 2)
-//		.forEach(f -> {
-//			
-//			String [] smithWatermanDiffs = f.getSmithWatermanDiffs();
-//			List<Pair<Integer, String>> mutations = ClinVarUtil.getPositionRefAndAltFromSW(smithWatermanDiffs);
-//			if ( ! mutations.isEmpty()) {
-//				for (Pair<Integer, String> mutation : mutations) {
-//					int position = mutation.getLeft().intValue();
-//					String mutString = mutation.getRight();
-//					int slashIndex = mutString.indexOf('/');
-//					String ref = mutString.substring(0, slashIndex);
-//					String alt = mutString.substring(slashIndex + 1);
-//					createMutation(f.getActualPosition(), position , ref, alt, f.getId(), f.getRecordCount());
-//				}
-//			}
-//		});
 	}
 	
 	private void createMutation(ChrPosition actualCP, int position, String ref, String alt, int ampliconId, int fragmentId, int fragmentRecordCount) {
@@ -1023,15 +977,12 @@ public class Q3ClinVar2 {
 		int endPos =  startPos + ref.length() -1 ;
 		VcfRecord vcf = VcfUtils.createVcfRecord(new ChrPosition(actualCP.getChromosome(),  startPos, endPos), "."/*id*/, ref, alt);
 		
-		
 		List<int[]> existingFragmentIds = vcfFragmentMap.get(vcf);
-//		List<IntPair> existingFragmentIds = vcfFragmentMap.get(vcf);
 		if (null == existingFragmentIds) {
 			existingFragmentIds = new ArrayList<>();
 			vcfFragmentMap.put(vcf, existingFragmentIds);
 		}
 		existingFragmentIds.add(new int[]{ampliconId, fragmentId, fragmentRecordCount});
-//		existingFragmentIds.add(new IntPair(fragmentId, fragmentRecordCount));
 	}
 	
 	
@@ -1088,7 +1039,6 @@ public class Q3ClinVar2 {
 		readLengthDistribution.entrySet().stream()
 			.sorted((e1, e2) -> {return e1.getKey().compareTo(e2.getKey());})
 			.forEach(entry -> logger.info("r1: " + entry.getKey().getInt1() + ", r2: " + entry.getKey().getInt2() + ", count: " +entry.getValue().intValue()));
-		
 		
 		return fastqCount;
 	}
@@ -1171,7 +1121,7 @@ public class Q3ClinVar2 {
 		logger.info("no of entries in refTilesPositions: " + refTilesPositionsSize);
 		logger.info("Unique tiles in amplicons: " + diff);
 		
-		int bestLocationSet = 0, bestLocationNotSet = 0;
+//		int bestLocationSet = 0, bestLocationNotSet = 0;
 		int positionFound = 0, positionFoundReadCount = 0;
 		int noPositionFound = 0, noPositionFoundReadCount = 0;
 		for (String fragment : rawFragments.keySet()) {
@@ -1357,17 +1307,9 @@ public class Q3ClinVar2 {
 ////						logger.info("not able to set best tiled location for bin: " + b.getId() + ", no in b.getSmithWatermanDiffsMap(): " + b.getSmithWatermanDiffsMap().size());
 //					}
 				}
-				/*
-				 * has best location been set?
-				 */
-//				if (null != b.getBestTiledLocation()) {
-//					bestLocationSet++;
-//				} else {
-//					bestLocationNotSet++;
-//				}
 			}
 		logger.info("positionFound count: " + positionFound + " which contain " + positionFoundReadCount + " reads,  noPositionFound count: " + noPositionFound + ", which contain "+ noPositionFoundReadCount + " reads");
-		logger.info("bestLocationSet count: " + bestLocationSet + ", not set count: " + bestLocationNotSet);
+//		logger.info("bestLocationSet count: " + bestLocationSet + ", not set count: " + bestLocationNotSet);
 	}
 	
 	
