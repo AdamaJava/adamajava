@@ -410,7 +410,7 @@ public class Q3ClinVar2 {
 		
 		// write output
 		Document doc = new Document(q3pElement);
-		try (OutputStream os = new FileOutputStream(new File(outputFileNameBase + ".xml"));){
+		try (OutputStream os = new FileOutputStream(new File(outputFileNameBase + ".q3p.xml"));){
 			Serializer serializer = new Serializer(os, "ISO-8859-1");
 	        serializer.setIndent(4);
 	        serializer.setMaxLength(64);
