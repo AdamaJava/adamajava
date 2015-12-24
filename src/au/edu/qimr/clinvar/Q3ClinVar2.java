@@ -79,6 +79,8 @@ public class Q3ClinVar2 {
 	private static final int TILE_SIZE = 13;
 	private static final char [] AT = new char[]{'A','T'};
 	
+	private QExec exec;
+	
 	private static String[] fastqFiles;
 	private static String version;
 	private String logFile;
@@ -98,7 +100,7 @@ public class Q3ClinVar2 {
 	private int ampliconBoundary = 10;
 	
 	private final Map<String, AtomicInteger> reads = new HashMap<>();
-	
+	private final Map<IntPair, AtomicInteger> readLengthDistribution = new HashMap<>();
 	private final Set<String> frequentlyOccurringRefTiles = new HashSet<>();
 	private final Map<String, TLongArrayList> refTilesPositions = new HashMap<>();
 	
@@ -141,7 +143,7 @@ public class Q3ClinVar2 {
 		
 		createAmplicons();
 		
-		writeFragmentAmpliconsToXml();
+		writeXml();
 		
 		mapBedToAmplicons();
 		
@@ -367,51 +369,52 @@ public class Q3ClinVar2 {
 		return sb.toString();
 	}
 	
-	private void writeFragmentAmpliconsToXml() {
+	private void writeXml() {
+		
+		Element q3pElement = new Element("q3panel");
+		q3pElement.addAttribute(new Attribute("start_time", exec.getStartTime().getValue()));
+		q3pElement.addAttribute(new Attribute("finish_time", exec.getStartTime().getValue()));
+		q3pElement.addAttribute(new Attribute("run_by_os", exec.getOsName().getValue()));
+		q3pElement.addAttribute(new Attribute("run_by_user", exec.getRunBy().getValue()));
+		q3pElement.addAttribute(new Attribute("records_parsed", "" + fastqRecordCount));
+		q3pElement.addAttribute(new Attribute("version", exec.getToolVersion().getValue()));
+		q3pElement.addAttribute(new Attribute("bed_file", bedFile));
+		q3pElement.addAttribute(new Attribute("fastq_file_1", fastqFiles[0]));
+		q3pElement.addAttribute(new Attribute("fastq_file_2", fastqFiles[1]));
+		
+		/*
+		 * read length dist
+		 */
+		Element rls = new Element("ReadLengths");
+		readLengthDistribution.entrySet().stream()
+			.sorted((e1, e2) -> {return e1.getKey().compareTo(e2.getKey());})
+			.forEach(entry -> {
+				Element rl = new Element("ReadLength");
+				rl.addAttribute(new Attribute("r1", ""+entry.getKey().getInt1()));
+				rl.addAttribute(new Attribute("r2", ""+entry.getKey().getInt2()));
+				rl.addAttribute(new Attribute("count", ""+entry.getValue().intValue()));
+				rls.appendChild(rl);
+			});
+	
+		q3pElement.appendChild(rls);
 		
 		// logging and writing to file
 		Element amplicons = new Element("Amplicons");
-		amplicons.addAttribute(new Attribute("bed_file", bedFile));
-		amplicons.addAttribute(new Attribute("fastq_file_1", fastqFiles[0]));
-		amplicons.addAttribute(new Attribute("fastq_file_2", fastqFiles[1]));
-		
+		q3pElement.appendChild(amplicons);
 		ampliconFragmentMap.entrySet().stream()
 			.sorted((e1, e2) -> e1.getKey().compareTo(e2.getKey()))
 			.forEach(entry -> {
 				createAmpliconElement(amplicons, entry.getKey(), entry.getValue());
 			});
 		
-//		for (Probe p : probeSet) {
-//			
-//			// fragments next
-//			Map<String, AtomicInteger> frags = probeFragments.get(p);
-//			if (null != frags && ! frags.isEmpty()) {
-//				
-//				TIntArrayList fragMatches = new TIntArrayList();
-//				for (Entry<String, AtomicInteger> entry : frags.entrySet()) {
-//					if (entry.getKey() != null) {
-//						Element fragment = new Element("Fragment");
-//						fragments.appendChild(fragment);
-//						fragment.addAttribute(new Attribute("fragment_length", "" + (entry.getKey().startsWith("+++") || entry.getKey().startsWith("---") ? entry.getKey().length() - 3 : entry.getKey().length())));
-//						fragment.addAttribute(new Attribute("record_count", "" + entry.getValue().get()));
-//						fragment.appendChild(entry.getKey());
-//						fragMatches.add(entry.getValue().get());
-//					}
-//				}
-//				if (fragMatches.size() > 1) {
-//					fragments.addAttribute(new Attribute("fragment_breakdown", "" + ClinVarUtil.breakdownEditDistanceDistribution(fragMatches)));
-//				}
-//			}
-//		}
-//			logger.info("no of probes with secondary bin contains > 10% of reads: " + noOfProbesWithLargeSecondaryBin);
 		
 		// write output
-		Document doc = new Document(amplicons);
+		Document doc = new Document(q3pElement);
 		try (OutputStream os = new FileOutputStream(new File(outputFileNameBase + ".xml"));){
-			 Serializer serializer = new Serializer(os, "ISO-8859-1");
-		        serializer.setIndent(4);
-		        serializer.setMaxLength(64);
-		        serializer.write(doc);  
+			Serializer serializer = new Serializer(os, "ISO-8859-1");
+	        serializer.setIndent(4);
+	        serializer.setMaxLength(64);
+	        serializer.write(doc);  
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -1000,7 +1003,7 @@ public class Q3ClinVar2 {
 		 *  read in a fastq file and lets see if we get some matches
 		 *  Keep stats on read lengths
 		 */
-		Map<IntPair, AtomicInteger> readLengthDistribution = new HashMap<>();
+		
 		int sameReadLength = 0;
 		
 		try (FastqReader reader1 = new FastqReader(new File(fastqFiles[0]));
@@ -1388,8 +1391,11 @@ public class Q3ClinVar2 {
 			// configure logging
 			logFile = options.getLog();
 			version = Q3ClinVar2.class.getPackage().getImplementationVersion();
+			if (null == version) {
+				version = "local";
+			}
 			logger = QLoggerFactory.getLogger(Q3ClinVar2.class, logFile, options.getLogLevel());
-			logger.logInitialExecutionStats("q3clinvar", version, args);
+			exec = logger.logInitialExecutionStats("q3clinvar", version, args);
 			
 			// get list of file names
 			fastqFiles = options.getFastqs();
