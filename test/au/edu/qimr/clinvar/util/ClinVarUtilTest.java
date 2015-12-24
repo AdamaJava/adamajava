@@ -98,6 +98,28 @@ public class ClinVarUtilTest {
 	}
 	
 	@Test
+	public void getCoverageString() {
+		ChrPosition cp = new ChrPosition("1", 100);
+		Map<Amplicon, List<Fragment>> map = new HashMap<>();
+		
+		assertEquals("0,0,0", ClinVarUtil.getCoverageStringAtPosition(cp, map));
+		Amplicon a = new Amplicon(1, new ChrPosition("1", 101,200));
+		Fragment f1 = new Fragment(1, null, 1, 10, null, null);
+		f1.setActualPosition(new ChrPosition("1", 101,200));
+		map.put(a, Arrays.asList(f1));
+		assertEquals("0,0,0", ClinVarUtil.getCoverageStringAtPosition(cp, map));
+		
+		Amplicon a2 = new Amplicon(2, new ChrPosition("1", 100,200));
+		Fragment f2 = new Fragment(2, null, 1, 1, null, null);
+		f2.setActualPosition(new ChrPosition("1", 100,200));
+		map.put(a2, Arrays.asList(f2));
+		assertEquals("1,1,2", ClinVarUtil.getCoverageStringAtPosition(cp, map));
+		
+		cp = new ChrPosition("1", 102);
+		assertEquals("2,2,13", ClinVarUtil.getCoverageStringAtPosition(cp, map));
+	}
+	
+	@Test
 	public void getAmpliconFragments() {
 		Fragment f1 = new Fragment(1, null, 1, 0, null, null);
 		Fragment f2 = new Fragment(2, null, 1, 1, null, null);

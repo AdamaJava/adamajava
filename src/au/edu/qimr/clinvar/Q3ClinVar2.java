@@ -771,49 +771,30 @@ public class Q3ClinVar2 {
 			header.parseHeaderLine(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + df.format(Calendar.getInstance().getTime()));		
 			header.parseHeaderLine(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + QExec.createUUid());		
 			header.parseHeaderLine(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=q3ClinVar");		
-			header.addFormatLine("FB", ".","String","Breakdown of Amplicon ids, Fragment ids and read counts supporting this mutation, along with total counts of amplicon, fragment, and reads for all reads at that location in the following format: AmpliconId-FragmentId-readCount,[...] / Sum of amplicons at this position-sum of fragments at this position-sum of read counts at this position");
+			header.addFormatLine("FB", ".","String","Breakdown of Amplicon ids, Fragment ids and read counts supporting this mutation, along with total counts of amplicon, fragment, and reads for all reads at that location in the following format: AmpliconId,FragmentId,readCount;[...] / Sum of amplicons at this position,sum of fragments at this position,sum of read counts at this position");
 			header.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT);
 			
 			Iterator<Record> iter = header.iterator();
 			while (iter.hasNext()) {
 				writer.addHeader(iter.next().toString() );
 			}
-			
 			vcfFragmentMap.entrySet().stream()
 				.filter((entry) -> getRecordCountFormIntPairs(entry.getValue()) >= minBinSize )
 				.filter((entry) -> getMutationCoveragePercentage(entry.getKey(), entry.getValue()) >= minReadPercentage )
 				.sorted((e1, e2) -> {return e1.getKey().compareTo(e2.getKey());})
 				.forEach(entry -> {
 				
-					/*
-					 * get all fragments that overlap this position 
-					 */
-					List<Fragment> overlappingFragments = getOverlappingFragments(entry.getKey().getChrPosition());
-					final StringBuilder overlappingFragmentsDetails = new StringBuilder(overlappingFragments.size() + "(");
-					if (overlappingFragments.isEmpty() ) {
-						// oh dear...
-						logger.warn("didn't find any overlapping fragments for vcf record: " + entry.getKey().toString());
-					} else {
-						long recordCount = overlappingFragments.stream()
-							.mapToLong(Fragment::getRecordCount)
-							.sum();
-						overlappingFragmentsDetails.append(recordCount).append(")");
-	//					overlappingFragments.stream()
-	//					.forEachOrdered(f -> overlappingFragmentsDetails.append(f.getId()).append("(").append(f.getRecordCount()).append("),"));
-					}
 					final StringBuilder mutationFragmentsDetails = new StringBuilder();
 					entry.getValue().stream()
 						.forEach(i -> {
 							if (mutationFragmentsDetails.length() > 0) {
-								mutationFragmentsDetails.append(',');
+								mutationFragmentsDetails.append(';');
 							}
-							mutationFragmentsDetails.append(i[0]).append('-').append(i[1]).append('-').append(i[2]);
+							mutationFragmentsDetails.append(i[0]).append(',').append(i[1]).append(',').append(i[2]);
 						});
-//					final StringBuilder mutationFragmentsDetails = new StringBuilder(entry.getValue().size() + "(");
-//					mutationFragmentsDetails.append(getRecordCountFormIntPairs(entry.getValue())).append(")");
 					List<String> ff = new ArrayList<>(3);
 					ff.add("FB");
-					ff.add(mutationFragmentsDetails.toString() + "/" + overlappingFragmentsDetails.toString());
+					ff.add(mutationFragmentsDetails.toString() + "/" + ClinVarUtil.getCoverageStringAtPosition(entry.getKey().getChrPosition(), ampliconFragmentMap));
 					entry.getKey().setFormatFields(ff);
 					
 					try {

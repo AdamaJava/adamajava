@@ -40,6 +40,7 @@ import java.util.OptionalInt;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -1066,7 +1067,6 @@ public class ClinVarUtil {
 		return noOfSlides;
 	}
 	
-	
 	public static int[] getBasicAndLevenshteinEditDistances(CharSequence s, CharSequence t) {
 		if (StringUtils.isEmpty(s) || StringUtils.isEmpty(t)) {
 			throw new IllegalArgumentException("Null or empty CharSequence passed to ClinVarUtil.getBasicAndLevenshteinEditDistances");
@@ -1078,7 +1078,6 @@ public class ClinVarUtil {
 			// do basic distancing next
 			int ed = getBasicEditDistance(s, t);
 			return ed > 1 ? new int[]{ ed, StringUtils.getLevenshteinDistance(s,t) } :  new int[]{ ed, ed };
-			
 		}
 	}
 
@@ -1245,48 +1244,33 @@ public class ClinVarUtil {
 			CigarElement match = new CigarElement(swDiffs[0].length() - lastPosition, CigarOperator.MATCH_OR_MISMATCH);
 			ces.add(match);
 		}
-//		if (lastPosition + 1 < length) {
-//			CigarElement match = new CigarElement(length - lastPosition, CigarOperator.MATCH_OR_MISMATCH);
-//			ces.add(match);
-//		}
 		Cigar cigar = new Cigar(ces);
 		return cigar;
 	}
 	
-//	public static Map<ChrPosition, Set<ChrPosition>> getGroupedChrPositionsFromFragments(Collection<Fragment> frags, int ampliconBoundary) {
-//		if (null == frags) throw new IllegalArgumentException("Null List passed to ClinVarUtil.getGroupedChrPositionsFromFragments");
-//		
-//		Map<ChrPosition, Set<ChrPosition>> groupedCPs = frags.stream()
-//				.filter(f -> f.getActualPosition() != null)
-//				.sorted((f1, f2) -> Integer.compare(f1.getRecordCount(), f2.getRecordCount()))
-//				.map(Fragment::getActualPosition)
-//				.collect(Collectors.groupingBy(cp->cp, Collectors.toSet()));
-//			
-//			
-//		/*
-//		 * Next, try and rollup cps with adjacent start positions
-//		 */
-//		List<ChrPosition> toRemove = new ArrayList<>();
-//		
-//		for (Entry<ChrPosition, Set<ChrPosition>> entry : groupedCPs.entrySet()) {
-//			ChrPosition cp = entry.getKey();
-//			
-//			if ( ! toRemove.contains(cp)) {
-//				groupedCPs.keySet().stream()
-//					.filter(cp1 -> ! cp1.equals(cp))
-//					.filter(cp1 -> ! toRemove.contains(cp1))
-//					.filter(cp1 -> cp1.getChromosome().equals(cp.getChromosome()) 
-//							&& (Math.abs(cp1.getPosition() - cp.getPosition())  + Math.abs(cp1.getEndPosition() - cp.getEndPosition())) <= ampliconBoundary)
-//					.forEach(cp1 -> {
-//						entry.getValue().addAll(groupedCPs.get(cp1));
-//						toRemove.add(cp1);
-//					});
-//			}
-//		}
-//		toRemove.stream().forEach(a -> groupedCPs.remove(a));
-//			
-//		return groupedCPs;
-//	}
+	public static String getCoverageStringAtPosition(ChrPosition cp, Map<Amplicon, List<Fragment>> ampliconMap) {
+		if (null == cp) throw new IllegalArgumentException("Null CP passed to ClinVarUitl.getCoverageStringAtPosition");
+		if (null == ampliconMap) throw new IllegalArgumentException("Null ampliconMap passed to ClinVarUitl.getCoverageStringAtPosition");
+		
+		AtomicInteger ampliconCount = new AtomicInteger();
+		AtomicInteger fragmentCount = new AtomicInteger();
+		AtomicInteger readCount = new AtomicInteger();
+		
+		ampliconMap.entrySet().stream()
+			.filter(entry -> ChrPositionUtils.isChrPositionContained(entry.getKey().getPosition(), cp))
+			.forEach(entry -> {
+				ampliconCount.incrementAndGet();
+				entry.getValue().stream()
+				.filter(f -> f.getActualPosition() != null)
+				.filter(f -> ChrPositionUtils.isChrPositionContained(f.getActualPosition(), cp))
+				.forEach(f -> {
+					fragmentCount.incrementAndGet();
+					readCount.addAndGet(f.getRecordCount());
+				});
+			});
+		
+		return ampliconCount.get() + Constants.COMMA_STRING + fragmentCount.get() + Constants.COMMA_STRING + readCount.get();
+	}
 	
 	public static Map<Amplicon, List<Fragment>> groupFragments(Collection<Fragment> frags, int ampliconBoundary) {
 		if (null == frags) throw new IllegalArgumentException("Null List passed to ClinVarUtil.getGroupedChrPositionsFromFragments");
