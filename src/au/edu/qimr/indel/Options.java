@@ -3,8 +3,6 @@
  */
 package au.edu.qimr.indel;
 
-
-
 import static java.util.Arrays.asList;
 
 import java.io.File;
@@ -22,7 +20,6 @@ import org.qcmg.common.util.Constants;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 
- 
 public class Options {
 
 	private static final String HELP_OPTION = Messages.getMessage("OPTION_HELP");	
@@ -56,7 +53,7 @@ public class Options {
 	private String analysisid; 
 	private int gematic_nns;
 	private float gematic_soi; 
-	private boolean exdup ;
+	private boolean exdup;
 				
 //	private String commandLine;	
 	private String filterQuery;
@@ -84,11 +81,13 @@ public class Options {
 		if (version == null) version = Constants.NULL_STRING; 
 		if (pg == null) pg = Constants.NULL_STRING; 
 				
-		qexec = logger.logInitialExecutionStats(pg , version, args, QExec.createUUid());		 	
+		qexec = logger.logInitialExecutionStats(pg , version, args, QExec.createUUid());	
+		 
+		
 		if(!options.has("i"))
 			throw new IOException("missing ini file option \'-i \'");
-		Ini iniFile =  new Ini( new File(  (String) options.valueOf("i")));
-		 
+		
+		Ini	iniFile =  new Ini( new File(  (String) options.valueOf("i")));
 		
 		String f =  IniFileUtil.getInputFile(iniFile, "ref");
 		if(! StringUtils.isNullOrEmpty(f))
@@ -127,20 +126,20 @@ public class Options {
 				pindelVcfs.add(new File(inputs[i]));
 		}
 
-		nearbyIndelWindow = Integer.parseInt( IniFileUtil.getEntry(iniFile, "parameters", "window.nearbyIndel"));
-		nearbyHomopolymer = Integer.parseInt( IniFileUtil.getEntry(iniFile, "parameters", "window.homopolymer"));
-		softClipWindow = Integer.parseInt( IniFileUtil.getEntry(iniFile, "parameters", "window.softClip"));
-		threadNo = Integer.parseInt( IniFileUtil.getEntry(iniFile, "parameters", "threadNo"));
-		filterQuery =  IniFileUtil.getEntry(iniFile, "parameters", "filter");
+		nearbyIndelWindow = Integer.parseInt( IniFileUtil.getEntry(iniFile, IniFileUtil.secParameter , "window.nearbyIndel"));
+		nearbyHomopolymer = Integer.parseInt( IniFileUtil.getEntry(iniFile, IniFileUtil.secParameter , "window.homopolymer"));
+		softClipWindow = Integer.parseInt( IniFileUtil.getEntry(iniFile, IniFileUtil.secParameter , "window.softClip"));
+		threadNo = Integer.parseInt( IniFileUtil.getEntry(iniFile, IniFileUtil.secParameter , "threadNo"));
+		filterQuery =  IniFileUtil.getEntry(iniFile, IniFileUtil.secParameter , "filter");
 		
-		testSampleid = IniFileUtil.getEntry(iniFile, "ids", "testSample");
-		controlSampleid = IniFileUtil.getEntry(iniFile, "ids", "controlSample");
-		donorid = IniFileUtil.getEntry(iniFile, "ids", "donorId");
-		analysisid = IniFileUtil.getEntry(iniFile, "ids", "analysisId");
+		testSampleid = IniFileUtil.getEntry(iniFile, IniFileUtil.secIDs, "testSample");
+		controlSampleid = IniFileUtil.getEntry(iniFile, IniFileUtil.secIDs, "controlSample");
+		donorid = IniFileUtil.getEntry(iniFile, IniFileUtil.secIDs, "donorId");
+		analysisid = IniFileUtil.getEntry(iniFile, IniFileUtil.secIDs, "analysisId");
 		
-		gematic_nns = Integer.parseInt( IniFileUtil.getEntry(iniFile, "rules", "gematic.nns"));
-		gematic_soi = Float.parseFloat( IniFileUtil.getEntry(iniFile, "rules", "gematic.soi"));
-		exdup  = Boolean.parseBoolean( IniFileUtil.getEntry( iniFile, "rules", "exclude.Duplicates"));
+		gematic_nns = Integer.parseInt( IniFileUtil.getEntry(iniFile, IniFileUtil.secRule, "gematic.nns"));
+		gematic_soi = Float.parseFloat( IniFileUtil.getEntry(iniFile, IniFileUtil.secRule, "gematic.soi"));
+		exdup  = Boolean.parseBoolean( IniFileUtil.getEntry( iniFile, IniFileUtil.secRule, "exclude.Duplicates"));
 				 		
   		detectBadOptions();	  		  		
 	}
