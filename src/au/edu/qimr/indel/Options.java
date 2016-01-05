@@ -25,6 +25,12 @@ public class Options {
 	private static final String HELP_OPTION = Messages.getMessage("OPTION_HELP");	
 	private static final String VERSION_OPTION = Messages.getMessage("OPTION_VERSION");
 	
+	public static String ini_secIOs = "IOs";
+	public static String ini_secIDs = "ids";
+	public static String ini_secParameter = "parameters";
+	public static String ini_secRule = "rules";
+
+	
 	private final OptionParser parser = new OptionParser();
 	private final OptionSet options;
 	private QLogger logger ;
@@ -55,7 +61,6 @@ public class Options {
 	private float gematic_soi; 
 	private boolean exdup;
 				
-//	private String commandLine;	
 	private String filterQuery;
 
 	public Options(final String[] args) throws IOException, Q3IndelException  {
@@ -82,68 +87,55 @@ public class Options {
 		if (pg == null) pg = Constants.NULL_STRING; 
 				
 		qexec = logger.logInitialExecutionStats(pg , version, args, QExec.createUUid());	
-		 
-		
+		 		
 		if(!options.has("i"))
 			throw new IOException("missing ini file option \'-i \'");
 		
 		Ini	iniFile =  new Ini( new File(  (String) options.valueOf("i")));
+		reference = getIOFromIni(iniFile, ini_secIOs, "ref");
+		output = getIOFromIni(iniFile, ini_secIOs, "output");	
+		testBam = getIOFromIni(iniFile, ini_secIOs, "testBam");	
+		controlBam = getIOFromIni(iniFile, ini_secIOs, "controlBam");
 		
-		String f =  IniFileUtil.getInputFile(iniFile, "ref");
-		if(! StringUtils.isNullOrEmpty(f))
-			reference = new File( f );
-		
-		 f =IniFileUtil.getOutputFile(iniFile, "output");
-		 if(! StringUtils.isNullOrEmpty(f))
-			 output =new File( f );	
-				
-		 f = IniFileUtil.getInputFile(iniFile, "testBam");
-		 if(! StringUtils.isNullOrEmpty(f))
-		 	testBam = new File(f) ;	
-		
-		 f = IniFileUtil.getInputFile(iniFile, "controlBam");
-		 if(! StringUtils.isNullOrEmpty(f))
-			controlBam = new File(f ) ;	
-		
-		runMode =  IniFileUtil.getEntry(iniFile, IniFileUtil.secParameter, "runMode");
-		
+		runMode =  iniFile.fetch(ini_secParameter, "runMode");		
 		if(runMode.equalsIgnoreCase("gatk")){
-			f =  IniFileUtil.getInputFile(iniFile, "testVcf") ;
-			if( ! StringUtils.isNullOrEmpty(f)) 			 
-				testVcf = new File( f );
-			else
-				throw new Q3IndelException("MISSING_PARAMETER", "testVcf");
-			
-			f =  IniFileUtil.getInputFile(iniFile, "controlVcf") ;
-			if( ! StringUtils.isNullOrEmpty(f) )
-				controlVcf = new File(f);		 
-			else
-				throw new Q3IndelException("MISSING_PARAMETER", "controlVcf");
-			
+			testVcf = getIOFromIni(iniFile, ini_secIOs, "testVcf") ;		
+			controlVcf = getIOFromIni(iniFile, ini_secIOs, "controlVcf");					 			
 		}else if(runMode.equalsIgnoreCase("pindel")){
-			String[] inputs = IniFileUtil.getInputFiles(iniFile, "inputVcf");
+			String[] inputs = iniFile.get(ini_secIOs).getAll("inputVcf",String[].class);
 			for(int i = 0; i < inputs.length; i ++)
 				pindelVcfs.add(new File(inputs[i]));
 		}
-
-		nearbyIndelWindow = Integer.parseInt( IniFileUtil.getEntry(iniFile, IniFileUtil.secParameter , "window.nearbyIndel"));
-		nearbyHomopolymer = Integer.parseInt( IniFileUtil.getEntry(iniFile, IniFileUtil.secParameter , "window.homopolymer"));
-		softClipWindow = Integer.parseInt( IniFileUtil.getEntry(iniFile, IniFileUtil.secParameter , "window.softClip"));
-		threadNo = Integer.parseInt( IniFileUtil.getEntry(iniFile, IniFileUtil.secParameter , "threadNo"));
-		filterQuery =  IniFileUtil.getEntry(iniFile, IniFileUtil.secParameter , "filter");
-		if(StringUtils.isNullOrEmpty(filterQuery))
+		
+		nearbyIndelWindow = Integer.parseInt( iniFile.fetch(ini_secParameter, "window.nearbyIndel"));
+		nearbyHomopolymer = Integer.parseInt( iniFile.fetch(ini_secParameter, "window.homopolymer"));
+		softClipWindow = Integer.parseInt( iniFile.fetch(ini_secParameter, "window.softClip"));
+		threadNo = Integer.parseInt( iniFile.fetch(ini_secParameter, "threadNo"));
+		filterQuery =  iniFile.fetch(ini_secParameter, "filter");
+		if(StringUtils.isNullOrEmpty(filterQuery) || filterQuery.equalsIgnoreCase("null"))
 			filterQuery = null;
 		
-		testSampleid = IniFileUtil.getEntry(iniFile, IniFileUtil.secIDs, "testSample");
-		controlSampleid = IniFileUtil.getEntry(iniFile, IniFileUtil.secIDs, "controlSample");
-		donorid = IniFileUtil.getEntry(iniFile, IniFileUtil.secIDs, "donorId");
-		analysisid = IniFileUtil.getEntry(iniFile, IniFileUtil.secIDs, "analysisId");
+		testSampleid = iniFile.fetch(ini_secIDs, "testSample");
+		controlSampleid = iniFile.fetch(ini_secIDs, "controlSample");
+		donorid = iniFile.fetch(ini_secIDs, "donorId");
+		analysisid = iniFile.fetch(ini_secIDs, "analysisId");
 		
-		gematic_nns = Integer.parseInt( IniFileUtil.getEntry(iniFile, IniFileUtil.secRule, "gematic.nns"));
-		gematic_soi = Float.parseFloat( IniFileUtil.getEntry(iniFile, IniFileUtil.secRule, "gematic.soi"));
-		exdup  = Boolean.parseBoolean( IniFileUtil.getEntry( iniFile, IniFileUtil.secRule, "exclude.Duplicates"));
+		gematic_nns = Integer.parseInt( iniFile.fetch(ini_secRule, "gematic.nns"));
+		gematic_soi = Float.parseFloat( iniFile.fetch(ini_secRule, "gematic.soi"));
+		exdup  = Boolean.parseBoolean( iniFile.fetch(ini_secRule, "exclude.Duplicates"));
 				 		
   		detectBadOptions();	  		  		
+	}
+	
+	private File getIOFromIni(Ini ini, String parent, String child) throws Q3IndelException {
+		if(ini == null)
+			throw new Q3IndelException("INI_FILE_FORMAT_ERROR", (String) options.valueOf("i") );
+		
+		String f = ini.fetch(parent, child);
+		 if( StringUtils.isNullOrEmpty(f))			 
+			 throw new Q3IndelException("MISSING_PARAMETER", child);
+		
+		 return  new File(f ) ;		 
 	}
 	
 	public  QLogger getLogger(){ return logger; }
@@ -152,15 +144,10 @@ public class Options {
 	public String getAnalysisId(){return analysisid; }
 	public int getMinGematicNovelStart(){return gematic_nns ;}
 	public float getMinGematicSupportOfInformative(){return gematic_soi; }
+	
 
 	public boolean excludeDuplicates() {
 		return exdup;
-//		IniFileUtil.getEntry(ini, parent, child)
-//		
-//		if (options.has("dup")) {
-//			return true;
-//		}
-//		return false;
 	}	
 
 	public String getFilterQuery() {
@@ -203,36 +190,36 @@ public class Options {
 	}
 
 	public void detectBadOptions() throws Q3IndelException {
-		if (!hasHelpOption() && !hasVersionOption()) {
+		if (hasHelpOption() || hasVersionOption())
+			return; 
+		
+		checkReference();
 			
-			if (output.exists()) {					
-				throw new Q3IndelException("OUTPUT_EXISTS", output.getAbsolutePath());
-			}
-	 
-			checkReference();
-			if (testBam != null && !testBam.exists())  
+		if (output.exists()) 			
+			throw new Q3IndelException("OUTPUT_EXISTS", output.getAbsolutePath());
+	 		
+		if (testBam != null && !testBam.exists())  
 			throw new Q3IndelException("FILE_EXISTS_ERROR", testBam.getAbsolutePath());
-		 
-			if (controlBam != null && !controlBam.exists()) 
-			throw new Q3IndelException("FILE_EXISTS_ERROR", controlBam.getAbsolutePath());	
+	 
+		if (controlBam != null && !controlBam.exists()) 
+			throw new Q3IndelException("FILE_EXISTS_ERROR", controlBam.getAbsolutePath());			
+		
+		if ("gatk".equalsIgnoreCase(runMode)){ 
+			if(testVcf != null && !testVcf.exists())
+				throw new Q3IndelException("FILE_EXISTS_ERROR","(test gatk vcf) " + testVcf.getAbsolutePath());
+			if(controlVcf != null && !controlVcf.exists())
+				throw new Q3IndelException("FILE_EXISTS_ERROR","(control gatk vcf) " + controlVcf.getAbsolutePath());
+			 
+		}else if ("pindel".equalsIgnoreCase(runMode)){ 
+			if(pindelVcfs.size() == 0)
+				throw new Q3IndelException("INPUT_OPTION_ERROR","(pindel input vcf) not specified" );
 			
-			
-			if ("gatk".equalsIgnoreCase(runMode)){ 
-				if(testVcf != null && !testVcf.exists())
-					throw new Q3IndelException("FILE_EXISTS_ERROR","(test gatk vcf) " + testVcf.getAbsolutePath());
-				if(controlVcf != null && !controlVcf.exists())
-					throw new Q3IndelException("FILE_EXISTS_ERROR","(control gatk vcf) " + controlVcf.getAbsolutePath());
-				 
-			}else if ("pindel".equalsIgnoreCase(runMode)){ 
-				if(pindelVcfs.size() == 0)
-					throw new Q3IndelException("INPUT_OPTION_ERROR","(pindel input vcf) not specified" );
-				
-				for(int i = 0; i < pindelVcfs.size(); i ++)
-				if ( pindelVcfs.get(i) != null && ! pindelVcfs.get(i).exists())  
-					throw new Q3IndelException("FILE_EXISTS_ERROR","(control indel vcf) " + pindelVcfs.get(i).getAbsolutePath());				
-			}else
-				throw new Q3IndelException("UNKNOWN_RUNMODE_ERROR", runMode);			
-		}				
+			for(int i = 0; i < pindelVcfs.size(); i ++)
+			if ( pindelVcfs.get(i) != null && ! pindelVcfs.get(i).exists())  
+				throw new Q3IndelException("FILE_EXISTS_ERROR","(control indel vcf) " + pindelVcfs.get(i).getAbsolutePath());				
+		}else
+			throw new Q3IndelException("UNKNOWN_RUNMODE_ERROR", runMode);			
+		 				
 	}
 
 	private void checkReference() throws Q3IndelException {
