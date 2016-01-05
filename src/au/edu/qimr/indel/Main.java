@@ -40,7 +40,9 @@ public class Main {
 			logger.info("Homopolymer window: " + options.getNearbyHomopolymerWindow());
 			logger.info("Nearby indel window: " + options.getNearbyIndelWindow());
 			logger.info("Soft clip window: " + options.getSoftClipWindow());
-			logger.info("Exclude duplicate " + options.excludeDuplicates());		
+			logger.info("Exclude duplicate " + options.excludeDuplicates());	
+			logger.info("applied query string: " + options.getFilterQuery());
+			
 			
 			IndelMT process = new IndelMT( options, logger);
 			exitStatus = process.process(options.getThreadNo());			
