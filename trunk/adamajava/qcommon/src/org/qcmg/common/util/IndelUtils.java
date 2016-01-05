@@ -1,8 +1,5 @@
 package org.qcmg.common.util;
 
-import java.io.File;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 
 public class IndelUtils {
@@ -76,7 +73,7 @@ public class IndelUtils {
 	public static final String DESCRITPION_INFO_ACINDEL = "counts of indels, follow formart:novelStarts,TotalCoverage,InformativeReadCount," 
 			+"suportReadCount[forwardsuportReadCount,backwardsuportReadCount],particalReadCount,NearbyIndelCount,NearybySoftclipCount";
 
-	public static final Pattern DOUBLE_DIGIT_PATTERN = Pattern.compile("\\d{1,2}");
+//	public static final Pattern DOUBLE_DIGIT_PATTERN = Pattern.compile("\\d{1,2}");
 	public static final int MAX_INDEL_LENGTH = 200;
 
 	/**
@@ -104,46 +101,35 @@ public class IndelUtils {
 	
 	public static String getFullChromosome(String ref) {
 		
-		// if ref starts with chr or GL, just return it
-		if (ref.startsWith("chr") || ref.startsWith("GL")) {
-			if (ref.equals("chrM")) {
-				return "chrMT";
-			}
-			return ref;
-		}
-		
-		
-		if (ref.equals("M")) {
+		/*
+		 * Deal with MT special case first
+		 */
+		if (ref.equals("chrM") || ref.equals("M") || ref.equals("MT")) {
 			return "chrMT";
 		}
 		
-		if (addChromosomeReference(ref)) {
-			return "chr" + ref;
-		} else {
+		/*
+		 *  if ref starts with chr or GL, just return it
+		 */
+		if (ref.startsWith("chr") || ref.startsWith("GL")) {
 			return ref;
 		}
-	}
-	
-	public static boolean addChromosomeReference(String ref) {
 		
-		if (ref.startsWith("chr") || ref.startsWith("GL")) {
-			return false;
+		if (ref.equals("X") || ref.equals("Y")) {
+			return "chr" + ref;
 		}
 		
-		if (ref.equals("X") || ref.equals("Y") || ref.equals("M") || ref.equals("MT")) {
-			return true;
-		}
-		
-		Matcher matcher = DOUBLE_DIGIT_PATTERN.matcher(ref);
-		if (matcher.matches()) {		    	
+		/*
+		 * If ref is an integer less than 23, slap "chr" in front of it
+		 */
+		try {
 			if (Integer.parseInt(ref) < 23) {
-				return true;
+				return "chr" + ref;
 			}
+		} catch (NumberFormatException nfe) {
+			// don't do anything here - will return the original reference
 		}
-		return false;
+		
+		return ref;
 	}
-	
-
-	
-
 }

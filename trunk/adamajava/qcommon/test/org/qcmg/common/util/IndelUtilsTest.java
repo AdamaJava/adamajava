@@ -1,8 +1,6 @@
 package org.qcmg.common.util;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
@@ -22,18 +20,21 @@ public class IndelUtilsTest {
 	@Test
 	public void testAddChromosomeReference() {
 		
-		assertTrue(IndelUtils.addChromosomeReference("10"));		
-		assertFalse(IndelUtils.addChromosomeReference("23"));		
-		assertFalse(IndelUtils.addChromosomeReference("99"));		
-		assertFalse(IndelUtils.addChromosomeReference("100"));		
-		assertTrue(IndelUtils.addChromosomeReference("1"));
-		assertTrue(IndelUtils.addChromosomeReference("Y"));
-		assertTrue(IndelUtils.addChromosomeReference("X"));
-		assertTrue(IndelUtils.addChromosomeReference("M"));
-		assertTrue(IndelUtils.addChromosomeReference("MT"));
-		assertFalse(IndelUtils.addChromosomeReference("MTT"));
-		assertFalse(IndelUtils.addChromosomeReference("GL123"));
-		assertFalse(IndelUtils.addChromosomeReference("chr10"));
+		assertEquals("chr10", IndelUtils.getFullChromosome("10"));
+		assertEquals("23", IndelUtils.getFullChromosome("23"));
+		assertEquals("chr22", IndelUtils.getFullChromosome("22"));
+		assertEquals("99", IndelUtils.getFullChromosome("99"));
+		assertEquals("100", IndelUtils.getFullChromosome("100"));
+		assertEquals("chr1", IndelUtils.getFullChromosome("1"));
+		assertEquals("chrY", IndelUtils.getFullChromosome("Y"));
+		assertEquals("chrX", IndelUtils.getFullChromosome("X"));
+		assertEquals("chrMT", IndelUtils.getFullChromosome("M"));
+		assertEquals("chrMT", IndelUtils.getFullChromosome("MT"));
+		assertEquals("chrMT", IndelUtils.getFullChromosome("chrMT"));
+		assertEquals("chrMT", IndelUtils.getFullChromosome("chrM"));
+		assertEquals("MTT", IndelUtils.getFullChromosome("MTT"));
+		assertEquals("GL123", IndelUtils.getFullChromosome("GL123"));
+		assertEquals("chr10", IndelUtils.getFullChromosome("chr10"));
 	}
 
 }
