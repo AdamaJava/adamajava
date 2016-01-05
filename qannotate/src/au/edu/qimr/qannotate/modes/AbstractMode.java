@@ -90,10 +90,10 @@ public abstract class AbstractMode {
 		   final String[] samples = header.getSampleId();			   	   
 			//incase both point into same column
 			for(int i = 0; i < samples.length; i++){ 
-				if(samples[i].equalsIgnoreCase(test))
+				if(samples[i].equalsIgnoreCase(test) || samples[i].equalsIgnoreCase(VcfHeaderUtils.STANDARD_TEST_SAMPLE.substring(2)))
 					tc = i + 1;
 				//else if(samples[i].equalsIgnoreCase(controlSample))
-				if(samples[i].equalsIgnoreCase(control))
+				if(samples[i].equalsIgnoreCase(control) || samples[i].equalsIgnoreCase(VcfHeaderUtils.STANDARD_CONTROL_SAMPLE.substring(2)) )
 					cc = i + 1;
 			}
 			

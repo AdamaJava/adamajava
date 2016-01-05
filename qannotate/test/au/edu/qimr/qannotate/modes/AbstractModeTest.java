@@ -84,6 +84,32 @@ public class AbstractModeTest {
         }		
 	}
 	
+	 @Test
+	 public void sampleColumnTest()throws Exception{
+			VcfHeader header = new VcfHeader();		 
+			header.parseHeaderLine("##qControlSample=control");
+			header.parseHeaderLine("##qTestSample=test");
+			header.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "qControlSample" + "\tqTestSample");
+ 
+			DbsnpMode mode = new DbsnpMode();
+			
+			SampleColumn column = mode.new SampleColumn(null,null, header);
+			assertTrue( column.getControlSampleColumn() == 1);
+			assertTrue( column.getTestSampleColumn() == 2);		
+			assertEquals( column.getControlSample() , "control");
+			assertEquals( column.getTestSample() , "test");	
+			
+			
+			
+			header.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "qControlSample" + "\ttest");
+			column = mode.new SampleColumn(null,null, header);
+			assertTrue( column.getControlSampleColumn() == 1);
+			assertTrue( column.getTestSampleColumn() == 2);		
+			
+	        
+	 }
+	 
+	
 	@Test
 	public void  retriveSampleColumnTest(){
 		final String control = "Control";
