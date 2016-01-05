@@ -148,6 +148,47 @@ public class ConfidenceModeTest {
 		 }		 	 	 
   			
 	 }
+	 
+	 
+	 @Test
+	 public void SampleColumnNoIDTest() throws IOException, Exception{	
+	 	DbsnpModeTest.createVcf();
+		final ConfidenceMode mode = new ConfidenceMode(patient);		
+		mode.inputRecord(new File(DbsnpModeTest.inputName));
+
+		String Scontrol = "EXTERN-MELA-20140505-001";
+		String Stest = "EXTERN-MELA-20140505-002";
+		mode.header.parseHeaderLine("##qControlSample=" + Scontrol);
+		mode.header.parseHeaderLine("##qTestSample="+ Stest);	
+		mode.header.parseHeaderLine("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tqControlSample\tqTestSample");			
+		
+		SampleColumn column = mode.new SampleColumn(Stest, Scontrol, mode.header);
+		mode.setSampleColumn(column.getTestSampleColumn(), column.getControlSampleColumn() );
+		
+		mode.addAnnotation();
+		mode.reheader("unitTest", DbsnpModeTest.inputName);
+		mode.writeVCF(new File(DbsnpModeTest.outputName)  );
+		
+		try(VCFFileReader reader = new VCFFileReader(DbsnpModeTest.outputName)){				 				 
+			for (final VcfRecord re : reader) {		
+				final VcfInfoFieldRecord infoRecord = new VcfInfoFieldRecord(re.getInfo()); 				
+				if(re.getPosition() == 2675826) 
+					//compound SNPs
+					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(Confidence.LOW.name())); 
+				else if(re.getPosition() == 22012840)
+					//isClassB
+					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(Confidence.LOW.name())); 
+//				else if(re.getPosition() == 14923588)
+				else if(re.getPosition() == 14923588 || re.getPosition() == 2675825)
+					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(Confidence.ZERO.name())); 
+				else
+					//"chrY\t77242678\t.\tCA\tTG\t.\tPASS\tEND=77242679\tACCS\tCA,10,14,TG,6,7\tCA,14,9,TG,23,21"
+					//TG alleles is 13 > 5 filter is PASS
+					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(Confidence.HIGH.name())); 
+			}
+		 }		 	 	 
+  			
+	 }
 
 //	public static void createVerifiedFile() throws IOException{
 //        final List<String> data = new ArrayList<String>();
