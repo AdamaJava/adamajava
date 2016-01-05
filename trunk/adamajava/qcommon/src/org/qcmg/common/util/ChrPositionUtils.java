@@ -61,6 +61,23 @@ public class ChrPositionUtils {
 		
 	}
 	
+	/**
+	 * converts coords in the format 9:5073770-5073770 to a ChrPosition object complete with "chr"
+	 * @param cosmicCoords
+	 * @return
+	 */
+	public static ChrPosition createCPFromCosmic(String cosmicCoords) {
+		if (StringUtils.isNullOrEmpty(cosmicCoords)) {
+			return null;
+		} else {
+			int colonIndex = cosmicCoords.indexOf(':');
+			int minusIndex = cosmicCoords.indexOf('-');
+			return new ChrPosition( "chr" + cosmicCoords.substring(0, colonIndex), 
+					Integer.parseInt(cosmicCoords.substring(colonIndex + 1, minusIndex)),
+					Integer.parseInt(cosmicCoords.substring(minusIndex + 1)));
+		}
+	}
+	
 	public static boolean arePositionsWithinDelta(ChrPosition a, ChrPosition b, int delta) {
 		// check chromosome first
 		if ( ! a.getChromosome().equals(b.getChromosome())) return false;
