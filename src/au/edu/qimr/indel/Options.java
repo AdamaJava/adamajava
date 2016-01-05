@@ -131,6 +131,8 @@ public class Options {
 		softClipWindow = Integer.parseInt( IniFileUtil.getEntry(iniFile, IniFileUtil.secParameter , "window.softClip"));
 		threadNo = Integer.parseInt( IniFileUtil.getEntry(iniFile, IniFileUtil.secParameter , "threadNo"));
 		filterQuery =  IniFileUtil.getEntry(iniFile, IniFileUtil.secParameter , "filter");
+		if(StringUtils.isNullOrEmpty(filterQuery))
+			filterQuery = null;
 		
 		testSampleid = IniFileUtil.getEntry(iniFile, IniFileUtil.secIDs, "testSample");
 		controlSampleid = IniFileUtil.getEntry(iniFile, IniFileUtil.secIDs, "controlSample");

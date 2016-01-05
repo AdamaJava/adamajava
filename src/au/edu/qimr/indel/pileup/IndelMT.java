@@ -335,14 +335,18 @@ public class IndelMT {
         // set up executor services
         ExecutorService pileupThreads = Executors.newFixedThreadPool(threadNo);    	
     	
+        QueryExecutor query = null; 
+        if(options.getFilterQuery() != null)
+        	query = new QueryExecutor(options.getFilterQuery()); 
+        
     	//each time only throw threadNo thread, the loop finish untill the last threadNo                    	
     	for(SAMSequenceRecord contig : sortedContigs ){  
     		if(options.getTestBam() != null)
-    			pileupThreads.execute(new contigPileup(contig, getIndelList(contig), options.getTestBam() ,null ,
+    			pileupThreads.execute(new contigPileup(contig, getIndelList(contig), options.getTestBam() , query,
     				 tumourQueue, Thread.currentThread() ,pileupLatch));
     		
     		if(options.getControlBam() != null)
-    			pileupThreads.execute(new contigPileup(contig, getIndelList(contig), options.getControlBam(),null ,
+    			pileupThreads.execute(new contigPileup(contig, getIndelList(contig), options.getControlBam(),query,
     				normalQueue, Thread.currentThread(),pileupLatch ));
     		
     		pileupThreads.execute(new homopoPileup(contig.getSequenceName(), getIndelList(contig), options.getReference(),
