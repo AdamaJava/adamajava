@@ -93,7 +93,7 @@ public class Options {
 		if(! StringUtils.isNullOrEmpty(f))
 			reference = new File( f );
 		
-		 f =IniFileUtil.getOutputFile(iniFile, "vcf");
+		 f =IniFileUtil.getOutputFile(iniFile, "output");
 		 if(! StringUtils.isNullOrEmpty(f))
 			 output =new File( f );	
 				
@@ -105,7 +105,7 @@ public class Options {
 		 if(! StringUtils.isNullOrEmpty(f))
 			controlBam = new File(f ) ;	
 		
-		runMode =  IniFileUtil.getEntry(iniFile, "parameters", "runMode");
+		runMode =  IniFileUtil.getEntry(iniFile, IniFileUtil.secParameter, "runMode");
 		
 		if(runMode.equalsIgnoreCase("gatk")){
 			f =  IniFileUtil.getInputFile(iniFile, "testVcf") ;
