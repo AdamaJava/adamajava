@@ -57,6 +57,7 @@ import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.util.LoadReferencedClasses;
 import org.qcmg.common.util.Pair;
+import org.qcmg.common.util.SnpUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
@@ -962,6 +963,57 @@ public class Q3ClinVar2 {
 				}
 			}
 		}
+		
+		
+		/*
+		 * distance from end of read
+		 */
+		
+		filteredMutations.stream()
+			.forEach(vcf -> {
+				final AtomicInteger middleOfReadCount = new AtomicInteger();
+				final AtomicInteger endOfReadCount = new AtomicInteger();
+				vcfFragmentMap.get(vcf).stream()
+					.forEach(array -> {
+						ampliconFragmentMap.get(new Amplicon(array[0], null)).stream()
+							.filter(f -> f.getId() == array[1])
+							.forEach(f -> {
+								if (vcf.getPosition() - f.getActualPosition().getPosition() <= 5
+										|| f.getActualPosition().getEndPosition() - vcf.getChrPosition().getEndPosition() <= 5) {
+									endOfReadCount.addAndGet(f.getRecordCount());
+								} else {
+									middleOfReadCount.addAndGet(f.getRecordCount());
+								}
+							});
+						
+					});
+				logger.info("vcf: " + vcf.toString() + ", middleOfReadCount: " + middleOfReadCount.get() + ", endOfReadCount: " + endOfReadCount.get());
+				
+				/*
+				 * Add filter to vcf if we only have end of reads - may want to be a little more strict than this
+				 */
+				if (middleOfReadCount.get() == 0 && endOfReadCount.get() > 0) {
+					VcfUtils.updateFilter(vcf, SnpUtils.END_OF_READ + endOfReadCount.get());
+				}
+			
+			});
+		
+		
+		// ends of reads check
+//		void checkForEndsOfReads(QSnpRecord rec, Accumulator normal, Accumulator tumour, char ref ) {
+//			
+//			final PileupElementLite pel = Classification.GERMLINE != rec.getClassification() ? (null != tumour? tumour.getLargestVariant(ref) : null) : 
+//				(null != normal ? normal.getLargestVariant(ref) : null);
+//			
+//			if (null != pel && pel.getEndOfReadCount() > 0) {
+//				
+//				if (pel.getMiddleOfReadCount() >= 5 && pel.isFoundOnBothStrandsMiddleOfRead()) {
+//					// all good
+//				} else {
+//					VcfUtils.updateFilter(rec.getVcfRecord(), SnpUtils.END_OF_READ + pel.getEndOfReadCount());
+//				}
+//			}
+//		}
 	}
 	
 	private void writeMutationsToFile() throws IOException {
@@ -978,6 +1030,7 @@ public class Q3ClinVar2 {
 			header.parseHeaderLine(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + QExec.createUUid());		
 			header.addQPGLine(1, "Q3Panel", exec.getToolVersion().getValue(), exec.getCommandLine().getValue(), date);
 			header.addFormatLine("FB", ".","String","Breakdown of Amplicon ids, Fragment ids and read counts supporting this mutation, along with total counts of amplicon, fragment, and reads for all reads at that location in the following format: AmpliconId,FragmentId,readCount;[...] / Sum of amplicons at this position,sum of fragments at this position,sum of read counts at this position");
+			header.addFilterLine(SnpUtils.END_OF_READ, "Indicates that the mutation occurred within the first or last 5 bp of all the reads contributing to the mutation");
 			header.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT);
 			header = VcfHeaderUtils.mergeHeaders(header, dbSnpHeaderDetails, true);
 			header = VcfHeaderUtils.mergeHeaders(header, cosmicHeaderDetails, true);
