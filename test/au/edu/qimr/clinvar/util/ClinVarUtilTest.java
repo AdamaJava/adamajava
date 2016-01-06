@@ -244,6 +244,10 @@ public class ClinVarUtilTest {
 		assertArrayEquals(new String[] {"ABCDEF","||||..","ABCDFG"}, ClinVarUtil.rescueSWData(new String[] {"ABCD","||||","ABCD"}, "ABCDEF", "ABCDFG"));
 		assertArrayEquals(new String[] {"AABCD",".||||","XABCD"}, ClinVarUtil.rescueSWData(new String[] {"ABCD","||||","ABCD"}, "AABCD", "XABCD"));
 		assertArrayEquals(new String[] {"AAABCD","..||||","ZXABCD"}, ClinVarUtil.rescueSWData(new String[] {"ABCD","||||","ABCD"}, "AAABCD", "ZXABCD"));
+		assertArrayEquals(new String[] {"AAAAABCD","....||||","YYZXABCD"}, ClinVarUtil.rescueSWData(new String[] {"ABCD","||||","ABCD"}, "AAAAABCD", "YYZXABCD"));
+		assertArrayEquals(new String[] {"AAAAABCD",".|..||||","YAZXABCD"}, ClinVarUtil.rescueSWData(new String[] {"ABCD","||||","ABCD"}, "AAAAABCD", "YAZXABCD"));
+		assertArrayEquals(new String[] {"ABCDEFGH","||||..||","ABCDFGGH"}, ClinVarUtil.rescueSWData(new String[] {"ABCD","||||","ABCD"}, "ABCDEFGH", "ABCDFGGH"));
+		assertArrayEquals(new String[] {"ABCDEFGHI","||||..||.","ABCDFGGHX"}, ClinVarUtil.rescueSWData(new String[] {"ABCD","||||","ABCD"}, "ABCDEFGHI", "ABCDFGGHX"));
 	}
 	
 	@Test
@@ -672,15 +676,11 @@ ACATTTCTATGGC	88793688,230131955,278981127,289687136,330071289,335353241,3486861
 		assertArrayEquals(new int[]{0,0}, ClinVarUtil.getBasicAndLevenshteinEditDistances("AC", "AC"));
 		assertArrayEquals(new int[]{0,0}, ClinVarUtil.getBasicAndLevenshteinEditDistances("ACG", "ACG"));
 		assertArrayEquals(new int[]{0,0}, ClinVarUtil.getBasicAndLevenshteinEditDistances("ACGT", "ACGT"));
-		
 		assertArrayEquals(new int[]{1,1}, ClinVarUtil.getBasicAndLevenshteinEditDistances("A", "C"));
 		assertArrayEquals(new int[]{1,1}, ClinVarUtil.getBasicAndLevenshteinEditDistances("C", "A"));
 		assertArrayEquals(new int[]{1,1}, ClinVarUtil.getBasicAndLevenshteinEditDistances("ACC", "AAC"));
-		
 		assertArrayEquals(new int[]{3,2}, ClinVarUtil.getBasicAndLevenshteinEditDistances("AACCGGTT", "ACCGGTTT"));
-		
 		assertArrayEquals(new int[]{3,2}, ClinVarUtil.getBasicAndLevenshteinEditDistances("frog", "fog "));
-		
 		assertArrayEquals(new int[]{13,12}, ClinVarUtil.getBasicAndLevenshteinEditDistances("GCCCCGTGCCCCAGCCCTGCGCCCCTTCCTC", "GCCCTGCGCCCCTTCCTCTCCCGTCGTCACC"));
 	}
 	
@@ -695,7 +695,6 @@ ACATTTCTATGGC	88793688,230131955,278981127,289687136,330071289,335353241,3486861
 		
 		t = t.substring(1);
 		s = s.substring(0, s.length() -1);
-		
 		assertArrayEquals(new int[]{0,0}, ClinVarUtil.getBasicAndLevenshteinEditDistances(s, t));
 	}
 	
@@ -705,7 +704,6 @@ ACATTTCTATGGC	88793688,230131955,278981127,289687136,330071289,335353241,3486861
 		swData[0] = "ACGT";
 		swData[1] = "||||";
 		swData[2] = "ACGT";
-		
 		List<Pair<Integer, String>> mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
 		assertEquals(0, mutations.size());
 	}
@@ -778,7 +776,6 @@ ACATTTCTATGGC	88793688,230131955,278981127,289687136,330071289,335353241,3486861
 		p = mutations.get(3);
 		assertEquals(Integer.valueOf(6), p.getLeft());
 		assertEquals("G/T", p.getRight());
-		
 	}
 	
 	@Test
@@ -945,7 +942,6 @@ ACATTTCTATGGC	88793688,230131955,278981127,289687136,330071289,335353241,3486861
 		assertEquals(Integer.valueOf(3), p.getLeft());
 		assertEquals("TA/T", p.getRight());
 		
-		
 		swData[0] = "AC-TACGT";
 		swData[1] = "|| |.|||";
 		swData[2] = "ACGTTCGT";
@@ -1035,7 +1031,6 @@ TAACCCTGGCTATCATTCTGCTTTTCTTGGCTGTCTTTCAGATTTGACTTTATTTCTAAAAATATTTCAATGGGTCATAT
 		assertEquals(Integer.valueOf(88), p.getLeft());
 		assertEquals("CT/C", p.getRight());
 	}
-	
 	
 	@Test
 	public void getMutationFromSWDataSingleSmallInsertion() {

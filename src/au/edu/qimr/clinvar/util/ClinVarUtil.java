@@ -673,9 +673,12 @@ public class ClinVarUtil {
 								logger.info("adding " + missingRefBases + ">" + missingBinSeqBases + " to sw diffs");
 							}
 							diffs[0] += missingRefBases;
+							StringBuilder sb = new StringBuilder(lengthDiff);
 							for (int i = 0 ; i < lengthDiff ; i++) {
-								diffs[1] += (missingRefBases.charAt(i) == missingBinSeqBases.charAt(i)) ? "|" : Constants.MISSING_DATA_STRING;
+								sb.append((missingRefBases.charAt(i) == missingBinSeqBases.charAt(i)) ? '|' : Constants.MISSING_DATA);
+//								diffs[1] += (missingRefBases.charAt(i) == missingBinSeqBases.charAt(i)) ? "|" : Constants.MISSING_DATA_STRING;
 							}
+							diffs[1] += sb.toString();
 							diffs[2] += missingBinSeqBases;
 						}
 						
@@ -707,9 +710,12 @@ public class ClinVarUtil {
 							logger.info("adding " + missingRefBases + ">" + missingBinSeqBases + " to sw diffs");
 						}
 						diffs[0] = missingRefBases + diffs[0];
-						for (int i = 0 ; i < lengthDiff ; i++) {
-							diffs[1] = "." + diffs[1];
+						StringBuilder sb = new StringBuilder(lengthDiff);
+						for (int i = 0 ; i < lengthDiff; i++) {
+							sb.append((missingRefBases.charAt(i) == missingBinSeqBases.charAt(i)) ? '|' : Constants.MISSING_DATA);
+//							diffs[1] =  ((missingRefBases.charAt(i) == missingBinSeqBases.charAt(i)) ? "|" : Constants.MISSING_DATA_STRING) + diffs[1];
 						}
+						diffs[1] = sb.toString() + diffs[1];
 						diffs[2] = missingBinSeqBases + diffs[2];
 					}
 						
