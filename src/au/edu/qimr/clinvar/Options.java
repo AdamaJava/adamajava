@@ -38,6 +38,8 @@ final class Options {
 	private final String outputFileName;
 	private final String tiledRefFileName;
 	private final String refFileName;
+	private final String cosmicFileName;
+	private final String dbSnpFileName;
 	private final String log;
 	private final Integer minBinSize;
 	private final Integer minFragSize;
@@ -63,6 +65,8 @@ final class Options {
 		parser.accepts("tiledRef", OUTPUT_FILE_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("ref", OUTPUT_FILE_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("bedFile", OUTPUT_FILE_DESCRIPTION).withRequiredArg().ofType(String.class);
+		parser.accepts("cosmic", OUTPUT_FILE_DESCRIPTION).withRequiredArg().ofType(String.class);
+		parser.accepts("dbsnp", OUTPUT_FILE_DESCRIPTION).withRequiredArg().ofType(String.class);
 //		parser.accepts("exclude", EXCLUDES_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
 		parser.accepts("minBinSize", MIN_BIN_SIZE_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
 		parser.accepts("minFragmentSize", MIN_BIN_SIZE_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
@@ -105,6 +109,8 @@ final class Options {
 		outputFileName = (String) options.valueOf("output");
 		tiledRefFileName = (String) options.valueOf("tiledRef");
 		refFileName = (String) options.valueOf("ref");
+		cosmicFileName = (String) options.valueOf("cosmic");
+		dbSnpFileName = (String) options.valueOf("dbsnp");
 		uuid = (String) options.valueOf("uuid");
 		
 		if ( ! options.nonOptionArguments().isEmpty()) {}
@@ -189,6 +195,12 @@ final class Options {
 	
 	String getXml() {
 		return xml;
+	}
+	String getCosmicFile() {
+		return cosmicFileName;
+	}
+	String getDbSnpFile() {
+		return dbSnpFileName;
 	}
 	
 	String getBedFile() {
