@@ -257,6 +257,9 @@ public class VcfRecord implements Comparable<VcfRecord> {
 	public String getChromosome() { 	return chrPos.getChromosome(); }
 	public int getPosition() { 	return chrPos.getPosition(); }
 	
+	public void appendId(String additionalId) {
+		this.id = (StringUtils.isNullOrEmpty(this.id) || this.id.equals(Constants.MISSING_DATA_STRING)) ? additionalId : this.id + ";" + additionalId;
+	}
 	public void setId(String id) { this.id = id; }
 	public String getId() { 	return id; }
 	
