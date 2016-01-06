@@ -1,24 +1,20 @@
 package org.qcmg.common.vcf;
 
-import static org.junit.Assert.*;
-
-import java.util.Arrays;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
-import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.util.Constants;
-
-import com.sun.corba.se.impl.orbutil.closure.Constant;
+import org.qcmg.common.util.TabTokenizer;
 
 public class VcfRecordTest {
 
-	
 	@Test
 	public void infoFieldTest(){
-		
 		final String[] parms = {"chrY","2675826",".","TG","CA",".","COVN12;MIUN","SOMATIC;NNS=4;END=2675826","ACCS","TG,5,37,CA,0,2","AA,1,1,CA,4,1,CT,3,1,TA,11,76,TG,2,2,TG,0,1"};
-	
 		final VcfRecord re = new VcfRecord(parms);
+		
 		assertTrue(re.getInfo().equals("SOMATIC;NNS=4;END=2675826"));
 		re.appendInfo("NNS=5");
 		assertTrue(re.getInfoRecord().getField("NNS").equals("5"));
@@ -29,12 +25,10 @@ public class VcfRecordTest {
 		
 		re.setInfo("NNS=6");
 		assertTrue(re.getInfo().equals("NNS=6"));
-		
 	}
 	
 	@Test
 	public void doesToStringWork(){
-		
 		String[] parms = {"chrY","2675826",".","TG","CA"};
 		VcfRecord re = new VcfRecord(parms);
 		
@@ -46,17 +40,35 @@ public class VcfRecordTest {
 		assertTrue(parm.length == 9);	
 		assertTrue(parm[7].equals(Constants.MISSING_DATA_STRING));	
 		
-  
-		
 		String[] parms2 = {"chrY","2675826",".","TGAA","CATT"};
 		re = new VcfRecord(parms2);
 		
 		// expecting end to be inserted by toString, and to be equal to start + 1 (compound snp)
 		reToString = re.toString();
 		assertEquals(true, re.getChrPosition().getEndPosition() == 2675829);
-		
 	}
 	
+	@Test
+	public void appendId() {
+		String[] parms = {"chrY","2675826",".","TG","CA"};
+		VcfRecord re = new VcfRecord(parms);
+		assertEquals(Constants.MISSING_DATA_STRING, re.getId());
+		
+		re.appendId(null);
+		assertEquals(null, re.getId());
+		re.appendId("");
+		assertEquals("", re.getId());
+		re.appendId(Constants.MISSING_DATA_STRING);
+		assertEquals(Constants.MISSING_DATA_STRING, re.getId());
+		re.appendId("12345");
+		assertEquals("12345", re.getId());
+		re.appendId("678");
+		assertEquals("12345;678", re.getId());
+		re.appendId("678");
+		assertEquals("12345;678;678", re.getId());
+		re.appendId("12345");
+		assertEquals("12345;678;678;12345", re.getId());
+	}
 	
 	@Test
 	public void MissingSampleColumn(){
@@ -98,7 +110,5 @@ public class VcfRecordTest {
 		assertTrue(re.getFormatFields().get(1).equals(Constants.MISSING_DATA_STRING));
 		assertTrue(re.getFormatFields().get(2).equals(Constants.MISSING_DATA_STRING));
 		assertTrue(re.getFormatFields().get(3).equals(Constants.MISSING_DATA_STRING));
-	
-		
 	}
 }
