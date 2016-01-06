@@ -22,6 +22,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -37,6 +40,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import nu.xom.Attribute;
 import nu.xom.Document;
@@ -50,18 +54,22 @@ import org.qcmg.common.meta.QExec;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.FileUtils;
+import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.util.LoadReferencedClasses;
 import org.qcmg.common.util.Pair;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
+import org.qcmg.common.vcf.header.VcfHeader.FormattedRecord;
 import org.qcmg.common.vcf.header.VcfHeader.Record;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
+import org.qcmg.common.vcf.header.VcfHeaderUtils.VcfInfoType;
 import org.qcmg.qmule.SmithWatermanGotoh;
 import org.qcmg.tab.TabbedFileReader;
 import org.qcmg.tab.TabbedHeader;
 import org.qcmg.tab.TabbedRecord;
+import org.qcmg.vcf.VCFFileReader;
 import org.qcmg.vcf.VCFFileWriter;
 
 import au.edu.qimr.clinvar.model.Amplicon;
@@ -98,6 +106,8 @@ public class Q3ClinVar2 {
 	private int minFragmentSize = 3;
 	private  int minReadPercentage = 2;
 	private int ampliconBoundary = 10;
+	final AtomicInteger outputMutations = new AtomicInteger();
+
 	
 	private final Map<String, AtomicInteger> reads = new HashMap<>();
 	private final Map<IntPair, AtomicInteger> readLengthDistribution = new HashMap<>();
@@ -114,16 +124,22 @@ public class Q3ClinVar2 {
 	private final Map<String, Fragment> frags = new HashMap<>();
 	
 	private final Map<VcfRecord, List<int[]>> vcfFragmentMap = new HashMap<>();
+	private final List<VcfRecord> filteredMutations = new ArrayList<>();
 	
 	private Map<Amplicon, List<Fragment>> ampliconFragmentMap = new HashMap<>();
 	
 	private final Map<Amplicon, List<Amplicon>> bedToAmpliconMap = new HashMap<>();
+	
+	private final VcfHeader dbSnpHeaderDetails = new VcfHeader();
+	private final VcfHeader cosmicHeaderDetails = new VcfHeader();
 	
 //	private final static Map<Pair<FastqRecord, FastqRecord>, List<Probe>> multiMatchingReads = new HashMap<>();
 	
 	private int exitStatus;
 	private int fragmentId = 1;
 	private int rawFragmentId = 1;
+	private String cosmicFile;
+	private String dbSNPFile;
 	
 	protected int engage() throws Exception {
 			
@@ -143,13 +159,14 @@ public class Q3ClinVar2 {
 		
 		createAmplicons();
 		
-		writeXml();
-		
 		mapBedToAmplicons();
 		
 		createMutations();
 		logger.info("no of mutations created: " + vcfFragmentMap.size());
-		filterAndWriteVcfs();
+		filterAndAnnotateMutations();
+		logger.info("no of filtered mutations remaining: " + filteredMutations.size());
+		writeMutationsToFile();
+		writeXml();
 		writeBam();
 		
 		logger.info("no of fastq records: " +fastqRecordCount);
@@ -379,6 +396,9 @@ public class Q3ClinVar2 {
 		q3pElement.addAttribute(new Attribute("records_parsed", "" + fastqRecordCount));
 		q3pElement.addAttribute(new Attribute("version", exec.getToolVersion().getValue()));
 		q3pElement.addAttribute(new Attribute("bed_file", bedFile));
+		q3pElement.addAttribute(new Attribute("bed_amplicon_count", ""+bedToAmpliconMap.size()));
+		q3pElement.addAttribute(new Attribute("vcf_file", outputFileNameBase + ".vcf"));
+		q3pElement.addAttribute(new Attribute("vcf_variant_count", ""+outputMutations.get()));
 		q3pElement.addAttribute(new Attribute("fastq_file_1", fastqFiles[0]));
 		q3pElement.addAttribute(new Attribute("fastq_file_2", fastqFiles[1]));
 		
@@ -760,48 +780,217 @@ public class Q3ClinVar2 {
 //		logger.info("No of records written to bam file: " + recordCount + ", no of bins with same seq size as ref: " + sameSize +", and diff size: " + diffSize + ", indelCount: " + indelCount + ", noDiffInFirs20: " + noDiffInFirs20);
 	}
 	
+	private void filterAndAnnotateMutations() throws IOException {
+		vcfFragmentMap.entrySet().stream()
+		.filter((entry) -> getRecordCountFormIntPairs(entry.getValue()) >= minBinSize )
+		.filter((entry) -> getMutationCoveragePercentage(entry.getKey(), entry.getValue()) >= minReadPercentage )
+		.sorted((e1, e2) -> {return e1.getKey().compareTo(e2.getKey());})
+		.forEach(entry -> {
+		
+			final StringBuilder mutationFragmentsDetails = new StringBuilder();
+			entry.getValue().stream()
+				.forEach(i -> {
+					if (mutationFragmentsDetails.length() > 0) {
+						mutationFragmentsDetails.append(';');
+					}
+					mutationFragmentsDetails.append(i[0]).append(',').append(i[1]).append(',').append(i[2]);
+				});
+			List<String> ff = new ArrayList<>(3);
+			ff.add("FB");
+			ff.add(mutationFragmentsDetails.toString() + "/" + ClinVarUtil.getCoverageStringAtPosition(entry.getKey().getChrPosition(), ampliconFragmentMap));
+			entry.getKey().setFormatFields(ff);
+			filteredMutations.add(entry.getKey());
+		});
+		
+		
+		Map<ChrPosition, List<VcfRecord>> cpVcfMap = filteredMutations.stream()
+				.collect(Collectors.groupingBy(VcfRecord::getChrPosition));
+				
+		/*
+		 * COSMIC
+		 */
+		if ( ! StringUtils.isBlank(cosmicFile)) {
+			Map<ChrPosition, List<String[]>> cosmicData = new HashMap<>();
+			try (Stream<String> lines = Files.lines(Paths.get(cosmicFile), Charset.defaultCharset())) {
+				cosmicData = lines.filter(s -> ! s.startsWith("Gene name"))
+					.map(s -> TabTokenizer.tokenize(s))
+					.filter(p -> StringUtils.isNotEmpty(p[23]))
+					.filter(p -> cpVcfMap.containsKey(ChrPositionUtils.createCPFromCosmic(p[23])))
+					.collect(Collectors.groupingBy(p -> ChrPositionUtils.createCPFromCosmic(p[23])));
+				
+				
+				int totalCosmicRecordCount = cosmicData.values().stream()
+					.collect(Collectors.summingInt(list -> list.size()));
+				
+				logger.info("no of entries in cosmicData: " + cosmicData.size() + " with total cosmic record count: " + totalCosmicRecordCount);
+				
+				cosmicData.entrySet().stream()
+					.forEach(entry-> {
+						logger.info("k: " + entry.getKey().toIGVString());
+						String genes = entry.getValue().stream()
+							.map(p -> p[0])
+							.distinct()
+							.collect(Collectors.joining(";"));
+						String cosmicId = entry.getValue().stream()
+								.map(p -> p[16])
+								.distinct()
+								.collect(Collectors.joining(";"));
+						String cds = entry.getValue().stream()
+								.map(p -> p[17])
+								.distinct()
+								.collect(Collectors.joining(","));
+						logger.info("genes: " + genes + ", cosmicId: " + cosmicId + ", cds: " + cds);
+						
+						/*
+						 * update vcf records with cosmic id and annotations
+						 */
+						List<VcfRecord> vcfs = cpVcfMap.get(entry.getKey());
+						vcfs.stream()
+							.forEach(v -> {
+								v.appendId(cosmicId);
+	//							v.setId(v.getId().equals(".") ? cosmicId : v.getId() + ";" + cosmicId);
+								v.appendInfo("CCDS=" + cds + ";CG=" + genes);
+							});
+					});
+				cosmicHeaderDetails.parseHeaderLine("##INFO=<ID=CG,Number=.,Type=String,Description=\"Gene as reported by Cosmic\">");
+				cosmicHeaderDetails.parseHeaderLine("##INFO=<ID=CCDS,Number=.,Type=String,Description=\"CDS as reported by Cosmic\">");
+				
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		/*
+		 * dbSNP
+		 */
+		if ( ! StringUtils.isBlank(dbSNPFile)) {
+			try (VCFFileReader reader= new VCFFileReader( dbSNPFile )) {
+				//add dbSNP version into header		
+				List<Record>  metas = reader.getHeader().getMetaRecords(); 
+				for (Record re: metas) {
+					if (re.getData().startsWith(VcfHeaderUtils.STANDARD_DBSNP_LINE))  
+						dbSnpHeaderDetails.parseHeaderLine(String.format("##INFO=<ID=%s,Number=0,Type=%s,Description=\"%s\",Source=%s,Version=%s>",
+										VcfHeaderUtils.INFO_DB, VcfInfoType.Flag.name(),
+										VcfHeaderUtils.DESCRITPION_INFO_DB, dbSNPFile, new VcfHeaderUtils.SplitMetaRecord(re).getValue()  ));  		
+				}
+						
+				Map<String, FormattedRecord> snpInfoHeader = reader.getHeader().getInfoRecords();
+				if (snpInfoHeader.get(VcfHeaderUtils.INFO_CAF) != null ) {
+					dbSnpHeaderDetails.parseHeaderLine( String.format("##INFO=<ID=%s,Number=.,Type=String,Description=\"%s\">", VcfHeaderUtils.INFO_VAF, VcfHeaderUtils.DESCRITPION_INFO_VAF  )	);
+				}
+				if (snpInfoHeader.get(VcfHeaderUtils.INFO_VLD) != null ) {
+					dbSnpHeaderDetails.addInfo(snpInfoHeader.get(VcfHeaderUtils.INFO_VLD));		 						 
+				}
+				dbSnpHeaderDetails.parseHeaderLine("##INFO=<ID=DB_CDS,Number=.,Type=String,Description=\"Reference and Alt alleles as reported by dbSNP\">");
+				
+				int dbSnpNo = 0;
+				for (final VcfRecord dbSNPVcf : reader) {
+					
+					/*
+					 * snps
+					 */
+					int start = dbSNPVcf.getPosition();
+					final String chr = IndelUtils.getFullChromosome(dbSNPVcf.getChromosome());
+					ChrPosition chrPos;
+					if (dbSNPVcf.getInfo().contains("VC=SNV")) {
+						chrPos = new ChrPosition(chr, start);
+					} else {
+						
+						/*
+						 * Taken from ftp://ftp.ncbi.nih.gov/snp/specs/00--VCF_README.txt
+						 * 
+	A note about the position.
 	
-	private void filterAndWriteVcfs() throws IOException {
+	The RSPOS tag is the position of the SNP in dbSNP and the position reported in
+	column 2 may differ from the RSPOS tag.  All alleles for an INDEL or multi-byte
+	SNP must begin with the same nucleotide and to accomplish this, the preceeding
+	base pair is prefixed to each allele and the position of this base pair is 
+	reported.
+	Also, if all of the alleles consist of the same repeated sequence or a deletion
+	the beginning of the repeat is calculated and the preceeding base pair is 
+	reported.
+	For example, if the variations are AT/ATAT/-, the position in column 2 is
+	the location of the first repeat (AT) minus one.
+						 */
+						
+						final int end =  dbSNPVcf.getRef().length() +  (start - 1);
+						chrPos = new ChrPosition(chr, start, end);
+					}
+					
+					List<VcfRecord> mutations = cpVcfMap.get(chrPos);
+					if (null == mutations || mutations.isEmpty()) {
+						continue;
+					}
+					
+					for (VcfRecord mut : mutations) {
+//						logger.info("Found dbsnp record: " + dbSNPVcf.toString() + " for mutation: " + mut.toString());
+						mut.appendId(dbSNPVcf.getId());
+						mut.appendInfo(VcfHeaderUtils.INFO_DB);
+						mut.appendInfo("DB_CDS=" + dbSNPVcf.getRef() + ">" + dbSNPVcf.getAlt());
+//						logger.info("updated mut: " + mut.toString());
+					}
+					
+								
+	//				//each dbSNP check twice, since indel alleles followed by one reference base, eg. chr1 100 . TT T ...
+	//				final int end =  dbSNPVcf.getRef().length() +  (start - 1); 
+	//				List<VcfRecord> inputVcfs = positionRecordMap.get(chrPos);
+	//				if (null != inputVcfs && inputVcfs.size() != 0){
+	//					for(VcfRecord re: inputVcfs)
+	//						if(annotateDBsnp(re, dbSNPVcf ))
+	//							dbSnpNo ++;						
+	//				}
+	//				
+	//				//check RSPOS for MNV only
+	////				String VC = dbSNPVcf.getInfoRecord().getField("VC");
+	//				if ( ! StringUtils.doesStringContainSubString(dbSNPVcf.getInfo(), "VC=MNV", false))
+	//					continue;
+	//				
+	//				//if RSPOS different to column 2
+	//				String rspos = dbSNPVcf.getInfoRecord().getField("RSPOS");
+	//				if( !StringUtils.isNullOrEmpty(rspos)){ 		
+	//					start = Integer.parseInt(rspos);
+	//					if(start == chrPos.getPosition() || start > chrPos.getEndPosition()) continue; 
+	//					
+	//					chrPos = new ChrPosition(chr, start, end );	
+	//					inputVcfs = positionRecordMap.get(chrPos);
+	//					if (null != inputVcfs && inputVcfs.size() != 0) {
+	//						for(VcfRecord re: inputVcfs)
+	//							if(annotateDBsnp(re, dbSNPVcf ))
+	//								dbSnpNo ++;					
+	//					}
+	//				}
+				}
+			}
+		}
+	}
+	
+	private void writeMutationsToFile() throws IOException {
 		try (VCFFileWriter writer = new VCFFileWriter(new File(outputFileNameBase + ".vcf"))) {
 			
-			final AtomicInteger outputMutations = new AtomicInteger();
 			/*
 			 * Setup the VcfHeader
 			 */
 			final DateFormat df = new SimpleDateFormat("yyyyMMdd");
+			String date = df.format(Calendar.getInstance().getTime());
 			VcfHeader header = new VcfHeader();
 			header.parseHeaderLine(VcfHeaderUtils.CURRENT_FILE_VERSION);		
-			header.parseHeaderLine(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + df.format(Calendar.getInstance().getTime()));		
+			header.parseHeaderLine(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + date);		
 			header.parseHeaderLine(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + QExec.createUUid());		
-			header.parseHeaderLine(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=q3ClinVar");		
+			header.addQPGLine(1, "Q3Panel", exec.getToolVersion().getValue(), exec.getCommandLine().getValue(), date);
 			header.addFormatLine("FB", ".","String","Breakdown of Amplicon ids, Fragment ids and read counts supporting this mutation, along with total counts of amplicon, fragment, and reads for all reads at that location in the following format: AmpliconId,FragmentId,readCount;[...] / Sum of amplicons at this position,sum of fragments at this position,sum of read counts at this position");
 			header.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT);
+			header = VcfHeaderUtils.mergeHeaders(header, dbSnpHeaderDetails, true);
+			header = VcfHeaderUtils.mergeHeaders(header, cosmicHeaderDetails, true);
 			
 			Iterator<Record> iter = header.iterator();
 			while (iter.hasNext()) {
 				writer.addHeader(iter.next().toString() );
 			}
-			vcfFragmentMap.entrySet().stream()
-				.filter((entry) -> getRecordCountFormIntPairs(entry.getValue()) >= minBinSize )
-				.filter((entry) -> getMutationCoveragePercentage(entry.getKey(), entry.getValue()) >= minReadPercentage )
-				.sorted((e1, e2) -> {return e1.getKey().compareTo(e2.getKey());})
+			filteredMutations.stream()
+				.sorted((e1, e2) -> {return e1.compareTo(e2);})
 				.forEach(entry -> {
-				
-					final StringBuilder mutationFragmentsDetails = new StringBuilder();
-					entry.getValue().stream()
-						.forEach(i -> {
-							if (mutationFragmentsDetails.length() > 0) {
-								mutationFragmentsDetails.append(';');
-							}
-							mutationFragmentsDetails.append(i[0]).append(',').append(i[1]).append(',').append(i[2]);
-						});
-					List<String> ff = new ArrayList<>(3);
-					ff.add("FB");
-					ff.add(mutationFragmentsDetails.toString() + "/" + ClinVarUtil.getCoverageStringAtPosition(entry.getKey().getChrPosition(), ampliconFragmentMap));
-					entry.getKey().setFormatFields(ff);
-					
 					try {
-						writer.add(entry.getKey());
+						writer.add(entry);
 						outputMutations.incrementAndGet();
 					} catch (Exception e) {
 						e.printStackTrace();
@@ -968,6 +1157,10 @@ public class Q3ClinVar2 {
 								int slashIndex = mutString.indexOf('/');
 								String ref = mutString.substring(0, slashIndex);
 								String alt = mutString.substring(slashIndex + 1);
+								if (ref.equals(alt)) {
+									logger.warn("ref is equal to alt: " + mutString);
+									logger.warn("f: " + Arrays.stream(f.getSmithWatermanDiffs()).collect(Collectors.joining("\n")));
+								}
 								createMutation(f.getActualPosition(), position , ref, alt, entry.getKey().getId(), f.getId(), f.getRecordCount());
 							}
 						}
@@ -1418,6 +1611,13 @@ public class Q3ClinVar2 {
 				} else {
 					throw new Exception("OUTPUT_FILE_WRITE_ERROR");
 				}
+			}
+			
+			if (null != options.getCosmicFile()) {
+				cosmicFile = options.getCosmicFile();
+			}
+			if (null != options.getDbSnpFile()) {
+				dbSNPFile = options.getDbSnpFile();
 			}
 			
 			refTiledAlignmentFile = options.getTiledRefFileName();
