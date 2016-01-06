@@ -674,7 +674,7 @@ public class ClinVarUtil {
 							}
 							diffs[0] += missingRefBases;
 							for (int i = 0 ; i < lengthDiff ; i++) {
-								diffs[1] += ".";
+								diffs[1] += (missingRefBases.charAt(i) == missingBinSeqBases.charAt(i)) ? "|" : Constants.MISSING_DATA_STRING;
 							}
 							diffs[2] += missingBinSeqBases;
 						}
@@ -1288,7 +1288,7 @@ public class ClinVarUtil {
 			if (toRemove.contains(f)) {
 				continue;
 			}
-			logger.info("creating amplicon based on fragment record count: " + f.getRecordCount());
+//			logger.info("creating amplicon based on fragment record count: " + f.getRecordCount());
 			/*
 			 * create ampliconGroupings entry
 			 */
