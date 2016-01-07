@@ -23,8 +23,8 @@ import au.edu.qimr.indel.Main;
 import au.edu.qimr.indel.Q3IndelException;
 
 public class ReadIndelsTest {
-	final static String input1 = "input1.vcf";
-	final static String input2 = "input2.vcf";
+	public final static String input1 = "input1.vcf";
+	public final static String input2 = "input2.vcf";
 	
 	@BeforeClass  
 	public static void createInput() {	 
@@ -53,8 +53,8 @@ public class ReadIndelsTest {
 				IndelPosition indel = positionRecordMap.get(key);
 				if(indel.getStart() == 59033286)
 					assertFalse(indel.getIndelVcf(0).getFormatFields().get(1).equals(indel.getIndelVcf(0).getFormatFields().get(2)));
-				else if(indel.getStart() == 59033423){
-					assertTrue(indel.getIndelVcf(0).getFormatFields().get(1).equals(indel.getIndelVcf(0).getFormatFields().get(2)));
+				else if(indel.getStart() == 59033423){					 
+ 					assertTrue(indel.getIndelVcf(0).getFormatFields().get(1).equals(indel.getIndelVcf(0).getFormatFields().get(2)));
 					assertTrue(indel.getIndelVcf(1).getFormatFields().get(2).equals(indel.getIndelVcf(0).getFormatFields().get(2)));
 					assertTrue(indel.getIndelVcf(1).getFormatFields().get(1).equals(".:.:.:.:." ));
 				}else if(indel.getStart() == 59033285){
@@ -125,7 +125,7 @@ public class ReadIndelsTest {
 		return no; 		
 	}
 	
-	private static void createVcf(){						
+	public static void createVcf(){						
         List<String> data = new ArrayList<String>();
         data.add("##fileformat=VCFv4.1");
         data.add("##FILTER=<ID=PASS,Description=\"test\">");
