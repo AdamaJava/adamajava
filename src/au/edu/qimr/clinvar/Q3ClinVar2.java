@@ -432,6 +432,29 @@ public class Q3ClinVar2 {
 				createAmpliconElement(amplicons, entry.getKey(), entry.getValue());
 			});
 		
+		// logging and writing to file
+		Element bedAmplicons = new Element("BedAmplicons");
+		q3pElement.appendChild(bedAmplicons);
+		bedToAmpliconMap.entrySet().stream()
+			.sorted((e1, e2) -> e1.getKey().compareTo(e2.getKey()))
+			.forEach(entry -> {
+				
+				Element amplicon = new Element("BedAmplicon");
+				bedAmplicons.appendChild(amplicon);
+				
+				// attributes
+				amplicon.addAttribute(new Attribute("id", "" + entry.getKey().getId()));
+				amplicon.addAttribute(new Attribute("position", "" + entry.getKey().getPosition().toIGVString()));
+				amplicon.addAttribute(new Attribute("amplicon_length", "" + entry.getKey().getPosition().getLength()));
+				amplicon.addAttribute(new Attribute("number_of_overlapping_fragment_amplicons", "" + entry.getValue().size()));
+				
+				String idLIst = entry.getValue().stream()
+					.sorted((a1, a2) -> a1.getPosition().compareTo(a2.getPosition()))
+					.map(a -> a.getId() + "")
+					.collect(Collectors.joining(","));
+				
+				amplicon.addAttribute(new Attribute("overlapping_fragment_amplicon_ids", "" + idLIst));
+		});
 		
 		// write output
 		Document doc = new Document(q3pElement);
