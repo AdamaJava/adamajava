@@ -30,6 +30,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -110,7 +111,8 @@ public class Q3ClinVar2 {
 	final AtomicInteger outputMutations = new AtomicInteger();
 
 	
-	private final Map<String, AtomicInteger> reads = new HashMap<>();
+	private final Map<String, List<StringBuilder>> reads = new HashMap<>();
+//	private final Map<String, AtomicInteger> reads = new HashMap<>();
 	private final Map<IntPair, AtomicInteger> readLengthDistribution = new HashMap<>();
 	private final Set<String> frequentlyOccurringRefTiles = new HashSet<>();
 	private final Map<String, TLongArrayList> refTilesPositions = new HashMap<>();
@@ -137,8 +139,8 @@ public class Q3ClinVar2 {
 //	private final static Map<Pair<FastqRecord, FastqRecord>, List<Probe>> multiMatchingReads = new HashMap<>();
 	
 	private int exitStatus;
-	private int fragmentId = 1;
 	private int rawFragmentId = 1;
+	private int fragmentId = 1;
 	private String cosmicFile;
 	private String dbSNPFile;
 	
@@ -146,7 +148,7 @@ public class Q3ClinVar2 {
 			
 		fastqRecordCount = readFastqs();
 		
-		createFragments();
+		createRawFragments();
 		
 		loadTiledAlignerData();
 		
@@ -174,7 +176,7 @@ public class Q3ClinVar2 {
 		return exitStatus;
 	}
 
-	private void createFragments() {
+	private void createRawFragments() {
 		int perfectOverlap = 0;
 		int nonPerfectOverlap = 0;
 		int smallOverlap = 0;
@@ -185,8 +187,10 @@ public class Q3ClinVar2 {
 		TIntIntHashMap nonOverlapDistribution = new TIntIntHashMap();
 		TIntIntHashMap overlapLengthDistribution = new TIntIntHashMap();
 		
-		for (Entry<String, AtomicInteger> entry : reads.entrySet()) {
-			int readCount = entry.getValue().intValue();
+		for (Entry<String, List<StringBuilder>> entry : reads.entrySet()) {
+//			for (Entry<String, AtomicInteger> entry : reads.entrySet()) {
+			int readCount = entry.getValue().size();
+//			int readCount = entry.getValue().intValue();
 			String combinedReads = entry.getKey();
 			String r1 = combinedReads.substring(0, combinedReads.indexOf(':'));
 			String r2 = combinedReads.substring(combinedReads.indexOf(':') + 1);
@@ -200,12 +204,12 @@ public class Q3ClinVar2 {
 				
 				RawFragment f = rawFragments.get(r1);
 				if (null == f) {
-					f = new RawFragment(fragmentId++, r1, readCount, r1.length());
+					f = new RawFragment(rawFragmentId++, r1, entry.getValue(), r1.length());
 					rawFragments.put(r1, f);
 				} else {
 					// update count and overlap
-					f.addCount(readCount);
-					f.addOverlap( r1.length(), readCount);
+//					f.addCount(readCount);
+					f.addOverlap( r1.length(), entry.getValue());
 				}
 				
 			} else {
@@ -264,12 +268,12 @@ public class Q3ClinVar2 {
 					
 					RawFragment f = rawFragments.get(fragment);
 					if (null == f) {
-						f = new RawFragment(fragmentId++, fragment, readCount, overlapLength);
+						f = new RawFragment(rawFragmentId++, fragment, entry.getValue(), overlapLength);
 						rawFragments.put(fragment, f);
 					} else {
 						// update count and overlap
-						f.addCount(readCount);
-						f.addOverlap(overlapLength, readCount);
+//						f.addCount(readCount);
+						f.addOverlap(overlapLength, entry.getValue());
 					}
 					
 //						AtomicInteger ai2 = fragments.get(fragment);
@@ -631,12 +635,23 @@ public class Q3ClinVar2 {
 				.filter(f -> f.getActualPosition() != null)
 				.sorted((f1,f2) -> f1.getActualPosition().compareTo(f2.getActualPosition()))
 				.forEach(f -> {
-					ChrPosition fragCp = f.getActualPosition();
 					int fragId = f.getId();
 					recordCount.addAndGet(f.getRecordCount());
-					String fragSeq = f.getSequence();
 					String [] swDiffs = f.getSmithWatermanDiffs();
 					
+					/*
+					 * Get amplicon id that this fragment belongs to
+					 */
+					AtomicInteger ampliconId = new AtomicInteger();
+					ampliconFragmentMap.entrySet().stream()
+						.filter(entry -> ChrPositionUtils.isChrPositionContained(entry.getKey().getPosition(), f.getActualPosition()))
+						.forEach(entry -> {
+							if (entry.getValue().stream()
+								.anyMatch(fr -> fr.getId() == fragId)) {
+								ampliconId.set(entry.getKey().getId());
+							}
+								
+						});
 					/*
 					 * assign different mapping quality based on record count within fragment
 					 */
@@ -644,12 +659,9 @@ public class Q3ClinVar2 {
 					/*
 					 * Deal with exact matches first
 					 */
-					if (ClinVarUtil.isSequenceExactMatch(swDiffs, fragSeq)) {
-						
-//						logger.info("bam record position: " + fragCp.getPosition() + ", seq: " + fragSeq);
-						
+					if (ClinVarUtil.isSequenceExactMatch(swDiffs,  f.getSequence())) {
 						Cigar cigar = ClinVarUtil.getCigarForMatchMisMatchOnly(f.getLength());
-						ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, 1, fragId,  f.getRecordCount(), swDiffs[0], fragCp.getChromosome(), fragCp.getPosition(), 0, fragSeq, mappingQuality);
+						ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, ampliconId.get(), swDiffs[0], f, 0, mappingQuality);
 					} else if (ClinVarUtil.doesSWContainSnp(swDiffs) && ! ClinVarUtil.doesSWContainIndel(swDiffs)) {
 						/*
 						 * Snps only here
@@ -657,7 +669,8 @@ public class Q3ClinVar2 {
 						if (swDiffs[1].length() == f.getLength()) {
 							// just snps and same length
 							Cigar cigar = ClinVarUtil.getCigarForMatchMisMatchOnly(f.getLength());
-							ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, 1, fragId,  f.getRecordCount(), swDiffs[0], fragCp.getChromosome(), fragCp.getPosition(), 0, fragSeq, mappingQuality);
+//							ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, 1, fragId,  f.getRecordCount(), swDiffs[0], fragCp.getChromosome(), fragCp.getPosition(), 0, fragSeq, mappingQuality);
+							ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, ampliconId.get(), swDiffs[0], f, 0, mappingQuality);
 						} else {
 							logger.info("snps only but length differs, swDiffs[1].length(): " + swDiffs[1].length() + ", f.getLength(): " + f.getLength());
 						}
@@ -665,7 +678,7 @@ public class Q3ClinVar2 {
 					} else if ( ! ClinVarUtil.doesSWContainSnp(swDiffs) && ClinVarUtil.doesSWContainIndel(swDiffs)) {
 						// indels only
 						String ref = swDiffs[0].replaceAll("-","");
-						Cigar cigar = ClinVarUtil.getCigarForIndels(ref,  fragSeq, swDiffs,  fragCp);
+						Cigar cigar = ClinVarUtil.getCigarForIndels(ref,   f.getSequence(), swDiffs,  f.getActualPosition());
 //						if (cigar.toString().equals("75M2I80M")) {
 //							logger.info("ref: " + ref);
 //							logger.info("fragSeq: " + fragSeq);
@@ -674,7 +687,8 @@ public class Q3ClinVar2 {
 //								logger.info("s: " + s);
 //							}
 //						}
-						ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, 1, fragId,  f.getRecordCount(), ref, fragCp.getChromosome(), fragCp.getPosition(), 0, fragSeq, mappingQuality);
+//						ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, 1, fragId,  f.getRecordCount(), ref, fragCp.getChromosome(), fragCp.getPosition(), 0, fragSeq, mappingQuality);
+						ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, ampliconId.get(), ref, f, 0, mappingQuality);
 					} else {
 						// snps and indels
 					}
@@ -1258,16 +1272,23 @@ public class Q3ClinVar2 {
 			for (FastqRecord rec : reader1) {
 				FastqRecord rec2 = reader2.next();
 				
+				StringBuilder readHeader = new StringBuilder(rec.getReadHeader());
+//				readHeader.append(Constants.DOUBLE_HASH);
+//				readHeader.append(rec2.getReadHeader());
+				readHeader.trimToSize();
+				
 				/*
 				 * Put entries into map - don't collapse at the moment as we could save some processing if we have multiple identical reads
 				 */
 				String r1Andr2 = rec.getReadString() + ":" + rec2.getReadString();
-				AtomicInteger ai = reads.get(r1Andr2);
-				if (null == ai) {
-					reads.put(r1Andr2, new AtomicInteger(1));
-				} else {
-					ai.incrementAndGet();
+				
+				List<StringBuilder> readHeaderList = reads.get(r1Andr2);
+				if (null == readHeaderList) {
+					readHeaderList = new ArrayList<>(2);
+					reads.put(r1Andr2, readHeaderList);
 				}
+				readHeaderList.add(readHeader);
+				
 				IntPair ip = new IntPair(rec.getReadString().length(), rec2.getReadString().length());
 				if (ip.getInt1() == ip.getInt2()) {
 					sameReadLength++;
@@ -1482,14 +1503,14 @@ public class Q3ClinVar2 {
 					positionFound++;
 					
 					RawFragment rf = rawFragments.get(fragment);
-					
+					List<StringBuilder> rfHeaders = rf.getReadHeaders();
 					String forwardStrandFragment = forwardStrand ? fragment : SequenceUtil.reverseComplement(fragment);
-					int currentCount =  rf.getCount();
-					positionFoundReadCount += currentCount;
+//					int currentCount =  rf.getCount();
+					positionFoundReadCount += rfHeaders.size();
 					
 					Fragment f = frags.get(forwardStrandFragment);
 					if (null == f) {
-						f = new Fragment(rawFragmentId++, forwardStrandFragment, forwardStrand ? currentCount : 0, forwardStrand ? 0 : currentCount, bestTiledCp, rf.getOverlapDistribution());
+						f = new Fragment(fragmentId++, forwardStrandFragment, forwardStrand ? rfHeaders : Collections.emptyList(), forwardStrand ? Collections.emptyList() : rfHeaders, bestTiledCp, rf.getOverlapDistribution());
 						frags.put(forwardStrandFragment, f);
 					} else {
 						// update count
@@ -1498,12 +1519,12 @@ public class Q3ClinVar2 {
 							if (f.getFsCount() != 0) {
 								logger.warn("already have fs count for this fragment!!!");
 							}
-							f.setForwardStrandCount(currentCount);
+							f.setForwardStrandCount(rfHeaders);
 						} else {
 							if (f.getRsCount() != 0) {
 								logger.warn("already have rs count for this fragment!!!");
 							}
-							f.setReverseStrandCount(currentCount);
+							f.setReverseStrandCount(rfHeaders);
 						}
 						f.addOverlapDistribution(rf.getOverlapDistribution());
 					}

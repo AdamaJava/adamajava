@@ -2,37 +2,43 @@ package au.edu.qimr.clinvar.model;
 
 import gnu.trove.list.array.TIntArrayList;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class RawFragment implements Comparable<RawFragment> {
 	
 	private final int id;
 	private final String fragment;
-	private int count;
+	private final List<StringBuilder> readHeaders = new ArrayList<>(2);
+//	private int count;
 	private final TIntArrayList overlapDistribution = new TIntArrayList();
 	
-	public RawFragment(int id,String sequence, int count, int overlap) {
+	public RawFragment(int id,String sequence, List<StringBuilder> headers, int overlap) {
+//		public RawFragment(int id,String sequence, int count, int overlap) {
 		this.id = id;
 		this.fragment = sequence;
-		this.count = count;
-		addOverlap(overlap, count);
+//		this.count = count;
+		addOverlap(overlap, headers);
 	}
 	
-	public void addCount(int count) {
-		this.count += count;
-	}
-	public void addOverlap(int overlap, int count) {
-		int[] array = new int[count];
+	public void addOverlap(int overlap, List<StringBuilder> headers) {
+		int[] array = new int[headers.size()];
 		Arrays.fill(array, overlap);
 		this.overlapDistribution.add(array);
+		this.readHeaders.addAll(headers);
 	}
 	
 	public String getSequence() {
 		return fragment;
 	}
 	
+	public List<StringBuilder> getReadHeaders() {
+		return readHeaders;
+	}
+	
 	public int getCount() {
-		return count;
+		return readHeaders.size();
 	}
 	
 	public TIntArrayList getOverlapDistribution() {
@@ -67,7 +73,7 @@ public class RawFragment implements Comparable<RawFragment> {
 
 	@Override
 	public int compareTo(RawFragment b) {
-		return  b.count - count;
+		return  b.readHeaders.size() - this.readHeaders.size();
 	}
 
 	public int getId() {

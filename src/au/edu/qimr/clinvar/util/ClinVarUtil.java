@@ -900,18 +900,70 @@ public class ClinVarUtil {
 	public static void addSAMRecordToWriter(SAMFileHeader header, SAMFileWriter writer, Cigar cigar, int probeId, int binId, int binSize, String referenceSeq, String chr, int position, int offset, String binSeq) {
 		addSAMRecordToWriter( header, writer, cigar, probeId, binId, binSize, referenceSeq, chr, position, offset, binSeq, 60);
 	}
+	public static void addSAMRecordToWriter(SAMFileHeader header, SAMFileWriter writer, Cigar cigar, int ampliconId, String refSeq, Fragment f,  int offset, int mappingQuality) {
+//		public static void addSAMRecordToWriter(SAMFileHeader header, SAMFileWriter writer, Cigar cigar, int probeId, int binId, int binSize, String referenceSeq, String chr, int position, int offset, String binSeq, int mappingQuality) {
+		/*
+		 * Setup some common properties on the sam record
+		 */
+		int binSize = f.getRecordCount();
+		int i = 0;
+		for (StringBuilder sb : f.getFsHeaders()) {
+			SAMRecord rec = createSAMRecord(header, cigar,ampliconId, f.getId(), binSize, refSeq, f.getActualPosition().getChromosome(), f.getActualPosition().getPosition(), offset, f.getSequence(), i, mappingQuality, true, sb.toString());
+			writer.addAlignment(rec);
+		}
+		for (StringBuilder sb : f.getRsHeaders()) {
+			SAMRecord rec = createSAMRecord(header, cigar,ampliconId, f.getId(), binSize, refSeq, f.getActualPosition().getChromosome(), f.getActualPosition().getPosition(), offset, f.getSequence(), i, mappingQuality, false, sb.toString());
+			writer.addAlignment(rec);
+		}
+		
+//		for (int i = 0 ; i < binSize ; i++) {
+//			SAMRecord rec = createSAMRecord(header, cigar,ampliconId, f.getId(), binSize, referenceSeq, f.getActualPosition().getChromosome(), f.getActualPosition().getPosition(), offset, f.getSequence(), i, mappingQuality);
+//			writer.addAlignment(rec);
+//		}
+	}
 	public static void addSAMRecordToWriter(SAMFileHeader header, SAMFileWriter writer, Cigar cigar, int probeId, int binId, int binSize, String referenceSeq, String chr, int position, int offset, String binSeq, int mappingQuality) {
 		/*
 		 * Setup some common properties on the sam record
 		 */
+		
 		for (int i = 0 ; i < binSize ; i++) {
-			SAMRecord rec = createSAMRecord(header, cigar,probeId, binId, binSize, referenceSeq, chr, position, offset, binSeq, i, mappingQuality);
+			SAMRecord rec = createSAMRecord(header, cigar, probeId, binId, binSize, referenceSeq,chr,position, offset, binSeq, i, mappingQuality);
 			writer.addAlignment(rec);
 		}
 	}
 	
 	public static SAMRecord createSAMRecord(SAMFileHeader header, Cigar cigar, int probeId, int binId, int binSize, String referenceSeq, String chr, int position, int offset, String binSeq, int i) {
 		return createSAMRecord(header, cigar, probeId, binId, binSize, referenceSeq, chr, position, offset, binSeq, i, 60);
+	}
+	public static SAMRecord createSAMRecord(SAMFileHeader header, Cigar cigar, int probeId, int binId, int binSize, String referenceSeq, String chr, int position, int offset, String binSeq, int i, int mappingQuality, boolean forwardStrand, String readName) {
+		if (org.qcmg.common.string.StringUtils.isNullOrEmpty(referenceSeq)) {
+			throw new IllegalArgumentException("Null or empty reference passed to ClinVarUtil.createSAMRecord: " + referenceSeq);
+		}
+		if (null == cigar) {
+			throw new IllegalArgumentException("Null cigar passed to ClinVarUtil.createSAMRecord");
+		}
+		
+		SAMRecord rec = new SAMRecord(header);
+		rec.setReadName(readName);
+		rec.setReadNegativeStrandFlag( ! forwardStrand);
+		rec.setReferenceName(chr);
+		rec.setReadString(binSeq);
+		rec.setAttribute("ai", probeId);
+		rec.setAttribute("bi", binId);
+		rec.setAttribute("CT",  probeId + "_" + binId + "_" + (i + 1) + "_of_" + binSize);
+		rec.setMappingQuality(mappingQuality);
+		rec.setCigar(cigar);
+		/*
+		 * Set the alignment start to 1, which is a hack to get around picards calculateMdAndNmTags method which is expecting the entire ref for the chromosome in question
+		 * and we only have the amplicon ref seq.
+		 * Reset once MD and NM have been calculated and set
+		 */
+		rec.setAlignmentStart(1);
+		
+		SequenceUtil.calculateMdAndNmTags(rec, referenceSeq.substring(offset).getBytes(), true, true);
+		rec.setAlignmentStart(position + offset);
+		
+		return rec;
 	}
 	public static SAMRecord createSAMRecord(SAMFileHeader header, Cigar cigar, int probeId, int binId, int binSize, String referenceSeq, String chr, int position, int offset, String binSeq, int i, int mappingQuality) {
 		if (org.qcmg.common.string.StringUtils.isNullOrEmpty(referenceSeq)) {
@@ -1375,4 +1427,6 @@ public class ClinVarUtil {
 		}
 		return true;
 	}
+
+	
 }
