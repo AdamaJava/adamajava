@@ -25,6 +25,7 @@ dependencies {
         }
 
 	compile name: 'htsjdk', version: '1.140'	
+	compile name: 'picard', version: 'lib' 
 	compile name: 'antlr', version: '3.2'
 	compile name: 'jopt-simple', version: '4.6'
 	compile name: 'ini4j', version: '0.5.2-SNAPSHOT'
