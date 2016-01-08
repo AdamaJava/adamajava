@@ -129,7 +129,7 @@ public class IndelPileupTest {
         try {
            out = new BufferedWriter(new FileWriter(inputBam ));
            for (String line : data) 
-                   out.write(line + "\n");          
+        	   out.write(line + "\n");          
            out.close();
         } catch (IOException e) {
             System.err.println("IOException caught whilst attempting to write to SAM test file: " + inputBam  + e);

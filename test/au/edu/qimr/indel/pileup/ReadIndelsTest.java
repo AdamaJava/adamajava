@@ -37,8 +37,11 @@ public class ReadIndelsTest {
 		new File(input2).delete();
 	}
 	
+	
+
+	
 	@Test
-	public void appendIndels(){
+	public void appendIndelsTest(){
 		 
 		try{
 			ReadIndels indelload = new ReadIndels(QLoggerFactory.getLogger(Main.class, null, null));		
@@ -163,5 +166,7 @@ public class ReadIndelsTest {
          }       
              
 	}
+	
+
 	
 }
