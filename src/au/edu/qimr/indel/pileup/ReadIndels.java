@@ -33,8 +33,8 @@ public class ReadIndels {
 	}
 	
 	/**
-	 * merge first sample column to existing variants which is stored on hash map
-	 * @param f: vcf file
+	 * merge first sample column of input to existing variants which is stored on hash map
+	 * @param f: input of vcf file
 	 * @throws IOException
 	 */
 	public void appendIndels(File f) throws IOException{
@@ -83,10 +83,12 @@ public class ReadIndels {
         
 	}	
 	
+	
 	/**
-	 * @param indels a list of indels with same position
-	 * @param pos: a new indel with same position
-	 * @return true: if the input vcf merged into existing vcf which from first input vcf file. otherwise return false: add a new indel vcf record
+	 * Add this vcf record if not exists on RAM, move  the original first sample column to second column and mark missing data '.' on the first column; 
+	 * Or merge this vcf record into existed variants: replace the second sample column of exist variants with first sample column of new one.
+	 * @param secondVcf: a vcf record
+	 * @return true if same variants exist and merge them; otherwise return false by adding this new variants 
 	 */
 	public boolean mergeIndel(  VcfRecord secondVcf){
 		
