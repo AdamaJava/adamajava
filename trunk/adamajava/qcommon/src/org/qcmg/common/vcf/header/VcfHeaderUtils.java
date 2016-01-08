@@ -97,6 +97,7 @@ public class VcfHeaderUtils {
 	public static final String STANDARD_FILE_DATE = "##fileDate";
 	public static final String STANDARD_SOURCE_LINE = "##qSource";
 	public static final String STANDARD_UUID_LINE = "##qUUID";
+	public static final String STANDARD_ANALYSIS_ID = "##qAnalysisId=";
 	public static final String STANDARD_DONOR_ID = "##qDonorId";
 	public static final String STANDARD_CONTROL_SAMPLE = "##qControlSample";
 	public static final String STANDARD_TEST_SAMPLE = "##qTestSample";
