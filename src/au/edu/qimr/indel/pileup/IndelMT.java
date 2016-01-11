@@ -479,9 +479,9 @@ public class IndelMT {
 		}
 		if( options.getTestBam() != null ){
 			String tumourBamName = options.getTestBam().getAbsolutePath();
-			header.parseHeaderLine( VcfHeaderUtils.STANDARD_CONTROL_BAM  + "=" + tumourBamName);
+			header.parseHeaderLine( VcfHeaderUtils.STANDARD_TEST_BAM  + "=" + tumourBamName);
 			header.parseHeaderLine( "##qControlBamUUID=" + QBamIdFactory.getBamId(tumourBamName));		 			 			 	
-			header.parseHeaderLine( "##qAnalysisId=" + options.getAnalysisId() );
+			header.parseHeaderLine( VcfHeaderUtils.STANDARD_ANALYSIS_ID +"=" + options.getAnalysisId() );
 		}		
 		
 		//add filter

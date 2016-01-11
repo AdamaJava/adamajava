@@ -57,6 +57,13 @@ public class IndelPileup {
 		this.coverage  = pool.size();		
 		if(coverage >= 1000) return; 
 		
+//		//debug
+//		System.out.println(">>>>>>>>>debug..\n");
+//		 for(SAMRecord record: pool)
+//			 System.out.println(record.getSAMString());
+//		 System.out.println(">>>>>>>>end debug..\n");
+		
+		
 		this.nearbysoftClip = getSoftCounts(pool);
 		List<SAMRecord> infoPool = getInformative(pool);
 		this.informativeCount = infoPool.size();	
@@ -287,8 +294,8 @@ public class IndelPileup {
 				int clipStartPosition = record.getAlignmentStart()-1;
 				if (clipStartPosition >= windowStart && clipStartPosition <= windowEnd){  			
 					count ++;
-//					//debug
-//					System.out.println("softClip left: " + record.getSAMString());
+					//debug
+					//System.out.println("softClip left: " + record.getSAMString());
 				}
 			}
 			//check right hand clipping
@@ -297,8 +304,8 @@ public class IndelPileup {
 				//clip start position is in the window to the left of the indel			
 				if (clipEndPosition >= windowStart && clipEndPosition <= windowEnd){  			
 					count ++;	
-//					//debug
-//					System.out.println("softClip right: " + record.getSAMString());
+					//debug
+					System.out.println("softClip right: " + record.getSAMString());
 				}
 			}
 		}		

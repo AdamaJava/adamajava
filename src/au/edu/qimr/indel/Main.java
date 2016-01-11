@@ -2,8 +2,6 @@ package au.edu.qimr.indel;
 
 
 import org.qcmg.common.log.QLogger;
-import org.qcmg.common.log.QLoggerFactory;
-import org.qcmg.common.meta.QExec;
 import org.qcmg.common.util.LoadReferencedClasses;
 
 import au.edu.qimr.indel.pileup.IndelMT;
