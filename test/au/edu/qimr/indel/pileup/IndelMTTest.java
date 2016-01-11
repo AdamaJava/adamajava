@@ -151,7 +151,7 @@ public class IndelMTTest {
  			assertTrue( headerlist.get(VcfHeaderUtils.STANDARD_INPUT_LINE + "_GATK_TEST").equals(options.getTestInputVcf().getAbsolutePath()) );
  			assertTrue( headerlist.get(VcfHeaderUtils.STANDARD_INPUT_LINE + "_GATK_CONTROL").equals(options.getControlInputVcf().getAbsolutePath()) ); 			
  			assertTrue( headerlist.get( VcfHeaderUtils.STANDARD_CONTROL_BAM ).equals(options.getControlBam().getAbsolutePath()) );
-// 			assertTrue( headerlist.get(VcfHeaderUtils.STANDARD_TEST_BAM ).equals(options.getTestBam().getAbsolutePath()) );
+ 			assertTrue( headerlist.get(VcfHeaderUtils.STANDARD_TEST_BAM ).equals(options.getTestBam().getAbsolutePath()) );
   			assertTrue( headerlist.get(VcfHeaderUtils.STANDARD_ANALYSIS_ID).equals(options.getAnalysisId()) );
 		
 		} catch (Exception e) {
