@@ -135,6 +135,7 @@ public class Q3ClinVar2 {
 	
 	private final VcfHeader dbSnpHeaderDetails = new VcfHeader();
 	private final VcfHeader cosmicHeaderDetails = new VcfHeader();
+	private VcfHeader header = new VcfHeader();
 	
 //	private final static Map<Pair<FastqRecord, FastqRecord>, List<Probe>> multiMatchingReads = new HashMap<>();
 	
@@ -432,7 +433,6 @@ public class Q3ClinVar2 {
 				createAmpliconElement(amplicons, entry.getKey(), entry.getValue());
 			});
 		
-		// logging and writing to file
 		Element bedAmplicons = new Element("BedAmplicons");
 		q3pElement.appendChild(bedAmplicons);
 		bedToAmpliconMap.entrySet().stream()
@@ -455,6 +455,23 @@ public class Q3ClinVar2 {
 				
 				amplicon.addAttribute(new Attribute("overlapping_fragment_amplicon_ids", "" + idLIst));
 		});
+		
+		/*
+		 * Vcf records
+		 */
+		Element vcfs = new Element("VcfRecords");
+		q3pElement.appendChild(vcfs);
+		filteredMutations.stream()
+			.sorted((v1, v2) -> v1.getChrPosition().compareTo(v2.getChrPosition()))
+			.forEach(v -> {
+				
+				Element vcf = new Element("VcfRecord");
+				vcfs.appendChild(vcf);
+				vcf.appendChild(v.toString());
+				
+			});
+		
+		
 		
 		// write output
 		Document doc = new Document(q3pElement);
@@ -1061,7 +1078,7 @@ public class Q3ClinVar2 {
 			 */
 			final DateFormat df = new SimpleDateFormat("yyyyMMdd");
 			String date = df.format(Calendar.getInstance().getTime());
-			VcfHeader header = new VcfHeader();
+			
 			header.parseHeaderLine(VcfHeaderUtils.CURRENT_FILE_VERSION);		
 			header.parseHeaderLine(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + date);		
 			header.parseHeaderLine(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + QExec.createUUid());		
