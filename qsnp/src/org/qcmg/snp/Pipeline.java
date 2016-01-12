@@ -5,6 +5,15 @@
 package org.qcmg.snp;
 
 import gnu.trove.map.TIntCharMap;
+import htsjdk.samtools.Cigar;
+import htsjdk.samtools.CigarElement;
+import htsjdk.samtools.CigarOperator;
+import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SAMSequenceDictionary;
+import htsjdk.samtools.SAMSequenceRecord;
+import htsjdk.samtools.reference.FastaSequenceFile;
+import htsjdk.samtools.reference.ReferenceSequence;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,16 +40,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import htsjdk.samtools.reference.FastaSequenceFile;
-import htsjdk.samtools.reference.ReferenceSequence;
-import htsjdk.samtools.Cigar;
-import htsjdk.samtools.CigarElement;
-import htsjdk.samtools.CigarOperator;
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMSequenceDictionary;
-import htsjdk.samtools.SAMSequenceRecord;
 
 import org.ini4j.Ini;
 import org.qcmg.common.log.QLevel;
@@ -290,6 +289,7 @@ public abstract class Pipeline {
 		logger.tool("**** CONFIG ****");
 		logger.tool("mutantReadsFilterValue: " + mutantReadsFilterValue);
 		logger.tool("novelStartsFilterValue: " + novelStartsFilterValue);
+		logger.tool("singleSampleMode: " + singleSampleMode);
 		if ( ! StringUtils.isNullOrEmpty(query)) {
 			logger.tool("query: " + query);
 			logger.tool("noOfRecordsFailingFilter: " + noOfRecordsFailingFilter);
