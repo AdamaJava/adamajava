@@ -1,5 +1,11 @@
 package org.qcmg.qmule.bam;
 
+import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SAMRecordIterator;
+import htsjdk.samtools.SAMSequenceRecord;
+import htsjdk.samtools.SamReader;
+
 import java.io.File;
 import java.util.AbstractQueue;
 import java.util.ArrayList;
@@ -13,12 +19,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicLongArray;
-
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMRecordIterator;
-import htsjdk.samtools.SAMSequenceRecord;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -301,7 +301,7 @@ public class CheckBam {
 			// configure logging
 			logFile = options.getLogFile();
 			logger = QLoggerFactory.getLogger(GetBamRecords.class, logFile, options.getLogLevel());
-			logger.logInitialExecutionStats("GetBamRecords", GetBamRecords.class.getPackage().getImplementationVersion(), args);
+			logger.logInitialExecutionStats("CheckBam", CheckBam.class.getPackage().getImplementationVersion(), args);
 			
 			// get list of file names
 			cmdLineInputFiles = options.getInputFileNames();
