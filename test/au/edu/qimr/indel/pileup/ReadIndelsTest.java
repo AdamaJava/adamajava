@@ -17,7 +17,10 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.vcf.VcfFormatFieldRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
+
+import com.sun.medialib.mlib.Constants;
 
 import au.edu.qimr.indel.Main;
 import au.edu.qimr.indel.Q3IndelException;
@@ -25,6 +28,7 @@ import au.edu.qimr.indel.Q3IndelException;
 public class ReadIndelsTest {
 	public final static String input1 = "input1.vcf";
 	public final static String input2 = "input2.vcf";
+	public final static String input3 = "input3.vcf";
 	
 	@BeforeClass  
 	public static void createInput() {	 
@@ -35,9 +39,38 @@ public class ReadIndelsTest {
 	public static void clearInput() {	 		
 		new File(input1).delete();
 		new File(input2).delete();
+		new File(input3).delete();
 	}
 	
-	
+	@Test
+	public void multiDeletionTest(){
+		
+		//only keep one variants since the allel CA is CTX
+		//we only deal with indel which is single base on ref or allel
+		try{
+			ReadIndels indelload = new ReadIndels(QLoggerFactory.getLogger(Main.class, null, null));		
+			indelload.LoadIndels(new File(input3));				
+			Map<ChrPosition, IndelPosition> positionRecordMap = indelload.getIndelMap();
+			assertTrue(positionRecordMap.size() == 1);
+			 
+			for( ChrPosition key : positionRecordMap.keySet()){
+				IndelPosition indel = positionRecordMap.get(key);
+				assertTrue(indel.getIndelVcfs().size() == 1);
+				indel.getIndelVcf(0).equals("C");
+				
+				//check format GT field
+				List<String> format = indel.getIndelVcfs().get(0).getFormatFields();
+				VcfFormatFieldRecord record = new VcfFormatFieldRecord(format.get(0), format.get(1));
+				assertTrue(record.getField("GT").equals("."));
+				
+				record = new VcfFormatFieldRecord(format.get(0), format.get(2));
+				assertTrue(record.getField("GT").equals("."));
+			}
+
+		}catch(Exception e){
+			assertFalse(true);
+		}		
+	}
 
 	
 	@Test
@@ -47,6 +80,7 @@ public class ReadIndelsTest {
 			ReadIndels indelload = new ReadIndels(QLoggerFactory.getLogger(Main.class, null, null));		
 			indelload.LoadIndels(new File(input1));	
 			assertTrue(getHeaderLineCounts(indelload.getVcfHeader()) == 7);
+			//in case of GATK, take the second sample column
 			indelload.appendIndels(new File(input2));
 			assertTrue(getHeaderLineCounts(indelload.getVcfHeader()) == 7);
 			
@@ -56,10 +90,12 @@ public class ReadIndelsTest {
 				IndelPosition indel = positionRecordMap.get(key);
 				if(indel.getStart() == 59033286)
 					assertFalse(indel.getIndelVcf(0).getFormatFields().get(1).equals(indel.getIndelVcf(0).getFormatFields().get(2)));
-				else if(indel.getStart() == 59033423){					 
- 					assertTrue(indel.getIndelVcf(0).getFormatFields().get(1).equals(indel.getIndelVcf(0).getFormatFields().get(2)));
-					assertTrue(indel.getIndelVcf(1).getFormatFields().get(2).equals(indel.getIndelVcf(0).getFormatFields().get(2)));
-					assertTrue(indel.getIndelVcf(1).getFormatFields().get(1).equals(".:.:.:.:." ));
+				else if(indel.getStart() == 59033423){	
+ 					assertTrue(indel.getIndelVcf(0).getFormatFields().get(1).equals("0/1:7,4:11:99:257,0,348"));
+ 					assertTrue(indel.getIndelVcf(0).getFormatFields().get(2).equals(".:7,5:.:.:."));
+					
+					assertTrue(indel.getIndelVcf(1).getFormatFields().get(1).equals(".:." ));
+					assertTrue(indel.getIndelVcf(1).getFormatFields().get(2).equals(".:7,5"));
 				}else if(indel.getStart() == 59033285){
 					assertFalse(indel.getIndelVcf(0).getFormatFields().get(1).equals(indel.getIndelVcf(0).getFormatFields().get(2))); 
 					assertTrue(indel.getIndelVcf(0).getFormatFields().get(1).equals(".:.:.:.:." ));						 
@@ -80,7 +116,7 @@ public class ReadIndelsTest {
 //			for(String alt : tt[i].split(","))
 //				System.out.println(tt[i] + " splitted to " + alt);
 		
-		createVcf();
+	//	createVcf();
 		ReadIndels indelload = new ReadIndels(QLoggerFactory.getLogger(Main.class, null, null));				
 		try{
 			//load single file
@@ -151,19 +187,35 @@ public class ReadIndelsTest {
         }        
         
         
-        List<String> data2 = new ArrayList<String>(data);
-        data2.add("##PG:\"creating second file\"");
-        data2.add("chrY	59033285	.	GGT	G	724.73	PASS	AC=1;AF=0.500;AN=2;BaseQRankSum=0.873;ClippingRankSum=0.277;DP=208;FS=1.926;MLEAC=1;MLEAF=0.500;MQ=57.66;MQ0=0;MQRankSum=1.328;QD=3.48;ReadPosRankSum=-0.302;END=59033287	GT:AD:DP:GQ:PL	0/1:131,31:162:99:762,0,4864	0/1:80,17:97:99:368,0,3028");
-        data2.add("chrY	59033286	.	GT	G	724.73	PASS	AC=1;AF=0.500;AN=2;BaseQRankSum=0.873;ClippingRankSum=0.277;DP=208;FS=1.926;MLEAC=1;MLEAF=0.500;MQ=57.66;MQ0=0;MQRankSum=1.328;QD=3.48;ReadPosRankSum=-0.302;END=59033287	GT:AD:DP:GQ:PL	0/1:131,31:162:99:762,0,4864	0/1:80,17:97:99:368,0,3028");
-        data2.add("chrY	59033423	.	T	A,TC,TCG	219.73	PASS	AC=1;AF=0.500;AN=2;BaseQRankSum=-1.034;ClippingRankSum=0.278;DP=18;FS=0.000;MLEAC=1;MLEAF=0.500;MQ=47.46;MQ0=0;MQRankSum=-2.520;QD=12.21;ReadPosRankSum=-1.769	GT:AD:DP:GQ:PL	0/1:7,4:11:99:257,0,348	0/1:17,2:19:72:72,0,702");            
+        data1 = new ArrayList<String>(data);
+        data1.add("##PG:\"creating second file\"");
+        data1.add("#CHROM	POS	ID      REF     ALT     QUAL	FILTER	INFO	FORMAT	S1	S2"); 
+        data1.add("chrY	59033285	.	GGT	G	724.73	PASS	AC=1;AF=0.500;AN=2;BaseQRankSum=0.873;ClippingRankSum=0.277;DP=208;FS=1.926;MLEAC=1;MLEAF=0.500;MQ=57.66;MQ0=0;MQRankSum=1.328;QD=3.48;ReadPosRankSum=-0.302;END=59033287	GT:AD:DP:GQ:PL	0/1:131,31:162:99:762,0,4864	0/1:80,17:97:99:368,0,3028");
+        data1.add("chrY	59033286	.	GT	G	724.73	PASS	AC=1;AF=0.500;AN=2;BaseQRankSum=0.873;ClippingRankSum=0.277;DP=208;FS=1.926;MLEAC=1;MLEAF=0.500;MQ=57.66;MQ0=0;MQRankSum=1.328;QD=3.48;ReadPosRankSum=-0.302;END=59033287	GT:AD:DP:GQ:PL	0/1:131,31:162:99:762,0,4864	0/1:80,17:97:99:368,0,3028");
+        data1.add("chrY	59033423	.	T	A,TC,TCG	219.73	PASS	AC=1;AF=0.500;AN=2;BaseQRankSum=-1.034;ClippingRankSum=0.278;DP=18;FS=0.000;MLEAC=1;MLEAF=0.500;MQ=47.46;MQ0=0;MQRankSum=-2.520;QD=12.21;ReadPosRankSum=-1.769	GT:AD	0/1:7,5	1/2:9,9");            
        //input2 with 6 head line but VcfReader will append CHROM line
         try( BufferedWriter out = new BufferedWriter(new FileWriter(input2 ))) {	           
-            for (String line : data2)  
+            for (String line : data1)  
                     out.write(line + "\n");	           	            
          }catch(IOException e){
          	System.err.println( Q3IndelException.getStrackTrace(e));	 	        	 
          	assertTrue(false);
-         }       
+         }  
+        
+        data1 = new ArrayList<String>(data);
+        data1.add("##PG:\"creating second file\"");    
+        data1.add("#CHROM	POS	ID      REF     ALT     QUAL	FILTER	INFO	FORMAT	S1	S2"); 
+        data1.add("chrY	59033286	.	CAA	C,CA	724.73	PASS	AC=1;END=59033287	GT:AD:DP:GQ:PL	1/2:14,38,25:77:99:1229,323,592,448,0,527	1/1:14,38,25:77:99:1229,323,592,448,0,527");
+          //input1 with 7 lines
+        try( BufferedWriter out = new BufferedWriter(new FileWriter(input3 ))) {	           
+           for (String line : data1)  
+                   out.write(line + "\n");	           	            
+        }catch(IOException e){
+        	System.err.println( Q3IndelException.getStrackTrace(e));	 	        	 
+        	assertTrue(false);
+        }         
+        
+  
              
 	}
 	

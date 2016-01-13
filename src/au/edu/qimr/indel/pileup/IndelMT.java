@@ -117,7 +117,14 @@ public class IndelMT {
 						passFilter = exec.Execute(re);
 					else
 						passFilter = !re.getReadUnmappedFlag() && (!re.getDuplicateReadFlag() || !options.excludeDuplicates());
-			 		if(! passFilter ) continue; 			 					 	 
+			 		
+			 	 	if(! passFilter ) continue;
+			 	 	//debug
+//			 		if(! passFilter ) {
+//			 			if(topPos.getStart() == 2672735)
+//			 				System.out.println(">>> \n" + re.getSAMString());
+//			 			
+//			 			continue; }
 			 			 		
 			 		//whether in current indel region
 			 		if(re.getAlignmentStart() <= topPos.getEnd() && current_pool.size() < MAXRAMREADS )

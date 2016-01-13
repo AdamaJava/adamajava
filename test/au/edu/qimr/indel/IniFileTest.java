@@ -7,13 +7,16 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import junit.framework.Assert;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.qcmg.common.util.Constants;
  
 
 public class IniFileTest {
@@ -124,10 +127,7 @@ public class IniFileTest {
         }catch(IOException e){
         	System.err.println( Q3IndelException.getStrackTrace(e));	 	        	 
         	assertTrue(false);
-        }
-		
-		
-		
+        }	
 	}
 
 }

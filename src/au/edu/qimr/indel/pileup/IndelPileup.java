@@ -55,14 +55,7 @@ public class IndelPileup {
 			
 		if(pool.size() == 0 ) return; 
 		this.coverage  = pool.size();		
-		if(coverage >= 1000) return; 
-		
-//		//debug
-//		System.out.println(">>>>>>>>>debug..\n");
-//		 for(SAMRecord record: pool)
-//			 System.out.println(record.getSAMString());
-//		 System.out.println(">>>>>>>>end debug..\n");
-		
+		if(coverage >= 1000) return; 		
 		
 		this.nearbysoftClip = getSoftCounts(pool);
 		List<SAMRecord> infoPool = getInformative(pool);

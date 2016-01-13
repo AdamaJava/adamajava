@@ -119,18 +119,18 @@ public class IndelMTTest {
 			mt.process(2,false);
 						
 			//check output
-			int line = 0;
+			int passNo = 0;
 			VcfRecord record = null;
 			VcfHeader header = null; 
 			try (VCFFileReader reader = new VCFFileReader(IniFileTest.output)) {
 				header = reader.getHeader();
 				for (VcfRecord re : reader) {	
-					line ++;
+					passNo ++;
 					record = re; 	  
 				}
 			}
 			//there is no record pass the query so no indel counts
-			assertTrue(line == 1);
+			assertTrue(passNo == 1);
 			assertTrue(record.getSampleFormatRecord(1).getField(IndelUtils.INFO_ACINDEL).equals("."));
 			assertTrue(record.getSampleFormatRecord(2).getField(IndelUtils.INFO_ACINDEL).equals("."));
 			
@@ -181,7 +181,11 @@ public class IndelMTTest {
 		data.add("ST-E00139:69:H08HBALXX:6:2114:11941:59236\t147\tchrY\t2672722\t60\t28S13M1I109M\t=\t2672317\t-527\tTTTTTTTTTTTTTGTTGTTTATTTTTTTGTGTGTGTGTGTGTTTTTTTTTTTTTTTTCCAAAAAACCAGTTCCTGAATTCATTGATTTTTTGAAGGGTTTTTTGTGTCACTGTC\t*");
 		data.add("ST-E00139:69:H08HBALXX:6:2101:12165:26009\t163\tchrY\t2672730\t60\t6M1D145M\t=\t2672990\t407\tGTGTGATTTTTTTTTTTTTCCAAAAAACCAGTTCCTGAATTCATTGATTTTTTGAAGGGTTTTTTGTGTCACTGTCCCCTTCAGTTTCACTCTGATCTTAGTTATTTCTTATCT\t*");
 		data.add("ST-E00139:69:H08HBALXX:6:1219:26425:9220\t83\tchrY\t2672736\t60\t41S110M\t=\t2672368\t-478\tTTTTTTTTCTTGTTGTCTTTTTTTTTTTGTTTTTTTTTTTTTTTTTTTTTTTTTTCCAAAAAACCAGTTCCTGAATTCATTGATTTTTTGAAGGGTTTTTTGTGTCACTGTCCCCTTCAGTT\t*");	
- 
+
+		//duplicate
+		data.add("ST-E00139:69:H08HBALXX:6:1219:26425:9221\t1107\tchrY\t2672736\t60\t41S110M\t=\t2672368\t-478\tTTTTTTTTCTTGTTGTCTTTTTTTTTTTGTTTTTTTTTTTTTTTTTTTTTTTTTTCCAAAAAACCAGTTCCTGAATTCATTGATTTTTTGAAGGGTTTTTTGTGTCACTGTCCCCTTCAGTT\t*");	
+
+		
         try( BufferedWriter out = new BufferedWriter(new FileWriter(output + ".sam"))) {	           
            for (String line : data)  
                    out.write(line + "\n");	           	            

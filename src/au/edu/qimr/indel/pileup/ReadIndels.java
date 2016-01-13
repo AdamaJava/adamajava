@@ -10,8 +10,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.util.IndelUtils.SVTYPE;
+import org.qcmg.common.vcf.VcfFormatFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
@@ -61,8 +63,8 @@ public class ReadIndels {
         	header = VcfHeaderUtils.mergeHeaders(header, reader.getHeader(), false);
 			for (final VcfRecord re : reader) {	
 				inLines ++;
-    			String StrAlt = re.getAlt(); 
-    			
+				resetGenotype(re);
+    			String StrAlt = re.getAlt();    			
 				for(String alt : StrAlt.split(",")){
 					inVariants ++;
 					SVTYPE type = IndelUtils.getVariantType(re.getRef(), alt);
@@ -145,7 +147,8 @@ public class ReadIndels {
         	//no chr in front of position
 			for (final VcfRecord re : reader) {	
 				inLines ++;
-    			String StrAlt = re.getAlt(); 
+				resetGenotype(re);
+    			String StrAlt = re.getAlt();     			    			
 				for(String alt : StrAlt.split(",")){
 					inVariants ++;
 					SVTYPE type = IndelUtils.getVariantType(re.getRef(), alt);
@@ -161,7 +164,36 @@ public class ReadIndels {
 		  logger.info(String.format("Find %d indels from %d variants (%d records lines) within file: %s",
 						positionRecordMap.size(), inVariants, inLines, f.getAbsoluteFile()));
 				 
-			     
+		
+		  
+		  
+	}
+	
+	/**
+	 * change the input vcf by putting '.' on "GT" field if there are multi Alleles existis;
+	 * do nothing if not multi Alleles or not GT field on format column
+	 * @param vcf: input vcf record
+	 */
+	public void resetGenotype(VcfRecord vcf){
+		if(!vcf.getAlt().contains(","))
+			return;
+		
+		List<String> format = vcf.getFormatFields();
+		List<String> newformat = new ArrayList<String>();
+		newformat.add(format.get(0));
+		for(int i = 1; i < format.size(); i ++){
+			VcfFormatFieldRecord re = new  VcfFormatFieldRecord(format.get(0), format.get(i));
+			//if "GT" field is not exist, do nothing
+			if(re.getField(VcfHeaderUtils.FORMAT_GENOTYPE) == null)
+				return; 
+			else if (! re.getField(VcfHeaderUtils.FORMAT_GENOTYPE).equals(Constants.MISSING_DATA_STRING)){
+				re.setField(VcfHeaderUtils.FORMAT_GENOTYPE, Constants.MISSING_DATA_STRING);
+				newformat.add(re.toString());
+			}				
+		}
+		
+		vcf.setFormatFields(newformat);
+		
 	}
 	
 	/**

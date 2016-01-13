@@ -53,9 +53,6 @@ public class HomopolymerTest {
 		Homopolymer homo = new Homopolymer(indel, getReference(), 3);
 		assertTrue(homo.getUpBaseCount(0) .equals( Homopolymer.nullValue)); //   .getType(0).equals(HOMOTYPE.HOMCON));
 		assertTrue(homo.getDownBaseCount(0).equals( "3C" ));  //.getHomopolymerCount(0)  == 3);
-		
-		//debug
-		System.out.println(homo.getPolymerSequence(0));
 		assertTrue(homo.getPolymerSequence(0).equals("GCT__CCC"));
 		
 		homo = new Homopolymer(indel, getReference(), 100);
