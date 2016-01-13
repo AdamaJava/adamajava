@@ -10,18 +10,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Before;
+
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.vcf.VcfFormatFieldRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
-
-import com.sun.medialib.mlib.Constants;
-
 import au.edu.qimr.indel.Main;
 import au.edu.qimr.indel.Q3IndelException;
 
