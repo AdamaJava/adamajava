@@ -31,9 +31,12 @@ public class VcfFormatFieldRecord {
 	
 		final String[] values= sample.split(Constants.COLON_STRING);
 		for(int i = 0; i < field.size(); i ++) {
+			
 			if(values.length > i ) {// && values[i] != null)
+				//eg. GT:AD 0/1:2:3, here "3" will be discard
 				field.put(keys[i], values[i] );
 			} else {
+				//eg. GT:AD 0/1, here put '.' on "AD" field
 				field.put(keys[i], Constants.MISSING_DATA_STRING);
 			}
 		}
@@ -49,8 +52,7 @@ public class VcfFormatFieldRecord {
 		if (null == key) {
 			throw new IllegalArgumentException("null key passed to getField");
 		}
-		
-		
+				
 		if( ! field.containsKey(key))
 			return null; 
 		
@@ -61,6 +63,31 @@ public class VcfFormatFieldRecord {
 		
 		return value;
 	}
+	
+	/**
+	 * replace or set new field to foramt and sample column
+	 * @param key : new field will append/replace to format column
+	 * @param value: new field value will append/replace to sample column
+	 */
+	public void setField(String key, String value){
+		if (null == key) {
+			throw new IllegalArgumentException("null key passed to getField");
+		}
+		
+		field.put(key, value );
+				
+//		if( ! field.containsKey(key))
+//			return null; 
+//		
+//		String value = field.get(key);
+//		
+//		if(StringUtils.isNullOrEmpty(value))
+//			return Constants.MISSING_DATA_STRING;
+//		
+//		return value;
+	}	
+	
+	
 	
 	/**
 	 * 
