@@ -70,12 +70,6 @@ public class IndelPileupTest {
         assertTrue(pileup.getsuportReadCount(1) == 1); 
         assertTrue(pileup.getnovelStartReadCount(1)== 1);
         assertTrue(pileup.getparticalReadCount(1) == 1); 	
-				
-//		System.out.println("motif: " + pileup.getmotif(0));
-//		System.out.println("informative counts: " + pileup.getInformativeCount());
-//		System.out.println("support counts: " + pileup.getsuportReadCount(0));
-//		System.out.println("novel start counts: " + pileup.getnovelStartReadCount(0));
-//		System.out.println("partial counts: " + pileup.getparticalReadCount(0));					
 	}	
 	
 	@Test

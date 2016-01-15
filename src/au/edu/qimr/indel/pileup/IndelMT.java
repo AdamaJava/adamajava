@@ -119,12 +119,6 @@ public class IndelMT {
 						passFilter = !re.getReadUnmappedFlag() && (!re.getDuplicateReadFlag() || !options.excludeDuplicates());
 			 		
 			 	 	if(! passFilter ) continue;
-			 	 	//debug
-//			 		if(! passFilter ) {
-//			 			if(topPos.getStart() == 2672735)
-//			 				System.out.println(">>> \n" + re.getSAMString());
-//			 			
-//			 			continue; }
 			 			 		
 			 		//whether in current indel region
 			 		if(re.getAlignmentStart() <= topPos.getEnd() && current_pool.size() < MAXRAMREADS )
@@ -366,10 +360,7 @@ public class IndelMT {
         	query = new QueryExecutor(options.getFilterQuery()); 
         
     	//each time only throw threadNo thread, the loop finish untill the last threadNo                    	
-    	for(SAMSequenceRecord contig : sortedContigs ){  
-    		if(options.getTestBam() != null)
-    			pileupThreads.execute(new contigPileup(contig, getIndelList(contig), options.getTestBam() , query,
-    				 tumourQueue, Thread.currentThread() ,pileupLatch));
+    	for(SAMSequenceRecord contig : sortedContigs ){ 
     		
     		if(options.getControlBam() != null)
     			pileupThreads.execute(new contigPileup(contig, getIndelList(contig), options.getControlBam(),query,
@@ -429,14 +420,7 @@ public class IndelMT {
 		final AbstractQueue<IndelPosition> orderedList = getIndelList(null);
 		logger.info("reading indel position:  " + orderedList.size() );
 		try(VCFFileWriter writer = new VCFFileWriter( output)) {	
-			
-//			List<File> inputs = new ArrayList<File>();
-//			if(options.getRunMode().equalsIgnoreCase("gatk")){
-//				inputs.add(options.getTestInputVcf());
-//				inputs.add(options.getControlInputVcf());				
-//			}else
-//				inputs = options.getInputVcfs();
-							
+						
 			//reheader
 			getHeaderForIndel(header);	
         	for(final VcfHeader.Record record: header)  
