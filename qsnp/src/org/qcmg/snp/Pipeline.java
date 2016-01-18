@@ -1738,27 +1738,26 @@ public abstract class Pipeline {
 				qRecord.setFlankingSequence(String.valueOf(cpgCharArray));
 				
 				// only do fisher for SOMATICS
-				if (Classification.SOMATIC == qRecord.getClassification()) {
-					// fisher test work here - we need an alt to do this
-					final int normalAlt = null != normal ? normal.getBaseCountForBase(alt) : 0;		// a
-					final int normalRef = null != normal ? normal.getBaseCountForBase(ref) : 0;	// c
-					final int tumourAlt = null != tumour ? tumour.getBaseCountForBase(alt) : 0;		// b
-					final int tumourRef = null != tumour ? tumour.getBaseCountForBase(ref) : 0;	// d
-					
-					
-					// don't run this if we have crazy large coverage - takes too long and holds up the other threads
-					if (normalCoverage + tumourCoverage > 100000) {
-						logger.info("skipping FisherExact pValue calculation - coverage too large: " + normalCoverage + ", tCov: " + tumourCoverage + ", at " + currentChr + ":" + position);
-					} else {
-						final double pValue = FisherExact.getTwoTailedFETMath(normalAlt, tumourAlt, normalRef, tumourRef);
-	//					if (normalAlt > 1000 || normalRef > 1000 || tumourAlt > 1000 || tumourRef > 1000) {
-	//						logger.info("pValue: " + pValue );
-	//					}
-		//				logger.info("pvalue for following values (a,b,c,d:pvalue): " + normalAlt + "," + tumourAlt + "," + normalRef + "," + tumourRef + ": " + pValue);
-						qRecord.setProbability(pValue);
-						if (++pValueCount % 1000 == 0) logger.info("hit " + pValueCount + " pValue calculations");
-					}
-				}
+				/*
+				 * Not using the Fisher 2-tailed test at the mo...
+				 */
+//				if (Classification.SOMATIC == qRecord.getClassification()) {
+//					// fisher test work here - we need an alt to do this
+//					final int normalAlt = null != normal ? normal.getBaseCountForBase(alt) : 0;		// a
+//					final int normalRef = null != normal ? normal.getBaseCountForBase(ref) : 0;	// c
+//					final int tumourAlt = null != tumour ? tumour.getBaseCountForBase(alt) : 0;		// b
+//					final int tumourRef = null != tumour ? tumour.getBaseCountForBase(ref) : 0;	// d
+//					
+//					
+//					// don't run this if we have crazy large coverage - takes too long and holds up the other threads
+//					if (normalCoverage + tumourCoverage > 100000) {
+//						logger.info("skipping FisherExact pValue calculation - coverage too large: " + normalCoverage + ", tCov: " + tumourCoverage + ", at " + currentChr + ":" + position);
+//					} else {
+//						final double pValue = FisherExact.getTwoTailedFETMath(normalAlt, tumourAlt, normalRef, tumourRef);
+//						qRecord.setProbability(pValue);
+//						if (++pValueCount % 1000 == 0) logger.info("hit " + pValueCount + " pValue calculations");
+//					}
+//				}
 				
 				// strand bias check
 				checkForStrandBias(qRecord, normal, tumour, ref);
