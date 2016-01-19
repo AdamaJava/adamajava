@@ -520,23 +520,15 @@ public class IndelMT {
 		if(contig == null){ //get whole reference
 			list.addAll(positionRecordMap.values());	
 		}else{	  //get all chrPosition on specified contig	
-		for(ChrPosition pos : positionRecordMap.keySet())
-			if(pos.getChromosome().equals(contig.getSequenceName()))
-				list.add(positionRecordMap.get(pos));	 
+			for(ChrPosition pos : positionRecordMap.keySet())
+				if(pos.getChromosome().equals(contig.getSequenceName()))
+					list.add(positionRecordMap.get(pos));	 
 		}
-  
-		final Comparator<String> chrComparator = new Comparator<String>() {
-			@Override
-			public int compare(String o1, String o2) {
-				return sortedContigs.indexOf(o1) - sortedContigs.indexOf(o2);
-			}
-		};
+		
 		Collections.sort(list, new Comparator<IndelPosition>() {
 			@Override
 			public int compare(IndelPosition o1, IndelPosition o2) {
-				final int diff = chrComparator.compare(o1.getChrPosition().getChromosome(), o2.getChrPosition().getChromosome());
-				if (diff != 0) return diff;
-				return o1.getChrPosition().getPosition() - o2.getChrPosition().getPosition();
+				return o1.getChrPosition().compareTo( o2.getChrPosition());
 			}
 		});
 		

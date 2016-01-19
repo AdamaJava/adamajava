@@ -69,13 +69,14 @@ public class IndelMTTest {
 	public void clear() throws IOException {
 		File dir = new java.io.File( "." ).getCanonicalFile();		
 		for(File f: dir.listFiles())
-		    if(f.getName().endsWith(".fai")  ||  f.getName().endsWith(".ini")  ||
+		    if(f.getName().endsWith(".fai")  ||  f.getName().endsWith(".ini")  || f.getName().endsWith(".bai")  ||
 		    		f.getName().endsWith(".vcf") || f.getName().endsWith(".bam") || f.getName().endsWith(".sam")     )
 		        f.delete();
 		
 	}
 	
 	@Test
+	//without apply query that is only discard duplicats and unmapped 
 	public void noQueryTest(){
 		String[] args = {"-i", ini_noquery};
 		 
@@ -92,13 +93,15 @@ public class IndelMTTest {
 				header = reader.getHeader();
 				for (VcfRecord re : reader) {	
 					line ++;
-					record = re; 	  
-				}
+					record = re; 						
+					if(record.getChromosome().equals("chrY"))
+						//input 12 reads including one duplicate so coverage is 11
+						assertTrue(record.getSampleFormatRecord(1).getField("ACINDEL").equals("3,12,11,4[2,2],2,4,4"));
+					}
 			}
 			
-			assertTrue(line == 1);			
-			//input 12 reads including one duplicate so coverage is 11
-			assertTrue(record.getSampleFormatRecord(1).getField("ACINDEL").equals("3,12,11,4[2,2],2,4,4"));
+			assertTrue(line == 4);			
+			
 			
 		} catch (Exception e) {
 			Assert.fail("Should not threw a Exception");
@@ -107,6 +110,7 @@ public class IndelMTTest {
 	}
 	
 	@Test
+	// check whether query work, check output vcf header and variant order
 	public void withQueryTest(){
 		
 		String[] args = {"-i", ini_query}; 
@@ -124,13 +128,25 @@ public class IndelMTTest {
 				header = reader.getHeader();
 				for (VcfRecord re : reader) {	
 					passNo ++;
-					record = re; 	  
+					record = re; 
+					//test the output variants order
+					if(passNo == 1)
+						assertTrue(record.getChromosome().equals("chr11") && record.getPosition() == 2672734 && record.getChrPosition().getEndPosition() == 2672736);
+					else if(passNo == 2)
+						assertTrue(record.getChromosome().equals("chr11") && record.getPosition() == 2672739 && record.getChrPosition().getEndPosition() == 2672741);
+					else if(passNo == 3)
+						assertTrue(record.getChromosome().equals("chr11") && record.getPosition() == 2672739 && record.getChrPosition().getEndPosition() == 2672742);
+					else if(passNo == 2)
+						assertTrue(record.getChromosome().equals("chrY") && record.getPosition() == 2672735 && record.getChrPosition().getEndPosition() == 2672737);
+
 				}
 			}
 			//there is no record pass the query so no indel counts
-			assertTrue(passNo == 1);
-			assertTrue(record.getSampleFormatRecord(1).getField(IndelUtils.INFO_ACINDEL).equals("."));
-			assertTrue(record.getSampleFormatRecord(2).getField(IndelUtils.INFO_ACINDEL).equals("."));
+			assertTrue(passNo == 4);
+			if(record.getChromosome().equals("chrY")){
+				assertTrue(record.getSampleFormatRecord(1).getField(IndelUtils.INFO_ACINDEL).equals("."));
+				assertTrue(record.getSampleFormatRecord(2).getField(IndelUtils.INFO_ACINDEL).equals("."));
+			}
 			
 			//check sample column name
 			assertTrue(header.getSampleId()[0].equals(VcfHeaderUtils.STANDARD_CONTROL_SAMPLE.replaceAll("#", "")));
@@ -210,7 +226,10 @@ public class IndelMTTest {
         data.add("##fileformat=VCFv4.1");
         data.add("##contig=<ID=chrY,length=59373566>");
         data.add("#CHROM	POS	ID      REF     ALT     QUAL	FILTER	INFO	FORMAT	S1"); 
+        data.add("chr11	2672739	.	ATT	A	123.86	.	.	GT	0/1"); 
         data.add("chrY	2672735	.	ATT	A	123.86	.	.	GT	0/1"); 
+        data.add("chr11	2672739	.	ATTC	A	123.86	.	.	GT	0/1"); 
+        data.add("chr11	2672734	.	ATT	A	123.86	.	.	GT	0/1"); 
         
         //input1 with 7 lines
         try( BufferedWriter out = new BufferedWriter(new FileWriter(vcf ))) {	           
