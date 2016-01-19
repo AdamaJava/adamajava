@@ -42,7 +42,7 @@ public class IndelConfidenceMode extends AbstractMode{
 	private final IndelConfidenceOptions options;
 	final int MAX_CONTIG_SIZE = 250000000;	
 	static final float DEFAULT_NIOC = 0.1f;
-	static final int DEFAULT_HOMCNTXTN = 6;
+	static final int DEFAULT_HOMCNTXT = 6;
 	final BitSet[] mask = new BitSet[24]; 
 		
  	//filters 
@@ -52,7 +52,15 @@ public class IndelConfidenceMode extends AbstractMode{
 			+ "coverage more than 1000, or fallen in repeat region; set to LOW for reminding variants";
  	
 	public static final String DESCRITPION_FILTER_REPEAT = String.format( "this variants is fallen into the repeat region");
-//	public enum Confidence{	HIGH , LOW, ZERO ; }	
+//	public enum Confidence{	HIGH , LOW, ZERO ; }
+	
+	@Deprecated
+	//unit test only
+	public IndelConfidenceMode(){
+		logger = null;
+		options = null;
+	}
+	
 	public IndelConfidenceMode(IndelConfidenceOptions options, QLogger logger) throws Exception{	
 		this.logger = logger;	
 		this.options = options;
@@ -65,10 +73,7 @@ public class IndelConfidenceMode extends AbstractMode{
 //        can't inputRecord, since same position may have multi entry for differnt insertion
 //		inputRecord(new File( options.getInputFileName())   );
  
-		addAnnotation(options.getDatabaseFileName() );
- 
- 		
- 				
+		addAnnotation(options.getDatabaseFileName() );				
 	}
 
 	/**
@@ -103,7 +108,7 @@ public class IndelConfidenceMode extends AbstractMode{
 	/*
 	 *check the confidence level
 	 */
-	private Confidence getConfidence(VcfRecord vcf){
+	 Confidence getConfidence(VcfRecord vcf){
 		String filter = vcf.getFilter();
 		if( filter.equals(VcfHeaderUtils.FILTER_PASS) ){
 			//check nearby indel  
@@ -116,7 +121,7 @@ public class IndelConfidenceMode extends AbstractMode{
 			}
 			
 			int lhomo = 0;
-			info = vcf.getInfoRecord().getField("HOMCNTXTN");
+			info = vcf.getInfoRecord().getField(IndelUtils.INFO_HOMCNTXT);
 			if(info != null){
 				int pos = info.indexOf(Constants.COMMA_STRING);
 				info = info.substring(0,pos);
@@ -127,7 +132,7 @@ public class IndelConfidenceMode extends AbstractMode{
 				}
 			}
 			
-			if(rate <= DEFAULT_NIOC && lhomo <= DEFAULT_HOMCNTXTN )
+			if(rate <= DEFAULT_NIOC && lhomo <= DEFAULT_HOMCNTXT )
 				return Confidence.HIGH;			
 			
 		}else if(filter.equals(IndelUtils.FILTER_HCOVN) || filter.equals(IndelUtils.FILTER_HCOVT) || 
@@ -141,7 +146,7 @@ public class IndelConfidenceMode extends AbstractMode{
 	}
 	
  
-	private boolean isRepeat(VcfRecord vcf){
+	 boolean isRepeat(VcfRecord vcf){
        	try{
     		String chr = vcf.getChromosome().toLowerCase(); 
     		if(chr.startsWith("chr"))

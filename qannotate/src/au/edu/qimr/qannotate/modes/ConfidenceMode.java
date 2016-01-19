@@ -102,9 +102,6 @@ public class ConfidenceMode extends AbstractMode{
 			for(VcfRecord vcf : vcfs){					
 			 	final ChrPosition pos = vcf.getChrPosition();
 			 	VcfFormatFieldRecord formatField = (vcf.getInfo().contains(VcfHeaderUtils.INFO_SOMATIC)) ? vcf.getSampleFormatRecord(test_column) :  vcf.getSampleFormatRecord(control_column);
-	//debug
-			 	if(pos.getPosition() == 77242678)
-			 		System.out.println(vcf.toString());
 		    		    	
 			 	if ( checkNovelStarts(HIGH_CONF_NOVEL_STARTS_PASSING_SCORE, formatField)
 						&& ( getAltFrequency(formatField, vcf.getAlt()) >=  HIGH_CONF_ALT_FREQ_PASSING_SCORE)
