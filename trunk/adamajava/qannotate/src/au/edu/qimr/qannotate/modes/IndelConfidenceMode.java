@@ -39,7 +39,11 @@ import au.edu.qimr.qannotate.options.IndelConfidenceOptions;
  */
 public class IndelConfidenceMode extends AbstractMode{
 	private final QLogger logger;
-	private final IndelConfidenceOptions options;
+//	private final IndelConfidenceOptions options;
+	
+	final String input;
+	final String output;
+	final String commandLine;
 	final int MAX_CONTIG_SIZE = 250000000;	
 	static final float DEFAULT_NIOC = 0.1f;
 	static final int DEFAULT_HOMCNTXT = 6;
@@ -58,21 +62,23 @@ public class IndelConfidenceMode extends AbstractMode{
 	//unit test only
 	public IndelConfidenceMode(){
 		logger = null;
-		options = null;
+ 		this.input = null;
+		this.output = null;
+		commandLine = null;
 	}
 	
 	public IndelConfidenceMode(IndelConfidenceOptions options, QLogger logger) throws Exception{	
 		this.logger = logger;	
-		this.options = options;
+		input = options.getInputFileName();
+		output = options.getOutputFileName();
+		commandLine = options.getCommandLine();
+		
 		logger.tool("input: " + options.getInputFileName());
         logger.tool("mask File: " + options.getDatabaseFileName() );
         logger.tool("output annotated records: " + options.getOutputFileName());
         logger.tool("logger file " + options.getLogFileName());
         logger.tool("logger level " + options.getLogLevel()); 
-        
-//        can't inputRecord, since same position may have multi entry for differnt insertion
-//		inputRecord(new File( options.getInputFileName())   );
- 
+          
 		addAnnotation(options.getDatabaseFileName() );				
 	}
 
@@ -178,14 +184,14 @@ public class IndelConfidenceMode extends AbstractMode{
 		long count = 0;
 		long repeatCount = 0; 
 	
-		try (VCFFileReader reader = new VCFFileReader(options.getInputFileName()  ) ;
-                VCFFileWriter writer = new VCFFileWriter(new File( options.getOutputFileName() ))  ) {
+		try (VCFFileReader reader = new VCFFileReader(input) ;
+                VCFFileWriter writer = new VCFFileWriter(new File(output ))  ) {
 			    
 			//reheader
 		    VcfHeader hd = 	reader.getHeader();
 		    hd.addFilterLine(FILTER_REPEAT, DESCRITPION_FILTER_REPEAT );       	  
 		    hd.addInfoLine(VcfHeaderUtils.INFO_CONFIDENT, "1", "String", DESCRITPION_INFO_CONFIDENCE);		    
-		    hd = reheader(hd, options.getCommandLine(),options.getInputFileName());			    	  
+		    hd = reheader(hd, commandLine ,input);			    	  
 	
 		    for(final VcfHeader.Record record: hd)  
 		    	writer.addHeader(record.toString());
