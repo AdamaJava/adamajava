@@ -17,7 +17,8 @@ public enum SnpEffConsequence {
 	//decide whether DEL or Ins 
 	CHROMOSOME_LARGE_DELETION("chromosome",50,"RNA"),   //???
 	EXON_DELETED("exon_loss_variant",50,"RNA"),
-	FRAME_SHIFT("frameshift_variant",1,"Frame_Shift_DelORFrame_Shift_Ins(dependsonvarianttype)"),
+//	FRAME_SHIFT("frameshift_variant",1,"Frame_Shift_DelORFrame_Shift_Ins(dependsonvarianttype)"),
+	FRAME_SHIFT("frameshift_variant",1,"Frame_Shift_"),
 	RARE_AMINO_ACID("rare_amino_acid_variant",3,"Missense_Mutation"),
 	SPLICE_SITE_ACCEPTOR("splice_acceptor_variant",2,"Splice_Site"),
 	SPLICE_SITE_DONOR("splice_donor_variant",2,"Splice_Site"),
@@ -102,10 +103,7 @@ public enum SnpEffConsequence {
  	STOP_GAINED_PLUS_NON_SYNONYMOUS_CODING("stop_gained+missense_variant",1,"indle"),
  	STOP_LOST_PLUS_NON_SYNONYMOUS_STOP("stop_lost+stop_retained_variant",1,"indle"),
 
- 
-//	FRAME_SHIFT("frameshift_variant",1,"Frame_Shift_DelORFrame_Shift_Ins(dependsonvarianttype)"),
-
-	//below require snpEff classic run
+ 	//below require snpEff classic run
 	EXON_NON_CODING("non_coding_exon_variant",100,"unknown"),  //should be "EXON"
 	NEXT_PROT("sequence_feature",200,"unknown") ,
 	MOTIF("TF_binding_site_variant", 200, "unknown");

@@ -17,6 +17,8 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.qcmg.common.commandline.Executor;
 import org.qcmg.common.util.Constants;
+import org.qcmg.common.util.IndelUtils;
+import org.qcmg.common.util.IndelUtils.SVTYPE;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
@@ -25,7 +27,7 @@ import au.edu.qimr.qannotate.modes.AbstractMode.SampleColumn;
 import au.edu.qimr.qannotate.options.Vcf2mafOptions;
 import au.edu.qimr.qannotate.utils.SnpEffConsequence;
 import au.edu.qimr.qannotate.utils.SnpEffMafRecord;
-import au.edu.qimr.qannotate.utils.SnpEffMafRecord.Variant_Type;
+
 
 public class Vcf2mafTest {
 	static String outputDir = new File(DbsnpModeTest.inputName).getAbsoluteFile().getParent() + "/output";
@@ -165,7 +167,7 @@ public class Vcf2mafTest {
 	 		assertTrue(maf.getColumnValue(6).equals(parms[1] ));		
 	 		assertTrue(maf.getColumnValue(7).equals(parms[1] ));		
 	 		assertTrue(maf.getColumnValue(8).equals(Dmaf.getColumnValue(8) ));		
-	 		assertTrue(maf.getColumnValue(10).equals(Variant_Type.SNP.name() ));	
+	 		assertTrue(maf.getColumnValue(10).equals(IndelUtils.SVTYPE.SNP.name()));	
 	 		assertTrue(maf.getColumnValue(11).equals(parms[3] ));		
 	 		
 	 		//check format field	
@@ -312,7 +314,7 @@ public class Vcf2mafTest {
 	 		for(int i = 8 ; i < 9; i++)
 	 			assertTrue(maf.getColumnValue(i).equals(Dmaf.getColumnValue(i) ));  
  
-	 		assertTrue(maf.getColumnValue(10).equals(Variant_Type.DNP.name() ));  
+	 		assertTrue(maf.getColumnValue(10).equals( IndelUtils.SVTYPE.DNP.name() ));  
 	 		assertTrue(maf.getColumnValue(11).equals("CT"  ));  
 	 		
 	 		for(int i = 12 ; i < 26; i++)
@@ -351,9 +353,9 @@ public class Vcf2mafTest {
         data.add("##fileformat=VCFv4.0");
         data.add(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tCONTROL\tTEST");
         data.add("GL000236.1\t7127\t.\tT\tC\t.\tMR;MIUN\tSOMATIC;MR=4;NNS=4;FS=CCAGCCTATTT;EFF=non_coding_exon_variant(MODIFIER|||n.1313T>C||CU179654.1|processed_pseudogene|NON_CODING|ENST00000400789|1|1);CONF=ZERO\tGT:GD:AC:MR:NNS\t0/0:T/T:T9[37.11],18[38.33]:.:4\t0/1:C/T:C1[12],3[41],T19[35.58],30[33.63]:.:5");
-           try(BufferedWriter out = new BufferedWriter(new FileWriter(DbsnpModeTest.inputName));) {          
+        try(BufferedWriter out = new BufferedWriter(new FileWriter(DbsnpModeTest.inputName));) {          
             for (final String line : data)   out.write(line + "\n");                  
-         }  
+         } 
 	 }
 	
 	public static void createVcf(String[] str) throws IOException{
@@ -366,22 +368,61 @@ public class Vcf2mafTest {
           }  
 		
 	}
+	
+	@Test
+	public void Frame_Shift_Test()  {
+		String[] str = {VcfHeaderUtils.STANDARD_FILE_VERSION + "=VCFv4.0",			
+				VcfHeaderUtils.STANDARD_DONOR_ID + "=MELA_0264",
+				VcfHeaderUtils.STANDARD_CONTROL_SAMPLE + "=CONTROL",
+				VcfHeaderUtils.STANDARD_TEST_SAMPLE + "=TEST",				
+				VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tCONTROL\tTEST",
+				"chr1\t7127\t.\tTC\tC\t.\tMR;MIUN\tSOMATIC;EFF=frameshift_variant(HIGH||ggccaa/|p.Gly105fs/c.313_317delGGCCA|112|AC004824.2|protein_coding|CODING|ENST00000602074|5|1|WARNING_TRANSCRIPT_NO_START_CODON);CONF=ZERO\tGT:GD:AC:MR:NNS\t0/0:T/T:T9[37.11],18[38.33]:.:4\t0/1:C/T:C1[12],3[41],T19[35.58],30[33.63]:.:5",
+				"chr2\t7127\t.\tT\tTCC\t.\tMR;MIUN\tSOMATIC;EFF=frameshift_variant(HIGH||ggccaa/|p.Gly105fs/c.313_317delGGCCA|112|AC004824.2|protein_coding|CODING|ENST00000602074|5|1|WARNING_TRANSCRIPT_NO_START_CODON);CONF=ZERO\tGT:GD:AC:MR:NNS\t0/0:T/T:T9[37.11],18[38.33]:.:4\t0/1:C/T:C1[12],3[41],T19[35.58],30[33.63]:.:5"
+		};
+		
+        try{
+        	createVcf(str);                         
+        	final File input = new File( DbsnpModeTest.inputName);
+        	final Vcf2maf v2m = new Vcf2maf(1,2, null, null);	
+        	try(VCFFileReader reader = new VCFFileReader(input); ){
+		 		for (final VcfRecord vcf : reader){  		
+		 			SnpEffMafRecord maf  = v2m.converter(vcf);
+		 			//System.out.println(maf.getMafLine());
+		 			//INS
+		 			if( maf.getColumnValue(5).equals("1") ){
+		 				assertTrue(maf.getColumnValue(10).equals(SVTYPE.DEL.name()));
+		 				assertTrue(maf.getColumnValue(9).equals("Frame_Shift_DEL"));
+		 				assertTrue(maf.getColumnValue(6).equals("7128"));
+		 				assertTrue(maf.getColumnValue(7).equals("7128"));
+		 				
+		 			}else{
+		 				assertTrue(maf.getColumnValue(10).equals(SVTYPE.INS.name()));
+		 				assertTrue(maf.getColumnValue(9).equals("Frame_Shift_INS"));
+		 				assertTrue(maf.getColumnValue(6).equals("7127"));
+		 				assertTrue(maf.getColumnValue(7).equals("7128"));
+		 			}
+		 		}	
+	        }	
+        }catch(Exception e){
+        	fail(e.getMessage()); 
+        }
+	}
 
 	@Test
-	public void FileNameTest() throws IOException{
+	public void FileNameTest() {
 		String[] str = {VcfHeaderUtils.STANDARD_FILE_VERSION + "=VCFv4.0",			
 				VcfHeaderUtils.STANDARD_DONOR_ID + "=MELA_0264",
 				VcfHeaderUtils.STANDARD_CONTROL_SAMPLE + "=CONTROL",
 				VcfHeaderUtils.STANDARD_TEST_SAMPLE + "=TEST",				
 				VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tCONTROL\tTEST"	
 		};
-
-        createVcf(str);
-        
-        File input = new File(DbsnpModeTest.inputName); 
+		
        // input.getAbsolutePath(); 
         
         try{
+        	createVcf(str);       
+        	File input = new File(DbsnpModeTest.inputName); 
+
  			final String command = "--mode vcf2maf --log " + outputDir + "/output.log  -i " + DbsnpModeTest.inputName + " --outdir " + outputDir;			
 			final Executor exec = new Executor(command, "au.edu.qimr.qannotate.Main");    
 			assertEquals(0, exec.getErrCode());
