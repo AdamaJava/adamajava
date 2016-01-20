@@ -360,7 +360,7 @@ public abstract class Pipeline {
 			
 			// add in existing header details
 			if (null != existingHeader) {
-				VcfHeader mergedHeader = VcfHeaderUtils.mergeHeaders(header, existingHeader, true);
+				VcfHeaderUtils.mergeHeaders(header, existingHeader, true);
 			}
 			for (VcfHeader.Record hr : header) {
 				writer.addHeader(hr.toString());
@@ -432,15 +432,15 @@ public abstract class Pipeline {
 		header.addFilterLine(VcfHeaderUtils.FILTER_STRAND_BIAS_ALT,"Alternate allele on only one strand (or percentage alternate allele on other strand is less than " + sBiasAltPercentage + "%)"); 
 		header.addFilterLine(VcfHeaderUtils.FILTER_STRAND_BIAS_COV,"Sequence coverage on only one strand (or percentage coverage on other strand is less than " + sBiasCovPercentage + "%)"); 
 	
-		header.addFormatLine(VcfHeaderUtils.FORMAT_GENOTYPE, "1", "String" ,"Genotype: 0/0 homozygous reference; 0/1 heterozygous for alternate allele; 1/1 homozygous for alternate allele");
+		header.addFormatLine(VcfHeaderUtils.FORMAT_GENOTYPE, "1", "String" ,"Genotype");
 		header.addFormatLine(VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS, "1", "String","Genotype details: specific alleles (A,G,T or C)");
 		header.addFormatLine(VcfHeaderUtils.FORMAT_ALLELE_COUNT, "1", "String","Allele Count: lists number of reads on forward strand [avg base quality], reverse strand [avg base quality]");
 		header.addFormatLine(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP, "1", "String","Allele Count Compound Snp: lists read sequence and count (forward strand, reverse strand)");
-		header.addFormatLine(VcfHeaderUtils.FORMAT_ALLELIC_DEPTHS, "1", "String","Allelic depths for the ref and alt alleles in the order listed");
-		header.addFormatLine(VcfHeaderUtils.FORMAT_READ_DEPTH, "1", "String","Approximate read depth (reads with MQ=255 or with bad mates are filtered)");
-		header.addFormatLine(VcfHeaderUtils.FORMAT_GENOTYPE_QUALITY, "1", "String","Genotype Quality");
-		header.addFormatLine(VcfHeaderUtils.FORMAT_MUTANT_READS,  "1", "String","Number of mutant/variant reads");
-		header.addFormatLine(VcfHeaderUtils.FORMAT_NOVEL_STARTS, "1", "String","Number of novel starts not considering read pair");		
+		header.addFormatLine(VcfHeaderUtils.FORMAT_ALLELIC_DEPTHS, ".", "Integer","Allelic depths for the ref and alt alleles in the order listed");
+		header.addFormatLine(VcfHeaderUtils.FORMAT_READ_DEPTH, "1", "Integer","Approximate read depth (reads with MQ=255 or with bad mates are filtered)");
+		header.addFormatLine(VcfHeaderUtils.FORMAT_GENOTYPE_QUALITY, "1", "Integer","Genotype Quality");
+		header.addFormatLine(VcfHeaderUtils.FORMAT_MUTANT_READS,  "1", "Integer","Number of mutant/variant reads");
+		header.addFormatLine(VcfHeaderUtils.FORMAT_NOVEL_STARTS, "1", "Integer","Number of novel starts not considering read pair");		
 
 		if (singleSampleMode) {
 			header.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + testSampleId);
