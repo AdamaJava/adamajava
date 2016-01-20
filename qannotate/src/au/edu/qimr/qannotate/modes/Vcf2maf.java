@@ -14,6 +14,8 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
+import org.qcmg.common.util.IndelUtils;
+import org.qcmg.common.util.IndelUtils.SVTYPE;
 import org.qcmg.common.vcf.VcfFormatFieldRecord;
 import org.qcmg.common.vcf.VcfInfoFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
@@ -27,7 +29,7 @@ import au.edu.qimr.qannotate.modes.ConfidenceMode.Confidence;
 import au.edu.qimr.qannotate.options.Vcf2mafOptions;
 import au.edu.qimr.qannotate.utils.SnpEffConsequence;
 import au.edu.qimr.qannotate.utils.SnpEffMafRecord;
-import au.edu.qimr.qannotate.utils.SnpEffMafRecord.Variant_Type;
+
 
 public class Vcf2maf extends AbstractMode{
 	
@@ -229,12 +231,22 @@ public class Vcf2maf extends AbstractMode{
 		if(center != null) maf.setColumnValue(3, center);
 		if(sequencer != null) maf.setColumnValue(32, sequencer); 	//???query DB for sequencer
 		maf.setColumnValue(5,  vcf.getChromosome().toUpperCase().replace("CHR", ""));
-		maf.setColumnValue(6,  Integer.toString(vcf.getPosition()));
-		maf.setColumnValue(7, Integer.toString(vcf.getChrPosition().getEndPosition()));
-		
 		
 		//Variant Type
-		maf.setColumnValue(10,Variant_Type.getType(vcf.getRef(), vcf.getAlt()));
+		SVTYPE type = IndelUtils.getVariantType(vcf.getRef(), vcf.getAlt());
+		maf.setColumnValue(10,type.name());
+		
+		//start and end position depending on indel type
+		if(type.equals(SVTYPE.INS)){
+			maf.setColumnValue(6,  Integer.toString(vcf.getPosition()));
+			maf.setColumnValue(7, Integer.toString(vcf.getPosition() + 1));			
+		}else if(type.equals(SVTYPE.DEL)){	
+			maf.setColumnValue(6,  Integer.toString(vcf.getPosition() + 1));
+			maf.setColumnValue(7, Integer.toString(vcf.getChrPosition().getEndPosition()));
+		}else{		
+			maf.setColumnValue(6,  Integer.toString(vcf.getPosition()));
+			maf.setColumnValue(7, Integer.toString(vcf.getChrPosition().getEndPosition()));
+		}
 		 
 		maf.setColumnValue(11,  vcf.getRef());	
 		maf.setColumnValue(35,  vcf.getFilter());
@@ -420,9 +432,11 @@ public class Vcf2maf extends AbstractMode{
 	
 			maf.setColumnValue(59, ontolog); //effect_ontology
 			String str = SnpEffConsequence.getClassicName(ontolog);
-			if(str != null) maf.setColumnValue(60, str);
+			if(str != null) maf.setColumnValue(60, str);			
 			str = SnpEffConsequence.getMafClassification(ontolog);
-			if(str != null) maf.setColumnValue(9, str); //eg. RNA
+			if(str != null) 
+				//check whether frameshift_variant			    
+				maf.setColumnValue(9, (str.equals("Frame_Shift_")? str+maf.getColumnValue(10): str)); //eg. RNA
 			
 			maf.setColumnValue(40,  SnpEffConsequence.getConsequenceRank(ontolog)+""); //get A.M consequence's rank
 	
