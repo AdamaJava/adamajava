@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.tuple.Pair;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeader.FormattedRecord;
@@ -57,7 +58,7 @@ public class MergeUtils {
 			return Pair.of(Collections.emptyList(), Collections.emptyMap());
 		}
 		
-		Map<Integer,Map<String, String>> replacementIds = new HashMap<>(2);
+		Map<Integer,Map<String, String>> replacementIds = new HashMap<>(4);
 		
 		Map<String, FormattedRecord> mergedRecsMap = loMaRecs[0];
 		for (int i = 1 ; i < loMaRecs.length ; i++) {
@@ -108,9 +109,9 @@ public class MergeUtils {
 	}
 	
 	/**
-	 * Merge vcf records that have same position, ref, alt and number of samples into a single  
+	 * Merge vcf records that have same position, ref, alt and number of samples into a single record
 	 */
-	public static VcfRecord mergeRecords(VcfRecord ... records) {
+	public static VcfRecord mergeRecords(Map<Integer, Map<String, String>> rules, VcfRecord ... records) {
 		if (null == records || records.length == 0) {
 			throw new IllegalArgumentException("MergeUtils.mergeRecords called will no records!!!");
 		}
@@ -121,13 +122,38 @@ public class MergeUtils {
 		VcfRecord mergedRecord = new VcfRecord(records[0].getChrPosition(), records[0].getId(), records[0].getRef(), records[0].getAlt());
 		
 		/*
-		 * Update id
+		 * Update id, info, filter, and format fields
 		 */
-		Arrays.stream(records)
-			.forEach(r ->{
-				mergedRecord.appendId(r.getId());
+		
+		for (int i = 0 ; i < records.length ; i++) {
+			VcfRecord r = records[i];
+			Map<String, String> thisRecordsRules = null != rules ? rules.get(i) : null;
+			
+			mergedRecord.appendId(r.getId());
+			
+			if (null != thisRecordsRules && ! thisRecordsRules.isEmpty()) {
+				
+				for (String s : r.getInfo().split(";")) {
+					int equalsIndex = s.indexOf(Constants.EQ);
+					String key = equalsIndex > -1 ? s.substring(0, equalsIndex) : s;
+					String replacementKey = thisRecordsRules.get(key);
+					if (null == replacementKey) {
+						mergedRecord.getInfoRecord().appendField(key, (equalsIndex > -1) ? s.substring(equalsIndex) : s);
+					} else {
+						mergedRecord.getInfoRecord().addField(replacementKey, (equalsIndex > -1) ? s.substring(equalsIndex) : s);
+					}
+				}
+			} else {
 				mergedRecord.appendInfo(r.getInfo(), false);
-			});
+			}
+		}
+		
+		
+//		Arrays.stream(records)
+//			.forEach(r ->{
+//				mergedRecord.appendId(r.getId());
+//				mergedRecord.appendInfo(r.getInfo(), false);
+//			});
 		
 		return mergedRecord;
 	}

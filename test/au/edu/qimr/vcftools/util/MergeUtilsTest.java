@@ -266,35 +266,35 @@ public class MergeUtilsTest {
 		VcfRecord r1 = new VcfRecord("1", 100, null, "ABC", "DEF");
 		VcfRecord r2 = new VcfRecord("1", 100, null, "ABC", "DEF");
 		VcfRecord mergedR = new VcfRecord("1", 100, null, "ABC", "DEF");
-		assertEquals(mergedR, MergeUtils.mergeRecords(r1, r2));
+		assertEquals(mergedR, MergeUtils.mergeRecords(null, r1, r2));
 		
 		r1.setInfo("Hello");
 		r2.setInfo("Hello");
-		assertEquals("Hello", MergeUtils.mergeRecords(r1, r2).getInfo());
+		assertEquals("Hello", MergeUtils.mergeRecords(null, r1, r2).getInfo());
 		
 		r1.setInfo("Hello");
 		r2.setInfo("There");
-		assertEquals("Hello;There", MergeUtils.mergeRecords(r1, r2).getInfo());
+		assertEquals("Hello;There", MergeUtils.mergeRecords(null, r1, r2).getInfo());
 		
 		r1.setInfo("Hello;There");
 		r2.setInfo("There");
-		assertEquals("Hello;There", MergeUtils.mergeRecords(r1, r2).getInfo());
+		assertEquals("Hello;There", MergeUtils.mergeRecords(null, r1, r2).getInfo());
 		
 		r1.setInfo("Hello;There");
 		r2.setInfo("Hello;There");
-		assertEquals("Hello;There", MergeUtils.mergeRecords(r1, r2).getInfo());
+		assertEquals("Hello;There", MergeUtils.mergeRecords(null, r1, r2).getInfo());
 		
 		r1.setInfo("Hello;There");
 		r2.setInfo("Hello;World;There");
-		assertEquals(true, Stream.of("Hello","There","World").allMatch(s -> MergeUtils.mergeRecords(r1, r2).getInfo().contains(s)));
+		assertEquals(true, Stream.of("Hello","There","World").allMatch(s -> MergeUtils.mergeRecords(null, r1, r2).getInfo().contains(s)));
 		
 		r1.setInfo("ID=123");
 		r2.setInfo("ID=123");
-		assertEquals("ID=123", MergeUtils.mergeRecords(r1, r2).getInfo());
+		assertEquals("ID=123", MergeUtils.mergeRecords(null, r1, r2).getInfo());
 		
 		r1.setInfo("ID=123");
 		r2.setInfo("ID=234");
-		assertEquals(true, Stream.of("ID=123,234").allMatch(s -> MergeUtils.mergeRecords(r1, r2).getInfo().contains(s)));
+		assertEquals(true, Stream.of("ID=123,234").allMatch(s -> MergeUtils.mergeRecords(null, r1, r2).getInfo().contains(s)));
 	}
 	
 	@Test
@@ -302,42 +302,42 @@ public class MergeUtilsTest {
 		VcfRecord r1 = new VcfRecord("1", 0);
 		VcfRecord r2 = new VcfRecord("1", 0);
 		VcfRecord mergedR = new VcfRecord("1", 0);
-		assertEquals(mergedR, MergeUtils.mergeRecords(r1, r2));
+		assertEquals(mergedR, MergeUtils.mergeRecords(null, r1, r2));
 		
 		r1 = new VcfRecord("1", 100, null, null, null);
 		r2 = new VcfRecord("1", 100, null, null, null);
 		mergedR = new VcfRecord("1", 100, null, null, null);
-		assertEquals(mergedR, MergeUtils.mergeRecords(r1, r2));
+		assertEquals(mergedR, MergeUtils.mergeRecords(null, r1, r2));
 		
 		r1 = new VcfRecord("1", 100, null, "ABC", null);
 		r2 = new VcfRecord("1", 100, null, "ABC", null);
 		mergedR = new VcfRecord("1", 100, null, "ABC", null);
-		assertEquals(mergedR, MergeUtils.mergeRecords(r1, r2));
+		assertEquals(mergedR, MergeUtils.mergeRecords(null, r1, r2));
 		
 		r1 = new VcfRecord("1", 100, null, "ABC", "DEF");
 		r2 = new VcfRecord("1", 100, null, "ABC", "DEF");
 		mergedR = new VcfRecord("1", 100, null, "ABC", "DEF");
-		assertEquals(mergedR, MergeUtils.mergeRecords(r1, r2));
+		assertEquals(mergedR, MergeUtils.mergeRecords(null, r1, r2));
 		
 		r1 = new VcfRecord("1", 100, "rs123", "ABC", "DEF");
 		r2 = new VcfRecord("1", 100, null, "ABC", "DEF");
 		mergedR = new VcfRecord("1", 100, "rs123", "ABC", "DEF");
-		assertEquals(mergedR, MergeUtils.mergeRecords(r1, r2));
+		assertEquals(mergedR, MergeUtils.mergeRecords(null, r1, r2));
 		
 		r1 = new VcfRecord("1", 100, null, "ABC", "DEF");
 		r2 = new VcfRecord("1", 100, "rs123", "ABC", "DEF");
 		mergedR = new VcfRecord("1", 100, "rs123", "ABC", "DEF");
-		assertEquals(mergedR, MergeUtils.mergeRecords(r1, r2));
+		assertEquals(mergedR, MergeUtils.mergeRecords(null, r1, r2));
 		
 		r1 = new VcfRecord("1", 100, "rs123", "ABC", "DEF");
 		r2 = new VcfRecord("1", 100, "rs123", "ABC", "DEF");
 		mergedR = new VcfRecord("1", 100, "rs123", "ABC", "DEF");
-		assertEquals(mergedR, MergeUtils.mergeRecords(r1, r2));
+		assertEquals(mergedR, MergeUtils.mergeRecords(null, r1, r2));
 		
 		r1 = new VcfRecord("1", 100, "rs123", "ABC", "DEF");
 		r2 = new VcfRecord("1", 100, "rs456", "ABC", "DEF");
 		mergedR = new VcfRecord("1", 100, "rs123,rs456", "ABC", "DEF");
-		assertEquals(mergedR, MergeUtils.mergeRecords(r1, r2));
+		assertEquals(mergedR, MergeUtils.mergeRecords(null, r1, r2));
 	}
 	
 //	@Test
