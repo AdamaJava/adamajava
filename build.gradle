@@ -1,7 +1,7 @@
 version = '0.1pre'
 
 def mainclass = 'au.edu.qimr.vcftools.Merge'
-def scriptname = 'q3clinvar'
+def scriptname = 'q3vcftools'
 def isExecutable = true
 
 repositories {
@@ -27,7 +27,7 @@ dependencies {
     compile group: 'net.sf.jopt-simple',name: 'jopt-simple', version: '4.6'
 //    compile 'net.sf.trove4j:trove4j:3.0.3'
 //    compile group: 'com.io7m.xom',name: 'xom', version: '1.2.10'
-//    	compile name: 'htsjdk', version: '1.140'
+    	compile name: 'htsjdk', version: '1.140'
 //    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.4'
     compile name: 'qcommon', version: '0.2'
     compile name: 'qio', version: '0.1pre'

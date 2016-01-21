@@ -13,7 +13,7 @@ import java.util.ResourceBundle;
 
 final class Messages {
 	
-    static final ResourceBundle messages = ResourceBundle.getBundle("au.edu.qimr.clinvar.messages");
+    static final ResourceBundle messages = ResourceBundle.getBundle("au.edu.qimr.vcftools.messages");
     static final String COLON = ": ";
     static final String ERROR_PREFIX = Messages.getProgramName() + COLON;
     static final String USAGE =	Messages.getMessage("USAGE");
