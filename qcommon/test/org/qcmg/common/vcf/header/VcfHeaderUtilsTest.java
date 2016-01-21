@@ -1,9 +1,8 @@
 package org.qcmg.common.vcf.header;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Assert;
@@ -23,7 +22,6 @@ public class VcfHeaderUtilsTest {
 		Assert.assertArrayEquals( header.getSampleId(), new String[]{"TEST"});
 				 
 		VcfHeaderUtils.addSampleId(header, "CONTROL", 3);	
-		String[] ids = header.getSampleId();	
 		Assert.assertArrayEquals( header.getSampleId(), new String[]{"TEST","null","CONTROL"});
 	}
 	

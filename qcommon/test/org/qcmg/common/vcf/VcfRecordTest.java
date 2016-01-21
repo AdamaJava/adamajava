@@ -17,7 +17,7 @@ public class VcfRecordTest {
 		
 		assertTrue(re.getInfo().equals("SOMATIC;NNS=4;END=2675826"));
 		re.appendInfo("NNS=5");
-		assertTrue(re.getInfoRecord().getField("NNS").equals("5"));
+		assertEquals("5", re.getInfoRecord().getField("NNS"));
 		
 		assertEquals(true, re.getInfo().contains("SOMATIC"));
 		assertEquals(true, re.getInfo().contains("NNS=5"));

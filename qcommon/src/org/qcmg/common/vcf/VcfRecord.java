@@ -37,10 +37,8 @@ public class VcfRecord implements Comparable<VcfRecord> {
 		this.ref = ref;
 		this.alt = alt;
 		// check to see if the length of the reference is equal to the length of the ChrPosition
-		if ( ! StringUtils.isNullOrEmpty(ref)) {
-			if (ref.length() != chrPos.getLength()) {
+		if ( ! StringUtils.isNullOrEmpty(ref) && ref.length() != chrPos.getLength()) {
 				logger.warn("In VCFRecord constructor, ref length != chrPos length! ref: " + ref + ", chrPos: " + chrPos);
-			}
 		}
 	}
 	
@@ -62,15 +60,13 @@ public class VcfRecord implements Comparable<VcfRecord> {
 		filter = (params.length >= 7) ? params[6] : null;
 		infoRecord = (params.length >= 8) ?  new VcfInfoFieldRecord(params[7]): null;
 		
-		
 		for (int i = 8; i < params.length; i ++)  {
 			if (StringUtils.isNullOrEmpty(params[i])) {
 				formatRecords.add( Constants.MISSING_DATA_STRING);
 			} else {
 				formatRecords.add( params[i]);
 			}
-		}		
-		
+		}
 	}
 	
 	public ChrPosition getChrPosition() {		
@@ -94,24 +90,28 @@ public class VcfRecord implements Comparable<VcfRecord> {
 		}
 	}
  
-	public String getAlt() { return alt; }
-	public void setAlt(String alt) { this.alt = alt; }
+	public String getAlt() {
+		return alt ;
+	}
+	public void setAlt(String alt) { this.alt = alt;}
 	
 	/**
 	 * 
 	 * @param otherAlt, append this allels if not exists in exisiting allel. 
 	 */
 	public void appendAlt(String otherAlt){
-		if( StringUtils.isNullOrEmpty( otherAlt ))
+		if( StringUtils.isNullOrEmpty( otherAlt )) {
 			return;
+		}
 		
-		if (   StringUtils.isNullOrEmpty(this.alt))  
+		if (StringUtils.isNullOrEmpty(alt)) {  
 			this.alt = otherAlt;
+		}
 		
 		final String[] altParam = this.alt.split(Constants.COMMA_STRING);
 		final String[] otherParm = otherAlt.split(Constants.COMMA_STRING);
 		
-		for(final String in : otherParm){
+		for(final String in : otherParm) {
 			boolean isExist = false; 
 			for (final String s : altParam){ 
 				if(s.equalsIgnoreCase(otherAlt)){
@@ -121,9 +121,9 @@ public class VcfRecord implements Comparable<VcfRecord> {
 			}
 			
 			//append non existed alt
-			if(! isExist)
+			if(! isExist) {
 				this.alt.concat(Constants.COMMA + in);
-			
+			}
 		}
 	}
 
@@ -169,7 +169,7 @@ public class VcfRecord implements Comparable<VcfRecord> {
 	 * @param additionalInfo: eg. RSPOS=99;END=100;
 	 * @throws Exception if sub string of additionalInfo split by ';',  didn't follow pattern: <key>=<data>
 	 */
-	public void appendInfo(String additionalInfo) {
+	public void appendInfo(String additionalInfo, boolean overwrite) {
 		if( StringUtils.isNullOrEmpty( additionalInfo ))
 			return;
 		
@@ -187,10 +187,18 @@ public class VcfRecord implements Comparable<VcfRecord> {
 				    if (key.isEmpty() || data.isEmpty()) {
 				    		throw new IllegalArgumentException("Sub INFO string didn't follow format <key>=<data>:" + s);
 				    }
-				    infoRecord.setField(key, data);					 
+				    if (overwrite) {
+				    		infoRecord.setField(key, data);
+				    } else {
+				    		infoRecord.appendField(key, data);
+				    		
+				    }
 				}
 			}
 		}
+	}
+	public void appendInfo(String additionalInfo) {
+		appendInfo(additionalInfo, true);
 	}
 	public String getInfo() { 	return (infoRecord == null)? Constants.MISSING_DATA_STRING: infoRecord.toString(); }	
 	public VcfInfoFieldRecord getInfoRecord() { return infoRecord; }

@@ -2,8 +2,9 @@ package org.qcmg.common.vcf.header;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -18,11 +19,7 @@ public class VcfHeaderTest {
 		assertTrue(sample[1].equals("Test"));
 		
 		header.parseHeaderLine("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tControl\tTest");
-		try {			
-			header.getSampleId(); 			
-		    fail( "My method didn't throw when I expected it to" );
-		} catch (RuntimeException expectedException) {			
-		}
+		assertNull(header.getSampleId()); 			
 	}
 	
 	@Test

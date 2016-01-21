@@ -5,7 +5,7 @@ import org.qcmg.common.util.Constants;
 
 public class VcfInfoFieldRecord {
 	
-	StringBuilder line;
+	private final StringBuilder line;
 	
 	/**
 	 * parse line into <key, value> pairs. eg. "CONF;NNS=5" will be parsed to <CONF,NULL>, <NNS,5>
@@ -17,6 +17,7 @@ public class VcfInfoFieldRecord {
 			throw new IllegalArgumentException("Null or empty string passed to VcfInfoFieldRecord ctor");
 		}
 		this.line = new StringBuilder(line);
+		this.line.trimToSize();
 	}
 	
 	/**
@@ -35,6 +36,21 @@ public class VcfInfoFieldRecord {
 			// if there is no value, don't need to do anything...
 			removeField(key);
 			addField(key, value);
+		}
+	}
+	
+	/**
+	 * Update an entry with this key in the info field, appending the supplied value to the existing value, separated by a comma
+	 * @param key
+	 * @param value
+	 */
+	public void appendField(String key, String value){
+		String existingValue = getField(key);
+		if ( ! StringUtils.isNullOrEmpty(existingValue) && existingValue.equals(value)) {
+			
+		} else {
+			removeField(key);
+			addField(key, (existingValue == null || existingValue.equals(Constants.EMPTY_STRING)) ? value :  existingValue + Constants.COMMA + value);
 		}
 	}
 
@@ -56,6 +72,7 @@ public class VcfInfoFieldRecord {
 		if (null != value) {
 			line.append(Constants.EQ).append(value);
 		}
+		line.trimToSize();
 	}
 	
 	/**
@@ -139,7 +156,7 @@ public class VcfInfoFieldRecord {
 			
 			break;			
 		}
-
+		line.trimToSize();
 	}
 	/**
 	 * re-orginize info column string
