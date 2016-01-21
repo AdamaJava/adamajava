@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -155,28 +154,33 @@ public class VcfHeaderUtils {
 		if (null == header) {
 			throw new IllegalArgumentException("null vcf header object passed to VcfHeaderUtils.addQPGLineToHeader");
 		}
-		
-		if(noColumn < 1)
+		if (noColumn < 1) {
 			throw new IllegalArgumentException("invlaid sample column number, must be greater than 0");
+		}
 		
-		String[] exsitIds = header.getSampleId();				
-		if(exsitIds == null || exsitIds.length < noColumn){
+		String[] exsitIds = header.getSampleId();		
+		if (exsitIds == null || exsitIds.length < noColumn) {
 			String[] newIds = new String[noColumn];
 			
 			newIds[noColumn -1] = id;
 			
-			if(exsitIds != null)
+			if (exsitIds != null) {
 				System.arraycopy(exsitIds, 0, newIds, 0, exsitIds.length);
+			}
 			
 			exsitIds = newIds;						
-		}else 
+		} else {
 			exsitIds[noColumn-1] = id;
+		}
 				
-	   String str = VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + exsitIds[0];
-	   for(int i = 1 ; i < exsitIds.length; i ++)
-		   str += Constants.TAB + exsitIds[i]; 
-		 
-		header.parseHeaderLine(str);		
+	   StringBuilder str = new StringBuilder(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT);
+	   for (int i = 0 ; i < exsitIds.length; i ++) {
+		   if (i > 0) {
+			   str.append(Constants.TAB);   
+		   }
+		   str.append(exsitIds[i]);
+	   }
+		header.parseHeaderLine(str.toString());		
 	}
 	
 	public static void addQPGLineToHeader(VcfHeader header, String tool, String version, String commandLine) {

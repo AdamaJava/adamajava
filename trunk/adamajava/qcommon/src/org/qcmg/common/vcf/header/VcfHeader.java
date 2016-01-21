@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
@@ -34,7 +33,7 @@ public class VcfHeader implements Iterable<VcfHeader.Record> {
 	public static final String DATE = "Date";
 	public static final String COMMAND_LINE = "CL";
 	
-	static final Pattern pattern_description = Pattern.compile(DESCRIPTION + "=\\\"(.+)\\\"");
+//	static final Pattern pattern_description = Pattern.compile(DESCRIPTION + "=\\\"(.+)\\\"");
 	
 	//default first 4 lines as standard
 	Record version = null;
@@ -130,20 +129,19 @@ public class VcfHeader implements Iterable<VcfHeader.Record> {
 		}
 	}
 	
-	private static  class FormatRecord extends FormattedRecord {
+	public static  class FormatRecord extends FormattedRecord {
 		public FormatRecord(String data) {
 			super(data);
 		}		
 	}
 	
-	private static  class FilterRecord extends FormattedRecord {
+	public static  class FilterRecord extends FormattedRecord {
 		public FilterRecord(String data) {
 			super(data);
 		}
 	}
 	
-	private static  class InfoRecord extends FormattedRecord {
-		
+	public static  class InfoRecord extends FormattedRecord {
 		public InfoRecord(String data) {
 			super(data);
 		}
@@ -353,20 +351,15 @@ public class VcfHeader implements Iterable<VcfHeader.Record> {
 	 * @return sample column string after Format column on vcf final header line "#CHROM ... "
 	 */
 	public String[] getSampleId() {
-		if(chromLine == null)
-			throw new RuntimeException("missing vcf header line, eg. " + VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE);
-		
-		final String[] column = chromLine.toString().trim().split(Constants.TAB+"");
-		
-		if(column.length <= 9)
+		if(chromLine == null || ! chromLine.data.contains(FORMAT)) {
 			return null;
+		}
 		
-		
-		if(column[8].equalsIgnoreCase(FORMAT) )
-			return Arrays.copyOfRange(column, 9, column.length);
-		else
-			throw new RuntimeException("missing FORMAT field before Genotyp fields");
-		
+		String[] column = chromLine.data.split(Constants.TAB + "");
+		if(column.length <= 9) {
+			return null;
+		}
+		return Arrays.copyOfRange(column, 9, column.length);
 	}
 	
 	public List<QPGRecord> getqPGLines() {
@@ -419,6 +412,24 @@ public class VcfHeader implements Iterable<VcfHeader.Record> {
 	boolean containsQIMRDetails() {
 		return (null != uuid && ! qpgRecords.isEmpty() );
 	}
+	
+	public List<Record> getNonStandardRecords() {
+		List<Record> recs = new ArrayList<>();
+		if ( null != uuid) {
+			recs.add(uuid);
+		}
+		if ( null != source) {
+			recs.add(source);
+		}
+		metaRecords.getRecords().stream()
+			.forEach(r -> recs.add(r));
+		 
+		otherRecords.getRecords().stream()
+			.filter(r -> ! r.toString().equals("##"))
+			.forEach(r -> recs.add(r));
+		
+		return recs;
+	}
 
 	/**
 	 * return (internally) sorted vcf header iterator
@@ -439,22 +450,7 @@ public class VcfHeader implements Iterable<VcfHeader.Record> {
 			records.add(new Record("##"));
 		}
 	 
-		if (uuid != null) {  
-			records.add(uuid);
-		}
-	 
-		if (source != null)  {
-			records.add(source);
-		}
-			
-		for (Record record : metaRecords.getRecords()){  
-			records.add(record);
-		}
-		 
-		for (Record record : otherRecords.getRecords()) {
-			if( !record.toString().equals( "##"))
-				records.add(record);
-		}
+		records.addAll(getNonStandardRecords());
 		
 		// want these sorted
 		Collections.sort(qpgRecords);
