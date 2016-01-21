@@ -387,7 +387,7 @@ public abstract class Pipeline {
 		}
 	}
 
-	private VcfHeader getHeaderForQSnp(final String patientId,  final String normalSampleId, final String tumourSampleId, 
+	public static VcfHeader getHeaderForQSnp(final String patientId,  final String normalSampleId, final String tumourSampleId, 
 			final String source, QBamId[] normalBamIds, QBamId[] tumourBamIds, String uuid) throws Exception {
 		
 		final VcfHeader header = new VcfHeader();
@@ -441,12 +441,7 @@ public abstract class Pipeline {
 		header.addFormatLine(VcfHeaderUtils.FORMAT_GENOTYPE_QUALITY, "1", "Integer","Genotype Quality");
 		header.addFormatLine(VcfHeaderUtils.FORMAT_MUTANT_READS,  "1", "Integer","Number of mutant/variant reads");
 		header.addFormatLine(VcfHeaderUtils.FORMAT_NOVEL_STARTS, "1", "Integer","Number of novel starts not considering read pair");		
-
-		if (singleSampleMode) {
-			header.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + testSampleId);
-		} else {
-			header.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + controlSampleId + "\t" + testSampleId);
-		}
+		header.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + (normalSampleId != null ? normalSampleId + "\t" : "") + tumourSampleId);
 		return  header;
 	}
 	
