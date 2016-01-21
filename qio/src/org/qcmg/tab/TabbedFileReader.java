@@ -25,7 +25,7 @@ public final class TabbedFileReader implements Closeable, Iterable<TabbedRecord>
         
         if (FileUtils.isFileGZip(file)) {
         	
-        		GZIPInputStream gzis = new GZIPInputStream(new FileInputStream(file));
+        		GZIPInputStream gzis = new GZIPInputStream(new FileInputStream(file), 65536);
 	        try {
 		        	InputStreamReader streamReader = new InputStreamReader(gzis);
 		        	BufferedReader in = new BufferedReader(streamReader);
@@ -35,7 +35,7 @@ public final class TabbedFileReader implements Closeable, Iterable<TabbedRecord>
 	        	}
 		        
 	        	// setup the input stream to read the file contents
-	        	inputStream = new GZIPInputStream(new FileInputStream(file));
+	        	inputStream = new GZIPInputStream(new FileInputStream(file), 65536);
         	} else {
 	            	FileInputStream stream = new FileInputStream(file);
 	        try {
