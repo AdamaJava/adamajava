@@ -236,10 +236,11 @@ public class IndelMT {
 		private String contig; 
 		private final byte[] referenceBase;
 		private int window; 
+		private int reportWindow; 
 		final CountDownLatch pLatch;
 		
 		homopoPileup(String contig,   AbstractQueue<IndelPosition> qIn, File reference,  
-				AbstractQueue<Homopolymer> qOut, int window, Thread mainThread, CountDownLatch latch) {
+				AbstractQueue<Homopolymer> qOut, int window,int reportWindow,  Thread mainThread, CountDownLatch latch) {
 			this.qIn = qIn;
 			this.qOut = qOut;
 			this.mainThread = mainThread;
@@ -247,6 +248,7 @@ public class IndelMT {
 			this.window = window;
 			this.pLatch = latch; 
 			this.contig = contig; 
+			this.reportWindow = reportWindow; 
 			
 			IndexedFastaSequenceFile indexedFasta = Homopolymer.getIndexedFastaFile(referenceFile);
 			this.referenceBase = indexedFasta.getSequence(contig).getBases();
@@ -262,7 +264,7 @@ public class IndelMT {
 				try {
 					IndelPosition pos;					
 					while ((pos = qIn.poll()) != null)  
-						qOut.add(new Homopolymer(pos, referenceBase, window));
+						qOut.add(new Homopolymer(pos, referenceBase, window,reportWindow));
 				} finally {					 
 					pLatch.countDown();
 				}
@@ -368,7 +370,7 @@ public class IndelMT {
     		
     		if(withHomoOption)
     			pileupThreads.execute(new homopoPileup(contig.getSequenceName(), getIndelList(contig), options.getReference(),
-    				homopoQueue, options.nearbyHomopolymer, Thread.currentThread(),pileupLatch));    		
+    				homopoQueue, options.nearbyHomopolymer,options.getNearbyHomopolymerReportWindow(), Thread.currentThread(),pileupLatch));    		
     	}
     	pileupThreads.shutdown();
     	
@@ -487,6 +489,7 @@ public class IndelMT {
         header.addFilterLine(IndelUtils.FILTER_NPART,  IndelUtils.DESCRITPION_FILTER_NPART );
         header.addFilterLine(IndelUtils.FILTER_TBIAS,  IndelUtils.DESCRITPION_FILTER_TBIAS );
         header.addFilterLine(IndelUtils.FILTER_NBIAS,  IndelUtils.DESCRITPION_FILTER_NBIAS );
+        header.addFilterLine(IndelUtils.FILTER_HOM, IndelUtils.DESCRITPION_FILTER_HOM);
         
 		final String SOMATIC_DESCRIPTION = String.format("There are more than %d novel starts  or "
 				+ "more than %.2f soi (number of supporting informative reads /number of informative reads) on control BAM",
@@ -494,7 +497,8 @@ public class IndelMT {
 
 		header.addInfoLine(VcfHeaderUtils.INFO_SOMATIC, "1", "String", SOMATIC_DESCRIPTION);
 		header.addInfoLine(IndelUtils.INFO_NIOC, "1", "String", IndelUtils.DESCRITPION_INFO_NIOC);
-		header.addInfoLine(IndelUtils.INFO_HOMCNTXT, "1", "String", IndelUtils.DESCRITPION_INFO_HOMCNTXT); 					  			
+//		header.addInfoLine(IndelUtils.INFO_HOMCNTXT, "1", "String", IndelUtils.DESCRITPION_INFO_HOMCNTXT); 
+		header.addInfoLine(IndelUtils.INFO_HOMTXT, "1", "String", IndelUtils.DESCRITPION_INFO_HOMTXT); 
 		header.addFormatLine(IndelUtils.INFO_ACINDEL, "1", "String", IndelUtils.DESCRITPION_INFO_ACINDEL);
 
 		VcfHeaderUtils.addQPGLineToHeader(header, qexec.getToolName().getValue(), qexec.getToolVersion().getValue(), qexec.getCommandLine().getValue() 

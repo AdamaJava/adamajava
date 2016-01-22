@@ -17,28 +17,28 @@ import org.qcmg.common.util.IndelUtils.SVTYPE;
 
 import au.edu.qimr.indel.Q3IndelException;
 
-public class Homopolymer {
+public class OldOfHomopolymer {
 	
 	static final String nullValue = "-";
 	private final List<String> motifs ; //same chrposition but differnt allel
 	private final ChrPosition position;
 	
 	private final SVTYPE indelType; 	
-	QLogger logger = QLoggerFactory.getLogger(Homopolymer.class);	
+	QLogger logger = QLoggerFactory.getLogger(OldOfHomopolymer.class);	
 	private byte[] upstreamReference;
 	private byte[] downstreamReference;
 //	private List<byte[]> indelReferenceBases = new ArrayList<byte[]>() ;
 	private int homopolymerWindow;
 	private int reportWindow;
 
-//	private List<String> upBase = new ArrayList<String>();
-//	private List<String> downBase = new ArrayList<String>();
+	private List<String> upBase = new ArrayList<String>();
+	private List<String> downBase = new ArrayList<String>();
 	private List<Integer> maxBase = new ArrayList<Integer>();
 	private List<byte[]> homoString = new ArrayList<byte[]>();
 	private byte[] referenceBase;
 
 	
-	public Homopolymer(IndelPosition position, final byte[] referenceBase, int homopolymerWindow, int reportWindow) {
+	public OldOfHomopolymer(IndelPosition position, final byte[] referenceBase, int homopolymerWindow, int reportWindow) {
 		this.position = position.getChrPosition();
 		this.indelType = position.getIndelType();
 		this.motifs = position.getMotifs();
@@ -50,8 +50,8 @@ public class Homopolymer {
 		
 		//init
 		for( int i = 0 ; i < position.getMotifs().size(); i ++ ){
-//			upBase.add(nullValue);
-//			downBase.add(nullValue);
+			upBase.add(nullValue);
+			downBase.add(nullValue);
 			homoString.add(null);	
 			maxBase.add(0);
 		}
@@ -107,8 +107,8 @@ public class Homopolymer {
 			}
 		}
 		
-//		if(upBaseCount > 1)
-//			upBase.set(index, upBaseCount + "" + nearBase );
+		if(upBaseCount > 1)
+			upBase.set(index, upBaseCount + "" + nearBase );
 		
 		//count downstream homopolymer
 		nearBase = (char) downstreamReference[0];
@@ -120,52 +120,20 @@ public class Homopolymer {
 			}
 		}
 		
-//		if(downBaseCount > 1)
-//			downBase.set(index, downBaseCount + "" + nearBase );
-			
+		if(downBaseCount > 1)
+			downBase.set(index, downBaseCount + "" + nearBase );
 		
-		int max  = 0;
-		//reset up or down stream for deletion reference base
-		if(indelType.equals(SVTYPE.DEL)){
-			nearBase = (char) upstreamReference[finalUpIndex];
-			for(int i = position.getPosition()+1; i <= position.getEndPosition(); i ++){
-				if (nearBase == referenceBase[i]) {
-					upBaseCount++;
-				} else {
-					break;
-				}
-			}
-			nearBase = (char) downstreamReference[0];
-			for(int i = position.getPosition()+1; i <= position.getEndPosition(); i ++){
-				if (nearBase == referenceBase[i]) {
-					downBaseCount++;
-				} else {
-					break;
-				}
-			}
-			
-			max = Math.max(downBaseCount, upBaseCount);
-			if( upstreamReference[finalUpIndex] == downstreamReference[0] &&
-				upstreamReference[finalUpIndex] == referenceBase[position.getPosition()+1]	&&	
-				downstreamReference[0] == referenceBase[position.getEndPosition()]  )
-				max = downBaseCount + upBaseCount - (position.getEndPosition() - position.getPosition());				
-		}else{
-		    //INS don't have reference base
-			max = (upstreamReference[finalUpIndex] == downstreamReference[0] )? 
-					(downBaseCount + upBaseCount) : Math.max(downBaseCount, upBaseCount);
-		}
-					
-			if(max > 1)
-				maxBase.set(index, max);
-		
-		
+		int max = Math.max(downBaseCount, upBaseCount);
+		if(max > 1)
+			maxBase.set(index, max);
+		 		
 		//set ffs sequence
 		if(upBaseCount > 1 || downBaseCount > 1)
 			homoString.set(index, setSequence(motifs.get(index))); 
 	}
 	
-//	public String getUpBaseCount(int index){ return upBase.get(index); }
-//	public String getDownBaseCount(int index){ return downBase.get(index); }
+	public String getUpBaseCount(int index){ return upBase.get(index); }
+	public String getDownBaseCount(int index){ return downBase.get(index); }
 	public int getCount(int index){return maxBase.get(index); }
 	
 	public synchronized void getReferenceBase() { 	

@@ -97,14 +97,33 @@ public class IndelPosition {
 		return mutationType; 
 	}
 
+	/**
+	 * 
+	 * @return ChrPosition from vcfRecord but convert chr to full chromosome
+	 * eg return new ChrPosition("chr1", 99, 99 ) for vcf "1 99 . A ATT"
+	 *   return new ChrPosition("chr1", 99, 101 ) for vcf "1 99 . ATT A"
+	 * 
+	 */
 	public ChrPosition getChrPosition(){		
 		return position; 
 	}
-	 
+	
+	/**
+	 * 
+	 * @return Indel start.
+	 *  eg. return 99 for INS "chr 99 . A ATT"
+	 *      return 100 for DEL "chr 99 . ATT A"
+	 */
 	public int getStart() {	
 		return indelStart;
 	}
 	
+	/**
+	 * 
+	 * @return Indel end.
+	 *  eg. return 100 for INS "chr 99 . A ATT"
+	 *      return 101 for DEL "chr 99 . ATT A"
+	 */
 	public int getEnd() {		 
 		return indelEnd; 
 	}
@@ -265,8 +284,11 @@ public class IndelPosition {
 		field.add(2,  (genotypeField.size() > 2)? genotypeField.get(2) + ":" + td: td);					
 		re.setFormatFields(  field); 
 				
-		if(polymer != null &&  polymer.getPolymerSequence(index) != null )
-			re.appendInfo(String.format("HOMCNTXT=%d,%s",polymer.getCount(index), polymer.getPolymerSequence(index)));
+		if(polymer != null &&  polymer.getPolymerSequence(index) != null ){
+			VcfUtils.updateFilter(re, IndelUtils.FILTER_HOM + polymer.getCount(index));	
+			re.appendInfo(String.format(IndelUtils.INFO_HOMTXT  + "=" + polymer.getPolymerSequence(index)));
+		//	re.appendInfo(String.format("HOMCNTXT=%d,%s",polymer.getCount(index), polymer.getPolymerSequence(index)));		
+		}
 					 
 		float nn = 0;
 		if(somatic && tumourPileup != null && tumourPileup.getTotalCount() > 0) 
