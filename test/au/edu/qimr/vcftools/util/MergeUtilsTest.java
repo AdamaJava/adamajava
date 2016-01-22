@@ -17,6 +17,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.meta.QExec;
 import org.qcmg.common.vcf.VcfRecord;
+import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeader.FormattedRecord;
 import org.qcmg.common.vcf.header.VcfHeader.Record;
@@ -263,9 +264,9 @@ public class MergeUtilsTest {
 	
 	@Test
 	public void mergeRecordInfo() {
-		VcfRecord r1 = new VcfRecord("1", 100, null, "ABC", "DEF");
-		VcfRecord r2 = new VcfRecord("1", 100, null, "ABC", "DEF");
-		VcfRecord mergedR = new VcfRecord("1", 100, null, "ABC", "DEF");
+		VcfRecord r1 = new VcfRecord( new String[] {"1", "100", null, "ABC", "DEF"});
+		VcfRecord r2 = new VcfRecord( new String[] {"1", "100", null, "ABC", "DEF"});
+		VcfRecord mergedR = new VcfRecord( new String[] {"1", "100", null, "ABC", "DEF"});
 		assertEquals(mergedR, MergeUtils.mergeRecords(null, r1, r2));
 		
 		r1.setInfo("Hello");
@@ -299,44 +300,45 @@ public class MergeUtilsTest {
 	
 	@Test
 	public void mergeRecordIdOnly() {
-		VcfRecord r1 = new VcfRecord("1", 0);
-		VcfRecord r2 = new VcfRecord("1", 0);
-		VcfRecord mergedR = new VcfRecord("1", 0);
+		VcfRecord r1 = VcfUtils.createVcfRecord("1", 0);			 
+		VcfRecord r2 = VcfUtils.createVcfRecord("1", 0);				 
+		VcfRecord mergedR = VcfUtils.createVcfRecord("1", 0);			 
+				
 		assertEquals(mergedR, MergeUtils.mergeRecords(null, r1, r2));
 		
-		r1 = new VcfRecord("1", 100, null, null, null);
-		r2 = new VcfRecord("1", 100, null, null, null);
-		mergedR = new VcfRecord("1", 100, null, null, null);
+		r1 = new VcfRecord( new String[] {"1", "100", null, ".", null });
+		r2 = new VcfRecord( new String[] {"1", "100", null, ".", null });
+		mergedR = new VcfRecord( new String[] {"1", "100", null, ".",  null });
 		assertEquals(mergedR, MergeUtils.mergeRecords(null, r1, r2));
 		
-		r1 = new VcfRecord("1", 100, null, "ABC", null);
-		r2 = new VcfRecord("1", 100, null, "ABC", null);
-		mergedR = new VcfRecord("1", 100, null, "ABC", null);
+		r1 = new VcfRecord( new String[] {"1", "100", null, "ABC", null });
+		r2 = new VcfRecord( new String[] {"1", "100", null, "ABC", null });
+		mergedR = new VcfRecord( new String[] {"1", "100", null, "ABC", null });
 		assertEquals(mergedR, MergeUtils.mergeRecords(null, r1, r2));
 		
-		r1 = new VcfRecord("1", 100, null, "ABC", "DEF");
-		r2 = new VcfRecord("1", 100, null, "ABC", "DEF");
-		mergedR = new VcfRecord("1", 100, null, "ABC", "DEF");
+		r1 = new VcfRecord( new String[] {"1", "100", null, "ABC", "DEF"});
+		r2 = new VcfRecord( new String[] {"1", "100", null, "ABC", "DEF"});
+		mergedR = new VcfRecord( new String[] {"1", "100", null, "ABC", "DEF"});
 		assertEquals(mergedR, MergeUtils.mergeRecords(null, r1, r2));
 		
-		r1 = new VcfRecord("1", 100, "rs123", "ABC", "DEF");
-		r2 = new VcfRecord("1", 100, null, "ABC", "DEF");
-		mergedR = new VcfRecord("1", 100, "rs123", "ABC", "DEF");
+		r1 = new VcfRecord( new String[] {"1", "100", "rs123", "ABC", "DEF"});
+		r2 = new VcfRecord( new String[] {"1", "100", null, "ABC", "DEF"});
+		mergedR = new VcfRecord( new String[] {"1", "100", "rs123", "ABC", "DEF"});
 		assertEquals(mergedR, MergeUtils.mergeRecords(null, r1, r2));
 		
-		r1 = new VcfRecord("1", 100, null, "ABC", "DEF");
-		r2 = new VcfRecord("1", 100, "rs123", "ABC", "DEF");
-		mergedR = new VcfRecord("1", 100, "rs123", "ABC", "DEF");
+		r1 = new VcfRecord( new String[] {"1", "100", null, "ABC", "DEF"});
+		r2 = new VcfRecord( new String[] {"1", "100", "rs123", "ABC", "DEF"});
+		mergedR = new VcfRecord( new String[] {"1", "100", "rs123", "ABC", "DEF"});
 		assertEquals(mergedR, MergeUtils.mergeRecords(null, r1, r2));
 		
-		r1 = new VcfRecord("1", 100, "rs123", "ABC", "DEF");
-		r2 = new VcfRecord("1", 100, "rs123", "ABC", "DEF");
-		mergedR = new VcfRecord("1", 100, "rs123", "ABC", "DEF");
+		r1 = new VcfRecord( new String[] {"1", "100", "rs123", "ABC", "DEF"});
+		r2 = new VcfRecord( new String[] {"1", "100", "rs123", "ABC", "DEF"});
+		mergedR = new VcfRecord( new String[] {"1", "100", "rs123", "ABC", "DEF"});
 		assertEquals(mergedR, MergeUtils.mergeRecords(null, r1, r2));
 		
-		r1 = new VcfRecord("1", 100, "rs123", "ABC", "DEF");
-		r2 = new VcfRecord("1", 100, "rs456", "ABC", "DEF");
-		mergedR = new VcfRecord("1", 100, "rs123,rs456", "ABC", "DEF");
+		r1 = new VcfRecord( new String[] {"1", "100", "rs123", "ABC", "DEF"});
+		r2 = new VcfRecord( new String[] {"1", "100", "rs456", "ABC", "DEF"});
+		mergedR = new VcfRecord( new String[] {"1", "100", "rs123,rs456", "ABC", "DEF"});
 		assertEquals(mergedR, MergeUtils.mergeRecords(null, r1, r2));
 	}
 	
