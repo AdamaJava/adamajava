@@ -112,7 +112,8 @@ public class IniFileTest {
         data.add("threadNo=5");
         data.add("filter=" + query);
         data.add("window.nearbyIndel=3");
-        data.add("window.homopolymer=10");
+     //   data.add("window.homopolymer=10");
+        data.add("window.homopolymer=100,10");
         data.add("window.softClip =13");
         data.add("");
         data.add("[rules]");

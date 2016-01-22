@@ -30,7 +30,7 @@ public class contigPileupTest {
 		List<SAMRecord> nextpool = new ArrayList<SAMRecord>();
 		SamReader inreader =  SAMFileReaderFactory.createSAMFileReader( new File(inputBam));	
 				
-		VcfRecord vcf = new VcfRecord("chr11", 500, 520, null, "TAAAAAGGGGGTTTTTCCCCC", "T" );
+		VcfRecord vcf = new VcfRecord(new String[] {"chr11", "500", null, "TAAAAAGGGGGTTTTTCCCCC", "T" });
 		IndelPosition topPos = new IndelPosition(vcf);
 		
         for(SAMRecord record : inreader){ 
@@ -53,20 +53,20 @@ public class contigPileupTest {
         assertTrue(pool.size() == IndelMT.MAXRAMREADS + 20);
         assertTrue(nextpool.size() == 1);
         
-        vcf = new VcfRecord("chr11", 510, 530, null, "TAAAAAGGGGGTTTTTCCCCC", "T" );
+        vcf = new VcfRecord(new String[] {"chr11", "510", null, "TAAAAAGGGGGTTTTTCCCCC", "T" });
         topPos = new IndelPosition(vcf);
         pileup.resetPool(topPos, pool, nextpool);
         assertTrue(pool.size() == IndelMT.MAXRAMREADS + 20);
         assertTrue(nextpool.size() == 1);
        
         //deletion just start one base after first input read
-        vcf = new VcfRecord("chr11", 551, 571, null, "TAAAAAGGGGGTTTTTCCCCC", "T" );
+        vcf = new VcfRecord(new String[] {"chr11", "551", null, "TAAAAAGGGGGTTTTTCCCCC", "T" });
         topPos = new IndelPosition(vcf);
         pileup.resetPool(topPos, pool, nextpool);
         assertTrue(pool.size() == 10);
         assertTrue(nextpool.size() == 1);
 
-        vcf = new VcfRecord("chr11", 561, 581, null, "TAAAAAGGGGGTTTTTCCCCC", "T" );
+        vcf = new VcfRecord(new String[] {"chr11", "561", null, "TAAAAAGGGGGTTTTTCCCCC", "T" });
         topPos = new IndelPosition(vcf);
         pileup.resetPool(topPos, pool, nextpool);
         assertTrue(pool.size() == 0);

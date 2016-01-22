@@ -75,7 +75,7 @@ public class IndelPileupTest {
 	@Test
 	public void deleteTest() throws Exception{
  		//get delete indel
-		VcfRecord vs = new VcfRecord("GL000230.1", 197, 199, null, "CAG", "C" );
+		VcfRecord vs = new VcfRecord(new String[] {"GL000230.1", "197", null, "CAG", "C" });
 		IndelPosition indel = new IndelPosition (vs);
 		
 		//make pool
