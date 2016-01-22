@@ -11,6 +11,7 @@ import org.qcmg.common.model.GenotypeEnum;
 import org.qcmg.common.model.QSnpGATKRecord;
 import org.qcmg.common.util.SnpUtils;
 import org.qcmg.common.vcf.VcfRecord;
+import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.pileup.QSnpRecord;
 import org.qcmg.snp.util.QJumperWorker.Mode;
 
@@ -102,7 +103,7 @@ public class BAMPileupUtilTest {
 		List<SAMRecord> records = new ArrayList<SAMRecord>();
 		records.add(record);
 		
-		QSnpGATKRecord vcfRecord = new QSnpGATKRecord(new VcfRecord("chr1", 100));
+		QSnpGATKRecord vcfRecord = new QSnpGATKRecord(VcfUtils.createVcfRecord( "chr1", 100));
 		
 		BAMPileupUtil.examinePileupVCF(records, vcfRecord);
 		
@@ -110,25 +111,25 @@ public class BAMPileupUtilTest {
 		Assert.assertEquals(1, vcfRecord.getPileup().size());
 		Assert.assertEquals('A', vcfRecord.getPileup().get(0).getBase());
 		
-		vcfRecord = new QSnpGATKRecord(new VcfRecord("chr1", 101));
+		vcfRecord = new QSnpGATKRecord(VcfUtils.createVcfRecord( "chr1", 101));
 		BAMPileupUtil.examinePileupVCF(records, vcfRecord);
 		Assert.assertNotNull(vcfRecord.getPileup());
 		Assert.assertEquals(1, vcfRecord.getPileup().size());
 		Assert.assertEquals('C', vcfRecord.getPileup().get(0).getBase());
 		
-		vcfRecord = new QSnpGATKRecord(new VcfRecord("chr1", 102));
+		vcfRecord = new QSnpGATKRecord(VcfUtils.createVcfRecord( "chr1", 102));
 		BAMPileupUtil.examinePileupVCF(records, vcfRecord);
 		Assert.assertNotNull(vcfRecord.getPileup());
 		Assert.assertEquals(1, vcfRecord.getPileup().size());
 		Assert.assertEquals('G', vcfRecord.getPileup().get(0).getBase());
 		
-		vcfRecord = new QSnpGATKRecord(new VcfRecord("chr1", 103));
+		vcfRecord = new QSnpGATKRecord(VcfUtils.createVcfRecord( "chr1", 103));
 		BAMPileupUtil.examinePileupVCF(records, vcfRecord);
 		Assert.assertNotNull(vcfRecord.getPileup());
 		Assert.assertEquals(1, vcfRecord.getPileup().size());
 		Assert.assertEquals('T', vcfRecord.getPileup().get(0).getBase());
 		
-		vcfRecord = new QSnpGATKRecord(new VcfRecord("chr1", 104));
+		vcfRecord = new QSnpGATKRecord(VcfUtils.createVcfRecord( "chr1", 104));
 		BAMPileupUtil.examinePileupVCF(records, vcfRecord);
 		Assert.assertNull(vcfRecord.getPileup());
 	}
@@ -144,7 +145,8 @@ public class BAMPileupUtilTest {
 		List<SAMRecord> records = new ArrayList<SAMRecord>();
 		records.add(record);
 		
-		QSnpGATKRecord vcfRecord = new QSnpGATKRecord(new VcfRecord("chr1", 100));
+		QSnpGATKRecord vcfRecord = new QSnpGATKRecord(VcfUtils.createVcfRecord( "chr1", 100));
+		VcfUtils.createVcfRecord( "chr1", 100);
 		
 		BAMPileupUtil.examinePileupVCF(records, vcfRecord);
 		
@@ -152,37 +154,37 @@ public class BAMPileupUtilTest {
 		Assert.assertEquals(1, vcfRecord.getPileup().size());
 		Assert.assertEquals('A', vcfRecord.getPileup().get(0).getBase());
 		
-		vcfRecord = new QSnpGATKRecord(new VcfRecord("chr1", 105));
+		vcfRecord = new QSnpGATKRecord(VcfUtils.createVcfRecord( "chr1", 105));
 		BAMPileupUtil.examinePileupVCF(records, vcfRecord);
 		Assert.assertNull(vcfRecord.getPileup());
 		
-		vcfRecord = new QSnpGATKRecord(new VcfRecord("chr1", 114));
+		vcfRecord = new QSnpGATKRecord(VcfUtils.createVcfRecord( "chr1", 114));
 		BAMPileupUtil.examinePileupVCF(records, vcfRecord);
 		Assert.assertNull(vcfRecord.getPileup());
 		
-		vcfRecord = new QSnpGATKRecord(new VcfRecord("chr1", 115));
+		vcfRecord = new QSnpGATKRecord(VcfUtils.createVcfRecord( "chr1", 115));
 		BAMPileupUtil.examinePileupVCF(records, vcfRecord);
 		Assert.assertNotNull(vcfRecord.getPileup());
 		Assert.assertEquals(1, vcfRecord.getPileup().size());
 		Assert.assertEquals('G', vcfRecord.getPileup().get(0).getBase());
 		Assert.assertEquals(40, vcfRecord.getPileup().get(0).getTotalQualityScore());
 		
-		vcfRecord = new QSnpGATKRecord(new VcfRecord("chr1", 149));
+		vcfRecord = new QSnpGATKRecord(VcfUtils.createVcfRecord( "chr1", 149));
 		BAMPileupUtil.examinePileupVCF(records, vcfRecord);
 		Assert.assertNotNull(vcfRecord.getPileup());
 		Assert.assertEquals(1, vcfRecord.getPileup().size());
 		Assert.assertEquals('T', vcfRecord.getPileup().get(0).getBase());
 		Assert.assertEquals(40, vcfRecord.getPileup().get(0).getTotalQualityScore());
 		
-		vcfRecord = new QSnpGATKRecord(new VcfRecord("chr1", 150));
+		vcfRecord = new QSnpGATKRecord(VcfUtils.createVcfRecord( "chr1", 150));
 		BAMPileupUtil.examinePileupVCF(records, vcfRecord);
 		Assert.assertNull(vcfRecord.getPileup());
 		
-		vcfRecord = new QSnpGATKRecord(new VcfRecord("chr1", 154));
+		vcfRecord = new QSnpGATKRecord(VcfUtils.createVcfRecord( "chr1", 154));
 		BAMPileupUtil.examinePileupVCF(records, vcfRecord);
 		Assert.assertNull(vcfRecord.getPileup());
 		
-		vcfRecord = new QSnpGATKRecord(new VcfRecord("chr1", 155));
+		vcfRecord = new QSnpGATKRecord(VcfUtils.createVcfRecord( "chr1", 155));
 		BAMPileupUtil.examinePileupVCF(records, vcfRecord);
 		Assert.assertNotNull(vcfRecord.getPileup());
 		Assert.assertEquals(1, vcfRecord.getPileup().size());
@@ -221,7 +223,7 @@ public class BAMPileupUtilTest {
 		record3.setAttribute("SM", Integer.valueOf(22));
 		records.add(record3);
 		
-		QSnpGATKRecord vcfRecord = new QSnpGATKRecord(new VcfRecord("chr1", 753269));
+		QSnpGATKRecord vcfRecord = new QSnpGATKRecord(VcfUtils.createVcfRecord( "chr1", 753269));
 		
 		BAMPileupUtil.examinePileupVCF(records, vcfRecord);
 		
