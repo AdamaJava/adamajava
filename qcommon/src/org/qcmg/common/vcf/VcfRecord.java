@@ -31,30 +31,51 @@ public class VcfRecord implements Comparable<VcfRecord> {
 	private VcfInfoFieldRecord infoRecord;
 	private final List<String> formatRecords = new ArrayList<String>(4);
 	
-	public VcfRecord(ChrPosition cp, String id, String ref, String alt) {
-		this.chrPos = cp;
-		this.id = id;
-		this.ref = ref;
-		this.alt = alt;
+//	public VcfRecord(ChrPosition cp, String id, String ref, String alt) {
+//		this.chrPos = cp;
+//		this.id = id;
+//		this.ref = ref;
+//		this.alt = alt;
+//		// check to see if the length of the reference is equal to the length of the ChrPosition
+//		if ( ! StringUtils.isNullOrEmpty(ref)) {
+//			if (ref.length() != chrPos.getLength()) {
+//				logger.warn("In VCFRecord constructor, ref length != chrPos length! ref: " + ref + ", chrPos: " + chrPos);
+//			}
+//		}
+//	}
+	
+//	public VcfRecord(String chr, int position) {
+//		this(new ChrPosition(chr, position), null, null, null);
+//	}
+//	public VcfRecord(String chr, int position, String id, String ref, String alt) {
+//		this(new ChrPosition(chr, position), id, ref, alt);
+//	}
+//	
+//	public VcfRecord(String chr, int position, int end, String id, String ref, String alt) {
+//		this(new ChrPosition(chr, position, end), id, ref, alt);
+//	}
+	
+	/**
+	 * 
+	 * @param params: a string array with mimumum five element, following order: 
+	 * <CHROM>, <POS>, <ID> , <REF>, <ALT>, <QUAL>, <FILTER>, <INFO>, <FORMAT> ...
+	 * Here the first five element is compulsory, The reminding field will be filled with null if not provided.
+	 * here CHROM, POS and REF can't be null
+	 * eg. new VcfRecord(new String[] {"1", "100", null, ".", null}) 
+	 *     new VcfRecord("chr1,100,.,A,T,.,PASS".split(","))
+	 *     new VcfRecord("chr1\t100\t.\tA\tT\t.\tPASS\t.\tGT\tS1\tS2\tS3".split("\t"))
+	 */
+	public VcfRecord(String [] params) {
+//		this(params[0], Integer.parseInt(params[1]), Integer.parseInt(params[1]) + params[3].length() - 1, params[2], params[3], params[4]);
+		this.chrPos = new ChrPosition(params[0], Integer.parseInt(params[1]), Integer.parseInt(params[1]) + params[3].length() - 1);
+		
+		this.id = params[2] ;
+		this.ref = params[3];
+		this.alt = params[4];
 		// check to see if the length of the reference is equal to the length of the ChrPosition
 		if ( ! StringUtils.isNullOrEmpty(ref) && ref.length() != chrPos.getLength()) {
 				logger.warn("In VCFRecord constructor, ref length != chrPos length! ref: " + ref + ", chrPos: " + chrPos);
-		}
-	}
-	
-	public VcfRecord(String chr, int position) {
-		this(new ChrPosition(chr, position), null, null, null);
-	}
-	public VcfRecord(String chr, int position, String id, String ref, String alt) {
-		this(new ChrPosition(chr, position), id, ref, alt);
-	}
-	
-	public VcfRecord(String chr, int position, int end, String id, String ref, String alt) {
-		this(new ChrPosition(chr, position, end), id, ref, alt);
-	}
-	
-	public VcfRecord(String [] params) {
-		this(params[0], Integer.parseInt(params[1]), Integer.parseInt(params[1]) + params[3].length() - 1, params[2], params[3], params[4]);			
+		}		
 		
 		qualString = (params.length >= 6) ?  params[5] : null ;
 		filter = (params.length >= 7) ? params[6] : null;
