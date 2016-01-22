@@ -122,33 +122,40 @@ public class Homopolymer {
 		
 //		if(downBaseCount > 1)
 //			downBase.set(index, downBaseCount + "" + nearBase );
-			
 		
 		int max  = 0;
 		//reset up or down stream for deletion reference base
 		if(indelType.equals(SVTYPE.DEL)){
-			nearBase = (char) upstreamReference[finalUpIndex];
-			for(int i = position.getPosition()+1; i <= position.getEndPosition(); i ++){
-				if (nearBase == referenceBase[i]) {
-					upBaseCount++;
-				} else {
-					break;
-				}
-			}
-			nearBase = (char) downstreamReference[0];
-			for(int i = position.getPosition()+1; i <= position.getEndPosition(); i ++){
-				if (nearBase == referenceBase[i]) {
-					downBaseCount++;
+			
+			byte[] mByte = motifs.get(0).getBytes(); 
+			
+			
+			int left = upBaseCount;
+			nearBase = (char) upstreamReference[finalUpIndex];			
+			for(int i = 0; i < mByte.length; i ++ ){
+				if (nearBase == mByte[i]) {
+					left ++;
 				} else {
 					break;
 				}
 			}
 			
-			max = Math.max(downBaseCount, upBaseCount);
-			if( upstreamReference[finalUpIndex] == downstreamReference[0] &&
-				upstreamReference[finalUpIndex] == referenceBase[position.getPosition()+1]	&&	
-				downstreamReference[0] == referenceBase[position.getEndPosition()]  )
-				max = downBaseCount + upBaseCount - (position.getEndPosition() - position.getPosition());				
+			int right = downBaseCount;
+			nearBase = (char) downstreamReference[0];
+			for(int i = mByte.length -1; i >=0; i--){
+				if (nearBase == mByte[i]) {
+					right++;
+				} else {
+					break;
+				}				
+			}
+			
+			max = Math.max(left, right);
+			
+			//deletion is homopolymer
+			if((left - upBaseCount) == (right - downBaseCount)) 
+				max = left + right - mByte.length;
+			 			
 		}else{
 		    //INS don't have reference base
 			max = (upstreamReference[finalUpIndex] == downstreamReference[0] )? 
