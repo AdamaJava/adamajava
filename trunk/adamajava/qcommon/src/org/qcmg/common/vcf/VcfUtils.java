@@ -303,21 +303,35 @@ public class VcfUtils {
 		return sb.toString();
 	}
 	
+	/**
+	 * 
+	 * @param cp: ChrPosition of variant position
+	 * @param id: String of variant id can be null
+	 * @param ref: String of reference base, it will turn to "." if null
+	 * @param alt: String of allel base can be null
+	 * @return a vcfRecord
+	 */
 	public static VcfRecord createVcfRecord(ChrPosition cp, String id, String ref, String alt) {
-		final VcfRecord rec = new VcfRecord(cp, id, ref, alt);
-		return rec;
+//		final VcfRecord rec = new VcfRecord(cp, id, ref, alt);
+		ref = (ref == null)? "." : ref;	
+		String[] params = {cp.getChromosome(), cp.getPosition()+"", id, ref, alt};
+		return new VcfRecord(params);	 
 	}
-	public static VcfRecord createVcfRecord(ChrPosition cp, String ref) {
+	
+	public static VcfRecord createVcfRecord(ChrPosition cp, String ref) {		 
 		return createVcfRecord(cp, null, ref, null);
 	}
-//	public static VCFRecord createVcfRecord(ChrPosition cp) {
-//		return createVcfRecord(cp, null, null);
-//	}
+
 	public static VcfRecord createVcfRecord(String chr, int position, String ref) {
-		return createVcfRecord(new ChrPosition(chr, position), ref);
+		ref = (ref == null)? "." : ref;	
+		String[] params = {chr, position+"", ".", ref, null};
+		return new VcfRecord(params);	
+		
 	}
-	public static VcfRecord createVcfRecord(String chr, int position) {
-		return createVcfRecord(new ChrPosition(chr, position), null);
+	public static VcfRecord createVcfRecord(String chr, int position) {		
+		String[] params = {chr, position+"", null, ".", null};
+		return new VcfRecord(params);					
+//		return createVcfRecord(new ChrPosition(chr, position), null);
 	}
 	
 	/**
@@ -709,7 +723,7 @@ public class VcfUtils {
 	 * Also, if the supplied annotation is a PASS, then all previous annotations are removed.
 	 * 
 	 * @param rec qsnp record
-	 * @param ann String representation of the annotation
+	 * @param an String representation of the annotation
 	 */
 	public static void updateFilter(VcfRecord rec, String ann) {
 		// perform some null guarding

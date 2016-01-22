@@ -68,7 +68,9 @@ public class VcfUtilsTest {
 			Assert.fail("Should have thrown an illegalArgumentException");
 		} catch (IllegalArgumentException iae) {}
 		
-		VcfRecord rec = VcfUtils.createVcfRecord("1", 1, "A");
+		VcfRecord rec =  new VcfRecord( new String[] {"1","1",".","A","."});
+				
+				//VcfUtils.createVcfRecord("1", 1, "A");
 		VcfUtils.addMissingDataToFormatFields(rec, 1);
 		assertEquals(null, rec.getFormatFields());
 		
@@ -115,7 +117,7 @@ public class VcfUtilsTest {
 	
 	@Test
 	public void missingDataAgain() {
-		VcfRecord rec = VcfUtils.createVcfRecord("1", 1, "A");
+		VcfRecord rec = new VcfRecord( new String[] {"1","1",".","A","."});//VcfUtils.createVcfRecord("1", 1, "A");
 		VcfUtils.addMissingDataToFormatFields(rec, 1);
 		assertEquals(null, rec.getFormatFields());
 		
@@ -327,33 +329,40 @@ public class VcfUtilsTest {
 	@Test
 	public void isRecordAMnp() {
 		
-		VcfRecord rec = VcfUtils.createVcfRecord("1", 1, "A");
+		VcfRecord rec = new VcfRecord( new String[] {"1","1",".","A",null});
+		//		VcfUtils.createVcfRecord("1", 1, "A");
 		assertEquals(false, VcfUtils.isRecordAMnp(rec));
 		
 		rec.setAlt("A");
 		assertEquals(false, VcfUtils.isRecordAMnp(rec));
 		
-		 rec = VcfUtils.createVcfRecord("1", 1, "AC");
+		 rec = new VcfRecord( new String[] {"1","1",".","AC", null});
+				 //VcfUtils.createVcfRecord("1", 1, "AC");
 		rec.setAlt("A");
 		assertEquals(false, VcfUtils.isRecordAMnp(rec));
 		
 		rec.setAlt("ACG");
 		assertEquals(false, VcfUtils.isRecordAMnp(rec));
 		
-		rec = VcfUtils.createVcfRecord("1", 1, "G");
+		rec = new VcfRecord( new String[] {"1","1",".","G", null});
+				//VcfUtils.createVcfRecord("1", 1, "G");
 		rec.setAlt("G");
 		assertEquals(false, VcfUtils.isRecordAMnp(rec));		// ref == alt
-		rec = VcfUtils.createVcfRecord("1", 1, "CG");
+		rec = new VcfRecord( new String[] {"1","1",".","CG", null});
+				//VcfUtils.createVcfRecord("1", 1, "CG");
 		rec.setAlt("GA");
 		assertEquals(true, VcfUtils.isRecordAMnp(rec));
-		rec = VcfUtils.createVcfRecord("1", 1, "CGTTT");
+		
+		rec = new VcfRecord( new String[] {"1","1",".","CGTTT", null});
+				//VcfUtils.createVcfRecord("1", 1, "CGTTT");
 		rec.setAlt("GANNN");
 		assertEquals(true, VcfUtils.isRecordAMnp(rec));
 	}
 	@Test
 	public void isRecordAMnpCheckIndels() {
 		
-		final VcfRecord rec = VcfUtils.createVcfRecord("1", 1, "ACCACCACC");
+		final VcfRecord rec = new VcfRecord( new String[] {"1","1",".","ACCACCACC",null});
+				//VcfUtils.createVcfRecord("1", 1, "ACCACCACC");
 		assertEquals(false, VcfUtils.isRecordAMnp(rec));
 		
 		rec.setAlt("A,AACCACC");
@@ -363,7 +372,8 @@ public class VcfUtilsTest {
 	
 	@Test
 	public void testAdditionalSampleFF() {
-		VcfRecord rec = VcfUtils.createVcfRecord("1", 1, "ACCACCACC");
+		VcfRecord rec = new VcfRecord( new String[] {"1","1",".","ACCACCACC","."});
+				//VcfUtils.createVcfRecord("1", 1, "");
 		VcfUtils.addFormatFieldsToVcf(rec, Arrays.asList("GT:AD:DP:GQ:PL", "0/1:6,3:9:62:62,0,150"));
 		
 		assertEquals("GT:AD:DP:GQ:PL", rec.getFormatFields().get(0));
@@ -384,7 +394,8 @@ public class VcfUtilsTest {
 		assertEquals("1/1:6,3:9:62:62,0,150:blah", rec.getFormatFields().get(3));
 		
 		// start afresh
-		 rec = VcfUtils.createVcfRecord("1", 1, "ACCACCACC");
+		 rec = new VcfRecord( new String[] {"1","1",".","ACCACCACC","."});
+				 //VcfUtils.createVcfRecord("1", 1, "");
 		VcfUtils.addFormatFieldsToVcf(rec, Arrays.asList("GT:AD:DP:GQ:PL", "0/1:6,3:9:62:62,0,150"));
 		VcfUtils.addAdditionalSampleToFormatField(rec, Arrays.asList("AB:DP:OH", "anythinghere:0:blah"));
 		assertEquals("GT:AD:DP:GQ:PL:AB:OH", rec.getFormatFields().get(0));
@@ -394,7 +405,8 @@ public class VcfUtilsTest {
 	
 	@Test
 	public void testAdditionalSampleFFRealLifeData() {
-		VcfRecord rec = VcfUtils.createVcfRecord("chr1", 1066816, "A");
+		VcfRecord rec = new VcfRecord( new String[] {"chr1", "1066816",".","A","."}); 
+				//VcfUtils.createVcfRecord("chr1", 1066816, "A");
 		VcfUtils.addFormatFieldsToVcf(rec, Arrays.asList("GT:AD:DP:GQ:PL", "1/1:0,22:22:75:1124,75,0"));
 		VcfUtils.addAdditionalSampleToFormatField(rec, Arrays.asList("GT:GQ:PL", "1/1:6:86,6,0"));
 		
@@ -405,7 +417,8 @@ public class VcfUtilsTest {
 	
 	@Test
 	public void addFormatFields() throws Exception {
-		VcfRecord rec = VcfUtils.createVcfRecord("1", 1, "ACCACCACC");
+		VcfRecord rec = new VcfRecord( new String[] {"1","1",".","ACCACCACC","."});
+				//VcfUtils.createVcfRecord("1", 1, "ACCACCACC");
 		VcfUtils.addFormatFieldsToVcf(rec, Arrays.asList("GT:AD:DP:GQ:PL", "0/1:6,3:9:62:62,0,150"));
 		
 		List<String> newStuff = new ArrayList<>();
@@ -427,7 +440,8 @@ public class VcfUtilsTest {
 		assertEquals("0/1:6,3:9:62:62,0,150:blah", rec.getFormatFields().get(1));
 		
 		// and again
-		rec = VcfUtils.createVcfRecord("1", 1, "ACCACCACC");
+		rec = new VcfRecord( new String[] {"1","1",".","ACCACCACC","."}); 
+				//VcfUtils.createVcfRecord("1", 1, "ACCACCACC");
 		VcfUtils.addFormatFieldsToVcf(rec, Arrays.asList("GT:AD:DP:GQ:PL", "0/1:6,3:9:62:62,0,150"));
 		
 		newStuff = new ArrayList<>();

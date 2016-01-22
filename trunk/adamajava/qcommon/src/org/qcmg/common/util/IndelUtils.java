@@ -3,7 +3,7 @@ package org.qcmg.common.util;
 
 
 public class IndelUtils {
-	public enum SVTYPE {SNP,MNP,INS,DEL,CTX,UNKOWN }		
+	public enum SVTYPE {SNP,DNP,TNP, ONP,INS,DEL,CTX,UNKOWN }		
 	
 	//qbasepileup indel vcf header info column ID
 	public static final String INFO_END = "END"; 
@@ -50,18 +50,23 @@ public class IndelUtils {
 	public static final String FILTER_NBIAS = "NBIAS";
 	public static final String DESCRITPION_FILTER_NBIAS = "For germline calls: the supporting normal reads value is >=3 and the count on one strand is =0 or >0 "
 			+ "and is either <5% of supporting reads or >95% of supporting reads";
+	
+	public static final String INFO_HOMTXT = "HOMTXT";
+	public static final String DESCRITPION_INFO_HOMTXT = "If A indel is adjacent to a homopolymeric sequence,  the nearby reference sequence within a window is reported";
+	public static final String FILTER_HOM = "HOM";
+	public static final String DESCRITPION_FILTER_HOM = "a digit number is attached on this FILTER id, eg. HOM24 means the nearby homopolymers sequence is 24 base long";
 
-	public static final String INFO_HOMADJ = "HOMADJ";
-	public static final String DESCRITPION_INFO_HOMADJ = "In tumour BAM, indel is adjacent to a homopolymeric sequence, but is not contiguous with it and the nearest,"
-			+ " longest sequence is n bases long. The value format is <longest proximal homopolymer length>,< sequence bracketing indel>";
-
-	public static final String INFO_HOMCON = "HOMCON";
-	public static final String DESCRITPION_INFO_HOMCON = "indel is contiguous with a homopolymeric sequence and the nearest, longest sequence is n bases long."
-			+ "The value format is <longest proximal homopolymer length>,< sequence bracketing indel>";
-
- 	public static final String INFO_HOMEMB = "HOMEMB";
-	public static final String DESCRITPION_INFO_HOMEMB = "indel is embedded in a homopolymeric sequence and the nearest, longest sequence is n bases long."
-			+ "The value format is <longest proximal homopolymer length>,< sequence bracketing indel>";
+//	public static final String INFO_HOMADJ = "HOMADJ";
+//	public static final String DESCRITPION_INFO_HOMADJ = "In tumour BAM, indel is adjacent to a homopolymeric sequence, but is not contiguous with it and the nearest,"
+//			+ " longest sequence is n bases long. The value format is <longest proximal homopolymer length>,< sequence bracketing indel>";
+//
+//	public static final String INFO_HOMCON = "HOMCON";
+//	public static final String DESCRITPION_INFO_HOMCON = "indel is contiguous with a homopolymeric sequence and the nearest, longest sequence is n bases long."
+//			+ "The value format is <longest proximal homopolymer length>,< sequence bracketing indel>";
+//
+// 	public static final String INFO_HOMEMB = "HOMEMB";
+//	public static final String DESCRITPION_INFO_HOMEMB = "indel is embedded in a homopolymeric sequence and the nearest, longest sequence is n bases long."
+//			+ "The value format is <longest proximal homopolymer length>,< sequence bracketing indel>";
 	
 	public static final String INFO_NIOC = "NIOC";
 	public static final String DESCRITPION_INFO_NIOC = " counts of nearby indels compare with total coverage";	
@@ -84,19 +89,18 @@ public class IndelUtils {
 	 */
 	public static SVTYPE getVariantType(String ref, String alt){
 		 if(alt.contains(","))
-			 return SVTYPE.UNKOWN;		
-		 else if(ref.length() == 1 &&  alt.length() == 1)
-			 return SVTYPE.SNP;	
-		 else if(alt.length() > MAX_INDEL_LENGTH || ref.length() > MAX_INDEL_LENGTH)
-			 return SVTYPE.CTX;
-		 else if(ref.length() == alt.length()  )
-			 return SVTYPE.MNP;		 
-		 else if(alt.length() > ref.length() && ref.length() == 1)
+			 return SVTYPE.UNKOWN;	
+		 else if(ref.length() == alt.length() ){
+			if(ref.length()  == 1) return SVTYPE.SNP;	
+				else if(ref.length()  == 2) return SVTYPE.DNP ;	
+				else if(ref.length()  == 3) return SVTYPE.TNP;	
+				else return SVTYPE.ONP;	
+		 }else if(alt.length() > ref.length() && ref.length() == 1)
 			 return  SVTYPE.INS;		 
 		 else if(alt.length() < ref.length() && alt.length() == 1)
 			 return  SVTYPE.DEL;
 		 		
-		return SVTYPE.CTX;
+		return SVTYPE.UNKOWN;	
 	}	
 	
 	public static String getFullChromosome(String ref) {
