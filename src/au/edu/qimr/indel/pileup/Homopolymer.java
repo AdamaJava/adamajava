@@ -127,9 +127,7 @@ public class Homopolymer {
 		//reset up or down stream for deletion reference base
 		if(indelType.equals(SVTYPE.DEL)){
 			
-			byte[] mByte = motifs.get(0).getBytes(); 
-			
-			
+			byte[] mByte = motifs.get(0).getBytes(); 			
 			int left = upBaseCount;
 			nearBase = (char) upstreamReference[finalUpIndex];			
 			for(int i = 0; i < mByte.length; i ++ ){
@@ -162,13 +160,11 @@ public class Homopolymer {
 					(downBaseCount + upBaseCount) : Math.max(downBaseCount, upBaseCount);
 		}
 					
-			if(max > 1)
-				maxBase.set(index, max);
-		
-		
-		//set ffs sequence
-		if(upBaseCount > 1 || downBaseCount > 1)
+		if(max > 1){
+			maxBase.set(index, max);
 			homoString.set(index, setSequence(motifs.get(index))); 
+		}
+					
 	}
 	
 //	public String getUpBaseCount(int index){ return upBase.get(index); }
