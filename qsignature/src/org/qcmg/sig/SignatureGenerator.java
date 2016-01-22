@@ -639,7 +639,8 @@ public class SignatureGenerator {
 				
 				final String chr = params[0];
 				final int position = Integer.parseInt(params[1]);
-				final VcfRecord vcf =VcfUtils.createVcfRecord(chr, position, ref);
+				final VcfRecord vcf = new VcfRecord(new String[] {chr, position+"", null, ref, null});
+						//VcfUtils.createVcfRecord(chr, position, ref);
 				
 				if (params.length > 2)
 					vcf.setId(params[2]);

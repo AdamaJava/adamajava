@@ -54,7 +54,9 @@ public class SnpFileDetails {
 				
 				String chr = params[0];
 				int position = Integer.parseInt(params[1]);
-				VcfRecord vcf =VcfUtils.createVcfRecord(chr, position, ref);
+				VcfRecord vcf = new VcfRecord(new String[] {chr, position+"", null, ref, null});
+						
+						//VcfUtils.createVcfRecord(chr, position, ref);
 				vcf.setId(params[2]);
 				if (params.length > 5) {
 					vcf.setAlt(params[5].replaceAll("/", ","));
