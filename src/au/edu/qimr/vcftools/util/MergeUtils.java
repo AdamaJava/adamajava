@@ -15,6 +15,7 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.vcf.VcfRecord;
+import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeader.FormattedRecord;
 import org.qcmg.common.vcf.header.VcfHeader.Record;
@@ -118,8 +119,9 @@ public class MergeUtils {
 		
 		/*
 		 * Get common values from 1st record
-		 */
-		VcfRecord mergedRecord = new VcfRecord(records[0].getChrPosition(), records[0].getId(), records[0].getRef(), records[0].getAlt());
+		 */ 
+		VcfRecord mergedRecord =  VcfUtils.createVcfRecord(records[0].getChrPosition(),   records[0].getId(), records[0].getRef(), records[0].getAlt());
+
 		
 		/*
 		 * Update id, info, filter, and format fields
