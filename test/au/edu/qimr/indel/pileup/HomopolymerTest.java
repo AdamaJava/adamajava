@@ -65,19 +65,20 @@ public class HomopolymerTest {
 		assertTrue(homo.getPolymerSequence(0).equals("GACCCTCCCC__CCCCCCCCCC") );		
 		assertTrue(homo.getCount(0) == 19);	
 		
-		vs = new VcfRecord(new String[] {  "chr1", "19", null, "CCTC", "C" });
-		indel = new IndelPosition (vs);
-		homo = new Homopolymer(indel, getReference(), 100,10);	
-		assertTrue(homo.getPolymerSequence(0).equals("GGATCGGACC___CCCCCCCCCC") );	
-		assertTrue(homo.getCount(0) == 19);	 
-		
 		//no repeats
 		vs = new VcfRecord(new String[] {  "chr1", "12", null, "AT", "A" });
 		indel = new IndelPosition (vs);
 		homo = new Homopolymer(indel, getReference(), 100,10);	
 		assertTrue(homo.getCount(0)  == 0 );
-		assertTrue(homo.getPolymerSequence(0) == null);
-	
+		assertTrue(homo.getPolymerSequence(0) == null);		
+		
+		//motif of DEL contains repeat base same to adjacant homopolymers 
+		vs = new VcfRecord(new String[] {  "chr1", "18", null, "CCCTCC", "C" });
+		indel = new IndelPosition (vs);
+		homo = new Homopolymer(indel, getReference(), 100,10);	
+		assertTrue(homo.getPolymerSequence(0).equals("TGGATCGGAC_____CCCCCCCCCC") );														
+		assertTrue(homo.getCount(0) == 19);	 	
+		
 	}
 	
 	private byte[] getReference(){				
