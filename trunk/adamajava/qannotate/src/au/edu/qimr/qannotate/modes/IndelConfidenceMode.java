@@ -46,7 +46,7 @@ public class IndelConfidenceMode extends AbstractMode{
 	final String commandLine;
 	final int MAX_CONTIG_SIZE = 250000000;	
 	static final float DEFAULT_NIOC = 0.1f;
-	static final int DEFAULT_HOMCNTXT = 6;
+	static final int DEFAULT_HOMN = 6;
 	final BitSet[] mask = new BitSet[24]; 
 		
  	//filters 
@@ -116,7 +116,9 @@ public class IndelConfidenceMode extends AbstractMode{
 	 */
 	 Confidence getConfidence(VcfRecord vcf){
 		String filter = vcf.getFilter();
-		if( filter.equals(VcfHeaderUtils.FILTER_PASS) ){
+		
+		
+		if( filter.equals(VcfHeaderUtils.FILTER_PASS) ||  filter.matches("HOM\\d+")) {//|| filter.contains(IndelUtils.FILTER_HOM)){
 			//check nearby indel  
 			String info = vcf.getInfoRecord().getField(IndelUtils.INFO_NIOC);
 			float rate = 0;
@@ -127,18 +129,26 @@ public class IndelConfidenceMode extends AbstractMode{
 			}
 			
 			int lhomo = 0;
-			info = vcf.getInfoRecord().getField(IndelUtils.INFO_HOMCNTXT);
-			if(info != null){
-				int pos = info.indexOf(Constants.COMMA_STRING);
-				info = info.substring(0,pos);
-				try{
-					 lhomo = Integer.parseInt(info);
-				}catch(NullPointerException | NumberFormatException  e){
-					//do nothing
-				}
+			try{	
+				lhomo = Integer.parseInt(filter.replace(IndelUtils.FILTER_HOM, ""));
+			}catch(NullPointerException | NumberFormatException  e){
+				//do nothing
 			}
+
 			
-			if(rate <= DEFAULT_NIOC && lhomo <= DEFAULT_HOMCNTXT )
+			
+//			info = vcf.getInfoRecord().getField(IndelUtils.INFO_HOMCNTXT);
+//			if(info != null){
+//				int pos = info.indexOf(Constants.COMMA_STRING);
+//				info = info.substring(0,pos);
+//				try{
+//					 lhomo = Integer.parseInt(info);
+//				}catch(NullPointerException | NumberFormatException  e){
+//					//do nothing
+//				}
+//			}
+			
+			if(rate <= DEFAULT_NIOC && lhomo <= DEFAULT_HOMN )
 				return Confidence.HIGH;			
 			
 		}else if(filter.equals(IndelUtils.FILTER_HCOVN) || filter.equals(IndelUtils.FILTER_HCOVT) || 
