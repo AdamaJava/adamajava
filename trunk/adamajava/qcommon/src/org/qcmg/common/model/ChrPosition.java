@@ -62,6 +62,22 @@ public class ChrPosition  implements Comparable<ChrPosition> {
 		this.name = name;
 	}
 	
+	public ChrPosition(ChrStartPosition csp) {
+		this(csp, csp.getStartPosition());
+	}
+	public ChrPosition(ChrStartPosition csp, int endPosition) {
+		this(csp, endPosition, null);
+	}
+	
+	public ChrPosition(ChrStartPosition csp, int endPosition, String name) {
+		if (endPosition < csp.getStartPosition()) {
+			throw new IllegalArgumentException("end position: "+ endPosition + " is before start position: " + csp.getStartPosition());
+		}
+		this.csp = csp;
+		this.endPosition = endPosition;
+		this.name = name;
+	}
+	
 	/**
 	 * Returns the chromosome that this positon relates to
 	 * eg. chr1, MT, GL20000123.25
@@ -84,6 +100,10 @@ public class ChrPosition  implements Comparable<ChrPosition> {
 	 */
 	public int getPosition() {
 		return csp.getStartPosition();
+	}
+	
+	public ChrStartPosition getChrStartpos() {
+		return csp;
 	}
 	
 	/**

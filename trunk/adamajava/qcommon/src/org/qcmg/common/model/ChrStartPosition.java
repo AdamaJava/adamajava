@@ -8,6 +8,9 @@ public class ChrStartPosition  implements Comparable<ChrStartPosition> {
 	private final int startPosition;
 	
 	public ChrStartPosition(String chr, int position) {
+		if (null == chr || chr.isEmpty()) {
+			throw new IllegalArgumentException("null or empty chromosome supplied to ChrStartPosition");
+		}
 		this.chr = chr;
 		this.startPosition = position;
 	}
