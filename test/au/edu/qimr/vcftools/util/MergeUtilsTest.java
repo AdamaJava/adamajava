@@ -7,6 +7,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -340,6 +341,35 @@ public class MergeUtilsTest {
 		r2 = new VcfRecord( new String[] {"1", "100", "rs456", "ABC", "DEF"});
 		mergedR = new VcfRecord( new String[] {"1", "100", "rs123,rs456", "ABC", "DEF"});
 		assertEquals(mergedR, MergeUtils.mergeRecords(null, r1, r2));
+	}
+	
+	@Test
+	public void mergeRecordInfoOnlyWithRules() {
+		Map<Integer, Map<String, String>> idRules = new HashMap<>();
+		Map<String, String> rulesForThisFile = new HashMap<>();
+		idRules.put(1,  rulesForThisFile);
+		rulesForThisFile.put("ID", "ID1");
+		
+		VcfRecord r1 = new VcfRecord("1", 100, "rs123", "ABC", "DEF");
+		VcfRecord r2 = new VcfRecord("1", 100, "rs456", "ABC", "DEF");
+		VcfRecord mergedR = new VcfRecord("1", 100, "rs123,rs456", "ABC", "DEF");
+		assertEquals(mergedR, MergeUtils.mergeRecords(idRules, r1, r2));
+		
+		r1.setInfo("ID=XXX");
+		r2.setInfo("ID=YYY");
+		mergedR = MergeUtils.mergeRecords(idRules, r1, r2);
+		assertEquals("ID=XXX;ID1=YYY", mergedR.getInfo());
+		
+		r1.setInfo("ID=XXX");
+		r2.setInfo("ID=XXX");
+		mergedR = MergeUtils.mergeRecords(idRules, r1, r2);
+		assertEquals("ID=XXX;ID1=XXX", mergedR.getInfo());
+		
+		r1.setInfo("ID=I dont know");
+		r2.setInfo("ID=XXX");
+		mergedR = MergeUtils.mergeRecords(idRules, r1, r2);
+		assertEquals("ID=I dont know;ID1=XXX", mergedR.getInfo());
+		
 	}
 	
 //	@Test

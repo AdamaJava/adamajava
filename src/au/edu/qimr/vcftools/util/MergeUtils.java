@@ -140,9 +140,9 @@ public class MergeUtils {
 					String key = equalsIndex > -1 ? s.substring(0, equalsIndex) : s;
 					String replacementKey = thisRecordsRules.get(key);
 					if (null == replacementKey) {
-						mergedRecord.getInfoRecord().appendField(key, (equalsIndex > -1) ? s.substring(equalsIndex) : s);
+						mergedRecord.getInfoRecord().appendField(key, (equalsIndex > -1) ? s.substring(equalsIndex+1) : s);
 					} else {
-						mergedRecord.getInfoRecord().addField(replacementKey, (equalsIndex > -1) ? s.substring(equalsIndex) : s);
+						mergedRecord.getInfoRecord().addField(replacementKey, (equalsIndex > -1) ? s.substring(equalsIndex+1) : s);
 					}
 				}
 			} else {
