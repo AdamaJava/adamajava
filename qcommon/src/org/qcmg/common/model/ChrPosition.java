@@ -7,6 +7,9 @@ package org.qcmg.common.model;
  * Immutable class that refers to a genomic location
  * Can be used to represent SNV (single nucleotide variations), where the start and end positions would be the same, 
  * and also positions that span more than 1 base (eg. deletions, where the start and end positions are different)
+ * 
+ * Composed of a ChrStartPosition immutable object that contains just the chr name and start position
+ * 
  * <p>
  * Positions are inclusive
  *  
@@ -17,8 +20,10 @@ public class ChrPosition  implements Comparable<ChrPosition> {
 	
 	private static final ReferenceNameComparator COMPARATOR = new ReferenceNameComparator();
 	
-	private final String chromosome;
-	private final int position;
+	private final ChrStartPosition csp;
+	
+//	private final String chromosome;
+//	private final int position;
 	private final int endPosition;
 	private final String name;
 
@@ -50,8 +55,9 @@ public class ChrPosition  implements Comparable<ChrPosition> {
 		if (endPosition < position) 
 			throw new IllegalArgumentException("end position is before start position: chr: " + chromosome + ":" + position + "-" + endPosition);
 		
-		this.chromosome = chromosome;
-		this.position = position;
+		this.csp = new ChrStartPosition(chromosome, position);
+//		this.chromosome = chromosome;
+//		this.position = position;
 		this.endPosition = endPosition;
 		this.name = name;
 	}
@@ -63,7 +69,7 @@ public class ChrPosition  implements Comparable<ChrPosition> {
 	 * @return String chromosome 
 	 */
 	public String getChromosome() {
-		return chromosome;
+		return csp.getChr();
 	}
 	
 	public String getName() {
@@ -77,7 +83,7 @@ public class ChrPosition  implements Comparable<ChrPosition> {
 	 * @return int corresponding to the start position
 	 */
 	public int getPosition() {
-		return position;
+		return csp.getStartPosition();
 	}
 	
 	/**
@@ -90,11 +96,11 @@ public class ChrPosition  implements Comparable<ChrPosition> {
 	}
 	
 	public boolean isSinglePoint() {
-		return position == endPosition;
+		return getPosition() == endPosition;
 	}
 	
 	public int getLength() {
-		return (endPosition - position) + 1;
+		return (endPosition - getPosition()) + 1;
 	}
 	
 	/**
@@ -102,11 +108,11 @@ public class ChrPosition  implements Comparable<ChrPosition> {
 	 */
 	@Override
 	public int compareTo(ChrPosition o) {
-		int chromosomeDiff = COMPARATOR.compare(chromosome, o.chromosome);
+		int chromosomeDiff = COMPARATOR.compare(getChromosome(), o.getChromosome());
 		if (chromosomeDiff != 0)
 			return chromosomeDiff;
 		
-		int positionDiff = position - o.position;
+		int positionDiff = getPosition() - o.getPosition();
 		if (positionDiff != 0)
 			return  positionDiff;
 		
@@ -121,20 +127,31 @@ public class ChrPosition  implements Comparable<ChrPosition> {
 			}
 		}
 	}
+	
+	
+	@Override
+	public String toString() {
+		return "ChrPosition [chromosome=" + getChromosome() + ", startPosition="
+				+ getPosition() + ", endPosition=" + endPosition +  ", name= " + name + "]";
+	}
+	
+	public String toIGVString() {
+		return getChromosome() + ":" + getPosition() + "-" + endPosition;
+	}
+	public String toStartPositionString() {
+		return csp.toString();
+	}
+
 	@Override
 	public int hashCode() {
-		
 		final int prime = 31;
 		int result = 1;
-		result = prime * result
-				+ ((chromosome == null) ? 0 : chromosome.hashCode());
+		result = prime * result + ((csp == null) ? 0 : csp.hashCode());
 		result = prime * result + endPosition;
-		result = prime * result + position;
-		if (name != null) {
-			result = prime * result + ((name == null) ? 0 : name.hashCode());
-		}
+		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		return result;
 	}
+
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -144,31 +161,19 @@ public class ChrPosition  implements Comparable<ChrPosition> {
 		if (getClass() != obj.getClass())
 			return false;
 		ChrPosition other = (ChrPosition) obj;
-		if (chromosome == null) {
-			if (other.chromosome != null)
+		if (csp == null) {
+			if (other.csp != null)
 				return false;
-		} else if (!chromosome.equals(other.chromosome))
+		} else if (!csp.equals(other.csp))
 			return false;
 		if (endPosition != other.endPosition)
 			return false;
-		if (position != other.position)
+		if (name == null) {
+			if (other.name != null)
+				return false;
+		} else if (!name.equals(other.name))
 			return false;
-		if (name != null) {
-			return name.equals(other.name);
-		}
 		return true;
-	}
-	@Override
-	public String toString() {
-		return "ChrPosition [chromosome=" + chromosome + ", startPosition="
-				+ position + ", endPosition=" + endPosition +  ", name= " + name + "]";
-	}
-	
-	public String toIGVString() {
-		return chromosome + ":" + position + "-" + endPosition;
-	}
-	public String toStartPositionString() {
-		return chromosome + ":" + position;
 	}
 	
 }
