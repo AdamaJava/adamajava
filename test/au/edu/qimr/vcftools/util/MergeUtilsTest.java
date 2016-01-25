@@ -394,9 +394,9 @@ public class MergeUtilsTest {
 		r2.setFilter("F2");
 		mergedR = MergeUtils.mergeRecords(null, r1, r2);
 		assertEquals("F1;F2", mergedR.getFilter());
-		
-		
 	}
+	
+	// TODO should we do anything special when dealing with FILTER? PASS value for example? 
 	
 //	@Test
 //	public void recordsEligibleForMergingCPOnly() {
