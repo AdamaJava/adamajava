@@ -1,16 +1,16 @@
 package org.qcmg.qbamfilter.query;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SamReader;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.List;
-
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMRecord;
 
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -51,6 +51,10 @@ public class QueryExecutorTest {
         query = "opTIOn_ZM < 200";
         r = checkRecord(query);
         assertTrue( r == 1 );
+        
+        query = "Flag_DuplicateRead == false";
+        r = checkRecord(query);
+        assertEquals(3, r );
     }
 
     /**
