@@ -16,6 +16,7 @@ import java.util.concurrent.ConcurrentMap;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.util.Constants;
 import org.qcmg.gff3.GFF3Record;
 import org.qcmg.qsv.blat.BLAT;
 import org.qcmg.qsv.discordantpair.DiscordantPairCluster;
@@ -802,16 +803,19 @@ public class QSVCluster {
 		if (list != null) {
 			c = list.get(0);
 		}
-		String bases = "";
+		String bases = Constants.EMPTY_STRING;
 		if (c != null) {
 			int start = Math.max(breakpoint - 200, 1);
 			int end = Math.min(breakpoint + 200, c.getTotalLength()); 
 			
 			try {
 				byte[] basesArray = referenceMap.get(reference);
-				// array is 0-based, whereas picard is 1-based
-				bases = new String(basesArray, start - 1 , (end - start) + 1);
-				
+				if (null == basesArray) {
+					logger.warn("Could not find reference " + reference + " in reference file. Is this the same reference file as was used to map the bam file?");
+				} else {
+					// array is 0-based, whereas picard is 1-based
+					bases = new String(basesArray, start - 1 , (end - start) + 1);
+				}
 			} catch (Exception e) {
 				logger.warn("Trying to get " + reference + " " + start + " " + end + " from chr " + c.toString());
 				logger.warn(QSVUtil.getStrackTrace(e));
