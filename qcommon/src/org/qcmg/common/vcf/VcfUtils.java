@@ -312,10 +312,11 @@ public class VcfUtils {
 	 * @return a vcfRecord
 	 */
 	public static VcfRecord createVcfRecord(ChrPosition cp, String id, String ref, String alt) {
+		return new VcfRecord(cp, id, ref, alt);
 //		final VcfRecord rec = new VcfRecord(cp, id, ref, alt);
-		ref = (ref == null)? "." : ref;	
-		String[] params = {cp.getChromosome(), cp.getPosition()+"", id, ref, alt};
-		return new VcfRecord(params);	 
+//		ref = (ref == null)? "." : ref;	
+//		String[] params = {cp.getChromosome(), cp.getPosition()+"", id, ref, alt};
+//		return new VcfRecord(params);	 
 	}
 	
 	public static VcfRecord createVcfRecord(ChrPosition cp, String ref) {		 
