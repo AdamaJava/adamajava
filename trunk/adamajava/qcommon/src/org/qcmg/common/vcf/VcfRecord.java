@@ -31,26 +31,26 @@ public class VcfRecord implements Comparable<VcfRecord> {
 	private VcfInfoFieldRecord infoRecord;
 	private final List<String> formatRecords = new ArrayList<String>(4);
 	
-//	public VcfRecord(ChrPosition cp, String id, String ref, String alt) {
-//		this.chrPos = cp;
-//		this.id = id;
-//		this.ref = ref;
-//		this.alt = alt;
-//		// check to see if the length of the reference is equal to the length of the ChrPosition
-//		if ( ! StringUtils.isNullOrEmpty(ref)) {
-//			if (ref.length() != chrPos.getLength()) {
-//				logger.warn("In VCFRecord constructor, ref length != chrPos length! ref: " + ref + ", chrPos: " + chrPos);
-//			}
-//		}
-//	}
+	public VcfRecord(ChrPosition cp, String id, String ref, String alt) {
+		this.chrPos = cp;
+		this.id = id;
+		this.ref = ref;
+		this.alt = alt;
+		// check to see if the length of the reference is equal to the length of the ChrPosition
+		if ( ! StringUtils.isNullOrEmpty(ref)) {
+			if (ref.length() != chrPos.getLength()) {
+				logger.warn("In VCFRecord constructor, ref length != chrPos length! ref: " + ref + ", chrPos: " + chrPos);
+			}
+		}
+	}
 	
-//	public VcfRecord(String chr, int position) {
-//		this(new ChrPosition(chr, position), null, null, null);
-//	}
-//	public VcfRecord(String chr, int position, String id, String ref, String alt) {
-//		this(new ChrPosition(chr, position), id, ref, alt);
-//	}
-//	
+	public VcfRecord(String chr, int position) {
+		this(new ChrPosition(chr, position), null, null, null);
+	}
+	public VcfRecord(String chr, int position, String id, String ref, String alt) {
+		this(new ChrPosition(chr, position), id, ref, alt);
+	}
+	
 //	public VcfRecord(String chr, int position, int end, String id, String ref, String alt) {
 //		this(new ChrPosition(chr, position, end), id, ref, alt);
 //	}
