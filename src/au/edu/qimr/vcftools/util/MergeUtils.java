@@ -135,6 +135,9 @@ public class MergeUtils {
 			
 			if (null != thisRecordsRules && ! thisRecordsRules.isEmpty()) {
 				
+				/*
+				 * INFO
+				 */
 				for (String s : r.getInfo().split(";")) {
 					int equalsIndex = s.indexOf(Constants.EQ);
 					String key = equalsIndex > -1 ? s.substring(0, equalsIndex) : s;
@@ -145,8 +148,23 @@ public class MergeUtils {
 						mergedRecord.getInfoRecord().addField(replacementKey, (equalsIndex > -1) ? s.substring(equalsIndex+1) : s);
 					}
 				}
+				
 			} else {
 				mergedRecord.appendInfo(r.getInfo(), false);
+			}
+			
+			/*
+			 * FILTER
+			 */
+			if (null != r.getFilter()) {
+				for (String s : r.getFilter().split(";")) {
+					String replacementKey = (null == thisRecordsRules) ? null : thisRecordsRules.get(s);
+					if (null == replacementKey) {
+						mergedRecord.addFilter(s);
+					} else {
+						mergedRecord.addFilter(replacementKey);
+					}
+				}
 			}
 		}
 		
@@ -159,7 +177,6 @@ public class MergeUtils {
 		
 		return mergedRecord;
 	}
-	
 	
 	/*
 	 * Need to be same ChrPosition, ref and alt
