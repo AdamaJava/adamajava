@@ -17,7 +17,7 @@ public class ChrPositionTest {
 	@Test
 	public void testConstructor() {
 		try {
-			new ChrPosition(null,-1);
+			new ChrPosition((String)null,-1);
 			Assert.fail("Should have thrown an IllegalArgumentException");
 		} catch (IllegalArgumentException e) {}
 		try {
