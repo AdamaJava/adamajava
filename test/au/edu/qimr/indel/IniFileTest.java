@@ -127,7 +127,7 @@ public class IniFileTest {
         data.add("#discard all duplicate reads");
         data.add("exclude.Duplicates=true");
         data.add("gematic.nns=2");
-        data.add("gematic.soi=0.05");        		              
+        data.add("gematic.soi=0.15");        		              
         	      	     	    
         try( BufferedWriter out = new BufferedWriter(new FileWriter(ini))) {	           
            for (String line : data)  
