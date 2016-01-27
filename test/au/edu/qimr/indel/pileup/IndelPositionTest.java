@@ -133,7 +133,7 @@ public class IndelPositionTest {
 			 for (VcfRecord re : reader)  											
 				if(re.getChromosome().equals("chrY")){		
 					assertTrue(!re.getInfo().contains(VcfHeaderUtils.INFO_SOMATIC));
- 					assertTrue(re.getFilter().contains(IndelUtils.FILTER_NBIAS)); 
+ 					assertTrue(re.getFilter().contains(IndelUtils.FILTER_NBIAS)); //germline, support 7>=3 and all in one strand
  					assertTrue(re.getSampleFormatRecord(1).getField("ACINDEL").equals("1,7,7,7[7,0],0,0,7"));
 				}
 		}	
@@ -148,7 +148,7 @@ public class IndelPositionTest {
 			 for (VcfRecord re : reader)  											
 				if(re.getChromosome().equals("chrY")){
 					assertTrue(!re.getInfo().contains(VcfHeaderUtils.INFO_SOMATIC));
-					assertTrue(re.getFilter().equals(VcfHeaderUtils.FILTER_COVERAGE_TUMOUR));
+					assertTrue(re.getFilter().equals(IndelUtils.FILTER_COVT )); //germline, tumour with coverge 7
 				}
 		}
 		 new File(IniFileTest.output).delete();
