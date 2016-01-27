@@ -67,24 +67,22 @@ public class IndelMTTest {
 	
 	@After
 	public void clear() throws IOException {
-		File dir = new java.io.File( "." ).getCanonicalFile();		
-		for(File f: dir.listFiles())
-		    if(f.getName().endsWith(".fai")  ||  f.getName().endsWith(".ini")  || f.getName().endsWith(".bai")  ||
-		    		f.getName().endsWith(".vcf") || f.getName().endsWith(".bam") || f.getName().endsWith(".sam")     )
-		        f.delete();
+//		File dir = new java.io.File( "." ).getCanonicalFile();		
+//		for(File f: dir.listFiles())
+//		    if(f.getName().endsWith(".fai")  ||  f.getName().endsWith(".ini")  || f.getName().endsWith(".bai")  ||
+//		    		f.getName().endsWith(".vcf") || f.getName().endsWith(".bam") || f.getName().endsWith(".sam")     )
+//		        f.delete();
+		
+		IndelPositionTest.clear();
 		
 	}
 	
 	@Test
 	//without apply query that is only discard duplicats and unmapped 
-	public void noQueryTest(){
-		String[] args = {"-i", ini_noquery};
-		 
-		try {
-			Options options = new Options(args);	
-			assertTrue(options.getFilterQuery() == null);
-			IndelMT mt = new IndelMT(options, options.getLogger());
-			mt.process(2,false);
+	public void noQueryTest() throws IOException{
+				
+		Options options = runQ3IndelNoHom( ini_noquery);
+	 
 		//check output	
 			int line = 0;
 			VcfRecord record = null;
@@ -100,79 +98,84 @@ public class IndelMTTest {
 					}
 			}
 			
-			assertTrue(line == 4);			
+			assertTrue(line == 4);					
+	}
+	
+	/**
+	 * run q3indel without run homopolymer for unit testing
+	 * @param ini
+	 */
+	public static Options runQ3IndelNoHom( String ini){
+		String[] args = {"-i", ini}; 
+		try{
+			Options options = new Options(args);	
+
+			IndelMT mt = new IndelMT(options, options.getLogger());
+			mt.process(2,false);
 			
+			return options; 
 			
 		} catch (Exception e) {
+			System.err.println(Q3IndelException.getStrackTrace(e));
 			Assert.fail("Should not threw a Exception");
-		}
-		
+		}		
+		return null; 
 	}
 	
 	@Test
 	// check whether query work, check output vcf header and variant order
-	public void withQueryTest(){
+	public void withQueryTest() throws IOException{
 		
-		String[] args = {"-i", ini_query}; 
-		try {
-			Options options = new Options(args);	
-			assertTrue(options.getFilterQuery().equals(query));
-			IndelMT mt = new IndelMT(options, options.getLogger());
-			mt.process(2,false);
-						
-			//check output
-			int passNo = 0;
-			VcfRecord record = null;
-			VcfHeader header = null; 
-			try (VCFFileReader reader = new VCFFileReader(IniFileTest.output)) {
-				header = reader.getHeader();
-				for (VcfRecord re : reader) {	
-					passNo ++;
-					record = re; 
-					//test the output variants order
-					if(passNo == 1)
-						assertTrue(record.getChromosome().equals("chr11") && record.getPosition() == 2672734 && record.getChrPosition().getEndPosition() == 2672736);
-					else if(passNo == 2)
-						assertTrue(record.getChromosome().equals("chr11") && record.getPosition() == 2672739 && record.getChrPosition().getEndPosition() == 2672741);
-					else if(passNo == 3)
-						assertTrue(record.getChromosome().equals("chr11") && record.getPosition() == 2672739 && record.getChrPosition().getEndPosition() == 2672742);
-					else if(passNo == 2)
-						assertTrue(record.getChromosome().equals("chrY") && record.getPosition() == 2672735 && record.getChrPosition().getEndPosition() == 2672737);
-
-				}
+		Options options = runQ3IndelNoHom( ini_query);
+		assertTrue(options.getFilterQuery().equals(query));				
+		//check output
+		int passNo = 0;
+		VcfRecord record = null;
+		VcfHeader header = null; 
+		try (VCFFileReader reader = new VCFFileReader(IniFileTest.output)) {
+			header = reader.getHeader();
+			for (VcfRecord re : reader) {	
+				passNo ++;
+				record = re; 
+				//test the output variants order
+				if(passNo == 1)
+					assertTrue(record.getChromosome().equals("chr11") && record.getPosition() == 2672734 && record.getChrPosition().getEndPosition() == 2672736);
+				else if(passNo == 2)
+					assertTrue(record.getChromosome().equals("chr11") && record.getPosition() == 2672739 && record.getChrPosition().getEndPosition() == 2672741);
+				else if(passNo == 3)
+					assertTrue(record.getChromosome().equals("chr11") && record.getPosition() == 2672739 && record.getChrPosition().getEndPosition() == 2672742);
+				else if(passNo == 2)
+					assertTrue(record.getChromosome().equals("chrY") && record.getPosition() == 2672735 && record.getChrPosition().getEndPosition() == 2672737);
 			}
-			//there is no record pass the query so no indel counts
-			assertTrue(passNo == 4);
-			if(record.getChromosome().equals("chrY")){
-				assertTrue(record.getSampleFormatRecord(1).getField(IndelUtils.INFO_ACINDEL).equals("."));
-				assertTrue(record.getSampleFormatRecord(2).getField(IndelUtils.INFO_ACINDEL).equals("."));
-			}
-			
-			//check sample column name
-			assertTrue(header.getSampleId()[0].equals(VcfHeaderUtils.STANDARD_CONTROL_SAMPLE.replaceAll("#", "")));
-			assertTrue(header.getSampleId()[1].equals(VcfHeaderUtils.STANDARD_TEST_SAMPLE.replaceAll("#", "")));
-			
-			//check header 
-			HashMap<String, String> headerlist = new HashMap<String, String>();
-			for(Record re: header.getMetaRecords()){
-				String str[] = VcfHeaderUtils.splitMetaRecord(re);
-				headerlist.put(str[0], str[1]);
-			}
-			
- 			assertTrue( headerlist.get(VcfHeaderUtils.STANDARD_DONOR_ID).equals(options.getDonorId()) );
- 			assertTrue( headerlist.get(VcfHeaderUtils.STANDARD_CONTROL_SAMPLE).equals(options.getControlSample()) );
- 			assertTrue( headerlist.get(VcfHeaderUtils.STANDARD_TEST_SAMPLE).equals(options.getTestSample()) ); 			
- 			assertTrue( headerlist.get(VcfHeaderUtils.STANDARD_INPUT_LINE + "_GATK_TEST").equals(options.getTestInputVcf().getAbsolutePath()) );
- 			assertTrue( headerlist.get(VcfHeaderUtils.STANDARD_INPUT_LINE + "_GATK_CONTROL").equals(options.getControlInputVcf().getAbsolutePath()) ); 			
- 			assertTrue( headerlist.get( VcfHeaderUtils.STANDARD_CONTROL_BAM ).equals(options.getControlBam().getAbsolutePath()) );
- 			assertTrue( headerlist.get(VcfHeaderUtils.STANDARD_TEST_BAM ).equals(options.getTestBam().getAbsolutePath()) );
-  			assertTrue( headerlist.get(VcfHeaderUtils.STANDARD_ANALYSIS_ID).equals(options.getAnalysisId()) );
-		
-		} catch (Exception e) {
-			System.err.println(Q3IndelException.getStrackTrace(e));
-			Assert.fail("Should not threw a Exception");
+		}
+		//there is no record pass the query so no indel counts
+		assertTrue(passNo == 4);
+		if(record.getChromosome().equals("chrY")){
+			assertTrue(record.getSampleFormatRecord(1).getField(IndelUtils.INFO_ACINDEL).equals("."));
+			assertTrue(record.getSampleFormatRecord(2).getField(IndelUtils.INFO_ACINDEL).equals("."));
 		}
 		
+		//check sample column name
+		assertTrue(header.getSampleId()[0].equals(VcfHeaderUtils.STANDARD_CONTROL_SAMPLE.replaceAll("#", "")));
+		assertTrue(header.getSampleId()[1].equals(VcfHeaderUtils.STANDARD_TEST_SAMPLE.replaceAll("#", "")));
+		
+		//check header 
+		HashMap<String, String> headerlist = new HashMap<String, String>();
+		for(Record re: header.getMetaRecords()){
+			String str[] = VcfHeaderUtils.splitMetaRecord(re);
+			headerlist.put(str[0], str[1]);
+		}
+		
+		assertTrue( headerlist.get(VcfHeaderUtils.STANDARD_DONOR_ID).equals(options.getDonorId()) );
+		assertTrue( headerlist.get(VcfHeaderUtils.STANDARD_CONTROL_SAMPLE).equals(options.getControlSample()) );
+		assertTrue( headerlist.get(VcfHeaderUtils.STANDARD_TEST_SAMPLE).equals(options.getTestSample()) ); 			
+		assertTrue( headerlist.get(VcfHeaderUtils.STANDARD_INPUT_LINE + "_GATK_TEST").equals(options.getTestInputVcf().getAbsolutePath()) );
+		assertTrue( headerlist.get(VcfHeaderUtils.STANDARD_INPUT_LINE + "_GATK_CONTROL").equals(options.getControlInputVcf().getAbsolutePath()) ); 			
+		assertTrue( headerlist.get( VcfHeaderUtils.STANDARD_CONTROL_BAM ).equals(options.getControlBam().getAbsolutePath()) );
+		assertTrue( headerlist.get(VcfHeaderUtils.STANDARD_TEST_BAM ).equals(options.getTestBam().getAbsolutePath()) );
+		assertTrue( headerlist.get(VcfHeaderUtils.STANDARD_ANALYSIS_ID).equals(options.getAnalysisId()) );
+		
+
 	}
 	
 	public static void createBam( String output) {

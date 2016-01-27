@@ -90,6 +90,13 @@ public class IniFileTest {
 		
 	}
 	
+	
+	public static void createIniFile(String ini, String ref,String testbam, String controlbam, String testvcf, String controlvcf,  String query){
+		createIniFile(new File( ini), new File( ref), new File(testbam), new File(controlbam), new File(testvcf), new File(controlvcf),   query);
+		
+		
+	}
+	
 	public static void createIniFile(File ini, File ref,File testbam, File controlbam, File testvcf, File controlvcf,  String query){
 		
         List<String> data = new ArrayList<String>();
