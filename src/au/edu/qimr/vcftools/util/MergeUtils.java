@@ -154,27 +154,48 @@ public class MergeUtils {
 			}
 			
 			/*
+			 * FORMAT
+			 */
+			List<String> rFF =  r.getFormatFields() ;
+			if (null != rFF &&  ! rFF.isEmpty()) {
+				if (null == thisRecordsRules) {
+					VcfUtils.addFormatFieldsToVcf(mergedRecord, r.getFormatFields(), true);
+				} else {
+					/*
+					 * create new header string, substituting in the new values should any be present in the rules map
+					 */
+					String [] formatHeadersArray = rFF.get(0).split(Constants.COLON_STRING);
+					StringBuilder newHeader = new StringBuilder();
+					for (String s : formatHeadersArray) {
+						if (newHeader.length() > 0) {
+							newHeader.append(Constants.COLON);
+						}
+						String replacementHeaderAttribute = thisRecordsRules.get(s);
+						newHeader.append(replacementHeaderAttribute == null ? s : replacementHeaderAttribute);
+					}
+					if ( ! newHeader.toString().equals(rFF.get(0))) {
+						rFF.set(0, newHeader.toString());
+					}
+					VcfUtils.addFormatFieldsToVcf(mergedRecord, rFF, true);
+					
+				}
+			}
+			
+			/*
 			 * FILTER
 			 */
 			if (null != r.getFilter()) {
+				String suffix = "_" + (i+1);
 				for (String s : r.getFilter().split(";")) {
 					String replacementKey = (null == thisRecordsRules) ? null : thisRecordsRules.get(s);
 					if (null == replacementKey) {
-						mergedRecord.addFilter(s);
+						mergedRecord.addFilter(s + suffix);
 					} else {
-						mergedRecord.addFilter(replacementKey);
+						mergedRecord.addFilter(replacementKey + suffix);
 					}
 				}
 			}
 		}
-		
-		
-//		Arrays.stream(records)
-//			.forEach(r ->{
-//				mergedRecord.appendId(r.getId());
-//				mergedRecord.appendInfo(r.getInfo(), false);
-//			});
-		
 		return mergedRecord;
 	}
 	

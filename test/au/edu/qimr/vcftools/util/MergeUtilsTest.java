@@ -388,12 +388,71 @@ public class MergeUtilsTest {
 		r1.setFilter("F1");
 		r2.setFilter("F1");
 		mergedR = MergeUtils.mergeRecords(null, r1, r2);
-		assertEquals("F1", mergedR.getFilter());
+		assertEquals("F1_1;F1_2", mergedR.getFilter());
 		
 		r1.setFilter("F1");
 		r2.setFilter("F2");
 		mergedR = MergeUtils.mergeRecords(null, r1, r2);
-		assertEquals("F1;F2", mergedR.getFilter());
+		assertEquals("F1_1;F2_2", mergedR.getFilter());
+	}
+	
+	// TODO should we do anything special when dealing with FILTER? PASS value for example?
+	
+	@Test
+	public void mergeRecordFormat() {
+		VcfRecord r1 = new VcfRecord("1", 100, "rs123", "ABC", "DEF");
+		VcfRecord r2 = new VcfRecord("1", 100, "rs456", "ABC", "DEF");
+		VcfRecord mergedR = new VcfRecord("1", 100, "rs123,rs456", "ABC", "DEF");
+		assertEquals(mergedR, MergeUtils.mergeRecords(null, r1, r2));
+		
+		r1.setFormatFields(Arrays.asList("AB:CD:EF", "1:2:3"));
+		r2.setFormatFields(Arrays.asList("GH:IJ:KL", "4:5:6"));
+		mergedR = MergeUtils.mergeRecords(null, r1, r2);
+		assertEquals("AB:CD:EF:GH:IJ:KL\t1:2:3:4:5:6", mergedR.getFormatFieldStrings());
+		
+		r1.setFormatFields(Arrays.asList("AB:CD:EF", "1:2:3"));
+		r2.setFormatFields(Arrays.asList("EF:GH:IJ:KL", "3:4:5:6"));
+		mergedR = MergeUtils.mergeRecords(null, r1, r2);
+		assertEquals("AB:CD:EF:GH:IJ:KL\t1:2:3:4:5:6", mergedR.getFormatFieldStrings());
+		
+		r1.setFormatFields(Arrays.asList("AB:CD:EF:GH", "1:2:3:X"));
+		r2.setFormatFields(Arrays.asList("EF:GH:IJ:KL", "3:4:5:6"));
+		mergedR = MergeUtils.mergeRecords(null, r1, r2);
+		assertEquals("AB:CD:EF:GH:IJ:KL\t1:2:3:X,4:5:6", mergedR.getFormatFieldStrings());
+	}
+	
+	@Test
+	public void mergeRecordFormatWithRules() {
+		Map<Integer, Map<String, String>> idRules = new HashMap<>();
+		Map<String, String> rulesForThisFile = new HashMap<>();
+		idRules.put(1,  rulesForThisFile);
+		rulesForThisFile.put("EF", "EF1");
+		
+		VcfRecord r1 = new VcfRecord("1", 100, "rs123", "ABC", "DEF");
+		VcfRecord r2 = new VcfRecord("1", 100, "rs456", "ABC", "DEF");
+		VcfRecord mergedR = new VcfRecord("1", 100, "rs123,rs456", "ABC", "DEF");
+		assertEquals(mergedR, MergeUtils.mergeRecords(idRules, r1, r2));
+		
+		r1.setFormatFields(Arrays.asList("AB:CD:EF", "1:2:3"));
+		r2.setFormatFields(Arrays.asList("GH:IJ:KL", "4:5:6"));
+		mergedR = MergeUtils.mergeRecords(idRules, r1, r2);
+		assertEquals("AB:CD:EF:GH:IJ:KL\t1:2:3:4:5:6", mergedR.getFormatFieldStrings());
+		
+		r1.setFormatFields(Arrays.asList("AB:CD:EF", "1:2:3"));
+		r2.setFormatFields(Arrays.asList("EF:GH:IJ:KL", "3:4:5:6"));
+		mergedR = MergeUtils.mergeRecords(idRules, r1, r2);
+		assertEquals("AB:CD:EF:EF1:GH:IJ:KL\t1:2:3:3:4:5:6", mergedR.getFormatFieldStrings());
+		
+		r1.setFormatFields(Arrays.asList("AB:CD:EF", "1:2:3"));
+		r2.setFormatFields(Arrays.asList("EF:GH:IJ:KL", "HEllo:4:5:6"));
+		mergedR = MergeUtils.mergeRecords(idRules, r1, r2);
+		assertEquals("AB:CD:EF:EF1:GH:IJ:KL\t1:2:3:HEllo:4:5:6", mergedR.getFormatFieldStrings());
+		
+		r1.setFormatFields(Arrays.asList("AB:CD:EF:GH", "1:2:3:X"));
+		r2.setFormatFields(Arrays.asList("EF:GH:IJ:KL", "3:4:5:6"));
+		mergedR = MergeUtils.mergeRecords(idRules, r1, r2);
+		assertEquals("AB:CD:EF:GH:EF1:IJ:KL\t1:2:3:X,4:3:5:6", mergedR.getFormatFieldStrings());
+		
 	}
 	
 	// TODO should we do anything special when dealing with FILTER? PASS value for example? 
