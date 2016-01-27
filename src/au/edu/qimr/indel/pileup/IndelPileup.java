@@ -333,23 +333,16 @@ public class IndelPileup {
 	public int getnovelStartReadCount(int index ){return novelStart.get(index); }
 	
 	
-	public boolean hasStrandBias(int index, double d, double e) {
+	public boolean hasStrandBias(int index, double d) {
 		//supporting reads are greater than 3
-		if (support.get(index) >= 3) {
-			//0 reads on one side
-			if (forwardsupport.get(index) == 0 || backwardsupport.get(index) == 0) {
-				return true;
-			}
-			
-			double minP = d * 100;
-			double maxP = e * 100;
-			double forwardPercent = ((double) forwardsupport.get(index) / (double)support.get(index)) * 100;
-			double reversePercent = ((double) backwardsupport.get(index) / (double)support.get(index)) * 100;
-			if (forwardPercent < minP    || forwardPercent > maxP 
-					|| reversePercent < minP  || reversePercent > maxP ) {
-				return true;
-			}					
-		}
+		if(support.get(index) <= 0)
+			return false; 
+		
+		double minP = d * 100;
+		double fPercent = ((double) forwardsupport.get(index) / (double)support.get(index)) * 100;
+		double rPercent = ((double) backwardsupport.get(index) / (double)support.get(index)) * 100;
+		if( Math.min(fPercent, rPercent) < minP)
+			return true; 		 
 
 		return false;
 	}

@@ -206,12 +206,12 @@ public class IndelPosition {
 	public VcfRecord getPileupedVcf(int index, final int gematic_nns, final float gematic_soi){
 		VcfRecord re = vcfs.get(index);		
 		
-		//not interested int these indels since over coverage
+	 		//not interested int these indels since over coverage
 		if(tumourPileup != null  && tumourPileup.getTotalCount() > 1000){
 			re.setFilter( IndelUtils.FILTER_HCOVT);
 			return re; 
 		}
-		
+	 	
 		if(normalPileup != null  && normalPileup.getTotalCount() > 1000){
 			re.setFilter( IndelUtils.FILTER_HCOVN);
 			return re; 
@@ -251,7 +251,7 @@ public class IndelPosition {
 			if(tumourPileup.getparticalReadCount(index) > 3 &&
 					(100 * tumourPileup.getparticalReadCount(index) / tumourPileup.getTotalCount()) > 10)
 				VcfUtils.updateFilter(re,IndelUtils.FILTER_TPART);
-			if(somatic && tumourPileup.getsuportReadCount(index) >=3 && tumourPileup.hasStrandBias(index, 0.1, 0.9))
+			if(somatic && tumourPileup.getsuportReadCount(index) >=3 && tumourPileup.hasStrandBias(index, 0.1))
 				VcfUtils.updateFilter(re,IndelUtils.FILTER_TBIAS);
 		}	
 		
@@ -272,8 +272,8 @@ public class IndelPosition {
 			if(normalPileup.getparticalReadCount(index) > 3 &&
 					(100 * normalPileup.getparticalReadCount(index) / normalPileup.getTotalCount()) > 5)
 				VcfUtils.updateFilter(re,IndelUtils.FILTER_NPART);
-			if(somatic && normalPileup.getsuportReadCount(index) >=3 && normalPileup.hasStrandBias(index, 0.05, 0.95))
-				VcfUtils.updateFilter(re,IndelUtils.FILTER_TBIAS);			 
+			if(somatic && normalPileup.getsuportReadCount(index) >=3 && normalPileup.hasStrandBias(index, 0.05))
+				VcfUtils.updateFilter(re,IndelUtils.FILTER_NBIAS);			 
 		}
 					 
 		//future job should check GT column	

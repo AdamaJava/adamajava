@@ -368,6 +368,11 @@ public class IndelMT {
     			pileupThreads.execute(new contigPileup(contig, getIndelList(contig), options.getControlBam(),query,
     				normalQueue, Thread.currentThread(),pileupLatch ));
     		
+    		 if(options.getTestBam() != null)
+    			 pileupThreads.execute(new contigPileup(contig, getIndelList(contig), options.getTestBam() , query,
+    					 tumourQueue, Thread.currentThread() ,pileupLatch));
+    		
+    		
     		if(withHomoOption)
     			pileupThreads.execute(new homopoPileup(contig.getSequenceName(), getIndelList(contig), options.getReference(),
     				homopoQueue, options.nearbyHomopolymer,options.getNearbyHomopolymerReportWindow(), Thread.currentThread(),pileupLatch));    		
