@@ -17,6 +17,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -539,8 +540,11 @@ public class VcfUtils {
 			}
 		}
 	}
-	
 	public static void addFormatFieldsToVcf(VcfRecord vcf, List<String> additionalFormatFields) {
+		 addFormatFieldsToVcf(vcf,  additionalFormatFields, false);
+	}
+	
+	public static void addFormatFieldsToVcf(VcfRecord vcf, List<String> additionalFormatFields, boolean appendInfo) {
 		if ( null != additionalFormatFields && ! additionalFormatFields.isEmpty()) {
 			// if there are no existing format fields, set field to be additional..
 			if (null == vcf.getFormatFields() || vcf.getFormatFields().isEmpty()) {
@@ -563,15 +567,42 @@ public class VcfUtils {
 					
 					for (int i = 0 ; i < formatFieldAttributes.length ; i++) {
 						
-						final String existingFieldAttributes = newFF.get(0);
 						final String s = formatFieldAttributes[i];
+						final String existingFieldAttributes = newFF.get(0);
 						
 						if (existingFieldAttributes.contains(s)) {
-							// skip this one
+							if (appendInfo) {
+								/*
+								 * Don't update header field, append value to existing value (if different)
+								 */
+								
+								/*
+								 * Need position in existing array of this attribute
+								 */
+								String [] existingFieldAttributesArray = existingFieldAttributes.split(COLON_STRING);
+								int index = 0;
+								for (int x = 0 ; x < existingFieldAttributesArray.length ; x++) {
+									if (existingFieldAttributesArray[x].equals(s)) {
+										index = x;
+									}
+								}
+								
+								for (int j = 1 ; j < additionalFormatFields.size() ; j++) {
+									String additionalValue = additionalFormatFields.get(j).split(COLON_STRING)[i];
+									// get existing entry 
+									String [] existingArray = newFF.get(j).split(COLON_STRING);
+									String existingValue = existingArray[index];
+									if ( ! additionalValue.equals(existingValue)) {
+										existingArray[index] = existingValue + Constants.COMMA_STRING + additionalValue;
+									}
+									// re-insert into vcf
+									newFF.set(j, Arrays.stream(existingArray).collect(Collectors.joining(Constants.COLON_STRING)));
+								}
+							}
 						} else {
 							// add this one
-							for (int j = 0 ; j < additionalFormatFields.size() ; j++) {
 								
+							for (int j = 0 ; j < additionalFormatFields.size() ; j++) {
 								// get existing entry 
 								final String existing = newFF.get(j);
 								// create new
