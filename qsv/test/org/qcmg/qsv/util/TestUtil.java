@@ -1,5 +1,12 @@
 package org.qcmg.qsv.util;
 
+import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SAMFileHeader.SortOrder;
+import htsjdk.samtools.SAMFileWriter;
+import htsjdk.samtools.SAMFileWriterFactory;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SamReader;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -12,13 +19,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SAMFileHeader.SortOrder;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMFileWriter;
-import htsjdk.samtools.SAMFileWriterFactory;
-import htsjdk.samtools.SAMRecord;
 
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.picard.SAMFileReaderFactory;
@@ -619,6 +619,52 @@ public class TestUtil {
 			} else {
 				clips=getRightClips(nCount);
 				breakpoint = new Breakpoint(89700299, "chr10", isLeft, consensus, 50);
+			}
+			for (Clip c : clips) {
+				breakpoint.addTumourClip(c);
+			}
+//			breakpoint.setTumourClips(clips);
+			if (isGermline) {
+				if (isLeft) {
+					for (Clip c : getLeftClips(false)) {
+						breakpoint.addNormalClip(c);
+					}
+//					breakpoint.setNormalClips(getLeftClips(false));
+				} else {
+					for (Clip c : getRightClips(false)) {
+						breakpoint.addNormalClip(c);
+					}
+//					breakpoint.setNormalClips(getRightClips(false));
+				}
+			}	
+			breakpoint.defineBreakpoint(3, false, null);
+			if (isLeft) {
+				String value2 = "46\t0\t0\t2\t0\t0\t0\t0\t-\tchr10-89700299-false-neg\t66\t0\t48\tchr10\t135534747\t89712340\t89712388\t1\t48,\t18,\t89712340,";
+				breakpoint.setBlatRecord(new BLATRecord(value2.split("\t")));
+			} else {
+				String value = "48\t1\t0\t0\t2\t0\t3\t0\t+\tchr10-89712341-true-pos\t66\t0\t48\tchr10\t135534747\t89700251\t89700299\t1\t48,\t0,\t89700251,";
+				breakpoint.setBlatRecord(new BLATRecord(value.split("\t")));
+			}
+			if (breakpoint.getStrand() == QSVUtil.PLUS) {
+				breakpoint.setMateStrand(QSVUtil.PLUS);
+			} else {
+				breakpoint.setMateStrand(QSVUtil.MINUS);
+			}
+			
+			return breakpoint;
+		}
+		public static Breakpoint getBreakpointNoChr(boolean isLeft, boolean isGermline, int consensus, boolean nCount) throws Exception {
+			
+			Breakpoint breakpoint; 
+			
+			HashSet<Clip> clips;
+			if (isLeft) {
+				clips = getLeftClips(nCount);	
+				breakpoint = new Breakpoint(89712341, "10", isLeft, consensus, 50);
+				
+			} else {
+				clips=getRightClips(nCount);
+				breakpoint = new Breakpoint(89700299, "10", isLeft, consensus, 50);
 			}
 			for (Clip c : clips) {
 				breakpoint.addTumourClip(c);

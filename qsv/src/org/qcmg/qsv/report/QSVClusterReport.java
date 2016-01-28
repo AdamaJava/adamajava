@@ -18,12 +18,12 @@ public class QSVClusterReport extends QSVReport {
 	
  
     protected boolean append = false;
-	private String fileType;
-	private List<QSVCluster> qsvRecords;
+	private final String fileType;
+	private final List<QSVCluster> qsvRecords;
 	private String tumourFindType;
 	private String normalFindType;
 	private boolean isQCMG;
-	private boolean isSingleSided;
+	private final boolean isSingleSided;
     private static String TAB = "\t";
     
     public QSVClusterReport(String base, String mutationType, String end, String fileType, List<QSVCluster> qsvRecords, String tumourFindType, String normalFindType, boolean isSingleSided) throws Exception {
@@ -65,37 +65,37 @@ public class QSVClusterReport extends QSVReport {
         writeReport();
 	}
 
+	@Override
 	public void writeHeader() throws IOException {    	
 
         // print header for the file.
-        if (!file.exists()) { 
-        	BufferedWriter writer = new BufferedWriter(new FileWriter(file, false));
-            writer.write(getHeader());
-            writer.close();
-        }        
+        if (!file.exists()) {
+	        try (	BufferedWriter writer = new BufferedWriter(new FileWriter(file, false));) {
+	            writer.write(getHeader());
+	        }
+        }
     }
 
-    public synchronized void writeReport() throws Exception {
-    	 BufferedWriter writer = new BufferedWriter(new FileWriter(file, true));
-    	 
-    	 for (QSVCluster r: qsvRecords) {   
-    		
-    		 if (r.printRecord(isSingleSided)) {
-    			 
-    			 String str = r.getDataString(fileType, tumourFindType, normalFindType, isQCMG, "");
-    			 if (fileType.equals("softclip")) {   
-    				 if (!str.equals("") && r.hasSoftClipEvidence()) {
-    					 writer.write(str + QSVUtil.getNewLine());
-    				 } 
-    			 } else {    				 
-    				 writer.write(str +  QSVUtil.getNewLine());
-    			 }
-    		 }
-    	 }
-         
-         writer.close();
+    @Override
+	public synchronized void writeReport() throws Exception {
+    		try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, true));) {
+    			for (QSVCluster r: qsvRecords) {   
+    				if (r.printRecord(isSingleSided)) {
+	    			 
+    					String str = r.getDataString(fileType, tumourFindType, normalFindType, isQCMG, "");
+    					if (fileType.equals("softclip")) {   
+    						if (!str.equals("") && r.hasSoftClipEvidence()) {
+    							writer.write(str + QSVUtil.getNewLine());
+    						} 
+    					} else {    				 
+    						writer.write(str +  QSVUtil.getNewLine());
+    					}
+    				}
+    			}
+    	 	}
     }
     
+	@Override
 	public String getHeader() {		
 		
 		
