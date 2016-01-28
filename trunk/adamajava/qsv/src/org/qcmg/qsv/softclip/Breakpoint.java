@@ -21,7 +21,6 @@ import java.util.TreeMap;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.string.StringUtils;
-import org.qcmg.common.util.Constants;
 import org.qcmg.qsv.QSVException;
 import org.qcmg.qsv.QSVParameters;
 import org.qcmg.qsv.assemble.ConsensusRead;
@@ -206,6 +205,8 @@ public class Breakpoint implements Comparable<Breakpoint>{
 	}
 
 	private boolean belowMinInsertSize() {
+		
+//		logger.info("this.reference: " +this.reference + ", mateReference: " + mateReference + ", breakpoint: " + breakpoint + ", mateBreakpoint: " + mateBreakpoint + ",minInsertSize: " + minInsertSize);
 		
 		if (this.reference.equals(mateReference)) {
 			return belowMinInsertSize(breakpoint, mateBreakpoint, minInsertSize);
@@ -493,7 +494,7 @@ public class Breakpoint implements Comparable<Breakpoint>{
 		
 		if (mateRecord != null) {
 			
-			if (reference.startsWith(Constants.CHR) && mateRecord.getReference().startsWith(Constants.CHR)) {
+//			if (reference.startsWith(Constants.CHR) && mateRecord.getReference().startsWith(Constants.CHR)) {
 				Integer mateBp =  mateRecord.calculateMateBreakpoint(isLeft, reference, breakpoint, (positiveStrand ? QSVUtil.PLUS : QSVUtil.MINUS));
 				if (mateBp != null) {
 					
@@ -508,7 +509,7 @@ public class Breakpoint implements Comparable<Breakpoint>{
 						return true;
 					}					
 				}			
-			}
+//			}
 		} 	
 		return false;
 	}

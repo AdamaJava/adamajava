@@ -95,6 +95,21 @@ public class BreakpointTest {
 	}
 	
 	@Test
+	public void testFindMateBreakpointIsTrueWithNoChr() throws Exception {
+		String value = "48\t1\t0\t0\t2\t0\t3\t0\t+\t10-89712341-true-pos\t66\t0\t48\tchr10\t135534747\t89700251\t89700299\t1\t48,\t0,\t89700251,";
+		String[] values =value.split("\t");
+		BLATRecord record = new BLATRecord(values);
+		
+		breakpoint = TestUtil.getBreakpointNoChr(true, false, 20, false);
+		assertEquals(true, breakpoint.findMateBreakpoint(record));
+		
+		assertEquals(QSVUtil.PLUS, breakpoint.getMateStrand());
+		assertEquals("chr10", breakpoint.getMateReference());
+		assertEquals(89700299, breakpoint.getMateBreakpoint());
+		assertEquals("10:chr10", breakpoint.getReferenceKey());
+	}
+	
+	@Test
 	public void testFindMateBreakpointWithReordering() throws Exception {
 		String value = "48\t1\t0\t0\t2\t0\t3\t0\t+\tchr10-89712341-true-pos\t66\t0\t48\tchr7\t135534747\t89700251\t89700299\t1\t48,\t0,\t89700251,";
 		String[] values =value.split("\t");

@@ -586,7 +586,7 @@ public class FindClipClustersMT  {
 			this.currentReferenceKey = chromosome.getName() + ":" + chromosome.getName();
 
 			if (leftPositions.size() > 0 || rightPositions.size() > 0) {
-				TreeMap<String, List<Breakpoint>> breakpointMap = defineClipPositions(leftPositions, rightPositions, splitReads);
+				Map<String, List<Breakpoint>> breakpointMap = defineClipPositions(leftPositions, rightPositions, splitReads);
 				leftPositions = null;
 				rightPositions = null;
 				splitReads = null;
@@ -594,7 +594,7 @@ public class FindClipClustersMT  {
 			}			
 		}
 
-		private TreeMap<String, List<Breakpoint>> defineClipPositions(TreeMap<Integer, Breakpoint> leftClipPositions, TreeMap<Integer, Breakpoint> rightClipPositions,TreeMap<Integer, List<UnmappedRead>> splitReads) throws Exception {
+		private Map<String, List<Breakpoint>> defineClipPositions(TreeMap<Integer, Breakpoint> leftClipPositions, TreeMap<Integer, Breakpoint> rightClipPositions,TreeMap<Integer, List<UnmappedRead>> splitReads) throws Exception {
 			int buffer = tumourParameters.getUpperInsertSize().intValue() + 100;
 			AbstractQueue<Breakpoint> queueIn = new ConcurrentLinkedQueue<Breakpoint>(); 			
 			//			int count = 0;
@@ -670,12 +670,12 @@ public class FindClipClustersMT  {
 			// blat for the matching breakpoint
 			int size = breakpoints.size();
 			logger.info("Running BLAT to find matching positions for " + size + " breakpoints on " + chromosome.getName());
-			TreeMap<String, List<Breakpoint>> breakpointMap = blatBreakpoints(breakpoints);	
+			Map<String, List<Breakpoint>> breakpointMap = blatBreakpoints(breakpoints);	
 			logger.info("Finished running BLAT to find matching positions for " + size + " breakpoints on " + chromosome.getName());
 			return breakpointMap;
 		}
 
-		private void findMatchingClipBreakpoint(TreeMap<String, List<Breakpoint>> leftMap) throws Exception {
+		private void findMatchingClipBreakpoint(Map<String, List<Breakpoint>> leftMap) throws Exception {
 			logger.info("Finding matching clip breakpoint for " + chromosome.getName());
 
 			for (Entry<String, List<Breakpoint>> entry : leftMap.entrySet()) {
@@ -730,7 +730,7 @@ public class FindClipClustersMT  {
 			leftMap = null;
 		}
 
-		private TreeMap<String, List<Breakpoint>> blatBreakpoints(List<Breakpoint> breakpoints) throws Exception {
+		private Map<String, List<Breakpoint>> blatBreakpoints(List<Breakpoint> breakpoints) throws Exception {
 			
 			if ( ! breakpoints.isEmpty()) {
 				String base = softClipDir + QSVParameters.FILE_SEPERATOR + tumourParameters.getFindType() + "_breakpoint." + chromosome.getName();
@@ -758,11 +758,11 @@ public class FindClipClustersMT  {
 	
 				return matchBlatBreakpoints(breakpoints, blatRecords);
 			}
-			return new TreeMap<String, List<Breakpoint>>();
+			return Collections.emptyMap();
 		}
 
-		private TreeMap<String, List<Breakpoint>> matchBlatBreakpoints(List<Breakpoint> breakpoints, Map<String,BLATRecord> blatRecords) throws IOException {
-			TreeMap<String, List<Breakpoint>> breakpointMap = new TreeMap<String, List<Breakpoint>>();
+		private Map<String, List<Breakpoint>> matchBlatBreakpoints(List<Breakpoint> breakpoints, Map<String,BLATRecord> blatRecords) throws IOException {
+			Map<String, List<Breakpoint>> breakpointMap = new TreeMap<String, List<Breakpoint>>();
 			//determine the breakpoint 		
 			int count = 0;
 			List<Breakpoint> nonBlatAligned = new ArrayList<Breakpoint>();
@@ -771,12 +771,17 @@ public class FindClipClustersMT  {
 				
 				BLATRecord blatR = blatRecords.get(r.getName());
 				if (null != blatR) {
+					
+					logger.info("breakpoint: " + r.toLowConfidenceString() + ", blat: " + blatR.toString());
 
 					boolean matchingBreakpoint = r.findMateBreakpoint(blatR);
 
+					logger.info("match?: " + matchingBreakpoint);
+					logger.info("allChromosomes?: " + allChromosomes + ", translocationOnly: " + translocationOnly + ", r.isTranslocation(): " + r.isTranslocation());
 					if (matchingBreakpoint) {
 						//if running translocations, only get the matches on different chromosomes
 						if (allChromosomes || (translocationOnly && r.isTranslocation()) || (!translocationOnly && !r.isTranslocation())) {
+							logger.info("allChromosomes || (translocationOnly && r.isTranslocation()) || (!translocationOnly && !r.isTranslocation()) is true ");
 							count++;
 							
 							List<Breakpoint> list = breakpointMap.get(r.getReferenceKey());
