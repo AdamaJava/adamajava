@@ -329,11 +329,11 @@ public class IndelMT {
 	 * @return
 	 * @throws Exception
 	 */
-	public int process(final int threadNo) throws Exception {
-		
-		return process( threadNo,  true);		
-		
-	}
+//	public int process(final int threadNo) throws Exception {
+//		
+//		return process( threadNo,  true);		
+//		
+//	}
 	
 	/**
 	 * run parallel pileup without homopolymers pileup if the withHomoOption is false
@@ -342,7 +342,7 @@ public class IndelMT {
 	 * @return
 	 * @throws Exception
 	 */
-	public int process(final int threadNo, boolean withHomoOption) throws Exception {
+	public int process(final int threadNo) throws Exception {
 		positionRecordMap = indelload.getIndelMap();
 		if(positionRecordMap == null || positionRecordMap.size() == 0){
 			logger.info("Exit program since there is no indels loaded from inputs");
@@ -373,7 +373,7 @@ public class IndelMT {
     					 tumourQueue, Thread.currentThread() ,pileupLatch));
     		
     		
-    		if(withHomoOption)
+    		if(options.getReference() != null)
     			pileupThreads.execute(new homopoPileup(contig.getSequenceName(), getIndelList(contig), options.getReference(),
     				homopoQueue, options.nearbyHomopolymer,options.getNearbyHomopolymerReportWindow(), Thread.currentThread(),pileupLatch));    		
     	}

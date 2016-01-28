@@ -26,18 +26,16 @@ public class IniFileTest {
 	
 	@Before
 	public void before() throws IOException{	
-		createIniFile(new File( ini+".fai"),fini,fini,fini,fini,fini, null);		
+		//createIniFile(ini,ini ,ini,ini,ini, null);		
 	}	
 	
 	@After
 	public void after() throws IOException{	
 		fini.delete();
-		new File( ini+".fai").delete();
 	}
 	@Test
 	public void testquery() throws Exception {
-		 
-		fini.delete();
+		 		
 		//ini file not exist
 		String[] args = {"-i", ini};
 		try {
@@ -46,7 +44,7 @@ public class IniFileTest {
 		} catch (Exception e) {}
 		
 		// create ini file without query and some dodgy file
-		createIniFile(fini,fini,fini,fini,fini,fini, null);	 
+		createIniFile(fini,fini,fini,fini,fini, null);	 
 		try {
 			Options options = new Options(args);	
 			assertTrue(options.getFilterQuery() == null);
@@ -55,7 +53,7 @@ public class IniFileTest {
 		}
 		
 		// create ini file with empty query 
-		createIniFile(fini,fini,fini,fini,fini,fini, "");	 
+		createIniFile(fini,fini,fini,fini,fini, "");	 
 		try {
 			Options options = new Options(args);	
 			assertTrue(options.getFilterQuery() == null);
@@ -70,17 +68,16 @@ public class IniFileTest {
 		
 		// create ini file with  query 
 		String str = "and (flag_ReadUnmapped != true, flag_DuplicatedRead != true)";
-		String[] args = {"-i", ini};
-		File f = new File( ini);
-		createIniFile(fini,fini,fini,fini,fini,fini, str);	 
+	//	File f = new File( ini);
+		createIniFile(ini,ini,ini,ini,ini, str);	 
 		
 		try {
-			Options options = new Options(args);	
+			Options options = new Options(new String[]{"-i", ini});	
 			assertTrue(options.getFilterQuery().equalsIgnoreCase(str));
-			assertTrue(options.getControlBam().getAbsolutePath().equals(f.getAbsolutePath() ));
-			assertTrue(options.getTestBam().getAbsolutePath().equals(f.getAbsolutePath()));
-			assertTrue(options.getControlInputVcf().getAbsolutePath().equals(f.getAbsolutePath()));
-			assertTrue(options.getTestInputVcf().getAbsolutePath().equals(f.getAbsolutePath()));
+			assertTrue(options.getControlBam().getAbsolutePath().equals(fini.getAbsolutePath() ));
+			assertTrue(options.getTestBam().getAbsolutePath().equals(fini.getAbsolutePath()));
+			assertTrue(options.getControlInputVcf().getAbsolutePath().equals(fini.getAbsolutePath()));
+			assertTrue(options.getTestInputVcf().getAbsolutePath().equals(fini.getAbsolutePath()));
 			
 			assertTrue(options.getControlSample().equals("Normalcontrol(othersite):a6b558da-ab2d-4e92-a029-6544fb98653b"));					
 			assertTrue(options.getTestSample().equals("Primarytumour:4ca050b3-d15b-436b-b035-d6c1925b59fb"));
@@ -91,17 +88,16 @@ public class IniFileTest {
 	}
 	
 	
-	public static void createIniFile(String ini, String ref,String testbam, String controlbam, String testvcf, String controlvcf,  String query){
-		createIniFile(new File( ini), new File( ref), new File(testbam), new File(controlbam), new File(testvcf), new File(controlvcf),   query);
-		
-		
+	public static void createIniFile(String ini, String testbam, String controlbam, String testvcf, String controlvcf,  String query){
+		createIniFile(new File( ini), new File(testbam), new File(controlbam), new File(testvcf), new File(controlvcf),   query);
+				
 	}
 	
-	public static void createIniFile(File ini, File ref,File testbam, File controlbam, File testvcf, File controlvcf,  String query){
+	public static void createIniFile(File ini, File testbam, File controlbam, File testvcf, File controlvcf,  String query){
 		
         List<String> data = new ArrayList<String>();
         data.add("[IOs]");
-        data.add( "ref=" + ref.getAbsolutePath());
+        data.add( "ref=");
         data.add("testBam=" + testbam.getAbsolutePath());
         data.add("controlBam="  + controlbam.getAbsolutePath());
         data.add("testVcf="  + testvcf.getAbsolutePath());
@@ -119,7 +115,6 @@ public class IniFileTest {
         data.add("threadNo=5");
         data.add("filter=" + query);
         data.add("window.nearbyIndel=3");
-     //   data.add("window.homopolymer=10");
         data.add("window.homopolymer=100,10");
         data.add("window.softClip =13");
         data.add("");

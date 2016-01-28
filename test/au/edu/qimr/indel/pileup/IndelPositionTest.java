@@ -31,6 +31,7 @@ import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.SAMOrBAMWriterFactory;
 import org.qcmg.vcf.VCFFileReader;
 
+import au.edu.qimr.indel.Support;
 import au.edu.qimr.indel.IniFileTest;
 import au.edu.qimr.indel.Options;
 import au.edu.qimr.indel.Q3IndelException;
@@ -45,8 +46,8 @@ public class IndelPositionTest {
 	
 	@BeforeClass
 	public static void createInput() {	
-		IndelPileupTest.createVcf();
-		IndelMTTest.createGatkVcf(inputIndel);
+//		IndelPileupTest.createVcf();
+		Support.createGatkVcf(inputIndel);
 		File vcf = new File(inputIndel);
 		
 		//dodgy fake reference  and index
@@ -56,19 +57,7 @@ public class IndelPositionTest {
 	
 	@AfterClass
 	public static void clear() throws IOException {
-		File dir = new java.io.File( "." ).getCanonicalFile();		
-		for(File f: dir.listFiles())
-		    if(f.getName().endsWith(".fai")  ||  f.getName().endsWith(".ini")  || f.getName().endsWith(".bai")  ||
-		    		f.getName().endsWith(".vcf")    )
-		        f.delete();		
-	}
-	
-	@After
-	public void clearBam() throws IOException{
-		File dir = new java.io.File( "." ).getCanonicalFile();		
-		for(File f: dir.listFiles())
-		    if(  f.getName().endsWith(".bam") || f.getName().endsWith(".sam")     )
-		        f.delete();		
+		 Support.clear();		
 	}
 	
 	
@@ -79,14 +68,14 @@ public class IndelPositionTest {
 		 List<String> data = new ArrayList<String>();
 		 for(int i = 1; i <= 1000; i ++) 
 			 data.add("ST-" + i + ":a:102\t99\tchrY\t2672601\t60\t10M2D123M2D10M8S\t=\t2673085\t631\tGTAGTTTATATTTCTGTGGGGTCAGTGGTGATATCCCTTTTATTATTTTTTATTGTGTCTTTTTGATTCTTCTCTCTTTTCTTTTTTATTAATCTACCTAGCAGTCTATCTTATTGGGTGTG\t*");		  
-		 createBam(data, tumourBAM);
+		 Support.createBam(data, tumourBAM);
 		 		
 		 int i = 1001;
 		 data.add("ST-" + i + ":a:102\t99\tchrY\t2672601\t60\t10M2D123M2D10M8S\t=\t2673085\t631\tGTAGTTTATATTTCTGTGGGGTCAGTGGTGATATCCCTTTTATTATTTTTTATTGTGTCTTTTTGATTCTTCTCTCTTTTCTTTTTTATTAATCTACCTAGCAGTCTATCTTATTGGGTGTG\t*");
-		 createBam(data, normalBAM);
+		 Support.createBam(data, normalBAM);
 		 
-		 IniFileTest.createIniFile(IndelMTTest.ini_noquery, inputIndel, tumourBAM, normalBAM, inputIndel, inputIndel, null);		
-		 IndelMTTest.runQ3IndelNoHom(IndelMTTest.ini_noquery);
+		 IniFileTest.createIniFile(IndelMTTest.ini_noquery,  tumourBAM, normalBAM, inputIndel, inputIndel, null);		
+		 Support.runQ3IndelNoHom(IndelMTTest.ini_noquery);
 		 
 		 try (VCFFileReader reader = new VCFFileReader(IniFileTest.output)) {				 
 			 for (VcfRecord re : reader)  											
@@ -98,8 +87,8 @@ public class IndelPositionTest {
 		new File(IniFileTest.output).delete();
 		 
 		 //swap tumour and normal bam order
-		 IniFileTest.createIniFile(IndelMTTest.ini_noquery, inputIndel, normalBAM,tumourBAM, inputIndel, inputIndel, null);		
-		 IndelMTTest.runQ3IndelNoHom(IndelMTTest.ini_noquery);
+		 IniFileTest.createIniFile(IndelMTTest.ini_noquery, normalBAM,tumourBAM, inputIndel, inputIndel, null);		
+		 Support.runQ3IndelNoHom(IndelMTTest.ini_noquery);
 		 
 		 try (VCFFileReader reader = new VCFFileReader(IniFileTest.output)) {				 
 			 for (VcfRecord re : reader)  											
@@ -119,13 +108,13 @@ public class IndelPositionTest {
 		 List<String> data = new ArrayList<String>();
 		 for(int i = 1; i <= 7; i ++) 
 			 data.add("ST-" + i + ":a:102\t99\tchrY\t2672601\t60\t10M2D123M2D10M8S\t=\t2673085\t631\tGTAGTTTATATTTCTGTGGGGTCAGTGGTGATATCCCTTTTATTATTTTTTATTGTGTCTTTTTGATTCTTCTCTCTTTTCTTTTTTATTAATCTACCTAGCAGTCTATCTTATTGGGTGTG\t*");	 
-		 createBam(data,normalBAM);
+		 Support.createBam(data,normalBAM);
 
 		//tumour BAM with assertTrue(record.getSampleFormatRecord(1).getField("ACINDEL").equals("3,12,11,4[2,2],2,4,4"));
-		IndelMTTest.createBam(tumourBAM);
+		IndelMTTest.createDelBam(tumourBAM);
 		
-		 IniFileTest.createIniFile(IndelMTTest.ini_noquery, inputIndel,  tumourBAM, normalBAM,inputIndel, inputIndel, null);		
-		 IndelMTTest.runQ3IndelNoHom(IndelMTTest.ini_noquery);
+		 IniFileTest.createIniFile(IndelMTTest.ini_noquery,  tumourBAM, normalBAM,inputIndel, inputIndel, null);		
+		 Support.runQ3IndelNoHom(IndelMTTest.ini_noquery);
 		 		 
 		 //not somatic since supporting/informative=100% on control BAM 
 		 //NBIAS 100 support reads >=3 and one of strand is 0; 
@@ -140,8 +129,8 @@ public class IndelPositionTest {
 		new File(IniFileTest.output).delete();				
 		
 		//swap normal and tumour make it to be somatic
-		 IniFileTest.createIniFile(IndelMTTest.ini_noquery, inputIndel,  normalBAM, tumourBAM,inputIndel, inputIndel, null);		
-		 IndelMTTest.runQ3IndelNoHom(IndelMTTest.ini_noquery);
+		 IniFileTest.createIniFile(IndelMTTest.ini_noquery,   normalBAM, tumourBAM,inputIndel, inputIndel, null);		
+		 Support.runQ3IndelNoHom(IndelMTTest.ini_noquery);
 		 
 		 //not somatic since noverlStart==3, none of strand reads <%%
 		 try (VCFFileReader reader = new VCFFileReader(IniFileTest.output)) {				 
@@ -157,9 +146,9 @@ public class IndelPositionTest {
 		 //("ACINDEL").equals("1,8,8,8[8,0],0,0,8"
 		 for(int i = 7; i <= 8; i ++) 
 			 data.add("ST-" + i + ":a:102\t99\tchrY\t2672601\t60\t10M2D123M2D10M8S\t=\t2673085\t631\tGTAGTTTATATTTCTGTGGGGTCAGTGGTGATATCCCTTTTATTATTTTTTATTGTGTCTTTTTGATTCTTCTCTCTTTTCTTTTTTATTAATCTACCTAGCAGTCTATCTTATTGGGTGTG\t*");	 
-		 createBam(data,normalBAM);
-		 IniFileTest.createIniFile(IndelMTTest.ini_noquery, inputIndel,  normalBAM, tumourBAM,inputIndel, inputIndel, null);		
-		 IndelMTTest.runQ3IndelNoHom(IndelMTTest.ini_noquery);
+		 Support.createBam(data,normalBAM);
+		 IniFileTest.createIniFile(IndelMTTest.ini_noquery,  normalBAM, tumourBAM,inputIndel, inputIndel, null);		
+		 Support.runQ3IndelNoHom(IndelMTTest.ini_noquery);
 		 
 		 try (VCFFileReader reader = new VCFFileReader(IniFileTest.output)) {				 
 			 for (VcfRecord re : reader)  											
@@ -185,9 +174,9 @@ public class IndelPositionTest {
 		 List<String> data = new ArrayList<String>();
 		 for(int i = 1; i <= 3; i ++) 
 			data.add("ST-" + i + ":c:104\t99\tchrY\t2672696\t60\t40M3D111M\t=\t2672957\t412\tATCTACCTAGCAGTCTATCTTATTGGGTGTGTGTGTGTGATTTTTTTTTTTTCCAAAAAACCAGTTCCTGAATTCATTGATTTTTTGAAGGGTTTTTTGTGTCACTGTCCCCTT\t*");
-		 createBam(data,normalBAM);
-		 IniFileTest.createIniFile(IndelMTTest.ini_noquery, inputIndel,  normalBAM, normalBAM,inputIndel, inputIndel, null);		
-		 IndelMTTest.runQ3IndelNoHom(IndelMTTest.ini_noquery);
+		 Support.createBam(data,normalBAM);
+		 IniFileTest.createIniFile(IndelMTTest.ini_noquery,  normalBAM, normalBAM,inputIndel, inputIndel, null);		
+		 Support.runQ3IndelNoHom(IndelMTTest.ini_noquery);
 		 
 		 try (VCFFileReader reader = new VCFFileReader(IniFileTest.output)) {				 
 			 for (VcfRecord re : reader)  											
@@ -208,10 +197,10 @@ public class IndelPositionTest {
 		data.add("ST-" + 4 + ":c:104\t99\tchrY\t2672696\t60\t40M3D111M\t=\t2672957\t412\tATCTACCTAGCAGTCTATCTTATTGGGTGTGTGTGTGTGATTTTTTTTTTTTCCAAAAAACCAGTTCCTGAATTCATTGATTTTTTGAAGGGTTTTTTGTGTCACTGTCCCCTT\t*");
 		 for(int i = 5; i <= 50; i ++) 
 			 data.add("ST-" + i + ":a:102\t99\tchrY\t2672601\t60\t10M2D123M2D10M8S\t=\t2673085\t631\tGTAGTTTATATTTCTGTGGGGTCAGTGGTGATATCCCTTTTATTATTTTTTATTGTGTCTTTTTGATTCTTCTCTCTTTTCTTTTTTATTAATCTACCTAGCAGTCTATCTTATTGGGTGTG\t*");	 
-		 createBam(data,normalBAM);
+		 Support.createBam(data,normalBAM);
 	
 		 //with same ini file
-		 IndelMTTest.runQ3IndelNoHom(IndelMTTest.ini_noquery);
+		 Support.runQ3IndelNoHom(IndelMTTest.ini_noquery);
 		 try (VCFFileReader reader = new VCFFileReader(IniFileTest.output)) {				 
 			 for (VcfRecord re : reader)  											
 				if(re.getChromosome().equals("chrY")){ 
@@ -238,13 +227,13 @@ public class IndelPositionTest {
 		
 		 for(int i = 1; i <= 10; i ++) 
 			data.add("ST-" + i + ":f:108\t147\tchrY\t2672723\t60\t28S13M1I109M\t=\t2672317\t-527\tTTTTTTTTTTTTTGTTGTTTATTTTTTTGTGTGTGTGTGTGTTTTTTTTTTTTTTTTCCAAAAAACCAGTTCCTGAATTCATTGATTTTTTGAAGGGTTTTTTGTGTCACTGTC\t*");        
-		 createBam(data,normalBAM);
+		 Support.createBam(data,normalBAM);
 
 		//tumour BAM with assertTrue(record.getSampleFormatRecord(1).getField("ACINDEL").equals("3,12,11,4[2,2],2,4,4"));
-		IndelMTTest.createBam(tumourBAM);
+		 IndelMTTest.createDelBam(tumourBAM);
 		
-		 IniFileTest.createIniFile(IndelMTTest.ini_noquery, inputIndel,  tumourBAM, normalBAM,inputIndel, inputIndel, null);		
-		 IndelMTTest.runQ3IndelNoHom(IndelMTTest.ini_noquery);
+		 IniFileTest.createIniFile(IndelMTTest.ini_noquery,  tumourBAM, normalBAM,inputIndel, inputIndel, null);		
+		 Support.runQ3IndelNoHom(IndelMTTest.ini_noquery);
 		 		 
 		 //not somatic since supporting/informative=100% on control BAM 
 		 //NBIAS 100 support reads >=3 and one of strand is 0; 
@@ -262,37 +251,6 @@ public class IndelPositionTest {
 		
 	}
 	
-	public static void createBam( List<String> data1, String output) {
-        List<String> data = new ArrayList<String>();
-        data.add("@HD	VN:1.0	SO:coordinate");
-        data.add("@RG	ID:20140717025441134	SM:eBeads_20091110_CD	DS:rl=50");
-        data.add("@PG	ID:qtest::Test	VN:0.2pre");
-        data.add("@SQ	SN:chrY	LN:249250621");
-        data.add("@SQ	SN:chr11	LN:243199373");
-        data.add("@CO	create by qcmg.qbamfilter.filter::TestFile");
-       
- 		
-        String tmp = "tmp.sam";
-        try( BufferedWriter out = new BufferedWriter(new FileWriter(tmp))) {	           
-           for (String line : data)   out.write(line + "\n");	
-           for (String line : data1)  out.write(line + "\n");	
-        }catch(IOException e){
-        	System.err.println( Q3IndelException.getStrackTrace(e));	 	        	 
-        	assertTrue(false);
-        }
-		 	
-		try(SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(tmp));){		
-			SAMOrBAMWriterFactory factory = new  SAMOrBAMWriterFactory(reader.getFileHeader() ,false, new File(output)) ;
-			SAMFileWriter writer = factory.getWriter();
-			for( SAMRecord record : reader) 
-				writer.addAlignment(record);
-			 
-			factory.closeWriter();
-		} catch (IOException e) {
-			System.err.println(Q3IndelException.getStrackTrace(e));
-			Assert.fail("Should not threw a Exception");
-		}
-		
-	}
+
 
 }

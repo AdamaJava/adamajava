@@ -136,8 +136,10 @@ public class Options {
 			throw new Q3IndelException("INI_FILE_FORMAT_ERROR", (String) options.valueOf("i") );
 		
 		String f = ini.fetch(parent, child);
-		 if( StringUtils.isNullOrEmpty(f))			 
-			 throw new Q3IndelException("MISSING_PARAMETER", child);
+		if( StringUtils.isNullOrEmpty(f) || f.toLowerCase().equals("null"))
+			return null; 
+//		 if( StringUtils.isNullOrEmpty(f))			 
+//			 throw new Q3IndelException("MISSING_PARAMETER", child);
 		
 		 return  new File(f ) ;		 
 	}
@@ -199,7 +201,7 @@ public class Options {
 		
 		checkReference();
 			
-		if (output.exists()) 			
+		if (output != null && output.exists()) 			
 			throw new Q3IndelException("OUTPUT_EXISTS", output.getAbsolutePath());
 	 		
 		if (testBam != null && !testBam.exists())  
@@ -226,7 +228,14 @@ public class Options {
 		 				
 	}
 
+	/**
+	 * check reference file and index if it is not null
+	 * @throws Q3IndelException
+	 */
 	private void checkReference() throws Q3IndelException {
+		if(reference == null)
+			return; 
+			
 		if (!reference.exists()) {
 			throw new Q3IndelException("NO_REF_FILE", reference.getAbsolutePath());
 		}	

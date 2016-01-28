@@ -18,47 +18,44 @@ import org.junit.Test;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.util.IndelUtils.SVTYPE;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.picard.SAMFileReaderFactory;
 
 public class IndelPileupTest {
-	static final String inputIndel = "indel.vcf"; 
+//	static final String inputIndel = "indel.vcf"; 
 	static final String inputBam = "tumor.sam"; 
 	QLogger logger = QLoggerFactory.getLogger(IndelPileupTest.class);
 	
 	@BeforeClass
 	public static void createInput() {	
-		createVcf();
 		CreateSam();
 	}
 	
 	@AfterClass
 	public static void deleteInput() {	
-		new File(inputIndel).delete();
 		new File(inputBam).delete();
 	}	
 		
 	@Test
 	public void insertTest() throws Exception{
-		ReadIndels read = new ReadIndels(logger);
-		read.LoadIndels(new File(inputIndel));
-		Map<ChrPosition, IndelPosition> map = read.getIndelMap();
-				
+								
 		//get pool		
 		SamReader inreader =  SAMFileReaderFactory.createSAMFileReader(new File(inputBam));
 		List<SAMRecord> pool = new ArrayList<SAMRecord>();
-        for(SAMRecord record : inreader){
-        	pool.add(record);
-        }
+        for(SAMRecord record : inreader)
+        	pool.add(record);       
         inreader.close();
-		
-		IndelPileup pileup = null; 
-		for(ChrPosition pos: map.keySet()){
-			pileup = new IndelPileup( map.get(pos), 13, 3); 		
-				pileup.pileup(pool);
-		}
-		
+		 
+        //pileup
+		List<VcfRecord> vcfs = new ArrayList<VcfRecord>();
+		vcfs.add(new VcfRecord("chr1",	183014,	null, "G",	"GTT"));
+		vcfs.add(new VcfRecord("chr1",	183014,	null, "G",	"GT"));
+		IndelPosition indel = new IndelPosition (vcfs, SVTYPE.INS);
+		IndelPileup  pileup = new IndelPileup( indel, 13, 3); 		
+		pileup.pileup(pool);
+	 		
 		//assert first insertion vcf
         assertTrue(pileup.getInformativeCount() == 3);
         assertTrue(pileup.getsuportReadCount(0) == 1); 
@@ -75,12 +72,11 @@ public class IndelPileupTest {
 	@Test
 	public void deleteTest() throws Exception{
  		//get delete indel
-		VcfRecord vs = new VcfRecord(new String[] {"GL000230.1", "197", null, "CAG", "C" });
+		VcfRecord vs = new VcfRecord("chr1", 197, null, "CAG", "C");				 
 		IndelPosition indel = new IndelPosition (vs);
 		
 		//make pool
-		List<SAMRecord> pool = new ArrayList<SAMRecord>();
-				
+		List<SAMRecord> pool = new ArrayList<SAMRecord>();				
 		try(SamReader inreader =  SAMFileReaderFactory.createSAMFileReader(new File(inputBam));){
 	        for(SAMRecord record : inreader){
 	        	if(record.getAlignmentStart() <= indel.getEnd())
@@ -130,19 +126,5 @@ public class IndelPileupTest {
         }              
     }
 
-	public static void createVcf() {
-        final List<String> data = new ArrayList<String>();
-        data.add("##fileformat=VCFv4.0");
-        data.add(VcfHeaderUtils.STANDARD_UUID_LINE + "=abcd_12345678_xzy_999666333");
-        data.add("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFormat\tTUMOUR\tNormal");       
-        data.add("chr1	183014	.	G	GTT	214.73	.	TD=397:2:396:128:0:0:0;ND=210:0:207:69:0:0:0	GT:AD:DP:GQ:PL0/1:171,47:218:99:869,0,7156	.:.:.:.:.");
-        data.add("chr1	183014	.	G	GT	108.73	.	TD=397:2:396:128:0:0:0;ND=210:0:207:69:0:0:0	GT:AD:DP:GQ:PL.:.:.:.:.	0/1:93,24:117:99:309,0,3922");
-        
-        try(BufferedWriter out = new BufferedWriter(new FileWriter(inputIndel));) {          
-            for (final String line : data)  
-            	out.write(line +"\n");                  
-         }  catch (IOException e) {
-             System.err.println("IOException caught whilst attempting to write to SAM test file: " + inputIndel  + e);
-         } 
-	}
+
 }
