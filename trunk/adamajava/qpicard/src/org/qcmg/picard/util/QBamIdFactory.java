@@ -9,12 +9,15 @@ import java.io.File;
 import htsjdk.samtools.SamReaderFactory;
 import htsjdk.samtools.SAMFileHeader;
 
+import org.qcmg.common.meta.KeyValue;
 import org.qcmg.common.meta.QBamId;
+import org.qcmg.common.string.StringUtils;
 import org.qcmg.picard.SAMFileReaderFactory;
 
 public class QBamIdFactory {
 	
 	public static final String CN_QCMG = "CN:QCMG	QN:qbamid";
+	public static final String Q3BamId = "q3BamUUID";
 	
 	public static QBamId getBamId(String bamFIleName) throws Exception {
 		SAMFileHeader header = SAMFileReaderFactory.createSAMFileReader(new File(bamFIleName)).getFileHeader();
@@ -33,6 +36,14 @@ public class QBamIdFactory {
 			}
 		}
 		return null;
+	}
+	
+	//@CO	q3BamUUID:299225f0-59fc-4cbd-89a1-e7c2ea23e220
+	public static QBamId getQ3BamId(String bamFIleName) throws Exception {
+		SAMFileHeader header = SAMFileReaderFactory.createSAMFileReader(new File(bamFIleName)).getFileHeader();		
+		String commentLine = getQCMGCommentLine(header);
+		String uuid =  StringUtils.getValueFromKey(commentLine, Q3BamId, ':');				
+		return new QBamId(bamFIleName, null, uuid);
 	}
 
 }
