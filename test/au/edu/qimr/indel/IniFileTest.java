@@ -24,10 +24,6 @@ public class IniFileTest {
 	public static final String output = "test.output.vcf";
 	public static final File fini = new File( ini);
 	
-	@Before
-	public void before() throws IOException{	
-		//createIniFile(ini,ini ,ini,ini,ini, null);		
-	}	
 	
 	@After
 	public void after() throws IOException{	

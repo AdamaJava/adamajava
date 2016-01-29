@@ -43,8 +43,6 @@ public class IndelMTTest {
 	public static final String ini_query = "test2.ini";
 	public static final String query = "and (Flag_DuplicateRead==false, CIGAR_M>150, MD_mismatch <= 3)";
 	
-//	static final String query = "and (Flag_DuplicateRead == false, CIGAR_M > 34, MD_mismatch <= 3)";
-	
 	@Before
 	public void before() {
 		 
