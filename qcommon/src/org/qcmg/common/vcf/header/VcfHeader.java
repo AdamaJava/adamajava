@@ -8,6 +8,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.qcmg.common.meta.QExec;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
 
@@ -262,7 +263,7 @@ public class VcfHeader implements Iterable<VcfHeader.Record> {
 		} else if (line.startsWith(VcfHeaderUtils.STANDARD_UUID_LINE)) {
 			uuid = new Record(line);
 		} else {
-			if( ! line.startsWith(Constants.DOUBLE_HASH)) {
+			if ( ! line.startsWith(Constants.DOUBLE_HASH)) {
 				throw new IllegalArgumentException("can't convert String into VcfHeaderRecord since missing \"##\" at the begin of line: " + line);
 			}
 			record = new Record(line);
@@ -526,6 +527,14 @@ public class VcfHeader implements Iterable<VcfHeader.Record> {
 				Constants.COMMA + VERSION + Constants.EQ + version +
 				Constants.COMMA + DATE + Constants.EQ + date +
 				Constants.COMMA + COMMAND_LINE + Constants.EQ + "\"" + commandLine + "\"" +
+				">"));
+	} 
+	public void addQPGLine(int i, QExec exec) {
+		addQPG(new QPGRecord(VcfHeaderUtils.HEADER_LINE_QPG + "=<ID=" + i + 
+				Constants.COMMA + TOOL + Constants.EQ + exec.getToolName().getValue() +				
+				Constants.COMMA + VERSION + Constants.EQ + exec.getToolVersion().getValue() +
+				Constants.COMMA + DATE + Constants.EQ + exec.getStartTime().getValue() +
+				Constants.COMMA + COMMAND_LINE + Constants.EQ + "\"" + exec.getCommandLine().getValue() + "\"" +
 				">"));
 	} 
 	public void addQPG(QPGRecord rec) {
