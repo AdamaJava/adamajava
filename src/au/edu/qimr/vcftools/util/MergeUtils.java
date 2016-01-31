@@ -21,6 +21,8 @@ import org.qcmg.common.vcf.header.VcfHeader.FormattedRecord;
 import org.qcmg.common.vcf.header.VcfHeader.Record;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 
+import au.edu.qimr.vcftools.Rule;
+
 public class MergeUtils {
 	
 	private static final String GENOTYPE = "##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">";
@@ -37,7 +39,7 @@ public class MergeUtils {
 			.filter(list -> list != null && ! list.isEmpty())
 			.forEach(list -> {
 				mergedRecs.addAll(list.stream()
-						.filter(r -> r != null && r.getData() != null)
+						.filter(r -> r != null && r.getData() != null && ! r.getData().equals(VcfHeaderUtils.BLANK_HEADER_LINE))
 						.map(r -> r.getData().replaceAll("##", "##" + prefix.get() + ":"))
 						.collect(Collectors.toList()));
 				prefix.incrementAndGet();
@@ -47,23 +49,81 @@ public class MergeUtils {
 	}
 	
 	public static Map<Integer, Map<String, String>> getRules(Map<String, FormattedRecord> ...  loMaRecs) {
-		return getHeaderAndRules(loMaRecs).getRight();
+		return getHeaderAndRules(Arrays.asList(loMaRecs)).getRight();
+	}
+	
+	public static Pair<VcfHeader, Rule> getMergedHeaderAndRules(List<String> vcfFileNames, VcfHeader ... headers) {
+		
+		if (canMergeBePerformed(headers)) {
+			VcfHeader mergedHeader = new VcfHeader();
+			List<Map<String, FormattedRecord>> infoHeaders = new ArrayList<>(headers.length);
+			List<Map<String, FormattedRecord>> filterHeaders = new ArrayList<>(headers.length);
+			List<Map<String, FormattedRecord>> formatHeaders = new ArrayList<>(headers.length);
+			List<List<Record>> otherHeaders = new ArrayList<>(headers.length);
+			for (VcfHeader h : headers) {
+				infoHeaders.add(h.getInfoRecords());
+				filterHeaders.add(h.getFilterRecords());
+				formatHeaders.add(h.getFormatRecords());
+				otherHeaders.add(h.getNonStandardRecords());
+			}
+			
+			Pair<List<FormattedRecord>, Map<Integer, Map<String, String>>> infoPair = getHeaderAndRules(infoHeaders);
+			for (FormattedRecord fr : infoPair.getLeft()) {
+				mergedHeader.addInfo(fr);
+			}
+			Pair<List<FormattedRecord>, Map<Integer, Map<String, String>>> filterPair = getHeaderAndRules( filterHeaders);
+			for (FormattedRecord fr : filterPair.getLeft()) {
+				mergedHeader.addFilter(fr);
+			}
+			Pair<List<FormattedRecord>, Map<Integer, Map<String, String>>> formatPair = getHeaderAndRules(formatHeaders);
+			for (FormattedRecord fr : formatPair.getLeft()) {
+				mergedHeader.addFormat(fr);
+			}
+			List<String> mergedOtherRecords = mergeOtherHeaderRecords(otherHeaders.toArray(new List[]{}));
+			for (String s : mergedOtherRecords) {
+				mergedHeader.parseHeaderLine(s);
+			}
+			
+			/*
+			 * add IN= to 
+			 */
+			logger.info("checking that no existing info lines start with IN= ");
+			if (infoPair.getLeft().contains("IN")) {
+				logger.warn("Can't use IN= to mark records as having come from a particular input file - IN= is already in use!");
+			}
+			
+			mergedHeader.addInfoLine("IN", ".", "Integer", "Indicates which INput file this vcf record came from. Multiple values are allowed which indicate that the record has been merged from more than 1 input file");
+			mergedHeader.parseHeaderLine(headers[0].getChrom().toString());
+			
+			Rule r = new Rule(headers.length);
+			for (int i = 0 ; i < headers.length ; i++) {
+				r.setRules(i, filterPair.getRight().get(i), infoPair.getRight().get(i), formatPair.getRight().get(i));
+			}
+			
+			return Pair.of(mergedHeader,  r);
+			
+		} else {
+			logger.warn("Unable to perform merge - please check that the vcf headers contain the same samples in the same order");
+		}
+		return null;
+		
+		
 	}
 	
 	public static List<FormattedRecord> mergeHeaderRecords(Map<String, FormattedRecord> ...  loMaRecs) {
-		return getHeaderAndRules(loMaRecs).getLeft();
+		return getHeaderAndRules(Arrays.asList(loMaRecs)).getLeft();
 	}
 	
-	public static Pair<List<FormattedRecord>, Map<Integer, Map<String, String>>> getHeaderAndRules(Map<String, FormattedRecord> ...  loMaRecs) {
-		if (null == loMaRecs || loMaRecs.length == 0) {
+	public static Pair<List<FormattedRecord>, Map<Integer, Map<String, String>>> getHeaderAndRules(List<Map<String, FormattedRecord> >  loMaRecs) {
+		if (null == loMaRecs || loMaRecs.isEmpty()) {
 			return Pair.of(Collections.emptyList(), Collections.emptyMap());
 		}
 		
 		Map<Integer,Map<String, String>> replacementIds = new HashMap<>(4);
 		
-		Map<String, FormattedRecord> mergedRecsMap = loMaRecs[0];
-		for (int i = 1 ; i < loMaRecs.length ; i++) {
-			Map<String, FormattedRecord> map = loMaRecs[i];
+		Map<String, FormattedRecord> mergedRecsMap = loMaRecs.get(0);
+		for (int i = 1 ; i < loMaRecs.size() ; i++) {
+			Map<String, FormattedRecord> map = loMaRecs.get(i);
 			for (Entry<String, FormattedRecord> entry : map.entrySet()) {
 				FormattedRecord mergedRec = mergedRecsMap.get(entry.getKey());
 				if (null == mergedRec) {

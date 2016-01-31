@@ -6,9 +6,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.meta.QExec;
@@ -16,6 +18,8 @@ import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.LoadReferencedClasses;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
+import org.qcmg.common.vcf.header.VcfHeader.Record;
+import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 import org.qcmg.vcf.VCFFileWriter;
 
@@ -31,23 +35,53 @@ public class MergeSameSamples {
 	private String logFile;
 	private int exitStatus;
 	
-	private final Map<VcfRecord, VcfRecord> mergedRecords = new HashMap<>(1024 * 1024 * 8);
+	private final Map<VcfRecord, VcfRecord> mergedRecords = new HashMap<>(1024 * 1024 * 8, 0.95f);
 	// assuming there are only 2 inputs for now...
 //	private  List<VcfRecord> input1 = new ArrayList<>();
 //	private  List<VcfRecord> input2 = new ArrayList<>();
 	
 	private VcfHeader [] headers;
+	private VcfHeader mergedHeader;
 	
 	protected int engage() throws IOException {
+		
+		logger.info("about to load vcf headers");
+		loadVcfHeaders();
+		if (null == mergedHeader) {
+			logger.error("Merged header is null - please check that the vcf files being merged contain the same samples");
+			return 1;
+		}
 		
 		logger.info("about to load vcf files");
 		loadVcfs();
 		
-//		processRecords();
-		
 		writeOutput();
 		
 		return exitStatus;
+	}
+	
+	private void loadVcfHeaders() throws IOException {
+		headers = new VcfHeader[vcfFiles.length];
+		try (VCFFileReader reader = new VCFFileReader(new File(vcfFiles[0]))) {
+			headers[0] = reader.getHeader();
+		}
+		try (VCFFileReader reader = new VCFFileReader(new File(vcfFiles[1]))) {
+			headers[1] = reader.getHeader();
+		}
+		boolean canHeadersBeMerged = MergeUtils.canMergeBePerformed(headers);
+		logger.info("canHeadersBeMerged: " + canHeadersBeMerged);
+		
+		Pair<VcfHeader, Rule> pair = MergeUtils.getMergedHeaderAndRules(Arrays.asList(vcfFiles), headers);
+		mergedHeader = null != pair ? pair.getLeft() : null;
+		mergedHeader.addQPGLine(1, exec);
+		mergedHeader.parseHeaderLine(VcfHeaderUtils.CURRENT_FILE_VERSION);
+		
+		int i = 1; 
+		for (String s : vcfFiles) {
+			logger.info("adding header entry for input " + i + " : " + s);
+			mergedHeader.parseHeaderLine(VcfHeaderUtils.BLANK_HEADER_LINE + "INPUT=" + i + ",FILE=" + s);
+			i++;
+		}
 	}
 	
 	
@@ -57,6 +91,10 @@ public class MergeSameSamples {
 		
 		logger.info("writing output");
 		try (VCFFileWriter writer = new VCFFileWriter(new File(outputFileName))) {
+			Iterator<Record> iter =mergedHeader.iterator(); 
+			while (iter.hasNext()) {
+				writer.addHeader(iter.next().toString());
+			}
 			for (VcfRecord rec : recs) {
 				writer.add(rec);
 			}
@@ -150,14 +188,14 @@ public class MergeSameSamples {
 
 
 	private void loadVcfs() throws IOException {
-		headers = new VcfHeader[vcfFiles.length];
 		int i = 0;
 		int mergedRecordCount = 0;
 		try (VCFFileReader reader = new VCFFileReader(new File(vcfFiles[0]))) {
-			headers[0] = reader.getHeader();
 			for (VcfRecord rec : reader) {
 				if (++ i % 1000000 == 0) {
-					logger.info("hit " + i + "entries");
+					
+					logger.info("hit " + i + " entries");
+					break;
 				}
 				/*
 				 * Add in IN=1 to info field
@@ -169,10 +207,10 @@ public class MergeSameSamples {
 		logger.info("input1 has " + i + " entries");
 		i = 0;
 		try (VCFFileReader reader = new VCFFileReader(new File(vcfFiles[1]))) {
-			headers[1] = reader.getHeader();
 			for (VcfRecord rec : reader) {
-				if (i++ % 1000000 == 0) {
-					logger.info("hit " + i + "entries");
+				if (++i % 1000000 == 0) {
+					logger.info("hit " + i + " entries");
+					break;
 				}
 				/*
 				 * Add in IN=1 to info field
@@ -230,7 +268,7 @@ public class MergeSameSamples {
 				version = "local";
 			}
 			logger = QLoggerFactory.getLogger(MergeSameSamples.class, logFile, options.getLogLevel());
-			exec = logger.logInitialExecutionStats("q3clinvar", version, args);
+			exec = logger.logInitialExecutionStats("q3vcftools MergeSameSample", version, args);
 			
 			// get list of file names
 			vcfFiles = options.getVcfs();
