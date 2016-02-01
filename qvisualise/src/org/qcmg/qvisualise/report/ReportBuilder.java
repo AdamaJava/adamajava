@@ -11,7 +11,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicLongArray;
@@ -807,8 +806,9 @@ public class ReportBuilder {
 		StringBuilder chartSB = new StringBuilder();
 		
 		for (Entry<String, TreeMap<Integer, AtomicLong>> map : contigMaps.entrySet()) {
-			dataSB.append(HTMLReportUtils.generateGoogleData(map.getValue(), "rnm" + map.getKey(), false));
-			chartSB.append(HTMLReportUtils.generateGoogleScatterChart("rnm" + map.getKey(), map.getKey(), 600, MIN_REPORT_HEIGHT, true));
+			String keyWithOutPeriods = map.getKey().replace(".","");
+			dataSB.append(HTMLReportUtils.generateGoogleData(map.getValue(), "rnm" + keyWithOutPeriods, false));
+			chartSB.append(HTMLReportUtils.generateGoogleScatterChart("rnm" + keyWithOutPeriods, keyWithOutPeriods, 600, MIN_REPORT_HEIGHT, true));
 		}
 			
 		parentCT.setData(dataSB.toString());
