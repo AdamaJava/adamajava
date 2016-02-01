@@ -20,7 +20,7 @@ public class ChrPosition  implements Comparable<ChrPosition> {
 	
 	private static final ReferenceNameComparator COMPARATOR = new ReferenceNameComparator();
 	
-	private final ChrStartPosition csp;
+	private final ChrPointPosition csp;
 	
 //	private final String chromosome;
 //	private final int position;
@@ -55,23 +55,23 @@ public class ChrPosition  implements Comparable<ChrPosition> {
 		if (endPosition < position) 
 			throw new IllegalArgumentException("end position is before start position: chr: " + chromosome + ":" + position + "-" + endPosition);
 		
-		this.csp = new ChrStartPosition(chromosome, position);
+		this.csp = new ChrPointPosition(chromosome, position);
 //		this.chromosome = chromosome;
 //		this.position = position;
 		this.endPosition = endPosition;
 		this.name = name;
 	}
 	
-	public ChrPosition(ChrStartPosition csp) {
-		this(csp, csp.getStartPosition());
+	public ChrPosition(ChrPointPosition csp) {
+		this(csp, csp.getPosition());
 	}
-	public ChrPosition(ChrStartPosition csp, int endPosition) {
+	public ChrPosition(ChrPointPosition csp, int endPosition) {
 		this(csp, endPosition, null);
 	}
 	
-	public ChrPosition(ChrStartPosition csp, int endPosition, String name) {
-		if (endPosition < csp.getStartPosition()) {
-			throw new IllegalArgumentException("end position: "+ endPosition + " is before start position: " + csp.getStartPosition());
+	public ChrPosition(ChrPointPosition csp, int endPosition, String name) {
+		if (endPosition < csp.getPosition()) {
+			throw new IllegalArgumentException("end position: "+ endPosition + " is before start position: " + csp.getPosition());
 		}
 		this.csp = csp;
 		this.endPosition = endPosition;
@@ -99,10 +99,10 @@ public class ChrPosition  implements Comparable<ChrPosition> {
 	 * @return int corresponding to the start position
 	 */
 	public int getPosition() {
-		return csp.getStartPosition();
+		return csp.getPosition();
 	}
 	
-	public ChrStartPosition getChrStartpos() {
+	public ChrPointPosition getChrStartpos() {
 		return csp;
 	}
 	
