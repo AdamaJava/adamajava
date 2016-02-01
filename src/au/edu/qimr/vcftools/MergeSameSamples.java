@@ -36,9 +36,6 @@ public class MergeSameSamples {
 	private int exitStatus;
 	
 	private final Map<VcfRecord, VcfRecord> mergedRecords = new HashMap<>(1024 * 1024 * 8, 0.95f);
-	// assuming there are only 2 inputs for now...
-//	private  List<VcfRecord> input1 = new ArrayList<>();
-//	private  List<VcfRecord> input2 = new ArrayList<>();
 	
 	private VcfHeader [] headers;
 	private VcfHeader mergedHeader;
@@ -100,96 +97,11 @@ public class MergeSameSamples {
 			}
 		}
 		logger.info("writing output- DONE");
-//		logger.info("About to create map based on merged records");
-//		Map<VcfRecord, VcfRecord> outputRecords = mergedRecords.stream()
-//				.collect(Collectors.toMap(vcf -> vcf, vcf -> vcf));
-//		logger.info("About to create map based on merged records - DONE");
-//		/*
-//		 * add in records from input2
-//		 */
-//		logger.info("adding records from input2 to map based on merged records");
-//		outputRecords.putAll(input2.stream()
-//				.filter(vcf -> ! outputRecords.containsKey(vcf))
-//				.collect(Collectors.toMap(vcf -> vcf, vcf -> vcf)));
-//		logger.info("adding records from input2 to map based on merged records - DONE");
-//		
-//		input2.clear();
-//		input2 =  null;
-//		
-//		
-//		
-//		
-//		
-//		logger.info("writing output");
-//		try (VCFFileWriter writer = new VCFFileWriter(new File(outputFileName))) {
-//			outputRecords.keySet().stream()
-//			.sorted((vcf1, vcf2) -> vcf1.compareTo(vcf2))
-//			.forEach(vcf -> {
-//				try {
-//					writer.add(vcf);
-//				} catch (IOException e) {
-//					e.printStackTrace();
-//				}
-//			});
-//		}
-//		logger.info("writing output- DONE");
 		
 	}
 	
-	
-//	private void processRecords() {
-//		/*
-//		 * Create map for input2
-//		 */
-//		logger.info("about to create temp map with input2 records");
-//		Map<VcfRecord, VcfRecord> input2Map = input2.stream()
-//				.collect(Collectors.toMap(vcf -> vcf, vcf -> vcf));
-//		logger.info("about to create temp map with input2 records - DONE");
-//		
-//		/*
-//		 * walk through input1, looking for matches in input2
-//		 */
-//		AtomicInteger uniqueToInput1 = new AtomicInteger();
-//		AtomicInteger samePosition = new AtomicInteger();
-//		
-//		logger.info("Running through input1, creating merged records if they exist and adding to mergedRecords collection");
-//		input1.stream()
-//			.forEach( r ->{
-//				VcfRecord input2R = input2Map.get(r);
-//				if (null == input2R) {
-//					uniqueToInput1.incrementAndGet();
-//					mergedRecords.add(r);
-//				} else {
-//					samePosition.incrementAndGet();
-//					mergeVcfRecords(r, input2R);
-//				}
-//			});
-//		logger.info("Running through input1, creating merged records if they exist and adding to mergedRecords collection - DONE");
-//		
-//		logger.info("clearing elements in intput1 - no longer required");
-//		input1.clear();
-//		input1 = null;
-//		logger.info("clearing elements in intput1 - no longer required - DONE");
-//		
-//		
-//		logger.info("uniqueToInput1: " +uniqueToInput1.get());
-//		logger.info("samePosition: " +samePosition.get());
-//		logger.info("uniqueToInput2: " + (input2.size() - uniqueToInput1.get()));
-//	}
-	
-	
-
-
-//	private void mergeVcfRecords(VcfRecord r, VcfRecord r2) {
-//		VcfRecord mr = MergeUtils.mergeRecords(null, r, r2);
-//		mergedRecords.add(mr);
-//		
-//	}
-
-
 	private void loadVcfs() throws IOException {
 		int i = 0;
-		int mergedRecordCount = 0;
 		try (VCFFileReader reader = new VCFFileReader(new File(vcfFiles[0]))) {
 			for (VcfRecord rec : reader) {
 				if (++ i % 1000000 == 0) {
@@ -219,7 +131,6 @@ public class MergeSameSamples {
 				
 				VcfRecord input1Rec = mergedRecords.get(rec);
 				if (null != input1Rec) {
-					mergedRecordCount++;
 					VcfRecord mr = MergeUtils.mergeRecords(null, input1Rec, rec);
 					mergedRecords.put(rec, mr);
 				} else {
@@ -228,7 +139,6 @@ public class MergeSameSamples {
 			}
 		}
 		logger.info("input2 has " + i + " entries");
-		
 	}
 
 
