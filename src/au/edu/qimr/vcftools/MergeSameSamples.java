@@ -107,7 +107,7 @@ public class MergeSameSamples {
 				if (++ i % 1000000 == 0) {
 					
 					logger.info("hit " + i + " entries");
-					break;
+//					break;
 				}
 				/*
 				 * Add in IN=1 to info field
@@ -122,7 +122,7 @@ public class MergeSameSamples {
 			for (VcfRecord rec : reader) {
 				if (++i % 1000000 == 0) {
 					logger.info("hit " + i + " entries");
-					break;
+//					break;
 				}
 				/*
 				 * Add in IN=1 to info field
