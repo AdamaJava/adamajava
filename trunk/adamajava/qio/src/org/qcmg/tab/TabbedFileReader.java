@@ -20,7 +20,7 @@ public final class TabbedFileReader implements Closeable, Iterable<TabbedRecord>
     private final InputStream inputStream;
     private final TabbedHeader header;
 
-    public TabbedFileReader(final File file) throws Exception {
+    public TabbedFileReader(final File file) throws IOException {
         this.file = file;
         
         if (FileUtils.isFileGZip(file)) {

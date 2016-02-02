@@ -11,7 +11,7 @@ public final class TabbedSerializer {
 //	private static final Pattern tabbedPattern = Pattern.compile("[\\t]");
 	private static final String DEFAULT_HEADER_PREFIX = "#";
 	
-    public static TabbedHeader readHeader(final BufferedReader reader) throws Exception {
+    public static TabbedHeader readHeader(final BufferedReader reader) throws IOException {
 		Vector<String> headerLines = new Vector<String>();
 		String line = reader.readLine();
 		while (null != line && line.startsWith(DEFAULT_HEADER_PREFIX)) {
