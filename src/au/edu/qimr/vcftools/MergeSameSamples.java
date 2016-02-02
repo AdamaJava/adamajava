@@ -55,6 +55,7 @@ public class MergeSameSamples {
 			
 			writeOutput();
 		} else {
+			logger.error("Headers from supplied vcf files cannot be merged - exiting");
 			exitStatus = 1;
 		}
 		return exitStatus;
