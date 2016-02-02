@@ -42,22 +42,25 @@ public class MergeSameSamples {
 	
 	protected int engage() throws IOException {
 		
-		logger.info("about to load vcf headers");
-		loadVcfHeaders();
-		if (null == mergedHeader) {
-			logger.error("Merged header is null - please check that the vcf files being merged contain the same samples");
-			return 1;
+		if (canHeadersBeMerged()) {
+			logger.info("about to load vcf headers");
+			loadVcfHeaders();
+			if (null == mergedHeader) {
+				logger.error("Merged header is null - please check that the vcf files being merged contain the same samples");
+				return 1;
+			}
+			
+			logger.info("about to load vcf files");
+			loadVcfs();
+			
+			writeOutput();
+		} else {
+			exitStatus = 1;
 		}
-		
-		logger.info("about to load vcf files");
-		loadVcfs();
-		
-		writeOutput();
-		
 		return exitStatus;
 	}
 	
-	private void loadVcfHeaders() throws IOException {
+	private boolean canHeadersBeMerged() throws IOException {
 		headers = new VcfHeader[vcfFiles.length];
 		try (VCFFileReader reader = new VCFFileReader(new File(vcfFiles[0]))) {
 			headers[0] = reader.getHeader();
@@ -67,6 +70,11 @@ public class MergeSameSamples {
 		}
 		boolean canHeadersBeMerged = MergeUtils.canMergeBePerformed(headers);
 		logger.info("canHeadersBeMerged: " + canHeadersBeMerged);
+		return canHeadersBeMerged;
+		
+	}
+
+	private void loadVcfHeaders() throws IOException {
 		
 		Pair<VcfHeader, Rule> pair = MergeUtils.getMergedHeaderAndRules(Arrays.asList(vcfFiles), headers);
 		mergedHeader = null != pair ? pair.getLeft() : null;
