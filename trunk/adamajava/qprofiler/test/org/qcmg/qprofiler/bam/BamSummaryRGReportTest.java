@@ -78,7 +78,7 @@ public class BamSummaryRGReportTest {
 		sr.toXml(root);
 		
 //		Assert.assertEquals(sr.getRecordsInputed(), 11);
-		Assert.assertEquals(sr.getRecordsParsed(), 11);
+		Assert.assertEquals(sr.getRecordsParsed(), 12);
 		testXmlOutput(root);
 	}
 	
@@ -112,16 +112,27 @@ public class BamSummaryRGReportTest {
 				 		Assert.assertEquals(node.getNamedItem("maxLength").getNodeValue(), "40");	
 				 		Assert.assertEquals(node.getNamedItem("totalReads").getNodeValue(), "6");
 				 		break;	
-				 	case "Total" :
-				 		Assert.assertEquals(node.getNamedItem("totalReads").getNodeValue(), "8");	
-				 		Assert.assertEquals(node.getNamedItem("unmapped").getNodeValue(), "11.76%");	
-				 		Assert.assertEquals(node.getNamedItem("nonCanonicalPair").getNodeValue(), "11.76%");
-				 		Assert.assertEquals(node.getNamedItem("duplicate").getNodeValue(), "23.53%");			 		
-				 		Assert.assertEquals(node.getNamedItem("softClip").getNodeValue(), "1.47%");
-				 		Assert.assertEquals(node.getNamedItem("hardClip").getNodeValue(), "3.82%" );
-				 		Assert.assertEquals(node.getNamedItem("trimmedBase").getNodeValue(), "3.82%" );				 		
-				 		Assert.assertEquals(node.getNamedItem("overlap").getNodeValue(), "11.18%");				 		
-				 		Assert.assertEquals(node.getNamedItem("totalLost").getNodeValue(), "67.35%");
+				 	case "EMPTY" :
+				 		Assert.assertEquals(node.getNamedItem("overlap").getNodeValue(), "0.00%");
+				 		Assert.assertEquals(node.getNamedItem("trimmedBase").getNodeValue(), "0.00%");
+				 		Assert.assertEquals(node.getNamedItem("softClip").getNodeValue(), "0.00%");
+				 		Assert.assertEquals(node.getNamedItem("hardClip").getNodeValue(), "0.00%");
+				 		Assert.assertEquals(node.getNamedItem("totalLost").getNodeValue(), "0.00%");				 		
+				 		Assert.assertEquals(node.getNamedItem("maxLength").getNodeValue(), "75");	
+				 		Assert.assertEquals(node.getNamedItem("totalReads").getNodeValue(), "1");
+				 		break;
+				 	case "Total" :				 		
+//				 		for (int j = 0; j < node.getLength(); j ++)
+//				 			System.out.println(node.item(j).getNodeName() + "=>" + node.item(j).getNodeValue()); 				 						 		
+				 		Assert.assertEquals(node.getNamedItem("totalReads").getNodeValue(), "9");	
+				 		Assert.assertEquals(node.getNamedItem("softClip").getNodeValue(), "1.20%");				 		
+				 		Assert.assertEquals(node.getNamedItem("unmapped").getNodeValue(), "9.64%");				 		
+				 		Assert.assertEquals(node.getNamedItem("nonCanonicalPair").getNodeValue(), "9.64%");				 		
+				 		Assert.assertEquals(node.getNamedItem("duplicate").getNodeValue(), "19.28%");			 							
+				 		Assert.assertEquals(node.getNamedItem("hardClip").getNodeValue(), "3.13%" );
+				 		Assert.assertEquals(node.getNamedItem("trimmedBase").getNodeValue(), "3.13%" );				 		
+				 		Assert.assertEquals(node.getNamedItem("overlap").getNodeValue(), "9.16%");					 		
+				 		Assert.assertEquals(node.getNamedItem("totalLost").getNodeValue(), "55.18%");
 				 		Assert.assertEquals(node.getNamedItem("maxLength").getNodeValue(), "-");					 					 				 		
 				 		break;	
 				 		
@@ -195,6 +206,10 @@ public class BamSummaryRGReportTest {
 				"ACCCTAACCCTAACCCTAACCNTAACCCTAACCCAACACCCTAACCCTAA	+3?GH##;9@D7HI5,:IIB\"!\"II##>II$$BIIC3II##>II$$BIIC3	" +
 				"RG:Z:1959N	CS:Z:T11010020320310312010320010320013320012232201032202	CQ:Z:**:921$795*#5:;##):<5&'/=,,9(2*#453-'%(.2$6&39$+4'");
 		
+		//noRG and unpaired read
+		data.add("NS500239:99	16	chr1	7480169	0	75M	*	0	0	AATGAATAGAAGGGTCCAGATCCAGTTCTAATTTGGGGTAGGGACTCAGTTTGTGTTTTTTCACGAGATGAAGAT	" + 
+		"EEEA<EEEEEE<<EE/AEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEAEEEEEEEEAEEEEEEEAAAAA	NH:i:14	HI:i:11	AS:i:73	NM:i:0	MD:Z:75	");
+		
 		try(BufferedWriter out = new BufferedWriter(new FileWriter(INPUT_FILE))){	    
 			for (String line : data)  out.write(line + "\n");	               
 		}
@@ -202,3 +217,4 @@ public class BamSummaryRGReportTest {
 	}
 
 }
+
