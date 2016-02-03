@@ -832,7 +832,8 @@ public class BamSummaryReport extends SummaryReport {
 			if (null != value) {
 				String err = SummaryReportUtils.tallyMDMismatches(value, record.getCigar(), tagMDMismatchByCycle, readBases, reverseStrand, mdRefAltLengthsForward, mdRefAltLengthsReverse);
 				if(err != null)
-					throw new Exception(err);
+					logger.warn(err);
+//					throw new Exception(err);
 				allReadsLineLengths.increment(record.getReadLength());
 			}
 		}
