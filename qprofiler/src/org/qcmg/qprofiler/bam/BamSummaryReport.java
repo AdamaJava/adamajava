@@ -646,7 +646,7 @@ public class BamSummaryReport extends SummaryReport {
 				readGroup = record.getReadGroup().getReadGroupId();
 			else readGroup = "EMPTY"; 
 		}
-		
+				
 		// check if record has its fail or duplicate flag set.
 		// if so, miss out some of the summaries
 		if(record.getSupplementaryAlignmentFlag()) {		//not counted		
@@ -669,8 +669,10 @@ public class BamSummaryReport extends SummaryReport {
   			if(!duplicateByReadGroupMap.containsKey(readGroup) )
 				duplicateByReadGroupMap.putIfAbsent(readGroup, new AtomicLong());	
 			duplicateByReadGroupMap.get(readGroup).incrementAndGet();			
-		}else if(record.getReadNegativeStrandFlag() == record.getMateNegativeStrandFlag()){
- 			if(!nonCanonicalReadGroupMap.containsKey(readGroup))
+		}else if(record.getReadPairedFlag() &&  record.getReadNegativeStrandFlag() == record.getMateNegativeStrandFlag()){
+//		}else if( record.getReadNegativeStrandFlag() == record.getMateNegativeStrandFlag()){
+
+			if(!nonCanonicalReadGroupMap.containsKey(readGroup))
 				nonCanonicalReadGroupMap.putIfAbsent(readGroup, new AtomicLong());				
 			nonCanonicalReadGroupMap.get(readGroup).incrementAndGet();
  		} else {
@@ -1280,9 +1282,17 @@ public class BamSummaryReport extends SummaryReport {
 	 * @param softClip
 	 */
 	private void parseOverlapByRG(SAMRecord record, String readGroup, int softClip){
+		//init
+		QCMGAtomicLongArray oarry = rgReadOverlap.get(readGroup);
+		if( oarry == null){
+			 rgReadOverlap.putIfAbsent(readGroup, new QCMGAtomicLongArray(128));		
+			 oarry = rgReadOverlap.get(readGroup);
+		}	
+	
+		
 		//non canonical pairs (both forward or reverse) are already discarded
 		//to avoid double the ovelap base, we only delegate all reverse strand reads and Tlen <= 0			 
-		if(record.getInferredInsertSize() <= 0 || record.getReadNegativeStrandFlag()) {
+		if(!record.getReadPairedFlag() || record.getInferredInsertSize() <= 0 || record.getReadNegativeStrandFlag()) {
 			return;	
 		}
 		int mate_end = record.getInferredInsertSize() + record.getAlignmentStart();
@@ -1291,12 +1301,7 @@ public class BamSummaryReport extends SummaryReport {
 		if (overlap <= 0) {
 			return;
 		}
-		
-		QCMGAtomicLongArray oarry = rgReadOverlap.get(readGroup);
-		if( oarry == null){
-			 rgReadOverlap.putIfAbsent(readGroup, new QCMGAtomicLongArray(128));		
-			 oarry = rgReadOverlap.get(readGroup);
-		}		
+			
 		oarry.increment(overlap); 			
 	}
 				
