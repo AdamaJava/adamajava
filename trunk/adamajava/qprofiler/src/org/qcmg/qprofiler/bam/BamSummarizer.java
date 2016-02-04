@@ -84,6 +84,10 @@ public class BamSummarizer implements Summarizer {
 					break;
 				}
 			}
+			
+			if(bamSummaryReport.getErrMDReadNumber() >= bamSummaryReport.errMDReadLimit)
+				logger.warn(  "big number of reads with wrong MD field: " + bamSummaryReport.getErrMDReadNumber());
+			
 			samSeqDict = reader.getFileHeader().getSequenceDictionary();
 			bamHeader = reader.getFileHeader().getTextHeader();
 			List<SAMProgramRecord> pgLines = reader.getFileHeader().getProgramRecords();

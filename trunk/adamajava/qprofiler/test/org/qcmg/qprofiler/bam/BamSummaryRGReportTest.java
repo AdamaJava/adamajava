@@ -17,6 +17,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 import junit.framework.Assert;
 import htsjdk.samtools.SamReader;
@@ -42,30 +43,32 @@ import org.w3c.dom.NodeList;
 public class BamSummaryRGReportTest {
 	private static final String INPUT_FILE = "input.sam";
  
-	
-	@Before
-	public void setup() throws IOException {
-		createInputFile();
-	}
 
 	@After
 	public void tearDown() {
 		new File(INPUT_FILE).delete();		
 	}
 	
-//	@Test
-//	public void tempTest(){
-//		SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(INPUT_FILE) );
-//		for (SAMRecord samRecord : reader) {
-//			System.out.println(String.format("%s, start:%d, end:%d, readlength:%d, seq length:%d, cigar:%s",
-//					samRecord.getReadName(),  samRecord.getAlignmentStart(),samRecord.getAlignmentEnd(), 
-//					samRecord.getReadLength(),samRecord.getReadString().length(), samRecord.getCigarString() ));
-//			
-//		}	
-//	}
+	@Test
+	public void tempTest() throws Exception{
+		createMDerrFile();
+		
+		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+		DocumentBuilder builder = factory.newDocumentBuilder();
+		DOMImplementation domImpl = builder.getDOMImplementation();		
+		Document doc = domImpl.createDocument(null, "qProfiler", null);
+		Element root = doc.getDocumentElement();					 
+
+		BamSummarizer bs = new BamSummarizer();
+		BamSummaryReport sr = (BamSummaryReport) bs.summarize(new File(INPUT_FILE)); 
+		sr.toXml(root);
+		
+ 
+	}
 	
 	@Test
 	public void parseClipsByRGTest() throws Exception{
+		createInputFile();
 		
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 		DocumentBuilder builder = factory.newDocumentBuilder();
@@ -215,6 +218,25 @@ public class BamSummaryRGReportTest {
 		}
 		
 	}
-
+	
+	
+	private static void createMDerrFile() throws IOException{
+		List<String> data = new ArrayList<String>();
+        data.add("@HD	VN:1.0	SO:coordinate");
+        data.add("@RG	ID:1959T	SM:eBeads_20091110_CD	DS:rl=50");
+        data.add("@PG	ID:SOLID-GffToSam	VN:1.4.3");
+        data.add("@SQ	SN:chr1	LN:249250621");
+        data.add("@SQ	SN:chr11	LN:243199373");
+	
+	    data.add("HWI-ST1408:8	147	chrM	3085	255	28S96M2S	=	3021	-160	" + 
+	    "CNNNNNNNNNNNNNNTNNANNNNNNNNTANNCNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNCNNAAGNACANGAGAAATAAGNCCTACTTCACAAAGCGCCTNCCCCCGNAAANGANN	" + 
+	    "########################################################################F==#F==#EGGGGGGE<=#FE1GGGGGGGGGGGGGF=?#GGGE@=#E@?#<=##	" + 
+	    "MD:Z:1T0C1A0G0G0T0C0G0G0T0T0T0C0T0A0T0C0T0A0C0N0T0T0C0A0A0A0T0T0C0C0T0C0C0C0T0G0T0A1G0A3G3A10G19T6T3T2	NH:i:1	HI:i:1	NM:i:47	AS:i:169");
+	
+	try(BufferedWriter out = new BufferedWriter(new FileWriter(INPUT_FILE))){	    
+		for (String line : data)  out.write(line + "\n");	               
+	}
+	
+}
 }
 

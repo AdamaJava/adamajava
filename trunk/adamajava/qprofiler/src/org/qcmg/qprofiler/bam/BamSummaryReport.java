@@ -63,6 +63,8 @@ public class BamSummaryReport extends SummaryReport {
 	private long supplementaryCount = 0;
 	
 	private final static int mateRefNameMinusOne = 255;
+	public final static int errMDReadLimit  = 100;
+	private long errMDReadNo = 0;
 
 	private static final Character c = Character.MAX_VALUE;
 	private static final Integer i = Integer.MAX_VALUE;
@@ -831,8 +833,12 @@ public class BamSummaryReport extends SummaryReport {
 			value = (String) record.getAttribute(MD);
 			if (null != value) {
 				String err = SummaryReportUtils.tallyMDMismatches(value, record.getCigar(), tagMDMismatchByCycle, readBases, reverseStrand, mdRefAltLengthsForward, mdRefAltLengthsReverse);
-				if(err != null)
-					logger.warn(err);
+				//limit err message on log file
+				if(err != null) 
+					if( ( errMDReadNo ++) < errMDReadLimit ) 
+						logger.warn(err);
+//					private final static int errMDReadLimit  = 100;
+//					private long errMDReadNo = 0;					
 //					throw new Exception(err);
 				allReadsLineLengths.increment(record.getReadLength());
 			}
@@ -915,6 +921,11 @@ public class BamSummaryReport extends SummaryReport {
 	private int getSizeFromInt(int value) {
 		if (value == 0) return 0;
 		return 1 + getSizeFromInt(value/10);
+	}
+	
+	public long getErrMDReadNumber(){
+		
+		return errMDReadNo;
 	}
 
 
