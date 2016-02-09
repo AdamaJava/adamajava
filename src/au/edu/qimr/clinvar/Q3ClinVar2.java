@@ -53,7 +53,9 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.meta.QExec;
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.Transcript;
 import org.qcmg.common.util.ChrPositionUtils;
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.util.LoadReferencedClasses;
@@ -95,6 +97,7 @@ public class Q3ClinVar2 {
 	private static String version;
 	private String logFile;
 	private String bedFile;
+	private String geneTranscriptsFile;
 	private String outputFileNameBase;
 	private String refTiledAlignmentFile;
 	private String refFileName;
@@ -132,6 +135,7 @@ public class Q3ClinVar2 {
 	private Map<Amplicon, List<Fragment>> ampliconFragmentMap = new HashMap<>();
 	
 	private final Map<Amplicon, List<Amplicon>> bedToAmpliconMap = new HashMap<>();
+	private final Map<String, Transcript> transcripts = new HashMap<>();
 	
 	private final VcfHeader dbSnpHeaderDetails = new VcfHeader();
 	private final VcfHeader cosmicHeaderDetails = new VcfHeader();
@@ -165,6 +169,8 @@ public class Q3ClinVar2 {
 		
 		mapBedToAmplicons();
 		
+		loadTranscripts();
+		
 		createMutations();
 		logger.info("no of mutations created: " + vcfFragmentMap.size());
 		filterAndAnnotateMutations();
@@ -175,6 +181,70 @@ public class Q3ClinVar2 {
 		
 		logger.info("no of fastq records: " +fastqRecordCount);
 		return exitStatus;
+	}
+
+	/**
+	 * Only runs when we have both a bed and a transcripts file present
+	 * @throws IOException 
+	 */
+	private void loadTranscripts() throws IOException {
+		
+		if (StringUtils.isNoneBlank(bedFile, geneTranscriptsFile)) {
+			
+			Map<String, List<Amplicon>> uniqueChrs = bedToAmpliconMap.keySet().stream()
+														.collect(Collectors.groupingBy(a -> a.getInitialFragmentPosition().getChromosome()));
+					
+			logger.info("Number of unique chromosomes in bed file: " + uniqueChrs.size());
+			
+			try (TabbedFileReader reader = new TabbedFileReader(new File(geneTranscriptsFile))) {
+				String currentTranscriptId = null;
+				for (TabbedRecord rec : reader) {
+					String contig = rec.getData().substring(0, rec.getData().indexOf(Constants.TAB));
+					if (uniqueChrs.containsKey(contig)) {
+						String [] params= TabTokenizer.tokenize(rec.getData());
+						String id = params[8].split(";")[1].replace("transcript_id", "").replace("\"", "");
+						
+						if (null == currentTranscriptId || ! currentTranscriptId.equals(id)) {
+							
+							if (null != currentTranscriptId) {
+								Transcript t = transcripts.get(currentTranscriptId);
+								ChrPosition tcp = new ChrPosition(params[0], t.getStart(), t.getEnd());
+								logger.debug("check to see if any bed regions overlap current transcript : " + tcp.toIGVString());
+								if (uniqueChrs.get(contig).stream()	
+									.anyMatch(a -> ChrPositionUtils.doChrPositionsOverlapPositionOnly(tcp, a.getInitialFragmentPosition()))) {
+									logger.info("transcript overlaps a bed region - keeping: " + tcp.toIGVString());
+								} else {
+									logger.debug("removing transcript: " + currentTranscriptId + " from map");
+									transcripts.remove(currentTranscriptId);
+								}
+							}
+							logger.debug("new transcript: " + id);
+							currentTranscriptId = id;
+						}
+						
+						/*
+						 * Update existing transcript
+						 */
+						Transcript t = transcripts.get(id);
+						if (null == t) {
+							t = new Transcript(id, params[1], contig);
+							transcripts.put(id, t);
+						}
+						switch (params[2]) {
+						case "exon":
+							t.addExon(new ChrPosition(params[0], Integer.parseInt(params[3]), Integer.parseInt(params[4])));
+							break;
+						case "CDS":
+							t.addCDS(new ChrPosition(params[0], Integer.parseInt(params[3]), Integer.parseInt(params[4])));
+							break;
+						default:
+							logger.debug("Ignoring " + params[2]);
+						}
+					}
+				}
+			}
+			logger.info("Number of Transcripts covering bed regions: " + transcripts.size());
+		}
 	}
 
 	private void createRawFragments() {
@@ -401,12 +471,17 @@ public class Q3ClinVar2 {
 		q3pElement.addAttribute(new Attribute("run_by_user", exec.getRunBy().getValue()));
 		q3pElement.addAttribute(new Attribute("records_parsed", "" + fastqRecordCount));
 		q3pElement.addAttribute(new Attribute("version", exec.getToolVersion().getValue()));
-		q3pElement.addAttribute(new Attribute("bed_file", bedFile));
+		q3pElement.addAttribute(new Attribute("reference", refFileName));
+		q3pElement.addAttribute(new Attribute("tiled_reference", refTiledAlignmentFile));
+		q3pElement.addAttribute(new Attribute("bed", bedFile));
 		q3pElement.addAttribute(new Attribute("bed_amplicon_count", ""+bedToAmpliconMap.size()));
-		q3pElement.addAttribute(new Attribute("vcf_file", outputFileNameBase + ".vcf"));
+		q3pElement.addAttribute(new Attribute("vcf", outputFileNameBase + ".vcf"));
 		q3pElement.addAttribute(new Attribute("vcf_variant_count", ""+outputMutations.get()));
-		q3pElement.addAttribute(new Attribute("fastq_file_1", fastqFiles[0]));
-		q3pElement.addAttribute(new Attribute("fastq_file_2", fastqFiles[1]));
+		q3pElement.addAttribute(new Attribute("fastq_1", fastqFiles[0]));
+		q3pElement.addAttribute(new Attribute("fastq_2", fastqFiles[1]));
+		logger.info("adding cosmic and dbsnp to q3pElement");
+		q3pElement.addAttribute(new Attribute("dbSnp", dbSNPFile));
+		q3pElement.addAttribute(new Attribute("COSMIC", cosmicFile));
 		
 		/*
 		 * read length dist
@@ -470,6 +545,55 @@ public class Q3ClinVar2 {
 				vcf.appendChild(v.toString());
 				
 			});
+		
+		/*
+		 * Transcript records
+		 */
+		Element transcriptsE = new Element("Transcripts");
+		q3pElement.appendChild(transcriptsE);
+		transcripts.values().stream()
+			.sorted()
+			.forEach(v -> {
+			
+			Element transcript = new Element("Transcript");
+			transcriptsE.appendChild(transcript);
+			
+			transcript.addAttribute(new Attribute("id", "" + v.getId()));
+			transcript.addAttribute(new Attribute("type", "" + v.getType()));
+			transcript.addAttribute(new Attribute("start", "" + v.getStart()));
+			transcript.addAttribute(new Attribute("end", "" + v.getEnd()));
+			transcript.addAttribute(new Attribute("exon_count", "" + v.getExons().size()));
+			transcript.addAttribute(new Attribute("cds_count", "" + v.getCDSs().size()));
+			
+			if ( ! v.getExons().isEmpty()) {
+				Element exons = new Element("Exons");
+				transcript.appendChild(exons);
+				
+				v.getExons().stream()
+					.sorted()
+					.forEach(cp -> {
+						Element exon = new Element("Exon");
+						exons.appendChild(exon);
+						exon.addAttribute(new Attribute("position", cp.toIGVString()));
+					});
+			}
+			
+			if ( ! v.getCDSs().isEmpty()) {
+				Element cdss = new Element("CDSs");
+				transcript.appendChild(cdss);
+				
+				v.getCDSs().stream()
+				.sorted()
+				.forEach(cp -> {
+					Element cds = new Element("CDS");
+					cdss.appendChild(cds);
+					cds.addAttribute(new Attribute("position", cp.toIGVString()));
+				});
+				
+			}
+			
+			
+		});
 		
 		
 		
@@ -1737,6 +1861,7 @@ public class Q3ClinVar2 {
 			refTiledAlignmentFile = options.getTiledRefFileName();
 			refFileName = options.getRefFileName();
 			bedFile = options.getBedFile();
+			geneTranscriptsFile = options.getGeneTranscriptsFile();
 			
 			if (options.hasMinBinSizeOption()) {
 				this.minBinSize = options.getMinBinSize().intValue();
