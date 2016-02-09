@@ -9,12 +9,14 @@ public class Transcript implements Comparable<Transcript> {
 	private final String type;	// could be enum...
 	private final List<ChrPosition> exons = new ArrayList<>(2);
 	private final List<ChrPosition> cdss = new ArrayList<>(2);
+	private final String contig;
 	private int start = Integer.MAX_VALUE;
 	private int end = Integer.MIN_VALUE;
 	
-	public Transcript(String id, String type) {
+	public Transcript(String id, String type, String contig) {
 		this.id = id;
 		this.type = type;
+		this.contig = contig;
 	}
 	
 	public void addExon(ChrPosition exon) {
