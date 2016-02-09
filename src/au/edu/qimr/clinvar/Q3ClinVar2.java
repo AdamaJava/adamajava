@@ -560,6 +560,7 @@ public class Q3ClinVar2 {
 			
 			transcript.addAttribute(new Attribute("id", "" + v.getId()));
 			transcript.addAttribute(new Attribute("type", "" + v.getType()));
+			transcript.addAttribute(new Attribute("contig", "" + v.getContig()));
 			transcript.addAttribute(new Attribute("start", "" + v.getStart()));
 			transcript.addAttribute(new Attribute("end", "" + v.getEnd()));
 			transcript.addAttribute(new Attribute("exon_count", "" + v.getExons().size()));
