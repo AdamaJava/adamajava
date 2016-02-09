@@ -86,5 +86,9 @@ public class Transcript implements Comparable<Transcript> {
 	public int compareTo(Transcript o) {
 		return start - o.start;
 	}
+
+	public String getContig() {
+		return contig;
+	}
 	
 }
