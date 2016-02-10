@@ -90,5 +90,12 @@ public class Transcript implements Comparable<Transcript> {
 	public String getContig() {
 		return contig;
 	}
+
+	@Override
+	public String toString() {
+		return "Transcript [id=" + id + ", type=" + type + ", exons=" + exons
+				+ ", cdss=" + cdss + ", contig=" + contig + ", start=" + start
+				+ ", end=" + end + "]";
+	}
 	
 }
