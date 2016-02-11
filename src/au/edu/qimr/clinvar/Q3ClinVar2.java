@@ -37,6 +37,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -202,7 +203,13 @@ public class Q3ClinVar2 {
 					String contig = rec.getData().substring(0, rec.getData().indexOf(Constants.TAB));
 					if (uniqueChrs.containsKey(contig)) {
 						String [] params= TabTokenizer.tokenize(rec.getData());
-						String id = params[8].split(";")[1].replace("transcript_id", "").replace("\"", "");
+						String [] column8 = params[8].split(";"); 
+//						String id = column8[1].replace("transcript_id", "").replace("\"", "").trim();
+						Optional<String> optionalId = Arrays.stream(column8).filter(s -> s.trim().startsWith("transcript_id")).findAny();
+						Optional<String> optionalExonNumber = Arrays.stream(column8).filter(s -> s.trim().startsWith("exon_number")).findAny();
+						
+						String id = optionalId.isPresent() ? optionalId.get().replace("transcript_id", "").replace("\"", "").trim() : null;
+						String exonNumber = optionalExonNumber.isPresent() ? optionalExonNumber.get().replace("exon_number", "").replace("\"", "").trim() : null;
 						
 						if (null == currentTranscriptId || ! currentTranscriptId.equals(id)) {
 							
@@ -227,15 +234,19 @@ public class Q3ClinVar2 {
 						 */
 						Transcript t = transcripts.get(id);
 						if (null == t) {
-							t = new Transcript(id, params[1], contig);
+							
+							Optional<String> optionalGene = Arrays.stream(column8).filter(s -> s.trim().startsWith("gene_name")).findAny();
+							String gene = optionalGene.isPresent() ? optionalGene.get().replace("gene_name", "").replace("\"", "").trim() : null;
+							
+							t = new Transcript(id, params[1], contig, gene);
 							transcripts.put(id, t);
 						}
 						switch (params[2]) {
 						case "exon":
-							t.addExon(new ChrPosition(params[0], Integer.parseInt(params[3]), Integer.parseInt(params[4])));
+							t.addExon(new ChrPosition(params[0], Integer.parseInt(params[3]), Integer.parseInt(params[4]), exonNumber));
 							break;
 						case "CDS":
-							t.addCDS(new ChrPosition(params[0], Integer.parseInt(params[3]), Integer.parseInt(params[4])));
+							t.addCDS(new ChrPosition(params[0], Integer.parseInt(params[3]), Integer.parseInt(params[4]), exonNumber));
 							break;
 						default:
 							logger.debug("Ignoring " + params[2]);
@@ -560,6 +571,7 @@ public class Q3ClinVar2 {
 			
 			transcript.addAttribute(new Attribute("id", "" + v.getId()));
 			transcript.addAttribute(new Attribute("type", "" + v.getType()));
+			transcript.addAttribute(new Attribute("gene", "" + v.getGene()));
 			transcript.addAttribute(new Attribute("contig", "" + v.getContig()));
 			transcript.addAttribute(new Attribute("start", "" + v.getStart()));
 			transcript.addAttribute(new Attribute("end", "" + v.getEnd()));
@@ -576,6 +588,7 @@ public class Q3ClinVar2 {
 						Element exon = new Element("Exon");
 						exons.appendChild(exon);
 						exon.addAttribute(new Attribute("position", cp.toIGVString()));
+						exon.addAttribute(new Attribute("exon_number", cp.getName()));
 					});
 			}
 			
@@ -589,6 +602,7 @@ public class Q3ClinVar2 {
 					Element cds = new Element("CDS");
 					cdss.appendChild(cds);
 					cds.addAttribute(new Attribute("position", cp.toIGVString()));
+					cds.addAttribute(new Attribute("exon_number", cp.getName()));
 				});
 				
 			}
