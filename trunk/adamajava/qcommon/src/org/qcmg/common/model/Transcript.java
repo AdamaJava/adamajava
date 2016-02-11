@@ -7,16 +7,18 @@ public class Transcript implements Comparable<Transcript> {
 	
 	private final String id;
 	private final String type;	// could be enum...
+	private final String gene;
 	private final List<ChrPosition> exons = new ArrayList<>(2);
 	private final List<ChrPosition> cdss = new ArrayList<>(2);
 	private final String contig;
 	private int start = Integer.MAX_VALUE;
 	private int end = Integer.MIN_VALUE;
 	
-	public Transcript(String id, String type, String contig) {
+	public Transcript(String id, String type, String contig, String gene) {
 		this.id = id;
 		this.type = type;
 		this.contig = contig;
+		this.gene = gene;
 	}
 	
 	public void addExon(ChrPosition exon) {
@@ -28,6 +30,9 @@ public class Transcript implements Comparable<Transcript> {
 		setStartStop(cds);
 	}
 	
+	public String getGene() {
+		return gene;
+	}
 	public int getStart() {
 		return start;
 	}
