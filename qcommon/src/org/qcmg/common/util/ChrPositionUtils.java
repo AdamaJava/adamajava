@@ -4,6 +4,7 @@
 package org.qcmg.common.util;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -157,6 +158,27 @@ public class ChrPositionUtils {
 		return new ChrPositionName(chr, start, end, name);
 	}
 	
+	public static ChrPointPosition getChrPointPositionFromString(String position) {
+		if (StringUtils.isNullOrEmpty(position)) 
+			throw new IllegalArgumentException("Null or empty string passed to getChrPositionFromString()");
+		
+		int colonPos = position.indexOf(':');
+		int minusPos = position.indexOf('-');
+		
+		if (colonPos == -1 || minusPos == -1) {
+			throw new IllegalArgumentException("invalid string passed to getChrPositionFromString() - must be in chr1:12345-23456 format: " + position);
+		}
+		
+		String chr = position.substring(0, colonPos);
+		int start = Integer.parseInt(position.substring(colonPos + 1, minusPos));
+		int end = Integer.parseInt(position.substring(minusPos + 1));
+		if (start != end) {
+			throw new IllegalArgumentException("Start and end position in getChrPointPositionFromString are not the same. Start: " + start + ", end: " + end + ", from string: " + position);
+		}
+		
+		return ChrPointPosition.valueOf(chr, start);
+	}
+	
 	public static ChrPosition getPrecedingChrPosition(ChrPosition cp) {
 		return new ChrRangePosition(cp.getChromosome(), cp.getStartPosition() - 1, cp.getEndPosition() - 1);
 	}
@@ -175,6 +197,25 @@ public class ChrPositionUtils {
 		List<ChrPosition> chrPositions = new ArrayList<>();
 		for (String s : positions) {
 			chrPositions.add(getChrPositionFromString(s));
+		}
+		return chrPositions;
+	}
+	
+	/**
+	 * Returns a map of ChrPointPosition objects based on the contents of the supplied String array
+	 *  
+	 * @param positions
+	 * @return
+	 */
+	public static Map<ChrPointPosition, ChrPointPosition>  getChrPointPositionsFromStrings(String[] positions) {
+		
+		if (null == positions || positions.length == 0) 
+			throw new IllegalArgumentException("null or empty string array passed to getChrPositionsFromStrings");
+		
+		Map<ChrPointPosition, ChrPointPosition> chrPositions = new HashMap<>();
+		for (String s : positions) {
+			ChrPointPosition cpp = getChrPointPositionFromString(s);
+			chrPositions.put(cpp, cpp);
 		}
 		return chrPositions;
 	}
