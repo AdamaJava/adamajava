@@ -6,19 +6,19 @@ package org.qcmg.common.util;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import org.qcmg.common.model.ChrRangePosition;
+import org.qcmg.common.model.ChrPointPosition;
 
 public class ChrPositionCache {
 	
 	
-	static ConcurrentMap<String, ChrRangePosition> cache = new ConcurrentHashMap<>();
+	static ConcurrentMap<String, ChrPointPosition> cache = new ConcurrentHashMap<>();
 	
 	
-	public static ChrRangePosition getChrPosition(String chr, int position) {
+	public static ChrPointPosition getChrPosition(String chr, int position) {
 		String chrPos = chr + '-' + position;
-		ChrRangePosition cp = cache.get(chrPos);
+		ChrPointPosition cp = cache.get(chrPos);
 		if (null == cp) {
-			cp = new ChrRangePosition(chr, position);
+			cp = ChrPointPosition.valueOf(chr, position);
 			cache.putIfAbsent(chrPos, cp);
 		}
 		return cp;
