@@ -17,6 +17,7 @@ import org.qcmg.chrconv.ChrConvFileReader;
 import org.qcmg.chrconv.ChromosomeConversionRecord;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.Genotype;
 import org.qcmg.common.util.BaseUtils;
@@ -136,9 +137,9 @@ public class SnpPicker {
 			if (DEFAULT_CHAR != rec.getGffRef() || null != rec.getVcfGenotype()) {
 //				chr = ( ! entry.getKey().getChromosome().startsWith("GL") ? "chr" : "") + entry.getKey().getChromosome();
 				
-				reads = qj.getRecordsAtPosition(entry.getKey().getChromosome(), entry.getKey().getPosition());
+				reads = qj.getRecordsAtPosition(entry.getKey().getChromosome(), entry.getKey().getStartPosition());
 				// do something with the reads
-				position = entry.getKey().getPosition();
+				position = entry.getKey().getStartPosition();
 				for (SAMRecord sr : reads) {
 					offset = position - sr.getAlignmentStart();
 					pileup.append((char)sr.getReadBases()[offset]);
@@ -359,7 +360,7 @@ public class SnpPicker {
 					illuminaDbSnpCount++;
 				}
 				
-				varId = new ChrPosition(rec.getChromosome(), rec.getChromosomePosition());
+				varId = ChrPointPosition.valueOf(rec.getChromosome(), rec.getChromosomePosition());
 				// lookup variant map to see if we have a matching record
 				varRec = variantMap.get(varId);
 				if (null == varRec && null != illRec && illRec.isSnp()) {
@@ -414,7 +415,7 @@ public class SnpPicker {
 			
 			for (VcfRecord rec : reader) {
 				
-				id = new ChrPosition(rec.getChromosome(), rec.getPosition());
+				id = ChrPointPosition.valueOf(rec.getChromosome(), rec.getPosition());
 				
 				value = variantMap.get(id);
 				if (null == value) {
@@ -461,7 +462,7 @@ public class SnpPicker {
 				String genotype = params[params.length-(isNormal ? 2 : 1)];
 				if (null != genotype && ! "null".equals(genotype)) {
 				
-					id = new ChrPosition(params[0], Integer.parseInt(params[1]));
+					id = ChrPointPosition.valueOf(params[0], Integer.parseInt(params[1]));
 					
 					value = variantMap.get(id);
 					if (null == value) {
@@ -504,7 +505,7 @@ public class SnpPicker {
 				// get QCMG chromosome from map
 				chr = gffToQCMG.get(rec.getSeqId());
 				
-				id = new ChrPosition(chr, rec.getStart());
+				id = ChrPointPosition.valueOf(chr, rec.getStart());
 				
 				value = variantMap.get(id);
 				if (null == value) {
@@ -604,7 +605,7 @@ public class SnpPicker {
 			// ignore records that did not have a dbSNP
 			if (null != illuminaRec.getChr()) {
 			
-				id = new ChrPosition(illuminaRec.getChr(), illuminaRec.getStart());
+				id = ChrPointPosition.valueOf(illuminaRec.getChr(), illuminaRec.getStart());
 				
 				value = variantMap.get(id);
 				if (null == value && illuminaRec.isSnp()) {
@@ -716,12 +717,12 @@ public class SnpPicker {
 				
 				try {
 					allRecordsWriter.write(id.getChromosome() + "\t" +
-							id.getPosition() + "\t" +
+							id.getStartPosition() + "\t" +
 							value.formattedRecord() );
 					// only want non dbSNP records
 					if (null == value.getDbSnpID()) {
 						nonDbSnpwriter.write(id.getChromosome() + "\t" +
-								id.getPosition() + "\t" +
+								id.getStartPosition() + "\t" +
 								value.formattedRecord() );
 					}
 				} catch (IOException e) {

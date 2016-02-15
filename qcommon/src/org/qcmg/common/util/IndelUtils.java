@@ -1,5 +1,9 @@
 package org.qcmg.common.util;
 
+import org.qcmg.common.string.StringUtils;
+import org.qcmg.common.vcf.VcfFormatFieldRecord;
+import org.qcmg.common.vcf.header.VcfHeaderUtils;
+
 
 
 public class IndelUtils {
@@ -55,18 +59,6 @@ public class IndelUtils {
 	public static final String DESCRITPION_INFO_HOMTXT = "If A indel is adjacent to a homopolymeric sequence,  the nearby reference sequence within a window is reported";
 	public static final String FILTER_HOM = "HOM";
 	public static final String DESCRITPION_FILTER_HOM = "a digit number is attached on this FILTER id, eg. HOM24 means the nearby homopolymers sequence is 24 base long";
-
-//	public static final String INFO_HOMADJ = "HOMADJ";
-//	public static final String DESCRITPION_INFO_HOMADJ = "In tumour BAM, indel is adjacent to a homopolymeric sequence, but is not contiguous with it and the nearest,"
-//			+ " longest sequence is n bases long. The value format is <longest proximal homopolymer length>,< sequence bracketing indel>";
-//
-//	public static final String INFO_HOMCON = "HOMCON";
-//	public static final String DESCRITPION_INFO_HOMCON = "indel is contiguous with a homopolymeric sequence and the nearest, longest sequence is n bases long."
-//			+ "The value format is <longest proximal homopolymer length>,< sequence bracketing indel>";
-//
-// 	public static final String INFO_HOMEMB = "HOMEMB";
-//	public static final String DESCRITPION_INFO_HOMEMB = "indel is embedded in a homopolymeric sequence and the nearest, longest sequence is n bases long."
-//			+ "The value format is <longest proximal homopolymer length>,< sequence bracketing indel>";
 	
 	public static final String INFO_NIOC = "NIOC";
 	public static final String DESCRITPION_INFO_NIOC = " counts of nearby indels compare with total coverage";	
@@ -74,8 +66,8 @@ public class IndelUtils {
 	public static final String INFO_HOMCNTXT = "HOMCNTXT";
 	public static final String DESCRITPION_INFO_HOMCNTXT = "nearby refernce sequence. if it is homopolymeric, the maximum repeated based counts will be added infront of sequence ";
 	
-	public static final String INFO_ACINDEL = "ACINDEL";
-	public static final String DESCRITPION_INFO_ACINDEL = "counts of indels, follow formart:novelStarts,TotalCoverage,InformativeReadCount," 
+	public static final String FORMAT_ACINDEL = "ACINDEL";
+	public static final String DESCRITPION_FORMAT_ACINDEL = "counts of indels, follow formart:novelStarts,TotalCoverage,InformativeReadCount," 
 			+"suportReadCount[forwardsuportReadCount,backwardsuportReadCount],particalReadCount,NearbyIndelCount,NearybySoftclipCount";
 
 //	public static final Pattern DOUBLE_DIGIT_PATTERN = Pattern.compile("\\d{1,2}");
@@ -136,4 +128,42 @@ public class IndelUtils {
 		
 		return ref;
 	}
+
+	/**
+	 * 
+	 * @param re: VcfFormatFieldRecord
+	 * @param ref: reference base from vcf record column 5
+	 * @param alt
+	 * @return genotyp string. eg. A/T; return null if GT field is not exsit or empty
+	 */
+	public static String getGenotypeDetails(VcfFormatFieldRecord re, String ref, String alt){
+		//if "GT" field is not exist, do nothing
+		String sgt = re.getField(VcfHeaderUtils.FORMAT_GENOTYPE) ;
+		String gd = null;
+		if( ! StringUtils.isNullOrEmpty(sgt) && !sgt.equals(Constants.MISSING_DATA_STRING)){		
+			boolean isbar = sgt.contains("\\|");
+			String[] gts = isbar? sgt.split("\\|") : sgt.split("\\/"); 
+			String[] sgd = new String[gts.length];
+	
+			String[] alts = alt.split(",");
+			//only allow three multi-allele, otherwise too confuse
+			for(int j = 0; j < gts.length; j ++) 
+				switch (gts[j].trim()){
+					case "0": sgd[j] = ref; 
+					break;
+					case "1": sgd[j] = (alts.length >= 1) ? alts[0] : Constants.MISSING_DATA_STRING; 
+					break;
+					case "2": sgd[j] = (alts.length >= 2) ? alts[1] : Constants.MISSING_DATA_STRING; 
+					break;
+					case "3": sgd[j] = (alts.length >= 3) ? alts[2] : Constants.MISSING_DATA_STRING; 
+					break;
+					default:
+						sgd[j] = Constants.MISSING_DATA_STRING; 
+				}				
+			gd = isbar? String.join("|", sgd) : String.join("/", sgd);
+		}		
+		return gd;
+	}
+
+	
 }

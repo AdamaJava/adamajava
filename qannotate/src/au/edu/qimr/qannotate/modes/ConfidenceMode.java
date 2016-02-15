@@ -104,13 +104,13 @@ public class ConfidenceMode extends AbstractMode{
 			 	VcfFormatFieldRecord formatField = (vcf.getInfo().contains(VcfHeaderUtils.INFO_SOMATIC)) ? vcf.getSampleFormatRecord(test_column) :  vcf.getSampleFormatRecord(control_column);
 		    		    	
 			 	if ( checkNovelStarts(HIGH_CONF_NOVEL_STARTS_PASSING_SCORE, formatField)
-						&& ( getAltFrequency(formatField, vcf.getAlt()) >=  HIGH_CONF_ALT_FREQ_PASSING_SCORE)
+						&& ( VcfUtils.getAltFrequency(formatField, vcf.getAlt()) >=  HIGH_CONF_ALT_FREQ_PASSING_SCORE)
 						&& PASS.equals(vcf.getFilter())) {
 		        	
 		        		vcf.getInfoRecord().setField(VcfHeaderUtils.INFO_CONFIDENT, Confidence.HIGH.toString());		        	 				 				
 		        		high++;
 		        } else if ( checkNovelStarts(LOW_CONF_NOVEL_STARTS_PASSING_SCORE, formatField)
-						&& ( getAltFrequency(formatField, vcf.getAlt()) >= LOW_CONF_ALT_FREQ_PASSING_SCORE )
+						&& ( VcfUtils.getAltFrequency(formatField, vcf.getAlt()) >= LOW_CONF_ALT_FREQ_PASSING_SCORE )
 						&& isClassB(vcf.getFilter()) ) {
 		        	
 		        		vcf.getInfoRecord().setField(VcfHeaderUtils.INFO_CONFIDENT, Confidence.LOW.toString());					 
@@ -147,16 +147,16 @@ public class ConfidenceMode extends AbstractMode{
 	}
 	
 	
-	/**
-	 * @param vcf
-	 * @return
-	 */
-	public static final int getAltFrequency(VcfFormatFieldRecord re, String alt){
-//		 final String info =  vcf.getInfo();
-//		 final VcfFormatFieldRecord re = (info.contains(VcfHeaderUtils.INFO_SOMATIC)) ? vcf.getSampleFormatRecord(test_column) :  vcf.getSampleFormatRecord(control_column);
-		 
-		 return VcfUtils.getAltFrequency(re, alt);	 
-	}
+//	/**
+//	 * @param vcf
+//	 * @return
+//	 */
+//	public static final int getAltFrequency(VcfFormatFieldRecord re, String alt){
+////		 final String info =  vcf.getInfo();
+////		 final VcfFormatFieldRecord re = (info.contains(VcfHeaderUtils.INFO_SOMATIC)) ? vcf.getSampleFormatRecord(test_column) :  vcf.getSampleFormatRecord(control_column);
+//		 
+//		 return VcfUtils.getAltFrequency(re, alt);	 
+//	}
  
 	/*
 	 * Get the relevant format field, and check the NNS value 

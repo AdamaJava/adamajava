@@ -36,6 +36,7 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.maf.MAFRecord;
 import org.qcmg.common.meta.QExec;
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.model.TorrentVerificationStatus;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.ChrPositionUtils;
@@ -518,7 +519,7 @@ public abstract class MafPipeline {
 		
 		for (MAFRecord maf : filteredMafs) {
 			String chr = MafUtils.getFullChromosome(maf);
-			ChrPosition cp = new ChrPosition(chr, maf.getStartPosition(), maf.getEndPosition());
+			ChrPosition cp = new ChrRangePosition(chr, maf.getStartPosition(), maf.getEndPosition());
 			if (null == maf.getCpg())
 				cpgs.put(cp, null);
 			
@@ -546,7 +547,7 @@ public abstract class MafPipeline {
 				for (GFF3Record rec : reader) {
 					String chr = rec.getSeqId();
 					
-					ChrPosition cp = new ChrPosition(chr, rec.getStart(), rec.getEnd());
+					ChrPosition cp = new ChrRangePosition(chr, rec.getStart(), rec.getEnd());
 					
 					// loop through positionsOfInterestMap, and if we have an overlap, update our gff type
 					// this could take a while
@@ -564,7 +565,7 @@ public abstract class MafPipeline {
 								updatedCount++;
 								
 								// single position - won't have multiple gff3 regions
-								if (entry.getKey().isSinglePoint()) break;
+								if (entry.getKey().isPointPosition()) break;
 							}
 						}
 					}
@@ -583,7 +584,7 @@ public abstract class MafPipeline {
 			IndexedFastaSequenceFile fasta = new IndexedFastaSequenceFile(new File(fastaFile));
 			for (Entry<ChrPosition, String> entry : cpgs.entrySet()) {
 				ChrPosition cp = entry.getKey();
-				ReferenceSequence seq = fasta.getSubsequenceAt(cp.getChromosome(), (cp.getPosition() - noOfBases), (cp.getEndPosition() +  noOfBases));
+				ReferenceSequence seq = fasta.getSubsequenceAt(cp.getChromosome(), (cp.getStartPosition() - noOfBases), (cp.getEndPosition() +  noOfBases));
 				entry.setValue(new String(seq.getBases()));
 			}
 		}
@@ -593,7 +594,7 @@ public abstract class MafPipeline {
 		for (MAFRecord maf : filteredMafs) {
 				
 			String chr = MafUtils.getFullChromosome(maf);
-			ChrPosition cp = new ChrPosition(chr, maf.getStartPosition(), maf.getEndPosition());
+			ChrPosition cp = new ChrRangePosition(chr, maf.getStartPosition(), maf.getEndPosition());
 			
 			String cpg =cpgs.get(cp);
 			if (null != cpg) {

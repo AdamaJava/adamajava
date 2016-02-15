@@ -11,6 +11,7 @@ import java.util.regex.Pattern;
 import htsjdk.samtools.SAMRecord;
 
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.motif.util.MotifConstants;
@@ -74,7 +75,7 @@ public class MotifCoverageAlgorithm implements Algorithm {
 					readChr = MotifConstants.UNMAPPED;
 				}
 			}
-			ChrPosition cp = new ChrPosition(readChr, readStart);
+			ChrRangePosition cp = new ChrRangePosition(readChr, readStart);
 			RegionCounter rc = getCounterFromMap(regions, cp);
 			
 			// throw exception if we don't have a region for this read
@@ -208,5 +209,6 @@ public class MotifCoverageAlgorithm implements Algorithm {
 		
 		return result;
 	}
+
 	
 }

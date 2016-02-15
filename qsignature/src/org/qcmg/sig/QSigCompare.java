@@ -27,6 +27,7 @@ import javax.xml.transform.stream.StreamResult;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.TabTokenizer;
@@ -324,7 +325,7 @@ public class QSigCompare {
 		for (TabbedRecord vcfRecord : reader) {
 			String[] params = TabTokenizer.tokenize(vcfRecord.getData());
 //			String[] params = tabbedPattern.split(vcfRecord.getData(), -1);
-			ChrPosition chrPos = new ChrPosition(params[0], Integer.parseInt(params[1]));
+			ChrPosition chrPos = ChrPointPosition.valueOf(params[0], Integer.parseInt(params[1]));
 			char ref = params[3].charAt(0);
 			if ('-' == ref || '.' == ref) {
 //				logger.warn("skipping position with ref = -");

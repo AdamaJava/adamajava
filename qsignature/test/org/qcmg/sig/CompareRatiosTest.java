@@ -8,6 +8,7 @@ import java.util.concurrent.atomic.AtomicIntegerArray;
 import junit.framework.Assert;
 
 import org.junit.Test;
+import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
 
 public class CompareRatiosTest {
@@ -19,7 +20,7 @@ public class CompareRatiosTest {
 		Map<ChrPosition, int[]> f2Ratios = new HashMap<ChrPosition, int[]>();
 		AtomicIntegerArray positionsUsed = new AtomicIntegerArray(20); 
 		AtomicIntegerArray oldPositionsUsed = new AtomicIntegerArray(20); 
-		ChrPosition cp1 = new ChrPosition("chr1", 12345);
+		ChrPosition cp1 = ChrPointPosition.valueOf("chr1", 12345);
 		
 		f1Ratios.put(cp1, new int[]{5, 10});
 		f2Ratios.put(cp1, new int[]{5, 10});
@@ -63,8 +64,8 @@ public class CompareRatiosTest {
 		Map<ChrPosition, int[]> f1Ratios = new HashMap<ChrPosition, int[]>();
 		Map<ChrPosition, int[]> f2Ratios = new HashMap<ChrPosition, int[]>();
 		AtomicIntegerArray positionsUsed = new AtomicIntegerArray(20); 
-		ChrPosition cp1 = new ChrPosition("chr1", 12345);
-		ChrPosition cp2 = new ChrPosition("chr2", 12345);
+		ChrPosition cp1 = ChrPointPosition.valueOf("chr1", 12345);
+		ChrPosition cp2 = ChrPointPosition.valueOf("chr2", 12345);
 		
 		f1Ratios.put(cp1, new int[]{5, 10});
 		f2Ratios.put(cp2, new int[]{5, 10});
@@ -83,7 +84,7 @@ public class CompareRatiosTest {
 		Map<ChrPosition, int[]> f1Ratios = new HashMap<ChrPosition, int[]>();
 		Map<ChrPosition, int[]> f2Ratios = new HashMap<ChrPosition, int[]>();
 		AtomicIntegerArray positionsUsed = new AtomicIntegerArray(20); 
-		ChrPosition cp1 = new ChrPosition("chr1", 12345);
+		ChrPosition cp1 = ChrPointPosition.valueOf("chr1", 12345);
 		
 		f1Ratios.put(cp1, new int[]{0, 0});
 		f2Ratios.put(cp1, new int[]{0, 0});

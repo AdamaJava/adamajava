@@ -1,13 +1,13 @@
 package org.qcmg.sig.model;
 
 import static org.junit.Assert.assertEquals;
+import htsjdk.samtools.SAMRecord;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import htsjdk.samtools.SAMRecord;
-
 import org.junit.Test;
+import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
 
 public class RecordsAtPositionTest {
@@ -18,7 +18,7 @@ public class RecordsAtPositionTest {
 		assertEquals(null, rap.getCp());
 		assertEquals(null, rap.getRecords());
 		
-		ChrPosition cp = new ChrPosition("1", 999);
+		ChrPosition cp = ChrPointPosition.valueOf("1", 999);
 		List<SAMRecord> recs = new ArrayList<>();
 		
 		rap = new RecordsAtPosition(cp, recs);

@@ -26,7 +26,7 @@ import htsjdk.samtools.reference.IndexedFastaSequenceFile;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
-import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.qbamfilter.query.QueryExecutor;
 import org.qcmg.qbasepileup.InputBAM;
 import org.qcmg.qbasepileup.Options;
@@ -478,58 +478,25 @@ public class IndelBasePileupMT {
 	        }
 
 			private void reorderFile(File file, String header) throws IOException {
-				BufferedReader reader = new BufferedReader(new FileReader(file));
-				
-				int count = 0;
-				String line = reader.readLine();;
-				Map<ChrPosition, String> map = new TreeMap<ChrPosition, String>();
-				while(line != null) {
-					
-					String[] values = line.split("\t");
-					count++;
-					map.put(new ChrPosition(values[4],new Integer(values[5]),new Integer(values[6]), Integer.toString(count)), line);
-					line = reader.readLine();
+				Map<ChrRangePosition, String> map = new TreeMap<ChrRangePosition, String>();
+				try (BufferedReader reader = new BufferedReader(new FileReader(file));) {
+					String line = reader.readLine();;
+					while(line != null) {
+						String[] values = line.split("\t");
+						map.put(new ChrRangePosition(values[4], Integer.valueOf(values[5]), Integer.valueOf(values[6])), line);
+						line = reader.readLine();
+					}
 				}
-				reader.close();
-				
 				printMap(map, file, header);
-				
-				
 			}
 			
-			private void printMap(Map<ChrPosition, String> map, File file, String header) throws IOException {
-				BufferedWriter writer = new BufferedWriter(new FileWriter(file));
-				writer.write(header);
-				for (Entry<ChrPosition, String> entry: map.entrySet()) {
-					writer.write(entry.getValue() + "\n");
+			private void printMap(Map<ChrRangePosition, String> map, File file, String header) throws IOException {
+				try (BufferedWriter writer = new BufferedWriter(new FileWriter(file));) {
+					writer.write(header);
+					for (Entry<ChrRangePosition, String> entry: map.entrySet()) {
+						writer.write(entry.getValue() + "\n");
+					}
 				}
-				writer.close();
-				
 			}
-
-//			private void reorderPileupFile(File file, String header) throws IOException {
-//				BufferedReader reader = new BufferedReader(new FileReader(file));
-//				
-//				int count = 0;
-//				String line = reader.readLine();;
-//				Map<ChrPosition, String> map = new TreeMap<ChrPosition, String>();
-//				while( line != null) {
-//					
-//					String[] values = line.split("\t");
-//					count++;
-//					String str = values[1];
-//					String chr = str.split(":")[0];					
-//					Integer pos1 = new Integer(str.split(":")[1].split("-")[0]);
-//					Integer pos2 = new Integer(str.split(":")[1].split("-")[1]);
-//					map.put(new ChrPosition(chr, pos1, pos2, Integer.toString(count)), line);
-//					line = reader.readLine();
-//				}
-//				reader.close();
-//				printMap(map, file, header);
-//			}
-
 	    }
-
-
-
 }

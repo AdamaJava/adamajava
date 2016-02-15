@@ -8,6 +8,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import junit.framework.Assert;
 
 import org.junit.Test;
+import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.util.FileUtils;
 
@@ -25,7 +26,7 @@ public class QSigCompareTest {
 		Assert.assertEquals(0.0f, QSigCompare.compareRatios(file1Ratios, file2Ratios, 10, ai));
 //		Assert.assertEquals(0.0f, QSigCompare.compareRatios(s1, s2, file1Ratios, file2Ratios, 10));
 		
-		ChrPosition cp = new ChrPosition("chr1", 100);
+		ChrPosition cp = ChrPointPosition.valueOf("chr1", 100);
 		
 		file1Ratios.put(cp, new int[] {1,10});
 		file2Ratios.put(cp, new int[] {1,10});
@@ -52,7 +53,7 @@ public class QSigCompareTest {
 		
 		int counter = 100000;
 		for (int i = 0 ; i < counter ; i++) {
-			ChrPosition cp = new ChrPosition("chr1", i);
+			ChrPosition cp = ChrPointPosition.valueOf("chr1", i);
 			file1Ratios.put(cp, new int[] {1,100});
 			file2Ratios.put(cp, new int[] {1,100});
 		}
@@ -64,7 +65,7 @@ public class QSigCompareTest {
 		file2Ratios.clear();
 		
 		for (int i = 0 ; i < counter ; i++) {
-			ChrPosition cp = new ChrPosition("chr1", i);
+			ChrPosition cp = ChrPointPosition.valueOf("chr1", i);
 			file1Ratios.put(cp, new int[] {1,100});
 			file2Ratios.put(cp, new int[] {1,50});
 		}
@@ -85,7 +86,7 @@ public class QSigCompareTest {
 		
 		int counter = 100000;
 		for (int i = 0 ; i < counter ; i++) {
-			ChrPosition cp = new ChrPosition("chr1", i);
+			ChrPosition cp = ChrPointPosition.valueOf("chr1", i);
 			file1Ratios.put(cp, new int[] {1,10});
 			file2Ratios.put(cp, (i % 2 == 0) ? new int[] {0,0} : new int[] {2,10});
 		}
@@ -102,7 +103,7 @@ public class QSigCompareTest {
 		file2Ratios.clear();
 		
 		for (int i = 0 ; i < counter ; i++) {
-			ChrPosition cp = new ChrPosition("chr1", i);
+			ChrPosition cp = ChrPointPosition.valueOf("chr1", i);
 			file1Ratios.put(cp, (i % 2 == 0) ? new int[] {9,9} : new int[] {3,300});
 			file2Ratios.put(cp, new int[] {2,100});
 		}

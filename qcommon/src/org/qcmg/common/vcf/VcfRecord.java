@@ -14,46 +14,71 @@ import java.util.List;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
 
 public class VcfRecord implements Comparable<VcfRecord> {
 	
-	private static final QLogger logger = QLoggerFactory.getLogger(VcfRecord.class);
+	static final QLogger logger = QLoggerFactory.getLogger(VcfRecord.class);
 	
-	private final ChrPosition chrPos;
+	private final ChrPointPosition cpp;
 	private final String ref;
 	private String id;
-	private String alt;
+	private final String alt;
+	
+//	private String alt; 
 	private String qualString;
 	private String filter;
 	private VcfInfoFieldRecord infoRecord;
-	private final List<String> formatRecords = new ArrayList<String>(4);
+	private final List<String> formatRecords;
 	
-	public VcfRecord(ChrPosition cp, String id, String ref, String alt) {
-		this.chrPos = cp;
-		this.id = id;
-		this.ref = ref;
-		this.alt = alt;
-		// check to see if the length of the reference is equal to the length of the ChrPosition
-		if ( ! StringUtils.isNullOrEmpty(ref)) {
-			if (ref.length() != chrPos.getLength()) {
-				logger.warn("In VCFRecord constructor, ref length != chrPos length! ref: " + ref + ", chrPos: " + chrPos);
-			}
-		}
-	}
-	
-	public VcfRecord(String chr, int position) {
-		this(new ChrPosition(chr, position), null, null, null);
-	}
-	public VcfRecord(String chr, int position, String id, String ref, String alt) {
-		this(new ChrPosition(chr, position), id, ref, alt);
-	}
-	
-//	public VcfRecord(String chr, int position, int end, String id, String ref, String alt) {
-//		this(new ChrPosition(chr, position, end), id, ref, alt);
-//	}
+    public static class Builder{
+        private final ChrPointPosition cpp;
+        private final String ref;
+        private String id;
+        private String alt;
+        private String qualString;
+        private String filter;
+        private VcfInfoFieldRecord infoRecord;
+        private final List<String> formatRecords = new ArrayList<String>(4);
+       
+        public Builder(ChrPosition cp, String ref, String alt){
+        	//  convert ChrPosition to ChrPointPosition          	
+        	if(cp.isPointPosition())
+        		this.cpp = (ChrPointPosition) cp;
+        	else if(cp.isRangPosition())
+        		this.cpp = ((ChrRangePosition) cp).getChrStartpos();
+        	else
+        		this.cpp =  ChrPointPosition.valueOf(cp.getChromosome(), cp.getStartPosition());
+        	this.ref = ref; 
+        	this.alt = alt; 
+        }
+        
+        public Builder(String chromosome, int position, String ref){ this(ChrPointPosition.valueOf(chromosome, position),ref, null);   }
+        public Builder(String chromosome, int position){  this( ChrPointPosition.valueOf(chromosome, position), null, null );  }
+        public Builder(ChrPosition cp, String ref){ this(cp ,ref, null);}
+        public Builder(ChrPosition cpp){ this( cpp, null,null); }  
+        
+		public Builder id(String id){   this.id = id;    return this;  }
+        public Builder allele(String alt){   this.alt = alt;   return this;   }
+        public Builder filter(String filter){   this.filter = filter;   return this;  }
+        public Builder qualString(String str){   this.qualString = str;    return this;  }
+        public VcfRecord build(){  return new VcfRecord(this); }
+}
+
+    public VcfRecord(Builder builder){
+        this.cpp = builder.cpp;
+        this.ref = builder.ref;
+        this.id = builder.id;
+        this.alt = builder.alt;
+        this.qualString = builder.qualString;
+        this.filter = builder.filter;
+        this.infoRecord = builder.infoRecord;
+        this.formatRecords = builder.formatRecords;
+    }	
 	
 	/**
 	 * 
@@ -66,21 +91,13 @@ public class VcfRecord implements Comparable<VcfRecord> {
 	 *     new VcfRecord("chr1\t100\t.\tA\tT\t.\tPASS\t.\tGT\tS1\tS2\tS3".split("\t"))
 	 */
 	public VcfRecord(String [] params) {
-//		this(params[0], Integer.parseInt(params[1]), Integer.parseInt(params[1]) + params[3].length() - 1, params[2], params[3], params[4]);
-		this.chrPos = new ChrPosition(params[0], Integer.parseInt(params[1]), Integer.parseInt(params[1]) + params[3].length() - 1);
-		
-		this.id = params[2] ;
-		this.ref = params[3];
-		this.alt = params[4];
-		// check to see if the length of the reference is equal to the length of the ChrPosition
-		if ( ! StringUtils.isNullOrEmpty(ref) && ref.length() != chrPos.getLength()) {
-				logger.warn("In VCFRecord constructor, ref length != chrPos length! ref: " + ref + ", chrPos: " + chrPos);
-		}		
+		this( new Builder(params[0], Integer.parseInt(params[1]),params[3])
+					.id(params[2]).allele(params[4]));
 		
 		qualString = (params.length >= 6) ?  params[5] : null ;
 		filter = (params.length >= 7) ? params[6] : null;
 		infoRecord = (params.length >= 8) ?  new VcfInfoFieldRecord(params[7]): null;
-		
+
 		for (int i = 8; i < params.length; i ++)  {
 			if (StringUtils.isNullOrEmpty(params[i])) {
 				formatRecords.add( Constants.MISSING_DATA_STRING);
@@ -90,65 +107,80 @@ public class VcfRecord implements Comparable<VcfRecord> {
 		}
 	}
 	
-	public ChrPosition getChrPosition() {		
-		return this.chrPos;	
+	/**
+	 * 
+	 * @return an ChrPosition containing, variants reference name, start and end position
+	 */
+	public ChrPosition getChrPosition() {
+		if(StringUtils.isNullOrEmpty(ref) || ref.length() == 1) {
+			return cpp;
+		} else {
+			return new ChrRangePosition(cpp, cpp.getStartPosition() + ref.length() - 1);
+		}
 	}
+	
 
-	public String getRef() {	
-		return ref;	
-	}
+	public String getRef() {	return ref;	 }
 	
 	public char getRefChar() {
 		final int len = null != ref ? ref.length() : 0;
 		if (0 == len) {
-			logger.warn("Reference is empty at " + chrPos.toIGVString());
+			logger.warn("Reference is empty at " + cpp.toString() );
 			return NULL_CHAR;
 		} else if (1 == len) {
 			return ref.charAt(0);
 		} else {
-			logger.warn("Retrieving first char from ref where ref is: " + ref + " at " + chrPos.toIGVString());
+			logger.warn("Retrieving first char from ref where ref is: " + ref + " at " + cpp.getStartPosition());
 			return ref.charAt(0);
 		}
 	}
  
-	public String getAlt() {
-		return alt ;
-	}
-	public void setAlt(String alt) { this.alt = alt;}
+	public String getAlt() { return alt ; }
+//	public void setAlt(String alt) { this.alt = alt;}
+	
+	//return a new VcfRecord with this alt 
+//	public VcfRecord setAlt(String alt) { 
+//		
+//		VcfRecord re =  new VcfRecord.Builder(this.cpp, this.ref).id(this.id).allele(alt).qualString(this.qualString).build();
+//		re.setFormatFields(this.formatRecords);
+//		return re; 
+//	}
 	
 	/**
 	 * 
 	 * @param otherAlt, append this allels if not exists in exisiting allel. 
 	 */
-	public void appendAlt(String otherAlt){
-		if( StringUtils.isNullOrEmpty( otherAlt )) {
-			return;
-		}
-		
-		if (StringUtils.isNullOrEmpty(alt)) {  
-			this.alt = otherAlt;
-		}
-		
-		final String[] altParam = this.alt.split(Constants.COMMA_STRING);
-		final String[] otherParm = otherAlt.split(Constants.COMMA_STRING);
-		
-		for(final String in : otherParm) {
-			boolean isExist = false; 
-			for (final String s : altParam){ 
-				if(s.equalsIgnoreCase(otherAlt)){
-					isExist = true;
-					break; 
-				}
-			}
-			
-			//append non existed alt
-			if(! isExist) {
-				this.alt.concat(Constants.COMMA + in);
-			}
-		}
-	}
+	
+//	public void appendAlt(String otherAlt){
+//		if( StringUtils.isNullOrEmpty( otherAlt )) {
+//			return;
+//		}
+//		
+//		if (StringUtils.isNullOrEmpty(alt)) {  
+//			this.alt = otherAlt;
+//		}
+//		
+//		final String[] altParam = this.alt.split(Constants.COMMA_STRING);
+//		final String[] otherParm = otherAlt.split(Constants.COMMA_STRING);
+//		
+//		for(final String in : otherParm) {
+//			boolean isExist = false; 
+//			for (final String s : altParam){ 
+//				if(s.equalsIgnoreCase(otherAlt)){
+//					isExist = true;
+//					break; 
+//				}
+//			}
+//			
+//			//append non existed alt
+//			if(! isExist) {
+//				this.alt.concat(Constants.COMMA + in);
+//			}
+//		}
+//	}
 
 	public void setQualString(String qualString) { this.qualString = qualString; }
+	public String getQualString(){return qualString;}
 	
 	public void addFilter(String additionalFilter) { 
 		if(StringUtils.isNullOrEmpty(   this.filter)  || 
@@ -241,9 +273,7 @@ public class VcfRecord implements Comparable<VcfRecord> {
 			if(StringUtils.isNullOrEmpty(field.get(i)))
 				formatRecords.add( Constants.MISSING_DATA_STRING);
 			else
-				formatRecords.add( field.get(i));
-		
-	 
+				formatRecords.add( field.get(i));	 
 	}
 	
 	/**
@@ -283,8 +313,8 @@ public class VcfRecord implements Comparable<VcfRecord> {
 		return sb.toString();	
 	}
 	
-	public String getChromosome() { 	return chrPos.getChromosome(); }
-	public int getPosition() { 	return chrPos.getPosition(); }
+	public String getChromosome() { 	return cpp.getChromosome()  ; }
+	public int getPosition() { 	return cpp.getStartPosition(); }
 	
 	public void appendId(String additionalId) {
 		this.id = (StringUtils.isNullOrEmpty(this.id) || this.id.equals(Constants.MISSING_DATA_STRING)) ? additionalId : this.id + ";" + additionalId;
@@ -300,14 +330,10 @@ public class VcfRecord implements Comparable<VcfRecord> {
 	 */
 	public String toString(){
 		
-		//add END position into info column for compound SNP
-//		if (! chrPos.isSinglePoint()) {
-//				appendInfo("END=" + chrPos.getEndPosition()  );
-//		}
 		
 		final StringBuilder builder = new StringBuilder();
-		builder.append(chrPos.getChromosome()).append(TAB);
-		builder.append(chrPos.getPosition()).append(TAB);
+		builder.append(cpp.getChromosome()).append(TAB);
+		builder.append(cpp.getStartPosition()).append(TAB);
 		builder.append(StringUtils.isNullOrEmpty(id) ? MISSING_DATA_STRING : id).append(TAB);
 		builder.append(StringUtils.isNullOrEmpty(ref) ? MISSING_DATA_STRING : ref).append(TAB);
 		builder.append(StringUtils.isNullOrEmpty(alt) ? MISSING_DATA_STRING : alt).append(TAB);
@@ -323,43 +349,43 @@ public class VcfRecord implements Comparable<VcfRecord> {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((alt == null) ? 0 : alt.hashCode());
-		result = prime * result + ((chrPos == null) ? 0 : chrPos.hashCode());
+		
+		result = prime * result + ((cpp == null) ? 0 : cpp.hashCode());
 		result = prime * result + ((ref == null) ? 0 : ref.hashCode());
+		result = prime * result + ((alt == null) ? 0 : alt.hashCode());
 		return result;
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
+		if (this == obj) return true;
+		if (obj == null) return false;
+		if (getClass() != obj.getClass()) return false;
+		
 		VcfRecord other = (VcfRecord) obj;
-		if (alt == null) {
-			if (other.alt != null)
-				return false;
-		} else if (!alt.equals(other.alt))
-			return false;
-		if (chrPos == null) {
-			if (other.chrPos != null)
-				return false;
-		} else if (!chrPos.equals(other.chrPos))
-			return false;
-		if (ref == null) {
-			if (other.ref != null)
-				return false;
-		} else if (!ref.equals(other.ref))
-			return false;
-		return true;
+		
+		//compare position
+		boolean flag = (cpp == null)? other.cpp == null : cpp.equals(other.cpp);
+		if( !flag ) return flag; 
+		
+		//compare ref if same position		
+		flag = (ref == null) ?  (other.ref == null) : ref.equals(other.ref);
+		if( !flag ) return flag; 
+		
+		//compare alleles if same ref
+		flag = (alt == null) ? (other.alt == null) : alt.equals(other.alt);		
+		return flag; 						
+	 
 	}
 
 	@Override
 	public int compareTo(VcfRecord arg0) {
-		return chrPos.compareTo(arg0.chrPos);
+		int Diff =  cpp.compareTo(arg0.cpp);		
+		if(Diff != 0) return Diff; 
+		
+		int l1 = (ref != null)? ref.length(): 0;
+		int l2 = (arg0.ref != null) ? arg0.ref.length() : 0;		
+		return l1 - l2;
 	}
-
 	
 }

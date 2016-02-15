@@ -44,7 +44,7 @@ public class Liftover {
 		// loop through positions of interest, getting new Interval for each
 		LiftOver picardLiftover = new LiftOver(new File(chainFile));
 		for (ChrPosition cp : positionsOfInterest) {
-			Interval oldInt = new Interval(MafUtils.getFullChrFromMafChr(cp.getChromosome()), cp.getPosition(), cp.getEndPosition());
+			Interval oldInt = new Interval(MafUtils.getFullChrFromMafChr(cp.getChromosome()), cp.getStartPosition(), cp.getEndPosition());
 			Interval newInt =  picardLiftover.liftOver(oldInt);
 			logger.info("oldInt: " + oldInt + ", new Int: " + newInt);
 		}

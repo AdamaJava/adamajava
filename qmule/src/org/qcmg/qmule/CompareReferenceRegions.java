@@ -12,15 +12,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-
 import java.util.Map.Entry;
-
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrPositionName;
+import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.util.FileUtils;
-
 import org.qcmg.tab.TabbedFileReader;
 import org.qcmg.tab.TabbedRecord;
 
@@ -278,9 +277,9 @@ public class CompareReferenceRegions {
 		//check to see if it is overlapping with the comparison reference region
 		for (Entry<ChrPosition, TabbedRecord> compareEntry : compareRecords.entrySet()) {
 			ChrPosition comparePos = compareEntry.getKey();
-			if (comparePos.getEndPosition() < inputChrPos.getPosition()) {
+			if (comparePos.getEndPosition() < inputChrPos.getStartPosition()) {
 				continue;
-			} else if (comparePos.getPosition() > inputChrPos.getEndPosition()) {
+			} else if (comparePos.getStartPosition() > inputChrPos.getEndPosition()) {
 				break;
 			} else {
 				if (tabbedRecordFallsInCompareRecord(inputChrPos, inputRecord, compareEntry)) {								
@@ -308,8 +307,8 @@ public class CompareReferenceRegions {
 						int[] indexes = getChrIndex(inputFileType, entry.getValue().getData().split("\t"));
 						String[] array = inputRecord.getDataArray();
 						
-						if (inputChrPos.getPosition() > compareEntry.getKey().getPosition()) {							
-							array[indexes[1]] =  Integer.toString(compareEntry.getKey().getPosition());
+						if (inputChrPos.getStartPosition() > compareEntry.getKey().getStartPosition()) {							
+							array[indexes[1]] =  Integer.toString(compareEntry.getKey().getStartPosition());
 						}
 						if (inputChrPos.getEndPosition() < compareEntry.getKey().getEndPosition()) {
 							array[indexes[2]] =  Integer.toString(compareEntry.getKey().getEndPosition());
@@ -483,7 +482,7 @@ public class CompareReferenceRegions {
 		int endIndex = indexes[2];
 		
 		if (inputFileType.equals(BED)) {
-			chr = new ChrPosition(values[chrIndex], new Integer(values[startIndex])+1, new Integer(values[endIndex])+1);
+			chr = new ChrRangePosition(values[chrIndex], new Integer(values[startIndex])+1, new Integer(values[endIndex])+1);
 		} else {
 			String chromosome = values[chrIndex];
 			if (!chromosome.contains("GL") && !chromosome.startsWith("chr")) {
@@ -493,9 +492,9 @@ public class CompareReferenceRegions {
 				chromosome = "chrMT";
 			}
 			if (inputFileType.equals(MAF)) {
-				chr = new ChrPosition(chromosome, new Integer(values[startIndex]), new Integer(values[endIndex]), values[0]);	
+				chr = new ChrPositionName(chromosome, new Integer(values[startIndex]), new Integer(values[endIndex]), values[0]);	
 			} else {
-				chr = new ChrPosition(chromosome, new Integer(values[startIndex]), new Integer(values[endIndex]));
+				chr = new ChrRangePosition(chromosome, new Integer(values[startIndex]), new Integer(values[endIndex]));
 			}
 		}
 		return chr;
@@ -504,9 +503,9 @@ public class CompareReferenceRegions {
 	private boolean tabbedRecordFallsInCompareRecord(ChrPosition inputChrPos, TabbedRecord inputRecord, Entry<ChrPosition, TabbedRecord> entry) {
 		if (entry != null) {
 			ChrPosition compareChrPos = entry.getKey();
-			if ((inputChrPos.getPosition() >= compareChrPos.getPosition() && inputChrPos.getPosition() <= compareChrPos.getEndPosition()) ||
-					(inputChrPos.getEndPosition() >= compareChrPos.getPosition() && inputChrPos.getEndPosition() <= compareChrPos.getEndPosition()) 
-					|| (inputChrPos.getPosition() <= compareChrPos.getPosition() && inputChrPos.getEndPosition() >= compareChrPos.getEndPosition())) {				
+			if ((inputChrPos.getStartPosition() >= compareChrPos.getStartPosition() && inputChrPos.getStartPosition() <= compareChrPos.getEndPosition()) ||
+					(inputChrPos.getEndPosition() >= compareChrPos.getStartPosition() && inputChrPos.getEndPosition() <= compareChrPos.getEndPosition()) 
+					|| (inputChrPos.getStartPosition() <= compareChrPos.getStartPosition() && inputChrPos.getEndPosition() >= compareChrPos.getEndPosition())) {				
 				return true;				
 			}		
 		}

@@ -9,7 +9,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrPositionName;
+import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.string.StringUtils;
 
 public class ChrPositionUtils {
@@ -24,8 +27,8 @@ public class ChrPositionUtils {
 		if ( ! a.getChromosome().equals(b.getChromosome())) return false;
 		
 		// now positions
-		if (a.getEndPosition() < b.getPosition() - buffer) return false;
-		if (a.getPosition() > b.getEndPosition() + buffer) return false;
+		if (a.getEndPosition() < b.getStartPosition() - buffer) return false;
+		if (a.getStartPosition() > b.getEndPosition() + buffer) return false;
 		
 		return true;
 	}
@@ -39,17 +42,17 @@ public class ChrPositionUtils {
 	public static boolean isChrPositionContained(ChrPosition a, ChrPosition b) {
 		
 		if (doChrPositionsOverlap(a, b)) {
-			return a.getPosition() <= b.getPosition() && a.getEndPosition() >= b.getEndPosition();
+			return a.getStartPosition() <= b.getStartPosition() && a.getEndPosition() >= b.getEndPosition();
 		}
 		return false;
 		
 	}
 	
-	public static Map<ChrPosition, Set<ChrPosition>> getAmpliconsFromFragments(List<ChrPosition> fragments) {
+	public static Map<ChrRangePosition, Set<ChrRangePosition>> getAmpliconsFromFragments(List<ChrRangePosition> fragments) {
 		
-		Map<ChrPosition, Set<ChrPosition>> ampliconFragmentMap = fragments.stream()
+		Map<ChrRangePosition, Set<ChrRangePosition>> ampliconFragmentMap = fragments.stream()
 			.collect(Collectors.groupingBy(cp -> {
-				return new ChrPosition(cp.getChromosome(), cp.getPosition(), cp.getEndPosition());
+				return new ChrRangePosition(cp.getChromosome(), cp.getStartPosition(), cp.getEndPosition());
 			}, Collectors.toSet()));
 //		Map<ChrPosition, Set<ChrPosition>> ampliconFragmentMap = fragments.stream()
 //				.collect(Collectors.groupingBy(cp -> {
@@ -66,23 +69,23 @@ public class ChrPositionUtils {
 	 * @param cosmicCoords
 	 * @return
 	 */
-	public static ChrPosition createCPFromCosmic(String cosmicCoords) {
+	public static ChrRangePosition createCPFromCosmic(String cosmicCoords) {
 		if (StringUtils.isNullOrEmpty(cosmicCoords)) {
 			return null;
 		} else {
 			int colonIndex = cosmicCoords.indexOf(':');
 			int minusIndex = cosmicCoords.indexOf('-');
-			return new ChrPosition( "chr" + cosmicCoords.substring(0, colonIndex), 
+			return new ChrRangePosition( "chr" + cosmicCoords.substring(0, colonIndex), 
 					Integer.parseInt(cosmicCoords.substring(colonIndex + 1, minusIndex)),
 					Integer.parseInt(cosmicCoords.substring(minusIndex + 1)));
 		}
 	}
 	
-	public static boolean arePositionsWithinDelta(ChrPosition a, ChrPosition b, int delta) {
+	public static boolean arePositionsWithinDelta(ChrRangePosition a, ChrRangePosition b, int delta) {
 		// check chromosome first
 		if ( ! a.getChromosome().equals(b.getChromosome())) return false;
 		
-		int diff = Math.abs(a.getPosition() - b.getPosition());
+		int diff = Math.abs(a.getStartPosition() - b.getStartPosition());
 		if (diff > delta) {
 			return false;
 		}
@@ -93,10 +96,23 @@ public class ChrPositionUtils {
 	
 	public static boolean doChrPositionsOverlapPositionOnly(ChrPosition a, ChrPosition b) {
 		// positions
-		if (a.getPosition() > b.getEndPosition()) return false;
-		if (a.getEndPosition() < b.getPosition()) return false;
+		if (a.getStartPosition() > b.getEndPosition()) return false;
+		if (a.getEndPosition() < b.getStartPosition()) return false;
 		
 		return true;
+	}
+	
+
+	public static ChrPosition cloneWithNewChromosomeName(ChrPosition cp, String newChr) {
+		
+		if (cp instanceof ChrPointPosition) {
+			return ChrPointPosition.valueOf(newChr, cp.getStartPosition());
+		} else if  (cp instanceof ChrRangePosition) {
+			return new ChrRangePosition(newChr, cp.getStartPosition(), cp.getEndPosition());
+		} else {
+			throw new UnsupportedOperationException("cloneWithNewName not yet implemented for any types other than ChrPointPosition and ChrRangePosition!!!");
+		}
+		
 	}
 	
 	/**
@@ -106,10 +122,7 @@ public class ChrPositionUtils {
 	 * @param position
 	 * @return
 	 */
-	public static ChrPosition getChrPositionFromString(String position) {
-		return getChrPositionFromString(position, null);
-	}
-	public static ChrPosition getChrPositionFromString(String position, String name) {
+	public static ChrRangePosition getChrPositionFromString(String position) {
 		if (StringUtils.isNullOrEmpty(position)) 
 			throw new IllegalArgumentException("Null or empty string passed to getChrPositionFromString()");
 		
@@ -124,11 +137,28 @@ public class ChrPositionUtils {
 		int start = Integer.parseInt(position.substring(colonPos + 1, minusPos));
 		int end = Integer.parseInt(position.substring(minusPos + 1));
 		
-		return new ChrPosition(chr, start, end, name);
+		return new ChrRangePosition(chr, start, end);
+	}
+	public static ChrPositionName getChrPositionNameFromString(String position, String name) {
+		if (StringUtils.isNullOrEmpty(position)) 
+			throw new IllegalArgumentException("Null or empty string passed to getChrPositionNameFromString()");
+		
+		int colonPos = position.indexOf(':');
+		int minusPos = position.indexOf('-');
+		
+		if (colonPos == -1 || minusPos == -1) {
+			throw new IllegalArgumentException("invalid string passed to getChrPositionNameFromString() - must be in chr1:12345-23456 format: " + position);
+		}
+		
+		String chr = position.substring(0, colonPos);
+		int start = Integer.parseInt(position.substring(colonPos + 1, minusPos));
+		int end = Integer.parseInt(position.substring(minusPos + 1));
+		
+		return new ChrPositionName(chr, start, end, name);
 	}
 	
 	public static ChrPosition getPrecedingChrPosition(ChrPosition cp) {
-		return new ChrPosition(cp.getChromosome(), cp.getPosition() - 1, cp.getEndPosition() - 1);
+		return new ChrRangePosition(cp.getChromosome(), cp.getStartPosition() - 1, cp.getEndPosition() - 1);
 	}
 	
 	/**
@@ -142,7 +172,7 @@ public class ChrPositionUtils {
 		if (null == positions || positions.length == 0) 
 			throw new IllegalArgumentException("null or empty string array passed to getChrPositionsFromStrings");
 		
-		List<ChrPosition> chrPositions = new ArrayList<ChrPosition>();
+		List<ChrPosition> chrPositions = new ArrayList<>();
 		for (String s : positions) {
 			chrPositions.add(getChrPositionFromString(s));
 		}
@@ -163,10 +193,10 @@ public class ChrPositionUtils {
 		// need to be on the same chromosome
 		if (cp1.getChromosome().equals(cp2.getChromosome())) {
 			
-			if (cp1.getPosition() == cp2.getEndPosition() + 1) {
+			if (cp1.getStartPosition() == cp2.getEndPosition() + 1) {
 				return true;
 			}
-			if (cp1.getEndPosition() == cp2.getPosition() - 1) {
+			if (cp1.getEndPosition() == cp2.getStartPosition() - 1) {
 				return true;
 			}
 		}

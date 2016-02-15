@@ -6,6 +6,7 @@ package org.qcmg.qmule;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
@@ -16,12 +17,15 @@ import htsjdk.samtools.SAMRecord;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrPositionComparator;
 import org.qcmg.common.model.QPileupSimpleRecord;
 import org.qcmg.picard.SAMFileReaderFactory;
 
 
 public class Pileup {
+	private static final Comparator<ChrPosition> COMPARATOR = new ChrPositionComparator();
 	private static QLogger logger = QLoggerFactory.getLogger(Pileup.class);
 	
 	Map<ChrPosition, QPileupSimpleRecord> pileup = new TreeMap<ChrPosition, QPileupSimpleRecord>();
@@ -48,16 +52,16 @@ public class Pileup {
 	}
 	
 	private void writePileup(FileWriter writer, String chromosome, int position) throws IOException {
-		ChrPosition chrPos = new ChrPosition(chromosome, position);
+		ChrPosition chrPos = ChrPointPosition.valueOf(chromosome, position);
 		
 		Iterator<Entry<ChrPosition, QPileupSimpleRecord>>  iter = pileup.entrySet().iterator();
 		
 		while (iter.hasNext()) {
 			Map.Entry<ChrPosition, QPileupSimpleRecord> entry = iter.next();
-			if (0 < chrPos.compareTo(entry.getKey())) {
+			if (0 < COMPARATOR.compare(chrPos, entry.getKey())) {
 				
 				writer.write(entry.getKey().getChromosome() + "\t" +
-						entry.getKey().getPosition() + "\t" +
+						entry.getKey().getStartPosition() + "\t" +
 						entry.getValue().getFormattedString());
 				
 				iter.remove();
@@ -73,7 +77,7 @@ public class Pileup {
 		int position = 0;
 		
 		for (byte b : sr.getReadBases()) {
-			chrPos = new ChrPosition(sr.getReferenceName(), sr.getAlignmentStart() + position++);
+			chrPos = ChrPointPosition.valueOf(sr.getReferenceName(), sr.getAlignmentStart() + position++);
 			pileupRec = pileup.get(chrPos);
 			if (null == pileupRec) {
 				pileupRec = new QPileupSimpleRecord();

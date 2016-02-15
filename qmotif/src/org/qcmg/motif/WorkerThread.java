@@ -11,6 +11,7 @@ import java.util.concurrent.BlockingQueue;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.motif.util.RegionCounter;
 
 class WorkerThread extends Thread {

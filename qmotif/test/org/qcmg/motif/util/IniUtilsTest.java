@@ -15,6 +15,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrPositionComparator;
+import org.qcmg.common.model.ChrRangePosition;
+import org.qcmg.common.model.ChrPositionName;
 
 public class IniUtilsTest {
 	
@@ -61,21 +64,21 @@ public class IniUtilsTest {
 	public void getIncludes() {
 		List<ChrPosition> positions = IniUtils.getPositions(ini, "INCLUDES");
 		assertEquals(4, positions.size());
-		Collections.sort(positions);
+		Collections.sort(positions, new ChrPositionComparator());
 		
-		assertEquals(100, positions.get(0).getPosition());
+		assertEquals(100, positions.get(0).getStartPosition());
 		assertEquals(1000, positions.get(0).getEndPosition());
 		assertEquals("chr1", positions.get(0).getChromosome());
 		
-		assertEquals(249237907, positions.get(1).getPosition());
+		assertEquals(249237907, positions.get(1).getStartPosition());
 		assertEquals(249240620, positions.get(1).getEndPosition());
 		assertEquals("chr1", positions.get(1).getChromosome());
 		
-		assertEquals(1, positions.get(2).getPosition());
+		assertEquals(1, positions.get(2).getStartPosition());
 		assertEquals(590426, positions.get(2).getEndPosition());
 		assertEquals("chr4_ctg9_hap1", positions.get(2).getChromosome());
 		
-		assertEquals(1, positions.get(3).getPosition());
+		assertEquals(1, positions.get(3).getStartPosition());
 		assertEquals(4928567, positions.get(3).getEndPosition());
 		assertEquals("chr6_ssto_hap7", positions.get(3).getChromosome());
 		

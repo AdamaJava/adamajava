@@ -18,7 +18,7 @@ import java.util.Map.Entry;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
-import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrRangePosition;
 
 public class Segmenter {	
 
@@ -27,7 +27,7 @@ public class Segmenter {
 	private final boolean runMerge;
 	private final boolean runFill;
 	private final Feature[] features;
-	private HashMap<String, List<Segment>> segments = new HashMap<String, List<Segment>>();	
+	private Map<String, List<Segment>> segments = new HashMap<>();	
 	private final QLogger logger = QLoggerFactory.getLogger(getClass());
 	private final Map<String, Integer> bounds;
 	private final List<String> chromosomeOrder = new ArrayList<String>();
@@ -75,45 +75,45 @@ public class Segmenter {
 	}
 
 	private Map<String, Integer> readInBounds() throws IOException {
-		BufferedReader reader = new BufferedReader(new FileReader(boundsFile));
-		Map<String, Integer> bounds = new HashMap<String, Integer>();
-		String line;		
-		while((line = reader.readLine()) != null) {			
-			String[] vals = line.split("\t");
-			bounds.put(vals[0], new Integer(vals[1]));
-			chromosomeOrder.add(vals[0]);
+		try (BufferedReader reader = new BufferedReader(new FileReader(boundsFile));) {
+//			Map<String, Integer> bounds = new HashMap<String, Integer>();
+			String line;		
+			while((line = reader.readLine()) != null) {			
+				String[] vals = line.split("\t");
+				bounds.put(vals[0], Integer.valueOf(vals[1]));
+				chromosomeOrder.add(vals[0]);
+			}
 		}
-		reader.close();
 		return bounds;
 	}
 
 	private void readGFF() throws IOException {
-		BufferedReader reader = new BufferedReader(new FileReader(inputFile));
-		
-		String line;
-		int recordCount = 0;
-		while((line = reader.readLine()) != null) {
-			//skip headers
-			if (line.startsWith("#")) {
-				continue;
-			}
-			recordCount++;
-			String[] fields = line.split("\t");
-			
-			for (Feature f: features) {
-				if (f.getName().equals(fields[2])) {
-					String chr = fields[0];
-					List<Segment> list = new ArrayList<Segment>();
-					if (segments.containsKey(chr)) {
-						list = segments.get(chr);
-					} 
-					list.add(new Segment(fields, f, recordCount));
-					segments.put(chr, list);
+		try (BufferedReader reader = new BufferedReader(new FileReader(inputFile));) {
+			String line;
+			int recordCount = 0;
+			while((line = reader.readLine()) != null) {
+				//skip headers
+				if (line.startsWith("#")) {
+					continue;
 				}
-			} 			
-		}
+				recordCount++;
+				String[] fields = line.split("\t");
+				
+				for (Feature f: features) {
+					if (f.getName().equals(fields[2])) {
+						String chr = fields[0];
+						List<Segment> list = segments.get(chr);
+						if (null == list)
+						if (segments.containsKey(chr)) {
+							list = segments.get(chr);
+						} 
+						list.add(new Segment(fields, f, recordCount));
+						segments.put(chr, list);
+					}
+				} 			
+			}
 		merge(true);
-		reader.close();
+		}
 	}	
 
 	private void merge(boolean includeSubFeature) {
@@ -177,14 +177,14 @@ public class Segmenter {
 					if (nextSeg.getPositionStart() < currentSeg.getPositionStart()) {
 //						currentSeg.setPositionStart(nextSeg.getPositionStart());
 						// create new Segment object with updated start position
-						ChrPosition newChrPos = new ChrPosition(currentSeg.getPosition().getChromosome(), nextSeg.getPositionStart(), currentSeg.getPosition().getEndPosition(), currentSeg.getPosition().getName());
-						currentSeg = new Segment(currentSeg.getFields(), currentSeg.getFeature(), newChrPos);
+						ChrRangePosition newChrPos = new ChrRangePosition(currentSeg.getPosition().getChromosome(), nextSeg.getPositionStart(), currentSeg.getPosition().getEndPosition());
+						currentSeg = new Segment(currentSeg.getFields(), currentSeg.getFeature(), newChrPos, currentSeg.getRecordCount());
 					}
 					if (nextSeg.getPositionEnd() > currentSeg.getPositionStart()) {
 //						currentSeg.setPositionEnd(nextSeg.getPositionEnd());
 						// create new Segment object with updated end position
-						ChrPosition newChrPos = new ChrPosition(currentSeg.getPosition().getChromosome(), currentSeg.getPosition().getPosition(), nextSeg.getPositionEnd(), currentSeg.getPosition().getName());
-						currentSeg = new Segment(currentSeg.getFields(), currentSeg.getFeature(), newChrPos);
+						ChrRangePosition newChrPos = new ChrRangePosition(currentSeg.getPosition().getChromosome(), currentSeg.getPosition().getStartPosition(), nextSeg.getPositionEnd());
+						currentSeg = new Segment(currentSeg.getFields(), currentSeg.getFeature(), newChrPos, currentSeg.getRecordCount());
 					}					
 				} else {
 					newSegments.get(chr).add(currentSeg);
@@ -572,43 +572,42 @@ public class Segmenter {
 	}
 	
 	private void writeGFF3() throws IOException {
-		BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile));
+		try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile));) {
 		
-		writer.write("##gff-version 3\n");
-        writer.write("#Created by: qcoverage[v" + Main.class.getPackage().getImplementationVersion() + "]\n");
-		writer.write("# Created on: " +System.currentTimeMillis()+ "\n");
-        writer.write("# Commandline: "+ cmdLine + "\n" );
-        
-       
-        for (String chromosome : chromosomeOrder) {
-        	List<Segment> segmentList = segments.get(chromosome);
-        	if (segmentList != null) {
-        		int chrEnd = bounds.get(chromosome);
-            	logger.info(chromosome + " " + segmentList.size());
-            	for (Segment segment : segmentList) {
-            		if (segment.getPositionStart() > chrEnd) {
-            			//feature outside bounds so drop it
-            			continue;
-            		} else if (segment.getPositionEnd() > chrEnd) {
-            			//feature outside bounds so truncating feature
-            			logger.info("truncating " + segment.getPositionString());
-            			
-            			
-            			// create new Segment object with updated end position
-						ChrPosition newChrPos = new ChrPosition(segment.getPosition().getChromosome(), segment.getPosition().getPosition(), chrEnd, segment.getPosition().getName());
-						segment = new Segment(segment.getFields(), segment.getFeature(), newChrPos);
-//             			segment.setPositionEnd(chrEnd);        			
-            			writer.write(segment.toString());
-            		} else {
-            			//logger.info(segment.toString());
-            			writer.write(segment.toString());
-            		}
-            	} 
-        	}
-        	       	
-        }
-		
-		writer.close();
+			writer.write("##gff-version 3\n");
+	        writer.write("#Created by: qcoverage[v" + Main.class.getPackage().getImplementationVersion() + "]\n");
+			writer.write("# Created on: " +System.currentTimeMillis()+ "\n");
+	        writer.write("# Commandline: "+ cmdLine + "\n" );
+	        
+	       
+	        for (String chromosome : chromosomeOrder) {
+	        	List<Segment> segmentList = segments.get(chromosome);
+	        	if (segmentList != null) {
+	        		int chrEnd = bounds.get(chromosome);
+	            	logger.info(chromosome + " " + segmentList.size());
+	            	for (Segment segment : segmentList) {
+	            		if (segment.getPositionStart() > chrEnd) {
+	            			//feature outside bounds so drop it
+	            			continue;
+	            		} else if (segment.getPositionEnd() > chrEnd) {
+	            			//feature outside bounds so truncating feature
+	            			logger.info("truncating " + segment.getPositionString());
+	            			
+	            			
+	            			// create new Segment object with updated end position
+							ChrRangePosition newChrPos = new ChrRangePosition(segment.getPosition().getChromosome(), segment.getPosition().getStartPosition(), chrEnd);
+							segment = new Segment(segment.getFields(), segment.getFeature(), newChrPos, segment.getRecordCount());
+	//             			segment.setPositionEnd(chrEnd);        			
+	            			writer.write(segment.toString());
+	            		} else {
+	            			//logger.info(segment.toString());
+	            			writer.write(segment.toString());
+	            		}
+	            	} 
+	        	}
+	        	       	
+	        }
+		}
 	}
 
 

@@ -11,6 +11,7 @@ import java.util.Map;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.vcf.VcfRecord;
@@ -194,7 +195,7 @@ public class ExamineVerifiedSnps {
 			QPileupFileReader reader  = new QPileupFileReader(new File(pileupFile));
 			try {
 				for (QSnpRecord qpr : reader) {
-					pileup.put(new ChrPosition(qpr.getChromosome(), qpr.getPosition()),qpr);
+					pileup.put(ChrPointPosition.valueOf(qpr.getChromosome(), qpr.getPosition()),qpr);
 				}
 			} finally {
 				reader.close();
@@ -208,7 +209,7 @@ public class ExamineVerifiedSnps {
 			VCFFileReader reader  = new VCFFileReader(new File(pileupFile));
 			try {
 				for (VcfRecord qpr : reader) {
-					vcfRecords.put(new ChrPosition(qpr.getChromosome(), qpr.getPosition()),qpr);
+					vcfRecords.put(ChrPointPosition.valueOf(qpr.getChromosome(), qpr.getPosition()),qpr);
 				}
 			} finally {
 				reader.close();
@@ -220,7 +221,7 @@ public class ExamineVerifiedSnps {
 			VerifiedSnpFileReader reader  = new VerifiedSnpFileReader(new File(verifiedSnpFile));
 			try {
 				for (VerifiedSnpRecord vsr : reader) {
-					verifiedSNPs.put(new ChrPosition(vsr.getChromosome(), vsr.getPosition()),vsr);
+					verifiedSNPs.put(ChrPointPosition.valueOf(vsr.getChromosome(), vsr.getPosition()),vsr);
 				}
 			} finally {
 				reader.close();

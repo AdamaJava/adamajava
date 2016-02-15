@@ -48,10 +48,10 @@ public class IGVBatchFileGenerator {
 	}
 	
 	private static String getLocationString(ChrPosition chrPos) {
-		return "goto " + chrPos.getChromosome() + ":" + chrPos.getPosition() + "-" + chrPos.getPosition() 
+		return "goto " + chrPos.toIGVString()
 		+ "\nsort base\n" +
 				"collapse\n" +
-				"snapshot " + chrPos.getChromosome() + ":" + chrPos.getPosition() + ".png\n"; 
+				"snapshot " + chrPos.getChromosome() + ":" + chrPos.getStartPosition() + ".png\n"; 
 	}
 	
 	

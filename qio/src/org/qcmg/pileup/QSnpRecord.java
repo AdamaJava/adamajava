@@ -6,6 +6,7 @@ package org.qcmg.pileup;
 import static org.qcmg.common.util.Constants.TAB;
 
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.model.GenotypeEnum;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.vcf.VcfRecord;
@@ -43,7 +44,9 @@ public class QSnpRecord {
 	}
 	public QSnpRecord(String chr, int position, String ref, String alt) {
 		int length = StringUtils.isNullOrEmpty(ref) ? 1 : ref.length();
-		vcf = VcfUtils.createVcfRecord(new ChrPosition(chr, position, (position + length) -1), null, ref, alt);
+		//vcf = VcfUtils.createVcfRecord(new ChrPosition(chr, position, (position + length) -1), null, ref, alt);
+		vcf = new VcfRecord.Builder(chr, position, ref).allele(alt).build();
+		
 	}
 	
 	public ChrPosition getChrPos() {

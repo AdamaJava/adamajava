@@ -5,14 +5,15 @@ package org.qcmg.coverage;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
+
+import org.qcmg.common.util.Constants;
 
 public class Feature {
 
-	private String name;
-	private int priority;
-	private ArrayList<Integer> preList;
-	private ArrayList<Integer> postList;
+	private final String name;
+	private final int priority;
+	private final ArrayList<Integer> preList;
+	private final ArrayList<Integer> postList;
 	private int beforeBases = 0;
 	private int afterBases = 0;
 
@@ -27,11 +28,11 @@ public class Feature {
 		for (int i=1; i<values.length; i++) {
 			String current = values[i];
 			if (current.startsWith("+")) {
-				postList.add(new Integer(current.substring(1, current.length())));
+				postList.add(Integer.valueOf(current.substring(1, current.length())));
 			} else if (current.startsWith("-")) {
-				preList.add(new Integer(current.substring(1, current.length())));				
+				preList.add(Integer.valueOf(current.substring(1, current.length())));				
 			} else {
-				Integer currentInt = new Integer(current);
+				Integer currentInt = Integer.valueOf(current);
 				preList.add(currentInt);
 				postList.add(currentInt);
 			}			
@@ -50,64 +51,39 @@ public class Feature {
 		return name;
 	}
 
-	public void setName(String name) {
-		this.name = name;
-	}
-
 	public int getPriority() {
 		return priority;
-	}
-
-	public void setPriority(int priority) {
-		this.priority = priority;
 	}
 
 	public ArrayList<Integer> getPreList() {
 		return preList;
 	}
 
-	public void setPreList(ArrayList<Integer> preList) {
-		this.preList = preList;
-	}
-
 	public ArrayList<Integer> getPostList() {
 		return postList;
-	}
-
-	public void setPostList(ArrayList<Integer> postList) {
-		this.postList = postList;
 	}
 
 	public int getBeforeBases() {
 		return beforeBases;
 	}
 
-	public void setBeforeBases(int beforeBases) {
-		this.beforeBases = beforeBases;
-	}
-
 	public int getAfterBases() {
 		return afterBases;
-	}
-
-	public void setAfterBases(int afterBases) {
-		this.afterBases = afterBases;
 	}
 
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		Collections.reverse(preList);
 		for (Integer i: preList) {
-			sb.append(i + ",");
+			sb.append(i).append(Constants.COMMA);
 		}
 		//put it back the correct order
-		Collections.reverse(preList);
-		sb.append(name + ",");
+//		Collections.reverse(preList);
+		sb.append(name);
 		for (Integer i: postList) {
-			sb.append(i + ",");
+			sb.append(Constants.COMMA).append(i);
 		}
-		String result = sb.toString();
-		return result.substring(0, result.length()-1);
+		return sb.toString();
 	}
 
 

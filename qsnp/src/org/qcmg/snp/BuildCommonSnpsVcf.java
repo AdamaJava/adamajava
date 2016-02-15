@@ -19,8 +19,12 @@ import java.util.Set;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.meta.QExec;
+import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrPositionComparator;
+import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.string.StringUtils;
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.LoadReferencedClasses;
 import org.qcmg.common.util.TabTokenizer;
@@ -140,7 +144,7 @@ public class BuildCommonSnpsVcf {
 				// only proceed if we have a SNP variant record
 				if ( ! StringUtils.doesStringContainSubString(dbSNPVcf.getInfo(), "VC=SNV", false)) continue;
 				
-				final ChrPosition cp = new ChrPosition(dbSNPVcf.getChromosome(), dbSNPVcf.getPosition());
+				final ChrPosition cp = ChrPointPosition.valueOf(dbSNPVcf.getChromosome(), dbSNPVcf.getPosition());
 				final VcfRecord commonSnpVcf = snpPositions.get(cp);
 				if (null == commonSnpVcf) continue;
 				
@@ -166,7 +170,7 @@ public class BuildCommonSnpsVcf {
 		logger.info("Writing VCF output");
 
 		final List<ChrPosition> orderedList = new ArrayList<ChrPosition>(snpPositions.keySet());
-		Collections.sort(orderedList);
+		Collections.sort(orderedList, new ChrPositionComparator());
 		
 		try (VCFFileWriter writer = new VCFFileWriter(new File(outputFileName));) {
 			final VcfHeader header = getHeaderForCommonSnps(searchString, searchDirectory, additionalSearchStrings, mapOfFilesAndIds);
@@ -222,13 +226,13 @@ public class BuildCommonSnpsVcf {
 				if (i++ == 0) continue;
 				
 				final String [] params = TabTokenizer.tokenize(rec.getData());
-				final ChrPosition cp = new ChrPosition(params[4], Integer.parseInt(params[5]));
+				final ChrPosition cp = ChrPointPosition.valueOf(params[4], Integer.parseInt(params[5]));
 				final String ref = params[10];
 				final String alt = getAltFromMutation(params, 13);		// can eventually change this to the last element in the file
 				
 				// check to see if this appears in the map already - if so, update patient (if not already there)
 				if (snpPositions.containsKey(cp)) {
-					final VcfRecord vcfRec = snpPositions.get(cp);
+					VcfRecord vcfRec = snpPositions.get(cp);
 					final String existingDonors = vcfRec.getInfo();
 					
 					final String existingRef = vcfRec.getRef();
@@ -240,14 +244,20 @@ public class BuildCommonSnpsVcf {
 						
 						// check to see if existing alt is set to "." - if so replace (assuming its not being replaced by a dot).
 						if (".".equals(vcfRec.getAlt())) {
-							vcfRec.setAlt("");	// delete
+							vcfRec = VcfUtils.resetAllel(vcfRec, "");
+							//vcfRec.setAlt("");	// delete
 						}
 						
+						StringBuilder sb = new StringBuilder();
 						for (final char c : alt.toCharArray()) {
 							if (vcfRec.getAlt().indexOf(c) == -1) {
-								vcfRec.setAlt(vcfRec.getAlt().trim().length() > 0 ? (vcfRec.getAlt() + "," + c) : ""+c);
+								if (vcfRec.getAlt().trim().length() > 0) {
+									sb.append(Constants.COMMA);
+								}
+								sb.append(c);
 							}
 						}
+						vcfRec =  VcfUtils.resetAllel(vcfRec, sb.toString());
 					}
 					
 	//				if ( ! existingDonors.contains(donor)) {
@@ -271,7 +281,7 @@ public class BuildCommonSnpsVcf {
 				if (i++ == 0) continue;
 				
 				final String [] params = TabTokenizer.tokenize(rec.getData(), 15);		// only need data from the first 15 columns
-				final ChrPosition cp = new ChrPosition(params[4], Integer.parseInt(params[5]), Integer.parseInt(params[6]));
+				final ChrPosition cp = new ChrRangePosition(params[4], Integer.parseInt(params[5]), Integer.parseInt(params[6]));
 				final String ref = params[10];
 				final String alt1 = params[11];
 				final String alt2 = params[12];
@@ -310,7 +320,8 @@ public class BuildCommonSnpsVcf {
 						} else {
 							// add whatever is missing
 							if (alt.length()  == 1) {
-								vcfRec.setAlt(existingAlt.length() > 0 ? existingAlt + "," + alt : alt);
+//								vcfRec.setAlt(existingAlt.length() > 0 ? existingAlt + "," + alt : alt);
+								vcfRec = VcfUtils.resetAllel(vcfRec, existingAlt.length() > 0 ? existingAlt + "," + alt : alt);
 							}
 						}
 					}

@@ -10,7 +10,9 @@ import java.util.Map;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.string.StringUtils;
+import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.util.TabTokenizer;
@@ -94,12 +96,12 @@ public class DbsnpMode extends AbstractMode{
 				int start =  dbSNPVcf.getPosition();
 				int end =  dbSNPVcf.getRef().length() +  dbSNPVcf.getPosition() -1;		
 				String ref = IndelUtils.getFullChromosome(dbSNPVcf.getChromosome());
-				List<VcfRecord> inputVcfs = positionRecordMap.get(new ChrPosition(ref, start, end ));	
+				List<VcfRecord> inputVcfs = positionRecordMap.get(new ChrRangePosition(ref, start, end ));	
 				//if not exists, move start position to RSPOS to see if we have a position there instead
 				if (null == inputVcfs){  
 					int rsposStart = Integer.parseInt(info.getField("RSPOS"));
 					if (start != rsposStart)  
-						inputVcfs = positionRecordMap.get(new ChrPosition(ref, rsposStart, end ));									 					 
+						inputVcfs = positionRecordMap.get(new ChrRangePosition(ref, rsposStart, end ));									 					 
 				}
 								
 				if (null == inputVcfs) continue;
@@ -154,30 +156,37 @@ public class DbsnpMode extends AbstractMode{
 //					continue;
 							
 				//each dbSNP check twice, since indel alleles followed by one reference base, eg. chr1 100 . TT T ...
-				final int end =  dbSNPVcf.getRef().length() +  dbSNPVcf.getPosition() -1; 
-				int start = dbSNPVcf.getPosition();
+				ChrPosition dbSnpCP = dbSNPVcf.getChrPosition();
+//				int start = dbSNPVcf.getPosition();
+//				final int end =  dbSNPVcf.getRef().length() +  start -1; 
 				final String chr = IndelUtils.getFullChromosome(dbSNPVcf.getChromosome());
-				ChrPosition chrPos = new ChrPosition(chr, start, end );
-				List<VcfRecord> inputVcfs = positionRecordMap.get(chrPos);
+				if ( ! chr.equals(dbSnpCP.getChromosome())) {
+					dbSnpCP = ChrPositionUtils.cloneWithNewChromosomeName(dbSnpCP, chr);
+				}
+//				ChrPosition chrPos = new ChrRangePosition(chr, start, end );
+				List<VcfRecord> inputVcfs = positionRecordMap.get(dbSnpCP);
 				if (null != inputVcfs && inputVcfs.size() != 0){
-					for(VcfRecord re: inputVcfs)
-						if(annotateDBsnp(re, dbSNPVcf ))
+					for(VcfRecord re: inputVcfs) {
+						if(annotateDBsnp(re, dbSNPVcf )) {
 							dbSnpNo ++;						
+						}
+					}
 				}
 				
 				//check RSPOS for MNV only
-				String VC = dbSNPVcf.getInfoRecord().getField("VC");
-				if ( ! StringUtils.doesStringContainSubString(dbSNPVcf.getInfo(), "VC=MNV", false))
+//				String VC = dbSNPVcf.getInfoRecord().getField("VC");
+				if ( ! StringUtils.doesStringContainSubString(dbSNPVcf.getInfo(), "VC=MNV", false)) {
 					continue;
+				}
 				
 				//if RSPOS different to column 2
 				String rspos = dbSNPVcf.getInfoRecord().getField("RSPOS");
-				if( !StringUtils.isNullOrEmpty(rspos)){ 		
-					start = Integer.parseInt(rspos);
-					if(start == chrPos.getPosition() || start > chrPos.getEndPosition()) continue; 
+				if( ! StringUtils.isNullOrEmpty(rspos)) {
+					int start = Integer.parseInt(rspos);
+					if(start == dbSnpCP.getStartPosition() || start > dbSnpCP.getEndPosition()) continue; 
 					
-					chrPos = new ChrPosition(chr, start, end );	
-					inputVcfs = positionRecordMap.get(chrPos);
+					dbSnpCP = new ChrRangePosition(chr, start, dbSnpCP.getEndPosition() );	
+					inputVcfs = positionRecordMap.get(dbSnpCP);
 					if (null != inputVcfs && inputVcfs.size() != 0) {
 						for(VcfRecord re: inputVcfs)
 							if(annotateDBsnp(re, dbSNPVcf ))
@@ -198,10 +207,10 @@ public class DbsnpMode extends AbstractMode{
 	 boolean annotateDBsnp(VcfRecord  inputVcf, VcfRecord dbSNPVcf ){
 		
 		 ChrPosition chrPos = inputVcf.getChrPosition();
-		 final String dbRef = dbSNPVcf.getRef().substring(chrPos.getPosition() - dbSNPVcf.getPosition());	
+		 final String dbRef = dbSNPVcf.getRef().substring(chrPos.getStartPosition() - dbSNPVcf.getPosition());	
 		 if(! inputVcf.getRef().equalsIgnoreCase(dbRef) ){
 			 logger.warn(String.format( "dbSNP reference base (%s) are different to vcf Record (%s) for variant at position: %s~%s", 
-					 dbRef, inputVcf.getRef(), chrPos.getPosition(), chrPos.getEndPosition()));			 
+					 dbRef, inputVcf.getRef(), chrPos.getStartPosition(), chrPos.getEndPosition()));			 
 				return false; 			 
 		 }
 		 		 
@@ -209,7 +218,7 @@ public class DbsnpMode extends AbstractMode{
 		String[] db_alts = dbSNPVcf.getAlt().contains(Constants.COMMA_STRING) ? 
 				TabTokenizer.tokenize(dbSNPVcf.getAlt(), Constants.COMMA) : new String[] {dbSNPVcf.getAlt()}; 				
 		for(int i = 0; i < db_alts.length; i ++){
-			int ll = chrPos.getPosition() - dbSNPVcf.getPosition();
+			int ll = chrPos.getStartPosition() - dbSNPVcf.getPosition();
 			if(db_alts[i].length() > ll )
 				db_alts[i] = db_alts[i].substring(ll);			
 		}		

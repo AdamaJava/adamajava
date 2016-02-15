@@ -1,0 +1,230 @@
+package au.edu.qimr.qannotate.modes;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Scanner;
+import java.util.stream.Stream;
+
+import junit.framework.Assert;
+
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.qcmg.common.commandline.Executor;
+import org.qcmg.common.util.Constants;
+import org.qcmg.common.util.IndelUtils;
+import org.qcmg.common.util.IndelUtils.SVTYPE;
+import org.qcmg.common.vcf.VcfRecord;
+import org.qcmg.common.vcf.header.VcfHeaderUtils;
+import org.qcmg.vcf.VCFFileReader;
+
+import au.edu.qimr.qannotate.options.Vcf2mafOptions;
+import au.edu.qimr.qannotate.utils.SnpEffConsequence;
+import au.edu.qimr.qannotate.utils.SnpEffMafRecord;
+
+
+public class Vcf2mafIndelTest {
+	static String outputDir = new File(DbsnpModeTest.inputName).getAbsoluteFile().getParent() + "/output";
+	static String inputName = DbsnpModeTest.inputName;		
+		
+ 
+	
+	 @After
+	 public  void deleteIO(){
+
+//		 new File(inputName).delete();
+		 
+//		 File out = new File(outputDir);
+//		 if(! out.exists() || !out.isDirectory())
+//			 return;
+//		 
+//		String[] files = new File(outputDir).list(); 
+//		for(int i = 0; i < files.length; i++)
+//			new File(outputDir, files[i]).delete();
+//
+//		assertTrue(new File(outputDir).delete());	 		 
+	}
+	 
+ 
+	@Test
+	public void Frame_Shift_Test()  {
+			String[] str = {VcfHeaderUtils.STANDARD_FILE_VERSION + "=VCFv4.0",			
+					VcfHeaderUtils.STANDARD_DONOR_ID + "=MELA_0264",
+					VcfHeaderUtils.STANDARD_CONTROL_SAMPLE + "=CONTROL",
+					VcfHeaderUtils.STANDARD_TEST_SAMPLE + "=TEST",				
+					VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE,
+					"chr1\t7127\t.\tTC\tC\t.\tMR;MIUN\tSOMATIC;EFF=frameshift_variant(HIGH||ggccaa/|p.Gly105fs/c.313_317delGGCCA|112|AC004824.2|protein_coding|CODING|ENST00000602074|5|1|WARNING_TRANSCRIPT_NO_START_CODON);CONF=ZERO",
+					"chr2\t7127\t.\tT\tTCCC\t.\tMR;MIUN\tSOMATIC;EFF=frameshift_variant(HIGH||ggccaa/|p.Gly105fs/c.313_317delGGCCA|112|AC004824.2|protein_coding|CODING|ENST00000602074|5|1|WARNING_TRANSCRIPT_NO_START_CODON);CONF=ZERO"
+			};
+			
+	        try{
+	        	Vcf2mafTest.createVcf(str);                
+	        	final File input = new File( DbsnpModeTest.inputName);
+	        	final Vcf2maf v2m = new Vcf2maf(1,2, null, null);	
+	        	try(VCFFileReader reader = new VCFFileReader(input); ){
+			 		for (final VcfRecord vcf : reader){  		
+			 			SnpEffMafRecord maf  = v2m.converter(vcf);
+			 			//System.out.println(maf.getMafLine());
+			 			//INS
+			 			if( maf.getColumnValue(5).equals("1") ){
+			 				assertTrue(maf.getColumnValue(10).equals(SVTYPE.DEL.name()));
+			 				assertTrue(maf.getColumnValue(9).equals("Frame_Shift_DEL"));
+			 				assertTrue(maf.getColumnValue(6).equals("7128"));
+			 				assertTrue(maf.getColumnValue(7).equals("7128"));		 				
+			 				
+			 			}else{
+			 				assertTrue(maf.getColumnValue(10).equals(SVTYPE.INS.name()));
+			 				assertTrue(maf.getColumnValue(9).equals("Frame_Shift_INS"));
+			 				assertTrue(maf.getColumnValue(6).equals("7127"));
+			 				assertTrue(maf.getColumnValue(7).equals("7128"));
+			 			}
+			 		}	
+		        }	
+	        }catch(Exception e){
+	        	fail(e.getMessage()); 
+	        }
+	        
+	        new File(inputName).delete();
+		}
+	
+
+	@Test
+	public void indelTest() throws Exception{
+        String[] str = {VcfHeaderUtils.STANDARD_FILE_VERSION + "=VCFv4.0",			
+				VcfHeaderUtils.STANDARD_DONOR_ID + "=MELA_0264",
+				VcfHeaderUtils.STANDARD_CONTROL_SAMPLE + "=CONTROL_bam",
+				VcfHeaderUtils.STANDARD_TEST_SAMPLE + "=TEST_bam",				
+				VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tqControlSample\tqTestSample",				
+		        "chr1\t16864\t.\tGCA\tG\t154.73\tPASS\tAC=1;AF=0.500;AN=2;BaseQRankSum=-0.387;ClippingRankSum=-0.466;DP=12;FS=0.000;MLEAC=1;MLEAF=0.500;MQ=53.00;MQ0=0;MQRankSum=0.143;QD=12.89;ReadPosRankSum=-0.143;SOR=0.495;NIOC=0;SVTYPE=DEL;END=16866;CONF=HIGH;EFF=intergenic_region(MODIFIER||||||||||1)\t"
+		        + "GT:GD:AD:DP:GQ:PL:ACINDEL\t0/1:GCA/G:6,5:11:99:192,0,516:8,18,16,8[2,6],0,0,0\t.:GC/G:8,15:23:99:601,0,384:12,35,34,12[8,4],0,1,0",
+ 		        "chr2\t23114\t.\tT\tTAA\t129.73\tHOM7\tAC=1;AF=0.500;AN=2;BaseQRankSum=0.103;ClippingRankSum=-0.470;DP=11;FS=7.782;MLEAC=1;MLEAF=0.500;MQ=27.00;MQ0=0;MQRankSum=0.470;QD=11.79;ReadPosRankSum=-1.453;SOR=3.599;HOMTXT=ATAATAAAATaaAAAAAAAGAC;NIOC=0;SVTYPE=INS;END=23115;CONF=LOW;EFF=intergenic_region(MODIFIER||||||||||1)\t"
+ 		        + "GT:AD:DP:GQ:PL:ACINDEL:NNS\t0/1:5,5:10:99:167,0,163:8,22,21,9[6,3],0,0,0:0\t.:6,4:10:99:149,0,210:13,38,37,13[8,5],0,0,1:0" 
+ 		};
+		   
+
+        	Vcf2mafTest.createVcf(str);             
+        	Vcf2mafTest.createIO();
+        	
+			final String command = "--mode vcf2maf  --log " + outputDir + "/output.log  -i " + inputName + " --outdir " + outputDir;			
+			final Executor exec = new Executor(command, "au.edu.qimr.qannotate.Main");        	
+			assertEquals(0, exec.getErrCode());	
+						
+			 Path path = Paths.get(outputDir,"MELA_0264.CONTROL_bam.TEST_bam.maf" );
+			    //The stream hence file will also be closed here
+		    try(Stream<String> lines = Files.lines(path)){
+		        Optional<String> delline = lines.filter(s -> s.contains("DEL")).findFirst();
+		        if(!delline.isPresent())
+		        	Assert.fail("missing DEL variants");		        
+		        //split string to maf record		       
+				SnpEffMafRecord maf =  getMafRecord(delline.get());
+					           
+ 				//"chr1\t16864\t.\tGCA\tG
+	            assertTrue(maf.getColumnValue(5).equals("1") );
+ 				assertTrue(maf.getColumnValue(6).equals("16865")); //start 				
+ 				assertTrue(maf.getColumnValue(7).equals("16866"));
+ 				assertTrue(maf.getColumnValue(8).equals("+"));
+ 				assertTrue(maf.getColumnValue(10).equals(SVTYPE.DEL.name()));
+ 				assertTrue(maf.getColumnValue(11).equals("CA"));
+ 				
+ 				//FORMAT\tqControlSample\tqTestSample",
+ 				//"GT:GD:AD:DP:GQ:PL:ACINDEL\t0/1:GCA/G:6,5:11:99:192,0,516:8,18,16,8[2,6],0,0,0\t.:GC/G:8,15:23:99:601,0,384:12,35,34,12[8,4],0,1,0",
+ 				assertTrue(maf.getColumnValue(12).equals("C-")); //t_allel1
+ 				assertTrue(maf.getColumnValue(13).equals("--"));
+ 				assertTrue(maf.getColumnValue(18).equals("CA")); //n_allel1
+ 				assertTrue(maf.getColumnValue(19).equals("--"));
+ 				assertTrue(maf.getColumnValue(33).equals("TEST_bam")); 	//t_sample_id
+ 				assertTrue(maf.getColumnValue(34).equals("CONTROL_bam"));	//n_sample_id
+ 				
+ 				assertTrue(maf.getColumnValue(35).equals("PASS")); //QFlag
+ 				assertTrue(maf.getColumnValue(36).equals("8,18,16,8[2,6],0,0,0"));    //ND
+ 				assertTrue(maf.getColumnValue(37).equals("12,35,34,12[8,4],0,1,0"));
+ 				assertTrue(maf.getColumnValue(38).equals("HIGH")); 
+ 				assertTrue(maf.getColumnValue(39).equals("MODIFIER"));
+ 				assertTrue(maf.getColumnValue(40).equals("100")); //??
+ 				
+ 				assertTrue(maf.getColumnValue(41).equals("--:ND8:TD12"));
+ 				assertTrue(maf.getColumnValue(45).equals("35"));
+ 				assertTrue(maf.getColumnValue(46).equals("21"));	//informative - support - partial indel - nearbyindel
+ 				assertTrue(maf.getColumnValue(47).equals("12"));
+ 				assertTrue(maf.getColumnValue(48).equals("18"));
+ 				assertTrue(maf.getColumnValue(49).equals("8"));
+ 				assertTrue(maf.getColumnValue(50).equals("8"));		
+		    }	
+ 				
+ 				//INS
+// 		        "chr2\t23114\t.\tT\tTAA\t129.73\tHOM7\tAC=1;AF=0.500;AN=2;BaseQRankSum=0.103;ClippingRankSum=-0.470;DP=11;FS=7.782;MLEAC=1;MLEAF=0.500;MQ=27.00;MQ0=0;MQRankSum=0.470;QD=11.79;ReadPosRankSum=-1.453;SOR=3.599;HOMTXT=ATAATAAAATaaAAAAAAAGAC;NIOC=0;SVTYPE=INS;END=23115;CONF=LOW;EFF=intergenic_region(MODIFIER||||||||||1)\t"
+// 		        + "GT:AD:DP:GQ:PL:ACINDEL\t0/1:5,5:10:99:167,0,163:8,22,21,9[6,3],0,0,0\t.:6,4:10:99:149,0,210:13,38,37,13[8,5],0,0,1" 
+		    try(Stream<String> lines = Files.lines(path)){
+ 				Optional<String> insline = lines.filter(s -> s.contains("INS")).findFirst();
+		        if(!insline.isPresent())
+		        	Assert.fail("missing INS variants");		        
+		        SnpEffMafRecord maf =  getMafRecord(insline.get());
+		           
+ 				//"chr1\t16864\t.\tGCA\tG
+	            assertTrue(maf.getColumnValue(5).equals("2") );
+ 				assertTrue(maf.getColumnValue(6).equals("23114")); //start 				
+ 				assertTrue(maf.getColumnValue(7).equals("23115"));
+ 				assertTrue(maf.getColumnValue(8).equals("+"));
+ 				assertTrue(maf.getColumnValue(10).equals(SVTYPE.INS.name()));
+ 				assertTrue(maf.getColumnValue(11).equals("-"));
+ 				
+ 				//FORMAT\tqControlSample\tqTestSample",
+ 				//"GT:AD:DP:GQ:PL:ACINDEL:NNS\t0/1:5,5:10:99:167,0,163:8,22,21,9[6,3],0,0,0:0\t.:6,4:10:99:149,0,210:13,38,37,13[8,5],0,0,1:0" 
+ 				assertTrue(maf.getColumnValue(12).equals("null")); //t_allel1
+ 				assertTrue(maf.getColumnValue(13).equals("null"));
+ 				assertTrue(maf.getColumnValue(18).equals("-")); //n_allel1
+ 				assertTrue(maf.getColumnValue(19).equals("AA"));
+ 				assertTrue(maf.getColumnValue(33).equals("TEST_bam")); 	//t_sample_id
+ 				assertTrue(maf.getColumnValue(34).equals("CONTROL_bam"));	//n_sample_id
+ 				
+ 				assertTrue(maf.getColumnValue(35).equals("HOM7")); //QFlag
+ 				assertTrue(maf.getColumnValue(36).equals("8,22,21,9[6,3],0,0,0"));    //ND
+ 				assertTrue(maf.getColumnValue(37).equals("13,38,37,13[8,5],0,0,1"));
+ 				assertTrue(maf.getColumnValue(38).equals("LOW")); 
+ 				assertTrue(maf.getColumnValue(39).equals("MODIFIER"));
+ 				assertTrue(maf.getColumnValue(40).equals("100")); //??
+ 				
+ 				assertTrue(maf.getColumnValue(41).equals("AA:ND8:TD13"));
+ 				assertTrue(maf.getColumnValue(45).equals("38"));
+ 				assertTrue(maf.getColumnValue(46).equals("24"));	//informative - support - partial indel - nearbyindel
+ 				assertTrue(maf.getColumnValue(47).equals("13"));
+ 				
+ 				assertTrue(maf.getColumnValue(48).equals("22"));
+ 				assertTrue(maf.getColumnValue(49).equals("12"));
+ 				assertTrue(maf.getColumnValue(50).equals("9"));				        	
+		    }
+		    
+		    Vcf2mafTest.deleteIO();
+	}
+	
+	public static SnpEffMafRecord getMafRecord(String line) throws Exception{
+        //split string to maf record
+		SnpEffMafRecord maf = new SnpEffMafRecord();
+		maf.setDefaultValue();
+  //      System.out.println(line);
+        String[] eles = line.split("\\t");
+        for(int i = 0; i < eles.length; i ++)
+        	maf.setColumnValue(i+1, eles[i]);
+
+		return maf; 
+		
+	}
+ 
+
+}

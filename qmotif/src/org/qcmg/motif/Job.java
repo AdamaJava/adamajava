@@ -6,6 +6,7 @@ package org.qcmg.motif;
 import java.util.Map;
 
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.motif.util.RegionCounter;
 
 interface Job {

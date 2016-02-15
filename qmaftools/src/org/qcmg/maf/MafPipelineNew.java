@@ -35,8 +35,10 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.maf.MAFRecord;
 import org.qcmg.common.meta.KeyValue;
 import org.qcmg.common.meta.QExec;
+import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosBait;
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.model.MafConfidence;
 import org.qcmg.common.model.MafType;
 import org.qcmg.common.model.TorrentVerificationStatus;
@@ -371,7 +373,7 @@ public abstract class MafPipelineNew {
 		for (MAFRecord maf : mafs) {
 			if (maf.getConfidence().isHighOrLowConfidence()) {		// only retrieve cpg info for high/low confidence mafs
 				String chr = MafUtils.getFullChromosome(maf);
-				ChrPosition cp = new ChrPosition(chr, maf.getStartPosition(), maf.getEndPosition());
+				ChrPosition cp = new ChrRangePosition(chr, maf.getStartPosition(), maf.getEndPosition());
 				if (null == maf.getCpg())
 					cpgs.put(cp, null);
 				
@@ -407,7 +409,7 @@ public abstract class MafPipelineNew {
 						logger.info("starting with chr: " + chr);
 						 relevantList = gffs.get(chr);
 						 if (null != relevantList) {
-							 currentChr = relevantList.get(0).getChr();
+							 currentChr = relevantList.get(0).getChromosome();
 						 } else {
 							 currentChr = chr;
 						 }
@@ -422,7 +424,7 @@ public abstract class MafPipelineNew {
 						// getting next chr
 						relevantList = gffs.get(chr);
 						if (null != relevantList) {
-							 currentChr = relevantList.get(0).getChr();
+							 currentChr = relevantList.get(0).getChromosome();
 							 logger.info("moving onto chr: " + chr);
 						} else {
 							 currentChr = chr;
@@ -434,15 +436,15 @@ public abstract class MafPipelineNew {
 //					Map<ChrPosition, String> relevantMap = gffs.get(chr);
 					if (null != relevantList) {
 						
-						ChrPosition cp = new ChrPosition(chr, rec.getStart(), rec.getEnd());
+						ChrPosition cp = new ChrRangePosition(chr, rec.getStart(), rec.getEnd());
 						Iterator<ChrPosBait> iter = relevantList.iterator();
 						
 						while (iter.hasNext()) {
 							ChrPosBait cpb = iter.next();
-							if (cpb.getPosition() < cp.getPosition()) {		// less than start pos
+							if (cpb.getStartPosition() < cp.getStartPosition()) {		// less than start pos
 								iter.remove();
 								gffKeepers.add(cpb);
-							} else if (cpb.getPosition() <= cp.getEndPosition()) {		// greater than end pos
+							} else if (cpb.getStartPosition() <= cp.getEndPosition()) {		// greater than end pos
 								// update
 								cpb.updateBait(rec.getType());
 								updatedCount++;
@@ -469,14 +471,14 @@ public abstract class MafPipelineNew {
 			IndexedFastaSequenceFile fasta = new IndexedFastaSequenceFile(new File(fastaFile));
 			for (Entry<ChrPosition, String> entry : cpgs.entrySet()) {
 				ChrPosition cp = entry.getKey();
-				ReferenceSequence seq = fasta.getSubsequenceAt(cp.getChromosome(), (cp.getPosition() - noOfBases), (cp.getEndPosition() +  noOfBases));
+				ReferenceSequence seq = fasta.getSubsequenceAt(cp.getChromosome(), (cp.getStartPosition() - noOfBases), (cp.getEndPosition() +  noOfBases));
 				entry.setValue(new String(seq.getBases()));
 			}
 		}
 		
 		Map<ChrPosition, String> updatedGffs = new HashMap<>();
 		for (ChrPosBait cpb : gffKeepers) {
-			updatedGffs.put(new ChrPosition(cpb.getChr(), cpb.getPosition()), cpb.getBait());
+			updatedGffs.put(ChrPointPosition.valueOf(cpb.getChromosome(), cpb.getStartPosition()), cpb.getBait());
 		}
 		logger.info("no of entries in updatedGffs: " + updatedGffs.size());
 		
@@ -487,7 +489,7 @@ public abstract class MafPipelineNew {
 			if (maf.getConfidence().isHighOrLowConfidence()) {
 				
 				String chr = MafUtils.getFullChromosome(maf);
-				ChrPosition cp = new ChrPosition(chr, maf.getStartPosition(), maf.getEndPosition());
+				ChrPosition cp = new ChrRangePosition(chr, maf.getStartPosition(), maf.getEndPosition());
 				
 				String cpg =cpgs.get(cp);
 				if (null != cpg) {
@@ -549,7 +551,7 @@ public abstract class MafPipelineNew {
 						char mutation = mutationCDS.substring(gtIndex + 1).charAt(0);
 						if ( ! forwardStrand) mutation = BaseUtils.getComplement(mutation);
 								
-						ChrPosition cpm = new ChrPosition(chr, Integer.parseInt(position));
+						ChrPosition cpm = ChrPointPosition.valueOf(chr, Integer.parseInt(position));
 //						ChrPositionMutation cpm = new ChrPositionMutation(chr, Integer.parseInt(position), mutation.charAt(0));
 						
 						String mutationId = params[12];
@@ -581,7 +583,7 @@ public abstract class MafPipelineNew {
 				// strip "chr" from chromosome
 				String chr = maf.getChromosome();
 				if (chr.contains("chr")) chr = chr.substring(2);
-				ChrPosition cpm = new ChrPosition(chr, maf.getStartPosition());
+				ChrPosition cpm = ChrPointPosition.valueOf(chr, maf.getStartPosition());
 //				ChrPositionMutation cpm = new ChrPositionMutation(chr, maf.getStartPosition() , MafUtils.getVariant(maf));
 				// look up cosmic map
 				if (cosmicData.containsKey(cpm)) {

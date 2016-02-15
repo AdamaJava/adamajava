@@ -7,6 +7,7 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.string.StringUtils;
+import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.util.TabTokenizer;
@@ -56,6 +57,13 @@ public class GermlineMode extends AbstractMode{
 	void addAnnotation(String dbGermlineFile) throws Exception {
 //		header.addFilterLine(VcfHeaderUtils.FILTER_GERMLINE, VcfHeaderUtils.DESCRITPION_FILTER_GERMLINE );
  		
+ 		//init remove all exsiting GERM annotation
+ 		for (List<VcfRecord> vcfs : positionRecordMap.values()) {
+ 			for(VcfRecord vcf : vcfs ) {
+ 				vcf.getInfoRecord().removeField(VcfHeaderUtils.INFO_GERMLINE);
+ 			}
+ 		}
+ 		
 		File germFile = new File(dbGermlineFile);
   		try(VCFFileReader reader = new VCFFileReader(germFile)){
   			
@@ -77,26 +85,28 @@ public class GermlineMode extends AbstractMode{
 				}
 			}
 	 	    
-			//init remove all exsiting GERM annotation
-	 	   for (List<VcfRecord> vcfs : positionRecordMap.values()) {
-	 		   for(VcfRecord vcf : vcfs )
-	 			   vcf.getInfoRecord().removeField(VcfHeaderUtils.INFO_GERMLINE);
-	 	   }
-	 	    
 	 	   int updatedRecordCount = 0;
 	 	   for (final VcfRecord dbGermlineVcf : reader) {
+	 		   ChrPosition germCP = dbGermlineVcf.getChrPosition();
 	 		   String chr = IndelUtils.getFullChromosome(dbGermlineVcf.getChromosome());
-	 		   int end =  dbGermlineVcf.getPosition() + dbGermlineVcf.getRef().length() - 1;
+	 		   if ( ! chr.equals(germCP.getChromosome())) {
+	 			  germCP = ChrPositionUtils.cloneWithNewChromosomeName(germCP, chr);
+	 		   }
+//	 		   int end =  dbGermlineVcf.getPosition() + dbGermlineVcf.getRef().length() - 1;
 	 		   
-	 		   List<VcfRecord> inputVcfs = positionRecordMap.get(new ChrPosition(chr, dbGermlineVcf.getPosition(), end ));
-	 		   if (null == inputVcfs || inputVcfs.size() == 0)
+	 		   List<VcfRecord> inputVcfs = positionRecordMap.get(germCP);
+	 		   if (null == inputVcfs || inputVcfs.size() == 0) {
 	 			  continue; 
+	 		   }
 	 		  
-	 		  for(VcfRecord vcf : inputVcfs )
-	 			  if(annotateGermlineSnp(vcf,  dbGermlineVcf, total ))
+	 		   for(VcfRecord vcf : inputVcfs ) {
+	 			  if(annotateGermlineSnp(vcf,  dbGermlineVcf, total )) {
 	 				  updatedRecordCount ++ ;
-			 }
-		 	 thisLogger.info("Number of SOMATIC records updated with GERM annotation: " + updatedRecordCount);
+	 			  }
+	 		   }
+	 	   }
+	 	   
+	 	   thisLogger.info("Number of SOMATIC records updated with GERM annotation: " + updatedRecordCount);
 	 	}
   		
 	 }	 

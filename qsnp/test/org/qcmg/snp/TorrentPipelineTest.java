@@ -5,6 +5,7 @@ import java.io.IOException;
 import junit.framework.Assert;
 
 import org.junit.Test;
+import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.GenotypeEnum;
 import org.qcmg.common.util.SnpUtils;
@@ -18,7 +19,7 @@ public class TorrentPipelineTest {
 		String chr = "chr1";
 		int position = 240519264;
 			
-		ChrPosition cp = new ChrPosition(chr, position);
+		ChrPosition cp = ChrPointPosition.valueOf(chr, position);
 		//qcmg_ssm_20120502_torrent_v1    XXXXX   APGI_2340_SNP_20        1       1       240519264       240519264       1       -888    -888    A       A/A     A/T     A>T     -999    -999    34      2       2       -888    -999    -999    --
 		//A:19[13.54],27[25.87],T:0[0],2[25.02],C:0[0],1[13],G:0[0],1[28] A:13[12.94],15[20.01],C:0[0],2[30.07],G:0[0],2[27.54]
 		QSnpRecord snp = new QSnpRecord(chr, position, "A");

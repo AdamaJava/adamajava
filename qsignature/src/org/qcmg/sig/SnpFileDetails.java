@@ -13,7 +13,6 @@ import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfRecord;
-import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.tab.TabbedFileReader;
 import org.qcmg.tab.TabbedRecord;
 
@@ -54,16 +53,12 @@ public class SnpFileDetails {
 				
 				String chr = params[0];
 				int position = Integer.parseInt(params[1]);
-				VcfRecord vcf = new VcfRecord(new String[] {chr, position+"", null, ref, null});
 						
 						//VcfUtils.createVcfRecord(chr, position, ref);
-				vcf.setId(params[2]);
-				if (params.length > 5) {
-					vcf.setAlt(params[5].replaceAll("/", ","));
-				}
+				String alt = params.length > 5 ? params[5].replaceAll("/", ",") : null;
 
 				// Lynns new files are 1-based - no need to do any processing on th position
-				snps.add(vcf);
+				snps.add(new VcfRecord(new String[] {chr, position+"", params[2], ref, alt}));
 			}
 			
 			// sort - this step is now done after retrieving the sequences from the bam header

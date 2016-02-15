@@ -29,6 +29,7 @@ import org.qcmg.common.meta.QDccMeta;
 import org.qcmg.common.meta.QExec;
 import org.qcmg.common.model.Accumulator;
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrPositionComparator;
 import org.qcmg.common.model.GenotypeEnum;
 import org.qcmg.common.model.PileupElementLite;
 import org.qcmg.common.model.ReferenceNameComparator;
@@ -57,6 +58,7 @@ import org.qcmg.vcf.VCFFileReader;
 public final class VcfPipeline extends Pipeline {
 	
 	private final static ReferenceNameComparator COMPARATOR = new ReferenceNameComparator();
+	private final static Comparator<ChrPosition> CHR_COMPARATOR = new ChrPositionComparator();
 	
 	private final static QLogger logger = QLoggerFactory.getLogger(VcfPipeline.class);
 
@@ -187,7 +189,7 @@ public final class VcfPipeline extends Pipeline {
 		// populate the accumulators collections - used by the compoundSnps()
 		ChrPosition previousCP = null;
 		List<ChrPosition> orderedCPs = new ArrayList<ChrPosition>(positionRecordMap.keySet());
-		Collections.sort(orderedCPs);
+		Collections.sort(orderedCPs, CHR_COMPARATOR);
 //		logger.info("attempting to identify cs from " + orderedCPs.size() + " entries in orderedCPs");
 		
 		for (ChrPosition cp : orderedCPs) {
@@ -505,25 +507,11 @@ public final class VcfPipeline extends Pipeline {
 					}
 				};
 				
-				Collections.sort(snps, new Comparator<ChrPosition>() {
-					@Override
-					public int compare(ChrPosition o1, ChrPosition o2) {
-						final int diff = chrComparator.compare(o1.getChromosome(), o2.getChromosome());
-						if (diff != 0) return diff;
-						return o1.getPosition() - o2.getPosition();
-					}
-				});
+				Collections.sort(snps,CHR_COMPARATOR);
 				
 			} else {
 				chrComparator = COMPARATOR;
-				Collections.sort(snps, new Comparator<ChrPosition>() {
-					@Override
-					public int compare(ChrPosition o1, ChrPosition o2) {
-						final int diff = COMPARATOR.compare(o1.getChromosome(), o2.getChromosome());
-						if (diff != 0) return diff;
-						return o1.getPosition() - o2.getPosition();
-					}
-				});
+				Collections.sort(snps,CHR_COMPARATOR);
 			}
 			
 			arraySize = snps.size();
@@ -579,11 +567,11 @@ public final class VcfPipeline extends Pipeline {
 			if (null == thisCPf) return false;
 			if (rec.getReferenceName().equals(thisCPf.getChromosome())) {
 				
-				if (rec.getAlignmentEnd() < thisCPf.getPosition()) {
+				if (rec.getAlignmentEnd() < thisCPf.getStartPosition()) {
 					return false;
 				}
 				
-				if (rec.getAlignmentStart() <= thisCPf.getPosition()) {
+				if (rec.getAlignmentStart() <= thisCPf.getStartPosition()) {
 					return true;
 				}
 				
@@ -611,7 +599,7 @@ public final class VcfPipeline extends Pipeline {
 		}
 		private void updateResults(ChrPosition cp, SAMRecord sam, int readId) {
 			// get read index
-			final int indexInRead = SAMUtils.getIndexInReadFromPosition(sam, cp.getPosition());
+			final int indexInRead = SAMUtils.getIndexInReadFromPosition(sam, cp.getStartPosition());
 			
 			if (indexInRead > -1 && indexInRead < sam.getReadLength()) {
 				
@@ -620,12 +608,12 @@ public final class VcfPipeline extends Pipeline {
 				
 				Accumulator acc = pileupMap.get(cp);
 				if (null == acc) {
-					acc = new Accumulator(cp.getPosition());
+					acc = new Accumulator(cp.getStartPosition());
 					final Accumulator oldAcc = pileupMap.putIfAbsent(cp, acc);
 					if (null != oldAcc) acc = oldAcc;
 				}
 				acc.addBase(sam.getReadBases()[indexInRead], baseQuality, ! sam.getReadNegativeStrandFlag(), 
-						sam.getAlignmentStart(), cp.getPosition(), sam.getAlignmentEnd(), readId);
+						sam.getAlignmentStart(), cp.getStartPosition(), sam.getAlignmentEnd(), readId);
 			}
 		}
 		

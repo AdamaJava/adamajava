@@ -14,6 +14,7 @@ import junit.framework.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
 
 public class IGVBatchFileGeneratorTest {
@@ -44,8 +45,8 @@ public class IGVBatchFileGeneratorTest {
 		} catch (IllegalArgumentException iae) {}
 		
 		List<ChrPosition> positions = new ArrayList<ChrPosition>();
-		positions.add(new ChrPosition("chr1", 1));
-		positions.add(new ChrPosition("chr2", 1234567890));
+		positions.add(ChrPointPosition.valueOf("chr1", 1));
+		positions.add(ChrPointPosition.valueOf("chr2", 1234567890));
 		
 		IGVBatchFileGenerator.generate(positions, tmpOutput.getAbsolutePath());
 		

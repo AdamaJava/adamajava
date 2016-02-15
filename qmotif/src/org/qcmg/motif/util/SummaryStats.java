@@ -6,6 +6,8 @@ package org.qcmg.motif.util;
 import java.util.Map;
 
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrRangePosition;
+import org.qcmg.common.model.ChrPositionName;
 
 public class SummaryStats {
 	

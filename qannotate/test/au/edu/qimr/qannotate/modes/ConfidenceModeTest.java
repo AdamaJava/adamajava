@@ -18,6 +18,7 @@ import org.qcmg.common.util.SnpUtils;
 import org.qcmg.common.vcf.VcfFormatFieldRecord;
 import org.qcmg.common.vcf.VcfInfoFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
+import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 
@@ -77,24 +78,24 @@ public class ConfidenceModeTest {
 		  * Compound snps first
 		  */
 		 VcfFormatFieldRecord format = new VcfFormatFieldRecord("ACCS","GA,1,2,GT,1,0,TG,43,51,GG,0,1,TA,0,2");
-		 assertEquals(101, ConfidenceMode.getAltFrequency(format, null));
-		 assertEquals(3, ConfidenceMode.getAltFrequency(format, "GA"));
-		 assertEquals(1, ConfidenceMode.getAltFrequency(format, "GT"));
-		 assertEquals(94, ConfidenceMode.getAltFrequency(format, "TG"));
-		 assertEquals(1, ConfidenceMode.getAltFrequency(format, "GG"));
-		 assertEquals(2, ConfidenceMode.getAltFrequency(format, "TA"));
-		 assertEquals(0, ConfidenceMode.getAltFrequency(format, "AB"));
+		 assertEquals(101, VcfUtils.getAltFrequency(format, null));
+		 assertEquals(3, VcfUtils.getAltFrequency(format, "GA"));
+		 assertEquals(1, VcfUtils.getAltFrequency(format, "GT"));
+		 assertEquals(94, VcfUtils.getAltFrequency(format, "TG"));
+		 assertEquals(1, VcfUtils.getAltFrequency(format, "GG"));
+		 assertEquals(2, VcfUtils.getAltFrequency(format, "TA"));
+		 assertEquals(0, VcfUtils.getAltFrequency(format, "AB"));
 		 
 		 /*
 		  * regular snps
 		  */
 		 format = new VcfFormatFieldRecord("AC","C1[35],2[39],T2[40],1[7]");
-		 assertEquals(6, ConfidenceMode.getAltFrequency(format, null));
-		 assertEquals(3, ConfidenceMode.getAltFrequency(format, "C"));
-		 assertEquals(3, ConfidenceMode.getAltFrequency(format, "T"));
-		 assertEquals(0, ConfidenceMode.getAltFrequency(format, "A"));
-		 assertEquals(0, ConfidenceMode.getAltFrequency(format, ""));
-		 assertEquals(0, ConfidenceMode.getAltFrequency(format, "XYZ"));
+		 assertEquals(6, VcfUtils.getAltFrequency(format, null));
+		 assertEquals(3, VcfUtils.getAltFrequency(format, "C"));
+		 assertEquals(3, VcfUtils.getAltFrequency(format, "T"));
+		 assertEquals(0, VcfUtils.getAltFrequency(format, "A"));
+		 assertEquals(0, VcfUtils.getAltFrequency(format, ""));
+		 assertEquals(0, VcfUtils.getAltFrequency(format, "XYZ"));
 		 
 		 
 	 }

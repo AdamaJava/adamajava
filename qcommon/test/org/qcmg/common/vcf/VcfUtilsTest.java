@@ -12,7 +12,8 @@ import java.util.TreeSet;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrPointPosition;
+import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.model.GenotypeEnum;
 import org.qcmg.common.model.PileupElement;
 
@@ -257,9 +258,10 @@ public class VcfUtilsTest {
 	
 	@Test
 	public void mergeVcfs() {
-		ChrPosition cp = new ChrPosition("1",100);
-		VcfRecord vcf1 = VcfUtils.createVcfRecord(cp, ".", "A", "AT");
-		VcfRecord vcf2 = VcfUtils.createVcfRecord(cp, ".", "AT", "A");
+		ChrPointPosition cp = ChrPointPosition.valueOf("1",100);
+		
+		VcfRecord vcf1 = new VcfRecord.Builder(cp, "A").allele("AT").build(); //  VcfUtils.createVcfRecord(cp, ".", "A", "AT");
+		VcfRecord vcf2 = new VcfRecord.Builder(cp, "AT").allele("A").build();//VcfUtils.createVcfRecord(cp, ".", "AT", "A");
 		Set<VcfRecord> records = new HashSet<>();
 		records.add(vcf1);
 		records.add(vcf2);
@@ -274,11 +276,17 @@ public class VcfUtilsTest {
 		// chr10	89725293	.	CTT	C
 		// chr10	89725293	.	C	CT
 		// chr10	89725293	.	CTTT	C
-		ChrPosition cp = new ChrPosition("10",89725293);
-		VcfRecord vcf2 = VcfUtils.createVcfRecord(cp, ".", "CT", "C");
-		VcfRecord vcf1 = VcfUtils.createVcfRecord(cp, ".", "CTT", "C");
-		VcfRecord vcf3 = VcfUtils.createVcfRecord(cp, ".", "C", "CT");
-		VcfRecord vcf4 = VcfUtils.createVcfRecord(cp, ".", "CTTT", "C");
+		ChrPointPosition cp = ChrPointPosition.valueOf("10",89725293);
+//		VcfRecord vcf2 = VcfUtils.createVcfRecord(cp, ".", "CT", "C");
+//		VcfRecord vcf1 = VcfUtils.createVcfRecord(cp, ".", "CTT", "C");
+//		VcfRecord vcf3 = VcfUtils.createVcfRecord(cp, ".", "C", "CT");
+//		VcfRecord vcf4 = VcfUtils.createVcfRecord(cp, ".", "CTTT", "C");
+				
+		VcfRecord vcf2 = new VcfRecord.Builder(cp, "CT").allele("C").build();				
+		VcfRecord vcf1 = new VcfRecord.Builder(cp, "CTT").allele("C").build();
+		VcfRecord vcf3 = new VcfRecord.Builder(cp, "C").allele("CT").build();
+		VcfRecord vcf4 = new VcfRecord.Builder(cp, "CTTT").allele("C").build();
+
 		Set<VcfRecord> records = new HashSet<>();
 		records.add(vcf1);
 		records.add(vcf2);
@@ -333,39 +341,39 @@ public class VcfUtilsTest {
 		//		VcfUtils.createVcfRecord("1", 1, "A");
 		assertEquals(false, VcfUtils.isRecordAMnp(rec));
 		
-		rec.setAlt("A");
+		rec = VcfUtils.resetAllel(rec, "A");
 		assertEquals(false, VcfUtils.isRecordAMnp(rec));
 		
-		 rec = new VcfRecord( new String[] {"1","1",".","AC", null});
+		rec = new VcfRecord( new String[] {"1","1",".","AC", null});
 				 //VcfUtils.createVcfRecord("1", 1, "AC");
-		rec.setAlt("A");
+		rec = VcfUtils.resetAllel(rec,"A");
 		assertEquals(false, VcfUtils.isRecordAMnp(rec));
 		
-		rec.setAlt("ACG");
+		rec = VcfUtils.resetAllel(rec,"ACG");
 		assertEquals(false, VcfUtils.isRecordAMnp(rec));
 		
 		rec = new VcfRecord( new String[] {"1","1",".","G", null});
 				//VcfUtils.createVcfRecord("1", 1, "G");
-		rec.setAlt("G");
+		rec = VcfUtils.resetAllel(rec,"G");
 		assertEquals(false, VcfUtils.isRecordAMnp(rec));		// ref == alt
 		rec = new VcfRecord( new String[] {"1","1",".","CG", null});
 				//VcfUtils.createVcfRecord("1", 1, "CG");
-		rec.setAlt("GA");
+		rec = VcfUtils.resetAllel(rec,"GA");
 		assertEquals(true, VcfUtils.isRecordAMnp(rec));
 		
 		rec = new VcfRecord( new String[] {"1","1",".","CGTTT", null});
 				//VcfUtils.createVcfRecord("1", 1, "CGTTT");
-		rec.setAlt("GANNN");
+		rec = VcfUtils.resetAllel(rec,"GANNN");
 		assertEquals(true, VcfUtils.isRecordAMnp(rec));
 	}
 	@Test
 	public void isRecordAMnpCheckIndels() {
 		
-		final VcfRecord rec = new VcfRecord( new String[] {"1","1",".","ACCACCACC",null});
+		VcfRecord rec = new VcfRecord( new String[] {"1","1",".","ACCACCACC",null});
 				//VcfUtils.createVcfRecord("1", 1, "ACCACCACC");
 		assertEquals(false, VcfUtils.isRecordAMnp(rec));
 		
-		rec.setAlt("A,AACCACC");
+		rec = VcfUtils.resetAllel(rec,"A,AACCACC");
 		assertEquals(false, VcfUtils.isRecordAMnp(rec));
 		
 	}

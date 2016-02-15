@@ -3,6 +3,12 @@
  */
 package org.qcmg.snp;
 
+import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SAMRecordIterator;
+import htsjdk.samtools.SAMSequenceRecord;
+import htsjdk.samtools.SamReader;
+
 import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
@@ -16,18 +22,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
 
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMRecordIterator;
-import htsjdk.samtools.SAMSequenceRecord;
-
 import org.ini4j.Ini;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.meta.QDccMeta;
 import org.qcmg.common.meta.QExec;
 import org.qcmg.common.model.Accumulator;
+import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.GenotypeEnum;
 import org.qcmg.common.model.PileupElementLite;
@@ -135,7 +136,7 @@ public final class MuTectPipeline extends Pipeline {
 				QSnpRecord rec = entry.getValue();
 				List<SAMRecord> sams = new ArrayList<>(); 
 				
-				SAMRecordIterator iter = reader.queryOverlapping(cp.getChromosome(), cp.getPosition(), cp.getEndPosition());
+				SAMRecordIterator iter = reader.queryOverlapping(cp.getChromosome(), cp.getStartPosition(), cp.getEndPosition());
 				while (iter.hasNext()) {
 					SAMRecord sam = iter.next();
 					if (SAMUtils.isSAMRecordValidForVariantCalling(sam)) sams.add(sam);
@@ -143,7 +144,7 @@ public final class MuTectPipeline extends Pipeline {
 				iter.close();
 				
 				// now get the novel starts
-				Accumulator acc = SAMUtils.getAccumulatorFromReads(sams, cp.getPosition());
+				Accumulator acc = SAMUtils.getAccumulatorFromReads(sams, cp.getStartPosition());
 				
 				String altString = rec.getAlt();
 				if (altString.length() > 1) {
@@ -301,7 +302,7 @@ public final class MuTectPipeline extends Pipeline {
 			for (TabbedRecord rec : reader) {
 				if (noOfRecords++ > 0) {		// header line in mutect output doesn't have '#'
 					String [] params = TabTokenizer.tokenize(rec.getData());
-					map.put(new ChrPosition(params[0], Integer.parseInt(params[1])), params);
+					map.put(ChrPointPosition.valueOf(params[0], Integer.parseInt(params[1])), params);
 				}
 			}
 			
@@ -389,7 +390,7 @@ public final class MuTectPipeline extends Pipeline {
 					public int compare(ChrPosition o1, ChrPosition o2) {
 						int diff = chrComparator.compare(o1.getChromosome(), o2.getChromosome());
 						if (diff != 0) return diff;
-						return o1.getPosition() - o2.getPosition();
+						return o1.getStartPosition() - o2.getStartPosition();
 					}
 				});
 				
@@ -400,7 +401,7 @@ public final class MuTectPipeline extends Pipeline {
 					public int compare(ChrPosition o1, ChrPosition o2) {
 						int diff = COMPARATOR.compare(o1.getChromosome(), o2.getChromosome());
 						if (diff != 0) return diff;
-						return o1.getPosition() - o2.getPosition();
+						return o1.getStartPosition() - o2.getStartPosition();
 					}
 				});
 			}
@@ -447,10 +448,10 @@ public final class MuTectPipeline extends Pipeline {
 			if (null == thisCPf) return false;
 			if (rec.getReferenceName().equals(thisCPf.getChromosome())) {
 				
-				if (rec.getAlignmentEnd() < thisCPf.getPosition())
+				if (rec.getAlignmentEnd() < thisCPf.getStartPosition())
 					return false;
 				
-				if (rec.getAlignmentStart() <= thisCPf.getPosition()) {
+				if (rec.getAlignmentStart() <= thisCPf.getStartPosition()) {
 					return true;
 				}
 				
@@ -478,7 +479,7 @@ public final class MuTectPipeline extends Pipeline {
 		}
 		private void updateResults(ChrPosition cp, SAMRecord sam, int readId) {
 			// get read index
-			final int indexInRead = SAMUtils.getIndexInReadFromPosition(sam, cp.getPosition());
+			final int indexInRead = SAMUtils.getIndexInReadFromPosition(sam, cp.getStartPosition());
 			
 			if (indexInRead > -1 && indexInRead < sam.getReadLength()) {
 				
@@ -487,12 +488,12 @@ public final class MuTectPipeline extends Pipeline {
 				
 				Accumulator acc = pileupMap.get(cp);
 				if (null == acc) {
-					acc = new Accumulator(cp.getPosition());
+					acc = new Accumulator(cp.getStartPosition());
 					Accumulator oldAcc = pileupMap.putIfAbsent(cp, acc);
 					if (null != oldAcc) acc = oldAcc;
 				}
 				acc.addBase(sam.getReadBases()[indexInRead], baseQuality, ! sam.getReadNegativeStrandFlag(), 
-						sam.getAlignmentStart(), cp.getPosition(), sam.getAlignmentEnd(), readId);
+						sam.getAlignmentStart(), cp.getStartPosition(), sam.getAlignmentEnd(), readId);
 			}
 		}
 		

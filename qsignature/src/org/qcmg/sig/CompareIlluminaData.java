@@ -11,6 +11,7 @@ import java.util.Map.Entry;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.illumina.IlluminaFileReader;
@@ -180,13 +181,13 @@ public class CompareIlluminaData {
 						
 						if ("XY".equals(tempRec.getChr())) {
 							// add both X and Y to map
-							illuminaMap.put(new ChrPosition("chrX", tempRec.getStart()), tempRec);
-							illuminaMap.put(new ChrPosition("chrY", tempRec.getStart()), tempRec);
+							illuminaMap.put(ChrPointPosition.valueOf("chrX", tempRec.getStart()), tempRec);
+							illuminaMap.put(ChrPointPosition.valueOf("chrY", tempRec.getStart()), tempRec);
 							continue;
 						}
 						
 						// Illumina record chromosome does not contain "chr", whereas the positionRecordMap does - add
-						illuminaMap.put(new ChrPosition("chr" + tempRec.getChr(), tempRec.getStart()), tempRec);
+						illuminaMap.put(ChrPointPosition.valueOf("chr" + tempRec.getChr(), tempRec.getStart()), tempRec);
 					}
 //				}
 			}
