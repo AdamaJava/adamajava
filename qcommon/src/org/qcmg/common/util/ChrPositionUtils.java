@@ -82,7 +82,7 @@ public class ChrPositionUtils {
 		}
 	}
 	
-	public static boolean arePositionsWithinDelta(ChrRangePosition a, ChrRangePosition b, int delta) {
+	public static boolean arePositionsWithinDelta(ChrPosition a, ChrPosition b, int delta) {
 		// check chromosome first
 		if ( ! a.getChromosome().equals(b.getChromosome())) return false;
 		
@@ -207,12 +207,12 @@ public class ChrPositionUtils {
 	 * @param positions
 	 * @return
 	 */
-	public static Map<ChrPointPosition, ChrPointPosition>  getChrPointPositionsFromStrings(String[] positions) {
+	public static Map<ChrPosition, ChrPosition>  getChrPointPositionsFromStrings(String[] positions) {
 		
 		if (null == positions || positions.length == 0) 
 			throw new IllegalArgumentException("null or empty string array passed to getChrPositionsFromStrings");
 		
-		Map<ChrPointPosition, ChrPointPosition> chrPositions = new HashMap<>();
+		Map<ChrPosition, ChrPosition> chrPositions = new HashMap<>();
 		for (String s : positions) {
 			ChrPointPosition cpp = getChrPointPositionFromString(s);
 			chrPositions.put(cpp, cpp);
