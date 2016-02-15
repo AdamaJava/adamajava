@@ -9,9 +9,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IntSummaryStatistics;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -50,6 +52,7 @@ public class SignatureCompareRelatedSimple {
 	
 	
 	private float cutoff = 0.2f;
+	private int minimumCoverage = 10;
 	
 	private String outputXml;
 	private String [] paths;
@@ -63,7 +66,7 @@ public class SignatureCompareRelatedSimple {
 	private final Map<File, int[]> fileIdsAndCounts = new HashMap<>();
 	private final List<Comparison> allComparisons = new ArrayList<>();
 	
-	private final Map<File, Map<ChrPosition, double[]>> cache = new HashMap<>();
+	private final Map<File, Map<ChrPosition, double[]>> cache = new HashMap<>(2 * 1024 * 1024);
 	
 	List<String> suspiciousResults = new ArrayList<String>();
 	
@@ -74,7 +77,7 @@ public class SignatureCompareRelatedSimple {
 		excludes = SignatureUtil.getEntriesFromExcludesFile(excludeVcfsFile);
 		
 		// get qsig vcf files for this donor
-		logger.info("Retrieving qsig vcf files from: " + paths);
+		logger.info("Retrieving qsig vcf files from: " + Arrays.stream(paths).collect(Collectors.joining(",")));
 		Set<File> uniqueFiles = new HashSet<>();
 		for (String path : paths) {
 			uniqueFiles.addAll(FileUtils.findFilesEndingWithFilterNIO(path, SignatureUtil.QSIG_VCF));
@@ -96,7 +99,7 @@ public class SignatureCompareRelatedSimple {
 			return 0;
 		}
 		
-		logger.info("Should have " + files.size()  + " + " + (files.size() -1) + "... comparisons");
+		logger.info("Should have " + (files.size() -1) + " + " + (files.size() -2) + " ...  comparisons");
 		
 		Collections.sort(files, FileUtils.FILE_COMPARATOR);
 		
@@ -162,7 +165,7 @@ public class SignatureCompareRelatedSimple {
 		// if not - load
 		Map<ChrPosition, double[]> result = cache.get(f);
 		if (result == null) {
-			result = SignatureUtil.loadSignatureRatios(f);
+			result = SignatureUtil.loadSignatureRatios(f, minimumCoverage);
 			
 			if (result.size() < 1000) {
 				logger.warn("low coverage (" + result.size() + ") for file " + f.getAbsolutePath());
@@ -170,6 +173,13 @@ public class SignatureCompareRelatedSimple {
 			
 			cache.put(f, result);
 			fileIdsAndCounts.get(f)[1] = result.size();
+			/*
+			 * average coverage
+			 */
+			IntSummaryStatistics iss = result.values().stream()
+				.mapToInt(array -> (int) array[4])
+				.summaryStatistics();
+			fileIdsAndCounts.get(f)[2] = (int) iss.getAverage();
 		}
 		return result;
 	}
@@ -198,6 +208,7 @@ public class SignatureCompareRelatedSimple {
 			fileE.setAttribute("id", value[0] + "");
 			fileE.setAttribute("name", f.getAbsolutePath());
 			fileE.setAttribute("coverage", value[1] + "");
+			fileE.setAttribute("average_coverage_at_positions", value[2] + "");
 			filesE.appendChild(fileE);
 		}
 		
@@ -214,6 +225,8 @@ public class SignatureCompareRelatedSimple {
 			compE.setAttribute("score", comp.getScore() + "");
 			compE.setAttribute("overlap", comp.getOverlapCoverage() + "");
 			compE.setAttribute("calcs", comp.getNumberOfCalculations() + "");
+			compE.setAttribute("f1AveCovAtOverlaps", comp.getMainAveCovAtOverlaps() + "");
+			compE.setAttribute("f2AveCovAtOverlaps", comp.getTestAveCovAtOverlaps() + "");
 			compsE.appendChild(compE);
 		}
 		
@@ -229,7 +242,7 @@ public class SignatureCompareRelatedSimple {
 	private void addFilesToMap(List<File> orderedFiles) {
 		int id = 1;
 		for (File f : orderedFiles) {
-			fileIdsAndCounts.put(f, new int[]{id++, -1});
+			fileIdsAndCounts.put(f, new int[]{id++, -1, -1});
 		}
 	}
 
@@ -292,6 +305,11 @@ public class SignatureCompareRelatedSimple {
 			
 			if (options.hasCutoff())
 				cutoff = options.getCutoff();
+			
+			if (options.hasMinCoverage()) {
+				minimumCoverage = options.getMinCoverage();
+			}
+			logger.tool("Setting minumim coverage to: " + minimumCoverage);
 			
 			if (options.hasExcludeVcfsFileOption())
 				excludeVcfsFile = options.getExcludeVcfsFile();

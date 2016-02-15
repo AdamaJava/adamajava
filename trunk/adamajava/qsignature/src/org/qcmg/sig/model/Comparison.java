@@ -14,6 +14,8 @@ public class Comparison implements Comparable<Comparison> {
 	
 	final int mainCoverage;
 	final int testCoverage;
+	final long mainCovAtOverlaps;
+	final long testCovAtOverlaps;
 	final int overlapCoverage;
 	final double totalScore;
 	final double score;
@@ -50,9 +52,19 @@ public class Comparison implements Comparable<Comparison> {
 	public double getScore() {
 		return score;
 	}
+	
+	public int getMainAveCovAtOverlaps() {
+		System.out.println("mainCovAtOverlaps: " + mainCovAtOverlaps);
+		System.out.println("overlapCoverage: " + overlapCoverage);
+		return overlapCoverage > 0 ? (int)(mainCovAtOverlaps / overlapCoverage) : -1; 
+	}
+	public int getTestAveCovAtOverlaps() {
+		System.out.println("testCovAtOverlaps: " + testCovAtOverlaps);
+		System.out.println("overlapCoverage: " + overlapCoverage);
+		return overlapCoverage > 0 ? (int)(testCovAtOverlaps / overlapCoverage) : -1; 
+	}
 
-	public Comparison(File file1, int size, File file2, int size2,
-			double finalTally, int count, int noOfCalculations) {
+	public Comparison(File file1, int size, File file2, int size2, double finalTally, int count, int noOfCalculations, long l, long m) {
 		
 		if (null == file1 || null == file2) 
 			throw new IllegalArgumentException("null files passed to Comparison constructor");
@@ -71,6 +83,8 @@ public class Comparison implements Comparable<Comparison> {
 		this.overlapCoverage = count;
 		this.numberOfCalculations = noOfCalculations;
 		this.score = totalScore / overlapCoverage;
+		mainCovAtOverlaps = l;
+		testCovAtOverlaps = m;
 	}
 	
 	public String toSummaryString() {
