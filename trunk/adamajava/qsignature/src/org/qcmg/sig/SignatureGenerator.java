@@ -3,6 +3,8 @@
  */
 package org.qcmg.sig;
 
+import gnu.trove.set.TIntSet;
+import gnu.trove.set.hash.TIntHashSet;
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMReadGroupRecord;
 import htsjdk.samtools.SAMRecord;
@@ -305,8 +307,10 @@ public class SignatureGenerator {
 			} else {
 				final StringBuilder allBases = new StringBuilder();
 				final StringBuilder novelStartBases = new StringBuilder();
-				final Set<Integer> forwardStrand = new HashSet<Integer>();
-				final Set<Integer> reverseStrand = new HashSet<Integer>();
+				TIntSet forwardStrand = new TIntHashSet();
+				TIntSet reverseStrand = new TIntHashSet();
+//				final Set<Integer> forwardStrand = new HashSet<Integer>();
+//				final Set<Integer> reverseStrand = new HashSet<Integer>();
 				
 				for (final BaseStrandPosition bsp : bsps) {
 					allBases.append(bsp.getBase());
@@ -503,19 +507,17 @@ public class SignatureGenerator {
 			final String currentChr = vcf.getChromosome();
 			while (arrayPosition < arraySize) {
 				vcf = snps.get(arrayPosition++);
-				if ( ! currentChr.equals(vcf.getChromosome()))
+				if ( !  currentChr.equals(vcf.getChromosome()))
 					break;
 			}
 			
 		} else {
 			vcf = snps.get(arrayPosition++);
 			if (null != rec) {
-				final int startPosition = rec.getAlignmentStart();
-				final String currentChr = rec.getReferenceName();
 				while (arrayPosition < arraySize) {
-					if ( ! currentChr.equals(vcf.getChromosome()))
+					if ( ! rec.getReferenceName().equals(vcf.getChromosome()))
 						break;
-					if (startPosition <= vcf.getPosition())
+					if (rec.getAlignmentStart() <= vcf.getPosition())
 						break;
 					vcf = snps.get(arrayPosition++);
 				}
@@ -527,7 +529,7 @@ public class SignatureGenerator {
 		//logger.info("vcf: " + thisVcf.getChromosome() + ":" + thisVcf.getPosition() + ", rec: " + rec.getReferenceName() + ":" + rec.getAlignmentStart());
 		if (null == thisVcf) return false;
 		
-		final String samChr = rec.getReferenceName().startsWith(Constants.CHR) ? rec.getReferenceName() : Constants.CHR + rec.getReferenceName();
+		String samChr = rec.getReferenceName().startsWith(Constants.CHR) ? rec.getReferenceName() : Constants.CHR + rec.getReferenceName();
 		if (samChr.equals(thisVcf.getChromosome())) {
 			
 			if (rec.getAlignmentEnd() < thisVcf.getPosition())
@@ -638,14 +640,11 @@ public class SignatureGenerator {
 					throw new IllegalArgumentException("snp file must have at least 2 tab seperated columns, chr and position");
 				}
 				
-				final String chr = params[0];
-				final int position = Integer.parseInt(params[1]);
-						//VcfUtils.createVcfRecord(chr, position, ref);
 				String id = params.length > 2 ? params[2] : null; 
 				String alt = params.length > 5 ? params[5].replaceAll("/", ",") : null;
 
 				// Lynns new files are 1-based - no need to do any processing on th position
-				snps.add(new VcfRecord(new String[] {chr, position+"", id, ref, alt}));
+				snps.add( new VcfRecord.Builder(params[0], Integer.parseInt(params[1]), ref).allele(alt).id(id).build());
 			}
 			
 			arraySize = snps.size();
