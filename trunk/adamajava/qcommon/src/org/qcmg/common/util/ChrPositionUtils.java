@@ -214,7 +214,7 @@ public class ChrPositionUtils {
 		
 		Map<ChrPosition, ChrPosition> chrPositions = new HashMap<>();
 		for (String s : positions) {
-			ChrPointPosition cpp = getChrPointPositionFromString(s);
+			ChrPosition cpp = getChrPointPositionFromString(s);
 			chrPositions.put(cpp, cpp);
 		}
 		return chrPositions;
