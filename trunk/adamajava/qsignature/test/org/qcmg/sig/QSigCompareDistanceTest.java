@@ -3,9 +3,7 @@ package org.qcmg.sig;
 import static org.junit.Assert.assertEquals;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.junit.Assert;
@@ -27,22 +25,22 @@ public class QSigCompareDistanceTest {
 			Assert.fail("Should have thrown an IAE");
 		} catch (IllegalArgumentException iae) {}
 		try {
-			QSigCompareDistance.compareRatios(new HashMap<ChrPosition, double[]>(), new HashMap<ChrPosition, double[]>(), null, null);
+			QSigCompareDistance.compareRatios(new HashMap<ChrPointPosition, double[]>(), new HashMap<ChrPointPosition, double[]>(), null, null);
 			Assert.fail("Should have thrown an IAE");
 		} catch (IllegalArgumentException iae) {}
 		
-		Comparison c = QSigCompareDistance.compareRatios(new HashMap<ChrPosition, double[]>(), new HashMap<ChrPosition, double[]>(), F1, F2);
+		Comparison c = QSigCompareDistance.compareRatios(new HashMap<ChrPointPosition, double[]>(), new HashMap<ChrPointPosition, double[]>(), F1, F2);
 		testEmptyComparison(c, 0 , 0);
 		
-		ChrPosition cp1 = ChrPointPosition.valueOf("1",1);
-		ChrPosition cp2 = ChrPointPosition.valueOf("2",2);
+		ChrPointPosition cp1 = ChrPointPosition.valueOf("1",1);
+		ChrPointPosition cp2 = ChrPointPosition.valueOf("2",2);
 		
-		double[] ratios1 = new double[] {0.0, 10.0, 15.0, 0.0};
-		double[] ratios2 = new double[] {8.0, 0.0, 0.0, 0.0};
+		double[] ratios1 = new double[] {0.0, 10.0, 15.0, 0.0, 0.0};
+		double[] ratios2 = new double[] {8.0, 0.0, 0.0, 0.0, 0.0};
 		
-		Map<ChrPosition, double[]> map1 = new HashMap<>();
+		Map<ChrPointPosition, double[]> map1 = new HashMap<>();
 		map1.put(cp1, ratios1);
-		Map<ChrPosition, double[]> map2 = new HashMap<>();
+		Map<ChrPointPosition, double[]> map2 = new HashMap<>();
 		map2.put(cp2, ratios2);
 		
 		c = QSigCompareDistance.compareRatios(map1, map2, F1, F2);
@@ -51,16 +49,16 @@ public class QSigCompareDistanceTest {
 	
 	@Test
 	public void testCompareRatiosSameFile() {
-		ChrPosition cp1 = ChrPointPosition.valueOf("1",1);
-		ChrPosition cp2 = ChrPointPosition.valueOf("2",2);
+		ChrPointPosition cp1 = ChrPointPosition.valueOf("1",1);
+		ChrPointPosition cp2 = ChrPointPosition.valueOf("2",2);
 		
-		double[] ratios1 = new double[] {0.0, 10.0, 15.0, 0.0};
-		double[] ratios2 = new double[] {0.0, 0.0, 15.0, 0.0};
+		double[] ratios1 = new double[] {0.0, 10.0, 15.0, 0.0, 0.0};
+		double[] ratios2 = new double[] {0.0, 0.0, 15.0, 0.0, 0.0};
 		
-		Map<ChrPosition, double[]> map1 = new HashMap<>();
+		Map<ChrPointPosition, double[]> map1 = new HashMap<>();
 		map1.put(cp1, ratios1);
 		map1.put(cp2, ratios2);
-		Map<ChrPosition, double[]> map2 = new HashMap<>();
+		Map<ChrPointPosition, double[]> map2 = new HashMap<>();
 		map2.put(cp1, ratios1);
 		map2.put(cp2, ratios2);
 		
@@ -72,18 +70,18 @@ public class QSigCompareDistanceTest {
 	
 	@Test
 	public void testCompareRatios2() {
-		ChrPosition cp1 = ChrPointPosition.valueOf("1",1);
-		ChrPosition cp2 = ChrPointPosition.valueOf("2",2);
-		ChrPosition cp3 = ChrPointPosition.valueOf("3",3);
-		ChrPosition cp4 = ChrPointPosition.valueOf("4",4);
+		ChrPointPosition cp1 =  ChrPointPosition.valueOf("1",1);
+		ChrPointPosition cp2 =  ChrPointPosition.valueOf("2",2);
+		ChrPointPosition cp3 =  ChrPointPosition.valueOf("3",3);
+		ChrPointPosition cp4 =  ChrPointPosition.valueOf("4",4);
 		
-		double[] ratios1 = new double[] {0.0, 10.0, 15.0, 0.0};
-		double[] ratios2 = new double[] {0.0, 20.0, 0.0, 0.0};
+		double[] ratios1 = new double[] {0.0, 10.0, 15.0, 0.0, 0.0};
+		double[] ratios2 = new double[] {0.0, 20.0, 0.0, 0.0, 0.0};
 		
-		Map<ChrPosition, double[]> map1 = new HashMap<>();
+		Map<ChrPointPosition, double[]> map1 = new HashMap<>();
 		map1.put(cp1, ratios1);
 		map1.put(cp2, ratios1);
-		Map<ChrPosition, double[]> map2 = new HashMap<>();
+		Map<ChrPointPosition, double[]> map2 = new HashMap<>();
 		map2.put(cp1, ratios1);
 		map2.put(cp2, ratios1);
 		
@@ -114,7 +112,7 @@ public class QSigCompareDistanceTest {
 		assertEquals(F2, c.getTest());
 		
 		// now add in a positionsOfInterest collection
-		List<ChrPosition> positionsOfInterest = new ArrayList<>();
+		Map<ChrPointPosition, ChrPointPosition> positionsOfInterest = new HashMap<>();
 		
 		c = QSigCompareDistance.compareRatios(map1, map2, F1, F2, positionsOfInterest);
 		// as before
@@ -128,25 +126,25 @@ public class QSigCompareDistanceTest {
 		assertEquals(F2, c.getTest());
 		
 		// add in positions of interest
-		positionsOfInterest.add(cp1);
+		positionsOfInterest.put(cp1, cp1);
 		c = QSigCompareDistance.compareRatios(map1, map2, F1, F2, positionsOfInterest);
 		assertEquals(0.0, c.getTotalScore(), 0.0001);
 		assertEquals(1, c.getOverlapCoverage());
 		
 		// add in positions of interest
-		positionsOfInterest.add(cp2);
+		positionsOfInterest.put(cp2, cp2);
 		c = QSigCompareDistance.compareRatios(map1, map2, F1, F2, positionsOfInterest);
 		assertEquals(0.0, c.getTotalScore(), 0.0001);
 		assertEquals(2, c.getOverlapCoverage());
 		
 		// add in positions of interest
-		positionsOfInterest.add(cp3);
+		positionsOfInterest.put(cp3, cp3);
 		c = QSigCompareDistance.compareRatios(map1, map2, F1, F2, positionsOfInterest);
 		assertEquals(18.0277, c.getTotalScore(), 0.0001);
 		assertEquals(3, c.getOverlapCoverage());
 		
 		// add in positions of interest
-		positionsOfInterest.add(cp4);
+		positionsOfInterest.put(cp4, cp4);
 		c = QSigCompareDistance.compareRatios(map1, map2, F1, F2, positionsOfInterest);
 		assertEquals(36.0555, c.getTotalScore(), 0.0001);
 		assertEquals(4, c.getOverlapCoverage());
