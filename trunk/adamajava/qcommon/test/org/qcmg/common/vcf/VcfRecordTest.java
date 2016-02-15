@@ -4,7 +4,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import org.junit.Assert;
 import org.junit.Test;
+import org.qcmg.common.model.ChrPointPosition;
+import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.TabTokenizer;
 
@@ -25,13 +29,53 @@ public class VcfRecordTest {
 		
 		re.setInfo("NNS=6");
 		assertTrue(re.getInfo().equals("NNS=6"));
+		
+		
+		
+		//debug
+		ChrPosition cp = re.getChrPosition();
+		if(cp.isPointPosition())
+			System.out.println("isPointPosition(): " + cp.toIGVString());
+		else
+			System.out.println("! isPointPosition(): " + cp.toIGVString());
+		
+//		ChrPointPosition cpp =  (ChrPointPosition) re.getChrPosition();
+		
+		VcfRecord re1 = new VcfRecord.Builder(cp , "A").build();
+		System.out.println(re1.toString());
+		cp = re1.getChrPosition();
+		if(cp.isPointPosition())
+			System.out.println("isPointPosition(): " + cp.toIGVString());
+		else
+			System.out.println("! isPointPosition(): " + cp.toIGVString());
+	
+	}
+	
+	
+	@Test
+	public void constructorTest(){
+
+		String ref = "TG";
+		String alt = "CA";
+		String[] parms = {"chrY","2675826",".",ref,alt,"PASS"};
+		VcfRecord re = new VcfRecord(parms);
+		VcfRecord re1 = new VcfRecord.Builder("chrY",2675826,ref).allele(alt).filter("PASS").build();		
+		assertTrue(re.equals(re1));
+		
+		
+		//only compare CHROM POS REF ALT
+		String[] parms1 = {"chrY","2675826",".",ref, alt,".","COVN12;MIUN","SOMATIC;NNS=4;END=2675826","ACCS","TG,5,37,CA,0,2","AA,1,1,CA,4,1,CT,3,1,TA,11,76,TG,2,2,TG,0,1"};
+		re = new VcfRecord(parms1);
+		assertTrue(re.equals(re1));
+		
+		
 	}
 	
 	@Test
 	public void doesToStringWork(){
 		String[] parms = {"chrY","2675826",".","TG","CA"};
 		VcfRecord re = new VcfRecord(parms);
-		
+	 
 		// expecting end to be inserted by toString, and to be equal to start + 1 (compound snp)
 		String reToString = re.toString();
 		assertEquals(true, reToString.endsWith(Constants.NEW_LINE));

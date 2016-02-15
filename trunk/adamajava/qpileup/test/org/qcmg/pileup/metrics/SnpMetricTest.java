@@ -20,7 +20,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.pileup.PileupConstants;
 import org.qcmg.pileup.metrics.record.ResultRecord;
 import org.qcmg.pileup.metrics.record.SnpRecord;
@@ -86,11 +86,11 @@ public class SnpMetricTest {
 
 	@Test
 	public void testTabbedRecordFallsInCompareRecord() {
-		TreeMap<ChrPosition, TabbedRecord> map = new TreeMap<ChrPosition, TabbedRecord>();
-		map.put(new ChrPosition(CHR1, 11, 13), new TabbedRecord());
-		assertTrue(metric.tabbedRecordFallsInCompareRecord(new ChrPosition(CHR1, 10, 12), map.firstEntry()));
-		assertTrue(metric.tabbedRecordFallsInCompareRecord(new ChrPosition(CHR1, 10, 14), map.firstEntry()));
-		assertFalse(metric.tabbedRecordFallsInCompareRecord(new ChrPosition(CHR1, 10, 10), map.firstEntry()));
+		TreeMap<ChrRangePosition, TabbedRecord> map = new TreeMap<ChrRangePosition, TabbedRecord>();
+		map.put(new ChrRangePosition(CHR1, 11, 13), new TabbedRecord());
+		assertTrue(metric.tabbedRecordFallsInCompareRecord(new ChrRangePosition(CHR1, 10, 12), map.firstEntry()));
+		assertTrue(metric.tabbedRecordFallsInCompareRecord(new ChrRangePosition(CHR1, 10, 14), map.firstEntry()));
+		assertFalse(metric.tabbedRecordFallsInCompareRecord(new ChrRangePosition(CHR1, 10, 10), map.firstEntry()));
 	}
 	
 	@Test

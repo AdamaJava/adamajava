@@ -164,7 +164,8 @@ public final class Coverage {
 		// if there are no tabs in the string, the per-feature flag was not set
 		final String[] params = TabTokenizer.tokenize(feature);
 		
-		final VcfRecord vcf = VcfUtils.createVcfRecord(params[0], Integer.parseInt(params[3]), null);
+		final VcfRecord vcf = new VcfRecord.Builder(params[0], Integer.parseInt(params[3])).build();
+				//VcfUtils.createVcfRecord(params[0], Integer.parseInt(params[3]), null);
 		
 		// info field will contain coverage details
 		int zeroCov = 0, nonZeroCov = 0, totalCov = 0;

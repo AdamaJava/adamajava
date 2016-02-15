@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.qcmg.common.commandline.BlockingExecutor;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
-import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.pileup.PileupConstants;
 import org.qcmg.pileup.hdf.PileupHDF;
 import org.qcmg.pileup.hdf.PositionDS;
@@ -655,21 +655,21 @@ public class SummaryMetric {
 	}
 
 	private String writeCombinedSummaryGFF(String gffName, String regularGFF) throws IOException {				
-		Map<String, Map<ChrPosition, String>> mismap = getSummaryMap(gffName);
-		Map<String, Map<ChrPosition, String>> regular = getSummaryMap(regularGFF);
+		Map<String, Map<ChrRangePosition, String>> mismap = getSummaryMap(gffName);
+		Map<String, Map<ChrRangePosition, String>> regular = getSummaryMap(regularGFF);
 		
 		//merge the records into the mismap map
-		for (Entry<String, Map<ChrPosition, String>> entry: regular.entrySet()) {			
+		for (Entry<String, Map<ChrRangePosition, String>> entry: regular.entrySet()) {			
 			if (mismap.containsKey(entry.getKey())) {
 				
-				for (Entry<ChrPosition, String> chrEntry: entry.getValue().entrySet()) {
-					ChrPosition chrPos = chrEntry.getKey();
+				for (Entry<ChrRangePosition, String> chrEntry: entry.getValue().entrySet()) {
+					ChrRangePosition chrPos = chrEntry.getKey();
 					boolean overlap = false;
-					for (Entry<ChrPosition, String> compareEntry : mismap.get(entry.getKey()).entrySet()) {
-						ChrPosition comparePos = compareEntry.getKey();
-						if (comparePos.getEndPosition() < chrPos.getPosition()) {
+					for (Entry<ChrRangePosition, String> compareEntry : mismap.get(entry.getKey()).entrySet()) {
+						ChrRangePosition comparePos = compareEntry.getKey();
+						if (comparePos.getEndPosition() < chrPos.getStartPosition()) {
 							continue;
-						} else if (comparePos.getPosition() > chrPos.getEndPosition()) {
+						} else if (comparePos.getStartPosition() > chrPos.getEndPosition()) {
 							break;
 						} else {
 							if (chrPositionsOverlap(chrPos, comparePos)) {								
@@ -690,8 +690,8 @@ public class SummaryMetric {
 		BufferedWriter writer = new BufferedWriter(new FileWriter(new File(mergeGFFName)));
 		writer.write("##gff-version 3" + PileupConstants.NEWLINE);
 		writer.write("#track name="+trackName+"_merged_mismap graphType=bar" + PileupConstants.NEWLINE);
-		for (Entry<String, Map<ChrPosition, String>> entry: mismap.entrySet()) {
-			for (Entry<ChrPosition, String> currEntry: entry.getValue().entrySet()) {
+		for (Entry<String, Map<ChrRangePosition, String>> entry: mismap.entrySet()) {
+			for (Entry<ChrRangePosition, String> currEntry: entry.getValue().entrySet()) {
 				writer.write(currEntry.getValue()+ "\n");
 			}
 		}
@@ -699,16 +699,16 @@ public class SummaryMetric {
 		return mergeGFFName;
 	}
 
-	private boolean chrPositionsOverlap(ChrPosition chrPos,	ChrPosition comparePos) {
-		if ((chrPos.getPosition() >= comparePos.getPosition() && chrPos.getPosition() <= comparePos.getEndPosition()) ||
-				(chrPos.getEndPosition() >= comparePos.getPosition() && chrPos.getEndPosition() <= comparePos.getEndPosition())) {
+	private boolean chrPositionsOverlap(ChrRangePosition chrPos,	ChrRangePosition comparePos) {
+		if ((chrPos.getStartPosition() >= comparePos.getStartPosition() && chrPos.getStartPosition() <= comparePos.getEndPosition()) ||
+				(chrPos.getEndPosition() >= comparePos.getStartPosition() && chrPos.getEndPosition() <= comparePos.getEndPosition())) {
 			return true;
 		}
 		return false;	
 	}
 
-	private Map<String, Map<ChrPosition, String>> getSummaryMap(String gffName) throws IOException {
-		Map<String, Map<ChrPosition, String>> map = new HashMap<String, Map<ChrPosition, String>>();
+	private Map<String, Map<ChrRangePosition, String>> getSummaryMap(String gffName) throws IOException {
+		Map<String, Map<ChrRangePosition, String>> map = new HashMap<String, Map<ChrRangePosition, String>>();
 		BufferedReader reader = new BufferedReader(new FileReader(new File(gffName)));
 		
 		String line;
@@ -717,10 +717,10 @@ public class SummaryMetric {
 				String[] values = line.split("\t");				
 				
 				if (map.containsKey(values[0])) {
-					map.get(values[0]).put(new ChrPosition(values[0], new Integer(values[3]), new Integer(values[4])), line);
+					map.get(values[0]).put(new ChrRangePosition(values[0], new Integer(values[3]), new Integer(values[4])), line);
 				} else {
-					TreeMap<ChrPosition, String> treemap = new TreeMap<ChrPosition, String>();
-					treemap.put(new ChrPosition(values[0], new Integer(values[3]), new Integer(values[4])), line);
+					TreeMap<ChrRangePosition, String> treemap = new TreeMap<ChrRangePosition, String>();
+					treemap.put(new ChrRangePosition(values[0], new Integer(values[3]), new Integer(values[4])), line);
 					map.put(values[0], treemap);
 				}				
 			}

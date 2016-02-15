@@ -17,7 +17,7 @@ import htsjdk.samtools.reference.ReferenceSequence;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
-import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrRangePosition;
 
 
 public class ReferenceMotifFinder {
@@ -39,10 +39,10 @@ public class ReferenceMotifFinder {
 	QLogger logger;
 	String currentChr;
 	String currentRefSequence;
-	Map<ChrPosition, String> positionsWithMotifs = new HashMap<>(); 
-	Map<ChrPosition, String> positionsWithMotifsRegex = new HashMap<>(); 
+	Map<ChrRangePosition, String> positionsWithMotifs = new HashMap<>(); 
+	Map<ChrRangePosition, String> positionsWithMotifsRegex = new HashMap<>(); 
 	
-	public Map<ChrPosition, String> getPositionsWithMotifs() {
+	public Map<ChrRangePosition, String> getPositionsWithMotifs() {
 		return positionsWithMotifsRegex;
 //		return positionsWithMotifs;
 	}
@@ -72,7 +72,7 @@ public class ReferenceMotifFinder {
 			int count = 0;
 			while (matcher.find()) {
 				count++;
-				ChrPosition cp = new ChrPosition(currentChr, matcher.start(), matcher.end());
+				ChrRangePosition cp = new ChrRangePosition(currentChr, matcher.start(), matcher.end());
 				positionsWithMotifsRegex.put(cp, matcher.group());
 			}
 			logger.info("Found " + count + " matches for " + currentChr);
@@ -145,20 +145,20 @@ public class ReferenceMotifFinder {
 		}
 		
 		// now attempt to log out the entries in the map
-		List<ChrPosition> positions = new ArrayList<>(positionsWithMotifs.keySet());
+		List<ChrRangePosition> positions = new ArrayList<>(positionsWithMotifs.keySet());
 		Collections.sort(positions);
 		
-		for (ChrPosition cp : positions) {
+		for (ChrRangePosition cp : positions) {
 			logger.info(cp.toIGVString() + ": " +  positionsWithMotifs.get(cp));
 		}
 		
 		logger.info("No of positions in INDEXOF map: " + positionsWithMotifs.size());
 		
 		// now attempt to log out the entries in the map
-		List<ChrPosition> positionsRegex = new ArrayList<>(positionsWithMotifsRegex.keySet());
+		List<ChrRangePosition> positionsRegex = new ArrayList<>(positionsWithMotifsRegex.keySet());
 		Collections.sort(positionsRegex);
 		
-		for (ChrPosition cp : positionsRegex) {
+		for (ChrRangePosition cp : positionsRegex) {
 			logger.info(cp.toIGVString() + ": " +  positionsWithMotifsRegex.get(cp));
 		}
 		

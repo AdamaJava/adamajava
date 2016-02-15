@@ -19,6 +19,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrPositionName;
+import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.tab.TabbedRecord;
 
 public class MAF2DCC1Test {
@@ -117,15 +119,15 @@ public class MAF2DCC1Test {
 	
 	@Test
 	public void testMatchChrPos() {
-		ChrPosition maf = new ChrPosition("chr1", 1, 2);
-		ChrPosition dcc = new ChrPosition("chr1", 1, 2);
+		ChrPosition maf = new ChrRangePosition("chr1", 1, 2);
+		ChrPosition dcc = new ChrRangePosition("chr1", 1, 2);
 		
 		assertTrue(test.match(maf, dcc));
-		dcc = new ChrPosition("chr1", 1, 3);
+		dcc = new ChrRangePosition("chr1", 1, 3);
 		assertFalse(test.match(maf, dcc));
-		dcc = new ChrPosition("chr1", 2, 2);
+		dcc = new ChrRangePosition("chr1", 2, 2);
 		assertFalse(test.match(maf, dcc));
-		dcc = new ChrPosition("chr1", 1, 1);
+		dcc = new ChrRangePosition("chr1", 1, 1);
 		assertFalse(test.match(maf, dcc));
 	}
 	
@@ -182,7 +184,7 @@ public class MAF2DCC1Test {
 		List<TabbedRecord> listOfRecords = new ArrayList<>();
 		listOfRecords.add(maf);
 		Map<ChrPosition, List<TabbedRecord>> mafs = new HashMap<>();
-		ChrPosition c = new ChrPosition("chr1", 1, 2, "a");
+		ChrPosition c = new ChrPositionName("chr1", 1, 2, "a");
 		mafs.put(c, listOfRecords);
 		test.setMafRecords(mafs);
 		assertTrue(test.recordInMaf(c, dcc));		
@@ -204,14 +206,14 @@ public class MAF2DCC1Test {
 //		List<TabbedRecord> listOfRecords2 = new ArrayList<>();
 //		listOfRecords2.add(maf);
 		Map<ChrPosition, List<TabbedRecord>> mafs = new HashMap<>();
-		ChrPosition c = new ChrPosition("chr1", 1, 2);
+		ChrPosition c = new ChrRangePosition("chr1", 1, 2);
 //		ChrPosition c2 = new ChrPosition("chr1", 1, 2);
 //		ChrPosition c = new ChrPosition("chr1", 1, 2, "a");
 //		ChrPosition c2 = new ChrPosition("chr1", 1, 2, "b");
 		mafs.put(c, listOfRecords);
 //		mafs.put(c2, listOfRecords2);
 		assertEquals(1, mafs.size());
-		assertEquals(2, mafs.get( new ChrPosition("chr1", 1, 2)).size());
+		assertEquals(2, mafs.get( new ChrRangePosition("chr1", 1, 2)).size());
 		test.setMafRecords(mafs);
 		test.recordInMaf(c, dcc);
 	}
@@ -264,15 +266,15 @@ public class MAF2DCC1Test {
 		maf.setData("chr1\t1\t2\tINS\t-\tA");
 		test.addToMafRecordMap(maf, 1);
 		assertEquals(1, test.getMafRecords().size());
-		assertTrue(test.getMafRecords().containsKey(new ChrPosition("1", 1, 2)));
+		assertTrue(test.getMafRecords().containsKey(new ChrRangePosition("1", 1, 2)));
 //		assertTrue(test.getMafRecords().containsKey(new ChrPosition("1", 1, 2, "" + 1)));
 		maf = new TabbedRecord();
 		maf.setData("chr1\t1\t2\tINS\t-\tA");
 		test.addToMafRecordMap(maf, 2);
 		assertEquals(1, test.getMafRecords().size());
-		assertEquals(2, test.getMafRecords().get(new ChrPosition("1", 1, 2)).size());
+		assertEquals(2, test.getMafRecords().get(new ChrRangePosition("1", 1, 2)).size());
 //		assertEquals(2, test.getMafRecords().size());
-		assertTrue(test.getMafRecords().containsKey(new ChrPosition("1", 1, 2)));
+		assertTrue(test.getMafRecords().containsKey(new ChrRangePosition("1", 1, 2)));
 //		assertTrue(test.getMafRecords().containsKey(new ChrPosition("1", 1, 2, "" +2)));
 	}
 

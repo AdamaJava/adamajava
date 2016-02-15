@@ -19,6 +19,7 @@ import htsjdk.samtools.reference.ReferenceSequence;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.tab.TabbedFileReader;
 import org.qcmg.tab.TabbedHeader;
@@ -65,7 +66,7 @@ public class MafAddCPG {
 			String chr = "chr" + cp.getChromosome();
 			if ("chrM".equals(chr)) chr = "chrMT";
 			
-			ReferenceSequence seq = fasta.getSubsequenceAt(chr, cp.getPosition(), cp.getEndPosition());
+			ReferenceSequence seq = fasta.getSubsequenceAt(chr, cp.getStartPosition(), cp.getEndPosition());
 			positionsOfInterestMap.put(cp, new String(seq.getBases()));
 		}
 		logger.info("no of entries in map: " + positionsOfInterestMap.size());
@@ -86,7 +87,7 @@ public class MafAddCPG {
 				int startPos = Integer.parseInt(params[5]);
 				int endPos = Integer.parseInt(params[6]);
 				
-				ChrPosition cp = new ChrPosition(chr, startPos - noOfBases, endPos + noOfBases);
+				ChrPosition cp = new ChrRangePosition(chr, startPos - noOfBases, endPos + noOfBases);
 				positionsOfInterestSet.add(cp);
 			}
 			logger.info("for file: " + mafFile + " no of records: " + count + ", no of entries in chrpos set: " + positionsOfInterestSet.size());
@@ -135,7 +136,7 @@ public class MafAddCPG {
 				// sanity check on ref base
 				char ref = params[10].charAt(0);
 				
-				ChrPosition cp = new ChrPosition(chr, startPos - noOfBases, endPos + noOfBases);
+				ChrPosition cp = new ChrRangePosition(chr, startPos - noOfBases, endPos + noOfBases);
 				String bases = positionsOfInterestMap.get(cp);
 				if (null != bases) {
 					if ('-' != ref && ref != bases.charAt(noOfBases)) {

@@ -16,6 +16,7 @@ import java.util.regex.Pattern;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.gff3.GFF3FileReader;
@@ -72,7 +73,7 @@ public class MafAddGffBait {
 					thisMap = new HashMap<ChrPosition, String>();
 					gffTypes.put(chr, thisMap);
 				}
-				thisMap.put(new ChrPosition(chr, rec.getStart(), rec.getEnd()), rec.getType());
+				thisMap.put(new ChrRangePosition(chr, rec.getStart(), rec.getEnd()), rec.getType());
 				if (++count % 1000000 == 0) logger.info("hit " + count + " records");
 			}
 			logger.info("no of entries in gffTypes: " + gffTypes.size());
@@ -92,7 +93,7 @@ public class MafAddGffBait {
 			Map<ChrPosition, String> positionsAtChr = gffTypes.get(chr);
 			if (null != positionsAtChr) {
 				for (Entry<ChrPosition, String> entry : positionsAtChr.entrySet()) {
-					if (ChrPositionUtils.doChrPositionsOverlap(entry.getKey(), new ChrPosition(chr, cp.getPosition(), cp.getEndPosition()))) {
+					if (ChrPositionUtils.doChrPositionsOverlap(entry.getKey(), new ChrRangePosition(chr, cp.getStartPosition(), cp.getEndPosition()))) {
 						String type = positionsOfInterestMap.get(cp);
 						if (null == type) {
 							positionsOfInterestMap.put(cp, entry.getValue());
@@ -101,7 +102,7 @@ public class MafAddGffBait {
 						}
 //						logger.info("matched!");
 						// single position - won't have multiple gff3 regions
-						if (cp.getPosition() == cp.getEndPosition()) break;
+						if (cp.getStartPosition() == cp.getEndPosition()) break;
 					}
 				}
 			}
@@ -122,7 +123,7 @@ public class MafAddGffBait {
 				int startPos = Integer.parseInt(params[5]);
 				int endPos = Integer.parseInt(params[6]);
 				
-				ChrPosition cp = new ChrPosition(chr, startPos, endPos);
+				ChrPosition cp = new ChrRangePosition(chr, startPos, endPos);
 				positionsOfInterestSet.add(cp);
 			}
 			logger.info("for file: " + mafFile + " no of records: " + count + ", no of entries in chrpos set: " + positionsOfInterestSet.size());
@@ -164,7 +165,7 @@ public class MafAddGffBait {
 //				ChrPosition chrCompliantCP = new ChrPosition(fullChr, startPos, endPos);
 				
 				
-				ChrPosition cp = new ChrPosition(chr, startPos, endPos);
+				ChrPosition cp = new ChrRangePosition(chr, startPos, endPos);
 				String gff3Type = positionsOfInterestMap.get(cp);
 				if (null != gff3Type) {
 //					if ('-' != ref && ref != gff3Type.charAt(noOfBases)) {

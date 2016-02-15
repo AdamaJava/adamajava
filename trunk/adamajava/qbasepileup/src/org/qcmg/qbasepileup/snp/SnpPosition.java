@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.IOException;
 
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.picard.ReferenceUtils;
 import org.qcmg.qbasepileup.QBasePileupException;
 import org.qcmg.qbasepileup.QBasePileupUtil;
@@ -17,6 +18,7 @@ public class SnpPosition {
 	
 	
 	private final ChrPosition chrPos;
+	private final String name;
 	private final String fullChromosome;
 	private final String inputLine;
 	
@@ -29,20 +31,21 @@ public class SnpPosition {
 	
 	public SnpPosition(String name, String chromosome, Integer start, Integer end, String line) {
 		super();
-		this.chrPos = new ChrPosition(chromosome, start, end, name);
+		this.chrPos = new ChrRangePosition(chromosome, start, end);
+		this.name = name;
 		this.fullChromosome = QBasePileupUtil.getFullChromosome(chromosome);
 		this.inputLine = line;
 	}
 	
 	public String getName() {
-		return chrPos.getName();
+		return name;
 	}
 
 	public String getChromosome() {
 		return  chrPos.getChromosome();
 	}
 	public int getStart() {
-		return chrPos.getPosition();
+		return chrPos.getStartPosition();
 	}
 	public byte[] getAltBases() {
 		return altBases;
@@ -65,11 +68,14 @@ public class SnpPosition {
 		return fullChromosome;
 	}
 
+
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((chrPos == null) ? 0 : chrPos.hashCode());
+		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		return result;
 	}
 
@@ -86,6 +92,11 @@ public class SnpPosition {
 			if (other.chrPos != null)
 				return false;
 		} else if (!chrPos.equals(other.chrPos))
+			return false;
+		if (name == null) {
+			if (other.name != null)
+				return false;
+		} else if (!name.equals(other.name))
 			return false;
 		return true;
 	}
@@ -104,20 +115,7 @@ public class SnpPosition {
 	}
 
 	public void retrieveReferenceBases(File refFile) throws QBasePileupException, IOException {
-//		public void retrieveReferenceBases(IndexedFastaSequenceFile indexedFasta, FastaSequenceIndex index) throws QBasePileupException, IOException {
-		
-		
 		referenceBases = ReferenceUtils.getReferenceBases(refFile, fullChromosome,  getStart(), getEnd());	
-		
-//		if (index.hasIndexEntry(fullChromosome)) {
-//			referenceBases = indexedFasta.getSubsequenceAt(fullChromosome, getStart() , getEnd() ).getBases();	
-////		} else if (fullChromosome.equals("chrM")) {
-//////			fullChromosome = "chrMT";
-////			retrieveReferenceBases(indexedFasta, index);
-//		} else {
-//			throw new QBasePileupException("UNKNOWN_CHROMOSOME", fullChromosome);
-//		}
-		
 	}
 
 	public String getInputLine() {

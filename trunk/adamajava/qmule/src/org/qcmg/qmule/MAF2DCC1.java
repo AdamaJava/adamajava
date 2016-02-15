@@ -12,6 +12,7 @@ import java.util.Map;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.LoadReferencedClasses;
 import org.qcmg.tab.TabbedFileReader;
@@ -256,7 +257,7 @@ public class MAF2DCC1 {
 					if (chr.equals("M")) {
 						chr += "T";
 					}
-					ChrPosition chrPos = new ChrPosition(chr, Integer.valueOf(strArray[dccColumnIndexes[1]]), Integer.valueOf(strArray[dccColumnIndexes[2]]));
+					ChrPosition chrPos = new ChrRangePosition(chr, Integer.valueOf(strArray[dccColumnIndexes[1]]), Integer.valueOf(strArray[dccColumnIndexes[2]]));
 					if (recordInMaf(chrPos, rec)) {
 						writer.add(rec);
 						countInMaf++;
@@ -277,7 +278,7 @@ public class MAF2DCC1 {
 		if (chr.equals("M")) {
 			chr += "T";
 		}
-		ChrPosition chrPos = new ChrPosition(chr, Integer.valueOf(strArray[mafColumnIndexes[1]]), Integer.valueOf(strArray[mafColumnIndexes[2]]));
+		ChrPosition chrPos = new ChrRangePosition(chr, Integer.valueOf(strArray[mafColumnIndexes[1]]), Integer.valueOf(strArray[mafColumnIndexes[2]]));
 		
 		List<TabbedRecord> recordsAtThisPosition = mafRecords.get(chrPos);
 		if (null == recordsAtThisPosition) {
@@ -391,7 +392,7 @@ public class MAF2DCC1 {
 
 	public boolean match(ChrPosition mafChrPos, ChrPosition dccChrPos) {
 		if (mafChrPos.getChromosome().equals(dccChrPos.getChromosome()) 
-				&& mafChrPos.getPosition() == dccChrPos.getPosition() 
+				&& mafChrPos.getStartPosition() == dccChrPos.getStartPosition() 
 				&& mafChrPos.getEndPosition() == dccChrPos.getEndPosition()) {
 			return true;
 		}

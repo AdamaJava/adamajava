@@ -10,7 +10,9 @@ import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.sig.model.Comparison;
 
 public class QSigCompareDistanceTest {
@@ -32,8 +34,8 @@ public class QSigCompareDistanceTest {
 		Comparison c = QSigCompareDistance.compareRatios(new HashMap<ChrPosition, double[]>(), new HashMap<ChrPosition, double[]>(), F1, F2);
 		testEmptyComparison(c, 0 , 0);
 		
-		ChrPosition cp1 = new ChrPosition("1",1);
-		ChrPosition cp2 = new ChrPosition("2",2);
+		ChrPosition cp1 = ChrPointPosition.valueOf("1",1);
+		ChrPosition cp2 = ChrPointPosition.valueOf("2",2);
 		
 		double[] ratios1 = new double[] {0.0, 10.0, 15.0, 0.0};
 		double[] ratios2 = new double[] {8.0, 0.0, 0.0, 0.0};
@@ -49,8 +51,8 @@ public class QSigCompareDistanceTest {
 	
 	@Test
 	public void testCompareRatiosSameFile() {
-		ChrPosition cp1 = new ChrPosition("1",1);
-		ChrPosition cp2 = new ChrPosition("2",2);
+		ChrPosition cp1 = ChrPointPosition.valueOf("1",1);
+		ChrPosition cp2 = ChrPointPosition.valueOf("2",2);
 		
 		double[] ratios1 = new double[] {0.0, 10.0, 15.0, 0.0};
 		double[] ratios2 = new double[] {0.0, 0.0, 15.0, 0.0};
@@ -70,10 +72,10 @@ public class QSigCompareDistanceTest {
 	
 	@Test
 	public void testCompareRatios2() {
-		ChrPosition cp1 = new ChrPosition("1",1);
-		ChrPosition cp2 = new ChrPosition("2",2);
-		ChrPosition cp3 = new ChrPosition("3",3);
-		ChrPosition cp4 = new ChrPosition("4",4);
+		ChrPosition cp1 = ChrPointPosition.valueOf("1",1);
+		ChrPosition cp2 = ChrPointPosition.valueOf("2",2);
+		ChrPosition cp3 = ChrPointPosition.valueOf("3",3);
+		ChrPosition cp4 = ChrPointPosition.valueOf("4",4);
 		
 		double[] ratios1 = new double[] {0.0, 10.0, 15.0, 0.0};
 		double[] ratios2 = new double[] {0.0, 20.0, 0.0, 0.0};
@@ -162,7 +164,7 @@ public class QSigCompareDistanceTest {
 	
 	@Test
 	public void testDoComparison() {
-		ChrPosition cp = new ChrPosition("1", 1, 1);
+		ChrPosition cp = new ChrRangePosition("1", 1, 1);
 		
 		/*
 		 * 	FRAC 0

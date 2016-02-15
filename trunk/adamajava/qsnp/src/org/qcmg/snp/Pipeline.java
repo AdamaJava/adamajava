@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -49,7 +50,10 @@ import org.qcmg.common.meta.QBamId;
 import org.qcmg.common.meta.QDccMeta;
 import org.qcmg.common.meta.QExec;
 import org.qcmg.common.model.Accumulator;
+import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrPositionComparator;
+import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.model.PileupElement;
 import org.qcmg.common.model.PileupElementLite;
 import org.qcmg.common.model.Rule;
@@ -84,6 +88,7 @@ import org.qcmg.vcf.VCFFileWriter;
 
 public abstract class Pipeline {
 	
+	private static final Comparator<ChrPosition> COMPARATOR = new ChrPositionComparator();
 	static final String ILLUMINA_MOTIF = "GGT";
 	
 	//TODO these will need to become user defined values at some point
@@ -350,7 +355,7 @@ public abstract class Pipeline {
 		
 		final List<ChrPosition> orderedList = new ArrayList<ChrPosition>(positionRecordMap.keySet());
 		orderedList.addAll(compoundSnps.keySet());
-		Collections.sort(orderedList);
+		Collections.sort(orderedList, COMPARATOR);
 		
 
 		try (VCFFileWriter writer = new VCFFileWriter(new File(outputFileName));) {			
@@ -675,15 +680,6 @@ public abstract class Pipeline {
 			info = StringUtils.addToString(info, Classification.SOMATIC.toString(), Constants.SEMI_COLON);			
 		}
 		
-		// add Number of Mutations (MR - Mutated Reads)
-//		if (mutantReadCount > 0) {
-//			info = StringUtils.addToString(info,VcfHeaderUtils.FORMAT_MUTANT_READS +Constants.EQ +mutantReadCount  , Constants.SEMI_COLON);
-//		}
-//		
-//		if (novelStartCount > 0) {
-//			info = StringUtils.addToString(info, VcfHeaderUtils.FORMAT_NOVEL_STARTS +Constants.EQ +novelStartCount  , Constants.SEMI_COLON);
-//		}
-		
 		// cpg data
 		if ( ! StringUtils.isNullOrEmpty(rec.getFlankingSequence())) {
 			info = StringUtils.addToString(info, VcfHeaderUtils.INFO_FLANKING_SEQUENCE +Constants.EQ +rec.getFlankingSequence()  , Constants.SEMI_COLON);
@@ -694,7 +690,8 @@ public abstract class Pipeline {
 		
 		//Alt Field
 		final String [] altAndGTs = VcfUtils.getMutationAndGTs(rec.getRef(), rec.getNormalGenotype(), rec.getTumourGenotype());
-		vcf.setAlt(altAndGTs[0]);
+//		vcf.setAlt(altAndGTs[0]);
+		VcfRecord updatedVcf = VcfUtils.resetAllel(vcf, altAndGTs[0]);
 		
 		// get existing format field info from vcf record
 		final List<String> additionalformatFields = new ArrayList<>();
@@ -724,8 +721,6 @@ public abstract class Pipeline {
 			// add in MR and NNS data
 			formatField.append(controlMutantReadCount).append(Constants.COLON);
 			formatField.append(controlNovelStartCount);
-//			formatField.append(Constants.TAB);
-//			vcf.addFormatField(1, formatField.toString());
 			additionalformatFields.add(formatField.toString());
 		}
 		
@@ -739,11 +734,11 @@ public abstract class Pipeline {
 		formatField.append(testNovelStartCount);
 		additionalformatFields.add(formatField.toString());
 		
-		VcfUtils.addFormatFieldsToVcf(vcf, additionalformatFields);
+		VcfUtils.addFormatFieldsToVcf(updatedVcf, additionalformatFields);
+//		VcfUtils.addFormatFieldsToVcf(vcf, additionalformatFields);
 
-//		vcf.addFormatField(singleSampleMode ? 1 : 2, formatField.toString());		
-//		vcf.setFormatField(formatField.toString());
-		return vcf;
+		return updatedVcf;
+//		return vcf;
 	}
 	
 	/**
@@ -868,7 +863,7 @@ public abstract class Pipeline {
 			
 			// set Id
 			qRecord.setId(++mutationId);
-			positionRecordMap.put(new ChrPosition(qRecord.getChromosome(), qRecord.getPosition()), qRecord);
+			positionRecordMap.put(ChrPointPosition.valueOf(qRecord.getChromosome(), qRecord.getPosition()), qRecord);
 		}
 	}
 	
@@ -1781,7 +1776,7 @@ public abstract class Pipeline {
 	void purgeNonAdjacentAccumulators() {
 		int noRemoved = 0;
 		List<ChrPosition> list = new ArrayList<>(adjacentAccumulators.keySet());
-		Collections.sort(list);
+		Collections.sort(list, COMPARATOR);
 
 		ChrPosition left = null;
 		ChrPosition middle = null;
@@ -1814,7 +1809,7 @@ public abstract class Pipeline {
 		final int size = positionRecordMap.size();
 		
 		final List<ChrPosition> keys = new ArrayList<>(positionRecordMap.keySet());
-		Collections.sort(keys);
+		Collections.sort(keys, COMPARATOR);
 		
 		 int noOfCompSnpsSOM = 0;
 		 int noOfCompSnpsGERM = 0;
@@ -1839,7 +1834,7 @@ public abstract class Pipeline {
 				}
 				
 				final ChrPosition start = thisPosition;		// starting point of compound snp
-				final int startPosition= start.getPosition();
+				final int startPosition= start.getStartPosition();
 				
 				while (i < size-1) {
 					thisPosition = nextPosition;
@@ -1863,17 +1858,17 @@ public abstract class Pipeline {
 				
 				// thisPosition should now be the end of the compound snp
 				
-				final int endPosition = thisPosition.getPosition();
+				final int endPosition = thisPosition.getStartPosition();
 				// how many bases does our compound snp cover?
 				final int noOfBases = (endPosition - startPosition) + 1;
 				
 				// create new ChrPosition object that spans the region we are interested and create a list with the QSnpRecords
 				
-				final ChrPosition csChrPos = new ChrPosition(start.getChromosome(), startPosition, endPosition);
+				final ChrPosition csChrPos = new ChrRangePosition(start.getChromosome(), startPosition, endPosition);
 				final List<QSnpRecord> csRecords = new ArrayList<>();
 				String ref = "", alt = "", classification = "", flag = "";
 				for (int k = 0 ; k < csChrPos.getLength() ; k++) {
-					final QSnpRecord rec = positionRecordMap.get(new ChrPosition(start.getChromosome(), startPosition + k));
+					final QSnpRecord rec = positionRecordMap.get(ChrPointPosition.valueOf(start.getChromosome(), startPosition + k));
 					csRecords.add(rec);
 					ref += rec.getRef();
 //					if (alt.length() > 0) {
@@ -1910,7 +1905,7 @@ public abstract class Pipeline {
 				
 				// get accumulation objects for this position
 				for (int j = startPosition ; j <= endPosition ; j++) {
-					final ChrPosition cp = new ChrPosition(csChrPos.getChromosome(), j);
+					final ChrPosition cp = ChrPointPosition.valueOf(csChrPos.getChromosome(), j);
 					final Pair<Accumulator, Accumulator> accums = adjacentAccumulators.remove(cp);
 //					final Pair<Accumulator, Accumulator> accums = adjacentAccumulators.get(cp);
 					

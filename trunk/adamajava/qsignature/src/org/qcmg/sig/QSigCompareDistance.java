@@ -27,6 +27,7 @@ import javax.xml.transform.stream.StreamResult;
 import org.apache.commons.math3.util.FastMath;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.util.BaseUtils;
 import org.qcmg.common.util.ChrPositionUtils;
@@ -448,7 +449,7 @@ public class QSigCompareDistance {
 			
 			for (TabbedRecord vcfRecord : reader) {
 				String[] params = TabTokenizer.tokenize(vcfRecord.getData());
-				ChrPosition chrPos = new ChrPosition(params[0], Integer.parseInt(params[1]));
+				ChrPosition chrPos = ChrPointPosition.valueOf(params[0], Integer.parseInt(params[1]));
 				
 				if (populateSnps)
 					snps.add(chrPos);

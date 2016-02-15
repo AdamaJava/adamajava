@@ -16,6 +16,7 @@ import htsjdk.samtools.SAMRecord;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.GenotypeEnum;
 import org.qcmg.common.util.FileUtils;
@@ -66,7 +67,7 @@ public class CompareVCFs {
 		qj.setupReader(cmdLineInputFiles[2]);
 		
 		for (Entry<ChrPosition, VcfRecord> entry : uniqueTumourVCFMap.entrySet()) {
-			int position = entry.getKey().getPosition();
+			int position = entry.getKey().getStartPosition();
 			boolean foundInNormal = false;
 			List<SAMRecord> sams = qj.getOverlappingRecordsAtPosition(entry.getKey().getChromosome(), position, position);
 			
@@ -233,7 +234,7 @@ public class CompareVCFs {
 			VCFFileReader reader  = new VCFFileReader(new File(vcfFile));
 			try {
 				for (VcfRecord qpr : reader) {
-					map.put(new ChrPosition(qpr.getChromosome(), qpr.getPosition()),qpr);
+					map.put(ChrPointPosition.valueOf(qpr.getChromosome(), qpr.getPosition()),qpr);
 				}
 			} finally {
 				reader.close();

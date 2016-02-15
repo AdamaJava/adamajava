@@ -3,6 +3,12 @@
  */
 package org.qcmg.sig;
 
+import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SAMReadGroupRecord;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SAMSequenceRecord;
+import htsjdk.samtools.SamReader;
+
 import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
@@ -26,15 +32,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMReadGroupRecord;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMSequenceRecord;
-
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.meta.QExec;
+import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.PileupElement;
 import org.qcmg.common.model.ReferenceNameComparator;
@@ -239,11 +240,11 @@ public class SignatureGenerator {
 					
 						if ("XY".equals(tempRec.getChr())) {
 							// add both X and Y to map
-							illuminaMap.put(new ChrPosition("chrX", tempRec.getStart()), tempRec);
-							illuminaMap.put(new ChrPosition("chrY", tempRec.getStart()), tempRec);
+							illuminaMap.put(ChrPointPosition.valueOf("chrX", tempRec.getStart()), tempRec);
+							illuminaMap.put(ChrPointPosition.valueOf("chrY", tempRec.getStart()), tempRec);
 						} else {
 							// 	Illumina record chromosome does not contain "chr", whereas the positionRecordMap does - add
-							illuminaMap.put(new ChrPosition("chr" + tempRec.getChr(), tempRec.getStart()), tempRec);
+							illuminaMap.put(ChrPointPosition.valueOf("chr" + tempRec.getChr(), tempRec.getStart()), tempRec);
 						}
 					}
 				}
@@ -335,7 +336,7 @@ public class SignatureGenerator {
 		for (final VcfRecord snp : snps) {
 			
 			// lookup corresponding snp in illumina map
-			final IlluminaRecord illRec = iIlluminaMap.get(new ChrPosition(snp.getChromosome(), snp.getPosition()));
+			final IlluminaRecord illRec = iIlluminaMap.get(ChrPointPosition.valueOf(snp.getChromosome(), snp.getPosition()));
 			if (null == illRec) continue;
 			
 			final String [] params = IlluminaArraysDesign.get(illRec.getSnpId());
@@ -639,16 +640,12 @@ public class SignatureGenerator {
 				
 				final String chr = params[0];
 				final int position = Integer.parseInt(params[1]);
-				final VcfRecord vcf = new VcfRecord(new String[] {chr, position+"", null, ref, null});
 						//VcfUtils.createVcfRecord(chr, position, ref);
-				
-				if (params.length > 2)
-					vcf.setId(params[2]);
-				if (params.length > 5)
-					vcf.setAlt(params[5].replaceAll("/", ","));
+				String id = params.length > 2 ? params[2] : null; 
+				String alt = params.length > 5 ? params[5].replaceAll("/", ",") : null;
 
 				// Lynns new files are 1-based - no need to do any processing on th position
-				snps.add(vcf);
+				snps.add(new VcfRecord(new String[] {chr, position+"", id, ref, alt}));
 			}
 			
 			arraySize = snps.size();

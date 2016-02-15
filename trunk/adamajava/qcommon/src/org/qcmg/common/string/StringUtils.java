@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrRangePosition;
 
 public class StringUtils {
 	public static final char TAB = '\t';
@@ -197,7 +197,7 @@ public class StringUtils {
 	 * @return ChrPosition object corresponding to the chromosome and positions supplied in the input string
 	 * @throws IllegalArgumentException if the supplied string is null, empty, or malformed
 	 */
-	public static ChrPosition getChrPositionFromString(final String chrPosString) {
+	public static ChrRangePosition getChrPositionFromString(final String chrPosString) {
 		if (isNullOrEmpty(chrPosString))
 			throw new IllegalArgumentException("null or empty string passed to getChrPositionFromString");
 		
@@ -218,7 +218,7 @@ public class StringUtils {
 		if (firstPosition < 0 || secondPosition < 0)
 			throw new IllegalArgumentException("malformed string passed to getChrPositionFromString - negative positions: " + chrPosString);
 		
-		return new ChrPosition(chrPosString.substring(0, colonIndex), firstPosition, secondPosition);
+		return new ChrRangePosition(chrPosString.substring(0, colonIndex), firstPosition, secondPosition);
 	}
 
 	public static String getValueFromKey(String data, String key) {

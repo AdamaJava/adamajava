@@ -5,10 +5,13 @@ import htsjdk.tribble.readers.TabixReader;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrPositionComparator;
+import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
@@ -20,6 +23,9 @@ import au.edu.qimr.qannotate.options.CaddOptions;
 
 
 public class  CaddMode extends AbstractMode{
+	
+	private static final Comparator<ChrPosition> COMPARATOR = new ChrPositionComparator();
+	
 //	protected final static Map<ChrPosition,VcfRecord> positionRecordMap = new HashMap<ChrPosition,VcfRecord>();
 	protected static long outputNo = 0;
 	protected static long blockNo = 0;	
@@ -97,7 +103,7 @@ public class  CaddMode extends AbstractMode{
     	if(chr.equalsIgnoreCase("m")) chr = "MT"; 
 
     	
-		for(TabixReader tabix : tabixs){						
+		for(TabixReader tabix : tabixs){			
 			TabixReader.Iterator it = tabix.query(chr, start, end);
 			while(( line = it.next())!= null){
 				blockSize ++;  
@@ -112,7 +118,7 @@ public class  CaddMode extends AbstractMode{
 	    		int s = Integer.parseInt(eles[1]);  //start position = second column
 	    		int e = s + eles[2].length() - 1;   //start position + length -1
 	    		
-	    		List<VcfRecord> inputVcfs = positionRecordMap.get(new ChrPosition(chr, s, e ));	    
+	    		List<VcfRecord> inputVcfs = positionRecordMap.get(new ChrRangePosition(chr, s, e ));	    
 				if ( (null == inputVcfs) || inputVcfs.size() == 0 ) continue; 
 				for(VcfRecord inputVcf: inputVcfs ){		
 					if(!inputVcf.getRef().equalsIgnoreCase(eles[2])) 
@@ -138,7 +144,7 @@ public class  CaddMode extends AbstractMode{
 		
 			//output
 			final List<ChrPosition> orderedList = new ArrayList<ChrPosition>(positionRecordMap.keySet());
-			Collections.sort(orderedList);
+			Collections.sort(orderedList, COMPARATOR);
 			for (final ChrPosition position : orderedList)  
 				for(VcfRecord re: positionRecordMap.get(position))
 					writer.add( re );	
@@ -160,16 +166,16 @@ public class  CaddMode extends AbstractMode{
 	    	if(chr.startsWith("chr"))  	{chr = chr.substring(3);change = true;}
 	    	if(chr.equalsIgnoreCase("m")) {chr = "MT";change = true;}
 			
-			if(change)
-				pos =  new ChrPosition(chr, re.getChrPosition().getPosition(), re.getChrPosition().getEndPosition());    			
-			
-			if( positionRecordMap.get(pos) == null){
-				List<VcfRecord> res = new ArrayList<VcfRecord>();
-				res.add(re);	
-				positionRecordMap.put(pos, res);
-			}else{
-				positionRecordMap.get(pos).add(re);
+			if(change) {
+				pos =  new ChrRangePosition(chr, re.getChrPosition().getStartPosition(), re.getChrPosition().getEndPosition());
 			}
+			
+			List<VcfRecord> res = positionRecordMap.get(pos) ;
+			if( res == null){
+				new ArrayList<VcfRecord>();
+				positionRecordMap.put(pos, res);
+			}
+			res.add(re);	
 		}
 		
 		@Override

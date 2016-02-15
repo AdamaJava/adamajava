@@ -19,7 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
-import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.model.GenotypeEnum;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.BaseUtils;
@@ -492,7 +492,7 @@ public class SnpMetric extends Metric {
 		snpMap.clear();
 		tabFileWriter = new BufferedWriter(new FileWriter(snpOutputFile, true));
 		dccFileWriter = new BufferedWriter(new FileWriter(dccOutputFile, true));
-		Map<String, TreeMap<ChrPosition, TabbedRecord>> mismapMap = readGFFRecords(gffName);
+		Map<String, TreeMap<ChrRangePosition, TabbedRecord>> mismapMap = readGFFRecords(gffName);
 		
 		for (Chromosome c : chromosomes) {
 			
@@ -524,16 +524,16 @@ public class SnpMetric extends Metric {
 		
 	}
 
-	private void processMisMapRegion(Map<String, TreeMap<ChrPosition, TabbedRecord>> mismapMap) throws Exception {		
+	private void processMisMapRegion(Map<String, TreeMap<ChrRangePosition, TabbedRecord>> mismapMap) throws Exception {		
 		
 		for (Entry<String, TreeMap<Integer, SnpRecord>> entry : snpMap.entrySet()) {
 			for (Entry<Integer, SnpRecord> currentEntry : entry.getValue().entrySet()) {
 				SnpRecord snp = currentEntry.getValue();
-				ChrPosition chrPos = new ChrPosition(snp.getChromosome(), snp.getPosition(), snp.getEndPosition());
+				ChrRangePosition chrPos = new ChrRangePosition(snp.getChromosome(), snp.getPosition(), snp.getEndPosition());
 				if (mismapMap.containsKey(snp.getChromosome())) {
-					TreeMap<ChrPosition, TabbedRecord> compareMap = mismapMap.get(snp.getChromosome());					
-					Entry<ChrPosition, TabbedRecord> floor = compareMap.floorEntry(chrPos);
-					Entry<ChrPosition, TabbedRecord> ceiling = compareMap.ceilingEntry(chrPos);
+					TreeMap<ChrRangePosition, TabbedRecord> compareMap = mismapMap.get(snp.getChromosome());					
+					Entry<ChrRangePosition, TabbedRecord> floor = compareMap.floorEntry(chrPos);
+					Entry<ChrRangePosition, TabbedRecord> ceiling = compareMap.ceilingEntry(chrPos);
 					
 					if (tabbedRecordFallsInCompareRecord(chrPos, floor) || tabbedRecordFallsInCompareRecord(chrPos, ceiling)) {
 						snp.setInMismapRegion(true);
@@ -543,22 +543,22 @@ public class SnpMetric extends Metric {
 		}		
 	}
 	
-	public boolean tabbedRecordFallsInCompareRecord(ChrPosition inputChrPos, Entry<ChrPosition, TabbedRecord> entry) {
+	public boolean tabbedRecordFallsInCompareRecord(ChrRangePosition inputChrPos, Entry<ChrRangePosition, TabbedRecord> entry) {
 		if (entry != null) {
-			ChrPosition compareChrPos = entry.getKey();
-			if ((inputChrPos.getPosition() >= compareChrPos.getPosition() && inputChrPos.getPosition() <= compareChrPos.getEndPosition()) ||
-					(inputChrPos.getEndPosition() >= compareChrPos.getPosition() && inputChrPos.getEndPosition() <= compareChrPos.getEndPosition()) 
-					|| (inputChrPos.getPosition() <= compareChrPos.getPosition() && inputChrPos.getEndPosition() >= compareChrPos.getEndPosition())) {
+			ChrRangePosition compareChrPos = entry.getKey();
+			if ((inputChrPos.getStartPosition() >= compareChrPos.getStartPosition() && inputChrPos.getStartPosition() <= compareChrPos.getEndPosition()) ||
+					(inputChrPos.getEndPosition() >= compareChrPos.getStartPosition() && inputChrPos.getEndPosition() <= compareChrPos.getEndPosition()) 
+					|| (inputChrPos.getStartPosition() <= compareChrPos.getStartPosition() && inputChrPos.getEndPosition() >= compareChrPos.getEndPosition())) {
 				return true;
 			}		
 		}
 		return false;
 	}
 
-	private Map<String, TreeMap<ChrPosition, TabbedRecord>> readGFFRecords(String gffFile) throws Exception {
+	private Map<String, TreeMap<ChrRangePosition, TabbedRecord>> readGFFRecords(String gffFile) throws Exception {
 		TabbedFileReader reader = new TabbedFileReader(new File(gffFile));
 				
-		Map<String, TreeMap<ChrPosition, TabbedRecord>> map = new HashMap<String, TreeMap<ChrPosition, TabbedRecord>>();
+		Map<String, TreeMap<ChrRangePosition, TabbedRecord>> map = new HashMap<String, TreeMap<ChrRangePosition, TabbedRecord>>();
 		
 		Iterator<TabbedRecord> iterator = reader.getRecordIterator();
 			
@@ -572,11 +572,11 @@ public class SnpMetric extends Metric {
 			
 			String[] values = tab.getData().split("\t");
 			String key = values[0];
-			ChrPosition chrPos = new ChrPosition(key, new Integer(values[3]), new Integer(values[4])); 
+			ChrRangePosition chrPos = new ChrRangePosition(key, new Integer(values[3]), new Integer(values[4])); 
 			if (map.containsKey(key)) {
 				map.get(key).put(chrPos, tab);
 			} else {				
-				TreeMap<ChrPosition, TabbedRecord> tmap = new TreeMap<ChrPosition, TabbedRecord>();
+				TreeMap<ChrRangePosition, TabbedRecord> tmap = new TreeMap<ChrRangePosition, TabbedRecord>();
 				tmap.put(chrPos, tab);
 				map.put(key, tmap);
 			}

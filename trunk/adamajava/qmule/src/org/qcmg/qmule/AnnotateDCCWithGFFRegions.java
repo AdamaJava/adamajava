@@ -19,6 +19,8 @@ import java.util.Vector;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrPositionName;
+import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.LoadReferencedClasses;
 import org.qcmg.tab.TabbedFileReader;
@@ -176,9 +178,9 @@ public class AnnotateDCCWithGFFRegions {
 					//check to see if it is overlapping with the comparison reference region
 					for (Entry<ChrPosition, TabbedRecord> compareEntry : compareMap.entrySet()) {
 						ChrPosition comparePos = compareEntry.getKey();
-						if (comparePos.getEndPosition() < chrPos.getPosition()) {
+						if (comparePos.getEndPosition() < chrPos.getStartPosition()) {
 							continue;
-						} else if (comparePos.getPosition() > chrPos.getEndPosition()) {
+						} else if (comparePos.getStartPosition() > chrPos.getEndPosition()) {
 							break;
 						} else {
 							String[] vals = inputRecord.getDataArray();	
@@ -455,9 +457,9 @@ public class AnnotateDCCWithGFFRegions {
 			chromosome = "chrMT";
 		}
 		if (inputFileType.equals(MAF)) {
-			chr = new ChrPosition(chromosome, new Integer(values[startIndex]), new Integer(values[endIndex]), name != null ? name : values[0]);	
+			chr = new ChrPositionName(chromosome, new Integer(values[startIndex]), new Integer(values[endIndex]), name != null ? name : values[0]);	
 		} else {
-			chr = new ChrPosition(chromosome, new Integer(values[startIndex]), new Integer(values[endIndex]), name);
+			chr = new ChrPositionName(chromosome, new Integer(values[startIndex]), new Integer(values[endIndex]), name);
 		}
 		
 		return chr;
@@ -468,7 +470,7 @@ public class AnnotateDCCWithGFFRegions {
 			Entry<ChrPosition, TabbedRecord> compareEntry) {
 		if (compareEntry != null) {
 			ChrPosition compareChrPos = compareEntry.getKey();
-			if ((inputChrPos.getPosition() == compareChrPos.getPosition() 
+			if ((inputChrPos.getStartPosition() == compareChrPos.getStartPosition() 
 					&& inputChrPos.getEndPosition() == compareChrPos.getEndPosition())) {
 				//check strand if this option is provided
 				if (stranded) {
@@ -488,9 +490,9 @@ public class AnnotateDCCWithGFFRegions {
 	private boolean tabbedRecordFallsInCompareRecord(ChrPosition inputChrPos, TabbedRecord inputRecord, Entry<ChrPosition, TabbedRecord> entry) {
 		if (entry != null) {
 			ChrPosition compareChrPos = entry.getKey();
-			if ((inputChrPos.getPosition() >= compareChrPos.getPosition() && inputChrPos.getPosition() <= compareChrPos.getEndPosition()) ||
-					(inputChrPos.getEndPosition() >= compareChrPos.getPosition() && inputChrPos.getEndPosition() <= compareChrPos.getEndPosition()) 
-					|| (inputChrPos.getPosition() <= compareChrPos.getPosition() && inputChrPos.getEndPosition() >= compareChrPos.getEndPosition())) {
+			if ((inputChrPos.getStartPosition() >= compareChrPos.getStartPosition() && inputChrPos.getStartPosition() <= compareChrPos.getEndPosition()) ||
+					(inputChrPos.getEndPosition() >= compareChrPos.getStartPosition() && inputChrPos.getEndPosition() <= compareChrPos.getEndPosition()) 
+					|| (inputChrPos.getStartPosition() <= compareChrPos.getStartPosition() && inputChrPos.getEndPosition() >= compareChrPos.getEndPosition())) {
 				//check strand if this option is provided
 				if (stranded) {
 					String inputStrand = inputRecord.getDataArray()[DCC_STRAND_INDEX];

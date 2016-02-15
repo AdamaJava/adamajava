@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -30,7 +31,7 @@ import au.edu.qimr.qannotate.utils.SnpEffMafRecord;
 
 public class Vcf2mafTest {
 	static String outputDir = new File(DbsnpModeTest.inputName).getAbsoluteFile().getParent() + "/output";
-	
+	static String inputName = DbsnpModeTest.inputName;		
 	
 	 @BeforeClass
 	 public static void createIO(){
@@ -45,7 +46,7 @@ public class Vcf2mafTest {
 	 @AfterClass
 	 public static void deleteIO(){
 
-		 new File(DbsnpModeTest.inputName).delete();
+		 new File(inputName).delete();
 		 
 		 File out = new File(outputDir);
 		 if(! out.exists() || !out.isDirectory())
@@ -58,56 +59,57 @@ public class Vcf2mafTest {
 		assertTrue(new File(outputDir).delete());	 		 
 	}
 	 
-
-	 
-	 
 	 @Test
 	 public void compoundSNPTest() throws Exception{
 		 //create vcf with compoundSNP variant and header
-	        final List<String> data = new ArrayList<String>();
-	        data.add("##fileformat=VCFv4.0");
-	         data.add(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tCONTROL\tTEST");
-	       
-	        data.add("chrY\t2675826\trs75454623\tTG\tCA\t.\tCOVN12;MIUN\tSOMATIC;END=2675826;CONF=ZERO;EFF="
-	        		+ "missense_variant(MODERATE|MISSENSE|Acc/Ccc|p.Thr248Pro/c.742A>C|540|SAMD11|protein_coding|CODING|ENST00000455979|5|1|WARNING_TRANSCRIPT_NO_START_CODON),"		
-	        		+ "missense_variant(MODERATE|MISSENSE|Acc/Ccc|p.Thr329Pro/c.985A>C|588|SAMD11|protein_coding|CODING|ENST00000341065|9|1|WARNING_TRANSCRIPT_NO_START_CODON)," 
-	        		+ "downstream_gene_variant(MODIFIER||1446||749|NOC2L|protein_coding|CODING|ENST00000327044||1)"
-	        		+ "\tACCS\tTG,5,37,CA,0,2\tAA,1,1,CA,4,1,CT,3,1,TA,11,76,TG,2,2,_G,0,1");
-	          try(BufferedWriter out = new BufferedWriter(new FileWriter(DbsnpModeTest.inputName));) {          
-	              for (final String line : data)   out.write(line + "\n");                  
-	           }  	    	 
+	 
 	          
-				final Vcf2maf mode = new Vcf2maf(2, 1, "TEST", "CONTROL");		
-				SnpEffMafRecord maf = null;
+		String[] str = {  "##fileformat=VCFv4.0",VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tCONTROL\tTEST",
+				"chrY\t2675826\trs75454623\tTG\tCA\t.\tCOVN12;MIUN\tSOMATIC;END=2675826;CONF=ZERO;EFF="
+		        		+ "missense_variant(MODERATE|MISSENSE|Acc/Ccc|p.Thr248Pro/c.742A>C|540|SAMD11|protein_coding|CODING|ENST00000455979|5|1|WARNING_TRANSCRIPT_NO_START_CODON),"		
+		        		+ "missense_variant(MODERATE|MISSENSE|Acc/Ccc|p.Thr329Pro/c.985A>C|588|SAMD11|protein_coding|CODING|ENST00000341065|9|1|WARNING_TRANSCRIPT_NO_START_CODON)," 
+		        		+ "downstream_gene_variant(MODIFIER||1446||749|NOC2L|protein_coding|CODING|ENST00000327044||1)"
+		        		+ "\tACCS\tTG,5,37,CA,0,2\tAA,1,1,CA,4,1,CT,3,1,TA,11,76,TG,2,2,_G,0,1"		 
+		 };		 
+		createVcf(str);
+	          
+	          
+	          
+		final Vcf2maf mode = new Vcf2maf(2, 1, "TEST", "CONTROL");		
+		SnpEffMafRecord maf = null;
+		
+		try(VCFFileReader reader = new VCFFileReader(new File( inputName))){					
+			//get control and test sample column
+		//	mode.retriveSampleColumn("TEST", "CONTROL", reader.getHeader());					
+			// SnpEffMafRecord.getSnpEffMafHeaderline();
+		   	for (final VcfRecord vcf : reader) 
+					maf = mode.converter(vcf);
+		}
+		
+		assertFalse(maf == null);
 				
-				try(VCFFileReader reader = new VCFFileReader(new File( DbsnpModeTest.inputName))){					
-					//get control and test sample column
-				//	mode.retriveSampleColumn("TEST", "CONTROL", reader.getHeader());					
-					// SnpEffMafRecord.getSnpEffMafHeaderline();
-			       	for (final VcfRecord vcf : reader) 
-		        			maf = mode.converter(vcf);
-				}
-				
-				assertFalse(maf == null);
-				
-				assertTrue(maf.getColumnValue(14).equals("rs75454623"));
-					 
-		 		assertTrue(maf.getColumnValue(36).equals("TG,5,37,CA,0,2" ));			//ND
-		 		assertTrue(maf.getColumnValue(37).equals("AA,1,1,CA,4,1,CT,3,1,TA,11,76,TG,2,2,_G,0,1" ));	//TD
-		 		assertTrue(maf.getColumnValue(12).equals("TA"));   //TD allel1
-		 		assertTrue(maf.getColumnValue(13).equals("CA"));   //TD allel2		 		
-		 		assertTrue(maf.getColumnValue(18).equals("TG"));   //ND allel1
-		 		assertTrue(maf.getColumnValue(19).equals("CA"));   //ND allel2
-		 		
-		 		assertTrue(maf.getColumnValue(16).equals("Unknown:TEST"));   //tumour sample
-		 		assertTrue(maf.getColumnValue(17).equals("Unknown:CONTROL"));   //normal sample
-		 		
-		 		
-		 		
-		 		//we get consequnce with high rank, then long length, should be second annotation
-		 		assertTrue(maf.getColumnValue(51+1).equals("p.Thr329Pro"));
-		 		assertTrue(maf.getColumnValue(50+1).equals("ENST00000341065"));
-		 		assertTrue(maf.getColumnValue(52+1).equals("c.985A>C"));
+		assertTrue(maf.getColumnValue(14).equals("rs75454623"));					 
+ 		assertTrue(maf.getColumnValue(36).equals("TG,5,37,CA,0,2" ));			//ND
+ 		assertTrue(maf.getColumnValue(37).equals("AA,1,1,CA,4,1,CT,3,1,TA,11,76,TG,2,2,_G,0,1" ));	//TD
+ 		assertTrue(maf.getColumnValue(12).equals(SnpEffMafRecord.Null));   //TD allel1
+ 		assertTrue(maf.getColumnValue(13).equals(SnpEffMafRecord.Null));   //TD allel2		 		
+ 		assertTrue(maf.getColumnValue(18).equals(SnpEffMafRecord.Null));   //ND allel1
+ 		assertTrue(maf.getColumnValue(19).equals(SnpEffMafRecord.Null));   //ND allel2
+ 		assertTrue(maf.getColumnValue(33).equals("TEST"));   //tumour sample
+ 		assertTrue(maf.getColumnValue(34).equals("CONTROL"));   //normal sample
+ 		
+ 		assertTrue(maf.getColumnValue(41).equals("Unknown"));   //NNS field is not existed at format		 		//		 		
+ 		assertTrue(maf.getColumnValue(45).equals("103"));  //t_deep ("AA,1,1,CA,4,1,CT,3,1,TA,11,76,TG,2,2,_G,0,1" ))
+ 		assertTrue(maf.getColumnValue(46).equals("4"));  //t_ref C8[7.62],2[2]
+ 		assertTrue(maf.getColumnValue(47).equals("5"));  //t_allel A2[8],28[31.18]	
+ 		assertTrue(maf.getColumnValue(48).equals("44"));  //n_deep "TG,5,37,CA,0,2"
+ 		assertTrue(maf.getColumnValue(49).equals("42")); //C6[6.67],0[0]
+ 		assertTrue(maf.getColumnValue(50).equals("2"));  //A1[5],0[0]
+ 		
+ 		//we get consequnce with high rank, then long length, should be second annotation
+ 		assertTrue(maf.getColumnValue(51+1).equals("p.Thr329Pro"));
+ 		assertTrue(maf.getColumnValue(50+1).equals("ENST00000341065"));
+ 		assertTrue(maf.getColumnValue(52+1).equals("c.985A>C"));
 	 }
 	 
 	 @Test 
@@ -116,30 +118,19 @@ public class Vcf2mafTest {
 		 	final SnpEffMafRecord Dmaf = new SnpEffMafRecord();
 			Dmaf.setDefaultValue();
 			
-			final Vcf2maf v2m = new Vcf2maf(2,1, null, null);	//test column2; normal column 1
-//			final String[] parms = {"chrY","22012840",".","C","A",".","SBIAS","VLD;FLANK=GTGATATTCCC;VAF=0.11;GERM=0,185;"
-//					+ "EFF=sequence_feature[compositionally_biased_region:Glu/Lys-rich](LOW|||c.1252G>C|591|CCDC148|protein_coding|CODING|ENST00000283233|10|1),"
-//					+ "splice_acceptor_variant(HIGH|||n.356G>C||CCDC148-AS1|antisense|NON_CODING|ENST00000412781|5|1)",
-//					"GT:GD:AC","0/0:T/C:A1[5],0[0],C6[6.67],0[0],T1[6],21[32.81]","0/0:A/C:C8[7.62],2[2],A2[8],28[31.18]"};
-			
+			final Vcf2maf v2m = new Vcf2maf(2,1, null, null);	//test column2; normal column 1			
 			final String[] parms = {"chrY","22012840",".","C","A",".","SBIAS","VLD;FLANK=GTGATATTCCC;VAF=0.11;"
 					+ "EFF=sequence_feature[compositionally_biased_region:Glu/Lys-rich](LOW|||c.1252G>C|591|CCDC148|protein_coding|CODING|ENST00000283233|10|1),"
 					+ "splice_acceptor_variant(HIGH|||n.356G>C||CCDC148-AS1|antisense|NON_CODING|ENST00000412781|5|1)",
-					"GT:GD:AC","0/0:T/C:A1[5],0[0],C6[6.67],0[0],T1[6],21[32.81]","0/0:A/C:C8[7.62],2[2],A2[8],28[31.18]"};
-
-
+					"GT:GD:AC","0/0:C/C:A1[5],0[0],C6[6.67],0[0],T1[6],21[32.81]","1/0:A/C:C8[7.62],2[2],A2[8],28[31.18]"};
 			
 	 		final VcfRecord vcf = new VcfRecord(parms);
 	 		final SnpEffMafRecord maf = v2m.converter(vcf);
-	
-	 		
-//	 		final String eff = new VcfInfoFieldRecord(vcf.getInfo()).getField(VcfHeaderUtils.INFO_EFFECT);
-	 			
+//	 		final String eff = new VcfInfoFieldRecord(vcf.getInfo()).getField(VcfHeaderUtils.INFO_EFFECT);	 			
 	 		//select the annotation with "HIGH" impact
 	 		//str: HIGH|||n.356G>C||CCDC148-AS1|antisense|NON_CODING|ENST00000412781|5|1
 	 		//array: 0| 1|2|3     |4|5         |6        |7         |8              |9|10	 
-	 		
-	 		
+	 			 		
 	 		assertTrue(maf.getColumnValue(39).equals("HIGH" ));
 	 		assertTrue(maf.getColumnValue(51+1).equals(Dmaf.getColumnValue(51) ));
 	 		assertTrue(maf.getColumnValue(52+1).equals(Dmaf.getColumnValue(52) ));
@@ -155,9 +146,7 @@ public class Vcf2mafTest {
 	 		assertTrue(maf.getColumnValue(59+1).equals( SnpEffConsequence.getClassicName(ontology) ));	 		
 	 		assertTrue(maf.getColumnValue(40).equals(SnpEffConsequence.getConsequenceRank(ontology)+""));	 		
 	 		assertTrue(maf.getColumnValue(9).equals(SnpEffConsequence.getMafClassification(ontology) ));
-	 		
-	 		
-	 		
+	 			 		
 	 		//for other columns after A.M confirmation
 	 		assertTrue(maf.getColumnValue(2).equals(Dmaf.getColumnValue(2) ));		
 	 		assertTrue(maf.getColumnValue(3).equals(Vcf2mafOptions.default_center ));		
@@ -177,10 +166,10 @@ public class Vcf2mafTest {
 	 		assertTrue(maf.getColumnValue(16).equals(SnpEffMafRecord.Unknown ));	//tumour sample	
 	 		assertTrue(maf.getColumnValue(17).equals(SnpEffMafRecord.Unknown ));	//normal sample
 	 		
-			assertTrue(maf.getColumnValue(18).equals("T" ));		//normal allel1	
+			assertTrue(maf.getColumnValue(18).equals("C" ));		//normal allel1	
 	 		assertTrue(maf.getColumnValue(19).equals("C" ));	 	//normal allel2		
 	 		assertTrue(maf.getColumnValue(35).equals(parms[6] ));		//QFlag is filter column	
-	 		assertTrue(maf.getColumnValue(36).equals("A1[5],0[0],C6[6.67],0[0],T1[6],21[32.81]" ));			//ND
+	 		assertTrue(maf.getColumnValue(36).equals("A1[5],0[0],C6[6.67],0[0],T1[6],21[32.81]" ));	//ND
 	 		assertTrue(maf.getColumnValue(37).equals("C8[7.62],2[2],A2[8],28[31.18]" ));		
 	 		assertTrue(maf.getColumnValue(38).equals(Dmaf.getColumnValue(38)  )); //not yet run confidence
 	 		assertTrue(maf.getColumnValue(41).equals(Dmaf.getColumnValue(41)  )); //NNS unkown
@@ -201,7 +190,6 @@ public class Vcf2mafTest {
 	 		//other column
 	 		assertTrue(maf.getColumnValue(41).equals(SnpEffMafRecord.Unknown));  //NNS
 	 		assertTrue(maf.getColumnValue(26).equals(VcfHeaderUtils.INFO_GERMLINE));  //somatic
-
 	 }
 	 
 	 /**
@@ -221,15 +209,11 @@ public class Vcf2mafTest {
 		 final Vcf2maf v2m = new Vcf2maf(1,2, null, null);	
 	 	 try(VCFFileReader reader = new VCFFileReader(input); ){
 	 		for (final VcfRecord vcf : reader){  		
-	 			SnpEffMafRecord maf  = v2m.converter(vcf);
-	 			
+	 			SnpEffMafRecord maf  = v2m.converter(vcf);	 			
 	 			assertTrue(maf.getColumnValue(51+1).equals("p.Met1?"));
-	 			assertTrue(maf.getColumnValue(52+1).equals(SnpEffMafRecord.Null));
- 			 
+	 			assertTrue(maf.getColumnValue(52+1).equals(SnpEffMafRecord.Null)); 			 
 	 		}	
-         }	  
-		 
-	 
+         }	  	 
 	 }
 	 
 	 /**
@@ -251,7 +235,6 @@ public class Vcf2mafTest {
 	 	 try(VCFFileReader reader = new VCFFileReader(input); ){
 	 		for (final VcfRecord vcf : reader){  		
 	 			SnpEffMafRecord maf  = v2m.converter(vcf);
-//	 			System.out.println(maf.getMafLine());
 	 		}	
          }	 
 		 
@@ -259,8 +242,7 @@ public class Vcf2mafTest {
 	 	 
 	 @Test
 	 public void ConsequenceTest() throws Exception{
-		 
-		 
+		 		 
 		 String[] str = {"chr7\t140453136\trs121913227\tAC\tTT\t.\tPASS\tSOMATIC;DB;CONF=HIGH;"
 		 		+ "EFF=missense_variant(MODERATE||gtg/AAg|p.Val207Lys/c.619GT>AA|374|BRAF|protein_coding|CODING|ENST00000496384||1|WARNING_TRANSCRIPT_NO_START_CODON),"
 		 		+ "missense_variant(MODERATE||gtg/AAg|p.Val600Lys/c.1798GT>AA|766|BRAF|protein_coding|CODING|ENST00000288602||1),"
@@ -288,12 +270,8 @@ public class Vcf2mafTest {
 		 		assertTrue(maf.getColumnValue(51+1).equals("p.Val600Lys"));
 		 		assertTrue(maf.getColumnValue(50+1).equals("ENST00000288602"));
 		 		assertTrue(maf.getColumnValue(52+1).equals("c.1798GT>AA"));
-
 	 		}	
          }			 
-		 
-		 
-
 	 }
 	 	 
 	 @Test
@@ -307,105 +285,89 @@ public class Vcf2mafTest {
 	 		final VcfRecord vcf = new VcfRecord(parms);
 	 		final SnpEffMafRecord maf = v2m.converter(vcf);
 	 		
-	 		for(int i = 1 ; i < 5; i++) 			
-	 			assertTrue(maf.getColumnValue(i).equals(Dmaf.getColumnValue(i)  ));  	
-
+	 		for(int i = 1 ; i < 5; i++) 
+	 			assertTrue(  maf.getColumnValue(i).equals(Dmaf.getColumnValue(i)) );  	
+	 		 
 	 		for(int i = 8 ; i < 9; i++)
-	 			assertTrue(maf.getColumnValue(i).equals(Dmaf.getColumnValue(i) ));  
+	 			assertTrue(maf.getColumnValue(i).equals(Dmaf.getColumnValue(i)) );  
  
-//	 		assertTrue(maf.getColumnValue(10).equals( IndelUtils.SVTYPE.DNP.name() ));  
-	 		assertTrue(maf.getColumnValue(11).equals("CT"  ));  
+	 		assertTrue(maf.getColumnValue(10).equals( IndelUtils.SVTYPE.DNP.name()) );  
+	 		assertTrue(maf.getColumnValue(11).equals("CT"));  
 	 		
-	 		for(int i = 12 ; i < 26; i++)
-	 			assertTrue(maf.getColumnValue(i).equals(Dmaf.getColumnValue(i)  ));  
-	 		
+	 		for(int i = 12 ; i < 26; i++) 
+	 			assertTrue(maf.getColumnValue(i).equals(Dmaf.getColumnValue(i) ));  
+	 		 
 	 		assertTrue(maf.getColumnValue(26).equals(VcfHeaderUtils.INFO_GERMLINE ));  
 	 		
 	 		for(int i = 27 ; i < 35; i++)
-	 			assertTrue(maf.getColumnValue(i).equals(Dmaf.getColumnValue(i)  ));  
+ 	 				assertTrue(maf.getColumnValue(i).equals(Dmaf.getColumnValue(i) ));  
 
 	 		assertTrue(maf.getColumnValue(35).equals(Constants.MISSING_DATA_STRING ));  
 	 		
-	 		for(int i = 36 ; i < 58; i++)
-	 			assertTrue(maf.getColumnValue(i).equals(Dmaf.getColumnValue(i)  )); //not yet run confidence
+	 		for(int i = 36 ; i < 45; i++)
+	 			assertTrue(maf.getColumnValue(i).equals(Dmaf.getColumnValue(i) ));  
+	 		
+	 		for(int i = 45 ; i < 51; i++)
+	 			assertTrue(maf.getColumnValue(i).equals("0" )); 
+	 		
+	 		for(int i = 51 ; i < 61; i++)
+	 			assertTrue(maf.getColumnValue(i).equals(Dmaf.getColumnValue(i) ));  
 
+	 		
+ 
 	 }
 	
 	 @Test
 	 public  void singleSampleTest() throws IOException, Exception{
- 		 createVcf();
-		 final File input = new File( DbsnpModeTest.inputName);
+ 		 
+			String[] str = {VcfHeaderUtils.STANDARD_FILE_VERSION + "=VCFv4.0",			
+				VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE+ "\tFORMAT\tCONTROL\tTEST",
+				"GL000236.1\t7127\t.\tT\tC\t.\tMR;MIUN\tSOMATIC;MR=4;NNS=4;FS=CCAGCCTATTT;EFF=non_coding_exon_variant(MODIFIER|||n.1313T>C||CU179654.1|processed_pseudogene|NON_CODING|ENST00000400789|1|1);CONF=ZERO\tGT:GD:AC:MR:NNS\t0/0:T/T:T9[37.11],18[38.33]:.:4\t0/1:C/T:C1[12],3[41],T19[35.58],30[33.63]:.:5"};			
+	        createVcf(str); 
+	        
+		 final File input = new File( inputName);
 		 final Vcf2maf v2m = new Vcf2maf(1,1, null, null);	
-	 	try(VCFFileReader reader = new VCFFileReader(input); ){
+	 	 try(VCFFileReader reader = new VCFFileReader(input); ){
 	 		for (final VcfRecord vcf : reader){  		
 	 			SnpEffMafRecord maf  = v2m.converter(vcf);
 	 			assertTrue( maf.getColumnValue(36).equals(maf.getColumnValue(37)) );
-	 			assertTrue( maf.getColumnValue(16).equals(maf.getColumnValue(17)) );
-	 			
+	 			assertTrue( maf.getColumnValue(16).equals("Unknown"));
+	 			assertTrue( maf.getColumnValue(33).equals(maf.getColumnValue(34)) );
+ //		 	T\tC	GT:GD:AC:MR:NNS\t0/0:T/T:T9[37.11],18[38.33]:.:4			
+		 		assertTrue(maf.getColumnValue(41).equals("C:ND4:TD4"));   //NNS field is not existed at format		 		
+ 		 		assertTrue(maf.getColumnValue(45).equals("27"));  //t_deep column2
+		 		assertTrue(maf.getColumnValue(46).equals("27"));  //t_ref T9[37.11],18[38.33]
+		 		assertTrue(maf.getColumnValue(47).equals("0"));  //t_allel  
+		 		
+ 		 		assertTrue(maf.getColumnValue(48).equals("27"));  //n_deep column1
+		 		assertTrue(maf.getColumnValue(49).equals("27")); //T9[37.11],18[38.33]
+		 		assertTrue(maf.getColumnValue(50).equals("0"));  
+
 	 		}	
-        }
+         }
        
 	 }	 
 	 
-	 public static void createVcf() throws IOException{
-        final List<String> data = new ArrayList<String>();
-        data.add("##fileformat=VCFv4.0");
-        data.add(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tCONTROL\tTEST");
-        data.add("GL000236.1\t7127\t.\tT\tC\t.\tMR;MIUN\tSOMATIC;MR=4;NNS=4;FS=CCAGCCTATTT;EFF=non_coding_exon_variant(MODIFIER|||n.1313T>C||CU179654.1|processed_pseudogene|NON_CODING|ENST00000400789|1|1);CONF=ZERO\tGT:GD:AC:MR:NNS\t0/0:T/T:T9[37.11],18[38.33]:.:4\t0/1:C/T:C1[12],3[41],T19[35.58],30[33.63]:.:5");
-        try(BufferedWriter out = new BufferedWriter(new FileWriter(DbsnpModeTest.inputName));) {          
-            for (final String line : data)   out.write(line + "\n");                  
-         } 
-	 }
+//	 public static void createVcf() throws IOException{
+//        final List<String> data = new ArrayList<String>();
+//        data.add("##fileformat=VCFv4.0");
+//        data.add(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tCONTROL\tTEST");
+//        data.add("GL000236.1\t7127\t.\tT\tC\t.\tMR;MIUN\tSOMATIC;MR=4;NNS=4;FS=CCAGCCTATTT;EFF=non_coding_exon_variant(MODIFIER|||n.1313T>C||CU179654.1|processed_pseudogene|NON_CODING|ENST00000400789|1|1);CONF=ZERO\tGT:GD:AC:MR:NNS\t0/0:T/T:T9[37.11],18[38.33]:.:4\t0/1:C/T:C1[12],3[41],T19[35.58],30[33.63]:.:5");
+//        try(BufferedWriter out = new BufferedWriter(new FileWriter(DbsnpModeTest.inputName));) {          
+//            for (final String line : data)   out.write(line + "\n");                  
+//         } 
+//	 }
 	
 	public static void createVcf(String[] str) throws IOException{
 		 final List<String> data = new ArrayList<String>();
 		 for(int i = 0; i < str.length; i++)
 			 data.add(str[i]);
 		 
-         try(BufferedWriter out = new BufferedWriter(new FileWriter(DbsnpModeTest.inputName));) {          
+         try(BufferedWriter out = new BufferedWriter(new FileWriter(inputName));) {          
              for (final String line : data)   out.write(line + "\n");                  
-          }  
-		
+          }  		
 	}
-	
-	@Test
-	public void Frame_Shift_Test()  {
-		String[] str = {VcfHeaderUtils.STANDARD_FILE_VERSION + "=VCFv4.0",			
-				VcfHeaderUtils.STANDARD_DONOR_ID + "=MELA_0264",
-				VcfHeaderUtils.STANDARD_CONTROL_SAMPLE + "=CONTROL",
-				VcfHeaderUtils.STANDARD_TEST_SAMPLE + "=TEST",				
-				VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tCONTROL\tTEST",
-				"chr1\t7127\t.\tTC\tC\t.\tMR;MIUN\tSOMATIC;EFF=frameshift_variant(HIGH||ggccaa/|p.Gly105fs/c.313_317delGGCCA|112|AC004824.2|protein_coding|CODING|ENST00000602074|5|1|WARNING_TRANSCRIPT_NO_START_CODON);CONF=ZERO\tGT:GD:AC:MR:NNS\t0/0:T/T:T9[37.11],18[38.33]:.:4\t0/1:C/T:C1[12],3[41],T19[35.58],30[33.63]:.:5",
-				"chr2\t7127\t.\tT\tTCC\t.\tMR;MIUN\tSOMATIC;EFF=frameshift_variant(HIGH||ggccaa/|p.Gly105fs/c.313_317delGGCCA|112|AC004824.2|protein_coding|CODING|ENST00000602074|5|1|WARNING_TRANSCRIPT_NO_START_CODON);CONF=ZERO\tGT:GD:AC:MR:NNS\t0/0:T/T:T9[37.11],18[38.33]:.:4\t0/1:C/T:C1[12],3[41],T19[35.58],30[33.63]:.:5"
-		};
-		
-        try{
-        	createVcf(str);                         
-        	final File input = new File( DbsnpModeTest.inputName);
-        	final Vcf2maf v2m = new Vcf2maf(1,2, null, null);	
-        	try(VCFFileReader reader = new VCFFileReader(input); ){
-		 		for (final VcfRecord vcf : reader){  		
-		 			SnpEffMafRecord maf  = v2m.converter(vcf);
-		 			//System.out.println(maf.getMafLine());
-		 			//INS
-		 			if( maf.getColumnValue(5).equals("1") ){
-		 				assertTrue(maf.getColumnValue(10).equals(SVTYPE.DEL.name()));
-		 				assertTrue(maf.getColumnValue(9).equals("Frame_Shift_DEL"));
-		 				assertTrue(maf.getColumnValue(6).equals("7128"));
-		 				assertTrue(maf.getColumnValue(7).equals("7128"));
-		 				
-		 			}else{
-		 				assertTrue(maf.getColumnValue(10).equals(SVTYPE.INS.name()));
-		 				assertTrue(maf.getColumnValue(9).equals("Frame_Shift_INS"));
-		 				assertTrue(maf.getColumnValue(6).equals("7127"));
-		 				assertTrue(maf.getColumnValue(7).equals("7128"));
-		 			}
-		 		}	
-	        }	
-        }catch(Exception e){
-        	fail(e.getMessage()); 
-        }
-	}
+ 	
 
 	@Test
 	public void FileNameTest() {
@@ -415,14 +377,12 @@ public class Vcf2mafTest {
 				VcfHeaderUtils.STANDARD_TEST_SAMPLE + "=TEST",				
 				VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tCONTROL\tTEST"	
 		};
-		
-       // input.getAbsolutePath(); 
-        
+		        
         try{
         	createVcf(str);       
         	File input = new File(DbsnpModeTest.inputName); 
 
- 			final String command = "--mode vcf2maf --log " + outputDir + "/output.log  -i " + DbsnpModeTest.inputName + " --outdir " + outputDir;			
+ 			final String command = "--mode vcf2maf --log " + outputDir + "/output.log  -i " + inputName + " --outdir " + outputDir;			
 			final Executor exec = new Executor(command, "au.edu.qimr.qannotate.Main");    
 			assertEquals(0, exec.getErrCode());
 			assertTrue(0 == exec.getOutputStreamConsumer().getLines().length);
@@ -457,8 +417,7 @@ public class Vcf2mafTest {
         	 fail(e.getMessage());
         }	
 	}
-	
-	
+		
 	@Test
 	public void FileNameWithNoSampleidTest() throws IOException{
 		String[] str = {"##fileformat=VCFv4.0",			
@@ -469,7 +428,7 @@ public class Vcf2mafTest {
         createVcf(str);
         
         try{  
-			final String command = "--mode vcf2maf --control control  --log " + outputDir + "/output.log  -i " + DbsnpModeTest.inputName + " --outdir " + outputDir;			
+			final String command = "--mode vcf2maf --control control  --log " + outputDir + "/output.log  -i " + inputName + " --outdir " + outputDir;			
 			final Executor exec = new Executor(command, "au.edu.qimr.qannotate.Main");        	
 			assertEquals(0, exec.getErrCode());	
         }catch(Exception e){

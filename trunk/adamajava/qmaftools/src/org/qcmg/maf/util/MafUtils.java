@@ -24,6 +24,7 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.maf.MAFRecord;
 import org.qcmg.common.meta.QDccMeta;
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.model.MafType;
 import org.qcmg.common.model.PileupElement;
 import org.qcmg.common.model.ReferenceNameComparator;
@@ -469,7 +470,7 @@ public class MafUtils {
 		int startPosition = Integer.parseInt(params[3]);
 		int endPosition = Integer.parseInt(params[4]);
 		TorrentVerificationStatus tvs = (null == verifiedData) ? null 
-				: verifiedData.get(new ChrPosition("chr"+chromosome, startPosition, endPosition));
+				: verifiedData.get(new ChrRangePosition("chr"+chromosome, startPosition, endPosition));
 		
 		// setup maf record with static and common fields
 		MAFRecord maf = new MAFRecord();
@@ -581,7 +582,7 @@ public class MafUtils {
 		int startPosition = Integer.parseInt(params[3]);
 		int endPosition = Integer.parseInt(params[4]);
 		TorrentVerificationStatus tvs = (null == verifiedData) ? null 
-				: verifiedData.get(new ChrPosition("chr"+chromosome, startPosition, endPosition));
+				: verifiedData.get(new ChrRangePosition("chr"+chromosome, startPosition, endPosition));
 		
 		// setup maf record with static and common fields
 		MAFRecord maf = new MAFRecord();
@@ -1127,7 +1128,7 @@ public class MafUtils {
 				int startPos = Integer.parseInt(params[5]);
 				int endPos = Integer.parseInt(params[6]);
 				
-				ChrPosition cp = new ChrPosition(chr, startPos, endPos);
+				ChrPosition cp = new ChrRangePosition(chr, startPos, endPos);
 				positionsOfInterest.add(cp);
 			}
 			logger.info("for file: " + mafFile + " no of records: " + count + ", no of entries in chrpos set: " + positionsOfInterest.size());

@@ -60,7 +60,6 @@ public class Vcf2maf extends AbstractMode{
  
 	//EFF= Effect ( Effect_Impact | Functional_Class | Codon_Change | Amino_Acid_Change| Amino_Acid_Length | Gene_Name | Transcript_BioType | Gene_Coding | Transcript_ID | Exon_Rank  | Genotype_Number [ | ERRORS | WARNINGS ] )	
 	public Vcf2maf(Vcf2mafOptions option, QLogger logger) throws Exception {
-		// TODO Auto-generated constructor stub		 
 		this.logger = logger;		
 		this.center = option.getCenter();
 		this.sequencer = option.getSequencer();		
@@ -242,13 +241,19 @@ public class Vcf2maf extends AbstractMode{
 			maf.setColumnValue(7, Integer.toString(vcf.getPosition() + 1));			
 		}else if(type.equals(SVTYPE.DEL)){	
 			maf.setColumnValue(6,  Integer.toString(vcf.getPosition() + 1));
-			maf.setColumnValue(7, Integer.toString(vcf.getChrPosition().getEndPosition()));
+			maf.setColumnValue(7, Integer.toString(vcf.getPosition() + vcf.getRef().length()-1));
 		}else{		
 			maf.setColumnValue(6,  Integer.toString(vcf.getPosition()));
-			maf.setColumnValue(7, Integer.toString(vcf.getChrPosition().getEndPosition()));
+			maf.setColumnValue(7, Integer.toString(vcf.getPosition() + vcf.getRef().length()-1));
 		}
-		 
-		maf.setColumnValue(11,  vcf.getRef());	
+		
+		String ref = vcf.getRef();
+		if(type.equals(SVTYPE.DEL) )
+			ref =  ref.substring(1); //remove heading base
+		else if(type.equals(SVTYPE.INS))
+			ref = "-"; //replace heading base with "-"
+		
+		maf.setColumnValue(11,  ref);	
 		maf.setColumnValue(35,  vcf.getFilter());
 		
 		//set novel for non dbSNP
@@ -264,10 +269,12 @@ public class Vcf2maf extends AbstractMode{
 			maf.setColumnValue(26,  VcfHeaderUtils.INFO_SOMATIC);
 		else
 			maf.setColumnValue(26,  VcfHeaderUtils.INFO_GERMLINE);
+				
+//		if(testSample != null) maf.setColumnValue(16,   testSample );
+//		if(controlSample != null) maf.setColumnValue(17,  controlSample );	
 		
-		
-		if(testSample != null) maf.setColumnValue(16,  dornorId + ":" + testSample );
-		if(controlSample != null) maf.setColumnValue(17, dornorId + ":" + controlSample );
+		if(testSample != null) maf.setColumnValue(33,   testSample );
+		if(controlSample != null) maf.setColumnValue(34,  controlSample );	
 		
 
 		final VcfInfoFieldRecord info =  new VcfInfoFieldRecord(vcf.getInfo());
@@ -285,133 +292,194 @@ public class Vcf2maf extends AbstractMode{
 		
 		//format & sample field
 		final List<String> formats =  vcf.getFormatFields();
+		
+		//do nothing if null
+		if(formats == null) 	return maf; 
+		
 		if(   formats.size() <= Math.max(test_column, control_column)  )	// format include "FORMAT" column, must bigger than sample column
 			throw new Exception(" Varint missing sample column on :"+ vcf.getChromosome() + "\t" + vcf.getPosition());
 
 		
 		VcfFormatFieldRecord sample =  new VcfFormatFieldRecord(formats.get(0), formats.get(test_column));
-		final String[] Tvalues = readFormatField(sample) ;		
+		final String[] Tvalues = getAltCounts( sample, vcf.getRef(), vcf.getAlt(), type);
 		
 		if(Tvalues[1] != null){	//allesls counts
-			maf.setColumnValue(37,  Tvalues[1]);
-	    	maf.setColumnValue(45, Integer.toString( VcfUtils.getAltFrequency(sample, null)));
-	    	maf.setColumnValue(46, Integer.toString( VcfUtils.getAltFrequency(sample, vcf.getRef()))); 
-	    	maf.setColumnValue(47, Integer.toString( VcfUtils.getAltFrequency(sample, vcf.getAlt())));
-	    	maf.setColumnValue(12,  Tvalues[2] );  //TD allele1
-	    	maf.setColumnValue(13, Tvalues[3]);		//TD allele2
-		}
-		
+			maf.setColumnValue(37,  Tvalues[6]); //TD
+	    	maf.setColumnValue(45, Tvalues[1]); //t_depth
+	    	maf.setColumnValue(46, Tvalues[2]); //t_ref_count
+	    	maf.setColumnValue(47, Tvalues[3]); //t_alt_count
+	    	maf.setColumnValue(12, Tvalues[4] );  //TD allele1
+	    	maf.setColumnValue(13, Tvalues[5]);		//TD allele2
+		}		
 		
 		sample =  new VcfFormatFieldRecord(formats.get(0), formats.get(control_column));
-		final String[] Nvalues = readFormatField(sample) ;		
+		final String[] Nvalues = getAltCounts( sample, vcf.getRef(), vcf.getAlt(),type);
 		
 		if(Nvalues[1] != null){	//allesls counts
-			maf.setColumnValue(36,  Nvalues[1]);
-	    	maf.setColumnValue(48, Integer.toString( VcfUtils.getAltFrequency(sample, null)));
-	    	maf.setColumnValue(49, Integer.toString( VcfUtils.getAltFrequency(sample, vcf.getRef()))); 
-	    	maf.setColumnValue(50, Integer.toString( VcfUtils.getAltFrequency(sample, vcf.getAlt())));
-	    	maf.setColumnValue(18,  Nvalues[2] );  //ND allele1
-	    	maf.setColumnValue(19, Nvalues[3]);	//ND allele2
+			maf.setColumnValue(36, Nvalues[6]);
+	    	maf.setColumnValue(48, Nvalues[1]);
+	    	maf.setColumnValue(49, Nvalues[2]); 
+	    	maf.setColumnValue(50, Nvalues[3]);
+	    	maf.setColumnValue(18, Nvalues[4]); //ND allele1
+	    	maf.setColumnValue(19, Nvalues[5]);	//ND allele2
 		}		
 
 		//NNS eg, ND5:TD7
-		String nns = SnpEffMafRecord.Unknown;
-		if(Nvalues[0].equals(SnpEffMafRecord.Unknown)) nns = (!Tvalues[0].equals(SnpEffMafRecord.Unknown) )? "TD"+Tvalues[0] : SnpEffMafRecord.Unknown;
-		else if (Tvalues[0].equals(SnpEffMafRecord.Unknown)) nns = (!Nvalues[0].equals(SnpEffMafRecord.Unknown) )? "ND"+Nvalues[0] : SnpEffMafRecord.Unknown;
-		else nns = String.format("ND%s:TD%s",Nvalues[0], Tvalues[0]);
+		String nns = getMafAlt(vcf.getRef(), vcf.getAlt(), type);
+		if(Nvalues[0].equals(SnpEffMafRecord.Unknown)) nns = (!Tvalues[0].equals(SnpEffMafRecord.Unknown) )? nns+":TD"+Tvalues[0] : SnpEffMafRecord.Unknown;
+		else if (Tvalues[0].equals(SnpEffMafRecord.Unknown)) nns = (!Nvalues[0].equals(SnpEffMafRecord.Unknown) )? nns+":ND"+Nvalues[0] : SnpEffMafRecord.Unknown;
+		else nns += String.format(":ND%s:TD%s",Nvalues[0], Tvalues[0]);
 		maf.setColumnValue(41, nns);	
 
 		return maf;
 
 	}
+	 
+	 public static String getMafAlt(String ref, String alt, SVTYPE type) {
+		 String str = alt; 
+	 	 if(type.equals(SVTYPE.DEL)){
+			str = str.substring(1);
+			for(int j = alt.length(); j < ref.length(); j ++)
+				str += "-";
+		}else  if(type.equals(SVTYPE.INS)) 
+			
+			str = (ref.equalsIgnoreCase(alt))? "-" : str.substring(1);
+			
+		 
+		 return str; 
+	 } 
+	 
 	 /**
 	  * 
 	  * @param format
-	  * @return array[nns, allele_counts, allele1, allele2]
+	  * @return array[nns, depth, ref_count, alt_count, allele1, allele2, coverage(AC,ACCS,ACINDEL)]
 	  * @throws Exception
 	  */
-	 private String[] readFormatField(VcfFormatFieldRecord format) throws Exception{
-		
-		 //String nns = null;
-		 if(format == null) return null;
+///	 
+	 private String[] getAltCounts(VcfFormatFieldRecord sample, String ref, String alt, SVTYPE type) throws Exception{
+		 String[] values = {SnpEffMafRecord.Unknown, null, null, null,null, null,null};
+		 if(type == null)
+			 type = IndelUtils.getVariantType(ref, alt);
 		 
-		  String[] values = {SnpEffMafRecord.Unknown,null, null, null};
+      	 if(type.equals(SVTYPE.DEL) || type.equals(SVTYPE.INS) ){
+      		 //eg. 13,38,37,13[8,5],0,0,1
+      		values[6] = sample.getField(IndelUtils.FORMAT_ACINDEL);
+      		String[] counts = values[6].split(Constants.COMMA_STRING);
+      		values[0] = counts[0]; //supporting reads nns
+      		values[1] = counts[1]; //coverage
+      		values[3] = counts[3].substring(0,counts[3].indexOf('['));  //supporting reads total
+      		
+      		
+      		//reference reads counts is the informative reads - support/partial/nearbyindel reads
+      		int refCounts =  Integer.parseInt(counts[2]) - Integer.parseInt(values[3])- Integer.parseInt(counts[5])-Integer.parseInt(counts[6]);
+      		values[2] = refCounts + "";     		     		
+      	 }else if(  type.equals(SVTYPE.SNP) || type.equals(SVTYPE.DNP) || 
+      			 type.equals(SVTYPE.TNP) || type.equals(SVTYPE.ONP) ){
+      		if (sample.getField(VcfHeaderUtils.FORMAT_NOVEL_STARTS) != null)   		
+        		values[0] = sample.getField(VcfHeaderUtils.FORMAT_NOVEL_STARTS); 
+    		//check counts      		
+        	values[1] = VcfUtils.getAltFrequency(sample, null) + "";
+        	values[2] = VcfUtils.getAltFrequency(sample, ref) + "";
+        	values[3] = VcfUtils.getAltFrequency(sample, alt) + "";
+        		     
+        	values[6] = sample.getField(VcfHeaderUtils.FORMAT_ALLELE_COUNT);
+	        values[6] = (values[6] == null) ? sample.getField(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP): values[6];
+
+      	 }
 		 
-		  //NNS
-    	if (format.getField(VcfHeaderUtils.FORMAT_NOVEL_STARTS) != null)   		
-    		values[0] = format.getField(VcfHeaderUtils.FORMAT_NOVEL_STARTS); 
-	 
-		//check counts
-    	values[1] = format.getField(VcfHeaderUtils.FORMAT_ALLELE_COUNT);
-    	values[1]= (values[1] == null) ? format.getField(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP): values[1];
-    	values[1]= (values[1] == null) ? format.getField("ACINDEL"): values[1];
-    	
-    	String[] alleles = getAlleles(format);
+      	 //get genotype base
+		 String gd = sample.getField(VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS);
+		 if( gd == null )
+			 gd = IndelUtils.getGenotypeDetails(sample, ref, alt); //maybe null
 		 
-    	if(alleles != null)
-		 System.arraycopy(alleles, 0, values, 2, 2);
-    	
-	    return values;
+		 if( !StringUtils.isNullOrEmpty(gd) && !gd.equals(Constants.MISSING_DATA) ){
+			  String[] pairs = gd.contains("|") ? gd.split("|") : gd.split("/");
+			  if(pairs.length > 0) values[4] = pairs[0];
+			  if(pairs.length > 1) values[5] = pairs[1];
+			  
+			  for(int i = 4; i <= 5; i++)
+				  values[i] = getMafAlt(ref, values[i], type);
+			  
+//			  if(type.equals(SVTYPE.DEL)){
+//				for(int i = 4; i <= 5; i++){
+//					gd = values[i].substring(1);//remove first base 
+//					//append - for deleted allele base
+//					for(int j = 1; j < ref.length(); j++) 
+//						if(gd.length() < j) gd += "-";			 
+//					values[i] = gd;  
+//				}				 
+//			 }else if(type.equals(SVTYPE.INS)){
+//				 for(int i = 4; i <= 5; i++)
+//					 values[i] = values[i].substring(1);//remove first base 
+//			 }
+		 }
+		 
+		 //replace null with "null";
+		for(int i = 0; i < values.length; i++)
+			if(values[i] == null)
+				values[i] = SnpEffMafRecord.Null;
+		 	     
+		return values;
 	 }
 	 	 
 	//should unti test to check it
-	private String[] getAlleles(VcfFormatFieldRecord format) throws Exception {
-		
-		String[] alleles = null; // = {Constants.NULL_STRING, Constants.NULL_STRING}; 
- 
-		if(format == null) return null;
-		
-		final String allel =  format.getField(VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS);		
-		 
-		if(allel != null && !allel.equals(Constants.MISSING_DATA_STRING)){	    	
-			if(allel.contains(Constants.BAR_STRING)) 
-				alleles = allel.split(Constants.BAR_STRING);
-			else if(allel.contains(Constants.SLASH_STRING)) 
-				alleles = allel.split(Constants.SLASH_STRING);
-			 
-			if(alleles == null || alleles.length <= 0) return null; //new String[] {Constants.NULL_STRING, Constants.NULL_STRING};  
-			else if(alleles.length == 1) return new String[] {alleles[0], Constants.NULL_STRING};
-			else return new String[] {alleles[0], alleles[1]};
-		}else{
-			//compound SNP
-			String accs =  format.getField(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP);	
-			if(  !StringUtils.isNullOrEmpty( accs) && ! accs.equals(Constants.MISSING_DATA_STRING)){
-				 alleles = accs.split(Constants.COMMA_STRING);
-				 
-			//	if(alleles == null || alleles.length < 3) return null;
-				if(alleles.length %3 != 0) 
-					throw new Exception("Invalid sample format value:" + accs);
-				
-				final int size = alleles.length / 3;
-				String[] base = new String[size];
-				int[] counts = new int[size];
-				for (int i = 0; i < size; i++ ){
-					
-					base[i] = alleles[i*3];
-					counts[i] =  Integer.parseInt(alleles[i*3+1]) + Integer.parseInt(alleles[i*3+2]);
-				}
-				int[] colon = counts.clone();
-				Arrays.sort(counts);
-				
-				String a1 = null, a2 = Constants.NULL_STRING; 
-				for(int i = 0; i <base.length; i ++){
-					if(colon[i] == counts[size-1])
-						a1 = base[i];
-					else if(size > 1 && colon[i] == counts[counts.length-2])
-						a2 = base[i];
-				}
-				
-				if(a1 == null) throw new RuntimeException("Algorithm Error during retrive compound SNP Allels:" + accs);
-				
-				return new String[] {a1, a2};
-			}			
-
-			
-		}
-			
-		//format.getField(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP) != null && 
-		return null; 
-	}
+//	private String[] getAlleles(VcfFormatFieldRecord format) throws Exception {
+//		
+//		String[] alleles = null; // = {Constants.NULL_STRING, Constants.NULL_STRING}; 
+// 
+//		if(format == null) return null;
+//		
+//		final String allel =  format.getField(VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS);		
+//		 
+//		if(allel != null && !allel.equals(Constants.MISSING_DATA_STRING)){	    	
+//			if(allel.contains(Constants.BAR_STRING)) 
+//				alleles = allel.split(Constants.BAR_STRING);
+//			else if(allel.contains(Constants.SLASH_STRING)) 
+//				alleles = allel.split(Constants.SLASH_STRING);
+//			 
+//			if(alleles == null || alleles.length <= 0) return null; //new String[] {Constants.NULL_STRING, Constants.NULL_STRING};  
+//			else if(alleles.length == 1) return new String[] {alleles[0], Constants.NULL_STRING};
+//			else return new String[] {alleles[0], alleles[1]};
+//		}else{
+//			//compound SNP
+//			String accs =  format.getField(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP);	
+//			if(  !StringUtils.isNullOrEmpty( accs) && ! accs.equals(Constants.MISSING_DATA_STRING)){
+//				 alleles = accs.split(Constants.COMMA_STRING);
+//				 
+//			//	if(alleles == null || alleles.length < 3) return null;
+//				if(alleles.length %3 != 0) 
+//					throw new Exception("Invalid sample format value:" + accs);
+//				
+//				final int size = alleles.length / 3;
+//				String[] base = new String[size];
+//				int[] counts = new int[size];
+//				for (int i = 0; i < size; i++ ){
+//					
+//					base[i] = alleles[i*3];
+//					counts[i] =  Integer.parseInt(alleles[i*3+1]) + Integer.parseInt(alleles[i*3+2]);
+//				}
+//				int[] colon = counts.clone();
+//				Arrays.sort(counts);
+//				
+//				String a1 = null, a2 = Constants.NULL_STRING; 
+//				for(int i = 0; i <base.length; i ++){
+//					if(colon[i] == counts[size-1])
+//						a1 = base[i];
+//					else if(size > 1 && colon[i] == counts[counts.length-2])
+//						a2 = base[i];
+//				}
+//				
+//				if(a1 == null) throw new RuntimeException("Algorithm Error during retrive compound SNP Allels:" + accs);
+//				
+//				return new String[] {a1, a2};
+//			}			
+//
+//			
+//		}
+//			
+//		//format.getField(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP) != null && 
+//		return null; 
+//	}
 	 	 
 	 void getSnpEffAnnotation(SnpEffMafRecord maf, String effString) throws Exception  {
 		 	String effAnno = SnpEffConsequence.getWorstCaseConsequence(effString.split(","));		 

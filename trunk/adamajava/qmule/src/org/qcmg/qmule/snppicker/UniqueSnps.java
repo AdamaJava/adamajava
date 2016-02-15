@@ -13,6 +13,7 @@ import java.util.regex.Pattern;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.qmule.Messages;
 import org.qcmg.qmule.Options;
@@ -154,7 +155,7 @@ public class UniqueSnps {
 					String [] params = tabbedPattern.split(tr.getData());
 					String chrPosition = params[params.length-2];
 //					logger.info("chrPosition: " + chrPosition);
-					ChrPosition chrPos = new ChrPosition(chrPosition.substring(0, chrPosition.indexOf(":")-1), Integer.parseInt(chrPosition.substring(chrPosition.indexOf("-"))));
+					ChrPosition chrPos = new ChrRangePosition(chrPosition.substring(0, chrPosition.indexOf(":")-1), Integer.parseInt(chrPosition.substring(chrPosition.indexOf("-"))));
 					
 					unVerifiedSNPs.put(chrPos,tr);
 				}
@@ -188,7 +189,7 @@ public class UniqueSnps {
 					String [] params = tabbedPattern.split(tr.getData());
 					String chrPosition = params[2];
 	//				logger.info("chrPosition: " + chrPosition);
-					ChrPosition chrPos = new ChrPosition(chrPosition.substring(0, chrPosition.indexOf(":")-1), Integer.parseInt(chrPosition.substring(chrPosition.indexOf("-"))));
+					ChrPosition chrPos = new ChrRangePosition(chrPosition.substring(0, chrPosition.indexOf(":")-1), Integer.parseInt(chrPosition.substring(chrPosition.indexOf("-"))));
 					
 					verifiedSNPs.put(chrPos,tr);
 				}

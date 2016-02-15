@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.GenotypeEnum;
 import org.qcmg.common.model.PileupElement;
@@ -305,7 +306,7 @@ public class VcfUtils {
 	}
 	
 	/**
-	 * 
+	 * it adjust the endposition of cp if it is not corrected
 	 * @param cp: ChrPosition of variant position
 	 * @param id: String of variant id can be null
 	 * @param ref: String of reference base, it will turn to "." if null
@@ -313,28 +314,46 @@ public class VcfUtils {
 	 * @return a vcfRecord
 	 */
 	public static VcfRecord createVcfRecord(ChrPosition cp, String id, String ref, String alt) {
-		return new VcfRecord(cp, id, ref, alt);
-//		final VcfRecord rec = new VcfRecord(cp, id, ref, alt);
-//		ref = (ref == null)? "." : ref;	
-//		String[] params = {cp.getChromosome(), cp.getPosition()+"", id, ref, alt};
-//		return new VcfRecord(params);	 
+ 			
+		if(ref != null   && (cp.getEndPosition() - cp.getStartPosition() +1 )!= ref.length()) {
+			return(new VcfRecord.Builder(cp.getChromosome(),cp.getStartPosition(), ref)).id(id).allele(alt).build();
+		}
+		if (cp instanceof ChrPointPosition) {
+			
+			return new VcfRecord.Builder((ChrPointPosition) cp, ref).id(id).allele(alt).build();
+		} else {
+			return new VcfRecord.Builder(cp.getChromosome(),cp.getStartPosition(), ref).id(id).allele(alt).build();
+			
+		}
+		 
+	}
+	public static VcfRecord createVcfRecord(String chr, int position) {
+		return new VcfRecord.Builder(chr, position).build();
 	}
 	
-	public static VcfRecord createVcfRecord(ChrPosition cp, String ref) {		 
-		return createVcfRecord(cp, null, ref, null);
-	}
-
-	public static VcfRecord createVcfRecord(String chr, int position, String ref) {
-		ref = (ref == null)? "." : ref;	
-		String[] params = {chr, position+"", ".", ref, null};
-		return new VcfRecord(params);	
+	public static VcfRecord resetAllel(VcfRecord re, String alt){
+		VcfRecord re1  =  new VcfRecord.Builder(re.getChrPosition(), re.getRef(), alt)
+		.id(re.getId()).qualString(re.getQualString()).filter(re.getFilter()).build();
 		
+		re1.setInfo(re.getInfo());
+		re1.setFormatFields(re.getFormatFields());
+		
+		return re1; 
 	}
-	public static VcfRecord createVcfRecord(String chr, int position) {		
-		String[] params = {chr, position+"", null, ".", null};
-		return new VcfRecord(params);					
-//		return createVcfRecord(new ChrPosition(chr, position), null);
-	}
+	
+//	public static VcfRecord createVcfRecord(ChrPosition cp, String ref) {		 
+//		return createVcfRecord(cp, null, ref, null);
+//	}
+//
+//	public static VcfRecord createVcfRecord(String chr, int position, String ref) {		
+//		return new VcfRecord.Builder(chr, position, ref).build(); 
+//	}
+//	
+//	public static VcfRecord createVcfRecord(String chr, int position) {		
+//		String[] params = {chr, position+"", null, ".", null};
+//		return new VcfRecord(params);					
+////		return createVcfRecord(new ChrPosition(chr, position), null);
+//	}
 	
 	/**
 	 * A vcf record is considered to be a snp if the length of the ref and alt fields are the same (and not null/0), the fields don't contain commas, and are not equal 
@@ -414,6 +433,10 @@ public class VcfUtils {
 		if ( null != additionalSampleFormatFields && additionalSampleFormatFields.size() == 2) {
 			
 			List<String> existingFF = vcf.getFormatFields();
+			
+			if(existingFF == null)
+				throw new IllegalArgumentException("can't append additionalSampleFormatField to vcf with null on format column: " + vcf.toString());
+		 
 			
 			String newSampleFormatFields = additionalSampleFormatFields.get(0);
 			String existingFormatFields =existingFF.get(0);
@@ -649,9 +672,9 @@ public class VcfUtils {
 				}
 				if (chr.equals(vcf.getChrPosition().getChromosome())) {
 					if (-1 == startPos) {
-						startPos = vcf.getChrPosition().getPosition();
+						startPos = vcf.getChrPosition().getStartPosition();
 					}
-					if (startPos == vcf.getChrPosition().getPosition()) {
+					if (startPos == vcf.getChrPosition().getStartPosition()) {
 						if (ref.length() < vcf.getRef().length()) {
 							ref = vcf.getRef();
 						}
@@ -668,9 +691,9 @@ public class VcfUtils {
 				if (chr.equals(vcf.getChrPosition().getChromosome())) {
 					
 					if (-1 == startPos) {
-						startPos = vcf.getChrPosition().getPosition();
+						startPos = vcf.getChrPosition().getStartPosition();
 					}
-					if (startPos == vcf.getChrPosition().getPosition()) {
+					if (startPos == vcf.getChrPosition().getStartPosition()) {
 						
 						
 						// get alt based on this ref and the largest ref
@@ -692,7 +715,8 @@ public class VcfUtils {
 			if (ref.length() == 0) {
 				logger.warn("Got zero length ref!!! ref: " + ref + ", entries in set: " + records.size());
 			}
-			mergeRecord = VcfUtils.createVcfRecord(new ChrPosition(chr, startPos, startPos + ref.length() -1 ), ".", ref, sb.toString());
+			mergeRecord = new VcfRecord.Builder(chr, startPos, ref).allele(sb.toString()).build();
+					
 		}
 		return mergeRecord;
 	}

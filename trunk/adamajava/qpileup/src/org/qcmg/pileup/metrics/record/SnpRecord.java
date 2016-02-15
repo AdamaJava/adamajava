@@ -7,7 +7,7 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.model.GenotypeEnum;
 import org.qcmg.pileup.PileupConstants;
 
@@ -276,8 +276,8 @@ public class SnpRecord extends MetricRecord {
 		return chromosome + "," + position;
 	}
 
-	public ChrPosition getChrPosition() {
-		return new ChrPosition(chromosome, position);
+	public ChrRangePosition getChrPosition() {
+		return new ChrRangePosition(chromosome, position);
 	}
 
 	public void setDbSnpAltLength(int dbSNPAltLengh) {

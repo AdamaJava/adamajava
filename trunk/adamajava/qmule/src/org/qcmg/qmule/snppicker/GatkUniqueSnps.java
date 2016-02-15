@@ -19,6 +19,7 @@ import org.qcmg.chrconv.ChrConvFileReader;
 import org.qcmg.chrconv.ChromosomeConversionRecord;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.GenotypeEnum;
 import org.qcmg.common.model.QSnpGATKRecord;
@@ -367,7 +368,7 @@ public class GatkUniqueSnps {
 		// create map of SOMATIC classified SNPs
 		final Map<ChrPosition, QSnpRecord> somaticPileupMap = new HashMap<ChrPosition, QSnpRecord>(qPileupRecords.size(), 1);
 		for (final QSnpRecord pileupRecord : qPileupRecords) {
-			somaticPileupMap.put(new ChrPosition(pileupRecord.getChromosome(), pileupRecord.getPosition()), pileupRecord);
+			somaticPileupMap.put(ChrPointPosition.valueOf(pileupRecord.getChromosome(), pileupRecord.getPosition()), pileupRecord);
 		}
 		
 		int updateCount = 0, count = 0;
@@ -376,7 +377,7 @@ public class GatkUniqueSnps {
 				
 				// get QCMG chromosome from map
 				final String chr = ensembleToQCMG.get(rec.getChromosome());
-				final ChrPosition id = new ChrPosition(chr, rec.getPosition());
+				final ChrPosition id = ChrPointPosition.valueOf(chr, rec.getPosition());
 				
 				final QSnpRecord qpr = somaticPileupMap.get(id);
 				if (null != qpr && null != qpr.getMutation() && (null == qpr.getAnnotation() || ! qpr.getAnnotation().contains(VcfHeaderUtils.FILTER_GERMLINE))) {
@@ -413,7 +414,7 @@ public class GatkUniqueSnps {
 			final VCFFileReader reader  = new VCFFileReader(new File(pileupFile));
 			try {
 				for (final VcfRecord qpr : reader) {
-					map.put(new ChrPosition(qpr.getChromosome(), qpr.getPosition()), new QSnpGATKRecord(qpr));
+					map.put(ChrPointPosition.valueOf(qpr.getChromosome(), qpr.getPosition()), new QSnpGATKRecord(qpr));
 				}
 			} finally {
 				reader.close();

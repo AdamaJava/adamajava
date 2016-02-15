@@ -11,7 +11,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.model.Accumulator;
+import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.model.GenotypeEnum;
 import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.Constants;
@@ -87,16 +89,16 @@ public class PipelineTest {
 		snp2.setClassification(Classification.SOMATIC);
 		assertEquals(null, snp.getAnnotation());
 		
-		pipeline.positionRecordMap.put(new ChrPosition("chr1", 100), snp);
-		pipeline.positionRecordMap.put(new ChrPosition("chr1", 101), snp2);
+		pipeline.positionRecordMap.put(ChrPointPosition.valueOf("chr1", 100), snp);
+		pipeline.positionRecordMap.put(ChrPointPosition.valueOf("chr1", 101), snp2);
 		
 		final Accumulator tumour100 = new Accumulator(100);
 		tumour100.addBase((byte)'C', (byte)30, true, 100, 100, 200, 1);
 		final Accumulator tumour101 = new Accumulator(101);
 		tumour101.addBase((byte)'G', (byte)30, true, 101, 101, 200, 1);
 		
-		pipeline.adjacentAccumulators.put(new ChrPosition("chr1", 100), new Pair<Accumulator, Accumulator>(null, tumour100));
-		pipeline.adjacentAccumulators.put(new ChrPosition("chr1", 101), new Pair<Accumulator, Accumulator>(null, tumour101));
+		pipeline.adjacentAccumulators.put(ChrPointPosition.valueOf("chr1", 100), new Pair<Accumulator, Accumulator>(null, tumour100));
+		pipeline.adjacentAccumulators.put(ChrPointPosition.valueOf("chr1", 101), new Pair<Accumulator, Accumulator>(null, tumour101));
 		pipeline.compoundSnps();
 		
 		assertEquals(0, pipeline.compoundSnps.size());
@@ -108,12 +110,12 @@ public class PipelineTest {
 		tumour101.addBase((byte)'G', (byte)30, true, 101, 101, 200, 3);
 		tumour100.addBase((byte)'C', (byte)30, true, 100, 100, 200, 4);
 		tumour101.addBase((byte)'G', (byte)30, true, 101, 101, 200, 4);
-		pipeline.adjacentAccumulators.put(new ChrPosition("chr1", 100), new Pair<Accumulator, Accumulator>(null, tumour100));
-		pipeline.adjacentAccumulators.put(new ChrPosition("chr1", 101), new Pair<Accumulator, Accumulator>(null, tumour101));
+		pipeline.adjacentAccumulators.put(ChrPointPosition.valueOf("chr1", 100), new Pair<Accumulator, Accumulator>(null, tumour100));
+		pipeline.adjacentAccumulators.put(ChrPointPosition.valueOf("chr1", 101), new Pair<Accumulator, Accumulator>(null, tumour101));
 		pipeline.compoundSnps();
 		
 		assertEquals(1, pipeline.compoundSnps.size());
-		VcfRecord vcf = pipeline.compoundSnps.get(new ChrPosition("chr1", 100, 101));
+		VcfRecord vcf = pipeline.compoundSnps.get(new ChrRangePosition("chr1", 100, 101));
 		
 		List<String> ff = vcf.getFormatFields();
 		assertEquals("CG,4,0", ff.get(2));	// tumour
@@ -131,16 +133,16 @@ public class PipelineTest {
 		snp2.setMutation("C>G");
 		snp2.setClassification(Classification.SOMATIC);
 		
-		pipeline.positionRecordMap.put(new ChrPosition("chr1", 100), snp);
-		pipeline.positionRecordMap.put(new ChrPosition("chr1", 101), snp2);
+		pipeline.positionRecordMap.put(ChrPointPosition.valueOf("chr1", 100), snp);
+		pipeline.positionRecordMap.put(ChrPointPosition.valueOf("chr1", 101), snp2);
 		
 		final Accumulator tumour100 = new Accumulator(100);
 		tumour100.addBase((byte)'C', (byte)30, false, 100, 100, 200, 1);
 		final Accumulator tumour101 = new Accumulator(101);
 		tumour101.addBase((byte)'G', (byte)30, false, 101, 101, 200, 1);
 		
-		pipeline.adjacentAccumulators.put(new ChrPosition("chr1", 100), new Pair<Accumulator, Accumulator>(null, tumour100));
-		pipeline.adjacentAccumulators.put(new ChrPosition("chr1", 101), new Pair<Accumulator, Accumulator>(null, tumour101));
+		pipeline.adjacentAccumulators.put(ChrPointPosition.valueOf("chr1", 100), new Pair<Accumulator, Accumulator>(null, tumour100));
+		pipeline.adjacentAccumulators.put(ChrPointPosition.valueOf("chr1", 101), new Pair<Accumulator, Accumulator>(null, tumour101));
 		pipeline.compoundSnps();
 		
 		assertEquals(0, pipeline.compoundSnps.size());
@@ -152,12 +154,12 @@ public class PipelineTest {
 		tumour101.addBase((byte)'G', (byte)30, false, 101, 101, 200, 3);
 		tumour100.addBase((byte)'C', (byte)30, false, 100, 100, 200, 4);
 		tumour101.addBase((byte)'G', (byte)30, false, 101, 101, 200, 4);
-		pipeline.adjacentAccumulators.put(new ChrPosition("chr1", 100), new Pair<Accumulator, Accumulator>(null, tumour100));
-		pipeline.adjacentAccumulators.put(new ChrPosition("chr1", 101), new Pair<Accumulator, Accumulator>(null, tumour101));
+		pipeline.adjacentAccumulators.put(ChrPointPosition.valueOf("chr1", 100), new Pair<Accumulator, Accumulator>(null, tumour100));
+		pipeline.adjacentAccumulators.put(ChrPointPosition.valueOf("chr1", 101), new Pair<Accumulator, Accumulator>(null, tumour101));
 		pipeline.compoundSnps();
 		
 		assertEquals(1, pipeline.compoundSnps.size());
-		VcfRecord vcf = pipeline.compoundSnps.get(new ChrPosition("chr1", 100, 101));
+		VcfRecord vcf = pipeline.compoundSnps.get(new ChrRangePosition("chr1", 100, 101));
 		
 		List<String> ff = vcf.getFormatFields();
 		assertEquals("CG,0,4", ff.get(2));	// tumour
@@ -175,16 +177,16 @@ public class PipelineTest {
 		snp2.setMutation("C>G");
 		snp2.setClassification(Classification.SOMATIC);
 		
-		pipeline.positionRecordMap.put(new ChrPosition("chr1", 100), snp);
-		pipeline.positionRecordMap.put(new ChrPosition("chr1", 101), snp2);
+		pipeline.positionRecordMap.put(ChrPointPosition.valueOf("chr1", 100), snp);
+		pipeline.positionRecordMap.put(ChrPointPosition.valueOf("chr1", 101), snp2);
 		
 		final Accumulator tumour100 = new Accumulator(100);
 		tumour100.addBase((byte)'C', (byte)30, false, 100, 100, 200, 1);
 		final Accumulator tumour101 = new Accumulator(101);
 		tumour101.addBase((byte)'G', (byte)30, false, 101, 101, 200, 1);
 		
-		pipeline.adjacentAccumulators.put(new ChrPosition("chr1", 100), new Pair<Accumulator, Accumulator>(null, tumour100));
-		pipeline.adjacentAccumulators.put(new ChrPosition("chr1", 101), new Pair<Accumulator, Accumulator>(null, tumour101));
+		pipeline.adjacentAccumulators.put(ChrPointPosition.valueOf("chr1", 100), new Pair<Accumulator, Accumulator>(null, tumour100));
+		pipeline.adjacentAccumulators.put(ChrPointPosition.valueOf("chr1", 101), new Pair<Accumulator, Accumulator>(null, tumour101));
 		pipeline.compoundSnps();
 		
 		assertEquals(0, pipeline.compoundSnps.size());
@@ -196,12 +198,12 @@ public class PipelineTest {
 		tumour101.addBase((byte)'G', (byte)30, false, 101, 101, 200, 3);
 		tumour100.addBase((byte)'C', (byte)30, true, 100, 100, 200, 4);
 		tumour101.addBase((byte)'G', (byte)30, true, 101, 101, 200, 4);
-		pipeline.adjacentAccumulators.put(new ChrPosition("chr1", 100), new Pair<Accumulator, Accumulator>(null, tumour100));
-		pipeline.adjacentAccumulators.put(new ChrPosition("chr1", 101), new Pair<Accumulator, Accumulator>(null, tumour101));
+		pipeline.adjacentAccumulators.put(ChrPointPosition.valueOf("chr1", 100), new Pair<Accumulator, Accumulator>(null, tumour100));
+		pipeline.adjacentAccumulators.put(ChrPointPosition.valueOf("chr1", 101), new Pair<Accumulator, Accumulator>(null, tumour101));
 		pipeline.compoundSnps();
 		
 		assertEquals(1, pipeline.compoundSnps.size());
-		VcfRecord vcf = pipeline.compoundSnps.get(new ChrPosition("chr1", 100, 101));
+		VcfRecord vcf = pipeline.compoundSnps.get(new ChrRangePosition("chr1", 100, 101));
 		
 		List<String> ff = vcf.getFormatFields();
 		assertEquals("CG,2,2", ff.get(2));	// tumour
@@ -221,16 +223,16 @@ public class PipelineTest {
 		snp2.setClassification(Classification.SOMATIC);
 		assertEquals(null, snp.getAnnotation());
 		
-		pipeline.positionRecordMap.put(new ChrPosition("chr1", 100), snp);
-		pipeline.positionRecordMap.put(new ChrPosition("chr1", 101), snp2);
+		pipeline.positionRecordMap.put(ChrPointPosition.valueOf("chr1", 100), snp);
+		pipeline.positionRecordMap.put(ChrPointPosition.valueOf("chr1", 101), snp2);
 		
 		final Accumulator tumour100 = new Accumulator(100);
 		tumour100.addBase((byte)'C', (byte)30, true, 100, 100, 200, 1);
 		final Accumulator tumour101 = new Accumulator(101);
 		tumour101.addBase((byte)'G', (byte)30, true, 101, 101, 200, 1);
 		
-		pipeline.adjacentAccumulators.put(new ChrPosition("chr1", 100), new Pair<Accumulator, Accumulator>(null, tumour100));
-		pipeline.adjacentAccumulators.put(new ChrPosition("chr1", 101), new Pair<Accumulator, Accumulator>(null, tumour101));
+		pipeline.adjacentAccumulators.put(ChrPointPosition.valueOf("chr1", 100), new Pair<Accumulator, Accumulator>(null, tumour100));
+		pipeline.adjacentAccumulators.put(ChrPointPosition.valueOf("chr1", 101), new Pair<Accumulator, Accumulator>(null, tumour101));
 		
 		// need 4 reads with the cs to register
 		tumour100.addBase((byte)'C', (byte)30, true, 100, 100, 200, 2);
@@ -244,7 +246,7 @@ public class PipelineTest {
 		pipeline.compoundSnps();
 		
 		assertEquals(1, pipeline.compoundSnps.size());
-		VcfRecord vcf = pipeline.compoundSnps.get(new ChrPosition("chr1", 100, 101));
+		VcfRecord vcf = pipeline.compoundSnps.get(new ChrRangePosition("chr1", 100, 101));
 		
 		List<String> ff = vcf.getFormatFields();
 		assertEquals("CG,4,0,_G,1,0", ff.get(2));	// tumour
@@ -264,16 +266,16 @@ public class PipelineTest {
 		snp2.setClassification(Classification.SOMATIC);
 		assertEquals(null, snp.getAnnotation());
 		
-		pipeline.positionRecordMap.put(new ChrPosition("chr1", 100), snp);
-		pipeline.positionRecordMap.put(new ChrPosition("chr1", 101), snp2);
+		pipeline.positionRecordMap.put(ChrPointPosition.valueOf("chr1", 100), snp);
+		pipeline.positionRecordMap.put(ChrPointPosition.valueOf("chr1", 101), snp2);
 		
 		final Accumulator tumour100 = new Accumulator(100);
 		tumour100.addBase((byte)'C', (byte)30, true, 100, 100, 200, 1);
 		final Accumulator tumour101 = new Accumulator(101);
 		tumour101.addBase((byte)'G', (byte)30, true, 101, 101, 200, 1);
 		
-		pipeline.adjacentAccumulators.put(new ChrPosition("chr1", 100), new Pair<Accumulator, Accumulator>(null, tumour100));
-		pipeline.adjacentAccumulators.put(new ChrPosition("chr1", 101), new Pair<Accumulator, Accumulator>(null, tumour101));
+		pipeline.adjacentAccumulators.put(ChrPointPosition.valueOf("chr1", 100), new Pair<Accumulator, Accumulator>(null, tumour100));
+		pipeline.adjacentAccumulators.put(ChrPointPosition.valueOf("chr1", 101), new Pair<Accumulator, Accumulator>(null, tumour101));
 		
 		// need 4 reads with the cs to register
 		tumour100.addBase((byte)'C', (byte)30, true, 100, 100, 200, 2);
@@ -287,7 +289,7 @@ public class PipelineTest {
 		pipeline.compoundSnps();
 		
 		assertEquals(1, pipeline.compoundSnps.size());
-		VcfRecord vcf = pipeline.compoundSnps.get(new ChrPosition("chr1", 100, 101));
+		VcfRecord vcf = pipeline.compoundSnps.get(new ChrRangePosition("chr1", 100, 101));
 		
 		List<String> ff = vcf.getFormatFields();
 		assertEquals("CG,4,0,C_,1,0", ff.get(2));	// tumour
@@ -298,7 +300,7 @@ public class PipelineTest {
 	@Test
 	public void purgeAdjacentAccums() {
 		final Pipeline pipeline = new TestPipeline();
-		ChrPosition cp = new ChrPosition("1",100,100);
+		ChrPosition cp = new ChrRangePosition("1",100,100);
 		
 		pipeline.adjacentAccumulators.put(cp, new Pair<Accumulator, Accumulator>(null,null));
 		assertEquals(1, pipeline.adjacentAccumulators.size());
@@ -311,14 +313,14 @@ public class PipelineTest {
 		pipeline.purgeNonAdjacentAccumulators();
 		assertEquals(2, pipeline.adjacentAccumulators.size());
 		
-		ChrPosition cp3 = new ChrPosition("1", 102);
+		ChrPosition cp3 = ChrPointPosition.valueOf("1", 102);
 		pipeline.adjacentAccumulators.put(cp3, new Pair<Accumulator, Accumulator>(null,null));
 		pipeline.purgeNonAdjacentAccumulators();
 		assertEquals(3, pipeline.adjacentAccumulators.size());
 		assertEquals(true, pipeline.adjacentAccumulators.containsKey(cp));
 		assertEquals(true, pipeline.adjacentAccumulators.containsKey(cp2));
 		
-		ChrPosition cp4 = new ChrPosition("1", 104);
+		ChrPosition cp4 = ChrPointPosition.valueOf("1", 104);
 		pipeline.adjacentAccumulators.put(cp4, new Pair<Accumulator, Accumulator>(null,null));
 		pipeline.purgeNonAdjacentAccumulators();
 		assertEquals(3, pipeline.adjacentAccumulators.size());
@@ -329,13 +331,13 @@ public class PipelineTest {
 	@Test
 	public void purgeAdjacentAccums2() {
 		Pipeline pipeline = new TestPipeline();
-		ChrPosition cp117113 = new ChrPosition("1",117113);
-		ChrPosition cp118087 = new ChrPosition("1",118087);
-		ChrPosition cp118090 = new ChrPosition("1",118090);
-		ChrPosition cp118124 = new ChrPosition("1",118124);
-		ChrPosition cp118125 = new ChrPosition("1",118125);
-		ChrPosition cp118575 = new ChrPosition("1",118575);
-		ChrPosition cp118602 = new ChrPosition("1",118602);
+		ChrPosition cp117113 = ChrPointPosition.valueOf("1",117113);
+		ChrPosition cp118087 = ChrPointPosition.valueOf("1",118087);
+		ChrPosition cp118090 = ChrPointPosition.valueOf("1",118090);
+		ChrPosition cp118124 = ChrPointPosition.valueOf("1",118124);
+		ChrPosition cp118125 = ChrPointPosition.valueOf("1",118125);
+		ChrPosition cp118575 = ChrPointPosition.valueOf("1",118575);
+		ChrPosition cp118602 = ChrPointPosition.valueOf("1",118602);
 		
 		pipeline.adjacentAccumulators.put(cp117113, new Pair<Accumulator, Accumulator>(null,null));
 		pipeline.adjacentAccumulators.put(cp118087, new Pair<Accumulator, Accumulator>(null,null));
@@ -476,17 +478,17 @@ public class PipelineTest {
 //				chrY    58976811        .       G       T
 				
 		Pipeline pipeline = new TestPipeline();
-		ChrPosition cp58976671 = new ChrPosition("chrY",58976671);
-		ChrPosition cp58976688 = new ChrPosition("chrY",58976688);
-		ChrPosition cp58976689 = new ChrPosition("chrY",58976689);
-		ChrPosition cp58976702 = new ChrPosition("chrY",58976702);
-		ChrPosition cp58976707 = new ChrPosition("chrY",58976707);
-		ChrPosition cp58976712 = new ChrPosition("chrY",58976712);
-		ChrPosition cp58976743 = new ChrPosition("chrY",58976743);
-		ChrPosition cp58976781 = new ChrPosition("chrY",58976781);
-		ChrPosition cp58976782 = new ChrPosition("chrY",58976782);
-		ChrPosition cp58976804 = new ChrPosition("chrY",58976804);
-		ChrPosition cp58976811 = new ChrPosition("chrY",58976811);
+		ChrPosition cp58976671 = ChrPointPosition.valueOf("chrY",58976671);
+		ChrPosition cp58976688 = ChrPointPosition.valueOf("chrY",58976688);
+		ChrPosition cp58976689 = ChrPointPosition.valueOf("chrY",58976689);
+		ChrPosition cp58976702 = ChrPointPosition.valueOf("chrY",58976702);
+		ChrPosition cp58976707 = ChrPointPosition.valueOf("chrY",58976707);
+		ChrPosition cp58976712 = ChrPointPosition.valueOf("chrY",58976712);
+		ChrPosition cp58976743 = ChrPointPosition.valueOf("chrY",58976743);
+		ChrPosition cp58976781 = ChrPointPosition.valueOf("chrY",58976781);
+		ChrPosition cp58976782 = ChrPointPosition.valueOf("chrY",58976782);
+		ChrPosition cp58976804 = ChrPointPosition.valueOf("chrY",58976804);
+		ChrPosition cp58976811 = ChrPointPosition.valueOf("chrY",58976811);
 		
 		pipeline.adjacentAccumulators.put(cp58976671, new Pair<Accumulator, Accumulator>(null,null));
 		pipeline.adjacentAccumulators.put(cp58976688, new Pair<Accumulator, Accumulator>(null,null));
@@ -537,9 +539,9 @@ public class PipelineTest {
 		tumour101.addBase((byte)'G', (byte)30, true, 101, 101, 200, 2);
 		tumour101.addBase((byte)'G', (byte)30, true, 101, 101, 200, 3);
 		
-		pipeline.adjacentAccumulators.put(new ChrPosition("chr1", 98), new Pair<Accumulator, Accumulator>(null, tumour98));
-		pipeline.adjacentAccumulators.put(new ChrPosition("chr1", 100), new Pair<Accumulator, Accumulator>(null, tumour100));
-		pipeline.adjacentAccumulators.put(new ChrPosition("chr1", 101), new Pair<Accumulator, Accumulator>(null, tumour101));
+		pipeline.adjacentAccumulators.put(ChrPointPosition.valueOf("chr1", 98), new Pair<Accumulator, Accumulator>(null, tumour98));
+		pipeline.adjacentAccumulators.put(ChrPointPosition.valueOf("chr1", 100), new Pair<Accumulator, Accumulator>(null, tumour100));
+		pipeline.adjacentAccumulators.put(ChrPointPosition.valueOf("chr1", 101), new Pair<Accumulator, Accumulator>(null, tumour101));
 		pipeline.compoundSnps();
 		
 		assertEquals(0, pipeline.compoundSnps.size());
@@ -549,17 +551,17 @@ public class PipelineTest {
 		tumour100.addBase((byte)'C', (byte)30, true, 100, 100, 200, 6);
 		tumour101.addBase((byte)'G', (byte)30, true, 101, 101, 200, 5);
 		tumour101.addBase((byte)'G', (byte)30, true, 101, 101, 200, 6);
-		pipeline.adjacentAccumulators.put(new ChrPosition("chr1", 98), new Pair<Accumulator, Accumulator>(null, tumour98));
-		pipeline.adjacentAccumulators.put(new ChrPosition("chr1", 100), new Pair<Accumulator, Accumulator>(null, tumour100));
-		pipeline.adjacentAccumulators.put(new ChrPosition("chr1", 101), new Pair<Accumulator, Accumulator>(null, tumour101));
+		pipeline.adjacentAccumulators.put(ChrPointPosition.valueOf("chr1", 98), new Pair<Accumulator, Accumulator>(null, tumour98));
+		pipeline.adjacentAccumulators.put(ChrPointPosition.valueOf("chr1", 100), new Pair<Accumulator, Accumulator>(null, tumour100));
+		pipeline.adjacentAccumulators.put(ChrPointPosition.valueOf("chr1", 101), new Pair<Accumulator, Accumulator>(null, tumour101));
 		pipeline.compoundSnps();
 		assertEquals(0, pipeline.compoundSnps.size());
 		
 		tumour100.addBase((byte)'C', (byte)30, true, 100, 100, 200, 7);
 		tumour101.addBase((byte)'G', (byte)30, true, 101, 101, 200, 7);
-		pipeline.adjacentAccumulators.put(new ChrPosition("chr1", 98), new Pair<Accumulator, Accumulator>(null, tumour98));
-		pipeline.adjacentAccumulators.put(new ChrPosition("chr1", 100), new Pair<Accumulator, Accumulator>(null, tumour100));
-		pipeline.adjacentAccumulators.put(new ChrPosition("chr1", 101), new Pair<Accumulator, Accumulator>(null, tumour101));
+		pipeline.adjacentAccumulators.put(ChrPointPosition.valueOf("chr1", 98), new Pair<Accumulator, Accumulator>(null, tumour98));
+		pipeline.adjacentAccumulators.put(ChrPointPosition.valueOf("chr1", 100), new Pair<Accumulator, Accumulator>(null, tumour100));
+		pipeline.adjacentAccumulators.put(ChrPointPosition.valueOf("chr1", 101), new Pair<Accumulator, Accumulator>(null, tumour101));
 		pipeline.compoundSnps();
 		assertEquals(1, pipeline.compoundSnps.size());
 	}

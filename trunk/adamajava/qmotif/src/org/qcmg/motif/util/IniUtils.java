@@ -73,7 +73,7 @@ public class IniUtils {
 				}
 //				System.out.println("name: " + name + ", chr: " + chr + ":" + entry.getValue() + ", params.length: " + params.length);
 				
-				positions.add(ChrPositionUtils.getChrPositionFromString(chr + ":" + entry.getValue(), name));
+				positions.add(ChrPositionUtils.getChrPositionNameFromString(chr + ":" + entry.getValue(), name));
 			}
 		}
 

@@ -17,6 +17,7 @@ import java.util.Map.Entry;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.vcf.VCFFileReader;
 
 
@@ -93,7 +94,7 @@ public class QueryCADDLib {
 	private void add2Map(VcfRecord re){
 		ChrPosition chr = re.getChrPosition();
 		if(chr.getChromosome().startsWith("chr"))
-			chr =  new ChrPosition(re.getChromosome().substring(3), re.getChrPosition().getPosition(), re.getChrPosition().getEndPosition());   // orig.getChromosome().substring(3);
+			chr =  new ChrRangePosition(re.getChromosome().substring(3), re.getChrPosition().getStartPosition(), re.getChrPosition().getEndPosition());   // orig.getChromosome().substring(3);
 				
 		
 		re.setFilter(null); //for debug
@@ -122,7 +123,7 @@ public class QueryCADDLib {
  			if(entry.equals(last)) continue;
  			else last = entry;
 
-    		VcfRecord inputVcf = positionRecordMap.get(new ChrPosition(eles[0], s, e ));	     		
+    		VcfRecord inputVcf = positionRecordMap.get(new ChrRangePosition(eles[0], s, e ));	     		
     		
     		if ( (null == inputVcf) || !inputVcf.getRef().equalsIgnoreCase(eles[2])) continue; 
     		

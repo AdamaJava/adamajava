@@ -3,6 +3,8 @@
  */
 package org.qcmg.snp;
 
+import htsjdk.samtools.SAMRecord;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -11,12 +13,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import htsjdk.samtools.SAMRecord;
-
 import org.ini4j.Ini;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.meta.QExec;
+import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.PileupElement;
 import org.qcmg.common.model.Rule;
@@ -123,7 +124,7 @@ public final class TorrentPipeline extends Pipeline {
 			// get rule for normal and tumour
 			Rule normalRule = RulesUtil.getRule(controlRules, normalBaseCounts);
 			Rule tumourRule = RulesUtil.getRule(testRules, tumourlBaseCounts);
-			if (cp.getChromosome().equals("chr21") && cp.getPosition() == 46334140) {
+			if (cp.getChromosome().equals("chr21") && cp.getStartPosition() == 46334140) {
 				logger.info("normalVariantCount : " + normalVariantCount);
 				logger.info("tumourVariantCount : " + tumourVariantCount);
 				logger.info("normalBaseCounts : " + normalBaseCounts);
@@ -259,7 +260,7 @@ public final class TorrentPipeline extends Pipeline {
 					deletionCount++;
 				}
 			}
-			ChrPosition cp = new ChrPosition(rec.getChromosome(), rec.getPosition());
+			ChrPosition cp = ChrPointPosition.valueOf(rec.getChromosome(), rec.getPosition());
 			
 			if (adjIndelCount + tripleSnpCount + endOfReadCount > 0) {
 				// add entry to filteredINfo map

@@ -4,7 +4,7 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrRangePosition;
 
 
 public class StringUtilsTest {
@@ -181,19 +181,19 @@ public class StringUtilsTest {
 	@Test
 	public void testGetChrPositionFromString() {
 		//Returns a ChrPosition object based on a string of the following format: chr1:123456-123456
-		assertEquals(new ChrPosition("1", 1), StringUtils.getChrPositionFromString("1:1-1"));
-		assertEquals(new ChrPosition("chr1", 1), StringUtils.getChrPositionFromString("chr1:1-1"));
-		assertEquals(new ChrPosition("chr1", 1, 2), StringUtils.getChrPositionFromString("chr1:1-2"));
+		assertEquals(new ChrRangePosition("1", 1), StringUtils.getChrPositionFromString("1:1-1"));
+		assertEquals(new ChrRangePosition("chr1", 1), StringUtils.getChrPositionFromString("chr1:1-1"));
+		assertEquals(new ChrRangePosition("chr1", 1, 2), StringUtils.getChrPositionFromString("chr1:1-2"));
 		try {
-			assertEquals(new ChrPosition("XYZ", -10, -2), StringUtils.getChrPositionFromString("XYZ:-10--2"));
+			assertEquals(new ChrRangePosition("XYZ", -10, -2), StringUtils.getChrPositionFromString("XYZ:-10--2"));
 			Assert.fail("Should have thrown an exception");
 		} catch (IllegalArgumentException iae) {}
 		try {
-			assertEquals(new ChrPosition("XYZ", -10, -2), StringUtils.getChrPositionFromString("XYZ123"));
+			assertEquals(new ChrRangePosition("XYZ", -10, -2), StringUtils.getChrPositionFromString("XYZ123"));
 			Assert.fail("Should have thrown an exception");
 		} catch (IllegalArgumentException iae) {}
 		try {
-			assertEquals(new ChrPosition("XYZ", -10, -2), StringUtils.getChrPositionFromString("XYZ:1--23"));
+			assertEquals(new ChrRangePosition("XYZ", -10, -2), StringUtils.getChrPositionFromString("XYZ:1--23"));
 			Assert.fail("Should have thrown an exception");
 		} catch (IllegalArgumentException iae) {}
 	}

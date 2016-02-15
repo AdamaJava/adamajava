@@ -13,6 +13,7 @@ import java.util.regex.Pattern;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.pileup.PileupFileReader;
@@ -145,7 +146,7 @@ public class UniqueQSnps {
 				String chrPosition = params[params.length-2];
 //				logger.info("chrPosition: " + chrPosition);
 				//TODO refactor to use StringUtils.getChrPositionFromString()
-				ChrPosition chrPos = new ChrPosition(chrPosition.substring(0, chrPosition.indexOf(":")-1), Integer.parseInt(chrPosition.substring(chrPosition.indexOf("-"))));
+				ChrPosition chrPos = new ChrRangePosition(chrPosition.substring(0, chrPosition.indexOf(":")-1), Integer.parseInt(chrPosition.substring(chrPosition.indexOf("-"))));
 				
 				qSnpPileup.put(chrPos,pr);
 			}
@@ -163,7 +164,7 @@ public class UniqueQSnps {
 				String chrPosition = params[params.length-2];
 //				logger.info("chrPosition: " + chrPosition);
 				//TODO refactor to use StringUtils.getChrPositionFromString()
-				ChrPosition chrPos = new ChrPosition(chrPosition.substring(0, chrPosition.indexOf(":")-1), Integer.parseInt(chrPosition.substring(chrPosition.indexOf("-"))));
+				ChrPosition chrPos = new ChrRangePosition(chrPosition.substring(0, chrPosition.indexOf(":")-1), Integer.parseInt(chrPosition.substring(chrPosition.indexOf("-"))));
 				
 				gatkVcfs.put(chrPos,pr);
 			}
@@ -182,7 +183,7 @@ public class UniqueQSnps {
 				String chrPosition = params[2];
 //				logger.info("chrPosition: " + chrPosition);
 				//TODO refactor to use StringUtils.getChrPositionFromString()
-				ChrPosition chrPos = new ChrPosition(chrPosition.substring(0, chrPosition.indexOf(":")-1), Integer.parseInt(chrPosition.substring(chrPosition.indexOf("-"))));
+				ChrPosition chrPos = new ChrRangePosition(chrPosition.substring(0, chrPosition.indexOf(":")-1), Integer.parseInt(chrPosition.substring(chrPosition.indexOf("-"))));
 				
 				verifiedSNPs.put(chrPos,pr);
 			}

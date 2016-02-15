@@ -22,6 +22,7 @@ import htsjdk.samtools.util.Interval;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.gff3.GFF3FileReader;
@@ -84,11 +85,11 @@ public class MafAddStuff {
 		if (null != chainFile) {
 			LiftOver picardLiftover = new LiftOver(new File(chainFile));
 			for (ChrPosition cp : mafPositionsOfInterest) {
-				Interval oldInt = new Interval(MafUtils.getFullChrFromMafChr(cp.getChromosome()), cp.getPosition(), cp.getEndPosition());
+				Interval oldInt = new Interval(MafUtils.getFullChrFromMafChr(cp.getChromosome()), cp.getStartPosition(), cp.getEndPosition());
 				Interval newInt =  picardLiftover.liftOver(oldInt);
 				logger.info("oldInt: " + oldInt + ", new Int: " + newInt);
 				
-				mafPositionsOfInterestLiftover.put(cp, new ChrPosition(newInt.getSequence().substring(3), newInt.getStart(), newInt.getEnd()));
+				mafPositionsOfInterestLiftover.put(cp, new ChrRangePosition(newInt.getSequence().substring(3), newInt.getStart(), newInt.getEnd()));
 			}
 		} else {
 			for (ChrPosition cp : mafPositionsOfInterest) {
@@ -109,7 +110,7 @@ public class MafAddStuff {
 					thisMap = new HashMap<ChrPosition, String>();
 					gffTypes.put(chr, thisMap);
 				}
-				thisMap.put(new ChrPosition(chr, rec.getStart(), rec.getEnd()), rec.getType());
+				thisMap.put(new ChrRangePosition(chr, rec.getStart(), rec.getEnd()), rec.getType());
 				
 				if (++count % 1000000 == 0) logger.info("hit " + count + " records");
 			}
@@ -127,7 +128,7 @@ public class MafAddStuff {
 			Map<ChrPosition, String> positionsAtChr = gffTypes.get(chr);
 			if (null != positionsAtChr) {
 				for (Entry<ChrPosition, String> entry : positionsAtChr.entrySet()) {
-					if (ChrPositionUtils.doChrPositionsOverlap(entry.getKey(), new ChrPosition(chr, cp.getPosition(), cp.getEndPosition()))) {
+					if (ChrPositionUtils.doChrPositionsOverlap(entry.getKey(), new ChrRangePosition(chr, cp.getStartPosition(), cp.getEndPosition()))) {
 						String type = chrPosGffType.get(cp);
 						if (null == type) {
 							chrPosGffType.put(cp, entry.getValue());
@@ -136,7 +137,7 @@ public class MafAddStuff {
 						}
 						
 						// single position - won't have multiple gff3 regions
-						if (cp.getPosition() == cp.getEndPosition()) break;
+						if (cp.getStartPosition() == cp.getEndPosition()) break;
 					}
 				}
 			}
@@ -150,10 +151,10 @@ public class MafAddStuff {
 		for (ChrPosition cp : mafPositionsOfInterestLiftover.values()) {
 			String chr = MafUtils.getFullChrFromMafChr(cp.getChromosome());
 			
-			logger.info("retrieveing info for ChrPos: " + chr + ", " + (cp.getPosition() - noOfBases) + "-" + (cp.getEndPosition() + noOfBases));
+			logger.info("retrieveing info for ChrPos: " + chr + ", " + (cp.getStartPosition() - noOfBases) + "-" + (cp.getEndPosition() + noOfBases));
 			ReferenceSequence seq = null;
 			try {
-				seq = fasta.getSubsequenceAt(chr, cp.getPosition() - noOfBases, cp.getEndPosition() + noOfBases);
+				seq = fasta.getSubsequenceAt(chr, cp.getStartPosition() - noOfBases, cp.getEndPosition() + noOfBases);
 			} catch (UnsupportedOperationException  pe) {
 				logger.error("Exception caught in getFastaData",pe);
 			}
@@ -196,8 +197,8 @@ public class MafAddStuff {
 				// sanity check on ref base
 				char ref = params[10].charAt(0);
 				
-				ChrPosition cp = new ChrPosition(chr, startPos, endPos);
-				logger.debug("cp: " + cp.getChromosome() + ", start: " + cp.getPosition() + ", end: " + cp.getEndPosition());
+				ChrPosition cp = new ChrRangePosition(chr, startPos, endPos);
+				logger.debug("cp: " + cp.getChromosome() + ", start: " + cp.getStartPosition() + ", end: " + cp.getEndPosition());
 				if (null != chainFile) {
 					cp = mafPositionsOfInterestLiftover.get(cp);
 					if (null == cp)
@@ -211,7 +212,7 @@ public class MafAddStuff {
 						params[3] = "" + ++version;
 					}
 					params[4] = cp.getChromosome();
-					params[5] = "" +cp.getPosition();
+					params[5] = "" +cp.getStartPosition();
 					params[6] = "" +cp.getEndPosition();
 				}
 				String cpgBases = fastaCPGDataMap.get(cp);

@@ -5,7 +5,7 @@ package org.qcmg.pileup.metrics.record;
 
 import java.text.DecimalFormat;
 
-import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.pileup.PileupConstants;
 
 public class IndelRecord extends MetricRecord {
@@ -109,8 +109,8 @@ public class IndelRecord extends MetricRecord {
 		return chromosome + "," + position;
 	}
 
-	public ChrPosition getChrPosition() {
-		return new ChrPosition(chromosome, position);
+	public ChrRangePosition getChrPosition() {
+		return new ChrRangePosition(chromosome, position);
 	}
 
 	public boolean addIndelRecord(IndelRecord record) {		

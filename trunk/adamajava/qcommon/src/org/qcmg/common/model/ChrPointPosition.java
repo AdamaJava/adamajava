@@ -1,18 +1,25 @@
 package org.qcmg.common.model;
 
-public class ChrPointPosition  implements Comparable<ChrPointPosition> {
+public class ChrPointPosition  implements ChrPosition , Comparable<ChrPosition> {
 	
 	private static final ReferenceNameComparator COMPARATOR = new ReferenceNameComparator();
 	
 	private final String chr;
 	private final int position;
 	
-	public ChrPointPosition(String chr, int position) {
+	private ChrPointPosition(String chr, int position) {
+		this.chr = chr;
+		this.position = position;
+	}
+	
+	public static ChrPointPosition valueOf(String chr, int position) {
 		if (null == chr || chr.isEmpty()) {
 			throw new IllegalArgumentException("null or empty chromosome supplied to ChrPointPosition");
 		}
-		this.chr = chr;
-		this.position = position;
+		return new ChrPointPosition(chr, position);
+	}
+	public static ChrPointPosition valueOf(ChrPointPosition cpp) {
+		return cpp;
 	}
 
 	@Override
@@ -50,19 +57,22 @@ public class ChrPointPosition  implements Comparable<ChrPointPosition> {
 	}
 
 	@Override
-	public int compareTo(ChrPointPosition o) {
-		int chromosomeDiff = COMPARATOR.compare(chr, o.chr);
+	public int compareTo(ChrPosition o) {
+		int chromosomeDiff = COMPARATOR.compare(chr, o.getChromosome());
 		if (chromosomeDiff != 0) {
 			return chromosomeDiff;
 		}
-		return position - o.position;
+		return position - o.getStartPosition();
 	}
 
-	public String getChr() {
+	@Override
+	public String getChromosome() {
 		return chr;
 	}
 
-	public int getPosition() {
+	@Override
+	public int getStartPosition() {
 		return position;
 	}
+
 }

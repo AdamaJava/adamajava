@@ -37,6 +37,7 @@ public class IndelConfidenceModeTest {
         new File(dbMask).delete();
         new File(input).delete();
         new File(output).delete();
+        new File(log).delete();
 
 	}
 	

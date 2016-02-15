@@ -14,7 +14,9 @@ import java.util.Map;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrPositionComparator;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.TabTokenizer;
@@ -54,7 +56,7 @@ public class ReAnnotateDccWithDbSNP {
 			try {
 				//sort 
 				List<ChrPosition> data = new ArrayList<ChrPosition>(dccs.keySet());
-				Collections.sort(data);
+				Collections.sort(data, new ChrPositionComparator());
 				
 				
 				writer.write(header + "\tdbSnpVer\n");
@@ -87,7 +89,7 @@ public class ReAnnotateDccWithDbSNP {
 					continue;
 				}
 				String[] params = TabTokenizer.tokenize(rec.getData());
-				ChrPosition cp = new ChrPosition(params[4], Integer.parseInt(params[5]));
+				ChrPosition cp = ChrPointPosition.valueOf(params[4], Integer.parseInt(params[5]));
 				
 				// reset dbsnpid
 				params[20] = null;
@@ -118,7 +120,7 @@ public class ReAnnotateDccWithDbSNP {
 				
 				if ( ! StringUtils.doesStringContainSubString(dbSNPVcf.getInfo(), "VC=SNV", false)) continue;
 				// vcf dbSNP record chromosome does not contain "chr", whereas the positionRecordMap does - add
-				String[] params = dccs.get(new ChrPosition(dbSNPVcf.getChromosome(), dbSNPVcf.getPosition()));
+				String[] params = dccs.get(ChrPointPosition.valueOf(dbSNPVcf.getChromosome(), dbSNPVcf.getPosition()));
 				if (null == params) continue;
 				
 				// if no dbsnp data - continue
@@ -149,7 +151,7 @@ public class ReAnnotateDccWithDbSNP {
 				params[20] = dbSNPVcf.getId();
 				params = Arrays.copyOf(params, params.length + 1);
 				params[params.length -1] = dbSnpVersion;
-				dccs.put(new ChrPosition(dbSNPVcf.getChromosome(), dbSNPVcf.getPosition()), params);
+				dccs.put(ChrPointPosition.valueOf(dbSNPVcf.getChromosome(), dbSNPVcf.getPosition()), params);
 				
 
 //				GenotypeEnum tumour = snpRecord.getTumourGenotype();

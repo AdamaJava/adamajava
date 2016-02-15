@@ -18,6 +18,8 @@ import htsjdk.samtools.SAMRecord;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrRangePosition;
+import org.qcmg.common.model.ChrPositionName;
 import org.qcmg.common.util.Pair;
 import org.qcmg.motif.util.MotifConstants;
 import org.qcmg.motif.util.MotifUtils;
@@ -113,7 +115,7 @@ class CoverageJob implements Job {
 	private void performCoverage() throws Exception {
  		for (final SamReader fileReader : fileReaders) {
  			
-			Iterator<SAMRecord> iter = "unmapped".equals(cp.getChromosome()) ? fileReader.queryUnmapped() : fileReader.query(cp.getChromosome(), cp.getPosition(), cp.getEndPosition(), true);
+			Iterator<SAMRecord> iter = "unmapped".equals(cp.getChromosome()) ? fileReader.queryUnmapped() : fileReader.query(cp.getChromosome(), cp.getStartPosition(), cp.getEndPosition(), true);
 			long recordCounterIn = 0;
 			long recordCounterOut = 0; 
 			while (iter.hasNext()) {

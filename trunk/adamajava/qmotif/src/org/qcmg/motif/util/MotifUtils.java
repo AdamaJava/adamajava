@@ -5,19 +5,23 @@ package org.qcmg.motif.util;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrPositionComparator;
+import org.qcmg.common.model.ChrRangePosition;
+import org.qcmg.common.model.ChrPositionName;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.TabTokenizer;
 
 public class MotifUtils {
 
-	
+	private static final Comparator<ChrPosition> COMPARATOR = new ChrPositionComparator();
 	public static final char M_D = ':';
 	
 	public static Map<String, AtomicInteger> convertStringArrayToMap(String data) {
@@ -63,7 +67,7 @@ public class MotifUtils {
 		 * Assuming that a buffer of 1000 should be sufficient for now...
 		 */
 //		int buffer = 1000;
-		int startPos = contig.getPosition();
+		int startPos = contig.getStartPosition();
 		// we don't want a -ve startPos
 //		if (startPos > 1) {
 //			startPos = Math.max(1, startPos - buffer);
@@ -79,7 +83,7 @@ public class MotifUtils {
 
 		for (int i = 0 ; i < noOfBins ; i++) {
 			if ( ((i * windowSize) + startPos) <= length) {
-				ChrPosition cp = new ChrPosition(contig.getChromosome(), (i * windowSize) + startPos, Math.min((i + startPos) * windowSize, stopPos));
+				ChrPosition cp = new ChrPositionName(contig.getChromosome(), (i * windowSize) + startPos, Math.min((i + startPos) * windowSize, stopPos));
 				results.put(cp, new RegionCounter(isUnmapped ? RegionType.UNMAPPED : RegionType.GENOMIC));
 			}
 		}
@@ -173,11 +177,11 @@ public class MotifUtils {
 				else if (ChrPositionUtils.isChrPositionContained(overlapCP, newCP)) {
 					//create new CP(s)
 					
-					if (overlapCP.getPosition() < newCP.getPosition()) {
-						results.put(new ChrPosition(overlapCP.getChromosome(), overlapCP.getPosition(), newCP.getPosition() -1), new RegionCounter(isUnmapped ? RegionType.UNMAPPED : RegionType.GENOMIC));
+					if (overlapCP.getStartPosition() < newCP.getStartPosition()) {
+						results.put(new ChrRangePosition(overlapCP.getChromosome(), overlapCP.getStartPosition(), newCP.getStartPosition() -1), new RegionCounter(isUnmapped ? RegionType.UNMAPPED : RegionType.GENOMIC));
 					}
 					if (overlapCP.getEndPosition() > newCP.getEndPosition()) {
-						results.put(new ChrPosition(overlapCP.getChromosome(), newCP.getEndPosition() + 1, overlapCP.getEndPosition()), new RegionCounter(isUnmapped ? RegionType.UNMAPPED : RegionType.GENOMIC));
+						results.put(new ChrRangePosition(overlapCP.getChromosome(), newCP.getEndPosition() + 1, overlapCP.getEndPosition()), new RegionCounter(isUnmapped ? RegionType.UNMAPPED : RegionType.GENOMIC));
 					}
 					
 					// remove overlapCP
@@ -193,11 +197,11 @@ public class MotifUtils {
 				// standard overlap
 				else if (ChrPositionUtils.doChrPositionsOverlap(overlapCP, newCP)){
 					
-					if (overlapCP.getPosition() < newCP.getPosition()) {
-						results.put(new ChrPosition(overlapCP.getChromosome(), overlapCP.getPosition(), newCP.getPosition() -1), new RegionCounter(RegionType.GENOMIC));
+					if (overlapCP.getStartPosition() < newCP.getStartPosition()) {
+						results.put(new ChrPositionName(overlapCP.getChromosome(), overlapCP.getStartPosition(), newCP.getStartPosition() -1), new RegionCounter(RegionType.GENOMIC));
 					}
 					if (overlapCP.getEndPosition() > newCP.getEndPosition()) {
-						results.put(new ChrPosition(overlapCP.getChromosome(), newCP.getEndPosition() + 1, overlapCP.getEndPosition()), new RegionCounter(RegionType.GENOMIC));
+						results.put(new ChrPositionName(overlapCP.getChromosome(), newCP.getEndPosition() + 1, overlapCP.getEndPosition()), new RegionCounter(RegionType.GENOMIC));
 					}
 					// remove overlapCP
 					results.remove(overlapCP);
@@ -210,8 +214,8 @@ public class MotifUtils {
 	
 	public static List<ChrPosition> getExistingOverlappingPositions(List<ChrPosition> existingPositions, List<ChrPosition> newPositions) {
 		// sort both collections first
-		Collections.sort(existingPositions);
-		Collections.sort(newPositions);
+		Collections.sort(existingPositions, COMPARATOR);
+		Collections.sort(newPositions, COMPARATOR);
 		
 		List<ChrPosition> exisitingOverlaps = new ArrayList<>();
 		

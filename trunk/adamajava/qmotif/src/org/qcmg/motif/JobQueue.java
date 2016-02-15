@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.util.AbstractQueue;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -29,6 +30,9 @@ import htsjdk.samtools.SAMSequenceRecord;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrPositionComparator;
+import org.qcmg.common.model.ChrRangePosition;
+import org.qcmg.common.model.ChrPositionName;
 import org.qcmg.common.util.Pair;
 import org.qcmg.motif.util.MotifConstants;
 import org.qcmg.motif.util.MotifUtils;
@@ -42,6 +46,8 @@ import org.qcmg.qbamfilter.query.QueryExecutor;
 public final class JobQueue {
 	
 //	public static final String UNMAPPED = "unmapped";
+	
+	private static final Comparator<ChrPosition> COMPARATOR = new ChrPositionComparator();
 	
 	private final HashMap<String, HashMap<Integer, AtomicLong>> perIdPerCoverageBaseCounts = new HashMap<String, HashMap<Integer, AtomicLong>>();
 	private final int numberThreads;
@@ -126,16 +132,16 @@ public final class JobQueue {
 					containsUnmapped = true;
 					break;
 				}
-				contigs.add(new ChrPosition(ssr.getSequenceName(), 1, ssr.getSequenceLength()));
+				contigs.add(new ChrRangePosition(ssr.getSequenceName(), 1, ssr.getSequenceLength()));
 			}
 			if ( ! containsUnmapped) {
-				contigs.add(new ChrPosition(MotifConstants.UNMAPPED, 1, 1000 * 1000 * 128));
+				contigs.add(new ChrRangePosition(MotifConstants.UNMAPPED, 1, 1000 * 1000 * 128));
 			}
 		}
 		
 		
 		// and now sort so that the largest is first
-		Collections.sort(contigs);
+		Collections.sort(contigs, COMPARATOR);
 //		Collections.sort(contigs, new SAMSequenceRecodComparator());
 	
 //		if (null != invariants.getCutoff()) cutoff = invariants.getCutoff(); 
@@ -236,7 +242,7 @@ public final class JobQueue {
 		List<String> resultsList = new ArrayList<>();
 		
 		List<ChrPosition> orderedResultsList = new ArrayList<>(results.keySet());
-		Collections.sort(orderedResultsList);
+		Collections.sort(orderedResultsList, COMPARATOR);
 		
 		Map<String, AtomicInteger> allMotifs = new HashMap<>();
 		

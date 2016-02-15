@@ -1,15 +1,23 @@
 package org.qcmg.common.vcf;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
 
 public class VcfFormatFieldRecord {
 	
-	//add . if missing value;
-	final Map<String,String> field = new LinkedHashMap<>(12);	
+	final List<String> keys;
+	final List<String> values ;
+	
+	/**
+	 * create an empty record
+	 */
+	public VcfFormatFieldRecord( ){
+		keys = new ArrayList<String>( );
+		values = new ArrayList<String>( );		
+	}
 	
 	/**
 	 * 
@@ -23,22 +31,20 @@ public class VcfFormatFieldRecord {
 		if (null == sample) {
 			throw new IllegalArgumentException("sample argument passed to VcfFormatFieldRecord cstrt can not be null");
 		}
-		final String[] keys = format.split(Constants.COLON_STRING);	
+				
+		final String[] kk = format.split(Constants.COLON_STRING);	
+		final String[] vv= sample.split(Constants.COLON_STRING);
 		
-		for(int i = 0; i < keys.length; i ++) {
-			field.put(keys[i], Constants.MISSING_DATA_STRING);
-		}
-	
-		final String[] values= sample.split(Constants.COLON_STRING);
-		for(int i = 0; i < field.size(); i ++) {
-			
-			if(values.length > i ) {// && values[i] != null)
-				//eg. GT:AD 0/1:2:3, here "3" will be discard
-				field.put(keys[i], values[i] );
-			} else {
-				//eg. GT:AD 0/1, here put '.' on "AD" field
-				field.put(keys[i], Constants.MISSING_DATA_STRING);
-			}
+		keys = new ArrayList<String>(kk.length * 2);
+		values = new ArrayList<String>(kk.length * 2);
+						
+		
+		for(int i = 0; i < kk.length; i ++) {
+			keys.add(kk[i]);
+			if(vv.length > i)
+				values.add(vv[i]);
+			else
+				values.add(Constants.MISSING_DATA_STRING);
 		}
 	}
 	/**
@@ -49,19 +55,16 @@ public class VcfFormatFieldRecord {
 	 * @return null if the key is not exists
 	 */
 	public String getField(String key){
-		if (null == key) {
+		if (null == key) 
 			throw new IllegalArgumentException("null key passed to getField");
-		}
-				
-		if( ! field.containsKey(key))
-			return null; 
 		
-		String value = field.get(key);
+		int index = getKeyIndex(key);		
 		
-		if(StringUtils.isNullOrEmpty(value))
-			return Constants.MISSING_DATA_STRING;
+		//can't find the key
+		if(index == -1) return null;
 		
-		return value;
+		String value = values.get(index);			
+		return (StringUtils.isNullOrEmpty(value))? Constants.MISSING_DATA_STRING: value;
 	}
 	
 	/**
@@ -70,53 +73,92 @@ public class VcfFormatFieldRecord {
 	 * @param value: new field value will append/replace to sample column
 	 */
 	public void setField(String key, String value){
-		if (null == key) {
-			throw new IllegalArgumentException("null key passed to getField");
-		}
-		
-		field.put(key, value );
-				
-//		if( ! field.containsKey(key))
-//			return null; 
-//		
-//		String value = field.get(key);
-//		
-//		if(StringUtils.isNullOrEmpty(value))
-//			return Constants.MISSING_DATA_STRING;
-//		
-//		return value;
+		setField(-1,   key,   value);
 	}	
 	
-	
-	
+	/**
+	 * @param index: add key value to index position, -1 means regardless position
+	 * @param key: add/replace this string to format column
+	 * @param value: add/replace this string to sample column
+	 */
+	public void setField(final int index, String key, String value){
+		if (StringUtils.isNullOrEmpty(key))  
+			throw new IllegalArgumentException("null or empty key passed to getField");
+		 
+		if(keys.size() != values.size())
+			throw new ArrayStoreException("existing format key and value size is not matched!");
+				
+		value = (StringUtils.isNullOrEmpty(value)) ? Constants.MISSING_DATA_STRING : value; 
+		final int order = getKeyIndex( key);
+		if(order < 0 && index < 0){
+			// add new one to end
+			keys.add(key);
+			values.add(value);
+		}else if(order >= 0 && index >= 0){
+			//replace existing one and move to index order
+			keys.remove(order);
+			values.remove(order);
+			keys.add(index, key);
+			values.add(index, value);								
+		}else if(order < 0 && index >= 0){
+			//add new one to index order
+			keys.add(index, key);
+			values.add(index, value);			
+		}else if(order >=0 && index < 0){
+			//replace exist pair with new one
+			keys.set(order, key);
+			values.set(order, value);						
+		}
+		
+	}	
 	/**
 	 * 
 	 * @return Format column String. eg.  GT:GQ:DP:HQ
 	 */
 	public String getFormatColumnString(){
-		String str = "";
-		for (String key : field.keySet()) {
-			if (str.length() > 0) {
-				str += Constants.COLON;
-			}
-			str += key;
-		}
-		return (StringUtils.isNullOrEmpty(str)) ? null: str;
+		String str = null;
+		for (String key : keys)  
+			if(StringUtils.isNullOrEmpty(str))
+				str = key; 
+			else			 
+				str += Constants.COLON + key;
+			 		 
+		return str;
 	}
 
 	/**
 	 * @return return sample column String followed Format column pattern: eg.  0|0:48:1:51,51
 	 */
-	@Override
-	public String toString(){
-		String sample = "";
-		for (String value : field.values()) {
-			if (sample.length() > 0) {
-				sample += Constants.COLON;
-			}
-			sample += value;
-		}
+	
+	public String getSampleColumnString(){
+		String sample = null;
+		for (String value : values) 
+			if(StringUtils.isNullOrEmpty(sample))
+				sample = value;
+			else		 
+				sample += Constants.COLON + value;		 
 		
 		return (StringUtils.isNullOrEmpty(sample)) ? null: sample;
+	}
+	
+	@Override
+	public String toString(){
+		return getFormatColumnString() + "\t" + getSampleColumnString();
+	}
+	
+	/**
+	 * 
+	 * @param key : format column key
+	 * @return the order of exsiting key; return -1 if not exist
+	 */
+	private int getKeyIndex(String key){
+		
+		int index = -1;
+		for(int i = 0; i < keys.size(); i ++) 
+			if(keys.get(i).equals(key)){
+				index = i;
+				break;
+			}
+		return index; 
 	}
 }

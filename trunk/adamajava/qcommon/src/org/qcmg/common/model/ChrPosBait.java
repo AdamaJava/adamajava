@@ -5,21 +5,16 @@ package org.qcmg.common.model;
 
 import org.qcmg.common.string.StringUtils;
 
-public class ChrPosBait implements Comparable<ChrPosBait> {
+public class ChrPosBait implements ChrPosition , Comparable<ChrPosBait> {
 	
-	private static final ReferenceNameComparator COMPARATOR = new ReferenceNameComparator();
-	
-	private final String chr;
-	private final int position;
+	private ChrPointPosition cpp;
 	private String bait;
 	
 	public ChrPosBait(String chr, int position) {
-		this.chr = chr;
-		this.position = position;
+		this.cpp = ChrPointPosition.valueOf(chr, position);
 	}
 	public ChrPosBait(ChrPosition chrPos) {
-		this.chr = chrPos.getChromosome();
-		this.position = chrPos.getPosition();
+		this.cpp = ChrPointPosition.valueOf(chrPos.getChromosome(), chrPos.getStartPosition());
 	}
 
 	public void updateBait(String bait) {
@@ -36,47 +31,42 @@ public class ChrPosBait implements Comparable<ChrPosBait> {
 		return bait;
 	}
 	
-	public String getChr() {
-		return chr;
-	}
-	public int getPosition() {
-		return position;
-	}
 	
 	@Override
 	public int hashCode() {
 		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((chr == null) ? 0 : chr.hashCode());
-		result = prime * result + position;
+		int result = super.hashCode();
+		result = prime * result + ((bait == null) ? 0 : bait.hashCode());
 		return result;
 	}
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
-		if (obj == null)
+		if (!super.equals(obj))
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
 		ChrPosBait other = (ChrPosBait) obj;
-		if (chr == null) {
-			if (other.chr != null)
+		if (bait == null) {
+			if (other.bait != null)
 				return false;
-		} else if (!chr.equals(other.chr))
-			return false;
-		if (position != other.position)
+		} else if (!bait.equals(other.bait))
 			return false;
 		return true;
 	}
-	
 	@Override
 	public int compareTo(ChrPosBait o) {
-		int chromosomeDiff = COMPARATOR.compare(chr, o.chr);
-		if (chromosomeDiff != 0)
-			return chromosomeDiff;
-		
-		return position - o.position;
+		return cpp.compareTo(o.cpp);
 	}
+	@Override
+	public String getChromosome() {
+		return cpp.getChromosome();
+	}
+	@Override
+	public int getStartPosition() {
+		return cpp.getStartPosition();
+	}
+	
 
 }

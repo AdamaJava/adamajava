@@ -11,6 +11,7 @@ import htsjdk.samtools.SAMRecord;
 import org.junit.Before;
 import org.junit.Test;
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.motif.util.MotifsAndRegexes;
 import org.qcmg.motif.util.RegionCounter;
 import org.qcmg.motif.util.RegionType;
@@ -143,11 +144,11 @@ public class MotifCoverageAlgorithmTest {
 		Map<ChrPosition, RegionCounter> map = new HashMap<>();
 		assertEquals(null, mca.getCounterFromMap(map, null));
 		
-		map.put(new ChrPosition("1", 100, 200), new RegionCounter(RegionType.INCLUDES));
-		assertEquals(null, mca.getCounterFromMap(map, new ChrPosition("1", 300, 400)));
+		map.put(new ChrRangePosition("1", 100, 200), new RegionCounter(RegionType.INCLUDES));
+		assertEquals(null, mca.getCounterFromMap(map, new ChrRangePosition("1", 300, 400)));
 		RegionCounter rc300To400 = new RegionCounter(RegionType.INCLUDES);
-		map.put(new ChrPosition("1", 300, 400), rc300To400);
-		assertEquals(rc300To400, mca.getCounterFromMap(map, new ChrPosition("1", 299, 400)));
+		map.put(new ChrRangePosition("1", 300, 400), rc300To400);
+		assertEquals(rc300To400, mca.getCounterFromMap(map, new ChrRangePosition("1", 299, 400)));
 		
 	}
 	
@@ -168,7 +169,7 @@ public class MotifCoverageAlgorithmTest {
 	public void applyToStageOnePass() {
 		Map<ChrPosition, RegionCounter> map = new HashMap<>();
 		RegionCounter rc = new RegionCounter(RegionType.INCLUDES);
-		map.put(new ChrPosition("chr1", 1, 1000), rc);
+		map.put(new ChrRangePosition("chr1", 1, 1000), rc);
 		for (int i = 0 ; i < 100 ; i++) {
 			assertEquals(true, mca.applyTo(samPass, map));
 		}
@@ -201,7 +202,7 @@ public class MotifCoverageAlgorithmTest {
 	public void applyToStageOneFail() {
 		Map<ChrPosition, RegionCounter> map = new HashMap<>();
 		RegionCounter rc = new RegionCounter(RegionType.INCLUDES);
-		map.put(new ChrPosition("chr1", 1, 1000), rc);
+		map.put(new ChrRangePosition("chr1", 1, 1000), rc);
 		for (int i = 0 ; i < 100 ; i++) {
 			assertEquals(false, mca.applyTo(samFail, map));
 		}
@@ -215,7 +216,7 @@ public class MotifCoverageAlgorithmTest {
 	public void realLifeData() {
 		Map<ChrPosition, RegionCounter> map = new HashMap<>();
 		RegionCounter rc = new RegionCounter(RegionType.GENOMIC);
-		map.put(new ChrPosition("chr2", 182140000, 182149999), rc);
+		map.put(new ChrRangePosition("chr2", 182140000, 182149999), rc);
 		
 		//HWI-ST1407:62:D1JPHACXX:6:1115:17220:37446	99	chr2	182140442	60	101M	=	182140519	178	
 		//GGTATTTCCCTCTATTCTTTGCCTGCGTACTTCTGGGTTAATGTAAGGTGCAAGAGACACAGTGCATAAGATGTGCACTAACCCTAACCCTAACCCTAACC	
@@ -237,7 +238,7 @@ public class MotifCoverageAlgorithmTest {
 	public void realLifeData2() {
 		Map<ChrPosition, RegionCounter> map = new HashMap<>();
 		RegionCounter rc = new RegionCounter(RegionType.INCLUDES);
-		map.put(new ChrPosition("chr", 10001,12464), rc);
+		map.put(new ChrRangePosition("chr", 10001,12464), rc);
 		
 		//HWI-ST526:240:C2928ACXX:7:2107:12069:7310	163	chr1	10003	9	101M	=	10041	139	
 		//ACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCT	

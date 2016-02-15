@@ -15,6 +15,8 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.meta.QExec;
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrPositionComparator;
+import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.IndelUtils;
@@ -46,14 +48,17 @@ public abstract class AbstractMode {
         	//no chr in front of position
 			for (final VcfRecord vcf : reader) {	
 				String chr = IndelUtils.getFullChromosome( vcf.getChromosome() );
-				ChrPosition pos = new ChrPosition(chr, vcf.getPosition(), vcf.getChrPosition().getEndPosition());
-				if( positionRecordMap.get(pos) == null){
-					List<VcfRecord> res = new ArrayList<VcfRecord>();
-					res.add(vcf);	
-					positionRecordMap.put(pos, res);
-				}else{
-					positionRecordMap.get(pos).add(vcf);
+				ChrPosition pos = vcf.getChrPosition();
+				if ( ! pos.getChromosome().equals(chr)) {
+					pos = new ChrRangePosition(chr, pos.getStartPosition(), pos.getEndPosition());
 				}
+				
+				List<VcfRecord> res = positionRecordMap.get(pos); 
+				if( res == null){
+					res = new ArrayList<VcfRecord>();
+					positionRecordMap.put(pos, res);
+				}
+				res.add(vcf);	
 			}
 		} 
         
@@ -136,8 +141,8 @@ public abstract class AbstractMode {
 	 */
 	protected void writeVCF(File outputFile ) throws IOException {		 
 		logger.info("Writing VCF output");	 		
-		final List<ChrPosition> orderedList = new ArrayList<ChrPosition>(positionRecordMap.keySet());
-		Collections.sort(orderedList);
+		final List<ChrPosition> orderedList = new ArrayList<>(positionRecordMap.keySet());
+		Collections.sort(orderedList, new ChrPositionComparator());
 		
 		try(VCFFileWriter writer = new VCFFileWriter( outputFile)) {			
 			for(final VcfHeader.Record record: header)  {

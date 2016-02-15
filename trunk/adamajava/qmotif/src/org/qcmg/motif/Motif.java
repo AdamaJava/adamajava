@@ -7,6 +7,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +27,9 @@ import javax.xml.transform.stream.StreamResult;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrPositionComparator;
+import org.qcmg.common.model.ChrRangePosition;
+import org.qcmg.common.model.ChrPositionName;
 import org.qcmg.common.util.LoadReferencedClasses;
 import org.qcmg.motif.util.MotifMode;
 import org.qcmg.motif.util.MotifUtils;
@@ -37,6 +41,9 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 public final class Motif {
+	
+	private static final Comparator<ChrPosition> COMPARATOR = new ChrPositionComparator();
+	
 	private final Options options;
 	private final Configuration invariants;
 	private final JobQueue jobQueue;
@@ -139,7 +146,7 @@ public final class Motif {
 				includes.add(entry.getKey());
 			}
 		}
-		Collections.sort(includes);
+		Collections.sort(includes, COMPARATOR);
 		
 		for (ChrPosition cp : includes) {
 			Element e = doc.createElement("region");
@@ -159,7 +166,7 @@ public final class Motif {
 			Element excludesE = doc.createElement("excludes");
 			iniE.appendChild(excludesE);
 			
-			Collections.sort(excludes);
+			Collections.sort(excludes, COMPARATOR);
 			
 			for (ChrPosition cp : excludes) {
 				Element e = doc.createElement("region");
@@ -268,7 +275,7 @@ public final class Motif {
 		
 		// get ordered positions
 		List<ChrPosition> orderedPositions = new ArrayList<>(results.keySet());
-		Collections.sort(orderedPositions);
+		Collections.sort(orderedPositions, COMPARATOR);
 		
 		for (ChrPosition cp : orderedPositions) {
 			// only output if we have a motif

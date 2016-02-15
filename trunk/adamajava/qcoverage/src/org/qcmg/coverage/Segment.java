@@ -4,21 +4,24 @@
 package org.qcmg.coverage;
 
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrRangePosition;
 
 public class Segment implements Comparable<Segment>{
 	
 	private final ChrPosition position;
+	private final int recordCount;
 	private final String[] fields;
 	private final Feature feature;	
 	
 	public Segment(String[] fields, Feature feature, int recordCount) {
-		this(fields, feature, new ChrPosition(fields[0], Integer.parseInt(fields[3]),  Integer.parseInt(fields[4]), Integer.toString(recordCount)));
+		this(fields, feature, new ChrRangePosition(fields[0], Integer.parseInt(fields[3]),  Integer.parseInt(fields[4])), recordCount);
 	}
-	public Segment(String[] fields, Feature feature, ChrPosition chrPos) {
+	public Segment(String[] fields, Feature feature, ChrPosition chrPos, int recordCount) {
 		super();
 		this.position =  chrPos;
 		this.fields = fields;
 		this.feature = feature;
+		this.recordCount = recordCount;
 	}
 	public String[] getFields() {
 		return fields;
@@ -31,22 +34,25 @@ public class Segment implements Comparable<Segment>{
 	}
 	@Override
 	public int compareTo(Segment o) {
-		return this.position.compareTo(o.position);
+		return ((ChrRangePosition) this.position).compareTo(o.position);
 	}
 	public int getPositionStart() {
-		return position.getPosition();
-	} 
+		return position.getStartPosition();
+	}
 	public int getPositionEnd() {
 		return position.getEndPosition();
 	}
+	public int getRecordCount() {
+		return recordCount;
+	}
 	public String getPositionString() {
-		return position.getChromosome() + ":" + position.getPosition() + "-" + position.getEndPosition();
+		return position.getChromosome() + ":" + position.getStartPosition() + "-" + position.getEndPosition();
 	}
 	@Override
 	public String toString() {
 		String result = "";
 		fields[0] = position.getChromosome();
-		fields[3] = Integer.toString(position.getPosition());
+		fields[3] = Integer.toString(position.getStartPosition());
 		fields[4] =  Integer.toString(position.getEndPosition());
 		for (String field : fields) {
 			result += field + "\t";

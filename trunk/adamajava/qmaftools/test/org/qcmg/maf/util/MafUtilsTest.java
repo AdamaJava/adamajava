@@ -308,7 +308,7 @@ public class MafUtilsTest {
 		MafUtils.loadPositionsOfInterest(emptyFile.getAbsolutePath(), collection);
 		assertEquals(1, collection.size());
 		assertEquals("1", (collection.get(0)).getChromosome());
-		assertEquals(12345, (collection.get(0)).getPosition());
+		assertEquals(12345, (collection.get(0)).getStartPosition());
 		
 		// just header
 		File headerFile = testFolder.newFile("header");
@@ -347,7 +347,7 @@ public class MafUtilsTest {
 		MafUtils.loadPositionsOfInterest(headerFile.getAbsolutePath(), collection);
 		assertEquals(1, collection.size());
 		assertEquals("1", (collection.get(0)).getChromosome());
-		assertEquals(12345, (collection.get(0)).getPosition());
+		assertEquals(12345, (collection.get(0)).getStartPosition());
 	}
 	
 	@Test

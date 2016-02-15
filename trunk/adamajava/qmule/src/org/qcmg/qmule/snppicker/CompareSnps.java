@@ -80,7 +80,7 @@ public class CompareSnps {
 				if (null == secondRecord || ! (isClassAB(secondRecord, -1) && isStopNonSynonymous(secondRecord, 22))) {
 					uniqueToFirstMap++;
 					firstList.add(entry.getKey());
-					logger.info("Unique to first: " + entry.getKey().getChromosome() + ":" + entry.getKey().getPosition());
+					logger.info("Unique to first: " + entry.getKey().getChromosome() + ":" + entry.getKey().getStartPosition());
 				} else {
 					commonSnps++;
 //					if (isClassAB(secondRecord, -1) && isStopNonSynonymous(secondRecord, 22)) {
@@ -103,7 +103,7 @@ public class CompareSnps {
 				if (null == firstRecord || ! (isClassAB(firstRecord, -1) && isStopNonSynonymous(firstRecord, 22))) {
 					uniqueToSecondMap++;
 					secondList.add(entry.getKey());
-					logger.info("Unique to second: " + entry.getKey().getChromosome() + ":" + entry.getKey().getPosition());
+					logger.info("Unique to second: " + entry.getKey().getChromosome() + ":" + entry.getKey().getStartPosition());
 //					logger.info("IGV: " + entry.getValue().getData());
 				}
 			}
