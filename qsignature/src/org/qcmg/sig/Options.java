@@ -275,5 +275,9 @@ final class Options {
 		inputList.toArray(inputFileNames);
 		return inputFileNames;
 	}
+
+	public boolean hasMinCoverage() {
+		return options.has("minCoverage");
+	}
 	
 }

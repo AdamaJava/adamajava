@@ -28,7 +28,7 @@ public class ComparisonUtilTest {
 		
 		
 		List<Comparison> comps = new ArrayList<>();
-		comps.add(new Comparison(F1, 0, F2, 0, 1, 100, 0));
+		comps.add(new Comparison(F1, 0, F2, 0, 1, 100, 0, 0, 0));
 		assertEquals("f1\t0.01[100,0]", ComparisonUtil.getComparisonsBody(comps));
 		
 	}
@@ -46,10 +46,10 @@ public class ComparisonUtilTest {
 			Assert.fail("Should have thrown an IAE");
 		} catch (IllegalArgumentException iae) {}
 		
-		comps.add(new Comparison(F1, 0, F2, 0, 0, 0, 0));
+		comps.add(new Comparison(F1, 0, F2, 0, 0, 0, 0, 0, 0));
 		assertEquals(false, ComparisonUtil.containsDodgyComparisons(comps, 0.0));
 		
-		comps.add(new Comparison(F1, 0, F2, 0, 10000, 10000, 100000));
+		comps.add(new Comparison(F1, 0, F2, 0, 10000, 10000, 100000, 0, 0));
 		assertEquals(true, ComparisonUtil.containsDodgyComparisons(comps, 0.0));
 		assertEquals(false, ComparisonUtil.containsDodgyComparisons(comps, 1));
 	}

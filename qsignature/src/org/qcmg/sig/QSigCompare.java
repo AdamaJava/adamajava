@@ -359,25 +359,6 @@ public class QSigCompare {
 		return new int[] {total-refCount, total};
 	}
 	
-	public static double[] getValuesFromCoverageString(final String coverage) {
-		
-		int[] baseCoverages = SignatureUtil.decipherCoverageString(coverage);
-		int total = baseCoverages[4];
-		if (total < 10) return null;
-		
-		double aFrac = (double) baseCoverages[0] / total;
-		double cFrac = (double) baseCoverages[1] / total;
-		double gFrac = (double) baseCoverages[2] / total;
-		double tFrac = (double) baseCoverages[3] / total;
-		
-		final double[] array = new double[] {aFrac, 
-				cFrac,
-				gFrac, 
-				tFrac};
-		
-		return array;
-	}
-	
 	public static double[] getDiscretisedValuesFromCoverageString(final String coverage) {
 		
 		int[] baseCoverages = SignatureUtil.decipherCoverageString(coverage);

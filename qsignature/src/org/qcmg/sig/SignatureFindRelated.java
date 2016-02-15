@@ -59,7 +59,7 @@ public class SignatureFindRelated {
 	private String excludeVcfsFile;
 	private List<String> excludes;
 	
-	private List<ChrPosition> positionsOfInterest;
+	private Map<ChrPosition, ChrPosition>  positionsOfInterest;
 	
 	private String email;
 	private String logFile;
@@ -348,7 +348,7 @@ public class SignatureFindRelated {
 			
 			String [] positions = options.getPositions();
 			if (null != positions) {
-				positionsOfInterest = ChrPositionUtils.getChrPositionsFromStrings(positions);
+				positionsOfInterest = ChrPositionUtils.getChrPointPositionsFromStrings(positions);
 			}
 			
 			logger.logInitialExecutionStats("SignatureFindRelated", SignatureFindRelated.class.getPackage().getImplementationVersion(), args);

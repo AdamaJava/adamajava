@@ -30,7 +30,6 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.util.BaseUtils;
-import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.sig.model.Comparison;
@@ -340,13 +339,16 @@ public class QSigCompareDistance {
 	 * @param file2 the file2
 	 * @return the comparison
 	 */
-	public static Comparison compareRatios(final Map<ChrPosition, double[]> file1Ratios,
-			final Map<ChrPosition, double[]> file2Ratios, File file1, File file2) {
+	public static Comparison compareRatios(final Map<ChrPosition, double[]> file1Ratios, final Map<ChrPosition, double[]> file2Ratios, File file1, File file2) {
 		return compareRatios(file1Ratios, file2Ratios, file1, file2, null);
 	}
+//	public static Comparison compareRatios(final Map<ChrPosition, double[]> file1Ratios,
+//			final Map<ChrPosition, double[]> file2Ratios, File file1, File file2) {
+//		return compareRatios(file1Ratios, file2Ratios, file1, file2, null);
+//	}
 	
 	public static List<Comparison> compareRatios(Map<ChrPosition, double[]> file1Ratios, File f1,
-			ConcurrentMap<File, ConcurrentMap<ChrPosition, double[]>> mapOfRatios, List<ChrPosition> positionsOfInterest) {
+			ConcurrentMap<File, ConcurrentMap<ChrPosition, double[]>> mapOfRatios, Map<ChrPosition, ChrPosition>  positionsOfInterest) {
 
 		List<Comparison> comps = new ArrayList<>();
 		
@@ -356,6 +358,17 @@ public class QSigCompareDistance {
 		
 		return comps;
 	}
+//	public static List<Comparison> compareRatios(Map<ChrPosition, double[]> file1Ratios, File f1,
+//			ConcurrentMap<File, ConcurrentMap<ChrPosition, double[]>> mapOfRatios, List<ChrPosition> positionsOfInterest) {
+//		
+//		List<Comparison> comps = new ArrayList<>();
+//		
+//		for (Entry<File, ConcurrentMap<ChrPosition, double[]>> entry : mapOfRatios.entrySet()) {
+//			comps.add(compareRatios(entry.getValue(), file1Ratios, entry.getKey(), f1, positionsOfInterest));
+//		}
+//		
+//		return comps;
+//	}
 	
 	/**
 	 * Compares the ratios of the 2 supplied maps, and returns a Comparison object
@@ -369,7 +382,7 @@ public class QSigCompareDistance {
 	 * @return
 	 */
 	public static Comparison compareRatios(final Map<ChrPosition, double[]> file1Ratios,
-			final Map<ChrPosition, double[]> file2Ratios, File file1, File file2, List<ChrPosition> positionsOfInterest) {
+			final Map<ChrPosition, double[]> file2Ratios, File file1, File file2, Map<ChrPosition, ChrPosition> positionsOfInterest) {
 		
 		if (null == file1Ratios || null == file2Ratios)
 			throw new IllegalArgumentException("null maps passed to compareRatios");
@@ -377,37 +390,31 @@ public class QSigCompareDistance {
 		if (null == file1 || null == file2)
 			throw new IllegalArgumentException("null files passed to compareRatios");
 		
-		if (file1Ratios.isEmpty() || file2Ratios.isEmpty())
-			return  new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), 0, 0, 0);
+		if (file1Ratios.isEmpty() || file2Ratios.isEmpty()) {
+			return  new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), 0, 0, 0, 0, 0);
+		}
 		
 		// if the files are the same, return a comparison object without doing the comparison
 		if (file1.equals(file2)) {
-			return  new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), 0, file1Ratios.size(), 0);
+			return  new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), 0, file1Ratios.size(), 0, 0, 0);
 		}
 		
 		boolean checkPositionsList = null != positionsOfInterest && ! positionsOfInterest.isEmpty();
+		
 		
 //		int overlapCount = 0, nonOverlapCount = 0;
 		int count = 0;
 		int noOfCalculations = 0;
 		double finalTally = 0.0;
+		long f1TotalCov = 0;
+		long f2TotalCov = 0;
 		for (Entry<ChrPosition, double[]> file1RatiosEntry : file1Ratios.entrySet()) {
 			
-			// check to see if position is in the list of desired positions
+			// check to see if position is in the list of desired positions, if not continue
 			if (checkPositionsList) {
-				boolean overlap = false;
-				for (ChrPosition cp : positionsOfInterest) {
-					if (ChrPositionUtils.doChrPositionsOverlap(file1RatiosEntry.getKey(), cp)) {
-						// great
-						overlap = true;
-						break;
-					}
-				}
+				boolean overlap = positionsOfInterest.containsKey(file1RatiosEntry.getKey());
 				if ( ! overlap)  {
-//					nonOverlapCount++;
 					continue;
-				} else {
-//					overlapCount++;
 				}
 			}
 			
@@ -426,14 +433,84 @@ public class QSigCompareDistance {
 					tally += FastMath.pow((file1Value - file2Value), 2);
 					noOfCalculations++;
 				}
+//				System.out.println("about to add " + file1Ratio[4] + " to f1 tally at " + file1RatiosEntry.getKey().toString());
+//				System.out.println("about to add " + file2Ratio[4] + " to f2 tally at " + file1RatiosEntry.getKey().toString());
+				f1TotalCov += file1Ratio[4];
+				f2TotalCov += file2Ratio[4];
 				finalTally += FastMath.sqrt(tally);
 				count++;
 			}
 		}
-		Comparison comp = new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), finalTally, count, noOfCalculations);
+		Comparison comp = new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), finalTally, count, noOfCalculations, f1TotalCov, f2TotalCov);
 //		System.out.println("overlapCount: " + overlapCount + ", nonOverlapCount: " + nonOverlapCount);
 		return comp;
 	}
+//	public static Comparison compareRatios(final Map<ChrPosition, double[]> file1Ratios,
+//			final Map<ChrPosition, double[]> file2Ratios, File file1, File file2, List<ChrPosition> positionsOfInterest) {
+//		
+//		if (null == file1Ratios || null == file2Ratios)
+//			throw new IllegalArgumentException("null maps passed to compareRatios");
+//		
+//		if (null == file1 || null == file2)
+//			throw new IllegalArgumentException("null files passed to compareRatios");
+//		
+//		if (file1Ratios.isEmpty() || file2Ratios.isEmpty())
+//			return  new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), 0, 0, 0);
+//		
+//		// if the files are the same, return a comparison object without doing the comparison
+//		if (file1.equals(file2)) {
+//			return  new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), 0, file1Ratios.size(), 0);
+//		}
+//		
+//		boolean checkPositionsList = null != positionsOfInterest && ! positionsOfInterest.isEmpty();
+//		
+////		int overlapCount = 0, nonOverlapCount = 0;
+//		int count = 0;
+//		int noOfCalculations = 0;
+//		double finalTally = 0.0;
+//		for (Entry<ChrPosition, double[]> file1RatiosEntry : file1Ratios.entrySet()) {
+//			
+//			// check to see if position is in the list of desired positions
+//			if (checkPositionsList) {
+//				boolean overlap = false;
+//				for (ChrPosition cp : positionsOfInterest) {
+//					if (ChrPositionUtils.doChrPositionsOverlap(file1RatiosEntry.getKey(), cp)) {
+//						// great
+//						overlap = true;
+//						break;
+//					}
+//				}
+//				if ( ! overlap)  {
+////					nonOverlapCount++;
+//					continue;
+//				} else {
+////					overlapCount++;
+//				}
+//			}
+//			
+//			// if coverage is zero, skip
+//			final double[] file1Ratio = file1RatiosEntry.getValue();
+//			final double[] file2Ratio = file2Ratios.get(file1RatiosEntry.getKey());
+//			if (null != file2Ratio) {
+//				
+//				double tally = 0.0;
+//				for (int i = 0 ; i < 4 ; i ++) {		// ACGT - should always have exactly 4 entries in arrays
+//					final double file1Value =  file1Ratio[i];
+//					if (Double.isNaN(file1Value)) continue;
+//					final double file2Value =  file2Ratio[i];
+//					if (Double.isNaN(file2Value)) continue;
+//					
+//					tally += FastMath.pow((file1Value - file2Value), 2);
+//					noOfCalculations++;
+//				}
+//				finalTally += FastMath.sqrt(tally);
+//				count++;
+//			}
+//		}
+//		Comparison comp = new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), finalTally, count, noOfCalculations);
+////		System.out.println("overlapCount: " + overlapCount + ", nonOverlapCount: " + nonOverlapCount);
+//		return comp;
+//	}
 	
 	private Map<ChrPosition, double[]> loadRatiosFromFile(File file) throws Exception {
 		//		private Map<ChrPosition, int[]> loadRatiosFromFile(TabbedFileReader reader) {

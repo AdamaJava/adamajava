@@ -31,7 +31,6 @@ import org.qcmg.common.util.DonorUtils;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.illumina.IlluminaRecord;
-import org.qcmg.sig.QSigCompare;
 import org.qcmg.tab.TabbedFileReader;
 import org.qcmg.tab.TabbedRecord;
 
@@ -108,9 +107,9 @@ public class SignatureUtil {
 		return UNKNOWN;
 	}
 
-	public static Map<File, Map<ChrPosition, double[]>> getDonorSnpChipData(String donor, List<File> files) throws Exception {
+	public static Map<File, Map<ChrPosition, double[]>> getDonorSnpChipData(String donor, List<File> files) throws IOException {
 		
-		Map<File, Map<ChrPosition, double[]>> map = new HashMap<File, Map<ChrPosition, double[]>>();
+		Map<File, Map<ChrPosition, double[]>> map = new HashMap<>();
 		
 		for (File snpFile : files) {
 			if (null != snpFile 
@@ -135,18 +134,20 @@ public class SignatureUtil {
 	 * 
 	 * @throws Exception
 	 */
-	public static Map<ChrPosition, double[]> loadSignatureRatios(File file) throws Exception {
-		Map<ChrPosition, double[]> ratios = new HashMap<ChrPosition, double[]>();
+	public static Map<ChrPosition, double[]> loadSignatureRatios(File file) throws IOException {
+		return loadSignatureRatios(file, 10);
+	}
+	
+	public static Map<ChrPosition, double[]> loadSignatureRatios(File file, int minCoverage) throws IOException {
+		Map<ChrPosition, double[]> ratios = new HashMap<>();
 		
-		if (null == file) throw new IllegalArgumentException("Null file object passed to loadSignatureRatios");
+		if (null == file) {
+			throw new IllegalArgumentException("Null file object passed to loadSignatureRatios");
+		}
 		
-//		Path p = file.toPath();
-//		try (BufferedReader reader = Files.newBufferedReader(p, StandardCharsets.UTF_8)) {
 		try (TabbedFileReader reader = new TabbedFileReader(file)) {
 			String line;
 			
-//			while ((line = reader.readLine()) != null) {
-				
 			for (TabbedRecord vcfRecord : reader) {
 				line = vcfRecord.getData();
 				if (line.startsWith("#")) continue;
@@ -156,19 +157,24 @@ public class SignatureUtil {
 				if (line.indexOf(SHORT_CUT_EMPTY_COVERAGE) > -1) continue;
 				// ignore entries that have nan in there
 				if (line.indexOf("nan") > -1) continue;
-		
+				
 				String[] params = TabTokenizer.tokenize(line);
 				String coverage = params[7];
-				
-				ChrPosition chrPos = ChrPositionCache.getChrPosition(params[0], Integer.parseInt(params[1]));
-				
-				double[] array = QSigCompare.getValuesFromCoverageString(coverage);
-				if (null != array)
+				double[] array = getValuesFromCoverageString(coverage, minCoverage);
+				if (null != array) {
+					ChrPosition chrPos = ChrPositionCache.getChrPosition(params[0], Integer.parseInt(params[1]));
 					ratios.put(chrPos, array);
+				}
 			}
 		}
 		return ratios;
 	}
+	
+	
+	
+	
+	
+	
 //	public static Map<ChrPosition, double[]> loadSignatureRatios(File file) throws Exception {
 //		Map<ChrPosition, double[]> ratios = null;
 //		
@@ -506,6 +512,30 @@ public class SignatureUtil {
 		}
 		
 		return new int[] {aCount, cCount, gCount, tCount, total};
+	}
+
+	public static double[] getValuesFromCoverageString(final String coverage) {
+		return getValuesFromCoverageString(coverage, 10);
+	}
+	
+	public static double[] getValuesFromCoverageString(final String coverage, int minimumCoverage) {
+		
+		int[] baseCoverages = decipherCoverageString(coverage);
+		int total = baseCoverages[4];
+		if (total < minimumCoverage) return null;
+		
+		double aFrac = (double) baseCoverages[0] / total;
+		double cFrac = (double) baseCoverages[1] / total;
+		double gFrac = (double) baseCoverages[2] / total;
+		double tFrac = (double) baseCoverages[3] / total;
+		
+		final double[] array = new double[] {aFrac, 
+				cFrac,
+				gFrac, 
+				tFrac,
+				total};
+		
+		return array;
 	}
 
 
