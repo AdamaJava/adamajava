@@ -47,9 +47,14 @@ public class Transcript implements Comparable<Transcript> {
 	}
 	
 	private void setStartStop(ChrPosition cp) {
-		if (start > cp.getPosition()) {
-			start = cp.getPosition();
-		}
+//		if (start > cp.getPosition()) {
+//			start = cp.getPosition();
+//		}
+		
+		if (start > cp.getStartPosition()) {
+			start = cp.getStartPosition();
+		}		
+		
 		if (end <  cp.getEndPosition()) {
 			end = cp.getEndPosition();
 		}
