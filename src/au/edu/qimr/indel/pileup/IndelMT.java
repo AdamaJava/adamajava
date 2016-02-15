@@ -28,7 +28,7 @@ import htsjdk.samtools.SAMRecord;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.meta.QBamId;
 import org.qcmg.common.meta.QExec;
-import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
@@ -137,7 +137,7 @@ public class IndelMT {
 			 			resetPool(topPos,  current_pool, next_pool); 	 
 //			 			//debug
 //			 			if(current_pool.size() > 1000 ||next_pool.size()>1000 )
-//			 			System.out.println("debug: " + topPos.getChrPosition().toIGVString() + " : " + current_pool.size() + " (current, next) " +next_pool.size());			 			
+//			 			System.out.println("debug: " + topPos.getChrRangePosition().toIGVString() + " : " + current_pool.size() + " (current, next) " +next_pool.size());			 			
 			 		}
 			 	}	 	
 			
@@ -155,7 +155,7 @@ public class IndelMT {
 					resetPool(topPos,  current_pool, next_pool); 							
 //		 			//debug
 //					if(current_pool.size() > 1000 ||next_pool.size()>1000 )
-//		 			System.out.println(topPos.getChrPosition().toIGVString() + " (final): " + current_pool.size() + " (current, next) " +next_pool.size());
+//		 			System.out.println(topPos.getChrRangePosition().toIGVString() + " (final): " + current_pool.size() + " (current, next) " +next_pool.size());
 			 	}while( true ) ;					 					 
 			} catch (Exception e) {
 				logger.error("Exception caught in pileup thread", e);
@@ -185,7 +185,7 @@ public class IndelMT {
 //				if(currentPool.size() >  MAXRAMREADS ) currentPool.clear();
 //				//debug
 //				if(currentPool.size() > MAXRAMREADS || nextPool.size() > MAXRAMREADS ){
-//					System.out.println(topPos.getChrPosition().toIGVString() + ": bf moving, next pool size : " + nextPool.size() + ", current pool size: " + currentPool.size());
+//					System.out.println(topPos.getChrRangePosition().toIGVString() + ": bf moving, next pool size : " + nextPool.size() + ", current pool size: " + currentPool.size());
 //				}				
 				tmp_pool.addAll(nextPool);
 				
@@ -215,7 +215,7 @@ public class IndelMT {
 					}
 				}
 				//debug
-				//if(topPos.getChrPosition().getPosition() ==148848273){
+				//if(topPos.getChrRangePosition().getPosition() ==148848273){
 //				if(currentPool.size() > MAXRAMREADS || nextPool.size() > MAXRAMREADS ){
 //					System.out.println("current pool reduced to " + currentPool.size());
 //					System.out.println("then adding from next pool : " + tmp_current_pool.size());
@@ -285,7 +285,7 @@ public class IndelMT {
 	ReadIndels indelload;
 		
 	private final List<SAMSequenceRecord> sortedContigs = new ArrayList<SAMSequenceRecord>();
-	private Map<ChrPosition, IndelPosition> positionRecordMap ;
+	private Map<ChrRangePosition, IndelPosition> positionRecordMap ;
 	
 	//unit test purpose
 	@Deprecated
@@ -407,19 +407,19 @@ public class IndelMT {
 		}
 			
 		while((pileup = tumourQueue.poll()) != null ){
-			ChrPosition pos = pileup.getChrPosition();
+			ChrRangePosition pos = pileup.getChrRangePosition();
 			IndelPosition indel = positionRecordMap.get(pos);
 			indel.setPileup(true, pileup);			
 		}
 		while((pileup = normalQueue.poll()) != null ){
-			ChrPosition pos = pileup.getChrPosition();
+			ChrRangePosition pos = pileup.getChrRangePosition();
 			IndelPosition indel = positionRecordMap.get(pos);
 			indel.setPileup(false, pileup);			
 		}
 		
 		Homopolymer homopo;
 		while((homopo = homopoQueue.poll()) != null ){
-			ChrPosition pos = homopo.getChrPosition();
+			ChrRangePosition pos = homopo.getChrRangePosition();
 			IndelPosition indel = positionRecordMap.get(pos);
 			indel.setHomopolymer(homopo);
 		}
@@ -506,7 +506,7 @@ public class IndelMT {
 		header.addInfoLine(IndelUtils.INFO_NIOC, "1", "String", IndelUtils.DESCRITPION_INFO_NIOC);
 //		header.addInfoLine(IndelUtils.INFO_HOMCNTXT, "1", "String", IndelUtils.DESCRITPION_INFO_HOMCNTXT); 
 		header.addInfoLine(IndelUtils.INFO_HOMTXT, "1", "String", IndelUtils.DESCRITPION_INFO_HOMTXT); 
-		header.addFormatLine(IndelUtils.INFO_ACINDEL, "1", "String", IndelUtils.DESCRITPION_INFO_ACINDEL);
+		header.addFormatLine(IndelUtils.FORMAT_ACINDEL, "1", "String", IndelUtils.DESCRITPION_FORMAT_ACINDEL);
 
 		VcfHeaderUtils.addQPGLineToHeader(header, qexec.getToolName().getValue(), qexec.getToolVersion().getValue(), qexec.getCommandLine().getValue() 
 				+  " [runMode: " + options.getRunMode() + "]");        
@@ -530,8 +530,8 @@ public class IndelMT {
 		List<IndelPosition> list = new ArrayList<IndelPosition> ();	
 		if(contig == null){ //get whole reference
 			list.addAll(positionRecordMap.values());	
-		}else{	  //get all chrPosition on specified contig	
-			for(ChrPosition pos : positionRecordMap.keySet())
+		}else{	  //get all ChrRangePosition on specified contig	
+			for(ChrRangePosition pos : positionRecordMap.keySet())
 				if(pos.getChromosome().equals(contig.getSequenceName()))
 					list.add(positionRecordMap.get(pos));	 
 		}
@@ -539,7 +539,7 @@ public class IndelMT {
 		Collections.sort(list, new Comparator<IndelPosition>() {
 			@Override
 			public int compare(IndelPosition o1, IndelPosition o2) {
-				return o1.getChrPosition().compareTo( o2.getChrPosition());
+				return o1.getChrRangePosition().compareTo( o2.getChrRangePosition());
 			}
 		});
 		

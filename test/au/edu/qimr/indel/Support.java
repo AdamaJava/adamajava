@@ -25,15 +25,9 @@ public class Support {
 	public static void clear() throws IOException {
 		File dir = new java.io.File( "." ).getCanonicalFile();		
 		for(File f: dir.listFiles())
-		    if(  f.getName().endsWith(".ini")  || f.getName().endsWith(".vcf")    )
-		        f.delete();		
+		    if(  f.getName().endsWith(".ini")  || f.getName().endsWith(".vcf")  ||  f.getName().endsWith(".bam") || f.getName().endsWith(".sam") ||  f.getName().endsWith(".bai")  )
+		        f.delete();	
 		
-	}
-	public static void clearBam() throws IOException{
-		File dir = new java.io.File( "." ).getCanonicalFile();		
-		for(File f: dir.listFiles())
-		    if(  f.getName().endsWith(".bam") || f.getName().endsWith(".sam") ||  f.getName().endsWith(".bai")    )
-		        f.delete();		
 	}
 	
 	public static void createBam( List<String> data1, String output) {
@@ -63,8 +57,7 @@ public class Support {
 		} catch (IOException e) {
 			System.err.println(Q3IndelException.getStrackTrace(e));
 			Assert.fail("Should not threw a Exception");
-		}
-		
+		}		
 	}
 	
 	/**

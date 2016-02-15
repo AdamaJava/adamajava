@@ -12,16 +12,15 @@ import java.util.List;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
-import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.util.IndelUtils.SVTYPE;
-
 import au.edu.qimr.indel.Q3IndelException;
 
 public class Homopolymer {
 	
 	static final String nullValue = "-";
 	private final List<String> motifs ; //same chrposition but differnt allel
-	private final ChrPosition position;
+	private final ChrRangePosition position;
 	
 	private final SVTYPE indelType; 	
 	QLogger logger = QLoggerFactory.getLogger(Homopolymer.class);	
@@ -38,7 +37,7 @@ public class Homopolymer {
 	private byte[] referenceBase;
 	
 	public Homopolymer(IndelPosition position, final byte[] referenceBase, int homopolymerWindow, int reportWindow) {
-		this.position = position.getChrPosition();
+		this.position =   position.getChrRangePosition();
 		this.indelType = position.getIndelType();
 		this.motifs = position.getMotifs();
 		
@@ -170,7 +169,7 @@ public class Homopolymer {
 		//INS position.getEndPosition() is 21, downStream should start at referenceBase[21]
 		//DEL position.getEndPosition() is 23, downStream should start at referenceBase[23]
 		
-		int indelStart = position.getPosition();
+		int indelStart = position.getStartPosition();
 	    int indelEnd = position.getEndPosition(); 
 	    
     	//at least start from position 1 
@@ -184,7 +183,7 @@ public class Homopolymer {
 	}
 	
 
-	public ChrPosition getChrPosition(){return position; }
+	public ChrRangePosition getChrRangePosition(){return position; }
 		
 
 	public static FastaSequenceIndex getFastaIndex(File reference) {

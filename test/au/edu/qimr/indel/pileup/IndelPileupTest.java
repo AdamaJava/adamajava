@@ -50,8 +50,9 @@ public class IndelPileupTest {
 		 
         //pileup
 		List<VcfRecord> vcfs = new ArrayList<VcfRecord>();
-		vcfs.add(new VcfRecord("chr1",	183014,	null, "G",	"GTT"));
-		vcfs.add(new VcfRecord("chr1",	183014,	null, "G",	"GT"));
+		vcfs.add(new VcfRecord.Builder("chr1",	183014,	"G").allele("GTT").build());
+		vcfs.add(new VcfRecord.Builder("chr1",	183014, "G").allele("GT").build());
+		
 		IndelPosition indel = new IndelPosition (vcfs, SVTYPE.INS);
 		IndelPileup  pileup = new IndelPileup( indel, 13, 3); 		
 		pileup.pileup(pool);
@@ -72,7 +73,7 @@ public class IndelPileupTest {
 	@Test
 	public void deleteTest() throws Exception{
  		//get delete indel
-		VcfRecord vs = new VcfRecord("chr1", 197, null, "CAG", "C");				 
+		VcfRecord vs = new VcfRecord.Builder("chr1", 197, "CAG").allele("C").build();				 
 		IndelPosition indel = new IndelPosition (vs);
 		
 		//make pool

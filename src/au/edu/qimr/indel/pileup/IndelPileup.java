@@ -5,7 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.util.IndelUtils.SVTYPE;
 import org.qcmg.picard.util.SAMUtils;
 
@@ -17,8 +17,8 @@ import htsjdk.samtools.SAMRecord;
 
 public class IndelPileup {
 	private  final int indelStart, indelEnd, nearbySoftClipWindow ,nearyIndelWindow; 
-	private final ChrPosition position; 
-	private final List<String> motifs ; //same chrposition but differnt allel
+	private final ChrRangePosition position; 
+	private final List<String> motifs ; //same ChrRangePosition but differnt allel
  	private final SVTYPE type; 
  	
 	private  int coverage ;  //total counts start-end
@@ -34,7 +34,7 @@ public class IndelPileup {
 	List<Integer> novelStart = new ArrayList<Integer>(); 
 	
 	public IndelPileup( IndelPosition pos, int nearbySoftClipWindow, int nearyIndelWindow) throws Exception { 	
-		this.position = pos.getChrPosition();
+		this.position = pos.getChrRangePosition();
 		this.indelStart = pos.getStart();
 		this.indelEnd = pos.getEnd();		
 		this.type = pos.getIndelType();
@@ -319,7 +319,7 @@ public class IndelPileup {
 	}
 	//refer to qsnp speed up the process
 
-	public ChrPosition getChrPosition() { return position; }
+	public ChrRangePosition getChrRangePosition() { return position; }
 	
 	public int getTotalCount(){ return coverage; }
 	public int getInformativeCount(){ return informativeCount; }
