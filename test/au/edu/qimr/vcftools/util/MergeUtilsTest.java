@@ -265,9 +265,13 @@ public class MergeUtilsTest {
 	
 	@Test
 	public void mergeRecordInfo() {
-		VcfRecord r1 = new VcfRecord( "1", 100, null, "ABC", "DEF");
-		VcfRecord r2 = new VcfRecord( "1", 100, null, "ABC", "DEF");
-		VcfRecord mergedR = new VcfRecord("1", 100, null, "ABC", "DEF");
+//		VcfRecord r1 = new VcfRecord( "1", 100, null, "ABC", "DEF");
+//		VcfRecord r2 = new VcfRecord( "1", 100, null, "ABC", "DEF");
+//		VcfRecord mergedR = new VcfRecord("1", 100, null, "ABC", "DEF");
+		
+		VcfRecord r1 = new VcfRecord.Builder( "1", 100,  "ABC").allele("DEF").build();
+		VcfRecord r2 = new VcfRecord.Builder( "1", 100, "ABC").allele("DEF").build();
+		VcfRecord mergedR = new VcfRecord.Builder("1", 100, "ABC").allele("DEF").build();				
 		VcfRecord actualMergerRecord = MergeUtils.mergeRecords(null, r1, r2);
 		assertEquals(mergedR, actualMergerRecord);
 		
@@ -308,14 +312,22 @@ public class MergeUtilsTest {
 				
 		assertEquals(mergedR, MergeUtils.mergeRecords(null, r1, r2));
 		
-		r1 = new VcfRecord( "1", 100, null, ".", null);
-		r2 = new VcfRecord( "1", 100, null, ".", null);
-		mergedR = new VcfRecord( "1", 100, null, ".",  null);
+//		r1 = new VcfRecord( "1", 100, null, ".", null);
+//		r2 = new VcfRecord( "1", 100, null, ".", null);
+//		mergedR = new VcfRecord( "1", 100, null, ".",  null);
+		
+		r1 = new VcfRecord.Builder( "1", 100, ".").build();
+		r2 = new VcfRecord.Builder( "1", 100,  ".").build();
+		mergedR = new VcfRecord.Builder( "1", 100, ".").build();		
 		assertEquals(mergedR, MergeUtils.mergeRecords(null, r1, r2));
 		
-		r1 = new VcfRecord( "1", 100, null, "ABC", null);
-		r2 = new VcfRecord( "1", 100, null, "ABC", null);
-		mergedR = new VcfRecord("1", 100, null, "ABC", null);
+//		r1 = new VcfRecord( "1", 100, null, "ABC", null);
+//		r2 = new VcfRecord( "1", 100, null, "ABC", null);
+//		mergedR = new VcfRecord("1", 100, null, "ABC", null);
+		
+		r1 = new VcfRecord.Builder( "1", 100,  "ABC").build();
+		r2 = new VcfRecord.Builder( "1", 100,  "ABC").build();
+		mergedR = new VcfRecord.Builder( "1", 100,  "ABC").build();		
 		assertEquals(mergedR, MergeUtils.mergeRecords(null, r1, r2));
 		
 		r1 = new VcfRecord( new String[] {"1", "100", null, "ABC", "DEF"});
@@ -337,10 +349,14 @@ public class MergeUtilsTest {
 		r2 = new VcfRecord( new String[] {"1", "100", "rs123", "ABC", "DEF"});
 		mergedR = new VcfRecord( new String[] {"1", "100", "rs123", "ABC", "DEF"});
 		assertEquals(mergedR, MergeUtils.mergeRecords(null, r1, r2));
+
 		
-		r1 = new VcfRecord( "1", 100, "rs123", "ABC", "DEF");
-		r2 = new VcfRecord( "1", 100, "rs456", "ABC", "DEF");
-		mergedR = new VcfRecord("1", 100, "rs123,rs456", "ABC", "DEF");
+//		r1 = new VcfRecord( "1", 100, "rs123", "ABC", "DEF");
+//		r2 = new VcfRecord( "1", 100, "rs456", "ABC", "DEF");
+//		mergedR = new VcfRecord("1", 100, "rs123,rs456", "ABC", "DEF");
+		r1 = new VcfRecord.Builder( "1", 100,  "ABC").id("rs123").allele("DEF").build();
+		r2 = new VcfRecord.Builder( "1", 100, "ABC").id("rs456").allele("DEF").build();
+		mergedR = new VcfRecord.Builder("1", 100, "ABC").id("rs123,rs456").allele("DEF").build();		
 		assertEquals(mergedR, MergeUtils.mergeRecords(null, r1, r2));
 	}
 	
@@ -351,9 +367,14 @@ public class MergeUtilsTest {
 		idRules.put(1,  rulesForThisFile);
 		rulesForThisFile.put("ID", "ID1");
 		
-		VcfRecord r1 = new VcfRecord("1", 100, "rs123", "ABC", "DEF");
-		VcfRecord r2 = new VcfRecord("1", 100, "rs456", "ABC", "DEF");
-		VcfRecord mergedR = new VcfRecord("1", 100, "rs123,rs456", "ABC", "DEF");
+//		VcfRecord r1 = new VcfRecord("1", 100, "rs123", "ABC", "DEF");
+//		VcfRecord r2 = new VcfRecord("1", 100, "rs456", "ABC", "DEF");
+//		VcfRecord mergedR = new VcfRecord("1", 100, "rs123,rs456", "ABC", "DEF");
+		
+		VcfRecord r1 = new VcfRecord.Builder( "1", 100,  "ABC").allele("DEF").build();
+		VcfRecord r2 = new VcfRecord.Builder( "1", 100, "ABC").allele("DEF").build();
+		VcfRecord mergedR = new VcfRecord.Builder("1", 100, "ABC").allele("DEF").build();
+		
 		assertEquals(mergedR, MergeUtils.mergeRecords(idRules, r1, r2));
 		
 		r1.setInfo("ID=XXX");
@@ -380,9 +401,16 @@ public class MergeUtilsTest {
 	@Test
 	public void mergeRecordFilter() {
 		
-		VcfRecord r1 = new VcfRecord("1", 100, "rs123", "ABC", "DEF");
-		VcfRecord r2 = new VcfRecord("1", 100, "rs456", "ABC", "DEF");
-		VcfRecord mergedR = new VcfRecord("1", 100, "rs123,rs456", "ABC", "DEF");
+//		VcfRecord r1 = new VcfRecord("1", 100, "rs123", "ABC", "DEF");
+//		VcfRecord r2 = new VcfRecord("1", 100, "rs456", "ABC", "DEF");
+//		VcfRecord mergedR = new VcfRecord("1", 100, "rs123,rs456", "ABC", "DEF");
+		
+		VcfRecord r1 = new VcfRecord.Builder("1", 100, "ABC").id("rs123").allele("DEF").build();
+		VcfRecord r2 = new VcfRecord.Builder("1", 100, "ABC").id( "rs456").allele("DEF").build();
+		VcfRecord mergedR = new VcfRecord.Builder("1", 100, "ABC").id("rs123,rs456").allele("DEF").build();
+		
+		
+		
 		assertEquals(mergedR, MergeUtils.mergeRecords(null, r1, r2));
 		
 		r1.setFilter("F1");
@@ -400,9 +428,14 @@ public class MergeUtilsTest {
 	
 	@Test
 	public void mergeRecordFormat() {
-		VcfRecord r1 = new VcfRecord("1", 100, "rs123", "ABC", "DEF");
-		VcfRecord r2 = new VcfRecord("1", 100, "rs456", "ABC", "DEF");
-		VcfRecord mergedR = new VcfRecord("1", 100, "rs123,rs456", "ABC", "DEF");
+//		VcfRecord r1 = new VcfRecord("1", 100, "rs123", "ABC", "DEF");
+//		VcfRecord r2 = new VcfRecord("1", 100, "rs456", "ABC", "DEF");
+//		VcfRecord mergedR = new VcfRecord("1", 100, "rs123,rs456", "ABC", "DEF");
+		
+		VcfRecord r1 = new VcfRecord.Builder("1", 100, "ABC").id("rs123").allele("DEF").build();
+		VcfRecord r2 = new VcfRecord.Builder("1", 100, "ABC").id("rs456").allele("DEF").build();
+		VcfRecord mergedR = new VcfRecord.Builder("1", 100, "ABC").id("rs123,rs456").allele("DEF").build();
+		
 		assertEquals(mergedR, MergeUtils.mergeRecords(null, r1, r2));
 		
 		r1.setFormatFields(Arrays.asList("AB:CD:EF", "1:2:3"));
@@ -428,9 +461,14 @@ public class MergeUtilsTest {
 		idRules.put(1,  rulesForThisFile);
 		rulesForThisFile.put("EF", "EF1");
 		
-		VcfRecord r1 = new VcfRecord("1", 100, "rs123", "ABC", "DEF");
-		VcfRecord r2 = new VcfRecord("1", 100, "rs456", "ABC", "DEF");
-		VcfRecord mergedR = new VcfRecord("1", 100, "rs123,rs456", "ABC", "DEF");
+//		VcfRecord r1 = new VcfRecord("1", 100, "rs123", "ABC", "DEF");
+//		VcfRecord r2 = new VcfRecord("1", 100, "rs456", "ABC", "DEF");
+//		VcfRecord mergedR = new VcfRecord("1", 100, "rs123,rs456", "ABC", "DEF");
+		
+		VcfRecord r1 = new VcfRecord.Builder( "1", 100,  "ABC").id("rs123").allele("DEF").build();
+		VcfRecord r2 = new VcfRecord.Builder( "1", 100, "ABC").id("rs456").allele("DEF").build();
+		VcfRecord mergedR = new VcfRecord.Builder("1", 100, "ABC").id("rs123,rs456").allele("DEF").build();
+
 		assertEquals(mergedR, MergeUtils.mergeRecords(idRules, r1, r2));
 		
 		r1.setFormatFields(Arrays.asList("AB:CD:EF", "1:2:3"));

@@ -180,8 +180,12 @@ public class MergeUtils {
 		/*
 		 * Get common values from 1st record
 		 */ 
-		VcfRecord mergedRecord =  VcfUtils.createVcfRecord(records[0].getChrPosition(),   records[0].getId(), records[0].getRef(), records[0].getAlt());
-
+//		VcfRecord mergedRecord =  VcfUtils.createVcfRecord(records[0].getChrPosition(),   records[0].getId(), records[0].getRef(), records[0].getAlt());
+		VcfRecord mergedRecord =  new VcfRecord.Builder(records[0].getChrPosition(), records[0].getRef())
+									.id(records[0].getId()).allele(records[0].getAlt()).build();
+				
+		
+ 
 		
 		/*
 		 * Update id, info, filter, and format fields
