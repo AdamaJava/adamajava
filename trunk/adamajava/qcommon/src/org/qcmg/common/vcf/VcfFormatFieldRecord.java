@@ -125,6 +125,23 @@ public class VcfFormatFieldRecord {
 			 		 
 		return str;
 	}
+	/**
+	 * 
+	 * @return true if sampleColumn is null;  or each value is ".", null or  empty string only
+	 */
+	public boolean isMissingSample(){
+				
+		if(values == null) return true; 
+		
+		boolean flag = true;
+		for( String v : values) 
+			if(!StringUtils.isMissingDtaString(v)){
+				flag = false;
+				break;
+			}
+		
+		return flag;
+	}
 
 	/**
 	 * @return return sample column String followed Format column pattern: eg.  0|0:48:1:51,51
