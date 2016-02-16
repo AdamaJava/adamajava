@@ -3,6 +3,7 @@ package au.edu.qimr.clinvar.model;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrRangePosition;
 
 public class Probe implements Comparable<Probe>{
 	
@@ -44,7 +45,7 @@ public class Probe implements Comparable<Probe>{
 		this.subseqEnd = ssEnd;
 		this.forwardStrand = forwardStrand;
 		this.name = name;
-		this.cp = new ChrPosition(chr, primer1Start, primer2End);
+		this.cp = new ChrRangePosition(chr, primer1Start, primer2End);
 	}
 
 	@Override
@@ -93,7 +94,7 @@ public class Probe implements Comparable<Probe>{
 	}
 	
 	public String getReferenceSequence() {
-		int start = cp.getPosition();
+		int start = cp.getStartPosition();
 //		int end = cp.getEndPosition();
 		int seqStartPos = start - subseqStart;
 		String ref = subseq.substring(seqStartPos, cp.getLength() + seqStartPos);

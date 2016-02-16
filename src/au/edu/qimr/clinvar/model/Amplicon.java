@@ -1,8 +1,13 @@
 package au.edu.qimr.clinvar.model;
 
+import java.util.Comparator;
+
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrPositionComparator;
 
 public class Amplicon implements Comparable<Amplicon> {
+	
+	private static final Comparator<ChrPosition> COMPARATOR = new ChrPositionComparator();
 	
 	private final int id;
 	private ChrPosition position;
@@ -53,7 +58,7 @@ public class Amplicon implements Comparable<Amplicon> {
 
 	@Override
 	public int compareTo(Amplicon o) {
-		return position.compareTo(o.position);
+		return COMPARATOR.compare(position, o.position);
 	}
 
 	@Override

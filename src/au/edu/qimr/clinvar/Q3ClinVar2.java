@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -53,7 +54,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.meta.QExec;
+import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrPositionComparator;
+import org.qcmg.common.model.ChrPositionName;
+import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.model.Transcript;
 import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.Constants;
@@ -87,6 +92,8 @@ import au.edu.qimr.clinvar.util.ClinVarUtil;
 //import org.w3c.dom.Element;
 
 public class Q3ClinVar2 {
+	
+	private static final Comparator<ChrPosition> COMPARATOR = new ChrPositionComparator();
 	
 	private static QLogger logger;
 	private static final int TILE_SIZE = 13;
@@ -215,7 +222,7 @@ public class Q3ClinVar2 {
 							
 							if (null != currentTranscriptId) {
 								Transcript t = transcripts.get(currentTranscriptId);
-								ChrPosition tcp = new ChrPosition(params[0], t.getStart(), t.getEnd());
+								ChrPosition tcp = new ChrRangePosition(params[0], t.getStart(), t.getEnd());
 								logger.debug("check to see if any bed regions overlap current transcript : " + tcp.toIGVString());
 								if (uniqueChrs.get(contig).stream()	
 									.anyMatch(a -> ChrPositionUtils.doChrPositionsOverlapPositionOnly(tcp, a.getInitialFragmentPosition()))) {
@@ -243,10 +250,10 @@ public class Q3ClinVar2 {
 						}
 						switch (params[2]) {
 						case "exon":
-							t.addExon(new ChrPosition(params[0], Integer.parseInt(params[3]), Integer.parseInt(params[4]), exonNumber));
+							t.addExon(new ChrPositionName(params[0], Integer.parseInt(params[3]), Integer.parseInt(params[4]), exonNumber));
 							break;
 						case "CDS":
-							t.addCDS(new ChrPosition(params[0], Integer.parseInt(params[3]), Integer.parseInt(params[4]), exonNumber));
+							t.addCDS(new ChrPositionName(params[0], Integer.parseInt(params[3]), Integer.parseInt(params[4]), exonNumber));
 							break;
 						default:
 							logger.debug("Ignoring " + params[2]);
@@ -535,7 +542,7 @@ public class Q3ClinVar2 {
 				amplicon.addAttribute(new Attribute("number_of_overlapping_fragment_amplicons", "" + entry.getValue().size()));
 				
 				String idLIst = entry.getValue().stream()
-					.sorted((a1, a2) -> a1.getPosition().compareTo(a2.getPosition()))
+					.sorted((a1, a2) -> COMPARATOR.compare(a1.getPosition(),a2.getPosition()))
 					.map(a -> a.getId() + "")
 					.collect(Collectors.joining(","));
 				
@@ -548,7 +555,7 @@ public class Q3ClinVar2 {
 		Element vcfs = new Element("VcfRecords");
 		q3pElement.appendChild(vcfs);
 		filteredMutations.stream()
-			.sorted((v1, v2) -> v1.getChrPosition().compareTo(v2.getChrPosition()))
+			.sorted((v1, v2) -> COMPARATOR.compare(v1.getChrPosition(), v2.getChrPosition()))
 			.forEach(v -> {
 				
 				Element vcf = new Element("VcfRecord");
@@ -634,7 +641,7 @@ public class Q3ClinVar2 {
 			try (TabbedFileReader reader = new TabbedFileReader(new File(bedFile));) {
 				for (TabbedRecord rec : reader) {
 					String [] params = TabTokenizer.tokenize(rec.getData());
-					ChrPosition cp = new ChrPosition(params[0], Integer.parseInt(params[1]), Integer.parseInt(params[2]));
+					ChrPosition cp = new ChrRangePosition(params[0], Integer.parseInt(params[1]), Integer.parseInt(params[2]));
 					bedToAmpliconMap.put(new Amplicon(++bedId, cp), new ArrayList<Amplicon>(1));
 				}
 			}
@@ -664,7 +671,7 @@ public class Q3ClinVar2 {
 				.forEach(a -> {
 					List<Amplicon> beds = bedToAmpliconMap.keySet().stream()
 						.filter(bed -> ChrPositionUtils.isChrPositionContained(a.getPosition(), bed.getPosition())
-								&& a.getPosition().getPosition() < (bed.getPosition().getPosition() + 10)
+								&& a.getPosition().getStartPosition() < (bed.getPosition().getStartPosition() + 10)
 								&& a.getPosition().getEndPosition() > (bed.getPosition().getEndPosition() + 10)
 								)
 						.collect(Collectors.toList());
@@ -812,7 +819,7 @@ public class Q3ClinVar2 {
 			
 			frags.values().stream()
 				.filter(f -> f.getActualPosition() != null)
-				.sorted((f1,f2) -> f1.getActualPosition().compareTo(f2.getActualPosition()))
+				.sorted((f1,f2) -> COMPARATOR.compare(f1.getActualPosition(), f2.getActualPosition()))
 				.forEach(f -> {
 					int fragId = f.getId();
 					recordCount.addAndGet(f.getRecordCount());
@@ -1087,7 +1094,7 @@ public class Q3ClinVar2 {
 					final String chr = IndelUtils.getFullChromosome(dbSNPVcf.getChromosome());
 					ChrPosition chrPos;
 					if (dbSNPVcf.getInfo().contains("VC=SNV")) {
-						chrPos = new ChrPosition(chr, start);
+						chrPos = ChrPointPosition.valueOf(chr, start);
 					} else {
 						
 						/*
@@ -1108,7 +1115,7 @@ public class Q3ClinVar2 {
 						 */
 						
 						final int end =  dbSNPVcf.getRef().length() +  (start - 1);
-						chrPos = new ChrPosition(chr, start, end);
+						chrPos = new ChrRangePosition(chr, start, end);
 					}
 					
 					List<VcfRecord> mutations = cpVcfMap.get(chrPos);
@@ -1171,7 +1178,7 @@ public class Q3ClinVar2 {
 						ampliconFragmentMap.get(new Amplicon(array[0], null)).stream()
 							.filter(f -> f.getId() == array[1])
 							.forEach(f -> {
-								if (vcf.getPosition() - f.getActualPosition().getPosition() <= 5
+								if (vcf.getPosition() - f.getActualPosition().getStartPosition() <= 5
 										|| f.getActualPosition().getEndPosition() - vcf.getChrPosition().getEndPosition() <= 5) {
 									endOfReadCount.addAndGet(f.getRecordCount());
 								} else {
@@ -1265,7 +1272,7 @@ public class Q3ClinVar2 {
 			 * and then sw
 			 */
 			ChrPosition bestTiledCP = f.getBestTiledLocation();
-			ChrPosition bufferedCP = new ChrPosition(bestTiledCP.getChromosome(), bestTiledCP.getPosition() - 100, bestTiledCP.getPosition() + 100 + f.getLength());
+			ChrPosition bufferedCP = new ChrRangePosition(bestTiledCP.getChromosome(), bestTiledCP.getStartPosition() - 100, bestTiledCP.getStartPosition() + 100 + f.getLength());
 			String bufferedReference = getRefFromChrPos(bufferedCP);
 			
 			String [] swDiffs = ClinVarUtil.getSwDiffs(bufferedReference, f.getSequence(), true);
@@ -1415,9 +1422,9 @@ public class Q3ClinVar2 {
 	}
 	
 	private void createMutation(ChrPosition actualCP, int position, String ref, String alt, int ampliconId, int fragmentId, int fragmentRecordCount) {
-		int startPos = actualCP.getPosition() + position;
-		int endPos =  startPos + ref.length() -1 ;
-		VcfRecord vcf = VcfUtils.createVcfRecord(new ChrPosition(actualCP.getChromosome(),  startPos, endPos), "."/*id*/, ref, alt);
+		int startPos = actualCP.getStartPosition() + position;
+//		int endPos =  startPos + ref.length() -1 ;
+		VcfRecord vcf = VcfUtils.createVcfRecord(ChrPointPosition.valueOf(actualCP.getChromosome(),  startPos), "."/*id*/, ref, alt);
 		
 		List<int[]> existingFragmentIds = vcfFragmentMap.get(vcf);
 		if (null == existingFragmentIds) {
@@ -1430,9 +1437,9 @@ public class Q3ClinVar2 {
 	
 	
 	private void setActualCP(ChrPosition bufferedCP, int offset, Fragment f, int referenceLength) {
-		final int startPosition =  bufferedCP.getPosition() + offset + 1;	// we are 1 based
+		final int startPosition =  bufferedCP.getStartPosition() + offset + 1;	// we are 1 based
 		// location needs to reflect reference bases consumed rather sequence length
-		ChrPosition actualCP = new ChrPosition(bufferedCP.getChromosome(), startPosition, startPosition + referenceLength -1);
+		ChrPosition actualCP = new ChrRangePosition(bufferedCP.getChromosome(), startPosition, startPosition + referenceLength -1);
 		f.setActualPosition(actualCP);
 	}
 
@@ -1494,7 +1501,7 @@ public class Q3ClinVar2 {
 	
 	private void logPositionAndFragmentCounts() {
 		frags.entrySet().stream()
-			.sorted((entry1, entry2) -> {return entry1.getValue().getBestTiledLocation().compareTo(entry2.getValue().getBestTiledLocation());})
+			.sorted((entry1, entry2) -> {return COMPARATOR.compare(entry1.getValue().getBestTiledLocation(), entry2.getValue().getBestTiledLocation());})
 			.forEach((entry) -> {
 				logger.info("cp: " + entry.getValue().getBestTiledLocation().toIGVString() + "frag: " + entry.getKey() + ", no of fragments: " + entry.getValue().getRecordCount());
 			});
@@ -1769,7 +1776,7 @@ public class Q3ClinVar2 {
 			@Override
 			public boolean execute(long position) {
 				ChrPosition cp = positionToActualLocation.getChrPositionFromLongPosition(position);
-				ChrPosition refCp =  new ChrPosition(cp.getChromosome(), Math.max(1, cp.getPosition() - buffer), cp.getPosition() + binSequence.length() + buffer);
+				ChrPosition refCp =  new ChrRangePosition(cp.getChromosome(), Math.max(1, cp.getStartPosition() - buffer), cp.getStartPosition() + binSequence.length() + buffer);
 //				ChrPosition refCp = positionToActualLocation.getBufferedChrPositionFromLongPosition(position, binSequence.length(), 200);
 				String ref = getRefFromChrPos(refCp);
 				positionSWDiffMap.put(cp, ClinVarUtil.getSwDiffs(ref, binSequence));
@@ -1796,10 +1803,10 @@ public class Q3ClinVar2 {
 				e.printStackTrace();
 			}
 		}
-		if (cp.getPosition() <= 0 || cp.getEndPosition() > ref.length) {
+		if (cp.getStartPosition() <= 0 || cp.getEndPosition() > ref.length) {
 			logger.warn("ChrPosition goes beyond edge of contig: " + cp.toIGVString() + ", ref length: " + ref.length);
 		}
-		byte [] refPortion = Arrays.copyOfRange(referenceCache.get(chr), cp.getPosition(), cp.getEndPosition());
+		byte [] refPortion = Arrays.copyOfRange(referenceCache.get(chr), cp.getStartPosition(), cp.getEndPosition());
 		referenceSeq = new String(refPortion);
 		
 		return referenceSeq;

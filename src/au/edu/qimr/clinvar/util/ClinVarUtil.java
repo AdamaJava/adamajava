@@ -47,6 +47,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.Pair;
@@ -884,7 +885,7 @@ public class ClinVarUtil {
 //		}
 		
 		int length = vcf.getChrPosition().getLength();
-		int positionInString = getZeroBasedPositionInString(vcf.getChrPosition().getPosition(), subRefPosition);
+		int positionInString = getZeroBasedPositionInString(vcf.getChrPosition().getStartPosition(), subRefPosition);
 		
 		return getMutationString(positionInString, length, smithWatermanDiffs);
 	}
@@ -908,11 +909,11 @@ public class ClinVarUtil {
 		int binSize = f.getRecordCount();
 		int i = 0;
 		for (StringBuilder sb : f.getFsHeaders()) {
-			SAMRecord rec = createSAMRecord(header, cigar,ampliconId, f.getId(), binSize, refSeq, f.getActualPosition().getChromosome(), f.getActualPosition().getPosition(), offset, f.getSequence(), i, mappingQuality, true, sb.toString());
+			SAMRecord rec = createSAMRecord(header, cigar,ampliconId, f.getId(), binSize, refSeq, f.getActualPosition().getChromosome(), f.getActualPosition().getStartPosition(), offset, f.getSequence(), i, mappingQuality, true, sb.toString());
 			writer.addAlignment(rec);
 		}
 		for (StringBuilder sb : f.getRsHeaders()) {
-			SAMRecord rec = createSAMRecord(header, cigar,ampliconId, f.getId(), binSize, refSeq, f.getActualPosition().getChromosome(), f.getActualPosition().getPosition(), offset, f.getSequence(), i, mappingQuality, false, sb.toString());
+			SAMRecord rec = createSAMRecord(header, cigar,ampliconId, f.getId(), binSize, refSeq, f.getActualPosition().getChromosome(), f.getActualPosition().getStartPosition(), offset, f.getSequence(), i, mappingQuality, false, sb.toString());
 			writer.addAlignment(rec);
 		}
 		
@@ -1375,12 +1376,12 @@ public class ClinVarUtil {
 			 * get upper and lower bounds of cp and set on Amplicon
 			 */
 			OptionalInt start = entry.getValue().stream()
-										.mapToInt(f -> f.getActualPosition().getPosition())
+										.mapToInt(f -> f.getActualPosition().getStartPosition())
 										.min(); 
 			OptionalInt end = entry.getValue().stream()
 										.mapToInt(f -> f.getActualPosition().getEndPosition())
 										.max(); 
-			entry.getKey().setPosition(new ChrPosition(initialFragCP.getChromosome(), start.orElse(initialFragCP.getPosition()), end.orElse(initialFragCP.getEndPosition())));
+			entry.getKey().setPosition(new ChrRangePosition(initialFragCP.getChromosome(), start.orElse(initialFragCP.getStartPosition()), end.orElse(initialFragCP.getEndPosition())));
 		}
 		
 		return ampliconGroupings;

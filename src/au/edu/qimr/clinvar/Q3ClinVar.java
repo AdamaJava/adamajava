@@ -51,7 +51,10 @@ import nu.xom.ValidityException;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.meta.QExec;
+import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrPositionComparator;
+import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.FileUtils;
@@ -242,7 +245,7 @@ public class Q3ClinVar {
 					if (null != b.getBestTiledLocation()) {
 						sb.append("\nAlternate\t");
 						boolean sameStrandAsAmplicon = b.getSmithWatermanDiffs(b.getBestTiledLocation())[2].replace("-","").equals(b.getSequence());
-						sb.append(b.getBestTiledLocation().toStartPositionString()).append(':').append(probe.reverseComplementSequence() ? (sameStrandAsAmplicon ? "+" : "-") : (sameStrandAsAmplicon ? "-" : "+"));
+						sb.append(b.getBestTiledLocation().getStartPosition()).append(':').append(probe.reverseComplementSequence() ? (sameStrandAsAmplicon ? "+" : "-") : (sameStrandAsAmplicon ? "-" : "+"));
 						sb.append("\tSwScore: ");
 						sb.append(ClinVarUtil.getSmithWatermanScore(b.getSmithWatermanDiffs(b.getBestTiledLocation())));
 						sb.append("\nR\t");
@@ -256,7 +259,7 @@ public class Q3ClinVar {
 						for (Entry<ChrPosition, String []> entry2 : b.getSmithWatermanDiffsMap().entrySet()) {
 							sb.append("\nAlternate\t");
 							boolean sameStrandAsAmplicon = entry2.getValue()[2].replace("-","").equals(b.getSequence());
-							sb.append(entry2.getKey().toStartPositionString()).append(':').append(probe.reverseComplementSequence() ? (sameStrandAsAmplicon ? "+" : "-") : (sameStrandAsAmplicon ? "-" : "+"));
+							sb.append(entry2.getKey().getStartPosition()).append(':').append(probe.reverseComplementSequence() ? (sameStrandAsAmplicon ? "+" : "-") : (sameStrandAsAmplicon ? "-" : "+"));
 //							sb.append(entry2.getKey().toStartPositionString());
 							sb.append("\tSwScore: ");
 							sb.append(ClinVarUtil.getSmithWatermanScore(entry2.getValue()));
@@ -754,7 +757,7 @@ public class Q3ClinVar {
 			@Override
 			public boolean execute(long position) {
 				ChrPosition cp = positionToActualLocation.getChrPositionFromLongPosition(position);
-				ChrPosition refCp =  new ChrPosition(cp.getChromosome(), Math.max(1, cp.getPosition() - buffer), cp.getPosition() + binSequence.length() + buffer);
+				ChrPosition refCp =  new ChrRangePosition(cp.getChromosome(), Math.max(1, cp.getStartPosition() - buffer), cp.getStartPosition() + binSequence.length() + buffer);
 //				ChrPosition refCp = positionToActualLocation.getBufferedChrPositionFromLongPosition(position, binSequence.length(), 200);
 				String ref = getRefFromChrPos(refCp);
 				positionSWDiffMap.put(cp, ClinVarUtil.getSwDiffs(ref, binSequence));
@@ -781,10 +784,10 @@ public class Q3ClinVar {
 				e.printStackTrace();
 			}
 		}
-		if (cp.getPosition() <= 0 || cp.getEndPosition() > ref.length) {
+		if (cp.getStartPosition() <= 0 || cp.getEndPosition() > ref.length) {
 			logger.warn("ChrPosition goes beyond edge of contig: " + cp.toIGVString() + ", ref length: " + ref.length);
 		}
-		byte [] refPortion = Arrays.copyOfRange(referenceCache.get(chr), cp.getPosition(), cp.getEndPosition());
+		byte [] refPortion = Arrays.copyOfRange(referenceCache.get(chr), cp.getStartPosition(), cp.getEndPosition());
 		referenceSeq = new String(refPortion);
 		
 		return referenceSeq;
@@ -931,10 +934,11 @@ public class Q3ClinVar {
 	private void writeBam(boolean filter) throws IOException {
 		
 		List<Probe> coordSortedProbes = new ArrayList<>(probeSet);
+		Comparator<ChrPosition> COMPARATOR = new ChrPositionComparator();
 		Collections.sort(coordSortedProbes, new Comparator<Probe>() {
 			@Override
 			public int compare(Probe o1, Probe o2) {
-				return o1.getCp().compareTo(o2.getCp());
+				return COMPARATOR.compare(o1.getCp(), o2.getCp());
 			}
 		});
 		
@@ -1000,14 +1004,14 @@ public class Q3ClinVar {
 								 * Perfect Match
 								 */
 								Cigar cigar = ClinVarUtil.getCigarForMatchMisMatchOnly(b.getLength());
-								ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, probeId, binId,  b.getRecordCount(), referenceSequence, p.getCp().getChromosome(), p.getCp().getPosition(), offset, binSeq);
+								ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, probeId, binId,  b.getRecordCount(), referenceSequence, p.getCp().getChromosome(), p.getCp().getStartPosition(), offset, binSeq);
 								
 							} else if (bufferedOffset >= 0) {
 								/*
 								 * Perfect Match against buffered reference
 								 */
 								Cigar cigar = ClinVarUtil.getCigarForMatchMisMatchOnly(b.getLength());
-								ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, probeId, binId,  b.getRecordCount(), bufferedReferenceSequence, p.getCp().getChromosome(), p.getCp().getPosition() - 10, bufferedOffset, binSeq);
+								ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, probeId, binId,  b.getRecordCount(), bufferedReferenceSequence, p.getCp().getChromosome(), p.getCp().getStartPosition() - 10, bufferedOffset, binSeq);
 								
 							} else {
 								
@@ -1024,19 +1028,19 @@ public class Q3ClinVar {
 										if (swDiffs[1].length() == referenceSequence.length()) {
 											// just snps and same length
 											Cigar cigar = ClinVarUtil.getCigarForMatchMisMatchOnly(b.getLength());
-											ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, probeId, binId,  b.getRecordCount(), referenceSequence, p.getCp().getChromosome(), p.getCp().getPosition(), 0, binSeq);
+											ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, probeId, binId,  b.getRecordCount(), referenceSequence, p.getCp().getChromosome(), p.getCp().getStartPosition(), 0, binSeq);
 										} else {
 											logger.debug("only snps but diff length to ref. bin: " + b.getId() + ", p: " + p.getId() + ", binSeq: " + binSeq + ", ref: " + referenceSequence);
 											for (String s : swDiffs) {
 												logger.debug("s: " + s);
 											}
 											Cigar cigar = ClinVarUtil.getCigarForMatchMisMatchOnly(b.getLength());
-											ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, probeId, binId,  b.getRecordCount(), referenceSequence, p.getCp().getChromosome(), p.getCp().getPosition(), 0, binSeq);
+											ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, probeId, binId,  b.getRecordCount(), referenceSequence, p.getCp().getChromosome(), p.getCp().getStartPosition(), 0, binSeq);
 										}
 									} else {
 										
 										Cigar cigar = ClinVarUtil.getCigarForIndels( referenceSequence,  binSeq, swDiffs,  p,  b);
-										ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, probeId, binId,  b.getRecordCount(), referenceSequence, p.getCp().getChromosome(), p.getCp().getPosition(), 0, binSeq);
+										ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, probeId, binId,  b.getRecordCount(), referenceSequence, p.getCp().getChromosome(), p.getCp().getStartPosition(), 0, binSeq);
 									}
 								} else {
 //									logger.warn("Not generating SAMRecord for bin: " + b.getId() + " as no sw diffs. getRecordCount: " + b.getRecordCount());
@@ -1334,9 +1338,9 @@ public class Q3ClinVar {
 			 */
 			for (VcfRecord vcf2 : mutations.keySet()) {
 				if (vcf != vcf2) {
-					if (vcf.getChrPosition().getChromosome().equals(vcf2.getChrPosition().getChromosome()) && vcf.getChrPosition().getPosition() == vcf2.getChrPosition().getPosition()) {
+					if (vcf.getChrPosition().getChromosome().equals(vcf2.getChrPosition().getChromosome()) && vcf.getChrPosition().getStartPosition() == vcf2.getChrPosition().getStartPosition()) {
 						
-						ChrPosition cp = new ChrPosition(vcf.getChrPosition().getChromosome(), vcf.getChrPosition().getPosition());
+						ChrPosition cp = ChrPointPosition.valueOf(vcf.getChrPosition().getChromosome(), vcf.getChrPosition().getStartPosition());
 						Set<VcfRecord> records = potentialRollups.get(cp);
 						if (null == records) {
 							records = new HashSet<>();
@@ -1409,7 +1413,7 @@ public class Q3ClinVar {
 	private void createMutation(Probe p, Bin b, int position, String ref, String alt) {
 //		int startPos = p.getCp().getPosition() + position;
 //		int endPos = ref.length() > 1 ? startPos + (ref.length() -1 ) : startPos;
-		VcfRecord vcf = VcfUtils.createVcfRecord(new ChrPosition(p.getCp().getChromosome(),  position, (position + ref.length() -1)), "."/*id*/, ref, alt);
+		VcfRecord vcf = VcfUtils.createVcfRecord( ChrPointPosition.valueOf(p.getCp().getChromosome(),  position), "."/*id*/, ref, alt);
 		List<Pair<Probe, Bin>> existingBins = mutations.get(vcf);
 		if (null == existingBins) {
 			existingBins = new ArrayList<>();

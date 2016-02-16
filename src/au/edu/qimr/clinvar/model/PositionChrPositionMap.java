@@ -7,7 +7,9 @@ import java.util.Map.Entry;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.util.ChrPositionUtils;
 
 public class PositionChrPositionMap {
@@ -24,7 +26,7 @@ public class PositionChrPositionMap {
 				String [] params = s.substring(2).split(":");
 				int chrLength = Integer.parseInt(params[1]);
 				long startOffset = Long.parseLong(params[2]);
-				ChrPosition cp = new ChrPosition(params[0], 1, chrLength);
+				ChrPosition cp = new ChrRangePosition(params[0], 1, chrLength);
 				LongRange range = new LongRange(startOffset, startOffset + chrLength -1);
 				chrPosToPositionRange.put(cp,  range);
 			}
@@ -43,7 +45,7 @@ public class PositionChrPositionMap {
 		long startPosition = -1;
 		for (Entry<ChrPosition, LongRange> entry : chrPosToPositionRange.entrySet()) {
 			if (ChrPositionUtils.doChrPositionsOverlap(entry.getKey(), cp)) {
-				startPosition = entry.getValue().from + cp.getPosition() - 1;
+				startPosition = entry.getValue().from + cp.getStartPosition() - 1;
 				break;
 			}
 		}
@@ -68,7 +70,7 @@ public class PositionChrPositionMap {
 					logger.warn("positionWithinContig can't be cast to int without overflow!!!");
 				}
 				
-				return new ChrPosition(entry.getKey().getChromosome(), (int) positionWithinContig);
+				return ChrPointPosition.valueOf(entry.getKey().getChromosome(), (int) positionWithinContig);
 			}
 		}
 		logger.warn("Could not find ChrPosition for postion: " + position);
@@ -93,7 +95,7 @@ public class PositionChrPositionMap {
 					logger.warn("positionWithinContig can't be cast to int without overflow!!!");
 				}
 				
-				return new ChrPosition(entry.getKey().getChromosome(), Math.max(1, (int) positionWithinContig - buffer), (int) positionWithinContig + length + buffer);
+				return new ChrRangePosition(entry.getKey().getChromosome(), Math.max(1, (int) positionWithinContig - buffer), (int) positionWithinContig + length + buffer);
 			}
 		}
 		logger.warn("Could not find ChrPosition for postion: " + position);

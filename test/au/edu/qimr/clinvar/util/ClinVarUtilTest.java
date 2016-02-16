@@ -24,7 +24,9 @@ import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.Pair;
 
@@ -100,25 +102,25 @@ public class ClinVarUtilTest {
 	
 	@Test
 	public void getCoverageString() {
-		ChrPosition cp = new ChrPosition("1", 100);
+		ChrPosition cp = ChrPointPosition.valueOf("1", 100);
 		Map<Amplicon, List<Fragment>> map = new HashMap<>();
 		List<StringBuilder> headers = Arrays.asList(new StringBuilder[]{new StringBuilder("hello")});
 		List<StringBuilder> headers10 = Arrays.asList(new StringBuilder[]{new StringBuilder("hello"), new StringBuilder("hello"), new StringBuilder("hello"), new StringBuilder("hello"), new StringBuilder("hello"),new StringBuilder("hello"),new StringBuilder("hello"),new StringBuilder("hello"),new StringBuilder("hello"),new StringBuilder("hello")});
 		
 		assertEquals("0,0,0", ClinVarUtil.getCoverageStringAtPosition(cp, map));
-		Amplicon a = new Amplicon(1, new ChrPosition("1", 101,200));
+		Amplicon a = new Amplicon(1, new ChrRangePosition("1", 101,200));
 		Fragment f1 = new Fragment(1, null, headers, headers10, null, null);
-		f1.setActualPosition(new ChrPosition("1", 101,200));
+		f1.setActualPosition(new ChrRangePosition("1", 101,200));
 		map.put(a, Arrays.asList(f1));
 		assertEquals("0,0,0", ClinVarUtil.getCoverageStringAtPosition(cp, map));
 		
-		Amplicon a2 = new Amplicon(2, new ChrPosition("1", 100,200));
+		Amplicon a2 = new Amplicon(2, new ChrRangePosition("1", 100,200));
 		Fragment f2 = new Fragment(2, null, headers, headers, null, null);
-		f2.setActualPosition(new ChrPosition("1", 100,200));
+		f2.setActualPosition(new ChrRangePosition("1", 100,200));
 		map.put(a2, Arrays.asList(f2));
 		assertEquals("1,1,2", ClinVarUtil.getCoverageStringAtPosition(cp, map));
 		
-		cp = new ChrPosition("1", 102);
+		cp = ChrPointPosition.valueOf("1", 102);
 		assertEquals("2,2,13", ClinVarUtil.getCoverageStringAtPosition(cp, map));
 	}
 	
@@ -129,7 +131,7 @@ public class ClinVarUtilTest {
 		Fragment f1 = new Fragment(1, null, headers, Collections.emptyList(), null, null);
 		Fragment f2 = new Fragment(2, null, headers, headers, null, null);
 		Fragment f3 = new Fragment(3, null, headers2, headers, null, null);
-		ChrPosition cp = new ChrPosition("1", 100, 200);
+		ChrPosition cp = new ChrRangePosition("1", 100, 200);
 		f1.setActualPosition(cp);
 		f2.setActualPosition(cp);
 		f3.setActualPosition(cp);
@@ -144,9 +146,9 @@ public class ClinVarUtilTest {
 		Fragment f10 = new Fragment(10, null, headers, Collections.emptyList(), null, null);
 		Fragment f11 = new Fragment(11, null, headers, headers, null, null);
 		Fragment f12 = new Fragment(12, null, headers2, headers, null, null);
-		f10.setActualPosition(new ChrPosition("1", 102, 208));
-		f11.setActualPosition(new ChrPosition("1", 102, 208));
-		f12.setActualPosition(new ChrPosition("1", 102, 208));
+		f10.setActualPosition(new ChrRangePosition("1", 102, 208));
+		f11.setActualPosition(new ChrRangePosition("1", 102, 208));
+		f12.setActualPosition(new ChrRangePosition("1", 102, 208));
 		list = Arrays.asList(f1, f2, f3, f10, f11, f12);
 		
 		groupedFrags = ClinVarUtil.groupFragments(list, 10); 
@@ -195,7 +197,7 @@ public class ClinVarUtilTest {
 		String ref = "AGTTTGCAATAACAACTGATGTAAGTATTGCTCTTCTGCAGTCTTTATTAGCATTGTTTAAACGTACCTTTTTTTAAAAAAAAAAAAATAGGTCATTGCTTCTTGCTGATCTTGACAAAGAAGAAAAGGAAAAAGACTGGTATTACGCTCAACT";
 		String sequence = "AGTTTGCAATAACAACTGATGTAAGTATTGCTCTTCTGCAGTCTTTATTAGCATTGTTTAAACGTACCTTTTTTTAAAAAAAAAAAAAAATAGGTCATTGCTTCTTGCTGATCTTGACAAAGAAGAAAAGGAAAAAGACTGGTATTACGCTCAACT";
 		String [] swDiffs = ClinVarUtil.getSwDiffs(ref, sequence);
-		ChrPosition cp = new ChrPosition("chr5", 112111235);
+		ChrPosition cp = ChrPointPosition.valueOf("chr5", 112111235);
 		Cigar ceegar = ClinVarUtil.getCigarForIndels(ref, sequence, swDiffs, cp);
 		assertEquals("75M2I79M", ceegar.toString());
 	}
@@ -208,7 +210,7 @@ public class ClinVarUtilTest {
 		for (String s : swDiffs) {
 			System.out.println("s: " + s);
 		}
-		ChrPosition cp = new ChrPosition("chr5", 112111235);
+		ChrPosition cp = ChrPointPosition.valueOf("chr5", 112111235);
 		Cigar ceegar = ClinVarUtil.getCigarForIndels(ref, sequence, swDiffs, cp);
 		assertEquals("120M8D3M1D2M3D4M2D3M", ceegar.toString());
 		

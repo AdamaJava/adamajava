@@ -21,18 +21,18 @@ public class PositionChrPositionMapTest {
 		long emily = 2;
 		ChrPosition cp =  map.getChrPositionFromLongPosition(emily);
 		assertEquals("chr1", cp.getChromosome());
-		assertEquals(2, cp.getPosition());
+		assertEquals(2, cp.getStartPosition());
 		assertEquals(emily, map.getLongStartPositionFromChrPosition(cp));
 		
 		emily = 20;
 		cp =  map.getChrPositionFromLongPosition(emily);
 		assertEquals("chr1", cp.getChromosome());
-		assertEquals(20, cp.getPosition());
+		assertEquals(20, cp.getStartPosition());
 		assertEquals(emily, map.getLongStartPositionFromChrPosition(cp));
 		emily = 249250622;
 		cp =  map.getChrPositionFromLongPosition(emily);
 		assertEquals("chr2", cp.getChromosome());
-		assertEquals(1, cp.getPosition());
+		assertEquals(1, cp.getStartPosition());
 		assertEquals(emily, map.getLongStartPositionFromChrPosition(cp));
 	}
 	
@@ -45,13 +45,13 @@ public class PositionChrPositionMapTest {
 		/*
 		 * 0 results in an error
 		 */
-		assertEquals(1, map.getChrPositionFromLongPosition(1).getPosition());
+		assertEquals(1, map.getChrPositionFromLongPosition(1).getStartPosition());
 		assertEquals("chr1", map.getChrPositionFromLongPosition(1).getChromosome());
-		assertEquals(2, map.getChrPositionFromLongPosition(2).getPosition());
+		assertEquals(2, map.getChrPositionFromLongPosition(2).getStartPosition());
 		assertEquals("chr1", map.getChrPositionFromLongPosition(2).getChromosome());
-		assertEquals(249250621, map.getChrPositionFromLongPosition(249250621).getPosition());
+		assertEquals(249250621, map.getChrPositionFromLongPosition(249250621).getStartPosition());
 		assertEquals("chr1", map.getChrPositionFromLongPosition(249250621).getChromosome());
-		assertEquals(1, map.getChrPositionFromLongPosition(249250622).getPosition());
+		assertEquals(1, map.getChrPositionFromLongPosition(249250622).getStartPosition());
 		assertEquals("chr2", map.getChrPositionFromLongPosition(249250622).getChromosome());
 		
 		System.out.println("pos: " + map.getChrPositionFromLongPosition(2792625622l).toIGVString());
