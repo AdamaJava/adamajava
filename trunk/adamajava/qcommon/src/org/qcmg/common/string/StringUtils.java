@@ -9,11 +9,10 @@ import java.util.List;
 
 import org.qcmg.common.model.ChrRangePosition;
 
-import com.sun.medialib.mlib.Constants;
-
 public class StringUtils {
 	public static final char TAB = '\t';
 	public static final String RETURN = "\n";
+	public static final String DOT = ".";
 
 	/**
 	 * 
@@ -200,7 +199,7 @@ public class StringUtils {
 		boolean flag = isNullOrEmpty(test);
 		
 		if(!flag) 
-			flag = test.equals(".");
+			flag = test.equals(DOT);
 		 		
 		return flag;
 	}
