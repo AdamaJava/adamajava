@@ -300,10 +300,9 @@ public class Vcf2maf extends AbstractMode{
 			throw new Exception(" Varint missing sample column on :"+ vcf.getChromosome() + "\t" + vcf.getPosition());
 
 		
-		VcfFormatFieldRecord sample =  new VcfFormatFieldRecord(formats.get(0), formats.get(test_column));
-		final String[] Tvalues = getAltCounts( sample, vcf.getRef(), vcf.getAlt(), type);
-		
-		if(Tvalues[1] != null){	//allesls counts
+		VcfFormatFieldRecord sample =  new VcfFormatFieldRecord(formats.get(0), formats.get(test_column));		
+		final String[] Tvalues = getAltCounts( sample, vcf.getRef(), vcf.getAlt(), type);		
+		if(Tvalues != null){	//allesls counts
 			maf.setColumnValue(37,  Tvalues[6]); //TD
 	    	maf.setColumnValue(45, Tvalues[1]); //t_depth
 	    	maf.setColumnValue(46, Tvalues[2]); //t_ref_count
@@ -315,7 +314,7 @@ public class Vcf2maf extends AbstractMode{
 		sample =  new VcfFormatFieldRecord(formats.get(0), formats.get(control_column));
 		final String[] Nvalues = getAltCounts( sample, vcf.getRef(), vcf.getAlt(),type);
 		
-		if(Nvalues[1] != null){	//allesls counts
+		if(Nvalues != null){	//allesls counts
 			maf.setColumnValue(36, Nvalues[6]);
 	    	maf.setColumnValue(48, Nvalues[1]);
 	    	maf.setColumnValue(49, Nvalues[2]); 
@@ -326,10 +325,14 @@ public class Vcf2maf extends AbstractMode{
 
 		//NNS eg, ND5:TD7
 		String nns = getMafAlt(vcf.getRef(), vcf.getAlt(), type);
-		if(Nvalues[0].equals(SnpEffMafRecord.Unknown)) nns = (!Tvalues[0].equals(SnpEffMafRecord.Unknown) )? nns+":TD"+Tvalues[0] : SnpEffMafRecord.Unknown;
-		else if (Tvalues[0].equals(SnpEffMafRecord.Unknown)) nns = (!Nvalues[0].equals(SnpEffMafRecord.Unknown) )? nns+":ND"+Nvalues[0] : SnpEffMafRecord.Unknown;
-		else nns += String.format(":ND%s:TD%s",Nvalues[0], Tvalues[0]);
-		maf.setColumnValue(41, nns);	
+		nns += ":ND" + ((Nvalues == null)? 0 : Nvalues[0]);
+		nns += ":TD" + ((Tvalues == null)? 0 : Tvalues[0]);
+		maf.setColumnValue(41, nns);
+		
+//		if(Nvalues[0].equals(SnpEffMafRecord.Unknown)) nns = (!Tvalues[0].equals(SnpEffMafRecord.Unknown) )? nns+":TD"+Tvalues[0] : SnpEffMafRecord.Unknown;
+//		else if (Tvalues[0].equals(SnpEffMafRecord.Unknown)) nns = (!Nvalues[0].equals(SnpEffMafRecord.Unknown) )? nns+":ND"+Nvalues[0] : SnpEffMafRecord.Unknown;
+//		else nns += String.format(":ND%s:TD%s",Nvalues[0], Tvalues[0]);
+			
 
 		return maf;
 
@@ -352,27 +355,36 @@ public class Vcf2maf extends AbstractMode{
 	 /**
 	  * 
 	  * @param format
-	  * @return array[nns, depth, ref_count, alt_count, allele1, allele2, coverage(AC,ACCS,ACINDEL)]
-	  * @throws Exception
-	  */
-///	 
-	 private String[] getAltCounts(VcfFormatFieldRecord sample, String ref, String alt, SVTYPE type) throws Exception{
-		 String[] values = {SnpEffMafRecord.Unknown, null, null, null,null, null,null};
+	  * @return array[nns, depth, ref_count, alt_count, allele1, allele2, coverageString(AC,ACCS,ACINDEL)]; 
+	  * return null if the input sample hava no value eg. "."
+	  */	 
+	 private String[] getAltCounts(VcfFormatFieldRecord sample, String ref, String alt, SVTYPE type) {
+
+	 	 if(sample.isMissingSample() ) return null;
+	 	 
+	 	 String[] values = {"0", "0", "0", "0", SnpEffMafRecord.Null,SnpEffMafRecord.Null,SnpEffMafRecord.Null}; 
+	 	 
 		 if(type == null)
 			 type = IndelUtils.getVariantType(ref, alt);
 		 
       	 if(type.equals(SVTYPE.DEL) || type.equals(SVTYPE.INS) ){
-      		 //eg. 13,38,37,13[8,5],0,0,1
-      		values[6] = sample.getField(IndelUtils.FORMAT_ACINDEL);
-      		String[] counts = values[6].split(Constants.COMMA_STRING);
-      		values[0] = counts[0]; //supporting reads nns
-      		values[1] = counts[1]; //coverage
-      		values[3] = counts[3].substring(0,counts[3].indexOf('['));  //supporting reads total
-      		
-      		
-      		//reference reads counts is the informative reads - support/partial/nearbyindel reads
-      		int refCounts =  Integer.parseInt(counts[2]) - Integer.parseInt(values[3])- Integer.parseInt(counts[5])-Integer.parseInt(counts[6]);
-      		values[2] = refCounts + "";     		     		
+      		 values[6] = sample.getField(IndelUtils.FORMAT_ACINDEL);  
+      		 
+      		 if( !StringUtils.isMissingDtaString(values[6]))
+      		 //eg. 13,38,37,13[8,5],0,0,1     		
+	      		try{     			    			
+		      		String[] counts = values[6].split(Constants.COMMA_STRING);
+		      		if(counts.length != 8) throw new Exception();
+		      		values[0] = counts[0]; //supporting reads nns
+		      		values[1] = counts[1]; //coverage
+		      		values[3] = counts[3].substring(0,counts[3].indexOf('['));  //supporting reads total
+		      	      		
+		      		//reference reads counts is the informative reads - support/partial/nearbyindel reads
+		      		int refCounts =  Integer.parseInt(counts[2]) - Integer.parseInt(values[3])- Integer.parseInt(counts[5])-Integer.parseInt(counts[6]);
+		      		values[2] = refCounts + "";		      		 
+	      		}catch(Exception e){	      			 
+	      				logger.warn("invalide " + IndelUtils.FORMAT_ACINDEL + " at vcf formate column: " + sample.toString());
+	      		}
       	 }else if(  type.equals(SVTYPE.SNP) || type.equals(SVTYPE.DNP) || 
       			 type.equals(SVTYPE.TNP) || type.equals(SVTYPE.ONP) ){
       		if (sample.getField(VcfHeaderUtils.FORMAT_NOVEL_STARTS) != null)   		
@@ -384,42 +396,19 @@ public class Vcf2maf extends AbstractMode{
         		     
         	values[6] = sample.getField(VcfHeaderUtils.FORMAT_ALLELE_COUNT);
 	        values[6] = (values[6] == null) ? sample.getField(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP): values[6];
-
       	 }
 		 
       	 //get genotype base
 		 String gd = sample.getField(VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS);
-		 if( gd == null )
-			 gd = IndelUtils.getGenotypeDetails(sample, ref, alt); //maybe null
-		 
-		 if( !StringUtils.isNullOrEmpty(gd) && !gd.equals(Constants.MISSING_DATA_STRING) ){
-			  String[] pairs = gd.contains("|") ? gd.split("|") : gd.split("/");
-			  if(pairs.length > 0) values[4] = pairs[0];
-			  if(pairs.length > 1) values[5] = pairs[1];
-			  
-			  for(int i = 4; i <= 5; i++)
-				  values[i] = getMafAlt(ref, values[i], type);
-			  
-//			  if(type.equals(SVTYPE.DEL)){
-//				for(int i = 4; i <= 5; i++){
-//					gd = values[i].substring(1);//remove first base 
-//					//append - for deleted allele base
-//					for(int j = 1; j < ref.length(); j++) 
-//						if(gd.length() < j) gd += "-";			 
-//					values[i] = gd;  
-//				}				 
-//			 }else if(type.equals(SVTYPE.INS)){
-//				 for(int i = 4; i <= 5; i++)
-//					 values[i] = values[i].substring(1);//remove first base 
-//			 }
-		 }
-		 
-		 //replace null with "null";
-		for(int i = 0; i < values.length; i++)
-			if(values[i] == null)
-				values[i] = SnpEffMafRecord.Null;
-		 	     
-		return values;
+		 if( StringUtils.isMissingDtaString(gd) )
+			 gd = IndelUtils.getGenotypeDetails(sample, ref, alt); //maybe null		 
+		 if(  StringUtils.isMissingDtaString(gd)) return values;
+		 		 
+		  String[] pairs = gd.contains("|") ? gd.split("|") : gd.split("/");		  
+		  if(pairs.length > 0) values[4] = getMafAlt(ref, pairs[0], type);
+		  if(pairs.length > 1) values[5] = getMafAlt(ref, pairs[1], type);
+		 		 	     
+		  return values;
 	 }
 	 	 
 	//should unti test to check it
