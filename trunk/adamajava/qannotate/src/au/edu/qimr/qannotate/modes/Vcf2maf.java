@@ -125,7 +125,7 @@ public class Vcf2maf extends AbstractMode{
 			reheader( option.getCommandLine(), option.getInputFileName());			
 			createMafHeader(out,out_SHCC,out_SHC,out_GHCC,out_GHC,out_SLCC,out_SLC,out_GLCC,out_GLC);
 			
-		       	for (final VcfRecord vcf : reader)
+			for (final VcfRecord vcf : reader)
         		try{ 
         			noIn ++;
         			SnpEffMafRecord maf = converter(vcf);
@@ -392,7 +392,7 @@ public class Vcf2maf extends AbstractMode{
 		 if( gd == null )
 			 gd = IndelUtils.getGenotypeDetails(sample, ref, alt); //maybe null
 		 
-		 if( !StringUtils.isNullOrEmpty(gd) && !gd.equals(Constants.MISSING_DATA) ){
+		 if( !StringUtils.isNullOrEmpty(gd) && !gd.equals(Constants.MISSING_DATA_STRING) ){
 			  String[] pairs = gd.contains("|") ? gd.split("|") : gd.split("/");
 			  if(pairs.length > 0) values[4] = pairs[0];
 			  if(pairs.length > 1) values[5] = pairs[1];
