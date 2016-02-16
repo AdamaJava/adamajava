@@ -9,6 +9,8 @@ import java.util.List;
 
 import org.qcmg.common.model.ChrRangePosition;
 
+import com.sun.medialib.mlib.Constants;
+
 public class StringUtils {
 	public static final char TAB = '\t';
 	public static final String RETURN = "\n";
@@ -186,6 +188,21 @@ public class StringUtils {
 	 */
 	public static boolean isNullOrEmpty(final String test, boolean ignoreWhiteSpace) {
 		return null == test || (ignoreWhiteSpace ? test.trim().isEmpty() : test.isEmpty());
+	}
+	
+	/**
+	 * 
+	 * @param test
+	 * @return true if supplied is null, empty or ".", false otherwise
+	 */
+	public static boolean isMissingDtaString(final String test){
+		
+		boolean flag = isNullOrEmpty(test);
+		
+		if(!flag) 
+			flag = test.equals(".");
+		 		
+		return flag;
 	}
 	
 	/**
