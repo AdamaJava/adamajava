@@ -66,19 +66,30 @@ public class ChrPositionUtils {
 	}
 	
 	/**
+	 * Returns a ChrPosition object - will be ChrPOsintPosition if start == end, and ChrRangePosition otherwise
+	 */
+	public static ChrPosition getChrPosition(String chr, int start, int end) {
+		if (start == end) {
+			return ChrPointPosition.valueOf(chr, start);
+		} else {
+			return new ChrRangePosition(chr, start, end);
+		}
+	}
+	
+	/**
 	 * converts coords in the format 9:5073770-5073770 to a ChrPosition object complete with "chr"
 	 * @param cosmicCoords
 	 * @return
 	 */
-	public static ChrRangePosition createCPFromCosmic(String cosmicCoords) {
+	public static ChrPosition createCPFromCosmic(String cosmicCoords) {
 		if (StringUtils.isNullOrEmpty(cosmicCoords)) {
 			return null;
 		} else {
 			int colonIndex = cosmicCoords.indexOf(':');
 			int minusIndex = cosmicCoords.indexOf('-');
-			return new ChrRangePosition( "chr" + cosmicCoords.substring(0, colonIndex), 
-					Integer.parseInt(cosmicCoords.substring(colonIndex + 1, minusIndex)),
-					Integer.parseInt(cosmicCoords.substring(minusIndex + 1)));
+			int start = Integer.parseInt(cosmicCoords.substring(colonIndex + 1, minusIndex));
+			int end = Integer.parseInt(cosmicCoords.substring(minusIndex + 1));
+			return getChrPosition("chr" + cosmicCoords.substring(0, colonIndex), start, end); 
 		}
 	}
 	
