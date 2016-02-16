@@ -259,8 +259,22 @@ public class Q3ClinVar2 {
 							logger.debug("Ignoring " + params[2]);
 						}
 					}
+					
 				}
 			}
+			
+			/*
+			 * remove any elements added to transcripts that are not within our beds
+			 */
+			List<String> transcriptsToRemove = new ArrayList<>();
+			transcripts.values().stream()
+			.forEach(t -> {
+				List<Amplicon> amps = uniqueChrs.get(t.getContig());
+				if (amps.stream().noneMatch(a -> a.getInitialFragmentPosition().getStartPosition() >= t.getStart() && a.getInitialFragmentPosition().getEndPosition() <= t.getEnd())) {
+					transcriptsToRemove.add(t.getId());
+				}
+			});
+			transcriptsToRemove.stream().forEach(id -> transcripts.remove(id));
 			logger.info("Number of Transcripts covering bed regions: " + transcripts.size());
 		}
 	}
