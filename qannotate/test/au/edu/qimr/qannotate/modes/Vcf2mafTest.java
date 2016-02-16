@@ -85,7 +85,7 @@ public class Vcf2mafTest {
 		   	for (final VcfRecord vcf : reader) 
 					maf = mode.converter(vcf);
 		}
-		
+
 		assertFalse(maf == null);
 				
 		assertTrue(maf.getColumnValue(14).equals("rs75454623"));					 
@@ -98,7 +98,7 @@ public class Vcf2mafTest {
  		assertTrue(maf.getColumnValue(33).equals("TEST"));   //tumour sample
  		assertTrue(maf.getColumnValue(34).equals("CONTROL"));   //normal sample
  		
- 		assertTrue(maf.getColumnValue(41).equals("Unknown"));   //NNS field is not existed at format		 		//		 		
+ 		assertTrue(maf.getColumnValue(41).equals("CA:ND0:TD0"));   //NNS field is not existed at format		 		//		 		
  		assertTrue(maf.getColumnValue(45).equals("103"));  //t_deep ("AA,1,1,CA,4,1,CT,3,1,TA,11,76,TG,2,2,_G,0,1" ))
  		assertTrue(maf.getColumnValue(46).equals("4"));  //t_ref C8[7.62],2[2]
  		assertTrue(maf.getColumnValue(47).equals("5"));  //t_allel A2[8],28[31.18]	
@@ -130,20 +130,20 @@ public class Vcf2mafTest {
 	 		//select the annotation with "HIGH" impact
 	 		//str: HIGH|||n.356G>C||CCDC148-AS1|antisense|NON_CODING|ENST00000412781|5|1
 	 		//array: 0| 1|2|3     |4|5         |6        |7         |8              |9|10	 
-	 			 		
+ 			 		
 	 		assertTrue(maf.getColumnValue(39).equals("HIGH" ));
-	 		assertTrue(maf.getColumnValue(51+1).equals(Dmaf.getColumnValue(51) ));
-	 		assertTrue(maf.getColumnValue(52+1).equals(Dmaf.getColumnValue(52) ));
-	 		assertTrue(maf.getColumnValue(53+1).equals(Dmaf.getColumnValue(53) ));
+	 		assertTrue(maf.getColumnValue(52).equals(Dmaf.getColumnValue(51) ));
+	 		assertTrue(maf.getColumnValue(53).equals(Dmaf.getColumnValue(52) ));
+	 		assertTrue(maf.getColumnValue(54).equals(Dmaf.getColumnValue(53) ));
 	 		assertTrue(maf.getColumnValue(1).equals("CCDC148-AS1" ));
-	 		assertTrue(maf.getColumnValue(54+1).equals("antisense" ));
-	 		assertTrue(maf.getColumnValue(55+1).equals("NON_CODING"));
-	 		assertTrue(maf.getColumnValue(50+1).equals("ENST00000412781" ));
-	 		assertTrue(maf.getColumnValue(56+1).equals("5" ));
-	 		assertTrue(maf.getColumnValue(57+1).equals("1" ));	
+	 		assertTrue(maf.getColumnValue(55).equals("antisense" ));
+	 		assertTrue(maf.getColumnValue(56).equals("NON_CODING"));
+	 		assertTrue(maf.getColumnValue(51).equals("ENST00000412781" ));
+	 		assertTrue(maf.getColumnValue(57).equals("5" ));
+	 		assertTrue(maf.getColumnValue(58).equals("1" ));	
 	 		String ontology = "splice_acceptor_variant";
-	 		assertTrue(maf.getColumnValue(58+1).equals(ontology ));
-	 		assertTrue(maf.getColumnValue(59+1).equals( SnpEffConsequence.getClassicName(ontology) ));	 		
+	 		assertTrue(maf.getColumnValue(59).equals(ontology ));
+	 		assertTrue(maf.getColumnValue(60).equals( SnpEffConsequence.getClassicName(ontology) ));	 		
 	 		assertTrue(maf.getColumnValue(40).equals(SnpEffConsequence.getConsequenceRank(ontology)+""));	 		
 	 		assertTrue(maf.getColumnValue(9).equals(SnpEffConsequence.getMafClassification(ontology) ));
 	 			 		
@@ -172,23 +172,22 @@ public class Vcf2mafTest {
 	 		assertTrue(maf.getColumnValue(36).equals("A1[5],0[0],C6[6.67],0[0],T1[6],21[32.81]" ));	//ND
 	 		assertTrue(maf.getColumnValue(37).equals("C8[7.62],2[2],A2[8],28[31.18]" ));		
 	 		assertTrue(maf.getColumnValue(38).equals(Dmaf.getColumnValue(38)  )); //not yet run confidence
-	 		assertTrue(maf.getColumnValue(41).equals(Dmaf.getColumnValue(41)  )); //NNS unkown
+	 		assertTrue(maf.getColumnValue(41).equals("A:ND0:TD0" )); //NNS unkown
 	 		assertTrue(maf.getColumnValue(42).equals("GTGATATTCCC"  )); //Var_Plus_Flank	 
 	 		assertTrue(maf.getColumnValue(43).equals("0.11"  )); //Var_Plus_Flank	 
 	 		assertTrue(maf.getColumnValue(44).equals(Dmaf.getColumnValue(44)  )); //Germ=0,185 
 	 		
 	 		//"chrY","22012840",".","C","A",
 	 		//"GT:GD:AC","0/0:T/C:A1[5],0[0],C6[6.67],0[0],T1[6],21[32.81]","0/0:A/C:C8[7.62],2[2],A2[8],28[31.18]"};
-	 		assertTrue(maf.getColumnValue(44+1).equals("40"));  //t_deep column2
-	 		assertTrue(maf.getColumnValue(45+1).equals("10"));  //t_ref C8[7.62],2[2]
-	 		assertTrue(maf.getColumnValue(46+1).equals("30"));  //t_allel A2[8],28[31.18]
+	 		assertTrue(maf.getColumnValue(45).equals("40"));  // t_deep column2
+	 		assertTrue(maf.getColumnValue(46).equals("10"));  // t_ref C8[7.62],2[2]
+	 		assertTrue(maf.getColumnValue(47).equals("30"));  // t_allel A2[8],28[31.18]
 	 		
-	 		assertTrue(maf.getColumnValue(47+1).equals("29"));  //n_deep column1
-	 		assertTrue(maf.getColumnValue(48+1).equals("6")); //C6[6.67],0[0]
-	 		assertTrue(maf.getColumnValue(49+1).equals("1"));  //A1[5],0[0]
+	 		assertTrue(maf.getColumnValue(48).equals("29"));  // n_deep column1
+	 		assertTrue(maf.getColumnValue(49).equals("6"));   // C6[6.67],0[0]
+	 		assertTrue(maf.getColumnValue(50).equals("1"));   // A1[5],0[0]
 	 		
 	 		//other column
-	 		assertTrue(maf.getColumnValue(41).equals(SnpEffMafRecord.Unknown));  //NNS
 	 		assertTrue(maf.getColumnValue(26).equals(VcfHeaderUtils.INFO_GERMLINE));  //somatic
 	 }
 	 
@@ -304,16 +303,13 @@ public class Vcf2mafTest {
 
 	 		assertTrue(maf.getColumnValue(35).equals(Constants.MISSING_DATA_STRING ));  
 	 		
-	 		for(int i = 36 ; i < 45; i++)
+	 		for(int i = 36 ; i < 41; i++) 
 	 			assertTrue(maf.getColumnValue(i).equals(Dmaf.getColumnValue(i) ));  
-	 		
-	 		for(int i = 45 ; i < 51; i++)
-	 			assertTrue(maf.getColumnValue(i).equals("0" )); 
-	 		
-	 		for(int i = 51 ; i < 61; i++)
-	 			assertTrue(maf.getColumnValue(i).equals(Dmaf.getColumnValue(i) ));  
-
-	 		
+	 			 		
+	 		assertTrue(maf.getColumnValue(41).equals("AT:ND0:TD0" ));  
+	 	
+	 		for(int i = 42 ; i < 61; i++) 			
+ 	 			assertTrue(maf.getColumnValue(i).equals(Dmaf.getColumnValue(i) ));  	 		
  
 	 }
 	
