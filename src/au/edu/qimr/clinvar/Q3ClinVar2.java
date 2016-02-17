@@ -514,6 +514,7 @@ public class Q3ClinVar2 {
 		logger.info("adding cosmic and dbsnp to q3pElement");
 		q3pElement.addAttribute(new Attribute("dbSnp", dbSNPFile));
 		q3pElement.addAttribute(new Attribute("COSMIC", cosmicFile));
+		q3pElement.addAttribute(new Attribute("gene_transcripts", geneTranscriptsFile));
 		
 		/*
 		 * read length dist
