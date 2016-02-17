@@ -515,6 +515,7 @@ public class Q3ClinVar2 {
 		q3pElement.addAttribute(new Attribute("dbSnp", dbSNPFile));
 		q3pElement.addAttribute(new Attribute("COSMIC", cosmicFile));
 		q3pElement.addAttribute(new Attribute("gene_transcripts", geneTranscriptsFile));
+		q3pElement.addAttribute(new Attribute("gene_transcripts_count", transcripts.size() + ""));
 		
 		/*
 		 * read length dist
