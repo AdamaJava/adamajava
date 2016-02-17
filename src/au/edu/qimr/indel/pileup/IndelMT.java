@@ -324,18 +324,6 @@ public class IndelMT {
 	}
 	
 	/**
-	 * run parallel pileup including homopolymers pileup
-	 * @param threadNo
-	 * @return
-	 * @throws Exception
-	 */
-//	public int process(final int threadNo) throws Exception {
-//		
-//		return process( threadNo,  true);		
-//		
-//	}
-	
-	/**
 	 * run parallel pileup without homopolymers pileup if the withHomoOption is false
 	 * @param threadNo
 	 * @param withHomoOption, if true, it will run homopolymers pileup
@@ -504,14 +492,12 @@ public class IndelMT {
 
 		header.addInfoLine(VcfHeaderUtils.INFO_SOMATIC, "1", "String", SOMATIC_DESCRIPTION);
 		header.addInfoLine(IndelUtils.INFO_NIOC, "1", "String", IndelUtils.DESCRITPION_INFO_NIOC);
-//		header.addInfoLine(IndelUtils.INFO_HOMCNTXT, "1", "String", IndelUtils.DESCRITPION_INFO_HOMCNTXT); 
 		header.addInfoLine(IndelUtils.INFO_HOMTXT, "1", "String", IndelUtils.DESCRITPION_INFO_HOMTXT); 
 		header.addFormatLine(IndelUtils.FORMAT_ACINDEL, "1", "String", IndelUtils.DESCRITPION_FORMAT_ACINDEL);
 
 		VcfHeaderUtils.addQPGLineToHeader(header, qexec.getToolName().getValue(), qexec.getToolVersion().getValue(), qexec.getCommandLine().getValue() 
 				+  " [runMode: " + options.getRunMode() + "]");        
         		
-		//header will automatic append CHROM line if get from input file	
 		VcfHeaderUtils.addSampleId(header, VcfHeaderUtils.STANDARD_CONTROL_SAMPLE.replaceAll("#", ""), 1 ); // "qControlSample", 1);
 		VcfHeaderUtils.addSampleId(header,  VcfHeaderUtils.STANDARD_TEST_SAMPLE.replaceAll("#", ""), 2);//"qTestSample"
  		 

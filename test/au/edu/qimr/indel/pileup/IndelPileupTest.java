@@ -93,7 +93,69 @@ public class IndelPileupTest {
         assertTrue(pileup.getnovelStartReadCount(0)== 2);
         assertTrue(pileup.getparticalReadCount(0) == 0); 		
 	}
+	
+//	150936170~150936198, right soft: ST-E00180:52:H5LNMCCXX:3:1117:27887:29015      2227    chrX    150936149       18      96H45M9H        chr15   93212107        0
+//    GTGTGTGTGTGTGTGTGTGTGTGTGTGTGTGTGTGTGTTGAGAGA   KKKKKKKKKKKKKKKKKKKKKKKFKFKKKKKKKKKKKKKKKKKKK   SA:Z:chr15,93211802,+,32S118M,60,0;     XA:Z:chr13,+45420627,9S41M100S,0;chr2,+151449762,9S41M100S,0;chr13,+90139443,9S45M96S,1;        MD:Z:45 PG:Z:MarkDuplicates     RG:Z:2ef8ccaf-2a09-4a9b-a5b3-8510b14dc8e8       NM:i:0  AS:i:45 XS:i:41
+	
+	@Test
+	public void nearbySoftTest() throws Exception{
+		
+		VcfRecord vs = new VcfRecord.Builder("chrX", 150936181, "GTGTGT").allele("G").build();				 
+		IndelPosition indel = new IndelPosition (vs);
+        IndelPileup pileup = new IndelPileup( indel, 13, 3); 	
+        
+		List<SAMRecord> pool = new ArrayList<SAMRecord>();	
+		pool.add(new SAMRecord(null ));		
+		SAMRecord record = pool.get(0);		
+		
+		//no soft clip, even hord clip inside window
+		record.setReferenceName("chrX");
+		record.setAlignmentStart(150936149);
+		record.setReadString("AAAAAAAAATTTTTTTTTTGGGGGGGGGGCCCCCCCCCCAAAAAAAAAA"); 
+		record.setCigarString("96H45M9H");
+		record.setFlags(2227);
+        pileup.pileup(pool);       
+        assertTrue(pileup.getNearybySoftclipCount() == 0);
+ 
+        //right soft clip inside window
+		record.setCigarString("96H45M9S");		 
+		pileup.pileup(pool);
+		assertTrue(pileup.getNearybySoftclipCount() == 1);
+		
+		//both side of soft clip are inside window
+		record.setAlignmentStart(150936172);		
+		record.setCigarString("96S4M9S");
+		pileup.pileup(pool);
+		assertTrue(pileup.getNearybySoftclipCount() == 1);
+				
+	}	
 
+	@Test
+	public void bigDelTest() throws Exception{
+		
+		VcfRecord vs = new VcfRecord.Builder("chrX", 150936181, "GTGTGTTTTTTTTTTTTTTTTTTTTTTTTTTTTT").allele("G").build();				 
+		IndelPosition indel = new IndelPosition (vs);
+        IndelPileup pileup = new IndelPileup( indel, 20, 3); 	
+        
+		List<SAMRecord> pool = new ArrayList<SAMRecord>();	
+		pool.add(new SAMRecord(null ));		
+		SAMRecord record = pool.get(0);		
+		
+		//two deletion happen inside indel region
+		record.setReferenceName("chrX");
+		record.setAlignmentStart(150936169);
+		record.setReadString("AAAAAAAAATTTTTTTTTTGGGGGGGGGGCCCCCCCCCCAAAAAAAAAA"); 
+		record.setCigarString("26M5D2M1D22M");
+		record.setFlags(2227);
+				
+        pileup.pileup(pool);   
+        assertTrue(pileup.getNearbyIndelCount() == 0);
+        assertTrue(pileup.getsuportReadCount(0) == 0);
+        assertTrue(pileup.getparticalReadCount(0) == 1);
+      		
+	}
+	
+	
 		
     public static void CreateSam(){
         List<String> data = new ArrayList<String>();
@@ -116,7 +178,14 @@ public class IndelPileupTest {
        data.add("1997_1173_1268	177	chr1	67	57	131M2D20M	chr1	72680	0	" +
        "AATACTAAAACACACCAGGTGTGGTGTCACATGCCTGTGGTCTCAGGNANTNGNGANGNTNAGGTGGGAGGATCGCTTGAACCCAGGAAGTTGAGGCTGCAGTGAGTTGTGATTACACCAGCCTGGGTGACAGTGTCACCCTGTCTCAAAA	JJJJFJJFFFJJFJJJFFJJJJJJJJJJFJJJJJJJJJJJJJJJJJJ#J#J#J#JJ#J#F#JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJFJJJJJJJJFFFAA	ZC:i:4	MD:Z:47A1G1A1C2C1G1C70^TC20	PG:Z:MarkDuplicates.5	RG:Z:20140717025441134");        
         
-        BufferedWriter out;
+       
+       //multi deletion
+       data.add("2211:26598	99	chrX	150936053	60	126M5D2M1D22M	=	150936493	568	GAAAACTGTTGGGCCTTCTGGGAGGGGTTAGAATCACTGTAAGCTCCAGAGTTTAGGGCTTGGAAGATGGACCTGAGGCCAGAGTGAAAAGAAACAGTGTGTGTGTGTGTGTGTGTGTGTGTGTGTTGAGAGAGAGAGAGACAGAGGGAT	A<AFFKKKFKKKKKKFKFFFF7,A(<7AFKFKKFKA7FF<FFKFKFFFKFKA<FKKAKFFA7F,,AFKKFKK7KKFFKKAFFFK<KKFFKKKK7FFKFFKFKKKKKFFKKAKFFK<F,A7FKFAF77A<FAFKK7F7A7AF<7A,,<A7A	MD:Z:62A63^GTGTG2^T0T21 PG:Z:MarkDuplicates	RG:Z:20140717025441134");
+       data.add("29988:29314	99	chrX	150936056	60	121M7D2M1D27M	=	150936307	401	AACTGTTGGGCCTTCTGGGAGGGGTTAGAATCACTGTAAGCTCCAGAGTTTAGGGCTTGGAAGATGGACCTGAGGCCAGAGTGAAAAGAAACAGTGTGTGTGTGTGTGTGTGTGTGTGTGTTGAGAGAGAGAGAGACAGAGGGATAAACG	AAFFFKKKKKKKKKKKKKKKKKKKFFFKKKKKKKAKKKKKKKKKFKKKAAFKKKKKKKKKKKKKAKKKKKKKAFKKFKKKK<FFFKKKKKKKFKKKKKKKFK7KKKAKKKFKFFFKAA7F,,AAF7FKFKKFKKKFAFKFKKKK,<FFFF	MD:Z:59A61^GTGTGTG2^T0T26	PG:Z:MarkDuplicates	RG:Z:20140717025441134");      
+      
+       
+       
+       BufferedWriter out;
         try {
            out = new BufferedWriter(new FileWriter(inputBam ));
            for (String line : data) 

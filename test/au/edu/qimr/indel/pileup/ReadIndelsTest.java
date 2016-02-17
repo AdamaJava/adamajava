@@ -44,10 +44,11 @@ public class ReadIndelsTest {
 	}
 	
 	@Test
-	public void multiDeletionTest(){
+	public void multiAltTest(){
 		
 		//only keep one variants since the allel CA is CTX
 		//we only deal with indel which is single base on ref or allel
+		//indel size can't be exceed 200
 		try{
 			ReadIndels indelload = new ReadIndels(QLoggerFactory.getLogger(Main.class, null, null));		
 			indelload.LoadIndels(new File(input3));				
@@ -128,7 +129,7 @@ public class ReadIndelsTest {
 			int code1 = 0, code2 = 0;
 			for( ChrPosition key : positionRecordMap.keySet()){
 				IndelPosition indel = positionRecordMap.get(key);
-				System.out.println("indel.getStart() : " + indel.getStart() + "; indel.getFullChromosome():  " + indel.getFullChromosome());
+	 
 				if(indel.getStart() == 71697868 && indel.getFullChromosome().equals("chr2")){
 					indel.getMotif(0).equals("TTCC");
 					code1 = indel.getIndelVcf(0).hashCode();
@@ -232,6 +233,9 @@ public class ReadIndelsTest {
 		
 		data1.clear();
 		data1.add("chrY	59033286	.	CAA	C,CA	724.73	PASS	AC=1;END=59033287	GT:AD:DP:GQ:PL	1/2:14,38,25:77:99:1229,323,592,448,0,527	1/1:14,38,25:77:99:1229,323,592,448,0,527");
+		data1.add("chrY	59033287	.	GTGTGTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT	G	724.73	PASS	.	GT:AD	1/2:14,38,25	1/1:14,38,25");
+		data1.add("chrY	59033287	.	G	GTGTGTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT	724.73	PASS	.	GT:AD	1/2:14,38,25	1/1:14,38,25");
+
 		Support.createVcf(head1, data1, input3);
             
 	}

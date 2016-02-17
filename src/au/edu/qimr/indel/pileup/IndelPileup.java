@@ -58,9 +58,10 @@ public class IndelPileup {
 		
 		this.nearbysoftClip = getSoftCounts(pool);		
 		List<SAMRecord> infoPool = getInformative(pool);
-		this.informativeCount = infoPool.size();			
-		List<SAMRecord> tmpPool = getRegionIndels(infoPool, nearyIndelWindow);
-		
+				
+		this.informativeCount = infoPool.size();	
+				
+		List<SAMRecord> tmpPool = getRegionIndels(infoPool, nearyIndelWindow);		
 		//assign real counts to overwrite the list init
 		for(int i = 0; i < motifs.size(); i ++){			 
 			int[] counts = getCounts(tmpPool, motifs.get(i));
@@ -90,11 +91,7 @@ public class IndelPileup {
 			Cigar cigar = re.getCigar();		 		
 			if (null == cigar || cigar.isEmpty() ||
 					(! cigar.toString().contains("I") && ! cigar.toString().contains("D")) ) 
-				{
-					//debug
-//				System.out.print("non-indel: " + re.getSAMString());
 					continue; //skip current record	}		
-				}
 			
 			boolean nearby = false; 
 			boolean support = false; 
@@ -104,18 +101,16 @@ public class IndelPileup {
 				//insertion only one base, eg, start = 100; end = 101
 				if(CigarOperator.I == ce.getOperator()){
 					//check whether it is supporting or partical indel
-				//	System.out.println("ins: refPos=" + refPos + " ,indelStart=" + indelStart);
 					//if(refPos == indelStart ){
 					if (refPos >= indelStart && refPos <= indelEnd)  {	
 						if(type.equals(SVTYPE.DEL) ) 
 							nearby = true; 	//insertion inside deletion region							
 						else	
 							support = true; // refPos==indelStart=indelEnd
-						//	regionPool.add(re); 
 					}else if(refPos > windowStart && refPos < windowEnd)						
 						nearby = true;  //nearby insertion overlap the window
-//					else
-//						System.out.print("outside indel: " + re.getSAMString());
+					else
+						System.out.print("outside indel: " + re.getSAMString());
 				}else if( CigarOperator.D == ce.getOperator()){
 					// deletion overlaps variants, full/part supporting reads
 						//rePos inside indle region
@@ -134,9 +129,6 @@ public class IndelPileup {
 											
 						nearby = true;			//nearby deletion 	
 					}
-					//else
-						//System.out.print("outside indel: " + re.getSAMString());
-
 				}
 												
 				if(nearby)
@@ -185,59 +177,49 @@ public class IndelPileup {
 		//check this indel is nearby, partial or full match
 		
 		for(SAMRecord re : pool){
-			boolean flag = false; 			
+			boolean supportflag = false; 
+			boolean partialflag = false; 
 			int refPos = re.getAlignmentStart();
 			Cigar cigar = re.getCigar();
 			for (CigarElement ce : cigar.getCigarElements()){					
-				if(CigarOperator.I == ce.getOperator()){ 
-					//if insert rePos go next cigar block after cigar.I, which is indel end position
-				 	if(refPos == indelEnd && type.equals(SVTYPE.INS)){				 		 	
-				 		if(ce.getLength() != motif.length()) 				 			
-				 	 		partsupport ++;	
-				 		 else{
-						 	int startIndex = SAMUtils.getIndexInReadFromPosition(re, indelStart);
-					 		int endIndex =  SAMUtils.getIndexInReadFromPosition(re, indelEnd  );	
-				 			String base = re.getReadString().substring(startIndex+1,endIndex);
-				 			if(motif.toLowerCase().matches(base.toLowerCase())){
-				 				flag = true;
-				 				support ++;
-				 				novelStarts = addToNovelStarts(re, novelStarts);
-				 			}else{
-				 				partsupport ++; 
-				 				//debug
-								//System.out.println("support reads: " + re.getSAMString());
-				 			}
-				 		 }	 
-				 	}
-				}else if( CigarOperator.D == ce.getOperator()){					 
-					//at least some overlap
-					
-					//System.out.println(String.format("refPos:%d, ce.getLength:%d, indel: (%d ~ %d)", refPos, ce.getLength(), indelStart, indelEnd));
-					if((refPos <= indelStart && refPos + ce.getLength() >= indelStart) ||
-							(refPos <= indelEnd && refPos + ce.getLength() >= indelEnd)) 
-						if(type.equals(SVTYPE.DEL) ){							
+				if(CigarOperator.I == ce.getOperator() && (refPos == indelEnd && type.equals(SVTYPE.INS))){ 
+					//if insert rePos go next cigar block after cigar.I, which is indel end position			 	 			 		 	
+			 		if(ce.getLength() != motif.length())
+			 			partialflag = true; 				 	 
+			 		 else{
+					 	int startIndex = SAMUtils.getIndexInReadFromPosition(re, indelStart);
+				 		int endIndex =  SAMUtils.getIndexInReadFromPosition(re, indelEnd  );	
+			 			String base = re.getReadString().substring(startIndex+1,endIndex);
+			 			if(motif.toLowerCase().matches(base.toLowerCase())){
+			 				supportflag = true;				 				 
+			 				novelStarts = addToNovelStarts(re, novelStarts);
+			 				//System.out.println("supportI: " + re.getSAMString());
+			 			}else 
+			 				partialflag = true; 
+			 		 }	 
+				 	 
+				}else if( CigarOperator.D == ce.getOperator())				 			
+//					if((refPos <= indelStart && refPos + ce.getLength() >= indelStart) || (refPos <= indelEnd && refPos + ce.getLength() >= indelEnd)) 
+					//part or more overlap with del region	
+					if(refPos <= indelEnd && refPos + ce.getLength() >= indelStart && type.equals(SVTYPE.DEL)){ 												 						
 							if(refPos == indelStart && ce.getLength() == motif.length()){
-				 				flag = true; 
-				 				support ++;
-				 				novelStarts = addToNovelStarts(re, novelStarts);	
-				 				//System.out.println("support: " + re.getSAMString());
-							}else{
-								partsupport ++;
-								
-								//System.out.println("prat support: " + re.getSAMString());
-							}
-						}
-						//else is supporting or partial, go to next cigar block					 				 
-				}
+				 				supportflag = true; 				 				
+				 				novelStarts = addToNovelStarts(re, novelStarts);					 				 
+							}else
+								partialflag = true; 
+					}						
 				
 				// match indel
-				if(flag){ 	
+				if(supportflag){ 					
 					if (re.getReadNegativeStrandFlag())   backwardSupport ++;
 					else   forwardSupport ++;
+					support ++;
 					break;
-				}
-				//go to next block
-				else if (ce.getOperator().consumesReferenceBases()) 
+				}else if(partialflag){
+					partsupport ++;
+					break;					
+				//go to next block 		
+				}else if (ce.getOperator().consumesReferenceBases()) 
 					refPos += ce.getLength();				
 			}
 		}
@@ -275,7 +257,7 @@ public class IndelPileup {
 			end += 1;
 		}
 		
-		for( SAMRecord  record : pool ){					 
+		for( SAMRecord  record : pool )					 
 			//make sure that the read bases span the indel, 
 			//the soft clip always on both edge of alignment, it is outside of [record.getAlignmentStart(),record.getAlignmentEnd() ]
 			//at least one base before and after indel positon
@@ -285,38 +267,64 @@ public class IndelPileup {
 					continue; 			 
 				informativePool.add(record);
 			}	
-//			//debug
-//			else
-//				System.out.println("non informativ reads: " + record.getSAMString());
-		}
+		
 		
 		return informativePool; 
 	}
+	
+//	private int getSoftCounts(List<SAMRecord> pool){ 
+//		int count = 0; 
+//		int windowStart = indelStart-nearbySoftClipWindow+1;
+//		int windowEnd = indelEnd+nearbySoftClipWindow-1;	
+//
+//		for( SAMRecord  record : pool ){						
+//			//check left hand clipping	
+//			if (record.getAlignmentStart() != record.getUnclippedStart()) {				
+//				int clipStartPosition = record.getAlignmentStart()-1;
+//				if (clipStartPosition >= windowStart && clipStartPosition <= windowEnd){  
+//					//debug
+//					System.out.println(windowStart + "~" + windowEnd + ", left soft: " + record.getSAMString());
+//					count ++;
+//				}
+//			}
+//			//check right hand clipping
+//			if (record.getAlignmentEnd() != record.getUnclippedEnd()) {
+//				int clipEndPosition = record.getAlignmentEnd()+1;			
+//				//clip start position is in the window to the left of the indel			
+//				if (clipEndPosition >= windowStart && clipEndPosition <= windowEnd){  
+//					//debug
+//					System.out.println(windowStart + "~" + windowEnd + ", right soft: " + record.getSAMString());
+//
+//					count ++;	
+//				}
+//			}
+//		}		
+//		return count;
+//	}
+	
 	
 	private int getSoftCounts(List<SAMRecord> pool){ 
 		int count = 0; 
 		int windowStart = indelStart-nearbySoftClipWindow+1;
 		int windowEnd = indelEnd+nearbySoftClipWindow-1;	
 
-		for( SAMRecord  record : pool ){						
-			//check left hand clipping	
-			if (record.getAlignmentStart() != record.getUnclippedStart()) {				
-				int clipStartPosition = record.getAlignmentStart()-1;
-				if (clipStartPosition >= windowStart && clipStartPosition <= windowEnd){  			
-					count ++;
+		for( SAMRecord  record : pool ){								 	
+			int clipStartPosition = record.getAlignmentStart()-1;				 
+			Cigar cigar = record.getCigar();
+			for (CigarElement ce : cigar.getCigarElements()){ 				
+				if(CigarOperator.S == ce.getOperator()){ 											
+					if (clipStartPosition <= windowEnd && clipStartPosition >= windowStart){  						
+						count ++;	break;
+					}					
 				}
-			}
-			//check right hand clipping
-			if (record.getAlignmentEnd() != record.getUnclippedEnd()) {
-				int clipEndPosition = record.getAlignmentEnd()+1;			
-				//clip start position is in the window to the left of the indel			
-				if (clipEndPosition >= windowStart && clipEndPosition <= windowEnd){  			
-					count ++;	
-				}
+				clipStartPosition += (ce.getOperator().consumesReferenceBases()) ? ce.getLength() : 0;
 			}
 		}		
 		return count;
-	}
+	}	
+	
+	
+	
 	//refer to qsnp speed up the process
 
 	public ChrRangePosition getChrRangePosition() { return position; }
