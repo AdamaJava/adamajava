@@ -109,8 +109,6 @@ public class IndelPileup {
 							support = true; // refPos==indelStart=indelEnd
 					}else if(refPos > windowStart && refPos < windowEnd)						
 						nearby = true;  //nearby insertion overlap the window
-					else
-						System.out.print("outside indel: " + re.getSAMString());
 				}else if( CigarOperator.D == ce.getOperator()){
 					// deletion overlaps variants, full/part supporting reads
 						//rePos inside indle region
