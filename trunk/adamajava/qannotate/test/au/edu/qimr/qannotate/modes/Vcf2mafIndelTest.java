@@ -233,7 +233,7 @@ public class Vcf2mafIndelTest {
  				
  				assertTrue(maf.getColumnValue(41).equals("--:ND8:TD12"));
  				assertTrue(maf.getColumnValue(45).equals("35"));
- 				assertTrue(maf.getColumnValue(46).equals("21"));	//informative - support - partial indel - nearbyindel
+ 				assertTrue(maf.getColumnValue(46).equals("22"));	//informative - support - partial indel  
  				assertTrue(maf.getColumnValue(47).equals("12"));
  				assertTrue(maf.getColumnValue(48).equals("18"));
  				assertTrue(maf.getColumnValue(49).equals("8"));
