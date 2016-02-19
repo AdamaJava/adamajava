@@ -380,7 +380,8 @@ public class Vcf2maf extends AbstractMode{
 		      		values[3] = counts[3].substring(0,counts[3].indexOf('['));  //supporting reads total
 		      	      		
 		      		//reference reads counts is the informative reads - support/partial/nearbyindel reads
-		      		int refCounts =  Integer.parseInt(counts[2]) - Integer.parseInt(values[3])- Integer.parseInt(counts[5])-Integer.parseInt(counts[6]);
+		//      		int refCounts =  Integer.parseInt(counts[2]) - Integer.parseInt(values[3])- Integer.parseInt(counts[5])-Integer.parseInt(counts[6]);
+		      		int refCounts =  Integer.parseInt(counts[2]) - Integer.parseInt(values[3])- Integer.parseInt(counts[5]);
 		      		values[2] = refCounts + "";		      		 
 	      		}catch(Exception e){	      			 
 	      				logger.warn("invalide " + IndelUtils.FORMAT_ACINDEL + " at vcf formate column: " + sample.toString());
