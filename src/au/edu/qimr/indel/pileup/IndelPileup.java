@@ -123,10 +123,8 @@ public class IndelPileup {
 							support = true; // supporting or partial 						 	
 					}else if((refPos >= windowStart &&  refPos <= windowEnd) ||
 							(refPos + ce.getLength() -1 >= windowStart && refPos + ce.getLength() -1 <= windowEnd) ||
-							(refPos <= windowStart && refPos + ce.getLength() -1 >= windowEnd)){
-											
-						nearby = true;			//nearby deletion 	
-					}
+							(refPos <= windowStart && refPos + ce.getLength() -1 >= windowEnd)) 											
+						nearby = true;			//nearby deletion 						 
 				}
 												
 				if(nearby)
