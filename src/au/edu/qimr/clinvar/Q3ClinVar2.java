@@ -215,8 +215,21 @@ public class Q3ClinVar2 {
 						Optional<String> optionalId = Arrays.stream(column8).filter(s -> s.trim().startsWith("transcript_id")).findAny();
 						Optional<String> optionalExonNumber = Arrays.stream(column8).filter(s -> s.trim().startsWith("exon_number")).findAny();
 						
-						String id = optionalId.isPresent() ? optionalId.get().replace("transcript_id", "").replace("\"", "").trim() : null;
-						String exonNumber = optionalExonNumber.isPresent() ? optionalExonNumber.get().replace("exon_number", "").replace("\"", "").trim() : null;
+						String id = null;
+						if (optionalId.isPresent()) {
+							int index1 = optionalId.get().indexOf("transcript_id \"");
+							int index2 = optionalId.get().indexOf("\"", index1 + 15);
+							id = optionalId.get().substring(index1 + 15, index2);
+						}
+						String exonNumber = null;
+						if (optionalExonNumber.isPresent()) {
+							int index1 = optionalExonNumber.get().indexOf("exon_number \"");
+							int index2 = optionalExonNumber.get().indexOf("\"", index1 + 13);
+							exonNumber = optionalExonNumber.get().substring(index1 + 13, index2);
+						}
+						
+//						String id = optionalId.isPresent() ? optionalId.get().replace("transcript_id", "").replace("\"", "").trim() : null;
+//						String exonNumber = optionalExonNumber.isPresent() ? optionalExonNumber.get().replace("exon_number", "").replace("\"", "").trim() : null;
 						
 						if (null == currentTranscriptId || ! currentTranscriptId.equals(id)) {
 							
@@ -243,7 +256,14 @@ public class Q3ClinVar2 {
 						if (null == t) {
 							
 							Optional<String> optionalGene = Arrays.stream(column8).filter(s -> s.trim().startsWith("gene_name")).findAny();
-							String gene = optionalGene.isPresent() ? optionalGene.get().replace("gene_name", "").replace("\"", "").trim() : null;
+							
+							String gene = null;
+							if (optionalGene.isPresent()) {
+								int index1 = optionalGene.get().indexOf("gene_name \"");
+								int index2 = optionalGene.get().indexOf("\"", index1 + 11);
+								gene = optionalGene.get().substring(index1 + 11, index2);
+							}
+//							String gene = optionalGene.isPresent() ? optionalGene.get().replace("gene_name", "").replace("\"", "").trim() : null;
 							
 							t = new Transcript(id, params[1], contig, gene);
 							transcripts.put(id, t);
@@ -511,7 +531,6 @@ public class Q3ClinVar2 {
 		q3pElement.addAttribute(new Attribute("vcf_variant_count", ""+outputMutations.get()));
 		q3pElement.addAttribute(new Attribute("fastq_1", fastqFiles[0]));
 		q3pElement.addAttribute(new Attribute("fastq_2", fastqFiles[1]));
-		logger.info("adding cosmic and dbsnp to q3pElement");
 		q3pElement.addAttribute(new Attribute("dbSnp", dbSNPFile));
 		q3pElement.addAttribute(new Attribute("COSMIC", cosmicFile));
 		q3pElement.addAttribute(new Attribute("gene_transcripts", geneTranscriptsFile));
