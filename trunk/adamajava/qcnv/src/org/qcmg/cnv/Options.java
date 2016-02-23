@@ -26,7 +26,9 @@ public class Options {
 	private static final String INPUT_DESCRIPTION = Messages.getMessage("org.qcmg.cnv.messages","INPUT_OPTION_DESCRIPTION");	
 	private static final String ID_DESCRIPTION = Messages.getMessage("org.qcmg.cnv.messages","SAMPLEID_OPTION_DESCRIPTION");	
 	private static final String THREAD_DESCRIPTION = Messages.getMessage("org.qcmg.cnv.messages","THREAD_OPTION_DESCRIPTION");	
-	private static final String WINDOW_DESCRIPTION = Messages.getMessage("org.qcmg.cnv.messages","WINDOW_SIZE_DESCRIPTION");	
+	private static final String WINDOW_DESCRIPTION = Messages.getMessage("org.qcmg.cnv.messages","WINDOW_SIZE_DESCRIPTION");
+	private static final String QUERY_DESCRIPTION = Messages.getMessage("org.qcmg.cnv.messages","QUERY_OPTION_DESCRIPTION");
+	 
 	private final QOptions options;
 //	private String tmpdir = null;
 	private String refFileName = null;
@@ -49,7 +51,7 @@ public class Options {
        	options.add( OptionBuilder.hasArgs(1).withArgName("log file").withLongOpt("log").withDescription( LOG_DESCRIPTION).create());
        	options.add( OptionBuilder.hasArgs(1).withArgName("thread number").withLongOpt("thread").withDescription( THREAD_DESCRIPTION).create());
        	options.add( OptionBuilder.hasArgs(1).withArgName("window size").withLongOpt("window_size").withDescription( WINDOW_DESCRIPTION).create('w'));
-       	options.add( OptionBuilder.hasArgs(1).withArgName("query string").withLongOpt("query").withDescription(INPUT_DESCRIPTION).create('q'));
+       	options.add( OptionBuilder.hasArgs(1).withArgName("query string").withLongOpt("query").withDescription(QUERY_DESCRIPTION).create('q'));
        	
   
        	if(options.has("help") || options.has("version"))
