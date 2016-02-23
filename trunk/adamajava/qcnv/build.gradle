@@ -1,4 +1,4 @@
-version = '0.2pre'
+version = '0.3pre'
 
 def mainclass = 'org.qcmg.cnv.Main'
 def scriptname = 'qcnv'
@@ -16,6 +16,7 @@ dependencies {
 
     compile project(':qcommon')
     compile project(':qpicard')
+	compile project(':qbamfilter')
 
     ant {
        unzip(src: "../lib/commons-cli-1.2-bin.zip", dest: "build/deps")
