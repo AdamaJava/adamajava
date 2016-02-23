@@ -20,7 +20,9 @@ public class Main {
         try{     	
 
 			MtCounts cnvThread = new MtCounts(option.getInputNames(), option.getSampleIds(), 
-					option.getOutputName(), option.getThreadNumber(), option.getWindowSize(), logger);
+					option.getOutputName(), option.getThreadNumber(), option.getWindowSize(), option.getQuery(),  logger);
+			logger.info("window size: "+ option.getWindowSize());
+			logger.info("query string: "+ option.getQuery());
 			
 			cnvThread.callCounts();
         	logger.logFinalExecutionStats(0);

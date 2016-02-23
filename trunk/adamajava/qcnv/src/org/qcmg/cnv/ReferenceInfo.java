@@ -8,7 +8,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 
+import org.qcmg.common.string.StringUtils;
 import org.qcmg.picard.SAMFileReaderFactory;
+import org.qcmg.qbamfilter.query.QueryExecutor;
 
 import htsjdk.samtools.SamReader;
 import htsjdk.samtools.SAMRecord;
@@ -41,18 +43,25 @@ public class ReferenceInfo {
 			windowNumber = chr.getSequenceLength() / windowSize + 1;
 	}
 	
-	public void addCounts(String id, String bam) throws Exception { 
+	public void addCounts(String id, String bam, String query) throws Exception { 
 		
 		//initialize array to store the counts 
 		int[] chrArray = new int[ref.getSequenceLength() / windowSize + 1];
 		for (int i = 0; i < chrArray.length; i ++)
 			chrArray[i] = 0;
 		
+		QueryExecutor qbamFilter = null; 
+		if ( ! StringUtils.isNullOrEmpty(query) )
+			qbamFilter = new QueryExecutor(query);
+		
 		//check each reads start point and counts it into belonging window
 		SamReader rbam =   SAMFileReaderFactory.createSAMFileReader(new File(bam), ValidationStringency.SILENT);  
 		SAMRecordIterator ite =	rbam.query(ref.getSequenceName(), 0, ref.getSequenceLength(),true);
 		while(ite.hasNext()){
 			SAMRecord record = ite.next();
+			if(qbamFilter != null && !qbamFilter.Execute(record))
+				continue; 
+				
 			int pos = record.getAlignmentStart() / windowSize ;
 			chrArray[pos] ++; 
 		}		

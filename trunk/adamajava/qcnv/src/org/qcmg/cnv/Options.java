@@ -43,11 +43,14 @@ public class Options {
     	options.add( OptionBuilder.hasArg(false).withLongOpt("help").withDescription(HELP_DESCRIPTION).create('h'));    
     	options.add( OptionBuilder.hasArg(false).withLongOpt("version").withDescription(VERSION_DESCRIPTION).create('v'));  
      	options.add( OptionBuilder.hasArgs(1).withArgName("input BAM").withLongOpt("input").withDescription(INPUT_DESCRIPTION).create('i'));
+     	
        	options.add( OptionBuilder.hasArgs(1).withArgName("sample id").withLongOpt("id").withDescription( ID_DESCRIPTION).create());  
        	options.add( OptionBuilder.hasArgs(1).withArgName("count file").withLongOpt("output").withDescription( OUTPUT_DESCRIPTION).create('o'));
        	options.add( OptionBuilder.hasArgs(1).withArgName("log file").withLongOpt("log").withDescription( LOG_DESCRIPTION).create());
        	options.add( OptionBuilder.hasArgs(1).withArgName("thread number").withLongOpt("thread").withDescription( THREAD_DESCRIPTION).create());
        	options.add( OptionBuilder.hasArgs(1).withArgName("window size").withLongOpt("window_size").withDescription( WINDOW_DESCRIPTION).create('w'));
+       	options.add( OptionBuilder.hasArgs(1).withArgName("query string").withLongOpt("query").withDescription(INPUT_DESCRIPTION).create('q'));
+       	
   
        	if(options.has("help") || options.has("version"))
        		return;
@@ -132,6 +135,7 @@ public class Options {
 	 
 	 
  	 public String getOutputName() throws Exception{ return options.valueOf("output");}
+ 	 public String getQuery() throws ParseException{return options.valueOf("query"); }
 	  
 	 public QLogger getLogger(String[] args) throws Exception{
 			

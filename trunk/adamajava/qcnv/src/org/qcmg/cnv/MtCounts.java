@@ -9,12 +9,10 @@ import java.io.FileWriter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-
 import java.util.AbstractQueue;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -37,16 +35,18 @@ public class MtCounts {
 	final String[] inputs;
 	final String[] ids;
 	final int noOfThreads; //default
+	final String query; 
  
- 	final int windowSize;
+    final int windowSize;
  	final QLogger logger;
 
-    MtCounts(String[] inputs, String[] ids, String output,  int thread,int windowSize, QLogger logger) throws Exception{
+    MtCounts(String[] inputs, String[] ids, String output,  int thread,int windowSize, String query, QLogger logger) throws Exception{
       	this.Output = new File(output); 
     	this.noOfThreads = thread;
     	this.windowSize = windowSize;
     	this.logger = logger;
     	this.ids = ids;
+    	this.query = query; 
     	
     	
     	if(inputs.length != ids.length )
@@ -74,7 +74,7 @@ public class MtCounts {
 	    //parallel query by genomes and output to tmp files 
         int index = 0;
    		for ( SAMSequenceRecord chr : genome){	 	   	    	   
-	    	   queryThreads.execute(new WindowCount(inputs, ids, chr, windowSize,infoQueue));
+	    	   queryThreads.execute(new WindowCount(inputs, ids, chr, infoQueue,windowSize, query));
 	    	   index ++;	    	  
 	    }	  
    		
@@ -106,6 +106,7 @@ public class MtCounts {
 		String[] inputs;
 		String[] ids;
 		int windowSize;
+		String query;
 		SAMSequenceRecord chr;
 		AbstractQueue<ReferenceInfo> queue;
 		
@@ -119,12 +120,14 @@ public class MtCounts {
 		 * @param infoQueue
 		 * @throws IOException
 		 */
-		WindowCount(  String[] inputs, String[] ids, SAMSequenceRecord chr, int windowSize, AbstractQueue<ReferenceInfo> infoQueue  ) throws IOException {
+		WindowCount(  String[] inputs, String[] ids, SAMSequenceRecord chr, AbstractQueue<ReferenceInfo> infoQueue, int windowSize, String query  ) throws IOException {
+
 			this.inputs = inputs;
 			this.ids = ids; 
 			this.chr = chr;
 			this.windowSize = windowSize;
 			queue = infoQueue;
+			this.query = query;
 		}
 	 
 		public void run() {
@@ -132,7 +135,7 @@ public class MtCounts {
 				
 				ReferenceInfo info = new ReferenceInfo(chr, windowSize);				 
 				for(int i = 0; i <inputs.length; i++){
-					info.addCounts(ids[i], inputs[i]);
+					info.addCounts(ids[i], inputs[i],query);
 				}
 			   			
 				queue.add(info );
