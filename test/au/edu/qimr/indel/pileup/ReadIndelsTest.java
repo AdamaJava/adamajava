@@ -90,16 +90,25 @@ public class ReadIndelsTest {
 			assertTrue(positionRecordMap.size() == 3);		
 			for( ChrRangePosition key : positionRecordMap.keySet()){
 				IndelPosition indel = positionRecordMap.get(key);
-				if(indel.getStart() == 59033286)
-					assertFalse(indel.getIndelVcf(0).getFormatFields().get(1).equals(indel.getIndelVcf(0).getFormatFields().get(2)));
-				else if(indel.getStart() == 59033423){	
- 					assertTrue(indel.getIndelVcf(0).getFormatFields().get(1).equals("0/1:T/TC:7,4:11:99:257,0,348"));
+				if(indel.getStart() == 59033287){
+					//merge only
+					assertTrue(indel.getIndelVcf(0).getFormatFields().get(1).equals("0/0:GT/GT:0:0:0:0,0,0"));
+					assertTrue(indel.getIndelVcf(0).getFormatFields().get(2).equals("0/1:GT/G:131,31:162:99:762,0,4864"));
+					assertTrue(indel.getIndelVcf(0).getInfo().equals("SOMATIC1")); //info column from first file
+						 
+				}else if(indel.getStart() == 59033423){	
+					//merge indels but split alleles
+					assertTrue(indel.getIndelVcf(0).getFormatFields().get(1).equals("0/1:T/TC:7,4:11:99:257,0,348"));
  					assertTrue(indel.getIndelVcf(0).getFormatFields().get(2).equals(".:T/A:7,5:.:.:."));
 					assertTrue(indel.getIndelVcf(1).getFormatFields().get(1).equals(".:.:." ));
 					assertTrue(indel.getIndelVcf(1).getFormatFields().get(2).equals(".:T/A:7,5"));
-				}else if(indel.getStart() == 59033285){
-					assertFalse(indel.getIndelVcf(0).getFormatFields().get(1).equals(indel.getIndelVcf(0).getFormatFields().get(2))); 
-					assertTrue(indel.getIndelVcf(0).getFormatFields().get(1).equals(".:.:.:.:.:." ));						 
+					assertTrue(indel.getIndelVcf(0).getInfo().equals("SOMATIC1" )); //info column from first file  
+					assertTrue(indel.getIndelVcf(1).getInfo().equals("SOMATIC" ));  //info column from second file
+				}else if(indel.getStart() == 59033286){
+					//indels only appear on second file,  
+					assertTrue(indel.getIndelVcf(0).getFormatFields().get(2).equals("0/1:GGT/G:131,31:162:99:762,0,4864" )); 
+					assertTrue(indel.getIndelVcf(0).getFormatFields().get(1).equals(".:.:.:.:.:." ));	
+					assertTrue(indel.getIndelVcf(0).getInfo().equals("SOMATIC" )); //info column from second file  
 				}						 
 			}
 
@@ -218,21 +227,21 @@ public class ReadIndelsTest {
 		head1.add("##INFO=<ID=SOMATIC1,Number=0,Type=Flag,Description=\"test1\">");       
 		head1.add("#CHROM	POS	ID      REF     ALT     QUAL	FILTER	INFO	FORMAT	S1	S2"); 		
 		List<String> data1 = new ArrayList<String>();
-		data1.add("chrY	59033286	.	GT	G	724.73	PASS	AC=1;AF=0.500;AN=2;BaseQRankSum=0.873;ClippingRankSum=0.277;DP=208;FS=1.926;MLEAC=1;MLEAF=0.500;MQ=57.66;MQ0=0;MQRankSum=1.328;QD=3.48;ReadPosRankSum=-0.302;END=59033287	GT:AD:DP:GQ:PL	0/1:0:0:0:0,0,0	0/1:80,17:97:99:368,0,3028");
-		data1.add("chrY	59033423	.	T	TC	219.73	PASS	AC=1;AF=0.500;AN=2;BaseQRankSum=-1.034;ClippingRankSum=0.278;DP=18;FS=0.000;MLEAC=1;MLEAF=0.500;MQ=47.46;MQ0=0;MQRankSum=-2.520;QD=12.21;ReadPosRankSum=-1.769	GT:AD:DP:GQ:PL	0/1:7,4:11:99:257,0,348	0/1:17,2:19:72:72,0,702"); 
+		data1.add("chrY	59033286	.	GT	G	724.73	PASS	SOMATIC1	GT:AD:DP:GQ:PL	0/0:0:0:0:0,0,0	0/1:80,17:97:99:368,0,3028");
+		data1.add("chrY	59033423	.	T	TC	219.73	PASS	SOMATIC1	GT:AD:DP:GQ:PL	0/1:7,4:11:99:257,0,348	0/1:17,2:19:72:72,0,702"); 
 		Support.createVcf(head1, data1, input1);
 		       
 		head1 = new ArrayList<String>(head);
 		head1.add("##PG:\"creating second file\"");
 		head1.add("#CHROM	POS	ID      REF     ALT     QUAL	FILTER	INFO	FORMAT	S1	S2");        
 		data1.clear();        
-		data1.add("chrY	59033285	.	GGT	G	724.73	PASS	AC=1;AF=0.500;AN=2;BaseQRankSum=0.873;ClippingRankSum=0.277;DP=208;FS=1.926;MLEAC=1;MLEAF=0.500;MQ=57.66;MQ0=0;MQRankSum=1.328;QD=3.48;ReadPosRankSum=-0.302;END=59033287	GT:AD:DP:GQ:PL	0/1:131,31:162:99:762,0,4864	0/1:80,17:97:99:368,0,3028");
-		data1.add("chrY	59033286	.	GT	G	724.73	PASS	AC=1;AF=0.500;AN=2;BaseQRankSum=0.873;ClippingRankSum=0.277;DP=208;FS=1.926;MLEAC=1;MLEAF=0.500;MQ=57.66;MQ0=0;MQRankSum=1.328;QD=3.48;ReadPosRankSum=-0.302;END=59033287	GT:AD:DP:GQ:PL	0/1:131,31:162:99:762,0,4864	0/1:80,17:97:99:368,0,3028");
-		data1.add("chrY	59033423	.	T	A,TC,TCG	219.73	PASS	AC=1;AF=0.500;AN=2;BaseQRankSum=-1.034;ClippingRankSum=0.278;DP=18;FS=0.000;MLEAC=1;MLEAF=0.500;MQ=47.46;MQ0=0;MQRankSum=-2.520;QD=12.21;ReadPosRankSum=-1.769	GT:AD	0/1:7,5	1/2:9,9");            
+		data1.add("chrY	59033285	.	GGT	G	724.73	PASS	SOMATIC	GT:AD:DP:GQ:PL	0/1:131,31:162:99:762,0,4864	0/1:80,17:97:99:368,0,3028");
+		data1.add("chrY	59033286	.	GT	G	724.73	PASS	SOMATIC	GT:AD:DP:GQ:PL	0/1:131,31:162:99:762,0,4864	0/1:80,17:97:99:368,0,3028");
+		data1.add("chrY	59033423	.	T	A,TC,TCG	219.73	PASS	SOMATIC	GT:AD	0/1:7,5	1/2:9,9");            
 		Support.createVcf(head1, data1, input2);
 		
 		data1.clear();
-		data1.add("chrY	59033286	.	CAA	C,CA	724.73	PASS	AC=1;END=59033287	GT:AD:DP:GQ:PL	1/2:14,38,25:77:99:1229,323,592,448,0,527	1/1:14,38,25:77:99:1229,323,592,448,0,527");
+		data1.add("chrY	59033286	.	CAA	C,CA	724.73	PASS	.	GT:AD:DP:GQ:PL	1/2:14,38,25:77:99:1229,323,592,448,0,527	1/1:14,38,25:77:99:1229,323,592,448,0,527");
 		data1.add("chrY	59033287	.	GTGTGTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT	G	724.73	PASS	.	GT:AD	1/2:14,38,25	1/1:14,38,25");
 		data1.add("chrY	59033287	.	G	GTGTGTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT	724.73	PASS	.	GT:AD	1/2:14,38,25	1/1:14,38,25");
 
