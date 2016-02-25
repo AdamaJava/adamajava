@@ -25,7 +25,8 @@ public class Support {
 	public static void clear() throws IOException {
 		File dir = new java.io.File( "." ).getCanonicalFile();		
 		for(File f: dir.listFiles())
-		    if(  f.getName().endsWith(".ini")  || f.getName().endsWith(".vcf")  ||  f.getName().endsWith(".bam") || f.getName().endsWith(".sam") ||  f.getName().endsWith(".bai")  )
+		    if(  f.getName().endsWith(".ini")  || f.getName().endsWith(".vcf")  ||  f.getName().endsWith(".bam") ||
+		    		f.getName().endsWith(".sam") ||  f.getName().endsWith(".bai")  || f.getName().endsWith(".fai") )
 		        f.delete();	
 		
 	}
@@ -68,7 +69,7 @@ public class Support {
 		
         List<String> data = new ArrayList<String>();
         data.add("chr11	2672739	.	ATT	A	123.86	.	.	GT	0/1"); 
-        data.add("chrY	2672735	.	ATT	A	123.86	.	.	GT	0/1"); 
+        data.add("chrY	2672735	.	ATT	A	123.86	.	GATKINFO	GT	0/1"); 
         data.add("chr11	2672739	.	ATTC	A	123.86	.	.	GT	0/1"); 
         data.add("chr11	2672734	.	ATT	A	123.86	.	.	GT	0/1"); 
         
@@ -85,8 +86,8 @@ public class Support {
 	
 	public static void createVcf( List<String> header, List<String> records, String output){	
         List<String> data = new ArrayList<String>(header);
-        data.add("##fileformat=VCFv4.1");
-        data.add("#CHROM	POS	ID      REF     ALT     QUAL	FILTER	INFO	FORMAT	S1"); 
+//        data.add("##fileformat=VCFv4.1");
+//        data.add("#CHROM	POS	ID      REF     ALT     QUAL	FILTER	INFO	FORMAT	S1"); 
         
         data.addAll(records);
         try( BufferedWriter out = new BufferedWriter(new FileWriter(output ))) {	

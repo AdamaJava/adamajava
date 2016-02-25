@@ -89,6 +89,13 @@ public class ReadIndels {
 				}  	    			
 			}
 		}
+        
+        //debug
+//        VcfRecord vv = new VcfRecord.Builder("chr1", 924199, "G").allele("GGAGTGTTTCGGGAGTTCTGGGTTGATTGTTTCTGGAGTTCAGGGTT").build();
+//        if(positionRecordMap.get(vv)!=null)
+//        	System.out.println("debug(info column why missing after appendIndel): "+positionRecordMap.get(vv).toString());
+               
+        
 		logger.info(String.format("Find %d indels from %d variants within file: %s", inVariants, inLines, f));
 		logger.info("the number of reads contains multi Aleles from second file is " + multiAltNo);
 		logger.info(indelnewCount + " indel variants are only appeared in second vcf! ");
@@ -177,6 +184,12 @@ public class ReadIndels {
 				}  		 
     		}
  	      }
+        
+//        //debug
+//        VcfRecord vv = new VcfRecord.Builder("chr1", 924199, "G").allele("GGAGTGTTTCGGGAGTTCTGGGTTGATTGTTTCTGGAGTTCAGGGTT").build();
+//        if(positionRecordMap.get(vv)!=null)
+//        	System.out.println("debug(info column why missing after LoadIndel): "+positionRecordMap.get(vv).toString());
+        
 		  logger.info(String.format("Find %d indels from %d variants (%d records lines) within file: %s",
 						positionRecordMap.size(), inVariants, inLines, f.getAbsoluteFile()));
 		  if(overwriteNo >= errRecordLimit)

@@ -232,7 +232,8 @@ public class IndelPosition {
 		}
 		
 		if(somatic) 
-			re.setInfo(VcfHeaderUtils.INFO_SOMATIC);
+			re.appendInfo(VcfHeaderUtils.INFO_SOMATIC);
+//			re.setInfo(VcfHeaderUtils.INFO_SOMATIC);
 		
 		
 		//set default filter as PASS

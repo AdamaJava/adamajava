@@ -240,7 +240,9 @@ public class IndelPositionTest {
 		 try (VCFFileReader reader = new VCFFileReader(IniFileTest.output)) {				 
 			 for (VcfRecord re : reader)  											
 				if(re.getChromosome().equals("chrY")){	
+			 
 					assertTrue(re.getInfo().contains(VcfHeaderUtils.INFO_SOMATIC));
+					assertTrue(re.getInfo().contains("GATKINFO")); //make sure GATK INFO column still exists
 					assertTrue(re.getFilter().contains(IndelUtils.FILTER_COVN12)); 
 					assertTrue(re.getFilter().contains(IndelUtils.FILTER_MIN)); 
 					assertTrue(re.getFilter().contains(IndelUtils.FILTER_NNS)); 					
