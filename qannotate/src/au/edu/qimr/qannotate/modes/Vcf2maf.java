@@ -362,7 +362,7 @@ public class Vcf2maf extends AbstractMode{
 
 	 	 if(sample.isMissingSample() ) return null;
 	 	 
-	 	 String[] values = {"0", "0", "0", "0", SnpEffMafRecord.Null,SnpEffMafRecord.Null,SnpEffMafRecord.Null}; 
+	 	 String[] values = {"0",SnpEffMafRecord.minusOne, SnpEffMafRecord.minusOne,SnpEffMafRecord.minusOne, SnpEffMafRecord.Null,SnpEffMafRecord.Null,SnpEffMafRecord.Null}; 
 	 	 
 		 if(type == null)
 			 type = IndelUtils.getVariantType(ref, alt);
