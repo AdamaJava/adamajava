@@ -6,9 +6,11 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import org.qcmg.common.log.QLogger;
+import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.vcf.VCFFileReader;
@@ -55,18 +57,20 @@ public class SnpEffMode extends AbstractMode{
 	@Override
 	protected void writeVCF(File outputFile )  throws IOException{
 		long counts = 0;
+		HashSet<ChrPosition> posCheck = new HashSet<ChrPosition>();
 		try(VCFFileReader reader = new VCFFileReader(new File( tmpFile));
 				VCFFileWriter writer = new VCFFileWriter(outputFile )){
 								
 	        	for(final VcfHeader.Record record: header) {
 	        		writer.addHeader(record.toString());
 	        	}
-	        	for (final VcfRecord qpr : reader) {
+	        	for (final VcfRecord record : reader) {
 	        		counts ++;
-	        		writer.add(qpr);
+	        		posCheck.add(record.getChrPosition());
+	        		writer.add(record);
 	        	}
 		}
-		logger.info("outputed VCF record: " + counts);
+		logger.info(String.format("outputed %d VCF record, happend on %d variants location.",  counts , posCheck.size()));
 	}
 		//throws Exception
 	private boolean addAnnotation(SnpEffOptions options, String tmpFile ) throws FileNotFoundException{	

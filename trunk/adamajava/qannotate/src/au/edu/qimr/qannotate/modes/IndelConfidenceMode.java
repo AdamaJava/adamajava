@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.BitSet;
+import java.util.HashSet;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -134,20 +135,7 @@ public class IndelConfidenceMode extends AbstractMode{
 			}catch(NullPointerException | NumberFormatException  e){
 				//do nothing
 			}
-
-			
-			
-//			info = vcf.getInfoRecord().getField(IndelUtils.INFO_HOMCNTXT);
-//			if(info != null){
-//				int pos = info.indexOf(Constants.COMMA_STRING);
-//				info = info.substring(0,pos);
-//				try{
-//					 lhomo = Integer.parseInt(info);
-//				}catch(NullPointerException | NumberFormatException  e){
-//					//do nothing
-//				}
-//			}
-			
+		
 			if(rate <= DEFAULT_NIOC && lhomo <= DEFAULT_HOMN )
 				return Confidence.HIGH;			
 			
@@ -193,7 +181,7 @@ public class IndelConfidenceMode extends AbstractMode{
 		
 		long count = 0;
 		long repeatCount = 0; 
-	
+		HashSet<ChrPosition> posCheck = new HashSet<ChrPosition>();	
 		try (VCFFileReader reader = new VCFFileReader(input) ;
                 VCFFileWriter writer = new VCFFileWriter(new File(output ))  ) {
 			    
@@ -214,10 +202,12 @@ public class IndelConfidenceMode extends AbstractMode{
 	    		vcf.getInfoRecord().setField(VcfHeaderUtils.INFO_CONFIDENT, getConfidence(vcf).toString());		
 	    		
 	    		count++;
+	    		posCheck.add(vcf.getChrPosition());
 	    		writer.add(vcf);
 	        }
-		}        
-		logger.info("outputed VCF record:  " + count + "; no of variants falled fallen into repeat region is " + repeatCount);
+		}  
+		logger.info(String.format("outputed %d VCF record, happend on %d variants location.",  count , posCheck.size()));
+		logger.info("number of variants fallen into repeat region is " + repeatCount);
 					 
 	}
  
