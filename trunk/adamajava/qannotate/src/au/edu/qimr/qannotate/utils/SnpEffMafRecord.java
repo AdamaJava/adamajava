@@ -16,6 +16,7 @@ public class SnpEffMafRecord {
 	public static final String No = "No";
 	public static final String Null = "null";
 	public static final String Yes = "Yes";
+	public static final String minusOne = "-1";
 	
 	public static final String Version = "#version 2.4.1";
 	
@@ -205,17 +206,17 @@ public class SnpEffMafRecord {
 		maf[37]= Unknown; //"confidence";
 		maf[38]= Unknown; //"Eff_Impact";"consequence";
 
-		maf[39] = "-1";  //A.M consequce rank
+		maf[39] = minusOne;  //A.M consequce rank
 		maf[40] = Unknown; //"novel_starts";  
 		maf[41] = Unknown; //"Var_Plus_Flank"; Cpg;  
 		maf[42] = Unknown; //"Variant_AF""GMAF"; 
 		maf[43] = Null;; //germ_counts  		
-		maf[44] = "-1"; //t_depth
-		maf[45] = "-1"; //t_ref_count
-		maf[46] = "-1"; //t_alt_count
-		maf[47] = "-1"; //n_depth
-		maf[48] = "-1"; //n_ref_count
-		maf[49] = "-1"; //n_alt_count
+		maf[44] = minusOne; //t_depth
+		maf[45] = minusOne; //t_ref_count
+		maf[46] = minusOne; //t_alt_count
+		maf[47] = minusOne; //n_depth
+		maf[48] = minusOne; //n_ref_count
+		maf[49] = minusOne; //n_alt_count
 		maf[50] = Null; //Transcript_ID
 		maf[51] = Null; //Amino_Acid_Change
 		maf[52] = Null; //CDS_change

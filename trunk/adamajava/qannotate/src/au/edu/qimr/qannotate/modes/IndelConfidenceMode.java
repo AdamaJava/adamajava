@@ -133,7 +133,7 @@ public class IndelConfidenceMode extends AbstractMode{
 			try{	
 				lhomo = Integer.parseInt(filter.replace(IndelUtils.FILTER_HOM, ""));
 			}catch(NullPointerException | NumberFormatException  e){
-				//do nothing
+				// do nothing				
 			}
 		
 			if(rate <= DEFAULT_NIOC && lhomo <= DEFAULT_HOMN )
