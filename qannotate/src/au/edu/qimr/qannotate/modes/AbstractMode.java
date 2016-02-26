@@ -154,7 +154,8 @@ public abstract class AbstractMode {
 					writer.add( record );	
 					count ++;
 				}
-			logger.info("outputed VCF record:  " + count);
+//			logger.info("outputed VCF record:  " + count);
+			logger.info(String.format("outputed %d VCF record, happend on %d variants location.",  count , orderedList.size()));
 		}  
 	}
 	
