@@ -162,12 +162,9 @@ public class Vcf2mafIndelTest {
 		 				assertTrue(maf.getColumnValue(47).equals("1"));
 		 				assertTrue(maf.getColumnValue(48).equals("-1"));
 		 				assertTrue(maf.getColumnValue(49).equals("-1"));
-		 				assertTrue(maf.getColumnValue(50).equals("-1"));	
-		 				
-		 				
-	 					
+		 				assertTrue(maf.getColumnValue(50).equals("-1"));		 					
 	 				}
-	 				else System.out.println(maf.getMafLine());
+	 				 
 		 		}		
 	        }	
         }catch(Exception e){
