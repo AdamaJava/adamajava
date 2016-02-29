@@ -362,17 +362,19 @@ public class Vcf2maf extends AbstractMode{
 
 	 	 if(sample.isMissingSample() ) return null;
 	 	 
-	 	 String[] values = {"0",SnpEffMafRecord.minusOne, SnpEffMafRecord.minusOne,SnpEffMafRecord.minusOne, SnpEffMafRecord.Null,SnpEffMafRecord.Null,SnpEffMafRecord.Null}; 
+	 	 String[] values = {"0",SnpEffMafRecord.Zero, SnpEffMafRecord.Zero,SnpEffMafRecord.Zero, SnpEffMafRecord.Null,SnpEffMafRecord.Null,SnpEffMafRecord.Null}; 
 	 	 
 		 if(type == null)
 			 type = IndelUtils.getVariantType(ref, alt);
 		 
       	 if(type.equals(SVTYPE.DEL) || type.equals(SVTYPE.INS) ){
-      		 values[6] = sample.getField(IndelUtils.FORMAT_ACINDEL);  
-      		 
-      		 if( !StringUtils.isMissingDtaString(values[6]))
+      		 //it return null if no indel counts. 
+      		 String acindel = sample.getField(IndelUtils.FORMAT_ACINDEL); 
+      		      		 
+      		 if( !StringUtils.isMissingDtaString(acindel))
       		 //eg. 13,38,37,13[8,5],0,0,1     		
-	      		try{     			    			
+	      		try{  
+	      			values[6] = acindel;  //default value is "null" string not null	    			
 		      		String[] counts = values[6].split(Constants.COMMA_STRING);
 		      		if(counts.length != 8) throw new Exception();
 		      		values[0] = counts[0]; //supporting reads nns
