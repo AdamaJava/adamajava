@@ -116,7 +116,11 @@ public class Vcf2mafIndelTest {
  		        "chr3\t21816\t.\tCTTTTTT\tC\t.\tNNS;NPART;HOM28\tSOMATIC;HOMTXT=CTTTTCTTTC______TTTTTTTTTT;NIOC=0.020;SVTYPE=DEL;END=21822;CONF=LOW;EFF=intergenic_region(MODIFIER||||||||||1)\t"
  		        +"GT:GD:AD:DP:GQ:PL:ACINDEL\t.:.:.:.:.:.:0,34,29,0[0,0],8,0,2\t0/1:CTTTTTT/C:10,10:20:99:297,0,351:1,51,41,1[0,1],4,1,4", 		        
  		        "chr4\t120614609\trs149427940\tCTT\tC\t731.73\tTPART;NPART;HOM15\tAC=1,1;AF=0.500,0.500;AN=2;BaseQRankSum=-0.418;ClippingRankSum=1.614;DP=35;FS=3.522;MLEAC=1,1;MLEAF=0.500,0.500;MQ=59.37;MQ0=0;MQRankSum=-0.179;QD=20.91;ReadPosRankSum=-0.896;SOR=0.761;HOMTXT=AATGTACCAC__TTTTTTTTTT;NIOC=0;SVTYPE=DEL;END=120614611;DB;CONF=LOW;EFF=intergenic_region(MODIFIER||||||||||1)\t"
- 		        + "GT:GD:AD:DP:GQ:PL:ACINDEL\t.:C/CT:1,14,17:32:99:769,368,360,287,0,223:9,33,31,9[2,7],19,0,1\t.:C/CT:5,20,28:53:99:1150,541,675,387,0,331:23,70,65,23[8,15],29,0,2"
+ 		        + "GT:GD:AD:DP:GQ:PL:ACINDEL\t.:C/CT:1,14,17:32:99:769,368,360,287,0,223:9,33,31,9[2,7],19,0,1\t.:C/CT:5,20,28:53:99:1150,541,675,387,0,331:23,70,65,23[8,15],29,0,2",
+ 		       "chr1\t72119\t.\tG\tGTATA\t.\tNNS;COVN12;REPEAT\tSOMATIC;NIOC=0;SVTYPE=INS;END=72120;CONF=ZERO;EFF=downstream_gene_variant(MODIFIER||2112||305|OR4F5|protein_coding|CODING|ENST00000335137||1),intergenic_region(MODIFIER||||||||||1)\t"
+ 	                  + "GT:GD:AD:DP:GQ:PL:ACINDEL\t.:.:.:.:.:.:.\t1/1:GTATA/GTATA:0,2:2:6:90,6,0:1,5,5,1[0,1],1,0,2",
+ 	                  
+ 	           "chr11\t1214822581\t.\tG\tGA\t31.731\tHCOVT1\tSOR=0.2331\tGT:GD:AD:DP:GQ:PL1\t0/1:G/GA:305,22:327:69:69,0,131721\t.:.:.:.:.:."
         };
         
         try{
@@ -146,24 +150,24 @@ public class Vcf2mafIndelTest {
 		 				assertTrue(maf.getColumnValue(49).equals("21"));
 		 				assertTrue(maf.getColumnValue(50).equals("0"));	
 		 				
-	 				}else if(maf.getColumnValue(5).equals("1")){
+	 				}else if(maf.getColumnValue(5).equals("11")){
 	 					
-		 				assertTrue(maf.getColumnValue(12).equals("TATA")); //t_allel1
-		 				assertTrue(maf.getColumnValue(13).equals("TATA"));
-		 				assertTrue(maf.getColumnValue(18).equals("null")); //n_allel1
-		 				assertTrue(maf.getColumnValue(19).equals("null"));
-		 			 				
-		 				assertTrue(maf.getColumnValue(36).equals("null"));    //ND
-		 				assertTrue(maf.getColumnValue(37).equals("1,5,5,1[0,1],1,0,2"));
+		 				assertTrue(maf.getColumnValue(12).equals("null")); //t_allel1
+		 				assertTrue(maf.getColumnValue(13).equals("null"));
+		 				assertTrue(maf.getColumnValue(18).equals("-")); //n_allel1
+		 				assertTrue(maf.getColumnValue(19).equals("A"));
 		 				
-		 				assertTrue(maf.getColumnValue(41).equals("TATA:ND0:TD1"));
-		 				assertTrue(maf.getColumnValue(45).equals("5"));    //t_depth 1,51,41,1[0,1],4,1,4" 
-		 				assertTrue(maf.getColumnValue(46).equals("3"));	//informative - support - partial indel - nearbyindel
-		 				assertTrue(maf.getColumnValue(47).equals("1"));
-		 				assertTrue(maf.getColumnValue(48).equals("-1"));
-		 				assertTrue(maf.getColumnValue(49).equals("-1"));
-		 				assertTrue(maf.getColumnValue(50).equals("-1"));		 					
-	 				}
+		 				assertTrue(maf.getColumnValue(36).equals("null"));    //ND
+		 				assertTrue(maf.getColumnValue(37).equals("null"));
+		 				
+		 				assertTrue(maf.getColumnValue(41).equals("A:ND0:TD0"));
+		 				assertTrue(maf.getColumnValue(45).equals("0"));    //t_depth 1,51,41,1[0,1],4,1,4" 
+		 				assertTrue(maf.getColumnValue(46).equals("0"));	//informative - support - partial indel - nearbyindel
+		 				assertTrue(maf.getColumnValue(47).equals("0"));
+		 				assertTrue(maf.getColumnValue(48).equals("0"));
+		 				assertTrue(maf.getColumnValue(49).equals("0"));
+		 				assertTrue(maf.getColumnValue(50).equals("0"));		 					
+	 				} 
 	 				 
 		 		}		
 	        }	
