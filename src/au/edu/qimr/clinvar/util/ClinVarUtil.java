@@ -315,6 +315,15 @@ public class ClinVarUtil {
 	}
 	
 	
+	/**
+	 * Returns a score relating to a string array representation of the Smith-Waterman differences between 2 strings
+	 * The higher the score, the better the match
+	 * 
+	 * A score of zero means the 2 strings are a complete mismatch
+	 * A score of -1 indicates that the input String array was not the correct size
+	 * A score >0 indicates the number of positions that the 2 strings were the same
+	 * 
+	 */
 	public static int getSmithWatermanScore(String [] diffs) {
 		int score = -1;
 		if (null != diffs && diffs.length == 3) {
@@ -960,6 +969,8 @@ public class ClinVarUtil {
 		 * Reset once MD and NM have been calculated and set
 		 */
 		rec.setAlignmentStart(1);
+		
+//		logger.info("about to call calculateMdAndNmTags with : " + rec.getSAMString() + ", referenceSeq.substring(offset).getBytes(): " + referenceSeq.substring(offset));
 		
 		SequenceUtil.calculateMdAndNmTags(rec, referenceSeq.substring(offset).getBytes(), true, true);
 		rec.setAlignmentStart(position + offset);

@@ -115,6 +115,12 @@ public class Q3ClinVar2 {
 	private final int maxIndelLength = 5;
 	private int fastqRecordCount;
 	
+	private int dbSnpTotalCount;
+	private int cosmicTotalCount;
+	
+	private int mutationDbSnpRecordCount;
+	private int mutationCosmicRecordCount;
+	
 	private int minBinSize = 10;
 	private int minFragmentSize = 3;
 	private  int minReadPercentage = 2;
@@ -532,7 +538,11 @@ public class Q3ClinVar2 {
 		q3pElement.addAttribute(new Attribute("fastq_1", fastqFiles[0]));
 		q3pElement.addAttribute(new Attribute("fastq_2", fastqFiles[1]));
 		q3pElement.addAttribute(new Attribute("dbSnp", dbSNPFile));
+		q3pElement.addAttribute(new Attribute("dbSnp_total_count", dbSnpTotalCount + ""));
+		q3pElement.addAttribute(new Attribute("dbSnp_mutation_count", mutationDbSnpRecordCount + ""));
 		q3pElement.addAttribute(new Attribute("COSMIC", cosmicFile));
+		q3pElement.addAttribute(new Attribute("cosmic_total_count", cosmicTotalCount + ""));
+		q3pElement.addAttribute(new Attribute("cosmic_mutation_count", mutationCosmicRecordCount + ""));
 		q3pElement.addAttribute(new Attribute("gene_transcripts", geneTranscriptsFile));
 		q3pElement.addAttribute(new Attribute("gene_transcripts_count", transcripts.size() + ""));
 		
@@ -900,14 +910,16 @@ public class Q3ClinVar2 {
 						// indels only
 						String ref = swDiffs[0].replaceAll("-","");
 						Cigar cigar = ClinVarUtil.getCigarForIndels(ref,   f.getSequence(), swDiffs,  f.getActualPosition());
-//						if (cigar.toString().equals("75M2I80M")) {
-//							logger.info("ref: " + ref);
-//							logger.info("fragSeq: " + fragSeq);
-//							logger.info("cigar: " + cigar.toString());
-//							for (String s : swDiffs) {
-//								logger.info("s: " + s);
-//							}
-//						}
+						if (cigar.toString().equals("51M53I-52M7I159M")) {
+							logger.info("cigar: " + cigar.toString());
+							logger.info("ref: " + ref);
+							logger.info("f.getActualPosition(): " + f.getActualPosition().toIGVString());
+							logger.info("f.getSequence(): " + f.getSequence());
+							logger.info("cigar: " + cigar.toString());
+							for (String s : swDiffs) {
+								logger.info("s: " + s);
+							}
+						}
 //						ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, 1, fragId,  f.getRecordCount(), ref, fragCp.getChromosome(), fragCp.getPosition(), 0, fragSeq, mappingQuality);
 						ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, ampliconId.get(), ref, f, 0, mappingQuality);
 					} else {
@@ -1046,19 +1058,20 @@ public class Q3ClinVar2 {
 		 * COSMIC
 		 */
 		if ( ! StringUtils.isBlank(cosmicFile)) {
+			AtomicInteger cosmicCount = new AtomicInteger();
 			Map<ChrPosition, List<String[]>> cosmicData = new HashMap<>();
 			try (Stream<String> lines = Files.lines(Paths.get(cosmicFile), Charset.defaultCharset())) {
 				cosmicData = lines.filter(s -> ! s.startsWith("Gene name"))
 					.map(s -> TabTokenizer.tokenize(s))
-					.filter(p -> StringUtils.isNotEmpty(p[23]))
+					.filter(p -> StringUtils.isNotEmpty(p[23]) && cosmicCount.incrementAndGet() > -1)
 					.filter(p -> cpVcfMap.containsKey(ChrPositionUtils.createCPFromCosmic(p[23])))
 					.collect(Collectors.groupingBy(p -> ChrPositionUtils.createCPFromCosmic(p[23])));
 				
-				
-				int totalCosmicRecordCount = cosmicData.values().stream()
+				cosmicTotalCount = cosmicCount.get();
+				mutationCosmicRecordCount = cosmicData.values().stream()
 					.collect(Collectors.summingInt(list -> list.size()));
 				
-				logger.info("no of entries in cosmicData: " + cosmicData.size() + " with total cosmic record count: " + totalCosmicRecordCount);
+				logger.info("no of entries in cosmicData: " + cosmicData.size() + " with total cosmic record count: " + mutationCosmicRecordCount);
 				
 				cosmicData.entrySet().stream()
 					.forEach(entry-> {
@@ -1104,10 +1117,11 @@ public class Q3ClinVar2 {
 				//add dbSNP version into header		
 				List<Record>  metas = reader.getHeader().getMetaRecords(); 
 				for (Record re: metas) {
-					if (re.getData().startsWith(VcfHeaderUtils.STANDARD_DBSNP_LINE))  
+					if (re.getData().startsWith(VcfHeaderUtils.STANDARD_DBSNP_LINE)) {
 						dbSnpHeaderDetails.parseHeaderLine(String.format("##INFO=<ID=%s,Number=0,Type=%s,Description=\"%s\",Source=%s,Version=%s>",
 										VcfHeaderUtils.INFO_DB, VcfInfoType.Flag.name(),
-										VcfHeaderUtils.DESCRITPION_INFO_DB, dbSNPFile, new VcfHeaderUtils.SplitMetaRecord(re).getValue()  ));  		
+										VcfHeaderUtils.DESCRITPION_INFO_DB, dbSNPFile, new VcfHeaderUtils.SplitMetaRecord(re).getValue()  ));
+					}
 				}
 						
 				Map<String, FormattedRecord> snpInfoHeader = reader.getHeader().getInfoRecords();
@@ -1119,9 +1133,9 @@ public class Q3ClinVar2 {
 				}
 				dbSnpHeaderDetails.parseHeaderLine("##INFO=<ID=DB_CDS,Number=.,Type=String,Description=\"Reference and Alt alleles as reported by dbSNP\">");
 				
-				int dbSnpNo = 0;
+				
 				for (final VcfRecord dbSNPVcf : reader) {
-					
+					dbSnpTotalCount++;
 					/*
 					 * snps
 					 */
@@ -1157,6 +1171,8 @@ public class Q3ClinVar2 {
 					if (null == mutations || mutations.isEmpty()) {
 						continue;
 					}
+					
+					mutationDbSnpRecordCount++;
 					
 					for (VcfRecord mut : mutations) {
 //						logger.info("Found dbsnp record: " + dbSNPVcf.toString() + " for mutation: " + mut.toString());
@@ -1313,6 +1329,14 @@ public class Q3ClinVar2 {
 			String [] swDiffs = ClinVarUtil.getSwDiffs(bufferedReference, f.getSequence(), true);
 			f.setSWDiffs(swDiffs);
 			
+			
+			if (f.getId() == 6282 || f.getId() == 2765) {
+				System.out.println("frag id: " + f.getId());
+				for (String s : swDiffs) {
+					System.out.println("s: " + s);
+				}
+			}
+			
 			String swFragmentMinusDeletions = swDiffs[2].replaceAll("-", "");
 			
 			if (f.getSequence().equals(swFragmentMinusDeletions)) {
@@ -1437,19 +1461,27 @@ public class Q3ClinVar2 {
 					.forEach(f -> {
 						
 						String [] smithWatermanDiffs = f.getSmithWatermanDiffs();
-						List<Pair<Integer, String>> mutations = ClinVarUtil.getPositionRefAndAltFromSW(smithWatermanDiffs);
-						if ( ! mutations.isEmpty()) {
-							for (Pair<Integer, String> mutation : mutations) {
-								int position = mutation.getLeft().intValue();
-								String mutString = mutation.getRight();
-								int slashIndex = mutString.indexOf('/');
-								String ref = mutString.substring(0, slashIndex);
-								String alt = mutString.substring(slashIndex + 1);
-								if (ref.equals(alt)) {
-									logger.warn("ref is equal to alt: " + mutString);
-									logger.warn("f: " + Arrays.stream(f.getSmithWatermanDiffs()).collect(Collectors.joining("\n")));
+						
+						/*
+						 * Ignore fragments whose SW show many mutations
+						 */
+						int swScore = ClinVarUtil.getSmithWatermanScore(smithWatermanDiffs);
+						if (f.getLength() - swScore <= 10) {
+						
+							List<Pair<Integer, String>> mutations = ClinVarUtil.getPositionRefAndAltFromSW(smithWatermanDiffs);
+							if ( ! mutations.isEmpty()) {
+								for (Pair<Integer, String> mutation : mutations) {
+									int position = mutation.getLeft().intValue();
+									String mutString = mutation.getRight();
+									int slashIndex = mutString.indexOf('/');
+									String ref = mutString.substring(0, slashIndex);
+									String alt = mutString.substring(slashIndex + 1);
+									if (ref.equals(alt)) {
+										logger.warn("ref is equal to alt: " + mutString);
+										logger.warn("f: " + Arrays.stream(f.getSmithWatermanDiffs()).collect(Collectors.joining("\n")));
+									}
+									createMutation(f.getActualPosition(), position , ref, alt, entry.getKey().getId(), f.getId(), f.getRecordCount());
 								}
-								createMutation(f.getActualPosition(), position , ref, alt, entry.getKey().getId(), f.getId(), f.getRecordCount());
 							}
 						}
 					});
