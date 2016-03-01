@@ -268,37 +268,6 @@ public class IndelPileup {
 		return informativePool; 
 	}
 	
-//	private int getSoftCounts(List<SAMRecord> pool){ 
-//		int count = 0; 
-//		int windowStart = indelStart-nearbySoftClipWindow+1;
-//		int windowEnd = indelEnd+nearbySoftClipWindow-1;	
-//
-//		for( SAMRecord  record : pool ){						
-//			//check left hand clipping	
-//			if (record.getAlignmentStart() != record.getUnclippedStart()) {				
-//				int clipStartPosition = record.getAlignmentStart()-1;
-//				if (clipStartPosition >= windowStart && clipStartPosition <= windowEnd){  
-//					//debug
-//					System.out.println(windowStart + "~" + windowEnd + ", left soft: " + record.getSAMString());
-//					count ++;
-//				}
-//			}
-//			//check right hand clipping
-//			if (record.getAlignmentEnd() != record.getUnclippedEnd()) {
-//				int clipEndPosition = record.getAlignmentEnd()+1;			
-//				//clip start position is in the window to the left of the indel			
-//				if (clipEndPosition >= windowStart && clipEndPosition <= windowEnd){  
-//					//debug
-//					System.out.println(windowStart + "~" + windowEnd + ", right soft: " + record.getSAMString());
-//
-//					count ++;	
-//				}
-//			}
-//		}		
-//		return count;
-//	}
-	
-	
 	private int getSoftCounts(List<SAMRecord> pool){ 
 		int count = 0; 
 		int windowStart = indelStart-nearbySoftClipWindow+1;
@@ -318,10 +287,6 @@ public class IndelPileup {
 		}		
 		return count;
 	}	
-	
-	
-	
-	//refer to qsnp speed up the process
 
 	public ChrRangePosition getChrRangePosition() { return position; }
 	

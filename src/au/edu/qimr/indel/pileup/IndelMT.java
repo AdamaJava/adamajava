@@ -493,6 +493,7 @@ public class IndelMT {
 		header.addInfoLine(VcfHeaderUtils.INFO_SOMATIC, "1", "String", SOMATIC_DESCRIPTION);
 		header.addInfoLine(IndelUtils.INFO_NIOC, "1", "String", IndelUtils.DESCRITPION_INFO_NIOC);
 		header.addInfoLine(IndelUtils.INFO_HOMTXT, "1", "String", IndelUtils.DESCRITPION_INFO_HOMTXT); 
+		header.addFormatLine(VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS, "1","String", "Genotype details: specific alleles");
 		header.addFormatLine(IndelUtils.FORMAT_ACINDEL, "1", "String", IndelUtils.DESCRITPION_FORMAT_ACINDEL);
 
 		VcfHeaderUtils.addQPGLineToHeader(header, qexec.getToolName().getValue(), qexec.getToolVersion().getValue(), qexec.getCommandLine().getValue() 
