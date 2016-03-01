@@ -116,7 +116,8 @@ public class IndelMT {
 			 		if(exec != null )
 						passFilter = exec.Execute(re);
 					else
-						passFilter = !re.getReadUnmappedFlag() && (!re.getDuplicateReadFlag() || !options.excludeDuplicates());
+						passFilter = !re.getReadUnmappedFlag() && !re.getDuplicateReadFlag() ;
+//						passFilter = !re.getReadUnmappedFlag() && (!re.getDuplicateReadFlag() || !options.excludeDuplicates());
 			 		
 			 	 	if(! passFilter ) continue;
 			 			 		

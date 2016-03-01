@@ -60,7 +60,7 @@ public class Options {
 	private String analysisid; 
 	private int gematic_nns;
 	private float gematic_soi; 
-	private boolean exdup;
+//	private boolean exdup;
 				
 	private String filterQuery;
 
@@ -126,7 +126,7 @@ public class Options {
 		
 		gematic_nns = Integer.parseInt( iniFile.fetch(ini_secRule, "gematic.nns"));
 		gematic_soi = Float.parseFloat( iniFile.fetch(ini_secRule, "gematic.soi"));
-		exdup  = Boolean.parseBoolean( iniFile.fetch(ini_secRule, "exclude.Duplicates"));
+//		exdup  = Boolean.parseBoolean( iniFile.fetch(ini_secRule, "exclude.Duplicates"));
 				 		
   		detectBadOptions();	  		  		
 	}
@@ -152,9 +152,9 @@ public class Options {
 	public float getMinGematicSupportOfInformative(){return gematic_soi; }
 	
 
-	public boolean excludeDuplicates() {
-		return exdup;
-	}	
+//	public boolean excludeDuplicates() {
+//		return exdup;
+//	}	
 
 	public String getFilterQuery() {
 		return filterQuery;
