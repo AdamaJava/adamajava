@@ -90,9 +90,12 @@ public class QSVTest {
 	    		Assert.fail("Should have thrownan IllegalArgumentException");
 	    	} catch (IllegalArgumentException iae) {}
 	    	
-	    	assertEquals("ABC", QSV.getResultsDirectory("ABC",  null,  null));
-	    	assertEquals("ABC", QSV.getResultsDirectory("ABC",  "DEF",  null));
-	    	assertEquals("ABC", QSV.getResultsDirectory("ABC",  "DEF",  "XYZ"));
+	    	assertEquals("ABC/", QSV.getResultsDirectory("ABC",  null,  null));
+	    	assertEquals("ABC/", QSV.getResultsDirectory("ABC",  "DEF",  null));
+	    	assertEquals("ABC/", QSV.getResultsDirectory("ABC",  "DEF",  "XYZ"));
+	    	assertEquals("ABC/", QSV.getResultsDirectory("ABC/",  null,  null));
+	    	assertEquals("ABC/", QSV.getResultsDirectory("ABC/",  "DEF",  null));
+	    	assertEquals("ABC/", QSV.getResultsDirectory("ABC/",  "DEF",  "XYZ"));
 	    	assertEquals("DEF/XYZ/", QSV.getResultsDirectory(null,  "DEF",  "XYZ"));
 	    	
 	    	try {
