@@ -129,7 +129,7 @@ public class QSV {
 	public static String getResultsDirectory(String overrideOutput, String outputDir, String analysisId) {
 		
 		if ( ! StringUtils.isNullOrEmpty(overrideOutput)) {
-			return overrideOutput;
+			return overrideOutput.endsWith(FILE_SEPERATOR) ? overrideOutput : overrideOutput + FILE_SEPERATOR;
 		}
 		
 		if (null == outputDir || null == analysisId) {
