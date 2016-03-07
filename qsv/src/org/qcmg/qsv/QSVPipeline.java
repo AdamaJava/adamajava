@@ -333,7 +333,7 @@ public class QSVPipeline {
 		params.add("Log file name: " + options.getLog());
 		params.add("Output directory: " + options.getOutputDirName());
 		if (null != options.getOverrideOutput()) {
-			params.add("OverrideOutput directory: " + options.getOutputDirName());
+			params.add("OverrideOutput directory: " + options.getOverrideOutput());
 		} else {
 			params.add("Output directory: " + options.getOutputDirName());
 		}
