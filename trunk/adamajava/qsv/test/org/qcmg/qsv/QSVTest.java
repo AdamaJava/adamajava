@@ -130,21 +130,6 @@ public class QSVTest {
     		
     }
     
-//    @Test
-//    public void testQSVWithOverrideOutput() throws Exception {
-//    	  	setUpStreams();
-//	    	File iniFile = testFolder.newFile("ini");
-//	    	
-//	    	
-//	    	String[] args = {"-log", "qsv.log", "--loglevel", "DEBUG", "-ini",iniFile.getAbsolutePath() , "--overrideOutput", };
-//	    	QSV qsv = new QSV();
-//	    	
-//	    	int exitStatus = qsv.runQSV(args);
-//	    	assertEquals(1, exitStatus);
-//	    	assertTrue(testOut.toString().contains("org.qcmg.qsv.QSVException"));
-//	    	cleanUpStreams();
-//    }
-
     @Test
     public void testQSVWithNoArguments() throws Exception {
         setUpStreams();

@@ -4,7 +4,6 @@
 package org.qcmg.qsv;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Date;
 import java.util.UUID;
 
@@ -21,16 +20,11 @@ import org.qcmg.qsv.util.QSVUtil;
  */
 public class QSV {
 	
-	private static QLogger logger;	
-//	private static String version;	
-//	private String logFile;
-	private Options options;
-//	private Date analysisDate;
-	private String resultsDirectory;
-//	private String overrideOutput;
-//	private String analysisId;
 	private static final String FILE_SEPERATOR = System.getProperty("file.separator");
+	private static QLogger logger;
 	
+	private Options options;
+	private String resultsDirectory;
 
 	public static void main(String[] args) throws Exception {	
 
@@ -149,7 +143,6 @@ public class QSV {
 	 * @throws QSVException if the directory already exists
 	 */
 	public static void createResultsDirectory(String directoryToCreate) throws QSVException {
-//	    resultsDirectory = overrideOutput != null ? overrideOutput : options.getOutputDirName() + FILE_SEPERATOR + analysisId + FILE_SEPERATOR;
 	    File resultsDir = new File(directoryToCreate);
 	    	/*
 	    	 * No longer check to see if directory already exists
@@ -158,14 +151,6 @@ public class QSV {
 	     if ( ! resultsDir.exists()) {
 		    throw new QSVException("DIR_CREATE_ERROR", directoryToCreate);   
 	     }
-	    
-//	    if (resultsDir.exists()) {
-//	    	 throw new QSVException("DIR_CREATE_ERROR", resultsDir.toString()); 
-//	    }
-	    
-//		if ( ! resultsDir.mkdir()) {
-//		    throw new QSVException("DIR_CREATE_ERROR", resultsDir.toString());   
-//		}		
 	}
 
 	/**
