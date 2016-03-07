@@ -334,8 +334,6 @@ public class QSVPipeline {
 		params.add("Output directory: " + options.getOutputDirName());
 		if (null != options.getOverrideOutput()) {
 			params.add("OverrideOutput directory: " + options.getOverrideOutput());
-		} else {
-			params.add("Output directory: " + options.getOutputDirName());
 		}
 		params.add("Output file name: " + options.getSampleName());
 		params.add("Include split reads: " + options.isSplitRead());
