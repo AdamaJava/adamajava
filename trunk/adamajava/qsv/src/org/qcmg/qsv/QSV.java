@@ -6,10 +6,12 @@ package org.qcmg.qsv;
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
+import java.util.UUID;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.meta.QExec;
+import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.LoadReferencedClasses;
 import org.qcmg.qsv.util.QSVUtil;
 
@@ -20,12 +22,13 @@ import org.qcmg.qsv.util.QSVUtil;
 public class QSV {
 	
 	private static QLogger logger;	
-	private static String version;	
-	private String logFile;
+//	private static String version;	
+//	private String logFile;
 	private Options options;
-	private Date analysisDate;
+//	private Date analysisDate;
 	private String resultsDirectory;
-	private String analysisId;
+//	private String overrideOutput;
+//	private String analysisId;
 	private static final String FILE_SEPERATOR = System.getProperty("file.separator");
 	
 
@@ -62,21 +65,24 @@ public class QSV {
 				} else {
 					
 					options.parseIniFile();					
-					LoadReferencedClasses.loadClasses(QSV.class);					
+					LoadReferencedClasses.loadClasses(QSV.class);
 					
-					//use analysis id to see up results folder
-					analysisDate = new Date();
-					analysisId = QSVUtil.getAnalysisId(options.isQCMG(), options.getSampleName(), analysisDate);					
+					//use analysis id to set up results folder
+					Date analysisDate = new Date();
+					
+					String analysisId = getAnalysisId(options.isQCMG(), options.getOverrideOutput(), options.getSampleName(), analysisDate);
 					
 					String uuid = analysisId;
-					if (!options.isQCMG()) {
+					if ( ! options.isQCMG()) {
 						uuid = QExec.createUUid();
 					}
-					createResultsDirectory();
+					
+					resultsDirectory = getResultsDirectory(options.getOverrideOutput(),options.getOutputDirName(), analysisId);
+					createResultsDirectory(resultsDirectory);
 					
 					// configure logging				
-				    logFile = resultsDirectory + options.getLog();
-					version = QSV.class.getPackage().getImplementationVersion();
+				    String logFile = resultsDirectory + options.getLog();
+					String version = QSV.class.getPackage().getImplementationVersion();
 					logger = QLoggerFactory.getLogger(QSV.class, logFile, options.getLogLevel());
 					QExec exec = logger.logInitialExecutionStats("qsv", version, args, uuid);
 					
@@ -100,22 +106,66 @@ public class QSV {
 		return exitStatus;
 	}
 	
+	
+	
+	public static String getAnalysisId(boolean isQCMG, String overrideOutput, String sample, Date analysisDate) {
+		String analysisId = null;
+		if (isQCMG && null != overrideOutput ) {
+			/*
+			 * Assume that the overrideOutput directory is an analysis folder containing the uuid we want to use
+			 * If it isn't throw a wobbly
+			 */
+			String uuidFromFilename = new File(overrideOutput).getName();
+			try {
+				UUID.fromString(uuidFromFilename);
+			} catch (IllegalArgumentException iae) {
+				System.err.println("Could not get uuid from supplied overrideOutput option: " + overrideOutput);
+				throw iae;
+			}
+			
+			analysisId = uuidFromFilename;
+			
+		} else {
+			analysisId = QSVUtil.getAnalysisId(isQCMG, sample, analysisDate);
+		}
+		
+		return analysisId;
+	}
+	
+	public static String getResultsDirectory(String overrideOutput, String outputDir, String analysisId) {
+		
+		if ( ! StringUtils.isNullOrEmpty(overrideOutput)) {
+			return overrideOutput;
+		}
+		
+		if (null == outputDir || null == analysisId) {
+			throw new IllegalArgumentException("QSV.getResultsDirectory passed null values for some arguments!!!");
+		}
+		return outputDir + FILE_SEPERATOR + analysisId + FILE_SEPERATOR;
+	}
+	
 	/**
 	 * Create the results directory for qsv
 	 * @throws QSVException if the directory already exists
-	 * @throws IOException if the directory could not be created
 	 */
-	public void createResultsDirectory() throws QSVException, IOException {
-	    resultsDirectory = options.getOutputDirName() + FILE_SEPERATOR + analysisId + FILE_SEPERATOR;
-	    File resultsDir = new File(resultsDirectory);
+	public static void createResultsDirectory(String directoryToCreate) throws QSVException {
+//	    resultsDirectory = overrideOutput != null ? overrideOutput : options.getOutputDirName() + FILE_SEPERATOR + analysisId + FILE_SEPERATOR;
+	    File resultsDir = new File(directoryToCreate);
+	    	/*
+	    	 * No longer check to see if directory already exists
+	    	 */
+	    resultsDir.mkdir();
+	     if ( ! resultsDir.exists()) {
+		    throw new QSVException("DIR_CREATE_ERROR", directoryToCreate);   
+	     }
 	    
-	    if (resultsDir.exists()) {
-	    	 throw new QSVException("DIR_CREATE_ERROR", resultsDir.toString()); 
-	    }
+//	    if (resultsDir.exists()) {
+//	    	 throw new QSVException("DIR_CREATE_ERROR", resultsDir.toString()); 
+//	    }
 	    
-		if (!resultsDir.mkdir()) {
-		    throw new QSVException("DIR_CREATE_ERROR", resultsDir.toString());   
-		}		
+//		if ( ! resultsDir.mkdir()) {
+//		    throw new QSVException("DIR_CREATE_ERROR", resultsDir.toString());   
+//		}		
 	}
 
 	/**

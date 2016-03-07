@@ -81,9 +81,9 @@ public class QSVCluster {
 		return sampleId;
 	}
 
-	public void setSampleId(String sampleId) {
-		this.sampleId = sampleId;
-	}
+//	public void setSampleId(String sampleId) {
+//		this.sampleId = sampleId;
+//	}
 
 	public String getLeftReferenceFlank() {
 		return leftReferenceFlank;
@@ -1124,7 +1124,7 @@ public class QSVCluster {
 	 * @param sampleId
 	 * @param analysisDate
 	 */
-	public void setIdParameters(String svId, String analysisId, String sampleId, Date analysisDate) {
+	public void setIdParameters(String svId, String analysisId, String sampleId) {
 		this.svId = svId;		
 		this.analysisId = analysisId;
 		this.sampleId = sampleId;
