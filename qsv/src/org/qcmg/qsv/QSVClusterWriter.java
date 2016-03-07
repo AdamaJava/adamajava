@@ -4,6 +4,8 @@
 package org.qcmg.qsv;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -55,7 +57,7 @@ public class QSVClusterWriter {
 
 	}
 
-	private Map<String, List<GFF3Record>> parseGFFFiles() throws Exception {
+	private Map<String, List<GFF3Record>> parseGFFFiles() throws IOException {
 		Map<String, List<GFF3Record>> gffMap = new HashMap<String, List<GFF3Record>>();
 		for (String file: gffFiles) {
 
@@ -114,7 +116,6 @@ public class QSVClusterWriter {
 	 */
 	public synchronized void writeTumourSVRecords(List<QSVCluster> svRecords) throws Exception {
 		String base = tumorParameters.getResultsDir();
-		Date analysisDate = tumorParameters.getAnalysisDate();
 		String sampleId = tumorParameters.getSampleId();
 
 		List<QSVCluster> somaticRecords = new ArrayList<QSVCluster>();
@@ -155,7 +156,7 @@ public class QSVClusterWriter {
 
 
 					String svId = id;
-					record.setIdParameters(svId, analysisId, sampleId, analysisDate);
+					record.setIdParameters(svId, analysisId, sampleId);
 
 					if (record.isGermline()) {		    			
 						germlineRecords.add(record);
@@ -166,8 +167,8 @@ public class QSVClusterWriter {
 			}
 		}
 
-		writeReports(base, "somatic", somaticRecords, analysisDate, sampleId);
-		writeReports(base, "germline", germlineRecords, analysisDate, sampleId);
+		writeReports(base, "somatic", somaticRecords, sampleId);
+		writeReports(base, "germline", germlineRecords, sampleId);
 	}	
 
 	/**
@@ -178,7 +179,6 @@ public class QSVClusterWriter {
 	public synchronized void writeNormalSVRecords(List<QSVCluster> svRecords) throws Exception {
 		String type = "normal-germline";
 		String base = normalParameters.getResultsDir();
-		Date analysisDate = normalParameters.getAnalysisDate();
 		String sampleId = normalParameters.getSampleId();
 
 		if (this.isQCMG) {
@@ -188,12 +188,12 @@ public class QSVClusterWriter {
 					if (record.passesMinInsertSize(minInsertSize)) {
 
 						String svId = "stnmgv_" + normalGermlineCount.incrementAndGet();
-						record.setIdParameters(svId,analysisId, sampleId, analysisDate);
+						record.setIdParameters(svId,analysisId, sampleId);
 					}
 				}
 			}
 
-			writeReports(base, type, svRecords, analysisDate, sampleId);				
+			writeReports(base, type, svRecords, sampleId);				
 		}
 	}	
 
@@ -206,7 +206,7 @@ public class QSVClusterWriter {
 	 * @param sampleId
 	 * @throws Exception
 	 */
-	public synchronized void writeReports(String base, String type, List<QSVCluster> records, Date analysisDate, String sampleId) throws Exception {		
+	public synchronized void writeReports(String base, String type, List<QSVCluster> records, String sampleId) throws Exception {		
 		String outType = type + ".";
 		if (!twoFileMode) {
 			outType = "";

@@ -34,6 +34,8 @@ public class Options {
 	private static final String INI_OPTION = Messages.getMessage("INI_OPTION");
 	private static final String TEMPDIR_OPTION = Messages.getMessage("TEMPDIR_OPTION");
 	private final String RANGE_OPTION = Messages.getMessage("RANGE_OPTION");;
+	private final String OUTPUT_OPTION = Messages.getMessage("OUTPUT_OPTION");;
+	
 	private final OptionParser parser = new OptionParser();
 	private final OptionSet options;
 	private String log;
@@ -41,6 +43,7 @@ public class Options {
 	private String comparisonFile;
 	private String inputFile;		
 	private String outputDirName;
+	private String outputDirNameOverride;
 	private String sampleName;
 	private Integer filterSize;
 	private Integer clusterSize;
@@ -95,19 +98,31 @@ public class Options {
         parser.accepts("ini", INI_OPTION).withRequiredArg().ofType(String.class).describedAs("ini");
         parser.accepts("tmp", TEMPDIR_OPTION).withRequiredArg().ofType(String.class).describedAs("tmp");  
         parser.accepts("range", RANGE_OPTION).withOptionalArg().ofType(String.class).describedAs("range");    
+        parser.accepts("overrideOutput", OUTPUT_OPTION).withOptionalArg().ofType(String.class).describedAs("overrideOutput");
 		parser.acceptsAll(asList("h", "help"), HELP_OPTION);
 		parser.acceptsAll(asList("v", "V", "version"), VERSION_OPTION);		
 		options = parser.parse(args);	
 		//logging
 		
 		iniFile = (String) options.valueOf("ini");
-		tempDirName = (String) options.valueOf("tmp");	
+		tempDirName = (String) options.valueOf("tmp");
+		
+		/*
+		 *User can overwrite the output at command line - 
+		 */
+		if (options.has("overrideOutput")) {
+			outputDirNameOverride = (String) options.valueOf("overrideOutput");
+		}
 		
 		if (options.has("range")) {
-    		ranges = new ArrayList<String>();
-    		ranges.add((String) options.valueOf("range"));
-    		processRanges();
-    	}
+	    		ranges = new ArrayList<String>();
+	    		ranges.add((String) options.valueOf("range"));
+	    		processRanges();
+	    	}
+	}
+	
+	public String getOverrideOutput() {
+		return outputDirNameOverride;
 	}
 
 	/**
@@ -383,7 +398,7 @@ public class Options {
 		
 		if (null == inputFile) {
 			throw new QSVException("NULL_INPUT_FILE");				
-		} else if (!new File(inputFile).exists()) {
+		} else if ( ! new File(inputFile).exists()) {
 			throw new QSVException("NO_INPUT_FILE", inputFile);					
 		//check output file directory
 		} else if (null ==  outputDirName) {

@@ -72,8 +72,8 @@ public class TestUtil {
 		out.write("loglevel=DEBUG" + NEWLINE);
 		out.write("sample=test" + NEWLINE);
 		out.write("platform=solid" + NEWLINE);		
-		out.write("sv_analysis="+analysisMode+"" + NEWLINE);		
-		out.write("output="+outputDir+"" + NEWLINE);
+		out.write("sv_analysis="+analysisMode + NEWLINE);		
+		out.write("output="+outputDir + NEWLINE);
 		out.write("reference=" + reference.getAbsolutePath() + NEWLINE);
 		out.write("isize_records=all" + NEWLINE);
 		out.write("qcmg=true" + NEWLINE);
@@ -81,8 +81,8 @@ public class TestUtil {
 		out.write("[pair]" + NEWLINE);
 		out.write("pair_query=and(Cigar_M > 35,option_SM > 14,MD_mismatch < 3,Flag_DuplicateRead == false)" + NEWLINE);
 		out.write("pairing_type=lmp" + NEWLINE);
-		out.write("cluster_size="+clusterSize+"" + NEWLINE);
-		out.write("filter_size="+filterSize+"" + NEWLINE);
+		out.write("cluster_size="+clusterSize + NEWLINE);
+		out.write("filter_size="+filterSize + NEWLINE);
 		out.write("primer_size=3" + NEWLINE);
 		out.write("mapper=bioscope" + NEWLINE);
 		out.write("[clip]" + NEWLINE);
@@ -96,9 +96,9 @@ public class TestUtil {
 		out.write("["+ QSVConstants.DISEASE_SAMPLE +"]" + NEWLINE);
 		out.write("name=TD" + NEWLINE);
 		out.write("sample_id=ICGC-DBLG-20110506-01-TD" + NEWLINE);
-		out.write("input_file="+tumorBam+"" + NEWLINE);
+		out.write("input_file="+tumorBam + NEWLINE);
 		if (preprocessMode.equals("none")) {
-			out.write("discordantpair_file="+tumorBam+"" + NEWLINE);
+			out.write("discordantpair_file="+tumorBam + NEWLINE);
 		}
 		out.write("["+ QSVConstants.DISEASE_SAMPLE +"/size_1]" + NEWLINE);
     	out.write("rgid=20110221052813657" + NEWLINE);
@@ -113,9 +113,9 @@ public class TestUtil {
     	out.write("["+ QSVConstants.CONTROL_SAMPLE +"]" + NEWLINE);
     	out.write("name=ND" + NEWLINE);
     	out.write("sample_id=ICGC-DBLG-20110506-01-ND" + NEWLINE);
-		out.write("input_file="+normalBam+"" + NEWLINE);
+		out.write("input_file="+normalBam + NEWLINE);
 		if (preprocessMode.equals("none")) {
-			out.write("discordantpair_file="+normalBam+"" + NEWLINE);
+			out.write("discordantpair_file="+normalBam + NEWLINE);
 		}
     	out.write("["+ QSVConstants.CONTROL_SAMPLE +"/size_1]" + NEWLINE);
     	out.write("rgid=20110221052813657" + NEWLINE);

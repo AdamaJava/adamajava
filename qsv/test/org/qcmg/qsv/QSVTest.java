@@ -9,17 +9,21 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 import htsjdk.samtools.SAMFileHeader.SortOrder;
 
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.qsv.discordantpair.PairGroup;
+import org.qcmg.qsv.util.QSVUtil;
 import org.qcmg.qsv.util.TestUtil;
 
 public class QSVTest {
@@ -78,6 +82,68 @@ public class QSVTest {
         assertTrue(testOut.toString().contains("org.qcmg.qsv.QSVException"));
         cleanUpStreams();
     }
+    
+    @Test
+    public void getResultsDir() {
+	    	try {
+	    		QSV.getResultsDirectory(null,  null,  null);
+	    		Assert.fail("Should have thrownan IllegalArgumentException");
+	    	} catch (IllegalArgumentException iae) {}
+	    	
+	    	assertEquals("ABC", QSV.getResultsDirectory("ABC",  null,  null));
+	    	assertEquals("ABC", QSV.getResultsDirectory("ABC",  "DEF",  null));
+	    	assertEquals("ABC", QSV.getResultsDirectory("ABC",  "DEF",  "XYZ"));
+	    	assertEquals("DEF/XYZ/", QSV.getResultsDirectory(null,  "DEF",  "XYZ"));
+	    	
+	    	try {
+	    		QSV.getResultsDirectory(null,  "blah",  null);
+	    		Assert.fail("Should have thrownan IllegalArgumentException");
+	    	} catch (IllegalArgumentException iae) {}
+	    	try {
+	    		QSV.getResultsDirectory(null,  null, "blah");
+	    		Assert.fail("Should have thrownan IllegalArgumentException");
+	    	} catch (IllegalArgumentException iae) {}
+    }
+    
+    @Test
+    public void getUUIDFromOverrideOption() {
+    		Date now = new Date();
+    		String analysisId = QSV.getAnalysisId(false, null, "sample", now);
+    		assertEquals(QSVUtil.getAnalysisId(false, "sample", now), analysisId);
+    		
+    		
+    		analysisId = QSV.getAnalysisId(false, "non_null_override_option", "sample", now);
+    		assertEquals(QSVUtil.getAnalysisId(false, "sample", now), analysisId);
+    		
+    		analysisId = QSV.getAnalysisId(true, null, "sample", now);
+    		assertEquals(UUID.fromString(analysisId).toString(), analysisId);
+    		
+    		try {
+    			analysisId = QSV.getAnalysisId(true, "non_null_override_option", "sample", now);
+    			Assert.fail("Should have thrown an IAE");
+    		} catch (IllegalArgumentException aie){}
+    		
+    		UUID uuid = UUID.randomUUID();
+    		
+    		analysisId = QSV.getAnalysisId(true, uuid.toString(), "sample", now);
+    		assertEquals(uuid.toString(), analysisId);
+    		
+    }
+    
+//    @Test
+//    public void testQSVWithOverrideOutput() throws Exception {
+//    	  	setUpStreams();
+//	    	File iniFile = testFolder.newFile("ini");
+//	    	
+//	    	
+//	    	String[] args = {"-log", "qsv.log", "--loglevel", "DEBUG", "-ini",iniFile.getAbsolutePath() , "--overrideOutput", };
+//	    	QSV qsv = new QSV();
+//	    	
+//	    	int exitStatus = qsv.runQSV(args);
+//	    	assertEquals(1, exitStatus);
+//	    	assertTrue(testOut.toString().contains("org.qcmg.qsv.QSVException"));
+//	    	cleanUpStreams();
+//    }
 
     @Test
     public void testQSVWithNoArguments() throws Exception {
@@ -144,12 +210,12 @@ public class QSVTest {
         assertTrue(filesCreated2.contains("test.TD.pairing_stats.xml"));
         
         //make sure exception is thrown if results directory can be created. 
-        try {
-        testFolder.delete();
-        qsv.createResultsDirectory();
-        } catch (QSVException e) {
-            assertFalse(new File(qsv.getResultsDirectory()).exists());
-        }       
+//        try {
+//        testFolder.delete();
+//        qsv.createResultsDirectory();
+//        } catch (QSVException e) {
+//            assertFalse(new File(qsv.getResultsDirectory()).exists());
+//        }       
     }
 
 }
