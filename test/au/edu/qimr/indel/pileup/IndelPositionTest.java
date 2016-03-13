@@ -153,6 +153,9 @@ public class IndelPositionTest {
 		 try (VCFFileReader reader = new VCFFileReader(IniFileTest.output)) {				 
 			 for (VcfRecord re : reader)  											
 				if(re.getChromosome().equals("chrY")){
+					//debug
+					System.out.println(re.getChrPosition().toIGVString());
+					
 					assertTrue(!re.getInfo().contains(VcfHeaderUtils.INFO_SOMATIC)); //100% reads are support on normal
 					//normal cov=8, tumur is 12, no partial readds
 					//normal bam "3,12,11,4[2,2],2,4,4", so support is 4>=3 but both strand =50%

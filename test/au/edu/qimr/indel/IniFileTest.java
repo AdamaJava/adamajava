@@ -94,10 +94,17 @@ public class IniFileTest {
         List<String> data = new ArrayList<String>();
         data.add("[IOs]");
         data.add( "ref=");
-        data.add("testBam=" + testbam.getAbsolutePath());
-        data.add("controlBam="  + controlbam.getAbsolutePath());
-        data.add("testVcf="  + testvcf.getAbsolutePath());
-        data.add("controlVcf="  + controlvcf.getAbsolutePath());
+//        data.add("testBam=" + testbam.getAbsolutePath());
+//        data.add("controlBam="  + controlbam.getAbsolutePath());
+//        data.add("testVcf="  + testvcf.getAbsolutePath());
+//        data.add("controlVcf="  + testvcf.getAbsolutePath());
+        
+        data.add("testBam=" + (testbam == null? "":testbam.getAbsolutePath()));
+        data.add("controlBam="  + (controlbam == null? "":controlbam.getAbsolutePath()));
+        data.add("testVcf="  + (testvcf == null? "":testvcf.getAbsolutePath()));
+        data.add("controlVcf="  + (controlvcf == null? "":controlvcf.getAbsolutePath()));
+         
+        
         data.add("output=" + output );
         data.add("");
         data.add("[ids]");

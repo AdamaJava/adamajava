@@ -309,15 +309,11 @@ public class IndelMT {
 		this.indelload = new ReadIndels(logger);		
 		if(options.getRunMode().equalsIgnoreCase("gatk")){	
 			//first load control
-			if(options.getControlInputVcf() != null){
+			if(options.getControlInputVcf() != null)
 				indelload.LoadIndels(options.getControlInputVcf());		
-				//then test second column
-				if(options.getTestInputVcf() != null)
-					indelload.appendIndels(options.getTestInputVcf());			
-			}else
-				//load test to first column
-				indelload.LoadIndels(options.getTestInputVcf());	
-			
+			//then test second column
+			if(options.getTestInputVcf() != null)
+				indelload.appendIndels(options.getTestInputVcf());						
 		}else if(options.getRunMode().equalsIgnoreCase("pindel")){	
 			for(int i = 0; i < options.getInputVcfs().size(); i ++)
 				indelload.LoadIndels(options.getInputVcfs().get(i));		
@@ -453,8 +449,10 @@ public class IndelMT {
 		
 //		List<File> inputs = new ArrayList<File>();
 		if(options.getRunMode().equalsIgnoreCase("gatk")){
-			header.parseHeaderLine(VcfHeaderUtils.STANDARD_INPUT_LINE + "_GATK_TEST=" + options.getTestInputVcf().getAbsolutePath());
-			header.parseHeaderLine(VcfHeaderUtils.STANDARD_INPUT_LINE + "_GATK_CONTROL=" + options.getControlInputVcf().getAbsolutePath());
+			header.parseHeaderLine(VcfHeaderUtils.STANDARD_INPUT_LINE + "_GATK_TEST=" + 
+					(options.getTestInputVcf() == null? null : options.getTestInputVcf().getAbsolutePath()));
+			header.parseHeaderLine(VcfHeaderUtils.STANDARD_INPUT_LINE + "_GATK_CONTROL=" + 
+					(options.getControlInputVcf() == null? null : options.getControlInputVcf().getAbsolutePath()));
  		}else
 	 		for(int i = 0; i < options.getInputVcfs().size(); i ++)
 	 			header.parseHeaderLine(VcfHeaderUtils.STANDARD_INPUT_LINE + "=" + options.getInputVcfs().get(i).getAbsolutePath());
