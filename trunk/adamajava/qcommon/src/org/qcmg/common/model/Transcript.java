@@ -103,9 +103,10 @@ public class Transcript implements Comparable<Transcript> {
 
 	@Override
 	public String toString() {
-		return "Transcript [id=" + id + ", type=" + type + ", exons=" + exons
-				+ ", cdss=" + cdss + ", contig=" + contig + ", start=" + start
-				+ ", end=" + end + "]";
+		return "Transcript [id=" + id + ", type=" + type + ", gene=" + gene
+				+ ", exons=" + exons + ", cdss=" + cdss + ", contig=" + contig
+				+ ", start=" + start + ", end=" + end + "]";
 	}
+
 	
 }
