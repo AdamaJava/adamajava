@@ -8,13 +8,18 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 import org.qcmg.common.commandline.BlockingExecutor;
+import org.qcmg.common.log.QLogger;
+import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.qsv.QSVException;
 import org.qcmg.qsv.QSVParameters;
@@ -27,6 +32,7 @@ import org.qcmg.tab.TabbedRecord;
  *
  */
 public class BLAT {
+	private static final QLogger logger = QLoggerFactory.getLogger(BLAT.class);
 	
 	private final ArrayList<String> commands;
 	private String cmdString = null;
@@ -112,6 +118,12 @@ public class BLAT {
 			BlockingExecutor blex = new BlockingExecutor(sb.toString());
 			
 			if (blex.isFailure()) {
+				
+				logger.error("Error calling BLAT with command: " + sb.toString());
+				logger.error("Contents of " + fastaFile + ": ");
+				Files.lines(Paths.get(fastaFile))
+					.forEach(line -> logger.error(line));
+				
 				String message = "Failed blat execution: "
 						+ blex.getErrorStreamConsumer().toString();
 				
