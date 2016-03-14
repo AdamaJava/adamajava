@@ -734,6 +734,7 @@ public class FindClipClustersMT  {
 			
 			if ( ! breakpoints.isEmpty()) {
 				String base = softClipDir + QSVParameters.FILE_SEPERATOR + tumourParameters.getFindType() + "_breakpoint." + chromosome.getName();
+				base = base.replace(" ","");
 				String fastaFile = base + ".fa";
 				
 				File fasta = new File(fastaFile);
