@@ -401,11 +401,15 @@ public class Options {
 		} else if ( ! new File(inputFile).exists()) {
 			throw new QSVException("NO_INPUT_FILE", inputFile);					
 		//check output file directory
-		} else if (null ==  outputDirName) {
-			throw new QSVException("NULL_OUTPUT_DIR");
-		} else if (!directoryExists(outputDirName)) {
-			throw new QSVException("NO_OUTPUT_DIR", outputDirName);
-		//check output file directory
+		}
+		
+		if (null == outputDirNameOverride) {
+			if (null ==  outputDirName) {  
+				throw new QSVException("NULL_OUTPUT_DIR");
+			} else if (!directoryExists(outputDirName)) {
+				throw new QSVException("NO_OUTPUT_DIR", outputDirName);
+			//check output file directory
+			}
 		}
 		
 		if (null ==  tempDirName) {
