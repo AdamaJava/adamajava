@@ -43,10 +43,16 @@ public class TestUtil {
 	public static String[] getValidOptions(final TemporaryFolder testFolder,
             final String normalBam, final String tumorBam, final String preprocessMode,
             final String analysisMode) throws IOException {
-			String iniFile = setUpIniFile(testFolder, preprocessMode, analysisMode, normalBam, tumorBam, 3, 1, testFolder.getRoot().toString(), testFolder.getRoot().toString());
-			
-            return new String[] {"--ini", iniFile, "--tmp",  testFolder.getRoot().toString()};
+		
+		return getValidOptions(testFolder,normalBam,tumorBam, preprocessMode,analysisMode, true);
     }
+	public static String[] getValidOptions(final TemporaryFolder testFolder,
+			final String normalBam, final String tumorBam, final String preprocessMode,
+			final String analysisMode, boolean goodOutput) throws IOException {
+		String iniFile = setUpIniFile(testFolder, preprocessMode, analysisMode, normalBam, tumorBam, 3, 1, testFolder.getRoot().toString(), testFolder.getRoot().toString(), goodOutput);
+		
+		return new String[] {"--ini", iniFile, "--tmp",  testFolder.getRoot().toString()};
+	}
 
 	public static String[] getInvalidOptions(final TemporaryFolder testFolder,
             final String normalBam, final String tumorBam,
@@ -58,7 +64,12 @@ public class TestUtil {
     }
 	
 	private static String setUpIniFile(final TemporaryFolder testFolder, String preprocessMode,
-            final String analysisMode, String normalBam, String tumorBam, Integer clusterSize, Integer filterSize, String tmpDir, String outputDir) throws IOException {
+            final String analysisMode, String normalBam, String tumorBam, int clusterSize, int filterSize, String tmpDir, String outputDir) throws IOException {
+		return setUpIniFile(testFolder,  preprocessMode, analysisMode,  normalBam,  tumorBam,  clusterSize,  filterSize,  tmpDir,  outputDir, true);
+	}
+	
+	private static String setUpIniFile(final TemporaryFolder testFolder, String preprocessMode,
+            final String analysisMode, String normalBam, String tumorBam, int clusterSize, int filterSize, String tmpDir, String outputDir, boolean goodOutput) throws IOException {
 		
 		File iniFile = testFolder.newFile("test.ini");
 		File reference = testFolder.newFile("reference_file");
@@ -72,8 +83,12 @@ public class TestUtil {
 		out.write("loglevel=DEBUG" + NEWLINE);
 		out.write("sample=test" + NEWLINE);
 		out.write("platform=solid" + NEWLINE);		
-		out.write("sv_analysis="+analysisMode + NEWLINE);		
-		out.write("output="+outputDir + NEWLINE);
+		out.write("sv_analysis="+analysisMode + NEWLINE);
+		if (goodOutput) {
+			out.write("output="+outputDir + NEWLINE);
+		} else {
+			
+		}
 		out.write("reference=" + reference.getAbsolutePath() + NEWLINE);
 		out.write("isize_records=all" + NEWLINE);
 		out.write("qcmg=true" + NEWLINE);
