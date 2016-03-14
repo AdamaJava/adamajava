@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 
 import junit.framework.Assert;
 
@@ -181,7 +182,7 @@ public class OptionsTest {
     	 Options options = new Options(TestUtil.getInvalidOptions(testFolder, file1, "acd", "both", 5, 0, testFolder.getRoot().toString(), "acd"));
          options.parseIniFile();
          Assert.assertEquals("acd", options.getInputFile());
-         options.detectBadOptions();
+//         options.detectBadOptions();
     }
     
     @Test(expected = QSVException.class)
@@ -189,7 +190,7 @@ public class OptionsTest {
     	 Options options = new Options(TestUtil.getInvalidOptions(testFolder, "acd", file2, "both", 5, 0, testFolder.getRoot().toString(), "acd"));
          options.parseIniFile();
          Assert.assertEquals("acd", options.getComparisonFile());
-         options.detectBadOptions();
+//         options.detectBadOptions();
     }
 
     @Test(expected = QSVException.class)
@@ -197,7 +198,7 @@ public class OptionsTest {
     	 Options options = new Options(TestUtil.getInvalidOptions(testFolder, file1, file2, "both", 5, 0, testFolder.getRoot().toString(), "acd"));
          options.parseIniFile();
          Assert.assertEquals("acd", options.getOutputDirName());
-         options.detectBadOptions();
+//         options.detectBadOptions();
     }
     
     @Test(expected = QSVException.class)
@@ -205,7 +206,7 @@ public class OptionsTest {
     	Options options = new Options(TestUtil.getInvalidOptions(testFolder, file1, file2, "both", 5, 0, testFolder.getRoot().toString(), testFolder.getRoot().toString()));
     	options.parseIniFile();
         Assert.assertEquals(null, options.getClusterSize());
-        options.detectBadOptions();
+//        options.detectBadOptions();
     }
     
     @Test(expected = QSVException.class)
@@ -213,7 +214,7 @@ public class OptionsTest {
     	Options options = new Options(TestUtil.getInvalidOptions(testFolder, file1, file2, "both", 0, 2,testFolder.getRoot().toString(), testFolder.getRoot().toString()));
     	options.parseIniFile();
         Assert.assertEquals(null, options.getClusterSize());
-        options.detectBadOptions();
+//        options.detectBadOptions();
     }
 
     @Test(expected = QSVException.class)
@@ -221,16 +222,36 @@ public class OptionsTest {
         Options options = new Options(TestUtil.getInvalidOptions(testFolder, file1, file2, "both", 5, 0, testFolder.getRoot().toString(), testFolder.getRoot().toString()));
         options.parseIniFile();
         Assert.assertEquals(Integer.valueOf(0), options.getFilterSize());
-        options.detectBadOptions();
+//        options.detectBadOptions();
     }
 
     @Test(expected = QSVException.class)
     public void testBadOptionsNoFilterSize() throws Exception {
-    	Options options = new Options(TestUtil.getInvalidOptions(testFolder, file1, file2, "both", 5, 0, testFolder.getRoot().toString(), testFolder.getRoot().toString()));
-    	options.parseIniFile();
+    		Options options = new Options(TestUtil.getInvalidOptions(testFolder, file1, file2, "both", 5, 0, testFolder.getRoot().toString(), testFolder.getRoot().toString()));
+    		options.parseIniFile();
         Assert.assertEquals(null, options.getFilterSize());
-        options.detectBadOptions();
-    }    
+//        options.detectBadOptions();
+    }
+    
+    @Test
+    public void outputOverride() throws IOException, QSVException {
+    	 	String[] args = TestUtil.getValidOptions(testFolder, file1, file2, "both", "both", false);
+    	 	Options options = new Options(args);
+    	 	try {
+    	 		options.parseIniFile();
+    	 		Assert.fail("Should have thrown an Exception");
+    	 	} catch (QSVException qsve) {}
+    	 	
+    	 	// add in the override option
+    	 	
+    	 	String [] newArgs = Arrays.copyOf(args, args.length + 2);
+    	 	newArgs[newArgs.length - 2] = "--overrideOutput";
+    	 	newArgs[newArgs.length - 1] = testFolder.newFile().getAbsolutePath();
+    	 	
+    	 	options = new Options(newArgs);
+    	 	options.parseIniFile();
+    	 	
+    }
 
     @Test
     public void testDirectoryExists() throws QSVException, IOException {
