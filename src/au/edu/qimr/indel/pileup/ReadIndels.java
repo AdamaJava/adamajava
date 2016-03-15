@@ -96,8 +96,8 @@ public class ReadIndels {
 //        	System.out.println("debug(info column why missing after appendIndel): "+positionRecordMap.get(vv).toString());
                
         
-		logger.info(String.format("Find %d indels from %d variants within file: %s", inVariants, inLines, f));
-		logger.info("the number of reads contains multi Aleles from second file is " + multiAltNo);
+		logger.info(String.format("Find %d variants from %d input records within file: %s", inVariants, inLines, f));
+		logger.info("the number of record contains multi Aleles from second file is " + multiAltNo);
 		logger.info(indelnewCount + " indel variants are only appeared in second vcf! ");
 		logger.info(overlapCount + " indel variants are appeared in both input vcf! ");			
 		logger.info(positionRecordMap.size() + " indel variants position are selected into output! ");        
