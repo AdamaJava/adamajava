@@ -55,17 +55,14 @@ public final class Options {
 		parser.acceptsAll(asList("q", "query"), QUERY_OPTION_DESCRIPTION)
 				.withRequiredArg().ofType(String.class).describedAs("expression");
 		parser.acceptsAll(asList("n"), NUMBER_THREADS_DESCRIPTION)
-				.withRequiredArg().ofType(Integer.class).describedAs(
-						"number of worker threads");
+				.withRequiredArg().ofType(Integer.class).describedAs("number of worker threads");
 		parser.acceptsAll(asList("v", "V", "version"), VERSION_DESCRIPTION);
-		parser.accepts("log", LOG_OPTION_DESCRIPTION).withRequiredArg().ofType(
-				String.class);
+		parser.accepts("log", LOG_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("loglevel", LOG_LEVEL_OPTION_DESCRIPTION)
 				.withRequiredArg().ofType(String.class);
 		parser.accepts("validation", VALIDATION_STRINGENCY_OPTION_DESCRIPTION)
 				.withRequiredArg().ofType(String.class); 
-		parser.accepts("ini", LOG_OPTION_DESCRIPTION).withRequiredArg().ofType(
-				String.class);
+		parser.accepts("ini", LOG_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
 		options = parser.parse(args);
 
 		List inputBAMFileNamesList = options.valuesOf("bam");

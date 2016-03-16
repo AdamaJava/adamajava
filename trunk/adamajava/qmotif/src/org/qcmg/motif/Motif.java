@@ -91,9 +91,10 @@ public final class Motif {
 		Element stage1E = doc.createElement("stage1_motif");
 		
 		if (mm.stageOneString()) {
-			for (String s : mAndR.getStageOneMotifs().motifs) {
+			for (String s : mAndR.getStageOneMotifs().getMotifs()) {
 				Element e = doc.createElement("string");
 				e.setAttribute("value", s);
+				e.setAttribute("rev_comp", Boolean.toString(mAndR.getStageOneMotifs().getRevComp()));
 				stage1E.appendChild(e);
 			}
 		} else {
@@ -107,9 +108,10 @@ public final class Motif {
 		
 		
 		if (mm.stageTwoString()) {
-			for (String s : mAndR.getStageTwoMotifs().motifs) {
+			for (String s : mAndR.getStageTwoMotifs().getMotifs()) {
 				Element e = doc.createElement("string");
 				e.setAttribute("value", s);
+				e.setAttribute("rev_comp", Boolean.toString(mAndR.getStageTwoMotifs().getRevComp()));
 				stage2E.appendChild(e);
 			}
 		} else {
@@ -119,20 +121,12 @@ public final class Motif {
 			stage2E.appendChild(e);
 		}
 		
-		Element revCompE = doc.createElement("rev_comp");
-		if (mm.stageOneString() || mm.stageTwoString()) {
-			boolean revComp = mm.stageOneString()  ? mAndR.getStageOneMotifs().revComp : mAndR.getStageTwoMotifs().revComp;
-			revCompE.setAttribute("value", Boolean.toString(revComp));
-		}
 		Element windowSizeE = doc.createElement("window_size");
 		windowSizeE.setAttribute("value", mAndR.getWindowSize() + "");
 		
 		// add to ini element
 		iniE.appendChild(stage1E);
 		iniE.appendChild(stage2E);
-		if (mm.stageOneString() || mm.stageTwoString()) {
-			iniE.appendChild(revCompE);
-		}
 		iniE.appendChild(windowSizeE);
 		
 		// need includes and excludes
