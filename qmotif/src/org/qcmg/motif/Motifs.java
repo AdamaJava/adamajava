@@ -16,10 +16,11 @@ import org.qcmg.common.string.StringUtils;
 
 public class Motifs {
 	
-	static QLogger logger = QLoggerFactory.getLogger(Motifs.class);
-	List<String> motifs;
-	int motifSize;
-	boolean revComp;
+	private final static QLogger logger = QLoggerFactory.getLogger(Motifs.class);
+	
+	private List<String> motifs;
+	private int motifSize;
+	private final boolean revComp;
 	
 	public Motifs(boolean revComp, String ...motifStrings) {
 		if (null == motifStrings) throw new IllegalArgumentException("Null string array passed to Motifs constructor");
@@ -54,6 +55,9 @@ public class Motifs {
 	}
 	public int getMotifsSize() {
 		return motifSize;
+	}
+	public boolean getRevComp() {
+		return revComp;
 	}
 
 }

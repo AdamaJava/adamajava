@@ -1,6 +1,6 @@
 package org.qcmg.motif;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -97,6 +97,35 @@ public class MotifTest {
 		
 		// ok lets delve into the xml
 		Document doc = createDocumentFromFile(outputXmlFile);
+		
+		NodeList iniNL = doc.getElementsByTagName("ini");
+		
+		for (int i = 0 ; i < iniNL.getLength() ; i++) {
+			Element e = (Element) iniNL.item(i);
+			Node s1m = e.getElementsByTagName("stage1_motif").item(0);
+			Node s2m = e.getElementsByTagName("stage2_motif").item(0);
+			
+			NodeList s1mNL = s1m.getChildNodes();
+			NodeList s2mNL = s2m.getChildNodes();
+			
+			for (int j = 0 ; j < s1mNL.getLength() ; j++) {
+				Node child =  s1mNL.item(j);
+				if (child.getNodeName().equals("string")) {
+					NamedNodeMap attributes = child.getAttributes();
+					assertEquals(2, attributes.getLength());
+					assertEquals("true", attributes.getNamedItem("rev_comp").getNodeValue());
+				}
+			}
+			for (int j = 0 ; j < s2mNL.getLength() ; j++) {
+				Node child =  s2mNL.item(j);
+				if (child.getNodeName().equals("string")) {
+					NamedNodeMap attributes = child.getAttributes();
+					assertEquals(2, attributes.getLength());
+					assertEquals("false", attributes.getNamedItem("rev_comp").getNodeValue());
+				}
+			}
+		}
+		
 		NodeList nl = doc.getElementsByTagName("region");
 		
 		int count = 0;
