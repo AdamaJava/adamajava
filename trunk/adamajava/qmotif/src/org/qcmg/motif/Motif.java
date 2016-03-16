@@ -94,7 +94,6 @@ public final class Motif {
 			for (String s : mAndR.getStageOneMotifs().getMotifs()) {
 				Element e = doc.createElement("string");
 				e.setAttribute("value", s);
-				e.setAttribute("rev_comp", Boolean.toString(mAndR.getStageOneMotifs().getRevComp()));
 				stage1E.appendChild(e);
 			}
 		} else {
@@ -111,7 +110,6 @@ public final class Motif {
 			for (String s : mAndR.getStageTwoMotifs().getMotifs()) {
 				Element e = doc.createElement("string");
 				e.setAttribute("value", s);
-				e.setAttribute("rev_comp", Boolean.toString(mAndR.getStageTwoMotifs().getRevComp()));
 				stage2E.appendChild(e);
 			}
 		} else {

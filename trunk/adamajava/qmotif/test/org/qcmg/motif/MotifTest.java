@@ -107,23 +107,23 @@ public class MotifTest {
 			
 			NodeList s1mNL = s1m.getChildNodes();
 			NodeList s2mNL = s2m.getChildNodes();
-			
+			int stringCounter = 0;
 			for (int j = 0 ; j < s1mNL.getLength() ; j++) {
 				Node child =  s1mNL.item(j);
 				if (child.getNodeName().equals("string")) {
-					NamedNodeMap attributes = child.getAttributes();
-					assertEquals(2, attributes.getLength());
-					assertEquals("true", attributes.getNamedItem("rev_comp").getNodeValue());
+					stringCounter++;
 				}
 			}
+			assertEquals(2, stringCounter);
+			
+			int regexCounter = 0;
 			for (int j = 0 ; j < s2mNL.getLength() ; j++) {
 				Node child =  s2mNL.item(j);
-				if (child.getNodeName().equals("string")) {
-					NamedNodeMap attributes = child.getAttributes();
-					assertEquals(2, attributes.getLength());
-					assertEquals("false", attributes.getNamedItem("rev_comp").getNodeValue());
+				if (child.getNodeName().equals("regex")) {
+					regexCounter++;
 				}
 			}
+			assertEquals(1, regexCounter);
 		}
 		
 		NodeList nl = doc.getElementsByTagName("region");
