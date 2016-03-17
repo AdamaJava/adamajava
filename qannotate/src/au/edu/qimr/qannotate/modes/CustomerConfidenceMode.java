@@ -15,6 +15,7 @@ import org.qcmg.common.vcf.header.VcfHeaderUtils;
 
 import au.edu.qimr.qannotate.modes.ConfidenceMode.Confidence;
 import au.edu.qimr.qannotate.options.CustomerConfidenceOptions;
+import au.edu.qimr.qannotate.utils.SampleColumn;
 
 /**
  * @author christix
@@ -55,7 +56,7 @@ public final class CustomerConfidenceMode extends AbstractMode{
 		inputRecord(new File( options.getInputFileName())   );	
 		
 		//get control and test sample column; here use the header from inputRecord(...)
-		SampleColumn column = new SampleColumn(options.getTestSample(), options.getControlSample(), this.header );
+		SampleColumn column = SampleColumn.getSampleColumn(options.getTestSample(), options.getControlSample(), this.header );
 		test_column = column.getTestSampleColumn();
 		control_column = column.getControlSampleColumn();
 		

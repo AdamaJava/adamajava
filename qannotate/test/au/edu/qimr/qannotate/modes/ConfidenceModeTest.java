@@ -22,8 +22,8 @@ import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 
-import au.edu.qimr.qannotate.modes.AbstractMode.SampleColumn;
 import au.edu.qimr.qannotate.modes.ConfidenceMode.Confidence;
+import au.edu.qimr.qannotate.utils.SampleColumn;
 
 public class ConfidenceModeTest {
 	
@@ -122,7 +122,7 @@ public class ConfidenceModeTest {
 		mode.header.parseHeaderLine("##qTestSample="+ Stest);	
 		mode.header.parseHeaderLine("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tEXTERN-MELA-20140505-001\tEXTERN-MELA-20140505-002");			
 		
-		SampleColumn column = mode.new SampleColumn(Stest, Scontrol, mode.header);
+		SampleColumn column = SampleColumn.getSampleColumn(Stest, Scontrol, mode.header);
 		mode.setSampleColumn(column.getTestSampleColumn(), column.getControlSampleColumn() );
 		
 		mode.addAnnotation();
@@ -163,7 +163,7 @@ public class ConfidenceModeTest {
 		mode.header.parseHeaderLine("##qTestSample="+ Stest);	
 		mode.header.parseHeaderLine("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tqControlSample\tqTestSample");			
 		
-		SampleColumn column = mode.new SampleColumn(Stest, Scontrol, mode.header);
+		SampleColumn column = SampleColumn.getSampleColumn(Stest, Scontrol, mode.header);
 		mode.setSampleColumn(column.getTestSampleColumn(), column.getControlSampleColumn() );
 		
 		mode.addAnnotation();

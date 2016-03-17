@@ -163,6 +163,7 @@ public class Vcf2mafTest {
 	 		assertTrue(maf.getColumnValue(13).equals("C" ));	 		
 	 		assertTrue(maf.getColumnValue(14).equals(SnpEffMafRecord.novel ));	//dbsnp		
 	 		assertTrue(maf.getColumnValue(15).equals("VLD" ));	//dbSNP validation
+	 			 		
 	 		assertTrue(maf.getColumnValue(16).equals(SnpEffMafRecord.Unknown ));	//tumour sample	
 	 		assertTrue(maf.getColumnValue(17).equals(SnpEffMafRecord.Unknown ));	//normal sample
 	 		

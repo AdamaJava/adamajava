@@ -27,6 +27,7 @@ import org.qcmg.vcf.VCFFileReader;
 import au.edu.qimr.qannotate.Main;
 import au.edu.qimr.qannotate.modes.ConfidenceMode.Confidence;
 import au.edu.qimr.qannotate.options.Vcf2mafOptions;
+import au.edu.qimr.qannotate.utils.SampleColumn;
 import au.edu.qimr.qannotate.utils.SnpEffConsequence;
 import au.edu.qimr.qannotate.utils.SnpEffMafRecord;
 
@@ -42,8 +43,13 @@ public class Vcf2maf extends AbstractMode{
 	private final String dornorId ;	 
 	private final String testSample ;
 	private final String controlSample ;
+	private final String testBamId ;
+	private final String controlBamId ;
+	
+	
 	private final int test_column;
 	private final int control_column;
+	
 
 	// org.qcmg.common.dcc.DccConsequence.getWorstCaseConsequence(MutationType, String...)
 	//for unit test
@@ -56,6 +62,8 @@ public class Vcf2maf extends AbstractMode{
 		this.control_column = control_column;
 		this.testSample = test;
 		this.controlSample = control;		
+		this.testBamId = null; 
+		this.controlBamId = null; 
 	}
  
 	//EFF= Effect ( Effect_Impact | Functional_Class | Codon_Change | Amino_Acid_Change| Amino_Acid_Length | Gene_Name | Transcript_BioType | Gene_Coding | Transcript_ID | Exon_Rank  | Genotype_Number [ | ERRORS | WARNINGS ] )	
@@ -67,12 +75,14 @@ public class Vcf2maf extends AbstractMode{
 		//make output file name		 
 		try(VCFFileReader reader = new VCFFileReader(new File( option.getInputFileName()))){
 			//get control and test sample column			
-			SampleColumn column = new SampleColumn(option.getTestSample(), option.getControlSample() , reader.getHeader());
-			test_column = column.getTestSampleColumn();
-			control_column = column.getControlSampleColumn();
-			testSample = column.getTestSample();
-			controlSample = column.getControlSample();	
-			
+			SampleColumn column = SampleColumn.getSampleColumn(option.getTestSample(), option.getControlSample() , reader.getHeader());
+			this.test_column = column.getTestSampleColumn();
+			this.control_column = column.getControlSampleColumn();
+			this.testSample = column.getTestSample();
+			this.controlSample = column.getControlSample();	
+			this.testBamId = getBamid(VcfHeaderUtils.STANDARD_TEST_BAMID , reader.getHeader());
+			this.controlBamId = getBamid(VcfHeaderUtils.STANDARD_CONTROL_BAMID, reader.getHeader());
+										
 			//get donor id
 			String  id = option.getDonorId() ;			
 			if(  id == null) 
@@ -270,8 +280,8 @@ public class Vcf2maf extends AbstractMode{
 		else
 			maf.setColumnValue(26,  VcfHeaderUtils.INFO_GERMLINE);
 				
-//		if(testSample != null) maf.setColumnValue(16,   testSample );
-//		if(controlSample != null) maf.setColumnValue(17,  controlSample );	
+		if(testBamId != null) maf.setColumnValue(16, testBamId );
+ 		if(controlBamId != null) maf.setColumnValue(17, controlBamId);	
 		
 		if(testSample != null) maf.setColumnValue(33,   testSample );
 		if(controlSample != null) maf.setColumnValue(34,  controlSample );	
@@ -413,73 +423,14 @@ public class Vcf2maf extends AbstractMode{
 		 		 	     
 		  return values;
 	 }
-	 	 
-	//should unti test to check it
-//	private String[] getAlleles(VcfFormatFieldRecord format) throws Exception {
-//		
-//		String[] alleles = null; // = {Constants.NULL_STRING, Constants.NULL_STRING}; 
-// 
-//		if(format == null) return null;
-//		
-//		final String allel =  format.getField(VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS);		
-//		 
-//		if(allel != null && !allel.equals(Constants.MISSING_DATA_STRING)){	    	
-//			if(allel.contains(Constants.BAR_STRING)) 
-//				alleles = allel.split(Constants.BAR_STRING);
-//			else if(allel.contains(Constants.SLASH_STRING)) 
-//				alleles = allel.split(Constants.SLASH_STRING);
-//			 
-//			if(alleles == null || alleles.length <= 0) return null; //new String[] {Constants.NULL_STRING, Constants.NULL_STRING};  
-//			else if(alleles.length == 1) return new String[] {alleles[0], Constants.NULL_STRING};
-//			else return new String[] {alleles[0], alleles[1]};
-//		}else{
-//			//compound SNP
-//			String accs =  format.getField(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP);	
-//			if(  !StringUtils.isNullOrEmpty( accs) && ! accs.equals(Constants.MISSING_DATA_STRING)){
-//				 alleles = accs.split(Constants.COMMA_STRING);
-//				 
-//			//	if(alleles == null || alleles.length < 3) return null;
-//				if(alleles.length %3 != 0) 
-//					throw new Exception("Invalid sample format value:" + accs);
-//				
-//				final int size = alleles.length / 3;
-//				String[] base = new String[size];
-//				int[] counts = new int[size];
-//				for (int i = 0; i < size; i++ ){
-//					
-//					base[i] = alleles[i*3];
-//					counts[i] =  Integer.parseInt(alleles[i*3+1]) + Integer.parseInt(alleles[i*3+2]);
-//				}
-//				int[] colon = counts.clone();
-//				Arrays.sort(counts);
-//				
-//				String a1 = null, a2 = Constants.NULL_STRING; 
-//				for(int i = 0; i <base.length; i ++){
-//					if(colon[i] == counts[size-1])
-//						a1 = base[i];
-//					else if(size > 1 && colon[i] == counts[counts.length-2])
-//						a2 = base[i];
-//				}
-//				
-//				if(a1 == null) throw new RuntimeException("Algorithm Error during retrive compound SNP Allels:" + accs);
-//				
-//				return new String[] {a1, a2};
-//			}			
-//
-//			
-//		}
-//			
-//		//format.getField(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP) != null && 
-//		return null; 
-//	}
-	 	 
+	 	 	 	 
 	 void getSnpEffAnnotation(SnpEffMafRecord maf, String effString) throws Exception  {
 		 	String effAnno = SnpEffConsequence.getWorstCaseConsequence(effString.split(","));		 
-				//Effect 			   ( Effect_Impact | Functional_Class | Codon_Change | Amino_Acid_Change| Amino_Acid_length | Gene_Name | Transcript_BioType | Gene_Coding 				| Transcript_ID | Exon_Rank  | Genotype_Number [ | ERRORS | WARNINGS ] )
-				//upstream_gene_variant (MODIFIER       |         -         |1760          |     -             |		-		| DDX11L1	|processed_transcript|NON_CODING				|ENST00000456328|		-	 |1)
-		 		//	synonymous_variant(LOW			0	|SILENT			   1|aaG/aaA	|p.Lys644Lys/c.1932G>A 3|647  			|VCAM1	    5|protein_coding		6|CODING			7	|ENST00000347652 8|			8|	1)
-				//if(effAnno == null) effAnno = effString.split(",")[0];						 
-				//if(! StringUtils.isNullOrEmpty(ontolog)  ){
+			//Effect 			   ( Effect_Impact | Functional_Class | Codon_Change | Amino_Acid_Change| Amino_Acid_length | Gene_Name | Transcript_BioType | Gene_Coding 				| Transcript_ID | Exon_Rank  | Genotype_Number [ | ERRORS | WARNINGS ] )
+			//upstream_gene_variant (MODIFIER       |         -         |1760          |     -             |		-		| DDX11L1	|processed_transcript|NON_CODING				|ENST00000456328|		-	 |1)
+	 		//	synonymous_variant(LOW			0	|SILENT			   1|aaG/aaA	|p.Lys644Lys/c.1932G>A 3|647  			|VCAM1	    5|protein_coding		6|CODING			7	|ENST00000347652 8|			8|	1)
+			//if(effAnno == null) effAnno = effString.split(",")[0];						 
+			//if(! StringUtils.isNullOrEmpty(ontolog)  ){
 		 	
 		 	if( StringUtils.isNullOrEmpty( effAnno )  )
 		 		effAnno =  SnpEffConsequence.getUndefinedConsequence(effString.split(","));
@@ -522,6 +473,18 @@ public class Vcf2maf extends AbstractMode{
 			if(! StringUtils.isNullOrEmpty(effs[10])) maf.setColumnValue(58,effs[10]);		
  	 }
 
+ 	String getBamid(String key, VcfHeader header){
+ 		for (final VcfHeader.Record hr : header.getMetaRecords()) 
+			if( hr.getData().indexOf(key) != -1)
+				return StringUtils.getValueFromKey(hr.getData(), key);
+	
+ 		return null; 
+ 	}
+	
+	
+ 
+		
+	 
 
 	@Override
 	void addAnnotation(String dbfile) throws Exception {

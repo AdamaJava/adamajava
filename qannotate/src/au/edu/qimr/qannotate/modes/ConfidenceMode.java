@@ -22,6 +22,7 @@ import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 
 import au.edu.qimr.qannotate.options.ConfidenceOptions;
+import au.edu.qimr.qannotate.utils.SampleColumn;
 
 /**
  * @author christix
@@ -71,7 +72,7 @@ public class ConfidenceMode extends AbstractMode{
 		
 
 		//get control and test sample column; here use the header from inputRecord(...)
-		SampleColumn column = new SampleColumn(options.getTestSample(), options.getControlSample(), this.header );
+		SampleColumn column =SampleColumn.getSampleColumn(options.getTestSample(), options.getControlSample(), this.header );
 		test_column = column.getTestSampleColumn();
 		control_column = column.getControlSampleColumn();
 

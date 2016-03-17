@@ -17,8 +17,8 @@ import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 
-import au.edu.qimr.qannotate.modes.AbstractMode.SampleColumn;
 import au.edu.qimr.qannotate.modes.ConfidenceMode.Confidence;
+import au.edu.qimr.qannotate.utils.SampleColumn;
 
 public class CustomerCondidenceModeTest {
 	
@@ -33,7 +33,7 @@ public class CustomerCondidenceModeTest {
 		final CustomerConfidenceMode mode = new CustomerConfidenceMode();		
 		mode.inputRecord(new File(DbsnpModeTest.inputName));
 			 
-		SampleColumn column =  mode.new SampleColumn(null,null,  mode.header);
+		SampleColumn column =  SampleColumn.getSampleColumn(null,null,  mode.header);
 		mode.setSampleColumn(column.getTestSampleColumn(), column.getControlSampleColumn() );
 
 		mode.addAnnotation();
