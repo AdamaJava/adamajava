@@ -20,7 +20,7 @@ import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.SnpUtils;
 import org.qcmg.common.vcf.header.VcfHeader.QPGRecord;
 import org.qcmg.common.vcf.header.VcfHeader.Record;
-
+ 
 
 public class VcfHeaderUtils {
 	
@@ -102,6 +102,9 @@ public class VcfHeaderUtils {
 	public static final String STANDARD_TEST_SAMPLE = "##qTestSample";
 	public static final String STANDARD_CONTROL_BAM = "##qControlBam";
 	public static final String STANDARD_TEST_BAM = "##qTestBam";
+	public static final String STANDARD_CONTROL_BAMID = "##qControlBamUUID";
+	public static final String STANDARD_TEST_BAMID = "##qTestBamUUID";
+	
 	public static final String STANDARD_CONTROL_VCF = "##qControlVcf";
 	public static final String STANDARD_TEST_VCF = "##qTestVcf";
 	public static final String STANDARD_CONTROL_VCF_UUID = "##qControlVcfUUID";
