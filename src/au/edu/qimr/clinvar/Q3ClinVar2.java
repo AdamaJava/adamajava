@@ -129,7 +129,6 @@ public class Q3ClinVar2 {
 
 	
 	private final Map<String, List<StringBuilder>> reads = new HashMap<>();
-//	private final Map<String, AtomicInteger> reads = new HashMap<>();
 	private final Map<IntPair, AtomicInteger> readLengthDistribution = new HashMap<>();
 	private final Set<String> frequentlyOccurringRefTiles = new HashSet<>();
 	private final Map<String, TLongArrayList> refTilesPositions = new HashMap<>();
@@ -137,8 +136,6 @@ public class Q3ClinVar2 {
 	private final PositionChrPositionMap positionToActualLocation = new PositionChrPositionMap();
 	
 	private final Map<String, byte[]> referenceCache = new HashMap<>();
-	
-//	private final Map<ChrPosition, List<String>> positionFragmentsMap = new HashMap<>();
 	
 	private final Map<String, RawFragment> rawFragments = new HashMap<>();
 	private final Map<String, Fragment> frags = new HashMap<>();
@@ -154,8 +151,6 @@ public class Q3ClinVar2 {
 	private final VcfHeader dbSnpHeaderDetails = new VcfHeader();
 	private final VcfHeader cosmicHeaderDetails = new VcfHeader();
 	private VcfHeader header = new VcfHeader();
-	
-//	private final static Map<Pair<FastqRecord, FastqRecord>, List<Probe>> multiMatchingReads = new HashMap<>();
 	
 	private int exitStatus;
 	private int rawFragmentId = 1;
@@ -1466,7 +1461,8 @@ public class Q3ClinVar2 {
 						 * Ignore fragments whose SW show many mutations
 						 */
 						int swScore = ClinVarUtil.getSmithWatermanScore(smithWatermanDiffs);
-						if (f.getLength() - swScore <= 10) {
+						boolean multipleMutations = f.getLength() - swScore <= 10;
+//						if (f.getLength() - swScore <= 10) {
 						
 							List<Pair<Integer, String>> mutations = ClinVarUtil.getPositionRefAndAltFromSW(smithWatermanDiffs);
 							if ( ! mutations.isEmpty()) {
@@ -1480,18 +1476,21 @@ public class Q3ClinVar2 {
 										logger.warn("ref is equal to alt: " + mutString);
 										logger.warn("f: " + Arrays.stream(f.getSmithWatermanDiffs()).collect(Collectors.joining("\n")));
 									}
-									createMutation(f.getActualPosition(), position , ref, alt, entry.getKey().getId(), f.getId(), f.getRecordCount());
+									createMutation(f.getActualPosition(), position , ref, alt, entry.getKey().getId(), f.getId(), f.getRecordCount(), multipleMutations);
 								}
 							}
-						}
+//						}
 					});
 			});
 	}
 	
-	private void createMutation(ChrPosition actualCP, int position, String ref, String alt, int ampliconId, int fragmentId, int fragmentRecordCount) {
+	private void createMutation(ChrPosition actualCP, int position, String ref, String alt, int ampliconId, int fragmentId, int fragmentRecordCount, boolean multipleMutations) {
 		int startPos = actualCP.getStartPosition() + position;
 //		int endPos =  startPos + ref.length() -1 ;
 		VcfRecord vcf = VcfUtils.createVcfRecord(ChrPointPosition.valueOf(actualCP.getChromosome(),  startPos), "."/*id*/, ref, alt);
+		if (multipleMutations) {
+			vcf.addFilter("MM");
+		}
 		
 		List<int[]> existingFragmentIds = vcfFragmentMap.get(vcf);
 		if (null == existingFragmentIds) {
