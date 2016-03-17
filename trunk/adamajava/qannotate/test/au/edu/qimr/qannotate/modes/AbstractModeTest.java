@@ -22,7 +22,8 @@ import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 
-import au.edu.qimr.qannotate.modes.AbstractMode.SampleColumn;
+import au.edu.qimr.qannotate.utils.SampleColumn;
+
 
 public class AbstractModeTest {
 	public static String outputName = "output.vcf";
@@ -93,7 +94,7 @@ public class AbstractModeTest {
  
 			DbsnpMode mode = new DbsnpMode();
 			
-			SampleColumn column = mode.new SampleColumn(null,null, header);
+			SampleColumn column = SampleColumn.getSampleColumn(null,null, header);
 			assertTrue( column.getControlSampleColumn() == 1);
 			assertTrue( column.getTestSampleColumn() == 2);		
 			assertEquals( column.getControlSample() , "control");
@@ -102,7 +103,7 @@ public class AbstractModeTest {
 			
 			
 			header.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "qControlSample" + "\ttest");
-			column = mode.new SampleColumn(null,null, header);
+			column = SampleColumn.getSampleColumn(null,null, header);
 			assertTrue( column.getControlSampleColumn() == 1);
 			assertTrue( column.getTestSampleColumn() == 2);		
 			
@@ -122,21 +123,21 @@ public class AbstractModeTest {
 		
 		DbsnpMode mode = new DbsnpMode();
 		
-		SampleColumn column = mode.new SampleColumn(null,null, header);
+		SampleColumn column = SampleColumn.getSampleColumn(null,null, header);
 		assertTrue( column.getControlSampleColumn() == 1);
 		assertTrue( column.getTestSampleColumn() == 2);		
 		assertEquals( column.getControlSample() , control);
 		assertEquals( column.getTestSample() , test);		
 		
 		//point to sample column 1: "control"	
-		column = mode.new SampleColumn(control,control, header);
+		column = SampleColumn.getSampleColumn(control,control, header);
 		assertTrue( column.getControlSampleColumn() == 1);
 		assertTrue( column.getTestSampleColumn() == 1);		
 		assertEquals( column.getControlSample() , control);
 		assertEquals( column.getTestSample() , control);		
 		
 		//point to sample column 1: "test"	 
-		column = mode.new SampleColumn(test,test, header);
+		column = SampleColumn.getSampleColumn(test,test, header);
 		assertTrue( column.getControlSampleColumn() == 2);
 		assertTrue( column.getTestSampleColumn() == 2);
 		assertEquals( column.getControlSample() , test);
@@ -144,7 +145,7 @@ public class AbstractModeTest {
 				
 		//point to unexsit sample id 
 		try{
-			column = mode.new SampleColumn(test+control,test, header);
+			column = SampleColumn.getSampleColumn(test+control,test, header);
 			fail( "My method didn't throw when I expected it to" );
 		}catch(Exception e){
 		}
