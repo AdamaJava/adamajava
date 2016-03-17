@@ -1,5 +1,5 @@
 /**
- * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ * ÂŠ Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
 package org.qcmg.picard.util;
 
@@ -40,10 +40,13 @@ public class QBamIdFactory {
 	
 	//@CO	q3BamUUID:299225f0-59fc-4cbd-89a1-e7c2ea23e220
 	public static QBamId getQ3BamId(String bamFIleName) throws Exception {
-		SAMFileHeader header = SAMFileReaderFactory.createSAMFileReader(new File(bamFIleName)).getFileHeader();		
-		String commentLine = getQCMGCommentLine(header);
+		SAMFileHeader header = SAMFileReaderFactory.createSAMFileReader(new File(bamFIleName)).getFileHeader();				
+		String commentLine = null;
+		for (String s : header.getComments()) 
+			if (s.contains(Q3BamId+":")) 
+				commentLine = s;
+	
 		String uuid =  StringUtils.getValueFromKey(commentLine, Q3BamId, ':');				
 		return new QBamId(bamFIleName, null, uuid);
 	}
-
 }
