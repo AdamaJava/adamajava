@@ -460,16 +460,15 @@ public class IndelMT {
 		if( options.getControlBam() != null ){
 			String normalBamName = options.getControlBam().getAbsolutePath();			
 			header.parseHeaderLine( VcfHeaderUtils.STANDARD_CONTROL_BAM  + "=" + normalBamName);
-		  //header.parseHeaderLine( "##qControlBamUUID=" + QBamIdFactory.getBamId(normalBamName));
-			header.parseHeaderLine( "##qControlBamUUID=" + QBamIdFactory.getQ3BamId(normalBamName).getUUID());
+			header.parseHeaderLine( VcfHeaderUtils.STANDARD_CONTROL_BAMID + "=" + QBamIdFactory.getQ3BamId(normalBamName).getUUID());
 		}
 		if( options.getTestBam() != null ){
 			String tumourBamName = options.getTestBam().getAbsolutePath();
 			header.parseHeaderLine( VcfHeaderUtils.STANDARD_TEST_BAM  + "=" + tumourBamName);
-		  //header.parseHeaderLine( "##qControlBamUUID=" + QBamIdFactory.getBamId(tumourBamName));
-			header.parseHeaderLine( "##qControlBamUUID=" + QBamIdFactory.getQ3BamId(tumourBamName).getUUID());
-			header.parseHeaderLine( VcfHeaderUtils.STANDARD_ANALYSIS_ID +"=" + options.getAnalysisId() );
-		}		
+			header.parseHeaderLine( VcfHeaderUtils.STANDARD_TEST_BAMID  + "=" + QBamIdFactory.getQ3BamId(tumourBamName).getUUID());
+		}	
+		header.parseHeaderLine( VcfHeaderUtils.STANDARD_ANALYSIS_ID +"=" + options.getAnalysisId() );
+	
 		
 		//add filter
         header.addFilterLine(IndelUtils.FILTER_COVN12, IndelUtils.DESCRITPION_FILTER_COVN12 );
