@@ -45,12 +45,9 @@ public class Vcf2maf extends AbstractMode{
 	private final String controlSample ;
 	private final String testBamId ;
 	private final String controlBamId ;
-	
-	
 	private final int test_column;
 	private final int control_column;
 	
-
 	// org.qcmg.common.dcc.DccConsequence.getWorstCaseConsequence(MutationType, String...)
 	//for unit test
 	Vcf2maf(int test_column, int control_column, String test, String control){ 
@@ -206,13 +203,11 @@ public class Vcf2maf extends AbstractMode{
 	        			break; //find non header line	        	
 	        }catch(Exception e){
 	        	logger.warn("Exception during check whether maf if empty or not : " + str);
-	        }
-		        	
-			if(line == null) f.delete();
-			 
-		}
-		
+	        }		        	
+			if(line == null) f.delete();			 
+		}		
 	}
+	
 	private void createMafHeader(PrintWriter ... writers) throws Exception{
 		 for(PrintWriter write:writers){
 			write.println(SnpEffMafRecord.Version);
@@ -286,7 +281,6 @@ public class Vcf2maf extends AbstractMode{
 		if(testSample != null) maf.setColumnValue(33,   testSample );
 		if(controlSample != null) maf.setColumnValue(34,  controlSample );	
 		
-
 		final VcfInfoFieldRecord info =  new VcfInfoFieldRecord(vcf.getInfo());
 //		if(info.getField(VcfHeaderUtils.FORMAT_NOVEL_STARTS) != null) maf.setColumnValue(40,  info.getField(VcfHeaderUtils.FORMAT_NOVEL_STARTS));
 		if(info.getField(VcfHeaderUtils.INFO_CONFIDENT) != null)	maf.setColumnValue(38,  info.getField(VcfHeaderUtils.INFO_CONFIDENT) );
@@ -350,12 +344,12 @@ public class Vcf2maf extends AbstractMode{
 	 
 	 public static String getMafAlt(String ref, String alt, SVTYPE type) {
 		 String str = alt; 
-	 	 if(type.equals(SVTYPE.DEL)){
-			str = str.substring(1);
-			for(int j = alt.length(); j < ref.length(); j ++)
-				str += "-";
-		}else  if(type.equals(SVTYPE.INS)) 
-			
+	 	 if(type.equals(SVTYPE.DEL)){	 		 
+	 		str = str.substring(1) + ((alt.length() == ref.length())? "": "-" );
+			 			
+//			for(int j = alt.length(); j < ref.length(); j ++)
+//				str += "-";
+		}else  if(type.equals(SVTYPE.INS)) 			
 			str = (ref.equalsIgnoreCase(alt))? "-" : str.substring(1);
 			
 		 
