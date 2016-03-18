@@ -1,75 +1,52 @@
 package au.edu.qimr.qannotate.modes;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
-import java.util.Scanner;
 import java.util.stream.Stream;
 
 import junit.framework.Assert;
 
 import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.qcmg.common.commandline.Executor;
-import org.qcmg.common.util.Constants;
-import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.util.IndelUtils.SVTYPE;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 
-import au.edu.qimr.qannotate.options.Vcf2mafOptions;
-import au.edu.qimr.qannotate.utils.SnpEffConsequence;
 import au.edu.qimr.qannotate.utils.SnpEffMafRecord;
-import au.edu.qimr.qannotate.Main;
 
 
 public class Vcf2mafIndelTest {
  	static String inputName = DbsnpModeTest.inputName;	
 	static String outputDir = new File(inputName).getAbsoluteFile().getParent() + "/output";
 	static String outputMafName = "output.maf";
-	
-	@Before
-	public void create(){
-		
-		
-	}
-	
-	
-	 @After
-	 public  void deleteIO(){
-
-//		 new File(inputName).delete();		 
-//		 File out = new File(outputDir);
-//		 if(! out.exists() || !out.isDirectory())
-//			 return;
-//		 
-//		String[] files = new File(outputDir).list(); 
-//		for(int i = 0; i < files.length; i++)
-//			new File(outputDir, files[i]).delete();
-//
-//		assertTrue(new File(outputDir).delete());	 		 
-	}
-	 
+	static String logName = "output.log"; 
  
+	@After
+	public void deleteIO() throws IOException{
+       
+		File dir = new java.io.File( "." ).getCanonicalFile();		
+		for(File f: dir.listFiles()){ 
+			System.out.println("f: " + f.getName());
+		    if(    f.getName().endsWith(".vcf")  ||  f.getName().contains(".log") || f.getName().endsWith(".maf") ||  f.getName().contains("output")){
+		    	System.out.println(f.getCanonicalPath());
+		        f.delete();	
+		    }      
+		}
+		Vcf2mafTest.deleteIO();		
+	}
+	
 	@Test
 	public void Frame_Shift_Test()  {
 			String[] str = {VcfHeaderUtils.STANDARD_FILE_VERSION + "=VCFv4.0",			
@@ -135,7 +112,7 @@ public class Vcf2mafIndelTest {
         
         	try {
 				Vcf2mafTest.createVcf(str);
-					final String[] command = {"--mode", "vcf2maf",  "--log", "output.log",  "-i", inputName , "-o" , outputMafName};
+					final String[] command = {"--mode", "vcf2maf",  "--log", logName,  "-i", inputName , "-o" , outputMafName};
 					au.edu.qimr.qannotate.Main.main(command);
 			} catch ( Exception e) {
 				e.printStackTrace(); 
@@ -192,13 +169,11 @@ public class Vcf2mafIndelTest {
 		 				assertTrue(maf.getColumnValue(49).equals("0"));
 		 				assertTrue(maf.getColumnValue(50).equals("0"));		 					
 	 				} 			    	
-			        ;
 			    }
 			}
 
         
-        new File(inputName).delete();
-		
+
 		
 	}
 	
@@ -315,7 +290,7 @@ public class Vcf2mafIndelTest {
  				assertTrue(maf.getColumnValue(50).equals("9"));				        	
 		    }
 		    
-		    Vcf2mafTest.deleteIO();
+		   
 	}
 	
 	public static SnpEffMafRecord getMafRecord(String line) throws Exception{
