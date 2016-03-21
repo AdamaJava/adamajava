@@ -39,7 +39,7 @@ public class ClinVarUtilTest {
 	
 	
 	@Test
-	public void getSWScore() {
+	public void getSWScoreRealData() {
 		String diff =  "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||   ||||||||||||.|||||| |||||||.||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||";
 		String seq = "AGATGAAGTAGCCCAGGTAAATGTATGTTTGAGATTACTAGATAACTGTTGTACAAATTGGTATGTCACTTAAATTGTTTTCTCTCAGAAAGTCCACATAAATAAATGAAATAGACTAATAATAGTAATATGGTGTAG-AAAAAACTCCCTTAACATTATTTCCATAGATAAAACTAATTAGAACTGTAAATTCTAAGGAGATTATTTATCTAAACTAATTTTAAAATCAGAAGTTAAGGCAGTGTTTTAGATGGCTCATTCACAACTATCTTTCCC";
 		String [] diffs = new String[] {"AGATGAAGTAGCCCAGGTAAATGTATGTTTGAGATTACTAGATAACTGTTGTACAAATTGGTATGTCACTTAAATTGTTTTCTCTCAGAAAGTCCACATAAATAAATGAAATAGAC---TAATAGTAATATAGTGTAGAAAAAAACACCCTTAACATTATTTCCATAGATAAAACTAATTAGAACTGTAAATTCTAAGGAGATTATTTATCTAAACTAATTTTAAAATCAGAAGTTAAGGCAGTGTTTTAGATGGCTCATTCACAACTATCTTTCCC",
@@ -54,6 +54,17 @@ public class ClinVarUtilTest {
 		diff = diff.replace(".", "");
 		System.out.println("diff: " + diff);
 		assertEquals(271, diff.length());
+	}
+	
+	
+	@Test
+	public void getSwScore() {
+		assertEquals(4, ClinVarUtil.getSmithWatermanScore(new String [] {"ABCD", "||||", "ABCD"}));
+		assertEquals(3, ClinVarUtil.getSmithWatermanScore( new String[] {"BBCD", ".|||", "ABCD"}));
+		assertEquals(2, ClinVarUtil.getSmithWatermanScore( new String[] {"BBBD", ".|.|", "ABCD"}));
+		assertEquals(1, ClinVarUtil.getSmithWatermanScore( new String[] {"BBBB", ".|..", "ABCD"}));
+		assertEquals(0,  ClinVarUtil.getSmithWatermanScore( new String[] {"BABB", "....", "ABCD"}));
+		assertEquals(-1,  ClinVarUtil.getSmithWatermanScore( new String[] {"BABB", "....", "ABCD",""}));
 	}
 	
 	@Test
@@ -213,7 +224,30 @@ public class ClinVarUtilTest {
 		ChrPosition cp = ChrPointPosition.valueOf("chr5", 112111235);
 		Cigar ceegar = ClinVarUtil.getCigarForIndels(ref, sequence, swDiffs, cp);
 		assertEquals("120M8D3M1D2M3D4M2D3M", ceegar.toString());
+	}
+	
+	@Test
+	public void getIndelCigarRealLife3() {
 		
+		/*
+		 * 11:40:44.563 [main] INFO au.edu.qimr.clinvar.Q3ClinVar2 - cigar: 51M53I-52M7I159M
+11:40:44.563 [main] INFO au.edu.qimr.clinvar.Q3ClinVar2 - ref: GATGAATAATGGTAATGGAGCCAATAAAAAGGTAGAACTTTCTAGAATGTCTTCAACTAAATCAAGTGGAAGTGAATCTGATAGATCAGAAAGACCTGTATTAGTACGCCAGTCAACTTTCATCAAAGAAGCTCCAAGCCCAACCTTAAGAAGAAAAT
+11:40:44.564 [main] INFO au.edu.qimr.clinvar.Q3ClinVar2 - f.getActualPosition(): chr5:112178500-112178657
+11:40:44.564 [main] INFO au.edu.qimr.clinvar.Q3ClinVar2 - f.getSequence(): GATGAATAATGGTAATGGAGCCAATAAAAAGGTAGAACTTTCTAGAATGTCCTCAACTAAATCAAGTGGAAGTGAATCTGATAGATCAGAAAGACCTGTATTAGTACGCCAGTCAACTAAATCAAGTGGAAGTGAATCTGATAGATCAGAAAGACCTGTATTAGTACGCCAGTCAACTTTCATCAAAGAAGCTCCAAGCCCAACCTTAAGAAGAAAAT
+11:40:44.564 [main] INFO au.edu.qimr.clinvar.Q3ClinVar2 - cigar: 51M53I-52M7I159M
+11:40:44.564 [main] INFO au.edu.qimr.clinvar.Q3ClinVar2 - s: GATGAATAATGGTAATGGAGCCAATAAAAAGGTAGAACTTTCTAGAATGTC-----------------------------------------------------T-------TCAACTAAATCAAGTGGAAGTGAATCTGATAGATCAGAAAGACCTGTATTAGTACGCCAGTCAACTTTCATCAAAGAAGCTCCAAGCCCAACCTTAAGAAGAAAAT
+11:40:44.564 [main] INFO au.edu.qimr.clinvar.Q3ClinVar2 - s: |||||||||||||||||||||||||||||||||||||||||||||||||||                                                     |       ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+11:40:44.564 [main] INFO au.edu.qimr.clinvar.Q3ClinVar2 - s: GATGAATAATGGTAATGGAGCCAATAAAAAGGTAGAACTTTCTAGAATGTCCTCAACTAAATCAAGTGGAAGTGAATCTGATAGATCAGAAAGACCTGTATTAGTACGCCAGTCAACTAAATCAAGTGGAAGTGAATCTGATAGATCAGAAAGACCTGTATTAGTACGCCAGTCAACTTTCATCAAAGAAGCTCCAAGCCCAACCTTAAGAAGAAAAT
+		 */
+		String ref = "GATGAATAATGGTAATGGAGCCAATAAAAAGGTAGAACTTTCTAGAATGTCTTCAACTAAATCAAGTGGAAGTGAATCTGATAGATCAGAAAGACCTGTATTAGTACGCCAGTCAACTTTCATCAAAGAAGCTCCAAGCCCAACCTTAAGAAGAAAAT";
+		String sequence = "GATGAATAATGGTAATGGAGCCAATAAAAAGGTAGAACTTTCTAGAATGTCCTCAACTAAATCAAGTGGAAGTGAATCTGATAGATCAGAAAGACCTGTATTAGTACGCCAGTCAACTAAATCAAGTGGAAGTGAATCTGATAGATCAGAAAGACCTGTATTAGTACGCCAGTCAACTTTCATCAAAGAAGCTCCAAGCCCAACCTTAAGAAGAAAAT";
+		String [] swDiffs = ClinVarUtil.getSwDiffs(ref, sequence, true);
+		for (String s : swDiffs) {
+			System.out.println("s: " + s);
+		}
+		ChrPosition cp = ChrPositionUtils.getChrPositionFromString("chr5:112178500-112178657");
+		Cigar ceegar = ClinVarUtil.getCigarForIndels(ref, sequence, swDiffs, cp);
+		assertEquals("51M53I1M7I106M", ceegar.toString());
 	}
 	
 	@Test

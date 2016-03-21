@@ -1292,7 +1292,8 @@ public class ClinVarUtil {
 						CigarElement insertion = new CigarElement(insertionLength, CigarOperator.INSERTION);
 						ces.add(match);
 						ces.add(insertion);
-						lastPosition = indelPosition + insertionLength;
+						lastPosition = indelPosition ;
+//						lastPosition = indelPosition + insertionLength;
 					}
 				} else {
 					// deletion
@@ -1310,11 +1311,24 @@ public class ClinVarUtil {
 				}
 			}
 		}
-		if (lastPosition + 1 < swDiffs[0].length()) {
-			CigarElement match = new CigarElement(swDiffs[0].length() - lastPosition, CigarOperator.MATCH_OR_MISMATCH);
-			ces.add(match);
+		
+		
+		/*
+		 * get size of cigar, and add final M if required
+		 * 
+		 */
+		int cigarSize = Cigar.getReadLength(ces);
+		int readSize = swDiffs[2].replace("-","").length();
+		if (cigarSize < readSize) {
+			ces.add(new CigarElement(readSize - cigarSize, CigarOperator.MATCH_OR_MISMATCH));
 		}
+		
+//		if (lastPosition + 1 < swDiffs[0].length()) {
+//			CigarElement match = new CigarElement(swDiffs[0].length() - lastPosition, CigarOperator.MATCH_OR_MISMATCH);
+//			ces.add(match);
+//		}
 		Cigar cigar = new Cigar(ces);
+		
 		return cigar;
 	}
 	

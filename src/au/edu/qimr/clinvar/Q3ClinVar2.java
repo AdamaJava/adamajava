@@ -1458,10 +1458,17 @@ public class Q3ClinVar2 {
 						String [] smithWatermanDiffs = f.getSmithWatermanDiffs();
 						
 						/*
-						 * Ignore fragments whose SW show many mutations
+						 * annotate mutations whose SW show many mutations
 						 */
 						int swScore = ClinVarUtil.getSmithWatermanScore(smithWatermanDiffs);
-						boolean multipleMutations = f.getLength() - swScore <= 10;
+						
+						boolean multipleMutations = (f.getLength() - swScore) >= 10;
+						
+//						if (entry.getKey().getId() == 8 || f.getId() == 6282) {
+//							logger.info("entry.getKey().getId(): " +entry.getKey().getId() + ", frag: " + f.getId() + ", length: " + f.getLength()  + ", score: " + swScore + " multipleMutations: " + multipleMutations);
+//						}
+//						
+						
 //						if (f.getLength() - swScore <= 10) {
 						
 							List<Pair<Integer, String>> mutations = ClinVarUtil.getPositionRefAndAltFromSW(smithWatermanDiffs);
@@ -1496,7 +1503,12 @@ public class Q3ClinVar2 {
 		if (null == existingFragmentIds) {
 			existingFragmentIds = new ArrayList<>();
 			vcfFragmentMap.put(vcf, existingFragmentIds);
-		}
+ 		} else {
+ 			if (multipleMutations) {
+ 				// need to update with annotation
+ 				vcfFragmentMap.put(vcf, existingFragmentIds);
+ 			}
+ 		}
 		existingFragmentIds.add(new int[]{ampliconId, fragmentId, fragmentRecordCount});
 	}
 	
