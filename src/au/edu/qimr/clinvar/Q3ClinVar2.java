@@ -1318,7 +1318,8 @@ public class Q3ClinVar2 {
 			 * and then sw
 			 */
 			ChrPosition bestTiledCP = f.getBestTiledLocation();
-			ChrPosition bufferedCP = new ChrRangePosition(bestTiledCP.getChromosome(), bestTiledCP.getStartPosition() - 100, bestTiledCP.getStartPosition() + 100 + f.getLength());
+			ChrPosition bufferedCP = new ChrRangePosition(bestTiledCP.getChromosome(),  Math.max(1,bestTiledCP.getStartPosition() - 100), bestTiledCP.getStartPosition() + 100 + f.getLength());
+//			ChrPosition bufferedCP = new ChrRangePosition(bestTiledCP.getChromosome(), bestTiledCP.getStartPosition() - 100, bestTiledCP.getStartPosition() + 100 + f.getLength());
 			String bufferedReference = getRefFromChrPos(bufferedCP);
 			
 			String [] swDiffs = ClinVarUtil.getSwDiffs(bufferedReference, f.getSequence(), true);
@@ -1884,7 +1885,7 @@ public class Q3ClinVar2 {
 		if (cp.getStartPosition() <= 0 || cp.getEndPosition() > ref.length) {
 			logger.warn("ChrPosition goes beyond edge of contig: " + cp.toIGVString() + ", ref length: " + ref.length);
 		}
-		byte [] refPortion = Arrays.copyOfRange(referenceCache.get(chr), cp.getStartPosition(), cp.getEndPosition());
+		byte [] refPortion = Arrays.copyOfRange(referenceCache.get(chr), cp.getStartPosition(), (cp.getEndPosition() > ref.length ? ref.length : cp.getEndPosition()));
 		referenceSeq = new String(refPortion);
 		
 		return referenceSeq;
