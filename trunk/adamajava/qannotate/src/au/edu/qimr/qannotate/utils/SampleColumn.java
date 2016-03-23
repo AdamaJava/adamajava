@@ -28,14 +28,30 @@ public class SampleColumn {
 				   throw new RuntimeException(" invalid header to null!");
 			
 //			String cs = control, ts = test; 
-			for (final VcfHeader.Record hr : header.getMetaRecords()) 
-				if(control == null && hr.getData().indexOf(VcfHeaderUtils.STANDARD_CONTROL_SAMPLE) != -1)
+			for (final VcfHeader.Record hr : header.getMetaRecords()) {
+				if (control == null && hr.getData().indexOf(VcfHeaderUtils.STANDARD_CONTROL_SAMPLE) != -1) {
 					control =  StringUtils.getValueFromKey(hr.getData(), VcfHeaderUtils.STANDARD_CONTROL_SAMPLE);
-				else if (test == null &&  hr.getData().indexOf(VcfHeaderUtils.STANDARD_TEST_SAMPLE) != -1) 
-					test = StringUtils.getValueFromKey(hr.getData(), VcfHeaderUtils.STANDARD_TEST_SAMPLE);
-								
-		    if(test == null || control == null)
-			   throw new RuntimeException(" Missing qControlSample or qTestSample  from VcfHeader; please specify on command line!");
+				} else if (test == null &&  hr.getData().indexOf(VcfHeaderUtils.STANDARD_TEST_SAMPLE) != -1) { 
+						test = StringUtils.getValueFromKey(hr.getData(), VcfHeaderUtils.STANDARD_TEST_SAMPLE);
+				}
+			}
+			
+			
+			if (test == null || control == null) {
+				/*
+				 * try again, this time looking for "##1:qControlSample"
+				 */
+				for (final VcfHeader.Record hr : header.getMetaRecords()) {
+					if (control == null && hr.getData().indexOf(VcfHeaderUtils.STANDARD_CONTROL_SAMPLE_1) != -1) {
+						control =  StringUtils.getValueFromKey(hr.getData(), VcfHeaderUtils.STANDARD_CONTROL_SAMPLE_1);
+					} else if (test == null &&  hr.getData().indexOf(VcfHeaderUtils.STANDARD_TEST_SAMPLE_1) != -1) { 
+							test = StringUtils.getValueFromKey(hr.getData(), VcfHeaderUtils.STANDARD_TEST_SAMPLE_1);
+					}
+				}
+			}
+		    if(test == null || control == null) {
+		    		throw new RuntimeException(" Missing qControlSample or qTestSample  from VcfHeader; please specify on command line!");
+		    }
 		    
 			int tc = -2, cc = -2;					    
 		   final String[] samples = header.getSampleId();			   	   
