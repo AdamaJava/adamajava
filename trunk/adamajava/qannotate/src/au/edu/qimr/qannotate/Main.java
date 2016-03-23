@@ -42,7 +42,7 @@ public class Main {
                else if(options.getOption().getMode() == Options.MODE.snpEff)
             	    new SnpEffMode( (SnpEffOptions) options.getOption(), logger );
                else if(options.getOption().getMode() == Options.MODE.confidence)
-            	    new ConfidenceMode( (ConfidenceOptions) options.getOption(), logger );
+            	    new ConfidenceMode( (ConfidenceOptions) options.getOption() );
                else if(options.getOption().getMode() == Options.MODE.customerConfidence)
             	    new CustomerConfidenceMode( (CustomerConfidenceOptions) options.getOption(), logger );	 
                else if(options.getOption().getMode() == Options.MODE.vcf2maf)
