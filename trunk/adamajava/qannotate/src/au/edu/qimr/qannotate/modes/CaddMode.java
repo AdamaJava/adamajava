@@ -9,6 +9,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import org.qcmg.common.log.QLogger;
+import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrPositionComparator;
 import org.qcmg.common.model.ChrRangePosition;
@@ -31,13 +32,11 @@ public class  CaddMode extends AbstractMode{
 	protected static long blockNo = 0;	
 	protected static long inputNo = 0;
 	final String CADD = "CADD";
-	private final QLogger logger;
+	private final QLogger logger= QLoggerFactory.getLogger(CaddMode.class);
 	
 	String description = "query CADD library for this variant. Format: (Ref>Alt|isDerived|Consequence|ConsScore|ConsDetail|scoreSegDup|priPhyloP|GerpRS|mirSVR-E|cHmmTssA|motifDist|ESP_AFR|ESP_EUR|TG_AMR|FeatureID|FeatureID|CCDS|relcDNApos)";	
 		
-	public CaddMode( CaddOptions options, QLogger logger) throws Exception {		
-		
-		this.logger = logger; 
+	public CaddMode( CaddOptions options) throws Exception {		
 		
 		final String input = options.getInputFileName();
 		final File output =  new File( options.getOutputFileName() );

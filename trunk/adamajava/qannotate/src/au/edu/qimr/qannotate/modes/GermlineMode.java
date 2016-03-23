@@ -20,12 +20,12 @@ import au.edu.qimr.qannotate.options.GermlineOptions;
 
 public class GermlineMode extends AbstractMode{
 	
-	private static final QLogger thisLogger = QLoggerFactory.getLogger(GermlineMode.class);
+	private final QLogger logger = QLoggerFactory.getLogger(GermlineMode.class);
 	
 	//for unit Test only
 	GermlineMode(){}
 
- 	public GermlineMode(GermlineOptions options, QLogger logger) throws Exception{
+ 	public GermlineMode(GermlineOptions options) throws Exception{
 		
 		//this.logger = logger;		
 		logger.tool("input: " + options.getInputFileName());
@@ -106,7 +106,7 @@ public class GermlineMode extends AbstractMode{
 	 		   }
 	 	   }
 	 	   
-	 	   thisLogger.info("Number of SOMATIC records updated with GERM annotation: " + updatedRecordCount);
+	 	  logger.info("Number of SOMATIC records updated with GERM annotation: " + updatedRecordCount);
 	 	}
   		
 	 }	 
@@ -127,7 +127,7 @@ public class GermlineMode extends AbstractMode{
  			return flag ; 
  		  		
 		 if(! inputVcf.getRef().equalsIgnoreCase(germlineVcf.getRef()) ){
-			 thisLogger.warn(String.format( "germline reference base (%s) are different to vcf Record (%s) for variant at position: %s ", 
+			 logger.warn(String.format( "germline reference base (%s) are different to vcf Record (%s) for variant at position: %s ", 
 					 germlineVcf.getRef(), inputVcf.getRef(), germlineVcf.getPosition() ));			 
 			 return flag ; 			 
 		 }
@@ -144,7 +144,7 @@ public class GermlineMode extends AbstractMode{
 						inputVcf.appendInfo(VcfHeaderUtils.INFO_GERMLINE + "=" +  (total > 0 ?  counts + "," + total: ""+counts));	
 						flag = true; 
 					} catch (Exception e){						
-						thisLogger.error("Germline database vcf formart, can't find patient counts from INFO field!");					 
+						logger.error("Germline database vcf formart, can't find patient counts from INFO field!");					 
 					}
 					break;						
 			}

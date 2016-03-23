@@ -36,21 +36,21 @@ public class Main {
                logger.logInitialExecutionStats(options.getPGName(), options.getVersion(),args);	        
                
                if(options.getOption().getMode() == Options.MODE.dbSNP)
-            	   new DbsnpMode( (DbsnpOptions) options.getOption() , logger  );
+            	   new DbsnpMode( (DbsnpOptions) options.getOption()   );
                else if(options.getOption().getMode() == Options.MODE.germline)
-            	   new GermlineMode( (GermlineOptions) options.getOption(), logger );
+            	   new GermlineMode( (GermlineOptions) options.getOption() );
                else if(options.getOption().getMode() == Options.MODE.snpEff)
-            	    new SnpEffMode( (SnpEffOptions) options.getOption(), logger );
+            	    new SnpEffMode( (SnpEffOptions) options.getOption() );
                else if(options.getOption().getMode() == Options.MODE.confidence)
             	    new ConfidenceMode( (ConfidenceOptions) options.getOption() );
                else if(options.getOption().getMode() == Options.MODE.customerConfidence)
-            	    new CustomerConfidenceMode( (CustomerConfidenceOptions) options.getOption(), logger );	 
+            	    new CustomerConfidenceMode( (CustomerConfidenceOptions) options.getOption() );	 
                else if(options.getOption().getMode() == Options.MODE.vcf2maf)
-            	   new Vcf2maf((Vcf2mafOptions) options.getOption(),logger);
+            	   new Vcf2maf((Vcf2mafOptions) options.getOption());
                else if(options.getOption().getMode() == Options.MODE.cadd)
-            	   new CaddMode( (CaddOptions) options.getOption()  , logger);
+            	   new CaddMode( (CaddOptions) options.getOption()  );
                else if(options.getOption().getMode() == Options.MODE.indelConfidence)
-            	   new IndelConfidenceMode((IndelConfidenceOptions) options.getOption(), logger);
+            	   new IndelConfidenceMode((IndelConfidenceOptions) options.getOption());
                else
             	   throw new Exception("No valid mode are specified on commandline: " + options.getMode().name()) ;
 

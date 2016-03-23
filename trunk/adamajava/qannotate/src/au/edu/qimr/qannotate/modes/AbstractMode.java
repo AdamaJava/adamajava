@@ -17,7 +17,6 @@ import org.qcmg.common.meta.QExec;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrPositionComparator;
 import org.qcmg.common.model.ChrRangePosition;
-import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.vcf.VcfRecord;
@@ -145,7 +144,7 @@ public abstract class AbstractMode {
 		final List<ChrPosition> orderedList = new ArrayList<>(positionRecordMap.keySet());
 		Collections.sort(orderedList, new ChrPositionComparator());
 		
-		try(VCFFileWriter writer = new VCFFileWriter( outputFile)) {			
+		try(VCFFileWriter writer = new VCFFileWriter( outputFile)) {
 			for(final VcfHeader.Record record: header)  {
 				writer.addHeader(record.toString());
 			}
