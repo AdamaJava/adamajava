@@ -33,7 +33,7 @@ public abstract class AbstractMode {
 	protected final Map<ChrPosition,List<VcfRecord>> positionRecordMap = new HashMap<ChrPosition,List<VcfRecord>>();
 	protected VcfHeader header = null;
 
-	private final static QLogger logger = QLoggerFactory.getLogger(Main.class, null,  null);	
+	private final static QLogger logger = QLoggerFactory.getLogger(AbstractMode.class);	
 	
 	/**
 	 * 
@@ -46,7 +46,7 @@ public abstract class AbstractMode {
         try (VCFFileReader reader = new VCFFileReader(f)) {
         	header = reader.getHeader();
         	//no chr in front of position
-			for (final VcfRecord vcf : reader) {	
+			for (final VcfRecord vcf : reader) {
 				String chr = IndelUtils.getFullChromosome( vcf.getChromosome() );
 				ChrPosition pos = vcf.getChrPosition();
 				if ( ! pos.getChromosome().equals(chr)) {
@@ -60,7 +60,8 @@ public abstract class AbstractMode {
 				}
 				res.add(vcf);	
 			}
-		} 
+		}
+        logger.info("loaded " + positionRecordMap.size() + " vcf entries from " + f.getAbsolutePath());
         
 	}
  
