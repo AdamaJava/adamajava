@@ -11,10 +11,8 @@ import java.util.List;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
-import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
-import org.qcmg.common.util.DonorUtils;
 import org.qcmg.common.util.SnpUtils;
 import org.qcmg.common.vcf.VcfFormatFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
@@ -50,14 +48,14 @@ public class ConfidenceMode extends AbstractMode{
 
 
 	public enum Confidence{	HIGH , LOW, ZERO ; }
-	private final String patientId;
+//	private final String patientId;
 	
 	private int test_column = -2; //can't be -1 since will "+1"
 	private int control_column  = -2;
 	
 	//for unit testing
 	ConfidenceMode(String patient){ 
-		patientId = patient;
+//		patientId = patient;
 	}
 
 	
@@ -78,7 +76,7 @@ public class ConfidenceMode extends AbstractMode{
 
 
 		//if(options.getpatientid == null)
-		patientId = DonorUtils.getDonorFromFilename(options.getInputFileName());
+//		patientId = DonorUtils.getDonorFromFilename(options.getInputFileName());
 		addAnnotation();
 //		addAnnotation( options.getDatabaseFileName() );
 		reheader(options.getCommandLine(),options.getInputFileName())	;	
@@ -99,9 +97,9 @@ public class ConfidenceMode extends AbstractMode{
 		int zero = 0;
 		
 		//check high, low nns...
-		for (List<VcfRecord> vcfs : positionRecordMap.values()) 
-			for(VcfRecord vcf : vcfs){					
-			 	final ChrPosition pos = vcf.getChrPosition();
+		for (List<VcfRecord> vcfs : positionRecordMap.values()) {
+			for(VcfRecord vcf : vcfs){
+//			 	final ChrPosition pos = vcf.getChrPosition();
 			 	VcfFormatFieldRecord formatField = (vcf.getInfo().contains(VcfHeaderUtils.INFO_SOMATIC)) ? vcf.getSampleFormatRecord(test_column) :  vcf.getSampleFormatRecord(control_column);
 		    		    	
 			 	if ( checkNovelStarts(HIGH_CONF_NOVEL_STARTS_PASSING_SCORE, formatField)
@@ -122,6 +120,7 @@ public class ConfidenceMode extends AbstractMode{
 		        }
 	//	        vcf.setInfo(vcf.getInfoRecord().toString());
 		    }
+		}
 		
 		logger.info("Confidence breakdown, high: " + high + ", low: " + low + ", zero: " + zero);
  
