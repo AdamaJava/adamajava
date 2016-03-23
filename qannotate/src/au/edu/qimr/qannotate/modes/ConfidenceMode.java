@@ -29,7 +29,7 @@ import au.edu.qimr.qannotate.utils.SampleColumn;
  *
  */
 public class ConfidenceMode extends AbstractMode{
-	private static final QLogger thisLogger = QLoggerFactory.getLogger(ConfidenceMode.class);
+	private final QLogger logger = QLoggerFactory.getLogger(ConfidenceMode.class);
 	
 	public static final int HIGH_CONF_NOVEL_STARTS_PASSING_SCORE = 4;
 	public static final int LOW_CONF_NOVEL_STARTS_PASSING_SCORE = 4;
@@ -61,7 +61,7 @@ public class ConfidenceMode extends AbstractMode{
 	}
 
 	
-	public ConfidenceMode(ConfidenceOptions options, QLogger logger) throws Exception{				 
+	public ConfidenceMode(ConfidenceOptions options) throws Exception{				 
 		logger.tool("input: " + options.getInputFileName());
         logger.tool("verified File: " + options.getDatabaseFileName() );
         logger.tool("output annotated records: " + options.getOutputFileName());
@@ -123,7 +123,7 @@ public class ConfidenceMode extends AbstractMode{
 	//	        vcf.setInfo(vcf.getInfoRecord().toString());
 		    }
 		
-		thisLogger.info("Confidence breakdown, high: " + high + ", low: " + low + ", zero: " + zero);
+		logger.info("Confidence breakdown, high: " + high + ", low: " + low + ", zero: " + zero);
  
 		//add header line  set number to 1
 		header.addInfoLine(VcfHeaderUtils.INFO_CONFIDENT, "1", "String", DESCRITPION_INFO_CONFIDENCE);
