@@ -36,7 +36,7 @@ public class Vcf2maf extends AbstractMode{
 	
 	public static String PROTEINCODE = "protein_coding";
 	
-	private final QLogger logger;
+	private final QLogger logger = QLoggerFactory.getLogger(Vcf2maf.class);
 	protected final  Map<String,String> effRanking = new HashMap<String,String>();	
 	private final String center;
 	private final String sequencer;
@@ -54,7 +54,6 @@ public class Vcf2maf extends AbstractMode{
 		center = Vcf2mafOptions.default_center;
 		sequencer = SnpEffMafRecord.Unknown; 
 		this.dornorId = SnpEffMafRecord.Unknown; 		
-		logger = QLoggerFactory.getLogger(Main.class, null,  null);	
 		this.test_column = test_column;
 		this.control_column = control_column;
 		this.testSample = test;
@@ -64,8 +63,7 @@ public class Vcf2maf extends AbstractMode{
 	}
  
 	//EFF= Effect ( Effect_Impact | Functional_Class | Codon_Change | Amino_Acid_Change| Amino_Acid_Length | Gene_Name | Transcript_BioType | Gene_Coding | Transcript_ID | Exon_Rank  | Genotype_Number [ | ERRORS | WARNINGS ] )	
-	public Vcf2maf(Vcf2mafOptions option, QLogger logger) throws Exception {
-		this.logger = logger;		
+	public Vcf2maf(Vcf2mafOptions option) throws Exception {
 		this.center = option.getCenter();
 		this.sequencer = option.getSequencer();		
 		

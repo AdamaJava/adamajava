@@ -27,14 +27,13 @@ import org.qcmg.vcf.VCFFileReader;
 import au.edu.qimr.qannotate.options.DbsnpOptions;
 
 public class DbsnpMode extends AbstractMode{
-	QLogger logger = QLoggerFactory.getLogger(DbsnpMode.class);
+	private final QLogger logger = QLoggerFactory.getLogger(DbsnpMode.class);
 //	private VcfRecord dbSNPVcf;
 	
 	//for unit Test
 	DbsnpMode(){}
 	
-	public DbsnpMode(DbsnpOptions options, QLogger logger) throws Exception{	
-		this.logger = logger;
+	public DbsnpMode(DbsnpOptions options) throws Exception{	
 		logger.tool("input: " + options.getInputFileName());
         logger.tool("dbSNP database: " + options.getDatabaseFileName() );
         logger.tool("output for annotated vcf records: " + options.getOutputFileName());

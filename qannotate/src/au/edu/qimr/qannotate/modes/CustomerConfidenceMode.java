@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.qcmg.common.log.QLogger;
+import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.vcf.VcfFormatFieldRecord;
 import org.qcmg.common.vcf.VcfInfoFieldRecord;
@@ -35,14 +36,13 @@ public final class CustomerConfidenceMode extends AbstractMode{
 	private int test_column = -2; //can't be -1 since will "+1"
 	private int control_column  = -2;
 	
-	private QLogger logger; 
+	private final QLogger logger  = QLoggerFactory.getLogger(CustomerConfidenceMode.class); 
 	
  	
 //	//unit test only
 	CustomerConfidenceMode( ){	}
 	
-	public CustomerConfidenceMode(CustomerConfidenceOptions options, QLogger logger) throws Exception{	
-		this.logger = logger;
+	public CustomerConfidenceMode(CustomerConfidenceOptions options) throws Exception{	
 		
 		logger.tool("input: " + options.getInputFileName());
         logger.tool("output annotated records: " + options.getOutputFileName());

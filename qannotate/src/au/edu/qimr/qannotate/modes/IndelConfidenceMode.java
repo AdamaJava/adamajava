@@ -39,7 +39,7 @@ import au.edu.qimr.qannotate.options.IndelConfidenceOptions;
  *
  */
 public class IndelConfidenceMode extends AbstractMode{
-	private final QLogger logger;
+	private final QLogger logger = QLoggerFactory.getLogger(IndelConfidenceMode.class);
 //	private final IndelConfidenceOptions options;
 	
 	final String input;
@@ -62,14 +62,12 @@ public class IndelConfidenceMode extends AbstractMode{
 	@Deprecated
 	//unit test only
 	public IndelConfidenceMode(){
-		logger = null;
  		this.input = null;
 		this.output = null;
 		commandLine = null;
 	}
 	
-	public IndelConfidenceMode(IndelConfidenceOptions options, QLogger logger) throws Exception{	
-		this.logger = logger;	
+	public IndelConfidenceMode(IndelConfidenceOptions options) throws Exception{	
 		input = options.getInputFileName();
 		output = options.getOutputFileName();
 		commandLine = options.getCommandLine();

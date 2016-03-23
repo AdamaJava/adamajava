@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.List;
 
 import org.qcmg.common.log.QLogger;
+import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
@@ -21,11 +22,9 @@ import ca.mcgill.mcb.pcingola.snpEffect.commandLine.SnpEff;
 
 public class SnpEffMode extends AbstractMode{
 
-//	private String cmd;
 	private final  String tmpFile;
-	private final QLogger logger;
-	public SnpEffMode(SnpEffOptions options, QLogger logger) throws IOException {
-		this.logger = logger;
+	private final QLogger logger = QLoggerFactory.getLogger(SnpEffMode.class);
+	public SnpEffMode(SnpEffOptions options) throws IOException {
 		
 		logger.tool("input: " + options.getInputFileName());
         logger.tool("snpeff database: " + options.getDatabaseFileName() );
