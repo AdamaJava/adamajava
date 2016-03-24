@@ -80,12 +80,14 @@ public class Vcf2maf extends AbstractMode{
 										
 			//get donor id
 			String  id = option.getDonorId() ;			
-			if(  id == null) 
-				for (VcfHeader.Record rec : reader.getHeader().getMetaRecords())
+			if (  id == null) {
+				for (VcfHeader.Record rec : reader.getHeader().getMetaRecords()) {
 					if (rec.getData().startsWith(VcfHeaderUtils.STANDARD_DONOR_ID)){ 
 						id = StringUtils.getValueFromKey(rec.getData(), VcfHeaderUtils.STANDARD_DONOR_ID);
 						break;			
-					}			
+					}
+				}
+			}
 			dornorId = id; 			
 			logger.info(String.format("Test Sample %s is located on column %d after FORMAT", testSample, test_column));
 			logger.info(String.format("Control Sample %s is located on column %d after FORMAT", controlSample, control_column));
@@ -94,15 +96,17 @@ public class Vcf2maf extends AbstractMode{
 		}
 					
 		String outputname;
-		if(option.getOutputFileName() != null) 
+		if(option.getOutputFileName() != null) {
 			outputname =  option.getOutputFileName();
-		else if( option.getOutputDir() != null){
-			if(dornorId != null && controlSample != null && testSample != null)
+		} else if( option.getOutputDir() != null) {
+			if (dornorId != null && controlSample != null && testSample != null) {
 				outputname = String.format("%s//%s.%s.%s.maf", option.getOutputDir(), dornorId, controlSample , testSample);
-			else
+			} else {
 				throw new Exception("can't formate output file name: <dornorId_controlSample_testSample.maf>, missing realted information on input vcf header!");
-		}else
+			}
+		} else {
 			throw new Exception("Please specify output file name or output file directory on command line");
+		}
 	
 		String SHCC  = outputname.replace(".maf", ".Somatic.HighConfidence.Consequence.maf") ;
 		String SHC = outputname.replace(".maf", ".Somatic.HighConfidence.maf") ;
@@ -125,59 +129,61 @@ public class Vcf2maf extends AbstractMode{
 				PrintWriter out_SLCC = new PrintWriter(SLCC);
 				PrintWriter out_SLC = new PrintWriter(SLC);
 				PrintWriter out_GLCC = new PrintWriter(GLCC);
-				PrintWriter out_GLC = new PrintWriter(GLC)){			
+				PrintWriter out_GLC = new PrintWriter(GLC)){	
 			
 			reheader( option.getCommandLine(), option.getInputFileName());			
 			createMafHeader(out,out_SHCC,out_SHC,out_GHCC,out_GHC,out_SLCC,out_SLC,out_GLCC,out_GLC);
 			
-			for (final VcfRecord vcf : reader)
-        		try{ 
-        			noIn ++;
-        			SnpEffMafRecord maf = converter(vcf);
-        			String Smaf = maf.getMafLine();
-        			out.println(Smaf);
-        			noOut ++;
-        			int rank = Integer.parseInt(maf.getColumnValue(40));
-        			if(maf.getColumnValue(38).equalsIgnoreCase(Confidence.HIGH.name()))
-        				if(maf.getColumnValue(26).equalsIgnoreCase(VcfHeaderUtils.INFO_SOMATIC)){
-        					out_SHC.println(Smaf);
-        					no_SHC ++;
-        					
-        					if(maf.getColumnValue(55).equalsIgnoreCase( PROTEINCODE ) && rank <=5 ){
-        						out_SHCC.println(Smaf);
-        						no_SHCC ++;
-        					}
-        				}else{
-        					out_GHC.println(Smaf);
-        					no_GHC ++; 
-        					 
-        					if(maf.getColumnValue(55).equalsIgnoreCase( PROTEINCODE ) && rank <=5 ){
-        						out_GHCC.println(Smaf);
-        						no_GHCC ++;
-        					}
-        				}   
-        			else if(option.doOutputLowMaf() && maf.getColumnValue(38).equalsIgnoreCase(Confidence.LOW.name()))
-        				if(maf.getColumnValue(26).equalsIgnoreCase(VcfHeaderUtils.INFO_SOMATIC)){
-        					out_SLC.println(Smaf);
-        					no_SLC ++;
-        					
-        					if(maf.getColumnValue(55).equalsIgnoreCase( PROTEINCODE ) && rank <=5 ){
-        						out_SLCC.println(Smaf);
-        						no_SLCC ++;
-        					}
-        				}else{
-        					out_GLC.println(Smaf);
-        					no_GLC ++;
-        					
-        					if(maf.getColumnValue(55).equalsIgnoreCase( PROTEINCODE ) && rank <=5 ){
-        						out_GLCC.println(Smaf);
-        						no_GLCC ++;
-        					}
-        				}          			
-          		}catch(final Exception e){  	
-        			logger.warn("Error message during vcf2maf: " + e.getMessage() + "\n" + vcf.toString());
-        			e.printStackTrace();
-        		}       	
+			for (final VcfRecord vcf : reader) {
+	        		try {
+	        			noIn ++;
+	        			SnpEffMafRecord maf = converter(vcf);
+	        			String Smaf = maf.getMafLine();
+	        			out.println(Smaf);
+	        			noOut ++;
+	        			int rank = Integer.parseInt(maf.getColumnValue(40));
+	        			if(maf.getColumnValue(38).equalsIgnoreCase(Confidence.HIGH.name())) {
+	        				if(maf.getColumnValue(26).equalsIgnoreCase(VcfHeaderUtils.INFO_SOMATIC)){
+	        					out_SHC.println(Smaf);
+	        					no_SHC ++;
+	        					
+	        					if(maf.getColumnValue(55).equalsIgnoreCase( PROTEINCODE ) && rank <=5 ){
+	        						out_SHCC.println(Smaf);
+	        						no_SHCC ++;
+	        					}
+	        				}else{
+	        					out_GHC.println(Smaf);
+	        					no_GHC ++; 
+	        					 
+	        					if(maf.getColumnValue(55).equalsIgnoreCase( PROTEINCODE ) && rank <=5 ){
+	        						out_GHCC.println(Smaf);
+	        						no_GHCC ++;
+	        					}
+	        				}   
+	        			} else if(option.doOutputLowMaf() && maf.getColumnValue(38).equalsIgnoreCase(Confidence.LOW.name())) {
+	        				if(maf.getColumnValue(26).equalsIgnoreCase(VcfHeaderUtils.INFO_SOMATIC)){
+	        					out_SLC.println(Smaf);
+	        					no_SLC ++;
+	        					
+	        					if(maf.getColumnValue(55).equalsIgnoreCase( PROTEINCODE ) && rank <=5 ){
+	        						out_SLCC.println(Smaf);
+	        						no_SLCC ++;
+	        					}
+	        				}else{
+	        					out_GLC.println(Smaf);
+	        					no_GLC ++;
+	        					
+	        					if(maf.getColumnValue(55).equalsIgnoreCase( PROTEINCODE ) && rank <=5 ){
+	        						out_GLCC.println(Smaf);
+	        						no_GLCC ++;
+	        					}
+	        				}
+	        			}
+	          		}catch(final Exception e){
+		        			logger.warn("Error message during vcf2maf: " + e.getMessage() + "\n" + vcf.toString());
+		        			e.printStackTrace();
+		        		}
+				}
 		}	
 		
 		logger.info("total input vcf record number is " + noIn);
@@ -193,32 +199,38 @@ public class Vcf2maf extends AbstractMode{
 		for(String str : fileNames){
 			File f = new File(str);		
 			String line = null; //boolean flag = false;
-	        try( BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(f))); ){        	 
-	        	while (null != (line = reader.readLine()) ) 
-	        		if(line.startsWith("#") || line.equals(SnpEffMafRecord.getSnpEffMafHeaderline())) 
-	        			line = null;         
-	        		else
-	        			break; //find non header line	        	
-	        }catch(Exception e){
-	        	logger.warn("Exception during check whether maf if empty or not : " + str);
+	        try( BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(f))); ){
+		        	while (null != (line = reader.readLine()) ) {
+		        		if(line.startsWith("#") || line.equals(SnpEffMafRecord.getSnpEffMafHeaderline())) {
+		        			line = null;         
+		        		} else {
+		        			break; //find non header line
+		        		}
+		        	}
+	        }	catch(Exception e){
+	        		logger.warn("Exception during check whether maf if empty or not : " + str);
 	        }		        	
 			if(line == null) f.delete();			 
 		}		
 	}
 	
-	private void createMafHeader(PrintWriter ... writers) throws Exception{
+	private void createMafHeader(PrintWriter ... writers) {
 		 for(PrintWriter write:writers){
 			write.println(SnpEffMafRecord.Version);
 			
-			for(VcfHeader.Record re: header.getMetaRecords())
-				if(!re.equals(VcfHeaderUtils.STANDARD_FILE_VERSION ))
+			for(VcfHeader.Record re: header.getMetaRecords()) {
+				if ( !re.equals(VcfHeaderUtils.STANDARD_FILE_VERSION )) {
 					write.println(re.getData());
+				}
+			}
 			
-			for(VcfHeader.QPGRecord re: header.getqPGLines())
+			for(VcfHeader.QPGRecord re: header.getqPGLines()) {
 				write.println(re.getData());
+			}
 						
-			for(Map.Entry<String, VcfHeader.FormattedRecord> re: header.getInfoRecords().entrySet())
+			for(Map.Entry<String, VcfHeader.FormattedRecord> re: header.getInfoRecords().entrySet()) {
 				write.println(re.getValue().getData());
+			}
 	
 			write.println(SnpEffMafRecord.getSnpEffMafHeaderline());	 
 		 }	 
@@ -232,6 +244,7 @@ public class Vcf2maf extends AbstractMode{
 		//set common value;				 
 		if(center != null) maf.setColumnValue(3, center);
 		if(sequencer != null) maf.setColumnValue(32, sequencer); 	//???query DB for sequencer
+		
 		maf.setColumnValue(5,  vcf.getChromosome().toUpperCase().replace("CHR", ""));
 		
 		//Variant Type
@@ -239,40 +252,42 @@ public class Vcf2maf extends AbstractMode{
 		maf.setColumnValue(10,type.name());
 		
 		//start and end position depending on indel type
-		if(type.equals(SVTYPE.INS)){
+		if (type.equals(SVTYPE.INS)){
 			maf.setColumnValue(6,  Integer.toString(vcf.getPosition()));
 			maf.setColumnValue(7, Integer.toString(vcf.getPosition() + 1));			
-		}else if(type.equals(SVTYPE.DEL)){	
+		} else if (type.equals(SVTYPE.DEL)){	
 			maf.setColumnValue(6,  Integer.toString(vcf.getPosition() + 1));
 			maf.setColumnValue(7, Integer.toString(vcf.getPosition() + vcf.getRef().length()-1));
-		}else{		
+		} else {		
 			maf.setColumnValue(6,  Integer.toString(vcf.getPosition()));
 			maf.setColumnValue(7, Integer.toString(vcf.getPosition() + vcf.getRef().length()-1));
 		}
 		
 		String ref = vcf.getRef();
-		if(type.equals(SVTYPE.DEL) )
+		if(type.equals(SVTYPE.DEL) ) {
 			ref =  ref.substring(1); //remove heading base
-		else if(type.equals(SVTYPE.INS))
+		} else if(type.equals(SVTYPE.INS)) {
 			ref = "-"; //replace heading base with "-"
-		
+		}
 		maf.setColumnValue(11,  ref);	
 		maf.setColumnValue(35,  vcf.getFilter());
 		
 		//set novel for non dbSNP
-		if(vcf.getId().equals(Constants.MISSING_DATA_STRING)) 
+		if(vcf.getId().equals(Constants.MISSING_DATA_STRING)) { 
 			maf.setColumnValue(14,  SnpEffMafRecord.novel);
-		else
+		} else {
 			maf.setColumnValue(14,  vcf.getId());
-		
-		if(vcf.getInfoRecord().getField(VcfHeaderUtils.INFO_VLD) != null)
+		}
+		if(vcf.getInfoRecord().getField(VcfHeaderUtils.INFO_VLD) != null) {
 			maf.setColumnValue(15,  VcfHeaderUtils.INFO_VLD);
+		}
 		
-		if(vcf.getInfoRecord().getField(VcfHeaderUtils.INFO_SOMATIC) != null)
+		if(vcf.getInfoRecord().getField(VcfHeaderUtils.INFO_SOMATIC) != null) {
 			maf.setColumnValue(26,  VcfHeaderUtils.INFO_SOMATIC);
-		else
+		} else {
 			maf.setColumnValue(26,  VcfHeaderUtils.INFO_GERMLINE);
-				
+		}
+		
 		if(testBamId != null) maf.setColumnValue(16, testBamId );
  		if(controlBamId != null) maf.setColumnValue(17, controlBamId);	
 		
@@ -288,8 +303,9 @@ public class Vcf2maf extends AbstractMode{
 		if(info.getField(VcfHeaderUtils.INFO_GERMLINE) != null) maf.setColumnValue(44,  info.getField(VcfHeaderUtils.INFO_GERMLINE));		
 
 		String eff; 
-		if( (eff = info.getField(VcfHeaderUtils.INFO_EFFECT)) != null)
+		if( (eff = info.getField(VcfHeaderUtils.INFO_EFFECT)) != null) {
 			getSnpEffAnnotation( maf, eff);
+		}
 
 		
 		//format & sample field
@@ -298,31 +314,31 @@ public class Vcf2maf extends AbstractMode{
 		//do nothing if null
 		if(formats == null) 	return maf; 
 		
-		if(   formats.size() <= Math.max(test_column, control_column)  )	// format include "FORMAT" column, must bigger than sample column
+		if(   formats.size() <= Math.max(test_column, control_column)  ) {	// format include "FORMAT" column, must bigger than sample column
 			throw new Exception(" Varint missing sample column on :"+ vcf.getChromosome() + "\t" + vcf.getPosition());
-
+		}
 		
 		VcfFormatFieldRecord sample =  new VcfFormatFieldRecord(formats.get(0), formats.get(test_column));		
 		final String[] Tvalues = getAltCounts( sample, vcf.getRef(), vcf.getAlt(), type);		
-		if(Tvalues != null){	//allesls counts
+		if (Tvalues != null){	//allesls counts
 			maf.setColumnValue(37,  Tvalues[6]); //TD
-	    	maf.setColumnValue(45, Tvalues[1]); //t_depth
-	    	maf.setColumnValue(46, Tvalues[2]); //t_ref_count
-	    	maf.setColumnValue(47, Tvalues[3]); //t_alt_count
-	    	maf.setColumnValue(12, Tvalues[4] );  //TD allele1
-	    	maf.setColumnValue(13, Tvalues[5]);		//TD allele2
+		    	maf.setColumnValue(45, Tvalues[1]); //t_depth
+		    	maf.setColumnValue(46, Tvalues[2]); //t_ref_count
+		    	maf.setColumnValue(47, Tvalues[3]); //t_alt_count
+		    	maf.setColumnValue(12, Tvalues[4] );  //TD allele1
+		    	maf.setColumnValue(13, Tvalues[5]);		//TD allele2
 		}		
 		
 		sample =  new VcfFormatFieldRecord(formats.get(0), formats.get(control_column));
 		final String[] Nvalues = getAltCounts( sample, vcf.getRef(), vcf.getAlt(),type);
 		
-		if(Nvalues != null){	//allesls counts
+		if (Nvalues != null){	//allesls counts
 			maf.setColumnValue(36, Nvalues[6]);
-	    	maf.setColumnValue(48, Nvalues[1]);
-	    	maf.setColumnValue(49, Nvalues[2]); 
-	    	maf.setColumnValue(50, Nvalues[3]);
-	    	maf.setColumnValue(18, Nvalues[4]); //ND allele1
-	    	maf.setColumnValue(19, Nvalues[5]);	//ND allele2
+		    	maf.setColumnValue(48, Nvalues[1]);
+		    	maf.setColumnValue(49, Nvalues[2]); 
+		    	maf.setColumnValue(50, Nvalues[3]);
+		    	maf.setColumnValue(18, Nvalues[4]); //ND allele1
+		    	maf.setColumnValue(19, Nvalues[5]);	//ND allele2
 		}		
 
 		//NNS eg, ND5:TD7
@@ -347,9 +363,9 @@ public class Vcf2maf extends AbstractMode{
 			 			
 //			for(int j = alt.length(); j < ref.length(); j ++)
 //				str += "-";
-		}else  if(type.equals(SVTYPE.INS)) 			
+		}else  if(type.equals(SVTYPE.INS)) {
 			str = (ref.equalsIgnoreCase(alt))? "-" : str.substring(1);
-			
+		}
 		 
 		 return str; 
 	 } 
@@ -373,7 +389,7 @@ public class Vcf2maf extends AbstractMode{
       		 //it return null if no indel counts. 
       		 String acindel = sample.getField(IndelUtils.FORMAT_ACINDEL); 
       		      		 
-      		 if( !StringUtils.isMissingDtaString(acindel))
+      		 if( !StringUtils.isMissingDtaString(acindel)) {
       		 //eg. 13,38,37,13[8,5],0,0,1     		
 	      		try{  
 	      			values[6] = acindel;  //default value is "null" string not null	    			
@@ -390,16 +406,18 @@ public class Vcf2maf extends AbstractMode{
 	      		}catch(Exception e){	      			 
 	      				logger.warn("invalide " + IndelUtils.FORMAT_ACINDEL + " at vcf formate column: " + sample.toString());
 	      		}
+      		 }
       	 }else if(  type.equals(SVTYPE.SNP) || type.equals(SVTYPE.DNP) || 
-      			 type.equals(SVTYPE.TNP) || type.equals(SVTYPE.ONP) ){
-      		if (sample.getField(VcfHeaderUtils.FORMAT_NOVEL_STARTS) != null)   		
-        		values[0] = sample.getField(VcfHeaderUtils.FORMAT_NOVEL_STARTS); 
-    		//check counts      		
-        	values[1] = VcfUtils.getAltFrequency(sample, null) + "";
-        	values[2] = VcfUtils.getAltFrequency(sample, ref) + "";
-        	values[3] = VcfUtils.getAltFrequency(sample, alt) + "";
-        		     
-        	values[6] = sample.getField(VcfHeaderUtils.FORMAT_ALLELE_COUNT);
+      			 	type.equals(SVTYPE.TNP) || type.equals(SVTYPE.ONP) ){
+      		if (sample.getField(VcfHeaderUtils.FORMAT_NOVEL_STARTS) != null)   		 {
+      			values[0] = sample.getField(VcfHeaderUtils.FORMAT_NOVEL_STARTS); 
+      		}
+	    		//check counts      		
+	        	values[1] = VcfUtils.getAltFrequency(sample, null) + "";
+	        	values[2] = VcfUtils.getAltFrequency(sample, ref) + "";
+	        	values[3] = VcfUtils.getAltFrequency(sample, alt) + "";
+	        		     
+	        	values[6] = sample.getField(VcfHeaderUtils.FORMAT_ALLELE_COUNT);
 	        values[6] = (values[6] == null) ? sample.getField(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP): values[6];
       	 }
 		 
@@ -424,10 +442,10 @@ public class Vcf2maf extends AbstractMode{
 			//if(effAnno == null) effAnno = effString.split(",")[0];						 
 			//if(! StringUtils.isNullOrEmpty(ontolog)  ){
 		 	
-		 	if( StringUtils.isNullOrEmpty( effAnno )  )
+		 	if ( StringUtils.isNullOrEmpty( effAnno )  )
 		 		effAnno =  SnpEffConsequence.getUndefinedConsequence(effString.split(","));
 		 		
-			if(StringUtils.isNullOrEmpty( effAnno )  )
+			if (StringUtils.isNullOrEmpty( effAnno )  )
 				return;
 	
 			final String ontolog = effAnno.substring(0, effAnno.indexOf("("));		
@@ -435,26 +453,28 @@ public class Vcf2maf extends AbstractMode{
 	
 			maf.setColumnValue(59, ontolog); //effect_ontology
 			String str = SnpEffConsequence.getClassicName(ontolog);
-			if(str != null) maf.setColumnValue(60, str);			
-			str = SnpEffConsequence.getMafClassification(ontolog);
-			if(str != null) 
+			if (str != null) maf.setColumnValue(60, str);			{
+				str = SnpEffConsequence.getMafClassification(ontolog);
+			}
+			if (str != null) { 
 				//check whether frameshift_variant			    
 				maf.setColumnValue(9, (str.equals("Frame_Shift_")? str+maf.getColumnValue(10): str)); //eg. RNA
-			
+			}
 			maf.setColumnValue(40,  SnpEffConsequence.getConsequenceRank(ontolog)+""); //get A.M consequence's rank
 	
 			final String[] effs = annotate.split(Constants.BAR_STRING);
 //			if(! StringUtils.isNullOrEmpty(effs[0]))  maf.setColumnValue(9, effs[0]); //VariantClassification, AM. list			
-			if(! StringUtils.isNullOrEmpty(effs[0]))  maf.setColumnValue(39, effs[0]); //Eff Impact, eg. modifier	
+			if ( ! StringUtils.isNullOrEmpty(effs[0]))  maf.setColumnValue(39, effs[0]); //Eff Impact, eg. modifier	
 			
-			if(effs[3].startsWith("p.")){
+			if (effs[3].startsWith("p.")){
 				int pos = effs[3].indexOf(Constants.SLASH_STRING);
-				if(pos >= 0 ){
+				if (pos >= 0 ){
 					maf.setColumnValue(52,effs[3].substring(0, pos));
 					maf.setColumnValue(53,effs[3].substring(pos+1));
-				}else
+				} else {
 					maf.setColumnValue(52,effs[3]);
-				if(! StringUtils.isNullOrEmpty(effs[2]))  maf.setColumnValue(52+1+1,effs[2]);
+				}
+				if (! StringUtils.isNullOrEmpty(effs[2]))  maf.setColumnValue(52+1+1,effs[2]);
 			}
 						
 			if(! StringUtils.isNullOrEmpty(effs[5]))  maf.setColumnValue(1, effs[5]);//Gene_Name DDX11L1		
@@ -466,24 +486,17 @@ public class Vcf2maf extends AbstractMode{
  	 }
 
  	String getBamid(String key, VcfHeader header){
- 		for (final VcfHeader.Record hr : header.getMetaRecords()) 
-			if( hr.getData().indexOf(key) != -1)
+ 		for (final VcfHeader.Record hr : header.getMetaRecords()) { 
+			if( hr.getData().indexOf(key) != -1) {
 				return StringUtils.getValueFromKey(hr.getData(), key);
-	
+			}
+ 		}
  		return null; 
  	}
 	
-	
- 
-		
-	 
-
 	@Override
 	void addAnnotation(String dbfile) throws Exception {
 		// TODO Auto-generated method stub
-		
 	}
-	
-	
 
 }

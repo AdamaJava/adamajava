@@ -183,11 +183,12 @@ public class VcfRecord implements Comparable<VcfRecord> {
 	public String getQualString(){return qualString;}
 	
 	public void addFilter(String additionalFilter) { 
-		if(StringUtils.isNullOrEmpty(   this.filter)  || 
-				this.filter .equals(Constants.MISSING_DATA_STRING) )
+		if (StringUtils.isNullOrEmpty(filter)  || 
+				filter.equals(Constants.MISSING_DATA_STRING) ) {
 			setFilter(additionalFilter);
-		else
+		} else {
 			this.filter = StringUtils.addToString(this.filter, additionalFilter, SEMI_COLON);
+		}
 	}
 	
 	public void setFilter(String filter) { this.filter = filter; }

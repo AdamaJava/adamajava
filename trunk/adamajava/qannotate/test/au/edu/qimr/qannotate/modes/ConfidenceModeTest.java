@@ -2,6 +2,7 @@ package au.edu.qimr.qannotate.modes;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.qcmg.common.util.Constants.VCF_MERGE_DELIM;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -15,6 +16,7 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.qcmg.common.util.ChrPositionUtils;
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.SnpUtils;
 import org.qcmg.common.vcf.VcfFormatFieldRecord;
 import org.qcmg.common.vcf.VcfInfoFieldRecord;
@@ -50,7 +52,7 @@ public class ConfidenceModeTest {
 		 VcfRecord vcf = VcfUtils.createVcfRecord(ChrPositionUtils.getChrPosition("chr1", 4985568, 4985568), "rs10753395","A", "C");
 		 vcf.setFilter("PASS_1;PASS_2");
 		 vcf.setInfo("FLANK=ACGTTCCTGCA;AC=1;AF=0.500;AN=2;BaseQRankSum=0.972;ClippingRankSum=1.139;DP=26;FS=0.000;MLEAC=1;MLEAF=0.500;MQ=60.00;MQ0=0;MQRankSum=-0.472;QD=9.45;ReadPosRankSum=-0.194;SOR=0.693;IN=1,2;DB;VAF=0.4816");
-		 List<String> ff =  java.util.Arrays.asList("GT:GD:AC:MR:NNS:AD:DP:GQ:PL", "0/1:A/C:A8[33.75],11[38.82],C3[42],5[40],A9[33.56],11[38.82],C3[42],5[40],G0[0],1[22],T1[11],0[0]:8:8:18,8:26:99:274,0,686", "1/1:C/C:A1[37],0[0],C23[38.96],19[41.21],A1[37],0[0],C24[38.88],23[40.26]:42,47:38,42:1,44:45:94:1826,94,0");
+		 List<String> ff =  java.util.Arrays.asList("GT:GD:AC:MR:NNS:AD:DP:GQ:PL", "0/1:A/C:A8[33.75],11[38.82],C3[42],5[40]"+VCF_MERGE_DELIM+"A9[33.56],11[38.82],C3[42],5[40],G0[0],1[22],T1[11],0[0]:8:8:18"+VCF_MERGE_DELIM+"8:26:99:274,0,686", "1/1:C/C:A1[37],0[0],C23[38.96],19[41.21]"+VCF_MERGE_DELIM+"A1[37],0[0],C24[38.88],23[40.26]:42"+VCF_MERGE_DELIM+"47:38"+VCF_MERGE_DELIM+"42:1,44:45:94:1826,94,0");
 		 vcf.setFormatFields(ff);
 		 
 		 assertEquals(true, ConfidenceMode.checkNovelStarts(7, vcf.getSampleFormatRecord(1)));
@@ -59,6 +61,14 @@ public class ConfidenceModeTest {
 		 
 		 assertEquals(true, ConfidenceMode.checkNovelStarts(9, vcf.getSampleFormatRecord(2)));
 	 }
+	 
+	 @Test
+	 public void willMultipleACValuesWork() {
+		 VcfFormatFieldRecord format = new VcfFormatFieldRecord("GT:GD:AC:MR:NNS:AD:DP:GQ:PL", "0/1:A/C:A8[33.75],11[38.82],C3[42],5[40]"+VCF_MERGE_DELIM+"A9[33.56],11[38.82],C3[42],5[40],G0[0],1[22],T1[11],0[0]:8:8:18"+VCF_MERGE_DELIM+"8:26:99:274,0,686");
+//		 assertEquals(27, VcfUtils.getAltFrequency(format, null));
+		 assertEquals(19, VcfUtils.getAltFrequency(format, "A"));
+	 }
+	 
 	 
 	 @Test
 	 public void classB() {

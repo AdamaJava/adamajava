@@ -320,7 +320,7 @@ public class VcfUtils {
 		}
 		if (cp instanceof ChrPointPosition) {
 			
-			return new VcfRecord.Builder((ChrPointPosition) cp, ref).id(id).allele(alt).build();
+			return new VcfRecord.Builder(cp, ref).id(id).allele(alt).build();
 		} else {
 			return new VcfRecord.Builder(cp.getChromosome(),cp.getStartPosition(), ref).id(id).allele(alt).build();
 			
@@ -616,7 +616,7 @@ public class VcfUtils {
 									String [] existingArray = newFF.get(j).split(COLON_STRING);
 									String existingValue = existingArray[index];
 									if ( ! additionalValue.equals(existingValue)) {
-										existingArray[index] = existingValue + Constants.COMMA_STRING + additionalValue;
+										existingArray[index] = existingValue + Constants.VCF_MERGE_DELIM + additionalValue;
 									}
 									// re-insert into vcf
 									newFF.set(j, Arrays.stream(existingArray).collect(Collectors.joining(Constants.COLON_STRING)));
