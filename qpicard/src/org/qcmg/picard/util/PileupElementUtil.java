@@ -501,8 +501,10 @@ public class PileupElementUtil {
 		for (PileupElement pe : pileupElements) {
 			if (result.length() > 0) result += ",";
 			result += DOT == pe.getBase() ? reference : pe.getBase();
-			result += (":" + pe.getForwardCount() + "[" + nf.format(getRMSQualities(pe.getForwardQualities())) + "]," 
+			result += (pe.getForwardCount() + "[" + nf.format(getRMSQualities(pe.getForwardQualities())) + "]," 
 					+ pe.getReverseCount() + "[" + nf.format(getRMSQualities(pe.getReverseQualities())) + "]");
+//			result += (":" + pe.getForwardCount() + "[" + nf.format(getRMSQualities(pe.getForwardQualities())) + "]," 
+//					+ pe.getReverseCount() + "[" + nf.format(getRMSQualities(pe.getReverseQualities())) + "]");
 		}
 		return result;
 	}
