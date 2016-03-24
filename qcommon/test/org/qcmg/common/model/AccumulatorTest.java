@@ -270,9 +270,9 @@ public class AccumulatorTest {
 	public void testGetPileupElementString() {
 		Accumulator acc = new Accumulator(1);
 		for (int i = 0 ; i < 10 ; i++) acc.addBase((byte)'A', (byte)10, true, 1, 1, 2, 1);
-		assertEquals("A:10[10],0[0]", acc.getPileupElementString());
+		assertEquals("A10[10],0[0]", acc.getPileupElementString());
 		for (int i = 0 ; i < 10 ; i++) acc.addBase((byte)'C', (byte)10, false, 1, 1, 2, 1);
-		assertEquals("A:10[10],0[0],C:0[0],10[10]", acc.getPileupElementString());
+		assertEquals("A10[10],0[0],C0[0],10[10]", acc.getPileupElementString());
 	}
 	@Test
 	public void testGetPileup() {
