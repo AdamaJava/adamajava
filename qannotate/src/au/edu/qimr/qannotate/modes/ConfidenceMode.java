@@ -174,11 +174,11 @@ public class ConfidenceMode extends AbstractMode{
 			  * If we don't have a value for NNS (I'm looking at you compound snps), then return true...
 			  */
 			 return true;
-		 } else if (nnsString.contains(Constants.COMMA_STRING)) {
+		 } else if (nnsString.contains(Constants.VCF_MERGE_DELIM + "")) {
 			 /*
-			  * in a merged vcf record, there may be 2 values in the NNS field separated  by a comma. Pick the lowest
+			  * in a merged vcf record, there may be 2 values in the NNS field separated  by a delimiter. Pick the lowest
 			  */
-			 int commaIndex = nnsString.indexOf(Constants.COMMA);
+			 int commaIndex = nnsString.indexOf(Constants.VCF_MERGE_DELIM);
 			 return Math.min(Integer.parseInt(nnsString.substring(0, commaIndex)), Integer.parseInt(nnsString.substring(commaIndex + 1))) >= score;
 		 }
 		 return Integer.parseInt(nnsString) >= score;

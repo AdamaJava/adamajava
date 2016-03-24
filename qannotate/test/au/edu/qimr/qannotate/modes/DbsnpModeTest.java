@@ -16,7 +16,6 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.qcmg.common.util.Constants;
-import org.qcmg.common.vcf.VcfInfoFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
@@ -61,7 +60,7 @@ public class DbsnpModeTest {
 		 VcfRecord inputVcf = new VcfRecord( new String[] {"chrY","14923589",".","T","A",".","SBIA","FS=GTGATATTCCC"});
 		 DbsnpMode mode = new DbsnpMode();		
 		 mode.annotateDBsnp(inputVcf, dbSNPVcf);		 		 
-		 assertTrue(inputVcf.getInfoRecord().getField("VAF").equals( "0.4"));
+		 assertEquals("0.4", inputVcf.getInfoRecord().getField("VAF"));
 		 
 		 //seek 14923588
 		 inputVcf = new VcfRecord( new String[] {"chrY","14923588",".","GT","G",".","SBIA","FS=GTGATATTCCC"});
