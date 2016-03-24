@@ -35,7 +35,7 @@ public class MafPipelineNewTest {
 		mpn.mafType = MafType.SNV_SOMATIC;
 		
 		maf.setRef("A");
-		maf.setTd("A:96[30],0[0],G:4[30],0[0]");
+		maf.setTd("A96[30],0[0],G4[30],0[0]");
 		maf.setTumourAllele1("A");
 		maf.setTumourAllele2("G");
 		maf.setVariantType(MutationType.SNP);
@@ -43,12 +43,12 @@ public class MafPipelineNewTest {
 		assertEquals(annotation, maf.getFlag());
 		
 		maf.setFlag(null);
-		maf.setTd("A:100[30],0[0],G:5[30],0[0]");
+		maf.setTd("A100[30],0[0],G5[30],0[0]");
 		mpn.checkAlleleFraction();
 		assertEquals(annotation, maf.getFlag());
 		
 		maf.setFlag(null);
-		maf.setTd("A:95[30],0[0],G:5[30],0[0]");
+		maf.setTd("A95[30],0[0],G5[30],0[0]");
 		mpn.checkAlleleFraction();
 		assertEquals(null, maf.getFlag());
 	}
@@ -66,7 +66,7 @@ public class MafPipelineNewTest {
 		mpn.mafType = MafType.SNV_GERMLINE;
 		
 		maf.setRef("A");
-		maf.setNd("A:96[30],0[0],G:4[30],0[0]");
+		maf.setNd("A96[30],0[0],G4[30],0[0]");
 		maf.setNormalAllele1("A");
 		maf.setNormalAllele2("G");
 		maf.setVariantType(MutationType.SNP);
@@ -74,26 +74,26 @@ public class MafPipelineNewTest {
 		assertEquals(annotation, maf.getFlag());
 		
 		maf.setFlag(null);
-		maf.setNd("A:95[30],0[0],G:5[30],0[0]");
+		maf.setNd("A95[30],0[0],G5[30],0[0]");
 		mpn.checkAlleleFraction();
 		assertEquals(annotation, maf.getFlag());
 		
 		maf.setFlag(null);
-		maf.setNd("A:90[30],0[0],G:10[30],0[0]");
+		maf.setNd("A90[30],0[0],G10[30],0[0]");
 		mpn.checkAlleleFraction();
 		assertEquals(annotation, maf.getFlag());
 		
 		maf.setFlag(null);
-		maf.setNd("A:81[30],0[0],G:19[30],0[0]");
+		maf.setNd("A81[30],0[0],G19[30],0[0]");
 		mpn.checkAlleleFraction();
 		assertEquals(annotation, maf.getFlag());
 		
 		maf.setFlag(null);
-		maf.setNd("A:80[30],0[0],G:20[30],0[0]");
+		maf.setNd("A80[30],0[0],G20[30],0[0]");
 		mpn.checkAlleleFraction();
 		assertEquals(null, maf.getFlag());
 		
-		maf.setNd("A:20[30],0[0],G:80[30],0[0]");
+		maf.setNd("A20[30],0[0],G80[30],0[0]");
 		mpn.checkAlleleFraction();
 		assertEquals(null, maf.getFlag());
 		

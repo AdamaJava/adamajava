@@ -72,8 +72,8 @@ public class MafFilterUtilsTest {
 		//APGI_2044.Somatic.ALL.snv.maf:KRAS      0       qcmg.uq.edu.au  37      12      25398284        25398284        +       Missense_Mutation       SNP     C       A       C       novel   null    QCMG-66-APGI_2044-ICGC-ABMJ-20100903-14-TD      QCMG-66-APGI_2044-ICGC-ABMJ-20100903-13-ND      C       C       null    null    null    null    null    Unknown Somatic null    Unknown null    null    null    Unknown MIN     A:2[21],0[0],C:98[37.27],164[37.19],G:1[22],0[0],T:1[40],0[0]   A:13[37.46],18[34.39],C:88[36.8],142[36.75],G:1[33],0[0]        ENST00000311936 G12V;G12V;G12V;G12V;G12V;G12V;G12V;G12V 227C>A;227C>A;227C>A;227C>A;227C>A;227C>A;227C>A;227C>A null    null   null     24
 		MAFRecord maf = new MAFRecord();
 		maf.setMafType(MafType.SNV_SOMATIC);
-		maf.setNd("A:2[21],0[0],C:98[37.27],164[37.19],G:1[22],0[0],T:1[40],0[0]");
-		maf.setTd("A:13[37.46],18[34.39],C:88[36.8],142[36.75],G:1[33],0[0]");
+		maf.setNd("A2[21],0[0],C98[37.27],164[37.19],G1[22],0[0],T1[40],0[0]");
+		maf.setTd("A13[37.46],18[34.39],C88[36.8],142[36.75],G1[33],0[0]");
 		maf.setRef("C");
 		maf.setFlag("MIN");
 		maf.setTumourAllele1("A");
@@ -185,7 +185,7 @@ public class MafFilterUtilsTest {
 		MAFRecord maf = new MAFRecord();
 		maf.setFlag(SnpUtils.MUTATION_IN_NORMAL);
 		maf.setRef("G");
-		maf.setNd("A:1[30],0[0],G:9[30],0[0]");
+		maf.setNd("A1[30],0[0],G9[30],0[0]");
 		maf.setTumourAllele1("A");
 		maf.setTumourAllele2("G");
 		maf.setMafType(MafType.SNV_SOMATIC);
@@ -193,37 +193,37 @@ public class MafFilterUtilsTest {
 		MafFilterUtils.checkMAFForMIN(maf);
 		assertEquals(SnpUtils.MUTATION_IN_NORMAL, maf.getFlag());
 		
-		maf.setNd("A:2[30],0[0],G:8[30],0[0]");
+		maf.setNd("A2[30],0[0],G8[30],0[0]");
 		MafFilterUtils.checkMAFForMIN(maf);
 		assertEquals(SnpUtils.MUTATION_IN_NORMAL, maf.getFlag());
 		
-		maf.setNd("A:3[30],0[0],G:7[30],0[0]");
+		maf.setNd("A3[30],0[0],G7[30],0[0]");
 		MafFilterUtils.checkMAFForMIN(maf);
 		assertEquals(SnpUtils.MUTATION_IN_NORMAL, maf.getFlag());
 		
-		maf.setNd("A:1[30],0[0],G:20[30],0[0]");
+		maf.setNd("A1[30],0[0],G20[30],0[0]");
 		MafFilterUtils.checkMAFForMIN(maf);
 		assertEquals(SnpUtils.MUTATION_IN_NORMAL, maf.getFlag());
 		
-		maf.setNd("A:1[30],0[0],G:30[30],0[0]");
+		maf.setNd("A1[30],0[0],G30[30],0[0]");
 		MafFilterUtils.checkMAFForMIN(maf);
 		assertEquals(SnpUtils.MUTATION_IN_NORMAL, maf.getFlag());
 		
-		maf.setNd("A:1[30],0[0],G:32[30],0[0]");
+		maf.setNd("A1[30],0[0],G32[30],0[0]");
 		MafFilterUtils.checkMAFForMIN(maf);
 		assertEquals(SnpUtils.MUTATION_IN_NORMAL, maf.getFlag());
 		
-		maf.setNd("A:1[30],0[0],G:33[30],0[0]");
+		maf.setNd("A1[30],0[0],G33[30],0[0]");
 		MafFilterUtils.checkMAFForMIN(maf);
 		assertEquals(SnpUtils.PASS, maf.getFlag());
 		
 		maf.setFlag(SnpUtils.MUTATION_IN_NORMAL);
-		maf.setNd("A:1[30],0[0],G:34[30],0[0]");
+		maf.setNd("A1[30],0[0],G34[30],0[0]");
 		MafFilterUtils.checkMAFForMIN(maf);
 		assertEquals(SnpUtils.PASS, maf.getFlag());
 		
 		maf.setFlag(SnpUtils.MUTATION_IN_NORMAL);
-		maf.setNd("A:1[30],0[0],G:100[30],0[0]");
+		maf.setNd("A1[30],0[0],G100[30],0[0]");
 		MafFilterUtils.checkMAFForMIN(maf);
 		assertEquals(SnpUtils.PASS, maf.getFlag());
 	}
