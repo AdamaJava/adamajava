@@ -40,6 +40,20 @@ public class SnpUtilsTest {
 	public void getBaseCounts() {
 		String bases = "A1[11],0[0],C19[20.63],4[24],G3[20],2[24],T192[28.12],97[34.96]";
 		assertEquals(1, SnpUtils.getCountFromNucleotideString(bases, "A"));
+		assertEquals(23, SnpUtils.getCountFromNucleotideString(bases, "C"));
+		assertEquals(5, SnpUtils.getCountFromNucleotideString(bases, "G"));
+		assertEquals(289, SnpUtils.getCountFromNucleotideString(bases, "T"));
+	}
+	
+	@Test
+	public void getBaseCountsMergedACs() {
+		/*
+		 * Should always return the first value if we have a merged vcf record
+		 */
+		String bases = "A1[11],0[0]" + Constants.VCF_MERGE_DELIM + "A1[11],1[0]";
+		assertEquals(1, SnpUtils.getCountFromNucleotideString(bases, "A"));
+		bases = "A1[11],2[0]" + Constants.VCF_MERGE_DELIM + "A1[11],1[0]";
+		assertEquals(3, SnpUtils.getCountFromNucleotideString(bases, "A"));
 	}
 	
 	@Test
