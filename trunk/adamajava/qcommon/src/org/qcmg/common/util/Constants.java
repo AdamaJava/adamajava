@@ -42,5 +42,5 @@ public class Constants {
 	public static final String COMMENT_Q3BAM_UUID_PREFIX = "@CO\tq3BamUUID";
 	
 	//  used as delimiter when merging vcf records for format field
-	public static final char VCF_MERGE_DELIM = '/';
+	public static final char VCF_MERGE_DELIM = '%';
 }
