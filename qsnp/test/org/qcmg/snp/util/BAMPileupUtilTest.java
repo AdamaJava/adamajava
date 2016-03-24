@@ -308,7 +308,7 @@ public class BAMPileupUtilTest {
 		BAMPileupUtil.examinePileupSNP(records, qsnpRecord, mode);
 		Assert.assertNull(qsnpRecord.getAnnotation());
 		Assert.assertEquals(1, qsnpRecord.getTumourCount());
-		Assert.assertEquals("A:1[40],0[0]", qsnpRecord.getTumourNucleotides());
+		Assert.assertEquals("A1[40],0[0]", qsnpRecord.getTumourNucleotides());
 		
 		qsnpRecord = new QSnpRecord("chr1", 102, "C");
 		qsnpRecord.setNormalGenotype(GenotypeEnum.AA);
@@ -316,7 +316,7 @@ public class BAMPileupUtilTest {
 		BAMPileupUtil.examinePileupSNP(records, qsnpRecord, mode);
 		Assert.assertNull(qsnpRecord.getAnnotation());
 		Assert.assertEquals(2, qsnpRecord.getTumourCount());
-		Assert.assertEquals("A:1[40],0[0],G:1[40],0[0]", qsnpRecord.getTumourNucleotides());
+		Assert.assertEquals("A1[40],0[0],G1[40],0[0]", qsnpRecord.getTumourNucleotides());
 		
 		qsnpRecord = new QSnpRecord("chr1", 100, "C");
 		// set either the N or T genotype
@@ -326,7 +326,7 @@ public class BAMPileupUtilTest {
 		Assert.assertNull(qsnpRecord.getAnnotation());
 		Assert.assertEquals(1, qsnpRecord.getNormalCount());
 		Assert.assertEquals("A", qsnpRecord.getNormalPileup());
-		Assert.assertEquals("A:1[40],0[0]", qsnpRecord.getNormalNucleotides());
+		Assert.assertEquals("A1[40],0[0]", qsnpRecord.getNormalNucleotides());
 		
 		qsnpRecord = new QSnpRecord("chr1", 102, "A");
 		
@@ -334,7 +334,7 @@ public class BAMPileupUtilTest {
 		Assert.assertNull(qsnpRecord.getAnnotation());
 		Assert.assertEquals(2, qsnpRecord.getNormalCount());
 		Assert.assertEquals("GA", qsnpRecord.getNormalPileup());
-		Assert.assertEquals("A:1[40],0[0],G:1[40],0[0]", qsnpRecord.getNormalNucleotides());
+		Assert.assertEquals("A1[40],0[0],G1[40],0[0]", qsnpRecord.getNormalNucleotides());
 	}
 
 }

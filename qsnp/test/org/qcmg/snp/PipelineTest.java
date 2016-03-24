@@ -752,7 +752,7 @@ public class PipelineTest {
 		assertEquals(Classification.SOMATIC.toString(), vcf.getInfo());
 
 		// add in tumour nucleotides
-		final String tumourNucleotides = "C:15[18.95],19[19.35],A:2[27.02],3[29.03]"; 
+		final String tumourNucleotides = "C15[18.95],19[19.35],A2[27.02],3[29.03]"; 
 		snp.setTumourNucleotides(tumourNucleotides);
 		vcf.setFormatFields(null);
 		vcf = pipeline.convertQSnpToVCF(snp);
@@ -764,7 +764,7 @@ public class PipelineTest {
 		vcf = pipeline.convertQSnpToVCF(snp);
 		assertEquals(Classification.SOMATIC + "" , vcf.getInfo());
 		
-		final String normalNucleotides = "A:19[26.47],14[23.7],C:0[0],1[1]"; 
+		final String normalNucleotides = "A19[26.47],14[23.7],C0[0],1[1]"; 
 		snp.setNormalNucleotides(normalNucleotides);
 		
 		vcf.setFormatFields(null);
@@ -801,12 +801,12 @@ public class PipelineTest {
 		assertEquals(Constants.MISSING_DATA_STRING, vcf.getInfo());
 		
 		// add in tumour nucleotides
-		final String tumourNucleotides = "A:12[26.65],5[28.2],G:1[20],8[24.33]"; 
+		final String tumourNucleotides = "A12[26.65],5[28.2],G1[20],8[24.33]"; 
 		snp.setTumourNucleotides(tumourNucleotides);
 		vcf = pipeline.convertQSnpToVCF(snp);
 		assertEquals(Constants.MISSING_DATA_STRING, vcf.getInfo());
 		
-		final String normalNucleotides = "A:5[28.01],10[26.6],G:9[19.34],4[25.51]"; 
+		final String normalNucleotides = "A5[28.01],10[26.6],G9[19.34],4[25.51]"; 
 		snp.setNormalNucleotides(normalNucleotides);
 		vcf = pipeline.convertQSnpToVCF(snp);
 		assertEquals(Constants.MISSING_DATA_STRING, vcf.getInfo());
@@ -825,8 +825,8 @@ public class PipelineTest {
 		
 		assertEquals(VcfHeaderUtils.FORMAT_GENOTYPE + C + VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS + C + VcfHeaderUtils.FORMAT_ALLELE_COUNT + C + 
 				VcfHeaderUtils.FORMAT_MUTANT_READS + C + VcfHeaderUtils.FORMAT_NOVEL_STARTS, vcf.getFormatFields().get(0));
-		assertEquals("0/1:A/G:" + normalNucleotides.replace(":", "") + C + "15:7", vcf.getFormatFields().get(1));
-		assertEquals("0/1:A/G:" + tumourNucleotides.replace(":", "") + C + "17:3", vcf.getFormatFields().get(2));
+		assertEquals("0/1:A/G:" + normalNucleotides + C + "15:7", vcf.getFormatFields().get(1));
+		assertEquals("0/1:A/G:" + tumourNucleotides+ C + "17:3", vcf.getFormatFields().get(2));
 		
 	}
 	@Test
@@ -836,9 +836,9 @@ public class PipelineTest {
 		snp.setMutation("G>A");
 		snp.setClassification(Classification.SOMATIC);
 		// add in tumour nucleotides
-		String tumourNucleotides = "A:0[26.65],4[28.2],G:1[20],8[24.33]"; 
+		String tumourNucleotides = "A0[26.65],4[28.2],G1[20],8[24.33]"; 
 		snp.setTumourNucleotides(tumourNucleotides);
-		final String normalNucleotides = "A:5[28.01],10[26.6],G:9[19.34],4[25.51]"; 
+		final String normalNucleotides = "A5[28.01],10[26.6],G9[19.34],4[25.51]"; 
 		snp.setNormalNucleotides(normalNucleotides);
 		snp.setNormalGenotype(GenotypeEnum.GG);
 		snp.setTumourGenotype(GenotypeEnum.AG);
@@ -859,7 +859,7 @@ public class PipelineTest {
 		assertEquals(SnpUtils.LESS_THAN_12_READS_NORMAL + SC + SnpUtils.MUTANT_READS , vcf.getFilter());
 		
 		snp.getVcfRecord().setFilter(null);
-		tumourNucleotides = "A:1[26.65],4[28.2],G:1[20],8[24.33]"; 
+		tumourNucleotides = "A1[26.65],4[28.2],G1[20],8[24.33]"; 
 		snp.setTumourNucleotides(tumourNucleotides);
 		snp.setNormalCount(12);
 		pipeline.classifyPileupRecord(snp);
