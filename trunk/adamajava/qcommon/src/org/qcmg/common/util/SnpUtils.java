@@ -236,7 +236,7 @@ public class SnpUtils {
 	 * eg. for the Nucleotide string A1[41],3[19.33],G8[39.12],29[26.48]
 	 * this method will return 4 if 'A' is the supplied base, 37 if 'G' is the supplied base, and 0 for all other supplied bases
 	 * 
-	 * If there is more than 1 data set (ie. from a merged vcf record), the smallest count will be returned
+	 * If the bases have come from a merged vcf record, then the first occurrence of the desired base will be returned.
 	 * 
 	 * @param bases
 	 * @param base
