@@ -42,6 +42,7 @@ public class SnpUtils {
 	public static final String NOVEL_STARTS = "NNS";
 	public static final String MUTANT_READS = "MR";
 	public static final String PASS = "PASS";
+	public static final String MERGE_PASS = "PASS_1;PASS_2";
 	public static final String MUTATION_EQUALS_REF = "MER";	// mutation same as reference
 	
 	
@@ -232,9 +233,10 @@ public class SnpUtils {
 	/**
 	 * Get the count of the supplied base from the supplied Nucleotide string.
 	 * 
-	 * eg. for the Nucleotide string A:1[41],3[19.33],G:8[39.12],29[26.48]
+	 * eg. for the Nucleotide string A1[41],3[19.33],G8[39.12],29[26.48]
 	 * this method will return 4 if 'A' is the supplied base, 37 if 'G' is the supplied base, and 0 for all other supplied bases
 	 * 
+	 * If there is more than 1 data set (ie. from a merged vcf record), the smallest count will be returned
 	 * 
 	 * @param bases
 	 * @param base
