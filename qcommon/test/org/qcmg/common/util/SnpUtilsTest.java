@@ -35,6 +35,13 @@ public class SnpUtilsTest {
 		assertEquals(false, SnpUtils.isClassA("--PASS"));
 	}
 	
+	
+	@Test
+	public void getBaseCounts() {
+		String bases = "A1[11],0[0],C19[20.63],4[24],G3[20],2[24],T192[28.12],97[34.96]";
+		assertEquals(1, SnpUtils.getCountFromNucleotideString(bases, "A"));
+	}
+	
 	@Test
 	public void testIsClassAIndel() {
 		try {
@@ -150,16 +157,16 @@ public class SnpUtilsTest {
 		assertEquals(0, SnpUtils.getCountFromNucleotideString(null, null));
 		assertEquals(0, SnpUtils.getCountFromNucleotideString("", null));
 		assertEquals(0, SnpUtils.getCountFromNucleotideString("ABCD", null));
-		assertEquals(56, SnpUtils.getCountFromNucleotideString("A:56[29.05],0[0],C:0[0],4[25.43],T:0[0],2[25.74],G:1[29],0[0]","A"));
-		assertEquals(4, SnpUtils.getCountFromNucleotideString("A:56[29.05],0[0],C:0[0],4[25.43],T:0[0],2[25.74],G:1[29],0[0]","C"));
-		assertEquals(2, SnpUtils.getCountFromNucleotideString("A:56[29.05],0[0],C:0[0],4[25.43],T:0[0],2[25.74],G:1[29],0[0]","T"));
-		assertEquals(1, SnpUtils.getCountFromNucleotideString("A:56[29.05],0[0],C:0[0],4[25.43],T:0[0],2[25.74],G:1[29],0[0]","G"));
+		assertEquals(56, SnpUtils.getCountFromNucleotideString("A56[29.05],0[0],C0[0],4[25.43],T0[0],2[25.74],G1[29],0[0]","A"));
+		assertEquals(4, SnpUtils.getCountFromNucleotideString("A56[29.05],0[0],C0[0],4[25.43],T0[0],2[25.74],G1[29],0[0]","C"));
+		assertEquals(2, SnpUtils.getCountFromNucleotideString("A56[29.05],0[0],C0[0],4[25.43],T0[0],2[25.74],G1[29],0[0]","T"));
+		assertEquals(1, SnpUtils.getCountFromNucleotideString("A56[29.05],0[0],C0[0],4[25.43],T0[0],2[25.74],G1[29],0[0]","G"));
 		
 	}
 	
 	@Test
 	public void missingMRField() {
-		assertEquals(29, SnpUtils.getCountFromNucleotideString("C:22[36.91],21[26.67],G:27[36.93],2[31]","G"));
+		assertEquals(29, SnpUtils.getCountFromNucleotideString("C22[36.91],21[26.67],G27[36.93],2[31]","G"));
 	}
 	
 	@Test
