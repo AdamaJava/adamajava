@@ -716,7 +716,8 @@ public abstract class Pipeline {
 			formatField.append(normalGDField).append(Constants.COLON);
 			final String nNucleotides = StringUtils.isNullOrEmpty(rec.getNormalNucleotides()) ? Constants.MISSING_DATA_STRING : rec.getNormalNucleotides(); 
 			
-			formatField.append(nNucleotides.replace(":", "")).append(Constants.COLON);// remove colons in nucleotide strings
+			formatField.append(nNucleotides).append(Constants.COLON);// remove colons in nucleotide strings
+//			formatField.append(nNucleotides.replace(":", "")).append(Constants.COLON);// remove colons in nucleotide strings
 			
 			// add in MR and NNS data
 			formatField.append(controlMutantReadCount).append(Constants.COLON);
@@ -729,7 +730,8 @@ public abstract class Pipeline {
 		formatField.setLength(0);
 		formatField.append(altAndGTs[2]).append(Constants.COLON);
 		formatField.append(tumourGDField).append(Constants.COLON);
-		formatField.append(tNucleatides.replace(":", "")).append(Constants.COLON);// remove colons in nucleotide strings
+		formatField.append(tNucleatides).append(Constants.COLON);// remove colons in nucleotide strings
+//		formatField.append(tNucleatides.replace(":", "")).append(Constants.COLON);// remove colons in nucleotide strings
 		formatField.append(testMutantReadCount).append(Constants.COLON);
 		formatField.append(testNovelStartCount);
 		additionalformatFields.add(formatField.toString());

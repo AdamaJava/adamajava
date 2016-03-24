@@ -226,6 +226,9 @@ public class SnpUtils {
 		return mutation.substring(index + 1);
 	}
 	
+	
+	
+	
 	/**
 	 * Get the count of the supplied base from the supplied Nucleotide string.
 	 * 
@@ -247,7 +250,7 @@ public class SnpUtils {
 		
 		final int bracketPosition = bases.indexOf('[', basePosition);
 		
-		final int forwardCount = Integer.parseInt(bases.substring(basePosition + 2, bracketPosition));
+		final int forwardCount = Integer.parseInt(bases.substring(basePosition + base.length(), bracketPosition));
 		
 		final int commaPosition = bases.indexOf(',', bracketPosition);
 		final int reverseCount = Integer.parseInt(bases.substring(commaPosition + 1, bases.indexOf('[', commaPosition)));

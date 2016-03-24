@@ -62,6 +62,18 @@ public class VcfUtilsTest {
 		assertEquals(count,3);		;
 	}
 	
+	
+	@Test
+	public void getBaseCountsAC() {
+		VcfFormatFieldRecord r = new VcfFormatFieldRecord("GT:GD:AC:MR:NNS","0/1:C/T:A1[11],0[0],C19[20.63],4[24],G3[20],2[24],T192[28.12],97[34.96]:23:22");
+		
+	}
+	@Test
+	public void getBaseCountsACCS() {
+		String s = "";
+	}
+	
+	
 	@Test
 	public void missingDataToFormatField() {
 		try {
