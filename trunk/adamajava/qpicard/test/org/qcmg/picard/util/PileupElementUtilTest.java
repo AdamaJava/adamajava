@@ -607,27 +607,27 @@ Assert.assertFalse(bases.length() == qualities.length());	// due to the read sta
 		Assert.assertEquals(null, PileupElementUtil.getPileupElementString(pileups, '\u0000'));
 		PileupElement pe = new PileupElement('A');
 		pileups.add(pe);
-		Assert.assertEquals("A:0[0],0[0]", PileupElementUtil.getPileupElementString(pileups, '\u0000'));
+		Assert.assertEquals("A0[0],0[0]", PileupElementUtil.getPileupElementString(pileups, '\u0000'));
 		pe.incrementForwardCount((byte) 10);
-		Assert.assertEquals("A:1[10],0[0]", PileupElementUtil.getPileupElementString(pileups, '\u0000'));
+		Assert.assertEquals("A1[10],0[0]", PileupElementUtil.getPileupElementString(pileups, '\u0000'));
 		pe.incrementReverseCount((byte) 40);
-		Assert.assertEquals("A:1[10],1[40]", PileupElementUtil.getPileupElementString(pileups, '\u0000'));
+		Assert.assertEquals("A1[10],1[40]", PileupElementUtil.getPileupElementString(pileups, '\u0000'));
 		
 		PileupElement pe2 = new PileupElement('T');
 		pileups.add(pe2);
-		Assert.assertEquals("A:1[10],1[40],T:0[0],0[0]", PileupElementUtil.getPileupElementString(pileups, '\u0000'));
+		Assert.assertEquals("A1[10],1[40],T0[0],0[0]", PileupElementUtil.getPileupElementString(pileups, '\u0000'));
 		for (int i = 0 ; i < 15 ; i++) pe2.incrementForwardCount();
-		Assert.assertEquals("A:1[10],1[40],T:15[0],0[0]", PileupElementUtil.getPileupElementString(pileups, '\u0000'));
+		Assert.assertEquals("A1[10],1[40],T15[0],0[0]", PileupElementUtil.getPileupElementString(pileups, '\u0000'));
 		for (int i = 0 ; i < 104 ; i++) pe2.incrementReverseCount((byte)38);
-		Assert.assertEquals("A:1[10],1[40],T:15[0],104[38]", PileupElementUtil.getPileupElementString(pileups, '\u0000'));
+		Assert.assertEquals("A1[10],1[40],T15[0],104[38]", PileupElementUtil.getPileupElementString(pileups, '\u0000'));
 		
 		PileupElement pe3 = new PileupElement(PileupElementUtil.DOT);
 		pileups.add(pe3);
-		Assert.assertEquals("A:1[10],1[40],T:15[0],104[38],C:0[0],0[0]", PileupElementUtil.getPileupElementString(pileups, 'C'));
+		Assert.assertEquals("A1[10],1[40],T15[0],104[38],C0[0],0[0]", PileupElementUtil.getPileupElementString(pileups, 'C'));
 		for (int i = 0 ; i < 7 ; i++) pe3.incrementForwardCount();
-		Assert.assertEquals("A:1[10],1[40],T:15[0],104[38],C:7[0],0[0]", PileupElementUtil.getPileupElementString(pileups, 'C'));
+		Assert.assertEquals("A1[10],1[40],T15[0],104[38],C7[0],0[0]", PileupElementUtil.getPileupElementString(pileups, 'C'));
 		for (int i = 0 ; i < 62 ; i++) pe3.incrementReverseCount((byte)24);
-		Assert.assertEquals("A:1[10],1[40],T:15[0],104[38],C:7[0],62[24]", PileupElementUtil.getPileupElementString(pileups, 'C'));
+		Assert.assertEquals("A1[10],1[40],T15[0],104[38],C7[0],62[24]", PileupElementUtil.getPileupElementString(pileups, 'C'));
 	}
 	
 	@Test
