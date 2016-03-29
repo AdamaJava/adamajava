@@ -43,4 +43,6 @@ public class Constants {
 	
 	//  used as delimiter when merging vcf records for format field
 	public static final char VCF_MERGE_DELIM = '&';
+	//  used as delimiter when merging vcf records for format field
+	public static final String VCF_MERGE_INFO = "IN";
 }
