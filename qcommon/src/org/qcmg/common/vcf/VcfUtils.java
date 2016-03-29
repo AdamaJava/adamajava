@@ -102,6 +102,27 @@ public class VcfUtils {
 	}
 	
 	/**
+	 * Returns true if the vcf record has been merged by the q3vcftools merge program, which inserts into the info field the inputs from which the vcf record originated.
+	 * 
+	 *  eg. if "IN=1" is present in the info field, it would indicate that the vcf record originated from the first input vcf file (as specified in the vcf header)
+	 *  if "IN=1,2" is present in the info field, it would indicate that the vcf record originated from the first and second input vcf files (as specified in the vcf header)
+	 *  
+	 * @param vcf
+	 * @return true if the info field contains "IN=" followed by a comma separated list of more than 1 number
+	 */
+	public static boolean isMergedRecord(VcfRecord vcf) {
+		VcfInfoFieldRecord info =vcf.getInfoRecord();
+		if (null != info) {
+			String mergeInfo = info.getField(Constants.VCF_MERGE_INFO);
+			
+			if ( ! StringUtils.isNullOrEmpty(mergeInfo)) {
+				return mergeInfo.contains(Constants.COMMA_STRING);
+			}
+		}
+		return false;
+	}
+	
+	/**
 	 * Returns the AD value from the genotype field in the GATK vcf output
 	 * This corresponds to: 
 	 * <code>GT:AD:DP:GQ:PL	0/1:<b>173,141</b>:282:99:255,0,255</code>
