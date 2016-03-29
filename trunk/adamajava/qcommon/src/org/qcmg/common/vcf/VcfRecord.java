@@ -254,7 +254,9 @@ public class VcfRecord implements Comparable<VcfRecord> {
 	public void appendInfo(String additionalInfo) {
 		appendInfo(additionalInfo, true);
 	}
-	public String getInfo() { 	return (infoRecord == null)? Constants.MISSING_DATA_STRING: infoRecord.toString(); }	
+	public String getInfo() { 	
+		return (infoRecord == null)? Constants.MISSING_DATA_STRING: infoRecord.toString(); 
+	}	
 	public VcfInfoFieldRecord getInfoRecord() { return infoRecord; }
 	
 	

@@ -55,7 +55,7 @@ public class VcfInfoFieldRecord {
 	}
 
 	/**
-	 * This method will add the supplied key and value to the underlying string buffer with an '=' as the seperator.
+	 * This method will add the supplied key and value to the underlying string buffer with an '=' as the separator.
 	 * No check is performed to ensure that an existing entry with the same key is present.
 	 * Please use {@link #setField(String, String)} if this is the behaviour you want.
 	 * 

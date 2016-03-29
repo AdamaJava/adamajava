@@ -62,16 +62,30 @@ public class VcfUtilsTest {
 		assertEquals(count,3);		;
 	}
 	
-	
 	@Test
-	public void getBaseCountsAC() {
-		VcfFormatFieldRecord r = new VcfFormatFieldRecord("GT:GD:AC:MR:NNS","0/1:C/T:A1[11],0[0],C19[20.63],4[24],G3[20],2[24],T192[28.12],97[34.96]:23:22");
+	public void hasRecordBeenMerged() {
+		VcfRecord rec =  new VcfRecord( new String[] {"1","1",".","A","."});
+		assertEquals(false, VcfUtils.isMergedRecord(rec));
 		
+		rec.setInfo(".");
+		assertEquals(false, VcfUtils.isMergedRecord(rec));
+		rec.setInfo("");
+		assertEquals(false, VcfUtils.isMergedRecord(rec));
+		rec.setInfo("SOMATIC");
+		assertEquals(false, VcfUtils.isMergedRecord(rec));
+		rec.setInfo("THIS_SHOULD_BE_FALSE_IN=1,2");
+		assertEquals(false, VcfUtils.isMergedRecord(rec));
+		rec.setInfo("THIS_SHOULD_BE_TRUE;IN=1,2");
+		assertEquals(true, VcfUtils.isMergedRecord(rec));
+		rec.setInfo("IN=1");
+		assertEquals(false, VcfUtils.isMergedRecord(rec));
+		rec.setInfo("SOMATIC;FLANK=ACCCTGGAAGA;IN=1");
+		assertEquals(false, VcfUtils.isMergedRecord(rec));
+		rec.setInfo("FLANK=TGTCCATTGCA;AC=1;AF=0.500;AN=2;BaseQRankSum=0.212;ClippingRankSum=1.855;DP=13;FS=0.000;MLEAC=1;MLEAF=0.500;MQ=21.57;MQ0=0;MQRankSum=-0.533;QD=10.83;ReadPosRankSum=0.696;SOR=1.402;IN=1,2");
+		assertEquals(true, VcfUtils.isMergedRecord(rec));
 	}
-	@Test
-	public void getBaseCountsACCS() {
-		String s = "";
-	}
+	
+	
 	
 	
 	@Test
