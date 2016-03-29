@@ -40,7 +40,7 @@ public class MergeUtils {
 			.forEach(list -> {
 				mergedRecs.addAll(list.stream()
 						.filter(r -> r != null && r.getData() != null && ! r.getData().equals(VcfHeaderUtils.BLANK_HEADER_LINE))
-						.map(r -> r.getData().replaceAll("##", "##" + prefix.get() + ":"))
+						.map(r -> r.getData().replaceAll(Constants.DOUBLE_HASH, Constants.DOUBLE_HASH + prefix.get() + Constants.COLON))
 						.collect(Collectors.toList()));
 				prefix.incrementAndGet();
 			});
@@ -87,12 +87,12 @@ public class MergeUtils {
 			/*
 			 * add IN= to 
 			 */
-			logger.info("checking that no existing info lines start with IN= ");
-			if (infoPair.getLeft().contains("IN")) {
-				logger.warn("Can't use IN= to mark records as having come from a particular input file - IN= is already in use!");
+			logger.info("checking that no existing info lines start with "+Constants.VCF_MERGE_INFO+"= ");
+			if (infoPair.getLeft().contains(Constants.VCF_MERGE_INFO)) {
+				logger.warn("Can't use "+Constants.VCF_MERGE_INFO+"= to mark records as having come from a particular input file - "+Constants.VCF_MERGE_INFO+"= is already in use!");
 			}
 			
-			mergedHeader.addInfoLine("IN", ".", "Integer", "Indicates which INput file this vcf record came from. Multiple values are allowed which indicate that the record has been merged from more than 1 input file");
+			mergedHeader.addInfoLine(Constants.VCF_MERGE_INFO, ".", "Integer", "Indicates which INput file this vcf record came from. Multiple values are allowed which indicate that the record has been merged from more than 1 input file");
 			mergedHeader.parseHeaderLine(headers[0].getChrom().toString());
 			
 			Rule r = new Rule(headers.length);
@@ -202,7 +202,7 @@ public class MergeUtils {
 				/*
 				 * INFO
 				 */
-				for (String s : r.getInfo().split(";")) {
+				for (String s : r.getInfo().split(Constants.SEMI_COLON_STRING)) {
 					int equalsIndex = s.indexOf(Constants.EQ);
 					String key = equalsIndex > -1 ? s.substring(0, equalsIndex) : s;
 					String replacementKey = thisRecordsRules.get(key);
@@ -250,7 +250,7 @@ public class MergeUtils {
 			 */
 			if (null != r.getFilter()) {
 				String suffix = "_" + (i+1);
-				for (String s : r.getFilter().split(";")) {
+				for (String s : r.getFilter().split(Constants.SEMI_COLON_STRING)) {
 					String replacementKey = (null == thisRecordsRules) ? null : thisRecordsRules.get(s);
 					if (null == replacementKey) {
 						mergedRecord.addFilter(s + suffix);
