@@ -1,6 +1,7 @@
 package au.edu.qimr.qannotate.modes;
 
 import static org.qcmg.common.util.Constants.SEMI_COLON_STRING;
+import static org.qcmg.common.util.Constants.SEMI_COLON;
 import static org.qcmg.common.util.SnpUtils.LESS_THAN_12_READS_NORMAL;
 import static org.qcmg.common.util.SnpUtils.LESS_THAN_3_READS_NORMAL;
 import static org.qcmg.common.util.SnpUtils.MUTATION_IN_UNFILTERED_NORMAL;
@@ -29,6 +30,9 @@ import au.edu.qimr.qannotate.utils.SampleColumn;
 public class ConfidenceMode extends AbstractMode{
 	private final QLogger logger = QLoggerFactory.getLogger(ConfidenceMode.class);
 	
+	
+	public static final String[] CLASS_B_FILTERS= new String[] {PASS, MUTATION_IN_UNFILTERED_NORMAL, LESS_THAN_12_READS_NORMAL, LESS_THAN_3_READS_NORMAL};
+	
 	public static final int HIGH_CONF_NOVEL_STARTS_PASSING_SCORE = 4;
 	public static final int LOW_CONF_NOVEL_STARTS_PASSING_SCORE = 4;
 	
@@ -36,8 +40,8 @@ public class ConfidenceMode extends AbstractMode{
 	public static final int LOW_CONF_ALT_FREQ_PASSING_SCORE = 4;	
 	
 	//filters 
-	public static final String LESS_THAN_12_READS_NORMAL_AND_UNFILTERED= LESS_THAN_12_READS_NORMAL + SEMI_COLON_STRING + MUTATION_IN_UNFILTERED_NORMAL;
-	public static final String LESS_THAN_3_READS_NORMAL_AND_UNFILTERED= LESS_THAN_3_READS_NORMAL + SEMI_COLON_STRING + MUTATION_IN_UNFILTERED_NORMAL;
+//	public static final String LESS_THAN_12_READS_NORMAL_AND_UNFILTERED= LESS_THAN_12_READS_NORMAL + SEMI_COLON_STRING + MUTATION_IN_UNFILTERED_NORMAL;
+//	public static final String LESS_THAN_3_READS_NORMAL_AND_UNFILTERED= LESS_THAN_3_READS_NORMAL + SEMI_COLON_STRING + MUTATION_IN_UNFILTERED_NORMAL;
 	
 	
 	public static final String DESCRITPION_INFO_CONFIDENCE = String.format( "set to HIGH if the variants passed all filter, "
@@ -95,34 +99,82 @@ public class ConfidenceMode extends AbstractMode{
 		int high = 0;
 		int low = 0;
 		int zero = 0;
+		int mergedHigh = 0;
+		int mergedLow = 0;
+		int mergedZero = 0;
 		
 		//check high, low nns...
 		for (List<VcfRecord> vcfs : positionRecordMap.values()) {
 			for(VcfRecord vcf : vcfs){
-//			 	final ChrPosition pos = vcf.getChrPosition();
+				
+				/*
+				 * Check to see if this record is a merged record
+				 * If it is, add multiple confidences
+				 */
+				boolean mergedRec = VcfUtils.isMergedRecord(vcf);
+				
+				
+				
 			 	VcfFormatFieldRecord formatField = (vcf.getInfo().contains(VcfHeaderUtils.INFO_SOMATIC)) ? vcf.getSampleFormatRecord(test_column) :  vcf.getSampleFormatRecord(control_column);
-		    		    	
-			 	if ( checkNovelStarts(HIGH_CONF_NOVEL_STARTS_PASSING_SCORE, formatField)
-						&& ( VcfUtils.getAltFrequency(formatField, vcf.getAlt()) >=  HIGH_CONF_ALT_FREQ_PASSING_SCORE)
-						&& PASS.equals(vcf.getFilter())) {
-		        	
-		        		vcf.getInfoRecord().setField(VcfHeaderUtils.INFO_CONFIDENT, Confidence.HIGH.toString());		        	 				 				
-		        		high++;
-		        } else if ( checkNovelStarts(LOW_CONF_NOVEL_STARTS_PASSING_SCORE, formatField)
-						&& ( VcfUtils.getAltFrequency(formatField, vcf.getAlt()) >= LOW_CONF_ALT_FREQ_PASSING_SCORE )
-						&& isClassB(vcf.getFilter()) ) {
-		        	
-		        		vcf.getInfoRecord().setField(VcfHeaderUtils.INFO_CONFIDENT, Confidence.LOW.toString());					 
-		        		low++;
-		        } else {
-		        		vcf.getInfoRecord().setField(VcfHeaderUtils.INFO_CONFIDENT, Confidence.ZERO.toString());
-		        		zero++;
-		        }
-	//	        vcf.setInfo(vcf.getInfoRecord().toString());
+			 	
+			 	if (mergedRec) {
+			 		/*
+			 		 * just catering for a 2 way merge for now
+			 		 */
+			 		String bases = formatField.getField(VcfHeaderUtils.FORMAT_ALLELE_COUNT);
+			 		boolean compoundSnp = bases == null;
+			 		if (compoundSnp) {
+			 			bases = formatField.getField(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP);
+			 		}
+			 		String [] basesArray = bases.split(Constants.VCF_MERGE_DELIM + "");
+			 		
+			 		for (int i = 1 ; i <= 2 ; i++) {
+			 			
+			 			String suffix = "_" + i;
+			 			String thisFilter = VcfUtils.getFiltersEndingInSuffix(vcf, suffix).replace(suffix, "");
+			 			int nns = getNNS(formatField, i);
+			 			int altFreq =  SnpUtils.getCountFromNucleotideString(basesArray[i-1], vcf.getAlt(), compoundSnp);
+			 			
+			 			
+			 			if ( nns >= HIGH_CONF_NOVEL_STARTS_PASSING_SCORE
+								&& altFreq >=  HIGH_CONF_ALT_FREQ_PASSING_SCORE
+								&& PASS.equals(thisFilter)) {
+				        	
+				        		vcf.getInfoRecord().addField(VcfHeaderUtils.INFO_CONFIDENT, Confidence.HIGH.toString() + suffix);    	 				 				
+				        		mergedHigh++;
+				        } else if ( nns >= LOW_CONF_NOVEL_STARTS_PASSING_SCORE
+								&& altFreq >= LOW_CONF_ALT_FREQ_PASSING_SCORE 
+								&& isClassB(thisFilter) ) {
+				        	
+				        		vcf.getInfoRecord().addField(VcfHeaderUtils.INFO_CONFIDENT, Confidence.LOW.toString() + suffix);					 
+				        		mergedLow++;
+				        } else {
+				        		vcf.getInfoRecord().addField(VcfHeaderUtils.INFO_CONFIDENT, Confidence.ZERO.toString() + suffix);
+				        		mergedZero++;
+				        }
+			 		}
+			 	} else {
+				 	if ( checkNovelStarts(HIGH_CONF_NOVEL_STARTS_PASSING_SCORE, formatField)
+							&& ( VcfUtils.getAltFrequency(formatField, vcf.getAlt()) >=  HIGH_CONF_ALT_FREQ_PASSING_SCORE)
+							&& PASS.equals(vcf.getFilter())) {
+			        	
+			        		vcf.getInfoRecord().setField(VcfHeaderUtils.INFO_CONFIDENT, Confidence.HIGH.toString());		        	 				 				
+			        		high++;
+			        } else if ( checkNovelStarts(LOW_CONF_NOVEL_STARTS_PASSING_SCORE, formatField)
+							&& ( VcfUtils.getAltFrequency(formatField, vcf.getAlt()) >= LOW_CONF_ALT_FREQ_PASSING_SCORE )
+							&& isClassB(vcf.getFilter()) ) {
+			        	
+			        		vcf.getInfoRecord().setField(VcfHeaderUtils.INFO_CONFIDENT, Confidence.LOW.toString());					 
+			        		low++;
+			        } else {
+			        		vcf.getInfoRecord().setField(VcfHeaderUtils.INFO_CONFIDENT, Confidence.ZERO.toString());
+			        		zero++;
+			        }
+			 	}
 		    }
 		}
 		
-		logger.info("Confidence breakdown, high: " + high + ", low: " + low + ", zero: " + zero);
+		logger.info("Confidence breakdown, high: " + high + ", low: " + low + ", zero: " + zero + ", mergedHigh: " + mergedHigh + ", mergedLow: " + mergedLow + ", mergedZero: " + mergedZero);
  
 		//add header line  set number to 1
 		header.addInfoLine(VcfHeaderUtils.INFO_CONFIDENT, "1", "String", DESCRITPION_INFO_CONFIDENCE);
@@ -140,8 +192,20 @@ public class ConfidenceMode extends AbstractMode{
 		if (null == filter) {
 			throw new IllegalArgumentException("Null filter string passed to ConfidenceMode.isClassB");
 		}
+		
+		String f = filter;
 		//remove MUTATION_IN_UNFILTERED_NORMAL
-		final String f = filter.replace(MUTATION_IN_UNFILTERED_NORMAL, "").replace(SEMI_COLON_STRING,"").trim();
+		int index = filter.indexOf(MUTATION_IN_UNFILTERED_NORMAL);
+		if (index > -1) {
+			
+			if (filter.equals(MUTATION_IN_UNFILTERED_NORMAL)) {
+				return true;
+			} else if (index == 0) {
+				f = filter.substring(MUTATION_IN_UNFILTERED_NORMAL.length() + 1);
+			} else {
+				f = filter.replace(SEMI_COLON + MUTATION_IN_UNFILTERED_NORMAL, "");
+			}
+		}
 		
 		return f.equals(Constants.EMPTY_STRING) ||  LESS_THAN_12_READS_NORMAL.equals(f)  ||   LESS_THAN_3_READS_NORMAL.equals(f);
 	}
@@ -167,21 +231,63 @@ public class ConfidenceMode extends AbstractMode{
 	 * @param formatField : vcf formate field string
 	 * @return true if novel start value higher than score or not exists
 	 */
-	 public static final boolean checkNovelStarts(int score, VcfFormatFieldRecord formatField ) {
-		 String nnsString = formatField.getField(VcfHeaderUtils.FILTER_NOVEL_STARTS);
-		 if (StringUtils.isNullOrEmpty(nnsString) || nnsString.equals(Constants.MISSING_DATA_STRING)) {
+	 public static final boolean checkNovelStarts(int score, VcfFormatFieldRecord formatField , int input) {
+		 int nns = getNNS(formatField, input);
+		 if (nns == 0) {
 			 /*
-			  * If we don't have a value for NNS (I'm looking at you compound snps), then return true...
+			  * Special case whereby if novel starts count is zero, we return true (eg. compound snps)
 			  */
 			 return true;
-		 } else if (nnsString.contains(Constants.VCF_MERGE_DELIM + "")) {
+		 }
+		 return nns >= score;
+		 
+//		 return true;
+//		 String nnsString = formatField.getField(VcfHeaderUtils.FILTER_NOVEL_STARTS);
+//		 if (StringUtils.isNullOrEmpty(nnsString) || nnsString.equals(Constants.MISSING_DATA_STRING)) {
+//			 /*
+//			  * If we don't have a value for NNS (I'm looking at you compound snps), then return true...
+//			  */
+//			 return true;
+//		 } else if (nnsString.contains(Constants.VCF_MERGE_DELIM + "")) {
+//			 /*
+//			  * in a merged vcf record, there may be 2 values in the NNS field separated  by a delimiter. Pick the first
+//			  */
+//			 int commaIndex = nnsString.indexOf(Constants.VCF_MERGE_DELIM);
+//			 switch (input) {
+//			 case 1:  return Integer.parseInt(nnsString.substring(0, commaIndex)) >= score; 
+//			 case 2:  return Integer.parseInt(nnsString.substring(commaIndex + 1)) >= score;
+//			 default: return false;
+//			 }
+//			
+//		 }
+//		 return Integer.parseInt(nnsString) >= score;
+	 }
+	 public static final boolean checkNovelStarts(int score, VcfFormatFieldRecord formatField ) {
+		 return checkNovelStarts(score, formatField, 1);
+	 }
+	 
+	 public static int getNNS(VcfFormatFieldRecord formatField , int input) {
+		 String nnsString = formatField.getField(VcfHeaderUtils.FILTER_NOVEL_STARTS);
+		 if (StringUtils.isNullOrEmpty(nnsString) || nnsString.equals(Constants.MISSING_DATA_STRING)) {
+			 return 0;
+		 }
+		 if (nnsString.contains(Constants.VCF_MERGE_DELIM + "")) {
 			 /*
-			  * in a merged vcf record, there may be 2 values in the NNS field separated  by a delimiter. Pick the lowest
+			  * in a merged vcf record, there may be 2 values in the NNS field separated  by a delimiter. Pick the first
 			  */
 			 int commaIndex = nnsString.indexOf(Constants.VCF_MERGE_DELIM);
-			 return Math.min(Integer.parseInt(nnsString.substring(0, commaIndex)), Integer.parseInt(nnsString.substring(commaIndex + 1))) >= score;
+			 switch (input) {
+			 case 1:  return Integer.parseInt(nnsString.substring(0, commaIndex)); 
+			 case 2:  return Integer.parseInt(nnsString.substring(commaIndex + 1));
+			 default: return 0;
+			 }
+			
 		 }
-		 return Integer.parseInt(nnsString) >= score;
+		 return Integer.parseInt(nnsString);
+	 }
+	 
+	 public static int getNNS(VcfFormatFieldRecord formatField) {
+		 return getNNS(formatField, 1);
 	 }
 
 
