@@ -466,6 +466,20 @@ public class MergeUtilsTest {
 		VcfRecord mr = MergeUtils.mergeRecords(null,  v1, v2);
 	}
 	
+	@Test
+	public void multipleSomatics() {
+		VcfRecord v1 = new VcfRecord(new String[] {"chr1","4985568",".",	"A",	",C",	".",	"PASS",	"SOMATIC;FLANK=ACGTTCCTGCA","GT:GD:AC:MR:NNS	0/1:A/C:A8[33.75],11[38.82],C3[42],5[40]:8:8","1/1:C/C:A1[37],0[0],C23[38.96],19[41.21]:42:38"});
+		VcfRecord v2 = new VcfRecord(new String[] {"chr1","4985568","rs10753395","A","C","245.77","PASS","AC=1;AF=0.500;AN=2;BaseQRankSum=0.972;ClippingRankSum=1.139;DB;DP=26;FS=0.000;MLEAC=1;MLEAF=0.500;MQ=60.00;MQ0=0;MQRankSum=-0.472;QD=9.45;ReadPosRankSum=-0.194;SOR=0.693","GT:AD:DP:GQ:PL:GD:AC:MR:NNS","0/1:18,8:26:99:274,0,686:A/C:A9[33.56],11[38.82],C3[42],5[40],G0[0],1[22],T1[11],0[0]:8:8","1/1:1,44:45:94:1826,94,0:C/C:A1[37],0[0],C24[38.88],23[40.26]:47:42"});
+		VcfRecord mr = MergeUtils.mergeRecords(null,  v1, v2);
+		assertEquals("SOMATIC_1;FLANK=ACGTTCCTGCA;AC=1;AF=0.500;AN=2;BaseQRankSum=0.972;ClippingRankSum=1.139;DB;DP=26;FS=0.000;MLEAC=1;MLEAF=0.500;MQ=60.00;MQ0=0;MQRankSum=-0.472;QD=9.45;ReadPosRankSum=-0.194;SOR=0.693", mr.getInfo());
+		
+		v1 = new VcfRecord(new String[] {"chr1","4985568",".",	"A",	",C",	".",	"PASS",	"SOMATIC;FLANK=ACGTTCCTGCA","GT:GD:AC:MR:NNS	0/1:A/C:A8[33.75],11[38.82],C3[42],5[40]:8:8","1/1:C/C:A1[37],0[0],C23[38.96],19[41.21]:42:38"});
+		v2 = new VcfRecord(new String[] {"chr1","4985568","rs10753395","A","C","245.77","PASS","SOMATIC;FLANK=ACGTTCCTGCA","GT:AD:DP:GQ:PL:GD:AC:MR:NNS","0/1:18,8:26:99:274,0,686:A/C:A9[33.56],11[38.82],C3[42],5[40],G0[0],1[22],T1[11],0[0]:8:8","1/1:1,44:45:94:1826,94,0:C/C:A1[37],0[0],C24[38.88],23[40.26]:47:42"});
+		mr = MergeUtils.mergeRecords(null,  v1, v2);
+		assertEquals("SOMATIC_1;FLANK=ACGTTCCTGCA;SOMATIC_2", mr.getInfo());
+		
+	}
+	
 	
 	@Test
 	public void mergeRealLifeData() {

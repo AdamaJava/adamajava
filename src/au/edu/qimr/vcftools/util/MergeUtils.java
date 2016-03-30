@@ -14,6 +14,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.util.Constants;
+import org.qcmg.common.util.SnpUtils;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
@@ -194,8 +195,14 @@ public class MergeUtils {
 		for (int i = 0 ; i < records.length ; i++) {
 			VcfRecord r = records[i];
 			Map<String, String> thisRecordsRules = null != rules ? rules.get(i) : null;
+			String suffix = "_" + (i+1);
 			
 			mergedRecord.appendId(r.getId());
+			
+			if (r.getInfo().contains(SnpUtils.SOMATIC)) {
+				// replace with suffix
+				r.setInfo(r.getInfo().replace(SnpUtils.SOMATIC, SnpUtils.SOMATIC + suffix));
+			}
 			
 			if (null != thisRecordsRules && ! thisRecordsRules.isEmpty()) {
 				
@@ -249,7 +256,6 @@ public class MergeUtils {
 			 * FILTER
 			 */
 			if (null != r.getFilter()) {
-				String suffix = "_" + (i+1);
 				for (String s : r.getFilter().split(Constants.SEMI_COLON_STRING)) {
 					String replacementKey = (null == thisRecordsRules) ? null : thisRecordsRules.get(s);
 					if (null == replacementKey) {
