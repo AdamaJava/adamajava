@@ -89,6 +89,64 @@ public class ConfidenceModeTest {
 	 }
 	 
 	 @Test
+	 public void classBMerged() {
+		 VcfRecord rec = VcfUtils.createVcfRecord("1", 1);
+		 rec.setFilter(SnpUtils.MERGE_PASS);
+		 String filter1 = VcfUtils.getFiltersEndingInSuffix(rec, "_1").replace("_1", "");
+		 String filter2 = VcfUtils.getFiltersEndingInSuffix(rec, "_2").replace("_2", "");
+		 assertEquals(true, ConfidenceMode.isClassB(filter1));
+		 assertEquals(true, ConfidenceMode.isClassB(filter2));
+		 rec.setFilter("PASS_1;MIN_2");
+		 filter1 = VcfUtils.getFiltersEndingInSuffix(rec, "_1").replace("_1", "");
+		 filter2 = VcfUtils.getFiltersEndingInSuffix(rec, "_2").replace("_2", "");
+		 assertEquals(true, ConfidenceMode.isClassB(filter1));
+		 assertEquals(false, ConfidenceMode.isClassB(filter2));
+		 
+		 rec.setFilter("PASS_1;SAN3_2");
+		 filter1 = VcfUtils.getFiltersEndingInSuffix(rec, "_1").replace("_1", "");
+		 filter2 = VcfUtils.getFiltersEndingInSuffix(rec, "_2").replace("_2", "");
+		 assertEquals(true, ConfidenceMode.isClassB(filter1));
+		 assertEquals(true, ConfidenceMode.isClassB(filter2));
+		 
+		 rec.setFilter("PASS_1;NCIT_2");
+		 filter1 = VcfUtils.getFiltersEndingInSuffix(rec, "_1").replace("_1", "");
+		 filter2 = VcfUtils.getFiltersEndingInSuffix(rec, "_2").replace("_2", "");
+		 assertEquals(true, ConfidenceMode.isClassB(filter1));
+		 assertEquals(false, ConfidenceMode.isClassB(filter2));
+		 
+		 rec.setFilter("5BP2_1;MIN_2");
+		 filter1 = VcfUtils.getFiltersEndingInSuffix(rec, "_1").replace("_1", "");
+		 filter2 = VcfUtils.getFiltersEndingInSuffix(rec, "_2").replace("_2", "");
+		 assertEquals(false, ConfidenceMode.isClassB(filter1));
+		 assertEquals(false, ConfidenceMode.isClassB(filter2));
+		 
+		 rec.setFilter("SBIASALT_1;5BP1_1;MIN_2");
+		 filter1 = VcfUtils.getFiltersEndingInSuffix(rec, "_1").replace("_1", "");
+		 filter2 = VcfUtils.getFiltersEndingInSuffix(rec, "_2").replace("_2", "");
+		 assertEquals(false, ConfidenceMode.isClassB(filter1));
+		 assertEquals(false, ConfidenceMode.isClassB(filter2));
+		 
+		 rec.setFilter("COVN8_1;5BP1_1;SBIASCOV_1;COVN8_2");
+		 filter1 = VcfUtils.getFiltersEndingInSuffix(rec, "_1").replace("_1", "");
+		 filter2 = VcfUtils.getFiltersEndingInSuffix(rec, "_2").replace("_2", "");
+		 assertEquals(false, ConfidenceMode.isClassB(filter1));
+		 assertEquals(false, ConfidenceMode.isClassB(filter2));
+		 
+		 rec.setFilter("SAN3_1;SBIASCOV_1;COVN12_2;MIN_2");
+		 filter1 = VcfUtils.getFiltersEndingInSuffix(rec, "_1").replace("_1", "");
+		 filter2 = VcfUtils.getFiltersEndingInSuffix(rec, "_2").replace("_2", "");
+		 assertEquals(false, ConfidenceMode.isClassB(filter1));
+		 assertEquals(false, ConfidenceMode.isClassB(filter2));
+		 
+		 rec.setFilter("SAN3_1;SBIASCOV_1;COVN12_2");
+		 filter1 = VcfUtils.getFiltersEndingInSuffix(rec, "_1").replace("_1", "");
+		 filter2 = VcfUtils.getFiltersEndingInSuffix(rec, "_2").replace("_2", "");
+		 assertEquals(false, ConfidenceMode.isClassB(filter1));
+		 assertEquals(true, ConfidenceMode.isClassB(filter2));
+		 
+	 }
+	 
+	 @Test
 	 public void novelStarts() {
 		 VcfFormatFieldRecord format = new VcfFormatFieldRecord("ACCS","GA,1,2,GT,1,0,TG,43,51,GG,0,1,TA,0,2");
 		 assertEquals(true, ConfidenceMode.checkNovelStarts(0, format));
