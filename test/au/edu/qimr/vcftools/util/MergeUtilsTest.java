@@ -1,6 +1,7 @@
 package au.edu.qimr.vcftools.util;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.qcmg.common.util.Constants.VCF_MERGE_DELIM;
 
 import java.text.DateFormat;
@@ -15,16 +16,20 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.meta.QExec;
 import org.qcmg.common.util.Constants;
+import org.qcmg.common.util.SnpUtils;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeader.FormattedRecord;
 import org.qcmg.common.vcf.header.VcfHeader.Record;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
+
+import au.edu.qimr.vcftools.Rule;
 
 public class MergeUtilsTest {
 	
@@ -74,6 +79,20 @@ public class MergeUtilsTest {
 		h1.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "12345\tXZY", true);
 		h2.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "XZY\t12345", true);
 		assertEquals(false, MergeUtils.canMergeBePerformed(h1, h2));
+	}
+	
+	@Test
+	public void getMergedHeadersAndRules() {
+		VcfHeader qsnpHeader = new VcfHeader(getQsnpVcfHeader());
+		VcfHeader gatkHeader = new VcfHeader(getQsnpVcfHeader());
+		Pair<VcfHeader, Rule> pair = MergeUtils.getMergedHeaderAndRules(qsnpHeader, gatkHeader);
+		
+		assertNotNull(pair);
+		
+		VcfHeader mergedHeader = pair.getLeft(); 
+		assertEquals(true, mergedHeader.getInfoRecords().containsKey(SnpUtils.SOMATIC));
+		assertEquals(true, mergedHeader.getInfoRecords().containsKey(SnpUtils.SOMATIC+ "_n"));
+		
 	}
 	
 	@Test

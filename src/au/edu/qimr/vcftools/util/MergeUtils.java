@@ -53,7 +53,7 @@ public class MergeUtils {
 		return getHeaderAndRules(Arrays.asList(loMaRecs)).getRight();
 	}
 	
-	public static Pair<VcfHeader, Rule> getMergedHeaderAndRules(List<String> vcfFileNames, VcfHeader ... headers) {
+	public static Pair<VcfHeader, Rule> getMergedHeaderAndRules(VcfHeader ... headers) {
 		
 		if (canMergeBePerformed(headers)) {
 			VcfHeader mergedHeader = new VcfHeader();
@@ -94,6 +94,15 @@ public class MergeUtils {
 			}
 			
 			mergedHeader.addInfoLine(Constants.VCF_MERGE_INFO, ".", "Integer", "Indicates which INput file this vcf record came from. Multiple values are allowed which indicate that the record has been merged from more than 1 input file");
+			
+			/*
+			 * make sure SOMATIC has been added, and add the _n entry
+			 */
+			if ( ! infoPair.getLeft().contains(SnpUtils.SOMATIC)) {
+				mergedHeader.addInfoLine(SnpUtils.SOMATIC, "0", "Flag", "Indicates that the record is considered a SOMATIC record");
+			}
+			mergedHeader.addInfoLine(SnpUtils.SOMATIC + "_n", "0", "Flag", "Indicates that the nth input file considered this record to be somatic. Multiple values are allowed which indicate that more than 1 input file consider this record to be somatic");
+				
 			mergedHeader.parseHeaderLine(headers[0].getChrom().toString());
 			
 			Rule r = new Rule(headers.length);

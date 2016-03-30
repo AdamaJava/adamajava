@@ -77,7 +77,7 @@ public class MergeSameSamples {
 
 	private void loadVcfHeaders() throws IOException {
 		
-		Pair<VcfHeader, Rule> pair = MergeUtils.getMergedHeaderAndRules(Arrays.asList(vcfFiles), headers);
+		Pair<VcfHeader, Rule> pair = MergeUtils.getMergedHeaderAndRules(headers);
 		mergedHeader = null != pair ? pair.getLeft() : null;
 		mergedHeader.addQPGLine(1, exec);
 		mergedHeader.parseHeaderLine(VcfHeaderUtils.CURRENT_FILE_VERSION);
