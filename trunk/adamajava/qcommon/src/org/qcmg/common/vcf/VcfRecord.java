@@ -200,8 +200,12 @@ public class VcfRecord implements Comparable<VcfRecord> {
 	public String getFilter() { 
 		
 		if(! StringUtils.isNullOrEmpty(this.filter)){
-			filter = filter.replace(Constants.MISSING_DATA_STRING + Constants.SEMI_COLON, "");
-			filter = filter.replace(Constants.SEMI_COLON + Constants.MISSING_DATA_STRING,"");
+			if (filter.contains(Constants.MISSING_DATA_STRING + Constants.SEMI_COLON)) {
+				filter = filter.replace(Constants.MISSING_DATA_STRING + Constants.SEMI_COLON, "");
+			}
+			if (filter.contains(Constants.SEMI_COLON + Constants.MISSING_DATA_STRING)) {
+				filter = filter.replace(Constants.SEMI_COLON + Constants.MISSING_DATA_STRING,"");
+			}
 		} 		
 		
 		return filter; 
