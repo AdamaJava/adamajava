@@ -243,6 +243,26 @@ public class SnpUtils {
 	 * @return
 	 */
 	public static int getCountFromNucleotideString(final String bases, final String base) {
+		return getCountFromNucleotideString(bases, base, false);
+
+//		if (StringUtils.isNullOrEmpty(bases) || StringUtils.isNullOrEmpty(base)) {
+//			return 0;
+//		}
+//		
+//		final int basePosition = bases.indexOf(base);  
+//		if (basePosition == -1) return 0;
+//		
+//		final int bracketPosition = bases.indexOf('[', basePosition);
+//		
+//		final int forwardCount = Integer.parseInt(bases.substring(basePosition + base.length(), bracketPosition));
+//		
+//		final int commaPosition = bases.indexOf(',', bracketPosition);
+//		final int reverseCount = Integer.parseInt(bases.substring(commaPosition + 1, bases.indexOf('[', commaPosition)));
+//		
+//		return forwardCount + reverseCount;
+	}
+	
+	public static int getCountFromNucleotideString(final String bases, final String base, boolean compoundSnp) {
 		if (StringUtils.isNullOrEmpty(bases) || StringUtils.isNullOrEmpty(base)) {
 			return 0;
 		}
@@ -250,14 +270,34 @@ public class SnpUtils {
 		final int basePosition = bases.indexOf(base);  
 		if (basePosition == -1) return 0;
 		
-		final int bracketPosition = bases.indexOf('[', basePosition);
-		
-		final int forwardCount = Integer.parseInt(bases.substring(basePosition + base.length(), bracketPosition));
-		
-		final int commaPosition = bases.indexOf(',', bracketPosition);
-		final int reverseCount = Integer.parseInt(bases.substring(commaPosition + 1, bases.indexOf('[', commaPosition)));
-		
-		return forwardCount + reverseCount;
+		if (compoundSnp) {
+			//AC,2,2,AT,2,4,A_,3,3,CA,2,1,CC,16,17,CG,2,1,CT,1,2,C_,16,16,GC,1,0,_C,0,1,G_,0,1
+			// need next 2 commas locations
+			int comma1 = bases.indexOf(Constants.COMMA, basePosition);
+			int comma2 = bases.indexOf(Constants.COMMA, comma1 + 1);
+			int comma3 = bases.indexOf(Constants.COMMA, comma2 + 1);
+			if (comma1 == -1 || comma2 == -1) {
+				return 0;
+			}
+			if (comma3 == -1) {
+				// end of string
+				comma3 = bases.length();
+			}
+			final int forwardCount = Integer.parseInt(bases.substring(comma1 + 1, comma2));
+			final int reverseCount = Integer.parseInt(bases.substring(comma2 + 1, comma3));
+			
+			return forwardCount + reverseCount;	
+		} else {
+			
+			final int bracketPosition = bases.indexOf('[', basePosition);
+			
+			final int forwardCount = Integer.parseInt(bases.substring(basePosition + base.length(), bracketPosition));
+			
+			final int commaPosition = bases.indexOf(',', bracketPosition);
+			final int reverseCount = Integer.parseInt(bases.substring(commaPosition + 1, bases.indexOf('[', commaPosition)));
+			
+			return forwardCount + reverseCount;
+		}
 	}
 	
 	/**

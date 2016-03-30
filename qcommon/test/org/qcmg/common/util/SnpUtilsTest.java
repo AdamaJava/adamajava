@@ -46,14 +46,25 @@ public class SnpUtilsTest {
 	}
 	
 	@Test
-	public void getBaseCountsMergedACs() {
-		/*
-		 * Should always return the first value if we have a merged vcf record
-		 */
-		String bases = "A1[11],0[0]" + Constants.VCF_MERGE_DELIM + "A1[11],1[0]";
-		assertEquals(1, SnpUtils.getCountFromNucleotideString(bases, "A"));
-		bases = "A1[11],2[0]" + Constants.VCF_MERGE_DELIM + "A1[11],1[0]";
-		assertEquals(3, SnpUtils.getCountFromNucleotideString(bases, "A"));
+	public void getBaseCountsACCSs() {
+		String bases = "CA,17,17,C_,2,0,GG,10,8";
+		assertEquals(34, SnpUtils.getCountFromNucleotideString(bases, "CA", true));
+		assertEquals(2, SnpUtils.getCountFromNucleotideString(bases, "C_", true));
+		assertEquals(18, SnpUtils.getCountFromNucleotideString(bases, "GG", true));
+		
+		bases = "AC,2,2,AT,2,4,A_,3,3,CA,2,1,CC,16,17,CG,2,1,CT,1,2,C_,16,16,GC,1,0,_C,0,1,G_,0,1";
+		assertEquals(4, SnpUtils.getCountFromNucleotideString(bases, "AC", true));
+		assertEquals(6, SnpUtils.getCountFromNucleotideString(bases, "AT", true));
+		assertEquals(6, SnpUtils.getCountFromNucleotideString(bases, "A_", true));
+		assertEquals(3, SnpUtils.getCountFromNucleotideString(bases, "CA", true));
+		assertEquals(33, SnpUtils.getCountFromNucleotideString(bases, "CC", true));
+		assertEquals(3, SnpUtils.getCountFromNucleotideString(bases, "CG", true));
+		assertEquals(3, SnpUtils.getCountFromNucleotideString(bases, "CT", true));
+		assertEquals(32, SnpUtils.getCountFromNucleotideString(bases, "C_", true));
+		assertEquals(1, SnpUtils.getCountFromNucleotideString(bases, "GC", true));
+		assertEquals(1, SnpUtils.getCountFromNucleotideString(bases, "_C", true));
+		assertEquals(1, SnpUtils.getCountFromNucleotideString(bases, "G_", true));
+		
 	}
 	
 	@Test
