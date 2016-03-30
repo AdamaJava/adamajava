@@ -76,7 +76,7 @@ public class IndelConfidenceMode extends AbstractMode{
         logger.tool("mask File: " + options.getDatabaseFileName() );
         logger.tool("output annotated records: " + options.getOutputFileName());
         logger.tool("logger file " + options.getLogFileName());
-        logger.tool("logger level " + options.getLogLevel()); 
+        logger.tool("logger level " + options.getLogLevel() == null ? QLoggerFactory.DEFAULT_LEVEL.getName() :  options.getLogLevel());
           
 		addAnnotation(options.getDatabaseFileName() );				
 	}

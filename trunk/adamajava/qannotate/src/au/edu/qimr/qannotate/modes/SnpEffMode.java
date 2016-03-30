@@ -32,7 +32,7 @@ public class SnpEffMode extends AbstractMode{
         logger.tool("output for annotated vcf records: " + options.getOutputFileName());
         logger.tool("output for summary File: " + options.getSummaryFileName());
         logger.tool("logger file " + options.getLogFileName());
-        logger.tool("logger level " + options.getLogLevel());
+        logger.tool("logger level " + options.getLogLevel() == null ? QLoggerFactory.DEFAULT_LEVEL.getName() :  options.getLogLevel());
 		      
         tmpFile = options.getOutputFileName() + ".tmp";
         
