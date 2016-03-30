@@ -81,8 +81,29 @@ public class VcfUtils {
 		} 
 		 
 		 return count;
-	 }   
+	 }
 	 
+	/**
+	 * Gets just the filters that end in the suppled suffix
+	 * USed for merged vcf records where the input file position is appended to each filter value
+	 * eg. PASS_1 indicates that input file 1 deemed this position a PASS
+	 * 
+	 * @param rec
+	 * @param suffix
+	 * @return
+	 */
+	public static String getFiltersEndingInSuffix(VcfRecord rec, String suffix) {
+		if (rec == null || suffix == null) {
+			throw new IllegalArgumentException("Null VcfRecord or suffix passed to getFiltersEndingInSuffix");
+		}
+		String filter = rec.getFilter();
+		if (null == filter) {
+			throw new IllegalArgumentException("Null VcfRecord or suffix passed to getFiltersEndingInSuffix");
+		}
+		String [] params = filter.split(Constants.SEMI_COLON_STRING);
+		return Arrays.stream(params).filter(s -> s.endsWith(suffix)).collect(Collectors.joining(Constants.SEMI_COLON_STRING));
+	}
+	
 	
 	public static String getPileupElementAsString(List<PileupElement> pileups, boolean novelStart) {
 		

@@ -85,7 +85,17 @@ public class VcfUtilsTest {
 		assertEquals(true, VcfUtils.isMergedRecord(rec));
 	}
 	
-	
+	@Test
+	public void getFiltersWithSuffix() {
+		VcfRecord rec =  new VcfRecord( new String[] {"1","1",".","A","."});
+		rec.setFilter(".");
+		assertEquals("", VcfUtils.getFiltersEndingInSuffix(rec, "_1"));
+		assertEquals(".", VcfUtils.getFiltersEndingInSuffix(rec, "."));
+		rec.setFilter("PASS_1;PASS_2");
+		assertEquals("PASS_1", VcfUtils.getFiltersEndingInSuffix(rec, "_1"));
+		assertEquals("PASS_2", VcfUtils.getFiltersEndingInSuffix(rec, "_2"));
+		
+	}
 	
 	
 	@Test
