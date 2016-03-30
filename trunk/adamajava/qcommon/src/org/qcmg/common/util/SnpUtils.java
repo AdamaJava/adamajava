@@ -22,6 +22,8 @@ public class SnpUtils {
 	//COMPOUND_SNP
 	public static final String COMPOUND_SNP = "COMPOUNDMUTATION";
 	
+	public static final String SOMATIC = "SOMATIC";
+	
 	
 	//MUTATION
 	public static final String MUTATION_IN_UNFILTERED_NORMAL = "MIUN";
