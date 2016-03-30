@@ -67,6 +67,7 @@ public class VcfHeaderUtils {
 	public static final String INFO_LOSS_FUNCTION = "LOF";
 	public static final String INFO_NONSENSE_MEDIATED_DECAY = "NMD";	
 	public static final String INFO_SOMATIC = SnpUtils.SOMATIC;
+	public static final String INFO_SOMATIC_DESC = "Indicates that the record is a somatic mutation";
 	public static final String INFO_CONFIDENT = "CONF";
 	public static final String INFO_GMAF = "GMAF";
 	public static final String INFO_CAF = "CAF";
