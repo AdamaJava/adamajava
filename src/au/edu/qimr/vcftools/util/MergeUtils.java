@@ -98,10 +98,10 @@ public class MergeUtils {
 			/*
 			 * make sure SOMATIC has been added, and add the _n entry
 			 */
-			if ( ! infoPair.getLeft().contains(SnpUtils.SOMATIC)) {
-				mergedHeader.addInfoLine(SnpUtils.SOMATIC, "0", "Flag", "Indicates that the record is considered a SOMATIC record");
+			if ( ! infoPair.getLeft().contains(VcfHeaderUtils.INFO_SOMATIC)) {
+				mergedHeader.addInfoLine(VcfHeaderUtils.INFO_SOMATIC, "0", "Flag", VcfHeaderUtils.INFO_SOMATIC_DESC);
 			}
-			mergedHeader.addInfoLine(SnpUtils.SOMATIC + "_n", "0", "Flag", "Indicates that the nth input file considered this record to be somatic. Multiple values are allowed which indicate that more than 1 input file consider this record to be somatic");
+			mergedHeader.addInfoLine(VcfHeaderUtils.INFO_SOMATIC + "_n", "0", "Flag", "Indicates that the nth input file considered this record to be somatic. Multiple values are allowed which indicate that more than 1 input file consider this record to be somatic");
 				
 			mergedHeader.parseHeaderLine(headers[0].getChrom().toString());
 			
