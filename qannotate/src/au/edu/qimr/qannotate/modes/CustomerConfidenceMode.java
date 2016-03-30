@@ -47,7 +47,7 @@ public final class CustomerConfidenceMode extends AbstractMode{
 		logger.tool("input: " + options.getInputFileName());
         logger.tool("output annotated records: " + options.getOutputFileName());
         logger.tool("logger file " + options.getLogFileName());
-        logger.tool("logger level " + options.getLogLevel());
+        logger.tool("logger level " + options.getLogLevel() == null ? QLoggerFactory.DEFAULT_LEVEL.getName() :  options.getLogLevel());
         
         min_read_counts = options.get_min_read_count();
         variants_rate = options.get_min_mutant_rate();
