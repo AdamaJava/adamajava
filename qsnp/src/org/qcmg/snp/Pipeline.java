@@ -420,7 +420,8 @@ public abstract class Pipeline {
 			}		
 		header.parseHeaderLine( "##qAnalysisId=" + uuid );
 		
-		header.addInfoLine(VcfHeaderUtils.INFO_FLANKING_SEQUENCE, "1", "String","Flanking sequence either side of variant");																	
+		header.addInfoLine(VcfHeaderUtils.INFO_FLANKING_SEQUENCE, "1", "String","Flanking sequence either side of variant");														
+		header.addInfoLine(VcfHeaderUtils.INFO_SOMATIC, "0", "Flag",VcfHeaderUtils.INFO_SOMATIC_DESC);														
 
 		header.addFilterLine(VcfHeaderUtils.FILTER_COVERAGE_NORMAL_12, "Less than 12 reads coverage in normal");
 		header.addFilterLine(VcfHeaderUtils.FILTER_COVERAGE_NORMAL_8,"Less than 8 reads coverage in normal");  
