@@ -32,7 +32,7 @@ public class GermlineMode extends AbstractMode{
         logger.tool("germline database: " + options.getDatabaseFileName() );
         logger.tool("output annotated records: " + options.getOutputFileName());
         logger.tool("logger file " + options.getLogFileName());
-        logger.tool("logger level " + options.getLogLevel() == null ? QLoggerFactory.DEFAULT_LEVEL.getName() :  options.getLogLevel());
+        logger.tool("logger level " + (options.getLogLevel() == null ? QLoggerFactory.DEFAULT_LEVEL.getName() :  options.getLogLevel()));
  		
 		inputRecord(new File( options.getInputFileName())   );
 		addAnnotation(options.getDatabaseFileName() );
