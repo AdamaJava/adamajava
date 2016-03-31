@@ -277,7 +277,7 @@ public class ConfidenceMode extends AbstractMode{
 		 }
 		 if (nnsString.contains(Constants.VCF_MERGE_DELIM + "")) {
 			 /*
-			  * in a merged vcf record, there may be 2 values in the NNS field separated  by a delimiter. Pick the first
+			  * in a merged vcf record, there may be 2 values in the NNS field separated  by a delimiter. Pick the input value
 			  */
 			 int commaIndex = nnsString.indexOf(Constants.VCF_MERGE_DELIM);
 			 switch (input) {
