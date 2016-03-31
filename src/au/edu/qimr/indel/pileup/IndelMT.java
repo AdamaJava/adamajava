@@ -31,6 +31,7 @@ import org.qcmg.common.meta.QExec;
 import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.IndelUtils;
+import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.picard.SAMFileReaderFactory;
@@ -307,7 +308,7 @@ public class IndelMT {
 		
 		//loading indels 
 		this.indelload = new ReadIndels(logger);		
-		if(options.getRunMode().equalsIgnoreCase("gatk")){	
+		if(options.getRunMode().equalsIgnoreCase(options.RUNMODE_GATK) || options.getRunMode().equalsIgnoreCase(options.RUNMODE_GATKTEST)){	
 			//first load control
 			if(options.getControlInputVcf() != null)
 				indelload.LoadIndels(options.getControlInputVcf());		
@@ -347,19 +348,20 @@ public class IndelMT {
         	query = new QueryExecutor(options.getFilterQuery()); 
         
     	//each time only throw threadNo thread, the loop finish untill the last threadNo                    	
-    	for(SAMSequenceRecord contig : sortedContigs ){ 
-    		
-    		if(options.getControlBam() != null)
-    			pileupThreads.execute(new contigPileup(contig, getIndelList(contig), options.getControlBam(),query,
+    	for(SAMSequenceRecord contig : sortedContigs ){  
+      		
+    		String filter = (options.getRunMode().equals(Options.RUNMODE_GATKTEST))? ReadIndels.FILTER_UNTESTED : null;     		
+    		if(options.getControlBam() != null)    			
+    			 pileupThreads.execute(new contigPileup(contig, getIndelList(contig, filter), options.getControlBam(),query,
     				normalQueue, Thread.currentThread(),pileupLatch ));
     		
+    		//getIndelList must be called repeately, since it will be empty after pileup
     		 if(options.getTestBam() != null)
-    			 pileupThreads.execute(new contigPileup(contig, getIndelList(contig), options.getTestBam() , query,
+    			 pileupThreads.execute(new contigPileup(contig, getIndelList(contig, filter), options.getTestBam() , query,
     					 tumourQueue, Thread.currentThread() ,pileupLatch));
     		
-    		
     		if(options.getReference() != null)
-    			pileupThreads.execute(new homopoPileup(contig.getSequenceName(), getIndelList(contig), options.getReference(),
+    			pileupThreads.execute(new homopoPileup(contig.getSequenceName(), getIndelList(contig, null), options.getReference(),
     				homopoQueue, options.nearbyHomopolymer,options.getNearbyHomopolymerReportWindow(), Thread.currentThread(),pileupLatch));    		
     	}
     	pileupThreads.shutdown();
@@ -409,7 +411,7 @@ public class IndelMT {
 			indel.setHomopolymer(homopo);
 		}
 		
-		final AbstractQueue<IndelPosition> orderedList = getIndelList(null);
+		final AbstractQueue<IndelPosition> orderedList = getIndelList(null,null);
 		logger.info("reading indel position:  " + orderedList.size() );
 		try(VCFFileWriter writer = new VCFFileWriter( output)) {	
 						
@@ -421,13 +423,19 @@ public class IndelMT {
         	//adding indels
 			long count = 0;
 			IndelPosition indel; 
+			long somaticCount = 0;
 			while( (indel = orderedList.poll()) != null)
-				for(int i = 0; i < indel.getMotifs().size(); i++){					
-					writer.add( indel.getPileupedVcf(i, options.getMinGematicNovelStart(), options.getMinGematicSupportOfInformative()) );	
+				for(int i = 0; i < indel.getMotifs().size(); i++){	
+					VcfRecord re = indel.getPileupedVcf(i, options.getMinGematicNovelStart(), options.getMinGematicSupportOfInformative());
+					writer.add(re  );	
 					count ++;
+					
+					if(re.getInfo().contains(VcfHeaderUtils.INFO_SOMATIC))
+						somaticCount ++;
 				}
 						
 			logger.info("outputed VCF record:  " + count);	
+			logger.info("including somatic record:  " + somaticCount);
 		}
 		
 	}
@@ -502,24 +510,34 @@ public class IndelMT {
  		 
 	}
 	 
-
-	/**
-	 * 
-	 * @param contig: contig name or null for whole reference
-	 * @return a sorted list of IndelPotion on this contig; return whole reference indels if contig is null
-	 */
-	private  AbstractQueue<IndelPosition>  getIndelList( SAMSequenceRecord contig ){	  
+	 /**
+	  * 
+	  * @param contig: contig name or null for whole reference
+	  * @param filter: only return indel vcf records with specified filter value. Put null here if ignor record filter column value
+	  * @return a sorted list of IndelPotion on this contig; return whole reference indels if contig is null
+	  */
+	private  AbstractQueue<IndelPosition>  getIndelList( SAMSequenceRecord contig, String filter ){	  
 		if (positionRecordMap == null || positionRecordMap.size() == 0)
 			return new ConcurrentLinkedQueue<IndelPosition>(); 			  
 		  
 		List<IndelPosition> list = new ArrayList<IndelPosition> ();	
-		if(contig == null){ //get whole reference
-			list.addAll(positionRecordMap.values());	
-		}else{	  //get all ChrRangePosition on specified contig	
-			for(ChrRangePosition pos : positionRecordMap.keySet())
-				if(pos.getChromosome().equals(contig.getSequenceName()))
-					list.add(positionRecordMap.get(pos));	 
+		for(ChrRangePosition pos : positionRecordMap.keySet()){
+			if(contig != null && !pos.getChromosome().equals(contig.getSequenceName())  )
+				continue; 
+			
+			boolean flag = true; 
+			if(filter != null){
+				flag = false; 
+				for(VcfRecord re : positionRecordMap.get(pos).getIndelVcfs() )
+					if( re.getFilter().equals(filter)){
+						flag = true;
+						break;
+					}
+			}
+			if(flag)    
+				list.add(positionRecordMap.get(pos));	 
 		}
+
 		
 		Collections.sort(list, new Comparator<IndelPosition>() {
 			@Override

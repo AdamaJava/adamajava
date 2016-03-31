@@ -21,6 +21,10 @@ import org.qcmg.vcf.VCFFileReader;
 
 
 public class ReadIndels {
+	static final String FILTER_UNTESTED = "UNKOWN";
+	static final String FILTER_GEMETIC = "GERMLINE";
+	static final String FILTER_SOMATIC = "SOMATIC";
+	
 	QLogger logger; 
 	private VcfHeader header; 
 	
@@ -29,14 +33,10 @@ public class ReadIndels {
 	private int errGTNo = 0;
  
 	//here key will be uniq for indel: chr, start, end, allel 
-//	private final  Map<Integer, VcfRecord> positionRecordMap = new  ConcurrentHashMap<Integer, VcfRecord>();
-	private final  Map<VcfRecord, VcfRecord> positionRecordMap = new  ConcurrentHashMap<VcfRecord, VcfRecord>();
+	private final  Map<VcfRecord, VcfRecord> positionRecordMap = new  ConcurrentHashMap<VcfRecord, VcfRecord>();	
+//	private final  Map<VcfRecord, VcfRecord> readyPileupMap = new  ConcurrentHashMap<VcfRecord, VcfRecord>();
 	
-//	private final HashSet<VcfRecord> positionRecordMap = new  HashSet<VcfRecord>();
-
-	public ReadIndels( QLogger logger){
-		this.logger = logger; 		
-	}
+	public ReadIndels( QLogger logger){ this.logger = logger; }
 	
 	/**
 	 * merge first sample column of input to existing variants which is stored on hash map
@@ -79,12 +79,14 @@ public class ReadIndels {
 	 	        		//reset allele column
 	 	        		if(StrAlts.length > 1){
 	 	        			vcf1 = VcfUtils.resetAllel(re, alt);
-//	 	        					new VcfRecord(re.toString().trim().split("\t"));
-//	 	        			vcf1.setAlt(alt);
+	 	        			//new VcfRecord(re.toString().trim().split("\t"));
+	 	        			//vcf1.setAlt(alt);
 	 	        		}
-     					if(!mergeIndel(vcf1))
+     					if(!mergeIndel(vcf1))     					 
      						indelnewCount ++;
-     					else overlapCount ++; 				 
+     					 else 
+     						vcf1.setFilter(FILTER_GEMETIC);
+     						     					
 	 	        	}
 				}  	    			
 			}
@@ -99,14 +101,14 @@ public class ReadIndels {
 	
 	
 	/**
-	 * Add this vcf record if not exists on RAM, move  the original first sample column to second column and mark missing data '.' on the first column; 
+	 * Add this vcf record if not exists on RAM, move  this record first sample column to second column and mark missing data '.' on the first column; 
 	 * Or merge this vcf record into existed variants: replace the second sample column of exist variants with first sample column of new one.
 	 * @param secVcf: a vcf record
 	 * @return true if same variants exist and merge them; otherwise return false by adding this new variants 
 	 */
 	public boolean mergeIndel(  VcfRecord secVcf){
 	    //get vcf with same ChrPointPosition, ref and alt
-		VcfRecord existingvcf = positionRecordMap.get(secVcf);
+		VcfRecord existingvcf = positionRecordMap.get( secVcf );
 				
 		//only keep first sample column of second vcf
 		List<String> secformat = secVcf.getFormatFields();
@@ -115,8 +117,13 @@ public class ReadIndels {
 
 		//copy secVcf with sample column "FORMAT <missing data> oriSample" only 
 		if(existingvcf == null){
+//			existingvcf = new VcfRecord.Builder(secVcf.getChrPosition(), secVcf.getRef())
+//				.id(secVcf.getId()).allele(secVcf.getAlt()).filter(secVcf.getFilter()).build();
+			
+			//add new vcf set filter to somatic temporary, since only appear on second vcf(test)
 			existingvcf = new VcfRecord.Builder(secVcf.getChrPosition(), secVcf.getRef())
-				.id(secVcf.getId()).allele(secVcf.getAlt()).filter(secVcf.getFilter()).build();
+			.id(secVcf.getId()).allele(secVcf.getAlt()).filter(FILTER_SOMATIC).build();
+			
 			existingvcf.setInfo(secVcf.getInfo());	
 			
 			//insert . to first sample column and then shift original sample to second 
@@ -124,10 +131,14 @@ public class ReadIndels {
 				existingvcf.setFormatFields(secformat);				
 				VcfUtils.addMissingDataToFormatFields(existingvcf, 1);
 			}
+			
 			positionRecordMap.put(existingvcf, existingvcf);		
 						
 			return false; 
 		}else{
+			//set exsiting vcf to gemetic temporary, since it appears on both
+			existingvcf.setFilter(FILTER_GEMETIC);
+			
 			//only keep first sample column of exsiting vcf
 			List<String> format1 = existingvcf.getFormatFields();
 			
@@ -170,11 +181,12 @@ public class ReadIndels {
 					SVTYPE type = IndelUtils.getVariantType(re.getRef(), alt);
 	 	        	if(type.equals(SVTYPE.DEL) ||type.equals(SVTYPE.INS) ){
 	 	        		VcfRecord vcf1 = VcfUtils.resetAllel(re, alt);
-     					if(positionRecordMap.containsKey(vcf1) && (overwriteNo ++) < errRecordLimit){ 						
+	 	        		vcf1.setFilter(FILTER_UNTESTED);
+     					if(positionRecordMap.containsKey(vcf1) && (overwriteNo ++) < errRecordLimit)						
      						logger.warn("overwriting same variants:\n" + positionRecordMap.get(vcf1).toString() );
-    					}
-     					positionRecordMap.put(vcf1, vcf1);    					
-	 	        	}
+    					 
+     					positionRecordMap.put(vcf1, vcf1);  
+ 	 	        	}
 				}  		 
     		}
  	      }
@@ -244,7 +256,7 @@ public class ReadIndels {
 	public Map<ChrRangePosition, IndelPosition> getIndelMap() throws Exception{	
 		
 		Map<ChrRangePosition,IndelPosition> indelPositionMap = new  ConcurrentHashMap<ChrRangePosition,IndelPosition>();
-		for(VcfRecord vcf : positionRecordMap.values()){
+		for(VcfRecord vcf : positionRecordMap.values()){			
 			ChrRangePosition indelPos = ChrRangePosition.valueOf(vcf.getChrPosition()); 
 			if(indelPositionMap.containsKey(indelPos)) 
 				indelPositionMap.get(indelPos).addVcf( vcf );

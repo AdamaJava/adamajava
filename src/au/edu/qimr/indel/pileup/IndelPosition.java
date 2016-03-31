@@ -206,8 +206,8 @@ public class IndelPosition {
 	
 	public VcfRecord getPileupedVcf(int index, final int gematic_nns, final float gematic_soi){
 		VcfRecord re = vcfs.get(index);		
-
-		//not interested int these indels since over coverage
+		
+		//not interested in these indels since over coverage		
 		if(tumourPileup != null  && tumourPileup.getTotalCount() > 1000){
 			re.setFilter( IndelUtils.FILTER_HCOVT);
 			return re; 
@@ -220,7 +220,9 @@ public class IndelPosition {
 				
 		//decide somatic or not
 		boolean somatic = true;
-		if(normalPileup != null){
+		if(re.getFilter().equals(ReadIndels.FILTER_GEMETIC))
+			somatic = false;		
+		else if(normalPileup != null){
 			if( normalPileup.getnovelStartReadCount(index)  > gematic_nns ) 
 				somatic = false;
 			else if(normalPileup.getInformativeCount() > 0){

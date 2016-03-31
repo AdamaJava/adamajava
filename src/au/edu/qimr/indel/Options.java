@@ -29,7 +29,10 @@ public class Options {
 	public static String ini_secIDs = "ids";
 	public static String ini_secParameter = "parameters";
 	public static String ini_secRule = "rules";
-
+	
+	public static String RUNMODE_GATK = "gatk";
+	public static String RUNMODE_DEFAULT = "pindel";
+	public static String RUNMODE_GATKTEST = "test";
 	
 	private final OptionParser parser = new OptionParser();
 	private final OptionSet options;
@@ -99,10 +102,10 @@ public class Options {
 		controlBam = getIOFromIni(iniFile, ini_secIOs, "controlBam");
 		
 		runMode =  iniFile.fetch(ini_secParameter, "runMode");		
-		if(runMode.equalsIgnoreCase("gatk")){
+		if(runMode.equalsIgnoreCase(RUNMODE_GATK) || runMode.equalsIgnoreCase(RUNMODE_GATKTEST)){
 			testVcf = getIOFromIni(iniFile, ini_secIOs, "testVcf") ;		
 			controlVcf = getIOFromIni(iniFile, ini_secIOs, "controlVcf");					 			
-		}else if(runMode.equalsIgnoreCase("pindel")){
+		}else if(runMode.equalsIgnoreCase(RUNMODE_DEFAULT)){
 			String[] inputs = iniFile.get(ini_secIOs).getAll("inputVcf",String[].class);
 			for(int i = 0; i < inputs.length; i ++)
 				pindelVcfs.add(new File(inputs[i]));
@@ -210,13 +213,13 @@ public class Options {
 		if (controlBam != null && !controlBam.exists()) 
 			throw new Q3IndelException("FILE_EXISTS_ERROR", controlBam.getAbsolutePath());			
 		
-		if ("gatk".equalsIgnoreCase(runMode)){ 
+		if (RUNMODE_GATK.equalsIgnoreCase(runMode) || RUNMODE_GATKTEST.equalsIgnoreCase(runMode)){ 
 			if(testVcf != null && !testVcf.exists())
 				throw new Q3IndelException("FILE_EXISTS_ERROR","(test gatk vcf) " + testVcf.getAbsolutePath());
 			if(controlVcf != null && !controlVcf.exists())
 				throw new Q3IndelException("FILE_EXISTS_ERROR","(control gatk vcf) " + controlVcf.getAbsolutePath());
 			 
-		}else if ("pindel".equalsIgnoreCase(runMode)){ 
+		}else if (RUNMODE_DEFAULT.equalsIgnoreCase(runMode)){ 
 			if(pindelVcfs.size() == 0)
 				throw new Q3IndelException("INPUT_OPTION_ERROR","(pindel input vcf) not specified" );
 			
