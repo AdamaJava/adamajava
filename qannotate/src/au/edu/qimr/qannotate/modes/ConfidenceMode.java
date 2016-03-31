@@ -1,6 +1,5 @@
 package au.edu.qimr.qannotate.modes;
 
-import static org.qcmg.common.util.Constants.SEMI_COLON_STRING;
 import static org.qcmg.common.util.Constants.SEMI_COLON;
 import static org.qcmg.common.util.SnpUtils.LESS_THAN_12_READS_NORMAL;
 import static org.qcmg.common.util.SnpUtils.LESS_THAN_3_READS_NORMAL;
@@ -65,7 +64,6 @@ public class ConfidenceMode extends AbstractMode{
 	
 	public ConfidenceMode(ConfidenceOptions options) throws Exception{				 
 		logger.tool("input: " + options.getInputFileName());
-        logger.tool("verified File: " + options.getDatabaseFileName() );
         logger.tool("output annotated records: " + options.getOutputFileName());
         logger.tool("logger file " + options.getLogFileName());
         logger.tool("logger level " + (options.getLogLevel() == null ? QLoggerFactory.DEFAULT_LEVEL.getName() :  options.getLogLevel()));
