@@ -13,8 +13,6 @@ public class SnpEffMafRecord {
 	
 	public static final String Unknown = "Unknown";
 	public static final String Other = "Other";
-//	public static final String Valid = "Valid";
-//	public static final String Invalid = "Invalid";
 	public static final String novel = "novel";
 	public static final char positive = '+';
 	public static final String none = "none";
@@ -22,7 +20,6 @@ public class SnpEffMafRecord {
 	public static final String Null = "null";
 	public static final String Yes = "Yes";
 	public static final String Zero = "0";
-//	public static final String minusOne = "-1";
 	
 	public static final String Version = "#version 2.4.1";
 	
@@ -41,30 +38,8 @@ public class SnpEffMafRecord {
 			}
 		}
 	};
-	public enum Validation_Status { Untested,Inconclusive, Valid,Invalid };
+	public enum VALIDATION_STATUS { Untested,Inconclusive, Valid,Invalid };
 	
-//	public enum Variant_Type{
-////		SNP, DNP,TNP,ONP,INDEL,Unknown;
-//		SNP, DNP,TNP,ONP,INS,DEL,Unknown;
-//		public static String getType(String base, String alt){
-//			try{ 
-//				if(base.length() == alt.length() ){
-//					if(base.length()  == 1) return SNP.name();	
-//					else if(base.length()  == 2) return DNP.name();	
-//					else if(base.length()  == 3) return TNP.name();	
-//					else if(base.length()  > 3) return ONP.name();	
-//				}else  
-//					return INDEL.name();
-//			}catch(Exception e){
-//				 //do nothing
-//			}
-//			
-//			return Unknown.name();
-//		}
-//	
-//	};
-		
-
 	//all 58 set methods
 	public String getMafLine() {
 		return Arrays.stream(maf).collect(Collectors.joining(Constants.TAB + ""));
@@ -90,7 +65,9 @@ public class SnpEffMafRecord {
 		maf[colNum - 1] = value;		
 	}
 	
-	public String getColumnValue(int colNum ) throws Exception{		
+	public String getColumnValue(int colNum ) {
+		if (colNum < 1 || colNum > column) 
+			throw new IllegalArgumentException("colNum passed to getColumnValue is beyond the bounds of the maf array: " + colNum);
 		return maf[colNum - 1] ;		
 	}	
 	
@@ -191,7 +168,7 @@ public class SnpEffMafRecord {
 		maf[21] = Null; //Match_Norm_Validation_Allele1
 		maf[22] = Null; //Match_Norm_Validation_Allele2
 		maf[23] = Null ; //Verification_Status
-		maf[24] = Validation_Status.Untested.name(); ; //Validation_Status
+		maf[24] = VALIDATION_STATUS.Untested.name(); ; //Validation_Status
 		maf[25] = MUTATION_STATUS.Unknown.name(); //Mutation_Status somatic/germline
 		maf[26] = Null; //Sequencing_Phase
 		maf[27] = Unknown; //??Sequence_Source
