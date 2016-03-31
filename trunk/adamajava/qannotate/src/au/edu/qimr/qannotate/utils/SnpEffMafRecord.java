@@ -1,6 +1,11 @@
 package au.edu.qimr.qannotate.utils;
 
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
 import au.edu.qimr.qannotate.options.Vcf2mafOptions;
+
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.IndelUtils;
  
 
@@ -22,9 +27,9 @@ public class SnpEffMafRecord {
 	public static final String Version = "#version 2.4.1";
 	
 	public final static int column = 60; 
-	private String[] maf = new String[column];	
+	private final String[] maf = new String[column];	
 	
-	public enum mutation_status{ 
+	public enum MUTATION_STATUS{ 
 		None, Germline,Somatic,LOH,PostTranscriptional, modification,Unknown;
 		@Override
 		public String toString() {
@@ -62,30 +67,26 @@ public class SnpEffMafRecord {
 
 	//all 58 set methods
 	public String getMafLine() {
-		String line = maf[0];
-		for (int i = 1; i < maf.length; i++)
-			
-			line += "\t" + maf[i];
-		
-		return line;
+		return Arrays.stream(maf).collect(Collectors.joining(Constants.TAB + ""));
 	}
 	
 	/**
 	 * 
 	 * @param colNum: there are total 57 column on QIMR maf file, start from column number 1.
 	 * @param value: column value number will show on maf file
-	 * @throws Exception if column number byond [1,57] or non integer string for column 2, 4, 6, 7, 43-48
+	 * @throws Exception if column number beyond [1,57] or non integer string for column 2, 4, 6, 7, 43-48
 	 */
 	
-	public void setColumnValue(int colNum, String value) throws Exception{
+	public void setColumnValue(int colNum, String value) throws IllegalArgumentException{
 		if(colNum > maf.length || colNum < 1)
-			throw new Exception("invalid column number byond maf record column size: " + colNum);
+			throw new IllegalArgumentException("invalid column number byond maf record column size: " + colNum);
 
 		//		if(colNum == 2 || colNum == 4 || colNum == 6 || colNum == 7 || (colNum > 43 && colNum <= 48 ))		
-		if(colNum == 2 || colNum == 4 || colNum == 6 || colNum == 7 || (colNum >= 45 && colNum <= 50 ))
-			if(!value.matches("\\d+")) 
-				throw new Exception(String.format("Column %d can't accept non Integer number: %s.", colNum, value)) ;
-		
+		if(colNum == 2 || colNum == 4 || colNum == 6 || colNum == 7 || (colNum >= 45 && colNum <= 50 )) {
+			if(!value.matches("\\d+")) { 
+				throw new IllegalArgumentException(String.format("Column %d can't accept non Integer number: %s.", colNum, value)) ;
+			}
+		}
 		maf[colNum - 1] = value;		
 	}
 	
@@ -191,7 +192,7 @@ public class SnpEffMafRecord {
 		maf[22] = Null; //Match_Norm_Validation_Allele2
 		maf[23] = Null ; //Verification_Status
 		maf[24] = Validation_Status.Untested.name(); ; //Validation_Status
-		maf[25] = mutation_status.Unknown.name(); //Mutation_Status somatic/germline
+		maf[25] = MUTATION_STATUS.Unknown.name(); //Mutation_Status somatic/germline
 		maf[26] = Null; //Sequencing_Phase
 		maf[27] = Unknown; //??Sequence_Source
 		maf[28] = none; //Validation_Method NO. If Validation_Status = Untested then "none" If Validation_Status = Valid or Invalid, then not "none" (case insensitive)
