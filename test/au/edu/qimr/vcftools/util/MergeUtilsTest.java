@@ -435,12 +435,12 @@ public class MergeUtilsTest {
 		r1.setFormatFields(Arrays.asList("AB:CD:EF", "1:2:3"));
 		r2.setFormatFields(Arrays.asList("EF:GH:IJ:KL", "3:4:5:6"));
 		mergedR = MergeUtils.mergeRecords(null, r1, r2);
-		assertEquals("AB:CD:EF:GH:IJ:KL\t1:2:3:4:5:6", mergedR.getFormatFieldStrings());
+		assertEquals("AB:CD:EF:GH:IJ:KL\t1:2:3"+ Constants.VCF_MERGE_DELIM + "3:4:5:6", mergedR.getFormatFieldStrings());
 		
 		r1.setFormatFields(Arrays.asList("AB:CD:EF:GH", "1:2:3:X"));
 		r2.setFormatFields(Arrays.asList("EF:GH:IJ:KL", "3:4:5:6"));
 		mergedR = MergeUtils.mergeRecords(null, r1, r2);
-		assertEquals("AB:CD:EF:GH:IJ:KL\t1:2:3:X"+ Constants.VCF_MERGE_DELIM + "4:5:6", mergedR.getFormatFieldStrings());
+		assertEquals("AB:CD:EF:GH:IJ:KL\t1:2:3"+ Constants.VCF_MERGE_DELIM + "3:X"+ Constants.VCF_MERGE_DELIM + "4:5:6", mergedR.getFormatFieldStrings());
 	}
 	
 	@Test
@@ -517,7 +517,7 @@ public class MergeUtilsTest {
 		List<String> ff = mr.getFormatFields();
 		assertEquals(3, ff.size());
 		assertEquals("GT:GD:AC:MR:NNS:AD:DP:GQ:PL", ff.get(0));
-		assertEquals("0/1:A/C:A38[31.42],32[25],C11[27.64],5[36.6]"+VCF_MERGE_DELIM+"A101[29.56],51[27.63],C30[30.83],21[37.29],G1[12],0[0]:16"+VCF_MERGE_DELIM+"51:16"+VCF_MERGE_DELIM+"44:2,2:4:69:72,0,69", ff.get(1));
+		assertEquals("0/1"+VCF_MERGE_DELIM+"0/1:A/C"+VCF_MERGE_DELIM+"A/C:A38[31.42],32[25],C11[27.64],5[36.6]"+VCF_MERGE_DELIM+"A101[29.56],51[27.63],C30[30.83],21[37.29],G1[12],0[0]:16"+VCF_MERGE_DELIM+"51:16"+VCF_MERGE_DELIM+"44:2,2:4:69:72,0,69", ff.get(1));
 //		0/1:2,2:4:69:72,0,69:A/C:A101[29.56],51[27.63],C30[30.83],21[37.29],G1[12],0[0]:51:44
 		assertEquals("0/1"+VCF_MERGE_DELIM+".:A/C"+VCF_MERGE_DELIM+".:A75[31.96],57[29.32],C12[35.25],6[38]"+VCF_MERGE_DELIM+"A191[31.2],147[27.37],C70[30.29],92[37.47],T0[0],1[37]:18"+VCF_MERGE_DELIM+"162:16"+VCF_MERGE_DELIM+"101:.:.:.:.", ff.get(2));
 		//.:.:.:.:.:.:A191[31.2],147[27.37],C70[30.29],92[37.47],T0[0],1[37]:162:101
