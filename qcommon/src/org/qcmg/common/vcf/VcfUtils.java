@@ -657,9 +657,12 @@ public class VcfUtils {
 									// get existing entry 
 									String [] existingArray = newFF.get(j).split(COLON_STRING);
 									String existingValue = existingArray[index];
-									if ( ! additionalValue.equals(existingValue)) {
+//									if ( ! additionalValue.equals(existingValue)) {
+									/*
+									 * always want to put delimited into place if we are in appendInfo mode
+									 */
 										existingArray[index] = existingValue + Constants.VCF_MERGE_DELIM + additionalValue;
-									}
+//									}
 									// re-insert into vcf
 									newFF.set(j, Arrays.stream(existingArray).collect(Collectors.joining(Constants.COLON_STRING)));
 								}
