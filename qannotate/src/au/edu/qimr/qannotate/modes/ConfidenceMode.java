@@ -145,16 +145,16 @@ public class ConfidenceMode extends AbstractMode{
 								&& altFreq >=  HIGH_CONF_ALT_FREQ_PASSING_SCORE
 								&& PASS.equals(thisFilter)) {
 				        	
-				        		vcf.getInfoRecord().addField(VcfHeaderUtils.INFO_CONFIDENT, MafConfidence.HIGH.toString() + suffix);    	 				 				
+				        		vcf.getInfoRecord().appendField(VcfHeaderUtils.INFO_CONFIDENT, MafConfidence.HIGH.toString() + suffix);    	 				 				
 				        		mergedHigh++;
 				        } else if ( nns >= LOW_CONF_NOVEL_STARTS_PASSING_SCORE
 								&& altFreq >= LOW_CONF_ALT_FREQ_PASSING_SCORE 
 								&& isClassB(thisFilter) ) {
 				        	
-				        		vcf.getInfoRecord().addField(VcfHeaderUtils.INFO_CONFIDENT, MafConfidence.LOW.toString() + suffix);					 
+				        		vcf.getInfoRecord().appendField(VcfHeaderUtils.INFO_CONFIDENT, MafConfidence.LOW.toString() + suffix);					 
 				        		mergedLow++;
 				        } else {
-				        		vcf.getInfoRecord().addField(VcfHeaderUtils.INFO_CONFIDENT, MafConfidence.ZERO.toString() + suffix);
+				        		vcf.getInfoRecord().appendField(VcfHeaderUtils.INFO_CONFIDENT, MafConfidence.ZERO.toString() + suffix);
 				        		mergedZero++;
 				        }
 			 		}
