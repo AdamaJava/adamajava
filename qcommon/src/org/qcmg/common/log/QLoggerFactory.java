@@ -19,7 +19,7 @@ public class QLoggerFactory {
 	
 	private static final QLogFormatter QCMG_LOG_FORMATTER = new QLogFormatter();
 	public static final Logger ROOT_LOGGER = Logger.getLogger("");
-	private static final Level DEFAULT_LEVEL = QLevel.INFO;
+	public static final Level DEFAULT_LEVEL = QLevel.INFO;
 	
 	// set these up so that the Level class knows about them
 	private static final Level DEBUG_LEVEL = QLevel.DEBUG;
