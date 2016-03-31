@@ -846,6 +846,22 @@ public class VcfUtils {
 		
 		rec.setFilter(StringUtils.removeFromString(rec.getFilter(), filter, Constants.SC));
 	}
+
+	public static boolean isRecordSomatic(VcfRecord rec) {
+		String info = rec.getInfo();
+		if (StringUtils.isNullOrEmpty(info) || ! info.contains(VcfHeaderUtils.INFO_SOMATIC)) {
+			return false;
+		}
+		
+		if (isMergedRecord(rec)) {
+			/*
+			 *SOMATIC_1 and SOMATIC_2 to return true
+			 */
+			return info.contains(VcfHeaderUtils.INFO_SOMATIC + "_1") && info.contains(VcfHeaderUtils.INFO_SOMATIC + "_2");  
+		} else {
+			return true;
+		}
+	}
 	
  
 }
