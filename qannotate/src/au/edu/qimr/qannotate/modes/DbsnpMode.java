@@ -39,7 +39,7 @@ public class DbsnpMode extends AbstractMode{
         logger.tool("dbSNP database: " + options.getDatabaseFileName() );
         logger.tool("output for annotated vcf records: " + options.getOutputFileName());
         logger.tool("logger file " + options.getLogFileName());
-        logger.tool("logger level " + options.getLogLevel() == null ? QLoggerFactory.DEFAULT_LEVEL.getName() :  options.getLogLevel());
+        logger.tool("logger level " + (options.getLogLevel() == null ? QLoggerFactory.DEFAULT_LEVEL.getName() :  options.getLogLevel()));
 		
 		inputRecord(new File( options.getInputFileName())   );
 		
