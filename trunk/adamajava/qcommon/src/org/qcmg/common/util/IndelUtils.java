@@ -76,21 +76,35 @@ public class IndelUtils {
 	 * 
 	 * @param ref: reference base from vcf record 4th column;
 	 * @param alt: single alleles base from vcf record 5th column
-	 * @return variant type, wether it is SNP, MNP, INSERTION, DELETION or TRUNSLOCATION
+	 * @return variant type, whether it is SNP, MNP, INSERTION, DELETION or TRANSLOCATION
 	 */
 	public static SVTYPE getVariantType(String ref, String alt){
-		 if(alt.contains(","))
+		if (StringUtils.isNullOrEmpty(alt) || StringUtils.isNullOrEmpty(ref)) {
+			throw new IllegalArgumentException("Null or empty alt and/or ref passed to getVariantType. alt: " + alt + ", ref: " + ref);
+		}
+		 if(alt.contains(",")) {
 			 return SVTYPE.UNKOWN;	
-		 else if(ref.length() == alt.length() ){
-			if(ref.length()  == 1) return SVTYPE.SNP;	
-				else if(ref.length()  == 2) return SVTYPE.DNP ;	
-				else if(ref.length()  == 3) return SVTYPE.TNP;	
-				else return SVTYPE.ONP;	
-		 }else if( alt.length() <  MAX_INDEL_LENGTH &&  alt.length() > ref.length() && ref.length() == 1)
+		 } else if(ref.length() == alt.length() ){
+			 switch (ref.length()) {
+			 case 1: return SVTYPE.SNP;	
+			 case 2: return SVTYPE.DNP;	
+			 case 3: return SVTYPE.TNP;
+			 default: return SVTYPE.ONP;
+			 }
+//			if(ref.length()  == 1) {
+//				return SVTYPE.SNP;	
+//			} else if(ref.length()  == 2) {
+//				return SVTYPE.DNP ;	
+//			} else if(ref.length()  == 3) {
+//				return SVTYPE.TNP;	
+//			} else {
+//				return SVTYPE.ONP;	
+//			}
+		 } else if ( alt.length() <  MAX_INDEL_LENGTH &&  alt.length() > ref.length() && ref.length() == 1) {
 			 return  SVTYPE.INS;		 
-		 else if(ref.length() <  MAX_INDEL_LENGTH && alt.length() < ref.length() && alt.length() == 1)
+		 } else if (ref.length() <  MAX_INDEL_LENGTH && alt.length() < ref.length() && alt.length() == 1) {
 			 return  SVTYPE.DEL;
-		 		
+		 }
 		return SVTYPE.UNKOWN;	
 	}	
 	

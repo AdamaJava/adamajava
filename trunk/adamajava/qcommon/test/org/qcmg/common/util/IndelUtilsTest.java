@@ -1,11 +1,52 @@
 package org.qcmg.common.util;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 import org.junit.Test;
+import org.qcmg.common.util.IndelUtils.SVTYPE;
 
 
 public class IndelUtilsTest {
+	
+	
+	@Test
+	public void getVariantType() {
+		
+		assertEquals(SVTYPE.SNP, IndelUtils.getVariantType("A","A"));
+		assertEquals(SVTYPE.DNP, IndelUtils.getVariantType("AB","AB"));
+		assertEquals(SVTYPE.TNP, IndelUtils.getVariantType("ABC","ABC"));
+		assertEquals(SVTYPE.ONP, IndelUtils.getVariantType("ABCD","ABCD"));
+		
+		// deletions
+		assertEquals(SVTYPE.DEL, IndelUtils.getVariantType("ABCD","A"));
+		
+		// insertions
+		assertEquals(SVTYPE.INS, IndelUtils.getVariantType("A","ABC"));
+		
+		// unknown
+		assertEquals(SVTYPE.UNKOWN, IndelUtils.getVariantType("A","ABC,B"));
+	}
+	
+	
+	@Test
+	public void getVariantTypeDuffData() {
+		try {
+			assertEquals(SVTYPE.UNKOWN, IndelUtils.getVariantType(null,null));
+			fail("Should have NPE'd");
+		} catch (IllegalArgumentException iae) {}
+		try {
+			assertEquals(SVTYPE.UNKOWN, IndelUtils.getVariantType("",""));
+			fail("Should have NPE'd");
+		} catch (IllegalArgumentException iae) {}
+		try {
+			assertEquals(SVTYPE.UNKOWN, IndelUtils.getVariantType("",null));
+			fail("Should have NPE'd");
+		} catch (IllegalArgumentException iae) {}
+		try {
+			assertEquals(SVTYPE.UNKOWN, IndelUtils.getVariantType(null,""));
+			fail("Should have NPE'd");
+		} catch (IllegalArgumentException iae) {}
+	}
 	
 	@Test
 	public void testGetFullChromosome() {
