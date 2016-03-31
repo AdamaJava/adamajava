@@ -87,6 +87,14 @@ public class Vcf2maf extends AbstractMode{
 						break;			
 					}
 				}
+				if (  id == null) {
+					for (VcfHeader.Record rec : reader.getHeader().getMetaRecords()) {
+						if (rec.getData().startsWith("##1:qDonorId")){ 
+							id = StringUtils.getValueFromKey(rec.getData(), "##1:qDonorId");
+							break;			
+						}
+					}
+				}
 			}
 			dornorId = id; 			
 			logger.info(String.format("Test Sample %s is located on column %d after FORMAT", testSample, test_column));
