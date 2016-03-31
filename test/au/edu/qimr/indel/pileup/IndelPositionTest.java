@@ -19,6 +19,7 @@ import junit.framework.Assert;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -168,7 +169,7 @@ public class IndelPositionTest {
 	}
 	
 	
-	@Test
+	@Ignore
 	//SOMATIC, TPART, NPART
 	public void partialTest() throws IOException{
 		
@@ -221,7 +222,7 @@ public class IndelPositionTest {
 		
 	}
 	
-	@Test
+	@Ignore
 	//test SOMTIC, COVN12, MIN, NNS
 	public void somaticTest() throws IOException{
 		//normal BAM with one novel start, gematic.soi = 3% < 0.05
