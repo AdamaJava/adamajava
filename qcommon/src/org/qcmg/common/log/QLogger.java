@@ -47,6 +47,21 @@ public class QLogger {
 		else
 			throw new IllegalArgumentException("Null logger passed to QLogger");
 	}
+	
+	/**
+	 * log an CONFIG message.
+	 *  <p>
+	 * If the logger is currently enabled for the CONFIG message level then the
+	 * given message is forwarded to all the registered output Handler objects.
+	 * <p>
+	 * @param msg
+	 *            The string message
+	 * @see QLevel#CONFIG
+	 */
+	public void config(String msg) {
+		logger.log(QLevel.CONFIG, msg);
+	}
+		
 
 	/**
 	 * Log an EXECLOG message.

@@ -22,14 +22,14 @@ public class QLevel extends Level {
 	private static final long serialVersionUID = 1594415737845021597L;
 	
 	 /**
-      	* EXEC is a message level for general execution messages.
-      	* <p>
-      	* Typically EXEC messages will be written to the console
-      	* or its equivalent. So the EXEC level should only be 
-      	* used for reasonably significant messages that will
-      	* make sense to end users and system admins.
-      	* This level is initialized to <CODE>1060</CODE>.
-      	*/
+  	* EXEC is a message level for general execution messages.
+  	* <p>
+  	* Typically EXEC messages will be written to the console
+  	* or its equivalent. So the EXEC level should only be 
+  	* used for reasonably significant messages that will
+  	* make sense to end users and system admins.
+  	* This level is initialized to <CODE>1060</CODE>.
+  	*/
 	public static final QLevel EXEC = new QLevel("EXEC", 1060);
 	
 	 /**
@@ -43,6 +43,15 @@ public class QLevel extends Level {
   	*/
 	public static final QLevel TOOL = new QLevel("TOOL", 1040);
 	
+	 /**
+  	* CONFIG is a message level for static configuration messages.
+  	* <p>
+  	* In general the CONFIG level should be used for information 
+  	* specified in an input configure file       	 
+  	* This level is initialized to <CODE>800</CODE>, which is same to INFO level.
+  	*/
+	public static final QLevel CONFIG = new QLevel("CONFIG", 800);
+		
 	/**
   	* DEBUG is a message level for relatively low level messages.
   	* <p>

@@ -25,6 +25,7 @@ public class QLoggerFactory {
 	private static final Level DEBUG_LEVEL = QLevel.DEBUG;
 	private static final Level TOOL_LEVEL = QLevel.TOOL;
 	private static final Level EXEC_LEVEL = QLevel.EXEC;
+	private static final Level CONFIG_LEVEL = QLevel.CONFIG;
 	
 	static {
 		//setup root logger
