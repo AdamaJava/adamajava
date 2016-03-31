@@ -127,6 +127,12 @@ public class ConfidenceMode extends AbstractMode{
 			 			bases = formatField.getField(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP);
 			 		}
 			 		String [] basesArray = bases.split(Constants.VCF_MERGE_DELIM + "");
+			 		if (basesArray.length < 2) {
+			 			logger.warn("bases array is less than 2!!");
+			 			for (String s : basesArray) {
+			 				logger.warn("s: " + s);
+			 			}
+			 		}
 			 		
 			 		for (int i = 1 ; i <= 2 ; i++) {
 			 			
