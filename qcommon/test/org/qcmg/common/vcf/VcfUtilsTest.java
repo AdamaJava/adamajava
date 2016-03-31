@@ -16,6 +16,7 @@ import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.model.GenotypeEnum;
 import org.qcmg.common.model.PileupElement;
+import org.qcmg.common.vcf.header.VcfHeaderUtils;
 
 public class VcfUtilsTest {
 	
@@ -60,6 +61,26 @@ public class VcfUtilsTest {
 		
 		count = VcfUtils.getAltFrequency(format, "_CA");
 		assertEquals(count,3);		;
+	}
+	
+	@Test
+	public void isRecordSomatic() {
+		VcfRecord rec =  new VcfRecord( new String[] {"1","1",".","A","."});
+		assertEquals(false, VcfUtils.isRecordSomatic(rec));
+		
+		rec.setInfo(VcfHeaderUtils.INFO_SOMATIC);
+		assertEquals(true, VcfUtils.isRecordSomatic(rec));
+		rec.setInfo("SOMATIC;FLANK=ACCCTGGAAGA;IN=1");
+		assertEquals(true, VcfUtils.isRecordSomatic(rec));
+		rec.setInfo("SOMATIC_1;FLANK=ACCCTGGAAGA;IN=1,2");
+		assertEquals(false, VcfUtils.isRecordSomatic(rec));
+		
+		rec.setInfo("SOMATIC_2;FLANK=ACCCTGGAAGA;IN=1,2");
+		assertEquals(false, VcfUtils.isRecordSomatic(rec));
+		
+		rec.setInfo("SOMATIC_2;FLANK=ACCCTGGAAGA;IN=1,2;SOMATIC_1");
+		assertEquals(true, VcfUtils.isRecordSomatic(rec));
+		
 	}
 	
 	@Test
