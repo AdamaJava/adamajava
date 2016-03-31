@@ -866,19 +866,24 @@ public class VcfUtils {
 	
 	public static MafConfidence getConfidence(VcfRecord rec) {
 		String info = rec.getInfo();
-		if (StringUtils.isNullOrEmpty(info) || ! info.contains(VcfHeaderUtils.INFO_SOMATIC)) {
-			return MafConfidence.ZERO;
+		
+		if (StringUtils.isNullOrEmpty(info) || ! info.contains(VcfHeaderUtils.INFO_CONFIDENT)) {
+			return null;
 		}
 		
-		if (isMergedRecord(rec)) {
-			/*
-			 *SOMATIC_1 and SOMATIC_2 to return true
-			 */
-			return MafConfidence.ZERO;
-		} else {
-			return MafConfidence.ZERO;
+		int index = info.indexOf(VcfHeaderUtils.INFO_CONFIDENT + Constants.EQ);
+		int scIndex = info.indexOf(Constants.SEMI_COLON_STRING, index);
+		String conf = info.substring(index + (VcfHeaderUtils.INFO_CONFIDENT + Constants.EQ).length(), scIndex > -1 ? scIndex : info.length());
+		logger.info("conf: " + conf);
+		if (conf.contains(MafConfidence.HIGH.name())) {
+			return MafConfidence.HIGH;
 		}
+		if (conf.contains(MafConfidence.LOW.name())) {
+			return MafConfidence.LOW;
+		}
+			
+		
+		return MafConfidence.ZERO;
 	}
-	
  
 }
