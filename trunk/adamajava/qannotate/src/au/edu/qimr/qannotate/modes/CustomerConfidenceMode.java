@@ -1,20 +1,17 @@
 package au.edu.qimr.qannotate.modes;
 
 import java.io.File;
-import java.util.Iterator;
 import java.util.List;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.model.MafConfidence;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.vcf.VcfFormatFieldRecord;
-import org.qcmg.common.vcf.VcfInfoFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
-import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 
-import au.edu.qimr.qannotate.modes.ConfidenceMode.Confidence;
 import au.edu.qimr.qannotate.options.CustomerConfidenceOptions;
 import au.edu.qimr.qannotate.utils.SampleColumn;
 
@@ -106,9 +103,9 @@ public final class CustomerConfidenceMode extends AbstractMode{
 				} 							
 					
 				if(flag)
-					re.getInfoRecord().setField(VcfHeaderUtils.INFO_CONFIDENT, Confidence.HIGH.toString());				 
+					re.getInfoRecord().setField(VcfHeaderUtils.INFO_CONFIDENT, MafConfidence.HIGH.toString());				 
 				else	
-					re.getInfoRecord().setField(VcfHeaderUtils.INFO_CONFIDENT, Confidence.ZERO.toString());
+					re.getInfoRecord().setField(VcfHeaderUtils.INFO_CONFIDENT, MafConfidence.ZERO.toString());
 		}		
 	}
 	

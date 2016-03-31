@@ -24,6 +24,7 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.GenotypeEnum;
+import org.qcmg.common.model.MafConfidence;
 import org.qcmg.common.model.PileupElement;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
@@ -860,6 +861,22 @@ public class VcfUtils {
 			return info.contains(VcfHeaderUtils.INFO_SOMATIC + "_1") && info.contains(VcfHeaderUtils.INFO_SOMATIC + "_2");  
 		} else {
 			return true;
+		}
+	}
+	
+	public static MafConfidence getConfidence(VcfRecord rec) {
+		String info = rec.getInfo();
+		if (StringUtils.isNullOrEmpty(info) || ! info.contains(VcfHeaderUtils.INFO_SOMATIC)) {
+			return MafConfidence.ZERO;
+		}
+		
+		if (isMergedRecord(rec)) {
+			/*
+			 *SOMATIC_1 and SOMATIC_2 to return true
+			 */
+			return MafConfidence.ZERO;
+		} else {
+			return MafConfidence.ZERO;
 		}
 	}
 	

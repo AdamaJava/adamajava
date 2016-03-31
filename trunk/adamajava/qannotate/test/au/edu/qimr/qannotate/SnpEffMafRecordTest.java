@@ -17,5 +17,23 @@ public class SnpEffMafRecordTest {
 //		System.out.println("rec: " + rec.getMafLine());
 		assertEquals(SnpEffMafRecord.column , rec.getMafLine().split(Constants.TAB + "").length);
 	}
+	
+	@Test
+	public void getMafColumn() {
+		SnpEffMafRecord rec = new SnpEffMafRecord();
+		rec.setDefaultValue();
+		
+		for (int i = -100 ; i < 1000000 ; i++) {
+			
+			if (i < 1 || i > SnpEffMafRecord.column) {
+				try {
+					rec.getColumnValue(i);
+					fail("Should have thrown an IllegalArgumentException");
+				} catch (IllegalArgumentException iae) {}
+			} else  {
+				assertNotNull(rec.getColumnValue(i));
+			}
+		}
+	}
 
 }

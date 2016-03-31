@@ -58,7 +58,7 @@ public class SnpEffMafRecord {
 
 		//		if(colNum == 2 || colNum == 4 || colNum == 6 || colNum == 7 || (colNum > 43 && colNum <= 48 ))		
 		if(colNum == 2 || colNum == 4 || colNum == 6 || colNum == 7 || (colNum >= 45 && colNum <= 50 )) {
-			if(!value.matches("\\d+")) { 
+			if( ! value.matches("\\d+")) { 
 				throw new IllegalArgumentException(String.format("Column %d can't accept non Integer number: %s.", colNum, value)) ;
 			}
 		}
@@ -136,11 +136,7 @@ public class SnpEffMafRecord {
 		str[58] = "effect_ontology";     
 		str[59] = "effect_class"; 
 		
-		String line = str[0];
-		for (int i = 1; i < column; i++)
-			line += "\t" + str[i];
-		
-		return line;
+		return Arrays.stream(str).collect(Collectors.joining(Constants.TAB + ""));
 	}
  	
 	public void setDefaultValue(){

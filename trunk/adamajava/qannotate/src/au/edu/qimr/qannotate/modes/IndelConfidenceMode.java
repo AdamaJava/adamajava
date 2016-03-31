@@ -1,28 +1,17 @@
 package au.edu.qimr.qannotate.modes;
 
-import static org.qcmg.common.util.Constants.SEMI_COLON_STRING;
-import static org.qcmg.common.util.SnpUtils.LESS_THAN_12_READS_NORMAL;
-import static org.qcmg.common.util.SnpUtils.LESS_THAN_3_READS_NORMAL;
-import static org.qcmg.common.util.SnpUtils.MUTATION_IN_UNFILTERED_NORMAL;
-import static org.qcmg.common.util.SnpUtils.PASS;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.io.IOException;
 import java.util.BitSet;
 import java.util.HashSet;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
-import org.qcmg.common.meta.QExec;
 import org.qcmg.common.model.ChrPosition;
-import org.qcmg.common.string.StringUtils;
+import org.qcmg.common.model.MafConfidence;
 import org.qcmg.common.util.Constants;
-import org.qcmg.common.util.DonorUtils;
 import org.qcmg.common.util.IndelUtils;
-import org.qcmg.common.util.SnpUtils;
-import org.qcmg.common.vcf.VcfFormatFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
@@ -30,7 +19,6 @@ import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 import org.qcmg.vcf.VCFFileWriter;
 
-import au.edu.qimr.qannotate.modes.ConfidenceMode.Confidence;
 import au.edu.qimr.qannotate.options.IndelConfidenceOptions;
 
 /**
@@ -113,7 +101,7 @@ public class IndelConfidenceMode extends AbstractMode{
 	/*
 	 *check the confidence level
 	 */
-	 Confidence getConfidence(VcfRecord vcf){
+	MafConfidence getConfidence(VcfRecord vcf){
 		String filter = vcf.getFilter();
 		
 		
@@ -135,16 +123,16 @@ public class IndelConfidenceMode extends AbstractMode{
 			}
 		
 			if(rate <= DEFAULT_NIOC && lhomo <= DEFAULT_HOMN )
-				return Confidence.HIGH;			
+				return MafConfidence.HIGH;			
 			
 		}else if(filter.equals(IndelUtils.FILTER_HCOVN) || filter.equals(IndelUtils.FILTER_HCOVT) || 
 				filter.equals(FILTER_REPEAT) || filter.contains(Constants.SEMI_COLON + FILTER_REPEAT + Constants.SEMI_COLON)  ||
 				filter.startsWith(FILTER_REPEAT + Constants.SEMI_COLON) || filter.endsWith(Constants.SEMI_COLON + FILTER_REPEAT)) { 
-			return Confidence.ZERO;
+			return MafConfidence.ZERO;
 		} 
 		
 		//default is low
-		return Confidence.LOW;
+		return MafConfidence.LOW;
 	}
 	
  

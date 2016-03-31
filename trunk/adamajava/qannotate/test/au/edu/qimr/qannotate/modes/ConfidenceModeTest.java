@@ -4,19 +4,15 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.qcmg.common.util.Constants.VCF_MERGE_DELIM;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.Test;
+import org.qcmg.common.model.MafConfidence;
 import org.qcmg.common.util.ChrPositionUtils;
-import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.SnpUtils;
 import org.qcmg.common.vcf.VcfFormatFieldRecord;
 import org.qcmg.common.vcf.VcfInfoFieldRecord;
@@ -25,8 +21,6 @@ import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 
-import scala.actors.threadpool.Arrays;
-import au.edu.qimr.qannotate.modes.ConfidenceMode.Confidence;
 import au.edu.qimr.qannotate.utils.SampleColumn;
 
 public class ConfidenceModeTest {
@@ -220,17 +214,17 @@ public class ConfidenceModeTest {
 				final VcfInfoFieldRecord infoRecord = new VcfInfoFieldRecord(re.getInfo()); 				
 				if(re.getPosition() == 2675826) 
 					//compound SNPs
-					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(Confidence.LOW.name())); 
+					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(MafConfidence.LOW.name())); 
 				else if(re.getPosition() == 22012840)
 					//isClassB
-					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(Confidence.LOW.name())); 
+					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(MafConfidence.LOW.name())); 
 //				else if(re.getPosition() == 14923588)
 				else if(re.getPosition() == 14923588 || re.getPosition() == 2675825)
-					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(Confidence.ZERO.name())); 
+					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(MafConfidence.ZERO.name())); 
 				else
 					//"chrY\t77242678\t.\tCA\tTG\t.\tPASS\tEND=77242679\tACCS\tCA,10,14,TG,6,7\tCA,14,9,TG,23,21"
 					//TG alleles is 13 > 5 filter is PASS
-					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(Confidence.HIGH.name())); 
+					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(MafConfidence.HIGH.name())); 
 			}
 		 }		 	 	 
   			
@@ -261,17 +255,17 @@ public class ConfidenceModeTest {
 				final VcfInfoFieldRecord infoRecord = new VcfInfoFieldRecord(re.getInfo()); 				
 				if(re.getPosition() == 2675826) 
 					//compound SNPs
-					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(Confidence.LOW.name())); 
+					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(MafConfidence.LOW.name())); 
 				else if(re.getPosition() == 22012840)
 					//isClassB
-					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(Confidence.LOW.name())); 
+					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(MafConfidence.LOW.name())); 
 //				else if(re.getPosition() == 14923588)
 				else if(re.getPosition() == 14923588 || re.getPosition() == 2675825)
-					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(Confidence.ZERO.name())); 
+					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(MafConfidence.ZERO.name())); 
 				else
 					//"chrY\t77242678\t.\tCA\tTG\t.\tPASS\tEND=77242679\tACCS\tCA,10,14,TG,6,7\tCA,14,9,TG,23,21"
 					//TG alleles is 13 > 5 filter is PASS
-					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(Confidence.HIGH.name())); 
+					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(MafConfidence.HIGH.name())); 
 			}
 		 }		 	 	 
   			

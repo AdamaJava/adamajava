@@ -11,19 +11,13 @@ import java.util.List;
 
 import org.junit.After;
 import org.junit.Test;
-import org.qcmg.common.log.QLogger;
-import org.qcmg.common.log.QLoggerFactory;
-import org.qcmg.common.string.StringUtils;
+import org.qcmg.common.model.MafConfidence;
 import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.vcf.VcfRecord;
-import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 
 import au.edu.qimr.qannotate.Main;
-import au.edu.qimr.qannotate.modes.ConfidenceMode.Confidence;
-import au.edu.qimr.qannotate.options.IndelConfidenceOptions;
-import au.edu.qimr.qannotate.options.Options;
 
 public class IndelConfidenceModeTest {
 	public static String dbMask = "repeat.mask";
@@ -50,35 +44,35 @@ public class IndelConfidenceModeTest {
 		String str = "chr1	11303744	.	C	CA	37.73	HOM5	SOMATIC;HOMTXT=AGCCTGTCTCaAAAAAAAAAA;NIOC=0.087;SVTYPE=INS;END=11303745	GT:AD:DP:GQ:PL:ACINDEL	.:.:.:.:.:0,39,36,0[0,0],0,4,4	0/1:30,10:40:75:75,0,541:7,80,66,8[4,4],1,7,8";
 
 		VcfRecord vcf = new	VcfRecord(str.split("\\t"));
-		assertTrue(mode.getConfidence(vcf) == Confidence.HIGH);
+		assertTrue(mode.getConfidence(vcf) == MafConfidence.HIGH);
  		
 		vcf.setInfo("SOMATIC;SVTYPE=INS;END=11303745");
-		assertTrue(mode.getConfidence(vcf) == Confidence.HIGH);
+		assertTrue(mode.getConfidence(vcf) == MafConfidence.HIGH);
 		
 		//HOMCNTXT is no longer checked
 		vcf.setInfo("SOMATIC;HOMCNTXT=9,AGCCTGTCTCaAAAAAAAAAA;SVTYPE=INS;END=11303745");
-		assertTrue(mode.getConfidence(vcf) == Confidence.HIGH);
+		assertTrue(mode.getConfidence(vcf) == MafConfidence.HIGH);
 
 		//no homopolymers (repeat)
 		vcf.setInfo("SOMATIC;NIOC=0.087;SVTYPE=INS;END=11303745");
-		assertTrue(mode.getConfidence(vcf) == Confidence.HIGH);
+		assertTrue(mode.getConfidence(vcf) == MafConfidence.HIGH);
 		
 		//9 base repeat
 		vcf.setFilter(IndelUtils.FILTER_HOM + "9");
 		vcf.setInfo("SOMATIC;HOMTXT=AGCCTGTCTCaAAAAAAAAAA;NIOC=0.087;SVTYPE=INS;END=11303745");
-		assertTrue(mode.getConfidence(vcf) == Confidence.LOW);
+		assertTrue(mode.getConfidence(vcf) == MafConfidence.LOW);
 
 		//no repeat but too many nearby indel
 		vcf.setInfo("SOMATIC;HOMCNTXT=5,AGCCTGTCTCaAAAAAAAAAA;NIOC=0.187;SVTYPE=INS;END=11303745");
-		assertTrue(mode.getConfidence(vcf) == Confidence.LOW);	 
+		assertTrue(mode.getConfidence(vcf) == MafConfidence.LOW);	 
 		
 		
 		vcf.setFilter(IndelUtils.FILTER_HOM + "3" );
 		vcf.setInfo("SOMATIC;HOMTXT=AGCCTGTCTCaAAAAAAAAAA;NIOC=0.087;SVTYPE=INS;END=11303745");
-		assertTrue(mode.getConfidence(vcf) == Confidence.HIGH);	 
+		assertTrue(mode.getConfidence(vcf) == MafConfidence.HIGH);	 
 		
 		vcf.setFilter(IndelUtils.FILTER_MIN + ";" + IndelUtils.FILTER_HOM + "3" );
-		assertTrue(mode.getConfidence(vcf) == Confidence.LOW);	
+		assertTrue(mode.getConfidence(vcf) == MafConfidence.LOW);	
 		
 	}
 	
@@ -100,20 +94,20 @@ public class IndelConfidenceModeTest {
 	        		i ++;
 	        		if(i == 1) 
 	        			//chr1	53741	.	CTT	C
-	        			assertTrue( re.getInfoRecord().getField(VcfHeaderUtils.INFO_CONFIDENT).equals( Confidence.HIGH.name()));	 
+	        			assertTrue( re.getInfoRecord().getField(VcfHeaderUtils.INFO_CONFIDENT).equals( MafConfidence.HIGH.name()));	 
 	        		else  if(i == 2)
 	        			//chr1	53742	.	C	CA
-	        			assertTrue( re.getInfoRecord().getField(VcfHeaderUtils.INFO_CONFIDENT).equals( Confidence.HIGH.name()));		        		
+	        			assertTrue( re.getInfoRecord().getField(VcfHeaderUtils.INFO_CONFIDENT).equals( MafConfidence.HIGH.name()));		        		
 	        		else  if(i == 3)
 	        			//chr1	53742	.	CTT	C
-	        			assertTrue( re.getInfoRecord().getField(VcfHeaderUtils.INFO_CONFIDENT).equals( Confidence.ZERO.name()));	 	        		
+	        			assertTrue( re.getInfoRecord().getField(VcfHeaderUtils.INFO_CONFIDENT).equals( MafConfidence.ZERO.name()));	 	        		
 	        		else  if(i == 4) 	        			
 	        			//chr1	53743	.	C	CA
 	        			//the insertion happened bwt 53743 and 53744, so it is before repeat region
-	        			assertTrue( re.getInfoRecord().getField(VcfHeaderUtils.INFO_CONFIDENT).equals( Confidence.HIGH.name()));	      		
+	        			assertTrue( re.getInfoRecord().getField(VcfHeaderUtils.INFO_CONFIDENT).equals( MafConfidence.HIGH.name()));	      		
 	        		 else  if(i == 5)
 	        			//chr1	53744	.	CTT	C
-	        			assertTrue( re.getInfoRecord().getField(VcfHeaderUtils.INFO_CONFIDENT).equals( Confidence.ZERO.name()));	 	         	        		
+	        			assertTrue( re.getInfoRecord().getField(VcfHeaderUtils.INFO_CONFIDENT).equals( MafConfidence.ZERO.name()));	 	         	        		
 	        	}
 	        	assertEquals(5, i);	
 	        }

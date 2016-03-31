@@ -5,13 +5,13 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.model.MafConfidence;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.IndelUtils;
@@ -24,8 +24,6 @@ import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 
-import au.edu.qimr.qannotate.Main;
-import au.edu.qimr.qannotate.modes.ConfidenceMode.Confidence;
 import au.edu.qimr.qannotate.options.Vcf2mafOptions;
 import au.edu.qimr.qannotate.utils.SampleColumn;
 import au.edu.qimr.qannotate.utils.SnpEffConsequence;
@@ -150,7 +148,7 @@ public class Vcf2maf extends AbstractMode{
 	        			out.println(Smaf);
 	        			noOut ++;
 	        			int rank = Integer.parseInt(maf.getColumnValue(40));
-	        			if(maf.getColumnValue(38).equalsIgnoreCase(Confidence.HIGH.name())) {
+	        			if(maf.getColumnValue(38).equalsIgnoreCase(MafConfidence.HIGH.name())) {
 	        				if(maf.getColumnValue(26).equalsIgnoreCase(VcfHeaderUtils.INFO_SOMATIC)){
 	        					out_SHC.println(Smaf);
 	        					no_SHC ++;
@@ -168,7 +166,7 @@ public class Vcf2maf extends AbstractMode{
 	        						no_GHCC ++;
 	        					}
 	        				}   
-	        			} else if(option.doOutputLowMaf() && maf.getColumnValue(38).equalsIgnoreCase(Confidence.LOW.name())) {
+	        			} else if(option.doOutputLowMaf() && maf.getColumnValue(38).equalsIgnoreCase(MafConfidence.LOW.name())) {
 	        				if(maf.getColumnValue(26).equalsIgnoreCase(VcfHeaderUtils.INFO_SOMATIC)){
 	        					out_SLC.println(Smaf);
 	        					no_SLC ++;
@@ -252,8 +250,12 @@ public class Vcf2maf extends AbstractMode{
 		//set common value;				 
 		if(center != null) maf.setColumnValue(3, center);
 		if(sequencer != null) maf.setColumnValue(32, sequencer); 	//???query DB for sequencer
-		
-		maf.setColumnValue(5,  vcf.getChromosome().toUpperCase().replace("CHR", ""));
+
+		String chr = vcf.getChromosome();
+		if (chr.startsWith(Constants.CHR)) {
+			chr = chr.substring(Constants.CHR.length());
+		}
+		maf.setColumnValue(5, chr);
 		
 		//Variant Type
 		SVTYPE type = IndelUtils.getVariantType(vcf.getRef(), vcf.getAlt());
@@ -286,15 +288,21 @@ public class Vcf2maf extends AbstractMode{
 		} else {
 			maf.setColumnValue(14,  vcf.getId());
 		}
-		if(vcf.getInfoRecord().getField(VcfHeaderUtils.INFO_VLD) != null) {
+		
+		final VcfInfoFieldRecord info =  vcf.getInfoRecord();
+		final String infoString = info.toString();
+		
+		if(infoString.contains(VcfHeaderUtils.INFO_VLD)) {
 			maf.setColumnValue(15,  VcfHeaderUtils.INFO_VLD);
 		}
 		
-		if(vcf.getInfoRecord().getField(VcfHeaderUtils.INFO_SOMATIC) != null) {
-			maf.setColumnValue(26,  VcfHeaderUtils.INFO_SOMATIC);
-		} else {
-			maf.setColumnValue(26,  VcfHeaderUtils.INFO_GERMLINE);
-		}
+		maf.setColumnValue(26,  VcfUtils.isRecordSomatic(vcf) ? VcfHeaderUtils.INFO_SOMATIC : VcfHeaderUtils.INFO_GERMLINE);
+		
+//		if(vcf.getInfoRecord().getField(VcfHeaderUtils.INFO_SOMATIC) != null) {
+//			maf.setColumnValue(26,  VcfHeaderUtils.INFO_SOMATIC);
+//		} else {
+//			maf.setColumnValue(26,  VcfHeaderUtils.INFO_GERMLINE);
+//		}
 		
 		if(testBamId != null) maf.setColumnValue(16, testBamId );
  		if(controlBamId != null) maf.setColumnValue(17, controlBamId);	
@@ -302,7 +310,6 @@ public class Vcf2maf extends AbstractMode{
 		if(testSample != null) maf.setColumnValue(33,   testSample );
 		if(controlSample != null) maf.setColumnValue(34,  controlSample );	
 		
-		final VcfInfoFieldRecord info =  new VcfInfoFieldRecord(vcf.getInfo());
 //		if(info.getField(VcfHeaderUtils.FORMAT_NOVEL_STARTS) != null) maf.setColumnValue(40,  info.getField(VcfHeaderUtils.FORMAT_NOVEL_STARTS));
 		if(info.getField(VcfHeaderUtils.INFO_CONFIDENT) != null)	maf.setColumnValue(38,  info.getField(VcfHeaderUtils.INFO_CONFIDENT) );
 //		if(info.getField(VcfHeaderUtils.INFO_FS) != null) maf.setColumnValue(41+1,  info.getField(VcfHeaderUtils.INFO_FS));
