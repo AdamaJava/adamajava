@@ -128,7 +128,7 @@ public class ConfidenceMode extends AbstractMode{
 			 		}
 			 		String [] basesArray = bases.split(Constants.VCF_MERGE_DELIM + "");
 			 		if (basesArray.length < 2) {
-			 			logger.warn("bases array is less than 2!!");
+			 			logger.warn("bases array is less than 2!! for " + vcf.toString());
 			 			for (String s : basesArray) {
 			 				logger.warn("s: " + s);
 			 			}
