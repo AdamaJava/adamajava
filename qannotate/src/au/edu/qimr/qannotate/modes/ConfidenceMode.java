@@ -11,6 +11,7 @@ import java.util.List;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.model.MafConfidence;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.SnpUtils;
@@ -50,7 +51,7 @@ public class ConfidenceMode extends AbstractMode{
 			HIGH_CONF_NOVEL_STARTS_PASSING_SCORE, HIGH_CONF_ALT_FREQ_PASSING_SCORE, LOW_CONF_NOVEL_STARTS_PASSING_SCORE, LOW_CONF_ALT_FREQ_PASSING_SCORE);
 
 
-	public enum Confidence{	HIGH , LOW, ZERO ; }
+//	public enum Confidence{	HIGH , LOW, ZERO ; }
 //	private final String patientId;
 	
 	private int test_column = -2; //can't be -1 since will "+1"
@@ -144,16 +145,16 @@ public class ConfidenceMode extends AbstractMode{
 								&& altFreq >=  HIGH_CONF_ALT_FREQ_PASSING_SCORE
 								&& PASS.equals(thisFilter)) {
 				        	
-				        		vcf.getInfoRecord().addField(VcfHeaderUtils.INFO_CONFIDENT, Confidence.HIGH.toString() + suffix);    	 				 				
+				        		vcf.getInfoRecord().addField(VcfHeaderUtils.INFO_CONFIDENT, MafConfidence.HIGH.toString() + suffix);    	 				 				
 				        		mergedHigh++;
 				        } else if ( nns >= LOW_CONF_NOVEL_STARTS_PASSING_SCORE
 								&& altFreq >= LOW_CONF_ALT_FREQ_PASSING_SCORE 
 								&& isClassB(thisFilter) ) {
 				        	
-				        		vcf.getInfoRecord().addField(VcfHeaderUtils.INFO_CONFIDENT, Confidence.LOW.toString() + suffix);					 
+				        		vcf.getInfoRecord().addField(VcfHeaderUtils.INFO_CONFIDENT, MafConfidence.LOW.toString() + suffix);					 
 				        		mergedLow++;
 				        } else {
-				        		vcf.getInfoRecord().addField(VcfHeaderUtils.INFO_CONFIDENT, Confidence.ZERO.toString() + suffix);
+				        		vcf.getInfoRecord().addField(VcfHeaderUtils.INFO_CONFIDENT, MafConfidence.ZERO.toString() + suffix);
 				        		mergedZero++;
 				        }
 			 		}
@@ -162,16 +163,16 @@ public class ConfidenceMode extends AbstractMode{
 							&& ( VcfUtils.getAltFrequency(formatField, vcf.getAlt()) >=  HIGH_CONF_ALT_FREQ_PASSING_SCORE)
 							&& PASS.equals(vcf.getFilter())) {
 			        	
-			        		vcf.getInfoRecord().setField(VcfHeaderUtils.INFO_CONFIDENT, Confidence.HIGH.toString());		        	 				 				
+			        		vcf.getInfoRecord().setField(VcfHeaderUtils.INFO_CONFIDENT, MafConfidence.HIGH.toString());		        	 				 				
 			        		high++;
 			        } else if ( checkNovelStarts(LOW_CONF_NOVEL_STARTS_PASSING_SCORE, formatField)
 							&& ( VcfUtils.getAltFrequency(formatField, vcf.getAlt()) >= LOW_CONF_ALT_FREQ_PASSING_SCORE )
 							&& isClassB(vcf.getFilter()) ) {
 			        	
-			        		vcf.getInfoRecord().setField(VcfHeaderUtils.INFO_CONFIDENT, Confidence.LOW.toString());					 
+			        		vcf.getInfoRecord().setField(VcfHeaderUtils.INFO_CONFIDENT, MafConfidence.LOW.toString());					 
 			        		low++;
 			        } else {
-			        		vcf.getInfoRecord().setField(VcfHeaderUtils.INFO_CONFIDENT, Confidence.ZERO.toString());
+			        		vcf.getInfoRecord().setField(VcfHeaderUtils.INFO_CONFIDENT, MafConfidence.ZERO.toString());
 			        		zero++;
 			        }
 			 	}

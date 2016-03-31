@@ -11,13 +11,12 @@ import java.util.List;
 
 import org.junit.AfterClass;
 import org.junit.Test;
+import org.qcmg.common.model.MafConfidence;
 import org.qcmg.common.vcf.VcfInfoFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
-import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 
-import au.edu.qimr.qannotate.modes.ConfidenceMode.Confidence;
 import au.edu.qimr.qannotate.utils.SampleColumn;
 
 public class CustomerCondidenceModeTest {
@@ -44,11 +43,11 @@ public class CustomerCondidenceModeTest {
 			for (final VcfRecord re : reader) {		
 				final VcfInfoFieldRecord infoRecord = new VcfInfoFieldRecord(re.getInfo()); 				
 				if(re.getPosition() == 41281388) 
-					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(Confidence.HIGH.toString())); 
+					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(MafConfidence.HIGH.toString())); 
 				else if(re.getPosition() == 41281389) 
-					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(Confidence.ZERO.toString())); 
+					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(MafConfidence.ZERO.toString())); 
 				else if(re.getPosition() == 41281390) 
-					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(Confidence.ZERO.toString())); 
+					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(MafConfidence.ZERO.toString())); 
 			}
 		}
 		 
