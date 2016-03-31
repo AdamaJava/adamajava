@@ -1,7 +1,6 @@
 package org.qcmg.common.vcf;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -15,7 +14,9 @@ import org.junit.Test;
 import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.model.GenotypeEnum;
+import org.qcmg.common.model.MafConfidence;
 import org.qcmg.common.model.PileupElement;
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 
 public class VcfUtilsTest {
@@ -61,6 +62,37 @@ public class VcfUtilsTest {
 		
 		count = VcfUtils.getAltFrequency(format, "_CA");
 		assertEquals(count,3);		;
+	}
+	
+	@Test
+	public void getConfidence() {
+		VcfRecord rec =  new VcfRecord( new String[] {"1","1",".","A","."});
+		assertNull(VcfUtils.getConfidence(rec));
+		rec.setInfo(VcfHeaderUtils.INFO_CONFIDENT + Constants.EQ +  MafConfidence.LOW.toString());
+		assertEquals(MafConfidence.LOW, VcfUtils.getConfidence(rec));
+		rec.setInfo(VcfHeaderUtils.INFO_CONFIDENT + Constants.EQ +  MafConfidence.HIGH.toString());
+		assertEquals(MafConfidence.HIGH, VcfUtils.getConfidence(rec));
+		rec.setInfo(VcfHeaderUtils.INFO_CONFIDENT + Constants.EQ +  MafConfidence.ZERO.toString());
+		assertEquals(MafConfidence.ZERO, VcfUtils.getConfidence(rec));
+	}
+	@Test
+	public void getConfidenceMergedRec() {
+		VcfRecord rec =  new VcfRecord( new String[] {"1","1",".","A","."});
+		assertNull(VcfUtils.getConfidence(rec));
+		rec.setInfo("CONF=HIGH_1,ZERO_2");
+		assertEquals(MafConfidence.HIGH, VcfUtils.getConfidence(rec));
+		rec.setInfo("CONF=HIGH_1,HIGH_2");
+		assertEquals(MafConfidence.HIGH, VcfUtils.getConfidence(rec));
+		rec.setInfo("CONF=LOW_1,HIGH_2");
+		assertEquals(MafConfidence.HIGH, VcfUtils.getConfidence(rec));
+		rec.setInfo("CONF=LOW_1,LOW_2");
+		assertEquals(MafConfidence.LOW, VcfUtils.getConfidence(rec));
+		rec.setInfo("CONF=LOW_1,ZERO_2");
+		assertEquals(MafConfidence.LOW, VcfUtils.getConfidence(rec));
+		rec.setInfo("CONF=LOW_2,ZERO_1");
+		assertEquals(MafConfidence.LOW, VcfUtils.getConfidence(rec));
+		rec.setInfo("CONF=ZERO_2,ZERO_1");
+		assertEquals(MafConfidence.ZERO, VcfUtils.getConfidence(rec));
 	}
 	
 	@Test
