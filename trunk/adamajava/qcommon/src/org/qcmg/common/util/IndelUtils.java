@@ -91,15 +91,6 @@ public class IndelUtils {
 			 case 3: return SVTYPE.TNP;
 			 default: return SVTYPE.ONP;
 			 }
-//			if(ref.length()  == 1) {
-//				return SVTYPE.SNP;	
-//			} else if(ref.length()  == 2) {
-//				return SVTYPE.DNP ;	
-//			} else if(ref.length()  == 3) {
-//				return SVTYPE.TNP;	
-//			} else {
-//				return SVTYPE.ONP;	
-//			}
 		 } else if ( alt.length() <  MAX_INDEL_LENGTH &&  alt.length() > ref.length() && ref.length() == 1) {
 			 return  SVTYPE.INS;		 
 		 } else if (ref.length() <  MAX_INDEL_LENGTH && alt.length() < ref.length() && alt.length() == 1) {
