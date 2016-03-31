@@ -217,7 +217,7 @@ public class IndelPosition {
 			re.setFilter( IndelUtils.FILTER_HCOVN);
 			return re; 
 		}
-		
+				
 		//decide somatic or not
 		boolean somatic = true;
 		if(normalPileup != null){

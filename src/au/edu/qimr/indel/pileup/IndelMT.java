@@ -96,7 +96,7 @@ public class IndelMT {
 		 	List<SAMRecord> next_pool = new ArrayList<SAMRecord>(); 
 		 	int size = qIn.size();	
 			if (size <= 0) {
-		 		logger.info("There is no indel fallen in contig: " + contig.getSequenceName() );		 		
+		 		logger.debug("There is no indel fallen in contig: " + contig.getSequenceName() );		 		
 		 		return;
 		 	}
 			
@@ -163,7 +163,7 @@ public class IndelMT {
 				mainThread.interrupt();
 			} finally {
 				pLatch.countDown();
-				logger.info( size + " indels is completed pileup from " + contig.getSequenceName() + " on " + bam.getName());
+				logger.debug( size + " indels is completed pileup from " + contig.getSequenceName() + " on " + bam.getName());
 
  			}			
 		}
@@ -275,7 +275,7 @@ public class IndelMT {
 
 			} finally {
 				pLatch.countDown();
-				logger.info(size  + " indels had been checked homopolymer from " + contig);
+				logger.debug(size  + " indels had been checked homopolymer from " + contig);
 			}
 		}
 		
@@ -432,7 +432,7 @@ public class IndelMT {
 		
 	}
 	
-	 	private void getHeaderForIndel(VcfHeader header ) throws Exception{
+	 private void getHeaderForIndel(VcfHeader header ) throws Exception{
 
 //		VcfHeader header = existHeader; // new VcfHeader();
 		 QExec qexec = options.getQExec();

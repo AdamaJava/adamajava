@@ -80,7 +80,7 @@ public class Options {
 			
 		log = (String) options.valueOf("log");
 		loglevel = (String) options.valueOf("loglevel");	
-		logger = QLoggerFactory.getLogger(Main.class, log, loglevel);		
+		logger = QLoggerFactory.getLogger(Main.class, log, loglevel);
 		
 		String	version = Main.class.getPackage().getImplementationVersion();
 		String pg = Main.class.getPackage().getImplementationTitle();		
