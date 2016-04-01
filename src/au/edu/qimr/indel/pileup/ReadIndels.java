@@ -19,10 +19,12 @@ import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 
+import au.edu.qimr.indel.Options;
+
 
 public class ReadIndels {
-	static final String FILTER_UNTESTED = "UNKOWN";
-	static final String FILTER_GEMETIC = "GERMLINE";
+//	static final String FILTER_UNTESTED = "UNKOWN";
+//	static final String FILTER_GEMETIC = "GERMLINE";
 	static final String FILTER_SOMATIC = "SOMATIC";
 	
 	QLogger logger; 
@@ -43,7 +45,7 @@ public class ReadIndels {
 	 * @param f: input of vcf file
 	 * @throws IOException
 	 */
-	public void appendIndels(File f) throws IOException{
+	public void appendIndels(File f, String runMode) throws IOException{
 				
 		//only keep the first sample column, and put "." to second column
 		for(VcfRecord vcf : positionRecordMap.values()){
@@ -82,11 +84,10 @@ public class ReadIndels {
 	 	        			//new VcfRecord(re.toString().trim().split("\t"));
 	 	        			//vcf1.setAlt(alt);
 	 	        		}
-     					if(!mergeIndel(vcf1))     					 
+     					if(!mergeIndel(vcf1, runMode))     					 
      						indelnewCount ++;
      					 else 
-     						vcf1.setFilter(FILTER_GEMETIC);
-     						     					
+     						overlapCount ++;     						     					
 	 	        	}
 				}  	    			
 			}
@@ -106,7 +107,7 @@ public class ReadIndels {
 	 * @param secVcf: a vcf record
 	 * @return true if same variants exist and merge them; otherwise return false by adding this new variants 
 	 */
-	public boolean mergeIndel(  VcfRecord secVcf){
+	private boolean mergeIndel(  VcfRecord secVcf, String runMode){
 	    //get vcf with same ChrPointPosition, ref and alt
 		VcfRecord existingvcf = positionRecordMap.get( secVcf );
 				
@@ -116,14 +117,11 @@ public class ReadIndels {
 			secformat.remove(secformat.size()-1); 
 
 		//copy secVcf with sample column "FORMAT <missing data> oriSample" only 
-		if(existingvcf == null){
-//			existingvcf = new VcfRecord.Builder(secVcf.getChrPosition(), secVcf.getRef())
-//				.id(secVcf.getId()).allele(secVcf.getAlt()).filter(secVcf.getFilter()).build();
-			
-			//add new vcf set filter to somatic temporary, since only appear on second vcf(test)
+		if(existingvcf == null){	
+			//the test only indel always set as somatic, even gatkeTest runMode 
 			existingvcf = new VcfRecord.Builder(secVcf.getChrPosition(), secVcf.getRef())
 			.id(secVcf.getId()).allele(secVcf.getAlt()).filter(FILTER_SOMATIC).build();
-			
+ 			
 			existingvcf.setInfo(secVcf.getInfo());	
 			
 			//insert . to first sample column and then shift original sample to second 
@@ -136,8 +134,9 @@ public class ReadIndels {
 						
 			return false; 
 		}else{
-			//set exsiting vcf to gemetic temporary, since it appears on both
-			existingvcf.setFilter(FILTER_GEMETIC);
+			//gatkTest runMode already set filter as "." (germline) ignore pileup
+			//other mode already set as somatic, will check pileup
+			//existingvcf.setFilter(FILTER_GEMETIC);
 			
 			//only keep first sample column of exsiting vcf
 			List<String> format1 = existingvcf.getFormatFields();
@@ -159,7 +158,7 @@ public class ReadIndels {
 	 * @param sampleCode: replace sample code inside the input vcf file 
 	 * @throws IOException
 	 */
-	public void LoadIndels(File f) throws IOException{
+	public void LoadIndels(File f, String runMode) throws IOException{
     	int inVariants = 0;
     	int inLines = 0;
     	int multiAltNo = 0;
@@ -181,7 +180,14 @@ public class ReadIndels {
 					SVTYPE type = IndelUtils.getVariantType(re.getRef(), alt);
 	 	        	if(type.equals(SVTYPE.DEL) ||type.equals(SVTYPE.INS) ){
 	 	        		VcfRecord vcf1 = VcfUtils.resetAllel(re, alt);
-	 	        		vcf1.setFilter(FILTER_UNTESTED);
+	 	        		
+	 	        		//the test mode set default as germline;
+	 	        		//the others set default as somatic
+	 	        		if(runMode.equals(Options.RUNMODE_GATKTEST))
+	 	        			vcf1.setFilter(Constants.MISSING_DATA_STRING);
+	 	        		else
+	 	        			vcf1.setFilter(FILTER_SOMATIC);
+	 	        		
      					if(positionRecordMap.containsKey(vcf1) && (overwriteNo ++) < errRecordLimit)						
      						logger.warn("overwriting same variants:\n" + positionRecordMap.get(vcf1).toString() );
     					 

@@ -202,7 +202,7 @@ public class IndelPosition {
 	
 	public void setHomopolymer(Homopolymer polymer){
 		this.polymer = polymer; 
-	}
+	}	
 	
 	public VcfRecord getPileupedVcf(int index, final int gematic_nns, final float gematic_soi){
 		VcfRecord re = vcfs.get(index);		
@@ -219,10 +219,13 @@ public class IndelPosition {
 		}
 				
 		//decide somatic or not
-		boolean somatic = true;
-		if(re.getFilter().equals(ReadIndels.FILTER_GEMETIC))
-			somatic = false;		
-		else if(normalPileup != null){
+		
+		//debug
+		System.out.println("filter was " + re.getFilter());
+		
+		
+		boolean somatic = (re.getFilter().equals(ReadIndels.FILTER_SOMATIC))? true : false;
+ 		if(normalPileup != null && somatic){
 			if( normalPileup.getnovelStartReadCount(index)  > gematic_nns ) 
 				somatic = false;
 			else if(normalPileup.getInformativeCount() > 0){
@@ -233,7 +236,7 @@ public class IndelPosition {
 			}		
 		}
 		
-		if(somatic) 
+		if( somatic) 
 			re.appendInfo(VcfHeaderUtils.INFO_SOMATIC);
 
 		//set default filter as PASS

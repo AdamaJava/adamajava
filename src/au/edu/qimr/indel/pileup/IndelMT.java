@@ -311,13 +311,13 @@ public class IndelMT {
 		if(options.getRunMode().equalsIgnoreCase(options.RUNMODE_GATK) || options.getRunMode().equalsIgnoreCase(options.RUNMODE_GATKTEST)){	
 			//first load control
 			if(options.getControlInputVcf() != null)
-				indelload.LoadIndels(options.getControlInputVcf());		
+				indelload.LoadIndels(options.getControlInputVcf(),options.getRunMode());		
 			//then test second column
 			if(options.getTestInputVcf() != null)
-				indelload.appendIndels(options.getTestInputVcf());						
+				indelload.appendIndels(options.getTestInputVcf(), options.getRunMode());						
 		}else if(options.getRunMode().equalsIgnoreCase("pindel")){	
 			for(int i = 0; i < options.getInputVcfs().size(); i ++)
-				indelload.LoadIndels(options.getInputVcfs().get(i));		
+				indelload.LoadIndels(options.getInputVcfs().get(i), options.getRunMode());	
 		}
 	}
 	
@@ -373,7 +373,7 @@ public class IndelMT {
 			pileupThreads.awaitTermination(20, TimeUnit.HOURS);
 			logger.info("All threads finished");
 			
-			 writeVCF( tumourQueue, normalQueue, homopoQueue,options.getOutput(),indelload.getVcfHeader());			
+			writeVCF( tumourQueue, normalQueue, homopoQueue,options.getOutput(),indelload.getVcfHeader());			
 			
 		} catch (Exception e) {
 			logger.error("Exception caught whilst waiting for threads to finish: " + e.getMessage(), e);
@@ -427,6 +427,7 @@ public class IndelMT {
 			long somaticCount = 0;
 			while( (indel = orderedList.poll()) != null)
 				for(int i = 0; i < indel.getMotifs().size(); i++){	
+
 					VcfRecord re = indel.getPileupedVcf(i, options.getMinGematicNovelStart(), options.getMinGematicSupportOfInformative());
 					writer.add(re  );	
 					count ++;

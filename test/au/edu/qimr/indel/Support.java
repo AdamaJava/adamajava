@@ -118,7 +118,7 @@ public class Support {
 			
 		} catch (Exception e) {
 			System.err.println(Q3IndelException.getStrackTrace(e));
-			Assert.fail("Should not threw a Exception");
+			Assert.fail("Should not threw an Exception");
 		}		
 		return null; 
 	}

@@ -169,8 +169,8 @@ public class IndelPositionTest {
 	}
 	
 	
-	@Ignore
 	//SOMATIC, TPART, NPART
+	@Test 
 	public void partialTest() throws IOException{
 		
 		// somatic: normal BAM with zero novel start three partial reads
@@ -222,8 +222,8 @@ public class IndelPositionTest {
 		
 	}
 	
-	@Ignore
-	//test SOMTIC, COVN12, MIN, NNS
+	 
+	@Test //SOMTIC, COVN12, MIN, NNS
 	public void somaticTest() throws IOException{
 		//normal BAM with one novel start, gematic.soi = 3% < 0.05
 		 List<String> data = new ArrayList<String>();
