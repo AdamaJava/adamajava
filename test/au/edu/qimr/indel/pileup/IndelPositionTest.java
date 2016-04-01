@@ -65,7 +65,7 @@ public class IndelPositionTest {
 	@Test
 	//test HCOVN and HCOVT can't have other flag or SOMATIC
 	public void HCOVTest() throws Exception{
-				
+	
 		 List<String> data = new ArrayList<String>();
 		 for(int i = 1; i <= 1000; i ++) 
 			 data.add("ST-" + i + ":a:102\t99\tchrY\t2672601\t60\t10M2D123M2D10M8S\t=\t2673085\t631\tGTAGTTTATATTTCTGTGGGGTCAGTGGTGATATCCCTTTTATTATTTTTTATTGTGTCTTTTTGATTCTTCTCTCTTTTCTTTTTTATTAATCTACCTAGCAGTCTATCTTATTGGGTGTG\t*");		  
