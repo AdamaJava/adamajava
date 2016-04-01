@@ -347,17 +347,18 @@ public class IndelMT {
         if(options.getFilterQuery() != null)
         	query = new QueryExecutor(options.getFilterQuery()); 
         
+     	//String filter = (options.getRunMode().equals(Options.RUNMODE_GATKTEST))? ReadIndels.FILTER_UNTESTED : null;     		
+       
     	//each time only throw threadNo thread, the loop finish untill the last threadNo                    	
     	for(SAMSequenceRecord contig : sortedContigs ){  
       		
-    		String filter = (options.getRunMode().equals(Options.RUNMODE_GATKTEST))? ReadIndels.FILTER_UNTESTED : null;     		
     		if(options.getControlBam() != null)    			
-    			 pileupThreads.execute(new contigPileup(contig, getIndelList(contig, filter), options.getControlBam(),query,
+    			 pileupThreads.execute(new contigPileup(contig, getIndelList(contig, null), options.getControlBam(),query,
     				normalQueue, Thread.currentThread(),pileupLatch ));
     		
     		//getIndelList must be called repeately, since it will be empty after pileup
     		 if(options.getTestBam() != null)
-    			 pileupThreads.execute(new contigPileup(contig, getIndelList(contig, filter), options.getTestBam() , query,
+    			 pileupThreads.execute(new contigPileup(contig, getIndelList(contig, null), options.getTestBam() , query,
     					 tumourQueue, Thread.currentThread() ,pileupLatch));
     		
     		if(options.getReference() != null)
@@ -434,8 +435,8 @@ public class IndelMT {
 						somaticCount ++;
 				}
 						
-			logger.info("outputed VCF record:  " + count);	
-			logger.info("including somatic record:  " + somaticCount);
+			logger.info("outputed VCF record: " + count);	
+			logger.info("including somatic record: " + somaticCount);
 		}
 		
 	}
