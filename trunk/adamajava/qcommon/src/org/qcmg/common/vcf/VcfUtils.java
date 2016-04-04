@@ -874,7 +874,7 @@ public class VcfUtils {
 		int index = info.indexOf(VcfHeaderUtils.INFO_CONFIDENT + Constants.EQ);
 		int scIndex = info.indexOf(Constants.SEMI_COLON_STRING, index);
 		String conf = info.substring(index + (VcfHeaderUtils.INFO_CONFIDENT + Constants.EQ).length(), scIndex > -1 ? scIndex : info.length());
-		logger.info("conf: " + conf);
+//		logger.info("conf: " + conf);
 		if (conf.contains(MafConfidence.HIGH.name())) {
 			return MafConfidence.HIGH;
 		}
