@@ -141,56 +141,56 @@ public class Vcf2maf extends AbstractMode{
 			createMafHeader(out,out_SHCC,out_SHC,out_GHCC,out_GHC,out_SLCC,out_SLC,out_GLCC,out_GLC);
 			
 			for (final VcfRecord vcf : reader) {
-	        		try {
-	        			noIn ++;
-	        			SnpEffMafRecord maf = converter(vcf);
-	        			String Smaf = maf.getMafLine();
-	        			out.println(Smaf);
-	        			noOut ++;
-	        			int rank = Integer.parseInt(maf.getColumnValue(40));
-	        			boolean isConsequence = isConsequence(maf.getColumnValue(55), rank);
-	        			boolean isSomatic = maf.getColumnValue(26).equalsIgnoreCase(VcfHeaderUtils.INFO_SOMATIC);
-	        			if (maf.getColumnValue(38).equalsIgnoreCase(MafConfidence.HIGH.name())) {
-	        				if (isSomatic){
-	        					out_SHC.println(Smaf);
-	        					no_SHC ++;
-	        					
-	        					if(isConsequence){
-	        						out_SHCC.println(Smaf);
-	        						no_SHCC ++;
-	        					}
-	        				} else {
-	        					out_GHC.println(Smaf);
-	        					no_GHC ++; 
-	        					 
-	        					if(isConsequence){
-	        						out_GHCC.println(Smaf);
-	        						no_GHCC ++;
-	        					}
-	        				}   
-	        			} else if (option.doOutputLowMaf() && maf.getColumnValue(38).equalsIgnoreCase(MafConfidence.LOW.name())) {
-	        				if (isSomatic){
-	        					out_SLC.println(Smaf);
-	        					no_SLC ++;
-	        					
-	        					if(isConsequence){
-	        						out_SLCC.println(Smaf);
-	        						no_SLCC ++;
-	        					}
-	        				} else {
-	        					out_GLC.println(Smaf);
-	        					no_GLC ++;
-	        					
-	        					if(isConsequence){
-	        						out_GLCC.println(Smaf);
-	        						no_GLCC ++;
-	        					}
-	        				}
-	        			}
-          		} catch (final Exception e) {
-	        			logger.warn("Error message during vcf2maf: " + e.getMessage() + "\n" + vcf.toString());
-	        			e.printStackTrace();
-	        		}
+//	        		try {
+        			noIn ++;
+        			SnpEffMafRecord maf = converter(vcf);
+        			String Smaf = maf.getMafLine();
+        			out.println(Smaf);
+        			noOut ++;
+        			int rank = Integer.parseInt(maf.getColumnValue(40));
+        			boolean isConsequence = isConsequence(maf.getColumnValue(55), rank);
+        			boolean isSomatic = maf.getColumnValue(26).equalsIgnoreCase(VcfHeaderUtils.INFO_SOMATIC);
+        			if (maf.getColumnValue(38).equalsIgnoreCase(MafConfidence.HIGH.name())) {
+        				if (isSomatic){
+        					out_SHC.println(Smaf);
+        					no_SHC ++;
+        					
+        					if(isConsequence){
+        						out_SHCC.println(Smaf);
+        						no_SHCC ++;
+        					}
+        				} else {
+        					out_GHC.println(Smaf);
+        					no_GHC ++; 
+        					 
+        					if(isConsequence){
+        						out_GHCC.println(Smaf);
+        						no_GHCC ++;
+        					}
+        				}   
+        			} else if (option.doOutputLowMaf() && maf.getColumnValue(38).equalsIgnoreCase(MafConfidence.LOW.name())) {
+        				if (isSomatic){
+        					out_SLC.println(Smaf);
+        					no_SLC ++;
+        					
+        					if(isConsequence){
+        						out_SLCC.println(Smaf);
+        						no_SLCC ++;
+        					}
+        				} else {
+        					out_GLC.println(Smaf);
+        					no_GLC ++;
+        					
+        					if(isConsequence){
+        						out_GLCC.println(Smaf);
+        						no_GLCC ++;
+        					}
+        				}
+        			}
+//          		} catch (final Exception e) {
+//	        			logger.warn("Error message during vcf2maf: " + e.getMessage() + "\n" + vcf.toString());
+//	        			e.printStackTrace();
+//	        		}
 			}
 		}	
 		
