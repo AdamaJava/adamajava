@@ -243,7 +243,7 @@ public class Vcf2maf extends AbstractMode{
 	}
 
 	//Effect ( Effect_Impact | Functional_Class | Codon_Change | Amino_Acid_Change| Amino_Acid_length | Gene_Name | Transcript_BioType | Gene_Coding | Transcript_ID | Exon_Rank  | Genotype_Number [ | ERRORS | WARNINGS ] )
-	 SnpEffMafRecord converter(VcfRecord vcf) throws Exception{
+	 SnpEffMafRecord converter(VcfRecord vcf) {
 		final SnpEffMafRecord maf = new SnpEffMafRecord();
 		maf.setDefaultValue();
 		
@@ -310,8 +310,9 @@ public class Vcf2maf extends AbstractMode{
 		if(testSample != null) maf.setColumnValue(33,   testSample );
 		if(controlSample != null) maf.setColumnValue(34,  controlSample );	
 		
+		MafConfidence conf = VcfUtils.getConfidence(vcf);
 //		if(info.getField(VcfHeaderUtils.FORMAT_NOVEL_STARTS) != null) maf.setColumnValue(40,  info.getField(VcfHeaderUtils.FORMAT_NOVEL_STARTS));
-		if(info.getField(VcfHeaderUtils.INFO_CONFIDENT) != null)	maf.setColumnValue(38,  info.getField(VcfHeaderUtils.INFO_CONFIDENT) );
+		if(info.getField(VcfHeaderUtils.INFO_CONFIDENT) != null)	maf.setColumnValue(38,  conf.name() );
 //		if(info.getField(VcfHeaderUtils.INFO_FS) != null) maf.setColumnValue(41+1,  info.getField(VcfHeaderUtils.INFO_FS));
 		if(info.getField(VcfHeaderUtils.INFO_FLANKING_SEQUENCE) != null) maf.setColumnValue(42,  info.getField(VcfHeaderUtils.INFO_FLANKING_SEQUENCE));
 		if(info.getField(VcfHeaderUtils.INFO_VAF) != null) maf.setColumnValue(43,  info.getField(VcfHeaderUtils.INFO_VAF));		
@@ -330,7 +331,7 @@ public class Vcf2maf extends AbstractMode{
 		if(formats == null) 	return maf; 
 		
 		if(   formats.size() <= Math.max(test_column, control_column)  ) {	// format include "FORMAT" column, must bigger than sample column
-			throw new Exception(" Varint missing sample column on :"+ vcf.getChromosome() + "\t" + vcf.getPosition());
+			throw new IllegalArgumentException(" Varint missing sample column on :"+ vcf.getChromosome() + "\t" + vcf.getPosition());
 		}
 		
 		VcfFormatFieldRecord sample =  new VcfFormatFieldRecord(formats.get(0), formats.get(test_column));		
@@ -449,7 +450,7 @@ public class Vcf2maf extends AbstractMode{
 		  return values;
 	 }
 	 	 	 	 
-	 void getSnpEffAnnotation(SnpEffMafRecord maf, String effString) throws Exception  {
+	 void getSnpEffAnnotation(SnpEffMafRecord maf, String effString) {
 		 	String effAnno = SnpEffConsequence.getWorstCaseConsequence(effString.split(","));		 
 			//Effect 			   ( Effect_Impact | Functional_Class | Codon_Change | Amino_Acid_Change| Amino_Acid_length | Gene_Name | Transcript_BioType | Gene_Coding 				| Transcript_ID | Exon_Rank  | Genotype_Number [ | ERRORS | WARNINGS ] )
 			//upstream_gene_variant (MODIFIER       |         -         |1760          |     -             |		-		| DDX11L1	|processed_transcript|NON_CODING				|ENST00000456328|		-	 |1)

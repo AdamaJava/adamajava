@@ -17,6 +17,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.qcmg.common.commandline.Executor;
+import org.qcmg.common.model.MafConfidence;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.util.IndelUtils.SVTYPE;
@@ -110,6 +111,22 @@ public class Vcf2mafTest {
  		assertTrue(maf.getColumnValue(51+1).equals("p.Thr329Pro"));
  		assertTrue(maf.getColumnValue(50+1).equals("ENST00000341065"));
  		assertTrue(maf.getColumnValue(52+1).equals("c.985A>C"));
+	 }
+	 
+	 @Test
+	 public void confidenceTest() {
+		 
+		 final Vcf2maf v2m = new Vcf2maf(2,1, null, null);	//test column2; normal column 1			
+		 final String[] parms = {"chrY","22012840",".","C","A",".","SBIAS","VLD;FLANK=GTGATATTCCC;VAF=0.11;"
+				 + "CONF=HIGH_1,ZERO_2;EFF=sequence_feature[compositionally_biased_region:Glu/Lys-rich](LOW|||c.1252G>C|591|CCDC148|protein_coding|CODING|ENST00000283233|10|1),"
+				 + "splice_acceptor_variant(HIGH|||n.356G>C||CCDC148-AS1|antisense|NON_CODING|ENST00000412781|5|1)",
+				 "GT:GD:AC","0/0:C/C:A1[5],0[0],C6[6.67],0[0],T1[6],21[32.81]","1/0:A/C:C8[7.62],2[2],A2[8],28[31.18]"};
+		 
+		 final VcfRecord vcf = new VcfRecord(parms);
+		 final SnpEffMafRecord maf = v2m.converter(vcf);
+		 
+		 assertEquals(MafConfidence.HIGH.name(), maf.getColumnValue(38));
+		 
 	 }
 	 
 	 @Test 

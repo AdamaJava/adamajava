@@ -194,13 +194,13 @@ public enum SnpEffConsequence {
 	 * @return protein_coding first; then ranking; then length
 	 */
 	public static String getWorstCaseConsequence( String ...strings ){
+		if (null == strings || strings.length == 0) return null;
 		
 		// we haven't defined all the snp types here - so if its a type snp, set to SNP
 		
 		SnpEffConsequence worstConsequence = null;
 		String worstConsequencestr = null;
 		int worstConsequencelen = 0;
-		if (null == strings || strings.length == 0) return null;
 		
 		for (final String consequence : strings) {
 			String ontolog = consequence.substring(0, consequence.indexOf("("));
@@ -210,7 +210,7 @@ public enum SnpEffConsequence {
 			//here Integer.getInteger(conse[4]) return null
 			int lconse = (StringUtils.isNumeric(conse[4])) ? Integer.parseInt(conse[4]) : 0; 
 			boolean onList = false;
-			for (final SnpEffConsequence dcEnum : values())  
+			for (final SnpEffConsequence dcEnum : values()) { 
 				if (  dcEnum.ontologName.equals(ontolog) ){ 
 					onList = true;
 					if (null == worstConsequence || dcEnum.snpRank < worstConsequence.snpRank ||
@@ -222,6 +222,7 @@ public enum SnpEffConsequence {
 					
 					break;  //stop seeking in SnpEffConsequence elements
 				}
+			}
 			
 			//print waring message if protein_coding annotation is not on the list
 			if(!onList && conse[6].equalsIgnoreCase(PROTEIN_CODING))

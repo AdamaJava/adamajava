@@ -52,7 +52,7 @@ public class SnpEffMafRecord {
 	 * @throws Exception if column number beyond [1,57] or non integer string for column 2, 4, 6, 7, 43-48
 	 */
 	
-	public void setColumnValue(int colNum, String value) throws IllegalArgumentException{
+	public void setColumnValue(int colNum, String value) {
 		if(colNum > maf.length || colNum < 1)
 			throw new IllegalArgumentException("invalid column number byond maf record column size: " + colNum);
 
