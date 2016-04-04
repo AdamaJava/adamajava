@@ -148,48 +148,50 @@ public class Vcf2maf extends AbstractMode{
 	        			out.println(Smaf);
 	        			noOut ++;
 	        			int rank = Integer.parseInt(maf.getColumnValue(40));
-	        			if(maf.getColumnValue(38).equalsIgnoreCase(MafConfidence.HIGH.name())) {
-	        				if(maf.getColumnValue(26).equalsIgnoreCase(VcfHeaderUtils.INFO_SOMATIC)){
+	        			boolean isConsequence = isConsequence(maf.getColumnValue(55), rank);
+	        			boolean isSomatic = maf.getColumnValue(26).equalsIgnoreCase(VcfHeaderUtils.INFO_SOMATIC);
+	        			if (maf.getColumnValue(38).equalsIgnoreCase(MafConfidence.HIGH.name())) {
+	        				if (isSomatic){
 	        					out_SHC.println(Smaf);
 	        					no_SHC ++;
 	        					
-	        					if(maf.getColumnValue(55).equalsIgnoreCase( PROTEINCODE ) && rank <=5 ){
+	        					if(isConsequence){
 	        						out_SHCC.println(Smaf);
 	        						no_SHCC ++;
 	        					}
-	        				}else{
+	        				} else {
 	        					out_GHC.println(Smaf);
 	        					no_GHC ++; 
 	        					 
-	        					if(maf.getColumnValue(55).equalsIgnoreCase( PROTEINCODE ) && rank <=5 ){
+	        					if(isConsequence){
 	        						out_GHCC.println(Smaf);
 	        						no_GHCC ++;
 	        					}
 	        				}   
-	        			} else if(option.doOutputLowMaf() && maf.getColumnValue(38).equalsIgnoreCase(MafConfidence.LOW.name())) {
-	        				if(maf.getColumnValue(26).equalsIgnoreCase(VcfHeaderUtils.INFO_SOMATIC)){
+	        			} else if (option.doOutputLowMaf() && maf.getColumnValue(38).equalsIgnoreCase(MafConfidence.LOW.name())) {
+	        				if (isSomatic){
 	        					out_SLC.println(Smaf);
 	        					no_SLC ++;
 	        					
-	        					if(maf.getColumnValue(55).equalsIgnoreCase( PROTEINCODE ) && rank <=5 ){
+	        					if(isConsequence){
 	        						out_SLCC.println(Smaf);
 	        						no_SLCC ++;
 	        					}
-	        				}else{
+	        				} else {
 	        					out_GLC.println(Smaf);
 	        					no_GLC ++;
 	        					
-	        					if(maf.getColumnValue(55).equalsIgnoreCase( PROTEINCODE ) && rank <=5 ){
+	        					if(isConsequence){
 	        						out_GLCC.println(Smaf);
 	        						no_GLCC ++;
 	        					}
 	        				}
 	        			}
-	          		}catch(final Exception e){
-		        			logger.warn("Error message during vcf2maf: " + e.getMessage() + "\n" + vcf.toString());
-		        			e.printStackTrace();
-		        		}
-				}
+          		} catch (final Exception e) {
+	        			logger.warn("Error message during vcf2maf: " + e.getMessage() + "\n" + vcf.toString());
+	        			e.printStackTrace();
+	        		}
+			}
 		}	
 		
 		logger.info("total input vcf record number is " + noIn);
@@ -199,6 +201,13 @@ public class Vcf2maf extends AbstractMode{
 		
 		//delete empty maf files
 		deleteEmptyMaf(SHCC, SHC,GHCC,GHC,SLCC,SLC,GLCC,GLC );		
+	}
+	
+	public static boolean isConsequence(String consequence, int rank) {
+		/*
+		 * Current criteria is that consequence is equal to protien_coding, and the rank is lt or eq to 5, we are good
+		 */
+		return consequence.equalsIgnoreCase( PROTEINCODE ) && rank <=5;
 	}
 		
 	private void deleteEmptyMaf(String ...fileNames){

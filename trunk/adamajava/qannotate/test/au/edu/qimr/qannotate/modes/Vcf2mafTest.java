@@ -12,7 +12,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -20,7 +19,6 @@ import org.qcmg.common.commandline.Executor;
 import org.qcmg.common.model.MafConfidence;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.IndelUtils;
-import org.qcmg.common.util.IndelUtils.SVTYPE;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
@@ -129,8 +127,21 @@ public class Vcf2mafTest {
 		 
 	 }
 	 
+	 @Test
+	 public void isConsequence() {
+		 SnpEffMafRecord maf = new SnpEffMafRecord();
+		 maf.setDefaultValue();
+		 
+		 assertEquals(false, Vcf2maf.isConsequence(maf.getColumnValue(55), 5));
+		 maf.setColumnValue(55, "protein_coding");
+		 assertEquals(true, Vcf2maf.isConsequence(maf.getColumnValue(55), 5));
+		 assertEquals(true, Vcf2maf.isConsequence(maf.getColumnValue(55), 1));
+		 assertEquals(false, Vcf2maf.isConsequence(maf.getColumnValue(55), 6));
+		 
+	 }
+	 
 	 @Test 
-	 public void converterTest() throws Exception{
+	 public void converterTest() {
 		 
 		 	final SnpEffMafRecord Dmaf = new SnpEffMafRecord();
 			Dmaf.setDefaultValue();
