@@ -85,7 +85,11 @@ public class VcfUtilsTest {
 		assertEquals(MafConfidence.HIGH, VcfUtils.getConfidence(rec));
 		rec.setInfo("CONF=LOW_1,HIGH_2");
 		assertEquals(MafConfidence.HIGH, VcfUtils.getConfidence(rec));
+		rec.setInfo("CONF=ZERO_1,HIGH_2");
+		assertEquals(MafConfidence.HIGH, VcfUtils.getConfidence(rec));
 		rec.setInfo("CONF=LOW_1,LOW_2");
+		assertEquals(MafConfidence.LOW, VcfUtils.getConfidence(rec));
+		rec.setInfo("CONF=ZERO_1,LOW_2");
 		assertEquals(MafConfidence.LOW, VcfUtils.getConfidence(rec));
 		rec.setInfo("CONF=LOW_1,ZERO_2");
 		assertEquals(MafConfidence.LOW, VcfUtils.getConfidence(rec));
