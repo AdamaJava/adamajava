@@ -53,5 +53,11 @@ public class VcfInfoFieldRecordTest {
 		assertEquals(true, rec.toString().equals("END=3;HOMLEN=0;ND=0:37:36:0[0,0]:0:0:0"));				
 		
 	}
+	@Test
+	public void doesToStringBehave() {
+		VcfInfoFieldRecord rec = new VcfInfoFieldRecord("ABCD;1234;XYZ=.;CONF=HIGH");
+		assertEquals("ABCD;1234;XYZ=.;CONF=HIGH", rec.toString());
+		
+	}
 
 }
