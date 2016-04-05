@@ -65,6 +65,26 @@ public class VcfUtilsTest {
 	}
 	
 	@Test
+	public void isCS() {
+		VcfRecord rec =  new VcfRecord( new String[] {"1","1",".","A","."});
+		assertEquals(false, VcfUtils.isCompoundSnp(rec));
+		rec.setFormatFields(Arrays.asList("",""));
+		assertEquals(false, VcfUtils.isCompoundSnp(rec));
+		rec.setFormatFields(Arrays.asList("ABCD","1"));
+		assertEquals(false, VcfUtils.isCompoundSnp(rec));
+		rec.setFormatFields(Arrays.asList("ACDC","1"));
+		assertEquals(false, VcfUtils.isCompoundSnp(rec));
+		rec.setFormatFields(Arrays.asList("ACCR","1"));
+		assertEquals(false, VcfUtils.isCompoundSnp(rec));
+		rec.setFormatFields(Arrays.asList("ACCS","1"));
+		assertEquals(true, VcfUtils.isCompoundSnp(rec));
+		rec.setFormatFields(Arrays.asList("ACCS:GT","1:1"));
+		assertEquals(true, VcfUtils.isCompoundSnp(rec));
+		rec.setFormatFields(Arrays.asList("GT:ACCS:GD","0:1:1"));
+		assertEquals(true, VcfUtils.isCompoundSnp(rec));
+	}
+	
+	@Test
 	public void getConfidence() {
 		VcfRecord rec =  new VcfRecord( new String[] {"1","1",".","A","."});
 		assertNull(VcfUtils.getConfidence(rec));
