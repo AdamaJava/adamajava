@@ -144,6 +144,11 @@ public class VcfUtils {
 		return false;
 	}
 	
+	public static boolean isCompoundSnp(VcfRecord vcf) {
+		String ff = vcf.getFormatFieldStrings();
+		return ff.contains(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP);
+	}
+	
 	/**
 	 * Returns the AD value from the genotype field in the GATK vcf output
 	 * This corresponds to: 
