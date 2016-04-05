@@ -85,14 +85,26 @@ public class DbsnpModeTest {
 		 VcfRecord inputVcf = new VcfRecord( new String[] {"chrY","14923588",".","G","A,T",".","SBIA","FS=GTGATATTCCC"});
 		 VcfRecord dbSNPVcf = new VcfRecord( new String[] {"chrY","14923588","rs100","G","A,ATT",".","SBIA","VLD;dbSNPBuildID=129;CAF=[0.4558,0.4,0.1442]"});
 		
-		 final DbsnpMode mode = new DbsnpMode();		
-		 mode.annotateDBsnp(inputVcf, dbSNPVcf);
+		 DbsnpMode.annotateDBsnp(inputVcf, dbSNPVcf);
 		 		 
 		 assertTrue(inputVcf.getInfoRecord().getField("VAF").equals( "[0.4,.]"));
 		 assertTrue(inputVcf.getInfoRecord().getField("DB").equals(Constants.EMPTY_STRING) );
 		 assertTrue(inputVcf.getInfoRecord().getField("VLD").equals(Constants.EMPTY_STRING) );
 		 assertTrue(inputVcf.getId().equals( "rs100" ));
 		 		 
+	 }
+	 
+	 
+	 @Test
+	 public void emptyVAFField() {
+		 VcfRecord vcf = new VcfRecord(new String[] {"chr1","240119182","rs150561860","A","G",".","PASS_1;PASS_2","FLANK=ATATAGACATG;AC=1;AF=0.500;AN=2;BaseQRankSum=0.035;ClippingRankSum=-0.354;DB;DP=34;FS=1.377;MLEAC=1;MLEAF=0.500;MQ=60.00;MQ0=0;MQRankSum=-0.425;QD=12.14;ReadPosRankSum=-0.921;SOR=1.061;IN=1,2","GT:GD:AC:MR:NNS:AD:DP:GQ:PL","0/1&0/1:A/G&A/G:A9[42],7[42],G3[42],5[33.8]&A10[42],11[41.55],G5[42],9[37.44]:8&14:8&14:21,13:34:99:441,0,840","0/1&0/1:A/G&A/G:A19[40.16],22[40.86],C0[0],1[11],G10[41.5],6[33.67]&A26[39.88],31[39.06],C0[0],1[11],G18[40.33],19[36.42]:16&37:16&36:56,35:91:99:1184,0,2031"});
+		 VcfRecord dbSNPVcf = new VcfRecord( new String[] {"1","240119182","rs150561860","A","G,C",".",".","RS=150561860;RSPOS=240119182;dbSNPBuildID=134;SSR=0;SAO=0;VP=0x050000000005000014000100;WGT=1;VC=SNV;ASP;KGPhase1;KGPROD;CAF=[0.9945,.,0.00551];COMMON=1"});
+		 
+		 DbsnpMode.annotateDBsnp(vcf, dbSNPVcf);
+		 assertTrue(vcf.getInfoRecord().getField("VAF").equals("."));
+		 assertTrue(vcf.getInfoRecord().getField("DB").equals(Constants.EMPTY_STRING) );
+		 
+		 
 	 }
 	 
 	@Test

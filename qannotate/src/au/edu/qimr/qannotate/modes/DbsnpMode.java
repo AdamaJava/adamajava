@@ -3,11 +3,9 @@ package au.edu.qimr.qannotate.modes;
 import static org.qcmg.common.util.Constants.EQ;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import org.qcmg.common.log.QLevel;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
@@ -28,7 +26,7 @@ import org.qcmg.vcf.VCFFileReader;
 import au.edu.qimr.qannotate.options.DbsnpOptions;
 
 public class DbsnpMode extends AbstractMode{
-	private final QLogger logger = QLoggerFactory.getLogger(DbsnpMode.class);
+	private final static QLogger logger = QLoggerFactory.getLogger(DbsnpMode.class);
 //	private VcfRecord dbSNPVcf;
 	
 	//for unit Test
@@ -45,9 +43,6 @@ public class DbsnpMode extends AbstractMode{
 		
 		removeExistingDbSnpIds();
 		
-		//debug
-//		testDbSNP(options.getDatabaseFileName());
-		
 		if(options.isDIV())
 			divAnnotation(options.getDatabaseFileName());
 		else	
@@ -57,27 +52,6 @@ public class DbsnpMode extends AbstractMode{
 		writeVCF( new File(options.getOutputFileName()));	
 	}
 	
-	//debug
-	void testDbSNP(String file) throws IOException{
-		try (VCFFileReader reader= new VCFFileReader( file )) {
-			for (final VcfRecord dbSNPVcf : reader) {
-				if (! StringUtils.doesStringContainSubString(dbSNPVcf.getInfo(), "VC=SNV", false) &&
-					 !StringUtils.doesStringContainSubString(dbSNPVcf.getInfo(), "VC=MNV", false))
-					continue; 
-				
-				int start;
-				String rspos = dbSNPVcf.getInfoRecord().getField("RSPOS");
-				if( !StringUtils.isNullOrEmpty(rspos)){ 		
-					start = Integer.parseInt(rspos);
-					if( dbSNPVcf.getPosition() != start   )
-						System.out.println("debug:" + dbSNPVcf.toString());
-				}
-			}
-			
-			
-		}
-		
-	}
 		
 	//testing at momemnt
 	void divAnnotation(String dbSNPFile) throws Exception{
@@ -98,7 +72,7 @@ public class DbsnpMode extends AbstractMode{
 				String ref = IndelUtils.getFullChromosome(dbSNPVcf.getChromosome());
 				List<VcfRecord> inputVcfs = positionRecordMap.get(new ChrRangePosition(ref, start, end ));	
 				//if not exists, move start position to RSPOS to see if we have a position there instead
-				if (null == inputVcfs){  
+				if (null == inputVcfs){
 					int rsposStart = Integer.parseInt(info.getField("RSPOS"));
 					if (start != rsposStart)  
 						inputVcfs = positionRecordMap.get(new ChrRangePosition(ref, rsposStart, end ));									 					 
@@ -117,12 +91,12 @@ public class DbsnpMode extends AbstractMode{
 	
 	private void removeExistingDbSnpIds() {
 		//init remove all exsiting dbsnpid
-		for (List<VcfRecord> vcfs : positionRecordMap.values()) 
-			for(VcfRecord vcf : vcfs ){
+		for (List<VcfRecord> vcfs : positionRecordMap.values()) { 
+			for (VcfRecord vcf : vcfs ) {
 				vcf.setId(".");
 				vcf.getInfoRecord().removeField(VcfHeaderUtils.INFO_DB);
 			}
-		
+		}
 	}
 	
 	@Override
@@ -150,20 +124,12 @@ public class DbsnpMode extends AbstractMode{
 			int dbSnpNo = 0;
 			for (final VcfRecord dbSNPVcf : reader) {
 				 
-								
-//				if ( ! StringUtils.doesStringContainSubString(dbSNPVcf.getInfo(), "VC=SNV", false) &&
-//						! StringUtils.doesStringContainSubString(dbSNPVcf.getInfo(), "VC=MNV", false))
-//					continue;
-							
 				//each dbSNP check twice, since indel alleles followed by one reference base, eg. chr1 100 . TT T ...
 				ChrPosition dbSnpCP = dbSNPVcf.getChrPosition();
-//				int start = dbSNPVcf.getPosition();
-//				final int end =  dbSNPVcf.getRef().length() +  start -1; 
 				final String chr = IndelUtils.getFullChromosome(dbSNPVcf.getChromosome());
 				if ( ! chr.equals(dbSnpCP.getChromosome())) {
 					dbSnpCP = ChrPositionUtils.cloneWithNewChromosomeName(dbSnpCP, chr);
 				}
-//				ChrPosition chrPos = new ChrRangePosition(chr, start, end );
 				List<VcfRecord> inputVcfs = positionRecordMap.get(dbSnpCP);
 				if (null != inputVcfs && inputVcfs.size() != 0){
 					for(VcfRecord re: inputVcfs) {
@@ -174,7 +140,6 @@ public class DbsnpMode extends AbstractMode{
 				}
 				
 				//check RSPOS for MNV only
-//				String VC = dbSNPVcf.getInfoRecord().getField("VC");
 				if ( ! StringUtils.doesStringContainSubString(dbSNPVcf.getInfo(), "VC=MNV", false)) {
 					continue;
 				}
@@ -188,9 +153,11 @@ public class DbsnpMode extends AbstractMode{
 					dbSnpCP = new ChrRangePosition(chr, start, dbSnpCP.getEndPosition() );	
 					inputVcfs = positionRecordMap.get(dbSnpCP);
 					if (null != inputVcfs && inputVcfs.size() != 0) {
-						for(VcfRecord re: inputVcfs)
-							if(annotateDBsnp(re, dbSNPVcf ))
+						for(VcfRecord re: inputVcfs) {
+							if(annotateDBsnp(re, dbSNPVcf )) {
 								dbSnpNo ++;					
+							}
+						}
 					}
 				}
 			}
@@ -204,14 +171,17 @@ public class DbsnpMode extends AbstractMode{
 	 * @param inputVcf: vcf record from input file
 	 * @param dbSNPVcf: position matched vcf record from dbSNP file
 	 */
-	 boolean annotateDBsnp(VcfRecord  inputVcf, VcfRecord dbSNPVcf ){
+	 public static boolean annotateDBsnp(VcfRecord  inputVcf, VcfRecord dbSNPVcf ){
+		 if (null == inputVcf || null == dbSNPVcf) {
+			 throw new IllegalArgumentException("Null vcf record(s) passed to annotateDBsnp. inputVcf: " + inputVcf + ",  dbSNPVcf: " + dbSNPVcf);
+		 }
 		
 		 ChrPosition chrPos = inputVcf.getChrPosition();
 		 final String dbRef = dbSNPVcf.getRef().substring(chrPos.getStartPosition() - dbSNPVcf.getPosition());	
-		 if(! inputVcf.getRef().equalsIgnoreCase(dbRef) ){
+		 if ( ! inputVcf.getRef().equalsIgnoreCase(dbRef) ){
 			 logger.warn(String.format( "dbSNP reference base (%s) are different to vcf Record (%s) for variant at position: %s~%s", 
 					 dbRef, inputVcf.getRef(), chrPos.getStartPosition(), chrPos.getEndPosition()));			 
-				return false; 			 
+			return false; 			 
 		 }
 		 		 
 		//trim the dbSNP alleles, since the first base maybe from reference if vcf second column different with "RSPOS" value 
@@ -227,20 +197,23 @@ public class DbsnpMode extends AbstractMode{
 				TabTokenizer.tokenize(inputVcf.getAlt(), Constants.COMMA) : new String[] {inputVcf.getAlt()}; 	
 		
 		//assign dbsnp id if one of allel matches
+		boolean validated = dbSNPVcf.getInfoRecord().getField(VcfHeaderUtils.INFO_VLD) != null;
 		boolean flag = false; 
-		for(int i = 0; i < db_alts.length; i ++)
-			for(int j = 0; j < input_alts.length; j ++) 
-				if(db_alts[i].equalsIgnoreCase(input_alts[j])){
-					inputVcf.setId(dbSNPVcf.getId());	
+		for (int i = 0; i < db_alts.length; i ++) {
+			for (int j = 0; j < input_alts.length; j ++) {
+				if (db_alts[i].equalsIgnoreCase(input_alts[j])) {
+					inputVcf.setId(dbSNPVcf.getId());
 					inputVcf.appendInfo(VcfHeaderUtils.INFO_DB);
-					if(dbSNPVcf.getInfoRecord().getField(VcfHeaderUtils.INFO_VLD) != null) 
+					if (validated) {
 						inputVcf.appendInfo(VcfHeaderUtils.INFO_VLD);					 
+					}
 					flag = true; 
 					break;
 				}
-		
+			}
+		}
 		//set alleles frequency
-		if(flag){
+		if (flag) {
 			final String caf =dbSNPVcf.getInfoRecord().getField(VcfHeaderUtils.INFO_CAF);
 			if(caf == null) return false;
 			
@@ -249,16 +222,19 @@ public class DbsnpMode extends AbstractMode{
 			for(int j = 0; j < input_alts.length; j ++){
 				vafs[j] = ".";
 				//cafs[i+1] since element [0] is reference allele frequency
-				for(int i = 0; i < db_alts.length; i ++)
-					if(db_alts[i].equalsIgnoreCase(input_alts[j]))
+				for(int i = 0; i < db_alts.length; i ++) {
+					if(db_alts[i].equalsIgnoreCase(input_alts[j])) {
 						vafs[j] = cafs[i+1];
+					}
+				}
 			} 
-			if(vafs.length == 1)
+			if (vafs.length == 1) {
 				inputVcf.appendInfo(StringUtils.addToString(VcfHeaderUtils.INFO_VAF, vafs[0], EQ));
-			else{
+			} else {
 				String str = StringUtils.addToString(VcfHeaderUtils.INFO_VAF, "[" + vafs[0], EQ);
-				for(int i = 1; i < vafs.length; i ++ )
+				for(int i = 1; i < vafs.length; i ++ ) {
 					str +=   "," + vafs[i];				
+				}
 				inputVcf.appendInfo( str + "]");
 			}			
 		}	
