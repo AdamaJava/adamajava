@@ -89,7 +89,6 @@ public class ConfidenceModeTest {
 		 vcf.setInfo("FLANK=ATATAGACATG;AC=1;AF=0.500;AN=2;BaseQRankSum=0.035;ClippingRankSum=-0.354;DP=34;FS=1.377;MLEAC=1;MLEAF=0.500;MQ=60.00;MQ0=0;MQRankSum=-0.425;QD=12.14;ReadPosRankSum=-0.921;SOR=1.061;IN=1,2;DB;VAF=.");
 		 List<String> ff =  java.util.Arrays.asList("ACCS", "AA,12,16,GG,4,6,_A,0,1&AA,13,17,GG,7,8,_A,0,1", "AA,33,37,GG,10,8,CA,0,1&AA,39,40,GC,1,0,GG,21,13,G_,1,0,TG,1,0,CA,0,1");
 		 vcf.setFormatFields(ff);
-		 System.out.println("info: " + vcf.getInfo());
 		 
 		 ConfidenceMode cm =new ConfidenceMode("");
 		 cm.positionRecordMap.put(vcf.getChrPosition(), java.util.Arrays.asList(vcf));
@@ -100,8 +99,8 @@ public class ConfidenceModeTest {
 		 VcfInfoFieldRecord info = vcf.getInfoRecord();
 		 String conf = info.getField(VcfHeaderUtils.INFO_CONFIDENT);
 		 assertEquals("HIGH_1,HIGH_2", conf);
-		 
-		 System.out.println("info: " + vcf.getInfo());
+		 String vaf = info.getField(VcfHeaderUtils.INFO_VAF);
+		 assertEquals(".", vaf);
 		 
 	 }
 	 
