@@ -2,8 +2,6 @@ package org.qcmg.common.vcf;
 
 import static org.junit.Assert.*;
 
-import org.qcmg.common.log.QLogger;
-import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.util.Constants;
 import org.junit.Test;
 
@@ -45,6 +43,15 @@ public class VcfFormatFieldRecordTest {
 		assertEquals(".:.:ac:1:nns:acc:a", format.getSampleColumnString());
 		assertEquals("GT:GD:AC:MR:NNS:ACC:A", format.getFormatColumnString());
 
+	}
+	
+	@Test
+	public void isMissingSample() {
+		VcfFormatFieldRecord format = new VcfFormatFieldRecord( "GT", ".");
+		assertEquals(true, format.isMissingSample());
+		format = new VcfFormatFieldRecord( "GT", "ABC");
+		assertEquals(false, format.isMissingSample());
+		
 	}
 	
 	
