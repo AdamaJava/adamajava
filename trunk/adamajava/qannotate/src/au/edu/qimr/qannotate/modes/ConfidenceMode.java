@@ -93,7 +93,7 @@ public class ConfidenceMode extends AbstractMode{
 
 
 	//inherited method from super
-	void addAnnotation() throws Exception{
+	void addAnnotation() {
 		
 		int high = 0;
 		int low = 0;
@@ -141,13 +141,13 @@ public class ConfidenceMode extends AbstractMode{
 			 			int altFreq =  SnpUtils.getCountFromNucleotideString(basesArray[i-1], vcf.getAlt(), compoundSnp);
 			 			
 			 			
-			 			if ( nns >= HIGH_CONF_NOVEL_STARTS_PASSING_SCORE
+			 			if ((nns == 0 && compoundSnp ||  nns >= HIGH_CONF_NOVEL_STARTS_PASSING_SCORE)
 								&& altFreq >=  HIGH_CONF_ALT_FREQ_PASSING_SCORE
 								&& PASS.equals(thisFilter)) {
 				        	
 				        		vcf.getInfoRecord().appendField(VcfHeaderUtils.INFO_CONFIDENT, MafConfidence.HIGH.toString() + suffix);    	 				 				
 				        		mergedHigh++;
-				        } else if ( nns >= LOW_CONF_NOVEL_STARTS_PASSING_SCORE
+				        } else if ( (nns == 0 && compoundSnp ||  nns >= LOW_CONF_NOVEL_STARTS_PASSING_SCORE)
 								&& altFreq >= LOW_CONF_ALT_FREQ_PASSING_SCORE 
 								&& isClassB(thisFilter) ) {
 				        	
@@ -182,7 +182,9 @@ public class ConfidenceMode extends AbstractMode{
 		logger.info("Confidence breakdown, high: " + high + ", low: " + low + ", zero: " + zero + ", mergedHigh: " + mergedHigh + ", mergedLow: " + mergedLow + ", mergedZero: " + mergedZero);
  
 		//add header line  set number to 1
-		header.addInfoLine(VcfHeaderUtils.INFO_CONFIDENT, "1", "String", DESCRITPION_INFO_CONFIDENCE);
+		if (null != header ) {
+			header.addInfoLine(VcfHeaderUtils.INFO_CONFIDENT, "1", "String", DESCRITPION_INFO_CONFIDENCE);
+		}
 	}
 
 	/**

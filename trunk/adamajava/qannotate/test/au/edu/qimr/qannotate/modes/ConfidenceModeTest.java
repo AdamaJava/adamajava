@@ -21,6 +21,7 @@ import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 
+import scala.actors.threadpool.Arrays;
 import au.edu.qimr.qannotate.utils.SampleColumn;
 
 public class ConfidenceModeTest {
@@ -59,8 +60,28 @@ public class ConfidenceModeTest {
 	 @Test
 	 public void willMultipleACValuesWork() {
 		 VcfFormatFieldRecord format = new VcfFormatFieldRecord("GT:GD:AC:MR:NNS:AD:DP:GQ:PL", "0/1:A/C:A8[33.75],11[38.82],C3[42],5[40]"+VCF_MERGE_DELIM+"A9[33.56],11[38.82],C3[42],5[40],G0[0],1[22],T1[11],0[0]:8:8:18"+VCF_MERGE_DELIM+"8:26:99:274,0,686");
-//		 assertEquals(27, VcfUtils.getAltFrequency(format, null));
 		 assertEquals(19, VcfUtils.getAltFrequency(format, "A"));
+	 }
+	 @Test
+	 public void willMultipleACCSValuesWork() {
+		 //chr1	152281007	.	AA	GG	.	PASS_1;PASS_2	IN=1,2;CONF=ZERO_1,ZERO_2;EFF=missense_variant(MODERATE||cattat/caCCat|p.HisTyr2118HisHis/c.6354TT>CC|4061|FLG|protein_coding|CODING|ENST00000368799||1),sequence_feature[compositionally_biased_region:Ser-rich](LOW|||c.6354AA>GG|4061|FLG|protein_coding|CODING|ENST00000368799|3|1),upstream_gene_variant(MODIFIER||4928|||FLG-AS1|antisense|NON_CODING|ENST00000392688||1),intron_variant(MODIFIER|||n.463-6375AA>GG||FLG-AS1|antisense|NON_CODING|ENST00000420707|4|1),intron_variant(MODIFIER|||n.377-6375AA>GG||FLG-AS1|antisense|NON_CODING|ENST00000593011|2|1)	ACCS	AA,12,16,GG,4,6,_A,0,1&AA,13,17,GG,7,8,_A,0,1	AA,33,37,GG,10,8,CA,0,1&AA,39,40,GC,1,0,GG,21,13,G_,1,0,TG,1,0,CA,0,1
+		 VcfRecord vcf = VcfUtils.createVcfRecord(ChrPositionUtils.getChrPosition("chr1", 152281007, 152281007), "rs10753395","AA", "GG");
+		 vcf.setFilter("PASS_1;PASS_2");
+		 vcf.setInfo("IN=1,2;EFF=missense_variant(MODERATE||cattat/caCCat|p.HisTyr2118HisHis/c.6354TT>CC|4061|FLG|protein_coding|CODING|ENST00000368799||1),sequence_feature[compositionally_biased_region:Ser-rich](LOW|||c.6354AA>GG|4061|FLG|protein_coding|CODING|ENST00000368799|3|1),upstream_gene_variant(MODIFIER||4928|||FLG-AS1|antisense|NON_CODING|ENST00000392688||1),intron_variant(MODIFIER|||n.463-6375AA>GG||FLG-AS1|antisense|NON_CODING|ENST00000420707|4|1),intron_variant(MODIFIER|||n.377-6375AA>GG||FLG-AS1|antisense|NON_CODING|ENST00000593011|2|1)	");
+		 List<String> ff =  java.util.Arrays.asList("ACCS", "AA,12,16,GG,4,6,_A,0,1&AA,13,17,GG,7,8,_A,0,1", "AA,33,37,GG,10,8,CA,0,1&AA,39,40,GC,1,0,GG,21,13,G_,1,0,TG,1,0,CA,0,1");
+		 vcf.setFormatFields(ff);
+		 
+		 ConfidenceMode cm =new ConfidenceMode("");
+		 cm.positionRecordMap.put(vcf.getChrPosition(), java.util.Arrays.asList(vcf));
+		 cm.setSampleColumn(2,1);
+		 cm.addAnnotation();
+		 
+		 vcf = cm.positionRecordMap.get(vcf.getChrPosition()).get(0);
+		 VcfInfoFieldRecord info = vcf.getInfoRecord();
+		 String conf = info.getField(VcfHeaderUtils.INFO_CONFIDENT);
+		 assertEquals("HIGH_1,HIGH_2", conf);
+		 
+		 
 	 }
 	 
 	 
