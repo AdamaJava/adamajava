@@ -164,12 +164,12 @@ public class VcfInfoFieldRecord {
 	@Override
 	public String toString(){
 		 
-		int index = line.indexOf(Constants.MISSING_DATA_STRING + Constants.SEMI_COLON); 
-		if(index < 0)	 
-			index =  line.indexOf( Constants.SEMI_COLON  + Constants.MISSING_DATA_STRING);
-		
-		if(index >= 0)
-			line.delete(index, index+2);
+//		int index = line.indexOf(Constants.MISSING_DATA_STRING + Constants.SEMI_COLON); 
+//		if(index < 0)	 
+//			index =  line.indexOf( Constants.SEMI_COLON  + Constants.MISSING_DATA_STRING);
+//		
+//		if(index >= 0)
+//			line.delete(index, index+2);
 		
 		if(line.length() == 0)
 			return Constants.MISSING_DATA_STRING;
