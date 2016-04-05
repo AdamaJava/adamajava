@@ -2,6 +2,7 @@ package org.qcmg.common.vcf;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
@@ -26,10 +27,10 @@ public class VcfFormatFieldRecord {
 	 */
 	public VcfFormatFieldRecord(String format, String sample){
 		if (null == format) {
-			throw new IllegalArgumentException("format argument passed to VcfFormatFieldRecord cstrt can not be null");
+			throw new IllegalArgumentException("format argument passed to VcfFormatFieldRecord ctor can not be null");
 		}
 		if (null == sample) {
-			throw new IllegalArgumentException("sample argument passed to VcfFormatFieldRecord cstrt can not be null");
+			throw new IllegalArgumentException("sample argument passed to VcfFormatFieldRecord ctor can not be null");
 		}
 				
 		final String[] kk = format.split(Constants.COLON_STRING);	
@@ -116,14 +117,7 @@ public class VcfFormatFieldRecord {
 	 * @return Format column String. eg.  GT:GQ:DP:HQ
 	 */
 	public String getFormatColumnString(){
-		String str = null;
-		for (String key : keys)  
-			if(StringUtils.isNullOrEmpty(str))
-				str = key; 
-			else			 
-				str += Constants.COLON + key;
-			 		 
-		return str;
+		return keys.stream().collect(Collectors.joining(Constants.COLON_STRING));
 	}
 	/**
 	 * 
@@ -134,12 +128,12 @@ public class VcfFormatFieldRecord {
 		if(values == null) return true; 
 		
 		boolean flag = true;
-		for( String v : values) 
+		for( String v : values) {
 			if(!StringUtils.isMissingDtaString(v)){
 				flag = false;
 				break;
 			}
-		
+		}
 		return flag;
 	}
 
@@ -148,6 +142,8 @@ public class VcfFormatFieldRecord {
 	 */
 	
 	public String getSampleColumnString(){
+//		if (values.isEmpty()) return null;
+//		return values.stream().collect(Collectors.joining(Constants.COLON_STRING));
 		String sample = null;
 		for (String value : values) 
 			if(StringUtils.isNullOrEmpty(sample))
