@@ -46,6 +46,32 @@ public class SnpUtilsTest {
 	}
 	
 	@Test
+	public void getTotalBaseCounts() {
+		String bases = "A1[11],0[0],C19[20.63],4[24],G3[20],2[24],T192[28.12],97[34.96]";
+		assertEquals(289 + 23 + 5+ 1, SnpUtils.getTotalCountFromNucleotideString(bases, false));
+		
+		assertEquals(1, SnpUtils.getTotalCountFromNucleotideString("A1[11],0[0]", false));
+		assertEquals(2, SnpUtils.getTotalCountFromNucleotideString("A1[11],1[0]", false));
+		assertEquals(200, SnpUtils.getTotalCountFromNucleotideString("A100[11],100[0]", false));
+		assertEquals(201, SnpUtils.getTotalCountFromNucleotideString("A100[11],100[0],B1[0]", false));
+		assertEquals(201, SnpUtils.getTotalCountFromNucleotideString("A100[11],100[0],B1[0],0[1]", false));
+		assertEquals(211, SnpUtils.getTotalCountFromNucleotideString("A100[11],100[0],B1[0],10[1]", false));
+	}
+	@Test
+	public void getTotalBaseCountsCS() {
+		String bases = "CA,17,17,C_,2,0,GG,10,8";
+		assertEquals(17 + 17 + 2+ 0 + 10 +8, SnpUtils.getTotalCountFromNucleotideString(bases, true));
+		
+		assertEquals(1, SnpUtils.getTotalCountFromNucleotideString("CA,1,0", true));
+		assertEquals(2, SnpUtils.getTotalCountFromNucleotideString("CA,1,1", true));
+		assertEquals(2, SnpUtils.getTotalCountFromNucleotideString("CA,1,1,AB,0,0", true));
+		assertEquals(12, SnpUtils.getTotalCountFromNucleotideString("CA,1,1,AB,0,10", true));
+		
+		bases = "AC,2,2,AT,2,4,A_,3,3,CA,2,1,CC,16,17,CG,2,1,CT,1,2,C_,16,16,GC,1,0,_C,0,1,G_,0,1";
+		assertEquals(19 + 16 + 17 + 6 + 35, SnpUtils.getTotalCountFromNucleotideString(bases, true));
+	}
+	
+	@Test
 	public void getBaseCountsACCSs() {
 		String bases = "CA,17,17,C_,2,0,GG,10,8";
 		assertEquals(34, SnpUtils.getCountFromNucleotideString(bases, "CA", true));

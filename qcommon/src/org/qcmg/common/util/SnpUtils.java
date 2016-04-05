@@ -3,6 +3,8 @@
  */
 package org.qcmg.common.util;
 
+import java.util.stream.Stream;
+
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.string.StringUtils;
@@ -226,7 +228,7 @@ public class SnpUtils {
 			throw new IllegalArgumentException("invalid mutation string supplied to getAltFromMutationString (null or empty)");
 		}
 		int index = mutation.indexOf(Constants.MUT_DELIM);
-		return mutation.substring(index + 1);
+		return mutation.substring(index + Constants.MUT_DELIM.length());
 	}
 	
 	
@@ -300,6 +302,32 @@ public class SnpUtils {
 			
 			return forwardCount + reverseCount;
 		}
+	}
+	
+	public static int getTotalCountFromNucleotideString(final String bases, boolean cs) {
+		if (StringUtils.isNullOrEmpty(bases) ) {
+			return 0;
+		}
+		int tally = 0;
+		String [] params = bases.split(Constants.COMMA_STRING);
+		if (cs) {
+			for (String s : params) {
+				if ( ! StringUtils.isNullOrEmpty(s) && Character.isDigit(s.charAt(0))) {
+					tally += Integer.parseInt(s);
+				}
+			}
+		} else {
+			for (String s : params) {
+				if ( ! StringUtils.isNullOrEmpty(s)) {
+					int  bracketPosition = s.indexOf('[');
+					if (bracketPosition > -1) {
+						tally += Integer.parseInt(s.substring((Character.isDigit(s.charAt(0)) ? 0 : 1), bracketPosition));
+					}
+				}
+			}
+		}
+		
+		return tally;
 	}
 	
 	/**
