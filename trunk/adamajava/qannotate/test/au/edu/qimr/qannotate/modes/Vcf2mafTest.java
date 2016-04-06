@@ -1,9 +1,6 @@
 package au.edu.qimr.qannotate.modes;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -19,10 +16,13 @@ import org.qcmg.common.commandline.Executor;
 import org.qcmg.common.model.MafConfidence;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.IndelUtils;
+import org.qcmg.common.util.IndelUtils.SVTYPE;
+import org.qcmg.common.vcf.VcfFormatFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 
+import scala.actors.threadpool.Arrays;
 import au.edu.qimr.qannotate.options.Vcf2mafOptions;
 import au.edu.qimr.qannotate.utils.SnpEffConsequence;
 import au.edu.qimr.qannotate.utils.SnpEffMafRecord;
@@ -57,6 +57,72 @@ public class Vcf2mafTest {
 
 		assertTrue(new File(outputDir).delete());	 		 
 	}
+	 
+	 
+	 @Test
+	 public void getAltColumns() {
+		 VcfFormatFieldRecord format = new VcfFormatFieldRecord( "GT:GD:AC:MR:NNS", ".:.:A1[39],0[0],T1[35],0[0]:1:nns:nns2");
+		 String ref = "A";
+		 String alt = "T";
+		 SVTYPE type = SVTYPE.SNP;
+		 String [] altColumns = Vcf2maf.getAltCounts(format, ref, alt, type, false);
+		 assertNotNull(altColumns);
+		 System.out.println("altColumns: " + Arrays.deepToString(altColumns));
+		 assertEquals(7, altColumns.length);
+	 }
+	 @Test
+	 public void getAltColumnsRealLife() {
+		 VcfFormatFieldRecord format = new VcfFormatFieldRecord( "GT:GD:AC:MR:NNS","0/0:T/T:C0[0],2[34.5],T13[38.15],19[35.58]:2:2");
+		 String ref = "T";
+		 String alt = "C";
+		 SVTYPE type = SVTYPE.SNP;
+		 String [] altColumns = Vcf2maf.getAltCounts(format, ref, alt, type, false);
+		 assertNotNull(altColumns);
+		 assertEquals(7, altColumns.length);
+		 assertEquals("2", altColumns[0]);
+		 assertEquals("34", altColumns[1]);
+		 assertEquals("32", altColumns[2]);
+		 assertEquals("2", altColumns[3]);
+		 assertEquals("T", altColumns[4]);
+		 assertEquals("T", altColumns[5]);
+		 assertEquals("C0[0],2[34.5],T13[38.15],19[35.58]", altColumns[6]);
+	 }
+	 
+	 @Test
+	 public void getAltColumnsRealLife2() {
+		 VcfFormatFieldRecord format = new VcfFormatFieldRecord( "GT:GD:AC:MR:NNS","0/1:C/G:C6[39.5],2[42],G12[39.5],15[34.87]:8:8");
+		 String ref = "C";
+		 String alt = "G";
+		 SVTYPE type = SVTYPE.SNP;
+		 String [] altColumns = Vcf2maf.getAltCounts(format, ref, alt, type, false);
+		 assertNotNull(altColumns);
+		 assertEquals(7, altColumns.length);
+		 assertEquals("8", altColumns[0]);
+		 assertEquals("35", altColumns[1]);
+		 assertEquals("8", altColumns[2]);
+		 assertEquals("27", altColumns[3]);
+		 assertEquals("C", altColumns[4]);
+		 assertEquals("G", altColumns[5]);
+		 assertEquals("C6[39.5],2[42],G12[39.5],15[34.87]", altColumns[6]);
+	 }
+	 
+	 @Test
+	 public void getAltColumnsRealLifeMerged() {
+		 VcfFormatFieldRecord format = new VcfFormatFieldRecord( "GT:GD:AC:MR:NNS:AD:DP:GQ:PL","0/1&0/1:A/C&A/C:A13[38.85],5[40],C6[36.83],0[0]&A15[38.27],7[38.43],C7[36.14],0[0]:6&7:6&7:8,6:14:99:141,0,189");
+		 String ref = "A";
+		 String alt = "C";
+		 SVTYPE type = SVTYPE.SNP;
+		 String [] altColumns = Vcf2maf.getAltCounts(format, ref, alt, type, true);
+		 assertNotNull(altColumns);
+		 assertEquals(7, altColumns.length);
+		 assertEquals("6", altColumns[0]);
+		 assertEquals("24", altColumns[1]);
+		 assertEquals("18", altColumns[2]);
+		 assertEquals("6", altColumns[3]);
+		 assertEquals("A", altColumns[4]);
+		 assertEquals("C", altColumns[5]);
+		 assertEquals("A13[38.85],5[40],C6[36.83],0[0]", altColumns[6]);
+	 }
 	 
 	 @Test
 	 public void compoundSNPTest() throws Exception{
