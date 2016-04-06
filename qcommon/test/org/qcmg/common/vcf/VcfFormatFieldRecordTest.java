@@ -3,6 +3,7 @@ package org.qcmg.common.vcf;
 import static org.junit.Assert.*;
 
 import org.qcmg.common.util.Constants;
+import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.junit.Test;
 
 public class VcfFormatFieldRecordTest {
@@ -52,6 +53,14 @@ public class VcfFormatFieldRecordTest {
 		format = new VcfFormatFieldRecord( "GT", "ABC");
 		assertEquals(false, format.isMissingSample());
 		
+	}
+	
+	@Test
+	public void whyAmILosingData() {
+		VcfRecord vcf = new VcfRecord(new String[]{"chr8","12306635","rs28428895","C","T",".","PASS_1;MIN_2;MR_2;NNS_2","FLANK=ACACATACATA;SOMATIC_2;IN=1,2;DB;GERM=30,185;EFF=intron_variant(MODIFIER|||n.304-488G>A||ENPP7P6|unprocessed_pseudogene|NON_CODING|ENST00000529817|2|1)","GT:GD:AC:MR:NNS:AD:DP:GQ:PL","0/1&.:C/T&C/C:C10[39],3[30],G1[11],0[0],T7[41.29],1[42]&C14[38.79],3[30],G1[11],0[0],T11[39.27],4[25.25]:8&15:8&15:.:.:.:.","0/0&0/1:C/C&C/T:C19[36.11],20[38.45],T1[42],0[0]&C22[36.23],22[36.91],T2[26.5],1[42]:1&3:1&2:4,3:7:86:86,0,133"});
+		VcfFormatFieldRecord formatField =  vcf.getSampleFormatRecord(1);
+		String bases = formatField.getField(VcfHeaderUtils.FORMAT_ALLELE_COUNT);
+		assertEquals("C10[39],3[30],G1[11],0[0],T7[41.29],1[42]&C14[38.79],3[30],G1[11],0[0],T11[39.27],4[25.25]", bases);
 	}
 	
 	
