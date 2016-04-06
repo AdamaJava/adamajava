@@ -433,8 +433,10 @@ public class Vcf2maf extends AbstractMode{
 		 		 if (gds.length == 2) {
 		 			 if (gds[0].equals(gds[1])) {
 		 				 // pick first
-		 			 } else {
-		 				 logger.warn("Have different gds: " + Arrays.deepToString(gds));
+		 			 } else if (gds[0].equals(MISSING_DATA_STRING)) {
+		 				 useFirst = false;
+		 				 
+//		 				 logger.warn("Have different gds: " + Arrays.deepToString(gds));
 //		 				 if (isSomatic) {
 //		 					 // if they are both somatic, pick first.....
 //		 					 String[] pairs = gds[0].contains("|") ? gds[0].split("|") : gds[0].split("/");
@@ -444,6 +446,9 @@ public class Vcf2maf extends AbstractMode{
 //		 						 }
 //		 					 }
 //		 				 }
+		 			 } else {
+		 				 //hmmmm
+//		 				 logger.warn("Have different gds: " + Arrays.deepToString(gds));
 		 			 }
 		 		 }
 		 		 String gdToUse = useFirst ? gds[0] : gds[1];
