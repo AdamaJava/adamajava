@@ -112,9 +112,9 @@ public class ConfidenceMode extends AbstractMode{
 				 */
 				boolean mergedRec = VcfUtils.isMergedRecord(vcf);
 				
+				boolean isSomatic = VcfUtils.isRecordSomatic(vcf);
 				
-				
-			 	VcfFormatFieldRecord formatField = (vcf.getInfo().contains(VcfHeaderUtils.INFO_SOMATIC)) ? vcf.getSampleFormatRecord(test_column) :  vcf.getSampleFormatRecord(control_column);
+			 	VcfFormatFieldRecord formatField =isSomatic ? vcf.getSampleFormatRecord(test_column) :  vcf.getSampleFormatRecord(control_column);
 			 	
 			 	if (mergedRec) {
 			 		/*
