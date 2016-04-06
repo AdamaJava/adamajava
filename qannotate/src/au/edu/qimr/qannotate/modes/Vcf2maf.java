@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,7 +41,7 @@ public class Vcf2maf extends AbstractMode{
 	protected final  Map<String,String> effRanking = new HashMap<String,String>();	
 	private final String center;
 	private final String sequencer;
-	private final String dornorId ;	 
+	private final String donorId ;	 
 	private final String testSample ;
 	private final String controlSample ;
 	private final String testBamId ;
@@ -55,7 +54,7 @@ public class Vcf2maf extends AbstractMode{
 	Vcf2maf(int test_column, int control_column, String test, String control){ 
 		center = Vcf2mafOptions.default_center;
 		sequencer = SnpEffMafRecord.Unknown; 
-		this.dornorId = SnpEffMafRecord.Unknown; 		
+		this.donorId = SnpEffMafRecord.Unknown; 		
 		this.test_column = test_column;
 		this.control_column = control_column;
 		this.testSample = test;
@@ -98,10 +97,10 @@ public class Vcf2maf extends AbstractMode{
 					}
 				}
 			}
-			dornorId = id; 			
+			donorId = id; 			
 			logger.info(String.format("Test Sample %s is located on column %d after FORMAT", testSample, test_column));
 			logger.info(String.format("Control Sample %s is located on column %d after FORMAT", controlSample, control_column));
-			logger.info("Dornor id is " + dornorId);
+			logger.info("Donor id is " + donorId);
 			
 		}
 					
@@ -109,8 +108,8 @@ public class Vcf2maf extends AbstractMode{
 		if(option.getOutputFileName() != null) {
 			outputname =  option.getOutputFileName();
 		} else if( option.getOutputDir() != null) {
-			if (dornorId != null && controlSample != null && testSample != null) {
-				outputname = String.format("%s//%s.%s.%s.maf", option.getOutputDir(), dornorId, controlSample , testSample);
+			if (donorId != null && controlSample != null && testSample != null) {
+				outputname = String.format("%s//%s.%s.%s.maf", option.getOutputDir(), donorId, controlSample , testSample);
 			} else {
 				throw new Exception("can't formate output file name: <dornorId_controlSample_testSample.maf>, missing realted information on input vcf header!");
 			}
@@ -493,7 +492,7 @@ public class Vcf2maf extends AbstractMode{
       			 	type.equals(SVTYPE.TNP) || type.equals(SVTYPE.ONP) ){
       		 String nns =  sample.getField(VcfHeaderUtils.FORMAT_NOVEL_STARTS);
       		 if (null != nns) {
-  				values[0] = isMerged ? (useFirst ? nns.substring(0, nns.indexOf(VCF_MERGE_DELIM)) : nns.substring(nns.indexOf(VCF_MERGE_DELIM + 1))) : nns;
+  				values[0] = isMerged ? (useFirst ? nns.substring(0, nns.indexOf(VCF_MERGE_DELIM)) : nns.substring(nns.indexOf(VCF_MERGE_DELIM) + 1)) : nns;
       		 }
       		 boolean cs = false;
       		 String bases = sample.getField(VcfHeaderUtils.FORMAT_ALLELE_COUNT);
