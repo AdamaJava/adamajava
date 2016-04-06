@@ -216,13 +216,7 @@ public class IndelPosition {
 		if(normalPileup != null  && normalPileup.getTotalCount() > 1000){
 			re.setFilter( IndelUtils.FILTER_HCOVN);
 			return re; 
-		}
-				
-		//decide somatic or not
-		
-		//debug
-		System.out.println("filter was " + re.getFilter());
-		
+		}		
 		
 		boolean somatic = (re.getFilter().equals(ReadIndels.FILTER_SOMATIC))? true : false;
  		if(normalPileup != null && somatic){
@@ -293,7 +287,6 @@ public class IndelPosition {
 		if(polymer != null &&  polymer.getPolymerSequence(index) != null ){
 			VcfUtils.updateFilter(re, IndelUtils.FILTER_HOM + polymer.getCount(index));	
 			re.appendInfo(String.format(IndelUtils.INFO_HOMTXT  + "=" + polymer.getPolymerSequence(index)));
-		//	re.appendInfo(String.format("HOMCNTXT=%d,%s",polymer.getCount(index), polymer.getPolymerSequence(index)));		
 		}
 					 
 		float nn = 0;

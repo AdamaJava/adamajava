@@ -85,7 +85,6 @@ public class IndelMT {
 			this.qOut = qOut;
 			this.mainThread = mainThread;
 			this.pLatch = latch;
-//			this.wLatch = wLatch;
 			this.bam = bam;
 			this.contig = contig;
 			this.exec = exec; 
@@ -104,7 +103,6 @@ public class IndelMT {
 			IndelPosition topPos= qIn.poll();
 			File index = new File(bam.getAbsolutePath() + ".bai");
 			
-//			try (SAMFileReader Breader = new SAMFileReader(bam )){	
 			try (SamReader Breader =  SAMFileReaderFactory.createSAMFileReader(bam, index); ){		
 				SAMRecordIterator ite = Breader.query(contig.getSequenceName(), 0, contig.getSequenceLength(),false);		
 			 	while (ite.hasNext()) {	
@@ -118,7 +116,6 @@ public class IndelMT {
 						passFilter = exec.Execute(re);
 					else
 						passFilter = !re.getReadUnmappedFlag() && !re.getDuplicateReadFlag() ;
-//						passFilter = !re.getReadUnmappedFlag() && (!re.getDuplicateReadFlag() || !options.excludeDuplicates());
 			 		
 			 	 	if(! passFilter ) continue;
 			 			 		
@@ -133,13 +130,9 @@ public class IndelMT {
 			 			qOut.add(pileup);
 			 			
 			 			//prepare for next indel position
-			 		//	topPos = qIn.poll();
 			 			if( (topPos = qIn.poll()) == null) break; 
 			 			
 			 			resetPool(topPos,  current_pool, next_pool); 	 
-//			 			//debug
-//			 			if(current_pool.size() > 1000 ||next_pool.size()>1000 )
-//			 			System.out.println("debug: " + topPos.getChrRangePosition().toIGVString() + " : " + current_pool.size() + " (current, next) " +next_pool.size());			 			
 			 		}
 			 	}	 	
 			
@@ -155,16 +148,13 @@ public class IndelMT {
 					if( (topPos = qIn.poll()) == null) break; 
 
 					resetPool(topPos,  current_pool, next_pool); 							
-//		 			//debug
-//					if(current_pool.size() > 1000 ||next_pool.size()>1000 )
-//		 			System.out.println(topPos.getChrRangePosition().toIGVString() + " (final): " + current_pool.size() + " (current, next) " +next_pool.size());
 			 	}while( true ) ;					 					 
 			} catch (Exception e) {
 				logger.error("Exception caught in pileup thread", e);
 				mainThread.interrupt();
 			} finally {
 				pLatch.countDown();
-				logger.debug( size + " indels is completed pileup from " + contig.getSequenceName() + " on " + bam.getName());
+				logger.info( size + " indels is completed pileup from " + contig.getSequenceName() + " on " + bam.getName());
 
  			}			
 		}
@@ -182,13 +172,6 @@ public class IndelMT {
 			
 				List<SAMRecord> tmp_current_pool = new ArrayList<SAMRecord>();							
 				List<SAMRecord> tmp_pool = new ArrayList<SAMRecord>();	
-				
-//				if(nextPool.size() > MAXRAMREADS ) nextPool.clear();				
-//				if(currentPool.size() >  MAXRAMREADS ) currentPool.clear();
-//				//debug
-//				if(currentPool.size() > MAXRAMREADS || nextPool.size() > MAXRAMREADS ){
-//					System.out.println(topPos.getChrRangePosition().toIGVString() + ": bf moving, next pool size : " + nextPool.size() + ", current pool size: " + currentPool.size());
-//				}				
 				tmp_pool.addAll(nextPool);
 				
 				//check read record behind on current position			
@@ -216,17 +199,10 @@ public class IndelMT {
 						currentPool.remove(re1);
 					}
 				}
-				//debug
-				//if(topPos.getChrRangePosition().getPosition() ==148848273){
-//				if(currentPool.size() > MAXRAMREADS || nextPool.size() > MAXRAMREADS ){
-//					System.out.println("current pool reduced to " + currentPool.size());
-//					System.out.println("then adding from next pool : " + tmp_current_pool.size());
-//				}	
 				
 				//merge samrecord
 				currentPool.addAll(tmp_current_pool);
-		}		
-		
+		}				
 	}
 		
 	
@@ -276,7 +252,7 @@ public class IndelMT {
 
 			} finally {
 				pLatch.countDown();
-				logger.debug(size  + " indels had been checked homopolymer from " + contig);
+				logger.info(size  + " indels had been checked homopolymer from " + contig);
 			}
 		}
 		
@@ -292,6 +268,7 @@ public class IndelMT {
 	//unit test purpose
 	@Deprecated
 	IndelMT(){}
+		
 	public IndelMT(Options options, QLogger logger) throws IOException  {		
 		this.options = options;	
 		this.logger = logger; 
@@ -310,15 +287,34 @@ public class IndelMT {
 		this.indelload = new ReadIndels(logger);		
 		if(options.getRunMode().equalsIgnoreCase(options.RUNMODE_GATK) || options.getRunMode().equalsIgnoreCase(options.RUNMODE_GATKTEST)){	
 			//first load control
-			if(options.getControlInputVcf() != null)
-				indelload.LoadIndels(options.getControlInputVcf(),options.getRunMode());		
+			if(options.getControlInputVcf() != null){
+				indelload.LoadIndels(options.getControlInputVcf(),options.getRunMode());	
+				if(indelload.getCounts_inputLine() != indelload.getCounts_totalIndel())
+					logger.warn("ERROR: Found " + indelload.getCounts_newIndel() + 
+							" indels from control input, but it is not same to the number of indel inside MAP is " + indelload.getCounts_totalIndel());
+				logger.info(indelload.getCounts_newIndel() + " indels are found from Control vcf input.");
+				logger.info(indelload.getCounts_multiIndel() + " indels are split from multi alleles in control vcf.");
+				logger.info(indelload.getCounts_inputLine() + " variants record exsits inside control vcf input.");
+				logger.info(indelload.getCounts_inputMultiAlt() + " variants record with multi Alleles exsits inside control vcf input.");									
+			}	
 			//then test second column
-			if(options.getTestInputVcf() != null)
-				indelload.appendIndels(options.getTestInputVcf(), options.getRunMode());						
+			if(options.getTestInputVcf() != null){
+				indelload.appendIndels(options.getTestInputVcf(), options.getRunMode());
+				
+				logger.info(indelload.getCounts_inputLine() + " variants record exsits inside test vcf input.");
+				logger.info(indelload.getCounts_inputMultiAlt() + " variants record with multi Alleles exsits inside test vcf input.");	
+				logger.info(indelload.getCounts_multiIndel() + " indels are split from multi alleles inside test vcf");	
+				
+				logger.info(indelload.getCounts_newIndel() + " new indels are found in Test vcf input only.");
+				logger.info(indelload.getCounts_overlapIndel() + " indels are found in both Control and Test vcf inputs.");
+				logger.info((indelload.getCounts_totalIndel() - indelload.getCounts_newIndel() - indelload.getCounts_overlapIndel()) +  
+						" indels are found in Control vcf input only." );
+				
+			}				
 		}else if(options.getRunMode().equalsIgnoreCase("pindel")){	
 			for(int i = 0; i < options.getInputVcfs().size(); i ++)
 				indelload.LoadIndels(options.getInputVcfs().get(i), options.getRunMode());	
-		}
+		}		
 	}
 	
 	/**
@@ -347,11 +343,8 @@ public class IndelMT {
         if(options.getFilterQuery() != null)
         	query = new QueryExecutor(options.getFilterQuery()); 
         
-     	//String filter = (options.getRunMode().equals(Options.RUNMODE_GATKTEST))? ReadIndels.FILTER_UNTESTED : null;     		
-       
-    	//each time only throw threadNo thread, the loop finish untill the last threadNo                    	
-    	for(SAMSequenceRecord contig : sortedContigs ){  
-      		
+     	//each time only throw threadNo thread, the loop finish untill the last threadNo                    	
+    	for(SAMSequenceRecord contig : sortedContigs ){       		
     		if(options.getControlBam() != null)    			
     			 pileupThreads.execute(new contigPileup(contig, getIndelList(contig, null), options.getControlBam(),query,
     				normalQueue, Thread.currentThread(),pileupLatch ));
@@ -444,8 +437,7 @@ public class IndelMT {
 	
 	 private void getHeaderForIndel(VcfHeader header ) throws Exception{
 
-//		VcfHeader header = existHeader; // new VcfHeader();
-		 QExec qexec = options.getQExec();
+		QExec qexec = options.getQExec();
 		 
 		final DateFormat df = new SimpleDateFormat("yyyyMMdd");
  		header.parseHeaderLine(VcfHeaderUtils.CURRENT_FILE_VERSION);		

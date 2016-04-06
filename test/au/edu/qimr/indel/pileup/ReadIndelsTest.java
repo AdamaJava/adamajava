@@ -159,6 +159,7 @@ public class ReadIndelsTest {
 	}		
 			
 	@Test
+	//load inputs only in case of pindel
 	public void LoadIndelsTest()  {
 		
 	//	createVcf();
@@ -177,16 +178,14 @@ public class ReadIndelsTest {
 			for( ChrPosition key : positionRecordMap.keySet()){
 				IndelPosition indel = positionRecordMap.get(key);
 				assertFalse(indel.getIndelVcf(0).getFormatFields().get(1).equals(indel.getIndelVcf(0).getFormatFields().get(2)));
-				if(indel.getStart() == 59033423){
+				if(indel.getStart() == 59033423){					
 					assertTrue( indel.getMotif(0).equals("C"));
 					assertTrue( indel.getMotif(1).equals("CG"));
-					assertTrue(indel.getIndelVcf(0).getFormatFieldStrings().equals(indel.getIndelVcf(1).getFormatFieldStrings()  ));
-					
-					//check GT:GD
-					assertTrue(indel.getIndelVcf(0).getFormatFields().get(0).equals("GT:GD:AD"));
- 					assertTrue(indel.getIndelVcf(0).getFormatFields().get(1).equals(".:T/A:7,5"));
- 					assertTrue(indel.getIndelVcf(0).getFormatFields().get(2).equals(".:A/TC:9,9"));
- 					
+ 					 					
+					//check GT:GD  from existing one,  no long overwrite existing one
+					assertTrue(indel.getIndelVcf(0).getFormatFields().get(0).equals("GT:GD:AD:DP:GQ:PL"));
+ 					assertTrue(indel.getIndelVcf(0).getFormatFields().get(1).equals("0/1:T/TC:7,4:11:99:257,0,348"));
+ 					assertTrue(indel.getIndelVcf(0).getFormatFields().get(2).equals("0/1:T/TC:17,2:19:72:72,0,702"));										
 					assertTrue(indel.getIndelVcf(1).getFormatFields().get(1).equals(".:T/A:7,5"));
 					assertTrue(indel.getIndelVcf(1).getFormatFields().get(2).equals(".:A/TC:9,9"));					
 				}			

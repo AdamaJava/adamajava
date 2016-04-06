@@ -48,8 +48,6 @@ public class Homopolymer {
 		
 		//init
 		for( int i = 0 ; i < position.getMotifs().size(); i ++ ){
-//			upBase.add(nullValue);
-//			downBase.add(nullValue);
 			homoString.add(null);	
 			maxBase.add(0);
 		}
@@ -66,8 +64,6 @@ public class Homopolymer {
 		
 	private byte[] setSequence(String motif) {	
 		
-//		byte[] seq = new byte[upstreamReference.length + downstreamReference.length + motif.length() ]; 
-		
 		//at the edge of reference, the report window maybe bigger than nearbybase
 		int baseNo1 = Math.min(upstreamReference.length, reportWindow) ;	
 		int baseNo2 = Math.min(downstreamReference.length, reportWindow) ;				
@@ -75,9 +71,6 @@ public class Homopolymer {
 		System.arraycopy(upstreamReference, (upstreamReference.length - baseNo1), seq, 0, baseNo1);  	 		
 		System.arraycopy(downstreamReference, 0, seq, baseNo1 + motif.length(), baseNo2); 
 		
-//		int pos = upstreamReference.length;
-//		System.arraycopy(downstreamReference, 0, seq, reportWindow + motif.length(), reportWindow); 
-				
 		if (indelType.equals(SVTYPE.DEL))				 
 			for (int i=0; i<motif.length(); i++)
 				seq[baseNo1 + i] = '_';
@@ -105,9 +98,6 @@ public class Homopolymer {
 			}
 		}
 		
-//		if(upBaseCount > 1)
-//			upBase.set(index, upBaseCount + "" + nearBase );
-		
 		//count downstream homopolymer
 		nearBase = (char) downstreamReference[0];
 		for (int i=1; i<downstreamReference.length; i++) {
@@ -117,9 +107,6 @@ public class Homopolymer {
 				break;
 			}
 		}
-		
-//		if(downBaseCount > 1)
-//			downBase.set(index, downBaseCount + "" + nearBase );
 		
 		int max  = 0;
 		//reset up or down stream for deletion reference base
@@ -155,14 +142,11 @@ public class Homopolymer {
 		}
 	}
 	
-//	public String getUpBaseCount(int index){ return upBase.get(index); }
-//	public String getDownBaseCount(int index){ return downBase.get(index); }
 	public int getCount(int index){return maxBase.get(index); }
 	
 	public synchronized void getReferenceBase() { 	
 
 		int MaxEnd = referenceBase.length;
-//		indelReferenceBases = new ArrayList<byte[]>() ;
 	
 		//eg. INS: 21 T TC or DEL: 21  TCC T
 		//both T  position.getPosition() is 21 but should be  referenceBase[20] which is end of upStream
