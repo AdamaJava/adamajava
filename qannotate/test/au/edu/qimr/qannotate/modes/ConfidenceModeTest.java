@@ -139,6 +139,42 @@ public class ConfidenceModeTest {
 	 }
 	 
 	 @Test
+	 public void confidenceRealLife2() {
+		 //chr9	126129715	rs57014689	C	A	205.77	PASS	AC=1;AF=0.500;AN=2;BaseQRankSum=-1.408;ClippingRankSum=-1.932;DP=48;FS=3.424;MLEAC=1;MLEAF=0.500;MQ=41.89;MQ0=0;MQRankSum=0.717;QD=4.29;ReadPosRankSum=-0.717;SOR=0.120;DB	GT:AD:DP:GQ:PL:GD:AC:MR:NNS	0/1:6,5:11:99:234,0,331:A/C:A0[0],4[24.25],C243[17.06],65[18.88],G2[7],0[0]:4:4	1/1:1,18:19:46:841,46,0:A/A:A2[7],15[28.73],C179[15.92],121[14.76],G0[0],1[7]:17:16
+		 //chr9	126129715	rs57014689	C	A	.	PASS	SOMATIC;FLANK=CCCCCACACCC;DB;GERM=5,185	GT:GD:AC:MR:NNS	0/0:C/C:A0[0],4[24.25],C128[17.64],30[20.9],G2[7],0[0]:4:4	0/1:A/C:A2[7],13[28.23],C96[17.22],54[14.22]:15:15
+		 VcfRecord vcf1 = new VcfRecord(new String[]{"chr9","126129715","rs57014689","C","A","205.77","PASS","AC=1;AF=0.500;AN=2;BaseQRankSum=-1.408;ClippingRankSum=-1.932;DP=48;FS=3.424;MLEAC=1;MLEAF=0.500;MQ=41.89;MQ0=0;MQRankSum=0.717;QD=4.29;ReadPosRankSum=-0.717;SOR=0.120;DB","GT:AD:DP:GQ:PL:GD:AC:MR:NNS","0/1:6,5:11:99:234,0,331:A/C:A0[0],4[24.25],C243[17.06],65[18.88],G2[7],0[0]:4:4","1/1:1,18:19:46:841,46,0:A/A:A2[7],15[28.73],C179[15.92],121[14.76],G0[0],1[7]:17:16"});
+		 VcfRecord vcf2 = new VcfRecord(new String[]{"chr9","126129715","rs57014689","C","A",".","PASS","SOMATIC;FLANK=CCCCCACACCC;DB;GERM=5,185","GT:GD:AC:MR:NNS","0/0:C/C:A0[0],4[24.25],C128[17.64],30[20.9],G2[7],0[0]:4:4","0/1:A/C:A2[7],13[28.23],C96[17.22],54[14.22]:15:15"});
+		 
+		 ConfidenceMode cm =new ConfidenceMode("");
+		 cm.positionRecordMap.put(vcf1.getChrPosition(), java.util.Arrays.asList(vcf1, vcf2));
+		 cm.setSampleColumn(2,1);
+		 cm.addAnnotation();
+		 
+		 vcf1 = cm.positionRecordMap.get(vcf1.getChrPosition()).get(0);
+		 vcf2 = cm.positionRecordMap.get(vcf2.getChrPosition()).get(1);
+		 VcfInfoFieldRecord info1 = vcf1.getInfoRecord();
+		 String conf1 = info1.getField(VcfHeaderUtils.INFO_CONFIDENT);
+		 assertEquals("LOW", conf1);
+		 VcfInfoFieldRecord info2 = vcf2.getInfoRecord();
+		 String conf2 = info2.getField(VcfHeaderUtils.INFO_CONFIDENT);
+		 assertEquals("HIGH", conf2);
+	 }
+	 @Test
+	 public void confidenceRealLifeMerged2() {
+		 //now try the merged record
+		 VcfRecord vcf = new VcfRecord(new String[]{"chr9","126129715","rs57014689","C","A",".","PASS_1;PASS_2","SOMATIC_1;FLANK=CCCCCACACCC;AC=1;AF=0.500;AN=2;BaseQRankSum=-1.408;ClippingRankSum=-1.932;DP=48;FS=3.424;MLEAC=1;MLEAF=0.500;MQ=41.89;MQ0=0;MQRankSum=0.717;QD=4.29;ReadPosRankSum=-0.717;SOR=0.120;IN=1,2;DB;GERM=5,185","GT:GD:AC:MR:NNS:AD:DP:GQ:PL","0/0&0/1:C/C&A/C:A0[0],4[24.25],C128[17.64],30[20.9],G2[7],0[0]&A0[0],4[24.25],C243[17.06],65[18.88],G2[7],0[0]:4&4:4&4:6,5:11:99:234,0,331","0/1&1/1:A/C&A/A:A2[7],13[28.23],C96[17.22],54[14.22]&A2[7],15[28.73],C179[15.92],121[14.76],G0[0],1[7]:15&17:15&16:1,18:19:46:841,46,0"});
+		 ConfidenceMode cm =new ConfidenceMode("");
+		 cm.positionRecordMap.put(vcf.getChrPosition(), java.util.Arrays.asList(vcf));
+		 cm.setSampleColumn(2,1);
+		 cm.addAnnotation();
+		 
+		 vcf = cm.positionRecordMap.get(vcf.getChrPosition()).get(0);
+		 VcfInfoFieldRecord info = vcf.getInfoRecord();
+		 String conf = info.getField(VcfHeaderUtils.INFO_CONFIDENT);
+		 assertEquals("LOW_1,LOW_2", conf);
+	 }
+	 
+	 @Test
 	 public void classB() {
 		 try {
 			 assertEquals(false, ConfidenceMode.isClassB(null));
