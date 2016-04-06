@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,9 +14,12 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.MafConfidence;
 import org.qcmg.common.string.StringUtils;
-import org.qcmg.common.util.Constants;
+
+import static org.qcmg.common.util.Constants.*;
+
 import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.util.IndelUtils.SVTYPE;
+import org.qcmg.common.util.SnpUtils;
 import org.qcmg.common.vcf.VcfFormatFieldRecord;
 import org.qcmg.common.vcf.VcfInfoFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
@@ -34,7 +38,7 @@ public class Vcf2maf extends AbstractMode{
 	
 	public static String PROTEINCODE = "protein_coding";
 	
-	private final QLogger logger = QLoggerFactory.getLogger(Vcf2maf.class);
+	private static final QLogger logger = QLoggerFactory.getLogger(Vcf2maf.class);
 	protected final  Map<String,String> effRanking = new HashMap<String,String>();	
 	private final String center;
 	private final String sequencer;
@@ -261,8 +265,8 @@ public class Vcf2maf extends AbstractMode{
 		if(sequencer != null) maf.setColumnValue(32, sequencer); 	//???query DB for sequencer
 
 		String chr = vcf.getChromosome();
-		if (chr.startsWith(Constants.CHR)) {
-			chr = chr.substring(Constants.CHR.length());
+		if (chr.startsWith(CHR)) {
+			chr = chr.substring(CHR.length());
 		}
 		maf.setColumnValue(5, chr);
 		
@@ -292,7 +296,7 @@ public class Vcf2maf extends AbstractMode{
 		maf.setColumnValue(35,  vcf.getFilter());
 		
 		//set novel for non dbSNP
-		if(vcf.getId().equals(Constants.MISSING_DATA_STRING)) { 
+		if(vcf.getId().equals(MISSING_DATA_STRING)) { 
 			maf.setColumnValue(14,  SnpEffMafRecord.novel);
 		} else {
 			maf.setColumnValue(14,  vcf.getId());
@@ -304,8 +308,8 @@ public class Vcf2maf extends AbstractMode{
 		if(infoString.contains(VcfHeaderUtils.INFO_VLD)) {
 			maf.setColumnValue(15,  VcfHeaderUtils.INFO_VLD);
 		}
-		
-		maf.setColumnValue(26,  VcfUtils.isRecordSomatic(vcf) ? VcfHeaderUtils.INFO_SOMATIC : VcfHeaderUtils.INFO_GERMLINE);
+		boolean isSomatic = VcfUtils.isRecordSomatic(vcf);
+		maf.setColumnValue(26,  isSomatic ? VcfHeaderUtils.INFO_SOMATIC : VcfHeaderUtils.INFO_GERMLINE);
 		
 //		if(vcf.getInfoRecord().getField(VcfHeaderUtils.INFO_SOMATIC) != null) {
 //			maf.setColumnValue(26,  VcfHeaderUtils.INFO_SOMATIC);
@@ -342,9 +346,9 @@ public class Vcf2maf extends AbstractMode{
 		if(   formats.size() <= Math.max(test_column, control_column)  ) {	// format include "FORMAT" column, must bigger than sample column
 			throw new IllegalArgumentException(" Varint missing sample column on :"+ vcf.getChromosome() + "\t" + vcf.getPosition());
 		}
-		
+		boolean mergedRecord = VcfUtils.isMergedRecord(vcf);
 		VcfFormatFieldRecord sample =  new VcfFormatFieldRecord(formats.get(0), formats.get(test_column));		
-		final String[] Tvalues = getAltCounts( sample, vcf.getRef(), vcf.getAlt(), type);		
+		final String[] Tvalues = getAltCounts( sample, vcf.getRef(), vcf.getAlt(), type, mergedRecord);		
 		if (Tvalues != null){	//allesls counts
 			maf.setColumnValue(37,  Tvalues[6]); //TD
 		    	maf.setColumnValue(45, Tvalues[1]); //t_depth
@@ -355,7 +359,7 @@ public class Vcf2maf extends AbstractMode{
 		}		
 		
 		sample =  new VcfFormatFieldRecord(formats.get(0), formats.get(control_column));
-		final String[] Nvalues = getAltCounts( sample, vcf.getRef(), vcf.getAlt(),type);
+		final String[] Nvalues = getAltCounts( sample, vcf.getRef(), vcf.getAlt(),type, mergedRecord);
 		
 		if (Nvalues != null){	//allesls counts
 			maf.setColumnValue(36, Nvalues[6]);
@@ -397,15 +401,63 @@ public class Vcf2maf extends AbstractMode{
 	 
 	 /**
 	  * 
+	  * If the record is a merged record, return values for the first 
+	  * 
+	  * 
 	  * @param format
 	  * @return array[nns, depth, ref_count, alt_count, allele1, allele2, coverageString(AC,ACCS,ACINDEL)]; 
 	  * return null if the input sample hava no value eg. "."
 	  */	 
-	 private String[] getAltCounts(VcfFormatFieldRecord sample, String ref, String alt, SVTYPE type) {
+	 public static  String[] getAltCounts(VcfFormatFieldRecord sample, String ref, String alt, SVTYPE type, boolean isMerged) {
+//		 public static  String[] getAltCounts(VcfFormatFieldRecord sample, String ref, String alt, SVTYPE type, boolean isMerged, boolean isSomatic) {
 
 	 	 if(sample.isMissingSample() ) return null;
 	 	 
-	 	 String[] values = {"0",SnpEffMafRecord.Zero, SnpEffMafRecord.Zero,SnpEffMafRecord.Zero, SnpEffMafRecord.Null,SnpEffMafRecord.Null,SnpEffMafRecord.Null}; 
+	 	 String[] values = {SnpEffMafRecord.Zero,SnpEffMafRecord.Zero, SnpEffMafRecord.Zero,SnpEffMafRecord.Zero, SnpEffMafRecord.Null,SnpEffMafRecord.Null,SnpEffMafRecord.Null}; 
+	 	 
+	 	 String gd = sample.getField(VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS);
+		 if( StringUtils.isMissingDtaString(gd) ) {
+			 gd = IndelUtils.getGenotypeDetails(sample, ref, alt); //maybe null
+		 }
+	 	 boolean useFirst = true;
+	 	 
+	 	 if ( ! StringUtils.isMissingDtaString(gd)) {
+	 		 if (isMerged) {
+	 		 /*
+	 		  * Need to determine which value to use, first or second.
+	 		  * If the GDs are the same, then pick first
+	 		  * If not, use isSomatic flag to pick GD that is somatic
+	 		  */
+		 		 String [] gds = gd.split(VCF_MERGE_DELIM + "");
+		 		 
+		 		 if (gds.length == 2) {
+		 			 if (gds[0].equals(gds[1])) {
+		 				 // pick first
+		 			 } else {
+		 				 logger.warn("Have different gds: " + Arrays.deepToString(gds));
+//		 				 if (isSomatic) {
+//		 					 // if they are both somatic, pick first.....
+//		 					 String[] pairs = gds[0].contains("|") ? gds[0].split("|") : gds[0].split("/");
+//		 					 if (pairs.length == 2) {
+//		 						 if (pairs[0].equals(pairs[1])) {
+//		 							 useFirst = false;
+//		 						 }
+//		 					 }
+//		 				 }
+		 			 }
+		 		 }
+		 		 String gdToUse = useFirst ? gds[0] : gds[1];
+		 		 String[] pairs = gdToUse.contains("|") ? gdToUse.split("|") : gdToUse.split("/");
+		 		 if(pairs.length > 0) values[4] = getMafAlt(ref, pairs[0], type);
+		 		 if(pairs.length > 1) values[5] = getMafAlt(ref, pairs[1], type);
+	 		 
+		 	 } else {
+		 		 String[] pairs = gd.contains("|") ? gd.split("|") : gd.split("/");
+		 		 if(pairs.length > 0) values[4] = getMafAlt(ref, pairs[0], type);
+				 if(pairs.length > 1) values[5] = getMafAlt(ref, pairs[1], type);
+		 	 }
+		 }
+	 	 
 	 	 
 		 if(type == null)
 			 type = IndelUtils.getVariantType(ref, alt);
@@ -418,7 +470,7 @@ public class Vcf2maf extends AbstractMode{
       		 //eg. 13,38,37,13[8,5],0,0,1     		
 	      		try{  
 	      			values[6] = acindel;  //default value is "null" string not null	    			
-		      		String[] counts = values[6].split(Constants.COMMA_STRING);
+		      		String[] counts = values[6].split(COMMA_STRING);
 		      		if(counts.length != 8) throw new Exception();
 		      		values[0] = counts[0]; //supporting reads nns
 		      		values[1] = counts[1]; //coverage
@@ -432,29 +484,40 @@ public class Vcf2maf extends AbstractMode{
 	      				logger.warn("invalide " + IndelUtils.FORMAT_ACINDEL + " at vcf formate column: " + sample.toString());
 	      		}
       		 }
-      	 }else if(  type.equals(SVTYPE.SNP) || type.equals(SVTYPE.DNP) || 
+      	 } else if(  type.equals(SVTYPE.SNP) || type.equals(SVTYPE.DNP) || 
       			 	type.equals(SVTYPE.TNP) || type.equals(SVTYPE.ONP) ){
-      		if (sample.getField(VcfHeaderUtils.FORMAT_NOVEL_STARTS) != null)   		 {
-      			values[0] = sample.getField(VcfHeaderUtils.FORMAT_NOVEL_STARTS); 
-      		}
+      		 String nns =  sample.getField(VcfHeaderUtils.FORMAT_NOVEL_STARTS);
+      		 if (null != nns) {
+  				values[0] = isMerged ? (useFirst ? nns.substring(0, nns.indexOf(VCF_MERGE_DELIM)) : nns.substring(nns.indexOf(VCF_MERGE_DELIM + 1))) : nns;
+      		 }
+      		 boolean cs = false;
+      		 String bases = sample.getField(VcfHeaderUtils.FORMAT_ALLELE_COUNT);
+      		 if (null == bases) {
+      			bases =  sample.getField(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP);
+      			cs = true;
+      		 }
+      		 if (isMerged) {
+      			 bases = useFirst ? bases.substring(0, bases.indexOf(VCF_MERGE_DELIM)) :  bases.substring(bases.indexOf(VCF_MERGE_DELIM) + 1);
+      		 }
+      		 
+      		 values[6] = bases;
 	    		//check counts      		
-	        	values[1] = VcfUtils.getAltFrequency(sample, null) + "";
-	        	values[2] = VcfUtils.getAltFrequency(sample, ref) + "";
-	        	values[3] = VcfUtils.getAltFrequency(sample, alt) + "";
+      		values[1] = SnpUtils.getTotalCountFromNucleotideString(bases, cs) + "";
+	        	values[2] = SnpUtils.getCountFromNucleotideString(bases,ref, cs) + "";
+	        	values[3] = SnpUtils.getCountFromNucleotideString(bases,alt, cs) + "";
+//	        	values[1] = VcfUtils.getAltFrequency(sample, null) + "";
+//	        	values[2] = VcfUtils.getAltFrequency(sample, ref) + "";
+//	        	values[3] = VcfUtils.getAltFrequency(sample, alt) + "";
 	        		     
-	        	values[6] = sample.getField(VcfHeaderUtils.FORMAT_ALLELE_COUNT);
-	        values[6] = (values[6] == null) ? sample.getField(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP): values[6];
       	 }
 		 
       	 //get genotype base
-		 String gd = sample.getField(VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS);
-		 if( StringUtils.isMissingDtaString(gd) )
-			 gd = IndelUtils.getGenotypeDetails(sample, ref, alt); //maybe null		 
 		 if(  StringUtils.isMissingDtaString(gd)) return values;
-		 		 
-		  String[] pairs = gd.contains("|") ? gd.split("|") : gd.split("/");		  
-		  if(pairs.length > 0) values[4] = getMafAlt(ref, pairs[0], type);
-		  if(pairs.length > 1) values[5] = getMafAlt(ref, pairs[1], type);
+		 
+		 
+//		  String[] pairs = gd.contains("|") ? gd.split("|") : gd.split("/");		  
+//		  if(pairs.length > 0) values[4] = getMafAlt(ref, pairs[0], type);
+//		  if(pairs.length > 1) values[5] = getMafAlt(ref, pairs[1], type);
 		 		 	     
 		  return values;
 	 }
@@ -487,12 +550,12 @@ public class Vcf2maf extends AbstractMode{
 			}
 			maf.setColumnValue(40,  SnpEffConsequence.getConsequenceRank(ontolog)+""); //get A.M consequence's rank
 	
-			final String[] effs = annotate.split(Constants.BAR_STRING);
+			final String[] effs = annotate.split(BAR_STRING);
 //			if(! StringUtils.isNullOrEmpty(effs[0]))  maf.setColumnValue(9, effs[0]); //VariantClassification, AM. list			
 			if ( ! StringUtils.isNullOrEmpty(effs[0]))  maf.setColumnValue(39, effs[0]); //Eff Impact, eg. modifier	
 			
 			if (effs[3].startsWith("p.")){
-				int pos = effs[3].indexOf(Constants.SLASH_STRING);
+				int pos = effs[3].indexOf(SLASH_STRING);
 				if (pos >= 0 ){
 					maf.setColumnValue(52,effs[3].substring(0, pos));
 					maf.setColumnValue(53,effs[3].substring(pos+1));
