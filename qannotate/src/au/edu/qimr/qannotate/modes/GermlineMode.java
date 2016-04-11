@@ -12,6 +12,7 @@ import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfRecord;
+import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader.Record;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
@@ -122,32 +123,33 @@ public class GermlineMode extends AbstractMode{
  	boolean annotateGermlineSnp(VcfRecord inputVcf, VcfRecord germlineVcf , final int total){
  		boolean flag = false;
  		
+ 		if ( ! inputVcf.getRef().equals(germlineVcf.getRef()) ){
+ 			logger.warn(String.format( "germline reference base (%s) are different to vcf Record (%s) for variant at position: %s ", 
+ 					germlineVcf.getRef(), inputVcf.getRef(), germlineVcf.getPosition() ));			 
+ 			return flag ; 			 
+ 		}
+ 		
+ 		if ( ! VcfUtils.isRecordSomatic(inputVcf)) {
+ 			return flag;
+ 		}
+ 		
+ 		String [] alts = inputVcf.getAlt().contains(Constants.COMMA_STRING) ? TabTokenizer.tokenize(inputVcf.getAlt(), Constants.COMMA) : new String[] {inputVcf.getAlt()}; 
+ 		if (null == alts) return flag ;
+ 		
  		//only annotate somatic variants
- 		if( ! StringUtils.doesStringContainSubString(inputVcf.getInfo(), "SOMATIC", false) ) 
- 			return flag ; 
- 		  		
-		 if(! inputVcf.getRef().equalsIgnoreCase(germlineVcf.getRef()) ){
-			 logger.warn(String.format( "germline reference base (%s) are different to vcf Record (%s) for variant at position: %s ", 
-					 germlineVcf.getRef(), inputVcf.getRef(), germlineVcf.getPosition() ));			 
-			 return flag ; 			 
-		 }
-		 
-		String [] alts = inputVcf.getAlt().contains(Constants.COMMA_STRING) ? TabTokenizer.tokenize(inputVcf.getAlt(), Constants.COMMA) : new String[] {inputVcf.getAlt()}; 
-		 
-		if (null == alts) return flag ; 
-		
-		//annotation if at least one alts matches dbSNP alt		 
-		for (final String alt : alts)  
-			if (germlineVcf.getAlt().toUpperCase().contains(alt.toUpperCase()) ) {	
-					try {
-						int counts = Integer.parseInt(germlineVcf.getInfo()); 
-						inputVcf.appendInfo(VcfHeaderUtils.INFO_GERMLINE + "=" +  (total > 0 ?  counts + "," + total: ""+counts));	
-						flag = true; 
-					} catch (Exception e){						
-						logger.error("Germline database vcf formart, can't find patient counts from INFO field!");					 
-					}
-					break;						
+			//annotation if at least one alts matches dbSNP alt		 
+		for (final String alt : alts) {
+			if (germlineVcf.getAlt().contains(alt)) {
+				try {
+					int counts = Integer.parseInt(germlineVcf.getInfo()); 
+					inputVcf.appendInfo(VcfHeaderUtils.INFO_GERMLINE + "=" +  (total > 0 ?  counts + "," + total: ""+counts));	
+					flag = true; 
+				} catch (Exception e){						
+					logger.error("Germline database vcf formart, can't find patient counts from INFO field!");					 
+				}
+				break;						
 			}
+		}
 		
 		 return flag; 				
  	}
