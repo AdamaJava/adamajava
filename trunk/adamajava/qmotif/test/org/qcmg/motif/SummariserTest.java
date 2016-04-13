@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.List;
 
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -48,6 +49,47 @@ public class SummariserTest {
 		assertEquals("", Summariser.getSummaryData(f.getAbsolutePath()));
 		
 	}
+	
+	@Test
+	public void getFullSummary() throws IOException {
+		File sf = folder.newFile();
+		try (FileWriter w = new FileWriter(sf)) {
+			for (int i = 0 ; i < 100 ; i++) {
+				File f = folder.newFile();
+				try (FileWriter writer = new FileWriter(f)) {
+					writer.write("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n");
+					writer.write("<qmotif version=\"1.2 (1084) (0.3)\">\n");
+					writer.write("<summary bam=\"/mnt/lustre/working/genomeinfo/sample/" + i + ".bam\">\n");
+					writer.write("<counts>\n");
+					writer.write("<totalReadCount count=\"982974779\"/>\n");
+					writer.write("<noOfMotifs count=\"86195\"/>\n");
+					writer.write("<rawUnmapped count=\"11\"/>\n");
+					writer.write("<rawIncludes count=\"98187\"/>\n");
+					writer.write("<rawGenomic count=\"26\"/>\n");
+					writer.write("<scaledUnmapped count=\"11\"/>\n");
+					writer.write("<scaledIncludes count=\"99887\"/>\n");
+					writer.write("<scaledGenomic count=\"26\"/>\n");
+					writer.write("</counts>\n");
+					writer.write("</summary>\n");
+					writer.write("</qmotif>\n");
+				}
+				w.write(f.getAbsolutePath() + "\n");
+			}
+		}
+		
+		List<String> files = Summariser.loadInputsFromFile(sf.getAbsolutePath());
+		assertEquals(100, files.size());
+		
+		List<String> results = Summariser.getAllSummaryData(files);
+		assertEquals(100, results.size());
+		
+		for (int i = 0 ; i < 100 ; i++) {
+			assertEquals(true, results.get(i).contains(i + ".bam"));
+		}
+		
+	}
+	
+	
 	@Test
 	public void getSummary() throws ParserConfigurationException, SAXException, IOException {
 		File f = folder.newFile();
