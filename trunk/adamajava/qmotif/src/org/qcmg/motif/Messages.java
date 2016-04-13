@@ -111,7 +111,7 @@ final class Messages {
 	 * @return the version message
 	 * @throws Exception the exception
 	 */
-	static String getVersionMessage() throws Exception {
+	static String getVersionMessage() {
 		return getProgramName() + ", version " + getProgramVersion();
 	}
 
