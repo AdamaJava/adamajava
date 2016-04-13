@@ -55,7 +55,7 @@ public class Summariser {
 		return 0;
 	}
 	
-	public static String getSummaryData(String file) throws ParserConfigurationException, SAXException, IOException {
+	public static String getSummaryData(String file) {
 		if ( ! StringUtils.isNullOrEmpty(file)) {
 			/*
 			 * get pertinent bits of info from qmotif xml file
@@ -78,18 +78,16 @@ public class Summariser {
 				x = x.replace("count=", "");
 				x = x.replace("summary", "");
 				return x;
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 		}
 		return null;
 	}
 	
-	public static List<String> getAllSummaryData(List<String> inputFiles) {
-		
-		inputFiles.forEach(f -> {
-			
-		});
-		
-		return Collections.emptyList();
+	public static List<String> getAllSummaryData(List<String> inputFiles) throws IOException {
+		return inputFiles.stream().map(f -> getSummaryData(f)).collect(Collectors.toList());
 	}
 	
 	public static List<String> loadInputsFromFile(String inputFile) throws IOException {
