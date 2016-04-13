@@ -31,6 +31,10 @@ public final class Options {
 			.getMessage("LOG_LEVEL_OPTION_DESCRIPTION");
 	private static final String VALIDATION_STRINGENCY_OPTION_DESCRIPTION = Messages
 			.getMessage("VALIDATION_STRINGENCY_DESCRIPTION");
+	private static final String INI_OPTION_DESCRIPTION = Messages
+			.getMessage("INI_OPTION_DESCRIPTION");
+	private static final String INPUT_OPTION_DESCRIPTION = Messages
+			.getMessage("INPUT_OPTION_DESCRIPTION");
 
 	private final OptionParser parser = new OptionParser();
 	private final OptionSet options;
@@ -40,6 +44,7 @@ public final class Options {
 	private final Integer numberThreads;
 	private final String logLevel;
 	private final String log;
+	private final String input;
 	private final String query;
 	private final String validation;
 
@@ -62,7 +67,8 @@ public final class Options {
 				.withRequiredArg().ofType(String.class);
 		parser.accepts("validation", VALIDATION_STRINGENCY_OPTION_DESCRIPTION)
 				.withRequiredArg().ofType(String.class); 
-		parser.accepts("ini", LOG_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
+		parser.accepts("ini", INI_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
+		parser.accepts("input", INPUT_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
 		options = parser.parse(args);
 
 		List inputBAMFileNamesList = options.valuesOf("bam");
@@ -74,6 +80,8 @@ public final class Options {
 		inputBAIFileNamesList.toArray(inputBAIFileNames);
 
 		outputFileNames = extractStringList("o");
+		
+		input =  (String) options.valueOf("input");
 
 		numberThreads = (Integer) options.valueOf("n");
 		log = (String) options.valueOf("log");
@@ -175,6 +183,10 @@ public final class Options {
 	
 	public String getValidation() {	
 		return validation;
+	}
+	
+	public String getInput() {
+		return input;
 	}
 	
 	public void detectBadOptions() throws Exception {
