@@ -10,8 +10,6 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.ini4j.Ini;
 import org.qcmg.common.model.ChrPosition;
-import org.qcmg.common.model.ChrRangePosition;
-import org.qcmg.common.model.ChrPositionName;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.Pair;
 import org.qcmg.motif.util.IniUtils;

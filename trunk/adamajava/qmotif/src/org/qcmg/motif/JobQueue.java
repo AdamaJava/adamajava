@@ -69,6 +69,7 @@ public final class JobQueue {
 	private final SAMOrBAMWriterFactory bamWriterFactory;
 	private final MotifsAndRegexes motifsAndRegexes;
 	private final SummaryStats ss = new SummaryStats();
+	private final boolean includesOnly;
 	
 	private final List<ChrPosition> contigs;
 //	private List<SAMSequenceRecord> contigs;
@@ -88,13 +89,14 @@ public final class JobQueue {
 		windowSize = invariants.getWindowSize();
 		includes = invariants.getIncludes();
 		excludes = invariants.getExcludes();
-		
+		includesOnly = invariants.isIncludesOnlyMode();
 		
 		// get header from bam file
 		Pair<File, File> firstPair = filePairs.iterator().next();
 		File bamFile = firstPair.getLeft();
 		// set bam filename in SummaryStats
 		ss.setBamFileName(bamFile.getAbsolutePath());
+		ss.setIncludesOnly(includesOnly);
 		
 		SamReader samReader = SAMFileReaderFactory.createSAMFileReader(bamFile);
 		SAMFileHeader header = samReader.getFileHeader();
@@ -105,8 +107,8 @@ public final class JobQueue {
 		
 		contigs = new ArrayList<>();
 		
-		logger.info("running with invariants.isIncludesOnlyMode: " + invariants.isIncludesOnlyMode());
-		if (invariants.isIncludesOnlyMode()) {
+		logger.info("running with invariants.isIncludesOnlyMode: " + includesOnly);
+		if (includesOnly) {
 			contigs.addAll(includes);
 			boolean addUnmapped = true;
 			// check to see if unmapped is included
@@ -142,9 +144,6 @@ public final class JobQueue {
 		
 		// and now sort so that the largest is first
 		Collections.sort(contigs, COMPARATOR);
-//		Collections.sort(contigs, new SAMSequenceRecodComparator());
-	
-//		if (null != invariants.getCutoff()) cutoff = invariants.getCutoff(); 
 		
 		execute();
 	}
@@ -342,9 +341,18 @@ public final class JobQueue {
 		ss.setRawIncludes(rawIncludes);
 		ss.setRawUnmapped(rawUnmapped);
 		
-		ss.setScaledGenomic((rawGenomic * factor) / totalReadCount);
-		ss.setScaledIncludes((rawIncludes * factor) / totalReadCount);
-		ss.setScaledUnmapped((rawUnmapped * factor) / totalReadCount);
+		if (includesOnly) {
+			/*
+			 * Setting the scaled values when running in includes only mode is misleading - set to -1 instead
+			 */
+			ss.setScaledGenomic(-1);
+			ss.setScaledIncludes(-1);
+			ss.setScaledUnmapped(-1);
+		} else {
+			ss.setScaledGenomic((rawGenomic * factor) / totalReadCount);
+			ss.setScaledIncludes((rawIncludes * factor) / totalReadCount);
+			ss.setScaledUnmapped((rawUnmapped * factor) / totalReadCount);
+		}
 	}
 
 	private void processJobs() throws Exception {

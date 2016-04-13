@@ -28,9 +28,8 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrPositionComparator;
-import org.qcmg.common.model.ChrRangePosition;
-import org.qcmg.common.model.ChrPositionName;
 import org.qcmg.common.util.LoadReferencedClasses;
+import org.qcmg.motif.util.MotifConstants;
 import org.qcmg.motif.util.MotifMode;
 import org.qcmg.motif.util.MotifUtils;
 import org.qcmg.motif.util.MotifsAndRegexes;
@@ -121,11 +120,14 @@ public final class Motif {
 		
 		Element windowSizeE = doc.createElement("window_size");
 		windowSizeE.setAttribute("value", mAndR.getWindowSize() + "");
+		Element includesOnlyE = doc.createElement(MotifConstants.INCLUDES_ONLY_MODE);
+		includesOnlyE.setAttribute("value", ss.getIncludesOnly() + "");
 		
 		// add to ini element
 		iniE.appendChild(stage1E);
 		iniE.appendChild(stage2E);
 		iniE.appendChild(windowSizeE);
+		iniE.appendChild(includesOnlyE);
 		
 		// need includes and excludes
 		// add the list of user defined includes
