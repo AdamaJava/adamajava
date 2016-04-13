@@ -6,17 +6,16 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMFileHeader.SortOrder;
 import htsjdk.samtools.SamReader;
 import htsjdk.samtools.SAMFileWriter;
@@ -29,6 +28,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.commandline.Executor;
+import org.qcmg.motif.util.MotifConstants;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -104,6 +104,8 @@ public class MotifTest {
 			Element e = (Element) iniNL.item(i);
 			Node s1m = e.getElementsByTagName("stage1_motif").item(0);
 			Node s2m = e.getElementsByTagName("stage2_motif").item(0);
+			Element io =(Element) e.getElementsByTagName("includes_only").item(0);
+			assertEquals("false", io.getAttribute("value"));
 			
 			NodeList s1mNL = s1m.getChildNodes();
 			NodeList s2mNL = s2m.getChildNodes();
@@ -132,12 +134,12 @@ public class MotifTest {
 		
 		for (int i = 0 ; i < nl.getLength() ; i++) {
 			Element e = (Element) nl.item(i);
-			System.out.println("e.getNodeName: " + e.getNodeName());
-			System.out.println("e.chrPos: " + e.getAttribute("chrPos"));
-			System.out.println("e.name: " + e.getAttribute("name"));
-			System.out.println("e.type: " + e.getAttribute("type"));
-			System.out.println("e.stage1Cov: " + e.getAttribute("stage1Cov"));
-			System.out.println("e.stage2Cov: " + e.getAttribute("stage2Cov"));
+//			System.out.println("e.getNodeName: " + e.getNodeName());
+//			System.out.println("e.chrPos: " + e.getAttribute("chrPos"));
+//			System.out.println("e.name: " + e.getAttribute("name"));
+//			System.out.println("e.type: " + e.getAttribute("type"));
+//			System.out.println("e.stage1Cov: " + e.getAttribute("stage1Cov"));
+//			System.out.println("e.stage2Cov: " + e.getAttribute("stage2Cov"));
 			
 			// get 
 			NodeList children = e.getChildNodes();
@@ -152,24 +154,96 @@ public class MotifTest {
 					
 					count += Integer.parseInt(n.getNodeValue());
 					
-					System.out.print("\tmr: " + mr.getNodeValue());
-					System.out.print("\tn: " + n.getNodeValue());
-					System.out.println("\ts: " + s.getNodeValue());
+//					System.out.print("\tmr: " + mr.getNodeValue());
+//					System.out.print("\tn: " + n.getNodeValue());
+//					System.out.println("\ts: " + s.getNodeValue());
 				}
 			}
 		}
-		System.out.println("no of hits: " + count);
+//		System.out.println("no of hits: " + count);
+		assertEquals(10, count);
 	}
 	
-	private int getPatternMatchCount(String pattern, String data) {
-		Pattern p = Pattern.compile(pattern);
-		Matcher m = p.matcher(data);
-		int count = 0;
-		while (m.find()) {
-			count++;
+	@Test
+	public void qmotifIncludesOnly() throws Exception {
+		File logFile =  testFolder.newFile("log");
+		File outputXmlFile =  testFolder.newFile("xml");
+		File outputBamFile =  testFolder.newFile("bamoutput");
+		ExpectedException.none();
+		
+		File includesOnlyINi = testFolder.newFile();
+				
+		createIncludesInlyIni(includesOnlyINi);
+		
+		Executor exec = execute("--log " + logFile.getAbsolutePath() + " --bam " + bamFile.getAbsolutePath() + " -o " + outputXmlFile.getAbsolutePath() + " -o " + outputBamFile.getAbsolutePath() +  " -ini " + includesOnlyINi.getAbsolutePath());
+		assertTrue(0 == exec.getErrCode());
+		
+		assertTrue(outputXmlFile.exists());
+		assertTrue(outputBamFile.exists());
+		
+		// ok lets delve into the xml
+		Document doc = createDocumentFromFile(outputXmlFile);
+		
+		NodeList iniNL = doc.getElementsByTagName("ini");
+		
+		for (int i = 0 ; i < iniNL.getLength() ; i++) {
+			Element e = (Element) iniNL.item(i);
+			Node s1m = e.getElementsByTagName("stage1_motif").item(0);
+			Node s2m = e.getElementsByTagName("stage2_motif").item(0);
+			Element io =(Element) e.getElementsByTagName(MotifConstants.INCLUDES_ONLY_MODE).item(0);
+			assertEquals("true", io.getAttribute("value"));
+			
+			NodeList s1mNL = s1m.getChildNodes();
+			NodeList s2mNL = s2m.getChildNodes();
+			int stringCounter = 0;
+			for (int j = 0 ; j < s1mNL.getLength() ; j++) {
+				Node child =  s1mNL.item(j);
+				if (child.getNodeName().equals("string")) {
+					stringCounter++;
+				}
+			}
+			assertEquals(2, stringCounter);
+			
+			int regexCounter = 0;
+			for (int j = 0 ; j < s2mNL.getLength() ; j++) {
+				Node child =  s2mNL.item(j);
+				if (child.getNodeName().equals("regex")) {
+					regexCounter++;
+				}
+			}
+			assertEquals(1, regexCounter);
 		}
-		return count;
+		
+		NodeList nl = doc.getElementsByTagName("region");
+		
+		int count = 0;
+		
+		for (int i = 0 ; i < nl.getLength() ; i++) {
+			Element e = (Element) nl.item(i);
+			// get 
+			NodeList children = e.getChildNodes();
+			for (int j = 0 ; j < children.getLength() ; j++) {
+				Node child =  children.item(j);
+				NamedNodeMap attributes = child.getAttributes();
+				if ( null != attributes && attributes.getLength() > 0) {
+					Node n = attributes.getNamedItem("number");
+					count += Integer.parseInt(n.getNodeValue());
+				}
+			}
+		}
+//		System.out.println("no of hits: " + count);
+		assertEquals(0, count);
 	}
+	
+//	private int getPatternMatchCount(String pattern, String data) {
+//		Pattern p = Pattern.compile(pattern);
+//		Matcher m = p.matcher(data);
+//		int count = 0;
+//		while (m.find()) {
+//			count++;
+//		}
+//		return count;
+//	}
 	
 	public static Document createDocumentFromFile(File absoluteFile)  {
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -229,6 +303,23 @@ public class MotifTest {
 			for (final String line : iniData) {
 				out.write(line + "\n");
 			}
+		}
+	}
+	
+	public static void createIncludesInlyIni(File iniFile) throws IOException {
+		List<String> iniData = Arrays.asList("[PARAMS]",
+				"stage1_motif_string=TTAGGGTTAGGGTTAGGG",
+				"stage2_motif_regex=(...GGG){2,}|(CCC...){2,}",
+				"stage1_string_rev_comp=true",
+				"window_size=10000",
+				MotifConstants.INCLUDES_ONLY_MODE + "=true",
+				"[INCLUDES]",
+				"; name, regions (sequence:start-stop)",
+				"chr1p	chr1:10001-12464"
+				);
+		
+		try (PrintWriter out = new PrintWriter(iniFile);) {
+			iniData.stream().forEach(out::println);
 		}
 	}
 	

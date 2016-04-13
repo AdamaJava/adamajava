@@ -26,7 +26,14 @@ public class SummaryStats {
 	private long scaledIncludes;
 	private long scaledGenomic;
 	
+	private boolean includesOnly;
 	
+	public void setIncludesOnly(boolean io) {
+		includesOnly = io;
+	}
+	public boolean getIncludesOnly() {
+		return includesOnly;
+	}
 	
 	public Map<ChrPosition, RegionCounter> getResults() {
 		return results;
