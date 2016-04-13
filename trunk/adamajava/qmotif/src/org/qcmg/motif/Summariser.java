@@ -1,6 +1,7 @@
 package org.qcmg.motif;
 
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -10,9 +11,19 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.LoadReferencedClasses;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 public class Summariser {
 	
@@ -30,10 +41,55 @@ public class Summariser {
 		 */
 		List<String>inputs = loadInputsFromFile(inputFile);
 		logger.info("Will attempt to summarise " + inputs.size() + " qmotif xml files");
+		if (inputs.isEmpty()) {
+			logger.warn("No qmotif xml files found in " + inputFile);
+			return exitStatus;
+		}
+		
+		/*
+		 * get summary data
+		 */
 		
 		
 		
 		return 0;
+	}
+	
+	public static String getSummaryData(String file) throws ParserConfigurationException, SAXException, IOException {
+		if ( ! StringUtils.isNullOrEmpty(file)) {
+			/*
+			 * get pertinent bits of info from qmotif xml file
+			 */
+			try (Stream<String> lines = Files.lines(Paths.get(file), Charset.defaultCharset());) {
+				String x = lines.filter(s -> s.startsWith("<summary") 
+						|| s.startsWith("<totalReadCount")
+						|| s.startsWith("<noOfMotifs")
+						|| s.startsWith("<rawUnmapped")
+						|| s.startsWith("<rawIncludes")
+						|| s.startsWith("<rawGenomic")
+						|| s.startsWith("<scaledUnmapped")
+						|| s.startsWith("<scaledIncludes")
+						|| s.startsWith("<scaledGenomic")
+						).collect(Collectors.joining("\t"));
+				x = x.replace("<", "");
+				x = x.replace("/>", "");
+				x = x.replace(">", "");
+				x = x.replace("\"", "");
+				x = x.replace("count=", "");
+				x = x.replace("summary", "");
+				return x;
+			}
+		}
+		return null;
+	}
+	
+	public static List<String> getAllSummaryData(List<String> inputFiles) {
+		
+		inputFiles.forEach(f -> {
+			
+		});
+		
+		return Collections.emptyList();
 	}
 	
 	public static List<String> loadInputsFromFile(String inputFile) throws IOException {
