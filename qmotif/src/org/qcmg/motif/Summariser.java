@@ -2,28 +2,24 @@ package org.qcmg.motif;
 
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
+import java.nio.file.OpenOption;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.LoadReferencedClasses;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
 
 public class Summariser {
 	
@@ -31,6 +27,7 @@ public class Summariser {
 	private static final int exitStatus = 1;
 	
 	private String inputFile;
+	private String outputFile;
 	private String logFile;
 	private String version;
 	
@@ -49,10 +46,20 @@ public class Summariser {
 		/*
 		 * get summary data
 		 */
+		List<String> results = getAllSummaryData(inputs);
+		logger.info("Will attempt to write out " + results.size() + " summaries");
 		
-		
-		
+		writeOutput(outputFile, results);
+			
 		return 0;
+	}
+	
+	public static void writeOutput(String out, List<String> data) throws IOException {
+		if ( ! StringUtils.isNullOrEmpty(out)) {
+			try (PrintWriter pw = new PrintWriter(out)) {
+				data.stream().forEachOrdered(pw::println);
+			}
+		}
 	}
 	
 	public static String getSummaryData(String file) {
@@ -133,6 +140,7 @@ public class Summariser {
 			logger = QLoggerFactory.getLogger(Summariser.class, logFile, options.getLogLevel());
 			// get input file
 			inputFile = options.getInput();
+			outputFile = options.getOutputFileNames()[0];
 		}
 		return letsGo();
 	}
