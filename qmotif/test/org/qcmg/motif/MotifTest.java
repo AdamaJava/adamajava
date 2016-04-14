@@ -128,6 +128,23 @@ public class MotifTest {
 			assertEquals(1, regexCounter);
 		}
 		
+		NodeList snl = doc.getElementsByTagName("counts");
+		for (int i = 0 ; i < snl.getLength() ; i++) {
+			Element e = (Element) snl.item(i);
+			NodeList children = e.getChildNodes();
+			for (int j = 0 ; j < children.getLength() ; j++) {
+				Node childNode = children.item(j);
+//				System.out.println("Node name: " + childNode.getClass());
+				if ( ! childNode.getClass().toString().equals("class com.sun.org.apache.xerces.internal.dom.DeferredTextImpl")) {
+					Element child =  (Element)children.item(j);
+					if (child.getNodeName().startsWith("totalReadsInThisAnalysis")) {
+						assertEquals(false, child.getAttribute("count").equals("0"));
+					}
+				}
+			}
+		}		
+		
+		
 		NodeList nl = doc.getElementsByTagName("region");
 		
 		int count = 0;
@@ -225,6 +242,8 @@ public class MotifTest {
 					Element child =  (Element)children.item(j);
 					if (child.getNodeName().startsWith("scaled")) {
 						assertEquals("-1", child.getAttribute("count"));
+					} else if (child.getNodeName().startsWith("totalReadsInThisAnalysis")) {
+						assertEquals(true, child.getAttribute("count").equals("0"));
 					}
 				}
 			}

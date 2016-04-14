@@ -177,7 +177,7 @@ public final class Motif {
 		Element countsE = doc.createElement("counts");
 		summaryE.appendChild(countsE);
 		
-		Element totalReadCountE = doc.createElement("totalReadCount");
+		Element totalReadCountE = doc.createElement("totalReadsInThisAnalysis");
 		totalReadCountE.setAttribute("count", ss.getTotalReadCount() + "");
 		Element noOfMotifsE = doc.createElement("noOfMotifs");
 		noOfMotifsE.setAttribute("count", ss.getUniqueMotifCount() + "");
