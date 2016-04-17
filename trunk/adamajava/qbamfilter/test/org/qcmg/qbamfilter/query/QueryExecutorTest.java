@@ -55,6 +55,7 @@ public class QueryExecutorTest {
         query = "Flag_DuplicateRead == false";
         r = checkRecord(query);
         assertEquals(3, r );
+       
     }
 
     /**
