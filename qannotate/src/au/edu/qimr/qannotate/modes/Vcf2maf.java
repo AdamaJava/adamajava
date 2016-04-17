@@ -507,7 +507,7 @@ public class Vcf2maf extends AbstractMode{
       		 
       		 values[6] = bases;
 	    		//check counts      		
-      		values[1] = SnpUtils.getTotalCountFromNucleotideString(bases, cs) + "";
+      		values[1] = SnpUtils.getTotalCountFromNucleotideString(bases, cs) + "";     
 	        	values[2] = SnpUtils.getCountFromNucleotideString(bases,ref, cs) + "";
 	        	values[3] = SnpUtils.getCountFromNucleotideString(bases,alt, cs) + "";
 //	        	values[1] = VcfUtils.getAltFrequency(sample, null) + "";
@@ -546,9 +546,10 @@ public class Vcf2maf extends AbstractMode{
 	
 			maf.setColumnValue(59, ontolog); //effect_ontology
 			String str = SnpEffConsequence.getClassicName(ontolog);
-			if (str != null) maf.setColumnValue(60, str);			{
-				str = SnpEffConsequence.getMafClassification(ontolog);
-			}
+			if (str != null) maf.setColumnValue(60, str);		
+			
+			 
+			str = SnpEffConsequence.getMafClassification(ontolog);			 
 			if (str != null) { 
 				//check whether frameshift_variant			    
 				maf.setColumnValue(9, (str.equals("Frame_Shift_")? str+maf.getColumnValue(10): str)); //eg. RNA

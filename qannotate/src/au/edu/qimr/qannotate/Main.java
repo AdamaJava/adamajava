@@ -28,9 +28,6 @@ public class Main {
 	 
 	private static QLogger logger;
 	public static void main(final String[] args) throws Exception {	
-		//debug
-		///Users/christix/Documents/Eclipse/data/SimpleRepeats_5.txt
-//		new TandemRepeatMode().addAnnotation("/Users/christix/Desktop/SimpleRepeats_chr1.txt");
 
 		try {
             final Options options = new Options();

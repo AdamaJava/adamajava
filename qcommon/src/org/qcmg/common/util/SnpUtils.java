@@ -266,6 +266,15 @@ public class SnpUtils {
 //		return forwardCount + reverseCount;
 	}
 	
+	
+/**
+ * this method is removed but qannotate use it, so pull it back. require further confirmation
+ * @param bases
+ * @param cs
+ * @return
+ */
+
+	
 	public static int getCountFromNucleotideString(final String bases, final String base, boolean compoundSnp) {
 		if (StringUtils.isNullOrEmpty(bases) || StringUtils.isNullOrEmpty(base)) {
 			return 0;
