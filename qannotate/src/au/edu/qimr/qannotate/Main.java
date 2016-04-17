@@ -11,6 +11,7 @@ import au.edu.qimr.qannotate.modes.DbsnpMode;
 import au.edu.qimr.qannotate.modes.GermlineMode;
 import au.edu.qimr.qannotate.modes.IndelConfidenceMode;
 import au.edu.qimr.qannotate.modes.SnpEffMode;
+import au.edu.qimr.qannotate.modes.TandemRepeatMode;
 import au.edu.qimr.qannotate.modes.Vcf2maf;
 import au.edu.qimr.qannotate.options.ConfidenceOptions;
 import au.edu.qimr.qannotate.options.CustomerConfidenceOptions;
@@ -21,13 +22,17 @@ import au.edu.qimr.qannotate.options.IndelConfidenceOptions;
 import au.edu.qimr.qannotate.options.SnpEffOptions;
 import au.edu.qimr.qannotate.options.Vcf2mafOptions;
 import au.edu.qimr.qannotate.options.CaddOptions;
+import au.edu.qimr.qannotate.options.TandemRepeatOptions;
 
 public class Main {
 	 
 	private static QLogger logger;
 	public static void main(final String[] args) throws Exception {	
- 		
-      try {
+		//debug
+		///Users/christix/Documents/Eclipse/data/SimpleRepeats_5.txt
+//		new TandemRepeatMode().addAnnotation("/Users/christix/Desktop/SimpleRepeats_chr1.txt");
+
+		try {
             final Options options = new Options();
             
             if ( options.parseArgs(args)){ 	    
@@ -51,6 +56,8 @@ public class Main {
             	   new CaddMode( (CaddOptions) options.getOption()  );
                else if(options.getOption().getMode() == Options.MODE.indelConfidence)
             	   new IndelConfidenceMode((IndelConfidenceOptions) options.getOption());
+               else if(options.getOption().getMode() == Options.MODE.TRF)
+            	   new TandemRepeatMode( (TandemRepeatOptions) options.getOption() );
                else
             	   throw new Exception("No valid mode are specified on commandline: " + options.getMode().name()) ;
 

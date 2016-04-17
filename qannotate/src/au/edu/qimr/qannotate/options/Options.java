@@ -14,7 +14,7 @@ import au.edu.qimr.qannotate.Messages;
  * parse command line to options. 
  */
 public class Options {
-	public enum MODE {fix, dbSNP, germline, snpEff,confidence,customerConfidence,vcf2maf, cadd,indelConfidence}
+	public enum MODE {fix, dbSNP, germline, snpEff,confidence,customerConfidence,vcf2maf, cadd,indelConfidence,TRF}
 	
    protected static final String VERSION_DESCRIPTION = Messages.getMessage("VERSION_OPTION_DESCRIPTION");
 	 
@@ -40,9 +40,7 @@ public class Options {
 		
 	protected  String testSample = null;
 	protected  String controlSample = null;
-	
-	
-    
+   
 	protected String logFileName = null;
 	protected  String logLevel;  
  
@@ -85,7 +83,9 @@ public class Options {
 			else if(m.equalsIgnoreCase(MODE.cadd.name()))
 				modeOptions = new CaddOptions();
 			else if(m.equalsIgnoreCase(MODE.indelConfidence.name()))
-				modeOptions = new IndelConfidenceOptions();			
+				modeOptions = new IndelConfidenceOptions();	
+			else if(m.equalsIgnoreCase(MODE.TRF.name()))
+				modeOptions = new TandemRepeatOptions();	
 			else{ 
 				System.err.println("err on command line : \n\t" + commandLine);
 				System.err.println(Messages.getMessage("INVALID_MODE_OPTION", m )); 
