@@ -145,8 +145,8 @@ public class IndelConfidenceMode extends AbstractMode{
     		BitSet chrMask = mask[no];
     		//do nothing when contig isn't on mask lists
     		if(chrMask == null)
-    			throw new NumberFormatException();
-    		
+    			return false; 
+    		//	throw new NumberFormatException();   		
     		for (int i = vcf.getPosition(); i <= vcf.getChrPosition().getEndPosition(); i ++) 
     			if(chrMask.get(i)) 				
     				return true; 
@@ -155,8 +155,7 @@ public class IndelConfidenceMode extends AbstractMode{
        	  return false;
        }
     	
-       	return false; 
-       	
+       	return false;        	
 	}
 
 
@@ -169,7 +168,7 @@ public class IndelConfidenceMode extends AbstractMode{
 		long repeatCount = 0; 
 		HashSet<ChrPosition> posCheck = new HashSet<ChrPosition>();	
 		try (VCFFileReader reader = new VCFFileReader(input) ;
-                VCFFileWriter writer = new VCFFileWriter(new File(output ))  ) {
+            VCFFileWriter writer = new VCFFileWriter(new File(output ))  ) {
 			    
 			//reheader
 		    VcfHeader hd = 	reader.getHeader();
