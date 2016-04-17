@@ -23,7 +23,8 @@ public class SnpEffMafRecord {
 	
 	public static final String Version = "#version 2.4.1";
 	
-	public final static int column = 60; 
+//	public final static int column = 60;  add column notes
+	public final static int column = 61; 
 	private final String[] maf = new String[column];	
 	
 	public enum MUTATION_STATUS{ 
@@ -135,7 +136,7 @@ public class SnpEffMafRecord {
 		str[57] = "Genotype_Number";     
 		str[58] = "effect_ontology";     
 		str[59] = "effect_class"; 
-		
+		str[60] = "notes";
 		return Arrays.stream(str).collect(Collectors.joining(Constants.TAB + ""));
 	}
  	
@@ -202,6 +203,7 @@ public class SnpEffMafRecord {
 		maf[57] = Null; //Genotype_Number
 		maf[58] = Null; //effect_ontology
 		maf[59] = Null; //effect_class
+		maf[60] = Null; //add notes for extra information
 		
 	}
 
