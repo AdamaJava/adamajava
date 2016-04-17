@@ -329,6 +329,7 @@ public class Vcf2maf extends AbstractMode{
 		if(info.getField(VcfHeaderUtils.INFO_FLANKING_SEQUENCE) != null) maf.setColumnValue(42,  info.getField(VcfHeaderUtils.INFO_FLANKING_SEQUENCE));
 		if(info.getField(VcfHeaderUtils.INFO_VAF) != null) maf.setColumnValue(43,  info.getField(VcfHeaderUtils.INFO_VAF));		
 		if(info.getField(VcfHeaderUtils.INFO_GERMLINE) != null) maf.setColumnValue(44,  info.getField(VcfHeaderUtils.INFO_GERMLINE));		
+		if(info.getField(VcfHeaderUtils.INFO_TRF)!= null) maf.setColumnValue(61,  info.getField(VcfHeaderUtils.INFO_TRF));	//add TRF info to notes column
 
 		String eff; 
 		if( (eff = info.getField(VcfHeaderUtils.INFO_EFFECT)) != null) {
