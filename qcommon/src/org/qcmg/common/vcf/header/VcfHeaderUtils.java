@@ -78,6 +78,7 @@ public class VcfHeaderUtils {
 	public static final String INFO_FILLCOV =  "FULLCOV";
 	public static final String INFO_GERMLINE = SnpUtils.MUTATION_GERMLINE_IN_ANOTHER_PATIENT;
 	public static final String INFO_CADD = "CADD";
+	public static final String INFO_TRF = "TRF";
 	
 	//FORMAT FIELDS
 	public static final String FORMAT_GENOTYPE = "GT";
