@@ -34,7 +34,7 @@ public class Main {
                logger = QLoggerFactory.getLogger(Main.class, options.getOption().getLogFileName(),  options.getOption().getLogLevel());	            		               
                logger.logInitialExecutionStats(options.getPGName(), options.getVersion(),args);	        
                
-               if(options.getOption().getMode() == Options.MODE.dbSNP)
+               if(options.getOption().getMode() == Options.MODE.dbsnp)
             	   new DbsnpMode( (GeneralOptions) options.getOption()   );
                else if(options.getOption().getMode() == Options.MODE.germline)
             	   new GermlineMode( (GeneralOptions) options.getOption() );
