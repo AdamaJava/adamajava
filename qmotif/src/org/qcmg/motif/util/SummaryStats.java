@@ -6,8 +6,6 @@ package org.qcmg.motif.util;
 import java.util.Map;
 
 import org.qcmg.common.model.ChrPosition;
-import org.qcmg.common.model.ChrRangePosition;
-import org.qcmg.common.model.ChrPositionName;
 
 public class SummaryStats {
 	
@@ -25,6 +23,8 @@ public class SummaryStats {
 	private long scaledUnmapped;
 	private long scaledIncludes;
 	private long scaledGenomic;
+	
+	private long coveredBases;
 	
 	private boolean includesOnly;
 	
@@ -106,6 +106,12 @@ public class SummaryStats {
 	}
 	public void setScaledGenomic(long scaledGenomic) {
 		this.scaledGenomic = scaledGenomic;
+	}
+	public long getCoveredBases() {
+		return coveredBases;
+	}
+	public void setCoveredBases(long coveredBases) {
+		this.coveredBases = coveredBases;
 	}
 	
 	
