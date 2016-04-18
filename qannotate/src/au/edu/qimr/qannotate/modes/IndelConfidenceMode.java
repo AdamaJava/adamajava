@@ -19,7 +19,7 @@ import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 import org.qcmg.vcf.VCFFileWriter;
 
-import au.edu.qimr.qannotate.options.IndelConfidenceOptions;
+import au.edu.qimr.qannotate.options.GeneralOptions;
 
 /**
  * @author christix
@@ -55,7 +55,7 @@ public class IndelConfidenceMode extends AbstractMode{
 		commandLine = null;
 	}
 	
-	public IndelConfidenceMode(IndelConfidenceOptions options) throws Exception{	
+	public IndelConfidenceMode(GeneralOptions options) throws Exception{
 		input = options.getInputFileName();
 		output = options.getOutputFileName();
 		commandLine = options.getCommandLine();

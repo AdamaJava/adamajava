@@ -14,7 +14,7 @@ import au.edu.qimr.qannotate.Messages;
  * parse command line to options. 
  */
 public class Options {
-	public enum MODE {fix, dbSNP, germline, snpEff,confidence,customerConfidence,vcf2maf, cadd,indelConfidence,TRF}
+	public enum MODE {fix, dbSNP, germline, snpEff,confidence,customerConfidence,vcf2maf, cadd,indelconfidence,trf }
 	
    protected static final String VERSION_DESCRIPTION = Messages.getMessage("VERSION_OPTION_DESCRIPTION");
 	 
@@ -68,10 +68,12 @@ public class Options {
         
         if(options.has("mode")){  
          	final String	m = ((String) options.valueOf("mode")).toLowerCase();
-         	if(m.equalsIgnoreCase(MODE.dbSNP.name())) 			 
-				modeOptions = new DbsnpOptions();
-			else if( m.equalsIgnoreCase(MODE.germline.name())) 			 
-				modeOptions = new  GermlineOptions();
+         	if(m.equalsIgnoreCase(MODE.dbSNP.name()) ||
+         			m.equalsIgnoreCase(MODE.germline.name()) ||
+         			m.equalsIgnoreCase(MODE.indelconfidence.name()) ||
+         			m.equalsIgnoreCase(MODE.trf.name()) ) 			 
+				modeOptions = new GeneralOptions(MODE.valueOf(m));
+			 
 			else if(m.equalsIgnoreCase(MODE.snpEff.name()))
 				modeOptions = new SnpEffOptions();
 			else if(m.equalsIgnoreCase(MODE.confidence.name()))
@@ -82,10 +84,7 @@ public class Options {
 				modeOptions = new Vcf2mafOptions();
 			else if(m.equalsIgnoreCase(MODE.cadd.name()))
 				modeOptions = new CaddOptions();
-			else if(m.equalsIgnoreCase(MODE.indelConfidence.name()))
-				modeOptions = new IndelConfidenceOptions();	
-			else if(m.equalsIgnoreCase(MODE.TRF.name()))
-				modeOptions = new TandemRepeatOptions();	
+
 			else{ 
 				System.err.println("err on command line : \n\t" + commandLine);
 				System.err.println(Messages.getMessage("INVALID_MODE_OPTION", m )); 

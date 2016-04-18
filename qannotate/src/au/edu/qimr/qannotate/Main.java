@@ -15,14 +15,11 @@ import au.edu.qimr.qannotate.modes.TandemRepeatMode;
 import au.edu.qimr.qannotate.modes.Vcf2maf;
 import au.edu.qimr.qannotate.options.ConfidenceOptions;
 import au.edu.qimr.qannotate.options.CustomerConfidenceOptions;
-import au.edu.qimr.qannotate.options.DbsnpOptions;
-import au.edu.qimr.qannotate.options.GermlineOptions;
 import au.edu.qimr.qannotate.options.Options;
-import au.edu.qimr.qannotate.options.IndelConfidenceOptions;
 import au.edu.qimr.qannotate.options.SnpEffOptions;
 import au.edu.qimr.qannotate.options.Vcf2mafOptions;
 import au.edu.qimr.qannotate.options.CaddOptions;
-import au.edu.qimr.qannotate.options.TandemRepeatOptions;
+import au.edu.qimr.qannotate.options.GeneralOptions;
 
 public class Main {
 	 
@@ -38,9 +35,9 @@ public class Main {
                logger.logInitialExecutionStats(options.getPGName(), options.getVersion(),args);	        
                
                if(options.getOption().getMode() == Options.MODE.dbSNP)
-            	   new DbsnpMode( (DbsnpOptions) options.getOption()   );
+            	   new DbsnpMode( (GeneralOptions) options.getOption()   );
                else if(options.getOption().getMode() == Options.MODE.germline)
-            	   new GermlineMode( (GermlineOptions) options.getOption() );
+            	   new GermlineMode( (GeneralOptions) options.getOption() );
                else if(options.getOption().getMode() == Options.MODE.snpEff)
             	    new SnpEffMode( (SnpEffOptions) options.getOption() );
                else if(options.getOption().getMode() == Options.MODE.confidence)
@@ -51,10 +48,10 @@ public class Main {
             	   new Vcf2maf((Vcf2mafOptions) options.getOption());
                else if(options.getOption().getMode() == Options.MODE.cadd)
             	   new CaddMode( (CaddOptions) options.getOption()  );
-               else if(options.getOption().getMode() == Options.MODE.indelConfidence)
-            	   new IndelConfidenceMode((IndelConfidenceOptions) options.getOption());
-               else if(options.getOption().getMode() == Options.MODE.TRF)
-            	   new TandemRepeatMode( (TandemRepeatOptions) options.getOption() );
+               else if(options.getOption().getMode() == Options.MODE.indelconfidence)
+            	   new IndelConfidenceMode((GeneralOptions) options.getOption());
+               else if(options.getOption().getMode() == Options.MODE.trf)
+            	   new TandemRepeatMode( (GeneralOptions) options.getOption() );
                else
             	   throw new Exception("No valid mode are specified on commandline: " + options.getMode().name()) ;
 

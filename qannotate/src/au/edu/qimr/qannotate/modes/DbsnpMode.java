@@ -23,7 +23,7 @@ import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils.VcfInfoType;
 import org.qcmg.vcf.VCFFileReader;
 
-import au.edu.qimr.qannotate.options.DbsnpOptions;
+import au.edu.qimr.qannotate.options.GeneralOptions;
 
 public class DbsnpMode extends AbstractMode{
 	private final static QLogger logger = QLoggerFactory.getLogger(DbsnpMode.class);
@@ -32,7 +32,8 @@ public class DbsnpMode extends AbstractMode{
 	//for unit Test
 	DbsnpMode(){}
 	
-	public DbsnpMode(DbsnpOptions options) throws Exception{	
+	
+	public DbsnpMode(GeneralOptions options) throws Exception{	
 		logger.tool("input: " + options.getInputFileName());
         logger.tool("dbSNP database: " + options.getDatabaseFileName() );
         logger.tool("output for annotated vcf records: " + options.getOutputFileName());
@@ -43,9 +44,9 @@ public class DbsnpMode extends AbstractMode{
 		
 		removeExistingDbSnpIds();
 		
-		if(options.isDIV())
-			divAnnotation(options.getDatabaseFileName());
-		else	
+//		if(options.isDIV())
+//			divAnnotation(options.getDatabaseFileName());
+//		else	
 			addAnnotation(options.getDatabaseFileName() );
 		
 		reheader(options.getCommandLine(),options.getInputFileName())	;
@@ -54,6 +55,7 @@ public class DbsnpMode extends AbstractMode{
 	
 		
 	//testing at momemnt
+	@Deprecated
 	void divAnnotation(String dbSNPFile) throws Exception{
  	    		 				 
 		try (VCFFileReader reader= new VCFFileReader( dbSNPFile )) {
