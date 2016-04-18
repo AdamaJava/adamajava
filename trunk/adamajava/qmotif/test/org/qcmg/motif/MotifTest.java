@@ -140,6 +140,10 @@ public class MotifTest {
 					if (child.getNodeName().startsWith("totalReadsInThisAnalysis")) {
 						assertEquals(false, child.getAttribute("count").equals("0"));
 					}
+					if (child.getNodeName().startsWith(MotifConstants.BASES_CONTAINING_MOTIFS)) {
+						System.out.println("bases containing motifs: " + child.getAttribute("count"));
+						assertEquals(false, child.getAttribute("count").equals("0"));
+					}
 				}
 			}
 		}		
@@ -243,6 +247,9 @@ public class MotifTest {
 					if (child.getNodeName().startsWith("scaled")) {
 						assertEquals("-1", child.getAttribute("count"));
 					} else if (child.getNodeName().startsWith("totalReadsInThisAnalysis")) {
+						assertEquals(true, child.getAttribute("count").equals("0"));
+					} else if (child.getNodeName().startsWith(MotifConstants.BASES_CONTAINING_MOTIFS)) {
+						System.out.println("bases containing motifs: " + child.getAttribute("count"));
 						assertEquals(true, child.getAttribute("count").equals("0"));
 					}
 				}

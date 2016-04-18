@@ -194,6 +194,8 @@ public final class Motif {
 		scaledIncludesE.setAttribute("count", ss.getScaledIncludes() + "");
 		Element scaledGenomicE = doc.createElement("scaledGenomic");
 		scaledGenomicE.setAttribute("count", ss.getScaledGenomic() + "");
+		Element coveredBasesE = doc.createElement(MotifConstants.BASES_CONTAINING_MOTIFS);
+		coveredBasesE.setAttribute("count", ss.getCoveredBases() + "");
 		
 		countsE.appendChild(totalReadCountE);
 		countsE.appendChild(noOfMotifsE);
@@ -204,6 +206,7 @@ public final class Motif {
 		countsE.appendChild(scaledUnmappedE);
 		countsE.appendChild(scaledIncludesE);
 		countsE.appendChild(scaledGenomicE);
+		countsE.appendChild(coveredBasesE);
 		
 		// add the list of user defined includes
 //		Element includesE = doc.createElement("includes");

@@ -8,11 +8,8 @@ import org.qcmg.common.string.StringUtils;
 public class RegionCounter {
 	
 	private final RegionType type;
-//	private Map<String, AtomicInteger> motifsFS;
-//	private Map<String, AtomicInteger> motifsRS;
 	private StringBuilder motifsFS;
 	private StringBuilder motifsRS;
-	private int totalCoverage;
 	private int stage1Cov;
 	private int stage2Cov;
 	
@@ -41,15 +38,8 @@ public class RegionCounter {
 	}
 	
 	public boolean hasMotifs() {
-		
-//		return null != motifsFS && ! motifsFS.isEmpty() 
-//				|| null != motifsRS && ! motifsRS.isEmpty();
-		
 		return (null != motifsFS && motifsFS.length() > 0)
 				|| (null != motifsRS && motifsRS.length() > 0);
-		
-		
-//		return ! StringUtils.isNullOrEmpty(motifsFS.toString()) || ! StringUtils.isNullOrEmpty(motifsRS.toString()); 
 	}
 	
 	public RegionType getType() {
@@ -63,19 +53,12 @@ public class RegionCounter {
 	}
 
 	public String getMotifsForwardStrand() {
-//		public Map<String, AtomicInteger> getMotifsForwardStrand() {
-//		return motifsFS ;
 		return null == motifsFS ? null :  motifsFS.toString();
 	}
 	public  String getMotifsReverseStrand() {
-//		public  Map<String, AtomicInteger> getMotifsReverseStrand() {
-//		return motifsRS;
 		return null == motifsRS ? null :  motifsRS.toString();
 	}
 	
-	public void updateTotalCoverage() {
-		totalCoverage ++;
-	}
 	public void updateStage1Coverage() {
 		stage1Cov ++;
 	}
@@ -83,15 +66,11 @@ public class RegionCounter {
 		stage2Cov ++;
 	}
 	
-	public int getTotalCoverage() {
-		return totalCoverage;
-	}
 	public int getStage1Coverage() {
 		return stage1Cov;
 	}
 	public int getStage2Coverage() {
 		return stage2Cov;
 	}
-	
 	
 }

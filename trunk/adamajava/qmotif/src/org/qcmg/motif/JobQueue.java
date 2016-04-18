@@ -248,6 +248,7 @@ public final class JobQueue {
 		int rawUnmapped = 0;
 		int rawIncludes = 0;
 		int rawGenomic = 0;
+		long basesCoveredByMotifs = 0;
 		
 		for (ChrPosition orderedCP : orderedResultsList) {
 			
@@ -261,7 +262,6 @@ public final class JobQueue {
 				
 				StringBuilder fs = null;
 				if (null != rc.getMotifsForwardStrand()) {
-//					Map<String, AtomicInteger> motifsFS = rc.getMotifsForwardStrand();
 					Map<String, AtomicInteger> motifsFS = MotifUtils.convertStringArrayToMap(rc.getMotifsForwardStrand());
 					noOfMotifsFS = motifsFS.size();
 					fs = new StringBuilder("FS: ");
@@ -273,11 +273,12 @@ public final class JobQueue {
 						noOfMotifHitsFS += entry.getValue().get();
 						if (i++ > 1) fs.append(",");
 						fs.append(entry.getKey()).append("(").append(entry.getValue().get()).append(")");
+						
+						basesCoveredByMotifs += entry.getKey().length() * entry.getValue().intValue();
 					}
 				}
 				StringBuilder rs = null;
 				if (null != rc.getMotifsReverseStrand()) {
-//					Map<String, AtomicInteger> motifsRS = rc.getMotifsReverseStrand();
 					Map<String, AtomicInteger> motifsRS = MotifUtils.convertStringArrayToMap(rc.getMotifsReverseStrand());
 					noOfMotifsRS = motifsRS.size();
 					rs = new StringBuilder("RS: ");
@@ -289,6 +290,8 @@ public final class JobQueue {
 						noOfMotifHitsRS += entry.getValue().get();
 						if (i++ > 1) rs.append(",");
 						rs.append(entry.getKey()).append("(").append(entry.getValue().get()).append(")");
+						
+						basesCoveredByMotifs += entry.getKey().length() * entry.getValue().intValue();
 					}
 				}
 				
@@ -310,7 +313,7 @@ public final class JobQueue {
 				default:
 					break;
 				}
-				motifs = "TotalCov: " + rc.getTotalCoverage() + ", stage 1 coverage: " + rc.getStage1Coverage() + ", stage 2 coverage: " + rc.getStage2Coverage();
+				motifs = "Stage 1 coverage: " + rc.getStage1Coverage() + ", stage 2 coverage: " + rc.getStage2Coverage();
 				motifs += ", # FS motifs: " + noOfMotifsFS + "(" + noOfMotifHitsFS + "), # RS motifs: " + noOfMotifsRS + "(" + noOfMotifHitsRS + ")";
 				
 				resultsList.add(orderedCP.toIGVString() + " [" + rc.getType() + "] : " + motifs);
@@ -319,7 +322,6 @@ public final class JobQueue {
 		
 		if ( ! resultsList.isEmpty()) {
 			logger.info("SUMMARY: (window size: " + windowSize + ")");
-//			logger.info("SUMMARY: (window size: " + windowSize + ", cutoff: " + cutoff + ")");
 			for (String s : resultsList) logger.info(s);
 			
 			logger.info("motif details:");
@@ -333,13 +335,14 @@ public final class JobQueue {
 		long totalReadCount = countIn.get();
 		
 		ss.setWindowSize(windowSize);
-//		ss.setCutoff(cutoff);
 		ss.setResults(results);
 		ss.setUniqueMotifCount(allMotifs.size());
 		ss.setTotalReadCount(totalReadCount);
 		ss.setRawGenomic(rawGenomic);
 		ss.setRawIncludes(rawIncludes);
 		ss.setRawUnmapped(rawUnmapped);
+		
+		ss.setCoveredBases(basesCoveredByMotifs);
 		
 		if (includesOnly) {
 			/*
