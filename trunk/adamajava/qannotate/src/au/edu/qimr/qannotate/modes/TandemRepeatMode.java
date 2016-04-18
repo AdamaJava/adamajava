@@ -25,7 +25,7 @@ import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.vcf.VCFFileReader;
 import org.qcmg.vcf.VCFFileWriter;
 
-import au.edu.qimr.qannotate.options.TandemRepeatOptions;
+import au.edu.qimr.qannotate.options.GeneralOptions;
 
 
 public class TandemRepeatMode  extends AbstractMode{
@@ -46,7 +46,7 @@ public class TandemRepeatMode  extends AbstractMode{
 //		commandLine = null;		
 //	}
 	
-	public TandemRepeatMode( TandemRepeatOptions options) throws Exception{	
+	public TandemRepeatMode( GeneralOptions options) throws Exception{	
 		input = options.getInputFileName();
 		output = options.getOutputFileName();
 		commandLine = options.getCommandLine();
