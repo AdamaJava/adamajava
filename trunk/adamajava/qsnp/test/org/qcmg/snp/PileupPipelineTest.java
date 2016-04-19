@@ -101,43 +101,10 @@ public class PileupPipelineTest {
 		assertEquals(2, noOfLinesInVCFOutputFile(vcfOutput));
 	}
 	
-//	@Test
-//	public void testPileupPipelineDCCMode() throws Exception{
-//		File logFile = testFolder.newFile("qsnp.log");
-//		File iniFile = testFolder.newFile("qsnp.ini");
-//		IniFileGenerator.createRulesOnlyIni(iniFile);
-//		
-//		File pileupInput = testFolder.newFile("input.pileup");
-//		File vcfOutput = testFolder.newFile("output.vcf");
-//		
-//		PileupFileGenerator.createPileupFile(pileupInput);
-//		
-//		IniFileGenerator.addInputFiles(iniFile, false, "pileup = " + pileupInput.getAbsolutePath());
-//		
-//		IniFileGenerator.addOutputFiles(iniFile, false, "vcf = " + vcfOutput.getAbsolutePath()); 
-//		IniFileGenerator.addStringToIniFile(iniFile, "[parameters]\nincludeIndels = true", true);
-//		
-//		// add the annotate mode=dcc to the ini file
-//		IniFileGenerator.addStringToIniFile(iniFile, "\nannotateMode = dcc", true);
-//		// add runType to ini file
-//		IniFileGenerator.addStringToIniFile(iniFile, "\nrunMode = pileup", true);	// append to file
-//		
-//		// that should be it
-//		ExpectedException.none();
-//		String command = "-log " + logFile.getAbsolutePath() + " -i " + iniFile.getAbsolutePath();
-//		Executor exec = new Executor(command, "org.qcmg.snp.Main");
-//		assertEquals(0, exec.getErrCode());
-//		assertTrue(0 == exec.getOutputStreamConsumer().getLines().length);
-//		
-//		// check the vcf output file
-//		assertEquals(2, noOfLinesInVCFOutputFile(vcfOutput));
-//		
-//	}
-	
 	private int noOfLinesInVCFOutputFile(File vcfOutput) throws Exception {
 		int noOfLines = 0;
 		try (VCFFileReader reader = new VCFFileReader(vcfOutput);) {
-			for (final VcfRecord vcf : reader) noOfLines++;
+			for (VcfRecord vcf : reader) noOfLines++;
 		}
 		return noOfLines;
 	}
@@ -149,17 +116,6 @@ public class PileupPipelineTest {
 			}
 		}
 		return "no header line found";
-	}
-	
-	private int noOfLinesInDCCOutputFile(File dccFile) throws Exception {
-		int noOfLines = 0;
-		try (TabbedFileReader reader = new TabbedFileReader(dccFile);) {
-			for (final TabbedRecord vcf : reader) {
-				if (vcf.getData().startsWith("analysis")) continue;	// header line
-				noOfLines++;
-			}
-		}
-		return noOfLines;
 	}
 	
 	@Test
