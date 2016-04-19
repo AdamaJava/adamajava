@@ -650,31 +650,19 @@ public final class VcfPipeline extends Pipeline {
 					if (includeDuplicates) {
 						// we are in amplicon mode and so we want to keep dups - just check to see if we have the failed vendor flag set
 						if ( ! SAMUtils.isSAMRecordValid(sam)) continue;
-						
-						try {
-							if (runqBamFilter && ! qbamFilter.Execute(sam)) {
-								continue;
-							}
-						} catch (Exception e) {
-							e.printStackTrace();
-							throw new RuntimeException("Exception caught whilst running qbamfilter");
-						}
-						
 					} else {
 						// quality checks
 						if ( ! SAMUtils.isSAMRecordValidForVariantCalling(sam)) continue;
-						
-						
-						try {
-							if (runqBamFilter && ! qbamFilter.Execute(sam)) {
-								continue;
-							}
-						} catch (Exception e) {
-							e.printStackTrace();
-							throw new RuntimeException("Exception caught whilst running qbamfilter");
-						}
 					}
 					
+					try {
+						if (runqBamFilter && ! qbamFilter.Execute(sam)) {
+							continue;
+						}
+					} catch (Exception e) {
+						e.printStackTrace();
+						throw new RuntimeException("Exception caught whilst running qbamfilter");
+					}
 					
 					
 					if (match(sam, cp, true)) {
