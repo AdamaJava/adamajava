@@ -48,6 +48,7 @@ import org.qcmg.picard.util.QDccMetaFactory;
 import org.qcmg.picard.util.SAMUtils;
 import org.qcmg.pileup.QSnpRecord;
 import org.qcmg.pileup.QSnpRecord.Classification;
+import org.qcmg.qbamfilter.query.QueryExecutor;
 import org.qcmg.snp.util.HeaderUtil;
 import org.qcmg.snp.util.IniFileUtil;
 import org.qcmg.vcf.VCFFileReader;
@@ -320,9 +321,9 @@ public final class VcfPipeline extends Pipeline {
 		final ExecutorService service = Executors.newFixedThreadPool(noOfThreads);
 		
 		if ( ! singleSampleMode) {
-			service.execute(new Pileup(controlBam, latch, true));
+			service.execute(new Pileup(controlBam, latch, true, query));
 		}
-		service.execute(new Pileup(testBam, latch, false));
+		service.execute(new Pileup(testBam, latch, false, query));
 		service.shutdown();
 		
 		try {
@@ -471,6 +472,7 @@ public final class VcfPipeline extends Pipeline {
 	 */
 	public class Pileup implements Runnable {
 		private final SamReader reader;
+		private QueryExecutor qbamFilter;
 		private final boolean isNormal;
 		private final ConcurrentMap<ChrPosition , Accumulator> pileupMap;
 		private int arraySize;
@@ -479,12 +481,16 @@ public final class VcfPipeline extends Pipeline {
 		private Comparator<String> chrComparator;
 		private final List<ChrPosition> snps;
 		private final CountDownLatch latch;
+		private final boolean runqBamFilter;
 		
-		public Pileup(final String bamFile, final CountDownLatch latch, final boolean isNormal) {
+		public Pileup(final String bamFile, final CountDownLatch latch, final boolean isNormal, String query) throws Exception {
 			this.isNormal = isNormal;
 			pileupMap = isNormal ? controlPileup : testPileup;
 			reader = SAMFileReaderFactory.createSAMFileReader(new File(bamFile));
 			snps = new ArrayList<ChrPosition>(positionRecordMap.keySet());
+			if ( ! StringUtils.isNullOrEmpty(query) && ! "QCMG".equals(query))
+				qbamFilter = new QueryExecutor(query);
+			runqBamFilter = null != qbamFilter;
 			this.latch = latch;
 		}
 		
@@ -644,10 +650,32 @@ public final class VcfPipeline extends Pipeline {
 					if (includeDuplicates) {
 						// we are in amplicon mode and so we want to keep dups - just check to see if we have the failed vendor flag set
 						if ( ! SAMUtils.isSAMRecordValid(sam)) continue;
+						
+						try {
+							if (runqBamFilter && ! qbamFilter.Execute(sam)) {
+								continue;
+							}
+						} catch (Exception e) {
+							e.printStackTrace();
+							throw new RuntimeException("Exception caught whilst running qbamfilter");
+						}
+						
 					} else {
 						// quality checks
 						if ( ! SAMUtils.isSAMRecordValidForVariantCalling(sam)) continue;
+						
+						
+						try {
+							if (runqBamFilter && ! qbamFilter.Execute(sam)) {
+								continue;
+							}
+						} catch (Exception e) {
+							e.printStackTrace();
+							throw new RuntimeException("Exception caught whilst running qbamfilter");
+						}
 					}
+					
+					
 					
 					if (match(sam, cp, true)) {
 						updateResults(cp, sam, chrCounter);
