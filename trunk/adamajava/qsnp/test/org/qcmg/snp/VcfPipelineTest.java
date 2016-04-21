@@ -113,6 +113,11 @@ public class VcfPipelineTest {
 		assertEquals(83, chrPos.indexOf(ChrPositionUtils.getChrPosition("chrMT", 1, 1)));
 //		chrPos.forEach(System.out::println);
 		
+		assertEquals(true, c.compare(ChrPositionUtils.getChrPosition("chr1", 1, 1), ChrPositionUtils.getChrPosition("chr1", 2, 2)) < 0);
+		assertEquals(true, c.compare(ChrPositionUtils.getChrPosition("chr1", 2, 2), ChrPositionUtils.getChrPosition("chr1", 2, 2)) == 0);
+		assertEquals(true, c.compare(ChrPositionUtils.getChrPosition("chr1", 2, 2), ChrPositionUtils.getChrPosition("chr1", 1, 1)) > 0);
+		assertEquals(true, c.compare(ChrPositionUtils.getChrPosition("chr1", 2, 2), ChrPositionUtils.getChrPosition("chr2", 1, 1)) < 0);
+		assertEquals(true, c.compare(ChrPositionUtils.getChrPosition("chr2", 2, 20), ChrPositionUtils.getChrPosition("chr2", 2, 2)) > 0);
 	}
 	
 	
