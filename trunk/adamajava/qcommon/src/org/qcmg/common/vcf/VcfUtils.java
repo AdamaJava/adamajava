@@ -213,7 +213,7 @@ public class VcfUtils {
 	
 	public static String getGenotypeFromGATKVCFRecord(VcfRecord rec) {
 		if (null == rec || rec.getFormatFields().size() < 2)
-			throw new IllegalArgumentException("VCFRecord null, or does not contain the appropriate fields");
+			throw new IllegalArgumentException("VCFRecord null, or does not contain the appropriate fields. rec: [" + (null != rec ? rec.toString() : null) + "]");
 		
 		final String extraField = rec.getFormatFields().get(1);	// second item in list should have pertinent info
 		if (StringUtils.isNullOrEmpty(extraField)) return null;

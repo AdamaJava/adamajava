@@ -20,8 +20,7 @@ public interface ChrPosition {
 	default boolean isPointPosition() {
 		return getStartPosition() == getEndPosition();
 	}
-	default boolean isRangPosition(){
-		
+	default boolean isRangePosition(){
 		return getEndPosition() > getStartPosition();
 	}
 	default String toIGVString() {
