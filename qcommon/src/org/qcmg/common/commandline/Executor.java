@@ -3,6 +3,7 @@
  */
 package org.qcmg.common.commandline;
 
+import java.io.IOException;
 import java.util.Arrays;
 
 public class Executor {
@@ -11,7 +12,7 @@ public class Executor {
 	private final int errCode;
 
 	public Executor(String arguments, String qualifiedMainClassName)
-			throws Exception {
+			throws IOException, InterruptedException {
 		String classpath = System.getProperty("java.class.path");
 		String javaCommand = "java -classpath " + classpath + " "
 				+ qualifiedMainClassName + " ";
