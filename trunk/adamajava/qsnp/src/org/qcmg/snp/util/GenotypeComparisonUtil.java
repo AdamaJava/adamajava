@@ -27,7 +27,7 @@ public class GenotypeComparisonUtil {
 		GenotypeEnum genotype = record.getTumourGenotype();
 		
 		if (null == genotype) {
-			logger.error("Error predicting genotype for record: " + record.getFormattedString());
+			logger.error("Error predicting genotype for record: " + record.getFormattedString() + ", vcf: " + record.getVcfRecord().toString());
 			throw new IllegalArgumentException("Pileup record passed to GenotypeComparisonUtil.compareGenotypes has missing genotype");
 		}
 		

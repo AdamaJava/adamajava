@@ -59,7 +59,7 @@ import org.qcmg.vcf.VCFFileReader;
 public final class VcfPipeline extends Pipeline {
 	
 	private final static ReferenceNameComparator COMPARATOR = new ReferenceNameComparator();
-	private final static Comparator<ChrPosition> CHR_COMPARATOR = new ChrPositionComparator();
+	public final static Comparator<ChrPosition> CHR_COMPARATOR = new ChrPositionComparator();
 	
 	private final static QLogger logger = QLoggerFactory.getLogger(VcfPipeline.class);
 
@@ -71,9 +71,6 @@ public final class VcfPipeline extends Pipeline {
 	
 	private final ConcurrentMap<ChrPosition, Accumulator> controlPileupCS = new ConcurrentHashMap<>();
 	private final ConcurrentMap<ChrPosition, Accumulator> testPileupCS = new ConcurrentHashMap<>();
-	
-	
-	
 
 	private final ConcurrentMap<ChrPosition, QSnpRecord> controlVCFMap = new ConcurrentHashMap<>(); //not expecting more than 100000
 	private final ConcurrentMap<ChrPosition, QSnpRecord> testVCFMap = new ConcurrentHashMap<>(1024 * 128);
@@ -478,7 +475,7 @@ public final class VcfPipeline extends Pipeline {
 		private int arraySize;
 		private int arrayPosition;
 		private ChrPosition cp;
-		private Comparator<String> chrComparator;
+		private Comparator<String> chrNameComparator;
 		private final List<ChrPosition> snps;
 		private final CountDownLatch latch;
 		private final boolean runqBamFilter;
@@ -504,27 +501,49 @@ public final class VcfPipeline extends Pipeline {
 			
 			// try and sort according to the ordering of the bam file that is about to be processed
 			// otherwise, resort to alphabetic ordering and cross fingers...
-			if ( ! sortedContigs.isEmpty()) {
-				
-				chrComparator = new Comparator<String>() {
-					@Override
-					public int compare(String o1, String o2) {
-						return sortedContigs.indexOf(o1) - sortedContigs.indexOf(o2);
-					}
-				};
-				
-				Collections.sort(snps,CHR_COMPARATOR);
-				
-			} else {
-				chrComparator = COMPARATOR;
-				Collections.sort(snps,CHR_COMPARATOR);
-			}
 			
+//	if ( ! sortedContigs.isEmpty()) {
+//				
+//				chrComparator = new Comparator<String>() {
+//					@Override
+//					public int compare(String o1, String o2) {
+//						return sortedContigs.indexOf(o1) - sortedContigs.indexOf(o2);
+//					}
+//				};
+//				
+//				Collections.sort(snps, new Comparator<ChrPosition>() {
+//					@Override
+//					public int compare(ChrPosition o1, ChrPosition o2) {
+//						final int diff = chrComparator.compare(o1.getChromosome(), o2.getChromosome());
+//						if (diff != 0) return diff;
+//						return o1.getPosition() - o2.getPosition();
+//					}
+//				});
+//				
+//			} else {
+//				chrComparator = COMPARATOR;
+//				Collections.sort(snps, new Comparator<ChrPosition>() {
+//					@Override
+//					public int compare(ChrPosition o1, ChrPosition o2) {
+//						final int diff = COMPARATOR.compare(o1.getChromosome(), o2.getChromosome());
+//						if (diff != 0) return diff;
+//						return o1.getPosition() - o2.getPosition();
+//					}
+//				});
+//			}
+			chrNameComparator = ChrPositionComparator.getChrNameComparator(sortedContigs);
+			
+			Comparator<ChrPosition> c = ChrPositionComparator.getComparator(chrNameComparator);
+			
+			
+			Collections.sort(snps,c);
 			arraySize = snps.size();
 		}
 		
 		private void advanceCPAndPosition() {
-			if (arrayPosition >= arraySize) {
+//			logger.info("in advanceCPAndPosition");
+			if (arrayPosition > arraySize) {
+//				logger.info("in advanceCPAndPosition - arrayPosition > arraySize, arrayPosition: " + arrayPosition + ",  arraySize: " +arraySize);
 				// reached the end of the line
 				cp = null;
 				return;
@@ -533,6 +552,7 @@ public final class VcfPipeline extends Pipeline {
 				// update QSnpRecord with our findings
 				final Accumulator acc = pileupMap.remove(cp);
 				if (null != acc) {
+//					logger.info("in advanceCPAndPosition -null != acc");
 					
 					// if position is a potential CS, keep accumulation data
 					if (adjacentAccumulators.containsKey(cp)) {
@@ -570,8 +590,13 @@ public final class VcfPipeline extends Pipeline {
 		}
 		
 		private boolean match(SAMRecord rec, ChrPosition thisCPf, boolean updatePointer) {
+			
+//			logger.info("in match with rec: " + rec + ", thisCPf: " + thisCPf + ", updatePointer: " + updatePointer);
+			
+			
 			if (null == thisCPf) return false;
 			if (rec.getReferenceName().equals(thisCPf.getChromosome())) {
+//				logger.info("in match with ref names are equal");
 				
 				if (rec.getAlignmentEnd() < thisCPf.getStartPosition()) {
 					return false;
@@ -590,10 +615,12 @@ public final class VcfPipeline extends Pipeline {
 				}
 				
 				
-			} else if (chrComparator.compare(rec.getReferenceName(), thisCPf.getChromosome()) < 1) {
+			} else if (chrNameComparator.compare(rec.getReferenceName(), thisCPf.getChromosome()) < 1) {
+//				logger.info("in match with rec ref name < thisCPf chr");
 				// keep iterating through bam file 
 				return false;
 			} else {
+//				logger.info("in match with rec ref name > thisCPf chr");
 				if (updatePointer) {
 					// need to get next ChrPos
 					advanceCPAndPosition();
@@ -607,13 +634,17 @@ public final class VcfPipeline extends Pipeline {
 			// get read index
 			final int indexInRead = SAMUtils.getIndexInReadFromPosition(sam, cp.getStartPosition());
 			
+//			logger.info("in updateResults - indexInRead: " + indexInRead);
+			
 			if (indexInRead > -1 && indexInRead < sam.getReadLength()) {
+//				logger.info("in updateResults - indexInRead > -1 && indexInRead < sam.getReadLength()");
 				
 				// no longer do any filtering on base quality
 				final byte baseQuality = sam.getBaseQualities()[indexInRead]; 
 				
 				Accumulator acc = pileupMap.get(cp);
 				if (null == acc) {
+//					logger.info("in updateResults - no existing acc for position");
 					acc = new Accumulator(cp.getStartPosition());
 					final Accumulator oldAcc = pileupMap.putIfAbsent(cp, acc);
 					if (null != oldAcc) acc = oldAcc;
@@ -663,7 +694,6 @@ public final class VcfPipeline extends Pipeline {
 						e.printStackTrace();
 						throw new RuntimeException("Exception caught whilst running qbamfilter");
 					}
-					
 					
 					if (match(sam, cp, true)) {
 						updateResults(cp, sam, chrCounter);
