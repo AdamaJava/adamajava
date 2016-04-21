@@ -49,7 +49,7 @@ public class VcfRecord implements Comparable<VcfRecord> {
         	//  convert ChrPosition to ChrPointPosition          	
         	if(cp.isPointPosition())
         		this.cpp = (ChrPointPosition) cp;
-        	else if(cp.isRangPosition())
+        	else if(cp.isRangePosition())
         		this.cpp = ((ChrRangePosition) cp).getChrStartpos();
         	else
         		this.cpp =  ChrPointPosition.valueOf(cp.getChromosome(), cp.getStartPosition());

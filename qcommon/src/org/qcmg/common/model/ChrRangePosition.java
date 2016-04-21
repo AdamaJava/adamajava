@@ -59,7 +59,7 @@ public class ChrRangePosition  implements ChrPosition , Comparable<ChrPosition> 
 	public static ChrRangePosition valueOf(ChrPosition cp){
 		if(cp.isPointPosition())
 			return new ChrRangePosition((ChrPointPosition) cp, cp.getEndPosition()); 
-		else if(cp.isRangPosition())
+		else if(cp.isRangePosition())
 			return (ChrRangePosition) cp;		 
 		return  new ChrRangePosition((ChrPointPosition) cp, cp.getEndPosition()); 		
 	}
@@ -76,22 +76,6 @@ public class ChrRangePosition  implements ChrPosition , Comparable<ChrPosition> 
 		 
 		return  new ChrRangePosition(cp.getChromosome(), cp.getStartPosition(), endPosition); 		
 	}
-	
-
-	
-	
-//	public ChrRangePosition(String chromosome, int position) {
-//		this(ChrPointPosition.valueOf(chromosome, position));
-//	}
-//	
-//	public ChrRangePosition(ChrPointPosition cpp) {
-//		this(cpp, cpp.getStartPosition());
-//	}	
-//	
-//	public ChrRangePosition(String chromosome, int position, int endPosition) {
-//		this(ChrPointPosition.valueOf(chromosome, position), endPosition);
-//	}
-	
 	
 	/**
 	 * @return String chromosome 
