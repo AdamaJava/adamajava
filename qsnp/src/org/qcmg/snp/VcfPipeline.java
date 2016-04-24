@@ -678,60 +678,79 @@ public final class VcfPipeline extends Pipeline {
 				cp = null;
 				// load first VCFRecord
 				advanceCPAndPosition();
-				long recordCount = 0;
 				
-				// don't think int overflow will affect us here.
-				// if we have more than the 2 billion records in the bam, then it will oveflow to be -ve, but that should be ok
-				// if we get more than 4 billion reads, it *should* go back to 0 - will test this
-				// and that should be ok because 
+				/*
+				 * if we don't have a cp - exit!
+				 */
+				if (cp != null) {
 				
-				int chrCounter = 0;
-				// take items off the queue and process
-				for (final SAMRecord sam : reader) {
-					chrCounter++;
-					if (++recordCount % 1000000 == 0) {
-						logger.info("Processed " + recordCount/1000000 + "M records so far..");
-					}
+					long recordCount = 0;
 					
-					if (includeDuplicates) {
-						// we are in amplicon mode and so we want to keep dups - just check to see if we have the failed vendor flag set
-						if ( ! SAMUtils.isSAMRecordValid(sam)) continue;
-					} else {
-						// quality checks
-						if ( ! SAMUtils.isSAMRecordValidForVariantCalling(sam)) continue;
-					}
+					// don't think int overflow will affect us here.
+					// if we have more than the 2 billion records in the bam, then it will oveflow to be -ve, but that should be ok
+					// if we get more than 4 billion reads, it *should* go back to 0 - will test this
+					// and that should be ok because 
 					
-					try {
-						if (runqBamFilter && ! qbamFilter.Execute(sam)) {
-							continue;
+					int chrCounter = 0;
+					// take items off the queue and process
+					for (final SAMRecord sam : reader) {
+						chrCounter++;
+						if (++recordCount % 1000000 == 0) {
+							logger.info("Processed " + recordCount/1000000 + "M records so far..");
 						}
-					} catch (Exception e) {
-						e.printStackTrace();
-						throw new RuntimeException("Exception caught whilst running qbamfilter");
-					}
-					
-					if (match(sam, cp, true)) {
-						updateResults(cp, sam, chrCounter);
 						
-						// get next cp and see if it matches
-						int j = 0;
-						if (arrayPosition < arraySize) {
-							ChrPosition tmpCP = snps.get(arrayPosition + j++);
-							while (match(sam, tmpCP, false)) {
-								updateResults(tmpCP, sam, chrCounter);
-								if (arrayPosition + j < arraySize)
-									tmpCP = snps.get(arrayPosition + j++);
-								else tmpCP = null;
+						if (includeDuplicates) {
+							// we are in amplicon mode and so we want to keep dups - just check to see if we have the failed vendor flag set
+							if ( ! SAMUtils.isSAMRecordValid(sam)) continue;
+						} else {
+							// quality checks
+							if ( ! SAMUtils.isSAMRecordValidForVariantCalling(sam)) continue;
+						}
+						
+						try {
+							if (runqBamFilter && ! qbamFilter.Execute(sam)) {
+								continue;
+							}
+						} catch (Exception e) {
+							e.printStackTrace();
+							throw new RuntimeException("Exception caught whilst running qbamfilter");
+						}
+						
+						/*
+						 * need to ensure that the cp is on the same contig as the bam record.
+						 * Could cause SO if we have to tail recurse using advanceCPAndPosition
+						 * do this in a while for now.
+						 * May also need to advance the position as well... 
+						 * Assuming of course that the bam file is sorted...
+						 */
+						if (null == cp) break;
+						while (null != cp && chrNameComparator.compare(sam.getReferenceName(), cp.getChromosome()) > 1) {
+							advanceCPAndPosition();
+						}
+						
+						if (match(sam, cp, true)) {
+							updateResults(cp, sam, chrCounter);
+							
+							// get next cp and see if it matches
+							int j = 0;
+							if (arrayPosition < arraySize) {
+								ChrPosition tmpCP = snps.get(arrayPosition + j++);
+								while (match(sam, tmpCP, false)) {
+									updateResults(tmpCP, sam, chrCounter);
+									if (arrayPosition + j < arraySize)
+										tmpCP = snps.get(arrayPosition + j++);
+									else tmpCP = null;
+								}
 							}
 						}
 					}
+					logger.info("Processed " + recordCount + " records");
+					
+					/*
+					 * make sure final record is updated
+					 */
+					advanceCPAndPosition();
 				}
-				logger.info("Processed " + recordCount + " records");
-				
-				/*
-				 * make sure final record is updated
-				 */
-				advanceCPAndPosition();
 				
 			} finally {
 				try {
