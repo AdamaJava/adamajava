@@ -460,6 +460,26 @@ public final class VcfPipeline extends Pipeline {
 		else return HeaderUtil.DCC_GERMLINE_HEADER;
 	}
 	
+	public static  void updateQsnpRecord(ChrPosition chrPos, QSnpRecord rec, Accumulator acc, boolean normal) {
+		final String refString = rec.getRef();
+		if (refString.length() > 1) {
+			logger.warn("refString: " + refString + " in VcfPipeline.cleanSnpMap");
+		}
+		final char ref = refString.charAt(0);
+		
+		final PileupElementLite pel = acc.getLargestVariant(ref);
+		if (normal) {
+			rec.setNormalNucleotides(acc.getPileupElementString());
+			rec.setNormalCount(acc.getCoverage());
+			rec.setNormalPileup(acc.getPileup());
+			rec.setNormalNovelStartCount(null != pel ? pel.getNovelStartCount() : 0);
+		} else {
+			// tumour fields
+			rec.setTumourCount(acc.getCoverage());
+			rec.setTumourNucleotides(acc.getPileupElementString());
+			rec.setTumourNovelStartCount(null != pel ? pel.getNovelStartCount() : 0);
+		}
+	}
 	
 	/**
 	 * Class that reads SAMRecords from a Queue and after checking that they satisfy some criteria 
@@ -542,9 +562,20 @@ public final class VcfPipeline extends Pipeline {
 		
 		private void advanceCPAndPosition() {
 //			logger.info("in advanceCPAndPosition");
-			if (arrayPosition > arraySize) {
+			if (arrayPosition >= arraySize) {
 //				logger.info("in advanceCPAndPosition - arrayPosition > arraySize, arrayPosition: " + arrayPosition + ",  arraySize: " +arraySize);
 				// reached the end of the line
+				
+				/*
+				 * check to see if we still have this acc in the map, and update if we do
+				 */
+				if (null != cp && pileupMap.containsKey(cp)) {
+					Accumulator acc = pileupMap.remove(cp);
+					if (null != acc) {
+						updateCompoundSnpDetails(cp, acc);
+						updateQsnpRecord(cp, positionRecordMap.get(cp), acc, isNormal);
+					}
+				}
 				cp = null;
 				return;
 			}
@@ -552,42 +583,26 @@ public final class VcfPipeline extends Pipeline {
 				// update QSnpRecord with our findings
 				final Accumulator acc = pileupMap.remove(cp);
 				if (null != acc) {
+					updateCompoundSnpDetails(cp, acc);
+					updateQsnpRecord(cp, positionRecordMap.get(cp), acc, isNormal);
 //					logger.info("in advanceCPAndPosition -null != acc");
 					
 					// if position is a potential CS, keep accumulation data
-					if (adjacentAccumulators.containsKey(cp)) {
-						if (isNormal) {
-							controlPileupCS.put(cp, acc);
-						} else {
-							testPileupCS.put(cp, acc);
-						}
-					}
-					
-					
-					final QSnpRecord rec = positionRecordMap.get(cp);
-					
-					final String refString = rec.getRef();
-					if (refString.length() > 1) {
-						logger.warn("refString: " + refString + " in VcfPipeline.cleanSnpMap");
-					}
-					final char ref = refString.charAt(0);
-					
-					final PileupElementLite pel = acc.getLargestVariant(ref);
-					if (isNormal) {
-						rec.setNormalNucleotides(acc.getPileupElementString());
-						rec.setNormalCount(acc.getCoverage());
-						rec.setNormalPileup(acc.getPileup());
-						rec.setNormalNovelStartCount(null != pel ? pel.getNovelStartCount() : 0);
-					} else {
-						// tumour fields
-						rec.setTumourCount(acc.getCoverage());
-						rec.setTumourNucleotides(acc.getPileupElementString());
-						rec.setTumourNovelStartCount(null != pel ? pel.getNovelStartCount() : 0);
-					}
 				}
 			}
 			cp = snps.get(arrayPosition++);
 		}
+		
+		private void updateCompoundSnpDetails(ChrPosition chrPos, Accumulator acc) {
+			if (adjacentAccumulators.containsKey(chrPos)) {
+				if (isNormal) {
+					controlPileupCS.put(chrPos, acc);
+				} else {
+					testPileupCS.put(chrPos, acc);
+				}
+			}
+		}
+		
 		
 		private boolean match(SAMRecord rec, ChrPosition thisCPf, boolean updatePointer) {
 			
@@ -712,6 +727,11 @@ public final class VcfPipeline extends Pipeline {
 					}
 				}
 				logger.info("Processed " + recordCount + " records");
+				
+				/*
+				 * make sure final record is updated
+				 */
+				advanceCPAndPosition();
 				
 			} finally {
 				try {
