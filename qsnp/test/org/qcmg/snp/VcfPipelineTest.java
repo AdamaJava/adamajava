@@ -1,7 +1,6 @@
 package org.qcmg.snp;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMSequenceRecord;
 import htsjdk.samtools.SamReader;
@@ -17,11 +16,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.ini4j.Ini;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
-import org.qcmg.common.commandline.Executor;
 import org.qcmg.common.meta.QExec;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrPositionComparator;
@@ -47,17 +44,16 @@ public class VcfPipelineTest {
 	}
 	
 	@Test
-	public void whatsUpWithXandY() throws IOException, InterruptedException {
+	public void whatsUpWithXandY() throws SnpException, Exception {
 		//chrX	2710840	rs311168	C	T	.	PASS_1;COVN8_2;COVT_2	FLANK=AACTGTGGGAT;AC=2;AF=1.00;AN=2;DP=31;FS=0.000;MLEAC=2;MLEAF=1.00;MQ=60.00;MQ0=0;QD=33.08;SOR=1.688;IN=1,2;DB;VLD;VAF=0.6125;CONF=HIGH_1,ZERO_2	GT:GD:AC:MR:NNS:AD:DP:GQ:PL	1/1&1/1:T/T&T/T:T8[40.12],16[36.31]&.:24&0:21&0:0,29:29:86:1155,86,0
 		
-		final File logFile = testFolder.newFile("qsnp_vcf.log");
+//		final File logFile = testFolder.newFile("qsnp_vcf.log");
 		final File iniFile = testFolder.newFile("qsnp_vcf.ini");	
 		final File testInputVcf = testFolder.newFile("test.vcf");
 		final File testInputBam = testFolder.newFile("test.bam");
 		final File vcfOutput = testFolder.newFile("output.vcf");
 		
-		List<String> vcfs = Arrays.asList("chrX	2710840	rs311168	C	T	.	.	AC=2;AF=1.00;AN=2;DP=31;FS=0.000;MLEAC=2;MLEAF=1.00;MQ=60.00;MQ0=0;QD=33.08;SOR=1.688;IN=1,2;DB;VLD;VAF=0.6125	GT:GD	1/1:T/T",
-				"chrX	2710995	rs311169	C	T	.	. 	AC=2;AF=1.00;AN=2;DP=22;FS=0.000;MLEAC=2;MLEAF=1.00;MQ=60.00;MQ0=0;QD=37.63;SOR=1.828;IN=1,2;DB;VAF=0.6161	GT:GD	1/1:T/T	1/1:T/T");
+		List<String> vcfs = Arrays.asList("chrX	2710840	rs311168	C	T	.	.	AC=2;AF=1.00;AN=2;DP=31;FS=0.000;MLEAC=2;MLEAF=1.00;MQ=60.00;MQ0=0;QD=33.08;SOR=1.688;IN=1,2;DB;VLD;VAF=0.6125	GT:GD	1/1:T/T");
 		createFile(testInputBam, getBamFilechrX());
 		createFile(testInputVcf, vcfs);
 		
@@ -69,18 +65,50 @@ public class VcfPipelineTest {
 		// add runType to ini file
 		IniFileGenerator.addStringToIniFile(iniFile, "[parameters]\nrunMode = vcf\nfilter = and (MAPQ > 10, CIGAR_M>34, MD_mismatch<=3)", true);	// append to file
 		
-		final String command = "-log " + logFile.getAbsolutePath() + " -i " + iniFile.getAbsolutePath();
-		final Executor exec = new Executor(command, "org.qcmg.snp.Main");
- 		assertEquals(0, exec.getErrCode());		
-		assertTrue(0 == exec.getOutputStreamConsumer().getLines().length);
+		new VcfPipeline(new Ini(iniFile), new QExec("stackOverflow2", "test", null), true);
 		// check the vcf output file
 		assertEquals(vcfs.size(), noOfLinesInVCFOutputFile(vcfOutput));
 		try (VCFFileReader reader = new VCFFileReader(vcfOutput);){
 			for (VcfRecord vcf : reader) {
-				System.out.println("rec: " + vcf.toString());
+				// check that record has been updated with AC
+				assertEquals("T20[36.7],24[36.96]", vcf.getSampleFormatRecord(1).getField(VcfHeaderUtils.FORMAT_ALLELE_COUNT));
 			}
 		}
+	}
+	
+	@Test
+	public void whatsUpWithXandY2() throws SnpException, Exception {
+		final File iniFile = testFolder.newFile("qsnp_vcf.ini");	
+		final File testInputVcf = testFolder.newFile("test.vcf");
+		final File testInputBam = testFolder.newFile("test.bam");
+		final File vcfOutput = testFolder.newFile("output.vcf");
 		
+		List<String> vcfs = Arrays.asList("chrX	2710840	rs311168	C	T	.	.	AC=2;AF=1.00;AN=2;DP=31;FS=0.000;MLEAC=2;MLEAF=1.00;MQ=60.00;MQ0=0;QD=33.08;SOR=1.688;IN=1,2;DB;VLD;VAF=0.6125	GT:GD	1/1:T/T",
+				"chrX	2710895	rs311169	C	G	.	. 	AC=2;AF=1.00;AN=2;DP=22;FS=0.000;MLEAC=2;MLEAF=1.00;MQ=60.00;MQ0=0;QD=37.63;SOR=1.828;IN=1,2;DB;VAF=0.6161	GT:GD	1/1:G/G");
+		createFile(testInputBam, getBamFilechrX());
+		createFile(testInputVcf, vcfs);
+		
+		IniFileGenerator.createRulesOnlyIni(iniFile);
+		IniFileGenerator.addInputFiles(iniFile, false, "testVcf = " + testInputVcf.getAbsolutePath());
+		IniFileGenerator.addInputFiles(iniFile, false, "testBam = " + testInputBam.getAbsolutePath());
+		IniFileGenerator.addOutputFiles(iniFile, false, "vcf = " + vcfOutput.getAbsolutePath());
+		
+		// add runType to ini file
+		IniFileGenerator.addStringToIniFile(iniFile, "[parameters]\nrunMode = vcf\nfilter = and (MAPQ > 10, CIGAR_M>34, MD_mismatch<=3)", true);	// append to file
+		
+		new VcfPipeline(new Ini(iniFile), new QExec("stackOverflow2", "test", null), true);
+		// check the vcf output file
+		assertEquals(vcfs.size(), noOfLinesInVCFOutputFile(vcfOutput));
+		try (VCFFileReader reader = new VCFFileReader(vcfOutput);){
+			for (VcfRecord vcf : reader) {
+				// check that record has been updated with AC
+				if (vcf.getPosition() ==  2710840) {
+					assertEquals("T20[36.7],24[36.96]", vcf.getSampleFormatRecord(1).getField(VcfHeaderUtils.FORMAT_ALLELE_COUNT));
+				} else if (vcf.getPosition() ==  2710895) {
+					assertEquals("G13[40.08],20[39.45]", vcf.getSampleFormatRecord(1).getField(VcfHeaderUtils.FORMAT_ALLELE_COUNT));
+				}
+			}
+		}
 	}
 	
 	@Test
@@ -101,17 +129,12 @@ public class VcfPipelineTest {
 		comp = ChrPositionComparator.getChrNameComparator(sortedContigs);
 		Comparator<ChrPosition> c = ChrPositionComparator.getComparator(comp);
 		
-		
 		List<ChrPosition> chrPos = sortedContigs.stream().map(s -> ChrPositionUtils.getChrPosition(s, 1, 1)).collect(Collectors.toList());
 		
 		Collections.sort(chrPos, VcfPipeline.CHR_COMPARATOR);
-//		System.out.println("old");
-//		chrPos.forEach(System.out::println);
 		assertEquals(22, chrPos.indexOf(ChrPositionUtils.getChrPosition("chrMT", 1, 1)));
-//		System.out.println("and now");
 		Collections.sort(chrPos, c);
 		assertEquals(83, chrPos.indexOf(ChrPositionUtils.getChrPosition("chrMT", 1, 1)));
-//		chrPos.forEach(System.out::println);
 		
 		assertEquals(true, c.compare(ChrPositionUtils.getChrPosition("chr1", 1, 1), ChrPositionUtils.getChrPosition("chr1", 2, 2)) < 0);
 		assertEquals(true, c.compare(ChrPositionUtils.getChrPosition("chr1", 2, 2), ChrPositionUtils.getChrPosition("chr1", 2, 2)) == 0);
@@ -156,13 +179,12 @@ public class VcfPipelineTest {
 	}
 	
 	@Test
-	public void stackOverflow() throws IOException, InterruptedException {
+	public void stackOverflow() throws SnpException, Exception {
 		/*
 		 * I think that this is due to the comparator placing chrMT  before the GL's whereas in the bam headers and vcfs, chrMT is last.
 		 * Not the case - see getLIstComparator test
 		 * Would love to see the SO.....
 		 */
-		final File logFile = testFolder.newFile("qsnp_vcf.log");
 		final File iniFile = testFolder.newFile("qsnp_vcf.ini");	
 		final File testInputVcf = testFolder.newFile("test.vcf");
 		final File testInputBam = testFolder.newFile("test.bam");
@@ -180,10 +202,8 @@ public class VcfPipelineTest {
 		// add runType to ini file
 		IniFileGenerator.addStringToIniFile(iniFile, "[parameters]\nrunMode = vcf", true);	// append to file
 		
-		final String command = "-log " + logFile.getAbsolutePath() + " -i " + iniFile.getAbsolutePath();
-		final Executor exec = new Executor(command, "org.qcmg.snp.Main");
- 		assertEquals(0, exec.getErrCode());		
-		assertTrue(0 == exec.getOutputStreamConsumer().getLines().length);
+		new VcfPipeline(new Ini(iniFile), new QExec("stackOverflow2", "test", null), true);
+		
 		// check the vcf output file
 		assertEquals(vcfs.size(), noOfLinesInVCFOutputFile(vcfOutput));
 	}
@@ -195,7 +215,6 @@ public class VcfPipelineTest {
 		 * Not the case - see getLIstComparator test
 		 * Would love to see the SO.....
 		 */
-		final File logFile = testFolder.newFile("qsnp_vcf.log");
 		final File iniFile = testFolder.newFile("qsnp_vcf.ini");	
 		final File testInputVcf = testFolder.newFile("test.vcf");
 		final File testInputBam = testFolder.newFile("test.bam");
@@ -213,7 +232,7 @@ public class VcfPipelineTest {
 		// add runType to ini file
 		IniFileGenerator.addStringToIniFile(iniFile, "[parameters]\nrunMode = vcf", true);	// append to file
 		
-		VcfPipeline vp = new VcfPipeline(new Ini(iniFile), new QExec("stackOverflow2", "test", null), true);
+		new VcfPipeline(new Ini(iniFile), new QExec("stackOverflow2", "test", null), true);
 	}
 	
 	
@@ -499,7 +518,8 @@ public class VcfPipelineTest {
 "ST-E00185:51:H5LNNCCXX:8:2210:2735:23073	83	chrX	2710822	60	149M	=	2710576	-395	CACAGATGTATGCAACTGTGGGATCAGGTTAGGGGCACTCACTTACCGGCAGTCCCAAAGCTCTGGAGAGTCTGTGCTGAGGGAATGGTCCATGTTAAAGCAAAGCAGAACAACCACTCTGCCTTTTGTATTTTATACTTGTTTTTTTT	F<FF<FA77<AF7A,77F<F<KFAKFKKFA,KKKFFFKKKKKKFA<FKKKKK<KKFFKKKFFKKKKKKAKKKFKKF7AKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKAKFKKKKKKKKKKKKKKKKKKKKKKKKKKFFFA<	ZC:i:1	MD:Z:18C130	PG:Z:MarkDuplicates	RG:Z:32454611-7c1e-495f-9e8e-21fef832390a	NM:i:1	AS:i:14	XS:i:19",
 "ST-E00185:51:H5LNNCCXX:7:1117:21462:26923	147	chrX	2710829	60	150M	=	2710620	-359	GTATGCAACTGTGGGATCAGGTTAGGGGCACTCACTTACCGGCAGTCCCAAAGCTCTGGAGAGTCTGTGCTGAGGGAATGGTCCATGTTAAAGCAAAGCAGAACAACCACTCTGCCTTTTGTATTTTATACTTGTTTTTTTTTTGAAACA	FKKFKKKFF,A<<KAKKKKKKKKKKKKKKKKFKKKKKKKKK<KKKKKKKKKKFKKKKKFKKFKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKFKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKFFAAA	ZC:i:2	MD:Z:11C138	PG:Z:MarkDuplicates	RG:Z:0d86f75a-d723-4018-8e56-9f351f4af76d	NM:i:1	AS:i:14	XS:i:20",
 "ST-E00185:51:H5LNNCCXX:7:2211:32069:70048	147	chrX	2710842	60	18S132M	=	2710558	-416	CATATTTATTCAACTTGTGGATCAGTTTAGGGGGCCTCACTTACCGGCAGTCCCAAAGCCCTGGAGAGTCTGTGCTGAGGCAATGTTCCATTTTAAAGCAAAGCAGAACAACCACTCTGCCTTTTGTATTTTATACTTGTTTTTTTTTTT	,,,,7,,,,,A7,,,,,,77,,7,,,,,,((,(,,,,,7FA,7KAA,,,,AKF<KFA,7,A<A,,AFA,A,7F7A,7F7,,AA,<,,A<,A,KKF7F,KKKAAA7KKKKF7F,,<,KKFKKKKKKKKKKKKKK7KKKK7KKKKKKFFAAA	ZC:i:2	MD:Z:7G7C0A24T20G4G5G57G0	PG:Z:MarkDuplicates	RG:Z:0d86f75a-d723-4018-8e56-9f351f4af76d	NM:i:8	AS:i:96	XS:i:19",
-"ST-E00185:51:H5LNNCCXX:8:2116:26172:68518	83	chrX	2710843	60	150M	=	2710602	-391	GATCAGGTTAGGGGCACTCACTTACCGGCAGTCCCAAAGCTCTGGAGAGTCTGTGCTGAGGGAATGGTCCATGTTAAAGCAAAGCAGAACAACCACTCTGCCTTTTGTATTTTATACTTGTTTTTTTTTTGAAACAGGGTCTCTCTGTGT	<KKKFAA,,,F<7AKFKFKKK<FKKFKKKK7AKKF7KKKKFKFKKKKKFFKKKAAKFKKKKKKFAKF7KKFFKKFKKKKKKKKKKKKKKKKAKKKKKKKKKKKKKKKKKKKKKKKFKKKKKKKKKFKKKKKKKKKKKKKKKKKKKFFFAA	ZC:i:1	MD:Z:150	PG:Z:MarkDuplicates	RG:Z:32454611-7c1e-495f-9e8e-21fef832390a	NM:i:0	AS:i:15	XS:i:27");
+"ST-E00185:51:H5LNNCCXX:8:2116:26172:68518	83	chrX	2710843	60	150M	=	2710602	-391	GATCAGGTTAGGGGCACTCACTTACCGGCAGTCCCAAAGCTCTGGAGAGTCTGTGCTGAGGGAATGGTCCATGTTAAAGCAAAGCAGAACAACCACTCTGCCTTTTGTATTTTATACTTGTTTTTTTTTTGAAACAGGGTCTCTCTGTGT	<KKKFAA,,,F<7AKFKFKKK<FKKFKKKK7AKKF7KKKKFKFKKKKKFFKKKAAKFKKKKKKFAKF7KKFFKKFKKKKKKKKKKKKKKKKAKKKKKKKKKKKKKKKKKKKKKKKFKKKKKKKKKFKKKKKKKKKKKKKKKKKKKFFFAA	ZC:i:1	MD:Z:150	PG:Z:MarkDuplicates	RG:Z:32454611-7c1e-495f-9e8e-21fef832390a	NM:i:0	AS:i:15	XS:i:27",
+"ST-E00185:51:H5LNNCCXX:8:2116:26172:68519	83	chrX	2710993	60	150M	=	2710602	-391	GATCAGGTTAGGGGCACTCACTTACCGGCAGTCCCAAAGCTCTGGAGAGTCTGTGCTGAGGGAATGGTCCATGTTAAAGCAAAGCAGAACAACCACTCTGCCTTTTGTATTTTATACTTGTTTTTTTTTTGAAACAGGGTCTCTCTGTGT	<KKKFAA,,,F<7AKFKFKKK<FKKFKKKK7AKKF7KKKKFKFKKKKKFFKKKAAKFKKKKKKFAKF7KKFFKKFKKKKKKKKKKKKKKKKAKKKKKKKKKKKKKKKKKKKKKKKFKKKKKKKKKFKKKKKKKKKKKKKKKKKKKFFFAA	ZC:i:1	MD:Z:150	PG:Z:MarkDuplicates	RG:Z:32454611-7c1e-495f-9e8e-21fef832390a	NM:i:0	AS:i:15	XS:i:27");
 				
 				
 	}
