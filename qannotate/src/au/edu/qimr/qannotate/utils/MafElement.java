@@ -71,7 +71,8 @@ public enum MafElement {
 	Genotype_Number(58, SnpEffMafRecord.Null), //Genotype_Number
 	effect_ontology(59, SnpEffMafRecord.Null), //effect_ontology
 	effect_class(60,  SnpEffMafRecord.Null), //effect_class
-	notes(61, SnpEffMafRecord.Null); //add notes for extra information
+	notes(61, SnpEffMafRecord.Null), //add notes for extra information
+	INPUT(62, SnpEffMafRecord.Null); //add notes for extra information
 		
 
 	private final int columnNo;

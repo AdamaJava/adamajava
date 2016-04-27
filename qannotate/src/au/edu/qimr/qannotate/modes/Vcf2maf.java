@@ -321,6 +321,7 @@ public class Vcf2maf extends AbstractMode{
 		}
 		boolean isSomatic = VcfUtils.isRecordSomatic(vcf);
 		maf.setColumnValue( MafElement.Mutation_Status ,  isSomatic ? VcfHeaderUtils.INFO_SOMATIC : VcfHeaderUtils.INFO_GERMLINE);
+		maf.setColumnValue( MafElement.INPUT ,  info.getField(Constants.VCF_MERGE_INFO));
 		
 //		if(vcf.getInfoRecord().getField(VcfHeaderUtils.INFO_SOMATIC) != null) {
 //			maf.setColumnValue(26,  VcfHeaderUtils.INFO_SOMATIC);
@@ -427,7 +428,6 @@ public class Vcf2maf extends AbstractMode{
 	 		 /*
 	 		  * Need to determine which value to use, first or second.
 	 		  * If the GDs are the same, then pick first
-	 		  * If not, use isSomatic flag to pick GD that is somatic
 	 		  */
 		 		 String [] gds = gd.split(VCF_MERGE_DELIM + "");
 		 		 
