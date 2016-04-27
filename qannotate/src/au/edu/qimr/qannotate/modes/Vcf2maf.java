@@ -16,6 +16,7 @@ import org.qcmg.common.string.StringUtils;
 
 import static org.qcmg.common.util.Constants.*;
 
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.util.IndelUtils.SVTYPE;
 import org.qcmg.common.util.SnpUtils;
@@ -123,10 +124,10 @@ public class Vcf2maf extends AbstractMode{
 		String GHCC  = outputname.replace(".maf", ".Germline.HighConfidence.Consequence.maf") ;
 		String GHC = outputname.replace(".maf", ".Germline.HighConfidence.maf") ;
 		
-		String SLCC  = outputname.replace(".maf", ".Somatic.LowConfidence.Consequence.maf") ;
-		String SLC = outputname.replace(".maf", ".Somatic.LowConfidence.maf") ;
-		String GLCC  = outputname.replace(".maf", ".Germline.LowConfidence.Consequence.maf") ;
-		String GLC = outputname.replace(".maf", ".Germline.LowConfidence.maf") ;		
+//		String SLCC  = outputname.replace(".maf", ".Somatic.LowConfidence.Consequence.maf") ;
+//		String SLC = outputname.replace(".maf", ".Somatic.LowConfidence.maf") ;
+//		String GLCC  = outputname.replace(".maf", ".Germline.LowConfidence.Consequence.maf") ;
+//		String GLC = outputname.replace(".maf", ".Germline.LowConfidence.maf") ;		
 
 		long noIn = 0, noOut = 0, no_SHCC = 0, no_SHC = 0, no_GHCC = 0, no_GHC = 0, no_SLCC = 0, no_SLC = 0, no_GLCC = 0, no_GLC = 0; 
 		try(VCFFileReader reader = new VCFFileReader(new File( option.getInputFileName()));
@@ -136,13 +137,15 @@ public class Vcf2maf extends AbstractMode{
 				PrintWriter out_GHCC = new PrintWriter(GHCC);
 				PrintWriter out_GHC = new PrintWriter(GHC);
 
-				PrintWriter out_SLCC = new PrintWriter(SLCC);
-				PrintWriter out_SLC = new PrintWriter(SLC);
-				PrintWriter out_GLCC = new PrintWriter(GLCC);
-				PrintWriter out_GLC = new PrintWriter(GLC)){	
+//				PrintWriter out_SLCC = new PrintWriter(SLCC);
+//				PrintWriter out_SLC = new PrintWriter(SLC);
+//				PrintWriter out_GLCC = new PrintWriter(GLCC);
+//				PrintWriter out_GLC = new PrintWriter(GLC)
+				){
 			
 			reheader( option.getCommandLine(), option.getInputFileName());			
-			createMafHeader(out,out_SHCC,out_SHC,out_GHCC,out_GHC,out_SLCC,out_SLC,out_GLCC,out_GLC);
+			createMafHeader(out,out_SHCC,out_SHC,out_GHCC,out_GHC);//,out_SLCC,out_SLC,out_GLCC,out_GLC);
+//			createMafHeader(out,out_SHCC,out_SHC,out_GHCC,out_GHC,out_SLCC,out_SLC,out_GLCC,out_GLC);
 			
 			for (final VcfRecord vcf : reader) {
 //	        		try {
@@ -151,10 +154,10 @@ public class Vcf2maf extends AbstractMode{
         			String Smaf = maf.getMafLine();
         			out.println(Smaf);
         			noOut ++;
-        			int rank = Integer.parseInt(maf.getColumnValue(MafElement.Consequnce_rank));
-        			boolean isConsequence = isConsequence(maf.getColumnValue(MafElement.Transcript_BioType ), rank);
-        			boolean isSomatic = maf.getColumnValue(MafElement.Mutation_Status ).equalsIgnoreCase(VcfHeaderUtils.INFO_SOMATIC);
-        			if (maf.getColumnValue(MafElement.confidence ).equalsIgnoreCase(MafConfidence.HIGH.name())) {
+        			int rank = Integer.parseInt(maf.getColumnValue(40));
+        			boolean isConsequence = isConsequence(maf.getColumnValue(55), rank);
+        			boolean isSomatic = maf.getColumnValue(26).equalsIgnoreCase(VcfHeaderUtils.INFO_SOMATIC);
+        			if (isHighConfidence(maf)) {
         				if (isSomatic){
         					out_SHC.println(Smaf);
         					no_SHC ++;
@@ -171,28 +174,32 @@ public class Vcf2maf extends AbstractMode{
         						out_GHCC.println(Smaf);
         						no_GHCC ++;
         					}
-        				}   
-        			} else if (option.doOutputLowMaf() && maf.getColumnValue(MafElement.confidence ).equalsIgnoreCase(MafConfidence.LOW.name())) {
-        				if (isSomatic){
-        					out_SLC.println(Smaf);
-        					no_SLC ++;
-        					
-        					if(isConsequence){
-        						out_SLCC.println(Smaf);
-        						no_SLCC ++;
-        					}
-        				} else {
-        					out_GLC.println(Smaf);
-        					no_GLC ++;
-        					
-        					if(isConsequence){
-        						out_GLCC.println(Smaf);
-        						no_GLCC ++;
-        					}
         				}
-        			}
+//        			} else if (option.doOutputLowMaf() && maf.getColumnValue(38).equalsIgnoreCase(MafConfidence.LOW.name())) {
+//        				if (isSomatic){
+//        					out_SLC.println(Smaf);
+//        					no_SLC ++;
+//        					
+//        					if(isConsequence){
+//        						out_SLCC.println(Smaf);
+//        						no_SLCC ++;
+//        					}
+//        				} else {
+//        					out_GLC.println(Smaf);
+//        					no_GLC ++;
+//        					
+//        					if(isConsequence){
+//        						out_GLCC.println(Smaf);
+//        						no_GLCC ++;
+//        					}
+//        				}
+//        			}
+//          		} catch (final Exception e) {
+//	        			logger.warn("Error message during vcf2maf: " + e.getMessage() + "\n" + vcf.toString());
+//	        			e.printStackTrace();
+	        		}
 			}
-		}	
+		}
 		
 		logger.info("total input vcf record number is " + noIn);
 		logger.info("total output maf record number is " + noOut);
@@ -200,7 +207,16 @@ public class Vcf2maf extends AbstractMode{
 		logger.info(String.format("There are germatic record: %d (high confidence), %d (high confidence consequence), %d (low confidence), %d (log confidence consequence)", no_GHC, no_GHCC, no_GLC, no_GLCC ));
 		
 		//delete empty maf files
-		deleteEmptyMaf(SHCC, SHC,GHCC,GHC,SLCC,SLC,GLCC,GLC );		
+		deleteEmptyMaf(SHCC, SHC,GHCC,GHC);	//,SLCC,SLC,GLCC,GLC );		
+//		deleteEmptyMaf(SHCC, SHC,GHCC,GHC);	//,SLCC,SLC,GLCC,GLC );		
+//		deleteEmptyMaf(SHCC, SHC,GHCC,GHC,SLCC,SLC,GLCC,GLC );		
+	}
+	
+	public static boolean isHighConfidence(SnpEffMafRecord maf) {
+		if (null != maf) {
+			return Constants.HIGH_1_HIGH_2.equals(maf.getColumnValue(MafElement.confidence));
+		}
+		return false;
 	}
 	
 	public static boolean isConsequence(String consequence, int rank) {
@@ -318,12 +334,13 @@ public class Vcf2maf extends AbstractMode{
 		if(testSample != null) maf.setColumnValue(MafElement.Tumor_Sample_UUID,   testSample );
 		if(controlSample != null) maf.setColumnValue(MafElement.Matched_Norm_Sample_UUID,  controlSample );	
 		
-		MafConfidence conf = VcfUtils.getConfidence(vcf);
-		if(info.getField(VcfHeaderUtils.INFO_CONFIDENT) != null)	maf.setColumnValue(MafElement.confidence ,  conf.name() );
+		String conf = VcfUtils.getConfidence(vcf);
+		if(info.getField(VcfHeaderUtils.INFO_CONFIDENT) != null)	maf.setColumnValue(MafElement.confidence ,  conf );
 		if(info.getField(VcfHeaderUtils.INFO_FLANKING_SEQUENCE) != null) maf.setColumnValue(MafElement.Var_Plus_Flank,  info.getField(VcfHeaderUtils.INFO_FLANKING_SEQUENCE));
 		if(info.getField(VcfHeaderUtils.INFO_VAF) != null) maf.setColumnValue(MafElement.Variant_AF,  info.getField(VcfHeaderUtils.INFO_VAF));		
 		if(info.getField(VcfHeaderUtils.INFO_GERMLINE) != null) maf.setColumnValue(MafElement.Germ_Counts,  info.getField(VcfHeaderUtils.INFO_GERMLINE));	
 		if(info.getField(VcfHeaderUtils.INFO_TRF)!= null) maf.setColumnValue(MafElement.notes,  VcfHeaderUtils.INFO_TRF + "=" +info.getField(VcfHeaderUtils.INFO_TRF));	//add TRF info to notes column
+
 
 		String eff; 
 		if( (eff = info.getField(VcfHeaderUtils.INFO_EFFECT)) != null) {

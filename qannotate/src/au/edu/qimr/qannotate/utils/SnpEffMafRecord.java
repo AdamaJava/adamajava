@@ -1,13 +1,10 @@
 package au.edu.qimr.qannotate.utils;
 
+
 import java.util.Arrays;
-import java.util.EnumSet;
 import java.util.stream.Collectors;
 
-import au.edu.qimr.qannotate.options.Vcf2mafOptions;
-
 import org.qcmg.common.util.Constants;
-import org.qcmg.common.util.IndelUtils;
  
 
 public class SnpEffMafRecord {	
@@ -56,10 +53,13 @@ public class SnpEffMafRecord {
 	
 	//all 58 set methods
 	public String getMafLine() {
-		String str = "";
-		for(String ele :  values)
-			str += Constants.TAB + ele;
-		return str.replaceFirst(Constants.TAB+"", "");
+		
+		return Arrays.stream(values).collect(Collectors.joining(Constants.TAB_STRING));
+		
+//		String str = "";
+//		for(String ele :  values)
+//			str += Constants.TAB + ele;
+//		return str.replaceFirst(Constants.TAB+"", "");
 	}
 		
 	public void setColumnValue(MafElement ele, String value) {
