@@ -16,15 +16,23 @@ import org.qcmg.common.vcf.VcfRecord;
 public final class VCFFileWriter implements Closeable {
 	private final File file;
 	private final OutputStream outputStream;
-
-	public VCFFileWriter(final File file) throws IOException {
-		this(file, false);
+		
+	private VCFFileWriter(final File file, boolean gzip, boolean append) throws IOException {
+		this.file = file;
+		OutputStream stream = gzip ? new GZIPOutputStream(new FileOutputStream(file, append)) : new FileOutputStream(file,append); 
+		outputStream = stream;
 	}
 	
+	
+	public VCFFileWriter(final File file) throws IOException {
+		this(file, false, false);
+	}
 	public VCFFileWriter(final File file, boolean gzip) throws IOException {
-		this.file = file;
-		OutputStream stream = gzip ? new GZIPOutputStream(new FileOutputStream(file)) : new FileOutputStream(file); 
-		outputStream = stream;
+		this(file, true, false);
+	}
+	
+	public static VCFFileWriter CreateAppendVcfWriter(final File file) throws IOException{
+		return new VCFFileWriter( file, false, true);
 	}
 	
 	public void addHeader(final String headerString) throws IOException {

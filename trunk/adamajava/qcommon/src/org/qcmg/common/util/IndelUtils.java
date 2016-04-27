@@ -100,11 +100,11 @@ public class IndelUtils {
 	}	
 	
 	public static String getFullChromosome(String ref) {
-		
+		String ref1 = ref.toLowerCase();
 		/*
 		 * Deal with MT special case first
 		 */
-		if (ref.equals("chrM") || ref.equals("M") || ref.equals("MT")) {
+		if (ref1.equals("chrm") || ref.equals("m") || ref.equals("mt")) {
 			return "chrMT";
 		}
 		
