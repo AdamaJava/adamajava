@@ -13,22 +13,16 @@ public class OptionsTest {
 	public void test1(){
 		String[] args = {"-i", "input", "-m", "mode", "-o", "output"};
 		
-		ArrayList<String> list = new ArrayList<String>(Arrays.asList(args));
-	//	List<String> list = ;
-		//list.remove(2);
-		//System.out.println("remove 2 :" + Arrays.toString(list.toArray()));
-		
+		ArrayList<String> list = new ArrayList<String>(Arrays.asList(args));		
 		for(int i = 0 ; i < list.size(); i ++)
 			if(list.get(i).equalsIgnoreCase("-m")){
 				list.remove(i);
-
 				list.remove(i);
 			}
 		
 		
 		int x = Integer.parseInt("1100110", 2);
 		int y = 0b1100110;
-	//	System.out.println( y + " af parse" + x);
 		
 	}
 	

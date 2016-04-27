@@ -24,6 +24,7 @@ import org.qcmg.vcf.VCFFileReader;
 
 import scala.actors.threadpool.Arrays;
 import au.edu.qimr.qannotate.options.Vcf2mafOptions;
+import au.edu.qimr.qannotate.utils.MafElement;
 import au.edu.qimr.qannotate.utils.SnpEffConsequence;
 import au.edu.qimr.qannotate.utils.SnpEffMafRecord;
 
@@ -67,7 +68,6 @@ public class Vcf2mafTest {
 		 SVTYPE type = SVTYPE.SNP;
 		 String [] altColumns = Vcf2maf.getAltCounts(format, ref, alt, type, false);
 		 assertNotNull(altColumns);
-		 System.out.println("altColumns: " + Arrays.deepToString(altColumns));
 		 assertEquals(7, altColumns.length);
 	 }
 	 @Test
@@ -151,8 +151,7 @@ public class Vcf2mafTest {
 					maf = mode.converter(vcf);
 		}
 
-		assertFalse(maf == null);
-				
+		assertFalse(maf == null);		
 		assertTrue(maf.getColumnValue(14).equals("rs75454623"));					 
  		assertTrue(maf.getColumnValue(36).equals("TG,5,37,CA,0,2" ));			//ND
  		assertTrue(maf.getColumnValue(37).equals("AA,1,1,CA,4,1,CT,3,1,TA,11,76,TG,2,2,_G,0,1" ));	//TD
@@ -195,11 +194,9 @@ public class Vcf2mafTest {
 	 
 	 @Test
 	 public void isConsequence() {
-		 SnpEffMafRecord maf = new SnpEffMafRecord();
-		 maf.setDefaultValue();
-		 
+		 SnpEffMafRecord maf = new SnpEffMafRecord();		 
 		 assertEquals(false, Vcf2maf.isConsequence(maf.getColumnValue(55), 5));
-		 maf.setColumnValue(55, "protein_coding");
+		 maf.setColumnValue(MafElement.Transcript_BioType, "protein_coding");
 		 assertEquals(true, Vcf2maf.isConsequence(maf.getColumnValue(55), 5));
 		 assertEquals(true, Vcf2maf.isConsequence(maf.getColumnValue(55), 1));
 		 assertEquals(false, Vcf2maf.isConsequence(maf.getColumnValue(55), 6));
@@ -209,9 +206,7 @@ public class Vcf2mafTest {
 	 @Test 
 	 public void converterTest() {
 		 
-		 	final SnpEffMafRecord Dmaf = new SnpEffMafRecord();
-			Dmaf.setDefaultValue();
-			
+		 	final SnpEffMafRecord Dmaf = new SnpEffMafRecord();			
 			final Vcf2maf v2m = new Vcf2maf(2,1, null, null);	//test column2; normal column 1			
 			final String[] parms = {"chrY","22012840",".","C","A",".","SBIAS","VLD;FLANK=GTGATATTCCC;VAF=0.11;"
 					+ "EFF=sequence_feature[compositionally_biased_region:Glu/Lys-rich](LOW|||c.1252G>C|591|CCDC148|protein_coding|CODING|ENST00000283233|10|1),"
@@ -226,9 +221,9 @@ public class Vcf2mafTest {
 	 		//array: 0| 1|2|3     |4|5         |6        |7         |8              |9|10	 
  			 		
 	 		assertTrue(maf.getColumnValue(39).equals("HIGH" ));
-	 		assertTrue(maf.getColumnValue(52).equals(Dmaf.getColumnValue(51) ));
-	 		assertTrue(maf.getColumnValue(53).equals(Dmaf.getColumnValue(52) ));
-	 		assertTrue(maf.getColumnValue(54).equals(Dmaf.getColumnValue(53) ));
+	 		assertTrue(maf.getColumnValue(52).equals(Dmaf.getColumnValue(52) ));
+	 		assertTrue(maf.getColumnValue(53).equals(Dmaf.getColumnValue(53) ));
+	 		assertTrue(maf.getColumnValue(54).equals(Dmaf.getColumnValue(54) ));
 	 		assertTrue(maf.getColumnValue(1).equals("CCDC148-AS1" ));
 	 		assertTrue(maf.getColumnValue(55).equals("antisense" ));
 	 		assertTrue(maf.getColumnValue(56).equals("NON_CODING"));
@@ -303,9 +298,9 @@ public class Vcf2mafTest {
 		 final Vcf2maf v2m = new Vcf2maf(1,2, null, null);	
 	 	 try(VCFFileReader reader = new VCFFileReader(input); ){
 	 		for (final VcfRecord vcf : reader){  		
-	 			SnpEffMafRecord maf  = v2m.converter(vcf);	 			
-	 			assertTrue(maf.getColumnValue(51+1).equals("p.Met1?"));
-	 			assertTrue(maf.getColumnValue(52+1).equals(SnpEffMafRecord.Null)); 			 
+	 			SnpEffMafRecord maf  = v2m.converter(vcf);	
+	 			assertTrue(maf.getColumnValue(MafElement.Amino_Acid_Change  ).equals("p.Met1?")); //52
+	 			assertTrue(maf.getColumnValue(MafElement.CDS_change).equals(SnpEffMafRecord.Null)); 		//53	 
 	 		}	
          }	  	 
 	 }
@@ -370,9 +365,7 @@ public class Vcf2mafTest {
 	 	 
 	 @Test
 	 public void DefaultValueTest() throws Exception{
-		 	final SnpEffMafRecord Dmaf = new SnpEffMafRecord();
-			Dmaf.setDefaultValue();
-			
+		 	final SnpEffMafRecord Dmaf = new SnpEffMafRecord();			
 			final Vcf2maf v2m = new Vcf2maf(2,1, null, null);	//test column2; normal column 1
 			final String[] parms = {"chrY","22012840",".","CT","AT","."  ,  "."  ,  "."  ,  "."  ,  "." ,  "."};
 
@@ -439,15 +432,6 @@ public class Vcf2mafTest {
        
 	 }	 
 	 
-//	 public static void createVcf() throws IOException{
-//        final List<String> data = new ArrayList<String>();
-//        data.add("##fileformat=VCFv4.0");
-//        data.add(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tCONTROL\tTEST");
-//        data.add("GL000236.1\t7127\t.\tT\tC\t.\tMR;MIUN\tSOMATIC;MR=4;NNS=4;FS=CCAGCCTATTT;EFF=non_coding_exon_variant(MODIFIER|||n.1313T>C||CU179654.1|processed_pseudogene|NON_CODING|ENST00000400789|1|1);CONF=ZERO\tGT:GD:AC:MR:NNS\t0/0:T/T:T9[37.11],18[38.33]:.:4\t0/1:C/T:C1[12],3[41],T19[35.58],30[33.63]:.:5");
-//        try(BufferedWriter out = new BufferedWriter(new FileWriter(DbsnpModeTest.inputName));) {          
-//            for (final String line : data)   out.write(line + "\n");                  
-//         } 
-//	 }
 	
 	public static void createVcf(String[] str) throws IOException{
 		 final List<String> data = new ArrayList<String>();

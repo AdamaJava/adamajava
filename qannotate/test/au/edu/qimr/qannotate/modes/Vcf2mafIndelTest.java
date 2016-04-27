@@ -24,6 +24,7 @@ import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 
+import au.edu.qimr.qannotate.utils.MafElement;
 import au.edu.qimr.qannotate.utils.SnpEffMafRecord;
 
 
@@ -38,9 +39,8 @@ public class Vcf2mafIndelTest {
        
 		File dir = new java.io.File( "." ).getCanonicalFile();		
 		for(File f: dir.listFiles()){ 
-			System.out.println("f: " + f.getName());
 		    if(    f.getName().endsWith(".vcf")  ||  f.getName().contains(".log") || f.getName().endsWith(".maf") ||  f.getName().contains("output")){
-		    	System.out.println(f.getCanonicalPath());
+		    
 		        f.delete();	
 		    }      
 		}
@@ -206,10 +206,7 @@ public class Vcf2mafIndelTest {
 		    try(Stream<String> lines = Files.lines(path)){
 		        Optional<String> delline = lines.filter(s -> s.contains("DEL")).findFirst();
 		        
-		        //debug
-		        System.out.println("dealing with DEL...");
-		        
-		        if(!delline.isPresent())
+ 		        if(!delline.isPresent())
 		        	Assert.fail("missing DEL variants");		        
 		        //split string to maf record		       
 				SnpEffMafRecord maf =  getMafRecord(delline.get());
@@ -288,18 +285,15 @@ public class Vcf2mafIndelTest {
  				assertTrue(maf.getColumnValue(48).equals("22"));
  				assertTrue(maf.getColumnValue(49).equals("12"));
  				assertTrue(maf.getColumnValue(50).equals("9"));				        	
-		    }
-		    
-		   
+		    }		   
 	}
 	
 	public static SnpEffMafRecord getMafRecord(String line) throws Exception{
         //split string to maf record
 		SnpEffMafRecord maf = new SnpEffMafRecord();
-		maf.setDefaultValue();
         String[] eles = line.split("\\t");
         for(int i = 0; i < eles.length; i ++)
-        	maf.setColumnValue(i+1, eles[i]);
+        	maf.setColumnValue( MafElement.getByColumnNo( i+1), eles[i]);
 
 		return maf; 		
 	}	

@@ -36,7 +36,7 @@ public class CaddOptions extends Options {
         final OptionSet options = parser.parse(args);   
         
         if(options.has("h") || options.has("help")){
-        	displayHelp(Messages.getMessage("CADD_USAGE"));
+        	displayHelp(Mode);
             return false;
         }
         
