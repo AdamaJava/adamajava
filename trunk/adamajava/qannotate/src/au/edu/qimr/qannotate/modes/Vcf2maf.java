@@ -28,6 +28,7 @@ import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 
 import au.edu.qimr.qannotate.options.Vcf2mafOptions;
+import au.edu.qimr.qannotate.utils.MafElement;
 import au.edu.qimr.qannotate.utils.SampleColumn;
 import au.edu.qimr.qannotate.utils.SnpEffConsequence;
 import au.edu.qimr.qannotate.utils.SnpEffMafRecord;
@@ -150,10 +151,10 @@ public class Vcf2maf extends AbstractMode{
         			String Smaf = maf.getMafLine();
         			out.println(Smaf);
         			noOut ++;
-        			int rank = Integer.parseInt(maf.getColumnValue(40));
-        			boolean isConsequence = isConsequence(maf.getColumnValue(55), rank);
-        			boolean isSomatic = maf.getColumnValue(26).equalsIgnoreCase(VcfHeaderUtils.INFO_SOMATIC);
-        			if (maf.getColumnValue(38).equalsIgnoreCase(MafConfidence.HIGH.name())) {
+        			int rank = Integer.parseInt(maf.getColumnValue(MafElement.Consequnce_rank));
+        			boolean isConsequence = isConsequence(maf.getColumnValue(MafElement.Transcript_BioType ), rank);
+        			boolean isSomatic = maf.getColumnValue(MafElement.Mutation_Status ).equalsIgnoreCase(VcfHeaderUtils.INFO_SOMATIC);
+        			if (maf.getColumnValue(MafElement.confidence ).equalsIgnoreCase(MafConfidence.HIGH.name())) {
         				if (isSomatic){
         					out_SHC.println(Smaf);
         					no_SHC ++;
@@ -171,7 +172,7 @@ public class Vcf2maf extends AbstractMode{
         						no_GHCC ++;
         					}
         				}   
-        			} else if (option.doOutputLowMaf() && maf.getColumnValue(38).equalsIgnoreCase(MafConfidence.LOW.name())) {
+        			} else if (option.doOutputLowMaf() && maf.getColumnValue(MafElement.confidence ).equalsIgnoreCase(MafConfidence.LOW.name())) {
         				if (isSomatic){
         					out_SLC.println(Smaf);
         					no_SLC ++;
@@ -190,10 +191,6 @@ public class Vcf2maf extends AbstractMode{
         					}
         				}
         			}
-//          		} catch (final Exception e) {
-//	        			logger.warn("Error message during vcf2maf: " + e.getMessage() + "\n" + vcf.toString());
-//	        			e.printStackTrace();
-//	        		}
 			}
 		}	
 		
@@ -257,32 +254,31 @@ public class Vcf2maf extends AbstractMode{
 	//Effect ( Effect_Impact | Functional_Class | Codon_Change | Amino_Acid_Change| Amino_Acid_length | Gene_Name | Transcript_BioType | Gene_Coding | Transcript_ID | Exon_Rank  | Genotype_Number [ | ERRORS | WARNINGS ] )
 	 SnpEffMafRecord converter(VcfRecord vcf) {
 		final SnpEffMafRecord maf = new SnpEffMafRecord();
-		maf.setDefaultValue();
 		
 		//set common value;				 
-		if(center != null) maf.setColumnValue(3, center);
-		if(sequencer != null) maf.setColumnValue(32, sequencer); 	//???query DB for sequencer
+		if(center != null) maf.setColumnValue(MafElement.Center, center);
+		if(sequencer != null) maf.setColumnValue(MafElement.Sequencer, sequencer); 	//???query DB for sequencer
 
 		String chr = vcf.getChromosome();
 		if (chr.startsWith(CHR)) {
 			chr = chr.substring(CHR.length());
 		}
-		maf.setColumnValue(5, chr);
+		maf.setColumnValue(MafElement.Chromosome, chr);
 		
 		//Variant Type
 		SVTYPE type = IndelUtils.getVariantType(vcf.getRef(), vcf.getAlt());
-		maf.setColumnValue(10,type.name());
+		maf.setColumnValue(MafElement.Variant_Type ,type.name());
 		
 		//start and end position depending on indel type
 		if (type.equals(SVTYPE.INS)){
-			maf.setColumnValue(6,  Integer.toString(vcf.getPosition()));
-			maf.setColumnValue(7, Integer.toString(vcf.getPosition() + 1));			
+			maf.setColumnValue(MafElement.Start_Position ,  Integer.toString(vcf.getPosition()));
+			maf.setColumnValue(MafElement.End_Position, Integer.toString(vcf.getPosition() + 1));			
 		} else if (type.equals(SVTYPE.DEL)){	
-			maf.setColumnValue(6,  Integer.toString(vcf.getPosition() + 1));
-			maf.setColumnValue(7, Integer.toString(vcf.getPosition() + vcf.getRef().length()-1));
+			maf.setColumnValue(MafElement.Start_Position,  Integer.toString(vcf.getPosition() + 1));
+			maf.setColumnValue(MafElement.End_Position, Integer.toString(vcf.getPosition() + vcf.getRef().length()-1));
 		} else {		
-			maf.setColumnValue(6,  Integer.toString(vcf.getPosition()));
-			maf.setColumnValue(7, Integer.toString(vcf.getPosition() + vcf.getRef().length()-1));
+			maf.setColumnValue(MafElement.Start_Position ,  Integer.toString(vcf.getPosition()));
+			maf.setColumnValue(MafElement.End_Position, Integer.toString(vcf.getPosition() + vcf.getRef().length()-1));
 		}
 		
 		String ref = vcf.getRef();
@@ -291,24 +287,24 @@ public class Vcf2maf extends AbstractMode{
 		} else if(type.equals(SVTYPE.INS)) {
 			ref = "-"; //replace heading base with "-"
 		}
-		maf.setColumnValue(11,  ref);	
-		maf.setColumnValue(35,  vcf.getFilter());
+		maf.setColumnValue(MafElement.Reference_Allele,  ref);	
+		maf.setColumnValue(MafElement.QFlag,  vcf.getFilter());
 		
 		//set novel for non dbSNP
 		if(vcf.getId().equals(MISSING_DATA_STRING)) { 
-			maf.setColumnValue(14,  SnpEffMafRecord.novel);
+			maf.setColumnValue(MafElement.dbSNP_RS,  SnpEffMafRecord.novel);
 		} else {
-			maf.setColumnValue(14,  vcf.getId());
+			maf.setColumnValue(MafElement.dbSNP_RS,  vcf.getId());
 		}
 		
 		final VcfInfoFieldRecord info =  vcf.getInfoRecord();
 		final String infoString = info.toString();
 		
 		if(infoString.contains(VcfHeaderUtils.INFO_VLD)) {
-			maf.setColumnValue(15,  VcfHeaderUtils.INFO_VLD);
+			maf.setColumnValue(MafElement.dbSNP_Val_Status,  VcfHeaderUtils.INFO_VLD);
 		}
 		boolean isSomatic = VcfUtils.isRecordSomatic(vcf);
-		maf.setColumnValue(26,  isSomatic ? VcfHeaderUtils.INFO_SOMATIC : VcfHeaderUtils.INFO_GERMLINE);
+		maf.setColumnValue( MafElement.Mutation_Status ,  isSomatic ? VcfHeaderUtils.INFO_SOMATIC : VcfHeaderUtils.INFO_GERMLINE);
 		
 //		if(vcf.getInfoRecord().getField(VcfHeaderUtils.INFO_SOMATIC) != null) {
 //			maf.setColumnValue(26,  VcfHeaderUtils.INFO_SOMATIC);
@@ -316,26 +312,23 @@ public class Vcf2maf extends AbstractMode{
 //			maf.setColumnValue(26,  VcfHeaderUtils.INFO_GERMLINE);
 //		}
 		
-		if(testBamId != null) maf.setColumnValue(16, testBamId );
- 		if(controlBamId != null) maf.setColumnValue(17, controlBamId);	
+		if(testBamId != null) maf.setColumnValue(MafElement.Tumor_Sample_Barcode , testBamId );
+ 		if(controlBamId != null) maf.setColumnValue(MafElement.Matched_Norm_Sample_Barcode, controlBamId);	
 		
-		if(testSample != null) maf.setColumnValue(33,   testSample );
-		if(controlSample != null) maf.setColumnValue(34,  controlSample );	
+		if(testSample != null) maf.setColumnValue(MafElement.Tumor_Sample_UUID,   testSample );
+		if(controlSample != null) maf.setColumnValue(MafElement.Matched_Norm_Sample_UUID,  controlSample );	
 		
 		MafConfidence conf = VcfUtils.getConfidence(vcf);
-//		if(info.getField(VcfHeaderUtils.FORMAT_NOVEL_STARTS) != null) maf.setColumnValue(40,  info.getField(VcfHeaderUtils.FORMAT_NOVEL_STARTS));
-		if(info.getField(VcfHeaderUtils.INFO_CONFIDENT) != null)	maf.setColumnValue(38,  conf.name() );
-//		if(info.getField(VcfHeaderUtils.INFO_FS) != null) maf.setColumnValue(41+1,  info.getField(VcfHeaderUtils.INFO_FS));
-		if(info.getField(VcfHeaderUtils.INFO_FLANKING_SEQUENCE) != null) maf.setColumnValue(42,  info.getField(VcfHeaderUtils.INFO_FLANKING_SEQUENCE));
-		if(info.getField(VcfHeaderUtils.INFO_VAF) != null) maf.setColumnValue(43,  info.getField(VcfHeaderUtils.INFO_VAF));		
-		if(info.getField(VcfHeaderUtils.INFO_GERMLINE) != null) maf.setColumnValue(44,  info.getField(VcfHeaderUtils.INFO_GERMLINE));		
-		if(info.getField(VcfHeaderUtils.INFO_TRF)!= null) maf.setColumnValue(61,  VcfHeaderUtils.INFO_TRF + "=" +info.getField(VcfHeaderUtils.INFO_TRF));	//add TRF info to notes column
+		if(info.getField(VcfHeaderUtils.INFO_CONFIDENT) != null)	maf.setColumnValue(MafElement.confidence ,  conf.name() );
+		if(info.getField(VcfHeaderUtils.INFO_FLANKING_SEQUENCE) != null) maf.setColumnValue(MafElement.Var_Plus_Flank,  info.getField(VcfHeaderUtils.INFO_FLANKING_SEQUENCE));
+		if(info.getField(VcfHeaderUtils.INFO_VAF) != null) maf.setColumnValue(MafElement.Variant_AF,  info.getField(VcfHeaderUtils.INFO_VAF));		
+		if(info.getField(VcfHeaderUtils.INFO_GERMLINE) != null) maf.setColumnValue(MafElement.Germ_Counts,  info.getField(VcfHeaderUtils.INFO_GERMLINE));	
+		if(info.getField(VcfHeaderUtils.INFO_TRF)!= null) maf.setColumnValue(MafElement.notes,  VcfHeaderUtils.INFO_TRF + "=" +info.getField(VcfHeaderUtils.INFO_TRF));	//add TRF info to notes column
 
 		String eff; 
 		if( (eff = info.getField(VcfHeaderUtils.INFO_EFFECT)) != null) {
 			getSnpEffAnnotation( maf, eff);
 		}
-
 		
 		//format & sample field
 		final List<String> formats =  vcf.getFormatFields();
@@ -350,36 +343,31 @@ public class Vcf2maf extends AbstractMode{
 		VcfFormatFieldRecord sample =  new VcfFormatFieldRecord(formats.get(0), formats.get(test_column));		
 		final String[] Tvalues = getAltCounts( sample, vcf.getRef(), vcf.getAlt(), type, mergedRecord);		
 		if (Tvalues != null){	//allesls counts
-			maf.setColumnValue(37,  Tvalues[6]); //TD
-		    	maf.setColumnValue(45, Tvalues[1]); //t_depth
-		    	maf.setColumnValue(46, Tvalues[2]); //t_ref_count
-		    	maf.setColumnValue(47, Tvalues[3]); //t_alt_count
-		    	maf.setColumnValue(12, Tvalues[4] );  //TD allele1
-		    	maf.setColumnValue(13, Tvalues[5]);		//TD allele2
+			maf.setColumnValue(MafElement.TD,  Tvalues[6]); //TD
+		    	maf.setColumnValue(MafElement.t_depth, Tvalues[1]); //t_depth
+		    	maf.setColumnValue(MafElement.t_ref_count, Tvalues[2]); //t_ref_count
+		    	maf.setColumnValue(MafElement.t_alt_count, Tvalues[3]); //t_alt_count
+		    	maf.setColumnValue(MafElement.Tumor_Seq_Allele1 , Tvalues[4] );  //TD allele1
+		    	maf.setColumnValue(MafElement.Tumor_Seq_Allele2, Tvalues[5]);		//TD allele2
 		}		
 		
 		sample =  new VcfFormatFieldRecord(formats.get(0), formats.get(control_column));
 		final String[] Nvalues = getAltCounts( sample, vcf.getRef(), vcf.getAlt(),type, mergedRecord);
 		
 		if (Nvalues != null){	//allesls counts
-			maf.setColumnValue(36, Nvalues[6]);
-		    	maf.setColumnValue(48, Nvalues[1]);
-		    	maf.setColumnValue(49, Nvalues[2]); 
-		    	maf.setColumnValue(50, Nvalues[3]);
-		    	maf.setColumnValue(18, Nvalues[4]); //ND allele1
-		    	maf.setColumnValue(19, Nvalues[5]);	//ND allele2
+			maf.setColumnValue(MafElement.ND, Nvalues[6]);
+		    	maf.setColumnValue(MafElement.n_depth, Nvalues[1]);
+		    	maf.setColumnValue(MafElement.n_ref_count , Nvalues[2]); 
+		    	maf.setColumnValue(MafElement.n_alt_count , Nvalues[3]);
+		    	maf.setColumnValue(MafElement.Match_Norm_Seq_Allele1, Nvalues[4]); //ND allele1
+		    	maf.setColumnValue(MafElement.Match_Norm_Seq_Allele2 , Nvalues[5]);	//ND allele2
 		}		
 
 		//NNS eg, ND5:TD7
 		String nns = getMafAlt(vcf.getRef(), vcf.getAlt(), type);
 		nns += ":ND" + ((Nvalues == null)? 0 : Nvalues[0]);
 		nns += ":TD" + ((Tvalues == null)? 0 : Tvalues[0]);
-		maf.setColumnValue(41, nns);
-		
-//		if(Nvalues[0].equals(SnpEffMafRecord.Unknown)) nns = (!Tvalues[0].equals(SnpEffMafRecord.Unknown) )? nns+":TD"+Tvalues[0] : SnpEffMafRecord.Unknown;
-//		else if (Tvalues[0].equals(SnpEffMafRecord.Unknown)) nns = (!Nvalues[0].equals(SnpEffMafRecord.Unknown) )? nns+":ND"+Nvalues[0] : SnpEffMafRecord.Unknown;
-//		else nns += String.format(":ND%s:TD%s",Nvalues[0], Tvalues[0]);
-			
+		maf.setColumnValue(MafElement.novel_starts , nns);			
 
 		return maf;
 
@@ -390,8 +378,6 @@ public class Vcf2maf extends AbstractMode{
 	 	 if(type.equals(SVTYPE.DEL)){	 		 
 	 		str = str.substring(1) + ((alt.length() == ref.length())? "": "-" );
 			 			
-//			for(int j = alt.length(); j < ref.length(); j ++)
-//				str += "-";
 		}else  if(type.equals(SVTYPE.INS)) {
 			str = (ref.equalsIgnoreCase(alt))? "-" : str.substring(1);
 		}
@@ -409,8 +395,6 @@ public class Vcf2maf extends AbstractMode{
 	  * return null if the input sample hava no value eg. "."
 	  */	 
 	 public static  String[] getAltCounts(VcfFormatFieldRecord sample, String ref, String alt, SVTYPE type, boolean isMerged) {
-//		 public static  String[] getAltCounts(VcfFormatFieldRecord sample, String ref, String alt, SVTYPE type, boolean isMerged, boolean isSomatic) {
-
 	 	 if(sample.isMissingSample() ) return null;
 	 	 
 	 	 String[] values = {SnpEffMafRecord.Zero,SnpEffMafRecord.Zero, SnpEffMafRecord.Zero,SnpEffMafRecord.Zero, SnpEffMafRecord.Null,SnpEffMafRecord.Null,SnpEffMafRecord.Null}; 
@@ -436,20 +420,7 @@ public class Vcf2maf extends AbstractMode{
 		 			 } else if (gds[0].equals(MISSING_DATA_STRING)) {
 		 				 useFirst = false;
 		 				 
-//		 				 logger.warn("Have different gds: " + Arrays.deepToString(gds));
-//		 				 if (isSomatic) {
-//		 					 // if they are both somatic, pick first.....
-//		 					 String[] pairs = gds[0].contains("|") ? gds[0].split("|") : gds[0].split("/");
-//		 					 if (pairs.length == 2) {
-//		 						 if (pairs[0].equals(pairs[1])) {
-//		 							 useFirst = false;
-//		 						 }
-//		 					 }
-//		 				 }
-		 			 } else {
-		 				 //hmmmm
-//		 				 logger.warn("Have different gds: " + Arrays.deepToString(gds));
-		 			 }
+		 			 } 
 		 		 }
 		 		 String gdToUse = useFirst ? gds[0] : gds[1];
 		 		 String[] pairs = gdToUse.contains("|") ? gdToUse.split("|") : gdToUse.split("/");
@@ -480,9 +451,7 @@ public class Vcf2maf extends AbstractMode{
 		      		values[0] = counts[0]; //supporting reads nns
 		      		values[1] = counts[1]; //coverage
 		      		values[3] = counts[3].substring(0,counts[3].indexOf('['));  //supporting reads total
-		      	      		
 		      		//reference reads counts is the informative reads - support/partial/nearbyindel reads
-		//      	int refCounts =  Integer.parseInt(counts[2]) - Integer.parseInt(values[3])- Integer.parseInt(counts[5])-Integer.parseInt(counts[6]);
 		      		int refCounts =  Integer.parseInt(counts[2]) - Integer.parseInt(values[3])- Integer.parseInt(counts[5]);
 		      		values[2] = refCounts + "";		      		 
 	      		}catch(Exception e){	      			 
@@ -509,20 +478,11 @@ public class Vcf2maf extends AbstractMode{
 	    		//check counts      		
       		values[1] = SnpUtils.getTotalCountFromNucleotideString(bases, cs) + "";     
 	        	values[2] = SnpUtils.getCountFromNucleotideString(bases,ref, cs) + "";
-	        	values[3] = SnpUtils.getCountFromNucleotideString(bases,alt, cs) + "";
-//	        	values[1] = VcfUtils.getAltFrequency(sample, null) + "";
-//	        	values[2] = VcfUtils.getAltFrequency(sample, ref) + "";
-//	        	values[3] = VcfUtils.getAltFrequency(sample, alt) + "";
-	        		     
+	        	values[3] = SnpUtils.getCountFromNucleotideString(bases,alt, cs) + "";	        		     
       	 }
 		 
       	 //get genotype base
 		 if(  StringUtils.isMissingDtaString(gd)) return values;
-		 
-		 
-//		  String[] pairs = gd.contains("|") ? gd.split("|") : gd.split("/");		  
-//		  if(pairs.length > 0) values[4] = getMafAlt(ref, pairs[0], type);
-//		  if(pairs.length > 1) values[5] = getMafAlt(ref, pairs[1], type);
 		 		 	     
 		  return values;
 	 }
@@ -544,39 +504,38 @@ public class Vcf2maf extends AbstractMode{
 			final String ontolog = effAnno.substring(0, effAnno.indexOf("("));		
 			final String annotate = effAnno.substring( effAnno.indexOf("(") + 1, effAnno.indexOf(")"));	
 	
-			maf.setColumnValue(59, ontolog); //effect_ontology
+			maf.setColumnValue(MafElement.effect_ontology, ontolog); //effect_ontology
 			String str = SnpEffConsequence.getClassicName(ontolog);
-			if (str != null) maf.setColumnValue(60, str);		
+			if (str != null) maf.setColumnValue(MafElement.effect_class , str);		
 			
 			 
 			str = SnpEffConsequence.getMafClassification(ontolog);			 
 			if (str != null) { 
 				//check whether frameshift_variant			    
-				maf.setColumnValue(9, (str.equals("Frame_Shift_")? str+maf.getColumnValue(10): str)); //eg. RNA
+				maf.setColumnValue(MafElement.Variant_Classification , (str.equals("Frame_Shift_")? str+maf.getColumnValue(MafElement.Variant_Type): str)); //eg. RNA
 			}
-			maf.setColumnValue(40,  SnpEffConsequence.getConsequenceRank(ontolog)+""); //get A.M consequence's rank
+			maf.setColumnValue(MafElement.Consequnce_rank,  SnpEffConsequence.getConsequenceRank(ontolog)+""); //get A.M consequence's rank
 	
 			final String[] effs = annotate.split(BAR_STRING);
-//			if(! StringUtils.isNullOrEmpty(effs[0]))  maf.setColumnValue(9, effs[0]); //VariantClassification, AM. list			
-			if ( ! StringUtils.isNullOrEmpty(effs[0]))  maf.setColumnValue(39, effs[0]); //Eff Impact, eg. modifier	
+			if ( ! StringUtils.isNullOrEmpty(effs[0]))  maf.setColumnValue(MafElement.Eff_Impact, effs[0]); //Eff Impact, eg. modifier	
 			
 			if (effs[3].startsWith("p.")){
 				int pos = effs[3].indexOf(SLASH_STRING);
 				if (pos >= 0 ){
-					maf.setColumnValue(52,effs[3].substring(0, pos));
-					maf.setColumnValue(53,effs[3].substring(pos+1));
+					maf.setColumnValue(MafElement.Amino_Acid_Change,effs[3].substring(0, pos));
+					maf.setColumnValue(MafElement.CDS_change,effs[3].substring(pos+1));
 				} else {
-					maf.setColumnValue(52,effs[3]);
+					maf.setColumnValue(MafElement.Amino_Acid_Change,effs[3]);
 				}
-				if (! StringUtils.isNullOrEmpty(effs[2]))  maf.setColumnValue(52+1+1,effs[2]);
+				if (! StringUtils.isNullOrEmpty(effs[2]))  maf.setColumnValue(MafElement.Condon_Change ,effs[2]);
 			}
 						
-			if(! StringUtils.isNullOrEmpty(effs[5]))  maf.setColumnValue(1, effs[5]);//Gene_Name DDX11L1		
-			if(! StringUtils.isNullOrEmpty(effs[6]))  maf.setColumnValue(55,effs[6]);//bioType 	protein_coding		
-			if(! StringUtils.isNullOrEmpty(effs[7]))  maf.setColumnValue(56,effs[7]);				
-			if(! StringUtils.isNullOrEmpty(effs[8]))  maf.setColumnValue(51,effs[8]);
-			if(! StringUtils.isNullOrEmpty(effs[9]))  maf.setColumnValue(57,effs[9]);
-			if(! StringUtils.isNullOrEmpty(effs[10])) maf.setColumnValue(58,effs[10]);		
+			if(! StringUtils.isNullOrEmpty(effs[5]))  maf.setColumnValue(MafElement.Hugo_Symbol, effs[5]);//Gene_Name DDX11L1		
+			if(! StringUtils.isNullOrEmpty(effs[6]))  maf.setColumnValue(MafElement.Transcript_BioType ,effs[6]);//bioType 	protein_coding		
+			if(! StringUtils.isNullOrEmpty(effs[7]))  maf.setColumnValue(MafElement.Gene_Coding,effs[7]);				
+			if(! StringUtils.isNullOrEmpty(effs[8]))  maf.setColumnValue(MafElement.Transcript_ID ,effs[8]);
+			if(! StringUtils.isNullOrEmpty(effs[9]))  maf.setColumnValue(MafElement.Exon_Intron_Rank ,effs[9]);
+			if(! StringUtils.isNullOrEmpty(effs[10])) maf.setColumnValue(MafElement.Genotype_Number,effs[10]);		
  	 }
 
  	String getBamid(String key, VcfHeader header){

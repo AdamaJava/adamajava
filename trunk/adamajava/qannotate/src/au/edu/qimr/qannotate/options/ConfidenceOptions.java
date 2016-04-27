@@ -34,7 +34,7 @@ public class ConfidenceOptions extends Options {
         final OptionSet options = parser.parse(args);   
         
         if(options.has("h") || options.has("help")){
-        	displayHelp(Messages.getMessage("CONFIDENCE_USAGE"));
+        	displayHelp(Mode);
             return false;
         }
         

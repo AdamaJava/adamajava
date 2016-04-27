@@ -41,7 +41,7 @@ public class CustomerConfidenceOptions extends Options {
 
         OptionSet options = parser.parse(args);    
         if(options.has("h") || options.has("help")){
-        	displayHelp(Messages.getMessage("CUSTOMERCONFIDENCE_USAGE"));
+        	displayHelp(Mode);
             return false;
         }
                

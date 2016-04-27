@@ -214,16 +214,32 @@ public class Options {
     public MODE getMode(){	return  Mode; }
 
     
-    public void displayHelp(String modeMessage) throws Exception {
-    	System.out.println(modeMessage);          
-		Thread.sleep(1);
-		parser.printHelpOn(System.err);
-		      
-    }
+//    public void displayHelp(String modeMessage) throws Exception {
+//    	System.out.println(modeMessage);          
+//		Thread.sleep(1);
+//		parser.printHelpOn(System.err);	      
+//    }
     
-    
-	 public String getTestSample(){  return testSample; }
-	 public String getControlSample(){  return controlSample; }
-
+    public void displayHelp(MODE mode) throws Exception {   
+        String mess = Messages.getMessage("USAGE");  
+        switch (mode){
+                case dbsnp: mess = Messages.getMessage("DBSNP_USAGE"); break;
+                case germline: mess = Messages.getMessage("GERMLINE_USAGE"); break;
+                case trf: mess = Messages.getMessage("TRF_USAGE"); break;
+                case snpEff: mess = Messages.getMessage("SNPEFF_USAGE"); break;
+                case confidence: mess = Messages.getMessage("CONFIDENCE_USAGE"); break;
+                case customerConfidence: mess = Messages.getMessage("CUSTOMERCONFIDENCE_USAGE"); break;
+                case cadd: mess = Messages.getMessage("CADD_USAGE"); break;
+                case indelconfidence: mess = Messages.getMessage("INDELCONFIDENCE_USAGE"); break;
+                case vcf2maf: mess = Messages.getMessage("VCF2MAF_USAGE"); break;
+//              default: mess = Messages.getMessage("USAGE"); break;
+            }       
+            System.out.println(mess);          
+            Thread.sleep(1);
+            parser.printHelpOn(System.err);    
+    }   
+        
+	public String getTestSample(){  return testSample; }
+	public String getControlSample(){  return controlSample; }
  
 }

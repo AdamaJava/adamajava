@@ -46,7 +46,7 @@ public class Vcf2mafOptions extends Options {
 	        final OptionSet options = parser.parse(args);   
 	        
 	        if(options.has("h") || options.has("help")){
-	        	displayHelp(Messages.getMessage("VCF2MAF_USAGE"));
+	        	displayHelp(Mode);
 	            return false;
 	        }
 	                               

@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 import org.qcmg.common.util.Constants;
 
+import au.edu.qimr.qannotate.utils.MafElement;
 import au.edu.qimr.qannotate.utils.SnpEffMafRecord;
 
 public class SnpEffMafRecordTest {
@@ -12,26 +13,24 @@ public class SnpEffMafRecordTest {
 	@Test
 	public void toMafString() {
 		SnpEffMafRecord rec = new SnpEffMafRecord();
-		rec.setDefaultValue();
 		
-//		System.out.println("rec: " + rec.getMafLine());
-		assertEquals(SnpEffMafRecord.column , rec.getMafLine().split(Constants.TAB + "").length);
+		assertEquals(MafElement.values().length , rec.getMafLine().split(Constants.TAB + "").length);
 	}
 	
 	@Test
 	public void getMafColumn() {
 		SnpEffMafRecord rec = new SnpEffMafRecord();
-		rec.setDefaultValue();
 		
-		for (int i = -100 ; i < 1000000 ; i++) {
+		
+		for (int i = -10 ; i < 1000 ; i++) {
 			
-			if (i < 1 || i > SnpEffMafRecord.column) {
+			if (i < 1 || i > MafElement.values().length) {
 				try {
 					rec.getColumnValue(i);
 					fail("Should have thrown an IllegalArgumentException");
-				} catch (IllegalArgumentException iae) {}
+				} catch (ArrayIndexOutOfBoundsException iae) {}
 			} else  {
-//				assertNotNull(rec.getColumnValue(i));
+				assertEquals(rec.getColumnValue(i), MafElement.getByColumnNo(i).getDefaultValue())  ;
 			}
 		}
 	}

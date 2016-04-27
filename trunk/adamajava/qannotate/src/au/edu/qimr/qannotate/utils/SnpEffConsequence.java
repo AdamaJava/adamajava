@@ -14,6 +14,7 @@ import org.qcmg.common.log.*;
  * Consequence are happened at protein_coding with impact HIGH, MODERATE or LOW
  */
 public enum SnpEffConsequence {
+	
 	//decide whether DEL or Ins 
 	CHROMOSOME_LARGE_DELETION("chromosome",50,"RNA"),   //???
 	EXON_DELETED("exon_loss_variant",50,"RNA"),
