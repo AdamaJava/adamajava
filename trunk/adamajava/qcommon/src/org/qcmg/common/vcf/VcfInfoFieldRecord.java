@@ -16,7 +16,13 @@ public class VcfInfoFieldRecord {
 		if (StringUtils.isNullOrEmpty(line)) {
 			throw new IllegalArgumentException("Null or empty string passed to VcfInfoFieldRecord ctor");
 		}
-		this.line = new StringBuilder(line);
+		
+		/*
+		 * if line is equal to the missing data value, construct an empty string builder
+		 * Avoids having to deal with it when toStringing
+		 */
+		
+		this.line = new StringBuilder(line.equals(Constants.MISSING_DATA_STRING) ? "" : line);
 		this.line.trimToSize();
 	}
 	
@@ -159,23 +165,11 @@ public class VcfInfoFieldRecord {
 		line.trimToSize();
 	}
 	/**
-	 * re-orginize info column string
+	 * If the stringbuilder is not empty, return its contents, otherwise return the missing data value
 	 */
 	@Override
 	public String toString(){
-		 
-//		int index = line.indexOf(Constants.MISSING_DATA_STRING + Constants.SEMI_COLON); 
-//		if(index < 0)	 
-//			index =  line.indexOf( Constants.SEMI_COLON  + Constants.MISSING_DATA_STRING);
-//		
-//		if(index >= 0)
-//			line.delete(index, index+2);
-		
-		if(line.length() == 0)
-			return Constants.MISSING_DATA_STRING;
-		
-		return line.toString();
-
+		return line.length() > 0 ? line.toString() : Constants.MISSING_DATA_STRING;
 	}
  
 }
