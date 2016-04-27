@@ -59,6 +59,36 @@ public class Vcf2mafTest {
 		assertTrue(new File(outputDir).delete());	 		 
 	}
 	 
+	 @Test
+	 public void isHC() {
+		 assertEquals(false, Vcf2maf.isHighConfidence(null));
+		 assertEquals(false, Vcf2maf.isHighConfidence(new SnpEffMafRecord()));
+		 SnpEffMafRecord maf = new SnpEffMafRecord();
+		 maf.setColumnValue(MafElement.confidence, null);
+		 assertEquals(false, Vcf2maf.isHighConfidence(maf));
+		 
+		 maf.setColumnValue(MafElement.confidence, "");
+		 assertEquals(false, Vcf2maf.isHighConfidence(maf));
+		 maf.setColumnValue(MafElement.confidence, "blah");
+		 assertEquals(false, Vcf2maf.isHighConfidence(maf));
+		 maf.setColumnValue(MafElement.confidence, "high");
+		 assertEquals(false, Vcf2maf.isHighConfidence(maf));
+		 maf.setColumnValue(MafElement.confidence, "HIGH");
+		 assertEquals(false, Vcf2maf.isHighConfidence(maf));
+		 maf.setColumnValue(MafElement.confidence, "HIGH_1");
+		 assertEquals(false, Vcf2maf.isHighConfidence(maf));
+		 maf.setColumnValue(MafElement.confidence, "HIGH_1,HIGH");
+		 assertEquals(false, Vcf2maf.isHighConfidence(maf));
+		 maf.setColumnValue(MafElement.confidence, "HIGH_1,HIGH_1");
+		 assertEquals(false, Vcf2maf.isHighConfidence(maf));
+		 maf.setColumnValue(MafElement.confidence, "HIGH_2,HIGH_1");
+		 assertEquals(false, Vcf2maf.isHighConfidence(maf));
+		 maf.setColumnValue(MafElement.confidence, "HIGH_2,HIGH_2");
+		 assertEquals(false, Vcf2maf.isHighConfidence(maf));
+		 maf.setColumnValue(MafElement.confidence, "HIGH_1,HIGH_2");
+		 assertEquals(true, Vcf2maf.isHighConfidence(maf));
+	 }
+	 
 	 
 	 @Test
 	 public void getAltColumns() {
@@ -188,7 +218,7 @@ public class Vcf2mafTest {
 		 final VcfRecord vcf = new VcfRecord(parms);
 		 final SnpEffMafRecord maf = v2m.converter(vcf);
 		 
-		 assertEquals(MafConfidence.HIGH.name(), maf.getColumnValue(38));
+		 assertEquals("HIGH_1,ZERO_2", maf.getColumnValue(38));
 		 
 	 }
 	 
@@ -364,7 +394,7 @@ public class Vcf2mafTest {
 	 }
 	 	 
 	 @Test
-	 public void DefaultValueTest() throws Exception{
+	 public void defaultValueTest() throws Exception{
 		 	final SnpEffMafRecord Dmaf = new SnpEffMafRecord();			
 			final Vcf2maf v2m = new Vcf2maf(2,1, null, null);	//test column2; normal column 1
 			final String[] parms = {"chrY","22012840",".","CT","AT","."  ,  "."  ,  "."  ,  "."  ,  "." ,  "."};
