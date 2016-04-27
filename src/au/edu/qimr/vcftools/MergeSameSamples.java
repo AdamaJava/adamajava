@@ -14,6 +14,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.meta.QExec;
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.LoadReferencedClasses;
 import org.qcmg.common.vcf.VcfRecord;
@@ -121,7 +122,7 @@ public class MergeSameSamples {
 				/*
 				 * Add in IN=1 to info field
 				 */
-				rec.appendInfo("IN=1");
+				rec.appendInfo(Constants.VCF_MERGE_INFO + "=1");
 				mergedRecords.put(rec, rec);
 			}
 		}
@@ -136,7 +137,7 @@ public class MergeSameSamples {
 				/*
 				 * Add in IN=1 to info field
 				 */
-				rec.appendInfo("IN=2");
+				rec.appendInfo(Constants.VCF_MERGE_INFO + "=2");
 				
 				VcfRecord input1Rec = mergedRecords.get(rec);
 				if (null != input1Rec) {
