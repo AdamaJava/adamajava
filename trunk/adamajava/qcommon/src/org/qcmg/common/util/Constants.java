@@ -2,6 +2,7 @@ package org.qcmg.common.util;
 
 public class Constants {
 	public  static final char TAB = '\t';
+	public  static final String TAB_STRING = "\t";
 	public static final char SC = ';';
 	public static final char BAR = '|';
 	public static final char SLASH = '/';
