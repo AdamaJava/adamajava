@@ -869,7 +869,17 @@ public class VcfUtils {
 		}
 	}
 	
-	public static MafConfidence getConfidence(VcfRecord rec) {
+	
+	/**
+	 * Returns the confidence of a VcfRecord, which is found in the info field.
+	 * Returns null should the record be null, or the CONF value not be set int he info field.
+	 * 
+	 * For merged records
+	 * 
+	 * @param rec
+	 * @return
+	 */
+	public static String getConfidence(VcfRecord rec) {
 		String info = rec.getInfo();
 		
 		if (StringUtils.isNullOrEmpty(info) || ! info.contains(VcfHeaderUtils.INFO_CONFIDENT)) {
@@ -880,15 +890,16 @@ public class VcfUtils {
 		int scIndex = info.indexOf(Constants.SEMI_COLON_STRING, index);
 		String conf = info.substring(index + (VcfHeaderUtils.INFO_CONFIDENT + Constants.EQ).length(), scIndex > -1 ? scIndex : info.length());
 //		logger.info("conf: " + conf);
-		if (conf.contains(MafConfidence.HIGH.name())) {
-			return MafConfidence.HIGH;
-		}
-		if (conf.contains(MafConfidence.LOW.name())) {
-			return MafConfidence.LOW;
-		}
-			
-		
-		return MafConfidence.ZERO;
+		return conf;
+//		if (conf.contains(MafConfidence.HIGH.name())) {
+//			return MafConfidence.HIGH;
+//		}
+//		if (conf.contains(MafConfidence.LOW.name())) {
+//			return MafConfidence.LOW;
+//		}
+//			
+//		
+//		return MafConfidence.ZERO;
 	}
  
 }
