@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.qcmg.common.util.Constants;
 
 public class VcfInfoFieldRecordTest {
 	
@@ -29,6 +30,26 @@ public class VcfInfoFieldRecordTest {
 		
 		rec = new VcfInfoFieldRecord("ABCD;1234;XYZ=???");
 		assertEquals("ABCD;1234;XYZ=???", rec.toString());
+	}
+	
+	@Test
+	public void missingData() {
+		
+		/*
+		 * despite the missing data value being returned, it is not actually stored in the info field record
+		 */
+		VcfInfoFieldRecord rec = new VcfInfoFieldRecord(Constants.MISSING_DATA_STRING);
+		assertEquals(Constants.MISSING_DATA_STRING, rec.toString());
+		
+		rec.addField("IN", "1");
+		assertEquals("IN=1", rec.toString());
+		
+		rec = new VcfInfoFieldRecord("XYZ=.");
+		assertEquals("XYZ=.", rec.toString());
+		
+		rec = new VcfInfoFieldRecord(Constants.MISSING_DATA_STRING + "=123");
+		assertEquals(".=123", rec.toString());
+		
 	}
 	
 	@Test
