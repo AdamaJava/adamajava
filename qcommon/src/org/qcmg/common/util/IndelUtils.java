@@ -104,9 +104,9 @@ public class IndelUtils {
 		/*
 		 * Deal with MT special case first
 		 */
-		if (ref1.equals("chrm") || ref.equals("m") || ref.equals("mt")) {
-			return "chrMT";
-		}
+        if (ref.equals("chrM") || ref.equals("M") || ref.equals("MT")) {
+            return "chrMT";
+        }
 		
 		/*
 		 *  if ref starts with chr or GL, just return it
