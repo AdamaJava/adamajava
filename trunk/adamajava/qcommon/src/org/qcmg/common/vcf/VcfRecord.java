@@ -10,12 +10,14 @@ import static org.qcmg.common.util.Constants.SEMI_COLON;
 import static org.qcmg.common.util.Constants.TAB;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrPositionComparator;
 import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
@@ -23,20 +25,20 @@ import org.qcmg.common.util.Constants;
 public class VcfRecord implements Comparable<VcfRecord> {
 	
 	static final QLogger logger = QLoggerFactory.getLogger(VcfRecord.class);
+	static final Comparator<ChrPosition> CHR_POS_COMPARATOR = ChrPositionComparator.getComparator(ChrPositionComparator.getChrNameComparator(null));
 	
-	private final ChrPointPosition cpp;
+	private final ChrPosition cpp;
 	private final String ref;
-	private String id;
 	private final String alt;
 	
-//	private String alt; 
+	private String id;
 	private String qualString;
 	private String filter;
 	private VcfInfoFieldRecord infoRecord;
 	private final List<String> formatRecords;
 	
     public static class Builder{
-        private final ChrPointPosition cpp;
+        private final ChrPosition cpp;
         private final String ref;
         private String id;
         private String alt;
@@ -46,13 +48,14 @@ public class VcfRecord implements Comparable<VcfRecord> {
         private final List<String> formatRecords = new ArrayList<String>(4);
        
         public Builder(ChrPosition cp, String ref, String alt){
-        	//  convert ChrPosition to ChrPointPosition          	
-        	if(cp.isPointPosition())
-        		this.cpp = (ChrPointPosition) cp;
-        	else if(cp.isRangePosition())
-        		this.cpp = ((ChrRangePosition) cp).getChrStartpos();
-        	else
-        		this.cpp =  ChrPointPosition.valueOf(cp.getChromosome(), cp.getStartPosition());
+        		//	we want to store a ChrPointPosition, as anything with an end is ambiguous
+        		if (cp instanceof ChrPointPosition) {
+        			this.cpp = cp;
+        		} else if (cp instanceof ChrRangePosition) {
+        			this.cpp = ((ChrRangePosition) cp).getChrPointPosition();
+        		} else {
+        			this.cpp =  ChrPointPosition.valueOf(cp.getChromosome(), cp.getStartPosition());
+        		}
         	this.ref = ref; 
         	this.alt = alt; 
         }
@@ -384,10 +387,10 @@ public class VcfRecord implements Comparable<VcfRecord> {
 		return flag; 						
 	 
 	}
-
+	
 	@Override
 	public int compareTo(VcfRecord arg0) {
-		int Diff =  cpp.compareTo(arg0.cpp);		
+		int Diff =  CHR_POS_COMPARATOR.compare(cpp, arg0.cpp);		
 		if(Diff != 0) return Diff; 
 		
 		int l1 = (ref != null)? ref.length(): 0;

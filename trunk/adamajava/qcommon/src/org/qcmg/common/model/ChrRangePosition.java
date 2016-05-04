@@ -22,11 +22,15 @@ public class ChrRangePosition  implements ChrPosition , Comparable<ChrPosition> 
 	private final ChrPointPosition cpp;
 	private final int endPosition;
 
-	public ChrRangePosition(ChrPointPosition cpp, int endPosition) {
+	public ChrRangePosition(ChrPosition cpp, int endPosition) {
 		if (endPosition < cpp.getStartPosition()) {
 			throw new IllegalArgumentException("end position: "+ endPosition + " is before start position: " + cpp.getStartPosition());
 		}
-		this.cpp = cpp;
+		if (cpp instanceof ChrPointPosition) {
+			this.cpp = (ChrPointPosition) cpp;
+		} else {
+			this.cpp = ChrPointPosition.valueOf(cpp.getChromosome(), cpp.getStartPosition());
+		}
 		this.endPosition = endPosition;
 	}
 	
@@ -52,32 +56,6 @@ public class ChrRangePosition  implements ChrPosition , Comparable<ChrPosition> 
 	}
 	
 	/**
-	 * convert ChrPosition to ChrRangePosition
-	 * @param cp: it can be ChrPointPosition, ChrRangePosition
-	 * @return a ChrRangePosition
-	 */
-	public static ChrRangePosition valueOf(ChrPosition cp){
-		if(cp.isPointPosition())
-			return new ChrRangePosition((ChrPointPosition) cp, cp.getEndPosition()); 
-		else if(cp.isRangePosition())
-			return (ChrRangePosition) cp;		 
-		return  new ChrRangePosition((ChrPointPosition) cp, cp.getEndPosition()); 		
-	}
-
-	/**
-	 * create an instance with new endPosition
-	 * @param cp: it can be ChrPointPosition, ChrRangePosition
-	 * @param endPosition: endPosition will be replace by this value
-	 * @return
-	 */
-	public static ChrRangePosition valueOf(ChrPosition cp, int endPosition){
-		if(cp.isPointPosition())
-			return new ChrRangePosition((ChrPointPosition) cp,  endPosition); 
-		 
-		return  new ChrRangePosition(cp.getChromosome(), cp.getStartPosition(), endPosition); 		
-	}
-	
-	/**
 	 * @return String chromosome 
 	 */
 	@Override
@@ -95,7 +73,7 @@ public class ChrRangePosition  implements ChrPosition , Comparable<ChrPosition> 
 		return cpp.getStartPosition();
 	}
 	
-	public ChrPointPosition getChrStartpos() {
+	public ChrPosition getChrPointPosition() {
 		return cpp;
 	}
 	
@@ -134,9 +112,6 @@ public class ChrRangePosition  implements ChrPosition , Comparable<ChrPosition> 
 	@Override
 	public String toIGVString() {
 		return getChromosome() + ":" + getStartPosition() + "-" + endPosition;
-	}
-	public String toStartPositionString() {
-		return cpp.toString();
 	}
 
 	@Override
