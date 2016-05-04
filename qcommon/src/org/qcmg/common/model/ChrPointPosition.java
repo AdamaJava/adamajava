@@ -7,19 +7,16 @@ public class ChrPointPosition  implements ChrPosition , Comparable<ChrPosition> 
 	private final String chr;
 	private final int position;
 	
-	private ChrPointPosition(String chr, int position) {
+	public ChrPointPosition(String chr, int position) {
+		if (null == chr || chr.isEmpty()) {
+			throw new IllegalArgumentException("null or empty chromosome supplied to ChrPointPosition");
+		}
 		this.chr = chr;
 		this.position = position;
 	}
 	
 	public static ChrPointPosition valueOf(String chr, int position) {
-		if (null == chr || chr.isEmpty()) {
-			throw new IllegalArgumentException("null or empty chromosome supplied to ChrPointPosition");
-		}
 		return new ChrPointPosition(chr, position);
-	}
-	public static ChrPointPosition valueOf(ChrPointPosition cpp) {
-		return cpp;
 	}
 
 	@Override
