@@ -160,22 +160,22 @@ public class Vcf2maf extends AbstractMode{
         			if (isHighConfidence(maf)) {
         				if (isSomatic){
         					out_SHC.println(Smaf);
-        					outSHCVcf.println(vcf);
+        					outSHCVcf.print(vcf);
         					no_SHC ++;
         					
         					if(isConsequence){
         						out_SHCC.println(Smaf);
-        						outSHCCVcf.println(vcf);
+        						outSHCCVcf.print(vcf);
         						no_SHCC ++;
         					}
         				} else {
         					out_GHC.println(Smaf);
-        					outGHCVcf.println(vcf);
+        					outGHCVcf.print(vcf);
         					no_GHC ++; 
         					 
         					if(isConsequence){
         						out_GHCC.println(Smaf);
-        						outGHCCVcf.println(vcf);
+        						outGHCCVcf.print(vcf);
         						no_GHCC ++;
         					}
         				}
