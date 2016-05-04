@@ -6,14 +6,17 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.commandline.Executor;
-import org.qcmg.common.model.MafConfidence;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.util.IndelUtils.SVTYPE;
@@ -22,7 +25,7 @@ import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 
-import scala.actors.threadpool.Arrays;
+import au.edu.qimr.qannotate.options.Options;
 import au.edu.qimr.qannotate.options.Vcf2mafOptions;
 import au.edu.qimr.qannotate.utils.MafElement;
 import au.edu.qimr.qannotate.utils.SnpEffConsequence;
@@ -32,6 +35,10 @@ import au.edu.qimr.qannotate.utils.SnpEffMafRecord;
 public class Vcf2mafTest {
 	static String outputDir = new File(DbsnpModeTest.inputName).getAbsoluteFile().getParent() + "/output";
 	static String inputName = DbsnpModeTest.inputName;		
+	
+	
+	@org.junit.Rule
+	public  TemporaryFolder testFolder = new TemporaryFolder();
 	
 	 @BeforeClass
 	 public static void createIO(){
@@ -468,7 +475,7 @@ public class Vcf2mafTest {
 	 }
 	 	 
 	 @Test
-	 public void ConsequenceTest() throws Exception{
+	 public void consequenceTest() throws Exception{
 		 		 
 		 String[] str = {"chr7\t140453136\trs121913227\tAC\tTT\t.\tPASS\tSOMATIC;DB;CONF=HIGH;"
 		 		+ "EFF=missense_variant(MODERATE||gtg/AAg|p.Val207Lys/c.619GT>AA|374|BRAF|protein_coding|CODING|ENST00000496384||1|WARNING_TRANSCRIPT_NO_START_CODON),"
@@ -572,18 +579,17 @@ public class Vcf2mafTest {
 	 
 	
 	public static void createVcf(String[] str) throws IOException{
-		 final List<String> data = new ArrayList<String>();
-		 for(int i = 0; i < str.length; i++)
-			 data.add(str[i]);
-		 
-         try(BufferedWriter out = new BufferedWriter(new FileWriter(inputName));) {          
-             for (final String line : data)   out.write(line + "\n");                  
-          }  		
+		createVcf(new File(inputName), str);
+	}
+	public static void createVcf(File outputFile, String[] str) throws IOException{
+		try(PrintWriter out = new PrintWriter(new FileWriter(outputFile));) {
+			out.println(Arrays.stream(str).collect(Collectors.joining(Constants.NL_STRING)));
+		}  		
 	}
  	
 
 	@Test
-	public void FileNameTest() {
+	public void fileNameTest() {
 		String[] str = {VcfHeaderUtils.STANDARD_FILE_VERSION + "=VCFv4.0",			
 				VcfHeaderUtils.STANDARD_DONOR_ID + "=MELA_0264",
 				VcfHeaderUtils.STANDARD_CONTROL_SAMPLE + "=CONTROL",
@@ -592,9 +598,7 @@ public class Vcf2mafTest {
 		};
 		        
         try{
-        	createVcf(str);       
-        	File input = new File(DbsnpModeTest.inputName); 
-
+        		createVcf(str);       
  			final String command = "--mode vcf2maf --log " + outputDir + "/output.log  -i " + inputName + " --outdir " + outputDir;			
 			final Executor exec = new Executor(command, "au.edu.qimr.qannotate.Main");    
 			assertEquals(0, exec.getErrCode());
@@ -607,13 +611,56 @@ public class Vcf2mafTest {
 			assertFalse(new File(outputDir + "/MELA_0264.CONTROL.TEST.Germline.HighConfidence.maf").exists());
 			assertFalse(new File(outputDir + "/MELA_0264.CONTROL.TEST.Somatic.HighConfidence.maf").exists());			
         }catch(Exception e){
-        	fail(e.getMessage()); 
+        		fail(e.getMessage()); 
         }
+	}
+	
+	@Test
+	public void areVcfFilesCreated() throws Exception {
+		String[] str = {VcfHeaderUtils.STANDARD_FILE_VERSION + "=VCFv4.0",			
+				VcfHeaderUtils.STANDARD_DONOR_ID + "=ABCD_1234",
+				VcfHeaderUtils.STANDARD_CONTROL_SAMPLE + "=CONTROL",
+				VcfHeaderUtils.STANDARD_TEST_SAMPLE + "=TEST",				
+				VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tCONTROL\tTEST"	,
+				"chr10\t87489317\trs386746181\tTG\tCC\t.\tPASS\tSOMATIC;DB;CONF=HIGH;"
+						 + "EFF=start_lost(HIGH||atg/GGtg|p.Met1?|580|GRID1|protein_coding|CODING|ENST00000536331||1);"
+						 + "LOF=(GRID1|ENSG00000182771|4|0.25);END=87489318\tACCS\tTG,29,36,_G,0,1\tCC,4,12,TG,15,12"
+		};
 		
+			
+		File vcf = testFolder.newFile();
+		File output = testFolder.newFile();
+		createVcf(vcf, str);
+			
+		String [] command = {"--mode", "vcf2maf", "--log" , output.getParent() + "/output.log",  "-i" , vcf.getAbsolutePath() , "-o" , output.getAbsolutePath()};			
+		Options options = new Options();
+		options.parseArgs(command);
+        Vcf2maf v2m = new Vcf2maf((Vcf2mafOptions) options.getOption());
+			
+        String SHCC  = output.getAbsolutePath().replace(".maf", ".Somatic.HighConfidence.Consequence.maf") ;
+		String SHC = output.getAbsolutePath().replace(".maf", ".Somatic.HighConfidence.maf") ;
+		String GHCC  = output.getAbsolutePath().replace(".maf", ".Germline.HighConfidence.Consequence.maf") ;
+		String GHC = output.getAbsolutePath().replace(".maf", ".Germline.HighConfidence.maf") ;
+		String SHCCVcf  = output.getAbsolutePath().replace(".maf", ".Somatic.HighConfidence.Consequence.vcf") ;
+		String SHCVcf = output.getAbsolutePath().replace(".maf", ".Somatic.HighConfidence.vcf") ;
+		String GHCCVcf  = output.getAbsolutePath().replace(".maf", ".Germline.HighConfidence.Consequence.vcf") ;
+		String GHCVcf = output.getAbsolutePath().replace(".maf", ".Germline.HighConfidence.vcf") ;
+        
+        
+		assertEquals(true, output.exists());
+		assertEquals(true, new File(output.getAbsolutePath().replaceAll("maf", ".vcf")).exists());
+		assertEquals(true, new File(SHCC).exists());
+		assertEquals(true, new File(SHC).exists());
+		assertEquals(true, new File(GHCC).exists());
+		assertEquals(true, new File(GHC).exists());
+		assertEquals(true, new File(SHCCVcf).exists());
+		assertEquals(true, new File(SHCVcf).exists());
+		assertEquals(true, new File(GHCCVcf).exists());
+		assertEquals(true, new File(GHCVcf).exists());
 	}
 
 	@Test
-	public void FileNameWithNODonorTest() throws IOException{
+	public void fileNameWithNODonorTest() throws IOException{
 		String[] str = {"##fileformat=VCFv4.0",			
 				"##qControlSample=CONTROL",
 				"##qTestSample=TEST",				
@@ -632,7 +679,7 @@ public class Vcf2mafTest {
 	}
 		
 	@Test
-	public void FileNameWithNoSampleidTest() throws IOException{
+	public void fileNameWithNoSampleidTest() throws IOException{
 		String[] str = {"##fileformat=VCFv4.0",			
 				VcfHeaderUtils.STANDARD_DONOR_ID +"=MELA_0264",
 				VcfHeaderUtils.STANDARD_TEST_SAMPLE +"=TEST",				

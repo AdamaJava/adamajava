@@ -40,8 +40,6 @@ public class ConfidenceMode extends AbstractMode{
 	public static final int LOW_CONF_ALT_FREQ_PASSING_SCORE = 4;	
 	
 	//filters 
-//	public static final String LESS_THAN_12_READS_NORMAL_AND_UNFILTERED= LESS_THAN_12_READS_NORMAL + SEMI_COLON_STRING + MUTATION_IN_UNFILTERED_NORMAL;
-//	public static final String LESS_THAN_3_READS_NORMAL_AND_UNFILTERED= LESS_THAN_3_READS_NORMAL + SEMI_COLON_STRING + MUTATION_IN_UNFILTERED_NORMAL;
 	
 	
 	public static final String DESCRITPION_INFO_CONFIDENCE = String.format( "set to HIGH if the variants passed all filter, "
@@ -51,16 +49,11 @@ public class ConfidenceMode extends AbstractMode{
 			HIGH_CONF_NOVEL_STARTS_PASSING_SCORE, HIGH_CONF_ALT_FREQ_PASSING_SCORE, LOW_CONF_NOVEL_STARTS_PASSING_SCORE, LOW_CONF_ALT_FREQ_PASSING_SCORE);
 
 
-//	public enum Confidence{	HIGH , LOW, ZERO ; }
-//	private final String patientId;
-	
 	private int test_column = -2; //can't be -1 since will "+1"
 	private int control_column  = -2;
 	
 	//for unit testing
-	ConfidenceMode(String patient){ 
-//		patientId = patient;
-	}
+	ConfidenceMode(String patient){}
 
 	
 	public ConfidenceMode(ConfidenceOptions options) throws Exception{				 
@@ -77,11 +70,8 @@ public class ConfidenceMode extends AbstractMode{
 		test_column = column.getTestSampleColumn();
 		control_column = column.getControlSampleColumn();
 
-
 		//if(options.getpatientid == null)
-//		patientId = DonorUtils.getDonorFromFilename(options.getInputFileName());
 		addAnnotation();
-//		addAnnotation( options.getDatabaseFileName() );
 		reheader(options.getCommandLine(),options.getInputFileName())	;	
 		writeVCF(new File(options.getOutputFileName()) );	
 	}
@@ -247,28 +237,8 @@ public class ConfidenceMode extends AbstractMode{
 			 return true;
 		 }
 		 return nns >= score;
-		 
-//		 return true;
-//		 String nnsString = formatField.getField(VcfHeaderUtils.FILTER_NOVEL_STARTS);
-//		 if (StringUtils.isNullOrEmpty(nnsString) || nnsString.equals(Constants.MISSING_DATA_STRING)) {
-//			 /*
-//			  * If we don't have a value for NNS (I'm looking at you compound snps), then return true...
-//			  */
-//			 return true;
-//		 } else if (nnsString.contains(Constants.VCF_MERGE_DELIM + "")) {
-//			 /*
-//			  * in a merged vcf record, there may be 2 values in the NNS field separated  by a delimiter. Pick the first
-//			  */
-//			 int commaIndex = nnsString.indexOf(Constants.VCF_MERGE_DELIM);
-//			 switch (input) {
-//			 case 1:  return Integer.parseInt(nnsString.substring(0, commaIndex)) >= score; 
-//			 case 2:  return Integer.parseInt(nnsString.substring(commaIndex + 1)) >= score;
-//			 default: return false;
-//			 }
-//			
-//		 }
-//		 return Integer.parseInt(nnsString) >= score;
 	 }
+	 
 	 public static final boolean checkNovelStarts(int score, VcfFormatFieldRecord formatField ) {
 		 return checkNovelStarts(score, formatField, 1);
 	 }
