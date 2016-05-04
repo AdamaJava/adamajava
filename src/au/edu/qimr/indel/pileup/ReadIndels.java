@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.qcmg.common.log.QLogger;
-import org.qcmg.common.model.ChrRangePosition;
+import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.util.IndelUtils.SVTYPE;
@@ -30,7 +30,7 @@ public class ReadIndels {
 	
 	private final int errRecordLimit = 100;	
 	//counts from each input, {No of new indel, No of overlap indel, No of indels with mult Allel, No of inputs variants, No of input variants with multi Allel}
-	private int[] counts = {0,0, 0,0,0}; 
+	private final int[] counts = {0,0, 0,0,0}; 
  
 	//here key will be uniq for indel: chr, start, end, allel 
 	private final  Map<VcfRecord, VcfRecord> positionRecordMap = new  ConcurrentHashMap<VcfRecord, VcfRecord>();	
@@ -270,11 +270,11 @@ public class ReadIndels {
 	 * @return a map of, key is the indel position, value is the list a vcf record on that position. 
 	 * @throws Exception
 	 */
-	public Map<ChrRangePosition, IndelPosition> getIndelMap() throws Exception{	
+	public Map<ChrPosition, IndelPosition> getIndelMap() throws Exception{	
 		
-		Map<ChrRangePosition,IndelPosition> indelPositionMap = new  ConcurrentHashMap<ChrRangePosition,IndelPosition>();
+		Map<ChrPosition,IndelPosition> indelPositionMap = new  ConcurrentHashMap<ChrPosition,IndelPosition>();
 		for(VcfRecord vcf : positionRecordMap.values()){			
-			ChrRangePosition indelPos = ChrRangePosition.valueOf(vcf.getChrPosition()); 
+			ChrPosition indelPos = vcf.getChrPosition(); 
 			if(indelPositionMap.containsKey(indelPos)) 
 				indelPositionMap.get(indelPos).addVcf( vcf );
  			  else 

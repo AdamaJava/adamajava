@@ -16,7 +16,7 @@ import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.picard.SAMFileReaderFactory;
 
 import au.edu.qimr.indel.Q3IndelException;
-import au.edu.qimr.indel.pileup.IndelMT.contigPileup;
+import au.edu.qimr.indel.pileup.IndelMT.ContigPileup;
 
 public class contigPileupTest {
 	
@@ -48,7 +48,7 @@ public class contigPileupTest {
        
         //reset for first indel
         IndelMT mt = new IndelMT();
-        contigPileup pileup = mt.new contigPileup();      
+        ContigPileup pileup = mt.new ContigPileup();      
         pileup.resetPool(topPos, pool, nextpool);
         assertTrue(pool.size() == IndelMT.MAXRAMREADS + 20);
         assertTrue(nextpool.size() == 1);

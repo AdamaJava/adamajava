@@ -2,40 +2,25 @@ package au.edu.qimr.indel.pileup;
 
 
 import static org.junit.Assert.assertTrue;
-import htsjdk.samtools.SAMFileWriter;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SamReader;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
-import junit.framework.Assert;
-
-import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
-import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.vcf.VcfRecord;
-import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-import org.qcmg.picard.SAMFileReaderFactory;
-import org.qcmg.picard.SAMOrBAMWriterFactory;
 import org.qcmg.vcf.VCFFileReader;
 
 import au.edu.qimr.indel.Support;
 import au.edu.qimr.indel.IniFileTest;
-import au.edu.qimr.indel.Options;
-import au.edu.qimr.indel.Q3IndelException;
 
 
 public class IndelPositionTest {
@@ -52,7 +37,6 @@ public class IndelPositionTest {
 		File vcf = new File(inputIndel);
 		
 		//dodgy fake reference  and index
-		File ref = vcf; 
 	 	contigPileupTest.createSam(vcf + ".fai");				
 	}
 	
