@@ -5,13 +5,13 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
-import org.qcmg.common.model.MafConfidence;
 import org.qcmg.common.string.StringUtils;
 
 import static org.qcmg.common.util.Constants.*;
@@ -25,6 +25,7 @@ import org.qcmg.common.vcf.VcfInfoFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
+import org.qcmg.common.vcf.header.VcfHeader.Record;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 
@@ -123,11 +124,10 @@ public class Vcf2maf extends AbstractMode{
 		String SHC = outputname.replace(".maf", ".Somatic.HighConfidence.maf") ;
 		String GHCC  = outputname.replace(".maf", ".Germline.HighConfidence.Consequence.maf") ;
 		String GHC = outputname.replace(".maf", ".Germline.HighConfidence.maf") ;
-		
-//		String SLCC  = outputname.replace(".maf", ".Somatic.LowConfidence.Consequence.maf") ;
-//		String SLC = outputname.replace(".maf", ".Somatic.LowConfidence.maf") ;
-//		String GLCC  = outputname.replace(".maf", ".Germline.LowConfidence.Consequence.maf") ;
-//		String GLC = outputname.replace(".maf", ".Germline.LowConfidence.maf") ;		
+		String SHCCVcf  = outputname.replace(".maf", ".Somatic.HighConfidence.Consequence.vcf") ;
+		String SHCVcf = outputname.replace(".maf", ".Somatic.HighConfidence.vcf") ;
+		String GHCCVcf  = outputname.replace(".maf", ".Germline.HighConfidence.Consequence.vcf") ;
+		String GHCVcf = outputname.replace(".maf", ".Germline.HighConfidence.vcf") ;
 
 		long noIn = 0, noOut = 0, no_SHCC = 0, no_SHC = 0, no_GHCC = 0, no_GHC = 0, no_SLCC = 0, no_SLC = 0, no_GLCC = 0, no_GLC = 0; 
 		try(VCFFileReader reader = new VCFFileReader(new File( option.getInputFileName()));
@@ -136,16 +136,16 @@ public class Vcf2maf extends AbstractMode{
 				PrintWriter out_SHC = new PrintWriter(SHC);
 				PrintWriter out_GHCC = new PrintWriter(GHCC);
 				PrintWriter out_GHC = new PrintWriter(GHC);
-
-//				PrintWriter out_SLCC = new PrintWriter(SLCC);
-//				PrintWriter out_SLC = new PrintWriter(SLC);
-//				PrintWriter out_GLCC = new PrintWriter(GLCC);
-//				PrintWriter out_GLC = new PrintWriter(GLC)
+				PrintWriter outSHCCVcf = new PrintWriter(SHCCVcf);
+				PrintWriter outSHCVcf = new PrintWriter(SHCVcf);
+				PrintWriter outGHCCVcf = new PrintWriter(GHCCVcf);
+				PrintWriter outGHCVcf = new PrintWriter(GHCVcf);
 				){
 			
 			reheader( option.getCommandLine(), option.getInputFileName());			
 			createMafHeader(out,out_SHCC,out_SHC,out_GHCC,out_GHC);//,out_SLCC,out_SLC,out_GLCC,out_GLC);
-//			createMafHeader(out,out_SHCC,out_SHC,out_GHCC,out_GHC,out_SLCC,out_SLC,out_GLCC,out_GLC);
+			
+			createVcfHeaders(reader.getHeader(), outSHCCVcf, outSHCVcf, outGHCCVcf, outGHCVcf);
 			
 			for (final VcfRecord vcf : reader) {
 //	        		try {
@@ -160,43 +160,25 @@ public class Vcf2maf extends AbstractMode{
         			if (isHighConfidence(maf)) {
         				if (isSomatic){
         					out_SHC.println(Smaf);
+        					outSHCVcf.println(vcf);
         					no_SHC ++;
         					
         					if(isConsequence){
         						out_SHCC.println(Smaf);
+        						outSHCCVcf.println(vcf);
         						no_SHCC ++;
         					}
         				} else {
         					out_GHC.println(Smaf);
+        					outGHCVcf.println(vcf);
         					no_GHC ++; 
         					 
         					if(isConsequence){
         						out_GHCC.println(Smaf);
+        						outGHCCVcf.println(vcf);
         						no_GHCC ++;
         					}
         				}
-//        			} else if (option.doOutputLowMaf() && maf.getColumnValue(38).equalsIgnoreCase(MafConfidence.LOW.name())) {
-//        				if (isSomatic){
-//        					out_SLC.println(Smaf);
-//        					no_SLC ++;
-//        					
-//        					if(isConsequence){
-//        						out_SLCC.println(Smaf);
-//        						no_SLCC ++;
-//        					}
-//        				} else {
-//        					out_GLC.println(Smaf);
-//        					no_GLC ++;
-//        					
-//        					if(isConsequence){
-//        						out_GLCC.println(Smaf);
-//        						no_GLCC ++;
-//        					}
-//        				}
-//        			}
-//          		} catch (final Exception e) {
-//	        			logger.warn("Error message during vcf2maf: " + e.getMessage() + "\n" + vcf.toString());
-//	        			e.printStackTrace();
 	        		}
 			}
 		}
@@ -208,8 +190,6 @@ public class Vcf2maf extends AbstractMode{
 		
 		//delete empty maf files
 		deleteEmptyMaf(SHCC, SHC,GHCC,GHC);	//,SLCC,SLC,GLCC,GLC );		
-//		deleteEmptyMaf(SHCC, SHC,GHCC,GHC);	//,SLCC,SLC,GLCC,GLC );		
-//		deleteEmptyMaf(SHCC, SHC,GHCC,GHC,SLCC,SLC,GLCC,GLC );		
 	}
 	
 	public static boolean isHighConfidence(SnpEffMafRecord maf) {
@@ -244,6 +224,19 @@ public class Vcf2maf extends AbstractMode{
 			if(line == null) f.delete();			 
 		}		
 	}
+	
+	public static void createVcfHeaders(VcfHeader header, PrintWriter ... writers){
+		StringBuilder sb = new StringBuilder();
+		for (Record rec : header) {
+			if (sb.length() > 0) {
+				sb.append(Constants.NL);
+			}
+			sb.append(rec.toString());
+		}
+		
+		Arrays.stream(writers).forEach(pw -> pw.println(sb.toString()));
+	}
+	
 	
 	private void createMafHeader(PrintWriter ... writers) {
 		 for(PrintWriter write:writers){
