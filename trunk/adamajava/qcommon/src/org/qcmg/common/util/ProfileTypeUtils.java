@@ -18,7 +18,9 @@ public class ProfileTypeUtils {
 	private static final String XML_EXTENSION = "xml";
 	private static final String MA_EXTENSION = "ma";
 	private static final String FASTQ_EXTENSION = "fastq";
+	private static final String FQ_EXTENSION = "fq";
 	private static final String FASTQ_GZ_EXTENSION = "fastq.gz";
+	private static final String FQ_GZ_EXTENSION = "fq.gz";
 	private static final String FA_EXTENSION = "fa";
 	private static final String GZ_EXTENSION = "gz";
 	
@@ -51,9 +53,9 @@ public class ProfileTypeUtils {
 	    	return ProfileType.GFF;
 	    if (MA_EXTENSION.equals(ext))
 	    	return ProfileType.MA;
-	    if (FASTQ_EXTENSION.equals(ext))
+	    if (FASTQ_EXTENSION.equals(ext) || FQ_EXTENSION.equals(ext))
 	    	return ProfileType.FASTQ;
-	    if (FASTQ_GZ_EXTENSION.equals(ext))
+	    if (FASTQ_GZ_EXTENSION.equals(ext) || FQ_GZ_EXTENSION.equals(ext))
 	    	return ProfileType.FASTQ;
 	    if (FA_EXTENSION.equals(ext))
 	    	return ProfileType.FA;
