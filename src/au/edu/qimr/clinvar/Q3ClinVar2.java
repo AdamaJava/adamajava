@@ -121,10 +121,11 @@ public class Q3ClinVar2 {
 	private int mutationDbSnpRecordCount;
 	private int mutationCosmicRecordCount;
 	
-	private int minBinSize = 10;
-	private int minFragmentSize = 3;
-	private  int minReadPercentage = 2;
-	private int ampliconBoundary = 10;
+	private  int minBinSize = 10;
+	private  int minFragmentSize = 3;
+	private   int minReadPercentage = 2;
+	private  int ampliconBoundary = 10;
+	private  int multiMutationThreshold = 10;
 	final AtomicInteger outputMutations = new AtomicInteger();
 
 	
@@ -1463,31 +1464,27 @@ public class Q3ClinVar2 {
 						 */
 						int swScore = ClinVarUtil.getSmithWatermanScore(smithWatermanDiffs);
 						
-						boolean multipleMutations = (f.getLength() - swScore) >= 10;
+						boolean multipleMutations = (f.getLength() - swScore) >= multiMutationThreshold;
 						
 //						if (entry.getKey().getId() == 8 || f.getId() == 6282) {
 //							logger.info("entry.getKey().getId(): " +entry.getKey().getId() + ", frag: " + f.getId() + ", length: " + f.getLength()  + ", score: " + swScore + " multipleMutations: " + multipleMutations);
 //						}
 //						
-						
-//						if (f.getLength() - swScore <= 10) {
-						
-							List<Pair<Integer, String>> mutations = ClinVarUtil.getPositionRefAndAltFromSW(smithWatermanDiffs);
-							if ( ! mutations.isEmpty()) {
-								for (Pair<Integer, String> mutation : mutations) {
-									int position = mutation.getLeft().intValue();
-									String mutString = mutation.getRight();
-									int slashIndex = mutString.indexOf('/');
-									String ref = mutString.substring(0, slashIndex);
-									String alt = mutString.substring(slashIndex + 1);
-									if (ref.equals(alt)) {
-										logger.warn("ref is equal to alt: " + mutString);
-										logger.warn("f: " + Arrays.stream(f.getSmithWatermanDiffs()).collect(Collectors.joining("\n")));
-									}
-									createMutation(f.getActualPosition(), position , ref, alt, entry.getKey().getId(), f.getId(), f.getRecordCount(), multipleMutations);
+						List<Pair<Integer, String>> mutations = ClinVarUtil.getPositionRefAndAltFromSW(smithWatermanDiffs);
+						if ( ! mutations.isEmpty()) {
+							for (Pair<Integer, String> mutation : mutations) {
+								int position = mutation.getLeft().intValue();
+								String mutString = mutation.getRight();
+								int slashIndex = mutString.indexOf('/');
+								String ref = mutString.substring(0, slashIndex);
+								String alt = mutString.substring(slashIndex + 1);
+								if (ref.equals(alt)) {
+									logger.warn("ref is equal to alt: " + mutString);
+									logger.warn("f: " + Arrays.stream(f.getSmithWatermanDiffs()).collect(Collectors.joining("\n")));
 								}
+								createMutation(f.getActualPosition(), position , ref, alt, entry.getKey().getId(), f.getId(), f.getRecordCount(), multipleMutations);
 							}
-//						}
+						}
 					});
 			});
 	}
@@ -1921,12 +1918,12 @@ public class Q3ClinVar2 {
 			System.err.println(Messages.USAGE);
 		} else {
 			// configure logging
-			logFile = options.getLog();
+			options.getLog().ifPresent((s) -> logFile = s);
 			version = Q3ClinVar2.class.getPackage().getImplementationVersion();
 			if (null == version) {
 				version = "local";
 			}
-			logger = QLoggerFactory.getLogger(Q3ClinVar2.class, logFile, options.getLogLevel());
+			logger = QLoggerFactory.getLogger(Q3ClinVar2.class, logFile, options.getLogLevel().orElse(null));
 			exec = logger.logInitialExecutionStats("q3clinvar", version, args);
 			
 			// get list of file names
@@ -1943,47 +1940,36 @@ public class Q3ClinVar2 {
 			}
 			
 			// set outputfile - if supplied, check that it can be written to
-			if (null != options.getOutputFileName()) {
-				String optionsOutputFile = options.getOutputFileName();
-				if (FileUtils.canFileBeWrittenTo(optionsOutputFile)) {
-					outputFileNameBase = optionsOutputFile;
-				} else {
+			options.getOutputFileName().ifPresent((s) -> outputFileNameBase = s);
+			if (null != outputFileNameBase) {
+				if ( ! FileUtils.canFileBeWrittenTo(outputFileNameBase)) {
 					throw new Exception("OUTPUT_FILE_WRITE_ERROR");
 				}
+			} else {
+				throw new Exception("OUTPUT_FILE_WRITE_ERROR");
 			}
 			
-			if (null != options.getCosmicFile()) {
-				cosmicFile = options.getCosmicFile();
-			}
-			if (null != options.getDbSnpFile()) {
-				dbSNPFile = options.getDbSnpFile();
-			}
+			options.getDbSnpFile().ifPresent((s) -> dbSNPFile = s);
+			options.getCosmicFile().ifPresent((s) -> cosmicFile = s);
+			options.getTiledRefFileName().ifPresent((s) -> refTiledAlignmentFile = s);
+			options.getRefFileName().ifPresent((s) -> refFileName = s);
+			options.getBedFile().ifPresent((s) -> bedFile = s);
+			options.getGeneTranscriptsFile().ifPresent((s) -> geneTranscriptsFile = s);
 			
-			refTiledAlignmentFile = options.getTiledRefFileName();
-			refFileName = options.getRefFileName();
-			bedFile = options.getBedFile();
-			geneTranscriptsFile = options.getGeneTranscriptsFile();
+			options.getMultiMutationThreshold().ifPresent((i) -> multiMutationThreshold = i.intValue());
+			options.getMinFragmentSize().ifPresent((i) -> minFragmentSize = i.intValue());
+			options.getMinReadPercentageSize().ifPresent((i) -> minReadPercentage = i.intValue());
+			options.getAmpliconBoundary().ifPresent((i) -> ampliconBoundary = i.intValue());
+			options.getMinBinSize().ifPresent((i) -> minBinSize = i.intValue());
 			
-			if (options.hasMinBinSizeOption()) {
-				this.minBinSize = options.getMinBinSize().intValue();
-			}
-			if (options.hasMinFragmentSizeOption()) {
-				this.minFragmentSize = options.getMinFragmentSize().intValue();
-			}
-			if (options.hasMinReadPercentageSizeOption()) {
-				this.minReadPercentage = options.getMinReadPercentageSize().intValue();
-			}
-			if (options.hasAmpliconBoundaryOption()) {
-				this.ampliconBoundary = options.getAmpliconBoundary().intValue();
-			}
 			logger.info("minBinSize is " + minBinSize);
 			logger.info("minFragmentSize is " + minFragmentSize);
 			logger.info("minReadPercentage is " + minReadPercentage);
 			logger.info("ampliconBoundary is " + ampliconBoundary);
 			
 			
-				return engage();
-			}
+			return engage();
+		}
 		return returnStatus;
 	}
 

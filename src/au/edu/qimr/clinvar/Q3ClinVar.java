@@ -1800,11 +1800,10 @@ public class Q3ClinVar {
 			System.err.println(Messages.USAGE);
 		} else {
 			// configure logging
-			logFile = options.getLog();
-			String uuid = options.hasUUIDOption() ? options.getUUID() : null;
+			options.getLog().ifPresent((s) -> logFile = s);
 			version = Q3ClinVar.class.getPackage().getImplementationVersion();
-			logger = QLoggerFactory.getLogger(Q3ClinVar.class, logFile, options.getLogLevel());
-			qexec = logger.logInitialExecutionStats("q3clinvar", version, args, uuid);
+			logger = QLoggerFactory.getLogger(Q3ClinVar.class, logFile, options.getLogLevel().orElse(null));
+			qexec = logger.logInitialExecutionStats("q3clinvar", version, args, options.getUUID().orElse(null));
 			
 			// get list of file names
 			fastqFiles = options.getFastqs();
@@ -1820,38 +1819,28 @@ public class Q3ClinVar {
 			}
 			
 			// set outputfile - if supplied, check that it can be written to
-			if (null != options.getOutputFileName()) {
-				String optionsOutputFile = options.getOutputFileName();
-				if (FileUtils.canFileBeWrittenTo(optionsOutputFile)) {
-					outputDir = optionsOutputFile;
-				} else {
+			options.getOutputFileName().ifPresent((s) -> outputDir = s);
+			if (null != outputDir) {
+				if ( ! FileUtils.canFileBeWrittenTo(outputDir)) {
 					throw new Exception("OUTPUT_FILE_WRITE_ERROR");
 				}
+			} else {
+				throw new Exception("OUTPUT_FILE_WRITE_ERROR");
 			}
 			// setup output file name base - use UUID
 			//TODO switch to UUID from qexec when ready to roll
 			outputFileNameBase = outputDir + Constants.FILE_SEPARATOR + qexec.getUuid().getValue() + ".q3cv.";
-//			outputFileNameBase = outputDir + Constants.FILE_SEPARATOR +  "UUID.q3cv.";
 			
-			refTiledAlignmentFile = options.getTiledRefFileName();
-			refFileName = options.getRefFileName();
+			options.getTiledRefFileName().ifPresent((s) -> refTiledAlignmentFile = s);
+			options.getRefFileName().ifPresent((s) -> refFileName = s);
+			options.getXml().ifPresent((s) -> xmlFile = s);
 			
-			xmlFile = options.getXml();
-			if (options.hasMinBinSizeOption()) {
-				this.minBinSize = options.getMinBinSize().intValue();
-			}
-			if (options.hasTiledDiffThresholdOption()) {
-				this.tiledDiffThreshold = options.getTiledDiffThreshold().intValue();
-			}
-			if (options.hasSwDiffThresholdOption()) {
-				this.swDiffThreshold = options.getSwDiffThreshold().intValue();
-			}
-			if (options.hasTileMatchThresholdOption()) {
-				this.tileMatchThreshold = options.getTileMatchThreshold().intValue();
-			}
-			if (options.hasMaxIndelLengthOption()) {
-				this.maxIndelLength = options.getMaxIndelLength().intValue();
-			}
+			options.getMinBinSize().ifPresent((i) -> minBinSize = i.intValue());
+			options.getTiledDiffThreshold().ifPresent((i) -> tiledDiffThreshold = i.intValue());
+			options.getSwDiffThreshold().ifPresent((i) -> swDiffThreshold = i.intValue());
+			options.getTileMatchThreshold().ifPresent((i) -> tileMatchThreshold = i.intValue());
+			options.getMaxIndelLength().ifPresent((i) -> maxIndelLength = i.intValue());
+			
 			logger.info("minBinSize is " + minBinSize);
 			logger.info("tiledDiffThreshold is " + tiledDiffThreshold);
 			logger.info("swDiffThreshold is " + swDiffThreshold);
