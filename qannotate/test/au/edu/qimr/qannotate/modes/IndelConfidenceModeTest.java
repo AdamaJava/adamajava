@@ -36,7 +36,7 @@ public class IndelConfidenceModeTest {
 	}
 	
 	@Test
-	public void HomtxtNiocTest(){
+	public void InfoTest(){
 		
 		IndelConfidenceMode mode = new IndelConfidenceMode();	
 		
@@ -57,6 +57,18 @@ public class IndelConfidenceModeTest {
 		vcf.setInfo("SOMATIC;NIOC=0.087;SVTYPE=INS;END=11303745");
 		assertTrue(mode.getConfidence(vcf) == MafConfidence.HIGH);
 		
+		//somatic SSOI
+		vcf.setInfo("SOMATIC;NIOC=0.087;SSOI=0.1;SVTYPE=INS;END=11303745");
+		assertTrue(mode.getConfidence(vcf) == MafConfidence.HIGH);
+		
+		//germline SSOI high
+		vcf.setInfo("NIOC=0.087;SSOI=0.2;SVTYPE=INS;END=11303745");
+		assertTrue(mode.getConfidence(vcf) == MafConfidence.HIGH);
+		
+		//germline SSOI low
+		vcf.setInfo("NIOC=0.087;SSOI=0.1;SVTYPE=INS;END=11303745");
+		assertTrue(mode.getConfidence(vcf) == MafConfidence.LOW);
+				
 		//9 base repeat
 		vcf.setFilter(IndelUtils.FILTER_HOM + "9");
 		vcf.setInfo("SOMATIC;HOMTXT=AGCCTGTCTCaAAAAAAAAAA;NIOC=0.087;SVTYPE=INS;END=11303745");

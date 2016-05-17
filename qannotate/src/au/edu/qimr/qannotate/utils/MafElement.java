@@ -8,12 +8,10 @@ package au.edu.qimr.qannotate.utils;
 
 import org.qcmg.common.util.IndelUtils;
 
-import au.edu.qimr.qannotate.options.Vcf2mafOptions;
-
 public enum MafElement {
 	Hugo_Symbol( 1,  SnpEffMafRecord.Unknown), 
 	Entrez_Gene_Id( 2, SnpEffMafRecord.Zero), //??Entrez_Gene_Id Entrez gene ID (an integer). If no gene exists within 3kb enter "0".
-	Center(3, Vcf2mafOptions.default_center), //Center"
+	Center(3, SnpEffMafRecord.center), //Center"
 	NCBI_Build(4, "37"), //NCBI_Build
 	Chromosome(5, SnpEffMafRecord.Null), //Chromosome is compulsary with correct value
 	Start_Position(6, SnpEffMafRecord.Null), //Start_Position

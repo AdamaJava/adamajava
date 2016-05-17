@@ -23,7 +23,7 @@ import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils.VcfInfoType;
 import org.qcmg.vcf.VCFFileReader;
 
-import au.edu.qimr.qannotate.options.GeneralOptions;
+import au.edu.qimr.qannotate.Options;
 
 public class DbsnpMode extends AbstractMode{
 	private final static QLogger logger = QLoggerFactory.getLogger(DbsnpMode.class);
@@ -33,7 +33,7 @@ public class DbsnpMode extends AbstractMode{
 	DbsnpMode(){}
 	
 	
-	public DbsnpMode(GeneralOptions options) throws Exception{	
+	public DbsnpMode(Options options) throws Exception{	
 		logger.tool("input: " + options.getInputFileName());
         logger.tool("dbSNP database: " + options.getDatabaseFileName() );
         logger.tool("output for annotated vcf records: " + options.getOutputFileName());
@@ -44,10 +44,7 @@ public class DbsnpMode extends AbstractMode{
 		
 		removeExistingDbSnpIds();
 		
-//		if(options.isDIV())
-//			divAnnotation(options.getDatabaseFileName());
-//		else	
-			addAnnotation(options.getDatabaseFileName() );
+ 		addAnnotation(options.getDatabaseFileName() );
 		
 		reheader(options.getCommandLine(),options.getInputFileName())	;
 		writeVCF( new File(options.getOutputFileName()));	

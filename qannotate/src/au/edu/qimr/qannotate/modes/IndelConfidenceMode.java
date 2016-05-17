@@ -19,7 +19,7 @@ import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 import org.qcmg.vcf.VCFFileWriter;
 
-import au.edu.qimr.qannotate.options.GeneralOptions;
+import au.edu.qimr.qannotate.Options;
 
 /**
  * @author christix
@@ -35,6 +35,7 @@ public class IndelConfidenceMode extends AbstractMode{
 	final String commandLine;
 	final int MAX_CONTIG_SIZE = 250000000;	
 	static final float DEFAULT_NIOC = 0.1f;
+	static final float DEFAULT_SSOI = 0.2f;
 	static final int DEFAULT_HOMN = 6;
 	final BitSet[] mask = new BitSet[24]; 
 		
@@ -55,7 +56,7 @@ public class IndelConfidenceMode extends AbstractMode{
 		commandLine = null;
 	}
 	
-	public IndelConfidenceMode(GeneralOptions options) throws Exception{
+	public IndelConfidenceMode(Options options) throws Exception{
 		input = options.getInputFileName();
 		output = options.getOutputFileName();
 		commandLine = options.getCommandLine();
@@ -102,27 +103,19 @@ public class IndelConfidenceMode extends AbstractMode{
 	 *check the confidence level
 	 */
 	MafConfidence getConfidence(VcfRecord vcf){
-		String filter = vcf.getFilter();
-		
-		
+		String filter = vcf.getFilter();		
 		if( filter.equals(VcfHeaderUtils.FILTER_PASS) ||  filter.matches("HOM\\d+")) {//|| filter.contains(IndelUtils.FILTER_HOM)){
 			//check nearby indel  
-			String info = vcf.getInfoRecord().getField(IndelUtils.INFO_NIOC);
-			float rate = 0;
-			try{
-				 rate = Float.parseFloat(info);
-			}catch(NullPointerException | NumberFormatException  e){
-				//do nothing
-			}
+			float nioc = string2Number(vcf.getInfoRecord().getField(IndelUtils.INFO_NIOC), Float.class);
 			
-			int lhomo = 0;
-			try{	
-				lhomo = Integer.parseInt(filter.replace(IndelUtils.FILTER_HOM, ""));
-			}catch(NullPointerException | NumberFormatException  e){
-				// do nothing				
-			}
+			//check homoplymers
+			int lhomo = string2Number(filter.replace(IndelUtils.FILTER_HOM, ""), Integer.class);
+			
+			//check strong supporting for germline
+			float ssoi = (vcf.getInfoRecord().getField(VcfHeaderUtils.INFO_SOMATIC) != null) ?  
+					1 : string2Number(vcf.getInfoRecord().getField(IndelUtils.INFO_SSOI), Float.class);
 		
-			if(rate <= DEFAULT_NIOC && lhomo <= DEFAULT_HOMN )
+			if(nioc <= DEFAULT_NIOC && lhomo <= DEFAULT_HOMN && ssoi >= DEFAULT_SSOI)
 				return MafConfidence.HIGH;			
 			
 		}else if(filter.equals(IndelUtils.FILTER_HCOVN) || filter.equals(IndelUtils.FILTER_HCOVT) || 
@@ -196,6 +189,19 @@ public class IndelConfidenceMode extends AbstractMode{
 					 
 	}
  
+	
+	@SuppressWarnings("unchecked")
+	private static <T extends Number> T string2Number(String info, Class<T> clazz){
+		T rate = (clazz.equals(Integer.class))? (T) new Integer(0): (T) new Float(0);		
+		try{
+			if(clazz.equals(Integer.class)){ 
+				rate = (T)  Integer.valueOf(info); 
+			}else
+				rate = (T)  Float.valueOf(info); 
+		}catch(NullPointerException | NumberFormatException  e){} //do nothing
+
+		return  rate;
+	}
 }	
 	
   

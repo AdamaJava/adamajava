@@ -12,13 +12,14 @@ import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 
-import au.edu.qimr.qannotate.options.CustomerConfidenceOptions;
+import au.edu.qimr.qannotate.Options;
 import au.edu.qimr.qannotate.utils.SampleColumn;
 
 /**
  * @author christix
  *
  */
+@Deprecated
 public final class CustomerConfidenceMode extends AbstractMode{
 	
 	final String PASS = "PASS";
@@ -39,15 +40,15 @@ public final class CustomerConfidenceMode extends AbstractMode{
 //	//unit test only
 	CustomerConfidenceMode( ){	}
 	
-	public CustomerConfidenceMode(CustomerConfidenceOptions options) throws Exception{	
+	public CustomerConfidenceMode(Options options) throws Exception{	
 		
 		logger.tool("input: " + options.getInputFileName());
         logger.tool("output annotated records: " + options.getOutputFileName());
         logger.tool("logger file " + options.getLogFileName());
         logger.tool("logger level " + (options.getLogLevel() == null ? QLoggerFactory.DEFAULT_LEVEL.getName() :  options.getLogLevel()));
         
-        min_read_counts = options.get_min_read_count();
-        variants_rate = options.get_min_mutant_rate();
+//        min_read_counts = options.get_min_read_count();
+//        variants_rate = options.get_min_mutant_rate();
 //        passOnly = options.isPassOnly();
         
 		inputRecord(new File( options.getInputFileName())   );	

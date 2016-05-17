@@ -20,7 +20,7 @@ import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 import org.qcmg.vcf.VCFFileWriter;
 
-import au.edu.qimr.qannotate.options.CaddOptions;
+import au.edu.qimr.qannotate.Options;
 
 
 public class  CaddMode extends AbstractMode{
@@ -36,7 +36,7 @@ public class  CaddMode extends AbstractMode{
 	
 	String description = "query CADD library for this variant. Format: (Ref>Alt|isDerived|Consequence|ConsScore|ConsDetail|scoreSegDup|priPhyloP|GerpRS|mirSVR-E|cHmmTssA|motifDist|ESP_AFR|ESP_EUR|TG_AMR|FeatureID|FeatureID|CCDS|relcDNApos)";	
 		
-	public CaddMode( CaddOptions options) throws Exception {		
+	public CaddMode( Options options) throws Exception {		
 		
 		final String input = options.getInputFileName();
 		final File output =  new File( options.getOutputFileName() );

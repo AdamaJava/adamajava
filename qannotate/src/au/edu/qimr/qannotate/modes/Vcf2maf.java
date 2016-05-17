@@ -20,21 +20,15 @@ import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.util.IndelUtils.SVTYPE;
 import org.qcmg.common.util.SnpUtils;
-import org.qcmg.common.vcf.VcfFormatFieldRecord;
-import org.qcmg.common.vcf.VcfInfoFieldRecord;
-import org.qcmg.common.vcf.VcfRecord;
-import org.qcmg.common.vcf.VcfUtils;
+import org.qcmg.common.vcf.*;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeader.Record;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 
-import au.edu.qimr.qannotate.options.Vcf2mafOptions;
-import au.edu.qimr.qannotate.utils.MafElement;
-import au.edu.qimr.qannotate.utils.SampleColumn;
-import au.edu.qimr.qannotate.utils.SnpEffConsequence;
-import au.edu.qimr.qannotate.utils.SnpEffMafRecord;
-
+import au.edu.qimr.qannotate.Options;
+import au.edu.qimr.qannotate.utils.*;
+ 
 
 public class Vcf2maf extends AbstractMode{
 	
@@ -55,7 +49,7 @@ public class Vcf2maf extends AbstractMode{
 	// org.qcmg.common.dcc.DccConsequence.getWorstCaseConsequence(MutationType, String...)
 	//for unit test
 	Vcf2maf(int test_column, int control_column, String test, String control){ 
-		center = Vcf2mafOptions.default_center;
+		center = SnpEffMafRecord.center;
 		sequencer = SnpEffMafRecord.Unknown; 
 		this.donorId = SnpEffMafRecord.Unknown; 		
 		this.test_column = test_column;
@@ -67,7 +61,7 @@ public class Vcf2maf extends AbstractMode{
 	}
  
 	//EFF= Effect ( Effect_Impact | Functional_Class | Codon_Change | Amino_Acid_Change| Amino_Acid_Length | Gene_Name | Transcript_BioType | Gene_Coding | Transcript_ID | Exon_Rank  | Genotype_Number [ | ERRORS | WARNINGS ] )	
-	public Vcf2maf(Vcf2mafOptions option) throws Exception {
+	public Vcf2maf( Options option) throws Exception {
 		this.center = option.getCenter();
 		this.sequencer = option.getSequencer();		
 		
@@ -178,8 +172,8 @@ public class Vcf2maf extends AbstractMode{
         						outGHCCVcf.print(vcf);
         						no_GHCC ++;
         					}
-        				}
-	        		}
+        				}   
+        			} 
 			}
 		}
 		
@@ -333,6 +327,8 @@ public class Vcf2maf extends AbstractMode{
 		if(info.getField(VcfHeaderUtils.INFO_FLANKING_SEQUENCE) != null) maf.setColumnValue(MafElement.Var_Plus_Flank,  info.getField(VcfHeaderUtils.INFO_FLANKING_SEQUENCE));
 		if(info.getField(VcfHeaderUtils.INFO_VAF) != null) maf.setColumnValue(MafElement.Variant_AF,  info.getField(VcfHeaderUtils.INFO_VAF));		
 		if(info.getField(VcfHeaderUtils.INFO_GERMLINE) != null) maf.setColumnValue(MafElement.Germ_Counts,  info.getField(VcfHeaderUtils.INFO_GERMLINE));	
+		String str = VcfHeaderUtils.INFO_TRF + "=" +info.getField(VcfHeaderUtils.INFO_TRF);
+		str += ";" + IndelUtils.INFO_SSOI   + "=" +info.getField(IndelUtils.INFO_SSOI );
 		if(info.getField(VcfHeaderUtils.INFO_TRF)!= null) maf.setColumnValue(MafElement.notes,  VcfHeaderUtils.INFO_TRF + "=" +info.getField(VcfHeaderUtils.INFO_TRF));	//add TRF info to notes column
 
 
@@ -453,16 +449,16 @@ public class Vcf2maf extends AbstractMode{
       		 String acindel = sample.getField(IndelUtils.FORMAT_ACINDEL); 
       		      		 
       		 if( !StringUtils.isMissingDtaString(acindel)) {
-      		 //eg. 13,38,37,13[8,5],0,0,1     		
+      		 //eg. 13,38,37,13[8,5],11[11],0,0,1     		
 	      		try{  
 	      			values[6] = acindel;  //default value is "null" string not null	    			
 		      		String[] counts = values[6].split(COMMA_STRING);
-		      		if(counts.length != 8) throw new Exception();
-		      		values[0] = counts[0]; //supporting reads nns
+		      		if(counts.length != 9) throw new Exception();
+		      		values[0] = counts[0]; //strong supporting reads nns
 		      		values[1] = counts[1]; //coverage
-		      		values[3] = counts[3].substring(0,counts[3].indexOf('['));  //supporting reads total
-		      		//reference reads counts is the informative reads - support/partial/nearbyindel reads
-		      		int refCounts =  Integer.parseInt(counts[2]) - Integer.parseInt(values[3])- Integer.parseInt(counts[5]);
+		      		values[3] = counts[5].substring(0,counts[5].indexOf('['));  //supporting reads total not strong support
+		      		//reference reads counts is the informative reads - support/partial reads
+		      		int refCounts =  Integer.parseInt(counts[2]) - Integer.parseInt(values[3])- Integer.parseInt(counts[6]);
 		      		values[2] = refCounts + "";		      		 
 	      		}catch(Exception e){	      			 
 	      				logger.warn("invalide " + IndelUtils.FORMAT_ACINDEL + " at vcf formate column: " + sample.toString());

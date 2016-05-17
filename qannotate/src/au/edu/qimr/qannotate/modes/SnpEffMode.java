@@ -17,14 +17,14 @@ import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.vcf.VCFFileReader;
 import org.qcmg.vcf.VCFFileWriter;
 
-import au.edu.qimr.qannotate.options.SnpEffOptions;
+import au.edu.qimr.qannotate.Options;
 import ca.mcgill.mcb.pcingola.snpEffect.commandLine.SnpEff;
 
 public class SnpEffMode extends AbstractMode{
 
 	private final  String tmpFile;
 	private final QLogger logger = QLoggerFactory.getLogger(SnpEffMode.class);
-	public SnpEffMode(SnpEffOptions options) throws IOException {
+	public SnpEffMode( Options options) throws IOException {
 		
 		logger.tool("input: " + options.getInputFileName());
         logger.tool("snpeff database: " + options.getDatabaseFileName() );
@@ -72,7 +72,7 @@ public class SnpEffMode extends AbstractMode{
 		logger.info(String.format("outputed %d VCF record, happend on %d variants location.",  counts , posCheck.size()));
 	}
 		//throws Exception
-	private boolean addAnnotation(SnpEffOptions options, String tmpFile ) throws FileNotFoundException{	
+	private boolean addAnnotation(Options options, String tmpFile ) throws FileNotFoundException{	
 		
 		final List<String> command = new ArrayList<String>();
 		final File fdata = new File(options.getDatabaseFileName());

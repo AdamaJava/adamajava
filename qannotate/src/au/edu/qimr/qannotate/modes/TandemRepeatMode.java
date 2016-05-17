@@ -1,34 +1,19 @@
 package au.edu.qimr.qannotate.modes;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.concurrent.ConcurrentHashMap;
+import java.io.*;
+import java.util.*;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
-import org.qcmg.common.util.Constants;
-import org.qcmg.common.util.IndelUtils;
+import org.qcmg.common.util.*;
 import org.qcmg.common.util.IndelUtils.SVTYPE;
-import org.qcmg.common.vcf.VcfRecord;
-import org.qcmg.common.vcf.VcfUtils;
+import org.qcmg.common.vcf.*;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.vcf.VCFFileReader;
 import org.qcmg.vcf.VCFFileWriter;
 
-import au.edu.qimr.qannotate.options.GeneralOptions;
+import au.edu.qimr.qannotate.Options;
+
 
 
 public class TandemRepeatMode  extends AbstractMode{
@@ -52,7 +37,7 @@ public class TandemRepeatMode  extends AbstractMode{
 		this.buffer = buffer;
 	}	
 	
-	public TandemRepeatMode( GeneralOptions options) throws Exception{	
+	public TandemRepeatMode( Options options) throws Exception{	
 		input = options.getInputFileName();
 		output = options.getOutputFileName();
 		commandLine = options.getCommandLine();
@@ -242,14 +227,31 @@ public class TandemRepeatMode  extends AbstractMode{
 				
 		if(coveredRepeats.isEmpty()) return false; //do nothing
 		
+		float rate = -1;
+		try{
+			 rate = Float.parseFloat(vcf.getInfoRecord().getField(IndelUtils.INFO_SSOI));
+		}catch(NullPointerException | NumberFormatException  e){} //do nothing			
+		 
 		boolean TRF_filter = false;
 		String TRF_info = ""; //"TRF=" + coveredRepeats.get(0).printMark();
 		for(int i = 0; i < coveredRepeats.size(); i++){
-			TRF_info +="," + coveredRepeats.get(i).printMark();			
-			if(coveredRepeats.get(i).patternLength > 1 && 
-					coveredRepeats.get(i).patternLength < 6 &&
-					coveredRepeats.get(i).patternNo > 10)
-				TRF_filter = true;
+			Repeat rep = coveredRepeats.get(i);
+			TRF_info +="," + rep.printMark();	
+			
+			//once find one TRF satisfied, the filter will be marked as TRF
+			if(TRF_filter) continue; 
+			
+			//discard TRF inside indel(DEL) region that is smaller than DEL size			
+			if(rep.start >= vcf.getPosition() && rep.end <= vcf.getChrPosition().getEndPosition() && 
+					(rep.end - rep.start) < (vcf.getRef().length()-1))
+				TRF_filter = false;
+			else if( rep.patternLength < 6 && rep.patternLength > 1 && rep.patternNo > 10)				
+				TRF_filter = true; //high frequence short TRF
+			else if(rep.patternLength == 1 && rep.patternNo > 6)
+				TRF_filter = true; //homoplymers
+			else if ( (rep.patternLength < 6 &&  rep.patternLength > 0) 
+					&&  (rate < 0.2 && rate >= 0 )) // must check 0 value incase the repeat or ssoi value not exist
+				TRF_filter = true;  //low confidence short TRF
 		}
 		
 		TRF_info = "TRF=" + TRF_info.substring(1);

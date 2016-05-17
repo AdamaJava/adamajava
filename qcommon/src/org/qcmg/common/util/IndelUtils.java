@@ -63,6 +63,10 @@ public class IndelUtils {
 	public static final String INFO_NIOC = "NIOC";
 	public static final String DESCRITPION_INFO_NIOC = " counts of nearby indels compare with total coverage";	
 	
+	public static final String INFO_SSOI = "SSOI";
+	public static final String DESCRITPION_INFO_SSOI = " counts of strong support indels compare with total informative reads coverage";	
+
+	
 	public static final String INFO_HOMCNTXT = "HOMCNTXT";
 	public static final String DESCRITPION_INFO_HOMCNTXT = "nearby refernce sequence. if it is homopolymeric, the maximum repeated based counts will be added infront of sequence ";
 	
