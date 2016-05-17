@@ -17,8 +17,7 @@ import org.qcmg.common.vcf.header.VcfHeader.Record;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 
-import au.edu.qimr.qannotate.options.GeneralOptions;
-
+import au.edu.qimr.qannotate.Options;
 
 public class GermlineMode extends AbstractMode{
 	
@@ -27,7 +26,7 @@ public class GermlineMode extends AbstractMode{
 	//for unit Test only
 	GermlineMode(){}
 
- 	public GermlineMode(GeneralOptions options) throws Exception{
+ 	public GermlineMode(Options options) throws Exception{
 		
 		//this.logger = logger;		
 		logger.tool("input: " + options.getInputFileName());

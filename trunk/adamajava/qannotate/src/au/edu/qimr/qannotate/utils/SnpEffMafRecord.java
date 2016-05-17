@@ -3,7 +3,7 @@ package au.edu.qimr.qannotate.utils;
 
 import java.util.Arrays;
 import java.util.stream.Collectors;
-
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.Constants;
  
 
@@ -17,9 +17,9 @@ public class SnpEffMafRecord {
 	public static final String No = "No";
 	public static final String Null = "null";
 	public static final String Yes = "Yes";
-	public static final String Zero = "0";
-	
+	public static final String Zero = "0";	
 	public static final String Version = "#version 2.4.1";
+	public static final String center = "QIMR_Berghofer"; 
 	
 //	public final static int column = 60;  add column notes
 //	public final static int column = 61; 
@@ -55,11 +55,6 @@ public class SnpEffMafRecord {
 	public String getMafLine() {
 		
 		return Arrays.stream(values).collect(Collectors.joining(Constants.TAB_STRING));
-		
-//		String str = "";
-//		for(String ele :  values)
-//			str += Constants.TAB + ele;
-//		return str.replaceFirst(Constants.TAB+"", "");
 	}
 		
 	public void setColumnValue(MafElement ele, String value) {

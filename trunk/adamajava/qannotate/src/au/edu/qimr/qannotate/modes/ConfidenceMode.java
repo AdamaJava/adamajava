@@ -20,13 +20,14 @@ import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 
-import au.edu.qimr.qannotate.options.ConfidenceOptions;
+import au.edu.qimr.qannotate.Options;
 import au.edu.qimr.qannotate.utils.SampleColumn;
 
 /**
  * @author christix
  *
  */
+
 public class ConfidenceMode extends AbstractMode{
 	private final QLogger logger = QLoggerFactory.getLogger(ConfidenceMode.class);
 	
@@ -56,7 +57,7 @@ public class ConfidenceMode extends AbstractMode{
 	ConfidenceMode(String patient){}
 
 	
-	public ConfidenceMode(ConfidenceOptions options) throws Exception{				 
+	public ConfidenceMode( Options options) throws Exception{				 
 		logger.tool("input: " + options.getInputFileName());
         logger.tool("output annotated records: " + options.getOutputFileName());
         logger.tool("logger file " + options.getLogFileName());
