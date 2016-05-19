@@ -32,6 +32,7 @@ import org.qcmg.common.util.SnpUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 
 
+
 public class VcfUtils {
 	
 	private static final QLogger logger = QLoggerFactory.getLogger(VcfUtils.class);
