@@ -106,6 +106,8 @@ public class VcfHeaderUtils {
 	public static final String STANDARD_TEST_SAMPLE_1 = "##1:qTestSample";
 	public static final String STANDARD_CONTROL_BAM = "##qControlBam";
 	public static final String STANDARD_TEST_BAM = "##qTestBam";
+	public static final String STANDARD_CONTROL_BAM_1 = "##1:qControlBam";
+	public static final String STANDARD_TEST_BAM_1 = "##1:qTestBam";
 	public static final String STANDARD_CONTROL_BAMID = "##qControlBamUUID";
 	public static final String STANDARD_TEST_BAMID = "##qTestBamUUID";
 	
