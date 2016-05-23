@@ -20,6 +20,7 @@ import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.util.IndelUtils.SVTYPE;
 import org.qcmg.common.vcf.VcfFormatFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
+import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 
@@ -91,6 +92,53 @@ public class Vcf2mafTest {
 		 assertEquals(false, Vcf2maf.isHighConfidence(maf));
 		 maf.setColumnValue(MafElement.confidence, "HIGH_1,HIGH_2");
 		 assertEquals(true, Vcf2maf.isHighConfidence(maf));
+	 }
+	 
+	 @Test
+	 public void getDetailsFromVcfHeader() {
+		 VcfHeader h = new VcfHeader();
+		 assertEquals(false, Vcf2maf.getBamid("blah", h).isPresent());
+		 h = createMergedVcfHeader();
+		 assertEquals(false, Vcf2maf.getBamid("##qDonorId", h).isPresent());
+		 assertEquals(true, Vcf2maf.getBamid("##1:qDonorId", h).isPresent());
+	 }
+	 
+	 private VcfHeader createMergedVcfHeader() {
+		 VcfHeader h = new VcfHeader();
+		 Arrays.asList("##fileformat=VCFv4.2",
+"##fileDate=20160523",
+"##",
+"##qUUID=209dec81-a127-4aa3-92b4-2c15c21b75c7",
+"##qSource=qannotate-2.0 (1170)",
+"##1:qUUID=7554fdcc-7230-400e-aefe-5c9a4c79907b",
+"##1:qSource=qSNP v2.0 (1170)",
+"##1:qDonorId=my_donor",
+"##1:qControlSample=my_control_sample",
+"##1:qTestSample=my_test_sample",
+"##1:qControlBam=/mnt/lustre/working/genomeinfo/study/uqccr_amplicon_ffpe/donors/psar_9031/aligned_read_group_sets/dna_primarytumour_externpsar20150414090_nolibkit_truseqampliconcancerpanel_bwakit0712_miseq.bam",
+"##1:qControlBamUUID=null",
+"##1:qTestBam=/mnt/lustre/working/genomeinfo/study/uqccr_amplicon_ffpe/donors/psar_9014/aligned_read_group_sets/dna_primarytumour_externpsar20150414076_nolibkit_truseqampliconcancerpanel_bwakit0712_miseq.bam",
+"##1:qTestBamUUID=null",
+"##1:qAnalysisId=e3afda85-469f-412b-8919-10cd31d2ca52",
+"##2:qUUID=aa7d805f-2ec8-4aea-b1e6-7bc410a41c4b",
+"##2:qSource=qSNP v2.0 (1170)",
+"##2:qDonorId=my_donor",
+"##2:qControlSample=my_control_sample",
+"##2:qTestSample=my_test_sample",
+"##2:qControlBam=/mnt/lustre/working/genomeinfo/study/uqccr_amplicon_ffpe/donors/psar_9031/aligned_read_group_sets/dna_primarytumour_externpsar20150414090_nolibkit_truseqampliconcancerpanel_bwakit0712_miseq.bam",
+"##2:qControlBamUUID=null",
+"##2:qTestBam=/mnt/lustre/working/genomeinfo/study/uqccr_amplicon_ffpe/donors/psar_9014/aligned_read_group_sets/dna_primarytumour_externpsar20150414076_nolibkit_truseqampliconcancerpanel_bwakit0712_miseq.bam",
+"##2:qTestBamUUID=null",
+"##2:qAnalysisId=3334e934-cb45-4215-9eb5-84b63d96a502",
+"##2:qControlVcf=/mnt/lustre/home/oliverH/q3testing/analysis/9/7/97b3715c-0a80-4115-844e-cc877b2cf409/controlGatkHCCV.vcf",
+"##2:qControlVcfUUID=null",
+"##2:qControlVcfGATKVersion=3.4-46-gbc02625",
+"##2:qTestVcf=/mnt/lustre/home/oliverH/q3testing/analysis/c/f/cfccdb1c-6c26-48e9-bd73-ad4ebd806aa6/testGatkHCCV.vcf",
+"##2:qTestVcfUUID=null",
+"##2:qTestVcfGATKVersion=3.4-46-gbc02625",
+"##INPUT=1,FILE=/mnt/lustre/home/oliverH/q3testing/analysis/e/3/e3afda85-469f-412b-8919-10cd31d2ca52/e3afda85-469f-412b-8919-10cd31d2ca52.vcf",
+"##INPUT=2,FILE=/mnt/lustre/home/oliverH/q3testing/analysis/3/3/3334e934-cb45-4215-9eb5-84b63d96a502/3334e934-cb45-4215-9eb5-84b63d96a502.vcf").stream().forEach(h::parseHeaderLine);
+		 return h;
 	 }
 	 
 	 
