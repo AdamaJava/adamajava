@@ -3,12 +3,18 @@ package au.edu.qimr.qannotate.modes;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -41,8 +47,8 @@ public class Vcf2maf extends AbstractMode{
 	private final String donorId ;	 
 	private final String testSample ;
 	private final String controlSample ;
-	private final String testBamId ;
-	private final String controlBamId ;
+	private String testBamId ;
+	private String controlBamId ;
 	private final int test_column;
 	private final int control_column;
 	
@@ -73,8 +79,33 @@ public class Vcf2maf extends AbstractMode{
 			this.control_column = column.getControlSampleColumn();
 			this.testSample = column.getTestSample();
 			this.controlSample = column.getControlSample();	
-			this.testBamId = getBamid(VcfHeaderUtils.STANDARD_TEST_BAMID , reader.getHeader());
-			this.controlBamId = getBamid(VcfHeaderUtils.STANDARD_CONTROL_BAMID, reader.getHeader());
+			getBamid(VcfHeaderUtils.STANDARD_TEST_BAMID , reader.getHeader()).ifPresent(s -> this.testBamId = s);
+			getBamid(VcfHeaderUtils.STANDARD_CONTROL_BAMID , reader.getHeader()).ifPresent(s -> this.controlBamId = s);
+			
+			Function<String,String> getFileName = (String s) -> {
+				try {
+					return Paths.get(s).toRealPath(null).getFileName().toString();
+				} catch (IOException ioe) {
+					throw new RuntimeException(ioe);
+				}
+			};
+ 			
+			/*
+			 * If we don't have bam ids, try and get them from the bam file name
+			 */
+			if (null == controlBamId) {
+				getBamid(VcfHeaderUtils.STANDARD_CONTROL_BAM , reader.getHeader()).ifPresent(s -> controlBamId = getFileName.apply(s));
+				if (null == controlBamId) {
+					getBamid(VcfHeaderUtils.STANDARD_CONTROL_BAM_1 , reader.getHeader()).ifPresent(s -> controlBamId = getFileName.apply(s));
+				}
+			}
+			if (null == testBamId) {
+				getBamid(VcfHeaderUtils.STANDARD_TEST_BAM , reader.getHeader()).ifPresent(s -> testBamId = getFileName.apply(s));
+				if (null == testBamId) {
+					getBamid(VcfHeaderUtils.STANDARD_TEST_BAM_1 , reader.getHeader()).ifPresent(s -> testBamId = getFileName.apply(s));
+				}
+			}
+			
 										
 			//get donor id
 			String  id = option.getDonorId() ;			
@@ -212,8 +243,8 @@ public class Vcf2maf extends AbstractMode{
 		        			break; //find non header line
 		        		}
 		        	}
-	        }	catch(Exception e){
-	        		logger.warn("Exception during check whether maf if empty or not : " + str);
+	        }	catch(IOException e){
+	        		logger.warn("IOException during check whether maf if empty or not : " + str);
 	        }		        	
 			if(line == null) f.delete();			 
 		}		
@@ -544,13 +575,13 @@ public class Vcf2maf extends AbstractMode{
 			if(! StringUtils.isNullOrEmpty(effs[10])) maf.setColumnValue(MafElement.Genotype_Number,effs[10]);		
  	 }
 
- 	String getBamid(String key, VcfHeader header){
+ 	public static Optional<String> getBamid(String key, VcfHeader header){
  		for (final VcfHeader.Record hr : header.getMetaRecords()) { 
 			if( hr.getData().indexOf(key) != -1) {
-				return StringUtils.getValueFromKey(hr.getData(), key);
+				return Optional.ofNullable(StringUtils.getValueFromKey(hr.getData(), key));
 			}
  		}
- 		return null; 
+ 		return Optional.empty(); 
  	}
 	
 	@Override
