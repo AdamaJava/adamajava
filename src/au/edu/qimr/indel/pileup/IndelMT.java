@@ -332,16 +332,16 @@ public class IndelMT {
      	//each time only throw threadNo thread, the loop finish untill the last threadNo                    	
     	for(SAMSequenceRecord contig : sortedContigs ){       		
     		if(options.getControlBam() != null)    			
-    			 pileupThreads.execute(new contigPileup(contig, getIndelList(contig), options.getControlBam(),query,
+    			 pileupThreads.execute(new ContigPileup(contig, getIndelList(contig), options.getControlBam(),query,
     				normalQueue, Thread.currentThread(),pileupLatch ));
     		
     		//getIndelList must be called repeately, since it will be empty after pileup
     		 if(options.getTestBam() != null)
-    			 pileupThreads.execute(new contigPileup(contig, getIndelList(contig), options.getTestBam() , query,
+    			 pileupThreads.execute(new ContigPileup(contig, getIndelList(contig), options.getTestBam() , query,
     					 tumourQueue, Thread.currentThread() ,pileupLatch));
     		
     		if(options.getReference() != null)
-    			pileupThreads.execute(new homopoPileup(contig.getSequenceName(), getIndelList(contig), options.getReference(),
+    			pileupThreads.execute(new HomopoPileup(contig.getSequenceName(), getIndelList(contig), options.getReference(),
     				homopoQueue, options.nearbyHomopolymer,options.getNearbyHomopolymerReportWindow(), Thread.currentThread(),pileupLatch));    		
     	}
     	pileupThreads.shutdown();
