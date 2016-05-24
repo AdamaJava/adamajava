@@ -63,6 +63,7 @@ public class Options {
 	private String analysisid; 
 	private int gematic_nns;
 	private float gematic_soi; 
+	private int max_events;
 //	private boolean exdup;
 				
 	private String filterQuery;
@@ -116,6 +117,7 @@ public class Options {
 		String[] windows = iniFile.fetch(ini_secParameter, "window.homopolymer").split(",");
 		nearbyHomopolymer = Integer.parseInt(windows[0]);
 		nearbyHomopolymerReport = Integer.parseInt(windows[1]);
+		max_events = Integer.parseInt( iniFile.fetch(ini_secParameter, "strong.event"));
 		softClipWindow = Integer.parseInt( iniFile.fetch(ini_secParameter, "window.softClip"));
 		threadNo = Integer.parseInt( iniFile.fetch(ini_secParameter, "threadNo"));
 		filterQuery =  iniFile.fetch(ini_secParameter, "filter");
@@ -129,6 +131,7 @@ public class Options {
 		
 		gematic_nns = Integer.parseInt( iniFile.fetch(ini_secRule, "gematic.nns"));
 		gematic_soi = Float.parseFloat( iniFile.fetch(ini_secRule, "gematic.soi"));
+		
 //		exdup  = Boolean.parseBoolean( iniFile.fetch(ini_secRule, "exclude.Duplicates"));
 				 		
   		detectBadOptions();	  		  		
@@ -153,6 +156,7 @@ public class Options {
 	public String getAnalysisId(){return analysisid; }
 	public int getMinGematicNovelStart(){return gematic_nns ;}
 	public float getMinGematicSupportOfInformative(){return gematic_soi; }
+	public int getMaxEventofStrongSupport(){return  max_events; }
 	
 
 //	public boolean excludeDuplicates() {

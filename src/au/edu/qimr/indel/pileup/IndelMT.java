@@ -123,7 +123,7 @@ public class IndelMT {
 			 		else{
 			 			next_pool.add(re); 
 			 			//pileup
-			 			IndelPileup pileup= new IndelPileup(topPos, options.getSoftClipWindow(), options.getNearbyIndelWindow());
+			 			IndelPileup pileup= new IndelPileup(topPos, options.getSoftClipWindow(), options.getNearbyIndelWindow(), options.getMaxEventofStrongSupport());
 			 			pileup.pileup(current_pool);
 			 			qOut.add(pileup);
 			 			
@@ -137,14 +137,11 @@ public class IndelMT {
 			 	//after loop check all pool
 			 	do{			
 			 		//check whether previous loop also used up all indel position
-			 		if(topPos == null) break; 
-			 			
-		 			IndelPileup pileup= new IndelPileup(topPos, options.getSoftClipWindow(), options.getNearbyIndelWindow());
+			 		if(topPos == null) break; 			 			
+		 			IndelPileup pileup= new IndelPileup(topPos, options.getSoftClipWindow(), options.getNearbyIndelWindow(),options.getMaxEventofStrongSupport());
 		 			pileup.pileup(current_pool);
-		 			qOut.add(pileup);
-					
+		 			qOut.add(pileup);					
 					if( (topPos = qIn.poll()) == null) break; 
-
 					resetPool(topPos,  current_pool, next_pool); 							
 			 	}while( true ) ;					 					 
 			} catch (Exception e) {
@@ -155,9 +152,7 @@ public class IndelMT {
 				logger.info( size + " indels is completed pileup from " + contig.getSequenceName() + " on " + bam.getName());
 
  			}			
-		}
-	
-		
+		}		
 		/**
 		 * it swap SAMRecord between currentPool and nextPool. After then, the currentPool will contain all SAMRecord overlapping topPos position, 
 		 * the nextPool will contain all SAMRecord start after topPos position.  All SAMRecord end before topPos position will be remvoved from both pool. 
@@ -202,8 +197,7 @@ public class IndelMT {
 				currentPool.addAll(tmp_current_pool);
 		}				
 	}
-		
-	
+			
 	class HomopoPileup implements Runnable {
 		private final AbstractQueue<IndelPosition> qIn;
 		private final AbstractQueue<Homopolymer> qOut;
@@ -271,19 +265,16 @@ public class IndelMT {
 		this.options = options;	
 		this.logger = logger; 
 		
-		SamReader reader;
-		if(options.getTestBam() != null)
-			reader = SAMFileReaderFactory.createSAMFileReader(options.getTestBam()); 
-		else
-			reader = SAMFileReaderFactory.createSAMFileReader(options.getControlBam()); 
-		
+		//get sequence from bam header
+		File bam = (options.getTestBam() != null)? options.getTestBam(): options.getControlBam();
+		SamReader reader =  SAMFileReaderFactory.createSAMFileReader(bam) ;				 
 		for (final SAMSequenceRecord contig : reader.getFileHeader().getSequenceDictionary().getSequences())  
 			sortedContigs.add(contig);
 		reader.close(); 
 		
 		//loading indels 
 		this.indelload = new ReadIndels(logger);		
-		if(options.getRunMode().equalsIgnoreCase(options.RUNMODE_GATK) || options.getRunMode().equalsIgnoreCase(options.RUNMODE_GATKTEST)){	
+		if(options.getRunMode().equalsIgnoreCase(options.RUNMODE_GATK) ){	
 			//first load control
 			if(options.getControlInputVcf() != null){
 				indelload.LoadIndels(options.getControlInputVcf(),options.getRunMode());	
@@ -297,17 +288,14 @@ public class IndelMT {
 			}	
 			//then test second column
 			if(options.getTestInputVcf() != null){
-				indelload.appendIndels(options.getTestInputVcf(), options.getRunMode());
-				
+				indelload.appendTestIndels(options.getTestInputVcf());				
 				logger.info(indelload.getCounts_inputLine() + " variants record exsits inside test vcf input.");
 				logger.info(indelload.getCounts_inputMultiAlt() + " variants record with multi Alleles exsits inside test vcf input.");	
-				logger.info(indelload.getCounts_multiIndel() + " indels are split from multi alleles inside test vcf");	
-				
+				logger.info(indelload.getCounts_multiIndel() + " indels are split from multi alleles inside test vcf");					
 				logger.info(indelload.getCounts_newIndel() + " new indels are found in Test vcf input only.");
 				logger.info(indelload.getCounts_overlapIndel() + " indels are found in both Control and Test vcf inputs.");
 				logger.info((indelload.getCounts_totalIndel() - indelload.getCounts_newIndel() - indelload.getCounts_overlapIndel()) +  
-						" indels are found in Control vcf input only." );
-				
+						" indels are found in Control vcf input only." );				
 			}				
 		}else if(options.getRunMode().equalsIgnoreCase("pindel")){	
 			for(int i = 0; i < options.getInputVcfs().size(); i ++)
@@ -344,16 +332,16 @@ public class IndelMT {
      	//each time only throw threadNo thread, the loop finish untill the last threadNo                    	
     	for(SAMSequenceRecord contig : sortedContigs ){       		
     		if(options.getControlBam() != null)    			
-    			 pileupThreads.execute(new ContigPileup(contig, getIndelList(contig, null), options.getControlBam(),query,
+    			 pileupThreads.execute(new contigPileup(contig, getIndelList(contig), options.getControlBam(),query,
     				normalQueue, Thread.currentThread(),pileupLatch ));
     		
     		//getIndelList must be called repeately, since it will be empty after pileup
     		 if(options.getTestBam() != null)
-    			 pileupThreads.execute(new ContigPileup(contig, getIndelList(contig, null), options.getTestBam() , query,
+    			 pileupThreads.execute(new contigPileup(contig, getIndelList(contig), options.getTestBam() , query,
     					 tumourQueue, Thread.currentThread() ,pileupLatch));
     		
     		if(options.getReference() != null)
-    			pileupThreads.execute(new HomopoPileup(contig.getSequenceName(), getIndelList(contig, null), options.getReference(),
+    			pileupThreads.execute(new homopoPileup(contig.getSequenceName(), getIndelList(contig), options.getReference(),
     				homopoQueue, options.nearbyHomopolymer,options.getNearbyHomopolymerReportWindow(), Thread.currentThread(),pileupLatch));    		
     	}
     	pileupThreads.shutdown();
@@ -403,7 +391,7 @@ public class IndelMT {
 			indel.setHomopolymer(homopo);
 		}
 		
-		final AbstractQueue<IndelPosition> orderedList = getIndelList(null,null);
+		final AbstractQueue<IndelPosition> orderedList = getIndelList(null);
 		logger.info("reading indel position:  " + orderedList.size() );
 		try(VCFFileWriter writer = new VCFFileWriter( output)) {	
 						
@@ -508,7 +496,8 @@ public class IndelMT {
 	  * @param filter: only return indel vcf records with specified filter value. Put null here if ignor record filter column value
 	  * @return a sorted list of IndelPotion on this contig; return whole reference indels if contig is null
 	  */
-	private  AbstractQueue<IndelPosition>  getIndelList( SAMSequenceRecord contig, String filter ){	  
+//	private  AbstractQueue<IndelPosition>  getIndelList( SAMSequenceRecord contig, String filter ){	  
+	 private  AbstractQueue<IndelPosition>  getIndelList( SAMSequenceRecord contig){	  
 		if (positionRecordMap == null || positionRecordMap.size() == 0)
 			return new ConcurrentLinkedQueue<IndelPosition>(); 			  
 		  
@@ -518,28 +507,23 @@ public class IndelMT {
 				continue; 
 			
 			boolean flag = true; 
-			if(filter != null){
-				flag = false; 
-				for(VcfRecord re : positionRecordMap.get(pos).getIndelVcfs() )
-					if( re.getFilter().equals(filter)){
-						flag = true;
-						break;
-					}
-			}
-			if(flag)    
+//			if(filter != null){
+//				flag = false; 
+//				for(VcfRecord re : positionRecordMap.get(pos).getIndelVcfs() )
+//					if( re.getFilter().equals(filter)){
+//						flag = true;
+//						break;
+//					}
+//			}
+			if(flag)
 				list.add(positionRecordMap.get(pos));	 
 		}
-
 		
-		Collections.sort(list, new Comparator<IndelPosition>() {
-			@Override
-			public int compare(IndelPosition o1, IndelPosition o2) {
-				return o1.getChrRangePosition().compareTo( o2.getChrRangePosition());
-			}
-		});
+		//lambda expression to replace abstract method
+		list.sort(  (IndelPosition o1, IndelPosition o2) ->
+			o1.getChrRangePosition().compareTo( o2.getChrRangePosition()) );				 
 		
 		return new ConcurrentLinkedQueue<IndelPosition>(list);
   }
-	 
-		
+	 		
 }

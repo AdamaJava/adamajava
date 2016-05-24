@@ -25,28 +25,34 @@ public class IndelPileup {
 	private  int informativeCount; //crossover full indels start - end
 	private  int nearbysoftClip ; //reads contain softclipping in either side window
 	private  int nearbyIndel ;//= new ArrayList<Integer>(); //must be informative	
+	private int maxEvent; //max variant event allowed in a strong supporting read
 	
 	List<Integer> support = new ArrayList<Integer>();
-	List<Integer> forwardsupport = new ArrayList<Integer>();
-	List<Integer> backwardsupport = new ArrayList<Integer>();
+	List<Integer> strongSupport = new ArrayList<Integer>();
+	List<Integer> forwardstrong = new ArrayList<Integer>();
+	List<Integer> backwardstrong = new ArrayList<Integer>();
 	
 	List<Integer> partial = new ArrayList<Integer>();  
-	List<Integer> novelStart = new ArrayList<Integer>(); 
+	List<Integer> novelStart4strong = new ArrayList<Integer>(); 
+	List<Integer> novelStart4support = new ArrayList<Integer>(); 
 	
-	public IndelPileup( IndelPosition pos, int nearbySoftClipWindow, int nearyIndelWindow) throws Exception { 	
+	public IndelPileup( IndelPosition pos, int nearbySoftClipWindow, int nearyIndelWindow, int maxEvent) throws Exception { 	
 		this.position = pos.getChrRangePosition();
 		this.indelStart = pos.getStart();
 		this.indelEnd = pos.getEnd();		
 		this.type = pos.getIndelType();
 		this.nearbySoftClipWindow = nearbySoftClipWindow;
 		this.nearyIndelWindow = nearyIndelWindow;
+		this.maxEvent = maxEvent;
 		this.motifs = pos.getMotifs();		
 		for(int i = 0; i < motifs.size(); i ++){
 			support.add(i,0); 
-			forwardsupport.add(i,0); 
-			backwardsupport.add(i,0); 
+			strongSupport.add(i,0);
+			forwardstrong.add(i,0); 
+			backwardstrong.add(i,0); 
 			partial.add(i,0);
-			novelStart.add(i,0);
+			novelStart4strong.add(i, 0);		
+			novelStart4support.add(i,0);
 		}		
 	}
 		
@@ -65,12 +71,15 @@ public class IndelPileup {
 		//assign real counts to overwrite the list init
 		for(int i = 0; i < motifs.size(); i ++){			 
 			int[] counts = getCounts(tmpPool, motifs.get(i));
-			support.add(i, counts[0]);			
-			forwardsupport.add(i, counts[1]);  
-			backwardsupport.add(i, counts[2]);
 			
-			partial.add(i,counts[3]);
-			novelStart.add(i, counts[4]);			
+			//int[] counts = {support, forwardstrong,backwardstrong, partsupport, novel4strong.size(), strongSupport ,novel4support.size()};
+			support.set(i, counts[0]) ;
+			strongSupport.set(i, counts[5]);
+			forwardstrong.set(i, counts[1]);  
+			backwardstrong.set(i, counts[2]);			
+			partial.set(i,counts[3]);
+			novelStart4strong.set(i, counts[4]);		
+			novelStart4support.set(i,counts[6]);
 		}
 	}
 	
@@ -110,8 +119,8 @@ public class IndelPileup {
 					}else if(refPos > windowStart && refPos < windowEnd)						
 						nearby = true;  //nearby insertion overlap the window
 				}else if( CigarOperator.D == ce.getOperator()){
-					// deletion overlaps variants, full/part supporting reads
-						//rePos inside indle region
+					//deletion overlaps variants, full/part supporting reads
+					//rePos inside indle region
 					if( (refPos >= indelStart && refPos <= indelEnd)  || 
 						//indel chock end inside indel region
 						(refPos + ce.getLength() -1 >= indelStart && refPos + ce.getLength() -1 <= indelEnd) || 
@@ -146,16 +155,14 @@ public class IndelPileup {
 		
 	}
 	
-	private Set<Integer> addToNovelStarts(SAMRecord record, Set<Integer> novelStarts) {
-		
-		if (record.getReadNegativeStrandFlag()) {			
-			novelStarts.add(record.getAlignmentEnd());
-		} else {
-			novelStarts.add(record.getAlignmentStart());
-		}
-		return novelStarts; 
-		
-	}	
+//	private Set<Integer> addToNovelStarts(SAMRecord record, Set<Integer> NNSlist) {		
+//		if (record.getReadNegativeStrandFlag()) {			
+//			NNSlist.add(record.getAlignmentEnd());
+//		} else {
+//			NNSlist.add(record.getAlignmentStart());
+//		}
+//		return NNSlist; 		
+//	}	
 	
 	/**
 	 * 
@@ -166,10 +173,14 @@ public class IndelPileup {
 	 */
 	private int[] getCounts(List<SAMRecord> pool, String motif) throws Exception{
 		int support = 0;
-		int partsupport = 0;
-		int forwardSupport = 0;
-		int backwardSupport = 0;
-		Set<Integer> novelStarts = new HashSet<Integer>();				
+		int strong_support = 0;
+		int part_support = 0;
+		int forward_strong = 0;
+		int backward_strong = 0;
+		Set<Integer> novel4strong = new HashSet<Integer>();		
+		Set<Integer> novel4support = new HashSet<Integer>();		
+		
+		
 		//check this indel is nearby, partial or full match
 		
 		for(SAMRecord re : pool){
@@ -188,7 +199,7 @@ public class IndelPileup {
 			 			String base = re.getReadString().substring(startIndex+1,endIndex);
 			 			if(motif.toLowerCase().matches(base.toLowerCase())){
 			 				supportflag = true;				 				 
-			 				novelStarts = addToNovelStarts(re, novelStarts);
+			 				//novelStarts = addToNovelStarts(re, novelStarts);
 			 				//System.out.println("supportI: " + re.getSAMString());
 			 			}else 
 			 				partialflag = true; 
@@ -200,29 +211,73 @@ public class IndelPileup {
 					if(refPos <= indelEnd && refPos + ce.getLength() >= indelStart && type.equals(SVTYPE.DEL)){ 												 						
 							if(refPos == indelStart && ce.getLength() == motif.length()){
 				 				supportflag = true; 				 				
-				 				novelStarts = addToNovelStarts(re, novelStarts);					 				 
+				 				//novelStarts = addToNovelStarts(re, novelStarts);					 				 
 							}else
 								partialflag = true; 
-					}						
+					}
 				
 				// match indel
-				if(supportflag){ 					
-					if (re.getReadNegativeStrandFlag())   backwardSupport ++;
-					else   forwardSupport ++;
-					support ++;
+				if(supportflag){ 	
+					int ss = re.getReadNegativeStrandFlag() ? re.getAlignmentEnd() : re.getAlignmentStart() ;
+					novel4support.add(ss);					
+					if(isStrongSupport(re, maxEvent)){ //check variants no inside read
+						strong_support++;
+						novel4strong.add(ss);
+						if (re.getReadNegativeStrandFlag())   backward_strong ++;
+						else   forward_strong ++;		
+					}
+					support ++;			
 					break;
 				}else if(partialflag){
-					partsupport ++;
+					part_support ++;
 					break;					
 				//go to next block 		
 				}else if (ce.getOperator().consumesReferenceBases()) 
 					refPos += ce.getLength();				
 			}
-		}
-					 
-		int[] counts = {support, forwardSupport,backwardSupport, partsupport, novelStarts.size() };
+		}					 
+		int[] counts = {support, forward_strong,backward_strong, part_support, novel4strong.size(), strong_support ,novel4support.size()};
 		return counts; 
 		
+	}
+	
+	/**
+	 * 
+	 * @param record: a support bam record
+	 * @return true, if there are less specified number of variants events on that read. it self counts as one
+	 */
+	 boolean isStrongSupport(final SAMRecord record, final int eventNo ) {
+		int count = 0;
+		Cigar cigar = record.getCigar();
+		for (CigarElement ce : cigar.getCigarElements()) 					
+			if(CigarOperator.I == ce.getOperator() || CigarOperator.D == ce.getOperator() ) 
+				count ++;
+		 
+		if(count > eventNo) return false;
+		
+		//check MD field
+		String mdData = (String)record.getAttribute("MD");
+		if (null == mdData) return false; //no MD filed, supports to be bad reads
+				 
+		for (int i = 0, size = mdData.length() ; i < size ; i++) {
+			char c = mdData.charAt(i);
+			if ('^' == c) { //skip deletion
+				while (++i < size && Character.isLetter(mdData.charAt(i))) {}
+			}
+			
+			boolean flag = false;
+			while (c == 'A' || c == 'C' || c == 'G' || c == 'T' || c == 'N') {
+				flag = true; 
+				if(i < size-1 &&  mdData.charAt(++i) == '0') 
+					i++; //Adjacent snp as MNP				 
+				else break; 					
+			} 
+			
+			if(flag) count ++;		
+			if(count > eventNo ) return false; 
+		}
+		 		
+		return true; 
 	}
 		
 	private boolean nBasePresentInInsertion(SAMRecord record ) {
@@ -295,12 +350,13 @@ public class IndelPileup {
 	public int getNearybySoftclipCount(){ return nearbysoftClip; }
 	public int getNearbyIndelCount(){ return nearbyIndel; }
 	public int getsuportReadCount(int index){return support.get(index);}
-	public int getforwardsuportReadCount(int index){return forwardsupport.get(index);}
-	public int getbackwardsuportReadCount(int index){return backwardsupport.get(index);}
+	public int getstrongSuportReadCount(int index){return strongSupport.get(index);}
+	public int getforwardsuportReadCount(int index){return forwardstrong.get(index);}
+	public int getbackwardsuportReadCount(int index){return backwardstrong.get(index);}
 	
 	public int getparticalReadCount(int index) { return partial.get(index); }
-	public int getnovelStartReadCount(int index ){return novelStart.get(index); }
-	
+	public int getstrongsupportNovelStartReadCount(int index ){return novelStart4strong.get(index); }
+	public int getsupportNovelStartReadCount(int index ){return novelStart4support.get(index); }
 	
 	public boolean hasStrandBias(int index, double d) {
 		//supporting reads are greater than 3
@@ -308,8 +364,8 @@ public class IndelPileup {
 			return false; 
 		
 		double minP = d * 100;
-		double fPercent = ((double) forwardsupport.get(index) / (double)support.get(index)) * 100;
-		double rPercent = ((double) backwardsupport.get(index) / (double)support.get(index)) * 100;
+		double fPercent = ((double) forwardstrong.get(index) / (double)support.get(index)) * 100;
+		double rPercent = ((double) backwardstrong.get(index) / (double)support.get(index)) * 100;
 		if( Math.min(fPercent, rPercent) < minP)
 			return true; 		 
 
