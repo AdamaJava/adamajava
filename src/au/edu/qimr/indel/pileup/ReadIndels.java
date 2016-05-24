@@ -9,6 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.util.IndelUtils.SVTYPE;
@@ -245,19 +246,34 @@ public class ReadIndels {
 	 * @return a map of, key is the indel position, value is the list a vcf record on that position. 
 	 * @throws Exception
 	 */
-	public Map<ChrPosition, IndelPosition> getIndelMap() throws Exception{	
-		
-		Map<ChrPosition,IndelPosition> indelPositionMap = new  ConcurrentHashMap<ChrPosition,IndelPosition>();
-		for(VcfRecord vcf : positionRecordMap.values()){			
-			ChrPosition indelPos = vcf.getChrPosition(); 
-			if(indelPositionMap.containsKey(indelPos)) 
-				indelPositionMap.get(indelPos).addVcf( vcf );
- 			  else 
-				indelPositionMap.put(indelPos, new IndelPosition(vcf));
-		}	
+	public Map<ChrRangePosition, IndelPosition> getIndelMap() throws Exception{	
+	
+	Map<ChrRangePosition,IndelPosition> indelPositionMap = new  ConcurrentHashMap<ChrRangePosition,IndelPosition>();
+	for(VcfRecord vcf : positionRecordMap.values()){			
+		ChrRangePosition indelPos = new ChrRangePosition(vcf.getChrPosition(), vcf.getChrPosition().getEndPosition()); 
+		if(indelPositionMap.containsKey(indelPos)) 
+			indelPositionMap.get(indelPos).addVcf( vcf );
+			  else 
+			indelPositionMap.put(indelPos, new IndelPosition(vcf));
+	}	
 
-		return indelPositionMap;
-	}
+	return indelPositionMap;
+}
+//	public Map<ChrPosition, IndelPosition> getIndelMap() throws Exception{	
+//		
+//		Map<ChrPosition,IndelPosition> indelPositionMap = new  ConcurrentHashMap<ChrPosition,IndelPosition>();
+//		for(VcfRecord vcf : positionRecordMap.values()){			
+//			ChrPosition indelPos = vcf.getChrPosition(); 
+//			if(indelPositionMap.containsKey(indelPos)) 
+//				indelPositionMap.get(indelPos).addVcf( vcf );
+// 			  else 
+//				indelPositionMap.put(indelPos, new IndelPosition(vcf));
+//		}	
+//
+//		return indelPositionMap;
+//	}
+	
+	
 	
 	public VcfHeader getVcfHeader(){ return header;	}
 	

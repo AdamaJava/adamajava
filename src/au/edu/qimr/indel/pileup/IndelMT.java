@@ -255,7 +255,7 @@ public class IndelMT {
 	ReadIndels indelload;
 		
 	private final List<SAMSequenceRecord> sortedContigs = new ArrayList<SAMSequenceRecord>();
-	private Map<ChrPosition, IndelPosition> positionRecordMap ;
+	private Map<ChrRangePosition, IndelPosition> positionRecordMap ;
 	
 	//unit test purpose
 	@Deprecated
@@ -278,7 +278,7 @@ public class IndelMT {
 			//first load control
 			if(options.getControlInputVcf() != null){
 				indelload.LoadIndels(options.getControlInputVcf(),options.getRunMode());	
-				if(indelload.getCounts_inputLine() != indelload.getCounts_totalIndel())
+				if(indelload.getCounts_newIndel() != indelload.getCounts_totalIndel())
 					logger.warn("ERROR: Found " + indelload.getCounts_newIndel() + 
 							" indels from control input, but it is not same to the number of indel inside MAP is " + indelload.getCounts_totalIndel());
 				logger.info(indelload.getCounts_newIndel() + " indels are found from Control vcf input.");
@@ -372,10 +372,10 @@ public class IndelMT {
 			logger.warn("the indel map: positionRecordMap point to nothing");
 			return; 		
 		}
-			
+
 		while((pileup = tumourQueue.poll()) != null ){
 			ChrRangePosition pos = pileup.getChrRangePosition();
-			IndelPosition indel = positionRecordMap.get(pos);
+			IndelPosition indel = positionRecordMap.get(pos);			
 			indel.setPileup(true, pileup);			
 		}
 		while((pileup = normalQueue.poll()) != null ){
@@ -505,8 +505,8 @@ public class IndelMT {
 		for(ChrPosition pos : positionRecordMap.keySet()){
 			if(contig != null && !pos.getChromosome().equals(contig.getSequenceName())  )
 				continue; 
-			
-			boolean flag = true; 
+			list.add(positionRecordMap.get(pos));	 
+//			boolean flag = true; 
 //			if(filter != null){
 //				flag = false; 
 //				for(VcfRecord re : positionRecordMap.get(pos).getIndelVcfs() )
@@ -515,8 +515,8 @@ public class IndelMT {
 //						break;
 //					}
 //			}
-			if(flag)
-				list.add(positionRecordMap.get(pos));	 
+//			if(flag)
+//				list.add(positionRecordMap.get(pos));	 
 		}
 		
 		//lambda expression to replace abstract method

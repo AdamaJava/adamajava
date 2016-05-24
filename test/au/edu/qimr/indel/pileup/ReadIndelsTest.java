@@ -52,7 +52,7 @@ public class ReadIndelsTest {
 		try{
 			ReadIndels indelload = new ReadIndels(QLoggerFactory.getLogger(Main.class, null, null));		
 			indelload.LoadIndels(new File(input3), "");				
-			Map<ChrPosition, IndelPosition> positionRecordMap = indelload.getIndelMap();
+			Map<ChrRangePosition, IndelPosition> positionRecordMap = indelload.getIndelMap();
 			assertTrue(positionRecordMap.size() == 1);
 			 
 			for( ChrPosition key : positionRecordMap.keySet()){
@@ -86,7 +86,7 @@ public class ReadIndelsTest {
 			indelload.appendTestIndels(new File(input2));
 			assertTrue(getHeaderLineCounts(indelload.getVcfHeader()) == 7);
 			
-			Map<ChrPosition, IndelPosition> positionRecordMap = indelload.getIndelMap();
+			Map<ChrRangePosition, IndelPosition> positionRecordMap = indelload.getIndelMap();
 			assertTrue(positionRecordMap.size() == 3);		
 			for( ChrPosition key : positionRecordMap.keySet()){
 				IndelPosition indel = positionRecordMap.get(key);
@@ -132,7 +132,7 @@ public class ReadIndelsTest {
 		try{
 			//load single file
 			indelload.LoadIndels(new File(input1), "");	
-			Map<ChrPosition, IndelPosition> positionRecordMap = indelload.getIndelMap();
+			Map<ChrRangePosition, IndelPosition> positionRecordMap = indelload.getIndelMap();
 			assertTrue(positionRecordMap.size() == 2);		
 			
 			int code1 = 0, code2 = 0;
@@ -173,7 +173,7 @@ public class ReadIndelsTest {
 			indelload.LoadIndels(new File(input2),"");		
 			assertTrue(getHeaderLineCounts(indelload.getVcfHeader()) == 7);
 
-			Map<ChrPosition, IndelPosition> positionRecordMap = indelload.getIndelMap();
+			Map<ChrRangePosition, IndelPosition> positionRecordMap = indelload.getIndelMap();
 			assertTrue(positionRecordMap.size() == 3);		
 			for( ChrPosition key : positionRecordMap.keySet()){
 				IndelPosition indel = positionRecordMap.get(key);
