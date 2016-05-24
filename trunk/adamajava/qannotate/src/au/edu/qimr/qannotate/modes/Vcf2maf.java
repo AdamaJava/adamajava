@@ -99,11 +99,18 @@ public class Vcf2maf extends AbstractMode{
 				if (null == controlBamId) {
 					getBamid(VcfHeaderUtils.STANDARD_CONTROL_BAM_1 , reader.getHeader()).ifPresent(s -> controlBamId = getFileName.apply(s));
 				}
+				
+				if (null != controlBamId && controlBamId.endsWith(".bam")) {
+					controlBamId = controlBamId.substring(0, (controlBamId.length() - 4));
+				}
 			}
 			if (null == testBamId) {
 				getBamid(VcfHeaderUtils.STANDARD_TEST_BAM , reader.getHeader()).ifPresent(s -> testBamId = getFileName.apply(s));
 				if (null == testBamId) {
 					getBamid(VcfHeaderUtils.STANDARD_TEST_BAM_1 , reader.getHeader()).ifPresent(s -> testBamId = getFileName.apply(s));
+				}
+				if (null != testBamId && testBamId.endsWith(".bam")) {
+					testBamId = testBamId.substring(0, (testBamId.length() - 4));
 				}
 			}
 			
