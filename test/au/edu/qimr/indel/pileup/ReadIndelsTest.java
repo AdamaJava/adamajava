@@ -83,7 +83,7 @@ public class ReadIndelsTest {
 			indelload.LoadIndels(new File(input1),"");	
 			assertTrue(getHeaderLineCounts(indelload.getVcfHeader()) == 7);
 			//in case of GATK, take the second sample column
-			indelload.appendIndels(new File(input2),"");
+			indelload.appendTestIndels(new File(input2));
 			assertTrue(getHeaderLineCounts(indelload.getVcfHeader()) == 7);
 			
 			Map<ChrPosition, IndelPosition> positionRecordMap = indelload.getIndelMap();

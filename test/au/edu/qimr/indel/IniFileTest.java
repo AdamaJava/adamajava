@@ -56,8 +56,6 @@ public class IniFileTest {
 		} catch (Exception e) {
 			Assert.fail("Should not threw a Exception");
 		}
-	
-
 	}	
 	@Test
 	public final void testIni() throws Exception {
@@ -85,11 +83,15 @@ public class IniFileTest {
 	
 	
 	public static void createIniFile(String ini, String testbam, String controlbam, String testvcf, String controlvcf,  String query){
-		createIniFile(new File( ini), new File(testbam), new File(controlbam), new File(testvcf), new File(controlvcf),   query);
+		createIniFile(new File( ini), new File(testbam), new File(controlbam), new File(testvcf), new File(controlvcf),   query, "gatk");
 				
 	}
 	
 	public static void createIniFile(File ini, File testbam, File controlbam, File testvcf, File controlvcf,  String query){
+		createIniFile( ini,  testbam, controlbam, testvcf,  controlvcf,  query, "gatk");
+	}
+	
+	public static void createIniFile(File ini, File testbam, File controlbam, File testvcf, File controlvcf,  String query, String mode){
 		
         List<String> data = new ArrayList<String>();
         data.add("[IOs]");
@@ -114,18 +116,20 @@ public class IniFileTest {
         data.add("controlSample=Normalcontrol(othersite):a6b558da-ab2d-4e92-a029-6544fb98653b");
         data.add("");
         data.add("[parameters]");
-        data.add("runMode=gatk");
+        data.add("runMode=" + mode);
         data.add("threadNo=5");
         data.add("filter=" + query);
         data.add("window.nearbyIndel=3");
         data.add("window.homopolymer=100,10");
         data.add("window.softClip =13");
+        data.add("strong.event=3");  
         data.add("");
         data.add("[rules]");
         data.add("#discard all duplicate reads");
         data.add("exclude.Duplicates=true");
         data.add("gematic.nns=2");
-        data.add("gematic.soi=0.15");        		              
+        data.add("gematic.soi=0.15");  
+
         	      	     	    
         try( BufferedWriter out = new BufferedWriter(new FileWriter(ini))) {	           
            for (String line : data)  

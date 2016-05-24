@@ -86,9 +86,6 @@ public class Support {
 	
 	public static void createVcf( List<String> header, List<String> records, String output){	
         List<String> data = new ArrayList<String>(header);
-//        data.add("##fileformat=VCFv4.1");
-//        data.add("#CHROM	POS	ID      REF     ALT     QUAL	FILTER	INFO	FORMAT	S1"); 
-        
         data.addAll(records);
         try( BufferedWriter out = new BufferedWriter(new FileWriter(output ))) {	
         	for (String line : data)  

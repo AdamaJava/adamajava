@@ -39,35 +39,36 @@ public class IndelPileupTest {
 	}	
 		
 	@Test
-	public void insertTest() throws Exception{
-								
-		//get pool		
-		SamReader inreader =  SAMFileReaderFactory.createSAMFileReader(new File(inputBam));
-		List<SAMRecord> pool = new ArrayList<SAMRecord>();
-        for(SAMRecord record : inreader)
-        	pool.add(record);       
-        inreader.close();
-		 
+	public void insertTest() throws Exception{		 
         //pileup
 		List<VcfRecord> vcfs = new ArrayList<VcfRecord>();
 		vcfs.add(new VcfRecord.Builder("chr1",	183014,	"G").allele("GTT").build());
 		vcfs.add(new VcfRecord.Builder("chr1",	183014, "G").allele("GT").build());
 		
 		IndelPosition indel = new IndelPosition (vcfs, SVTYPE.INS);
-		IndelPileup  pileup = new IndelPileup( indel, 13, 3); 		
+		IndelPileup  pileup = new IndelPileup( indel, 13, 3,3); 	
+		List<SAMRecord> pool = makePool(indel.getEnd()); //get pool	
 		pileup.pileup(pool);
 	 		
 		//assert first insertion vcf
         assertTrue(pileup.getInformativeCount() == 3);
         assertTrue(pileup.getsuportReadCount(0) == 1); 
-        assertTrue(pileup.getnovelStartReadCount(0)== 1);
-        assertTrue(pileup.getparticalReadCount(0) == 1); 	        
+        assertTrue(pileup.getparticalReadCount(0) == 1);
+        assertTrue(pileup.getsupportNovelStartReadCount(0) == 1);   
+         // 4 events supporting reads (one INS three snps) won't count as strong supporting
+        assertTrue(pileup.getstrongSuportReadCount(0) == 0);        
+        //novelStrats for strong supporting
+        assertTrue(pileup.getstrongsupportNovelStartReadCount(0) == 0);
+            
         
         //assert second insertion vcf
         assertTrue(pileup.getInformativeCount() == 3);
         assertTrue(pileup.getsuportReadCount(1) == 1); 
-        assertTrue(pileup.getnovelStartReadCount(1)== 1);
-        assertTrue(pileup.getparticalReadCount(1) == 1); 	
+        assertTrue(pileup.getsupportNovelStartReadCount(1) == 1);
+        assertTrue(pileup.getparticalReadCount(1) == 1); 	        
+        //MD:Z:23G38T0C57  adjacant snps count as one, so one snp, one mnp and one INS, total 3 events
+        assertTrue(pileup.getstrongSuportReadCount(1) == 1);
+        assertTrue(pileup.getstrongsupportNovelStartReadCount(1) == 1);
 	}	
 	
 	@Test
@@ -75,34 +76,28 @@ public class IndelPileupTest {
  		//get delete indel
 		VcfRecord vs = new VcfRecord.Builder("chr1", 197, "CAG").allele("C").build();				 
 		IndelPosition indel = new IndelPosition (vs);
-		
-		//make pool
-		List<SAMRecord> pool = new ArrayList<SAMRecord>();				
-		try(SamReader inreader =  SAMFileReaderFactory.createSAMFileReader(new File(inputBam));){
-	        for(SAMRecord record : inreader){
-	        	if(record.getAlignmentStart() <= indel.getEnd())
-	        	pool.add(record);
-	        }
-		}
-        IndelPileup pileup = new IndelPileup( indel, 13, 3); 	
+				
+		List<SAMRecord> pool = makePool(indel.getEnd());
+        IndelPileup pileup = new IndelPileup( indel, 13, 3,3); 	
         pileup.pileup(pool);
                 
         assertTrue(pileup.getmotif(0).equals("AG"));
         assertTrue(pileup.getInformativeCount() == 2);
         assertTrue(pileup.getsuportReadCount(0) == 2); 
-        assertTrue(pileup.getnovelStartReadCount(0)== 2);
-        assertTrue(pileup.getparticalReadCount(0) == 0); 		
+        assertTrue(pileup.getparticalReadCount(0) == 0); 	        
+        // 3 events: cigar 130M1I3M2D17M and MD:Z:11G0T121^AG17
+        //8 events: cigar 131M2D20M and MD:Z:47A1G1A1C2C1G1C70^AG20
+        assertTrue(pileup.getstrongSuportReadCount(0) == 1);  
+        assertTrue(pileup.getsupportNovelStartReadCount(0)  == 2);
+        assertTrue(pileup.getstrongsupportNovelStartReadCount(0) == 1);
 	}
-	
-//	150936170~150936198, right soft: ST-E00180:52:H5LNMCCXX:3:1117:27887:29015      2227    chrX    150936149       18      96H45M9H        chr15   93212107        0
-//    GTGTGTGTGTGTGTGTGTGTGTGTGTGTGTGTGTGTGTTGAGAGA   KKKKKKKKKKKKKKKKKKKKKKKFKFKKKKKKKKKKKKKKKKKKK   SA:Z:chr15,93211802,+,32S118M,60,0;     XA:Z:chr13,+45420627,9S41M100S,0;chr2,+151449762,9S41M100S,0;chr13,+90139443,9S45M96S,1;        MD:Z:45 PG:Z:MarkDuplicates     RG:Z:2ef8ccaf-2a09-4a9b-a5b3-8510b14dc8e8       NM:i:0  AS:i:45 XS:i:41
 	
 	@Test
 	public void nearbySoftTest() throws Exception{
 		
 		VcfRecord vs = new VcfRecord.Builder("chrX", 150936181, "GTGTGT").allele("G").build();				 
 		IndelPosition indel = new IndelPosition (vs);
-        IndelPileup pileup = new IndelPileup( indel, 13, 3); 	
+        IndelPileup pileup = new IndelPileup( indel, 13, 3,3); 	
         
 		List<SAMRecord> pool = new ArrayList<SAMRecord>();	
 		pool.add(new SAMRecord(null ));		
@@ -135,7 +130,7 @@ public class IndelPileupTest {
 		
 		VcfRecord vs = new VcfRecord.Builder("chrX", 150936181, "GTGTGTTTTTTTTTTTTTTTTTTTTTTTTTTTTT").allele("G").build();				 
 		IndelPosition indel = new IndelPosition (vs);
-        IndelPileup pileup = new IndelPileup( indel, 20, 3); 	
+        IndelPileup pileup = new IndelPileup( indel, 20, 3,3); 	
         
 		List<SAMRecord> pool = new ArrayList<SAMRecord>();	
 		pool.add(new SAMRecord(null ));		
@@ -154,8 +149,21 @@ public class IndelPileupTest {
         assertTrue(pileup.getparticalReadCount(0) == 1);
       		
 	}
-	
-	
+
+	 
+	 // @return a SAMRecord pool overlap the indel position
+	private List<SAMRecord> makePool(int indelEnd) throws IOException{
+		//make pool
+		List<SAMRecord> pool = new ArrayList<SAMRecord>();				
+		try(SamReader inreader =  SAMFileReaderFactory.createSAMFileReader(new File(inputBam));){
+	        for(SAMRecord record : inreader){
+	        	if(record.getAlignmentStart() <= indelEnd)
+	        	pool.add(record);
+	        }
+		}	
+		
+		return pool; 
+	}
 		
     public static void CreateSam(){
         List<String> data = new ArrayList<String>();
@@ -167,16 +175,25 @@ public class IndelPileupTest {
         data.add("@CO	create by qcmg.qbamfilter.filter::TestFile");
         data.add("1997_1173_1256	99	chr1	183011	60	112M1D39M	=	183351	491	" + 
         		"TATGTTTTTTAGTAGAGACAGGGTCTCACTGTGTTGCCCAGGCTAGTCTCTAACTCCTGGGCTCAAATTATCCTCCCCACTTGGCCTCCCAAAAGGATTGGATTACAGGCATAAGCCACTGCCCCAAGCCTAAAATTTTTTAAAGTACCAT	FFFFFFJFJJJJFJJFJFJJFAJJJJJJJJJJFJJJJJJJFJJJJJJJFJFJJJJJJJJJFJAJJJJJJJJJJJJJJJJFJFJJJJFJJJFFFJJJJAFFJFJJJJJFJFJFJJJFJJJFFJJJAFFJJJJFAFJFFFJJAFFAJJJJFJ7	ZC:i:4	MD:Z:112^A39	PG:Z:MarkDuplicates.5	RG:Z:20140717025441134");	                                 
+         
+        //INS
         data.add("1997_1173_1257	163	chr1	182999	60	16M1I105M29S	=	183397	540	" + 
-        		"TACATTTAAAAATATGTTTTTTTAATAGAGACAGGGTCTCACTGTGTTGCCCAGGCTAGTCTCAAACTCCTGGGCTCAAATTATCCTCCCCACTTGGCCTCCCAAAAGGATTGGATTACAGGNANNNNNNNNNGNCNNNNNGCTAAAANTT	AAFFFJJJJJJJJJJJAJJJFJJJJJJ<J7FFJF-JFAFJJ<AJAFAJFF-FJJ-FJJAAFFJAFA-FFAFF<FFAFJAFJ<JJA7F-<-AJ<<J<F<FFJ-J<A7J-F-FJA7-<F<7J<<#-#########A#A#####AAFFFJA#--	ZC:i:4	MD:Z:23G38T58	PG:Z:MarkDuplicates.5	RG:Z:20140717025441134");
+        		"TACATTTAAAAATATGTTTTTTTAATAGAGACAGGGTCTCACTGTGTTGCCCAGGCTAGTCTCAAACTCCTGGGCTCAAATTATCCTCCCCACTTGGCCTCCCAAAAGGATTGGATTACAGGNANNNNNNNNNGNCNNNNNGCTAAAANTT	AAFFFJJJJJJJJJJJAJJJFJJJJJJ<J7FFJF-JFAFJJ<AJAFAJFF-FJJ-FJJAAFFJAFA-FFAFF<FFAFJAFJ<JJA7F-<-AJ<<J<F<FFJ-J<A7J-F-FJA7-<F<7J<<#-#########A#A#####AAFFFJA#--	ZC:i:4	"
+        		+ "MD:Z:23G38T0C57	PG:Z:MarkDuplicates.5	RG:Z:20140717025441134");// MD:Z:23G38T58 before
         data.add("1997_1173_1258	163	chr1	183001	9	14M2I106M29S	=	183287	440	" + 
         		"CATTTAAAAATATGTTTTTTTTAATAGAGACAGGGTCTCACTGTGTTGCCCAGGCTAGTCTCAAACTCCTGGGCTCAAATTATCCTCCCCACTTGGCCTCCCAAAAGGATGGGATTACAGGCNTNNNNNNNNNCNCNNNNNCTAAAATNTT	AFFFFJJJJJJJJJJJJJJJJJJJJJFJJJJJJJJJJJJJJJJJJJJJJFJJJJJJJJJAJJJJJJJJJJAFJJJFJJJJJJJJJJJJJJJJJJJFJFFFAJJJJJJJJJJJJJJJJJJJJJ#A#########J#A#####JFJJJJF#JF	ZC:i:4	MD:Z:21G38T47T11	PG:Z:MarkDuplicates.5	RG:Z:20140717025441134");
 
        //deletion
-       data.add("1997_1173_1267	113	chr1	64	60	134M2D17M	chr1	72846	0	" +
-       "GAAAATACTAAACCACACCAGGTGTGGTGTCACATGCCTGTGGTCTCAGGTACTTGGGAGGCTGAGGTGGGAGGATCGCTTGAACCCAGGAAGTTGAGGCTGCAGTGAGTTGTGATTACACCAGCCTGGGTGACAGTGTCACCCTGTCTCA	JF7-<7--7-77-JJFFFJFJF<JJ<<JAFJAJJAAF<JJ<AFJ-JJAJJJAJAJJAAAJF-JFF7FFJFJAFAFAFJA<JF--FJA-F--JJAJJFJJ<FJJJJ<JJJJJJJJJJJJJJ<FAFJ<AA-JJJ<JJJJJJJJJFAFJAFFAA	ZC:i:5	MD:Z:12T121^TC17	PG:Z:MarkDuplicates.5	RG:Z:20140717025441134");
+//       data.add("1997_1173_1267	113	chr1	64	60	134M2D17M	chr1	72846	0	" +
+//       "GAAAATACTAAACCACACCAGGTGTGGTGTCACATGCCTGTGGTCTCAGGTACTTGGGAGGCTGAGGTGGGAGGATCGCTTGAACCCAGGAAGTTGAGGCTGCAGTGAGTTGTGATTACACCAGCCTGGGTGACAGTGTCACCCTGTCTCA	JF7-<7--7-77-JJFFFJFJF<JJ<<JAFJAJJAAF<JJ<AFJ-JJAJJJAJAJJAAAJF-JFF7FFJFJAFAFAFJA<JF--FJA-F--JJAJJFJJ<FJJJJ<JJJJJJJJJJJJJJ<FAFJ<AA-JJJ<JJJJJJJJJFAFJAFFAA	ZC:i:5	"
+//       + "MD:Z:12T121^TC17	PG:Z:MarkDuplicates.5	RG:Z:20140717025441134");
+        data.add("1997_1173_1267	113	chr1	64	60	125M1I9M2D16M	chr1	72846	0	" +
+              "GAAAATACTAAACCACACCAGGTGTGGTGTCACATGCCTGTGGTCTCAGGTACTTGGGAGGCTGAGGTGGGAGGATCGCTTGAACCCAGGAAGTTGAGGCTGCAGTGAGTTGTGATTACACCAGCCTGGGTGACAGTGTCACCCTGTCTCA	JF7-<7--7-77-JJFFFJFJF<JJ<<JAFJAJJAAF<JJ<AFJ-JJAJJJAJAJJAAAJF-JFF7FFJFJAFAFAFJA<JF--FJA-F--JJAJJFJJ<FJJJJ<JJJJJJJJJJJJJJ<FAFJ<AA-JJJ<JJJJJJJJJFAFJAFFAA	ZC:i:5	"
+        + "MD:Z:11G0T121^AG17	PG:Z:MarkDuplicates.5	RG:Z:20140717025441134");
+        
        data.add("1997_1173_1268	177	chr1	67	57	131M2D20M	chr1	72680	0	" +
-       "AATACTAAAACACACCAGGTGTGGTGTCACATGCCTGTGGTCTCAGGNANTNGNGANGNTNAGGTGGGAGGATCGCTTGAACCCAGGAAGTTGAGGCTGCAGTGAGTTGTGATTACACCAGCCTGGGTGACAGTGTCACCCTGTCTCAAAA	JJJJFJJFFFJJFJJJFFJJJJJJJJJJFJJJJJJJJJJJJJJJJJJ#J#J#J#JJ#J#F#JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJFJJJJJJJJFFFAA	ZC:i:4	MD:Z:47A1G1A1C2C1G1C70^TC20	PG:Z:MarkDuplicates.5	RG:Z:20140717025441134");        
+       "AATACTAAAACACACCAGGTGTGGTGTCACATGCCTGTGGTCTCAGGNANTNGNGANGNTNAGGTGGGAGGATCGCTTGAACCCAGGAAGTTGAGGCTGCAGTGAGTTGTGATTACACCAGCCTGGGTGACAGTGTCACCCTGTCTCAAAA	JJJJFJJFFFJJFJJJFFJJJJJJJJJJFJJJJJJJJJJJJJJJJJJ#J#J#J#JJ#J#F#JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJFJJJJJJJJFFFAA	ZC:i:4	"
+       + "MD:Z:47A1G1A1C2C1G1C70^AG20	PG:Z:MarkDuplicates.5	RG:Z:20140717025441134");       
         
        
        //multi deletion

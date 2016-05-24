@@ -24,7 +24,7 @@ public class singleModeTest {
 	public static void createInput() {
 		Support.createGatkVcf(IndelPositionTest.inputIndel);
 	 List<String> data = new ArrayList<String>();
-	 data.add("ST" + ":a:102\t99\tchrY\t2672601\t60\t10M2D123M2D10M8S\t=\t2673085\t631\tGTAGTTTATATTTCTGTGGGGTCAGTGGTGATATCCCTTTTATTATTTTTTATTGTGTCTTTTTGATTCTTCTCTCTTTTCTTTTTTATTAATCTACCTAGCAGTCTATCTTATTGGGTGTG\t*");
+	 data.add("ST" + ":a:102\t99\tchrY\t2672601\t60\t10M2D123M2D10M8S\t=\t2673085\t631\tGTAGTTTATATTTCTGTGGGGTCAGTGGTGATATCCCTTTTATTATTTTTTATTGTGTCTTTTTGATTCTTCTCTCTTTTCTTTTTTATTAATCTACCTAGCAGTCTATCTTATTGGGTGTG\t*\tMD:Z:10^TT123^TT10");
 	 Support.createBam(data, IndelPositionTest.normalBAM);
 	 Support.createBam(data, IndelPositionTest.tumourBAM);		
 		
@@ -40,9 +40,8 @@ public class singleModeTest {
 		 try (VCFFileReader reader = new VCFFileReader(IniFileTest.output)) {				 
 			 for (VcfRecord re : reader)  											
 				if(re.getChromosome().equals("chrY")){
-					System.out.println(re.toString()); 
 					assertTrue(re.getSampleFormatRecord(2).getField("ACINDEL").equals(".") );
-					assertTrue(re.getSampleFormatRecord(1).getField("ACINDEL").equals("1,1,1,1[1,0],0,0,1") );
+					assertTrue(re.getSampleFormatRecord(1).getField("ACINDEL").equals("1,1,1,1[1,0],1[1],0,0,1") );
 				}
 		}	
 		new File(IniFileTest.output).delete(); 		 
@@ -58,9 +57,8 @@ public class singleModeTest {
 		 try (VCFFileReader reader = new VCFFileReader(IniFileTest.output)) {				 
 			 for (VcfRecord re : reader)  											
 				if(re.getChromosome().equals("chrY")){
-					System.out.println(re.toString()); 
 					assertTrue(re.getSampleFormatRecord(1).getField("ACINDEL").equals(".") );
-					assertTrue(re.getSampleFormatRecord(2).getField("ACINDEL").equals("1,1,1,1[1,0],0,0,1") );
+					assertTrue(re.getSampleFormatRecord(2).getField("ACINDEL").equals("1,1,1,1[1,0],1[1],0,0,1") );
 				}
 		}	
 		new File(IniFileTest.output).delete(); 
