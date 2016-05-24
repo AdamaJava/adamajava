@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -84,7 +85,7 @@ public class Vcf2maf extends AbstractMode{
 			
 			Function<String,String> getFileName = (String s) -> {
 				try {
-					return Paths.get(s).toRealPath(null).getFileName().toString();
+					return Paths.get(s).toRealPath( (LinkOption[]) null).getFileName().toString();
 				} catch (IOException ioe) {
 					throw new RuntimeException(ioe);
 				}
