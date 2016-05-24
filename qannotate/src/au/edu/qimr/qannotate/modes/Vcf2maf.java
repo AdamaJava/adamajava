@@ -85,7 +85,7 @@ public class Vcf2maf extends AbstractMode{
 			
 			Function<String,String> getFileName = (String s) -> {
 				try {
-					return Paths.get(s).toRealPath( (LinkOption[]) null).getFileName().toString();
+					return Paths.get(s).toRealPath().getFileName().toString();
 				} catch (IOException ioe) {
 					throw new RuntimeException(ioe);
 				}
