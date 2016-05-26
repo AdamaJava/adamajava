@@ -19,6 +19,7 @@ import java.util.function.Function;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.model.MafConfidence;
 import org.qcmg.common.string.StringUtils;
 
 import static org.qcmg.common.util.Constants.*;
@@ -159,7 +160,7 @@ public class Vcf2maf extends AbstractMode{
 		String GHCCVcf  = outputname.replace(".maf", ".Germline.HighConfidence.Consequence.vcf") ;
 		String GHCVcf = outputname.replace(".maf", ".Germline.HighConfidence.vcf") ;
 
-		long noIn = 0, noOut = 0, no_SHCC = 0, no_SHC = 0, no_GHCC = 0, no_GHC = 0, no_SLCC = 0, no_SLC = 0, no_GLCC = 0, no_GLC = 0; 
+		long noIn = 0, noOut = 0, no_SHCC = 0, no_SHC = 0, no_GHCC = 0, no_GHC = 0;// no_SLCC = 0, no_SLC = 0, no_GLCC = 0, no_GLC = 0; 
 		try(VCFFileReader reader = new VCFFileReader(new File( option.getInputFileName()));
 				PrintWriter out = new PrintWriter(outputname);
 				PrintWriter out_SHCC = new PrintWriter(SHCC);
@@ -178,45 +179,47 @@ public class Vcf2maf extends AbstractMode{
 			createVcfHeaders(reader.getHeader(), outSHCCVcf, outSHCVcf, outGHCCVcf, outGHCVcf);
 			
 			for (final VcfRecord vcf : reader) {
-//	        		try {
-        			noIn ++;
-        			SnpEffMafRecord maf = converter(vcf);
-        			String Smaf = maf.getMafLine();
-        			out.println(Smaf);
-        			noOut ++;
-        			int rank = Integer.parseInt(maf.getColumnValue(40));
-        			boolean isConsequence = isConsequence(maf.getColumnValue(55), rank);
-        			boolean isSomatic = maf.getColumnValue(26).equalsIgnoreCase(VcfHeaderUtils.INFO_SOMATIC);
-        			if (isHighConfidence(maf)) {
-        				if (isSomatic){
-        					out_SHC.println(Smaf);
-        					outSHCVcf.print(vcf);
-        					no_SHC ++;
-        					
-        					if(isConsequence){
-        						out_SHCC.println(Smaf);
-        						outSHCCVcf.print(vcf);
-        						no_SHCC ++;
-        					}
-        				} else {
-        					out_GHC.println(Smaf);
-        					outGHCVcf.print(vcf);
-        					no_GHC ++; 
-        					 
-        					if(isConsequence){
-        						out_GHCC.println(Smaf);
-        						outGHCCVcf.print(vcf);
-        						no_GHCC ++;
-        					}
-        				}   
-        			} 
+//				if(vcf.getPosition() == 4830136)
+//					System.out.println(vcf.toString());
+//	        		 
+    			noIn ++;
+    			SnpEffMafRecord maf = converter(vcf);
+    			String Smaf = maf.getMafLine();
+    			out.println(Smaf);
+    			noOut ++;
+    			int rank = Integer.parseInt(maf.getColumnValue( MafElement.Consequnce_rank));//40
+    			boolean isConsequence = isConsequence(maf.getColumnValue(MafElement.Transcript_BioType), rank); //55
+    			boolean isSomatic = maf.getColumnValue(MafElement.Mutation_Status).equalsIgnoreCase(VcfHeaderUtils.INFO_SOMATIC); //26
+    			if (isHighConfidence(maf)) {
+    				if (isSomatic){
+    					out_SHC.println(Smaf);
+    					outSHCVcf.print(vcf);
+    					no_SHC ++;
+    					
+    					if(isConsequence){
+    						out_SHCC.println(Smaf);
+    						outSHCCVcf.print(vcf);
+    						no_SHCC ++;
+    					}
+    				} else {
+    					out_GHC.println(Smaf);
+    					outGHCVcf.print(vcf);
+    					no_GHC ++; 
+    					 
+    					if(isConsequence){
+    						out_GHCC.println(Smaf);
+    						outGHCCVcf.print(vcf);
+    						no_GHCC ++;
+    					}
+    				}   
+    			} 
 			}
 		}
 		
 		logger.info("total input vcf record number is " + noIn);
 		logger.info("total output maf record number is " + noOut);
-		logger.info(String.format("There are somatic record: %d (high confidence), %d (high confidence consequence), %d (low confidence), %d (log confidence consequence)", no_SHC, no_SHCC, no_SLC, no_SLCC ));
-		logger.info(String.format("There are germatic record: %d (high confidence), %d (high confidence consequence), %d (low confidence), %d (log confidence consequence)", no_GHC, no_GHCC, no_GLC, no_GLCC ));
+		logger.info(String.format("There are somatic record: %d (high confidence), %d (high confidence consequence)", no_SHC, no_SHCC ));
+		logger.info(String.format("There are germatic record: %d (high confidence), %d (high confidence consequence)", no_GHC, no_GHCC));
 		
 		//delete empty maf files
 		deleteEmptyMaf(SHCC, SHC,GHCC,GHC);	//,SLCC,SLC,GLCC,GLC );		
@@ -224,7 +227,12 @@ public class Vcf2maf extends AbstractMode{
 	
 	public static boolean isHighConfidence(SnpEffMafRecord maf) {
 		if (null != maf) {
-			return Constants.HIGH_1_HIGH_2.equals(maf.getColumnValue(MafElement.confidence));
+			String svType = maf.getColumnValue(MafElement.Variant_Type);
+			String conf = maf.getColumnValue(MafElement.confidence);
+			if(svType.equalsIgnoreCase(SVTYPE.DEL.name()) || svType.equalsIgnoreCase(SVTYPE.INS.name()))
+				return MafConfidence.HIGH.name().equals(conf);
+			else 
+				return Constants.HIGH_1_HIGH_2.equals(maf.getColumnValue(MafElement.confidence));
 		}
 		return false;
 	}
