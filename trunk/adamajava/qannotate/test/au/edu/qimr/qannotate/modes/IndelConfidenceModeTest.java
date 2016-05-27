@@ -135,7 +135,7 @@ public class IndelConfidenceModeTest {
 	public static void createMask() throws IOException{
 		        final List<String> data = new ArrayList<String>();
         data.add("1 53744 53780 Low_complexity Low_complexity");
-        data.add("1 54712 54820 Simple_repeat Simple_repeat");
+        data.add("chr1 54712 54820 Simple_repeat Simple_repeat");
         try(BufferedWriter out = new BufferedWriter(new FileWriter(dbMask));) {          
             for (final String line : data)   out.write(line +"\n");                  
          }  

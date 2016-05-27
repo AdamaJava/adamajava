@@ -4,7 +4,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.util.BitSet;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -37,7 +39,8 @@ public class IndelConfidenceMode extends AbstractMode{
 	static final float DEFAULT_NIOC = 0.1f;
 	static final float DEFAULT_SSOI = 0.2f;
 	static final int DEFAULT_HOMN = 6;
-	final BitSet[] mask = new BitSet[24]; 
+//	final BitSet[] mask = new BitSet[24]; 
+	final Map<String,BitSet> mask = new HashMap<String, BitSet>();
 		
  	//filters 
 	public static final String FILTER_REPEAT = "REPEAT"; 
@@ -83,14 +86,18 @@ public class IndelConfidenceMode extends AbstractMode{
                         String[] array = line.split(" ");
                	
                         try{
-                        	int no = Integer.parseInt(array[0]) - 1;
+                        	//int no = Integer.parseInt(array[0]) - 1;
+                        	String chr = IndelUtils.getFullChromosome(array[0]);
+                        	
                         	int start = Integer.parseInt(array[1]);
                         	int end = Integer.parseInt(array[2]);
-                        	if(no >= 24 || no < 0 || start < 1 || end < 1)
-                        		throw new NumberFormatException();
-                         	if(mask[no] == null)
-                        		mask[no] = new BitSet();
-                        	mask[no].set(start, end);                       	
+//                        	if(no >= 24 || no < 0 || start < 1 || end < 1)
+//                        		throw new NumberFormatException();
+//                         	if(mask[no] == null)
+//                        		mask[no] = new BitSet();
+                        	if(! mask.containsKey(chr))
+                        		mask.put(chr,new BitSet());
+                        	mask.get(chr).set(start, end);                       	
                         }catch(NumberFormatException e){
                         	 //logger.warn("can't convert mask file string into integer: " + line);
                         	 continue;
@@ -130,23 +137,14 @@ public class IndelConfidenceMode extends AbstractMode{
 	
  
 	 boolean isRepeat(VcfRecord vcf){
-       	try{
-    		String chr = vcf.getChromosome().toLowerCase(); 
-    		if(chr.startsWith("chr"))
-    			chr = chr.substring(3);
-    		int no = Integer.parseInt(chr) - 1;
-    		BitSet chrMask = mask[no];
-    		//do nothing when contig isn't on mask lists
-    		if(chrMask == null)
-    			return false; 
-    		//	throw new NumberFormatException();   		
-    		for (int i = vcf.getPosition(); i <= vcf.getChrPosition().getEndPosition(); i ++) 
-    			if(chrMask.get(i)) 				
-    				return true; 
-    			              		               		
-    	}catch(NumberFormatException e){
-       	  return false;
-       }
+        
+		String chr = IndelUtils.getFullChromosome(vcf.getChromosome()); 
+   		if(!mask.containsKey(chr)) return false; 
+		BitSet chrMask = mask.get(chr);
+
+		for (int i = vcf.getPosition(); i <= vcf.getChrPosition().getEndPosition(); i ++) 
+			if(chrMask.get(i)) 				
+				return true; 
     	
        	return false;        	
 	}
