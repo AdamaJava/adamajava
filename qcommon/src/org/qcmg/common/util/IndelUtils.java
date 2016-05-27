@@ -112,13 +112,6 @@ public class IndelUtils {
             return "chrMT";
         }
 		
-		/*
-		 *  if ref starts with chr or GL, just return it
-		 */
-		if (ref.startsWith("chr") || ref.startsWith("GL")) {
-			return ref;
-		}
-		
 		if (ref.equals("X") || ref.equals("Y")) {
 			return "chr" + ref;
 		}
