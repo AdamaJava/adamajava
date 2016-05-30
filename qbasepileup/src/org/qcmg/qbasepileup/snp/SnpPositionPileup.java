@@ -28,6 +28,7 @@ import org.qcmg.qbasepileup.Options;
 import org.qcmg.qbasepileup.QBasePileupConstants;
 import org.qcmg.qbasepileup.QBasePileupException;
 import org.qcmg.qbasepileup.QBasePileupUtil;
+import static org.qcmg.qbasepileup.QBasePileupUtil.TAB;
 
 public class SnpPositionPileup {
 	
@@ -518,14 +519,14 @@ public class SnpPositionPileup {
 	private String getMapString(Map<String, AtomicInteger> map) {
 		StringBuilder b = new StringBuilder();
 		if (isSingleBasePosition()) {
-			b.append(map.get("A").intValue()).append(QBasePileupUtil.TAB);
-			b.append(map.get("C").intValue()).append(QBasePileupUtil.TAB);		
-			b.append(map.get("G").intValue()).append(QBasePileupUtil.TAB);
-			b.append(map.get("T").intValue()).append(QBasePileupUtil.TAB);
-			b.append(map.get("N").intValue() ).append(QBasePileupUtil.TAB);
+			b.append(map.get("A").intValue()).append(TAB);
+			b.append(map.get("C").intValue()).append(TAB);		
+			b.append(map.get("G").intValue()).append(TAB);
+			b.append(map.get("T").intValue()).append(TAB);
+			b.append(map.get("N").intValue() ).append(TAB);
 		} else {
 			for (Entry<String, AtomicInteger> entry: map.entrySet()) {				
-				b.append(entry.getValue().intValue() + "\t");
+				b.append(entry.getValue().intValue()).append(TAB);
 			}
 		}		
 		return b.toString();
@@ -543,14 +544,14 @@ public class SnpPositionPileup {
 	public String getNovelStartMapString(Map<String, Set<Integer>> novelStartMap) {
 		StringBuilder b = new StringBuilder();
 		if (isSingleBasePosition()) {
-			b.append(novelStartMap.get("A").size()).append(QBasePileupUtil.TAB);
-			b.append(novelStartMap.get("C").size()).append(QBasePileupUtil.TAB);	
-			b.append(novelStartMap.get("G").size()).append(QBasePileupUtil.TAB);
-			b.append(novelStartMap.get("T").size()).append(QBasePileupUtil.TAB);
-			b.append(novelStartMap.get("N").size()).append(QBasePileupUtil.TAB);
+			b.append(novelStartMap.get("A").size()).append(TAB);
+			b.append(novelStartMap.get("C").size()).append(TAB);	
+			b.append(novelStartMap.get("G").size()).append(TAB);
+			b.append(novelStartMap.get("T").size()).append(TAB);
+			b.append(novelStartMap.get("N").size()).append(TAB);
 		} else {
 			for ( Entry<String, Set<Integer>> entry: novelStartMap.entrySet()) {
-				b.append(entry.getValue().size()).append(QBasePileupUtil.TAB);
+				b.append(entry.getValue().size()).append(TAB);
 			}
 		}		
 		return b.toString();
@@ -568,11 +569,11 @@ public class SnpPositionPileup {
 			Map<String, Set<Integer>> revNovelStartMap) {
 		StringBuilder b = new StringBuilder();
 		if (isSingleBasePosition()) {
-			b.append(getNovelCounts("A",forNovelStartMap, revNovelStartMap)).append(QBasePileupUtil.TAB);
-			b.append(getNovelCounts("C",forNovelStartMap, revNovelStartMap)).append(QBasePileupUtil.TAB);		
-			b.append(getNovelCounts("G",forNovelStartMap, revNovelStartMap)).append(QBasePileupUtil.TAB);
-			b.append(getNovelCounts("T",forNovelStartMap, revNovelStartMap)).append(QBasePileupUtil.TAB);
-			b.append(getNovelCounts("N",forNovelStartMap, revNovelStartMap)).append(QBasePileupUtil.TAB);
+			b.append(getNovelCounts("A",forNovelStartMap, revNovelStartMap)).append(TAB);
+			b.append(getNovelCounts("C",forNovelStartMap, revNovelStartMap)).append(TAB);		
+			b.append(getNovelCounts("G",forNovelStartMap, revNovelStartMap)).append(TAB);
+			b.append(getNovelCounts("T",forNovelStartMap, revNovelStartMap)).append(TAB);
+			b.append(getNovelCounts("N",forNovelStartMap, revNovelStartMap)).append(TAB);
 		} else {
 			Set<String> keys = new TreeSet<String>(forNovelStartMap.keySet());
 			keys.addAll(revNovelStartMap.keySet());
@@ -585,7 +586,7 @@ public class SnpPositionPileup {
 				if (revNovelStartMap.containsKey(key)) {
 					count += revNovelStartMap.get(key).size();
 				}
-				b.append(count).append(QBasePileupUtil.TAB);
+				b.append(count).append(TAB);
 			}
 		}		
 		return b.toString();
@@ -597,11 +598,11 @@ public class SnpPositionPileup {
 		String refBases = getReferenceBases();
 		calculateTotalReferenceBases(refBases);
 		
-		b.append(input.toString()).append(QBasePileupUtil.TAB);
-		b.append(position.toTabString()).append(QBasePileupUtil.TAB);
-		b.append(refBases).append(QBasePileupUtil.TAB);
-		b.append(referenceBaseCount).append(QBasePileupUtil.TAB);
-		b.append(nonReferenceBaseCount).append(QBasePileupUtil.TAB);
+		b.append(input.toString()).append(TAB);
+		b.append(position.toTabString()).append(TAB);
+		b.append(refBases).append(TAB);
+		b.append(referenceBaseCount).append(TAB);
+		b.append(nonReferenceBaseCount).append(TAB);
 		
 		if ( ! isStrand) {			
 			if (isNovelStarts) {
@@ -613,7 +614,7 @@ public class SnpPositionPileup {
 		} else {			
 			b.append(getCountsString(forCoverageMap, forNovelStartMap));		
 			b.append(countPositiveStrand);
-			b.append(QBasePileupUtil.TAB);
+			b.append(TAB);
 			b.append(getCountsString(revCoverageMap, revNovelStartMap));
 			b.append(countNegativeStrand);			
 		}
@@ -622,19 +623,19 @@ public class SnpPositionPileup {
 	
 	public String toColumnString() {
 		StringBuilder b = new StringBuilder(position.toOutputColumnsString());
-		b.append(QBasePileupUtil.TAB);
-		b.append(input.getAbbreviatedBamFileName()).append(QBasePileupUtil.TAB).append(getAllBaseCounts(forCoverageMap, revCoverageMap));
+		b.append(TAB);
+		b.append(input.getAbbreviatedBamFileName()).append(TAB).append(getAllBaseCounts(forCoverageMap, revCoverageMap));
 		return b.toString();
 	}	
 	
 	private String getAllBaseCounts(Map<String, AtomicInteger> forCoverageMap, Map<String, AtomicInteger> revCoverageMap) {
 		StringBuilder b = new StringBuilder();
 		if (isSingleBasePosition()) {
-			b.append(forCoverageMap.get("A").intValue() + revCoverageMap.get("A").intValue()).append(QBasePileupUtil.TAB);
-			b.append(forCoverageMap.get("C").intValue() + revCoverageMap.get("C").intValue()).append(QBasePileupUtil.TAB);	
-			b.append(forCoverageMap.get("G").intValue() + revCoverageMap.get("G").intValue()).append(QBasePileupUtil.TAB);
-			b.append(forCoverageMap.get("T").intValue() + revCoverageMap.get("T").intValue()).append(QBasePileupUtil.TAB);
-			b.append(forCoverageMap.get("N").intValue() + revCoverageMap.get("N").intValue()).append(QBasePileupUtil.TAB);
+			b.append(forCoverageMap.get("A").intValue() + revCoverageMap.get("A").intValue()).append(TAB);
+			b.append(forCoverageMap.get("C").intValue() + revCoverageMap.get("C").intValue()).append(TAB);	
+			b.append(forCoverageMap.get("G").intValue() + revCoverageMap.get("G").intValue()).append(TAB);
+			b.append(forCoverageMap.get("T").intValue() + revCoverageMap.get("T").intValue()).append(TAB);
+			b.append(forCoverageMap.get("N").intValue() + revCoverageMap.get("N").intValue()).append(TAB);
 		} 
 		return b.toString();
 	}
@@ -645,9 +646,18 @@ public class SnpPositionPileup {
 		String altBases = getCompoundReferenceBases();
 		calculateTotalReferenceBases(refBases);
 
-		b.append(input.toString() + "\t" + position.toTabString() + "\t" + refBases + "\t" + getCompoundReferenceBases() + "\t"
-		+ countPositiveStrand + "\t" + getCompoundBaseCount(forCoverageMap, refBases) + "\t" + getCompoundBaseCount(forCoverageMap, altBases) + "\t" + getOtherCompoundBaseCount(forCoverageMap, refBases, altBases)
-		+ "\t" + countNegativeStrand + "\t" + getCompoundBaseCount(revCoverageMap, refBases) +"\t"+ getCompoundBaseCount(revCoverageMap, altBases)  + "\t" + getOtherCompoundBaseCount(revCoverageMap, refBases, altBases));
+		b.append(input.toString()).append(TAB);
+		b.append(position.toTabString()).append(TAB);
+		b.append(refBases).append(TAB);
+		b.append(getCompoundReferenceBases()).append(TAB);
+		b.append(countPositiveStrand).append(TAB);
+		b.append(getCompoundBaseCount(forCoverageMap, refBases)).append(TAB);
+		b.append(getCompoundBaseCount(forCoverageMap, altBases)).append(TAB);
+		b.append(getOtherCompoundBaseCount(forCoverageMap, refBases, altBases)).append(TAB);
+		b.append(countNegativeStrand).append(TAB);
+		b.append(getCompoundBaseCount(revCoverageMap, refBases)).append(TAB);
+		b.append(getCompoundBaseCount(revCoverageMap, altBases)).append(TAB);
+		b.append(getOtherCompoundBaseCount(revCoverageMap, refBases, altBases));
 		
 		return b.toString();
 	}
@@ -664,11 +674,8 @@ public class SnpPositionPileup {
 	}
 
 	private int getCompoundBaseCount(Map<String, AtomicInteger> coverageMap, String bases) {
-		if (coverageMap.containsKey(bases)) {
-			return coverageMap.get(bases).intValue();
-		} else {
-			return 0;
-		}
+		AtomicInteger ai =  coverageMap.get(bases);
+		return null != ai ? ai.get() : 0;
 	}
 
 	private void calculateTotalReferenceBases(String refBases) {
@@ -712,9 +719,8 @@ public class SnpPositionPileup {
 
 	public String toMafString() {
 		StringBuilder sb = new StringBuilder();
-		String indelCheck = indelPresent > 0 ? "yes" : "";
-		sb.append(position.getInputLine()).append(QBasePileupUtil.TAB);
-		sb.append(indelCheck);
+		sb.append(position.getInputLine()).append(TAB);
+		sb.append(indelPresent > 0 ? "yes" : "");
 		return sb.toString();
 	}
 
