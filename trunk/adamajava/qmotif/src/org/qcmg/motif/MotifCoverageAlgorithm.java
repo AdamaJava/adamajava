@@ -75,7 +75,7 @@ public class MotifCoverageAlgorithm implements Algorithm {
 					readChr = MotifConstants.UNMAPPED;
 				}
 			}
-			ChrRangePosition cp = new ChrRangePosition(readChr, readStart);
+			ChrRangePosition cp = new ChrRangePosition(readChr, readStart,readStart);
 			RegionCounter rc = getCounterFromMap(regions, cp);
 			
 			// throw exception if we don't have a region for this read
