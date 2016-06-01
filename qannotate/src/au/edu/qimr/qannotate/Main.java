@@ -4,16 +4,7 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.util.LoadReferencedClasses;
 
-import au.edu.qimr.qannotate.modes.CaddMode;
-import au.edu.qimr.qannotate.modes.ConfidenceMode;
-import au.edu.qimr.qannotate.modes.DbsnpMode;
-import au.edu.qimr.qannotate.modes.GermlineMode;
-import au.edu.qimr.qannotate.modes.IndelConfidenceMode;
-import au.edu.qimr.qannotate.modes.SnpEffMode;
-import au.edu.qimr.qannotate.modes.TandemRepeatMode;
-import au.edu.qimr.qannotate.modes.Vcf2maf;
- 
- 
+import au.edu.qimr.qannotate.modes.*;
 
 public class Main {
 	 
@@ -41,6 +32,8 @@ public class Main {
         	   new CaddMode(   options   );
            else if(options.getMode() == Options.MODE.indelconfidence)
         	   new IndelConfidenceMode(options);
+           else if(options.getMode() == Options.MODE.hom)
+        	   new HomoplymersMode(options);
            else if(options.getMode() == Options.MODE.trf)
         	   new TandemRepeatMode( options );
            else

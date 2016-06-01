@@ -17,11 +17,12 @@ import joptsimple.OptionSet;
 import org.qcmg.common.log.QLogger;
 
 import au.edu.qimr.qannotate.Messages;
+import au.edu.qimr.qannotate.modes.*;
 /*
  * parse command line to options. 
  */
 public class Options {
-	public enum MODE {dbsnp, germline, snpeff,confidence, vcf2maf, cadd,indelconfidence,trf }
+	public enum MODE {dbsnp, germline, snpeff,confidence, vcf2maf, cadd,indelconfidence,trf, hom}
 	
    protected static final String VERSION_DESCRIPTION = Messages.getMessage("VERSION_OPTION_DESCRIPTION");
 	 
@@ -33,38 +34,40 @@ public class Options {
    protected static final String test = "test";
    protected static final String control = "control";
 
-    private final boolean commandCheck = false;
-    protected String commandLine;
+//    private final boolean commandCheck = false;
+    protected final String commandLine;
     
  	protected final Options.MODE Mode;  
     protected final  OptionParser parser;
-//    protected Options modeOptions = null;
     protected QLogger logger = null;
 	
  	
-	protected String outputFileName = null;
-	protected String inputFileName = null;
-//	protected String databaseFileName = null;
-	protected String[] databaseFiles = null;
-	protected String logFileName = null;
-	protected  String logLevel;  
+	protected final String outputFileName ;
+	protected final String inputFileName ;
+	protected final String[] databaseFiles;
+	protected final String logFileName;
+	protected final String logLevel;  
 	
 	//vcf2maf 
-	protected  String testSample = null;
-	protected  String controlSample = null;
+	protected  final String testSample;
+	protected  final String controlSample ;
 	
-	protected  int bufferSize = 0; //trf
-	protected  int gap = 10000; //cadd
+	protected  final int bufferSize; //trf
+	protected  final int gap ; //cadd
 	
 	//Vcf2maf
-	String center; 
-	String sequencer; 
-	String outputDir;
-	String donorId; 
+	protected final String center; 
+	protected final String sequencer; 
+	protected final String outputDir;
+	protected final String donorId; 
 	
 	//snpeff
-	protected  String configFileName ;
-	protected  String summaryFileName ;
+	protected  final String configFileName ;
+	protected  final String summaryFileName ;
+	
+	//hom 
+	protected final int homWindow  ;
+	protected final int homReportSize;
 	
     /**
      * check command line and store arguments and option information
@@ -97,8 +100,9 @@ public class Options {
 		List<String> dbList = (List<String>) options.valuesOf("d");		 
 		databaseFiles = dbList.toArray(new String[dbList.size()]);
         
-        gap = (options.has("gap"))? (int)options.valueOf("gap") : gap;  //CADD
-        bufferSize = (options.has("buffer"))? (Integer) options.valueOf("buffer") : bufferSize; //TRF
+        gap = (options.has("gap"))? (int)options.valueOf("gap") : 1000;  //CADD default is 1000
+        bufferSize = (options.has("buffer"))? (Integer) options.valueOf("buffer") : 0; //TRF default is 0
+        
         
         //vcf2maf
         outputDir = (options.has("outdir"))? (String)options.valueOf("outdir") : null;
@@ -115,8 +119,11 @@ public class Options {
         	   ( Mode.equals(MODE.snpeff)?  new File(databaseFiles[0]).getParent() + "/snpEff.config" : null);
         summaryFileName = (options.has("summaryFile"))?(String) options.valueOf("summaryFile"):
         	( Mode.equals(MODE.snpeff)?  outputFileName +  ".snpEff_summary.html" : null);
-        	 
-
+        	
+        //homoplymers
+        homWindow  = (options.has("window"))? (int) options.valueOf("window") : 100;  //default is 100
+        homReportSize = (options.has("report"))? (int) options.valueOf("report") : 10; //default is 10
+        		
         checkIO();    //not yet complete         	
     }
     
@@ -149,8 +156,6 @@ public class Options {
         
         if(mm == null) return options;
         
-        commandLine = Messages.reconstructCommandLine(args) ;
-        
         if(  mm.equals(MODE.confidence) || mm.equals(MODE.vcf2maf) ){
 	        parser.accepts(test,  Messages.getMessage("TUMOUR_SAMPLEID_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("testSample");
 	        parser.accepts(control, Messages.getMessage("NORMAL_SAMPLEID_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("controlSample");	                	
@@ -161,22 +166,23 @@ public class Options {
 	        parser.accepts("config", Messages.getMessage("CONF_FILE_ERR_DESCRIPTION") ).withRequiredArg().ofType(String.class).describedAs("config file");
 	        parser.accepts("summaryFile", Messages.getMessage("SUMMARY_FILE_DESCRIPTION")  ).withRequiredArg().ofType(String.class).describedAs("stat output");
         }
-         
-        		
-         if(mm.equals(MODE.trf))
+                 		
+        if(mm.equals(MODE.trf))
             parser.accepts("buffer", "check TRF region on both side of indel within this nominated size" ).withRequiredArg().ofType(Integer.class);//.describedAs("integer");
  
          if(mm.equals(MODE.cadd))
              parser.accepts("gap", "adjacant variants size").withRequiredArg().ofType(String.class).describedAs("gap size");
 
+         if(mm.equals(MODE.hom)){
+ 	        parser.accepts("window", "check homoplymers inside window size on both side of variants. Default value is " + HomoplymersMode.defaultWindow).withRequiredArg().ofType(String.class).describedAs("window size");
+ 	        parser.accepts("report", "report specified number of homoplymers base fallen in the swindow. Default value is " + HomoplymersMode.defaultreport  ).withRequiredArg().ofType(String.class).describedAs("report base number");
+         }
         
          if( mm.equals(MODE.vcf2maf) ){
  	        parser.accepts("outdir", Messages.getMessage("MAF_OUTPUT_DIRECTORY_OPTION_DESCRIPTION") ).withRequiredArg().ofType(String.class).describedAs("output file location");
  	        parser.accepts("donor",  Messages.getMessage("DONOR_ID_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("donor id");	        
  	        parser.accepts("center", "Genome sequencing center").withRequiredArg().ofType(String.class).describedAs("center");
  	        parser.accepts("sequencer", Messages.getMessage("SEQUENCER_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("Sequencer");	 
- //	        parser.accepts("lowMaf", Messages.getMessage("LOW_MAF_DESCRIPTION"));
-
          }
          
          return parser.parse(args);
@@ -258,6 +264,7 @@ public class Options {
                 case cadd: mess = Messages.getMessage("CADD_USAGE"); break;
                 case indelconfidence: mess = Messages.getMessage("INDELCONFIDENCE_USAGE"); break;
                 case vcf2maf: mess = Messages.getMessage("VCF2MAF_USAGE"); break;
+                case hom: mess = Messages.getMessage("HOM_USAGE"); break;
             } 
         }   
         
@@ -281,7 +288,12 @@ public class Options {
 	public String getGenesFileName(){ return  (Mode.equals(MODE.snpeff))? outputFileName + ".snpEff_genes.txt" : null; 	}		
 	public String getConfigFileName() { return (Mode.equals(MODE.snpeff))? configFileName : null; }
 	
-	public int getBufferSize(){ return bufferSize; } //trf
-	public int getGapSize(){ return gap; } //cadd
- 
+	public int getBufferSize(){ return (Mode.equals(MODE.trf))? bufferSize : -1; } //trf
+	public int getGapSize(){ return (Mode.equals(MODE.trf))? gap : -1; } //cadd
+	
+	//hom
+	public int getHomoplymersWindow(){ return (Mode.equals(MODE.hom))? homWindow : -1; } //trf
+	public int getHomoplymersReportSize(){ return (Mode.equals(MODE.hom))? homReportSize : -1; } //cadd
+
+
 }

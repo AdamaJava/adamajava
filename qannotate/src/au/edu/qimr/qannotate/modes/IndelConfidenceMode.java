@@ -12,8 +12,10 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.MafConfidence;
+import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.IndelUtils;
+import org.qcmg.common.vcf.VcfInfoFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
@@ -39,21 +41,20 @@ public class IndelConfidenceMode extends AbstractMode{
 	static final float DEFAULT_NIOC = 0.1f;
 	static final float DEFAULT_SSOI = 0.2f;
 	static final int DEFAULT_HOMN = 6;
-//	final BitSet[] mask = new BitSet[24]; 
 	final Map<String,BitSet> mask = new HashMap<String, BitSet>();
 		
  	//filters 
 	public static final String FILTER_REPEAT = "REPEAT"; 
+	public static final String DESCRIPTION_FILTER_REPEAT = "variants fallen in simple repeat region"; 
 	public static final String DESCRITPION_INFO_CONFIDENCE =  "set to HIGH if the variants passed all filter, "
 			+ "nearby homopolymer sequence base less than six and less than 10% reads contains nearby indel; set to Zero if "
 			+ "coverage more than 1000, or fallen in repeat region; set to LOW for reminding variants";
  	
 	public static final String DESCRITPION_FILTER_REPEAT = String.format( "this variants is fallen into the repeat region");
-//	public enum Confidence{	HIGH , LOW, ZERO ; }
 	
 	@Deprecated
 	//unit test only
-	public IndelConfidenceMode(){
+	IndelConfidenceMode(){
  		this.input = null;
 		this.output = null;
 		commandLine = null;
@@ -91,10 +92,6 @@ public class IndelConfidenceMode extends AbstractMode{
                         	
                         	int start = Integer.parseInt(array[1]);
                         	int end = Integer.parseInt(array[2]);
-//                        	if(no >= 24 || no < 0 || start < 1 || end < 1)
-//                        		throw new NumberFormatException();
-//                         	if(mask[no] == null)
-//                        		mask[no] = new BitSet();
                         	if(! mask.containsKey(chr))
                         		mask.put(chr,new BitSet());
                         	mask.get(chr).set(start, end);                       	
@@ -110,20 +107,22 @@ public class IndelConfidenceMode extends AbstractMode{
 	 *check the confidence level
 	 */
 	MafConfidence getConfidence(VcfRecord vcf){
-		String filter = vcf.getFilter();		
-		if( filter.equals(VcfHeaderUtils.FILTER_PASS) ||  filter.matches("HOM\\d+")) {//|| filter.contains(IndelUtils.FILTER_HOM)){
-			//check nearby indel  
-			float nioc = string2Number(vcf.getInfoRecord().getField(IndelUtils.INFO_NIOC), Float.class);
+		String filter = vcf.getFilter();
+		VcfInfoFieldRecord info = vcf.getInfoRecord();
+		if( filter.equals(VcfHeaderUtils.FILTER_PASS)  && info!= null) {//|| filter.contains(IndelUtils.FILTER_HOM)){
 			
-			//check homoplymers
-			int lhomo = string2Number(filter.replace(IndelUtils.FILTER_HOM, ""), Integer.class);
+			//check nearby indel  
+			float nioc = StringUtils.string2Number(info.getField(IndelUtils.INFO_NIOC), Float.class);			
 			
 			//check strong supporting for germline
-			float ssoi = (vcf.getInfoRecord().getField(VcfHeaderUtils.INFO_SOMATIC) != null) ?  
-					1 : string2Number(vcf.getInfoRecord().getField(IndelUtils.INFO_SSOI), Float.class);
-		
-			if(nioc <= DEFAULT_NIOC && lhomo <= DEFAULT_HOMN && ssoi >= DEFAULT_SSOI)
-				return MafConfidence.HIGH;			
+			float ssoi = (info.getField(VcfHeaderUtils.INFO_SOMATIC) != null) ?  
+					1 : StringUtils.string2Number(vcf.getInfoRecord().getField(IndelUtils.INFO_SSOI), Float.class);
+			
+			//check homoplymers			
+			int lhomo = (info.getField(VcfHeaderUtils.INFO_HOM) == null)? 1 :
+				StringUtils.string2Number(info.getField(VcfHeaderUtils.INFO_HOM).split(",")[0], Integer.class);
+			
+			if(nioc <= DEFAULT_NIOC && lhomo <= DEFAULT_HOMN && ssoi >= DEFAULT_SSOI) return MafConfidence.HIGH;		
 			
 		}else if(filter.equals(IndelUtils.FILTER_HCOVN) || filter.equals(IndelUtils.FILTER_HCOVT) || 
 				filter.equals(FILTER_REPEAT) || filter.contains(Constants.SEMI_COLON + FILTER_REPEAT + Constants.SEMI_COLON)  ||
@@ -187,19 +186,6 @@ public class IndelConfidenceMode extends AbstractMode{
 					 
 	}
  
-	
-	@SuppressWarnings("unchecked")
-	private static <T extends Number> T string2Number(String info, Class<T> clazz){
-		T rate = (clazz.equals(Integer.class))? (T) new Integer(0): (T) new Float(0);		
-		try{
-			if(clazz.equals(Integer.class)){ 
-				rate = (T)  Integer.valueOf(info); 
-			}else
-				rate = (T)  Float.valueOf(info); 
-		}catch(NullPointerException | NumberFormatException  e){} //do nothing
-
-		return  rate;
-	}
 }	
 	
   
