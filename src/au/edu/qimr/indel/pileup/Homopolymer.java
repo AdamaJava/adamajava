@@ -16,6 +16,7 @@ import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.util.IndelUtils.SVTYPE;
 import au.edu.qimr.indel.Q3IndelException;
 
+@Deprecated
 public class Homopolymer {
 	
 	static final String nullValue = "-";
@@ -26,12 +27,9 @@ public class Homopolymer {
 	QLogger logger = QLoggerFactory.getLogger(Homopolymer.class);	
 	private byte[] upstreamReference;
 	private byte[] downstreamReference;
-//	private List<byte[]> indelReferenceBases = new ArrayList<byte[]>() ;
 	private int homopolymerWindow;
 	private int reportWindow;
 
-//	private List<String> upBase = new ArrayList<String>();
-//	private List<String> downBase = new ArrayList<String>();
 	private List<Integer> maxBase = new ArrayList<Integer>();
 	private List<byte[]> homoString = new ArrayList<byte[]>();
 	private byte[] referenceBase;

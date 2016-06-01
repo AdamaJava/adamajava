@@ -28,6 +28,7 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.meta.QExec;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrRangePosition;
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
@@ -320,7 +321,7 @@ public class IndelMT {
         final CountDownLatch pileupLatch = new CountDownLatch(sortedContigs.size() * 2); // filtering thread               
         
         final AbstractQueue<IndelPileup> tumourQueue = new ConcurrentLinkedQueue<IndelPileup>();
-        final AbstractQueue<Homopolymer> homopoQueue = new ConcurrentLinkedQueue<Homopolymer>();
+//        final AbstractQueue<Homopolymer> homopoQueue = new ConcurrentLinkedQueue<Homopolymer>();
         final AbstractQueue<IndelPileup> normalQueue = new ConcurrentLinkedQueue<IndelPileup>();
         // set up executor services
         ExecutorService pileupThreads = Executors.newFixedThreadPool(threadNo);    	
@@ -340,9 +341,9 @@ public class IndelMT {
     			 pileupThreads.execute(new ContigPileup(contig, getIndelList(contig), options.getTestBam() , query,
     					 tumourQueue, Thread.currentThread() ,pileupLatch));
     		
-    		if(options.getReference() != null)
-    			pileupThreads.execute(new HomopoPileup(contig.getSequenceName(), getIndelList(contig), options.getReference(),
-    				homopoQueue, options.nearbyHomopolymer,options.getNearbyHomopolymerReportWindow(), Thread.currentThread(),pileupLatch));    		
+//    		if(options.getReference() != null)
+//    			pileupThreads.execute(new HomopoPileup(contig.getSequenceName(), getIndelList(contig), options.getReference(),
+//    				homopoQueue, options.nearbyHomopolymer,options.getNearbyHomopolymerReportWindow(), Thread.currentThread(),pileupLatch));    		
     	}
     	pileupThreads.shutdown();
     	
@@ -352,7 +353,8 @@ public class IndelMT {
 			pileupThreads.awaitTermination(20, TimeUnit.HOURS);
 			logger.info("All threads finished");
 			
-			writeVCF( tumourQueue, normalQueue, homopoQueue,options.getOutput(),indelload.getVcfHeader());			
+//			writeVCF( tumourQueue, normalQueue, homopoQueue,options.getOutput(),indelload.getVcfHeader());			
+			writeVCF( tumourQueue, normalQueue,options.getOutput(),indelload.getVcfHeader());		
 			
 		} catch (Exception e) {
 			logger.error("Exception caught whilst waiting for threads to finish: " + e.getMessage(), e);
@@ -365,7 +367,8 @@ public class IndelMT {
 	}
 	
 
-	private void writeVCF(AbstractQueue<IndelPileup> tumourQueue, AbstractQueue<IndelPileup> normalQueue, AbstractQueue<Homopolymer> homopoQueue, File output, VcfHeader header ) throws Exception{
+//	private void writeVCF(AbstractQueue<IndelPileup> tumourQueue, AbstractQueue<IndelPileup> normalQueue, AbstractQueue<Homopolymer> homopoQueue, File output, VcfHeader header ) throws Exception{
+	private void writeVCF(AbstractQueue<IndelPileup> tumourQueue, AbstractQueue<IndelPileup> normalQueue,File output, VcfHeader header ) throws Exception{
 		
 		IndelPileup pileup;
 		if(positionRecordMap == null ){
@@ -384,12 +387,12 @@ public class IndelMT {
 			indel.setPileup(false, pileup);			
 		}
 		
-		Homopolymer homopo;
-		while((homopo = homopoQueue.poll()) != null ){
-			ChrRangePosition pos = homopo.getChrRangePosition();
-			IndelPosition indel = positionRecordMap.get(pos);
-			indel.setHomopolymer(homopo);
-		}
+//		Homopolymer homopo;
+//		while((homopo = homopoQueue.poll()) != null ){
+//			ChrRangePosition pos = homopo.getChrRangePosition();
+//			IndelPosition indel = positionRecordMap.get(pos);
+//			indel.setHomopolymer(homopo);
+//		}
 		
 		final AbstractQueue<IndelPosition> orderedList = getIndelList(null);
 		logger.info("reading indel position:  " + orderedList.size() );
@@ -470,7 +473,6 @@ public class IndelMT {
         header.addFilterLine(IndelUtils.FILTER_NPART,  IndelUtils.DESCRITPION_FILTER_NPART );
         header.addFilterLine(IndelUtils.FILTER_TBIAS,  IndelUtils.DESCRITPION_FILTER_TBIAS );
         header.addFilterLine(IndelUtils.FILTER_NBIAS,  IndelUtils.DESCRITPION_FILTER_NBIAS );
-        header.addFilterLine(IndelUtils.FILTER_HOM, IndelUtils.DESCRITPION_FILTER_HOM);
         
 		final String SOMATIC_DESCRIPTION = String.format("There are more than %d novel starts  or "
 				+ "more than %.2f soi (number of supporting informative reads /number of informative reads) on control BAM",
@@ -478,7 +480,10 @@ public class IndelMT {
 
 		header.addInfoLine(VcfHeaderUtils.INFO_SOMATIC, "1", "String", SOMATIC_DESCRIPTION);
 		header.addInfoLine(IndelUtils.INFO_NIOC, "1", "String", IndelUtils.DESCRITPION_INFO_NIOC);
-		header.addInfoLine(IndelUtils.INFO_HOMTXT, "1", "String", IndelUtils.DESCRITPION_INFO_HOMTXT); 
+		header.addInfoLine(IndelUtils.INFO_SSOI, "1", "String", IndelUtils.DESCRITPION_INFO_SSOI);		
+//		header.addInfoLine(IndelUtils.INFO_HOM, "1", "String", IndelUtils.DESCRITPION_INFO_HOM); 
+		header.addInfoLine(VcfHeaderUtils.INFO_MERGE_IN, "1", "String",VcfHeaderUtils.DESCRITPION_MERGE_IN); 
+				
 		header.addFormatLine(VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS, "1","String", "Genotype details: specific alleles");
 		header.addFormatLine(IndelUtils.FORMAT_ACINDEL, "1", "String", IndelUtils.DESCRITPION_FORMAT_ACINDEL);
 
@@ -487,6 +492,9 @@ public class IndelMT {
         		
 		VcfHeaderUtils.addSampleId(header, VcfHeaderUtils.STANDARD_CONTROL_SAMPLE.replaceAll("#", ""), 1 ); // "qControlSample", 1);
 		VcfHeaderUtils.addSampleId(header,  VcfHeaderUtils.STANDARD_TEST_SAMPLE.replaceAll("#", ""), 2);//"qTestSample"
+		
+		
+
  		 
 	}
 	 

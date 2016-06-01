@@ -282,10 +282,10 @@ public class IndelPosition {
 		field.add(2,  (genotypeField.size() > 2)? genotypeField.get(2) + ":" + td: td);					
 		re.setFormatFields(  field); 
 				
-		if(polymer != null &&  polymer.getPolymerSequence(index) != null ){
-			VcfUtils.updateFilter(re, IndelUtils.FILTER_HOM + polymer.getCount(index));	
-			re.appendInfo(String.format(IndelUtils.INFO_HOMTXT  + "=" + polymer.getPolymerSequence(index)));
-		}
+//		if(polymer != null &&  polymer.getPolymerSequence(index) != null ){
+//			VcfUtils.updateFilter(re, IndelUtils.FILTER_HOM + polymer.getCount(index));	
+//			re.appendInfo(String.format(IndelUtils.INFO_HOMTXT  + "=" + polymer.getPolymerSequence(index)));
+//		}
 					 
 		IndelPileup pileup = (somatic)? tumourPileup: normalPileup; 				
 		
@@ -301,6 +301,7 @@ public class IndelPosition {
 				
 		re.appendInfo("SVTYPE=" + this.mutationType.name());
 		re.appendInfo("END=" + indelEnd);
+		re.appendInfo(VcfHeaderUtils.INFO_MERGE_IN + "=1");
 					
 		return re; 	
 	}
