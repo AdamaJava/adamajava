@@ -146,7 +146,8 @@ public class UniqueQSnps {
 				String chrPosition = params[params.length-2];
 //				logger.info("chrPosition: " + chrPosition);
 				//TODO refactor to use StringUtils.getChrPositionFromString()
-				ChrPosition chrPos = new ChrRangePosition(chrPosition.substring(0, chrPosition.indexOf(":")-1), Integer.parseInt(chrPosition.substring(chrPosition.indexOf("-"))));
+				int start = Integer.parseInt(chrPosition.substring(chrPosition.indexOf("-")));
+				ChrPosition chrPos = new ChrRangePosition(chrPosition.substring(0, chrPosition.indexOf(":")-1), start, start);						 
 				
 				qSnpPileup.put(chrPos,pr);
 			}
@@ -164,7 +165,8 @@ public class UniqueQSnps {
 				String chrPosition = params[params.length-2];
 //				logger.info("chrPosition: " + chrPosition);
 				//TODO refactor to use StringUtils.getChrPositionFromString()
-				ChrPosition chrPos = new ChrRangePosition(chrPosition.substring(0, chrPosition.indexOf(":")-1), Integer.parseInt(chrPosition.substring(chrPosition.indexOf("-"))));
+				int start = Integer.parseInt(chrPosition.substring(chrPosition.indexOf("-")));
+				ChrPosition chrPos = new ChrRangePosition(chrPosition.substring(0, chrPosition.indexOf(":")-1), start, start);
 				
 				gatkVcfs.put(chrPos,pr);
 			}
@@ -183,7 +185,8 @@ public class UniqueQSnps {
 				String chrPosition = params[2];
 //				logger.info("chrPosition: " + chrPosition);
 				//TODO refactor to use StringUtils.getChrPositionFromString()
-				ChrPosition chrPos = new ChrRangePosition(chrPosition.substring(0, chrPosition.indexOf(":")-1), Integer.parseInt(chrPosition.substring(chrPosition.indexOf("-"))));
+				int start = Integer.parseInt(chrPosition.substring(chrPosition.indexOf("-")));
+				ChrPosition chrPos = new ChrRangePosition(chrPosition.substring(0, chrPosition.indexOf(":")-1), start, start);
 				
 				verifiedSNPs.put(chrPos,pr);
 			}
