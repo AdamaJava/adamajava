@@ -29,8 +29,7 @@ public class VcfRecord implements Comparable<VcfRecord> {
 	
 	private final ChrPosition cpp;
 	private final String ref;
-	private final String alt;
-	
+	private final String alt;	
 	private String id;
 	private String qualString;
 	private String filter;
@@ -59,7 +58,7 @@ public class VcfRecord implements Comparable<VcfRecord> {
         	this.ref = ref; 
         	this.alt = alt; 
         }
-        
+       
         public Builder(String chromosome, int position, String ref){ this(ChrPointPosition.valueOf(chromosome, position),ref, null);   }
         public Builder(String chromosome, int position){  this( ChrPointPosition.valueOf(chromosome, position), null, null );  }
         public Builder(ChrPosition cp, String ref){ this(cp ,ref, null);}
@@ -81,6 +80,7 @@ public class VcfRecord implements Comparable<VcfRecord> {
         this.filter = builder.filter;
         this.infoRecord = builder.infoRecord;
         this.formatRecords = builder.formatRecords;
+ 
     }	
 	
 	/**
@@ -139,48 +139,6 @@ public class VcfRecord implements Comparable<VcfRecord> {
 	}
  
 	public String getAlt() { return alt ; }
-//	public void setAlt(String alt) { this.alt = alt;}
-	
-	//return a new VcfRecord with this alt 
-//	public VcfRecord setAlt(String alt) { 
-//		
-//		VcfRecord re =  new VcfRecord.Builder(this.cpp, this.ref).id(this.id).allele(alt).qualString(this.qualString).build();
-//		re.setFormatFields(this.formatRecords);
-//		return re; 
-//	}
-	
-	/**
-	 * 
-	 * @param otherAlt, append this allels if not exists in exisiting allel. 
-	 */
-	
-//	public void appendAlt(String otherAlt){
-//		if( StringUtils.isNullOrEmpty( otherAlt )) {
-//			return;
-//		}
-//		
-//		if (StringUtils.isNullOrEmpty(alt)) {  
-//			this.alt = otherAlt;
-//		}
-//		
-//		final String[] altParam = this.alt.split(Constants.COMMA_STRING);
-//		final String[] otherParm = otherAlt.split(Constants.COMMA_STRING);
-//		
-//		for(final String in : otherParm) {
-//			boolean isExist = false; 
-//			for (final String s : altParam){ 
-//				if(s.equalsIgnoreCase(otherAlt)){
-//					isExist = true;
-//					break; 
-//				}
-//			}
-//			
-//			//append non existed alt
-//			if(! isExist) {
-//				this.alt.concat(Constants.COMMA + in);
-//			}
-//		}
-//	}
 
 	public void setQualString(String qualString) { this.qualString = qualString; }
 	public String getQualString(){return qualString;}
@@ -213,6 +171,7 @@ public class VcfRecord implements Comparable<VcfRecord> {
 		
 		return filter; 
 	}
+	
 	
 	/**
 	 * the existing INFO column value will be replaced by this new info string
@@ -339,8 +298,7 @@ public class VcfRecord implements Comparable<VcfRecord> {
 	 * return a vcf string trailing with a newline 
 	 */
 	public String toString(){
-		
-		
+				
 		final StringBuilder builder = new StringBuilder();
 		builder.append(cpp.getChromosome()).append(TAB);
 		builder.append(cpp.getStartPosition()).append(TAB);

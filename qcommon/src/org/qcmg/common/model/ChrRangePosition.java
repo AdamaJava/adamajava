@@ -22,6 +22,8 @@ public class ChrRangePosition  implements ChrPosition , Comparable<ChrPosition> 
 	private final ChrPointPosition cpp;
 	private final int endPosition;
 
+
+	
 	public ChrRangePosition(ChrPosition cpp, int endPosition) {
 		if (endPosition < cpp.getStartPosition()) {
 			throw new IllegalArgumentException("end position: "+ endPosition + " is before start position: " + cpp.getStartPosition());
@@ -34,6 +36,11 @@ public class ChrRangePosition  implements ChrPosition , Comparable<ChrPosition> 
 		this.endPosition = endPosition;
 	}
 	
+	public ChrRangePosition(ChrPosition cp ) {		
+		this(cp, cp.getEndPosition());
+	}	
+	
+		
 	/**
 	 * create an instance
 	 * @param chromosome: variant occurred reference name
@@ -51,9 +58,11 @@ public class ChrRangePosition  implements ChrPosition , Comparable<ChrPosition> 
 	 * @param position: same for start and end position
 	 * @return
 	 */
-	public ChrRangePosition(String chromosome, int position ) {		
-		this( ChrPointPosition.valueOf(chromosome, position), position);
-	}
+//	public ChrRangePosition(String chromosome, int position ) {		
+//		this( ChrPointPosition.valueOf(chromosome, position), position);
+//	}
+	
+	
 	
 	/**
 	 * @return String chromosome 
