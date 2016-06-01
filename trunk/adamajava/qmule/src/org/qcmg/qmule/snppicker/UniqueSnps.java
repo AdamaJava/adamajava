@@ -155,8 +155,8 @@ public class UniqueSnps {
 					String [] params = tabbedPattern.split(tr.getData());
 					String chrPosition = params[params.length-2];
 //					logger.info("chrPosition: " + chrPosition);
-					ChrPosition chrPos = new ChrRangePosition(chrPosition.substring(0, chrPosition.indexOf(":")-1), Integer.parseInt(chrPosition.substring(chrPosition.indexOf("-"))));
-					
+					int start = Integer.parseInt(chrPosition.substring(chrPosition.indexOf("-")));
+					ChrPosition chrPos = new ChrRangePosition(chrPosition.substring(0, chrPosition.indexOf(":")-1), start, start);					
 					unVerifiedSNPs.put(chrPos,tr);
 				}
 			} finally {
@@ -189,7 +189,8 @@ public class UniqueSnps {
 					String [] params = tabbedPattern.split(tr.getData());
 					String chrPosition = params[2];
 	//				logger.info("chrPosition: " + chrPosition);
-					ChrPosition chrPos = new ChrRangePosition(chrPosition.substring(0, chrPosition.indexOf(":")-1), Integer.parseInt(chrPosition.substring(chrPosition.indexOf("-"))));
+					int start =  Integer.parseInt(chrPosition.substring(chrPosition.indexOf("-")));
+					ChrPosition chrPos = new ChrRangePosition(chrPosition.substring(0, chrPosition.indexOf(":")-1),start, start);
 					
 					verifiedSNPs.put(chrPos,tr);
 				}
