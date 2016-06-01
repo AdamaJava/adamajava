@@ -103,16 +103,16 @@ public class MotifUtilsTest {
 	public void getChr1Positions() {
 		List<ChrPosition> positions = new ArrayList<>();
 		for (int i = 1 ; i < 25 ; i++) {
-			positions.add(new ChrRangePosition(i + "" , i));
+			positions.add(new ChrRangePosition(i + "" , i, i));
 		}
 		
-		assertEquals(1, MotifUtils.getPositionsForChromosome(new ChrRangePosition("1",1), positions).size());
-		assertEquals("1", MotifUtils.getPositionsForChromosome(new ChrRangePosition("1",1), positions).get(0).getChromosome());
+		assertEquals(1, MotifUtils.getPositionsForChromosome(new ChrRangePosition("1",1,1), positions).size());
+		assertEquals("1", MotifUtils.getPositionsForChromosome(new ChrRangePosition("1",1,1), positions).get(0).getChromosome());
 		
-		positions.add(new ChrRangePosition("chr1", 100));
-		assertEquals(1, MotifUtils.getPositionsForChromosome(new ChrRangePosition("1",1), positions).size());
-		positions.add(new ChrRangePosition("1", 1));
-		assertEquals(2, MotifUtils.getPositionsForChromosome(new ChrRangePosition("1",1), positions).size());
+		positions.add(new ChrRangePosition("chr1", 100,100));
+		assertEquals(1, MotifUtils.getPositionsForChromosome(new ChrRangePosition("1",1,1), positions).size());
+		positions.add(new ChrRangePosition("1", 1,1));
+		assertEquals(2, MotifUtils.getPositionsForChromosome(new ChrRangePosition("1",1,1), positions).size());
 	}
 	
 	@Test
@@ -410,7 +410,7 @@ public class MotifUtilsTest {
 		Collections.sort(list, new ChrPositionComparator());
 		
 		// check to see if chr16:59999-59999 is covered by map
-		ChrRangePosition chr16CP = new ChrRangePosition("chr16", 59999);
+		ChrRangePosition chr16CP = new ChrRangePosition("chr16", 59999, 59999);
 		boolean foundIt = false;
 		for (ChrPosition cp : list) {
 			if (ChrPositionUtils.doChrPositionsOverlapPositionOnly(cp, chr16CP)) {
