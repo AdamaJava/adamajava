@@ -265,9 +265,6 @@ public class Vcf2mafTest {
 		 
 		 final VcfRecord vcf = new VcfRecord(parms);
 		 final SnpEffMafRecord maf = v2m.converter(vcf);
-		 
-		 //debugt
-		 System.out.println(maf.getMafLine());
 		 assertEquals("HIGH_1,ZERO_2", maf.getColumnValue(38));		 
 	 }
 	 

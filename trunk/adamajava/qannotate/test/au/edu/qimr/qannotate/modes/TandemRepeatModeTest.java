@@ -37,11 +37,7 @@ public class TandemRepeatModeTest {
 		assertTrue(index.lastBlockEnd == 2000);
 		
 		HashMap<Integer, Block> blocks = index.index;
- 		assertTrue(blocks.size() == 24); //some big gap will be divided to multi block, each block maximum size is 200
-		int i = 0;
-		for(Integer in :  new TreeSet<Integer>(blocks.keySet()))
-			System.out.println(i++ +"," + in + ": " + blocks.get(in).toString() );
-		
+ 		assertTrue(blocks.size() == 24); //some big gap will be divided to multi block, each block maximum size is 200		
 		
 		Set<Block> uniqBlocks = new HashSet<Block>(blocks.values());
 		int areaLength = 0;

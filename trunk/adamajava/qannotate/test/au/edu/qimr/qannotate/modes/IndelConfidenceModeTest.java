@@ -40,20 +40,21 @@ public class IndelConfidenceModeTest {
 		
 		IndelConfidenceMode mode = new IndelConfidenceMode();	
 		
-//		String str = "chr1	11303744	.	C	CA	37.73	PASS	SOMATIC;HOMCNTXT=5,AGCCTGTCTCaAAAAAAAAAA;NIOC=0.087;SVTYPE=INS;END=11303745	GT:AD:DP:GQ:PL:ACINDEL	.:.:.:.:.:0,39,36,0[0,0],0,4,4	0/1:30,10:40:75:75,0,541:7,80,66,8[4,4],1,7,8";
-		String str = "chr1	11303744	.	C	CA	37.73	HOM5	SOMATIC;HOMTXT=AGCCTGTCTCaAAAAAAAAAA;NIOC=0.087;SVTYPE=INS;END=11303745	GT:AD:DP:GQ:PL:ACINDEL	.:.:.:.:.:0,39,36,0[0,0],0,4,4	0/1:30,10:40:75:75,0,541:7,80,66,8[4,4],1,7,8";
+		String str = "chr1	11303744	.	C	CA	37.73	PASS	SOMATIC;HOM=5,AGCCTGTCTCaAAAAAAAAAA;NIOC=0.087;SVTYPE=INS;END=11303745	GT:AD:DP:GQ:PL:ACINDEL	.:.:.:.:.:0,39,36,0[0,0],0,4,4	0/1:30,10:40:75:75,0,541:7,80,66,8[4,4],1,7,8";
+//		String str = "chr1	11303744	.	C	CA	37.73	HOM5	SOMATIC;HOMTXT=AGCCTGTCTCaAAAAAAAAAA;NIOC=0.087;SVTYPE=INS;END=11303745	GT:AD:DP:GQ:PL:ACINDEL	.:.:.:.:.:0,39,36,0[0,0],0,4,4	0/1:30,10:40:75:75,0,541:7,80,66,8[4,4],1,7,8";
 
 		VcfRecord vcf = new	VcfRecord(str.split("\\t"));
 		assertTrue(mode.getConfidence(vcf) == MafConfidence.HIGH);
- 		
-		vcf.setInfo("SOMATIC;SVTYPE=INS;END=11303745");
-		assertTrue(mode.getConfidence(vcf) == MafConfidence.HIGH);
-		
+ 				
 		//HOMCNTXT is no longer checked
 		vcf.setInfo("SOMATIC;HOMCNTXT=9,AGCCTGTCTCaAAAAAAAAAA;SVTYPE=INS;END=11303745");
 		assertTrue(mode.getConfidence(vcf) == MafConfidence.HIGH);
-
+		vcf.setInfo("SOMATIC;HOM=9,AGCCTGTCTCaAAAAAAAAAA;SVTYPE=INS;END=11303745");		
+		assertTrue(mode.getConfidence(vcf) == MafConfidence.LOW);
+		
+		
 		//no homopolymers (repeat)
+		vcf = new	VcfRecord(str.split("\\t"));
 		vcf.setInfo("SOMATIC;NIOC=0.087;SVTYPE=INS;END=11303745");
 		assertTrue(mode.getConfidence(vcf) == MafConfidence.HIGH);
 		
@@ -70,20 +71,20 @@ public class IndelConfidenceModeTest {
 		assertTrue(mode.getConfidence(vcf) == MafConfidence.LOW);
 				
 		//9 base repeat
-		vcf.setFilter(IndelUtils.FILTER_HOM + "9");
-		vcf.setInfo("SOMATIC;HOMTXT=AGCCTGTCTCaAAAAAAAAAA;NIOC=0.087;SVTYPE=INS;END=11303745");
+		//vcf.setFilter(IndelUtils.FILTER_HOM + "9");
+		vcf.setInfo("SOMATIC;HOM=9,AGCCTGTCTCaAAAAAAAAAA;NIOC=0.087;SVTYPE=INS;END=11303745");
 		assertTrue(mode.getConfidence(vcf) == MafConfidence.LOW);
 
 		//no repeat but too many nearby indel
-		vcf.setInfo("SOMATIC;HOMCNTXT=5,AGCCTGTCTCaAAAAAAAAAA;NIOC=0.187;SVTYPE=INS;END=11303745");
+		vcf.setInfo("SOMATIC;HOM=5,AGCCTGTCTCaAAAAAAAAAA;NIOC=0.187;SVTYPE=INS;END=11303745");
 		assertTrue(mode.getConfidence(vcf) == MafConfidence.LOW);	 
 		
 		
-		vcf.setFilter(IndelUtils.FILTER_HOM + "3" );
-		vcf.setInfo("SOMATIC;HOMTXT=AGCCTGTCTCaAAAAAAAAAA;NIOC=0.087;SVTYPE=INS;END=11303745");
+		//vcf.setFilter(IndelUtils.FILTER_HOM + "3" );
+		vcf.setInfo("SOMATIC;HOM=3,AGCCTGTCTCaAAAAAAAAAA;NIOC=0.087;SVTYPE=INS;END=11303745");
 		assertTrue(mode.getConfidence(vcf) == MafConfidence.HIGH);	 
 		
-		vcf.setFilter(IndelUtils.FILTER_MIN + ";" + IndelUtils.FILTER_HOM + "3" );
+		vcf.setFilter(IndelUtils.FILTER_MIN );
 		assertTrue(mode.getConfidence(vcf) == MafConfidence.LOW);	
 		
 	}

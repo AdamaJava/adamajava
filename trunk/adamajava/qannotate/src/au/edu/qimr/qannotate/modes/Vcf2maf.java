@@ -365,9 +365,16 @@ public class Vcf2maf extends AbstractMode{
 		if(info.getField(VcfHeaderUtils.INFO_FLANKING_SEQUENCE) != null) maf.setColumnValue(MafElement.Var_Plus_Flank,  info.getField(VcfHeaderUtils.INFO_FLANKING_SEQUENCE));
 		if(info.getField(VcfHeaderUtils.INFO_VAF) != null) maf.setColumnValue(MafElement.Variant_AF,  info.getField(VcfHeaderUtils.INFO_VAF));		
 		if(info.getField(VcfHeaderUtils.INFO_GERMLINE) != null) maf.setColumnValue(MafElement.Germ_Counts,  info.getField(VcfHeaderUtils.INFO_GERMLINE));	
-		String str = VcfHeaderUtils.INFO_TRF + "=" +info.getField(VcfHeaderUtils.INFO_TRF);
-		str += ";" + IndelUtils.INFO_SSOI   + "=" +info.getField(IndelUtils.INFO_SSOI );
-		if(info.getField(VcfHeaderUtils.INFO_TRF)!= null) maf.setColumnValue(MafElement.notes,  VcfHeaderUtils.INFO_TRF + "=" +info.getField(VcfHeaderUtils.INFO_TRF));	//add TRF info to notes column
+		
+		//add notes
+		String str = (info.getField(VcfHeaderUtils.INFO_TRF)!= null)? VcfHeaderUtils.INFO_TRF + "=" +info.getField(VcfHeaderUtils.INFO_TRF) : "";
+		str +=  (info.getField(VcfHeaderUtils.INFO_HOM)!= null)? ";" + VcfHeaderUtils.INFO_HOM   + "=" +info.getField(VcfHeaderUtils.INFO_HOM ) : "";
+		 maf.setColumnValue(MafElement.notes, str);
+		
+//		String str = VcfHeaderUtils.INFO_TRF + "=" +info.getField(VcfHeaderUtils.INFO_TRF);
+//		str += ";" + IndelUtils.INFO_SSOI   + "=" +info.getField(IndelUtils.INFO_SSOI );
+//		str 
+//		if(info.getField(VcfHeaderUtils.INFO_TRF)!= null) maf.setColumnValue(MafElement.notes,  VcfHeaderUtils.INFO_TRF + "=" +info.getField(VcfHeaderUtils.INFO_TRF));	//add TRF info to notes column
 
 
 		String eff; 

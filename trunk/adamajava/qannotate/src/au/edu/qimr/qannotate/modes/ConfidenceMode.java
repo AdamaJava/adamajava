@@ -16,6 +16,7 @@ import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.SnpUtils;
 import org.qcmg.common.vcf.VcfFormatFieldRecord;
+import org.qcmg.common.vcf.VcfInfoFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
@@ -106,7 +107,10 @@ public class ConfidenceMode extends AbstractMode{
 				boolean isSomatic = VcfUtils.isRecordSomatic(vcf);
 				
 			 	VcfFormatFieldRecord formatField =isSomatic ? vcf.getSampleFormatRecord(test_column) :  vcf.getSampleFormatRecord(control_column);
-			 	
+		 		VcfInfoFieldRecord info = vcf.getInfoRecord();
+		 		int lhomo = (info.getField(VcfHeaderUtils.INFO_HOM) == null)? 1 :
+						StringUtils.string2Number(info.getField(VcfHeaderUtils.INFO_HOM).split(",")[0], Integer.class);
+
 			 	if (mergedRec) {
 			 		/*
 			 		 * just catering for a 2 way merge for now
@@ -123,17 +127,17 @@ public class ConfidenceMode extends AbstractMode{
 			 				logger.warn("s: " + s);
 			 			}
 			 		}
-			 		
+				
 			 		for (int i = 1 ; i <= 2 ; i++) {
 			 			
 			 			String suffix = "_" + i;
 			 			String thisFilter = VcfUtils.getFiltersEndingInSuffix(vcf, suffix).replace(suffix, "");
 			 			int nns = getNNS(formatField, i);
 			 			int altFreq =  SnpUtils.getCountFromNucleotideString(basesArray[i-1], vcf.getAlt(), compoundSnp);
-			 			
-			 			
+										 			
 			 			if ((nns == 0 && compoundSnp ||  nns >= HIGH_CONF_NOVEL_STARTS_PASSING_SCORE)
 								&& altFreq >=  HIGH_CONF_ALT_FREQ_PASSING_SCORE
+								&& lhomo < IndelConfidenceMode.DEFAULT_HOMN
 								&& PASS.equals(thisFilter)) {
 				        	
 				        		vcf.getInfoRecord().appendField(VcfHeaderUtils.INFO_CONFIDENT, MafConfidence.HIGH.toString() + suffix);    	 				 				
@@ -152,6 +156,7 @@ public class ConfidenceMode extends AbstractMode{
 			 	} else {
 				 	if ( checkNovelStarts(HIGH_CONF_NOVEL_STARTS_PASSING_SCORE, formatField)
 							&& ( VcfUtils.getAltFrequency(formatField, vcf.getAlt()) >=  HIGH_CONF_ALT_FREQ_PASSING_SCORE)
+							&& lhomo < IndelConfidenceMode.DEFAULT_HOMN
 							&& PASS.equals(vcf.getFilter())) {
 			        	
 			        		vcf.getInfoRecord().setField(VcfHeaderUtils.INFO_CONFIDENT, MafConfidence.HIGH.toString());		        	 				 				

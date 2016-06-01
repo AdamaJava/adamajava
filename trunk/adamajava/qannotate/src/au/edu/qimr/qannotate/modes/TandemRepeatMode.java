@@ -9,6 +9,7 @@ import org.qcmg.common.util.*;
 import org.qcmg.common.util.IndelUtils.SVTYPE;
 import org.qcmg.common.vcf.*;
 import org.qcmg.common.vcf.header.VcfHeader;
+import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 import org.qcmg.vcf.VCFFileWriter;
 
@@ -153,11 +154,13 @@ public class TandemRepeatMode  extends AbstractMode{
             VCFFileWriter writer = new VCFFileWriter(new File(output))  ) {
 			//reheader
 		    VcfHeader hd = 	reader.getHeader();
-		    hd = reheader(hd, commandLine ,input);			    	  		
-		    for(final VcfHeader.Record record: hd)  
-		    	writer.addHeader(record.toString());
-			
+		    hd = reheader(hd, commandLine ,input);			    
+		    hd.addInfoLine(VcfHeaderUtils.INFO_TRF, "1", "String", VcfHeaderUtils.DESCRITPION_INFO_TRF); 
+		    hd.addFilterLine(VcfHeaderUtils.FILTER_TRF, VcfHeaderUtils.DESCRITPION_FILTER_TRF );
+		    
+		    for(final VcfHeader.Record record: hd)	writer.addHeader(record.toString());			
 			logger.info("annotating vcfs from inputs " );
+			
 	        for (final VcfRecord vcf : reader) {   
 	        	String vcfchr =  IndelUtils.getFullChromosome(vcf.getChromosome());	         
 	        	try{
@@ -250,7 +253,7 @@ public class TandemRepeatMode  extends AbstractMode{
 			else if(rep.patternLength == 1 && rep.patternNo > 6)
 				TRF_filter = true; //homoplymers
 			else if ( (rep.patternLength < 6 &&  rep.patternLength > 0) 
-					&&  (rate < 0.2 && rate >= 0 )) // must check 0 value incase the repeat or ssoi value not exist
+					&&  (rate < 0.2 && rate >= 0 )) // must check 0 value in case the repeat or ssoi value not exist
 				TRF_filter = true;  //low confidence short TRF
 		}
 		
