@@ -88,27 +88,6 @@ public class VcfFormatFieldRecordTest {
 		} catch (IllegalArgumentException expectedException) {
 			assertTrue(true);
 		}
-	}
-		
-//	@Test //new method is faster than old	
-//	public void speedTestNew(){
-//        double currentMemory = ( (double)((double)(Runtime.getRuntime().totalMemory()/1024)/1024))- ((double)((double)(Runtime.getRuntime().freeMemory()/1024)/1024));
-//        System.out.println("start RAM used: " + currentMemory );
-//		
-//        QLogger logger = QLoggerFactory.getLogger(VcfFormatFieldRecordTest.class, null,  null);	            		               
-//        logger.logInitialExecutionStats(null, null, null);
-//        int max = Integer.MAX_VALUE / 500; //Integer.MAX_VALUE = 2147483647
-//        for(int i = 0; i< max; i ++){
-//        	VcfFormatFieldRecord re = new  VcfFormatFieldRecord("A:B:C:D:E:F:G", ".:.:.:.:.:.:.");
-//        	re.setField("H", "H");
-//        	re.getField("A");
-//        	re.getFormatColumnString();
-//        	re.toString();
-//        }       
-//        logger.logFinalExecutionStats(0);
-//        
-//        currentMemory = ( (double)((double)(Runtime.getRuntime().totalMemory()/1024)/1024))- ((double)((double)(Runtime.getRuntime().freeMemory()/1024)/1024));
-//        System.out.println("end RAM used: " + currentMemory );   
-//	}	
+	}	
 
 }

@@ -29,25 +29,6 @@ public class VcfRecordTest {
 		
 		re.setInfo("NNS=6");
 		assertTrue(re.getInfo().equals("NNS=6"));
-		
-		
-		
-		//debug
-		ChrPosition cp = re.getChrPosition();
-		if(cp.isPointPosition())
-			System.out.println("isPointPosition(): " + cp.toIGVString());
-		else
-			System.out.println("! isPointPosition(): " + cp.toIGVString());
-		
-//		ChrPointPosition cpp =  (ChrPointPosition) re.getChrPosition();
-		
-		VcfRecord re1 = new VcfRecord.Builder(cp , "A").build();
-		System.out.println(re1.toString());
-		cp = re1.getChrPosition();
-		if(cp.isPointPosition())
-			System.out.println("isPointPosition(): " + cp.toIGVString());
-		else
-			System.out.println("! isPointPosition(): " + cp.toIGVString());
 	
 	}
 	

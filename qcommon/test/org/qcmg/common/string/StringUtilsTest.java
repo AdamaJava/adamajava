@@ -181,8 +181,8 @@ public class StringUtilsTest {
 	@Test
 	public void testGetChrPositionFromString() {
 		//Returns a ChrPosition object based on a string of the following format: chr1:123456-123456
-		assertEquals(new ChrRangePosition("1", 1), StringUtils.getChrPositionFromString("1:1-1"));
-		assertEquals(new ChrRangePosition("chr1", 1), StringUtils.getChrPositionFromString("chr1:1-1"));
+		assertEquals(new ChrRangePosition("1", 1,1), StringUtils.getChrPositionFromString("1:1-1"));
+		assertEquals(new ChrRangePosition("chr1", 1,1), StringUtils.getChrPositionFromString("chr1:1-1"));
 		assertEquals(new ChrRangePosition("chr1", 1, 2), StringUtils.getChrPositionFromString("chr1:1-2"));
 		try {
 			assertEquals(new ChrRangePosition("XYZ", -10, -2), StringUtils.getChrPositionFromString("XYZ:-10--2"));

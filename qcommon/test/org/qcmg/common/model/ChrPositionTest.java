@@ -17,11 +17,11 @@ public class ChrPositionTest {
 	@Test
 	public void testConstructor() {
 		try {
-			new ChrRangePosition((String)null,-1);
+			new ChrRangePosition((String)null,-1,-1);
 			Assert.fail("Should have thrown an IllegalArgumentException");
 		} catch (IllegalArgumentException e) {}
 		try {
-			new ChrRangePosition("",-1);
+			new ChrRangePosition("",-1,-1);
 			Assert.fail("Should have thrown an IllegalArgumentException");
 		} catch (IllegalArgumentException e) {}
 		try {
@@ -29,24 +29,24 @@ public class ChrPositionTest {
 			Assert.fail("Should have thrown an IllegalArgumentException");
 		} catch (IllegalArgumentException e) {}
 		
-		ChrRangePosition cp1 = new ChrRangePosition("123", -1);
-		ChrRangePosition cp2 = new ChrRangePosition("123", -1);
+		ChrRangePosition cp1 = new ChrRangePosition("123", -1,-1);
+		ChrRangePosition cp2 = new ChrRangePosition("123", -1,-1);
 		assertEquals(cp1, cp2);
 		
-		cp1 = new ChrRangePosition("chr1", 12345);
-		cp2 = new ChrRangePosition("chr1", 12345, 12345);
-		assertEquals(cp1, cp2);
-		
-		cp1 = new ChrRangePosition("hello", 99999);
-		cp2 = new ChrRangePosition("hello", 99999, 99999);
-		assertEquals(cp1, cp2);
+//		cp1 = new ChrRangePosition("chr1", 12345, 12345);
+//		cp2 = new ChrRangePosition("chr1", 12345, 12345);
+//		assertEquals(cp1, cp2);
+//		
+//		cp1 = new ChrRangePosition("hello", 99999, 99999);
+//		cp2 = new ChrRangePosition("hello", 99999, 99999);
+//		assertEquals(cp1, cp2);
 	}
 	
 	@Test
 	public void testComparator() {
 		List<ChrRangePosition> positions = new ArrayList<ChrRangePosition>();
-		ChrRangePosition cp1 = new ChrRangePosition("chr22", 1);
-		ChrRangePosition cp2 = new ChrRangePosition("chr22", 2);
+		ChrRangePosition cp1 = new ChrRangePosition("chr22", 1,1);
+		ChrRangePosition cp2 = new ChrRangePosition("chr22", 2,2);
 		positions.add(cp1);
 		positions.add(cp2);
 		
@@ -54,7 +54,7 @@ public class ChrPositionTest {
 		assertEquals(cp1, positions.get(0));
 		assertEquals(cp2, positions.get(1));
 		
-		ChrRangePosition cp3 = new ChrRangePosition("22", 1);
+		ChrRangePosition cp3 = new ChrRangePosition("22", 1,1);
 		positions.add(cp3);
 		
 		Collections.sort(positions);
@@ -83,7 +83,7 @@ public class ChrPositionTest {
 	
 	@Test
 	public void doesGetLengthWork() {
-		ChrRangePosition cp1 = new ChrRangePosition("chr22", 1);
+		ChrRangePosition cp1 = new ChrRangePosition("chr22", 1,1);
 		ChrRangePosition cp2 = new ChrRangePosition("chr22", 2,3);
 		ChrRangePosition cp3 = new ChrRangePosition("chr22", 2,4);
 		assertEquals(1, cp1.getLength());
@@ -98,14 +98,13 @@ public class ChrPositionTest {
 		int counter = 0;
 		for (int cycle = 90000000 ;  cycle < 100000000 ; cycle++) {
 			int chrValue = (counter % 20) + 1;
-			ChrRangePosition cp = new ChrRangePosition("chr" + chrValue, cycle);
+			ChrRangePosition cp = new ChrRangePosition("chr" + chrValue, cycle, cycle);
 			distinctHashCodes.add(cp.hashCode());
 			counter++;
 		}
-		
-		
-		System.out.println("Integer: no of distinct ChrPosition objects created: " + counter);
-		System.out.println("Integer: no of distinct hashcodes: " + distinctHashCodes.size());
+				
+//		System.out.println("Integer: no of distinct ChrPosition objects created: " + counter);
+//		System.out.println("Integer: no of distinct hashcodes: " + distinctHashCodes.size());
 	}
 
 }
