@@ -277,7 +277,7 @@ public class SnpRecord extends MetricRecord {
 	}
 
 	public ChrRangePosition getChrPosition() {
-		return new ChrRangePosition(chromosome, position);
+		return new ChrRangePosition(chromosome, position, position);
 	}
 
 	public void setDbSnpAltLength(int dbSNPAltLengh) {
