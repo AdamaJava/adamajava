@@ -93,7 +93,8 @@ public class MergeUtils {
 				logger.warn("Can't use "+Constants.VCF_MERGE_INFO+"= to mark records as having come from a particular input file - "+Constants.VCF_MERGE_INFO+"= is already in use!");
 			}
 			
-			mergedHeader.addInfoLine(Constants.VCF_MERGE_INFO, ".", "Integer", "Indicates which INput file this vcf record came from. Multiple values are allowed which indicate that the record has been merged from more than 1 input file");
+			mergedHeader.addInfoLine(Constants.VCF_MERGE_INFO, ".","Integer", VcfHeaderUtils.DESCRITPION_MERGE_IN);
+			//		 "Indicates which INput file this vcf record came from. Multiple values are allowed which indicate that the record has been merged from more than 1 input file");
 			
 			/*
 			 * make sure SOMATIC has been added, and add the _n entry

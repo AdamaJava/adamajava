@@ -153,7 +153,7 @@ public class MergeSameSamples {
 
 
 	public static void main(String[] args) throws Exception {
-		// loads all classes in referenced jars into memory to avoid nightly build sheninegans
+		//loads all classes in referenced jars into memory to avoid nightly build sheninegans
 		LoadReferencedClasses.loadClasses(MergeSameSamples.class);
 		
 		MergeSameSamples qp = new MergeSameSamples();
@@ -162,9 +162,8 @@ public class MergeSameSamples {
 			logger.logFinalExecutionStats(exitStatus);
 		} else {
 			System.err.println("Exit status: " + exitStatus);
-		}
-		
-		System.exit(exitStatus);
+		}		
+		System.exit( exitStatus );
 	}
 
 	private int setup(String[] args) throws Exception {
@@ -184,9 +183,7 @@ public class MergeSameSamples {
 			// configure logging
 			logFile = options.getLog();
 			version = MergeSameSamples.class.getPackage().getImplementationVersion();
-			if (null == version) {
-				version = "local";
-			}
+			if (null == version) {	version = "local"; }
 			logger = QLoggerFactory.getLogger(MergeSameSamples.class, logFile, options.getLogLevel());
 			exec = logger.logInitialExecutionStats("q3vcftools MergeSameSample", version, args);
 			
