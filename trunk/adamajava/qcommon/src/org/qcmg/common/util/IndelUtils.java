@@ -2,6 +2,7 @@ package org.qcmg.common.util;
 
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.vcf.VcfFormatFieldRecord;
+import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 
 
@@ -55,10 +56,9 @@ public class IndelUtils {
 	public static final String DESCRITPION_FILTER_NBIAS = "For germline calls: the supporting normal reads value is >=3 and the count on one strand is =0 or >0 "
 			+ "and is either <5% of supporting reads or >95% of supporting reads";
 	
-	public static final String INFO_HOMTXT = "HOMTXT";
-	public static final String DESCRITPION_INFO_HOMTXT = "If A indel is adjacent to a homopolymeric sequence,  the nearby reference sequence within a window is reported";
-	public static final String FILTER_HOM = "HOM";
-	public static final String DESCRITPION_FILTER_HOM = "a digit number is attached on this FILTER id, eg. HOM24 means the nearby homopolymers sequence is 24 base long";
+		 
+//	public static final String FILTER_HOM = "HOM";
+//	public static final String DESCRITPION_FILTER_HOM = "a digit number is attached on this FILTER id, eg. HOM24 means the nearby homopolymers sequence is 24 base long";
 	
 	public static final String INFO_NIOC = "NIOC";
 	public static final String DESCRITPION_INFO_NIOC = " counts of nearby indels compare with total coverage";	
@@ -67,8 +67,8 @@ public class IndelUtils {
 	public static final String DESCRITPION_INFO_SSOI = " counts of strong support indels compare with total informative reads coverage";	
 
 	
-	public static final String INFO_HOMCNTXT = "HOMCNTXT";
-	public static final String DESCRITPION_INFO_HOMCNTXT = "nearby refernce sequence. if it is homopolymeric, the maximum repeated based counts will be added infront of sequence ";
+//	public static final String INFO_HOMCNTXT = "HOMCNTXT";
+//	public static final String DESCRITPION_INFO_HOMCNTXT = "nearby reference sequence. if it is homopolymeric, the maximum repeated based counts will be added infront of sequence ";
 	
 	public static final String FORMAT_ACINDEL = "ACINDEL";
 	public static final String DESCRITPION_FORMAT_ACINDEL = "counts of indels, follow formart:novelStarts,TotalCoverage,InformativeReadCount," 
@@ -166,5 +166,16 @@ public class IndelUtils {
 		return gd;
 	}
 
-	
+	public static String getMotif(String ref, String alt ){
+		SVTYPE type = getVariantType(ref, alt);
+		if(type.equals(SVTYPE.INS))
+			return alt.substring(1);			 
+		else if(type.equals(SVTYPE.DEL))
+			return ref.substring(1);
+		else if(type.equals(SVTYPE.UNKOWN))
+			return null; 
+		
+		return ref;  //return ref for snp, mnp 		
+	}
+
 }

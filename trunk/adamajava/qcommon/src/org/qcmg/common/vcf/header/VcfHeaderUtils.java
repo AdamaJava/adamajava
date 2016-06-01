@@ -57,7 +57,15 @@ public class VcfHeaderUtils {
 	public static final String FILTER_NO_CALL_IN_TEST = SnpUtils.NO_CALL_IN_TEST;
 	public static final String FILTER_STRAND_BIAS_ALT = SnpUtils.STRAND_BIAS_ALT;
 	public static final String FILTER_STRAND_BIAS_COV = SnpUtils.STRAND_BIAS_COVERAGE;
+	public static final String FILTER_TRF = "TRF";
+	public static final String DESCRITPION_FILTER_TRF = "at least one of the repeat is with repeat sequence length less than six; "
+			+ "and the repeat frequence is more than 10 (or more than six for homoplymers repeat), "
+			+ ", or less than 20% of informative reads are strong supporting in case of indel variant";
+
 	
+//	public static final String FILTER_HOM = "HOM";
+//	public static final String DESCRITPION_FILTER_HOM = "fallen in homoplymers region that is more than 5 repeat base";
+
 	
 	//INFO FIELDS
 	public static final String INFO_MUTATION = "MU";
@@ -77,8 +85,15 @@ public class VcfHeaderUtils {
 	public static final String INFO_FS = "FS";    //previous qSNP used, now changed to FLANK
 	public static final String INFO_FILLCOV =  "FULLCOV";
 	public static final String INFO_GERMLINE = SnpUtils.MUTATION_GERMLINE_IN_ANOTHER_PATIENT;
-	public static final String INFO_CADD = "CADD";
-	public static final String INFO_TRF = "TRF";
+	public static final String INFO_CADD = "CADD";	
+	public static final String INFO_MERGE_IN = Constants.VCF_MERGE_INFO;
+	public static final String DESCRITPION_MERGE_IN = "Indicates which INput file this vcf record came from. Multiple values are allowed which indicate that the record has been merged from more than 1 input file";	
+	public static final String INFO_TRF = FILTER_TRF;
+	public static final String DESCRITPION_INFO_TRF = "List all repeat reported by TRFFinder,  crossing over the variant position.all repeat follow <repeat sequence Length>_<repeat frequence>, seperated by ';'";
+
+	public static final String INFO_HOM = "HOM";
+	public static final String DESCRITPION_INFO_HOM = "nearby reference sequence fallen in a specified widow size,  leading by the number of homoplymers base.";
+	
 	
 	//FORMAT FIELDS
 	public static final String FORMAT_GENOTYPE = "GT";

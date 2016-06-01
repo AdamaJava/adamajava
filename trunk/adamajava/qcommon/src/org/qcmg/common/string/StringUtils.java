@@ -388,5 +388,24 @@ public class StringUtils {
 		return null != string && (string.contains("" + c) 
 				|| string.contains("" + Character.toLowerCase(c))); 
 	}
+	
+	/**
+	 * convert string to number
+	 * @param info: a string of number
+	 * @param clazz: specify number type [Float or Integer]
+	 * @return an Integer or Float
+	 */
+	@SuppressWarnings("unchecked")
+	public static <T extends Number> T string2Number(String str, Class<T> clazz){
+		T rate = (clazz.equals(Integer.class))? (T) new Integer(0): (T) new Float(0);		
+		try{
+			if(clazz.equals(Integer.class)){ 
+				rate = (T)  Integer.valueOf(str); 
+			}else
+				rate = (T)  Float.valueOf(str); 
+		}catch(NullPointerException | NumberFormatException  e){} //do nothing
+
+		return  rate;
+	}
 
 }
