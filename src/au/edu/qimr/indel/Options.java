@@ -42,8 +42,8 @@ public class Options {
 	private String log;
 	private String loglevel;
 	public int nearbyIndelWindow = 3;
-	public int nearbyHomopolymer = 100;
-	public int nearbyHomopolymerReport = 10;
+//	public int nearbyHomopolymer = 100;
+//	public int nearbyHomopolymerReport = 10;
 	public int softClipWindow = 13;
 	public int threadNo = 5;
 	
@@ -114,9 +114,9 @@ public class Options {
 		
 		nearbyIndelWindow = Integer.parseInt( iniFile.fetch(ini_secParameter, "window.nearbyIndel"));
 //		nearbyHomopolymer = Integer.parseInt( iniFile.fetch(ini_secParameter, "window.homopolymer"));
-		String[] windows = iniFile.fetch(ini_secParameter, "window.homopolymer").split(",");
-		nearbyHomopolymer = Integer.parseInt(windows[0]);
-		nearbyHomopolymerReport = Integer.parseInt(windows[1]);
+//		String[] windows = iniFile.fetch(ini_secParameter, "window.homopolymer").split(",");
+//		nearbyHomopolymer = Integer.parseInt(windows[0]);
+//		nearbyHomopolymerReport = Integer.parseInt(windows[1]);
 		max_events = Integer.parseInt( iniFile.fetch(ini_secParameter, "strong.event"));
 		softClipWindow = Integer.parseInt( iniFile.fetch(ini_secParameter, "window.softClip"));
 		threadNo = Integer.parseInt( iniFile.fetch(ini_secParameter, "threadNo"));
@@ -286,12 +286,12 @@ public class Options {
 	public int getNearbySoftClipWindow(){
 		return softClipWindow;
 	}
-	public int getNearbyHomopolymerWindow() {
-		return nearbyHomopolymer;
-	}
-	public int getNearbyHomopolymerReportWindow() {
-		return nearbyHomopolymerReport;
-	}
+//	public int getNearbyHomopolymerWindow() {
+//		return nearbyHomopolymer;
+//	}
+//	public int getNearbyHomopolymerReportWindow() {
+//		return nearbyHomopolymerReport;
+//	}
 
 	public int getSoftClipWindow() {
 		return softClipWindow;
