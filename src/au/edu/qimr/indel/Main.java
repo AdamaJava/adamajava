@@ -48,7 +48,7 @@ public class Main {
 			logger.config("Thread number: " + options.getThreadNo());
 			logger.config("query for bam record filter: " + options.getFilterQuery());
 			logger.config("Nearby indel window: " + options.getNearbyIndelWindow());
-			logger.config("Homopolymer window: " + options.getNearbyHomopolymerWindow());
+//			logger.config("Homopolymer window: " + options.getNearbyHomopolymerWindow());
 			logger.config("Soft clip window: " + options.getSoftClipWindow());			
 					
 			logger.config("***[rules]***");
