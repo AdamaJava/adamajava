@@ -55,8 +55,7 @@ public class HomoplymersModeTest {
 		re = new VcfRecord(new String[] {  "chr1", "12", null, "AT", "A" });
 		homo = new HomoplymersMode(100,10);
 		re = homo.annotate(re, getReference());
-		assertTrue(re.getInfoRecord()== null || re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM) == null);
-//		assertTrue(StringUtils.isMissingDtaString(re.getFilter()));
+		assertTrue(  re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM).equals("0,TGCAATTGGA_CGGACCCTCC") );
 
 		//motif of DEL contains repeat base same to adjacant homopolymers 
 		re = new VcfRecord(new String[] {  "chr1", "18", null, "CCCTCC", "C" });
@@ -83,9 +82,7 @@ public class HomoplymersModeTest {
 		//SNP in non homoplyers region
 		re = new VcfRecord(new String[] {  "chr1", "13", null, "T", "A" });	
 		re = homo.annotate(re, getReference());	 
-		assertTrue(re.getInfoRecord() == null);
-		
-		
+		assertTrue(re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM).equals("0,TTGGAaCGGAC"));
 	}
 	
 	private byte[] getReference(){				

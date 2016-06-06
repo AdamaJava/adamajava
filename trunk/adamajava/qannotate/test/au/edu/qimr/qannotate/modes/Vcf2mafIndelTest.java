@@ -151,8 +151,10 @@ public class Vcf2mafIndelTest {
 		 				assertTrue(maf.getColumnValue(48).equals("34"));
 		 				assertTrue(maf.getColumnValue(49).equals("21"));
 		 				assertTrue(maf.getColumnValue(50).equals("0"));	
-		 				assertTrue(maf.getColumnValue(MafElement.notes).contains("HOM=28,CTTTTCTTTC______TTTTTTTTTT"));
-		 				assertTrue(maf.getColumnValue(MafElement.INPUT).equals("2"));
+		 				//assertTrue(maf.getColumnValue(MafElement.Notes).contains("HOM=28,CTTTTCTTTC______TTTTTTTTTT"));		 				
+		 				assertTrue(maf.getColumnValue(MafElement.Notes).equals("HOM=28"));
+		 				assertTrue(maf.getColumnValue(MafElement.Input).equals("2"));
+		 				assertTrue(maf.getColumnValue(MafElement.Variant_AF).equals("CTTTTCTTTC______TTTTTTTTTT"));
 		 				
 	 				}else if(maf.getColumnValue(5).equals("11")){
 	 					
@@ -171,8 +173,8 @@ public class Vcf2mafIndelTest {
 		 				assertTrue(maf.getColumnValue(48).equals("0"));
 		 				assertTrue(maf.getColumnValue(49).equals("0"));
 		 				assertTrue(maf.getColumnValue(50).equals("0"));		 		 				
-		 				assertTrue(maf.getColumnValue(MafElement.notes).equals("TRF=3_14"));
-		 				assertTrue(maf.getColumnValue(MafElement.INPUT).equals(SnpEffMafRecord.Null));
+		 				assertTrue(maf.getColumnValue(MafElement.Notes).equals("TRF=3_14"));
+		 				assertTrue(maf.getColumnValue(MafElement.Input).equals(SnpEffMafRecord.Null));
 	 				} 			    	
 			    }
 			}
@@ -252,7 +254,7 @@ public class Vcf2mafIndelTest {
  				assertTrue(maf.getColumnValue(48).equals("18"));
  				assertTrue(maf.getColumnValue(49).equals("7"));
  				assertTrue(maf.getColumnValue(50).equals("9"));		
- 				assertTrue(maf.getColumnValue(MafElement.notes).equals(SnpEffMafRecord.Null));
+ 				assertTrue(maf.getColumnValue(MafElement.Notes).equals(SnpEffMafRecord.Null));
  				
 		    }	
  				
