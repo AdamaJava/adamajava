@@ -604,11 +604,20 @@ public class AnnotateFilterMT implements Runnable {
 					// can use below static method
 					htsjdk.samtools.SAMFileWriterImpl.setDefaultMaxRecordsInRam(maxRecords);
 
-					final SAMFileWriter writer = writeFactory.makeBAMWriter(header, false, file, 1);
 
 					// debug
-					final File tmpLocation = htsjdk.samtools.util.IOUtil.getDefaultTmpDir();
-					logger.info("all tmp BAMs are located on " + tmpLocation.getCanonicalPath());
+					
+					/*
+					 * We want the temp bam files to go to our temp folder rather than the default
+					 * Set this at the factory level before creating writers
+					 */
+					writeFactory.setTempDirectory(file.getParentFile());
+					
+					
+					final SAMFileWriter writer = writeFactory.makeBAMWriter(header, false, file, 1);
+					
+//					final File tmpLocation = htsjdk.samtools.util.IOUtil.getDefaultTmpDir();
+					logger.info("all tmp BAMs are located on " + file.getParentFile().getCanonicalPath());
 					logger.info("default maxRecordsInRam " + htsjdk.samtools.SAMFileWriterImpl.getDefaultMaxRecordsInRam());
 
 					SAMRecord record;
