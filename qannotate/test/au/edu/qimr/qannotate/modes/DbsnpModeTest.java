@@ -22,7 +22,7 @@ import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 
 public class DbsnpModeTest {
-	final static String inputName = "./input.vcf";
+	public final static String inputName = "./input.vcf";
 	final static String dbSNPName = "./dbSNP.vcf";
 	final static String outputName = "./output.vcf";
 	

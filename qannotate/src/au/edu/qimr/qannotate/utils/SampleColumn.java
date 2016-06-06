@@ -70,9 +70,9 @@ public class SampleColumn {
 
 			//only keep uuid eg.  
 			int ss = Math.max(control.indexOf("#"), control.indexOf(":"));			
-			control_Sample = (ss > 0)?  control.substring(ss) : control;
+			control_Sample = (ss > 0)?  control.substring(ss+1) : control;
 			ss = Math.max(test.indexOf("#"), test.indexOf(":"));	
-			test_Sample = (ss > 0)?  test.substring(ss) : test;
+			test_Sample = (ss > 0)?  test.substring(ss+1) : test;
 			test_column = tc; 
 			control_column = cc; 				
 			
