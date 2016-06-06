@@ -172,7 +172,9 @@ public class Vcf2mafIndelTest {
 		 				assertTrue(maf.getColumnValue(47).equals("0"));
 		 				assertTrue(maf.getColumnValue(48).equals("0"));
 		 				assertTrue(maf.getColumnValue(49).equals("0"));
-		 				assertTrue(maf.getColumnValue(50).equals("0"));		 		 				
+		 				assertTrue(maf.getColumnValue(50).equals("0"));	
+		 				//debug
+		 				System.out.println(maf.getColumnValue(MafElement.Notes));
 		 				assertTrue(maf.getColumnValue(MafElement.Notes).equals("TRF=3_14"));
 		 				assertTrue(maf.getColumnValue(MafElement.Input).equals(SnpEffMafRecord.Null));
 	 				} 			    	
