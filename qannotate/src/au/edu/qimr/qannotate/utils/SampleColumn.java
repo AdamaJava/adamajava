@@ -4,6 +4,7 @@ import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 
+
 public class SampleColumn {
 	 
 		private final int test_column ; //can't be -1 since will "+1"
@@ -67,8 +68,11 @@ public class SampleColumn {
 			if( tc <= 0 || cc <= 0 )
 				throw new RuntimeException("can't find test sample id  " + test + ", or normal sample id from vcf header line: " + control );
 
-			control_Sample =control;
-			test_Sample = test;
+			//only keep uuid eg.  
+			int ss = Math.max(control.indexOf("#"), control.indexOf(":"));			
+			control_Sample = (ss > 0)?  control.substring(ss) : control;
+			ss = Math.max(test.indexOf("#"), test.indexOf(":"));	
+			test_Sample = (ss > 0)?  test.substring(ss) : test;
 			test_column = tc; 
 			control_column = cc; 				
 			

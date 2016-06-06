@@ -14,6 +14,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.commandline.Executor;
+import org.qcmg.common.maf.MAFRecord;
 import org.qcmg.common.model.MafConfidence;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.IndelUtils;
@@ -69,28 +70,28 @@ public class Vcf2mafTest {
 		 assertEquals(false, Vcf2maf.isHighConfidence(null));
 		 assertEquals(false, Vcf2maf.isHighConfidence(new SnpEffMafRecord()));
 		 SnpEffMafRecord maf = new SnpEffMafRecord();
-		 maf.setColumnValue(MafElement.confidence, null);
+		 maf.setColumnValue(MafElement.Confidence, null);
 		 assertEquals(false, Vcf2maf.isHighConfidence(maf));
 		 
-		 maf.setColumnValue(MafElement.confidence, "");
+		 maf.setColumnValue(MafElement.Confidence, "");
 		 assertEquals(false, Vcf2maf.isHighConfidence(maf));
-		 maf.setColumnValue(MafElement.confidence, "blah");
+		 maf.setColumnValue(MafElement.Confidence, "blah");
 		 assertEquals(false, Vcf2maf.isHighConfidence(maf));
-		 maf.setColumnValue(MafElement.confidence, "high");
+		 maf.setColumnValue(MafElement.Confidence, "high");
 		 assertEquals(false, Vcf2maf.isHighConfidence(maf));
-		 maf.setColumnValue(MafElement.confidence, "HIGH");
+		 maf.setColumnValue(MafElement.Confidence, "HIGH");
 		 assertEquals(false, Vcf2maf.isHighConfidence(maf));
-		 maf.setColumnValue(MafElement.confidence, "HIGH_1");
+		 maf.setColumnValue(MafElement.Confidence, "HIGH_1");
 		 assertEquals(false, Vcf2maf.isHighConfidence(maf));
-		 maf.setColumnValue(MafElement.confidence, "HIGH_1,HIGH");
+		 maf.setColumnValue(MafElement.Confidence, "HIGH_1,HIGH");
 		 assertEquals(false, Vcf2maf.isHighConfidence(maf));
-		 maf.setColumnValue(MafElement.confidence, "HIGH_1,HIGH_1");
+		 maf.setColumnValue(MafElement.Confidence, "HIGH_1,HIGH_1");
 		 assertEquals(false, Vcf2maf.isHighConfidence(maf));
-		 maf.setColumnValue(MafElement.confidence, "HIGH_2,HIGH_1");
+		 maf.setColumnValue(MafElement.Confidence, "HIGH_2,HIGH_1");
 		 assertEquals(false, Vcf2maf.isHighConfidence(maf));
-		 maf.setColumnValue(MafElement.confidence, "HIGH_2,HIGH_2");
+		 maf.setColumnValue(MafElement.Confidence, "HIGH_2,HIGH_2");
 		 assertEquals(false, Vcf2maf.isHighConfidence(maf));
-		 maf.setColumnValue(MafElement.confidence, "HIGH_1,HIGH_2");
+		 maf.setColumnValue(MafElement.Confidence, "HIGH_1,HIGH_2");
 		 assertEquals(true, Vcf2maf.isHighConfidence(maf));
 	 }
 	 
@@ -220,7 +221,7 @@ public class Vcf2mafTest {
 		 };		 
 		createVcf(str);
 	          
-		final Vcf2maf mode = new Vcf2maf(2, 1, "TEST", "CONTROL");		
+		final Vcf2maf mode = new Vcf2maf(2, 1, "TEST", "CONTROL");
 		SnpEffMafRecord maf = null;
 		
 		try(VCFFileReader reader = new VCFFileReader(new File( inputName))){					
@@ -279,6 +280,25 @@ public class Vcf2mafTest {
 		 
 	 }
 	 
+	 @Test
+	 public void Flank_NoteTest(){
+		VcfRecord vcf = new VcfRecord.Builder("chrY",22012840,"C").allele("A").build();
+		final Vcf2maf v2m = new Vcf2maf(2,1, null, null);	//test column2; normal column 1			
+		
+		//get flank first
+		vcf.setInfo("HOM=28,CTTTTCTTTCaTTTTTTTTTT;FLANK=CTTTCATTTTT");				
+		SnpEffMafRecord maf = v2m.converter(vcf);
+		maf.getColumnValue(MafElement.Var_Plus_Flank).equals("CTTTCATTTTT");
+		maf.getColumnValue(MafElement.Notes).equals("HOM=28");
+		
+		//get flank from reference
+		vcf.setInfo("HOM=28,CTTTTCTTTCaTTTTTTTTTT");				
+		maf = v2m.converter(vcf);
+		maf.getColumnValue(MafElement.Var_Plus_Flank).equals("CTTTTCTTTCaTTTTTTTTTT");
+		maf.getColumnValue(MafElement.Notes).equals("HOM=28");
+		
+	 }
+	 
 	 @Test 
 	 public void converterTest() {
 		 
@@ -296,7 +316,7 @@ public class Vcf2mafTest {
 	 		//str: HIGH|||n.356G>C||CCDC148-AS1|antisense|NON_CODING|ENST00000412781|5|1
 	 		//array: 0| 1|2|3     |4|5         |6        |7         |8              |9|10	 
  			 		
-	 		assertEquals("LOW", maf.getColumnValue(MafElement.confidence));
+	 		assertEquals("LOW", maf.getColumnValue(MafElement.Confidence));
 	 		assertEquals(false, Vcf2maf.isHighConfidence(maf));
 	 		
 	 		assertEquals("HIGH", maf.getColumnValue(MafElement.Eff_Impact));
@@ -332,8 +352,8 @@ public class Vcf2mafTest {
 	 		assertTrue(maf.getColumnValue(14).equals(SnpEffMafRecord.novel ));	//dbsnp		
 	 		assertTrue(maf.getColumnValue(15).equals("VLD" ));	//dbSNP validation
 	 			 		
-	 		assertTrue(maf.getColumnValue(16).equals(SnpEffMafRecord.Unknown ));	//tumour sample	
-	 		assertTrue(maf.getColumnValue(17).equals(SnpEffMafRecord.Unknown ));	//normal sample
+	 		assertTrue(maf.getColumnValue(16).equals(SnpEffMafRecord.Null));	//tumour sample	
+	 		assertTrue(maf.getColumnValue(17).equals(SnpEffMafRecord.Null ));	//normal sample
 	 		
 			assertTrue(maf.getColumnValue(18).equals("C" ));		//normal allel1	
 	 		assertTrue(maf.getColumnValue(19).equals("C" ));	 	//normal allel2		
@@ -355,7 +375,7 @@ public class Vcf2mafTest {
 	 		assertTrue(maf.getColumnValue(49).equals("6"));   // C6[6.67],0[0]
 	 		assertTrue(maf.getColumnValue(50).equals("1"));   // A1[5],0[0]
 	 		
-	 		assertEquals("1", maf.getColumnValue(MafElement.INPUT));   // IN=1,2
+	 		assertEquals("1", maf.getColumnValue(MafElement.Input));   // IN=1,2
 	 		
 	 		//other column
 	 		assertTrue(maf.getColumnValue(26).equals(VcfHeaderUtils.INFO_GERMLINE));  //somatic
@@ -371,7 +391,7 @@ public class Vcf2mafTest {
 		 final VcfRecord vcf = new VcfRecord(parms);
 		 final SnpEffMafRecord maf = v2m.converter(vcf);
 		 
-		 assertTrue(maf.getColumnValue(MafElement.confidence).equals("HIGH_1,ZERO_2" ));
+		 assertTrue(maf.getColumnValue(MafElement.Confidence).equals("HIGH_1,ZERO_2" ));
 	 	assertEquals(false, Vcf2maf.isHighConfidence(maf));
 	 	
 	 	assertEquals("MODIFIER", maf.getColumnValue(MafElement.Eff_Impact));
@@ -396,10 +416,10 @@ public class Vcf2mafTest {
 		 assertTrue(maf.getColumnValue(12).equals("A" ));			
 		 assertTrue(maf.getColumnValue(13).equals("C" ));	 		
 		 assertTrue(maf.getColumnValue(14).equals(SnpEffMafRecord.novel ));	//dbsnp		
-		 assertEquals(SnpEffMafRecord.Null, maf.getColumnValue(MafElement.dbSNP_Val_Status));	//dbSNP validation
+		 assertEquals(SnpEffMafRecord.Null, maf.getColumnValue(MafElement.DbSNP_Val_Status ));	//dbSNP validation
 		 
-		 assertTrue(maf.getColumnValue(16).equals(SnpEffMafRecord.Unknown ));	//tumour sample	
-		 assertTrue(maf.getColumnValue(17).equals(SnpEffMafRecord.Unknown ));	//normal sample
+		 assertTrue(maf.getColumnValue(16).equals(SnpEffMafRecord.Null ));	//tumour sample	
+		 assertTrue(maf.getColumnValue(17).equals(SnpEffMafRecord.Null ));	//normal sample
 		 
 		 assertTrue(maf.getColumnValue(18).equals("A" ));		//normal allel1	
 		 assertTrue(maf.getColumnValue(19).equals("C" ));	 	//normal allel2		
@@ -407,7 +427,7 @@ public class Vcf2mafTest {
 		 assertEquals("A5[41],13[39.31],C1[42],4[40.75]", maf.getColumnValue(MafElement.ND));	//ND
 		 assertTrue(maf.getColumnValue(MafElement.TD).equals("A20[41],23[39.78],C2[42],15[40.67]" ));		
 		 
-		 assertEquals("1,2", maf.getColumnValue(MafElement.INPUT));   // IN=1,2
+		 assertEquals("1,2", maf.getColumnValue(MafElement.Input));   // IN=1,2
 		 
 		 //other column
 		 assertTrue(maf.getColumnValue(26).equals(VcfHeaderUtils.INFO_GERMLINE));  //somatic
@@ -423,7 +443,7 @@ public class Vcf2mafTest {
 		 final VcfRecord vcf = new VcfRecord(parms);
 		 final SnpEffMafRecord maf = v2m.converter(vcf);
 		 
-		 assertTrue(maf.getColumnValue(MafElement.confidence).equals("HIGH_1,HIGH_2" ));
+		 assertTrue(maf.getColumnValue(MafElement.Confidence).equals("HIGH_1,HIGH_2" ));
 		 assertEquals(true, Vcf2maf.isHighConfidence(maf));
 		 
 		 assertEquals("MODIFIER", maf.getColumnValue(MafElement.Eff_Impact));
@@ -448,10 +468,10 @@ public class Vcf2mafTest {
 		 assertTrue(maf.getColumnValue(12).equals("A" ));			
 		 assertTrue(maf.getColumnValue(13).equals("C" ));	 		
 		 assertTrue(maf.getColumnValue(14).equals(SnpEffMafRecord.novel ));	//dbsnp		
-		 assertEquals(SnpEffMafRecord.Null, maf.getColumnValue(MafElement.dbSNP_Val_Status));	//dbSNP validation
+		 assertEquals(SnpEffMafRecord.Null, maf.getColumnValue(MafElement.DbSNP_Val_Status ));	//dbSNP validation
 		 
-		 assertTrue(maf.getColumnValue(16).equals(SnpEffMafRecord.Unknown ));	//tumour sample	
-		 assertTrue(maf.getColumnValue(17).equals(SnpEffMafRecord.Unknown ));	//normal sample
+		 assertTrue(maf.getColumnValue(16).equals(SnpEffMafRecord.Null ));	//tumour sample	
+		 assertTrue(maf.getColumnValue(17).equals(SnpEffMafRecord.Null ));	//normal sample
 		 
 		 assertTrue(maf.getColumnValue(18).equals("A" ));		//normal allel1	
 		 assertTrue(maf.getColumnValue(19).equals("C" ));	 	//normal allel2		
@@ -459,7 +479,7 @@ public class Vcf2mafTest {
 		 assertEquals("A5[41],13[39.31],C1[42],4[40.75]", maf.getColumnValue(MafElement.ND));	//ND
 		 assertTrue(maf.getColumnValue(MafElement.TD).equals("A20[41],23[39.78],C2[42],15[40.67]" ));		
 		 
-		 assertEquals("1,2", maf.getColumnValue(MafElement.INPUT));   // IN=1,2
+		 assertEquals("1,2", maf.getColumnValue(MafElement.Input));   // IN=1,2
 		 
 		 //other column
 		 assertTrue(maf.getColumnValue(MafElement.Mutation_Status).equals(VcfHeaderUtils.INFO_SOMATIC));  //somatic
@@ -484,7 +504,7 @@ public class Vcf2mafTest {
 	 		for (final VcfRecord vcf : reader){  		
 	 			SnpEffMafRecord maf  = v2m.converter(vcf);	
 	 			assertTrue(maf.getColumnValue(MafElement.Amino_Acid_Change  ).equals("p.Met1?")); //52
-	 			assertTrue(maf.getColumnValue(MafElement.CDS_change).equals(SnpEffMafRecord.Null)); 		//53	 
+	 			assertTrue(maf.getColumnValue(MafElement.CDS_Change).equals(SnpEffMafRecord.Null)); 		//53	 
 	 		}	
          }	  	 
 	 }
@@ -569,7 +589,7 @@ public class Vcf2mafTest {
 	 			assertTrue(maf.getColumnValue(i).equals(Dmaf.getColumnValue(i) ));  
 	 		 
 	 		assertTrue(maf.getColumnValue(26).equals(VcfHeaderUtils.INFO_GERMLINE ));  
-	 		
+	 			 		
 	 		for(int i = 27 ; i < 35; i++)
  	 				assertTrue(maf.getColumnValue(i).equals(Dmaf.getColumnValue(i) ));  
 
@@ -599,9 +619,9 @@ public class Vcf2mafTest {
 	 		for (final VcfRecord vcf : reader){  		
 	 			SnpEffMafRecord maf  = v2m.converter(vcf);
 	 			assertTrue( maf.getColumnValue(36).equals(maf.getColumnValue(37)) );
-	 			assertTrue( maf.getColumnValue(16).equals("Unknown"));
+	 			assertTrue( maf.getColumnValue(16).equals(SnpEffMafRecord.Null));
 	 			assertTrue( maf.getColumnValue(33).equals(maf.getColumnValue(34)) );
- //		 	T\tC	GT:GD:AC:MR:NNS\t0/0:T/T:T9[37.11],18[38.33]:.:4			
+	 			//T\tC	GT:GD:AC:MR:NNS\t0/0:T/T:T9[37.11],18[38.33]:.:4			
 		 		assertTrue(maf.getColumnValue(41).equals("C:ND4:TD4"));   //NNS field is not existed at format		 		
  		 		assertTrue(maf.getColumnValue(45).equals("27"));  //t_deep column2
 		 		assertTrue(maf.getColumnValue(46).equals("27"));  //t_ref T9[37.11],18[38.33]
@@ -610,7 +630,6 @@ public class Vcf2mafTest {
  		 		assertTrue(maf.getColumnValue(48).equals("27"));  //n_deep column1
 		 		assertTrue(maf.getColumnValue(49).equals("27")); //T9[37.11],18[38.33]
 		 		assertTrue(maf.getColumnValue(50).equals("0"));  
-
 	 		}	
          }
        

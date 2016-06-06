@@ -50,7 +50,7 @@ public class TandemRepeatMode  extends AbstractMode{
         logger.tool("logger file " + options.getLogFileName());
         logger.tool("logger level " + (options.getLogLevel() == null ? QLoggerFactory.DEFAULT_LEVEL.getName() :  options.getLogLevel()));
           
-		addAnnotation(options.getDatabaseFileName() );				
+		addAnnotation( options.getDatabaseFileName() );				
 	}	
 	
 	class Repeat {
@@ -132,14 +132,15 @@ public class TandemRepeatMode  extends AbstractMode{
 	public void addAnnotation(String dbfile) throws Exception {
 		
 		HashMap<String, HashSet<Repeat>> repeats = loadRepeat(dbfile );  //S1			
-		logger.info( " reference number inside TRF data file is " + repeats.size());			
+		logger.info( " reference number inside TRF data file is " + repeats.size());
+		logger.info("loading into RAM");
 		if(repeats == null || repeats.size() == 0) return; 
 		
 		int totalRepeat = 0; 
 		int totalBlock = 0;					
 		 HashMap<String, BlockIndex> indexedBlock  = new HashMap<String, BlockIndex>();
 		 for(String chr: repeats.keySet()){
-			 logger.info("indexing blocks for " + chr);
+			 logger.debug("indexing blocks for " + chr);
 			 indexedBlock.put(chr,  makeIndexedBlock( repeats.get(chr)));
 			 totalRepeat += repeats.get(chr).size();
 			 totalBlock += indexedBlock.get(chr).index.size();	 

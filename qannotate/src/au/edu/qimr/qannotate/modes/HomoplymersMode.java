@@ -76,11 +76,14 @@ public class HomoplymersMode extends AbstractMode{
 			header.addInfoLine(VcfHeaderUtils.INFO_HOM,  "1", "String",VcfHeaderUtils.DESCRITPION_INFO_HOM); 			
 		    for(final VcfHeader.Record record: header)	writer.addHeader(record.toString());
 		    
+		    int sum = 0;
 			for (final VcfRecord re : reader) {	
 				String chr = IndelUtils.getFullChromosome(re.getChromosome());
 				byte[]  base =  referenceBase.get(chr);								 
 				writer.add( annotate(re,  base));
+				sum ++;
 			}
+			logger.info(sum + " record are outputed with homoplymers information");
 		}
 	}
 	
@@ -92,15 +95,13 @@ public class HomoplymersMode extends AbstractMode{
 		String chr = IndelUtils.getFullChromosome(re.getChromosome());
 		byte[][] sideBases = getReferenceBase(base, pos, variantType);		
 		int homNo = findHomopolymer(sideBases,  motif,variantType);
-		if(homNo > 1) {
+//		if(homNo > 1) {
 			String var = (variantType.equals(SVTYPE.INS) || variantType.equals(SVTYPE.DEL))?
 					motif : re.getAlt();
 			
 			String str = homNo + "," + getHomTxt(var, sideBases, variantType);
-			re.appendInfo(VcfHeaderUtils.INFO_HOM + "=" + str);		
-//			if(homNo > homBase) VcfUtils.updateFilter(re, VcfHeaderUtils.FILTER_HOM);
-				 
-		}
+			re.appendInfo(VcfHeaderUtils.INFO_HOM + "=" + str);						 
+//		}
 
 		return re; 
 	}
@@ -204,7 +205,7 @@ public class HomoplymersMode extends AbstractMode{
 						(downBaseCount + upBaseCount) : Math.max(downBaseCount, upBaseCount);
 			}
 						
-			return max;
+			return (max == 1)? 0 : max;
 		}
 	
 	
