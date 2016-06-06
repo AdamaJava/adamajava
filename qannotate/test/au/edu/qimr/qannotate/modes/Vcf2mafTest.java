@@ -292,10 +292,10 @@ public class Vcf2mafTest {
 		maf.getColumnValue(MafElement.Notes).equals("HOM=28");
 		
 		//get flank from reference
-		vcf.setInfo("HOM=28,CTTTTCTTTCaTTTTTTTTTT");				
+		vcf.setInfo("HOM=28,CTTTTCTTTCaTTTTTTTTTT;TRF=10_6,20_3");				
 		maf = v2m.converter(vcf);
 		maf.getColumnValue(MafElement.Var_Plus_Flank).equals("CTTTTCTTTCaTTTTTTTTTT");
-		maf.getColumnValue(MafElement.Notes).equals("HOM=28");
+		maf.getColumnValue(MafElement.Notes).equals("TRF=10_6,20_3;HOM=28");
 		
 	 }
 	 
