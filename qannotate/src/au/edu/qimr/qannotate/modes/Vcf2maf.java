@@ -424,7 +424,7 @@ public class Vcf2maf extends AbstractMode{
 	}
 	 
 	public static String getNotes(VcfInfoFieldRecord info){
-		String str = (info.getField(VcfHeaderUtils.INFO_TRF)!= null)? VcfHeaderUtils.INFO_TRF + "=" +info.getField(VcfHeaderUtils.INFO_TRF) : "";
+		String str = (info.getField(VcfHeaderUtils.INFO_TRF)!= null)? VcfHeaderUtils.INFO_TRF + "=" +info.getField(VcfHeaderUtils.INFO_TRF) + ";": "";
 		if(info.getField(VcfHeaderUtils.INFO_HOM)!= null){
 			String hom = info.getField(VcfHeaderUtils.INFO_HOM ).split(Constants.COMMA_STRING)[0];	
 			try{
