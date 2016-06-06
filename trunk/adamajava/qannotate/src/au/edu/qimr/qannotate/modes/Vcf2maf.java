@@ -433,7 +433,11 @@ public class Vcf2maf extends AbstractMode{
 			}catch (NumberFormatException e){
 				//do nothing
 			}
-		}		
+		}	
+		
+		if(str.endsWith(";"))
+			str = str.substring(0, str.length()-1);
+			
 		return str; 
 	}
 	 
