@@ -3,11 +3,14 @@
  */
 package org.qcmg.sig.util;
 
+import gnu.trove.map.hash.TIntShortHashMap;
+
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -156,5 +159,154 @@ public class ComparisonUtil {
 			Comparison comp = new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), match, totalCompared, 0, f1TotalCov, f2TotalCov);
 			return comp;
 		}
+	
+	public static Comparison compareRatiosUsingSnpsFloat(TIntShortHashMap file1Ratios,TIntShortHashMap file2Ratios, File file1, File file2) {
+		if (null == file1Ratios || null == file2Ratios)
+			throw new IllegalArgumentException("null maps passed to compareRatios");
+		
+		if (null == file1 || null == file2)
+			throw new IllegalArgumentException("null files passed to compareRatios");
+		
+		if (file1Ratios.isEmpty() || file2Ratios.isEmpty()) {
+			return  new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), 0, 0, 0, 0, 0);
+		}
+		
+		if (file1.equals(file2)) {
+			return  new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), 0, file1Ratios.size(), 0, 0, 0);
+		}
+		AtomicInteger match = new AtomicInteger();
+		AtomicInteger totalCompared = new AtomicInteger();
+//		long f1TotalCov = 0;
+//		long f2TotalCov = 0;
+		
+		file1Ratios.forEachEntry((int a, short s) -> {
+			if (s > 0) {
+				short s2 = file2Ratios.get(a);
+				if (s2 > 0) {
+					if (s == s2) {
+						match.incrementAndGet();
+					}
+					totalCompared.incrementAndGet();
+					
+	//				f1TotalCov += file1Ratio[4];
+	//				f2TotalCov += file2Ratio[4];
+				}
+			}
+			return true;
+		});
+		
+		float concordance = totalCompared.get() > 0 ? (match.floatValue() / totalCompared.get()) * 100 : 0;
+		logger.info("match: " + match + ", totalCompared: " + totalCompared + " percentage concordance: " + concordance);
+		
+		Comparison comp = new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), match.get(), totalCompared.get(), 0,0,0);
+		return comp;
+		
+	}
+			
+	
+	
+	public static Comparison compareRatiosUsingSnpsFloat(final Map<ChrPosition, float[]> file1Ratios,
+			final Map<ChrPosition, float[]> file2Ratios, File file1, File file2, Map<ChrPosition, ChrPosition> positionsOfInterest) {
+		
+		if (null == file1Ratios || null == file2Ratios)
+			throw new IllegalArgumentException("null maps passed to compareRatios");
+		
+		if (null == file1 || null == file2)
+			throw new IllegalArgumentException("null files passed to compareRatios");
+		
+		if (file1Ratios.isEmpty() || file2Ratios.isEmpty()) {
+			return  new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), 0, 0, 0, 0, 0);
+		}
+		
+		// if the files are the same, return a comparison object without doing the comparison
+		if (file1.equals(file2)) {
+			return  new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), 0, file1Ratios.size(), 0, 0, 0);
+		}
+		
+		boolean checkPositionsList = null != positionsOfInterest && ! positionsOfInterest.isEmpty();
+		
+		int match = 0;
+		int totalCompared = 0;
+		long f1TotalCov = 0;
+		long f2TotalCov = 0;
+		for (Entry<ChrPosition, float[]> file1RatiosEntry : file1Ratios.entrySet()) {
+			
+			// check to see if position is in the list of desired positions, if not continue
+			if (checkPositionsList) {
+				boolean overlap = positionsOfInterest.containsKey(file1RatiosEntry.getKey());
+				if ( ! overlap)  {
+					continue;
+				}
+			}
+			
+			// if coverage is zero, skip
+			final float[] file1Ratio = file1RatiosEntry.getValue();
+			
+			/*
+			 * See if we can get a clear genotype from file1Ratios before retrieving ratios from file2
+			 */
+			int g1 = 0;
+			//			String genotype = "";
+			for (int i = 0 ; i < 4 ; i++) {
+				float d = file1Ratio[i];
+				if (d > 0.90000) {
+					// this is all we care about
+					//					genotype += i + "";
+					g1 += i == 0 ? 1 : i == 1 ? 10 : i == 2 ? 100 : 1000;
+					break;
+				} else if (d >= 0.40000 && d <= 0.60000) {
+					g1 += i == 0 ? 1 : i == 1 ? 10 : i == 2 ? 100 : 1000;
+					//					genotype += i + "";
+				}
+			}
+			//			System.out.println("file1 g1: " + g1);
+			//			System.out.println("file1 genotype: " + genotype + ", g1: " + g1);
+			
+			if (g1 > 0) {
+				//				if ( ! genotype.isEmpty()) {
+				
+				final float[] file2Ratio = file2Ratios.get(file1RatiosEntry.getKey());
+				if (null != file2Ratio) {
+					//					String genotype2 = "";
+					int g2 = 0;
+					for (int i = 0 ; i < 4 ; i++) {
+						float d = file2Ratio[i];
+						if (d > 0.90000) {
+							// this is all we care about
+							//							genotype2 += i + "";
+							g2 += i == 0 ? 1 : i == 1 ? 10 : i == 2 ? 100 : 1000;
+							break;
+						} else if (d >= 0.40000 && d <= 0.60000) {
+							//							genotype2 += i + "";
+							g2 += i == 0 ? 1 : i == 1 ? 10 : i == 2 ? 100 : 1000;
+						}
+					}
+					//					System.out.println("file2 g2: " + g2);
+					//					System.out.println("file2 genotype2: " + genotype2 + ", g2: " + g2);
+					
+					if ( g2 > 0) {
+						if (g1 == g2) {
+							match++;
+						}
+						//						if ( ! genotype2.isEmpty()) {
+						//							if (genotype.equals(genotype2)) {
+						//								match++;
+						//							}
+						totalCompared++;
+						
+						f1TotalCov += file1Ratio[4];
+						f2TotalCov += file2Ratio[4];
+					}
+				}
+			} else {
+//					logger.info("file1Ratios: " + Arrays.toString(file1Ratio));
+			}
+		}
+		float concordance = totalCompared > 0 ? ((float)match / totalCompared) * 100 : 0;
+		logger.info("match: " + match + ", totalCompared: " + totalCompared + " percentage concordance: " + concordance);
+		
+		Comparison comp = new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), match, totalCompared, 0, f1TotalCov, f2TotalCov);
+		return comp;
+	}
 
 }
