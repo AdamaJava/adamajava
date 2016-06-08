@@ -330,6 +330,7 @@ public class QSigCompareDistance {
 		return new double[] {finalTally, count, noOfCalculations};
 	}
 	
+	
 	/**
 	 * Compare ratios.
 	 *
@@ -428,6 +429,70 @@ public class QSigCompareDistance {
 					final double file1Value =  file1Ratio[i];
 					if (Double.isNaN(file1Value)) continue;
 					final double file2Value =  file2Ratio[i];
+					if (Double.isNaN(file2Value)) continue;
+					
+					tally += FastMath.pow((file1Value - file2Value), 2);
+					noOfCalculations++;
+				}
+//				System.out.println("about to add " + file1Ratio[4] + " to f1 tally at " + file1RatiosEntry.getKey().toString());
+//				System.out.println("about to add " + file2Ratio[4] + " to f2 tally at " + file1RatiosEntry.getKey().toString());
+				f1TotalCov += file1Ratio[4];
+				f2TotalCov += file2Ratio[4];
+				finalTally += FastMath.sqrt(tally);
+				count++;
+			}
+		}
+		Comparison comp = new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), finalTally, count, noOfCalculations, f1TotalCov, f2TotalCov);
+//		System.out.println("overlapCount: " + overlapCount + ", nonOverlapCount: " + nonOverlapCount);
+		return comp;
+	}
+	public static Comparison compareRatiosFloat(final Map<ChrPosition, float[]> file1Ratios,
+			final Map<ChrPosition, float[]> file2Ratios, File file1, File file2, Map<ChrPosition, ChrPosition> positionsOfInterest) {
+		
+		if (null == file1Ratios || null == file2Ratios)
+			throw new IllegalArgumentException("null maps passed to compareRatios");
+		
+		if (null == file1 || null == file2)
+			throw new IllegalArgumentException("null files passed to compareRatios");
+		
+		if (file1Ratios.isEmpty() || file2Ratios.isEmpty()) {
+			return  new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), 0, 0, 0, 0, 0);
+		}
+		
+		// if the files are the same, return a comparison object without doing the comparison
+		if (file1.equals(file2)) {
+			return  new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), 0, file1Ratios.size(), 0, 0, 0);
+		}
+		
+		boolean checkPositionsList = null != positionsOfInterest && ! positionsOfInterest.isEmpty();
+		
+		
+//		int overlapCount = 0, nonOverlapCount = 0;
+		int count = 0;
+		int noOfCalculations = 0;
+		double finalTally = 0.0;
+		long f1TotalCov = 0;
+		long f2TotalCov = 0;
+		for (Entry<ChrPosition, float[]> file1RatiosEntry : file1Ratios.entrySet()) {
+			
+			// check to see if position is in the list of desired positions, if not continue
+			if (checkPositionsList) {
+				boolean overlap = positionsOfInterest.containsKey(file1RatiosEntry.getKey());
+				if ( ! overlap)  {
+					continue;
+				}
+			}
+			
+			// if coverage is zero, skip
+			final float[] file1Ratio = file1RatiosEntry.getValue();
+			final float[] file2Ratio = file2Ratios.get(file1RatiosEntry.getKey());
+			if (null != file2Ratio) {
+				
+				float tally = 0.0f;
+				for (int i = 0 ; i < 4 ; i ++) {		// ACGT - should always have exactly 4 entries in arrays
+					final float file1Value =  file1Ratio[i];
+					if (Double.isNaN(file1Value)) continue;
+					final float file2Value =  file2Ratio[i];
 					if (Double.isNaN(file2Value)) continue;
 					
 					tally += FastMath.pow((file1Value - file2Value), 2);
