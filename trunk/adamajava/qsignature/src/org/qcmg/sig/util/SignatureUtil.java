@@ -3,6 +3,8 @@
  */
 package org.qcmg.sig.util;
 
+import gnu.trove.map.hash.TIntShortHashMap;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -17,12 +19,14 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.BaseUtils;
@@ -31,6 +35,7 @@ import org.qcmg.common.util.DonorUtils;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.illumina.IlluminaRecord;
+import org.qcmg.sig.QSigCompare;
 import org.qcmg.tab.TabbedFileReader;
 import org.qcmg.tab.TabbedRecord;
 
@@ -60,6 +65,11 @@ public class SignatureUtil {
 	public static final QLogger logger = QLoggerFactory.getLogger(SignatureUtil.class);
 	
 	public static final Pattern PATIENT_REGEX_PATTERN = Pattern.compile(PATIENT_REGEX);
+	
+	public static final int bitMask0001 = 0b0001;	// 1
+	public static final int bitMask0010 = 0b1010;	// 10
+	public static final int bitMask0100 = 0b1100010;	//100
+	public static final int bitMask1000 = 0b1111100010;	//1000
 	
 	
 	
@@ -170,7 +180,144 @@ public class SignatureUtil {
 		return ratios;
 	}
 	
+	public static Map<ChrPosition, float[]> loadSignatureRatiosFloat(File file, int minCoverage) throws IOException {
+		Map<ChrPosition, float[]> ratios = new HashMap<>();
+		
+		if (null == file) {
+			throw new IllegalArgumentException("Null file object passed to loadSignatureRatios");
+		}
+		
+		try (TabbedFileReader reader = new TabbedFileReader(file)) {
+			String line;
+			
+			for (TabbedRecord vcfRecord : reader) {
+				line = vcfRecord.getData();
+				if (line.startsWith("#")) continue;
+				//do a brute force search for the empty coverage string before passing to tokenizer
+				// only populate ratios with non-zero values
+				// attempt to keep memory usage down...
+				if (line.indexOf(SHORT_CUT_EMPTY_COVERAGE) > -1) continue;
+				// ignore entries that have nan in there
+				if (line.indexOf("nan") > -1) continue;
+				
+				String[] params = TabTokenizer.tokenize(line);
+				String coverage = params[7];
+				Optional<float[]> array = getValuesFromCoverageStringFloat(coverage, minCoverage);
+				array.ifPresent(f -> {
+//				if (null != array) {
+					ChrPosition chrPos = ChrPositionCache.getChrPosition(params[0], Integer.parseInt(params[1]));
+					ratios.put(chrPos, f);
+				});
+			}
+		}
+		return ratios;
+	}
+	public static TIntShortHashMap loadSignatureRatiosFloatGenotype(File file) throws IOException {
+		return loadSignatureRatiosFloatGenotype(file, 10);
+	}
+	public static Map<ChrPosition, float[]> loadSignatureRatiosFloat(File file) throws IOException {
+		return loadSignatureRatiosFloat(file, 10);
+	}
 	
+	public static TIntShortHashMap loadSignatureRatiosFloatGenotype(File file, int minCoverage) throws IOException {
+		TIntShortHashMap ratios = new TIntShortHashMap();
+		
+		if (null == file) {
+			throw new IllegalArgumentException("Null file object passed to loadSignatureRatios");
+		}
+		
+		try (TabbedFileReader reader = new TabbedFileReader(file)) {
+			String line;
+			
+			for (TabbedRecord vcfRecord : reader) {
+				line = vcfRecord.getData();
+				if (line.startsWith("#")) continue;
+				//do a brute force search for the empty coverage string before passing to tokenizer
+				// only populate ratios with non-zero values
+				// attempt to keep memory usage down...
+				if (line.indexOf(SHORT_CUT_EMPTY_COVERAGE) > -1) continue;
+				// ignore entries that have nan in there
+				if (line.indexOf("nan") > -1) continue;
+				
+				String[] params = TabTokenizer.tokenize(line);
+				String coverage = params[7];
+				Optional<float[]> array = getValuesFromCoverageStringFloat(coverage, minCoverage);
+				array.ifPresent(f -> {
+					
+					short g = getCodedGenotype(f);
+					
+					if (isCodedGenotypeValid(g)) {
+						Integer i = ChrPositionCache.getChrPositionIndex(params[0], Integer.parseInt(params[1]));
+						ratios.put(i, g);
+					}
+				});
+			}
+		}
+		return ratios;
+	}
+	
+	/**
+	 * Convert float array containing allele percentages for ACGT bases into a short.
+	 * 
+	 * If over 90% in A, then will return 2000
+	 * If over 90% in C, then will return 200
+	 * If over 90% in G, then will return 20
+	 * If over 90% in T, then will return 2
+	 * If het for AC, will return 1100
+	 * If het for AG, will return 1010
+	 * If het for AT, will return 1001
+	 * If het for CG, will return 0110
+	 * If het for CT, will return 0101
+	 * If het for GT, will return 0011
+	 * 
+	 * 
+	 * The cutoffs are > 0.90000 for homozygous, and > 0.30000 and < 0.70000 for heterozygous
+	 * 
+	 * 
+	 * @param f
+	 * @return
+	 */
+	public static short getCodedGenotype(float[] f) {
+		short g1 = 0;
+		for (int i = 0 ; i < 4 ; i++) {
+			float d = f[i];
+			if (d > 0.90000) {	// homozygous
+				g1 += i == 0 ? 2000 : i == 1 ? 200 : i == 2 ? 20 : 2;
+				break;
+			} else if (d > 0.30000 && d < 0.70000) {	// heterozygous
+				g1 += i == 0 ? 1000 : i == 1 ? 100 : i == 2 ? 10 : 1;
+			}
+		}
+		return g1;
+	}
+	
+	/**
+	 * A short value outwith the 0-2000 range is invalid, and will return false.
+	 * Also, if the short contains only a single 1 within this range (ie. 1000), then this is also invalid, and will return false
+	 * 
+	 * NOTE that there is currently no check for more than 2 1's (ie. 1110 will return true)
+	 * 
+	 * @param s
+	 * @return
+	 */
+	public static boolean isCodedGenotypeValid(short s) {
+//		if (s > 0 && s <= 2000) {
+			switch (s) {
+			case 2000 : 
+			case 200 :
+			case 20 :
+			case 2:
+			case 1100:
+			case 1010:
+			case 1001:
+			case 110:
+			case 101:
+			case 11: return true;
+			default: return false;
+			}
+//		}
+//		return false;
+	}
 	
 	
 	
@@ -198,7 +345,7 @@ public class SignatureUtil {
 //					
 //					// ignore entries that have nan in there
 ////					if (coverage.indexOf("nan") > -1) continue;
-//					ChrPosition chrPos = new ChrPosition(params[0], Integer.parseInt(params[1]));
+//					ChrPosition chrPos = new ChrPointPosition(params[0], Integer.parseInt(params[1]));
 //					
 //					double[] array = QSigCompare.getValuesFromCoverageString(coverage);
 //					if (null != array)
@@ -536,6 +683,36 @@ public class SignatureUtil {
 				total};
 		
 		return array;
+	}
+	public static Optional<float[]> getValuesFromCoverageStringFloat(final String coverage) {
+		return getValuesFromCoverageStringFloat(coverage, 10);
+	}
+	
+	public static Optional<float[]> getValuesFromCoverageStringFloat(final String coverage, int minimumCoverage) {
+		
+		int[] baseCoverages = decipherCoverageString(coverage);
+		int total = baseCoverages[4];
+		if (total < minimumCoverage) return Optional.empty();
+		
+//		float aFrac = (float) baseCoverages[0] / total;
+//		float cFrac = (float) baseCoverages[1] / total;
+//		float gFrac = (float) baseCoverages[2] / total;
+//		float tFrac = (float) baseCoverages[3] / total;
+		
+		
+		return Optional.of(new float[] { (float) baseCoverages[0] / total, 
+				(float) baseCoverages[1] / total,
+				(float) baseCoverages[2] / total, 
+				(float) baseCoverages[3] / total,
+				total});
+		
+//		final float[] array = new float[] {aFrac, 
+//				cFrac,
+//				gFrac, 
+//				tFrac,
+//				total};
+//		
+//		return array;
 	}
 
 
