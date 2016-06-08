@@ -130,7 +130,7 @@ sub verify {
 
 
     # Set up logging
-    qlogfile($params{logfile}) if $params{params};
+    qlogfile($params{logfile}) if $params{logfile};
     qlogbegin();
     qlogprint( {l=>'EXEC'}, "CommandLine $CMDLINE\n" );
 
