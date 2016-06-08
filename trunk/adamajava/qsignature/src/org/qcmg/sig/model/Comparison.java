@@ -54,13 +54,13 @@ public class Comparison implements Comparable<Comparison> {
 	}
 	
 	public int getMainAveCovAtOverlaps() {
-		System.out.println("mainCovAtOverlaps: " + mainCovAtOverlaps);
-		System.out.println("overlapCoverage: " + overlapCoverage);
+//		System.out.println("mainCovAtOverlaps: " + mainCovAtOverlaps);
+//		System.out.println("overlapCoverage: " + overlapCoverage);
 		return overlapCoverage > 0 ? (int)(mainCovAtOverlaps / overlapCoverage) : -1; 
 	}
 	public int getTestAveCovAtOverlaps() {
-		System.out.println("testCovAtOverlaps: " + testCovAtOverlaps);
-		System.out.println("overlapCoverage: " + overlapCoverage);
+//		System.out.println("testCovAtOverlaps: " + testCovAtOverlaps);
+//		System.out.println("overlapCoverage: " + overlapCoverage);
 		return overlapCoverage > 0 ? (int)(testCovAtOverlaps / overlapCoverage) : -1; 
 	}
 
