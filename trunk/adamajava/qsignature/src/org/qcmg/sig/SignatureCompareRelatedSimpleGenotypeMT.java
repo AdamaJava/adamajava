@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.IntSummaryStatistics;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -40,8 +39,6 @@ import javax.xml.transform.stream.StreamResult;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
-import org.qcmg.common.model.ChrPosition;
-import org.qcmg.common.util.DonorUtils;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.LoadReferencedClasses;
 import org.qcmg.sig.model.Comparison;
@@ -64,18 +61,13 @@ public class SignatureCompareRelatedSimpleGenotypeMT {
 	private static QLogger logger;
 	private int exitStatus;
 	
-	
-	private float cutoff = 0.2f;
 	private int minimumCoverage = 10;
 	private int nThreads = 4;
 	
-//	private final int cacheSize = 700;
 	
 	private String outputXml;
 	private String [] paths;
 	private String [] additionalSearchStrings;
-	private String donor;
-//	private static final String QSIG_SUFFIX = ".qsig.vcf";
 	
 	private String excludeVcfsFile;
 	private List<String> excludes;
@@ -84,7 +76,6 @@ public class SignatureCompareRelatedSimpleGenotypeMT {
 	private final Map<File, int[]> fileIdsAndCounts = new THashMap<>();
 	private final List<Comparison> allComparisons = new CopyOnWriteArrayList<>();
 	
-//	private final Map<File, Map<ChrPosition, float[]>> cache = new THashMap<>(cacheSize * 2);
 	private final ConcurrentMap<File, TIntShortHashMap> cache = new ConcurrentHashMap<>();
 	
 	List<String> suspiciousResults = new ArrayList<String>();
@@ -119,8 +110,6 @@ public class SignatureCompareRelatedSimpleGenotypeMT {
 		}
 		
 		
-		
-		
 		/*
 		 * Match files on additionalSearchStrings
 		 */
@@ -130,6 +119,8 @@ public class SignatureCompareRelatedSimpleGenotypeMT {
 			};
 			files = files.stream().filter(f -> p.test(f)).collect(Collectors.toList());
 		}
+		
+		
 		final int numberOfFiles = files.size();
 		final int numberOfComparisons = ((numberOfFiles * (numberOfFiles -1)) /2);
 		logger.info("Should have " +numberOfComparisons + " comparisons, based on " + numberOfFiles + " input files");
@@ -139,21 +130,6 @@ public class SignatureCompareRelatedSimpleGenotypeMT {
 		// add files to map
 		addFilesToMap(files);
 		
-		/*
-		 * size allComps array accordingly
-		 */
-		
-//		if (donor == null) {
-//			donor = DonorUtils.getDonorFromFilename(files.get(0).getAbsolutePath());
-//			if (null == donor) {
-//				logger.warn("Could not get donor information from file: " + files.get(0).getAbsolutePath());
-//			}
-//		}
-		
-//		StringBuilder donorSB = new StringBuilder(donor + "\n");
-		
-		
-		
 		populateCache(files);
 		
 		cache.forEach((k,v) -> {
@@ -162,50 +138,6 @@ public class SignatureCompareRelatedSimpleGenotypeMT {
 		
 		performComparisons(files);
 		
-		
-//		int size = files.size();
-//		
-//		for (int i = 0 ; i < size -1 ; i++) {
-//			
-//			File f1 = files.get(i);
-////			Map<ChrPosition, float[]> ratios1 = getSignatureData(f1);
-//			TIntShortHashMap ratios1 = getSignatureData(f1);
-//			
-//			for (int j = i + 1 ; j < size ; j++) {
-//				File f2 = files.get(j);
-////				Map<ChrPosition, float[]> ratios2 = getSignatureData(f2);
-//				TIntShortHashMap ratios2 = getSignatureData(f2);
-//				
-////				Comparison comp = QSigCompareDistance.compareRatiosFloat(ratios1, ratios2, f1, f2, null);
-//				Comparison comp = ComparisonUtil.compareRatiosUsingSnpsFloat(ratios1, ratios2, f1, f2);
-//				donorSB.append(comp.toString()).append("\n");
-//				allComparisons.add(comp);
-//			}
-//			
-//			// can now remove f1 from the cache as it is no longer required
-////			Map<ChrPosition, float[]> m = cache.remove(f1);
-//			TIntShortHashMap m = cache.remove(f1);
-//			m.clear();
-//			m = null;
-//		}
-		
-//		for (Comparison comp : allComparisons) {
-//			if (comp.getScore() > cutoff) {
-//				suspiciousResults.add(donor + "\t" + comp.toSummaryString());
-//			}
-//		}
-		
-		
-		// flush out last donor details
-//		logger.info(donorSB.toString());
-		
-//		logger.info("");
-//		if (suspiciousResults.isEmpty()) {
-//			logger.info("No suspicious results found");
-//		} else {
-//			logger.info("Suspicious results SUMMARY:");
-//			for (String s : suspiciousResults) logger.info(s);
-//		}
 		logger.info("number of comparisons created: " + allComparisons.size());
 		logger.info("writing xml output");
 		if (outputXml != null)
@@ -256,8 +188,6 @@ public class SignatureCompareRelatedSimpleGenotypeMT {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		
 	}
 	
 	private void populateCache(List<File> files) {
@@ -282,7 +212,6 @@ public class SignatureCompareRelatedSimpleGenotypeMT {
 						if (null != prevGenotypes) {
 							logger.warn("already genotypes associated with file: " + f.getAbsolutePath());
 						}
-//						fileIdsAndCounts.get(f)[1] = genotypes.size();
 					}
 				});
 		}
@@ -297,58 +226,6 @@ public class SignatureCompareRelatedSimpleGenotypeMT {
 		}
 		
 	}
-	
-//	TIntShortHashMap getSignatureData(File f) throws Exception {
-//		// check map to see if this data has already been loaded
-//		// if not - load
-//		TIntShortHashMap result = cache.get(f);
-//		if (result == null) {
-//			result = SignatureUtil.loadSignatureRatiosFloatGenotype(f, minimumCoverage);
-//			
-//			if (result.size() < 1000) {
-//				logger.warn("low coverage (" + result.size() + ") for file " + f.getAbsolutePath());
-//			}
-//			
-////			if (cache.size() < cacheSize) {
-//				cache.put(f, result);
-////			}
-//			fileIdsAndCounts.get(f)[1] = result.size();
-//			/*
-//			 * average coverage
-//			 */
-//			//TODO put this back in
-////			IntSummaryStatistics iss = result.values().stream()
-////				.mapToInt(array -> (int) array[4])
-////				.summaryStatistics();
-////			fileIdsAndCounts.get(f)[2] = (int) iss.getAverage();
-//		}
-//		return result;
-//	}
-//	Map<ChrPosition, float[]> getSignatureData(File f) throws Exception {
-//		// check map to see if this data has already been loaded
-//		// if not - load
-//		Map<ChrPosition, float[]> result = cache.get(f);
-//		if (result == null) {
-//			result = SignatureUtil.loadSignatureRatiosFloat(f, minimumCoverage);
-//			
-//			if (result.size() < 1000) {
-//				logger.warn("low coverage (" + result.size() + ") for file " + f.getAbsolutePath());
-//			}
-//			
-//			if (cache.size() < cacheSize) {
-//				cache.put(f, result);
-//			}
-//			fileIdsAndCounts.get(f)[1] = result.size();
-//			/*
-//			 * average coverage
-//			 */
-//			IntSummaryStatistics iss = result.values().stream()
-//					.mapToInt(array -> (int) array[4])
-//					.summaryStatistics();
-//			fileIdsAndCounts.get(f)[2] = (int) iss.getAverage();
-//		}
-//		return result;
-//	}
 	
 	private void writeXmlOutput() throws ParserConfigurationException, TransformerException {
 		DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
@@ -385,7 +262,8 @@ public class SignatureCompareRelatedSimpleGenotypeMT {
 		/*
 		 * sort comparisons by file ids
 		 */
-		allComparisons.sort(comparing((Comparison c) -> fileIdsAndCounts.get(c.getMain())[0]).thenComparing((c) ->  fileIdsAndCounts.get(c.getTest())[0]));
+		allComparisons.sort(comparing((Comparison c) -> fileIdsAndCounts.get(c.getMain())[0])
+				.thenComparing((c) ->  fileIdsAndCounts.get(c.getTest())[0]));
 		
 		
 		for (Comparison comp : allComparisons) {
@@ -475,9 +353,6 @@ public class SignatureCompareRelatedSimpleGenotypeMT {
 				this.paths = paths;
 			}
 			if (null == paths) throw new QSignatureException("MISSING_DIRECTORY_OPTION");
-			
-			if (options.hasCutoff())
-				cutoff = options.getCutoff();
 			
 			if (options.hasMinCoverage()) {
 				minimumCoverage = options.getMinCoverage();
