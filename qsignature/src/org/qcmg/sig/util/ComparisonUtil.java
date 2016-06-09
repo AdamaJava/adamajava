@@ -195,8 +195,8 @@ public class ComparisonUtil {
 			return true;
 		});
 		
-		float concordance = totalCompared.get() > 0 ? (match.floatValue() / totalCompared.get()) * 100 : 0;
-		logger.info("match: " + match + ", totalCompared: " + totalCompared + " percentage concordance: " + concordance);
+//		float concordance = totalCompared.get() > 0 ? (match.floatValue() / totalCompared.get()) * 100 : 0;
+//		logger.info("match: " + match + ", totalCompared: " + totalCompared + " percentage concordance: " + concordance);
 		
 		Comparison comp = new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), match.get(), totalCompared.get(), 0,0,0);
 		return comp;
