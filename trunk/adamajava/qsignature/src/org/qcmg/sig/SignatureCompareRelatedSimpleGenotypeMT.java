@@ -16,12 +16,17 @@ import java.util.IntSummaryStatistics;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
+import static java.util.Comparator.comparing;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -62,7 +67,7 @@ public class SignatureCompareRelatedSimpleGenotypeMT {
 	
 	private float cutoff = 0.2f;
 	private int minimumCoverage = 10;
-	private final int nThreads = 4;
+	private int nThreads = 4;
 	
 //	private final int cacheSize = 700;
 	
@@ -77,10 +82,10 @@ public class SignatureCompareRelatedSimpleGenotypeMT {
 	private String logFile;
 	
 	private final Map<File, int[]> fileIdsAndCounts = new THashMap<>();
-	private final List<Comparison> allComparisons = new ArrayList<>();
+	private final List<Comparison> allComparisons = new CopyOnWriteArrayList<>();
 	
 //	private final Map<File, Map<ChrPosition, float[]>> cache = new THashMap<>(cacheSize * 2);
-	private final Map<File, TIntShortHashMap> cache = new THashMap<>();
+	private final ConcurrentMap<File, TIntShortHashMap> cache = new ConcurrentHashMap<>();
 	
 	List<String> suspiciousResults = new ArrayList<String>();
 	
@@ -125,27 +130,35 @@ public class SignatureCompareRelatedSimpleGenotypeMT {
 			};
 			files = files.stream().filter(f -> p.test(f)).collect(Collectors.toList());
 		}
-		
-		
-		logger.info("Should have " + (files.size() -1) + " + " + (files.size() -2) + " ...  comparisons");
+		final int numberOfFiles = files.size();
+		final int numberOfComparisons = ((numberOfFiles * (numberOfFiles -1)) /2);
+		logger.info("Should have " +numberOfComparisons + " comparisons, based on " + numberOfFiles + " input files");
 		
 		Collections.sort(files, FileUtils.FILE_COMPARATOR);
 		
 		// add files to map
 		addFilesToMap(files);
 		
-		if (donor == null) {
-			donor = DonorUtils.getDonorFromFilename(files.get(0).getAbsolutePath());
-			if (null == donor) {
-				logger.warn("Could not get donor information from file: " + files.get(0).getAbsolutePath());
-			}
-		}
+		/*
+		 * size allComps array accordingly
+		 */
 		
-		StringBuilder donorSB = new StringBuilder(donor + "\n");
+//		if (donor == null) {
+//			donor = DonorUtils.getDonorFromFilename(files.get(0).getAbsolutePath());
+//			if (null == donor) {
+//				logger.warn("Could not get donor information from file: " + files.get(0).getAbsolutePath());
+//			}
+//		}
+		
+//		StringBuilder donorSB = new StringBuilder(donor + "\n");
 		
 		
 		
 		populateCache(files);
+		
+		cache.forEach((k,v) -> {
+			fileIdsAndCounts.get(k)[1] = v.size();
+		});
 		
 		performComparisons(files);
 		
@@ -176,24 +189,25 @@ public class SignatureCompareRelatedSimpleGenotypeMT {
 //			m = null;
 //		}
 		
-		for (Comparison comp : allComparisons) {
-			if (comp.getScore() > cutoff) {
-				suspiciousResults.add(donor + "\t" + comp.toSummaryString());
-			}
-		}
+//		for (Comparison comp : allComparisons) {
+//			if (comp.getScore() > cutoff) {
+//				suspiciousResults.add(donor + "\t" + comp.toSummaryString());
+//			}
+//		}
 		
 		
 		// flush out last donor details
-		logger.info(donorSB.toString());
+//		logger.info(donorSB.toString());
 		
-		logger.info("");
-		if (suspiciousResults.isEmpty()) {
-			logger.info("No suspicious results found");
-		} else {
-			logger.info("Suspicious results SUMMARY:");
-			for (String s : suspiciousResults) logger.info(s);
-		}
-		
+//		logger.info("");
+//		if (suspiciousResults.isEmpty()) {
+//			logger.info("No suspicious results found");
+//		} else {
+//			logger.info("Suspicious results SUMMARY:");
+//			for (String s : suspiciousResults) logger.info(s);
+//		}
+		logger.info("number of comparisons created: " + allComparisons.size());
+		logger.info("writing xml output");
 		if (outputXml != null)
 			writeXmlOutput();
 		
@@ -210,6 +224,7 @@ public class SignatureCompareRelatedSimpleGenotypeMT {
 		ExecutorService service = Executors.newFixedThreadPool(nThreads);		
 		for (int i = 0 ; i < nThreads; i++) {
 			service.execute(() -> {
+					List<Comparison> myComps = new ArrayList<>();
 					while (true) {
 						Integer in = queue.poll();
 						if (null == in) break;
@@ -219,13 +234,17 @@ public class SignatureCompareRelatedSimpleGenotypeMT {
 						File f1 = files.get(in);
 						TIntShortHashMap r1 = cache.get(f1);
 						
-						for (int j = in.intValue() + 1 ; j < size - 1 ; j ++ ) {
+						for (int j = in.intValue() + 1 ; j < size ; j ++ ) {
 							File f2 = files.get(j);
 							TIntShortHashMap r2 =  cache.get(f2);
 							Comparison c = ComparisonUtil.compareRatiosUsingSnpsFloat(r1, r2, f1, f2);
-							allComparisons.add(c);
+							myComps.add(c);
 						}
 					}
+					/*
+					 * add myComps to allComps
+					 */
+					allComparisons.addAll(myComps);
 				});
 		}
 		service.shutdown();
@@ -263,6 +282,7 @@ public class SignatureCompareRelatedSimpleGenotypeMT {
 						if (null != prevGenotypes) {
 							logger.warn("already genotypes associated with file: " + f.getAbsolutePath());
 						}
+//						fileIdsAndCounts.get(f)[1] = genotypes.size();
 					}
 				});
 		}
@@ -361,6 +381,13 @@ public class SignatureCompareRelatedSimpleGenotypeMT {
 		// list files
 		Element compsE = doc.createElement("comparisons");
 		rootElement.appendChild(compsE);
+		
+		/*
+		 * sort comparisons by file ids
+		 */
+		allComparisons.sort(comparing((Comparison c) -> fileIdsAndCounts.get(c.getMain())[0]).thenComparing((c) ->  fileIdsAndCounts.get(c.getTest())[0]));
+		
+		
 		for (Comparison comp : allComparisons) {
 			int id1 = fileIdsAndCounts.get(comp.getMain())[0];
 			int id2 = fileIdsAndCounts.get(comp.getTest())[0];
@@ -455,6 +482,9 @@ public class SignatureCompareRelatedSimpleGenotypeMT {
 			if (options.hasMinCoverage()) {
 				minimumCoverage = options.getMinCoverage();
 			}
+			nThreads = Math.max(options.getNoOfThreads(), 1);
+			logger.tool("number of threads: " + nThreads);
+				
 			logger.tool("Setting minumim coverage to: " + minimumCoverage);
 			
 			additionalSearchStrings = options.getAdditionalSearchString();
