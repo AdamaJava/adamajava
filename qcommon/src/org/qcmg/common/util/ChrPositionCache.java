@@ -33,7 +33,10 @@ public class ChrPositionCache {
 		Integer i = cacheWithIndex.get(cp);
 		if (null == i) {
 			i = index.incrementAndGet();
-			cacheWithIndex.put(cp, i);
+			Integer prevI = cacheWithIndex.putIfAbsent(cp, i);
+			if (null != prevI && ! prevI.equals(i)) {
+				i = prevI;
+			}
 		}
 		return i;
 	}
