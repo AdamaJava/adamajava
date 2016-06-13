@@ -1,3 +1,8 @@
+/**
+ * © Copyright QIMR Berghofer Medical Research Institute 2014-2016.
+ *
+ * This code is released under the terms outlined in the included LICENSE file.
+*/
 // $ANTLR 3.4 /Users/q.xu/Documents/MyWork/EclipseProject/SourceForge/adamajava/qbamfilter/src/org/qcmg/qbamfilter/grammars/queryLexer.g 2014-05-14 11:58:38
 
 	package org.qcmg.qbamfilter.grammars;
