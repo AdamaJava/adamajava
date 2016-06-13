@@ -27,19 +27,19 @@ public class SnpEffMafRecord {
 	private final MafElement[] maf = new MafElement[MafElement.values().length];
 	private final String[] values = new String[MafElement.values().length];
 	
-	public enum MUTATION_STATUS{ 
-		None, Germline,Somatic,LOH,PostTranscriptional, modification,Unknown;
-		@Override
-		public String toString() {
-			switch (this) {
-				case PostTranscriptional:
-					return "Post-transcriptional";			 
-				default:
-					return name();		 		
-			}
-		}
-	};
-	public enum VALIDATION_STATUS { Untested,Inconclusive, Valid,Invalid };
+//	public enum MUTATION_STATUS{ 
+//		None, Germline,Somatic,LOH,PostTranscriptional, modification,Unknown;
+//		@Override
+//		public String toString() {
+//			switch (this) {
+//				case PostTranscriptional:
+//					return "Post-transcriptional";			 
+//				default:
+//					return name();		 		
+//			}
+//		}
+//	};
+//	public enum VALIDATION_STATUS { Untested,Inconclusive, Valid,Invalid };
 	
 	
 	public SnpEffMafRecord(){

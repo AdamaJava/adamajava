@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -174,20 +175,17 @@ public class Vcf2maf extends AbstractMode{
 				){
 			
 			reheader( option.getCommandLine(), option.getInputFileName());			
-			createMafHeader(out,out_SHCC,out_SHC,out_GHCC,out_GHC);//,out_SLCC,out_SLC,out_GLCC,out_GLC);
-			
-			createVcfHeaders(reader.getHeader(), outSHCCVcf, outSHCVcf, outGHCCVcf, outGHCVcf);
+			createMafHeader(out,out_SHCC,out_SHC,out_GHCC,out_GHC); //out_SLCC,out_SLC,out_GLCC,out_GLC);			
+//			createVcfHeaders(reader.getHeader(), outSHCCVcf, outSHCVcf, outGHCCVcf, outGHCVcf);
 			
 			for (final VcfRecord vcf : reader) {
-//				if(vcf.getPosition() == 4830136)
-//					System.out.println(vcf.toString());
-//	        		 
+				
     			noIn ++;
     			SnpEffMafRecord maf = converter(vcf);
     			String Smaf = maf.getMafLine();
     			out.println(Smaf);
     			noOut ++;
-    			int rank = Integer.parseInt(maf.getColumnValue( MafElement.Consequnce_rank));//40
+    			int rank = Integer.parseInt(maf.getColumnValue( MafElement.Consequence_rank));//40
     			boolean isConsequence = isConsequence(maf.getColumnValue(MafElement.Transcript_BioType), rank); //55
     			boolean isSomatic = maf.getColumnValue(MafElement.Mutation_Status).equalsIgnoreCase(VcfHeaderUtils.INFO_SOMATIC); //26
     			if (isHighConfidence(maf)) {
@@ -272,6 +270,9 @@ public class Vcf2maf extends AbstractMode{
 			sb.append(rec.toString());
 		}
 		
+//		for(MafElement ele: EnumSet.allOf( MafElement.class))
+//			sb.append(ele.getDescription());
+		
 		Arrays.stream(writers).forEach(pw -> pw.println(sb.toString()));
 	}
 	
@@ -293,6 +294,9 @@ public class Vcf2maf extends AbstractMode{
 			for(Map.Entry<String, VcfHeader.FormattedRecord> re: header.getInfoRecords().entrySet()) {
 				write.println(re.getValue().getData());
 			}
+			
+			for(MafElement ele: EnumSet.allOf( MafElement.class))
+				write.println(ele.getDescriptionLine());
 	
 			write.println(SnpEffMafRecord.getSnpEffMafHeaderline());	 
 		 }	 
@@ -328,13 +332,7 @@ public class Vcf2maf extends AbstractMode{
 			maf.setColumnValue(MafElement.End_Position, Integer.toString(vcf.getPosition() + vcf.getRef().length()-1));
 		}
 		
-		String ref = vcf.getRef();
-		if(type.equals(SVTYPE.DEL) ) {
-			ref =  ref.substring(1); //remove heading base
-		} else if(type.equals(SVTYPE.INS)) {
-			ref = "-"; //replace heading base with "-"
-		}
-		maf.setColumnValue(MafElement.Reference_Allele,  ref);	
+		maf.setColumnValue(MafElement.Reference_Allele,  IndelUtils.getVariantRef(vcf.getRef(), type));	
 		maf.setColumnValue(MafElement.QFlag,  vcf.getFilter());
 		
 		//set novel for non dbSNP
@@ -363,13 +361,13 @@ public class Vcf2maf extends AbstractMode{
 		
 		String conf = VcfUtils.getConfidence(vcf);
 		if(info.getField(VcfHeaderUtils.INFO_CONFIDENT) != null)	maf.setColumnValue(MafElement.Confidence ,  conf );
-		if(info.getField(VcfHeaderUtils.INFO_FLANKING_SEQUENCE) != null) maf.setColumnValue(MafElement.Var_Plus_Flank,  info.getField(VcfHeaderUtils.INFO_FLANKING_SEQUENCE));
 		if(info.getField(VcfHeaderUtils.INFO_GERMLINE) != null) maf.setColumnValue(MafElement.Germ_Counts,  info.getField(VcfHeaderUtils.INFO_GERMLINE));	
+		if(info.getField(VcfHeaderUtils.INFO_VAF) != null) maf.setColumnValue(MafElement.dbSNP_AF,  info.getField(VcfHeaderUtils.INFO_VAF));	
 		
-		if(info.getField(VcfHeaderUtils.INFO_VAF) != null) 
-			maf.setColumnValue(MafElement.Variant_AF,  info.getField(VcfHeaderUtils.INFO_VAF));		
+		if(info.getField(VcfHeaderUtils.INFO_FLANKING_SEQUENCE) != null)
+			maf.setColumnValue(MafElement.Var_Plus_Flank,  info.getField(VcfHeaderUtils.INFO_FLANKING_SEQUENCE));			
 		else if( info.getField(VcfHeaderUtils.INFO_HOM) != null) {
-			maf.setColumnValue(MafElement.Variant_AF,  info.getField(VcfHeaderUtils.INFO_HOM).split(Constants.COMMA_STRING)[1]);	
+			maf.setColumnValue(MafElement.Var_Plus_Flank,  info.getField(VcfHeaderUtils.INFO_HOM).split(Constants.COMMA_STRING)[1]);	
 		}
 		
 		//add notes
@@ -471,35 +469,52 @@ public class Vcf2maf extends AbstractMode{
 		 if( StringUtils.isMissingDtaString(gd) ) {
 			 gd = IndelUtils.getGenotypeDetails(sample, ref, alt); //maybe null
 		 }
-	 	 boolean useFirst = true;
-	 	 
-	 	 if ( ! StringUtils.isMissingDtaString(gd)) {
-	 		 if (isMerged) {
-	 		 /*
-	 		  * Need to determine which value to use, first or second.
-	 		  * If the GDs are the same, then pick first
-	 		  */
-		 		 String [] gds = gd.split(VCF_MERGE_DELIM + "");
-		 		 
-		 		 if (gds.length == 2) {
-		 			 if (gds[0].equals(gds[1])) {
-		 				 // pick first
-		 			 } else if (gds[0].equals(MISSING_DATA_STRING)) {
-		 				 useFirst = false;
-		 				 
-		 			 } 
-		 		 }
-		 		 String gdToUse = useFirst ? gds[0] : gds[1];
-		 		 String[] pairs = gdToUse.contains("|") ? gdToUse.split("|") : gdToUse.split("/");
-		 		 if(pairs.length > 0) values[4] = getMafAlt(ref, pairs[0], type);
-		 		 if(pairs.length > 1) values[5] = getMafAlt(ref, pairs[1], type);
-	 		 
-		 	 } else {
-		 		 String[] pairs = gd.contains("|") ? gd.split("|") : gd.split("/");
-		 		 if(pairs.length > 0) values[4] = getMafAlt(ref, pairs[0], type);
-				 if(pairs.length > 1) values[5] = getMafAlt(ref, pairs[1], type);
-		 	 }
+		 
+	 	 boolean useFirst = true;	 
+		 if ( ! StringUtils.isMissingDtaString(gd)) {
+			 if (isMerged) {
+				 String [] gds = gd.split(VCF_MERGE_DELIM + "");
+				 if(gds.length == 2 && gds[0].equals(MISSING_DATA_STRING))
+					 useFirst = false;
+				 gd = useFirst ? gds[0] : gds[1];
+			 }
+	 		 String[] pairs = gd.contains("|") ? gd.split("|") : gd.split("/");
+	 		 if(pairs.length > 0) values[4] = getMafAlt(ref, pairs[0], type);
+			 if(pairs.length > 1) values[5] = getMafAlt(ref, pairs[1], type);			 
+		 }else  if(type.equals(SVTYPE.DEL) || type.equals(SVTYPE.INS) ){
+			 //if missing GD put reference 			 
+			 values[4] = IndelUtils.getVariantRef(ref, type);
+			 values[5] =  values[4];
 		 }
+		 		 
+//	 	 boolean useFirst = true;	 	 
+//	 	 if ( ! StringUtils.isMissingDtaString(gd)) {
+//	 		 if (isMerged) {
+//	 		 /*
+//	 		  * Need to determine which value to use, first or second.
+//	 		  * If the GDs are the same, then pick first
+//	 		  */
+//		 		 String [] gds = gd.split(VCF_MERGE_DELIM + "");
+//		 		 
+//		 		 if (gds.length == 2) {
+//		 			 if (gds[0].equals(gds[1])) {
+//		 				 // pick first
+//		 			 } else if (gds[0].equals(MISSING_DATA_STRING)) {
+//		 				 useFirst = false;
+//		 				 
+//		 			 } 
+//		 		 }
+//		 		 String gdToUse = useFirst ? gds[0] : gds[1];
+//		 		 String[] pairs = gdToUse.contains("|") ? gdToUse.split("|") : gdToUse.split("/");
+//		 		 if(pairs.length > 0) values[4] = getMafAlt(ref, pairs[0], type);
+//		 		 if(pairs.length > 1) values[5] = getMafAlt(ref, pairs[1], type);
+//	 		 
+//		 	 } else {
+//		 		 String[] pairs = gd.contains("|") ? gd.split("|") : gd.split("/");
+//		 		 if(pairs.length > 0) values[4] = getMafAlt(ref, pairs[0], type);
+//				 if(pairs.length > 1) values[5] = getMafAlt(ref, pairs[1], type);
+//		 	 }
+//		 }
 	 	 
 	 	 
 		 if(type == null)
@@ -516,7 +531,9 @@ public class Vcf2maf extends AbstractMode{
 		      		String[] counts = values[6].split(COMMA_STRING);
 		      		if(counts.length != 9) throw new Exception();
 		      		values[0] = counts[0]; //strong supporting reads nns
-		      		values[1] = counts[1]; //coverage
+		      	//	values[1] = counts[1]; //coverage
+		      		values[1] = counts[2]; //informative
+
 		      		values[3] = counts[5].substring(0,counts[5].indexOf('['));  //supporting reads total not strong support
 		      		//reference reads counts is the informative reads - support/partial reads
 		      		int refCounts =  Integer.parseInt(counts[2]) - Integer.parseInt(values[3])- Integer.parseInt(counts[6]);
@@ -525,8 +542,7 @@ public class Vcf2maf extends AbstractMode{
 	      				logger.warn("invalide " + IndelUtils.FORMAT_ACINDEL + " at vcf formate column: " + sample.toString());
 	      		}
       		 }
-      	 } else if(  type.equals(SVTYPE.SNP) || type.equals(SVTYPE.DNP) || 
-      			 	type.equals(SVTYPE.TNP) || type.equals(SVTYPE.ONP) ){
+      	 } else if(  type.equals(SVTYPE.SNP) || type.equals(SVTYPE.DNP) || type.equals(SVTYPE.TNP) || type.equals(SVTYPE.ONP) ){
       		 String nns =  sample.getField(VcfHeaderUtils.FORMAT_NOVEL_STARTS);
       		 if (null != nns) {
   				values[0] = isMerged ? (useFirst ? nns.substring(0, nns.indexOf(VCF_MERGE_DELIM)) : nns.substring(nns.indexOf(VCF_MERGE_DELIM) + 1)) : nns;
@@ -543,10 +559,10 @@ public class Vcf2maf extends AbstractMode{
       		 
       		 values[6] = bases;
 	    		//check counts      		
-      		values[1] = SnpUtils.getTotalCountFromNucleotideString(bases, cs) + "";     
-	        	values[2] = SnpUtils.getCountFromNucleotideString(bases,ref, cs) + "";
-	        	values[3] = SnpUtils.getCountFromNucleotideString(bases,alt, cs) + "";	        		     
-      	 }
+      		 values[1] = SnpUtils.getTotalCountFromNucleotideString(bases, cs) + "";     
+	         values[2] = SnpUtils.getCountFromNucleotideString(bases,ref, cs) + "";
+	         values[3] = SnpUtils.getCountFromNucleotideString(bases,alt, cs) + "";	        		     
+      	}
 		 
       	 //get genotype base
 		 if(  StringUtils.isMissingDtaString(gd)) return values;
@@ -581,7 +597,7 @@ public class Vcf2maf extends AbstractMode{
 				//check whether frameshift_variant			    
 				maf.setColumnValue(MafElement.Variant_Classification , (str.equals("Frame_Shift_")? str+maf.getColumnValue(MafElement.Variant_Type): str)); //eg. RNA
 			}
-			maf.setColumnValue(MafElement.Consequnce_rank,  SnpEffConsequence.getConsequenceRank(ontolog)+""); //get A.M consequence's rank
+			maf.setColumnValue(MafElement.Consequence_rank,  SnpEffConsequence.getConsequenceRank(ontolog)+""); //get A.M consequence's rank
 	
 			final String[] effs = annotate.split(BAR_STRING);
 			if ( ! StringUtils.isNullOrEmpty(effs[0]))  maf.setColumnValue(MafElement.Eff_Impact, effs[0]); //Eff Impact, eg. modifier	
