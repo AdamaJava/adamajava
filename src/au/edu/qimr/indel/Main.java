@@ -29,7 +29,6 @@ public class Main {
 		int exitStatus = 0;
 		try {
 			logger.config("***[IOs]***");
-			logger.config("Reference file: " + options.getReference());
 			logger.config("Test bam: " + options.getTestBam());
 			logger.config("Control bam: " + options.getControlBam());
 			logger.config( "Test vcf: " + options.getTestInputVcf());
@@ -48,7 +47,6 @@ public class Main {
 			logger.config("Thread number: " + options.getThreadNo());
 			logger.config("query for bam record filter: " + options.getFilterQuery());
 			logger.config("Nearby indel window: " + options.getNearbyIndelWindow());
-//			logger.config("Homopolymer window: " + options.getNearbyHomopolymerWindow());
 			logger.config("Soft clip window: " + options.getSoftClipWindow());			
 					
 			logger.config("***[rules]***");
