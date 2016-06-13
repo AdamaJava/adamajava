@@ -76,8 +76,8 @@ public class IndelUtils {
 //	public static final String DESCRITPION_INFO_HOMCNTXT = "nearby reference sequence. if it is homopolymeric, the maximum repeated based counts will be added infront of sequence ";
 	
 	public static final String FORMAT_ACINDEL = "ACINDEL";
-	public static final String DESCRITPION_FORMAT_ACINDEL = "counts of indels, follow formart:novelStarts,TotalCoverage,InformativeReadCount," 
-			+"suportReadCount[forwardsuportReadCount,backwardsuportReadCount],particalReadCount,NearbyIndelCount,NearybySoftclipCount";
+	public static final String DESCRITPION_FORMAT_ACINDEL = "counts of indels, follow formart:"
+			+ "novelStarts,totalCoverage,informativeReadCount,strongSuportReadCount[forwardsuportReadCount,backwardsuportReadCount],suportReadCount[novelStarts],partialReadCount,nearbyIndelCount,nearybySoftclipCount";
 
 	public static final int MAX_INDEL_LENGTH = 200;
 
