@@ -177,5 +177,15 @@ public class IndelUtils {
 		
 		return ref;  //return ref for snp, mnp 		
 	}
+	
+	public static String getVariantRef(String ref, final SVTYPE type){
+		String Vref = ref;  
+		if(type.equals(SVTYPE.DEL) ) {
+			Vref =  ref.substring(1); //remove heading base
+		} else if(type.equals(SVTYPE.INS)) {
+			Vref = "-"; //replace heading base with "-"
+		}
+		return Vref;
+	}
 
 }
