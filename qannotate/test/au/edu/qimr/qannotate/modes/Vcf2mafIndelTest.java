@@ -40,8 +40,7 @@ public class Vcf2mafIndelTest {
        
 		File dir = new java.io.File( "." ).getCanonicalFile();		
 		for(File f: dir.listFiles()){ 
-		    if(    f.getName().endsWith(".vcf")  ||  f.getName().contains(".log") || f.getName().endsWith(".maf") ||  f.getName().contains("output")){
-		    
+		    if(    f.getName().endsWith(".vcf")  ||  f.getName().contains(".log") || f.getName().endsWith(".maf") ||  f.getName().contains("output")){		    
 		        f.delete();	
 		    }      
 		}
@@ -80,9 +79,7 @@ public class Vcf2mafIndelTest {
 			 			}
 			 		}	
 		        }	
-	        }catch(Exception e){
-	        	fail(e.getMessage()); 
-	        }
+	        }catch(Exception e){	fail(e.getMessage()); }
 	        
 	        new File(inputName).delete();
 	}
@@ -109,8 +106,6 @@ public class Vcf2mafIndelTest {
  	 	           "chr11\t1214822581\t.\tG\tGA\t31.731\tHCOVT1\tSOR=0.2331;TRF=3_14\tGT:GD:AD:DP:GQ:PL1\t0/1:G/GA:305,22:327:69:69,0,131721\t.:.:.:.:.:."
  	                  
         };
-        
-        
         	try {
 				Vcf2mafTest.createVcf(str);
 					final String[] command = {"--mode", "vcf2maf",  "--log", logName,  "-i", inputName , "-o" , outputMafName};
@@ -123,49 +118,41 @@ public class Vcf2mafIndelTest {
 			try(BufferedReader br = new BufferedReader(new FileReader(outputMafName));) {
 			    String line = null;
 			    while ((line = br.readLine()) != null) {
-			    	if(! line.contains("DEL") && !line.contains("INS") )
-			    		continue; 
+			    	if(!line.startsWith("chr3")) continue; 
 			    	
-					SnpEffMafRecord maf =  getMafRecord(line);
+					SnpEffMafRecord maf =  getMafRecord(line);					
 	 				assertTrue(maf.getColumnValue(16).equals("TEST_bamID"));
 	 				assertTrue(maf.getColumnValue(17).equals("CONTROL_bamID"));     
 	 				assertTrue(maf.getColumnValue(33).equals("TEST_sample"));
 	 				assertTrue(maf.getColumnValue(34).equals("CONTROL_sample"));     		 			
 		 			if(maf.getColumnValue(5).equals("3")){
-		 				//FORMAT\tqControlSample\tqTestSample",
-		 				//"GT:GD:AD:DP:GQ:PL:ACINDEL\t.:.:.:.:.:.:0,34,29,0[0,0],8,0,2\t0/1:CTTTTTT/C:10,10:20:99:297,0,351:1,51,41,1[0,1],4,1,4" 
 		 				assertTrue(maf.getColumnValue(12).equals("TTTTTT")); //t_allel1
-		 				//assertTrue(maf.getColumnValue(13).equals("------"));
-		 				assertTrue(maf.getColumnValue(13).equals("-"));
-		 				
-		 				assertTrue(maf.getColumnValue(18).equals("null")); //n_allel1
-		 				assertTrue(maf.getColumnValue(19).equals("null"));
-		 			 				
+		 				assertTrue(maf.getColumnValue(13).equals("-"));		 				
+		 				assertTrue(maf.getColumnValue(18).equals("TTTTTT")); //n_allel1 go to ref if no evidence
+		 				assertTrue(maf.getColumnValue(19).equals("TTTTTT"));		 			 				
 		 				assertTrue(maf.getColumnValue(36).equals("0,34,29,0[0,0],0[0],8,0,2"));    //ND
-		 				assertTrue(maf.getColumnValue(37).equals("1,51,41,1[0,1],1[1],4,1,4"));
-		 				
+		 				assertTrue(maf.getColumnValue(37).equals("1,51,41,1[0,1],1[1],4,1,4"));		 				
 		 				assertTrue(maf.getColumnValue(41).equals("-:ND0:TD1"));
-		 				assertTrue(maf.getColumnValue(45).equals("51"));    //t_depth 1,51,41,1[0,1],4,1,4" 
+		 		 		assertTrue(maf.getColumnValue(42).equals("CTTTTCTTTC______TTTTTTTTTT"  )); //Var_Plus_Flank or HOM	 
+		 		 		assertTrue(maf.getColumnValue(43).equals(MafElement.dbSNP_AF.getDefaultValue())); //Var_Plus_Flank	 
+		 				
+		 		 		assertTrue(maf.getColumnValue(45).equals("41"));    //t_depth 1,51,41,1[0,1],1[1],4,1,4" 
 		 				assertTrue(maf.getColumnValue(46).equals("36"));	//informative - support - partial indel 
 		 				assertTrue(maf.getColumnValue(47).equals("1"));
-		 				assertTrue(maf.getColumnValue(48).equals("34"));
+		 				assertTrue(maf.getColumnValue(48).equals("29"));
 		 				assertTrue(maf.getColumnValue(49).equals("21"));
-		 				assertTrue(maf.getColumnValue(50).equals("0"));	
-		 				//assertTrue(maf.getColumnValue(MafElement.Notes).contains("HOM=28,CTTTTCTTTC______TTTTTTTTTT"));		 				
+		 				assertTrue(maf.getColumnValue(50).equals("0"));		 				
 		 				assertTrue(maf.getColumnValue(MafElement.Notes).equals("HOM=28"));
 		 				assertTrue(maf.getColumnValue(MafElement.Input).equals("2"));
-		 				assertTrue(maf.getColumnValue(MafElement.Variant_AF).equals("CTTTTCTTTC______TTTTTTTTTT"));
+		 				assertTrue(maf.getColumnValue(MafElement.Var_Plus_Flank).equals("CTTTTCTTTC______TTTTTTTTTT"));
 		 				
-	 				}else if(maf.getColumnValue(5).equals("11")){
-	 					
+	 				}else if(maf.getColumnValue(5).equals("11")){	 					
 		 				assertTrue(maf.getColumnValue(12).equals("null")); //t_allel1
 		 				assertTrue(maf.getColumnValue(13).equals("null"));
 		 				assertTrue(maf.getColumnValue(18).equals("-")); //n_allel1
-		 				assertTrue(maf.getColumnValue(19).equals("A"));
-		 				
+		 				assertTrue(maf.getColumnValue(19).equals("A"));		 				
 		 				assertTrue(maf.getColumnValue(36).equals("null"));    //ND
-		 				assertTrue(maf.getColumnValue(37).equals("null"));
-		 				
+		 				assertTrue(maf.getColumnValue(37).equals("null"));		 				
 		 				assertTrue(maf.getColumnValue(41).equals("A:ND0:TD0"));
 		 				assertTrue(maf.getColumnValue(45).equals("0"));    //t_depth 1,51,41,1[0,1],4,1,4" 
 		 				assertTrue(maf.getColumnValue(46).equals("0"));	//informative - support - partial indel - nearbyindel
@@ -173,8 +160,6 @@ public class Vcf2mafIndelTest {
 		 				assertTrue(maf.getColumnValue(48).equals("0"));
 		 				assertTrue(maf.getColumnValue(49).equals("0"));
 		 				assertTrue(maf.getColumnValue(50).equals("0"));	
-		 				//debug
-		 				System.out.println(maf.getColumnValue(MafElement.Notes));
 		 				assertTrue(maf.getColumnValue(MafElement.Notes).equals("TRF=3_14"));
 		 				assertTrue(maf.getColumnValue(MafElement.Input).equals(SnpEffMafRecord.Null));
 	 				} 			    	
@@ -190,19 +175,11 @@ public class Vcf2mafIndelTest {
 				VcfHeaderUtils.STANDARD_TEST_SAMPLE + "=TEST_bam",
 				VcfHeaderUtils.STANDARD_CONTROL_BAMID + "=CONTROL_bamID",
 				VcfHeaderUtils.STANDARD_TEST_BAMID + "=TEST_bamID",
-							
-//				VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tqControlSample\tqTestSample",				
-//		        "chr1\t16864\t.\tGCA\tG\t154.73\tPASS\tAC=1;AF=0.500;AN=2;BaseQRankSum=-0.387;ClippingRankSum=-0.466;DP=12;FS=0.000;MLEAC=1;MLEAF=0.500;MQ=53.00;MQ0=0;MQRankSum=0.143;QD=12.89;ReadPosRankSum=-0.143;SOR=0.495;NIOC=0;SVTYPE=DEL;END=16866;CONF=HIGH;EFF=intergenic_region(MODIFIER||||||||||1)\t"
-//		        + "GT:GD:AD:DP:GQ:PL:ACINDEL\t0/1:GCA/G:6,5:11:99:192,0,516:8,18,16,8[2,6],9[9],0,0,0\t.:GC/G:8,15:23:99:601,0,384:12,35,34,12[8,4],15[13],0,1,0",
-// 		        "chr2\t23114\t.\tT\tTAA\t129.73\tHOM7\tAC=1;AF=0.500;AN=2;BaseQRankSum=0.103;ClippingRankSum=-0.470;DP=11;FS=7.782;MLEAC=1;MLEAF=0.500;MQ=27.00;MQ0=0;MQRankSum=0.470;QD=11.79;ReadPosRankSum=-1.453;SOR=3.599;HOMTXT=ATAATAAAATaaAAAAAAAGAC;NIOC=0;SVTYPE=INS;END=23115;CONF=LOW;EFF=intergenic_region(MODIFIER||||||||||1)\t"
-// 		        + "GT:AD:DP:GQ:PL:ACINDEL:NNS\t0/1:5,5:10:99:167,0,163:8,22,21,9[6,3],9[9],0,0,0:0\t.:6,4:10:99:149,0,210:13,38,37,13[8,5],15[15],0,0,1:0"
- 
 				VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tqControlSample\tqTestSample",				
 		        "chr1\t16864\t.\tGCA\tG\t154.73\tPASS\tAC=1;AF=0.500;AN=2;BaseQRankSum=-0.387;ClippingRankSum=-0.466;DP=12;FS=0.000;MLEAC=1;MLEAF=0.500;MQ=53.00;MQ0=0;MQRankSum=0.143;QD=12.89;ReadPosRankSum=-0.143;SOR=0.495;NIOC=0;SVTYPE=DEL;END=16866;CONF=HIGH;EFF=intergenic_region(MODIFIER||||||||||1)\t"
 		        + "GT:GD:AD:DP:GQ:PL:ACINDEL\t0/1:GCA/G:6,5:11:99:192,0,516:8,18,16,8[2,6],9[9],0,0,0\t.:GC/G:8,15:23:99:601,0,384:12,35,34,12[8,4],15[13],0,1,0",
  		        "chr2\t23114\t.\tT\tTAA\t129.73\t.\tAC=1;AF=0.500;AN=2;BaseQRankSum=0.103;ClippingRankSum=-0.470;DP=11;FS=7.782;MLEAC=1;MLEAF=0.500;MQ=27.00;MQ0=0;MQRankSum=0.470;QD=11.79;ReadPosRankSum=-1.453;SOR=3.599;HOMTXT=ATAATAAAATaaAAAAAAAGAC;NIOC=0;SVTYPE=INS;END=23115;CONF=LOW;EFF=intergenic_region(MODIFIER||||||||||1)\t"
  		        + "GT:AD:DP:GQ:PL:ACINDEL:NNS\t0/1:5,5:10:99:167,0,163:8,22,21,9[6,3],9[9],0,0,0:0\t.:6,4:10:99:149,0,210:13,38,37,13[8,5],15[15],0,0,1:0"
-
         };
 		   
 
@@ -216,13 +193,13 @@ public class Vcf2mafIndelTest {
 			 Path path = Paths.get(outputDir,"MELA_0264.CONTROL_bam.TEST_bam.maf" );
 			    //The stream hence file will also be closed here
 		    try(Stream<String> lines = Files.lines(path)){
-		        Optional<String> delline = lines.filter(s -> s.contains("DEL")).findFirst();
+		        Optional<String> delline = lines.filter(s ->s.contains("8,18,16,8[2,6],9[9],0,0,0")).filter(s->s.contains("DEL")).findFirst();
 		        
  		        if(!delline.isPresent())
 		        	Assert.fail("missing DEL variants");		        
 		        //split string to maf record		       
 				SnpEffMafRecord maf =  getMafRecord(delline.get());
-					           
+				
  				//"chr1\t16864\t.\tGCA\tG
 	            assertTrue(maf.getColumnValue(5).equals("1") );
  				assertTrue(maf.getColumnValue(6).equals("16865")); //start 				
@@ -249,22 +226,17 @@ public class Vcf2mafIndelTest {
  				assertTrue(maf.getColumnValue(40).equals("100")); //??
  				
  				assertTrue(maf.getColumnValue(41).equals("-:ND8:TD12"));
- 				assertTrue(maf.getColumnValue(45).equals("35"));
- 				
+ 				assertTrue(maf.getColumnValue(45).equals("34")); 				
  				assertTrue(maf.getColumnValue(46).equals("19"));	//informative - support - partial indel  
  				assertTrue(maf.getColumnValue(47).equals("15"));
- 				assertTrue(maf.getColumnValue(48).equals("18"));
+ 				assertTrue(maf.getColumnValue(48).equals("16"));
  				assertTrue(maf.getColumnValue(49).equals("7"));
  				assertTrue(maf.getColumnValue(50).equals("9"));		
- 				assertTrue(maf.getColumnValue(MafElement.Notes).equals(SnpEffMafRecord.Null));
- 				
+ 				assertTrue(maf.getColumnValue(MafElement.Notes).equals(SnpEffMafRecord.Null)); 				
 		    }	
  				
- 				//INS
-// 		        "chr2\t23114\t.\tT\tTAA\t129.73\tHOM7\tAC=1;AF=0.500;AN=2;BaseQRankSum=0.103;ClippingRankSum=-0.470;DP=11;FS=7.782;MLEAC=1;MLEAF=0.500;MQ=27.00;MQ0=0;MQRankSum=0.470;QD=11.79;ReadPosRankSum=-1.453;SOR=3.599;HOMTXT=ATAATAAAATaaAAAAAAAGAC;NIOC=0;SVTYPE=INS;END=23115;CONF=LOW;EFF=intergenic_region(MODIFIER||||||||||1)\t"
-// 		        + "GT:AD:DP:GQ:PL:ACINDEL\t0/1:5,5:10:99:167,0,163:8,22,21,9[6,3],0,0,0\t.:6,4:10:99:149,0,210:13,38,37,13[8,5],0,0,1" 
 		    try(Stream<String> lines = Files.lines(path)){
- 				Optional<String> insline = lines.filter(s -> s.contains("INS")).findFirst();
+ 				Optional<String> insline = lines.filter(s -> s.contains("INS")).filter(s -> s.contains("23114")).findFirst();
 		        if(!insline.isPresent())
 		        	Assert.fail("missing INS variants");		        
 		        SnpEffMafRecord maf =  getMafRecord(insline.get());
@@ -280,14 +252,13 @@ public class Vcf2mafIndelTest {
  				//FORMAT\tqControlSample\tqTestSample",
  				//"GT:AD:DP:GQ:PL:ACINDEL:NNS\t0/1:5,5:10:99:167,0,163:8,22,21,9[6,3],0,0,0:0\t.:6,4:10:99:149,0,210:13,38,37,13[8,5],0,0,1:0" 
  				//"GT:AD:DP:GQ:PL:ACINDEL:NNS\t0/1:5,5:10:99:167,0,163:8,22,21,9[6,3],9[9],0,0,0:0\t.:6,4:10:99:149,0,210:13,38,37,13[8,5],15[15],0,0,1:0"
- 				assertTrue(maf.getColumnValue(12).equals("null")); //t_allel1
- 				assertTrue(maf.getColumnValue(13).equals("null"));
+ 				assertTrue(maf.getColumnValue(12).equals("-")); //t_allel1
+ 				assertTrue(maf.getColumnValue(13).equals("-"));
  				assertTrue(maf.getColumnValue(18).equals("-")); //n_allel1
  				assertTrue(maf.getColumnValue(19).equals("AA"));
  				assertTrue(maf.getColumnValue(33).equals("TEST_bam")); 	//t_sample_id
  				assertTrue(maf.getColumnValue(34).equals("CONTROL_bam"));	//n_sample_id
  				
-// 				assertTrue(maf.getColumnValue(35).equals("HOM7")); //QFlag
  				assertTrue(StringUtils.isMissingDtaString( maf.getColumnValue(35) )); //QFlag
  				assertTrue(maf.getColumnValue(36).equals("8,22,21,9[6,3],9[9],0,0,0"));    //ND
  				assertTrue(maf.getColumnValue(37).equals("13,38,37,13[8,5],15[15],0,0,1"));
@@ -296,11 +267,10 @@ public class Vcf2mafIndelTest {
  				assertTrue(maf.getColumnValue(40).equals("100")); //??
  				
  				assertTrue(maf.getColumnValue(41).equals("AA:ND8:TD13"));
- 				assertTrue(maf.getColumnValue(45).equals("38"));
+ 				assertTrue(maf.getColumnValue(45).equals("37"));
  				assertTrue(maf.getColumnValue(46).equals("22"));	//informative - support - partial indel - nearbyindel
  				assertTrue(maf.getColumnValue(47).equals("15"));
- 				
- 				assertTrue(maf.getColumnValue(48).equals("22"));
+ 				assertTrue(maf.getColumnValue(48).equals("21"));
  				assertTrue(maf.getColumnValue(49).equals("12"));
  				assertTrue(maf.getColumnValue(50).equals("9"));				        	
 		    }		   

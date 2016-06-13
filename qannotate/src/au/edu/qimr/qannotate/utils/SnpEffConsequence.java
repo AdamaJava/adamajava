@@ -109,9 +109,6 @@ public enum SnpEffConsequence {
 	NEXT_PROT("sequence_feature",200,"unknown") ,
 	MOTIF("TF_binding_site_variant", 200, "unknown");
 	
-
-	
-	
 //[MA0093.1:USF1](LOW||||||||||1)	
 //	sequence_feature[compositionally_biased_region:Asp/Glu-rich__acidic_](LOW|||c.2144A>G|749|NOC2L|protein_coding|CODING|ENST00000327044|18|1)
 
