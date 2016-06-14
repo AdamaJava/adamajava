@@ -17,6 +17,7 @@ final class Messages {
     static final String COLON = ": ";
     static final String ERROR_PREFIX = Messages.getProgramName() + COLON;
     static final String USAGE =	Messages.getMessage("USAGE");
+    static final String USAGE2 =	Messages.getMessage("USAGE2");
 
     static String getMessage(final String identifier) {
         return messages.getString(identifier);

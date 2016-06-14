@@ -1908,14 +1908,14 @@ public class Q3ClinVar2 {
 		Options options = new Options(args);
 
 		if (options.hasHelpOption()) {
-			System.err.println(Messages.USAGE);
+			System.err.println(Messages.USAGE2);
 			options.displayHelp();
 			returnStatus = 0;
 		} else if (options.hasVersionOption()) {
 			System.err.println(Messages.getVersionMessage());
 			returnStatus = 0;
 		} else if (options.getFastqs().length < 1) {
-			System.err.println(Messages.USAGE);
+			System.err.println(Messages.USAGE2);
 		} else {
 			// configure logging
 			options.getLog().ifPresent((s) -> logFile = s);
