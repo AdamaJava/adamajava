@@ -71,6 +71,7 @@ public class SignatureCompareRelatedSimpleGenotypeMT {
 	private String outputXml;
 	private String [] paths;
 	private String [] additionalSearchStrings;
+	private String [] excludeStrings;
 	
 	private String excludeVcfsFile;
 	private List<String> excludes;
@@ -107,6 +108,8 @@ public class SignatureCompareRelatedSimpleGenotypeMT {
 		files = SignatureUtil.removeExcludedFilesFromList(files, excludes);
 		logger.info("Total number of files to be compared (minus excluded files): " + files.size());
 		
+		
+		
 		if (files.isEmpty()) {
 			logger.warn("No files left after removing exlcuded files");
 			return 0;
@@ -121,6 +124,18 @@ public class SignatureCompareRelatedSimpleGenotypeMT {
 				return Arrays.stream(additionalSearchStrings).anyMatch(s -> f.getAbsolutePath().contains(s));
 			};
 			files = files.stream().filter(f -> p.test(f)).collect(Collectors.toList());
+			logger.info("Total number of files to be compared (after additional search criteria): " + files.size());
+		}
+		
+		/*
+		 * Match files on excludeStrings
+		 */
+		if (null != excludeStrings && excludeStrings.length > 0) {
+			Predicate<File> p = (File f) -> {
+				return Arrays.stream(excludeStrings).anyMatch(s ->  f.getAbsolutePath().contains(s));
+			};
+			files = files.stream().filter(f ->  ! p.test(f)).collect(Collectors.toList());
+			logger.info("Total number of files to be compared (after exclude search criteria): " + files.size());
 		}
 		
 		
@@ -138,6 +153,8 @@ public class SignatureCompareRelatedSimpleGenotypeMT {
 		cache.forEach((k,v) -> {
 			fileIdsAndCounts.get(k)[1] = v.size();
 		});
+		
+		logger.info("number of entries in cache: " + cache.size());
 		
 		performComparisons(files);
 		
@@ -364,6 +381,12 @@ public class SignatureCompareRelatedSimpleGenotypeMT {
 			logger.tool("number of threads: " + nThreads);
 				
 			logger.tool("Setting minumim coverage to: " + minimumCoverage);
+			
+			
+			options.getExcludeStrings().ifPresent((a) -> {
+				excludeStrings = a ;
+				logger.tool("Setting excludeStrings to: " + Arrays.deepToString(excludeStrings));
+			});
 			
 			additionalSearchStrings = options.getAdditionalSearchString();
 			logger.tool("Setting additionalSearchStrings to: " + Arrays.deepToString(additionalSearchStrings));
