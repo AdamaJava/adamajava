@@ -8,21 +8,22 @@ package au.edu.qimr.qannotate.utils;
 
 import java.util.Arrays;
 import java.util.stream.Collectors;
+
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.Constants;
  
 
 public class SnpEffMafRecord {	
 	
-	public static final String Unknown = "Unknown";
-	public static final String UnTest = "UnTest";
-	public static final String Other = "Other";
+	public static final String Unknown = "unknown";
+	public static final String UnTest = "untested";
+	public static final String Other = "other";
 	public static final String novel = "novel";
 	public static final char positive = '+';
 	public static final String none = "none";
-	public static final String No = "No";
+//	public static final String No = "no";
 	public static final String Null = "null";
-	public static final String Yes = "Yes";
+//	public static final String Yes = "yes";
 	public static final String Zero = "0";	
 	public static final String Version = "#version 2.4.1";
 	public static final String center = "QIMR_Berghofer"; 
@@ -54,7 +55,7 @@ public class SnpEffMafRecord {
 			int no = ele.getColumnNumber() - 1;
 			maf[no] = ele; 	
 			values[no] = ele.getDefaultValue();
-		}		
+		}	
 	}
 	
 	//all 58 set methods
@@ -81,10 +82,10 @@ public class SnpEffMafRecord {
 	}
 	
 	public static String getSnpEffMafHeaderline(){
-		SnpEffMafRecord maf = new SnpEffMafRecord();
 		String str = "";
-		for(MafElement ele :  maf.maf)
-			str += Constants.TAB + ele.name();
+		for(MafElement ele: MafElement.values()) 
+			str += Constants.TAB + ele.name();		 
+		
 		return str.replaceFirst(Constants.TAB+"", "");
 	}
 

@@ -382,7 +382,9 @@ public class Vcf2maf extends AbstractMode{
 		}
 		
 		//add notes
-		maf.setColumnValue(MafElement.Notes, getNotes(info));
+		String note =  getNotes(info);
+		if(!StringUtils.isNullOrEmpty(note))
+			maf.setColumnValue(MafElement.Notes, note);
 
 		String eff = info.getField(VcfHeaderUtils.INFO_EFFECT);
 		if (eff != null) {
@@ -427,13 +429,12 @@ public class Vcf2maf extends AbstractMode{
 		nns += ":ND" + ((Nvalues == null)? 0 : Nvalues[0]);
 		nns += ":TD" + ((Tvalues == null)? 0 : Tvalues[0]);
 		maf.setColumnValue(MafElement.Novel_Starts, nns);	
-
 		return maf;
 
 	}
 	 
 	public static String getNotes(VcfInfoFieldRecord info){
-		String str = (info.getField(VcfHeaderUtils.INFO_TRF)!= null)? VcfHeaderUtils.INFO_TRF + "=" +info.getField(VcfHeaderUtils.INFO_TRF) + ";": "";
+		String str = (info.getField(VcfHeaderUtils.INFO_TRF)!= null)? VcfHeaderUtils.INFO_TRF + "=" +info.getField(VcfHeaderUtils.INFO_TRF) + ";" : "";		
 		if(info.getField(VcfHeaderUtils.INFO_HOM)!= null){
 			String hom = info.getField(VcfHeaderUtils.INFO_HOM ).split(Constants.COMMA_STRING)[0];	
 			try{
@@ -445,9 +446,10 @@ public class Vcf2maf extends AbstractMode{
 		}	
 		
 		if(str.endsWith(";"))
-			str = str.substring(0, str.length()-1);
+			str = str.substring(0, str.length()-1);	
 			
-		return str; 
+		return str.equals("")? MafElement.Notes.getDefaultValue(): str; 
+		//return str;
 	}
 	 
 	 public static String getMafAlt(String ref, String alt, SVTYPE type) {
