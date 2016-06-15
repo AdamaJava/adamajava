@@ -451,15 +451,16 @@ public class Vcf2maf extends AbstractMode{
 	}
 	 
 	 public static String getMafAlt(String ref, String alt, SVTYPE type) {
-		 String str = alt; 
-	 	 if(type.equals(SVTYPE.DEL)){	 		 
-	 		str = str.substring(1) + ((alt.length() == ref.length())? "": "-" );
+		// String str = alt; 
+	 	 if(type.equals(SVTYPE.DEL)){
+	 		 return (alt.length() == 1)? "-" : alt.substring(1);
+	 		//str = str.substring(1) + ((alt.length() == ref.length())? "": "-" );
 			 			
 		}else  if(type.equals(SVTYPE.INS)) {
-			str = (ref.equalsIgnoreCase(alt))? "-" : str.substring(1);
+			return (ref.equalsIgnoreCase(alt))? "-" : alt.substring(1);
 		}
 		 
-		 return str; 
+		 return alt; 
 	 } 
 	 
 	 /**
