@@ -6,16 +6,19 @@
  */
 package org.qcmg.sig;
 
+import gnu.trove.map.hash.THashMap;
+import gnu.trove.map.hash.TIntShortHashMap;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IntSummaryStatistics;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -35,6 +38,7 @@ import org.qcmg.common.util.DonorUtils;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.LoadReferencedClasses;
 import org.qcmg.sig.model.Comparison;
+import org.qcmg.sig.util.ComparisonUtil;
 import org.qcmg.sig.util.SignatureUtil;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -57,8 +61,11 @@ public class SignatureCompareRelatedSimple {
 	private float cutoff = 0.2f;
 	private int minimumCoverage = 10;
 	
+	private final int cacheSize = 700;
+	
 	private String outputXml;
 	private String [] paths;
+	private String [] additionalSearchStrings;
 	private String donor;
 //	private static final String QSIG_SUFFIX = ".qsig.vcf";
 	
@@ -66,10 +73,11 @@ public class SignatureCompareRelatedSimple {
 	private List<String> excludes;
 	private String logFile;
 	
-	private final Map<File, int[]> fileIdsAndCounts = new HashMap<>();
+	private final Map<File, int[]> fileIdsAndCounts = new THashMap<>();
 	private final List<Comparison> allComparisons = new ArrayList<>();
 	
-	private final Map<File, Map<ChrPosition, double[]>> cache = new HashMap<>(2 * 1024 * 1024);
+	private final Map<File, Map<ChrPosition, float[]>> cache = new THashMap<>(cacheSize * 2);
+//	private final Map<File, TIntShortHashMap> cache = new THashMap<>(cacheSize * 2);
 	
 	List<String> suspiciousResults = new ArrayList<String>();
 	
@@ -102,6 +110,20 @@ public class SignatureCompareRelatedSimple {
 			return 0;
 		}
 		
+		
+		
+		
+		/*
+		 * Match files on additionalSearchStrings
+		 */
+		if (null != additionalSearchStrings && additionalSearchStrings.length > 0) {
+			Predicate<File> p = (File f) -> {
+				return Arrays.stream(additionalSearchStrings).anyMatch(s -> f.getAbsolutePath().contains(s));
+			};
+			files = files.stream().filter(f -> p.test(f)).collect(Collectors.toList());
+		}
+		
+		
 		logger.info("Should have " + (files.size() -1) + " + " + (files.size() -2) + " ...  comparisons");
 		
 		Collections.sort(files, FileUtils.FILE_COMPARATOR);
@@ -124,19 +146,26 @@ public class SignatureCompareRelatedSimple {
 		for (int i = 0 ; i < size -1 ; i++) {
 			
 			File f1 = files.get(i);
-			Map<ChrPosition, double[]> ratios1 = getSignatureData(f1);
+			Map<ChrPosition, float[]> ratios1 = getSignatureData(f1);
+//			TIntShortHashMap ratios1 = getSignatureData(f1);
 			
 			for (int j = i + 1 ; j < size ; j++) {
 				File f2 = files.get(j);
-				Map<ChrPosition, double[]> ratios2 = getSignatureData(f2);
+				Map<ChrPosition, float[]> ratios2 = getSignatureData(f2);
+//				TIntShortHashMap ratios2 = getSignatureData(f2);
 				
-				Comparison comp = QSigCompareDistance.compareRatios(ratios1, ratios2, f1, f2);
+				Comparison comp = QSigCompareDistance.compareRatiosFloat(ratios1, ratios2, f1, f2, null);
+				logger.info(comp.toString());
+//				Comparison comp = ComparisonUtil.(ratios1, ratios2, f1, f2);
 				donorSB.append(comp.toString()).append("\n");
 				allComparisons.add(comp);
 			}
 			
 			// can now remove f1 from the cache as it is no longer required
-			cache.remove(f1);
+			Map<ChrPosition, float[]> m = cache.remove(f1);
+//			TIntShortHashMap m = cache.remove(f1);
+			m.clear();
+			m = null;
 		}
 		
 		for (Comparison comp : allComparisons) {
@@ -163,25 +192,53 @@ public class SignatureCompareRelatedSimple {
 		return exitStatus;
 	}
 	
-	Map<ChrPosition, double[]> getSignatureData(File f) throws Exception {
+//	TIntShortHashMap getSignatureData(File f) throws Exception {
+//		// check map to see if this data has already been loaded
+//		// if not - load
+//		TIntShortHashMap result = cache.get(f);
+//		if (result == null) {
+//			result = SignatureUtil.loadSignatureRatiosFloat(f, minimumCoverage);
+//			
+//			if (result.size() < 1000) {
+//				logger.warn("low coverage (" + result.size() + ") for file " + f.getAbsolutePath());
+//			}
+//			
+//			if (cache.size() < cacheSize) {
+//				cache.put(f, result);
+//			}
+//			fileIdsAndCounts.get(f)[1] = result.size();
+//			/*
+//			 * average coverage
+//			 */
+//			//TODO put this back in
+////			IntSummaryStatistics iss = result.values().stream()
+////				.mapToInt(array -> (int) array[4])
+////				.summaryStatistics();
+////			fileIdsAndCounts.get(f)[2] = (int) iss.getAverage();
+//		}
+//		return result;
+//	}
+	Map<ChrPosition, float[]> getSignatureData(File f) throws Exception {
 		// check map to see if this data has already been loaded
 		// if not - load
-		Map<ChrPosition, double[]> result = cache.get(f);
+		Map<ChrPosition, float[]> result = cache.get(f);
 		if (result == null) {
-			result = SignatureUtil.loadSignatureRatios(f, minimumCoverage);
+			result = SignatureUtil.loadSignatureRatiosFloat(f, minimumCoverage);
 			
 			if (result.size() < 1000) {
 				logger.warn("low coverage (" + result.size() + ") for file " + f.getAbsolutePath());
 			}
 			
-			cache.put(f, result);
+			if (cache.size() < cacheSize) {
+				cache.put(f, result);
+			}
 			fileIdsAndCounts.get(f)[1] = result.size();
 			/*
 			 * average coverage
 			 */
 			IntSummaryStatistics iss = result.values().stream()
-				.mapToInt(array -> (int) array[4])
-				.summaryStatistics();
+					.mapToInt(array -> (int) array[4])
+					.summaryStatistics();
 			fileIdsAndCounts.get(f)[2] = (int) iss.getAverage();
 		}
 		return result;
@@ -313,6 +370,9 @@ public class SignatureCompareRelatedSimple {
 				minimumCoverage = options.getMinCoverage();
 			}
 			logger.tool("Setting minumim coverage to: " + minimumCoverage);
+			
+			additionalSearchStrings = options.getAdditionalSearchString();
+			logger.tool("Setting additionalSearchStrings to: " + Arrays.deepToString(additionalSearchStrings));
 			
 			if (options.hasExcludeVcfsFileOption())
 				excludeVcfsFile = options.getExcludeVcfsFile();
