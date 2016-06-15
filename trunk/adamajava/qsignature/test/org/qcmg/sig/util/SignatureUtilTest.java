@@ -1,6 +1,7 @@
 package org.qcmg.sig.util;
 
 import static org.junit.Assert.assertEquals;
+import gnu.trove.map.hash.TIntShortHashMap;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -8,11 +9,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.illumina.IlluminaRecord;
+import org.qcmg.sig.model.Comparison;
 
 public class SignatureUtilTest {
 	
@@ -43,6 +47,140 @@ public class SignatureUtilTest {
 		assertEquals("-ND_", SignatureUtil.getPatternFromString("-[A-Z]{2}_", "GGGG-ABMJ-26-ND_5760640025_R02C01.txt"));
 		assertEquals("GGGG-ABMJ-20110329-26-ND", SignatureUtil.getPatternFromString("[A-Z]{4}-[A-Z]{4}-[0-9]{8}-[0-9]{2}-[A-Z]{2}", "GGGG-ABMJ-20110329-26-ND_5760640025_R02C01.txt"));
 	}
+	
+	@Test
+	public void wtfExomes() {
+		List<String> oeso_0031CovArray = Arrays.asList("A:26,C:0,G:0,T:0,N:0,TOTAL:26;NOVELCOV",
+"A:0,C:27,G:0,T:0,N:0,TOTAL:27;NOVELCOV",
+"A:0,C:17,G:0,T:12,N:0,TOTAL:29;NOVELCOV",
+"A:0,C:16,G:0,T:19,N:0,TOTAL:35;NOVELCOV",
+"A:0,C:0,G:24,T:0,N:0,TOTAL:24;NOVELCOV",
+"A:0,C:0,G:42,T:0,N:0,TOTAL:42;NOVELCOV",
+"A:0,C:0,G:45,T:0,N:0,TOTAL:45;NOVELCOV",
+"A:20,C:0,G:11,T:0,N:0,TOTAL:31;NOVELCOV",
+"A:0,C:0,G:36,T:0,N:0,TOTAL:36;NOVELCOV",
+"A:0,C:29,G:0,T:15,N:0,TOTAL:44;NOVELCOV",
+"A:0,C:0,G:41,T:0,N:0,TOTAL:41;NOVELCOV",
+"A:0,C:39,G:0,T:0,N:0,TOTAL:39;NOVELCOV",
+"A:0,C:26,G:0,T:0,N:0,TOTAL:26;NOVELCOV",
+"A:0,C:0,G:1,T:35,N:0,TOTAL:36;NOVELCOV",
+"A:0,C:43,G:0,T:0,N:0,TOTAL:43;NOVELCOV",
+"A:13,C:1,G:11,T:0,N:0,TOTAL:25;NOVELCOV",
+"A:0,C:0,G:40,T:0,N:0,TOTAL:40;NOVELCOV");
+		
+		int [] indicies = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17};
+		List<Optional<float[]>> oeso_0031Floats = oeso_0031CovArray.stream().map(s -> SignatureUtil.getValuesFromCoverageStringFloat(s)).collect(Collectors.toList());
+		List<Short> oeso_0031Shorts = oeso_0031Floats.stream().map(of -> SignatureUtil.getCodedGenotype(of.get())).collect(Collectors.toList());
+//		TIntShortHashMap oeso_0031Map = new TIntShortHashMap(indicies, oeso_0031Shorts.toArray(new short[]{}));
+		oeso_0031Shorts.stream().forEach(System.out::println);
+		
+		
+		List<String> oeso_0050CovArray = Arrays.asList("A:25,C:0,G:31,T:0,N:0,TOTAL:56;NOVELCOV",
+"A:0,C:21,G:0,T:0,N:0,TOTAL:21;NOVELCOV",
+"A:0,C:97,G:0,T:101,N:0,TOTAL:198;NOVELCOV",
+"A:0,C:162,G:0,T:0,N:0,TOTAL:162;NOVELCOV",
+"A:0,C:0,G:109,T:0,N:0,TOTAL:109;NOVELCOV",
+"A:0,C:0,G:20,T:8,N:0,TOTAL:28;NOVELCOV",
+"A:0,C:42,G:45,T:0,N:0,TOTAL:87;NOVELCOV",
+"A:15,C:0,G:15,T:0,N:0,TOTAL:30;NOVELCOV",
+"A:0,C:0,G:323,T:0,N:0,TOTAL:323;NOVELCOV",
+"A:0,C:39,G:0,T:32,N:0,TOTAL:71;NOVELCOV",
+"A:0,C:0,G:139,T:1,N:0,TOTAL:140;NOVELCOV",
+"A:0,C:35,G:0,T:27,N:0,TOTAL:62;NOVELCOV",
+"A:0,C:32,G:0,T:0,N:0,TOTAL:32;NOVELCOV",
+"A:0,C:0,G:40,T:0,N:0,TOTAL:40;NOVELCOV",
+"A:0,C:101,G:0,T:0,N:0,TOTAL:101;NOVELCOV",
+"A:22,C:0,G:19,T:0,N:0,TOTAL:41;NOVELCOV",
+"A:18,C:0,G:10,T:0,N:0,TOTAL:28;NOVELCOV");
+		
+		List<Optional<float[]>> oeso_0050Floats = oeso_0050CovArray.stream().map(s -> SignatureUtil.getValuesFromCoverageStringFloat(s)).collect(Collectors.toList());
+		List<Short> oeso_0050Shorts = oeso_0050Floats.stream().map(of -> SignatureUtil.getCodedGenotype(of.get())).collect(Collectors.toList());
+		oeso_0050Shorts.stream().forEach(System.out::println);
+		
+		
+		
+		List<String> pn400007CovArray = Arrays.asList("A:70,C:1,G:0,T:0,N:0,TOTAL:71;NOVELCOV",
+"A:0,C:84,G:0,T:0,N:0,TOTAL:84;NOVELCOV",
+"A:0,C:41,G:0,T:34,N:0,TOTAL:75;NOVELCOV",
+"A:0,C:44,G:0,T:0,N:0,TOTAL:44;NOVELCOV",
+"A:0,C:0,G:45,T:0,N:0,TOTAL:45;NOVELCOV",
+"A:0,C:1,G:48,T:0,N:0,TOTAL:49;NOVELCOV",
+"A:0,C:0,G:40,T:0,N:0,TOTAL:40;NOVELCOV",
+"A:38,C:0,G:29,T:0,N:0,TOTAL:67;NOVELCOV",
+"A:0,C:0,G:43,T:0,N:0,TOTAL:43;NOVELCOV",
+"A:0,C:0,G:3,T:55,N:0,TOTAL:58;NOVELCOV",
+"A:0,C:0,G:57,T:0,N:0,TOTAL:57;NOVELCOV",
+"A:0,C:0,G:0,T:44,N:0,TOTAL:44;NOVELCOV",
+"A:0,C:41,G:0,T:0,N:0,TOTAL:41;NOVELCOV",
+"A:0,C:0,G:47,T:0,N:0,TOTAL:47;NOVELCOV",
+"A:0,C:49,G:0,T:0,N:0,TOTAL:49;NOVELCOV",
+"A:36,C:1,G:0,T:0,N:0,TOTAL:37;NOVELCOV",
+"A:0,C:0,G:50,T:0,N:0,TOTAL:50;NOVELCOV");
+		
+		List<Optional<float[]>> pn400007Floats = pn400007CovArray.stream().map(s -> SignatureUtil.getValuesFromCoverageStringFloat(s)).collect(Collectors.toList());
+		List<Short> pn400007Shorts = pn400007Floats.stream().map(of -> SignatureUtil.getCodedGenotype(of.get())).collect(Collectors.toList());
+		pn400007Shorts.stream().forEach(System.out::println);
+		
+		
+		TIntShortHashMap oeso_0031Map = new TIntShortHashMap();
+		TIntShortHashMap oeso_0050Map = new TIntShortHashMap();
+		TIntShortHashMap pn400007Map = new TIntShortHashMap();
+		for (int i : indicies) {
+			oeso_0031Map.put(i, oeso_0031Shorts.get(i -1));
+			oeso_0050Map.put(i, oeso_0050Shorts.get(i -1));
+			pn400007Map.put(i, pn400007Shorts.get(i -1));
+		}
+		
+		Comparison c = ComparisonUtil.compareRatiosUsingSnpsFloat(oeso_0031Map, oeso_0050Map, new File("oeso_0031"), new File("oeso_0050"));
+		System.out.println("c: " + c.toString());
+		Comparison c1 = ComparisonUtil.compareRatiosUsingSnpsFloat(oeso_0031Map, pn400007Map, new File("oeso_0031"), new File("pn400007"));
+		System.out.println("c1: " + c1.toString());
+		
+		
+	}
+	
+	
+	
+	
+	@Test
+	public void genotypeShort() {
+		/*
+		 * AAs and BBs
+		 */
+		assertEquals(2000, SignatureUtil.getCodedGenotype(new float[]{0.91f,0.0f,0.0f,0.09f}));
+		assertEquals(200, SignatureUtil.getCodedGenotype(new float[]{0.01f,0.99f,0.0f,0.00f}));
+		assertEquals(20, SignatureUtil.getCodedGenotype(new float[]{0.01f,0.09f,0.909f,0.00f}));
+		assertEquals(2, SignatureUtil.getCodedGenotype(new float[]{0.0f,0.0f,0.0f,1.0f}));
+		
+		/*
+		 * ABs
+		 */
+		assertEquals(1100, SignatureUtil.getCodedGenotype(new float[]{0.5f,0.5f,0.0f,0.0f}));
+		assertEquals(1001, SignatureUtil.getCodedGenotype(new float[]{0.5f,0.0f,0.0f,0.4f}));
+		assertEquals(101, SignatureUtil.getCodedGenotype(new float[]{0.0f,0.4f,0.0f,0.4f}));
+		assertEquals(11, SignatureUtil.getCodedGenotype(new float[]{0.0f,0.0f,0.59f,0.59f}));
+		assertEquals(1010, SignatureUtil.getCodedGenotype(new float[]{0.5f,0.0f,0.5f,0.0f}));
+		
+		/*
+		 * invalid
+		 */
+		assertEquals(1000, SignatureUtil.getCodedGenotype(new float[]{0.5f,0.0f,0.0f,0.0f}));
+		assertEquals(1111, SignatureUtil.getCodedGenotype(new float[]{0.5f,0.5f,0.5f,0.5f}));
+		assertEquals(1, SignatureUtil.getCodedGenotype(new float[]{0.0f,0.0f,0.0f,0.4f}));
+		assertEquals(100, SignatureUtil.getCodedGenotype(new float[]{0.0f,0.4f,0.0f,0.0f}));
+		assertEquals(10, SignatureUtil.getCodedGenotype(new float[]{0.0f,0.0f,0.59f,0.0f}));
+		
+	}
+	
+	@Test
+	public void validCodedGenotype() {
+		assertEquals(true, SignatureUtil.isCodedGenotypeValid((short) 2000));
+		assertEquals(false, SignatureUtil.isCodedGenotypeValid((short) 1));
+		assertEquals(false, SignatureUtil.isCodedGenotypeValid((short) 10));
+	}
+	
+	
+	
 	
 	@Test
 	public void testGetCoverageStringFromCharsAndInts() {
