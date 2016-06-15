@@ -337,7 +337,7 @@ public class SignatureGenerator {
 		}
 	}
 	
-	private void updateResultsIllumina(Map<ChrPosition, IlluminaRecord> iIlluminaMap) throws Exception {
+	private void updateResultsIllumina(Map<ChrPosition, IlluminaRecord> iIlluminaMap) {
 		
 		// update the snps list with the details from the results map
 		for (final VcfRecord snp : snps) {
