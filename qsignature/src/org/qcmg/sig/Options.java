@@ -9,6 +9,7 @@ package org.qcmg.sig;
 import static java.util.Arrays.asList;
 
 import java.util.List;
+import java.util.Optional;
 
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
@@ -94,6 +95,8 @@ final class Options {
 				.describedAs("Snp Chip Search Suffix");
 		parser.accepts("additionalSearchString", INPUT_DESCRIPTION).withRequiredArg().ofType(String.class)
 				.describedAs("Additional Search string");
+		parser.accepts("excludeString", INPUT_DESCRIPTION).withRequiredArg().ofType(String.class)
+				.describedAs("Excluded strings");
 		parser.accepts("illuminaArraysDesign", INPUT_DESCRIPTION).withRequiredArg().ofType(String.class)
 				.describedAs("Illumina Arrays Design file");
 		parser.accepts("email", INPUT_DESCRIPTION).withRequiredArg().ofType(String.class)
@@ -177,6 +180,17 @@ final class Options {
 		String [] additionalSearchStrings = new String[inputList.size()];
 		inputList.toArray(additionalSearchStrings);
 		return additionalSearchStrings;
+	}
+	
+	public Optional<String []> getExcludeStrings() {
+		List<?> list = options.valuesOf("excludeString");
+		if (null != list) {
+			String [] excludeStrings = new String[list.size()];
+			list.toArray(excludeStrings);
+			return Optional.ofNullable(excludeStrings);
+		} else {
+			return Optional.empty();
+		}
 	}
 
 	boolean hasVersionOption() {
