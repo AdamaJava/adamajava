@@ -365,21 +365,27 @@ public class Vcf2maf extends AbstractMode{
 		if(controlSample != null) maf.setColumnValue(MafElement.Matched_Norm_Sample_UUID,  controlSample );
 		
 		String conf = VcfUtils.getConfidence(vcf);
-		if(info.getField(VcfHeaderUtils.INFO_CONFIDENT) != null)	maf.setColumnValue(MafElement.Confidence ,  conf );
-		if(info.getField(VcfHeaderUtils.INFO_GERMLINE) != null) maf.setColumnValue(MafElement.Germ_Counts,  info.getField(VcfHeaderUtils.INFO_GERMLINE));	
-		if(info.getField(VcfHeaderUtils.INFO_VAF) != null) maf.setColumnValue(MafElement.dbSNP_AF,  info.getField(VcfHeaderUtils.INFO_VAF));	
+		if(info.getField(VcfHeaderUtils.INFO_CONFIDENT) != null) {
+			maf.setColumnValue(MafElement.Confidence ,  conf );
+		}
+		if(info.getField(VcfHeaderUtils.INFO_GERMLINE) != null) {
+			maf.setColumnValue(MafElement.Germ_Counts,  info.getField(VcfHeaderUtils.INFO_GERMLINE));	
+		}
+		if(info.getField(VcfHeaderUtils.INFO_VAF) != null) {
+			maf.setColumnValue(MafElement.dbSNP_AF,  info.getField(VcfHeaderUtils.INFO_VAF));	
+		}
 		
-		if(info.getField(VcfHeaderUtils.INFO_FLANKING_SEQUENCE) != null)
+		if(info.getField(VcfHeaderUtils.INFO_FLANKING_SEQUENCE) != null) {
 			maf.setColumnValue(MafElement.Var_Plus_Flank,  info.getField(VcfHeaderUtils.INFO_FLANKING_SEQUENCE));			
-		else if( info.getField(VcfHeaderUtils.INFO_HOM) != null) {
+		} else if( info.getField(VcfHeaderUtils.INFO_HOM) != null) {
 			maf.setColumnValue(MafElement.Var_Plus_Flank,  info.getField(VcfHeaderUtils.INFO_HOM).split(Constants.COMMA_STRING)[1]);	
 		}
 		
 		//add notes
 		maf.setColumnValue(MafElement.Notes, getNotes(info));
 
-		String eff; 
-		if( (eff = info.getField(VcfHeaderUtils.INFO_EFFECT)) != null) {
+		String eff = info.getField(VcfHeaderUtils.INFO_EFFECT);
+		if (eff != null) {
 			getSnpEffAnnotation( maf, eff);
 		}
 		
