@@ -92,10 +92,10 @@ public class VcfHeaderUtils {
 	public static final String INFO_MERGE_IN = Constants.VCF_MERGE_INFO;
 	public static final String DESCRITPION_MERGE_IN = "Indicates which INput file this vcf record came from. Multiple values are allowed which indicate that the record has been merged from more than 1 input file";	
 	public static final String INFO_TRF = FILTER_TRF;
-	public static final String DESCRITPION_INFO_TRF = "List all repeat reported by TRFFinder,  crossing over the variant position.all repeat follow <repeat sequence Length>_<repeat frequence>, seperated by ';'";
+	public static final String DESCRITPION_INFO_TRF = "List all repeat reported by TRFFinder,  crossing over the variant position.all repeat follow <repeat sequence Length>_<repeat frequency>, separated by ';'";
 
 	public static final String INFO_HOM = "HOM";
-	public static final String DESCRITPION_INFO_HOM = "nearby reference sequence fallen in a specified widow size,  leading by the number of homoplymers base.";
+	public static final String DESCRITPION_INFO_HOM = "nearby reference sequence fallen in a specified widow size,  leading by the number of homopolymers base.";
 	
 	
 	//FORMAT FIELDS
