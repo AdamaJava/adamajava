@@ -52,7 +52,7 @@ public enum MafElement {
 	TD(37, SnpEffMafRecord.Null,"Test sample pileup counts, from vcf format field 'AC' , 'ACCS' or 'ACINDEL'."),  //TD
 	Confidence(38, SnpEffMafRecord.Unknown, "Value from annotated vcf record INFO field 'CONF'."), //"confidence"),
 	Eff_Impact(39, SnpEffMafRecord.Unknown, "Value from EFF sub-field 'Effect Impact'."), //"Eff_Impact"),"consequence"),
-	Consequence_rank(40, SnpEffMafRecord.Zero,"An interal ranking according to EFF sub-field 'EFF'."), //A.M consequce rank	
+	Consequence_rank(40, SnpEffMafRecord.Zero,"An internal ranking according to EFF sub-field 'EFF'."), //A.M consequce rank	
 	Novel_Starts(41,  SnpEffMafRecord.Unknown, "Number of reads containing variant with novel start positions, vcf record format field 'NNS' or 'ACINDEL'."), //"novel_starts"),
 	Var_Plus_Flank(42,SnpEffMafRecord.Unknown, "Variant flanking reference sequence."), //"Variant_AF""GMAF", Cpg,  from vcf record INFO field 'FLANK' or 'HOM'.
 	dbSNP_AF(43, SnpEffMafRecord.Unknown, "dbSNP allele frequency, Default value: Unknown."), //"GMAF",INFO field 'VAF' which is annotated by dbSNP mode.
