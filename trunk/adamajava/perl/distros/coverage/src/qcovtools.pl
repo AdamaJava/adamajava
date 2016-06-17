@@ -1,4 +1,4 @@
-#!/bin/env perl
+#!env perl
 
 ##############################################################################
 #
@@ -409,7 +409,7 @@ are right padded with the correct number of tabs:
 
 =over 2
 
-=item John Pearson, L<mailto:j.pearson@uq.edu.au>
+=item John Pearson, L<mailto:grendeloz@gmail.com>
 
 =back
 
@@ -423,7 +423,7 @@ $Id$
 
 Copyright 2012-2014  The University of Queensland
 Copyright 2012-2014  John V Pearson
-Copyright 2014-      The QIMR Berghofer MRI
+Copyright 2014-      QIMR Berghofer Medical Research Institute
 
 All rights reserved.  This License is limited to, and you
 may use the Software solely for, your own internal and non-commercial
