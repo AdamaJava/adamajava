@@ -51,23 +51,7 @@ MAIN: {
     my $mode = shift @ARGV;
 
     my @valid_modes = qw( help man version 
-                          add_context
-                          select
-                          recode
-                          recode_abo_id
-                          condense
-                          qinspect
-                          tofastq
-                          sammd
-                          xref
-                          compare
-                          dcc_filter
-                          variant_proportion
-                          cnv_matrix
-                          clinical
-                          project_maf
-                          study_group
-                          re_maf_compare
+                          example
                           );
 
     if ($mode =~ /^help$/i or $mode =~ /\?/) {
@@ -81,59 +65,11 @@ MAIN: {
     elsif ($mode =~ /^version$/i) {
         print "$SVNID\n";
     }
-    elsif ($mode =~ /^select/i) {
-        mode_select();
-    }
-    elsif ($mode =~ /^recode/i) {
-        mode_recode();
-    }
-    elsif ($mode =~ /^condense/i) {
-        mode_condense();
-    }
-    elsif ($mode =~ /^qinspect/i) {
-        mode_qinspect();
-    }
-    elsif ($mode =~ /^tofastq/i) {
-        mode_tofastq();
-    }
-    elsif ($mode =~ /^xref/i) {
-        mode_xref();
-    }
-    elsif ($mode =~ /^sammd/i) {
-        mode_sammd();
-    }
-    elsif ($mode =~ /^compare/i) {
-        mode_compare();
-    }
-    elsif ($mode =~ /^dcc_filter/i) {
-        mode_dcc_filter();
-    }
-    elsif ($mode =~ /^variant_proportion/i) {
-        mode_variant_proportion();
-    }
-    elsif ($mode =~ /^recode_abo_id/i) {
-        mode_recode_abo_id();
-    }
-    elsif ($mode =~ /^add_context/i) {
-        mode_add_context();
-    }
-    elsif ($mode =~ /^clinical/i) {
-        mode_clinical();
-    }
-    elsif ($mode =~ /^cnv_matrix/i) {
-        mode_cnv_matrix();
-    }
-    elsif ($mode =~ /^project_maf/i) {
-        mode_project_maf();
-    }
-    elsif ($mode =~ /^study_group/i) {
-        mode_study_group();
-    }
-    elsif ($mode =~ /^re_maf_compare/i) {
-        mode_re_maf_compare();
+    elsif ($mode =~ /^example/i) {
+        mode_example();
     }
     else {
-        die "qmaftools mode [$mode] is unrecognised or unimplemented; valid ".
+        die "tools_template mode [$mode] is unrecognised or unimplemented; valid ".
             'modes are: '.  join(' ',@valid_modes) ."\n";
     }
 }
