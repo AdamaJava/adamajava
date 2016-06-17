@@ -2382,6 +2382,7 @@ that routine you know you wrote but can't remember where it is.
  telomere_analysis  - parse qMotif telomere log files
  align_2_csvs       - align 2 CSVs based on ID in first column
  wikitable_media2moin - convert MediaWiki tables to Moin syntax
+ cnv_format_convert - convert TITAN format to GAP
  version            - print version number and exit immediately
  help               - display usage summary
  man                - display full man page
@@ -2757,7 +2758,7 @@ $Id: jvptools.pl 8281 2014-06-20 06:32:55Z j.pearson $
 
 Copyright 2012-2014  The University of Queensland
 Copyright 2012-2014  John V Pearson
-Copyright 2014-      The QIMR Berghofer MRI
+Copyright 2014-2016  QIMR Berghofer Medical Research Institute
 
 All rights reserved.  This License is limited to, and you
 may use the Software solely for, your own internal and non-commercial
