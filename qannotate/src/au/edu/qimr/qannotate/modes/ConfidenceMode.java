@@ -49,7 +49,7 @@ public class ConfidenceMode extends AbstractMode{
 	//filters 
 	
 	public static final String DESCRITPION_INFO_CONFIDENCE = String.format( "set to HIGH if the variants passed all filter, "
-			+ "appeared on more than %d novel stars reads and more than %d reads contains variants; "
+			+ "appeared on more than %d novel stars reads and more than %d reads contains variants, is adjacent to reference sequence with less than %d homopolymer base; "
 			+ "Or set to LOW if the variants passed MIUN/MIN/GERM filter, appeared on more than %d novel stars reads and more than %d reads contains variants;"
 			+ "Otherwise set to Zero if the variants didn't matched one of above conditions.",
 			HIGH_CONF_NOVEL_STARTS_PASSING_SCORE, HIGH_CONF_ALT_FREQ_PASSING_SCORE, LOW_CONF_NOVEL_STARTS_PASSING_SCORE, LOW_CONF_ALT_FREQ_PASSING_SCORE);
