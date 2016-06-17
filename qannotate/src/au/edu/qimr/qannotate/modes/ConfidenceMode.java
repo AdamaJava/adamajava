@@ -19,6 +19,7 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.MafConfidence;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
+import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.util.SnpUtils;
 import org.qcmg.common.vcf.VcfFormatFieldRecord;
 import org.qcmg.common.vcf.VcfInfoFieldRecord;
@@ -52,7 +53,7 @@ public class ConfidenceMode extends AbstractMode{
 			+ "appeared on more than %d novel stars reads and more than %d reads contains variants, is adjacent to reference sequence with less than %d homopolymer base; "
 			+ "Or set to LOW if the variants passed MIUN/MIN/GERM filter, appeared on more than %d novel stars reads and more than %d reads contains variants;"
 			+ "Otherwise set to Zero if the variants didn't matched one of above conditions.",
-			HIGH_CONF_NOVEL_STARTS_PASSING_SCORE, HIGH_CONF_ALT_FREQ_PASSING_SCORE, LOW_CONF_NOVEL_STARTS_PASSING_SCORE, LOW_CONF_ALT_FREQ_PASSING_SCORE);
+			HIGH_CONF_NOVEL_STARTS_PASSING_SCORE, HIGH_CONF_ALT_FREQ_PASSING_SCORE,IndelConfidenceMode.DEFAULT_HOMN,  LOW_CONF_NOVEL_STARTS_PASSING_SCORE, LOW_CONF_ALT_FREQ_PASSING_SCORE);
 
 
 	private int test_column = -2; //can't be -1 since will "+1"
