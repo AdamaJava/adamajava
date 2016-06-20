@@ -52,11 +52,11 @@ public class Vcf2maf extends AbstractMode{
 	protected final  Map<String,String> effRanking = new HashMap<String,String>();	
 	private final String center;
 	private final String sequencer;
-	private final String donorId ;	 
-	private final String testSample ;
-	private final String controlSample ;
-	private String testBamId ;
-	private String controlBamId ;
+	private final String donorId;	 
+	private final String testSample;
+	private final String controlSample;
+	private String testBamId;
+	private String controlBamId;
 	private final int test_column;
 	private final int control_column;
 	
@@ -355,11 +355,22 @@ public class Vcf2maf extends AbstractMode{
 		}
 		boolean isSomatic = VcfUtils.isRecordSomatic(vcf);
 		maf.setColumnValue( MafElement.Mutation_Status ,  isSomatic ? VcfHeaderUtils.INFO_SOMATIC : VcfHeaderUtils.INFO_GERMLINE);
-		maf.setColumnValue( MafElement.Input ,  info.getField(Constants.VCF_MERGE_INFO));
+		
+		if(info.getField(Constants.VCF_MERGE_INFO) != null)
+			maf.setColumnValue( MafElement.Input ,  info.getField(Constants.VCF_MERGE_INFO));
 				
 		if(testBamId != null) maf.setColumnValue(MafElement.Tumor_Sample_Barcode , testBamId );
  		if(controlBamId != null) maf.setColumnValue(MafElement.Matched_Norm_Sample_Barcode, controlBamId);	
- 		maf.setColumnValue( MafElement.BAM_File, (testBamId != null)? testBamId : maf.getColumnValue(MafElement.Matched_Norm_Sample_Barcode) );
+ 		
+ 		String bam = ((testBamId != null)? testBamId : MafElement.Tumor_Sample_Barcode.getDefaultValue() ) 
+ 				+ Constants.COLON + ((controlBamId != null) ?   controlBamId : MafElement.Matched_Norm_Sample_Barcode.getDefaultValue());
+  		if(!bam.equals(Constants.COLON_STRING)) maf.setColumnValue( MafElement.BAM_File, bam);
+		
+ 		//debug
+ //		System.out.println("inside: " + bam);
+ 		
+ 			
+ //			maf.setColumnValue( MafElement.BAM_File, (testBamId != null)? testBamId : maf.getColumnValue(MafElement.Matched_Norm_Sample_Barcode) );
  				
 		if(testSample != null) maf.setColumnValue(MafElement.Tumor_Sample_UUID,   testSample );
 		if(controlSample != null) maf.setColumnValue(MafElement.Matched_Norm_Sample_UUID,  controlSample );

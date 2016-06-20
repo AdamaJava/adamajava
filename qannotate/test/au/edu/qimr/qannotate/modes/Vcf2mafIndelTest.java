@@ -87,7 +87,7 @@ public class Vcf2mafIndelTest {
 
 	//test record with some missing sample information, also test the uuid from vcf header to maf column 16,17,33 and 34
 	@Test 
-	public void sampleNullTest() throws Exception{
+	public void EveryTest() throws Exception{
         String[] str = {
         		VcfHeaderUtils.STANDARD_FILE_VERSION + "=VCFv4.0",			
 				VcfHeaderUtils.STANDARD_DONOR_ID + "=MELA_0264",
@@ -123,13 +123,12 @@ public class Vcf2mafIndelTest {
 				    	if(line.startsWith("#") || line.startsWith(MafElement.Hugo_Symbol.name())) continue; //skip vcf header
 				    	
 					SnpEffMafRecord maf =  toMafRecord(line);		
-			    	//debug
-			    	//System.out.println("debug, getMafRecord:" + maf.getMafLine());
-										
 	 				assertTrue(maf.getColumnValue(16).equals("TEST_bamID"));
 	 				assertTrue(maf.getColumnValue(17).equals("CONTROL_bamID"));     
 	 				assertTrue(maf.getColumnValue(33).equals("TEST_sample"));
-	 				assertTrue(maf.getColumnValue(34).equals("CONTROL_sample"));     		 			
+	 				assertTrue(maf.getColumnValue(34).equals("CONTROL_sample"));   
+			 		assertTrue(maf.getColumnValue(MafElement.BAM_File).equals("TEST_bamID:CONTROL_bamID"));
+			 		
 		 			if(maf.getColumnValue(5).equals("3")){
 		 				assertTrue(maf.getColumnValue(12).equals("TTTTTT")); //t_allel1
 		 				assertTrue(maf.getColumnValue(13).equals("-"));		 				
@@ -150,7 +149,6 @@ public class Vcf2mafIndelTest {
 		 				assertTrue(maf.getColumnValue(MafElement.Notes).equals("HOM=28"));
 		 				assertTrue(maf.getColumnValue(MafElement.Input).equals("2"));
 		 				assertTrue(maf.getColumnValue(MafElement.Var_Plus_Flank).equals("CTTTTCTTTC______TTTTTTTTTT"));
-		 				
 	 				}else if(maf.getColumnValue(5).equals("11")){	 					
 		 				assertTrue(maf.getColumnValue(12).equals("null")); //t_allel1
 		 				assertTrue(maf.getColumnValue(13).equals("null"));
@@ -168,9 +166,6 @@ public class Vcf2mafIndelTest {
 		 				assertTrue(maf.getColumnValue(MafElement.Notes).equals("TRF=3_14"));
 		 				assertTrue(maf.getColumnValue(MafElement.Input).equals(SnpEffMafRecord.Null));
 	 				}else if(maf.getColumnValue(5).equals("4")){	
-	 					
-	//debug
-	System.out.println(maf.getMafLine() +" ??");
 						assertTrue(maf.getColumnValue(11).equals("TT")); //reference
 		 				assertTrue(maf.getColumnValue(12).equals("-")); //t_allel1
 		 				assertTrue(maf.getColumnValue(13).equals("T"));		 				

@@ -17,10 +17,7 @@ import au.edu.qimr.qannotate.modes.Vcf2mafTest;
 
 public class SampleColumnTest {
 	public static String input = DbsnpModeTest.inputName;
-	
-	@Test
-	public void fileNameTest() throws IOException {
-		   String[] str = {
+	private String[] Sheader = {
 		    		VcfHeaderUtils.STANDARD_FILE_VERSION + "=VCFv4.0",			
 					VcfHeaderUtils.STANDARD_DONOR_ID + "=MELA_0264",
 					VcfHeaderUtils.STANDARD_CONTROL_SAMPLE + "=CONTROL_bam",
@@ -29,8 +26,10 @@ public class SampleColumnTest {
 					VcfHeaderUtils.STANDARD_TEST_BAMID + "=TEST_bamID",
 					VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tqControlSample\tqTestSample"			
 		    };
-	        
-        	Vcf2mafTest.createVcf(str);                
+	
+	@Test
+	public void fileNameTest() throws IOException {
+        	Vcf2mafTest.createVcf(Sheader);                
         	try(VCFFileReader reader = new VCFFileReader(input); ){
     			SampleColumn column = SampleColumn.getSampleColumn(null, null , reader.getHeader());
     			assertTrue(column.getControlSample().equals("CONTROL_bam"));
@@ -42,16 +41,13 @@ public class SampleColumnTest {
        			
        			column = SampleColumn.getSampleColumn("alignment,test", "grfli:align#control" , reader.getHeader());
        			assertTrue(column.getControlSample().equals("control"));
-      			assertTrue(column.getTestSample().equals("alignment,test")); 		
+      			assertTrue(column.getTestSample().equals("alignment,test")); 	
 
 	        }catch(Exception e){
 	        	fail(e.getMessage()); 
 	        }
 	        
-	        new File(input).delete();
-	
-		
-		
+	        new File(input).delete();		
 	}
 	
 	
