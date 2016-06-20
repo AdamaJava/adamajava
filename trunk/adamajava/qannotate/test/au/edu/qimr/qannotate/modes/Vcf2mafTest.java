@@ -2,7 +2,9 @@ package au.edu.qimr.qannotate.modes;
 
 import static org.junit.Assert.*;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -34,7 +36,8 @@ import au.edu.qimr.qannotate.utils.SnpEffMafRecord;
 public class Vcf2mafTest {
 	static String outputDir = new File(DbsnpModeTest.inputName).getAbsoluteFile().getParent() + "/output";
 	static String inputName = DbsnpModeTest.inputName;		
-	
+	static String logName = "output.log";	
+	static String outputMafName = "output.maf";
 	
 	@org.junit.Rule
 	public  TemporaryFolder testFolder = new TemporaryFolder();
@@ -576,35 +579,58 @@ public class Vcf2mafTest {
 	 		final VcfRecord vcf = new VcfRecord(parms);
 	 		final SnpEffMafRecord maf = v2m.converter(vcf);
 	 		
-	 		for(int i = 1 ; i < 5; i++) 
-	 			assertTrue(  maf.getColumnValue(i).equals(Dmaf.getColumnValue(i)) );  	
-	 		 
-	 		for(int i = 8 ; i < 9; i++)
-	 			assertTrue(maf.getColumnValue(i).equals(Dmaf.getColumnValue(i)) );  
- 
-	 		assertTrue(maf.getColumnValue(10).equals( IndelUtils.SVTYPE.DNP.name()) );  
-	 		assertTrue(maf.getColumnValue(11).equals("CT"));  
+	 		for(int i = 1 ; i < 63; i++){	
+	 			int ii = i;
+	 			if( i >= 5 && i < 8) ii = 100; //ignore. do nothing
+	 				 			
+	 			switch(ii){
+	 				case 100 : break;  
+	 				case 10: assertTrue(maf.getColumnValue(10).equals( IndelUtils.SVTYPE.DNP.name()) ); break; 
+	 				case 11: assertTrue(maf.getColumnValue(11).equals("CT"));  break; 
+	 				case 26: assertTrue(maf.getColumnValue(26).equals(VcfHeaderUtils.INFO_GERMLINE )); break; 
+	 				case 31: assertTrue(maf.getColumnValue(31).equals(Dmaf.getColumnValue(i) + ":" + Dmaf.getColumnValue(i))); break;
+	 				case 35: assertTrue(maf.getColumnValue(35).equals(Constants.MISSING_DATA_STRING )); break;
+	 				case 41: assertTrue(maf.getColumnValue(41).equals("AT:ND0:TD0" ));  break;
+	 				default : assertTrue(maf.getColumnValue(i).equals(Dmaf.getColumnValue(i) ));  	
+	 			}
+	 			
+	 		} 
 	 		
-	 		for(int i = 12 ; i < 26; i++) 
-	 			assertTrue(maf.getColumnValue(i).equals(Dmaf.getColumnValue(i) ));  
-	 		 
-	 		assertTrue(maf.getColumnValue(26).equals(VcfHeaderUtils.INFO_GERMLINE ));  
-	 			 		
-	 		for(int i = 27 ; i < 35; i++)
- 	 				assertTrue(maf.getColumnValue(i).equals(Dmaf.getColumnValue(i) ));  
-
-	 		assertTrue(maf.getColumnValue(35).equals(Constants.MISSING_DATA_STRING ));  
-	 		
-	 		for(int i = 36 ; i < 41; i++) 
-	 			assertTrue(maf.getColumnValue(i).equals(Dmaf.getColumnValue(i) ));  
-	 			 		
-	 		assertTrue(maf.getColumnValue(41).equals("AT:ND0:TD0" ));  
-	 	
-	 		for(int i = 42 ; i < 61; i++) 			
- 	 			assertTrue(maf.getColumnValue(i).equals(Dmaf.getColumnValue(i) ));  	 		
- 
 	 }
 	
+	 @Test
+	 public void BAMidTest()throws IOException, Exception{
+			String[] str = {        		
+					VcfHeaderUtils.STANDARD_FILE_VERSION + "=VCFv4.0",	
+					VcfHeaderUtils.STANDARD_CONTROL_SAMPLE + "=CONTROL_sample",
+					VcfHeaderUtils.STANDARD_TEST_SAMPLE + "=TEST_sample",	
+					VcfHeaderUtils.STANDARD_TEST_BAMID + "=TEST_bamID",				
+					VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tqControlSample\tqTestSample",
+					"GL000236.1\t7127\t.\tT\tC\t.\tMR;MIUN\tSOMATIC;MR=4;NNS=4;FS=CCAGCCTATTT;CONF=ZERO\tGT:GD:AC:MR:NNS\t0/0:T/T:T9[37.11],18[38.33]:.:4\t0/1:C/T:C1[12],3[41],T19[35.58],30[33.63]:.:5"};			
+		        createVcf(str); 
+	        	try {
+					Vcf2mafTest.createVcf(str);
+					final String[] command = {"--mode", "vcf2maf",  "--log", logName,  "-i", inputName , "-o" , outputMafName};
+					au.edu.qimr.qannotate.Main.main(command);
+				} catch ( Exception e) {
+					e.printStackTrace(); 
+		        	fail(); 
+				}                
+				try(BufferedReader br = new BufferedReader(new FileReader(outputMafName));) {
+				    String line = null;
+				    while ((line = br.readLine()) != null) {
+					    	if(line.startsWith("#") || line.startsWith(MafElement.Hugo_Symbol.name())) continue; //skip vcf header
+					    	
+						SnpEffMafRecord maf =  Vcf2mafIndelTest.toMafRecord(line);		
+		 				assertTrue(maf.getColumnValue(16).equals("TEST_bamID"));
+		 				assertTrue(maf.getColumnValue(17).equals(MafElement.Matched_Norm_Sample_Barcode.getDefaultValue()));     
+		 				assertTrue(maf.getColumnValue(33).equals("TEST_sample"));
+				 		assertTrue(maf.getColumnValue(MafElement.BAM_File).equals("TEST_bamID:null"));
+				    }	
+				}
+		 
+	 }
+	 
 	 @Test
 	 public  void singleSampleTest() throws IOException, Exception{
  		 
@@ -630,6 +656,11 @@ public class Vcf2mafTest {
  		 		assertTrue(maf.getColumnValue(48).equals("27"));  //n_deep column1
 		 		assertTrue(maf.getColumnValue(49).equals("27")); //T9[37.11],18[38.33]
 		 		assertTrue(maf.getColumnValue(50).equals("0"));  
+		 		
+		 		//check BAM_FILE columne
+		 		assertTrue(maf.getColumnValue(MafElement.BAM_File).equals(MafElement.Tumor_Sample_Barcode.getDefaultValue() + ":" + MafElement.Matched_Norm_Sample_Barcode.getDefaultValue()));
+		 		assertTrue(maf.getColumnValue(MafElement.Tumor_Sample_Barcode).equals(MafElement.Tumor_Sample_Barcode.getDefaultValue()));
+		 		assertTrue(maf.getColumnValue(MafElement.Matched_Norm_Sample_Barcode).equals(MafElement.Matched_Norm_Sample_Barcode.getDefaultValue()));
 	 		}	
          }
        

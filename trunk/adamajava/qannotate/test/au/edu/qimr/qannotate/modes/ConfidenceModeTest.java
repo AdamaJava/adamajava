@@ -73,7 +73,6 @@ public class ConfidenceModeTest {
 		 
 		 
  		 String conf = vcf.getInfoRecord().getField(VcfHeaderUtils.INFO_CONFIDENT);
- 		 System.out.println(vcf.toString());
 		 assertEquals("HIGH_1,HIGH_2", conf);
 		 
 		 
@@ -81,7 +80,6 @@ public class ConfidenceModeTest {
 		 cm.positionRecordMap.put(vcf.getChrPosition(), java.util.Arrays.asList(vcf));
 		 cm.addAnnotation();		 		 
 		 conf = vcf.getInfoRecord().getField(VcfHeaderUtils.INFO_CONFIDENT);
- 		 System.out.println(vcf.toString());
 		 assertEquals("LOW_1,LOW_2", conf);
 	 }
 	 
