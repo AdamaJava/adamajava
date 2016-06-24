@@ -104,6 +104,22 @@ sub verbose {
 }
 
 
+sub totalreads {
+    my $self = shift;
+    return $self->get_value('totalReadsInThisAnalysis');
+}
+
+sub windowsize {
+    my $self = shift;
+    return $self->get_value('windowsize');
+}
+
+sub windows {
+    my $self = shift;
+    return values %{ $self->{reads_by_regions} };
+}
+
+
 sub get_value {
     my $self  = shift;
     my $param = shift;
@@ -217,11 +233,20 @@ sub _initialise {
 
     glogprint( "parsing XML\n" ) if $self->verbose;
 
-    # Key values from summary element
+    # Key values from qmotif and summary elements
     my %values = ();
-    my @fields = qw ( windowSize cutoff totalReadCount noOfMotifs
+
+    my @fields1 = qw( window_size includes_only );
+    for my $field (@fields1) {
+        my @nodes = $self->xmlnode->findnodes( "qmotif/$field" );
+        my $value = scalar(@nodes) ? $nodes[0]->getAttribute('count') : '';
+        $values{ $field } = $value;
+    }
+
+    my @fields = qw ( totalReadsInThisAnalysis noOfMotifs
                       rawUnmapped rawIncludes rawGenomic
-                      scaledUnmapped scaledIncludes scaledGenomic );
+                      scaledUnmapped scaledIncludes scaledGenomic
+                      bases_containing_motifs );
     for my $field (@fields) {
         my @nodes = $self->xmlnode->findnodes( "qmotif/summary/counts/$field" );
         my $value = scalar(@nodes) ? $nodes[0]->getAttribute('count') : '';
@@ -282,10 +307,10 @@ sub _initialise {
         my $type   = $node->getAttribute('type');
         my @motifs = $node->findnodes( "motif" );
 
-        $reads_by_region{ $loc } = { chrPos    => $loc,
-                                     type      => $type,
-                                     stage1Cov => $stage1,
-                                     stage2Cov => $stage2 };
+        $reads_by_region{ $loc } = { location     => $loc,
+                                     category     => $type,
+                                     stage1_reads => $stage1,
+                                     stage2_reads => $stage2 };
 
         # Do the overall motif tallies.  Depending on the strand and the
         # region category, we take all of the submotifs and tally them
@@ -295,6 +320,15 @@ sub _initialise {
             my $id     = $motif->getAttribute('motifRef');
             my $number = $motif->getAttribute('number');
             my $strand = $motif->getAttribute('strand');
+
+            if ($strand eq 'F') {
+                $reads_by_region{ $loc }->{f_motifs_unique}++;
+                $reads_by_region{ $loc }->{f_motifs_total} += $number;
+            }
+            elsif ($strand eq 'R') {
+                $reads_by_region{ $loc }->{r_motifs_unique}++;
+                $reads_by_region{ $loc }->{r_motifs_total} += $number;
+            }
 
             foreach my $motifseq (keys %{$submotifs{ $id }->{ $strand }}) {
                 my $count = $submotifs{ $id }->{ $strand }->{ $motifseq } * $number;
