@@ -111,7 +111,7 @@ sub totalreads {
 
 sub windowsize {
     my $self = shift;
-    return $self->get_value('windowsize');
+    return $self->get_value('window_size');
 }
 
 sub windows {
@@ -238,8 +238,8 @@ sub _initialise {
 
     my @fields1 = qw( window_size includes_only );
     for my $field (@fields1) {
-        my @nodes = $self->xmlnode->findnodes( "qmotif/$field" );
-        my $value = scalar(@nodes) ? $nodes[0]->getAttribute('count') : '';
+        my @nodes = $self->xmlnode->findnodes( "qmotif/ini/$field" );
+        my $value = scalar(@nodes) ? $nodes[0]->getAttribute('value') : '';
         $values{ $field } = $value;
     }
 
