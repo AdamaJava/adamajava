@@ -39,6 +39,38 @@ public class BaseUtilsTest {
 	}
 	
 	@Test
+	public void encodeDistribution() {
+		assertEquals(281479271743489l, BaseUtils.encodeDistribution(1,1,1,1));
+		assertEquals("1000000000000000100000000000000010000000000000001", Long.toBinaryString(BaseUtils.encodeDistribution(1,1,1,1)));
+		
+		assertEquals(562958543486978l, BaseUtils.encodeDistribution((short)2,(short)2,(short)2,(short)2));
+		assertEquals("10000000000000001000000000000000100000000000000010", Long.toBinaryString(BaseUtils.encodeDistribution(2,2,2,2)));
+		assertEquals("11000000000000001100000000000000110000000000000011", Long.toBinaryString(BaseUtils.encodeDistribution(3,3,3,3)));
+		
+		assertEquals("1111111111111111111111111111111111111111111111111111111111111111", Long.toBinaryString(BaseUtils.encodeDistribution(65535, 65535, 65535, 65535)));
+		assertEquals(Long.MIN_VALUE, BaseUtils.encodeDistribution(65536, 65535, 65535, 65535));
+		assertEquals(Long.MIN_VALUE, BaseUtils.encodeDistribution(65536, 0, 0, 0));
+		assertEquals(Long.MIN_VALUE, BaseUtils.encodeDistribution(0, 0, 0, 123456));
+		assertEquals(0, BaseUtils.encodeDistribution(0, 0, 0, 0));
+	}
+	
+	@Test
+	public void decodeDist() {
+		Assert.assertArrayEquals(new int[]{1,1,1,1}, BaseUtils.decodeDistribution(281479271743489l).get());
+		assertEquals(true, BaseUtils.decodeDistribution(0).isPresent());
+		assertEquals(true, BaseUtils.decodeDistribution(Long.MAX_VALUE).isPresent());
+		assertEquals(false, BaseUtils.decodeDistribution(Long.MIN_VALUE).isPresent());
+		Assert.assertArrayEquals(new int[]{65535, 65535, 65535, 65535}, BaseUtils.decodeDistribution(BaseUtils.encodeDistribution(65535, 65535, 65535, 65535)).get());
+		
+		Assert.assertArrayEquals(new int[]{0,0,0,0}, BaseUtils.decodeDistribution(BaseUtils.encodeDistribution(0,0,0,0)).get());
+		Assert.assertArrayEquals(new int[]{21,0,0,0}, BaseUtils.decodeDistribution(BaseUtils.encodeDistribution(21,0,0,0)).get());
+		Assert.assertArrayEquals(new int[]{0,0,3,0}, BaseUtils.decodeDistribution(BaseUtils.encodeDistribution(0,0,3,0)).get());
+		Assert.assertArrayEquals(new int[]{21,15,7,1}, BaseUtils.decodeDistribution(BaseUtils.encodeDistribution(21,15,7,1)).get());
+		Assert.assertArrayEquals(new int[]{21,15,7,1000}, BaseUtils.decodeDistribution(BaseUtils.encodeDistribution(21,15,7,1000)).get());
+		
+	}
+	
+	@Test
 	public void testAreGenotypesEqual() {
 		Assert.assertFalse(BaseUtils.areGenotypesEqual(null, null));
 		try {
