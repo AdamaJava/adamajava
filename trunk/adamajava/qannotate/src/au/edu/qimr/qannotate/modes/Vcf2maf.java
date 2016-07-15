@@ -120,7 +120,7 @@ public class Vcf2maf extends AbstractMode{
 			
 										
 			//get donor id
-			String  id = option.getDonorId() ;			
+			String  id = option.getDonorId() ;
 			if (  id == null) {
 				for (VcfHeader.Record rec : reader.getHeader().getMetaRecords()) {
 					if (rec.getData().startsWith(VcfHeaderUtils.STANDARD_DONOR_ID)){ 
@@ -225,7 +225,7 @@ public class Vcf2maf extends AbstractMode{
 		logger.info(String.format("There are germatic record: %d (high confidence), %d (high confidence consequence)", no_GHC, no_GHCC));
 		
 		//delete empty maf files
-		deleteEmptyMaf(SHCC, SHC,GHCC,GHC);	//,SLCC,SLC,GLCC,GLC );		
+		deleteEmptyMaf(SHCC, SHC,GHCC,GHC, SHCCVcf, SHCVcf,GHCCVcf,GHCVcf );//SLCC,SLC,GLCC,GLC );		
 	}
 	
 	public static boolean isHighConfidence(SnpEffMafRecord maf) {
