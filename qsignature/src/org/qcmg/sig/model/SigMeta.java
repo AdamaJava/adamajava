@@ -59,5 +59,9 @@ public class SigMeta {
 		return md5sum != null && md5sum.length() > 0 && positionsCount > 0;
 	}
 	
+	public static boolean suitableForComparison(SigMeta sm1, SigMeta sm2) {
+		return sm1.isValid() && sm1.equals(sm2);
+	}
+	
 
 }
