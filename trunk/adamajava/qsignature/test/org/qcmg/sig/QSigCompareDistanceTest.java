@@ -63,8 +63,8 @@ public class QSigCompareDistanceTest {
 		map2.put(cp2, ratios2);
 		
 		Comparison c = QSigCompareDistance.compareRatios(map1, map2, F1, F1);
-		assertEquals(F1, c.getMain());
-		assertEquals(F1, c.getTest());
+		assertEquals(F1.getAbsolutePath(), c.getMain());
+		assertEquals(F1.getAbsolutePath(), c.getTest());
 		assertEquals(map1.size(), c.getOverlapCoverage());
 	}
 	
@@ -92,8 +92,8 @@ public class QSigCompareDistanceTest {
 		assertEquals(2, c.getOverlapCoverage());
 		assertEquals(2, c.getMainCoverage());
 		assertEquals(2, c.getTestCoverage());
-		assertEquals(F1, c.getMain());
-		assertEquals(F2, c.getTest());
+		assertEquals(F1.getAbsolutePath(), c.getMain());
+		assertEquals(F2.getAbsolutePath(), c.getTest());
 		
 		map1.put(cp3, ratios2);
 		map1.put(cp4, ratios1);
@@ -108,8 +108,8 @@ public class QSigCompareDistanceTest {
 		assertEquals(4, c.getOverlapCoverage());
 		assertEquals(4, c.getMainCoverage());
 		assertEquals(4, c.getTestCoverage());
-		assertEquals(F1, c.getMain());
-		assertEquals(F2, c.getTest());
+		assertEquals(F1.getAbsolutePath(), c.getMain());
+		assertEquals(F2.getAbsolutePath(), c.getTest());
 		
 		// now add in a positionsOfInterest collection
 		Map<ChrPosition, ChrPosition> positionsOfInterest = new HashMap<>();
@@ -122,8 +122,8 @@ public class QSigCompareDistanceTest {
 		assertEquals(4, c.getOverlapCoverage());
 		assertEquals(4, c.getMainCoverage());
 		assertEquals(4, c.getTestCoverage());
-		assertEquals(F1, c.getMain());
-		assertEquals(F2, c.getTest());
+		assertEquals(F1.getAbsolutePath(), c.getMain());
+		assertEquals(F2.getAbsolutePath(), c.getTest());
 		
 		// add in positions of interest
 		positionsOfInterest.put(cp1, cp1);
@@ -156,8 +156,8 @@ public class QSigCompareDistanceTest {
 		assertEquals(0, c.getOverlapCoverage());
 		assertEquals(mainCov, c.getMainCoverage());
 		assertEquals(testCov, c.getTestCoverage());
-		assertEquals(F1, c.getMain());
-		assertEquals(F2, c.getTest());
+		assertEquals(F1.getAbsolutePath(), c.getMain());
+		assertEquals(F2.getAbsolutePath(), c.getTest());
 	}
 	
 	@Test

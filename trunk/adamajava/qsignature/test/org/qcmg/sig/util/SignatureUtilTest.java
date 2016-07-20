@@ -139,6 +139,12 @@ public class SignatureUtilTest {
 		
 	}
 	
+	@Test
+	public void getBEspokeARray() {
+		Assert.assertArrayEquals(new int[]{1,2,3,4}, SignatureUtil.decipherCoverageStringBespoke("1,2,3,4").get());
+		Assert.assertArrayEquals(new int[]{1000,100,10,1}, SignatureUtil.decipherCoverageStringBespoke("1000,100,10,1").get());
+	}
+	
 	
 	
 	

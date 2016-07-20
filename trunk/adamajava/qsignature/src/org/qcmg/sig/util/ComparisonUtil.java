@@ -32,9 +32,9 @@ public class ComparisonUtil {
 		if (null == comparisons || comparisons.isEmpty()) throw new IllegalArgumentException("null or empty list of comparisons to headerise");
 		
 		StringBuilder sb = new StringBuilder();
-		File mainFile = comparisons.get(0).getMain();
+		String mainFile = comparisons.get(0).getMain();
 		if (null != mainFile)
-			sb.append(mainFile.getName()).append('\t');
+			sb.append(mainFile).append('\t');
 		
 		for (Comparison comp : comparisons) {
 			
@@ -69,7 +69,7 @@ public class ComparisonUtil {
 				throw new IllegalArgumentException("null files passed to compareRatios");
 			
 			if (file1Ratios.isEmpty() || file2Ratios.isEmpty()) {
-				return  new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), 0, 0, 0, 0, 0);
+				return  new Comparison(file1.getAbsolutePath(), file1Ratios.size(), file2.getAbsolutePath(), file2Ratios.size(), 0, 0, 0, 0, 0);
 			}
 			
 			// if the files are the same, return a comparison object without doing the comparison
@@ -164,6 +164,9 @@ public class ComparisonUtil {
 		}
 	
 	public static Comparison compareRatiosUsingSnpsFloat(TIntShortHashMap file1Ratios,TIntShortHashMap file2Ratios, File file1, File file2) {
+		return compareRatiosUsingSnpsFloat(file1Ratios,file2Ratios, file1.getAbsolutePath(), file2.getAbsolutePath()); 
+	}
+	public static Comparison compareRatiosUsingSnpsFloat(TIntShortHashMap file1Ratios,TIntShortHashMap file2Ratios, String file1, String file2) {
 		if (null == file1Ratios || null == file2Ratios)
 			throw new IllegalArgumentException("null maps passed to compareRatios");
 		
