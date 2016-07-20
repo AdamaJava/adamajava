@@ -15,7 +15,7 @@ public class ComparisonTest {
 	@Test
 	public void testComparisonConstructor() {
 		try {
-			new Comparison(null,0, null, 0, 0, 0, 0, 0, 0);
+			new Comparison((String)null,0, (String)null, 0, 0, 0, 0, 0, 0);
 			Assert.fail("Should have thrown an IAE");
 		}	catch (IllegalArgumentException iae){}
 		
@@ -60,10 +60,10 @@ public class ComparisonTest {
 		c = new Comparison(F1, 0, F2, 0, 10, 1000, 0, 0, 0);
 		assertEquals(0.01, c.getScore(), 0.00001);
 		
-		c = new Comparison(F1, 123456, F2, 234567, 99999, 123456, 1234560, 0, 0);
+		c = new Comparison("f1", 123456, "f2", 234567, 99999, 123456, 1234560, 0, 0);
 		assertEquals((99999.0 / 123456), c.getScore(), 0.00001);
-		assertEquals(F1, c.getMain());
-		assertEquals(F2, c.getTest());
+		assertEquals("f1", c.getMain());
+		assertEquals("f2", c.getTest());
 		assertEquals(123456, c.getMainCoverage());
 		assertEquals(234567, c.getTestCoverage());
 		assertEquals(123456, c.getOverlapCoverage());

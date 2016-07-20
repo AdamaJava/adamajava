@@ -12,8 +12,8 @@ import org.qcmg.common.util.DonorUtils;
 
 public class Comparison implements Comparable<Comparison> {
 	
-	final File main;
-	final File test;
+	final String main;
+	final String test;
 	
 	final int mainCoverage;
 	final int testCoverage;
@@ -24,11 +24,11 @@ public class Comparison implements Comparable<Comparison> {
 	final double score;
 	final int numberOfCalculations;
 	
-	public File getMain() {
+	public String getMain() {
 		return main;
 	}
 
-	public File getTest() {
+	public String getTest() {
 		return test;
 	}
 
@@ -66,8 +66,12 @@ public class Comparison implements Comparable<Comparison> {
 //		System.out.println("overlapCoverage: " + overlapCoverage);
 		return overlapCoverage > 0 ? (int)(testCovAtOverlaps / overlapCoverage) : -1; 
 	}
-
+	
 	public Comparison(File file1, int size, File file2, int size2, double finalTally, int count, int noOfCalculations, long l, long m) {
+		this(file1 != null ? file1.getAbsolutePath() : null, size, file2 != null ? file2.getAbsolutePath() : null, size2, finalTally, count, noOfCalculations, l, m);
+	}
+
+	public Comparison(String file1, int size, String file2, int size2, double finalTally, int count, int noOfCalculations, long l, long m) {
 		
 		if (null == file1 || null == file2) 
 			throw new IllegalArgumentException("null files passed to Comparison constructor");
@@ -94,17 +98,17 @@ public class Comparison implements Comparable<Comparison> {
 		StringBuilder sb = new StringBuilder();
 		sb.append(score == Double.NaN ? "NaN" : score);
 		sb.append(" (").append(overlapCoverage).append(") : ");
-		sb.append(test.getAbsolutePath());
+		sb.append(test);
 		return sb.toString();
 	}
 	
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append(DonorUtils.getDonorFromFilename(main.getAbsolutePath())).append(":");
-		sb.append(main.getName()).append(" (").append(mainCoverage).append(") vs ");
-		sb.append(DonorUtils.getDonorFromFilename(test.getAbsolutePath())).append(":");
-		sb.append(test.getName()).append(" (").append(testCoverage).append(") : ");
+		sb.append(DonorUtils.getDonorFromFilename(main)).append(":");
+		sb.append(main).append(" (").append(mainCoverage).append(") vs ");
+		sb.append(DonorUtils.getDonorFromFilename(test)).append(":");
+		sb.append(test).append(" (").append(testCoverage).append(") : ");
 		sb.append(score == Double.NaN ? "NaN" : score);
 		sb.append(", ").append(overlapCoverage);
 		sb.append(", ").append(numberOfCalculations);

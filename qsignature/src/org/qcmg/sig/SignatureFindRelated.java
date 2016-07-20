@@ -199,7 +199,7 @@ public class SignatureFindRelated {
 			
 			if (result < cutoff) {
 				potentialMatchFound = true;
-				String fileName = comp.getTest().getAbsolutePath();
+				String fileName = comp.getTest();
 				String fileDonor = DonorUtils.getDonorFromFilename(fileName);
 				String output = fileDonor + " : " + fileName + " : " +result;
 				if (mainDonor.equals(fileDonor)) {

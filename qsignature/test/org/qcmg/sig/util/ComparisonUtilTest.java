@@ -109,7 +109,7 @@ public class ComparisonUtilTest {
 		
 		
 		List<Comparison> comps = new ArrayList<>();
-		comps.add(new Comparison(F1, 0, F2, 0, 1, 100, 0, 0, 0));
+		comps.add(new Comparison("f1", 0, "f2", 0, 1, 100, 0, 0, 0));
 		assertEquals("f1\t0.01[100,0]", ComparisonUtil.getComparisonsBody(comps));
 		
 	}
