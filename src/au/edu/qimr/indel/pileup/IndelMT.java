@@ -366,8 +366,6 @@ public class IndelMT {
 		return 0; 
 	}
 	
-
-//	private void writeVCF(AbstractQueue<IndelPileup> tumourQueue, AbstractQueue<IndelPileup> normalQueue, AbstractQueue<Homopolymer> homopoQueue, File output, VcfHeader header ) throws Exception{
 	private void writeVCF(AbstractQueue<IndelPileup> tumourQueue, AbstractQueue<IndelPileup> normalQueue,File output, VcfHeader header ) throws Exception{
 		
 		IndelPileup pileup;
@@ -386,14 +384,7 @@ public class IndelMT {
 			IndelPosition indel = positionRecordMap.get(pos);
 			indel.setPileup(false, pileup);			
 		}
-		
-//		Homopolymer homopo;
-//		while((homopo = homopoQueue.poll()) != null ){
-//			ChrRangePosition pos = homopo.getChrRangePosition();
-//			IndelPosition indel = positionRecordMap.get(pos);
-//			indel.setHomopolymer(homopo);
-//		}
-		
+				
 		final AbstractQueue<IndelPosition> orderedList = getIndelList(null);
 		logger.info("reading indel position:  " + orderedList.size() );
 		try(VCFFileWriter writer = new VCFFileWriter( output)) {	
@@ -448,15 +439,26 @@ public class IndelMT {
 	 		for(int i = 0; i < options.getInputVcfs().size(); i ++)
 	 			header.parseHeaderLine(VcfHeaderUtils.STANDARD_INPUT_LINE + "=" + options.getInputVcfs().get(i).getAbsolutePath());
 
+		String controlBamID = null; 
 		if( options.getControlBam() != null ){
-			String normalBamName = options.getControlBam().getAbsolutePath();			
-			header.parseHeaderLine( VcfHeaderUtils.STANDARD_CONTROL_BAM  + "=" + normalBamName);
-			header.parseHeaderLine( VcfHeaderUtils.STANDARD_CONTROL_BAMID + "=" + QBamIdFactory.getQ3BamId(normalBamName).getUUID());
+			String normalBamName = options.getControlBam().getAbsolutePath();
+			controlBamID = QBamIdFactory.getQ3BamId(normalBamName).getUUID();
+			if(controlBamID == null ) controlBamID = new File(normalBamName).getName().replaceAll("(?i).bam$", "");
+			header.parseHeaderLine( VcfHeaderUtils.STANDARD_CONTROL_BAM  + "=" + normalBamName );
+			header.parseHeaderLine( VcfHeaderUtils.STANDARD_CONTROL_BAMID + "=" +  controlBamID );
+			 
 		}
+		
+	 
+		
+		String testBamID = null; 
 		if( options.getTestBam() != null ){
 			String tumourBamName = options.getTestBam().getAbsolutePath();
+			testBamID = QBamIdFactory.getQ3BamId(tumourBamName).getUUID();
+			if(testBamID == null ) testBamID = new File(tumourBamName).getName().replaceAll("(?i).bam$", "");
+			
 			header.parseHeaderLine( VcfHeaderUtils.STANDARD_TEST_BAM  + "=" + tumourBamName);
-			header.parseHeaderLine( VcfHeaderUtils.STANDARD_TEST_BAMID  + "=" + QBamIdFactory.getQ3BamId(tumourBamName).getUUID());
+			header.parseHeaderLine( VcfHeaderUtils.STANDARD_TEST_BAMID  + "=" + ( testBamID  == null ? new File(tumourBamName).getName() : testBamID ));
 		}	
 		header.parseHeaderLine( VcfHeaderUtils.STANDARD_ANALYSIS_ID +"=" + options.getAnalysisId() );
 	
@@ -490,11 +492,13 @@ public class IndelMT {
 		VcfHeaderUtils.addQPGLineToHeader(header, qexec.getToolName().getValue(), qexec.getToolVersion().getValue(), qexec.getCommandLine().getValue() 
 				+  " [runMode: " + options.getRunMode() + "]");        
         		
-		VcfHeaderUtils.addSampleId(header, VcfHeaderUtils.STANDARD_CONTROL_SAMPLE.replaceAll("#", ""), 1 ); // "qControlSample", 1);
-		VcfHeaderUtils.addSampleId(header,  VcfHeaderUtils.STANDARD_TEST_SAMPLE.replaceAll("#", ""), 2);//"qTestSample"
-		
+//		VcfHeaderUtils.addSampleId(header, VcfHeaderUtils.STANDARD_CONTROL_SAMPLE.replaceAll("#", ""), 1 ); // "qControlSample", 1);
+//		VcfHeaderUtils.addSampleId(header,  VcfHeaderUtils.STANDARD_TEST_SAMPLE.replaceAll("#", ""), 2);//"qTestSample"
+		VcfHeaderUtils.addSampleId(header, controlBamID, 1 ); // "qControlSample", 1);
+		VcfHeaderUtils.addSampleId(header,  testBamID, 2);//"qTestSample"
 		
 
+		
  		 
 	}
 	 

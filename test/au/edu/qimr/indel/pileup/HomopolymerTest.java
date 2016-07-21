@@ -2,6 +2,7 @@ package au.edu.qimr.indel.pileup;
 
 import static org.junit.Assert.*;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -77,7 +78,7 @@ public class HomopolymerTest {
 		indel = new IndelPosition (vs);
 		homo = new Homopolymer(indel, getReference(), 100,10);	
 		assertTrue(homo.getPolymerSequence(0).equals("TGGATCGGAC_____CCCCCCCCCC") );														
-		assertTrue(homo.getCount(0) == 19);	 	
+		assertTrue(homo.getCount(0) == 19);	 			
 		
 	}
 	

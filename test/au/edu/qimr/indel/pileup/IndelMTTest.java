@@ -38,6 +38,7 @@ import au.edu.qimr.indel.Q3IndelException;
 public class IndelMTTest {
 	public static final String inputVcf = "input.vcf";  
 	public static final String TEST_BAM_NAME = "test.bam";
+ 
 	public static final String ini_noquery = "test1.ini";
 	public static final String ini_query = "test2.ini";
 	public static final String query = "and (Flag_DuplicateRead==false, CIGAR_M>150, MD_mismatch <= 3)";
@@ -101,7 +102,7 @@ public class IndelMTTest {
 		
 		Options options = Support.runQ3IndelNoHom( ini_query);
 		assertTrue(options.getFilterQuery().equals(query));				
-		//check output
+		//check output 
 		int passNo = 0;
 		VcfRecord record = null;
 		VcfHeader header = null; 
@@ -129,8 +130,9 @@ public class IndelMTTest {
 		}
 		
 		//check sample column name
-		assertTrue(header.getSampleId()[0].equals(VcfHeaderUtils.STANDARD_CONTROL_SAMPLE.replaceAll("#", "")));
-		assertTrue(header.getSampleId()[1].equals(VcfHeaderUtils.STANDARD_TEST_SAMPLE.replaceAll("#", "")));
+		assertTrue(header.getSampleId()[0].equals( TEST_BAM_NAME.replaceAll("(?i).bam", "")   ));
+		assertTrue(header.getSampleId()[1].equals( TEST_BAM_NAME.replaceAll("(?i).bam", "")   ));
+//		assertTrue(header.getSampleId()[1].equals(VcfHeaderUtils.STANDARD_TEST_SAMPLE.replaceAll("#", "")));
 		
 		//check header 
 		HashMap<String, String> headerlist = new HashMap<String, String>();
