@@ -24,6 +24,7 @@ use POSIX qw( floor );
 use Storable qw(dclone);
 use XML::Simple;
 
+use Grz::Util::Log;
 use Grz::Util::Util qw( current_user new_timestamp );
 
 use QCMG::DB::Metadata;
@@ -31,6 +32,7 @@ use QCMG::FileDir::Finder;
 use QCMG::IO::CnvReader;
 use QCMG::IO::DccSnpReader;
 use QCMG::IO::FastaReader;
+use QCMG::IO::FastqReader;
 use QCMG::IO::GffReader;
 use QCMG::IO::INIFile;
 use QCMG::IO::LogFileReader;
@@ -44,8 +46,6 @@ use QCMG::IO::VcfReader;
 use QCMG::IO::VerificationReader;
 use QCMG::Util::Util qw( ranges_overlap split_final_bam_name );
 use QCMG::XML::Qmotif;
-
-use Grz::Util::Log;
 
 use vars qw( $SVNID $REVISION $CMDLINE $VERSION $VERBOSE );
 
@@ -92,6 +92,7 @@ MAIN: {
                           wikitable_media2moin
                           illumina_panel_manifest
                           cnv_format_convert
+                          fastq_kmer
                           );
 
     if ($mode =~ /^$valid_modes[0]$/i or $mode =~ /\?/) {
@@ -161,6 +162,9 @@ MAIN: {
     }
     elsif ($mode =~ /^$valid_modes[21]/i) {
         cnv_format_convert();
+    }
+    elsif ($mode =~ /^$valid_modes[22]/i) {
+        fastq_kmer();
     }
     else {
         die "jvptools mode [$mode] is unrecognised; valid modes are:\n   ".
@@ -2318,6 +2322,141 @@ sub align_2_csvs {
     }
     $sfh->close;
     $ofh->close;
+
+    glogend;
+}
+
+
+sub fastq_kmer {
+   
+    # Print help message if no CLI params
+    pod2usage( -exitval  => 0,
+               -verbose  => 99,
+               -sections => 'SYNOPSIS|COMMAND DETAILS/fastq_kmer' )
+        unless (scalar @ARGV > 0);
+
+    # Setup defaults for CLI params
+    my %params = ( infile      => '',
+                   outfile     => '',
+                   logfile     => '',
+                   kmerlen     => 3,
+                   positions   => '',
+                   maxrec      => 0,
+                   threshold   => 0.001,
+                   verbose     => 0 );
+
+    my $results = GetOptions (
+           'i|infile=s'           => \$params{infile},        # -i
+           'o|outfile=s'          => \$params{outfile},       # -o
+           'l|logfile=s'          => \$params{logfile},       # -l
+           'k|kmerlen=i'          => \$params{kmerlen},       # -k
+           'p|positions=s'        => \$params{positions},     # -p
+           'x|maxrec=s'           => \$params{maxrec},        # -x
+           'v|verbose+'           => \$params{verbose},       # -v
+           );
+
+    # It is mandatory to supply infile and outfile
+    die "You must specify an input file\n" unless $params{infile};
+    die "You must specify an output file\n" unless $params{outfile};
+
+    # Set up logging
+    glogfile($params{logfile}) if $params{logfile};
+    glogbegin;
+    glogprint( {l=>'EXEC'}, "CommandLine $CMDLINE\n" );
+    glogparams( \%params );
+    
+    my $fq = QCMG::IO::FastqReader->new(
+                 filename => $params{infile},
+                 verbose  => $params{verbose} );
+
+    # Open the output file
+    my $outfh = IO::File->new( $params{outfile}, 'w' );
+    die "unable to open file $params{outfile} for writing: $!" unless
+        defined $outfh;
+
+    # We will assume that all reads are of the same length so the
+    # current_rec will drive our selection of positions if no
+    # positions are specified.
+    my @positions = ();
+    if (! $params{positions}) {
+        my $len = length( $fq->current_rec->{seq} );
+        push @positions, (0..($len - $params{kmerlen}));
+    }
+    else {
+        push @positions, split( ',', $params{positions} );
+    }
+
+    glogprint( 'Initiating kmer-', $params{kmerlen},
+               ' analysis at ', scalar(@positions), " positions\n" );
+
+    # Do tally keyed on position, then on kmer
+    my %kmers = ();
+    while (my $read = $fq->next_record) {
+        foreach my $start (@positions) {
+            my $kmer = substr( $read->{seq}, $start, $params{kmerlen} );
+            $kmers{ $start }->{ $kmer }++;
+        }
+        last if ($params{maxrec} and $fq->rec_ctr >= $params{maxrec});
+    }
+
+    glogprint( 'Read ', $fq->rec_ctr, " records from FASTQ\n" );
+
+    # Collect single list of all observed kmers - any single position
+    # may not show the full spectrum.
+    my %seen_kmers_orig = ();
+    foreach my $start (@positions) {
+        $seen_kmers_orig{ $_ }++ foreach (keys %{ $kmers{$start} } );
+    }
+
+    glogprint( 'Found ', scalar( keys %seen_kmers_orig ), " distinct kmers\n" );
+
+
+    # Apply threshold - any kmer that falls below the threshold is
+    # consolidated into a single 'X-Other' kmer
+
+    # Step 1 - work out denominator for each position
+    my %kmers_per_position = ();
+    foreach my $start (@positions) {
+        my @vals = values %{ $kmers{ $start } };
+        $kmers_per_position{ $start } += $_ foreach @vals;
+    }
+
+    # Step 2 - apply threshold
+    foreach my $start (@positions) {
+        my $threshold = $kmers_per_position{ $start } * $params{threshold};
+        foreach my $kmer (keys %{ $kmers{ $start } }) {
+            if ($kmers{$start}->{$kmer} < $threshold) {
+                $kmers{$start}->{'X-other'} += $kmers{$start}->{$kmer};
+                delete $kmers{$start}->{$kmer};
+            }
+        }
+    }
+
+    # Redo list of all observed kmers to see if threholding removed any
+
+    my %seen_kmers = ();
+    foreach my $start (@positions) {
+        $seen_kmers{ $_ }++ foreach (keys %{ $kmers{$start} } );
+    }
+
+    glogprint( 'Found ', scalar( keys %seen_kmers ), " distinct kmers after threshold applied\n" );
+
+    # Write report
+    $outfh->print( "\t", join("\t",@positions), "\n" );
+    foreach my $kmer (sort keys %seen_kmers) {
+        my $line = "$kmer";
+        foreach my $start (@positions) {
+            if (exists $kmers{$start}->{$kmer}) {
+                $line .= "\t". $kmers{$start}->{$kmer};
+            }
+            else {
+                $line .= "\t";
+            }
+        }
+        $outfh->print( $line, "\n" );
+    }
+
+    $outfh->close;
 
     glogend;
 }
