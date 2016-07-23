@@ -6,15 +6,19 @@
 package au.edu.qimr.qannotate.utils;
 
 
+import java.io.File;
 import java.util.Arrays;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
+import org.qcmg.common.vcf.header.VcfHeader;
+import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.common.util.Constants;
  
 
 public class SnpEffMafRecord {	
-	
 	public static final String Unknown = "unknown";
 	public static final String UnTest = "untested";
 	public static final String Other = "other";

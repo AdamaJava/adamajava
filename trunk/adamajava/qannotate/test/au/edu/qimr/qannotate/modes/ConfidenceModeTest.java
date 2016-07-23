@@ -70,12 +70,10 @@ public class ConfidenceModeTest {
 		 cm.positionRecordMap.put(vcf.getChrPosition(), java.util.Arrays.asList(vcf));
 		 cm.setSampleColumn(2,1);
 		 cm.addAnnotation();
-		 
-		 
+		 		 
  		 String conf = vcf.getInfoRecord().getField(VcfHeaderUtils.INFO_CONFIDENT);
 		 assertEquals("HIGH_1,HIGH_2", conf);
-		 
-		 
+		 		 
 		 vcf.setInfo("IN=1,2;HOM=6,ATGAAggAATGC");
 		 cm.positionRecordMap.put(vcf.getChrPosition(), java.util.Arrays.asList(vcf));
 		 cm.addAnnotation();		 		 
