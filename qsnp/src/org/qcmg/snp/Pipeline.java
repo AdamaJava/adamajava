@@ -330,7 +330,8 @@ public abstract class Pipeline {
 		if (null != bamFileName && bamFileName.length > 0) {
 			final QBamId [] bamIds = new QBamId[bamFileName.length];
 			for (int i = 0 ; i < bamFileName.length ; i++) {
-				bamIds[i] = QBamIdFactory.getBamId(bamFileName[i]);
+			//	bamIds[i] = QBamIdFactory.getBamId(bamFileName[i]);
+				bamIds[i] = QBamIdFactory.getQ3BamId(bamFileName[i]);
 			}
 			return bamIds;
 		} else {
@@ -410,22 +411,27 @@ public abstract class Pipeline {
 		header.parseHeaderLine(VcfHeaderUtils.STANDARD_CONTROL_SAMPLE + "=" + normalSampleId);		
 		header.parseHeaderLine(VcfHeaderUtils.STANDARD_TEST_SAMPLE + "=" + tumourSampleId);		
 		
+		String normalFormatSample = normalSampleId;
 		if (null != normalBamIds)  
 			for (final QBamId s : normalBamIds) {
 				header.parseHeaderLine( VcfHeaderUtils.STANDARD_CONTROL_BAM  + "=" + s.getBamName());
 				header.parseHeaderLine( "##qControlBamUUID=" + s.getUUID());
+				if(normalBamIds.length == 1)
+					normalFormatSample = StringUtils.isMissingDtaString(s.getUUID()) ? s.getBamName().replaceAll("(?i).bam$", "") : s.getUUID();
  			}
-
+		
+		String tumourFormatSample = tumourSampleId;
 		if (null != tumourBamIds)  
 			for (final QBamId s : tumourBamIds) {
 				header.parseHeaderLine(VcfHeaderUtils.STANDARD_TEST_BAM  + "=" + s.getBamName());
 				header.parseHeaderLine("##qTestBamUUID=" + s.getUUID());
+				if(tumourBamIds.length == 1)
+					tumourFormatSample = StringUtils.isMissingDtaString(s.getUUID()) ? s.getBamName().replaceAll("(?i).bam$", "") : s.getUUID();
 			}		
 		header.parseHeaderLine( "##qAnalysisId=" + uuid );
 		
 		header.addInfoLine(VcfHeaderUtils.INFO_FLANKING_SEQUENCE, "1", "String","Flanking sequence either side of variant");														
 		header.addInfoLine(VcfHeaderUtils.INFO_SOMATIC, "0", "Flag",VcfHeaderUtils.INFO_SOMATIC_DESC);														
-
 		header.addFilterLine(VcfHeaderUtils.FILTER_COVERAGE_NORMAL_12, "Less than 12 reads coverage in normal");
 		header.addFilterLine(VcfHeaderUtils.FILTER_COVERAGE_NORMAL_8,"Less than 8 reads coverage in normal");  
 		header.addFilterLine(VcfHeaderUtils.FILTER_COVERAGE_TUMOUR,"Less than 8 reads coverage in tumour"); 
@@ -450,7 +456,9 @@ public abstract class Pipeline {
 		header.addFormatLine(VcfHeaderUtils.FORMAT_GENOTYPE_QUALITY, "1", "Integer","Genotype Quality");
 		header.addFormatLine(VcfHeaderUtils.FORMAT_MUTANT_READS,  "1", "Integer","Number of mutant/variant reads");
 		header.addFormatLine(VcfHeaderUtils.FORMAT_NOVEL_STARTS, "1", "Integer","Number of novel starts not considering read pair");		
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + (normalSampleId != null ? normalSampleId + "\t" : "") + tumourSampleId);
+			
+		header.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + 
+				( normalFormatSample != null? normalSampleId + "\t" : "") + tumourFormatSample);
 		return  header;
 	}
 	
