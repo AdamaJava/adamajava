@@ -1,9 +1,7 @@
-/**
- * © Copyright QIMR Berghofer Medical Research Institute 2014-2016.
- *
- * This code is released under the terms outlined in the included LICENSE file.
-*/
 package au.edu.qimr.qannotate.utils;
+
+import java.io.File;
+import java.util.function.Function;
 
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
@@ -12,93 +10,145 @@ import org.qcmg.common.vcf.header.VcfHeaderUtils;
 
 public class SampleColumn {
 	 
-		private final int test_column ; //can't be -1 since will "+1"
-		private final int control_column ;
-		private final String test_Sample ;
-		private final String control_Sample ; 
+	private final int test_column ; //can't be -1 since will "+1"
+	private final int control_column ;
+	private final String test_Sample;
+	private final String control_Sample;
+	private final String test_bamID;
+	private final String control_bamID;
+	
+	static public SampleColumn getSampleColumn(String test, String control, VcfHeader header){			
+		return new SampleColumn(test,  control, header);
+	}
+	
+	/**
+	 * it retrive the sample column number. eg. if the second column after "FORMAT" is for the sample named "testSample", then it will report "2" to related variable
+	 * @param testSample:   testSample column name located after "FORMAT" column, put null here if vcf header already exisit qControlSample
+	 * @param controlSample:  controlSample column name located after "FORMAT" column, put null here if vcf header already exisit qTestSample
+	 * @param header: if null, it will point to this class's header; 
+	 */	
+	private SampleColumn(String test, String control, VcfHeader header){
+
+		if (header == null) 
+			throw new RuntimeException(" invalid header to null!");
 		
-		static public SampleColumn getSampleColumn(String test, String control, VcfHeader header){
-			
-			return new SampleColumn(test,  control, header);
+		String[][] sampleIds = getPossibleSampleId( header);
+		this.control_bamID = sampleIds[0][1];
+		this.test_bamID = sampleIds[1][1];	
+		String controlS = (control == null)? sampleIds[0][0] :  control;
+		String testS = (test == null)? sampleIds[1][0] :  test;
+		
+		
+		int tc = -2, cc = -2;				
+	    final String[] samples = header.getSampleId();			    
+	    
+		//incase both point into same column
+		for(int i = 0; i < samples.length; i++){ 			
+			if( ( testS != null &&  samples[i].equalsIgnoreCase(testS) )|| 
+					samples[i].equalsIgnoreCase(sampleIds[1][1]) || 
+					samples[i].equalsIgnoreCase(VcfHeaderUtils.STANDARD_TEST_SAMPLE.substring(2)) ) 
+				tc = i + 1;
+				
+			if( ( controlS != null && samples[i].equalsIgnoreCase(controlS )) || 
+					samples[i].equalsIgnoreCase(sampleIds[0][1]) || 
+					samples[i].equalsIgnoreCase(VcfHeaderUtils.STANDARD_CONTROL_SAMPLE.substring(2)) )
+				cc = i + 1;								
+		 				
 		}
 		
-		/**
-		 * it retrive the sample column number. eg. if the second column after "FORMAT" is for the sample named "testSample", then it will report "2" to related variable
-		 * @param testSample:   testSample column name located after "FORMAT" column, put null here if vcf header already exisit qControlSample
-		 * @param controlSample:  controlSample column name located after "FORMAT" column, put null here if vcf header already exisit qTestSample
-		 * @param header: if null, it will point to this class's header; 
-		 */		
-		private SampleColumn(String test, String control, VcfHeader header){
+		if( tc <= 0 || cc <= 0 )
+			throw new RuntimeException("can't find test sample id  " + test + ", or normal sample id from vcf header line: " + control );
 
-			if (header == null)
-				   throw new RuntimeException(" invalid header to null!");
+		//only keep uuid eg.  
+		int ss = Math.max(controlS.indexOf("#"), controlS.indexOf(":"));			
+		this.control_Sample = (ss > 0)?  controlS.substring(ss+1) : controlS;
+		
+		ss = Math.max(testS.indexOf("#"), testS.indexOf(":"));				
+		this.test_Sample = (ss > 0)?  testS.substring(ss+1) : testS;
+		
+		this.test_column = tc; 
+		this.control_column = cc; 
+		}		
+
+	/**
+	 * 
+	 * @param header : vcfheader
+	 * @return two dimension array {{controlSample, controlBamId}, {testSample, testBamId}}
+	 */
+	private String[][] getPossibleSampleId(  VcfHeader header){
+		//List<String> ids = new ArrayList<String>();
+		String[][] ids = new String[2][2];
+		String[][] temp = new String[2][5];
+		for (final VcfHeader.Record hr : header.getMetaRecords()) {
+			if ( hr.getData().indexOf(VcfHeaderUtils.STANDARD_CONTROL_SAMPLE) != -1)				
+				temp[0][0] = StringUtils.getValueFromKey(hr.getData(), VcfHeaderUtils.STANDARD_CONTROL_SAMPLE);
+			else if(hr.getData().indexOf(VcfHeaderUtils.STANDARD_CONTROL_SAMPLE_1) != -1)  
+				temp[0][1] = StringUtils.getValueFromKey(hr.getData(), VcfHeaderUtils.STANDARD_CONTROL_SAMPLE_1);
+			else if(hr.getData().indexOf(VcfHeaderUtils.STANDARD_CONTROL_BAMID)!= -1)  
+				temp[0][2] = StringUtils.getValueFromKey(hr.getData(), VcfHeaderUtils.STANDARD_CONTROL_BAMID );
+			else if(hr.getData().indexOf(VcfHeaderUtils.STANDARD_CONTROL_BAM)!= -1)  
+				temp[0][3] = StringUtils.getValueFromKey(hr.getData(), VcfHeaderUtils.STANDARD_CONTROL_BAM );
+			else if(hr.getData().indexOf(VcfHeaderUtils.STANDARD_CONTROL_BAM_1)!= -1)  
+				temp[0][4] = StringUtils.getValueFromKey(hr.getData(), VcfHeaderUtils.STANDARD_CONTROL_BAM_1 );
+							
+			if ( hr.getData().indexOf(VcfHeaderUtils.STANDARD_TEST_SAMPLE) != -1)				
+				temp[1][0] = StringUtils.getValueFromKey(hr.getData(), VcfHeaderUtils.STANDARD_TEST_SAMPLE);
+			else if(hr.getData().indexOf(VcfHeaderUtils.STANDARD_TEST_SAMPLE_1) != -1)  
+				temp[1][1] = StringUtils.getValueFromKey(hr.getData(), VcfHeaderUtils.STANDARD_TEST_SAMPLE_1);
+			else if(hr.getData().indexOf(VcfHeaderUtils.STANDARD_TEST_BAMID)!= -1)  
+				temp[1][2] = StringUtils.getValueFromKey(hr.getData(), VcfHeaderUtils.STANDARD_TEST_BAMID );
+			else if(hr.getData().indexOf(VcfHeaderUtils.STANDARD_TEST_BAM)!= -1)  
+				temp[1][3] = StringUtils.getValueFromKey(hr.getData(), VcfHeaderUtils.STANDARD_TEST_BAM );
+			else if(hr.getData().indexOf(VcfHeaderUtils.STANDARD_TEST_BAM_1)!= -1)  
+				temp[1][4] = StringUtils.getValueFromKey(hr.getData(), VcfHeaderUtils.STANDARD_TEST_BAM_1 );			 
+		}	
+		
+
+		Function<String, String> removeBam = (String s) -> 
+			(null != s && s.endsWith(".bam")) ? s.substring(0, (s.length() - 4)) : s;			
 			
-//			String cs = control, ts = test; 
-			for (final VcfHeader.Record hr : header.getMetaRecords()) {
-				if (control == null && hr.getData().indexOf(VcfHeaderUtils.STANDARD_CONTROL_SAMPLE) != -1) {
-					control =  StringUtils.getValueFromKey(hr.getData(), VcfHeaderUtils.STANDARD_CONTROL_SAMPLE);
-				} else if (test == null &&  hr.getData().indexOf(VcfHeaderUtils.STANDARD_TEST_SAMPLE) != -1) { 
-						test = StringUtils.getValueFromKey(hr.getData(), VcfHeaderUtils.STANDARD_TEST_SAMPLE);
+		
+		ids[0][0] = temp[0][0] != null ? temp[0][0] : temp[0][1]; //sample id
+		if( temp[0][2] != null )  ids[0][1] = temp[0][2];		  //bamid
+		else{
+			String bam = temp[0][3] != null ? temp[0][3] : temp[0][4];
+			ids[0][1] = (bam == null) ? null :  removeBam.apply(new File(bam).getName());				
+		}
+			
+		ids[1][0] = temp[1][0] != null ? temp[1][0] : temp[1][1]; //sample id
+		if( temp[1][2] != null )  ids[1][1] = temp[1][2];		  //bamid
+		else{
+			String bam = temp[1][3] != null ? temp[1][3] : temp[1][4];
+			ids[1][1] = (bam == null) ? null : removeBam.apply( new File(bam).getName());				
+		}
+ 
+		return ids;
+	
+	}
+	
+	public String getTestBamId(){ return test_bamID;}
+	public String getControlBamId(){ return control_bamID; }		
+	public int getTestSampleColumn(){ return test_column; }		
+	public int getControlSampleColumn(){ return control_column; }		
+	public String getTestSample(){ return test_Sample; }		
+	public String getControlSample(){ 	return control_Sample; }
+
+	static public String getDonorId(VcfHeader header){
+		String id = null; 
+		for (VcfHeader.Record rec : header.getMetaRecords())  
+			if (rec.getData().startsWith(VcfHeaderUtils.STANDARD_DONOR_ID)){ 
+				id = StringUtils.getValueFromKey(rec.getData(), VcfHeaderUtils.STANDARD_DONOR_ID);
+				break;			
+			}
+		 
+		if (  id == null)  
+			for (VcfHeader.Record rec : header.getMetaRecords())  
+				if (rec.getData().startsWith("##1:qDonorId")){ 
+					id = StringUtils.getValueFromKey(rec.getData(), "##1:qDonorId");
+					break;			
 				}
-			}
-			
-			
-			if (test == null || control == null) {
-				/*
-				 * try again, this time looking for "##1:qControlSample"
-				 */
-				for (final VcfHeader.Record hr : header.getMetaRecords()) {
-					if (control == null && hr.getData().indexOf(VcfHeaderUtils.STANDARD_CONTROL_SAMPLE_1) != -1) {
-						control =  StringUtils.getValueFromKey(hr.getData(), VcfHeaderUtils.STANDARD_CONTROL_SAMPLE_1);
-					} else if (test == null &&  hr.getData().indexOf(VcfHeaderUtils.STANDARD_TEST_SAMPLE_1) != -1) { 
-							test = StringUtils.getValueFromKey(hr.getData(), VcfHeaderUtils.STANDARD_TEST_SAMPLE_1);
-					}
-				}
-			}
-		    if(test == null || control == null) {
-		    		throw new RuntimeException(" Missing qControlSample or qTestSample  from VcfHeader; please specify on command line!");
-		    }
-		    
-			int tc = -2, cc = -2;					    
-		   final String[] samples = header.getSampleId();			   	   
-			//incase both point into same column
-			for(int i = 0; i < samples.length; i++){ 
-				if(samples[i].equalsIgnoreCase(test) || samples[i].equalsIgnoreCase(VcfHeaderUtils.STANDARD_TEST_SAMPLE.substring(2)))
-					tc = i + 1;
-				//else if(samples[i].equalsIgnoreCase(controlSample))
-				if(samples[i].equalsIgnoreCase(control) || samples[i].equalsIgnoreCase(VcfHeaderUtils.STANDARD_CONTROL_SAMPLE.substring(2)) )
-					cc = i + 1;
-			}
-			
-			if( tc <= 0 || cc <= 0 )
-				throw new RuntimeException("can't find test sample id  " + test + ", or normal sample id from vcf header line: " + control );
-
-			//only keep uuid eg.  
-			int ss = Math.max(control.indexOf("#"), control.indexOf(":"));			
-			control_Sample = (ss > 0)?  control.substring(ss+1) : control;
-			ss = Math.max(test.indexOf("#"), test.indexOf(":"));	
-			test_Sample = (ss > 0)?  test.substring(ss+1) : test;
-			test_column = tc; 
-			control_column = cc; 				
-			
- 		}
-		
-		public int getTestSampleColumn(){
-			return test_column;
-		}
-		
-		public int getControlSampleColumn(){
-			return control_column;
-		}
-		
-		public String getTestSample(){
-			return test_Sample;
-		}
-		
-		public String getControlSample(){
-			return control_Sample;
-		}
-
-		
-
+		return id;	 
+		 
+	}
 }
+

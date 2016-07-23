@@ -44,11 +44,11 @@ import au.edu.qimr.qannotate.Options;
 import au.edu.qimr.qannotate.utils.*;
  
 
-public class Vcf2maf extends AbstractMode{
+public class subversion_of_Vcf2maf extends AbstractMode{
 	
 	public static String PROTEINCODE = "protein_coding";
 	
-	private static final QLogger logger = QLoggerFactory.getLogger(Vcf2maf.class);
+	private static final QLogger logger = QLoggerFactory.getLogger(subversion_of_Vcf2maf.class);
 	protected final  Map<String,String> effRanking = new HashMap<String,String>();	
 	private final String center;
 	private final String sequencer;
@@ -62,7 +62,7 @@ public class Vcf2maf extends AbstractMode{
 	
 	// org.qcmg.common.dcc.DccConsequence.getWorstCaseConsequence(MutationType, String...)
 	//for unit test
-	Vcf2maf(int test_column, int control_column, String test, String control){ 
+	subversion_of_Vcf2maf(int test_column, int control_column, String test, String control){ 
 		center = SnpEffMafRecord.center;
 		sequencer = SnpEffMafRecord.Unknown; 
 		this.donorId = SnpEffMafRecord.Unknown; 		
@@ -75,7 +75,7 @@ public class Vcf2maf extends AbstractMode{
 	}
  
 	//EFF= Effect ( Effect_Impact | Functional_Class | Codon_Change | Amino_Acid_Change| Amino_Acid_Length | Gene_Name | Transcript_BioType | Gene_Coding | Transcript_ID | Exon_Rank  | Genotype_Number [ | ERRORS | WARNINGS ] )	
-	public Vcf2maf( Options option) throws Exception {
+	public subversion_of_Vcf2maf( Options option) throws Exception {
 		this.center = option.getCenter();
 		this.sequencer = option.getSequencer();		
 		
@@ -86,14 +86,62 @@ public class Vcf2maf extends AbstractMode{
 			this.test_column = column.getTestSampleColumn();
 			this.control_column = column.getControlSampleColumn();
 			this.testSample = column.getTestSample();
-			this.controlSample = column.getControlSample();				
-			this.testBamId = column.getTestBamId();
-			this.controlBamId = column.getControlBamId();
-			this.donorId = option.getDonorId() == null? SampleColumn.getDonorId(reader.getHeader()) : option.getDonorId();
-		
+			this.controlSample = column.getControlSample();	
+			getBamid(VcfHeaderUtils.STANDARD_TEST_BAMID , reader.getHeader()).ifPresent(s -> this.testBamId = s);
+			getBamid(VcfHeaderUtils.STANDARD_CONTROL_BAMID , reader.getHeader()).ifPresent(s -> this.controlBamId = s);
+			
+			Function<String,String> getFileName = (String s) -> {
+				try {
+					return Paths.get(s).toRealPath().getFileName().toString();
+				} catch (IOException ioe) {
+					throw new RuntimeException(ioe);
+				}
+			};
+			Function<String, String> removeBam = (String s) -> 
+				(null != s && s.endsWith(".bam")) ? s.substring(0, (s.length() - 4)) : s;
+ 			
+			/*
+			 * If we don't have bam ids, try and get them from the bam file name
+			 */
+			if (null == controlBamId) {
+				getBamid(VcfHeaderUtils.STANDARD_CONTROL_BAM , reader.getHeader()).ifPresent(s -> controlBamId = getFileName.apply(s));
+				if (null == controlBamId) {
+					getBamid(VcfHeaderUtils.STANDARD_CONTROL_BAM_1 , reader.getHeader()).ifPresent(s -> controlBamId = getFileName.apply(s));
+				}
+				controlBamId = removeBam.apply(controlBamId);
+			}
+			if (null == testBamId) {
+				getBamid(VcfHeaderUtils.STANDARD_TEST_BAM , reader.getHeader()).ifPresent(s -> testBamId = getFileName.apply(s));
+				if (null == testBamId) {
+					getBamid(VcfHeaderUtils.STANDARD_TEST_BAM_1 , reader.getHeader()).ifPresent(s -> testBamId = getFileName.apply(s));
+				}
+				testBamId = removeBam.apply(testBamId);
+			}
+			
+										
+			//get donor id
+			String  id = option.getDonorId() ;
+			if (  id == null) {
+				for (VcfHeader.Record rec : reader.getHeader().getMetaRecords()) {
+					if (rec.getData().startsWith(VcfHeaderUtils.STANDARD_DONOR_ID)){ 
+						id = StringUtils.getValueFromKey(rec.getData(), VcfHeaderUtils.STANDARD_DONOR_ID);
+						break;			
+					}
+				}
+				if (  id == null) {
+					for (VcfHeader.Record rec : reader.getHeader().getMetaRecords()) {
+						if (rec.getData().startsWith("##1:qDonorId")){ 
+							id = StringUtils.getValueFromKey(rec.getData(), "##1:qDonorId");
+							break;			
+						}
+					}
+				}
+			}
+			donorId = id; 			
 			logger.info(String.format("Test Sample %s is located on column %d after FORMAT", testSample, test_column));
 			logger.info(String.format("Control Sample %s is located on column %d after FORMAT", controlSample, control_column));
-			logger.info("Donor id is " + donorId);			
+			logger.info("Donor id is " + donorId);
+			
 		}
 					
 		String outputname;
@@ -227,6 +275,8 @@ public class Vcf2maf extends AbstractMode{
 			sb.append(rec.toString());
 		}
 		
+//		for(MafElement ele: EnumSet.allOf( MafElement.class))
+//			sb.append(ele.getDescription());
 		
 		Arrays.stream(writers).forEach(pw -> pw.println(sb.toString()));
 	}
@@ -310,11 +360,17 @@ public class Vcf2maf extends AbstractMode{
 			maf.setColumnValue( MafElement.Input ,  info.getField(Constants.VCF_MERGE_INFO));
 				
 		if(testBamId != null) maf.setColumnValue(MafElement.Tumor_Sample_Barcode , testBamId );
- 		if(controlBamId != null) maf.setColumnValue(MafElement.Matched_Norm_Sample_Barcode, controlBamId );	
+ 		if(controlBamId != null) maf.setColumnValue(MafElement.Matched_Norm_Sample_Barcode, controlBamId);	
  		
  		String bam = ((testBamId != null)? testBamId : MafElement.Tumor_Sample_Barcode.getDefaultValue() ) 
  				+ Constants.COLON + ((controlBamId != null) ?   controlBamId : MafElement.Matched_Norm_Sample_Barcode.getDefaultValue());
   		if(!bam.equals(Constants.COLON_STRING)) maf.setColumnValue( MafElement.BAM_File, bam);
+		
+ 		//debug
+ //		System.out.println("inside: " + bam);
+ 		
+ 			
+ //			maf.setColumnValue( MafElement.BAM_File, (testBamId != null)? testBamId : maf.getColumnValue(MafElement.Matched_Norm_Sample_Barcode) );
  				
 		if(testSample != null) maf.setColumnValue(MafElement.Tumor_Sample_UUID,   testSample );
 		if(controlSample != null) maf.setColumnValue(MafElement.Matched_Norm_Sample_UUID,  controlSample );
@@ -455,6 +511,35 @@ public class Vcf2maf extends AbstractMode{
 			 values[4] = IndelUtils.getVariantRef(ref, type);
 			 values[5] =  values[4];
 		 }
+		 		 
+//	 	 boolean useFirst = true;	 	 
+//	 	 if ( ! StringUtils.isMissingDtaString(gd)) {
+//	 		 if (isMerged) {
+//	 		 /*
+//	 		  * Need to determine which value to use, first or second.
+//	 		  * If the GDs are the same, then pick first
+//	 		  */
+//		 		 String [] gds = gd.split(VCF_MERGE_DELIM + "");
+//		 		 
+//		 		 if (gds.length == 2) {
+//		 			 if (gds[0].equals(gds[1])) {
+//		 				 // pick first
+//		 			 } else if (gds[0].equals(MISSING_DATA_STRING)) {
+//		 				 useFirst = false;
+//		 				 
+//		 			 } 
+//		 		 }
+//		 		 String gdToUse = useFirst ? gds[0] : gds[1];
+//		 		 String[] pairs = gdToUse.contains("|") ? gdToUse.split("|") : gdToUse.split("/");
+//		 		 if(pairs.length > 0) values[4] = getMafAlt(ref, pairs[0], type);
+//		 		 if(pairs.length > 1) values[5] = getMafAlt(ref, pairs[1], type);
+//	 		 
+//		 	 } else {
+//		 		 String[] pairs = gd.contains("|") ? gd.split("|") : gd.split("/");
+//		 		 if(pairs.length > 0) values[4] = getMafAlt(ref, pairs[0], type);
+//				 if(pairs.length > 1) values[5] = getMafAlt(ref, pairs[1], type);
+//		 	 }
+//		 }
 	 	 
 	 	 
 		 if(type == null)
@@ -471,6 +556,7 @@ public class Vcf2maf extends AbstractMode{
 		      		String[] counts = values[6].split(COMMA_STRING);
 		      		if(counts.length != 9) throw new Exception();
 		      		values[0] = counts[0]; //strong supporting reads nns
+		      	//	values[1] = counts[1]; //coverage
 		      		values[1] = counts[2]; //informative
 
 		      		values[3] = counts[5].substring(0,counts[5].indexOf('['));  //supporting reads total not strong support
