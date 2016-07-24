@@ -458,7 +458,8 @@ public abstract class Pipeline {
 		header.addFormatLine(VcfHeaderUtils.FORMAT_NOVEL_STARTS, "1", "Integer","Number of novel starts not considering read pair");		
 			
 		header.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + 
-				( normalFormatSample != null? normalSampleId + "\t" : "") + tumourFormatSample);
+				( normalFormatSample != null? normalFormatSample + "\t" : "") + tumourFormatSample);
+//				( normalFormatSample != null? normalSampleId + "\t" : "") + tumourFormatSample);
 		return  header;
 	}
 	
