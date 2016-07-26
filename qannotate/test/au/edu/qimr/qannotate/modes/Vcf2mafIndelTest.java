@@ -287,6 +287,51 @@ public class Vcf2mafIndelTest {
 		    }		   
 	}
 	
+	@Test
+	public void IdsTest() throws Exception{
+        String[] str = {VcfHeaderUtils.STANDARD_FILE_VERSION + "=VCFv4.0",			
+        		VcfHeaderUtils.STANDARD_FILE_VERSION + "=VCFv4.0",			
+        		VcfHeaderUtils.STANDARD_DONOR_ID + "=MELA_0264",
+        		VcfHeaderUtils.STANDARD_CONTROL_SAMPLE + "=CONTROL_sample",
+        		VcfHeaderUtils.STANDARD_TEST_SAMPLE + "=TEST_sample" ,
+        		VcfHeaderUtils.STANDARD_CONTROL_BAM + "=CONTROL_bam",
+        		VcfHeaderUtils.STANDARD_TEST_BAM + "=TEST_bam",
+        	//	VcfHeaderUtils.STANDARD_CONTROL_BAMID + "=CONTROL_bamID",
+        		VcfHeaderUtils.STANDARD_TEST_BAMID + "=TEST_bamID",
+				VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tCONTROL_bam\tTEST_sample",				
+		        "chr1\t16864\t.\tGCA\tG\t154.73\tPASS\tAC=1;AF=0.500;AN=2;BaseQRankSum=-0.387;ClippingRankSum=-0.466;DP=12;FS=0.000;MLEAC=1;MLEAF=0.500;MQ=53.00;MQ0=0;MQRankSum=0.143;QD=12.89;ReadPosRankSum=-0.143;SOR=0.495;NIOC=0;SVTYPE=DEL;END=16866;CONF=HIGH;EFF=intergenic_region(MODIFIER||||||||||1)\t"
+		        + "GT:GD:AD:DP:GQ:PL:ACINDEL\t0/1:GCA/G:6,5:11:99:192,0,516:8,18,16,8[2,6],9[9],0,0,0\t.:GC/G:8,15:23:99:601,0,384:12,35,34,12[8,4],15[13],0,1,0"
+        };
+		   
+    	try {
+			Vcf2mafTest.createVcf(str);
+			final String[] command = {"--mode", "vcf2maf",  "--log", logName,  "-i", inputName , "-o" , outputMafName};
+			au.edu.qimr.qannotate.Main.main(command);
+		} catch ( Exception e) {
+			e.printStackTrace(); 
+        	fail(); 
+		}                
+		
+		try(BufferedReader br = new BufferedReader(new FileReader(outputMafName));) {
+		    String line = null;
+		    while ((line = br.readLine()) != null) {
+			    	if(line.startsWith("#") || line.startsWith(MafElement.Hugo_Symbol.name())) continue; //skip vcf header
+			    	
+				SnpEffMafRecord maf =  toMafRecord(line);		       
+				assertTrue( maf.getColumnValue( MafElement.BAM_File).equals("TEST_bamID:CONTROL_bam")) ;
+				assertTrue( maf.getColumnValue( MafElement.Tumor_Sample_Barcode).equals("TEST_bamID")) ;
+				assertTrue( maf.getColumnValue( MafElement.Matched_Norm_Sample_Barcode).equals("CONTROL_bam")) ;
+				assertTrue( maf.getColumnValue( MafElement.Tumor_Sample_UUID).equals("TEST_sample"));
+				assertTrue( maf.getColumnValue( MafElement.Matched_Norm_Sample_UUID).equals("CONTROL_sample"));
+ 
+		 		 
+	        }	
+        }catch(Exception e){	fail(e.getMessage()); }
+        
+        new File(inputName).delete();
+		    
+	}
+	
 	public static SnpEffMafRecord toMafRecord(String line) throws Exception{
         //split string to maf record
 		SnpEffMafRecord maf = new SnpEffMafRecord();
