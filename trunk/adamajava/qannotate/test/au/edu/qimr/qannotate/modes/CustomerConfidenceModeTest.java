@@ -19,7 +19,7 @@ import org.qcmg.vcf.VCFFileReader;
 
 import au.edu.qimr.qannotate.utils.SampleColumn;
 
-public class CustomerCondidenceModeTest {
+public class CustomerConfidenceModeTest {
 	
 	 @AfterClass
 	 public static void deleteIO(){
@@ -34,7 +34,6 @@ public class CustomerCondidenceModeTest {
 			 
 		SampleColumn column =  SampleColumn.getSampleColumn(null,null,  mode.header);
 		mode.setSampleColumn(column.getTestSampleColumn(), column.getControlSampleColumn() );
-
 		mode.addAnnotation();
 		mode.reheader("testing run",   DbsnpModeTest.inputName );
 		mode.writeVCF(new File(DbsnpModeTest.outputName));
@@ -49,11 +48,9 @@ public class CustomerCondidenceModeTest {
 				else if(re.getPosition() == 41281390) 
 					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(MafConfidence.ZERO.toString())); 
 			}
-		}
-		 
+		}		 
 	 }
-			
-			
+						
 	public static void createInputFile() throws IOException{
         final List<String> data = new ArrayList<String>();
         data.add("##fileformat=VCFv4.2");
@@ -61,7 +58,7 @@ public class CustomerCondidenceModeTest {
         data.add("##qControlSample=null");
         data.add("##qTestSample=null");
         data.add("##");
-        data.add("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tnull\tnull");
+        data.add("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tqTestSample\tqControlSample");
         data.add("chr3\t41281388\t.\tT\tG\t.\t5BP55\tFLANK=ATTTAGCAAAC;CONF=HIGH\tGT:GD:AC:MR:NNS\t0/1:G/T:A0[0],15[16.53],C1[38],0[0],G0[0],105[27.78],T112[37.92],106[22.47]:105:2\t0/1:G/T:A0[0],15[16.53],C1[38],0[0],G0[0],105[27.78],T112[37.92],106[22.47]:105:2");
         data.add("chr3\t41281389\t.\tT\tG\t.\t%5BP67\tFLANK=ATTTAGCAAAC;CONF=HIGH\tGT:GD:AC:MR:NNS\t0/1:G/T:A0[0],15[16.53],C1[38],0[0],G0[0],105[27.78],T112[37.92],106[22.47]:105:2\t0/1:G/T:A0[0],15[16.53],C1[38],0[0],G0[0],15[27.78],T112[37.92],106[22.47]:15:2");
         data.add("chr3\t41281390\t.\tT\tG\t.\tSBIAS;SBIASCOV\tFLANK=ATTTAGCAAAC;CONF=HIGH\tGT:GD:AC:MR:NNS\t0/1:G/T:A0[0],15[16.53],C1[38],0[0],G0[0],105[27.78],T112[37.92],106[22.47]:105:2\t0/1:G/T:A0[0],15[16.53],C1[38],0[0],G0[0],15[27.78],T112[37.92],106[22.47]:15:2");
