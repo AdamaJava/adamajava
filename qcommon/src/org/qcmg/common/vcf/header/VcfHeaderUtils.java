@@ -129,6 +129,9 @@ public class VcfHeaderUtils {
 	public static final String STANDARD_CONTROL_BAMID = "##qControlBamUUID";
 	public static final String STANDARD_TEST_BAMID = "##qTestBamUUID";
 	
+	public static final String STANDARD_CONTROL_BAMID_1 = "##1:qControlBamUUID";
+	public static final String STANDARD_TEST_BAMID_1 = "##1:qTestBamUUID";
+	
 	public static final String STANDARD_CONTROL_VCF = "##qControlVcf";
 	public static final String STANDARD_TEST_VCF = "##qTestVcf";
 	public static final String STANDARD_CONTROL_VCF_UUID = "##qControlVcfUUID";
@@ -178,10 +181,10 @@ public class VcfHeaderUtils {
 	 * @param noColumn: add the sample id to specified sample column. First sample column is "1"
 	 */
 	public static void addSampleId(VcfHeader header, String id, int noColumn){
-		if (null == header) {
+		if ( null == header ) {
 			throw new IllegalArgumentException("null vcf header object passed to VcfHeaderUtils.addQPGLineToHeader");
 		}
-		if (noColumn < 1) {
+		if ( noColumn < 1 ) {
 			throw new IllegalArgumentException("invlaid sample column number, must be greater than 0");
 		}
 		
@@ -191,8 +194,8 @@ public class VcfHeaderUtils {
 			
 			newIds[noColumn -1] = id;
 			
-			if (exsitIds != null) {
-				System.arraycopy(exsitIds, 0, newIds, 0, exsitIds.length);
+			if ( exsitIds != null ) {
+				System.arraycopy( exsitIds, 0, newIds, 0, exsitIds.length );
 			}
 			
 			exsitIds = newIds;						
