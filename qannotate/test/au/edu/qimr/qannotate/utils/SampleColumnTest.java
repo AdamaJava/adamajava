@@ -123,6 +123,25 @@ public class SampleColumnTest {
 			assertTrue(column.getTestSampleColumn() == 2);
 			assertTrue(column.getControlSampleColumn() == 1);
         }catch(Exception e){ fail(e.getMessage());   }
+	}	
+	
+	@Test
+	public void SampleNameTest5() throws IOException {
+		String[] Sheader = header0.clone(); 
+		Sheader[6] = VcfHeaderUtils.STANDARD_CONTROL_BAMID_1 + "=bamid_1";
+		Sheader[7] = VcfHeaderUtils.STANDARD_TEST_BAMID + "=";
+		Sheader[Sheader.length-1] = VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tbamid_1\tTEST_bam";
+		 			
+    	Vcf2mafTest.createVcf(  Sheader );                
+    	try(VCFFileReader reader = new VCFFileReader(input); ){
+			SampleColumn column = SampleColumn.getSampleColumn(null, null , reader.getHeader());
+			assertTrue(column.getControlSample().equals("CONTROL_sample"));
+			assertTrue(column.getTestSample().equals("TEST_sample"));
+			assertTrue(column.getControlBamId() .equals("bamid_1"));
+			assertTrue(column.getTestBamId().equals("TEST_bam"));
+			assertTrue(column.getTestSampleColumn() == 2);
+			assertTrue(column.getControlSampleColumn() == 1);
+        }catch(Exception e){ fail(e.getMessage());   }
 	}		
 	
 }

@@ -78,14 +78,18 @@ public class SampleColumn {
 	private String[][] getPossibleSampleId(  VcfHeader header){
 		//List<String> ids = new ArrayList<String>();
 		String[][] ids = new String[2][2];
-		String[][] temp = new String[2][5];
+		String[][] temp = new String[2][6];
 		for (final VcfHeader.Record hr : header.getMetaRecords()) {
 			if ( hr.getData().indexOf(VcfHeaderUtils.STANDARD_CONTROL_SAMPLE) != -1 )				
 				temp[0][0] = StringUtils.getValueFromKey(hr.getData(), VcfHeaderUtils.STANDARD_CONTROL_SAMPLE);
 			else if(hr.getData().indexOf(VcfHeaderUtils.STANDARD_CONTROL_SAMPLE_1) != -1 )  
 				temp[0][1] = StringUtils.getValueFromKey(hr.getData(), VcfHeaderUtils.STANDARD_CONTROL_SAMPLE_1);
+
 			else if(hr.getData().indexOf(VcfHeaderUtils.STANDARD_CONTROL_BAMID)!= -1 )  
 				temp[0][2] = StringUtils.getValueFromKey(hr.getData(), VcfHeaderUtils.STANDARD_CONTROL_BAMID );
+			else if(hr.getData().indexOf(VcfHeaderUtils.STANDARD_CONTROL_BAMID_1)!= -1 )  
+				temp[0][5] = StringUtils.getValueFromKey(hr.getData(), VcfHeaderUtils.STANDARD_CONTROL_BAMID_1 );			
+
 			else if(hr.getData().indexOf(VcfHeaderUtils.STANDARD_CONTROL_BAM)!= -1 )  
 				temp[0][3] = StringUtils.getValueFromKey(hr.getData(), VcfHeaderUtils.STANDARD_CONTROL_BAM );
 			else if(hr.getData().indexOf(VcfHeaderUtils.STANDARD_CONTROL_BAM_1)!= -1 )  
@@ -95,8 +99,12 @@ public class SampleColumn {
 				temp[1][0] = StringUtils.getValueFromKey(hr.getData(), VcfHeaderUtils.STANDARD_TEST_SAMPLE);
 			else if(hr.getData().indexOf(VcfHeaderUtils.STANDARD_TEST_SAMPLE_1) != -1 )  
 				temp[1][1] = StringUtils.getValueFromKey(hr.getData(), VcfHeaderUtils.STANDARD_TEST_SAMPLE_1);
+
 			else if(hr.getData().indexOf(VcfHeaderUtils.STANDARD_TEST_BAMID)!= -1 )  
-				temp[1][2] = StringUtils.getValueFromKey(hr.getData(), VcfHeaderUtils.STANDARD_TEST_BAMID );
+				temp[1][2] = StringUtils.getValueFromKey(hr.getData(), VcfHeaderUtils.STANDARD_TEST_BAMID );			
+			else if(hr.getData().indexOf(VcfHeaderUtils.STANDARD_TEST_BAMID_1)!= -1 )  
+				temp[1][5] = StringUtils.getValueFromKey(hr.getData(), VcfHeaderUtils.STANDARD_TEST_BAMID_1 );
+			
 			else if(hr.getData().indexOf(VcfHeaderUtils.STANDARD_TEST_BAM)!= -1 )  
 				temp[1][3] = StringUtils.getValueFromKey(hr.getData(), VcfHeaderUtils.STANDARD_TEST_BAM );
 			else if(hr.getData().indexOf(VcfHeaderUtils.STANDARD_TEST_BAM_1)!= -1 )  
@@ -111,15 +119,17 @@ public class SampleColumn {
 				if( StringUtils.isMissingDtaString(temp[i][j])   || temp[i][j].equalsIgnoreCase("null")) temp[i][j] = null; 
 					
 		ids[0][0] = temp[0][0] != null ? temp[0][0] : temp[0][1]; //sample id
-		if( temp[0][2] != null )  ids[0][1] = temp[0][2];		  //bamid
-		else{
+		ids[0][1] = temp[0][2] != null ? temp[0][2] : temp[0][5];	//bamid				
+//		if( temp[0][2] != null )  ids[0][1] = temp[0][2];		  //bamid
+		if(ids[0][1] == null){
 			String bam = temp[0][3] != null ? temp[0][3] : temp[0][4];
 			ids[0][1] = (bam == null) ? null :  removeBam.apply(new File(bam).getName());				
 		}
 			
-		ids[1][0] = temp[1][0] != null ? temp[1][0] : temp[1][1]; //sample id
-		if( temp[1][2] != null )  ids[1][1] = temp[1][2];		  //bamid
-		else{
+		ids[1][0] = temp[1][0] != null ? temp[1][0] : temp[1][1];   //sample id
+		ids[1][1] = temp[1][2] != null ? temp[1][2] : temp[1][5];	//bamid		
+//		if( temp[1][2] != null )  ids[1][1] = temp[1][2];		  //bamid
+		if(ids[1][1] == null){
 			String bam = temp[1][3] != null ? temp[1][3] : temp[1][4];
 			ids[1][1] = (bam == null) ? null : removeBam.apply( new File(bam).getName());				
 		}
