@@ -66,10 +66,10 @@ public class IndelUtils {
 //	public static final String DESCRITPION_FILTER_HOM = "a digit number is attached on this FILTER id, eg. HOM24 means the nearby homopolymers sequence is 24 base long";
 	
 	public static final String INFO_NIOC = "NIOC";
-	public static final String DESCRITPION_INFO_NIOC = " counts of nearby indels compare with total coverage";	
+	public static final String DESCRITPION_INFO_NIOC = "counts of nearby indels compare with total coverage";	
 	
 	public static final String INFO_SSOI = "SSOI";
-	public static final String DESCRITPION_INFO_SSOI = " counts of strong support indels compare with total informative reads coverage";	
+	public static final String DESCRITPION_INFO_SSOI = "counts of strong support indels compare with total informative reads coverage";	
 
 	
 //	public static final String INFO_HOMCNTXT = "HOMCNTXT";
