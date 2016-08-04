@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.After;
 import org.junit.Test;
+import org.qcmg.qsv.QSVException;
 import org.qcmg.qsv.util.TestUtil;
 
 public class ClipTest {
@@ -18,21 +19,29 @@ public class ClipTest {
 	}
 	
 	@Test
-	public void testConstructor() {
+	public void split() {
+		String c = "123,123,123,123,123,123,123,123";
+		assertEquals(8, c.split(",").length);
+		c = "123,123,123,123,123,123,,";
+		assertEquals(8, c.split(",").length);
+	}
+	
+	@Test
+	public void testConstructor()  {
 		clip = TestUtil.getClip("+", "right");
 		assertFalse(clip.getIsReverse());
 		assertFalse(clip.isLeft());
 	}
 	
 	@Test
-	public void testConstructor2() {
+	public void testConstructor2()  {
 		clip = TestUtil.getClip("-", "left");
 		assertTrue(clip.getIsReverse());
 		assertTrue(clip.isLeft());
 	}
 	
 	@Test
-	public void testCompareToAreEqual() {
+	public void testCompareToAreEqual()  {
 		Clip clip1 = TestUtil.getClip("-", "left");
 		Clip clip2 = TestUtil.getClip("-", "left");
 		assertEquals(0, clip1.compareTo(clip2));
