@@ -19,14 +19,6 @@ public class ClipTest {
 	}
 	
 	@Test
-	public void split() {
-		String c = "123,123,123,123,123,123,123,123";
-		assertEquals(8, c.split(",").length);
-		c = "123,123,123,123,123,123,,";
-		assertEquals(8, c.split(",").length);
-	}
-	
-	@Test
 	public void testConstructor()  {
 		clip = TestUtil.getClip("+", "right");
 		assertFalse(clip.getIsReverse());
