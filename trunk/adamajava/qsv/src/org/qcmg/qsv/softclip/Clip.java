@@ -8,11 +8,19 @@ package org.qcmg.qsv.softclip;
 
 import htsjdk.samtools.SAMRecord;
 
+import org.qcmg.common.log.QLogger;
+import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.string.StringUtils;
+import org.qcmg.common.util.Constants;
+import org.qcmg.common.util.TabTokenizer;
+import org.qcmg.qsv.QSVException;
 import org.qcmg.qsv.util.QSVUtil;
 
 public class Clip implements Comparable<Clip>{
 	
-	private static final String LEFT = "left";
+	public static final String LEFT = "left";
+	public static final String RIGHT = "right";
+	private static final QLogger logger = QLoggerFactory.getLogger(Clip.class);
 	
 	private final String reference;
 	private final int bpPos;
@@ -27,6 +35,9 @@ public class Clip implements Comparable<Clip>{
 	public Clip(SAMRecord record, int bpPos, String sequence, String aligned, String side) {
 		this.readName = record.getReadName() + ":" + (record.getReadGroup() != null ? record.getReadGroup().getId() : "");
 		this.readSequence = record.getReadString();
+		if (StringUtils.isNullOrEmpty(readSequence)) {
+			logger.warn("Null or empty read sequence for record: " + record.getSAMString());
+		}
 		this.reference = record.getReferenceName();
 		this.bpPos = bpPos;
 		this.length = sequence.length();
@@ -36,9 +47,12 @@ public class Clip implements Comparable<Clip>{
 		this.isLeft = side.equals(LEFT);
 	}
 
-	public Clip(String line) {
-		String[] values = line.split(",");
-//		try {
+	public Clip(String line) throws QSVException {
+		String[] values = TabTokenizer.tokenize(line, Constants.COMMA);
+		if (values.length < 8) {
+			logger.error("Clip line does not contain 8 comma seperated values: " + line);
+			throw new QSVException("Clip line does not contain 8 comma seperated values: " + line);
+		}
 		this.readName = values[0];
 		this.reference = values[1];
 		this.bpPos = Integer.parseInt(values[2]);
@@ -48,9 +62,6 @@ public class Clip implements Comparable<Clip>{
 		this.clipSequence = values[6];
 		this.length = clipSequence.length();
 		this.referenceSequence = values[7];
-//		} catch (Exception e) {
-//			System.out.println(line + " " + values.length);
-//		}
 	}
 
 	public String getReference() {
@@ -94,7 +105,7 @@ public class Clip implements Comparable<Clip>{
 
 	@Override
 	public String toString() {
-		return this.readName + "," + this.reference + "," + this.bpPos + "," + getStrand() + "," + (this.isLeft ? LEFT : "right") + "," + this.readSequence + "," + this.clipSequence + "," + this.referenceSequence +  QSVUtil.getNewLine();		
+		return this.readName + "," + this.reference + "," + this.bpPos + "," + getStrand() + "," + (this.isLeft ? LEFT : RIGHT) + "," + this.readSequence + "," + this.clipSequence + "," + this.referenceSequence +  QSVUtil.getNewLine();		
 	}
 
 	@Override

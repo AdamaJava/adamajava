@@ -18,6 +18,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.qcmg.qsv.QSVException;
 import org.qcmg.qsv.QSVParameters;
 import org.qcmg.qsv.assemble.ConsensusRead;
 import org.qcmg.qsv.blat.BLAT;
@@ -133,7 +134,7 @@ public class BreakpointTest {
 	}
 	
 	@Test
-	public void calculateStrand() {
+	public void calculateStrand() throws QSVException {
 		assertStrand(QSVUtil.PLUS, QSVUtil.PLUS, false, 2,0);
 		assertStrand(QSVUtil.MINUS, QSVUtil.MINUS, false, 0, 2);
 		assertStrand(QSVUtil.PLUS, QSVUtil.PLUS, true, 4,0);
@@ -185,7 +186,7 @@ public class BreakpointTest {
 	}
 
 	private void assertStrand(char strand1, char strand2, boolean isGermline,
-			int posStrandCount, int negStrandCount) {
+			int posStrandCount, int negStrandCount) throws QSVException {
 		breakpoint = new Breakpoint(1, "reference", true, 1, 1);	
 		HashSet<Clip> set = new HashSet<Clip>();
 		set.add(new Clip("test,chr10,89712341,"+strand1+",left,ACTTTGAAAAAACAGTAATTAA,ACTTTGAAAAAACAGTAATT,AA"));		

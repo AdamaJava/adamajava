@@ -43,6 +43,7 @@ import org.qcmg.qsv.Chromosome;
 import org.qcmg.qsv.Options;
 import org.qcmg.qsv.QSVCluster;
 import org.qcmg.qsv.QSVClusterWriter;
+import org.qcmg.qsv.QSVException;
 import org.qcmg.qsv.QSVParameters;
 import org.qcmg.qsv.blat.BLAT;
 import org.qcmg.qsv.blat.BLATRecord;
@@ -830,7 +831,7 @@ public class FindClipClustersMT  {
 
 		private void getClipPositions(boolean isTumour, TreeMap<Integer, Breakpoint> leftPositions,
 				TreeMap<Integer, Breakpoint> rightPositions, TreeMap<Integer, List<UnmappedRead>> splitReads, String type)
-						throws IOException {
+						throws IOException, QSVException {
 			File file = new File(SoftClipStaticMethods.getSoftClipFile(chromosome.getName(), type, softClipDir));			
 
 			logger.info("Getting  " + type + " clips for " + chromosome.getName());
