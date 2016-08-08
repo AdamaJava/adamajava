@@ -173,7 +173,7 @@ public class BLAT {
 		// delete generated files
 		Files.deleteIfExists(faFile.toPath());
 		
-		List<BLATRecord> records = new ArrayList<BLATRecord>();
+		List<BLATRecord> records = new ArrayList<>();
 		
 		File out = new File(outFile);
 		try (TabbedFileReader reader = new TabbedFileReader(out);) {
@@ -195,14 +195,18 @@ public class BLAT {
 		// delete generated files
 		Files.deleteIfExists(out.toPath());
 		
-		Collections.sort(records);		
+		/*
+		 * java 8 List sort should be better than Collections.sort
+		 */
+		records.sort(null);
+//		Collections.sort(records);		
 		return records;		
 	}
 
 	public List<BLATRecord> getBlatResults(String blatFile, String leftReference, String rightReference, String name) throws Exception {
 		File outFile = new File(blatFile.replace(".fa", ".psl"));
 		
-		List<BLATRecord> records = new ArrayList<BLATRecord>();
+		List<BLATRecord> records = new ArrayList<>();
 		
 		try (TabbedFileReader reader = new TabbedFileReader(outFile);) {
 
@@ -221,7 +225,11 @@ public class BLAT {
 			}
 		}
 		
-		Collections.sort(records);	
+		/*
+		 * java 8 List sort should be better than Collections.sort
+		 */
+		records.sort(null);
+//		Collections.sort(records);	
 		return records;
 	}
 
