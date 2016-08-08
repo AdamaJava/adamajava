@@ -151,7 +151,7 @@ public class SignatureCompareRelatedSimpleGenotypeMT {
 		populateCache(files);
 		
 		cache.forEach((k,v) -> {
-			fileIdsAndCounts.get(k)[1] = v.size();
+			fileIdsAndCounts.get(k.getAbsolutePath())[1] = v.size();
 		});
 		
 		logger.info("number of entries in cache: " + cache.size());
