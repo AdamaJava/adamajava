@@ -894,6 +894,8 @@ public class FindClipClustersMT  {
 						line = reader.readLine();
 					}
 				}
+			} else {
+				logger.warn("No file found for: " + chromosome.getName() + ", file: " + file.getAbsolutePath());
 			}
 			if (isTumour) {
 				logger.info("Total number of " + type + " clip positions for " + chromosome.getName() + ": " + (leftPositions.size() + rightPositions.size()));
