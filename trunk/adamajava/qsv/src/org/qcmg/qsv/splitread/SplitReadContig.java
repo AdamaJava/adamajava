@@ -808,15 +808,18 @@ public class SplitReadContig {
 
 	private void getBestBlocksFromBLAT(BLATRecord record) {
 
-		String[] starts = record.getUnmodifiedStarts();
-		String[] blocks = record.getBlockSizes();
-		String[] startPoses = record.gettStarts();
+		int[] starts = record.getUnmodifiedStarts();
+		int[] blocks = record.getBlockSizes();
+		int[] startPoses = record.gettStarts();
+//		String[] startPoses = record.gettStarts();
 		if (starts != null && blocks != null && startPoses != null) {
 			for (int i=0; i<record.getBlockCount(); i++) {
-				int startPos = new Integer(startPoses[i]);
-				int endPos = new Integer(startPoses[i]) + new Integer(blocks[i]) -1;
-				int start =new Integer(starts[i]);
-				int end = start + new Integer(blocks[i])-1;
+				int startPos = startPoses[i];
+				int endPos = startPos + blocks[i] -1;
+				int start = starts[i];
+//				int startPos = new Integer(startPoses[i]);
+//				int endPos = new Integer(startPoses[i]) + new Integer(blocks[i]) -1;
+				int end = start + blocks[i] - 1;
 				SplitReadAlignment newAlign = new SplitReadAlignment(record.getReference(), record.getStrand(), startPos, endPos, start, end);
 				if (passesNewAlignmentFilters(newAlign)) {
 					if (left == null && right == null) {
@@ -896,17 +899,17 @@ public class SplitReadContig {
 	}
 
 	private SplitReadAlignment getPutativeOtherAlignment(Integer queryStart, Integer queryEnd, BLATRecord r) {
-		String[] starts = r.getUnmodifiedStarts();
-		String[] blocks = r.getBlockSizes();
-		String[] startPoses = r.gettStarts();
+		int[] starts = r.getUnmodifiedStarts();
+		int[] blocks = r.getBlockSizes();
+		int[] startPoses = r.gettStarts();
 		SplitReadAlignment align = null;
 		int difference = length;
 		if (r.getBlockCount() > 1) {
 			for (int i=0; i<starts.length; i++) {
-				int start =new Integer(starts[i]);
-				int end = start + new Integer(blocks[i])-1;
-				int startPos = new Integer(startPoses[i]);
-				int endPos = new Integer(startPoses[i]) + new Integer(blocks[i]) -1;				
+				int start = starts[i];
+				int end = start + blocks[i] - 1;
+				int startPos = startPoses[i];
+				int endPos = startPos + blocks[i] -1;				
 				align = new SplitReadAlignment(r.getReference(), r.getStrand(), startPos, endPos, start, end);
 				if (!align.equals(getSingleSplitReadAlignment()) && passesNewAlignmentFilters(align)) {
 					return getAlignmentDifference(queryStart, queryEnd, difference, align);
@@ -1022,10 +1025,10 @@ public class SplitReadContig {
 
 	public boolean checkBlockSize(BLATRecord r) {
 		if (r.getBlockCount() > 1) {
-			String[] blocks = r.getBlockSizes();
+			int[] blocks = r.getBlockSizes();
 			int passCount = 0;
 			for (int i=0; i<blocks.length; i++) {
-				if (new Integer(blocks[i]).intValue() > 20) {
+				if (blocks[i] > 20) {
 					passCount++;
 				}
 			}
