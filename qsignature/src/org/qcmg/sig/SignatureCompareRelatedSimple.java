@@ -232,14 +232,14 @@ public class SignatureCompareRelatedSimple {
 			if (cache.size() < cacheSize) {
 				cache.put(f, result);
 			}
-			fileIdsAndCounts.get(f)[1] = result.size();
+			fileIdsAndCounts.get(f.getAbsolutePath())[1] = result.size();
 			/*
 			 * average coverage
 			 */
 			IntSummaryStatistics iss = result.values().stream()
 					.mapToInt(array -> (int) array[4])
 					.summaryStatistics();
-			fileIdsAndCounts.get(f)[2] = (int) iss.getAverage();
+			fileIdsAndCounts.get(f.getAbsolutePath())[2] = (int) iss.getAverage();
 		}
 		return result;
 	}

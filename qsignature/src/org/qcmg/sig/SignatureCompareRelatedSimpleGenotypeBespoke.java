@@ -226,7 +226,7 @@ public class SignatureCompareRelatedSimpleGenotypeBespoke {
 //			if (cache.size() < cacheSize) {
 				cache.put(f, result);
 //			}
-			fileIdsAndCounts.get(f)[1] = result.getValue().size();
+			fileIdsAndCounts.get(f.getAbsolutePath())[1] = result.getValue().size();
 			/*
 			 * average coverage
 			 */
