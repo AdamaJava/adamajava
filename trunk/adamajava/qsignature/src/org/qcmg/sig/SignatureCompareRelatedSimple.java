@@ -73,13 +73,13 @@ public class SignatureCompareRelatedSimple {
 	private List<String> excludes;
 	private String logFile;
 	
-	private final Map<File, int[]> fileIdsAndCounts = new THashMap<>();
+	private final Map<String, int[]> fileIdsAndCounts = new THashMap<>();
 	private final List<Comparison> allComparisons = new ArrayList<>();
 	
 	private final Map<File, Map<ChrPosition, float[]>> cache = new THashMap<>(cacheSize * 2);
 //	private final Map<File, TIntShortHashMap> cache = new THashMap<>(cacheSize * 2);
 	
-	List<String> suspiciousResults = new ArrayList<String>();
+	List<String> suspiciousResults = new ArrayList<>();
 	
 	private int engage() throws Exception {
 		
@@ -259,14 +259,14 @@ public class SignatureCompareRelatedSimple {
 		
 		// write output xml file
 		// do it to console first...
-		List<File> keys = new ArrayList<>( fileIdsAndCounts.keySet());
-		Collections.sort(keys, FileUtils.FILE_COMPARATOR);
-		for (File f  : keys) {
+		List<String> keys = new ArrayList<>( fileIdsAndCounts.keySet());
+		keys.sort(null);
+		for (String f  : keys) {
 			int[] value = fileIdsAndCounts.get(f);
 			
 			Element fileE = doc.createElement("file");
 			fileE.setAttribute("id", value[0] + "");
-			fileE.setAttribute("name", f.getAbsolutePath());
+			fileE.setAttribute("name", f);
 			fileE.setAttribute("coverage", value[1] + "");
 			fileE.setAttribute("average_coverage_at_positions", value[2] + "");
 			filesE.appendChild(fileE);
@@ -302,7 +302,7 @@ public class SignatureCompareRelatedSimple {
 	private void addFilesToMap(List<File> orderedFiles) {
 		int id = 1;
 		for (File f : orderedFiles) {
-			fileIdsAndCounts.put(f, new int[]{id++, -1, -1});
+			fileIdsAndCounts.put(f.getAbsolutePath(), new int[]{id++, -1, -1});
 		}
 	}
 
