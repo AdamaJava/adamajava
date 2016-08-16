@@ -20,9 +20,7 @@ import org.w3c.dom.Element;
 
 public abstract class SummaryReport {
 	
-//	private final Counter recordsParsed = new Counter();
 	private final AtomicLong recordsParsed = new AtomicLong();
-//	private final AtomicLong recordsinputed = new AtomicLong();
 	
 	private String startTime;
 	private String finishTime;
@@ -30,7 +28,6 @@ public abstract class SummaryReport {
 	private String generatedByVersion;
 	private String fileName;
 	
-//	protected static Logger logger;
 	protected QLogger logger;
 	
 	/**
@@ -40,12 +37,6 @@ public abstract class SummaryReport {
 		logger = QLoggerFactory.getLogger(getClass());
 	}
 
-//	public long getRecordsInputed() {
-//		return recordsinputed.get();
-//	}
-// 	public void updateRecordsInputed() {
-// 		recordsinputed.incrementAndGet();
-//	}
 	public long getRecordsParsed() {
 		return recordsParsed.get();
 	}
@@ -92,14 +83,9 @@ public abstract class SummaryReport {
 		Element element = parent.getOwnerDocument().createElement(reportType + "Report");
 		parent.appendChild(element);
 		
-//		element.setAttribute("generated_by", getGeneratedBy());
-//		element.setAttribute("generated_by_version", getGeneratedByVersion());
 		element.setAttribute("file", getFileName());
 		element.setAttribute("execution_started", getStartTime());
 		element.setAttribute("execution_finished", getFinishTime());
-//		if(getRecordsInputed() != 0)
-//			element.setAttribute("records_inputed", "" + getRecordsInputed() );
-//		else if(getRecordsParsed() != 0)
 		element.setAttribute("records_parsed", "" + getRecordsParsed() );
 		if (null != maxRecords)
 			element.setAttribute("max_no_of_records", maxRecords.toString());
@@ -120,10 +106,6 @@ public abstract class SummaryReport {
 	protected Element init(Element parent, ProfileType reportType) {
 		return init(parent, reportType, null, null, null);
 	}
-	
-//	protected Element init(Element parent, String reportName) {
-//		return init(parent, reportName, null, null, null);
-//	}
 	
 	protected Element createSubElement(Element parent, String name) {
 		Element element = parent.getOwnerDocument().createElement(name);
