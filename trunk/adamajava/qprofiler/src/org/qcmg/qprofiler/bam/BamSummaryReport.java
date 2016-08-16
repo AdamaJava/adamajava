@@ -1137,23 +1137,24 @@ public class BamSummaryReport extends SummaryReport {
 	
 		//get the position of median
 			long sum = 0,counts = 0;
-			for (int i = 1 ; i < array.length() ; i++){
+			long arrayLength = null != array ? array.length() : 0;
+			for (int i = 1 ; i < arrayLength ; i++){
 				counts += array.get(i);
 				sum += i * array.get(i);
 			}
 			
 			int mean = (counts == 0) ? 0: (int) (sum / counts);
-			long medium = array.get( (int) (array.length() / 2));
+			long medium = arrayLength > 0 ? array.get( (int) (arrayLength / 2)) : 0;
 			
 			medium = 0;
-			for (int i = 0 ; i < array.length() ; i++)
+			for (int i = 0 ; i < arrayLength ; i++)
 				if((medium += array.get(i)) >= counts/2  ){
 					medium = i; 
 					break; 
 				}
 			int min = 0, max = 0, mode = 0; 
 			long highest = 0;
-			for (int i = 1 ; i < array.length() ; i++) 
+			for (int i = 1 ; i < arrayLength ; i++) 
 				if(array.get(i) > 0){
 					//last non-zero position
 					max = i;					
