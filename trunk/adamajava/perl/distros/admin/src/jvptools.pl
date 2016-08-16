@@ -93,6 +93,7 @@ MAIN: {
                           illumina_panel_manifest
                           cnv_format_convert
                           fastq_kmer
+                          add_entrezgene_to_maf
                           );
 
     if ($mode =~ /^$valid_modes[0]$/i or $mode =~ /\?/) {
@@ -166,6 +167,9 @@ MAIN: {
     elsif ($mode =~ /^$valid_modes[22]/i) {
         fastq_kmer();
     }
+    elsif ($mode =~ /^$valid_modes[23]/i) {
+        add_entrezgene_to_maf();
+    }
     else {
         die "jvptools mode [$mode] is unrecognised; valid modes are:\n   ".
             join("\n   ",@valid_modes) ."\n";
@@ -176,6 +180,126 @@ MAIN: {
 sub moved_to_qcovtools {
     my $mode = shift;
     warn "mode [$mode] has moved to qcovtools.pl\n";
+}
+
+
+sub add_entrezgene_to_maf {
+    # Print help message if no CLI params
+    pod2usage( -exitval  => 0,
+               -verbose  => 99,
+               -sections => 'COMMAND DETAILS/add_entrezgene_to_maf' )
+        unless (scalar @ARGV > 0);
+
+    # Setup defaults for CLI params
+    my %params = ( infile      => '',
+                   outfile     => '',
+                   logfile     => '',
+                   verbose     => 0 );
+
+    my $results = GetOptions (
+           'i|infile=s'           => \$params{infile},        # -i
+           'e|entrezfile=s'       => \$params{entrezfile},    # -e
+           'o|outfile=s'          => \$params{outfile},       # -o
+           'l|logfile=s'          => \$params{logfile},       # -l
+           'v|verbose+'           => \$params{verbose},       # -v
+           );
+
+    # It is mandatory to supply the following inputs
+    die "You must specify an infile\n" unless $params{infile};
+    die "You must specify an entrez (gene2accession) file\n" unless $params{entrezfile};
+    die "You must specify an outfile\n" unless $params{outfile};
+
+    # Set up logging
+    glogfile($params{logfile}) if $params{logfile};
+    glogbegin();
+    glogprint( {l=>'EXEC'}, "CommandLine $CMDLINE\n" );
+    glogparams( \%params );
+
+    # Open the gene2accession file from NCBI and make sure the header
+    # line matches what we are expecting.
+
+    my $enzfh = undef;
+    if ( $params{entrezfile} =~ /\.gz$/ ) {
+        $enzfh = IO::Zlib->new( $params{entrezfile}, 'r' );
+        confess 'Unable to open ', $params{entrexfile}, " for reading: $!"
+            unless defined $enzfh;
+    }
+    else {
+        $enzfh = IO::File->new( $params{entrezfile}, 'r' );
+        confess 'Unable to open ', $params{entrezfile}, " for reading: $!"
+            unless defined $enzfh;
+    }
+ 
+    my @expected_headers = qw( tax_id
+                               GeneID
+                               status
+                               RNA_nucleotide_accession.version
+                               RNA_nucleotide_gi
+                               protein_accession.version
+                               protein_gi
+                               genomic_nucleotide_accession.version
+                               genomic_nucleotide_gi
+                               start_position_on_the_genomic_accession
+                               end_position_on_the_genomic_accession
+                               orientation
+                               assembly
+                               mature_peptide_accession.version
+                               mature_peptide_gi
+                               Symbol
+                               );
+
+    my $expected_header_line = '#'. join("\t",@expected_headers) ."\n";
+    my $observed_header_line = $enzfh->getline;
+
+    if ($expected_header_line ne $observed_header_line) {
+       die "found $observed_header_line\n expected $expected_header_line\n";
+    }
+
+    # Create the hash mapping Symbol-to-GeneID but only do it for lines
+    # where the tax_id = 9606, i.e. human.
+
+    my %symbol2geneid = ();
+    while (my $line = $enzfh->getline) {
+        # Do the only-for-human check immediately
+        next unless ($line =~ /^9606\t/);
+        chomp $line;
+        my @fields = split /\t/, $line;
+        $symbol2geneid{ $fields[15] } = $fields[2];
+    }
+    glogprint( "Found ", scalar( keys %symbol2geneid ), " human gene symbols\n" );
+    $enzfh->close;
+
+    # Read the extended-maf file
+
+    my $maffh = IO::File->new( $params{infile}, 'r' );
+    confess 'Unable to open ', $params{infile}, " for reading: $!"
+        unless defined $maffh;
+    my $maf_header_line = $maffh->getline;
+
+    # Open the output file.
+
+    my $outfh =IO::File->new( $params{outfile}, 'w' )
+        or confess "Can't open file [", $params{outfile},
+                 "] for writing: $!";
+    $outfh->print( $maf_header_line );
+
+    # In the input file, there is a single line for each gene but in the
+    # output file there must be a separate line for each type of
+    # copynumber change for each gene.  So we will need to deconstruct
+    # each input line into one or more output lines.
+
+    while (my $line = $maffh->getline) {
+        chomp $line;
+        my @fields = split /\t/, $line;
+#        # Remove leading/trailing spaces on all fields
+#        foreach my $ctr (0..$#fields) {
+#            $fields[$ctr] =~ s/^\s+//g;
+#            $fields[$ctr] =~ s/\s+$//g;
+#        }
+
+    }
+
+    glogend;
 }
 
 
@@ -353,7 +477,6 @@ sub cnv_format_convert {
         #print Dumper \%dels, \%cnlohs, \%gains;
         #die;
     }
-
 
     glogend;
 }
@@ -722,7 +845,7 @@ sub cosmic_vs_dbsnp {
 
     # Open COSMIC database and save records
 
-    my $cos =IO::File->new( $params{cosmic}, 'r' )
+    my $cos = IO::File->new( $params{cosmic}, 'r' )
         or croak 'Can\'t open file [', $params{cosmic},
                  "] for reading: $!";
     glogprint( 'Opening COSMIC file for reading - ',$params{cosmic},"\n" )
@@ -2522,6 +2645,7 @@ that routine you know you wrote but can't remember where it is.
  align_2_csvs       - align 2 CSVs based on ID in first column
  wikitable_media2moin - convert MediaWiki tables to Moin syntax
  cnv_format_convert - convert TITAN format to GAP
+ add_entrezgene_to_maf - add Entrez Gene Id numbers to MAF
  version            - print version number and exit immediately
  help               - display usage summary
  man                - display full man page
@@ -2872,7 +2996,26 @@ in the output file are not going to line up properly.
  -l | --logfile    log file (optional)
  -v | --verbose    print progress and diagnostic messages
 
-Converts one CNV file format int another.
+Converts one CNV file format into another.
+
+=head2 add_entrezgene_to_maf
+
+ -i | --infile     CNV file in NicW summary format
+ -o | --outfile    output CNV file in GapSummary format
+ -l | --logfile    log file (optional)
+ -v | --verbose    print progress and diagnostic messages
+
+Our older MAF files have "0" for all records for the field
+Entrez_Gene_Id.  This field is supposed to hold the Entrez gene if which
+is an integer.  However, we use Ensembl rather than Refseq for our gene 
+model and Ensembl gene identifiers are not integers (all have "ENSG" as a
+prefix) so they do not fit in this integer field.  Consequently we leave
+it empty.
+
+The MAF spec is at:
+
+https://wiki.nci.nih.gov/display/TCGA/Mutation+Annotation+Format+%28MAF%29+Specification
+
 
 =head1 AUTHOR
 
