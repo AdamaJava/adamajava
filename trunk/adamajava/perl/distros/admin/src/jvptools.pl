@@ -259,14 +259,22 @@ sub add_entrezgene_to_maf {
     # where the tax_id = 9606, i.e. human.
 
     my %symbol2geneid = ();
+    my $linectr = 0;
+    my $hsctr   = 0;
     while (my $line = $enzfh->getline) {
+        $linectr++;
         # Do the only-for-human check immediately
         next unless ($line =~ /^9606\t/);
+        $hsctr++;
         chomp $line;
         my @fields = split /\t/, $line;
-        $symbol2geneid{ $fields[15] } = $fields[2];
+        $symbol2geneid{ $fields[15] } = $fields[1];
+        #glogprint( "$line\n" );
+        #glogprint( "$fields[1] $fields[15]\n" );
+        #die if $hsctr > 10;
     }
-    glogprint( "Found ", scalar( keys %symbol2geneid ), " human gene symbols\n" );
+    glogprint( "found $linectr records of which $hsctr were for human (taxid:9606)\n" );
+    glogprint( "found ", scalar( keys %symbol2geneid ), " human gene symbols\n" );
     $enzfh->close;
 
     # Read the extended-maf file
@@ -283,20 +291,32 @@ sub add_entrezgene_to_maf {
                  "] for writing: $!";
     $outfh->print( $maf_header_line );
 
-    # In the input file, there is a single line for each gene but in the
-    # output file there must be a separate line for each type of
-    # copynumber change for each gene.  So we will need to deconstruct
-    # each input line into one or more output lines.
-
+    my %missing_symbols = ();
+    my $replaced_ctr     = 0;
+    my $not_replaced_ctr = 0;
     while (my $line = $maffh->getline) {
         chomp $line;
         my @fields = split /\t/, $line;
-#        # Remove leading/trailing spaces on all fields
-#        foreach my $ctr (0..$#fields) {
-#            $fields[$ctr] =~ s/^\s+//g;
-#            $fields[$ctr] =~ s/\s+$//g;
-#        }
+        if ($fields[1] eq '0') {
+            if (exists $symbol2geneid{ $fields[0] }) {
+                $fields[1] = $symbol2geneid{ $fields[0] };
+                $replaced_ctr++;
+            }
+            else {
+                $missing_symbols{ $fields[0] }++;
+                $not_replaced_ctr++;
+            }
+        }
+        $outfh->print( join("\t",@fields), "\n" );
+    }
+    $outfh->close;
 
+    glogprint( "$replaced_ctr missing gene ids were replaced based on gene symbols\n" );
+    glogprint( "$not_replaced_ctr missing gene ids were not replaced because the gene symbol could not be matched\n" );
+    warn scalar( keys %missing_symbols ), " gene symbols from MAF were not found in gene2accession file\n" ;
+
+    foreach my $key (sort keys %missing_symbols) {
+        warn "missing symbol $key appeared in MAF ",$missing_symbols{$key}," times\n" ;
     }
 
     glogend;
