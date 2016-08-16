@@ -28,6 +28,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class StaticMethods {
+	
+	public static final String EMPTY = "EMPTY";
 	public static final String DATE_FORMAT_NOW = "yyyy-MM-dd HH:mm:ss";
 	private static Pattern fileVersionPattern = Pattern.compile("^(.*)\\.(\\d+)$");
 
@@ -37,6 +39,7 @@ public class StaticMethods {
 	 * @return date-time string in format: yyyy-MM-dd HH:mm:ss
 	 * @deprecated use <code>DateUtils.getCurrentDateAsString()</code> instead
 	 */
+	@Deprecated
 	public static String now() {
 		Calendar cal = Calendar.getInstance();
 		SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT_NOW);
