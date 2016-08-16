@@ -46,6 +46,7 @@ import org.qcmg.common.model.SummaryByCycle;
 import org.qcmg.common.model.SummaryByCycleNew2;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.SummaryByCycleUtils;
+import org.qcmg.qprofiler.StaticMethods;
 import org.qcmg.qprofiler.report.SummaryReport;
 import org.qcmg.qprofiler.util.FlagUtil;
 import org.qcmg.qprofiler.util.SummaryReportUtils;
@@ -638,7 +639,6 @@ public class BamSummaryReport extends SummaryReport {
 	 */
 	public void parseRecord(final SAMRecord record) throws Exception{
  		updateRecordsParsed();
-//		updateRecordsInputed();
 		MAPQMatrix matrix = null;
 
 		final byte[] readString = record.getReadBases();
@@ -647,41 +647,43 @@ public class BamSummaryReport extends SummaryReport {
 		String readGroup = (String) record.getAttribute(RG);
 		if (null == readGroup) {
 			SAMReadGroupRecord srgr = record.getReadGroup();
-			if (null != srgr)
-				readGroup = record.getReadGroup().getReadGroupId();
-			else readGroup = "EMPTY"; 
+			readGroup = (null != srgr) ? srgr.getReadGroupId() : StaticMethods.EMPTY;
 		}
 				
 		// check if record has its fail or duplicate flag set.
 		// if so, miss out some of the summaries
-		if(record.getSupplementaryAlignmentFlag()) {		//not counted		
-			if(!supplementaryByReadGroupMap.containsKey(readGroup))
+		if ( record.getSupplementaryAlignmentFlag()) {		//not counted		
+			if ( ! supplementaryByReadGroupMap.containsKey(readGroup)) {
 				supplementaryByReadGroupMap.putIfAbsent(readGroup, new AtomicLong());
+			}
 			supplementaryByReadGroupMap.get(readGroup).incrementAndGet();
-  		}else if(record.getNotPrimaryAlignmentFlag()){  //not counted
-			if(!secondaryByReadGroupMap.containsKey(readGroup))
+  		} else if(record.getNotPrimaryAlignmentFlag()){  //not counted
+			if ( ! secondaryByReadGroupMap.containsKey(readGroup)) {
 				secondaryByReadGroupMap.putIfAbsent(readGroup, new AtomicLong());
+			}
 			secondaryByReadGroupMap.get(readGroup).incrementAndGet();
- 		}else if (record.getReadFailsVendorQualityCheckFlag()) { //not counted
-			if(!failedVendorQualityByReadGroupMap.containsKey(readGroup))
+ 		} else if (record.getReadFailsVendorQualityCheckFlag()) { //not counted
+			if ( ! failedVendorQualityByReadGroupMap.containsKey(readGroup)) {
 				failedVendorQualityByReadGroupMap.put(readGroup, new AtomicLong());
+			}
 			failedVendorQualityByReadGroupMap.get(readGroup).incrementAndGet();
-		}else if(record.getReadUnmappedFlag()){
- 			if(! unmappedByReadGroupMap.containsKey(readGroup) )
-				unmappedByReadGroupMap.put(readGroup, new AtomicLong());	
+		} else if (record.getReadUnmappedFlag()){
+ 			if ( ! unmappedByReadGroupMap.containsKey(readGroup) ) {
+				unmappedByReadGroupMap.put(readGroup, new AtomicLong());
+ 			}
 			unmappedByReadGroupMap.get(readGroup).incrementAndGet(); 
-		}else if (record.getDuplicateReadFlag()) {	
-  			if(!duplicateByReadGroupMap.containsKey(readGroup) )
-				duplicateByReadGroupMap.putIfAbsent(readGroup, new AtomicLong());	
+		} else if (record.getDuplicateReadFlag()) {	
+  			if ( ! duplicateByReadGroupMap.containsKey(readGroup) ) {
+				duplicateByReadGroupMap.putIfAbsent(readGroup, new AtomicLong());
+  			}
 			duplicateByReadGroupMap.get(readGroup).incrementAndGet();			
-		}else if(record.getReadPairedFlag() &&  record.getReadNegativeStrandFlag() == record.getMateNegativeStrandFlag()){
-//		}else if( record.getReadNegativeStrandFlag() == record.getMateNegativeStrandFlag()){
+		} else if (record.getReadPairedFlag() &&  reverseStrand == record.getMateNegativeStrandFlag()){
 
-			if(!nonCanonicalReadGroupMap.containsKey(readGroup))
-				nonCanonicalReadGroupMap.putIfAbsent(readGroup, new AtomicLong());				
+			if ( ! nonCanonicalReadGroupMap.containsKey(readGroup)) {
+				nonCanonicalReadGroupMap.putIfAbsent(readGroup, new AtomicLong());
+			}
 			nonCanonicalReadGroupMap.get(readGroup).incrementAndGet();
  		} else {
-//			updateRecordsParsed();			
 			byte[] qualBytes = record.getBaseQualities();	// faster than getBaseQualityString() 
 
 			// SEQ
@@ -837,12 +839,9 @@ public class BamSummaryReport extends SummaryReport {
 			if (null != value) {
 				String err = SummaryReportUtils.tallyMDMismatches(value, record.getCigar(), tagMDMismatchByCycle, readBases, reverseStrand, mdRefAltLengthsForward, mdRefAltLengthsReverse);
 				//limit err message on log file
-				if(err != null) 
-					if( ( errMDReadNo ++) < errMDReadLimit ) 
-						logger.warn(err);
-//					private final static int errMDReadLimit  = 100;
-//					private long errMDReadNo = 0;					
-//					throw new Exception(err);
+				if ( err != null && (( errMDReadNo ++) < errMDReadLimit)) { 
+					logger.warn(err);
+				}
 				allReadsLineLengths.increment(record.getReadLength());
 			}
 		}
@@ -1297,17 +1296,11 @@ public class BamSummaryReport extends SummaryReport {
 	 * @param softClip
 	 */
 	private void parseOverlapByRG(SAMRecord record, String readGroup, int softClip){
-		//init
-		QCMGAtomicLongArray oarry = rgReadOverlap.get(readGroup);
-		if( oarry == null){
-			 rgReadOverlap.putIfAbsent(readGroup, new QCMGAtomicLongArray(128));		
-			 oarry = rgReadOverlap.get(readGroup);
-		}	
 	
 		
 		//non canonical pairs (both forward or reverse) are already discarded
 		//to avoid double the ovelap base, we only delegate all reverse strand reads and Tlen <= 0			 
-		if(!record.getReadPairedFlag() || record.getInferredInsertSize() <= 0 || record.getReadNegativeStrandFlag()) {
+		if( ! record.getReadPairedFlag() || record.getInferredInsertSize() <= 0 || record.getReadNegativeStrandFlag()) {
 			return;	
 		}
 		int mate_end = record.getInferredInsertSize() + record.getAlignmentStart();
@@ -1317,6 +1310,12 @@ public class BamSummaryReport extends SummaryReport {
 			return;
 		}
 			
+		//init
+		QCMGAtomicLongArray oarry = rgReadOverlap.get(readGroup);
+		if( oarry == null){
+			rgReadOverlap.putIfAbsent(readGroup, new QCMGAtomicLongArray(128));		
+			oarry = rgReadOverlap.get(readGroup);
+		}	
 		oarry.increment(overlap); 			
 	}
 				
@@ -1324,38 +1323,38 @@ public class BamSummaryReport extends SummaryReport {
 		if (null == cigar) {
 			return 0;		 
 		}
-		 QCMGAtomicLongArray harray = rgHardClip.get(readGroup);
-		 if( harray == null){
+		 QCMGAtomicLongArray hArray = rgHardClip.get(readGroup);
+		 if( hArray == null){
 			 rgHardClip.putIfAbsent(readGroup, new QCMGAtomicLongArray(128));	
-			 harray = rgHardClip.get(readGroup);
+			 hArray = rgHardClip.get(readGroup);
 		 }
-		 QCMGAtomicLongArray sarray = rgSoftClip.get(readGroup);
-		 if( sarray == null){
+		 QCMGAtomicLongArray sArray = rgSoftClip.get(readGroup);
+		 if( sArray == null){
 			rgSoftClip.putIfAbsent(readGroup, new QCMGAtomicLongArray(128));	
-			sarray = rgSoftClip.get(readGroup);
+			sArray = rgSoftClip.get(readGroup);
 		 }			
 		 
-		QCMGAtomicLongArray larray = rgReadLength.get(readGroup);
-		 if( larray == null){
+		QCMGAtomicLongArray lArray = rgReadLength.get(readGroup);
+		 if( lArray == null){
 			 rgReadLength.putIfAbsent(readGroup, new QCMGAtomicLongArray(128));		
-			 larray = rgReadLength.get(readGroup);
+			 lArray = rgReadLength.get(readGroup);
 		 }	
 		 		 
-		 int lhard = 0;
-		 int lsoft = 0;
+		 int lHard = 0;
+		 int lSoft = 0;
 		 for (CigarElement ce : cigar.getCigarElements()) {
 			 if (ce.getOperator().equals(CigarOperator.HARD_CLIP)) {
-				 lhard += ce.getLength();
+				 lHard += ce.getLength();
 			 } else if (ce.getOperator().equals(CigarOperator.SOFT_CLIP)) {
-				 lsoft += ce.getLength();
+				 lSoft += ce.getLength();
 			 }
 		 }
 				 
-		harray.increment(lhard);
-		sarray.increment(lsoft);
-		larray.increment(readLength+lhard);
+		hArray.increment(lHard);
+		sArray.increment(lSoft);
+		lArray.increment(readLength+lHard);
 		
-		return lsoft;
+		return lSoft;
 	}
 			
 }
