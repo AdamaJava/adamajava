@@ -38,6 +38,7 @@ import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.BaseUtils;
 import org.qcmg.common.util.ChrPositionCache;
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.DonorUtils;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.TabTokenizer;
@@ -87,11 +88,11 @@ public class SignatureUtil {
 		
 		for (char c : BASES) {
 			if (c1 == c && c2 == c) {
-				sb.append(c).append(":").append(i1 + i2).append(',');
+				sb.append(c).append(Constants.COLON).append(i1 + i2).append(Constants.COMMA);
 			} else if (c1 == c) {
-				sb.append(c).append(":").append(i1).append(',');
+				sb.append(c).append(Constants.COLON).append(i1).append(Constants.COMMA);
 			} else if (c2 == c) {
-				sb.append(c).append(":").append(i2).append(',');
+				sb.append(c).append(Constants.COLON).append(i2).append(Constants.COMMA);
 			} else {
 				sb.append(c).append(":0,");
 			}
@@ -165,7 +166,7 @@ public class SignatureUtil {
 			
 			for (TabbedRecord vcfRecord : reader) {
 				line = vcfRecord.getData();
-				if (line.startsWith("#")) continue;
+				if (line.startsWith(Constants.HASH_STRING)) continue;
 				//do a brute force search for the empty coverage string before passing to tokenizer
 				// only populate ratios with non-zero values
 				// attempt to keep memory usage down...
@@ -197,7 +198,7 @@ public class SignatureUtil {
 			
 			for (TabbedRecord vcfRecord : reader) {
 				line = vcfRecord.getData();
-				if (line.startsWith("#")) continue;
+				if (line.startsWith(Constants.HASH_STRING)) continue;
 				//do a brute force search for the empty coverage string before passing to tokenizer
 				// only populate ratios with non-zero values
 				// attempt to keep memory usage down...
@@ -209,7 +210,6 @@ public class SignatureUtil {
 				String coverage = params[7];
 				Optional<float[]> array = getValuesFromCoverageStringFloat(coverage, minCoverage);
 				array.ifPresent(f -> {
-//				if (null != array) {
 					ChrPosition chrPos = ChrPositionCache.getChrPosition(params[0], Integer.parseInt(params[1]));
 					ratios.put(chrPos, f);
 				});
@@ -236,7 +236,7 @@ public class SignatureUtil {
 			
 			for (TabbedRecord vcfRecord : reader) {
 				line = vcfRecord.getData();
-				if (line.startsWith("#")) continue;
+				if (line.startsWith(Constants.HASH_STRING)) continue;
 				//do a brute force search for the empty coverage string before passing to tokenizer
 				// only populate ratios with non-zero values
 				// attempt to keep memory usage down...
@@ -260,30 +260,6 @@ public class SignatureUtil {
 		}
 		return ratios;
 	}
-	
-	public static boolean canFilesBeCompared(List<String> l1, List<String> l2) {
-		return false;
-	}
-	
-//	public static Optional<List<String>> getHeaderDetailsFromFile(File f) throws IOException {
-//		if (null == f) {
-//			throw new IllegalArgumentException("Null file object passed to loadSignatureRatios");
-//		}
-//		List<String> header = new ArrayList<>();
-//		try (TabbedFileReader reader = new TabbedFileReader(f)) {
-//			String line;
-//			
-//			for (TabbedRecord vcfRecord : reader) {
-//				line = vcfRecord.getData();
-//				if (line.startsWith("#")) {
-//					header.add(line);
-//				} else {
-//					break;
-//				}
-//			}
-//		}
-//		return Optional.ofNullable(header);
-//	}
 	
 	public static Pair<SigMeta, TMap<String, TIntShortHashMap>> loadSignatureRatiosBespokeGenotype(File file, int minCoverage) throws IOException {
 		if (null == file) {
@@ -327,20 +303,22 @@ public class SignatureUtil {
 			
 			for (TabbedRecord vcfRecord : reader) {
 				line = vcfRecord.getData();
-				if (line.startsWith("#")) {
-				
+				if (line.startsWith(Constants.HASH_STRING)) {
 					continue;
 				}
-				//do a brute force search for the empty coverage string before passing to tokenizer
-				// only populate ratios with non-zero values
-				// attempt to keep memory usage down...
-//				if (line.indexOf(SHORT_CUT_EMPTY_COVERAGE) > -1) continue;
-				// ignore entries that have nan in there
-//				if (line.indexOf("nan") > -1) continue;
 				
 				String[] params = TabTokenizer.tokenize(line);
-				String coverage = params[2];
-				Optional<float[]> array = getValuesFromCoverageStringBespoke(coverage, minCoverage);
+				String coverage = params[7];
+				
+				/*
+				 * This should be in the QAF=t:5-0-0-0,rg4:2-0-0-0,rg1:1-0-0-0,rg2:2-0-0-0 format
+				 * Need to tease out the pertinent bits
+				 */
+				int commaIndex = coverage.indexOf(Constants.COMMA);
+				String totalCov = coverage.substring(coverage.indexOf(Constants.COLON) + 1, commaIndex);
+				
+				
+				Optional<float[]> array = getValuesFromCoverageStringBespoke(totalCov, minCoverage);
 				array.ifPresent(f -> {
 					
 					short g = getCodedGenotype(f);
@@ -353,12 +331,12 @@ public class SignatureUtil {
 						 */
 						if (noOfRGs > 1) {
 							
-							for (int i = 3 ; i < params.length ; i++) {
-								String s = params[i];
+							String [] covParams = coverage.substring(commaIndex + 1).split(Constants.COMMA_STRING);
+							for (String s : covParams) {
 								/*
 								 * strip rg id from string
 								 */
-								int index = s.indexOf(":");
+								int index = s.indexOf(Constants.COLON_STRING);
 								String rg = s.substring(0, index);
 								String cov = s.substring(index + 1);
 								
@@ -386,111 +364,6 @@ public class SignatureUtil {
 		}
 		return new Pair<>(new SigMeta(md, count, bq, mq), rgRatios);
 	}
-//	public static Pair<SigMeta, TIntShortHashMap> loadSignatureRatiosBespokeGenotype(File file, int minCoverage) throws IOException {
-//		TIntShortHashMap ratios = new TIntShortHashMap();
-//		if (null == file) {
-//			throw new IllegalArgumentException("Null file object passed to loadSignatureRatios");
-//		}
-//		
-//		
-//		String md = "";
-//		int count = 0;
-//		int bq = 0;
-//		int mq = 0;
-//		TMap<String, String> rgIds = new THashMap<>();
-//		
-//		try (TabbedFileReader reader = new TabbedFileReader(file)) {
-//			TabbedHeader h = reader.getHeader();
-//			for (String s : h) {
-//				if (s.startsWith(SignatureUtil.MD_5_SUM)) {
-//					md = s.substring(SignatureUtil.MD_5_SUM.length() + 1);
-//				} else if (s.startsWith(SignatureUtil.POSITIONS_COUNT)) {
-//					count = Integer.parseInt(s.substring(SignatureUtil.POSITIONS_COUNT.length() + 1));
-//				} else if (s.startsWith(SignatureUtil.MIN_BASE_QUAL)) {
-//					bq = Integer.parseInt(s.substring(SignatureUtil.MIN_BASE_QUAL.length() + 1));
-//				} else if (s.startsWith(SignatureUtil.MIN_MAPPING_QUAL)) {
-//					mq = Integer.parseInt(s.substring(SignatureUtil.MIN_MAPPING_QUAL.length() + 1));
-//				} else if (s.startsWith("##rg")) {
-//					int ci = s.indexOf(":");
-//					if (ci > -1) {
-//						rgIds.put(s.substring(2, ci), s.substring(ci + 1));
-//					}
-//				}
-//			}
-//			
-//			int noOfRGs = rgIds.size();
-//			logger.info("Number of rgs for  " + file.getAbsolutePath() + " is " + noOfRGs);
-//			
-//			TMap<String, TIntShortHashMap> rgRatios = new THashMap<>(noOfRGs * 2);
-//			
-//			
-//			String line;
-//			
-//			AtomicInteger cachePosition = new AtomicInteger();
-//			
-//			for (TabbedRecord vcfRecord : reader) {
-//				line = vcfRecord.getData();
-//				if (line.startsWith("#")) {
-//					
-//					continue;
-//				}
-//				//do a brute force search for the empty coverage string before passing to tokenizer
-//				// only populate ratios with non-zero values
-//				// attempt to keep memory usage down...
-////				if (line.indexOf(SHORT_CUT_EMPTY_COVERAGE) > -1) continue;
-//				// ignore entries that have nan in there
-////				if (line.indexOf("nan") > -1) continue;
-//				
-//				String[] params = TabTokenizer.tokenize(line);
-//				String coverage = params[2];
-//				Optional<float[]> array = getValuesFromCoverageStringBespoke(coverage, minCoverage);
-//				array.ifPresent(f -> {
-//					
-//					short g = getCodedGenotype(f);
-//					
-//					if (isCodedGenotypeValid(g)) {
-//						cachePosition.set(ChrPositionCache.getChrPositionIndex(params[0], Integer.parseInt(params[1])));
-//						ratios.put(cachePosition.get(), g);
-//						/*
-//						 * Get rg data if we have more than 1 rg
-//						 */
-//						for (int i = 1 ; i < noOfRGs ; i++) {
-//							String s = params[2 + i];
-//							/*
-//							 * strip rg id from string
-//							 */
-//							int index = s.indexOf(":");
-//							String rg = s.substring(0, index);
-//							String cov = s.substring(index + 1);
-//							
-//							Optional<float[]> arr = getValuesFromCoverageStringBespoke(cov, minCoverage);
-//							arr.ifPresent(f2-> {
-//								
-//								short g2 = getCodedGenotype(f2);
-//								
-//								if (isCodedGenotypeValid(g2)) {
-//									TIntShortHashMap r = rgRatios.get(rg);
-//									if (r == null) {
-//										r = new TIntShortHashMap();
-//										rgRatios.put(rg, r);
-//									}
-//									r.put(cachePosition.get(), g2);
-//								}
-//							});
-//						}
-//					}
-//				});
-//				
-//				
-//				
-//				
-//				
-//				
-//				
-//			}
-//		}
-//		return new Pair<>(new SigMeta(md, count, bq, mq), ratios);
-//	}
 	
 	/**
 	 * Convert float array containing allele percentages for ACGT bases into a short.
@@ -537,60 +410,21 @@ public class SignatureUtil {
 	 * @return
 	 */
 	public static boolean isCodedGenotypeValid(short s) {
-//		if (s > 0 && s <= 2000) {
-			switch (s) {
-			case 2000 : 
-			case 200 :
-			case 20 :
-			case 2:
-			case 1100:
-			case 1010:
-			case 1001:
-			case 110:
-			case 101:
-			case 11: return true;
-			default: return false;
-			}
-//		}
-//		return false;
+		switch (s) {
+		case 2000 : 
+		case 200 :
+		case 20 :
+		case 2:
+		case 1100:
+		case 1010:
+		case 1001:
+		case 110:
+		case 101:
+		case 11: return true;
+		default: return false;
+		}
 	}
 	
-	
-	
-	
-//	public static Map<ChrPosition, double[]> loadSignatureRatios(File file) throws Exception {
-//		Map<ChrPosition, double[]> ratios = null;
-//		
-//		if (null != file && file.canRead()) {
-//			
-//			try (TabbedFileReader reader = new TabbedFileReader(file)) {
-//				ratios = new HashMap<ChrPosition, double[]>();
-//				for (TabbedRecord vcfRecord : reader) {
-//					//do a brute force search for the empty coverage string before passing to tokenizer
-//					if (vcfRecord.getData().indexOf("nan") > -1) continue;
-//					if (vcfRecord.getData().indexOf(EMPTY_COVERAGE) > -1) continue;
-//					
-//					String[] params = TabTokenizer.tokenize(vcfRecord.getData());
-//					String coverage = params[7];
-//					
-//					// only populate ratios with non-zero values
-//					// attempt to keep memory usage down...
-////					if (SignatureUtil.EMPTY_COVERAGE.equals(coverage))  {
-////						continue;
-////					}
-//					
-//					// ignore entries that have nan in there
-////					if (coverage.indexOf("nan") > -1) continue;
-//					ChrPosition chrPos = new ChrPointPosition(params[0], Integer.parseInt(params[1]));
-//					
-//					double[] array = QSigCompare.getValuesFromCoverageString(coverage);
-//					if (null != array)
-//						ratios.put(chrPos, array);
-//				}
-//			}
-//		}
-//		return ratios;
-//	}
 	
 	public static int sendEmail(String subject, String body, String recipients, QLogger logger) throws IOException, InterruptedException {
 		
@@ -897,22 +731,29 @@ public class SignatureUtil {
 		return new int[] {aCount, cCount, gCount, tCount, total};
 	}
 	
+	/**
+	 * info should be in the following format:
+	 * "5-0-0-0" which corresponds to count_of_As-count_of_Cs-count_of_Gs-count_of_Ts
+	 * 
+	 * @param info
+	 * @return
+	 */
 	public static Optional<int[]> decipherCoverageStringBespoke(String info) {
 		if (StringUtils.isNullOrEmpty(info))
 			throw new IllegalArgumentException("Invalid coverage string passed to decipherCoverageStringBespoke: " + info);
 		
-		String [] data = TabTokenizer.tokenize(info, ',');
+		String [] data = TabTokenizer.tokenize(info, Constants.MINUS);
 		if (data.length == 4) {
 			int[] counts = new int[4];
 			
-			for (int i = 0 ; i < data.length ; i++) {
+			for (int i = 0 ; i < 4 ; i++) {
 				counts[i] =  Integer.parseInt(data[i]);
 			}
 			return Optional.of(counts);
 		}
 		return Optional.empty();
 	}
-
+	
 	public static double[] getValuesFromCoverageString(final String coverage) {
 		return getValuesFromCoverageString(coverage, 10);
 	}
@@ -957,7 +798,6 @@ public class SignatureUtil {
 			}
 		});
 		return floats[4] > 0 ? Optional.of(floats) : Optional.empty();
-		
 	}
 	
 	public static Optional<float[]> getValuesFromCoverageStringFloat(final String coverage, int minimumCoverage) {
@@ -966,26 +806,11 @@ public class SignatureUtil {
 		int total = baseCoverages[4];
 		if (total < minimumCoverage) return Optional.empty();
 		
-//		float aFrac = (float) baseCoverages[0] / total;
-//		float cFrac = (float) baseCoverages[1] / total;
-//		float gFrac = (float) baseCoverages[2] / total;
-//		float tFrac = (float) baseCoverages[3] / total;
-		
-		
 		return Optional.of(new float[] { (float) baseCoverages[0] / total, 
 				(float) baseCoverages[1] / total,
 				(float) baseCoverages[2] / total, 
 				(float) baseCoverages[3] / total,
 				total});
-		
-//		final float[] array = new float[] {aFrac, 
-//				cFrac,
-//				gFrac, 
-//				tFrac,
-//				total};
-//		
-//		return array;
 	}
-
 
 }
