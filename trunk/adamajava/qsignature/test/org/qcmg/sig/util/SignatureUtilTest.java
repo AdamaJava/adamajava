@@ -141,9 +141,31 @@ public class SignatureUtilTest {
 	
 	@Test
 	public void getBEspokeARray() {
-		Assert.assertArrayEquals(new int[]{1,2,3,4}, SignatureUtil.decipherCoverageStringBespoke("1,2,3,4").get());
-		Assert.assertArrayEquals(new int[]{1000,100,10,1}, SignatureUtil.decipherCoverageStringBespoke("1000,100,10,1").get());
+		
+		try {
+			 SignatureUtil.decipherCoverageStringBespoke(null);
+			Assert.fail("Should have thrown an IAE");
+		} catch (IllegalArgumentException iae) {}
+		try {
+			SignatureUtil.decipherCoverageStringBespoke("");
+			Assert.fail("Should have thrown an IAE");
+		} catch (IllegalArgumentException iae) {}
+		try {
+			SignatureUtil.decipherCoverageStringBespoke("1");
+			Assert.fail("Should have thrown an IAE");
+		} catch (IllegalArgumentException iae) {}
+		try {
+			SignatureUtil.decipherCoverageStringBespoke("1,2,3,4");
+			Assert.fail("Should have thrown an IAE");
+		} catch (IllegalArgumentException iae) {}
+		
+		Assert.assertEquals(Optional.empty(), SignatureUtil.decipherCoverageStringBespoke("1-2-3,4"));
+		Assert.assertEquals(Optional.empty(), SignatureUtil.decipherCoverageStringBespoke("1-2-3-4-"));
+		
+		Assert.assertArrayEquals(new int[]{1,2,3,4}, SignatureUtil.decipherCoverageStringBespoke("1-2-3-4").get());
+		Assert.assertArrayEquals(new int[]{1000,100,10,1}, SignatureUtil.decipherCoverageStringBespoke("1000-100-10-1").get());
 	}
+	
 	
 	
 	
