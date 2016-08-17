@@ -33,6 +33,7 @@ public class Constants {
 	public static final String NL_STRING = NL + "";
 	public static final String BAR_STRING = "\\|";
 	public static final String SLASH_STRING = "/";
+	public  static final char MINUS = '-';
 	
 	//at moment only for VcfInfoFieldRecord
 	public static final String NULL_STRING = "NULL";
