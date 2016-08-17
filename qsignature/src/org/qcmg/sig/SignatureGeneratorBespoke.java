@@ -6,6 +6,7 @@
  */
 package org.qcmg.sig;
 
+import gnu.trove.map.hash.THashMap;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
 import htsjdk.samtools.SAMFileHeader;
@@ -122,7 +123,6 @@ public class SignatureGeneratorBespoke {
 	private final List<String> sortedContigs = new ArrayList<String>();
 	private byte[] snpPositionsMD5;
 	private final StringBuffer stdHeaderDetails = new StringBuffer();
-	private final String columnHeader = "#chr\tposition\tAs,Cs,Gc,Ts\tread_group_id(s):As,Cs,Gs,Ts\n";
 	
 	public int engage() throws Exception {
 		
@@ -162,6 +162,8 @@ public class SignatureGeneratorBespoke {
 
 	private void setupHeader() {
 		LocalDateTime timePoint = LocalDateTime.now();
+		
+		stdHeaderDetails.append("##fileformat=VCFv4.2").append(Constants.NL);
 		stdHeaderDetails.append("##datetime=").append(timePoint.toString()).append(Constants.NL);
 		stdHeaderDetails.append("##program=").append(exec.getToolName().getValue()).append(Constants.NL);
 		stdHeaderDetails.append("##version=").append(exec.getToolVersion().getValue()).append(Constants.NL);
@@ -175,6 +177,7 @@ public class SignatureGeneratorBespoke {
 		stdHeaderDetails.append(SignatureUtil.MIN_MAPPING_QUAL).append("=").append(minMappingQuality).append(Constants.NL);
 		stdHeaderDetails.append("##illumina_array_design=").append(illumiaArraysDesign).append(Constants.NL);
 		stdHeaderDetails.append("##cmd_line=").append(exec.getCommandLine().getValue()).append(Constants.NL);
+		stdHeaderDetails.append("##INFO=<ID=QAF,Number=.,Type=String,Description=\"Lists the counts of As-Cs-Gs-Ts for each read group, along with the total\">").append(Constants.NL);
 	}
 	
 	private void processBamFiles() throws IOException {
@@ -369,30 +372,46 @@ public class SignatureGeneratorBespoke {
 	}
 	
 	private void updateResults(Map<String, String> rgIds) {
+		
+		
+		/*
+		 * create map from snps list - need ref allele
+		 */
+		Map<ChrPosition, String> snpMap = new THashMap<>(snps.size() * 2);
+		for (VcfRecord v : snps) {
+			snpMap.put(v.getChrPosition(), v.getRef());
+		}
+		
 		// update the snps list with the details from the results map
 		
 		/*
 		 * go through results in an ordered fashion
 		 */
 		List<ChrPosition> keys = new ArrayList<>(results.keySet());
-		Collections.sort(keys, ChrPositionComparator.getComparator(ChrPositionComparator.getChrNameComparator(sortedContigs)));
+		keys.sort(ChrPositionComparator.getComparator(ChrPositionComparator.getChrNameComparator(sortedContigs)));
 		
 		for (ChrPosition cp : keys) {
 		
-//		for (final Entry<ChrPosition, List<BaseReadGroup>> entry : results.entrySet()) {
-//			final ChrPosition thisVCF = entry.getKey();
-			
+			String ref = snpMap.get(cp);
+			if ("-".equals(ref)|| "+".equals(ref)) {
+				ref = "n";
+			}
 			final List<BaseReadGroup> bsps = results.get(cp);
-//			final List<BaseReadGroup> bsps = entry.getValue();
 			
 			if (null == bsps || bsps.isEmpty()) {
-//				thisVCF.setInfo(SignatureUtil.EMPTY_COVERAGE);
 			} else {
 				final StringBuilder sb = new StringBuilder(cp.getChromosome());
 				sb.append(Constants.TAB);
 				sb.append(cp.getStartPosition());
 				sb.append(Constants.TAB);
-				sb.append(getEncodedDist(bsps));
+				sb.append(Constants.MISSING_DATA).append(Constants.TAB);	// id
+//				sb.append(Constants.MISSING_DATA).append(Constants.TAB);	// id
+				sb.append(ref).append(Constants.TAB);					// ref allele
+				sb.append(Constants.MISSING_DATA).append(Constants.TAB);	// alt allele
+				sb.append(Constants.MISSING_DATA).append(Constants.TAB);	// qual
+				sb.append(Constants.MISSING_DATA).append(Constants.TAB);	// filter
+				sb.append("QAF=t:");																	// info
+ 				sb.append(getEncodedDist(bsps));
 				
 				/*
 				 * now again for the readgroups that we have
@@ -403,7 +422,7 @@ public class SignatureGeneratorBespoke {
 //				for (String s : mapOfRgToBases.keySet()) {
 //					rgIds.put(s, "rg" + i++);
 //				}
-				mapOfRgToBases.forEach((s,l) -> sb.append(Constants.TAB).append(rgIds.get(s)).append(":").append(getEncodedDist(l)));
+				mapOfRgToBases.forEach((s,l) -> sb.append(Constants.COMMA).append(rgIds.get(s)).append(Constants.COLON).append(getEncodedDist(l)));
 				
 //				thisVCF.setInfo(sb.toString());
 				resultsToWrite.add(sb);
@@ -421,7 +440,7 @@ public class SignatureGeneratorBespoke {
 			case  'T' : ts++;break;
 			}
 		}
-		return as + "," + cs + "," + gs + "," + ts;
+		return "" + as + Constants.MINUS + cs + Constants.MINUS + gs + Constants.MINUS + ts;
 	}
 //	private long getEncodedDist(final List<BaseReadGroup> bsps) {
 //		int as = 0, cs = 0, gs = 0, ts = 0;
@@ -487,7 +506,7 @@ public class SignatureGeneratorBespoke {
 	}
 	
 	private void writeOutput(File f, Map<String, String> rgIds) throws IOException {
-		// if we have an output folder defined, place the vcf files there, otherwise they will live next to the bams
+		// if we have an output folder defined, place the vcf files there, otherwise they will live next to the input file
 		File outputVCFFile = null;
 		if (null != outputDirectory) {
 			outputVCFFile = new File(outputDirectory + FileUtils.FILE_SEPARATOR + f.getName() + SignatureUtil.QSIG_VCF_GZ);
@@ -502,14 +521,16 @@ public class SignatureGeneratorBespoke {
 			rgIds.entrySet().stream().sorted(Comparator.comparing(Entry::getValue)).forEach(e -> sbRgIds.append("##").append(e.getValue()).append(":").append(e.getKey()).append(Constants.NL));
 			
 			
-			try (OutputStream os = new GZIPOutputStream(new FileOutputStream(outputVCFFile), 1024 * 64)) {
+			try (OutputStream os = new GZIPOutputStream(new FileOutputStream(outputVCFFile), 1024 * 1024)) {
 				/*
 				 * Header contains some standard bumf, some file specific bumf, and finally the column header
 				 */
 				os.write(stdHeaderDetails.toString().getBytes());
 				os.write(("##input=" + f.getAbsolutePath() + Constants.NL).getBytes());
 				os.write((sbRgIds.toString()).getBytes());
-				os.write(columnHeader.getBytes());
+//				os.write(columnHeader.getBytes());
+				os.write(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE.getBytes());
+				os.write(Constants.NL);
 				
 				
 				for (StringBuilder sb : resultsToWrite) {
@@ -523,52 +544,6 @@ public class SignatureGeneratorBespoke {
 		}
 	}
 	
-	
-	private VcfHeader getBasicHeaderForQSig(final String bamName, final String snpFile, String ... bamHeaderInfo) {
-		
-		String patient = null;
-		String library = null;
-		if (null != bamHeaderInfo && bamHeaderInfo.length > 0) {
-			patient = bamHeaderInfo[0];
-			library = bamHeaderInfo.length > 1 ? bamHeaderInfo[1] : null; 
-		}
-		
-		final VcfHeader header = new VcfHeader();
-		final DateFormat df = new SimpleDateFormat("yyyyMMdd");
-		final String version = SignatureGeneratorBespoke.class.getPackage().getImplementationVersion();
-		final String pg = Messages.getProgramName();
-		final String fileDate = df.format(Calendar.getInstance().getTime());
-		final String uuid = QExec.createUUid();
-
-		//move input uuid into preuuid
-		header.parseHeaderLine(VcfHeaderUtils.CURRENT_FILE_VERSION);	
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_FILE_DATE + Constants.EQ + fileDate);
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_UUID_LINE + Constants.EQ + uuid );
-		header.parseHeaderLine( "##bam_file=" + bamName);
-		header.parseHeaderLine("##snp_file=" + snpFile);
-		header.addFilterLine("BASE_QUALITY", "Base quality < " + minBaseQuality);
-		header.addFilterLine("MAPPING_QUALITY", "Mapping quality < " + minMappingQuality);
-//		header.add( new VcfHeaderFilter("##filter_q_score=10") );
-//		header.add( VcfHeaderUtils.parseHeaderLine("##filter_match_qual=10"));		
-//		header.add( VcfHeaderUtils.parseHeaderLine(VcfHeaderUtils.FILTER_LOW_QUAL,"REQUIRED: QUAL < 50.0") );
-		header.addInfoLine("FULLCOV", "-1", "String", "all bases at position");
-		header.addInfoLine("NOVELCOV",  "-1", "String", "bases at position from reads with novel starts");
-  		header.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE);
-		return  header;
-		
-/*		
-		return "##fileformat=VCFv4.0\n" +
-		(patient != null ? 	("##patient_id=" + patient + "\n")  : "") +
-		(library != null ? 	("##library=" + library  + "\n")  : "") +
-		"##bam=" + bamName + "\n" +
-		"##snp_file=" + snpFile + "\n" + 
-		"##filter_q_score=10\n" + 
-		"##filter_match_qual=10\n" + 
-		"##FILTER=<ID=LowQual,Description=\"REQUIRED: QUAL < 50.0\">\n" + 
-		"##INFO=<ID=FULLCOV,Number=.,Type=String,Description=\"all bases at position\">\n" + 
-		"##INFO=<ID=NOVELCOV,Number=.,Type=String,Description=\"bases at position from reads with novel starts\">\n" + 
-		VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE+ "\n";*/
-	}
 	
 	private VcfHeader getHeaderForQSigIlluminaFile(final String patientId,  final String sample,
 			final String inputType, final String illuminaFileName, final String snpFile) {
@@ -766,10 +741,11 @@ public class SignatureGeneratorBespoke {
 				++count;
 				final String[] params = TabTokenizer.tokenize(line);
 				String ref = null;
-				if (params.length > 4 && null != params[4] && params[4].length() == 1) {
+				if (params.length > 4 && null != params[4]) {
 					ref = params[4];
 				} else if (params.length > 3 && null != params[3] && params[3].length() == 1){
 					// mouse file has ref at position 3 (0-based)
+					logger.info("getting ref from position 3: " + (params[4]));
 					ref = params[3];
 				}
 				
