@@ -3,16 +3,15 @@
  */
 package org.qcmg.tab;
 
+import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.Vector;
+import java.util.List;
 
 public final class TabbedHeader implements Iterable<String> {
-    private final Vector<String> records = new Vector<String>();
+    private final List<String> records = new ArrayList<>();
 
-    public TabbedHeader(final Vector<String> headerRecords) {
-        for (final String record : headerRecords) {
-            records.add(record);
-        }
+    public TabbedHeader(final List<String> headerRecords) {
+    		records.addAll(headerRecords);
     }
 
     @Override

@@ -7,34 +7,34 @@
 package org.qcmg.tab;
 
 import java.io.BufferedReader;
+
+import static org.qcmg.common.util.Constants.HASH_STRING;
+
 import java.io.IOException;
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.List;
 
 public final class TabbedSerializer {
-//	private static final Pattern tabbedPattern = Pattern.compile("[\\t]");
-	private static final String DEFAULT_HEADER_PREFIX = "#";
 	
     public static TabbedHeader readHeader(final BufferedReader reader) throws IOException {
-		Vector<String> headerLines = new Vector<String>();
+		List<String> headerLines = new ArrayList<>();
 		String line = reader.readLine();
-		while (null != line && line.startsWith(DEFAULT_HEADER_PREFIX)) {
+		while (null != line && line.startsWith(HASH_STRING)) {
 		    headerLines.add(line);
 		    line = reader.readLine();
 		}
 		return new TabbedHeader(headerLines);
 	}
 
-	private static String nextNonheaderLine(final BufferedReader reader)
-			throws IOException {
+	private static String nextNonheaderLine(final BufferedReader reader) throws IOException {
 		String line = reader.readLine();
-		while (null != line && line.startsWith(DEFAULT_HEADER_PREFIX)) {
+		while (null != line && line.startsWith(HASH_STRING)) {
 			line = reader.readLine();
 		}
 		return line;
 	}
 
-	public static TabbedRecord nextRecord(final BufferedReader reader)
-			throws IOException , Exception {
+	public static TabbedRecord nextRecord(final BufferedReader reader) throws IOException {
 		TabbedRecord result = null;
 		String line = nextNonheaderLine(reader);
 		if (null != line) {
@@ -43,7 +43,7 @@ public final class TabbedSerializer {
 		return result;
 	}
 
-	static TabbedRecord parseRecord(final String line) throws Exception {
+	static TabbedRecord parseRecord(final String line) {
 		TabbedRecord result = new TabbedRecord();
 		result.setData(line);
 		return result;
