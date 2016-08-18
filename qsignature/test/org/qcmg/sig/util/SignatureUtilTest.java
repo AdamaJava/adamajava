@@ -1,6 +1,7 @@
 package org.qcmg.sig.util;
 
 import static org.junit.Assert.assertEquals;
+import gnu.trove.map.TMap;
 import gnu.trove.map.hash.TIntShortHashMap;
 
 import java.io.File;
@@ -12,11 +13,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.apache.commons.math3.util.Pair;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.illumina.IlluminaRecord;
 import org.qcmg.sig.model.Comparison;
+import org.qcmg.sig.model.SigMeta;
 
 public class SignatureUtilTest {
 	
@@ -166,7 +169,47 @@ public class SignatureUtilTest {
 		Assert.assertArrayEquals(new int[]{1000,100,10,1}, SignatureUtil.decipherCoverageStringBespoke("1000-100-10-1").get());
 	}
 	
-	
+	@Test
+	public void bespokeGenotype() throws IOException {
+		File f = testFolder.newFile();
+		try (FileWriter w = new FileWriter(f);){
+			// add header
+			w.write("##fileformat=VCFv4.2\n");
+			w.write("##datetime=2016-08-17T14:44:30.088\n");
+			w.write("##program=SignatureGeneratorBespoke\n");
+			w.write("##version=1.0 (1230)\n");
+			w.write("##java_version=1.8.0_71\n");
+			w.write("##run_by_os=Linux\n");
+			w.write("##run_by_user=oliverH\n");
+			w.write("##positions=/software/genomeinfo/configs/qsignature/qsignature_positions.txt\n");
+			w.write("##positions_md5sum=d18c99f481afbe04294d11deeb418890\n");
+			w.write("##positions_count=1456203\n");
+			w.write("##filter_base_quality=10\n");
+			w.write("##filter_mapping_quality=10\n");
+			w.write("##illumina_array_design=/software/genomeinfo/configs/qsignature/Illumina_arrays_design.txt\n");
+			w.write("##cmd_line=SignatureGeneratorBespoke -i /software/genomeinfo/configs/qsignature/qsignature_positions.txt -illumina /software/genomeinfo/configs/qsignature/Illumina_arrays_design.txt -i /mnt/lustre/working/genomeinfo/share/mapping/aws/argsBams/dd625894-d1e3-4938-8d92-3a9f57c23e08.bam -d /mnt/lustre/home/oliverH/qsignature/bespoke/ -log /mnt/lustre/home/oliverH/qsignature/bespoke/siggen.log\n");
+			w.write("##INFO=<ID=QAF,Number=.,Type=String,Description=\"Lists the counts of As-Cs-Gs-Ts for each read group, along with the total\">\n");
+			w.write("##input=/mnt/lustre/working/genomeinfo/share/mapping/aws/argsBams/dd625894-d1e3-4938-8d92-3a9f57c23e08.bam\n");
+			w.write("##id:readgroup\n");
+			w.write("##rg1:143b8c38-62cb-414a-aac3-ea3a940cc6bb\n");
+			w.write("##rg2:65a79904-ee91-4f53-9a94-c02e23e071ef\n");
+			w.write("#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO\n");
+			w.write("chr1	47851\t.\tC\t.\t.\t.\tQAF=t:0-12-0-0,rg1:0-9-0-0,rg2:0-3-0-0\n");
+			w.write("chr1	50251\t.\tT\t.\t.\t.\tQAF=t:0-0-0-11,rg1:0-0-0-9,rg2:0-0-0-2\n");
+			w.write("chr1\t51938	.\tT\t.\t.\t.\tQAF=t:0-0-0-9,rg1:0-0-0-5,rg2:0-0-0-4\n");
+			w.write("chr1\t52651	.\tT\t.\t.\t.\tQAF=t:0-0-0-3,rg1:0-0-0-1,rg2:0-0-0-2\n");
+			w.write("chr1\t64251	.\tA\t.\t.\t.\tQAF=t:9-0-0-0,rg1:5-0-0-0,rg2:4-0-0-0\n");
+			w.write("chr1\t98222	.\tC\t.\t.\t.\tQAF=t:0-12-0-0,rg1:0-5-0-0,rg2:0-7-0-0\n");
+			w.write("chr1\t99236	.\tT\t.\t.\t.\tQAF=t:0-0-0-22,rg1:0-0-0-12,rg2:0-0-0-10\n");
+			w.write("chr1\t101095	.\tT\t.\t.\t.\tQAF=t:0-0-0-10,rg1:0-0-0-5,rg2:0-0-0-5\n");
+			w.write("chr1\t102954	.\tT\t.\t.\t.\tQAF=t:0-0-1-64,rg1:0-0-0-36,rg2:0-0-1-28\n");
+			w.write("chr1\t104813	.\tG\t.\t.\t.\tQAF=t:0-1-17-0,rg1:0-1-10-0,rg2:0-0-7-0\n");
+			w.write("chr1\t106222	.\tT\t.\t.\t.\tQAF=t:0-0-0-4,rg1:0-0-0-1,rg2:0-0-0-3\n");
+		}
+		
+		Pair<SigMeta, TMap<String, TIntShortHashMap>> p = SignatureUtil.loadSignatureRatiosBespokeGenotype(f, 10);
+		assertEquals(7, p.getSecond().get("all").size());
+	}
 	
 	
 	

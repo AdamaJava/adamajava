@@ -261,6 +261,32 @@ public class SignatureUtil {
 		return ratios;
 	}
 	
+	public static  Pair<SigMeta, Map<String, String>> getMetaAndRGFromHeader(final TabbedHeader h) {
+		String md = "";
+		int count = 0;
+		int bq = 0;
+		int mq = 0;
+		Map<String, String> rgIds = new THashMap<>();
+		for (String s : h) {
+			if (s.startsWith(SignatureUtil.MD_5_SUM)) {
+				md = s.substring(SignatureUtil.MD_5_SUM.length() + 1);
+			} else if (s.startsWith(SignatureUtil.POSITIONS_COUNT)) {
+				count = Integer.parseInt(s.substring(SignatureUtil.POSITIONS_COUNT.length() + 1));
+			} else if (s.startsWith(SignatureUtil.MIN_BASE_QUAL)) {
+				bq = Integer.parseInt(s.substring(SignatureUtil.MIN_BASE_QUAL.length() + 1));
+			} else if (s.startsWith(SignatureUtil.MIN_MAPPING_QUAL)) {
+				mq = Integer.parseInt(s.substring(SignatureUtil.MIN_MAPPING_QUAL.length() + 1));
+			} else if (s.startsWith("##rg")) {
+				int ci = s.indexOf(":");
+				if (ci > -1) {
+					rgIds.put(s.substring(2, ci), s.substring(ci + 1));
+				}
+			}
+		}
+		
+		return new Pair<>(new SigMeta(md, count, bq, mq), rgIds);
+	}
+	
 	public static Pair<SigMeta, TMap<String, TIntShortHashMap>> loadSignatureRatiosBespokeGenotype(File file, int minCoverage) throws IOException {
 		if (null == file) {
 			throw new IllegalArgumentException("Null file object passed to loadSignatureRatios");
@@ -275,8 +301,11 @@ public class SignatureUtil {
 		int mq = 0;
 		TMap<String, String> rgIds = new THashMap<>();
 		
+//		Pair<SigMeta, Map<String, String>> metaAndRGs = null;
+		
 		try (TabbedFileReader reader = new TabbedFileReader(file)) {
 			TabbedHeader h = reader.getHeader();
+//			metaAndRGs = getMetaAndRGFromHeader(h);
 			for (String s : h) {
 				if (s.startsWith(SignatureUtil.MD_5_SUM)) {
 					md = s.substring(SignatureUtil.MD_5_SUM.length() + 1);
@@ -337,7 +366,6 @@ public class SignatureUtil {
 								 * strip rg id from string
 								 */
 								int index = s.indexOf(Constants.COLON_STRING);
-								String rg = s.substring(0, index);
 								String cov = s.substring(index + 1);
 								
 								Optional<float[]> arr = getValuesFromCoverageStringBespoke(cov, minCoverage);
@@ -346,6 +374,7 @@ public class SignatureUtil {
 									short g2 = getCodedGenotype(f2);
 									
 									if (isCodedGenotypeValid(g2)) {
+										String rg = s.substring(0, index);
 										TIntShortHashMap r = rgRatios.get(rg);
 										if (r == null) {
 											r = new TIntShortHashMap();

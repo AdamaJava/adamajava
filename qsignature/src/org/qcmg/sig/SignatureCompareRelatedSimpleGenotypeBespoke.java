@@ -9,6 +9,7 @@ package org.qcmg.sig;
 import gnu.trove.map.TMap;
 import gnu.trove.map.hash.THashMap;
 import gnu.trove.map.hash.TIntShortHashMap;
+import gnu.trove.set.hash.THashSet;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -36,6 +37,7 @@ import org.apache.commons.math3.util.Pair;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.DonorUtils;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.LoadReferencedClasses;
@@ -84,9 +86,9 @@ public class SignatureCompareRelatedSimpleGenotypeBespoke {
 		logger.info("Retrieving excludes list from: " + excludeVcfsFile);
 		excludes = SignatureUtil.getEntriesFromExcludesFile(excludeVcfsFile);
 		
-		// get qsig vcf files for this donor
+		// get qsig vcf files
 		logger.info("Retrieving qsig vcf files from: " + Arrays.stream(paths).collect(Collectors.joining(",")));
-		Set<File> uniqueFiles = new HashSet<>();
+		Set<File> uniqueFiles = new THashSet<>();
 		for (String path : paths) {
 			uniqueFiles.addAll(FileUtils.findFilesEndingWithFilterNIO(path, SignatureUtil.QSIG_VCF));
 		}
@@ -122,12 +124,12 @@ public class SignatureCompareRelatedSimpleGenotypeBespoke {
 		final int numberOfComparisons = ((numberOfFiles * (numberOfFiles -1)) /2);
 		logger.info("Should have " +numberOfComparisons + " comparisons, based on " + numberOfFiles + " input files");
 		
-		Collections.sort(files, FileUtils.FILE_COMPARATOR);
+		files.sort(FileUtils.FILE_COMPARATOR);
 		
 		// add files to map
 		addFilesToMap(files);
 		
-		StringBuilder donorSB = new StringBuilder();
+		StringBuilder sb = new StringBuilder();
 		
 		int size = files.size();
 		
@@ -146,7 +148,7 @@ public class SignatureCompareRelatedSimpleGenotypeBespoke {
 				if (SigMeta.suitableForComparison(ratios1.getKey(), ratios2.getKey())) {
 //					logger.info("SigMeta matches: " + ratios1.getKey() + " and " + ratios2.getKey());
 					Comparison comp = ComparisonUtil.compareRatiosUsingSnpsFloat(ratios1.getValue(), ratios2.getValue(), f1, f2);
-					donorSB.append(comp.toString()).append("\n");
+					sb.append(comp.toString()).append(Constants.NEW_LINE);
 					allComparisons.add(comp);
 				} else {
 					logger.warn("Could not compare " + f1.getAbsolutePath() + " and " + f2.getAbsolutePath() + " as their SigMeta information was not equal or not valid: " + ratios1.getKey() + " and " + ratios2.getKey());
@@ -167,7 +169,7 @@ public class SignatureCompareRelatedSimpleGenotypeBespoke {
 		
 		
 		// flush out last donor details
-		logger.info(donorSB.toString());
+		logger.info(sb.toString());
 		
 		logger.info("");
 		if (suspiciousResults.isEmpty()) {
