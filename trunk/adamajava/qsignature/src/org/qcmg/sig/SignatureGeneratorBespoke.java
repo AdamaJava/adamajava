@@ -187,12 +187,6 @@ public class SignatureGeneratorBespoke {
 			arrayPosition = 0;
 			vcf = null;
 			
-//			VcfHeader header;
-//			try {
-//				header = generateVcfHeader(bamFile, cmdLineInputFiles[0]);
-//			} catch (IOException e) {
-//				e.printStackTrace();
-//			}
 			SAMFileHeader header;
 			try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile)) {
 				header = reader.getFileHeader();
@@ -221,7 +215,6 @@ public class SignatureGeneratorBespoke {
 			
 			// output vcf file
 			writeOutput(bamFile, rgIds);
-//			writeVCFOutput(bamFile, header);
 			
 			// clean out results, and erase info field from snps
 			results.clear();
@@ -249,10 +242,6 @@ public class SignatureGeneratorBespoke {
 				inputType = inputType.substring(1, 3);
 			
 			 
-//			final VcfHeader header = getHeaderForQSigIlluminaFile(patient, sample, inputType, 
-//					illuminaFile.getName(), cmdLineInputFiles[0]);
-			
-			
 			updateResultsIllumina(iIlluminaMap);
 			logger.info("updateResults - DONE");
 			
@@ -405,8 +394,7 @@ public class SignatureGeneratorBespoke {
 				sb.append(cp.getStartPosition());
 				sb.append(Constants.TAB);
 				sb.append(Constants.MISSING_DATA).append(Constants.TAB);	// id
-//				sb.append(Constants.MISSING_DATA).append(Constants.TAB);	// id
-				sb.append(ref).append(Constants.TAB);					// ref allele
+				sb.append(ref).append(Constants.TAB);										// ref allele
 				sb.append(Constants.MISSING_DATA).append(Constants.TAB);	// alt allele
 				sb.append(Constants.MISSING_DATA).append(Constants.TAB);	// qual
 				sb.append(Constants.MISSING_DATA).append(Constants.TAB);	// filter
@@ -417,14 +405,8 @@ public class SignatureGeneratorBespoke {
 				 * now again for the readgroups that we have
 				 */
 				Map<String, List<BaseReadGroup>> mapOfRgToBases = bsps.stream().collect(Collectors.groupingBy(BaseReadGroup::getReadGroup));
-//				Map<String, String> rgIds = new HashMap<>();
-//				int i = 1;
-//				for (String s : mapOfRgToBases.keySet()) {
-//					rgIds.put(s, "rg" + i++);
-//				}
 				mapOfRgToBases.forEach((s,l) -> sb.append(Constants.COMMA).append(rgIds.get(s)).append(Constants.COLON).append(getEncodedDist(l)));
 				
-//				thisVCF.setInfo(sb.toString());
 				resultsToWrite.add(sb);
 			}
 		}
@@ -470,40 +452,8 @@ public class SignatureGeneratorBespoke {
 			snp.setInfo(SignatureUtil.getCoverageStringForIlluminaRecord(illRec, params, 20));
 			
 		}
-		
 	}
 	
-	
-	private void writeVCFOutput(File bamFile, VcfHeader header) throws Exception {
-		// if we have an output folder defined, place the vcf files there, otherwise they will live next to the bams
-		File outputVCFFile = null;
-		if (null != outputDirectory) {
-			outputVCFFile = new File(outputDirectory + FileUtils.FILE_SEPARATOR + bamFile.getName() + SignatureUtil.QSIG_VCF_GZ);
-		} else {
-			outputVCFFile = new File(bamFile.getAbsoluteFile() + SignatureUtil.QSIG_VCF_GZ);
-		}
-		logger.info("Will write output vcf to file: " + outputVCFFile.getAbsolutePath());
-		// standard output format
-		// check that can wriite to new file
-		if (FileUtils.canFileBeWrittenTo(outputVCFFile)) {
-			
-			try (VCFFileWriter writer = new VCFFileWriter(outputVCFFile, true);){
-				// write header
-				for(final VcfHeader.Record re: header)
-					writer.addHeader(re.toString() );
-				
-				for (final VcfRecord vcf : snps) {
-					if (StringUtils.isNullOrEmpty(vcf.getInfo()) || Constants.MISSING_DATA_STRING.equals(vcf.getInfo())) {
-						vcf.setInfo(SignatureUtil.EMPTY_COVERAGE);
-					}
-					writer.add(vcf);
-				}
-				
-			}
-		} else {
-			logger.warn("Can't write to output vcf file: " + outputVCFFile.getAbsolutePath());
-		}
-	}
 	
 	private void writeOutput(File f, Map<String, String> rgIds) throws IOException {
 		// if we have an output folder defined, place the vcf files there, otherwise they will live next to the input file
@@ -528,7 +478,6 @@ public class SignatureGeneratorBespoke {
 				os.write(stdHeaderDetails.toString().getBytes());
 				os.write(("##input=" + f.getAbsolutePath() + Constants.NL).getBytes());
 				os.write((sbRgIds.toString()).getBytes());
-//				os.write(columnHeader.getBytes());
 				os.write(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE.getBytes());
 				os.write(Constants.NL);
 				
@@ -576,40 +525,8 @@ public class SignatureGeneratorBespoke {
   		header.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE);
 		return  header;
 		
-		
-/*		return "##fileformat=VCFv4.0\n" +
-		"##patient_id=" + patientId + "\n" + 
-		"##input_type=" + inputType  + "\n" +
-		"##sample=" + sample  + "\n" +
-		"##bam=" + illuminaFileName + "\n" +
-		"##snp_file=" + snpFile + "\n" + 
-		"##filter_q_score=10\n" + 
-		"##filter_match_qual=10\n" + 
-		"##genome=GRCh37_ICGC_standard_v2.fa\n" + 
-		"##FILTER=<ID=LowQual,Description=\"REQUIRED: QUAL < 50.0\">\n" + 
-		"##INFO=<ID=FULLCOV,Number=.,Type=String,Description=\"all bases at position\">\n" + 
-		"##INFO=<ID=NOVELCOV,Number=.,Type=String,Description=\"bases at position from reads with novel starts\">\n" + 
-		VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE+ "\n";*/
 	}
 	
-//	private VcfHeader generateVcfHeader(File file, String snpChipFile) throws IOException {
-//		// not hitting the LIMS anymore - get what we can from the bam header
-//		final String [] bamHeaderInfo = new String[2];
-//		try (SamReader samReader = SAMFileReaderFactory.createSAMFileReader(file);) {
-//			
-//			final SAMFileHeader header = samReader.getFileHeader();
-//			for (final SAMReadGroupRecord srgr : header.getReadGroups()) {
-//				if ( ! StringUtils.isNullOrEmpty(srgr.getSample())) {
-//					bamHeaderInfo[0] = srgr.getSample();
-//				}
-//				if ( ! StringUtils.isNullOrEmpty(srgr.getLibrary())) {
-//					bamHeaderInfo[1] = srgr.getLibrary();
-//				}
-//			}
-//		}
-//		
-//		return getBasicHeaderForQSig(file.getAbsolutePath(), snpChipFile, bamHeaderInfo);
-//	}
 	
 	private void advanceVCFAndPosition(boolean nextChromosome, SAMRecord rec) {
 		if (arrayPosition >= arraySize) {
@@ -743,9 +660,8 @@ public class SignatureGeneratorBespoke {
 				String ref = null;
 				if (params.length > 4 && null != params[4]) {
 					ref = params[4];
-				} else if (params.length > 3 && null != params[3] && params[3].length() == 1){
+				} else if (params.length > 3 && null != params[3]){
 					// mouse file has ref at position 3 (0-based)
-					logger.info("getting ref from position 3: " + (params[4]));
 					ref = params[3];
 				}
 				
@@ -767,36 +683,6 @@ public class SignatureGeneratorBespoke {
 		snpPositionsMD5 = md.digest();
 		
 	}
-//	private void loadRandomSnpPositions(String randomSnpsFile) throws Exception {
-//		int count = 0;
-//		try (TabbedFileReader reader = new TabbedFileReader(new File(randomSnpsFile));){
-//			for (final TabbedRecord rec : reader) {
-//				++count;
-//				final String[] params = TabTokenizer.tokenize(rec.getData());
-//				
-//				String ref = null;
-//				if (params.length > 4 && null != params[4] && params[4].length() == 1) {
-//					ref = params[4];
-//				} else if (params.length > 3 && null != params[3] && params[3].length() == 1){
-//					// mouse file has ref at position 3 (0-based)
-//					ref = params[3];
-//				}
-//				
-//				if (params.length < 2) {
-//					throw new IllegalArgumentException("snp file must have at least 2 tab seperated columns, chr and position");
-//				}
-//				
-//				String id = params.length > 2 ? params[2] : null; 
-//				String alt = params.length > 5 ? params[5].replaceAll("/", ",") : null;
-//				
-//				// Lynns new files are 1-based - no need to do any processing on th position
-//				snps.add( new VcfRecord.Builder(params[0], Integer.parseInt(params[1]), ref).allele(alt).id(id).build());
-//			}
-//			
-//			arraySize = snps.size();
-//			logger.info("Loaded " + arraySize + " positions into map (should be equal to: " + count + ")");
-//		}
-//	}
 	
 	public static void main(String[] args) throws Exception {
 		final SignatureGeneratorBespoke sp = new SignatureGeneratorBespoke();

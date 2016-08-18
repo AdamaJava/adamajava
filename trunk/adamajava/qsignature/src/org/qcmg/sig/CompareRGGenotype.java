@@ -9,6 +9,7 @@ package org.qcmg.sig;
 import gnu.trove.map.TMap;
 import gnu.trove.map.hash.THashMap;
 import gnu.trove.map.hash.TIntShortHashMap;
+import gnu.trove.set.hash.THashSet;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -60,7 +61,7 @@ public class CompareRGGenotype {
 	private static QLogger logger;
 	private int exitStatus;
 	
-	private float cutoff = 0.2f;
+	private float genotypeCutoff = 0.75f;
 	private int minimumCoverage = 10;
 	
 	private String outputXml;
@@ -71,7 +72,6 @@ public class CompareRGGenotype {
 	private List<String> excludes;
 	private String logFile;
 	
-	private final Map<String, int[]> fileIdsAndCounts = new THashMap<>();
 	private final List<Comparison> allComparisons = new ArrayList<>();
 	
 	private final Map<File, Pair<SigMeta, TMap<String, TIntShortHashMap>>> cache = new THashMap<>();
@@ -86,7 +86,7 @@ public class CompareRGGenotype {
 		
 		// get qsig vcf files for this donor
 		logger.info("Retrieving qsig vcf files from: " + Arrays.stream(paths).collect(Collectors.joining(",")));
-		Set<File> uniqueFiles = new HashSet<>();
+		Set<File> uniqueFiles = new THashSet<>();
 		for (String path : paths) {
 			uniqueFiles.addAll(FileUtils.findFilesEndingWithFilterNIO(path, SignatureUtil.BAM_QSIG_VCF));
 		}
@@ -117,31 +117,18 @@ public class CompareRGGenotype {
 			files = files.stream().filter(f -> p.test(f)).collect(Collectors.toList());
 		}
 		
-		
 		final int numberOfFiles = files.size();
-		final int numberOfComparisons = ((numberOfFiles * (numberOfFiles -1)) /2);
-		logger.info("Should have " +numberOfComparisons + " comparisons, based on " + numberOfFiles + " input files");
-		
 		files.sort(FileUtils.FILE_COMPARATOR);
-		
-		// add files to map
-//		addFilesToMap(files);
-		
-		StringBuilder donorSB = new StringBuilder();
-		
 		
 		for (int i = 0 ; i < numberOfFiles ; i++) {
 			File f = files.get(i);
-			
 			logger.info("getting data for " + f.getAbsolutePath());
-			
 			
 			Pair<SigMeta, TMap<String, TIntShortHashMap>> p = getSignatureData(f);
 			
 			/*
 			 * Just intra-file checks for now - keeping data in cache will allow for inter-bam-rg comparisons at a later date.....
 			 */
-			
 			TMap<String, TIntShortHashMap> m = p.getSecond();
 			
 			/*
@@ -166,53 +153,26 @@ public class CompareRGGenotype {
 						TIntShortHashMap r2 = m.get(rg2);
 						
 						Comparison c = ComparisonUtil.compareRatiosUsingSnpsFloat(r1, r2, f.getAbsolutePath() + "-" + rg1, f.getAbsolutePath() + "-" + rg2);
-						if (c.getScore() > cutoff) {
+						if (c.getScore() < genotypeCutoff) {
 							logger.warn("rgs don't match!: " + c.toString());
 						}
 						allComparisons.add(c);
 					}
 				}
 			}
-			
-			
-			
-//			for (int j = i + 1 ; j < size ; j++) {
-//				File f2 = files.get(j);
-//				Pair<SigMeta, TIntShortHashMap> ratios2 = getSignatureData(f2);
-//				
-//				/*
-//				 * Check that the 2 files were born of the same snp positions file and have had the same filters applied
-//				 */
-//				if (SigMeta.suitableForComparison(ratios1.getKey(), ratios2.getKey())) {
-////					logger.info("SigMeta matches: " + ratios1.getKey() + " and " + ratios2.getKey());
-//					Comparison comp = ComparisonUtil.compareRatiosUsingSnpsFloat(ratios1.getValue(), ratios2.getValue(), f1, f2);
-//					donorSB.append(comp.toString()).append("\n");
-//					allComparisons.add(comp);
-//				} else {
-//					logger.warn("Could not compare " + f1.getAbsolutePath() + " and " + f2.getAbsolutePath() + " as their SigMeta information was not equal or not valid: " + ratios1.getKey() + " and " + ratios2.getKey());
-//				}
-//			}
-			
-			// can now remove f1 from the cache as it is no longer required
-//			Pair<SigMeta, TMap<String, TIntShortHashMap>> m = cache.remove(f);
-//			m.getSecond().clear();
-//			m = null;
 		}
 		
 		for (Comparison comp : allComparisons) {
-			if (comp.getScore() > cutoff) {
+			if (comp.getScore() < genotypeCutoff) {
 				suspiciousResults.add(comp.toSummaryString());
 			}
 		}
 		
 		
-		// flush out last donor details
-		logger.info(donorSB.toString());
-		
-		logger.info("");
 		if (suspiciousResults.isEmpty()) {
 			logger.info("No suspicious results found");
 		} else {
+			logger.info("");
 			logger.info("Suspicious results SUMMARY:");
 			for (String s : suspiciousResults) logger.info(s);
 		}
@@ -393,9 +353,9 @@ public class CompareRGGenotype {
 		} catch (Exception e) {
 			exitStatus = 2;
 			if (null != logger)
-				logger.error("Exception caught whilst running SignatureCompareRelatedSimple:", e);
+				logger.error("Exception caught whilst running CompareRGGenotype:", e);
 			else {
-				System.err.println("Exception caught whilst running SignatureCompareRelatedSimple: " + e.getMessage());
+				System.err.println("Exception caught whilst running CompareRGGenotype: " + e.getMessage());
 				System.err.println(Messages.USAGE);
 			}
 		}
@@ -439,8 +399,10 @@ public class CompareRGGenotype {
 			}
 			if (null == paths || paths.length == 0) throw new QSignatureException("MISSING_DIRECTORY_OPTION");
 			
-			if (options.hasCutoff())
-				cutoff = options.getCutoff();
+			if (options.hasCutoff()) {
+				genotypeCutoff = options.getCutoff();
+			}
+			logger.tool("Setting cutoff to: " + genotypeCutoff);
 			
 			if (options.hasMinCoverage()) {
 				minimumCoverage = options.getMinCoverage();
@@ -453,7 +415,7 @@ public class CompareRGGenotype {
 			if (options.hasExcludeVcfsFileOption())
 				excludeVcfsFile = options.getExcludeVcfsFile();
 			
-			logger.logInitialExecutionStats("SignatureCompareRelatedSimple", CompareRGGenotype.class.getPackage().getImplementationVersion(), args);
+			logger.logInitialExecutionStats("CompareRGGenotype", CompareRGGenotype.class.getPackage().getImplementationVersion(), args);
 			
 			return engage();
 		}
