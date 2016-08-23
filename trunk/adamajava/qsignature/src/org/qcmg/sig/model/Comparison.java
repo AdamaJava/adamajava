@@ -12,17 +12,17 @@ import org.qcmg.common.util.DonorUtils;
 
 public class Comparison implements Comparable<Comparison> {
 	
-	final String main;
-	final String test;
+	private final String main;
+	private final String test;
 	
-	final int mainCoverage;
-	final int testCoverage;
-	final long mainCovAtOverlaps;
-	final long testCovAtOverlaps;
-	final int overlapCoverage;
-	final double totalScore;
-	final double score;
-	final int numberOfCalculations;
+	private final int mainCoverage;
+	private final int testCoverage;
+	private final long mainCovAtOverlaps;
+	private final long testCovAtOverlaps;
+	private final int overlapCoverage;
+	private final double totalScore;
+	private final double score;
+	private final int numberOfCalculations;
 	
 	public String getMain() {
 		return main;
