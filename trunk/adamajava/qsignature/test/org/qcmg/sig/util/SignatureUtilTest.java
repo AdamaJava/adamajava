@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -36,10 +37,52 @@ public class SignatureUtilTest {
 	}
 	
 	@Test
-	public void getSigMeta() {
+	public void getSigMetaEmptyHeader() {
 		assertEquals(Optional.empty(), SignatureUtil.getSigMetaAndRGsFromHeader(null));
 		TabbedHeader h = new TabbedHeader(null);
-		assertEquals(true, SignatureUtil.getSigMetaAndRGsFromHeader(h).isPresent());
+		Optional<Pair<SigMeta, Map<String, String>>> o =SignatureUtil.getSigMetaAndRGsFromHeader(h); 
+		assertEquals(true, o.isPresent());
+	
+		assertEquals(false, o.get().getFirst().isValid());		// invalid SigMeta
+		assertEquals(true, o.get().getSecond().isEmpty());	// empty rg map
+	}
+	
+	@Test
+	public void getSigMeta() {
+		List<String> hs = Arrays.asList("##fileformat=VCFv4.2",
+"##datetime=2016-08-18T14:37:22.871",
+"##program=SignatureGeneratorBespoke",
+"##version=1.0 (1230)",
+"##java_version=1.8.0_71",
+"##run_by_os=Linux",
+"##run_by_user=oliverH",
+"##positions=/software/genomeinfo/configs/qsignature/qsignature_positions.txt",
+"##positions_md5sum=d18c99f481afbe04294d11deeb418890",
+"##positions_count=1456203",
+"##filter_base_quality=10",
+"##filter_mapping_quality=10",
+"##illumina_array_design=/software/genomeinfo/configs/qsignature/Illumina_arrays_design.txt",
+"##cmd_line=SignatureGeneratorBespoke -i /software/genomeinfo/configs/qsignature/qsignature_positions.txt -illumina /software/genomeinfo/configs/qsignature/Illumina_arrays_design.txt -i /mnt/lustre/home/oliverH/qbammerge/dodgy_sample_merge/dodgy_exome.bam -log /mnt/lustre/home/oliverH/qsignature/bespoke/siggenbes.log -d /mnt/lustre/home/oliverH/qsignature/bespoke/",
+"##INFO=<ID=QAF,Number=.,Type=String,Description=\"Lists the counts of As-Cs-Gs-Ts for each read group, along with the total\">",
+"##input=/mnt/lustre/home/oliverH/qbammerge/dodgy_sample_merge/dodgy_exome.bam",
+"##id:readgroup",
+"##rg1:fc17fe15-6c1a-42aa-9270-0787d84c8001",
+"##rg2:14989e3c-e669-46c2-866d-a8c504679743",
+"#CHROM  POS     ID      REF     ALT     QUAL    FILTER  INFO");
+		
+		
+		TabbedHeader h = new TabbedHeader(hs);
+		Optional<Pair<SigMeta, Map<String, String>>> o =SignatureUtil.getSigMetaAndRGsFromHeader(h); 
+		assertEquals(true, o.isPresent());
+		
+		assertEquals(true, o.get().getFirst().isValid());			// valid SigMeta
+		assertEquals(false, o.get().getSecond().isEmpty());	// non-empty rg map
+		assertEquals(2, o.get().getSecond().size());				// non-empty rg map
+		
+		assertEquals(true, o.get().getSecond().containsKey("rg1"));
+		assertEquals(true, o.get().getSecond().containsKey("rg2"));
+		assertEquals("fc17fe15-6c1a-42aa-9270-0787d84c8001", o.get().getSecond().get("rg1"));
+		assertEquals("14989e3c-e669-46c2-866d-a8c504679743", o.get().getSecond().get("rg2"));
 	}
 	
 	@Test
