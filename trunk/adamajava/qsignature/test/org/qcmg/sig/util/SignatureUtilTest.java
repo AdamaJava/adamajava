@@ -215,9 +215,16 @@ public class SignatureUtilTest {
 		
 		Assert.assertEquals(Optional.empty(), SignatureUtil.decipherCoverageStringBespoke("1-2-3,4"));
 		Assert.assertEquals(Optional.empty(), SignatureUtil.decipherCoverageStringBespoke("1-2-3-4-"));
+		Assert.assertEquals(Optional.empty(), SignatureUtil.decipherCoverageStringBespoke("1---3-4-"));
+		Assert.assertEquals(Optional.empty(), SignatureUtil.decipherCoverageStringBespoke("-----"));
+		Assert.assertEquals(Optional.empty(), SignatureUtil.decipherCoverageStringBespoke("-"));
+		Assert.assertEquals(Optional.empty(), SignatureUtil.decipherCoverageStringBespoke("--"));
+		Assert.assertEquals(Optional.empty(), SignatureUtil.decipherCoverageStringBespoke("-1-"));
 		
 		Assert.assertArrayEquals(new int[]{1,2,3,4}, SignatureUtil.decipherCoverageStringBespoke("1-2-3-4").get());
 		Assert.assertArrayEquals(new int[]{1000,100,10,1}, SignatureUtil.decipherCoverageStringBespoke("1000-100-10-1").get());
+		Assert.assertArrayEquals(new int[]{1000,1000,1000,1000}, SignatureUtil.decipherCoverageStringBespoke("1000-1000-1000-1000").get());
+		Assert.assertArrayEquals(new int[]{2,1000,20,10}, SignatureUtil.decipherCoverageStringBespoke("2-1000-20-10").get());
 	}
 	
 	@Test
@@ -260,6 +267,8 @@ public class SignatureUtilTest {
 		
 		Pair<SigMeta, TMap<String, TIntShortHashMap>> p = SignatureUtil.loadSignatureRatiosBespokeGenotype(f, 10);
 		assertEquals(7, p.getSecond().get("all").size());
+		assertEquals(3, p.getSecond().get("rg1").size());
+		assertEquals(2, p.getSecond().get("rg2").size());
 	}
 	
 	
@@ -297,8 +306,26 @@ public class SignatureUtilTest {
 	@Test
 	public void validCodedGenotype() {
 		assertEquals(true, SignatureUtil.isCodedGenotypeValid((short) 2000));
+		assertEquals(true, SignatureUtil.isCodedGenotypeValid((short) 200));
+		assertEquals(true, SignatureUtil.isCodedGenotypeValid((short) 20));
+		assertEquals(true, SignatureUtil.isCodedGenotypeValid((short) 2));
+		assertEquals(true, SignatureUtil.isCodedGenotypeValid((short) 1100));
+		assertEquals(true, SignatureUtil.isCodedGenotypeValid((short) 1010));
+		assertEquals(true, SignatureUtil.isCodedGenotypeValid((short) 1001));
+		assertEquals(true, SignatureUtil.isCodedGenotypeValid((short) 101));
+		assertEquals(true, SignatureUtil.isCodedGenotypeValid((short) 110));
+		assertEquals(true, SignatureUtil.isCodedGenotypeValid((short) 11));
+		
 		assertEquals(false, SignatureUtil.isCodedGenotypeValid((short) 1));
 		assertEquals(false, SignatureUtil.isCodedGenotypeValid((short) 10));
+		assertEquals(false, SignatureUtil.isCodedGenotypeValid((short) 100));
+		assertEquals(false, SignatureUtil.isCodedGenotypeValid((short) 1000));
+		assertEquals(false, SignatureUtil.isCodedGenotypeValid((short) 10000));
+		assertEquals(false, SignatureUtil.isCodedGenotypeValid((short) 111));
+		assertEquals(false, SignatureUtil.isCodedGenotypeValid((short) 22));
+		assertEquals(false, SignatureUtil.isCodedGenotypeValid((short) 2020));
+		assertEquals(false, SignatureUtil.isCodedGenotypeValid((short) 2001));
+		assertEquals(false, SignatureUtil.isCodedGenotypeValid((short) 2222));
 	}
 	
 	
@@ -327,6 +354,7 @@ public class SignatureUtilTest {
 		// write no data
 		writeSignatureFile(sigFile, "");
 		assertEquals(true, SignatureUtil.loadSignatureRatios(sigFile).isEmpty());
+		assertEquals(true, SignatureUtil.loadSignatureRatiosFloat(sigFile).isEmpty());
 		
 		sigFile.delete();
 		
@@ -334,6 +362,7 @@ public class SignatureUtilTest {
 		// write no data
 		writeSignatureFile(sigFile, "20	14370	rs6054257	G	A	29	PASS\t" + SignatureUtil.EMPTY_COVERAGE + "\n");
 		assertEquals(true, SignatureUtil.loadSignatureRatios(sigFile).isEmpty());
+		assertEquals(true, SignatureUtil.loadSignatureRatiosFloat(sigFile).isEmpty());
 	}
 	
 	@Test
@@ -343,6 +372,7 @@ public class SignatureUtilTest {
 		// write some data - still empty map as need minimum of 10 coverage
 		writeSignatureFile(sigFile, "20\t14370\trs6054257\tG\tA\t29\tPASS\tFULLCOV=A:1,C:1,G:1,T:1,N:1,TOTAL:5;NOVELCOV=A:0,C:0,G:0,T:0,N:0,TOTAL:0\n");
 		assertEquals(true, SignatureUtil.loadSignatureRatios(sigFile).isEmpty());
+		assertEquals(true, SignatureUtil.loadSignatureRatiosFloat(sigFile).isEmpty());
 		
 		sigFile.delete();
 		
@@ -350,8 +380,8 @@ public class SignatureUtilTest {
 		
 		// write some data - still empty map as need minimum of 10 coverage
 		writeSignatureFile(sigFile, "20\t14370\trs6054257\tG\tA\t29\tPASS\tFULLCOV=A:2,C:2,G:2,T:2,N:2,TOTAL:10;NOVELCOV=A:0,C:0,G:0,T:0,N:0,TOTAL:0\n");
-		assertEquals(false, SignatureUtil.loadSignatureRatios(sigFile).isEmpty());
 		assertEquals(1, SignatureUtil.loadSignatureRatios(sigFile).size());
+		assertEquals(1, SignatureUtil.loadSignatureRatiosFloat(sigFile).size());
 	}
 	
 	@Test
@@ -363,8 +393,10 @@ public class SignatureUtilTest {
 		// write some data - still empty map as need minimum of 10 coverage
 		writeSignatureFile(donor1, "20\t14370\trs6054257\tG\tA\t29\tPASS\tFULLCOV=A:1,C:1,G:1,T:1,N:1,TOTAL:5;NOVELCOV=A:0,C:0,G:0,T:0,N:0,TOTAL:0\n");
 		assertEquals(true, SignatureUtil.loadSignatureRatios(donor1).isEmpty());
+		assertEquals(true, SignatureUtil.loadSignatureRatiosFloat(donor1).isEmpty());
 		writeSignatureFile(donor2, "20\t14370\trs6054257\tG\tA\t29\tPASS\tFULLCOV=A:1,C:1,G:1,T:1,N:1,TOTAL:5;NOVELCOV=A:0,C:0,G:0,T:0,N:0,TOTAL:0\n");
 		assertEquals(true, SignatureUtil.loadSignatureRatios(donor2).isEmpty());
+		assertEquals(true, SignatureUtil.loadSignatureRatiosFloat(donor2).isEmpty());
 		
 		List<File> files = new ArrayList<File>();
 		files.add(donor1);
