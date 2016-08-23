@@ -78,6 +78,7 @@ public class SignatureUtil {
 	public static final String POSITIONS_COUNT = "##positions_count";
 	public static final String MIN_BASE_QUAL = "##filter_base_quality";
 	public static final String MIN_MAPPING_QUAL = "##filter_mapping_quality";
+	public static final String RG_PREFIX = "##rg";
 	
 	/*
 	 * METHODS
@@ -261,30 +262,35 @@ public class SignatureUtil {
 		return ratios;
 	}
 	
-	public static  Pair<SigMeta, Map<String, String>> getMetaAndRGFromHeader(final TabbedHeader h) {
-		String md = "";
-		int count = 0;
-		int bq = 0;
-		int mq = 0;
-		Map<String, String> rgIds = new THashMap<>();
-		for (String s : h) {
-			if (s.startsWith(SignatureUtil.MD_5_SUM)) {
-				md = s.substring(SignatureUtil.MD_5_SUM.length() + 1);
-			} else if (s.startsWith(SignatureUtil.POSITIONS_COUNT)) {
-				count = Integer.parseInt(s.substring(SignatureUtil.POSITIONS_COUNT.length() + 1));
-			} else if (s.startsWith(SignatureUtil.MIN_BASE_QUAL)) {
-				bq = Integer.parseInt(s.substring(SignatureUtil.MIN_BASE_QUAL.length() + 1));
-			} else if (s.startsWith(SignatureUtil.MIN_MAPPING_QUAL)) {
-				mq = Integer.parseInt(s.substring(SignatureUtil.MIN_MAPPING_QUAL.length() + 1));
-			} else if (s.startsWith("##rg")) {
-				int ci = s.indexOf(":");
-				if (ci > -1) {
-					rgIds.put(s.substring(2, ci), s.substring(ci + 1));
+	public static  Optional<Pair<SigMeta, Map<String, String>>> getSigMetaAndRGsFromHeader(final TabbedHeader h) {
+		if (null == h) {
+			return Optional.empty();
+		} else {
+			
+			String md = "";
+			int count = 0;
+			int bq = 0;
+			int mq = 0;
+			Map<String, String> rgIds = new THashMap<>();
+			for (String s : h) {
+				if (s.startsWith(SignatureUtil.MD_5_SUM)) {
+					md = s.substring(MD_5_SUM.length() + 1);
+				} else if (s.startsWith(POSITIONS_COUNT)) {
+					count = Integer.parseInt(s.substring(POSITIONS_COUNT.length() + 1));
+				} else if (s.startsWith(MIN_BASE_QUAL)) {
+					bq = Integer.parseInt(s.substring(MIN_BASE_QUAL.length() + 1));
+				} else if (s.startsWith(MIN_MAPPING_QUAL)) {
+					mq = Integer.parseInt(s.substring(MIN_MAPPING_QUAL.length() + 1));
+				} else if (s.startsWith(RG_PREFIX)) {
+					int ci = s.indexOf(Constants.COLON);
+					if (ci > -1) {
+						rgIds.put(s.substring(2, ci), s.substring(ci + 1));
+					}
 				}
 			}
+			
+			return Optional.of(new Pair<>(new SigMeta(md, count, bq, mq), rgIds));
 		}
-		
-		return new Pair<>(new SigMeta(md, count, bq, mq), rgIds);
 	}
 	
 	public static Pair<SigMeta, TMap<String, TIntShortHashMap>> loadSignatureRatiosBespokeGenotype(File file, int minCoverage) throws IOException {
