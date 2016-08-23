@@ -33,7 +33,6 @@ import java.util.regex.Pattern;
 import org.apache.commons.math3.util.Pair;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
-import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.BaseUtils;
@@ -43,7 +42,6 @@ import org.qcmg.common.util.DonorUtils;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.illumina.IlluminaRecord;
-import org.qcmg.sig.QSigCompare;
 import org.qcmg.sig.model.SigMeta;
 import org.qcmg.tab.TabbedFileReader;
 import org.qcmg.tab.TabbedHeader;
@@ -79,6 +77,7 @@ public class SignatureUtil {
 	public static final String MIN_BASE_QUAL = "##filter_base_quality";
 	public static final String MIN_MAPPING_QUAL = "##filter_mapping_quality";
 	public static final String RG_PREFIX = "##rg";
+	public static final String NAN = "nan";
 	
 	/*
 	 * METHODS
@@ -173,7 +172,7 @@ public class SignatureUtil {
 				// attempt to keep memory usage down...
 				if (line.indexOf(SHORT_CUT_EMPTY_COVERAGE) > -1) continue;
 				// ignore entries that have nan in there
-				if (line.indexOf("nan") > -1) continue;
+				if (line.indexOf(NAN) > -1) continue;
 				
 				String[] params = TabTokenizer.tokenize(line);
 				String coverage = params[7];
@@ -205,7 +204,7 @@ public class SignatureUtil {
 				// attempt to keep memory usage down...
 				if (line.indexOf(SHORT_CUT_EMPTY_COVERAGE) > -1) continue;
 				// ignore entries that have nan in there
-				if (line.indexOf("nan") > -1) continue;
+				if (line.indexOf(NAN) > -1) continue;
 				
 				String[] params = TabTokenizer.tokenize(line);
 				String coverage = params[7];
@@ -243,7 +242,7 @@ public class SignatureUtil {
 				// attempt to keep memory usage down...
 				if (line.indexOf(SHORT_CUT_EMPTY_COVERAGE) > -1) continue;
 				// ignore entries that have nan in there
-				if (line.indexOf("nan") > -1) continue;
+				if (line.indexOf(NAN) > -1) continue;
 				
 				String[] params = TabTokenizer.tokenize(line);
 				String coverage = params[7];
@@ -301,32 +300,17 @@ public class SignatureUtil {
 		TIntShortHashMap ratios = new TIntShortHashMap();
 		TMap<String, TIntShortHashMap> rgRatios = new THashMap<>();
 		
-		String md = "";
-		int count = 0;
-		int bq = 0;
-		int mq = 0;
-		TMap<String, String> rgIds = new THashMap<>();
-		
-//		Pair<SigMeta, Map<String, String>> metaAndRGs = null;
+		Map<String, String> rgIds = null;
+		SigMeta sm = null;
 		
 		try (TabbedFileReader reader = new TabbedFileReader(file)) {
 			TabbedHeader h = reader.getHeader();
-//			metaAndRGs = getMetaAndRGFromHeader(h);
-			for (String s : h) {
-				if (s.startsWith(SignatureUtil.MD_5_SUM)) {
-					md = s.substring(SignatureUtil.MD_5_SUM.length() + 1);
-				} else if (s.startsWith(SignatureUtil.POSITIONS_COUNT)) {
-					count = Integer.parseInt(s.substring(SignatureUtil.POSITIONS_COUNT.length() + 1));
-				} else if (s.startsWith(SignatureUtil.MIN_BASE_QUAL)) {
-					bq = Integer.parseInt(s.substring(SignatureUtil.MIN_BASE_QUAL.length() + 1));
-				} else if (s.startsWith(SignatureUtil.MIN_MAPPING_QUAL)) {
-					mq = Integer.parseInt(s.substring(SignatureUtil.MIN_MAPPING_QUAL.length() + 1));
-				} else if (s.startsWith("##rg")) {
-					int ci = s.indexOf(":");
-					if (ci > -1) {
-						rgIds.put(s.substring(2, ci), s.substring(ci + 1));
-					}
-				}
+			
+			Optional<Pair<SigMeta, Map<String, String>>> metaAndRGsO = getSigMetaAndRGsFromHeader(h);
+			if (metaAndRGsO.isPresent()) {
+				Pair<SigMeta, Map<String, String>> p = metaAndRGsO.get();
+				sm = p.getFirst();
+				rgIds = p.getSecond();
 			}
 			
 			int noOfRGs = rgIds.size();
@@ -397,7 +381,7 @@ public class SignatureUtil {
 				rgRatios.put("all", ratios);
 			}
 		}
-		return new Pair<>(new SigMeta(md, count, bq, mq), rgRatios);
+		return new Pair<>(sm, rgRatios);
 	}
 	
 	/**
@@ -438,8 +422,6 @@ public class SignatureUtil {
 	/**
 	 * A short value outwith the 0-2000 range is invalid, and will return false.
 	 * Also, if the short contains only a single 1 within this range (ie. 1000), then this is also invalid, and will return false
-	 * 
-	 * NOTE that there is currently no check for more than 2 1's (ie. 1110 will return true)
 	 * 
 	 * @param s
 	 * @return
