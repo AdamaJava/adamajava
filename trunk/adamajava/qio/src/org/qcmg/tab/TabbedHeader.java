@@ -11,7 +11,9 @@ public final class TabbedHeader implements Iterable<String> {
     private final List<String> records = new ArrayList<>();
 
     public TabbedHeader(final List<String> headerRecords) {
-    		records.addAll(headerRecords);
+    		if (null != headerRecords) {
+    			records.addAll(headerRecords);
+    		}
     }
 
     @Override
