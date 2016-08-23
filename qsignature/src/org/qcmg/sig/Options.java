@@ -10,6 +10,7 @@ import static java.util.Arrays.asList;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.OptionalInt;
 
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
@@ -53,6 +54,7 @@ final class Options {
 	private final String[] outputFileNames;
 	private final String[] dirNames;
 	private int minCoverage;
+	private final Optional<Integer> minRGCoverage;
 	private Integer minMappingQuality;
 	private Integer minBaseQuality;
 	private int noOfThreads;
@@ -76,6 +78,8 @@ final class Options {
 		parser.accepts("loglevel", LOG_LEVEL_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("minCoverage", MIN_COV_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class)
 			.describedAs("minCoverage");
+		parser.accepts("minRGCoverage", MIN_COV_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class)
+		.describedAs("minRGCoverage");
 		parser.accepts("minMappingQuality", MIN_MAPPING_QUALITY_DESCRIPTION).withRequiredArg().ofType(Integer.class)
 			.describedAs("minMappingQuality");
 		parser.accepts("minBaseQuality", MIN_BASE_QUALITY_DESCRIPTION).withRequiredArg().ofType(Integer.class)
@@ -124,6 +128,7 @@ final class Options {
 		log = (String) options.valueOf("log");
 		logLevel = (String) options.valueOf("loglevel");
 		
+		minRGCoverage = Optional.ofNullable((Integer) options.valueOf("minRGCoverage"));
 		if (null != options.valueOf("minCoverage"))
 			minCoverage = (Integer) options.valueOf("minCoverage");
 		if (null != options.valueOf("minMappingQuality"))
@@ -222,6 +227,9 @@ final class Options {
 	}
 	public int getMinCoverage() {
 		return minCoverage;
+	}
+	public Optional<Integer> getMinRGCoverage() {
+		return minRGCoverage;
 	}
 	public int getNoOfThreads() {
 		return noOfThreads;
