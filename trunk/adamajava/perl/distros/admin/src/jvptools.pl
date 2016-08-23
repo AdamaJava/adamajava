@@ -313,10 +313,10 @@ sub add_entrezgene_to_maf {
 
     glogprint( "$replaced_ctr missing gene ids were replaced based on gene symbols\n" );
     glogprint( "$not_replaced_ctr missing gene ids were not replaced because the gene symbol could not be matched\n" );
-    warn scalar( keys %missing_symbols ), " gene symbols from MAF were not found in gene2accession file\n" ;
+    glogprint( {l=>'WARN'}, scalar( keys %missing_symbols ), " gene symbols from MAF were not found in gene2accession file\n" );
 
     foreach my $key (sort keys %missing_symbols) {
-        warn "missing symbol $key appeared in MAF ",$missing_symbols{$key}," times\n" ;
+        glogprint( {l=>'WARN'}, "missing symbol $key appeared in MAF ",$missing_symbols{$key}," times\n" );
     }
 
     glogend;
