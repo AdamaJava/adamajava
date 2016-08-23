@@ -63,7 +63,7 @@ public class CompareGenotypeBespoke {
 	private static QLogger logger;
 	private int exitStatus;
 	
-	private float cutoff = 0.2f;
+	private float cutoff = 0.95f;
 	private int minimumCoverage = 10;
 	
 	private String outputXml;
@@ -163,7 +163,7 @@ public class CompareGenotypeBespoke {
 		}
 		
 		for (Comparison comp : allComparisons) {
-			if (comp.getScore() > cutoff) {
+			if (comp.getScore() < cutoff) {
 				suspiciousResults.add(comp.toSummaryString());
 			}
 		}
@@ -214,7 +214,7 @@ public class CompareGenotypeBespoke {
 						TIntShortHashMap r2 = rgResults.getSecond().get(rg2);
 						
 						Comparison c = ComparisonUtil.compareRatiosUsingSnpsFloat(r1, r2, new File(rg1), new File(rg2));
-						if (c.getScore() > cutoff) {
+						if (c.getScore() < cutoff) {
 							logger.warn("rgs don't match!: " + c.toString());
 						}
 					}
@@ -362,8 +362,9 @@ public class CompareGenotypeBespoke {
 			}
 			if (null == paths || paths.length == 0) throw new QSignatureException("MISSING_DIRECTORY_OPTION");
 			
-			if (options.hasCutoff())
+			if (options.hasCutoff()) {
 				cutoff = options.getCutoff();
+			}
 			
 			if (options.hasMinCoverage()) {
 				minimumCoverage = options.getMinCoverage();
