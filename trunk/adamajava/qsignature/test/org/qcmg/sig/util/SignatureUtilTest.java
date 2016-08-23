@@ -20,6 +20,7 @@ import org.junit.rules.TemporaryFolder;
 import org.qcmg.illumina.IlluminaRecord;
 import org.qcmg.sig.model.Comparison;
 import org.qcmg.sig.model.SigMeta;
+import org.qcmg.tab.TabbedHeader;
 
 public class SignatureUtilTest {
 	
@@ -32,6 +33,13 @@ public class SignatureUtilTest {
 		assertEquals("AAAA_9999", SignatureUtil.getPatientFromFile(new File("/path/project/AAAA_9999/SNP_array/5555.txt")));
 		assertEquals("AAAA_333", SignatureUtil.getPatientFromFile(new File("/path/project/AAAA_333/SNP_array/5555.txt")));
 		assertEquals("UNKNOWN", SignatureUtil.getPatientFromFile(new File("/path/project/AAAA_33/SNP_array/5555.txt")));
+	}
+	
+	@Test
+	public void getSigMeta() {
+		assertEquals(Optional.empty(), SignatureUtil.getSigMetaAndRGsFromHeader(null));
+		TabbedHeader h = new TabbedHeader(null);
+		assertEquals(true, SignatureUtil.getSigMetaAndRGsFromHeader(h).isPresent());
 	}
 	
 	@Test
