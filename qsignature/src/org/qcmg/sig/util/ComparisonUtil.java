@@ -182,8 +182,6 @@ public class ComparisonUtil {
 		}
 		AtomicInteger match = new AtomicInteger();
 		AtomicInteger totalCompared = new AtomicInteger();
-//		long f1TotalCov = 0;
-//		long f2TotalCov = 0;
 		
 		file1Ratios.forEachEntry((int a, short s) -> {
 			if (s > 0) {
@@ -193,24 +191,16 @@ public class ComparisonUtil {
 						match.incrementAndGet();
 					}
 					totalCompared.incrementAndGet();
-					
-	//				f1TotalCov += file1Ratio[4];
-	//				f2TotalCov += file2Ratio[4];
 				}
 			}
 			return true;
 		});
-		
-//		float concordance = totalCompared.get() > 0 ? (match.floatValue() / totalCompared.get()) * 100 : 0;
-//		logger.info("match: " + match + ", totalCompared: " + totalCompared + " percentage concordance: " + concordance);
 		
 		Comparison comp = new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), match.get(), totalCompared.get(), 0,0,0);
 		return comp;
 		
 	}
 			
-	
-	
 	public static Comparison compareRatiosUsingSnpsFloat(final Map<ChrPosition, float[]> file1Ratios,
 			final Map<ChrPosition, float[]> file2Ratios, File file1, File file2, Map<ChrPosition, ChrPosition> positionsOfInterest) {
 		
