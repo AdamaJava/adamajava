@@ -347,7 +347,7 @@ public class SignatureFindRelated {
 			if (options.hasExcludeVcfsFileOption())
 				excludeVcfsFile = options.getExcludeVcfsFile();
 			
-			if (options.getNoOfThreads() > 0) nThreads = options.getNoOfThreads(); 
+			options.getNoOfThreads().ifPresent(i -> {nThreads = Math.max(i.intValue(), nThreads);});
 			
 			String [] positions = options.getPositions();
 			if (null != positions) {

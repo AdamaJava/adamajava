@@ -715,12 +715,9 @@ public class SignatureGenerator {
 			if (null != options.getDirNames() && options.getDirNames().length > 0) {
 				outputDirectory = options.getDirNames()[0];
 			}
-			if (null != options.getMinMappingQuality()) {
-				minMappingQuality = options.getMinMappingQuality().intValue();
-			}
-			if (null != options.getMinBaseQuality()) {
-				minBaseQuality = options.getMinBaseQuality().intValue();
-			}
+			
+			options.getMinMappingQuality().ifPresent(i -> minMappingQuality = i.intValue());
+			options.getMinBaseQuality().ifPresent(i -> minBaseQuality = i.intValue());
 			
 			if (options.hasIlluminaArraysDesignOption()) {
 				illumiaArraysDesign = options.getIlluminaArraysDesign();

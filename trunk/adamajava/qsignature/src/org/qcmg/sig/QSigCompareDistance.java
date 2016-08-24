@@ -694,8 +694,7 @@ public class QSigCompareDistance {
 				}
 			}
 			
-			if (options.getMinCoverage() > 0)
-				minCoverage =  options.getMinCoverage();
+			options.getMinCoverage().ifPresent(i -> {minCoverage = i.intValue();});
 			if (options.getCutoff() > 0.0f)
 				cutoff =  options.getCutoff();
 			
