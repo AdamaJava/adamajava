@@ -185,79 +185,15 @@ public class CompareRGGenotype {
 		Pair<SigMeta, TMap<String, TIntShortHashMap>> result = cache.get(f);
 		if (result == null) {
 			result = SignatureUtil.loadSignatureRatiosBespokeGenotype(f, minimumCoverage, minimumRGCoverage);
-			/*
-			 * if we have multiple rgs - perform comparison on them before adding overall ratios to cache
-			 */
-//			if ( rgResults.getSecond().size() == 1) {
-//				result = new Pair<>(rgResults.getKey(), rgResults.getSecond().get("all"));
-//			} else {
-//				/*
-//				 * remove all from map
-//				 */
-//				result =new Pair<>(rgResults.getKey(), rgResults.getSecond().remove("all"));
-//				
-//				List<String> rgs = new ArrayList<>(rgResults.getSecond().keySet());
-//				for (int i = 0 ; i < rgs.size() ; i++) {
-//					String rg1 = rgs.get(i);
-//					TIntShortHashMap r1 = rgResults.getSecond().get(rg1);
-//					for (int j = i + 1 ; j < rgs.size() ; j++) {
-//						String rg2 = rgs.get(j);
-//						TIntShortHashMap r2 = rgResults.getSecond().get(rg2);
-//						
-//						Comparison c = ComparisonUtil.compareRatiosUsingSnpsFloat(r1, r2, new File(rg1), new File(rg2));
-//						if (c.getScore() > cutoff) {
-//							logger.warn("rgs don't match!: " + c.toString());
-//						}
-//					}
-//				}
-//			}
-			
-//			result = SignatureUtil.loadSignatureRatiosBespokeGenotype(f, minimumCoverage);
 			
 			if (result.getValue().get("all").size() < 1000) {
 				logger.warn("low coverage (" + result.getValue().size() + ") for file " + f.getAbsolutePath());
 			}
 			
-//			if (cache.size() < cacheSize) {
-				cache.put(f, result);
-//			}
-//			fileIdsAndCounts.get(f.getAbsolutePath())[1] = result.getValue().get("all").size();
-			/*
-			 * average coverage
-			 */
-			//TODO put this back in
-//			IntSummaryStatistics iss = result.values().stream()
-//				.mapToInt(array -> (int) array[4])
-//				.summaryStatistics();
-//			fileIdsAndCounts.get(f)[2] = (int) iss.getAverage();
+			cache.put(f, result);
 		}
 		return result;
 	}
-//	Map<ChrPosition, float[]> getSignatureData(File f) throws Exception {
-//		// check map to see if this data has already been loaded
-//		// if not - load
-//		Map<ChrPosition, float[]> result = cache.get(f);
-//		if (result == null) {
-//			result = SignatureUtil.loadSignatureRatiosFloat(f, minimumCoverage);
-//			
-//			if (result.size() < 1000) {
-//				logger.warn("low coverage (" + result.size() + ") for file " + f.getAbsolutePath());
-//			}
-//			
-//			if (cache.size() < cacheSize) {
-//				cache.put(f, result);
-//			}
-//			fileIdsAndCounts.get(f)[1] = result.size();
-//			/*
-//			 * average coverage
-//			 */
-//			IntSummaryStatistics iss = result.values().stream()
-//					.mapToInt(array -> (int) array[4])
-//					.summaryStatistics();
-//			fileIdsAndCounts.get(f)[2] = (int) iss.getAverage();
-//		}
-//		return result;
-//	}
 	
 	private void writeXmlOutput() throws ParserConfigurationException, TransformerException {
 		DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
@@ -330,14 +266,6 @@ public class CompareRGGenotype {
 		transformer.setOutputProperty(OutputKeys.INDENT, "yes");
 		transformer.transform(source, result);
 	}
-	
-//	private void addFilesToMap(List<File> orderedFiles) {
-//		int id = 1;
-//		for (File f : orderedFiles) {
-//			fileIdsAndCounts.put(f.getAbsolutePath(), new int[]{id++, -1, -1});
-//		}
-//	}
-
 	
 	public static void main(String[] args) throws Exception {
 		LoadReferencedClasses.loadClasses(CompareRGGenotype.class);
