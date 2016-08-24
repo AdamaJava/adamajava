@@ -265,10 +265,19 @@ public class SignatureUtilTest {
 			w.write("chr1\t106222	.\tT\t.\t.\t.\tQAF=t:0-0-0-4,rg1:0-0-0-1,rg2:0-0-0-3\n");
 		}
 		
-		Pair<SigMeta, TMap<String, TIntShortHashMap>> p = SignatureUtil.loadSignatureRatiosBespokeGenotype(f, 10);
+		Pair<SigMeta, TMap<String, TIntShortHashMap>> p = SignatureUtil.loadSignatureRatiosBespokeGenotype(f, 10, 10);
 		assertEquals(7, p.getSecond().get("all").size());
 		assertEquals(3, p.getSecond().get("rg1").size());
 		assertEquals(2, p.getSecond().get("rg2").size());
+		
+		/*
+		 * adjust the rg min coverage value
+		 * Note that the minCov value will be used first for the total value before the rg specific value is used for the individual rgs
+		 */
+		 p = SignatureUtil.loadSignatureRatiosBespokeGenotype(f, 10, 5);
+		assertEquals(7, p.getSecond().get("all").size());
+		assertEquals(7, p.getSecond().get("rg1").size());
+		assertEquals(5, p.getSecond().get("rg2").size());
 	}
 	
 	

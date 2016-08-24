@@ -292,7 +292,7 @@ public class SignatureUtil {
 		}
 	}
 	
-	public static Pair<SigMeta, TMap<String, TIntShortHashMap>> loadSignatureRatiosBespokeGenotype(File file, int minCoverage) throws IOException {
+	public static Pair<SigMeta, TMap<String, TIntShortHashMap>> loadSignatureRatiosBespokeGenotype(File file, int minCoverage, int minRGCoverage) throws IOException {
 		if (null == file) {
 			throw new IllegalArgumentException("Null file object passed to loadSignatureRatios");
 		}
@@ -358,7 +358,7 @@ public class SignatureUtil {
 								int index = s.indexOf(Constants.COLON_STRING);
 								String cov = s.substring(index + 1);
 								
-								Optional<float[]> arr = getValuesFromCoverageStringBespoke(cov, minCoverage);
+								Optional<float[]> arr = getValuesFromCoverageStringBespoke(cov, minRGCoverage);
 								arr.ifPresent(f2-> {
 									
 									short g2 = getCodedGenotype(f2);
