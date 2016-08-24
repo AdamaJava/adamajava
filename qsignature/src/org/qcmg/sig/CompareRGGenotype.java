@@ -14,9 +14,6 @@ import gnu.trove.set.hash.THashSet;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.IntSummaryStatistics;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -36,8 +33,6 @@ import javax.xml.transform.stream.StreamResult;
 import org.apache.commons.math3.util.Pair;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
-import org.qcmg.common.model.ChrPosition;
-import org.qcmg.common.util.DonorUtils;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.LoadReferencedClasses;
 import org.qcmg.sig.model.Comparison;
@@ -63,6 +58,7 @@ public class CompareRGGenotype {
 	
 	private float genotypeCutoff = 0.75f;
 	private int minimumCoverage = 10;
+	private int minimumRGCoverage = 10;
 	
 	private String outputXml;
 	private String [] paths;
@@ -404,10 +400,10 @@ public class CompareRGGenotype {
 			}
 			logger.tool("Setting cutoff to: " + genotypeCutoff);
 			
-			if (options.hasMinCoverage()) {
-				minimumCoverage = options.getMinCoverage();
-			}
+			options.getMinCoverage().ifPresent(i -> {minimumCoverage = i.intValue();});
+			options.getMinRGCoverage().ifPresent(i -> {minimumRGCoverage = i.intValue();});
 			logger.tool("Setting minumim coverage to: " + minimumCoverage);
+			logger.tool("Setting minumim RG coverage to: " + minimumRGCoverage);
 			
 			additionalSearchStrings = options.getAdditionalSearchString();
 			logger.tool("Setting additionalSearchStrings to: " + Arrays.deepToString(additionalSearchStrings));

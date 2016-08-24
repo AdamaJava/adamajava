@@ -374,12 +374,9 @@ public class SignatureCompareRelatedSimpleGenotypeMT {
 			}
 			if (null == paths) throw new QSignatureException("MISSING_DIRECTORY_OPTION");
 			
-			if (options.hasMinCoverage()) {
-				minimumCoverage = options.getMinCoverage();
-			}
-			nThreads = Math.max(options.getNoOfThreads(), 1);
+			options.getMinCoverage().ifPresent(i -> {minimumCoverage = i.intValue();});
+			options.getNoOfThreads().ifPresent(i -> {nThreads = Math.max(i.intValue(), nThreads);});
 			logger.tool("number of threads: " + nThreads);
-				
 			logger.tool("Setting minumim coverage to: " + minimumCoverage);
 			
 			

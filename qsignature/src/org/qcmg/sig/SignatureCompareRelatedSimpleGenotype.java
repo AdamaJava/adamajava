@@ -365,9 +365,7 @@ public class SignatureCompareRelatedSimpleGenotype {
 			if (options.hasCutoff())
 				cutoff = options.getCutoff();
 			
-			if (options.hasMinCoverage()) {
-				minimumCoverage = options.getMinCoverage();
-			}
+			options.getMinCoverage().ifPresent(i -> {minimumCoverage = i.intValue();});
 			logger.tool("Setting minumim coverage to: " + minimumCoverage);
 			
 			additionalSearchStrings = options.getAdditionalSearchString();

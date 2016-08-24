@@ -10,7 +10,6 @@ import static java.util.Arrays.asList;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.OptionalInt;
 
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
@@ -53,11 +52,11 @@ final class Options {
 	private final String[] inputFileNames;
 	private final String[] outputFileNames;
 	private final String[] dirNames;
-	private int minCoverage;
+	private final Optional<Integer> minCoverage;
 	private final Optional<Integer> minRGCoverage;
-	private Integer minMappingQuality;
-	private Integer minBaseQuality;
-	private int noOfThreads;
+	private final Optional<Integer> minMappingQuality;
+	private final Optional<Integer> minBaseQuality;
+	private final Optional<Integer> noOfThreads;
 //	private int snpChipCoverage;
 //	private float cutoff;
 	private final String log;
@@ -129,16 +128,10 @@ final class Options {
 		logLevel = (String) options.valueOf("loglevel");
 		
 		minRGCoverage = Optional.ofNullable((Integer) options.valueOf("minRGCoverage"));
-		if (null != options.valueOf("minCoverage"))
-			minCoverage = (Integer) options.valueOf("minCoverage");
-		if (null != options.valueOf("minMappingQuality"))
-			minMappingQuality = (Integer) options.valueOf("minMappingQuality");
-		if (null != options.valueOf("minBaseQuality"))
-			minBaseQuality = (Integer) options.valueOf("minBaseQuality");
-		if (null != options.valueOf("noOfThreads"))
-			noOfThreads = (Integer) options.valueOf("noOfThreads");
-//		if (null != options.valueOf("snpChipCoverage"))
-//			snpChipCoverage = (Integer) options.valueOf("snpChipCoverage");
+		minCoverage = Optional.ofNullable((Integer) options.valueOf("minCoverage"));
+		minMappingQuality = Optional.ofNullable((Integer) options.valueOf("minMappingQuality"));
+		minBaseQuality = Optional.ofNullable((Integer) options.valueOf("minBaseQuality"));
+		noOfThreads = Optional.ofNullable((Integer) options.valueOf("noOfThreads"));
 	}
 
 	String getLog() {
@@ -225,13 +218,13 @@ final class Options {
 	String[] getDirNames() {
 		return this.dirNames;
 	}
-	public int getMinCoverage() {
+	public Optional<Integer> getMinCoverage() {
 		return minCoverage;
 	}
 	public Optional<Integer> getMinRGCoverage() {
 		return minRGCoverage;
 	}
-	public int getNoOfThreads() {
+	public Optional<Integer> getNoOfThreads() {
 		return noOfThreads;
 	}
 //	public int getSnpChipCoverage() {
@@ -263,11 +256,11 @@ final class Options {
 		}
 	}
 
-	public Integer getMinMappingQuality() {
+	public Optional<Integer> getMinMappingQuality() {
 		return minMappingQuality;
 	}
 
-	public Integer getMinBaseQuality() {
+	public Optional<Integer> getMinBaseQuality() {
 		return minBaseQuality;
 	}
 
@@ -301,8 +294,4 @@ final class Options {
 		return inputFileNames;
 	}
 
-	public boolean hasMinCoverage() {
-		return options.has("minCoverage");
-	}
-	
 }

@@ -65,6 +65,7 @@ public class CompareGenotypeBespoke {
 	
 	private float cutoff = 0.95f;
 	private int minimumCoverage = 10;
+	private int minimumRGCoverage = 10;
 	
 	private String outputXml;
 	private String [] paths;
@@ -366,10 +367,10 @@ public class CompareGenotypeBespoke {
 				cutoff = options.getCutoff();
 			}
 			
-			if (options.hasMinCoverage()) {
-				minimumCoverage = options.getMinCoverage();
-			}
+			options.getMinCoverage().ifPresent(i -> {minimumCoverage = i.intValue();});
+			options.getMinRGCoverage().ifPresent(i -> {minimumRGCoverage = i.intValue();});
 			logger.tool("Setting minumim coverage to: " + minimumCoverage);
+			logger.tool("Setting minumim RG coverage to: " + minimumRGCoverage);
 			
 			additionalSearchStrings = options.getAdditionalSearchString();
 			logger.tool("Setting additionalSearchStrings to: " + Arrays.deepToString(additionalSearchStrings));
