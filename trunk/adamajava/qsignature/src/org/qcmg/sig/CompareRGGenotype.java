@@ -184,7 +184,7 @@ public class CompareRGGenotype {
 		// if not - load
 		Pair<SigMeta, TMap<String, TIntShortHashMap>> result = cache.get(f);
 		if (result == null) {
-			result = SignatureUtil.loadSignatureRatiosBespokeGenotype(f, minimumCoverage);
+			result = SignatureUtil.loadSignatureRatiosBespokeGenotype(f, minimumCoverage, minimumRGCoverage);
 			/*
 			 * if we have multiple rgs - perform comparison on them before adding overall ratios to cache
 			 */
