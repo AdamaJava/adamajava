@@ -115,9 +115,9 @@ public class IndelMT {
 			 	 	if(! passFilter ) continue;
 			 			 		
 			 		//whether in current indel region
-			 		if(re.getAlignmentStart() <= topPos.getEnd() && current_pool.size() < MAXRAMREADS )
+			 		if (re.getAlignmentStart() <= topPos.getEnd() && current_pool.size() < MAXRAMREADS ) {
 			 			current_pool.add(re);
-			 		else{
+			 		} else {
 			 			next_pool.add(re); 
 			 			//pileup
 			 			IndelPileup pileup= new IndelPileup(topPos, options.getSoftClipWindow(), options.getNearbyIndelWindow(), options.getMaxEventofStrongSupport());
@@ -167,10 +167,10 @@ public class IndelMT {
 				//check read record behind on current position			
 				for( SAMRecord  re : tmp_pool ){
 					//aligned position before indel
-					if(re.getAlignmentEnd() < topPos.getStart())
+					if (re.getAlignmentEnd() < topPos.getStart()) {
 						nextPool.remove(re);
 					//aligned position cross indel
-					else if(re.getAlignmentStart() <= topPos.getEnd()){ 	 					 
+					} else if (re.getAlignmentStart() <= topPos.getEnd()){		 
 						tmp_current_pool.add(re);	
 						nextPool.remove(re);
 					}			 
@@ -181,10 +181,10 @@ public class IndelMT {
 				//check already read record  for previous pileup
 				for( SAMRecord  re1 : tmp_pool ){
 					//aligned position before indel
-					if(re1.getAlignmentEnd() < topPos.getStart())
+					if (re1.getAlignmentEnd() < topPos.getStart()) {
 						currentPool.remove(re1);
 					//aligned position after indel
-					else if(re1.getAlignmentStart() > topPos.getEnd()){
+					} else if (re1.getAlignmentStart() > topPos.getEnd()){
 						nextPool.add(re1);
 						currentPool.remove(re1);
 					}
