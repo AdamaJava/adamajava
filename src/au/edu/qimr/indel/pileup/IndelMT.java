@@ -8,8 +8,6 @@ import java.text.SimpleDateFormat;
 import java.util.AbstractQueue;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -28,7 +26,6 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.meta.QExec;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrRangePosition;
-import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
@@ -39,7 +36,6 @@ import org.qcmg.qbamfilter.query.QueryExecutor;
 import org.qcmg.vcf.VCFFileWriter;
 
 import au.edu.qimr.indel.Options;
-import au.edu.qimr.indel.pileup.Homopolymer;
 import au.edu.qimr.indel.pileup.IndelPileup;
 import au.edu.qimr.indel.pileup.IndelPosition;
 import au.edu.qimr.indel.pileup.ReadIndels;
@@ -313,7 +309,7 @@ public class IndelMT {
 	 */
 	public int process(final int threadNo) throws Exception {
 		positionRecordMap = indelload.getIndelMap();
-		if(positionRecordMap == null || positionRecordMap.size() == 0){
+		if(positionRecordMap == null || positionRecordMap.isEmpty()){
 			logger.info("Exit program since there is no indels loaded from inputs");
 			return 0; 
 		}			
@@ -327,19 +323,22 @@ public class IndelMT {
         ExecutorService pileupThreads = Executors.newFixedThreadPool(threadNo);    	
     	
         QueryExecutor query = null; 
-        if(options.getFilterQuery() != null)
-        	query = new QueryExecutor(options.getFilterQuery()); 
+        if (options.getFilterQuery() != null) {
+        		query = new QueryExecutor(options.getFilterQuery());
+        }
         
      	//each time only throw threadNo thread, the loop finish untill the last threadNo                    	
-    	for(SAMSequenceRecord contig : sortedContigs ){       		
-    		if(options.getControlBam() != null)    			
+    	for (SAMSequenceRecord contig : sortedContigs ){       		
+    		if (options.getControlBam() != null) {    			
     			 pileupThreads.execute(new ContigPileup(contig, getIndelList(contig), options.getControlBam(),query,
     				normalQueue, Thread.currentThread(),pileupLatch ));
+    		}
     		
     		//getIndelList must be called repeately, since it will be empty after pileup
-    		 if(options.getTestBam() != null)
+    		 if (options.getTestBam() != null) {
     			 pileupThreads.execute(new ContigPileup(contig, getIndelList(contig), options.getTestBam() , query,
     					 tumourQueue, Thread.currentThread() ,pileupLatch));
+    		 }
     		
 //    		if(options.getReference() != null)
 //    			pileupThreads.execute(new HomopoPileup(contig.getSequenceName(), getIndelList(contig), options.getReference(),
@@ -391,8 +390,9 @@ public class IndelMT {
 						
 			//reheader
 			getHeaderForIndel(header);	
-        	for(final VcfHeader.Record record: header)  
+        	for (final VcfHeader.Record record: header) {
         		writer.addHeader(record.toString());
+        	}
 			 
         	//adding indels
 			long count = 0;
