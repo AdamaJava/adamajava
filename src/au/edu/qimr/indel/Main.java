@@ -51,7 +51,7 @@ public class Main {
 					
 			logger.config("***[rules]***");
 			logger.config("Gematic novel starts limits: " + options.getMinGematicNovelStart());	
-			logger.config("Gematic suporting percentage limits: " + options.getMinGematicSupportOfInformative());			 
+			logger.config("Gematic supporting percentage limits: " + options.getMinGematicSupportOfInformative());			 
 			
 			IndelMT process = new IndelMT( options, logger);
 			exitStatus = process.process(options.getThreadNo());			
