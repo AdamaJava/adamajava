@@ -375,13 +375,17 @@ public class IndelMT {
 
 		while((pileup = tumourQueue.poll()) != null ){
 			ChrRangePosition pos = pileup.getChrRangePosition();
-			IndelPosition indel = positionRecordMap.get(pos);			
-			indel.setPileup(true, pileup);			
+			IndelPosition indel = positionRecordMap.get(pos);
+			if (null != indel) {
+				indel.setPileup(true, pileup);
+			}
 		}
 		while((pileup = normalQueue.poll()) != null ){
 			ChrRangePosition pos = pileup.getChrRangePosition();
 			IndelPosition indel = positionRecordMap.get(pos);
-			indel.setPileup(false, pileup);			
+			if (null != indel) {
+				indel.setPileup(false, pileup);
+			}
 		}
 				
 		final AbstractQueue<IndelPosition> orderedList = getIndelList(null);
