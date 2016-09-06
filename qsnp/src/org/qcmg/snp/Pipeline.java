@@ -1546,7 +1546,7 @@ public abstract class Pipeline {
 							previousPosition = 0;
 							barrier.await();
 							logger.info("Cleaner: no of keepers so far: " + positionRecordMap.size());
-							Thread.sleep(500);	// sleep to allow initial map population
+							Thread.sleep(100);	// sleep to allow initial map population
 						} catch (final InterruptedException e) {
 							logger.error("InterruptedException caught in Cleaner thread: ", e);
 							throw e;
@@ -1791,7 +1791,7 @@ public abstract class Pipeline {
 	void purgeNonAdjacentAccumulators() {
 		int noRemoved = 0;
 		List<ChrPosition> list = new ArrayList<>(adjacentAccumulators.keySet());
-		Collections.sort(list, COMPARATOR);
+		list.sort(COMPARATOR);
 
 		ChrPosition left = null;
 		ChrPosition middle = null;
