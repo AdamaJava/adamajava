@@ -212,9 +212,7 @@ public class SummaryReportUtils {
 			
 			// get keys and sort them
 			List<T> sortedKeys = new ArrayList<>(mapOfLengths.keySet());
-			logger.info("about to sort keys");
-			Collections.sort(sortedKeys, comparator);
-			logger.info("about to sort keys - DONE");
+			sortedKeys.sort(comparator);
 			
 			int counter = 0;
 			try {
