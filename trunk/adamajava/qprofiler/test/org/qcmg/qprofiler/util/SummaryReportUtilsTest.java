@@ -1,6 +1,11 @@
 package org.qcmg.qprofiler.util;
 
 import static org.junit.Assert.assertEquals;
+import htsjdk.samtools.Cigar;
+import htsjdk.samtools.CigarElement;
+import htsjdk.samtools.CigarOperator;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.util.SequenceUtil;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -13,10 +18,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import junit.framework.Assert;
-import htsjdk.samtools.Cigar;
-import htsjdk.samtools.CigarElement;
-import htsjdk.samtools.CigarOperator;
-import htsjdk.samtools.SAMRecord;
 
 import org.junit.Ignore;
 import org.junit.Test;
@@ -495,6 +496,49 @@ public class SummaryReportUtilsTest {
 		
 		assertEquals(1, reverseArray.get(SummaryReportUtils.getIntFromChars('T', 'A')));
 	}
+	
+	@Test
+	public void tallyMDMismatchesRealLife() {
+//		Found refBase == altBase, md: 1T0C1A0G0G0T0C0G0G0T0T0T0C0T0A0T0C0T0A0C0N0T0T0C0A0A0A0T0T0C0C0T0C0C0C0T0G0T0A1G0A3G3A10G19T6T3T2 , 
+//		cigar: 28S96M2S, seq: CNNNNNNNNNNNNNNTNNANNNNNNNNTANNCNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNCNNAAGNACANGAGAAATAAGNCCTACTTCACAAAGCGCCTNCCCCCGNAAANGANN, 
+//		reverse strand: true
+		QCMGAtomicLongArray forwardArray = new QCMGAtomicLongArray(32);
+		QCMGAtomicLongArray reverseArray = new QCMGAtomicLongArray(32);
+		SummaryByCycleNew2<Character> summary = new SummaryByCycleNew2<Character>(Character.MAX_VALUE, 64);
+		Cigar cigar = new Cigar();
+		cigar.add(new CigarElement(28, CigarOperator.S));
+		cigar.add(new CigarElement(96, CigarOperator.M));
+		cigar.add(new CigarElement(2, CigarOperator.S));
+		String result = SummaryReportUtils.tallyMDMismatches("1T0C1A0G0G0T0C0G0G0T0T0T0C0T0A0T0C0T0A0C0N0T0T0C0A0A0A0T0T0C0C0T0C0C0C0T0G0T0A1G0A3G3A10G19T6T3T2", cigar, summary, "CNNNNNNNNNNNNNNTNNANNNNNNNNTANNCNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNCNNAAGNACANGAGAAATAAGNCCTACTTCACAAAGCGCCTNCCCCCGNAAANGANN".getBytes(), true, forwardArray, reverseArray);
+		System.out.println("result: " + result);
+		result = SummaryReportUtils.tallyMDMismatches("1T0C1A0G0G0T0C0G0G0T0T0T0C0T0A0T0C0T0A0C0T0T0C0A0A0A0T0T0C0C0T0C0C0C0T0G0T0A0C0G0A0A1G1A0C0A1G0A0G0A2T0A1G1C1T0A0C0T1C0A0C0A2G0C0G0C1T1C4G0T0A2T0G0A0T0", cigar, summary, "CNNNNNNNNNNNNNNTNNANNNNNNNNTANNCNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNCNNAAGNACANGAGAAATAAGNCCTACTTCACAAAGCGCCTNCCCCCGNAAANGANN".getBytes(), true, forwardArray, reverseArray);
+		System.out.println("result: " + result);
+//		assertEquals(1, reverseArray.get(SummaryReportUtils.getIntFromChars('T', 'N')));
+	}
+	
+//	@Test
+//	public void getMdAndNMTags() {
+//		SAMRecord rec = new SAMRecord(null);
+//		rec.setFlags(16);
+//		Cigar cigar = new Cigar();
+////		cigar.add(new CigarElement(28, CigarOperator.S));
+//		cigar.add(new CigarElement(96, CigarOperator.M));
+//		cigar.add(new CigarElement(2, CigarOperator.S));
+//		rec.setCigar(cigar);
+//		rec.setAlignmentStart(1);
+//		rec.setReadBases("ANNCNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNCNNAAGNACANGAGAAATAAGNCCTACTTCACAAAGCGCCTNCCCCCGNAAANGANN".getBytes());
+////		rec.setReadBases("CNNNNNNNNNNNNNNTNNANNNNNNNNTANNCNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNCNNAAGNACANGAGAAATAAGNCCTACTTCACAAAGCGCCTNCCCCCGNAAANGANN".getBytes());
+//		
+//		
+//		byte [] ref = "atccaggtcggtttctatctacttcaaattcctccctgtaCgaAAGgACAaGAGAAATAAGgCCTACTTCACAAAGCGCCTtCCCCCGtAAAtGAtatcatctcaacttagtattatacccacacccacccaagaacagggtttgttaagatggcagagcccggtaatcgcataaaacttaaaactttacagtca".toUpperCase().getBytes();
+////		byte [] ref = "ttctatctacttcaaattcctccctgtaCgaAAGgACAaGAGAAATAAGgCCTACTTCACAAAGCGCCTtCCCCCGtAAAtGAtatcatctcaacttagtattatacccacacccacccaagaacagggtttgttaagatggcagagcccggtaatcgcataaaacttaaaactttacagtca".toUpperCase().getBytes();
+//		
+//		SequenceUtil.calculateMdAndNmTags(rec, ref, true, true);
+//		System.out.println("new md: " + rec.getAttribute("MD"));
+//		assertEquals("1T0C1A0G0G0T0C0G0G0T0T0T0C0T0A0T0C0T0A0C0N0T0T0C0A0A0A0T0T0C0C0T0C0C0C0T0G0T0A1G0A3G3A10G19T6T3T2", rec.getAttribute("MD"));
+//		
+//		
+//	}
 	
 	@Test
 	public void tallyMDMismatchesCheckMutations() {
