@@ -11,6 +11,10 @@
  */
 package org.qcmg.qprofiler.util;
 
+import htsjdk.samtools.Cigar;
+import htsjdk.samtools.CigarElement;
+import htsjdk.samtools.CigarOperator;
+
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -26,10 +30,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicLongArray;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import htsjdk.samtools.Cigar;
-import htsjdk.samtools.CigarElement;
-import htsjdk.samtools.CigarOperator;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -966,10 +966,10 @@ public class SummaryReportUtils {
 							char readBase = BaseUtils.getComplement((char)readBases[position-1 + additionalOffset]);
 							char refBase = BaseUtils.getComplement(mdData.charAt(i));
  						
-							if (refBase == readBase) 
+							if (refBase == readBase) { 
 								errMessage =  "Found refBase == altBase, md: " + mdData + " , cigar: " + cigar.toString() + ", seq: " + new String(readBases) + ", reverse strand: " +reverse; 
-																			
-							//	System.out.println("Found refBase == altBase, md: " + mdData + " , cigar: " + cigar.toString() + ", seq: " + new String(readBases) + ", reverse strand: " +reverse); 							 							
+								System.out.println("Found refBase == altBase at position in md string " + (i+1) + " ,refBase: " + refBase + ", md: " + mdData + " , cigar: " + cigar.toString() + ", seq: " + new String(readBases) + ", reverse strand: " +reverse);
+							}
 							summary.increment(readLength - position + 1, readBase);
 							int intFromChar =getIntFromChars(refBase, readBase);
 							mdRefAltLengthsReverse.increment(intFromChar);
@@ -1006,9 +1006,10 @@ public class SummaryReportUtils {
 //							if (refBase == readBase) {
 //								System.out.println("Found refBase == altBase, md: " + mdData + " , cigar: " + cigar.toString() + ", seq: " + new String(readBases) + ", reverse strand: " +reverse); 
 //							}
-							if (refBase == readBase) 
+							if (refBase == readBase) { 
 								errMessage =  "Found refBase == altBase, md: " + mdData + " , cigar: " + cigar.toString() + ", seq: " + new String(readBases) + ", reverse strand: " +reverse; 
-
+								System.out.println("Found refBase == altBase at ref position " + (i+1) + " ,refBase: " + refBase + ", md: " + mdData + " , cigar: " + cigar.toString() + ", seq: " + new String(readBases) + ", reverse strand: " +reverse);
+							}
 									
 							summary.increment(position, readBase);
 							
