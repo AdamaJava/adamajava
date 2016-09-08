@@ -5,7 +5,6 @@ import htsjdk.samtools.Cigar;
 import htsjdk.samtools.CigarElement;
 import htsjdk.samtools.CigarOperator;
 import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.util.SequenceUtil;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -108,13 +107,6 @@ public class SummaryReportUtilsTest {
 		System.out.println("time taken using Matcher: " + (System.currentTimeMillis() - start));
 		Assert.assertEquals(counter, map.get(6).get());
 		
-//		map = new HashMap<Integer, AtomicLong>();
-//		start = System.currentTimeMillis();
-//		for (int i = 0 ; i < counter ; i++) {
-//			SummaryReportUtils.tallyBadReadsAsByteArray(inputString, map);
-//		}
-//		System.out.println("time taken using String converted to byte[]: " + (System.currentTimeMillis() - start));
-//		Assert.assertEquals(counter, map.get(6).get());
 		
 		map = new ConcurrentHashMap<Integer, AtomicLong>();
 		start = System.currentTimeMillis();
@@ -124,14 +116,6 @@ public class SummaryReportUtilsTest {
 		System.out.println("time taken using String: " + (System.currentTimeMillis() - start));
 		Assert.assertEquals(counter, map.get(6).get());
 		
-//		map = new HashMap<Integer, AtomicLong>();
-//		start = System.currentTimeMillis();
-//		byte [] bytes = inputString.getBytes();
-//		for (int i = 0 ; i < counter ; i++) {
-//			SummaryReportUtils.tallyBadReadsByteArray(bytes, map);
-//		}
-//		System.out.println("time taken byte array: " + (System.currentTimeMillis() - start));
-//		Assert.assertEquals(counter, map.get(6).get());
 		
 		map = new ConcurrentHashMap<Integer, AtomicLong>();
 		start = System.currentTimeMillis();
@@ -398,14 +382,6 @@ public class SummaryReportUtilsTest {
 		// 1 + 55 + 1 + 45 = 102
 		assertEquals(102, cigar.getReadLength());
 		assertEquals(100, cigar.getReferenceLength());
-		
-//		for (int i = 1 ; i <= cigar.getReferenceLength(); i++) {
-//			if (i > 56) {
-//				assertEquals(1, SummaryReportUtils.getInsertionAdjustedReadOffset(cigar, i));
-//			} else {
-//				assertEquals(0, SummaryReportUtils.getInsertionAdjustedReadOffset(cigar, i));
-//			}
-//		}
 	}
 	
 	@Test
@@ -516,29 +492,6 @@ public class SummaryReportUtilsTest {
 //		assertEquals(1, reverseArray.get(SummaryReportUtils.getIntFromChars('T', 'N')));
 	}
 	
-//	@Test
-//	public void getMdAndNMTags() {
-//		SAMRecord rec = new SAMRecord(null);
-//		rec.setFlags(16);
-//		Cigar cigar = new Cigar();
-////		cigar.add(new CigarElement(28, CigarOperator.S));
-//		cigar.add(new CigarElement(96, CigarOperator.M));
-//		cigar.add(new CigarElement(2, CigarOperator.S));
-//		rec.setCigar(cigar);
-//		rec.setAlignmentStart(1);
-//		rec.setReadBases("ANNCNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNCNNAAGNACANGAGAAATAAGNCCTACTTCACAAAGCGCCTNCCCCCGNAAANGANN".getBytes());
-////		rec.setReadBases("CNNNNNNNNNNNNNNTNNANNNNNNNNTANNCNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNCNNAAGNACANGAGAAATAAGNCCTACTTCACAAAGCGCCTNCCCCCGNAAANGANN".getBytes());
-//		
-//		
-//		byte [] ref = "atccaggtcggtttctatctacttcaaattcctccctgtaCgaAAGgACAaGAGAAATAAGgCCTACTTCACAAAGCGCCTtCCCCCGtAAAtGAtatcatctcaacttagtattatacccacacccacccaagaacagggtttgttaagatggcagagcccggtaatcgcataaaacttaaaactttacagtca".toUpperCase().getBytes();
-////		byte [] ref = "ttctatctacttcaaattcctccctgtaCgaAAGgACAaGAGAAATAAGgCCTACTTCACAAAGCGCCTtCCCCCGtAAAtGAtatcatctcaacttagtattatacccacacccacccaagaacagggtttgttaagatggcagagcccggtaatcgcataaaacttaaaactttacagtca".toUpperCase().getBytes();
-//		
-//		SequenceUtil.calculateMdAndNmTags(rec, ref, true, true);
-//		System.out.println("new md: " + rec.getAttribute("MD"));
-//		assertEquals("1T0C1A0G0G0T0C0G0G0T0T0T0C0T0A0T0C0T0A0C0N0T0T0C0A0A0A0T0T0C0C0T0C0C0C0T0G0T0A1G0A3G3A10G19T6T3T2", rec.getAttribute("MD"));
-//		
-//		
-//	}
 	
 	@Test
 	public void tallyMDMismatchesCheckMutations() {
@@ -1232,12 +1185,6 @@ public class SummaryReportUtilsTest {
 		map.put(130, new AtomicLong(39));
 		map.put(140, new AtomicLong(38));
 		map.put(150, new AtomicLong(37));
-//		map.put(getIntWrapper(100), new AtomicLong(42));
-//		map.put(getIntWrapper(110), new AtomicLong(41));
-//		map.put(getIntWrapper(120), new AtomicLong(40));
-//		map.put(getIntWrapper(130), new AtomicLong(39));
-//		map.put(getIntWrapper(140), new AtomicLong(38));
-//		map.put(getIntWrapper(150), new AtomicLong(37));
 		SummaryReportUtils.binnedLengthMapToRangeTallyXml(root, map);
 		
 		Assert.assertTrue(root.hasChildNodes());
