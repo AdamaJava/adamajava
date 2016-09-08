@@ -203,18 +203,6 @@ public class SummaryReportUtils {
 	public static <T> void lengthMapToXmlTallyItem(Element parent, 
 			String elementName, Map<T, AtomicLong> mapOfLengths, Comparator<T> comparator) {
 		
-//		Map <T, AtomicLong> sortedMap = null;
-//		// sort the map
-//		if (null == comparator) {
-//			sortedMap = new TreeMap<T, AtomicLong>(mapOfLengths);
-//		} else {
-//			// create map, and loop through values inserting....
-//			sortedMap = new TreeMap<T, AtomicLong>(comparator);
-//			sortedMap.putAll(mapOfLengths);
-//		}
-		
-		
-		
 		if (null != mapOfLengths && ! mapOfLengths.isEmpty()) {
 			Document doc = parent.getOwnerDocument();
 			Element element = doc.createElement(elementName);
@@ -247,40 +235,7 @@ public class SummaryReportUtils {
 			}
 		}
 	}
-//	public static <T> void lengthMapToXmlTallyItem(Element parent, 
-//			String elementName, Map<T, AtomicLong> mapOfLengths, Comparator<T> comparator) {
-//		
-//		long mapTotal = getCountOfMapValues(mapOfLengths);
-//		Map <T, AtomicLong> sortedMap = null;
-//		// sort the map
-//		if (null == comparator) {
-//			sortedMap = new TreeMap<T, AtomicLong>(mapOfLengths);
-//		} else {
-//			// create map, and loop through values inserting....
-//			sortedMap = new TreeMap<T, AtomicLong>(comparator);
-//			sortedMap.putAll(mapOfLengths);
-//		}
-//		
-//		if (null != mapOfLengths && ! mapOfLengths.isEmpty()) {
-//			Document doc = parent.getOwnerDocument();
-//			Element element = doc.createElement(elementName);
-//			parent.appendChild(element);
-//			
-//			try {
-//				for (Map.Entry<T, AtomicLong> lineLength : sortedMap.entrySet()) {
-//					Element cycleE = doc.createElement("TallyItem");
-//					AtomicLong ml = lineLength.getValue();
-//					double percentage = (((double)ml.get() / mapTotal));
-//					cycleE.setAttribute("value", lineLength.getKey().toString());
-//					cycleE.setAttribute("count", ml.get()+"");
-//					cycleE.setAttribute("percent", nf.format(percentage));
-//					element.appendChild(cycleE);
-//				}
-//			} catch (DOMException e) {
-//				e.printStackTrace();
-//			}
-//		}
-//	}
+	
 	public static <T> void lengthMapToXmlTallyItem(Element parent, 
 			String elementName, Map<T, AtomicLong> mapOfLengths) {
 		lengthMapToXmlTallyItem(parent, elementName, mapOfLengths, null);
@@ -591,27 +546,6 @@ public class SummaryReportUtils {
 			e.printStackTrace();
 		}
 	}
-//	public static void binnedLengthMapToRangeTallyXml(Element parent, Map<Integer, AtomicLong> map) {
-//		
-//		Document doc = parent.getOwnerDocument();
-//		Element element = doc.createElement("RangeTally");
-//		parent.appendChild(element);
-//		
-//		try {
-//			for (Map.Entry<Integer, AtomicLong> entrySet : map.entrySet()) {
-//				Element cycleE = doc.createElement("RangeTallyItem");
-//				cycleE.setAttribute("start", "" + entrySet.getKey().getInt());
-//				int endValue = entrySet.getKey().getInt() < MAX_I_SIZE ? 
-//						entrySet.getKey().getInt() + (INITIAL_I_SIZE_BUCKET_SIZE - 1) : 
-//							entrySet.getKey().getInt() + (FINAL_I_SIZE_BUCKET_SIZE - 1); 
-//						cycleE.setAttribute("end", "" + endValue);
-//						cycleE.setAttribute("count", "" + entrySet.getValue().get());
-//						element.appendChild(cycleE);
-//			}
-//		} catch (DOMException e) {
-//			e.printStackTrace();
-//		}
-//	}
 	
 	/**
 	 * Same as <code>SummaryReportUtils.tallyQualScores</code> but operates on
@@ -655,7 +589,6 @@ public class SummaryReportUtils {
 					countUnderTen++;
 			}
 			array.incrementAndGet(countUnderTen);
-//			SummaryByCycleUtils.incrementCount(array, countUnderTen);
 		}
 	}
 	public static void tallyQualScores(byte [] data, QCMGAtomicLongArray array) {
@@ -666,7 +599,6 @@ public class SummaryReportUtils {
 					countUnderTen++;
 			}
 			array.increment(countUnderTen);
-//			SummaryByCycleUtils.incrementCount(array, countUnderTen);
 		}
 	}
 
@@ -766,7 +698,6 @@ public class SummaryReportUtils {
 					count++;
 			}
 			array.incrementAndGet(count);
-//			SummaryByCycleUtils.incrementCount(array, Integer.valueOf(count));
 		}
 	}
 	public static void tallyBadReadsAsString(String data, QCMGAtomicLongArray array) {
@@ -813,45 +744,6 @@ public class SummaryReportUtils {
 		}
 	}
 	
-//	/**
-//	 * Records the position and and corresponding sequence base where a mismatch occurred.
-//	 * Don't care about deletions here at the moment  
-//	 * 
-//	 * @param mdData md tag
-//	 * @param summary SummaryByCycle object that is keeping track of this info
-//	 * @param readBases String of sequence bases
-//	 */
-//	public static void tallyMDMismatches(String mdData, SummaryByCycle<Character> summary, byte[] readBases) {
-//		if (null != mdData) {
-//			boolean deletion = false;
-//			int position = 1;
-//			for (int i = 0, size = mdData.length() ; i < size ; ) {
-//				
-//				if (Character.isDigit(mdData.charAt(i))) {
-//					
-//					int numberLength = 1;
-//					while (++i < size && Character.isDigit(mdData.charAt(i))) {
-//						numberLength++;
-//					}
-//					position += Integer.parseInt(mdData.substring(i-numberLength, i));
-//					
-//				} else if ('^' == mdData.charAt(i)) {
-//					deletion = true;
-//					i++;
-//				} else if (isInValidExtended(mdData.charAt(i))) {
-//					// got a letter - update summary with position
-//					if (! deletion) {
-//						summary.increment(position, (char)readBases[position-1]);
-//						i++;
-//						position++;
-//					} else {
-//						while (++i < size && isInValidExtendedInDelete(mdData.charAt(i))) {}
-//					}
-//					deletion = false;
-//				} else i++;	// need to increment this or could end up with infinite loop...
-//			}
-//		}
-//	}
 	
 	public static void tallyMDMismatches(final String mdData, final SummaryByCycleNew2<Character> summary, 
 			final byte[] readBases, final boolean reverse, QCMGAtomicLongArray mdRefAltLengthsForward, 
@@ -1003,9 +895,6 @@ public class SummaryReportUtils {
 							int additionalOffset = getInsertionAdjustedReadOffset(cigar, position);
 							char readBase = (char)readBases[position-1 + additionalOffset];
 							char refBase = mdData.charAt(i);
-//							if (refBase == readBase) {
-//								System.out.println("Found refBase == altBase, md: " + mdData + " , cigar: " + cigar.toString() + ", seq: " + new String(readBases) + ", reverse strand: " +reverse); 
-//							}
 							if (refBase == readBase) { 
 								errMessage =  "Found refBase == altBase, md: " + mdData + " , cigar: " + cigar.toString() + ", seq: " + new String(readBases) + ", reverse strand: " +reverse; 
 								System.out.println("Found refBase == altBase at ref position " + (i+1) + " ,refBase: " + refBase + ", md: " + mdData + " , cigar: " + cigar.toString() + ", seq: " + new String(readBases) + ", reverse strand: " +reverse);
