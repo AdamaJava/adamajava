@@ -7,8 +7,6 @@
 package org.qcmg.sig;
 
 import gnu.trove.map.hash.THashMap;
-import gnu.trove.set.TIntSet;
-import gnu.trove.set.hash.TIntHashSet;
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMReadGroupRecord;
 import htsjdk.samtools.SAMRecord;
@@ -19,28 +17,18 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.security.DigestInputStream;
 import java.security.MessageDigest;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.AbstractQueue;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -62,31 +50,23 @@ import org.qcmg.common.meta.QExec;
 import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrPositionComparator;
-import org.qcmg.common.model.PileupElement;
 import org.qcmg.common.model.ReferenceNameComparator;
-import org.qcmg.common.string.StringUtils;
-import org.qcmg.common.util.BaseUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.ListUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfPositionComparator;
 import org.qcmg.common.vcf.VcfRecord;
-import org.qcmg.common.vcf.VcfUtils;
-import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.illumina.IlluminaFileReader;
 import org.qcmg.illumina.IlluminaRecord;
 import org.qcmg.picard.SAMFileReaderFactory;
-import org.qcmg.picard.util.PileupElementUtil;
 import org.qcmg.picard.util.SAMUtils;
 import org.qcmg.record.Record;
-import org.qcmg.sig.model.BaseStrandPosition;
 import org.qcmg.sig.model.BaseReadGroup;
 import org.qcmg.sig.util.SignatureUtil;
 import org.qcmg.tab.TabbedFileReader;
 import org.qcmg.tab.TabbedRecord;
-import org.qcmg.vcf.VCFFileWriter;
 
 
 public class SignatureGeneratorBespoke {
@@ -412,7 +392,10 @@ public class SignatureGeneratorBespoke {
 		}
 	}
 
-	private String getEncodedDist(final List<BaseReadGroup> bsps) {
+	public static String getEncodedDist(final List<BaseReadGroup> bsps) {
+		if (null == bsps || bsps.isEmpty()) {
+			return null;
+		}
 		int as = 0, cs = 0, gs = 0, ts = 0;
 		for (final BaseReadGroup bsp : bsps) {
 			switch (bsp.getBase()) {
@@ -422,20 +405,8 @@ public class SignatureGeneratorBespoke {
 			case  'T' : ts++;break;
 			}
 		}
-		return "" + as + Constants.MINUS + cs + Constants.MINUS + gs + Constants.MINUS + ts;
+		return new StringBuilder().append(as).append(Constants.MINUS).append(cs).append(Constants.MINUS).append(gs).append(Constants.MINUS).append(ts).toString();
 	}
-//	private long getEncodedDist(final List<BaseReadGroup> bsps) {
-//		int as = 0, cs = 0, gs = 0, ts = 0;
-//		for (final BaseReadGroup bsp : bsps) {
-//			switch (bsp.getBase()) {
-//			case  'A' : as++;break;
-//			case  'C' : cs++;break;
-//			case  'G' : gs++;break;
-//			case  'T' : ts++;break;
-//			}
-//		}
-//		return BaseUtils.encodeDistribution(as, cs, gs, ts);
-//	}
 	
 	private void updateResultsIllumina(Map<ChrPosition, IlluminaRecord> iIlluminaMap) {
 		
@@ -468,7 +439,7 @@ public class SignatureGeneratorBespoke {
 		// check that can write to new file
 		if (FileUtils.canFileBeWrittenTo(outputVCFFile)) {
 			final StringBuilder sbRgIds = new StringBuilder("##id:readgroup\n");
-			rgIds.entrySet().stream().sorted(Comparator.comparing(Entry::getValue)).forEach(e -> sbRgIds.append("##").append(e.getValue()).append(":").append(e.getKey()).append(Constants.NL));
+			rgIds.entrySet().stream().sorted(Comparator.comparing(Entry::getValue)).forEach(e -> sbRgIds.append("##").append(e.getValue()).append(Constants.COLON).append(e.getKey()).append(Constants.NL));
 			
 			
 			try (OutputStream os = new GZIPOutputStream(new FileOutputStream(outputVCFFile), 1024 * 1024)) {
@@ -491,40 +462,6 @@ public class SignatureGeneratorBespoke {
 		} else {
 			logger.warn("Can't write to output vcf file: " + outputVCFFile.getAbsolutePath());
 		}
-	}
-	
-	
-	private VcfHeader getHeaderForQSigIlluminaFile(final String patientId,  final String sample,
-			final String inputType, final String illuminaFileName, final String snpFile) {
-
- 		
-		final VcfHeader header = new VcfHeader();
-		final DateFormat df = new SimpleDateFormat("yyyyMMdd");
-		final String version = SignatureGeneratorBespoke.class.getPackage().getImplementationVersion();
-		final String pg = Messages.getProgramName();
-		final String fileDate = df.format(Calendar.getInstance().getTime());
-		final String uuid = QExec.createUUid();
-
-		//move input uuid into preuuid
-		header.parseHeaderLine(VcfHeaderUtils.CURRENT_FILE_VERSION);		
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_FILE_DATE + Constants.EQ + fileDate );
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_UUID_LINE + Constants.EQ + uuid );
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_SOURCE_LINE + Constants.EQ + pg+"-"+version) ;
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_DONOR_ID + Constants.EQ + patientId);
-		header.parseHeaderLine("##input_type=" + inputType );
-		header.parseHeaderLine( "##sample=" + sample ) ;
-		header.parseHeaderLine( "##bam_file=" + illuminaFileName ) ;		
-		header.parseHeaderLine("##snp_file=" + snpFile  );
-		header.parseHeaderLine("##genome=GRCh37_ICGC_standard_v2.fa\n");		
-		header.parseHeaderLine("##filter_q_score=10");
-		header.parseHeaderLine("##filter_match_qual=10");	
-		
-		header.addFilterLine(VcfHeaderUtils.FILTER_LOW_QUAL,"REQUIRED: QUAL < 50.0");
-		header.addInfoLine("FULLCOV", "-1", "String", "all bases at position");
-		header.addInfoLine("NOVELCOV", "-1", "String", "bases at position from reads with novel starts");
-  		header.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE);
-		return  header;
-		
 	}
 	
 	
