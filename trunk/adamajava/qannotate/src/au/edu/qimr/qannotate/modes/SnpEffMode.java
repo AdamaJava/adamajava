@@ -11,7 +11,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 
 import org.qcmg.common.log.QLogger;
@@ -22,6 +21,7 @@ import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.vcf.VCFFileReader;
 import org.qcmg.vcf.VCFFileWriter;
 
+import scala.actors.threadpool.Arrays;
 import au.edu.qimr.qannotate.Options;
 import ca.mcgill.mcb.pcingola.snpEffect.commandLine.SnpEff;
 
@@ -61,7 +61,7 @@ public class SnpEffMode extends AbstractMode{
 	@Override
 	protected void writeVCF(File outputFile )  throws IOException{
 		long counts = 0;
-		HashSet<ChrPosition> posCheck = new HashSet<ChrPosition>();
+		List<ChrPosition> pc = new ArrayList<>();
 		try(VCFFileReader reader = new VCFFileReader(new File( tmpFile));
 				VCFFileWriter writer = new VCFFileWriter(outputFile )){
 								
@@ -70,36 +70,32 @@ public class SnpEffMode extends AbstractMode{
 	        	}
 	        	for (final VcfRecord record : reader) {
 	        		counts ++;
-	        		posCheck.add(record.getChrPosition());
+	        		pc.add(record.getChrPosition());
 	        		writer.add(record);
 	        	}
 		}
-		logger.info(String.format("outputed %d VCF record, happend on %d variants location.",  counts , posCheck.size()));
+		logger.info(String.format("outputted %d VCF records, of which %d were uniquely positioned.",  counts , pc.stream().distinct().count()));
 	}
-		//throws Exception
 	private boolean addAnnotation(Options options, String tmpFile ) throws FileNotFoundException{	
 		
-		final List<String> command = new ArrayList<String>();
 		final File fdata = new File(options.getDatabaseFileName());
 		
-		int i = 0;
-		command.add(i, "eff");
-		command.add(++i, "-o");
-		command.add(++i, "VCF");
-		command.add(++i, "-v"); //verbose
-		//command.add(++i, "-c");
-		command.add(++i, "-config");
-		command.add(++i, options.getConfigFileName());
-		command.add(++i, "-stats");
-		command.add(++i, options.getSummaryFileName());				
-		command.add(++i, "-dataDir");
-		command.add(++i, fdata.getParent());	
-		command.add(++i, fdata.getName());
-		command.add(++i, options.getInputFileName());
+		final String[] args = {"eff", 
+				"-o", 
+				"VCF", 
+				"-v",  
+				"-config",
+				options.getConfigFileName(), 
+				"-stats", 
+				options.getSummaryFileName(),  
+				"-dataDir", 
+				fdata.getParent(), 
+				fdata.getName(), 
+				options.getInputFileName()};
+		
 		
 		//run snpEff, store output to a tmp file
-		final String[] args =  command.toArray(new String[0]) ;	
-    	logger.tool( command.toString());	 
+    		logger.tool( Arrays.deepToString(args));	 
 		
 		boolean ok = false;
 		try(PrintStream original = new PrintStream(System.out);
@@ -109,7 +105,6 @@ public class SnpEffMode extends AbstractMode{
 			final SnpEff snpEff = new SnpEff(args);
 			ok = snpEff.run();
 						
-	 	//	SnpEff.main(args); it will exit system once done
 	 		System.setOut(original);	 		
 		} 
 		
