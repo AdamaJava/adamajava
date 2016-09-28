@@ -220,7 +220,10 @@ public class VcfUtils {
 			throw new IllegalArgumentException("VCFRecord null, or does not contain the appropriate fields. rec: [" + (null != rec ? rec.toString() : null) + "]");
 		
 		final String extraField = rec.getFormatFields().get(1);	// second item in list should have pertinent info
-		if (StringUtils.isNullOrEmpty(extraField)) return null;
+		if (null == extraField || extraField.length() <= 3) {
+			logger.warn("Format field incomplete for record: " + rec.toString());
+			return null;
+		}
 		return extraField.substring(0,3);
 	}
 	
