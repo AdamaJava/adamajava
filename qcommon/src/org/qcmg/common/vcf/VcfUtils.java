@@ -42,6 +42,7 @@ public class VcfUtils {
 	
 	public static final Pattern pattern_AC = Pattern.compile("[ACGT][0-9]+\\[[0-9]+.?[0-9]*\\],[0-9]+\\[[0-9]+.?[0-9]*\\]");
 	public static final Pattern pattern_ACCS = Pattern.compile("[ACGT_]+,[0-9]+,[0-9]+");
+	public static final int CONF_LENGTH = (VcfHeaderUtils.INFO_CONFIDENT + Constants.EQ).length();
 
  
  /**
@@ -596,28 +597,6 @@ public class VcfUtils {
 					}
 				}
 				
-				
-				
-				// populate list
-//				for (Entry<String, StringBuilder> entry : ff.entrySet()) {
-//					if (header.length() > 0) {
-//						header.append(':');
-//					}
-//					header.append(entry.getKey());
-//					String [] params = entry.getValue().toString().split(":");
-//					int m = 0;
-//					for (String s : params) {
-//						StringBuilder sb =  values.size() > m ? values.get(m) : null;
-//						if (null == sb) {
-//							sb = new StringBuilder(s);
-//							values.add(sb);
-//						} else {
-//							sb.append(':').append(s);
-//						}
-//						m++;
-//					}
-//				}
-				
 				List<String> finalList = new ArrayList<>();
 				finalList.add(header.toString());
 				for (StringBuilder sb : values) {
@@ -635,28 +614,28 @@ public class VcfUtils {
 	public static void addFormatFieldsToVcf(VcfRecord vcf, List<String> additionalFormatFields, boolean appendInfo) {
 		if ( null != additionalFormatFields && ! additionalFormatFields.isEmpty()) {
 			// if there are no existing format fields, set field to be additional..
-			if (null == vcf.getFormatFields() || vcf.getFormatFields().isEmpty()) {
-				//vcf.setFormatField(additionalFormatFields);
+			
+			List<String> existingFF = vcf.getFormatFields();
+			
+			if (null == existingFF || existingFF.isEmpty()) {
 				vcf.setFormatFields(additionalFormatFields);
 			} else {
 				
 				// check that the 2 lists of the same size
-				if (vcf.getFormatFields().size() != additionalFormatFields.size()) {
+				if (existingFF.size() != additionalFormatFields.size()) {
 					logger.warn("format field size mismatch. Exiting record has " 
-				+ vcf.getFormatFields().size() + " entries, whereas additionalFormatFields has " 
+				+ existingFF.size() + " entries, whereas additionalFormatFields has " 
 							+ additionalFormatFields.size() + " entries - skipping addition");
 					logger.info("vcf: " + vcf.toString() + ", additional fields: " + Arrays.deepToString(additionalFormatFields.toArray(new String[]{})));
 					
 				} else {
-					final List<String> newFF =  vcf.getFormatFields();
-					
 					// need to check each element to see if it already exists...
 					final String [] formatFieldAttributes = additionalFormatFields.get(0).split(COLON_STRING);
+					final String existingFieldAttributes = existingFF.get(0);
 					
 					for (int i = 0 ; i < formatFieldAttributes.length ; i++) {
 						
 						final String s = formatFieldAttributes[i];
-						final String existingFieldAttributes = newFF.get(0);
 						
 						if (existingFieldAttributes.contains(s)) {
 							if (appendInfo) {
@@ -678,16 +657,15 @@ public class VcfUtils {
 								for (int j = 1 ; j < additionalFormatFields.size() ; j++) {
 									String additionalValue = additionalFormatFields.get(j).split(COLON_STRING)[i];
 									// get existing entry 
-									String [] existingArray = newFF.get(j).split(COLON_STRING);
+									String [] existingArray = existingFF.get(j).split(COLON_STRING);
 									String existingValue = existingArray[index];
-//									if ( ! additionalValue.equals(existingValue)) {
 									/*
 									 * always want to put delimited into place if we are in appendInfo mode
 									 */
 										existingArray[index] = existingValue + Constants.VCF_MERGE_DELIM + additionalValue;
 //									}
 									// re-insert into vcf
-									newFF.set(j, Arrays.stream(existingArray).collect(Collectors.joining(Constants.COLON_STRING)));
+										existingFF.set(j, Arrays.stream(existingArray).collect(Collectors.joining(Constants.COLON_STRING)));
 								}
 							}
 						} else {
@@ -695,18 +673,18 @@ public class VcfUtils {
 								
 							for (int j = 0 ; j < additionalFormatFields.size() ; j++) {
 								// get existing entry 
-								final String existing = newFF.get(j);
+								final String existing = existingFF.get(j);
 								// create new
 								final String newEntry = existing + COLON + additionalFormatFields.get(j).split(COLON_STRING)[i];
 								
 								// re-insert into vcf
-								newFF.set(j, newEntry);
+								existingFF.set(j, newEntry);
 							}
 						}
 					}
 					
-					if ( ! newFF.isEmpty()) {
-						vcf.setFormatFields(newFF);
+					if ( ! existingFF.isEmpty()) {
+						vcf.setFormatFields(existingFF);
 					}
 				}
 			}
@@ -811,34 +789,6 @@ public class VcfUtils {
 		}
 	}
 	
-//	public static String getUpdateAltString(String ref, String alt) {
-//		if (alt.contains(",")) {
-//			
-//			StringBuilder sb = new StringBuilder();
-//			List<String> altStrings = new ArrayList<>();
-//			String [] alts = alt.split(",");
-//			for (int i = 0 ; i < alts.length ; i++) {
-//				String s = alts[i];
-//				if (s.length() > 1) {
-//					// add last base in ref to this alt string
-//					alts[i] = s + ref.charAt(ref.length() -1);
-//				}
-//				altStrings.add(alts[i]);
-//			}
-//			Collections.sort(altStrings);
-//			for (String s : altStrings) {
-//				if (sb.length() > 0) {
-//					sb.append(",");
-//				}
-//				sb.append(s);
-//			}
-//			return sb.toString();
-//		}
-//		return null;
-//	}
-	
-	
-	
 	/**
 	 * Checks to see if the existing annotation is a PASS (or missing data symbol (".")).
 	 * If it is, then the annotation is replaced with the supplied annotation.
@@ -899,24 +849,16 @@ public class VcfUtils {
 	public static String getConfidence(VcfRecord rec) {
 		String info = rec.getInfo();
 		
-		if (StringUtils.isNullOrEmpty(info) || ! info.contains(VcfHeaderUtils.INFO_CONFIDENT)) {
+		if (StringUtils.isNullOrEmpty(info)) {
 			return null;
 		}
-		
 		int index = info.indexOf(VcfHeaderUtils.INFO_CONFIDENT + Constants.EQ);
+		if (index == -1) {
+			return null;
+		}
 		int scIndex = info.indexOf(Constants.SEMI_COLON_STRING, index);
-		String conf = info.substring(index + (VcfHeaderUtils.INFO_CONFIDENT + Constants.EQ).length(), scIndex > -1 ? scIndex : info.length());
-//		logger.info("conf: " + conf);
+		String conf = info.substring(index + CONF_LENGTH, scIndex > -1 ? scIndex : info.length());
 		return conf;
-//		if (conf.contains(MafConfidence.HIGH.name())) {
-//			return MafConfidence.HIGH;
-//		}
-//		if (conf.contains(MafConfidence.LOW.name())) {
-//			return MafConfidence.LOW;
-//		}
-//			
-//		
-//		return MafConfidence.ZERO;
 	}
  
 }
