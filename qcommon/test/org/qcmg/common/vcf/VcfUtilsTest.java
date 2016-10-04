@@ -12,7 +12,6 @@ import java.util.TreeSet;
 import org.junit.Assert;
 import org.junit.Test;
 import org.qcmg.common.model.ChrPointPosition;
-import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.model.GenotypeEnum;
 import org.qcmg.common.model.MafConfidence;
 import org.qcmg.common.model.PileupElement;
@@ -59,6 +58,47 @@ public class VcfUtilsTest {
 		assertEquals(count,106);
 		count = VcfUtils.getAltFrequency(format, "_CA");
 		assertEquals(count,3);		;
+	}
+	
+	@Test
+	public void getGDData() {
+		VcfRecord r = new VcfRecord(new String[]{"GL000192.1","228788",".","G","T","1819.77",".","AC=2;AF=1.00;AN=2;DP=45;FS=0.000;MLEAC=2;MLEAF=1.00;MQ=53.11;MQ0=0;QD=31.96;SOR=1.038","GT:AD:DP:GQ:PL","1/1:0,45:45:99:1848,135,0"});
+		assertEquals("1/1", VcfUtils.getGenotypeFromGATKVCFRecord(r));
+		r = new VcfRecord(new String[]{"GL000192.1","228788",".","G","T","1819.77",".","AC=2;AF=1.00;AN=2;DP=45;FS=0.000;MLEAC=2;MLEAF=1.00;MQ=53.11;MQ0=0;QD=31.96;SOR=1.038","GT:AD:DP:GQ:PL","0/1:0,45:45:99:1848,135,0"});
+		assertEquals("0/1", VcfUtils.getGenotypeFromGATKVCFRecord(r));
+		r = new VcfRecord(new String[]{"GL000192.1","228788",".","G","T","1819.77",".","AC=2;AF=1.00;AN=2;DP=45;FS=0.000;MLEAC=2;MLEAF=1.00;MQ=53.11;MQ0=0;QD=31.96;SOR=1.038","GT:AD:DP:GQ:PL","0/0:0,45:45:99:1848,135,0"});
+		assertEquals("0/0", VcfUtils.getGenotypeFromGATKVCFRecord(r));
+		r = new VcfRecord(new String[]{"GL000192.1","228788",".","G","T","1819.77",".","AC=2;AF=1.00;AN=2;DP=45;FS=0.000;MLEAC=2;MLEAF=1.00;MQ=53.11;MQ0=0;QD=31.96;SOR=1.038","GT:AD:DP:GQ:PL","1/2:0,45:45:99:1848,135,0"});
+		assertEquals("1/2", VcfUtils.getGenotypeFromGATKVCFRecord(r));
+	}
+	
+	@Test
+	public void getGDDataDuffRealLifeData() {
+		VcfRecord r = new VcfRecord(new String[]{"GL000222.1","80278",".","C","A","427.77",".","AC=1;AF=0.500;AN=2;BaseQRankSum=0GL000222.1","80426",".","C","A","579.77",".","AC=1;AF=0.500;AN=2;BaseQRankSum=1.845;ClippingRankSum=0.329;DP=81;FS=46.164;MLEAC=1;MLEAF=0.500;MQ=35.11;MQ0=0;MQRankSum=4.453;QD=7.16;ReadPosRankSum=1.477;SOR=5.994","GT:AD:DP:GQ:PL","0/1:62,19:81:99:608,0,2576"});
+		try {
+			VcfUtils.getGenotypeFromGATKVCFRecord(r);
+			Assert.fail("Should have thrown an IAE");
+		} catch (IllegalArgumentException iae) {}
+		
+		r = new VcfRecord(new String[]{"GL000192.1","228788",".","G","T","1819.77",".","AC=2;AF=1.00;AN=2;DP=45;FS=0.000;MLEAC=2;MLEAF=1.00;MQ=53.11;MQ0=0;QD=31.96;SOR=1.038","GT:AD:DP:GQ:PL",""});
+		try {
+			VcfUtils.getGenotypeFromGATKVCFRecord(r);
+			Assert.fail("Should have thrown an IAE");
+		} catch (IllegalArgumentException iae) {}
+		
+		r = new VcfRecord(new String[]{"GL000192.1","228788",".","G","T","1819.77",".","AC=2;AF=1.00;AN=2;DP=45;FS=0.000;MLEAC=2;MLEAF=1.00;MQ=53.11;MQ0=0;QD=31.96;SOR=1.038","GT","0/"});
+		try {
+			VcfUtils.getGenotypeFromGATKVCFRecord(r);
+			Assert.fail("Should have thrown an IAE");
+		} catch (IllegalArgumentException iae) {}
+		r = new VcfRecord(new String[]{"GL000192.1","228788",".","G","T","1819.77",".","AC=2;AF=1.00;AN=2;DP=45;FS=0.000;MLEAC=2;MLEAF=1.00;MQ=53.11;MQ0=0;QD=31.96;SOR=1.038","GG","0/1"});
+		try {
+			VcfUtils.getGenotypeFromGATKVCFRecord(r);
+			Assert.fail("Should have thrown an IAE");
+		} catch (IllegalArgumentException iae) {}
+		
+		r = new VcfRecord(new String[]{"GL000192.1","228788",".","G","T","1819.77",".","AC=2;AF=1.00;AN=2;DP=45;FS=0.000;MLEAC=2;MLEAF=1.00;MQ=53.11;MQ0=0;QD=31.96;SOR=1.038","GT","0/1"});
+		assertEquals("0/1",VcfUtils.getGenotypeFromGATKVCFRecord(r));
 	}
 	
 	@Test

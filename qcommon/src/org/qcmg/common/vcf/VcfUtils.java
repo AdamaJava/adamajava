@@ -200,14 +200,14 @@ public class VcfUtils {
 		final int firstIndex = 4;	// string should always start with 0/0
 		final int secondIndex = format.indexOf(":", firstIndex) +1;
 		if (secondIndex == -1) { 
-//			System.err.println("incorrent index for format field: " + format);
+//			System.err.println("incorrect index for format field: " + format);
 			return -1;
 		}
 		
 		final int thirdIndex = format.indexOf(":", secondIndex);
 		
 		if (thirdIndex == -1) {
-//			System.err.println("incorrent index for format field: " + format);
+//			System.err.println("incorrect index for format field: " + format);
 			return -1;
 		}
 		
@@ -216,13 +216,23 @@ public class VcfUtils {
 	}
 	
 	public static String getGenotypeFromGATKVCFRecord(VcfRecord rec) {
-		if (null == rec || rec.getFormatFields().size() < 2)
-			throw new IllegalArgumentException("VCFRecord null, or does not contain the appropriate fields. rec: [" + (null != rec ? rec.toString() : null) + "]");
+		if (null == rec)
+			throw new IllegalArgumentException("VCFRecord passed to VcfUtils.getGenotypeFromGATKVCFRecord is null");
 		
-		final String extraField = rec.getFormatFields().get(1);	// second item in list should have pertinent info
-		if (null == extraField || extraField.length() <= 3) {
-			logger.warn("Format field incomplete for record: " + rec.toString());
-			return null;
+		List<String> formats = rec.getFormatFields();
+		if (formats.size() < 2) {
+			throw new IllegalArgumentException("VCFRecord passed to VcfUtils.getGenotypeFromGATKVCFRecord does not contain the appropriate number of format fields. rec: [" + (null != rec ? rec.toString() : null) + "]");
+		}
+		
+		/*
+		 * If format contains GT then it must be at the start of the format field 
+		 */
+		if ( ! formats.get(0).startsWith("GT")) {
+			throw new IllegalArgumentException("VCFRecord passed to VcfUtils.getGenotypeFromGATKVCFRecord contains a format field that is malformed: rec: [" + (null != rec ? rec.toString() : null) + "]");
+		}
+		final String extraField = formats.get(1);	// second item in list should have pertinent info
+		if (null == extraField || extraField.length() < 3) {
+			throw new IllegalArgumentException("VCFRecord passed to VcfUtils.getGenotypeFromGATKVCFRecord contains a format field that is malformed: rec: [" + (null != rec ? rec.toString() : null) + "]");
 		}
 		return extraField.substring(0,3);
 	}
