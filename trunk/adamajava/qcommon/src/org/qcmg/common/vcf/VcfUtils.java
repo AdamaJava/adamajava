@@ -839,7 +839,7 @@ public class VcfUtils {
 	
 	/**
 	 * Returns the confidence of a VcfRecord, which is found in the info field.
-	 * Returns null should the record be null, or the CONF value not be set int he info field.
+	 * Returns null should the record be null, or the CONF value not be set in the info field.
 	 * 
 	 * For merged records
 	 * 

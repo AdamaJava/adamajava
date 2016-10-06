@@ -12,6 +12,7 @@ import java.util.TreeSet;
 import org.junit.Assert;
 import org.junit.Test;
 import org.qcmg.common.model.ChrPointPosition;
+import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.model.GenotypeEnum;
 import org.qcmg.common.model.MafConfidence;
 import org.qcmg.common.model.PileupElement;
@@ -61,7 +62,53 @@ public class VcfUtilsTest {
 	}
 	
 	@Test
-	public void getGDData() {
+	public void createVcf() {
+		VcfRecord r = VcfUtils.createVcfRecord(new ChrPointPosition("1",1), "id", "ref", "alt");
+		assertEquals("1", r.getChromosome());
+		assertEquals(1, r.getPosition());
+		assertEquals(1 + r.getRef().length() -1 , r.getChrPosition().getEndPosition());
+		assertEquals("id", r.getId());
+		assertEquals("ref", r.getRef());
+		assertEquals("alt", r.getAlt());
+		
+		r = VcfUtils.createVcfRecord(new ChrPointPosition("1",1), "id", "A", "alt");
+		assertEquals("1", r.getChromosome());
+		assertEquals(1, r.getPosition());
+		assertEquals(1 + r.getRef().length() -1 , r.getChrPosition().getEndPosition());
+		assertEquals("id", r.getId());
+		assertEquals("A", r.getRef());
+		assertEquals("alt", r.getAlt());
+		
+		r = VcfUtils.createVcfRecord(new ChrRangePosition("1",1,2), "id", "AA", "alt");
+		assertEquals("1", r.getChromosome());
+		assertEquals(1, r.getPosition());
+		assertEquals(1 + r.getRef().length() -1 , r.getChrPosition().getEndPosition());
+		assertEquals("id", r.getId());
+		assertEquals("AA", r.getRef());
+		assertEquals("alt", r.getAlt());
+		
+		r = VcfUtils.createVcfRecord(new ChrRangePosition("1",1,2), "id", "AAA", "alt");
+		assertEquals("1", r.getChromosome());
+		assertEquals(1, r.getPosition());
+		assertEquals(1 + r.getRef().length() -1 , r.getChrPosition().getEndPosition());
+		assertEquals("id", r.getId());
+		assertEquals("AAA", r.getRef());
+		assertEquals("alt", r.getAlt());
+				
+	}
+	
+	@Test
+	public void getGEFromGATKVcf() {
+		VcfRecord r = new VcfRecord(new String[]{"GL000192.1","228788",".","G","T","1819.77",".","AC=2;AF=1.00;AN=2;DP=45;FS=0.000;MLEAC=2;MLEAF=1.00;MQ=53.11;MQ0=0;QD=31.96;SOR=1.038","GT:AD:DP:GQ:PL","1/1:0,45:45:99:1848,135,0"});
+		assertEquals(GenotypeEnum.TT, VcfUtils.getGEFromGATKVCFRec(r));
+		r = new VcfRecord(new String[]{"GL000192.1","228788",".","G","T","1819.77",".","AC=2;AF=1.00;AN=2;DP=45;FS=0.000;MLEAC=2;MLEAF=1.00;MQ=53.11;MQ0=0;QD=31.96;SOR=1.038","GT:AD:DP:GQ:PL","0/0:0,45:45:99:1848,135,0"});
+		assertEquals(GenotypeEnum.GG, VcfUtils.getGEFromGATKVCFRec(r));
+		r = new VcfRecord(new String[]{"GL000192.1","228788",".","G","T","1819.77",".","AC=2;AF=1.00;AN=2;DP=45;FS=0.000;MLEAC=2;MLEAF=1.00;MQ=53.11;MQ0=0;QD=31.96;SOR=1.038","GT:AD:DP:GQ:PL","0/1:0,45:45:99:1848,135,0"});
+		assertEquals(GenotypeEnum.GT, VcfUtils.getGEFromGATKVCFRec(r));
+	}
+	
+	@Test
+	public void getGTData() {
 		VcfRecord r = new VcfRecord(new String[]{"GL000192.1","228788",".","G","T","1819.77",".","AC=2;AF=1.00;AN=2;DP=45;FS=0.000;MLEAC=2;MLEAF=1.00;MQ=53.11;MQ0=0;QD=31.96;SOR=1.038","GT:AD:DP:GQ:PL","1/1:0,45:45:99:1848,135,0"});
 		assertEquals("1/1", VcfUtils.getGenotypeFromGATKVCFRecord(r));
 		r = new VcfRecord(new String[]{"GL000192.1","228788",".","G","T","1819.77",".","AC=2;AF=1.00;AN=2;DP=45;FS=0.000;MLEAC=2;MLEAF=1.00;MQ=53.11;MQ0=0;QD=31.96;SOR=1.038","GT:AD:DP:GQ:PL","0/1:0,45:45:99:1848,135,0"});
@@ -73,7 +120,7 @@ public class VcfUtilsTest {
 	}
 	
 	@Test
-	public void getGDDataDuffRealLifeData() {
+	public void getGTDataDuffRealLifeData() {
 		VcfRecord r = new VcfRecord(new String[]{"GL000222.1","80278",".","C","A","427.77",".","AC=1;AF=0.500;AN=2;BaseQRankSum=0GL000222.1","80426",".","C","A","579.77",".","AC=1;AF=0.500;AN=2;BaseQRankSum=1.845;ClippingRankSum=0.329;DP=81;FS=46.164;MLEAC=1;MLEAF=0.500;MQ=35.11;MQ0=0;MQRankSum=4.453;QD=7.16;ReadPosRankSum=1.477;SOR=5.994","GT:AD:DP:GQ:PL","0/1:62,19:81:99:608,0,2576"});
 		try {
 			VcfUtils.getGenotypeFromGATKVCFRecord(r);
