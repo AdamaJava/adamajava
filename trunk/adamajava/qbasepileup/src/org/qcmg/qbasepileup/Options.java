@@ -126,7 +126,7 @@ public class Options {
 			mode =  (String) options.valueOf("m");
 		}
 
-		if (!mode.equals("snp") && !mode.equals("snpcheck") && !mode.equals("indel") && !mode.equals("coverage") && !mode.equals(QBasePileupConstants.COMPOUND_SNP_MODE)) {
+		if (!mode.equals(QBasePileupConstants.SNP_MODE) && !mode.equals(QBasePileupConstants.SNP_CHECK_MODE) && !mode.equals(QBasePileupConstants.INDEL_MODE) && !mode.equals(QBasePileupConstants.COVERAGE_MODE) && !mode.equals(QBasePileupConstants.COMPOUND_SNP_MODE)) {
 			throw new QBasePileupException("MODE_ERROR", mode);
 		}		
 
@@ -293,7 +293,7 @@ public class Options {
 			}
 		}
 
-		if (mode.equals("indel")) {
+		if (QBasePileupConstants.INDEL_MODE.equals(mode)) {
 
 			String somFile = (String) options.valueOf("is");
 			if (somFile != null) {
@@ -336,7 +336,7 @@ public class Options {
 
 		}	
 
-		if (mode.equals("coverage")) {
+		if (QBasePileupConstants.COVERAGE_MODE.equals(mode)) {
 			String posFile = (String) options.valueOf("s");
 			if (posFile != null) {
 				positionsFile = new File(posFile);
@@ -607,8 +607,8 @@ public class Options {
 	public void detectBadOptions() throws QBasePileupException {
 		if (!hasHelpOption() && !hasVersionOption()) {
 
-			if (mode.equals("snp") || mode.equals(QBasePileupConstants.COMPOUND_SNP_MODE) 
-					|| mode.equals(QBasePileupConstants.SNP_CHECK_MODE)) {			
+			if (QBasePileupConstants.SNP_MODE.equals(mode) || mode.equals(QBasePileupConstants.COMPOUND_SNP_MODE) 
+					|| mode.equals(QBasePileupConstants.SNP_CHECK_MODE)) {
 
 				if (output.exists()) {					
 					throw new QBasePileupException("OUTPUT_EXISTS", output.getAbsolutePath());
@@ -635,7 +635,7 @@ public class Options {
 					}
 				}
 
-				if (mode.equals("snp") || mode.equals(QBasePileupConstants.COMPOUND_SNP_MODE)) {
+				if (mode.equals(QBasePileupConstants.SNP_MODE) || mode.equals(QBasePileupConstants.COMPOUND_SNP_MODE)) {
 					checkReference();
 					if (!profile.equals("standard") && !profile.equals("torrent") && !profile.equals("RNA") && !profile.equals("DNA")) {
 						throw new QBasePileupException("UNKNOWN_PROFILE", profile);
@@ -644,7 +644,7 @@ public class Options {
 
 			}
 
-			if (mode.equals("indel")) {    	
+			if (QBasePileupConstants.INDEL_MODE.equals(mode)) {    	
 				checkReference();
 				if (!tumourBam.exists()) {
 					throw new QBasePileupException("FILE_EXISTS_ERROR", tumourBam.getBamFile().getAbsolutePath());
