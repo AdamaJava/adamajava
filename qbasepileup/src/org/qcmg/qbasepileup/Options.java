@@ -126,7 +126,7 @@ public class Options {
 			mode =  (String) options.valueOf("m");
 		}
 
-		if (!mode.equals(QBasePileupConstants.SNP_MODE) && !mode.equals(QBasePileupConstants.SNP_CHECK_MODE) && !mode.equals(QBasePileupConstants.INDEL_MODE) && !mode.equals(QBasePileupConstants.COVERAGE_MODE) && !mode.equals(QBasePileupConstants.COMPOUND_SNP_MODE)) {
+		if ( ! mode.equals(QBasePileupConstants.SNP_MODE) && ! mode.equals(QBasePileupConstants.SNP_CHECK_MODE) && ! mode.equals(QBasePileupConstants.INDEL_MODE) && ! mode.equals(QBasePileupConstants.COVERAGE_MODE) && ! mode.equals(QBasePileupConstants.COMPOUND_SNP_MODE)) {
 			throw new QBasePileupException("MODE_ERROR", mode);
 		}		
 
@@ -140,10 +140,10 @@ public class Options {
 			filterQuery = (String) options.valueOf("filter");
 		} 	
 
-		if (mode.equals("snp") || mode.equals(QBasePileupConstants.COMPOUND_SNP_MODE) || mode.equals(QBasePileupConstants.SNP_CHECK_MODE)) {
+		if (QBasePileupConstants.SNP_MODE.equals(mode) || mode.equals(QBasePileupConstants.COMPOUND_SNP_MODE) || mode.equals(QBasePileupConstants.SNP_CHECK_MODE)) {
 
 			///default filter for compound snps:			
-			if (mode.equals(QBasePileupConstants.COMPOUND_SNP_MODE)) {
+			if (null == filterQuery && mode.equals(QBasePileupConstants.COMPOUND_SNP_MODE)) {
 				filterQuery = "and(Flag_DuplicateRead==false , CIGAR_M>34 , MD_mismatch <= 3 , option_SM > 10)";
 			}
 
@@ -166,11 +166,11 @@ public class Options {
 			}	
 
 
-			if (mode.equals(QBasePileupConstants.COMPOUND_SNP_MODE) && !format.equals("dcc1")) {
+			if (mode.equals(QBasePileupConstants.COMPOUND_SNP_MODE) && ! format.equals("dcc1")) {
 				throw new QBasePileupException("COMP_FILE_FORMAT_ERROR");
 			}
 
-			if (mode.equals(QBasePileupConstants.SNP_CHECK_MODE) && !format.equals("maf")) {
+			if (mode.equals(QBasePileupConstants.SNP_CHECK_MODE) && ! format.equals("maf")) {
 				throw new QBasePileupException("CHECK_FILE_FORMAT_ERROR");
 			}
 
