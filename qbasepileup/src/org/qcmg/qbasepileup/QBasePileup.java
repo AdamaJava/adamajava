@@ -62,14 +62,14 @@ public class QBasePileup {
 					
 					logger.info("Running " + options.getMode() + " mode");
 					
-					if (options.getMode().equals("snp") || options.getMode().equals(QBasePileupConstants.COMPOUND_SNP_MODE)
+					if (QBasePileupConstants.SNP_MODE.equals(options.getMode()) || options.getMode().equals(QBasePileupConstants.COMPOUND_SNP_MODE)
 							|| options.getMode().equals(QBasePileupConstants.SNP_CHECK_MODE)) {
 						return runSnpMode();						
 					} 
-					if (options.getMode().equals("indel")){
+					if (QBasePileupConstants.INDEL_MODE.equals(options.getMode())) {
 						return runIndelMode();	
 					}
-					if (options.getMode().equals("coverage")){
+					if (QBasePileupConstants.COVERAGE_MODE.equals(options.getMode())) {
 						return runCoverageMode();	
 					}
 				}
