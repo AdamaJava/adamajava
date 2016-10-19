@@ -52,7 +52,6 @@ public class SnpBasePileupMT {
 	private final AtomicInteger totalReadsBadBaseQual = new AtomicInteger();
 	private final AtomicInteger totalReadsBaseMapQual = new AtomicInteger();
 	private final AtomicInteger positionCount = new AtomicInteger();
-//	private final AtomicInteger uniquePositionCount = new AtomicInteger();
 	int threadNo = 0;
 	private final AtomicInteger exitStatus = new AtomicInteger();
 	final int sleepUnit = 20;
@@ -80,34 +79,25 @@ public class SnpBasePileupMT {
 			headerLines = QBasePileupUtil.getHeaderLines(options.getPositionsFile());			
 		}
 
-//		final AbstractQueue<InputBAM> readQueue = new ConcurrentLinkedQueue<>();    
 		final AbstractQueue<SnpPosition> readQueue = new ConcurrentLinkedQueue<SnpPosition>();    
 		final List<SnpPosition> positions = new ArrayList<>();
 
 		final AbstractQueue<String> writeQueue = new ConcurrentLinkedQueue<String>();
 
-//		final CountDownLatch readLatch = new CountDownLatch(1); // reading
 		// thread
 		final CountDownLatch pileupLatch = new CountDownLatch(threadNo); // filtering thread
 		final CountDownLatch writeLatch = new CountDownLatch(1); // writing thread for satisfied records
 
 		// set up executor services
-//		ExecutorService readThread = Executors.newSingleThreadExecutor();
-		ExecutorService pileupThreads = Executors
-				.newFixedThreadPool(threadNo);
+		ExecutorService pileupThreads = Executors.newFixedThreadPool(threadNo);
 		ExecutorService writeThread = Executors.newSingleThreadExecutor();
 
 		try {
 
 //			// kick-off single reading thread
-//			readThread.execute(new Reading(readQueue, Thread.currentThread(), readLatch, pileupLatch, 
-//					options.getPositionsFile(), options.getFormat(), positions));
-//			readThread.shutdown();
 			
 			new Reading(readQueue, Thread.currentThread(),
 					options.getPositionsFile(), options.getFormat(), positions).run();
-//			new Reading(readQueue, Thread.currentThread(), readLatch, pileupLatch, 
-//					options.getPositionsFile(), options.getFormat(), positions).run();
 			
 			logger.info("no of snp positions in array: " + positions.size());
 			
@@ -124,16 +114,12 @@ public class SnpBasePileupMT {
 			});
 			uniqueSnpPositions.addAll(positions);
 			
-//			readQueue.addAll(options.getInputBAMs());
 
 			// kick-off pileup threads
 			for (int i = 0; i < threadNo; i++) {
 				pileupThreads.execute(new Pileup(readQueue,
 						writeQueue, Thread.currentThread(), 
 						pileupLatch, writeLatch, options.getInputBAMs(), uniqueSnpPositions));
-//				pileupThreads.execute(new Pileup(readQueue,
-//						writeQueue, Thread.currentThread(), readLatch,
-//						pileupLatch, writeLatch, options.getInputBAMs(), uniqueSnpPositions));
 			}
 
 			pileupThreads.shutdown();
@@ -143,16 +129,9 @@ public class SnpBasePileupMT {
 			writeThread.shutdown();
 
 			logger.info("waiting for  threads to finish (max wait will be 60 hours)");
-//			readThread.awaitTermination(60, TimeUnit.HOURS);
 			pileupThreads.awaitTermination(60, TimeUnit.HOURS);
 			writeThread.awaitTermination(60, TimeUnit.HOURS);
 
-//			if (readQueue.size() != 0 || writeQueue.size() != 0) {
-//				exitStatus.incrementAndGet();
-//				throw new Exception(
-//						" threads have completed but queue isn't empty  (inputQueue, writeQueue ):  "
-//								+ readQueue.size() + ", " + writeQueue.size());
-//			}
 			logger.info("All threads finished");
 
 		} catch (Exception e) {
@@ -160,7 +139,6 @@ public class SnpBasePileupMT {
 			exitStatus.incrementAndGet();
 		} finally {
 			// kill off any remaining threads
-//			readThread.shutdownNow();
 			writeThread.shutdownNow();
 			pileupThreads.shutdownNow();
 		}
@@ -179,21 +157,14 @@ public class SnpBasePileupMT {
 
 		private final AbstractQueue<SnpPosition> queue;
 		private final Thread mainThread;
-//		private final CountDownLatch readLatch;
-//		private final CountDownLatch pileupLatch;
 		private final File positionsFile;
 		private final String format;
 		private final List<SnpPosition> positions;		
 
-//		public Reading(Thread mainThread,
 				public Reading(AbstractQueue<SnpPosition> q, Thread mainThread,
 				 File positionsFile, String format, List<SnpPosition> positions) {
-//					public Reading(AbstractQueue<SnpPosition> q, Thread mainThread,
-//							CountDownLatch readLatch, CountDownLatch filterLatch, File positionsFile, String format, List<SnpPosition> positions) {
 			this.queue = q;
 			this.mainThread = mainThread;
-//			this.readLatch = readLatch;
-//			this.pileupLatch = filterLatch;
 			this.positionsFile = positionsFile;
 			this.format = format;
 			this.positions = positions;
@@ -204,10 +175,8 @@ public class SnpBasePileupMT {
 			logger.info("Starting to read positions file: " + positionsFile.getAbsolutePath());
 			int countSleep = 0;
 			long count = 0;
-//			FastaSequenceIndex index = QBasePileupUtil.getFastaIndex(options.getReference());
 			boolean outputFormat2 = options.getOutputFormat() == 2;
 
-//			IndexedFastaSequenceFile indexedFastaFile = QBasePileupUtil.getIndexedFastaFile(options.getReference());
 			try (BufferedReader reader = new BufferedReader(new FileReader(positionsFile));) {
 
 				String line;
@@ -233,9 +202,6 @@ public class SnpBasePileupMT {
 						String[] columns = QBasePileupUtil.getSNPPositionColumns(format, values, count);
 
 						p = new SnpPosition(columns[0], columns[1], Integer.valueOf(columns[2]), Integer.valueOf(columns[3]), line);        				       				      				
-//						if ( ! positions.contains(p)) {
-//							uniquePositionCount.incrementAndGet();    					
-//						}
 
 						if (options.getMode().equals(QBasePileupConstants.COMPOUND_SNP_MODE)) {        					
 							p.setAltBases(QBasePileupUtil.getCompoundAltBases(values, mutationColumn));
@@ -246,31 +212,11 @@ public class SnpBasePileupMT {
 						}
 
 						p.retrieveReferenceBases(options.getReference()); 
-//						p.retrieveReferenceBases(indexedFastaFile, index); 
 
 						positions.add(p);
 						queue.add(p);
 					}        			
 
-//					if (pileupLatch.getCount() == 0) {
-//						reader.close();
-//						if (exitStatus.intValue() == 0) {
-//							exitStatus.incrementAndGet();
-//						}
-//						throw new Exception("No pileup threads left, but reading from input is not yet completed");
-//					}
-
-//					if (count % checkPoint == 1) {
-//						while (queue.size() >= maxRecords) {
-//							try {
-//								Thread.sleep(sleepUnit);
-//								countSleep++;
-//							} catch (Exception e) {
-//								logger.info(Thread.currentThread().getName()
-//										+ " " + QBasePileupUtil.getStrackTrace(e));
-//							}
-//						}
-//					}
 				}
 
 				logger.info("Completed reading thread, read " + count
@@ -282,12 +228,6 @@ public class SnpBasePileupMT {
 				}
 				mainThread.interrupt();
 			} finally {
-//				readLatch.countDown();
-//				logger.debug(String
-//						.format("Exit Reading thread, total slept %d times * %d milli-seconds, "
-//								+ "since input queue are full.fLatch  is %d; queus size is %d ",
-//								countSleep, sleepUnit, pileupLatch.getCount(),
-//								queue.size()));
 			}
 
 		}
@@ -295,11 +235,9 @@ public class SnpBasePileupMT {
 
 	private class Pileup implements Runnable {
 
-//		private final AbstractQueue<InputBAM> queueIn;
 		private final AbstractQueue<SnpPosition> queueIn;
 		private final AbstractQueue<String> queueOut;
 		private final Thread mainThread;
-//		private final CountDownLatch readLatch;
 		private final CountDownLatch pileupLatch;
 		private final CountDownLatch writeLatch;
 		private int countOutputSleep;
@@ -308,16 +246,13 @@ public class SnpBasePileupMT {
 		private final String file = null;
 		private QueryExecutor exec = null;
 
-//		public Pileup(AbstractQueue<InputBAM> queueIn,
 				public Pileup(AbstractQueue<SnpPosition> queueIn,
 				AbstractQueue<String> queueOut, Thread mainThread,
 				CountDownLatch pileupLatch,
-//				CountDownLatch readLatch, CountDownLatch pileupLatch,
 				CountDownLatch wGoodLatch, List<InputBAM> inputs, Set<SnpPosition> uniqueSnps) throws Exception {
 			this.queueIn = queueIn;
 			this.queueOut = queueOut;
 			this.mainThread = mainThread;
-//			this.readLatch = readLatch;
 			this.pileupLatch = pileupLatch;
 			this.writeLatch = wGoodLatch;
 			this.currentInputs = new ArrayList<InputBAM>();
@@ -347,129 +282,9 @@ public class SnpBasePileupMT {
 			SAMRecordIterator iter = null;
 			SamReader reader = null;
 			
-//			while (true && snpPositions.size() > 0) {
-//				
-//				InputBAM bam = queueIn.poll();
-//				
-//				if (null == bam) {
-//					break;
-//				}
-//				
-//				reader = bam.getSAMFileReader();
-//				
-//				// get 
-//				SAMSequenceDictionary seqDict = reader.getFileHeader().getSequenceDictionary();
-//				
-//				QueryInterval [] intervals = new QueryInterval[snpPositions.size()];
-//				
-//				// populate
-//				int a = 0;
-//				for (SnpPosition snp : snpPositions) {
-//					QueryInterval qi = new QueryInterval(seqDict.getSequenceIndex(snp.getFullChromosome()), snp.getStart(), snp.getEnd());
-//					intervals[a++] = qi;
-//				}
-//				intervals = QueryInterval.optimizeIntervals(intervals);
-//				
-//				List<SAMRecord> bamRecords = new ArrayList<>();
-//				
-//				logger.info("retrieving records from " + bam.getAbbreviatedBamFileName());
-//				iter = reader.queryOverlapping(intervals);
-//				while (iter.hasNext()) {
-//					bamRecords.add(iter.next());
-//				}
-//				iter.close();
-//				
-//				
-//				
-////				for (SnpPosition snp : snpPositions) {
-//////					logger.info("snp pos" + snp.toString());
-////					iter = reader.queryOverlapping(snp.getFullChromosome(), snp.getStart(), snp.getEnd());
-////					while (iter.hasNext()) {
-////						bamRecords.add(iter.next());
-////					}
-////					iter.close();
-////				}
-//				
-//				
-//				// got all records for this snp position from this bam file
-//				Set<SAMRecord> uniqueRecs = new HashSet<>(bamRecords);
-//				Set<SAMRecord> uniqueFilteredRecs = new HashSet<>();
-//				if (null != exec) {
-//					for (SAMRecord r : uniqueRecs) {
-//						try {
-//							if (exec.Execute(r)) {
-//								uniqueFilteredRecs.add(r);
-//							}
-//						} catch (Exception e) {
-//							// TODO Auto-generated catch block
-//							e.printStackTrace();
-//						}
-//					}
-//				} else {
-//					uniqueFilteredRecs = uniqueRecs;
-//				}
-//				logger.info("No of records from " + bam.getAbbreviatedBamFileName() + " is " + bamRecords.size() + " of which " + uniqueRecs.size() + " are unique, and remain after filtering: " + uniqueFilteredRecs.size());
-//				
-//				// split set into map keyed on chromosome
-//				Map<String, List<SAMRecord>> samsByChr = new HashMap<>();
-//				for (SAMRecord r : uniqueFilteredRecs) {
-//					String key = r.getReferenceName();
-//					List<SAMRecord> records = samsByChr.get(key);
-//					if (null == records) {
-//						records = new ArrayList<>();
-//						samsByChr.put(key, records);
-//					}
-//					records.add(r);
-//				}
-//				
-//				for (SnpPosition snp : snpPositions) {
-//					
-////					StringBuilder sb = new StringBuilder();
-////					logger.info("snp pos" + snp.toString());
-//					SnpPositionPileup pileup = null;
-//					try {
-//						pileup = new SnpPositionPileup(bam, snp, options, exec);
-//					} catch (QBasePileupException e) {
-//						// TODO Auto-generated catch block
-//						e.printStackTrace();
-//					}
-//					
-//					// get list of sams according to chr
-//					List<SAMRecord> sams = samsByChr.get(snp.getFullChromosome());
-//					try {
-//						pileup.pileup(sams, true);
-//					} catch (Exception e) {
-//						// TODO Auto-generated catch block
-//						e.printStackTrace();
-//					}
-//					totalExamined.addAndGet(pileup.getTotalExamined());
-//					totalPassedFilters.addAndGet(pileup.getPassFiltersCount());
-//					totalReadsNotMapped.addAndGet(pileup.getDoesntMapCount());
-//					totalReadsBadBaseQual.addAndGet(pileup.getBasesNotPassBaseQual());
-//					totalReadsBaseMapQual.addAndGet(pileup.getReadsNotPassMapQual());
-//					if (options.getMode().equals("snp")) {
-//						if (options.getOutputFormat() == 2) {
-//							queueOut.add(pileup.toColumnString());
-//						} else {
-//							queueOut.add(pileup.toString() + "\n");
-//						}                 			
-//					}
-//					if (options.getMode().equals(QBasePileupConstants.COMPOUND_SNP_MODE)) {
-//						queueOut.add(pileup.toCompoundString() + "\n");
-//					}
-//					if (options.getMode().equals(QBasePileupConstants.SNP_CHECK_MODE)) {
-//						queueOut.add(pileup.toMafString() + "\n");
-//					}
-//				}
-//			}
-			
-
 			try {
 
 				SnpPosition position;
-//				if (options.getFilterQuery() != null) {
-//					this.exec  = new QueryExecutor(options.getFilterQuery());
-//				}
 
 				Map<InputBAM, SamReader> samReaderCache = new HashMap<>();
 				while (run) {
@@ -502,7 +317,6 @@ public class SnpBasePileupMT {
 								sfReader = i.getSAMFileReader();
 								samReaderCache.put(i, sfReader);
 							}
-//							file = i.getBamFile().getAbsolutePath();
 
 							SnpPositionPileup pileup = new SnpPositionPileup(i, position, options, exec);
 							pileup.pileup(sfReader);
@@ -564,9 +378,6 @@ public class SnpBasePileupMT {
 				}
 				mainThread.interrupt();
 			} finally {
-				//	            	for (Input i : currentInputs) {
-				//                    	i.close();
-				//	                }
 				logger.debug(String
 						.format(" total slept %d times since input queue is empty and %d time since either output queue is full. each sleep take %d mill-second. queue size for qIn, qOutGood and qOutBad are %d, %d",
 								sleepcount, countOutputSleep, sleepUnit,
@@ -587,12 +398,9 @@ public class SnpBasePileupMT {
 
 		public Writing(AbstractQueue<String> q, File f, Thread mainThread,
 				 CountDownLatch fLatch, CountDownLatch wLatch) {
-//			public Writing(AbstractQueue<String> q, File f, Thread mainThread,
-//					CountDownLatch readLatch, CountDownLatch fLatch, CountDownLatch wLatch) {
 			queue = q;
 			resultsFile = f;
 			this.mainThread = mainThread;
-//			this.readLatch = readLatch;
 			this.filterLatch = fLatch;
 			this.writeLatch = wLatch;
 		}
@@ -607,8 +415,6 @@ public class SnpBasePileupMT {
 				try (BufferedWriter writer = new BufferedWriter(new FileWriter(resultsFile));) {
 					Map<String, Map<String, String>> inputMap = new HashMap<String, Map<String, String>>();
 					
-//					List<String> outputList = new ArrayList<>();
-
 					writer.write(getHeader());
 					while (run) {
 
@@ -625,7 +431,6 @@ public class SnpBasePileupMT {
 										+ QBasePileupUtil.getStrackTrace(e));
 							}
 							if (filterLatch.getCount() == 0 && queue.size() == 0) {
-//								if (readLatch.getCount() == 0 && filterLatch.getCount() == 0 && queue.size() == 0) {
 								run = false;
 							}
 
@@ -722,36 +527,6 @@ public class SnpBasePileupMT {
 							logger.warn("The following entries in the positions file did not have any results - incorrect reference bases?\n" + positionsMissingInMap.toString());
 							throw new QBasePileupException("POSITION_FILE_ERROR");
 						}
-//					} else {
-//						
-//						
-//						// sort list of results and write
-//						Comparator<String> comp = new Comparator<String>() {
-//							@Override
-//							public int compare(String o1, String o2) {
-//								String[] o1Arr = TabTokenizer.tokenize(o1);
-//								String[] o2Arr = TabTokenizer.tokenize(o2);
-//								
-//								// chr. pos, then file id
-//								int diff = REF_NAME_COMP.compare(o1Arr[4], o2Arr[4]);
-//								if (diff != 0) {
-//									return diff;
-//								}
-//								diff = Integer.compare(Integer.parseInt(o1Arr[5]), Integer.parseInt(o2Arr[5]));
-//								if (diff != 0) {
-//									return diff;
-//								}
-//								return Integer.compare(Integer.parseInt(o1Arr[0]), Integer.parseInt(o2Arr[0]));
-//							}
-//						};
-//						
-//						Collections.sort(outputList, comp);
-//						
-//						for (String s : outputList) {
-//							writer.write(s);
-//						}
-						
-						
 					}
 				}
 
