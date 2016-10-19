@@ -393,7 +393,6 @@ public class SnpBasePileupMT {
 		private final Thread mainThread;
 		private final CountDownLatch filterLatch;
 		private final CountDownLatch writeLatch;
-//		private final CountDownLatch readLatch;
 		final static char TAB = '\t';
 
 		public Writing(AbstractQueue<String> q, File f, Thread mainThread,
