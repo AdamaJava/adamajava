@@ -604,7 +604,9 @@ public class Options {
 			if (QBasePileupConstants.SNP_MODE.equals(mode) || mode.equals(QBasePileupConstants.COMPOUND_SNP_MODE) 
 					|| mode.equals(QBasePileupConstants.SNP_CHECK_MODE)) {
 
-				if (null != output && output.exists()) {					
+				if (null == output ) {
+					throw new QBasePileupException("NO_OUTPUT_FILE");
+				} else if (output.exists()) { 
 					throw new QBasePileupException("OUTPUT_EXISTS", output.getAbsolutePath());
 				}
 
