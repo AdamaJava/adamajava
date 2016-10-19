@@ -486,7 +486,7 @@ public class Options {
 		List<String> bamFiles = pileupHDF.getBamFilesInHeader();
 		int count = 1;
 		for (String bam: bamFiles) {
-			InputBAM i = new InputBAM(new Integer(count), "", new File(bam), inputType);
+			InputBAM i = new InputBAM(count, "", new File(bam), inputType);
 			inputBAMs.add(i);
 			count++;
 		}
@@ -494,34 +494,28 @@ public class Options {
 	}
 
 	private void getBamList(File bamList) throws IOException, QBasePileupException {
-		BufferedReader reader = new BufferedReader(new FileReader(bamList));
-		String line;
-		int count = 0;
-		while((line = reader.readLine()) != null) {
-			if (!line.startsWith("#") && !line.startsWith("ID")) {
-				if (line.split("\t").length >= 3) {
-					count++;
-					String[] values = line.split("\t");
-					try {
-						InputBAM i = new InputBAM(new Integer(values[0]), values[1], new File(values[2]), inputType);
+		try (BufferedReader reader = new BufferedReader(new FileReader(bamList));) {
+			String line;
+			int count = 0;
+			while((line = reader.readLine()) != null) {
+				if ( ! line.startsWith("#") && ! line.startsWith("ID")) {
+					if (line.split("\t").length >= 3) {
+						count++;
+						String[] values = line.split("\t");
+						try {
+							InputBAM i = new InputBAM(Integer.valueOf(values[0]), values[1], new File(values[2]), inputType);
+							inputBAMs.add(i);
+						} catch (NumberFormatException e) {
+							reader.close();
+							throw new QBasePileupException("INPUT_FORMAT_ERROR", line);
+						}				
+					} else {					
+						InputBAM i = new InputBAM(count, "", new File(line), inputType);
 						inputBAMs.add(i);
-					} catch (Exception e) {
-						reader.close();
-						throw new QBasePileupException("INPUT_FORMAT_ERROR", line);
-					}				
-				} else {					
-					try {
-						InputBAM i = new InputBAM(new Integer(count), "", new File(line), inputType);
-						inputBAMs.add(i);
-					} catch (Exception e) {
-						reader.close();
-						throw new QBasePileupException("INPUT_FORMAT_ERROR", line);
 					}
 				}
 			}
-
 		}
-		reader.close();
 	}
 
 	public List<InputBAM> getInputBAMs() {
@@ -605,12 +599,12 @@ public class Options {
 	}
 
 	public void detectBadOptions() throws QBasePileupException {
-		if (!hasHelpOption() && !hasVersionOption()) {
+		if ( ! hasHelpOption() && ! hasVersionOption()) {
 
 			if (QBasePileupConstants.SNP_MODE.equals(mode) || mode.equals(QBasePileupConstants.COMPOUND_SNP_MODE) 
 					|| mode.equals(QBasePileupConstants.SNP_CHECK_MODE)) {
 
-				if (output.exists()) {					
+				if (null != output && output.exists()) {					
 					throw new QBasePileupException("OUTPUT_EXISTS", output.getAbsolutePath());
 				}
 
@@ -637,25 +631,25 @@ public class Options {
 
 				if (mode.equals(QBasePileupConstants.SNP_MODE) || mode.equals(QBasePileupConstants.COMPOUND_SNP_MODE)) {
 					checkReference();
-					if (!profile.equals("standard") && !profile.equals("torrent") && !profile.equals("RNA") && !profile.equals("DNA")) {
+					if ( ! profile.equals("standard") && ! profile.equals("torrent") && ! profile.equals("RNA") && ! profile.equals("DNA")) {
 						throw new QBasePileupException("UNKNOWN_PROFILE", profile);
 					}
 				}
 
 			}
 
-			if (QBasePileupConstants.INDEL_MODE.equals(mode)) {    	
+			if (QBasePileupConstants.INDEL_MODE.equals(mode)) {
 				checkReference();
-				if (!tumourBam.exists()) {
+				if ( ! tumourBam.exists()) {
 					throw new QBasePileupException("FILE_EXISTS_ERROR", tumourBam.getBamFile().getAbsolutePath());
 				}
-				if (!normalBam.exists()) {
+				if ( ! normalBam.exists()) {
 					throw new QBasePileupException("FILE_EXISTS_ERROR", normalBam.getBamFile().getAbsolutePath());
 				}
-				if (somaticIndelFile != null && !somaticIndelFile.exists()) {
+				if (somaticIndelFile != null && ! somaticIndelFile.exists()) {
 					throw new QBasePileupException("FILE_EXISTS_ERROR", somaticIndelFile.getAbsolutePath());
 				}
-				if (germlineIndelFile != null && !germlineIndelFile.exists()) {
+				if (germlineIndelFile != null && ! germlineIndelFile.exists()) {
 					throw new QBasePileupException("FILE_EXISTS_ERROR", germlineIndelFile.getAbsolutePath());
 				}
 				if (somaticOutputFile != null && somaticOutputFile.exists()) {
@@ -664,7 +658,7 @@ public class Options {
 				if (germlineOutputFile != null && germlineOutputFile.exists()) {
 					throw new QBasePileupException("OUTPUT_EXISTS", germlineOutputFile.getAbsolutePath());
 				}
-				if (!options.has("pindel") && !options.has("strelka") && !options.has("gatk")) {
+				if ( ! options.has("pindel") && ! options.has("strelka") && ! options.has("gatk")) {
 					throw new QBasePileupException("INDEL_FILETYPE_ERROR");
 				}
 			}
@@ -672,12 +666,12 @@ public class Options {
 	}
 
 	private void checkReference() throws QBasePileupException {
-		if (!reference.exists()) {
+		if ( ! reference.exists()) {
 			throw new QBasePileupException("NO_REF_FILE", reference.getAbsolutePath());
 		}	
 		File indexFile = new File(reference.getAbsolutePath() + ".fai");		
 
-		if (!indexFile.exists()) {
+		if ( ! indexFile.exists()) {
 			throw new QBasePileupException("FASTA_INDEX_ERROR", reference.getAbsolutePath());
 		}
 	}
