@@ -151,6 +151,14 @@ public class QBasePileupUtil {
 		return sb.toString();
 	}
 
+	/**
+	 * Returns a String[] containing name, chr, start and end if format is dcc1
+	 * 
+	 * @param format
+	 * @param values
+	 * @param count
+	 * @return
+	 */
 	public static String[] getSNPPositionColumns(String format, String[] values, long count) {
 		
 		if (format.equals("dcc1") || format.equals("maf")) {
@@ -169,6 +177,9 @@ public class QBasePileupUtil {
     		String[] columns = {Long.toString(count), values[0], values[1], values[2]};
 			return columns;
     	}  	
+		
+		
+		
 		return null;
 	}
 
@@ -210,22 +221,12 @@ public class QBasePileupUtil {
 		return arr;
 	}
 	
-
-
-
 	public static String getStandardSnpHeader() {
-		String TAB = "\t";
-		return "ID" +TAB + "Donor" +TAB + "Bam" +TAB + "SnpId" +TAB + "Chromosome" +TAB + "Start" +TAB + "" +
-				"End" +TAB + "RefBase" +TAB + "TotalRef" +TAB + "TotalNonRef" +TAB + "Aplus" +TAB + "Cplus" +TAB + "Gplus" +TAB + 
-				"Tplus" +TAB + "Nplus" +TAB + "TotalPlus" +TAB + 
-				"Aminus" +TAB + "Cminus" +TAB + "Gminus" +TAB + "Tminus" +TAB + "Nminus" +TAB + "TotalMinus\n";
+		return "ID\tDonor\tBam\tSnpId\tChromosome\tStart\tEnd\tRefBase\tTotalRef\tTotalNonRef\tAplus\tCplus\tGplus\tTplus\tNplus\tTotalPlus\tAminus\tCminus\tGminus\tTminus\tNminus\tTotalMinus\n";
 	}
 	
 	public static String getCompoundSnpHeader() {
-		String TAB = "\t";
-		return "ID" +TAB + "Donor" +TAB + "Bam" +TAB + "SnpId" +TAB + "Chromosome" +TAB + "Start" +TAB + "" +
-		"End" +TAB + "RefBase" +TAB + "ExpectedAltBase" +TAB + "TotalPlus" +TAB + "TotalRefPlus" +TAB + "TotalExpectedAltPlus" +TAB + "TotalOtherAltPlus" +TAB + "TotalMinus" +TAB + "TotalRefMinus" +TAB + 
-		"TotalExpectedAltMinus" +TAB + "TotalOtherAltMinus\n";
+		return "ID\tDonor\tBam\tSnpId\tChromosome\tStart\tEnd\tRefBase\tExpectedAltBase\tTotalPlus\tTotalRefPlus\tTotalExpectedAltPlus\tTotalOtherAltPlus\tTotalMinus\tTotalRefMinus\tTotalExpectedAltMinus\tTotalOtherAltMinus\n";
 	}
 
 	public static int getMutationColumn(String line) {
@@ -241,26 +242,25 @@ public class QBasePileupUtil {
 
 	public static List<String> getHeaderLines(File file) throws IOException {
 		List<String> headers = new ArrayList<String>();
-		BufferedReader reader = new BufferedReader(new FileReader(file));
-		
-		String line;
-		while ((line=reader.readLine()) != null) {
-			if ((line.startsWith("Hugo") || line.startsWith("#") || line.startsWith("analysis_id"))) {
-					headers.add(line);
+		try (BufferedReader reader = new BufferedReader(new FileReader(file));) {
+			String line;
+			while ((line=reader.readLine()) != null) {
+				if ((line.startsWith("Hugo") || line.startsWith("#") || line.startsWith("analysis_id"))) {
+						headers.add(line);
+				}
 			}
 		}
-		reader.close();
-		
 		return headers;
 	}
 
 	public static String getColumnsSnpHeader(List<InputBAM> inputBAMs) {
 		StringBuilder sb = new StringBuilder();
-		String TAB = "\t";
+		String TAAAAAB = "\t\t\t\t\t";
 		
-		sb.append(TAB + TAB + TAB + TAB + TAB + TAB);
+		sb.append(TAAAAAB);
+		sb.append(TAB);
 		for (InputBAM input : inputBAMs) {
-			sb.append(input.getAbbreviatedBamFileName() + TAB + TAB + TAB + TAB + TAB);
+			sb.append(input.getAbbreviatedBamFileName() + TAAAAAB);
 		}
 		sb.append("\n");
 		sb.append("#gene\tchromosome\tstart\tend\tref\talt\t");
