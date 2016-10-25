@@ -183,14 +183,22 @@ public class IndelUtils {
 		return ref;  //return ref for snp, mnp 		
 	}
 	
-	public static String getVariantRef(String ref, final SVTYPE type){
-		String Vref = ref;  
+	/**
+	 * If INSERTION, return -, if DELETION return ref minus first char else return ref
+	 * 
+	 * @param ref
+	 * @param type
+	 * @return
+	 */
+	public static String getRefForIndels(String ref, final SVTYPE type){
 		if(type.equals(SVTYPE.DEL) ) {
-			Vref =  ref.substring(1); //remove heading base
+			if ( ! StringUtils.isNullOrEmpty(ref)) {
+				return  ref.substring(1); //remove heading base
+			}
 		} else if(type.equals(SVTYPE.INS)) {
-			Vref = "-"; //replace heading base with "-"
+			return "-"; //replace heading base with "-"
 		}
-		return Vref;
+		return ref;
 	}
 
 }
