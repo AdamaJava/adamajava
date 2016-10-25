@@ -49,6 +49,52 @@ public class IndelUtilsTest {
 	}
 	
 	@Test
+	public void getRefForIndels() {
+		assertEquals(null, IndelUtils.getRefForIndels(null, SVTYPE.CTX));
+		assertEquals(null, IndelUtils.getRefForIndels(null, SVTYPE.SNP));
+		assertEquals(null, IndelUtils.getRefForIndels(null, SVTYPE.DNP));
+		assertEquals(null, IndelUtils.getRefForIndels(null, SVTYPE.ONP));
+		assertEquals(null, IndelUtils.getRefForIndels(null, SVTYPE.TNP));
+		assertEquals(null, IndelUtils.getRefForIndels(null, SVTYPE.UNKOWN));
+		assertEquals("", IndelUtils.getRefForIndels("", SVTYPE.CTX));
+		assertEquals("", IndelUtils.getRefForIndels("", SVTYPE.SNP));
+		assertEquals("", IndelUtils.getRefForIndels("", SVTYPE.DNP));
+		assertEquals("", IndelUtils.getRefForIndels("", SVTYPE.ONP));
+		assertEquals("", IndelUtils.getRefForIndels("", SVTYPE.TNP));
+		assertEquals("", IndelUtils.getRefForIndels("", SVTYPE.UNKOWN));
+		assertEquals("A", IndelUtils.getRefForIndels("A", SVTYPE.CTX));
+		assertEquals("A", IndelUtils.getRefForIndels("A", SVTYPE.SNP));
+		assertEquals("A", IndelUtils.getRefForIndels("A", SVTYPE.DNP));
+		assertEquals("A", IndelUtils.getRefForIndels("A", SVTYPE.ONP));
+		assertEquals("A", IndelUtils.getRefForIndels("A", SVTYPE.TNP));
+		assertEquals("A", IndelUtils.getRefForIndels("A", SVTYPE.UNKOWN));
+		assertEquals("ABCD", IndelUtils.getRefForIndels("ABCD", SVTYPE.CTX));
+		assertEquals("ABCD", IndelUtils.getRefForIndels("ABCD", SVTYPE.SNP));
+		assertEquals("ABCD", IndelUtils.getRefForIndels("ABCD", SVTYPE.DNP));
+		assertEquals("ABCD", IndelUtils.getRefForIndels("ABCD", SVTYPE.ONP));
+		assertEquals("ABCD", IndelUtils.getRefForIndels("ABCD", SVTYPE.TNP));
+		assertEquals("ABCD", IndelUtils.getRefForIndels("ABCD", SVTYPE.UNKOWN));
+		
+		/*
+		 * INS
+		 */
+		assertEquals("-", IndelUtils.getRefForIndels(null, SVTYPE.INS));
+		assertEquals("-", IndelUtils.getRefForIndels("", SVTYPE.INS));
+		assertEquals("-", IndelUtils.getRefForIndels("A", SVTYPE.INS));
+		assertEquals("-", IndelUtils.getRefForIndels("ABC", SVTYPE.INS));
+		assertEquals("-", IndelUtils.getRefForIndels("15299XYZ", SVTYPE.INS));
+		
+		/*
+		 * DEL
+		 */
+		assertEquals(null, IndelUtils.getRefForIndels(null, SVTYPE.DEL));
+		assertEquals("", IndelUtils.getRefForIndels("", SVTYPE.DEL));
+		assertEquals("", IndelUtils.getRefForIndels("A", SVTYPE.DEL));
+		assertEquals("BC", IndelUtils.getRefForIndels("ABC", SVTYPE.DEL));
+		assertEquals("5299XYZ", IndelUtils.getRefForIndels("15299XYZ", SVTYPE.DEL));
+	}
+	
+	@Test
 	public void testGetFullChromosome() {
 		
 		assertEquals("chr10", IndelUtils.getFullChromosome("10"));

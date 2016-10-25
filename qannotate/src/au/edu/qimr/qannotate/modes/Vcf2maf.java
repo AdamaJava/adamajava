@@ -137,37 +137,37 @@ public class Vcf2maf extends AbstractMode{
 			
 			for (final VcfRecord vcf : reader) {
 				
-    			noIn ++;
-    			SnpEffMafRecord maf = converter(vcf);
-    			String Smaf = maf.getMafLine();
-    			out.println(Smaf);
-    			noOut ++;
-    			int rank = Integer.parseInt(maf.getColumnValue( MafElement.Consequence_rank));//40
-    			boolean isConsequence = isConsequence(maf.getColumnValue(MafElement.Transcript_BioType), rank); //55
-    			boolean isSomatic = maf.getColumnValue(MafElement.Mutation_Status).equalsIgnoreCase(VcfHeaderUtils.INFO_SOMATIC); //26
-    			if (isHighConfidence(maf)) {
-    				if (isSomatic){
-    					out_SHC.println(Smaf);
-    					outSHCVcf.print(vcf);
-    					no_SHC ++;
-    					
-    					if(isConsequence){
-    						out_SHCC.println(Smaf);
-    						outSHCCVcf.print(vcf);
-    						no_SHCC ++;
-    					}
-    				} else {
-    					out_GHC.println(Smaf);
-    					outGHCVcf.print(vcf);
-    					no_GHC ++; 
-    					 
-    					if(isConsequence){
-    						out_GHCC.println(Smaf);
-    						outGHCCVcf.print(vcf);
-    						no_GHCC ++;
-    					}
-    				}   
-    			} 
+	    			noIn ++;
+	    			SnpEffMafRecord maf = converter(vcf);
+	    			String Smaf = maf.getMafLine();
+	    			out.println(Smaf);
+	    			noOut ++;
+	    			int rank = Integer.parseInt(maf.getColumnValue( MafElement.Consequence_rank));//40
+	    			boolean isConsequence = isConsequence(maf.getColumnValue(MafElement.Transcript_BioType), rank); //55
+	    			boolean isSomatic = maf.getColumnValue(MafElement.Mutation_Status).equalsIgnoreCase(VcfHeaderUtils.INFO_SOMATIC); //26
+	    			if (isHighConfidence(maf)) {
+	    				if (isSomatic){
+	    					out_SHC.println(Smaf);
+	    					outSHCVcf.print(vcf);
+	    					no_SHC ++;
+	    					
+	    					if(isConsequence){
+	    						out_SHCC.println(Smaf);
+	    						outSHCCVcf.print(vcf);
+	    						no_SHCC ++;
+	    					}
+	    				} else {
+	    					out_GHC.println(Smaf);
+	    					outGHCVcf.print(vcf);
+	    					no_GHC ++; 
+	    					 
+	    					if(isConsequence){
+	    						out_GHCC.println(Smaf);
+	    						outGHCCVcf.print(vcf);
+	    						no_GHCC ++;
+	    					}
+	    				}   
+	    			} 
 			}
 		}
 		
@@ -287,7 +287,7 @@ public class Vcf2maf extends AbstractMode{
 			maf.setColumnValue(MafElement.End_Position, Integer.toString(vcf.getPosition() + vcf.getRef().length()-1));
 		}
 		
-		maf.setColumnValue(MafElement.Reference_Allele,  IndelUtils.getVariantRef(vcf.getRef(), type));	
+		maf.setColumnValue(MafElement.Reference_Allele,  IndelUtils.getRefForIndels(vcf.getRef(), type));	
 		maf.setColumnValue(MafElement.QFlag,  vcf.getFilter());
 		
 		//set novel for non dbSNP
@@ -452,7 +452,7 @@ public class Vcf2maf extends AbstractMode{
 			 if(pairs.length > 1) values[5] = getMafAlt(ref, pairs[1], type);			 
 		 }else  if(type.equals(SVTYPE.DEL) || type.equals(SVTYPE.INS) ){
 			 //if missing GD put reference 			 
-			 values[4] = IndelUtils.getVariantRef(ref, type);
+			 values[4] = IndelUtils.getRefForIndels(ref, type);
 			 values[5] =  values[4];
 		 }
 	 	 
