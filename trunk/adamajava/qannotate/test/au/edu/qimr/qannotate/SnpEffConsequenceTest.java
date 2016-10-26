@@ -43,5 +43,5 @@ public class SnpEffConsequenceTest {
 		assertEquals("splice_region_variant(LOW|||n.406G>A||LCN2|processed_transcript|CODING|ENST00000470902|2|1)", SnpEffConsequence.getWorstCaseConsequence(array));
 		
 	}
-
+	
 }
