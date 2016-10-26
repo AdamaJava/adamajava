@@ -20,8 +20,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -40,6 +42,7 @@ import org.qcmg.common.vcf.header.VcfHeader.Record;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 
+import akka.dispatch.Foreach;
 import au.edu.qimr.qannotate.Options;
 import au.edu.qimr.qannotate.utils.*;
  
@@ -196,7 +199,7 @@ public class Vcf2maf extends AbstractMode{
 		/*
 		 * Current criteria is that consequence is equal to protien_coding, and the rank is lt or eq to 5, we are good
 		 */
-		return consequence.equalsIgnoreCase( PROTEINCODE ) && rank <=5;
+		return PROTEINCODE.equalsIgnoreCase(consequence) && rank <=5;
 	}
 		
 	private void deleteEmptyMaf(String ...fileNames){
@@ -454,6 +457,35 @@ public class Vcf2maf extends AbstractMode{
 			 //if missing GD put reference 			 
 			 values[4] = IndelUtils.getRefForIndels(ref, type);
 			 values[5] =  values[4];
+		 } else if (type.equals(SVTYPE.DNP) || type.equals(SVTYPE.TNP) || type.equals(SVTYPE.ONP)) {
+			 
+			 String dist = sample.getField(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP);
+			 if (isMerged) {
+				 String firstDist = dist.substring(0,  dist.indexOf(VCF_MERGE_DELIM));
+				 if (StringUtils.isNullOrEmpty(firstDist) || MISSING_DATA_STRING.equals(firstDist)) {
+					 /*
+					  * use second dist
+					  */
+					 dist = dist.substring(dist.indexOf(VCF_MERGE_DELIM) + 1);
+				 } else {
+					 dist = firstDist;
+				 }
+			 }
+			 
+			 /*
+			  * Need values from ACCS
+			  */
+			 Map<String,Integer> m = SnpUtils.getCompoundSnpDistribution(dist, ConfidenceMode.HIGH_CONF_ALT_FREQ_PASSING_SCORE);
+			 if (m.size() == 1) {
+				 m.forEach((s,i) -> values[4] = s);
+				 values[5] = values[4];
+			 } else if (m.size() > 1) {
+				 List<String> orderedList = m.entrySet().stream().sorted((e1, e2) -> e2.getValue().compareTo(e1.getValue())).map(e -> e.getKey()).collect(Collectors.toList());
+				 values[4] = orderedList.get(0);
+				 values[5] = orderedList.get(1);
+			 } else {
+				 logger.warn("Have an empty map from SnpUtils.getCompoundSnpDistribution(" + dist + ")!!!");
+			 }
 		 }
 	 	 
 	 	 
@@ -504,7 +536,7 @@ public class Vcf2maf extends AbstractMode{
       	}
 		 
       	 //get genotype base
-		 if(  StringUtils.isMissingDtaString(gd)) return values;
+//		 if(  StringUtils.isMissingDtaString(gd)) return values;
 		 		 	     
 		  return values;
 	 }
