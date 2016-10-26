@@ -6,7 +6,8 @@
  */
 package org.qcmg.common.util;
 
-import java.util.stream.Stream;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -103,20 +104,7 @@ public class SnpUtils {
 				|| isAnnotationAlone(annotation, LESS_THAN_8_READS_NORMAL)
 				|| isAnnotationAlone(annotation, INDEL_STRAND_BIAS)
 				|| isAnnotationAlone(annotation, INDEL_NPART);
-//				|| isAnnotationAlone(annotation, LESS_THAN_3_READS_NORMAL);
 	}
-//	public static final boolean isClassAorBIndel(String annotation) throws IllegalArgumentException {
-//		if (StringUtils.isNullOrEmpty(annotation)) throw new IllegalArgumentException("null or empty annotation passed to SnpUtils.isClassAorBIndel");
-//		
-//		return isClassAIndel(annotation) 
-//				|| (annotation.contains(INDEL_SATELLITE) && isAnnotationAlone(annotation, INDEL_SATELLITE))
-//				|| (annotation.contains(INDEL_SIMPLE_REPEAT) && isAnnotationAlone(annotation, INDEL_SIMPLE_REPEAT))
-//				|| (annotation.contains(INDEL_LOW_COMPLEXITY) && isAnnotationAlone(annotation, INDEL_LOW_COMPLEXITY))
-//				|| LESS_THAN_3_READS_NORMAL.equals(annotation)
-//				|| MUTATION_IN_UNFILTERED_NORMAL.equals(annotation)
-//				|| LESS_THAN_12_READS_NORMAL_AND_UNFILTERED.equals(annotation)
-//				|| LESS_THAN_3_READS_NORMAL_AND_UNFILTERED.equals(annotation);
-//	}
 	
 	public static String removeCompoundSnpAnnotationFromString(String annotation) {
 		if ( ! StringUtils.isNullOrEmpty(annotation) && annotation.contains(COMPOUND_SNP)) {
@@ -133,7 +121,6 @@ public class SnpUtils {
 	 * @return true if string matches "--", false otherwise
 	 */
 	public static final boolean isClassA(String annotation) {
-//		return PASS.equals(annotation) || "--".equals(annotation) || NOVEL_STARTS.equals(annotation) || "---".equals(annotation) ;	// my god...
 		return PASS.equals(removeCompoundSnpAnnotationFromString(annotation));
 	}
 	
@@ -251,22 +238,50 @@ public class SnpUtils {
 	 */
 	public static int getCountFromNucleotideString(final String bases, final String base) {
 		return getCountFromNucleotideString(bases, base, false);
-
-//		if (StringUtils.isNullOrEmpty(bases) || StringUtils.isNullOrEmpty(base)) {
-//			return 0;
-//		}
-//		
-//		final int basePosition = bases.indexOf(base);  
-//		if (basePosition == -1) return 0;
-//		
-//		final int bracketPosition = bases.indexOf('[', basePosition);
-//		
-//		final int forwardCount = Integer.parseInt(bases.substring(basePosition + base.length(), bracketPosition));
-//		
-//		final int commaPosition = bases.indexOf(',', bracketPosition);
-//		final int reverseCount = Integer.parseInt(bases.substring(commaPosition + 1, bases.indexOf('[', commaPosition)));
-//		
-//		return forwardCount + reverseCount;
+	}
+	
+	public static Map<String, Integer> getCompoundSnpDistribution(String dist, int minimumCoverage) {
+		if ( ! StringUtils.isNullOrEmpty(dist) && dist.contains(Constants.COMMA_STRING)) {
+			
+			String [] ar = TabTokenizer.tokenize(dist, Constants.COMMA);
+			
+			int len = ar.length;
+			
+			if (len > 0) {
+				Map<String,Integer> map = new HashMap<>(8);
+				String bases = null;
+				int tally = 0;
+				
+				for (int i = 0 ; i < len ; i++) {
+					
+					if (Character.isAlphabetic(ar[i].charAt(0))) {
+						/*
+						 * Populate previous bases if not null and minimum coverage has been met
+						 */
+						if (null != bases && tally >= minimumCoverage) {
+							map.put(bases, tally);
+						}
+						bases = ar[i];
+						tally = 0;
+					} else {
+						tally += Integer.parseInt(ar[i]);
+					}
+				}
+				/*
+				 * populate last entry if we have coverage
+				 */
+				if (tally >= minimumCoverage) {
+					map.put(bases, tally);
+				}
+				
+				return map;
+			}
+		}
+		return null;
+	}
+	
+	public static Map<String, Integer> getCompoundSnpDistribution(String dist) {
+		return getCompoundSnpDistribution(dist, 0);
 	}
 	
 	
@@ -457,8 +472,6 @@ public class SnpUtils {
 		int min = Math.min(rsCount, fsCount);
 		
 		return ((double) min / total) * 100 > sBiasCovPercentage;
-		
-//		return (zeroOnFS != (basesArray.length / 2)) &&  (zeroOnRS != (basesArray.length / 2));
 	}
 	
 }

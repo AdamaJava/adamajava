@@ -1,7 +1,7 @@
 package org.qcmg.common.util;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
+
+import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -91,6 +91,47 @@ public class SnpUtilsTest {
 		assertEquals(1, SnpUtils.getCountFromNucleotideString(bases, "_C", true));
 		assertEquals(1, SnpUtils.getCountFromNucleotideString(bases, "G_", true));
 		
+	}
+	
+	@Test
+	public void getCSDist() {
+		assertNull(SnpUtils.getCompoundSnpDistribution(null));
+		assertNull(SnpUtils.getCompoundSnpDistribution(""));
+		assertNull(SnpUtils.getCompoundSnpDistribution("asdfsgahjsfkahs"));
+		assertNull(SnpUtils.getCompoundSnpDistribution("asdfsgahjsfkahs1232345"));
+		
+		String bases = "CA,17,17,C_,2,0,GG,10,8";
+		Map<String,Integer> map = SnpUtils.getCompoundSnpDistribution(bases);
+		assertEquals(3, map.size());
+		assertEquals(true, map.values().contains(34));
+		assertEquals(true, map.values().contains(18));
+		assertEquals(true, map.values().contains(2));
+		assertEquals(true, map.containsKey("C_"));
+		assertEquals(true, map.containsKey("GG"));
+		assertEquals(true, map.containsKey("CA"));
+	}
+	
+	@Test
+	public void getCSDistMinCov() {
+		assertNull(SnpUtils.getCompoundSnpDistribution(null, 1));
+		assertNull(SnpUtils.getCompoundSnpDistribution("", 1));
+		assertNull(SnpUtils.getCompoundSnpDistribution("asdfsgahjsfkahs", 1));
+		assertNull(SnpUtils.getCompoundSnpDistribution("asdfsgahjsfkahs1232345", 1));
+		
+		String bases = "CA,17,17,C_,2,0,GG,10,8";
+		Map<String,Integer> map = SnpUtils.getCompoundSnpDistribution(bases, 3);
+		assertEquals(2, map.size());
+		assertEquals(true, map.values().contains(34));
+		assertEquals(true, map.values().contains(18));
+		assertEquals(true, map.containsKey("CA"));
+		assertEquals(true, map.containsKey("GG"));
+		map.clear();
+		
+		map = SnpUtils.getCompoundSnpDistribution(bases, 20);
+		assertEquals(1, map.size());
+		assertEquals(true, map.containsValue(34));
+		assertEquals(true, map.containsKey("CA"));
+		map.clear();
 	}
 	
 	@Test
