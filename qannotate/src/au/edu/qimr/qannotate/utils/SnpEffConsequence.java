@@ -171,24 +171,6 @@ public enum SnpEffConsequence {
 		return -1;
 	}	
 	
-	public static boolean isConsequence(String name) {
-		if (null != name){
-			
-			String str = (name.contains("["))? name.substring(0, name.indexOf("[")) : name;		
-			for (final SnpEffConsequence dcEnum : values())  
-				if ( dcEnum.snpRank < 100 &&  (dcEnum.ontologName.equals(str)  || dcEnum.name().equals(str)) )
-					return true;
-			
-		 }
-		return false;
-	}
-	
-	/**
-	 * 
-	 * @param strings
-	 * @return 
-	 */
-	
 	/**
 	 * 
 	 * @param strings of snpEff annotation
