@@ -132,6 +132,17 @@ public class SnpUtilsTest {
 		assertEquals(true, map.containsValue(34));
 		assertEquals(true, map.containsKey("CA"));
 		map.clear();
+		
+		bases = "CA,17,17,_C_,2,0,GG,10,8";
+		map = SnpUtils.getCompoundSnpDistribution(bases, 1);
+		assertEquals(3, map.size());
+		assertEquals(true, map.values().contains(34));
+		assertEquals(true, map.values().contains(18));
+		assertEquals(true, map.values().contains(2));
+		assertEquals(true, map.containsKey("CA"));
+		assertEquals(true, map.containsKey("GG"));
+		assertEquals(true, map.containsKey("_C_"));
+		map.clear();
 	}
 	
 	@Test

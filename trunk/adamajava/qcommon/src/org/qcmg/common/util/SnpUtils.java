@@ -254,7 +254,9 @@ public class SnpUtils {
 				
 				for (int i = 0 ; i < len ; i++) {
 					
-					if (Character.isAlphabetic(ar[i].charAt(0))) {
+					if (Character.isDigit(ar[i].charAt(0))) {
+						tally += Integer.parseInt(ar[i]);
+					} else {
 						/*
 						 * Populate previous bases if not null and minimum coverage has been met
 						 */
@@ -263,8 +265,6 @@ public class SnpUtils {
 						}
 						bases = ar[i];
 						tally = 0;
-					} else {
-						tally += Integer.parseInt(ar[i]);
 					}
 				}
 				/*
