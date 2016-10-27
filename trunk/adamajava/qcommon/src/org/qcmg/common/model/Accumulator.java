@@ -305,7 +305,9 @@ public class Accumulator {
 		if (null != G && ref != 'G') pel.add(G);
 		if (null != T && ref != 'T') pel.add(T);
 		
-		if (pel.size() > 1) Collections.sort(pel);
+		if (pel.size() > 1) {
+			pel.sort(null);
+		}
 		else if (pel.isEmpty()) return null;
 		
 		return pel.get(0);
@@ -384,7 +386,7 @@ public class Accumulator {
 		} else  {
 			//3 or more in collection
 			// re-sort according to count, reference, and base qualities
-			Collections.sort(pels, new Comparator<PileupElementLite>(){
+			pels.sort(new Comparator<PileupElementLite>(){
 				@Override
 				public int compare(PileupElementLite o1, PileupElementLite o2) {
 					int diff = o1.compareTo(o2);
