@@ -23,11 +23,6 @@ public class PileupElementLite implements Comparable<PileupElementLite> {
 	private TIntArrayList reverseStrandStartPositions;
 	private TIntArrayList reverseReadIds;
 	private TIntArrayList forwardReadIds;
-//	private TLongArrayList reverseReadIds;
-//	private TLongArrayList forwardReadIds;
-//	private Queue<Integer> reverseStrandStartPositions;
-//	private Queue<Long> reverseReadIds;
-//	private Queue<Long> forwardReadIds;
 	
 	private volatile int forwardCount;
 	private volatile int reverseCount;
@@ -40,8 +35,6 @@ public class PileupElementLite implements Comparable<PileupElementLite> {
 	private int endOfReadCountFS;
 	private int endOfReadCountRS;
 
-	
-	
 	public TIntArrayList getForwardReadIds() {
 		return forwardReadIds;
 	}
@@ -49,13 +42,6 @@ public class PileupElementLite implements Comparable<PileupElementLite> {
 	public TIntArrayList getReverseReadIds() {
 		return reverseReadIds;
 	}
-//	public Queue<Long> getForwardReadIds() {
-//		return forwardReadIds;
-//	}
-//	
-//	public Queue<Long> getReverseReadIds() {
-//		return reverseReadIds;
-//	}
 	
 	/**
 	 * 
