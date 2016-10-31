@@ -27,10 +27,6 @@ import org.qcmg.pileup.QSnpRecord.Classification;
 
 public class PipelineTest {
 	
-	private static final String C = ":";
-	private static final String SC = ";";
-	private static final String T = "\t";
-	
 	@Rule
 	public  TemporaryFolder testFolder = new TemporaryFolder();
 	
@@ -572,6 +568,7 @@ public class PipelineTest {
 		final QSnpRecord snp = new QSnpRecord("chr1", 100, "A");
 		snp.setMutation("A>C");
 		snp.setClassification(Classification.SOMATIC);
+		snp.setTumourGenotype(GenotypeEnum.AC);
 		assertEquals(null, snp.getAnnotation());
 		pipeline.checkForEndsOfReads(snp, null, null, '\u0000');
 		assertEquals(null, snp.getAnnotation());
@@ -583,12 +580,18 @@ public class PipelineTest {
 		pipeline.checkForEndsOfReads(snp, null, tumour, snp.getRef().charAt(0));
 		assertEquals(SnpUtils.END_OF_READ + 1, snp.getAnnotation());
 		
+		snp.getVcfRecord().setFilter(null);
+		snp.setTumourGenotype(GenotypeEnum.AG);
+		assertEquals(null, snp.getAnnotation());
+		
 		// add another read - this time at the end
 		tumour = new Accumulator(100);
 		tumour.addBase((byte)'C', (byte)30, true, 100, 100, 200, 2);
 		tumour.addBase((byte)'C', (byte)30, true, 50, 100, 104, 3);
 		snp.getVcfRecord().setFilter(null);		// reset annotation
 		
+		snp.getVcfRecord().setFilter(null);
+		snp.setTumourGenotype(GenotypeEnum.AC);
 		pipeline.checkForEndsOfReads(snp, null, tumour, snp.getRef().charAt(0));
 		assertEquals(SnpUtils.END_OF_READ + 2, snp.getAnnotation());
 		
@@ -772,10 +775,10 @@ public class PipelineTest {
 		
 		assertEquals(3, vcf.getFormatFields().size());
 		
-		assertEquals(VcfHeaderUtils.FORMAT_GENOTYPE + C + VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS + C + VcfHeaderUtils.FORMAT_ALLELE_COUNT + C + 
-				VcfHeaderUtils.FORMAT_MUTANT_READS + C + VcfHeaderUtils.FORMAT_NOVEL_STARTS, vcf.getFormatFields().get(0));
-		assertEquals("0/0:A/A:" + normalNucleotides.replace(":", "") + C + "1:0", vcf.getFormatFields().get(1));
-		assertEquals("0/1:A/C:" + tumourNucleotides.replace(":", "") + C + "34:5", vcf.getFormatFields().get(2));
+		assertEquals(VcfHeaderUtils.FORMAT_GENOTYPE + Constants.COLON_STRING + VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS + Constants.COLON_STRING + VcfHeaderUtils.FORMAT_ALLELE_COUNT + Constants.COLON_STRING + 
+				VcfHeaderUtils.FORMAT_MUTANT_READS + Constants.COLON_STRING + VcfHeaderUtils.FORMAT_NOVEL_STARTS, vcf.getFormatFields().get(0));
+		assertEquals("0/0:A/A:" + normalNucleotides.replace(":", "") + Constants.COLON_STRING + "1:0", vcf.getFormatFields().get(1));
+		assertEquals("0/1:A/C:" + tumourNucleotides.replace(":", "") + Constants.COLON_STRING + "34:5", vcf.getFormatFields().get(2));
 	}
 	
 	@Test
@@ -823,10 +826,10 @@ public class PipelineTest {
 		
 		assertEquals(3, vcf.getFormatFields().size());
 		
-		assertEquals(VcfHeaderUtils.FORMAT_GENOTYPE + C + VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS + C + VcfHeaderUtils.FORMAT_ALLELE_COUNT + C + 
-				VcfHeaderUtils.FORMAT_MUTANT_READS + C + VcfHeaderUtils.FORMAT_NOVEL_STARTS, vcf.getFormatFields().get(0));
-		assertEquals("0/1:A/G:" + normalNucleotides + C + "15:7", vcf.getFormatFields().get(1));
-		assertEquals("0/1:A/G:" + tumourNucleotides+ C + "17:3", vcf.getFormatFields().get(2));
+		assertEquals(VcfHeaderUtils.FORMAT_GENOTYPE + Constants.COLON_STRING + VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS + Constants.COLON_STRING + VcfHeaderUtils.FORMAT_ALLELE_COUNT + Constants.COLON_STRING + 
+				VcfHeaderUtils.FORMAT_MUTANT_READS + Constants.COLON_STRING + VcfHeaderUtils.FORMAT_NOVEL_STARTS, vcf.getFormatFields().get(0));
+		assertEquals("0/1:A/G:" + normalNucleotides + Constants.COLON_STRING + "15:7", vcf.getFormatFields().get(1));
+		assertEquals("0/1:A/G:" + tumourNucleotides+ Constants.COLON_STRING + "17:3", vcf.getFormatFields().get(2));
 		
 	}
 	@Test
@@ -847,16 +850,16 @@ public class PipelineTest {
 		
 		final Pipeline pipeline = new TestPipeline();
 		pipeline.classifyPileupRecord(snp);
-		assertEquals(SnpUtils.LESS_THAN_12_READS_NORMAL + SC + SnpUtils.MUTANT_READS + SC + SnpUtils.NOVEL_STARTS , snp.getAnnotation());
+		assertEquals(SnpUtils.LESS_THAN_12_READS_NORMAL + Constants.SEMI_COLON_STRING+ SnpUtils.MUTANT_READS + Constants.SEMI_COLON_STRING + SnpUtils.NOVEL_STARTS , snp.getAnnotation());
 		VcfRecord vcf = pipeline.convertQSnpToVCF(snp);
-		assertEquals(SnpUtils.LESS_THAN_12_READS_NORMAL + SC + SnpUtils.MUTANT_READS + SC + SnpUtils.NOVEL_STARTS , vcf.getFilter());
+		assertEquals(SnpUtils.LESS_THAN_12_READS_NORMAL + Constants.SEMI_COLON_STRING + SnpUtils.MUTANT_READS + Constants.SEMI_COLON_STRING + SnpUtils.NOVEL_STARTS , vcf.getFilter());
 		
 		// reset annotation
 		snp.getVcfRecord().setFilter(null);
 		snp.setTumourNovelStartCount(4);
 		pipeline.classifyPileupRecord(snp);
 		vcf = pipeline.convertQSnpToVCF(snp);
-		assertEquals(SnpUtils.LESS_THAN_12_READS_NORMAL + SC + SnpUtils.MUTANT_READS , vcf.getFilter());
+		assertEquals(SnpUtils.LESS_THAN_12_READS_NORMAL + Constants.SEMI_COLON_STRING + SnpUtils.MUTANT_READS , vcf.getFilter());
 		
 		snp.getVcfRecord().setFilter(null);
 		tumourNucleotides = "A1[26.65],4[28.2],G1[20],8[24.33]"; 

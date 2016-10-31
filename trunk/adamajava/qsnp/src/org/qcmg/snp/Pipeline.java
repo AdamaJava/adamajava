@@ -57,6 +57,7 @@ import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrPositionComparator;
 import org.qcmg.common.model.ChrRangePosition;
+import org.qcmg.common.model.GenotypeEnum;
 import org.qcmg.common.model.PileupElement;
 import org.qcmg.common.model.PileupElementLite;
 import org.qcmg.common.model.Rule;
@@ -1629,20 +1630,68 @@ public abstract class Pipeline {
 	}
 	
 	// ends of reads check
-	void checkForEndsOfReads(QSnpRecord rec, Accumulator normal, Accumulator tumour, char ref ) {
+	void checkForEndsOfReads(QSnpRecord rec, Accumulator control, Accumulator test, char ref ) {
+		String alt = SnpUtils.getAltFromMutationString(rec.getMutation());
 		
-		final PileupElementLite pel = Classification.GERMLINE != rec.getClassification() ? (null != tumour? tumour.getLargestVariant(ref) : null) : 
-			(null != normal ? normal.getLargestVariant(ref) : null);
-		
-		if (null != pel && pel.getEndOfReadCount() > 0) {
+		/*
+		 * Only deal with single char alt for now....
+		 */
+		if (alt.length() == 1) {
+			char a = alt.charAt(0);
+			int controlEndOfReadCount = 0;
+			int testEndOfReadCount = 0;
+			if (null != rec.getNormalGenotype() && rec.getNormalGenotype().containsAllele(a)) {
+				
+				PileupElementLite cPel = null != control? control.getLargestVariant(ref) : null;
+				if (null != cPel && cPel.getEndOfReadCount() > 0) {
+					
+					if (cPel.getMiddleOfReadCount() >= 5 && cPel.isFoundOnBothStrandsMiddleOfRead()) {
+						// all good
+					} else {
+						controlEndOfReadCount =  cPel.getEndOfReadCount();
+					}
+				}
+			}
+			if (null != rec.getTumourGenotype() && rec.getTumourGenotype().containsAllele(a)) {
+				
+				PileupElementLite tPel = null != test? test.getLargestVariant(ref) : null;
+				if (null != tPel && tPel.getEndOfReadCount() > 0) {
+					
+					if (tPel.getMiddleOfReadCount() >= 5 && tPel.isFoundOnBothStrandsMiddleOfRead()) {
+						// all good
+					} else {
+						testEndOfReadCount =  tPel.getEndOfReadCount();
+					}
+				}
+			}
 			
-			if (pel.getMiddleOfReadCount() >= 5 && pel.isFoundOnBothStrandsMiddleOfRead()) {
-				// all good
-			} else {
-				VcfUtils.updateFilter(rec.getVcfRecord(), SnpUtils.END_OF_READ + pel.getEndOfReadCount());
+			if (testEndOfReadCount > 0 || controlEndOfReadCount > 0) {
+				
+				if (Classification.GERMLINE != rec.getClassification() &&  testEndOfReadCount > 0) {
+					VcfUtils.updateFilter(rec.getVcfRecord(), SnpUtils.END_OF_READ + testEndOfReadCount);
+				} else 	if (Classification.GERMLINE == rec.getClassification() &&  controlEndOfReadCount > 0) {
+					VcfUtils.updateFilter(rec.getVcfRecord(), SnpUtils.END_OF_READ + controlEndOfReadCount);
+				}
+			
+				
+				VcfUtils.addFormatFieldsToVcf(rec.getVcfRecord(), Arrays.asList("5BP", controlEndOfReadCount > 0 ? ""+controlEndOfReadCount : Constants.MISSING_DATA_STRING, testEndOfReadCount > 0 ? ""+testEndOfReadCount : Constants.MISSING_DATA_STRING));
 			}
 		}
+			
+//		
+//		final PileupElementLite pel = Classification.GERMLINE != rec.getClassification() ? (null != test? test.getLargestVariant(ref) : null) : 
+//			(null != control ? control.getLargestVariant(ref) : null);
+//		
+//		if (null != pel && pel.getEndOfReadCount() > 0) {
+//			
+//			if (pel.getMiddleOfReadCount() >= 5 && pel.isFoundOnBothStrandsMiddleOfRead()) {
+//				// all good
+//			} else {
+//				VcfUtils.updateFilter(rec.getVcfRecord(), SnpUtils.END_OF_READ + pel.getEndOfReadCount());
+//			}
+//		}
 	}
+	
 	
 //	void checkForMutationInNormal() {
 //		int minCount = 0;
