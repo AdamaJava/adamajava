@@ -716,6 +716,7 @@ public abstract class Pipeline {
 		formatField.append(VcfHeaderUtils.FORMAT_GENOTYPE).append(Constants.COLON);
 		formatField.append(VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS).append(Constants.COLON);
 		formatField.append(VcfHeaderUtils.FORMAT_ALLELE_COUNT).append(Constants.COLON);
+		formatField.append(VcfHeaderUtils.FORMAT_OBSERVED_ALLELES_BY_STRAND).append(Constants.COLON);
 		formatField.append(VcfHeaderUtils.FORMAT_MUTANT_READS).append(Constants.COLON);
 		formatField.append(VcfHeaderUtils.FORMAT_NOVEL_STARTS);
 		additionalformatFields.add(formatField.toString());
@@ -730,8 +731,8 @@ public abstract class Pipeline {
 			formatField.append(normalGDField).append(Constants.COLON);
 			final String nNucleotides = StringUtils.isNullOrEmpty(rec.getNormalNucleotides()) ? Constants.MISSING_DATA_STRING : rec.getNormalNucleotides(); 
 			
-			formatField.append(nNucleotides).append(Constants.COLON);// remove colons in nucleotide strings
-//			formatField.append(nNucleotides.replace(":", "")).append(Constants.COLON);// remove colons in nucleotide strings
+			formatField.append(nNucleotides).append(Constants.COLON);
+			formatField.append(StringUtils.isNullOrEmpty(rec.getNormalOABS()) ? Constants.MISSING_DATA_STRING : rec.getNormalOABS()).append(Constants.COLON);
 			
 			// add in MR and NNS data
 			formatField.append(controlMutantReadCount).append(Constants.COLON);
@@ -744,8 +745,8 @@ public abstract class Pipeline {
 		formatField.setLength(0);
 		formatField.append(altAndGTs[2]).append(Constants.COLON);
 		formatField.append(tumourGDField).append(Constants.COLON);
-		formatField.append(tNucleatides).append(Constants.COLON);// remove colons in nucleotide strings
-//		formatField.append(tNucleatides.replace(":", "")).append(Constants.COLON);// remove colons in nucleotide strings
+		formatField.append(tNucleatides).append(Constants.COLON);
+		formatField.append(StringUtils.isNullOrEmpty(rec.getTumourOABS()) ? Constants.MISSING_DATA_STRING : rec.getTumourOABS()).append(Constants.COLON);
 		formatField.append(testMutantReadCount).append(Constants.COLON);
 		formatField.append(testNovelStartCount);
 		additionalformatFields.add(formatField.toString());
@@ -1760,8 +1761,8 @@ public abstract class Pipeline {
 			
 			qRecord.setNormalNucleotides(null != normal ? normal.getPileupElementString() : null);
 			qRecord.setTumourNucleotides(null != tumour ? tumour.getPileupElementString() : null);
-//			qRecord.setNormalOABS(null != normal ? normal.getObservedAllelesByStrand() : null);
-//			qRecord.setTumourOABS(null != tumour ? tumour.getObservedAllelesByStrand() : null);
+			qRecord.setNormalOABS(null != normal ? normal.getObservedAllelesByStrand() : null);
+			qRecord.setTumourOABS(null != tumour ? tumour.getObservedAllelesByStrand() : null);
 			// add unfiltered normal
 			if (null != normal)
 				qRecord.setUnfilteredNormalPileup(normal.getUnfilteredPileup());
