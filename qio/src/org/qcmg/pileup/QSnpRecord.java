@@ -9,11 +9,9 @@ package org.qcmg.pileup;
 import static org.qcmg.common.util.Constants.TAB;
 
 import org.qcmg.common.model.ChrPosition;
-import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.model.GenotypeEnum;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.vcf.VcfRecord;
-import org.qcmg.common.vcf.VcfUtils;
 
 public class QSnpRecord {
 	public enum Classification{
@@ -36,6 +34,8 @@ public class QSnpRecord {
 	private Double probablility;
 	private String normalNucleotides;
 	private String tumourNucleotides;
+	private String normalOABS;
+	private String tumourOABS;
 	private String flankingSequence;
 	
 	public QSnpRecord(VcfRecord vcf) {
@@ -46,7 +46,7 @@ public class QSnpRecord {
 		this(chr, position, ref, null);
 	}
 	public QSnpRecord(String chr, int position, String ref, String alt) {
-		int length = StringUtils.isNullOrEmpty(ref) ? 1 : ref.length();
+//		int length = StringUtils.isNullOrEmpty(ref) ? 1 : ref.length();
 		//vcf = VcfUtils.createVcfRecord(new ChrPosition(chr, position, (position + length) -1), null, ref, alt);
 		vcf = new VcfRecord.Builder(chr, position, ref).allele(alt).build();
 		
@@ -209,6 +209,18 @@ public class QSnpRecord {
 	}
 	public void setTumourNucleotides(String tumourNucleotides) {
 		this.tumourNucleotides = tumourNucleotides;
+	}
+	public void setTumourOABS(String tumourOABS) {
+		this.tumourOABS = tumourOABS;
+	}
+	public void setNormalOABS(String normalOABS) {
+		this.normalOABS = normalOABS;
+	}
+	public String getNormalOABS() {
+		return normalOABS;
+	}
+	public String getTumourOABS() {
+		return tumourOABS;
 	}
 	public void setUnfilteredNormalPileup(String unfilteredNormalPileup) {
 		this.unfilteredNormalPileup = unfilteredNormalPileup;
