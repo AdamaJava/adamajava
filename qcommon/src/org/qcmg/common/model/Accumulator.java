@@ -12,11 +12,12 @@ import gnu.trove.map.hash.TIntCharHashMap;
 import gnu.trove.procedure.TIntProcedure;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.PileupElementLiteUtil;
+import static org.qcmg.common.util.Constants.COMMA;
 
 
 /**
@@ -31,13 +32,33 @@ import org.qcmg.common.util.PileupElementLiteUtil;
 public class Accumulator {
 	
 	private static final char DOT = '.';
-	private static final char COMMA = ',';
 	public static final int END_OF_READ_DISTANCE = 5;
 	
 	private PileupElementLite A;
 	private PileupElementLite C;
 	private PileupElementLite G;
 	private PileupElementLite T;
+	
+	public static final char A_CHAR = 'A';
+	public static final char C_CHAR = 'C';
+	public static final char G_CHAR = 'G';
+	public static final char T_CHAR = 'T';
+	
+	public static final byte A_BYTE = 'A';
+	public static final byte C_BYTE = 'C';
+	public static final byte G_BYTE = 'G';
+	public static final byte T_BYTE = 'T';
+	
+	public static final char A_CHAR_LC = 'a';
+	public static final char C_CHAR_LC = 'c';
+	public static final char G_CHAR_LC = 'g';
+	public static final char T_CHAR_LC = 't';
+	
+	public static final String A_STRING = "A";
+	public static final String C_STRING = "C";
+	public static final String G_STRING = "G";
+	public static final String T_STRING = "T";
+	
 	
 	private int nCount;
 	private final int position;
@@ -62,25 +83,25 @@ public class Accumulator {
 
 	public void addUnfilteredBase(final byte base) {
 		switch (base) {
-		case 'A': if (unfilteredA) {
+		case A_BYTE: if (unfilteredA) {
 			unfilteredA2 = true;
 		} else {
 			unfilteredA = true;
 		}
 		break;
-		case 'C':  if (unfilteredC) {
+		case C_BYTE:  if (unfilteredC) {
 			unfilteredC2 = true;
 		} else {
 			unfilteredC = true;
 		}
 		break;
-		case 'G': if (unfilteredG) {
+		case G_BYTE: if (unfilteredG) {
 			unfilteredG2 = true;
 		} else {
 			unfilteredG = true;
 		}
 		break;
-		case 'T': if (unfilteredT) {
+		case T_BYTE: if (unfilteredT) {
 			unfilteredT2 = true;
 		} else {
 			unfilteredT = true;
@@ -101,19 +122,19 @@ public class Accumulator {
 		int startPositionToUse = forwardStrand ? startPosition : endPosition;
 		
 		switch (base) {
-		case 'A': 
+		case A_BYTE: 
 			if (null == A) A = new PileupElementLite();
 			update(A, qual, forwardStrand, startPositionToUse, endOfRead, readId);
 			break;
-		case 'C': 
+		case C_BYTE: 
 			if (null == C) C = new PileupElementLite();
 			update(C, qual, forwardStrand, startPositionToUse, endOfRead, readId);
 			break;
-		case 'G': 
+		case G_BYTE: 
 			if (null == G) G = new PileupElementLite();
 			update(G, qual, forwardStrand, startPositionToUse, endOfRead, readId);
 			break;
-		case 'T': 
+		case T_BYTE: 
 			if (null == T) T = new PileupElementLite();
 			update(T, qual, forwardStrand, startPositionToUse, endOfRead, readId);
 			break;
@@ -134,27 +155,27 @@ public class Accumulator {
 		StringBuilder pileup = new StringBuilder();
 		if (null != A) {
 			for (int i = 0 , count = A.getForwardCount() ; i < count ; i++)
-				pileup.append('A');
+				pileup.append(A_CHAR);
 			for (int i = 0 , count = A.getReverseCount() ; i < count ; i++)
-				pileup.append('a');
+				pileup.append(A_CHAR_LC);
 		}
 		if (null != C) {
 			for (int i = 0 , count = C.getForwardCount() ; i < count ; i++)
-				pileup.append('C');
+				pileup.append(C_CHAR);
 			for (int i = 0 , count = C.getReverseCount() ; i < count ; i++)
-				pileup.append('c');
+				pileup.append(C_CHAR_LC);
 		}
 		if (null != G) {
 			for (int i = 0 , count = G.getForwardCount() ; i < count ; i++)
-				pileup.append('G');
+				pileup.append(G_CHAR);
 			for (int i = 0 , count = G.getReverseCount() ; i < count ; i++)
-				pileup.append('g');
+				pileup.append(G_CHAR_LC);
 		}
 		if (null != T) {
 			for (int i = 0 , count = T.getForwardCount() ; i < count ; i++)
-				pileup.append('T');
+				pileup.append(T_CHAR);
 			for (int i = 0 , count = T.getReverseCount() ; i < count ; i++)
-				pileup.append('t');
+				pileup.append(T_CHAR);
 		}
 		
 		return pileup.toString();
@@ -189,13 +210,13 @@ public class Accumulator {
 	
 	public int getNovelStartsCountForBase(final char base) {
 		switch (base) {
-		case 'A': 
+		case A_CHAR: 
 			return  getNS(A);
-		case 'C': 
+		case C_CHAR: 
 			return  getNS(C);
-		case 'G': 
+		case G_CHAR: 
 			return  getNS(G);
-		case 'T': 
+		case T_CHAR: 
 			return  getNS(T);
 		}
 		return 0;
@@ -209,7 +230,7 @@ public class Accumulator {
 	public String toPileupString(String pileup) {
 		if (null == pileup)
 			pileup = getPileup();
-		return pileup.length() + "\t" + pileup + "\t" + getPileupQualities();
+		return pileup.length() + Constants.TAB + pileup + Constants.TAB + getPileupQualities();
 	}
 	
 	/**
@@ -222,32 +243,32 @@ public class Accumulator {
 		StringBuilder pileup = new StringBuilder();
 		boolean equalsToRef = false;
 		if (null != A) {
-			equalsToRef = ref == 'A';
+			equalsToRef = ref == A_CHAR;
 			for (int i = 0 , count = A.getForwardCount() ; i < count ; i++)
-				pileup.append(equalsToRef ? DOT : 'A');
+				pileup.append(equalsToRef ? DOT : A_CHAR);
 			for (int i = 0 , count = A.getReverseCount() ; i < count ; i++)
-				pileup.append(equalsToRef ? COMMA : 'a');
+				pileup.append(equalsToRef ? COMMA : A_CHAR_LC);
 		}
 		if (null != C) {
-			equalsToRef = ref == 'C';
+			equalsToRef = ref == C_CHAR;
 			for (int i = 0 , count = C.getForwardCount() ; i < count ; i++)
-				pileup.append(equalsToRef ? DOT : 'C');
+				pileup.append(equalsToRef ? DOT : C_CHAR);
 			for (int i = 0 , count = C.getReverseCount() ; i < count ; i++)
-				pileup.append(equalsToRef ? COMMA : 'c');
+				pileup.append(equalsToRef ? COMMA : C_CHAR_LC);
 		}
 		if (null != G) {
-			equalsToRef = ref == 'G';
+			equalsToRef = ref == G_CHAR;
 			for (int i = 0 , count = G.getForwardCount() ; i < count ; i++)
-				pileup.append(equalsToRef ? DOT : 'G');
+				pileup.append(equalsToRef ? DOT : G_CHAR);
 			for (int i = 0 , count = G.getReverseCount() ; i < count ; i++)
-				pileup.append(equalsToRef ? COMMA : 'g');
+				pileup.append(equalsToRef ? COMMA : G_CHAR_LC);
 		}
 		if (null != T) {
-			equalsToRef = ref == 'T';
+			equalsToRef = ref == T_CHAR;
 			for (int i = 0 , count = T.getForwardCount() ; i < count ; i++)
-				pileup.append(equalsToRef ? DOT : 'T');
+				pileup.append(equalsToRef ? DOT : T_CHAR);
 			for (int i = 0 , count = T.getReverseCount() ; i < count ; i++)
-				pileup.append(equalsToRef ? COMMA : 't');
+				pileup.append(equalsToRef ? COMMA : T_CHAR_LC);
 		}
 		
 		return pileup.toString();
@@ -273,19 +294,19 @@ public class Accumulator {
 			throw new UnsupportedOperationException(
 					"Accumulator.getBase() called when there is more than 1 base at this position");
 		
-		if (null != A) return 'A';
-		if (null != C) return 'C';
-		if (null != G) return 'G';
-		if (null != T) return 'T';
+		if (null != A) return A_CHAR;
+		if (null != C) return C_CHAR;
+		if (null != G) return G_CHAR;
+		if (null != T) return T_CHAR;
 		return '\u0000';
 	}
 	
 	public String getUnfilteredPileup() {
 		StringBuilder pileup = new StringBuilder();
-		if (unfilteredA2) pileup.append('A');
-		if (unfilteredC2) pileup.append('C');
-		if (unfilteredG2) pileup.append('G');
-		if (unfilteredT2) pileup.append('T');
+		if (unfilteredA2) pileup.append(A_CHAR);
+		if (unfilteredC2) pileup.append(C_CHAR);
+		if (unfilteredG2) pileup.append(G_CHAR);
+		if (unfilteredT2) pileup.append(T_CHAR);
 		return pileup.toString();
 	}
 
@@ -299,11 +320,11 @@ public class Accumulator {
 	}
 	
 	public PileupElementLite getLargestVariant(char ref) {
-		List<PileupElementLite> pel = new ArrayList<PileupElementLite>();
-		if (null != A && ref != 'A') pel.add(A);
-		if (null != C && ref != 'C') pel.add(C);
-		if (null != G && ref != 'G') pel.add(G);
-		if (null != T && ref != 'T') pel.add(T);
+		List<PileupElementLite> pel = new ArrayList<PileupElementLite>(6);
+		if (null != A && ref != A_CHAR) pel.add(A);
+		if (null != C && ref != C_CHAR) pel.add(C);
+		if (null != G && ref != G_CHAR) pel.add(G);
+		if (null != T && ref != T_CHAR) pel.add(T);
 		
 		if (pel.size() > 1) {
 			pel.sort(null);
@@ -314,10 +335,10 @@ public class Accumulator {
 	}
 	
 	public int getBaseCountForBase(char base) {
-		if (null != A && base == 'A') return A.getTotalCount();
-		if (null != C && base == 'C') return C.getTotalCount();
-		if (null != G && base == 'G') return G.getTotalCount();
-		if (null != T && base == 'T') return T.getTotalCount();
+		if (null != A && base == A_CHAR) return A.getTotalCount();
+		if (null != C && base == C_CHAR) return C.getTotalCount();
+		if (null != G && base == G_CHAR) return G.getTotalCount();
+		if (null != T && base == T_CHAR) return T.getTotalCount();
 		return 0;
 	}
 	
@@ -336,18 +357,18 @@ public class Accumulator {
 	 */
 	public String getCompressedPileup() {
 		StringBuilder pileup = new StringBuilder();
-		if (null != A) pileup.append("A");
-		if (null != C) pileup.append("C");
-		if (null != G) pileup.append("G");
-		if (null != T) pileup.append("T");
+		if (null != A) pileup.append(A_STRING);
+		if (null != C) pileup.append(C_STRING);
+		if (null != G) pileup.append(G_STRING);
+		if (null != T) pileup.append(T_STRING);
 		return pileup.toString();
 	}
 	
 	private char getCharFromPel(PileupElementLite pel) {
-		if (A == pel) return 'A';
-		if (C == pel) return 'C';
-		if (G == pel) return 'G';
-		if (T == pel) return 'T';
+		if (A == pel) return A_CHAR;
+		if (C == pel) return C_CHAR;
+		if (G == pel) return G_CHAR;
+		if (T == pel) return T_CHAR;
 		return '\u0000';
 	}
 	
@@ -363,7 +384,7 @@ public class Accumulator {
 		final int coverage = getCoverage();
 		final int totalQuality = getTotalQualityScore();
 		
-		List<PileupElementLite> pels = new ArrayList<PileupElementLite>();
+		List<PileupElementLite> pels = new ArrayList<PileupElementLite>(6);
 		
 		if (canContributeToGenotype(A, coverage, totalQuality, rule, secondPass, percentage))
 			pels.add(A);
@@ -407,19 +428,40 @@ public class Accumulator {
 	public String getPileupElementString() {
 		StringBuilder pileup = new StringBuilder();
 		if (null != A) {
-			pileup.append(PileupElementLiteUtil.toSummaryString(A, "A"));
+			pileup.append(PileupElementLiteUtil.toSummaryString(A, A_STRING));
 		}
 		if (null != C) {
 			if (pileup.length() > 0) pileup.append(COMMA);
-			pileup.append(PileupElementLiteUtil.toSummaryString(C, "C"));
+			pileup.append(PileupElementLiteUtil.toSummaryString(C, C_STRING));
 		}
 		if (null != G) {
 			if (pileup.length() > 0) pileup.append(COMMA);
-			pileup.append(PileupElementLiteUtil.toSummaryString(G, "G"));
+			pileup.append(PileupElementLiteUtil.toSummaryString(G, G_STRING));
 		}
 		if (null != T) {
 			if (pileup.length() > 0) pileup.append(COMMA);
-			pileup.append(PileupElementLiteUtil.toSummaryString(T, "T"));
+			pileup.append(PileupElementLiteUtil.toSummaryString(T, T_STRING));
+		}
+		
+		return pileup.toString();
+	}
+	
+	public String getObservedAllelesByStrand() {
+		StringBuilder pileup = new StringBuilder();
+		if (null != A) {
+			pileup.append(PileupElementLiteUtil.toObservedAlleleByStrand(A, A_STRING));
+		}
+		if (null != C) {
+			if (pileup.length() > 0) pileup.append(Constants.SEMI_COLON);
+			pileup.append(PileupElementLiteUtil.toObservedAlleleByStrand(C, C_STRING));
+		}
+		if (null != G) {
+			if (pileup.length() > 0) pileup.append(Constants.SEMI_COLON);
+			pileup.append(PileupElementLiteUtil.toObservedAlleleByStrand(G, G_STRING));
+		}
+		if (null != T) {
+			if (pileup.length() > 0) pileup.append(Constants.SEMI_COLON);
+			pileup.append(PileupElementLiteUtil.toObservedAlleleByStrand(T, T_STRING));
 		}
 		
 		return pileup.toString();
@@ -428,19 +470,19 @@ public class Accumulator {
 	public String getReadIdsPerAllele() {
 		StringBuilder sb = new StringBuilder();
 		if (null != A) {
-			sb.append(PileupElementLiteUtil.getBaseAndReadIds(A, "A"));
+			sb.append(PileupElementLiteUtil.getBaseAndReadIds(A, A_STRING));
 		}
 		if (null != C) {
 			if (sb.length() > 0) sb.append(COMMA);
-			sb.append(PileupElementLiteUtil.getBaseAndReadIds(C, "C"));
+			sb.append(PileupElementLiteUtil.getBaseAndReadIds(C, C_STRING));
 		}
 		if (null != G) {
 			if (sb.length() > 0) sb.append(COMMA);
-			sb.append(PileupElementLiteUtil.getBaseAndReadIds(G, "G"));
+			sb.append(PileupElementLiteUtil.getBaseAndReadIds(G, G_STRING));
 		}
 		if (null != T) {
 			if (sb.length() > 0) sb.append(COMMA);
-			sb.append(PileupElementLiteUtil.getBaseAndReadIds(T, "T"));
+			sb.append(PileupElementLiteUtil.getBaseAndReadIds(T, T_STRING));
 		}
 		
 		return sb.toString();
@@ -458,7 +500,7 @@ public class Accumulator {
 				TIntProcedure aProc = new TIntProcedure(){
 					@Override
 					public boolean execute(int s) {
-						map.put(s, 'A');
+						map.put(s, A_CHAR);
 						return true;
 					}};
 				ids.forEach(aProc);
@@ -471,7 +513,7 @@ public class Accumulator {
 				TIntProcedure aProc = new TIntProcedure(){
 					@Override
 					public boolean execute(int s) {
-						map.put(s, 'a');
+						map.put(s,  A_CHAR_LC);
 						return true;
 					}};
 				ids.forEach(aProc);
@@ -486,7 +528,7 @@ public class Accumulator {
 				TIntProcedure cProc = new TIntProcedure(){
 					@Override
 					public boolean execute(int s) {
-						map.put(s, 'C');
+						map.put(s,  C_CHAR);
 						return true;
 					}};
 					
@@ -500,7 +542,7 @@ public class Accumulator {
 					TIntProcedure cProc = new TIntProcedure(){
 						@Override
 						public boolean execute(int s) {
-							map.put(s, 'c');
+							map.put(s,  C_CHAR_LC);
 							return true;
 						}};
 						
@@ -516,7 +558,7 @@ public class Accumulator {
 				TIntProcedure gProc = new TIntProcedure(){
 					@Override
 					public boolean execute(int s) {
-						map.put(s, 'G');
+						map.put(s,  G_CHAR);
 						return true;
 					}};
 					
@@ -530,7 +572,7 @@ public class Accumulator {
 				TIntProcedure gProcRS = new TIntProcedure(){
 					@Override
 					public boolean execute(int s) {
-						map.put(s, 'g');
+						map.put(s,  G_CHAR_LC);
 						return true;
 					}};
 						
@@ -546,7 +588,7 @@ public class Accumulator {
 				TIntProcedure tProc = new TIntProcedure(){
 					@Override
 					public boolean execute(int s) {
-						map.put(s, 'T');
+						map.put(s,  T_CHAR);
 						return true;
 					}};
 				ids.forEach(tProc);
@@ -558,7 +600,7 @@ public class Accumulator {
 					TIntProcedure tProcRS = new TIntProcedure(){
 						@Override
 						public boolean execute(int s) {
-							map.put(s, 't');
+							map.put(s,  T_CHAR_LC);
 							return true;
 						}};
 						

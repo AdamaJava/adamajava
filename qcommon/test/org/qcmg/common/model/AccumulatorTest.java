@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Random;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class AccumulatorTest {
@@ -398,7 +399,7 @@ public class AccumulatorTest {
 		}
 	}
 	
-	@Test
+	@Ignore
 	public void testAddBase() {
 		Accumulator acc = new Accumulator(100000);
 		int noOfLoops = 1000000;
@@ -411,7 +412,7 @@ public class AccumulatorTest {
 		System.out.println("time taken for " + noOfLoops + " addBases: " + (System.currentTimeMillis() - start ));
 	}
 	
-	@Test
+	@Ignore
 	public void testIntToCollection() {
 		int noOfLoops = 1000000;
 		Random random = new Random();
