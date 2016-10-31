@@ -102,6 +102,8 @@ public class VcfHeaderUtils {
 	public static final String FORMAT_GENOTYPE = "GT";
 	public static final String FORMAT_GENOTYPE_DETAILS = "GD";
 	public static final String FORMAT_ALLELE_COUNT = "AC";
+	public static final String FORMAT_OBSERVED_ALLELES_BY_STRAND = "OABS";
+	public static final String FORMAT_OBSERVED_ALLELES_BY_STRAND_DESC = "Observed Alleles By Strand: semi-colon separated list of observed alleles with each one in this format: forward_strand_count[avg_base_quality]reverse_strand_count[avg_base_quality], e.g. A18[39]12[42]";
 	public static final String FORMAT_ALLELE_COUNT_COMPOUND_SNP = "ACCS";
 	public static final String FORMAT_MUTANT_READS = FILTER_MUTANT_READS;
 	public static final String FORMAT_NOVEL_STARTS = FILTER_NOVEL_STARTS;
