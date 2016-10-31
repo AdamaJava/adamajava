@@ -157,7 +157,6 @@ public class PileupElementLiteUtil {
 		int reverseCount = pel.getReverseCount();
 		
 		StringBuilder sb = new StringBuilder(base);
-//		sb.append(":");
 		sb.append(forwardCount).append(OPEN_BRACKET);
 		double forwardQual = forwardCount == 0 ? 0.0 : (double)pel.getTotalForwardQualityScore() / forwardCount; 
 		sb.append(nf.format(forwardQual));
@@ -192,8 +191,6 @@ public class PileupElementLiteUtil {
 		
 		TIntList forwardReadIds = null;
 		TIntList reverseReadIds = null;
-//		List<Long> forwardReadIds = null;
-//		List<Long> reverseReadIds = null;
 		
 		TIntArrayList ids = pel.getForwardReadIds();
 		if (null != ids) {
