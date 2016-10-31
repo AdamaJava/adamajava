@@ -162,6 +162,19 @@ public class PileupElementLiteUtilTest {
 	}
 	
 	@Test
+	public void toSummaryString() {
+		Accumulator accum = new Accumulator(1);
+		accum.addBase((byte)'A', (byte) 1, true, 1, 1, 2, 1);
+		assertEquals("A1[1],0[0]", PileupElementLiteUtil.toSummaryString(accum.getLargestVariant('\u0000'), "A"));
+	}
+	@Test
+	public void toOABS() {
+		Accumulator accum = new Accumulator(1);
+		accum.addBase((byte)'A', (byte) 1, true, 1, 1, 2, 1);
+		assertEquals("A1[1]0[0]", PileupElementLiteUtil.toObservedAlleleByStrand(accum.getLargestVariant('\u0000'), "A"));
+	}
+	
+	@Test
 	public void testGetLargestVariantNovelStarts() {
 		Accumulator accum = new Accumulator(1);
 		assertEquals(0, PileupElementLiteUtil.getLargestVariantNovelStarts(accum, 'A'));

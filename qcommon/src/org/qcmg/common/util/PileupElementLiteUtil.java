@@ -21,6 +21,9 @@ public class PileupElementLiteUtil {
 	
 	private static final NumberFormat nf = new DecimalFormat("0.##");
 	
+	public static final char OPEN_BRACKET = '[';
+	public static final char CLOSE_BRACKET = ']';
+	
 	public static int getLargestVariantNovelStarts(final Accumulator accum, final char ref) {
 		if (null == accum) return 0;
 		PileupElementLite pel = accum.getLargestVariant(ref);
@@ -155,21 +158,37 @@ public class PileupElementLiteUtil {
 		
 		StringBuilder sb = new StringBuilder(base);
 //		sb.append(":");
-		sb.append(forwardCount).append("[");
+		sb.append(forwardCount).append(OPEN_BRACKET);
 		double forwardQual = forwardCount == 0 ? 0.0 : (double)pel.getTotalForwardQualityScore() / forwardCount; 
 		sb.append(nf.format(forwardQual));
 		sb.append("],");
-		sb.append(reverseCount).append("[");
+		sb.append(reverseCount).append(OPEN_BRACKET);
 		double reverseQual = reverseCount == 0 ? 0.0 : (double)pel.getTotalReverseQualityScore() / reverseCount; 
 		sb.append(nf.format(reverseQual));
-		sb.append("]");
+		sb.append(CLOSE_BRACKET);
+		return sb.toString();
+	}
+	
+	public static String toObservedAlleleByStrand(final PileupElementLite pel, final String base) {
+		int forwardCount = pel.getForwardCount();
+		int reverseCount = pel.getReverseCount();
+		
+		StringBuilder sb = new StringBuilder(base);
+		sb.append(forwardCount).append(OPEN_BRACKET);
+		double forwardQual = forwardCount == 0 ? 0.0 : (double)pel.getTotalForwardQualityScore() / forwardCount; 
+		sb.append(nf.format(forwardQual));
+		sb.append(CLOSE_BRACKET);
+		sb.append(reverseCount).append(OPEN_BRACKET);
+		double reverseQual = reverseCount == 0 ? 0.0 : (double)pel.getTotalReverseQualityScore() / reverseCount; 
+		sb.append(nf.format(reverseQual));
+		sb.append(CLOSE_BRACKET);
 		return sb.toString();
 	}
 	
 	public static String getBaseAndReadIds(final PileupElementLite pel, final String base) {
 		
 		final StringBuilder sb = new StringBuilder(base);
-		sb.append(":");
+		sb.append(Constants.COLON);
 		
 		TIntList forwardReadIds = null;
 		TIntList reverseReadIds = null;
@@ -189,7 +208,7 @@ public class PileupElementLiteUtil {
 			forwardReadIds.forEach(new TIntProcedure() {
 				@Override
 				public boolean execute(int s) {
-					sb.append(s).append(',');
+					sb.append(s).append(Constants.COMMA);
 					return true;
 				}});
 		}
@@ -200,7 +219,7 @@ public class PileupElementLiteUtil {
 			reverseReadIds.forEach(new TIntProcedure() {
 				@Override
 				public boolean execute(int s) {
-					sb.append(s).append(',');
+					sb.append(s).append(Constants.COMMA);
 					return true;
 				}});
 		}
