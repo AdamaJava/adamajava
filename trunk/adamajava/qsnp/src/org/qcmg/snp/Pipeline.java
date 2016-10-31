@@ -1760,8 +1760,8 @@ public abstract class Pipeline {
 			
 			qRecord.setNormalNucleotides(null != normal ? normal.getPileupElementString() : null);
 			qRecord.setTumourNucleotides(null != tumour ? tumour.getPileupElementString() : null);
-			qRecord.setNormalOABS(null != normal ? normal.getObservedAllelesByStrand() : null);
-			qRecord.setTumourOABS(null != tumour ? tumour.getObservedAllelesByStrand() : null);
+//			qRecord.setNormalOABS(null != normal ? normal.getObservedAllelesByStrand() : null);
+//			qRecord.setTumourOABS(null != tumour ? tumour.getObservedAllelesByStrand() : null);
 			// add unfiltered normal
 			if (null != normal)
 				qRecord.setUnfilteredNormalPileup(normal.getUnfilteredPileup());
