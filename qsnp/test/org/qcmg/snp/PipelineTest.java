@@ -1,7 +1,7 @@
 package org.qcmg.snp;
 
 import static org.junit.Assert.assertEquals;
-
+import static org.qcmg.common.util.Constants.COLON;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
@@ -38,18 +38,18 @@ public class PipelineTest {
 		assertEquals(null, rec.getAnnotation());
 		VcfUtils.updateFilter(rec.getVcfRecord(), "");
 		assertEquals("", rec.getAnnotation());
-		VcfUtils.updateFilter(rec.getVcfRecord(), "MIN");
-		assertEquals("MIN", rec.getAnnotation());
+		VcfUtils.updateFilter(rec.getVcfRecord(), VcfHeaderUtils.FILTER_MUTATION_IN_NORMAL);
+		assertEquals(VcfHeaderUtils.FILTER_MUTATION_IN_NORMAL, rec.getAnnotation());
 		VcfUtils.updateFilter(rec.getVcfRecord(), "COV");
 		assertEquals("MIN;COV", rec.getAnnotation());
 		
 		// reset
 		rec = new QSnpRecord("chr1", 100, null);
-		VcfUtils.updateFilter(rec.getVcfRecord(), "PASS");
+		VcfUtils.updateFilter(rec.getVcfRecord(), VcfHeaderUtils.FILTER_PASS);
 		assertEquals("PASS", rec.getAnnotation());
-		VcfUtils.updateFilter(rec.getVcfRecord(), "MIN");
+		VcfUtils.updateFilter(rec.getVcfRecord(), VcfHeaderUtils.FILTER_MUTATION_IN_NORMAL);
 		assertEquals("MIN", rec.getAnnotation());
-		VcfUtils.updateFilter(rec.getVcfRecord(), "PASS");
+		VcfUtils.updateFilter(rec.getVcfRecord(), VcfHeaderUtils.FILTER_PASS);
 		assertEquals("PASS", rec.getAnnotation());
 	}
 	
@@ -757,6 +757,8 @@ public class PipelineTest {
 		// add in tumour nucleotides
 		final String tumourNucleotides = "C15[18.95],19[19.35],A2[27.02],3[29.03]"; 
 		snp.setTumourNucleotides(tumourNucleotides);
+		final String tumourOABS = "C15[18.95]19[19.35];A2[27.02]3[29.03]"; 
+		snp.setTumourOABS(tumourOABS);
 		vcf.setFormatFields(null);
 		vcf = pipeline.convertQSnpToVCF(snp);
 		assertEquals(Classification.SOMATIC + "", vcf.getInfo());
@@ -769,16 +771,18 @@ public class PipelineTest {
 		
 		final String normalNucleotides = "A19[26.47],14[23.7],C0[0],1[1]"; 
 		snp.setNormalNucleotides(normalNucleotides);
+		final String normalOABS = "A19[26.47]14[23.7];C0[0]1[1]"; 
+		snp.setNormalOABS(normalOABS);
 		
 		vcf.setFormatFields(null);
 		vcf = pipeline.convertQSnpToVCF(snp);
 		
 		assertEquals(3, vcf.getFormatFields().size());
 		
-		assertEquals(VcfHeaderUtils.FORMAT_GENOTYPE + Constants.COLON_STRING + VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS + Constants.COLON_STRING + VcfHeaderUtils.FORMAT_ALLELE_COUNT + Constants.COLON_STRING + 
-				VcfHeaderUtils.FORMAT_MUTANT_READS + Constants.COLON_STRING + VcfHeaderUtils.FORMAT_NOVEL_STARTS, vcf.getFormatFields().get(0));
-		assertEquals("0/0:A/A:" + normalNucleotides.replace(":", "") + Constants.COLON_STRING + "1:0", vcf.getFormatFields().get(1));
-		assertEquals("0/1:A/C:" + tumourNucleotides.replace(":", "") + Constants.COLON_STRING + "34:5", vcf.getFormatFields().get(2));
+		assertEquals(VcfHeaderUtils.FORMAT_GENOTYPE + COLON + VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS + COLON + VcfHeaderUtils.FORMAT_ALLELE_COUNT + COLON + VcfHeaderUtils.FORMAT_OBSERVED_ALLELES_BY_STRAND + COLON +
+				VcfHeaderUtils.FORMAT_MUTANT_READS + COLON + VcfHeaderUtils.FORMAT_NOVEL_STARTS, vcf.getFormatFields().get(0));
+		assertEquals("0/0:A/A:" + normalNucleotides + COLON + normalOABS + COLON + "1:0", vcf.getFormatFields().get(1));
+		assertEquals("0/1:A/C:" + tumourNucleotides + COLON + tumourOABS + COLON + "34:5", vcf.getFormatFields().get(2));
 	}
 	
 	@Test
@@ -804,12 +808,12 @@ public class PipelineTest {
 		assertEquals(Constants.MISSING_DATA_STRING, vcf.getInfo());
 		
 		// add in tumour nucleotides
-		final String tumourNucleotides = "A12[26.65],5[28.2],G1[20],8[24.33]"; 
+		String tumourNucleotides = "A12[26.65],5[28.2],G1[20],8[24.33]"; 
 		snp.setTumourNucleotides(tumourNucleotides);
 		vcf = pipeline.convertQSnpToVCF(snp);
 		assertEquals(Constants.MISSING_DATA_STRING, vcf.getInfo());
 		
-		final String normalNucleotides = "A5[28.01],10[26.6],G9[19.34],4[25.51]"; 
+		String normalNucleotides = "A5[28.01],10[26.6],G9[19.34],4[25.51]"; 
 		snp.setNormalNucleotides(normalNucleotides);
 		vcf = pipeline.convertQSnpToVCF(snp);
 		assertEquals(Constants.MISSING_DATA_STRING, vcf.getInfo());
@@ -826,11 +830,25 @@ public class PipelineTest {
 		
 		assertEquals(3, vcf.getFormatFields().size());
 		
-		assertEquals(VcfHeaderUtils.FORMAT_GENOTYPE + Constants.COLON_STRING + VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS + Constants.COLON_STRING + VcfHeaderUtils.FORMAT_ALLELE_COUNT + Constants.COLON_STRING + 
-				VcfHeaderUtils.FORMAT_MUTANT_READS + Constants.COLON_STRING + VcfHeaderUtils.FORMAT_NOVEL_STARTS, vcf.getFormatFields().get(0));
-		assertEquals("0/1:A/G:" + normalNucleotides + Constants.COLON_STRING + "15:7", vcf.getFormatFields().get(1));
-		assertEquals("0/1:A/G:" + tumourNucleotides+ Constants.COLON_STRING + "17:3", vcf.getFormatFields().get(2));
+		assertEquals(VcfHeaderUtils.FORMAT_GENOTYPE + COLON + VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS + COLON + VcfHeaderUtils.FORMAT_ALLELE_COUNT + COLON +  VcfHeaderUtils.FORMAT_OBSERVED_ALLELES_BY_STRAND + COLON +
+				VcfHeaderUtils.FORMAT_MUTANT_READS + COLON + VcfHeaderUtils.FORMAT_NOVEL_STARTS, vcf.getFormatFields().get(0));
+		assertEquals("0/1:A/G:" + normalNucleotides + COLON + Constants.MISSING_DATA + COLON + "15:7", vcf.getFormatFields().get(1));
+		assertEquals("0/1:A/G:" + tumourNucleotides+ COLON + Constants.MISSING_DATA + COLON + "17:3", vcf.getFormatFields().get(2));
 		
+		
+		String tumourOABS = "A12[26.65],5[28.2],G1[20],8[24.33]"; 
+		snp.setTumourOABS(tumourOABS);
+		String normalOABS = "A5[28.01],10[26.6],G9[19.34],4[25.51]"; 
+		snp.setNormalOABS(normalOABS);
+		vcf.setFormatFields(null);	// reset format fields
+		vcf = pipeline.convertQSnpToVCF(snp);
+		
+		assertEquals(3, vcf.getFormatFields().size());
+		
+		assertEquals(VcfHeaderUtils.FORMAT_GENOTYPE + COLON + VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS + COLON + VcfHeaderUtils.FORMAT_ALLELE_COUNT + COLON +  VcfHeaderUtils.FORMAT_OBSERVED_ALLELES_BY_STRAND + COLON +
+				VcfHeaderUtils.FORMAT_MUTANT_READS + COLON + VcfHeaderUtils.FORMAT_NOVEL_STARTS, vcf.getFormatFields().get(0));
+		assertEquals("0/1:A/G:" + normalNucleotides + COLON + normalOABS + COLON + "15:7", vcf.getFormatFields().get(1));
+		assertEquals("0/1:A/G:" + tumourNucleotides+ COLON + tumourOABS + COLON + "17:3", vcf.getFormatFields().get(2));
 	}
 	@Test
 	public void testConvertQSnpToVCFFilter() throws SnpException, IOException, Exception {
