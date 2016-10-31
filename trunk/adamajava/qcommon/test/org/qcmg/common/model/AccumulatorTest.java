@@ -378,6 +378,7 @@ public class AccumulatorTest {
 	@Test
 	public void getOABS() {
 		Accumulator acc = new Accumulator(1);
+		assertEquals("", acc.getObservedAllelesByStrand());
 		
 		for (int i = 0 ; i < 10 ; i++) acc.addBase((byte)'A', (byte)10, true, 1, 1, 2, i);
 		assertEquals("A10[10]0[0]", acc.getObservedAllelesByStrand());
