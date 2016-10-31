@@ -376,6 +376,33 @@ public class AccumulatorTest {
 	}
 	
 	@Test
+	public void getOABS() {
+		Accumulator acc = new Accumulator(1);
+		
+		for (int i = 0 ; i < 10 ; i++) acc.addBase((byte)'A', (byte)10, true, 1, 1, 2, i);
+		assertEquals("A10[10]0[0]", acc.getObservedAllelesByStrand());
+		for (int i = 0 ; i < 12 ; i++) acc.addBase((byte)'A', (byte)12, false, 1, 1, 2, i);
+		assertEquals("A10[10]12[12]", acc.getObservedAllelesByStrand());
+		
+		for (int i = 0 ; i < 15 ; i++) acc.addBase((byte)'C', (byte)15, false, 1, 1, 2, i);
+		assertEquals("A10[10]12[12];C0[0]15[15]", acc.getObservedAllelesByStrand());
+		for (int i = 0 ; i < 18 ; i++) acc.addBase((byte)'C', (byte)18, true, 1, 1, 2, i);
+		assertEquals("A10[10]12[12];C18[18]15[15]", acc.getObservedAllelesByStrand());
+		
+		for (int i = 0 ; i < 20 ; i++) acc.addBase((byte)'T', (byte)1, false, 1, 1, 2, i);
+		assertEquals("A10[10]12[12];C18[18]15[15];T0[0]20[1]", acc.getObservedAllelesByStrand());
+		for (int i = 0 ; i < 19 ; i++) acc.addBase((byte)'G', (byte)33, true, 1, 1, 2, i);
+		assertEquals("A10[10]12[12];C18[18]15[15];G19[33]0[0];T0[0]20[1]", acc.getObservedAllelesByStrand());
+		
+		for (int i = 0 ; i < 6 ; i++) acc.addBase((byte)'G', (byte)32, false, 1, 1, 2, i);
+		assertEquals("A10[10]12[12];C18[18]15[15];G19[33]6[32];T0[0]20[1]", acc.getObservedAllelesByStrand());
+		for (int i = 0 ; i < 8 ; i++) acc.addBase((byte)'T', (byte)3, true, 1, 1, 2, i);
+		assertEquals("A10[10]12[12];C18[18]15[15];G19[33]6[32];T8[3]20[1]", acc.getObservedAllelesByStrand());
+	}
+	
+	
+	
+	@Test
 	public void readIdBaseMapStrand() {
 		
 		Accumulator acc = new Accumulator(1);
