@@ -27,7 +27,6 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.GenotypeEnum;
-import org.qcmg.common.model.MafConfidence;
 import org.qcmg.common.model.PileupElement;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
@@ -44,7 +43,7 @@ public class VcfUtils {
 	public static final Pattern pattern_ACCS = Pattern.compile("[ACGT_]+,[0-9]+,[0-9]+");
 	public static final int CONF_LENGTH = (VcfHeaderUtils.INFO_CONFIDENT + Constants.EQ).length();
 
- 
+	
  /**
   * 
   * @param re: String record from sample format column. eg. 0/1:A/C:A2[17.5],34[25.79],C2[28.5],3[27.67]
