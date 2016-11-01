@@ -40,7 +40,7 @@ public class SnpUtils {
 	public static final String STRAND_BIAS_ALT = "SBIASALT";	// mutation only found on one strand
 	public static final String STRAND_BIAS_COVERAGE = "SBIASCOV";	// mutation only found on 1 strand, and no (or v. little) coverage at all found on other strand
 	public static final String ALLELIC_FRACTION = "AF";	// allelic fraction of mutation is less than appended number eg. AF20
-	public static final String END_OF_READ = "5BP";	// allelic fraction of mutation is less than appended number eg. AF20
+	public static final String END_OF_READ = "5BP";	// number of reads carrying the mutation that are within 5 base pairs of the end of the read
 	
 	// a couple of extra class B's
 	public static final String LESS_THAN_12_READS_NORMAL_AND_UNFILTERED= LESS_THAN_12_READS_NORMAL + "; " + MUTATION_IN_UNFILTERED_NORMAL;
@@ -64,6 +64,8 @@ public class SnpUtils {
 	public static final String INDEL_HCOVN = "HCOVN";	
 	public static final String INDEL_STRAND_BIAS = "TBIAS";	
 	public static final String INDEL_NPART = "NPART";
+	
+	public static final int MUT_DELIM_LENGTH = Constants.MUT_DELIM.length();
 	
 	private static final QLogger logger = QLoggerFactory.getLogger(SnpUtils.class);
 	
@@ -218,7 +220,7 @@ public class SnpUtils {
 			throw new IllegalArgumentException("invalid mutation string supplied to getAltFromMutationString (null or empty)");
 		}
 		int index = mutation.indexOf(Constants.MUT_DELIM);
-		return mutation.substring(index + Constants.MUT_DELIM.length());
+		return mutation.substring(index + MUT_DELIM_LENGTH);
 	}
 	
 	
