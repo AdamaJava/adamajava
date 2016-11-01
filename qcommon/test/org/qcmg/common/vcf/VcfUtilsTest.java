@@ -611,13 +611,33 @@ public class VcfUtilsTest {
 	@Test
 	public void testAdditionalSampleFFRealLifeData() {
 		VcfRecord rec = new VcfRecord( new String[] {"chr1", "1066816",".","A","."}); 
-				//VcfUtils.createVcfRecord("chr1", 1066816, "A");
 		VcfUtils.addFormatFieldsToVcf(rec, Arrays.asList("GT:AD:DP:GQ:PL", "1/1:0,22:22:75:1124,75,0"));
 		VcfUtils.addAdditionalSampleToFormatField(rec, Arrays.asList("GT:GQ:PL", "1/1:6:86,6,0"));
 		
 		assertEquals("GT:AD:DP:GQ:PL", rec.getFormatFields().get(0));
 		assertEquals("1/1:0,22:22:75:1124,75,0", rec.getFormatFields().get(1));
 		assertEquals("1/1:.:.:6:86,6,0", rec.getFormatFields().get(2));
+	}
+	
+	@Test
+	public void add5BPToFormat() {
+		VcfRecord rec = new VcfRecord( new String[] {"chr1", "1066816",".","A","."}); 
+		VcfUtils.addFormatFieldsToVcf(rec, Arrays.asList("5BP", "5"));
+		assertEquals("5BP", rec.getFormatFields().get(0));
+		assertEquals("5", rec.getFormatFields().get(1));
+		
+		rec = new VcfRecord( new String[] {"chr1", "1066816",".","A","."}); 
+		VcfUtils.addFormatFieldsToVcf(rec, Arrays.asList("GT:AD:DP:GQ:PL", "1/1:0,22:22:75:1124,75,0", "1/1:0,22:22:75:1124,75,0"));
+		VcfUtils.addFormatFieldsToVcf(rec, Arrays.asList("5BP", "5"));
+		assertEquals("GT:AD:DP:GQ:PL", rec.getFormatFields().get(0));
+		assertEquals("1/1:0,22:22:75:1124,75,0", rec.getFormatFields().get(1));
+		/*
+		 * need to add 2 columns - 1 for each sample
+		 */
+		VcfUtils.addFormatFieldsToVcf(rec, Arrays.asList("5BP", "5","."));
+		assertEquals("GT:AD:DP:GQ:PL:5BP", rec.getFormatFields().get(0));
+		assertEquals("1/1:0,22:22:75:1124,75,0:5", rec.getFormatFields().get(1));
+		assertEquals("1/1:0,22:22:75:1124,75,0:.", rec.getFormatFields().get(2));
 	}
 	
 	@Test
