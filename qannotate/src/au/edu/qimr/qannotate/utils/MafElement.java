@@ -21,7 +21,7 @@ public enum MafElement {
 	End_Position(7, SnpEffMafRecord.Null, "The genomic end position of variant."), 
 	Strand(8, "+", "Default value: +."), //Strand
 	Variant_Classification(9, SnpEffMafRecord.Unknown, "Translational effect of variant allele."), //from converting EFF sub-field \"EFF\" to our interal classification list.
-	Variant_Type(10,  IndelUtils.SVTYPE.UNKOWN.name(), "Type of mutation: SNP, DNP, TNP, ONP, INS, DEL."), //Variant_Type
+	Variant_Type(10,  IndelUtils.SVTYPE.UNKNOWN.name(), "Type of mutation: SNP, DNP, TNP, ONP, INS, DEL."), //Variant_Type
 	Reference_Allele(11,  SnpEffMafRecord.Null, "The plus strand reference allele at this position. Include the sequence deleted for a deletion, or '-' for an insertion."), //Reference_Allele
 	Tumor_Seq_Allele1(12, SnpEffMafRecord.Null, "Tumor data genotype, most frequent allele." ), // "-" for a deletion; novel inserted sequence for INS; mutated sequence for SNPs; Reference_Allele for indels if missing genotype information.
 	Tumor_Seq_Allele2(13, SnpEffMafRecord.Null, "Tumor data genotype, second most frequent allele." ), // "-" for a deletion; enter Reference_Allele for indels unless genotype information provided.
