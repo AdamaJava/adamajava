@@ -42,7 +42,7 @@ public class Options {
 //    private final boolean commandCheck = false;
     protected final String commandLine;
     
- 	protected final Options.MODE Mode;  
+ 	protected final Options.MODE mode;  
     protected final  OptionParser parser;
     protected QLogger logger = null;
 	
@@ -83,12 +83,12 @@ public class Options {
     	
     	if(options.has("mode")){
     		String m = ((String) options.valueOf("mode")).toLowerCase();
-    		this.Mode = MODE.valueOf(m); //already checked the validation of mode
+    		this.mode = MODE.valueOf(m); //already checked the validation of mode
     	}else
-    		this.Mode = null; 
+    		this.mode = null; 
     		   	
         if(options.has("h") || options.has("help")){ 
-        	displayHelp(Mode);  
+        	displayHelp(mode);  
         	System.exit(0);
         }
         
@@ -121,9 +121,9 @@ public class Options {
           
         //snpeff
         configFileName = (options.has("config"))? (String) options.valueOf("config") : 
-        	   ( Mode.equals(MODE.snpeff)?  new File(databaseFiles[0]).getParent() + "/snpEff.config" : null);
+        	   ( MODE.snpeff == mode ?  new File(databaseFiles[0]).getParent() + "/snpEff.config" : null);
         summaryFileName = (options.has("summaryFile"))?(String) options.valueOf("summaryFile"):
-        	( Mode.equals(MODE.snpeff)?  outputFileName +  ".snpEff_summary.html" : null);
+        	( MODE.snpeff == mode?  outputFileName +  ".snpEff_summary.html" : null);
         	
         //homoplymers
         homWindow  = (options.has("window"))? (int) options.valueOf("window") : 100;  //default is 100
@@ -254,8 +254,8 @@ public class Options {
 	public String getInputFileName(){return inputFileName;}
 	public String getOutputFileName(){return outputFileName;}
 	public String getDatabaseFileName(){return databaseFiles[0];}	
-	public String[] getDatabaseFiles(){ return  (Mode.equals(MODE.cadd))? databaseFiles : null;}
-    public MODE getMode(){	return  Mode; }
+	public String[] getDatabaseFiles(){ return  (mode.equals(MODE.cadd))? databaseFiles : null;}
+    public MODE getMode(){	return  mode; }
    
     public void displayHelp(MODE mode) throws Exception {   
         String mess = Messages.getMessage("USAGE");  
@@ -283,22 +283,22 @@ public class Options {
 	public String getControlSample(){  return controlSample; }
 	
 	//vcf2maf
-	public String getCenter(){  return ( Mode.equals(MODE.vcf2maf))? center: null; }
-	public String getSequencer(){  return ( Mode.equals(MODE.vcf2maf))? sequencer: null; }
-	public String getOutputDir(){return ( Mode.equals(MODE.vcf2maf))? outputDir:null;}
-	public String getDonorId(){return ( Mode.equals(MODE.vcf2maf))? donorId :null; }
+	public String getCenter(){  return ( mode.equals(MODE.vcf2maf))? center: null; }
+	public String getSequencer(){  return ( mode.equals(MODE.vcf2maf))? sequencer: null; }
+	public String getOutputDir(){return ( mode.equals(MODE.vcf2maf))? outputDir:null;}
+	public String getDonorId(){return ( mode.equals(MODE.vcf2maf))? donorId :null; }
 	 
 	 //snpEff
-	public String getSummaryFileName(){ return  (Mode.equals(MODE.snpeff))? summaryFileName : null; }		
-	public String getGenesFileName(){ return  (Mode.equals(MODE.snpeff))? outputFileName + ".snpEff_genes.txt" : null; 	}		
-	public String getConfigFileName() { return (Mode.equals(MODE.snpeff))? configFileName : null; }
+	public String getSummaryFileName(){ return  (mode.equals(MODE.snpeff))? summaryFileName : null; }		
+	public String getGenesFileName(){ return  (mode.equals(MODE.snpeff))? outputFileName + ".snpEff_genes.txt" : null; 	}		
+	public String getConfigFileName() { return (mode.equals(MODE.snpeff))? configFileName : null; }
 	
-	public int getBufferSize(){ return (Mode.equals(MODE.trf))? bufferSize : -1; } //trf
-	public int getGapSize(){ return (Mode.equals(MODE.trf))? gap : -1; } //cadd
+	public int getBufferSize(){ return (mode.equals(MODE.trf))? bufferSize : -1; } //trf
+	public int getGapSize(){ return (mode.equals(MODE.trf))? gap : -1; } //cadd
 	
 	//hom
-	public int getHomoplymersWindow(){ return (Mode.equals(MODE.hom))? homWindow : -1; } //trf
-	public int getHomoplymersReportSize(){ return (Mode.equals(MODE.hom))? homReportSize : -1; } //cadd
+	public int getHomoplymersWindow(){ return (mode.equals(MODE.hom))? homWindow : -1; } //trf
+	public int getHomoplymersReportSize(){ return (mode.equals(MODE.hom))? homReportSize : -1; } //cadd
 
 
 }
