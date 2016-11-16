@@ -24,26 +24,26 @@ public class IndelUtilsTest {
 		assertEquals(SVTYPE.INS, IndelUtils.getVariantType("A","ABC"));
 		
 		// unknown
-		assertEquals(SVTYPE.UNKOWN, IndelUtils.getVariantType("A","ABC,B"));
+		assertEquals(SVTYPE.UNKNOWN, IndelUtils.getVariantType("A","ABC,B"));
 	}
 	
 	
 	@Test
 	public void getVariantTypeDuffData() {
 		try {
-			assertEquals(SVTYPE.UNKOWN, IndelUtils.getVariantType(null,null));
+			assertEquals(SVTYPE.UNKNOWN, IndelUtils.getVariantType(null,null));
 			fail("Should have NPE'd");
 		} catch (IllegalArgumentException iae) {}
 		try {
-			assertEquals(SVTYPE.UNKOWN, IndelUtils.getVariantType("",""));
+			assertEquals(SVTYPE.UNKNOWN, IndelUtils.getVariantType("",""));
 			fail("Should have NPE'd");
 		} catch (IllegalArgumentException iae) {}
 		try {
-			assertEquals(SVTYPE.UNKOWN, IndelUtils.getVariantType("",null));
+			assertEquals(SVTYPE.UNKNOWN, IndelUtils.getVariantType("",null));
 			fail("Should have NPE'd");
 		} catch (IllegalArgumentException iae) {}
 		try {
-			assertEquals(SVTYPE.UNKOWN, IndelUtils.getVariantType(null,""));
+			assertEquals(SVTYPE.UNKNOWN, IndelUtils.getVariantType(null,""));
 			fail("Should have NPE'd");
 		} catch (IllegalArgumentException iae) {}
 	}
@@ -55,25 +55,25 @@ public class IndelUtilsTest {
 		assertEquals(null, IndelUtils.getRefForIndels(null, SVTYPE.DNP));
 		assertEquals(null, IndelUtils.getRefForIndels(null, SVTYPE.ONP));
 		assertEquals(null, IndelUtils.getRefForIndels(null, SVTYPE.TNP));
-		assertEquals(null, IndelUtils.getRefForIndels(null, SVTYPE.UNKOWN));
+		assertEquals(null, IndelUtils.getRefForIndels(null, SVTYPE.UNKNOWN));
 		assertEquals("", IndelUtils.getRefForIndels("", SVTYPE.CTX));
 		assertEquals("", IndelUtils.getRefForIndels("", SVTYPE.SNP));
 		assertEquals("", IndelUtils.getRefForIndels("", SVTYPE.DNP));
 		assertEquals("", IndelUtils.getRefForIndels("", SVTYPE.ONP));
 		assertEquals("", IndelUtils.getRefForIndels("", SVTYPE.TNP));
-		assertEquals("", IndelUtils.getRefForIndels("", SVTYPE.UNKOWN));
+		assertEquals("", IndelUtils.getRefForIndels("", SVTYPE.UNKNOWN));
 		assertEquals("A", IndelUtils.getRefForIndels("A", SVTYPE.CTX));
 		assertEquals("A", IndelUtils.getRefForIndels("A", SVTYPE.SNP));
 		assertEquals("A", IndelUtils.getRefForIndels("A", SVTYPE.DNP));
 		assertEquals("A", IndelUtils.getRefForIndels("A", SVTYPE.ONP));
 		assertEquals("A", IndelUtils.getRefForIndels("A", SVTYPE.TNP));
-		assertEquals("A", IndelUtils.getRefForIndels("A", SVTYPE.UNKOWN));
+		assertEquals("A", IndelUtils.getRefForIndels("A", SVTYPE.UNKNOWN));
 		assertEquals("ABCD", IndelUtils.getRefForIndels("ABCD", SVTYPE.CTX));
 		assertEquals("ABCD", IndelUtils.getRefForIndels("ABCD", SVTYPE.SNP));
 		assertEquals("ABCD", IndelUtils.getRefForIndels("ABCD", SVTYPE.DNP));
 		assertEquals("ABCD", IndelUtils.getRefForIndels("ABCD", SVTYPE.ONP));
 		assertEquals("ABCD", IndelUtils.getRefForIndels("ABCD", SVTYPE.TNP));
-		assertEquals("ABCD", IndelUtils.getRefForIndels("ABCD", SVTYPE.UNKOWN));
+		assertEquals("ABCD", IndelUtils.getRefForIndels("ABCD", SVTYPE.UNKNOWN));
 		
 		/*
 		 * INS
