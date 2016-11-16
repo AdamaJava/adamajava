@@ -108,14 +108,22 @@ public class IndelUtils {
 		return SVTYPE.UNKNOWN;	
 	}	
 	
+	/**
+	 * 
+	 * @param ref
+	 * @return
+	 */
 	public static String getFullChromosome(String ref) {
-		String ref1 = ref.toLowerCase();
 		/*
 		 * Deal with MT special case first
 		 */
         if (ref.equals("chrM") || ref.equals("M") || ref.equals("MT")) {
             return "chrMT";
         }
+        
+        if (ref.startsWith(Constants.CHR)) {
+        		return ref;
+        	}
 		
 		if (ref.equals("X") || ref.equals("Y")) {
 			return "chr" + ref;

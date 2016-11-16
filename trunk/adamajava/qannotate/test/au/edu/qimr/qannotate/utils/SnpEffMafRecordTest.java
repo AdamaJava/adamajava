@@ -15,7 +15,7 @@ public class SnpEffMafRecordTest {
 	@Test
 	public void mafLine() {
 		SnpEffMafRecord r = new SnpEffMafRecord();
-		assertEquals("unknown	0	QIMR_Berghofer	37	null	null	null	+	unknown	UNKOWN	null	null	null	novel	null	null	null	null	null	untested	untested	untested	untested	untested	untested	unknown	null	unknown	unknown	null	null	unknown	none	none	null	null	null	unknown	unknown	0	unknown	unknown	unknown	null	0	0	0	0	0	0	null	null	null	null	null	null	null	null	null	null	null	null", r.getMafLine());
+		assertEquals("unknown	0	QIMR_Berghofer	37	null	null	null	+	unknown	UNKNOWN	null	null	null	novel	null	null	null	null	null	untested	untested	untested	untested	untested	untested	unknown	null	unknown	unknown	null	null	unknown	none	none	null	null	null	unknown	unknown	0	unknown	unknown	unknown	null	0	0	0	0	0	0	null	null	null	null	null	null	null	null	null	null	null	null", r.getMafLine());
 	}
 
 	
@@ -24,9 +24,9 @@ public class SnpEffMafRecordTest {
 		SnpEffMafRecord r = new SnpEffMafRecord();
 		r.setColumnValue(MafElement.Hugo_Symbol, "HUGO");
 		assertEquals("HUGO", r.getColumnValue(MafElement.Hugo_Symbol));
-		assertEquals("HUGO	0	QIMR_Berghofer	37	null	null	null	+	unknown	UNKOWN	null	null	null	novel	null	null	null	null	null	untested	untested	untested	untested	untested	untested	unknown	null	unknown	unknown	null	null	unknown	none	none	null	null	null	unknown	unknown	0	unknown	unknown	unknown	null	0	0	0	0	0	0	null	null	null	null	null	null	null	null	null	null	null	null", r.getMafLine());
+		assertEquals("HUGO	0	QIMR_Berghofer	37	null	null	null	+	unknown	UNKNOWN	null	null	null	novel	null	null	null	null	null	untested	untested	untested	untested	untested	untested	unknown	null	unknown	unknown	null	null	unknown	none	none	null	null	null	unknown	unknown	0	unknown	unknown	unknown	null	0	0	0	0	0	0	null	null	null	null	null	null	null	null	null	null	null	null", r.getMafLine());
 		r.setColumnValue(MafElement.NCBI_Build, "38");
 		assertEquals("38", r.getColumnValue(MafElement.NCBI_Build));
-		assertEquals("HUGO	0	QIMR_Berghofer	38	null	null	null	+	unknown	UNKOWN	null	null	null	novel	null	null	null	null	null	untested	untested	untested	untested	untested	untested	unknown	null	unknown	unknown	null	null	unknown	none	none	null	null	null	unknown	unknown	0	unknown	unknown	unknown	null	0	0	0	0	0	0	null	null	null	null	null	null	null	null	null	null	null	null", r.getMafLine());
+		assertEquals("HUGO	0	QIMR_Berghofer	38	null	null	null	+	unknown	UNKNOWN	null	null	null	novel	null	null	null	null	null	untested	untested	untested	untested	untested	untested	unknown	null	unknown	unknown	null	null	unknown	none	none	null	null	null	unknown	unknown	0	unknown	unknown	unknown	null	0	0	0	0	0	0	null	null	null	null	null	null	null	null	null	null	null	null", r.getMafLine());
 	}
 }
