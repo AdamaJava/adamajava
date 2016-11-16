@@ -2,6 +2,7 @@ package org.qcmg.common.util;
 
 import static org.junit.Assert.*;
 
+import org.junit.Assert;
 import org.junit.Test;
 import org.qcmg.common.util.IndelUtils.SVTYPE;
 
@@ -25,6 +26,33 @@ public class IndelUtilsTest {
 		
 		// unknown
 		assertEquals(SVTYPE.UNKNOWN, IndelUtils.getVariantType("A","ABC,B"));
+	}
+	
+	@Test
+	public void areAltsSameLength() {
+		try {
+			assertEquals(false, IndelUtils.areAltsSameLength(null));
+			Assert.fail("Should have thrown an IAE");
+		} catch (IllegalArgumentException iae) {}
+		try {
+			assertEquals(false, IndelUtils.areAltsSameLength(""));
+			Assert.fail("Should have thrown an IAE");
+		} catch (IllegalArgumentException iae) {}
+		
+		assertEquals(true, IndelUtils.areAltsSameLength("A"));
+		assertEquals(true, IndelUtils.areAltsSameLength("B"));
+		assertEquals(true, IndelUtils.areAltsSameLength("c"));
+		assertEquals(true, IndelUtils.areAltsSameLength("d"));
+		assertEquals(true, IndelUtils.areAltsSameLength("d,e"));
+		assertEquals(true, IndelUtils.areAltsSameLength("d,e,f"));
+		assertEquals(true, IndelUtils.areAltsSameLength("d,e,f,g"));
+		assertEquals(false, IndelUtils.areAltsSameLength("d,e,f,gh"));
+		assertEquals(false, IndelUtils.areAltsSameLength("de,f,g,h"));
+		assertEquals(false, IndelUtils.areAltsSameLength("d,e,fg,h"));
+		assertEquals(true, IndelUtils.areAltsSameLength("d,e,f,g,h"));
+		assertEquals(false, IndelUtils.areAltsSameLength("d,eee,fff,ggg,h"));
+		assertEquals(false, IndelUtils.areAltsSameLength("dd,eee,fff,ggg,hhh"));
+		assertEquals(true, IndelUtils.areAltsSameLength("ddd,eee,fff,ggg,hhh"));
 	}
 	
 	
