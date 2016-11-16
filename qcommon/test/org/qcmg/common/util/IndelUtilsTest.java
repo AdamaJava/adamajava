@@ -17,15 +17,25 @@ public class IndelUtilsTest {
 		assertEquals(SVTYPE.DNP, IndelUtils.getVariantType("AB","AB"));
 		assertEquals(SVTYPE.TNP, IndelUtils.getVariantType("ABC","ABC"));
 		assertEquals(SVTYPE.ONP, IndelUtils.getVariantType("ABCD","ABCD"));
+		assertEquals(SVTYPE.SNP, IndelUtils.getVariantType("A","A,X,S"));
+		assertEquals(SVTYPE.DNP, IndelUtils.getVariantType("AB","AB,LL,BQ"));
+		assertEquals(SVTYPE.TNP, IndelUtils.getVariantType("ABC","ABC,123,456,789"));
+		assertEquals(SVTYPE.ONP, IndelUtils.getVariantType("ABCD","ABCD,qqqq"));
 		
 		// deletions
 		assertEquals(SVTYPE.DEL, IndelUtils.getVariantType("ABCD","A"));
+		assertEquals(SVTYPE.DEL, IndelUtils.getVariantType("ABC","A"));
+		assertEquals(SVTYPE.DEL, IndelUtils.getVariantType("AB","A"));
 		
 		// insertions
 		assertEquals(SVTYPE.INS, IndelUtils.getVariantType("A","ABC"));
+		assertEquals(SVTYPE.INS, IndelUtils.getVariantType("A","AB"));
+		assertEquals(SVTYPE.INS, IndelUtils.getVariantType("A","AB12345"));
 		
 		// unknown
 		assertEquals(SVTYPE.UNKNOWN, IndelUtils.getVariantType("A","ABC,B"));
+		assertEquals(SVTYPE.UNKNOWN, IndelUtils.getVariantType("ABC","ABC,B"));
+		assertEquals(SVTYPE.UNKNOWN, IndelUtils.getVariantType("ABC","A,B"));
 	}
 	
 	@Test

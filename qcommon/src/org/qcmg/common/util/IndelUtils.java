@@ -91,19 +91,34 @@ public class IndelUtils {
 		if (StringUtils.isNullOrEmpty(alt) || StringUtils.isNullOrEmpty(ref)) {
 			throw new IllegalArgumentException("Null or empty alt and/or ref passed to getVariantType. alt: " + alt + ", ref: " + ref);
 		}
-		 if(alt.contains(",")) {
-			 return SVTYPE.UNKNOWN;	
-		 } else if(ref.length() == alt.length() ){
-			 switch (ref.length()) {
-			 case 1: return SVTYPE.SNP;	
-			 case 2: return SVTYPE.DNP;	
-			 case 3: return SVTYPE.TNP;
-			 default: return SVTYPE.ONP;
+		/*
+		 * Only deal with alts of same length for now
+		 */
+		if (areAltsSameLength(alt)) {
+			int refLen = ref.length();
+			/*
+			 * snps
+			 */
+			 if (refSameLengthAsAlts(ref, alt)) {
+				 switch (refLen) {
+				 case 1: return SVTYPE.SNP;	
+				 case 2: return SVTYPE.DNP;	
+				 case 3: return SVTYPE.TNP;
+				 default: return SVTYPE.ONP;
+				 }
 			 }
-		 } else if ( alt.length() <  MAX_INDEL_LENGTH &&  alt.length() > ref.length() && ref.length() == 1) {
-			 return  SVTYPE.INS;		 
-		 } else if (ref.length() <  MAX_INDEL_LENGTH && alt.length() < ref.length() && alt.length() == 1) {
-			 return  SVTYPE.DEL;
+			 /*
+			  * insertions
+			  */
+			 if ( alt.length() <  MAX_INDEL_LENGTH &&  alt.length() > refLen && refLen == 1) {
+				 return  SVTYPE.INS;	
+			 }
+			 /*
+			  * deletions
+			  */
+			 if (refLen <  MAX_INDEL_LENGTH && alt.length() < refLen && alt.length() == 1) {
+				 return  SVTYPE.DEL;
+			 }
 		 }
 		return SVTYPE.UNKNOWN;	
 	}
