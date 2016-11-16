@@ -155,11 +155,11 @@ public class IndelUtils {
 		String sgt = re.getField(VcfHeaderUtils.FORMAT_GENOTYPE) ;
 		String gd = null;
 		if( ! StringUtils.isNullOrEmpty(sgt) && !sgt.equals(Constants.MISSING_DATA_STRING)){		
-			boolean isbar = sgt.contains("\\|");
-			String[] gts = isbar? sgt.split("\\|") : sgt.split("\\/"); 
+			boolean isbar = sgt.contains(Constants.BAR_STRING);
+			String[] gts = isbar? sgt.split(Constants.BAR_STRING) : sgt.split("\\/"); 
 			String[] sgd = new String[gts.length];
 	
-			String[] alts = alt.split(",");
+			String[] alts = alt.split(Constants.COMMA_STRING);
 			//only allow three multi-allele, otherwise too confuse
 			for(int j = 0; j < gts.length; j ++) 
 				switch (gts[j].trim()){
@@ -174,7 +174,7 @@ public class IndelUtils {
 					default:
 						sgd[j] = Constants.MISSING_DATA_STRING; 
 				}				
-			gd = isbar? String.join("|", sgd) : String.join("/", sgd);
+			gd = isbar? String.join("|", sgd) : String.join(Constants.SLASH_STRING, sgd);
 		}		
 		return gd;
 	}
