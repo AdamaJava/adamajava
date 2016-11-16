@@ -95,10 +95,10 @@ public class SnpUtilsTest {
 	
 	@Test
 	public void getCSDist() {
-		assertNull(SnpUtils.getCompoundSnpDistribution(null));
-		assertNull(SnpUtils.getCompoundSnpDistribution(""));
-		assertNull(SnpUtils.getCompoundSnpDistribution("asdfsgahjsfkahs"));
-		assertNull(SnpUtils.getCompoundSnpDistribution("asdfsgahjsfkahs1232345"));
+		assertEquals(true, SnpUtils.getCompoundSnpDistribution(null).isEmpty());
+		assertEquals(true, SnpUtils.getCompoundSnpDistribution("").isEmpty());
+		assertEquals(true, SnpUtils.getCompoundSnpDistribution("asdfsgahjsfkahs").isEmpty());
+		assertEquals(true, SnpUtils.getCompoundSnpDistribution("asdfsgahjsfkahs1232345").isEmpty());
 		
 		String bases = "CA,17,17,C_,2,0,GG,10,8";
 		Map<String,Integer> map = SnpUtils.getCompoundSnpDistribution(bases);
@@ -113,10 +113,10 @@ public class SnpUtilsTest {
 	
 	@Test
 	public void getCSDistMinCov() {
-		assertNull(SnpUtils.getCompoundSnpDistribution(null, 1));
-		assertNull(SnpUtils.getCompoundSnpDistribution("", 1));
-		assertNull(SnpUtils.getCompoundSnpDistribution("asdfsgahjsfkahs", 1));
-		assertNull(SnpUtils.getCompoundSnpDistribution("asdfsgahjsfkahs1232345", 1));
+		assertEquals(true, SnpUtils.getCompoundSnpDistribution(null, 1).isEmpty());
+		assertEquals(true, SnpUtils.getCompoundSnpDistribution("", 1).isEmpty());
+		assertEquals(true, SnpUtils.getCompoundSnpDistribution("asdfsgahjsfkahs", 1).isEmpty());
+		assertEquals(true, SnpUtils.getCompoundSnpDistribution("asdfsgahjsfkahs1232345", 1).isEmpty());
 		
 		String bases = "CA,17,17,C_,2,0,GG,10,8";
 		Map<String,Integer> map = SnpUtils.getCompoundSnpDistribution(bases, 3);
