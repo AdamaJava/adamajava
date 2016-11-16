@@ -115,6 +115,15 @@ public class IndelUtils {
 	 * @return
 	 */
 	public static boolean refSameLengthAsAlts(String ref, String alts) {
+		if (StringUtils.isNullOrEmpty(alts) || StringUtils.isNullOrEmpty(ref)) {
+			throw new IllegalArgumentException("Null or empty alt and/or ref passed to IndelUtils.refSameLengthAsAlts. alts: " + alts+ ", ref: " + ref);
+		}
+		if (areAltsSameLength(alts)) {
+			int commaIndex = alts.indexOf(Constants.COMMA);
+			int altLen = commaIndex == -1 ? alts.length() : commaIndex;
+			
+			return altLen == ref.length();
+		}
 		return false;
 	}
 	
