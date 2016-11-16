@@ -13,7 +13,7 @@ import org.qcmg.common.vcf.header.VcfHeaderUtils;
 
 
 public class IndelUtils {
-	public enum SVTYPE {SNP,DNP,TNP, ONP,INS,DEL,CTX,UNKOWN }		
+	public enum SVTYPE {SNP,DNP,TNP, ONP,INS,DEL,CTX,UNKNOWN }		
 	
 	//qbasepileup indel vcf header info column ID
 	public static final String INFO_END = "END"; 
@@ -92,7 +92,7 @@ public class IndelUtils {
 			throw new IllegalArgumentException("Null or empty alt and/or ref passed to getVariantType. alt: " + alt + ", ref: " + ref);
 		}
 		 if(alt.contains(",")) {
-			 return SVTYPE.UNKOWN;	
+			 return SVTYPE.UNKNOWN;	
 		 } else if(ref.length() == alt.length() ){
 			 switch (ref.length()) {
 			 case 1: return SVTYPE.SNP;	
@@ -105,7 +105,7 @@ public class IndelUtils {
 		 } else if (ref.length() <  MAX_INDEL_LENGTH && alt.length() < ref.length() && alt.length() == 1) {
 			 return  SVTYPE.DEL;
 		 }
-		return SVTYPE.UNKOWN;	
+		return SVTYPE.UNKNOWN;	
 	}	
 	
 	public static String getFullChromosome(String ref) {
@@ -177,7 +177,7 @@ public class IndelUtils {
 			return alt.substring(1);			 
 		else if(type.equals(SVTYPE.DEL))
 			return ref.substring(1);
-		else if(type.equals(SVTYPE.UNKOWN))
+		else if(type.equals(SVTYPE.UNKNOWN))
 			return null; 
 		
 		return ref;  //return ref for snp, mnp 		
