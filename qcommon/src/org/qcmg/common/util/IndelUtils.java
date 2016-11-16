@@ -134,7 +134,7 @@ public class IndelUtils {
 		 */
 		try {
 			if (Integer.parseInt(ref) < 23) {
-				return "chr" + ref;
+				return Constants.CHR + ref;
 			}
 		} catch (NumberFormatException nfe) {
 			// don't do anything here - will return the original reference
