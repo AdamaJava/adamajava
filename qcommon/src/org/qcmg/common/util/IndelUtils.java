@@ -106,7 +106,40 @@ public class IndelUtils {
 			 return  SVTYPE.DEL;
 		 }
 		return SVTYPE.UNKNOWN;	
-	}	
+	}
+	
+	/**
+	 * Returns true if all the alts are the same length as the ref, indicating that the alt alleles are all of the same type (ie. all snp's, or all compound snps)
+	 * @param ref
+	 * @param alts
+	 * @return
+	 */
+	public static boolean refSameLengthAsAlts(String ref, String alts) {
+		return false;
+	}
+	
+	/**
+	 * Returns true if alts is made up of a single alt (ie. no commas in alts), or if the comma split list of strings are all the same length
+	 * @param alts
+	 * @return
+	 */
+	public static boolean areAltsSameLength(String alts) {
+		if (StringUtils.isNullOrEmpty(alts)) {
+			throw new IllegalArgumentException("Null or empty alts string passed to IndelUtils.areAltsSameLength");
+		}
+		int commaIndex = alts.indexOf(Constants.COMMA);
+		if (commaIndex == -1) {
+			return true;
+		}
+		String [] aAlts = alts.split(Constants.COMMA_STRING);
+		int len = aAlts[0].length();
+		for (String alt : aAlts) {
+			if (alt.length() != len) {
+				return false;
+			}
+		}
+		return true;
+	}
 	
 	/**
 	 * 
