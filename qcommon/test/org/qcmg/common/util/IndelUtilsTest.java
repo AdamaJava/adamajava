@@ -29,6 +29,40 @@ public class IndelUtilsTest {
 	}
 	
 	@Test
+	public void isRefSameLengthAsAltsInValid() {
+		try {
+			assertEquals(false, IndelUtils.refSameLengthAsAlts(null, null));
+			Assert.fail("Should have thrown an IAE");
+		} catch (IllegalArgumentException iae) {}
+		try {
+			assertEquals(false, IndelUtils.refSameLengthAsAlts("", null));
+			Assert.fail("Should have thrown an IAE");
+		} catch (IllegalArgumentException iae) {}
+		try {
+			assertEquals(false, IndelUtils.refSameLengthAsAlts("", ""));
+			Assert.fail("Should have thrown an IAE");
+		} catch (IllegalArgumentException iae) {}
+		try {
+			assertEquals(false, IndelUtils.refSameLengthAsAlts(null, ""));
+			Assert.fail("Should have thrown an IAE");
+		} catch (IllegalArgumentException iae) {}
+	}
+	
+	@Test
+	public void isRefSameLengthAsAlts() {
+		assertEquals(false, IndelUtils.refSameLengthAsAlts("X", "XY"));
+		assertEquals(false, IndelUtils.refSameLengthAsAlts("XY", "X"));
+		assertEquals(false, IndelUtils.refSameLengthAsAlts("XY", "XYZ"));
+		assertEquals(false, IndelUtils.refSameLengthAsAlts("XYZ", "YZ"));
+		assertEquals(true, IndelUtils.refSameLengthAsAlts("XYZ", "123"));
+		assertEquals(true, IndelUtils.refSameLengthAsAlts("Z", "1"));
+		assertEquals(true, IndelUtils.refSameLengthAsAlts("ZA", "19"));
+		assertEquals(true, IndelUtils.refSameLengthAsAlts("Z", "1,2,3,4,5,6,7,8,9"));
+		assertEquals(false, IndelUtils.refSameLengthAsAlts("Z", "1,2,3,4,5,6,7,8,9,10"));
+		assertEquals(true, IndelUtils.refSameLengthAsAlts("ZX", "11,22,33,44,55,66,77,88,99"));
+	}
+	
+	@Test
 	public void areAltsSameLength() {
 		try {
 			assertEquals(false, IndelUtils.areAltsSameLength(null));
