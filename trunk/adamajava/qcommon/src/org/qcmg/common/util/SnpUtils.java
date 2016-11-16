@@ -6,6 +6,7 @@
  */
 package org.qcmg.common.util;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -278,8 +279,10 @@ public class SnpUtils {
 				
 				return map;
 			}
+		} else {
+			logger.warn("dist: " + dist);
 		}
-		return null;
+		return Collections.emptyMap();
 	}
 	
 	public static Map<String, Integer> getCompoundSnpDistribution(String dist) {
