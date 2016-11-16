@@ -527,7 +527,7 @@ public class Q3ClinVar2 {
 		q3pElement.addAttribute(new Attribute("version", exec.getToolVersion().getValue()));
 		q3pElement.addAttribute(new Attribute("reference", refFileName));
 		q3pElement.addAttribute(new Attribute("tiled_reference", refTiledAlignmentFile));
-		q3pElement.addAttribute(new Attribute("bed", bedFile));
+		q3pElement.addAttribute(new Attribute("bed", null != bedFile ? bedFile : "-"));
 		q3pElement.addAttribute(new Attribute("bed_amplicon_count", ""+bedToAmpliconMap.size()));
 		q3pElement.addAttribute(new Attribute("vcf", outputFileNameBase + ".vcf"));
 		q3pElement.addAttribute(new Attribute("vcf_variant_count", ""+outputMutations.get()));
