@@ -107,20 +107,20 @@ public class IndelConfidenceModeTest {
 	        		i ++;
 	        		if(i == 1) 
 	        			//chr1	53741	.	CTT	C
-	        			assertTrue( re.getInfoRecord().getField(VcfHeaderUtils.INFO_CONFIDENT).equals( MafConfidence.HIGH.name()));	 
+	        			assertTrue( re.getInfoRecord().getField(VcfHeaderUtils.INFO_CONFIDENCE).equals( MafConfidence.HIGH.name()));	 
 	        		else  if(i == 2)
 	        			//chr1	53742	.	C	CA
-	        			assertTrue( re.getInfoRecord().getField(VcfHeaderUtils.INFO_CONFIDENT).equals( MafConfidence.HIGH.name()));		        		
+	        			assertTrue( re.getInfoRecord().getField(VcfHeaderUtils.INFO_CONFIDENCE).equals( MafConfidence.HIGH.name()));		        		
 	        		else  if(i == 3)
 	        			//chr1	53742	.	CTT	C
-	        			assertTrue( re.getInfoRecord().getField(VcfHeaderUtils.INFO_CONFIDENT).equals( MafConfidence.ZERO.name()));	 	        		
+	        			assertTrue( re.getInfoRecord().getField(VcfHeaderUtils.INFO_CONFIDENCE).equals( MafConfidence.ZERO.name()));	 	        		
 	        		else  if(i == 4) 	        			
 	        			//chr1	53743	.	C	CA
 	        			//the insertion happened bwt 53743 and 53744, so it is before repeat region
-	        			assertTrue( re.getInfoRecord().getField(VcfHeaderUtils.INFO_CONFIDENT).equals( MafConfidence.HIGH.name()));	      		
+	        			assertTrue( re.getInfoRecord().getField(VcfHeaderUtils.INFO_CONFIDENCE).equals( MafConfidence.HIGH.name()));	      		
 	        		 else  if(i == 5)
 	        			//chr1	53744	.	CTT	C
-	        			assertTrue( re.getInfoRecord().getField(VcfHeaderUtils.INFO_CONFIDENT).equals( MafConfidence.ZERO.name()));	 	         	        		
+	        			assertTrue( re.getInfoRecord().getField(VcfHeaderUtils.INFO_CONFIDENCE).equals( MafConfidence.ZERO.name()));	 	         	        		
 	        	}
 	        	assertEquals(5, i);	
 	        }
