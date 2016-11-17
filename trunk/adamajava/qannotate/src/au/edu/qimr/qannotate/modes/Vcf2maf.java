@@ -323,7 +323,7 @@ public class Vcf2maf extends AbstractMode{
 		if(controlSample != null) maf.setColumnValue(MafElement.Matched_Norm_Sample_UUID,  controlSample );
 		
 		String conf = VcfUtils.getConfidence(vcf);
-		if(info.getField(VcfHeaderUtils.INFO_CONFIDENT) != null) {
+		if(info.getField(VcfHeaderUtils.INFO_CONFIDENCE) != null) {
 			maf.setColumnValue(MafElement.Confidence ,  conf );
 		}
 		if(info.getField(VcfHeaderUtils.INFO_GERMLINE) != null) {

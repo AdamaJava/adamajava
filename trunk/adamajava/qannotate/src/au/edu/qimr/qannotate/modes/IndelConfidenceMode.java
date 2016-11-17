@@ -168,7 +168,7 @@ public class IndelConfidenceMode extends AbstractMode{
 			//reheader
 		    VcfHeader hd = 	reader.getHeader();
 		    hd.addFilterLine(FILTER_REPEAT, DESCRITPION_FILTER_REPEAT );       	  
-		    hd.addInfoLine(VcfHeaderUtils.INFO_CONFIDENT, "1", "String", DESCRITPION_INFO_CONFIDENCE);		    
+		    hd.addInfoLine(VcfHeaderUtils.INFO_CONFIDENCE, "1", "String", DESCRITPION_INFO_CONFIDENCE);		    
 		    hd = reheader(hd, commandLine ,input);			    	  
 	
 		    for(final VcfHeader.Record record: hd)  
@@ -179,7 +179,7 @@ public class IndelConfidenceMode extends AbstractMode{
 	        		VcfUtils.updateFilter(vcf, FILTER_REPEAT);
 	        		repeatCount ++;
 	        	}
-	    		vcf.getInfoRecord().setField(VcfHeaderUtils.INFO_CONFIDENT, getConfidence(vcf).toString());		
+	    		vcf.getInfoRecord().setField(VcfHeaderUtils.INFO_CONFIDENCE, getConfidence(vcf).toString());		
 	    		
 	    		count++;
 	    		posCheck.add(vcf.getChrPosition());

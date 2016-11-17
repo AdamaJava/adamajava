@@ -145,16 +145,16 @@ public class ConfidenceMode extends AbstractMode{
 								&& lhomo < IndelConfidenceMode.DEFAULT_HOMN
 								&& PASS.equals(thisFilter)) {
 				        	
-				        		vcf.getInfoRecord().appendField(VcfHeaderUtils.INFO_CONFIDENT, MafConfidence.HIGH.toString() + suffix);    	 				 				
+				        		vcf.getInfoRecord().appendField(VcfHeaderUtils.INFO_CONFIDENCE, MafConfidence.HIGH.toString() + suffix);    	 				 				
 				        		mergedHigh++;
 				        } else if ( (nns == 0 && compoundSnp ||  nns >= LOW_CONF_NOVEL_STARTS_PASSING_SCORE)
 								&& altFreq >= LOW_CONF_ALT_FREQ_PASSING_SCORE 
 								&& isClassB(thisFilter) ) {
 				        	
-				        		vcf.getInfoRecord().appendField(VcfHeaderUtils.INFO_CONFIDENT, MafConfidence.LOW.toString() + suffix);					 
+				        		vcf.getInfoRecord().appendField(VcfHeaderUtils.INFO_CONFIDENCE, MafConfidence.LOW.toString() + suffix);					 
 				        		mergedLow++;
 				        } else {
-				        		vcf.getInfoRecord().appendField(VcfHeaderUtils.INFO_CONFIDENT, MafConfidence.ZERO.toString() + suffix);
+				        		vcf.getInfoRecord().appendField(VcfHeaderUtils.INFO_CONFIDENCE, MafConfidence.ZERO.toString() + suffix);
 				        		mergedZero++;
 				        }
 			 		}
@@ -164,16 +164,16 @@ public class ConfidenceMode extends AbstractMode{
 							&& lhomo < IndelConfidenceMode.DEFAULT_HOMN
 							&& PASS.equals(vcf.getFilter())) {
 			        	
-			        		vcf.getInfoRecord().setField(VcfHeaderUtils.INFO_CONFIDENT, MafConfidence.HIGH.toString());		        	 				 				
+			        		vcf.getInfoRecord().setField(VcfHeaderUtils.INFO_CONFIDENCE, MafConfidence.HIGH.toString());		        	 				 				
 			        		high++;
 			        } else if ( checkNovelStarts(LOW_CONF_NOVEL_STARTS_PASSING_SCORE, formatField)
 							&& ( VcfUtils.getAltFrequency(formatField, vcf.getAlt()) >= LOW_CONF_ALT_FREQ_PASSING_SCORE )
 							&& isClassB(vcf.getFilter()) ) {
 			        	
-			        		vcf.getInfoRecord().setField(VcfHeaderUtils.INFO_CONFIDENT, MafConfidence.LOW.toString());					 
+			        		vcf.getInfoRecord().setField(VcfHeaderUtils.INFO_CONFIDENCE, MafConfidence.LOW.toString());					 
 			        		low++;
 			        } else {
-			        		vcf.getInfoRecord().setField(VcfHeaderUtils.INFO_CONFIDENT, MafConfidence.ZERO.toString());
+			        		vcf.getInfoRecord().setField(VcfHeaderUtils.INFO_CONFIDENCE, MafConfidence.ZERO.toString());
 			        		zero++;
 			        }
 			 	}
@@ -184,8 +184,16 @@ public class ConfidenceMode extends AbstractMode{
  
 		//add header line  set number to 1
 		if (null != header ) {
-			header.addInfoLine(VcfHeaderUtils.INFO_CONFIDENT, "1", "String", DESCRITPION_INFO_CONFIDENCE);
+			header.addInfoLine(VcfHeaderUtils.INFO_CONFIDENCE, "1", "String", DESCRITPION_INFO_CONFIDENCE);
 		}
+	}
+	
+	
+	public static MafConfidence getConfidence(VcfRecord v) {
+		
+		
+		
+		return MafConfidence.ZERO;
 	}
 
 	/**

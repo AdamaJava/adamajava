@@ -42,11 +42,11 @@ public class CustomerConfidenceModeTest {
 			for (final VcfRecord re : reader) {		
 				final VcfInfoFieldRecord infoRecord = new VcfInfoFieldRecord(re.getInfo()); 				
 				if(re.getPosition() == 41281388) 
-					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(MafConfidence.HIGH.toString())); 
+					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENCE).equals(MafConfidence.HIGH.toString())); 
 				else if(re.getPosition() == 41281389) 
-					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(MafConfidence.ZERO.toString())); 
+					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENCE).equals(MafConfidence.ZERO.toString())); 
 				else if(re.getPosition() == 41281390) 
-					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(MafConfidence.ZERO.toString())); 
+					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENCE).equals(MafConfidence.ZERO.toString())); 
 			}
 		}		 
 	 }

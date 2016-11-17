@@ -40,6 +40,23 @@ public class ConfidenceModeTest {
 		 new File(DbsnpModeTest.outputName).delete();		 
 	 }
 	 
+	 
+	 @Test
+	 public void getConfidence() {
+		 //now try the merged record
+		 VcfRecord vcf = new VcfRecord(new String[]{"chr9","126129715","rs57014689","C","A",".","PASS_1;PASS_2","SOMATIC_1;FLANK=CCCCCACACCC;AC=1;AF=0.500;AN=2;BaseQRankSum=-1.408;ClippingRankSum=-1.932;DP=48;FS=3.424;MLEAC=1;MLEAF=0.500;MQ=41.89;MQ0=0;MQRankSum=0.717;QD=4.29;ReadPosRankSum=-0.717;SOR=0.120;IN=1,2;DB;GERM=5,185","GT:GD:AC:MR:NNS:AD:DP:GQ:PL","0/0&0/1:C/C&A/C:A0[0],4[24.25],C128[17.64],30[20.9],G2[7],0[0]&A0[0],4[24.25],C243[17.06],65[18.88],G2[7],0[0]:4&4:4&4:6,5:11:99:234,0,331","0/1&1/1:A/C&A/A:A2[7],13[28.23],C96[17.22],54[14.22]&A2[7],15[28.73],C179[15.92],121[14.76],G0[0],1[7]:15&17:15&16:1,18:19:46:841,46,0"});
+		 
+		 ConfidenceMode cm =new ConfidenceMode("");
+		 cm.positionRecordMap.put(vcf.getChrPosition(), java.util.Arrays.asList(vcf));
+		 cm.setSampleColumn(2,1);
+		 cm.addAnnotation();
+		 
+		 vcf = cm.positionRecordMap.get(vcf.getChrPosition()).get(0);
+		 VcfInfoFieldRecord info = vcf.getInfoRecord();
+		 String conf = info.getField(VcfHeaderUtils.INFO_CONFIDENCE);
+		 assertEquals("LOW_1,LOW_2", conf);
+	 }
+	 
 	 @Test
 	 public void realLifeFail() {
 		 //chr1    4985568 rs10753395      A       C       .       PASS_1;PASS_2   FLANK=ACGTTCCTGCA;AC=1;AF=0.500;AN=2;BaseQRankSum=0.972;ClippingRankSum=1.139;DP=26;FS=0.000;MLEAC=1;MLEAF=0.500;MQ=60.00;MQ0=0;MQRankSum=-0.472;QD=9.45;ReadPosRankSum=-0.194;SOR=0.693;IN=1,2;DB;VAF=0.4816   GT:GD:AC:MR:NNS:AD:DP:GQ:PL     0/1:A/C:A8[33.75],11[38.82],C3[42],5[40],A9[33.56],11[38.82],C3[42],5[40],G0[0],1[22],T1[11],0[0]:8:8:18,8:26:99:274,0,686      1/1:C/C:A1[37],0[0],C23[38.96],19[41.21],A1[37],0[0],C24[38.88],23[40.26]:42,47:38,42:1,44:45:94:1826,94,0
@@ -71,13 +88,13 @@ public class ConfidenceModeTest {
 		 cm.setSampleColumn(2,1);
 		 cm.addAnnotation();
 		 		 
- 		 String conf = vcf.getInfoRecord().getField(VcfHeaderUtils.INFO_CONFIDENT);
+ 		 String conf = vcf.getInfoRecord().getField(VcfHeaderUtils.INFO_CONFIDENCE);
 		 assertEquals("HIGH_1,HIGH_2", conf);
 		 		 
 		 vcf.setInfo("IN=1,2;HOM=6,ATGAAggAATGC");
 		 cm.positionRecordMap.put(vcf.getChrPosition(), java.util.Arrays.asList(vcf));
 		 cm.addAnnotation();		 		 
-		 conf = vcf.getInfoRecord().getField(VcfHeaderUtils.INFO_CONFIDENT);
+		 conf = vcf.getInfoRecord().getField(VcfHeaderUtils.INFO_CONFIDENCE);
 		 assertEquals("LOW_1,LOW_2", conf);
 	 }
 	 
@@ -102,7 +119,7 @@ public class ConfidenceModeTest {
 		 
 		 vcf = cm.positionRecordMap.get(vcf.getChrPosition()).get(0);
 		 VcfInfoFieldRecord info = vcf.getInfoRecord();
-		 String conf = info.getField(VcfHeaderUtils.INFO_CONFIDENT);
+		 String conf = info.getField(VcfHeaderUtils.INFO_CONFIDENCE);
 		 assertEquals("HIGH_1,HIGH_2", conf);
 	 }
 	 
@@ -121,7 +138,7 @@ public class ConfidenceModeTest {
 		 
 		 vcf = cm.positionRecordMap.get(vcf.getChrPosition()).get(0);
 		 VcfInfoFieldRecord info = vcf.getInfoRecord();
-		 String conf = info.getField(VcfHeaderUtils.INFO_CONFIDENT);
+		 String conf = info.getField(VcfHeaderUtils.INFO_CONFIDENCE);
 		 assertEquals("HIGH_1,HIGH_2", conf);
 		 String vaf = info.getField(VcfHeaderUtils.INFO_VAF);
 		 assertEquals(".", vaf);
@@ -141,10 +158,10 @@ public class ConfidenceModeTest {
 		 vcf1 = cm.positionRecordMap.get(vcf1.getChrPosition()).get(0);
 		 vcf2 = cm.positionRecordMap.get(vcf2.getChrPosition()).get(1);
 		 VcfInfoFieldRecord info1 = vcf1.getInfoRecord();
-		 String conf1 = info1.getField(VcfHeaderUtils.INFO_CONFIDENT);
+		 String conf1 = info1.getField(VcfHeaderUtils.INFO_CONFIDENCE);
 		 assertEquals("HIGH", conf1);
 		 VcfInfoFieldRecord info2 = vcf2.getInfoRecord();
-		 String conf2 = info2.getField(VcfHeaderUtils.INFO_CONFIDENT);
+		 String conf2 = info2.getField(VcfHeaderUtils.INFO_CONFIDENCE);
 		 assertEquals("ZERO", conf2);
 	 }
 	 
@@ -159,7 +176,7 @@ public class ConfidenceModeTest {
 		 
 		 vcf = cm.positionRecordMap.get(vcf.getChrPosition()).get(0);
 		 VcfInfoFieldRecord info = vcf.getInfoRecord();
-		 String conf = info.getField(VcfHeaderUtils.INFO_CONFIDENT);
+		 String conf = info.getField(VcfHeaderUtils.INFO_CONFIDENCE);
 		 assertEquals("HIGH_1,ZERO_2", conf);
 	 }
 	 
@@ -178,10 +195,10 @@ public class ConfidenceModeTest {
 		 vcf1 = cm.positionRecordMap.get(vcf1.getChrPosition()).get(0);
 		 vcf2 = cm.positionRecordMap.get(vcf2.getChrPosition()).get(1);
 		 VcfInfoFieldRecord info1 = vcf1.getInfoRecord();
-		 String conf1 = info1.getField(VcfHeaderUtils.INFO_CONFIDENT);
+		 String conf1 = info1.getField(VcfHeaderUtils.INFO_CONFIDENCE);
 		 assertEquals("LOW", conf1);
 		 VcfInfoFieldRecord info2 = vcf2.getInfoRecord();
-		 String conf2 = info2.getField(VcfHeaderUtils.INFO_CONFIDENT);
+		 String conf2 = info2.getField(VcfHeaderUtils.INFO_CONFIDENCE);
 		 assertEquals("HIGH", conf2);
 	 }
 	 @Test
@@ -195,7 +212,7 @@ public class ConfidenceModeTest {
 		 
 		 vcf = cm.positionRecordMap.get(vcf.getChrPosition()).get(0);
 		 VcfInfoFieldRecord info = vcf.getInfoRecord();
-		 String conf = info.getField(VcfHeaderUtils.INFO_CONFIDENT);
+		 String conf = info.getField(VcfHeaderUtils.INFO_CONFIDENCE);
 		 assertEquals("LOW_1,LOW_2", conf);
 	 }
 	 
@@ -349,17 +366,17 @@ public class ConfidenceModeTest {
 				final VcfInfoFieldRecord infoRecord = new VcfInfoFieldRecord(re.getInfo()); 				
 				if(re.getPosition() == 2675826) 
 					//compound SNPs
-					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(MafConfidence.LOW.name())); 
+					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENCE).equals(MafConfidence.LOW.name())); 
 				else if(re.getPosition() == 22012840)
 					//isClassB
-					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(MafConfidence.LOW.name())); 
+					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENCE).equals(MafConfidence.LOW.name())); 
 //				else if(re.getPosition() == 14923588)
 				else if(re.getPosition() == 14923588 || re.getPosition() == 2675825)
-					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(MafConfidence.ZERO.name())); 
+					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENCE).equals(MafConfidence.ZERO.name())); 
 				else
 					//"chrY\t77242678\t.\tCA\tTG\t.\tPASS\tEND=77242679\tACCS\tCA,10,14,TG,6,7\tCA,14,9,TG,23,21"
 					//TG alleles is 13 > 5 filter is PASS
-					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(MafConfidence.HIGH.name())); 
+					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENCE).equals(MafConfidence.HIGH.name())); 
 			}
 		 }		 	 	 
   			
@@ -390,17 +407,17 @@ public class ConfidenceModeTest {
 				final VcfInfoFieldRecord infoRecord = new VcfInfoFieldRecord(re.getInfo()); 				
 				if(re.getPosition() == 2675826) 
 					//compound SNPs
-					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(MafConfidence.LOW.name())); 
+					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENCE).equals(MafConfidence.LOW.name())); 
 				else if(re.getPosition() == 22012840)
 					//isClassB
-					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(MafConfidence.LOW.name())); 
+					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENCE).equals(MafConfidence.LOW.name())); 
 //				else if(re.getPosition() == 14923588)
 				else if(re.getPosition() == 14923588 || re.getPosition() == 2675825)
-					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(MafConfidence.ZERO.name())); 
+					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENCE).equals(MafConfidence.ZERO.name())); 
 				else
 					//"chrY\t77242678\t.\tCA\tTG\t.\tPASS\tEND=77242679\tACCS\tCA,10,14,TG,6,7\tCA,14,9,TG,23,21"
 					//TG alleles is 13 > 5 filter is PASS
-					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENT).equals(MafConfidence.HIGH.name())); 
+					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENCE).equals(MafConfidence.HIGH.name())); 
 			}
 		 }		 	 	 
   			
