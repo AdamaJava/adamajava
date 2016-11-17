@@ -41,7 +41,7 @@ public class VcfUtils {
 	
 	public static final Pattern pattern_AC = Pattern.compile("[ACGT][0-9]+\\[[0-9]+.?[0-9]*\\],[0-9]+\\[[0-9]+.?[0-9]*\\]");
 	public static final Pattern pattern_ACCS = Pattern.compile("[ACGT_]+,[0-9]+,[0-9]+");
-	public static final int CONF_LENGTH = (VcfHeaderUtils.INFO_CONFIDENT + Constants.EQ).length();
+	public static final int CONF_LENGTH = (VcfHeaderUtils.INFO_CONFIDENCE + Constants.EQ).length();
 
 	
  /**
@@ -851,7 +851,7 @@ public class VcfUtils {
 		if (StringUtils.isNullOrEmpty(info)) {
 			return null;
 		}
-		int index = info.indexOf(VcfHeaderUtils.INFO_CONFIDENT + Constants.EQ);
+		int index = info.indexOf(VcfHeaderUtils.INFO_CONFIDENCE + Constants.EQ);
 		if (index == -1) {
 			return null;
 		}
