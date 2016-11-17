@@ -172,11 +172,11 @@ public class VcfUtilsTest {
 	public void getConfidence() {
 		VcfRecord rec =  new VcfRecord( new String[] {"1","1",".","A","."});
 		assertNull(VcfUtils.getConfidence(rec));
-		rec.setInfo(VcfHeaderUtils.INFO_CONFIDENT + Constants.EQ +  MafConfidence.LOW.toString());
+		rec.setInfo(VcfHeaderUtils.INFO_CONFIDENCE + Constants.EQ +  MafConfidence.LOW.toString());
 		assertEquals("LOW", VcfUtils.getConfidence(rec));
-		rec.setInfo(VcfHeaderUtils.INFO_CONFIDENT + Constants.EQ +  MafConfidence.HIGH.toString());
+		rec.setInfo(VcfHeaderUtils.INFO_CONFIDENCE + Constants.EQ +  MafConfidence.HIGH.toString());
 		assertEquals("HIGH", VcfUtils.getConfidence(rec));
-		rec.setInfo(VcfHeaderUtils.INFO_CONFIDENT + Constants.EQ +  MafConfidence.ZERO.toString());
+		rec.setInfo(VcfHeaderUtils.INFO_CONFIDENCE + Constants.EQ +  MafConfidence.ZERO.toString());
 		assertEquals("ZERO", VcfUtils.getConfidence(rec));
 	}
 	@Test
