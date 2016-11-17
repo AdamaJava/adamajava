@@ -156,6 +156,24 @@ public class StringUtilsTest {
 	}
 	
 	@Test
+	public void isNullOrEmptyOrMissingDAta() {
+		assertEquals(true,  StringUtils.isNullOrEmptyOrMissingData(null));
+		assertEquals(true,  StringUtils.isNullOrEmptyOrMissingData(""));
+		assertEquals(true,  StringUtils.isNullOrEmptyOrMissingData("  "));
+		assertEquals(true,  StringUtils.isNullOrEmptyOrMissingData("	"));
+		assertEquals(true,  StringUtils.isNullOrEmptyOrMissingData("\t"));
+		assertEquals(true,  StringUtils.isNullOrEmptyOrMissingData("\n"));
+		assertEquals(true,  StringUtils.isNullOrEmptyOrMissingData("."));
+		assertEquals(false,  StringUtils.isNullOrEmptyOrMissingData("\n", false));
+		assertEquals(false,  StringUtils.isNullOrEmptyOrMissingData("  ", false));
+		assertEquals(false,  StringUtils.isNullOrEmptyOrMissingData("1"));
+		assertEquals(false,  StringUtils.isNullOrEmptyOrMissingData("   empty   "));
+		assertEquals(false,  StringUtils.isNullOrEmptyOrMissingData("  1 ", false));
+		assertEquals(false,  StringUtils.isNullOrEmptyOrMissingData(".:"));
+		assertEquals(false,  StringUtils.isNullOrEmptyOrMissingData(".:."));
+	}
+	
+	@Test
 	public void testIsStringInStringArray() {
 		try {
 			StringUtils.isStringInStringArray(null, null);
