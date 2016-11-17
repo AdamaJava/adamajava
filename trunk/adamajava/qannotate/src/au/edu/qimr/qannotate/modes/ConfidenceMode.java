@@ -139,7 +139,7 @@ public class ConfidenceMode extends AbstractMode{
 			 			String thisFilter = VcfUtils.getFiltersEndingInSuffix(vcf, suffix).replace(suffix, "");
 			 			int nns = getNNS(formatField, i);
 			 			int altFreq =  SnpUtils.getCountFromNucleotideString(basesArray[i-1], vcf.getAlt(), compoundSnp);
-										 			
+			 			
 			 			if ((nns == 0 && compoundSnp ||  nns >= HIGH_CONF_NOVEL_STARTS_PASSING_SCORE)
 								&& altFreq >=  HIGH_CONF_ALT_FREQ_PASSING_SCORE
 								&& lhomo < IndelConfidenceMode.DEFAULT_HOMN
@@ -159,6 +159,7 @@ public class ConfidenceMode extends AbstractMode{
 				        }
 			 		}
 			 	} else {
+			 		
 				 	if ( checkNovelStarts(HIGH_CONF_NOVEL_STARTS_PASSING_SCORE, formatField)
 							&& ( VcfUtils.getAltFrequency(formatField, vcf.getAlt()) >=  HIGH_CONF_ALT_FREQ_PASSING_SCORE)
 							&& lhomo < IndelConfidenceMode.DEFAULT_HOMN
@@ -189,12 +190,34 @@ public class ConfidenceMode extends AbstractMode{
 	}
 	
 	
-	public static MafConfidence getConfidence(VcfRecord v) {
-		
-		
-		
-		return MafConfidence.ZERO;
-	}
+//	public static MafConfidence getConfidence(VcfRecord v) {
+//		
+//		if ( checkNovelStarts(HIGH_CONF_NOVEL_STARTS_PASSING_SCORE, f)
+//				&& ( VcfUtils.getAltFrequency(f, alts) >=  HIGH_CONF_ALT_FREQ_PASSING_SCORE)
+//				&& PASS.equals(filter)) {
+//			
+//			int lhomo = -1;
+//			if ( ! StringUtils.isNullOrEmptyOrMissingData(infoField)) {
+//				int homIndex = infoField.indexOf(VcfHeaderUtils.INFO_HOM);
+//				
+//				if (homIndex > -1) {
+//					lhomo = Integer.parseInt(infoField.substring(homIndex + 4, infoField.indexOf(Constants.COMMA, homIndex)));
+//				}
+//			}
+//			
+//        		if ( lhomo < IndelConfidenceMode.DEFAULT_HOMN) {
+//        			return MafConfidence.HIGH;
+//        		}
+//        }
+//		if ( checkNovelStarts(LOW_CONF_NOVEL_STARTS_PASSING_SCORE, f)
+//				&& ( VcfUtils.getAltFrequency(f, alts) >= LOW_CONF_ALT_FREQ_PASSING_SCORE )
+//				&& isClassB(filter) ) {
+//        	
+//			return MafConfidence.LOW;
+//        }
+//		
+//		return MafConfidence.ZERO;
+//	}
 
 	/**
 	 * 
