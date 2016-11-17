@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.qcmg.common.model.ChrRangePosition;
+import org.qcmg.common.util.Constants;
 
 public class StringUtils {
 	public static final char TAB = '\t';
@@ -190,6 +191,13 @@ public class StringUtils {
 	 */
 	public static boolean isNullOrEmpty(final String test, boolean ignoreWhiteSpace) {
 		return null == test || (ignoreWhiteSpace ? test.trim().isEmpty() : test.isEmpty());
+	}
+	
+	public static boolean isNullOrEmptyOrMissingData(final String test, boolean ignoreWhiteSpace) {
+		return null == test || (ignoreWhiteSpace ? test.trim().isEmpty() : test.isEmpty()) || Constants.MISSING_DATA_STRING.equals(test);
+	}
+	public static boolean isNullOrEmptyOrMissingData(final String test) {
+		return isNullOrEmptyOrMissingData(test, true);
 	}
 	
 	/**
