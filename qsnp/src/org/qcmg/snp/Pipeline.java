@@ -1675,7 +1675,7 @@ public abstract class Pipeline {
 				}
 			
 				
-				VcfUtils.addFormatFieldsToVcf(rec.getVcfRecord(), Arrays.asList("5BP", controlEndOfReadCount > 0 ? ""+controlEndOfReadCount : Constants.MISSING_DATA_STRING, testEndOfReadCount > 0 ? ""+testEndOfReadCount : Constants.MISSING_DATA_STRING));
+//				VcfUtils.addFormatFieldsToVcf(rec.getVcfRecord(), Arrays.asList("5BP", controlEndOfReadCount > 0 ? ""+controlEndOfReadCount : Constants.MISSING_DATA_STRING, testEndOfReadCount > 0 ? ""+testEndOfReadCount : Constants.MISSING_DATA_STRING));
 			}
 		}
 			
