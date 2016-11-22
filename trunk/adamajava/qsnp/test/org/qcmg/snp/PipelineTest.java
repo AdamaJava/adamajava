@@ -119,6 +119,81 @@ public class PipelineTest {
 	}
 	
 	@Test
+	public void compoundSnpRealLife() throws Exception {
+		/*
+		 * chr1    142688844       rs79170245      C       T       649.77  PASS    AC=1;AF=0.500;AN=2;BaseQRankSum=-5.151;ClippingRankSum=-0.805;DB;DP=37;FS=21.070;MLEAC=1;MLEAF=0.500;MQ=42.82;MQ0=0;MQRankSum=3.479;QD=17.56;ReadPosRankSum=-3.722;SOR=0.016    GT:AD:DP:GQ:PL:GD:AC:OABS:MR:NNS        0/1:19,18:37:99:678,0,744:C/T:C1[35],19[38.68],T3[27.33],1[35]:.:4:3    0/1:19,5:24:99:192,0,957:C/T:C3[37],16[37.19]:.:0:0
+		 * chr1    142688845       rs75066610      A       G       646.77  PASS    AC=1;AF=0.500;AN=2;BaseQRankSum=-4.151;ClippingRankSum=-0.982;DB;DP=36;FS=18.093;MLEAC=1;MLEAF=0.500;MQ=42.90;MQ0=0;MQRankSum=3.549;QD=17.97;ReadPosRankSum=-3.391;SOR=0.021    GT:AD:DP:GQ:PL:GD:AC:OABS:MR:NNS        0/1:19,17:36:99:675,0,779:A/G:A1[35],19[36.32],G2[29.5],1[35]:.:3:2     0/1:20,6:26:99:192,0,957:A/G:A4[36.25],16[35.38],G0[0],1[25]:.:1:1
+		 */
+		final Pipeline pipeline = new TestPipeline();
+		final QSnpRecord snp = new QSnpRecord("chr1", 142688844, "C");
+		snp.setMutation("C>T");
+		
+		final QSnpRecord snp2 = new QSnpRecord("chr1", 142688845, "A");
+		snp2.setMutation("A>G");
+		
+		pipeline.positionRecordMap.put(ChrPointPosition.valueOf("chr1", 142688844), snp);
+		pipeline.positionRecordMap.put(ChrPointPosition.valueOf("chr1", 142688845), snp2);
+		
+		/*
+		 * C3[37],16[37.19]
+		 */
+		final Accumulator tumour100 = new Accumulator(142688844);
+		for (int i = 0 ; i < 3 ; i++) {
+			tumour100.addBase((byte)'C', (byte)30, true, 142688844, 142688844, 142688844 + 100, i+1);
+		}
+		for (int i = 0 ; i < 16 ; i++) {
+			tumour100.addBase((byte)'C', (byte)30, false, 142688844, 142688844, 142688844 + 100, i + 4);
+		}
+		/*
+		 * A4[36.25],16[35.38],G0[0],1[25]
+		 */
+		final Accumulator tumour101 = new Accumulator(142688845);
+		for (int i = 0 ; i < 3 ; i++) {
+			tumour101.addBase((byte)'A', (byte)30, true, 142688845, 142688845, 142688845 + 100, i + 1);
+		}
+		for (int i = 0 ; i < 16 ; i++) {
+			tumour101.addBase((byte)'A', (byte)30, false, 142688845, 142688845, 142688845 + 100, i + 4);
+		}
+		tumour101.addBase((byte)'G', (byte)30, false, 142688845, 142688845, 142688845 + 100, 21);
+		
+		/*
+		 * C1[35],19[38.68],T3[27.33],1[35]
+		 */
+		final Accumulator control100 = new Accumulator(142688844);
+		control100.addBase((byte)'C', (byte)30, true, 142688844, 142688844, 142688844 + 100, 1);
+		for (int i = 0 ; i < 19 ; i++) {
+			control100.addBase((byte)'C', (byte)30, false, 142688844, 142688844, 142688844 + 100, i + 2);
+		}
+		for (int i = 0 ; i < 1 ; i++) {
+			control100.addBase((byte)'T', (byte)30, true, 142688844, 142688844, 142688844 + 100, i + 21);
+		}
+		for (int i = 0 ; i < 3 ; i++) {
+			control100.addBase((byte)'T', (byte)30, false, 142688844, 142688844, 142688844 + 100, i + 22);
+		}
+		
+		/*
+		 * A1[35],19[36.32],G2[29.5],1[35]
+		 */
+		final Accumulator control101 = new Accumulator(142688845);
+		control101.addBase((byte)'A', (byte)30, true, 142688845, 142688845, 142688844 + 100, 1);
+		for (int i = 0 ; i < 19 ; i++) {
+			control101.addBase((byte)'A', (byte)30, false, 142688845, 142688845, 142688844 + 100, i + 2);
+		}
+		for (int i = 0 ; i < 2 ; i++) {
+			control101.addBase((byte)'G', (byte)30, true, 142688845, 142688845, 142688844 + 100, i + 21);
+		}
+		for (int i = 0 ; i < 1 ; i++) {
+			control101.addBase((byte)'G', (byte)30, false, 142688845, 142688845, 142688844 + 100, i + 22);
+		}
+		
+		pipeline.adjacentAccumulators.put(ChrPointPosition.valueOf("chr1", 142688844), new Pair<Accumulator, Accumulator>(control100, tumour100));
+		pipeline.adjacentAccumulators.put(ChrPointPosition.valueOf("chr1", 142688845), new Pair<Accumulator, Accumulator>(control101, tumour101));
+		pipeline.compoundSnps();
+		
+		assertEquals(0, pipeline.compoundSnps.size());
+	}
+	
+	@Test
 	public void compoundSnpReverseStrand() throws Exception {
 		final Pipeline pipeline = new TestPipeline();
 		final QSnpRecord snp = new QSnpRecord("chr1", 100, "A");
