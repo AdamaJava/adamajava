@@ -1,7 +1,6 @@
 package org.qcmg.bammerge;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.io.File;
 import java.io.FileReader;
@@ -10,7 +9,9 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.Vector;
 
+import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SamReader;
+import htsjdk.samtools.ValidationStringency;
 import htsjdk.samtools.SamReader.AssertingIterator;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMRecordCoordinateComparator;
@@ -103,6 +104,48 @@ public class FileMergerTest {
 		}
 
 		assertTrue(countD == countA + countB + countC);
+	}
+	
+	@Test
+	public void singleInput() throws Exception {
+		File f1 = testFolder.newFile();
+		SamTestData.createFirstSam(f1, false);
+		SamReader reader = SAMFileReaderFactory.createSAMFileReader(f1);
+		int countA = 0;
+		for (SAMRecord record : reader) {
+			countA++;
+		}
+		File f = testFolder.newFolder();
+		File fOut = new File(f.getAbsolutePath() + "output.sam");
+		String[] args = { f1.getAbsolutePath() };
+		long now = System.currentTimeMillis();
+		new FileMerger(fOut.getAbsolutePath(), args, null,"commandLine",-1, false,false, true, null,null, null, ",my_uuid");
+		
+		reader = SAMFileReaderFactory.createSAMFileReader(fOut);
+		SAMFileHeader header = reader.getFileHeader();
+		int countB = 0;
+		for (SAMRecord record : reader) {
+			countB++;
+		}
+		assertEquals(1, header.getComments().size());
+		assertEquals(true, header.getComments().get(0).contains("my_uuid"));
+		assertEquals(countB, countA);
+		
+		/*
+		 * update uuid
+		 */
+		File fOut2 = new File(f.getAbsolutePath() + "output2.sam");
+		new FileMerger(fOut2.getAbsolutePath(), new String[]{fOut.getAbsolutePath()}, null,"commandLine",-1, false,false, true, null,null, null, ",my_uuid_take_II");
+		reader = SAMFileReaderFactory.createSAMFileReader(fOut2);
+		header = reader.getFileHeader();
+		int countC = 0;
+		for (SAMRecord record : reader) {
+			countC++;
+		}
+		assertEquals(1, header.getComments().size());
+		assertEquals(true, header.getComments().get(0).contains("my_uuid_take_II"));
+		assertEquals(countC, countA);
+		
 	}
 
 	@Test
