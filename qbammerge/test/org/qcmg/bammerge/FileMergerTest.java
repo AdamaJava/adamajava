@@ -10,6 +10,7 @@ import java.util.Iterator;
 import java.util.Vector;
 
 import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SAMFileWriter;
 import htsjdk.samtools.SamReader;
 import htsjdk.samtools.ValidationStringency;
 import htsjdk.samtools.SamReader.AssertingIterator;
@@ -24,6 +25,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.picard.SAMFileReaderFactory;
+import org.qcmg.picard.SAMOrBAMWriterFactory;
 import org.qcmg.split.SamSplitType;
 import org.qcmg.split.Split;
 import org.qcmg.testing.SamTestData;
@@ -109,16 +111,25 @@ public class FileMergerTest {
 	@Test
 	public void singleInput() throws Exception {
 		File f1 = testFolder.newFile();
+		File f1Bam = testFolder.newFile("blah.bam");
 		SamTestData.createFirstSam(f1, false);
-		SamReader reader = SAMFileReaderFactory.createSAMFileReader(f1);
+		File f = testFolder.newFolder();
+		File fOut = new File(f.getAbsolutePath() + "output.bam");
+		
 		int countA = 0;
-		for (SAMRecord record : reader) {
+		/*
+		 * make bam from sam
+		 */
+		SamReader reader = SAMFileReaderFactory.createSAMFileReader(f1);
+		SAMOrBAMWriterFactory factory = new SAMOrBAMWriterFactory(reader.getFileHeader(), true, f1Bam);
+		SAMFileWriter writer = factory.getWriter();
+		for (SAMRecord r : reader) {
+			writer.addAlignment(r);
 			countA++;
 		}
-		File f = testFolder.newFolder();
-		File fOut = new File(f.getAbsolutePath() + "output.sam");
-		String[] args = { f1.getAbsolutePath() };
-		long now = System.currentTimeMillis();
+		writer.close();
+		
+		String[] args = { f1Bam.getAbsolutePath() };
 		new FileMerger(fOut.getAbsolutePath(), args, null,"commandLine",-1, false,false, true, null,null, null, ",my_uuid");
 		
 		reader = SAMFileReaderFactory.createSAMFileReader(fOut);
@@ -134,7 +145,7 @@ public class FileMergerTest {
 		/*
 		 * update uuid
 		 */
-		File fOut2 = new File(f.getAbsolutePath() + "output2.sam");
+		File fOut2 = new File(f.getAbsolutePath() + "output2.bam");
 		new FileMerger(fOut2.getAbsolutePath(), new String[]{fOut.getAbsolutePath()}, null,"commandLine",-1, false,false, true, null,null, null, ",my_uuid_take_II");
 		reader = SAMFileReaderFactory.createSAMFileReader(fOut2);
 		header = reader.getFileHeader();
