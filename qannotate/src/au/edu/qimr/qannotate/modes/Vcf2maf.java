@@ -582,15 +582,8 @@ public class Vcf2maf extends AbstractMode{
 					maf.setColumnValue(MafElement.Amino_Acid_Change,effs[3]);
 				}
 				if (! StringUtils.isNullOrEmpty(effs[2]))  maf.setColumnValue(MafElement.Codon_Change ,effs[2]);
-			}
-			if (effs[3].startsWith("c.")){
-				int pos = effs[3].indexOf(SLASH_STRING);
-				if (pos >= 0 ){
-					maf.setColumnValue(MafElement.Amino_Acid_Change,effs[3].substring(0, pos));
-					maf.setColumnValue(MafElement.CDS_Change ,effs[3].substring(pos+1));
-				} else {
-					maf.setColumnValue(MafElement.CDS_Change,effs[3]);
-				}
+			} else if (effs[3].startsWith("c.")){
+				maf.setColumnValue(MafElement.CDS_Change,effs[3]);
 				if (! StringUtils.isNullOrEmpty(effs[2]))  maf.setColumnValue(MafElement.Codon_Change ,effs[2]);
 			}
 			
