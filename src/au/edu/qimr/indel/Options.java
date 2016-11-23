@@ -88,8 +88,8 @@ public class Options {
 		
 		String	version = Main.class.getPackage().getImplementationVersion();
 		String pg = Main.class.getPackage().getImplementationTitle();		
-		if (version == null) version = Constants.NULL_STRING; 
-		if (pg == null) pg = Constants.NULL_STRING; 
+		if (version == null) version = Constants.NULL_STRING_UPPER_CASE; 
+		if (pg == null) pg = Constants.NULL_STRING_UPPER_CASE; 
 				
 		qexec = logger.logInitialExecutionStats(pg , version, args, QExec.createUUid());	
 		 		
