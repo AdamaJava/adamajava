@@ -36,7 +36,8 @@ public class Constants {
 	public  static final char MINUS = '-';
 	
 	//at moment only for VcfInfoFieldRecord
-	public static final String NULL_STRING = "NULL";
+	public static final String NULL_STRING_UPPER_CASE = "NULL";
+	public static final String NULL_STRING = "null";
 	public static final String EMPTY_STRING = "";
 	public static final String CHR = "chr";
 	

@@ -113,9 +113,9 @@ public abstract class AbstractMode {
 		String inputUuid = (myHeader.getUUID() == null)? null: new VcfHeaderUtils.SplitMetaRecord(myHeader.getUUID()).getValue();   
 		myHeader.replace(VcfHeaderUtils.STANDARD_INPUT_LINE + "=" + inputUuid + ":"+ inputVcfName);
 		
-		if(version == null) version = Constants.NULL_STRING;
-	    if(pg == null ) pg = Constants.NULL_STRING;
-	    if(cmd == null) cmd = Constants.NULL_STRING;
+		if(version == null) version = Constants.NULL_STRING_UPPER_CASE;
+	    if(pg == null ) pg = Constants.NULL_STRING_UPPER_CASE;
+	    if(cmd == null) cmd = Constants.NULL_STRING_UPPER_CASE;
 		VcfHeaderUtils.addQPGLineToHeader(myHeader, pg, version, cmd);
 		
 		return myHeader;

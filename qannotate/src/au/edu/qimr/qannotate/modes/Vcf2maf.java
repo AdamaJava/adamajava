@@ -49,7 +49,8 @@ import au.edu.qimr.qannotate.utils.*;
 
 public class Vcf2maf extends AbstractMode{
 	
-	public static String PROTEINCODE = "protein_coding";
+	public static final String PROTEINCODE = "protein_coding";
+	public static final String INTRON = "Intron";
 	
 	private static final QLogger logger = QLoggerFactory.getLogger(Vcf2maf.class);
 	protected final  Map<String,String> effRanking = new HashMap<String,String>();	
@@ -582,8 +583,15 @@ public class Vcf2maf extends AbstractMode{
 					maf.setColumnValue(MafElement.Amino_Acid_Change,effs[3]);
 				}
 				if (! StringUtils.isNullOrEmpty(effs[2]))  maf.setColumnValue(MafElement.Codon_Change ,effs[2]);
-			} else if (effs[3].startsWith("c.")){
-				maf.setColumnValue(MafElement.CDS_Change,effs[3]);
+			}
+			/*
+			 * update introns that don't have a cds change entry
+			 */
+			if (INTRON.equals(maf.getColumnValue(MafElement.Variant_Classification)) 
+					&& Constants.NULL_STRING_UPPER_CASE.equals(maf.getColumnValue(MafElement.CDS_Change))) {
+				if ( ! StringUtils.isNullOrEmpty(effs[3])) {
+					maf.setColumnValue(MafElement.CDS_Change,effs[3]);
+				}
 				if (! StringUtils.isNullOrEmpty(effs[2]))  maf.setColumnValue(MafElement.Codon_Change ,effs[2]);
 			}
 			

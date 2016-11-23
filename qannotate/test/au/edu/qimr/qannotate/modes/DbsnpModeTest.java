@@ -145,7 +145,7 @@ public class DbsnpModeTest {
 					count[4] ++;							
  
 			for(VcfHeader.QPGRecord re : header.getqPGLines()){
-				assertEquals(re.getTool(), Constants.NULL_STRING);
+				assertEquals(re.getTool(), Constants.NULL_STRING_UPPER_CASE);
 				assertNotNull(re.getDate());
 				assertNotNull(re.getCommandLine());
 				assertEquals(1,  re.getOrder());
