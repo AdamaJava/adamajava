@@ -529,6 +529,23 @@ public class Vcf2mafTest {
 		 assertTrue(maf.getColumnValue(MafElement.CDS_Change).equals(SnpEffMafRecord.Null)); 		//53	 
 	 }
 	 
+	 @Test     
+	 public void cdsChange() {
+		 
+		 String[] str = {"chr1","240975611","rs7537530","C","G",".","PASS_1;PASS_2","FLANK=GATAGGCACTA;AC=2;AF=1.00;AN=2;DP=15;FS=0.000;MLEAC=2;MLEAF=1.00;MQ=60.00;MQ0=0;QD=28.59;SOR=4.047;IN=1,2;DB;VLD;VAF=0.6979;HOM=2,TATGAGATAGgCACTATTAAT;CONF=HIGH_1,HIGH_2;EFF=intron_variant(MODIFIER|||c.879-268G>C|451|RGS7|protein_coding|CODING|ENST00000331110|13|1),intron_variant(MODIFIER|||c.798-268G>C|424|RGS7|protein_coding|CODING|ENST00000348120|10|1),intron_variant(MODIFIER|||c.957-268G>C|469|RGS7|protein_coding|CODING|ENST00000366562|12|1),intron_variant(MODIFIER|||c.957-268G>C|477|RGS7|protein_coding|CODING|ENST00000366563|13|1) intron_variant(MODIFIER|||c.957-268G>C|469|RGS7|protein_coding|CODING|ENST00000366564|13|1),intron_variant(MODIFIER|||c.957-268G>C|487|RGS7|protein_coding|CODING|ENST00000366565|13|1),intron_variant(MODIFIER|||c.798-268G>C|424|RGS7|protein_coding|CODING|ENST00000401882|10|1),intron_variant(MODIFIER|||c.957-268G>C|495|RGS7|protein_coding|CODING|ENST00000407727|12|1),intron_variant(MODIFIER|||c.450-268G>C|326|RGS7|protein_coding|CODING|ENST00000440928|6|1|WARNING_TRANSCRIPT_NO_START_CODON),intron_variant(MODIFIER|||c.705-268G>C|393|RGS7|protein_coding|CODING|ENST00000446183|13|1)","GT:GD:AC:MR:NNS:AD:DP:GQ:PL","1/1&1/1:G/G&G/G:G1[33],14[32.93]&G1[33],14[32.93]:15&15:14&14:0,15:15:45:628,45,0","1/1&1/1:G/G&G/G:G1[32],7[33.43]&G1[32],7[33.43]:8&8:6&6:0,8:8:27:374,27,0"};
+		 
+		 Vcf2maf v2m = new Vcf2maf(1,2, null, null);	
+		 SnpEffMafRecord maf  = v2m.converter(new VcfRecord(str));	
+		 assertEquals("ENST00000407727", maf.getColumnValue(MafElement.Transcript_ID));
+		 assertEquals("c.957-268G>C", maf.getColumnValue(MafElement.CDS_Change));
+		 assertEquals("null", maf.getColumnValue(MafElement.Amino_Acid_Change));
+		 assertEquals("RGS7", maf.getColumnValue(MafElement.Hugo_Symbol));
+		 assertEquals("protein_coding", maf.getColumnValue(MafElement.Transcript_BioType));
+		 assertEquals("CODING", maf.getColumnValue(MafElement.Gene_Coding));
+		 assertEquals("12", maf.getColumnValue(MafElement.Exon_Intron_Rank));
+		 assertEquals("1", maf.getColumnValue(MafElement.Genotype_Number));
+	 }
+	 
 	 /**
 	  * 
 	  * @throws Exception missing one sample column
