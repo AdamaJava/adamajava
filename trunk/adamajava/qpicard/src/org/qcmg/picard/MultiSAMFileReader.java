@@ -26,12 +26,12 @@ import htsjdk.samtools.SAMRecord;
 
 public final class MultiSAMFileReader implements Closeable, Iterable<SAMRecord> {
 	private static final Pattern colonDelimitedPattern = Pattern.compile("[:]+");
-	private final HashSet<Integer> taken = new HashSet<Integer>();
+	private final Set<Integer> taken = new HashSet<Integer>();
 	private final Vector<SamReader> readers = new Vector<SamReader>();
 	private final Vector<SAMFileHeader> headers = new Vector<SAMFileHeader>();
 	private final Map<SamReader, File> fileMap = new HashMap<SamReader, File>();
-	private final Map<SamReader, HashSet<Integer>> oldZcs = new HashMap<SamReader, HashSet<Integer>>();
-	private final HashMap<SamReader, HashMap<Integer, Integer>> replacementZcs = new HashMap<SamReader, HashMap<Integer, Integer>>();
+	private final Map<SamReader, Set<Integer>> oldZcs = new HashMap<SamReader, Set<Integer>>();
+	private final Map<SamReader, Map<Integer, Integer>> replacementZcs = new HashMap<SamReader, Map<Integer, Integer>>();
 	private final Map<SamReader, Integer> defaultZcs = new HashMap<SamReader, Integer>();
 	private MultiSAMFileIterator activeIterator = null;
 
@@ -39,7 +39,7 @@ public final class MultiSAMFileReader implements Closeable, Iterable<SAMRecord> 
 	/**
 	 * constructing MultiSamReader based on filesets and ValidationStringency
 	 */
-	public MultiSAMFileReader(final HashSet<File> files, ValidationStringency validation ) throws Exception {
+	public MultiSAMFileReader(final Set<File> files, ValidationStringency validation ) throws Exception {
 		
 		for (final File file : files) {
 			
@@ -93,7 +93,7 @@ public final class MultiSAMFileReader implements Closeable, Iterable<SAMRecord> 
 		evaluateReplacementZcs();
 	}
 	
-	public MultiSAMFileReader(final HashSet<File> files) throws Exception {
+	public MultiSAMFileReader(final Set<File> files) throws Exception {
 		this(files, null);
 	}
 	
@@ -181,11 +181,11 @@ public final class MultiSAMFileReader implements Closeable, Iterable<SAMRecord> 
 		return headers;
 	}
 	
-	public HashSet<Integer> getOldZcs(SamReader reader) {
+	public Set<Integer> getOldZcs(SamReader reader) {
 		return oldZcs.get(reader);
 	}
 
-	public HashMap<Integer, Integer> getReplacementZcs(SamReader reader) {
+	public Map<Integer, Integer> getReplacementZcs(SamReader reader) {
 		return replacementZcs.get(reader);
 	}
 
@@ -210,6 +210,7 @@ public final class MultiSAMFileReader implements Closeable, Iterable<SAMRecord> 
 		return fileMap.get(reader);
 	}
 
+	@Override
 	public synchronized void close() throws IOException {
 		activeIterator = null;
 		for (final SamReader reader : readers) {
@@ -221,7 +222,7 @@ public final class MultiSAMFileReader implements Closeable, Iterable<SAMRecord> 
 		for (SamReader reader : readers) {
 			HashMap<Integer, Integer> replacements = new HashMap<Integer, Integer>();
 			replacementZcs.put(reader, replacements);
-			HashSet<Integer> oldZcs = getOldZcs(reader);
+			Set<Integer> oldZcs = getOldZcs(reader);
 			for (Integer oldZc : oldZcs) {
 				if (taken.contains(oldZc)) {
 					Integer newZc = getNextAvailableZc();

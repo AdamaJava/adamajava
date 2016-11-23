@@ -15,9 +15,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Vector;
 import java.util.regex.Pattern;
 
+import htsjdk.samtools.SAMTagUtil;
 import htsjdk.samtools.SamFileHeaderMerger;
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SamReader;
@@ -75,6 +77,14 @@ import org.qcmg.picard.util.SAMReadGroupRecordUtils;
  * caching of records during this operation.
  */
 public final class FileMerger {
+	
+	/*
+	 * Set up some short tags used by SAMREcord to retrive attributes
+	 */
+	public static final String ZC = "ZC";
+	public static final String RG = "RG";
+	public static final short ZC_TAG = SAMTagUtil.getSingleton().makeBinaryTag(ZC);
+	public static final short RG_TAG = SAMTagUtil.getSingleton().RG;
 
 	/** The naming prefix for temporary files during merging. */
 	private static final String TEMP_FILE_PREFIX = "tmp";
@@ -89,7 +99,7 @@ public final class FileMerger {
 	private GroupReplacements groupReplacements;
 
 	/** The set of input files to be merged. */
-	private final HashSet<File> inputFiles = new HashSet<File>();
+	private final Set<File> inputFiles = new HashSet<File>();
 
 	/** Flag to indicate that the output file will be included in the merge. */
 	private final boolean includeOutputFile;
@@ -621,7 +631,7 @@ public final class FileMerger {
 						String[] params = colonDelimitedPattern.split(attribute);
 						String zc = params[0];
 						String fileName = params[1];
-						HashMap<Integer, Integer> replacementZcs = inputReader.getReplacementZcs(reader);
+						Map<Integer, Integer> replacementZcs = inputReader.getReplacementZcs(reader);
 						if (null != replacementZcs) {
 							Integer replacement = replacementZcs.get(Integer.parseInt(zc));
 							if (null != replacement) {
@@ -643,7 +653,7 @@ public final class FileMerger {
 								"Null ZC default value not permitted. Report this bug to development.");
 					}
 				} else {
-						HashMap<Integer, Integer> replacementZcs = inputReader.getReplacementZcs(reader);
+						Map<Integer, Integer> replacementZcs = inputReader.getReplacementZcs(reader);
 						if (null != replacementZcs) 
 							zc = replacementZcs.get(zc);
 						//delete old ZC tag
@@ -851,8 +861,12 @@ public final class FileMerger {
 		while (iter.hasNext() && !hasReachedNumberRecords()) {
 			SAMRecord record = iter.next();
 			
-			if (null == record.getReadGroup())
+			if (null == record.getReadGroup()) {
+				logger.warn(record.getSAMString());
+				logger.warn(""+record.getAttribute(RG_TAG));
+				logger.warn(""+record.getHeader());
 				throw new BamMergeException("BAD_RECORD_RG");
+			}
 			
 			SamReader fileReader = iter.getCurrentSAMFileReader();
 			if ( ! replacementMap.isEmpty()) {
@@ -860,24 +874,24 @@ public final class FileMerger {
 				File file = inputReader.getFile(fileReader);
 				String newGroup = getReplacementGroup(file, oldGroup);
 				if (null != newGroup) {
-					record.setAttribute("RG", newGroup);
+					record.setAttribute(RG, newGroup);
 				}
 			}
-			Integer oldZc = record.getIntegerAttribute("ZC");
+			Integer oldZc = record.getIntegerAttribute(ZC);
 			if (null == oldZc) {
 				Integer zc = inputReader.getDefaultZc(fileReader);
-				assert null != zc;
-				record.setAttribute("ZC", zc);
+//				assert null != zc;
+				record.setAttribute(ZC, zc);
 			} else {
-				HashSet<Integer> permissibleZcs = inputReader.getOldZcs(fileReader);
+				Set<Integer> permissibleZcs = inputReader.getOldZcs(fileReader);
 				if (!permissibleZcs.contains(oldZc)) {
 					throw new BamMergeException("BAD_RECORD_ZC");
 				}
-				HashMap<Integer, Integer> replacementZcs = inputReader.getReplacementZcs(fileReader);
+				Map<Integer, Integer> replacementZcs = inputReader.getReplacementZcs(fileReader);
 				if (null != replacementZcs) {
 					Integer replacement = replacementZcs.get(oldZc);
 					if (null != replacement) {
-						record.setAttribute("ZC", replacement);
+						record.setAttribute(ZC, replacement);
 					}
 				}
 			}
@@ -910,10 +924,8 @@ public final class FileMerger {
 	 * Opens the SAM/BAM file writer for the output file.
 	 */
 	private void openWriter() {
-		
-		outputWriterfactory = new SAMOrBAMWriterFactory(mergedHeader, true, outputFile, tmpdir, createIndex);
-		
-		
+		outputWriterfactory = new SAMOrBAMWriterFactory(mergedHeader,  true, outputFile,tmpdir, 0, createIndex, true, 500000);
+//		outputWriterfactory = new SAMOrBAMWriterFactory(mergedHeader, true, outputFile, tmpdir, createIndex);
 	}
 
 	/**

@@ -17,9 +17,11 @@ import htsjdk.samtools.SAMRecordCoordinateComparator;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.junit.rules.TemporaryFolder;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.split.SamSplitType;
 import org.qcmg.split.Split;
@@ -33,6 +35,8 @@ public class FileMergerTest {
 
 	@Rule
 	public ExpectedException thrown = ExpectedException.none();
+	@Rule
+	public TemporaryFolder testFolder = new TemporaryFolder();
 
 	@Before
 	public final void before() {
@@ -54,6 +58,51 @@ public class FileMergerTest {
 			System.err.println("File creation error in test harness: "
 					+ e.getMessage());
 		}
+	}
+	
+	@Test
+	public void largeData() throws Exception {
+		File f1 = testFolder.newFile();
+		File f2 = testFolder.newFile();
+		File f3 = testFolder.newFile();
+		File f = testFolder.newFolder();
+		File fOut = new File(f.getAbsolutePath() + "output.sam");
+		
+		SamTestData.createFirstSam(f1, true);
+		SamTestData.createSecondSam(f2, true);
+		SamTestData.createThirdSam(f3, true);
+		
+		
+		String[] args = { f1.getAbsolutePath(), f2.getAbsolutePath(), f3.getAbsolutePath() };
+		long now = System.currentTimeMillis();
+		new FileMerger(fOut.getAbsolutePath(), args, "commandLine", true);
+		System.out.println("Time taken: " + (System.currentTimeMillis() - now));
+		SamReader reader = SAMFileReaderFactory.createSAMFileReader(f1);
+		int countA = 0;
+		for (SAMRecord record : reader) {
+			countA++;
+		}
+
+		reader = SAMFileReaderFactory.createSAMFileReader(f2);
+		int countB = 0;
+		for (SAMRecord record : reader) {
+			countB++;
+		}
+		reader = SAMFileReaderFactory.createSAMFileReader(f3);
+		int countC = 0;
+		for (SAMRecord record : reader) {
+			countC++;
+		}
+
+		reader = SAMFileReaderFactory.createSAMFileReader(fOut);
+		int countD = 0;
+		for (SAMRecord record : reader) {
+			countD++;
+			Integer zc = record.getIntegerAttribute("ZC");
+			assert (null != zc);
+		}
+
+		assertTrue(countD == countA + countB + countC);
 	}
 
 	@Test
@@ -191,11 +240,16 @@ public class FileMergerTest {
 		ExpectedException.none();
 
 		String[] replacements = { FILE_NAME_B + ":ES:XXX" };
+		
+		File output = new File("recursiveMergeWithValidArguments.sam");
+		if (output.exists()) {
+			output.delete();
+		}
 
 		String[] args = { FILE_NAME_A, FILE_NAME_B };
-		new FileMerger("temp.sam", args, replacements, "commandLine", true);
+		new FileMerger(output.getAbsolutePath(), args, replacements, "commandLine", true);
 
-		String[] args2 = { "temp.sam", FILE_NAME_B };
+		String[] args2 = {output.getAbsolutePath(), FILE_NAME_B };
 		new FileMerger(OUTPUT_FILE_NAME, args2, "commandLine", true);
 
 		File fileA = new File(FILE_NAME_A);
@@ -234,8 +288,7 @@ public class FileMergerTest {
 
 		assertTrue(outputCount == countA + 2 * countB);
 
-		File file = new File("temp.sam");
-		file.delete();
+		output.delete();
 	}
 
 	@Test
@@ -245,10 +298,14 @@ public class FileMergerTest {
 		
 		String[] replacements = { FILE_NAME_B + ":ES:XXX" };
 		
+		File output = new File("recursiveMergeWithValidArgumentsThenSplit.sam");
+		if (output.exists()) {
+			output.delete();
+		}
 		String[] args = { FILE_NAME_A, FILE_NAME_B };
-		new FileMerger("temp.sam", args, replacements, "commandLine", true);
+		new FileMerger(output.getAbsolutePath(), args, replacements, "commandLine", true);
 
-		String[] args2 = { "temp.sam", FILE_NAME_C };
+		String[] args2 = { output.getAbsolutePath(), FILE_NAME_C };
 		new FileMerger(OUTPUT_FILE_NAME, args2, "commandLine", true);
 
 		File fileA = new File(FILE_NAME_A);
@@ -286,8 +343,7 @@ public class FileMergerTest {
 
 		assertTrue(outputCount == countA + countB + countC);
 
-		File file = new File("temp.sam");
-		file.delete();
+		output.delete();
 
 		Split splitPass = new Split(OUTPUT_FILE_NAME, ".", false, new SamSplitType());
 		Integer zcA = splitPass.getZcFromOriginalFileName(fileA
