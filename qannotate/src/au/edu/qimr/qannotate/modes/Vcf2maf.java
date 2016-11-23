@@ -588,7 +588,7 @@ public class Vcf2maf extends AbstractMode{
 			 * update introns that don't have a cds change entry
 			 */
 			if (INTRON.equals(maf.getColumnValue(MafElement.Variant_Classification)) 
-					&& Constants.NULL_STRING_UPPER_CASE.equals(maf.getColumnValue(MafElement.CDS_Change))) {
+					&& Constants.NULL_STRING.equals(maf.getColumnValue(MafElement.CDS_Change))) {
 				if ( ! StringUtils.isNullOrEmpty(effs[3])) {
 					maf.setColumnValue(MafElement.CDS_Change,effs[3]);
 				}
