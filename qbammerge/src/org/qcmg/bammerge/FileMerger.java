@@ -19,6 +19,7 @@ import java.util.Set;
 import java.util.Vector;
 import java.util.regex.Pattern;
 
+import htsjdk.samtools.BamFileIoUtils;
 import htsjdk.samtools.SAMTagUtil;
 import htsjdk.samtools.SamFileHeaderMerger;
 import htsjdk.samtools.SAMFileHeader;
@@ -36,6 +37,7 @@ import org.qcmg.common.util.FileUtils;
 import org.qcmg.picard.HeaderUtils;
 import org.qcmg.picard.MultiSAMFileIterator;
 import org.qcmg.picard.MultiSAMFileReader;
+import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.SAMOrBAMWriterFactory;
 import org.qcmg.picard.util.SAMReadGroupRecordUtils;
 
@@ -99,7 +101,7 @@ public final class FileMerger {
 	private GroupReplacements groupReplacements;
 
 	/** The set of input files to be merged. */
-	private final Set<File> inputFiles = new HashSet<File>();
+	private final Set<File> inputFiles = new HashSet<File>(8);
 
 	/** Flag to indicate that the output file will be included in the merge. */
 	private final boolean includeOutputFile;
@@ -135,7 +137,7 @@ public final class FileMerger {
 	 * Used for the reverse lookup of group replacements based on the input file
 	 * instance and old group value.
 	 */
-	private final Map<File, Map<String, GroupReplacement>> replacementMap = new HashMap<File, Map<String, GroupReplacement>>();
+	private final Map<File, Map<String, GroupReplacement>> replacementMap = new HashMap<File, Map<String, GroupReplacement>>(8);
 
 	/** The combined set of file names to be used in the merging process. */
 	private String[] allInputFileNames;
@@ -463,15 +465,31 @@ public final class FileMerger {
 	 * @throws Exception
 	 */
 	private void performMerge() throws BamMergeException, IOException, Exception {
-		try {
-			openReader();
-			mergeHeaders();
-			openWriter();			
-			mergeAlignments();
-
-		} finally {
-			close();
+		/*
+		 * If we have a single input, and  uuid defined, just perform a re-head of the bam file
+		 */
+		if (inputFiles.size() == 1 && ! StringUtils.isNullOrEmpty(uuid)) {
+			reheadSingleBamFile();
+		} else {
+			
+			try {
+				openReader();
+				mergeHeaders();
+				openWriter();			
+				mergeAlignments();
+	
+			} finally {
+				close();
+			}
 		}
+	}
+	
+	private void reheadSingleBamFile() {
+		File in = inputFiles.iterator().next();
+		final SamReader reader = SAMFileReaderFactory.createSAMFileReader(in, validation);
+		final SAMFileHeader header = reader.getFileHeader();
+		replaceUUIDInHeader(header, uuid);
+		BamFileIoUtils.reheaderBamFile(header, in, outputFile, true, true);
 	}
 
 	/**
@@ -808,13 +826,13 @@ public final class FileMerger {
 		mergedHeader.setReadGroups(newGroups);
 		addHeaderProgramGroup();
 		addHeaderComments();
-		replaceUUIDInHeader();
+		replaceUUIDInHeader(mergedHeader, uuid);
 	}
 
-	private void replaceUUIDInHeader() {
+	public static void replaceUUIDInHeader(SAMFileHeader header, String uuid) {
 		if (uuid != null) {
 			List<String> commentsToKeep = new ArrayList<>();
-			for (String s : mergedHeader.getComments()) {
+			for (String s : header.getComments()) {
 				if ( ! s.startsWith(Constants.COMMENT_Q3BAM_UUID_PREFIX)) {
 					commentsToKeep.add(s);
 				}
@@ -822,7 +840,7 @@ public final class FileMerger {
 			
 			// add in the new uuid
 			commentsToKeep.add(Constants.COMMENT_Q3BAM_UUID_PREFIX + ":" + uuid);
-			mergedHeader.setComments(commentsToKeep);
+			header.setComments(commentsToKeep);
 		}
 	}
 
