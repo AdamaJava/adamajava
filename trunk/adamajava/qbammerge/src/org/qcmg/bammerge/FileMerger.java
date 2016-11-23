@@ -468,7 +468,7 @@ public final class FileMerger {
 		/*
 		 * If we have a single input, and  uuid defined, just perform a re-head of the bam file
 		 */
-		if (inputFiles.size() == 1 && ! StringUtils.isNullOrEmpty(uuid)) {
+		if (allInputFileNames.length == 1 && ! StringUtils.isNullOrEmpty(uuid)) {
 			reheadSingleBamFile();
 		} else {
 			
@@ -485,7 +485,7 @@ public final class FileMerger {
 	}
 	
 	private void reheadSingleBamFile() {
-		File in = inputFiles.iterator().next();
+		File in = new File(allInputFileNames[0]);
 		final SamReader reader = SAMFileReaderFactory.createSAMFileReader(in, validation);
 		final SAMFileHeader header = reader.getFileHeader();
 		replaceUUIDInHeader(header, uuid);

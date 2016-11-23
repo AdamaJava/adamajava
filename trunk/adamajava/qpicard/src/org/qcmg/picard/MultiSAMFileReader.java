@@ -26,13 +26,13 @@ import htsjdk.samtools.SAMRecord;
 
 public final class MultiSAMFileReader implements Closeable, Iterable<SAMRecord> {
 	private static final Pattern colonDelimitedPattern = Pattern.compile("[:]+");
-	private final Set<Integer> taken = new HashSet<Integer>();
+	private final Set<Integer> taken = new HashSet<Integer>(8);
 	private final Vector<SamReader> readers = new Vector<SamReader>();
 	private final Vector<SAMFileHeader> headers = new Vector<SAMFileHeader>();
-	private final Map<SamReader, File> fileMap = new HashMap<SamReader, File>();
-	private final Map<SamReader, Set<Integer>> oldZcs = new HashMap<SamReader, Set<Integer>>();
-	private final Map<SamReader, Map<Integer, Integer>> replacementZcs = new HashMap<SamReader, Map<Integer, Integer>>();
-	private final Map<SamReader, Integer> defaultZcs = new HashMap<SamReader, Integer>();
+	private final Map<SamReader, File> fileMap = new HashMap<SamReader, File>(8);
+	private final Map<SamReader, Set<Integer>> oldZcs = new HashMap<SamReader, Set<Integer>>(8);
+	private final Map<SamReader, Map<Integer, Integer>> replacementZcs = new HashMap<SamReader, Map<Integer, Integer>>(8);
+	private final Map<SamReader, Integer> defaultZcs = new HashMap<SamReader, Integer>(8);
 	private MultiSAMFileIterator activeIterator = null;
 
 	
@@ -48,7 +48,7 @@ public final class MultiSAMFileReader implements Closeable, Iterable<SAMRecord> 
 			if (SAMFileHeader.SortOrder.coordinate != header.getSortOrder()) {
 				throw new Exception("Input files must be coordinate sorted");
 			}
-			final HashSet<Integer> zcs = new HashSet<Integer>();
+			final Set<Integer> zcs = new HashSet<Integer>(8);
 			for (SAMReadGroupRecord record : header.getReadGroups()) {
 				final String attribute  = getAttributeZc( record);
 				if (null != attribute ) {				 
@@ -220,7 +220,7 @@ public final class MultiSAMFileReader implements Closeable, Iterable<SAMRecord> 
 
 	private void evaluateReplacementZcs() throws Exception {
 		for (SamReader reader : readers) {
-			HashMap<Integer, Integer> replacements = new HashMap<Integer, Integer>();
+			Map<Integer, Integer> replacements = new HashMap<Integer, Integer>();
 			replacementZcs.put(reader, replacements);
 			Set<Integer> oldZcs = getOldZcs(reader);
 			for (Integer oldZc : oldZcs) {
