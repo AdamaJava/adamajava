@@ -19,7 +19,7 @@ public class SnpEffMafRecord {
 	public static final String novel = "novel";
 	public static final char positive = '+';
 	public static final String none = "none";
-	public static final String Null = "null";
+	public static final String Null = Constants.NULL_STRING;
 	public static final String Zero = "0";	
 	public static final String Version = "#version 2.4.1";
 	public static final String center = "QIMR_Berghofer";

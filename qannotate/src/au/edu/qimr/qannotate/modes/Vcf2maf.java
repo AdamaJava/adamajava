@@ -209,7 +209,7 @@ public class Vcf2maf extends AbstractMode{
 			String line = null; //boolean flag = false;
 	        try( BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(f))); ){
 		        	while (null != (line = reader.readLine()) ) {
-		        		if(line.startsWith("#") || line.equals(SnpEffMafRecord.getSnpEffMafHeaderline())) {
+		        		if(line.startsWith(Constants.HASH_STRING) || line.equals(SnpEffMafRecord.getSnpEffMafHeaderline())) {
 		        			line = null;         
 		        		} else {
 		        			break; //find non header line
@@ -357,7 +357,7 @@ public class Vcf2maf extends AbstractMode{
 		if(formats == null) 	return maf; 
 		
 		if(   formats.size() <= Math.max(test_column, control_column)  ) {	// format include "FORMAT" column, must bigger than sample column
-			throw new IllegalArgumentException(" Varint missing sample column on :"+ vcf.getChromosome() + "\t" + vcf.getPosition());
+			throw new IllegalArgumentException(" Varint missing sample column on :"+ vcf.getChromosome() + Constants.TAB + vcf.getPosition());
 		}
 		boolean mergedRecord = VcfUtils.isMergedRecord(vcf);
 		VcfFormatFieldRecord sample =  new VcfFormatFieldRecord(formats.get(0), formats.get(test_column));		
@@ -393,21 +393,24 @@ public class Vcf2maf extends AbstractMode{
 	}
 	 
 	public static String getNotes(VcfInfoFieldRecord info){
-		String str = (info.getField(VcfHeaderUtils.INFO_TRF)!= null)? VcfHeaderUtils.INFO_TRF + "=" +info.getField(VcfHeaderUtils.INFO_TRF) + ";" : "";		
-		if(info.getField(VcfHeaderUtils.INFO_HOM)!= null){
+		String str = (info.getField(VcfHeaderUtils.INFO_TRF) != null) ? VcfHeaderUtils.INFO_TRF + Constants.EQ +info.getField(VcfHeaderUtils.INFO_TRF) + Constants.SEMI_COLON : Constants.EMPTY_STRING;		
+		if (info.getField(VcfHeaderUtils.INFO_HOM)!= null) {
 			String hom = info.getField(VcfHeaderUtils.INFO_HOM ).split(Constants.COMMA_STRING)[0];	
 			try{
-			int count = Integer.parseInt(hom);
-				str += ( count > 1)? VcfHeaderUtils.INFO_HOM + "="+ count: "";	
-			}catch (NumberFormatException e){
+				int count = Integer.parseInt(hom);
+				if (count > 1) {
+					str += VcfHeaderUtils.INFO_HOM + Constants.EQ + count;	
+				}
+			} catch (NumberFormatException e){
 				//do nothing
 			}
 		}	
 		
-		if(str.endsWith(";"))
+		if (str.endsWith(Constants.SEMI_COLON_STRING)) {
 			str = str.substring(0, str.length()-1);	
+		}
 			
-		return str.equals("")? MafElement.Notes.getDefaultValue(): str; 
+		return Constants.EMPTY_STRING.equals(str) ? MafElement.Notes.getDefaultValue(): str; 
 		//return str;
 	}
 	 
@@ -446,7 +449,7 @@ public class Vcf2maf extends AbstractMode{
 	 	 boolean useFirst = true;	 
 		 if ( ! StringUtils.isMissingDtaString(gd)) {
 			 if (isMerged) {
-				 String [] gds = gd.split(VCF_MERGE_DELIM + "");
+				 String [] gds = gd.split(VCF_MERGE_DELIM + Constants.EMPTY_STRING);
 				 if(gds.length == 2 && gds[0].equals(MISSING_DATA_STRING))
 					 useFirst = false;
 				 gd = useFirst ? gds[0] : gds[1];
@@ -531,9 +534,9 @@ public class Vcf2maf extends AbstractMode{
       		 
       		 values[6] = bases;
 	    		//check counts      		
-      		 values[1] = SnpUtils.getTotalCountFromNucleotideString(bases, cs) + "";     
-	         values[2] = SnpUtils.getCountFromNucleotideString(bases,ref, cs) + "";
-	         values[3] = SnpUtils.getCountFromNucleotideString(bases,alt, cs) + "";	        		     
+      		 values[1] = SnpUtils.getTotalCountFromNucleotideString(bases, cs) + Constants.EMPTY_STRING;     
+	         values[2] = SnpUtils.getCountFromNucleotideString(bases,ref, cs) + Constants.EMPTY_STRING;
+	         values[3] = SnpUtils.getCountFromNucleotideString(bases,alt, cs) + Constants.EMPTY_STRING;     
       	}
 		 
       	 //get genotype base
@@ -543,7 +546,7 @@ public class Vcf2maf extends AbstractMode{
 	 }
 	 	 	 	 
 	 void getSnpEffAnnotation(SnpEffMafRecord maf, String effString) {
-		 	String effAnno = SnpEffConsequence.getWorstCaseConsequence(effString.split(","));		 
+		 	String effAnno = SnpEffConsequence.getWorstCaseConsequence(effString.split(Constants.COMMA_STRING));		 
 			//Effect 			   ( Effect_Impact | Functional_Class | Codon_Change | Amino_Acid_Change| Amino_Acid_length | Gene_Name | Transcript_BioType | Gene_Coding 				| Transcript_ID | Exon_Rank  | Genotype_Number [ | ERRORS | WARNINGS ] )
 			//upstream_gene_variant (MODIFIER       |         -         |1760          |     -             |		-		| DDX11L1	|processed_transcript|NON_CODING				|ENST00000456328|		-	 |1)
 	 		//	synonymous_variant(LOW			0	|SILENT			   1|aaG/aaA	|p.Lys644Lys/c.1932G>A 3|647  			|VCAM1	    5|protein_coding		6|CODING			7	|ENST00000347652 8|			8|	1)
@@ -551,13 +554,14 @@ public class Vcf2maf extends AbstractMode{
 			//if(! StringUtils.isNullOrEmpty(ontolog)  ){
 		 	
 		 	if ( StringUtils.isNullOrEmpty( effAnno )  )
-		 		effAnno =  SnpEffConsequence.getUndefinedConsequence(effString.split(","));
+		 		effAnno =  SnpEffConsequence.getUndefinedConsequence(effString.split(Constants.COMMA_STRING));
 		 		
 			if (StringUtils.isNullOrEmpty( effAnno )  )
 				return;
 	
-			final String ontolog = effAnno.substring(0, effAnno.indexOf("("));		
-			final String annotate = effAnno.substring( effAnno.indexOf("(") + 1, effAnno.indexOf(")"));	
+			int ob = effAnno.indexOf(Constants.OPEN_BRACKET);
+			final String ontolog = effAnno.substring(0, ob);		
+			final String annotate = effAnno.substring( ob + 1, effAnno.indexOf(Constants.CLOSE_BRACKET));	
 	
 			maf.setColumnValue(MafElement.Effect_Ontology , ontolog); //effect_ontology
 			String str = SnpEffConsequence.getClassicName(ontolog);
@@ -569,7 +573,7 @@ public class Vcf2maf extends AbstractMode{
 				//check whether frameshift_variant			    
 				maf.setColumnValue(MafElement.Variant_Classification , (str.equals("Frame_Shift_")? str+maf.getColumnValue(MafElement.Variant_Type): str)); //eg. RNA
 			}
-			maf.setColumnValue(MafElement.Consequence_rank,  SnpEffConsequence.getConsequenceRank(ontolog)+""); //get A.M consequence's rank
+			maf.setColumnValue(MafElement.Consequence_rank,  SnpEffConsequence.getConsequenceRank(ontolog)+Constants.EMPTY_STRING); //get A.M consequence's rank
 	
 			final String[] effs = annotate.split(BAR_STRING);
 			if ( ! StringUtils.isNullOrEmpty(effs[0]))  maf.setColumnValue(MafElement.Eff_Impact, effs[0]); //Eff Impact, eg. modifier	
