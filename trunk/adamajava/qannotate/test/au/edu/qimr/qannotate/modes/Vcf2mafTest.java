@@ -190,6 +190,37 @@ public class Vcf2mafTest {
 		 assertEquals("G", altColumns[5]);
 		 assertEquals("C6[39.5],2[42],G12[39.5],15[34.87]", altColumns[6]);
 	 }
+	 @Test
+	 public void getAltColumnsRealLife3() {
+		 VcfFormatFieldRecord format = new VcfFormatFieldRecord( "GT:GD:AC:MR:NNS","0/1:A/C:A21[33.81],15[34.2],C5[37.2],0[0]:5:5");
+		 String ref = "A";
+		 String alt = "C";
+		 SVTYPE type = SVTYPE.SNP;
+		 String [] altColumns = Vcf2maf.getAltCounts(format, ref, alt, type, false);
+		 assertEquals(7, altColumns.length);
+		 assertEquals("5", altColumns[0]);
+		 assertEquals("41", altColumns[1]);
+		 assertEquals("36", altColumns[2]);
+		 assertEquals("5", altColumns[3]);
+		 assertEquals("A", altColumns[4]);
+		 assertEquals("C", altColumns[5]);
+		 assertEquals("A21[33.81],15[34.2],C5[37.2],0[0]", altColumns[6]);
+	 }
+	 @Test
+	 public void converter() {
+		 
+		 final Vcf2maf v2m = new Vcf2maf(2,1, null, null);	//test column2; normal column 1			
+		 final String[] parms = {"chrY","32463932",".","A","C",".","SBIASALT;5BP1","FLANK=CCCAACTAGTT;IN=1;DB;HOM=3,CCAAGCCCAAcTAGTTTTTTG;CONF=ZERO;EFF=downstream_gene_variant(MODIFIER||2001|||RP11-626K17.3|lincRNA|NON_CODING|ENST00000565549||1),intergenic_region(MODIFIER||||||||||1)",
+				 "GT:GD:AC:MR:NNS","0/1:A/C:A21[33.81],15[34.2],C5[37.2],0[0]:5:5","0/0:A/A:A58[34.55],58[35],C7[37.14],0[0]:7:6"};
+		 
+		 final VcfRecord vcf = new VcfRecord(parms);
+		 final SnpEffMafRecord maf = v2m.converter(vcf);
+		 assertEquals("A", maf.getColumnValue(MafElement.Reference_Allele));
+		 assertEquals("A", maf.getColumnValue(MafElement.Tumor_Seq_Allele1));
+		 assertEquals("A", maf.getColumnValue(MafElement.Tumor_Seq_Allele2));
+		 assertEquals("A", maf.getColumnValue(MafElement.Match_Norm_Seq_Allele1));
+		 assertEquals("C", maf.getColumnValue(MafElement.Match_Norm_Seq_Allele2));
+	 }
 	 
 	 @Test
 	 public void getAltColumnsRealLifeMerged() {
