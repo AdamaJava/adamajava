@@ -175,6 +175,7 @@ public class SignatureCompareRelatedSimpleGenotype {
 			m.clear();
 			m = null;
 		}
+		logger.info("Loaded data for " + size + " (all) files");
 		
 		for (Comparison comp : allComparisons) {
 			if (comp.getScore() > cutoff) {
