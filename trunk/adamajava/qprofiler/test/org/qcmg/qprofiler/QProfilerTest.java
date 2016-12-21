@@ -37,8 +37,7 @@ public class QProfilerTest {
 		GFF_FILE_NAME_2_FILE = testFolder.newFile(GFF_FILE_NAME_2);
 		DODGY_GFF_FILE_NAME_FILE = testFolder.newFile(DODGY_GFF_FILE_NAME);
 		
-		createTestFile(DODGY_GFF_FILE_NAME_FILE, getDodgyFileContents());
-		
+		createTestFile(DODGY_GFF_FILE_NAME_FILE, getDodgyFileContents());		
 	}
 
 	@Test

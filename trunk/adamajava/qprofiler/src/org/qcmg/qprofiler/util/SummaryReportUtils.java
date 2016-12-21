@@ -18,6 +18,7 @@ import htsjdk.samtools.CigarOperator;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -39,7 +40,7 @@ import org.qcmg.common.model.SummaryByCycle;
 import org.qcmg.common.model.SummaryByCycleNew2;
 import org.qcmg.common.util.BaseUtils;
 import org.qcmg.common.util.SummaryByCycleUtils;
-import org.qcmg.qprofiler.bam.PositionSummary;
+import org.qcmg.qprofiler.summarise.PositionSummary;
 import org.qcmg.qvisualise.util.QProfilerCollectionsUtils;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
@@ -51,13 +52,17 @@ public class SummaryReportUtils {
 	public static final int MAX_I_SIZE = 50000;
 	public static final int INITIAL_I_SIZE_BUCKET_SIZE = 10;
 	public static final int FINAL_I_SIZE_BUCKET_SIZE = 1000000;
-	public static final Pattern BAD_MD_PATTERN = Pattern.compile("([ACGTN])");
-	
-	private static final Pattern badReadPattern = Pattern.compile("([.N])");
-	
-	private static final NumberFormat nf = new DecimalFormat("0.0#%");
-	
+	public static final Pattern BAD_MD_PATTERN = Pattern.compile("([ACGTN])");	
+	private static final Pattern badReadPattern = Pattern.compile("([.N])");	
+	private static final NumberFormat nf = new DecimalFormat("0.0#%");	
 	private static final QLogger logger = QLoggerFactory.getLogger(SummaryReportUtils.class);
+	
+	public static final String EMPTY = "EMPTY";
+	public static final String TOTAL = "Total";
+	public static final String UNKNOWN_READGROUP = "unkown_readgroup_id";
+	public static final String All_READGROUP = "overall";
+	
+	
 
 	/**
 	 * Calls <code>lengthMapToXml(Element parent, String elementName,
@@ -81,10 +86,10 @@ public class SummaryReportUtils {
 		
 		Document doc = parent.getOwnerDocument();
 		Element element = doc.createElement(elementName);
-		parent.appendChild(element);
-		
+		parent.appendChild(element);		
 		lengthMapToXmlTallyItem(element, "ValueTally", map, comparator);
 	}
+	
 	public static <T> void lengthMapToXml(Element parent, String elementName, Map<T, AtomicLong> map) {
 		lengthMapToXml(parent, elementName, map, null);
 	}
@@ -1024,37 +1029,72 @@ public class SummaryReportUtils {
 	}
 	
 	public static <T> void postionSummaryMapToXml(Element parent, String elementName,
-			Map<String, PositionSummary> mapOfPositions) {
+			Map<String, PositionSummary> mapOfPositions, List<String> readGroupIds) {	
+		
+		//get floor and celling value of coverage for qvisualize
+		long coverageTotal = 0; 
+		int binTotal = 0; 
+		for ( PositionSummary summary : mapOfPositions.values()){
+			coverageTotal += summary.getMaxRgCoverage();
+			binTotal += summary.getBinNumber();
+		}
+		
+		if(binTotal == 0) binTotal ++; //avoid exception for unit test
+		int floorValue =  (int) ( coverageTotal / (binTotal*4)); 
+		
+		int overFloorBin = 0; 
+		for ( PositionSummary summary : mapOfPositions.values())
+			overFloorBin += summary.getBigBinNumber(floorValue);
+		
+//			for( AtomicLongArray bin : summary.getRgCoverage().values()){			
+//				for(int i = 0, sum = 0; i < bin.length(); i++){
+//					sum += bin.get(i);
+//					if(sum > floorValue ){ overFloorBin ++; break; }
+//				}
+//			}
+		
+		if(overFloorBin == 0) overFloorBin ++;
+		int cellingValue = (int) (2.5 * coverageTotal / overFloorBin );
+				
 		Document doc = parent.getOwnerDocument();
 		Element element = doc.createElement(elementName);
 		parent.appendChild(element);
 		
 		// sort map
 		Map<String, PositionSummary> sortedMap = new TreeMap<String, PositionSummary>(new ReferenceNameComparator());
-		sortedMap.putAll(mapOfPositions);
-		
-		
+		sortedMap.putAll( mapOfPositions );
+				
 		try {
 			for (Map.Entry<String, PositionSummary> entrySet : sortedMap.entrySet()) {
 				Element rNameE = doc.createElement("RNAME");
 				rNameE.setAttribute("value", entrySet.getKey());
 				PositionSummary ps = entrySet.getValue();
-				rNameE.setAttribute("minPosition", "" + ps.getMin());
-				rNameE.setAttribute("maxPosition", "" + ps.getMax());
-				rNameE.setAttribute("count", "" + ps.getCount());
+				rNameE.setAttribute("minPosition", "" + ps.getMin() );
+				rNameE.setAttribute("maxPosition", "" + ps.getMax() );
+				rNameE.setAttribute("count", "" + ps.getTotalCount() );
+				//rNameE.setAttribute("maxAveOfReadGroup", "" + ps.getAveOfMax() );
+				rNameE.setAttribute("visuallCellingValue", "" + cellingValue  );
+				rNameE.setAttribute("readGroups", Arrays.toString(readGroupIds.toArray()).replace("[", "").replace("]", "").replace(" ", "") );
+				//debug
+				rNameE.setAttribute("debugfloorValue", ""+floorValue) ;
+				rNameE.setAttribute("debugcoverageTotal", ""+coverageTotal) ;
+				rNameE.setAttribute("debugbinTotal", ""+binTotal) ;
+				rNameE.setAttribute("debugoverFloorBin", ""+overFloorBin) ;
+				
 				element.appendChild(rNameE);
 				
-				Element rangeTallyE = doc.createElement("RangeTally");
+				Element rangeTallyE = doc.createElement( "RangeTally" );
 				rNameE.appendChild(rangeTallyE);
 								
 				// insert map of coverage here
-				for (Map.Entry<Integer, AtomicLong> entry : ps.getCoverage()
-						.entrySet()) {
+				Map<Integer, AtomicLong> coverage = ps.getCoverage();
+				for (Entry<Integer, AtomicLongArray> entry : ps.getRgCoverage().entrySet()) {
 					Element tallyE = doc.createElement("RangeTallyItem");
-					tallyE.setAttribute("start", "" + entry.getKey() * 1000000);
-					tallyE.setAttribute("end", "" + ((entry.getKey() + 1) * 1000000 - 1));
-					tallyE.setAttribute("count", entry.getValue().get()+"");
-					rangeTallyE.appendChild(tallyE);
+					tallyE.setAttribute("start", "" + entry.getKey() * PositionSummary.BUCKET_SIZE  ); 
+					tallyE.setAttribute("end", "" + ((entry.getKey() + 1) * PositionSummary.BUCKET_SIZE  - 1));					
+					tallyE.setAttribute("rgCount", entry.getValue().toString().replace("[", "").replace("]", "").replace(" ", "") );//remove space, [ ]
+					tallyE.setAttribute("count", "" + coverage.get(entry.getKey()) );
+					rangeTallyE.appendChild( tallyE );
 				}
 			}
 		} catch (DOMException e) {

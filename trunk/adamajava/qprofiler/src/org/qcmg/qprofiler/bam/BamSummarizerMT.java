@@ -11,6 +11,8 @@
  */
 package org.qcmg.qprofiler.bam;
 
+import static java.util.stream.Collectors.toList;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.AbstractQueue;
@@ -50,6 +52,7 @@ public class BamSummarizerMT implements Summarizer {
 	private final String [] includes;
 	private static String bamHeader;
 	private static SAMSequenceDictionary samSeqDict;
+	private static List<String> readGroupIds;
 	private final String [] tags;
 	private final String [] tagsInt;
 	private final String [] tagsChar;
@@ -69,8 +72,7 @@ public class BamSummarizerMT implements Summarizer {
 		this.tagsChar = tagsChar;
 		this.validation = validation;
 	}
-	
-	
+		
 	@Override
 	public SummaryReport summarize(File file) throws Exception {
 		
@@ -93,7 +95,7 @@ public class BamSummarizerMT implements Summarizer {
 		}
 		long start = System.currentTimeMillis();
 		
-		final BamSummaryReport bamSummaryReport = new BamSummaryReport(includes, maxRecords, tags, tagsInt, tagsChar);
+		final BamSummaryReport bamSummaryReport = new BamSummaryReport( includes, maxRecords, tags, tagsInt, tagsChar );
 		bamSummaryReport.setFileName(file.getAbsolutePath());
 		bamSummaryReport.setStartTime(DateUtils.getCurrentDateAsString());
 		
@@ -117,7 +119,8 @@ public class BamSummarizerMT implements Summarizer {
 			
 			samSeqDict = reader.getFileHeader().getSequenceDictionary();
 			bamHeader = HeaderUtils.getHeaderStringFromHeader(header);
-			
+			readGroupIds = header.getReadGroups().stream().map( it -> it.getId()  ).collect(toList()); 
+
 			List<SAMProgramRecord> pgLines = header.getProgramRecords();
 			for (SAMProgramRecord pgLine : pgLines) {
 				if ("tmap".equals(pgLine.getId())) torrentBam = true;
@@ -130,7 +133,8 @@ public class BamSummarizerMT implements Summarizer {
 		// set the bam header
 		bamSummaryReport.setBamHeader(bamHeader);
 		bamSummaryReport.setSamSequenceDictionary(samSeqDict);
-		
+		bamSummaryReport.setReadGroups(readGroupIds);
+		 		
 		logger.info("will create " + noOfConsumerThreads + " consumer threads");
 
 		final CountDownLatch pLatch = new CountDownLatch(noOfProducerThreads);
@@ -142,7 +146,7 @@ public class BamSummarizerMT implements Summarizer {
 			 : new Consumer(queues, bamSummaryReport, Thread.currentThread(), cLatch, pLatch, i % noOfProducerThreads));
 		}
 		
-//		 setpup and kick-off single Producer thread
+//		setpup and kick-off single Producer thread
 		ExecutorService producerThreads = Executors.newFixedThreadPool(noOfProducerThreads);
 		if (noOfProducerThreads == 1) {
 			producerThreads.execute(new SingleProducer(q, file, Thread.currentThread(), pLatch, cLatch));
@@ -165,7 +169,7 @@ public class BamSummarizerMT implements Summarizer {
 				consumerThreads.shutdownNow();
 				throw new Exception("Producer thread has timed out");
 			}
-			logger.info("Producer thread finished, queue size: " + (q == null ? getQueueSize(queues) : getQueueSize(q)));
+			logger.info("Producer thread finished, queue size: " + (q == null ? getQueueSize(queues) : getQueueSize(q) ) );
 			
 			if ( ! cLatch.await(30, TimeUnit.SECONDS)) {
 			
@@ -211,7 +215,7 @@ public class BamSummarizerMT implements Summarizer {
 			throw e;
 		}
 		
-        	bamSummaryReport.cleanUp();
+        bamSummaryReport.cleanUp();
 		logger.info("Records parsed: " + bamSummaryReport.getRecordsParsed());
 		
 		bamSummaryReport.setFinishTime(DateUtils.getCurrentDateAsString());

@@ -45,7 +45,7 @@ public class FastaSummarizerTest {
 
 	@Test
 	public void testSummarizeMissingData() throws Exception {
-		System.out.println("in testSummarizeMissingData()");
+//		System.out.println("in testSummarizeMissingData()");
 		createDodgyDataFile(createFastaDataMissingData());
 
 		FastaSummarizer qs = new FastaSummarizer();
@@ -61,7 +61,7 @@ public class FastaSummarizerTest {
 
 	@Test
 	public void testSummarizeEmptyFile() throws Exception {
-		System.out.println("in testSummarizeEmptyFile()");
+//		System.out.println("in testSummarizeEmptyFile()");
 		createDodgyDataFile(new ArrayList<String>());
 
 		FastaSummarizer qs = new FastaSummarizer();
@@ -73,7 +73,7 @@ public class FastaSummarizerTest {
 
 	@Test
 	public void testSummarizeExtraData() throws Exception {
-		System.out.println("in testSummarizeExtraData()");
+//		System.out.println("in testSummarizeExtraData()");
 		createDodgyDataFile(createFastalDataExtraData());
 
 		FastaSummarizer qs = new FastaSummarizer();
@@ -136,7 +136,7 @@ public class FastaSummarizerTest {
 
 	@Test
 	public void testSummarizeNoHeader() throws Exception {
-		System.out.println("in testSummarizeNoHeader()");
+//		System.out.println("in testSummarizeNoHeader()");
 		createDodgyDataFile(createFastaDataBody());
 
 		FastaSummarizer qs = new FastaSummarizer();

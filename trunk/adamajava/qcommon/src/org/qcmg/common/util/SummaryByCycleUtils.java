@@ -6,6 +6,7 @@
  */
 package org.qcmg.common.util;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 import java.util.TreeMap;
@@ -17,8 +18,7 @@ import org.qcmg.common.model.SummaryByCycle;
 import org.qcmg.common.model.SummaryByCycleNew2;
 
 public class SummaryByCycleUtils {
-	
-	
+		
 	/**
 	 * Method that takes in a string, and for each integer (separated by a comma) in that string, calls <code>increment</code>
 	 * on the supplied SummaryByCycle object, that is keeping track of the number of occurrences of that particular
@@ -73,11 +73,11 @@ public class SummaryByCycleUtils {
 		if (null != qualities) {
 			if (reverse) {
 				for (int i = qualities.length -1, j = 1 ; i >= 0 ; i--, j++) {
-					summary.increment(j, qualities[i] & 0xFF);
+					summary.increment( j, qualities[i] & 0xFF );
 				}
 			} else {
 				for (int i = 0, size = qualities.length ; i < size ; i++) {
-					summary.increment(i+1, qualities[i] & 0xFF);
+					summary.increment( i+1, qualities[i] & 0xFF );
 				}
 			}
 		}
@@ -172,9 +172,6 @@ public class SummaryByCycleUtils {
 			for (int i = dataString.length -1 , j = 1; i >= 0 ; i--, j++) {
 				summary.increment(j , BaseUtils.getComplement((char) dataString[i]));
 			}
-//			for (int i = 1, len = dataString.length ; i <= len ; i++) {
-//				summary.increment(i , BaseUtils.getComplement((char) dataString[len - i]));
-//			}
 		} else {
 			int i = 1;
 			for (byte b : dataString) {
@@ -255,8 +252,7 @@ public class SummaryByCycleUtils {
 	}
 	
 	public static <T> Map<Integer, AtomicLong> getLengthsFromSummaryByCycle(SummaryByCycleNew2<T> summary, long totalSize) {
-		Map<Integer, AtomicLong> map = Collections.emptyMap();
-		
+		Map<Integer, AtomicLong> map = Collections.emptyMap();		
 		if (null != summary && ! summary.cycles().isEmpty()) {
 			long previousTally = totalSize;
 			long count;
@@ -277,40 +273,5 @@ public class SummaryByCycleUtils {
 		}
 		return map;
 	}
-	
-//	private static <T> Map<Integer, AtomicLong> getLengthsFromSummaryByCycle2(SummaryByCycle<T> summary) {
-//		Map<Integer, AtomicLong> map = Collections.emptyMap();
-//		
-//		if (null != summary && ! summary.cycles().isEmpty()) {
-//			long count;
-//			long previousCount = 0;
-//			map = new TreeMap<Integer, AtomicLong>();
-//			for (Integer i : summary.cycles()) {
-//				
-//				// get count at this cycle
-//				count = 0;
-//				for (AtomicLong al : summary.getValue(i).values()) {
-//					count += al.get();
-//				}
-//				
-//				if (i.intValue() == 1) {
-//					// previousCount will be set to zero
-//					// set to count and skip to next iteration
-//					previousCount = count;
-//					continue;
-//				}
-//				
-//				// if it is less than the previousCount, add an entry to the map
-//				if (count < previousCount) {
-//					// add entry to map with difference as the tally
-//					map.put(i -1, new AtomicLong(previousCount - count));
-//				}
-//				previousCount = count;
-//			}
-//			// pop the last entry into the map
-//			map.put(summary.cycles().last(), new AtomicLong(previousCount));
-//		}
-//		return map;
-//	}
 
 }

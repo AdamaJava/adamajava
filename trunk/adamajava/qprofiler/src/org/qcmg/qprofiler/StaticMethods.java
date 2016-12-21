@@ -29,7 +29,7 @@ import java.util.regex.Pattern;
 
 public class StaticMethods {
 	
-	public static final String EMPTY = "EMPTY";
+	
 	public static final String DATE_FORMAT_NOW = "yyyy-MM-dd HH:mm:ss";
 	private static Pattern fileVersionPattern = Pattern.compile("^(.*)\\.(\\d+)$");
 
@@ -39,67 +39,67 @@ public class StaticMethods {
 	 * @return date-time string in format: yyyy-MM-dd HH:mm:ss
 	 * @deprecated use <code>DateUtils.getCurrentDateAsString()</code> instead
 	 */
-	@Deprecated
-	public static String now() {
-		Calendar cal = Calendar.getInstance();
-		SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT_NOW);
-		return sdf.format(cal.getTime());
-	}
+//	@Deprecated
+//	public static String now() {
+//		Calendar cal = Calendar.getInstance();
+//		SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT_NOW);
+//		return sdf.format(cal.getTime());
+//	}
 
 	/**
 	 * Compute an MD5 signature for a file
 	 * 
 	 * @param file File object for file to be MD5'd.
 	 */
-	public static String computeMD5(File file) throws Exception {
-		MessageDigest digest = MessageDigest.getInstance("MD5");
-		InputStream is = new FileInputStream(file);
-		byte[] buffer = new byte[8192];
-		int read = 0;
-		try {
-			while ((read = is.read(buffer)) > 0) {
-				digest.update(buffer, 0, read);
-			}
-			byte[] md5sum = digest.digest();
-			BigInteger bigInt = new BigInteger(1, md5sum);
-			String output = bigInt.toString(16);
-			return output;
-		} catch (IOException e) {
-			throw new RuntimeException("Unable to process file for MD5", e);
-		} finally {
-			try {
-				is.close();
-			} catch (IOException e) {
-				throw new RuntimeException(
-						"Unable to close input stream for MD5 calculation", e);
-			}
-		}
+//	public static String computeMD5(File file) throws Exception {
+//		MessageDigest digest = MessageDigest.getInstance("MD5");
+//		InputStream is = new FileInputStream(file);
+//		byte[] buffer = new byte[8192];
+//		int read = 0;
+//		try {
+//			while ((read = is.read(buffer)) > 0) {
+//				digest.update(buffer, 0, read);
+//			}
+//			byte[] md5sum = digest.digest();
+//			BigInteger bigInt = new BigInteger(1, md5sum);
+//			String output = bigInt.toString(16);
+//			return output;
+//		} catch (IOException e) {
+//			throw new RuntimeException("Unable to process file for MD5", e);
+//		} finally {
+//			try {
+//				is.close();
+//			} catch (IOException e) {
+//				throw new RuntimeException(
+//						"Unable to close input stream for MD5 calculation", e);
+//			}
+//		}
+//
+//	}
 
-	}
-
-	/**
-	 * Concatenate the elements of an array of strings into a single string with
-	 * a given separator string between the elements.
-	 * 
-	 * @param separator string to be placed between adjacent elements
-	 * @param strings array of strings to be concatenated
-	 * @return concatenated result
-	 */
-	public static String join(String separator, String[] strings) {
-		if (strings == null) {
-			return null;
-		}
-		if (strings.length == 0) {
-			return "";
-		}
-
-		StringBuffer sb = new StringBuffer(strings[0]);
-		for (int i = 1; i < strings.length; ++i) {
-			sb.append(separator);
-			sb.append(strings[i]);
-		}
-		return sb.toString();
-	}
+//	/**
+//	 * Concatenate the elements of an array of strings into a single string with
+//	 * a given separator string between the elements.
+//	 * 
+//	 * @param separator string to be placed between adjacent elements
+//	 * @param strings array of strings to be concatenated
+//	 * @return concatenated result
+//	 */
+//	public static String join(String separator, String[] strings) {
+//		if (strings == null) {
+//			return null;
+//		}
+//		if (strings.length == 0) {
+//			return "";
+//		}
+//
+//		StringBuffer sb = new StringBuffer(strings[0]);
+//		for (int i = 1; i < strings.length; ++i) {
+//			sb.append(separator);
+//			sb.append(strings[i]);
+//		}
+//		return sb.toString();
+//	}
 
 	/**
 	 * Backup a file by renaming it where the renaming is based on appending (or
@@ -124,7 +124,6 @@ public class StaticMethods {
 		} else {
 
 //		 if file already exists, backup by renaming
-//		if (origFile.canRead()) {
 			Matcher matcher = fileVersionPattern.matcher(origFile
 					.getCanonicalPath());
 			boolean matchFound = matcher.find();

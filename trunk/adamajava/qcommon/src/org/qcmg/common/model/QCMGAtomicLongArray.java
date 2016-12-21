@@ -25,20 +25,8 @@ public class QCMGAtomicLongArray {
 		array = new AtomicLongArray(capacity);
 	}
 	
-	public void increment(final int arrayPosition) {
-		
-		increment(arrayPosition, 1);
-		
-//		if (arrayPosition >= capacity) {
-//			resize(arrayPosition);
-//		}
-//		
-//		if (resizingInProgress.get()) {
-//			// cas until resizing is complete
-//			while  ( ! resizingInProgress.compareAndSet(false, false) ) {}
-//		}
-//		array.addAndGet(arrayPosition, 1);
-		
+	public void increment(final int arrayPosition) {		
+		increment(arrayPosition, 1);		
 	}
 
 	public void increment(final int arrayPosition, final long value) {
@@ -54,12 +42,8 @@ public class QCMGAtomicLongArray {
 		array.addAndGet(arrayPosition, value);
 	}
 	
-	public long get(int arrayPosition) {
-		return array.get(arrayPosition);
-	}
-	public long length() {
-		return array.length();
-	}
+	public long get(int arrayPosition) { 	return array.get(arrayPosition); }
+	public long length() { 	return array.length(); }
 	
 	private void resize(final int arrayPosition) {
 		// lock
@@ -68,8 +52,7 @@ public class QCMGAtomicLongArray {
 		try {
 			// check capacity as may have already  been resized to fit our arrayPosition
 			if (arrayPosition >= capacity) {
-			
-				
+							
 				// sleep to allow any threads in CAS loop in increment method to complete
 				// resizing should not occur often so will not be too great a performance penalty
 				// and it SHOULD mean we keep the array in a consistent state 

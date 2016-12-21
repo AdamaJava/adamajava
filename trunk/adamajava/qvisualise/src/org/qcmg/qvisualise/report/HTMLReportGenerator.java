@@ -9,6 +9,7 @@ package org.qcmg.qvisualise.report;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.qcmg.common.string.StringUtils;
 import org.qcmg.qvisualise.ChartTab;
 
 public class HTMLReportGenerator {
@@ -56,8 +57,7 @@ public class HTMLReportGenerator {
 		sb.append(HTMLReportUtils.createStyleSheet());
 		sb.append(HTMLReportUtils.getStyle());
 		sb.append("<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js\"></script>\n");
-		sb.append("<script type=\"text/javascript\"> " +
-				"$(document).ready(function () {");
+		sb.append("<script type=\"text/javascript\"> $(document).ready(function () {\n");
 		
 		// loop through all tabs, if we have descriptions set, disable them initially so they are not 'on' by default
 		for (Report report : reports) {
@@ -70,18 +70,15 @@ public class HTMLReportGenerator {
 				for (ChartTab child: tab.getChildren()) {				
 					if (null != child.getDescription() ) {
 						sb.append(" $(\"#" + child.getName() + "Desc_div\").toggle(false);\n");
-					}
- 
+					} 
 				}
 			}
 		}
 		
 		sb.append("});\n function toggleDiv(divId) { $(\"#\"+divId).toggle('fast'); }");
-		sb.append("</script></head>\n");
-		
+		sb.append("</script></head>\n");		
 		sb.append("<body>");
-		
-		
+			
 		if (reports.size() > 1) {
 			// don't want tab for report if it is the only one
 			sb.append("\n<ul class=\"tabs\">");
@@ -131,21 +128,26 @@ public class HTMLReportGenerator {
 			sb.append("\n<div class=\"pane\"> ");
 		
 		
-		sb.append("\n<div class=\"header\">File: ").append(report.getFileName()).append(END_DIV);
-		sb.append(String.format("\n<div class=\"header\">RecordParsed:%s, RunBy: %s, RunOn: %s, Version: qprofiler-%s.",report.getRecordParsed(), report.getRunBy(), report.getRunOn(), report.getVersion())).append(END_DIV);		
+		sb.append("\n<div class=\"header\">File:").append(report.getFileName()).append(END_DIV);		
+		if( ! StringUtils.isNullOrEmpty( report.getRecordParsed() ))
+			sb.append(String.format("\n<div class=\"header\">RecordsParsed:%s; RunBy:%s; RunOn:%s; Version:qprofiler-%s",report.getRecordParsed(), report.getRunBy(), report.getRunOn(), report.getVersion())).append(END_DIV);		
+		else
+			sb.append(String.format("\n<div class=\"header\">RunBy:%s; RunOn:%s; Version:qprofiler-%s", report.getRunBy(), report.getRunOn(), report.getVersion())).append(END_DIV);		
+			
+		
 		sb.append(END_DIV);	
 		sb.append("\n<div class=\"header\">&nbsp</div>");		
 		// and add the tabs to the body
 		sb.append("\n<ul class=\"tabs\">");
 		// display parent tabs
-		for (ChartTab tab : report.getTabs()) {
+		for (ChartTab tab : report.getTabs()) {  
 			sb.append("\n<li><a href=\"#\">");
 			sb.append(tab.getTitle() + "</a></li>");
 		}
 		sb.append("\n</ul>");
 		
 		
-		for (ChartTab tab : report.getTabs()) {
+		for (ChartTab tab : report.getTabs()) {			
 			if (null == tab.getChildren() || tab.getChildren().isEmpty()) {
 				if (null == tab.getRenderingInfo()) {
 					if (null == tab.getDescription()) {
@@ -168,7 +170,9 @@ public class HTMLReportGenerator {
 				}
 				sb.append("\n</ul>");
 				for (ChartTab child : tab.getChildren()) {
-					if (null == child.getDescription()) {
+					if (null != child.getRenderingInfo()) {
+						sb.append(child.getRenderingInfo());  //xu code:: now child have rendering 
+					}else if (null == child.getDescription()) {
 						sb.append("\n<div class=\"pane\" id=\"" + child.getName() + "Chart_div\">");
 						sb.append(END_DIV);
 					} else {

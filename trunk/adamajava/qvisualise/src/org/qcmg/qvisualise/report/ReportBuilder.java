@@ -7,16 +7,20 @@
 package org.qcmg.qvisualise.report;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicLongArray;
+import java.util.stream.Collectors;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -72,11 +76,8 @@ public class ReportBuilder {
 		final String fileName = reportElement.getAttribute("file");
 		
 		final String recordParsed = reportElement.getAttribute("records_parsed");
-//		final String recordInputed = reportElement.getAttribute("records_inputed");
 		final String duplicateRecordCount = reportElement.getAttribute("duplicate_records");
-		Long dupsCount = (null != duplicateRecordCount && ! duplicateRecordCount.isEmpty())?  Long.parseLong(duplicateRecordCount) : 0;
-		final Report report = new Report(type, fileName, Long.parseLong(recordParsed), dupsCount);		
-//		final Report report = new Report(type, fileName, Long.parseLong(recordCount), dupsCount);		
+		final Report report = new Report(type, fileName, recordParsed, duplicateRecordCount);		
 		reportID = reportNumberId;
 		
 		switch (type) {
@@ -98,8 +99,7 @@ public class ReportBuilder {
 			break;
 		case QUAL:
 			for (ChartTab ct : buildMultiTabCycles(false,"Qual", reportElement, "qual",
-					"QualityByCycle", "BadQualsInReads", CycleDetailUtils.getQualFileCycle(), 
-					null, true)) {
+					"QualityByCycle", "BadQualsInReads", CycleDetailUtils.getQualFileCycle(), null, true)) {
 				report.addTab(ct);
 			}
 			break;
@@ -249,92 +249,12 @@ public class ReportBuilder {
 		return null;
 	}
 	
-	//xu code
-	private static Map<String, String>  createRgMap(Element reportElement ) {		
-		final NodeList summaryNL = reportElement.getElementsByTagName("SUMMARY");
-		if (null == summaryNL) return null;
-						
-		final Element summaryElement = (Element) summaryNL.item(0);
-		if (null == summaryElement)  return null;
-							 
-		NodeList summaryNodes = summaryElement.getChildNodes();		
-		if (null == summaryNodes)  return null;
-		
-		//get rg number from "ModalISize		
- 		Map<String, String> duplicateMap = new LinkedHashMap<>();
-//		Map<String, String> failedVendorMap = new LinkedHashMap<>();
-		Map<String, String> maxLengthMap = new LinkedHashMap<>();
-		Map<String, String> aveLengthMap = new LinkedHashMap<>();
-//		Map<String, String> secondaryMap = new LinkedHashMap<>();
-//		Map<String, String> supplementaryMap = new LinkedHashMap<>();
-		Map<String, String> totalReadsMap = new LinkedHashMap<>();
-		Map<String, String> unmappedMap = new LinkedHashMap<>(); 	
-		Map<String, String> nonCanonicalMap = new LinkedHashMap<>(); 	
-		Map<String, String> isizeMap = new LinkedHashMap<>();
-		Map<String, String> hardClipMap = new LinkedHashMap<>();
-		Map<String, String> softClipMap = new LinkedHashMap<>();
-		Map<String, String> overlapMap = new LinkedHashMap<>();
-		Map<String, String> lostMap = new LinkedHashMap<>();
-		Map<String, String> trimmedMap = new LinkedHashMap<>();
-		 
-				
-		for (int i = 0 ; i < summaryNodes.getLength() ; i++)  
-			 if(summaryNodes.item(i).getNodeName().equals("ModalISize")){
-				NamedNodeMap node =  summaryNodes.item(i).getAttributes();
-				isizeMap.put(node.getNamedItem("rg").getNodeValue(),  node.getNamedItem("value").getNodeValue());	
-			 }
-			 else if(summaryNodes.item(i).getNodeName().equals("BaseCount")){
-				 NamedNodeMap node =  summaryNodes.item(i).getAttributes();
-				 String rg = node.getNamedItem("rg").getNodeValue();
-				 hardClipMap.put(rg, node.getNamedItem("hardClip").getNodeValue());
-				 softClipMap.put(rg, node.getNamedItem("softClip").getNodeValue());
-				 overlapMap.put(rg, node.getNamedItem("overlap").getNodeValue());
-				 duplicateMap.put(rg, node.getNamedItem("duplicate").getNodeValue());
-				maxLengthMap.put(rg, node.getNamedItem("maxLength").getNodeValue());				
-				aveLengthMap.put(rg, node.getNamedItem("aveLength").getNodeValue());
-				totalReadsMap.put(rg, node.getNamedItem("totalReads").getNodeValue());
-				unmappedMap.put(rg, node.getNamedItem("unmapped").getNodeValue());
-				nonCanonicalMap.put(rg, node.getNamedItem("nonCanonicalPair").getNodeValue());
-				trimmedMap.put(rg, node.getNamedItem("trimmedBase").getNodeValue());
-				lostMap.put(rg, node.getNamedItem("totalLost").getNodeValue());
-			 }
-				
-		Map<String, String> summaryMap = new LinkedHashMap<>();
-		final String startVBlock = "{v: '";
-		final String endVBlock = "'}";
-		final String finalVBlock = "]}";	
-		
-		//add header line
-		summaryMap.put("Read Group", "TableName,Read Group,Read Count,Average Read Length,Max Read Length,Mode TLEN,Unmapped Reads,Non Canonical Read Pair,Duplicate Reads,"
-				+ "Within Read Pair Overlap,Soft Clipping (CIGAR),Hard Clipping (CIGAR),Adaptor Trimming,Total Bases Lost");
-		
-		for (  String rg : unmappedMap.keySet()) {	
-			float lost =  Float.valueOf(lostMap.get(rg).replace("%", "").trim());
-			String color = (lost > 40)? "tomato":"yellow"; 
-			color = (lost < 20 ) ? "palegreen" : color; 
-			
-			String ele  = startVBlock + totalReadsMap.get(rg) + endVBlock  
-					+ "," + startVBlock + aveLengthMap.get(rg) + endVBlock 
-					+ "," + startVBlock + maxLengthMap.get(rg) + endVBlock  						 	
-					+ "," + startVBlock + (isizeMap.get(rg) == null ? "-" : isizeMap.get(rg) ) + endVBlock  					
-					+ "," + startVBlock + unmappedMap.get(rg) + endVBlock  
- 					+ "," + startVBlock + nonCanonicalMap.get(rg) + endVBlock 
- 					+ "," + startVBlock + duplicateMap.get(rg) + endVBlock  
- 					+ "," + startVBlock + overlapMap.get(rg) + endVBlock  
-					+ "," + startVBlock + softClipMap.get(rg) + endVBlock  
-					+ "," + startVBlock + hardClipMap.get(rg) + endVBlock 
-					+ "," + startVBlock + trimmedMap.get(rg) + endVBlock
-					+ "," + startVBlock + lostMap.get(rg) + "', p: {style: 'background-color:" + color +";'}}" 					
-					+ finalVBlock;
-			summaryMap.put(rg, ele);			
-		}
 
-		return summaryMap;
-	}
 	
 	private static void createSummary(Element reportElement, Report report) {
 		
 		final NodeList summaryNL = reportElement.getElementsByTagName("SUMMARY");
+				
 		if (null != summaryNL) {
 			final Element summaryElement = (Element) summaryNL.item(0);
 			if (null != summaryElement) {
@@ -349,7 +269,7 @@ public class ReportBuilder {
 						String nodeName = n.getNodeName();
 						
 						final String startVBlock = "{v: '";
-						final String endVBlock = "'}]}";
+						final String endVBlock = "', p: {style: 'text-align: right'}}]}" ;
 						switch (nodeName) {
 						case "FirstInPairAveLength":
 							summaryMap.put("Average read length of first in pair reads", startVBlock + n.getAttributes().getNamedItem("value").getNodeValue()+ endVBlock);
@@ -360,50 +280,50 @@ public class ReportBuilder {
 						case "MDMismatchCycles":
 							int noOfCylces =  Integer.parseInt(n.getAttributes().getNamedItem("value").getNodeValue());
 							
-							String rag = "', p:{style:'background-color: ";
+							String rag = "', p:{ style: 'text-align: right; background-color: ";
 							rag += (noOfCylces > 20) ? "tomato;'}}]}" : (noOfCylces > 10) ? "yellow;'}}]}" : "palegreen;'}}]}" ;
 							
 							summaryMap.put("Number of cycles with >1% mismatches", startVBlock + noOfCylces+ rag);
 							break;
+						case "Failed_Secondary_Supplementary":
+							summaryMap.put("Discarded reads (FailedVendorQuality, secondary, supplementary)", startVBlock + n.getAttributes().getNamedItem("value").getNodeValue()+ endVBlock);
+							break;
+						case "inputedReads":
+							summaryMap.put("Total inputed reads including counted and discarded reads", startVBlock + n.getAttributes().getNamedItem("value").getNodeValue()+ endVBlock);
+							break;	
 						}
 					}					
 					
-					//*****start xu					
-					
+					//*****start xu										
 					ChartTab ct = new ChartTab("Summary", "summ" + reportID);
-					String str = HTMLReportUtils.generateGoogleDataForTableStringMap(summaryMap, ct.getName()+1, "Property", "Value"  );					
+					String str = HTMLReportUtils.generateGoogleDataForTableStringMap(summaryMap, ct.getName()+1, "Property", "Value"  );	
 					
 					//add RG table
-					summaryMap = createRgMap(  reportElement ); //coding
+					final NodeList isizeNL = reportElement.getElementsByTagName("ISIZE");
+					final Element isizeElement = (isizeNL == null)? null : (Element) isizeNL.item(0);
+				 
+					summaryMap = createRgMap( summaryElement, isizeElement ); //coding
 					String[] arr = summaryMap.remove("Read Group").split(",");  //table header
 					arr[0] = ct.getName()+2; 					
 					str += HTMLReportUtils.generateGoogleDataForTableStringMap(summaryMap,  arr  );
 					ct.setData(str);	
 					
-//					ct.setChartInfo(HTMLReportUtils.generateGoogleTable(ct.getName(), 2,   0 , 0));							
 					str = HTMLReportUtils.generateGoogleSingleTable(ct.getName() + 1, 0, 600);
-					str += HTMLReportUtils.generateGoogleSingleTable(ct.getName() + 2, 0, 1300);
+					str += HTMLReportUtils.generateGoogleSingleTable(ct.getName() + 2, 0, null);
 					ct.setChartInfo(str); 					
 					
-//					String description = SUMMARY_DESCRIPTION;
-							//"Description for summary, here we discard supplementary reads";
 					str = "\n<div class=\"pane\">" 
 							+" <p id=\"" + ct.getName() + 1 + "Chart_div\"></p>"
 							+" <p id=\"" + ct.getName() + 2 + "Chart_div\"></p>"
- //							+ HTMLReportUtils.generateDescriptionButton(ct.getName(), Messages.getMessage("XU_SUMMARY_DESCRIPTION"), null)
 							+ HTMLReportUtils.generateDescriptionButton(ct.getName()+1, SUMMARY_NOTES, "Summary Notes")
 							+ HTMLReportUtils.generateDescriptionButton(ct.getName()+2, SUMMARY_DESCRIPTION, "Column Description")							
 							+ "</div>";
  					ct.setRenderingInfo( str );
-					
-					
+										
 					// add summary report to the front
 					List<ChartTab> chartTabs = report.getTabs();
 					chartTabs.add(0, ct);				
 					report.setTabs(chartTabs);
-					
- 
-					
 					//*****end xu		
 				} else {
 					System.out.println("summaryNodes was null");
@@ -456,9 +376,9 @@ public class ReportBuilder {
 
 	private static void createFLAGS(Element reportElement, Report report) {
 		//FLAG
-		final NodeList flagNL = reportElement.getElementsByTagName(FLAG);
+		final NodeList flagNL = reportElement.getElementsByTagName( FLAG );
 		final Element flagElement = (Element) flagNL.item(0);
-		final ChartTab flagTab = new ChartTab(FLAG);
+		final ChartTab flagTab = new ChartTab( FLAG );
 		Map<String, AtomicLong> flags = getMapFromElement(flagElement);
 		
 		Map<String, AtomicLong> flagsKeyChange = new LinkedHashMap<String, AtomicLong>();
@@ -467,7 +387,7 @@ public class ReportBuilder {
 			flagsKeyChange.put((flagStirngArray.length > 1 ? flagStirngArray[1] + ", ": "")  + flagStirngArray[0], entry.getValue());
 		}
 		
-		flagTab.addChild(getChartTabFromMap("Flag", "fl", HTMLReportUtils.BAR_CHART, true, flagsKeyChange));
+		flagTab.addChild(getChartTabFromMap( "Flag", "fl", HTMLReportUtils.BAR_CHART, true, flagsKeyChange) );
 		
 		// duplicates
 		final Map<String, String> dupMap = new HashMap<String, String>();
@@ -526,16 +446,106 @@ public class ReportBuilder {
 			report.addTab(iSizeCT);
 	}
 	
+	//coverge for each chromosome and readGroup
 	private static void createRNM(Element reportElement, Report report) {
-		//ISIZE
 		final NodeList rnmNL = reportElement.getElementsByTagName("RNAME_POS");
 		final Element rnmElement = (Element) rnmNL.item(0);
-		final ChartTab rnmCT = createRNMChartTab(rnmElement);
+		final NodeList nlTop = rnmElement.getElementsByTagName("RNAME");	
 		
-		if (null != rnmCT) {
-			report.addTab(rnmCT);
+		//get data from xml
+		Map<String, TreeMap<Integer, AtomicLong>> contigMaps = new HashMap<>();
+		Map<String, TreeMap<Integer, AtomicLongArray>> rgCountsMaps = new HashMap<>();
+		
+		List<String> chromos = new ArrayList<>();
+		List<String> readGroups = null; 
+		
+		int cellingValue = 0;
+	//	List<Integer> maxAveChrs = new ArrayList<>(); 
+	//	int start = Integer.parseInt(e.getAttribute("start"));
+		for (int i = 0 , length = nlTop.getLength() ; i < length ; i++) {			
+			final Element nameElementTop = (Element) nlTop.item(i);
+			String chromosome =  nameElementTop.getAttribute("value");
+			int contigLength = Integer.parseInt(nameElementTop.getAttribute("maxPosition"));
+			
+			if(readGroups == null){
+				readGroups = new LinkedList ( Arrays.asList(nameElementTop.getAttribute("readGroups").split(",")) );
+				readGroups.remove("unkown_readgroup_id");
+				readGroups.add(0, "Total");
+			}
+			
+			//viral have 6000 contig's lots of them big then 1M, it cause html can't show well on browers
+			//chrMT is small but special 
+			if (null != chromosome && (contigLength > 50 * 1000 * 1000 || chromosome.toUpperCase().startsWith("CHR")) ){
+				chromos.add(chromosome);
+		
+				final NodeList nl = nameElementTop.getElementsByTagName("RangeTally");
+				final Element nameElement = (Element) nl.item(0);
+				final TreeMap<Integer, AtomicLong> map = (TreeMap<Integer, AtomicLong>) createRangeTallyMap(nameElement);				
+				if ( ! map.isEmpty())  contigMaps.put(chromosome, map);
+				
+				final TreeMap<Integer, AtomicLongArray> map1 = ( TreeMap<Integer, AtomicLongArray> ) createRgCountMap(nameElement);
+				rgCountsMaps.put(chromosome, map1);	
+				if(cellingValue == 0)
+					cellingValue = Integer.parseInt(nameElementTop.getAttribute("visuallCellingValue"));
+				//maxAveChrs.add(Integer.parseInt(nameElementTop.getAttribute("maxAveOfReadGroup")));
+			}
+		}	
+				
+		//tab 1
+		StringBuilder dataSB = new StringBuilder();
+		StringBuilder chartSB = new StringBuilder();	
+		String tabName = "rnmref";
+		for (Entry<String, TreeMap<Integer, AtomicLong>> map : contigMaps.entrySet()) {
+			String keyWithOutPeriods = map.getKey().replace(".","");			
+			dataSB.append(HTMLReportUtils.generateGoogleData(map.getValue(), tabName + keyWithOutPeriods, false));
+			chartSB.append(HTMLReportUtils.generateGoogleScatterChart(tabName + keyWithOutPeriods, keyWithOutPeriods, 600, MIN_REPORT_HEIGHT, true));
 		}
+
+		ChartTab child1 = new ChartTab(  "Coverage overall" , tabName);				
+		child1.setData(dataSB.toString());
+		child1.setChartInfo(chartSB.toString());
+		Collections.sort(chromos, new ReferenceNameComparator());
+		child1.setRenderingInfo(HTMLReportUtils.generateRenderingTableInfo(tabName , chromos, 2));	
+				
+		//tab 2  
+		dataSB = new StringBuilder();
+		chartSB = new StringBuilder();
+		tabName = "rnmrg";
+		
+		readGroups.remove(0);	
+		
+		for (Entry<String, TreeMap<Integer, AtomicLongArray>> map : rgCountsMaps.entrySet()) {
+			String keyWithOutPeriods = map.getKey().replace(".","");	
+			TreeMap<Integer, AtomicLongArray> notTotalMap = new TreeMap<Integer, AtomicLongArray>();
+			for(Entry<Integer, AtomicLongArray> entry: map.getValue().entrySet()){
+				AtomicLongArray rgArray = new AtomicLongArray(readGroups.size());
+				//for(int j = 1; j < entry.getValue().length(); j ++)
+				for(int j = 1; j <= readGroups.size(); j ++)
+					rgArray.addAndGet(j-1, entry.getValue().get(j));
+				notTotalMap.putIfAbsent(entry.getKey(), rgArray);
+			}	
+			
+			dataSB.append( HTMLReportUtils.generateGoogleaArrayToDataTable(notTotalMap,  tabName + keyWithOutPeriods, false, readGroups, false ) );			
+//			chartSB.append(HTMLReportUtils.generateGoogleChart(tabName + keyWithOutPeriods, keyWithOutPeriods, "$(window).width()", MIN_REPORT_HEIGHT/4, false, HTMLReportUtils.LINE_CHART, 
+//					null, ", vAxis: { viewWindowMode:'explicit', viewWindow:{  max: 500000 }}, fontSize:12, legend: {position: 'right', textStyle: {color: 'blue'}}, crosshair: {trigger: 'both'}, lineWidth: 2") );
+			int max = cellingValue; 
+			String extraOption = String.format(", vAxis: { viewWindowMode:'explicit', viewWindow:{  max: %d }}, fontSize:12, legend: {position: 'right', textStyle: {color: 'blue'}}, crosshair: {trigger: 'both'}, lineWidth: 2", max);
+			chartSB.append(HTMLReportUtils.generateGoogleChart(tabName + keyWithOutPeriods, keyWithOutPeriods, "$(window).width()", MIN_REPORT_HEIGHT/4, false, HTMLReportUtils.LINE_CHART, 
+					null, extraOption ) );
+			
+		}
+		
+		ChartTab child2 = new ChartTab(  "Coverage by readGroup" , tabName);				
+		child2.setData(dataSB.toString());
+		child2.setChartInfo(chartSB.toString());
+		child2.setRenderingInfo(HTMLReportUtils.generateRenderingTableInfo(tabName, chromos, 1));	
+								
+		ChartTab parentCT = new ChartTab("RNAME");		
+		parentCT.addChild(child1);
+		parentCT.addChild(child2);	 
+		report.addTab(parentCT);			 
 	}
+
 
 	private static void createTAGS(Element reportElement, Report report) {
 		// TAG
@@ -547,8 +557,7 @@ public class ReportBuilder {
 		if (tagCSNL.getLength() > 1) {
 //			System.out.println("NO OF CS NODES: " + tagCSNL.getLength());
 			final Element tagCSElement = (Element) tagCSNL.item(0);
-			for (ChartTab ct : buildMultiTabCycles(true,"TAG CS", tagCSElement, "tcs",
-					"ColourByCycle", "BadColoursInReads", CycleDetailUtils.getTagCSNumericCycle(), CS_COLOURS, false)) {
+			for (ChartTab ct : buildMultiTabCycles(true,"TAG CS", tagCSElement, "tcs", "ColourByCycle", "BadColoursInReads", CycleDetailUtils.getTagCSNumericCycle(), CS_COLOURS, false)) {
 				report.addTab(ct);
 			}
 		}
@@ -578,17 +587,14 @@ public class ReportBuilder {
 		
 		//TAG-MD
 		ChartTab mdCT = createMDChartTab(tagElement);
-		if (null != mdCT) {
-			report.addTab(mdCT);
-		}
+		if (null != mdCT) report.addTab(mdCT);  
 	}
 
 	private static void createQUALS(Element reportElement, Report report) {
 		// QUALS
 		final NodeList qualNL = reportElement.getElementsByTagName("QUAL");
 		final Element qualElement = (Element) qualNL.item(0);
-		for (ChartTab ct : buildMultiTabCycles(true,"QUAL", qualElement, "q",
-				"QualityByCycle", "BadQualsInReads", null, null, true)) {
+		for (ChartTab ct : buildMultiTabCycles(true,"QUAL", qualElement, "q", "QualityByCycle", "BadQualsInReads", null, null, true)) {
 			report.addTab(ct);
 		}
 	}
@@ -597,11 +603,52 @@ public class ReportBuilder {
 		//SEQ
 		final NodeList seqNL = reportElement.getElementsByTagName("SEQ");
 		final Element seqElement = (Element) seqNL.item(0);
-		for (ChartTab ct : buildMultiTabCycles(true,"SEQ", seqElement, "s",
-				"BaseByCycle", "BadBasesInReads", CycleDetailUtils
-				.getSeqCycle(), SEQ_COLOURS, false)) {
-			report.addTab(ct);
+		
+		//SEQ show mainMainTab is true, so only one element on the list<ChartTab>
+		List<ChartTab> tabs = buildMultiTabCycles(true,"SEQ", seqElement, "s", "BaseByCycle", "BadBasesInReads", 
+				CycleDetailUtils.getSeqCycle(), SEQ_COLOURS, false);
+		 	
+		//add kmers tab
+		ChartTab parentCT = tabs.get(0);			
+		parentCT.addChild( createKmersTab((Element) seqElement.getElementsByTagName("mers1").item(0), "kmer_1" ) );
+		parentCT.addChild( createKmersTab((Element) seqElement.getElementsByTagName("mers2").item(0), "kmer_2" ) );
+		parentCT.addChild( createKmersTab((Element) seqElement.getElementsByTagName("mers3").item(0), "kmer_3") );	 
+		parentCT.addChild( createKmersTab((Element) seqElement.getElementsByTagName("mers6").item(0), "kmer_6" ) ); //debug
+		report.addTab(parentCT);
+		
+		
+	}
+	
+	private static ChartTab createKmersTab(Element mersElement,  String tabTitle ){
+ 		 		 
+		Map<Integer, AtomicLongArray> map = new TreeMap<Integer, AtomicLongArray>();	
+//		Map<Integer, AtomicLongArray> mapReverse = new TreeMap<Integer, AtomicLongArray>();	
+		NodeList nl = mersElement.getElementsByTagName("CycleTally");
+		Element tallyElement = (Element) nl.item(0);
+		
+		List<String> kmers = new LinkedList ( Arrays.asList(  tallyElement.getAttribute("possibleValues").split(",")) );
+	 	
+		nl = tallyElement.getElementsByTagName("Cycle");		 
+		for (int i = 0, size = nl.getLength() ; i < size ; i++) {
+			Element e = (Element) nl.item(i);	
+			String[] sValues = e.getAttribute("counts").split(",");
+			long[] nValues = new long[sValues.length];
+			for(int j = 0; j < sValues.length; j ++)
+				nValues[j] = Long.parseLong(sValues[j]);
+			map.put(Integer.parseInt(e.getAttribute("value")), new AtomicLongArray( nValues));
+				
 		}
+				
+		StringBuilder dataSB = new StringBuilder().append(HTMLReportUtils.generateGoogleaArrayToDataTable(map,  tabTitle, false, kmers, false));
+		StringBuilder chartSB = new StringBuilder().append( HTMLReportUtils.generateGoogleChart(tabTitle, "Kmers Distribution", "$(window).width()", MAX_REPORT_HEIGHT, false, HTMLReportUtils.LINE_CHART, "Cycle", 
+				", vAxis: { viewWindowMode:'explicit' }, fontSize:12, legend: { position: 'right', textStyle: { color: 'blue' } }, crosshair: { trigger: 'both' },  lineWidth: 2" ) );
+
+		ChartTab ct = new ChartTab(tabTitle, tabTitle);
+		ct.setData( dataSB.toString() );
+		ct.setChartInfo( chartSB.toString() );
+//		ct.setRenderingInfo(HTMLReportUtils.generateRenderingTableInfo(	tabTitle, Arrays.asList("forward","reverse"), 1) );				
+				
+		return ct;		
 	}
 	
 	private static void createBamHeader(Element reportElement, Report report) {
@@ -615,9 +662,8 @@ public class ReportBuilder {
 					ct.setData(HTMLReportUtils.generateGoogleDataForTable(headerList, ct.getName()));
 					String str = "";
 					for(int i = 1; i<= headerList.size(); i ++)
-						str += HTMLReportUtils.generateGoogleSingleTable(ct.getName() + i,null, 1300);
+						str += HTMLReportUtils.generateGoogleSingleTable(ct.getName() + i,null, null);
 					ct.setChartInfo(str);
-//					ct.setChartInfo(HTMLReportUtils.generateGoogleMultiTable(ct.getName(), headerList.size(),0,1300));
 					ct.setRenderingInfo(HTMLReportUtils.generateRenderingTableInfo(ct.getName(), headerList.size(),false));
 					report.addTab(ct);
 				}
@@ -625,77 +671,7 @@ public class ReportBuilder {
 		}
 	}
 
-	private static List<ChartTab> buildMultiTabCycles(boolean showMainTab, String mainTabName,
-			Element tabElement, String id, String cycleName,
-			String badReadName, List<String> columns, String[] colours, boolean isQualData) {
-		
-		final SummaryByCycle<Integer> cycle = QProfilerCollectionsUtils.generateSummaryByCycleFromElement(tabElement,
-				cycleName);
-		final Map<Integer, AtomicLong> lengths = generateLengthsTally(tabElement,
-				"LengthTally");
-		final Map<Integer, AtomicLong> badReads = generateValueTally(tabElement,
-				badReadName);
 
-		return createCyclesTabFromCollections(showMainTab, mainTabName, id + reportID, columns,
-				colours, cycle, lengths, badReads, isQualData);
-	}
-
-	private static <T> List<ChartTab> createCyclesTabFromCollections(boolean showMainTab, String mainTabName,
-			String id, List<String> columns, String[] colours, 
-			SummaryByCycle<T> cycle, Map<Integer, AtomicLong> lengths,
-			Map<Integer, AtomicLong> badReads, boolean isQualData) {
-		
-		// create cycle tab
-		final ChartTab cycleCT = new ChartTab("Cycles", id + "c");
-		cycleCT.setData(HTMLReportUtils.generateGoogleDataCycles(cycle, cycleCT
-				.getName(), columns, isQualData, null));
-		cycleCT.setChartInfo(HTMLReportUtils.generateGoogleChartSlidingColors(
-				cycleCT.getName(), mainTabName + " Cycles", 1400, MAX_REPORT_HEIGHT,
-				HTMLReportUtils.BAR_CHART, false, true, cycle.getPossibleValues().size(),
-				colours));
-
-		// create line lengths - don't always have these so check that collection has data..
-		ChartTab lineLengthCT = null;
-		if ( ! lengths.isEmpty()) {
-			int lengthsWidth = lengths.size() > 26 ? 1200 : 950;
-			lineLengthCT = new ChartTab("Line Lengths", id + "ll");
-			lineLengthCT.setData(HTMLReportUtils.generateGoogleData(lengths,
-					lineLengthCT.getName(), true));
-			lineLengthCT.setChartInfo(HTMLReportUtils.generateGoogleChart(
-					lineLengthCT.getName(), mainTabName + " Line Lengths", lengthsWidth,
-					MIN_REPORT_HEIGHT, HTMLReportUtils.COLUMN_CHART, true, false));
-			lineLengthCT.setDescription(LINE_LENGTH_DESCRIPTION);
-		}
-		//		
-		int badReadsWidth = badReads.size() > 25 ? 1200 : 950;
-		// create bad reads
-		final ChartTab badReadsCT = new ChartTab("Bad Reads", id + "br");
-		badReadsCT.setData(HTMLReportUtils.generateGoogleData(badReads,
-				badReadsCT.getName(), true));
-		badReadsCT.setChartInfo(HTMLReportUtils.generateGoogleChart(badReadsCT
-				.getName(), mainTabName + " Bad Reads", badReadsWidth, MIN_REPORT_HEIGHT,
-				HTMLReportUtils.COLUMN_CHART, true, false));
-		badReadsCT.setDescription(isQualData ? BAD_QUALS_DESCRIPTION : BAD_READS_DESCRIPTION);
-
-		List<ChartTab> tabs = new ArrayList<ChartTab>();
-		
-		if (showMainTab) {
-			final ChartTab main = new ChartTab(mainTabName);
-			main.addChild(cycleCT);
-			if (null != lineLengthCT)
-				main.addChild(lineLengthCT);
-			main.addChild(badReadsCT);
-			tabs.add(main);
-		} else {
-			tabs.add(cycleCT);
-			if (null != lineLengthCT)
-				tabs.add(lineLengthCT);
-			tabs.add(badReadsCT);
-		}
-		
-		return tabs;
-	}
-	
 	private static ChartTab createMDChartTab(Element tagElement) {
 		ChartTab parentCT = null;
 		ChartTab mismatchCT = null;
@@ -709,10 +685,8 @@ public class ReportBuilder {
 		// don't always have tag MD info
 		if (null != tagMDElement && tagMDElement.hasChildNodes()) {
 			// get data
-			final SummaryByCycle<Integer> cycle = QProfilerCollectionsUtils.generateSummaryByCycleFromElement(tagMDElement,
-					"MismatchByCycle");
-			final Map<Integer, String> cyclePercentages = QProfilerCollectionsUtils.generatePercentagesMapFromElement(tagMDElement,
-			"MismatchByCycle");
+			final SummaryByCycle<Integer> cycle = QProfilerCollectionsUtils.generateSummaryByCycleFromElement(tagMDElement, "MismatchByCycle");
+			final Map<Integer, String> cyclePercentages = QProfilerCollectionsUtils.generatePercentagesMapFromElement(tagMDElement, "MismatchByCycle");
 			
 			// create cycle tab
 			mismatchCT = new ChartTab(MD, "tmd");
@@ -737,9 +711,8 @@ public class ReportBuilder {
 			}
 			
 			onePercentCT = new ChartTab(MD + " 1 PERC", "tmd1pc");
-			onePercentCT.setData(HTMLReportUtils.generateGoogleData(sortedPercentageMap, onePercentCT
-					.getName(),false, "Error Percentage", "Cycle"));
-			onePercentCT.setChartInfo(HTMLReportUtils.generateGoogleSingleTable(onePercentCT.getName(), 0 , null));
+			onePercentCT.setData(HTMLReportUtils.generateGoogleData(sortedPercentageMap, onePercentCT.getName(),false, "Error Percentage", "Cycle"));
+			onePercentCT.setChartInfo(HTMLReportUtils.generateGoogleSingleTable(onePercentCT.getName(), 0 , 400));
 //			onePercentCT.setDescription(TAG_MD_DESCRIPTION);
 		}
 		
@@ -770,57 +743,7 @@ public class ReportBuilder {
 		}
 		return parentCT;
 	}
-	
-	private static ChartTab createRNMChartTab(Element element) {
-		ChartTab parentCT = null;
-		String title = "RNAME";
-		String id = "rnm" + reportID;
 		
-		final NodeList nlTop = element.getElementsByTagName("RNAME");
-		
-		parentCT = new ChartTab(title, id);
-		Map<String, TreeMap<Integer, AtomicLong>> contigMaps = new HashMap<>();
-		List<String> chromos = new ArrayList<>();
-		
-		for (int i = 0 , length = nlTop.getLength() ; i < length ; i++) {
-			
-			final Element nameElementTop = (Element) nlTop.item(i);
-			String chromosome =  nameElementTop.getAttribute("value");
-			int contigLength = Integer.parseInt(nameElementTop.getAttribute("maxPosition"));
-			
-			//viral have 6000 contig's lots of them big then 1M, it cause html can't show well on browers
-			//but all small than 10M. human chr1-chrY small than 59M
-			if (null != chromosome && contigLength > 50 * 1000 * 1000) {
-				chromos.add(chromosome);
-		
-				final NodeList nl = nameElementTop.getElementsByTagName("RangeTally");
-				final Element nameElement = (Element) nl.item(0);
-				final TreeMap<Integer, AtomicLong> map = (TreeMap<Integer, AtomicLong>) createRangeTallyMap(nameElement);
-			
-				if ( ! map.isEmpty()) {
-					contigMaps.put(chromosome, map);
-				}
-			}
-		}
-		
-		Collections.sort(chromos, new ReferenceNameComparator());
-		
-		StringBuilder dataSB = new StringBuilder();
-		StringBuilder chartSB = new StringBuilder();
-		
-		for (Entry<String, TreeMap<Integer, AtomicLong>> map : contigMaps.entrySet()) {
-			String keyWithOutPeriods = map.getKey().replace(".","");
-			dataSB.append(HTMLReportUtils.generateGoogleData(map.getValue(), "rnm" + keyWithOutPeriods, false));
-			chartSB.append(HTMLReportUtils.generateGoogleScatterChart("rnm" + keyWithOutPeriods, keyWithOutPeriods, 600, MIN_REPORT_HEIGHT, true));
-		}
-			
-		parentCT.setData(dataSB.toString());
-		parentCT.setChartInfo(chartSB.toString());
-		parentCT.setRenderingInfo(HTMLReportUtils.generateRenderingTableInfo(chromos));
-			
-		return parentCT;
-	}
-	
 	private static ChartTab createISizeChartTab(Element element) throws QVisualiseException {
 		ChartTab parentCT = null;
 		String id = "is" + reportID;
@@ -830,12 +753,12 @@ public class ReportBuilder {
 		List<String> readGroups = new ArrayList<>();
 		for (int k = 0 ; k < childNodes.getLength() ; k++) {
 			Node n = childNodes.item(k);
-			if (n.getNodeName().equals("RG")) {
-				readGroups.add(n.getAttributes().getNamedItem("value").getNodeValue());
+			if (n.getNodeName().equals("ReadGroup")) {
+				String rg = n.getAttributes().getNamedItem("id").getNodeValue();
+				if(!rg.equals("overall")) readGroups.add(rg);
 			}
 		}
 		int noOfReadGroups = readGroups.size();
-		System.out.println("we have " + noOfReadGroups + " read groups to display");
 		
 		if (noOfReadGroups == 0) {
 			throw new QVisualiseException("ISIZE_ERROR");
@@ -848,9 +771,7 @@ public class ReportBuilder {
 			final NodeList nl = element.getChildNodes();
 			for (int k = 0 ; k < nl.getLength() ; k++) {
 				Node n = childNodes.item(k);
-				if (n.getNodeName().equals("RG") && n.getAttributes().getNamedItem("value").getNodeValue().equals(rg)) {
-//					System.out.println("node name: " + n.getNodeName() + " value att: " + n.getAttributes().getNamedItem("value").getNodeValue());
-					
+				if (n.getNodeName().equals("ReadGroup") && n.getAttributes().getNamedItem("id").getNodeValue().equals(rg)) {					
 					final Element nameElement = (Element) nl.item(k);
 					final TreeMap<Integer, AtomicLong> map = (TreeMap<Integer, AtomicLong>) createRangeTallyMap(nameElement);
 			
@@ -887,12 +808,8 @@ public class ReportBuilder {
 				for (Entry<Integer, AtomicLongArray> entry : arrayMap.entrySet()) {
 					summaryMap.put(entry.getKey(), QProfilerCollectionsUtils.tallyArrayValues(entry.getValue()));
 				}
-				ct1Sum.setData(HTMLReportUtils.generateGoogleData(
-						summaryMap.subMap(0, true, 1500, false),
-						ct1Sum.getName(), false));
-				ct1Sum.setChartInfo(HTMLReportUtils.generateGoogleScatterChart(ct1Sum.getName(),
-						longTitle, 1400, MAX_REPORT_HEIGHT, true));
-				
+				ct1Sum.setData(HTMLReportUtils.generateGoogleData( 	summaryMap.subMap(0, true, 1500, false), ct1Sum.getName(), false));
+				ct1Sum.setChartInfo(HTMLReportUtils.generateGoogleScatterChart(ct1Sum.getName(), longTitle, 1400, MAX_REPORT_HEIGHT, true));				
 				parentCT.addChild(ct1Sum);
 				
 				if (noOfReadGroups > 1) {
@@ -900,11 +817,13 @@ public class ReportBuilder {
 					// first tab shows 0 - 1500
 					longTitle = ISIZE + ", 0 to 1500, split by read group";
 					final ChartTab ct1All = new ChartTab("0 to 1500 - All", (id + idCounter++));
-					ct1All.setData(HTMLReportUtils.generateGoogleDataMultiSeries(
-							(arrayMap).subMap(0, true, 1500, false),
-							ct1All.getName(), false, readGroups, true));
-					ct1All.setChartInfo(HTMLReportUtils.generateGoogleScatterChart(ct1All.getName(),
-							longTitle, 1400, MAX_REPORT_HEIGHT, true, "{position: 'right', textStyle: {color: 'blue', fontSize: 14}}, crosshair: {trigger: 'both'}"));
+//					ct1All.setData(HTMLReportUtils.generateGoogleDataMultiSeries(
+//							(arrayMap).subMap(0, true, 1500, false),
+//							ct1All.getName(), false, readGroups, true));
+					
+					ct1All.setData( HTMLReportUtils.generateGoogleaArrayToDataTable((arrayMap).subMap(0, true, 1500, false), ct1All.getName(), false, readGroups, true ));
+					ct1All.setChartInfo(HTMLReportUtils.generateGoogleChart(ct1All.getName(), longTitle, 1400+"", MAX_REPORT_HEIGHT, true, HTMLReportUtils.SCATTER_CHART, 
+							null, ", legend: {position: 'right', textStyle: {color: 'blue', fontSize: 14}}, crosshair: {trigger: 'both'}, pointSize: 2, lineWidth: 1"));
 					
 					parentCT.addChild(ct1All);
 				}
@@ -926,20 +845,21 @@ public class ReportBuilder {
 					// tab shows 0 - 5000
 					longTitle = ISIZE + ", 0 to 5000, split by read group";
 					final ChartTab ct2All = new ChartTab("0 to 5000 - All", (id + idCounter++));
-					ct2All.setData(HTMLReportUtils.generateGoogleDataMultiSeries(
-							(arrayMap).subMap(0, true, 5000, false),
-							ct2All.getName(), false, readGroups, true));
-					ct2All.setChartInfo(HTMLReportUtils.generateGoogleScatterChart(ct2All.getName(),
-							longTitle, 1400, MAX_REPORT_HEIGHT, true, "{position: 'right', textStyle: {color: 'blue', fontSize: 14}}, crosshair: {trigger: 'both'}"));
+//					ct2All.setData(HTMLReportUtils.generateGoogleDataMultiSeries(
+//							(arrayMap).subMap(0, true, 5000, false),
+//							ct2All.getName(), false, readGroups, true));
+					ct2All.setData(HTMLReportUtils.generateGoogleaArrayToDataTable((arrayMap).subMap(0, true, 5000, false), ct2All.getName(), false, readGroups, true) );					
+					ct2All.setChartInfo(HTMLReportUtils.generateGoogleChart(ct2All.getName(),longTitle, 1400+"", MAX_REPORT_HEIGHT, true,  HTMLReportUtils.SCATTER_CHART,
+							null, ", legend: {position: 'right', textStyle: {color: 'blue', fontSize: 14}}, crosshair: {trigger: 'both'}, pointSize: 2, lineWidth: 1"));
 					
 					parentCT.addChild(ct2All);
 				}
 			} else {
 				// no need for sub tabs
 				parentCT = new ChartTab(ISIZE, id);
-				parentCT.setData(HTMLReportUtils.generateGoogleDataMultiSeries(
-						arrayMap,
-						parentCT.getName(), false, readGroups, true));
+//				parentCT.setData(HTMLReportUtils.generateGoogleDataMultiSeries( arrayMap,
+//						parentCT.getName(), false, readGroups, true));
+				parentCT.setData(HTMLReportUtils.generateGoogleaArrayToDataTable(arrayMap, parentCT.getName(), false, readGroups, false) );
 				parentCT.setChartInfo(HTMLReportUtils.generateGoogleScatterChart(parentCT.getName(),
 						ISIZE, 1200, 940, true));
 			}
@@ -1124,10 +1044,36 @@ public class ReportBuilder {
 		
 		return map;
 	}
+		
+	private static Map< Integer, AtomicLongArray > createRgCountMap(Element element) {	
+//	private static Map<Integer, int[]> createRgCountMap(Element element) {
+		//Map<Integer, int[]> map = new TreeMap<Integer, int[]>();
+		Map<Integer,AtomicLongArray> map = new TreeMap<Integer, AtomicLongArray>();
+		final NodeList nl = element.getElementsByTagName("RangeTallyItem");
+		for (int i = 0, size = nl.getLength() ; i < size ; i++) {
+			Element e = (Element) nl.item(i);
+			
+			int start = Integer.parseInt(e.getAttribute("start"));
+			int end = Integer.parseInt(e.getAttribute("end"));
+			Integer key = Math.round((float)(start + end) / 2);
+			
+			String[] sValues = e.getAttribute("rgCount").split(",");
+			long[] nValues = new long[sValues.length+1];
+			for(int j = 0; j < sValues.length-1; j ++)
+				nValues[j+1] = Long.parseLong(sValues[j].replace(" ", ""));
+			nValues[0] = Long.parseLong(e.getAttribute("count")); 			//total coverage
+				
+			map.put(key, new AtomicLongArray( nValues));
+		}
+		
+		return map;
+	}
+	
 	private static <T> ChartTab generateTallyChartTab(Element element, String name, 
 			String id, String chartType, boolean isValueString) {
 		return generateTallyChartTab(element, name, id, chartType, isValueString, false);
 	}
+	
 	private static <T> ChartTab generateTallyChartTab(Element element, String name, 
 			String id, String chartType, boolean isValueString, boolean turnOffLogScale) {
 		Map<T, AtomicLong> cycleCount = getMapFromElement(element);
@@ -1227,4 +1173,172 @@ public class ReportBuilder {
 		final Element nameElement = (Element) nl.item(0);
 		return generateLengthsTally(nameElement, "ValueTally");
 	}
+	
+	private static List<ChartTab> buildMultiTabCycles(boolean showMainTab, String mainTabName,
+			Element tabElement, String id, String cycleName,
+			String badReadName, List<String> columns, String[] colours, boolean isQualData) {
+		
+		final SummaryByCycle<Integer> cycle = QProfilerCollectionsUtils.generateSummaryByCycleFromElement(tabElement,
+				cycleName);
+		final Map<Integer, AtomicLong> lengths = generateLengthsTally(tabElement,
+				"LengthTally");
+		final Map<Integer, AtomicLong> badReads = generateValueTally(tabElement,
+				badReadName);
+
+		return createCyclesTabFromCollections(showMainTab, mainTabName, id + reportID, columns,
+				colours, cycle, lengths, badReads, isQualData);
+	}
+
+	private static <T> List<ChartTab> createCyclesTabFromCollections(boolean showMainTab, String mainTabName,
+			String id, List<String> columns, String[] colours, 
+			SummaryByCycle<T> cycle, Map<Integer, AtomicLong> lengths,
+			Map<Integer, AtomicLong> badReads, boolean isQualData) {
+		
+		// create cycle tab
+		final ChartTab cycleCT = new ChartTab("Cycles", id + "c");
+		cycleCT.setData(HTMLReportUtils.generateGoogleDataCycles(cycle, cycleCT
+				.getName(), columns, isQualData, null));
+		cycleCT.setChartInfo(HTMLReportUtils.generateGoogleChartSlidingColors(
+				cycleCT.getName(), mainTabName + " Cycles", 1400, MAX_REPORT_HEIGHT,
+				HTMLReportUtils.BAR_CHART, false, true, cycle.getPossibleValues().size(),
+				colours));
+
+		// create line lengths - don't always have these so check that collection has data..
+		ChartTab lineLengthCT = null;
+		if ( ! lengths.isEmpty()) {
+			int lengthsWidth = lengths.size() > 26 ? 1200 : 950;
+			lineLengthCT = new ChartTab("Line Lengths", id + "ll");
+			lineLengthCT.setData(HTMLReportUtils.generateGoogleData(lengths,
+					lineLengthCT.getName(), true));
+			lineLengthCT.setChartInfo(HTMLReportUtils.generateGoogleChart(
+					lineLengthCT.getName(), mainTabName + " Line Lengths", lengthsWidth,
+					MIN_REPORT_HEIGHT, HTMLReportUtils.COLUMN_CHART, true, false));
+			lineLengthCT.setDescription(LINE_LENGTH_DESCRIPTION);
+		}
+		//		
+		int badReadsWidth = badReads.size() > 25 ? 1200 : 950;
+		// create bad reads
+		final ChartTab badReadsCT = new ChartTab("Bad Reads", id + "br");
+		badReadsCT.setData(HTMLReportUtils.generateGoogleData(badReads,
+				badReadsCT.getName(), true));
+		badReadsCT.setChartInfo(HTMLReportUtils.generateGoogleChart(badReadsCT
+				.getName(), mainTabName + " Bad Reads", badReadsWidth, MIN_REPORT_HEIGHT,
+				HTMLReportUtils.COLUMN_CHART, true, false));
+		badReadsCT.setDescription(isQualData ? BAD_QUALS_DESCRIPTION : BAD_READS_DESCRIPTION);
+
+		List<ChartTab> tabs = new ArrayList<ChartTab>();
+		
+		if (showMainTab) {
+			final ChartTab main = new ChartTab(mainTabName);
+			main.addChild(cycleCT);
+			if (null != lineLengthCT)
+				main.addChild(lineLengthCT);
+			main.addChild(badReadsCT);
+			tabs.add(main);
+		} else {
+			tabs.add(cycleCT);
+			if (null != lineLengthCT)
+				tabs.add(lineLengthCT);
+			tabs.add(badReadsCT);
+		}
+		
+		return tabs;
+	}
+	//xu code
+	private static Map<String, String>  createRgMap( Element summaryElement, Element isizeElement ) {		
+		
+ 		Map<String, String> duplicateMap = new LinkedHashMap<>();
+		Map<String, String> maxLengthMap = new LinkedHashMap<>();
+		Map<String, String> aveLengthMap = new LinkedHashMap<>();
+		Map<String, String> totalReadsMap = new LinkedHashMap<>();
+		Map<String, String> unmappedMap = new LinkedHashMap<>(); 	
+		Map<String, String> nonCanonicalMap = new LinkedHashMap<>(); 	
+		Map<String, String> isizeMap = new LinkedHashMap<>();
+		Map<String, String> hardClipMap = new LinkedHashMap<>();
+		Map<String, String> softClipMap = new LinkedHashMap<>();
+		Map<String, String> overlapMap = new LinkedHashMap<>();
+		Map<String, String> lostMap = new LinkedHashMap<>();
+		Map<String, String> trimmedMap = new LinkedHashMap<>();
+		
+		//isize
+		NodeList isizeNodes =  isizeElement.getElementsByTagName("ReadGroup"); 			
+		if (null != isizeNodes) 
+			for (int i = 0 ; i < isizeNodes.getLength() ; i++){
+				String rg = isizeNodes.item(i).getAttributes().getNamedItem("id").getNodeValue();
+				String modal = isizeNodes.item(i).getAttributes().getNamedItem("ModalISize").getNodeValue();
+				isizeMap.put( rg, modal);			   
+			}	 
+		
+		//reads information
+		NodeList readsChildren = ( (Element) summaryElement.getElementsByTagName("Reads").item(0) ).getElementsByTagName("ReadGroup");  
+		
+		int rgNum = (null != readsChildren)?  readsChildren.getLength() : 0; 		
+		for (int i = 0 ; i < rgNum ; i++){  			
+			String rg = readsChildren.item(i).getAttributes().getNamedItem("id").getNodeValue();
+			//a NodeList of all descendant Elements 
+			NodeList rgNodes =  ((Element) readsChildren.item(i)).getElementsByTagName("*"); 
+			
+			//NodeList rgNodes = rgNodes.item(i).getChildNodes(); 
+			for(int j = 0; j < rgNodes.getLength(); j ++){
+				String nodeName =  rgNodes.item(j).getNodeName();
+				NamedNodeMap nodeMap = rgNodes.item(j).getAttributes();
+				String percentage  = (nodeMap.getNamedItem("percentage") != null )? nodeMap.getNamedItem("percentage").getNodeValue() :
+						(nodeMap.getNamedItem("basePercentage")  != null )? nodeMap.getNamedItem("basePercentage").getNodeValue() : null; 	
+				switch (nodeName) {
+					case "duplicate":  duplicateMap.put(rg, percentage); break;
+					case "unmapped" : unmappedMap.put(rg,percentage); break; 
+					case "nonCanonicalPair" : nonCanonicalMap.put(rg, percentage); ; break; 					
+					case "softClip" : softClipMap.put(rg, percentage); break; 
+					case "hardClip" : hardClipMap.put(rg, percentage); break; 
+					case "overlap" : overlapMap.put(rg, percentage) ; break; 
+					case "trimmedBase" : trimmedMap.put(rg, percentage) ; break; 						
+					case "overall" : {
+						maxLengthMap.put(rg, nodeMap.getNamedItem("maxLength").getNodeValue());				
+						aveLengthMap.put(rg, nodeMap.getNamedItem("aveLength").getNodeValue());
+						totalReadsMap.put(rg, nodeMap.getNamedItem("countedReads").getNodeValue());
+						lostMap.put(rg, nodeMap.getNamedItem("lostBases").getNodeValue());							
+					}; break; 													
+				}					
+			}	
+		 }
+				
+		Map<String, String> summaryMap = new LinkedHashMap<>();
+		final String startVBlock = "{v: '";
+		final String endVBlock = "', p: {style: 'text-align: right'}}" ;
+		final String finalVBlock = "]}";	
+		
+		//add header line
+		summaryMap.put("Read Group", "TableName,Read Group,Read Count,Average<BR>Read<BR>Length,Max<BR>Read<BR>Length,Mode<BR>TLEN,Unmapped<BR>Reads,Non-canonical<BR>ReadPair,Duplicate<BR>Reads,"
+				+ "Within<BR>ReadPair<BR>Overlap,Soft<BR>Clipping<BR>(CIGAR),Hard<BR>Clipping<BR>(CIGAR),Adaptor<BR>Trimming,Total<BR>Bases<BR>Lost");
+		
+		String overallEle = null; 
+		for (  String rg : totalReadsMap.keySet()) {
+			String lostColor = endVBlock; 
+			try{ 
+				float lost =  Float.valueOf(lostMap.get(rg).replace("%", "").trim());
+				String color = (lost > 40)? "tomato":"yellow"; 
+				color = (lost < 20 ) ? "palegreen" : color; 
+				lostColor = "', p: {style: 'text-align: right; background-color:" + color +";'}}" ;
+			}catch(NumberFormatException e){ }	//do nothing
+			
+			String ele  = startVBlock + totalReadsMap.get(rg) + endVBlock  
+					+ "," + startVBlock + aveLengthMap.get(rg) + endVBlock 
+					+ "," + startVBlock + maxLengthMap.get(rg) + endVBlock  						 	
+					+ "," + startVBlock + (isizeMap.get(rg) == null ? "-" : isizeMap.get(rg) ) + endVBlock  					
+					+ "," + startVBlock + unmappedMap.get(rg) + endVBlock  
+ 					+ "," + startVBlock + nonCanonicalMap.get(rg) + endVBlock 
+ 					+ "," + startVBlock + duplicateMap.get(rg) + endVBlock  
+ 					+ "," + startVBlock + overlapMap.get(rg) + endVBlock  
+					+ "," + startVBlock + softClipMap.get(rg) + endVBlock  
+					+ "," + startVBlock + hardClipMap.get(rg) + endVBlock 
+					+ "," + startVBlock + trimmedMap.get(rg) + endVBlock
+					+ "," + startVBlock + lostMap.get(rg) + lostColor					
+					+ finalVBlock;
+			if(!rg.equals("overall")) summaryMap.put(rg, ele);	
+			else overallEle = ele; 
+		}
+		summaryMap.put("overall", overallEle);
+
+		return summaryMap;
+	}	
 }
