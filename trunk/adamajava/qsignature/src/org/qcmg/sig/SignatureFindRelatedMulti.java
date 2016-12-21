@@ -119,52 +119,53 @@ public class SignatureFindRelatedMulti {
 			lostPatientRatios.put(f, ratios);
 			
 		}
-		logger.info(""); 
 		
 		for (File f : orderedSnpChipFiles) {
 			inputQueue.add(f);
 		}
+		logger.info("number of files in inputQueue: " + inputQueue.size());
 		
 		ExecutorService service = Executors.newFixedThreadPool(nThreads);		
-		for (int i = 0 ; i < nThreads; i++)
-		service.execute(new Runnable() {
-
-			@Override
-			public void run() {
-				while (true) {
-					File f = inputQueue.poll();
-					if (null == f) break;
-					
-					if (counter.incrementAndGet() % 100 == 0) {
-						logger.info("hit " + counter.get() + " files");
-					}
-					logger.debug("Will compare against: " + f.getAbsolutePath());
-					
-					Map<ChrPosition, double[]> ratios = lostPatientRatios.get(f);
-					if (null == ratios) {
-						try {
-							ratios = SignatureUtil.loadSignatureRatios(f);
-						} catch (Exception e) {
-							e.printStackTrace();
-							break;
+		for (int i = 0 ; i < nThreads; i++) {
+			service.execute(new Runnable() {
+	
+				@Override
+				public void run() {
+					while (true) {
+						File f = inputQueue.poll();
+						if (null == f) break;
+						
+						if (counter.incrementAndGet() % 100 == 0) {
+							logger.info("hit " + counter.get() + " files");
 						}
-					}
-					if (null == ratios)
-						try {
-							throw new Exception("Got null ratios");
-						} catch (Exception e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-							break;
+						logger.info("Will compare against: " + f.getAbsolutePath());
+						
+						Map<ChrPosition, double[]> ratios = lostPatientRatios.get(f);
+						if (null == ratios) {
+							try {
+								ratios = SignatureUtil.loadSignatureRatios(f);
+							} catch (Exception e) {
+								e.printStackTrace();
+								break;
+							}
 						}
-					if (ratios.size() < 1000) logger.warn("low coverage (" + ratios.size() + ") for file " + f.getAbsolutePath());
-					
-					List<Comparison> comps = QSigCompareDistance.compareRatios(ratios, f, lostPatientRatios, positionsOfInterest);
-					outputQueue.addAll(comps);
-					
+						if (null == ratios)
+							try {
+								throw new Exception("Got null ratios");
+							} catch (Exception e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+								break;
+							}
+						if (ratios.size() < 1000) logger.warn("low coverage (" + ratios.size() + ") for file " + f.getAbsolutePath());
+						
+						List<Comparison> comps = QSigCompareDistance.compareRatios(ratios, f, lostPatientRatios, positionsOfInterest);
+						outputQueue.addAll(comps);
+						
+					}
 				}
-			}
-		});
+			});
+		}
 		service.shutdown();
 		if ( ! service.awaitTermination(100, TimeUnit.HOURS)) {
 			
@@ -172,7 +173,7 @@ public class SignatureFindRelatedMulti {
 			return -1;
 		}
 		
-		
+		logger.info("no of comps in output queue: " + outputQueue.size());
 		List<Comparison> comparisons = new ArrayList<>(outputQueue);
 		writeResults(comparisons);
 		
@@ -188,7 +189,7 @@ public class SignatureFindRelatedMulti {
 			
 			// get all comparisons where this file is the main one
 			for (Comparison comp : comps) {
-				if (comp.getMain().equals(f)) {
+				if (comp.getMain().equals(f.getAbsolutePath())) {
 					fileSpecificComparisons.add(comp);
 				}
 			}

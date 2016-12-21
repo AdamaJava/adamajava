@@ -73,6 +73,10 @@ public class SignatureCompareRelatedSimpleGenotype {
 	private List<String> excludes;
 	private String logFile;
 	
+	private float homCutoff = SignatureUtil.HOM_CUTOFF;
+	private float hetUpperCutoff = SignatureUtil.HET_UPPER_CUTOFF;
+	private float hetLowerCutoff = SignatureUtil.HET_LOWER_CUTOFF;
+	
 	private final Map<String, int[]> fileIdsAndCounts = new THashMap<>();
 	private final List<Comparison> allComparisons = new ArrayList<>();
 	
@@ -196,7 +200,10 @@ public class SignatureCompareRelatedSimpleGenotype {
 		// if not - load
 		TIntShortHashMap result = cache.get(f);
 		if (result == null) {
-			result = SignatureUtil.loadSignatureRatiosFloatGenotype(f, minimumCoverage);
+			
+			
+			
+			result = SignatureUtil.loadSignatureRatiosFloatGenotype(f, minimumCoverage, homCutoff, hetUpperCutoff, hetLowerCutoff);
 			
 			if (result.size() < 1000) {
 				logger.warn("low coverage (" + result.size() + ") for file " + f.getAbsolutePath());
@@ -367,6 +374,13 @@ public class SignatureCompareRelatedSimpleGenotype {
 			
 			options.getMinCoverage().ifPresent(i -> {minimumCoverage = i.intValue();});
 			logger.tool("Setting minumim coverage to: " + minimumCoverage);
+			
+			options.getHomCutoff().ifPresent(i -> {homCutoff = i.floatValue();});
+			logger.tool("Setting homozygous cutoff to: " + homCutoff);
+			options.getHetUpperCutoff().ifPresent(i -> {hetUpperCutoff = i.floatValue();});
+			logger.tool("Setting heterozygous upper cutoff to: " + hetUpperCutoff);
+			options.getHetLowerCutoff().ifPresent(i -> {hetLowerCutoff = i.floatValue();});
+			logger.tool("Setting heterozygous lower cutoff to: " + hetLowerCutoff);
 			
 			additionalSearchStrings = options.getAdditionalSearchString();
 			logger.tool("Setting additionalSearchStrings to: " + Arrays.deepToString(additionalSearchStrings));
