@@ -77,6 +77,10 @@ public class SignatureCompareRelatedSimpleGenotypeMT {
 	private List<String> excludes;
 	private String logFile;
 	
+	private float homCutoff = SignatureUtil.HOM_CUTOFF;
+	private float hetUpperCutoff = SignatureUtil.HET_UPPER_CUTOFF;
+	private float hetLowerCutoff = SignatureUtil.HET_LOWER_CUTOFF;
+	
 	private final Map<String, int[]> fileIdsAndCounts = new THashMap<>();
 	private final List<Comparison> allComparisons = new CopyOnWriteArrayList<>();
 	
@@ -223,7 +227,7 @@ public class SignatureCompareRelatedSimpleGenotypeMT {
 						
 						TIntShortHashMap genotypes = null;
 						try {
-							genotypes = SignatureUtil.loadSignatureRatiosFloatGenotype(f, minimumCoverage);
+							genotypes = SignatureUtil.loadSignatureRatiosFloatGenotype(f, minimumCoverage, homCutoff, hetUpperCutoff, hetLowerCutoff);
 						} catch (Exception e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
@@ -378,6 +382,13 @@ public class SignatureCompareRelatedSimpleGenotypeMT {
 			options.getNoOfThreads().ifPresent(i -> {nThreads = Math.max(i.intValue(), nThreads);});
 			logger.tool("number of threads: " + nThreads);
 			logger.tool("Setting minumim coverage to: " + minimumCoverage);
+			
+			options.getHomCutoff().ifPresent(i -> {homCutoff = i.floatValue();});
+			logger.tool("Setting homozygous cutoff to: " + homCutoff);
+			options.getHetUpperCutoff().ifPresent(i -> {hetUpperCutoff = i.floatValue();});
+			logger.tool("Setting heterozygous upper cutoff to: " + hetUpperCutoff);
+			options.getHetLowerCutoff().ifPresent(i -> {hetLowerCutoff = i.floatValue();});
+			logger.tool("Setting heterozygous lower cutoff to: " + hetLowerCutoff);
 			
 			
 			options.getExcludeStrings().ifPresent((a) -> {

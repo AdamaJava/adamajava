@@ -79,6 +79,10 @@ public class SignatureUtil {
 	public static final String RG_PREFIX = "##rg";
 	public static final String NAN = "nan";
 	
+	public static final float HOM_CUTOFF = 0.90000f;
+	public static final float HET_UPPER_CUTOFF = 0.70000f;
+	public static final float HET_LOWER_CUTOFF = 0.30000f;
+	
 	/*
 	 * METHODS
 	 */
@@ -218,13 +222,13 @@ public class SignatureUtil {
 		return ratios;
 	}
 	public static TIntShortHashMap loadSignatureRatiosFloatGenotype(File file) throws IOException {
-		return loadSignatureRatiosFloatGenotype(file, 10);
+		return loadSignatureRatiosFloatGenotype(file, 10, HOM_CUTOFF, HET_UPPER_CUTOFF, HET_LOWER_CUTOFF);
 	}
 	public static Map<ChrPosition, float[]> loadSignatureRatiosFloat(File file) throws IOException {
 		return loadSignatureRatiosFloat(file, 10);
 	}
 	
-	public static TIntShortHashMap loadSignatureRatiosFloatGenotype(File file, int minCoverage) throws IOException {
+	public static TIntShortHashMap loadSignatureRatiosFloatGenotype(File file, int minCoverage, float homCutoff, float hetUpperCutoff, float hetLowerCutoff) throws IOException {
 		TIntShortHashMap ratios = new TIntShortHashMap();
 		
 		if (null == file) {
@@ -249,7 +253,7 @@ public class SignatureUtil {
 				Optional<float[]> array = getValuesFromCoverageStringFloat(coverage, minCoverage);
 				array.ifPresent(f -> {
 					
-					short g = getCodedGenotype(f);
+					short g = getCodedGenotype(f, homCutoff, hetUpperCutoff, hetLowerCutoff);
 					
 					if (isCodedGenotypeValid(g)) {
 						Integer i = ChrPositionCache.getChrPositionIndex(params[0], Integer.parseInt(params[1]));
@@ -405,18 +409,22 @@ public class SignatureUtil {
 	 * @param f
 	 * @return
 	 */
-	public static short getCodedGenotype(float[] f) {
+	public static short getCodedGenotype(float[] f, float homCutoff, float hetUpperCutoff, float hetLowerCutoff) {
 		short g1 = 0;
 		for (int i = 0 ; i < 4 ; i++) {
 			float d = f[i];
-			if (d > 0.90000) {	// homozygous
+			if (d > homCutoff) {	// homozygous
 				g1 += i == 0 ? 2000 : i == 1 ? 200 : i == 2 ? 20 : 2;
 				break;
-			} else if (d > 0.30000 && d < 0.70000) {	// heterozygous
+			} else if (d > hetLowerCutoff && d < hetUpperCutoff) {	// heterozygous
 				g1 += i == 0 ? 1000 : i == 1 ? 100 : i == 2 ? 10 : 1;
 			}
 		}
 		return g1;
+	}
+	
+	public static short getCodedGenotype(float[] f) {
+		return getCodedGenotype(f, HOM_CUTOFF,  HET_UPPER_CUTOFF, HET_LOWER_CUTOFF);
 	}
 	
 	/**
