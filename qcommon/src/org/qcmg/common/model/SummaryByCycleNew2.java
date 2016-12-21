@@ -20,13 +20,9 @@ import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-
 /**
  * Class that tallies by cycle using java generics 
- * 
- * 
- * 
- */
+  */
 
 public class SummaryByCycleNew2<T> {
 	
@@ -50,9 +46,7 @@ public class SummaryByCycleNew2<T> {
 	 * z has an ascii score of 122
 	 */
 	private static final int DEFAULT_NO_OF_KEYS_CHARACTER = 128;
-	
-
-	
+		
 	// atomic boolean used as a lock when resizing the array
 	private final AtomicBoolean resizingInProgress = new AtomicBoolean(false);
 	
@@ -89,10 +83,6 @@ public class SummaryByCycleNew2<T> {
 		maxCycleValue.set((1<<cycleMask.get()) -1);
 		maxKeyValue.set((1<<keyMask.get()) -1);
 		
-		System.out.println("noOfCycles: " + noOfCycles + " , cycleMask: " + cycleMask.get() + ", noOfKeys: "  
-				+ noOfKeys + ", keyMask: " + keyMask.get() + ", capacity: " + capacity + ", max cycle value: " + maxCycleValue.get()
-				+ ", max key value: " + maxKeyValue.get());
-		
 		tally = new AtomicLongArray(capacity);
 	}
 	
@@ -105,8 +95,8 @@ public class SummaryByCycleNew2<T> {
 			++maskShift;
 			mask <<= 1;
 		}
-		return maskShift;
 		
+		return maskShift;		
 	}
 	
 	public int getArrayPosition(int cycle, int key) {
@@ -117,30 +107,10 @@ public class SummaryByCycleNew2<T> {
 	
 	public int[] getCycleKeyFromArrayPosition(int position) {
 		int key = ( position >>> cycleMask.get());
-//		int key = ( position >>> cycleMask ) & 0xff;
 		int cycle  = position & (( 1 << cycleMask.get()) - 1);
 		return new int[] {cycle,key};
 	}
 	
-//	public SummaryByCycleOld(int initialCapacity, int subMapCapacity) {
-//		tally = new NonBlockingHashMap<Integer, NonBlockingHashMap<T, Counter>>(initialCapacity);
-//		this.subMapInitialCapacity = subMapCapacity;
-//	}
-//	public SummaryByCycleNew(int initialCapacity, int subMapCapacity) {
-//		tally = new NonBlockingHashMapLong<NonBlockingHashMapLong<Counter>>(initialCapacity);
-//		this.subMapInitialCapacity = subMapCapacity;
-//	}
-	
-//	public SummaryByCycleOld(NonBlockingHashMap<Integer, NonBlockingHashMap<T, Counter>> tally) {
-//		this.tally = tally;
-//	}
-//	public SummaryByCycleNew2(ConcurrentHashMap<CycleKey, AtomicLong> tally) {
-////		this.tally = tally;
-//	}
-//	
-//	public NonBlockingHashMap<T, Counter> getValue(Integer key) {
-//		return tally.get(key);
-//	}
 	public ConcurrentMap<T, AtomicLong> getValue(Integer key) {
 		ConcurrentMap<T, AtomicLong> cm = new ConcurrentHashMap<T, AtomicLong>();
 		// loop through keys to get ones with this cycle number
@@ -156,22 +126,7 @@ public class SummaryByCycleNew2<T> {
 			}
 		}
 		
-//		for (Entry<CycleKey, AtomicLong> entry : tally.entrySet()) {
-//			
-//			if (entry.getKey().getCycle() == key.intValue()) {
-//				cm.put(getTypeFromLong(entry.getKey().getKey()), entry.getValue());
-//			}
-//		}
-		
 		return cm;
-//		ConcurrentMap<T, AtomicLong> cm = new ConcurrentHashMap<T, AtomicLong>();
-//		NonBlockingHashMapLong<Counter> map = tally.get(key.longValue());
-//		if (null != map) {
-//			for (Entry<Long, Counter> entry : map.entrySet()) {
-//				cm.put(getTypeFromLong(entry.getKey()), new AtomicLong(entry.getValue().get()));
-//			}
-//		}
-//		return cm;
 	}
 	
 	private T getTypeFromLong(int l) {
@@ -181,21 +136,6 @@ public class SummaryByCycleNew2<T> {
 			return (T)Character.valueOf((char)l);
 		else return null;
 	}
-//	private T getTypeFromLong(Long l) {
-//		if (type instanceof Integer)
-//			return (T)Integer.valueOf(l.toString());
-//		if (type instanceof Character)
-//			return (T)Character.valueOf((char)l.intValue());
-//		else return null;
-//	}
-	
-//	private long getLongFromType(T value) {
-//		if (type instanceof Integer)
-//			return (T)Integer.valueOf(l.toString());
-//		if (type instanceof Character)
-//			return (T)Character.valueOf((char)l.byteValue());
-//		else return null;
-//	}
 	
 	/**
 	 * Increments the count of a particular value, for a particular cycle.
@@ -221,7 +161,6 @@ public class SummaryByCycleNew2<T> {
 	private void resize(final int cycle, final int key) {
 		
 		// find out if it is the cycle, key or both that are larger than current maximums
-//		synchronized (tally) {
 		// lock
 		while ( ! resizingInProgress.compareAndSet(false, true)) {}
 		try {	
@@ -280,10 +219,6 @@ public class SummaryByCycleNew2<T> {
 				
 				// update cycleMask
 				if (newCycleMask > -1) cycleMask.set(newCycleMask);
-				System.out.println("About to resize tally...DONE");
-				System.out.println("noOfCycles: " + cycle + " , cycleMask: " + cycleMask.get() + ", noOfKeys: "  
-						+ key + ", new keyMask: " + keyMask.get() + ", new capacity: " + capacity + ", max cycle value: " + maxCycleValue.get()
-						+ ", max key value: " + maxKeyValue.get());
 			}	
 		} catch (InterruptedException e) {
 			e.printStackTrace();
@@ -304,17 +239,7 @@ public class SummaryByCycleNew2<T> {
 	 * or if the cycle does not contain the specified value <T>
 	 */
 	public AtomicLong count(Integer cycle, long value) {
-		
 		return new AtomicLong(tally.get(getArrayPosition(cycle, (int)value)));
-//		long count = 0;
-//		NonBlockingHashMapLong<Counter> m = tally.get(cycle.longValue());
-//		if (null != m) {
-//			for (Entry<Long, Counter> entry : m.entrySet()) {
-//				if (entry.getKey().equals(value))
-//					count += entry.getValue().get();
-//			}
-//		}
-//		return new AtomicLong(count);
 	}
 	
 	/**

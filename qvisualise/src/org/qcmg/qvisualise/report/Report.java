@@ -16,9 +16,10 @@ public class Report {
 	
 	private final ProfileType type;
 	private final String fileName;
-	private final long recordParsed;
-//	private final long recordInputed;
-	private final long duplicates;
+//	private final long recordParsed;
+	private final String recordParsed;
+//	private final long duplicates;
+	private final String duplicates;
 	private List<ChartTab> tabs;	
 	
 	//xu
@@ -27,13 +28,22 @@ public class Report {
 	private String version = null;
 
 	
-	public Report(ProfileType type, String fileName, long records, long duplicates) {
+	public Report(ProfileType type, String fileName, String records, String duplicates) {
 		this.type = type;
 		this.fileName = fileName;
 		this.recordParsed = records;
 		this.duplicates = duplicates;
 		tabs = new ArrayList<ChartTab>();
 	}
+	
+//	public Report(ProfileType type, String fileName, long records, long duplicates) {
+//	this.type = type;
+//	this.fileName = fileName;
+//	this.recordParsed = records;
+//	this.duplicates = duplicates;
+//	tabs = new ArrayList<ChartTab>();
+//}	
+	
 	
 	public void addTab(ChartTab tab) {
 		tabs.add(tab);
@@ -51,11 +61,11 @@ public class Report {
 		return fileName;
 	}
 
-	public long getRecordParsed() {
+	public String getRecordParsed() {
 		return recordParsed;
 	}
 	
-	public long getDuplicatesCount() {
+	public String getDuplicatesCount() {
 		return duplicates;
 	}
 

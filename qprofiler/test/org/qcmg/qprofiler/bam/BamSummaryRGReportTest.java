@@ -1,7 +1,3 @@
- 
-
-
-
 package org.qcmg.qprofiler.bam;
  
 import java.io.BufferedWriter;
@@ -9,11 +5,16 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicLongArray;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -21,6 +22,7 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import junit.framework.Assert;
 import htsjdk.samtools.SamReader;
+import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMRecord;
 
 import org.junit.After;
@@ -29,20 +31,24 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.model.ProfileType;
+import org.qcmg.common.model.QCMGAtomicLongArray;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qprofiler.QProfiler;
 import org.qcmg.qprofiler.QProfilerSummary;
+import org.qcmg.qprofiler.StaticMethods;
 import org.qcmg.qprofiler.report.SummaryReport;
 import org.qcmg.qprofiler.summarise.Summarizer;
+import org.qcmg.qprofiler.util.SummaryReportUtils;
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.NodeList;
+
+import static java.util.stream.Collectors.toList;
  
 public class BamSummaryRGReportTest {
 	private static final String INPUT_FILE = "input.sam";
- 
 
 	@After
 	public void tearDown() {
@@ -79,8 +85,6 @@ public class BamSummaryRGReportTest {
 		BamSummarizer bs = new BamSummarizer();
 		BamSummaryReport sr = (BamSummaryReport) bs.summarize(new File(INPUT_FILE)); 
 		sr.toXml(root);
-		
-//		Assert.assertEquals(sr.getRecordsInputed(), 11);
 		Assert.assertEquals(sr.getRecordsParsed(), 12);
 		testXmlOutput(root);
 	}
@@ -89,67 +93,65 @@ public class BamSummaryRGReportTest {
 		
 		NodeList summaryNodes = root.getElementsByTagName("SUMMARY").item(0).getChildNodes();		
 		Assert.assertNotNull(summaryNodes);
-		for (int i = 0 ; i < summaryNodes.getLength() ; i++) 
-			if(summaryNodes.item(i).getNodeName().equals("BaseCount")){
-				 NamedNodeMap node =  summaryNodes.item(i).getAttributes();
-				 String rg = node.getNamedItem("rg").getNodeValue();
-				 switch ( rg) {
-				 	case "1959N" :
-				 		Assert.assertEquals(node.getNamedItem("overlap").getNodeValue(), "12.00%");
-				 		Assert.assertEquals(node.getNamedItem("trimmedBase").getNodeValue(), "13.00%");
-				 		Assert.assertEquals(node.getNamedItem("softClip").getNodeValue(), "5.00%");
-				 		Assert.assertEquals(node.getNamedItem("hardClip").getNodeValue(), "0.00%");
-				 		Assert.assertEquals(node.getNamedItem("totalLost").getNodeValue(), "30.00%");				 		
-				 		Assert.assertEquals(node.getNamedItem("maxLength").getNodeValue(), "50");	
-				 		Assert.assertEquals(node.getNamedItem("totalReads").getNodeValue(), "2");
-				 		break;
-				 	case "1959T" :
-				 		Assert.assertEquals(node.getNamedItem("unmapped").getNodeValue(), "16.67%");	
-				 		Assert.assertEquals(node.getNamedItem("nonCanonicalPair").getNodeValue(), "16.67%");
-				 		Assert.assertEquals(node.getNamedItem("duplicate").getNodeValue(), "33.33%");			 		
-				 		Assert.assertEquals(node.getNamedItem("softClip").getNodeValue(), "0.00%");
-				 		Assert.assertEquals(node.getNamedItem("hardClip").getNodeValue(), "5.42%");
-				 		Assert.assertEquals(node.getNamedItem("trimmedBase").getNodeValue(), "0.00%");				 		
-				 		Assert.assertEquals(node.getNamedItem("overlap").getNodeValue(), "10.83%");				 		
-				 		Assert.assertEquals(node.getNamedItem("totalLost").getNodeValue(), "82.92%");
-				 		Assert.assertEquals(node.getNamedItem("maxLength").getNodeValue(), "40");	
-				 		Assert.assertEquals(node.getNamedItem("totalReads").getNodeValue(), "6");
-				 		break;	
-				 	case "EMPTY" :
-				 		Assert.assertEquals(node.getNamedItem("overlap").getNodeValue(), "0.00%");
-				 		Assert.assertEquals(node.getNamedItem("trimmedBase").getNodeValue(), "0.00%");
-				 		Assert.assertEquals(node.getNamedItem("softClip").getNodeValue(), "0.00%");
-				 		Assert.assertEquals(node.getNamedItem("hardClip").getNodeValue(), "0.00%");
-				 		Assert.assertEquals(node.getNamedItem("totalLost").getNodeValue(), "0.00%");				 		
-				 		Assert.assertEquals(node.getNamedItem("maxLength").getNodeValue(), "75");	
-				 		Assert.assertEquals(node.getNamedItem("totalReads").getNodeValue(), "1");
-				 		break;
-				 	case "Total" :				 		
-//				 		for (int j = 0; j < node.getLength(); j ++)
-//				 			System.out.println(node.item(j).getNodeName() + "=>" + node.item(j).getNodeValue()); 				 						 		
-				 		Assert.assertEquals(node.getNamedItem("totalReads").getNodeValue(), "9");	
-				 		Assert.assertEquals(node.getNamedItem("softClip").getNodeValue(), "1.20%");				 		
-				 		Assert.assertEquals(node.getNamedItem("unmapped").getNodeValue(), "9.64%");				 		
-				 		Assert.assertEquals(node.getNamedItem("nonCanonicalPair").getNodeValue(), "9.64%");				 		
-				 		Assert.assertEquals(node.getNamedItem("duplicate").getNodeValue(), "19.28%");			 							
-				 		Assert.assertEquals(node.getNamedItem("hardClip").getNodeValue(), "3.13%" );
-				 		Assert.assertEquals(node.getNamedItem("trimmedBase").getNodeValue(), "3.13%" );				 		
-				 		Assert.assertEquals(node.getNamedItem("overlap").getNodeValue(), "9.16%");					 		
-				 		Assert.assertEquals(node.getNamedItem("totalLost").getNodeValue(), "55.18%");
-				 		Assert.assertEquals(node.getNamedItem("maxLength").getNodeValue(), "-");					 					 				 		
-				 		break;	
-				 		
-				 	default:
-				 		throw new Exception("unexpected read group appears on xml SUMMARY section");
-				 }
-			}
+//		for (int i = 0 ; i < summaryNodes.getLength() ; i++) 
+//			if(summaryNodes.item(i).getNodeName().equals("BaseCount")){
+//				 NamedNodeMap node =  summaryNodes.item(i).getAttributes();
+//				 String rg = node.getNamedItem("rg").getNodeValue();
+//				 switch ( rg) {
+//				 	case "1959N" :
+//				 		Assert.assertEquals(node.getNamedItem("overlap").getNodeValue(), "12.00%");
+//				 		Assert.assertEquals(node.getNamedItem("trimmedBase").getNodeValue(), "13.00%");
+//				 		Assert.assertEquals(node.getNamedItem("softClip").getNodeValue(), "5.00%");
+//				 		Assert.assertEquals(node.getNamedItem("hardClip").getNodeValue(), "0.00%");
+//				 		Assert.assertEquals(node.getNamedItem("totalLost").getNodeValue(), "30.00%");				 		
+//				 		Assert.assertEquals(node.getNamedItem("maxLength").getNodeValue(), "50");	
+//				 		Assert.assertEquals(node.getNamedItem("totalReads").getNodeValue(), "2");
+//				 		break;
+//				 	case "1959T" :
+//				 		Assert.assertEquals(node.getNamedItem("unmapped").getNodeValue(), "16.67%");	
+//				 		Assert.assertEquals(node.getNamedItem("nonCanonicalPair").getNodeValue(), "16.67%");
+//				 		Assert.assertEquals(node.getNamedItem("duplicate").getNodeValue(), "33.33%");			 		
+//				 		Assert.assertEquals(node.getNamedItem("softClip").getNodeValue(), "0.00%");
+//				 		Assert.assertEquals(node.getNamedItem("hardClip").getNodeValue(), "5.42%");
+//				 		Assert.assertEquals(node.getNamedItem("trimmedBase").getNodeValue(), "0.00%");				 		
+//				 		Assert.assertEquals(node.getNamedItem("overlap").getNodeValue(), "10.83%");				 		
+//				 		Assert.assertEquals(node.getNamedItem("totalLost").getNodeValue(), "82.92%");
+//				 		Assert.assertEquals(node.getNamedItem("maxLength").getNodeValue(), "40");	
+//				 		Assert.assertEquals(node.getNamedItem("totalReads").getNodeValue(), "6");
+//				 		break;	
+//				 	case SummaryReportUtils.UNKNOWN_READGROUP:
+//				 		Assert.assertEquals(node.getNamedItem("overlap").getNodeValue(), "0.00%");
+//				 		Assert.assertEquals(node.getNamedItem("trimmedBase").getNodeValue(), "0.00%");
+//				 		Assert.assertEquals(node.getNamedItem("softClip").getNodeValue(), "0.00%");
+//				 		Assert.assertEquals(node.getNamedItem("hardClip").getNodeValue(), "0.00%");
+//				 		Assert.assertEquals(node.getNamedItem("totalLost").getNodeValue(), "0.00%");				 		
+//				 		Assert.assertEquals(node.getNamedItem("maxLength").getNodeValue(), "75");	
+//				 		Assert.assertEquals(node.getNamedItem("totalReads").getNodeValue(), "1");
+//				 		break;
+//				 	case "Total" :				 		
+//				 		Assert.assertEquals(node.getNamedItem("totalReads").getNodeValue(), "9");	
+//				 		Assert.assertEquals(node.getNamedItem("softClip").getNodeValue(), "1.20%");				 		
+//				 		Assert.assertEquals(node.getNamedItem("unmapped").getNodeValue(), "9.64%");				 		
+//				 		Assert.assertEquals(node.getNamedItem("nonCanonicalPair").getNodeValue(), "9.64%");				 		
+//				 		Assert.assertEquals(node.getNamedItem("duplicate").getNodeValue(), "19.28%");			 							
+//				 		Assert.assertEquals(node.getNamedItem("hardClip").getNodeValue(), "3.13%" );
+//				 		Assert.assertEquals(node.getNamedItem("trimmedBase").getNodeValue(), "3.13%" );				 		
+//				 		Assert.assertEquals(node.getNamedItem("overlap").getNodeValue(), "9.16%");					 		
+//				 		Assert.assertEquals(node.getNamedItem("totalLost").getNodeValue(), "55.18%");
+//				 		Assert.assertEquals(node.getNamedItem("maxLength").getNodeValue(), "-");					 					 				 		
+//				 		break;	
+//				 		
+//				 	default:
+//				 		throw new Exception("unexpected read group appears on xml SUMMARY section");
+//				 }
+//			}
 		}
-		 
- 	
+	
 	private static void createInputFile() throws IOException{
 		List<String> data = new ArrayList<String>();
         data.add("@HD	VN:1.0	SO:coordinate");
         data.add("@RG	ID:1959T	SM:eBeads_20091110_CD	DS:rl=50");
+        data.add("@RG	ID:1959N	SM:eBeads_20091110_ND	DS:rl=50");
         data.add("@PG	ID:SOLID-GffToSam	VN:1.4.3");
         data.add("@SQ	SN:chr1	LN:249250621");
         data.add("@SQ	SN:chr11	LN:243199373");
@@ -231,7 +233,7 @@ public class BamSummaryRGReportTest {
 	    data.add("HWI-ST1408:8	147	chrM	3085	255	28S96M2S	=	3021	-160	" + 
 	    "CNNNNNNNNNNNNNNTNNANNNNNNNNTANNCNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNCNNAAGNACANGAGAAATAAGNCCTACTTCACAAAGCGCCTNCCCCCGNAAANGANN	" + 
 	    "########################################################################F==#F==#EGGGGGGE<=#FE1GGGGGGGGGGGGGF=?#GGGE@=#E@?#<=##	" + 
-	    "MD:Z:1T0C1A0G0G0T0C0G0G0T0T0T0C0T0A0T0C0T0A0C0N0T0T0C0A0A0A0T0T0C0C0T0C0C0C0T0G0T0A1G0A3G3A10G19T6T3T2	NH:i:1	HI:i:1	NM:i:47	AS:i:169");
+	    "MD:Z:1T0C1A0G0G0T0C0G0G0T0T0T0C0T0A0T0C0T0A0C0N0T0T0C0A0A0A0T0T0C0C0T0C0C0C0T0G0T0A1G0A3G3A10G19T6T3T2	NH:i:1	HI:i:1	NM:i:47	AS:i:169	RG:Z:1959T");
 	
 	try(BufferedWriter out = new BufferedWriter(new FileWriter(INPUT_FILE))){	    
 		for (String line : data)  out.write(line + "\n");	               

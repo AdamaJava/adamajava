@@ -42,7 +42,7 @@ public class XmlReportReader {
 			
 			// hack coming up - can't hit grimmond.imb.uq.edu from our clusters, so create a temp file that doesn't contain the reference...
 			// try creating a temp file, without the <!DOCTYPE> line
-			if (ioExceptionCount++ < 1) {	// only want to do this once...
+			if (ioExceptionCount ++ < 1) {	// only want to do this once...
 				try {
 					return createDocumentFromFile(createTempFile(absoluteFile));
 				} catch (IOException e) {
@@ -50,6 +50,7 @@ public class XmlReportReader {
 				}
 			}
 		}
+		
 		return doc;
 	}
 	

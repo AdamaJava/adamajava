@@ -97,8 +97,7 @@ public class QProfiler {
 		// Create new Summary object ready to hold our processing
 		QProfilerSummary sol = new QProfilerSummary();
 		sol.setStartTime(DateUtils.getCurrentDateAsString());
-		
-		
+				
 		/*
 		 * First thing we should do is load XML report file if one is specified
 		 * and if it already exists. The behavior we want for XML is if a file
@@ -108,7 +107,6 @@ public class QProfiler {
 		 * things like load an existing XML and output it in text format if no
 		 * additional files are specified for processing
 		 */
-
 
 		final Map<ProfileType, List<File>> sortedFiles = new HashMap<ProfileType, List<File>>();
 		
@@ -181,7 +179,6 @@ public class QProfiler {
 			
 			for (final File file : entry.getValue()) {
 				logger.info("processing file " + file);
-				
 				final Summarizer summarizer = getSummarizer(entry.getKey());
 				if (null != summarizer) {
 					Runnable task = new Runnable() {
@@ -192,12 +189,12 @@ public class QProfiler {
 							try {
 								sr = summarizer.summarize(file);
 							} catch (Exception e) {
-								logger.error("Exception caught whilst running summarizer for file: " + file.getName(), e);
+								logger.error( "Exception caught whilst running summarizer for file: " + file.getName(), e );
 								// set the exit status to failure if any of the tasks throw an exception
 								exitStatus = 1;
 								throw new RuntimeException(e);
 							}
-							if (null != sr) {
+							if (null != sr) { 
 								sr.toXml(root);
 								// to null to assist GC
 								sr = null;

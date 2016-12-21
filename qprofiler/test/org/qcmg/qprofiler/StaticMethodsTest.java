@@ -2,11 +2,14 @@ package org.qcmg.qprofiler;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicLongArray;
 
 import junit.framework.Assert;
 
 import org.junit.After;
 import org.junit.Test;
+import org.qcmg.common.util.BaseUtils;
 
 public class StaticMethodsTest {
 	

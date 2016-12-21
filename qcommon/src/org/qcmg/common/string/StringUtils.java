@@ -93,6 +93,18 @@ public class StringUtils {
 	}
 	
 	
+	public static String parseArray2String(Object[] values){
+		StringBuilder sb = new StringBuilder();	
+		for (Object t : values)  
+			if(t instanceof Number) sb.append(t + ",");
+			else sb.append(t.toString() + ",");	 
+		 
+		if (sb.length() > 0)
+			return sb.substring(0, sb.length()-1);
+		return null;		
+	}
+	
+	
 	public static <T> List<T> getChildArrayFromParentArray(T[] parentArray, Integer[] childArrayPositions) {
 		if (null == parentArray || null == childArrayPositions)
 			throw new IllegalArgumentException("null parameters passed to getChildArrayFromParentArray");

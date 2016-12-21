@@ -86,11 +86,14 @@ public abstract class SummaryReport {
 		element.setAttribute("file", getFileName());
 		element.setAttribute("execution_started", getStartTime());
 		element.setAttribute("execution_finished", getFinishTime());
-		element.setAttribute("records_parsed", "" + getRecordsParsed() );
+		
+		//don't list records_parsed on xml for BAM type
+		if(!reportType.equals(ProfileType.BAM))
+			element.setAttribute("records_parsed", String.format("%,d", getRecordsParsed()) );				 
 		if (null != maxRecords)
-			element.setAttribute("max_no_of_records", maxRecords.toString());
+			element.setAttribute("max_no_of_records", String.format("%,d",maxRecords) );
 		if (null != noOfDuplicates)
-			element.setAttribute("duplicate_records", ""+noOfDuplicates.longValue() );
+			element.setAttribute("duplicate_records", String.format("%,d", noOfDuplicates));
 		if (null != excludes && excludes.length > 0) {
 			StringBuilder excludesString = new StringBuilder();
 			for (String ex : excludes) {
@@ -103,11 +106,12 @@ public abstract class SummaryReport {
 		return element;
 	}
 	
+	
 	protected Element init(Element parent, ProfileType reportType) {
 		return init(parent, reportType, null, null, null);
 	}
 	
-	protected Element createSubElement(Element parent, String name) {
+	public static Element createSubElement(Element parent, String name) {
 		Element element = parent.getOwnerDocument().createElement(name);
 		parent.appendChild(element);
 		return element;

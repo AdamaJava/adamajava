@@ -6,11 +6,14 @@ import htsjdk.samtools.CigarElement;
 import htsjdk.samtools.CigarOperator;
 import htsjdk.samtools.SAMRecord;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -23,7 +26,7 @@ import org.junit.Test;
 import org.qcmg.common.model.QCMGAtomicLongArray;
 import org.qcmg.common.model.SummaryByCycle;
 import org.qcmg.common.model.SummaryByCycleNew2;
-import org.qcmg.qprofiler.bam.PositionSummary;
+import org.qcmg.qprofiler.summarise.PositionSummary;
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -104,7 +107,7 @@ public class SummaryReportUtilsTest {
 		for (int i = 0 ; i < counter ; i++) {
 			SummaryReportUtils.tallyBadReads(inputString, map);
 		}
-		System.out.println("time taken using Matcher: " + (System.currentTimeMillis() - start));
+//		System.out.println("time taken using Matcher: " + (System.currentTimeMillis() - start));
 		Assert.assertEquals(counter, map.get(6).get());
 		
 		
@@ -113,7 +116,7 @@ public class SummaryReportUtilsTest {
 		for (int i = 0 ; i < counter ; i++) {
 			SummaryReportUtils.tallyBadReadsAsString(inputString, map);
 		}
-		System.out.println("time taken using String: " + (System.currentTimeMillis() - start));
+//		System.out.println("time taken using String: " + (System.currentTimeMillis() - start));
 		Assert.assertEquals(counter, map.get(6).get());
 		
 		
@@ -122,7 +125,7 @@ public class SummaryReportUtilsTest {
 		for (int i = 0 ; i < counter ; i++) {
 			SummaryReportUtils.tallyBadReads(inputString, map);
 		}
-		System.out.println("time taken using Matcher: " + (System.currentTimeMillis() - start));
+//		System.out.println("time taken using Matcher: " + (System.currentTimeMillis() - start));
 		Assert.assertEquals(counter, map.get(6).get());
 	}
 	@Test
@@ -137,14 +140,14 @@ public class SummaryReportUtilsTest {
 		for (int i = 0 ; i < counter ; i++) {
 			SummaryReportUtils.tallyBadReads(inputString, map, SummaryReportUtils.BAD_MD_PATTERN);
 		}
-		System.out.println("testMatcherVsString: time taken using Matcher: " + (System.currentTimeMillis() - start));
+//		System.out.println("testMatcherVsString: time taken using Matcher: " + (System.currentTimeMillis() - start));
 		Assert.assertEquals(counter, map.get(12).get());
 		
 		start = System.currentTimeMillis();
 		for (int i = 0 ; i < counter ; i++) {
 			SummaryReportUtils.tallyBadReadsMD(inputString, mapMD);
 		}
-		System.out.println("testMatcherVsString: time taken using String looping: " + (System.currentTimeMillis() - start));
+//		System.out.println("testMatcherVsString: time taken using String looping: " + (System.currentTimeMillis() - start));
 		Assert.assertEquals(counter * 3, mapMD.get("4M").get());
 		
 		start = System.currentTimeMillis();
@@ -152,7 +155,7 @@ public class SummaryReportUtilsTest {
 		for (int i = 0 ; i < counter ; i++) {
 			SummaryReportUtils.tallyBadReads(inputString, map, SummaryReportUtils.BAD_MD_PATTERN);
 		}
-		System.out.println("testMatcherVsString: time taken using Matcher: " + (System.currentTimeMillis() - start));
+//		System.out.println("testMatcherVsString: time taken using Matcher: " + (System.currentTimeMillis() - start));
 		Assert.assertEquals(counter, map.get(12).get());
 		
 	}
@@ -245,8 +248,6 @@ public class SummaryReportUtilsTest {
 		SummaryReportUtils.tallyMDMismatches(mdString, summary, readBases);
 		Assert.assertEquals(1, summary.count(50, 'A').intValue());
 		
-		
-		
 		mdString = "17C2^CCACTTAATTTCATGTGATAATTTTCCCCAATGACTAACCAAATATGCTTCACTATTATATAAATCAATTCTTTCTTAATGCC" +
 				"ACAAGTGAAAGTGCAAAGGTAGCTAATGGTTTTCTTCTCATAAAAATCACACTTTGGCTTTTTCCTTTCATATGTAATTAATCATATT" +
 				"TGTGACAATCTTCCAAACTTACTTGAAATTTTTCTGAATCCCTTTCAAATCAGGACAAGAACTAGAAATGTCTATACAGGTTTAATAT" +
@@ -254,8 +255,7 @@ public class SummaryReportUtilsTest {
 				"TGGTCCCCTATGACCCCCTGATCATTTTCCCTGAGGGTGCATATTTATTCACTAACTATGTTACAATCATGTGATCTGCTGGATTTT" +
 				"TTCTGATAGTCTACTCTAGATTTGTTCTAAATTAATAAATCCCATTATTTTTG30";
 		SummaryReportUtils.tallyMDMismatches(mdString, summary, readBases);
-		Assert.assertEquals(1, summary.count(18, 'C').intValue());
-		
+		Assert.assertEquals(1, summary.count(18, 'C').intValue());		
 	}
 	
 	@Test
@@ -321,9 +321,7 @@ public class SummaryReportUtilsTest {
 			}
 		}
 		
-		// if insertions are taken into account, should be G>A
-		
-		
+		// if insertions are taken into account, should be G>A		
 	}
 	
 	@Test
@@ -486,9 +484,9 @@ public class SummaryReportUtilsTest {
 		cigar.add(new CigarElement(96, CigarOperator.M));
 		cigar.add(new CigarElement(2, CigarOperator.S));
 		String result = SummaryReportUtils.tallyMDMismatches("1T0C1A0G0G0T0C0G0G0T0T0T0C0T0A0T0C0T0A0C0N0T0T0C0A0A0A0T0T0C0C0T0C0C0C0T0G0T0A1G0A3G3A10G19T6T3T2", cigar, summary, "CNNNNNNNNNNNNNNTNNANNNNNNNNTANNCNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNCNNAAGNACANGAGAAATAAGNCCTACTTCACAAAGCGCCTNCCCCCGNAAANGANN".getBytes(), true, forwardArray, reverseArray);
-		System.out.println("result: " + result);
+//		System.out.println("result: " + result);
 		result = SummaryReportUtils.tallyMDMismatches("1T0C1A0G0G0T0C0G0G0T0T0T0C0T0A0T0C0T0A0C0T0T0C0A0A0A0T0T0C0C0T0C0C0C0T0G0T0A0C0G0A0A1G1A0C0A1G0A0G0A2T0A1G1C1T0A0C0T1C0A0C0A2G0C0G0C1T1C4G0T0A2T0G0A0T0", cigar, summary, "CNNNNNNNNNNNNNNTNNANNNNNNNNTANNCNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNCNNAAGNACANGAGAAATAAGNCCTACTTCACAAAGCGCCTNCCCCCGNAAANGANN".getBytes(), true, forwardArray, reverseArray);
-		System.out.println("result: " + result);
+//		System.out.println("result: " + result);
 //		assertEquals(1, reverseArray.get(SummaryReportUtils.getIntFromChars('T', 'N')));
 	}
 	
@@ -1233,9 +1231,10 @@ public class SummaryReportUtilsTest {
 	@Test
 	public void testPostionSummaryMapToXml() throws Exception {
 		Element root = createElement("testPostionSummaryMapToXml");
+		List<String> rgs = Arrays.asList(new String[] {"rg1", "rg2"});
 		
 		ConcurrentMap<String, PositionSummary> map = new ConcurrentHashMap<String, PositionSummary>();
-		SummaryReportUtils.postionSummaryMapToXml(root, "test", map);
+		SummaryReportUtils.postionSummaryMapToXml(root, "test", map,  rgs );
 		
 		Assert.assertTrue(root.hasChildNodes());
 		Assert.assertEquals(1, root.getChildNodes().getLength());
@@ -1243,62 +1242,62 @@ public class SummaryReportUtilsTest {
 		Assert.assertFalse(root.getChildNodes().item(0).hasChildNodes());
 		Assert.assertFalse(root.getChildNodes().item(0).hasAttributes());
 		
-		PositionSummary ps = new PositionSummary(42);
-		for (int i = 0 ; i <= 10000000 ; i++) {
-			ps.addPosition(i);
-		}
-		
-		
-		// same again this time with some data!
+		PositionSummary ps = new PositionSummary( rgs );
+		ps.addPosition(42, "rg1" );
+		for (int i = 0 ; i <= 10000000 ; i++) { ps.addPosition(i,"rg1"); }
 		map.put("chr1", ps);
-		map.put("chr2", new PositionSummary(41));
-		map.put("chr3", new PositionSummary(40));
-		map.put("chr4", new PositionSummary(39));
-		map.put("chr5", new PositionSummary(38));
-		map.put("chr6", new PositionSummary(37));
-		SummaryReportUtils.postionSummaryMapToXml(root, "test42", map);
+ 
+		// same again this time with some data!		
+		map.put("chr2", new PositionSummary(rgs)); map.get("chr2").addPosition(41, "rg1");
+		map.put("chr3", new PositionSummary(rgs)); map.get("chr3").addPosition(40, "rg1"); 
+		map.put("chr4", new PositionSummary(rgs)); map.get("chr4").addPosition(39, "rg1"); 
+		map.put("chr5", new PositionSummary(rgs)); map.get("chr5").addPosition(38, "rg1"); 
+		map.put("chr6", new PositionSummary(rgs)); map.get("chr6").addPosition(37, "rg1"); 		
 		
+		SummaryReportUtils.postionSummaryMapToXml(root, "test42", map , rgs );		
 		Assert.assertTrue(root.hasChildNodes());
 		Assert.assertEquals(2, root.getChildNodes().getLength());
 		Assert.assertEquals("test42", root.getChildNodes().item(1).getNodeName());
 		
 		Element element42RName = (Element) root.getChildNodes().item(1).getChildNodes().item(0);
-//		System.out.println("element42RName = " + element42RName.getNodeName());
 		Assert.assertTrue(element42RName.hasChildNodes());
 		Assert.assertTrue(element42RName.hasAttributes());
 		Assert.assertEquals("chr1", element42RName.getAttribute("value"));
 		Assert.assertEquals(0, Integer.parseInt(element42RName.getAttribute("minPosition")));
 		Assert.assertEquals(10000000, Integer.parseInt(element42RName.getAttribute("maxPosition")));
-		Assert.assertEquals(10000002, Integer.parseInt(element42RName.getAttribute("count")));
+		Assert.assertEquals(10000002, Integer.parseInt(element42RName.getAttribute("count")));		
 		Assert.assertEquals(1, element42RName.getChildNodes().getLength());
 
 		// first element
 		Element element42RangeTallyItem = (Element) element42RName.getChildNodes().item(0).getChildNodes().item(0);
 		Assert.assertEquals(0, Integer.parseInt(element42RangeTallyItem.getAttribute("start")));
 		Assert.assertEquals(999999, Integer.parseInt(element42RangeTallyItem.getAttribute("end")));
-		Assert.assertEquals(1000001, Integer.parseInt(element42RangeTallyItem.getAttribute("count")));
+		Assert.assertEquals(1000001, Integer.parseInt(element42RangeTallyItem.getAttribute("count")) );
+		Assert.assertEquals("1000001,0", element42RangeTallyItem.getAttribute("rgCount") );	
+ 		
 		// second element
 		element42RangeTallyItem = (Element) element42RName.getChildNodes().item(0).getChildNodes().item(1);
 		Assert.assertEquals(1000000, Integer.parseInt(element42RangeTallyItem.getAttribute("start")));
 		Assert.assertEquals(1999999, Integer.parseInt(element42RangeTallyItem.getAttribute("end")));
-		Assert.assertEquals(1000000, Integer.parseInt(element42RangeTallyItem.getAttribute("count")));
+		Assert.assertEquals(1000000, Integer.parseInt(element42RangeTallyItem.getAttribute("count")) );
+		Assert.assertEquals("1000000,0", element42RangeTallyItem.getAttribute("rgCount") );	
+		
 		// last element
 		element42RangeTallyItem = (Element) element42RName.getChildNodes().item(0).getChildNodes().item(9);
 		Assert.assertEquals(9000000, Integer.parseInt(element42RangeTallyItem.getAttribute("start")));
 		Assert.assertEquals(9999999, Integer.parseInt(element42RangeTallyItem.getAttribute("end")));
-		Assert.assertEquals(1000000, Integer.parseInt(element42RangeTallyItem.getAttribute("count")));
-		
+		Assert.assertEquals(1000000, Integer.parseInt(element42RangeTallyItem.getAttribute("count")) );
+		Assert.assertEquals("1000000,0", element42RangeTallyItem.getAttribute("rgCount") );	
 		
 		// next rname
 		element42RName = (Element) root.getChildNodes().item(1).getChildNodes().item(1);
-//		System.out.println("element42RName = " + element42RName.getNodeName());
-		Assert.assertTrue(element42RName.hasChildNodes());
-		Assert.assertTrue(element42RName.hasAttributes());
-		Assert.assertEquals("chr2", element42RName.getAttribute("value"));
-		Assert.assertEquals(41, Integer.parseInt(element42RName.getAttribute("minPosition")));
-		Assert.assertEquals(41, Integer.parseInt(element42RName.getAttribute("maxPosition")));
-		Assert.assertEquals(1, Integer.parseInt(element42RName.getAttribute("count")));
-		Assert.assertEquals(1, element42RName.getChildNodes().getLength());
+        Assert.assertTrue(element42RName.hasChildNodes());
+        Assert.assertTrue(element42RName.hasAttributes());
+        Assert.assertEquals("chr2", element42RName.getAttribute("value"));
+        Assert.assertEquals(41, Integer.parseInt(element42RName.getAttribute("minPosition")));
+        Assert.assertEquals(41, Integer.parseInt(element42RName.getAttribute("maxPosition")));
+        Assert.assertEquals(1, Integer.parseInt(element42RName.getAttribute("count")));
+        Assert.assertEquals(1, element42RName.getChildNodes().getLength());
 	}
 
 	private Element createElement(String methodName) throws ParserConfigurationException {

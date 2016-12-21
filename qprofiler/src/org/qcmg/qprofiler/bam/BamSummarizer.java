@@ -11,6 +11,8 @@
  */
 package org.qcmg.qprofiler.bam;
 
+import static java.util.stream.Collectors.toList;
+
 import java.io.File;
 import java.util.List;
 
@@ -38,6 +40,7 @@ public class BamSummarizer implements Summarizer {
 	
 	private static String bamHeader;
 	private static SAMSequenceDictionary samSeqDict;
+	private static List<String> readGroupIds;
 	private boolean torrentBam = false;
 	
 	private final static QLogger logger = QLoggerFactory.getLogger(BamSummarizer.class);
@@ -61,6 +64,8 @@ public class BamSummarizer implements Summarizer {
 		BamSummaryReport bamSummaryReport = new BamSummaryReport(includes, maxRecords, tags, tagsInt, tagsChar);
 		bamSummaryReport.setFileName(file.getAbsolutePath());
 		bamSummaryReport.setStartTime(DateUtils.getCurrentDateAsString());
+		readGroupIds = reader.getFileHeader().getReadGroups().stream().map( it -> it.getId()  ).collect(toList()); 
+		bamSummaryReport.setReadGroups(readGroupIds);
 		
 		boolean logLevelEnabled = logger.isLevelEnabled(QLevel.DEBUG);
 		
@@ -82,7 +87,6 @@ public class BamSummarizer implements Summarizer {
 				}
 				
 				// if maxRecords is non-zero, stop when we hit it
-	//			if (currentRecordCount == maxRecords) {
 				if (maxRecords > 0 && currentRecordCount == maxRecords) {
 					break;
 				}
@@ -100,6 +104,8 @@ public class BamSummarizer implements Summarizer {
 			bamSummaryReport.setTorrentBam(torrentBam);
 			bamSummaryReport.setBamHeader(bamHeader);
 			bamSummaryReport.setSamSequenceDictionary(samSeqDict);
+			
+			
 			
 		} finally {
 			reader.close();
