@@ -149,6 +149,11 @@ public class SignatureCompareRelatedSimpleGenotype {
 		
 		for (int i = 0 ; i < size -1 ; i++) {
 			
+			if (i % 10 == 0) {
+				logger.info("Have loaded data from " + i + " files");
+			}
+				
+			
 			File f1 = files.get(i);
 //			Map<ChrPosition, float[]> ratios1 = getSignatureData(f1);
 			TIntShortHashMap ratios1 = getSignatureData(f1);
