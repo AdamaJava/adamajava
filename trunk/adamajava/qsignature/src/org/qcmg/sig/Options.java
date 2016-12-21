@@ -57,6 +57,9 @@ final class Options {
 	private final Optional<Integer> minMappingQuality;
 	private final Optional<Integer> minBaseQuality;
 	private final Optional<Integer> noOfThreads;
+	private final Optional<Float> homCutoff;
+	private final Optional<Float> hetUpperCutoff;
+	private final Optional<Float> hetLowerCutoff;
 //	private int snpChipCoverage;
 //	private float cutoff;
 	private final String log;
@@ -85,6 +88,12 @@ final class Options {
 			.describedAs("minBaseQuality");
 		parser.accepts("cutoff", CUT_OFF_OPTION_DESCRIPTION).withRequiredArg().ofType(Float.class)
 			.describedAs("cutoff");
+		parser.accepts("homCutoff", CUT_OFF_OPTION_DESCRIPTION).withRequiredArg().ofType(Float.class)
+		.describedAs("homCutoff");
+		parser.accepts("hetUpperCutoff", CUT_OFF_OPTION_DESCRIPTION).withRequiredArg().ofType(Float.class)
+		.describedAs("hetUpperCutoff");
+		parser.accepts("hetLowerCutoff", CUT_OFF_OPTION_DESCRIPTION).withRequiredArg().ofType(Float.class)
+		.describedAs("hetLowerCutoff");
 		parser.accepts("noOfThreads", NO_OF_THREADS_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class)
 			.describedAs("noOfThreads");
 //		parser.accepts("snpChipCoverage", SNP_CHIP_COVERAGE_DESCRIPTION).withRequiredArg().ofType(Integer.class)
@@ -132,6 +141,9 @@ final class Options {
 		minMappingQuality = Optional.ofNullable((Integer) options.valueOf("minMappingQuality"));
 		minBaseQuality = Optional.ofNullable((Integer) options.valueOf("minBaseQuality"));
 		noOfThreads = Optional.ofNullable((Integer) options.valueOf("noOfThreads"));
+		homCutoff = Optional.ofNullable((Float) options.valueOf("homCutoff"));
+		hetUpperCutoff = Optional.ofNullable((Float) options.valueOf("hetUpperCutoff"));
+		hetLowerCutoff = Optional.ofNullable((Float) options.valueOf("hetLowerCutoff"));
 	}
 
 	String getLog() {
@@ -262,6 +274,15 @@ final class Options {
 
 	public Optional<Integer> getMinBaseQuality() {
 		return minBaseQuality;
+	}
+	public Optional<Float> getHomCutoff() {
+		return homCutoff;
+	}
+	public Optional<Float> getHetUpperCutoff() {
+		return hetUpperCutoff;
+	}
+	public Optional<Float> getHetLowerCutoff() {
+		return hetLowerCutoff;
 	}
 
 	public boolean hasEmailSubjectOption() {
