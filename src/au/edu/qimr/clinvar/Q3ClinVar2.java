@@ -1075,15 +1075,15 @@ public class Q3ClinVar2 {
 						String genes = entry.getValue().stream()
 							.map(p -> p[0])
 							.distinct()
-							.collect(Collectors.joining(";"));
+							.collect(Collectors.joining(Constants.COMMA_STRING));
 						String cosmicId = entry.getValue().stream()
 								.map(p -> p[16])
 								.distinct()
-								.collect(Collectors.joining(";"));
+								.collect(Collectors.joining(Constants.SEMI_COLON_STRING));
 						String cds = entry.getValue().stream()
 								.map(p -> p[17])
 								.distinct()
-								.collect(Collectors.joining(","));
+								.collect(Collectors.joining(Constants.COMMA_STRING));
 						logger.info("genes: " + genes + ", cosmicId: " + cosmicId + ", cds: " + cds);
 						
 						/*
@@ -1177,36 +1177,6 @@ public class Q3ClinVar2 {
 						mut.appendInfo("DB_CDS=" + dbSNPVcf.getRef() + ">" + dbSNPVcf.getAlt());
 //						logger.info("updated mut: " + mut.toString());
 					}
-					
-								
-	//				//each dbSNP check twice, since indel alleles followed by one reference base, eg. chr1 100 . TT T ...
-	//				final int end =  dbSNPVcf.getRef().length() +  (start - 1); 
-	//				List<VcfRecord> inputVcfs = positionRecordMap.get(chrPos);
-	//				if (null != inputVcfs && inputVcfs.size() != 0){
-	//					for(VcfRecord re: inputVcfs)
-	//						if(annotateDBsnp(re, dbSNPVcf ))
-	//							dbSnpNo ++;						
-	//				}
-	//				
-	//				//check RSPOS for MNV only
-	////				String VC = dbSNPVcf.getInfoRecord().getField("VC");
-	//				if ( ! StringUtils.doesStringContainSubString(dbSNPVcf.getInfo(), "VC=MNV", false))
-	//					continue;
-	//				
-	//				//if RSPOS different to column 2
-	//				String rspos = dbSNPVcf.getInfoRecord().getField("RSPOS");
-	//				if( !StringUtils.isNullOrEmpty(rspos)){ 		
-	//					start = Integer.parseInt(rspos);
-	//					if(start == chrPos.getPosition() || start > chrPos.getEndPosition()) continue; 
-	//					
-	//					chrPos = new ChrPosition(chr, start, end );	
-	//					inputVcfs = positionRecordMap.get(chrPos);
-	//					if (null != inputVcfs && inputVcfs.size() != 0) {
-	//						for(VcfRecord re: inputVcfs)
-	//							if(annotateDBsnp(re, dbSNPVcf ))
-	//								dbSnpNo ++;					
-	//					}
-	//				}
 				}
 			}
 		}
@@ -1240,27 +1210,14 @@ public class Q3ClinVar2 {
 				 * Add filter to vcf if we only have end of reads - may want to be a little more strict than this
 				 */
 				if (middleOfReadCount.get() == 0 && endOfReadCount.get() > 0) {
-					VcfUtils.updateFilter(vcf, SnpUtils.END_OF_READ + endOfReadCount.get());
+					/*
+					 * add to format filter rather than filter
+					 */
+					VcfUtils.addFormatFieldsToVcf(vcf, Arrays.asList("FT", SnpUtils.END_OF_READ + Constants.EQ +  endOfReadCount.get()), true);
+//					VcfUtils.updateFilter(vcf, SnpUtils.END_OF_READ + Constants.EQ +  endOfReadCount.get());
 				}
 			
 			});
-		
-		
-		// ends of reads check
-//		void checkForEndsOfReads(QSnpRecord rec, Accumulator normal, Accumulator tumour, char ref ) {
-//			
-//			final PileupElementLite pel = Classification.GERMLINE != rec.getClassification() ? (null != tumour? tumour.getLargestVariant(ref) : null) : 
-//				(null != normal ? normal.getLargestVariant(ref) : null);
-//			
-//			if (null != pel && pel.getEndOfReadCount() > 0) {
-//				
-//				if (pel.getMiddleOfReadCount() >= 5 && pel.isFoundOnBothStrandsMiddleOfRead()) {
-//					// all good
-//				} else {
-//					VcfUtils.updateFilter(rec.getVcfRecord(), SnpUtils.END_OF_READ + pel.getEndOfReadCount());
-//				}
-//			}
-//		}
 	}
 	
 	private void writeMutationsToFile() throws IOException {
@@ -1277,8 +1234,10 @@ public class Q3ClinVar2 {
 			header.parseHeaderLine(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + QExec.createUUid());		
 			header.addQPGLine(1, "Q3Panel", exec.getToolVersion().getValue(), exec.getCommandLine().getValue(), date);
 			header.addFormatLine("FB", ".","String","Breakdown of Amplicon ids, Fragment ids and read counts supporting this mutation, along with total counts of amplicon, fragment, and reads for all reads at that location in the following format: AmpliconId,FragmentId,readCount;[...] / Sum of amplicons at this position,sum of fragments at this position,sum of read counts at this position");
+			header.addFormatLine("FT", ".","String","Filters that have been applied to the sample");
+//			header.addFormatLine(SnpUtils.END_OF_READ, ".","String","Indicates that the mutation occurred within the first or last 5 bp of all the reads contributing to the mutation. ");
 			header.addFilterLine(SnpUtils.END_OF_READ, "Indicates that the mutation occurred within the first or last 5 bp of all the reads contributing to the mutation");
-			header.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT);
+			header.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "sample1");
 			header = VcfHeaderUtils.mergeHeaders(header, dbSnpHeaderDetails, true);
 			header = VcfHeaderUtils.mergeHeaders(header, cosmicHeaderDetails, true);
 			
@@ -1296,7 +1255,7 @@ public class Q3ClinVar2 {
 						e.printStackTrace();
 					}
 				});
-			logger.info("no of mutations written to file: " + outputMutations.intValue());
+			logger.info("number of mutations written to file (" + outputFileNameBase + ".vcf): " + outputMutations.intValue());
 		}
 	}
 	
@@ -1494,7 +1453,11 @@ public class Q3ClinVar2 {
 //		int endPos =  startPos + ref.length() -1 ;
 		VcfRecord vcf = VcfUtils.createVcfRecord(ChrPointPosition.valueOf(actualCP.getChromosome(),  startPos), "."/*id*/, ref, alt);
 		if (multipleMutations) {
-			vcf.addFilter("MM");
+			/*
+			 * add to format filter field
+			 */
+			VcfUtils.addFormatFieldsToVcf(vcf, Arrays.asList("FT", "MM"), true);
+//			vcf.addFilter("MM");
 		}
 		
 		List<int[]> existingFragmentIds = vcfFragmentMap.get(vcf);
