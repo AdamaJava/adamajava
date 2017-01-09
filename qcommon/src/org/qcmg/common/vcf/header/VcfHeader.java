@@ -451,10 +451,6 @@ public class VcfHeader implements Iterable<VcfHeader.Record> {
 			records.add(fileDate);
 		}
 		
-		// add in a blank line if we have existing data
-		if ( ! records.isEmpty() && containsQIMRDetails()) {
-			records.add(new Record("##"));
-		}
 	 
 		records.addAll(getNonStandardRecords());
 		
@@ -464,10 +460,6 @@ public class VcfHeader implements Iterable<VcfHeader.Record> {
 			records.add(record);
 		}				
 		
-		// add in a blank line if we have existing data
-		if ( ! records.isEmpty() && containsQIMRDetails()) {
-			records.add(new Record("##"));
-		}
 		 
 		for (FormattedRecord record : infoRecords.getAll().values()) {
 			records.add(record);
