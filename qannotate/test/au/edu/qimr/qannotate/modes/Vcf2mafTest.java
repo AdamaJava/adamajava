@@ -824,13 +824,13 @@ public class Vcf2mafTest {
 
         createVcf(str);
         
-        try{  
-			final String command = "-m vcf2maf --control control  --log " + outputDir + "/output.log  -i " + inputName + " --outdir " + outputDir;	
+        try {
+			final String command = "--mode vcf2maf --control control  --log " + outputDir + "/output.log  -i " + inputName + " --outdir " + outputDir;	
 //			String[] args = {"-m", "vcf2maf", "--control", "control"," --log", outputDir + "/output.log" ,"-i",  inputName , "--outdir " ,outputDir};
 //			Main.main(args);
 			final Executor exec = new Executor(command, "au.edu.qimr.qannotate.Main");        	
 			assertEquals(0, exec.getErrCode());	
-        }catch(Exception e){
+        } catch (Exception e){
         	 fail(e.getMessage());
         }
 		

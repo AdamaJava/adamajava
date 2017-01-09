@@ -13,6 +13,7 @@ import static org.qcmg.common.util.SnpUtils.PASS;
 
 import java.io.File;
 import java.util.List;
+import java.util.Optional;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -59,6 +60,9 @@ public class ConfidenceMode extends AbstractMode{
 	private int test_column = -2; //can't be -1 since will "+1"
 	private int control_column  = -2;
 	
+	private int nnsCount = HIGH_CONF_NOVEL_STARTS_PASSING_SCORE;
+	private int mrCount = HIGH_CONF_ALT_FREQ_PASSING_SCORE;
+	
 	//for unit testing
 	ConfidenceMode(String patient){}
 
@@ -69,8 +73,12 @@ public class ConfidenceMode extends AbstractMode{
         logger.tool("logger file " + options.getLogFileName());
         logger.tool("logger level " + (options.getLogLevel() == null ? QLoggerFactory.DEFAULT_LEVEL.getName() :  options.getLogLevel()));
  		
-		inputRecord(new File( options.getInputFileName())   );	
+		inputRecord(new File( options.getInputFileName())   );
 		
+		options.getNNSCount().ifPresent(i -> nnsCount = i.intValue());
+		options.getMRCount().ifPresent(i -> mrCount = i.intValue());
+		logger.tool("Number of Novel Starts filter value: " + nnsCount);
+		logger.tool("Number of Mutant Reads filter value: " + mrCount);
 
 		//get control and test sample column; here use the header from inputRecord(...)
 		SampleColumn column =SampleColumn.getSampleColumn(options.getTestSample(), options.getControlSample(), this.header );
@@ -140,8 +148,8 @@ public class ConfidenceMode extends AbstractMode{
 			 			int nns = getNNS(formatField, i);
 			 			int altFreq =  SnpUtils.getCountFromNucleotideString(basesArray[i-1], vcf.getAlt(), compoundSnp);
 			 			
-			 			if ((nns == 0 && compoundSnp ||  nns >= HIGH_CONF_NOVEL_STARTS_PASSING_SCORE)
-								&& altFreq >=  HIGH_CONF_ALT_FREQ_PASSING_SCORE
+			 			if ((nns == 0 && compoundSnp ||  nns >= nnsCount)
+								&& altFreq >=  mrCount
 								&& lhomo < IndelConfidenceMode.DEFAULT_HOMN
 								&& PASS.equals(thisFilter)) {
 				        	
@@ -160,8 +168,8 @@ public class ConfidenceMode extends AbstractMode{
 			 		}
 			 	} else {
 			 		
-				 	if ( checkNovelStarts(HIGH_CONF_NOVEL_STARTS_PASSING_SCORE, formatField)
-							&& ( VcfUtils.getAltFrequency(formatField, vcf.getAlt()) >=  HIGH_CONF_ALT_FREQ_PASSING_SCORE)
+				 	if ( checkNovelStarts(nnsCount, formatField)
+							&& ( VcfUtils.getAltFrequency(formatField, vcf.getAlt()) >=  mrCount)
 							&& lhomo < IndelConfidenceMode.DEFAULT_HOMN
 							&& PASS.equals(vcf.getFilter())) {
 			        	
