@@ -162,11 +162,7 @@ public class DbsnpModeTest {
 				 else if (re.equals(VcfHeaderUtils.INFO_DB)) 
 					count[8] ++; 			
  				
-			for (final VcfHeader.Record re : header.getOtherRecords())			
-				if (re.getData().startsWith(VcfHeaderUtils.BLANK_HEADER_LINE)) 
-					count[9] ++;; 
 	 			 
-			assertTrue(count[9] == 2);			
  			assertTrue(count[10] == 0);			
 			for (i = 0; i < 9; i++) 
 				assertTrue(count[i] == 1);		
