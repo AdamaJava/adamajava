@@ -15,6 +15,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
@@ -60,6 +61,11 @@ public class Options {
 	protected  final int bufferSize; //trf
 	protected  final int gap ; //cadd
 	
+	private final Optional<Integer> nnsCount;
+	private final Optional<Integer> mrCount;
+	private final Optional<Float> nnsPercentage;
+	private final Optional<Float> mrPercentage;
+	
 	//Vcf2maf
 	protected final String center; 
 	protected final String sequencer; 
@@ -78,14 +84,15 @@ public class Options {
      * check command line and store arguments and option information
      */   
     public Options(final String[] args) throws Exception{      	
-    	parser = new OptionParser();    	       
-    	OptionSet options =  parseArgs(args);
-    	
-    	if(options.has("mode")){
-    		String m = ((String) options.valueOf("mode")).toLowerCase();
-    		this.mode = MODE.valueOf(m); //already checked the validation of mode
-    	}else
-    		this.mode = null; 
+	    	parser = new OptionParser();    	       
+	    	OptionSet options =  parseArgs(args);
+	    	
+	    	if (options.has("mode")){
+	    		String m = ((String) options.valueOf("mode")).toLowerCase();
+	    		this.mode = MODE.valueOf(m); //already checked the validation of mode
+	    	} else {
+	    		this.mode = null;
+	    	}
     		   	
         if(options.has("h") || options.has("help")){ 
         	displayHelp(mode);  
@@ -98,8 +105,8 @@ public class Options {
         //log, input and output are compulsory
         inputFileName = (String) options.valueOf("i") ;      	 
         outputFileName = (String) options.valueOf("o") ; 
-    	logFileName = (String) options.valueOf("log");  	
-    	logLevel = (String) options.valueOf("loglevel");   
+	    	logFileName = (String) options.valueOf("log");  	
+	    	logLevel = (String) options.valueOf("loglevel");   
     	
     	//
 		List<String> dbList = (List<String>) options.valuesOf("d");		 
@@ -107,6 +114,12 @@ public class Options {
         
         gap = (options.has("gap"))? (int)options.valueOf("gap") : 1000;  //CADD default is 1000
         bufferSize = (options.has("buffer"))? (Integer) options.valueOf("buffer") : 0; //TRF default is 0
+        
+        
+        nnsCount = Optional.ofNullable((Integer) options.valueOf("nnsCounts"));
+        mrCount = Optional.ofNullable((Integer) options.valueOf("mrCounts"));
+        nnsPercentage = Optional.ofNullable((Float) options.valueOf("nnsPercentage"));
+        mrPercentage = Optional.ofNullable((Float) options.valueOf("mrPercentage"));
         
         
         //vcf2maf
@@ -141,6 +154,14 @@ public class Options {
         parser.acceptsAll( asList("o", "output"), Messages.getMessage("OUTPUT_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("output vcf"); 
         parser.accepts("log", LOG_DESCRIPTION).withRequiredArg().ofType(String.class);
         parser.accepts("loglevel",  LOG_LEVEL_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
+		parser.accepts("nnsCounts", "Number of novel starts (NNS) required to be High Confidence").withRequiredArg().ofType(Integer.class)
+			.describedAs("numberOfNovelStarts");
+		parser.accepts("mrCounts", "Number of mutant reads (MR) required to be High Confidence").withRequiredArg().ofType(Integer.class)
+		.describedAs("numberOfMutantReads");
+		parser.accepts("nnsPercentage", "Number of novel starts (NNS) required to be High Confidence as a percentage").withRequiredArg().ofType(Float.class)
+		.describedAs("numberOfNovelStartsPercentage");
+		parser.accepts("mrPercentage", "Number of mutant reads (MR) required to be High Confidence as a percentage").withRequiredArg().ofType(Float.class)
+		.describedAs("numberOfMutantReadsPercentage");
 
         OptionSet options  = parser.parse(args);  
         if(options.has("v") || options.has("version")){
@@ -212,41 +233,47 @@ public class Options {
     	List<File> outputs = new ArrayList<File>();
     	
     	inputs.add(new File(inputFileName));
-    	if( getConfigFileName() != null ) inputs.add(new File(getConfigFileName()));
+    	if( getConfigFileName() != null ) {
+    		inputs.add(new File(getConfigFileName()));
+    	}
     	if( databaseFiles != null ) 
     		for(String name : databaseFiles)
     		inputs.add (new File(name));
     	
-    	if(outputFileName != null) outputs.add(new File(outputFileName));
-    	if( getSummaryFileName() != null) outputs.add(new File(getSummaryFileName()));
+    	if(outputFileName != null) {
+    		outputs.add(new File(outputFileName));
+    	}
+    	if( getSummaryFileName() != null) {
+    		outputs.add(new File(getSummaryFileName()));
+    	}
     	
     	//check output 	
-    	for(File out : outputs)  {   
+    	for (File out : outputs)  {   
     		//out.getParentFile() maybe null if file name string exclude path eg. out = "ok.txt"
     		File parent = out.getAbsoluteFile().getParentFile();    		    		
-    		if( (out.exists() && ! out.canWrite()) || ( !out.exists() && !parent.canWrite()))    				 
+    		if ( (out.exists() && ! out.canWrite()) || ( !out.exists() && !parent.canWrite())) {    				 
     			throw new Exception( Messages.getMessage("OUTPUT_ERR_DESCRIPTION", out.getName()));
+    		}
     	}	
     	//check inputs
-    	for(File fin : inputs)       	 
-	        if(!fin.exists()) 
-	        	throw new Exception( Messages.getMessage("NONEXIST_INPUT_FILE", fin.getPath()));
-	         else if(!fin.canRead())
-	        	 throw new Exception( Messages.getMessage("UNREAD_INPUT_FILE",fin.getPath()));     
-	     	
+    	for (File fin : inputs) {
+    		if ( ! fin.exists()) { 
+    			throw new Exception( Messages.getMessage("NONEXIST_INPUT_FILE", fin.getPath()));
+    		} else if ( ! fin.canRead()) {
+	        	 throw new Exception( Messages.getMessage("UNREAD_INPUT_FILE",fin.getPath()));
+    		}
+    	}
     	//check whether file unique
  	    inputs.addAll(outputs);
-       	for(int  i = inputs.size() -1; i > 0; i --)
-    		for (int j = i-1; j >= 0; j -- ){
-    			if(inputs.get(i).getCanonicalFile().equals(inputs.get(j).getCanonicalFile()))
-    			throw new Exception( "below command line values are point to same file: \n\t" + inputs.get(i) + "\n\t" + inputs.get(j) );
-    		}    
+       	for (int  i = inputs.size() -1; i > 0; i --) {
+	    		for (int j = i-1; j >= 0; j -- ){
+	    			if (inputs.get(i).getCanonicalFile().equals(inputs.get(j).getCanonicalFile())) {
+	    				throw new Exception( "below command line values are point to same file: \n\t" + inputs.get(i) + "\n\t" + inputs.get(j) );
+	    			}
+	    		}
+       	}
        	//here we don't check outdir for vcf2maf mode, the Vcf2Maf.java will do the job
-       	
     }
-    
-    
-  
 
 	public String getLogFileName() { return logFileName;}	
 	public String getLogLevel(){ return logLevel; }	 
@@ -289,9 +316,9 @@ public class Options {
 	public String getDonorId(){return ( mode.equals(MODE.vcf2maf))? donorId :null; }
 	 
 	 //snpEff
-	public String getSummaryFileName(){ return  (mode.equals(MODE.snpeff))? summaryFileName : null; }		
-	public String getGenesFileName(){ return  (mode.equals(MODE.snpeff))? outputFileName + ".snpEff_genes.txt" : null; 	}		
-	public String getConfigFileName() { return (mode.equals(MODE.snpeff))? configFileName : null; }
+	public String getSummaryFileName(){ return  MODE.snpeff.equals(mode) ? summaryFileName : null; }		
+	public String getGenesFileName(){ return  MODE.snpeff.equals(mode) ? outputFileName + ".snpEff_genes.txt" : null; 	}		
+	public String getConfigFileName() { return MODE.snpeff.equals(mode) ? configFileName : null; }
 	
 	public int getBufferSize(){ return (mode.equals(MODE.trf))? bufferSize : -1; } //trf
 	public int getGapSize(){ return (mode.equals(MODE.trf))? gap : -1; } //cadd
@@ -299,6 +326,18 @@ public class Options {
 	//hom
 	public int getHomoplymersWindow(){ return (mode.equals(MODE.hom))? homWindow : -1; } //trf
 	public int getHomoplymersReportSize(){ return (mode.equals(MODE.hom))? homReportSize : -1; } //cadd
-
+	
+	public Optional<Integer> getNNSCount() {
+		return nnsCount;
+	}
+	public Optional<Float> getNNSPercentage() {
+		return nnsPercentage;
+	}
+	public Optional<Float> getMRPercentage() {
+		return mrPercentage;
+	}
+	public Optional<Integer> getMRCount() {
+		return mrCount;
+	}
 
 }
