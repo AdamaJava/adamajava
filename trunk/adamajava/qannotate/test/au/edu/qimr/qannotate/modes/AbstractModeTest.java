@@ -81,7 +81,7 @@ public class AbstractModeTest {
 	        		}
 	        		i ++;
 	        	}
-	        	assertEquals(9, i);	
+	        	assertEquals(7, i);	
         }		
 	}
 	
