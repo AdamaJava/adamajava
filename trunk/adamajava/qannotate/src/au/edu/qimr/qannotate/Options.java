@@ -63,7 +63,6 @@ public class Options {
 	
 	private final Optional<Integer> nnsCount;
 	private final Optional<Integer> mrCount;
-	private final Optional<Float> nnsPercentage;
 	private final Optional<Float> mrPercentage;
 	
 	//Vcf2maf
@@ -118,7 +117,6 @@ public class Options {
         
         nnsCount = Optional.ofNullable((Integer) options.valueOf("nnsCounts"));
         mrCount = Optional.ofNullable((Integer) options.valueOf("mrCounts"));
-        nnsPercentage = Optional.ofNullable((Float) options.valueOf("nnsPercentage"));
         mrPercentage = Optional.ofNullable((Float) options.valueOf("mrPercentage"));
         
         
@@ -158,8 +156,6 @@ public class Options {
 			.describedAs("numberOfNovelStarts");
 		parser.accepts("mrCounts", "Number of mutant reads (MR) required to be High Confidence").withRequiredArg().ofType(Integer.class)
 		.describedAs("numberOfMutantReads");
-		parser.accepts("nnsPercentage", "Number of novel starts (NNS) required to be High Confidence as a percentage").withRequiredArg().ofType(Float.class)
-		.describedAs("numberOfNovelStartsPercentage");
 		parser.accepts("mrPercentage", "Number of mutant reads (MR) required to be High Confidence as a percentage").withRequiredArg().ofType(Float.class)
 		.describedAs("numberOfMutantReadsPercentage");
 
@@ -329,9 +325,6 @@ public class Options {
 	
 	public Optional<Integer> getNNSCount() {
 		return nnsCount;
-	}
-	public Optional<Float> getNNSPercentage() {
-		return nnsPercentage;
 	}
 	public Optional<Float> getMRPercentage() {
 		return mrPercentage;

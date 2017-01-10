@@ -13,14 +13,12 @@ import static org.qcmg.common.util.SnpUtils.PASS;
 
 import java.io.File;
 import java.util.List;
-import java.util.Optional;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.MafConfidence;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
-import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.util.SnpUtils;
 import org.qcmg.common.vcf.VcfFormatFieldRecord;
 import org.qcmg.common.vcf.VcfInfoFieldRecord;
@@ -62,6 +60,7 @@ public class ConfidenceMode extends AbstractMode{
 	
 	private int nnsCount = HIGH_CONF_NOVEL_STARTS_PASSING_SCORE;
 	private int mrCount = HIGH_CONF_ALT_FREQ_PASSING_SCORE;
+	private double mrPercentage = 0.0f;
 	
 	//for unit testing
 	ConfidenceMode(String patient){}
@@ -77,8 +76,10 @@ public class ConfidenceMode extends AbstractMode{
 		
 		options.getNNSCount().ifPresent(i -> nnsCount = i.intValue());
 		options.getMRCount().ifPresent(i -> mrCount = i.intValue());
+		options.getMRPercentage().ifPresent(i -> mrPercentage = i.floatValue());
 		logger.tool("Number of Novel Starts filter value: " + nnsCount);
 		logger.tool("Number of Mutant Reads filter value: " + mrCount);
+		logger.tool("Percentage of Mutant Reads filter value: " + mrPercentage);
 
 		//get control and test sample column; here use the header from inputRecord(...)
 		SampleColumn column =SampleColumn.getSampleColumn(options.getTestSample(), options.getControlSample(), this.header );
@@ -107,6 +108,8 @@ public class ConfidenceMode extends AbstractMode{
 		int mergedLow = 0;
 		int mergedZero = 0;
 		
+		final boolean percentageMode = mrPercentage > 0.0f;
+		
 		//check high, low nns...
 		for (List<VcfRecord> vcfs : positionRecordMap.values()) {
 			for(VcfRecord vcf : vcfs){
@@ -123,6 +126,14 @@ public class ConfidenceMode extends AbstractMode{
 		 		VcfInfoFieldRecord info = vcf.getInfoRecord();
 		 		int lhomo = (info.getField(VcfHeaderUtils.INFO_HOM) == null)? 1 :
 						StringUtils.string2Number(info.getField(VcfHeaderUtils.INFO_HOM).split(",")[0], Integer.class);
+		 		
+		 		/*
+		 		 * update the mrCount value of we are in percentage mode based on the totacl coverage of this position.
+		 		 */
+		 		if (percentageMode) {
+		 			int totalCoverage = Integer.parseInt(formatField.getField(VcfHeaderUtils.FORMAT_READ_DEPTH));
+		 			mrCount =  (int)(totalCoverage * mrPercentage);
+		 		}
 
 			 	if (mergedRec) {
 			 		/*
@@ -148,6 +159,7 @@ public class ConfidenceMode extends AbstractMode{
 			 			int nns = getNNS(formatField, i);
 			 			int altFreq =  SnpUtils.getCountFromNucleotideString(basesArray[i-1], vcf.getAlt(), compoundSnp);
 			 			
+		 			
 			 			if ((nns == 0 && compoundSnp ||  nns >= nnsCount)
 								&& altFreq >=  mrCount
 								&& lhomo < IndelConfidenceMode.DEFAULT_HOMN
@@ -165,7 +177,7 @@ public class ConfidenceMode extends AbstractMode{
 				        		vcf.getInfoRecord().appendField(VcfHeaderUtils.INFO_CONFIDENCE, MafConfidence.ZERO.toString() + suffix);
 				        		mergedZero++;
 				        }
-			 		}
+		 			}
 			 	} else {
 			 		
 				 	if ( checkNovelStarts(nnsCount, formatField)
@@ -198,35 +210,6 @@ public class ConfidenceMode extends AbstractMode{
 	}
 	
 	
-//	public static MafConfidence getConfidence(VcfRecord v) {
-//		
-//		if ( checkNovelStarts(HIGH_CONF_NOVEL_STARTS_PASSING_SCORE, f)
-//				&& ( VcfUtils.getAltFrequency(f, alts) >=  HIGH_CONF_ALT_FREQ_PASSING_SCORE)
-//				&& PASS.equals(filter)) {
-//			
-//			int lhomo = -1;
-//			if ( ! StringUtils.isNullOrEmptyOrMissingData(infoField)) {
-//				int homIndex = infoField.indexOf(VcfHeaderUtils.INFO_HOM);
-//				
-//				if (homIndex > -1) {
-//					lhomo = Integer.parseInt(infoField.substring(homIndex + 4, infoField.indexOf(Constants.COMMA, homIndex)));
-//				}
-//			}
-//			
-//        		if ( lhomo < IndelConfidenceMode.DEFAULT_HOMN) {
-//        			return MafConfidence.HIGH;
-//        		}
-//        }
-//		if ( checkNovelStarts(LOW_CONF_NOVEL_STARTS_PASSING_SCORE, f)
-//				&& ( VcfUtils.getAltFrequency(f, alts) >= LOW_CONF_ALT_FREQ_PASSING_SCORE )
-//				&& isClassB(filter) ) {
-//        	
-//			return MafConfidence.LOW;
-//        }
-//		
-//		return MafConfidence.ZERO;
-//	}
-
 	/**
 	 * 
 	 * @param filter
@@ -324,6 +307,3 @@ public class ConfidenceMode extends AbstractMode{
 	}  
 }	
 	
-  
-	
- 
