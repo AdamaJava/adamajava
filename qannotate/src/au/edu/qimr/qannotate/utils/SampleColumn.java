@@ -3,6 +3,8 @@ package au.edu.qimr.qannotate.utils;
 import java.io.File;
 import java.util.function.Function;
 
+import org.qcmg.common.log.QLogger;
+import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
@@ -16,6 +18,7 @@ public class SampleColumn {
 	private final String control_Sample;
 	private final String test_bamID;
 	private final String control_bamID;
+	private final QLogger logger = QLoggerFactory.getLogger(SampleColumn.class);
 	
 	static public SampleColumn getSampleColumn(String test, String control, VcfHeader header){			
 		return new SampleColumn(test,  control, header);
@@ -38,26 +41,43 @@ public class SampleColumn {
 		String controlS = (control == null)? sampleIds[0][0] :  control;
 		String testS = (test == null)? sampleIds[1][0] :  test;
 		
+		logger.info("control sample: " + controlS);
+		logger.info("test sample: " + testS);
 		
 		int tc = -2, cc = -2;				
 	    final String[] samples = header.getSampleId();			    
 	    
 		//incase both point into same column
-		for(int i = 0; i < samples.length; i++){ 	
+		for (int i = 0; i < samples.length; i++) { 	
 			if( ( controlS != null && samples[i].equalsIgnoreCase(controlS )) || 
 					samples[i].equalsIgnoreCase(sampleIds[0][1]) || 
-					samples[i].equalsIgnoreCase(VcfHeaderUtils.STANDARD_CONTROL_SAMPLE.substring(2)) )
+					samples[i].equalsIgnoreCase(VcfHeaderUtils.STANDARD_CONTROL_SAMPLE.substring(2)) ) {
 				cc = i + 1;										 				
+			}
 			
 			if( ( testS != null &&  samples[i].equalsIgnoreCase(testS) )|| 
 					samples[i].equalsIgnoreCase(sampleIds[1][1]) || 
-					samples[i].equalsIgnoreCase(VcfHeaderUtils.STANDARD_TEST_SAMPLE.substring(2)) ) 
+					samples[i].equalsIgnoreCase(VcfHeaderUtils.STANDARD_TEST_SAMPLE.substring(2)) ) { 
 				tc = i + 1;
-				
+			}
 		}
 		
-		if( tc <= 0 || cc <= 0 )
-			throw new RuntimeException("can't find test sample id  " + test + ", or normal sample id from vcf header line: " + control );
+		
+		if ( tc <= 0 && cc <= 0 ) {
+			throw new RuntimeException("can't find test sample id  " + test + ", or control sample id" + control + " from vcf header");
+		} else if (cc <= 0) {
+			/*
+			 * update to equal test
+			 */
+			logger.info("Setting cc to equal tc");
+			cc = tc;
+		} else if (tc <= 0) {
+			/*
+			 * update to equal test
+			 */
+			logger.info("Setting tc to equal cc");
+			tc = cc;
+		}
 
 		//only keep uuid eg.  
 		int ss = controlS == null? 0 : Math.max(controlS.indexOf("#"), controlS.indexOf(":"));			
