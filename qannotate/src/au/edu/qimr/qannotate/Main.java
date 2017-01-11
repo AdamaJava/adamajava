@@ -17,9 +17,7 @@ public class Main {
 	public static void main(final String[] args) throws Exception {	
 
 		try {
-			System.out.println("About to run Options");
             final Options options = new Options(args);
-            System.out.println("About to run Options - DONE");
                 
         		LoadReferencedClasses.loadClasses(Main.class);    
            logger = QLoggerFactory.getLogger(Main.class, options.getLogFileName(),  options.getLogLevel());	            		               
