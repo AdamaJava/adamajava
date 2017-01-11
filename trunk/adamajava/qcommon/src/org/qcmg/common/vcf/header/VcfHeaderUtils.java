@@ -111,6 +111,8 @@ public class VcfHeaderUtils {
 	public static final String FORMAT_ALLELIC_DEPTHS = "AD";
 	public static final String FORMAT_READ_DEPTH = "DP";
 	public static final String FORMAT_GENOTYPE_QUALITY = "GQ";
+	public static final String FORMAT_POSSIBLE_GENOTYPES = "PL";
+
 	
 	//Header lines
 	public static final String CURRENT_FILE_VERSION = "##fileformat=VCFv4.2";

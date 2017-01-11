@@ -166,6 +166,18 @@ public class VcfFormatFieldRecord {
 	
 	/**
 	 * 
+	 * @return a list of string with two elements: formatColumnString and sampleColumnString
+	 */
+	public List<String> toStringList(){		
+		List<String> list = new ArrayList<String>();		
+		list.add(getFormatColumnString());
+		list.add(getSampleColumnString());
+		return list; 	
+		
+	}
+	
+	/**
+	 * 
 	 * @param key : format column key
 	 * @return the order of exsiting key; return -1 if not exist
 	 */
