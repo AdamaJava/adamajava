@@ -406,19 +406,7 @@ public class VcfUtils {
 		return re1; 
 	}
 	
-//	public static VcfRecord createVcfRecord(ChrPosition cp, String ref) {		 
-//		return createVcfRecord(cp, null, ref, null);
-//	}
-//
-//	public static VcfRecord createVcfRecord(String chr, int position, String ref) {		
-//		return new VcfRecord.Builder(chr, position, ref).build(); 
-//	}
-//	
-//	public static VcfRecord createVcfRecord(String chr, int position) {		
-//		String[] params = {chr, position+"", null, ".", null};
-//		return new VcfRecord(params);					
-////		return createVcfRecord(new ChrPosition(chr, position), null);
-//	}
+
 	
 	/**
 	 * A vcf record is considered to be a snp if the length of the ref and alt fields are the same (and not null/0), the fields don't contain commas, and are not equal 

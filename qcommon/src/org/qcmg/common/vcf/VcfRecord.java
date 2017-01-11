@@ -315,6 +315,22 @@ public class VcfRecord implements Comparable<VcfRecord> {
 		builder.append(NL);
 		return builder.toString();
 	}
+	
+	 
+	/**
+	 * Join first four sub fields of vcf record into string with tab seperated. 
+	 * return a vcf string of (chr, pos, ref, alt) trailing with a newline 
+	 */
+	public String toSimpleString(){
+				
+		final StringBuilder builder = new StringBuilder();
+		builder.append(cpp.getChromosome()).append(TAB);
+		builder.append(cpp.getStartPosition()).append(TAB);		 
+		builder.append(StringUtils.isNullOrEmpty(ref) ? MISSING_DATA_STRING : ref).append(TAB);
+		builder.append(StringUtils.isNullOrEmpty(alt) ? MISSING_DATA_STRING : alt).append(NL);
+		return builder.toString();
+	}
+		
 
 	@Override
 	public int hashCode() {
