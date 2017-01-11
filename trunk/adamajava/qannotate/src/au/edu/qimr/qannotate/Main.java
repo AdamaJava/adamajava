@@ -46,13 +46,15 @@ public class Main {
 
             logger.logFinalExecutionStats(0);
                
-        }catch (final Exception e) {
-        	e.printStackTrace();
-        	System.err.println(Thread.currentThread().getName() + " " + e.toString());
-        	if (null != logger) {
-	        	logger.info(Thread.currentThread().getName() + " " + e.toString());	            
-	            logger.logFinalExecutionStats(1);
-        	}
+        } catch (Exception e) {
+	        	System.out.println("Exception caught!");
+	        	e.printStackTrace();
+	        	System.err.println(Thread.currentThread().getName() + " " + e.toString());
+	        	if (null != logger) {
+		        	logger.info(Thread.currentThread().getName() + " " + e.toString());	            
+		            logger.logFinalExecutionStats(1);
+	        	}
+        		System.out.println("About to return exit code of 1");
             System.exit(1);
         }			
 		
