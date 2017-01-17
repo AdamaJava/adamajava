@@ -12,7 +12,9 @@ import static org.qcmg.common.util.SnpUtils.MUTATION_IN_UNFILTERED_NORMAL;
 import static org.qcmg.common.util.SnpUtils.PASS;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -60,6 +62,7 @@ public class ConfidenceMode extends AbstractMode{
 	
 	private int nnsCount = HIGH_CONF_NOVEL_STARTS_PASSING_SCORE;
 	private int mrCount = HIGH_CONF_ALT_FREQ_PASSING_SCORE;
+	private List<String> filtersToIgnore = new ArrayList<>();
 	private double mrPercentage = 0.0f;
 	
 	//for unit testing
@@ -77,9 +80,11 @@ public class ConfidenceMode extends AbstractMode{
 		options.getNNSCount().ifPresent(i -> nnsCount = i.intValue());
 		options.getMRCount().ifPresent(i -> mrCount = i.intValue());
 		options.getMRPercentage().ifPresent(i -> mrPercentage = i.floatValue());
+		filtersToIgnore = options.getFiltersToIgnore();
 		logger.tool("Number of Novel Starts filter value: " + nnsCount);
 		logger.tool("Number of Mutant Reads filter value: " + mrCount);
 		logger.tool("Percentage of Mutant Reads filter value: " + mrPercentage);
+		logger.tool("Filters to ignore: " + filtersToIgnore.stream().collect(Collectors.joining(", ")));
 
 		//get control and test sample column; here use the header from inputRecord(...)
 		SampleColumn column =SampleColumn.getSampleColumn(options.getTestSample(), options.getControlSample(), this.header );
@@ -163,7 +168,7 @@ public class ConfidenceMode extends AbstractMode{
 			 			if ((nns == 0 && compoundSnp ||  nns >= nnsCount)
 								&& altFreq >=  mrCount
 								&& lhomo < IndelConfidenceMode.DEFAULT_HOMN
-								&& PASS.equals(thisFilter)) {
+								&& (PASS.equals(thisFilter) || filtersToIgnore.contains(thisFilter))) {
 				        	
 				        		vcf.getInfoRecord().appendField(VcfHeaderUtils.INFO_CONFIDENCE, MafConfidence.HIGH.toString() + suffix);    	 				 				
 				        		mergedHigh++;
