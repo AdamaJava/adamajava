@@ -15,7 +15,7 @@ public class SamTestData {
 	public static final String FILE_NAME_B = "second.sam";
 	public static final String FILE_NAME_C = "third.sam";
 	
-	public static int large_value = 1000 * 1000;
+	public static int large_value = 10 * 1000;
 
 	public static final void createAllTestFiles() throws FileNotFoundException, IOException  {
 		createFirstSam(new File(FILE_NAME_A), false);
