@@ -27,6 +27,7 @@ import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.SummaryByCycleUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.qprofiler.report.SummaryReport;
+import org.qcmg.qprofiler.summarise.KmersSummary;
 import org.qcmg.qprofiler.util.SummaryReportUtils;
 import org.w3c.dom.Element;
 
@@ -39,11 +40,8 @@ public class FastqSummaryReport extends SummaryReport {
 	private final SummaryByCycleNew2<Character> seqByCycle = new SummaryByCycleNew2<Character>(c, 512);
 	private Map<Integer, AtomicLong> seqLineLengths = null;
 	private final QCMGAtomicLongArray seqBadReadLineLengths = new QCMGAtomicLongArray(128);
+	private final KmersSummary kmersSummary = new KmersSummary( KmersSummary.maxKmers ); //default use biggest mers length
 	
-	
-//	ConcurrentMap<String, AtomicLong> kmers = new ConcurrentHashMap<>();
-//	ConcurrentMap<String, AtomicLongArray> kmerArrays = new ConcurrentHashMap<>();
-
 	//QUAL
 	private final SummaryByCycleNew2<Integer> qualByCycleInteger = new SummaryByCycleNew2<Integer>(i, 512);
 	private Map<Integer, AtomicLong> qualLineLengths = null;
@@ -115,10 +113,7 @@ public class FastqSummaryReport extends SummaryReport {
 			qualHeaders.put("non +", qualHeaderNotEqualToPlus);
 			qualHeaders.put("+", new AtomicLong(getRecordsParsed() - qualHeaderNotEqualToPlus.longValue()));
 			SummaryReportUtils.lengthMapToXml(readNameElement, "QUAL_HEADERS", qualHeaders);
-			
-//			logger.info("no of kmers: " + kmers.size());
-//			SummaryReportUtils.lengthMapToXml(readNameElement, "KMERS", kmers);
-			
+						
 			// create the length maps here from the cycles objects
 			seqLineLengths = SummaryByCycleUtils.getLengthsFromSummaryByCycle(seqByCycle, getRecordsParsed());
 			qualLineLengths = SummaryByCycleUtils.getLengthsFromSummaryByCycle(qualByCycleInteger, getRecordsParsed());
@@ -129,53 +124,18 @@ public class FastqSummaryReport extends SummaryReport {
 			SummaryReportUtils.lengthMapToXmlTallyItem(seqElement, "LengthTally", seqLineLengths);
 			SummaryReportUtils.lengthMapToXml(seqElement, "BadBasesInReads", seqBadReadLineLengths);
 			
+			kmersSummary.toXml(seqElement,kmersSummary.maxKmers); //debug
+			kmersSummary.toXml(seqElement,1); //add 1-mers
+			kmersSummary.toXml(seqElement,2); //add 2-mers
+			kmersSummary.toXml(seqElement,3); //add 3-mers
+			
 			// QUAL
 			Element qualElement = createSubElement(element, "QUAL");
 			qualByCycleInteger.toXml(qualElement, "QualityByCycle");
 			SummaryReportUtils.lengthMapToXmlTallyItem(qualElement, "LengthTally", qualLineLengths);
-			SummaryReportUtils.lengthMapToXml(qualElement, "BadQualsInReads", qualBadReadLineLengths);
+			SummaryReportUtils.lengthMapToXml(qualElement, "BadQualsInReads", qualBadReadLineLengths);			
 			
-			
-			// print some stats on the kmerArray
-			
-			// first need to get kmer length and largest read length
-//			int readLength = 0;
-//			for (Integer i : seqLineLengths.keySet()) {
-//				if (i.intValue() > readLength) {
-//					readLength = i.intValue();
-//				}
-//			}
-//			// kmer lengths should all be the same
-//			int kmerLength = kmers.entrySet().iterator().next().getKey().length();
-//			
-//			int allowedDiff = 100000;
-//			int binSize = 10;
-//			
-//			for (Entry<String, AtomicLongArray> entry : kmerArrays.entrySet()) {
-//				String kmer = entry.getKey();
-//				AtomicLongArray ala = entry.getValue();
-//				long firstBinAve = 0, lastBinAve = 10;
-//				long firstBinCounter = 0, lastBinCounter = 0;
-//				for (int i = 0 ; i < readLength - kmerLength; i++) {
-//					long currentValue = ala.get(i);
-//					if (i < binSize) {
-//						firstBinAve +=currentValue;
-//						firstBinCounter++;
-//					} else if ( i >= (readLength - kmerLength - 10)) {
-//						lastBinAve += currentValue;
-//						lastBinCounter++;
-//					}
-//				}
-//				// calculate the averages
-//				long ftAve = firstBinAve / firstBinCounter;
-//				long ltAve = lastBinAve / lastBinCounter;
-//				long diff = ltAve - ftAve;
-//				if (Math.abs(diff) > allowedDiff) {
-//					logger.info("distribution differs by more than " + allowedDiff + " between first " + binSize + " and last " + binSize + " for kmer: " + kmer);
-//					logger.info("ftAve: " + ftAve + ", ltAve: " + ltAve + ", firstBinCounter: " + firstBinCounter + ", lastBinCounter: " + lastBinCounter);
-//				}
-//			}
-		}
+ 		}
 	}
 	
 	/**
@@ -194,8 +154,9 @@ public class FastqSummaryReport extends SummaryReport {
 				byte[] readBases = record.getReadString().getBytes();
 				SummaryByCycleUtils.parseCharacterSummary(seqByCycle, readBases, reverseStrand);
 				SummaryReportUtils.tallyBadReadsAsString(readBases, seqBadReadLineLengths);
+				kmersSummary.parseKmers( readBases, false ); //fastq base are all orignal forward
 				
-				// split read into 6-mers and tally
+				// split read into 6-mers and tally 				
 //				int kmerLength = 12;
 //				int kmerLength = 6;
 //				for (int i = 0, len = readBases.length - kmerLength ; i < len ; i++) {
