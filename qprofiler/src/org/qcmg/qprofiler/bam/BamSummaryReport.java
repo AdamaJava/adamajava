@@ -512,10 +512,13 @@ public class BamSummaryReport extends SummaryReport {
 				
 		// Xu code: check if record has its fail or duplicate flag set. if so, miss out some of the summaries
 		//anyway, add to summary and then add to it's readgroup
-		rgSummaries.get(SummaryReportUtils.All_READGROUP).ParseRecord(record);  
+		rgSummaries.get(SummaryReportUtils.All_READGROUP).ParseRecord(record); 
+
+		 
 		if( ! rgSummaries.containsKey(readGroup) ) 
 			rgSummaries.putIfAbsent(readGroup, new ReadGroupSummary(readGroup) ) ; 			
-		boolean parsedRecord = rgSummaries.get(readGroup).ParseRecord(record);
+//		ReadGroupSummary rgSumm = rgSummaries.putIfAbsent(readGroup, new ReadGroupSummary(readGroup) ) ;
+		boolean parsedRecord =rgSummaries.get(readGroup).ParseRecord(record);
 		
 		if( parsedRecord  ) {			
 			// SEQ 

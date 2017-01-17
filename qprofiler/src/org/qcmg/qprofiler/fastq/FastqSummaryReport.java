@@ -149,27 +149,17 @@ public class FastqSummaryReport extends SummaryReport {
 			updateRecordsParsed();
 			
 			if ( ! excludeAll) {
+				// QUAL   it also throw exception if fastq reads is invalid
+				byte[] baseQualities = SAMUtils.fastqToPhred(record.getBaseQualityString());
+				SummaryByCycleUtils.parseIntegerSummary(qualByCycleInteger, baseQualities, reverseStrand);
+				SummaryReportUtils.tallyQualScores(baseQualities, qualBadReadLineLengths);
+				
 				
 				// SEQ
 				byte[] readBases = record.getReadString().getBytes();
 				SummaryByCycleUtils.parseCharacterSummary(seqByCycle, readBases, reverseStrand);
 				SummaryReportUtils.tallyBadReadsAsString(readBases, seqBadReadLineLengths);
 				kmersSummary.parseKmers( readBases, false ); //fastq base are all orignal forward
-				
-				// split read into 6-mers and tally 				
-//				int kmerLength = 12;
-//				int kmerLength = 6;
-//				for (int i = 0, len = readBases.length - kmerLength ; i < len ; i++) {
-//					String kmer = new String(Arrays.copyOfRange(readBases, i, i+kmerLength));
-//					updateMap(kmers, kmer);
-//					updateMapAndPosition(kmerArrays, kmer, i);
-//				}
-				
-
-				// QUAL
-				byte[] baseQualities = SAMUtils.fastqToPhred(record.getBaseQualityString());
-				SummaryByCycleUtils.parseIntegerSummary(qualByCycleInteger, baseQualities, reverseStrand);
-				SummaryReportUtils.tallyQualScores(baseQualities, qualBadReadLineLengths);
 				
 				// header stuff
 				if (record.getReadHeader().contains(":")) {
