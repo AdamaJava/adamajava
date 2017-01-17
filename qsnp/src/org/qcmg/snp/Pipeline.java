@@ -716,6 +716,7 @@ public abstract class Pipeline {
 		formatField.append(VcfHeaderUtils.FORMAT_GENOTYPE).append(Constants.COLON);
 		formatField.append(VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS).append(Constants.COLON);
 		formatField.append(VcfHeaderUtils.FORMAT_ALLELE_COUNT).append(Constants.COLON);
+		formatField.append(VcfHeaderUtils.FORMAT_READ_DEPTH).append(Constants.COLON);
 		formatField.append(VcfHeaderUtils.FORMAT_OBSERVED_ALLELES_BY_STRAND).append(Constants.COLON);
 		formatField.append(VcfHeaderUtils.FORMAT_MUTANT_READS).append(Constants.COLON);
 		formatField.append(VcfHeaderUtils.FORMAT_NOVEL_STARTS);
@@ -732,6 +733,7 @@ public abstract class Pipeline {
 			final String nNucleotides = StringUtils.isNullOrEmpty(rec.getNormalNucleotides()) ? Constants.MISSING_DATA_STRING : rec.getNormalNucleotides(); 
 			
 			formatField.append(nNucleotides).append(Constants.COLON);
+			formatField.append(rec.getNormalCount()).append(Constants.COLON);
 			formatField.append(StringUtils.isNullOrEmpty(rec.getNormalOABS()) ? Constants.MISSING_DATA_STRING : rec.getNormalOABS()).append(Constants.COLON);
 			
 			// add in MR and NNS data
@@ -746,6 +748,7 @@ public abstract class Pipeline {
 		formatField.append(altAndGTs[2]).append(Constants.COLON);
 		formatField.append(tumourGDField).append(Constants.COLON);
 		formatField.append(tNucleatides).append(Constants.COLON);
+		formatField.append(rec.getTumourCount()).append(Constants.COLON);
 		formatField.append(StringUtils.isNullOrEmpty(rec.getTumourOABS()) ? Constants.MISSING_DATA_STRING : rec.getTumourOABS()).append(Constants.COLON);
 		formatField.append(testMutantReadCount).append(Constants.COLON);
 		formatField.append(testNovelStartCount);

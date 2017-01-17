@@ -136,8 +136,19 @@ public class ConfidenceMode extends AbstractMode{
 		 		 * update the mrCount value of we are in percentage mode based on the totacl coverage of this position.
 		 		 */
 		 		if (percentageMode) {
-		 			int totalCoverage = Integer.parseInt(formatField.getField(VcfHeaderUtils.FORMAT_READ_DEPTH));
-		 			mrCount =  (int)(totalCoverage * mrPercentage);
+		 			int totalCoverage = 0; 
+		 			String dp = formatField.getField(VcfHeaderUtils.FORMAT_READ_DEPTH);
+		 			if ( ! StringUtils.isNullOrEmptyOrMissingData(dp)) {
+		 				totalCoverage = Integer.parseInt(dp);
+		 			}
+		 			
+		 			/*
+		 			 * if we don't have total coverage !! then use existing value of mrCount
+		 			 */
+		 			if (totalCoverage > 0) {
+		 				mrCount =  (int)(totalCoverage * mrPercentage);
+		 			}
+		 			
 		 		}
 
 			 	if (mergedRec) {
