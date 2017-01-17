@@ -369,9 +369,7 @@ public class HTMLReportUtils {
 			
 			sb.append("<td  id = \"" + dn + "ChartSummary_div\"" + title + "></td>");
 				
-			if (i % 2 == 1) {
-				sb.append("</tr>\n");
-			}
+			if (i % 2 == 1) { 	sb.append("</tr>\n"); }
 			i++;
 		}
 		
@@ -387,7 +385,7 @@ public class HTMLReportUtils {
 		StringBuilder sb = new StringBuilder("\n<div class=\"pane\">\n<table>");
 		
 			for (int i = 1 ; i <= numberOfTables ; i++) {
-				String chartName = dataName + i + "Chart_div";
+				String chartName = (numberOfTables == 1) ? dataName + "Chart_div": dataName + i + "Chart_div";
 				sb.append("<tr><td id = \"" + chartName + "\"></td></tr>\n");
 				//add blank line between each table
 				if(addBlank && i < numberOfTables)

@@ -182,11 +182,7 @@ public class ReportBuilder {
 		ct.setRenderingInfo(HTMLReportUtils.generateRenderingTableInfo(ct.getName(), 1, false));
 		
 		parentCT.addChild(ct);
-		
-		ChartTab kmerTab = addTop100Chart(reportElement, "KMERS", "Kmer", "kmer", "Top 100 6-mers seen in fastq sequencing reads", 100, false);
-		if (null != kmerTab) {
-			parentCT.addChild(kmerTab);
-		}
+
 		ChartTab indexesTab = addTop100Chart(reportElement, "INDEXES", "Index", "index", "Top 50 indexes seen in fastq sequencing reads", 50, true);
 		if (null != indexesTab) {
 			parentCT.addChild(indexesTab);
@@ -203,7 +199,7 @@ public class ReportBuilder {
 				
 				Map<String, AtomicLong> map = new HashMap<>();
 				QProfilerCollectionsUtils.populateTallyItemMap(element, map, false);
-				System.out.println("no of entries in map: " + map.size());
+				//System.out.println("no of entries in map: " + map.size());
 				List <String> list = new ArrayList<>();
 				
 				for (Entry<String, AtomicLong> entry : map.entrySet()) {
@@ -622,7 +618,6 @@ public class ReportBuilder {
 	private static ChartTab createKmersTab(Element mersElement,  String tabTitle ){
  		 		 
 		Map<Integer, AtomicLongArray> map = new TreeMap<Integer, AtomicLongArray>();	
-//		Map<Integer, AtomicLongArray> mapReverse = new TreeMap<Integer, AtomicLongArray>();	
 		NodeList nl = mersElement.getElementsByTagName("CycleTally");
 		Element tallyElement = (Element) nl.item(0);
 		
@@ -646,7 +641,6 @@ public class ReportBuilder {
 		ChartTab ct = new ChartTab(tabTitle, tabTitle);
 		ct.setData( dataSB.toString() );
 		ct.setChartInfo( chartSB.toString() );
-//		ct.setRenderingInfo(HTMLReportUtils.generateRenderingTableInfo(	tabTitle, Arrays.asList("forward","reverse"), 1) );				
 				
 		return ct;		
 	}
@@ -705,7 +699,6 @@ public class ReportBuilder {
 				String value = entry.getValue();
 				double percentage = Double.parseDouble(value.substring(0, value.length() - 1));
 				if (percentage > 1.0) {
-//					System.out.println("cycle " + entry.getKey().intValue() + " has error percentage over 1%: " + percentage);
 					sortedPercentageMap.put(entry.getKey(), percentage);
 				}
 			}
@@ -713,7 +706,6 @@ public class ReportBuilder {
 			onePercentCT = new ChartTab(MD + " 1 PERC", "tmd1pc");
 			onePercentCT.setData(HTMLReportUtils.generateGoogleData(sortedPercentageMap, onePercentCT.getName(),false, "Error Percentage", "Cycle"));
 			onePercentCT.setChartInfo(HTMLReportUtils.generateGoogleSingleTable(onePercentCT.getName(), 0 , 400));
-//			onePercentCT.setDescription(TAG_MD_DESCRIPTION);
 		}
 		
 		//TAG-MD_forward
