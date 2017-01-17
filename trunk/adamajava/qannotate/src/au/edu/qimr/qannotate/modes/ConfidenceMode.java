@@ -161,7 +161,7 @@ public class ConfidenceMode extends AbstractMode{
 			 				 * if we don't have total coverage !! then use existing value of mrCount
 			 				 */
 			 				if (totalCoverage > 0) {
-			 					mrCount =  (int)(totalCoverage * mrPercentage);
+			 					mrCount =  (int)(totalCoverage * mrPercentage) / 100;
 			 				}
 			 			}
 			 			
@@ -190,6 +190,17 @@ public class ConfidenceMode extends AbstractMode{
 				        }
 		 			}
 			 	} else {
+			 		
+			 		if (percentageMode) {
+		 				int totalCoverage = getFieldFromFormatField(formatField, VcfHeaderUtils.FORMAT_READ_DEPTH, 1);
+		 				
+		 				/*
+		 				 * if we don't have total coverage !! then use existing value of mrCount
+		 				 */
+		 				if (totalCoverage > 0) {
+		 					mrCount =  (int)(totalCoverage * mrPercentage) / 100;
+		 				}
+		 			}
 			 		
 				 	if ( checkNovelStarts(nnsCount, formatField)
 							&& ( VcfUtils.getAltFrequency(formatField, vcf.getAlt()) >=  mrCount)
@@ -309,6 +320,19 @@ public class ConfidenceMode extends AbstractMode{
 	 
 	 public static int getNNS(VcfFormatFieldRecord formatField) {
 		 return getFieldFromFormatField(formatField, VcfHeaderUtils.FILTER_NOVEL_STARTS, 1);
+	 }
+	 
+	 /*
+	  * Setters because SampleColumn code is so brittle......
+	  */
+	 public void setNNSCount(int c) {
+		 nnsCount = c;
+	 }
+	 public void setMRCount(int c) {
+		 mrCount = c;
+	 }
+	 public void setMRPercentage(double d) {
+		 mrPercentage = d;
 	 }
 
 
