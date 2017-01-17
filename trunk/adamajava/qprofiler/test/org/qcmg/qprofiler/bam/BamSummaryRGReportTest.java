@@ -67,9 +67,7 @@ public class BamSummaryRGReportTest {
 
 		BamSummarizer bs = new BamSummarizer();
 		BamSummaryReport sr = (BamSummaryReport) bs.summarize(new File(INPUT_FILE)); 
-		sr.toXml(root);
-		
- 
+		sr.toXml(root);		 
 	}
 	
 	@Test

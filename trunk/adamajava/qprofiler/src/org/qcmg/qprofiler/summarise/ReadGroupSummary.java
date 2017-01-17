@@ -27,8 +27,7 @@ public class ReadGroupSummary {
 	public final static String node_f5f3 = "F5F3";
 	public final static String node_f3f5 = "F3F5";
 	public final static String node_inward = "Inward";
-	public final static String node_outward = "Outward";
-		
+	public final static String node_outward = "Outward";		
 	public final static String node_softClip = "softClip";
 	public final static String node_hardClip = "hardClip";
 	public final static String node_readLength = "readLength" ; 
@@ -188,6 +187,8 @@ public class ReadGroupSummary {
 		//return false for bad reads
 		return false; 
 	}
+	
+	
 	/**
 	 * count the first of pair number and record iSize(Tlen);
  	 * if( mate unmapped) record it and then return; 
