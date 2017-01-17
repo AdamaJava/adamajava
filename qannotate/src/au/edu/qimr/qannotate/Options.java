@@ -65,6 +65,8 @@ public class Options {
 	private final Optional<Integer> mrCount;
 	private final Optional<Float> mrPercentage;
 	
+	private final  List<String> filtersToIgnore;
+	
 	//Vcf2maf
 	protected final String center; 
 	protected final String sequencer; 
@@ -118,6 +120,7 @@ public class Options {
         nnsCount = Optional.ofNullable((Integer) options.valueOf("nnsCounts"));
         mrCount = Optional.ofNullable((Integer) options.valueOf("mrCounts"));
         mrPercentage = Optional.ofNullable((Float) options.valueOf("mrPercentage"));
+        filtersToIgnore = (List<String>) options.valuesOf("filtersToIgnore");
         
         
         //vcf2maf
@@ -158,6 +161,7 @@ public class Options {
 		.describedAs("numberOfMutantReads");
 		parser.accepts("mrPercentage", "Number of mutant reads (MR) required to be High Confidence as a percentage").withRequiredArg().ofType(Float.class)
 		.describedAs("numberOfMutantReadsPercentage");
+		parser.accepts("filtersToIgnore", LOG_DESCRIPTION).withRequiredArg().ofType(String.class);
 
         OptionSet options  = parser.parse(args);  
         if(options.has("v") || options.has("version")){
@@ -175,6 +179,8 @@ public class Options {
         		System.exit(0);
         	}
         }
+        
+//        filtersToIgnore = (List<String>) options.valuesOf("filtersToIgnore");
         
         if(mm == null) return options;
         
@@ -331,6 +337,10 @@ public class Options {
 	}
 	public Optional<Integer> getMRCount() {
 		return mrCount;
+	}
+
+	public List<String> getFiltersToIgnore() {
+		return filtersToIgnore;
 	}
 
 }

@@ -146,6 +146,9 @@ public class AbstractModeTest {
 		//point to unexsit sample id 
 		try{
 			column = SampleColumn.getSampleColumn(test+control,test, header);
+			/*
+			 * add in assertion that columns are the same - single sample mode...
+			 */
 //			fail( "My method didn't throw when I expected it to" );
 		}catch(Exception e){
 		}
