@@ -132,24 +132,6 @@ public class ConfidenceMode extends AbstractMode{
 		 		int lhomo = (info.getField(VcfHeaderUtils.INFO_HOM) == null)? 1 :
 						StringUtils.string2Number(info.getField(VcfHeaderUtils.INFO_HOM).split(",")[0], Integer.class);
 		 		
-		 		/*
-		 		 * update the mrCount value of we are in percentage mode based on the totacl coverage of this position.
-		 		 */
-		 		if (percentageMode) {
-		 			int totalCoverage = 0; 
-		 			String dp = formatField.getField(VcfHeaderUtils.FORMAT_READ_DEPTH);
-		 			if ( ! StringUtils.isNullOrEmptyOrMissingData(dp)) {
-		 				totalCoverage = Integer.parseInt(dp);
-		 			}
-		 			
-		 			/*
-		 			 * if we don't have total coverage !! then use existing value of mrCount
-		 			 */
-		 			if (totalCoverage > 0) {
-		 				mrCount =  (int)(totalCoverage * mrPercentage);
-		 			}
-		 			
-		 		}
 
 			 	if (mergedRec) {
 			 		/*
@@ -169,10 +151,23 @@ public class ConfidenceMode extends AbstractMode{
 			 		}
 				
 			 		for (int i = 1 ; i <= 2 ; i++) {
+			 			/*
+			 			 * update the mrCount value of we are in percentage mode based on the totacl coverage of this position.
+			 			 */
+			 			if (percentageMode) {
+			 				int totalCoverage = getFieldFromFormatField(formatField, VcfHeaderUtils.FORMAT_READ_DEPTH, i);
+			 				
+			 				/*
+			 				 * if we don't have total coverage !! then use existing value of mrCount
+			 				 */
+			 				if (totalCoverage > 0) {
+			 					mrCount =  (int)(totalCoverage * mrPercentage);
+			 				}
+			 			}
 			 			
 			 			String suffix = "_" + i;
 			 			String thisFilter = VcfUtils.getFiltersEndingInSuffix(vcf, suffix).replace(suffix, "");
-			 			int nns = getNNS(formatField, i);
+			 			int nns = getFieldFromFormatField(formatField, VcfHeaderUtils.FILTER_NOVEL_STARTS, i);
 			 			int altFreq =  SnpUtils.getCountFromNucleotideString(basesArray[i-1], vcf.getAlt(), compoundSnp);
 			 			
 		 			
@@ -278,7 +273,7 @@ public class ConfidenceMode extends AbstractMode{
 	 * @return true if novel start value higher than score or not exists
 	 */
 	 public static final boolean checkNovelStarts(int score, VcfFormatFieldRecord formatField , int input) {
-		 int nns = getNNS(formatField, input);
+		 int nns = getFieldFromFormatField(formatField, VcfHeaderUtils.FILTER_NOVEL_STARTS, input);
 		 if (nns == 0) {
 			 /*
 			  * Special case whereby if novel starts count is zero, we return true (eg. compound snps)
@@ -292,8 +287,8 @@ public class ConfidenceMode extends AbstractMode{
 		 return checkNovelStarts(score, formatField, 1);
 	 }
 	 
-	 public static int getNNS(VcfFormatFieldRecord formatField , int input) {
-		 String nnsString = formatField.getField(VcfHeaderUtils.FILTER_NOVEL_STARTS);
+	 public static int getFieldFromFormatField(VcfFormatFieldRecord formatField , String field, int input) {
+		 String nnsString = formatField.getField(field);
 		 if (StringUtils.isNullOrEmpty(nnsString) || nnsString.equals(Constants.MISSING_DATA_STRING)) {
 			 return 0;
 		 }
@@ -313,7 +308,7 @@ public class ConfidenceMode extends AbstractMode{
 	 }
 	 
 	 public static int getNNS(VcfFormatFieldRecord formatField) {
-		 return getNNS(formatField, 1);
+		 return getFieldFromFormatField(formatField, VcfHeaderUtils.FILTER_NOVEL_STARTS, 1);
 	 }
 
 
