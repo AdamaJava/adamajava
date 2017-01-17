@@ -190,7 +190,7 @@ public class HTMLReportGenerator {
 		
 		
 		if (reports.size() > 1)
-			sb.append(END_DIV);
+			sb.append(END_DIV+"\n");
 		
 		return sb.toString();
 	}

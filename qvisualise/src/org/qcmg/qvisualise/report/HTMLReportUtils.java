@@ -34,14 +34,13 @@ public class HTMLReportUtils {
 	public static final String COMBO_CHART = "ComboChart";
 
 	public static void generateHTMLHeader(StringBuilder sb) {
- 		sb.append("<script type=\"text/javascript\" "
-				+ "src=\"http://www.google.com/jsapi\"></script>\n");
+// 		sb.append("<script type=\"text/javascript\" src=\"http://www.google.com/jsapi\"></script>\n");
  		
+		//here we use version 45 which was last year "current"
 		sb.append("<script src=\"http://cdn.jquerytools.org/1.2.5/full/jquery.tools.min.js\"></script>\n");		
- 		sb.append("<script type=\"text/javascript\" src=\"https://www.gstatic.com/charts/loader.js\"></script>\n" +
-				"<script type=\"text/javascript\">google.charts.load('current', {packages: ['corechart', 'table', 'line']});\n" + 
-				 "google.charts.setOnLoadCallback(drawChart);"	)
-		
+		sb.append("<script type=\"text/javascript\" src=\"https://www.gstatic.com/charts/loader.js\"></script>\n" +
+				"<script type=\"text/javascript\">google.charts.load('45', {packages: ['corechart', 'table', 'line']});\n" + 
+				 "google.charts.setOnLoadCallback(drawChart);"	)		
 		.append("\nfunction drawChart() \n{");
 	}
 	
