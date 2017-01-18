@@ -205,7 +205,7 @@ public class ConfidenceMode extends AbstractMode{
 				 	if ( checkNovelStarts(nnsCount, formatField)
 							&& ( VcfUtils.getAltFrequency(formatField, vcf.getAlt()) >=  mrCount)
 							&& lhomo < IndelConfidenceMode.DEFAULT_HOMN
-							&& PASS.equals(vcf.getFilter())) {
+							&& (PASS.equals(vcf.getFilter()) || filtersToIgnore.contains(vcf.getFilter()))) {
 			        	
 			        		vcf.getInfoRecord().setField(VcfHeaderUtils.INFO_CONFIDENCE, MafConfidence.HIGH.toString());		        	 				 				
 			        		high++;
@@ -333,6 +333,9 @@ public class ConfidenceMode extends AbstractMode{
 	 }
 	 public void setMRPercentage(double d) {
 		 mrPercentage = d;
+	 }
+	 public void setFiltersToIgnore(List<String> l) {
+		 filtersToIgnore = l;
 	 }
 
 
