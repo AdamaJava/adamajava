@@ -514,11 +514,8 @@ public class BamSummaryReport extends SummaryReport {
 		//anyway, add to summary and then add to it's readgroup
 		rgSummaries.get(SummaryReportUtils.All_READGROUP).ParseRecord(record); 
 
-		 
-		if( ! rgSummaries.containsKey(readGroup) ) 
-			rgSummaries.putIfAbsent(readGroup, new ReadGroupSummary(readGroup) ) ; 			
-//		ReadGroupSummary rgSumm = rgSummaries.putIfAbsent(readGroup, new ReadGroupSummary(readGroup) ) ;
-		boolean parsedRecord =rgSummaries.get(readGroup).ParseRecord(record);
+		ReadGroupSummary rgSumm = rgSummaries.computeIfAbsent(readGroup, k -> new ReadGroupSummary(k));
+		boolean parsedRecord = rgSumm.ParseRecord(record);
 		
 		if( parsedRecord  ) {			
 			// SEQ 
@@ -531,11 +528,11 @@ public class BamSummaryReport extends SummaryReport {
 			SummaryReportUtils.tallyQualScores( record.getBaseQualities(), qualBadReadLineLengths );
 
 			// ISIZE  is done inside readGroupSummary.pParseRecord
-			//parseISize(record.getInferredInsertSize(), readGroup);
+			// parseISize(record.getInferredInsertSize(), readGroup);
 			
 			// MRNM
 			final int mateRefNameIndex = record.getMateReferenceIndex();
-			if (mateRefNameIndex == -1)  MRNMLengths.increment(mateRefNameMinusOne);
+			if ( mateRefNameIndex == -1 )  MRNMLengths.increment( mateRefNameMinusOne );
 			else  MRNMLengths.increment(mateRefNameIndex);			 
 
 			// RNAME & POS			
