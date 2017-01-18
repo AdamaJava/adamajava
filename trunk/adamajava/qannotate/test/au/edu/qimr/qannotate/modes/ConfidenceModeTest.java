@@ -53,7 +53,7 @@ public class ConfidenceModeTest {
 		 VcfRecord vcf = VcfUtils.createVcfRecord(ChrPositionUtils.getChrPosition("chr1", 4985568, 4985568), "rs10753395","A", "C");
 		 vcf.setFilter("PASS_1;PASS_2");
 		 vcf.setInfo("FLANK=ACGTTCCTGCA;AC=1;AF=0.500;AN=2;BaseQRankSum=0.972;ClippingRankSum=1.139;DP=26;FS=0.000;MLEAC=1;MLEAF=0.500;MQ=60.00;MQ0=0;MQRankSum=-0.472;QD=9.45;ReadPosRankSum=-0.194;SOR=0.693;IN=1,2;DB;VAF=0.4816");
-		 List<String> ff =  java.util.Arrays.asList("GT:GD:AC:MR:NNS:AD:DP:GQ:PL", "0/1:A/C:A8[33.75],11[38.82],C3[42],5[40]"+VCF_MERGE_DELIM+"A9[33.56],11[38.82],C3[42],5[40],G0[0],1[22],T1[11],0[0]:8:8:18"+VCF_MERGE_DELIM+"8:26:99:274,0,686", "1/1:C/C:A1[37],0[0],C23[38.96],19[41.21]"+VCF_MERGE_DELIM+"A1[37],0[0],C24[38.88],23[40.26]:42"+VCF_MERGE_DELIM+"47:38"+VCF_MERGE_DELIM+"42:1,44:45:94:1826,94,0");
+		 List<String> ff =  Arrays.asList("GT:GD:AC:MR:NNS:AD:DP:GQ:PL", "0/1:A/C:A8[33.75],11[38.82],C3[42],5[40]"+VCF_MERGE_DELIM+"A9[33.56],11[38.82],C3[42],5[40],G0[0],1[22],T1[11],0[0]:8:8:18"+VCF_MERGE_DELIM+"8:26:99:274,0,686", "1/1:C/C:A1[37],0[0],C23[38.96],19[41.21]"+VCF_MERGE_DELIM+"A1[37],0[0],C24[38.88],23[40.26]:42"+VCF_MERGE_DELIM+"47:38"+VCF_MERGE_DELIM+"42:1,44:45:94:1826,94,0");
 		 vcf.setFormatFields(ff);
 		 
 		 assertEquals(true, ConfidenceMode.checkNovelStarts(7, vcf.getSampleFormatRecord(1)));
@@ -70,11 +70,11 @@ public class ConfidenceModeTest {
 		 VcfRecord vcf = VcfUtils.createVcfRecord(ChrPositionUtils.getChrPosition("chr1", 152281007, 152281007), "rs10753395","AA", "GG");
 		 vcf.setFilter("PASS_1;PASS_2");
 		 vcf.setInfo("IN=1,2;HOM=5,ATGCAggAATGC");
-		 List<String> ff =  java.util.Arrays.asList("ACCS", "AA,12,16,GG,4,6,_A,0,1&AA,13,17,GG,7,8,_A,0,1", "AA,33,37,GG,10,8,CA,0,1&AA,39,40,GC,1,0,GG,21,13,G_,1,0,TG,1,0,CA,0,1");
+		 List<String> ff =  Arrays.asList("ACCS", "AA,12,16,GG,4,6,_A,0,1&AA,13,17,GG,7,8,_A,0,1", "AA,33,37,GG,10,8,CA,0,1&AA,39,40,GC,1,0,GG,21,13,G_,1,0,TG,1,0,CA,0,1");
 		 vcf.setFormatFields(ff);
 		 
 		 ConfidenceMode cm =new ConfidenceMode("");
-		 cm.positionRecordMap.put(vcf.getChrPosition(), java.util.Arrays.asList(vcf));
+		 cm.positionRecordMap.put(vcf.getChrPosition(), Arrays.asList(vcf));
 		 cm.setSampleColumn(2,1);
 		 cm.addAnnotation();
 		 		 
@@ -82,7 +82,7 @@ public class ConfidenceModeTest {
 		 assertEquals("HIGH_1,HIGH_2", conf);
 		 		 
 		 vcf.setInfo("IN=1,2;HOM=6,ATGAAggAATGC");
-		 cm.positionRecordMap.put(vcf.getChrPosition(), java.util.Arrays.asList(vcf));
+		 cm.positionRecordMap.put(vcf.getChrPosition(), Arrays.asList(vcf));
 		 cm.addAnnotation();		 		 
 		 conf = vcf.getInfoRecord().getField(VcfHeaderUtils.INFO_CONFIDENCE);
 		 assertEquals("LOW_1,LOW_2", conf);
@@ -103,7 +103,7 @@ public class ConfidenceModeTest {
 		 vcf.setFormatFields(ff);
 		 
 		 ConfidenceMode cm =new ConfidenceMode("");
-		 cm.positionRecordMap.put(vcf.getChrPosition(), java.util.Arrays.asList(vcf));
+		 cm.positionRecordMap.put(vcf.getChrPosition(), Arrays.asList(vcf));
 		 cm.setSampleColumn(2,1);
 		 cm.addAnnotation();
 		 
@@ -122,7 +122,7 @@ public class ConfidenceModeTest {
 		 vcf.setFormatFields(ff);
 		 
 		 ConfidenceMode cm =new ConfidenceMode("");
-		 cm.positionRecordMap.put(vcf.getChrPosition(), java.util.Arrays.asList(vcf));
+		 cm.positionRecordMap.put(vcf.getChrPosition(), Arrays.asList(vcf));
 		 cm.setSampleColumn(2,1);
 		 cm.addAnnotation();
 		 
@@ -179,7 +179,7 @@ public class ConfidenceModeTest {
 		 cm.setMRPercentage(5d);
 		 cm.setNNSCount(1);
 		 cm.setFiltersToIgnore(Arrays.asList("SBIASCOV"));
-		 cm.positionRecordMap.put(vcf1.getChrPosition(), java.util.Arrays.asList(vcf1));
+		 cm.positionRecordMap.put(vcf1.getChrPosition(), Arrays.asList(vcf1));
 		 cm.setSampleColumn(1,1);
 		 cm.addAnnotation();
 		 
@@ -194,7 +194,7 @@ public class ConfidenceModeTest {
 		 //now try the merged record
 		 VcfRecord vcf = new VcfRecord(new String[]{"chr8","12306635","rs28428895","C","T",".","PASS_1;MIN_2;MR_2;NNS_2","FLANK=ACACATACATA;SOMATIC_2;IN=1,2;DB;GERM=30,185;EFF=intron_variant(MODIFIER|||n.304-488G>A||ENPP7P6|unprocessed_pseudogene|NON_CODING|ENST00000529817|2|1)","GT:GD:AC:MR:NNS:AD:DP:GQ:PL","0/1&.:C/T&C/C:C10[39],3[30],G1[11],0[0],T7[41.29],1[42]&C14[38.79],3[30],G1[11],0[0],T11[39.27],4[25.25]:8&15:8&15:.:.:.:.","0/0&0/1:C/C&C/T:C19[36.11],20[38.45],T1[42],0[0]&C22[36.23],22[36.91],T2[26.5],1[42]:1&3:1&2:4,3:7:86:86,0,133"});
 		 ConfidenceMode cm =new ConfidenceMode("");
-		 cm.positionRecordMap.put(vcf.getChrPosition(), java.util.Arrays.asList(vcf));
+		 cm.positionRecordMap.put(vcf.getChrPosition(), Arrays.asList(vcf));
 		 cm.setSampleColumn(2,1);
 		 cm.addAnnotation();
 		 
@@ -212,7 +212,7 @@ public class ConfidenceModeTest {
 		 VcfRecord vcf2 = new VcfRecord(new String[]{"chr9","126129715","rs57014689","C","A",".","PASS","SOMATIC;FLANK=CCCCCACACCC;DB;GERM=5,185","GT:GD:AC:MR:NNS","0/0:C/C:A0[0],4[24.25],C128[17.64],30[20.9],G2[7],0[0]:4:4","0/1:A/C:A2[7],13[28.23],C96[17.22],54[14.22]:15:15"});
 		 
 		 ConfidenceMode cm =new ConfidenceMode("");
-		 cm.positionRecordMap.put(vcf1.getChrPosition(), java.util.Arrays.asList(vcf1, vcf2));
+		 cm.positionRecordMap.put(vcf1.getChrPosition(), Arrays.asList(vcf1, vcf2));
 		 cm.setSampleColumn(2,1);
 		 cm.addAnnotation();
 		 
@@ -230,7 +230,7 @@ public class ConfidenceModeTest {
 		 //now try the merged record
 		 VcfRecord vcf = new VcfRecord(new String[]{"chr9","126129715","rs57014689","C","A",".","PASS_1;PASS_2","SOMATIC_1;FLANK=CCCCCACACCC;AC=1;AF=0.500;AN=2;BaseQRankSum=-1.408;ClippingRankSum=-1.932;DP=48;FS=3.424;MLEAC=1;MLEAF=0.500;MQ=41.89;MQ0=0;MQRankSum=0.717;QD=4.29;ReadPosRankSum=-0.717;SOR=0.120;IN=1,2;DB;GERM=5,185","GT:GD:AC:MR:NNS:AD:DP:GQ:PL","0/0&0/1:C/C&A/C:A0[0],4[24.25],C128[17.64],30[20.9],G2[7],0[0]&A0[0],4[24.25],C243[17.06],65[18.88],G2[7],0[0]:4&4:4&4:6,5:11:99:234,0,331","0/1&1/1:A/C&A/A:A2[7],13[28.23],C96[17.22],54[14.22]&A2[7],15[28.73],C179[15.92],121[14.76],G0[0],1[7]:15&17:15&16:1,18:19:46:841,46,0"});
 		 ConfidenceMode cm =new ConfidenceMode("");
-		 cm.positionRecordMap.put(vcf.getChrPosition(), java.util.Arrays.asList(vcf));
+		 cm.positionRecordMap.put(vcf.getChrPosition(), Arrays.asList(vcf));
 		 cm.setSampleColumn(2,1);
 		 cm.addAnnotation();
 		 
