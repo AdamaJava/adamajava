@@ -34,7 +34,9 @@ final class Options {
 	private final OptionParser parser = new OptionParser();
 	private final OptionSet options;
 //	private final List<String> fileNames;
-	private final String[] fastqs;
+	private final List<String> fastqsR1;
+	private final List<String> fastqsR2;
+	private boolean extendedFB = false;
 
 	@SuppressWarnings("unchecked")
 	Options(final String[] args) throws Exception {
@@ -61,16 +63,19 @@ final class Options {
 		parser.accepts("log", LOG_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("loglevel", LOG_LEVEL_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("uuid", LOG_LEVEL_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
-		parser.accepts("fastqs", TAGS_CHAR_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
+		parser.accepts("fastqsR1", TAGS_CHAR_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
+		parser.accepts("fastqsR2", TAGS_CHAR_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
+		parser.accepts("extendedFB", LOG_LEVEL_OPTION_DESCRIPTION);
 		parser.posixlyCorrect(true);
 
 		options = parser.parse(args);
 		
 		// inputs
-		List<String> inputs = (List<String>) options.valuesOf("fastqs");
-		fastqs = new String[inputs.size()];
-		inputs.toArray(fastqs);
+		fastqsR1 = (List<String>) options.valuesOf("fastqsR1");
+		fastqsR2 = (List<String>) options.valuesOf("fastqsR2");
 		
+		
+		extendedFB = options.has("extendedFB");
 	}
 
 	boolean hasVersionOption() {
@@ -128,8 +133,11 @@ final class Options {
 		return Optional.ofNullable( (String) options.valueOf("uuid"));
 	}
 
-	String[] getFastqs() {
-		return fastqs;
+	List<String> getFastqsR1() {
+		return fastqsR1;
+	}
+	List<String> getFastqsR2() {
+		return fastqsR2;
 	}
 	
 	Optional<String> getLog() {
@@ -162,6 +170,10 @@ final class Options {
 
 	public Optional<Integer> getMultiMutationThreshold() {
 		return Optional.ofNullable((Integer) options.valueOf("multiMutationThreshold"));
+	}
+	
+	public boolean runExtendedFB() {
+		return extendedFB;
 	}
 
 }

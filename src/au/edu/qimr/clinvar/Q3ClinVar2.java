@@ -2,6 +2,7 @@ package au.edu.qimr.clinvar;
 
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.list.array.TLongArrayList;
+import gnu.trove.map.hash.THashMap;
 import gnu.trove.map.hash.TIntIntHashMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 import gnu.trove.procedure.TIntProcedure;
@@ -42,6 +43,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -88,6 +90,7 @@ import au.edu.qimr.clinvar.model.IntPair;
 import au.edu.qimr.clinvar.model.PositionChrPositionMap;
 import au.edu.qimr.clinvar.model.RawFragment;
 import au.edu.qimr.clinvar.util.ClinVarUtil;
+import au.edu.qimr.clinvar.util.FragmentUtil;
 //import org.w3c.dom.Document;
 //import org.w3c.dom.Element;
 
@@ -101,7 +104,8 @@ public class Q3ClinVar2 {
 	
 	private QExec exec;
 	
-	private static String[] fastqFiles;
+	private static List<String> fastqR1Files;
+	private static List<String> fastqR2Files;
 	private static String version;
 	private String logFile;
 	private String bedFile;
@@ -121,16 +125,18 @@ public class Q3ClinVar2 {
 	private int mutationDbSnpRecordCount;
 	private int mutationCosmicRecordCount;
 	
-	private  int minBinSize = 10;
-	private  int minFragmentSize = 3;
-	private   int minReadPercentage = 2;
-	private  int ampliconBoundary = 10;
-	private  int multiMutationThreshold = 10;
+	private int minBinSize = 10;
+	private int minFragmentSize = 3;
+	private int minReadPercentage = 2;
+	private int ampliconBoundary = 10;
+	private int multiMutationThreshold = 10;
 	final AtomicInteger outputMutations = new AtomicInteger();
+	
+	private boolean runExtendedFB = false;
 
 	
 	private final Map<String, List<StringBuilder>> reads = new HashMap<>();
-	private final Map<IntPair, AtomicInteger> readLengthDistribution = new HashMap<>();
+	private final Map<IntPair, AtomicInteger> readLengthDistribution = new THashMap<>(4);
 	private final Set<String> frequentlyOccurringRefTiles = new HashSet<>();
 	private final Map<String, TLongArrayList> refTilesPositions = new HashMap<>();
 	
@@ -167,8 +173,11 @@ public class Q3ClinVar2 {
 		
 		loadTiledAlignerData();
 		
+		digestTiledData();
+		
 		/*
 		 * Clear up some no longer used resources
+		 * The frags collection is what contains the Fragments that we are interested in
 		 */
 		rawFragments.clear();
 		reads.clear();
@@ -182,14 +191,14 @@ public class Q3ClinVar2 {
 		loadTranscripts();
 		
 		createMutations();
-		logger.info("no of mutations created: " + vcfFragmentMap.size());
+		logger.info("number of mutations created: " + vcfFragmentMap.size());
 		filterAndAnnotateMutations();
-		logger.info("no of filtered mutations remaining: " + filteredMutations.size());
+		logger.info("number of filtered mutations remaining: " + filteredMutations.size());
 		writeMutationsToFile();
 		writeXml();
 		writeBam();
 		
-		logger.info("no of fastq records: " +fastqRecordCount);
+		logger.info("number of fastq records: " +fastqRecordCount);
 		return exitStatus;
 	}
 
@@ -199,10 +208,16 @@ public class Q3ClinVar2 {
 	 */
 	private void loadTranscripts() throws IOException {
 		
-		if (StringUtils.isNoneBlank(bedFile, geneTranscriptsFile)) {
+		if (StringUtils.isNoneBlank(geneTranscriptsFile)) {
+//			if (StringUtils.isNoneBlank(bedFile, geneTranscriptsFile)) {
 			
-			Map<String, List<Amplicon>> uniqueChrs = bedToAmpliconMap.keySet().stream()
-														.collect(Collectors.groupingBy(a -> a.getInitialFragmentPosition().getChromosome()));
+			/*
+			 * if we don't have a bed file, get contigs from the ampliconFragmentMap
+			 */
+			Map<String, List<Amplicon>> uniqueChrs = bedToAmpliconMap.isEmpty() ? ampliconFragmentMap.keySet().stream()
+					.collect(Collectors.groupingBy(a -> a.getInitialFragmentPosition().getChromosome())) : bedToAmpliconMap.keySet().stream()
+					.collect(Collectors.groupingBy(a -> a.getInitialFragmentPosition().getChromosome())) ;
+			
 					
 			logger.info("Number of unique chromosomes in bed file: " + uniqueChrs.size());
 			
@@ -212,8 +227,7 @@ public class Q3ClinVar2 {
 					String contig = rec.getData().substring(0, rec.getData().indexOf(Constants.TAB));
 					if (uniqueChrs.containsKey(contig)) {
 						String [] params= TabTokenizer.tokenize(rec.getData());
-						String [] column8 = params[8].split(";"); 
-//						String id = column8[1].replace("transcript_id", "").replace("\"", "").trim();
+						String [] column8 = params[8].split(Constants.SEMI_COLON_STRING); 
 						Optional<String> optionalId = Arrays.stream(column8).filter(s -> s.trim().startsWith("transcript_id")).findAny();
 						Optional<String> optionalExonNumber = Arrays.stream(column8).filter(s -> s.trim().startsWith("exon_number")).findAny();
 						
@@ -229,9 +243,6 @@ public class Q3ClinVar2 {
 							int index2 = optionalExonNumber.get().indexOf("\"", index1 + 13);
 							exonNumber = optionalExonNumber.get().substring(index1 + 13, index2);
 						}
-						
-//						String id = optionalId.isPresent() ? optionalId.get().replace("transcript_id", "").replace("\"", "").trim() : null;
-//						String exonNumber = optionalExonNumber.isPresent() ? optionalExonNumber.get().replace("exon_number", "").replace("\"", "").trim() : null;
 						
 						if (null == currentTranscriptId || ! currentTranscriptId.equals(id)) {
 							
@@ -265,7 +276,6 @@ public class Q3ClinVar2 {
 								int index2 = optionalGene.get().indexOf("\"", index1 + 11);
 								gene = optionalGene.get().substring(index1 + 11, index2);
 							}
-//							String gene = optionalGene.isPresent() ? optionalGene.get().replace("gene_name", "").replace("\"", "").trim() : null;
 							
 							t = new Transcript(id, params[1], contig, gene);
 							transcripts.put(id, t);
@@ -281,7 +291,6 @@ public class Q3ClinVar2 {
 							logger.debug("Ignoring " + params[2]);
 						}
 					}
-					
 				}
 			}
 			
@@ -313,12 +322,10 @@ public class Q3ClinVar2 {
 		TIntIntHashMap overlapLengthDistribution = new TIntIntHashMap();
 		
 		for (Entry<String, List<StringBuilder>> entry : reads.entrySet()) {
-//			for (Entry<String, AtomicInteger> entry : reads.entrySet()) {
 			int readCount = entry.getValue().size();
-//			int readCount = entry.getValue().intValue();
 			String combinedReads = entry.getKey();
-			String r1 = combinedReads.substring(0, combinedReads.indexOf(':'));
-			String r2 = combinedReads.substring(combinedReads.indexOf(':') + 1);
+			String r1 = combinedReads.substring(0, combinedReads.indexOf(Constants.COLON));
+			String r2 = combinedReads.substring(combinedReads.indexOf(Constants.COLON) + 1);
 			String r2RevComp = SequenceUtil.reverseComplement(r2);
 			
 			boolean readsAreTheSame = r1.equals(r2RevComp);
@@ -327,15 +334,7 @@ public class Q3ClinVar2 {
 				overlapDistribution.adjustOrPutValue(readCount, 1, 1);
 				overlapLengthDistribution.adjustOrPutValue(r1.length(), 1, 1);
 				
-				RawFragment f = rawFragments.get(r1);
-				if (null == f) {
-					f = new RawFragment(rawFragmentId++, r1, entry.getValue(), r1.length());
-					rawFragments.put(r1, f);
-				} else {
-					// update count and overlap
-//					f.addCount(readCount);
-					f.addOverlap( r1.length(), entry.getValue());
-				}
+				rawFragments.computeIfAbsent(r1, k -> new RawFragment(rawFragmentId++, r1)).addOverlap( r1.length(), entry.getValue());
 				
 			} else {
 				different++;
@@ -345,14 +344,9 @@ public class Q3ClinVar2 {
 				String overlapMatches = newSwDiffs[1];
 				if (overlapMatches.indexOf(" ") > -1 || overlapMatches.indexOf('.') > -1) {
 					nonOverlapDistribution.adjustOrPutValue(readCount, 1, 1);
-	//				nonOverlapDistribution.incrementAndGet(entry.getValue().intValue());
 					nonPerfectOverlap++;
-	//				for (String s : newSwDiffs) {
-	//					logger.info("non perfect overlap sw: " + s);
-	//				}
 				} else {
 					overlapDistribution.adjustOrPutValue(readCount, 1, 1);
-	//				overlapDistribution.incrementAndGet(entry.getValue().intValue());
 					String overlap = newSwDiffs[0];
 					int overlapLength = overlapMatches.length();
 					if (overlapLength < 10) {
@@ -370,43 +364,12 @@ public class Q3ClinVar2 {
 					 * Now build fragment
 					 * check to see which read starts with the overlap
 					 */
-					String fragment = null;
-					if (r1.indexOf(overlap) < 2 || r2RevComp.endsWith(overlap)) {
-						fragment = r2RevComp.substring(0, r2RevComp.indexOf(overlap)) + overlap + r1.substring(r1.indexOf(overlap) + overlap.length());
-					} else if (r2RevComp.indexOf(overlap) < 2 || r1.endsWith(overlap)) {
-						fragment = r1.substring(0, r1.indexOf(overlap)) + overlap + r2RevComp.substring(r2RevComp.indexOf(overlap) + overlap.length());
-					} else {
-						logger.warn("neither r1 nor r2RevComp start with the overlap!!!");
-						logger.warn("r1: " + r1);
-						logger.warn("r2RevComp: " + r2RevComp);
-						logger.warn("overlap: " + overlap);
+					String fragment = FragmentUtil.getFragmentString(r1,  r2RevComp, overlap);
+					if (null == fragment) {
 						continue;
 					}
 					
-					if (fragment.length() > 250) {		// need to get t good number here.....
-//						logger.info("Fragment has length greater than 250: " + fragment + "\nr1: " + r1 + "\nr2RevComp: " + r2RevComp);
-//						for (String s  : newSwDiffs) {
-//							logger.info("s: " + s);
-//						}
-					} //else {
-					
-					
-					RawFragment f = rawFragments.get(fragment);
-					if (null == f) {
-						f = new RawFragment(rawFragmentId++, fragment, entry.getValue(), overlapLength);
-						rawFragments.put(fragment, f);
-					} else {
-						// update count and overlap
-//						f.addCount(readCount);
-						f.addOverlap(overlapLength, entry.getValue());
-					}
-					
-//						AtomicInteger ai2 = fragments.get(fragment);
-//						if (null == ai2) {
-//							fragments.put(fragment, new AtomicInteger(readCount));
-//						} else {
-//							ai2.addAndGet(entry.getValue().intValue());
-//						}
+					rawFragments.computeIfAbsent(fragment, k -> new RawFragment(rawFragmentId++, r1)).addOverlap(overlapLength, entry.getValue());
 				}
 			}
 		}
@@ -481,39 +444,13 @@ public class Q3ClinVar2 {
 				fragment.addAttribute(new Attribute("record_count", "" + f.getRecordCount()));
 				fragment.addAttribute(new Attribute("position", "" + f.getActualPosition().toIGVString()));
 				fragment.addAttribute(new Attribute("genomic_length", "" + f.getActualPosition().getLength()));
-				fragment.addAttribute(new Attribute("overlap_dist", "" + getOverlapDistributionAsString(f.getOverlapDistribution())));
+				fragment.addAttribute(new Attribute("overlap_dist", "" + ClinVarUtil.getOverlapDistributionAsString(f.getOverlapDistribution())));
 				fragment.addAttribute(new Attribute("md", "" + ClinVarUtil.getSWDetails(f.getSmithWatermanDiffs())));
 				fragment.addAttribute(new Attribute("fragment_length", "" + f.getLength()));
 				fragment.addAttribute(new Attribute("seq", "" + f.getSequence()));
 			});
 		
 		amplicon.addAttribute(new Attribute("number_of_reads", "" + readCount.get()));
-	}
-	
-	private String getOverlapDistributionAsString(TIntArrayList dist) {
-		if (dist.size() == 1) {
-			return "" + dist.get(0) + ":1";
-		}
-		
-		TIntIntHashMap map = new TIntIntHashMap();
-		dist.forEach(new TIntProcedure() {
-			@Override
-			public boolean execute(int i) {
-				map.adjustOrPutValue(i, 1, 1);
-				return true;
-			}});
-		
-		
-		StringBuilder sb = new StringBuilder();
-		int[] keys = map.keys();
-		Arrays.sort(keys);
-		for (int i : keys) {
-			if (sb.length() > 0) {
-				sb.append(",");
-			}
-			sb.append(i).append(":").append(map.get(i));
-		}
-		return sb.toString();
 	}
 	
 	private void writeXml() {
@@ -531,8 +468,12 @@ public class Q3ClinVar2 {
 		q3pElement.addAttribute(new Attribute("bed_amplicon_count", ""+bedToAmpliconMap.size()));
 		q3pElement.addAttribute(new Attribute("vcf", outputFileNameBase + ".vcf"));
 		q3pElement.addAttribute(new Attribute("vcf_variant_count", ""+outputMutations.get()));
-		q3pElement.addAttribute(new Attribute("fastq_1", fastqFiles[0]));
-		q3pElement.addAttribute(new Attribute("fastq_2", fastqFiles[1]));
+		for (int i = 0 ; i < fastqR1Files.size() ; i++) {
+			String r1 = fastqR1Files.get(i);
+			String r2 = fastqR2Files.get(i);
+			q3pElement.addAttribute(new Attribute("fastq_1", r1));
+			q3pElement.addAttribute(new Attribute("fastq_2", r2));
+		}
 		q3pElement.addAttribute(new Attribute("dbSnp", dbSNPFile));
 		q3pElement.addAttribute(new Attribute("dbSnp_total_count", dbSnpTotalCount + ""));
 		q3pElement.addAttribute(new Attribute("dbSnp_mutation_count", mutationDbSnpRecordCount + ""));
@@ -728,65 +669,6 @@ public class Q3ClinVar2 {
 	
 	private void createAmplicons() {
 		
-//		List<ChrPosition> fragCPs = frags.values().stream()
-//				.filter(f -> f.getActualPosition() != null)
-//				.map(Fragment::getActualPosition)
-//				.collect(Collectors.toList());
-//		
-//		Map<ChrPosition, Set<ChrPosition>> ampliconFragmentPositionMap = ChrPositionUtils.getAmpliconsFromFragments(fragCPs);
-//		
-//		logger.info("Found " + ampliconFragmentPositionMap.size() + " amplicons from " + fragCPs.size() + " fragments");
-//		
-//		/*
-//		 * Next, try and rollup amplicons with adjacent start positions
-//		 */
-//		List<ChrPosition> toRemove = new ArrayList<>();
-//		
-//		for (Entry<ChrPosition, Set<ChrPosition>> entry : ampliconFragmentPositionMap.entrySet()) {
-//			
-//			
-//			ChrPosition cp = entry.getKey();
-//			if ( ! toRemove.contains(cp)) {
-//				ampliconFragmentPositionMap.keySet().stream()
-//					.filter(cp1 -> ! cp1.equals(cp))
-//					.filter(cp1 -> ! toRemove.contains(cp1))
-//					.filter(cp1 -> cp1.getChromosome().equals(cp.getChromosome()) 
-//							&& Math.abs(cp1.getPosition() - cp.getPosition()) <= ampliconBoundary
-//							&& Math.abs(cp1.getEndPosition() - cp.getEndPosition()) <= ampliconBoundary)
-//					.forEach(cp1 -> {
-//						entry.getValue().addAll(ampliconFragmentPositionMap.get(cp1));
-//						toRemove.add(cp1);
-//					});
-//			}
-//		}
-//		toRemove.stream()
-//			.forEach(a -> ampliconFragmentPositionMap.remove(a));
-//		
-//		
-//		Map<ChrPosition, Set<ChrPosition>> ampliconFragmentPositionMap = ClinVarUtil.getGroupedChrPositionsFromFragments(frags.values(), ampliconBoundary);
-//		
-//		logger.info("After rollup, found " + ampliconFragmentPositionMap.size() + " amplicons from " + frags.size() + " fragments");
-//		
-//		/*
-//		 * Now need to expand out the amplcon cp to include the largest end position of its constituents
-//		 * and keep a list of the fragments associated with it 
-//		 */
-//		final AtomicInteger ampliconId = new AtomicInteger();
-//		ampliconFragmentPositionMap.entrySet().stream()
-//			.sorted((e1, e2) -> {return e1.getKey().compareTo(e2.getKey());})
-//			.forEach(entry -> {
-//				
-//				OptionalInt maxEnd = entry.getValue().stream()
-//						.mapToInt(ChrPosition::getEndPosition)
-//						.max();
-//				ChrPosition ampliconCP = new ChrPosition(entry.getKey().getChromosome(), entry.getKey().getPosition(), maxEnd.orElse( entry.getKey().getPosition()));
-//				Amplicon amplicon = new Amplicon(ampliconId.incrementAndGet(), ampliconCP);
-//				
-//				ampliconFragmentMap.put(amplicon,  frags.values().stream()
-//						.filter(f -> entry.getValue().contains(f.getActualPosition()))
-//						.collect(Collectors.toList()));
-//				});
-		
 		ampliconFragmentMap = ClinVarUtil.groupFragments(frags.values(), ampliconBoundary);
 		/*
 		 * Get some stats on each Amplicon
@@ -797,44 +679,34 @@ public class Q3ClinVar2 {
 				int recordCount = entry.getValue().stream().mapToInt(Fragment::getRecordCount).sum();
 				logger.info("Amplicon " + entry.getKey().getId() + " " + entry.getKey().getPosition().toIGVString() + " has " + entry.getValue().size() + " fragments with a total of " + recordCount + " records (" + ((double) recordCount / fastqRecordCount) * 100 + "%)");
 			});
-		
-		/*
-		 * If amplicon length is over 200, lets list its constituents
-		 */
-//		ampliconFragmentMap.entrySet().stream()
-//			.filter(entry -> entry.getKey().getFragmentPosition().getLength() > 200)
-//			.forEach(entry ->{
-//				logger.info("Amplicon " + entry.getKey().getId() + " " + entry.getKey().getFragmentPosition().toIGVString() + " has length " + entry.getKey().getFragmentPosition().getLength());
-//				entry.getValue().stream()
-//					.forEach(value -> {logger.info("fragment: " + value.getActualPosition().toIGVString());});
-//			});
 	}
 
-	private double getMutationCoveragePercentage(VcfRecord vcf, List<int[]> fragmentsCarryingMutation) {
+	private double getMutationCoveragePercentage(VcfRecord vcf, List<int[]> fragmentsCarryingMutation, Map<String, List<Fragment>> fragsByContig) {
 		/*
-		 * Get the total coverage at this position
-		 * Use 
+		 * Get the total coverage at this position, along with the total alt coverage
+		 * Update the DP and MR format fields of this vcf record with this info
 		 */
-		List<Fragment> overlappingFragments = getOverlappingFragments(vcf.getChrPosition());
+		List<Fragment> overlappingFragments = ClinVarUtil.getOverlappingFragments(vcf.getChrPosition(), fragsByContig);
 		int totalCoverage = overlappingFragments.stream()
 				.mapToInt(Fragment::getRecordCount)
 				.sum();
 		int mutationCoverage = fragmentsCarryingMutation.stream()
 				.mapToInt( i -> i[2])
-//				.mapToInt(IntPair::getInt2)
 				.sum();
+		
+		/*
+		 * add to format
+		 */
+		VcfUtils.addFormatFieldsToVcf(vcf, Arrays.asList("DP,MR", totalCoverage + Constants.COLON_STRING + mutationCoverage), true);
 		
 		double percentage = totalCoverage > 0 ? ((double)mutationCoverage / totalCoverage) * 100 : 0.0;
 		return percentage;
 	}
 	
-	private int getRecordCountFormIntPairs(List<int[]> list) {
+	public static int getRecordCountFromIntPairs(List<int[]> list) {
 		return list.stream()
 			.mapToInt(i -> i[2])
 			.sum();
-//		final AtomicInteger tally = new AtomicInteger();
-//		list.stream().forEach(ip -> tally.addAndGet(ip.getInt2()));
-//		return tally.intValue();
 	}
 	
 	
@@ -904,7 +776,7 @@ public class Q3ClinVar2 {
 						
 					} else if ( ! ClinVarUtil.doesSWContainSnp(swDiffs) && ClinVarUtil.doesSWContainIndel(swDiffs)) {
 						// indels only
-						String ref = swDiffs[0].replaceAll("-","");
+						String ref = StringUtils.remove(swDiffs[0], Constants.MINUS);
 						Cigar cigar = ClinVarUtil.getCigarForIndels(ref,   f.getSequence(), swDiffs,  f.getActualPosition());
 						if (cigar.toString().equals("51M53I-52M7I159M")) {
 							logger.info("cigar: " + cigar.toString());
@@ -1025,24 +897,60 @@ public class Q3ClinVar2 {
 	}
 	
 	private void filterAndAnnotateMutations() throws IOException {
+		
+		/*
+		 * create map of contig -> Fragment for use by getMutationCoveragePercentage 
+		 */
+		Map<String, List<Fragment>> fragsByContig = frags.values().stream().filter(f -> null != f.getActualPosition()).collect(Collectors.groupingBy(f -> f.getActualPosition().getChromosome()));
+		
+		Map<String, Map<Amplicon, List<Fragment>>> ampliconFragmentMapByContig = new HashMap<>();
+		for (Entry<Amplicon , List<Fragment>> entry : ampliconFragmentMap.entrySet()) {
+			ChrPosition cp = entry.getKey().getPosition();
+			if (null != cp) {
+				String contig = cp.getChromosome();
+				Map<Amplicon, List<Fragment>> m = ampliconFragmentMapByContig.computeIfAbsent(contig, k -> new HashMap<>());
+				m.put(entry.getKey(), entry.getValue());
+			}
+		}
+		
 		vcfFragmentMap.entrySet().stream()
-		.filter((entry) -> getRecordCountFormIntPairs(entry.getValue()) >= minBinSize )
-		.filter((entry) -> getMutationCoveragePercentage(entry.getKey(), entry.getValue()) >= minReadPercentage )
+		.filter((entry) -> getRecordCountFromIntPairs(entry.getValue()) >= minBinSize )
+		.filter((entry) -> getMutationCoveragePercentage(entry.getKey(), entry.getValue(), fragsByContig) >= minReadPercentage )
 		.sorted((e1, e2) -> {return e1.getKey().compareTo(e2.getKey());})
 		.forEach(entry -> {
 		
-			final StringBuilder mutationFragmentsDetails = new StringBuilder();
+			final StringBuilder fb = new StringBuilder();
+			final StringBuilder xFb = new StringBuilder();
+			int[] ampliconIds = new int[entry.getValue().size()];
+			int[] fragmentIds = new int[entry.getValue().size()];
+			AtomicInteger j = new AtomicInteger();
+			AtomicInteger readCount = new AtomicInteger();
 			entry.getValue().stream()
 				.forEach(i -> {
-					if (mutationFragmentsDetails.length() > 0) {
-						mutationFragmentsDetails.append(';');
+					if (xFb.length() > 0) {
+						xFb.append(Constants.SEMI_COLON);
 					}
-					mutationFragmentsDetails.append(i[0]).append(',').append(i[1]).append(',').append(i[2]);
+					readCount.addAndGet(i[2]);
+					ampliconIds[j.get()] = i[0];
+					fragmentIds[j.getAndIncrement()] = i[2];
+					if (runExtendedFB) {
+						xFb.append(i[0]).append(Constants.COMMA).append(i[1]).append(Constants.COMMA).append(i[2]);
+					}
 				});
-			List<String> ff = new ArrayList<>(3);
-			ff.add("FB");
-			ff.add(mutationFragmentsDetails.toString() + "/" + ClinVarUtil.getCoverageStringAtPosition(entry.getKey().getChrPosition(), ampliconFragmentMap));
-			entry.getKey().setFormatFields(ff);
+			
+			fb.append(Arrays.stream(ampliconIds).distinct().count()).append(",");
+			fb.append(Arrays.stream(fragmentIds).distinct().count()).append(",");
+			fb.append(readCount.get());
+			
+			/*
+			 * update vcf format fields with FB
+			 */
+			ClinVarUtil.getCoverageStatsForVcf(entry.getKey(), ampliconFragmentMapByContig, fb, xFb);
+//			List<String> ff = new ArrayList<>(3);
+//			ff.add("FB");
+//			ff.add(mutationFragmentsDetails.toString() + "/" + ClinVarUtil.getCoverageStringAtPosition(entry.getKey().getChrPosition(), ampliconFragmentMap));
+////			ff.add(mutationFragmentsDetails.toString() + "/" + ClinVarUtil.getCoverageStringAtPosition(entry.getKey().getChrPosition(), ampliconFragmentMap));
+//			entry.getKey().setFormatFields(ff);
 			filteredMutations.add(entry.getKey());
 		});
 		
@@ -1182,44 +1090,53 @@ public class Q3ClinVar2 {
 		}
 		
 		
+		
+		addFormatFieldValues();
+	}
+	
+	private void addFormatFieldValues() {
 		/*
 		 * distance from end of read
 		 */
 		
 		filteredMutations.stream()
-			.forEach(vcf -> {
-				final AtomicInteger middleOfReadCount = new AtomicInteger();
-				final AtomicInteger endOfReadCount = new AtomicInteger();
-				vcfFragmentMap.get(vcf).stream()
-					.forEach(array -> {
-						ampliconFragmentMap.get(new Amplicon(array[0], null)).stream()
-							.filter(f -> f.getId() == array[1])
-							.forEach(f -> {
-								if (vcf.getPosition() - f.getActualPosition().getStartPosition() <= 5
-										|| f.getActualPosition().getEndPosition() - vcf.getChrPosition().getEndPosition() <= 5) {
-									endOfReadCount.addAndGet(f.getRecordCount());
-								} else {
-									middleOfReadCount.addAndGet(f.getRecordCount());
-								}
-							});
-						
-					});
-				logger.info("vcf: " + vcf.toString() + ", middleOfReadCount: " + middleOfReadCount.get() + ", endOfReadCount: " + endOfReadCount.get());
+		.forEach(vcf -> {
+			final AtomicInteger middleOfReadCount = new AtomicInteger();
+			final AtomicInteger endOfReadCount = new AtomicInteger();
+			vcfFragmentMap.get(vcf).stream()
+			.forEach(array -> {
+				ampliconFragmentMap.get(new Amplicon(array[0], null)).stream()
+				.filter(f -> f.getId() == array[1])
+				.forEach(f -> {
+					if (vcf.getPosition() - f.getActualPosition().getStartPosition() <= 5
+							|| f.getActualPosition().getEndPosition() - vcf.getChrPosition().getEndPosition() <= 5) {
+						endOfReadCount.addAndGet(f.getRecordCount());
+					} else {
+						middleOfReadCount.addAndGet(f.getRecordCount());
+					}
+				});
 				
-				/*
-				 * Add filter to vcf if we only have end of reads - may want to be a little more strict than this
-				 */
-				if (middleOfReadCount.get() == 0 && endOfReadCount.get() > 0) {
-					/*
-					 * add to format filter rather than filter
-					 */
-					VcfUtils.addFormatFieldsToVcf(vcf, Arrays.asList("FT", SnpUtils.END_OF_READ + Constants.EQ +  endOfReadCount.get()), true);
-//					VcfUtils.updateFilter(vcf, SnpUtils.END_OF_READ + Constants.EQ +  endOfReadCount.get());
-				}
-			
 			});
+			logger.info("vcf: " + vcf.toString() + ", middleOfReadCount: " + middleOfReadCount.get() + ", endOfReadCount: " + endOfReadCount.get());
+			
+			/*
+			 * Add filter to vcf if we only have end of reads - may want to be a little more strict than this
+			 */
+			if (middleOfReadCount.get() == 0 && endOfReadCount.get() > 0) {
+				/*
+				 * add to format filter rather than filter
+				 */
+				VcfUtils.addFormatFieldsToVcf(vcf, Arrays.asList("FT", SnpUtils.END_OF_READ + Constants.EQ +  endOfReadCount.get()), true);
+//					VcfUtils.updateFilter(vcf, SnpUtils.END_OF_READ + Constants.EQ +  endOfReadCount.get());
+			}
+		});
+		
+		/*
+		 * OABS
+		 */
+		
 	}
-	
+
 	private void writeMutationsToFile() throws IOException {
 		try (VCFFileWriter writer = new VCFFileWriter(new File(outputFileNameBase + ".vcf"))) {
 			
@@ -1279,27 +1196,26 @@ public class Q3ClinVar2 {
 			 */
 			ChrPosition bestTiledCP = f.getBestTiledLocation();
 			ChrPosition bufferedCP = new ChrRangePosition(bestTiledCP.getChromosome(),  Math.max(1,bestTiledCP.getStartPosition() - 100), bestTiledCP.getStartPosition() + 100 + f.getLength());
-//			ChrPosition bufferedCP = new ChrRangePosition(bestTiledCP.getChromosome(), bestTiledCP.getStartPosition() - 100, bestTiledCP.getStartPosition() + 100 + f.getLength());
 			String bufferedReference = getRefFromChrPos(bufferedCP);
 			
 			String [] swDiffs = ClinVarUtil.getSwDiffs(bufferedReference, f.getSequence(), true);
 			f.setSWDiffs(swDiffs);
 			
 			
-			if (f.getId() == 6282 || f.getId() == 2765) {
-				System.out.println("frag id: " + f.getId());
-				for (String s : swDiffs) {
-					System.out.println("s: " + s);
-				}
-			}
+//			if (f.getId() == 6282 || f.getId() == 2765) {
+//				System.out.println("frag id: " + f.getId());
+//				for (String s : swDiffs) {
+//					System.out.println("s: " + s);
+//				}
+//			}
 			
-			String swFragmentMinusDeletions = swDiffs[2].replaceAll("-", "");
+			String swFragmentMinusDeletions = StringUtils.remove(swDiffs[2], Constants.MINUS);
 			
 			if (f.getSequence().equals(swFragmentMinusDeletions)) {
 				/*
 				 * Fragment is wholly contained in swdiffs, and so can get actual position based on that
 				 */
-				String swRefMinusDeletions = swDiffs[0].replaceAll("-", "");
+				String swRefMinusDeletions = StringUtils.remove(swDiffs[0], Constants.MINUS);
 				int offset = bufferedReference.indexOf(swRefMinusDeletions);
 				int refLength = swRefMinusDeletions.length();
 				setActualCP(bufferedCP, offset, f, refLength);
@@ -1491,44 +1407,35 @@ public class Q3ClinVar2 {
 		
 		int sameReadLength = 0;
 		
-		try (FastqReader reader1 = new FastqReader(new File(fastqFiles[0]));
-				FastqReader reader2 = new FastqReader(new File(fastqFiles[1]));) {
-			
-			for (FastqRecord rec : reader1) {
-				FastqRecord rec2 = reader2.next();
+		for (int i = 0 ; i < fastqR1Files.size() ; i++) {
+			String r1 = fastqR1Files.get(i);
+			String r2 = fastqR2Files.get(i);
+		
+			try (FastqReader reader1 = new FastqReader(new File(r1));
+					FastqReader reader2 = new FastqReader(new File(r2));) {
 				
-				StringBuilder readHeader = new StringBuilder(rec.getReadHeader());
-//				readHeader.append(Constants.DOUBLE_HASH);
-//				readHeader.append(rec2.getReadHeader());
-				readHeader.trimToSize();
-				
-				/*
-				 * Put entries into map - don't collapse at the moment as we could save some processing if we have multiple identical reads
-				 */
-				String r1Andr2 = rec.getReadString() + ":" + rec2.getReadString();
-				
-				List<StringBuilder> readHeaderList = reads.get(r1Andr2);
-				if (null == readHeaderList) {
-					readHeaderList = new ArrayList<>(2);
-					reads.put(r1Andr2, readHeaderList);
+				for (FastqRecord rec : reader1) {
+					FastqRecord rec2 = reader2.next();
+					
+					StringBuilder readHeader = new StringBuilder(rec.getReadHeader());
+					readHeader.trimToSize();
+					
+					/*
+					 * Put entries into map - don't collapse at the moment as we could save some processing if we have multiple identical reads
+					 */
+					reads.computeIfAbsent(rec.getReadString() + Constants.COLON + rec2.getReadString(), k ->  new ArrayList<>(2)).add(readHeader);
+					
+					IntPair ip = new IntPair(rec.getReadString().length(), rec2.getReadString().length());
+					if (ip.getInt1() == ip.getInt2()) {
+						sameReadLength++;
+					}
+					readLengthDistribution.computeIfAbsent(ip, v -> new AtomicInteger()).incrementAndGet();
+					fastqCount++;
 				}
-				readHeaderList.add(readHeader);
-				
-				IntPair ip = new IntPair(rec.getReadString().length(), rec2.getReadString().length());
-				if (ip.getInt1() == ip.getInt2()) {
-					sameReadLength++;
-				}
-				AtomicInteger atomicI = readLengthDistribution.get(ip);
-				if (null == atomicI) {
-					atomicI = new AtomicInteger();
-					readLengthDistribution.put(ip,  atomicI);
-				}
-				atomicI.incrementAndGet();
-				fastqCount++;
 			}
 		}
 		
-		logger.info("no of unique fragments: " + reads.size() + ", from " + fastqCount + " fastq records, number with same read length: " + sameReadLength + " : " + ((double)sameReadLength / fastqCount) * 100 + "%");
+		logger.info("number of unique fragments: " + reads.size() + ", from " + fastqCount + " fastq records, number with same read length: " + sameReadLength + " : " + ((double)sameReadLength / fastqCount) * 100 + "%");
 		logger.info("read length breakdown:");
 		
 		readLengthDistribution.entrySet().stream()
@@ -1585,186 +1492,147 @@ public class Q3ClinVar2 {
 				}
 				String tile = rec.getData().substring(0, TILE_SIZE);
 				if (fragmentTiles.contains(tile)) {
-					String countOrPosition = rec.getData().substring(rec.getData().indexOf('\t') + 1);
+					String countOrPosition = rec.getData().substring(rec.getData().indexOf(Constants.TAB) + 1);
 					if (countOrPosition.charAt(0) == 'C') {
 						frequentlyOccurringRefTiles.add(tile);
 					} else {
 						
 						TLongArrayList positionsList = new TLongArrayList();
-						if (countOrPosition.indexOf(',') == -1) {
+						if (countOrPosition.indexOf(Constants.COMMA) == -1) {
 							positionsList.add(Long.parseLong(countOrPosition));
 						} else {
-							String [] positions =  TabTokenizer.tokenize(countOrPosition, ',');
+							String [] positions =  TabTokenizer.tokenize(countOrPosition, Constants.COMMA);
 							for (String pos : positions) {
 								positionsList.add(Long.parseLong(pos));
 							}
+							positionsList.sort();
 						}
 						
 						// create TLongArrayList from 
 						refTilesPositions.put(tile, positionsList);
 					}
-//					writer.write(rec.getData() + "\n");
 				}
 			}
 		}
 		int refTilesCountSize =  frequentlyOccurringRefTiles.size();
 		int refTilesPositionsSize =  refTilesPositions.size();
-		int total = refTilesCountSize + refTilesPositionsSize;
-		int diff = fragmentTiles.size() - total;
 		logger.info("finished reading the genome tiles alignment data");
 		logger.info("no of entries in refTilesCount: " + refTilesCountSize);
 		logger.info("no of entries in refTilesPositions: " + refTilesPositionsSize);
-		logger.info("Unique tiles in amplicons: " + diff);
+		logger.info("Unique tiles in amplicons: " + (fragmentTiles.size() - (refTilesCountSize + refTilesPositionsSize)));
+	}
+	
+	private long[][] getTiledPositions(String f) {
 		
-//		int bestLocationSet = 0, bestLocationNotSet = 0;
+		int noOfTiles = f.length() / TILE_SIZE;
+		long[][] tilePositions = new long[noOfTiles][];
+		
+		for (int i = 0 ; i < noOfTiles ; i++) {
+			String bt = f.substring(i * TILE_SIZE, (i + 1) * TILE_SIZE);
+			
+			if (frequentlyOccurringRefTiles.contains(bt)) {
+				tilePositions[i] = new long[]{Long.MAX_VALUE};
+			} else {
+				TLongArrayList refPositions = refTilesPositions.get(bt);
+				if (null == refPositions) {
+					tilePositions[i] = new long[]{Long.MIN_VALUE};
+				} else {
+					tilePositions[i] = refPositions.toArray();
+				}
+			}
+		}
+		return tilePositions;
+	}
+	
+	private void digestTiledData() throws IOException {
+		
 		int positionFound = 0, positionFoundReadCount = 0;
 		int noPositionFound = 0, noPositionFoundReadCount = 0;
+		
 		for (String fragment : rawFragments.keySet()) {
-			int fragLength = fragment.length();
-			int noOfTiles = fragLength / TILE_SIZE;
-				long[][] tilePositions = new long[noOfTiles][];
+			long[][] tilePositions = getTiledPositions(fragment);
 				
-				/*
-				 * Break fragment up into tiles, and see if we have seen these tiles in the tiled genome file
-				 */
-				for (int i = 0 ; i < noOfTiles ; i++) {
-					String bt = fragment.substring(i * TILE_SIZE, (i + 1) * TILE_SIZE);
-					
-					if (frequentlyOccurringRefTiles.contains(bt)) {
-						tilePositions[i] = new long[]{Long.MAX_VALUE};
-					} else if (refTilesPositions.containsKey(bt)) {
-						TLongArrayList refPositions = refTilesPositions.get(bt);
-						tilePositions[i] = refPositions.toArray();
-						Arrays.sort(tilePositions[i]);
-					} else {
-						tilePositions[i] = new long[]{Long.MIN_VALUE};
-					}
-				}
+			/*
+			 * And now reverse complement and run again
+			 */
+			long[][] rcTilePositions =  getTiledPositions(SequenceUtil.reverseComplement(fragment));
 				
-				/*
-				 * And now reverse complement and run again
-				 */
-				long[][] rcTilePositions = new long[noOfTiles][];
-				String rcFragment = SequenceUtil.reverseComplement(fragment);
-				for (int i = 0 ; i < noOfTiles ; i++) {
-					String bt = rcFragment.substring(i * TILE_SIZE, (i + 1) * TILE_SIZE);
-					
-					if (frequentlyOccurringRefTiles.contains(bt)) {
-						rcTilePositions[i] = new long[]{Long.MAX_VALUE};
-					} else if (refTilesPositions.containsKey(bt)) {
-						TLongArrayList refPositions = refTilesPositions.get(bt);
-						rcTilePositions[i] = refPositions.toArray();
-						Arrays.sort(rcTilePositions[i]);
-					} else {
-						rcTilePositions[i] = new long[]{Long.MIN_VALUE};
-					}
-				}
+			/*
+			 * Get the best (ie. positions with more than 2 tiles aligned to it) positions for each strand
+			 */
+			TIntObjectHashMap<TLongArrayList> resultsMap = ClinVarUtil.getBestStartPosition(tilePositions, TILE_SIZE, maxIndelLength, tiledDiffThreshold, tileMatchThreshold);
+			TIntObjectHashMap<TLongArrayList> rcResultsMap = ClinVarUtil.getBestStartPosition(rcTilePositions, TILE_SIZE, maxIndelLength, tiledDiffThreshold, tileMatchThreshold);
+			
+			ChrPosition bestTiledCp = null;
+			int [] results = resultsMap.keys();
+			if (results.length > 1) {
+				Arrays.sort(results);
+			}
+			int [] rcResults = rcResultsMap.keys();
+			if (rcResults.length > 1) {
+				Arrays.sort(rcResults);
+			}
 				
-				/*
-				 * Get the best (ie. positions with more than 2 tiles aligned to it) positions for each strand
-				 */
-				TIntObjectHashMap<TLongArrayList> resultsMap = ClinVarUtil.getBestStartPosition(tilePositions, TILE_SIZE, maxIndelLength, tiledDiffThreshold, tileMatchThreshold);
-				TIntObjectHashMap<TLongArrayList> rcResultsMap = ClinVarUtil.getBestStartPosition(rcTilePositions, TILE_SIZE, maxIndelLength, tiledDiffThreshold, tileMatchThreshold);
-				
-				ChrPosition bestTiledCp = null;
-				int [] results = resultsMap.keys();
-				if (results.length > 1) {
-					Arrays.sort(results);
-				}
-				int [] rcResults = rcResultsMap.keys();
-				if (rcResults.length > 1) {
-					Arrays.sort(rcResults);
-				}
-				
-				/*
-				 * get best tile counts - could be zero if no matches above our threshold of 2...
-				 */
-				int bestTileCount = results.length > 0 ? results[results.length -1] : 0;
-				int rcBestTileCount = rcResults.length > 0 ? rcResults[rcResults.length -1] : 0;
-				/*
-				 * If all the best positions overlap the amplicon position - great
-				 */
-//				if (ClinVarUtil.areAllPositionsClose(resultsMap.valueCollection(), rcResultsMap.valueCollection(), ampliconStartLongPosition, 200)) {
-////					logger.info("all positions are close");
-//					bestTiledCp = ampliconCP;
-//				} else {
+			/*
+			 * get best tile counts - could be zero if no matches above our threshold of 2...
+			 */
+			int bestTileCount = results.length > 0 ? results[results.length -1] : 0;
+			int rcBestTileCount = rcResults.length > 0 ? rcResults[rcResults.length -1] : 0;
 				
 					/*
 					 * Only perform sw on positions if the best tile position is not next to the amplicon position
 					 */
-				boolean forwardStrand = true;
-					if (bestTileCount > rcBestTileCount + tiledDiffThreshold) {
-						/*
-						 * Only set bestTiledCp if we have a single key in the resultsMap, that only has a single long in its TLongArrayList value
-						 */
-						if (results.length == 1 && resultsMap.get(bestTileCount).size() == 1) {
-							bestTiledCp = positionToActualLocation.getChrPositionFromLongPosition(resultsMap.get(bestTileCount).get(0));
-						} else {
-							logger.info("results.length: " + results.length + ", resultsMap.get(bestTileCount).size(): " + resultsMap.get(bestTileCount).size());
-//							logger.info("(results.length != 1 &&/|| resultsMap.get(bestTileCount).size() != 1");
-//							if (ClinVarUtil.areAllPositionsClose(resultsMap.valueCollection(), null, ampliconStartLongPosition, 200)) {
-//								logger.info("all positions on +ve strand are close");
-//								bestTiledCp = ampliconCP;
-//							}
-						}
-					} else if (tiledDiffThreshold + bestTileCount < rcBestTileCount) {
-						/*
-						* Only set bestTiledCp if we have a single key in the resultsMap, that only has a single long in its TLongArrayList value
-						*/
-						if (rcResults.length == 1 && rcResultsMap.get(rcBestTileCount).size() == 1) {
-							bestTiledCp = positionToActualLocation.getChrPositionFromLongPosition(rcResultsMap.get(rcBestTileCount).get(0));
-							forwardStrand = false;
-						} else {
-							logger.info("rcResults.length: " + rcResults.length + ", rcResultsMap.get(rcBestTileCount).size(): " + rcResultsMap.get(rcBestTileCount).size());
-//							if (ClinVarUtil.areAllPositionsClose(rcResultsMap.valueCollection(), null, ampliconStartLongPosition, 200)) {
-//								logger.info("all positions on -ve strand are close");
-//								bestTiledCp = ampliconCP;
-//							}
-						}
-					}
-//				}
-				
-				if (null != bestTiledCp) {
-					positionFound++;
-					
-					RawFragment rf = rawFragments.get(fragment);
-					List<StringBuilder> rfHeaders = rf.getReadHeaders();
-					String forwardStrandFragment = forwardStrand ? fragment : SequenceUtil.reverseComplement(fragment);
-//					int currentCount =  rf.getCount();
-					positionFoundReadCount += rfHeaders.size();
-					
-					Fragment f = frags.get(forwardStrandFragment);
-					if (null == f) {
-						f = new Fragment(fragmentId++, forwardStrandFragment, forwardStrand ? rfHeaders : Collections.emptyList(), forwardStrand ? Collections.emptyList() : rfHeaders, bestTiledCp, rf.getOverlapDistribution());
-						frags.put(forwardStrandFragment, f);
-					} else {
-						// update count
-						if (forwardStrand) {
-							// check that we don't already have a fs count set!!
-							if (f.getFsCount() != 0) {
-								logger.warn("already have fs count for this fragment!!!");
-							}
-							f.setForwardStrandCount(rfHeaders);
-						} else {
-							if (f.getRsCount() != 0) {
-								logger.warn("already have rs count for this fragment!!!");
-							}
-							f.setReverseStrandCount(rfHeaders);
-						}
-						f.addOverlapDistribution(rf.getOverlapDistribution());
-					}
-					
-//					List<String> frags = positionFragmentsMap.get(bestTiledCp);
-//					if (null == frags) {
-//						frags = new ArrayList<String>();
-//						positionFragmentsMap.put(bestTiledCp, frags);
-//					}
-//					frags.add(fragment);
-					
-//					logger.info("Got a position!!!:  " + bestTiledCp.toIGVString());
-//					b.setBestTiledLocation(bestTiledCp);
-//					updateMap(bestTiledCp, binLocationDistribution);
+			boolean forwardStrand = true;
+			if (bestTileCount > rcBestTileCount + tiledDiffThreshold) {
+				/*
+				 * Only set bestTiledCp if we have a single key in the resultsMap, that only has a single long in its TLongArrayList value
+				 */
+				if (results.length == 1 && resultsMap.get(bestTileCount).size() == 1) {
+					bestTiledCp = positionToActualLocation.getChrPositionFromLongPosition(resultsMap.get(bestTileCount).get(0));
 				} else {
+					logger.info("results.length: " + results.length + ", resultsMap.get(bestTileCount).size(): " + resultsMap.get(bestTileCount).size());
+				}
+			} else if (tiledDiffThreshold + bestTileCount < rcBestTileCount) {
+				/*
+				* Only set bestTiledCp if we have a single key in the resultsMap, that only has a single long in its TLongArrayList value
+				*/
+				if (rcResults.length == 1 && rcResultsMap.get(rcBestTileCount).size() == 1) {
+					bestTiledCp = positionToActualLocation.getChrPositionFromLongPosition(rcResultsMap.get(rcBestTileCount).get(0));
+					forwardStrand = false;
+				} else {
+					logger.info("rcResults.length: " + rcResults.length + ", rcResultsMap.get(rcBestTileCount).size(): " + rcResultsMap.get(rcBestTileCount).size());
+				}
+			}
+				
+			if (null != bestTiledCp) {
+				positionFound++;
+				
+				RawFragment rf = rawFragments.get(fragment);
+				List<StringBuilder> rfHeaders = rf.getReadHeaders();
+				String forwardStrandFragment = forwardStrand ? fragment : SequenceUtil.reverseComplement(fragment);
+				positionFoundReadCount += rfHeaders.size();
+				
+				Fragment f = frags.get(forwardStrandFragment);
+				if (null == f) {
+					f = new Fragment(fragmentId++, forwardStrandFragment, forwardStrand ? rfHeaders : Collections.emptyList(), forwardStrand ? Collections.emptyList() : rfHeaders, bestTiledCp, rf.getOverlapDistribution());
+					frags.put(forwardStrandFragment, f);
+				} else {
+					// update count
+					if (forwardStrand) {
+						// check that we don't already have a fs count set!!
+						if (f.getFsCount() != 0) {
+							logger.warn("already have fs count for this fragment!!!");
+						}
+						f.setForwardStrandCount(rfHeaders);
+					} else {
+						if (f.getRsCount() != 0) {
+							logger.warn("already have rs count for this fragment!!!");
+						}
+						f.setReverseStrandCount(rfHeaders);
+					}
+					f.addOverlapDistribution(rf.getOverlapDistribution());
+				}
+			} else {
 				
 //					logger.info("Did NOT get a position!!!");
 //					logger.info("bestTileCount: " + bestTileCount + ", rcBestTileCount: " + rcBestTileCount);
@@ -1778,33 +1646,24 @@ public class Q3ClinVar2 {
 					/*
 					 * Haven't got a best tiled location, or the location is not near the amplicon, so lets generate some SW diffs, and choose the best location based on those
 					 */
-//					logger.info("about to run a bunch of sw");
-					
-					if (bestTileCount > 1) {
-						TLongArrayList list = ClinVarUtil.getSingleArray(resultsMap);
-						logger.info("list size: " + list.size() + ", bestTileCount: " + bestTileCount);
-						Map<ChrPosition, String[]> scores = getSWScores(list, fragment);
-						logger.info("no of possible scores: " + scores.size());
-//						b.addPossiblePositions(scores);
-					}
-					if (rcBestTileCount > 1) {
-						TLongArrayList rclist = ClinVarUtil.getSingleArray(rcResultsMap);
-						logger.info("rclist size: " + rclist.size() + ", rcBestTileCount: " + rcBestTileCount);
-						Map<ChrPosition, String[]> scores = getSWScores(rclist, SequenceUtil.reverseComplement(fragment));
-						logger.info("no of possible scores (rc): " + scores.size());
-//						b.addPossiblePositions(scores);
-					}
-//					bestTiledCp = ClinVarUtil.getPositionWithBestScore(b.getSmithWatermanDiffsMap(), swDiffThreshold);
-//					if (null != bestTiledCp) {
-//						b.setBestTiledLocation(bestTiledCp);
-//						updateMap(bestTiledCp, binLocationDistribution);
-//					} else {
-////						logger.info("not able to set best tiled location for bin: " + b.getId() + ", no in b.getSmithWatermanDiffsMap(): " + b.getSmithWatermanDiffsMap().size());
+					/*
+					 * not running SmithWaterman as we are not doing anything with the results for now... 
+					 */
+//					if (bestTileCount > 1) {
+//						TLongArrayList list = ClinVarUtil.getSingleArray(resultsMap);
+//						logger.info("list size: " + list.size() + ", bestTileCount: " + bestTileCount);
+//						Map<ChrPosition, String[]> scores = getSWScores(list, fragment);
+//						logger.info("no of possible scores: " + scores.size());
+//					}
+//					if (rcBestTileCount > 1) {
+//						TLongArrayList rclist = ClinVarUtil.getSingleArray(rcResultsMap);
+//						logger.info("rclist size: " + rclist.size() + ", rcBestTileCount: " + rcBestTileCount);
+//						Map<ChrPosition, String[]> scores = getSWScores(rclist, SequenceUtil.reverseComplement(fragment));
+//						logger.info("no of possible scores (rc): " + scores.size());
 //					}
 				}
 			}
 		logger.info("positionFound count: " + positionFound + " which contain " + positionFoundReadCount + " reads,  noPositionFound count: " + noPositionFound + ", which contain "+ noPositionFoundReadCount + " reads");
-//		logger.info("bestLocationSet count: " + bestLocationSet + ", not set count: " + bestLocationNotSet);
 	}
 	
 	
@@ -1877,7 +1736,7 @@ public class Q3ClinVar2 {
 		} else if (options.hasVersionOption()) {
 			System.err.println(Messages.getVersionMessage());
 			returnStatus = 0;
-		} else if (options.getFastqs().length < 1) {
+		} else if (options.getFastqsR1().isEmpty()) {
 			System.err.println(Messages.USAGE2);
 		} else {
 			// configure logging
@@ -1890,14 +1749,18 @@ public class Q3ClinVar2 {
 			exec = logger.logInitialExecutionStats("q3clinvar", version, args);
 			
 			// get list of file names
-			fastqFiles = options.getFastqs();
-			if (fastqFiles.length < 1) {
+			fastqR1Files = options.getFastqsR1();
+			fastqR2Files = options.getFastqsR2();
+			/*
+			 * There should be hte same number of r1 and r2 files, and this number should be greater than zero
+			 */
+			if (fastqR1Files.isEmpty() || fastqR1Files.size() != fastqR2Files.size()) {
 				throw new Exception("INSUFFICIENT_ARGUMENTS");
 			} else {
 				// loop through supplied files - check they can be read
-				for (int i = 0 ; i < fastqFiles.length ; i++ ) {
-					if ( ! FileUtils.canFileBeRead(fastqFiles[i])) {
-						throw new Exception("INPUT_FILE_ERROR: "  +  fastqFiles[i]);
+				for (String f : fastqR1Files) {
+					if ( ! FileUtils.canFileBeRead(f)) {
+						throw new Exception("INPUT_FILE_ERROR: "  +  f);
 					}
 				}
 			}
@@ -1912,6 +1775,8 @@ public class Q3ClinVar2 {
 				throw new Exception("OUTPUT_FILE_WRITE_ERROR");
 			}
 			
+			runExtendedFB = options.runExtendedFB();
+			
 			options.getDbSnpFile().ifPresent((s) -> dbSNPFile = s);
 			options.getCosmicFile().ifPresent((s) -> cosmicFile = s);
 			options.getTiledRefFileName().ifPresent((s) -> refTiledAlignmentFile = s);
@@ -1925,6 +1790,7 @@ public class Q3ClinVar2 {
 			options.getAmpliconBoundary().ifPresent((i) -> ampliconBoundary = i.intValue());
 			options.getMinBinSize().ifPresent((i) -> minBinSize = i.intValue());
 			
+			logger.info("runExtendedFB: " + runExtendedFB);
 			logger.info("minBinSize is " + minBinSize);
 			logger.info("minFragmentSize is " + minFragmentSize);
 			logger.info("minReadPercentage is " + minReadPercentage);

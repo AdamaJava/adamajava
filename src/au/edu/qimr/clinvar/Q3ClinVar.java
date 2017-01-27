@@ -85,7 +85,8 @@ public class Q3ClinVar {
 	
 	
 	private static final int TILE_SIZE = 13;
-	private static String[] fastqFiles;
+	private static List<String> fastqR1Files;
+	private static List<String> fastqR2Files;
 	private static String version;
 	private QExec qexec;
 	private String logFile;
@@ -360,10 +361,11 @@ public class Q3ClinVar {
 	private void readFastqFiles() {
 		int fastqCount = 0;
 		// read in a fastq file and lets see if we get some matches
-		int noOFFastqFiles = fastqFiles.length;
-		for (int i = 0 ; i < noOFFastqFiles / 2 ; i++) {
-			try (FastqReader reader1 = new FastqReader(new File(fastqFiles[i * 2]));
-					FastqReader reader2 = new FastqReader(new File(fastqFiles[(i * 2) + 1]));) {
+		for (int i = 0 ; i < fastqR1Files.size() ; i++) {
+			String r1 = fastqR1Files.get(i);
+			String r2 = fastqR2Files.get(i);
+			try (FastqReader reader1 = new FastqReader(new File(r1));
+					FastqReader reader2 = new FastqReader(new File(r2));) {
 				
 				for (FastqRecord rec : reader1) {
 					FastqRecord rec2 = reader2.next();
@@ -894,8 +896,12 @@ public class Q3ClinVar {
 		
 		try (FileWriter writer = new FileWriter(new File(outputFileNameBase + "amplicon_performance.csv" ))) {
 			writer.write("#amplicon manifest file: " + xmlFile + Constants.NEW_LINE);
-			writer.write("#fastq r1 file: " + fastqFiles[0] + Constants.NEW_LINE);
-			writer.write("#fastq r2 file: " + fastqFiles[1] + Constants.NEW_LINE);
+			for (int i = 0 ; i < fastqR1Files.size() ; i++) {
+				String r1 = fastqR1Files.get(i);
+				String r2 = fastqR2Files.get(i);
+				writer.write("#fastq r1 file: " + r1 + Constants.NEW_LINE);
+				writer.write("#fastq r2 file: " + r2 + Constants.NEW_LINE);
+			}
 			writer.write("#Number of fastq records: " + fastqRecordCount + Constants.NEW_LINE);
 			writer.write("#Number of amplicons: " + probeSet.size() + Constants.NEW_LINE);
 			writer.write("#\n");
@@ -1440,8 +1446,12 @@ public class Q3ClinVar {
 		// logging and writing to file
 		Element amplicons = new Element("Amplicons");
 		amplicons.addAttribute(new Attribute("amplicon_file", xmlFile));
-		amplicons.addAttribute(new Attribute("fastq_file_1", fastqFiles[0]));
-		amplicons.addAttribute(new Attribute("fastq_file_2", fastqFiles[1]));
+		for (int i = 0 ; i < fastqR1Files.size() ; i++) {
+			String r1 = fastqR1Files.get(i);
+			String r2 = fastqR2Files.get(i);
+			amplicons.addAttribute(new Attribute("fastq_1", r1));
+			amplicons.addAttribute(new Attribute("fastq_2", r2));
+		}
 		
 		for (Probe p : probeSet) {
 			
@@ -1677,8 +1687,12 @@ public class Q3ClinVar {
 		// logging and writing to file
 		Element amplicons = new Element("Amplicons");
 		amplicons.addAttribute(new Attribute("amplicon_file", xmlFile));
-		amplicons.addAttribute(new Attribute("fastq_file_1", fastqFiles[0]));
-		amplicons.addAttribute(new Attribute("fastq_file_2", fastqFiles[1]));
+		for (int i = 0 ; i < fastqR1Files.size() ; i++) {
+			String r1 = fastqR1Files.get(i);
+			String r2 = fastqR2Files.get(i);
+			amplicons.addAttribute(new Attribute("fastq_file_1", r1));
+			amplicons.addAttribute(new Attribute("fastq_file_2", r2));
+		}
 		
 		for (Probe p : probeSet) {
 			Element fragments = createAmpliconElement(amplicons, p);
@@ -1796,7 +1810,7 @@ public class Q3ClinVar {
 		} else if (options.hasVersionOption()) {
 			System.err.println(Messages.getVersionMessage());
 			returnStatus = 0;
-		} else if (options.getFastqs().length < 1) {
+		} else if (options.getFastqsR1().isEmpty()) {
 			System.err.println(Messages.USAGE);
 		} else {
 			// configure logging
@@ -1806,14 +1820,15 @@ public class Q3ClinVar {
 			qexec = logger.logInitialExecutionStats("q3clinvar", version, args, options.getUUID().orElse(null));
 			
 			// get list of file names
-			fastqFiles = options.getFastqs();
-			if (fastqFiles.length < 1) {
+			fastqR1Files = options.getFastqsR1();
+			fastqR2Files = options.getFastqsR2();
+			if (fastqR1Files.isEmpty() || fastqR1Files.size() != fastqR2Files.size()) {
 				throw new Exception("INSUFFICIENT_ARGUMENTS");
 			} else {
 				// loop through supplied files - check they can be read
-				for (int i = 0 ; i < fastqFiles.length ; i++ ) {
-					if ( ! FileUtils.canFileBeRead(fastqFiles[i])) {
-						throw new Exception("INPUT_FILE_ERROR: "  +  fastqFiles[i]);
+				for (String f : fastqR1Files) {
+					if ( ! FileUtils.canFileBeRead(f)) {
+						throw new Exception("INPUT_FILE_ERROR: "  +  f);
 					}
 				}
 			}

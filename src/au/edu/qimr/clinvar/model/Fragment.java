@@ -17,8 +17,6 @@ public class Fragment implements Comparable<Fragment> {
 	private final List<StringBuilder> fsHeaders = new ArrayList<>(2);
 	private final List<StringBuilder> rsHeaders = new ArrayList<>(2);
 	
-//	private int fsCount;
-//	private int rsCount;
 	private ChrPosition actualLocation;
 	private String [] smithWatermanDiffs;
 	private final TIntArrayList overlapDistribution;
@@ -29,8 +27,6 @@ public class Fragment implements Comparable<Fragment> {
 		this.fragmentLength = null != this.fragment ? this.fragment.length() : 0;
 		this.fsHeaders.addAll(fsHeaders);
 		this.rsHeaders.addAll(rsHeaders);
-//		this.fsCount = fsCount;
-//		this.rsCount = rsCount;
 		this.bestTiledLocation = bestTiledLocation;
 		this.overlapDistribution = overlapDist;
 	}
@@ -41,12 +37,6 @@ public class Fragment implements Comparable<Fragment> {
 	public void setReverseStrandCount(List<StringBuilder> rsHead) {
 		this.rsHeaders.addAll(rsHead);
 	}
-//	public void setForwardStrandCount(int fsCount) {
-//		this.fsCount = fsCount;
-//	}
-//	public void setReverseStrandCount(int rsCount) {
-//		this.rsCount = rsCount;
-//	}
 	
 	public void setSWDiffs(String [] diffs) {
 		this.smithWatermanDiffs = diffs;

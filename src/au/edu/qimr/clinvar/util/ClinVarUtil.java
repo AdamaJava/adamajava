@@ -90,7 +90,7 @@ public class ClinVarUtil {
 		String [] diffs = nm.traceback();
 		if (rescueSequence) {
 			
-			int swSeqLength = diffs[2].replace("-", "").length();
+			int swSeqLength = StringUtils.remove(diffs[2], Constants.MINUS).length();
 			if (swSeqLength == sequence.length()) {
 				/*
 				 * Perfect Match!
@@ -101,7 +101,7 @@ public class ClinVarUtil {
 				 */
 				nm = new SmithWatermanGotoh(ref, sequence, 5, -4, 8, 2);
 				String [] lenientDiffs = nm.traceback();
-				int swLenientScore =  lenientDiffs[2].replace("-", "").length();
+				int swLenientScore =  StringUtils.remove(lenientDiffs[2], Constants.MINUS).length();
 				if (swLenientScore > swSeqLength) {
 					logger.debug("got a better score when using a more lenient sw setup!!!");
 					for (String s : diffs) {
@@ -126,6 +126,51 @@ public class ClinVarUtil {
 			}
 		}
 		return diffs;
+	}
+	
+	
+	
+	public static List<Fragment> getOverlappingFragments(ChrPosition cp, Map<String, List<Fragment>> fragsByContig) {
+		List<Fragment> frags = fragsByContig.get(cp.getChromosome());
+		if (null == frags || frags.isEmpty()) {
+			return Collections.emptyList();
+		}
+		return frags.stream()
+//				.filter(frag -> null != frag.getActualPosition())
+				.filter(frag -> ChrPositionUtils.doChrPositionsOverlapPositionOnly(cp, frag.getActualPosition()))
+				.collect(Collectors.toList());
+	}
+	
+	
+	/**
+	 * 
+	 * @param dist
+	 * @return
+	 */
+	public static String getOverlapDistributionAsString(TIntArrayList dist) {
+		if (dist.size() == 1) {
+			return dist.get(0) + ":1";
+		}
+		
+		TIntIntHashMap map = new TIntIntHashMap();
+		dist.forEach(new TIntProcedure() {
+			@Override
+			public boolean execute(int i) {
+				map.adjustOrPutValue(i, 1, 1);
+				return true;
+			}});
+		
+		
+		StringBuilder sb = new StringBuilder();
+		int[] keys = map.keys();
+		Arrays.sort(keys);
+		for (int i : keys) {
+			if (sb.length() > 0) {
+				sb.append(Constants.COMMA);
+			}
+			sb.append(i).append(Constants.COLON).append(map.get(i));
+		}
+		return sb.toString();
 	}
 	
 	
@@ -235,11 +280,11 @@ public class ClinVarUtil {
 			
 			for (int j = 0 ; j < positionsLength ; j++) {
 				startPos = positions[j];
-				int tileDepth = 1;
 				if (startPos == Long.MAX_VALUE || startPos == Long.MIN_VALUE) {
 					// this either does not occur or occurs very frequently - in either case - ignore for now...
 					continue;
 				}
+				int tileDepth = 1;
 				positionAndTiles.put(startPos, 1);
 				
 				for (int k = i +1; k < noOfTiles ; k++) {
@@ -341,7 +386,6 @@ public class ClinVarUtil {
 	 * @return
 	 */
 	public static TIntObjectHashMap<TLongArrayList> reduceStartPositionsAndTileCount(final TLongIntMap positionAndTiles, int tiledDiffThreshold, int minNoOfTiles, int tileLength) {
-//		public static long[] reduceStartPositionsAndTileCount(TLongIntMap positionAndTiles, int tiledDiffThreshold) {
 
 		/*
 		 * remove from positionAndTiles values that are a tiles length from each other with n-1 tile counts
@@ -363,10 +407,6 @@ public class ClinVarUtil {
 					}
 					if ((diff / tileLength) < 5 
 							&& thisPositionTileCount == positionAndTiles.get(nextPosition) + j ) {
-//						if (Math.abs(diff % tileLength) < 5 // indel Offset
-//								&& thisPositionTileCount == positionAndTiles.get(nextPosition) + j ) {
-//						if (diff == (tileLength * j)
-//								&& thisPositionTileCount == positionAndTiles.get(nextPosition) + j ) {
 						// remove
 						toRemove.add(nextPosition);
 					}
@@ -393,7 +433,6 @@ public class ClinVarUtil {
 		
 		final TIntObjectHashMap<TLongArrayList> resultsMap = new TIntObjectHashMap<>(tileCountsLength);
 		
-//		final TLongList results = new TLongArrayList();
 		positionAndTiles.forEachEntry(new TLongIntProcedure() {
 			@Override
 			public boolean execute(long l, int i) {
@@ -404,13 +443,10 @@ public class ClinVarUtil {
 						resultsMap.put(i, list);
 					}
 					list.add(l);
-//					results.add(l);
-//					results.add(i);
 				}
 				return true;
 			}
 		});
-//		return results.toArray();
 		return resultsMap;
 	}
 	
@@ -445,7 +481,7 @@ public class ClinVarUtil {
 						int start = Math.max(0, indelStartPosDiff - 1);
 						String ref = refSeq.substring(start, indelStartPosDiff + span);
 						String alt = binSeq.substring(start, indelStartPosDiff + span);
-						mutations.add(new Pair<Integer, String>(indelStartPosRef - 1, ref.replaceAll("-","") +"/" +  alt.replaceAll("-","")));
+						mutations.add(new Pair<Integer, String>(indelStartPosRef - 1, StringUtils.remove(ref, Constants.MINUS) +"/" +  StringUtils.remove(alt, Constants.MINUS)));
 						// reset span
 						span = 0;
 					}
@@ -476,7 +512,7 @@ public class ClinVarUtil {
 				int start = Math.max(0, indelStartPosDiff - 1);
 				String ref = refSeq.substring(start, indelStartPosDiff + span);
 				String alt = binSeq.substring(start, indelStartPosDiff + span);
-				mutations.add(new Pair<Integer, String>(indelStartPosRef - 1, ref.replaceAll("-","") +"/" +  alt.replaceAll("-","")));
+				mutations.add(new Pair<Integer, String>(indelStartPosRef - 1, StringUtils.remove(ref, Constants.MINUS) +"/" +  StringUtils.remove(alt, Constants.MINUS)));
 			}
 		}
 		return mutations;
@@ -654,11 +690,11 @@ public class ClinVarUtil {
 		/*
 		 * Check length of binSequence returned from SW calc, as leading/trailing mutations will have been dropped
 		 */
-		String swBinSeq = diffs[2].replace("-", "");
+		String swBinSeq = StringUtils.remove(diffs[2], Constants.MINUS);
 		int lengthDiff = binSeq.length() - swBinSeq.length();
 		if (lengthDiff > 0) {
 			
-			String swRef = diffs[0].replace("-", "");
+			String swRef = StringUtils.remove(diffs[0], Constants.MINUS);
 			
 			if (binSeq.startsWith(swBinSeq)) {
 				
@@ -1153,7 +1189,7 @@ public class ClinVarUtil {
 
 	public static Cigar getCigarForIndels(String referenceSequence, String binSeq, String [] swDiffs, Probe p, Bin b) {
 		int offset = 0;
-		if (swDiffs[0].replaceAll("-","").length() == referenceSequence.length()) {
+		if (StringUtils.remove(swDiffs[0], Constants.MINUS).length() == referenceSequence.length()) {
 			offset = 0;
 		} else {
 			int posOfFistIndel = swDiffs[1].indexOf(" ");
@@ -1256,7 +1292,7 @@ public class ClinVarUtil {
 	
 	public static Cigar getCigarForIndels(String referenceSequence, String binSeq, String [] swDiffs, ChrPosition cp) {
 		int offset = 0;
-		if (swDiffs[0].replaceAll("-","").length() != referenceSequence.length()) {
+		if (StringUtils.remove(swDiffs[0], Constants.MINUS).length() != referenceSequence.length()) {
 			int posOfFistIndel = swDiffs[1].indexOf(" ");
 			if (posOfFistIndel < 10) {
 				logger.warn("posOfFistIndel is < 10 : " + posOfFistIndel);
@@ -1332,13 +1368,26 @@ public class ClinVarUtil {
 		return cigar;
 	}
 	
-	public static String getCoverageStringAtPosition(ChrPosition cp, Map<Amplicon, List<Fragment>> ampliconMap) {
-		if (null == cp) throw new IllegalArgumentException("Null CP passed to ClinVarUitl.getCoverageStringAtPosition");
-		if (null == ampliconMap) throw new IllegalArgumentException("Null ampliconMap passed to ClinVarUitl.getCoverageStringAtPosition");
+	/**
+	 * This method calculates the coverage and OABS for this vcf record, and updated the record in place.
+	 * 
+	 * NOT SIDE EFFECT FREE
+	 * 
+	 * @param vcf
+	 * @param ampliconMap
+	 */
+	public static void getCoverageStatsForVcf(VcfRecord vcf, Map<String, Map<Amplicon, List<Fragment>>> contigAmpliconMap, StringBuilder fb, StringBuilder xFb) {
+		if (null == vcf) throw new IllegalArgumentException("Null VcfRecord passed to ClinVarUitl.getCoverageStringAtPosition");
+		if (null == contigAmpliconMap) throw new IllegalArgumentException("Null ampliconMap passed to ClinVarUitl.getCoverageStringAtPosition");
 		
 		AtomicInteger ampliconCount = new AtomicInteger();
 		AtomicInteger fragmentCount = new AtomicInteger();
 		AtomicInteger readCount = new AtomicInteger();
+		Map<String, Pair<AtomicInteger, AtomicInteger>> baseDist = new HashMap<>();
+		
+		ChrPosition cp  = vcf.getChrPosition();
+		int length = vcf.getRef().length();
+		Map<Amplicon, List<Fragment>>ampliconMap = contigAmpliconMap.get(cp.getChromosome());
 		
 		ampliconMap.entrySet().stream()
 			.filter(entry -> ChrPositionUtils.isChrPositionContained(entry.getKey().getPosition(), cp))
@@ -1348,10 +1397,58 @@ public class ClinVarUtil {
 				.filter(f -> f.getActualPosition() != null)
 				.filter(f -> ChrPositionUtils.isChrPositionContained(f.getActualPosition(), cp))
 				.forEach(f -> {
+					String bases = FragmentUtil.getBasesAtPosition(cp, f, length);
+					Pair<AtomicInteger, AtomicInteger> p = baseDist.computeIfAbsent(bases, k ->new Pair<>(new AtomicInteger(), new AtomicInteger()));
+					p.getLeft().addAndGet(f.getFsCount());
+					p.getRight().addAndGet(f.getRsCount());
+					
 					fragmentCount.incrementAndGet();
 					readCount.addAndGet(f.getRecordCount());
 				});
 			});
+		
+		String oabs =  baseDist.entrySet().stream().filter(e -> e.getKey() != null).sorted((e1,e2) -> e1.getKey().compareTo(e2.getKey())).map(e -> e.getKey() + e.getValue().getLeft().get() + "[]" + e.getValue().getRight().get() + "[]").collect(Collectors.joining(Constants.COMMA_STRING));
+		Pair<AtomicInteger, AtomicInteger> p = baseDist.get(vcf.getAlt());
+		int mrCount = 0;
+		if (null != p) {
+			mrCount += p.getLeft().get();
+			mrCount += p.getRight().get();
+		}
+		/*
+		 * update vcf record in place
+		 */
+		List<String> ff = new ArrayList<>(3);
+		ff.add("DP:FB:MR:OABS" + (xFb.length() == 0 ? "" : ":XFB"));
+		ff.add(readCount + Constants.COLON_STRING 
+				+ fb.toString() + "/" + ampliconCount.get() + Constants.COMMA_STRING + fragmentCount.get() + Constants.COMMA_STRING + readCount.get() + Constants.COLON_STRING
+				+mrCount  + Constants.COLON_STRING
+				+ oabs +  (xFb.length() == 0 ? "" :(Constants.COLON_STRING + xFb.toString())));
+		vcf.setFormatFields(ff);
+////		ff.add(mutationFragmentsDetails.toString() + "/" + ClinVarUtil.getCoverageStringAtPosition(entry.getKey().getChrPosition(), ampliconFragmentMap));
+//		entry.getKey().setFormatFields(ff);
+		
+//		return ampliconCount.get() + Constants.COMMA_STRING + fragmentCount.get() + Constants.COMMA_STRING + readCount.get();
+	}
+	public static String getCoverageStringAtPosition(ChrPosition cp, Map<Amplicon, List<Fragment>> ampliconMap) {
+		if (null == cp) throw new IllegalArgumentException("Null CP passed to ClinVarUitl.getCoverageStringAtPosition");
+		if (null == ampliconMap) throw new IllegalArgumentException("Null ampliconMap passed to ClinVarUitl.getCoverageStringAtPosition");
+		
+		AtomicInteger ampliconCount = new AtomicInteger();
+		AtomicInteger fragmentCount = new AtomicInteger();
+		AtomicInteger readCount = new AtomicInteger();
+		
+		ampliconMap.entrySet().stream()
+		.filter(entry -> ChrPositionUtils.isChrPositionContained(entry.getKey().getPosition(), cp))
+		.forEach(entry -> {
+			ampliconCount.incrementAndGet();
+			entry.getValue().stream()
+			.filter(f -> f.getActualPosition() != null)
+			.filter(f -> ChrPositionUtils.isChrPositionContained(f.getActualPosition(), cp))
+			.forEach(f -> {
+				fragmentCount.incrementAndGet();
+				readCount.addAndGet(f.getRecordCount());
+			});
+		});
 		
 		return ampliconCount.get() + Constants.COMMA_STRING + fragmentCount.get() + Constants.COMMA_STRING + readCount.get();
 	}

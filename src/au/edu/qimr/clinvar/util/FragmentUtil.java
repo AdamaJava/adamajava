@@ -2,6 +2,9 @@ package au.edu.qimr.clinvar.util;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.model.ChrPosition;
+
+import au.edu.qimr.clinvar.model.Fragment;
 
 public class FragmentUtil {
 	private static final QLogger logger = QLoggerFactory.getLogger(FragmentUtil.class);
@@ -20,6 +23,30 @@ public class FragmentUtil {
 //			continue;
 		}
 		return fragment;
+	}
+	
+	/**
+	 * attempts to return the bases in the Fragment sequence that represent the supplied ChrPosition obj (and length offset)
+	 * 
+	 * @param cp
+	 * @param f
+	 * @param len
+	 * @return
+	 */
+	public static String getBasesAtPosition(ChrPosition cp, Fragment f, int len) {
+		ChrPosition fCp = f.getActualPosition();
+		int offset = cp.getStartPosition() - fCp.getStartPosition() -1;
+		if (offset >=  f.getSequence().length()) {
+			//hmmm
+			logger.warn("cp : " + cp.toIGVString() + ", fCP: " + fCp.toIGVString() + ", fragment length: " + f.getSequence().length() + ", len: " + len + ", fragment: " + f.getSequence());
+			return null;
+		} else if (offset >= 0 && offset + len <= f.getSequence().length()){
+			return f.getSequence().substring(offset, offset + len);
+		} else {
+			logger.warn("cp : " + cp.toIGVString() + ", fCP: " + fCp.toIGVString() + ", fragment length: " + f.getSequence().length() + ", len: " + len + ",offset: " + offset + ", fragment: " + f.getSequence());
+			
+			return null;
+		}
 	}
 
 }

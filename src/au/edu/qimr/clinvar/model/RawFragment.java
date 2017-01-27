@@ -11,15 +11,11 @@ public class RawFragment implements Comparable<RawFragment> {
 	private final int id;
 	private final String fragment;
 	private final List<StringBuilder> readHeaders = new ArrayList<>(2);
-//	private int count;
 	private final TIntArrayList overlapDistribution = new TIntArrayList();
 	
-	public RawFragment(int id,String sequence, List<StringBuilder> headers, int overlap) {
-//		public RawFragment(int id,String sequence, int count, int overlap) {
+	public RawFragment(int id,String s) {
 		this.id = id;
-		this.fragment = sequence;
-//		this.count = count;
-		addOverlap(overlap, headers);
+		this.fragment = s;
 	}
 	
 	public void addOverlap(int overlap, List<StringBuilder> headers) {
