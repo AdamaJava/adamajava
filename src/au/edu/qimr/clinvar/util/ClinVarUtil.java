@@ -1407,7 +1407,8 @@ public class ClinVarUtil {
 				});
 			});
 		
-		String oabs =  baseDist.entrySet().stream().filter(e -> e.getKey() != null).sorted((e1,e2) -> e1.getKey().compareTo(e2.getKey())).map(e -> e.getKey() + e.getValue().getLeft().get() + "[]" + e.getValue().getRight().get() + "[]").collect(Collectors.joining(Constants.COMMA_STRING));
+		String oabs =  Constants.MISSING_DATA_STRING;
+//		String oabs =  baseDist.entrySet().stream().filter(e -> e.getKey() != null).sorted((e1,e2) -> e1.getKey().compareTo(e2.getKey())).map(e -> e.getKey() + e.getValue().getLeft().get() + "[]" + e.getValue().getRight().get() + "[]").collect(Collectors.joining(Constants.COMMA_STRING));
 		Pair<AtomicInteger, AtomicInteger> p = baseDist.get(vcf.getAlt());
 		int mrCount = 0;
 		if (null != p) {
