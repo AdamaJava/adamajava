@@ -1,4 +1,4 @@
-version = '0.1pre'
+version = '0.2.0'
 
 def mainclass = 'au.edu.qimr.clinvar.Q3ClinVar'
 def scriptname = 'q3clinvar'
