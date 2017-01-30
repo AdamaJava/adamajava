@@ -110,6 +110,7 @@ public class VcfHeaderUtils {
 	//GATK specific format fields
 	public static final String FORMAT_ALLELIC_DEPTHS = "AD";
 	public static final String FORMAT_READ_DEPTH = "DP";
+	public static final String FORMAT_READ_DEPTH_DESCRIPTION = "Read depth at this position for this sample";
 	public static final String FORMAT_GENOTYPE_QUALITY = "GQ";
 	public static final String FORMAT_POSSIBLE_GENOTYPES = "PL";
 
