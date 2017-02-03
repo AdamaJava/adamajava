@@ -402,7 +402,7 @@ public class SignatureCompareRelatedSimpleGenotypeMT {
 			if (options.hasExcludeVcfsFileOption())
 				excludeVcfsFile = options.getExcludeVcfsFile();
 			
-			logger.logInitialExecutionStats("SignatureCompareRelatedSimple", SignatureCompareRelatedSimpleGenotypeMT.class.getPackage().getImplementationVersion(), args);
+			logger.logInitialExecutionStats("SignatureCompareRelatedSimpleGenotypeMT", SignatureCompareRelatedSimpleGenotypeMT.class.getPackage().getImplementationVersion(), args);
 			
 			return engage();
 		}

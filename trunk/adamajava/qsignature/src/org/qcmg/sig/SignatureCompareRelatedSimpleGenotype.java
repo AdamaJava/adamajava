@@ -394,7 +394,7 @@ public class SignatureCompareRelatedSimpleGenotype {
 			if (options.hasExcludeVcfsFileOption())
 				excludeVcfsFile = options.getExcludeVcfsFile();
 			
-			logger.logInitialExecutionStats("SignatureCompareRelatedSimple", SignatureCompareRelatedSimpleGenotype.class.getPackage().getImplementationVersion(), args);
+			logger.logInitialExecutionStats("SignatureCompareRelatedSimpleGenotype", SignatureCompareRelatedSimpleGenotype.class.getPackage().getImplementationVersion(), args);
 			
 			return engage();
 		}
