@@ -15,10 +15,10 @@ public class HomoplymersModeTest {
 	public void testInsert(){				
 		VcfRecord re = new VcfRecord( new String[] {"chr1", "21",null, "T", "TTAA" });
 		
-		//small insertion inside referece region
+		//small insertion inside reference region
 		HomoplymersMode  homo = new HomoplymersMode(3,3);		
 		re = homo.annotate(re, getReference());
-		assertTrue(re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM).equals("3,CCTtaaCCC"));
+		assertEquals("3,CCTtaaCCC", re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM));
 		assertTrue(StringUtils.isMissingDtaString(re.getFilter()));
 
 		//check on edge of contig but report window still inside
@@ -71,7 +71,7 @@ public class HomoplymersModeTest {
 		VcfRecord re = new VcfRecord(new String[] {  "chr1", "21", null, "TCC", "AGG" });		
 		HomoplymersMode  homo = new HomoplymersMode(3,4);	
 		re = homo.annotate(re, getReference());
-		assertTrue(re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM).equals("5,CCCaggCCC"));
+		assertEquals("5,CCCaggCCC", re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM));
 		
 		//SNP
 		re = new VcfRecord(new String[] {  "chr1", "16", null, "G", "A" });		
