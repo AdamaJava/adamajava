@@ -237,7 +237,9 @@ public class IndelUtils {
 	}
 
 	public static String getMotif(String ref, String alt ){
-		SVTYPE type = getVariantType(ref, alt);
+		return getMotif(ref, alt, getVariantType(ref, alt));
+	}
+	public static String getMotif(String ref, String alt , SVTYPE type){
 		if(type.equals(SVTYPE.INS))
 			return alt.substring(1);			 
 		else if(type.equals(SVTYPE.DEL))
