@@ -953,19 +953,25 @@ public class ClinVarUtil {
 		 */
 		int binSize = f.getRecordCount();
 		int i = 0;
-		for (StringBuilder sb : f.getFsHeaders()) {
-			SAMRecord rec = createSAMRecord(header, cigar,ampliconId, f.getId(), binSize, refSeq, f.getActualPosition().getChromosome(), f.getActualPosition().getStartPosition(), offset, f.getSequence(), i, mappingQuality, true, sb.toString());
+		if ( ! f.getFsHeaders().isEmpty()) {
+			SAMRecord rec = createSAMRecord(header, cigar,ampliconId, f.getId(), binSize, refSeq, f.getActualPosition().getChromosome(), f.getActualPosition().getStartPosition(), offset, f.getSequence(), i, mappingQuality, true, f.getFsHeaders().get(0).toString());
 			writer.addAlignment(rec);
+			
 		}
-		for (StringBuilder sb : f.getRsHeaders()) {
-			SAMRecord rec = createSAMRecord(header, cigar,ampliconId, f.getId(), binSize, refSeq, f.getActualPosition().getChromosome(), f.getActualPosition().getStartPosition(), offset, f.getSequence(), i, mappingQuality, false, sb.toString());
-			writer.addAlignment(rec);
-		}
-		
-//		for (int i = 0 ; i < binSize ; i++) {
-//			SAMRecord rec = createSAMRecord(header, cigar,ampliconId, f.getId(), binSize, referenceSeq, f.getActualPosition().getChromosome(), f.getActualPosition().getPosition(), offset, f.getSequence(), i, mappingQuality);
+//		for (StringBuilder sb : f.getFsHeaders()) {
+//			SAMRecord rec = createSAMRecord(header, cigar,ampliconId, f.getId(), binSize, refSeq, f.getActualPosition().getChromosome(), f.getActualPosition().getStartPosition(), offset, f.getSequence(), i, mappingQuality, true, sb.toString());
 //			writer.addAlignment(rec);
 //		}
+		if ( ! f.getRsHeaders().isEmpty()) {
+			SAMRecord rec = createSAMRecord(header, cigar,ampliconId, f.getId(), binSize, refSeq, f.getActualPosition().getChromosome(), f.getActualPosition().getStartPosition(), offset, f.getSequence(), i, mappingQuality, false, f.getRsHeaders().get(0).toString());
+			writer.addAlignment(rec);
+			
+		}
+//		for (StringBuilder sb : f.getRsHeaders()) {
+//			SAMRecord rec = createSAMRecord(header, cigar,ampliconId, f.getId(), binSize, refSeq, f.getActualPosition().getChromosome(), f.getActualPosition().getStartPosition(), offset, f.getSequence(), i, mappingQuality, false, sb.toString());
+//			writer.addAlignment(rec);
+//		}
+		
 	}
 	public static void addSAMRecordToWriter(SAMFileHeader header, SAMFileWriter writer, Cigar cigar, int probeId, int binId, int binSize, String referenceSeq, String chr, int position, int offset, String binSeq, int mappingQuality) {
 		/*
