@@ -43,6 +43,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.zip.GZIPOutputStream;
 
 import nu.xom.Attribute;
 import nu.xom.Document;
@@ -589,17 +590,13 @@ public class Q3Panel {
 					cds.addAttribute(new Attribute("position", cp.toIGVString()));
 					cds.addAttribute(new Attribute("exon_number", cp.getName()));
 				});
-				
 			}
-			
-			
 		});
-		
-		
 		
 		// write output
 		Document doc = new Document(q3pElement);
-		try (OutputStream os = new FileOutputStream(new File(outputFileNameBase + ".q3p.xml"));){
+		try (OutputStream os = new GZIPOutputStream(new FileOutputStream(outputFileNameBase + ".q3p.xml"), 1024 * 1024)) {
+//		try (OutputStream os = new FileOutputStream(new File(outputFileNameBase + ".q3p.xml"));){
 			Serializer serializer = new Serializer(os, "ISO-8859-1");
 	        serializer.setIndent(4);
 	        serializer.setMaxLength(64);
@@ -607,7 +604,6 @@ public class Q3Panel {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
 	}
 
 	private void mapBedToAmplicons() throws IOException, Exception {
