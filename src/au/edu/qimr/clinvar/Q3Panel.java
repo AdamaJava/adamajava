@@ -123,7 +123,7 @@ public class Q3Panel {
 	private int minBinSize = 10;
 	private int minFragmentSize = 3;
 	private int minReadPercentage = 2;
-	private int ampliconBoundary = 10;
+	private int contigBoundary = 10;
 	private int multiMutationThreshold = 10;
 	final AtomicInteger outputMutations = new AtomicInteger();
 	
@@ -145,7 +145,7 @@ public class Q3Panel {
 	private final Map<VcfRecord, List<int[]>> vcfFragmentMap = new HashMap<>();
 	private final List<VcfRecord> filteredMutations = new ArrayList<>();
 	
-	private Map<Contig, List<Fragment>> ampliconFragmentMap = new HashMap<>();
+	private Map<Contig, List<Fragment>> contigFragmentMap = new HashMap<>();
 	
 	private final Map<Contig, List<Contig>> bedToAmpliconMap = new HashMap<>();
 	private final Map<String, Transcript> transcripts = new HashMap<>();
@@ -179,7 +179,7 @@ public class Q3Panel {
 		
 		getActualLocationForFrags();
 		
-		createAmplicons();
+		createContigs();
 		
 		mapBedToAmplicons();
 		
@@ -207,9 +207,9 @@ public class Q3Panel {
 //			if (StringUtils.isNoneBlank(bedFile, geneTranscriptsFile)) {
 			
 			/*
-			 * if we don't have a bed file, get contigs from the ampliconFragmentMap
+			 * if we don't have a bed file, get contigs from the contigFragmentMap
 			 */
-			Map<String, List<Contig>> uniqueChrs = bedToAmpliconMap.isEmpty() ? ampliconFragmentMap.keySet().stream()
+			Map<String, List<Contig>> uniqueChrs = bedToAmpliconMap.isEmpty() ? contigFragmentMap.keySet().stream()
 					.collect(Collectors.groupingBy(a -> a.getInitialFragmentPosition().getChromosome())) : bedToAmpliconMap.keySet().stream()
 					.collect(Collectors.groupingBy(a -> a.getInitialFragmentPosition().getChromosome())) ;
 			
@@ -414,21 +414,21 @@ public class Q3Panel {
 		logger.info("fragments size: " + rawFragments.size());
 	}
 	
-	private void createAmpliconElement(Element amplicons, Contig p, List<Fragment> frags) {
-		Element amplicon = new Element("Amplicon");
-		amplicons.appendChild(amplicon);
+	private void createContigElement(Element contigs, Contig p, List<Fragment> frags) {
+		Element contig = new Element("Contig");
+		contigs.appendChild(contig);
 		
 		// attributes
-		amplicon.addAttribute(new Attribute("id", "" + p.getId()));
-		amplicon.addAttribute(new Attribute("position", "" + p.getPosition().toIGVString()));
-		amplicon.addAttribute(new Attribute("initial_frag_position", "" + p.getInitialFragmentPosition().toIGVString()));
-		amplicon.addAttribute(new Attribute("amplicon_length", "" + p.getPosition().getLength()));
-		amplicon.addAttribute(new Attribute("number_of_fragments", "" + frags.size()));
+		contig.addAttribute(new Attribute("id", "" + p.getId()));
+		contig.addAttribute(new Attribute("position", "" + p.getPosition().toIGVString()));
+		contig.addAttribute(new Attribute("initial_frag_position", "" + p.getInitialFragmentPosition().toIGVString()));
+		contig.addAttribute(new Attribute("contig_length", "" + p.getPosition().getLength()));
+		contig.addAttribute(new Attribute("number_of_fragments", "" + frags.size()));
 
 		AtomicInteger readCount = new AtomicInteger();
 //		int readCount = 0;
 		Element fragments = new Element("Fragments");
-		amplicon.appendChild(fragments);
+		contig.appendChild(fragments);
 		frags.stream()
 			.sorted()
 			.forEach(f -> {
@@ -445,7 +445,7 @@ public class Q3Panel {
 				fragment.addAttribute(new Attribute("seq", "" + f.getSequence()));
 			});
 		
-		amplicon.addAttribute(new Attribute("number_of_reads", "" + readCount.get()));
+		contig.addAttribute(new Attribute("number_of_reads", "" + readCount.get()));
 	}
 	
 	private void writeXml() {
@@ -495,12 +495,12 @@ public class Q3Panel {
 		q3pElement.appendChild(rls);
 		
 		// logging and writing to file
-		Element amplicons = new Element("Amplicons");
-		q3pElement.appendChild(amplicons);
-		ampliconFragmentMap.entrySet().stream()
+		Element contigs = new Element("Contigs");
+		q3pElement.appendChild(contigs);
+		contigFragmentMap.entrySet().stream()
 			.sorted((e1, e2) -> e1.getKey().compareTo(e2.getKey()))
 			.forEach(entry -> {
-				createAmpliconElement(amplicons, entry.getKey(), entry.getValue());
+				createContigElement(contigs, entry.getKey(), entry.getValue());
 			});
 		
 		Element bedAmplicons = new Element("BedAmplicons");
@@ -516,14 +516,14 @@ public class Q3Panel {
 				amplicon.addAttribute(new Attribute("id", "" + entry.getKey().getId()));
 				amplicon.addAttribute(new Attribute("position", "" + entry.getKey().getPosition().toIGVString()));
 				amplicon.addAttribute(new Attribute("amplicon_length", "" + entry.getKey().getPosition().getLength()));
-				amplicon.addAttribute(new Attribute("number_of_overlapping_fragment_amplicons", "" + entry.getValue().size()));
+				amplicon.addAttribute(new Attribute("number_of_overlapping_fragment_contigs", "" + entry.getValue().size()));
 				
 				String idLIst = entry.getValue().stream()
 					.sorted((a1, a2) -> COMPARATOR.compare(a1.getPosition(),a2.getPosition()))
 					.map(a -> a.getId() + "")
 					.collect(Collectors.joining(","));
 				
-				amplicon.addAttribute(new Attribute("overlapping_fragment_amplicon_ids", "" + idLIst));
+				amplicon.addAttribute(new Attribute("overlapping_fragment_contigs_ids", "" + idLIst));
 		});
 		
 		/*
@@ -633,18 +633,18 @@ public class Q3Panel {
 				.sorted((e1, e2) -> e1.getKey().compareTo(e2.getKey()))
 				.forEach(e -> logger.info("bed length, and count: " + e.getKey().intValue() + " : " + e.getValue().longValue()));
 			/*
-			 * log distribution of amplicon lengths
+			 * log distribution of contig lengths
 			 */
-			Map<Integer, Long> ampliconLengthDistribution = ampliconFragmentMap.keySet().stream()
+			Map<Integer, Long> contigLengthDistribution = contigFragmentMap.keySet().stream()
 					.collect(Collectors.groupingBy(a -> a.getPosition().getLength(), Collectors.counting()));
-			ampliconLengthDistribution.entrySet().stream()
+			contigLengthDistribution.entrySet().stream()
 				.sorted((e1, e2) -> e1.getKey().compareTo(e2.getKey()))
-				.forEach(e -> logger.info("amplicon length, and count: " + e.getKey().intValue() + " : " + e.getValue().longValue()));
+				.forEach(e -> logger.info("contig length, and count: " + e.getKey().intValue() + " : " + e.getValue().longValue()));
 			
 			/*
-			 * Assign amplicons to bed poisitions
+			 * Assign contigs to bed poisitions
 			 */
-			ampliconFragmentMap.keySet().stream()
+			contigFragmentMap.keySet().stream()
 				.forEach(a -> {
 					List<Contig> beds = bedToAmpliconMap.keySet().stream()
 						.filter(bed -> ChrPositionUtils.isChrPositionContained(a.getPosition(), bed.getPosition())
@@ -654,7 +654,7 @@ public class Q3Panel {
 						.collect(Collectors.toList());
 					
 					if (beds.size() > 1) {
-						logger.info("Found " + beds.size() + " bed positions that are contained by this amplicon " + a.getPosition().toIGVString());
+						logger.info("Found " + beds.size() + " bed positions that are contained by this contig " + a.getPosition().toIGVString());
 						beds.stream().forEach(b ->logger.info("bed: " + b.toString()));
 					}
 				});
@@ -662,14 +662,14 @@ public class Q3Panel {
 		}
 	}
 	
-	private void createAmplicons() {
+	private void createContigs() {
 		
-		ampliconFragmentMap = ClinVarUtil.groupFragments(frags.values(), ampliconBoundary);
+		contigFragmentMap = ClinVarUtil.groupFragments(frags.values(), contigBoundary);
 		/*
 		 * Get some stats on each Amplicon
 		 * # of fragments, and reads to start with
 		 */
-		ampliconFragmentMap.entrySet().stream()
+		contigFragmentMap.entrySet().stream()
 			.forEach(entry -> {
 				int recordCount = entry.getValue().stream().mapToInt(Fragment::getRecordCount).sum();
 				logger.info("Amplicon " + entry.getKey().getId() + " " + entry.getKey().getPosition().toIGVString() + " has " + entry.getValue().size() + " fragments with a total of " + recordCount + " records (" + ((double) recordCount / fastqRecordCount) * 100 + "%)");
@@ -734,15 +734,15 @@ public class Q3Panel {
 					String [] swDiffs = f.getSmithWatermanDiffs();
 					
 					/*
-					 * Get amplicon id that this fragment belongs to
+					 * Get contig id that this fragment belongs to
 					 */
-					AtomicInteger ampliconId = new AtomicInteger();
-					ampliconFragmentMap.entrySet().stream()
+					AtomicInteger contigId = new AtomicInteger();
+					contigFragmentMap.entrySet().stream()
 						.filter(entry -> ChrPositionUtils.isChrPositionContained(entry.getKey().getPosition(), f.getActualPosition()))
 						.forEach(entry -> {
 							if (entry.getValue().stream()
 								.anyMatch(fr -> fr.getId() == fragId)) {
-								ampliconId.set(entry.getKey().getId());
+								contigId.set(entry.getKey().getId());
 							}
 								
 						});
@@ -755,7 +755,7 @@ public class Q3Panel {
 					 */
 					if (ClinVarUtil.isSequenceExactMatch(swDiffs,  f.getSequence())) {
 						Cigar cigar = ClinVarUtil.getCigarForMatchMisMatchOnly(f.getLength());
-						ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, ampliconId.get(), swDiffs[0], f, 0, mappingQuality);
+						ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, contigId.get(), swDiffs[0], f, 0, mappingQuality);
 					} else if (ClinVarUtil.doesSWContainSnp(swDiffs) && ! ClinVarUtil.doesSWContainIndel(swDiffs)) {
 						/*
 						 * Snps only here
@@ -764,7 +764,7 @@ public class Q3Panel {
 							// just snps and same length
 							Cigar cigar = ClinVarUtil.getCigarForMatchMisMatchOnly(f.getLength());
 //							ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, 1, fragId,  f.getRecordCount(), swDiffs[0], fragCp.getChromosome(), fragCp.getPosition(), 0, fragSeq, mappingQuality);
-							ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, ampliconId.get(), swDiffs[0], f, 0, mappingQuality);
+							ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, contigId.get(), swDiffs[0], f, 0, mappingQuality);
 						} else {
 							logger.info("snps only but length differs, swDiffs[1].length(): " + swDiffs[1].length() + ", f.getLength(): " + f.getLength());
 						}
@@ -784,7 +784,7 @@ public class Q3Panel {
 							}
 						}
 //						ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, 1, fragId,  f.getRecordCount(), ref, fragCp.getChromosome(), fragCp.getPosition(), 0, fragSeq, mappingQuality);
-						ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, ampliconId.get(), ref, f, 0, mappingQuality);
+						ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, contigId.get(), ref, f, 0, mappingQuality);
 					} else {
 						// snps and indels
 					}
@@ -898,12 +898,12 @@ public class Q3Panel {
 		 */
 		Map<String, List<Fragment>> fragsByContig = frags.values().stream().filter(f -> null != f.getActualPosition()).collect(Collectors.groupingBy(f -> f.getActualPosition().getChromosome()));
 		
-		Map<String, Map<Contig, List<Fragment>>> ampliconFragmentMapByContig = new HashMap<>();
-		for (Entry<Contig , List<Fragment>> entry : ampliconFragmentMap.entrySet()) {
+		Map<String, Map<Contig, List<Fragment>>> contigFragmentMapByContig = new HashMap<>();
+		for (Entry<Contig , List<Fragment>> entry : contigFragmentMap.entrySet()) {
 			ChrPosition cp = entry.getKey().getPosition();
 			if (null != cp) {
 				String contig = cp.getChromosome();
-				Map<Contig, List<Fragment>> m = ampliconFragmentMapByContig.computeIfAbsent(contig, k -> new HashMap<>());
+				Map<Contig, List<Fragment>> m = contigFragmentMapByContig.computeIfAbsent(contig, k -> new HashMap<>());
 				m.put(entry.getKey(), entry.getValue());
 			}
 		}
@@ -916,7 +916,7 @@ public class Q3Panel {
 		
 			final StringBuilder fb = new StringBuilder();
 			final StringBuilder xFb = new StringBuilder();
-			int[] ampliconIds = new int[entry.getValue().size()];
+			int[] contigIds = new int[entry.getValue().size()];
 			int[] fragmentIds = new int[entry.getValue().size()];
 			AtomicInteger j = new AtomicInteger();
 			AtomicInteger readCount = new AtomicInteger();
@@ -926,21 +926,21 @@ public class Q3Panel {
 						xFb.append(Constants.SEMI_COLON);
 					}
 					readCount.addAndGet(i[2]);
-					ampliconIds[j.get()] = i[0];
+					contigIds[j.get()] = i[0];
 					fragmentIds[j.getAndIncrement()] = i[2];
 					if (runExtendedFB) {
 						xFb.append(i[0]).append(Constants.COMMA).append(i[1]).append(Constants.COMMA).append(i[2]);
 					}
 				});
 			
-			fb.append(Arrays.stream(ampliconIds).distinct().count()).append(",");
+			fb.append(Arrays.stream(contigIds).distinct().count()).append(",");
 			fb.append(Arrays.stream(fragmentIds).distinct().count()).append(",");
 			fb.append(readCount.get());
 			
 			/*
 			 * update vcf format fields with FB
 			 */
-			ClinVarUtil.getCoverageStatsForVcf(entry.getKey(), ampliconFragmentMapByContig, fb, xFb);
+			ClinVarUtil.getCoverageStatsForVcf(entry.getKey(), contigFragmentMapByContig, fb, xFb);
 //			List<String> ff = new ArrayList<>(3);
 //			ff.add("FB");
 //			ff.add(mutationFragmentsDetails.toString() + "/" + ClinVarUtil.getCoverageStringAtPosition(entry.getKey().getChrPosition(), ampliconFragmentMap));
@@ -1100,7 +1100,7 @@ public class Q3Panel {
 			final AtomicInteger endOfReadCount = new AtomicInteger();
 			vcfFragmentMap.get(vcf).stream()
 			.forEach(array -> {
-				ampliconFragmentMap.get(new Contig(array[0], null)).stream()
+				contigFragmentMap.get(new Contig(array[0], null)).stream()
 				.filter(f -> f.getId() == array[1])
 				.forEach(f -> {
 					if (vcf.getPosition() - f.getActualPosition().getStartPosition() <= 5
@@ -1146,11 +1146,11 @@ public class Q3Panel {
 			header.parseHeaderLine(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + QExec.createUUid());		
 			header.addQPGLine(1, "Q3Panel", exec.getToolVersion().getValue(), exec.getCommandLine().getValue(), date);
 			header.addFormatLine(VcfHeaderUtils.FORMAT_READ_DEPTH, ".","Integer",VcfHeaderUtils.FORMAT_READ_DEPTH_DESCRIPTION);
-			header.addFormatLine("FB", ".","String","Sum of amplicons supporting the alt,sum of fragments supporting the alt,sum of read counts supporting the alt");
+			header.addFormatLine("FB", ".","String","Sum of contigs supporting the alt,sum of fragments supporting the alt,sum of read counts supporting the alt");
 			header.addFormatLine("FT", ".","String","Filters that have been applied to the sample");
 			header.addFormatLine(VcfHeaderUtils.FORMAT_MUTANT_READS, ".","Integer",VcfHeaderUtils.FORMAT_MUTANT_READS_DESC);
 			header.addFormatLine(VcfHeaderUtils.FORMAT_OBSERVED_ALLELES_BY_STRAND, ".","String",VcfHeaderUtils.FORMAT_OBSERVED_ALLELES_BY_STRAND_DESC);
-			header.addFormatLine("XFB", ".","String","Breakdown of Amplicon ids, Fragment ids and read counts supporting this mutation, along with total counts of amplicon, fragment, and reads for all reads at that location in the following format: AmpliconId,FragmentId,readCount;[...] / Sum of amplicons at this position,sum of fragments at this position,sum of read counts at this position");
+			header.addFormatLine("XFB", ".","String","Breakdown of Contig ids, Fragment ids and read counts supporting this mutation, along with total counts of contig, fragment, and reads for all reads at that location in the following format: ContigId,FragmentId,readCount;[...] / Sum of contigs at this position,sum of fragments at this position,sum of read counts at this position");
 //			header.addFormatLine(SnpUtils.END_OF_READ, ".","String","Indicates that the mutation occurred within the first or last 5 bp of all the reads contributing to the mutation. ");
 			header.addFilterLine(SnpUtils.END_OF_READ, "Indicates that the mutation occurred within the first or last 5 bp of all the reads contributing to the mutation");
 			header.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "sample1");
@@ -1320,10 +1320,10 @@ public class Q3Panel {
 	private void createMutations() {
 		
 		/*
-		 * Only call variants on amplicons that contain more than 10 reads
+		 * Only call variants on contigs that contain more than 10 reads
 		 * and on fragments that have more than twice the specified minimum fragment size
 		 */
-		ampliconFragmentMap.entrySet().stream()
+		contigFragmentMap.entrySet().stream()
 			.filter(entry -> entry.getValue().stream().collect(Collectors.summingInt(Fragment::getRecordCount)) >= 10)
 			.forEach(entry -> {
 				
@@ -1363,7 +1363,7 @@ public class Q3Panel {
 			});
 	}
 	
-	private void createMutation(ChrPosition actualCP, int position, String ref, String alt, int ampliconId, int fragmentId, int fragmentRecordCount, boolean multipleMutations) {
+	private void createMutation(ChrPosition actualCP, int position, String ref, String alt, int contigId, int fragmentId, int fragmentRecordCount, boolean multipleMutations) {
 		int startPos = actualCP.getStartPosition() + position;
 //		int endPos =  startPos + ref.length() -1 ;
 		VcfRecord vcf = VcfUtils.createVcfRecord(ChrPointPosition.valueOf(actualCP.getChromosome(),  startPos), "."/*id*/, ref, alt);
@@ -1385,7 +1385,7 @@ public class Q3Panel {
  				vcfFragmentMap.put(vcf, existingFragmentIds);
  			}
  		}
-		existingFragmentIds.add(new int[]{ampliconId, fragmentId, fragmentRecordCount});
+		existingFragmentIds.add(new int[]{contigId, fragmentId, fragmentRecordCount});
 	}
 	
 	
@@ -1454,7 +1454,7 @@ public class Q3Panel {
 	
 	private void loadTiledAlignerData() throws Exception {
 		/*
-		 * Loop through all our fragments (and reverse strand), split into 13mers and add to ampliconTiles 
+		 * Loop through all our fragments (and reverse strand), split into 13mers and add to contigTiles 
 		 */
 		Set<String> fragmentTiles = new HashSet<>();
 		for (String fragment : rawFragments.keySet()) {
@@ -1518,7 +1518,7 @@ public class Q3Panel {
 		logger.info("finished reading the genome tiles alignment data");
 		logger.info("no of entries in refTilesCount: " + refTilesCountSize);
 		logger.info("no of entries in refTilesPositions: " + refTilesPositionsSize);
-		logger.info("Unique tiles in amplicons: " + (fragmentTiles.size() - (refTilesCountSize + refTilesPositionsSize)));
+		logger.info("Unique tiles in contigs: " + (fragmentTiles.size() - (refTilesCountSize + refTilesPositionsSize)));
 	}
 	
 	private long[][] getTiledPositions(String f) {
@@ -1579,7 +1579,7 @@ public class Q3Panel {
 			int rcBestTileCount = rcResults.length > 0 ? rcResults[rcResults.length -1] : 0;
 				
 					/*
-					 * Only perform sw on positions if the best tile position is not next to the amplicon position
+					 * Only perform sw on positions if the best tile position is not next to the contig position
 					 */
 			boolean forwardStrand = true;
 			if (bestTileCount > rcBestTileCount + tiledDiffThreshold) {
@@ -1643,7 +1643,7 @@ public class Q3Panel {
 					noPositionFound++;
 					noPositionFoundReadCount += rawFragments.get(fragment).getCount();
 					/*
-					 * Haven't got a best tiled location, or the location is not near the amplicon, so lets generate some SW diffs, and choose the best location based on those
+					 * Haven't got a best tiled location, or the location is not near the contig, so lets generate some SW diffs, and choose the best location based on those
 					 */
 					/*
 					 * not running SmithWaterman as we are not doing anything with the results for now... 
@@ -1786,14 +1786,14 @@ public class Q3Panel {
 			options.getMultiMutationThreshold().ifPresent((i) -> multiMutationThreshold = i.intValue());
 			options.getMinFragmentSize().ifPresent((i) -> minFragmentSize = i.intValue());
 			options.getMinReadPercentageSize().ifPresent((i) -> minReadPercentage = i.intValue());
-			options.getAmpliconBoundary().ifPresent((i) -> ampliconBoundary = i.intValue());
+			options.getAmpliconBoundary().ifPresent((i) -> contigBoundary = i.intValue());
 			options.getMinBinSize().ifPresent((i) -> minBinSize = i.intValue());
 			
 			logger.info("runExtendedFB: " + runExtendedFB);
 			logger.info("minBinSize is " + minBinSize);
 			logger.info("minFragmentSize is " + minFragmentSize);
 			logger.info("minReadPercentage is " + minReadPercentage);
-			logger.info("ampliconBoundary is " + ampliconBoundary);
+			logger.info("contigBoundary is " + contigBoundary);
 			
 			
 			return engage();
