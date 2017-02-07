@@ -54,7 +54,7 @@ import org.qcmg.common.util.Pair;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.qmule.SmithWatermanGotoh;
 
-import au.edu.qimr.clinvar.model.Amplicon;
+import au.edu.qimr.clinvar.model.Contig;
 import au.edu.qimr.clinvar.model.Bin;
 import au.edu.qimr.clinvar.model.Fragment;
 import au.edu.qimr.clinvar.model.Probe;
@@ -1382,7 +1382,7 @@ public class ClinVarUtil {
 	 * @param vcf
 	 * @param ampliconMap
 	 */
-	public static void getCoverageStatsForVcf(VcfRecord vcf, Map<String, Map<Amplicon, List<Fragment>>> contigAmpliconMap, StringBuilder fb, StringBuilder xFb) {
+	public static void getCoverageStatsForVcf(VcfRecord vcf, Map<String, Map<Contig, List<Fragment>>> contigAmpliconMap, StringBuilder fb, StringBuilder xFb) {
 		if (null == vcf) throw new IllegalArgumentException("Null VcfRecord passed to ClinVarUitl.getCoverageStringAtPosition");
 		if (null == contigAmpliconMap) throw new IllegalArgumentException("Null ampliconMap passed to ClinVarUitl.getCoverageStringAtPosition");
 		
@@ -1393,7 +1393,7 @@ public class ClinVarUtil {
 		
 		ChrPosition cp  = vcf.getChrPosition();
 		int length = vcf.getRef().length();
-		Map<Amplicon, List<Fragment>>ampliconMap = contigAmpliconMap.get(cp.getChromosome());
+		Map<Contig, List<Fragment>>ampliconMap = contigAmpliconMap.get(cp.getChromosome());
 		
 		ampliconMap.entrySet().stream()
 			.filter(entry -> ChrPositionUtils.isChrPositionContained(entry.getKey().getPosition(), cp))
@@ -1436,7 +1436,7 @@ public class ClinVarUtil {
 		
 //		return ampliconCount.get() + Constants.COMMA_STRING + fragmentCount.get() + Constants.COMMA_STRING + readCount.get();
 	}
-	public static String getCoverageStringAtPosition(ChrPosition cp, Map<Amplicon, List<Fragment>> ampliconMap) {
+	public static String getCoverageStringAtPosition(ChrPosition cp, Map<Contig, List<Fragment>> ampliconMap) {
 		if (null == cp) throw new IllegalArgumentException("Null CP passed to ClinVarUitl.getCoverageStringAtPosition");
 		if (null == ampliconMap) throw new IllegalArgumentException("Null ampliconMap passed to ClinVarUitl.getCoverageStringAtPosition");
 		
@@ -1460,7 +1460,7 @@ public class ClinVarUtil {
 		return ampliconCount.get() + Constants.COMMA_STRING + fragmentCount.get() + Constants.COMMA_STRING + readCount.get();
 	}
 	
-	public static Map<Amplicon, List<Fragment>> groupFragments(Collection<Fragment> frags, int ampliconBoundary) {
+	public static Map<Contig, List<Fragment>> groupFragments(Collection<Fragment> frags, int ampliconBoundary) {
 		if (null == frags) throw new IllegalArgumentException("Null List passed to ClinVarUtil.getGroupedChrPositionsFromFragments");
 		List<Fragment> sortedFrags = frags.stream()
 				.filter(f -> f.getActualPosition() != null)
@@ -1468,7 +1468,7 @@ public class ClinVarUtil {
 				.collect(Collectors.toList());
 //		Collections.sort(sortedFrags, (Fragment f1, Fragment  f2) -> Integer.compare(f2.getRecordCount(), f1.getRecordCount()));
 		
-		Map<Amplicon, List<Fragment>> ampliconGroupings = new HashMap<>();
+		Map<Contig, List<Fragment>> ampliconGroupings = new HashMap<>();
 		Set<Fragment> toRemove = new HashSet<>();
 		
 		int id = 1;
@@ -1480,7 +1480,7 @@ public class ClinVarUtil {
 			/*
 			 * create ampliconGroupings entry
 			 */
-			Amplicon a = new Amplicon(id++, f.getActualPosition());
+			Contig a = new Contig(id++, f.getActualPosition());
 			List<Fragment> list = new ArrayList<>();
 			list.add(f);
 			ampliconGroupings.put(a, list);
@@ -1499,7 +1499,7 @@ public class ClinVarUtil {
 			toRemove.addAll(list);
 		}
 		
-		for (Entry<Amplicon, List<Fragment>> entry : ampliconGroupings.entrySet()) {
+		for (Entry<Contig, List<Fragment>> entry : ampliconGroupings.entrySet()) {
 			ChrPosition initialFragCP = entry.getKey().getInitialFragmentPosition();
 			/*
 			 * get upper and lower bounds of cp and set on Amplicon

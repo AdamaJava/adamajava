@@ -84,7 +84,7 @@ import org.qcmg.tab.TabbedRecord;
 import org.qcmg.vcf.VCFFileReader;
 import org.qcmg.vcf.VCFFileWriter;
 
-import au.edu.qimr.clinvar.model.Amplicon;
+import au.edu.qimr.clinvar.model.Contig;
 import au.edu.qimr.clinvar.model.Fragment;
 import au.edu.qimr.clinvar.model.IntPair;
 import au.edu.qimr.clinvar.model.PositionChrPositionMap;
@@ -150,9 +150,9 @@ public class Q3ClinVar2 {
 	private final Map<VcfRecord, List<int[]>> vcfFragmentMap = new HashMap<>();
 	private final List<VcfRecord> filteredMutations = new ArrayList<>();
 	
-	private Map<Amplicon, List<Fragment>> ampliconFragmentMap = new HashMap<>();
+	private Map<Contig, List<Fragment>> ampliconFragmentMap = new HashMap<>();
 	
-	private final Map<Amplicon, List<Amplicon>> bedToAmpliconMap = new HashMap<>();
+	private final Map<Contig, List<Contig>> bedToAmpliconMap = new HashMap<>();
 	private final Map<String, Transcript> transcripts = new HashMap<>();
 	
 	private final VcfHeader dbSnpHeaderDetails = new VcfHeader();
@@ -214,7 +214,7 @@ public class Q3ClinVar2 {
 			/*
 			 * if we don't have a bed file, get contigs from the ampliconFragmentMap
 			 */
-			Map<String, List<Amplicon>> uniqueChrs = bedToAmpliconMap.isEmpty() ? ampliconFragmentMap.keySet().stream()
+			Map<String, List<Contig>> uniqueChrs = bedToAmpliconMap.isEmpty() ? ampliconFragmentMap.keySet().stream()
 					.collect(Collectors.groupingBy(a -> a.getInitialFragmentPosition().getChromosome())) : bedToAmpliconMap.keySet().stream()
 					.collect(Collectors.groupingBy(a -> a.getInitialFragmentPosition().getChromosome())) ;
 			
@@ -300,7 +300,7 @@ public class Q3ClinVar2 {
 			List<String> transcriptsToRemove = new ArrayList<>();
 			transcripts.values().stream()
 			.forEach(t -> {
-				List<Amplicon> amps = uniqueChrs.get(t.getContig());
+				List<Contig> amps = uniqueChrs.get(t.getContig());
 				if (amps.stream().noneMatch(a -> a.getInitialFragmentPosition().getStartPosition() >= t.getStart() && a.getInitialFragmentPosition().getEndPosition() <= t.getEnd())) {
 					transcriptsToRemove.add(t.getId());
 				}
@@ -419,7 +419,7 @@ public class Q3ClinVar2 {
 		logger.info("fragments size: " + rawFragments.size());
 	}
 	
-	private void createAmpliconElement(Element amplicons, Amplicon p, List<Fragment> frags) {
+	private void createAmpliconElement(Element amplicons, Contig p, List<Fragment> frags) {
 		Element amplicon = new Element("Amplicon");
 		amplicons.appendChild(amplicon);
 		
@@ -624,7 +624,7 @@ public class Q3ClinVar2 {
 				for (TabbedRecord rec : reader) {
 					String [] params = TabTokenizer.tokenize(rec.getData());
 					ChrPosition cp = new ChrRangePosition(params[0], Integer.parseInt(params[1]), Integer.parseInt(params[2]));
-					bedToAmpliconMap.put(new Amplicon(++bedId, cp), new ArrayList<Amplicon>(1));
+					bedToAmpliconMap.put(new Contig(++bedId, cp), new ArrayList<Contig>(1));
 				}
 			}
 			logger.info("Loaded " + bedToAmpliconMap.size() + " bed positions into map");
@@ -651,7 +651,7 @@ public class Q3ClinVar2 {
 			 */
 			ampliconFragmentMap.keySet().stream()
 				.forEach(a -> {
-					List<Amplicon> beds = bedToAmpliconMap.keySet().stream()
+					List<Contig> beds = bedToAmpliconMap.keySet().stream()
 						.filter(bed -> ChrPositionUtils.isChrPositionContained(a.getPosition(), bed.getPosition())
 								&& a.getPosition().getStartPosition() < (bed.getPosition().getStartPosition() + 10)
 								&& a.getPosition().getEndPosition() > (bed.getPosition().getEndPosition() + 10)
@@ -903,12 +903,12 @@ public class Q3ClinVar2 {
 		 */
 		Map<String, List<Fragment>> fragsByContig = frags.values().stream().filter(f -> null != f.getActualPosition()).collect(Collectors.groupingBy(f -> f.getActualPosition().getChromosome()));
 		
-		Map<String, Map<Amplicon, List<Fragment>>> ampliconFragmentMapByContig = new HashMap<>();
-		for (Entry<Amplicon , List<Fragment>> entry : ampliconFragmentMap.entrySet()) {
+		Map<String, Map<Contig, List<Fragment>>> ampliconFragmentMapByContig = new HashMap<>();
+		for (Entry<Contig , List<Fragment>> entry : ampliconFragmentMap.entrySet()) {
 			ChrPosition cp = entry.getKey().getPosition();
 			if (null != cp) {
 				String contig = cp.getChromosome();
-				Map<Amplicon, List<Fragment>> m = ampliconFragmentMapByContig.computeIfAbsent(contig, k -> new HashMap<>());
+				Map<Contig, List<Fragment>> m = ampliconFragmentMapByContig.computeIfAbsent(contig, k -> new HashMap<>());
 				m.put(entry.getKey(), entry.getValue());
 			}
 		}
@@ -1105,7 +1105,7 @@ public class Q3ClinVar2 {
 			final AtomicInteger endOfReadCount = new AtomicInteger();
 			vcfFragmentMap.get(vcf).stream()
 			.forEach(array -> {
-				ampliconFragmentMap.get(new Amplicon(array[0], null)).stream()
+				ampliconFragmentMap.get(new Contig(array[0], null)).stream()
 				.filter(f -> f.getId() == array[1])
 				.forEach(f -> {
 					if (vcf.getPosition() - f.getActualPosition().getStartPosition() <= 5

@@ -30,7 +30,7 @@ import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.Pair;
 
-import au.edu.qimr.clinvar.model.Amplicon;
+import au.edu.qimr.clinvar.model.Contig;
 import au.edu.qimr.clinvar.model.Bin;
 import au.edu.qimr.clinvar.model.Fragment;
 import au.edu.qimr.clinvar.model.Probe;
@@ -114,18 +114,18 @@ public class ClinVarUtilTest {
 	@Test
 	public void getCoverageString() {
 		ChrPosition cp = ChrPointPosition.valueOf("1", 100);
-		Map<Amplicon, List<Fragment>> map = new HashMap<>();
+		Map<Contig, List<Fragment>> map = new HashMap<>();
 		List<StringBuilder> headers = Arrays.asList(new StringBuilder[]{new StringBuilder("hello")});
 		List<StringBuilder> headers10 = Arrays.asList(new StringBuilder[]{new StringBuilder("hello"), new StringBuilder("hello"), new StringBuilder("hello"), new StringBuilder("hello"), new StringBuilder("hello"),new StringBuilder("hello"),new StringBuilder("hello"),new StringBuilder("hello"),new StringBuilder("hello"),new StringBuilder("hello")});
 		
 		assertEquals("0,0,0", ClinVarUtil.getCoverageStringAtPosition(cp, map));
-		Amplicon a = new Amplicon(1, new ChrRangePosition("1", 101,200));
+		Contig a = new Contig(1, new ChrRangePosition("1", 101,200));
 		Fragment f1 = new Fragment(1, null, headers, headers10, null, null);
 		f1.setActualPosition(new ChrRangePosition("1", 101,200));
 		map.put(a, Arrays.asList(f1));
 		assertEquals("0,0,0", ClinVarUtil.getCoverageStringAtPosition(cp, map));
 		
-		Amplicon a2 = new Amplicon(2, new ChrRangePosition("1", 100,200));
+		Contig a2 = new Contig(2, new ChrRangePosition("1", 100,200));
 		Fragment f2 = new Fragment(2, null, headers, headers, null, null);
 		f2.setActualPosition(new ChrRangePosition("1", 100,200));
 		map.put(a2, Arrays.asList(f2));
@@ -148,11 +148,11 @@ public class ClinVarUtilTest {
 		f3.setActualPosition(cp);
 		
 		List<Fragment> list = Arrays.asList(f1, f2, f3);
-		Map<Amplicon, List<Fragment>> groupedFrags = ClinVarUtil.groupFragments(list, 10);
+		Map<Contig, List<Fragment>> groupedFrags = ClinVarUtil.groupFragments(list, 10);
 		
 		assertEquals(1, groupedFrags.size());
-		assertEquals(list.size(), groupedFrags.get(new Amplicon(1,cp)).size());
-		assertEquals(true, groupedFrags.get(new Amplicon(1,cp)).containsAll(list));
+		assertEquals(list.size(), groupedFrags.get(new Contig(1,cp)).size());
+		assertEquals(true, groupedFrags.get(new Contig(1,cp)).containsAll(list));
 		
 		Fragment f10 = new Fragment(10, null, headers, Collections.emptyList(), null, null);
 		Fragment f11 = new Fragment(11, null, headers, headers, null, null);
@@ -164,8 +164,8 @@ public class ClinVarUtilTest {
 		
 		groupedFrags = ClinVarUtil.groupFragments(list, 10); 
 		assertEquals(1, groupedFrags.size());
-		assertEquals(list.size(), groupedFrags.get(new Amplicon(1,cp)).size());
-		assertEquals(true, groupedFrags.get(new Amplicon(1,cp)).containsAll(list));
+		assertEquals(list.size(), groupedFrags.get(new Contig(1,cp)).size());
+		assertEquals(true, groupedFrags.get(new Contig(1,cp)).containsAll(list));
 	}
 	
 	@Test

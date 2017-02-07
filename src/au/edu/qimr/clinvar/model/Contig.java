@@ -5,7 +5,7 @@ import java.util.Comparator;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrPositionComparator;
 
-public class Amplicon implements Comparable<Amplicon> {
+public class Contig implements Comparable<Contig> {
 	
 	private static final Comparator<ChrPosition> COMPARATOR = new ChrPositionComparator();
 	
@@ -13,7 +13,7 @@ public class Amplicon implements Comparable<Amplicon> {
 	private ChrPosition position;
 	private final ChrPosition initialFragmentPosition;
 	
-	public Amplicon(int id, ChrPosition fcp) {
+	public Contig(int id, ChrPosition fcp) {
 		this.id = id;
 		this.initialFragmentPosition = fcp;
 		this.position = fcp;
@@ -50,19 +50,19 @@ public class Amplicon implements Comparable<Amplicon> {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		Amplicon other = (Amplicon) obj;
+		Contig other = (Contig) obj;
 		if (id != other.id)
 			return false;
 		return true;
 	}
 
 	@Override
-	public int compareTo(Amplicon o) {
+	public int compareTo(Contig o) {
 		return COMPARATOR.compare(position, o.position);
 	}
 
 	@Override
 	public String toString() {
-		return "Amplicon [id=" + id + ", position=" + position.toIGVString() + "]";
+		return "Contig [id=" + id + ", position=" + position.toIGVString() + "]";
 	}
 }
