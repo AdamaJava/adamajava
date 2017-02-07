@@ -125,6 +125,7 @@ public class Q3Panel {
 	private int minReadPercentage = 2;
 	private int contigBoundary = 10;
 	private int multiMutationThreshold = 10;
+	private int bamFilterDepth = 5;
 	final AtomicInteger outputMutations = new AtomicInteger();
 	
 	private boolean runExtendedFB = false;
@@ -727,6 +728,7 @@ public class Q3Panel {
 			
 			frags.values().stream()
 				.filter(f -> f.getActualPosition() != null)
+				.filter(f -> f.getRecordCount() >= bamFilterDepth)
 				.sorted((f1,f2) -> COMPARATOR.compare(f1.getActualPosition(), f2.getActualPosition()))
 				.forEach(f -> {
 					int fragId = f.getId();
@@ -1788,6 +1790,7 @@ public class Q3Panel {
 			options.getMinReadPercentageSize().ifPresent((i) -> minReadPercentage = i.intValue());
 			options.getAmpliconBoundary().ifPresent((i) -> contigBoundary = i.intValue());
 			options.getMinBinSize().ifPresent((i) -> minBinSize = i.intValue());
+			options.getBamFilterDepth().ifPresent((i) -> bamFilterDepth = i.intValue());
 			
 			logger.info("runExtendedFB: " + runExtendedFB);
 			logger.info("minBinSize is " + minBinSize);
