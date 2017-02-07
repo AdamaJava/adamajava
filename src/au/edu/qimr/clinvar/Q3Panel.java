@@ -1,11 +1,9 @@
 package au.edu.qimr.clinvar;
 
-import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.list.array.TLongArrayList;
 import gnu.trove.map.hash.THashMap;
 import gnu.trove.map.hash.TIntIntHashMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
-import gnu.trove.procedure.TIntProcedure;
 import gnu.trove.procedure.TLongProcedure;
 import htsjdk.samtools.Cigar;
 import htsjdk.samtools.SAMFileHeader;
@@ -43,7 +41,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -91,10 +88,8 @@ import au.edu.qimr.clinvar.model.PositionChrPositionMap;
 import au.edu.qimr.clinvar.model.RawFragment;
 import au.edu.qimr.clinvar.util.ClinVarUtil;
 import au.edu.qimr.clinvar.util.FragmentUtil;
-//import org.w3c.dom.Document;
-//import org.w3c.dom.Element;
 
-public class Q3ClinVar2 {
+public class Q3Panel {
 	
 	private static final Comparator<ChrPosition> COMPARATOR = new ChrPositionComparator();
 	
@@ -1716,9 +1711,9 @@ public class Q3ClinVar2 {
 	
 	public static void main(String[] args) throws Exception {
 		// loads all classes in referenced jars into memory to avoid nightly build sheninegans
-		LoadReferencedClasses.loadClasses(Q3ClinVar2.class);
+		LoadReferencedClasses.loadClasses(Q3Panel.class);
 		
-		Q3ClinVar2 qp = new Q3ClinVar2();
+		Q3Panel qp = new Q3Panel();
 		int exitStatus = qp.setup(args);
 		if (null != logger) {
 			logger.logFinalExecutionStats(exitStatus);
@@ -1745,12 +1740,12 @@ public class Q3ClinVar2 {
 		} else {
 			// configure logging
 			options.getLog().ifPresent((s) -> logFile = s);
-			version = Q3ClinVar2.class.getPackage().getImplementationVersion();
+			version = Q3Panel.class.getPackage().getImplementationVersion();
 			if (null == version) {
 				version = "local";
 			}
-			logger = QLoggerFactory.getLogger(Q3ClinVar2.class, logFile, options.getLogLevel().orElse(null));
-			exec = logger.logInitialExecutionStats("q3clinvar", version, args);
+			logger = QLoggerFactory.getLogger(Q3Panel.class, logFile, options.getLogLevel().orElse(null));
+			exec = logger.logInitialExecutionStats("q3panel", version, args);
 			
 			// get list of file names
 			fastqR1Files = options.getFastqsR1();
