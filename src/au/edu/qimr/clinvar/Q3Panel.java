@@ -595,7 +595,7 @@ public class Q3Panel {
 		
 		// write output
 		Document doc = new Document(q3pElement);
-		try (OutputStream os = new GZIPOutputStream(new FileOutputStream(outputFileNameBase + ".q3p.xml"), 1024 * 1024)) {
+		try (OutputStream os = new GZIPOutputStream(new FileOutputStream(outputFileNameBase + ".q3p.xml.gz"), 1024 * 1024)) {
 //		try (OutputStream os = new FileOutputStream(new File(outputFileNameBase + ".q3p.xml"));){
 			Serializer serializer = new Serializer(os, "ISO-8859-1");
 	        serializer.setIndent(4);
