@@ -10,7 +10,7 @@ import org.qcmg.common.util.BaseUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-public class KmersSummary {
+public class CopyOfKmersSummary {
 		
 	private int cycleNo = 0 ; //init	
 	private final QCMGAtomicLongArray tally;  //new QCMGAtomicLongArray( iniCycleNo * Kmers.getMaxOrder()  );
@@ -27,17 +27,15 @@ public class KmersSummary {
 	//set to true when short mers counts are recalculate; 
 //	private AtomicBoolean parsedAllKmers = new AtomicBoolean(false);
 	 	
-	public KmersSummary( int length ) {	
+	public CopyOfKmersSummary( int length ) {	
 		if(length > maxKmers ){ 			
 			System.err.println("Array size exceed Integer.MAX_VALUE/2! please reduce kmers length below 6. ");
 			System.exit(1);
 		}
 		
  		//get max entry, that is the size of mersIndex array && init with -1
-		byte[] maxMers = new byte[length];
-		for(int i = 0; i < length; i++) maxMers[i] = 'N';
-		int maxEntry = getEntry( maxMers);
-//		for(int i = 0, j = length-1; i < length; i ++, j-- ) maxEntry += ( 'T' - '@' ) << ( j * 5 ); 
+		int maxEntry = 0;
+		for(int i = 0, j = length-1; i < length; i ++, j-- ) maxEntry += ( 'T' - '@' ) << ( j * 5 ); 
 		
 		this.merLength = length; 		
 		this.mersIndex = new int[maxEntry+1];
@@ -47,20 +45,24 @@ public class KmersSummary {
 		mersStrList = getPossibleKmerString(merLength, true);	
 				
 		//get all possible kmers in byte[] and assign an index for each byte combination
-		mersByteList = new byte[mersStrList.length][merLength];	
-		for(int i = 0; i < mersStrList.length; i ++ ){
-			int entry = getEntry(mersStrList[i].getBytes());
-			mersIndex[ entry ] = i;
+		mersByteList = new byte[mersStrList.length][merLength];		
+		for(int i = 0, entry = 0; i < mersStrList.length; i ++, entry = 0 ){
+			mersByteList[i] = mersStrList[i].getBytes();			//convert to byte
+			for(int k = 0, j = length-1; k < length; k ++, j-- ) 
+				entry += ( mersByteList[i][k] - '@' ) << ( j * 5 ); 
+			mersIndex[ entry ] = i;  									//create index
 		}											
 		tally =  new QCMGAtomicLongArray( (int) ( iniCycleNo * mersStrList.length ) );	
 		
-		//for short mers on the tail of reads
+		//for short mers
 		int index = 0; 
 		for(int m = 1; m < merLength; m ++){
 			String[] shortStrList = getPossibleKmerString(m, true);	
-			for(int i = 0; i < shortStrList.length; i ++ ){
-				int entry = getEntry( shortStrList[i].getBytes());
-				mersIndex[ entry ] = index + i;
+			for(int i = 0, entry = 0; i < shortStrList.length; i ++, entry = 0 ){
+				byte[] mByte = shortStrList[i].getBytes(); 
+				for(int k = 0, j = mByte.length-1; k < mByte.length; k ++, j-- ) 
+					entry += ( mByte[k] - '@' ) << ( j * 5 ); 
+				mersIndex[ entry ] = index + i;  								
 			}
 			index += shortStrList.length; 
 		}
@@ -120,27 +122,11 @@ public class KmersSummary {
 	
 	//	can't be private since unit test
 	int getPosition(int cycle, byte[] mers){
-		int entry = getEntry(mers);
-		int pos = mersIndex[ entry ];
-		return cycle * mersStrList.length +  pos;
-	}
-	
-	
-	private int getEntry(byte[] mers){
 		int entry = 0; 
-		for(int i = 0, j = mers.length-1; i < mers.length; i ++, j-- ){
-			int no = 5; //default is 'N'
-			switch (mers[i]){
-				case 'A' : no = 1; break;
-				case 'C' : no = 2; break;
-				case 'G' : no = 3; break;
-				case 'T' : no = 4; break;
-			}
-			entry += no << ( j * 3 ); 	
-//			entry += ( mers[i] - '@' ) << ( j * 5 ); 	
-		}
-		
-		return entry;
+		for(int i = 0, j = mers.length-1; i < mers.length; i ++, j-- )
+			entry += ( mers[i] - '@' ) << ( j * 5 ); 	
+	
+		return cycle * mersStrList.length + mersIndex[ entry ]; 
 	}
 		
 	long[] getCounts(final int cycle, String[] possibleMers){		
@@ -148,6 +134,11 @@ public class KmersSummary {
 		
 		for(int i = 0; i< possibleMers.length; i ++)
 			counts[i] = getCount( cycle,  possibleMers[i]);
+			
+//		for(int i = 0; i< possibleMers.length; i ++){
+//			byte[] mers = possibleMers[i].getBytes();
+//			counts[i] = getCount( cycle,  mers);
+//		}		
 		return counts; 					
 	}
 	
@@ -157,11 +148,20 @@ public class KmersSummary {
 		if(mers instanceof byte[]) mer = (byte[]) mers; 
 		
 		// can't cope with more than 6 kmers
+//		if(mer.length > merLength || cycle >= cycleNo + (merLength - mer.length))  return -1;
 		if(mer.length > merLength || cycle >= cycleNo )  return 0;	
-				
+		
+		
 		// full length kmers counts are stored in tally already		 	
 		if(mer.length == merLength) 			
 			return  tally.get( getPosition(cycle, mer) );
+		
+		//get mers from last full mers cycle
+//		int mLength = merLength ;
+//		if(cycle >= cycleNo){
+//			mLength = merLength - (cycle + 1 - cycleNo);
+//			if( ! parsedAllKmers.get() )  recaculatelastCycle();
+//		}
 						
 		// accumulate all 6-mers start with the inputed short mer on the specified cycle position	
 		byte[] small = new byte[ merLength ];
@@ -170,9 +170,11 @@ public class KmersSummary {
 		for(int i = mer.length; i < merLength; i ++){ small[i] = 'A'; big[i] = 'N'; }
 		
 		long count = 0;	
+		//since short mers from last cycle is stroed on region cycleNo-th
+//		int cycle1 =  (cycle < cycleNo) ? cycle : cycleNo;
 		for(int i = getPosition(cycle, small), j = getPosition(cycle, big); i <=j ; i ++ ) 
 		  count +=  tally.get(i) ;
- 	 			
+ 					
 		return count; 		
 	}
 	

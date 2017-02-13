@@ -199,14 +199,7 @@ public class ReadGroupSummary {
 	 */
 	public void parsePairing( SAMRecord record, Integer overlapBase ){
 		//skip non-paired reads
-		if( !record.getReadPairedFlag() )  return;  		
-
-		//debug
-//		if(record.getReadGroup().getId().equals("1959T")){
-//			System.out.println(record.getSAMString());
-//	
-//		}	
-				
+		if( !record.getReadPairedFlag() )  return;  						
 				
 		//record iSize, first pair only to avoid double iSize		
 		if(record.getFirstOfPairFlag()){
