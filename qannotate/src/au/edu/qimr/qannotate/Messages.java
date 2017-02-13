@@ -68,8 +68,8 @@ public class Messages {
 		for (final String arg : args) {
 			result += arg + " ";
 		}
-		while( result.lastIndexOf(" ") == result.length() - 1 ) result = result.substring(0, result.length()-2);
-		return result;
+//		while( result.lastIndexOf(" ") == result.length() - 1 ) result = result.substring(0, result.length()-2);
+		return result.trim();
 	}
 
 
