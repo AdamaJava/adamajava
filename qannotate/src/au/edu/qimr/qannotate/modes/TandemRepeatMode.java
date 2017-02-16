@@ -32,7 +32,7 @@ public class TandemRepeatMode  extends AbstractMode{
 	final String commandLine;
 	final int buffer;
 	
-	private HashMap<String, HashMap<Integer, Block>> genomeRepeat = new HashMap<String, HashMap<Integer, Block>>();
+	private final HashMap<String, HashMap<Integer, Block>> genomeRepeat = new HashMap<String, HashMap<Integer, Block>>();
 	
 	//for unit test only
 	@Deprecated
@@ -90,7 +90,7 @@ public class TandemRepeatMode  extends AbstractMode{
 	class Block {
 		private final int start;
 		private final int end;
-		private List<Repeat> repeats; 
+		private final List<Repeat> repeats; 
 		
 		//not allow create repeats from outside
 		private Block(int start, int end, List<Repeat> repeats){
@@ -107,6 +107,7 @@ public class TandemRepeatMode  extends AbstractMode{
 		int getStart() { return start; }
 		int getEnd() { return end; }
 		
+		@Override
 		public String toString(){			
 			return String.format("%d ~ %d :: %d",start, end, repeats.size());
 		}
@@ -281,25 +282,29 @@ public class TandemRepeatMode  extends AbstractMode{
 	 * @throws IOException
 	 */
 	HashMap<String, HashSet<Repeat>> loadRepeat(String dbfile) throws FileNotFoundException, IOException {
-		HashMap<String, HashSet<Repeat>> AllRepeats = new HashMap<String, HashSet<Repeat>>();
+		HashMap<String, HashSet<Repeat>> allRepeats = new HashMap<String, HashSet<Repeat>>();
 		int errLine = 0;
 		//s1: read whole file into Repeat list
         try(BufferedReader reader = new BufferedReader(new FileReader(dbfile))){
             String line; //chr1    11114   11123   5       2.0     5       100     0       20      0.97    GGCGC
-            while (( line = reader.readLine()) != null)  
-	           try{
-	        	   Repeat rep = new Repeat(line);	        	   
-	        	   if(!AllRepeats.containsKey(rep.chr))
-	        		   AllRepeats.put(rep.chr, new HashSet<Repeat>());	        	  
-	        		AllRepeats.get(rep.chr).add(rep);        	   
-	            }catch(NumberFormatException e){
-	            	if(errLine ++ < MaxErrLine)
-	            		logger.warn("can't retrive information from TRF repeat file: " + line);
-	            	continue;
+            while (( line = reader.readLine()) != null)  {
+	           try {
+	        	   		Repeat rep = new Repeat(line);
+	        	   		allRepeats.computeIfAbsent(rep.chr, (v) -> new HashSet<Repeat>()).add(rep);
+//		        	   if ( ! allRepeats.containsKey(rep.chr)) {
+//		        		   allRepeats.put(rep.chr, new HashSet<Repeat>());
+//		        	   }
+//		        		allRepeats.get(rep.chr).add(rep);        	   
+	            } catch (NumberFormatException e) {
+		            	if (errLine ++ < MaxErrLine) {
+		            		logger.warn("can't retrive information from TRF repeat file: " + line);
+		            	}
+		            	continue;
 	            }             
+            }
         } 
         
-        return AllRepeats; 		
+        return allRepeats; 		
 	}
 	
 	
@@ -339,7 +344,7 @@ public class TandemRepeatMode  extends AbstractMode{
 		    		start += 1; 
 		    	
 		    	//trim if end is some repeat start
-		    	end = (int) it.next();	
+		    	end = it.next();	
 		    	int end0 = end;  //store original boundary for next loop
 		    	 
 		    	if(starts.contains(end))		    		 
