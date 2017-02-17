@@ -7,12 +7,14 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.After;
 import org.junit.Test;
 import org.qcmg.common.model.MafConfidence;
 import org.qcmg.common.util.IndelUtils;
+import org.qcmg.common.vcf.VcfInfoFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
@@ -88,6 +90,16 @@ public class IndelConfidenceModeTest {
 		assertTrue(mode.getConfidence(vcf) == MafConfidence.LOW);	
 		
 	}
+	
+	
+	@Test
+	 public void confidenceRealLifeIndel() throws Exception {
+		 //chr2    29432822        .       C       CGCGAATT        .       HCOVT   AC=2;AF=1.00;AN=2;DP=1174;FS=0.000;MLEAC=2;MLEAF=1.00;MQ=59.98;QD=7.19;SOR=11.114;HOM=0,GGATTTTATCgcgaattTCCAAGCTGA;CONF=ZERO   GT:GD:AD:DP:GQ:PL       .:.:.:.:.:.     1/1:CGCGAATT/CGCGAATT:0,258:258:99:8481,606,0
+		 VcfRecord vcf1 = new VcfRecord(new String[]{"chr2","29432822",".","C","CGCGAATT",".","HCOVT","AC=2;AF=1.00;AN=2;DP=1174;FS=0.000;MLEAC=2;MLEAF=1.00;MQ=59.98;QD=7.19;SOR=11.114;HOM=0,GGATTTTATCgcgaattTCCAAGCTGA","GT:GD:AD:DP:GQ:PL"," .:.:.:.:.:.","1/1:CGCGAATT/CGCGAATT:0,258:258:99:8481,606,0"});
+		 
+		 IndelConfidenceMode cm =new IndelConfidenceMode();
+		 assertTrue(cm.getConfidence(vcf1) == MafConfidence.ZERO);
+	 }
 	
 	@Test
 	public void MaskTest() throws Exception{
