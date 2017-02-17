@@ -42,7 +42,7 @@ public class IndelConfidenceMode extends AbstractMode{
 	final String input;
 	final String output;
 	final String commandLine;
-	final int MAX_CONTIG_SIZE = 250000000;	
+//	final int MAX_CONTIG_SIZE = 250000000;	
 	static final float DEFAULT_NIOC = 0.1f;
 	static final float DEFAULT_SSOI = 0.2f;
 	static final int DEFAULT_HOMN = 6;
@@ -80,31 +80,30 @@ public class IndelConfidenceMode extends AbstractMode{
 	}
 
 	/**
-	 * load repeart region into RAM 
+	 * load repeat region into RAM 
 	 * @param dbfile
 	 * @throws Exception
 	 */
 	private void loadMask(String dbfile) throws Exception {		
         //load repeat region to bitset
         try(BufferedReader reader = new BufferedReader(new FileReader(dbfile))){
-                String line;
-                while (( line = reader.readLine()) != null) {
-                        String[] array = line.split(" ");
-               	
-                        try{
-                        	//int no = Integer.parseInt(array[0]) - 1;
-                        	String chr = IndelUtils.getFullChromosome(array[0]);
-                        	
-                        	int start = Integer.parseInt(array[1]);
-                        	int end = Integer.parseInt(array[2]);
-                        	if(! mask.containsKey(chr))
-                        		mask.put(chr,new BitSet());
-                        	mask.get(chr).set(start, end);                       	
-                        }catch(NumberFormatException e){
-                        	 //logger.warn("can't convert mask file string into integer: " + line);
-                        	 continue;
-                        }
+            String line;
+            while (( line = reader.readLine()) != null) {
+                String[] array = line.split(" ");
+                try{
+                    	//int no = Integer.parseInt(array[0]) - 1;
+                    	String chr = IndelUtils.getFullChromosome(array[0]);
+                    	
+                    	int start = Integer.parseInt(array[1]);
+                    	int end = Integer.parseInt(array[2]);
+                    	
+                    	mask.computeIfAbsent(chr, (v) -> new BitSet()).set(start,end);
+                	
+                } catch(NumberFormatException e){
+                	 //logger.warn("can't convert mask file string into integer: " + line);
+                	 continue;
                 }
+            }
 		}        
 	}
 		
@@ -143,13 +142,17 @@ public class IndelConfidenceMode extends AbstractMode{
 	 boolean isRepeat(VcfRecord vcf){
         
 		String chr = IndelUtils.getFullChromosome(vcf.getChromosome()); 
-   		if(!mask.containsKey(chr)) return false; 
+//   		if(!mask.containsKey(chr)) return false; 
 		BitSet chrMask = mask.get(chr);
-
-		for (int i = vcf.getPosition(); i <= vcf.getChrPosition().getEndPosition(); i ++) 
-			if(chrMask.get(i)) 				
+		if (null == chrMask) {
+			return false;
+		}
+		
+		for (int i = vcf.getPosition(); i <= vcf.getChrPosition().getEndPosition(); i ++) {
+			if (chrMask.get(i)) {
 				return true; 
-    	
+			}
+		}
        	return false;        	
 	}
 
@@ -168,22 +171,23 @@ public class IndelConfidenceMode extends AbstractMode{
 			//reheader
 		    VcfHeader hd = 	reader.getHeader();
 		    hd.addFilterLine(FILTER_REPEAT, DESCRITPION_FILTER_REPEAT );       	  
-		    hd.addInfoLine(VcfHeaderUtils.INFO_CONFIDENCE, "1", "String", DESCRITPION_INFO_CONFIDENCE);		    
+		    hd.addInfoLine(VcfHeaderUtils.INFO_CONFIDENCE, "1", "String", DESCRITPION_INFO_CONFIDENCE);
 		    hd = reheader(hd, commandLine ,input);			    	  
 	
-		    for(final VcfHeader.Record record: hd)  
-		    	writer.addHeader(record.toString());
+		    for(final VcfHeader.Record record: hd)  {
+		    		writer.addHeader(record.toString());
+		    }
 		
-	        for (final VcfRecord vcf : reader) {               	
-	        	if( isRepeat(vcf) ){
-	        		VcfUtils.updateFilter(vcf, FILTER_REPEAT);
-	        		repeatCount ++;
-	        	}
-	    		vcf.getInfoRecord().setField(VcfHeaderUtils.INFO_CONFIDENCE, getConfidence(vcf).toString());		
-	    		
-	    		count++;
-	    		posCheck.add(vcf.getChrPosition());
-	    		writer.add(vcf);
+	        for (final VcfRecord vcf : reader) {
+		        	if( isRepeat(vcf) ){
+		        		VcfUtils.updateFilter(vcf, FILTER_REPEAT);
+		        		repeatCount ++;
+		        	}
+		    		vcf.getInfoRecord().setField(VcfHeaderUtils.INFO_CONFIDENCE, getConfidence(vcf).toString());		
+		    		
+		    		count++;
+		    		posCheck.add(vcf.getChrPosition());
+		    		writer.add(vcf);
 	        }
 		}  
 		logger.info(String.format("outputed %d VCF record, happend on %d variants location.",  count , posCheck.size()));
