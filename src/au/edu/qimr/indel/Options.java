@@ -4,7 +4,6 @@
 package au.edu.qimr.indel;
 
 import static java.util.Arrays.asList;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -16,7 +15,6 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.meta.QExec;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
-
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 
@@ -42,8 +40,6 @@ public class Options {
 	private String log;
 	private String loglevel;
 	public int nearbyIndelWindow = 3;
-//	public int nearbyHomopolymer = 100;
-//	public int nearbyHomopolymerReport = 10;
 	public int softClipWindow = 13;
 	public int threadNo = 5;
 	

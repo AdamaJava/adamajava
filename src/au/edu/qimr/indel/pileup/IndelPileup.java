@@ -177,12 +177,10 @@ public class IndelPileup {
 		int part_support = 0;
 		int forward_strong = 0;
 		int backward_strong = 0;
-		Set<Integer> novel4strong = new HashSet<Integer>();		
-		Set<Integer> novel4support = new HashSet<Integer>();		
-		
-		
-		//check this indel is nearby, partial or full match
-		
+		Set<Integer> novel4strong = new HashSet<Integer>();
+		Set<Integer> novel4support = new HashSet<Integer>();	
+				
+		//check this indel is nearby, partial or full match		
 		for(SAMRecord re : pool){
 			boolean supportflag = false; 
 			boolean partialflag = false; 
@@ -206,7 +204,6 @@ public class IndelPileup {
 			 		 }	 
 				 	 
 				}else if( CigarOperator.D == ce.getOperator())				 			
-//					if((refPos <= indelStart && refPos + ce.getLength() >= indelStart) || (refPos <= indelEnd && refPos + ce.getLength() >= indelEnd)) 
 					//part or more overlap with del region	
 					if(refPos <= indelEnd && refPos + ce.getLength() >= indelStart && type.equals(SVTYPE.DEL)){ 												 						
 							if(refPos == indelStart && ce.getLength() == motif.length()){

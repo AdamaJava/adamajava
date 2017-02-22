@@ -1,38 +1,21 @@
 package au.edu.qimr.indel.pileup;
 
 import static org.junit.Assert.assertTrue;
-import htsjdk.samtools.SAMFileWriter;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SamReader;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-
-import junit.framework.Assert;
-
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.vcf.VcfRecord;
-import org.qcmg.common.vcf.header.VcfHeader;
-import org.qcmg.common.vcf.header.VcfHeader.Record;
-import org.qcmg.common.vcf.header.VcfHeaderUtils;
-import org.qcmg.picard.SAMFileReaderFactory;
-import org.qcmg.picard.SAMOrBAMWriterFactory;
+import org.qcmg.common.vcf.header.*;
 import org.qcmg.vcf.VCFFileReader;
-
 import au.edu.qimr.indel.Support;
 import au.edu.qimr.indel.IniFileTest;
 import au.edu.qimr.indel.Options;
-import au.edu.qimr.indel.Q3IndelException;
-
 
 
 public class IndelMTTest {
@@ -132,22 +115,15 @@ public class IndelMTTest {
 		//check sample column name
 		assertTrue(header.getSampleId()[0].equals( TEST_BAM_NAME.replaceAll("(?i).bam", "")   ));
 		assertTrue(header.getSampleId()[1].equals( TEST_BAM_NAME.replaceAll("(?i).bam", "")   ));
-//		assertTrue(header.getSampleId()[1].equals(VcfHeaderUtils.STANDARD_TEST_SAMPLE.replaceAll("#", "")));
 		
-		//check header 
-		HashMap<String, String> headerlist = new HashMap<String, String>();
-		for(Record re: header.getMetaRecords()){
-			String str[] = VcfHeaderUtils.splitMetaRecord(re);
-			headerlist.put(str[0], str[1]);
-		}		
-		assertTrue( headerlist.get(VcfHeaderUtils.STANDARD_DONOR_ID).equals(options.getDonorId()) );
-		assertTrue( headerlist.get(VcfHeaderUtils.STANDARD_CONTROL_SAMPLE).equals(options.getControlSample()) );
-		assertTrue( headerlist.get(VcfHeaderUtils.STANDARD_TEST_SAMPLE).equals(options.getTestSample()) ); 			
-		assertTrue( headerlist.get(VcfHeaderUtils.STANDARD_INPUT_LINE + "_GATK_TEST").equals(options.getTestInputVcf().getAbsolutePath()) );
-		assertTrue( headerlist.get(VcfHeaderUtils.STANDARD_INPUT_LINE + "_GATK_CONTROL").equals(options.getControlInputVcf().getAbsolutePath()) ); 			
-		assertTrue( headerlist.get( VcfHeaderUtils.STANDARD_CONTROL_BAM ).equals(options.getControlBam().getAbsolutePath()) );
-		assertTrue( headerlist.get(VcfHeaderUtils.STANDARD_TEST_BAM ).equals(options.getTestBam().getAbsolutePath()) );
-		assertTrue( headerlist.get(VcfHeaderUtils.STANDARD_ANALYSIS_ID).equals(options.getAnalysisId()) );
+		assertTrue( header.firstMatchedRecord(VcfHeaderUtils.STANDARD_DONOR_ID).getMetaValue().equals(options.getDonorId()) );
+		assertTrue( header.firstMatchedRecord(VcfHeaderUtils.STANDARD_CONTROL_SAMPLE).getMetaValue().equals(options.getControlSample()) );
+		assertTrue( header.firstMatchedRecord(VcfHeaderUtils.STANDARD_TEST_SAMPLE).getMetaValue().equals(options.getTestSample()) ); 			
+		assertTrue( header.firstMatchedRecord(VcfHeaderUtils.STANDARD_INPUT_LINE + "_GATK_TEST").getMetaValue().equals(options.getTestInputVcf().getAbsolutePath()) );
+		assertTrue( header.firstMatchedRecord(VcfHeaderUtils.STANDARD_INPUT_LINE + "_GATK_CONTROL").getMetaValue().equals(options.getControlInputVcf().getAbsolutePath()) ); 			
+		assertTrue( header.firstMatchedRecord( VcfHeaderUtils.STANDARD_CONTROL_BAM ).getMetaValue().equals(options.getControlBam().getAbsolutePath()) );
+		assertTrue( header.firstMatchedRecord(VcfHeaderUtils.STANDARD_TEST_BAM ).getMetaValue().equals(options.getTestBam().getAbsolutePath()) );
+		assertTrue( header.firstMatchedRecord(VcfHeaderUtils.STANDARD_ANALYSIS_ID).getMetaValue().equals(options.getAnalysisId()) );
 	}
 	
 	public static void createDelBam( String output) {

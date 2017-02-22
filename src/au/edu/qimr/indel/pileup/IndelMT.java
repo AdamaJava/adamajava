@@ -28,8 +28,7 @@ import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.vcf.VcfRecord;
-import org.qcmg.common.vcf.header.VcfHeader;
-import org.qcmg.common.vcf.header.VcfHeaderUtils;
+import org.qcmg.common.vcf.header.*;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.util.QBamIdFactory;
 import org.qcmg.qbamfilter.query.QueryExecutor;
@@ -394,7 +393,7 @@ public class IndelMT {
 						
 			//reheader
 			getHeaderForIndel(header);	
-        	for (final VcfHeader.Record record: header) {
+        	for (final VcfHeaderRecord record: header) {
         		writer.addHeader(record.toString());
         	}
 			 
@@ -424,32 +423,32 @@ public class IndelMT {
 		QExec qexec = options.getQExec();
 		 
 		final DateFormat df = new SimpleDateFormat("yyyyMMdd");
- 		header.parseHeaderLine(VcfHeaderUtils.CURRENT_FILE_VERSION);		
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + df.format(Calendar.getInstance().getTime()));		
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + qexec.getUuid().getValue());
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=" + qexec.getToolName().getValue() + " v" + qexec.getToolVersion().getValue());
+ 		header.addOrReplace(VcfHeader.CURRENT_FILE_FORMAT);		
+		header.addOrReplace(VcfHeader.STANDARD_FILE_DATE + "=" + df.format(Calendar.getInstance().getTime()));		
+		header.addOrReplace(VcfHeader.STANDARD_UUID_LINE + "=" + qexec.getUuid().getValue());
+		header.addOrReplace(VcfHeader.STANDARD_SOURCE_LINE + "=" + qexec.getToolName().getValue() + " v" + qexec.getToolVersion().getValue());
 		
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_DONOR_ID + "=" + options.getDonorId());
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_CONTROL_SAMPLE + "=" + options.getControlSample());		
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_TEST_SAMPLE + "=" + options.getTestSample());		
+		header.addOrReplace(VcfHeaderUtils.STANDARD_DONOR_ID + "=" + options.getDonorId());
+		header.addOrReplace(VcfHeaderUtils.STANDARD_CONTROL_SAMPLE + "=" + options.getControlSample());		
+		header.addOrReplace(VcfHeaderUtils.STANDARD_TEST_SAMPLE + "=" + options.getTestSample());		
 		
 //		List<File> inputs = new ArrayList<File>();
 		if(options.getRunMode().equalsIgnoreCase("gatk")){
-			header.parseHeaderLine(VcfHeaderUtils.STANDARD_INPUT_LINE + "_GATK_TEST=" + 
+			header.addOrReplace(VcfHeaderUtils.STANDARD_INPUT_LINE + "_GATK_TEST=" + 
 					(options.getTestInputVcf() == null? null : options.getTestInputVcf().getAbsolutePath()));
-			header.parseHeaderLine(VcfHeaderUtils.STANDARD_INPUT_LINE + "_GATK_CONTROL=" + 
+			header.addOrReplace(VcfHeaderUtils.STANDARD_INPUT_LINE + "_GATK_CONTROL=" + 
 					(options.getControlInputVcf() == null? null : options.getControlInputVcf().getAbsolutePath()));
  		}else
 	 		for(int i = 0; i < options.getInputVcfs().size(); i ++)
-	 			header.parseHeaderLine(VcfHeaderUtils.STANDARD_INPUT_LINE + "=" + options.getInputVcfs().get(i).getAbsolutePath());
+	 			header.addOrReplace(VcfHeaderUtils.STANDARD_INPUT_LINE + "=" + options.getInputVcfs().get(i).getAbsolutePath());
 
 		String controlBamID = null; 
 		if( options.getControlBam() != null ){
 			String normalBamName = options.getControlBam().getAbsolutePath();
 			controlBamID = QBamIdFactory.getQ3BamId(normalBamName).getUUID();
 			if(controlBamID == null ) controlBamID = new File(normalBamName).getName().replaceAll("(?i).bam$", "");
-			header.parseHeaderLine( VcfHeaderUtils.STANDARD_CONTROL_BAM  + "=" + normalBamName );
-			header.parseHeaderLine( VcfHeaderUtils.STANDARD_CONTROL_BAMID + "=" +  controlBamID );
+			header.addOrReplace( VcfHeaderUtils.STANDARD_CONTROL_BAM  + "=" + normalBamName );
+			header.addOrReplace( VcfHeaderUtils.STANDARD_CONTROL_BAMID + "=" +  controlBamID );
 			 
 		}
 		
@@ -461,37 +460,38 @@ public class IndelMT {
 			testBamID = QBamIdFactory.getQ3BamId(tumourBamName).getUUID();
 			if(testBamID == null ) testBamID = new File(tumourBamName).getName().replaceAll("(?i).bam$", "");
 			
-			header.parseHeaderLine( VcfHeaderUtils.STANDARD_TEST_BAM  + "=" + tumourBamName);
-			header.parseHeaderLine( VcfHeaderUtils.STANDARD_TEST_BAMID  + "=" + ( testBamID  == null ? new File(tumourBamName).getName() : testBamID ));
+			header.addOrReplace( VcfHeaderUtils.STANDARD_TEST_BAM  + "=" + tumourBamName);
+			header.addOrReplace( VcfHeaderUtils.STANDARD_TEST_BAMID  + "=" + ( testBamID  == null ? new File(tumourBamName).getName() : testBamID ));
 		}	
-		header.parseHeaderLine( VcfHeaderUtils.STANDARD_ANALYSIS_ID +"=" + options.getAnalysisId() );
+		header.addOrReplace( VcfHeaderUtils.STANDARD_ANALYSIS_ID +"=" + options.getAnalysisId() );
 	
 		
 		//add filter
-        header.addFilterLine(IndelUtils.FILTER_COVN12, IndelUtils.DESCRITPION_FILTER_COVN12 );
-        header.addFilterLine(IndelUtils.FILTER_COVN8,  IndelUtils.DESCRITPION_FILTER_COVN8 );
-        header.addFilterLine(IndelUtils.FILTER_COVT,  IndelUtils.DESCRITPION_FILTER_COVT );
-        header.addFilterLine(IndelUtils.FILTER_HCOVN,  IndelUtils.DESCRITPION_FILTER_HCOVN );
-        header.addFilterLine(IndelUtils.FILTER_HCOVT,  IndelUtils.DESCRITPION_FILTER_HCOVT );
-        header.addFilterLine(IndelUtils.FILTER_MIN,  IndelUtils.DESCRITPION_FILTER_MIN );
-        header.addFilterLine(IndelUtils.FILTER_NNS,  IndelUtils.DESCRITPION_FILTER_NNS );
-        header.addFilterLine(IndelUtils.FILTER_TPART,  IndelUtils.DESCRITPION_FILTER_TPART );
-        header.addFilterLine(IndelUtils.FILTER_NPART,  IndelUtils.DESCRITPION_FILTER_NPART );
-        header.addFilterLine(IndelUtils.FILTER_TBIAS,  IndelUtils.DESCRITPION_FILTER_TBIAS );
-        header.addFilterLine(IndelUtils.FILTER_NBIAS,  IndelUtils.DESCRITPION_FILTER_NBIAS );
+        header.addFilter(IndelUtils.FILTER_COVN12, IndelUtils.DESCRITPION_FILTER_COVN12 );
+        header.addFilter(IndelUtils.FILTER_COVN8,  IndelUtils.DESCRITPION_FILTER_COVN8 );
+        header.addFilter(IndelUtils.FILTER_COVT,  IndelUtils.DESCRITPION_FILTER_COVT );
+        header.addFilter(IndelUtils.FILTER_HCOVN,  IndelUtils.DESCRITPION_FILTER_HCOVN );
+        header.addFilter(IndelUtils.FILTER_HCOVT,  IndelUtils.DESCRITPION_FILTER_HCOVT );
+        header.addFilter(IndelUtils.FILTER_MIN,  IndelUtils.DESCRITPION_FILTER_MIN );
+        header.addFilter(IndelUtils.FILTER_NNS,  IndelUtils.DESCRITPION_FILTER_NNS );
+        header.addFilter(IndelUtils.FILTER_TPART,  IndelUtils.DESCRITPION_FILTER_TPART );
+        header.addFilter(IndelUtils.FILTER_NPART,  IndelUtils.DESCRITPION_FILTER_NPART );
+        header.addFilter(IndelUtils.FILTER_TBIAS,  IndelUtils.DESCRITPION_FILTER_TBIAS );
+        header.addFilter(IndelUtils.FILTER_NBIAS,  IndelUtils.DESCRITPION_FILTER_NBIAS );
         
 		final String SOMATIC_DESCRIPTION = String.format("There are more than %d novel starts  or "
 				+ "more than %.2f soi (number of supporting informative reads /number of informative reads) on control BAM",
 				options.getMinGematicNovelStart(), options.getMinGematicSupportOfInformative());
 
-		header.addInfoLine(VcfHeaderUtils.INFO_SOMATIC, "1", "String", SOMATIC_DESCRIPTION);
-		header.addInfoLine(IndelUtils.INFO_NIOC, "1", "String", IndelUtils.DESCRITPION_INFO_NIOC);
-		header.addInfoLine(IndelUtils.INFO_SSOI, "1", "String", IndelUtils.DESCRITPION_INFO_SSOI);		
-//		header.addInfoLine(IndelUtils.INFO_HOM, "1", "String", IndelUtils.DESCRITPION_INFO_HOM); 
-		header.addInfoLine(VcfHeaderUtils.INFO_MERGE_IN, "1", "String",VcfHeaderUtils.DESCRITPION_MERGE_IN); 
+		header.addInfo(VcfHeaderUtils.INFO_SOMATIC, "1", "String", SOMATIC_DESCRIPTION);
+		header.addInfo(IndelUtils.INFO_NIOC, "1", "String", IndelUtils.DESCRITPION_INFO_NIOC);
+		header.addInfo(IndelUtils.INFO_SSOI, "1", "String", IndelUtils.DESCRITPION_INFO_SSOI);		
+//		header.addInfo(IndelUtils.INFO_HOM, "1", "String", IndelUtils.DESCRITPION_INFO_HOM); 
+		header.addInfo(VcfHeaderUtils.INFO_MERGE_IN, "1", "String",VcfHeaderUtils.DESCRITPION_MERGE_IN); 
 				
-		header.addFormatLine(VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS, "1","String", "Genotype details: specific alleles");
-		header.addFormatLine(IndelUtils.FORMAT_ACINDEL, "1", "String", IndelUtils.DESCRITPION_FORMAT_ACINDEL);
+		header.addFormat(VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS, "1","String", "Genotype details: specific alleles");
+//		header.addFormatLine(IndelUtils.FORMAT_ACINDEL, "1", "String", IndelUtils.DESCRITPION_FORMAT_ACINDEL);
+		header.addFormat(IndelUtils.FORMAT_ACINDEL, ".", "String", IndelUtils.DESCRITPION_FORMAT_ACINDEL); //vcf validataion
 
 		VcfHeaderUtils.addQPGLineToHeader(header, qexec.getToolName().getValue(), qexec.getToolVersion().getValue(), qexec.getCommandLine().getValue() 
 				+  " [runMode: " + options.getRunMode() + "]");        
@@ -499,11 +499,7 @@ public class IndelMT {
 //		VcfHeaderUtils.addSampleId(header, VcfHeaderUtils.STANDARD_CONTROL_SAMPLE.replaceAll("#", ""), 1 ); // "qControlSample", 1);
 //		VcfHeaderUtils.addSampleId(header,  VcfHeaderUtils.STANDARD_TEST_SAMPLE.replaceAll("#", ""), 2);//"qTestSample"
 		VcfHeaderUtils.addSampleId(header, controlBamID, 1 ); // "qControlSample", 1);
-		VcfHeaderUtils.addSampleId(header,  testBamID, 2);//"qTestSample"
-		
-
-		
- 		 
+		VcfHeaderUtils.addSampleId(header,  testBamID, 2);//"qTestSample" 		 
 	}
 	 
 	 /**
