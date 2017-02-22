@@ -70,9 +70,7 @@ import org.qcmg.common.util.SnpUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
-import org.qcmg.common.vcf.header.VcfHeader;
-import org.qcmg.common.vcf.header.VcfHeader.FormattedRecord;
-import org.qcmg.common.vcf.header.VcfHeader.Record;
+import org.qcmg.common.vcf.header.*;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils.VcfInfoType;
 import org.qcmg.qmule.SmithWatermanGotoh;
@@ -998,8 +996,8 @@ public class Q3Panel {
 								v.appendInfo("CCDS=" + cds + ";CG=" + genes);
 							});
 					});
-				cosmicHeaderDetails.parseHeaderLine("##INFO=<ID=CG,Number=.,Type=String,Description=\"Gene as reported by Cosmic\">");
-				cosmicHeaderDetails.parseHeaderLine("##INFO=<ID=CCDS,Number=.,Type=String,Description=\"CDS as reported by Cosmic\">");
+				cosmicHeaderDetails.addOrReplace("##INFO=<ID=CG,Number=.,Type=String,Description=\"Gene as reported by Cosmic\">");
+				cosmicHeaderDetails.addOrReplace("##INFO=<ID=CCDS,Number=.,Type=String,Description=\"CDS as reported by Cosmic\">");
 				
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -1011,25 +1009,31 @@ public class Q3Panel {
 		 */
 		if ( ! StringUtils.isBlank(dbSNPFile)) {
 			try (VCFFileReader reader= new VCFFileReader( dbSNPFile )) {
-				//add dbSNP version into header		
-				List<Record>  metas = reader.getHeader().getMetaRecords(); 
-				for (Record re: metas) {
-					if (re.getData().startsWith(VcfHeaderUtils.STANDARD_DBSNP_LINE)) {
-						dbSnpHeaderDetails.parseHeaderLine(String.format("##INFO=<ID=%s,Number=0,Type=%s,Description=\"%s\",Source=%s,Version=%s>",
-										VcfHeaderUtils.INFO_DB, VcfInfoType.Flag.name(),
-										VcfHeaderUtils.DESCRITPION_INFO_DB, dbSNPFile, new VcfHeaderUtils.SplitMetaRecord(re).getValue()  ));
-					}
-				}
-						
-				Map<String, FormattedRecord> snpInfoHeader = reader.getHeader().getInfoRecords();
-				if (snpInfoHeader.get(VcfHeaderUtils.INFO_CAF) != null ) {
-					dbSnpHeaderDetails.parseHeaderLine( String.format("##INFO=<ID=%s,Number=.,Type=String,Description=\"%s\">", VcfHeaderUtils.INFO_VAF, VcfHeaderUtils.DESCRITPION_INFO_VAF  )	);
-				}
-				if (snpInfoHeader.get(VcfHeaderUtils.INFO_VLD) != null ) {
-					dbSnpHeaderDetails.addInfo(snpInfoHeader.get(VcfHeaderUtils.INFO_VLD));		 						 
-				}
-				dbSnpHeaderDetails.parseHeaderLine("##INFO=<ID=DB_CDS,Number=.,Type=String,Description=\"Reference and Alt alleles as reported by dbSNP\">");
 				
+				VcfHeaderRecord re = reader.getHeader().firstMatchedRecord(VcfHeaderUtils.STANDARD_DBSNP_LINE);
+				if( re!= null )
+					dbSnpHeaderDetails.addOrReplace(String.format("##INFO=<ID=%s,Number=0,Type=%s,Description=\"%s\",Source=%s,Version=%s>",
+							VcfHeaderUtils.INFO_DB, VcfInfoType.Flag.name(),
+							VcfHeaderUtils.DESCRITPION_INFO_DB, dbSNPFile,re.getMetaValue()  ));
+				
+				
+//				Map<String, FormattedRecord> snpInfoHeader = reader.getHeader().getInfoRecords();
+//				if (snpInfoHeader.get(VcfHeaderUtils.INFO_CAF) != null ) {
+//					dbSnpHeaderDetails.parseHeaderLine( String.format("##INFO=<ID=%s,Number=.,Type=String,Description=\"%s\">", VcfHeaderUtils.INFO_VAF, VcfHeaderUtils.DESCRITPION_INFO_VAF  )	);
+//				}
+//				if (snpInfoHeader.get(VcfHeaderUtils.INFO_VLD) != null ) {
+//					dbSnpHeaderDetails.addInfo(snpInfoHeader.get(VcfHeaderUtils.INFO_VLD));		 						 
+//				}
+				
+				re = reader.getHeader().getInfoRecord(VcfHeaderUtils.INFO_CAF);
+				if( re != null)
+					dbSnpHeaderDetails.addInfo(VcfHeaderUtils.INFO_VAF, ".", "String", VcfHeaderUtils.DESCRITPION_INFO_VAF);
+				re = reader.getHeader().getInfoRecord(VcfHeaderUtils.INFO_VLD);
+				if(re != null)
+					dbSnpHeaderDetails.addOrReplace(re);				
+				
+//				dbSnpHeaderDetails.parseHeaderLine("##INFO=<ID=DB_CDS,Number=.,Type=String,Description=\"Reference and Alt alleles as reported by dbSNP\">");
+				dbSnpHeaderDetails.addInfo("DB_CDS", ".", "String", "Reference and Alt alleles as reported by dbSNP");
 				
 				for (final VcfRecord dbSNPVcf : reader) {
 					dbSnpTotalCount++;
@@ -1138,24 +1142,36 @@ public class Q3Panel {
 			 */
 			final DateFormat df = new SimpleDateFormat("yyyyMMdd");
 			String date = df.format(Calendar.getInstance().getTime());
+//			header.parseHeaderLine(VcfHeaderUtils.CURRENT_FILE_VERSION);		
+//			header.parseHeaderLine(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + date);		
+//			header.parseHeaderLine(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + QExec.createUUid());		
+//			header.addQPGLine(1, "Q3Panel", exec.getToolVersion().getValue(), exec.getCommandLine().getValue(), date);
+//			header.addFormatLine(VcfHeaderUtils.FORMAT_READ_DEPTH, ".","Integer",VcfHeaderUtils.FORMAT_READ_DEPTH_DESCRIPTION);
+//			header.addFormatLine("FB", ".","String","Sum of contigs supporting the alt,sum of fragments supporting the alt,sum of read counts supporting the alt");
+//			header.addFormatLine("FT", ".","String","Filters that have been applied to the sample");
+//			header.addFormatLine(VcfHeaderUtils.FORMAT_MUTANT_READS, ".","Integer",VcfHeaderUtils.FORMAT_MUTANT_READS_DESC);
+//			header.addFormatLine(VcfHeaderUtils.FORMAT_OBSERVED_ALLELES_BY_STRAND, ".","String",VcfHeaderUtils.FORMAT_OBSERVED_ALLELES_BY_STRAND_DESC);
+//			header.addFormatLine("XFB", ".","String","Breakdown of Contig ids, Fragment ids and read counts supporting this mutation, along with total counts of contig, fragment, and reads for all reads at that location in the following format: ContigId,FragmentId,readCount;[...] / Sum of contigs at this position,sum of fragments at this position,sum of read counts at this position");
+////			header.addFormatLine(SnpUtils.END_OF_READ, ".","String","Indicates that the mutation occurred within the first or last 5 bp of all the reads contributing to the mutation. ");
+//			header.addFilterLine(SnpUtils.END_OF_READ, "Indicates that the mutation occurred within the first or last 5 bp of all the reads contributing to the mutation");
+//			header.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "sample1");
 			
-			header.parseHeaderLine(VcfHeaderUtils.CURRENT_FILE_VERSION);		
-			header.parseHeaderLine(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + date);		
-			header.parseHeaderLine(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + QExec.createUUid());		
-			header.addQPGLine(1, "Q3Panel", exec.getToolVersion().getValue(), exec.getCommandLine().getValue(), date);
-			header.addFormatLine(VcfHeaderUtils.FORMAT_READ_DEPTH, ".","Integer",VcfHeaderUtils.FORMAT_READ_DEPTH_DESCRIPTION);
-			header.addFormatLine("FB", ".","String","Sum of contigs supporting the alt,sum of fragments supporting the alt,sum of read counts supporting the alt");
-			header.addFormatLine("FT", ".","String","Filters that have been applied to the sample");
-			header.addFormatLine(VcfHeaderUtils.FORMAT_MUTANT_READS, ".","Integer",VcfHeaderUtils.FORMAT_MUTANT_READS_DESC);
-			header.addFormatLine(VcfHeaderUtils.FORMAT_OBSERVED_ALLELES_BY_STRAND, ".","String",VcfHeaderUtils.FORMAT_OBSERVED_ALLELES_BY_STRAND_DESC);
-			header.addFormatLine("XFB", ".","String","Breakdown of Contig ids, Fragment ids and read counts supporting this mutation, along with total counts of contig, fragment, and reads for all reads at that location in the following format: ContigId,FragmentId,readCount;[...] / Sum of contigs at this position,sum of fragments at this position,sum of read counts at this position");
-//			header.addFormatLine(SnpUtils.END_OF_READ, ".","String","Indicates that the mutation occurred within the first or last 5 bp of all the reads contributing to the mutation. ");
-			header.addFilterLine(SnpUtils.END_OF_READ, "Indicates that the mutation occurred within the first or last 5 bp of all the reads contributing to the mutation");
-			header.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "sample1");
+			header.addOrReplace(VcfHeader.CURRENT_FILE_FORMAT);		
+			header.addOrReplace(VcfHeader.STANDARD_FILE_DATE + "=" + date);		
+			header.addOrReplace(VcfHeader.STANDARD_UUID_LINE + "=" + QExec.createUUid());		
+			VcfHeaderUtils.addQPGLine(header,1, "Q3Panel", exec.getToolVersion().getValue(), exec.getCommandLine().getValue(), date);
+			header.addFormat(VcfHeaderUtils.FORMAT_READ_DEPTH, ".","Integer",VcfHeaderUtils.FORMAT_READ_DEPTH_DESCRIPTION);
+			header.addFormat("FB", ".","String","Sum of contigs supporting the alt,sum of fragments supporting the alt,sum of read counts supporting the alt");
+			header.addFormat("FT", ".","String","Filters that have been applied to the sample");
+			header.addFormat(VcfHeaderUtils.FORMAT_MUTANT_READS, ".","Integer",VcfHeaderUtils.FORMAT_MUTANT_READS_DESC);
+			header.addFormat(VcfHeaderUtils.FORMAT_OBSERVED_ALLELES_BY_STRAND, ".","String",VcfHeaderUtils.FORMAT_OBSERVED_ALLELES_BY_STRAND_DESC);
+			header.addFormat("XFB", ".","String","Breakdown of Contig ids, Fragment ids and read counts supporting this mutation, along with total counts of contig, fragment, and reads for all reads at that location in the following format: ContigId,FragmentId,readCount;[...] / Sum of contigs at this position,sum of fragments at this position,sum of read counts at this position");//			header.addFormatLine(SnpUtils.END_OF_READ, ".","String","Indicates that the mutation occurred within the first or last 5 bp of all the reads contributing to the mutation. ");
+			header.addFilter(SnpUtils.END_OF_READ, "Indicates that the mutation occurred within the first or last 5 bp of all the reads contributing to the mutation");
+			header.addOrReplace(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "sample1");
 			header = VcfHeaderUtils.mergeHeaders(header, dbSnpHeaderDetails, true);
 			header = VcfHeaderUtils.mergeHeaders(header, cosmicHeaderDetails, true);
 			
-			Iterator<Record> iter = header.iterator();
+			Iterator<VcfHeaderRecord> iter = header.iterator();
 			while (iter.hasNext()) {
 				writer.addHeader(iter.next().toString() );
 			}
