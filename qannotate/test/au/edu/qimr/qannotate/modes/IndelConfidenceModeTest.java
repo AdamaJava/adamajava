@@ -16,6 +16,7 @@ import org.qcmg.common.model.MafConfidence;
 import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.vcf.VcfInfoFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
+import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 
@@ -157,7 +158,7 @@ public class IndelConfidenceModeTest {
 	public static void createVcf() throws IOException{
         final List<String> data = new ArrayList<String>();
         data.add("##fileformat=VCFv4.0");
-        data.add(VcfHeaderUtils.STANDARD_UUID_LINE + "=abcd_12345678_xzy_999666333");
+        data.add(VcfHeader.STANDARD_UUID_LINE + "=abcd_12345678_xzy_999666333");
         data.add("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO");
         
         data.add("chr1	53741	.	CTT	C	37.73	PASS	SOMATIC;HOMCNTXT=5,AGCCTGTCTCaAAAAAAAAAA;NIOC=0.087");

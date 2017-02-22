@@ -18,6 +18,7 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
+import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.vcf.VCFFileReader;
 import org.qcmg.vcf.VCFFileWriter;
 
@@ -65,7 +66,7 @@ public class SnpEffMode extends AbstractMode{
 		try(VCFFileReader reader = new VCFFileReader(new File( tmpFile));
 				VCFFileWriter writer = new VCFFileWriter(outputFile )){
 								
-	        	for(final VcfHeader.Record record: header) {
+	        	for(final VcfHeaderRecord record: header) {
 	        		writer.addHeader(record.toString());
 	        	}
 	        	for (final VcfRecord record : reader) {

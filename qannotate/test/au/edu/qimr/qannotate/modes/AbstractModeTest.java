@@ -2,7 +2,6 @@ package au.edu.qimr.qannotate.modes;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -16,9 +15,9 @@ import java.util.List;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
+import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 
@@ -59,38 +58,34 @@ public class AbstractModeTest {
 	@Test
 	public void reHeaderTest() throws Exception{
 		
-		   try (BufferedReader br = new BufferedReader(new FileReader(inputName))){
-		    	   int i = 0;
-		    	   while (  br.readLine() != null ) {
-		    		   i++;
-		    	   }
-		    	   assertTrue(i == 3);
-		   }
+	   try (BufferedReader br = new BufferedReader(new FileReader(inputName))){
+	    	   int i = 0;
+	    	   while (  br.readLine() != null ) {
+	    		   i++;
+	    	   }
+	    	   assertTrue(i == 3);
+	   }
 	       
 		DbsnpMode db = new DbsnpMode();
 		db.inputRecord(new File(inputName));		
 		db.reheader("testing run",   inputName);
 		db.writeVCF(new File(outputName));
 		
+		
         try (VCFFileReader reader = new VCFFileReader(new File(outputName))) {
-	        	int i = 0;
-	        	for (VcfHeader.Record re :  reader.getHeader()) {
-	        		if (re.getData().startsWith(VcfHeaderUtils.STANDARD_UUID_LINE)) {
-	        			// new UUID should have been inserted by now
-	        			assertEquals(false, "abcd_12345678_xzy_999666333".equals(StringUtils.getValueFromKey(re.getData(), VcfHeaderUtils.STANDARD_UUID_LINE)));
-	        		}
-	        		i ++;
-	        	}
-	        	assertEquals(7, i);	
+        	int i = 0;
+        	for (VcfHeaderRecord re :  reader.getHeader())	i ++;	 
+        	assertEquals(7, i);	        	
+        	assertEquals(false, "abcd_12345678_xzy_999666333".equals( reader.getHeader().getUUID().toString()) );
         }		
 	}
 	
 	 @Test
 	 public void sampleColumnTest()throws Exception{
 			VcfHeader header = new VcfHeader();		 
-			header.parseHeaderLine("##qControlSample=control");
-			header.parseHeaderLine("##qTestSample=test");
-			header.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "qControlSample" + "\tqTestSample");
+			header.addOrReplace("##qControlSample=control");
+			header.addOrReplace("##qTestSample=test");
+			header.addOrReplace(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "qControlSample" + "\tqTestSample");
  
 			DbsnpMode mode = new DbsnpMode();
 			
@@ -102,11 +97,10 @@ public class AbstractModeTest {
 			
 			
 			
-			header.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "qControlSample" + "\ttest");
+			header.addOrReplace(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "qControlSample" + "\ttest");
 			column = SampleColumn.getSampleColumn(null,null, header);
 			assertTrue( column.getControlSampleColumn() == 1);
 			assertTrue( column.getTestSampleColumn() == 2);		
-			
 	        
 	 }
 	 
@@ -117,9 +111,9 @@ public class AbstractModeTest {
 		final String test = "Test";
 		
 		VcfHeader header = new VcfHeader();		 
-		header.parseHeaderLine("##qControlSample=" + control);
-		header.parseHeaderLine("##qTestSample=" + test);
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + control + "\t" + "test");
+		header.addOrReplace("##qControlSample=" + control);
+		header.addOrReplace("##qTestSample=" + test);
+		header.addOrReplace(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + control + "\t" + "test");
 		
 		DbsnpMode mode = new DbsnpMode();
 		
@@ -159,7 +153,7 @@ public class AbstractModeTest {
 	public static void createVcf() throws IOException{
         final List<String> data = new ArrayList<String>();
         data.add("##fileformat=VCFv4.0");
-        data.add(VcfHeaderUtils.STANDARD_UUID_LINE + "=abcd_12345678_xzy_999666333");
+        data.add(VcfHeader.STANDARD_UUID_LINE + "=abcd_12345678_xzy_999666333");
         data.add("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO");
         try(BufferedWriter out = new BufferedWriter(new FileWriter(inputName));) {          
             for (final String line : data)   out.write(line +"\n");                  

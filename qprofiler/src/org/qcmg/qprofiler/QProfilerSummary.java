@@ -98,35 +98,20 @@ public class QProfilerSummary {
 	 * @param filename String representing the output file name 
 	 * @throws Exception thrown if problems occur creating the output file and transforming the xml into the file
 	 */
-	public void asXmlText( Element parent, String filename ) throws Exception {
-		
-//		System.out.println("parent.hasChildNodes: " + parent.hasChildNodes());
-		
-//		toXml( parent );
-		Document doc = parent.getOwnerDocument();
-//		System.out.println("doc.hasChildNodes: " + doc.hasChildNodes());
-		
-//		DOMImplementationLS domImplLS = (DOMImplementationLS) doc.getImplementation();
-//		LSSerializer serializer = domImplLS.createLSSerializer();
-//		String str = serializer.writeToString(parent);
-//		System.out.println("str: " + str);
-		
+	public void asXmlText( Element parent, String filename ) throws Exception {		
 		// Reading an XML file
+		Document doc = parent.getOwnerDocument();		
 		File xmlFile = new File( filename );
 
 		// Use a Transformer for output
 		TransformerFactory tFactory = TransformerFactory.newInstance();
 		Transformer transformer = tFactory.newTransformer();
-		transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+		transformer.setOutputProperty( OutputKeys.INDENT, "yes" );
+		transformer.setOutputProperty( OutputKeys.ENCODING, "ISO-8859-1" );
 		
-//		String dtdname = "http://grimmond.imb.uq.edu.au/DTD/qProfiler_1_0.dtd" ;
-		
-		transformer.setOutputProperty(OutputKeys.ENCODING, "ISO-8859-1");
-//		transformer.setOutputProperty(OutputKeys.DOCTYPE_SYSTEM, dtdname);
-		
-		DOMSource source = new DOMSource(doc);
-		StreamResult sr = new StreamResult(xmlFile);
-		transformer.transform(source, sr);
+		DOMSource source = new DOMSource( doc );
+		StreamResult sr = new StreamResult( xmlFile );
+		transformer.transform( source, sr );
 	}
 	
 }

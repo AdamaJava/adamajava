@@ -18,7 +18,8 @@ import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
-import org.qcmg.common.vcf.header.VcfHeader.Record;
+import org.qcmg.common.vcf.header.VcfHeader;
+import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 
@@ -74,22 +75,16 @@ public class GermlineMode extends AbstractMode{
   		try(VCFFileReader reader = new VCFFileReader(germFile)){
   			
   			//add header line first
-  			String date = (reader.getHeader().getFileDate() == null)? null: new VcfHeaderUtils.SplitMetaRecord(reader.getHeader().getFileDate()).getValue();
+  			String date = (reader.getHeader().getFileDate() == null)? null: reader.getHeader().getFileDate().getMetaValue(); //new VcfHeaderUtils.SplitMetaRecord(reader.getHeader().getFileDate()).getValue();
 	 		String germ = String.format("%s=<ID=%s,Number=1,Type=Integer,Description=\"%s\",Source=%s,FileDate=%s>", 
-				VcfHeaderUtils.HEADER_LINE_INFO, VcfHeaderUtils.INFO_GERMLINE,VcfHeaderUtils.DESCRITPION_INFO_GERMLINE,
+				VcfHeader.HEADER_LINE_INFO, VcfHeaderUtils.INFO_GERMLINE,VcfHeaderUtils.DESCRITPION_INFO_GERMLINE,
 				germFile.getAbsolutePath(),  date);
-	 		header.parseHeaderLine(germ, true);
+	 		header.addOrReplace(germ, true);
 	 		
-	 		int total = -1;	 				
-			for(Record re : reader.getHeader().getMetaRecords()) {
-				if(re.getData().startsWith(VcfHeaderUtils.GERMDB_DONOR_NUMBER)) {
-					try{
-						total = Integer.parseInt( new VcfHeaderUtils.SplitMetaRecord(re).getValue());
-					}catch(Exception e){
-						total = 0; 
-					}
-				}
-			}
+	 		int total = -1;	 
+	 		for(VcfHeaderRecord re : reader.getHeader().getRecords(VcfHeaderUtils.GERMDB_DONOR_NUMBER))  	 			 
+				try{ total = Integer.parseInt( re.getMetaValue());
+				}catch(Exception e){ total = 0; }
 	 	    
 	 	   int updatedRecordCount = 0;
 	 	   for (final VcfRecord dbGermlineVcf : reader) {
@@ -98,7 +93,6 @@ public class GermlineMode extends AbstractMode{
 	 		   if ( ! chr.equals(germCP.getChromosome())) {
 	 			  germCP = ChrPositionUtils.cloneWithNewChromosomeName(germCP, chr);
 	 		   }
-//	 		   int end =  dbGermlineVcf.getPosition() + dbGermlineVcf.getRef().length() - 1;
 	 		   
 	 		   List<VcfRecord> inputVcfs = positionRecordMap.get(germCP);
 	 		   if (null == inputVcfs || inputVcfs.size() == 0) {

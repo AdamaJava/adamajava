@@ -34,6 +34,7 @@ import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
+import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.tab.TabbedFileReader;
 import org.qcmg.tab.TabbedRecord;
@@ -177,7 +178,7 @@ public class BuildCommonSnpsVcf {
 		
 		try (VCFFileWriter writer = new VCFFileWriter(new File(outputFileName));) {
 			final VcfHeader header = getHeaderForCommonSnps(searchString, searchDirectory, additionalSearchStrings, mapOfFilesAndIds);
-			for(final VcfHeader.Record re : header)
+			for(final VcfHeaderRecord re : header)
 				writer.addHeader(re.toString());
 			for (final ChrPosition position : orderedList) {
 				writer.add(snpPositions.get(position));
@@ -192,24 +193,24 @@ public class BuildCommonSnpsVcf {
 
 
 		//move input uuid into preuuid
-		header.parseHeaderLine(VcfHeaderUtils.CURRENT_FILE_VERSION);	
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + df.format(Calendar.getInstance().getTime()));
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + QExec.createUUid() );
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=" + Messages.getProgramName() + Main.class.getPackage().getImplementationVersion());
-		header.parseHeaderLine("##search_string=" + Arrays.deepToString(searchString) );
-		header.parseHeaderLine( "##search_directory=" + Arrays.deepToString(searchDirectory));
-		header.parseHeaderLine( "##additional_search_directory=" + Arrays.deepToString(additionalSearchStrings));
+		header.addOrReplace(VcfHeader.CURRENT_FILE_FORMAT);	
+		header.addOrReplace(VcfHeader.STANDARD_FILE_DATE + "=" + df.format(Calendar.getInstance().getTime()));
+		header.addOrReplace(VcfHeader.STANDARD_UUID_LINE + "=" + QExec.createUUid() );
+		header.addOrReplace(VcfHeader.STANDARD_SOURCE_LINE + "=" + Messages.getProgramName() + Main.class.getPackage().getImplementationVersion());
+		header.addOrReplace("##search_string=" + Arrays.deepToString(searchString) );
+		header.addOrReplace( "##search_directory=" + Arrays.deepToString(searchDirectory));
+		header.addOrReplace( "##additional_search_directory=" + Arrays.deepToString(additionalSearchStrings));
 		
 		if (null != mapOfFilesAndIds && mapOfFilesAndIds.size() > 0) {			
 			final List<File> files = new ArrayList<File>(mapOfFilesAndIds.keySet());
 			Collections.sort(files);			
 			for (final File f : files) {
-				header.addInfoLine( mapOfFilesAndIds.get(f).toString(),  "0", "Flag", f.getAbsolutePath());
+				header.addInfo( mapOfFilesAndIds.get(f).toString(),  "0", "Flag", f.getAbsolutePath());
 				//filesMapSB .append("##INFO=<ID=" + mapOfFilesAndIds.get(f) + ",Number=0,Type=Flag,Description=\"" + f.getAbsolutePath() + "\">\n");
 			}
 		}
 		
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE);
+//		header.addOrReplace(VcfHeader.STANDARD_FINAL_HEADER_LINE); //it will be added automatically
 		return header;
 /*		return "##fileformat=VCFv4.0\n" +
 		"##search_string=" + searchString + "\n" +

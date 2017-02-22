@@ -8,7 +8,9 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.junit.AfterClass;
@@ -16,12 +18,14 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.commandline.Executor;
+import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.util.IndelUtils.SVTYPE;
 import org.qcmg.common.vcf.VcfFormatFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
+import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 
@@ -102,17 +106,28 @@ public class Vcf2mafTest {
 	 @Test
 	 public void getDetailsFromVcfHeader() {
 		 VcfHeader h = new VcfHeader();
-		 assertEquals(false, Vcf2maf.getBamid("blah", h).isPresent());
+		 assertEquals(false, getBamid("blah", h).isPresent());
 		 h = createMergedVcfHeader();
-		 assertEquals(false, Vcf2maf.getBamid("##qDonorId", h).isPresent());
-		 assertEquals(true, Vcf2maf.getBamid("##1:qDonorId", h).isPresent());
+		 assertEquals(false, getBamid("##qDonorId", h).isPresent());
+		 assertEquals(true, getBamid("##1:qDonorId", h).isPresent());
 	 }
+	 
+	 
+	 private Optional<String> getBamid(String key, VcfHeader header){
+		for (final VcfHeaderRecord hr : header.getAllMetaRecords()) { 
+			if( hr.toString().indexOf(key) != -1) {
+				return Optional.ofNullable(StringUtils.getValueFromKey(hr.toString(), key));
+			}
+		}
+		return Optional.empty(); 
+	}
 	 
 	 private VcfHeader createMergedVcfHeader() {
 		 VcfHeader h = new VcfHeader();
+		 
+//have to remove empty line "##"		 
 		 Arrays.asList("##fileformat=VCFv4.2",
 "##fileDate=20160523",
-"##",
 "##qUUID=209dec81-a127-4aa3-92b4-2c15c21b75c7",
 "##qSource=qannotate-2.0 (1170)",
 "##1:qUUID=7554fdcc-7230-400e-aefe-5c9a4c79907b",
@@ -142,7 +157,9 @@ public class Vcf2mafTest {
 "##2:qTestVcfUUID=null",
 "##2:qTestVcfGATKVersion=3.4-46-gbc02625",
 "##INPUT=1,FILE=/mnt/lustre/home/oliverH/q3testing/analysis/e/3/e3afda85-469f-412b-8919-10cd31d2ca52/e3afda85-469f-412b-8919-10cd31d2ca52.vcf",
-"##INPUT=2,FILE=/mnt/lustre/home/oliverH/q3testing/analysis/3/3/3334e934-cb45-4215-9eb5-84b63d96a502/3334e934-cb45-4215-9eb5-84b63d96a502.vcf").stream().forEach(h::parseHeaderLine);
+//"##INPUT=2,FILE=/mnt/lustre/home/oliverH/q3testing/analysis/3/3/3334e934-cb45-4215-9eb5-84b63d96a502/3334e934-cb45-4215-9eb5-84b63d96a502.vcf").stream().forEach(h::parseHeaderLine);
+"##INPUT=2,FILE=/mnt/lustre/home/oliverH/q3testing/analysis/3/3/3334e934-cb45-4215-9eb5-84b63d96a502/3334e934-cb45-4215-9eb5-84b63d96a502.vcf").stream().forEach(h::addOrReplace);
+
 		 return h;
 	 }
 	 
@@ -652,11 +669,11 @@ public class Vcf2mafTest {
 	 @Test
 	 public void BAMidTest()throws IOException, Exception{
 			String[] str = {        		
-					VcfHeaderUtils.STANDARD_FILE_VERSION + "=VCFv4.0",	
+					VcfHeader.STANDARD_FILE_FORMAT + "=VCFv4.0",	
 					VcfHeaderUtils.STANDARD_CONTROL_SAMPLE + "=CONTROL_sample",
 					VcfHeaderUtils.STANDARD_TEST_SAMPLE + "=TEST_sample",	
 					VcfHeaderUtils.STANDARD_TEST_BAMID + "=TEST_bamID",				
-					VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tqControlSample\tqTestSample",
+					VcfHeader.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tqControlSample\tqTestSample",
 					"GL000236.1\t7127\t.\tT\tC\t.\tMR;MIUN\tSOMATIC;MR=4;NNS=4;FS=CCAGCCTATTT;CONF=ZERO\tGT:GD:AC:MR:NNS\t0/0:T/T:T9[37.11],18[38.33]:.:4\t0/1:C/T:C1[12],3[41],T19[35.58],30[33.63]:.:5"};			
 		        createVcf(str); 
 	        	try {
@@ -723,11 +740,11 @@ public class Vcf2mafTest {
 
 	@Test
 	public void fileNameTest() {
-		String[] str = {VcfHeaderUtils.STANDARD_FILE_VERSION + "=VCFv4.0",			
+		String[] str = {VcfHeader.STANDARD_FILE_FORMAT + "=VCFv4.0",			
 				VcfHeaderUtils.STANDARD_DONOR_ID + "=MELA_0264",
 				VcfHeaderUtils.STANDARD_CONTROL_SAMPLE + "=CONTROL",
 				VcfHeaderUtils.STANDARD_TEST_SAMPLE + "=TEST",				
-				VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tCONTROL\tTEST"	
+				VcfHeader.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tCONTROL\tTEST"	
 		};
 		        
         try{
@@ -754,11 +771,11 @@ public class Vcf2mafTest {
 	
 	@Test
 	public void areVcfFilesCreated() throws Exception {
-		String[] str = {VcfHeaderUtils.STANDARD_FILE_VERSION + "=VCFv4.0",			
+		String[] str = {VcfHeader.STANDARD_FILE_FORMAT + "=VCFv4.0",			
 				VcfHeaderUtils.STANDARD_DONOR_ID + "=ABCD_1234",
 				VcfHeaderUtils.STANDARD_CONTROL_SAMPLE + "=CONTROL",
 				VcfHeaderUtils.STANDARD_TEST_SAMPLE + "=TEST",				
-				VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tCONTROL\tTEST"	,
+				VcfHeader.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tCONTROL\tTEST"	,
 				"chr10\t87489317\trs386746181\tTG\tCC\t.\tPASS\tSOMATIC;DB;CONF=HIGH;"
 						 + "EFF=start_lost(HIGH||atg/GGtg|p.Met1?|580|GRID1|protein_coding|CODING|ENST00000536331||1);"
 						 + "LOF=(GRID1|ENSG00000182771|4|0.25);END=87489318\tACCS\tTG,29,36,_G,0,1\tCC,4,12,TG,15,12"
@@ -801,7 +818,7 @@ public class Vcf2mafTest {
 		String[] str = {"##fileformat=VCFv4.0",			
 				"##qControlSample=CONTROL",
 				"##qTestSample=TEST",				
-				VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tCONTROL\tTEST" };
+				VcfHeader.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tCONTROL\tTEST" };
 
         createVcf(str);
         
@@ -820,7 +837,7 @@ public class Vcf2mafTest {
 		String[] str = {"##fileformat=VCFv4.0",			
 				VcfHeaderUtils.STANDARD_DONOR_ID +"=MELA_0264",
 				VcfHeaderUtils.STANDARD_TEST_SAMPLE +"=TEST",				
-				VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tCONTROL\tTEST"};
+				VcfHeader.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tCONTROL\tTEST"};
 
         createVcf(str);
         

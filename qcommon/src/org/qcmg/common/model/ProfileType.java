@@ -14,7 +14,8 @@ public enum ProfileType {
 	XML(""),
 	MA("MA"),
 	FA("FA"),	// genome files - hopefully...
-	FASTQ("FASTQ");
+	FASTQ("FASTQ"),
+	VCF("VCF");
 	
 	private String reportName;
 	

@@ -48,7 +48,7 @@ public class KmersSummaryTest {
  		String[] bases = summary.getPossibleKmerString(3, true); 
 		for(int cycle = 0; cycle < 10; cycle ++) 
 			for(String base : bases)
-				if( cycle == 0  && (base.equals("CAG")  || base.equals("AGN")) )
+				if( cycle == 0  && ( base.equals("CAG")  || base.equals("AGN")) )
 					assertTrue(summary.getCount(cycle, base ) == 1);
 				else if(cycle == 1 && ( base.equals("AGN") || base.equals("GNG")) )
 					assertTrue(summary.getCount(cycle, base ) == 1);
@@ -80,19 +80,20 @@ public class KmersSummaryTest {
 		 // CCTA A CNCT
 		String[] bases = summary.getPossibleKmerString(1, true); 
 		for(int cycle = 0; cycle < 10; cycle ++) 
-			for(String base : bases)
-				if((cycle == 0 || cycle == 1) && base.equals("C"))
-					assertTrue(summary.getCount(cycle, base ) == 2);
-				else if(cycle == 2 && base.equals("T"))
-					assertTrue(summary.getCount(cycle, base ) == 2);
-				else if(cycle == 3 && base.equals("A"))
-					assertTrue(summary.getCount(cycle, base ) == 2);
-				else if(cycle == 4 && base.equals("A"))
+			for( String base : bases )
+				if((cycle == 0 || cycle == 1) && base.equals("C")) 
+			 		assertTrue(summary.getCount(cycle, base ) == 2);
+				else if(cycle == 2 && base.equals("T")) 
+			 		assertTrue(summary.getCount(cycle, base ) == 2);
+				else if(cycle == 3 && base.equals("A")) 
+			 		assertTrue(summary.getCount(cycle, base ) == 2);
+				else if(cycle == 4 && base.equals("A")) 
 					//short mers from second reads are discarded
-					assertTrue(summary.getCount(cycle, base ) == 1);
-				else
+			 		assertTrue(summary.getCount(cycle, base ) == 1);
+				else{
 					assertTrue(summary.getCount(cycle, base ) == 0);
-		 		
+				}
+		
 		 //kmers2
 		 bases = summary.getPossibleKmerString(2, true); 	
 		 for(int cycle = 0; cycle < 10; cycle ++) 
@@ -131,5 +132,43 @@ public class KmersSummaryTest {
 					Level.WARNING, "IOException caught whilst attempting to write to SAM test file: " + SAM_INPUT_FILE, e);
 		}  
 	}
+	
+//	@Test
+//	public void xuTest(){
+//		byte[] mers7 = new byte[]{'T','T','T','T','T','T'};
+//		byte[] mers6 = new byte[]{'A','A','A','A','A','A'};		
+//		byte[] mers5 = new byte[]{'A','A','A','A','A'};
+//		byte[] mers4 = new byte[]{'A','A','A','A'};
+//		byte[] mers3 = new byte[]{'A','A','A'};
+//		
+//		byte[] mers2 = new byte[]{'A','A' };
+//		byte[] mers21 = new byte[]{'A','C' };
+//		byte[] mers22 = new byte[]{'A','G'};
+//		byte[] mers23 = new byte[]{'A','T'};
+//		byte[] mers24 = new byte[]{'A','N'};
+//		
+//
+//		byte[] mers1 = new byte[]{'A' };
+//		byte[] mers11 = new byte[]{'C' };
+//		byte[] mers12 = new byte[]{'G'};
+//		byte[] mers13 = new byte[]{'T'};
+//		byte[] mers14 = new byte[]{'N'};
+//		
+//		for(byte[] mers : new byte[][]{mers1, mers11,mers12,mers13,mers14, mers2, mers21,mers22,mers23, mers24,mers3,mers4, mers5, mers6,mers7}){
+//			int entry = 0; 
+//			for(int i = 0, j = mers.length-1; i < mers.length; i ++, j-- ){
+//				int no = 5; //default is 'N'
+//				switch (mers[i]){
+//					case 'A' : no = 1; break;
+//					case 'C' : no = 2; break;
+//					case 'G' : no = 3; break;
+//					case 'T' : no = 4; break;
+//				}
+////				entry += no << ( j * 5 ); 
+//				entry += no << ( j * 3 ); 	
+//			}			
+//			System.out.println(Arrays.toString( mers ) + " : " + entry + "," + Integer.toBinaryString(entry));
+//		}
+//	}
 	
 }

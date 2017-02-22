@@ -35,7 +35,7 @@ public class IndelUtilsTest {
 		// unknown
 		assertEquals(SVTYPE.UNKNOWN, IndelUtils.getVariantType("A","ABC,B"));
 		assertEquals(SVTYPE.UNKNOWN, IndelUtils.getVariantType("ABC","ABC,B"));
-		assertEquals(SVTYPE.UNKNOWN, IndelUtils.getVariantType("ABC","A,B"));
+		assertEquals(SVTYPE.DEL, IndelUtils.getVariantType("ABC","A,B"));
 	}
 	
 	@Test
@@ -72,31 +72,58 @@ public class IndelUtilsTest {
 		assertEquals(true, IndelUtils.refSameLengthAsAlts("ZX", "11,22,33,44,55,66,77,88,99"));
 	}
 	
+//	@Test
+//	public void areAltsSameLength() {
+//		try {
+//			assertEquals(false, IndelUtils.areAltsSameLength(null));
+//			Assert.fail("Should have thrown an IAE");
+//		} catch (IllegalArgumentException iae) {}
+//		try {
+//			assertEquals(false, IndelUtils.areAltsSameLength(""));
+//			Assert.fail("Should have thrown an IAE");
+//		} catch (IllegalArgumentException iae) {}
+//		
+//		assertEquals(true, IndelUtils.areAltsSameLength("A"));
+//		assertEquals(true, IndelUtils.areAltsSameLength("B"));
+//		assertEquals(true, IndelUtils.areAltsSameLength("c"));
+//		assertEquals(true, IndelUtils.areAltsSameLength("d"));
+//		assertEquals(true, IndelUtils.areAltsSameLength("d,e"));
+//		assertEquals(true, IndelUtils.areAltsSameLength("d,e,f"));
+//		assertEquals(true, IndelUtils.areAltsSameLength("d,e,f,g"));
+//		assertEquals(false, IndelUtils.areAltsSameLength("d,e,f,gh"));
+//		assertEquals(false, IndelUtils.areAltsSameLength("de,f,g,h"));
+//		assertEquals(false, IndelUtils.areAltsSameLength("d,e,fg,h"));
+//		assertEquals(true, IndelUtils.areAltsSameLength("d,e,f,g,h"));
+//		assertEquals(false, IndelUtils.areAltsSameLength("d,eee,fff,ggg,h"));
+//		assertEquals(false, IndelUtils.areAltsSameLength("dd,eee,fff,ggg,hhh"));
+//		assertEquals(true, IndelUtils.areAltsSameLength("ddd,eee,fff,ggg,hhh"));
+//	}
+	
 	@Test
 	public void areAltsSameLength() {
 		try {
-			assertEquals(false, IndelUtils.areAltsSameLength(null));
+			assertEquals(null, IndelUtils.getFirstAltIfSameLength(null));
 			Assert.fail("Should have thrown an IAE");
 		} catch (IllegalArgumentException iae) {}
 		try {
-			assertEquals(false, IndelUtils.areAltsSameLength(""));
+			assertEquals(null, IndelUtils.getFirstAltIfSameLength(""));
 			Assert.fail("Should have thrown an IAE");
 		} catch (IllegalArgumentException iae) {}
 		
-		assertEquals(true, IndelUtils.areAltsSameLength("A"));
-		assertEquals(true, IndelUtils.areAltsSameLength("B"));
-		assertEquals(true, IndelUtils.areAltsSameLength("c"));
-		assertEquals(true, IndelUtils.areAltsSameLength("d"));
-		assertEquals(true, IndelUtils.areAltsSameLength("d,e"));
-		assertEquals(true, IndelUtils.areAltsSameLength("d,e,f"));
-		assertEquals(true, IndelUtils.areAltsSameLength("d,e,f,g"));
-		assertEquals(false, IndelUtils.areAltsSameLength("d,e,f,gh"));
-		assertEquals(false, IndelUtils.areAltsSameLength("de,f,g,h"));
-		assertEquals(false, IndelUtils.areAltsSameLength("d,e,fg,h"));
-		assertEquals(true, IndelUtils.areAltsSameLength("d,e,f,g,h"));
-		assertEquals(false, IndelUtils.areAltsSameLength("d,eee,fff,ggg,h"));
-		assertEquals(false, IndelUtils.areAltsSameLength("dd,eee,fff,ggg,hhh"));
-		assertEquals(true, IndelUtils.areAltsSameLength("ddd,eee,fff,ggg,hhh"));
+		assertEquals("A", IndelUtils.getFirstAltIfSameLength("A"));
+		assertEquals("B", IndelUtils.getFirstAltIfSameLength("B"));
+		assertEquals("c", IndelUtils.getFirstAltIfSameLength("c"));
+		assertEquals("d", IndelUtils.getFirstAltIfSameLength("d"));
+		assertEquals("d", IndelUtils.getFirstAltIfSameLength("d,e"));
+		assertEquals("d", IndelUtils.getFirstAltIfSameLength("d,e,f"));
+		assertEquals("d", IndelUtils.getFirstAltIfSameLength("d,e,f,g"));
+		assertEquals(null, IndelUtils.getFirstAltIfSameLength("d,e,f,gh"));
+		assertEquals(null, IndelUtils.getFirstAltIfSameLength("de,f,g,h"));
+		assertEquals(null, IndelUtils.getFirstAltIfSameLength("d,e,fg,h"));
+		assertEquals("d", IndelUtils.getFirstAltIfSameLength("d,e,f,g,h"));
+		assertEquals(null, IndelUtils.getFirstAltIfSameLength("d,eee,fff,ggg,h"));
+		assertEquals(null, IndelUtils.getFirstAltIfSameLength("dd,eee,fff,ggg,hhh"));
+		assertEquals("ddd", IndelUtils.getFirstAltIfSameLength("ddd,eee,fff,ggg,hhh"));
 	}
 	
 	

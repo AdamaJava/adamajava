@@ -7,6 +7,7 @@ import org.qcmg.common.util.Constants;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
+import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.pileup.QSnpRecord;
 
@@ -63,25 +64,7 @@ public class TestVcfPipeline extends Pipeline {
 			// tumour only
 			qpr = tumour;
 			VcfUtils.addMissingDataToFormatFields(qpr.getVcfRecord(), 1);
-		}
-		
-		
-		
-//		if (null != normal) {
-//			qpr.setRef(normal.getRef());
-//			qpr.setNormalGenotype(normal.getGenotypeEnum());
-//			qpr.setAnnotation(normal.getAnnotation());
-			// tumour fields
-//			qpr.setTumourGenotype(null == tumour ? null : tumour.getTumourGenotype());
-//			qpr.setTumourCount(null == tumour ? 0 :  VcfUtils.getDPFromFormatField(tumour.getVcfRecord().getFormatFields().get(1)));
-			
-//		} else if (null != tumour) {
-//			qpr = new QSnpRecord(tumour.getChromosome(), tumour.getPosition(), tumour.getRef());
-//			qpr.setRef(tumour.getRef());
-//			qpr.setTumourGenotype(tumour.getGenotypeEnum());
-//			qpr.setTumourCount(VcfUtils.getDPFromFormatField(tumour.getGenotype()));
-//		}
-		
+		}		
 		qpr.setId(++mutationId);
 		return qpr;
 	}
@@ -91,36 +74,36 @@ public class TestVcfPipeline extends Pipeline {
 		VcfHeader existingHeader = new VcfHeader();
 		
 		if ( ! singleSampleMode) {
-			for (VcfHeader.Record rec : controlVcfHeader.getInfoRecords().values()) {
-				existingHeader.addInfo(rec);
+			for (VcfHeaderRecord rec : controlVcfHeader.getInfoRecords()) {
+				existingHeader.addOrReplace(rec);
 			}
-			for (VcfHeader.Record rec : controlVcfHeader.getFormatRecords().values()) {
-				existingHeader.addFormat(rec);
+			for (VcfHeaderRecord rec : controlVcfHeader.getFormatRecords()) {
+				existingHeader.addOrReplace(rec);
 			}
-			for (VcfHeader.Record rec : controlVcfHeader.getFilterRecords().values()) {
-				existingHeader.addFilter(rec);
+			for (VcfHeaderRecord rec : controlVcfHeader.getFilterRecords()) {
+				existingHeader.addOrReplace(rec);
 			}
 			
 			// add in the vcf filename, gatk version and the uuid
-			existingHeader.parseHeaderLine(VcfHeaderUtils.STANDARD_CONTROL_VCF + Constants.EQ + controlVcfFile);
-			existingHeader.parseHeaderLine(VcfHeaderUtils.STANDARD_CONTROL_VCF_UUID + Constants.EQ + VcfHeaderUtils.getUUIDFromHeaderLine(controlVcfHeader.getUUID()));
-			existingHeader.parseHeaderLine(VcfHeaderUtils.STANDARD_CONTROL_VCF_GATK_VER + Constants.EQ + VcfHeaderUtils.getGATKVersionFromHeaderLine(controlVcfHeader));
+			existingHeader.addOrReplace( VcfHeaderUtils.STANDARD_CONTROL_VCF + Constants.EQ + controlVcfFile);
+			existingHeader.addOrReplace(VcfHeaderUtils.STANDARD_CONTROL_VCF_UUID + Constants.EQ + VcfHeaderUtils.getUUIDFromHeaderLine(controlVcfHeader.getUUID()));
+			existingHeader.addOrReplace(VcfHeaderUtils.STANDARD_CONTROL_VCF_GATK_VER + Constants.EQ + VcfHeaderUtils.getGATKVersionFromHeaderLine(controlVcfHeader));
 			
 		}
 		
-		for (VcfHeader.Record rec : testVcfHeader.getInfoRecords().values()) {
-			existingHeader.addInfo(rec);
+		for (VcfHeaderRecord rec : testVcfHeader.getInfoRecords()) {
+			existingHeader.addOrReplace(rec);
 		}
-		for (VcfHeader.Record rec : testVcfHeader.getFormatRecords().values()) {
-			existingHeader.addFormat(rec);
+		for (VcfHeaderRecord rec : testVcfHeader.getFormatRecords()) {
+			existingHeader.addOrReplace(rec);
 		}
-		for (VcfHeader.Record rec : testVcfHeader.getFilterRecords().values()) {
-			existingHeader.addFilter(rec);
+		for (VcfHeaderRecord rec : testVcfHeader.getFilterRecords()) {
+			existingHeader.addOrReplace(rec);
 		}
 		// add in the vcf filename, gatk version and the uuid
-		existingHeader.parseHeaderLine(VcfHeaderUtils.STANDARD_TEST_VCF + Constants.EQ + testVcfFile);
-		existingHeader.parseHeaderLine(VcfHeaderUtils.STANDARD_TEST_VCF_UUID + Constants.EQ + VcfHeaderUtils.getUUIDFromHeaderLine(testVcfHeader.getUUID()));
-		existingHeader.parseHeaderLine(VcfHeaderUtils.STANDARD_TEST_VCF_GATK_VER + Constants.EQ + VcfHeaderUtils.getGATKVersionFromHeaderLine(testVcfHeader));
+		existingHeader.addOrReplace(VcfHeaderUtils.STANDARD_TEST_VCF + Constants.EQ + testVcfFile);
+		existingHeader.addOrReplace(VcfHeaderUtils.STANDARD_TEST_VCF_UUID + Constants.EQ + VcfHeaderUtils.getUUIDFromHeaderLine(testVcfHeader.getUUID()));
+		existingHeader.addOrReplace(VcfHeaderUtils.STANDARD_TEST_VCF_GATK_VER + Constants.EQ + VcfHeaderUtils.getGATKVersionFromHeaderLine(testVcfHeader));
 		
 		// override this if dealing with input VCFs and the existing headers are to be kept
 		return existingHeader;

@@ -7,6 +7,7 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
+import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 
 
@@ -99,38 +100,21 @@ public class SampleColumn {
 		//List<String> ids = new ArrayList<String>();
 		String[][] ids = new String[2][2];
 		String[][] temp = new String[2][6];
-		for (final VcfHeader.Record hr : header.getMetaRecords()) {
-			String value = null; 
-			if (( value = StringUtils.getValueFromKey(hr.getData(), VcfHeaderUtils.STANDARD_CONTROL_SAMPLE)) != null)  	
-				temp[0][0] = value;
-			else if( (value = StringUtils.getValueFromKey(hr.getData(), VcfHeaderUtils.STANDARD_CONTROL_SAMPLE_1))  != null)  
-				temp[0][1] = value;
-
-			else if((value = StringUtils.getValueFromKey(hr.getData(), VcfHeaderUtils.STANDARD_CONTROL_BAMID )) != null )  
-				temp[0][2] = value;
-			else if( (value = StringUtils.getValueFromKey(hr.getData(), VcfHeaderUtils.STANDARD_CONTROL_BAMID_1) ) != null )  
-				temp[0][5] = value;			
-
-			else if( (value = StringUtils.getValueFromKey(hr.getData(), VcfHeaderUtils.STANDARD_CONTROL_BAM )) != null )  
-				temp[0][3] = value;
-			else if( (value = StringUtils.getValueFromKey(hr.getData(), VcfHeaderUtils.STANDARD_CONTROL_BAM_1 ))!= null  )  
-				temp[0][4] = value;
-							
-			if ( (value = StringUtils.getValueFromKey(hr.getData(), VcfHeaderUtils.STANDARD_TEST_SAMPLE)) != null )				
-				temp[1][0] = value;
-			else if( (value = StringUtils.getValueFromKey(hr.getData(), VcfHeaderUtils.STANDARD_TEST_SAMPLE_1)) != null )  
-				temp[1][1] = value;
-
-			else if( (value = StringUtils.getValueFromKey(hr.getData(), VcfHeaderUtils.STANDARD_TEST_BAMID )) != null )  
-				temp[1][2] = value;			
-			else if((value =  StringUtils.getValueFromKey(hr.getData(), VcfHeaderUtils.STANDARD_TEST_BAMID_1 )) != null )  
-				temp[1][5] = value;
-			
-			else if( (value = StringUtils.getValueFromKey(hr.getData(), VcfHeaderUtils.STANDARD_TEST_BAM )) != null)  
-				temp[1][3] = value;
-			else if( (value = StringUtils.getValueFromKey(hr.getData(), VcfHeaderUtils.STANDARD_TEST_BAM_1 )) != null )  
-				temp[1][4] = value;			 
-		}	
+		VcfHeaderRecord re; 
+		
+		temp[0][0] = (re = header.firstMatchedRecord(VcfHeaderUtils.STANDARD_CONTROL_SAMPLE)) != null? re.getMetaValue() : null;
+		temp[0][1] = (re = header.firstMatchedRecord(VcfHeaderUtils.STANDARD_CONTROL_SAMPLE_1)) != null? re.getMetaValue() : null;	 
+		temp[0][2] = (re = header.firstMatchedRecord(VcfHeaderUtils.STANDARD_CONTROL_BAMID)) != null? re.getMetaValue() : null;	 
+		temp[0][5] = (re = header.firstMatchedRecord(VcfHeaderUtils.STANDARD_CONTROL_BAMID_1)) != null? re.getMetaValue() : null;			
+		temp[0][3] = (re = header.firstMatchedRecord(VcfHeaderUtils.STANDARD_CONTROL_BAM )) != null? re.getMetaValue() : null;
+		temp[0][4] = (re = header.firstMatchedRecord(VcfHeaderUtils.STANDARD_CONTROL_BAM_1)) != null? re.getMetaValue() : null;
+		temp[1][0] = (re = header.firstMatchedRecord(VcfHeaderUtils.STANDARD_TEST_SAMPLE)) != null? re.getMetaValue() : null;
+		temp[1][1] = (re = header.firstMatchedRecord(VcfHeaderUtils.STANDARD_TEST_SAMPLE_1)) != null? re.getMetaValue() : null;
+		temp[1][2] = (re = header.firstMatchedRecord(VcfHeaderUtils.STANDARD_TEST_BAMID)) != null? re.getMetaValue() : null;
+		temp[1][5] = (re = header.firstMatchedRecord(VcfHeaderUtils.STANDARD_TEST_BAMID_1)) != null? re.getMetaValue() : null;
+		temp[1][3] = (re = header.firstMatchedRecord(VcfHeaderUtils.STANDARD_TEST_BAM)) != null? re.getMetaValue() : null;
+		temp[1][4] = (re = header.firstMatchedRecord(VcfHeaderUtils.STANDARD_TEST_BAM_1)) != null? re.getMetaValue() : null;
+		
 		
 		Function<String, String> removeBam = (String s) -> 
 			(null != s && s.endsWith(".bam")) ? s.substring(0, (s.length() - 4)) : s;	
@@ -165,19 +149,12 @@ public class SampleColumn {
 	public String getControlSample(){ 	return control_Sample; }
 
 	static public String getDonorId(VcfHeader header){
-		String id = null; 
-		for (VcfHeader.Record rec : header.getMetaRecords())  
-			if (rec.getData().startsWith(VcfHeaderUtils.STANDARD_DONOR_ID)){ 
-				id = StringUtils.getValueFromKey(rec.getData(), VcfHeaderUtils.STANDARD_DONOR_ID);
-				break;			
-			}
-		 
-		if (  id == null)  
-			for (VcfHeader.Record rec : header.getMetaRecords())  
-				if (rec.getData().startsWith("##1:qDonorId")){ 
-					id = StringUtils.getValueFromKey(rec.getData(), "##1:qDonorId");
-					break;			
-				}
+		VcfHeaderRecord re = header.firstMatchedRecord(VcfHeaderUtils.STANDARD_DONOR_ID);
+		String id =  (re == null)? null: re.getMetaValue() ;
+		
+		if(id == null )
+			id = (re = header.firstMatchedRecord("##1:qDonorId")) == null ? null: re.getMetaValue() ;
+		
 		return id;	 
 		 
 	}

@@ -1,40 +1,53 @@
 package org.qcmg.common.vcf.header;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Assert;
 import org.junit.Test;
+import org.qcmg.common.string.StringUtils;
+import org.qcmg.common.util.Constants;
 
 public class VcfHeaderTest {
 
 	@Test
 	public void sampleIdTest(){
 		final VcfHeader header = new VcfHeader();
-		header.parseHeaderLine("#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	Control	Test");
+		header.addOrReplace("#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	Control	Test", true);
 		String[] sample = header.getSampleId();
 		assertTrue(sample[0].equals("Control"));
 		assertTrue(sample[1].equals("Test"));
 		
-		header.parseHeaderLine("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tControl\tTest");
+		header.addOrReplace("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tControl\tTest", true);
 		assertNull(header.getSampleId()); 			
 	}
 	
 	@Test
 	public void examineOrderOfRecordsReturned() {
 		VcfHeader header = new VcfHeader();
-		header.addFormatLine(VcfHeaderUtils.FORMAT_MUTANT_READS, "1", "String", "teenage mutant ninja turtles");
-		header.addFilterLine(VcfHeaderUtils.FILTER_NO_CALL_IN_TEST, "NCIT");
-		header.addInfoLine(VcfHeaderUtils.INFO_DONOR , "1", "String",  "donor details here");
+		header.addFormat(VcfHeaderUtils.FORMAT_MUTANT_READS, "1", "String", "teenage mutant ninja turtles");
+		header.addFilter(VcfHeaderUtils.FILTER_NO_CALL_IN_TEST, "NCIT");
+		header.addInfo(VcfHeaderUtils.INFO_DONOR , "1", "String",  "donor details here");
 		VcfHeaderUtils.addQPGLineToHeader(header, "junit", "4.10", "something like this");
-		header.parseHeaderLine(VcfHeaderUtils.CURRENT_FILE_VERSION);
+		header.addOrReplace(VcfHeader.CURRENT_FILE_FORMAT, true);
+		header.addOrReplace("##QZ=qz1");
+		header.addOrReplace("##QZ=qz2",false);
 		
-		VcfHeader.Record qpgRec = header.getqPGLines().get(0);
-		VcfHeader.Record formatRec = header.getFormatRecords().get(VcfHeaderUtils.FORMAT_MUTANT_READS);
-		VcfHeader.Record filterRec = header.getFilterRecords().get(VcfHeaderUtils.FILTER_NO_CALL_IN_TEST);
-		VcfHeader.Record infoRec = header.getInfoRecords().get(VcfHeaderUtils.INFO_DONOR);
+		VcfHeaderRecord qpgRec = VcfHeaderUtils.getqPGRecords(header).get(0);
+		VcfHeaderRecord formatRec = header.getFormatRecord(VcfHeaderUtils.FORMAT_MUTANT_READS) ;
+		VcfHeaderRecord filterRec = header.getFilterRecord(VcfHeaderUtils.FILTER_NO_CALL_IN_TEST);
+		VcfHeaderRecord infoRec = header.getInfoRecord(VcfHeaderUtils.INFO_DONOR);
 		
 		assertNotNull(qpgRec);
 		assertNotNull(formatRec);
@@ -42,23 +55,15 @@ public class VcfHeaderTest {
 		assertNotNull(infoRec);
 		
 		int i = 0 ;
-		for (VcfHeader.Record rec : header) {
-			i++;
-			if (i == 1) {
-				assertEquals(VcfHeaderUtils.CURRENT_FILE_VERSION, rec.getData());
-			}
-			if (i == 2) {
-				assertEquals(qpgRec, rec);
-			}
-			if (i == 3) {
-				assertEquals(infoRec, rec);
-			}
-			if (i == 4) {
-				assertEquals(filterRec, rec);
-			}
-			if (i == 5) {
-				assertEquals(formatRec, rec);
-			}
+		for (VcfHeaderRecord rec : header) {
+			i++;			
+			if (i == 1)  assertEquals(VcfHeader.CURRENT_FILE_FORMAT, rec.toString());		
+			if( i == 2) assertEquals("##QZ=qz1", rec.toString());
+			if( i == 3) assertEquals("##QZ=qz2", rec.toString());
+			if (i == 4)  assertEquals(filterRec, rec);			 
+			if (i == 6)   assertEquals(formatRec, rec);			 
+			if (i == 5)   assertEquals(infoRec, rec);			 
+			if (i == 7)   assertEquals(qpgRec, rec);
 		}
 		
 	}
@@ -66,27 +71,27 @@ public class VcfHeaderTest {
 	@Test
 	public void doWeHaveQIMRDataInHeader() {
 		VcfHeader header = new VcfHeader();
-		assertEquals(false,  header.containsQIMRDetails());
-		header.parseHeaderLine(VcfHeaderUtils.CURRENT_FILE_VERSION);
-		assertEquals(false,  header.containsQIMRDetails());
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_FILE_DATE + "=today");
-		assertEquals(false,  header.containsQIMRDetails());
-		String infoLine = VcfHeaderUtils.HEADER_LINE_INFO + "=<ID=" +  VcfHeaderUtils.INFO_DB + ",Number=1,Type=String,Description=\"anything will do\">";
-		header.parseHeaderLine(infoLine);
-		assertEquals(false,  header.containsQIMRDetails());
-		String formatLine = VcfHeaderUtils.HEADER_LINE_FORMAT + "=<ID=" +  VcfHeaderUtils.FORMAT_ALLELE_COUNT + ",Number=1,Type=String,Description=\"anything will do\">";
-		header.parseHeaderLine(formatLine);
-		assertEquals(false,  header.containsQIMRDetails());
-		String filterLine = VcfHeaderUtils.HEADER_LINE_FILTER + "=<ID=" +  VcfHeaderUtils.FILTER_GERMLINE + ",Description=\"anything will do\">";
-		header.parseHeaderLine(filterLine);
-		assertEquals(false,  header.containsQIMRDetails());
+		assertEquals(false,  VcfHeaderUtils.containsQIMRDetails(header));
+		header.addOrReplace(VcfHeader.CURRENT_FILE_FORMAT, true);
+		assertEquals(false,  VcfHeaderUtils.containsQIMRDetails(header));
+		header.addOrReplace(VcfHeader.STANDARD_FILE_DATE + "=today", true);
+		assertEquals(false,  VcfHeaderUtils.containsQIMRDetails(header));
+		String infoLine = VcfHeader.HEADER_LINE_INFO + "=<ID=" +  VcfHeaderUtils.INFO_DB + ",Number=1,Type=String,Description=\"anything will do\">";
+		header.addOrReplace(infoLine, true);
+		assertEquals(false,  VcfHeaderUtils.containsQIMRDetails(header));
+		String formatLine = VcfHeader.HEADER_LINE_FORMAT + "=<ID=" +  VcfHeaderUtils.FORMAT_ALLELE_COUNT + ",Number=1,Type=String,Description=\"anything will do\">";
+		header.addOrReplace(formatLine, true);
+		assertEquals(false,  VcfHeaderUtils.containsQIMRDetails(header));
+		String filterLine = VcfHeader.HEADER_LINE_FILTER + "=<ID=" +  VcfHeaderUtils.FILTER_GERMLINE + ",Description=\"anything will do\">";
+		header.addOrReplace(filterLine, true);
+		assertEquals(false,  VcfHeaderUtils.containsQIMRDetails(header));
 		
 		// lets add some qcmg data
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_UUID_LINE + "=123_123_!23_123");
-		assertEquals(false,  header.containsQIMRDetails());
+		header.addOrReplace(VcfHeader.STANDARD_UUID_LINE + "=123_123_!23_123", true);
+		assertEquals(false,  VcfHeaderUtils.containsQIMRDetails(header));
 		// need some qpg lines too
-		header.addQPGLine(111 , "test", "1.1", "who knows", "right now - yesterday even");
-		assertEquals(true,  header.containsQIMRDetails());
+		VcfHeaderUtils.addQPGLine(header, 111 , "test", "1.1", "who knows", "right now - yesterday even");
+		assertEquals(true,  VcfHeaderUtils.containsQIMRDetails(header));
 	}
 	
 	@Test
@@ -94,115 +99,126 @@ public class VcfHeaderTest {
 		VcfHeader header = new VcfHeader();
 		String inputUuid = "123_123_123_!23";
 		String inputVcfName = "testVcf.vcf";
-		header.replace(VcfHeaderUtils.STANDARD_INPUT_LINE + "=" + inputUuid + ":"+ inputVcfName);
-		assertEquals(1, header.getMetaRecords().size());
-		assertEquals(VcfHeaderUtils.STANDARD_INPUT_LINE + "=" + inputUuid + ":"+ inputVcfName, header.getMetaRecords().get(0).getData());
+		header.addOrReplace(VcfHeaderUtils.STANDARD_INPUT_LINE + "=" + inputUuid + ":"+ inputVcfName, true);
+		assertEquals(1, header.getAllMetaRecords().size());
+		assertEquals(VcfHeaderUtils.STANDARD_INPUT_LINE + "=" + inputUuid + ":"+ inputVcfName, header.getRecords(VcfHeaderUtils.STANDARD_INPUT_LINE).get(0).toString());
+		
 		String inputUuid2 = "456_456_456_456";
-		header.replace(VcfHeaderUtils.STANDARD_INPUT_LINE + "=" + inputUuid2 + ":"+ inputVcfName);
-		assertEquals(1, header.getMetaRecords().size());
-		assertEquals(VcfHeaderUtils.STANDARD_INPUT_LINE + "=" + inputUuid2 + ":"+ inputVcfName, header.getMetaRecords().get(0).getData());
-		header.replace(VcfHeaderUtils.STANDARD_INPUT_LINE + "123=" + inputUuid2 + ":"+ inputVcfName);
-		assertEquals(2, header.getMetaRecords().size());
+		header.addOrReplace(VcfHeaderUtils.STANDARD_INPUT_LINE + "=" + inputUuid2 + ":"+ inputVcfName, true);
+		assertEquals(1, header.getAllMetaRecords().size());
+		assertEquals(VcfHeaderUtils.STANDARD_INPUT_LINE + "=" + inputUuid2 + ":"+ inputVcfName, header.getRecords(VcfHeaderUtils.STANDARD_INPUT_LINE).get(0).toString());
+		header.addOrReplace(VcfHeaderUtils.STANDARD_INPUT_LINE + "123=" + inputUuid2 + ":"+ inputVcfName, false);
+		assertEquals(2, header.getAllMetaRecords().size());
+		assertEquals(1, header.getRecords(VcfHeaderUtils.STANDARD_INPUT_LINE).size());
 	}
 	
 	@Test
 	public void parseDataNullAndEmpty() {
 		VcfHeader header = new VcfHeader();
-		try {
-			header.parseHeaderLine(null);
-			Assert.fail("sHould have thrown an exception");
-		} catch (IllegalArgumentException iae) {}
-		try {
-			header.parseHeaderLine("");
-			Assert.fail("sHould have thrown an exception");
-		} catch (IllegalArgumentException iae) {}
+		header.addOrReplace((String) null, true);
+		assertTrue(header.getAllMetaRecords().size() == 0);
+		header.addOrReplace("", true);
+		assertTrue(header.getAllMetaRecords().size() == 0);
+		
+		
+		int i = 0; //empty header only contain format and Chrom line
+		for(VcfHeaderRecord re: header){
+			i++;
+			assertTrue( re.toString().startsWith(VcfHeader.CURRENT_FILE_FORMAT) 
+					|| re.toString().startsWith(VcfHeader.STANDARD_FINAL_HEADER_LINE) );			
+		}		
+		assertTrue(i == 2);
+		
 	}
 	@Test
 	public void parseDataFileFormat() {
 		VcfHeader header = new VcfHeader();
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_FILE_VERSION + "=1.1");
-		assertEquals(VcfHeaderUtils.STANDARD_FILE_VERSION + "=1.1", header.getFileVersion().getData());
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_FILE_VERSION + "=1.2");
-		assertEquals(VcfHeaderUtils.STANDARD_FILE_VERSION + "=1.2", header.getFileVersion().getData());
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_FILE_VERSION + "=XYZ");
-		assertEquals(VcfHeaderUtils.STANDARD_FILE_VERSION + "=XYZ", header.getFileVersion().getData());
+		header.addOrReplace(VcfHeader.STANDARD_FILE_FORMAT + "=1.1", true);
+		assertEquals(VcfHeader.STANDARD_FILE_FORMAT + "=1.1", header.getFileFormat().toString());
+		header.addOrReplace(VcfHeader.STANDARD_FILE_FORMAT + "=1.2", true);
+		assertEquals(VcfHeader.STANDARD_FILE_FORMAT + "=1.2", header.getFileFormat().toString());
+		header.addOrReplace(VcfHeader.STANDARD_FILE_FORMAT + "=XYZ", true);
+		assertEquals(VcfHeader.STANDARD_FILE_FORMAT + "=XYZ", header.getFileFormat().toString());
 	}
 	@Test
 	public void parseDataFileDate() {
 		VcfHeader header = new VcfHeader();
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_FILE_DATE + "=today");
-		assertEquals(VcfHeaderUtils.STANDARD_FILE_DATE + "=today", header.getFileDate().getData());
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_FILE_DATE + "=yesterday");
-		assertEquals(VcfHeaderUtils.STANDARD_FILE_DATE + "=yesterday", header.getFileDate().getData());
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_FILE_DATE + "=tomorrow");
-		assertEquals(VcfHeaderUtils.STANDARD_FILE_DATE + "=tomorrow", header.getFileDate().getData());
+		header.addOrReplace(VcfHeader.STANDARD_FILE_DATE + "=today", true);
+		assertEquals(VcfHeader.STANDARD_FILE_DATE + "=today", header.getFileDate().toString());
+		header.addOrReplace(VcfHeader.STANDARD_FILE_DATE + "=yesterday", true);
+		assertEquals("yesterday", header.getFileDate().getMetaValue());
+		header.addOrReplace(VcfHeader.STANDARD_FILE_DATE + "=tomorrow", true);
+		assertEquals("tomorrow", header.getFileDate().getMetaValue());
 	}
 	@Test
 	public void parseDataUUID() {
 		VcfHeader header = new VcfHeader();
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_UUID_LINE + "=123_123_123_123");
-		assertEquals(VcfHeaderUtils.STANDARD_UUID_LINE + "=123_123_123_123", header.getUUID().getData());
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_UUID_LINE + "=this_could_be_anything");
-		assertEquals(VcfHeaderUtils.STANDARD_UUID_LINE + "=this_could_be_anything", header.getUUID().getData());
+		header.addOrReplace(VcfHeader.STANDARD_UUID_LINE + "=123_123_123_123", true);
+		assertEquals(VcfHeader.STANDARD_UUID_LINE + "=123_123_123_123", header.getUUID().toString());
+		header.addOrReplace(VcfHeader.STANDARD_UUID_LINE + "=this_could_be_anything", true);
+		assertEquals(VcfHeader.STANDARD_UUID_LINE + "=this_could_be_anything", header.getUUID().toString());
 	}
 	@Test
 	public void parseDataSource() {
 		VcfHeader header = new VcfHeader();
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=qsnp");
-		assertEquals(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=qsnp", header.getSource().getData());
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=gatk");
-		assertEquals(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=gatk", header.getSource().getData());
+		header.addOrReplace(VcfHeader.STANDARD_SOURCE_LINE + "=qsnp");
+		
+		assertEquals("qsnp", header.getSource().getMetaValue());
+		header.addOrReplace(VcfHeader.STANDARD_SOURCE_LINE + "=gatk");
+		assertEquals(VcfHeader.STANDARD_SOURCE_LINE + "=gatk", header.getRecords(VcfHeader.STANDARD_SOURCE_LINE).get(0).toString());
 	}
 	@Test
 	public void parseDataInfo() {
 		VcfHeader header = new VcfHeader();
-		String infoLine = VcfHeaderUtils.HEADER_LINE_INFO + "=<ID=" +  VcfHeaderUtils.INFO_DB + ",Number=1,Type=String,Description=\"anything will do\">";
-		header.parseHeaderLine(infoLine);
-		assertEquals(infoLine, header.getInfoRecords().get(VcfHeaderUtils.INFO_DB).getData());
-		header.parseHeaderLine(infoLine);
+		String infoLine = VcfHeader.HEADER_LINE_INFO + "=<ID=" +  VcfHeaderUtils.INFO_DB + ",Number=1,Type=String,Description=\"anything will do\">";
+		header.addOrReplace(infoLine, true);
+		assertEquals(infoLine, header.getInfoRecord(VcfHeaderUtils.INFO_DB).toString());
+		header.addOrReplace(infoLine, true);
 		assertEquals(1, header.getInfoRecords().size());
-		header.parseHeaderLine(infoLine);
+		header.addOrReplace(infoLine, true);
 		assertEquals(1, header.getInfoRecords().size());
-		VcfHeader.Record infoRec1 = header.getInfoRecords().get(VcfHeaderUtils.INFO_DB);
+		VcfHeaderRecord infoRec1 = header.getInfoRecord(VcfHeaderUtils.INFO_DB);
 		
-		header.addInfoLine(VcfHeaderUtils.INFO_DB, "2", "String", "anything will do");
+		header.addInfo(VcfHeaderUtils.INFO_DB, "2", "String", "anything will do");
 		assertEquals(1, header.getInfoRecords().size());
-		VcfHeader.Record infoRec2 = header.getInfoRecords().get(VcfHeaderUtils.INFO_DB);
+		VcfHeaderRecord infoRec2 = header.getInfoRecord(VcfHeaderUtils.INFO_DB);
+		
+		//debug
+		System.out.println("hasCode: " + infoRec1.hashCode() + " : " + infoRec2.hashCode());
 		
 		// these should not be equal - different numbers
 		assertEquals(false, infoRec1.equals(infoRec2));
 		
-		header.addInfoLine(VcfHeaderUtils.INFO_DB, "1", "String", "anything will do");
+		header.addInfo(VcfHeaderUtils.INFO_DB, "1", "String", "anything will do");
 		assertEquals(1, header.getInfoRecords().size());
-		VcfHeader.Record infoRec3 = header.getInfoRecords().get(VcfHeaderUtils.INFO_DB);
+		VcfHeaderRecord infoRec3 = header.getInfoRecord(VcfHeaderUtils.INFO_DB);
 		
-		// 3 should be equal to 1
 		assertEquals(true, infoRec1.equals(infoRec3));
 	}
 	@Test
 	public void parseDataFormat() {
 		VcfHeader header = new VcfHeader();
-		String formatLine = VcfHeaderUtils.HEADER_LINE_FORMAT + "=<ID=" +  VcfHeaderUtils.FORMAT_ALLELE_COUNT + ",Number=1,Type=String,Description=\"anything will do\">";
-		header.parseHeaderLine(formatLine);
-		assertEquals(formatLine, header.getFormatRecords().get(VcfHeaderUtils.FORMAT_ALLELE_COUNT).getData());
-		header.parseHeaderLine(formatLine);
+		String formatLine = VcfHeader.HEADER_LINE_FORMAT + "=<ID=" +  VcfHeaderUtils.FORMAT_ALLELE_COUNT + ",Number=1,Type=String,Description=\"anything will do\">";
+		header.addOrReplace(formatLine,true);
+		assertEquals(formatLine, header.getFormatRecord(VcfHeaderUtils.FORMAT_ALLELE_COUNT).toString());
+		header.addOrReplace(formatLine,true);
 		assertEquals(1, header.getFormatRecords().size());
 		assertEquals(0, header.getInfoRecords().size());
 		assertEquals(0, header.getFilterRecords().size());
-		header.parseHeaderLine(formatLine);
+		header.addOrReplace(formatLine,true);
 		assertEquals(1, header.getFormatRecords().size());
-		VcfHeader.Record formatRec1 = header.getFormatRecords().get(VcfHeaderUtils.FORMAT_ALLELE_COUNT);
+		VcfHeaderRecord formatRec1 = header.getFormatRecord(VcfHeaderUtils.FORMAT_ALLELE_COUNT);
 		
-		header.addFormatLine(VcfHeaderUtils.FORMAT_ALLELE_COUNT, "2", "String", "anything will do");
+		header.addFormat(VcfHeaderUtils.FORMAT_ALLELE_COUNT, "2", "String", "anything will do");
 		assertEquals(1, header.getFormatRecords().size());
-		VcfHeader.Record formatRec2 = header.getFormatRecords().get(VcfHeaderUtils.FORMAT_ALLELE_COUNT);
+		VcfHeaderRecord formatRec2 = header.getFormatRecord(VcfHeaderUtils.FORMAT_ALLELE_COUNT);
 		
 		// these should not be equal - different numbers
 		assertEquals(false, formatRec1.equals(formatRec2));
 		
-		header.addFormatLine(VcfHeaderUtils.FORMAT_ALLELE_COUNT, "1", "String", "anything will do");
+		header.addFormat(VcfHeaderUtils.FORMAT_ALLELE_COUNT, "1", "String", "anything will do");
 		assertEquals(1, header.getFormatRecords().size());
-		VcfHeader.Record formatRec3 = header.getFormatRecords().get(VcfHeaderUtils.FORMAT_ALLELE_COUNT);
+		VcfHeaderRecord formatRec3 = header.getFormatRecord(VcfHeaderUtils.FORMAT_ALLELE_COUNT);
 		
 		// 3 should be equal to 1
 		assertEquals(true, formatRec1.equals(formatRec3));
@@ -210,55 +226,55 @@ public class VcfHeaderTest {
 	@Test
 	public void parseDataFilter() {
 		VcfHeader header = new VcfHeader();
-		String filterLine = VcfHeaderUtils.HEADER_LINE_FILTER + "=<ID=" +  VcfHeaderUtils.FILTER_GERMLINE + ",Description=\"anything will do\">";
-		header.parseHeaderLine(filterLine);
-		assertEquals(filterLine, header.getFilterRecords().get(VcfHeaderUtils.FILTER_GERMLINE).getData());
-		header.parseHeaderLine(filterLine);
+		String filterLine = VcfHeader.HEADER_LINE_FILTER + "=<ID=" +  VcfHeaderUtils.FILTER_GERMLINE + ",Description=\"anything will do\">";
+		header.addOrReplace(filterLine,true);
+		assertEquals(filterLine, header.getFilterRecord(VcfHeaderUtils.FILTER_GERMLINE).toString());
+		header.addOrReplace(filterLine,true);
 		assertEquals(0, header.getFormatRecords().size());
 		assertEquals(0, header.getInfoRecords().size());
 		assertEquals(1, header.getFilterRecords().size());
-		header.parseHeaderLine(filterLine);
+		header.addOrReplace(filterLine,true);
 		assertEquals(1, header.getFilterRecords().size());
-		VcfHeader.Record filterRec1 = header.getFilterRecords().get(VcfHeaderUtils.FILTER_GERMLINE);
+		VcfHeaderRecord filterRec1 = header.getFilterRecord(VcfHeaderUtils.FILTER_GERMLINE);
 		
-		header.addFilterLine(VcfHeaderUtils.FILTER_GERMLINE, "anything will do yoo hoo");
+		header.addFilter(VcfHeaderUtils.FILTER_GERMLINE, "anything will do yoo hoo");
 		assertEquals(1, header.getFilterRecords().size());
-		VcfHeader.Record filterRec2 = header.getFilterRecords().get(VcfHeaderUtils.FILTER_GERMLINE);
+		VcfHeaderRecord filterRec2 = header.getFilterRecord(VcfHeaderUtils.FILTER_GERMLINE);
 		
 		// these should not be equal - different numbers
 		assertEquals(false, filterRec1.equals(filterRec2));
 		
-		header.addFilterLine(VcfHeaderUtils.FILTER_GERMLINE, "anything will do");
+		header.addFilter(VcfHeaderUtils.FILTER_GERMLINE, "anything will do");
 		assertEquals(1, header.getFilterRecords().size());
-		VcfHeader.Record filterRec3 = header.getFilterRecords().get(VcfHeaderUtils.FILTER_GERMLINE);
+		VcfHeaderRecord filterRec3 = header.getFilterRecord(VcfHeaderUtils.FILTER_GERMLINE);
 		
-		// 3 should be equal to 1
+		// 3 should be equal to 1		
 		assertEquals(true, filterRec1.equals(filterRec3));
 	}
 	@Test
 	public void parseDataQPG() {
 		VcfHeader header = new VcfHeader();
-		String filterLine = VcfHeaderUtils.HEADER_LINE_FILTER + "=<ID=" +  VcfHeaderUtils.FILTER_GERMLINE + ",Description=\"anything will do\">";
-		header.parseHeaderLine(filterLine);
-		assertEquals(filterLine, header.getFilterRecords().get(VcfHeaderUtils.FILTER_GERMLINE).getData());
-		header.parseHeaderLine(filterLine);
+		String filterLine = VcfHeader.HEADER_LINE_FILTER + "=<ID=" +  VcfHeaderUtils.FILTER_GERMLINE + ",Description=\"anything will do\">";
+		header.addOrReplace(filterLine, true);
+		assertEquals(filterLine, header.getFilterRecord(VcfHeaderUtils.FILTER_GERMLINE).toString());
+		header.addOrReplace(filterLine, true);
 		assertEquals(0, header.getFormatRecords().size());
 		assertEquals(0, header.getInfoRecords().size());
 		assertEquals(1, header.getFilterRecords().size());
-		header.parseHeaderLine(filterLine);
+		header.addOrReplace(filterLine, true);
 		assertEquals(1, header.getFilterRecords().size());
-		VcfHeader.Record filterRec1 = header.getFilterRecords().get(VcfHeaderUtils.FILTER_GERMLINE);
+		VcfHeaderRecord filterRec1 = header.getFilterRecord(VcfHeaderUtils.FILTER_GERMLINE);
 		
-		header.addFilterLine(VcfHeaderUtils.FILTER_GERMLINE, "anything will do yoo hoo");
+		header.addFilter(VcfHeaderUtils.FILTER_GERMLINE, "anything will do yoo hoo");
 		assertEquals(1, header.getFilterRecords().size());
-		VcfHeader.Record filterRec2 = header.getFilterRecords().get(VcfHeaderUtils.FILTER_GERMLINE);
+		VcfHeaderRecord filterRec2 = header.getFilterRecord(VcfHeaderUtils.FILTER_GERMLINE);
 		
 		// these should not be equal - different numbers
 		assertEquals(false, filterRec1.equals(filterRec2));
 		
-		header.addFilterLine(VcfHeaderUtils.FILTER_GERMLINE, "anything will do");
+		header.addFilter(VcfHeaderUtils.FILTER_GERMLINE, "anything will do");
 		assertEquals(1, header.getFilterRecords().size());
-		VcfHeader.Record filterRec3 = header.getFilterRecords().get(VcfHeaderUtils.FILTER_GERMLINE);
+		VcfHeaderRecord filterRec3 = header.getFilterRecord(VcfHeaderUtils.FILTER_GERMLINE);
 		
 		// 3 should be equal to 1
 		assertEquals(true, filterRec1.equals(filterRec3));
@@ -266,14 +282,164 @@ public class VcfHeaderTest {
 	
 	@Test
 	public void doesEqualsWork() {
+ 		
 		VcfHeader header = new VcfHeader();
-		header.addInfoLine(VcfHeaderUtils.INFO_FLANKING_SEQUENCE, "1",  "blah", VcfHeaderUtils.INFO_FS);
-		header.addInfoLine(VcfHeaderUtils.INFO_FLANKING_SEQUENCE, "1",  "blah", VcfHeaderUtils.INFO_FS);
+		header.addInfo(VcfHeaderUtils.INFO_FLANKING_SEQUENCE, "1",  "blah", VcfHeaderUtils.INFO_FS);
+		header.addInfo(VcfHeaderUtils.INFO_FLANKING_SEQUENCE, "1",  "blah", VcfHeaderUtils.INFO_FS);
 		assertEquals(1, header.getInfoRecords().size());
 		
-		header.addFormatLine(VcfHeaderUtils.INFO_FLANKING_SEQUENCE, "1",  "blah", VcfHeaderUtils.INFO_FS);
-		VcfHeader.Record infoRec = header.getInfoRecords().get(VcfHeaderUtils.INFO_FLANKING_SEQUENCE);
-		VcfHeader.Record formatRec = header.getFormatRecords().get(VcfHeaderUtils.INFO_FLANKING_SEQUENCE);
+		header.addFormat(VcfHeaderUtils.INFO_FLANKING_SEQUENCE, "1",  "blah", VcfHeaderUtils.INFO_FS);
+		VcfHeaderRecord infoRec = header.getInfoRecord(VcfHeaderUtils.INFO_FLANKING_SEQUENCE);
+		VcfHeaderRecord formatRec = header.getFormatRecord(VcfHeaderUtils.INFO_FLANKING_SEQUENCE);
 		assertEquals(false, infoRec.equals(formatRec));
 	}
+	
+	 
+	@Test //(expected=IllegalArgumentException.class)
+	public void invalidHeaderLine() {
+		VcfHeader h2 = new VcfHeader();
+		try{			
+			h2.addOrReplace("##hello");	
+			fail("should throw exception for invalid vcf header line!");
+		}catch(Exception e){}		
+		
+		try{
+			h2.addOrReplace("hello=au");		
+			fail("should throw exception for invalid vcf header line!");
+		}catch(Exception e){}		
+		
+		
+		//allow empty value
+		h2.addOrReplace("##hello=");
+		assertTrue(h2.getAllMetaRecords().size() == 1);
+		assertTrue(  h2.getRecords("##hello").get(0).getMetaValue().equals( ""));
+	}
+
+	
+	
+	@Test
+	public void testIteratorOrder(){
+		VcfHeader h = new VcfHeader();
+		Arrays.asList("##fileformat=VCFv4.2",
+				"##qUUID=627d12bf-93c7-4e1f-b156-fc397def35a6",
+				"##FORMAT=<ID=id1,Number=1,type=.,Description=ok>",				
+				"##qSource=null-null",
+				"##qINPUT=627d12bf-93c7-4e1f-b156-fc397def35a6:input.vcf",
+				"##INFO=<ID=id1,Number=1,type=.,Description=ok>",
+				"##qPG=<ID=1,Tool=NULL,Version=NULL,Date=2017-01-29 20:28:23,CL=\"testing run\">",
+				"#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO",
+				"##FORMAT=<ID=id,Number=1,type=.,Description=ok>",
+				"##fileformat=VCFv4.2", "##fileDate=20170129").stream().forEach( h::addOrReplace );
+	
+		int i = 0;
+		for(VcfHeaderRecord re : h){
+			if(i == 0)
+				assertTrue(re.getMetaKey().equals("##fileformat"));
+			else if(i == 1)
+				assertTrue(re.getMetaKey().equals("##fileDate"));
+			else if(i == 6)
+				assertTrue(re.getMetaKey().equals("##FORMAT") && re.getId().equals("id1"));
+			else if(i == 7)
+				assertTrue(re.getId().equals("id") ); 
+			else if(i == 5)
+				assertTrue(re.getMetaKey().equals("##INFO"));
+			//	assertTrue(re.getMetaKey().equals("##FORMAT")); || re.getId().equals("id1")
+			else if(i == 8)				
+				assertTrue(re.getId().equals("1")); //qpg line
+			else if(i == 9)
+				assertTrue(re.getMetaKey().startsWith("#CHROM"));
+			i++;
+		}
+	}
+	
+	@Test //(expected = IllegalArgumentException.class)  
+	public void invalidRecord(){					
+		try{
+			new VcfHeaderRecord(null, "");
+			fail("should throw exception for instance of VcfHeaderRecord with key = null!");
+		}catch(IllegalArgumentException e){ }
+		
+		try{
+			 new VcfHeaderRecord("", null);
+			fail("should throw exception: missing # ");
+		}catch(IllegalArgumentException e){ }
+		 
+		
+		try{
+			 new VcfHeaderRecord("##key");
+			fail("should throw exception not follow: ##key=value patten");
+		}catch(IllegalArgumentException e){ }
+		
+				 
+		 VcfHeader header = new VcfHeader();
+		 header.addOrReplace(new VcfHeaderRecord("##key", null));		
+		 assertTrue(header.firstMatchedRecord("##key").toString().equals("##key=") );
+		 
+		 header.addOrReplace(new VcfHeaderRecord("##key= " ));	
+		 for(VcfHeaderRecord re : header.getRecords("key") )			 
+			 assertTrue(re.toString().equals("##key=") );
+		 
+				
+	}
+	
+	
+	@Test
+	public void subFieldTest(){
+		String line = " ##FORMAT = <  Number=1,ID=GD, Source = \" \", no= \"1\" > "; 
+		VcfHeaderRecord record = new VcfHeaderRecord(line);
+		
+		assertTrue(record.toString().equals("##FORMAT=<ID=GD,Number=1,Source=\"\",no=\"1\">"));
+		assertTrue(record.getSubFieldValue("source").equals("\"\""));
+		
+		line = " ##FORMAT = < Number=1, ID=GD,  Source = \" not sure \" ,  Type  = String,  Description = \" Genotype details: specific alleles = (A,G,T or C) \" , version=\"no.1\"  > ";
+		record = new VcfHeaderRecord(line);
+		assertTrue(record.getSubFieldValue("Description").equals("\"Genotype details: specific alleles = (A,G,T or C)\""));
+		assertTrue(record.getId().equals(record.getSubFieldValue("id") ));
+		assertTrue(record.toString().equals("##FORMAT=<ID=GD,Number=1,Source=\"not sure\",Type=String,Description=\"Genotype details: specific alleles = (A,G,T or C)\",version=\"no.1\">"));
+		VcfHeader header = new VcfHeader();
+		header.addOrReplace(record);
+		line=line.replace("ID=GD", "ID=GD1");
+		header.addOrReplace(line);
+		assertTrue(header.getFormatRecord("GD").getSubFieldValue("description").equals( header.getFormatRecord("GD1").getSubFieldValue("description") ) );
+		assertTrue(header.getFormatRecord("GD").getSubFieldValue("number").equals( header.getFormatRecord("GD1").getSubFieldValue("number") ) );
+		assertTrue(header.getFormatRecord("GD").getSubFieldValue("source").equals( header.getFormatRecord("GD1").getSubFieldValue("source") ) );
+		assertTrue(header.getFormatRecord("GD").getSubFieldValue("type").equals( header.getFormatRecord("GD1").getSubFieldValue("type") ) );
+		assertTrue(record.getSubFieldValue("description").equals( header.getFormatRecord("GD1").getSubFieldValue("description") ) );
+		assertTrue(record.getSubFieldValue("number").equals( header.getFormatRecord("GD1").getSubFieldValue("number") ) );
+		assertTrue(record.getSubFieldValue("source").equals( header.getFormatRecord("GD1").getSubFieldValue("source") ) );
+		assertTrue(record.getSubFieldValue("type").equals( header.getFormatRecord("GD1").getSubFieldValue("type") ) );
+		
+				
+		line = "##FILTER = <ID=GD, Descriptin = \" grep \"hello \", url> "; 
+		record = new VcfHeaderRecord(line);
+		assertTrue( record.toString().equals("##FILTER=<ID=GD,Descriptin=\"grep \"hello\",url>")  );
+		
+		line = "##FILTER = <ID=GD, Descriptin = \" grep \" hello=1,2 \" \", =url> "; 
+		record = new VcfHeaderRecord(line);
+		assertTrue( record.toString().equals("##FILTER=<ID=GD,Descriptin=\"grep \" hello=1,2 \"\",=url>")  );		
+		
+		
+		//parser get confused by mutli double quot and common join together
+		line = "##TEST = <ID=GD, Descriptin = \" grep \" hello=1,2 \", \", =url> "; 
+		record = new VcfHeaderRecord(line);
+ 		assertTrue( record.toString().equals("##TEST=<ID=GD,Descriptin=\"grep \" hello=1,2\",\",=url>")  );		
+		
+	}
+	
+	
+	@Test
+	public void xuTest(){
+		VcfHeaderRecord re = new VcfHeaderRecord("##test=< order = 100,  ID=1,description=\"not sure\">");	
+		System.out.println(re.getId() + re.toString()); 		
+		VcfHeaderRecord re1 = new VcfHeaderRecord("##test=< order = 100,  ID=1,description=\"not sure\">");		
+		System.out.println(re1.getId() + re1.toString()); 
+		
+		System.out.println( re.hashCode() + " : " + re1.hashCode() );
+		
+		System.out.println(  ((VcfHeaderRecord) re1).getSubFieldValue("order") );
+		
+		assertTrue(re.equals(re1));
+		
+	}
+	
 }

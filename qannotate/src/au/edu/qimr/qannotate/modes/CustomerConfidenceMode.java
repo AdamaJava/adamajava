@@ -83,7 +83,7 @@ public final class CustomerConfidenceMode extends AbstractMode{
 		String description = "Set CONF to HIGH if total read counts more than " +  Integer.toString(min_read_counts) + "; and more than  "
 				+ Integer.toString( variants_rate) + "% reads contains variants; plus filter column is , \"5BP\" or \"SBIASCOV\". Set ZERO to remaining mutations ";	
  
-		header.addInfoLine(VcfHeaderUtils.INFO_CONFIDENCE, "1", "String", description);
+		header.addInfo(VcfHeaderUtils.INFO_CONFIDENCE, "1", "String", description);
 	      
 //		final Iterator<VcfRecord>  it =  positionRecordMap.values().iterator();
 //		while( it.hasNext() ){

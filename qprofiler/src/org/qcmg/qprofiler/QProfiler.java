@@ -41,6 +41,7 @@ import org.qcmg.qprofiler.ma.MaSummarizer;
 import org.qcmg.qprofiler.qual.QualSummarizer;
 import org.qcmg.qprofiler.report.SummaryReport;
 import org.qcmg.qprofiler.summarise.Summarizer;
+import org.qcmg.qprofiler.vcf.VcfSummarizer;
 import org.qcmg.qvisualise.QVisualise;
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
@@ -221,6 +222,8 @@ public class QProfiler {
 		Summarizer summarizer = null;
 		if (null != key) {
 			switch (key) {
+			case VCF: summarizer = new VcfSummarizer();
+				break;
 			case GFF:
 				summarizer = new GffSummarizer();
 				break;

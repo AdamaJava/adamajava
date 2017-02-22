@@ -26,6 +26,8 @@ public class ProfileTypeUtils {
 	private static final String FQ_GZ_EXTENSION = "fq.gz";
 	private static final String FA_EXTENSION = "fa";
 	private static final String GZ_EXTENSION = "gz";
+	private static final String VCF_EXTENSION = "vcf";
+	private static final String VCF_GZ_EXTENSION = "vcf.gz";
 	
 	public static ProfileType getType(File f) throws Exception {
 		String ext = null;
@@ -42,8 +44,7 @@ public class ProfileTypeUtils {
 		    	i = s.lastIndexOf('.', i -1);
 		    	ext = s.substring(i+1).toLowerCase();
 	    }
-	    
-	    
+	    	    
 	    if (BAM_EXTENSION.equals(ext) || SAM_EXTENSION.equals(ext))
 	    	return ProfileType.BAM;
 	    if (FASTA_EXTENSION.equals(ext))
@@ -61,7 +62,9 @@ public class ProfileTypeUtils {
 	    if (FASTQ_GZ_EXTENSION.equals(ext) || FQ_GZ_EXTENSION.equals(ext))
 	    	return ProfileType.FASTQ;
 	    if (FA_EXTENSION.equals(ext))
-	    	return ProfileType.FA;
+	    	return ProfileType.FA;	    
+	    if(VCF_EXTENSION.equals(ext) || VCF_GZ_EXTENSION.equals(ext)) 
+	    	return ProfileType.VCF; 
 	    
 	    throw new Exception("Unsupported file type "+ ext);
 	}

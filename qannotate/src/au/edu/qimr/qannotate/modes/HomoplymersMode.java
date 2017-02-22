@@ -21,7 +21,7 @@ import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.util.IndelUtils.SVTYPE;
 import org.qcmg.common.vcf.VcfRecord;
-import org.qcmg.common.vcf.header.VcfHeader;
+import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 import org.qcmg.vcf.VCFFileWriter;
@@ -78,8 +78,8 @@ public class HomoplymersMode extends AbstractMode{
 		
 		try (VCFFileReader reader = new VCFFileReader(input) ;
 	            VCFFileWriter writer = new VCFFileWriter(new File(output))  ) {
-			header.addInfoLine(VcfHeaderUtils.INFO_HOM,  "1", "String",VcfHeaderUtils.DESCRITPION_INFO_HOM); 			
-		    for(final VcfHeader.Record record: header)	writer.addHeader(record.toString());
+			header.addInfo(VcfHeaderUtils.INFO_HOM,  "1", "String",VcfHeaderUtils.DESCRITPION_INFO_HOM); 			
+		    for(final VcfHeaderRecord record: header)	writer.addHeader(record.toString());
 		    
 		    int sum = 0;
 			for (final VcfRecord re : reader) {	

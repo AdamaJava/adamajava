@@ -17,12 +17,11 @@ public class Main {
 	public static void main(final String[] args) throws Exception {	
 
 		try {
-            final Options options = new Options(args);
-                
+            final Options options = new Options(args);             
         		LoadReferencedClasses.loadClasses(Main.class);    
            logger = QLoggerFactory.getLogger(Main.class, options.getLogFileName(),  options.getLogLevel());	            		               
-           logger.logInitialExecutionStats(options.getPGName(), options.getVersion(),args);	        
-           
+           logger.logInitialExecutionStats(options.getPGName(), options.getVersion(),args);	    
+                     
            if (options.getMode() == Options.MODE.dbsnp) {
         	   		new DbsnpMode( options );
            	} else if (options.getMode() == Options.MODE.germline) {
@@ -53,7 +52,7 @@ public class Main {
 	        	System.err.println(Thread.currentThread().getName() + " " + e.toString());
 	        	if (null != logger) {
 		        	logger.info(Thread.currentThread().getName() + " " + e.toString());	            
-		        logger.logFinalExecutionStats(1);
+		        	logger.logFinalExecutionStats(1);
 	        	}
         		System.out.println("About to return exit code of 1");
             System.exit(1);

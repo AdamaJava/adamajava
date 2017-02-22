@@ -374,9 +374,9 @@ public class ConfidenceModeTest {
 
 		String Scontrol = "EXTERN-MELA-20140505-001";
 		String Stest = "EXTERN-MELA-20140505-002";
-		mode.header.parseHeaderLine("##qControlSample=" + Scontrol);
-		mode.header.parseHeaderLine("##qTestSample="+ Stest);	
-		mode.header.parseHeaderLine("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tEXTERN-MELA-20140505-001\tEXTERN-MELA-20140505-002");			
+		mode.header.addOrReplace("##qControlSample=" + Scontrol);
+		mode.header.addOrReplace("##qTestSample="+ Stest);	
+		mode.header.addOrReplace("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tEXTERN-MELA-20140505-001\tEXTERN-MELA-20140505-002");			
 		
 		SampleColumn column = SampleColumn.getSampleColumn(Stest, Scontrol, mode.header);
 		mode.setSampleColumn(column.getTestSampleColumn(), column.getControlSampleColumn() );
@@ -415,9 +415,9 @@ public class ConfidenceModeTest {
 
 		String Scontrol = "EXTERN-MELA-20140505-001";
 		String Stest = "EXTERN-MELA-20140505-002";
-		mode.header.parseHeaderLine("##qControlSample=" + Scontrol);
-		mode.header.parseHeaderLine("##qTestSample="+ Stest);	
-		mode.header.parseHeaderLine("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tqControlSample\tqTestSample");			
+		mode.header.addOrReplace("##qControlSample=" + Scontrol);
+		mode.header.addOrReplace("##qTestSample="+ Stest);	
+		mode.header.addOrReplace("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tqControlSample\tqTestSample");			
 		
 		SampleColumn column = SampleColumn.getSampleColumn(Stest, Scontrol, mode.header);
 		mode.setSampleColumn(column.getTestSampleColumn(), column.getControlSampleColumn() );

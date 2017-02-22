@@ -30,8 +30,8 @@ import org.qcmg.common.util.LoadReferencedClasses;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfPositionComparator;
 import org.qcmg.common.vcf.VcfRecord;
-import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
+import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileWriter;
 
@@ -121,7 +121,7 @@ public final class Coverage {
 			Collections.sort(vcfs, new VcfPositionComparator());
 			try(final VCFFileWriter writer = new VCFFileWriter(file)) {
 				final VcfHeader header = getHeaderForQCoverage(options.getBAMFileNames()[0], options.getInputGFF3FileNames()[0]);
-				for(final VcfHeader.Record record: header) {
+				for(final VcfHeaderRecord record: header) {
 					writer.addHeader(record.toString()+"\n");
 				}
 				for (final VcfRecord vcf : vcfs) {
@@ -142,19 +142,19 @@ public final class Coverage {
 		final String uuid = QExec.createUUid();
 
 		//move input uuid into preuuid
-		header.parseHeaderLine(VcfHeaderUtils.CURRENT_FILE_VERSION);		
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + fileDate);
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + uuid );
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=" + pg+"-"+version);
-		header.parseHeaderLine( "##bam_file=" + bamFileName);
-		header.parseHeaderLine("##gff_file=" + gffFile);
-		header.addFilterLine(VcfHeaderUtils.FILTER_LOW_QUAL,"REQUIRED: QUAL < 50.0");
-		header.addInfoLine("B", "-1", "String", "Bait end position");
-		header.addInfoLine("BE", "-1", "String", "Bait end position");
-		header.addInfoLine("ZC",  "-1", "String", "bases with Zero Coverage");
-		header.addInfoLine("NZC","-1", "String", "bases with Non Zero Coverage");
-		header.addInfoLine("TOT", "-1", "String", "Total number of sequenced bases");
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE);		
+		header.addOrReplace(VcfHeader.CURRENT_FILE_FORMAT);		
+		header.addOrReplace(VcfHeader.STANDARD_FILE_DATE + "=" + fileDate);
+		header.addOrReplace(VcfHeader.STANDARD_UUID_LINE + "=" + uuid );
+		header.addOrReplace(VcfHeader.STANDARD_SOURCE_LINE + "=" + pg+"-"+version);
+		header.addOrReplace( "##bam_file=" + bamFileName);
+		header.addOrReplace("##gff_file=" + gffFile);
+		header.addFilter(VcfHeaderUtils.FILTER_LOW_QUAL,"REQUIRED: QUAL < 50.0");
+		header.addInfo("B", "-1", "String", "Bait end position");
+		header.addInfo("BE", "-1", "String", "Bait end position");
+		header.addInfo("ZC",  "-1", "String", "bases with Zero Coverage");
+		header.addInfo("NZC","-1", "String", "bases with Non Zero Coverage");
+		header.addInfo("TOT", "-1", "String", "Total number of sequenced bases");
+		header.addOrReplace(VcfHeader.STANDARD_FINAL_HEADER_LINE);		
  		
 		return  header;
 	}

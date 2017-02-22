@@ -57,6 +57,7 @@ import org.qcmg.common.util.ListUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfPositionComparator;
 import org.qcmg.common.vcf.VcfRecord;
+import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.illumina.IlluminaFileReader;
 import org.qcmg.illumina.IlluminaRecord;
@@ -449,7 +450,7 @@ public class SignatureGeneratorBespoke {
 				os.write(stdHeaderDetails.toString().getBytes());
 				os.write(("##input=" + f.getAbsolutePath() + Constants.NL).getBytes());
 				os.write((sbRgIds.toString()).getBytes());
-				os.write(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE.getBytes());
+				os.write(VcfHeader.STANDARD_FINAL_HEADER_LINE.getBytes());
 				os.write(Constants.NL);
 				
 				

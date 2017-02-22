@@ -376,7 +376,7 @@ public class BaseUtils {
 	public static long encodeDistribution(int as, int cs, int gs, int ts) {
 		long l = 0;
 		if (as > 0 && as <= MAX_UNSIGNED_SHORT_VALUE) {
-			System.out.println("as: " + as);
+//			System.out.println("as: " + as);
 			l += ((long)as << 48);
 		} else if (as > MAX_UNSIGNED_SHORT_VALUE) {
 			logger.warn("A count is greater than " + MAX_UNSIGNED_SHORT_VALUE + ": " + as);
@@ -384,7 +384,7 @@ public class BaseUtils {
 		}
 		
 		if (cs > 0 && cs <= MAX_UNSIGNED_SHORT_VALUE) {
-			System.out.println("cs: " + cs);
+//			System.out.println("cs: " + cs);
 			l += (long)cs << 32;
 		} else if (cs > MAX_UNSIGNED_SHORT_VALUE) {
 			logger.warn("C count is greater than " + MAX_UNSIGNED_SHORT_VALUE + ": " + cs);
@@ -392,7 +392,7 @@ public class BaseUtils {
 		}
 		
 		if (gs > 0 && gs <= MAX_UNSIGNED_SHORT_VALUE) {
-			System.out.println("gs: " + gs);
+//			System.out.println("gs: " + gs);
 			l += ((long)gs << 16);
 		} else if (gs > MAX_UNSIGNED_SHORT_VALUE) {
 			logger.warn("G count is greater than " + MAX_UNSIGNED_SHORT_VALUE + ": " + gs);
@@ -400,7 +400,7 @@ public class BaseUtils {
 		}
 		
 		if (ts > 0 && ts <= MAX_UNSIGNED_SHORT_VALUE) {
-			System.out.println("ts: " + ts);
+//			System.out.println("ts: " + ts);
 			l += ts;
 		} else if (ts > MAX_UNSIGNED_SHORT_VALUE) {
 			logger.warn("T count is greater than " + MAX_UNSIGNED_SHORT_VALUE + ": " + ts);
@@ -409,51 +409,6 @@ public class BaseUtils {
 		
 		return l;
 		
-//		int acs = 0;
-//		long gts = 0;
-//		long l = 0;
-//		if (as > 0 && as <= MAX_UNSIGNED_SHORT_VALUE) {
-//			System.out.println("as: " + as);
-//			acs += (as << 16);
-//		} else if (as > MAX_UNSIGNED_SHORT_VALUE) {
-//			logger.warn("A count is greater than " + MAX_UNSIGNED_SHORT_VALUE + ": " + as);
-//			return Long.MIN_VALUE;
-//		}
-//		
-//		if (cs > 0 && cs <= MAX_UNSIGNED_SHORT_VALUE) {
-//			System.out.println("cs: " + cs);
-//			acs += cs;
-//		} else if (cs > MAX_UNSIGNED_SHORT_VALUE) {
-//			logger.warn("C count is greater than " + MAX_UNSIGNED_SHORT_VALUE + ": " + cs);
-//			return Long.MIN_VALUE;
-//		}
-//		
-//		l = ((long)acs << 32);
-////		System.out.println("l binary: " + Long.toBinaryString(l));
-//		
-//		
-//		
-//		if (gs > 0 && gs <= MAX_UNSIGNED_SHORT_VALUE) {
-//			System.out.println("gs: " + gs);
-//			gts += ((long)gs << 16);
-//		} else if (gs > MAX_UNSIGNED_SHORT_VALUE) {
-//			logger.warn("G count is greater than " + MAX_UNSIGNED_SHORT_VALUE + ": " + gs);
-//			return Long.MIN_VALUE;
-//		}
-//		
-//		if (ts > 0 && ts <= MAX_UNSIGNED_SHORT_VALUE) {
-//			System.out.println("ts: " + ts);
-//			gts += ts;
-//		} else if (ts > MAX_UNSIGNED_SHORT_VALUE) {
-//			logger.warn("T count is greater than " + MAX_UNSIGNED_SHORT_VALUE + ": " + ts);
-//			return Long.MIN_VALUE;
-//		}
-//		
-//		l += gts;
-////		System.out.println("acs binary: " + Integer.toBinaryString(acs));
-////		System.out.println("gts binary: " + Long.toBinaryString(gts));
-////		System.out.println("l binary: " + Long.toBinaryString(l));
-//		return l;
 	}
 	
 }
