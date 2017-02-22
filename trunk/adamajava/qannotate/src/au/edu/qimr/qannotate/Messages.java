@@ -69,7 +69,8 @@ public class Messages {
 			result += arg + " ";
 		}
 //		while( result.lastIndexOf(" ") == result.length() - 1 ) result = result.substring(0, result.length()-2);
-		return result.trim();
+		result = result.trim();
+		return result;
 	}
 
 

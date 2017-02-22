@@ -38,7 +38,7 @@ import org.qcmg.common.util.IndelUtils.SVTYPE;
 import org.qcmg.common.util.SnpUtils;
 import org.qcmg.common.vcf.*;
 import org.qcmg.common.vcf.header.VcfHeader;
-import org.qcmg.common.vcf.header.VcfHeader.Record;
+import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 
@@ -224,7 +224,7 @@ public class Vcf2maf extends AbstractMode{
 	
 	public static void createVcfHeaders(VcfHeader header, PrintWriter ... writers){
 		StringBuilder sb = new StringBuilder();
-		for (Record rec : header) {
+		for (VcfHeaderRecord rec : header) {
 			if (sb.length() > 0) {
 				sb.append(Constants.NL);
 			}
@@ -240,20 +240,16 @@ public class Vcf2maf extends AbstractMode{
 		 for(PrintWriter write:writers){
 			write.println(SnpEffMafRecord.Version);
 			
-			for(VcfHeader.Record re: header.getMetaRecords()) {
-				if ( !re.equals(VcfHeaderUtils.STANDARD_FILE_VERSION )) {
-					write.println(re.getData());
-				}
-			}
+			for(VcfHeaderRecord re: header.getRecords(VcfHeader.STANDARD_FILE_FORMAT))
+				write.println(re.toString());
 			
-			for(VcfHeader.QPGRecord re: header.getqPGLines()) {
-				write.println(re.getData());
-			}
-						
-			for(Map.Entry<String, VcfHeader.FormattedRecord> re: header.getInfoRecords().entrySet()) {
-				write.println(re.getValue().getData());
-			}
+			for(VcfHeaderRecord re: VcfHeaderUtils.getqPGRecords(header))  
+				write.println(re.toString());
+			 
 			
+			for(VcfHeaderRecord re: header.getInfoRecords())
+				write.println(re.toString());
+ 			
 			for(MafElement ele: EnumSet.allOf( MafElement.class))
 				write.println(ele.getDescriptionLine());
 	
@@ -608,14 +604,14 @@ public class Vcf2maf extends AbstractMode{
 			if(! StringUtils.isNullOrEmpty(effs[10])) maf.setColumnValue(MafElement.Genotype_Number,effs[10]);		
  	 }
 
- 	public static Optional<String> getBamid(String key, VcfHeader header){
- 		for (final VcfHeader.Record hr : header.getMetaRecords()) { 
-			if( hr.getData().indexOf(key) != -1) {
-				return Optional.ofNullable(StringUtils.getValueFromKey(hr.getData(), key));
-			}
- 		}
- 		return Optional.empty(); 
- 	}
+// 	public static Optional<String> getBamid(String key, VcfHeader header){
+// 		for (final VcfHeaderRecord hr : header.getMetaRecords()) { 
+//			if( hr.getData().indexOf(key) != -1) {
+//				return Optional.ofNullable(StringUtils.getValueFromKey(hr.getData(), key));
+//			}
+// 		}
+// 		return Optional.empty(); 
+// 	}
 	
 	@Override
 	void addAnnotation(String dbfile) throws Exception {

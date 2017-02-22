@@ -14,6 +14,7 @@ import org.qcmg.common.util.*;
 import org.qcmg.common.util.IndelUtils.SVTYPE;
 import org.qcmg.common.vcf.*;
 import org.qcmg.common.vcf.header.VcfHeader;
+import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 import org.qcmg.vcf.VCFFileWriter;
@@ -162,10 +163,10 @@ public class TandemRepeatMode  extends AbstractMode{
 			//reheader
 		    VcfHeader hd = 	reader.getHeader();
 		    hd = reheader(hd, commandLine ,input);			    
-		    hd.addInfoLine(VcfHeaderUtils.INFO_TRF, "1", "String", VcfHeaderUtils.DESCRITPION_INFO_TRF); 
-		    hd.addFilterLine(VcfHeaderUtils.FILTER_TRF, VcfHeaderUtils.DESCRITPION_FILTER_TRF );
+		    hd.addInfo(VcfHeaderUtils.INFO_TRF, "1", "String", VcfHeaderUtils.DESCRITPION_INFO_TRF); 
+		    hd.addFilter(VcfHeaderUtils.FILTER_TRF, VcfHeaderUtils.DESCRITPION_FILTER_TRF );
 		    
-		    for(final VcfHeader.Record record: hd)	writer.addHeader(record.toString());			
+		    for(final VcfHeaderRecord record: hd)	writer.addHeader(record.toString());			
 			logger.info("annotating vcfs from inputs " );
 			
 	        for (final VcfRecord vcf : reader) {   

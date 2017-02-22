@@ -24,6 +24,7 @@ import org.qcmg.common.vcf.VcfInfoFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
+import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 import org.qcmg.vcf.VCFFileWriter;
@@ -170,13 +171,12 @@ public class IndelConfidenceMode extends AbstractMode{
 			    
 			//reheader
 		    VcfHeader hd = 	reader.getHeader();
-		    hd.addFilterLine(FILTER_REPEAT, DESCRITPION_FILTER_REPEAT );       	  
-		    hd.addInfoLine(VcfHeaderUtils.INFO_CONFIDENCE, "1", "String", DESCRITPION_INFO_CONFIDENCE);
+		    hd.addFilter(FILTER_REPEAT, DESCRITPION_FILTER_REPEAT );       	  
+		    hd.addInfo(VcfHeaderUtils.INFO_CONFIDENCE, "1", "String", DESCRITPION_INFO_CONFIDENCE);		    
 		    hd = reheader(hd, commandLine ,input);			    	  
 	
-		    for(final VcfHeader.Record record: hd)  {
-		    		writer.addHeader(record.toString());
-		    }
+		    for(final VcfHeaderRecord record: hd)  
+		    	writer.addHeader(record.toString());
 		
 	        for (final VcfRecord vcf : reader) {
 		        	if( isRepeat(vcf) ){

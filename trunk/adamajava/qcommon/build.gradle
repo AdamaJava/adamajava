@@ -1,4 +1,4 @@
-version = '0.3'
+version = '0.4'
 
 def isExecutable = true
 
@@ -9,6 +9,7 @@ repositories {
 dependencies {
     configurations.compile.transitive = true
     testCompile name: 'junit', version: '4.10'
+	compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.4'
     compile name: 'trove', version: '3.1a1'
     
 }

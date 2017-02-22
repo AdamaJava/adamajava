@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -21,8 +22,7 @@ import org.qcmg.common.meta.QExec;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.SnpUtils;
-import org.qcmg.common.vcf.header.VcfHeader.QPGRecord;
-import org.qcmg.common.vcf.header.VcfHeader.Record;
+import org.qcmg.common.vcf.header.VcfHeaderRecord;
  
 
 public class VcfHeaderUtils {
@@ -117,11 +117,7 @@ public class VcfHeaderUtils {
 
 	
 	//Header lines
-	public static final String CURRENT_FILE_VERSION = "##fileformat=VCFv4.2";
-	public static final String STANDARD_FILE_VERSION = "##fileformat"; 
-	public static final String STANDARD_FILE_DATE = "##fileDate";
-	public static final String STANDARD_SOURCE_LINE = "##qSource";
-	public static final String STANDARD_UUID_LINE = "##qUUID";
+//	public static final String CURRENT_FILE_FORMAT = "##fileformat=VCFv4.3";
 	public static final String STANDARD_ANALYSIS_ID = "##qAnalysisId";
 	public static final String STANDARD_DONOR_ID = "##qDonorId";
 	public static final String STANDARD_CONTROL_SAMPLE = "##qControlSample";
@@ -146,20 +142,26 @@ public class VcfHeaderUtils {
 	public static final String STANDARD_TEST_VCF_GATK_VER = "##qTestVcfGATKVersion";
 	public static final String GERMDB_DONOR_NUMBER = "##dornorNumber";
 	
-  
-//	public static final String PREVIOUS_UUID_LINE = "##preUuid";
 	public static final String STANDARD_DBSNP_LINE = "##dbSNP_BUILD_ID";
 	public static final String STANDARD_INPUT_LINE = "##qINPUT";
-	public static final String HEADER_LINE_FILTER = "##FILTER";
-	public static final String HEADER_LINE_INFO = "##INFO";
-	public static final String HEADER_LINE_FORMAT = "##FORMAT";	
-	public static final String HEADER_LINE_QPG = "##qPG";	
-	public static final String HEADER_LINE_CHROM = "#CHROM";	
-	public static final String STANDARD_FINAL_HEADER_LINE = "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO";
-	public static final String STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT = STANDARD_FINAL_HEADER_LINE + "\tFORMAT\t";
+	public static final String HEADER_LINE_QPG = "##qPG";
+	
+//	public static final String HEADER_LINE_FILTER = "##FILTER";
+//	public static final String HEADER_LINE_INFO = "##INFO";
+//	public static final String HEADER_LINE_FORMAT = "##FORMAT";	
+//	public static final String HEADER_LINE_CHROM = "#CHROM";	
+////	public static final String STANDARD_FINAL_HEADER_LINE = "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO";
+	public static final String STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT = VcfHeader.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\t";
 	
 	public static final String GATK_CMD_LINE = "##GATKCommandLine";
-	public static final String GATK_CMD_LINE_VERSION = "Version=";
+	public static final String GATK_CMD_LINE_VERSION = "Version";
+	
+	public static final String VERSION = "Version";
+	public static final String TOOL = "Tool";
+	public static final String DATE = "Date";
+	public static final String COMMAND_LINE = "CL";
+
+	
 	
 	public enum VcfInfoType {
 
@@ -216,7 +218,7 @@ public class VcfHeaderUtils {
 		   }
 		   str.append(exsitIds[i]);
 	   }
-		header.parseHeaderLine(str.toString());		
+		header.addOrReplace(str.toString());		
 	}
 	
 	public static void addQPGLineToHeader(VcfHeader header, String tool, String version, String commandLine) {
@@ -231,52 +233,43 @@ public class VcfHeaderUtils {
 		}
 		
 		int currentLargestOrder = 0;
-		List<QPGRecord> currentQPGLines = new ArrayList<>(header.getqPGLines());	// returns a sorted collection
+		List<VcfHeaderRecord> currentQPGLines = new ArrayList<>(getqPGRecords(header));	// returns a sorted collection
 		if ( ! currentQPGLines.isEmpty()) {
-			currentLargestOrder = currentQPGLines.get(0).getOrder();
+			currentLargestOrder = Integer.parseInt( currentQPGLines.get(0).getId() );
 		}
 		
 		// create and add to existing collection
-		header.addQPGLine(currentLargestOrder + 1, tool, version, commandLine,  DF.format(new Date()));
+		addQPGLine(header, currentLargestOrder + 1, tool, version, commandLine,  DF.format(new Date()));
 		
 	}
 	
 	/**
-	 * Retrieves the UUID from the uuid VcfHeader.Record supplied to the method.
+	 * Retrieves the UUID from the uuid VcfHeaderRecord supplied to the method.
 	 * If this object is null, then null is returned.
 	 * Otherwise, the record is split by '=' and the second parameter is returned to the user.
 	 * Again, if the record does not contain '=', then null is returned
 	 * 
 	 * 
-	 * @param uuid VcfHEader.Record uuid of the vcf file
+	 * @param uuid VcfHeaderRecord uuid of the vcf file
 	 * @return null if the supplied uuid record is null
 	 */
-	public static String getUUIDFromHeaderLine(VcfHeader.Record uuid) {
+	public static String getUUIDFromHeaderLine(VcfHeaderRecord uuid) {
 		if (null == uuid) {
 			logger.warn("null uuid record passed to getUUIDFromHeaderLine!!!");
 			return null;
 		}
-		String uuidString = splitMetaRecord(uuid)[1];
-		return uuidString;
+		return uuid.getMetaValue();
 	}
 	
 	public static String getGATKVersionFromHeaderLine(VcfHeader header) {
-		if (null == header) {
+		if (null == header) 
 			throw new IllegalArgumentException("Null header passed to VcfHeaderUtils.getGATKVersionFromHeaderLine");
-		}
-		
-		for (VcfHeader.Record rec : header.getMetaRecords()) {
-			if (rec.getData().startsWith(GATK_CMD_LINE)) {
-				String version = null;
-				int index = rec.getData().indexOf(GATK_CMD_LINE_VERSION);
-				if (index > -1) {
-					int commaIndex = rec.getData().indexOf(Constants.COMMA, index);
-					version = rec.getData().substring(index + GATK_CMD_LINE_VERSION.length(), commaIndex);
-				}
-				return version;
-			}
-		}
-		return null;
+						
+		List<VcfHeaderRecord> recs = header.getRecords(GATK_CMD_LINE);		
+		for(VcfHeaderRecord rec : recs)
+			if(rec.getId() != null)
+				return ((VcfHeaderRecord) rec).getSubFieldValue(GATK_CMD_LINE_VERSION);	 		 
+		return null; 	
 	}
 	
 	
@@ -287,94 +280,125 @@ public class VcfHeaderUtils {
 	 * 
 	 * @param original
 	 * @param additional
-	 * @param overwrite
+	 * @param overwrite: replace existing header line if same id exists; otherwise keep all header line
 	 * @return original header merged from additional 
 	 */
 	public static VcfHeader mergeHeaders(VcfHeader original, VcfHeader additional, boolean overwrite) {
-		if (null == original && null == additional) {
+		if (null == original && null == additional) 
 			throw new IllegalArgumentException("Null headers passed to VcfHeaderUtils.mergeHeaders");
-		} else if (null == original) {
-			return additional;
-		} else if (null == additional) {
-			return original;
-		}
-		
-		// only merging format, filter, info and meta
-		
-		for (VcfHeader.Record rec : additional.getInfoRecords().values()) {
-			original.addInfo(rec, overwrite);
-		}
-		for (VcfHeader.Record rec : additional.getFormatRecords().values()) {
-			original.addFormat(rec, overwrite);
-		}
-		for (VcfHeader.Record rec : additional.getFilterRecords().values()) {
-			original.addFilter(rec, overwrite);
-		}
-		for (VcfHeader.Record rec : additional.getMetaRecords()) {
-			original.addMeta(rec, overwrite);
-		}
+		 else if (null == original)  return additional;
+		 else if (null == additional)  return original;
+		 		
+		// only merging format, filter, info and meta		
+		for (VcfHeaderRecord rec : additional.getInfoRecords())  
+			original.addOrReplace(rec.toString(), overwrite);
+		 
+		for (VcfHeaderRecord rec : additional.getFormatRecords())  
+			original.addOrReplace(rec.toString(), overwrite);
+		 
+		for (VcfHeaderRecord rec : additional.getFilterRecords())  
+			original.addOrReplace(rec.toString(), overwrite);
+		 
+		for (VcfHeaderRecord rec : additional.getAllMetaRecords())  
+			original.addOrReplace(rec.toString(), overwrite);
+		 
 		return original;
 	}
 	
 	
 	/**
-	 * Splits a VcfHeader.Record meta object on '=' and returns a String array with the results of the split command.
-	 * If the record does not contain '=' then a 2 element array is returned, with the first element containing record.getData(), and the second element containing null
-	 * @param rec VcfHeader.Record
-	 * @return String [] containing the result of rec.getData().split("=")
+	 * Splits a VcfHeaderRecord meta object on '=' and returns a String array with the results of the split command.
+	 * If the record does not contain '=' then a 2 element array is returned, with the first element containing record.toString(), and the second element containing null
+	 * @param rec VcfHeaderRecord
+	 * @return String [] containing the result of rec.toString().split("=")
 	 */
-	public static String[]  splitMetaRecord(VcfHeader.Record rec) {
-		if (null == rec || null == rec.getData()) {
-			throw new IllegalArgumentException("Null record passed to VcfHeaderUtils.splitMetaRecord");
-		}
+//	public static String[]  splitMetaRecord(VcfHeaderRecord rec) {
+//		if (null == rec ) 
+//			throw new IllegalArgumentException("Null record passed to VcfHeaderUtils.splitMetaRecord");
+//		 		
+//		return  (rec.getMetaValue() == null)? new String[]{ rec.getMetaKey(), null } : new String[]{rec.getMetaKey(), rec.getMetaValue()};
+//		
+////		int index = rec.toString().indexOf(Constants.EQ_STRING);
+////		if (index >= 0) {
+////			return  rec.toString().split(Constants.EQ_STRING);
+////		}
+////		
+////		return new String[] {rec.toString(), null};
+//	}
+	
+//	public static class SplitMetaRecord{
+//		String[] pair; 
+//		public SplitMetaRecord(Record record){
+//			this.pair =  splitMetaRecord(record);
+//		}
+//		
+//		public String getKey(){ return pair[0]; }
+//		public String getValue(){ return pair[1]; }
+//	}
 		
-		int index = rec.getData().indexOf(Constants.EQ_STRING);
-		if (index >= 0) {
-			return  rec.getData().split(Constants.EQ_STRING);
-		}
-		
-		return new String[] {rec.getData(), null};
-	}
-	
-	public static class SplitMetaRecord{
-		String[] pair; 
-		public SplitMetaRecord(Record record){
-			this.pair =  splitMetaRecord(record);
-		}
-		
-		public String getKey(){ return pair[0]; }
-		public String getValue(){ return pair[1]; }
-	}
-	
-	
-	
-	
 	public static VcfHeader reheader(VcfHeader header, String cmd, String inputVcfName, Class mainClass) throws IOException {	
-		DateFormat df = new SimpleDateFormat("yyyyMMdd"); 
-//		VcfHeader myHeader = header;  	
+		DateFormat df = new SimpleDateFormat( "yyyyMMdd" ); 
  		
 		String version = mainClass.getPackage().getImplementationVersion();
 		String pg = mainClass.getPackage().getImplementationTitle();
 		final String fileDate = df.format(Calendar.getInstance().getTime());
 		final String uuid = QExec.createUUid();
 		
-		header.parseHeaderLine(VcfHeaderUtils.CURRENT_FILE_VERSION);
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + fileDate);
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + uuid);
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=" + pg+"-"+version);	
+		header.addOrReplace(VcfHeader.CURRENT_FILE_FORMAT);
+		header.addOrReplace(VcfHeader.STANDARD_FILE_DATE + "=" + fileDate);
+		header.addOrReplace(VcfHeader.STANDARD_UUID_LINE + "=" + uuid);
+		header.addOrReplace(VcfHeader.STANDARD_SOURCE_LINE + "=" + pg+"-"+version);	
 			
-		String inputUuid = (header.getUUID() == null)? null: new VcfHeaderUtils.SplitMetaRecord(header.getUUID()).getValue();   
-		header.replace(VcfHeaderUtils.STANDARD_INPUT_LINE + "=" + inputUuid + ":"+ inputVcfName);
+		String inputUuid = (header.getUUID() == null)? null: header.getUUID().getMetaValue();   
+		header.addOrReplace(VcfHeaderUtils.STANDARD_INPUT_LINE + "=" + inputUuid + ":"+ inputVcfName);
 		
 		if(version == null) version = Constants.NULL_STRING_UPPER_CASE;
 	    if(pg == null ) pg = Constants.NULL_STRING_UPPER_CASE;
 	    if(cmd == null) cmd = Constants.NULL_STRING_UPPER_CASE;
 		VcfHeaderUtils.addQPGLineToHeader(header, pg, version, cmd);
 		
-		return header;
-			
+		return header;			
 	}
 	
-
- 
+	public static boolean containsQIMRDetails(VcfHeader header) {  
+		return  (header.getUUID() != null && ( !getqPGRecords(header).isEmpty()) );
+	}		
+	
+	/**
+	 * append a new pg line if not exist. otherwise replace the exsiting PG line with same order
+	 * @param i: ith pg line
+	 * @param tool : tool name
+	 * @param version : tool version
+	 * @param commandLine: command line
+	 * @param date: date to run the tool
+	 */
+	public static void addQPGLine(VcfHeader header, int i, String tool, String version, String commandLine, String date) { 
+		String line = VcfHeaderUtils.HEADER_LINE_QPG + "=<ID=" + i + Constants.COMMA + TOOL + Constants.EQ + tool +				
+				Constants.COMMA + VERSION + Constants.EQ + version + Constants.COMMA + DATE + Constants.EQ + date +
+				Constants.COMMA + COMMAND_LINE + Constants.EQ + VcfHeaderRecord.parseDescription(commandLine) + ">";		
+		header.addOrReplace(line);
+	} 
+	
+	/**
+	 * append a new pg line or replace the existing PG line with same order
+	 * @param order: PG line order
+	 * @param exec
+	 */
+	public static void addQPGLine(VcfHeader header, int order, QExec exec) { 
+		String line = VcfHeaderUtils.HEADER_LINE_QPG + "=<ID=" + order + Constants.COMMA + TOOL + Constants.EQ + exec.getToolName().getValue() +				
+		Constants.COMMA + VERSION + Constants.EQ + exec.getToolVersion().getValue() + Constants.COMMA + DATE + Constants.EQ + exec.getStartTime().getValue() +
+		Constants.COMMA + COMMAND_LINE + Constants.EQ + VcfHeaderRecord.parseDescription(exec.getCommandLine().getValue() )+ ">"  ;
+		header.addOrReplace(line);	
+	} 	
+	
+	public static List<VcfHeaderRecord> getqPGRecords(VcfHeader header) {  		
+		return header.getRecords(VcfHeaderUtils.HEADER_LINE_QPG).stream().map(x -> (VcfHeaderRecord) x).collect(Collectors.toList());		
+	}
+	
+	public static VcfHeaderRecord getqPGRecord(VcfHeader header, String id){ 	return header.getIDRecord(VcfHeaderUtils.HEADER_LINE_QPG, id); }	
+	public static int getQPGOrder( VcfHeaderRecord  qpg){ return Integer.parseInt(qpg.getId()); }
+	public static String getQPGTool(VcfHeaderRecord  qpg){ return  qpg.getSubFieldValue(TOOL);}
+	public static String getQPGDate(VcfHeaderRecord  qpg){ return  qpg.getSubFieldValue(DATE);}
+	public static String getQPGVersion(VcfHeaderRecord  qpg){ return  qpg.getSubFieldValue(VERSION);}
+	public static String getQPGCommandLine(VcfHeaderRecord  qpg){ return  qpg.getSubFieldValue(COMMAND_LINE);}
 }

@@ -9,11 +9,16 @@ import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.vcf.VcfFormatFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-
-
-
 public class IndelUtils {
-	public enum SVTYPE {SNP,DNP,TNP, ONP,INS,DEL,CTX,UNKNOWN }		
+	public enum SVTYPE {
+		
+		SNP(1),DNP(2),TNP(3), ONP(4),INS(5),DEL(6),CTX(7),UNKNOWN(0);
+		
+		public final int order;
+		SVTYPE(int od){this.order = od;}		
+		public int getOrder(){return order; }
+		static public int getSize() { return CTX.order + 1;}
+	}		
 	
 	//qbasepileup indel vcf header info column ID
 	public static final String INFO_END = "END"; 
@@ -87,38 +92,38 @@ public class IndelUtils {
 	 * @param alt: single alleles base from vcf record 5th column
 	 * @return variant type, whether it is SNP, MNP, INSERTION, DELETION or TRANSLOCATION
 	 */
-	public static SVTYPE getVariantType(String ref, String alt){
-		if (StringUtils.isNullOrEmpty(alt) || StringUtils.isNullOrEmpty(ref)) {
-			throw new IllegalArgumentException("Null or empty alt and/or ref passed to getVariantType. alt: " + alt + ", ref: " + ref);
+	public static SVTYPE getVariantType(String ref, String alts){
+		if (StringUtils.isNullOrEmpty(alts) || StringUtils.isNullOrEmpty(ref)) {
+			throw new IllegalArgumentException("Null or empty alt and/or ref passed to getVariantType. alt: " + alts + ", ref: " + ref);
 		}
 		/*
 		 * Only deal with alts of same length for now
 		 */
-		if (areAltsSameLength(alt)) {
+		String alt = getFirstAltIfSameLength(alts);
+		if (alt != null) {
 			int refLen = ref.length();
-			/*
-			 * snps
-			 */
-			 if (refSameLengthAsAlts(ref, alt)) {
+			int altLen = alt.length();
+			 //snp
+			 if ( refLen == altLen ) {
 				 switch (refLen) {
-				 case 1: return SVTYPE.SNP;	
-				 case 2: return SVTYPE.DNP;	
-				 case 3: return SVTYPE.TNP;
-				 default: return SVTYPE.ONP;
+					 case 1: return SVTYPE.SNP;	
+					 case 2: return SVTYPE.DNP;	
+					 case 3: return SVTYPE.TNP;
+					 default: return SVTYPE.ONP;
 				 }
 			 }
-			 /*
-			  * insertions
-			  */
-			 if ( alt.length() <  MAX_INDEL_LENGTH &&  alt.length() > refLen && refLen == 1) {
+			 
+			 // insertions  
+			 if ( altLen <  MAX_INDEL_LENGTH &&  altLen > refLen && refLen == 1)  
 				 return  SVTYPE.INS;	
-			 }
-			 /*
-			  * deletions
-			  */
-			 if (refLen <  MAX_INDEL_LENGTH && alt.length() < refLen && alt.length() == 1) {
+			 
+			 // deletions
+			 if (refLen <  MAX_INDEL_LENGTH && altLen < refLen && altLen == 1)  
 				 return  SVTYPE.DEL;
-			 }
+			  			 
+			 //complicated variants
+			 if(altLen <  MAX_INDEL_LENGTH && refLen <  MAX_INDEL_LENGTH && refLen != 1 && altLen != 1)
+				 return SVTYPE.CTX; 
 		 }
 		return SVTYPE.UNKNOWN;	
 	}
@@ -133,36 +138,64 @@ public class IndelUtils {
 		if (StringUtils.isNullOrEmpty(alts) || StringUtils.isNullOrEmpty(ref)) {
 			throw new IllegalArgumentException("Null or empty alt and/or ref passed to IndelUtils.refSameLengthAsAlts. alts: " + alts+ ", ref: " + ref);
 		}
-		if (areAltsSameLength(alts)) {
-			int commaIndex = alts.indexOf(Constants.COMMA);
-			int altLen = commaIndex == -1 ? alts.length() : commaIndex;
-			
-			return altLen == ref.length();
+		
+		String alt = getFirstAltIfSameLength(alts);
+		if (alt != null) {			
+			return alt.length() == ref.length();
 		}
 		return false;
 	}
 	
+//	/**
+//	 * Returns true if alts is made up of a single alt (ie. no commas in alts), or if the comma split list of strings are all the same length
+//	 * @param alts
+//	 * @return
+//	 */
+//	public static boolean areAltsSameLength(String alts) {
+//		if (StringUtils.isNullOrEmpty(alts)) {
+//			throw new IllegalArgumentException("Null or empty alts string passed to IndelUtils.areAltsSameLength");
+//		}
+//		int commaIndex = alts.indexOf(Constants.COMMA);
+//		if (commaIndex == -1) {
+//			return true;
+//		}
+//		String [] aAlts = alts.split(Constants.COMMA_STRING);
+//		int len = aAlts[0].length();
+//		for (String alt : aAlts) {
+//			if (alt.length() != len) {
+//				return false;
+//			}
+//		}
+//		return true;
+//	}
+	
 	/**
-	 * Returns true if alts is made up of a single alt (ie. no commas in alts), or if the comma split list of strings are all the same length
-	 * @param alts
-	 * @return
+	 * 
+	 * @param alts : single or multi alleles string 
+	 * @return the first allele if alts is made up of a single alt (ie. no commas in alts), or if the comma split list of strings are all the same length;
+	 *  teturn null if multi alleles with different length
 	 */
-	public static boolean areAltsSameLength(String alts) {
+	
+	public static String getFirstAltIfSameLength(String alts) {
 		if (StringUtils.isNullOrEmpty(alts)) {
 			throw new IllegalArgumentException("Null or empty alts string passed to IndelUtils.areAltsSameLength");
 		}
+		
+		//single allele
 		int commaIndex = alts.indexOf(Constants.COMMA);
 		if (commaIndex == -1) {
-			return true;
+			return alts;
 		}
+		
+		//mutli alleles
 		String [] aAlts = alts.split(Constants.COMMA_STRING);
 		int len = aAlts[0].length();
 		for (String alt : aAlts) {
 			if (alt.length() != len) {
-				return false;
+				return null;
 			}
 		}
-		return true;
+		return aAlts[0];
 	}
 	
 	/**

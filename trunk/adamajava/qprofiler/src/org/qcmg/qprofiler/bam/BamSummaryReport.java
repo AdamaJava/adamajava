@@ -223,16 +223,7 @@ public class BamSummaryReport extends SummaryReport {
 	 * Allows some cleanup to take place - eg. move remaining entries from coverageQueue and add to coverage map
 	 */
 	public void cleanUp() {
-				
-//		for (ReadGroupSummary summary : rgSummaries.values() ) {
-//			duplicateCount += summary.getNumDuplicate();
-//			unmappedCount  += summary.getNumUnMapped();
-//			nonCanonicalPairCount  += summary.getNumSecondary();
-//			secondaryCount  += 	summary.getNumSecondary();
-//			supplementaryCount  += 	summary.getNumSupplementary();
-//			failedVendorQualityCheckCount  += summary.getNumFailedVendorQuality();
-//		}
-		
+						
 		ReadGroupSummary summary = rgSummaries.get("overall");
 		duplicateCount = summary.getNumDuplicate();
 		unmappedCount  = summary.getNumUnMapped();
@@ -277,8 +268,6 @@ public class BamSummaryReport extends SummaryReport {
 	@Override
 	public void toXml(Element parent) {
 		
-		
-//		Element bamReportElement = init(parent, ProfileType.BAM, Long.valueOf(duplicateCount), includes, maxRecords);
 		Element bamReportElement = init(parent, ProfileType.BAM, null, includes, maxRecords);
 		
 		// bam file HEADER

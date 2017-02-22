@@ -45,6 +45,7 @@ import org.qcmg.common.util.SnpUtils;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
+import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.util.QDccMetaFactory;
@@ -211,60 +212,41 @@ public final class VcfPipeline extends Pipeline {
 		VcfHeader existingHeader = new VcfHeader();
 		
 		if ( ! singleSampleMode) {
-			for (VcfHeader.Record rec : controlVcfHeader.getInfoRecords().values()) {
-				existingHeader.addInfo(rec);
+			for (VcfHeaderRecord rec : controlVcfHeader.getInfoRecords()) {
+				existingHeader.addOrReplace(rec);  
 			}
-			for (VcfHeader.Record rec : controlVcfHeader.getFormatRecords().values()) {
-				existingHeader.addFormat(rec);
+			for (VcfHeaderRecord rec : controlVcfHeader.getFormatRecords()) {
+				existingHeader.addOrReplace(rec);
 			}
-			for (VcfHeader.Record rec : controlVcfHeader.getFilterRecords().values()) {
-				existingHeader.addFilter(rec);
+			for (VcfHeaderRecord rec : controlVcfHeader.getFilterRecords()) {
+				existingHeader.addOrReplace(rec);
 			}
 			
 			// add in the vcf filename, gatk version and the uuid
-			existingHeader.parseHeaderLine(VcfHeaderUtils.STANDARD_CONTROL_VCF + Constants.EQ + controlVcfFile);
-			existingHeader.parseHeaderLine(VcfHeaderUtils.STANDARD_CONTROL_VCF_UUID + Constants.EQ + VcfHeaderUtils.getUUIDFromHeaderLine(controlVcfHeader.getUUID()));
-			existingHeader.parseHeaderLine(VcfHeaderUtils.STANDARD_CONTROL_VCF_GATK_VER + Constants.EQ + VcfHeaderUtils.getGATKVersionFromHeaderLine(controlVcfHeader));
+			existingHeader.addOrReplace(VcfHeaderUtils.STANDARD_CONTROL_VCF + Constants.EQ + controlVcfFile);
+			existingHeader.addOrReplace(VcfHeaderUtils.STANDARD_CONTROL_VCF_UUID + Constants.EQ + VcfHeaderUtils.getUUIDFromHeaderLine(controlVcfHeader.getUUID()));
+			existingHeader.addOrReplace(VcfHeaderUtils.STANDARD_CONTROL_VCF_GATK_VER + Constants.EQ + VcfHeaderUtils.getGATKVersionFromHeaderLine(controlVcfHeader));
 			
 		}
 		
-		for (VcfHeader.Record rec : testVcfHeader.getInfoRecords().values()) {
-			existingHeader.addInfo(rec);
+		for (VcfHeaderRecord rec : testVcfHeader.getInfoRecords()) {
+			existingHeader.addOrReplace(rec);
 		}
-		for (VcfHeader.Record rec : testVcfHeader.getFormatRecords().values()) {
-			existingHeader.addFormat(rec);
+		for (VcfHeaderRecord rec : testVcfHeader.getFormatRecords()) {
+			existingHeader.addOrReplace(rec);
 		}
-		for (VcfHeader.Record rec : testVcfHeader.getFilterRecords().values()) {
-			existingHeader.addFilter(rec);
+		for (VcfHeaderRecord rec : testVcfHeader.getFilterRecords()) {
+			existingHeader.addOrReplace(rec);
 		}
 		// add in the vcf filename, gatk version and the uuid
-		existingHeader.parseHeaderLine(VcfHeaderUtils.STANDARD_TEST_VCF + Constants.EQ + testVcfFile);
-		existingHeader.parseHeaderLine(VcfHeaderUtils.STANDARD_TEST_VCF_UUID + Constants.EQ + VcfHeaderUtils.getUUIDFromHeaderLine(testVcfHeader.getUUID()));
-		existingHeader.parseHeaderLine(VcfHeaderUtils.STANDARD_TEST_VCF_GATK_VER + Constants.EQ + VcfHeaderUtils.getGATKVersionFromHeaderLine(testVcfHeader));
+		existingHeader.addOrReplace(VcfHeaderUtils.STANDARD_TEST_VCF + Constants.EQ + testVcfFile);
+		existingHeader.addOrReplace(VcfHeaderUtils.STANDARD_TEST_VCF_UUID + Constants.EQ + VcfHeaderUtils.getUUIDFromHeaderLine(testVcfHeader.getUUID()));
+		existingHeader.addOrReplace(VcfHeaderUtils.STANDARD_TEST_VCF_GATK_VER + Constants.EQ + VcfHeaderUtils.getGATKVersionFromHeaderLine(testVcfHeader));
 		
 		// override this if dealing with input VCFs and the existing headers are to be kept
 		return existingHeader;
 	}
-//	VcfHeader getExistingVCFHeaderDetails()  {
-//		VcfHeader existingHeader = new VcfHeader();
-//		
-//		if ( ! singleSampleMode) {
-//			for (final VcfHeaderRecord rec : controlVcfHeader) {
-//				if (rec.type.includeInGatkMerge()) {
-//					existingHeader.add(rec);
-//				}
-//			}
-//		}
-//		
-//		for (final VcfHeaderRecord rec : testVcfHeader) {
-//			if (rec.type.includeInGatkMerge()) {
-//				existingHeader.add(rec);
-//			}
-//		}
-//		
-//		// override this if dealing with input VCFs and the existing headers are to be kept
-//		return existingHeader;
-//	}
+
 	
 	@Override
 	String getDccMetaData() throws Exception {

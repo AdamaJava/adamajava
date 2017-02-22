@@ -18,6 +18,7 @@ import org.junit.Test;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
+import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 
@@ -117,57 +118,36 @@ public class DbsnpModeTest {
 		mode.reheader("testing run",   inputName);
 		mode.writeVCF( new File(outputName));
 		
-		int[] count = {0,0,0,0,0,0,0,0,0,0,0}; // 0-8th for non-blank header; 9th for blank header; 10th for exception case  
-		
 		 try(VCFFileReader reader = new VCFFileReader(outputName)){
-			int i = 0; 
 			VcfHeader header = reader.getHeader();
 			
-			if (null != header.getFileVersion())  count[0] ++;
-		 
-			if (null != header.getFileDate()) count[1] ++;
-			 
-			if (null != header.getUUID())  count[2] ++;
-			 
-			if (null != header.getSource())  count[3] ++;			 
-		 
-			for(VcfHeader.Record re : header.getMetaRecords())
-				if(re.getData().startsWith(VcfHeaderUtils.CURRENT_FILE_VERSION))
-					count[0] ++;			 
-				else if( re.getData().startsWith( VcfHeaderUtils.STANDARD_FILE_DATE))  
-					count[1] ++;						
-				else if(re.getData().startsWith( VcfHeaderUtils.STANDARD_UUID_LINE))  
-					count[2] ++;
-					
-				else if(re.getData().startsWith( VcfHeaderUtils.STANDARD_SOURCE_LINE))  
-					count[3] ++;					
-				else if(re.getData().startsWith( VcfHeaderUtils.STANDARD_INPUT_LINE))  
-					count[4] ++;							
- 
-			for(VcfHeader.QPGRecord re : header.getqPGLines()){
-				assertEquals(re.getTool(), Constants.NULL_STRING_UPPER_CASE);
-				assertNotNull(re.getDate());
-				assertNotNull(re.getCommandLine());
-				assertEquals(1,  re.getOrder());
-				count[5] ++;	
-			}
-		 
-			VcfHeader.Record chrom = header.getChrom();
-			if (chrom.getData().startsWith(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE)) 
-				count[6] ++; 
-			 			
-			for (final String re : header.getInfoRecords().keySet()) 
-				if (re.equals(VcfHeaderUtils.INFO_VAF)) 
-					count[7] ++; 
-				 else if (re.equals(VcfHeaderUtils.INFO_DB)) 
-					count[8] ++; 			
- 				
-	 			 
- 			assertTrue(count[10] == 0);			
-			for (i = 0; i < 9; i++) 
-				assertTrue(count[i] == 1);		
+			assertTrue (null != header.getFileFormat()) ;  
+			assertTrue (null != header.getFileDate()) ; 	 
+			assertTrue (null != header.getUUID()) ;   
+			assertTrue (null != header.getSource()) ;  
+			
+			assertTrue(header.getRecords(VcfHeader.STANDARD_FILE_FORMAT).size() == 1);
+			assertTrue(header.getRecords(VcfHeader.STANDARD_FILE_DATE ).size() == 1);
+			assertTrue(header.getRecords(VcfHeader.STANDARD_UUID_LINE ).size() == 1);
+			assertTrue(header.getRecords(VcfHeader.STANDARD_SOURCE_LINE ).size() == 1);
+			assertTrue(header.getRecords(VcfHeaderUtils.STANDARD_INPUT_LINE ).size() == 1);
 						
-			i = 0;
+			int ii = 0;
+			for(VcfHeaderRecord re : VcfHeaderUtils.getqPGRecords(header)){
+				assertEquals( VcfHeaderUtils.getQPGTool(re)  , Constants.NULL_STRING_UPPER_CASE);
+				assertNotNull(VcfHeaderUtils.getQPGDate(re) );
+				assertNotNull( VcfHeaderUtils.getQPGCommandLine(re) );
+				assertEquals(1, VcfHeaderUtils.getQPGOrder(re) );
+				ii ++;	
+			}
+			assertTrue(ii == 1);
+						
+			VcfHeaderRecord chrom = header.getChrom();
+			assertTrue(chrom.toString().startsWith(VcfHeader.STANDARD_FINAL_HEADER_LINE)) ;			
+			assertTrue(header.getInfoRecord(VcfHeaderUtils.INFO_VAF) != null);  
+			assertTrue(header.getInfoRecord(VcfHeaderUtils.INFO_DB) != null) ;
+			  						
+			int i = 0;
 			for (final VcfRecord re : reader) {	
  				i ++;
 				if(re.getPosition() == 2675826){
@@ -217,8 +197,9 @@ public class DbsnpModeTest {
 		mode.writeVCF(new File(outputName));
 
 		try (VCFFileReader reader = new VCFFileReader(outputName)) {
-			VcfHeader header = reader.getHeader();			
-			assertEquals(true, header.getInfoRecords().containsKey(VcfHeaderUtils.INFO_VLD));
+			VcfHeader header = reader.getHeader();	
+			assertEquals( header.getInfoRecord(VcfHeaderUtils.INFO_VLD)!= null, true);
+//			assertEquals(true, header.getInfoRecords().containsKey(VcfHeaderUtils.INFO_VLD));
 		}		 
 	}		
 	

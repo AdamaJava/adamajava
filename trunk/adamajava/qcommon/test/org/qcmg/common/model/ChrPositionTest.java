@@ -94,7 +94,6 @@ public class ChrPositionTest {
 	@Ignore
 	public void testHashCode() {
 		Set<Integer> distinctHashCodes = new HashSet<Integer>();
-//		Set<ChrPosition> distinctCycleKeys = new HashSet<ChrPosition>();
 		int counter = 0;
 		for (int cycle = 90000000 ;  cycle < 100000000 ; cycle++) {
 			int chrValue = (counter % 20) + 1;
@@ -102,9 +101,6 @@ public class ChrPositionTest {
 			distinctHashCodes.add(cp.hashCode());
 			counter++;
 		}
-				
-//		System.out.println("Integer: no of distinct ChrPosition objects created: " + counter);
-//		System.out.println("Integer: no of distinct hashcodes: " + distinctHashCodes.size());
 	}
 
 }

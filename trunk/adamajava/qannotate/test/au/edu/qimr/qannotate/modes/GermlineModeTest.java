@@ -53,9 +53,12 @@ public class GermlineModeTest {
 				 
 				 //check header
 //				int i = 0; 
-				VcfHeader header = reader.getHeader();				
-				assertEquals(false, header.getFilterRecords().containsKey(VcfHeaderUtils.FILTER_GERMLINE));
-				assertEquals(true, header.getInfoRecords().containsKey(VcfHeaderUtils.INFO_GERMLINE));
+				VcfHeader header = reader.getHeader();	
+				assertEquals(false, header.getFilterRecord(VcfHeaderUtils.FILTER_GERMLINE) != null);
+				assertEquals(true, header.getInfoRecord(VcfHeaderUtils.INFO_GERMLINE) != null);
+
+//				assertEquals(false, header.getFilterRecords().containsKey(VcfHeaderUtils.FILTER_GERMLINE));
+//				assertEquals(true, header.getInfoRecords().containsKey(VcfHeaderUtils.INFO_GERMLINE));
 				//check records
  				int inputs = 0;
  				int germNo = 0;

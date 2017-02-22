@@ -26,6 +26,7 @@ import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
+import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 import org.qcmg.vcf.VCFFileWriter;
@@ -71,7 +72,6 @@ public abstract class AbstractMode {
 
 	abstract void addAnnotation(String dbfile) throws Exception;
 	
-
 	/**
 	 * 
 	 * @param outputFile: add annotate variants from RAM hash map intp the output file
@@ -83,7 +83,7 @@ public abstract class AbstractMode {
 		Collections.sort(orderedList, new ChrPositionComparator());
 		
 		try(VCFFileWriter writer = new VCFFileWriter( outputFile)) {
-			for(final VcfHeader.Record record: header)  {
+			for(final VcfHeaderRecord record: header)  {
 				writer.addHeader(record.toString());
 			}
 			long count = 0; 
@@ -105,21 +105,20 @@ public abstract class AbstractMode {
 		final String fileDate = df.format(Calendar.getInstance().getTime());
 		final String uuid = QExec.createUUid();
 		
-		myHeader.parseHeaderLine(VcfHeaderUtils.CURRENT_FILE_VERSION);
-		myHeader.parseHeaderLine(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + fileDate);
-		myHeader.parseHeaderLine(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + uuid);
-		myHeader.parseHeaderLine(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=" + pg+"-"+version);	
+		myHeader.addOrReplace(VcfHeader.CURRENT_FILE_FORMAT);
+		myHeader.addOrReplace(VcfHeader.STANDARD_FILE_DATE + "=" + fileDate);
+		myHeader.addOrReplace(VcfHeader.STANDARD_UUID_LINE + "=" + uuid);
+		myHeader.addOrReplace(VcfHeader.STANDARD_SOURCE_LINE + "=" + pg+"-"+version);	
 			
-		String inputUuid = (myHeader.getUUID() == null)? null: new VcfHeaderUtils.SplitMetaRecord(myHeader.getUUID()).getValue();   
-		myHeader.replace(VcfHeaderUtils.STANDARD_INPUT_LINE + "=" + inputUuid + ":"+ inputVcfName);
+		String inputUuid = (myHeader.getUUID() == null)? null:  myHeader.getUUID().getMetaValue(); //new VcfHeaderUtils.SplitMetaRecord(myHeader.getUUID()).getValue();   
+		myHeader.addOrReplace(VcfHeaderUtils.STANDARD_INPUT_LINE + "=" + inputUuid + ":"+ inputVcfName);
 		
 		if(version == null) version = Constants.NULL_STRING_UPPER_CASE;
 	    if(pg == null ) pg = Constants.NULL_STRING_UPPER_CASE;
 	    if(cmd == null) cmd = Constants.NULL_STRING_UPPER_CASE;
 		VcfHeaderUtils.addQPGLineToHeader(myHeader, pg, version, cmd);
 		
-		return myHeader;
-			
+		return myHeader;			
 	}
 	
 
@@ -130,7 +129,7 @@ public abstract class AbstractMode {
 	 * @throws IOException
 	 */
 	protected void reheader(String cmd, String inputVcfName) throws IOException {	
- 
+
 		if(header == null)
 	        try(VCFFileReader reader = new VCFFileReader(inputVcfName)) {
 	        	header = reader.getHeader();	

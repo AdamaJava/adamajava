@@ -72,6 +72,7 @@ import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
+import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.maths.FisherExact;
 import org.qcmg.picard.MultiSAMFileIterator;
@@ -372,7 +373,7 @@ public abstract class Pipeline {
 			if (null != existingHeader) {
 				VcfHeaderUtils.mergeHeaders(header, existingHeader, true);
 			}
-			for (VcfHeader.Record hr : header) {
+			for (VcfHeaderRecord hr : header) {
 				writer.addHeader(hr.toString());
 			}
 
@@ -403,20 +404,20 @@ public abstract class Pipeline {
 		final VcfHeader header = new VcfHeader();
 		final DateFormat df = new SimpleDateFormat("yyyyMMdd");
 
-		header.parseHeaderLine(VcfHeaderUtils.CURRENT_FILE_VERSION);		
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + df.format(Calendar.getInstance().getTime()));		
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + QExec.createUUid());		
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=" + source);		
+		header.addOrReplace(VcfHeader.CURRENT_FILE_FORMAT);		
+		header.addOrReplace(VcfHeader.STANDARD_FILE_DATE + "=" + df.format(Calendar.getInstance().getTime()));		
+		header.addOrReplace(VcfHeader.STANDARD_UUID_LINE + "=" + QExec.createUUid());		
+		header.addOrReplace(VcfHeader.STANDARD_SOURCE_LINE + "=" + source);		
 		
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_DONOR_ID + "=" + patientId);
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_CONTROL_SAMPLE + "=" + normalSampleId);		
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_TEST_SAMPLE + "=" + tumourSampleId);		
+		header.addOrReplace(VcfHeaderUtils.STANDARD_DONOR_ID + "=" + patientId);
+		header.addOrReplace(VcfHeaderUtils.STANDARD_CONTROL_SAMPLE + "=" + normalSampleId);		
+		header.addOrReplace(VcfHeaderUtils.STANDARD_TEST_SAMPLE + "=" + tumourSampleId);		
 		
 		String normalFormatSample = normalSampleId;
 		if (null != normalBamIds)  
 			for (final QBamId s : normalBamIds) {
-				header.parseHeaderLine( VcfHeaderUtils.STANDARD_CONTROL_BAM  + "=" + s.getBamName());
-				header.parseHeaderLine( "##qControlBamUUID=" + s.getUUID());
+				header.addOrReplace( VcfHeaderUtils.STANDARD_CONTROL_BAM  + "=" + s.getBamName());
+				header.addOrReplace( "##qControlBamUUID=" + s.getUUID());
 				if(normalBamIds.length == 1)
 					normalFormatSample = StringUtils.isMissingDtaString(s.getUUID()) ? s.getBamName().replaceAll("(?i).bam$", "") : s.getUUID();
  			}
@@ -424,41 +425,41 @@ public abstract class Pipeline {
 		String tumourFormatSample = tumourSampleId;
 		if (null != tumourBamIds)  
 			for (final QBamId s : tumourBamIds) {
-				header.parseHeaderLine(VcfHeaderUtils.STANDARD_TEST_BAM  + "=" + s.getBamName());
-				header.parseHeaderLine("##qTestBamUUID=" + s.getUUID());
+				header.addOrReplace(VcfHeaderUtils.STANDARD_TEST_BAM  + "=" + s.getBamName());
+				header.addOrReplace("##qTestBamUUID=" + s.getUUID());
 				if(tumourBamIds.length == 1)
 					tumourFormatSample = StringUtils.isMissingDtaString(s.getUUID()) ? s.getBamName().replaceAll("(?i).bam$", "") : s.getUUID();
 			}		
-		header.parseHeaderLine( "##qAnalysisId=" + uuid );
+		header.addOrReplace( "##qAnalysisId=" + uuid );
 		
-		header.addInfoLine(VcfHeaderUtils.INFO_FLANKING_SEQUENCE, "1", "String","Flanking sequence either side of variant");														
-		header.addInfoLine(VcfHeaderUtils.INFO_SOMATIC, "0", "Flag",VcfHeaderUtils.INFO_SOMATIC_DESC);														
-		header.addFilterLine(VcfHeaderUtils.FILTER_COVERAGE_NORMAL_12, "Less than 12 reads coverage in normal");
-		header.addFilterLine(VcfHeaderUtils.FILTER_COVERAGE_NORMAL_8,"Less than 8 reads coverage in normal");  
-		header.addFilterLine(VcfHeaderUtils.FILTER_COVERAGE_TUMOUR,"Less than 8 reads coverage in tumour"); 
-		header.addFilterLine(VcfHeaderUtils.FILTER_SAME_ALLELE_NORMAL,"Less than 3 reads of same allele in normal");  
-		header.addFilterLine(VcfHeaderUtils.FILTER_SAME_ALLELE_TUMOUR,"Less than 3 reads of same allele in tumour");  
-		header.addFilterLine(VcfHeaderUtils.FILTER_MUTATION_IN_NORMAL,"Mutation also found in pileup of normal");  
-		header.addFilterLine(VcfHeaderUtils.FILTER_MUTATION_IN_UNFILTERED_NORMAL,"Mutation also found in pileup of (unfiltered) normal");  
-		header.addFilterLine(VcfHeaderUtils.FILTER_GERMLINE,"Mutation is a germline variant in another patient");  
-		header.addFilterLine(VcfHeaderUtils.FILTER_NOVEL_STARTS,"Less than 4 novel starts not considering read pair");  
-		header.addFilterLine(VcfHeaderUtils.FILTER_MUTANT_READS,"Less than 5 mutant reads"); 
-		header.addFilterLine(VcfHeaderUtils.FILTER_MUTATION_EQUALS_REF,"Mutation equals reference"); 
-		header.addFilterLine(VcfHeaderUtils.FILTER_NO_CALL_IN_TEST,"No call in test"); 
-		header.addFilterLine(VcfHeaderUtils.FILTER_STRAND_BIAS_ALT,"Alternate allele on only one strand (or percentage alternate allele on other strand is less than " + sBiasAltPercentage + "%)"); 
-		header.addFilterLine(VcfHeaderUtils.FILTER_STRAND_BIAS_COV,"Sequence coverage on only one strand (or percentage coverage on other strand is less than " + sBiasCovPercentage + "%)"); 
+		header.addInfo(VcfHeaderUtils.INFO_FLANKING_SEQUENCE, "1", "String","Flanking sequence either side of variant");														
+		header.addInfo(VcfHeaderUtils.INFO_SOMATIC, "0", "Flag",VcfHeaderUtils.INFO_SOMATIC_DESC);														
+		header.addFilter(VcfHeaderUtils.FILTER_COVERAGE_NORMAL_12, "Less than 12 reads coverage in normal");
+		header.addFilter(VcfHeaderUtils.FILTER_COVERAGE_NORMAL_8,"Less than 8 reads coverage in normal");  
+		header.addFilter(VcfHeaderUtils.FILTER_COVERAGE_TUMOUR,"Less than 8 reads coverage in tumour"); 
+		header.addFilter(VcfHeaderUtils.FILTER_SAME_ALLELE_NORMAL,"Less than 3 reads of same allele in normal");  
+		header.addFilter(VcfHeaderUtils.FILTER_SAME_ALLELE_TUMOUR,"Less than 3 reads of same allele in tumour");  
+		header.addFilter(VcfHeaderUtils.FILTER_MUTATION_IN_NORMAL,"Mutation also found in pileup of normal");  
+		header.addFilter(VcfHeaderUtils.FILTER_MUTATION_IN_UNFILTERED_NORMAL,"Mutation also found in pileup of (unfiltered) normal");  
+		header.addFilter(VcfHeaderUtils.FILTER_GERMLINE,"Mutation is a germline variant in another patient");  
+		header.addFilter(VcfHeaderUtils.FILTER_NOVEL_STARTS,"Less than 4 novel starts not considering read pair");  
+		header.addFilter(VcfHeaderUtils.FILTER_MUTANT_READS,"Less than 5 mutant reads"); 
+		header.addFilter(VcfHeaderUtils.FILTER_MUTATION_EQUALS_REF,"Mutation equals reference"); 
+		header.addFilter(VcfHeaderUtils.FILTER_NO_CALL_IN_TEST,"No call in test"); 
+		header.addFilter(VcfHeaderUtils.FILTER_STRAND_BIAS_ALT,"Alternate allele on only one strand (or percentage alternate allele on other strand is less than " + sBiasAltPercentage + "%)"); 
+		header.addFilter(VcfHeaderUtils.FILTER_STRAND_BIAS_COV,"Sequence coverage on only one strand (or percentage coverage on other strand is less than " + sBiasCovPercentage + "%)"); 
 	
-		header.addFormatLine(VcfHeaderUtils.FORMAT_GENOTYPE, "1", "String" ,"Genotype");
-		header.addFormatLine(VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS, "1", "String","Genotype details: specific alleles (A,G,T or C)");
-		header.addFormatLine(VcfHeaderUtils.FORMAT_ALLELE_COUNT, "1", "String","Allele Count: lists number of reads on forward strand [avg base quality], reverse strand [avg base quality]");
-		header.addFormatLine(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP, "1", "String","Allele Count Compound Snp: lists read sequence and count (forward strand, reverse strand)");
-		header.addFormatLine(VcfHeaderUtils.FORMAT_ALLELIC_DEPTHS, ".", "Integer","Allelic depths for the ref and alt alleles in the order listed");
-		header.addFormatLine(VcfHeaderUtils.FORMAT_READ_DEPTH, "1", "Integer","Approximate read depth (reads with MQ=255 or with bad mates are filtered)");
-		header.addFormatLine(VcfHeaderUtils.FORMAT_GENOTYPE_QUALITY, "1", "Integer","Genotype Quality");
-		header.addFormatLine(VcfHeaderUtils.FORMAT_MUTANT_READS,  "1", "Integer","Number of mutant/variant reads");
-		header.addFormatLine(VcfHeaderUtils.FORMAT_NOVEL_STARTS, "1", "Integer","Number of novel starts not considering read pair");		
+		header.addFormat(VcfHeaderUtils.FORMAT_GENOTYPE, "1", "String" ,"Genotype");
+		header.addFormat(VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS, "1", "String","Genotype details: specific alleles (A,G,T or C)");
+		header.addFormat(VcfHeaderUtils.FORMAT_ALLELE_COUNT, "1", "String","Allele Count: lists number of reads on forward strand [avg base quality], reverse strand [avg base quality]");
+		header.addFormat(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP, "1", "String","Allele Count Compound Snp: lists read sequence and count (forward strand, reverse strand)");
+		header.addFormat(VcfHeaderUtils.FORMAT_ALLELIC_DEPTHS, ".", "Integer","Allelic depths for the ref and alt alleles in the order listed");
+		header.addFormat(VcfHeaderUtils.FORMAT_READ_DEPTH, "1", "Integer","Approximate read depth (reads with MQ=255 or with bad mates are filtered)");
+		header.addFormat(VcfHeaderUtils.FORMAT_GENOTYPE_QUALITY, "1", "Integer","Genotype Quality");
+		header.addFormat(VcfHeaderUtils.FORMAT_MUTANT_READS,  "1", "Integer","Number of mutant/variant reads");
+		header.addFormat(VcfHeaderUtils.FORMAT_NOVEL_STARTS, "1", "Integer","Number of novel starts not considering read pair");		
 			
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + 
+		header.addOrReplace(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + 
 				( normalFormatSample != null? normalFormatSample + "\t" : "") + tumourFormatSample);
 //				( normalFormatSample != null? normalSampleId + "\t" : "") + tumourFormatSample);
 		return  header;

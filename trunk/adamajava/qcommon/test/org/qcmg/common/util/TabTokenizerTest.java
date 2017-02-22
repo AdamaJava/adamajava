@@ -48,9 +48,7 @@ public class TabTokenizerTest {
 		Assert.assertEquals("1", TabTokenizer.tokenizeCharAt(data)[0]);
 		Assert.assertEquals("4", TabTokenizer.tokenizeCharAt(data)[3]);
 		Assert.assertEquals("20", TabTokenizer.tokenizeCharAt(data)[19]);
-		
-		
-		
+				
 		int noOfLoops = 10000;
 		long counter = 0;
 		long start = System.currentTimeMillis();

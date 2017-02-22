@@ -1,8 +1,6 @@
 package org.qcmg.qprofiler.bam;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
@@ -28,42 +26,11 @@ import org.qcmg.qprofiler.util.SummaryReportUtils;
 
 
 public class BamSummaryReportTest {
-	
-
-	@Test
-	public void testParseISize() {
 		
-//		BamSummaryReport bsr = new BamSummaryReport();
-//		int counter = 1000000;
-//		// large no of values between 0 and BUCKET_SIZE * 3
-//		Random random = new Random();
-//		for (int i = 0 ; i < counter ; i++) {
-//			int j = random.nextInt(counter);			
-//			if (i % 2 == 0) {
-//				j = -j;
-//				bsr.parseISize(j, "RG1");
-//			} else {
-//				bsr.parseISize(j, "RG2");
-//			}	
-//		}
-//		
-//		Assert.assertFalse(bsr.getISizeLengths().isEmpty());
-//		// should not have more than 1000000  bins as anything over a million is being put into the last bin 
-//		Assert.assertTrue(bsr.getISizeLengths().size() < counter);
-//		// check that there are no -ve keys
-//		for (Integer value : bsr.getISizeLengths().keySet()) {
-//			if (value < 0)
-//				Assert.fail("Should not have negative values in iSize collection");
-//		}		
-	}
-	
 	@Test
 	public void testParseRNameAndPos() throws Exception {
 		BamSummaryReport bsr = new BamSummaryReport(new String [] {"matrices","coverage"}, -1, null, null, null);
 		final String rg = "rg1";
-//		List<String> readGroupIds = new ArrayList<String>();
-//		readGroupIds.add("rg1");
-//		bsr.setReadGroups(readGroupIds);
 		bsr.setReadGroups( Arrays.asList(rg));
 		
 		String rName = "test";
@@ -218,8 +185,7 @@ public class BamSummaryReportTest {
 			Assert.assertEquals(entry.getValue().get(), zmMatrix.get(entry.getKey()).get());
 		}
 	}
-	
-	
+		
 	@Test
 	public void testCompareWithSAMUtils() {
 		String inputString = "!''*((((***+))%%%++)(%%%%).1***-+*''))**55CCF>>>>>>CCCCCCC65";
@@ -228,16 +194,11 @@ public class BamSummaryReportTest {
 		String outputString = null;
 		long start = 0;
 		
-		
 		start = System.currentTimeMillis();
-		for (int i = 0 ; i < counter ; i++) {
-			outputString = StringUtils.addASCIIValueToChar(inputString, 33);
-			
-		}
-	//	System.out.println("StringUtils.addASCIIValueToChar time: " + (System.currentTimeMillis() - start));
+		for (int i = 0 ; i < counter ; i++) 
+			outputString = StringUtils.addASCIIValueToChar(inputString, 33);					
 		Assert.assertEquals(expectedOutputString, outputString);
-		
-		
+				
 		byte [] bytes = inputString.getBytes();
 		start = System.currentTimeMillis();
 		for (int i = 0 ; i < counter ; i++) {
@@ -252,26 +213,22 @@ public class BamSummaryReportTest {
 			outputString = StringUtils.addASCIIValueToChar(inputString, 33);
 			
 		}
-	//	System.out.println("StringUtils.addASCIIValueToChar time: " + (System.currentTimeMillis() - start));
 		Assert.assertEquals(expectedOutputString, outputString);
 	}
 	
 	@Test
 	public void testCompareWithSAMUtilsAgain() {
 		String inputString = "!''*((((***+))%%%++)(%%%%).1***-+*''))**55CCF>>>>>>CCCCCCC65";
-//		String expectedOutputString = "BHHKIIIIKKKLJJFFFLLJIFFFFJORKKKNLKHHJJKKVVddg______dddddddWV";
 		int counter = 100000;
 		ConcurrentMap<Integer, AtomicLong> map = null;
 		ConcurrentMap<Integer, AtomicLong> mapBytes = null;
 		long start = 0;
-		
-		
+			
 		map = new ConcurrentHashMap<Integer, AtomicLong>();
 		start = System.currentTimeMillis();
 		for (int i = 0 ; i < counter ; i++) {
 			SummaryReportUtils.tallyQualScoresASCII(inputString, map, 0);
 		}
-//		System.out.println("SummaryReportUtils.tallyQualScoresASCII(String) time: " + (System.currentTimeMillis() - start));
 		Assert.assertEquals(1, map.size());
 		
 		
@@ -281,7 +238,6 @@ public class BamSummaryReportTest {
 		for (int i = 0 ; i < counter ; i++) {
 			SummaryReportUtils.tallyQualScores(bytes, mapBytes);
 		}
-//		System.out.println("SummaryReportUtils.tallyQualScoresASCII (byte []) time: " + (System.currentTimeMillis() - start));
 		Assert.assertEquals(1, mapBytes.size());
 		
 		map = new ConcurrentHashMap<Integer, AtomicLong>();
@@ -289,9 +245,7 @@ public class BamSummaryReportTest {
 		for (int i = 0 ; i < counter ; i++) {
 			SummaryReportUtils.tallyQualScoresASCII(inputString, map, 0);
 		}
-//		System.out.println("SummaryReportUtils.tallyQualScoresASCII(String) time: " + (System.currentTimeMillis() - start));
-		Assert.assertEquals(1, map.size());
-		
+		Assert.assertEquals(1, map.size());		
 		Assert.assertEquals(map.keySet(), mapBytes.keySet());
 		Assert.assertEquals(map.get(0).get(), mapBytes.get(0).get());
 	}
@@ -307,8 +261,7 @@ public class BamSummaryReportTest {
 		long start = 0;
 		
 		SAMRecord record = new SAMRecord(null);
-		record.setBaseQualityString(inputString);
-		
+		record.setBaseQualityString(inputString);		
 		lineLengthsNEW = new ConcurrentHashMap<Integer, AtomicLong>();
 		start = System.currentTimeMillis();
 		for (int i = 0 ; i < counter ; i++) {
@@ -317,7 +270,6 @@ public class BamSummaryReportTest {
 			SummaryReportUtils.tallyQualScores(bytes,
 					lineLengthsNEW);
 		}
-//		System.out.println("NEW time: " + (System.currentTimeMillis() - start));
 		
 		lineLengthsORIGINAL = new ConcurrentHashMap<Integer, AtomicLong>();
 		start = System.currentTimeMillis();
@@ -327,19 +279,14 @@ public class BamSummaryReportTest {
 			SummaryReportUtils.tallyQualScoresASCII(quals,
 					lineLengthsORIGINAL, 33);
 		}
-//		System.out.println("ORIGINAL time: " + (System.currentTimeMillis() - start));
 		
 		lineLengthsORIGINAL = new ConcurrentHashMap<Integer, AtomicLong>();
 		start = System.currentTimeMillis();
 		for (int i = 0 ; i < counter ; i++) {
 			String quals = record.getBaseQualityString();
 			SummaryByCycleUtils.parseCharacterSummary(qualByCycleORIGINAL, StringUtils.addASCIIValueToChar(quals,33));
-//			SummaryByCycleUtils.parseCharacterSummary(qualByCycleORIGINAL, record.getBaseQualityString());
 			SummaryReportUtils.tallyQualScoresASCII(quals,
 					lineLengthsORIGINAL, 33);
 		}
-		
-//		System.out.println("ORIGINAL time: " + (System.currentTimeMillis() - start));
-		
 	}
 }

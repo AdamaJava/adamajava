@@ -227,7 +227,7 @@ public class ConfidenceMode extends AbstractMode{
  
 		//add header line  set number to 1
 		if (null != header ) {
-			header.addInfoLine(VcfHeaderUtils.INFO_CONFIDENCE, "1", "String", DESCRITPION_INFO_CONFIDENCE);
+			header.addInfo(VcfHeaderUtils.INFO_CONFIDENCE, "1", "String", DESCRITPION_INFO_CONFIDENCE);
 		}
 	}
 	

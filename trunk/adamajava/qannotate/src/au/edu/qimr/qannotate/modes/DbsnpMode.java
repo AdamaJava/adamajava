@@ -9,7 +9,6 @@ import static org.qcmg.common.util.Constants.EQ;
 
 import java.io.File;
 import java.util.List;
-import java.util.Map;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -22,8 +21,8 @@ import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfInfoFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
-import org.qcmg.common.vcf.header.VcfHeader.FormattedRecord;
-import org.qcmg.common.vcf.header.VcfHeader.Record;
+import org.qcmg.common.vcf.header.VcfHeader;
+import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils.VcfInfoType;
 import org.qcmg.vcf.VCFFileReader;
@@ -45,12 +44,9 @@ public class DbsnpMode extends AbstractMode{
         logger.tool("logger file " + options.getLogFileName());
         logger.tool("logger level " + (options.getLogLevel() == null ? QLoggerFactory.DEFAULT_LEVEL.getName() :  options.getLogLevel()));
 		
-		inputRecord(new File( options.getInputFileName())   );
-		
-		removeExistingDbSnpIds();
-		
- 		addAnnotation(options.getDatabaseFileName() );
-		
+		inputRecord(new File( options.getInputFileName())   );		
+		removeExistingDbSnpIds();		
+ 		addAnnotation(options.getDatabaseFileName() );		
 		reheader(options.getCommandLine(),options.getInputFileName())	;
 		writeVCF( new File(options.getOutputFileName()));	
 	}
@@ -61,14 +57,13 @@ public class DbsnpMode extends AbstractMode{
 	void divAnnotation(String dbSNPFile) throws Exception{
  	    		 				 
 		try (VCFFileReader reader= new VCFFileReader( dbSNPFile )) {
-			//add dbSNP version into header		
-			List<Record>  metas = reader.getHeader().getMetaRecords(); 
-			for(Record re: metas) {
-				if(re.getData().startsWith(VcfHeaderUtils.STANDARD_DBSNP_LINE))  
-					header.parseHeaderLine(String.format("##INFO=<ID=%s,Number=0,Type=%s,Description=\"%s\",Source=%s,Version=%s>",
-									VcfHeaderUtils.INFO_DB, VcfInfoType.Flag.name(),
-									VcfHeaderUtils.DESCRITPION_INFO_DB, dbSNPFile, new VcfHeaderUtils.SplitMetaRecord(re).getValue()  ));  
-			}
+			//add dbSNP version into header	
+			VcfHeaderRecord dbre = reader.getHeader().firstMatchedRecord(VcfHeaderUtils.STANDARD_DBSNP_LINE);
+			if( dbre != null)		 
+				header.addOrReplace(String.format("##INFO=<ID=%s,Number=0,Type=%s,Description=\"%s\",Source=%s,Version=%s>",
+						VcfHeaderUtils.INFO_DB, VcfInfoType.Flag.name(),VcfHeaderUtils.DESCRITPION_INFO_DB, dbSNPFile, dbre.getMetaValue()  ));					
+			 
+		
 			for (final VcfRecord dbSNPVcf : reader) {				
 				final VcfInfoFieldRecord info = new VcfInfoFieldRecord(dbSNPVcf.getInfo());	
 				int start =  dbSNPVcf.getPosition();
@@ -108,22 +103,18 @@ public class DbsnpMode extends AbstractMode{
 		 				 
 		try (VCFFileReader reader= new VCFFileReader( dbSNPFile )) {
 			//add dbSNP version into header		
-			List<Record>  metas = reader.getHeader().getMetaRecords(); 
-			for (Record re: metas) {
-				if (re.getData().startsWith(VcfHeaderUtils.STANDARD_DBSNP_LINE))  
-					header.parseHeaderLine(String.format("##INFO=<ID=%s,Number=0,Type=%s,Description=\"%s\",Source=%s,Version=%s>",
-									VcfHeaderUtils.INFO_DB, VcfInfoType.Flag.name(),
-									VcfHeaderUtils.DESCRITPION_INFO_DB, dbSNPFile, new VcfHeaderUtils.SplitMetaRecord(re).getValue()  ));  		
-			}
-					
-			Map<String, FormattedRecord> snpInfoHeader = reader.getHeader().getInfoRecords();
-			if (snpInfoHeader.get(VcfHeaderUtils.INFO_CAF) != null ) {
-				header.parseHeaderLine( String.format("##INFO=<ID=%s,Number=.,Type=String,Description=\"%s\">", VcfHeaderUtils.INFO_VAF, VcfHeaderUtils.DESCRITPION_INFO_VAF  )	);
-			}
-			if (snpInfoHeader.get(VcfHeaderUtils.INFO_VLD) != null ) {
-			 	header.addInfo(snpInfoHeader.get(VcfHeaderUtils.INFO_VLD));		 						 
-			}
-			
+			VcfHeaderRecord dbre = reader.getHeader().firstMatchedRecord(VcfHeaderUtils.STANDARD_DBSNP_LINE);
+			 
+			if (dbre != null)  
+				header.addOrReplace(String.format("##INFO=<ID=%s,Number=0,Type=%s,Description=\"%s\",Source=%s,Version=%s>",
+								VcfHeaderUtils.INFO_DB, VcfInfoType.Flag.name(),
+								VcfHeaderUtils.DESCRITPION_INFO_DB, dbSNPFile, dbre.getMetaValue() )  );  		
+		 
+			if (reader.getHeader().getInfoRecord(VcfHeaderUtils.INFO_CAF) != null )	
+				header.addOrReplace( String.format("##INFO=<ID=%s,Number=.,Type=String,Description=\"%s\">", VcfHeaderUtils.INFO_VAF, VcfHeaderUtils.DESCRITPION_INFO_VAF  )	);
+
+			if (reader.getHeader().getInfoRecord(VcfHeaderUtils.INFO_VLD) != null )	
+				header.addOrReplace( reader.getHeader().getInfoRecord(VcfHeaderUtils.INFO_VLD));
 		 
 			int dbSnpNo = 0;
 			for (final VcfRecord dbSNPVcf : reader) {
