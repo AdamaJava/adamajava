@@ -14,7 +14,7 @@ repositories {
 }
 dependencies {
     	configurations.compile.transitive = true
-	compile name: 'qcommon', version: '0.3'
+	compile name: 'qcommon', version: '0.4'
 	compile name: 'qbamfilter', version: '1.2'
 	compile name: 'qpicard', version: '1.1'
 	compile name: 'qio', version: '0.1pre'
