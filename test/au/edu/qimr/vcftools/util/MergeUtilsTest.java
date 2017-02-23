@@ -126,19 +126,11 @@ public class MergeUtilsTest {
 		List<VcfHeaderRecord> h2Recs = h2.getAllMetaRecords(); 
 		
 		List<String> mergedOtherRecords = MergeUtils.mergeOtherHeaderRecords(h1Recs, h2Recs);
-		assertEquals(0, mergedOtherRecords.size());
-		
-		try{		
-			h1.addOrReplace(VcfHeaderUtils.BLANK_HEADER_LINE, true);
-		}catch(IllegalArgumentException e){
-			h1Recs = h1.getAllMetaRecords();
-			mergedOtherRecords = MergeUtils.mergeOtherHeaderRecords(h1Recs, h2Recs);
-			assertEquals(0, mergedOtherRecords.size());
-		}
-		
+		assertEquals(0, mergedOtherRecords.size());		
 
 		try{		
-			h1.addOrReplace(VcfHeaderUtils.BLANK_HEADER_LINE + "=", true);			 
+			h1.addOrReplace(VcfHeaderUtils.BLANK_HEADER_LINE + "=", true);	
+			fail("Didn't throw an exception!");
 		}catch(IllegalArgumentException e){
 			h1Recs = h1.getAllMetaRecords();
 			mergedOtherRecords = MergeUtils.mergeOtherHeaderRecords(h1Recs, h2Recs);
@@ -179,6 +171,7 @@ public class MergeUtilsTest {
 		
 		try{
 			h1.addOrReplace(VcfHeaderUtils.BLANK_HEADER_LINE, true);
+			fail("Didn't throw an exception!");
 		}catch(IllegalArgumentException e){
 			h1Recs = h1.getAllMetaRecords();
 			mergedOtherRecords = MergeUtils.mergeOtherHeaderRecords(h1Recs);
@@ -211,6 +204,7 @@ public class MergeUtilsTest {
 		
 		try{
 			h1.addOrReplace(VcfHeaderUtils.BLANK_HEADER_LINE, true);
+			fail("Didn't throw an exception!");
 		}catch(IllegalArgumentException e){
 			h1Recs = h1.getAllMetaRecords();
 			mergedOtherRecords = MergeUtils.mergeOtherHeaderRecords(h1Recs, h1Recs, h1Recs);
