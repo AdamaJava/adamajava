@@ -196,8 +196,16 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 		key = key.startsWith(Constants.DOUBLE_HASH) ? key : Constants.DOUBLE_HASH + key; 
 		return getRecord(idRecords, key, id);			
 	}
-	
+	/**
+	 * 
+	 * @return a list of meta info header line which is not structured meta info line. eg. qUUID=1234_567
+	 */
 	public List<VcfHeaderRecord> getAllMetaRecords() { return metaRecords ; }	
+	/**
+	 * 
+	 * @param key: a string match the meta info line ##<key>=<value>
+	 * @return the first matched VcfHeaderRecord.
+	 */
 	public VcfHeaderRecord firstMatchedRecord(String key){
 		List<VcfHeaderRecord> list = getRecords(key);
 		return (list.isEmpty() )? null : list.get(0);

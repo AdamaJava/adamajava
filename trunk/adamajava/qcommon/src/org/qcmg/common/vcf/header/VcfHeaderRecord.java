@@ -30,10 +30,8 @@ public class VcfHeaderRecord implements Comparable<VcfHeaderRecord> {
 	public VcfHeaderRecord(String line) {
 		if (StringUtils.isNullOrEmpty(line) || ! (line = line.trim()).startsWith("#") ) 
 			throw new IllegalArgumentException("input String is null, empty or missing leading \"#\":\n" + line);
-				
-		//key, value = <key>=<value>.split("=")
-		int index = line.indexOf( "=" ) ;				
-		if(index < 0 && line.startsWith(VcfHeader.STANDARD_FINAL_HEADER_LINE) ){
+
+		if(line.startsWith(VcfHeader.STANDARD_FINAL_HEADER_LINE) ){			
 			this.key = line.trim();
 			this.value = null; 	
 			this.id = null;
@@ -41,6 +39,7 @@ public class VcfHeaderRecord implements Comparable<VcfHeaderRecord> {
 			return;
 		}
 		
+		int index = line.indexOf( "=" ) ;	
 		if(index < 3 || !line.startsWith("##"))
 			throw new IllegalArgumentException("can't convert String didn't follow \"##<key>=<value>\" pattern :\n" + line);
 	
