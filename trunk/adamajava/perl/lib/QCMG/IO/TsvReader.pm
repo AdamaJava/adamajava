@@ -106,8 +106,6 @@ sub new {
 }
 
 
-
-
 sub filename {
     my $self = shift;
     return $self->{filename} = shift if @_;
@@ -238,6 +236,7 @@ $Id$
 =head1 COPYRIGHT
 
 Copyright (c) The University of Queensland 2012-2014
+Copyright (c) QIMR Berghofer Medical Research Institute 2016
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation files (the "Software"),

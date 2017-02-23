@@ -15,8 +15,9 @@ package QCMG::IO::FastqReader;
 use strict;
 use warnings;
 
-use Moose;
+#use Moose;
 use IO::File;
+use IO::Zlib;
 use Data::Dumper;
 use Carp qw( carp croak confess );
 use vars qw( $SVNID $REVISION );
@@ -25,20 +26,48 @@ use vars qw( $SVNID $REVISION );
 ( $SVNID ) = '$Id$'
     =~ /\$Id:\s+(.*)\s+/;
 
-has 'filename'    => ( is => 'ro', isa => 'Str', required => 1 );
-has 'filehandle'  => ( is => 'rw', isa => 'IO::File', init_arg => undef );
-has 'headers'     => ( is => 'rw', isa => 'ArrayRef[Str]' );
-has 'current_rec' => ( is => 'rw', isa => 'HashRef' );
-has 'rec_ctr'     => ( is => 'rw', isa => 'Int', default => 0 );
-has 'verbose'     => ( is => 'rw', isa => 'Int', default => 0 );
+#has 'filename'    => ( is => 'ro', isa => 'Str', required => 1 );
+#has 'filehandle'  => ( is => 'rw', isa => 'IO::File', init_arg => undef );
+#has 'headers'     => ( is => 'rw', isa => 'ArrayRef[Str]' );
+#has 'current_rec' => ( is => 'rw', isa => 'HashRef' );
+#has 'rec_ctr'     => ( is => 'rw', isa => 'Int', default => 0 );
+#has 'verbose'     => ( is => 'rw', isa => 'Int', default => 0 );
 
+sub new {
+    my $class = shift;
+    my %params = @_;
 
-sub BUILD {
-    my $self = shift;
+    croak "QCMG::IO::FastqReader:new() requires filename parameter"
+        unless (exists $params{filename} and defined $params{filename});
 
-    my $infh =IO::File->new( $self->filename )
-       or croak "Can't open file [', $self->filename, ']: $!";
-    $self->filehandle( $infh );
+    my $self = { filename        => $params{filename},
+                 filehandle      => undef,
+                 headers         => [],
+                 current_rec     => undef,
+                 rec_ctr         => 0,
+                 verbose         => ($params{verbose} ?
+                                     $params{verbose} : 0),
+               };
+
+    bless $self, $class;
+
+#sub BUILD {
+#    my $self = shift;
+
+    # Cope with gzip files.
+    my $infh = undef;
+    if ( $self->filename =~ /\.gz$/ ) {
+        $infh = IO::Zlib->new( $self->filename, 'r' );
+        confess 'Unable to open ', $self->filename, " for reading: $!"
+            unless defined $infh;
+        $self->filehandle( $infh );
+    }
+    else {
+        $infh = IO::File->new( $self->filename, 'r' );
+        confess 'Unable to open ', $self->filename, " for reading: $!"
+            unless defined $infh;
+        $self->filehandle( $infh );
+    }
 
     # Read off headers and first record
     while (1) {
@@ -57,19 +86,64 @@ sub BUILD {
         $self->current_rec( $rec );
         last;
     }
+
+    return $self;
+}
+
+sub filename {
+    my $self = shift;
+    return $self->{filename} = shift if @_;
+    return $self->{filename};
+}
+
+sub filehandle {
+    my $self = shift;
+    return $self->{filehandle} = shift if @_;
+    return $self->{filehandle};
+}
+
+sub rec_ctr {
+    my $self = shift;
+    # We have always already read the next record so we should report 1
+    # less than the number we have read.
+    return $self->{rec_ctr} -1;
+}
+
+sub verbose {
+    my $self = shift;
+    return $self->{verbose};
+}
+
+sub headers {
+    my $self = shift;
+    return $self->{headers};
+}
+
+sub current_rec {
+    my $self = shift;
+    return $self->{current_rec} = shift if @_;
+    return $self->{current_rec};
 }
 
 
 sub next_record {
     my $self = shift;
 
-    # Read another record
-    my $ra_lines = $self->_read_lines(4);
-    return undef unless defined $ra_lines;
-
-    # Return the previous record and store current
+    # Return the previous record and store new (current) rec
     my $last_rec = $self->current_rec;
-    $self->current_rec( $self->_lines2rec( $ra_lines ) );
+
+    # If there are no more lines in the file, we still need to return
+    # the current (last) record.  We explicitly set current_rec to undef
+    # when we run out of records so the last real record doesn't keep
+    # getting handed out.
+    my $ra_lines = $self->_read_lines(4);
+    if (defined $ra_lines) {
+        $self->current_rec( $self->_lines2rec( $ra_lines ) );
+    }
+    else {
+        $self->current_rec( undef );
+    }
+
     return $last_rec;
 }
 
@@ -79,13 +153,16 @@ sub _lines2rec {
     my $ra_lines = shift;
 
     # Parse $ra_lines into a record hash
-    die 'No @ at start of id line' unless ($ra_lines->[0] =~ /^\@/);
-    die 'No + at start of 2nd id line' unless ($ra_lines->[2] =~ /^\+/);
+    die 'No @ at start of id line: '.$ra_lines->[0]."\n" unless ($ra_lines->[0] =~ /^\@/);
+    die 'No + at start of 2nd id line: '.$ra_lines->[2]."\n" unless ($ra_lines->[2] =~ /^\+/);
     $ra_lines->[0] =~ s/^\@//;
 
     my $rec = { id   => $ra_lines->[0],
                 seq  => $ra_lines->[1],
                 qual => $ra_lines->[3] };
+
+    $self->{rec_ctr}++;
+
     return $rec;
 }
 
@@ -98,7 +175,7 @@ sub _read_lines {
     for my $ctr (1..$count) {
         my $line = $self->filehandle->getline;
         if (! defined $line) {
-           warn 'Not enough lines - read $ctr of $count requested';
+           warn "Not enough lines - read $ctr of $count requested\n";
            return undef;
         }
         chomp $line;
@@ -109,7 +186,7 @@ sub _read_lines {
 }
 
 
-no Moose;
+#no Moose;
 
 1;
 __END__
@@ -176,6 +253,7 @@ $Id$
 =head1 COPYRIGHT
 
 Copyright (c) The University of Queensland 2011-2014
+Copyright (c) QIMR Berghofer Medical Research Institute 2016
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation files (the "Software"),

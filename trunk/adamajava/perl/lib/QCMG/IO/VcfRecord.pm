@@ -28,11 +28,17 @@ sub new {
     my $class = shift;
     my $line  = shift;
     
+    # If undefined or empty line passed in then we are done and we pass
+    # an undef straight back.
+    return undef if (! defined $line or ! $line);
+
     chomp $line;
     my @fields = split "\t", $line;
-    warn 'Saw ', scalar(@fields),
-        " fields, should have been at least 8 [$line]\n"
-        if (scalar(@fields) < 8);
+    if (scalar(@fields) < 8) {
+        warn 'Saw ', scalar(@fields),
+            " fields, should have been at least 8 [$line]\n";
+        return undef;
+    }
 
     my $self = { chrom       => $fields[0],
                  position    => $fields[1],
@@ -51,7 +57,7 @@ sub new {
        $self->{format} = $fields[8];
     }
     if (scalar(@fields) > 9) {
-        $self->{calls} = [ @fields[10..$#fields] ];  # slice
+        $self->{calls} = [ @fields[9..$#fields] ];  # slice
     }
 
 
@@ -102,6 +108,11 @@ sub info {
 sub format {
     my $self = shift;
     return $self->{format};
+}
+
+sub calls {
+    my $self = shift;
+    return $self->{calls};
 }
 
 1;
@@ -165,6 +176,7 @@ $Id$
 =head1 COPYRIGHT
 
 Copyright (c) The University of Queensland 2010-2014
+Copyright (c) QIMR Berghofer Medical Research Institute 2017
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation files (the "Software"),
