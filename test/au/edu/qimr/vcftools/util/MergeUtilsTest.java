@@ -1,7 +1,6 @@
 package au.edu.qimr.vcftools.util;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 import static org.qcmg.common.util.Constants.VCF_MERGE_DELIM;
 
 import java.text.DateFormat;
@@ -24,10 +23,7 @@ import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.SnpUtils;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
-import org.qcmg.common.vcf.header.VcfHeader;
-import org.qcmg.common.vcf.header.VcfHeader.FormattedRecord;
-import org.qcmg.common.vcf.header.VcfHeader.Record;
-import org.qcmg.common.vcf.header.VcfHeaderUtils;
+import org.qcmg.common.vcf.header.*;
 
 import au.edu.qimr.vcftools.Rule;
 
@@ -38,46 +34,48 @@ public class MergeUtilsTest {
 	@Test
 	public void canHeadersBeMerged() {
 		VcfHeader qsnpHeader = new VcfHeader(getQsnpVcfHeader());
-		VcfHeader gatkHeader = new VcfHeader(getQsnpGATKVcfHeader());
-		
-		assertEquals(false, MergeUtils.canMergeBePerformed(qsnpHeader, gatkHeader));
+		VcfHeader gatkHeader = new VcfHeader(getQsnpGATKVcfHeader());		
 		assertEquals(true, MergeUtils.canMergeBePerformed(qsnpHeader, qsnpHeader));
 		assertEquals(true, MergeUtils.canMergeBePerformed(gatkHeader, gatkHeader));
+		
+		qsnpHeader.addOrReplace(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "\tcontrol\ttest");
+		
+		assertEquals(false, MergeUtils.canMergeBePerformed(qsnpHeader, gatkHeader));
 		
 		VcfHeader h1 = new VcfHeader();
 		VcfHeader h2 = new VcfHeader();
 		assertEquals(false, MergeUtils.canMergeBePerformed(h1, h2));
 		
-		h1.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "123456");
-		h2.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "123456");
+		h1.addOrReplace(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "123456");
+		h2.addOrReplace(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "123456");
 		assertEquals(true, MergeUtils.canMergeBePerformed(h1, h2));
 		
-		h1.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "123456", true);
-		h2.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "23456", true);
+		h1.addOrReplace(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "123456", true);
+		h2.addOrReplace(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "23456", true);
 		assertEquals(false, MergeUtils.canMergeBePerformed(h1, h2));
 		
-		h1.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE, true);
-		h2.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE, true);
+		h1.addOrReplace(VcfHeader.STANDARD_FINAL_HEADER_LINE, true);
+		h2.addOrReplace(VcfHeader.STANDARD_FINAL_HEADER_LINE, true);
 		assertEquals(false, MergeUtils.canMergeBePerformed(h1, h2));
 		
-		h1.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE, true);
-		h2.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE, true);
+		h1.addOrReplace(VcfHeader.STANDARD_FINAL_HEADER_LINE, true);
+		h2.addOrReplace(VcfHeader.STANDARD_FINAL_HEADER_LINE, true);
 		assertEquals(false, MergeUtils.canMergeBePerformed(h1, h2));
 		
-		h1.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "123456\t789", true);
-		h2.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "123456\t789", true);
+		h1.addOrReplace(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "123456\t789", true);
+		h2.addOrReplace(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "123456\t789", true);
 		assertEquals(true, MergeUtils.canMergeBePerformed(h1, h2));
 		
-		h1.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "123456\t789\tABCD", true);
-		h2.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "123456\t789\tABCDE", true);
+		h1.addOrReplace(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "123456\t789\tABCD", true);
+		h2.addOrReplace(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "123456\t789\tABCDE", true);
 		assertEquals(false, MergeUtils.canMergeBePerformed(h1, h2));
 		
-		h1.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "123456\t789\tABCD\tXZY", true);
-		h2.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "123456\t789\tABCD\tXZY", true);
+		h1.addOrReplace(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "123456\t789\tABCD\tXZY", true);
+		h2.addOrReplace(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "123456\t789\tABCD\tXZY", true);
 		assertEquals(true, MergeUtils.canMergeBePerformed(h1, h2));
 		
-		h1.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "12345\tXZY", true);
-		h2.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "XZY\t12345", true);
+		h1.addOrReplace(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "12345\tXZY", true);
+		h2.addOrReplace(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "XZY\t12345", true);
 		assertEquals(false, MergeUtils.canMergeBePerformed(h1, h2));
 	}
 	
@@ -90,9 +88,9 @@ public class MergeUtilsTest {
 		assertNotNull(pair);
 		
 		VcfHeader mergedHeader = pair.getLeft(); 
-		assertEquals(true, mergedHeader.getInfoRecords().containsKey(SnpUtils.SOMATIC));
-		assertEquals(true, mergedHeader.getInfoRecords().containsKey(SnpUtils.SOMATIC+ "_n"));
-		
+		assertTrue(  mergedHeader.getInfoRecord(SnpUtils.SOMATIC) != null);
+		assertTrue(  mergedHeader.getInfoRecord(SnpUtils.SOMATIC+ "_n") != null);
+				
 	}
 	
 	@Test
@@ -100,8 +98,8 @@ public class MergeUtilsTest {
 		VcfHeader qsnpHeader = new VcfHeader(getQsnpVcfHeader());
 		VcfHeader gatkHeader = new VcfHeader(getQsnpGATKVcfHeader());
 		
-		List<Record>qsnpOtherRecords = qsnpHeader.getNonStandardRecords();
-		List<Record>gatkOtherRecords = gatkHeader.getNonStandardRecords();
+ 		List<VcfHeaderRecord> qsnpOtherRecords = qsnpHeader.getAllMetaRecords();  
+ 		List<VcfHeaderRecord> gatkOtherRecords = gatkHeader.getAllMetaRecords();  
 		List<String> mergedOtherRecords = MergeUtils.mergeOtherHeaderRecords(qsnpOtherRecords, gatkOtherRecords);
 		
 		assertEquals(qsnpOtherRecords.size() + gatkOtherRecords.size(), mergedOtherRecords.size());
@@ -110,10 +108,10 @@ public class MergeUtilsTest {
 		 * Check that first record has 1 appended to it, and that 2nd has 2....
 		 */
 		List<String> qRecs = qsnpOtherRecords.stream()
-			.map(r -> r.getData().replaceAll("##", "##1:"))
+			.map(r -> r.toString().replaceAll("##", "##1:"))
 			.collect(Collectors.toList());
 		List<String> gRecs = gatkOtherRecords.stream()
-				.map(r -> r.getData().replaceAll("##", "##2:"))
+				.map(r -> r.toString().replaceAll("##", "##2:"))
 				.collect(Collectors.toList());
 		
 		assertEquals(true, mergedOtherRecords.containsAll(qRecs));
@@ -124,25 +122,36 @@ public class MergeUtilsTest {
 	public void mergeHeadersQLinesAgain() {
 		VcfHeader h1 = new VcfHeader();
 		VcfHeader h2 = new VcfHeader();
-		List<Record>h1Recs = h1.getNonStandardRecords();
-		List<Record>h2Recs = h2.getNonStandardRecords();
+		List<VcfHeaderRecord> h1Recs = h1.getAllMetaRecords();   
+		List<VcfHeaderRecord> h2Recs = h2.getAllMetaRecords(); 
 		
 		List<String> mergedOtherRecords = MergeUtils.mergeOtherHeaderRecords(h1Recs, h2Recs);
 		assertEquals(0, mergedOtherRecords.size());
 		
+		try{		
+			h1.addOrReplace(VcfHeaderUtils.BLANK_HEADER_LINE, true);
+		}catch(IllegalArgumentException e){
+			h1Recs = h1.getAllMetaRecords();
+			mergedOtherRecords = MergeUtils.mergeOtherHeaderRecords(h1Recs, h2Recs);
+			assertEquals(0, mergedOtherRecords.size());
+		}
 		
-		h1.parseHeaderLine(VcfHeaderUtils.BLANK_HEADER_LINE, true);
-		h1Recs = h1.getNonStandardRecords();
-		mergedOtherRecords = MergeUtils.mergeOtherHeaderRecords(h1Recs, h2Recs);
-		assertEquals(0, mergedOtherRecords.size());
+
+		try{		
+			h1.addOrReplace(VcfHeaderUtils.BLANK_HEADER_LINE + "=", true);			 
+		}catch(IllegalArgumentException e){
+			h1Recs = h1.getAllMetaRecords();
+			mergedOtherRecords = MergeUtils.mergeOtherHeaderRecords(h1Recs, h2Recs);
+			assertEquals(0, mergedOtherRecords.size());
+		}		
 		
-		h1.parseHeaderLine(VcfHeaderUtils.STANDARD_SOURCE_LINE, true);
-		h1Recs = h1.getNonStandardRecords();
+		h1.addOrReplace(VcfHeader.STANDARD_SOURCE_LINE+"=", true);	
+		h1Recs = h1.getAllMetaRecords();
 		mergedOtherRecords = MergeUtils.mergeOtherHeaderRecords(h1Recs, h2Recs);
 		assertEquals(1, mergedOtherRecords.size());
 		
-		h2.parseHeaderLine(VcfHeaderUtils.STANDARD_SOURCE_LINE, true);
-		h2Recs = h2.getNonStandardRecords();
+		h2.addOrReplace(VcfHeader.STANDARD_SOURCE_LINE+"=", true);
+		h2Recs = h2.getAllMetaRecords();
 		mergedOtherRecords = MergeUtils.mergeOtherHeaderRecords(h1Recs, h2Recs);
 		assertEquals(2, mergedOtherRecords.size());
 		
@@ -150,10 +159,10 @@ public class MergeUtilsTest {
 		 * Check that first record has 1 appended to it, and that 2nd has 2....
 		 */
 		List<String> qRecs = h1Recs.stream()
-				.map(r -> r.getData().replaceAll("##", "##1:"))
+				.map(r -> r.toString().replaceAll("##", "##1:"))
 				.collect(Collectors.toList());
 		List<String> gRecs = h2Recs.stream()
-				.map(r -> r.getData().replaceAll("##", "##2:"))
+				.map(r -> r.toString().replaceAll("##", "##2:"))
 				.collect(Collectors.toList());
 		
 		assertEquals(true, mergedOtherRecords.containsAll(qRecs));
@@ -163,19 +172,22 @@ public class MergeUtilsTest {
 	@Test
 	public void mergeHeadersQLines1File() {
 		VcfHeader h1 = new VcfHeader();
-		List<Record>h1Recs = h1.getNonStandardRecords();
+		List<VcfHeaderRecord>h1Recs = h1.getAllMetaRecords();
 		
 		List<String> mergedOtherRecords = MergeUtils.mergeOtherHeaderRecords(h1Recs);
 		assertEquals(0, mergedOtherRecords.size());
 		
+		try{
+			h1.addOrReplace(VcfHeaderUtils.BLANK_HEADER_LINE, true);
+		}catch(IllegalArgumentException e){
+			h1Recs = h1.getAllMetaRecords();
+			mergedOtherRecords = MergeUtils.mergeOtherHeaderRecords(h1Recs);
+			assertEquals(0, mergedOtherRecords.size());
+		}
+
 		
-		h1.parseHeaderLine(VcfHeaderUtils.BLANK_HEADER_LINE, true);
-		h1Recs = h1.getNonStandardRecords();
-		mergedOtherRecords = MergeUtils.mergeOtherHeaderRecords(h1Recs);
-		assertEquals(0, mergedOtherRecords.size());
-		
-		h1.parseHeaderLine(VcfHeaderUtils.STANDARD_SOURCE_LINE, true);
-		h1Recs = h1.getNonStandardRecords();
+		h1.addOrReplace(VcfHeader.STANDARD_SOURCE_LINE+"=", true);
+		h1Recs = h1.getAllMetaRecords();
 		mergedOtherRecords = MergeUtils.mergeOtherHeaderRecords(h1Recs);
 		assertEquals(1, mergedOtherRecords.size());
 		
@@ -183,7 +195,7 @@ public class MergeUtilsTest {
 		 * Check that first record has 1 appended to it, and that 2nd has 2....
 		 */
 		List<String> qRecs = h1Recs.stream()
-				.map(r -> r.getData().replaceAll("##", "##1:"))
+				.map(r -> r.toString().replaceAll("##", "##1:"))
 				.collect(Collectors.toList());
 		assertEquals(true, mergedOtherRecords.containsAll(qRecs));
 	}
@@ -191,76 +203,70 @@ public class MergeUtilsTest {
 	@Test
 	public void mergeHeadersQLines3File() {
 		VcfHeader h1 = new VcfHeader();
-		List<Record>h1Recs = h1.getNonStandardRecords();
+		List<VcfHeaderRecord>h1Recs = h1.getAllMetaRecords();
 		
 		List<String> mergedOtherRecords = MergeUtils.mergeOtherHeaderRecords(h1Recs, h1Recs, h1Recs);
 		assertEquals(0, mergedOtherRecords.size());
 		
 		
-		h1.parseHeaderLine(VcfHeaderUtils.BLANK_HEADER_LINE, true);
-		h1Recs = h1.getNonStandardRecords();
-		mergedOtherRecords = MergeUtils.mergeOtherHeaderRecords(h1Recs, h1Recs, h1Recs);
-		assertEquals(0, mergedOtherRecords.size());
+		try{
+			h1.addOrReplace(VcfHeaderUtils.BLANK_HEADER_LINE, true);
+		}catch(IllegalArgumentException e){
+			h1Recs = h1.getAllMetaRecords();
+			mergedOtherRecords = MergeUtils.mergeOtherHeaderRecords(h1Recs, h1Recs, h1Recs);
+			assertEquals(0, mergedOtherRecords.size());
+		}
 		
-		h1.parseHeaderLine(VcfHeaderUtils.STANDARD_SOURCE_LINE, true);
-		h1Recs = h1.getNonStandardRecords();
+		
+		h1.addOrReplace(VcfHeader.STANDARD_SOURCE_LINE+"=", true);
+		h1Recs = h1.getAllMetaRecords();
 		mergedOtherRecords = MergeUtils.mergeOtherHeaderRecords(h1Recs, h1Recs, h1Recs);
 		assertEquals(3, mergedOtherRecords.size());
 		
 		/*
 		 * Check that first record has 1 appended to it, and that 2nd has 2....
 		 */
-		assertEquals(true, mergedOtherRecords.containsAll( h1Recs.stream().map(r -> r.getData().replaceAll("##", "##1:")).collect(Collectors.toList())));
-		assertEquals(true, mergedOtherRecords.containsAll( h1Recs.stream().map(r -> r.getData().replaceAll("##", "##2:")).collect(Collectors.toList())));
-		assertEquals(true, mergedOtherRecords.containsAll( h1Recs.stream().map(r -> r.getData().replaceAll("##", "##3:")).collect(Collectors.toList())));
+		assertEquals(true, mergedOtherRecords.containsAll( h1Recs.stream().map(r -> r.toString().replaceAll("##", "##1:")).collect(Collectors.toList())));
+		assertEquals(true, mergedOtherRecords.containsAll( h1Recs.stream().map(r -> r.toString().replaceAll("##", "##2:")).collect(Collectors.toList())));
+		assertEquals(true, mergedOtherRecords.containsAll( h1Recs.stream().map(r -> r.toString().replaceAll("##", "##3:")).collect(Collectors.toList())));
 	}
 	
-	@Test
-	public void mergeFormattedRecordLines() {
-		VcfHeader h1 = new VcfHeader();
-		Map<String, FormattedRecord> h1Info = h1.getInfoRecords();
-		
-		List<FormattedRecord> mergedRecs = MergeUtils.mergeHeaderRecords(h1Info);
-		assertEquals(0, mergedRecs.size());
-		
-		h1.parseHeaderLine(VcfHeaderUtils.HEADER_LINE_INFO + "=<ID=ABC,Number=.,Type=String,Description=\"My info field\">");
-		h1Info = h1.getInfoRecords();
-		mergedRecs = MergeUtils.mergeHeaderRecords(h1Info);
-		assertEquals(1, mergedRecs.size());
-		mergedRecs = MergeUtils.mergeHeaderRecords(h1Info, h1Info);
-		assertEquals(1, mergedRecs.size());
-		
-		VcfHeader h2 = new VcfHeader();
-		h2.parseHeaderLine(VcfHeaderUtils.HEADER_LINE_INFO + "=<ID=ABC,Number=.,Type=String,Description=\"My info field UPDATED\">");
-		Map<String, FormattedRecord> h2Info = h2.getInfoRecords();
-		mergedRecs = MergeUtils.mergeHeaderRecords(h1Info, h2Info);
-		assertEquals(2, mergedRecs.size());
-		
-		h2.parseHeaderLine(VcfHeaderUtils.HEADER_LINE_INFO + "=<ID=DEF,Number=.,Type=String,Description=\"My second info field\">");
-		h2Info = h2.getInfoRecords();
-		mergedRecs = MergeUtils.mergeHeaderRecords(h1Info, h2Info);
-		assertEquals(3, mergedRecs.size());
-	}
+//	@Test
+//	public void mergeIDRecordLines() {
+//		VcfHeader h1 = new VcfHeader();
+//		List<VcfHeaderRecord> h1Info = h1.getInfoRecords();
+//		
+//		List<VcfHeaderRecord> mergedRecs = MergeUtils.mergeHeaderRecords(h1Info);
+//		assertEquals(0, mergedRecs.size());
+//		
+//		h1.addOrReplace(VcfHeader.HEADER_LINE_INFO + "=<ID=ABC,Number=.,Type=String,Description=\"My info field\">");
+//		h1Info = h1.getInfoRecords();
+//		mergedRecs = MergeUtils.mergeHeaderRecords(h1Info);
+//		assertEquals(1, mergedRecs.size());
+//		mergedRecs = MergeUtils.mergeHeaderRecords(h1Info, h1Info);
+//		assertEquals(1, mergedRecs.size());
+//		
+//		VcfHeader h2 = new VcfHeader();
+//		h2.addOrReplace(VcfHeaderUtils.HEADER_LINE_INFO + "=<ID=ABC,Number=.,Type=String,Description=\"My info field UPDATED\">");
+//		List<VcfHeaderRecord> h2Info = h2.getInfoRecords();
+//		mergedRecs = MergeUtils.mergeHeaderRecords(h1Info, h2Info);
+//		assertEquals(2, mergedRecs.size());
+//		
+//		h2.addOrReplace(VcfHeaderUtils.HEADER_LINE_INFO + "=<ID=DEF,Number=.,Type=String,Description=\"My second info field\">");
+//		h2Info = h2.getInfoRecords();
+//		mergedRecs = MergeUtils.mergeHeaderRecords(h1Info, h2Info);
+//		assertEquals(3, mergedRecs.size());
+//	}
 	
 	@Test
 	public void mergeHeadersFromRealVcf() {
 		VcfHeader qsnpHeader = new VcfHeader(getQsnpVcfHeader());
 		VcfHeader gatkHeader = new VcfHeader(getQsnpGATKVcfHeader());
+		VcfHeader newHeader = MergeUtils.getMergedHeaderAndRules(qsnpHeader, gatkHeader).getLeft();
 		
-		Map<String, FormattedRecord> qsnpH = qsnpHeader.getInfoRecords();
-		Map<String, FormattedRecord> gatkH = gatkHeader.getInfoRecords();
-		List<FormattedRecord> mergedRecs = MergeUtils.mergeHeaderRecords(qsnpH, gatkH);
-		assertEquals(20, mergedRecs.size());
-		
-		qsnpH = qsnpHeader.getFilterRecords();
-		gatkH = gatkHeader.getFilterRecords();
-		mergedRecs = MergeUtils.mergeHeaderRecords(qsnpH, gatkH);
-		assertEquals(15, mergedRecs.size());
-		
-		qsnpH = qsnpHeader.getFormatRecords();
-		gatkH = gatkHeader.getFormatRecords();
-		mergedRecs = MergeUtils.mergeHeaderRecords(qsnpH, gatkH);
-		assertEquals(10, mergedRecs.size());
+		assertEquals(23, newHeader.getInfoRecords().size());		
+		assertEquals(15, newHeader.getFilterRecords().size());
+		assertEquals(10,newHeader.getFormatRecords().size());
 	}
 	
 	@Test
@@ -268,20 +274,26 @@ public class MergeUtilsTest {
 		VcfHeader qsnpHeader = new VcfHeader(getUpdatedQsnpVCfHeader());
 		VcfHeader gatkHeader = new VcfHeader(getQsnpGATKVcfHeader());
 		
-		Map<String, FormattedRecord> qsnpH = qsnpHeader.getInfoRecords();
-		Map<String, FormattedRecord> gatkH = gatkHeader.getInfoRecords();
-		List<FormattedRecord> mergedRecs = MergeUtils.mergeHeaderRecords(qsnpH, gatkH);
-		assertEquals(20, mergedRecs.size());
+		VcfHeader newHeader = MergeUtils.getMergedHeaderAndRules(qsnpHeader, gatkHeader).getLeft();		
+		assertEquals(23, newHeader.getInfoRecords().size());		
+		assertEquals(15, newHeader.getFilterRecords().size());
+		assertEquals(10,newHeader.getFormatRecords().size());
 		
-		qsnpH = qsnpHeader.getFilterRecords();
-		gatkH = gatkHeader.getFilterRecords();
-		mergedRecs = MergeUtils.mergeHeaderRecords(qsnpH, gatkH);
-		assertEquals(15, mergedRecs.size());
 		
-		qsnpH = qsnpHeader.getFormatRecords();
-		gatkH = gatkHeader.getFormatRecords();
-		mergedRecs = MergeUtils.mergeHeaderRecords(qsnpH, gatkH);
-		assertEquals(10, mergedRecs.size());
+//		List<VcfHeaderRecord> qsnpH = qsnpHeader.getInfoRecords();
+//		List<VcfHeaderRecord> gatkH = gatkHeader.getInfoRecords();
+//		List<VcfHeaderRecord> mergedRecs = MergeUtils.mergeHeaderRecords(qsnpH, gatkH);
+//		assertEquals(20, mergedRecs.size());
+//		
+//		qsnpH = qsnpHeader.getFilterRecords();
+//		gatkH = gatkHeader.getFilterRecords();
+//		mergedRecs = MergeUtils.mergeHeaderRecords(qsnpH, gatkH);
+//		assertEquals(15, mergedRecs.size());
+//		
+//		qsnpH = qsnpHeader.getFormatRecords();
+//		gatkH = gatkHeader.getFormatRecords();
+//		mergedRecs = MergeUtils.mergeHeaderRecords(qsnpH, gatkH);
+//		assertEquals(10, mergedRecs.size());
 	}
 	
 	@Test
@@ -675,56 +687,58 @@ public class MergeUtilsTest {
 "##FORMAT=<ID=DP,Number=1,Type=String,Description=\"Approximate read depth (reads with MQ=255 or with bad mates are filtered)\">",
 "##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype: 0/0 homozygous reference; 0/1 heterozygous for alternate allele; 1/1 homozygous for alternate allele\">",
 "##FORMAT=<ID=GD,Number=1,Type=String,Description=\"Genotype details: specific alleles (A,G,T or C)\">",
-"#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	http://purl.org/net/grafli/collectedsample#e734bdbc-2e43-44e4-ad32-11719865f9d6	http://purl.org/net/grafli/collectedsample#49c59f9e-fe9d-4813-a4c6-3198ec003859");
+"#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	http://purl.org/net/grafli/collectedsample#f124a2ca-5e24-419a-96f5-dd849ccc50aa	http://purl.org/net/grafli/collectedsample#64d9c65d-d0af-43e7-a835-8fe3c36b93bb");
+
+//"#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	http://purl.org/net/grafli/collectedsample#e734bdbc-2e43-44e4-ad32-11719865f9d6	http://purl.org/net/grafli/collectedsample#49c59f9e-fe9d-4813-a4c6-3198ec003859");
 	}
 	
 	public List<String> getUpdatedQsnpVCfHeader() {
-		String controlId = "ABC_123";
-		String testId = "DEF_456";
+		String controlId = "http://purl.org/net/grafli/collectedsample#f124a2ca-5e24-419a-96f5-dd849ccc50aa"; //"ABC_123";
+		String testId = "http://purl.org/net/grafli/collectedsample#64d9c65d-d0af-43e7-a835-8fe3c36b93bb";   //"DEF_456";
 		final VcfHeader header = new VcfHeader();
 		final DateFormat df = new SimpleDateFormat("yyyyMMdd");
 		
-		header.parseHeaderLine(VcfHeaderUtils.CURRENT_FILE_VERSION);		
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + df.format(Calendar.getInstance().getTime()));		
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + QExec.createUUid());		
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=qSNP v2.0 (882)");		
+		header.addOrReplace(VcfHeader.CURRENT_FILE_FORMAT);		
+		header.addOrReplace(VcfHeader.STANDARD_FILE_DATE + "=" + df.format(Calendar.getInstance().getTime()));		
+		header.addOrReplace(VcfHeader.STANDARD_UUID_LINE + "=" + QExec.createUUid());		
+		header.addOrReplace(VcfHeader.STANDARD_SOURCE_LINE + "=qSNP v2.0 (882)");		
 		
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_DONOR_ID + "=");
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_CONTROL_SAMPLE + "=" + controlId);		
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_TEST_SAMPLE + "=" + testId);		
+		header.addOrReplace(VcfHeaderUtils.STANDARD_DONOR_ID + "=");
+		header.addOrReplace(VcfHeaderUtils.STANDARD_CONTROL_SAMPLE + "=" + controlId);		
+		header.addOrReplace(VcfHeaderUtils.STANDARD_TEST_SAMPLE + "=" + testId);		
 		
-		header.parseHeaderLine( "##qAnalysisId=12345");
+		header.addOrReplace( "##qAnalysisId=12345");
 		
-		header.addInfoLine(VcfHeaderUtils.INFO_FLANKING_SEQUENCE, "1", "String","Flanking sequence either side of variant");																	
+		header.addInfo(VcfHeaderUtils.INFO_FLANKING_SEQUENCE, "1", "String","Flanking sequence either side of variant");																	
 		
-		header.addFilterLine(VcfHeaderUtils.FILTER_COVERAGE_NORMAL_12, "Less than 12 reads coverage in normal");
-		header.addFilterLine(VcfHeaderUtils.FILTER_COVERAGE_NORMAL_8,"Less than 8 reads coverage in normal");  
-		header.addFilterLine(VcfHeaderUtils.FILTER_COVERAGE_TUMOUR,"Less than 8 reads coverage in tumour"); 
-		header.addFilterLine(VcfHeaderUtils.FILTER_SAME_ALLELE_NORMAL,"Less than 3 reads of same allele in normal");  
-		header.addFilterLine(VcfHeaderUtils.FILTER_SAME_ALLELE_TUMOUR,"Less than 3 reads of same allele in tumour");  
-		header.addFilterLine(VcfHeaderUtils.FILTER_MUTATION_IN_NORMAL,"Mutation also found in pileup of normal");  
-		header.addFilterLine(VcfHeaderUtils.FILTER_MUTATION_IN_UNFILTERED_NORMAL,"Mutation also found in pileup of (unfiltered) normal");  
-		header.addFilterLine(VcfHeaderUtils.FILTER_GERMLINE,"Mutation is a germline variant in another patient");  
-		header.addFilterLine(VcfHeaderUtils.FILTER_NOVEL_STARTS,"Less than 4 novel starts not considering read pair");  
-		header.addFilterLine(VcfHeaderUtils.FILTER_MUTANT_READS,"Less than 5 mutant reads"); 
-		header.addFilterLine(VcfHeaderUtils.FILTER_MUTATION_EQUALS_REF,"Mutation equals reference"); 
-		header.addFilterLine(VcfHeaderUtils.FILTER_NO_CALL_IN_TEST,"No call in test"); 
-		header.addFilterLine(VcfHeaderUtils.FILTER_STRAND_BIAS_ALT,"Alternate allele on only one strand (or percentage alternate allele on other strand is less than " + 5 + "%)"); 
-		header.addFilterLine(VcfHeaderUtils.FILTER_STRAND_BIAS_COV,"Sequence coverage on only one strand (or percentage coverage on other strand is less than " + 5 + "%)"); 
+		header.addFilter(VcfHeaderUtils.FILTER_COVERAGE_NORMAL_12, "Less than 12 reads coverage in normal");
+		header.addFilter(VcfHeaderUtils.FILTER_COVERAGE_NORMAL_8,"Less than 8 reads coverage in normal");  
+		header.addFilter(VcfHeaderUtils.FILTER_COVERAGE_TUMOUR,"Less than 8 reads coverage in tumour"); 
+		header.addFilter(VcfHeaderUtils.FILTER_SAME_ALLELE_NORMAL,"Less than 3 reads of same allele in normal");  
+		header.addFilter(VcfHeaderUtils.FILTER_SAME_ALLELE_TUMOUR,"Less than 3 reads of same allele in tumour");  
+		header.addFilter(VcfHeaderUtils.FILTER_MUTATION_IN_NORMAL,"Mutation also found in pileup of normal");  
+		header.addFilter(VcfHeaderUtils.FILTER_MUTATION_IN_UNFILTERED_NORMAL,"Mutation also found in pileup of (unfiltered) normal");  
+		header.addFilter(VcfHeaderUtils.FILTER_GERMLINE,"Mutation is a germline variant in another patient");  
+		header.addFilter(VcfHeaderUtils.FILTER_NOVEL_STARTS,"Less than 4 novel starts not considering read pair");  
+		header.addFilter(VcfHeaderUtils.FILTER_MUTANT_READS,"Less than 5 mutant reads"); 
+		header.addFilter(VcfHeaderUtils.FILTER_MUTATION_EQUALS_REF,"Mutation equals reference"); 
+		header.addFilter(VcfHeaderUtils.FILTER_NO_CALL_IN_TEST,"No call in test"); 
+		header.addFilter(VcfHeaderUtils.FILTER_STRAND_BIAS_ALT,"Alternate allele on only one strand (or percentage alternate allele on other strand is less than " + 5 + "%)"); 
+		header.addFilter(VcfHeaderUtils.FILTER_STRAND_BIAS_COV,"Sequence coverage on only one strand (or percentage coverage on other strand is less than " + 5 + "%)"); 
 		
-		header.addFormatLine(VcfHeaderUtils.FORMAT_GENOTYPE, "1", "String" ,"Genotype");
-		header.addFormatLine(VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS, "1", "String","Genotype details: specific alleles (A,G,T or C)");
-		header.addFormatLine(VcfHeaderUtils.FORMAT_ALLELE_COUNT, "1", "String","Allele Count: lists number of reads on forward strand [avg base quality], reverse strand [avg base quality]");
-		header.addFormatLine(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP, "1", "String","Allele Count Compound Snp: lists read sequence and count (forward strand, reverse strand)");
-		header.addFormatLine(VcfHeaderUtils.FORMAT_ALLELIC_DEPTHS, ".", "Integer","Allelic depths for the ref and alt alleles in the order listed");
-		header.addFormatLine(VcfHeaderUtils.FORMAT_READ_DEPTH, "1", "Integer","Approximate read depth (reads with MQ=255 or with bad mates are filtered)");
-		header.addFormatLine(VcfHeaderUtils.FORMAT_GENOTYPE_QUALITY, "1", "Integer","Genotype Quality");
-		header.addFormatLine(VcfHeaderUtils.FORMAT_MUTANT_READS,  "1", "Integer","Number of mutant/variant reads");
-		header.addFormatLine(VcfHeaderUtils.FORMAT_NOVEL_STARTS, "1", "Integer","Number of novel starts not considering read pair");		
-		header.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + (controlId != null ? controlId + "\t" : "") + testId);
+		header.addFormat(VcfHeaderUtils.FORMAT_GENOTYPE, "1", "String" ,"Genotype");
+		header.addFormat(VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS, "1", "String","Genotype details: specific alleles (A,G,T or C)");
+		header.addFormat(VcfHeaderUtils.FORMAT_ALLELE_COUNT, "1", "String","Allele Count: lists number of reads on forward strand [avg base quality], reverse strand [avg base quality]");
+		header.addFormat(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP, "1", "String","Allele Count Compound Snp: lists read sequence and count (forward strand, reverse strand)");
+		header.addFormat(VcfHeaderUtils.FORMAT_ALLELIC_DEPTHS, ".", "Integer","Allelic depths for the ref and alt alleles in the order listed");
+		header.addFormat(VcfHeaderUtils.FORMAT_READ_DEPTH, "1", "Integer","Approximate read depth (reads with MQ=255 or with bad mates are filtered)");
+		header.addFormat(VcfHeaderUtils.FORMAT_GENOTYPE_QUALITY, "1", "Integer","Genotype Quality");
+		header.addFormat(VcfHeaderUtils.FORMAT_MUTANT_READS,  "1", "Integer","Number of mutant/variant reads");
+		header.addFormat(VcfHeaderUtils.FORMAT_NOVEL_STARTS, "1", "Integer","Number of novel starts not considering read pair");		
+		header.addOrReplace(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + (controlId != null ? controlId + "\t" : "") + testId);
 		
 		List<String> list = new ArrayList<>();
-		Iterator<Record> iter = header.iterator();
+		Iterator<VcfHeaderRecord> iter = header.iterator();
 		
 		while(iter.hasNext()) {
 			list.add(iter.next().toString());
