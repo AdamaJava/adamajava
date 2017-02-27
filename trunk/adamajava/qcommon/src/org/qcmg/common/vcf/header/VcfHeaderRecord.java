@@ -60,7 +60,7 @@ public class VcfHeaderRecord implements Comparable<VcfHeaderRecord> {
 			}			
 			vstr = vstr.substring(0, vstr.length()-1) + ">";
 			for (Pair<String, String> p : pairs) {
-				if(p.getKey().equals("ID")){ 
+				if(p.getKey().equals(ID)){ 
 					pid = p; break; 
 				}
 			}
@@ -205,7 +205,7 @@ public class VcfHeaderRecord implements Comparable<VcfHeaderRecord> {
 					 
 		Pair<String, String> pid = null; 
 		for (Pair<String, String> p : values) {
-			if (p.getKey().equals("ID")){ 
+			if (p.getKey().equals(ID)){ 
 				pid = p; break; 
 			}
 		}
