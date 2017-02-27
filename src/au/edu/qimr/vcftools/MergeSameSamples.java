@@ -86,7 +86,7 @@ public class MergeSameSamples {
 		int i = 1; 
 		for (String s : vcfFiles) {
 			logger.info("adding header entry for input " + i + " : " + s);
-			mergedHeader.addOrReplace (VcfHeaderUtils.BLANK_HEADER_LINE + "INPUT=" + i + ",FILE=" + s);
+			mergedHeader.addOrReplace (VcfHeaderUtils.BLANK_HEADER_LINE + "INPUT=" + i + ",FILE=" + s, false);
 			i++;
 		}
 	}
