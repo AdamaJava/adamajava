@@ -17,6 +17,7 @@ public class VcfHeaderRecord implements Comparable<VcfHeaderRecord> {
 	public static final String DESCRIPTION = "Description";	
 	public static final String SOURCE = "Source";
 	public static final String FORMAT = "FORMAT";	
+	public static final Pattern PATTERN = Pattern.compile("=(\\s*)\"(.*?)\"(\\s*),");
 	
 	private final String value;
 	private final String key;
@@ -39,25 +40,30 @@ public class VcfHeaderRecord implements Comparable<VcfHeaderRecord> {
 			return;
 		}
 		
-		int index = line.indexOf( "=" ) ;	
-		if(index < 3 || !line.startsWith("##"))
+		int index = line.indexOf( Constants.EQ ) ;	
+		if (index < 3 || !line.startsWith("##"))
 			throw new IllegalArgumentException("can't convert String didn't follow \"##<key>=<value>\" pattern :\n" + line);
 	
 		this.key =  line.substring(0, index).trim(); 
-		if(key.contains(" "))
+		if (key.contains(" "))
 			throw new IllegalArgumentException("can't convert String into VcfHeaderRecord since contains spacd on key: " + key);
 		
 		
 		String vstr = line.substring(index +1).trim();		
 		this.pairs = getPairs(vstr);
 		
-		Pair pid = null; 
-		if(pairs != null ){
+		Pair<String, String> pid = null; 
+		if (pairs != null ){
 			vstr = "<";
-			for(Pair p : pairs){ vstr += p.getLeft() +  ((p.getRight() == null) ? "": "=" + p.getRight() ) + ",";}			
+			for (Pair<String, String> p : pairs){ 
+				vstr += p.getLeft() +  ((p.getRight() == null) ? "": "=" + p.getRight() ) + Constants.COMMA;
+			}			
 			vstr = vstr.substring(0, vstr.length()-1) + ">";
-			for(Pair p : pairs)
-			if(p.getKey().equals("ID")){ pid = p; break; }
+			for (Pair<String, String> p : pairs) {
+				if(p.getKey().equals("ID")){ 
+					pid = p; break; 
+				}
+			}
 		}		
 		this.value = vstr;
 		this.id = (pid == null)? null : (String) pid.getRight();				
@@ -67,7 +73,9 @@ public class VcfHeaderRecord implements Comparable<VcfHeaderRecord> {
 	 * @param key: can't be null
 	 * @param value: accept null incase of #Chrom line
 	 */
-	public VcfHeaderRecord(String key, String value) { this( ( key==null? "" : key )+ "=" + (value == null? "" : value));}
+	public VcfHeaderRecord(String key, String value) { 
+		this( ( key==null? "" : key )+ Constants.EQ + (value == null? "" : value));
+	}
 	
 	/***
 	 *  eg. ##INFO=<ID=id,Number=number,Type=type,Description="description">
@@ -86,7 +94,9 @@ public class VcfHeaderRecord implements Comparable<VcfHeaderRecord> {
 	}
 	
 	@Override
-	public String toString() { return  (value == null) ? key : key + "=" + value ; }		
+	public String toString() { 
+		return  (value == null) ? key : key + Constants.EQ + value ; 
+	}		
 	@Override
 	public  int hashCode() {
 		final int prime = 31;
@@ -111,6 +121,7 @@ public class VcfHeaderRecord implements Comparable<VcfHeaderRecord> {
 	}
 		
 
+	@Override
 	public int compareTo(VcfHeaderRecord o) {	
 		int diff = getMetaKey().compareTo(o.getMetaKey());			
 		if(diff != 0) return diff;
@@ -131,11 +142,13 @@ public class VcfHeaderRecord implements Comparable<VcfHeaderRecord> {
 	
 	public String getId(){ return id;} 	
 	public String getSubFieldValue(String pairKey){ 
-		if(pairs != null)
-			for(Pair<String, String> pair : pairs)
-				if(pair.getLeft().equalsIgnoreCase(pairKey)  )				 
+		if(pairs != null) {
+			for(Pair<String, String> pair : pairs) {
+				if(pair.getLeft().equalsIgnoreCase( pairKey)  ) {				 
 					return pair.getRight(); 
-		
+				}
+			}
+		}
 		
 		return null; 
 		
@@ -158,18 +171,17 @@ public class VcfHeaderRecord implements Comparable<VcfHeaderRecord> {
 			
 		List<Pair<String,String>> values =  new ArrayList<Pair<String,String>>();
 		//remove space around = 			
-		String subLine = sValue.substring( 1, sValue.length()-1).trim()+",";
+		String subLine = sValue.substring( 1, sValue.length()-1).trim()+Constants.COMMA;
 				 
 		List<String> quotStr = new ArrayList<String>();
-		Pattern pattern = Pattern.compile("=(\\s*)\"(.*?)\"(\\s*),");
-		Matcher matcher = pattern.matcher(subLine);
+		Matcher matcher = PATTERN.matcher(subLine);
  		while(matcher.find()){
  			String mstr = matcher.group();
  			mstr = mstr.substring(mstr.indexOf("\"")+1, mstr.lastIndexOf("\""));
  			quotStr.add(  mstr.trim()  );
  		} 
  			 		
- 		String[] quotKeys = pattern.split(subLine);	
+ 		String[] quotKeys = PATTERN.split(subLine);	
  		for(int i = 0; i < quotKeys.length; i++){  
  			//get sub field key value pair
  			String[] subs = quotKeys[i].split(",");   		
@@ -180,7 +192,7 @@ public class VcfHeaderRecord implements Comparable<VcfHeaderRecord> {
  				{	key = subs[j].replace("=", "").trim();
  					value = "\"" + quotStr.get(i) + "\"";
  				}else{  //non quot string sub field
-	 				int index = subs[j].indexOf("=");
+	 				int index = subs[j].indexOf(Constants.EQ);
 	 				if(index > 0){ key = subs[j].substring(0,index).trim(); value = subs[j].substring(index+1).trim();}
 	 				else key = subs[j];	 					
  				}	
@@ -191,9 +203,12 @@ public class VcfHeaderRecord implements Comparable<VcfHeaderRecord> {
  		
  		if(values.size() == 0) return null; 
 					 
-		Pair pid = null; 
-		for(Pair p : values)
-			if(p.getKey().equals("ID")){ pid = p; break; }
+		Pair<String, String> pid = null; 
+		for (Pair<String, String> p : values) {
+			if (p.getKey().equals("ID")){ 
+				pid = p; break; 
+			}
+		}
 		
 		if(!values.get(0).equals( pid )){
 			values.remove( pid );
