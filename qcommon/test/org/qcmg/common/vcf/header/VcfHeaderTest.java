@@ -34,6 +34,17 @@ public class VcfHeaderTest {
 	}
 	
 	@Test
+	public void seeIfMultipleInputsAreAllowed() {
+		VcfHeader header = new VcfHeader();
+		int i = 1;
+		String s = "inputFile";
+		String s2 = "inputFile2";
+		header.addOrReplace (VcfHeaderUtils.BLANK_HEADER_LINE + "INPUT=" + i++ + ",FILE=" + s, false);
+		header.addOrReplace (VcfHeaderUtils.BLANK_HEADER_LINE + "INPUT=" + i++ + ",FILE=" + s2, false);
+		assertEquals(2, header.getAllMetaRecords().size());
+	}
+	
+	@Test
 	public void examineOrderOfRecordsReturned() {
 		VcfHeader header = new VcfHeader();
 		header.addFormat(VcfHeaderUtils.FORMAT_MUTANT_READS, "1", "String", "teenage mutant ninja turtles");
@@ -436,7 +447,7 @@ public class VcfHeaderTest {
 		
 		System.out.println( re.hashCode() + " : " + re1.hashCode() );
 		
-		System.out.println(  ((VcfHeaderRecord) re1).getSubFieldValue("order") );
+		System.out.println(  re1.getSubFieldValue("order") );
 		
 		assertTrue(re.equals(re1));
 		
