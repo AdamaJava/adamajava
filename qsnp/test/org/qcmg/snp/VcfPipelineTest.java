@@ -570,15 +570,15 @@ public class VcfPipelineTest {
 			  if (i == 1) {
 				  assertEquals("##fileformat=VCFv4.1", rec.toString());
 			  } else if (i == 2) {
-				  assertEquals(true, rec.toString().startsWith(VcfHeader.STANDARD_UUID_LINE));
+				  assertEquals(true, rec.toString().startsWith(VcfHeaderUtils.STANDARD_UUID_LINE));
 			  } else if (i == 3) {	
 				  assertEquals(true, rec.toString().startsWith("##reference"));				
 			  } else if (i == 4) {
-				  assertEquals(true, rec.toString().startsWith(VcfHeader.HEADER_LINE_FILTER));
+				  assertEquals(true, rec.toString().startsWith(VcfHeaderUtils.HEADER_LINE_FILTER));
 			  } else if (i > 4 && i < 24) {
-				  assertEquals(true, rec.toString().startsWith(VcfHeader.HEADER_LINE_INFO));
+				  assertEquals(true, rec.toString().startsWith(VcfHeaderUtils.HEADER_LINE_INFO));
 			  }else if (i > 23 && i < 29) {
-				  assertEquals(true, rec.toString().startsWith(VcfHeader.HEADER_LINE_FORMAT));
+				  assertEquals(true, rec.toString().startsWith(VcfHeaderUtils.HEADER_LINE_FORMAT));
 			  } else if (i > 29 && i < 50) {
 				  assertEquals(true, rec.toString().startsWith("##contig"));
 			  }  else if (i == 29) {
@@ -593,8 +593,8 @@ public class VcfPipelineTest {
 		  
 		  // this should only contain entries that are marked for inclusion
 		  for (VcfHeaderRecord rec : existingHeader) {
-			  if(rec.toString().startsWith(VcfHeader.STANDARD_FILE_FORMAT) 
-					  || rec.toString().startsWith(VcfHeader.STANDARD_FINAL_HEADER_LINE))
+			  if(rec.toString().startsWith(VcfHeaderUtils.STANDARD_FILE_FORMAT) 
+					  || rec.toString().startsWith(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE))
 				  continue;
 			  assertEquals(true, rec.getId() != null     //???
 							  || rec.toString().startsWith(VcfHeaderUtils.STANDARD_CONTROL_VCF)

@@ -16,7 +16,7 @@ public class VcfHeaderUtilsTest {
 	public void addSampleIdTest(){
 		//VcfHeader header, String id, boolean isTest
 		VcfHeader header = new VcfHeader();
-		header.addOrReplace(VcfHeader.STANDARD_FINAL_HEADER_LINE);
+		header.addOrReplace(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE);
 		
 		VcfHeaderUtils.addSampleId(header, "TEST", 1);			
 		Assert.assertArrayEquals( header.getSampleId(), new String[]{"TEST"});

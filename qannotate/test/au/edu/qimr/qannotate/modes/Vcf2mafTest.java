@@ -669,11 +669,11 @@ public class Vcf2mafTest {
 	 @Test
 	 public void BAMidTest()throws IOException, Exception{
 			String[] str = {        		
-					VcfHeader.STANDARD_FILE_FORMAT + "=VCFv4.0",	
+					VcfHeaderUtils.STANDARD_FILE_FORMAT + "=VCFv4.0",	
 					VcfHeaderUtils.STANDARD_CONTROL_SAMPLE + "=CONTROL_sample",
 					VcfHeaderUtils.STANDARD_TEST_SAMPLE + "=TEST_sample",	
 					VcfHeaderUtils.STANDARD_TEST_BAMID + "=TEST_bamID",				
-					VcfHeader.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tqControlSample\tqTestSample",
+					VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tqControlSample\tqTestSample",
 					"GL000236.1\t7127\t.\tT\tC\t.\tMR;MIUN\tSOMATIC;MR=4;NNS=4;FS=CCAGCCTATTT;CONF=ZERO\tGT:GD:AC:MR:NNS\t0/0:T/T:T9[37.11],18[38.33]:.:4\t0/1:C/T:C1[12],3[41],T19[35.58],30[33.63]:.:5"};			
 		        createVcf(str); 
 	        	try {
@@ -740,11 +740,11 @@ public class Vcf2mafTest {
 
 	@Test
 	public void fileNameTest() {
-		String[] str = {VcfHeader.STANDARD_FILE_FORMAT + "=VCFv4.0",			
+		String[] str = {VcfHeaderUtils.STANDARD_FILE_FORMAT + "=VCFv4.0",			
 				VcfHeaderUtils.STANDARD_DONOR_ID + "=MELA_0264",
 				VcfHeaderUtils.STANDARD_CONTROL_SAMPLE + "=CONTROL",
 				VcfHeaderUtils.STANDARD_TEST_SAMPLE + "=TEST",				
-				VcfHeader.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tCONTROL\tTEST"	
+				VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tCONTROL\tTEST"	
 		};
 		        
         try{
@@ -771,11 +771,11 @@ public class Vcf2mafTest {
 	
 	@Test
 	public void areVcfFilesCreated() throws Exception {
-		String[] str = {VcfHeader.STANDARD_FILE_FORMAT + "=VCFv4.0",			
+		String[] str = {VcfHeaderUtils.STANDARD_FILE_FORMAT + "=VCFv4.0",			
 				VcfHeaderUtils.STANDARD_DONOR_ID + "=ABCD_1234",
 				VcfHeaderUtils.STANDARD_CONTROL_SAMPLE + "=CONTROL",
 				VcfHeaderUtils.STANDARD_TEST_SAMPLE + "=TEST",				
-				VcfHeader.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tCONTROL\tTEST"	,
+				VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tCONTROL\tTEST"	,
 				"chr10\t87489317\trs386746181\tTG\tCC\t.\tPASS\tSOMATIC;DB;CONF=HIGH;"
 						 + "EFF=start_lost(HIGH||atg/GGtg|p.Met1?|580|GRID1|protein_coding|CODING|ENST00000536331||1);"
 						 + "LOF=(GRID1|ENSG00000182771|4|0.25);END=87489318\tACCS\tTG,29,36,_G,0,1\tCC,4,12,TG,15,12"
@@ -818,7 +818,7 @@ public class Vcf2mafTest {
 		String[] str = {"##fileformat=VCFv4.0",			
 				"##qControlSample=CONTROL",
 				"##qTestSample=TEST",				
-				VcfHeader.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tCONTROL\tTEST" };
+				VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tCONTROL\tTEST" };
 
         createVcf(str);
         
@@ -837,7 +837,7 @@ public class Vcf2mafTest {
 		String[] str = {"##fileformat=VCFv4.0",			
 				VcfHeaderUtils.STANDARD_DONOR_ID +"=MELA_0264",
 				VcfHeaderUtils.STANDARD_TEST_SAMPLE +"=TEST",				
-				VcfHeader.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tCONTROL\tTEST"};
+				VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tCONTROL\tTEST"};
 
         createVcf(str);
         

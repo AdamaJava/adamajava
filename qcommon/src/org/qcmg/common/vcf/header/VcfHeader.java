@@ -25,17 +25,6 @@ import org.qcmg.common.util.Constants;
 public class VcfHeader implements Iterable<VcfHeaderRecord> {
 		
 
-	public static final String HEADER_LINE_FILTER = "##FILTER";
-	public static final String HEADER_LINE_INFO = "##INFO";
-	public static final String HEADER_LINE_FORMAT = "##FORMAT";	
-	
-	public static final String CURRENT_FILE_FORMAT = "##fileformat=VCFv4.3";
-	public static final String STANDARD_FILE_FORMAT = "##fileformat"; 
-	public static final String STANDARD_FILE_DATE = "##fileDate";
-	public static final String STANDARD_SOURCE_LINE = "##qSource";
-	public static final String STANDARD_UUID_LINE = "##qUUID";	
-	public static final String STANDARD_FINAL_HEADER_LINE = "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO";
-	
 	//deal with special for the vcf chrom header line
 	VcfHeaderRecord chromLine = null;
  	
@@ -70,21 +59,21 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 	 * append a new INFO line or replace the existing PG line with same order
 	 */
 	public void addInfo(String id, String number, String type, String description)  { 
-		replaceRecord( idRecords,  new VcfHeaderRecord( HEADER_LINE_INFO, id,number,type,description), true);
+		replaceRecord( idRecords,  new VcfHeaderRecord( VcfHeaderUtils.HEADER_LINE_INFO, id,number,type,description), true);
 	}
 	
 	/**
 	 * append a new FORMAT line or replace the existing PG line with same order
 	 */
 	public void addFormat(String id, String number, String type, String description) { 
-		replaceRecord( idRecords, new VcfHeaderRecord( HEADER_LINE_FORMAT, id,number,type,description),true );
+		replaceRecord( idRecords, new VcfHeaderRecord( VcfHeaderUtils.HEADER_LINE_FORMAT, id,number,type,description),true );
 	}
 	
 	/**
 	 * append a new FILTER line or replace the existing PG line with same order
 	 */
 	public void addFilter(String id, String description) { 
-		replaceRecord( idRecords,  new VcfHeaderRecord( HEADER_LINE_FILTER, id, null, null,description), true );			
+		replaceRecord( idRecords,  new VcfHeaderRecord( VcfHeaderUtils.HEADER_LINE_FILTER, id, null, null,description), true );			
 	}
 	
 	public void  addOrReplace(VcfHeaderRecord rec){ addOrReplace( rec ,true); }
@@ -112,7 +101,7 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 			return; 
 		
 		VcfHeaderRecord re = new VcfHeaderRecord(line.trim().replaceAll("\n", ""));
-		if(re.getMetaKey().startsWith(VcfHeader.STANDARD_FINAL_HEADER_LINE) && re.getId() == null){
+		if(re.getMetaKey().startsWith(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE) && re.getId() == null){
 			chromLine = (isReplace || chromLine == null)? new VcfHeaderRecord(line) : chromLine;
 		}else if(re.getId() != null){
 			replaceRecord( idRecords,re , isReplace );			
@@ -171,14 +160,14 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 		return list;   
 	}
 	
-	public List<VcfHeaderRecord> getFormatRecords() {	return getRecords(idRecords, HEADER_LINE_FORMAT); }
-	public VcfHeaderRecord getFormatRecord(String id){ 	return getRecord(idRecords, HEADER_LINE_FORMAT, id); }
+	public List<VcfHeaderRecord> getFormatRecords() {	return getRecords(idRecords, VcfHeaderUtils.HEADER_LINE_FORMAT); }
+	public VcfHeaderRecord getFormatRecord(String id){ 	return getRecord(idRecords, VcfHeaderUtils.HEADER_LINE_FORMAT, id); }
 	
-	public List<VcfHeaderRecord> getFilterRecords() { return getRecords(idRecords, HEADER_LINE_FILTER); }
-	public VcfHeaderRecord getFilterRecord(String id) { return getRecord(idRecords, HEADER_LINE_FILTER, id); }
+	public List<VcfHeaderRecord> getFilterRecords() { return getRecords(idRecords, VcfHeaderUtils.HEADER_LINE_FILTER); }
+	public VcfHeaderRecord getFilterRecord(String id) { return getRecord(idRecords, VcfHeaderUtils.HEADER_LINE_FILTER, id); }
 
-	public List<VcfHeaderRecord> getInfoRecords() { return getRecords(idRecords, HEADER_LINE_INFO); }
-	public VcfHeaderRecord getInfoRecord(String id) {  return getRecord(idRecords, HEADER_LINE_INFO, id); }
+	public List<VcfHeaderRecord> getInfoRecords() { return getRecords(idRecords, VcfHeaderUtils.HEADER_LINE_INFO); }
+	public VcfHeaderRecord getInfoRecord(String id) {  return getRecord(idRecords, VcfHeaderUtils.HEADER_LINE_INFO, id); }
 	
 	/**
 	 * @param key: the key string of ##key=<ID...>. 
@@ -210,17 +199,17 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 		List<VcfHeaderRecord> list = getRecords(key);
 		return (list.isEmpty() )? null : list.get(0);
 	}
-	public VcfHeaderRecord getUUID() {   return getRecord( metaRecords,STANDARD_UUID_LINE , null ); }	
-	public VcfHeaderRecord getFileDate() { return getRecord( metaRecords, STANDARD_FILE_DATE , null ); }
-	public VcfHeaderRecord getSource() {	return getRecord( metaRecords, STANDARD_SOURCE_LINE , null ); }
+	public VcfHeaderRecord getUUID() {   return getRecord( metaRecords,VcfHeaderUtils.STANDARD_UUID_LINE , null ); }	
+	public VcfHeaderRecord getFileDate() { return getRecord( metaRecords, VcfHeaderUtils.STANDARD_FILE_DATE , null ); }
+	public VcfHeaderRecord getSource() {	return getRecord( metaRecords, VcfHeaderUtils.STANDARD_SOURCE_LINE , null ); }
 	
 	//get newest vcf format version if missing
 	public VcfHeaderRecord getFileFormat() {  
-		VcfHeaderRecord fv = getRecord( metaRecords, STANDARD_FILE_FORMAT , null ); 
-		return (fv == null)? new VcfHeaderRecord(CURRENT_FILE_FORMAT) :fv ; 		
+		VcfHeaderRecord fv = getRecord( metaRecords, VcfHeaderUtils.STANDARD_FILE_FORMAT , null ); 
+		return (fv == null)? new VcfHeaderRecord(VcfHeaderUtils.CURRENT_FILE_FORMAT) :fv ; 		
 	}
 	//in case missing header line
-	public VcfHeaderRecord getChrom() { return (chromLine == null) ?  new VcfHeaderRecord(STANDARD_FINAL_HEADER_LINE) : chromLine; } 
+	public VcfHeaderRecord getChrom() { return (chromLine == null) ?  new VcfHeaderRecord(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE) : chromLine; } 
 	
 	/**
 	 * return (internally) sorted vcf header iterator
@@ -234,7 +223,7 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 		if ( re != null) {  records.add(re); } //second line	 
 		
 		//add line with "<key>=<value>"
-		metaRecords.stream().filter(r -> !r.getMetaKey().equals(STANDARD_FILE_FORMAT) && !r.getMetaKey().equals(STANDARD_FILE_DATE) 
+		metaRecords.stream().filter(r -> !r.getMetaKey().equals(VcfHeaderUtils.STANDARD_FILE_FORMAT) && !r.getMetaKey().equals(VcfHeaderUtils.STANDARD_FILE_DATE) 
 				).forEach(r -> records.add(r));
 		
 		//add Filter, Info and Format records
@@ -243,9 +232,9 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 		getFormatRecords().stream().sorted().forEach(r -> records.add(r));
 		
 		//add remaining structured header line: ##Key=<ID=, ... >
-		idRecords.stream().filter(r -> !r.getMetaKey().equals(HEADER_LINE_FILTER) &&
-				!r.getMetaKey().equals(HEADER_LINE_FORMAT) && 
-				!r.getMetaKey().equals(HEADER_LINE_INFO) ).sorted().forEach(r -> records.add(r));		
+		idRecords.stream().filter(r -> !r.getMetaKey().equals(VcfHeaderUtils.HEADER_LINE_FILTER) &&
+				!r.getMetaKey().equals(VcfHeaderUtils.HEADER_LINE_FORMAT) && 
+				!r.getMetaKey().equals(VcfHeaderUtils.HEADER_LINE_INFO) ).sorted().forEach(r -> records.add(r));		
 		
 		records.add(getChrom()); 		
 		return records.iterator();

@@ -126,10 +126,10 @@ public class DbsnpModeTest {
 			assertTrue (null != header.getUUID()) ;   
 			assertTrue (null != header.getSource()) ;  
 			
-			assertTrue(header.getRecords(VcfHeader.STANDARD_FILE_FORMAT).size() == 1);
-			assertTrue(header.getRecords(VcfHeader.STANDARD_FILE_DATE ).size() == 1);
-			assertTrue(header.getRecords(VcfHeader.STANDARD_UUID_LINE ).size() == 1);
-			assertTrue(header.getRecords(VcfHeader.STANDARD_SOURCE_LINE ).size() == 1);
+			assertTrue(header.getRecords(VcfHeaderUtils.STANDARD_FILE_FORMAT).size() == 1);
+			assertTrue(header.getRecords(VcfHeaderUtils.STANDARD_FILE_DATE ).size() == 1);
+			assertTrue(header.getRecords(VcfHeaderUtils.STANDARD_UUID_LINE ).size() == 1);
+			assertTrue(header.getRecords(VcfHeaderUtils.STANDARD_SOURCE_LINE ).size() == 1);
 			assertTrue(header.getRecords(VcfHeaderUtils.STANDARD_INPUT_LINE ).size() == 1);
 						
 			int ii = 0;
@@ -143,7 +143,7 @@ public class DbsnpModeTest {
 			assertTrue(ii == 1);
 						
 			VcfHeaderRecord chrom = header.getChrom();
-			assertTrue(chrom.toString().startsWith(VcfHeader.STANDARD_FINAL_HEADER_LINE)) ;			
+			assertTrue(chrom.toString().startsWith(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE)) ;			
 			assertTrue(header.getInfoRecord(VcfHeaderUtils.INFO_VAF) != null);  
 			assertTrue(header.getInfoRecord(VcfHeaderUtils.INFO_DB) != null) ;
 			  						

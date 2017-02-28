@@ -69,7 +69,7 @@ public class ChrPositionUtils {
 	}
 	
 	/**
-	 * Returns a ChrPosition object - will be ChrPOsintPosition if start == end, and ChrRangePosition otherwise
+	 * Returns a ChrPosition object - will be ChrPointPosition if start == end, and ChrRangePosition otherwise
 	 */
 	public static ChrPosition getChrPosition(String chr, int start, int end) {
 		if (start == end) {
