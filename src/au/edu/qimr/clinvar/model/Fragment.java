@@ -2,41 +2,49 @@ package au.edu.qimr.clinvar.model;
 
 import gnu.trove.list.array.TIntArrayList;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.qcmg.common.model.ChrPosition;
 
 public class Fragment implements Comparable<Fragment> {
 	
 	private final int id;
 	private final String fragment;
-	private final int fragmentLength;
+//	private final int fragmentLength;
 	private final  ChrPosition bestTiledLocation;
 	
-	private final List<StringBuilder> fsHeaders = new ArrayList<>(2);
-	private final List<StringBuilder> rsHeaders = new ArrayList<>(2);
+	private final TIntArrayList fsReadPositions = new TIntArrayList();
+	private final TIntArrayList rsReadPositions = new TIntArrayList();
+//	private final List<StringBuilder> fsHeaders = new ArrayList<>(2);
+//	private final List<StringBuilder> rsHeaders = new ArrayList<>(2);
 	
 	private ChrPosition actualLocation;
 	private String [] smithWatermanDiffs;
 	private final TIntArrayList overlapDistribution;
 	
-	public Fragment(int id,String sequence, List<StringBuilder> fsHeaders, List<StringBuilder> rsHeaders, ChrPosition bestTiledLocation, TIntArrayList overlapDist) {
+	public Fragment(int id,String sequence, TIntArrayList fsHeaders, TIntArrayList rsHeaders, ChrPosition bestTiledLocation, TIntArrayList overlapDist) {
+//		public Fragment(int id,String sequence, List<StringBuilder> fsHeaders, List<StringBuilder> rsHeaders, ChrPosition bestTiledLocation, TIntArrayList overlapDist) {
 		this.id = id;
 		this.fragment = sequence;
-		this.fragmentLength = null != this.fragment ? this.fragment.length() : 0;
-		this.fsHeaders.addAll(fsHeaders);
-		this.rsHeaders.addAll(rsHeaders);
+//		this.fragmentLength = null != this.fragment ? this.fragment.length() : 0;
+		this.fsReadPositions.addAll(fsHeaders);
+		this.rsReadPositions.addAll(rsHeaders);
+//		this.fsHeaders.addAll(fsHeaders);
+//		this.rsHeaders.addAll(rsHeaders);
 		this.bestTiledLocation = bestTiledLocation;
 		this.overlapDistribution = overlapDist;
 	}
 	
-	public void setForwardStrandCount(List<StringBuilder> headers) {
-		this.fsHeaders.addAll(headers);
+	public void setForwardStrandCount(TIntArrayList headers) {
+		this.fsReadPositions.addAll(headers);
 	}
-	public void setReverseStrandCount(List<StringBuilder> rsHead) {
-		this.rsHeaders.addAll(rsHead);
+	public void setReverseStrandCount(TIntArrayList rsHead) {
+		this.rsReadPositions.addAll(rsHead);
 	}
+//	public void setForwardStrandCount(List<StringBuilder> headers) {
+//		this.fsHeaders.addAll(headers);
+//	}
+//	public void setReverseStrandCount(List<StringBuilder> rsHead) {
+//		this.rsHeaders.addAll(rsHead);
+//	}
 	
 	public void setSWDiffs(String [] diffs) {
 		this.smithWatermanDiffs = diffs;
@@ -50,7 +58,7 @@ public class Fragment implements Comparable<Fragment> {
 	}
 	
 	public int getLength() {
-		return fragmentLength;
+		return fragment.length();
 	}
 	
 	public int getRecordCount() {
@@ -83,17 +91,17 @@ public class Fragment implements Comparable<Fragment> {
 	}
 
 	public int getFsCount() {
-		return fsHeaders.size() ;
+		return fsReadPositions.size() ;
 	}
-	public List<StringBuilder> getFsHeaders() {
-		return fsHeaders;
-	}
-	public List<StringBuilder> getRsHeaders() {
-		return rsHeaders;
-	}
+//	public List<StringBuilder> getFsHeaders() {
+//		return fsHeaders;
+//	}
+//	public List<StringBuilder> getRsHeaders() {
+//		return rsHeaders;
+//	}
 
 	public int getRsCount() {
-		return rsHeaders.size() ;
+		return rsReadPositions.size() ;
 	}
 	
 	public TIntArrayList getOverlapDistribution() {

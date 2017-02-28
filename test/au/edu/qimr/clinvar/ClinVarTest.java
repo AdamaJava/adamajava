@@ -1,14 +1,21 @@
 package au.edu.qimr.clinvar;
 
 import static org.junit.Assert.assertEquals;
+
+import java.util.Optional;
+
 import htsjdk.samtools.util.SequenceUtil;
 
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
+import org.qcmg.qmule.SmithWatermanGotoh;
 
 import au.edu.qimr.clinvar.util.ClinVarUtil;
+import au.edu.qimr.clinvar.util.FragmentUtil;
 
 public class ClinVarTest {
+	
+	private static final char [] AT = new char[]{'A','T'};
 	
 	
 	/* probe 593, r2Overlap: CTGTAGACCTCGAAGTAGGGGGAAAAC, r1OverlapRC: CTGTAGACCTCGAAGTAGGGGGAAAAC, basicED: 0, led: 0
@@ -252,6 +259,51 @@ public class ClinVarTest {
 //		String frag =   r1.substring(0, r1.length() - slideValue) + SequenceUtil.reverseComplement(r2.substring(0,r2.length() - expectedOverlap - slideValue));
 		String frag =  r1.substring(0,  r1.length() - (expectedOverlap + slideValue)) + SequenceUtil.reverseComplement(r2);
 		System.out.println("frag: " + frag);
+		
+		
+	}
+	
+	@Test
+	public void indexOfVsSW() {
+		String s1 = "CATTCTTCACAAGGGTGTGGGTTTGTCACTGAGACAGCATGGCTATAAGAAAGAGATAACAGCGCATATTATGATTTAATTTTTCTTTAATTAGAGTCAAGAGTAAGGAAAAGATTCAGACTTTGGTTATTCTGTTCTTAGAAATAACTTC";
+		String s2 = "TACCATGGTAGGCTGCGTTGGAAGTTATTTCTAAGAACAGAATAACCAAAGTCTGAATCTTTTCCTTACTCTTGACTCTAATTAAAGAAAAATTAAATCATAATATGCGCTGTTATCTCTTTCTTATAGCCATGCTGTCTCAGTGACAAAC";
+		String s2RevComp = SequenceUtil.reverseComplement(s2);
+		
+		Optional<String> basicOverlap = null;
+		long start = System.currentTimeMillis();
+		for (int i = 0 ; i < 1000 ; i++) {
+			basicOverlap = Q3Panel.createBasicFragment(s1, s2RevComp, 10);
+		}
+		System.out.println("time for basic: " + (System.currentTimeMillis() - start));
+		/*
+		 * and now using sw
+		 */
+		Optional<String> fragment = Optional.empty();
+		start = System.currentTimeMillis();
+		for (int i = 0 ; i < 1000 ; i++) {
+			SmithWatermanGotoh nm = new SmithWatermanGotoh(s1, s2RevComp, 5, -4, 16, 4);
+			String [] newSwDiffs = nm.traceback();
+			String overlapMatches = newSwDiffs[1];
+			if (overlapMatches.indexOf(" ") > -1 || overlapMatches.indexOf('.') > -1) {
+			} else {
+				String overlap = newSwDiffs[0];
+				int overlapLength = overlapMatches.length();
+				if (overlapLength >= 10 && ! StringUtils.containsOnly(newSwDiffs[0], AT)) {
+					/*
+					 * Now build fragment
+					 * check to see which read starts with the overlap
+					 */
+					fragment = FragmentUtil.getFragmentString(s1,  s2RevComp, overlap);
+				}
+			}
+		}
+		System.out.println("time for sw: " + (System.currentTimeMillis() - start));
+		
+		assertEquals(basicOverlap, fragment);
+		assertEquals(true, basicOverlap.isPresent());
+		System.out.println("fragment: " + fragment.get());
+		System.out.println("basicOverlap: " + basicOverlap.get());
+		
 		
 		
 	}

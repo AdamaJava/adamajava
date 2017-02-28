@@ -33,6 +33,7 @@ import org.qcmg.common.util.Pair;
 import au.edu.qimr.clinvar.model.Contig;
 import au.edu.qimr.clinvar.model.Bin;
 import au.edu.qimr.clinvar.model.Fragment;
+import au.edu.qimr.clinvar.model.Fragment2;
 import au.edu.qimr.clinvar.model.Probe;
 
 public class ClinVarUtilTest {
@@ -115,8 +116,14 @@ public class ClinVarUtilTest {
 	public void getCoverageString() {
 		ChrPosition cp = ChrPointPosition.valueOf("1", 100);
 		Map<Contig, List<Fragment>> map = new HashMap<>();
-		List<StringBuilder> headers = Arrays.asList(new StringBuilder[]{new StringBuilder("hello")});
-		List<StringBuilder> headers10 = Arrays.asList(new StringBuilder[]{new StringBuilder("hello"), new StringBuilder("hello"), new StringBuilder("hello"), new StringBuilder("hello"), new StringBuilder("hello"),new StringBuilder("hello"),new StringBuilder("hello"),new StringBuilder("hello"),new StringBuilder("hello"),new StringBuilder("hello")});
+		TIntArrayList headers = new TIntArrayList();
+		headers.add(1);
+		TIntArrayList headers10 = new TIntArrayList();
+		for (int i = 0 ; i < 10 ; i++) {
+			headers10.add(i +2);
+		}
+//		List<StringBuilder> headers = Arrays.asList(new StringBuilder[]{new StringBuilder("hello")});
+//		List<StringBuilder> headers10 = Arrays.asList(new StringBuilder[]{new StringBuilder("hello"), new StringBuilder("hello"), new StringBuilder("hello"), new StringBuilder("hello"), new StringBuilder("hello"),new StringBuilder("hello"),new StringBuilder("hello"),new StringBuilder("hello"),new StringBuilder("hello"),new StringBuilder("hello")});
 		
 		assertEquals("0,0,0", ClinVarUtil.getCoverageStringAtPosition(cp, map));
 		Contig a = new Contig(1, new ChrRangePosition("1", 101,200));
@@ -137,29 +144,36 @@ public class ClinVarUtilTest {
 	
 	@Test
 	public void getAmpliconFragments() {
-		List<StringBuilder> headers = Arrays.asList(new StringBuilder[]{new StringBuilder("hello")});
-		List<StringBuilder> headers2 = Arrays.asList(new StringBuilder[]{new StringBuilder("hello"), new StringBuilder("there")});
-		Fragment f1 = new Fragment(1, null, headers, Collections.emptyList(), null, null);
-		Fragment f2 = new Fragment(2, null, headers, headers, null, null);
-		Fragment f3 = new Fragment(3, null, headers2, headers, null, null);
-		ChrPosition cp = new ChrRangePosition("1", 100, 200);
-		f1.setActualPosition(cp);
-		f2.setActualPosition(cp);
-		f3.setActualPosition(cp);
+//		List<StringBuilder> headers = Arrays.asList(new StringBuilder[]{new StringBuilder("hello")});
+//		List<StringBuilder> headers2 = Arrays.asList(new StringBuilder[]{new StringBuilder("hello"), new StringBuilder("there")});
 		
-		List<Fragment> list = Arrays.asList(f1, f2, f3);
-		Map<Contig, List<Fragment>> groupedFrags = ClinVarUtil.groupFragments(list, 10);
+		TIntArrayList headers = new TIntArrayList();
+		headers.add(1);
+		TIntArrayList headers2 = new TIntArrayList();
+		for (int i = 0 ; i < 2 ; i++) {
+			headers2.add(i +2);
+		}
+		Fragment2 f1 = new Fragment2(1, "ABC");
+		Fragment2 f2 = new Fragment2(2, "ABCD");
+		Fragment2 f3 = new Fragment2(3, "ABCDE");
+		ChrPosition cp = new ChrRangePosition("1", 100, 200);
+		f1.setPosition(cp, true);
+		f2.setPosition(cp, true);
+		f3.setPosition(cp, true);
+		
+		List<Fragment2> list = Arrays.asList(f1, f2, f3);
+		Map<Contig, List<Fragment2>> groupedFrags = ClinVarUtil.groupFragments(list, 10);
 		
 		assertEquals(1, groupedFrags.size());
 		assertEquals(list.size(), groupedFrags.get(new Contig(1,cp)).size());
 		assertEquals(true, groupedFrags.get(new Contig(1,cp)).containsAll(list));
 		
-		Fragment f10 = new Fragment(10, null, headers, Collections.emptyList(), null, null);
-		Fragment f11 = new Fragment(11, null, headers, headers, null, null);
-		Fragment f12 = new Fragment(12, null, headers2, headers, null, null);
-		f10.setActualPosition(new ChrRangePosition("1", 102, 208));
-		f11.setActualPosition(new ChrRangePosition("1", 102, 208));
-		f12.setActualPosition(new ChrRangePosition("1", 102, 208));
+		Fragment2 f10 = new Fragment2(10, "123");
+		Fragment2 f11 = new Fragment2(11, "1234");
+		Fragment2 f12 = new Fragment2(12, "12345");
+		f10.setPosition(new ChrRangePosition("1", 102, 208), true);
+		f11.setPosition(new ChrRangePosition("1", 102, 208), true);
+		f12.setPosition(new ChrRangePosition("1", 102, 208), true);
 		list = Arrays.asList(f1, f2, f3, f10, f11, f12);
 		
 		groupedFrags = ClinVarUtil.groupFragments(list, 10); 

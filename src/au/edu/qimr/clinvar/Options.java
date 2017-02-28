@@ -67,6 +67,8 @@ final class Options {
 		parser.accepts("fastqsR2", TAGS_CHAR_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
 		parser.accepts("extendedFB", LOG_LEVEL_OPTION_DESCRIPTION);
 		parser.accepts("bamFilterDepth", MIN_BIN_SIZE_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
+		parser.accepts("trimFromEndsOfReads", MIN_BIN_SIZE_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
+		parser.accepts("numberOfThreads", MIN_BIN_SIZE_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
 		parser.posixlyCorrect(true);
 
 		options = parser.parse(args);
@@ -117,6 +119,12 @@ final class Options {
 	}
 	Optional<Integer> getBamFilterDepth() {
 		return  Optional.ofNullable( (Integer) options.valueOf("bamFilterDepth"));
+	}
+	Optional<Integer> getTrimFromEndsOfReads() {
+		return  Optional.ofNullable( (Integer) options.valueOf("trimFromEndsOfReads"));
+	}
+	Optional<Integer> getNumberOfThreads() {
+		return  Optional.ofNullable( (Integer) options.valueOf("numberOfThreads"));
 	}
 	
 	Optional<String> getXml() {

@@ -36,6 +36,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.Set;
 import java.util.SortedMap;
@@ -57,6 +58,8 @@ import org.qcmg.qmule.SmithWatermanGotoh;
 import au.edu.qimr.clinvar.model.Contig;
 import au.edu.qimr.clinvar.model.Bin;
 import au.edu.qimr.clinvar.model.Fragment;
+import au.edu.qimr.clinvar.model.Fragment2;
+import au.edu.qimr.clinvar.model.LongInt;
 import au.edu.qimr.clinvar.model.Probe;
 
 public class ClinVarUtil {
@@ -130,14 +133,14 @@ public class ClinVarUtil {
 	
 	
 	
-	public static List<Fragment> getOverlappingFragments(ChrPosition cp, Map<String, List<Fragment>> fragsByContig) {
-		List<Fragment> frags = fragsByContig.get(cp.getChromosome());
+	public static List<Fragment2> getOverlappingFragments(ChrPosition cp, Map<String, List<Fragment2>> fragsByContig) {
+		List<Fragment2> frags = fragsByContig.get(cp.getChromosome());
 		if (null == frags || frags.isEmpty()) {
 			return Collections.emptyList();
 		}
 		return frags.stream()
 //				.filter(frag -> null != frag.getActualPosition())
-				.filter(frag -> ChrPositionUtils.doChrPositionsOverlapPositionOnly(cp, frag.getActualPosition()))
+				.filter(frag -> ChrPositionUtils.doChrPositionsOverlapPositionOnly(cp, frag.getPosition()))
 				.collect(Collectors.toList());
 	}
 	
@@ -268,10 +271,21 @@ public class ClinVarUtil {
 	
 	public static TIntObjectHashMap<TLongArrayList> getBestStartPosition(long [][] tilePositions, int tileLength, int indelOffset, int tiledDiffThreshold, int minNumberOfTiles) {
 //		public static long[] getBestStartPosition(long [][] tilePositions, int tileLength, int indelOffset, int tiledDiffThreshold) {
-		TLongIntMap positionAndTiles = new TLongIntHashMap();
+		TLongIntMap positionAndTiles = new TLongIntHashMap(64);
 		int noOfTiles = tilePositions.length;
 		long startPos = -1;
+//		int cutoff = (noOfTiles - minNumberOfTiles -1) > 0 ? noOfTiles - minNumberOfTiles-1 : noOfTiles;
+		int maxNumberOfHits = 0;
 		for (int i = 0 ; i < noOfTiles ; i++) {
+			
+			
+			/*
+			 * if there is no chance of reaching the maxNumberIOfHits in this iteration, continue
+			 */
+			if ((noOfTiles - i) < maxNumberOfHits) {
+				continue;
+			}
+			
 			/*
 			 * get first entry, search subsequent arrays
 			 */
@@ -285,7 +299,8 @@ public class ClinVarUtil {
 					continue;
 				}
 				int tileDepth = 1;
-				positionAndTiles.put(startPos, 1);
+//				positionAndTiles.put(startPos, 1);
+				int numberOfHits = 1;
 				
 				for (int k = i +1; k < noOfTiles ; k++) {
 					/*
@@ -301,22 +316,113 @@ public class ClinVarUtil {
 						}
 						if (l >= from) {
 							// match!
-							positionAndTiles.increment(startPos);
+//							positionAndTiles.increment(startPos);
+							numberOfHits++;
 							break;
 						}
 					}
 				}
+				/*
+				 * check to see if numberOfHits is greater than or equal to the maxNumberOfHIts
+				 * If it is, insert into map, and update maxNumberOfHIts
+				 */
+				
+				if (numberOfHits >= maxNumberOfHits) {
+					positionAndTiles.put(startPos, numberOfHits);
+					if (numberOfHits > maxNumberOfHits) {
+						maxNumberOfHits = numberOfHits;
+					}
+				}
 			}
+			
+			
 			
 			/*
 			 * If we have a match for all tiles, exit!
 			 * Only do this at the first iteration
 			 */
-			if (positionAndTiles.containsValue(noOfTiles - i)) {
-				return reduceStartPositionsAndTileCount(positionAndTiles, tiledDiffThreshold, minNumberOfTiles, tileLength);
-			}
+//			if (positionAndTiles.containsValue(noOfTiles - i)) {
+//				return reduceStartPositionsAndTileCount(positionAndTiles, tiledDiffThreshold, minNumberOfTiles, tileLength);
+//			}
 		}
 		return reduceStartPositionsAndTileCount(positionAndTiles, tiledDiffThreshold, minNumberOfTiles, tileLength);
+	}
+	
+	public static List<LongInt> getBestStartPositionLongInt(long [][] tilePositions, int tileLength, int indelOffset, int tiledDiffThreshold, int minNumberOfTiles) {
+//		public static long[] getBestStartPosition(long [][] tilePositions, int tileLength, int indelOffset, int tiledDiffThreshold) {
+//		TLongIntMap positionAndTiles = new TLongIntHashMap(64);
+		List<LongInt> positionAndTiles = new ArrayList<>();
+		int noOfTiles = tilePositions.length;
+		long startPos = -1;
+//		int cutoff = (noOfTiles - minNumberOfTiles -1) > 0 ? noOfTiles - minNumberOfTiles-1 : noOfTiles;
+		int maxNumberOfHits = 0;
+		for (int i = 0 ; i < noOfTiles ; i++) {
+			
+			
+			/*
+			 * if there is no chance of reaching the maxNumberIOfHits in this iteration, continue
+			 */
+			if ((noOfTiles - i) < maxNumberOfHits) {
+				continue;
+			}
+			
+			/*
+			 * get first entry, search subsequent arrays
+			 */
+			long [] positions = tilePositions[i];
+			int positionsLength = positions.length;
+			
+			for (int j = 0 ; j < positionsLength ; j++) {
+				startPos = positions[j];
+				if (startPos == Long.MAX_VALUE || startPos == Long.MIN_VALUE) {
+					// this either does not occur or occurs very frequently - in either case - ignore for now...
+					continue;
+				}
+				int tileDepth = 1;
+//				positionAndTiles.put(startPos, 1);
+				int numberOfHits = 1;
+				
+				for (int k = i +1; k < noOfTiles ; k++) {
+					/*
+					 * Exact matching only for the moment - need to traverse array and use indelOffset
+					 */
+					long from = startPos + (tileDepth * tileLength) - indelOffset;
+					long to = startPos + (tileDepth * tileLength) + indelOffset;
+					tileDepth++;
+					for (long l : tilePositions[k]) {
+						if (l > to) {
+							// array i sorted, if we are past to, we are done
+							break;
+						}
+						if (l >= from) {
+							// match!
+//							positionAndTiles.increment(startPos);
+							numberOfHits++;
+							break;
+						}
+					}
+				}
+				/*
+				 * check to see if numberOfHits is greater than or equal to the maxNumberOfHIts
+				 * If it is, insert into map, and update maxNumberOfHIts
+				 */
+				
+				if (numberOfHits >= maxNumberOfHits) {
+					positionAndTiles.add(new LongInt(startPos, numberOfHits));
+					if (numberOfHits > maxNumberOfHits) {
+						maxNumberOfHits = numberOfHits;
+					}
+				}
+			}
+			
+		}
+		
+		
+		/*
+		 * filter out positions that have tile counts below the allowed amount, and sort by tile count (largest first)
+		 */
+		return positionAndTiles.stream().filter(li -> li.getInt() >= minNumberOfTiles).sorted((li1, li2) -> li2.getInt() - li1.getInt()).collect(Collectors.toList());
+//		return reduceStartPositionsAndTileCount(positionAndTiles, tiledDiffThreshold, minNumberOfTiles, tileLength);
 	}
 	
 	/**
@@ -573,7 +679,7 @@ public class ClinVarUtil {
 		
 		return dict;
 	}
-	public static SAMSequenceDictionary getSequenceDictionaryFromFragments(Collection<Fragment> fragments) {
+	public static SAMSequenceDictionary getSequenceDictionaryFromFragments(Collection<Fragment2> fragments) {
 		if (null == fragments) {
 			throw new IllegalArgumentException("Null List<Probe> passed to ClinVarUtil.getSequenceDictionaryFromProbes");
 		}
@@ -581,10 +687,10 @@ public class ClinVarUtil {
 		SAMSequenceDictionary dict = new SAMSequenceDictionary();
 		
 		fragments.stream()
-			.filter(f -> f.getActualPosition() != null)
+			.filter(f -> f.getPosition() != null)
 			.forEach(f -> {
-				String chr = f.getActualPosition().getChromosome();
-				int len = f.getActualPosition().getEndPosition();
+				String chr = f.getPosition().getChromosome();
+				int len = f.getPosition().getEndPosition();
 				
 				SAMSequenceRecord ssr = dict.getSequence(chr);
 				if (null == ssr) {
@@ -712,12 +818,12 @@ public class ClinVarUtil {
 						
 						
 						if (missingBinSeqBases.equals(missingRefBases) || missingBinSeqBases.length() != missingRefBases.length()) {
-							logger.info("missingBinSeqBases.equals(missingRefBases) || missingBinSeqBases.length() != missingRefBases.length(), missingBinSeqBases: " + missingBinSeqBases + ", missingRefBases: " + missingRefBases);
+//							logger.info("missingBinSeqBases.equals(missingRefBases) || missingBinSeqBases.length() != missingRefBases.length(), missingBinSeqBases: " + missingBinSeqBases + ", missingRefBases: " + missingRefBases);
 							// oh dear
 						} else {
-							if (lengthDiff > 1) {
-								logger.info("adding " + missingRefBases + ">" + missingBinSeqBases + " to sw diffs");
-							}
+//							if (lengthDiff > 1) {
+//								logger.info("adding " + missingRefBases + ">" + missingBinSeqBases + " to sw diffs");
+//							}
 							diffs[0] += missingRefBases;
 							StringBuilder sb = new StringBuilder(lengthDiff);
 							for (int i = 0 ; i < lengthDiff ; i++) {
@@ -741,20 +847,20 @@ public class ClinVarUtil {
 				int refIndex = ref.indexOf(swRef); 
 				if (refIndex > -1) {
 					if (refIndex - lengthDiff < 0) {
-						logger.warn("refIndex - lengthDiff is lt 0, refIndex:  " + refIndex + ", lengthDiff: " + lengthDiff + ", ref: " + ref + ", binSeq: " + binSeq);
-						for (String s : diffs) {
-							logger.warn("s: " + s);
-						}
+//						logger.warn("refIndex - lengthDiff is lt 0, refIndex:  " + refIndex + ", lengthDiff: " + lengthDiff + ", ref: " + ref + ", binSeq: " + binSeq);
+//						for (String s : diffs) {
+//							logger.warn("s: " + s);
+//						}
 					}
 					String missingRefBases = ref.substring(Math.max(0, refIndex - lengthDiff), refIndex);
 					
 					if (missingBinSeqBases.equals(missingRefBases) || missingBinSeqBases.length() != missingRefBases.length()) {
-						logger.info("missingBinSeqBases.equals(missingRefBases) || missingBinSeqBases.length() != missingRefBases.length(), missingBinSeqBases: " + missingBinSeqBases + ", missingRefBases: " + missingRefBases);
+//						logger.info("missingBinSeqBases.equals(missingRefBases) || missingBinSeqBases.length() != missingRefBases.length(), missingBinSeqBases: " + missingBinSeqBases + ", missingRefBases: " + missingRefBases);
 						// oh dear
 					} else {
-						if (lengthDiff > 1) {
-							logger.info("adding " + missingRefBases + ">" + missingBinSeqBases + " to sw diffs");
-						}
+//						if (lengthDiff > 1) {
+//							logger.info("adding " + missingRefBases + ">" + missingBinSeqBases + " to sw diffs");
+//						}
 						diffs[0] = missingRefBases + diffs[0];
 						StringBuilder sb = new StringBuilder(lengthDiff);
 						for (int i = 0 ; i < lengthDiff; i++) {
@@ -769,8 +875,8 @@ public class ClinVarUtil {
 					logger.warn(" refIndex = ref.indexOf(swRef) == -1!!!");
 				}
 				
-			} else {
-				logger.warn("binSeq neither startsWith norEndsWith swBinSeq. binSeq: " + binSeq + ", swBinSeq: " + swBinSeq);
+//			} else {
+//				logger.warn("binSeq neither startsWith norEndsWith swBinSeq. binSeq: " + binSeq + ", swBinSeq: " + swBinSeq);
 			}
 		}
 		return diffs;
@@ -946,27 +1052,38 @@ public class ClinVarUtil {
 	public static void addSAMRecordToWriter(SAMFileHeader header, SAMFileWriter writer, Cigar cigar, int probeId, int binId, int binSize, String referenceSeq, String chr, int position, int offset, String binSeq) {
 		addSAMRecordToWriter( header, writer, cigar, probeId, binId, binSize, referenceSeq, chr, position, offset, binSeq, 60);
 	}
-	public static void addSAMRecordToWriter(SAMFileHeader header, SAMFileWriter writer, Cigar cigar, int ampliconId, String refSeq, Fragment f,  int offset, int mappingQuality) {
+	public static void addSAMRecordToWriter(SAMFileHeader header, SAMFileWriter writer, Cigar cigar, int ampliconId, String refSeq, Fragment2 f,  int offset, int mappingQuality) {
 //		public static void addSAMRecordToWriter(SAMFileHeader header, SAMFileWriter writer, Cigar cigar, int probeId, int binId, int binSize, String referenceSeq, String chr, int position, int offset, String binSeq, int mappingQuality) {
 		/*
 		 * Setup some common properties on the sam record
 		 */
 		int binSize = f.getRecordCount();
 		int i = 0;
-		if ( ! f.getFsHeaders().isEmpty()) {
-			SAMRecord rec = createSAMRecord(header, cigar,ampliconId, f.getId(), binSize, refSeq, f.getActualPosition().getChromosome(), f.getActualPosition().getStartPosition(), offset, f.getSequence(), i, mappingQuality, true, f.getFsHeaders().get(0).toString());
+		if (f.isForwardStrand()) {
+			SAMRecord rec = createSAMRecord(header, cigar,ampliconId, f.getId(), binSize, refSeq, f.getPosition().getChromosome(), f.getPosition().getStartPosition(), offset, f.getSequence(), i, mappingQuality, true, "readPositionsCount: " + f.getRecordCount());
 			writer.addAlignment(rec);
-			
+		} else {
+			SAMRecord rec = createSAMRecord(header, cigar,ampliconId, f.getId(), binSize, refSeq, f.getPosition().getChromosome(), f.getPosition().getStartPosition(), offset, SequenceUtil.reverseComplement(f.getSequence()), i, mappingQuality, false,  "readPositionsCount: " + f.getRecordCount());
+			writer.addAlignment(rec);
 		}
+//		if ( ! f.getFsHeaders().isEmpty()) {
+//			SAMRecord rec = createSAMRecord(header, cigar,ampliconId, f.getId(), binSize, refSeq, f.getActualPosition().getChromosome(), f.getActualPosition().getStartPosition(), offset, f.getSequence(), i, mappingQuality, true, f.getFsHeaders().get(0).toString());
+//			writer.addAlignment(rec);
+//		}
 //		for (StringBuilder sb : f.getFsHeaders()) {
 //			SAMRecord rec = createSAMRecord(header, cigar,ampliconId, f.getId(), binSize, refSeq, f.getActualPosition().getChromosome(), f.getActualPosition().getStartPosition(), offset, f.getSequence(), i, mappingQuality, true, sb.toString());
 //			writer.addAlignment(rec);
 //		}
-		if ( ! f.getRsHeaders().isEmpty()) {
-			SAMRecord rec = createSAMRecord(header, cigar,ampliconId, f.getId(), binSize, refSeq, f.getActualPosition().getChromosome(), f.getActualPosition().getStartPosition(), offset, f.getSequence(), i, mappingQuality, false, f.getRsHeaders().get(0).toString());
-			writer.addAlignment(rec);
-			
-		}
+//		if ( f.getRsCount() > 0) {
+//			SAMRecord rec = createSAMRecord(header, cigar,ampliconId, f.getId(), binSize, refSeq, f.getActualPosition().getChromosome(), f.getActualPosition().getStartPosition(), offset, f.getSequence(), i, mappingQuality, false,  "readPositionsCount: " + f.getRsCount());
+//			writer.addAlignment(rec);
+//			
+//		}
+//		if ( ! f.getRsHeaders().isEmpty()) {
+//			SAMRecord rec = createSAMRecord(header, cigar,ampliconId, f.getId(), binSize, refSeq, f.getActualPosition().getChromosome(), f.getActualPosition().getStartPosition(), offset, f.getSequence(), i, mappingQuality, false, f.getRsHeaders().get(0).toString());
+//			writer.addAlignment(rec);
+//			
+//		}
 //		for (StringBuilder sb : f.getRsHeaders()) {
 //			SAMRecord rec = createSAMRecord(header, cigar,ampliconId, f.getId(), binSize, refSeq, f.getActualPosition().getChromosome(), f.getActualPosition().getStartPosition(), offset, f.getSequence(), i, mappingQuality, false, sb.toString());
 //			writer.addAlignment(rec);
@@ -1414,7 +1531,7 @@ public class ClinVarUtil {
 	 * @param vcf
 	 * @param ampliconMap
 	 */
-	public static void getCoverageStatsForVcf(VcfRecord vcf, Map<String, Map<Contig, List<Fragment>>> contigAmpliconMap, StringBuilder fb, StringBuilder xFb) {
+	public static void getCoverageStatsForVcf(VcfRecord vcf, Map<String, Map<Contig, List<Fragment2>>> contigAmpliconMap, StringBuilder fb, StringBuilder xFb) {
 		if (null == vcf) throw new IllegalArgumentException("Null VcfRecord passed to ClinVarUitl.getCoverageStringAtPosition");
 		if (null == contigAmpliconMap) throw new IllegalArgumentException("Null ampliconMap passed to ClinVarUitl.getCoverageStringAtPosition");
 		
@@ -1425,23 +1542,29 @@ public class ClinVarUtil {
 		
 		ChrPosition cp  = vcf.getChrPosition();
 		int length = vcf.getRef().length();
-		Map<Contig, List<Fragment>>ampliconMap = contigAmpliconMap.get(cp.getChromosome());
+		Map<Contig, List<Fragment2>>ampliconMap = contigAmpliconMap.get(cp.getChromosome());
 		
 		ampliconMap.entrySet().stream()
 			.filter(entry -> ChrPositionUtils.isChrPositionContained(entry.getKey().getPosition(), cp))
 			.forEach(entry -> {
 				ampliconCount.incrementAndGet();
 				entry.getValue().stream()
-				.filter(f -> f.getActualPosition() != null)
-				.filter(f -> ChrPositionUtils.isChrPositionContained(f.getActualPosition(), cp))
+				.filter(f -> f.getPosition() != null)
+				.filter(f -> ChrPositionUtils.isChrPositionContained(f.getPosition(), cp))
 				.forEach(f -> {
-					String bases = FragmentUtil.getBasesAtPosition(cp, f, length);
-					Pair<AtomicInteger, AtomicInteger> p = baseDist.computeIfAbsent(bases, k ->new Pair<>(new AtomicInteger(), new AtomicInteger()));
-					p.getLeft().addAndGet(f.getFsCount());
-					p.getRight().addAndGet(f.getRsCount());
-					
-					fragmentCount.incrementAndGet();
-					readCount.addAndGet(f.getRecordCount());
+					Optional<String> bases = FragmentUtil.getBasesAtPosition(cp, f, length);
+					bases.ifPresent(s -> {Pair<AtomicInteger, AtomicInteger> p = baseDist.computeIfAbsent(s, k ->new Pair<>(new AtomicInteger(), new AtomicInteger()));
+						p.getLeft().addAndGet(f.isForwardStrand() ? f.getRecordCount() : 0);
+						p.getRight().addAndGet( ! f.isForwardStrand() ? f.getRecordCount() : 0);
+						
+						fragmentCount.incrementAndGet();
+						readCount.addAndGet(f.getRecordCount());});
+//					Pair<AtomicInteger, AtomicInteger> p = baseDist.computeIfAbsent(bases., k ->new Pair<>(new AtomicInteger(), new AtomicInteger()));
+//					p.getLeft().addAndGet(f.getFsCount());
+//					p.getRight().addAndGet(f.getRsCount());
+//					
+//					fragmentCount.incrementAndGet();
+//					readCount.addAndGet(f.getRecordCount());
 				});
 			});
 		
@@ -1492,19 +1615,19 @@ public class ClinVarUtil {
 		return ampliconCount.get() + Constants.COMMA_STRING + fragmentCount.get() + Constants.COMMA_STRING + readCount.get();
 	}
 	
-	public static Map<Contig, List<Fragment>> groupFragments(Collection<Fragment> frags, int ampliconBoundary) {
+	public static Map<Contig, List<Fragment2>> groupFragments(Collection<Fragment2> frags, int ampliconBoundary) {
 		if (null == frags) throw new IllegalArgumentException("Null List passed to ClinVarUtil.getGroupedChrPositionsFromFragments");
-		List<Fragment> sortedFrags = frags.stream()
-				.filter(f -> f.getActualPosition() != null)
+		List<Fragment2> sortedFrags = frags.stream()
+				.filter(f -> f.getPosition() != null)
 				.sorted(( f1, f2) -> Integer.compare(f2.getRecordCount(), f1.getRecordCount()))
 				.collect(Collectors.toList());
 //		Collections.sort(sortedFrags, (Fragment f1, Fragment  f2) -> Integer.compare(f2.getRecordCount(), f1.getRecordCount()));
 		
-		Map<Contig, List<Fragment>> ampliconGroupings = new HashMap<>();
-		Set<Fragment> toRemove = new HashSet<>();
+		Map<Contig, List<Fragment2>> ampliconGroupings = new HashMap<>();
+		Set<Fragment2> toRemove = new HashSet<>();
 		
 		int id = 1;
-		for (Fragment f : sortedFrags) {
+		for (Fragment2 f : sortedFrags) {
 			if (toRemove.contains(f)) {
 				continue;
 			}
@@ -1512,18 +1635,18 @@ public class ClinVarUtil {
 			/*
 			 * create ampliconGroupings entry
 			 */
-			Contig a = new Contig(id++, f.getActualPosition());
-			List<Fragment> list = new ArrayList<>();
+			Contig a = new Contig(id++, f.getPosition());
+			List<Fragment2> list = new ArrayList<>();
 			list.add(f);
 			ampliconGroupings.put(a, list);
 			
 			/*
 			 * Any other takers
 			 */
-			for (Fragment nestedF : sortedFrags) {
+			for (Fragment2 nestedF : sortedFrags) {
 				if ( ! f.equals(nestedF)
 						&& ! toRemove.contains(nestedF)
-						&& ChrPositionUtils.arePositionsWithinDelta(f.getActualPosition(), nestedF.getActualPosition(), ampliconBoundary)) {
+						&& ChrPositionUtils.arePositionsWithinDelta(f.getPosition(), nestedF.getPosition(), ampliconBoundary)) {
 					list.add(nestedF);
 				}
 			}
@@ -1531,16 +1654,16 @@ public class ClinVarUtil {
 			toRemove.addAll(list);
 		}
 		
-		for (Entry<Contig, List<Fragment>> entry : ampliconGroupings.entrySet()) {
+		for (Entry<Contig, List<Fragment2>> entry : ampliconGroupings.entrySet()) {
 			ChrPosition initialFragCP = entry.getKey().getInitialFragmentPosition();
 			/*
 			 * get upper and lower bounds of cp and set on Amplicon
 			 */
 			OptionalInt start = entry.getValue().stream()
-										.mapToInt(f -> f.getActualPosition().getStartPosition())
+										.mapToInt(f -> f.getPosition().getStartPosition())
 										.min(); 
 			OptionalInt end = entry.getValue().stream()
-										.mapToInt(f -> f.getActualPosition().getEndPosition())
+										.mapToInt(f -> f.getPosition().getEndPosition())
 										.max(); 
 			entry.getKey().setPosition(new ChrRangePosition(initialFragCP.getChromosome(), start.orElse(initialFragCP.getStartPosition()), end.orElse(initialFragCP.getEndPosition())));
 		}

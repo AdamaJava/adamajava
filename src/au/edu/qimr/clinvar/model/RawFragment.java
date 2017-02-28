@@ -10,7 +10,9 @@ public class RawFragment implements Comparable<RawFragment> {
 	
 	private final int id;
 	private final String fragment;
-	private final List<StringBuilder> readHeaders = new ArrayList<>(2);
+//	private final List<StringBuilder> readHeaders = new ArrayList<>(2);
+	private final TIntArrayList readPositions = new TIntArrayList();
+//	private final List<StringBuilder> readHeaders = new ArrayList<>(2);
 	private final TIntArrayList overlapDistribution = new TIntArrayList();
 	
 	public RawFragment(int id,String s) {
@@ -18,23 +20,37 @@ public class RawFragment implements Comparable<RawFragment> {
 		this.fragment = s;
 	}
 	
-	public void addOverlap(int overlap, List<StringBuilder> headers) {
-		int[] array = new int[headers.size()];
+	public void addOverlap(int overlap,TIntArrayList headerPos) {
+		int[] array = new int[headerPos.size()];
 		Arrays.fill(array, overlap);
 		this.overlapDistribution.add(array);
-		this.readHeaders.addAll(headers);
+		this.readPositions.addAll(headerPos);
 	}
+//	public void addOverlap(int overlap, List<StringBuilder> headers) {
+//		int[] array = new int[headers.size()];
+//		Arrays.fill(array, overlap);
+//		this.overlapDistribution.add(array);
+//		this.readHeaders.addAll(headers);
+//	}
+//	public void addOverlap(int overlap, StringBuilder header) {
+//		this.overlapDistribution.add(overlap);
+//		this.readHeaders.add(header);
+//	}
 	
 	public String getSequence() {
 		return fragment;
 	}
 	
-	public List<StringBuilder> getReadHeaders() {
-		return readHeaders;
+//	public List<StringBuilder> getReadHeaders() {
+//		return readHeaders;
+//	}
+	public TIntArrayList getReadPositions() {
+		return readPositions;
 	}
 	
 	public int getCount() {
-		return readHeaders.size();
+		return readPositions.size();
+//		return readHeaders.size();
 	}
 	
 	public TIntArrayList getOverlapDistribution() {
@@ -69,7 +85,8 @@ public class RawFragment implements Comparable<RawFragment> {
 
 	@Override
 	public int compareTo(RawFragment b) {
-		return  b.readHeaders.size() - this.readHeaders.size();
+		return  b.readPositions.size() - this.readPositions.size();
+//		return  b.readHeaders.size() - this.readHeaders.size();
 	}
 
 	public int getId() {
