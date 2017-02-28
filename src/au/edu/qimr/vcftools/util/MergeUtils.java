@@ -1,13 +1,10 @@
 package au.edu.qimr.vcftools.util;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.qcmg.common.log.QLogger;
@@ -26,25 +23,6 @@ public class MergeUtils {
 	private static final String GENOTYPEDescription = "Genotype";
 	private static final QLogger logger = QLoggerFactory.getLogger(MergeUtils.class);
 
-	public static List<String> mergeOtherHeaderRecords(List<VcfHeaderRecord> ...  loloRecs) {
-		if (null == loloRecs || loloRecs.length == 0) {
-			return Collections.emptyList();
-		}
-		
-		AtomicInteger prefix = new AtomicInteger(1);
-		List<String> mergedRecs = new ArrayList<>();
-		Arrays.stream(loloRecs)
-			.filter(list -> list != null && ! list.isEmpty())
-			.forEach(list -> {
-				mergedRecs.addAll(list.stream()
-						.filter(r -> r != null).map(r -> r.toString().replaceAll(Constants.DOUBLE_HASH, Constants.DOUBLE_HASH + prefix.get() + Constants.COLON))
-						.collect(Collectors.toList()));
-				prefix.incrementAndGet();
-			});
-			
-		return mergedRecs;
-	}
-
 	
 	public static Pair<VcfHeader, Rule> getMergedHeaderAndRules(VcfHeader ... headers) {
 		
@@ -53,16 +31,33 @@ public class MergeUtils {
 			return null;
 		}
 		
+		/*
+		 * add in qPG lines
+		 */
+		VcfHeader mergedHeader = new VcfHeader();
+		AtomicInteger prefix = new AtomicInteger(1);
+		for (VcfHeader h : headers) {
+			h.getAllMetaRecords().stream()
+			.filter(r -> r.toString().startsWith("##q"))
+			.map(r -> r.toString().replaceAll(Constants.DOUBLE_HASH, Constants.DOUBLE_HASH + prefix.get() + Constants.COLON))
+			.forEach(r -> mergedHeader.addOrReplace(r));
+			
+			prefix.incrementAndGet();
+		}
+		
 		Map<String, String> infoRule = new HashMap<>();
 		Map<String, String> formatRule = new HashMap<>(); 
 		Map<String, String> filterRule = new HashMap<>(); 
 		
 		//get Filter, INFO and FORMAT from first header
-		VcfHeader mergedHeader = new VcfHeader();
-		String[] keys = new String[]{VcfHeader.HEADER_LINE_FILTER, VcfHeader.HEADER_LINE_FORMAT, VcfHeader.HEADER_LINE_INFO};
-		for(String key : keys)
-			for(VcfHeaderRecord re : headers[0].getRecords(key)) 
+		
+		
+		String[] keys = new String[]{VcfHeaderUtils.HEADER_LINE_FILTER, VcfHeaderUtils.HEADER_LINE_FORMAT, VcfHeaderUtils.HEADER_LINE_INFO};
+		for(String key : keys) {
+			for(VcfHeaderRecord re : headers[0].getRecords(key)) { 
 				mergedHeader.addOrReplace(re);	
+			}
+		}
 		
 		for(int i = 1; i < headers.length; i++){
 			for(String key : keys){ 			 
@@ -78,15 +73,21 @@ public class MergeUtils {
 					}else {		
 						String newId =  re.getId() + i;
 						String newRec = ""; //key+"=<";
-						for(Pair p: re.getSubFields())
-							if(p.getLeft().equals("ID"))
+						for(Pair<String, String> p: re.getSubFields()) {
+							if(p.getLeft().equals("ID")) {
 								newRec += "," + p.getLeft() + "=" + newId; 
-							else
+							} else {
 								newRec += "," + p.getLeft() + "=" + p.getRight(); 
-							
-						if(key.equals(VcfHeader.HEADER_LINE_FILTER)) filterRule.put(re.getId(), newId);
-						else if(key.equals(VcfHeader.HEADER_LINE_FORMAT)) formatRule.put(re.getId(), newId);
-							else if(key.equals(VcfHeader.HEADER_LINE_INFO)) formatRule.put(re.getId(),  newId);
+							}
+						}
+						
+						if (key.equals(VcfHeaderUtils.HEADER_LINE_FILTER)) {
+							filterRule.put(re.getId(), newId);
+						} else if(key.equals(VcfHeaderUtils.HEADER_LINE_FORMAT)) {
+							formatRule.put(re.getId(), newId);
+						} else if(key.equals(VcfHeaderUtils.HEADER_LINE_INFO)) {
+							formatRule.put(re.getId(),  newId);
+						}
 						
 						//remove leading "," and parse to structured meta info line
 						mergedHeader.addOrReplace(key+"=<" + newRec.substring(1) + ">");;					 				
@@ -224,20 +225,6 @@ public class MergeUtils {
 		return mergedRecord;
 	}
 	
-	/*
-	 * Need to be same ChrPosition, ref and alt
-	 */
-//	public static boolean areRecordsEligibleForMerge(VcfRecord ... records) {
-//		if (null == records || records.length == 0) {
-//			return false;
-//		}
-//	
-//		VcfRecord r1 = records[0];
-//		return Arrays.stream(records)
-//			.allMatch(r -> r.equals(r1));
-//		
-//	}
-	
 	/**
 	 * Same sample merge test
 	 * Need headers to contain the same samples in the same order
@@ -261,7 +248,6 @@ public class MergeUtils {
 		/*
 		 * Get sample ids for each header and check that they are the same for each (number and order)
 		 */
-//		boolean doSampleIdsMatch = 
 		return Arrays.stream(headers)
 			.map(header -> header.getSampleId())
 			.allMatch(array -> {

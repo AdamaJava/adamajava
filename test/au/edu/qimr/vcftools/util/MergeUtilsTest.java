@@ -54,12 +54,12 @@ public class MergeUtilsTest {
 		h2.addOrReplace(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "23456", true);
 		assertEquals(false, MergeUtils.canMergeBePerformed(h1, h2));
 		
-		h1.addOrReplace(VcfHeader.STANDARD_FINAL_HEADER_LINE, true);
-		h2.addOrReplace(VcfHeader.STANDARD_FINAL_HEADER_LINE, true);
+		h1.addOrReplace(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE, true);
+		h2.addOrReplace(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE, true);
 		assertEquals(false, MergeUtils.canMergeBePerformed(h1, h2));
 		
-		h1.addOrReplace(VcfHeader.STANDARD_FINAL_HEADER_LINE, true);
-		h2.addOrReplace(VcfHeader.STANDARD_FINAL_HEADER_LINE, true);
+		h1.addOrReplace(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE, true);
+		h2.addOrReplace(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE, true);
 		assertEquals(false, MergeUtils.canMergeBePerformed(h1, h2));
 		
 		h1.addOrReplace(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "123456\t789", true);
@@ -99,11 +99,18 @@ public class MergeUtilsTest {
 		VcfHeader gatkHeader = new VcfHeader(getQsnpGATKVcfHeader());
 		
  		List<VcfHeaderRecord> qsnpOtherRecords = qsnpHeader.getAllMetaRecords();  
- 		List<VcfHeaderRecord> gatkOtherRecords = gatkHeader.getAllMetaRecords();  
-		List<String> mergedOtherRecords = MergeUtils.mergeOtherHeaderRecords(qsnpOtherRecords, gatkOtherRecords);
-		
-		assertEquals(qsnpOtherRecords.size() + gatkOtherRecords.size(), mergedOtherRecords.size());
-		
+ 		List<VcfHeaderRecord> gatkOtherRecords = gatkHeader.getAllMetaRecords();
+ 		
+ 		Pair<VcfHeader, Rule> p =MergeUtils.getMergedHeaderAndRules(qsnpHeader, gatkHeader);
+ 		assertEquals(false, null == p);
+ 		VcfHeader mergedH = p.getLeft();
+ 		
+ 		/*
+ 		 * check to see if we have out QPG lines, and that they have the correct prefix applied
+ 		 */
+ 		List<String> qsnpQpgLines = mergedH.getAllMetaRecords().stream().filter(r -> r.toString().startsWith("##1:")).map(r -> r.toString()).collect(Collectors.toList());
+ 		List<String> gatkQpgLines = mergedH.getAllMetaRecords().stream().filter(r -> r.toString().startsWith("##2:")).map(r -> r.toString()).collect(Collectors.toList());
+ 		
 		/*
 		 * Check that first record has 1 appended to it, and that 2nd has 2....
 		 */
@@ -114,8 +121,10 @@ public class MergeUtilsTest {
 				.map(r -> r.toString().replaceAll("##", "##2:"))
 				.collect(Collectors.toList());
 		
-		assertEquals(true, mergedOtherRecords.containsAll(qRecs));
-		assertEquals(true, mergedOtherRecords.containsAll(gRecs));
+		
+		
+		assertEquals(true, qRecs.containsAll(qsnpQpgLines));
+		assertEquals(true, gRecs.containsAll(gatkQpgLines));
 	}
 	
 	@Test
@@ -123,29 +132,39 @@ public class MergeUtilsTest {
 		VcfHeader h1 = new VcfHeader();
 		VcfHeader h2 = new VcfHeader();
 		List<VcfHeaderRecord> h1Recs = h1.getAllMetaRecords();   
-		List<VcfHeaderRecord> h2Recs = h2.getAllMetaRecords(); 
+		List<VcfHeaderRecord> h2Recs = h2.getAllMetaRecords();
 		
-		List<String> mergedOtherRecords = MergeUtils.mergeOtherHeaderRecords(h1Recs, h2Recs);
-		assertEquals(0, mergedOtherRecords.size());		
+		Pair<VcfHeader, Rule> p = MergeUtils.getMergedHeaderAndRules(h1, h2);
+ 		assertEquals(true, null == p);
 
 		try{		
 			h1.addOrReplace(VcfHeaderUtils.BLANK_HEADER_LINE + "=", true);	
 			fail("Didn't throw an exception!");
-		}catch(IllegalArgumentException e){
-			h1Recs = h1.getAllMetaRecords();
-			mergedOtherRecords = MergeUtils.mergeOtherHeaderRecords(h1Recs, h2Recs);
-			assertEquals(0, mergedOtherRecords.size());
-		}		
+		}catch(IllegalArgumentException e){}		
 		
-		h1.addOrReplace(VcfHeader.STANDARD_SOURCE_LINE+"=", true);	
-		h1Recs = h1.getAllMetaRecords();
-		mergedOtherRecords = MergeUtils.mergeOtherHeaderRecords(h1Recs, h2Recs);
-		assertEquals(1, mergedOtherRecords.size());
+		h1.addOrReplace(VcfHeaderUtils.STANDARD_SOURCE_LINE+"=", true);	
+		h2.addOrReplace(VcfHeaderUtils.STANDARD_SOURCE_LINE+"=", true);	
 		
-		h2.addOrReplace(VcfHeader.STANDARD_SOURCE_LINE+"=", true);
-		h2Recs = h2.getAllMetaRecords();
-		mergedOtherRecords = MergeUtils.mergeOtherHeaderRecords(h1Recs, h2Recs);
-		assertEquals(2, mergedOtherRecords.size());
+		p = MergeUtils.getMergedHeaderAndRules(h1, h2);
+ 		assertEquals(true, null == p);
+ 		
+ 		/*
+ 		 * need chrom line before merge will work
+ 		 */
+ 		h1.addOrReplace("#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	http://purl.org/net/grafli/collectedsample#f124a2ca-5e24-419a-96f5-dd849ccc50aa	http://purl.org/net/grafli/collectedsample#64d9c65d-d0af-43e7-a835-8fe3c36b93bb");
+ 		h2.addOrReplace("#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	http://purl.org/net/grafli/collectedsample#f124a2ca-5e24-419a-96f5-dd849ccc50aa	http://purl.org/net/grafli/collectedsample#64d9c65d-d0af-43e7-a835-8fe3c36b93bb");
+ 		
+ 		p = MergeUtils.getMergedHeaderAndRules(h1, h2);
+ 		assertEquals(false, null == p);
+ 		VcfHeader mergedH = p.getLeft();
+ 		assertEquals(2, mergedH.getAllMetaRecords().size());
+		
+		
+		h2.addOrReplace(VcfHeaderUtils.STANDARD_SOURCE_LINE+"=", true);
+		p = MergeUtils.getMergedHeaderAndRules(h1, h2);
+ 		assertEquals(false, null == p);
+ 		mergedH = p.getLeft();
+ 		assertEquals(2, mergedH.getAllMetaRecords().size());
 		
 		/*
 		 * Check that first record has 1 appended to it, and that 2nd has 2....
@@ -157,8 +176,12 @@ public class MergeUtilsTest {
 				.map(r -> r.toString().replaceAll("##", "##2:"))
 				.collect(Collectors.toList());
 		
-		assertEquals(true, mergedOtherRecords.containsAll(qRecs));
-		assertEquals(true, mergedOtherRecords.containsAll(gRecs));
+		
+		List<String> qsnpQpgLines = mergedH.getAllMetaRecords().stream().filter(r -> r.toString().startsWith("##1:")).map(r -> r.toString()).collect(Collectors.toList());
+ 		List<String> gatkQpgLines = mergedH.getAllMetaRecords().stream().filter(r -> r.toString().startsWith("##2:")).map(r -> r.toString()).collect(Collectors.toList());
+		
+		assertEquals(true, qsnpQpgLines.containsAll(qRecs));
+		assertEquals(true, gatkQpgLines.containsAll(gRecs));
 	}
 	
 	@Test
@@ -166,23 +189,25 @@ public class MergeUtilsTest {
 		VcfHeader h1 = new VcfHeader();
 		List<VcfHeaderRecord>h1Recs = h1.getAllMetaRecords();
 		
-		List<String> mergedOtherRecords = MergeUtils.mergeOtherHeaderRecords(h1Recs);
-		assertEquals(0, mergedOtherRecords.size());
+		Pair<VcfHeader, Rule> p =MergeUtils.getMergedHeaderAndRules(h1);
+ 		assertEquals(true, null == p);
+ 		
+ 		/*
+ 		 * need chrom line before merge will work
+ 		 */
+ 		h1.addOrReplace("#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	http://purl.org/net/grafli/collectedsample#f124a2ca-5e24-419a-96f5-dd849ccc50aa	http://purl.org/net/grafli/collectedsample#64d9c65d-d0af-43e7-a835-8fe3c36b93bb");
+ 		
+ 		p =MergeUtils.getMergedHeaderAndRules(h1);
+ 		assertEquals(false, null == p);
+ 		VcfHeader mergedH = p.getLeft();
 		
-		try{
-			h1.addOrReplace(VcfHeaderUtils.BLANK_HEADER_LINE, true);
-			fail("Didn't throw an exception!");
-		}catch(IllegalArgumentException e){
-			h1Recs = h1.getAllMetaRecords();
-			mergedOtherRecords = MergeUtils.mergeOtherHeaderRecords(h1Recs);
-			assertEquals(0, mergedOtherRecords.size());
-		}
-
+		assertEquals(0, mergedH.getAllMetaRecords().size());
 		
-		h1.addOrReplace(VcfHeader.STANDARD_SOURCE_LINE+"=", true);
-		h1Recs = h1.getAllMetaRecords();
-		mergedOtherRecords = MergeUtils.mergeOtherHeaderRecords(h1Recs);
-		assertEquals(1, mergedOtherRecords.size());
+		h1.addOrReplace(VcfHeaderUtils.STANDARD_SOURCE_LINE+"=", true);
+		p =MergeUtils.getMergedHeaderAndRules(h1);
+ 		assertEquals(false, null == p);
+ 		mergedH = p.getLeft();
+		assertEquals(1, mergedH.getAllMetaRecords().size());
 		
 		/*
 		 * Check that first record has 1 appended to it, and that 2nd has 2....
@@ -190,67 +215,84 @@ public class MergeUtilsTest {
 		List<String> qRecs = h1Recs.stream()
 				.map(r -> r.toString().replaceAll("##", "##1:"))
 				.collect(Collectors.toList());
-		assertEquals(true, mergedOtherRecords.containsAll(qRecs));
+		assertEquals(true, mergedH.getAllMetaRecords().stream().map(r -> r.toString()).collect(Collectors.toList()).containsAll(qRecs));
 	}
 	
 	@Test
 	public void mergeHeadersQLines3File() {
 		VcfHeader h1 = new VcfHeader();
-		List<VcfHeaderRecord>h1Recs = h1.getAllMetaRecords();
+		h1.addOrReplace("#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	http://purl.org/net/grafli/collectedsample#f124a2ca-5e24-419a-96f5-dd849ccc50aa	http://purl.org/net/grafli/collectedsample#64d9c65d-d0af-43e7-a835-8fe3c36b93bb");
 		
-		List<String> mergedOtherRecords = MergeUtils.mergeOtherHeaderRecords(h1Recs, h1Recs, h1Recs);
-		assertEquals(0, mergedOtherRecords.size());
+		Pair<VcfHeader, Rule> p =MergeUtils.getMergedHeaderAndRules(h1, h1, h1);
+ 		assertEquals(false, null == p);
+ 		VcfHeader mergedH = p.getLeft();
+		assertEquals(0, mergedH.getAllMetaRecords().size());
 		
 		
 		try{
 			h1.addOrReplace(VcfHeaderUtils.BLANK_HEADER_LINE, true);
 			fail("Didn't throw an exception!");
-		}catch(IllegalArgumentException e){
-			h1Recs = h1.getAllMetaRecords();
-			mergedOtherRecords = MergeUtils.mergeOtherHeaderRecords(h1Recs, h1Recs, h1Recs);
-			assertEquals(0, mergedOtherRecords.size());
-		}
+		}catch(IllegalArgumentException e){}
 		
 		
-		h1.addOrReplace(VcfHeader.STANDARD_SOURCE_LINE+"=", true);
-		h1Recs = h1.getAllMetaRecords();
-		mergedOtherRecords = MergeUtils.mergeOtherHeaderRecords(h1Recs, h1Recs, h1Recs);
-		assertEquals(3, mergedOtherRecords.size());
+		h1.addOrReplace(VcfHeaderUtils.STANDARD_SOURCE_LINE+"=", true);
+		p =MergeUtils.getMergedHeaderAndRules(h1, h1, h1);
+ 		assertEquals(false, null == p);
+ 		mergedH = p.getLeft();
+ 		assertEquals(3, mergedH.getAllMetaRecords().size());
 		
 		/*
 		 * Check that first record has 1 appended to it, and that 2nd has 2....
 		 */
-		assertEquals(true, mergedOtherRecords.containsAll( h1Recs.stream().map(r -> r.toString().replaceAll("##", "##1:")).collect(Collectors.toList())));
-		assertEquals(true, mergedOtherRecords.containsAll( h1Recs.stream().map(r -> r.toString().replaceAll("##", "##2:")).collect(Collectors.toList())));
-		assertEquals(true, mergedOtherRecords.containsAll( h1Recs.stream().map(r -> r.toString().replaceAll("##", "##3:")).collect(Collectors.toList())));
+		assertEquals(true, mergedH.getAllMetaRecords().contains(new VcfHeaderRecord("##1:qSource=")));
+		assertEquals(true, mergedH.getAllMetaRecords().contains(new VcfHeaderRecord("##2:qSource=")));
+		assertEquals(true, mergedH.getAllMetaRecords().contains(new VcfHeaderRecord("##3:qSource=")));
 	}
 	
-//	@Test
-//	public void mergeIDRecordLines() {
-//		VcfHeader h1 = new VcfHeader();
-//		List<VcfHeaderRecord> h1Info = h1.getInfoRecords();
-//		
-//		List<VcfHeaderRecord> mergedRecs = MergeUtils.mergeHeaderRecords(h1Info);
-//		assertEquals(0, mergedRecs.size());
-//		
-//		h1.addOrReplace(VcfHeader.HEADER_LINE_INFO + "=<ID=ABC,Number=.,Type=String,Description=\"My info field\">");
-//		h1Info = h1.getInfoRecords();
-//		mergedRecs = MergeUtils.mergeHeaderRecords(h1Info);
-//		assertEquals(1, mergedRecs.size());
-//		mergedRecs = MergeUtils.mergeHeaderRecords(h1Info, h1Info);
-//		assertEquals(1, mergedRecs.size());
-//		
-//		VcfHeader h2 = new VcfHeader();
-//		h2.addOrReplace(VcfHeaderUtils.HEADER_LINE_INFO + "=<ID=ABC,Number=.,Type=String,Description=\"My info field UPDATED\">");
-//		List<VcfHeaderRecord> h2Info = h2.getInfoRecords();
-//		mergedRecs = MergeUtils.mergeHeaderRecords(h1Info, h2Info);
-//		assertEquals(2, mergedRecs.size());
-//		
-//		h2.addOrReplace(VcfHeaderUtils.HEADER_LINE_INFO + "=<ID=DEF,Number=.,Type=String,Description=\"My second info field\">");
-//		h2Info = h2.getInfoRecords();
-//		mergedRecs = MergeUtils.mergeHeaderRecords(h1Info, h2Info);
-//		assertEquals(3, mergedRecs.size());
-//	}
+	@Test
+	public void mergeIDRecordLines() {
+		VcfHeader h1 = new VcfHeader();
+ 		h1.addOrReplace("#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	http://purl.org/net/grafli/collectedsample#f124a2ca-5e24-419a-96f5-dd849ccc50aa	http://purl.org/net/grafli/collectedsample#64d9c65d-d0af-43e7-a835-8fe3c36b93bb");
+ 		
+ 		Pair<VcfHeader, Rule> p =MergeUtils.getMergedHeaderAndRules(h1);
+ 		assertEquals(false, null == p);
+ 		VcfHeader mergedH = p.getLeft();
+		assertEquals(0, mergedH.getAllMetaRecords().size());
+		
+		h1.addOrReplace(VcfHeaderUtils.HEADER_LINE_INFO + "=<ID=ABC,Number=.,Type=String,Description=\"My info field\">");
+		
+		 p =MergeUtils.getMergedHeaderAndRules(h1);
+ 		assertEquals(false, null == p);
+ 		mergedH = p.getLeft();
+		assertEquals(0, mergedH.getAllMetaRecords().size());
+		assertEquals(4, mergedH.getInfoRecords().size());	// adds 2 somatic info lines, and an IN line
+		
+		/*
+		 * merge the same header, should have same number of entries
+		 */
+		p =MergeUtils.getMergedHeaderAndRules(h1, h1);
+		assertEquals(false, null == p);
+		mergedH = p.getLeft();
+		assertEquals(0, mergedH.getAllMetaRecords().size());
+		assertEquals(4, mergedH.getInfoRecords().size());
+		
+		
+		VcfHeader h2 = new VcfHeader();
+		h2.addOrReplace("#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	http://purl.org/net/grafli/collectedsample#f124a2ca-5e24-419a-96f5-dd849ccc50aa	http://purl.org/net/grafli/collectedsample#64d9c65d-d0af-43e7-a835-8fe3c36b93bb");
+		h2.addOrReplace(VcfHeaderUtils.HEADER_LINE_INFO + "=<ID=ABC,Number=.,Type=String,Description=\"My info field UPDATED\">");
+		p =MergeUtils.getMergedHeaderAndRules(h1, h2);
+		assertEquals(false, null == p);
+		mergedH = p.getLeft();
+		assertEquals(0, mergedH.getAllMetaRecords().size());
+		assertEquals(5, mergedH.getInfoRecords().size());
+		
+		h2.addOrReplace(VcfHeaderUtils.HEADER_LINE_INFO + "=<ID=DEF,Number=.,Type=String,Description=\"My second info field\">");
+		p =MergeUtils.getMergedHeaderAndRules(h1, h2);
+		assertEquals(false, null == p);
+		mergedH = p.getLeft();
+		assertEquals(0, mergedH.getAllMetaRecords().size());
+		assertEquals(6, mergedH.getInfoRecords().size());
+	}
 	
 	@Test
 	public void mergeHeadersFromRealVcf() {
@@ -692,10 +734,10 @@ public class MergeUtilsTest {
 		final VcfHeader header = new VcfHeader();
 		final DateFormat df = new SimpleDateFormat("yyyyMMdd");
 		
-		header.addOrReplace(VcfHeader.CURRENT_FILE_FORMAT);		
-		header.addOrReplace(VcfHeader.STANDARD_FILE_DATE + "=" + df.format(Calendar.getInstance().getTime()));		
-		header.addOrReplace(VcfHeader.STANDARD_UUID_LINE + "=" + QExec.createUUid());		
-		header.addOrReplace(VcfHeader.STANDARD_SOURCE_LINE + "=qSNP v2.0 (882)");		
+		header.addOrReplace(VcfHeaderUtils.CURRENT_FILE_FORMAT);		
+		header.addOrReplace(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + df.format(Calendar.getInstance().getTime()));		
+		header.addOrReplace(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + QExec.createUUid());		
+		header.addOrReplace(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=qSNP v2.0 (882)");		
 		
 		header.addOrReplace(VcfHeaderUtils.STANDARD_DONOR_ID + "=");
 		header.addOrReplace(VcfHeaderUtils.STANDARD_CONTROL_SAMPLE + "=" + controlId);		
