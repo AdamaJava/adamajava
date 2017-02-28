@@ -48,52 +48,49 @@ public final class Coverage {
 		saveCoverageReport();
 	}
 
-	private void writePerFeatureTabDelimitedCoverageReport(
-			final QCoverageStats stats) throws IOException {
+	private void writePerFeatureTabDelimitedCoverageReport( final QCoverageStats stats) throws IOException {
 		final File file = new File(options.getOutputFileNames()[0]);
-		final BufferedWriter out = new BufferedWriter(new FileWriter(file));
-		out.write("#coveragetype\tnumberofbases\tcoverage\n");
-		final CoverageComparator comparator = new CoverageComparator();
-		for (final CoverageReport report : stats.getCoverageReport()) {
-			final String type = report.getType().toString().toLowerCase();
-			final String feature = report.getFeature();
-			out.write("#" + feature + StringUtils.RETURN);
-			final List<CoverageModel> coverages = report.getCoverage();
-			Collections.sort(coverages, comparator);
-			for (final CoverageModel coverage : coverages) {
-				final BigInteger bases = coverage.getBases();
-				final String atCoverage = coverage.getAt() + "x";
-				out.write(type + StringUtils.TAB + bases + StringUtils.TAB
-						+ atCoverage + StringUtils.RETURN);
+		try (final BufferedWriter out = new BufferedWriter(new FileWriter(file));) {
+			out.write("#coveragetype\tnumberofbases\tcoverage\n");
+			final CoverageComparator comparator = new CoverageComparator();
+			for (final CoverageReport report : stats.getCoverageReport()) {
+				final String type = report.getType().toString().toLowerCase();
+				final String feature = report.getFeature();
+				out.write("#" + feature + StringUtils.RETURN);
+				final List<CoverageModel> coverages = report.getCoverage();
+				Collections.sort(coverages, comparator);
+				for (final CoverageModel coverage : coverages) {
+					final BigInteger bases = coverage.getBases();
+					final String atCoverage = coverage.getAt() + "x";
+					out.write(type + StringUtils.TAB + bases + StringUtils.TAB
+							+ atCoverage + StringUtils.RETURN);
+				}
 			}
 		}
-		out.close();
 	}
 
-	private void writePerTypeTabDelimitedCoverageReport(
-			final QCoverageStats stats) throws IOException {
+	private void writePerTypeTabDelimitedCoverageReport(final QCoverageStats stats) throws IOException {
 		final File file = new File(options.getOutputFileNames()[0]);
-		final BufferedWriter out = new BufferedWriter(new FileWriter(file));
-		out.write("#coveragetype\tfeaturetype\tnumberofbases\tcoverage\n");
-		final CoverageComparator comparator = new CoverageComparator();
-		for (final CoverageReport report : stats.getCoverageReport()) {
-			final String type = report.getType().toString().toLowerCase();
-			final String feature = report.getFeature();
-			final List<CoverageModel> coverages = report.getCoverage();
-			Collections.sort(coverages, comparator);
-			for (final CoverageModel coverage : coverages) {
-				final BigInteger bases = coverage.getBases();
-				final String atCoverage = coverage.getAt() + "x";
-				out.write(type + StringUtils.TAB + feature + StringUtils.TAB
-						+ bases + StringUtils.TAB + atCoverage
-						+ StringUtils.RETURN);
+		try (final BufferedWriter out = new BufferedWriter(new FileWriter(file));) {
+			out.write("#coveragetype\tfeaturetype\tnumberofbases\tcoverage\n");
+			final CoverageComparator comparator = new CoverageComparator();
+			for (final CoverageReport report : stats.getCoverageReport()) {
+				final String type = report.getType().toString().toLowerCase();
+				final String feature = report.getFeature();
+				final List<CoverageModel> coverages = report.getCoverage();
+				Collections.sort(coverages, comparator);
+				for (final CoverageModel coverage : coverages) {
+					final BigInteger bases = coverage.getBases();
+					final String atCoverage = coverage.getAt() + "x";
+					out.write(type + StringUtils.TAB + feature + StringUtils.TAB
+							+ bases + StringUtils.TAB + atCoverage
+							+ StringUtils.RETURN);
+				}
 			}
 		}
-		out.close();
 	}
 
-	private void writeXMLCoverageReport(final QCoverageStats report)
-			throws Exception {
+	private void writeXMLCoverageReport(final QCoverageStats report) throws Exception {
 		final JAXBContext context = JAXBContext.newInstance(QCoverageStats.class);
 		final Marshaller m = context.createMarshaller();
 		final StringWriter sw = new StringWriter();
@@ -101,9 +98,9 @@ public final class Coverage {
 		m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
 		m.marshal(report, sw);
 		final File file = new File(options.getOutputFileNames()[0]);
-		final FileWriter fileWriter = new FileWriter(file);
-		fileWriter.write(sw.toString());
-		fileWriter.close();
+		try (final FileWriter fileWriter = new FileWriter(file);) {
+			fileWriter.write(sw.toString());
+		}
 	}
 	
 	private void writeVCFReport(final QCoverageStats report) throws Exception {
@@ -142,10 +139,10 @@ public final class Coverage {
 		final String uuid = QExec.createUUid();
 
 		//move input uuid into preuuid
-		header.addOrReplace(VcfHeader.CURRENT_FILE_FORMAT);		
-		header.addOrReplace(VcfHeader.STANDARD_FILE_DATE + "=" + fileDate);
-		header.addOrReplace(VcfHeader.STANDARD_UUID_LINE + "=" + uuid );
-		header.addOrReplace(VcfHeader.STANDARD_SOURCE_LINE + "=" + pg+"-"+version);
+		header.addOrReplace(VcfHeaderUtils.CURRENT_FILE_FORMAT);		
+		header.addOrReplace(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + fileDate);
+		header.addOrReplace(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + uuid );
+		header.addOrReplace(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=" + pg+"-"+version);
 		header.addOrReplace( "##bam_file=" + bamFileName);
 		header.addOrReplace("##gff_file=" + gffFile);
 		header.addFilter(VcfHeaderUtils.FILTER_LOW_QUAL,"REQUIRED: QUAL < 50.0");
@@ -154,7 +151,7 @@ public final class Coverage {
 		header.addInfo("ZC",  "-1", "String", "bases with Zero Coverage");
 		header.addInfo("NZC","-1", "String", "bases with Non Zero Coverage");
 		header.addInfo("TOT", "-1", "String", "Total number of sequenced bases");
-		header.addOrReplace(VcfHeader.STANDARD_FINAL_HEADER_LINE);		
+		header.addOrReplace(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE);		
  		
 		return  header;
 	}
