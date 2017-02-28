@@ -151,7 +151,7 @@ public class VcfHeaderUtils {
 //	public static final String HEADER_LINE_FORMAT = "##FORMAT";	
 //	public static final String HEADER_LINE_CHROM = "#CHROM";	
 ////	public static final String STANDARD_FINAL_HEADER_LINE = "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO";
-	public static final String STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT = VcfHeader.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\t";
+	public static final String STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT = VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\t";
 	
 	public static final String GATK_CMD_LINE = "##GATKCommandLine";
 	public static final String GATK_CMD_LINE_VERSION = "Version";
@@ -344,10 +344,10 @@ public class VcfHeaderUtils {
 		final String fileDate = df.format(Calendar.getInstance().getTime());
 		final String uuid = QExec.createUUid();
 		
-		header.addOrReplace(VcfHeader.CURRENT_FILE_FORMAT);
-		header.addOrReplace(VcfHeader.STANDARD_FILE_DATE + "=" + fileDate);
-		header.addOrReplace(VcfHeader.STANDARD_UUID_LINE + "=" + uuid);
-		header.addOrReplace(VcfHeader.STANDARD_SOURCE_LINE + "=" + pg+"-"+version);	
+		header.addOrReplace(VcfHeaderUtils.CURRENT_FILE_FORMAT);
+		header.addOrReplace(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + fileDate);
+		header.addOrReplace(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + uuid);
+		header.addOrReplace(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=" + pg+"-"+version);	
 			
 		String inputUuid = (header.getUUID() == null)? null: header.getUUID().getMetaValue();   
 		header.addOrReplace(VcfHeaderUtils.STANDARD_INPUT_LINE + "=" + inputUuid + ":"+ inputVcfName);
@@ -401,4 +401,21 @@ public class VcfHeaderUtils {
 	public static String getQPGDate(VcfHeaderRecord  qpg){ return  qpg.getSubFieldValue(DATE);}
 	public static String getQPGVersion(VcfHeaderRecord  qpg){ return  qpg.getSubFieldValue(VERSION);}
 	public static String getQPGCommandLine(VcfHeaderRecord  qpg){ return  qpg.getSubFieldValue(COMMAND_LINE);}
+	public static final String HEADER_LINE_FILTER = "##FILTER";
+
+	public static final String HEADER_LINE_INFO = "##INFO";
+
+	public static final String HEADER_LINE_FORMAT = "##FORMAT";
+
+	public static final String CURRENT_FILE_FORMAT = "##fileformat=VCFv4.3";
+
+	public static final String STANDARD_FILE_FORMAT = "##fileformat";
+
+	public static final String STANDARD_FILE_DATE = "##fileDate";
+
+	public static final String STANDARD_SOURCE_LINE = "##qSource";
+
+	public static final String STANDARD_UUID_LINE = "##qUUID";
+
+	public static final String STANDARD_FINAL_HEADER_LINE = "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO";
 }

@@ -32,7 +32,7 @@ public class VcfHeaderRecord implements Comparable<VcfHeaderRecord> {
 		if (StringUtils.isNullOrEmpty(line) || ! (line = line.trim()).startsWith("#") ) 
 			throw new IllegalArgumentException("input String is null, empty or missing leading \"#\":\n" + line);
 
-		if(line.startsWith(VcfHeader.STANDARD_FINAL_HEADER_LINE) ){			
+		if(line.startsWith(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE) ){			
 			this.key = line.trim();
 			this.value = null; 	
 			this.id = null;

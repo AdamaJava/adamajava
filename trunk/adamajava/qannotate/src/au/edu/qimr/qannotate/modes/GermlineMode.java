@@ -11,14 +11,12 @@ import java.util.List;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
-import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
-import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
@@ -62,7 +60,6 @@ public class GermlineMode extends AbstractMode{
  	 * At moment Ther germline database only store single SNP position. 
  	 */
 	void addAnnotation(String dbGermlineFile) throws Exception {
-//		header.addFilterLine(VcfHeaderUtils.FILTER_GERMLINE, VcfHeaderUtils.DESCRITPION_FILTER_GERMLINE );
  		
  		//init remove all exsiting GERM annotation
  		for (List<VcfRecord> vcfs : positionRecordMap.values()) {
@@ -77,7 +74,7 @@ public class GermlineMode extends AbstractMode{
   			//add header line first
   			String date = (reader.getHeader().getFileDate() == null)? null: reader.getHeader().getFileDate().getMetaValue(); //new VcfHeaderUtils.SplitMetaRecord(reader.getHeader().getFileDate()).getValue();
 	 		String germ = String.format("%s=<ID=%s,Number=1,Type=Integer,Description=\"%s\",Source=%s,FileDate=%s>", 
-				VcfHeader.HEADER_LINE_INFO, VcfHeaderUtils.INFO_GERMLINE,VcfHeaderUtils.DESCRITPION_INFO_GERMLINE,
+				VcfHeaderUtils.HEADER_LINE_INFO, VcfHeaderUtils.INFO_GERMLINE,VcfHeaderUtils.DESCRITPION_INFO_GERMLINE,
 				germFile.getAbsolutePath(),  date);
 	 		header.addOrReplace(germ, true);
 	 		
@@ -141,7 +138,7 @@ public class GermlineMode extends AbstractMode{
 			if (germlineVcf.getAlt().contains(alt)) {
 				try {
 					int counts = Integer.parseInt(germlineVcf.getInfo()); 
-					inputVcf.appendInfo(VcfHeaderUtils.INFO_GERMLINE + "=" +  (total > 0 ?  counts + "," + total: ""+counts));	
+					inputVcf.appendInfo(VcfHeaderUtils.INFO_GERMLINE + Constants.EQ +  (total > 0 ?  counts + Constants.COMMA_STRING + total: ""+counts));	
 					flag = true; 
 				} catch (Exception e){						
 					logger.error("Germline database vcf formart, can't find patient counts from INFO field!");					 

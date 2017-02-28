@@ -11,7 +11,6 @@ import org.junit.After;
 import org.junit.Test;
 import org.qcmg.common.util.IndelUtils.SVTYPE;
 import org.qcmg.common.vcf.VcfRecord;
-import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 
@@ -24,7 +23,7 @@ public class SampleColumnTest {
 	public static String input = DbsnpModeTest.inputName;	
 	
 	private String[] header0 = {
-    		VcfHeader.STANDARD_FILE_FORMAT + "=VCFv4.0",			
+    		VcfHeaderUtils.STANDARD_FILE_FORMAT + "=VCFv4.0",			
 			VcfHeaderUtils.STANDARD_DONOR_ID + "=MELA_0264",
 			VcfHeaderUtils.STANDARD_CONTROL_SAMPLE + "=CONTROL_sample",
 			VcfHeaderUtils.STANDARD_TEST_SAMPLE + "=TEST_sample" ,
@@ -42,7 +41,7 @@ public class SampleColumnTest {
 	@Test
 	public void SampleNameTest1() throws IOException {
 		String[] Sheader = header0.clone(); 
-		Sheader[Sheader.length-1] = VcfHeader.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tqControlSample\tqTestSample";	
+		Sheader[Sheader.length-1] = VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tqControlSample\tqTestSample";	
 		
         	Vcf2mafTest.createVcf(Sheader);                
         	try(VCFFileReader reader = new VCFFileReader(input); ){
@@ -66,7 +65,7 @@ public class SampleColumnTest {
 	@Test
 	public void SampleNameTest2() throws IOException {
 		String[] Sheader = header0.clone(); 
-		Sheader[Sheader.length-1] = VcfHeader.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tCONTROL_bamID\tTEST_bamID";
+		Sheader[Sheader.length-1] = VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tCONTROL_bamID\tTEST_bamID";
 		 			
     	Vcf2mafTest.createVcf(  Sheader );                
     	try(VCFFileReader reader = new VCFFileReader(input); ){
@@ -91,7 +90,7 @@ public class SampleColumnTest {
 	public void SampleNameTest3() throws IOException {
 		String[] Sheader = header0.clone(); 		
 		Sheader[2] = VcfHeaderUtils.STANDARD_CONTROL_SAMPLE + "=Sample:CONTROL_sample";
-		Sheader[Sheader.length-1] = VcfHeader.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tSample:CONTROL_sample\tTEST_bamID";
+		Sheader[Sheader.length-1] = VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tSample:CONTROL_sample\tTEST_bamID";
 		 			
     	Vcf2mafTest.createVcf(  Sheader );                
     	try(VCFFileReader reader = new VCFFileReader(input); ){
@@ -112,7 +111,7 @@ public class SampleColumnTest {
 		String[] Sheader = header0.clone(); 
 		Sheader[6] = VcfHeaderUtils.STANDARD_CONTROL_BAMID + "=null";
 		Sheader[7] = VcfHeaderUtils.STANDARD_TEST_BAMID + "=";
-		Sheader[Sheader.length-1] = VcfHeader.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tCONTROL_bam\tTEST_bam";
+		Sheader[Sheader.length-1] = VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tCONTROL_bam\tTEST_bam";
 		 			
     	Vcf2mafTest.createVcf(  Sheader );                
     	try(VCFFileReader reader = new VCFFileReader(input); ){
@@ -131,7 +130,7 @@ public class SampleColumnTest {
 		String[] Sheader = header0.clone(); 
 		Sheader[6] = VcfHeaderUtils.STANDARD_CONTROL_BAMID_1 + "=bamid_1";
 		Sheader[7] = VcfHeaderUtils.STANDARD_TEST_BAMID + "=";
-		Sheader[Sheader.length-1] = VcfHeader.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tbamid_1\tTEST_bam";
+		Sheader[Sheader.length-1] = VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tbamid_1\tTEST_bam";
 		 			
     	Vcf2mafTest.createVcf(  Sheader );                
     	try(VCFFileReader reader = new VCFFileReader(input); ){

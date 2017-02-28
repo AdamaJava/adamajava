@@ -406,9 +406,9 @@ public class SignatureGenerator {
 		final String uuid = QExec.createUUid();
 
 		//move input uuid into preuuid
-		header.addOrReplace(VcfHeader.CURRENT_FILE_FORMAT);	
-		header.addOrReplace(VcfHeader.STANDARD_FILE_DATE + Constants.EQ + fileDate);
-		header.addOrReplace(VcfHeader.STANDARD_UUID_LINE + Constants.EQ + uuid );
+		header.addOrReplace(VcfHeaderUtils.CURRENT_FILE_FORMAT);	
+		header.addOrReplace(VcfHeaderUtils.STANDARD_FILE_DATE + Constants.EQ + fileDate);
+		header.addOrReplace(VcfHeaderUtils.STANDARD_UUID_LINE + Constants.EQ + uuid );
 		header.addOrReplace( "##bam_file=" + bamName);
 		header.addOrReplace("##snp_file=" + snpFile);
 		header.addFilter("BASE_QUALITY", "Base quality < " + minBaseQuality);
@@ -418,7 +418,7 @@ public class SignatureGenerator {
 //		header.add( VcfHeaderUtils.addOrRepalce(VcfHeaderUtils.FILTER_LOW_QUAL,"REQUIRED: QUAL < 50.0") );
 		header.addInfo("FULLCOV", "-1", "String", "all bases at position");
 		header.addInfo("NOVELCOV",  "-1", "String", "bases at position from reads with novel starts");
-  		header.addOrReplace(VcfHeader.STANDARD_FINAL_HEADER_LINE);
+  		header.addOrReplace(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE);
 		return  header;
 		
 /*		
@@ -447,10 +447,10 @@ public class SignatureGenerator {
 		final String uuid = QExec.createUUid();
 
 		//move input uuid into preuuid
-		header.addOrReplace(VcfHeader.CURRENT_FILE_FORMAT);		
-		header.addOrReplace(VcfHeader.STANDARD_FILE_DATE + Constants.EQ + fileDate );
-		header.addOrReplace(VcfHeader.STANDARD_UUID_LINE + Constants.EQ + uuid );
-		header.addOrReplace(VcfHeader.STANDARD_SOURCE_LINE + Constants.EQ + pg+"-"+version) ;
+		header.addOrReplace(VcfHeaderUtils.CURRENT_FILE_FORMAT);		
+		header.addOrReplace(VcfHeaderUtils.STANDARD_FILE_DATE + Constants.EQ + fileDate );
+		header.addOrReplace(VcfHeaderUtils.STANDARD_UUID_LINE + Constants.EQ + uuid );
+		header.addOrReplace(VcfHeaderUtils.STANDARD_SOURCE_LINE + Constants.EQ + pg+"-"+version) ;
 		header.addOrReplace(VcfHeaderUtils.STANDARD_DONOR_ID + Constants.EQ + patientId);
 		header.addOrReplace("##input_type=" + inputType );
 		header.addOrReplace( "##sample=" + sample ) ;
@@ -463,7 +463,7 @@ public class SignatureGenerator {
 		header.addFilter(VcfHeaderUtils.FILTER_LOW_QUAL,"REQUIRED: QUAL < 50.0");
 		header.addInfo("FULLCOV", "-1", "String", "all bases at position");
 		header.addInfo("NOVELCOV", "-1", "String", "bases at position from reads with novel starts");
-  		header.addOrReplace(VcfHeader.STANDARD_FINAL_HEADER_LINE);
+  		header.addOrReplace(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE);
 		return  header;
 		
 		

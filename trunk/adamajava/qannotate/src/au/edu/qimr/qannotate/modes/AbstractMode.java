@@ -105,10 +105,10 @@ public abstract class AbstractMode {
 		final String fileDate = df.format(Calendar.getInstance().getTime());
 		final String uuid = QExec.createUUid();
 		
-		myHeader.addOrReplace(VcfHeader.CURRENT_FILE_FORMAT);
-		myHeader.addOrReplace(VcfHeader.STANDARD_FILE_DATE + "=" + fileDate);
-		myHeader.addOrReplace(VcfHeader.STANDARD_UUID_LINE + "=" + uuid);
-		myHeader.addOrReplace(VcfHeader.STANDARD_SOURCE_LINE + "=" + pg+"-"+version);	
+		myHeader.addOrReplace(VcfHeaderUtils.CURRENT_FILE_FORMAT);
+		myHeader.addOrReplace(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + fileDate);
+		myHeader.addOrReplace(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + uuid);
+		myHeader.addOrReplace(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=" + pg+"-"+version);	
 			
 		String inputUuid = (myHeader.getUUID() == null)? null:  myHeader.getUUID().getMetaValue(); //new VcfHeaderUtils.SplitMetaRecord(myHeader.getUUID()).getValue();   
 		myHeader.addOrReplace(VcfHeaderUtils.STANDARD_INPUT_LINE + "=" + inputUuid + ":"+ inputVcfName);

@@ -240,7 +240,7 @@ public class Vcf2maf extends AbstractMode{
 		 for(PrintWriter write:writers){
 			write.println(SnpEffMafRecord.Version);
 			
-			for(VcfHeaderRecord re: header.getRecords(VcfHeader.STANDARD_FILE_FORMAT))
+			for(VcfHeaderRecord re: header.getRecords(VcfHeaderUtils.STANDARD_FILE_FORMAT))
 				write.println(re.toString());
 			
 			for(VcfHeaderRecord re: VcfHeaderUtils.getqPGRecords(header))  

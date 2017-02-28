@@ -404,10 +404,10 @@ public abstract class Pipeline {
 		final VcfHeader header = new VcfHeader();
 		final DateFormat df = new SimpleDateFormat("yyyyMMdd");
 
-		header.addOrReplace(VcfHeader.CURRENT_FILE_FORMAT);		
-		header.addOrReplace(VcfHeader.STANDARD_FILE_DATE + "=" + df.format(Calendar.getInstance().getTime()));		
-		header.addOrReplace(VcfHeader.STANDARD_UUID_LINE + "=" + QExec.createUUid());		
-		header.addOrReplace(VcfHeader.STANDARD_SOURCE_LINE + "=" + source);		
+		header.addOrReplace(VcfHeaderUtils.CURRENT_FILE_FORMAT);		
+		header.addOrReplace(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + df.format(Calendar.getInstance().getTime()));		
+		header.addOrReplace(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + QExec.createUUid());		
+		header.addOrReplace(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=" + source);		
 		
 		header.addOrReplace(VcfHeaderUtils.STANDARD_DONOR_ID + "=" + patientId);
 		header.addOrReplace(VcfHeaderUtils.STANDARD_CONTROL_SAMPLE + "=" + normalSampleId);		

@@ -193,10 +193,10 @@ public class BuildCommonSnpsVcf {
 
 
 		//move input uuid into preuuid
-		header.addOrReplace(VcfHeader.CURRENT_FILE_FORMAT);	
-		header.addOrReplace(VcfHeader.STANDARD_FILE_DATE + "=" + df.format(Calendar.getInstance().getTime()));
-		header.addOrReplace(VcfHeader.STANDARD_UUID_LINE + "=" + QExec.createUUid() );
-		header.addOrReplace(VcfHeader.STANDARD_SOURCE_LINE + "=" + Messages.getProgramName() + Main.class.getPackage().getImplementationVersion());
+		header.addOrReplace(VcfHeaderUtils.CURRENT_FILE_FORMAT);	
+		header.addOrReplace(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + df.format(Calendar.getInstance().getTime()));
+		header.addOrReplace(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + QExec.createUUid() );
+		header.addOrReplace(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=" + Messages.getProgramName() + Main.class.getPackage().getImplementationVersion());
 		header.addOrReplace("##search_string=" + Arrays.deepToString(searchString) );
 		header.addOrReplace( "##search_directory=" + Arrays.deepToString(searchDirectory));
 		header.addOrReplace( "##additional_search_directory=" + Arrays.deepToString(additionalSearchStrings));

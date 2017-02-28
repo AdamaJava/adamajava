@@ -153,7 +153,7 @@ public class AbstractModeTest {
 	public static void createVcf() throws IOException{
         final List<String> data = new ArrayList<String>();
         data.add("##fileformat=VCFv4.0");
-        data.add(VcfHeader.STANDARD_UUID_LINE + "=abcd_12345678_xzy_999666333");
+        data.add(VcfHeaderUtils.STANDARD_UUID_LINE + "=abcd_12345678_xzy_999666333");
         data.add("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO");
         try(BufferedWriter out = new BufferedWriter(new FileWriter(inputName));) {          
             for (final String line : data)   out.write(line +"\n");                  
