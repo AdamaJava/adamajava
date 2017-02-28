@@ -9,6 +9,7 @@ import org.qcmg.common.vcf.VcfFormatFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
+import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.qprofiler.report.SummaryReport;
 import org.qcmg.qprofiler.summarise.SampleSummary;
 import org.w3c.dom.Element;
@@ -97,7 +98,7 @@ public class VcfSummaryReport  extends SummaryReport {
 				
 		for(final VcfHeaderRecord record: vcfHeader ){			
 			String key = record.getMetaKey().replace("##", "");
-			if(key.startsWith( VcfHeader.STANDARD_FINAL_HEADER_LINE )){
+			if(key.startsWith( VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE )){
 				Element ele =  createSubElement( headerElement, NodeHeaderFinal );
 				ele.setAttribute("columns", key.replace("\t", " "));				
 			}
