@@ -30,27 +30,14 @@ public class DbsnpModeTest {
 	 @BeforeClass
 	public static void createInput() throws IOException{
 		createVcf();
-	//	createDbsnp();   
  	}
-	 
 	 
 	 @AfterClass
 	 public static void deleteIO(){
-
 		 new File(inputName).delete();
 		 new File(dbSNPName).delete();
 		 new File(outputName).delete();
-		 
 	 }
-	 
-//	 @Test
-//	 public void getCAF() {
-//		 String infoString = "RS=200367378;RSPOS=167779935;dbSNPBuildID=137;SSR=0;SAO=0;VP=0x050000080005000016000100;WGT=1;VC=SNV;INT;ASP;KGPhase1;KGPROD;OTHERKG;CAF=[0.9995,.,0.0004591];COMMON=0";		 
-//		 assertEquals("VAF=0.9995", DbsnpMode.getCAF(new VcfInfoFieldRecord(infoString), 0));
-//		 assertEquals("VAF=.", DbsnpMode.getCAF(new VcfInfoFieldRecord(infoString), 1));
-//		 assertEquals("VAF=0.0004591", DbsnpMode.getCAF(new VcfInfoFieldRecord(infoString), 2));
-//		 assertEquals(null, DbsnpMode.getCAF(new VcfInfoFieldRecord(infoString), 3));
-//	 }
 	 
 	 @Test
 	 public void indelTest(){
@@ -59,27 +46,20 @@ public class DbsnpModeTest {
 		
 		 //seek RSPOS=14923589
 		 VcfRecord inputVcf = new VcfRecord( new String[] {"chrY","14923589",".","T","A",".","SBIA","FS=GTGATATTCCC"});
-		 DbsnpMode mode = new DbsnpMode();		
-		 mode.annotateDBsnp(inputVcf, dbSNPVcf);		 		 
+		 DbsnpMode.annotateDBsnp(inputVcf, dbSNPVcf);		 		 
 		 assertEquals("0.4", inputVcf.getInfoRecord().getField("VAF"));
 		 
 		 //seek 14923588
 		 inputVcf = new VcfRecord( new String[] {"chrY","14923588",".","GT","G",".","SBIA","FS=GTGATATTCCC"});
-		 mode = new DbsnpMode();		
-		 mode.annotateDBsnp(inputVcf, dbSNPVcf);
+		 DbsnpMode.annotateDBsnp(inputVcf, dbSNPVcf);
 		 assertTrue(inputVcf.getInfoRecord().getField("VAF").equals( "."));		
 		 
 		 //seek 14923589, at moment don't support it 
 		 inputVcf = new VcfRecord( new String[] {"chrY","14923589",".","T","-",".","SBIA","FS=GTGATATTCCC"});
-		 mode = new DbsnpMode();		
-		 mode.annotateDBsnp(inputVcf, dbSNPVcf);
+		 DbsnpMode.annotateDBsnp(inputVcf, dbSNPVcf);
 		 assertFalse(inputVcf.getId().equals( "rs100" ));	
-	
-
-		 		 
 	 }	 
 	 
-	 	 
 	 @Test
 	 public void multiAllelesTest(){
 		 				 
@@ -92,9 +72,7 @@ public class DbsnpModeTest {
 		 assertTrue(inputVcf.getInfoRecord().getField("DB").equals(Constants.EMPTY_STRING) );
 		 assertTrue(inputVcf.getInfoRecord().getField("VLD").equals(Constants.EMPTY_STRING) );
 		 assertTrue(inputVcf.getId().equals( "rs100" ));
-		 		 
 	 }
-	 
 	 
 	 @Test
 	 public void emptyVAFField() {
@@ -104,8 +82,6 @@ public class DbsnpModeTest {
 		 DbsnpMode.annotateDBsnp(vcf, dbSNPVcf);
 		 assertTrue(vcf.getInfoRecord().getField("VAF").equals("."));
 		 assertTrue(vcf.getInfoRecord().getField("DB").equals(Constants.EMPTY_STRING) );
-		 
-		 
 	 }
 	 
 	@Test
@@ -176,8 +152,6 @@ public class DbsnpModeTest {
 			}
 			assertTrue(i == 5);
 		 }
-		  
-		
 	}
 	
 	/**
@@ -256,7 +230,5 @@ public class DbsnpModeTest {
         try(BufferedWriter out = new BufferedWriter(new FileWriter(dbSNPName));) {          
            for (final String line : data)  out.write(line + "\n");
         }  
-          
 	}	
-
 }

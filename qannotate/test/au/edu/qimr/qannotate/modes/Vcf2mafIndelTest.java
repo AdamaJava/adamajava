@@ -38,11 +38,14 @@ public class Vcf2mafIndelTest {
 	@After
 	public void deleteIO() throws IOException{
        
-		File dir = new java.io.File( "." ).getCanonicalFile();		
-		for(File f: dir.listFiles()){ 
-		    if(    f.getName().endsWith(".vcf")  ||  f.getName().contains(".log") || f.getName().endsWith(".maf") ||  f.getName().contains("output")){		    
-		        f.delete();	
-		    }      
+		File dir = new java.io.File( "." ).getCanonicalFile();
+		File[] files = dir.listFiles();
+		if (null != files) {
+			for(File f: files){ 
+			    if(    f.getName().endsWith(".vcf")  ||  f.getName().contains(".log") || f.getName().endsWith(".maf") ||  f.getName().contains("output")){		    
+			        f.delete();	
+			    }      
+			}
 		}
 		Vcf2mafTest.deleteIO();		
 	}

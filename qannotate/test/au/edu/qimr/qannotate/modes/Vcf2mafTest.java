@@ -65,7 +65,8 @@ public class Vcf2mafTest {
 			 return;
 		 }
 		 
-		String[] files = new File(outputDir).list(); 
+		String[] files = new File(outputDir).list();
+		assertEquals(false, null == files);
 		for(int i = 0; i < files.length; i++) {
 			new File(outputDir, files[i]).delete();
 		}

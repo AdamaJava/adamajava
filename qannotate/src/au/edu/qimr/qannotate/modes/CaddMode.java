@@ -174,12 +174,7 @@ public class  CaddMode extends AbstractMode{
 				pos =  new ChrRangePosition(chr, re.getChrPosition().getStartPosition(), re.getChrPosition().getEndPosition());
 			}
 			
-			List<VcfRecord> res = positionRecordMap.get(pos) ;
-			if( res == null){
-				new ArrayList<VcfRecord>();
-				positionRecordMap.put(pos, res);
-			}
-			res.add(re);	
+			positionRecordMap.computeIfAbsent(pos, v -> new ArrayList<VcfRecord>()).add(re);
 		}
 		
 		@Override

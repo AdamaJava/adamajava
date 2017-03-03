@@ -214,16 +214,20 @@ public class TandemRepeatMode  extends AbstractMode{
 				break; // stop backwards to gap				
 			}	
 		 
-		if(block == null)
-			logger.warn("error on indexed blocks, can't find closest index for " + vcf.toString());		
+		if(block == null) {
+			logger.warn("error on indexed blocks, can't find closest index for " + vcf.toString());
+			throw new IllegalArgumentException("error on indexed blocks, can't find closest index for " + vcf.toString());
+		}
 		
 		start = block.end + 1; 
 		while(start <= end){
 			if(start > indexedBlock.lastBlockEnd ) break;
 		 
 			block = indexMap.get(start);
-			if(block == null)
+			if(block == null) {
 				logger.warn("error on indexed blocks, can't find closest index for " + vcf.toString());			
+				throw new IllegalArgumentException("error on indexed blocks, can't find closest index for " + vcf.toString());
+			}
 			
 			coveredBlocks.add(block);
 			start = block.end + 1; 
