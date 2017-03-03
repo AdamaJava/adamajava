@@ -46,7 +46,7 @@ public class VcfRecord implements Comparable<VcfRecord> {
         private String alt;
         private String qualString;
         private String filter;
-        private VcfInfoFieldRecord infoRecord;
+//        private VcfInfoFieldRecord infoRecord;
         private final List<String> formatRecords = new ArrayList<String>(4);
        
         public Builder(ChrPosition cp, String ref, String alt){
@@ -81,7 +81,7 @@ public class VcfRecord implements Comparable<VcfRecord> {
         this.alt = builder.alt;
         this.qualString = builder.qualString;
         this.filter = builder.filter;
-        this.infoRecord = builder.infoRecord;
+//        this.infoRecord = builder.infoRecord;
         this.formatRecords = builder.formatRecords;
  
     }	

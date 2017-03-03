@@ -118,7 +118,7 @@ public class PileupUtilsTest {
 		
 		// try to access a non-existant position in string array
 		try {
-			Assert.assertEquals(3, PileupUtils.getBases(new String[] {"1","2"}, new int[] {10}));
+			Assert.assertEquals("3", PileupUtils.getBases(new String[] {"1","2"}, new int[] {10}));
 			Assert.fail("should have thrown an exception");
 		} catch (ArrayIndexOutOfBoundsException e) {}
 	}
@@ -148,7 +148,7 @@ public class PileupUtilsTest {
 		
 		// try to access a non-existant position in string array
 		try {
-			assertEquals(3, PileupUtils.getQualities(new String[] {"1","2"}, new int[] {10}));
+			assertEquals("3", PileupUtils.getQualities(new String[] {"1","2"}, new int[] {10}));
 			Assert.fail("should have thrown an exception");
 		} catch (ArrayIndexOutOfBoundsException e) {}
 	}
