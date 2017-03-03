@@ -184,9 +184,9 @@ public class GatkUniqueSnps {
 					if ( tumourGenotype.isHeterozygous() && ! tumourGenotype.containsAllele(tumourEntry.getValue().getRef().charAt(0)))
 						//tumourEntry.getValue().getVCFRecord().addInfo("tumour heterozygous for two non-reference alleles");
 						tumourEntry.getValue().getVCFRecord().appendInfo("tumour heterozygous for two non-reference alleles");
-					if (null == tumourEntry.getValue().getAnnotation()) {
+//					if (null == tumourEntry.getValue().getAnnotation()) {
 						qPileupRecords.add(getQPileupRecord(tumourEntry.getValue()));
-					}
+//					}
 				}
 			} else {
 				// interested primarily in these fellas
@@ -257,7 +257,7 @@ public class GatkUniqueSnps {
 		final QSnpRecord qpr = new QSnpRecord(vcfRec.getChromosome(), vcfRec.getPosition(), vcfRec.getRef());
 		qpr.setTumourGenotype(vcfRec.getGenotypeEnum());
 		qpr.setMutation(vcfRec.getRef() + Constants.MUT_DELIM + vcfRec.getAlt());
-		qpr.getVcfRecord().setFilter(vcfRec.getAnnotation());
+//		qpr.getVcfRecord().setFilter(vcfRec.getAnnotation());
 		qpr.setClassification(Classification.SOMATIC);
 		return qpr;
 	}
