@@ -760,8 +760,8 @@ public class QSVCluster {
 			}
 
 			if (referenceFile != null) {
-				if (leftReferenceFlank == null && rightReferenceFlank == null ||
-						leftReferenceFlank.equals("") && rightReferenceFlank.equals("")) {
+				if ((leftReferenceFlank == null && rightReferenceFlank == null) ||
+						(Constants.EMPTY_STRING.equals(leftReferenceFlank) && Constants.EMPTY_STRING.equals(rightReferenceFlank))) {
 					
 					getReferenceFlank(new File(referenceFile), p.getChromosomes());
 				}
@@ -1259,7 +1259,7 @@ public class QSVCluster {
 		if ( ! isGermline) {
 			if (referenceFile != null) {
 				if (leftReferenceFlank == null && rightReferenceFlank == null ||
-						leftReferenceFlank.equals("") && rightReferenceFlank.equals("")) {
+						Constants.EMPTY_STRING.equals(leftReferenceFlank) && Constants.EMPTY_STRING.equals(rightReferenceFlank)) {
 					
 					getReferenceFlank(new File(referenceFile), chromosomes);
 				}

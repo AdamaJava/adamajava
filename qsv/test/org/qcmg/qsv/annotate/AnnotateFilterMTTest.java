@@ -149,10 +149,10 @@ public class AnnotateFilterMTTest {
 	        String matepairsDir = null;
 			QSVParameters p = new QSVParameters(options, true, testFolder.getRoot().toString() , matepairsDir , new Date(), "test");
 		AnnotateFilterMT afmt = new AnnotateFilterMT(Thread.currentThread(), wGoodLatch, p, null, null, options);
-    		AnnotateFilterMT.AnnotationFiltering af = afmt.new AnnotationFiltering(readQueue, writeQueue, writeClipQueue, mainThread, readLatch, fLatch, wGoodLatch);
+    		afmt.new AnnotationFiltering(readQueue, writeQueue, writeClipQueue, mainThread, readLatch, fLatch, wGoodLatch);
     	
     	try {
-    		QueryExecutor exec = new QueryExecutor("and(Cigar_M > 35, option_SM > 10, MD_mismatch < 3, Flag_DuplicateRead == false)");
+    		new QueryExecutor("and(Cigar_M > 35, option_SM > 10, MD_mismatch < 3, Flag_DuplicateRead == false)");
     	} catch (Exception e) {
     		e.printStackTrace();
     	}
@@ -176,7 +176,9 @@ public class AnnotateFilterMTTest {
         File f = new File(testFolder.getRoot().getAbsolutePath());
         assertEquals(0, exit.intValue());
         int count = 0;
-        for (File file: f.listFiles()) {
+        File [] files =  f.listFiles();
+        assertEquals(false, null == files);
+        for (File file: files) {
 	        	if (file.getName().endsWith(".clip")) {
 	        		count++;
 	        	}
@@ -195,10 +197,12 @@ public class AnnotateFilterMTTest {
         File f = new File(testFolder.getRoot().getAbsolutePath());
         assertEquals(0, exit.intValue());
         int count = 0;
-        for (File file: f.listFiles()) {
-        	if (file.getName().endsWith(".clip")) {        		
-        		count++;
-        	}
+        File [] files =  f.listFiles();
+        assertEquals(false, null == files);
+        for (File file: files) {
+	        	if (file.getName().endsWith(".clip")) {        		
+	        		count++;
+	        	}
         }
         assertEquals(10, count); 
     }

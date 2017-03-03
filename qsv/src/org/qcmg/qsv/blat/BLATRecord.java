@@ -201,14 +201,14 @@ public class BLATRecord implements Comparable<BLATRecord> {
 			if (knownStrand == getStrand()) {
 				
 				for (int i=0; i<2; i++) {
-					int currentBp = getCurrentBp(i, isLeft, knownStrand, knownBreakpoint);							
+					int currentBp = getCurrentBp(i, isLeft, knownStrand);				
 					
-					if (currentBp >= knownBreakpoint.intValue() - 5 & (currentBp <= knownBreakpoint.intValue() + 5)) {
+					if (currentBp >= knownBreakpoint.intValue() - 5 && (currentBp <= knownBreakpoint.intValue() + 5)) {
 						nonTempBases = 0;
 						if (i==0) {
-							return getMateCurrentBp(1, isLeft, knownStrand, knownBreakpoint);
+							return getMateCurrentBp(1, isLeft, knownStrand);
 						} else {
-							return getMateCurrentBp(0, isLeft, knownStrand, knownBreakpoint);
+							return getMateCurrentBp(0, isLeft, knownStrand);
 						}
 					}
 				} 
@@ -248,7 +248,7 @@ public class BLATRecord implements Comparable<BLATRecord> {
 		return mateBp;	
 	}
 
-	private int getCurrentBp(int i, boolean isLeft, char knownStrand, Integer knownBreakpoint) {
+	private int getCurrentBp(int i, boolean isLeft, char knownStrand) {
 		
 		if (knownStrand == getStrand()) {
 			return isLeft ?  tStarts[i] : ( tStarts[i] + blockSizes[i]);
@@ -257,7 +257,7 @@ public class BLATRecord implements Comparable<BLATRecord> {
 		}
 	}
 	
-	private Integer getMateCurrentBp(int i, boolean isLeft, char knownStrand, Integer knownBreakpoint) {
+	private Integer getMateCurrentBp(int i, boolean isLeft, char knownStrand) {
 		int startPos = tStarts[i];
 		int endPos = startPos + blockSizes[i] - 1;
 		int currentBp;
