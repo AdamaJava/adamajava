@@ -87,21 +87,16 @@ public class AbstractModeTest {
 			header.addOrReplace("##qTestSample=test");
 			header.addOrReplace(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "qControlSample" + "\tqTestSample");
  
-			DbsnpMode mode = new DbsnpMode();
-			
 			SampleColumn column = SampleColumn.getSampleColumn(null,null, header);
 			assertTrue( column.getControlSampleColumn() == 1);
 			assertTrue( column.getTestSampleColumn() == 2);		
 			assertEquals( column.getControlSample() , "control");
 			assertEquals( column.getTestSample() , "test");	
 			
-			
-			
 			header.addOrReplace(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "qControlSample" + "\ttest");
 			column = SampleColumn.getSampleColumn(null,null, header);
 			assertTrue( column.getControlSampleColumn() == 1);
 			assertTrue( column.getTestSampleColumn() == 2);		
-	        
 	 }
 	 
 	
@@ -114,8 +109,6 @@ public class AbstractModeTest {
 		header.addOrReplace("##qControlSample=" + control);
 		header.addOrReplace("##qTestSample=" + test);
 		header.addOrReplace(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + control + "\t" + "test");
-		
-		DbsnpMode mode = new DbsnpMode();
 		
 		SampleColumn column = SampleColumn.getSampleColumn(null,null, header);
 		assertTrue( column.getControlSampleColumn() == 1);
