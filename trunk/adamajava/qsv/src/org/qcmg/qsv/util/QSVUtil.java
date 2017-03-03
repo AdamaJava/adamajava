@@ -100,17 +100,18 @@ public class QSVUtil {
 			return false;
 
 		String[] list = directory.list();
-
-		for (int i = 0; i < list.length; i++) {
-			File entry = new File(directory, list[i]);
-
-			if (entry.isDirectory()) {
-				if (!removeDirectory(entry)) {
-					return false;
-				}
-			} else {
-				if (!entry.delete()) {
-					return false;
+		if (null != list) {
+			for (int i = 0; i < list.length; i++) {
+				File entry = new File(directory, list[i]);
+	
+				if (entry.isDirectory()) {
+					if (!removeDirectory(entry)) {
+						return false;
+					}
+				} else {
+					if (!entry.delete()) {
+						return false;
+					}
 				}
 			}
 		}

@@ -15,8 +15,6 @@ import java.util.Map.Entry;
 
 import org.qcmg.qsv.util.QSVConstants;
 
-
-
 public class QPrimerCategory {
 
 	private Map<String, Integer> map;
@@ -30,20 +28,18 @@ public class QPrimerCategory {
 	private final String zpType;
 	private String leftChr;
 	private String rightChr;
-//	private final String id;
-//	private final String outLeft;
-//	private final String outRight;
 	private final String pairType;
-
+	
 	public QPrimerCategory(String zpType, String leftChr, String rightChr, String id, String pairType) {
+		this( zpType,  leftChr,  rightChr,  pairType);
+	}
+
+	public QPrimerCategory(String zpType, String leftChr, String rightChr, String pairType) {
 		this.map = new HashMap<String,Integer>();
 		this.zpType = zpType;
 		this.leftChr = leftChr;
 		this.rightChr = rightChr;
 		this.mixedCategories = "";
-//		this.id = id;
-//		this.outLeft = new String();
-//		this.outRight = new String();
 		this.pairType = pairType;
 	}
 
@@ -55,136 +51,49 @@ public class QPrimerCategory {
 		this.map = map;
 	}
 
-
 	public String getPrimaryCategoryNo() {
 		return primaryCategoryNo;
 	}
-
 
 	public void setPrimaryCategoryNo(String primaryCategoryNo) {
 		this.primaryCategoryNo = primaryCategoryNo;
 	}
 
-
 	public String getMixedCategories() {
 		return mixedCategories;
 	}
-
-
-//	public void setMixedCategories(String mixedCategories) {
-//		this.mixedCategories = mixedCategories;
-//	}
-
 
 	public int getStartLeft() {
 		return startLeft;
 	}
 
-
-//	public void setStartLeft(int startLeft) {
-//		this.startLeft = startLeft;
-//	}
-
-
 	public int getEndLeft() {
 		return endLeft;
 	}
-
-
-//	public void setEndLeft(int endLeft) {
-//		this.endLeft = endLeft;
-//	}
-
 
 	public int getStartRight() {
 		return startRight;
 	}
 
-
-//	public void setStartRight(int startRight) {
-//		this.startRight = startRight;
-//	}
-
-
 	public int getEndRight() {
 		return endRight;
 	}
-
-
-//	public void setEndRight(int endRight) {
-//		this.endRight = endRight;
-//	}
-
 
 	public String getReverseFlag() {
 		return reverseFlag;
 	}
 
-
-//	public void setReverseFlag(String reverseFlag) {
-//		this.reverseFlag = reverseFlag;
-//	}
-
-
 	public String getZpType() {
 		return zpType;
 	}
-
-
-//	public void setZpType(String zpType) {
-//		this.zpType = zpType;
-//	}
-
 
 	public String getLeftChr() {
 		return leftChr;
 	}
 
-
-//	public void setLeftChr(String leftChr) {
-//		this.leftChr = leftChr;
-//	}
-
-
 	public String getRightChr() {
 		return rightChr;
 	}
-
-
-//	public void setRightChr(String rightChr) {
-//		this.rightChr = rightChr;
-//	}
-
-
-//	public String getId() {
-//		return id;
-//	}
-
-
-//	public void setId(String id) {
-//		this.id = id;
-//	}
-
-
-//	public String getOutLeft() {
-//		return outLeft;
-//	}
-
-
-//	public void setOutLeft(String outLeft) {
-//		this.outLeft = outLeft;
-//	}
-
-
-//	public String getOutRight() {
-//		return outRight;
-//	}
-
-
-//	public void setOutRight(String outRight) {
-//		this.outRight = outRight;
-//	}
-
 
 	public void findClusterCategory(List<MatePair> clusterMatePairs, int clusterLeftStart, int clusterLeftEnd, int clusterRightStart, int clusterRightEnd) throws Exception {
 		//find the categories of each read pair		

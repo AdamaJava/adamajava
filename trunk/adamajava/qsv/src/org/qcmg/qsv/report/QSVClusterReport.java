@@ -19,8 +19,6 @@ import org.qcmg.qsv.util.QSVUtil;
 
 public class QSVClusterReport extends QSVReport {
 	
- 
-    protected boolean append = false;
 	private final String fileType;
 	private final List<QSVCluster> qsvRecords;
 	private String tumourFindType;

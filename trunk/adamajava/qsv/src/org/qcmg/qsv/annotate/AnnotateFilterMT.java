@@ -454,7 +454,7 @@ public class AnnotateFilterMT implements Runnable {
 							}
 						} else {
 							logger.warn("SAMReadGroupRecord : " + srgr + ":" + record.getSAMString());
-							logger.warn("SAMReadGroupRecord was null, or id was not in collection: " + srgr.getId() + ":" + record.getSAMString());
+							logger.warn("SAMReadGroupRecord was null, or id was not in collection: " + (null != srgr ? srgr.getId() : null) + ":" + record.getSAMString());
 							throw new Exception("Null SAMReadGroupRecord");
 						}
 					} else {

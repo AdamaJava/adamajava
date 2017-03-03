@@ -61,7 +61,7 @@ public class DiscordantPairCluster {
 	private String type;
 	private String strandOrientation = "";
 	private int id;
-	private String svId; 
+//	private String svId; 
 	private int compareLeftStart;
 	private int compareRightStart;
 	private int compareLeftEnd;
@@ -706,7 +706,7 @@ public class DiscordantPairCluster {
 
 	 private void findQPrimerCategory(String pairType) throws Exception {
 
-		 this.qPrimerCateory = new QPrimerCategory(zp, leftReferenceName, rightReferenceName, svId, pairType);
+		 this.qPrimerCateory = new QPrimerCategory(zp, leftReferenceName, rightReferenceName, pairType);
 		 qPrimerCateory.findClusterCategory(clusterMatePairs, leftStart, leftEnd, rightStart, rightEnd);
 
 		 //check if the size of the cluster is greater than the threshold
