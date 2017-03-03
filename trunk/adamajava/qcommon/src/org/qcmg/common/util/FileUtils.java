@@ -235,7 +235,9 @@ public class FileUtils {
 			}
 		});
 		
-		files.addAll(Arrays.asList(mafFiles));
+		if (null != mafFiles) {
+			files.addAll(Arrays.asList(mafFiles));
+		}
 		
 		if (recurse) {
 			
@@ -246,9 +248,11 @@ public class FileUtils {
 				}
 			});
 			
-			for (File f : potentialMafDirectories) {
-//				System.out.println("about to recurse in...");
-				files.addAll(Arrays.asList(findDirectories(f.getAbsolutePath(), filter, true)));
+			if (null != potentialMafDirectories) {
+				for (File f : potentialMafDirectories) {
+	//				System.out.println("about to recurse in...");
+					files.addAll(Arrays.asList(findDirectories(f.getAbsolutePath(), filter, true)));
+				}
 			}
 		}
 		

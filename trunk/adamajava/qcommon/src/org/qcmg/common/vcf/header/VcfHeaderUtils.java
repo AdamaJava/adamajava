@@ -239,7 +239,7 @@ public class VcfHeaderUtils {
 		}
 		
 		// create and add to existing collection
-		addQPGLine(header, currentLargestOrder + 1, tool, version, commandLine,  DF.format(new Date()));
+		addQPGLine(header, currentLargestOrder + 1, tool, version, commandLine,   new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
 		
 	}
 	
@@ -268,7 +268,7 @@ public class VcfHeaderUtils {
 		List<VcfHeaderRecord> recs = header.getRecords(GATK_CMD_LINE);		
 		for(VcfHeaderRecord rec : recs)
 			if(rec.getId() != null)
-				return ((VcfHeaderRecord) rec).getSubFieldValue(GATK_CMD_LINE_VERSION);	 		 
+				return rec.getSubFieldValue(GATK_CMD_LINE_VERSION);	 		 
 		return null; 	
 	}
 	
@@ -309,6 +309,7 @@ public class VcfHeaderUtils {
 	/**
 	 * Splits a VcfHeaderRecord meta object on '=' and returns a String array with the results of the split command.
 	 * If the record does not contain '=' then a 2 element array is returned, with the first element containing record.toString(), and the second element containing null
+	 * @param <T>
 	 * @param rec VcfHeaderRecord
 	 * @return String [] containing the result of rec.toString().split("=")
 	 */
@@ -336,7 +337,7 @@ public class VcfHeaderUtils {
 //		public String getValue(){ return pair[1]; }
 //	}
 		
-	public static VcfHeader reheader(VcfHeader header, String cmd, String inputVcfName, Class mainClass) throws IOException {	
+	public static <T> VcfHeader reheader(VcfHeader header, String cmd, String inputVcfName, Class<T> mainClass) throws IOException {	
 		DateFormat df = new SimpleDateFormat( "yyyyMMdd" ); 
  		
 		String version = mainClass.getPackage().getImplementationVersion();
@@ -392,7 +393,7 @@ public class VcfHeaderUtils {
 	} 	
 	
 	public static List<VcfHeaderRecord> getqPGRecords(VcfHeader header) {  		
-		return header.getRecords(VcfHeaderUtils.HEADER_LINE_QPG).stream().map(x -> (VcfHeaderRecord) x).collect(Collectors.toList());		
+		return header.getRecords(VcfHeaderUtils.HEADER_LINE_QPG).stream().map(x -> x).collect(Collectors.toList());		
 	}
 	
 	public static VcfHeaderRecord getqPGRecord(VcfHeader header, String id){ 	return header.getIDRecord(VcfHeaderUtils.HEADER_LINE_QPG, id); }	

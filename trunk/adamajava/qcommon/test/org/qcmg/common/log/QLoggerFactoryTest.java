@@ -1,5 +1,7 @@
 package org.qcmg.common.log;
 
+import static org.junit.Assert.*;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -9,7 +11,6 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -32,12 +33,12 @@ public class QLoggerFactoryTest {
 		// null class
 		try {
 			QLoggerFactory.getLogger(null);
-			Assert.fail("should not get here");
+			fail("should not get here");
 		} catch (Exception e) {}
 		
 		// valid class
 		QLogger qlogger = QLoggerFactory.getLogger(QLoggerFactoryTest.class);
-		Assert.assertNotNull(qlogger);
+		assertNotNull(qlogger);
 	}
 	
 	@Test
@@ -45,35 +46,35 @@ public class QLoggerFactoryTest {
 		// null class
 		try {
 			QLoggerFactory.getLogger(null, null, null);
-			Assert.fail("should not get here");
+			fail("should not get here");
 		} catch (Exception e) {}
 		
 		// valid class - creates a logger with default parent, no file handler appended
 		QLogger qlogger = QLoggerFactory.getLogger(QLoggerFactoryTest.class, null,null);
-		Assert.assertNotNull(qlogger);
-		Assert.assertEquals(1, qlogger.getLogger().getParent().getHandlers().length);
-		Assert.assertNull(qlogger.getLogger().getLevel());
+		assertNotNull(qlogger);
+		assertEquals(1, qlogger.getLogger().getParent().getHandlers().length);
+		assertNull(qlogger.getLogger().getLevel());
 		
 		// valid output log file, but invalid level
 		try {
 			QLoggerFactory.getLogger(QLoggerFactoryTest.class, testFolder.getRoot().getAbsolutePath() + FILE_SEPERATOR + "testlog.log", "");
-			Assert.fail("Should not get here");
+			fail("Should not get here");
 		} catch (Exception e) {}
 		
 		// valid output log file, and valid level
 		QLogger ql = QLoggerFactory.getLogger(QLoggerFactoryTest.class, testFolder.getRoot().getAbsolutePath() + FILE_SEPERATOR + "testlog.log", "INFO");
-		Assert.assertNotNull(ql);
-		Assert.assertEquals(2, ql.getLogger().getParent().getHandlers().length);
-		Assert.assertEquals(Level.INFO, ql.getLogger().getParent().getLevel());		
+		assertNotNull(ql);
+		assertEquals(2, ql.getLogger().getParent().getHandlers().length);
+		assertEquals(Level.INFO, ql.getLogger().getParent().getLevel());		
 		// qlogger's parent should also now have 2 handlers
-		Assert.assertEquals(2, qlogger.getLogger().getParent().getHandlers().length);
+		assertEquals(2, qlogger.getLogger().getParent().getHandlers().length);
 		
 		// invalid output file
 		try {
 			QLoggerFactory.getLogger(QLoggerFactoryTest.class, FILE_SEPERATOR + "this" 
 					+ FILE_SEPERATOR + "should" + FILE_SEPERATOR + "not" + FILE_SEPERATOR + "exist.log", "1");
 					
-			Assert.fail("Should not get here");
+			fail("Should not get here");
 		} catch (IllegalArgumentException e) {}
 		
 	}
@@ -86,19 +87,19 @@ public class QLoggerFactoryTest {
 		
 		//null level - defaults to INFO
 		QLogger logger = QLoggerFactory.getLogger(QLoggerFactoryTest.class, logFile.getAbsolutePath(), null);
-		Assert.assertNull(logger.getLogger().getLevel());
-		Assert.assertEquals(QLevel.INFO, logger.getLogger().getParent().getLevel());
+		assertNull(logger.getLogger().getLevel());
+		assertEquals(QLevel.INFO, logger.getLogger().getParent().getLevel());
 		// ensure that the root logger has a fileHandler with correct level set
 		for (Handler h : logger.getLogger().getParent().getHandlers()) {
 			if (h instanceof FileHandler && h.getLevel().equals(QLevel.INFO)){
 				correctHandlerFound = true;
 			}
 		}
-		Assert.assertTrue(correctHandlerFound);
+		assertTrue(correctHandlerFound);
 		
 		// debug level
 		QLogger debugLogger = QLoggerFactory.getLogger(QLoggerFactoryTest.class, debugLogFile.getAbsolutePath(), "DEBUG");
-		Assert.assertNull(debugLogger.getLogger().getLevel());
+		assertNull(debugLogger.getLogger().getLevel());
 		// ensure that the root logger has a fileHandler with correct level set
 		correctHandlerFound = false;
 		for (Handler h : debugLogger.getLogger().getParent().getHandlers()) {
@@ -106,7 +107,7 @@ public class QLoggerFactoryTest {
 				correctHandlerFound = true;
 			}
 		}
-		Assert.assertTrue(correctHandlerFound);
+		assertTrue(correctHandlerFound);
 	}
 	
 	@Test
@@ -123,7 +124,8 @@ public class QLoggerFactoryTest {
 		BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(debugLogFile)));
 		String line = reader.readLine();
 		reader.close();
-		Assert.assertTrue(line.contains("DEBUG"));
+		assertEquals(false, null == line);
+		assertTrue(line.contains("DEBUG"));
 	}
 	
 }

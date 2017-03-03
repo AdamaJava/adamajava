@@ -16,10 +16,7 @@ public class QSnpGATKRecord {
 	private final VcfRecord gatkVcfRecord;
 	private String genotype;
 	private GenotypeEnum genotypeEnum;
-	private String annotation;
 	private List<PileupElement> pileup;
-//	private List<PileupElement> novelStartPileup;
-//	private int novelStartCount;
 	
 	public QSnpGATKRecord(VcfRecord vcf) {
 		this.gatkVcfRecord = vcf;
@@ -54,10 +51,6 @@ public class QSnpGATKRecord {
 	public int getPosition() {
 		return gatkVcfRecord.getPosition();
 	}
-//	public void setPosition(final int position) {
-//		if (null == gatkVcfRecord) gatkVcfRecord = new VCFRecord();
-//		gatkVcfRecord.setPosition(position);
-//	}
 	public String getRef() {
 		return gatkVcfRecord.getRef();
 	}
@@ -68,47 +61,14 @@ public class QSnpGATKRecord {
 	public String getGenotype() {
 		return genotype;
 	}
-//	public void setGenotype(String genotype) {
-//		this.genotype = genotype;
-//	}
-	
 	public GenotypeEnum getGenotypeEnum() {
 		return genotypeEnum;
 	}
-//	public void setGenotypeEnum(GenotypeEnum genotypeEnum) {
-//		this.genotypeEnum = genotypeEnum;
-//	}
-	public String getAnnotation() {
-		return annotation;
-	}
-//	public void setAnnotation(String annotation) {
-//		this.annotation = annotation;
-//	}
-//	public void addAnnotation(String annotation) {
-//		if (null == this.annotation)
-//			this.annotation = annotation;
-//		else
-//			this.annotation += "; " +  annotation;
-//	}
 	public void setPileup(List<PileupElement> pileup) {
 		this.pileup = pileup;
 	}
 	public List<PileupElement> getPileup() {
 		return pileup;
 	}
-//	public void setNovelStartPileup(List<PileupElement> novelStartPileup) {
-//		this.novelStartPileup = novelStartPileup;
-//	}
-//	public List<PileupElement> getNovelStartPileup() {
-//		return novelStartPileup;
-//	}
-
-//	public void setNovelStartCount(int novelStartCount) {
-//		this.novelStartCount = novelStartCount;
-//	}
-
-//	public int getNovelStartCount() {
-//		return novelStartCount;
-//	}
 	
 }
