@@ -277,8 +277,8 @@ public class SignatureGeneratorBespoke {
 				if (tempRec.getGCScore() >= 0.70000f 
 						&& null != tempRec.getChr()
 						&& ! "0".equals(tempRec.getChr())
-						&& Float.NaN != tempRec.getbAlleleFreq()
-						&& Float.NaN != tempRec.getLogRRatio()
+						&& ! Float.isNaN(tempRec.getbAlleleFreq())
+						&& ! Float.isNaN(tempRec.getLogRRatio())
 						&& tempRec.getSnpId().startsWith("rs")) {
 					
 					// only deal with bi-allelic snps

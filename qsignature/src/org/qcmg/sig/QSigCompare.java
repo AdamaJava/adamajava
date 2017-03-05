@@ -107,18 +107,11 @@ public class QSigCompare {
 			bamFilesElement.appendChild(bamElement);
 			
 			String [] fileAttributes = null;
-			TabbedFileReader reader = null;
-			try {
-				reader = new TabbedFileReader(f);
+//			TabbedFileReader reader = null;
+			try (TabbedFileReader reader = new TabbedFileReader(f)){
 				fileAttributes = getDetailsFromVCFHeader(reader.getHeader());
 			} catch (Exception e) {
 				logger.error("Couldn't retrieve file attributes", e);
-			} finally {
-				try {
-					reader.close();
-				} catch (IOException e) {
-					logger.error("Can't close file", e);
-				}
 			}
 			
 			// set some attributes on this bam element

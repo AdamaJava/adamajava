@@ -96,7 +96,7 @@ public class Comparison implements Comparable<Comparison> {
 	
 	public String toSummaryString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append(score == Double.NaN ? "NaN" : score);
+		sb.append(Double.isNaN(score) ? "NaN" : score);
 		sb.append(" (").append(overlapCoverage).append(") : ");
 		sb.append(test);
 		return sb.toString();
@@ -109,7 +109,7 @@ public class Comparison implements Comparable<Comparison> {
 		sb.append(main).append(" (").append(mainCoverage).append(") vs ");
 		sb.append(DonorUtils.getDonorFromFilename(test)).append(":");
 		sb.append(test).append(" (").append(testCoverage).append(") : ");
-		sb.append(score == Double.NaN ? "NaN" : score);
+		sb.append(Double.isNaN(score) ? "NaN" : score);
 		sb.append(", ").append(overlapCoverage);
 		sb.append(", ").append(numberOfCalculations);
 		return sb.toString();

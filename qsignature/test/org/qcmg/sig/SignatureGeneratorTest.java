@@ -123,6 +123,7 @@ public class SignatureGeneratorTest {
 		} else {
 			System.out.println("unable to process snp: " + illRec.getSnp());
 		}
+		assertEquals(false, null == illuminaAlleles);
 		
 		// need to check that the alleles are valid
 		if ( ! BaseUtils.isACGTN(illuminaAlleles.charAt(0)) || ! BaseUtils.isACGTN(illuminaAlleles.charAt(2)) ) {
