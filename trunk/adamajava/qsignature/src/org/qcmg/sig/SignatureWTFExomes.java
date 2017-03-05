@@ -219,16 +219,17 @@ public class SignatureWTFExomes {
 		// if not - load
 		TIntShortHashMap result = cache.get(f);
 		if (result == null) {
-//			result = SignatureUtil.loadSignatureRatiosFloat(f, minimumCoverage);
+			result = SignatureUtil.loadSignatureRatiosFloatGenotype(f);
+		}
 			
-			if (result.size() < 1000) {
-				logger.warn("low coverage (" + result.size() + ") for file " + f.getAbsolutePath());
-			}
-			
-			if (cache.size() < cacheSize) {
-				cache.put(f, result);
-			}
-			fileIdsAndCounts.get(f)[1] = result.size();
+		if (result.size() < 1000) {
+			logger.warn("low coverage (" + result.size() + ") for file " + f.getAbsolutePath());
+		}
+		
+		if (cache.size() < cacheSize) {
+			cache.put(f, result);
+		}
+		fileIdsAndCounts.get(f)[1] = result.size();
 			/*
 			 * average coverage
 			 */
@@ -237,7 +238,7 @@ public class SignatureWTFExomes {
 //				.mapToInt(array -> (int) array[4])
 //				.summaryStatistics();
 //			fileIdsAndCounts.get(f)[2] = (int) iss.getAverage();
-		}
+//		}
 		return result;
 	}
 //	Map<ChrPosition, float[]> getSignatureData(File f) throws Exception {
@@ -298,8 +299,8 @@ public class SignatureWTFExomes {
 		Element compsE = doc.createElement("comparisons");
 		rootElement.appendChild(compsE);
 		for (Comparison comp : allComparisons) {
-			int id1 = fileIdsAndCounts.get(comp.getMain())[0];
-			int id2 = fileIdsAndCounts.get(comp.getTest())[0];
+			int id1 = fileIdsAndCounts.get(new File(comp.getMain()))[0];
+			int id2 = fileIdsAndCounts.get(new File(comp.getTest()))[0];
 			
 			Element compE = doc.createElement("comparison");
 			compE.setAttribute("file1", id1 + "");

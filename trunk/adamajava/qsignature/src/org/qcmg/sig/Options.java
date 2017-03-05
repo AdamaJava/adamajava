@@ -52,14 +52,14 @@ final class Options {
 	private final String[] inputFileNames;
 	private final String[] outputFileNames;
 	private final String[] dirNames;
-	private final Optional<Integer> minCoverage;
-	private final Optional<Integer> minRGCoverage;
-	private final Optional<Integer> minMappingQuality;
-	private final Optional<Integer> minBaseQuality;
-	private final Optional<Integer> noOfThreads;
-	private final Optional<Float> homCutoff;
-	private final Optional<Float> hetUpperCutoff;
-	private final Optional<Float> hetLowerCutoff;
+	private final Integer minCoverage;
+	private final Integer minRGCoverage;
+	private final Integer minMappingQuality;
+	private final Integer minBaseQuality;
+	private final Integer noOfThreads;
+	private final Float homCutoff;
+	private final Float hetUpperCutoff;
+	private final Float hetLowerCutoff;
 //	private int snpChipCoverage;
 //	private float cutoff;
 	private final String log;
@@ -136,14 +136,14 @@ final class Options {
 		log = (String) options.valueOf("log");
 		logLevel = (String) options.valueOf("loglevel");
 		
-		minRGCoverage = Optional.ofNullable((Integer) options.valueOf("minRGCoverage"));
-		minCoverage = Optional.ofNullable((Integer) options.valueOf("minCoverage"));
-		minMappingQuality = Optional.ofNullable((Integer) options.valueOf("minMappingQuality"));
-		minBaseQuality = Optional.ofNullable((Integer) options.valueOf("minBaseQuality"));
-		noOfThreads = Optional.ofNullable((Integer) options.valueOf("noOfThreads"));
-		homCutoff = Optional.ofNullable((Float) options.valueOf("homCutoff"));
-		hetUpperCutoff = Optional.ofNullable((Float) options.valueOf("hetUpperCutoff"));
-		hetLowerCutoff = Optional.ofNullable((Float) options.valueOf("hetLowerCutoff"));
+		minRGCoverage = ((Integer) options.valueOf("minRGCoverage"));
+		minCoverage = ((Integer) options.valueOf("minCoverage"));
+		minMappingQuality = ((Integer) options.valueOf("minMappingQuality"));
+		minBaseQuality = ((Integer) options.valueOf("minBaseQuality"));
+		noOfThreads = ((Integer) options.valueOf("noOfThreads"));
+		homCutoff = ((Float) options.valueOf("homCutoff"));
+		hetUpperCutoff = ((Float) options.valueOf("hetUpperCutoff"));
+		hetLowerCutoff = ((Float) options.valueOf("hetLowerCutoff"));
 	}
 
 	String getLog() {
@@ -231,13 +231,13 @@ final class Options {
 		return this.dirNames;
 	}
 	public Optional<Integer> getMinCoverage() {
-		return minCoverage;
+		return Optional.ofNullable(minCoverage);
 	}
 	public Optional<Integer> getMinRGCoverage() {
-		return minRGCoverage;
+		return Optional.ofNullable(minRGCoverage);
 	}
 	public Optional<Integer> getNoOfThreads() {
-		return noOfThreads;
+		return Optional.ofNullable(noOfThreads);
 	}
 //	public int getSnpChipCoverage() {
 //		return snpChipCoverage;
@@ -269,20 +269,20 @@ final class Options {
 	}
 
 	public Optional<Integer> getMinMappingQuality() {
-		return minMappingQuality;
+		return Optional.ofNullable(minMappingQuality);
 	}
 
 	public Optional<Integer> getMinBaseQuality() {
-		return minBaseQuality;
+		return Optional.ofNullable(minBaseQuality);
 	}
 	public Optional<Float> getHomCutoff() {
-		return homCutoff;
+		return Optional.ofNullable(homCutoff);
 	}
 	public Optional<Float> getHetUpperCutoff() {
-		return hetUpperCutoff;
+		return Optional.ofNullable(hetUpperCutoff);
 	}
 	public Optional<Float> getHetLowerCutoff() {
-		return hetLowerCutoff;
+		return Optional.ofNullable(hetLowerCutoff);
 	}
 
 	public boolean hasEmailSubjectOption() {

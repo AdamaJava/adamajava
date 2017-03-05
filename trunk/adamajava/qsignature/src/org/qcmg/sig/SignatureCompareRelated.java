@@ -94,7 +94,7 @@ public class SignatureCompareRelated {
 				orderedSnpChipFiles.addAll(SignatureUtil.populateSnpChipFilesList(path, snpChipSearchSuffix, excludes, null));
 			}
 			if (orderedSnpChipFiles.isEmpty()) {
-				logger.warn("No snp chip signature files found to use in the comparison based on path: " + paths + ", and snpChipSearchSuffix: " + snpChipSearchSuffix + " - giving up");
+				logger.warn("No snp chip signature files found to use in the comparison based on path: " + Arrays.deepToString(paths) + ", and snpChipSearchSuffix: " + snpChipSearchSuffix + " - giving up");
 				exitStatus = 1;
 				return exitStatus;
 			}
@@ -304,8 +304,8 @@ public class SignatureCompareRelated {
 		Element compsE = doc.createElement("comparisons");
 		rootElement.appendChild(compsE);
 		for (Comparison comp : allComparisons) {
-			int id1 = fileIdsAndCounts.get(comp.getMain())[0];
-			int id2 = fileIdsAndCounts.get(comp.getTest())[0];
+			int id1 = fileIdsAndCounts.get(new File(comp.getMain()))[0];
+			int id2 = fileIdsAndCounts.get(new File(comp.getTest()))[0];
 //			logger.info(id1 + " vs " + id2 + " - score: " + comp.getScore() + " overlaping coverage: " + comp.getOverlapCoverage() + " no of calcs: " + comp.getNumberOfCalculations());
 			
 			String id = "id_" + id1 + "_vs_" + id2;

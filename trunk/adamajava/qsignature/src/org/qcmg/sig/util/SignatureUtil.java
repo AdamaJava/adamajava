@@ -18,7 +18,6 @@ import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -304,7 +303,7 @@ public class SignatureUtil {
 		TIntShortHashMap ratios = new TIntShortHashMap();
 		TMap<String, TIntShortHashMap> rgRatios = new THashMap<>();
 		
-		Map<String, String> rgIds = null;
+		Map<String, String> rgIds = Collections.emptyMap();
 		SigMeta sm = null;
 		
 		try (TabbedFileReader reader = new TabbedFileReader(file)) {
@@ -717,13 +716,8 @@ public class SignatureUtil {
 		
 		// all these indicies should be +ve
 		if (aIndex < 0 || cIndex < 0 || gIndex < 0 || tIndex < 0 || nIndex < 0) {
-			throw new IllegalArgumentException("Invalid coverage string passed to decipherCoverageString: " + info);
-		}
-		
-		
-		// all these indicies should be +ve
-		if (aIndex < 0 || cIndex < 0 || gIndex < 0 || tIndex < 0 || nIndex < 0) {
 			logger.warn("Invalid coverage string: " + info);
+			throw new IllegalArgumentException("Invalid coverage string passed to decipherCoverageString: " + info);
 		}
 		
 		int aCount = Integer.parseInt(info.substring(aIndex + 2, cIndex - 1));
