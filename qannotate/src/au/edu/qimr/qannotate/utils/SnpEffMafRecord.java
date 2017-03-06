@@ -58,7 +58,7 @@ public class SnpEffMafRecord {
 	}
 	
 	public static String getSnpEffMafHeaderline(){
-		return Arrays.stream(MafElement.values()).map(e -> e.name()).collect(Collectors.joining(Constants.TAB_STRING));
+		return Arrays.stream(MafElement.values()).map(MafElement::name).collect(Collectors.joining(Constants.TAB_STRING));
 	}
 
 }
