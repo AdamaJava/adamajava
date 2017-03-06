@@ -22,6 +22,7 @@ import java.util.Map.Entry;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrRangePosition;
+import org.qcmg.common.util.Constants;
 
 public class Segmenter {	
 
@@ -79,10 +80,9 @@ public class Segmenter {
 
 	private Map<String, Integer> readInBounds() throws IOException {
 		try (BufferedReader reader = new BufferedReader(new FileReader(boundsFile));) {
-//			Map<String, Integer> bounds = new HashMap<String, Integer>();
 			String line;		
 			while((line = reader.readLine()) != null) {			
-				String[] vals = line.split("\t");
+				String[] vals = line.split(Constants.TAB_STRING);
 				bounds.put(vals[0], Integer.valueOf(vals[1]));
 				chromosomeOrder.add(vals[0]);
 			}
@@ -96,22 +96,17 @@ public class Segmenter {
 			int recordCount = 0;
 			while((line = reader.readLine()) != null) {
 				//skip headers
-				if (line.startsWith("#")) {
+				if (line.startsWith(Constants.HASH_STRING)) {
 					continue;
 				}
 				recordCount++;
-				String[] fields = line.split("\t");
+				String[] fields = line.split(Constants.TAB_STRING);
+				
+				String chr = fields[0];
 				
 				for (Feature f: features) {
 					if (f.getName().equals(fields[2])) {
-						String chr = fields[0];
-						List<Segment> list = segments.get(chr);
-						if (null == list)
-						if (segments.containsKey(chr)) {
-							list = segments.get(chr);
-						} 
-						list.add(new Segment(fields, f, recordCount));
-						segments.put(chr, list);
+						segments.computeIfAbsent(chr, k -> new ArrayList<Segment>()).add(new Segment(fields, f, recordCount));
 					}
 				} 			
 			}
@@ -270,7 +265,7 @@ public class Segmenter {
 //	        # 6  strand      +
 //	        # 7  phase       .
 //	        # 8  attributes  ID=ens|ENST00000423562,ens|ENST00000438504 ...
-		HashMap<String, List<Segment>> newSegments = new HashMap<String, List<Segment>>();
+		Map<String, List<Segment>> newSegments = new HashMap<>();
 		
 		for (Entry<String, List<Segment>> entry : segments.entrySet()) {
 			logger.info("Adding shoulder for chromosome: " + entry.getKey());
@@ -361,9 +356,9 @@ public class Segmenter {
 	}
 
 	private List<Segment> preShoulders(Segment currentSeg, int minPos) {
-		List<Segment> newSegments = new ArrayList<Segment>();
+		List<Segment> newSegments = new ArrayList<>();
 		
-		ArrayList<Integer> preLengths = currentSeg.getFeature().getPreList();
+		List<Integer> preLengths = currentSeg.getFeature().getPreList();
 		
 		//Check whether there's space to allocate any shoulders
 		if (minPos >= currentSeg.getPositionStart()) {
@@ -394,9 +389,9 @@ public class Segmenter {
 	}
 	
 	private List<Segment> postShoulders(Segment currentSeg, int maxPos) {
-		List<Segment> newSegments = new ArrayList<Segment>();
+		List<Segment> newSegments = new ArrayList<>();
 		
-		ArrayList<Integer> postLengths = currentSeg.getFeature().getPostList();
+		List<Integer> postLengths = currentSeg.getFeature().getPostList();
 		
 		//Check whether there's space to allocate any shoulders
 		if (maxPos <= currentSeg.getPositionEnd()) {

@@ -224,7 +224,7 @@ public final class Coverage {
 						.getLog(), moptions.getLogLevel());
 				mlogger.logInitialExecutionStats(getProgramName(),
 						getProgramVersion(), args);
-				final Coverage operation = new Coverage(moptions);
+				new Coverage(moptions);
 				exitStatus = 0; // SUCCESS
 			}
 		} catch (final Throwable e) {

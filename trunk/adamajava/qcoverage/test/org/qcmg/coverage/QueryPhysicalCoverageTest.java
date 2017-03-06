@@ -7,11 +7,6 @@ import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 
-import htsjdk.samtools.BAMIndexer;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMFileWriter;
-import htsjdk.samtools.SAMFileWriterFactory;
-import htsjdk.samtools.SAMRecord;
 
 import org.junit.After;
 import org.junit.Before;
@@ -21,7 +16,6 @@ import org.junit.rules.ExpectedException;
 import org.qcmg.common.commandline.Executor;
 import org.qcmg.gff3.GFF3FileWriter;
 import org.qcmg.gff3.GFF3Record;
-import org.qcmg.picard.SAMFileReaderFactory;
 
 public class QueryPhysicalCoverageTest {
  	
@@ -34,8 +28,7 @@ public class QueryPhysicalCoverageTest {
 	final String inputIndex2 = "coverage2.bai";
 	final String output = "output";
 	final String gff3 = "test.gff3";
-	private final String commandline = String.format("--log ./logfile --query ISIZE<50 -t phys --gff3 test.gff3 --bam coverage.bam --bai coverage.bai -o output",
-			gff3, inputBam1, inputIndex1, output);
+	private final String commandline = String.format("--log ./logfile --query ISIZE<50 -t phys --gff3 test.gff3 --bam coverage.bam --bai coverage.bai -o output");
  	
 	@Rule
 	public ExpectedException thrown = ExpectedException.none();
@@ -233,31 +226,23 @@ public class QueryPhysicalCoverageTest {
 		file.delete();
 	}
 
-	public final void multireadCoverage() throws Exception {
-	}
-
-	public static final void createCoverageSam(final String fileName)
-			throws Exception {
+	public static final void createCoverageSam(final String fileName) throws Exception {
 		File file = new File(fileName);
 
-		OutputStream os = new FileOutputStream(file);
-		PrintStream ps = new PrintStream(os);
+		try (OutputStream os = new FileOutputStream(file);
+				PrintStream ps = new PrintStream(os);) {
 
-		ps.println("@HD	VN:1.0	SO:coordinate");
-		ps.println("@RG	ID:ZZ	SM:ES	DS:rl=50	");
-		ps.println("@RG	ID:ZZZ	SM:ES	DS:rl=50	");
-		ps.println("@PG	ID:SOLID-GffToSam	VN:1.4.3");
-		ps.println("@SQ	SN:chr1	LN:100000");
-		ps.println("@SQ	SN:chr2	LN:100000");
-		ps.println("@SQ	SN:chr3	LN:100000");
-		ps
-				.println("1290_738_1025	0	chr1	54026	255	45M5H	*	0	0	AACATTCCAAAAGTCAACCATCCAAGTTTATTCTAAATAGATGTG	!DDDDDDDDDDDDDDDD''DDDDDD9DDDDDDDDD:<3B''DDD!	RG:Z:ZZ	CS:Z:T301130201000212101113201021003302230033233111	CQ:Z:BBB=B:@5?>B9A5?>B?'A49<475%@;6<+;9@'4)+8'1?:>");
-		ps
-				.println("2333_755_492	16	chr2	10103	255	10H40M	*	0	0	CACACCACACCCACACACCACACACCACACCCACACCCAC	!=DD?%+DD<)=DDD<@9)9C:DA.:DD>%%,<?('-,4!	RG:Z:ZZ	CS:Z:T0110001110211110111111111111100111001111	CQ:Z:%/&''(*6'&%+441*%=(31)<9(50=9%%8>?+%;<-1");
-		ps
-				.println("1879_282_595	0	chr3	60775	255	40M10H	*	0	0	TCTAAATTTGTTTGATCACATACTCCTTTTCTGGCTAACA	!DD,*@DDD''DD>5:DD>;DDDD=CDD8%%DA9-DDC0!	RG:Z:ZZ	CS:Z:T0223303001200123211133122020003210323011	CQ:Z:=><=,*7685'970/'437(4<:54*:84%%;/3''?;)(");
-		ps.close();
-		os.close();
+			ps.println("@HD	VN:1.0	SO:coordinate");
+			ps.println("@RG	ID:ZZ	SM:ES	DS:rl=50	");
+			ps.println("@RG	ID:ZZZ	SM:ES	DS:rl=50	");
+			ps.println("@PG	ID:SOLID-GffToSam	VN:1.4.3");
+			ps.println("@SQ	SN:chr1	LN:100000");
+			ps.println("@SQ	SN:chr2	LN:100000");
+			ps.println("@SQ	SN:chr3	LN:100000");
+			ps.println("1290_738_1025	0	chr1	54026	255	45M5H	*	0	0	AACATTCCAAAAGTCAACCATCCAAGTTTATTCTAAATAGATGTG	!DDDDDDDDDDDDDDDD''DDDDDD9DDDDDDDDD:<3B''DDD!	RG:Z:ZZ	CS:Z:T301130201000212101113201021003302230033233111	CQ:Z:BBB=B:@5?>B9A5?>B?'A49<475%@;6<+;9@'4)+8'1?:>");
+			ps.println("2333_755_492	16	chr2	10103	255	10H40M	*	0	0	CACACCACACCCACACACCACACACCACACCCACACCCAC	!=DD?%+DD<)=DDD<@9)9C:DA.:DD>%%,<?('-,4!	RG:Z:ZZ	CS:Z:T0110001110211110111111111111100111001111	CQ:Z:%/&''(*6'&%+441*%=(31)<9(50=9%%8>?+%;<-1");
+			ps.println("1879_282_595	0	chr3	60775	255	40M10H	*	0	0	TCTAAATTTGTTTGATCACATACTCCTTTTCTGGCTAACA	!DD,*@DDD''DD>5:DD>;DDDD=CDD8%%DA9-DDC0!	RG:Z:ZZ	CS:Z:T0223303001200123211133122020003210323011	CQ:Z:=><=,*7685'970/'437(4<:54*:84%%;/3''?;)(");
+		}
 	}
 
 

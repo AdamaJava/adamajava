@@ -33,8 +33,7 @@ public class InferencePhysicalCoverageTest {
 	final String inputIndex2 = "coverage2.bai";
 	final String output = "output";
 	final String gff3 = "test.gff3";
-	final String cmd =  String.format("--log ./logfile -t phys --gff3 %s --bam %s --bai %s -o output",
-			gff3, inputBam1, inputIndex1, output);
+	final String cmd =  String.format("--log ./logfile -t phys --gff3 %s --bam %s --bai %s -o output", gff3, inputBam1, inputIndex1);
 	
 	
 	@Rule
@@ -110,7 +109,7 @@ public class InferencePhysicalCoverageTest {
 
     @Test
 	public final void leftDisjointRead() throws Exception {
-		File file = createGFF3File(54000, 54025);
+		createGFF3File(54000, 54025);
 
 		ExpectedException.none();
 		Executor exec = execute(cmd);
@@ -118,12 +117,11 @@ public class InferencePhysicalCoverageTest {
 
 		File outputFile = new File("output");
 		assertTrue(outputFile.exists());
-
 	}
 
     @Test
 	public final void rightDisjointRead() throws Exception {
-		File file = createGFF3File(54077, 54120);
+		createGFF3File(54077, 54120);
 
 		ExpectedException.none();
 		Executor exec = execute(cmd);
@@ -136,7 +134,7 @@ public class InferencePhysicalCoverageTest {
    
     @Test
 	public final void leftOnEndRead() throws Exception {
-		File file = createGFF3File(54000, 54026);
+		createGFF3File(54000, 54026);
 
 		ExpectedException.none();
 		Executor exec = execute(cmd);
@@ -148,7 +146,7 @@ public class InferencePhysicalCoverageTest {
 
     @Test
 	public final void rightOnEndRead() throws Exception {
-		File file = createGFF3File(54076, 54120);
+		createGFF3File(54076, 54120);
 
 		ExpectedException.none();
 		Executor exec = execute(cmd);
@@ -160,7 +158,7 @@ public class InferencePhysicalCoverageTest {
 
     @Test
 	public final void leftOverlapRead() throws Exception {
-		File file = createGFF3File(54000, 54036);
+		createGFF3File(54000, 54036);
 
 		ExpectedException.none();
 		Executor exec = execute(cmd);
@@ -173,7 +171,7 @@ public class InferencePhysicalCoverageTest {
 
     @Test
 	public final void rightOverlapRead() throws Exception {
-		File file = createGFF3File(54050, 54120);
+		createGFF3File(54050, 54120);
 
 		ExpectedException.none();
 		Executor exec = execute(cmd);
@@ -185,7 +183,7 @@ public class InferencePhysicalCoverageTest {
 
     @Test
 	public final void supersetRead() throws Exception {
-		File file = createGFF3File(54050, 54120);
+		createGFF3File(54050, 54120);
 
 		ExpectedException.none();
 		Executor exec = execute(cmd);
@@ -198,7 +196,7 @@ public class InferencePhysicalCoverageTest {
     
     @Test
 	public final void subsetRead() throws Exception {
-		File file = createGFF3File(54030, 54070);
+		createGFF3File(54030, 54070);
 
 		ExpectedException.none();
 		Executor exec = execute(cmd);
@@ -209,42 +207,24 @@ public class InferencePhysicalCoverageTest {
 
 	}
 
-    // TODO: No logging fail
-    // TODO: Log level
-    // TODO: BAI file inferencing single BAM
-    // TODO: Multibam file reading test
-    // TODO: BAI File inferencing multiple BAM
-    // TODO: strict testing
-    // TODO: Malformed testing
-    // TODO: Query testing (including strict and malformed and BAI inferencing and multibam)
-    // TODO: Perfeature
-    // TODO: XML out check
-    
-	public final void multireadCoverage() throws Exception {
-	}
 
-	public static final void createCoverageSam(final String fileName)
-			throws Exception {
+	public static final void createCoverageSam(final String fileName) throws Exception {
 		File file = new File(fileName);
 
-		OutputStream os = new FileOutputStream(file);
-		PrintStream ps = new PrintStream(os);
-
-		ps.println("@HD	VN:1.0	SO:coordinate");
-		ps.println("@RG	ID:ZZ	SM:ES	DS:rl=50	");
-		ps.println("@RG	ID:ZZZ	SM:ES	DS:rl=50	");
-		ps.println("@PG	ID:SOLID-GffToSam	VN:1.4.3");
-		ps.println("@SQ	SN:chr1	LN:100000");
-		ps.println("@SQ	SN:chr2	LN:100000");
-		ps.println("@SQ	SN:chr3	LN:100000");
-		ps
-				.println("1290_738_1025	0	chr1	54026	255	45M5H	*	0	0	AACATTCCAAAAGTCAACCATCCAAGTTTATTCTAAATAGATGTG	!DDDDDDDDDDDDDDDD''DDDDDD9DDDDDDDDD:<3B''DDD!	RG:Z:ZZ	CS:Z:T301130201000212101113201021003302230033233111	CQ:Z:BBB=B:@5?>B9A5?>B?'A49<475%@;6<+;9@'4)+8'1?:>");
-		ps
-				.println("2333_755_492	16	chr2	10103	255	10H40M	*	0	0	CACACCACACCCACACACCACACACCACACCCACACCCAC	!=DD?%+DD<)=DDD<@9)9C:DA.:DD>%%,<?('-,4!	RG:Z:ZZ	CS:Z:T0110001110211110111111111111100111001111	CQ:Z:%/&''(*6'&%+441*%=(31)<9(50=9%%8>?+%;<-1");
-		ps
-				.println("1879_282_595	0	chr3	60775	255	40M10H	*	0	0	TCTAAATTTGTTTGATCACATACTCCTTTTCTGGCTAACA	!DD,*@DDD''DD>5:DD>;DDDD=CDD8%%DA9-DDC0!	RG:Z:ZZ	CS:Z:T0223303001200123211133122020003210323011	CQ:Z:=><=,*7685'970/'437(4<:54*:84%%;/3''?;)(");
-		ps.close();
-		os.close();
+		try (OutputStream os = new FileOutputStream(file);
+			PrintStream ps = new PrintStream(os);) {
+	
+			ps.println("@HD	VN:1.0	SO:coordinate");
+			ps.println("@RG	ID:ZZ	SM:ES	DS:rl=50	");
+			ps.println("@RG	ID:ZZZ	SM:ES	DS:rl=50	");
+			ps.println("@PG	ID:SOLID-GffToSam	VN:1.4.3");
+			ps.println("@SQ	SN:chr1	LN:100000");
+			ps.println("@SQ	SN:chr2	LN:100000");
+			ps.println("@SQ	SN:chr3	LN:100000");
+			ps.println("1290_738_1025	0	chr1	54026	255	45M5H	*	0	0	AACATTCCAAAAGTCAACCATCCAAGTTTATTCTAAATAGATGTG	!DDDDDDDDDDDDDDDD''DDDDDD9DDDDDDDDD:<3B''DDD!	RG:Z:ZZ	CS:Z:T301130201000212101113201021003302230033233111	CQ:Z:BBB=B:@5?>B9A5?>B?'A49<475%@;6<+;9@'4)+8'1?:>");
+			ps.println("2333_755_492	16	chr2	10103	255	10H40M	*	0	0	CACACCACACCCACACACCACACACCACACCCACACCCAC	!=DD?%+DD<)=DDD<@9)9C:DA.:DD>%%,<?('-,4!	RG:Z:ZZ	CS:Z:T0110001110211110111111111111100111001111	CQ:Z:%/&''(*6'&%+441*%=(31)<9(50=9%%8>?+%;<-1");
+			ps.println("1879_282_595	0	chr3	60775	255	40M10H	*	0	0	TCTAAATTTGTTTGATCACATACTCCTTTTCTGGCTAACA	!DD,*@DDD''DD>5:DD>;DDDD=CDD8%%DA9-DDC0!	RG:Z:ZZ	CS:Z:T0223303001200123211133122020003210323011	CQ:Z:=><=,*7685'970/'437(4<:54*:84%%;/3''?;)(");
+		}
 	}
 
 
