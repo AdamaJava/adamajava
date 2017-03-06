@@ -76,7 +76,7 @@ public class QDccMetaFactoryTest {
 		
 		QExec qexec = new QExec("QDccMetaFactoryTest", "0.1-beta", null);
 		try {
-			QDccMeta dccMeta = QDccMetaFactory.getDccMeta(qexec, controlHeader, analysisHeader, "testGetDccMeta");
+			QDccMetaFactory.getDccMeta(qexec, controlHeader, analysisHeader, "testGetDccMeta");
 			Assert.fail("Should have thrown an exception");
 		} catch (Exception e) {}
 	}

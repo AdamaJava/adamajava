@@ -15,8 +15,7 @@ import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
 
 public class SAMReadGroupRecordUtils {
-	
-	public static final SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+	public static final String df = "dd/MM/yyyy";
 	
 	public static String getRGString(SAMReadGroupRecord rec) {
 		if (null == rec) throw new IllegalArgumentException("null SAMReadGroupRecord passed to getRGString");
@@ -29,7 +28,7 @@ public class SAMReadGroupRecordUtils {
 		if ( ! StringUtils.isNullOrEmpty(rec.getDescription()))
 			sb.append(StringUtils.getTabAndString(SAMReadGroupRecord.DESCRIPTION_TAG)).append(Constants.COLON).append(rec.getDescription());
 		if (null != (rec.getRunDate()))
-			sb.append(StringUtils.getTabAndString(SAMReadGroupRecord.DATE_RUN_PRODUCED_TAG)).append(Constants.COLON).append(sdf.format(rec.getRunDate()));
+			sb.append(StringUtils.getTabAndString(SAMReadGroupRecord.DATE_RUN_PRODUCED_TAG)).append(Constants.COLON).append(new SimpleDateFormat(df).format(rec.getRunDate()));
 		if ( ! StringUtils.isNullOrEmpty(rec.getFlowOrder()))
 			sb.append(StringUtils.getTabAndString(SAMReadGroupRecord.FLOW_ORDER_TAG)).append(Constants.COLON).append(rec.getFlowOrder());
 		if ( ! StringUtils.isNullOrEmpty(rec.getKeySequence()))
