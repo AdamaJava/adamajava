@@ -6,11 +6,11 @@
  */
 package org.qcmg.qbasepileup.indel;
 
-import java.util.Map;
 
 import htsjdk.samtools.reference.IndexedFastaSequenceFile;
 import htsjdk.samtools.SAMRecord;
 
+import org.qcmg.common.util.Constants;
 import org.qcmg.qbamfilter.query.QueryExecutor;
 import org.qcmg.qbasepileup.InputBAM;
 import org.qcmg.qbasepileup.Options;
@@ -24,8 +24,8 @@ public class IndelPositionPileup {
 	private IndelPileup tumourPileup;
 	private IndelPileup normalPileup;
 	private String pileupFlags = new String();
-	private Options options;
-	private IndexedFastaSequenceFile indexedFasta;
+	private final Options options;
+	private final IndexedFastaSequenceFile indexedFasta;
 	
 	public IndelPositionPileup(InputBAM tumourBam, InputBAM normalBam, org.qcmg.qbasepileup.indel.IndelPosition position, Options options, IndexedFastaSequenceFile indexedFastaFile) throws QBasePileupException {
 		this.position = position;
@@ -71,49 +71,9 @@ public class IndelPositionPileup {
         normalPileup.pileupReads(exec, indexedFasta);
         this.pileupFlags = calculatePileupFlags();
         
-        //parsePindelInput();        
 	}
 	
-//	private void parsePindelInput() {
-//		if (options.getPindelMutations() != null) {
-//        	Map<String, String[]> pindelMutations = options.getPindelMutations();
-//        	String key = position.getChromosome() + ":" + position.getStart() + ":" + position.getEnd() + ":" + position.getMutationType();
-//        	if (pindelMutations.containsKey(key)) {
-//        		String[] vals = pindelMutations.get(key);
-//        		String qcmgCount = tumourPileup.getSupportingReads() + ";" + normalPileup.getSupportingReads();
-//        		String pindelCount = vals[0];
-//        		
-////        		if (!pindelCount.equals(qcmgCount)) {
-////        			String[] tumour = vals[1].split(";");
-////            		String[] normal = vals[2].split(";");            		
-////            		            		
-////            		//analyseReads(key, "Tumour", tumourPileup, tumour);
-////            		//analyseReads(key, "Normal", normalPileup, normal);
-////        		}
-//        	}        	
-//        }		
-//	}
 
-//	private void analyseReads(String key, String type, IndelPileup pileup, String[] pindelReads) {
-//		for (Map.Entry<String, SAMRecord> entry: pileup.getRecords().entrySet()) {			
-//			boolean found = false;
-//			for (String s: pindelReads) {
-//				if (s.equals(entry.getKey())) {
-//					found = true;					
-//				}
-//			}
-////			if (!found && entry.getValue().getMappingQuality() > 20) {
-////				System.out.println("not found: " + "\t" + key + "\t" + type + "\t" + entry.getValue().getSAMString());				
-////			}
-//		}
-//		
-//		for (String s: pindelReads) {
-////			if (!pileup.getRecords().containsKey(s)) {
-////				System.out.println("Pindel" + "\t" + key + "\t" + type + "\t" + s);
-////			}
-//		}
-//		
-//	}
 
 	//pileup single reads only
 	public void pileupRead(SAMRecord r, boolean isTumour) {
@@ -195,35 +155,35 @@ public class IndelPositionPileup {
 		StringBuilder output = new StringBuilder();
         
         //get the original string
-		String[] values = position.getInputString().split("\t");
+		String[] values = position.getInputString().split(Constants.TAB_STRING);
 		
 		for (int i=0; i<values.length; i++) {
 			if (i == position.getTdColumn()) {
-				output.append(tumourPileup.toDCCString() + "\t");
+				output.append(tumourPileup.toDCCString()).append(Constants.TAB);
 			} else if (i == position.getNdColumn()) {
-				output.append(normalPileup.toDCCString() + "\t");
+				output.append(normalPileup.toDCCString()).append(Constants.TAB);
 			} else if (i == position.getQCMGFlagColumn()) {				
 				String flags = values[i];
 				
-				if (!pileupFlags.equals("")) {
+				if ( ! pileupFlags.equals("")) {
 					//add semi colon if required
-					if (flags != "" && !flags.endsWith(";")) {
+					if ( ! "".equals(flags) && ! flags.endsWith(";")) {
 						flags += ";";
 					}
 					flags += pileupFlags;
-					output.append(flags + "\t");
+					output.append(flags).append(Constants.TAB);
 				} else {
 					if (flags.equals("PASS;")) {
-						output.append("PASS" + "\t");
+						output.append("PASS\t");
 					} else {
-						output.append(values[i] + "\t");
+						output.append(values[i]).append(Constants.TAB);
 					}
 				}				
 			} else {
-				output.append(values[i] + "\t");
+				output.append(values[i]).append(Constants.TAB);
 			}
 		}        		
-		output.append("\n");
+		output.append(Constants.NL);
         return output.toString();
 	}
 

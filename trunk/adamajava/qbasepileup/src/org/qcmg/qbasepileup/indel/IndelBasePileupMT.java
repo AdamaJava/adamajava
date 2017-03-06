@@ -39,7 +39,7 @@ import org.qcmg.qbasepileup.QBasePileupUtil;
 public class IndelBasePileupMT {
 	
 	private static QLogger logger = QLoggerFactory.getLogger(IndelBasePileupMT.class);
-	private Options options;
+	private final Options options;
 	AtomicInteger totalExamined = new AtomicInteger();
 	AtomicInteger positionCount = new AtomicInteger();
 	AtomicInteger uniquePositionCount = new AtomicInteger();
@@ -48,10 +48,10 @@ public class IndelBasePileupMT {
 	final int sleepUnit = 20;
 	final int maxRecords = 100000;
 	final int checkPoint = 10000;
-	private File inputFile;
-	private File outputFile;
-	private boolean isGermline;
-	private File pileupFile;
+	private final File inputFile;
+	private final File outputFile;
+	private final boolean isGermline;
+	private final File pileupFile;
 	private int[] dccColumns = new int[3];
 	
 	public IndelBasePileupMT(File inputFile, File outputFile, File pileupFile, boolean isGermline, Options options) throws Exception {		
@@ -162,8 +162,8 @@ public class IndelBasePileupMT {
         private final Thread mainThread;
         private final CountDownLatch readLatch;
         private final CountDownLatch pileupLatch;		
-		private File inputFile;
-		private ArrayList<IndelPosition> positions;		
+		private final File inputFile;
+		private final ArrayList<IndelPosition> positions;		
 
         public Reading(AbstractQueue<IndelPosition> q, Thread mainThread,
                 CountDownLatch readLatch, CountDownLatch filterLatch, File inputFile) {
@@ -264,9 +264,8 @@ public class IndelBasePileupMT {
 	        private final CountDownLatch pileupLatch;
 	        private final CountDownLatch writeLatch;
 	        private int countOutputSleep;
-			private String file = null;
-			private InputBAM tumourBam;
-			private InputBAM normalBam;
+			private final InputBAM tumourBam;
+			private final InputBAM normalBam;
 			QueryExecutor exec = null;
 	        public Pileup(AbstractQueue<IndelPosition> queueIn,
 	                AbstractQueue<String[]> writeQueue, Thread mainThread,
@@ -360,7 +359,7 @@ public class IndelBasePileupMT {
 	                logger.info("Completed pileup thread: "
 	                        + Thread.currentThread().getName());
 	            } catch (Exception e) {
-	            	logger.error("Setting exit status in pileup thread to 1 as exception caught file: " + file + " " + QBasePileupUtil.getStrackTrace(e));
+	            	logger.error("Setting exit status in pileup thread to 1 as exception caught file: " + options.getReference() + " " + QBasePileupUtil.getStrackTrace(e));
 	    	        if (exitStatus.intValue() == 0) {
 	    	        	exitStatus.incrementAndGet();
 	    	        }
@@ -383,7 +382,7 @@ public class IndelBasePileupMT {
 	        private final Thread mainThread;
 	        private final CountDownLatch filterLatch;
 	        private final CountDownLatch writeLatch;
-			private List<String> headers;
+			private final List<String> headers;
 
 	        public Writing(AbstractQueue<String[]> q, File f, File pileupFile, Thread mainThread,
 	                CountDownLatch fLatch, CountDownLatch wLatch, List<String> headers) {

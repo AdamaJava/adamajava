@@ -42,8 +42,6 @@ import org.qcmg.qbasepileup.QBasePileupUtil;
 
 public class SnpBasePileupMT {
 	
-	private static final ReferenceNameComparator REF_NAME_COMP = new ReferenceNameComparator();
-
 	private static QLogger logger = QLoggerFactory.getLogger(SnpBasePileupMT.class);
 	private final Options options;
 	private final AtomicInteger totalExamined = new AtomicInteger();
@@ -246,10 +244,10 @@ public class SnpBasePileupMT {
 		private final String file = null;
 		private QueryExecutor exec = null;
 
-				public Pileup(AbstractQueue<SnpPosition> queueIn,
+		public Pileup(AbstractQueue<SnpPosition> queueIn,
 				AbstractQueue<String> queueOut, Thread mainThread,
 				CountDownLatch pileupLatch,
-				CountDownLatch wGoodLatch, List<InputBAM> inputs, Set<SnpPosition> uniqueSnps) throws Exception {
+				CountDownLatch wGoodLatch, List<InputBAM> inputs, Set<SnpPosition> uniqueSnps) {
 			this.queueIn = queueIn;
 			this.queueOut = queueOut;
 			this.mainThread = mainThread;

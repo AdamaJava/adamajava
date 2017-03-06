@@ -40,7 +40,7 @@ public class Options {
 	private boolean novelstarts = false;
 	private boolean intron = true;
 	private boolean indel = true;
-	private Integer threadNo = 1;
+	private int threadNo = 1;
 	private final List<InputBAM> inputBAMs = new ArrayList<InputBAM>();
 	private File hdf;
 	private String inputType;
@@ -52,7 +52,7 @@ public class Options {
 	public int softClipWindow = 13;
 	private InputBAM tumourBam;
 	private InputBAM normalBam;
-	private String mode= new String("snp");
+	private String mode= QBasePileupConstants.SNP_MODE;
 	private File germlineIndelFile;
 	private File somaticOutputFile;
 	private File germlineOutputFile;
