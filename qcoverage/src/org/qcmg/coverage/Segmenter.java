@@ -586,19 +586,16 @@ public class Segmenter {
 	            	for (Segment segment : segmentList) {
 	            		if (segment.getPositionStart() > chrEnd) {
 	            			//feature outside bounds so drop it
-	            			continue;
 	            		} else if (segment.getPositionEnd() > chrEnd) {
 	            			//feature outside bounds so truncating feature
 	            			logger.info("truncating " + segment.getPositionString());
 	            			
 	            			
 	            			// create new Segment object with updated end position
-							ChrRangePosition newChrPos = new ChrRangePosition(segment.getPosition().getChromosome(), segment.getPosition().getStartPosition(), chrEnd);
-							segment = new Segment(segment.getFields(), segment.getFeature(), newChrPos, segment.getRecordCount());
-	//             			segment.setPositionEnd(chrEnd);        			
+						ChrRangePosition newChrPos = new ChrRangePosition(segment.getPosition().getChromosome(), segment.getPosition().getStartPosition(), chrEnd);
+						segment = new Segment(segment.getFields(), segment.getFeature(), newChrPos, segment.getRecordCount());
 	            			writer.write(segment.toString());
 	            		} else {
-	            			//logger.info(segment.toString());
 	            			writer.write(segment.toString());
 	            		}
 	            	} 
