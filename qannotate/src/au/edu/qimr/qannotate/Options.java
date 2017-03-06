@@ -61,9 +61,9 @@ public class Options {
 	protected  final int bufferSize; //trf
 	protected  final int gap ; //cadd
 	
-	private final Optional<Integer> nnsCount;
-	private final Optional<Integer> mrCount;
-	private final Optional<Float> mrPercentage;
+	private final Integer nnsCount;
+	private final Integer mrCount;
+	private final Float mrPercentage;
 	
 	private final  List<String> filtersToIgnore;
 	
@@ -117,9 +117,9 @@ public class Options {
         bufferSize = (options.has("buffer"))? (Integer) options.valueOf("buffer") : 0; //TRF default is 0
         
         
-        nnsCount = Optional.ofNullable((Integer) options.valueOf("nnsCounts"));
-        mrCount = Optional.ofNullable((Integer) options.valueOf("mrCounts"));
-        mrPercentage = Optional.ofNullable((Float) options.valueOf("mrPercentage"));
+        nnsCount = ((Integer) options.valueOf("nnsCounts"));
+        mrCount = ((Integer) options.valueOf("mrCounts"));
+        mrPercentage = ((Float) options.valueOf("mrPercentage"));
         filtersToIgnore = (List<String>) options.valuesOf("filtersToIgnore");
         
         
@@ -330,13 +330,13 @@ public class Options {
 	public int getHomoplymersReportSize(){ return (mode.equals(MODE.hom))? homReportSize : -1; } //cadd
 	
 	public Optional<Integer> getNNSCount() {
-		return nnsCount;
+		return Optional.ofNullable(nnsCount);
 	}
 	public Optional<Float> getMRPercentage() {
-		return mrPercentage;
+		return Optional.ofNullable(mrPercentage);
 	}
 	public Optional<Integer> getMRCount() {
-		return mrCount;
+		return Optional.ofNullable(mrCount);
 	}
 
 	public List<String> getFiltersToIgnore() {
