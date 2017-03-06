@@ -5,22 +5,12 @@ import static org.junit.Assert.assertTrue;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.FileWriter;
-import java.io.BufferedWriter;
 import java.util.*;
 
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMFileWriter;
-import htsjdk.samtools.SAMRecord;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.qcmg.common.commandline.Executor;
-import org.qcmg.common.log.QLogger;
-import org.qcmg.picard.SAMFileReaderFactory;
-import org.qcmg.picard.SAMOrBAMWriterFactory;
 
 public class MtCountsTest {
 	
@@ -31,12 +21,17 @@ public class MtCountsTest {
 
 	@After
 	public void deleteIO() throws IOException{
-		File dir = new java.io.File( "." ).getCanonicalFile();		
-		for(File f: dir.listFiles())
-		    if(  f.getName().startsWith("input") || f.getName().startsWith("output") )
-		    	f.delete();
-	 		
+		File dir = new java.io.File( "." ).getCanonicalFile();
+		File[] files =dir.listFiles();
+		if (null != files) {
+			for(File f: files) {
+			    if(  f.getName().startsWith("input") || f.getName().startsWith("output") ) {
+			    		f.delete();
+			    }
+			}
+		}
 	}
+	
 	@Before
 	public void createIO(){
 		TestFiles.CreateBAM(INPUTs[0], INPUTs[1]);
@@ -55,7 +50,11 @@ public class MtCountsTest {
 		
 		String content;	
 		int lineNo = 0; 
-	    try (Scanner scanner = new Scanner(new FileReader(new File(output))).useDelimiter("\\n") ) {
+	    try (
+	    		Scanner scanner = new Scanner(new FileReader(new File(output))) ) {
+	    	
+	    	scanner.useDelimiter("\\n");
+	    	
 	    	while(scanner.hasNext()){
 	    		lineNo ++;	    		
 	    		content = scanner.next();		    		
@@ -92,7 +91,10 @@ public class MtCountsTest {
 		
 		String content;	
 		int lineNo = 0;
-	    try (Scanner scanner = new Scanner(new FileReader(new File(output))).useDelimiter("\\n") ) {
+	    try (
+	    		Scanner scanner = new Scanner(new FileReader(new File(output))) ) {
+	    	
+	    	scanner.useDelimiter("\\n");
 	    	while(scanner.hasNext()){	 
 	    		lineNo ++;
 	    		content = scanner.next();
