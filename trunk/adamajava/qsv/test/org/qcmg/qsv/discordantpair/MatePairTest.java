@@ -26,9 +26,9 @@ import org.qcmg.qsv.discordantpair.PairClassification;
 import org.qcmg.qsv.util.TestUtil;
 
 public class MatePairTest {
-    private static List<SAMRecord> records;
-    private static List<MatePair> pairs;
-    private static String fileName;
+    private List<SAMRecord> records;
+    private List<MatePair> pairs;
+    private  String fileName;
 
     @Rule
     public TemporaryFolder testFolder = new TemporaryFolder();

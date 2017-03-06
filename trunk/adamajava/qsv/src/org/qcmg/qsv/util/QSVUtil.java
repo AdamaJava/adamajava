@@ -530,7 +530,7 @@ public class QSVUtil {
 	public static boolean createRecord(int bpPos, Integer chrStart, Integer chrEnd) {
 
 		return chrStart == null && chrEnd == null
-				|| bpPos >= chrStart.intValue() && bpPos <=chrEnd.intValue();
+				|| (null != chrStart && bpPos >= chrStart.intValue() && null != chrEnd && bpPos <=chrEnd.intValue());
 
 	}
 

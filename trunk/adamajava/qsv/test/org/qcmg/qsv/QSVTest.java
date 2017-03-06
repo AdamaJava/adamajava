@@ -28,10 +28,10 @@ import org.qcmg.qsv.util.TestUtil;
 
 public class QSVTest {
 
-    private static File normalBam;
-    private static File tumorBam;
-    private static File filteredNormalBam;
-    private static File filteredTumorBam;
+    private  File normalBam;
+    private  File tumorBam;
+    private  File filteredNormalBam;
+    private  File filteredTumorBam;
     private PrintStream defaultOutstream = null;
     private PrintStream testOutPrintStream = null;
     private ByteArrayOutputStream testOut = null;
