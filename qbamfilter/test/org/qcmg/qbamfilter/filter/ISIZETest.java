@@ -64,9 +64,8 @@ public class ISIZETest {
         try (SamReader Inreader = SAMFileReaderFactory.createSAMFileReader(new File(TestFile.INPUT_FILE_NAME));){    //new SAMFileReader(new File(TestFile.INPUT_FILE_NAME));) {
 	        SamRecordFilter filter = new IsizeFilter(Comparator.Great, "-101");
 	        for(SAMRecord re : Inreader){
-	        	re.setInferredInsertSize(-100);
+	        		re.setInferredInsertSize(-100);
 	            assertTrue(filter.filterOut(re));
-	            break;
 	       }
         }
 
