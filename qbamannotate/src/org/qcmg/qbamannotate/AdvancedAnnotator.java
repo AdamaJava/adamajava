@@ -7,8 +7,7 @@ import java.io.File;
 
 public final class AdvancedAnnotator {
 	private int unmatchedRecordCount = 0;
-	private AnnotatorType type;
-	private String xmlReport;
+	private final AnnotatorType type;
 
 	public AdvancedAnnotator(final String outputFileName,
 			final String inputBAMFileName, final String firstInputMAFileName,
@@ -30,8 +29,7 @@ public final class AdvancedAnnotator {
 		File canonicalFile = outputFile.getCanonicalFile();
 		File outputDir = canonicalFile.getParentFile();
 		File tempFile = File.createTempFile("tmp", ext, outputDir);
-		Annotator firstPass = new Annotator(tempFile, inputBAMFile,
-				firstMAFile, type);
+		new Annotator(tempFile, inputBAMFile, firstMAFile, type);
 		type.generateReport();
 		type.resetCount();
 		Annotator secondPass = new Annotator(outputFile, tempFile,
@@ -84,7 +82,4 @@ public final class AdvancedAnnotator {
 		return ext;
 	}
 
-	public String getXmlReport() {
-		return xmlReport;
-	}
 }
