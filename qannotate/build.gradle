@@ -12,7 +12,6 @@ dependencies {
     configurations.compile.transitive = true
 
     compile project(':qcommon')
-    compile project(':qpicard')
     compile project(':qio')
 
 	compile name: 'snpEff', version: '4.0e'	
