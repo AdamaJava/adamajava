@@ -45,8 +45,8 @@ public class ExpressionTest {
         //only check the first record
     	SamReader inreader = SAMFileReaderFactory.createSAMFileReader(new File(TestFile.INPUT_FILE_NAME));    //new SAMFileReader(new File(TestFile.INPUT_FILE_NAME));
         for(SAMRecord record : inreader){
-        	assertTrue( exp1.filterOut(record) == true);
-        	assertTrue( exp2.filterOut(record) == false); 
+        	assertTrue( exp1.filterOut(record));
+        	assertFalse( exp2.filterOut(record)); 
         	break;
 	    }
         inreader.close();
@@ -68,8 +68,8 @@ public class ExpressionTest {
       //only check the first record
     	SamReader inreader = SAMFileReaderFactory.createSAMFileReader(new File(TestFile.INPUT_FILE_NAME));    //new SAMFileReader(new File(TestFile.INPUT_FILE_NAME));
         for(SAMRecord record : inreader){
-        	assertTrue( exp1.filterOut(record) == true);
-        	assertTrue( exp2.filterOut(record) == false); 
+        	assertTrue( exp1.filterOut(record));
+        	assertFalse( exp2.filterOut(record)); 
         	break;
 	    }
         inreader.close();
@@ -97,9 +97,9 @@ public class ExpressionTest {
        //only check the first record
     	SamReader inreader = SAMFileReaderFactory.createSAMFileReader(new File(TestFile.INPUT_FILE_NAME));    //new SAMFileReader(new File(TestFile.INPUT_FILE_NAME));
         for(SAMRecord record : inreader){
-        	assertTrue( exp1.filterOut(record) == true);
-        	assertTrue( exp2.filterOut(record) == false); 
-        	assertTrue( exp3.filterOut(record) == true); 
+        	assertTrue( exp1.filterOut(record) );
+        	assertFalse( exp2.filterOut(record)); 
+        	assertTrue( exp3.filterOut(record) ); 
         	break;
 	    }
         inreader.close();       
