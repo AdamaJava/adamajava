@@ -30,7 +30,6 @@ import org.qcmg.qbasepileup.InputBAM;
 import org.qcmg.qbasepileup.Options;
 import org.qcmg.qbasepileup.QBasePileupConstants;
 import org.qcmg.qbasepileup.QBasePileupException;
-import org.qcmg.qbasepileup.QBasePileupUtil;
 import static org.qcmg.qbasepileup.QBasePileupUtil.TAB;
 
 public class SnpPositionPileup {
@@ -270,8 +269,6 @@ public class SnpPositionPileup {
 	private void pileupFile(SamReader reader) throws Exception {
 		
 		SAMRecordIterator iter = reader.queryOverlapping(position.getFullChromosome(), position.getStart(), position.getEnd());
-//		logger.info("about to get: " + position.getFullChromosome() + "-" +  position.getStart() + "-" + position.getEnd());
-//		SAMRecordIterator iter = input.getSAMFileReader().queryOverlapping(position.getFullChromosome(), position.getStart(), position.getEnd());
 		
 		while (iter.hasNext()) {
 			SAMRecord r = iter.next();
@@ -698,8 +695,7 @@ public class SnpPositionPileup {
 		}
 	}
 
-	private void countCoverageReferenceBases(String refBases,
-			Map<String, AtomicInteger> map) {
+	private void countCoverageReferenceBases(String refBases, Map<String, AtomicInteger> map) {
 		for (Entry<String, AtomicInteger> entry : map.entrySet()) {
 			if (entry.getKey().equals(refBases)) {
 				referenceBaseCount += entry.getValue().intValue();
