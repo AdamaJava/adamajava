@@ -1,5 +1,6 @@
 package org.qcmg.picard.util;
 
+import htsjdk.samtools.Cigar;
 import htsjdk.samtools.CigarElement;
 import htsjdk.samtools.CigarOperator;
 import htsjdk.samtools.SAMRecord;
@@ -88,31 +89,22 @@ public class PairedRecordUtils {
 	 		
 		//get softClip
 		int lSoft = 0;
-		for (CigarElement ce : record.getCigar().getCigarElements())
-			if (ce.getOperator().equals(CigarOperator.SOFT_CLIP))  
+		for (CigarElement ce : record.getCigar().getCigarElements()) {
+			if (ce.getOperator().equals(CigarOperator.SOFT_CLIP))  {
 				 lSoft += ce.getLength();
- 
+			}	 
+		}
 		//canonical read : readLength - softClip - TLEN 
-		if(record.getReadNegativeStrandFlag() == record.getMateNegativeStrandFlag()) 
+		if(record.getReadNegativeStrandFlag() == record.getMateNegativeStrandFlag()) {
 			return record.getReadLength() - lSoft - record.getInferredInsertSize();
-		else{
+		} else {
 			//non-canocial reads: min(both read_end) - max(both read_start) 
 			int mate_end = record.getInferredInsertSize() + record.getAlignmentStart();
 			int read_end = record.getAlignmentStart() + record.getReadLength() - lSoft;
 			return Math.min( read_end, mate_end ) - Math.max(record.getAlignmentStart(), record.getMateAlignmentStart() );
 		} 	
-    	
     }
     
-    /**
-     * Insert size  is larger than upper limit 
-     * @return true if successful
-     */
-    public static boolean isDistanceTooLarge(SAMRecord  record, int isizeUpperLimit) {
-        int absoluteISize = Math.abs(record.getInferredInsertSize());
-        return absoluteISize > isizeUpperLimit;
-    }
-        
     private static boolean isReadF3(SAMRecord  record) {  return record.getFirstOfPairFlag();  }
 
     private static boolean isReadF5(SAMRecord  record) {   return record.getSecondOfPairFlag();  }	
