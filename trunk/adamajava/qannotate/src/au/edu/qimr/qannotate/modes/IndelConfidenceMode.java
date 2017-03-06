@@ -91,19 +91,14 @@ public class IndelConfidenceMode extends AbstractMode{
             String line;
             while (( line = reader.readLine()) != null) {
                 String[] array = line.split(" ");
-                try{
-                    	//int no = Integer.parseInt(array[0]) - 1;
-                    	String chr = IndelUtils.getFullChromosome(array[0]);
-                    	
-                    	int start = Integer.parseInt(array[1]);
-                    	int end = Integer.parseInt(array[2]);
-                    	
-                    	mask.computeIfAbsent(chr, (v) -> new BitSet()).set(start,end);
+                	//int no = Integer.parseInt(array[0]) - 1;
+                	String chr = IndelUtils.getFullChromosome(array[0]);
                 	
-                } catch(NumberFormatException e){
-                	 //logger.warn("can't convert mask file string into integer: " + line);
-                	 continue;
-                }
+                	int start = Integer.parseInt(array[1]);
+                	int end = Integer.parseInt(array[2]);
+                	
+                	mask.computeIfAbsent(chr, (v) -> new BitSet()).set(start,end);
+                	
             }
 		}        
 	}
