@@ -184,14 +184,15 @@ public final class JobQueue {
 		final StringBuilder gffErrors = new StringBuilder();
 		try (GFF3FileReader gff3Reader = new GFF3FileReader(gff3File);) {
 			for (GFF3Record record : gff3Reader) {
-				numberFeatures++;
-				String refName = record.getSeqId();
-				int position = record.getEnd();
-				Integer existingPosition = gff3RefNames.get(refName);
-				if (null == existingPosition || existingPosition.longValue() < position) {
-					gff3RefNames.put(refName, position);
-				}
-				if ( ! isGff3RecordValid(record)) {
+				if (isGff3RecordValid(record)) {
+					numberFeatures++;
+					String refName = record.getSeqId();
+					int position = record.getEnd();
+					Integer existingPosition = gff3RefNames.get(refName);
+					if (null == existingPosition || existingPosition.longValue() < position) {
+						gff3RefNames.put(refName, position);
+					}
+				} else {
 					gffErrors.append("Start position > end position at line no: ")
 						.append(numberFeatures).append(", rec: ")
 						.append(null == record ? "null" : record.getRawData()).append(Constants.NL);

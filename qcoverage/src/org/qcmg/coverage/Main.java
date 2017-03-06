@@ -30,10 +30,10 @@ public final class Main {
 				if (options.hasSegementerOption()) {
 					logger.info("Running segmenter");
 					String cmdLine = QLogger.reconstructCommandLine("qcoverage", args);	
-					Segmenter operation = new Segmenter(options, cmdLine);
+					new Segmenter(options, cmdLine);
 				} else {
 					logger.info("Running coverage");
-					Coverage operation = new Coverage(options);					
+					new Coverage(options);					
 				}
 				exitStatus = 0; // SUCCESS
 			}
