@@ -40,16 +40,16 @@ public class FlagFilter  implements SamRecordFilter{
       * query: Flag_properPaire == true; // it return false even it is an invalid flag
      */
         public boolean checkFlag(final SAMRecord record){
-            boolean ReadPairedFlag = record.getReadPairedFlag();
+            boolean readPairedFlag = record.getReadPairedFlag();
             switch(this){
-                case ReadPaired: return ReadPairedFlag;
-                case ProperPair: return ReadPairedFlag ? record.getProperPairFlag() : false;
-                case ReadUnmapped: return ReadPairedFlag ? record.getReadUnmappedFlag() : false;
-                case Mateunmapped: return ReadPairedFlag ? record.getMateUnmappedFlag() : false;
+                case ReadPaired: return readPairedFlag;
+                case ProperPair: return readPairedFlag && record.getProperPairFlag();
+                case ReadUnmapped: return readPairedFlag && record.getReadUnmappedFlag();
+                case Mateunmapped: return readPairedFlag && record.getMateUnmappedFlag();
                 case ReadNegativeStrand: return record.getReadNegativeStrandFlag();
-                case MateNegativeStrand: return ReadPairedFlag ? record.getMateNegativeStrandFlag() : false;
-                case FirstOfpair: return ReadPairedFlag ? record.getFirstOfPairFlag():false;
-                case SecondOfpair: return ReadPairedFlag ? record.getSecondOfPairFlag() : false;
+                case MateNegativeStrand: return readPairedFlag && record.getMateNegativeStrandFlag();
+                case FirstOfpair: return readPairedFlag && record.getFirstOfPairFlag();
+                case SecondOfpair: return readPairedFlag && record.getSecondOfPairFlag();
                 case NotprimaryAlignment: return record.getNotPrimaryAlignmentFlag();
                 case ReadFailsVendorQuality: return record.getReadFailsVendorQualityCheckFlag();
                 case DuplicateRead: return record.getDuplicateReadFlag();

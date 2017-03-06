@@ -106,8 +106,7 @@ public class FileUtils {
 			File parentDir = file.getParentFile();		
 			
 			if (null == parentDir) parentDir = new File(System.getProperty("user.dir") );		
-			return null != parentDir ? parentDir.canWrite() : false;
-//			return parentDir.canWrite();			
+			return null != parentDir && parentDir.canWrite();
 		}
 	}
 	public static boolean canFileBeWrittenTo(final String file) {
