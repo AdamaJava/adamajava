@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -29,14 +30,14 @@ public class TandemRepeatModeTest {
 	public void checkRepeatTest() throws Exception{
 		createRepeat();
 		TandemRepeatMode trf = new TandemRepeatMode( inputVcfName, outputVcfName, 0);		
-		HashMap<String, HashSet<Repeat>> repeats = trf.loadRepeat(repeatFileName );		
+		Map<String, HashSet<Repeat>> repeats = trf.loadRepeat(repeatFileName );		
 		assertTrue(repeats.get("chr1").size() == 9);
 		BlockIndex index = trf.makeIndexedBlock(  repeats.get("chr1"));
 		
 		assertTrue(index.firstBlockStart == 100);
 		assertTrue(index.lastBlockEnd == 2000);
 		
-		HashMap<Integer, Block> blocks = index.index;
+		Map<Integer, Block> blocks = index.index;
  		assertTrue(blocks.size() == 24); //some big gap will be divided to multi block, each block maximum size is 200		
 		
 		Set<Block> uniqBlocks = new HashSet<Block>(blocks.values());
@@ -68,7 +69,7 @@ public class TandemRepeatModeTest {
 	public void noBufferTest() throws Exception{
 		createRepeat();
 		TandemRepeatMode trf = new TandemRepeatMode( inputVcfName, outputVcfName, 0);		
-		HashMap<String, HashSet<Repeat>> repeats = trf.loadRepeat(repeatFileName );	
+		Map<String, HashSet<Repeat>> repeats = trf.loadRepeat(repeatFileName );	
 		BlockIndex index = trf.makeIndexedBlock(  repeats.get("chr1"));
 
 		//before repeat region
@@ -118,7 +119,7 @@ public class TandemRepeatModeTest {
  	public void bufferTest() throws Exception{
 		createRepeat();
 		TandemRepeatMode trf = new TandemRepeatMode( inputVcfName, outputVcfName, 5);		
-		HashMap<String, HashSet<Repeat>> repeats = trf.loadRepeat(repeatFileName );				
+		Map<String, HashSet<Repeat>> repeats = trf.loadRepeat(repeatFileName );				
 		BlockIndex index = trf.makeIndexedBlock(  repeats.get("chr1"));
 
 		//before repeat region
@@ -154,7 +155,7 @@ public class TandemRepeatModeTest {
 	public void embededTRFTest() throws Exception{
 		createRepeat();
 		TandemRepeatMode trf = new TandemRepeatMode( inputVcfName, outputVcfName, 0);		
-		HashMap<String, HashSet<Repeat>> repeats = trf.loadRepeat(repeatFileName );				
+		Map<String, HashSet<Repeat>> repeats = trf.loadRepeat(repeatFileName );				
 		BlockIndex index = trf.makeIndexedBlock(  repeats.get("chr1"));
 		
 		//DEL same length to homoplymers ref==16bp
