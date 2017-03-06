@@ -119,9 +119,9 @@ public enum SnpEffConsequence {
 	public static final String PROTEIN_CODING = "protein_coding";
 	
 	
-	private String ontologName;
-	private int snpRank;
-	private String maf_calssification;
+	private final String ontologName;
+	private final int snpRank;
+	private final String maf_calssification;
 	
 	
 	public static final String HIGH_IMPACT = "HIGH";

@@ -126,9 +126,9 @@ public class TandemRepeatMode  extends AbstractMode{
 	class BlockIndex {
 		final int firstBlockStart;
 		final int lastBlockEnd;
-		final HashMap<Integer, Block> index;
+		final Map<Integer, Block> index;
 		
-		BlockIndex(int s, int e, HashMap<Integer, Block> in){
+		BlockIndex(int s, int e, Map<Integer, Block> in){
 			this.firstBlockStart = s;
 			this.lastBlockEnd = e;
 			this.index = in;
@@ -138,20 +138,20 @@ public class TandemRepeatMode  extends AbstractMode{
 	@Override
 	public void addAnnotation(String dbfile) throws Exception {
 		
-		HashMap<String, HashSet<Repeat>> repeats = loadRepeat(dbfile );  //S1			
+		Map<String, HashSet<Repeat>> repeats = loadRepeat(dbfile );  //S1			
 		logger.info( " reference number inside TRF data file is " + repeats.size());
 		logger.info("loading into RAM");
 		if(repeats == null || repeats.size() == 0) return; 
 		
 		int totalRepeat = 0; 
 		int totalBlock = 0;					
-		 HashMap<String, BlockIndex> indexedBlock  = new HashMap<String, BlockIndex>();
-		 for(String chr: repeats.keySet()){
+		Map<String, BlockIndex> indexedBlock  = new HashMap<String, BlockIndex>();
+		for(String chr: repeats.keySet()){
 			 logger.debug("indexing blocks for " + chr);
 			 indexedBlock.put(chr,  makeIndexedBlock( repeats.get(chr)));
 			 totalRepeat += repeats.get(chr).size();
 			 totalBlock += indexedBlock.get(chr).index.size();	 
-		 }
+		}
 	
 		logger.info("total repeats from dbfile is " + totalRepeat);
 		logger.info("total blocks from dbfile is " + totalBlock );
@@ -166,19 +166,21 @@ public class TandemRepeatMode  extends AbstractMode{
 		    hd.addInfo(VcfHeaderUtils.INFO_TRF, "1", "String", VcfHeaderUtils.DESCRITPION_INFO_TRF); 
 		    hd.addFilter(VcfHeaderUtils.FILTER_TRF, VcfHeaderUtils.DESCRITPION_FILTER_TRF );
 		    
-		    for(final VcfHeaderRecord record: hd)	writer.addHeader(record.toString());			
+		    for(final VcfHeaderRecord record: hd) {
+		    		writer.addHeader(record.toString());			
+		    }
 			logger.info("annotating vcfs from inputs " );
 			
 	        for (final VcfRecord vcf : reader) {   
-	        	String vcfchr =  IndelUtils.getFullChromosome(vcf.getChromosome());	         
-	        	try{
-	 	    		if(annotate(vcf, indexedBlock.get(vcfchr)))
-	 	    			repeatCount ++; 	    			
-	        	}catch(Exception e){
-	        		System.out.println("exception on " + vcf.toString());	        		
-	        	}
-	    		count++;
-	    		writer.add(vcf);
+		        	String vcfchr =  IndelUtils.getFullChromosome(vcf.getChromosome());	         
+		        	try{
+		 	    		if(annotate(vcf, indexedBlock.get(vcfchr)))
+		 	    			repeatCount ++; 	    			
+		        	}catch(Exception e){
+		        		System.out.println("exception on " + vcf.toString());	        		
+		        	}
+		    		count++;
+		    		writer.add(vcf);
 	        }
 		}  
 					
@@ -198,7 +200,7 @@ public class TandemRepeatMode  extends AbstractMode{
 		if(end < indexedBlock.firstBlockStart) return false; //not in repeat region
 				
 		List<Block> coveredBlocks = new ArrayList<Block>();	
-		HashMap<Integer, Block> indexMap = indexedBlock.index;
+		Map<Integer, Block> indexMap = indexedBlock.index;
 		//find first block
 		Block block = null;		
 		
@@ -283,11 +285,10 @@ public class TandemRepeatMode  extends AbstractMode{
 	 * 
 	 * @param dbfile: TRF repeat file: eg chr1    11114   11123   5       2.0     5       100     0       20      0.97    GGCGC
 	 * @return a list a  repeat region, each region related to a line from dbfile
-	 * @throws FileNotFoundException
 	 * @throws IOException
 	 */
-	HashMap<String, HashSet<Repeat>> loadRepeat(String dbfile) throws FileNotFoundException, IOException {
-		HashMap<String, HashSet<Repeat>> allRepeats = new HashMap<String, HashSet<Repeat>>();
+	Map<String, HashSet<Repeat>> loadRepeat(String dbfile) throws IOException {
+		Map<String, HashSet<Repeat>> allRepeats = new HashMap<String, HashSet<Repeat>>();
 		int errLine = 0;
 		//s1: read whole file into Repeat list
         try(BufferedReader reader = new BufferedReader(new FileReader(dbfile))){
@@ -296,10 +297,6 @@ public class TandemRepeatMode  extends AbstractMode{
 	           try {
 	        	   		Repeat rep = new Repeat(line);
 	        	   		allRepeats.computeIfAbsent(rep.chr, (v) -> new HashSet<Repeat>()).add(rep);
-//		        	   if ( ! allRepeats.containsKey(rep.chr)) {
-//		        		   allRepeats.put(rep.chr, new HashSet<Repeat>());
-//		        	   }
-//		        		allRepeats.get(rep.chr).add(rep);        	   
 	            } catch (NumberFormatException e) {
 		            	if (errLine ++ < MaxErrLine) {
 		            		logger.warn("can't retrive information from TRF repeat file: " + line);
@@ -322,21 +319,21 @@ public class TandemRepeatMode  extends AbstractMode{
 		if(repeats == null || repeats.size() == 0) return null; 
 		 
 			//S1: get unique block edge 
-			HashSet<Integer> starts = new HashSet<Integer>(); //list will be very slow
-			HashSet<Integer> ends = new HashSet<Integer>(); //list will be very slow
+			Set<Integer> starts = new HashSet<Integer>(); //list will be very slow
+			Set<Integer> ends = new HashSet<Integer>(); //list will be very slow
 			for(Repeat rep : repeats){				 
 				starts.add(rep.start);				
 				ends.add(rep.end);
 			}			
 			
 			//sort and unique the elements
-		    TreeSet<Integer> sortedStartEnd = new TreeSet<Integer>();
+		   TreeSet<Integer> sortedStartEnd = new TreeSet<Integer>();
 		    sortedStartEnd.addAll(starts);
 		    sortedStartEnd.addAll(ends);
 		    
 		    //S2:create block for each start end but the edge may require one base shift
 //			ConcurrentHashMap<Integer, Block> blockIndex = new ConcurrentHashMap<Integer, Block>(); 
-			HashMap<Integer, Block> blockIndex = new HashMap<Integer, Block>(); 
+			Map<Integer, Block> blockIndex = new HashMap<Integer, Block>(); 
 			Iterator<Integer> it = sortedStartEnd.iterator(); 
 			int start = it.next();
 			int end = start; 
@@ -377,7 +374,7 @@ public class TandemRepeatMode  extends AbstractMode{
 		    
 		    
 		    //S4: each gap insert a index
-	 	    HashMap<Integer, Block> inserts = new HashMap<Integer, Block>();
+	 	    Map<Integer, Block> inserts = new HashMap<Integer, Block>();
 		    for(Block block:  blockIndex.values() ){		    	
 		    	start = block.start;
 		    	//throw null exception since some block is null
