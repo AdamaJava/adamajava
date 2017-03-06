@@ -22,7 +22,6 @@ import org.qcmg.picard.SAMFileReaderFactory;
 
 public final class Annotator {
 	private final boolean modifyProgramLine;
-	private int recordCount = 0;
 	private String pgProgramName;
 	private String pgProgramVersion;
 	private String pgCommandLine;
@@ -38,7 +37,6 @@ public final class Annotator {
 	private MARecord nextMARecord;
 	private SAMRecord nextSAMRecord;
 	private AnnotatorType type = new Frag();
-	private String xmlReport;
 
 	public Annotator(final String outputFileName,
 			final String inputBAMFileName, final String inputMAFileName,
@@ -126,7 +124,6 @@ public final class Annotator {
 		if (samIterator.hasNext()) {
 			nextSAMRecord = samIterator.next();
 			type.annotate(nextSAMRecord);
-			recordCount++;
 		} else {
 			nextSAMRecord = null;
 		}
@@ -201,9 +198,5 @@ public final class Annotator {
 			close();
 		} catch (Exception inner_ex) {
 		}
-	}
-
-	public String getXmlReport() {
-		return xmlReport;
 	}
 }

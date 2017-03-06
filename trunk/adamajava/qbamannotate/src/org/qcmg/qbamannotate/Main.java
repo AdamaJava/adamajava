@@ -41,22 +41,12 @@ public final class Main {
 						throw new Exception(
 								"MA input files not required when using self annotation option. Remove MA file arguments");
 					}
-					SelfAnnotator operation = new SelfAnnotator(options
-							.getOutputFileName(),
-							options.getInputBAMFileName(), type,
-							getProgramName(), getProgramVersion(), commandLine,
-							options.hasReportBamsOption());
+					new SelfAnnotator(options.getOutputFileName(), options.getInputBAMFileName(), type, getProgramName(), getProgramVersion(), commandLine, options.hasReportBamsOption());
 					generateReport(type);
-				} else if (options.hasInputMAFileNameA()
-						&& !options.hasInputMAFileNameB()) {
-					AdvancedAnnotator operation = new AdvancedAnnotator(options
-							.getOutputFileName(),
-							options.getInputBAMFileName(), options
-									.getInputMAFileNameA(), type,
-							getProgramName(), getProgramVersion(), commandLine);
+				} else if (options.hasInputMAFileNameA() && !options.hasInputMAFileNameB()) {
+					new AdvancedAnnotator(options.getOutputFileName(), options.getInputBAMFileName(), options.getInputMAFileNameA(), type, getProgramName(), getProgramVersion(), commandLine);
 					generateReport(type);
-				} else if (options.hasInputMAFileNameA()
-						&& options.hasInputMAFileNameB()) {
+				} else if (options.hasInputMAFileNameA() && options.hasInputMAFileNameB()) {
 					AdvancedAnnotator operation = new AdvancedAnnotator(options
 							.getOutputFileName(),
 							options.getInputBAMFileName(), options
@@ -122,13 +112,11 @@ public final class Main {
 		return getProgramName() + ", version " + getProgramVersion();
 	}
 
-	public static String reconstructCommandLine(final String programName,
-			final String[] args) {
+	public static String reconstructCommandLine(final String programName, final String[] args) {
 		String result = programName;
 		for (final String arg : args) {
 			result += " " + arg;
 		}
-		result.trim();
 		return result;
 	}
 
