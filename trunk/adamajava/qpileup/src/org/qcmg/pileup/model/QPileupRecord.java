@@ -242,7 +242,6 @@ public class QPileupRecord {
 			long count = entry.getValue();
 			if (count > 0) {
 				if (current == position.getBase()) {
-					continue;
 				} else {
 					if (count > maxNo) {
 						maxNo = count;

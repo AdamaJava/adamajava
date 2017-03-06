@@ -47,7 +47,7 @@ import org.qcmg.pileup.model.StrandEnum;
 
 public class SummaryMetric {
 	
-	private QLogger logger = QLoggerFactory.getLogger(getClass());
+	private final QLogger logger = QLoggerFactory.getLogger(getClass());
 	protected String hdfHeader;
 	protected String uuid;
 	protected String execHeader;
@@ -58,21 +58,21 @@ public class SummaryMetric {
 	protected TreeMap<String, Metric> metrics = new TreeMap<String, Metric>();
 	protected ConcurrentSkipListSet<Chromosome> finishedChromosomes = new ConcurrentSkipListSet<Chromosome>();
 	protected ConcurrentHashMap<String,TreeMap<Integer,Integer>> totalBasesMap = new ConcurrentHashMap<String,TreeMap<Integer,Integer>>();
-	private String distributionDir;	
-	private String summaryDir;
+	private final String distributionDir;	
+	private final String summaryDir;
 	private String[] headerList;
 	public final int WINDOW_SIZE;
 	public final int STEP_SIZE;
 	public final AtomicLong recordCount = new AtomicLong();
-	private String trackName;
-	private ConcurrentHashMap<String, AtomicLong> countsMap = new ConcurrentHashMap<String, AtomicLong>(); 
-	private String tmpDir;
+	private final String trackName;
+	private final ConcurrentHashMap<String, AtomicLong> countsMap = new ConcurrentHashMap<String, AtomicLong>(); 
+	private final String tmpDir;
 	private String pathToBigWig;
 	private String chromSizes;
 	private List<Chromosome> chromosomes;
 	private Integer minBasesPerPatient;
 	//private BaseDistributionRecord totalBaseDistribution;
-	private TreeMap<Integer, Integer> totalBaseCountMap;
+	private final TreeMap<Integer, Integer> totalBaseCountMap;
 	private int totalPatients;
 	
 	public SummaryMetric(String hdfFileName, String pileupDir, String wiggleDir, String baselineDir, String summaryDir, String tmpDir) {
@@ -671,7 +671,6 @@ public class SummaryMetric {
 					for (Entry<ChrRangePosition, String> compareEntry : mismap.get(entry.getKey()).entrySet()) {
 						ChrRangePosition comparePos = compareEntry.getKey();
 						if (comparePos.getEndPosition() < chrPos.getStartPosition()) {
-							continue;
 						} else if (comparePos.getStartPosition() > chrPos.getEndPosition()) {
 							break;
 						} else {
@@ -812,7 +811,7 @@ public class SummaryMetric {
 					  			//get average scores for wiggle range and add to map to calculate summary gff regions
 					  			double average = (double)count /(double) num;
 					  			double avgTotal = (double)total /(double) num;
-					  			double avgRegularityScore = regularityScore /(double) num;
+					  			double avgRegularityScore = regularityScore /num;
 					  			ResultRecord r = new ResultRecord(metric.getType(), (long) average, (long)avgTotal, avgRegularityScore);					  			
 					  			if (average > 0) {					  				
 						  			if (slideLengthSummaryMap.containsKey(start)) {
