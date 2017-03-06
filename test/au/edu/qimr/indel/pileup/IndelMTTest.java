@@ -101,8 +101,6 @@ public class IndelMTTest {
 					assertTrue(record.getChromosome().equals("chr11") && record.getPosition() == 2672739 && record.getChrPosition().getEndPosition() == 2672741);
 				else if(passNo == 3)
 					assertTrue(record.getChromosome().equals("chr11") && record.getPosition() == 2672739 && record.getChrPosition().getEndPosition() == 2672742);
-				else if(passNo == 2)
-					assertTrue(record.getChromosome().equals("chrY") && record.getPosition() == 2672735 && record.getChrPosition().getEndPosition() == 2672737);
 			}
 		}
 		//there is no record pass the query so no indel counts

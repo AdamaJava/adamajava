@@ -23,11 +23,16 @@ public class Support {
 	
 	 
 	public static void clear() throws IOException {
-		File dir = new java.io.File( "." ).getCanonicalFile();		
-		for(File f: dir.listFiles())
-		    if(  f.getName().endsWith(".ini")  || f.getName().endsWith(".vcf")  ||  f.getName().endsWith(".bam") ||
-		    		f.getName().endsWith(".sam") ||  f.getName().endsWith(".bai")  || f.getName().endsWith(".fai") )
-		        f.delete();	
+		File dir = new java.io.File( "." ).getCanonicalFile();
+		File[] files =dir.listFiles();
+		if (null != files) {
+			for(File f : files) {
+			    if(  f.getName().endsWith(".ini")  || f.getName().endsWith(".vcf")  ||  f.getName().endsWith(".bam") ||
+			    		f.getName().endsWith(".sam") ||  f.getName().endsWith(".bai")  || f.getName().endsWith(".fai") ) {
+			        f.delete();	
+			    }
+			}
+		}
 		
 	}
 	

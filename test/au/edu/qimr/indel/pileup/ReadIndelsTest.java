@@ -60,7 +60,7 @@ public class ReadIndelsTest {
 			for( ChrPosition key : positionRecordMap.keySet()){
 				IndelPosition indel = positionRecordMap.get(key);
 				assertTrue(indel.getIndelVcfs().size() == 1);
-				indel.getIndelVcf(0).equals("C");
+				assertEquals("C", indel.getIndelVcf(0).getAlt());
 				
 				//check format GT field
 				List<String> format = indel.getIndelVcfs().get(0).getFormatFields();
