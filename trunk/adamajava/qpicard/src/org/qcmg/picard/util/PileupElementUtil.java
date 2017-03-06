@@ -32,7 +32,7 @@ public class PileupElementUtil {
     public static final byte a='a', c='c', g='g', t='t', n='n', A='A', C='C', G='G', T='T', N='N', DOT='.',COMMA=',';
     public static final char SEPARATOR = '/';
     private static final Comparator<PileupElement> countRefQualComparator = new PileupElementComparator();
-    private static final QLogger logger = QLoggerFactory.getLogger(PileupElementUtil.class);
+//    private static final QLogger logger = QLoggerFactory.getLogger(PileupElementUtil.class);
     private static final NumberFormat nf = new DecimalFormat("0.##");
     
     private static final Pattern pattern = Pattern.compile("[ACGT]:[0-9]+\\[[0-9]+.?[0-9]*\\],[0-9]+\\[[0-9]+.?[0-9]*\\]");
@@ -43,7 +43,7 @@ public class PileupElementUtil {
     
     public static List<PileupElement> getPileupCounts(String bases, String baseQualities) {
     		// return null if the bases string is null, or zero length, or if it just contains '*'
-    	if (null == bases || bases.length() == 0 || (bases.length() == 1 && bases.charAt(0) == '*')) return null;
+    		if (null == bases || bases.length() == 0 || (bases.length() == 1 && bases.charAt(0) == '*')) return null;
     	
     	
 	    	PileupElement peA = new PileupElement(A);
@@ -54,166 +54,97 @@ public class PileupElementUtil {
     	
 	    byte [] baseQuals = StringUtils.isNullOrEmpty(baseQualities) ? null : SAMUtils.fastqToPhred(baseQualities);
 	    
-    	int pointer = 0;
-    	for (int i = 0 , end = bases.length() ; i < end ; i++) {
-    		char b = bases.charAt(i);
-    		if ('$' == b) continue;
-    		if ('^' == b) {	// skip this byte and the next one too
-    				i++;
-    			continue;
-    			}
-    		if ('+' == b || '-' == b) {
-	    			b = bases.charAt(++i);
-	    			String indelSizeString = ""+b;
-	    			
-	    			b = bases.charAt(++i);
-    			while( Character.isDigit(b) ) {
-	    				indelSizeString += b;
-	    				b = bases.charAt(++i);
+	    return getBaseCounts(bases, peA, peC, peG, peT, peDot, baseQuals);
+    	}
+
+	private static List<PileupElement> getBaseCounts(String bases, PileupElement peA, PileupElement peC, PileupElement peG, PileupElement peT, PileupElement peDot, byte[] baseQuals) {
+		int pointer = 0;
+	    	for (int i = 0 , end = bases.length() ; i < end ; i++) {
+	    		char b = bases.charAt(i);
+	    		if ('$' == b) continue;
+	    		if ('^' == b) {	// skip this byte and the next one too
+	    				i++;
+	    			continue;
 	    			}
-    			
-    				i += (Integer.valueOf(indelSizeString) - 1);
-    			
-    			continue;
+	    		if ('+' == b || '-' == b) {
+		    			b = bases.charAt(++i);
+		    			String indelSizeString = ""+b;
+		    			
+		    			b = bases.charAt(++i);
+	    			while( Character.isDigit(b) ) {
+		    				indelSizeString += b;
+		    				b = bases.charAt(++i);
+		    			}
+	    			
+	    				i += (Integer.parseInt(indelSizeString) - 1);
+	    			
+	    			continue;
     			}
     		
     			// INDELs....
     		
     			// extra code to take base quality into account
-    		byte quality = baseQuals == null ? Byte.MIN_VALUE : baseQuals[pointer++];
+	    		byte quality = baseQuals == null ? Byte.MIN_VALUE : baseQuals[pointer++];
     			// end of extra code
     		
-    		switch(b) {
-	    		case COMMA: peDot.incrementReverseCount(quality);break;
-	    		case DOT: peDot.incrementForwardCount(quality);break;
-	    		case a: peA.incrementReverseCount(quality); 	break;
-	    		case A: peA.incrementForwardCount(quality); 	break;
-	    		case c: peC.incrementReverseCount(quality);	break;
-	    		case C: peC.incrementForwardCount(quality);	break;
-	    		case g: peG.incrementReverseCount(quality);	break;
-	    		case G: peG.incrementForwardCount(quality);	break;
-	    		case t: peT.incrementReverseCount(quality);	break;
-	    		case T: peT.incrementForwardCount(quality); 	break;
-    			}
+	    		switch(b) {
+	    			case COMMA: peDot.incrementReverseCount(quality);break;
+		    		case DOT: peDot.incrementForwardCount(quality);break;
+		    		case a: peA.incrementReverseCount(quality); 	break;
+		    		case A: peA.incrementForwardCount(quality); 	break;
+		    		case c: peC.incrementReverseCount(quality);	break;
+		    		case C: peC.incrementForwardCount(quality);	break;
+		    		case g: peG.incrementReverseCount(quality);	break;
+		    		case G: peG.incrementForwardCount(quality);	break;
+		    		case t: peT.incrementReverseCount(quality);	break;
+		    		case T: peT.incrementForwardCount(quality); 	break;
+	    		}
     		}
     	
-    	int validBases = 0;
-    		// should never have more than 4 elements in this list
-    		List<PileupElement> baseCounts = new ArrayList<PileupElement>(4);
-    	if (peA.getTotalCount() > 0) {
-    			baseCounts.add(peA);
-    			validBases++;
-    		}
-    	if (peC.getTotalCount() > 0) {
-	    		baseCounts.add(peC);
-	    		validBases++;
-	    	}
-    	if (peG.getTotalCount() > 0) {
-	    		baseCounts.add(peG);
-	    		validBases++;
-	    	}
-    	if (peT.getTotalCount() > 0) {
-	    		baseCounts.add(peT);
-	    		validBases++;
-	    	}
-    	if (peDot.getTotalCount() > 0) {
-	    		baseCounts.add(peDot);
-	    		validBases++;
-	    	}
-    	
-	    	// sort the collection to ensure that the 1st entry is the one with the largest total count
-	    	// only need to do this if we have more than 1 entry in the list
-	    	//TODO should we be using the PileupelementComparator for this??
-    	if (validBases > 1)
-    			Collections.sort(baseCounts);
-    	
-    	return baseCounts;
-    	}
+	    	int validBases = 0;
+	    		// should never have more than 4 elements in this list
+	    		List<PileupElement> baseCounts = new ArrayList<PileupElement>(4);
+	    	if (peA.getTotalCount() > 0) {
+	    			baseCounts.add(peA);
+	    			validBases++;
+	    		}
+	    	if (peC.getTotalCount() > 0) {
+		    		baseCounts.add(peC);
+		    		validBases++;
+		    	}
+	    	if (peG.getTotalCount() > 0) {
+		    		baseCounts.add(peG);
+		    		validBases++;
+		    	}
+	    	if (peT.getTotalCount() > 0) {
+		    		baseCounts.add(peT);
+		    		validBases++;
+		    	}
+	    	if (peDot.getTotalCount() > 0) {
+		    		baseCounts.add(peDot);
+		    		validBases++;
+		    	}
+	    	
+		    	// sort the collection to ensure that the 1st entry is the one with the largest total count
+		    	// only need to do this if we have more than 1 entry in the list
+		    	//TODO should we be using the PileupelementComparator for this??
+	    	if (validBases > 1)
+	    			Collections.sort(baseCounts);
+	    	
+	    	return baseCounts;
+	}
     public static List<PileupElement> getPileupCounts(String bases, byte [] baseQuals) {
-    	// return null if the bases string is null, or zero length, or if it just contains '*'
-    	if (null == bases || bases.length() == 0 || (bases.length() == 1 && bases.charAt(0) == '*')) return null;
-    	
-    	
-    	PileupElement peA = new PileupElement(A);
-    	PileupElement peC = new PileupElement(C);
-    	PileupElement peG = new PileupElement(G);
-    	PileupElement peT = new PileupElement(T);
-    	PileupElement peDot = new PileupElement(DOT);
-    	
-    	int pointer = 0;
-    	for (int i = 0 , end = bases.length() ; i < end ; i++) {
-    		char b = bases.charAt(i);
-    		if ('$' == b) continue;
-    		if ('^' == b) {	// skip this byte and the next one too
-    			i++;
-    			continue;
-    		}
-    		if ('+' == b || '-' == b) {
-    			b = bases.charAt(++i);
-    			String indelSizeString = ""+b;
-    			
-    			b = bases.charAt(++i);
-    			while( Character.isDigit(b) ) {
-    				indelSizeString += b;
-    				b = bases.charAt(++i);
-    			}
-    			
-    			i += (Integer.valueOf(indelSizeString) - 1);
-    			
-    			continue;
-    		}
-    		
-    		// INDELs....
-    		
-    		// extra code to take base quality into account
-    		byte quality = baseQuals == null ? Byte.MIN_VALUE : baseQuals[pointer++];
-    		// end of extra code
-    		
-    		switch(b) {
-    		case COMMA: peDot.incrementReverseCount(quality);break;
-    		case DOT: peDot.incrementForwardCount(quality);break;
-    		case a: peA.incrementReverseCount(quality); 	break;
-    		case A: peA.incrementForwardCount(quality); 	break;
-    		case c: peC.incrementReverseCount(quality);	break;
-    		case C: peC.incrementForwardCount(quality);	break;
-    		case g: peG.incrementReverseCount(quality);	break;
-    		case G: peG.incrementForwardCount(quality);	break;
-    		case t: peT.incrementReverseCount(quality);	break;
-    		case T: peT.incrementForwardCount(quality); 	break;
-    		}
-    	}
-    	
-    	int validBases = 0;
-    	// should never have more than 4 elements in this list
-    	List<PileupElement> baseCounts = new ArrayList<PileupElement>(4);
-    	if (peA.getTotalCount() > 0) {
-    		baseCounts.add(peA);
-    		validBases++;
-    	}
-    	if (peC.getTotalCount() > 0) {
-    		baseCounts.add(peC);
-    		validBases++;
-    	}
-    	if (peG.getTotalCount() > 0) {
-    		baseCounts.add(peG);
-    		validBases++;
-    	}
-    	if (peT.getTotalCount() > 0) {
-    		baseCounts.add(peT);
-    		validBases++;
-    	}
-    	if (peDot.getTotalCount() > 0) {
-    		baseCounts.add(peDot);
-    		validBases++;
-    	}
-    	
-    	// sort the collection to ensure that the 1st entry is the one with the largest total count
-    	// only need to do this if we have more than 1 entry in the list
-    	//TODO should we be using the PileupelementComparator for this??
-    	if (validBases > 1)
-    		Collections.sort(baseCounts);
-    	
-    	return baseCounts;
+	    	// return null if the bases string is null, or zero length, or if it just contains '*'
+	    	if (null == bases || bases.length() == 0 || (bases.length() == 1 && bases.charAt(0) == '*')) return null;
+	    	
+	    	
+	    	PileupElement peA = new PileupElement(A);
+	    	PileupElement peC = new PileupElement(C);
+	    	PileupElement peG = new PileupElement(G);
+	    	PileupElement peT = new PileupElement(T);
+	    	PileupElement peDot = new PileupElement(DOT);
+	    	
+	    	return getBaseCounts(bases, peA, peC, peG, peT, peDot, baseQuals);
     }
     
     public static int getLargestVariantCount(List<PileupElement> baseCounts) {
@@ -221,9 +152,9 @@ public class PileupElementUtil {
     }
     
     public static int getLargestVariantCount(List<PileupElement> baseCounts, char ref) {
-    	PileupElement largestVarient = getLargestVariant(baseCounts, ref);
-    	if (null != largestVarient) return largestVarient.getTotalCount();
-    	return 0;
+	    	PileupElement largestVarient = getLargestVariant(baseCounts, ref);
+	    	if (null != largestVarient) return largestVarient.getTotalCount();
+	    	return 0;
     }
     
     public static int getBaseCount(List<PileupElement> elements, char base) {
