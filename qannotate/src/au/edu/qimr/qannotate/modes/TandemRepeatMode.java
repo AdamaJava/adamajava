@@ -33,7 +33,7 @@ public class TandemRepeatMode  extends AbstractMode{
 	final String commandLine;
 	final int buffer;
 	
-	private final HashMap<String, HashMap<Integer, Block>> genomeRepeat = new HashMap<String, HashMap<Integer, Block>>();
+//	private final HashMap<String, HashMap<Integer, Block>> genomeRepeat = new HashMap<String, HashMap<Integer, Block>>();
 	
 	//for unit test only
 	@Deprecated
@@ -304,7 +304,6 @@ public class TandemRepeatMode  extends AbstractMode{
 		            	if (errLine ++ < MaxErrLine) {
 		            		logger.warn("can't retrive information from TRF repeat file: " + line);
 		            	}
-		            	continue;
 	            }             
             }
         } 
