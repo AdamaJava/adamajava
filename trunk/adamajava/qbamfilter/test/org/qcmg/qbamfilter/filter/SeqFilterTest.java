@@ -28,14 +28,13 @@ public class SeqFilterTest {
     }
     
     @Test
-    public void FilterTest() throws Exception{
+    public void filterTest() throws Exception{
     	
     	//only read the first read
         SamReader Inreader = SAMFileReaderFactory.createSAMFileReader(new File(TestFile.INPUT_FILE_NAME));    //new SAMFileReader(new File(TestFile.INPUT_FILE_NAME));
         SAMRecord record = null ;
         for( SAMRecord re : Inreader){
         	 record = re;
-        	 break;
         }
         Inreader.close();
         

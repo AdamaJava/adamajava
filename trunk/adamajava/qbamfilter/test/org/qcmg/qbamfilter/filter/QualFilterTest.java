@@ -60,14 +60,13 @@ public class QualFilterTest {
 
     
     @Test
-    public void SetTest() throws Exception{
+    public void setTest() throws Exception{
     	
     	//only read the first read
         SamReader Inreader = SAMFileReaderFactory.createSAMFileReader(new File(TestFile.INPUT_FILE_NAME));
         SAMRecord record = null ;
         for( SAMRecord re : Inreader){
         	 record = re;
-        	 break;
         }
         Inreader.close();
         

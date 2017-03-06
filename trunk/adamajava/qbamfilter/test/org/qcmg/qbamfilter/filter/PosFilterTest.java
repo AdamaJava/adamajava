@@ -72,7 +72,6 @@ public class PosFilterTest {
             re.setAlignmentStart(100);
             assertFalse(re.isValid() == null);
             assertTrue(filter.filterOut(re));
-            break;
        }
 
     }
@@ -92,7 +91,6 @@ public class PosFilterTest {
             re.setAlignmentStart(0);
             assertFalse(re.isValid() == null);
             assertTrue(filter.filterOut(re));
-            break;
        }
 
     }

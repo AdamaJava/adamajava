@@ -69,7 +69,6 @@ public class MapQFilterTest {
 	            re.setMappingQuality(256);
 	            assertFalse(re.isValid() == null);
 	            assertTrue(filter.filterOut(re));
-	            break;
 	       }
         }
 
