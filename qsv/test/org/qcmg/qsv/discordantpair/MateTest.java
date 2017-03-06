@@ -20,8 +20,8 @@ import org.qcmg.qsv.util.TestUtil;
 
 public class MateTest {
 
-    private static String fileName;
-    private static Mate mate;
+    private  String fileName;
+    private  Mate mate;
 
     @Rule
     public TemporaryFolder testFolder = new TemporaryFolder();
