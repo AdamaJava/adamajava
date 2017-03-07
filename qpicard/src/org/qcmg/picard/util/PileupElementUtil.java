@@ -13,8 +13,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import htsjdk.samtools.SAMUtils;
 
@@ -101,35 +103,20 @@ public class PileupElementUtil {
 	    		}
     		}
     	
-	    	int validBases = 0;
+	    	AtomicInteger validBases = new AtomicInteger();
 	    		// should never have more than 4 elements in this list
-	    		List<PileupElement> baseCounts = new ArrayList<PileupElement>(4);
-	    	if (peA.getTotalCount() > 0) {
-	    			baseCounts.add(peA);
-	    			validBases++;
-	    		}
-	    	if (peC.getTotalCount() > 0) {
-		    		baseCounts.add(peC);
-		    		validBases++;
-		    	}
-	    	if (peG.getTotalCount() > 0) {
-		    		baseCounts.add(peG);
-		    		validBases++;
-		    	}
-	    	if (peT.getTotalCount() > 0) {
-		    		baseCounts.add(peT);
-		    		validBases++;
-		    	}
-	    	if (peDot.getTotalCount() > 0) {
-		    		baseCounts.add(peDot);
-		    		validBases++;
-		    	}
-	    	
+    		List<PileupElement> baseCounts = new ArrayList<PileupElement>(4);
+   		Stream.of(peA, peC, peG, peT, peDot)
+   			.filter(p -> p.getTotalCount() > 0)
+   			.forEach(p -> {
+	    			baseCounts.add(p);
+	    			validBases.incrementAndGet();});
+    		
 		    	// sort the collection to ensure that the 1st entry is the one with the largest total count
 		    	// only need to do this if we have more than 1 entry in the list
 		    	//TODO should we be using the PileupelementComparator for this??
-	    	if (validBases > 1)
-	    			Collections.sort(baseCounts);
+	    	if (validBases.get() > 1)
+	    		Collections.sort(baseCounts);
 	    	
 	    	return baseCounts;
 	}
