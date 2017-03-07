@@ -6,6 +6,7 @@
  */
 package org.qcmg.common.model;
 
+import gnu.trove.iterator.TIntIterator;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.map.TIntCharMap;
 import gnu.trove.map.hash.TIntCharHashMap;
@@ -17,6 +18,7 @@ import java.util.List;
 
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.PileupElementLiteUtil;
+
 import static org.qcmg.common.util.Constants.COMMA;
 
 
@@ -489,125 +491,63 @@ public class Accumulator {
 		
 	}
 	
+	private void updateMap(TIntCharMap map, TIntIterator iter, char c) {
+		while(iter.hasNext()) {
+			map.put(iter.next(), c);
+		}
+	}
+	
 	public TIntCharMap getReadIdBaseMap() {
 		final TIntCharMap map = new TIntCharHashMap();
 		
 		if (null != A) {
-			
 			TIntArrayList ids = A.getForwardReadIds();
 			if (ids != null) {
-				
-				TIntProcedure aProc = new TIntProcedure(){
-					@Override
-					public boolean execute(int s) {
-						map.put(s, A_CHAR);
-						return true;
-					}};
-				ids.forEach(aProc);
+				updateMap(map, ids.iterator(), A_CHAR);
 			}
 			
 			ids = A.getReverseReadIds();
 			
 			if (ids != null) {
-				
-				TIntProcedure aProc = new TIntProcedure(){
-					@Override
-					public boolean execute(int s) {
-						map.put(s,  A_CHAR_LC);
-						return true;
-					}};
-				ids.forEach(aProc);
+				updateMap(map, ids.iterator(), A_CHAR_LC);
 			}
 		}
 		
 		if (null != C) {
-				
 			TIntArrayList ids = C.getForwardReadIds();
 			if (ids != null) {
-				
-				TIntProcedure cProc = new TIntProcedure(){
-					@Override
-					public boolean execute(int s) {
-						map.put(s,  C_CHAR);
-						return true;
-					}};
-					
-				ids.forEach(cProc);
+				updateMap(map, ids.iterator(), C_CHAR);
 			}
 			
 			 ids = C.getReverseReadIds();
 			 
-				if (ids != null) {
-					
-					TIntProcedure cProc = new TIntProcedure(){
-						@Override
-						public boolean execute(int s) {
-							map.put(s,  C_CHAR_LC);
-							return true;
-						}};
-						
-					ids.forEach(cProc);
-				}
+			if (ids != null) {
+				updateMap(map, ids.iterator(), C_CHAR_LC);
+			}
 		}
 		
 		if (null != G) {
-			
 			TIntArrayList ids = G.getForwardReadIds();
 			if (ids != null) {
-				
-				TIntProcedure gProc = new TIntProcedure(){
-					@Override
-					public boolean execute(int s) {
-						map.put(s,  G_CHAR);
-						return true;
-					}};
-					
-				ids.forEach(gProc);
-				
+				updateMap(map, ids.iterator(), G_CHAR);
 			}
 			 ids = G.getReverseReadIds();
 			 
 			if (ids != null) {
-				
-				TIntProcedure gProcRS = new TIntProcedure(){
-					@Override
-					public boolean execute(int s) {
-						map.put(s,  G_CHAR_LC);
-						return true;
-					}};
-						
-					ids.forEach(gProcRS);
-				}
+				updateMap(map, ids.iterator(), G_CHAR_LC);
+			}
 		}
 		
 		if (null != T) {
-				
 			TIntArrayList ids = T.getForwardReadIds();
 			if (ids != null) {
-				
-				TIntProcedure tProc = new TIntProcedure(){
-					@Override
-					public boolean execute(int s) {
-						map.put(s,  T_CHAR);
-						return true;
-					}};
-				ids.forEach(tProc);
-				
+				updateMap(map, ids.iterator(), T_CHAR);
 			}
 			 ids = T.getReverseReadIds();
-				if (ids != null) {
-					
-					TIntProcedure tProcRS = new TIntProcedure(){
-						@Override
-						public boolean execute(int s) {
-							map.put(s,  T_CHAR_LC);
-							return true;
-						}};
-						
-					ids.forEach(tProcRS);
-				}
+			if (ids != null) {
+				updateMap(map, ids.iterator(), T_CHAR_LC);
+			}
 		}
-		
 		return map;
 	}
 	
