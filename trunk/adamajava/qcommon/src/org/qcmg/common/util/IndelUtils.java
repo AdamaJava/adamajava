@@ -7,8 +7,8 @@ package org.qcmg.common.util;
 
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.vcf.VcfFormatFieldRecord;
-import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
+
 public class IndelUtils {
 	public enum SVTYPE {
 		
@@ -66,20 +66,12 @@ public class IndelUtils {
 	public static final String DESCRITPION_FILTER_NBIAS = "For germline calls: the supporting normal reads value is >=3 and the count on one strand is =0 or >0 "
 			+ "and is either <5% of supporting reads or >95% of supporting reads";
 	
-		 
-//	public static final String FILTER_HOM = "HOM";
-//	public static final String DESCRITPION_FILTER_HOM = "a digit number is attached on this FILTER id, eg. HOM24 means the nearby homopolymers sequence is 24 base long";
-	
 	public static final String INFO_NIOC = "NIOC";
 	public static final String DESCRITPION_INFO_NIOC = "counts of nearby indels compare with total coverage";	
 	
 	public static final String INFO_SSOI = "SSOI";
 	public static final String DESCRITPION_INFO_SSOI = "counts of strong support indels compare with total informative reads coverage";	
 
-	
-//	public static final String INFO_HOMCNTXT = "HOMCNTXT";
-//	public static final String DESCRITPION_INFO_HOMCNTXT = "nearby reference sequence. if it is homopolymeric, the maximum repeated based counts will be added infront of sequence ";
-	
 	public static final String FORMAT_ACINDEL = "ACINDEL";
 	public static final String DESCRITPION_FORMAT_ACINDEL = "counts of indels, follow formart:"
 			+ "novelStarts,totalCoverage,informativeReadCount,strongSuportReadCount[forwardsuportReadCount,backwardsuportReadCount],suportReadCount[novelStarts],partialReadCount,nearbyIndelCount,nearybySoftclipCount";
@@ -145,29 +137,6 @@ public class IndelUtils {
 		}
 		return false;
 	}
-	
-//	/**
-//	 * Returns true if alts is made up of a single alt (ie. no commas in alts), or if the comma split list of strings are all the same length
-//	 * @param alts
-//	 * @return
-//	 */
-//	public static boolean areAltsSameLength(String alts) {
-//		if (StringUtils.isNullOrEmpty(alts)) {
-//			throw new IllegalArgumentException("Null or empty alts string passed to IndelUtils.areAltsSameLength");
-//		}
-//		int commaIndex = alts.indexOf(Constants.COMMA);
-//		if (commaIndex == -1) {
-//			return true;
-//		}
-//		String [] aAlts = alts.split(Constants.COMMA_STRING);
-//		int len = aAlts[0].length();
-//		for (String alt : aAlts) {
-//			if (alt.length() != len) {
-//				return false;
-//			}
-//		}
-//		return true;
-//	}
 	
 	/**
 	 * 
@@ -269,15 +238,15 @@ public class IndelUtils {
 		return gd;
 	}
 
-	public static String getMotif(String ref, String alt ){
-		return getMotif(ref, alt, getVariantType(ref, alt));
-	}
+//	public static String getMotif(String ref, String alt ){
+//		return getMotif(ref, alt, getVariantType(ref, alt));
+//	}
 	public static String getMotif(String ref, String alt , SVTYPE type){
 		if(type.equals(SVTYPE.INS))
 			return alt.substring(1);			 
-		else if(type.equals(SVTYPE.DEL))
+		if(type.equals(SVTYPE.DEL))
 			return ref.substring(1);
-		else if(type.equals(SVTYPE.UNKNOWN))
+		if(type.equals(SVTYPE.UNKNOWN))
 			return null; 
 		
 		return ref;  //return ref for snp, mnp 		
