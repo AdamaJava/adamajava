@@ -15,7 +15,6 @@ import htsjdk.samtools.SAMRecord;
 
 import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
-import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.motif.util.MotifConstants;
@@ -91,7 +90,6 @@ public class MotifCoverageAlgorithm implements Algorithm {
 			rc.updateStage1Coverage();
 			
 			// get motifs
-//			getStageTwoMotifs(readString,  ! read.getReadNegativeStrandFlag(), ! read.getReadUnmappedFlag(), rc);
 			String stm = getStageTwoMotifs(readString);
 			if ( ! StringUtils.isNullOrEmpty(stm)) {
 				
@@ -104,35 +102,6 @@ public class MotifCoverageAlgorithm implements Algorithm {
 		return false;
 	}
 	
-//	void getStageTwoMotifs(String readString, boolean forwardStrand, boolean mapped, RegionCounter rc) {
-//		if ( ! StringUtils.isNullOrEmpty(readString)) {
-//			
-//			boolean updateCoverage = false;
-//		
-//			if (mode.stageTwoString()) {
-//				
-//				for (int i = 0 ; i < stageTwoMotifsSize ; i++) {
-//					String motif = stageTwoMotifs.get(i);
-//					int index = readString.indexOf(motif);
-//					if (index >= 0) {
-//						updateCoverage = true;
-//						rc.addMotif(motif, forwardStrand, mapped);
-//					}
-//				}
-//			} else {
-//				
-//				Matcher matcher = stageTwoRegex.matcher(readString);
-//				while (matcher.find()) {
-//					updateCoverage = true;
-//					rc.addMotif(matcher.group(), forwardStrand, mapped);
-//				}
-//			}
-//			
-//			if (updateCoverage) {
-//				rc.updateStage2Coverage();
-//			}
-//		}
-//	}
 	String getStageTwoMotifs(String readString) {
 		if ( ! StringUtils.isNullOrEmpty(readString)) {
 			
@@ -159,8 +128,6 @@ public class MotifCoverageAlgorithm implements Algorithm {
 						motifs.append(MotifUtils.M_D);
 					}
 					motifs.append(matcher.group());
-//					if (motifs.length() > 0) motifs += MotifUtils.M_D;
-//					motifs +=matcher.group();
 				}
 				
 			}
@@ -181,13 +148,12 @@ public class MotifCoverageAlgorithm implements Algorithm {
 		return null;
 	}
 
-	/**
-	 * For the stage one pass, we don't care about what motif was found, its purely a yes/no, and it yes, we'll do a more thorough search in stage two
-	 * 
-	 * @param mode
-	 * @param read
-	 * @return
-	 */
+/**
+ * For the stage one pass, we don't care about what motif was found, its purely a yes/no, and it yes, we'll do a more thorough search in stage two
+ * 
+ * @param readString
+ * @return
+ */
 	boolean stageOneSearch(String readString) {
 		if (StringUtils.isNullOrEmpty(readString)) return false;
 		
