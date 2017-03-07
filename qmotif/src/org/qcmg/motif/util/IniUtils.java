@@ -17,14 +17,9 @@ import org.qcmg.common.util.ChrPositionUtils;
 
 public class IniUtils {
 	
-//	public static final String chrPos = "[a-zA-Z0-9]{1,}:[0-9]{1,}-[0-9]{1,}";
-//	public static final Pattern chrPosPattern = Pattern.compile(chrPos);
-	
-
 	/**
 	 * {@link http://ini4j.sourceforge.net/tutorial/IniTutorial.java.html}
 	 * @param ini
-	 * @param format
 	 * @param type
 	 * @return
 	 */
@@ -74,8 +69,6 @@ public class IniUtils {
 					name = params[0];
 					chr = params[params.length - 1];
 				}
-//				System.out.println("name: " + name + ", chr: " + chr + ":" + entry.getValue() + ", params.length: " + params.length);
-				
 				positions.add(ChrPositionUtils.getChrPositionNameFromString(chr + ":" + entry.getValue(), name));
 			}
 		}
