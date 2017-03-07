@@ -12,36 +12,22 @@ import gnu.trove.map.hash.TIntShortHashMap;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.IntSummaryStatistics;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
-import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.util.DonorUtils;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.LoadReferencedClasses;
 import org.qcmg.sig.model.Comparison;
 import org.qcmg.sig.util.ComparisonUtil;
 import org.qcmg.sig.util.SignatureUtil;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 /**
  * This class gets a list of all .qsig.vcf files from the supplied path.
@@ -196,7 +182,8 @@ public class SignatureCompareRelatedSimpleGenotype {
 		}
 		
 		if (outputXml != null)
-			writeXmlOutput();
+			SignatureUtil.writeXmlOutput(fileIdsAndCounts, allComparisons, outputXml);
+//		writeXmlOutput();
 		
 		return exitStatus;
 	}
@@ -229,86 +216,6 @@ public class SignatureCompareRelatedSimpleGenotype {
 //			fileIdsAndCounts.get(f)[2] = (int) iss.getAverage();
 		}
 		return result;
-	}
-//	Map<ChrPosition, float[]> getSignatureData(File f) throws Exception {
-//		// check map to see if this data has already been loaded
-//		// if not - load
-//		Map<ChrPosition, float[]> result = cache.get(f);
-//		if (result == null) {
-//			result = SignatureUtil.loadSignatureRatiosFloat(f, minimumCoverage);
-//			
-//			if (result.size() < 1000) {
-//				logger.warn("low coverage (" + result.size() + ") for file " + f.getAbsolutePath());
-//			}
-//			
-//			if (cache.size() < cacheSize) {
-//				cache.put(f, result);
-//			}
-//			fileIdsAndCounts.get(f)[1] = result.size();
-//			/*
-//			 * average coverage
-//			 */
-//			IntSummaryStatistics iss = result.values().stream()
-//					.mapToInt(array -> (int) array[4])
-//					.summaryStatistics();
-//			fileIdsAndCounts.get(f)[2] = (int) iss.getAverage();
-//		}
-//		return result;
-//	}
-	
-	private void writeXmlOutput() throws ParserConfigurationException, TransformerException {
-		DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
-		DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
-		
-		// root elements
-		Document doc = docBuilder.newDocument();
-		Element rootElement = doc.createElement("qsignature");
-		doc.appendChild(rootElement);
-		
-		// list files
-		Element filesE = doc.createElement("files");
-		rootElement.appendChild(filesE);
-		
-		// write output xml file
-		// do it to console first...
-		List<String> keys = new ArrayList<>( fileIdsAndCounts.keySet());
-		keys.sort(null);
-		for (String f  : keys) {
-			int[] value = fileIdsAndCounts.get(f);
-			
-			Element fileE = doc.createElement("file");
-			fileE.setAttribute("id", value[0] + "");
-			fileE.setAttribute("name", f);
-			fileE.setAttribute("coverage", value[1] + "");
-			fileE.setAttribute("average_coverage_at_positions", value[2] + "");
-			filesE.appendChild(fileE);
-		}
-		
-		// list files
-		Element compsE = doc.createElement("comparisons");
-		rootElement.appendChild(compsE);
-		for (Comparison comp : allComparisons) {
-			int id1 = fileIdsAndCounts.get(comp.getMain())[0];
-			int id2 = fileIdsAndCounts.get(comp.getTest())[0];
-			
-			Element compE = doc.createElement("comparison");
-			compE.setAttribute("file1", id1 + "");
-			compE.setAttribute("file2", id2 + "");
-			compE.setAttribute("score", comp.getScore() + "");
-			compE.setAttribute("overlap", comp.getOverlapCoverage() + "");
-			compE.setAttribute("calcs", comp.getNumberOfCalculations() + "");
-			compE.setAttribute("f1AveCovAtOverlaps", comp.getMainAveCovAtOverlaps() + "");
-			compE.setAttribute("f2AveCovAtOverlaps", comp.getTestAveCovAtOverlaps() + "");
-			compsE.appendChild(compE);
-		}
-		
-		// write it out
-		TransformerFactory transformerFactory = TransformerFactory.newInstance();
-		Transformer transformer = transformerFactory.newTransformer();
-		DOMSource source = new DOMSource(doc);
-		StreamResult result = new StreamResult(new File(outputXml));
-		transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-		transformer.transform(source, result);
 	}
 	
 	private void addFilesToMap(List<File> orderedFiles) {
