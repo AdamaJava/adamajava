@@ -29,6 +29,16 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+
 import org.apache.commons.math3.util.Pair;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -41,10 +51,13 @@ import org.qcmg.common.util.DonorUtils;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.illumina.IlluminaRecord;
+import org.qcmg.sig.model.Comparison;
 import org.qcmg.sig.model.SigMeta;
 import org.qcmg.tab.TabbedFileReader;
 import org.qcmg.tab.TabbedHeader;
 import org.qcmg.tab.TabbedRecord;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 public class SignatureUtil {
 	
@@ -813,5 +826,62 @@ public class SignatureUtil {
 				(float) baseCoverages[3] / total,
 				total});
 	}
+	
+	public static void writeXmlOutput( Map<String, int[]> fileIdsAndCounts, List<Comparison> allComparisons, String outputXml) throws ParserConfigurationException, TransformerException {
+		DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
+		DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
+		
+		// root elements
+		Document doc = docBuilder.newDocument();
+		Element rootElement = doc.createElement("qsignature");
+		doc.appendChild(rootElement);
+		
+		// list files
+		Element filesE = doc.createElement("files");
+		rootElement.appendChild(filesE);
+		
+		// write output xml file
+		// do it to console first...
+		List<String> keys = new ArrayList<>( fileIdsAndCounts.keySet());
+		keys.sort(null);
+		for (String f  : keys) {
+			int[] value = fileIdsAndCounts.get(f);
+			
+			Element fileE = doc.createElement("file");
+			fileE.setAttribute("id", value[0] + "");
+			fileE.setAttribute("name", f);
+			fileE.setAttribute("coverage", value[1] + "");
+			fileE.setAttribute("average_coverage_at_positions", value[2] + "");
+			filesE.appendChild(fileE);
+		}
+		
+		// list files
+		Element compsE = doc.createElement("comparisons");
+		rootElement.appendChild(compsE);
+		for (Comparison comp : allComparisons) {
+			int id1 = fileIdsAndCounts.get(comp.getMain())[0];
+			int id2 = fileIdsAndCounts.get(comp.getTest())[0];
+			
+			Element compE = doc.createElement("comparison");
+			compE.setAttribute("file1", id1 + "");
+			compE.setAttribute("file2", id2 + "");
+			compE.setAttribute("score", comp.getScore() + "");
+			compE.setAttribute("overlap", comp.getOverlapCoverage() + "");
+			compE.setAttribute("calcs", comp.getNumberOfCalculations() + "");
+			compE.setAttribute("f1AveCovAtOverlaps", comp.getMainAveCovAtOverlaps() + "");
+			compE.setAttribute("f2AveCovAtOverlaps", comp.getTestAveCovAtOverlaps() + "");
+			compsE.appendChild(compE);
+		}
+		
+		// write it out
+		TransformerFactory transformerFactory = TransformerFactory.newInstance();
+		Transformer transformer = transformerFactory.newTransformer();
+		DOMSource source = new DOMSource(doc);
+		StreamResult result = new StreamResult(new File(outputXml));
+		transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+		transformer.transform(source, result);
+	}
+	
+	
 
 }
