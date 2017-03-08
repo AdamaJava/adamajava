@@ -120,32 +120,6 @@ public class SplitReadContigTest {
 		assertEquals(QSVConstants.NOT_FOUND, splitReadContig.getMicrohomology());
 	}
 
-//	@Test
-//	public void testRecheckMicrohomologyWithSingleAlignment() throws UnsupportedEncodingException, QSVException {
-//		splitReadContig.setFindMH(false);
-//		List<Chromosome> list = new ArrayList<Chromosome>();
-//		list.add(new Chromosome("chr1", 72235502));
-//		Map<String, List<Chromosome>> map= new HashMap<String, List<Chromosome>>();
-//		map.put("chr1", list);
-//		splitReadContig.setChromosomes(map);
-//		splitReadContig.setSplitreadSV(new StructuralVariant("chr1", "chr1", 72219748, 72234284, "1"));
-//		IndexedFastaSequenceFile f = createMock(IndexedFastaSequenceFile.class);	       
-//		expect(f.getSubsequenceAt("chr1", 72219749, 72219799)).andReturn(new ReferenceSequence("test", 72219749, new String("CTATCAAAAGAGGA").getBytes()));
-//		expect(f.getSubsequenceAt("chr1", 72234233, 72234283)).andReturn(new ReferenceSequence("test", 72219048, new String("GAACTTTGGA").getBytes()));
-//		replay(f);
-//		assertEquals(new Integer(72219748), splitReadContig.getLeftBreakpoint());
-//		assertEquals(new Integer(72234284), splitReadContig.getRightBreakpoint());
-//		
-//
-//		splitReadContig.setLeftSequence("CAGAACTAAGAGAGAGACAGAGGGTA");
-//		splitReadContig.setRightSequence("CTTTTAACTTAATGCTGCAATAAGG");
-//		splitReadContig.recheckMicrohomologyForSingleAlignment();
-//		assertEquals("ACT", splitReadContig.getMicrohomology());
-//		assertEquals(new Integer(72219750), splitReadContig.getLeftBreakpoint());
-//		assertEquals(new Integer(72234283), splitReadContig.getRightBreakpoint());
-//	
-//	}
-	
 	@Test
 	public void testDetermineSplitReadPotential() {
 		createStandardObject(1);
@@ -286,17 +260,16 @@ public class SplitReadContigTest {
 	
 	@Test
 	public void testGetMatch() {
-		createStandardObject(1);
-		assertTrue(splitReadContig.getMatch(100, 125));
-		assertFalse(splitReadContig.getMatch(100, 155));
+		assertTrue(SplitReadContig.getMatch(100, 125));
+		assertFalse(SplitReadContig.getMatch(100, 155));
 	}
 	
 	@Test
 	public void testMatchingQueryString() {
 		createStandardObject(1);
-		assertEquals(new Integer(5), splitReadContig.matchingQueryString(286, 85, 232, left));
+		assertEquals(Integer.valueOf(5), splitReadContig.matchingQueryString(286, 85, 232, left));
 		assertEquals(null, splitReadContig.matchingQueryString(286, 20, 232, left));
-		assertEquals(new Integer(14), splitReadContig.matchingQueryString(286, 1, 95, right));
+		assertEquals(Integer.valueOf(14), splitReadContig.matchingQueryString(286, 1, 95, right));
 		assertEquals(null, splitReadContig.matchingQueryString(286, 20, 232, right));
 	}
 	
