@@ -2,7 +2,8 @@ package org.qcmg.qprofiler.summarise;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.qcmg.common.model.QCMGAtomicLongArray;
@@ -25,12 +26,12 @@ public class SampleSummary {
 
 		final int order;
 		TRANS(int od){  this.order = od;  }		
-		public boolean isTranstion(){ return (order <= 3)? true: false; } 
-		public boolean isTransversion(){ return (order >=4 && order <= 11)? true: false; } 
+		public boolean isTranstion(){ return (order <= 3); } 
+		public boolean isTransversion(){ return (order >=4 && order <= 11); } 
 		
 		public static TRANS getTrans(char ref, char alt){
-			int ascRef =  (int) Character.toUpperCase(ref) ;
-			int ascii = ascRef * 2 + (int) Character.toUpperCase(alt);	
+			int ascRef =  Character.toUpperCase(ref) ;
+			int ascii = ascRef * 2 + Character.toUpperCase(alt);	
 			switch (ascii) {
 				case 201 : return AG;
 				case 207 : return GA;
@@ -58,8 +59,8 @@ public class SampleSummary {
 		}		
 	} 	
 		
-	ArrayList<String> gts = new ArrayList<String>(); //store possible genotyp 0/1, 0/0, ./1 ...
-	HashMap<String, AtomicLong> summary = new HashMap<String, AtomicLong>();
+	List<String> gts = new ArrayList<>(); //store possible genotyp 0/1, 0/0, ./1 ...
+	Map<String, AtomicLong> summary = new HashMap<>();
 	
 	AtomicLong counts = new AtomicLong();
 	QCMGAtomicLongArray sampleTrans = new QCMGAtomicLongArray(  TRANS.values().length );	
@@ -130,8 +131,8 @@ public class SampleSummary {
 				//titv
 				if(type.equals(SVTYPE.SNP)){
 					Element titvE = SummaryReport.createSubElement(svtypeE, "TiTv");
-					double sum1 = (double) summary.get(filter + type.name() + "Ti").get();
-					double sum2 = (double)summary.get(filter + type.name() + "Tv").get();				 
+					double sum1 = summary.get(filter + type.name() + "Ti").get();
+					double sum2 = summary.get(filter + type.name() + "Tv").get();				 
 					titvE.setAttribute("ratio", String.format("%.2f", sum1/sum2) );
 					
 					Element[] eleTran = new Element[3];
