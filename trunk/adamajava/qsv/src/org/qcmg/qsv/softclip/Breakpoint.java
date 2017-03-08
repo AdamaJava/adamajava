@@ -180,7 +180,7 @@ public class Breakpoint implements Comparable<Breakpoint>{
 
 	public boolean defineBreakpoint(int clipSize, boolean isRescue) throws Exception {
 		if (tumourClips.size() > clipSize) {
-			this.isGermline = this.normalClips.size() > 0 ? true : false;
+			this.isGermline = this.normalClips.size() > 0 ;
 			calculateStrand();
 //			name = reference + "_" + breakpoint + "_" + isLeft + "_" + (positiveStrand ? "+" : "-");
 			if (posStrandCount > clipSize || negStrandCount > clipSize || isRescue) {		
