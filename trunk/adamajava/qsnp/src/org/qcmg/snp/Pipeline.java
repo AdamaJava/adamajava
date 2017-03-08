@@ -57,7 +57,6 @@ import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrPositionComparator;
 import org.qcmg.common.model.ChrRangePosition;
-import org.qcmg.common.model.GenotypeEnum;
 import org.qcmg.common.model.PileupElement;
 import org.qcmg.common.model.PileupElementLite;
 import org.qcmg.common.model.Rule;
@@ -96,9 +95,9 @@ public abstract class Pipeline {
 	private static final Comparator<ChrPosition> COMPARATOR = new ChrPositionComparator();
 	static final String ILLUMINA_MOTIF = "GGT";
 	
-	//TODO these will need to become user defined values at some point
-	int novelStartsFilterValue = 4;
-	int mutantReadsFilterValue = 5;
+	private int novelStartsFilterValue = 4;
+	private int mutantReadsFilterValue = 5;
+	private  int minBaseQual = 10;
 	
 	static int initialTestSumOfCountsLimit = 3;
 	static int baseQualityPercentage = 10;
@@ -122,7 +121,7 @@ public abstract class Pipeline {
 	 *///////////////////////
 	
 	// ChrPosition chromosome consists of "chr" and then the number/letter
-	final Map<ChrPosition,QSnpRecord> positionRecordMap = new HashMap<>(100000);
+	final Map<ChrPosition,QSnpRecord> positionRecordMap = new HashMap<>(1024 * 1024);
 	
 	final Map<ChrPosition,VcfRecord> compoundSnps = new HashMap<>();
 	
@@ -271,6 +270,12 @@ public abstract class Pipeline {
 			sBiasCovPercentage = Integer.parseInt(sBiasCovPercentageString);
 		}
 		
+		final String minBaseQualString = IniFileUtil.getEntry(ini, "parameters", "minimumBaseQuality");
+		// defaults to 10 if not specified
+		if ( ! StringUtils.isNullOrEmpty(minBaseQualString)) {
+			minBaseQual = Integer.parseInt(minBaseQualString);
+		}
+		
 		// LOG
 		if ( ! StringUtils.isNullOrEmpty(runMode)) {
 			logger.tool("**** RUN MODE ****");
@@ -300,6 +305,7 @@ public abstract class Pipeline {
 		logger.tool("mutantReadsFilterValue: " + mutantReadsFilterValue);
 		logger.tool("novelStartsFilterValue: " + novelStartsFilterValue);
 		logger.tool("singleSampleMode: " + singleSampleMode);
+		logger.tool("minBaseQual: " + minBaseQual);
 		if ( ! StringUtils.isNullOrEmpty(query)) {
 			logger.tool("query: " + query);
 			logger.tool("noOfRecordsFailingFilter: " + noOfRecordsFailingFilter);
@@ -1331,7 +1337,9 @@ public abstract class Pipeline {
 					final Accumulator oldAcc = map.putIfAbsent(i + startPosAndRefOffset, acc);
 					if (null != oldAcc) acc = oldAcc;
 				}
-				if (passesFilter) {
+				
+				
+				if (passesFilter && qualities[i + offset] >= minBaseQual) {
 					acc.addBase(bases[i + offset], qualities[i + offset], forwardStrand, 
 							startPosition, i + startPosAndRefOffset, readEndPosition, readId);
 				} else {
