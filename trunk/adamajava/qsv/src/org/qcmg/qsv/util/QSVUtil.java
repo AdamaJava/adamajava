@@ -541,10 +541,7 @@ public class QSVUtil {
 	 * @return true, if is translocation pair
 	 */
 	public static boolean isTranslocationPair(SAMRecord record) {
-		if ( ! record.getReferenceName().equals(record.getMateReferenceName())) {
-			return true;
-		}
-		return false;
+		return  ! record.getReferenceName().equals(record.getMateReferenceName());
 	}
 
 
