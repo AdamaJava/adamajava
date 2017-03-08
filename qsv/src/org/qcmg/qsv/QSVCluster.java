@@ -10,7 +10,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -84,25 +83,13 @@ public class QSVCluster {
 		return sampleId;
 	}
 
-//	public void setSampleId(String sampleId) {
-//		this.sampleId = sampleId;
-//	}
-
 	public String getLeftReferenceFlank() {
 		return leftReferenceFlank;
 	}
 
-//	public void setLeftReferenceFlank(String leftReferenceFlank) {
-//		this.leftReferenceFlank = leftReferenceFlank;
-//	}
-
 	public String getRightReferenceFlank() {
 		return rightReferenceFlank;
 	}
-
-//	public void setRightReferenceFlank(String rightReferenceFlank) {
-//		this.rightReferenceFlank = rightReferenceFlank;
-//	}
 
 	public String getSvId() {
 		return svId;
@@ -187,11 +174,7 @@ public class QSVCluster {
 	}
 
 	public boolean getHasOverlap() {
-		if (pairRecord != null && clipRecords != null) {
-			return true;
-		} else {
-			return false;
-		}
+		return  (pairRecord != null && clipRecords != null);
 	}
 
 	public List<SoftClipCluster> getClipRecords() {
@@ -226,9 +209,6 @@ public class QSVCluster {
 		}	
 	}
 	
-
-	
-
 	/**
 	 * 
 	 * @return the right breakpoint for the cluster
@@ -512,10 +492,7 @@ public class QSVCluster {
 		}
 		int end = clusterBoundary + 100;
 		
-		if (clipBreakpoint >= start && clipBreakpoint <= end) {
-			return true;
-		}
-		return false;
+		return (clipBreakpoint >= start && clipBreakpoint <= end) ;
 	}
 	
 	/**
@@ -596,10 +573,7 @@ public class QSVCluster {
 				}
 			} 
 		}
-		if (isNormalPotentialSplitRead()) {			
-			return true;
-		}
-		return false;
+		return isNormalPotentialSplitRead();			
 	}
 	
 	private boolean isNormalPotentialSplitRead() {
@@ -1335,11 +1309,7 @@ public class QSVCluster {
 			} else if (conf.equals(QSVConstants.LEVEL_HIGH) || conf.equals(QSVConstants.LEVEL_MID) || conf.equals(QSVConstants.LEVEL_LOW)) {
 				return true;
 			} else {
-				if (singleSidedClip() && !isPotentialSplitRead()) {
-					return false;
-				} else {
-					return true;
-				}				
+				return ! (singleSidedClip() && !isPotentialSplitRead());
 			}
 		}
 	}

@@ -620,10 +620,7 @@ public class Options {
 
 	public boolean directoryExists(String directoryName) {
 		File file = new File(directoryName);
-		if (file.exists() && file.isDirectory()) {
-			return true;
-		} 
-		return false;
+		return file.exists() && file.isDirectory();
 	}
 
     public String getLogLevel() {
@@ -699,31 +696,19 @@ public class Options {
 	}
 
 	public boolean runClipAnalysis() {
-		if (analysisMode.equals("both") || analysisMode.equals("clip")) {
-			return true;
-		}
-		return false;
+		return (analysisMode.equals("both") || analysisMode.equals("clip")) ;
 	}	
 	
 	public boolean runPairAnalysis() {
-		if (analysisMode.equals("both") || analysisMode.equals("pair")) {
-			return true;
-		}
-		return false;
+		return (analysisMode.equals("both") || analysisMode.equals("pair"));
 	}
 	
 	public boolean runPairPreprocess() {
-		if (preprocessMode.equals("both") || preprocessMode.equals("pair")) {
-			return true;
-		}
-		return false;
+		return  (preprocessMode.equals("both") || preprocessMode.equals("pair"));
 	}
 	
 	public boolean runClipPreprocess() {
-		if (preprocessMode.equals("both") || preprocessMode.equals("clip")) {
-			return true;
-		}
-		return false;
+		return  (preprocessMode.equals("both") || preprocessMode.equals("clip")) ;
 	}
 
 	public String translatePlatform() {
