@@ -6,6 +6,7 @@
  */
 package org.qcmg.sig.util;
 
+import static java.util.Comparator.comparing;
 import gnu.trove.map.TMap;
 import gnu.trove.map.hash.THashMap;
 import gnu.trove.map.hash.TIntShortHashMap;
@@ -858,6 +859,13 @@ public class SignatureUtil {
 		// list files
 		Element compsE = doc.createElement("comparisons");
 		rootElement.appendChild(compsE);
+		
+		/*
+		 * sort comparisons by file ids
+		 */
+		allComparisons.sort(comparing((Comparison c) -> fileIdsAndCounts.get(c.getMain())[0])
+				.thenComparing((c) ->  fileIdsAndCounts.get(c.getTest())[0]));
+		
 		for (Comparison comp : allComparisons) {
 			int id1 = fileIdsAndCounts.get(comp.getMain())[0];
 			int id2 = fileIdsAndCounts.get(comp.getTest())[0];
@@ -881,7 +889,5 @@ public class SignatureUtil {
 		transformer.setOutputProperty(OutputKeys.INDENT, "yes");
 		transformer.transform(source, result);
 	}
-	
-	
 
 }
