@@ -165,7 +165,8 @@ public class SignatureCompareRelatedSimpleGenotypeMT {
 		logger.info("number of comparisons created: " + allComparisons.size());
 		logger.info("writing xml output");
 		if (outputXml != null)
-			writeXmlOutput();
+			SignatureUtil.writeXmlOutput(fileIdsAndCounts, allComparisons, outputXml);
+//		writeXmlOutput();
 		
 		return exitStatus;
 	}
@@ -251,68 +252,68 @@ public class SignatureCompareRelatedSimpleGenotypeMT {
 		
 	}
 	
-	private void writeXmlOutput() throws ParserConfigurationException, TransformerException {
-		DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
-		DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
-		
-		// root elements
-		Document doc = docBuilder.newDocument();
-		Element rootElement = doc.createElement("qsignature");
-		doc.appendChild(rootElement);
-		
-		// list files
-		Element filesE = doc.createElement("files");
-		rootElement.appendChild(filesE);
-		
-		// write output xml file
-		// do it to console first...
-		List<String> keys = new ArrayList<>( fileIdsAndCounts.keySet());
-		keys.sort(null);
-		for (String f  : keys) {
-			int[] value = fileIdsAndCounts.get(f);
-			
-			Element fileE = doc.createElement("file");
-			fileE.setAttribute("id", value[0] + "");
-			fileE.setAttribute("name", f);
-			fileE.setAttribute("coverage", value[1] + "");
-			fileE.setAttribute("average_coverage_at_positions", value[2] + "");
-			filesE.appendChild(fileE);
-		}
-		
-		// list files
-		Element compsE = doc.createElement("comparisons");
-		rootElement.appendChild(compsE);
-		
-		/*
-		 * sort comparisons by file ids
-		 */
-		allComparisons.sort(comparing((Comparison c) -> fileIdsAndCounts.get(c.getMain())[0])
-				.thenComparing((c) ->  fileIdsAndCounts.get(c.getTest())[0]));
-		
-		
-		for (Comparison comp : allComparisons) {
-			int id1 = fileIdsAndCounts.get(comp.getMain())[0];
-			int id2 = fileIdsAndCounts.get(comp.getTest())[0];
-			
-			Element compE = doc.createElement("comparison");
-			compE.setAttribute("file1", id1 + "");
-			compE.setAttribute("file2", id2 + "");
-			compE.setAttribute("score", comp.getScore() + "");
-			compE.setAttribute("overlap", comp.getOverlapCoverage() + "");
-			compE.setAttribute("calcs", comp.getNumberOfCalculations() + "");
-			compE.setAttribute("f1AveCovAtOverlaps", comp.getMainAveCovAtOverlaps() + "");
-			compE.setAttribute("f2AveCovAtOverlaps", comp.getTestAveCovAtOverlaps() + "");
-			compsE.appendChild(compE);
-		}
-		
-		// write it out
-		TransformerFactory transformerFactory = TransformerFactory.newInstance();
-		Transformer transformer = transformerFactory.newTransformer();
-		DOMSource source = new DOMSource(doc);
-		StreamResult result = new StreamResult(new File(outputXml));
-		transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-		transformer.transform(source, result);
-	}
+//	private void writeXmlOutput() throws ParserConfigurationException, TransformerException {
+//		DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
+//		DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
+//		
+//		// root elements
+//		Document doc = docBuilder.newDocument();
+//		Element rootElement = doc.createElement("qsignature");
+//		doc.appendChild(rootElement);
+//		
+//		// list files
+//		Element filesE = doc.createElement("files");
+//		rootElement.appendChild(filesE);
+//		
+//		// write output xml file
+//		// do it to console first...
+//		List<String> keys = new ArrayList<>( fileIdsAndCounts.keySet());
+//		keys.sort(null);
+//		for (String f  : keys) {
+//			int[] value = fileIdsAndCounts.get(f);
+//			
+//			Element fileE = doc.createElement("file");
+//			fileE.setAttribute("id", value[0] + "");
+//			fileE.setAttribute("name", f);
+//			fileE.setAttribute("coverage", value[1] + "");
+//			fileE.setAttribute("average_coverage_at_positions", value[2] + "");
+//			filesE.appendChild(fileE);
+//		}
+//		
+//		// list files
+//		Element compsE = doc.createElement("comparisons");
+//		rootElement.appendChild(compsE);
+//		
+//		/*
+//		 * sort comparisons by file ids
+//		 */
+//		allComparisons.sort(comparing((Comparison c) -> fileIdsAndCounts.get(c.getMain())[0])
+//				.thenComparing((c) ->  fileIdsAndCounts.get(c.getTest())[0]));
+//		
+//		
+//		for (Comparison comp : allComparisons) {
+//			int id1 = fileIdsAndCounts.get(comp.getMain())[0];
+//			int id2 = fileIdsAndCounts.get(comp.getTest())[0];
+//			
+//			Element compE = doc.createElement("comparison");
+//			compE.setAttribute("file1", id1 + "");
+//			compE.setAttribute("file2", id2 + "");
+//			compE.setAttribute("score", comp.getScore() + "");
+//			compE.setAttribute("overlap", comp.getOverlapCoverage() + "");
+//			compE.setAttribute("calcs", comp.getNumberOfCalculations() + "");
+//			compE.setAttribute("f1AveCovAtOverlaps", comp.getMainAveCovAtOverlaps() + "");
+//			compE.setAttribute("f2AveCovAtOverlaps", comp.getTestAveCovAtOverlaps() + "");
+//			compsE.appendChild(compE);
+//		}
+//		
+//		// write it out
+//		TransformerFactory transformerFactory = TransformerFactory.newInstance();
+//		Transformer transformer = transformerFactory.newTransformer();
+//		DOMSource source = new DOMSource(doc);
+//		StreamResult result = new StreamResult(new File(outputXml));
+//		transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+//		transformer.transform(source, result);
+//	}
 	
 	private void addFilesToMap(List<File> orderedFiles) {
 		int id = 1;
