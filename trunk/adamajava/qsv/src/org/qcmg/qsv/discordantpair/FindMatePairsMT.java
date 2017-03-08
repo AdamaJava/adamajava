@@ -220,27 +220,16 @@ public class FindMatePairsMT implements Runnable {
 				&& mapsToChromosome(samRecord.getMateReferenceName())) {
 			return true;
 		}
-		if (isQCMG) {
-			return false;
-		} else {
-			return true;
-		}        
+		return ! isQCMG;
 	}
 
 	private boolean mapsToChromosome(String referenceName) {
 		return referenceName.contains("chr");
 	}
 
-	private boolean passesZPFilter(SAMRecord samRecord) {
+	public static boolean passesZPFilter(SAMRecord samRecord) {
 		String zp = (String) samRecord.getAttribute("ZP");
-
-		if (zp.equals("Z**")) {
-			return false;
-		} else if (zp.contains("X")) {
-			return false;
-		} else {
-			return true;
-		}
+		return  ! zp.equals("Z**") &&  ! zp.contains("X");
 	}
 
 	public QSVParameters getQsvParameters() {
