@@ -174,10 +174,6 @@ public class Breakpoint implements Comparable<Breakpoint>{
 		return negStrandCount;
 	}
 
-//	public BLATRecord getBlatRecord() {
-//		return this.blatRecord;
-//	}
-
 	public boolean defineBreakpoint(int clipSize, boolean isRescue) throws Exception {
 		if (tumourClips.size() > clipSize) {
 			this.isGermline = this.normalClips.size() > 0 ;
