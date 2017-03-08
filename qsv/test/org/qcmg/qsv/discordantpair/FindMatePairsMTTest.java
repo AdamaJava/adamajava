@@ -120,6 +120,20 @@ public class FindMatePairsMTTest {
         findMatePairs.addMatePairToWriter(records.get(2), records.get(3));
         assertEquals(1, findMatePairs.getMatePairWritersMap().get(PairClassification.Cxx).getMatePairs().get("chr4-chr7-4").size());
     }
+    
+    @Test
+    public void passesZPFilter() {
+    	 	SAMRecord record1 = records.get(0);
+    	 	assertEquals(true, FindMatePairsMT.passesZPFilter(record1));
+    	 	record1.setAttribute("ZP", "Z**");
+    	 	assertEquals(false, FindMatePairsMT.passesZPFilter(record1));
+    	 	record1.setAttribute("ZP", "X**");
+    	 	assertEquals(false, FindMatePairsMT.passesZPFilter(record1));
+    	 	record1.setAttribute("ZP", "**X");
+    	 	assertEquals(false, FindMatePairsMT.passesZPFilter(record1));
+    	 	record1.setAttribute("ZP", "XXX");
+    	 	assertEquals(false, FindMatePairsMT.passesZPFilter(record1));
+    }
 
     @Test
     public void testMateFiltering() throws IOException {
