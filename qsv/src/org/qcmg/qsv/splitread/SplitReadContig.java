@@ -232,33 +232,17 @@ public class SplitReadContig {
 		this.findMH = b;		
 	}		
 
-	//	public void setFastaSequenceFile(IndexedFastaSequenceFile fastaSequenceFile) {
-	//		this.fastaSequenceFile = fastaSequenceFile;
-	//	}	
-
 	public Map<String, List<Chromosome>> getChromosomes() {
 		return chromosomes;
 	}
 
-	//	public void setChromosomes(Map<String, List<Chromosome>> chromosomes) {
-	//		this.chromosomes = chromosomes;
-	//	}	
-
 	public SplitReadAlignment getLeft() {
 		return left;
 	}
-	//
-	//	public void setLeft(SplitReadAlignment left) {
-	//		this.left = left;
-	//	}
 
 	public SplitReadAlignment getRight() {
 		return right;
 	}
-
-	//	public void setRight(SplitReadAlignment right) {
-	//		this.right = right;
-	//	}	
 
 	private SplitReadAlignment getSingleSplitReadAlignment() {
 		if (left == null && right != null) {
@@ -579,18 +563,12 @@ public class SplitReadContig {
 	}
 
 	public boolean leftLower() {
-		if (left.getQueryStart().intValue() < right.getQueryStart().intValue()) {
-			return true;
-		}
-		return false;
+		return  (left.getQueryStart().intValue() < right.getQueryStart().intValue());
 	}
 
 	public boolean needToReverseComplement(String orientationCategory) {
-		if ((left.getStrand() == QSVUtil.MINUS && ! orientationCategory.equals(QSVConstants.ORIENTATION_4)) ||
-				(left.getStrand() == QSVUtil.PLUS && orientationCategory.equals(QSVConstants.ORIENTATION_4))) {
-			return true;
-		}
-		return false;
+		return ((left.getStrand() == QSVUtil.MINUS && ! orientationCategory.equals(QSVConstants.ORIENTATION_4)) ||
+				(left.getStrand() == QSVUtil.PLUS && orientationCategory.equals(QSVConstants.ORIENTATION_4))) ;
 	}
 
 	void calculateMicrohomology() throws QSVException, IOException {
@@ -680,10 +658,6 @@ public class SplitReadContig {
 			// array is zero-based, and picard is 1-based
 			bases = new String(Arrays.copyOfRange(basesArray, start -1, end -1));
 			
-//			try (IndexedFastaSequenceFile fastaSequenceFile = QSVUtil.getReferenceFile(new File(referenceFile));) {
-//				ReferenceSequence subset = fastaSequenceFile.getSubsequenceAt(reference, start, end);
-//				bases = new String(subset.getBases(), "UTF-8");
-//			}
 			return bases;
 		}
 		return "";		
@@ -811,14 +785,11 @@ public class SplitReadContig {
 		int[] starts = record.getUnmodifiedStarts();
 		int[] blocks = record.getBlockSizes();
 		int[] startPoses = record.gettStarts();
-//		String[] startPoses = record.gettStarts();
 		if (starts != null && blocks != null && startPoses != null) {
 			for (int i=0; i<record.getBlockCount(); i++) {
 				int startPos = startPoses[i];
 				int endPos = startPos + blocks[i] -1;
 				int start = starts[i];
-//				int startPos = new Integer(startPoses[i]);
-//				int endPos = new Integer(startPoses[i]) + new Integer(blocks[i]) -1;
 				int end = start + blocks[i] - 1;
 				SplitReadAlignment newAlign = new SplitReadAlignment(record.getReference(), record.getStrand(), startPos, endPos, start, end);
 				if (passesNewAlignmentFilters(newAlign)) {
@@ -986,10 +957,7 @@ public class SplitReadContig {
 		Integer currentLeftDifference = matchingQueryString(length, left.getQueryStart(), left.getQueryEnd(), right);
 		Integer currentRightDifference = matchingQueryString(length, right.getQueryStart(), right.getQueryEnd(), left); 
 
-		if (currentLeftDifference != null && currentRightDifference != null) {
-			return true;
-		}
-		return false;
+		return (currentLeftDifference != null && currentRightDifference != null);
 	}	
 
 	public boolean queryLengthFilter(SplitReadAlignment left,
@@ -1013,14 +981,12 @@ public class SplitReadContig {
 	}
 
 	public boolean passesSizeFilter(SplitReadAlignment a) {
-		double max = ((double) length - (double) 20)/length;
-		if ((double) a.getInsertSize()/ (double) length > max) {			
+		int iSize = a.getInsertSize();
+		if (iSize < 20) {
 			return false;
 		}
-		if (a.getInsertSize() < 20) {
-			return false;
-		}
-		return true;
+		double max = ((double) length - 20)/length;
+		return ! ((double) iSize / length > max) ;			
 	}	
 
 	public boolean checkBlockSize(BLATRecord r) {
@@ -1043,8 +1009,8 @@ public class SplitReadContig {
 		if (confidenceLevel.equals(QSVConstants.LEVEL_SINGLE_CLIP)) {
 			return true;
 		} else {
-			if (getMatch(a.getStartPos(), knownSV.getLeftBreakpoint()) || getMatch(a.getEndPos(), knownSV.getLeftBreakpoint()) ||
-					getMatch(a.getStartPos(), knownSV.getRightBreakpoint()) || getMatch(a.getEndPos(),  knownSV.getRightBreakpoint())) {
+			if (getMatch(a.getStartPos().intValue(), knownSV.getLeftBreakpoint().intValue()) || getMatch(a.getEndPos().intValue(), knownSV.getLeftBreakpoint().intValue()) ||
+					getMatch(a.getStartPos().intValue(), knownSV.getRightBreakpoint().intValue()) || getMatch(a.getEndPos().intValue(),  knownSV.getRightBreakpoint().intValue())) {
 				if (!confidenceLevel.equals(QSVConstants.LEVEL_SINGLE_CLIP)) {
 					return true;
 				}			
@@ -1053,19 +1019,12 @@ public class SplitReadContig {
 		return false;
 	}
 
-	public boolean getMatch(Integer pos, int compareBp) {
-		int intPos = pos.intValue();
-		if (intPos >= compareBp-50 && intPos<=compareBp+50) {
-			return true;
-		}
-		return false;		
+	public static boolean getMatch(int pos, int compareBp) {
+		return (pos >= compareBp-50 && pos<=compareBp+50) ;
 	}
 
 	private boolean passesNewAlignmentFilters(SplitReadAlignment newAlign) {
-		if (passesBreakpointFilter(newAlign) && passesSizeFilter(newAlign)) {
-			return true;
-		}
-		return false;
+		return (passesBreakpointFilter(newAlign) && passesSizeFilter(newAlign)) ;
 	}	
 
 	public Integer matchingQueryString(int difference, int queryStart, int queryEnd, SplitReadAlignment newAlign) {
