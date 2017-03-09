@@ -55,7 +55,6 @@ class CoverageJob implements Job {
 		this.filter = filter;
 		this.logger = QLoggerFactory.getLogger(CoverageJob.class);
 		this.refName = refName;
-//		perBaseCoverages = new int[0]; // All elements default to zero
 		// value
 		features = refToFeaturesMap.get(refName);
 		assert (null != features);
@@ -64,8 +63,8 @@ class CoverageJob implements Job {
 			SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile, validation);
 			fileReaders.add(reader);
 		}
-		logger.debug("Length of sequence to be processed by job '" + toString() + "':" + refLength);
-		logger.debug("Number of features to be processed by job '" + toString() + "':" + features.size());
+		logger.debug("length of sequence to be processed by job '" + toString() + "':" + refLength);
+		logger.debug("number of features to be processed by job '" + toString() + "':" + features.size());
 	}
 
 	@Override
@@ -81,15 +80,15 @@ class CoverageJob implements Job {
 	@Override
 	synchronized public void run() throws Exception{
 		try {
-			logger.info("Starting job for: " + refName);
-			logger.debug("Constructing storage for coverage: " + refName);
+			logger.info("starting job for: " + refName);
+			logger.debug("constructing storage for coverage: " + refName);
 			constructCoverageMap();
-			logger.info("Performing coverage for: " + refName);
+			logger.info("performing coverage for: " + refName);
 			performCoverage();
-			logger.info("Assembling results for: " + refName);
+			logger.info("assembling results for: " + refName);
 			assembleResults();
-			logger.debug("Assembled results for: " + refName + " are: " + getResults());
-			logger.info("Ending job for: " + refName);
+			logger.debug("assembled results for: " + refName + " are: " + getResults());
+			logger.info("ending job for: " + refName);
 		} catch (Exception ex) {
 			logger.error("Exception caught in run method of CoverageJob", ex);
 			throw ex;
@@ -120,7 +119,7 @@ class CoverageJob implements Job {
 			}
 		}
 		this.fullyPopulated = isArrayFull;
-		logger.info("Fully populated: " + isArrayFull);
+		logger.info("fully populated: " + isArrayFull);
 	}
 
 	private void performCoverage() throws Exception {
@@ -135,19 +134,14 @@ class CoverageJob implements Job {
 				SAMRecord read = iter.next();
 				
 				// only proceed if read is mapped, not a dup, valid, and primary
-//				if ( ! SAMUtils.isSAMRecordValidForVariantCalling(read)) continue;
-				
 				counterIn.increment();   //count input read number
 				
 				// get number of bases in read
 				int readLength = read.getReadLength();
 				totalBaseCount += readLength;
-//				int end = read.getAlignmentEnd();
-//				int start = read.getAlignmentStart();
-//				if (readLength != (end - start)) logger.info("read length = " + readLength + ", but start is : " + start + ", and end is: " + end);
 				
 				if (++recordCounterIn % 10000000 == 0) {
-					logger.debug("Hit " + recordCounterIn + " record for " + refName);
+					logger.debug("hit " + (recordCounterIn / 1000000) + "M records for " + refName);
 				}
 
 				if (read.getReferenceName().equals(refName)) {
@@ -167,13 +161,13 @@ class CoverageJob implements Job {
 				}
 			}
 			fileReader.close();
-			logger.info("read " + recordCounterIn + " record from input for " + refName);
-			logger.info("add " + recordCounterOut + " record (satisfied by query if query is provided) to coverage for " + refName);
+			logger.info("read " + recordCounterIn + " records from input for " + refName);
+			logger.info("add " + recordCounterOut + " records (satisfied by query if query is provided) to coverage for " + refName);
 			logger.info("number in counterIn instance is " + counterIn.getNumber());
 			logger.info("number in counterOut instance is " + counterOut.getNumber());
 			
-			logger.info("Number of bases for " + refName + " is : " + totalBaseCount);
-			logger.info("Number of filtered bases for " + refName + " is : " + filteredBaseCount);
+			logger.info("number of bases for " + refName + " is : " + totalBaseCount);
+			logger.info("number of filtered bases for " + refName + " is : " + filteredBaseCount);
 			long totalCountFromArray = 0;
 			for (int i : perBaseCoverages) {
 				if (i > -1) {
@@ -207,19 +201,12 @@ class CoverageJob implements Job {
 						throw new IllegalStateException(
 								"Malformed internal state. -1 coverage values are invalid. Report this bug.");
 					}
-					AtomicLong bases = covToBaseCountMap.get(cov);
-					if (null == bases) {
-						covToBaseCountMap.put(cov, new AtomicLong(1));
-					} else {
-						bases.incrementAndGet();
-					}
+					covToBaseCountMap.computeIfAbsent(cov, v -> new AtomicLong()).incrementAndGet();
 				}
 			}
 		}
 		// Attempt to release coverage memory by nullifying
 		perBaseCoverages = null;
-//		Runtime r = Runtime.getRuntime();
-//		r.gc();
 	}
 
 	int[] getPerBaseCoverages() {
