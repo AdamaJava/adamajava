@@ -79,7 +79,7 @@ public class BamSummarizerMT implements Summarizer {
 		// check to see if index file exists - if not, run in single producer mode as will not be able to perform indexed lookups
 		SamReader reader = SAMFileReaderFactory.createSAMFileReader(file);
 		if ( ! reader.hasIndex() && noOfProducerThreads > 1) {
-			logger.warn("Using 1 producer thread - no index found for bam file: " + file.getAbsolutePath());
+			logger.warn("using 1 producer thread - no index found for bam file: " + file.getAbsolutePath());
 			noOfProducerThreads = 1;
 		}
 		
@@ -169,7 +169,7 @@ public class BamSummarizerMT implements Summarizer {
 				consumerThreads.shutdownNow();
 				throw new Exception("Producer thread has timed out");
 			}
-			logger.info("Producer thread finished, queue size: " + (q == null ? getQueueSize(queues) : getQueueSize(q) ) );
+			logger.info("producer thread finished, queue size: " + (q == null ? getQueueSize(queues) : getQueueSize(q) ) );
 			
 			if ( ! cLatch.await(30, TimeUnit.SECONDS)) {
 			
@@ -188,21 +188,21 @@ public class BamSummarizerMT implements Summarizer {
 				}
 				
 				// final sleep to allow threads to finish processing final record
-				cLatch.await(10, TimeUnit.SECONDS);
-				if (cLatch.getCount() > 0)
+				if ( ! cLatch.await(10, TimeUnit.SECONDS)) {
 					consumerThreads.shutdownNow();
+				}
 				
 			} else {
-				logger.info("Consumer threads finished");
+				logger.info("consumer threads finished");
 			}
 
 			// if there are items left on the queue - means that the consumer threads encountered errors and were unable to complete the processing
 			if ((q == null ? getQueueSize(queues) : getQueueSize(q))  > 0 ) {
-				logger.error("No Consumer threads available to process items [" + q.size() + "] on queue");
+				logger.error("no Consumer threads available to process items [" + q.size() + "] on queue");
 				throw new Exception("Consumer threads were unable to process all items on the queue");
 			}
 			
-			logger.info("Producer and Consumer threads have completed");
+			logger.info("producer and consumer threads have completed");
 		} catch (InterruptedException e) {
 			// restore interrupted status
 			logger.info("current thread about to be interrupted...");
@@ -211,16 +211,16 @@ public class BamSummarizerMT implements Summarizer {
 			producerThreads.shutdownNow();
 			consumerThreads.shutdownNow();
 			
-			logger.error("Terminating due to failed Producer/Consumer threads");
+			logger.error("terminating due to failed Producer/Consumer threads");
 			throw e;
 		}
 		
         bamSummaryReport.cleanUp();
-		logger.info("Records parsed: " + bamSummaryReport.getRecordsParsed());
+		logger.info("records parsed: " + bamSummaryReport.getRecordsParsed());
 		
 		bamSummaryReport.setFinishTime(DateUtils.getCurrentDateAsString());
 
-        logger.info("Done in " + (System.currentTimeMillis() - start) / 1000 + " secs") ;
+        logger.info("done in " + (System.currentTimeMillis() - start) / 1000 + " secs") ;
         		
 		return bamSummaryReport;
 	}
@@ -250,7 +250,7 @@ public class BamSummarizerMT implements Summarizer {
 		@Override
 		public void run() {
 			try {
-				logger.debug("Start Consumer");
+				logger.debug("start consumer");
 				while ( true ) {
 					SAMRecord record = queue.poll();
 					if (null != record) {
@@ -258,7 +258,7 @@ public class BamSummarizerMT implements Summarizer {
 							report.parseRecord(record);
 						} catch (Exception e) {
 							logger.error("record: " + record.getSAMString());
-							logger.error("Error caught parsing SAMRecord with readName: " + record.getReadName(), e);
+							logger.error("error caught parsing SAMRecord with readName: " + record.getReadName(), e);
 							throw e;
 						}
 					} else {
@@ -273,7 +273,7 @@ public class BamSummarizerMT implements Summarizer {
 				mainThread.interrupt();
 			} finally {
 				cLatch.countDown();
-				logger.debug("Consumer finished");
+				logger.debug("consumer finished");
 			}
 		}
 	}
@@ -300,7 +300,7 @@ public class BamSummarizerMT implements Summarizer {
 		@Override
 		public void run() {
 			try {
-				logger.debug("Start Consumer");
+				logger.debug("start consumer");
 				while ( true ) {
 					SAMRecord record = getNextRecord();
 					if (null != record) {
@@ -308,7 +308,7 @@ public class BamSummarizerMT implements Summarizer {
 							report.parseRecord(record);
 						} catch (Exception e) {
 							logger.error("record: " + record.getSAMString());
-							logger.error("Error caught parsing SAMRecord with readName: " + record.getReadName(), e);
+							logger.error("error caught parsing SAMRecord with readName: " + record.getReadName(), e);
 							throw e;
 						}
 					} else {
@@ -323,7 +323,7 @@ public class BamSummarizerMT implements Summarizer {
 				mainThread.interrupt();
 			} finally {
 				cLatch.countDown();
-				logger.debug("Consumer finished");
+				logger.debug("consumer finished");
 			}
 		}
 		
@@ -366,7 +366,7 @@ public class BamSummarizerMT implements Summarizer {
 
 		@Override
 		public void run() {
-			log.debug("Start Producer ");
+			log.debug("start producer ");
 			
 			SamReader reader = SAMFileReaderFactory.createSAMFileReader(file, validation);
 			
@@ -383,10 +383,10 @@ public class BamSummarizerMT implements Summarizer {
 						
 						if (++count % 2000000 == 0) {
 							size = queue.size();
-							log.info("added " + count/1000000 + "M, q.ize: " + size);
+							log.info("added " + count/1000000 + "M records, current queu size: " + size);
 							
 							if (cLatch.getCount() == 0) {
-								log.error("No consumer threads left, but queue is not empty");
+								log.error("no consumer threads left, but queue is not empty");
 								throw new Exception("No consumer threads left, but queue is not empty");
 //								break;
 							}
@@ -443,7 +443,7 @@ public class BamSummarizerMT implements Summarizer {
 
 		@Override
 		public void run() {
-			logger.debug("Start Producer");
+			logger.debug("start producer");
 			SamReader reader = SAMFileReaderFactory.createSAMFileReader(file, validation);
 			
 			int size = 0;
@@ -451,11 +451,8 @@ public class BamSummarizerMT implements Summarizer {
 			long start = System.currentTimeMillis();
 			long end = 0;
 			int counter = 1000000;
-//			boolean loadReadBases = false;
 			try {
 				for (SAMRecord record : reader) {
-//					if (loadReadBases)		// cache read bases
-//						record.getReadBases();
 					
 					queue.add(record);
 					
@@ -466,22 +463,9 @@ public class BamSummarizerMT implements Summarizer {
 						start = end;
 						
 						if (cLatch.getCount() == 0 && size > 0) {
-							logger.error("No consumer threads left, but queue is not empty");
+							logger.error("no consumer threads left, but queue is not empty");
 							break;
 						}
-						
-						
-//						if (size > 100000 &&  ! loadReadBases) {
-//							// help out the consumers by caching the read bases.
-//							loadReadBases = true;
-//							continue;
-//						}
-						
-//						if (size < 100000 &&  loadReadBases) {
-//							//  consumers are doing fine - turn off caching the read bases.
-//							loadReadBases = false;
-//							continue;
-//						}
 						
 						// if q size is getting too large - give the Producer a rest
 						// having too many items in the queue seems to have a detrimental effect on performance.
