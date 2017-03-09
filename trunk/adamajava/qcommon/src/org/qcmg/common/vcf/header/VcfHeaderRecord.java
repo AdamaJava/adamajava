@@ -171,7 +171,9 @@ public class VcfHeaderRecord implements Comparable<VcfHeaderRecord> {
 			for(Pair<String, String> pair : pairs) {
 				if(pair.getLeft().equalsIgnoreCase( pairKey)  ) {				 
 					return pair.getRight(); 
-				
+				}
+			}
+		}
 		return null; 		
 	}
 	public List<Pair<String,String>> getSubFields(){ return pairs; }	
