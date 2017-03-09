@@ -25,8 +25,8 @@ public class VcfHeaderRecord implements Comparable<VcfHeaderRecord> {
 	private final List<Pair<String,String>> pairs; // =  new ArrayList<Pair<String,String>>();
 	
 	/**
-	 * vcf header line start with "#"
-	 * @param line
+	 * Create a new vcf Header Record
+	 * @param line: vcf header line follow ##key=value pattern 
 	 */
 	public VcfHeaderRecord(String line) {
 		if (StringUtils.isNullOrEmpty(line) || ! (line = line.trim()).startsWith("#") ) 
@@ -68,10 +68,11 @@ public class VcfHeaderRecord implements Comparable<VcfHeaderRecord> {
 		this.value = vstr;
 		this.id = (pid == null)? null : (String) pid.getRight();				
 	}
+
 	/**
-	 * 
-	 * @param key: can't be null
-	 * @param value: accept null incase of #Chrom line
+	 * Create a new vcf Header Record
+	 * @param key: a string can't be null
+	 * @param value: a description string,  accept null incase of #Chrom line
 	 */
 	public VcfHeaderRecord(String key, String value) { 
 		this( ( key==null? "" : key )+ Constants.EQ + (value == null? "" : value));
@@ -83,7 +84,7 @@ public class VcfHeaderRecord implements Comparable<VcfHeaderRecord> {
 	 * @param id
 	 * @param number
 	 * @param type
-	 * @param description
+	 * @param description: a description string. 
 	 */
 	public VcfHeaderRecord(String prefix, String id, String number, String type, String description){
 		this(prefix + "=<ID=" + id +  
@@ -93,10 +94,12 @@ public class VcfHeaderRecord implements Comparable<VcfHeaderRecord> {
 		
 	}
 	
+	
 	@Override
 	public String toString() { 
 		return  (value == null) ? key : key + Constants.EQ + value ; 
 	}		
+
 	@Override
 	public  int hashCode() {
 		final int prime = 31;
@@ -105,6 +108,7 @@ public class VcfHeaderRecord implements Comparable<VcfHeaderRecord> {
 		result += result * prime + ((value == null) ? 0 : value.hashCode());
 		return result;
 	}
+	
 	@Override
 	public  boolean equals(Object obj) {
 		if (this == obj) return true;
@@ -120,7 +124,6 @@ public class VcfHeaderRecord implements Comparable<VcfHeaderRecord> {
 		return false;
 	}
 		
-
 	@Override
 	public int compareTo(VcfHeaderRecord o) {	
 		int diff = getMetaKey().compareTo(o.getMetaKey());			
@@ -137,25 +140,47 @@ public class VcfHeaderRecord implements Comparable<VcfHeaderRecord> {
 		return 0; 
 	}
 	
+	/**
+	 * 
+	 * @return the key string which is the string before "=" mark of ##key=value; 
+	 */
 	public String getMetaKey(){ return key; }
+	
+	/**
+	 * 
+	 * @return the meta value string  which is the string after "=" mark of ##key=value; 
+	 */
 	public String getMetaValue(){ return value; }	
 	
+	/**
+	 * 
+	 * @return the ID of the structured meta-information header line, eg. ##Key=<ID=id, ...>
+	 * return null, if ID is not exists.
+	 */
 	public String getId(){ return id;} 	
+	
+	
+	/**
+	 * 
+	 * @param pairKey
+	 * @return the related pair value of specified pair key, eg.  ##Key=<ID=id,pairkey1=pairValue1, pairkey2=pairValue2, ...>
+	 * return null if the specified pairKey or pairValue is not exists.
+	 */
 	public String getSubFieldValue(String pairKey){ 
 		if(pairs != null) {
 			for(Pair<String, String> pair : pairs) {
 				if(pair.getLeft().equalsIgnoreCase( pairKey)  ) {				 
 					return pair.getRight(); 
-				}
-			}
-		}
-		
-		return null; 
-		
+				
+		return null; 		
 	}
 	public List<Pair<String,String>> getSubFields(){ return pairs; }	
 	
-	
+	/**
+	 * format input string to a proper description string
+	 * @param str: an input string
+	 * @return a trimmed string enclosed by double quotation. 
+	 */
 	static String parseDescription(String str){
 		String str1 = str.trim();
 		String str2 = "";

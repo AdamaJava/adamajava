@@ -133,42 +133,4 @@ public class KmersSummaryTest {
 		}  
 	}
 	
-//	@Test
-//	public void xuTest(){
-//		byte[] mers7 = new byte[]{'T','T','T','T','T','T'};
-//		byte[] mers6 = new byte[]{'A','A','A','A','A','A'};		
-//		byte[] mers5 = new byte[]{'A','A','A','A','A'};
-//		byte[] mers4 = new byte[]{'A','A','A','A'};
-//		byte[] mers3 = new byte[]{'A','A','A'};
-//		
-//		byte[] mers2 = new byte[]{'A','A' };
-//		byte[] mers21 = new byte[]{'A','C' };
-//		byte[] mers22 = new byte[]{'A','G'};
-//		byte[] mers23 = new byte[]{'A','T'};
-//		byte[] mers24 = new byte[]{'A','N'};
-//		
-//
-//		byte[] mers1 = new byte[]{'A' };
-//		byte[] mers11 = new byte[]{'C' };
-//		byte[] mers12 = new byte[]{'G'};
-//		byte[] mers13 = new byte[]{'T'};
-//		byte[] mers14 = new byte[]{'N'};
-//		
-//		for(byte[] mers : new byte[][]{mers1, mers11,mers12,mers13,mers14, mers2, mers21,mers22,mers23, mers24,mers3,mers4, mers5, mers6,mers7}){
-//			int entry = 0; 
-//			for(int i = 0, j = mers.length-1; i < mers.length; i ++, j-- ){
-//				int no = 5; //default is 'N'
-//				switch (mers[i]){
-//					case 'A' : no = 1; break;
-//					case 'C' : no = 2; break;
-//					case 'G' : no = 3; break;
-//					case 'T' : no = 4; break;
-//				}
-////				entry += no << ( j * 5 ); 
-//				entry += no << ( j * 3 ); 	
-//			}			
-//			System.out.println(Arrays.toString( mers ) + " : " + entry + "," + Integer.toBinaryString(entry));
-//		}
-//	}
-	
 }
