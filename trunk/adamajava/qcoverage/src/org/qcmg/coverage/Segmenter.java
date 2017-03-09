@@ -68,14 +68,14 @@ public class Segmenter {
 	}
 	
 	private void logOptions() {
-		logger.info("Input GFF: " + inputFile.getAbsolutePath());
-		logger.info("Output GFF: " + outputFile.getAbsolutePath());
+		logger.info("input GFF: " + inputFile.getAbsolutePath());
+		logger.info("output GFF: " + outputFile.getAbsolutePath());
 		for (Feature f: features) {
-			logger.info("Feature: " + f.toString());
+			logger.info("feature: " + f.toString());
 		}
-		logger.info("Run merge: "+ runMerge);
-		logger.info("Run fill: "+ runFill);
-		logger.info("Bounds: "+ boundsFile.getAbsolutePath());	
+		logger.info("run merge: "+ runMerge);
+		logger.info("run fill: "+ runFill);
+		logger.info("bounds: "+ boundsFile.getAbsolutePath());	
 	}
 
 	private Map<String, Integer> readInBounds() throws IOException {
@@ -202,7 +202,7 @@ public class Segmenter {
 		//don't need the input any more
 		
 		//System.out.println("end merge" + newSegments.get("chr1").size());
-		logger.info("Merged: " + overlapFeatures + " overlaps " + subFeatures + " subfeatures and " + adjacentFeatures + " adjacents " +				
+		logger.info("merged: " + overlapFeatures + " overlaps " + subFeatures + " subfeatures and " + adjacentFeatures + " adjacents " +				
 				"(inputs " + inRecords + " outputs " + outRecords + ")" );
 		
 		segments.clear();
@@ -238,7 +238,7 @@ public class Segmenter {
 	
 	private Segment createNewFillSegment(String chr, int start,
 			int end) {
-		logger.info("Creating new fill " + chr + " " + start + " " + end);
+		logger.info("creating new fill " + chr + " " + start + " " + end);
 		Feature feature = new Feature("fill", 1);
 		String[] values = new String[9];
 		values[0] = chr;//chr
@@ -268,7 +268,7 @@ public class Segmenter {
 		Map<String, List<Segment>> newSegments = new HashMap<>();
 		
 		for (Entry<String, List<Segment>> entry : segments.entrySet()) {
-			logger.info("Adding shoulder for chromosome: " + entry.getKey());
+			logger.info("adding shoulder for chromosome: " + entry.getKey());
 			//add keyvalue pair to new map
 			List<Segment> newList = new ArrayList<Segment>();			
 			
@@ -288,8 +288,8 @@ public class Segmenter {
 		        // shoulders first.
 				Segment currentSeg = segments.get(i);
 				Segment nextSeg = segments.get(i+1);
-				logger.info("Processing " + currentSeg.getPositionString() + " " + nextSeg.getPositionString());
-				logger.info("Size" + newList.size());
+				logger.info("processing " + currentSeg.getPositionString() + " " + nextSeg.getPositionString());
+				logger.info("size" + newList.size());
 				int shoulderLength = currentSeg.getFeature().getAfterBases() + nextSeg.getFeature().getBeforeBases();
 				int gap = nextSeg.getPositionStart() - currentSeg.getPositionEnd() + 1;
 				
@@ -300,7 +300,7 @@ public class Segmenter {
 				}
 				//can allocate shoulders
 				if (gap >= shoulderLength) {
-					logger.info("  Plenty of room [gap:"+gap+ " ;shoulders:" + shoulderLength + "]");
+					logger.info("plenty of room [gap:"+gap+ " ;shoulders:" + shoulderLength + "]");
 					newList.add(currentSeg);
 					newList.addAll(postShoulders(currentSeg, nextSeg.getPositionStart()-1));
 					newList.addAll(preShoulders(nextSeg, newList.get(newList.size()-1).getPositionEnd()+1));
@@ -309,14 +309,14 @@ public class Segmenter {
 					int currentPriority = currentSeg.getFeature().getPriority();
 					int nextPriority = nextSeg.getFeature().getPriority();
 					newList.add(currentSeg);
-					logger.info("   Gap too small [gap:"+gap+ " ;shoulders:" + shoulderLength+ "]");
+					logger.info("gap too small [gap:"+gap+ " ;shoulders:" + shoulderLength+ "]");
 					if (currentPriority == nextPriority) {
 						newList.addAll(alternateShoulders(currentSeg, nextSeg));
-						logger.info("Alternate shoulders");
+						logger.info("alternate shoulders");
 					} else if (currentPriority < nextPriority) {
 						newList.addAll(postShoulders(currentSeg, nextSeg.getPositionStart()-1));
 						newList.addAll(preShoulders(nextSeg, newList.get(newList.size()-1).getPositionEnd()+1));
-						logger.info("Post then Pre");
+						logger.info("post then pre");
 					} else if (currentPriority > nextPriority) {
 		                //Pre-then-post is a weird case because even though you
 		                //calculate the pres first, you can't add them to
@@ -329,7 +329,7 @@ public class Segmenter {
 						}
 						newList.addAll(postShoulders(currentSeg, firstAssigned));
 						newList.addAll(newPres);
-						logger.info("Pre then Post");
+						logger.info("pre then post");
 					}
 					
 				}
@@ -350,7 +350,7 @@ public class Segmenter {
 		for (Entry<String, List<Segment>> entry: newSegments.entrySet()) {
 			size += entry.getValue().size();
 		}
-		logger.info("Added shoulders [output : " + size + "]");
+		logger.info("added shoulders [output : " + size + "]");
 		segments = new HashMap<String, List<Segment>>(newSegments);		
 		
 	}
@@ -530,7 +530,7 @@ public class Segmenter {
 					}					
 				} else {
 					Segment nextSeg = segmentList.get(i+1);
-					logger.info("Filling " + currentSeg.getPositionString() + " " + nextSeg.getPositionString());
+					logger.info("filling " + currentSeg.getPositionString() + " " + nextSeg.getPositionString());
 					if (currentSeg.getPositionEnd() != (nextSeg.getPositionStart()-1)) {//Create record to fill start of next sequence
 						newSegmentList.add(currentSeg);
 						Segment newSegment = createNewFillSegment(chromosome, currentSeg.getPositionEnd()+1, nextSeg.getPositionStart()-1);
@@ -563,7 +563,7 @@ public class Segmenter {
 			}
 		}
 		
-		logger.info("Filled: " + fillCount + " (inputs " + inRecords + " outputs " + outRecords + ")" );
+		logger.info("filled: " + fillCount + " (inputs " + inRecords + " outputs " + outRecords + ")" );
 		
 		segments.clear();
 		segments = new HashMap<String, List<Segment>>(newSegments);		
