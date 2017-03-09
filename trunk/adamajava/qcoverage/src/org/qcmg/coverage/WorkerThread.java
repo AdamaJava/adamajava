@@ -46,8 +46,8 @@ class WorkerThread extends Thread {
 				job.run();
 				logger.info(getName() + " completed job [" + job + "]");
 				perJobResults.add(job.getResults());
-				logger.debug(getName() + " added job results "
-						+ job.getResults());
+				logger.debug(getName() + " added job results. Results size: "
+						+ job.getResults().size());
 			} catch (InterruptedException e) {
 				throw new RuntimeException(e.getMessage());
 			} catch (Exception e) {
