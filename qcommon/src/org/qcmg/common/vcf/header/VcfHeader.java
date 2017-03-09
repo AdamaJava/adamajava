@@ -23,8 +23,17 @@ import org.qcmg.common.util.Constants;
  */
 
 public class VcfHeader implements Iterable<VcfHeaderRecord> {
-		
-
+	
+	public static final String HEADER_LINE_FILTER = "##FILTER";
+	public static final String HEADER_LINE_INFO = "##INFO";
+	public static final String HEADER_LINE_FORMAT = "##FORMAT";		
+	public static final String CURRENT_FILE_FORMAT = "##fileformat=VCFv4.3";
+	public static final String STANDARD_FILE_FORMAT = "##fileformat"; 
+	public static final String STANDARD_FILE_DATE = "##fileDate";
+	public static final String STANDARD_SOURCE_LINE = "##qSource";
+	public static final String STANDARD_UUID_LINE = "##qUUID";	
+	public static final String STANDARD_FINAL_HEADER_LINE = "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO";
+	
 	//deal with special for the vcf chrom header line
 	VcfHeaderRecord chromLine = null;
  	
@@ -54,45 +63,79 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 		if(!isExist || isReplace ) stack.add( record );			 
 	}
 		
-
 	/**
-	 * append a new INFO line or replace the existing PG line with same order
+	 * append a new INFO line or replace the existing one with same ID. 
+	 * @param id: an unique value for FORMAT Meta-information line
+	 * @param number: an Integer that describes the number of values that can be included with the INFO field
+	 * @param type: Possible Types are: Integer, Float, Flag, Character, and String.
+	 * @param description: a description string
 	 */
 	public void addInfo(String id, String number, String type, String description)  { 
 		replaceRecord( idRecords,  new VcfHeaderRecord( VcfHeaderUtils.HEADER_LINE_INFO, id,number,type,description), true);
 	}
 	
+
 	/**
-	 * append a new FORMAT line or replace the existing PG line with same order
+	 * append a new FORMAT line or replace the existing one with same ID.
+	 * @param id: an unique value for FORMAT Meta-information line
+	 * @param number: an Integer that describes the number of values that can be included with the INFO field
+	 * @param type: Possible Types are: Integer, Float, Flag, Character, and String.
+	 * @param description: a description string
 	 */
 	public void addFormat(String id, String number, String type, String description) { 
 		replaceRecord( idRecords, new VcfHeaderRecord( VcfHeaderUtils.HEADER_LINE_FORMAT, id,number,type,description),true );
 	}
 	
+
 	/**
-	 * append a new FILTER line or replace the existing PG line with same order
+	 * append a new FILTER header line or replace the existing one with same id
+	 * @param id: an unique value for FILTER Meta-information line
+	 * @param description: a description string 
 	 */
 	public void addFilter(String id, String description) { 
 		replaceRecord( idRecords,  new VcfHeaderRecord( VcfHeaderUtils.HEADER_LINE_FILTER, id, null, null,description), true );			
 	}
-	
+ 
+	/**
+	 * retrieve the key and id value from input record, then determine whether the header contains existing record with same key and id. 
+	 * Add input header record if not exists, otherwise replace existing header record. 
+	 * @param rec: a vcf header record
+	 */
 	public void  addOrReplace(VcfHeaderRecord rec){ addOrReplace( rec ,true); }
+	
+	/**
+	 * retrieve the key and id value from input line, then determine whether the header contains existing header record with same key and id. 
+	 * Add input header line if not exists, otherwise replace existing header line or keep both. 
+	 * @param rec: vcf header record
+	 * @param isReplace: the existing record will be replace if set to true; Otherwise if set to false, id of record must be unique, 
+	 * so the existing one will be kept and input one will be discard; line without id is allowed for multi entry, so both existing one and input line will be kept.
+	 */
 	public void  addOrReplace(VcfHeaderRecord rec, boolean isReplace){  
-		if(rec.getId() != null)
-			replaceRecord( idRecords, (VcfHeaderRecord)rec, isReplace);
+		
+		if(rec.getMetaKey().startsWith(VcfHeader.STANDARD_FINAL_HEADER_LINE) && rec.getId() == null){
+			chromLine = (isReplace || chromLine == null)? rec : chromLine;
+		}else if(rec.getId() != null)
+			replaceRecord( idRecords, rec, isReplace);
 		else if(isReplace)
 			replaceRecord( metaRecords, rec, true);
 		else
 			metaRecords.add(rec);	
 	} 
 	
-	public void  addOrReplace(String line) { addOrReplace( line, true); 	}
+	
 	/**
-	 * check the unique id which is ID/ORDER for FORMAT, FILTER,INFO,qPG line, otherwise check the Key of meta-information line.
-	 *  Add input header line if not exists, otherwise replace or append  existing header line with same unique id. 
-	 * @param line: must start with "##" except CHROM line
-	 * @param isReplace: replace the existing line if true; 
-	 * otherwise discard the input record in case of FORMAT, FILTER,INFO,qPG line; or append key-value pair meta-information line
+	 * retrieve the key and id value from input line, then determine whether the header contains existing header line with same key and id. 
+	 * Add input header line if not exists, otherwise replace existing header line. 
+	 * @param line:a vcf Meta-information line, must follow  ##key=value pattern, except header line start with #CHROM. 
+	 */
+	public void  addOrReplace(String line) { addOrReplace( line, true); 	}
+
+	/**
+	 * retrieve the key and id value from input line, then determine whether the header contains existing header line with same key and id. 
+	 * Add input header line if not exists, otherwise replace existing header line or keep both. 
+	 * @param line:a vcf Meta-information line, must follow  ##key=value pattern, except header line start with #CHROM. 
+	 * @param isReplace: the existing header line will be replace if set to true; Otherwise if set to false, header line contains id must be unique, 
+	 * so the existing one will be kept and input one will be discard; line without id is allowed for multi entry, so both existing one and input line will be kept.
 	 * 
 	 */
 	public void  addOrReplace( String line, boolean isReplace ) {
@@ -100,22 +143,18 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 		if(StringUtils.isNullOrEmptyOrMissingData(line))
 			return; 
 		
-		VcfHeaderRecord re = new VcfHeaderRecord(line.trim().replaceAll("\n", ""));
-		if(re.getMetaKey().startsWith(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE) && re.getId() == null){
-			chromLine = (isReplace || chromLine == null)? new VcfHeaderRecord(line) : chromLine;
-		}else if(re.getId() != null){
-			replaceRecord( idRecords,re , isReplace );			
-		}else if(isReplace) 
-			replaceRecord( metaRecords, new VcfHeaderRecord(line), true);
-		else metaRecords.add(new VcfHeaderRecord(line));
+		VcfHeaderRecord re = new VcfHeaderRecord(line.trim().replaceAll("\n", ""));		
+		 addOrReplace(re,   isReplace);
 				
 	}
-
+	/**
+	 * create an new empty vcf Header
+	 */
 	public VcfHeader(){}	
 	
 	/**
-	 * read whole list of string into vcf header
-	 * @param headerRecords
+	 * create an new vcf header by reading whole list of string
+	 * @param headerRecords: a list of vcf header line
 	 */
 	public VcfHeader(final List<String> headerRecords){	
 		if(headerRecords == null) return;
@@ -160,14 +199,44 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 		return list;   
 	}
 	
-	public List<VcfHeaderRecord> getFormatRecords() {	return getRecords(idRecords, VcfHeaderUtils.HEADER_LINE_FORMAT); }
-	public VcfHeaderRecord getFormatRecord(String id){ 	return getRecord(idRecords, VcfHeaderUtils.HEADER_LINE_FORMAT, id); }
+	/**
+	 * 
+	 * @return a list of vcf header record follow pattern ##FORMAT=<ID=id,...>
+	 */
+	public List<VcfHeaderRecord> getFormatRecords() {	return getRecords(idRecords, HEADER_LINE_FORMAT); }
 	
-	public List<VcfHeaderRecord> getFilterRecords() { return getRecords(idRecords, VcfHeaderUtils.HEADER_LINE_FILTER); }
-	public VcfHeaderRecord getFilterRecord(String id) { return getRecord(idRecords, VcfHeaderUtils.HEADER_LINE_FILTER, id); }
+	/**
+	 * 
+	 * @param id: specify an id string here
+	 * @return a vcf header Record which contains the specified id value: ##FORMAT=<ID=id,...>
+	 */
+	public VcfHeaderRecord getFormatRecord(String id){ 	return getRecord(idRecords, HEADER_LINE_FORMAT, id); }
+	
+	/**
+	 * 
+	 * @return a list of vcf header record follow pattern ##FILTER=<ID=id,...>
+	 */
+	public List<VcfHeaderRecord> getFilterRecords() { return getRecords(idRecords, HEADER_LINE_FILTER); }
+	
+	/**
+	 * 
+	 * @param id: specify an id string here
+	 * @return a vcf header Record which contains the specified id value: ##FILTER=<ID=id,...>
+	 */
+	public VcfHeaderRecord getFilterRecord(String id) { return getRecord(idRecords, HEADER_LINE_FILTER, id); }
 
-	public List<VcfHeaderRecord> getInfoRecords() { return getRecords(idRecords, VcfHeaderUtils.HEADER_LINE_INFO); }
-	public VcfHeaderRecord getInfoRecord(String id) {  return getRecord(idRecords, VcfHeaderUtils.HEADER_LINE_INFO, id); }
+	/**
+	 * 
+	 * @return a list of vcf header record follow pattern ##INFO=<ID=id,...>
+	 */
+	public List<VcfHeaderRecord> getInfoRecords() { return getRecords(idRecords, HEADER_LINE_INFO); }
+	
+	/**
+	 * 
+	 * @param id: specify an id string here
+	 * @return a vcf header Record which contains the specified id value: ##INFO=<ID=id,...>
+	 */
+	public VcfHeaderRecord getInfoRecord(String id) {  return getRecord(idRecords, HEADER_LINE_INFO, id); }
 	
 	/**
 	 * @param key: the key string of ##key=<ID...>. 
@@ -181,6 +250,13 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
  				
 		return  recs;			 		
 	}
+	
+	/**
+	 * 
+	 * @param key 
+	 * @param id 
+	 * @return a vcf header record with specified key and id: ##Key=<ID=id,...>
+	 */
 	public VcfHeaderRecord getIDRecord(String key, String id) { 	
 		key = key.startsWith(Constants.DOUBLE_HASH) ? key : Constants.DOUBLE_HASH + key; 
 		return getRecord(idRecords, key, id);			
@@ -199,16 +275,40 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 		List<VcfHeaderRecord> list = getRecords(key);
 		return (list.isEmpty() )? null : list.get(0);
 	}
-	public VcfHeaderRecord getUUID() {   return getRecord( metaRecords,VcfHeaderUtils.STANDARD_UUID_LINE , null ); }	
-	public VcfHeaderRecord getFileDate() { return getRecord( metaRecords, VcfHeaderUtils.STANDARD_FILE_DATE , null ); }
-	public VcfHeaderRecord getSource() {	return getRecord( metaRecords, VcfHeaderUtils.STANDARD_SOURCE_LINE , null ); }
 	
-	//get newest vcf format version if missing
+	/**
+	 * 
+	 * @return the vcf header record with contain key of qUUID: ##qUUID=value
+	 */
+	public VcfHeaderRecord getUUID() {   return getRecord( metaRecords,STANDARD_UUID_LINE , null ); }	
+
+	/**
+	 * 
+	 * @return the vcf header record with file date: ##fileDate=value
+	 */
+	public VcfHeaderRecord getFileDate() { return getRecord( metaRecords, STANDARD_FILE_DATE , null ); }
+
+	/**
+	 * 
+	 * @return the vcf header record with qSource: ##qSource=value
+	 */	
+	public VcfHeaderRecord getSource() {	return getRecord( metaRecords, STANDARD_SOURCE_LINE , null ); }
+	
+	
+	/**
+	 * 
+	 * @return the vcf header record with file format: ##fileFormat=value
+	 */
 	public VcfHeaderRecord getFileFormat() {  
 		VcfHeaderRecord fv = getRecord( metaRecords, VcfHeaderUtils.STANDARD_FILE_FORMAT , null ); 
 		return (fv == null)? new VcfHeaderRecord(VcfHeaderUtils.CURRENT_FILE_FORMAT) :fv ; 		
 	}
-	//in case missing header line
+	
+	
+	/**
+	 * 
+	 * @return the last vcf header line which start with "#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO"
+	 */
 	public VcfHeaderRecord getChrom() { return (chromLine == null) ?  new VcfHeaderRecord(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE) : chromLine; } 
 	
 	/**

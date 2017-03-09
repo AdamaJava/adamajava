@@ -14,10 +14,8 @@ import org.qcmg.qprofiler.report.SummaryReport;
 import org.qcmg.qprofiler.summarise.SampleSummary;
 import org.w3c.dom.Element;
 
-
 public class VcfSummaryReport  extends SummaryReport {
 	
-	static final String NodeSummary = "SUMMARY";
 	static final String NodeHeader = "VCFHeader";
 	static final String NodeHeaderMeta = "MetaInformation" ;
 	static final String NodeHeaderMetaLine = "MetaInformationLine";
@@ -25,6 +23,10 @@ public class VcfSummaryReport  extends SummaryReport {
 	static final String NodeHeaderStructuredType = "StructuredMetaInformationType";
 	static final String NodeHeaderStructuredLine = "StructuredMetaInformationLine";
 	static final String NodeHeaderFinal =  "HeaderLine";
+	
+	
+	static final String NodeSummary = "VCFMetrics";
+	public static final String NodeCategory = "ReportingCategory";
 	
 	//private  AtomicLong count = new  AtomicLong(); 
 	private final VcfHeader vcfHeader;
@@ -43,8 +45,8 @@ public class VcfSummaryReport  extends SummaryReport {
 		germlineSummaries = new SampleSummary[sampleIds.length];
 		
 		for(int i = 0; i < sampleIds.length; i ++){  
-			somaticSummaries[i]  = new SampleSummary( );
-			germlineSummaries[i]  = new SampleSummary( );
+			somaticSummaries[i]  = new SampleSummary( "SOMATIC" );
+			germlineSummaries[i]  = new SampleSummary("GERMLINE" );
 		}
 		
 	}
@@ -61,13 +63,13 @@ public class VcfSummaryReport  extends SummaryReport {
 		List<String> formats = vcf.getFormatFields();
 		if(formats.size() != sampleIds.length + 1)
 			logger.warn("missing/redundant sample column exists in vcf record: " + vcf.toSimpleString());
-		
+				
 		for(int i = 1; i < formats.size(); i ++){
 			VcfFormatFieldRecord re = new VcfFormatFieldRecord(formats.get(0), formats.get(i));
 			if((re.getField("INF") != null) && re.getField("INF").contains("SOMATIC"))
-				somaticSummaries[i-1].parseRecord(vcf, re);
+				somaticSummaries[i-1].parseRecord(vcf, i);
 			else
-				germlineSummaries[i-1].parseRecord(vcf, re);			
+				germlineSummaries[i-1].parseRecord(vcf, i);			
 		}		
 		
 	}
@@ -76,15 +78,18 @@ public class VcfSummaryReport  extends SummaryReport {
 		Element summaryElement = createSubElement(parent, NodeSummary);
 		
 		for(int i = 0; i < sampleIds.length; i ++){
-			Element sampleE = createSubElement(summaryElement, "SAMPLE");
+			Element sampleE = createSubElement(summaryElement, "Sample");
 			sampleE.setAttribute("value", sampleIds[i]);
 			
-			if(somaticSummaries[i].getCounts() > 0 ){			
-				Element somaticE = createSubElement(sampleE, "SOMATIC");
+			if( somaticSummaries[i].getCounts() > 0 ){			
+				Element somaticE = createSubElement(sampleE, NodeCategory);
 				somaticSummaries[i].toXML(somaticE);
 			}
-			Element germline = createSubElement(sampleE, "GERMLINE");
-			germlineSummaries[i].toXML(germline);
+			
+			if( germlineSummaries[i].getCounts() > 0 ){
+				Element germline = createSubElement(sampleE, NodeCategory);
+				germlineSummaries[i].toXML(germline);
+			}
 		}		
 	}
 	

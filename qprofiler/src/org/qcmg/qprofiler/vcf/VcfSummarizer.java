@@ -25,21 +25,16 @@ public class VcfSummarizer implements Summarizer {
 		final boolean isLevelEnabled = logger.isLevelEnabled(QLevel.DEBUG);
 		VcfSummaryReport vcfSummaryReport; 
 		
-		try (VCFFileReader reader = new VCFFileReader(file) ){ 	//; VCFFileWriter writer = new VCFFileWriter( new File("output.vcf"))) {
+		try (VCFFileReader reader = new VCFFileReader(file)  ) {
 			vcfSummaryReport = new VcfSummaryReport(reader.getHeader());
 			vcfSummaryReport.setFileName(file.getAbsolutePath());
 			vcfSummaryReport.setStartTime(DateUtils.getCurrentDateAsString());
-			
-//			//debug
-//			for(VcfHeaderRecord rec : reader.getHeader())
-//				writer.addHeader(rec.toString());  //debug
 		
         	//no chr in front of position
 			for (final VcfRecord vcf : reader) {		
-				vcfSummaryReport.parseRecord( vcf);		
-//				writer.add(vcf);  //debug
-			}
-			
+				vcfSummaryReport.parseRecord( vcf);					
+			}	
+ 
 		}	
 		logger.info("Records parsed: " + vcfSummaryReport.getRecordsParsed());
 		vcfSummaryReport.setFinishTime(DateUtils.getCurrentDateAsString());

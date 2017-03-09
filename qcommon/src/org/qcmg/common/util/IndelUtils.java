@@ -18,6 +18,15 @@ public class IndelUtils {
 		SVTYPE(int od){this.order = od;}		
 		public int getOrder(){return order; }
 		static public int getSize() { return CTX.order + 1;}
+		public String toVariantType(){
+			switch (order){
+				case 1: return "SNV";
+				case 2: return "DNV";
+				case 3: return "TNV";
+				case 4: return "ONV";
+			}
+			return this.name(); 
+		}
 	}		
 	
 	//qbasepileup indel vcf header info column ID

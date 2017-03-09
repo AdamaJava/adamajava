@@ -30,7 +30,12 @@ public class VcfHeaderTest {
 		assertTrue(sample[1].equals("Test"));
 		
 		header.addOrReplace("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tControl\tTest", true);
-		assertNull(header.getSampleId()); 			
+		assertNull(header.getSampleId()); 		
+		
+		VcfHeaderRecord re = new VcfHeaderRecord("#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	Control	Test");
+		header.addOrReplace(re);
+		assertTrue(header.getSampleId()[0].equals("Control"));		
+		
 	}
 	
 	@Test
