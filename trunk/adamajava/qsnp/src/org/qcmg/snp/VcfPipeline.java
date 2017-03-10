@@ -110,14 +110,14 @@ public final class VcfPipeline extends Pipeline {
 		
 		// load vcf files
 		if ( ! singleSampleMode) {
-			logger.info("Loading control vcf data");
+			logger.info("loading control vcf data");
 			loadVCFData(controlVcfFile, controlVCFMap, true);
-			logger.info("Loading control vcf data - DONE [" + controlVCFMap.size() + "]");
+			logger.info("loading control vcf data - DONE [" + controlVCFMap.size() + "]");
 		}
 		
-		logger.info("Loading test vcf data");
+		logger.info("loading test vcf data");
 		loadVCFData(testVcfFile, testVCFMap, false);
-		logger.info("Loading test vcf data - DONE [" + testVCFMap.size() + "]");
+		logger.info("loading test vcf data - DONE [" + testVCFMap.size() + "]");
 		
 		if (controlVCFMap.isEmpty() && testVCFMap.isEmpty()) {
 			throw new SnpException("EMPTY_VCF_FILES");
@@ -192,7 +192,6 @@ public final class VcfPipeline extends Pipeline {
 		ChrPosition previousCP = null;
 		List<ChrPosition> orderedCPs = new ArrayList<ChrPosition>(positionRecordMap.keySet());
 		Collections.sort(orderedCPs, CHR_COMPARATOR);
-//		logger.info("attempting to identify cs from " + orderedCPs.size() + " entries in orderedCPs");
 		
 		for (ChrPosition cp : orderedCPs) {
 			if (null != previousCP) {
@@ -294,7 +293,7 @@ public final class VcfPipeline extends Pipeline {
 
 	private void addPileup() throws Exception {
 		
-		logger.info("Setting up Pileup threads");
+		logger.info("setting up pileup threads");
 		final long start = System.currentTimeMillis();
 		
 		final int noOfThreads = singleSampleMode ? 1 : 2;
@@ -310,7 +309,7 @@ public final class VcfPipeline extends Pipeline {
 		
 		try {
 			latch.await();
-			logger.info("Pileup threads finished in " + ((System.currentTimeMillis() - start)/1000) + " seconds");
+			logger.info("pileup threads finished in " + ((System.currentTimeMillis() - start)/1000) + " seconds");
 		} catch (final InterruptedException ie) {
 			logger.error("InterruptedException caught",ie);
 			Thread.currentThread().interrupt();
@@ -507,46 +506,13 @@ public final class VcfPipeline extends Pipeline {
 			// try and sort according to the ordering of the bam file that is about to be processed
 			// otherwise, resort to alphabetic ordering and cross fingers...
 			
-//	if ( ! sortedContigs.isEmpty()) {
-//				
-//				chrComparator = new Comparator<String>() {
-//					@Override
-//					public int compare(String o1, String o2) {
-//						return sortedContigs.indexOf(o1) - sortedContigs.indexOf(o2);
-//					}
-//				};
-//				
-//				Collections.sort(snps, new Comparator<ChrPosition>() {
-//					@Override
-//					public int compare(ChrPosition o1, ChrPosition o2) {
-//						final int diff = chrComparator.compare(o1.getChromosome(), o2.getChromosome());
-//						if (diff != 0) return diff;
-//						return o1.getPosition() - o2.getPosition();
-//					}
-//				});
-//				
-//			} else {
-//				chrComparator = COMPARATOR;
-//				Collections.sort(snps, new Comparator<ChrPosition>() {
-//					@Override
-//					public int compare(ChrPosition o1, ChrPosition o2) {
-//						final int diff = COMPARATOR.compare(o1.getChromosome(), o2.getChromosome());
-//						if (diff != 0) return diff;
-//						return o1.getPosition() - o2.getPosition();
-//					}
-//				});
-//			}
 			chrNameComparator = ChrPositionComparator.getChrNameComparator(sortedContigs);
-			
 			Comparator<ChrPosition> c = ChrPositionComparator.getComparator(chrNameComparator);
-			
-			
-			Collections.sort(snps,c);
+			snps.sort(c);
 			arraySize = snps.size();
 		}
 		
 		private void advanceCPAndPosition() {
-//			logger.info("in advanceCPAndPosition");
 			if (arrayPosition >= arraySize) {
 //				logger.info("in advanceCPAndPosition - arrayPosition > arraySize, arrayPosition: " + arrayPosition + ",  arraySize: " +arraySize);
 				// reached the end of the line
@@ -681,7 +647,7 @@ public final class VcfPipeline extends Pipeline {
 					for (final SAMRecord sam : reader) {
 						chrCounter++;
 						if (++recordCount % 1000000 == 0) {
-							logger.info("Processed " + recordCount/1000000 + "M records so far..");
+							logger.info("processed " + recordCount/1000000 + "M records so far...");
 						}
 						
 						if (includeDuplicates) {
@@ -729,7 +695,7 @@ public final class VcfPipeline extends Pipeline {
 							}
 						}
 					}
-					logger.info("Processed " + recordCount + " records");
+					logger.info("processed " + recordCount + " records");
 					
 					/*
 					 * make sure final record is updated
