@@ -28,7 +28,7 @@ public class StandardPipeline extends Pipeline {
 		
 		walkBams();
 		
-		logger.info("No of records that have a genotype: " + classifyCount + ", out of " + positionRecordMap.size() 
+		logger.info("number of records that have a genotype: " + classifyCount + ", out of " + positionRecordMap.size() 
 				+ ". Somatic: " + classifySomaticCount + "[" + classifySomaticLowCoverage + "], germline: " 
 				+ classifyGermlineCount + "[" + classifyGermlineLowCoverage + "] no classification: " + classifyNoClassificationCount + ", no mutation: " + classifyNoMutationCount);
 		
@@ -76,7 +76,7 @@ public class StandardPipeline extends Pipeline {
 		logger.tool("query: " + query);
 		
 		if (null != query) {
-			logger.tool("noOfRecordsFailingFilter: " + noOfRecordsFailingFilter);
+			logger.tool("number of records failing filter: " + noOfRecordsFailingFilter);
 		}
 	}
 

@@ -354,11 +354,11 @@ public abstract class Pipeline {
 	
 	void writeVCF(String outputFileName) throws Exception {
 		if (StringUtils.isNullOrEmpty(outputFileName)) {
-			logger.warn("No vcf output file scpecified so can't output vcf");
+			logger.warn("no vcf output file scpecified so can't output vcf");
 			return;
 		}
  
-		logger.info("Writing VCF output");
+		logger.info("writing vcf output");
 		
 		final QBamId[] normalBamIds = getBamIdDetails(controlBams);
 		final QBamId[] tumourBamIds = getBamIdDetails(testBams);
@@ -521,7 +521,7 @@ public abstract class Pipeline {
 		for (final QSnpRecord record : positionRecordMap.values()) {
 			classifyPileupRecord(record);
 		}
-		logger.info("No of records that have a genotype: " + classifyCount + ", out of " + positionRecordMap.size() 
+		logger.info("number of records that have a genotype: " + classifyCount + ", out of " + positionRecordMap.size() 
 				+ ". Somatic: " + classifySomaticCount + "[" + classifySomaticLowCoverage + "], germline: " 
 				+ classifyGermlineCount + "[" + classifyGermlineLowCoverage + "] no classification: " + classifyNoClassificationCount + ", no mutation: " + classifyNoMutationCount);
 	}
@@ -597,7 +597,7 @@ public abstract class Pipeline {
 					// get next sequence
 					nextRefSeq = ref.nextSequence();
 					if (null == nextRefSeq) {
-						logger.warn("Mismatch in number of sequences - no more reference sequences, normal sequence: " + name + ":" + length);
+						logger.warn("mismatch in number of sequences - no more reference sequences, normal sequence: " + name + ":" + length);
 						break;
 					} else {
 						
@@ -609,7 +609,7 @@ public abstract class Pipeline {
 									new String[] {name, length+"",
 									nextRefSeq.getName(), nextRefSeq.length()+""});	
 						} else if (nextRefSeq.length() != length) {
-							logger.warn("Reference sequence lengths don't match. Normal sequence: " 
+							logger.warn("reference sequence lengths don't match. Normal sequence: " 
 									+ name + ":" + length + ", Reference sequence: " 
 									+ nextRefSeq.getName() + ":" + nextRefSeq.length());
 						}
@@ -629,7 +629,7 @@ public abstract class Pipeline {
 	 * @throws SnpException 
 	 */
 	void checkBamHeaders() throws SnpException {
-		logger.info("Checking bam file headers for reference file compatibility");
+		logger.info("checking bam file headers for reference file compatibility");
 		
 		List<SAMFileHeader> normalHeaders = null;
 		if ( ! singleSampleMode) {
@@ -644,7 +644,7 @@ public abstract class Pipeline {
 		if ( ! singleSampleMode) {
 			checkSequenceDictionaries(normalHeaders, tumourHeaders);
 		}
-		logger.info("Checking bam file headers for reference file compatibility - DONE");
+		logger.info("checking bam file headers for reference file compatibility - DONE");
 	}
 	
 	/**
@@ -670,7 +670,7 @@ public abstract class Pipeline {
 			}
 		}
 		
-		logger.info("number of SOMATIC snps that have evidence of mutation in unfiltered normal: " + noOfAffectedRecords);
+		logger.info("number of somatic snps that have evidence of mutation in unfiltered normal: " + noOfAffectedRecords);
 	}
 	
 	public  VcfRecord convertQSnpToVCF(QSnpRecord rec) throws Exception {
@@ -933,12 +933,12 @@ public abstract class Pipeline {
 	void checkRules() throws SnpException {
 		String rulesErrors = RulesUtil.examineRules(controlRules);
 		if (null != rulesErrors) {
-			logger.warn("Problem with Control Rules: " + rulesErrors);
+			logger.warn("problem with control rules: " + rulesErrors);
 		}
 		
 		rulesErrors = RulesUtil.examineRules(testRules);
 		if (null != rulesErrors) {
-			logger.warn("Problem with Test Rules: " + rulesErrors);
+			logger.warn("problem with test rules: " + rulesErrors);
 		}
 	}
 	
@@ -952,13 +952,13 @@ public abstract class Pipeline {
 		final ReferenceSequence refSeq = sequenceFile.nextSequence();
 		
 		if (null == refSeq) {	// end of the line
-			logger.info("No more chromosomes in reference file - shutting down");
+			logger.info("no more chromosomes in reference file - shutting down");
 			closeReferenceFile();
 		} else {
 			currentChr = refSeq.getName();
 			referenceBases = refSeq.getBases();
 			referenceBasesLength = refSeq.length();
-			logger.info("Will process records from: " + currentChr + ", length: " + referenceBasesLength);
+			logger.info("will process records from: " + currentChr + ", length: " + referenceBasesLength);
 		}
 	}
 	void closeReferenceFile() {
@@ -969,7 +969,7 @@ public abstract class Pipeline {
 	 * use the available threads to get the fisher exact test two tailed pvalues into the probability field of the qsnp records
 	 */
 	void populateProbabilities() {
-		logger.info("About to hit Fisher Exact Test two tailed pvalue");
+		logger.info("about to hit Fisher Exact Test two tailed pvalue");
 		final Queue<QSnpRecord> queue = new ConcurrentLinkedQueue<QSnpRecord>();
 		for (final QSnpRecord rec : positionRecordMap.values()) {
 			queue.add(rec);
@@ -1012,7 +1012,7 @@ public abstract class Pipeline {
 			e.printStackTrace();
 		}
 		
-		logger.info("About to hit Fisher Exact Test two tailed pvalue - DONE");
+		logger.info("about to hit Fisher Exact Test two tailed pvalue - DONE");
 	}
 	
 	void walkBams() throws Exception {
@@ -1026,7 +1026,7 @@ public abstract class Pipeline {
 	 * @throws Exception
 	 */
 	void walkBams(boolean includeDups) throws Exception {
-		logger.info("About to hit bam files");
+		logger.info("about to hit bam files");
 		
 		final int noOfThreads = singleSampleMode ? 3 : 5;		// 2 for each bam, and a single cleaner
 		final int consumerLatchSize = singleSampleMode ? 1 : 2;		// 2 for each bam, and a single cleaner
@@ -1091,7 +1091,7 @@ public abstract class Pipeline {
 			// kill off any remaining threads
 			service.shutdownNow();
 			
-			logger.error("Terminating due to failed Producer/Consumer/Cleaner threads");
+			logger.error("terminating due to failed Producer/Consumer/Cleaner threads");
 			throw e;
 		}
 		logger.info("bam file access finished!");
@@ -1137,8 +1137,8 @@ public abstract class Pipeline {
 
 		@Override
 		public void run() {
-			logger.info("In Producer run method with isControl: " + isControl);
-			logger.info("Use qbamfilter? " + runqBamFilter);
+			logger.info("in Producer run method with isControl: " + isControl);
+			logger.info("use qbamfilter? " + runqBamFilter);
 			try {
 				
 				while (iter.hasNext()) {
@@ -1165,20 +1165,20 @@ public abstract class Pipeline {
 						processRecord(record);
 					} else if (null == currentChr) {
 						// no longer have reference details - exit
-						logger.warn("Exiting Producer despite records remaining in file - null reference chromosome");
+						logger.warn("exiting producer despite records remaining in file - null reference chromosome");
 						logger.warn("extra record: " + SAMUtils.getSAMRecordAsSting(record));
 						break;
 					} else {
-						logger.info("Producer: Processed all records in " + currentChr + ", waiting at barrier");
+						logger.info("producer: processed all records in " + currentChr + ", waiting at barrier");
 						try {
 							barrier.await();
 							// don't need to reset barrier, threads waiting at barrier are released when all threads reach barrier... oops
 //							if (isNormal) barrier.reset();		// reset the barrier
 						} catch (final InterruptedException e) {
-							logger.error("Producer: InterruptedException exception caught whilst processing record: " + SAMUtils.getSAMRecordAsSting(record), e);
+							logger.error("producer: InterruptedException exception caught whilst processing record: " + SAMUtils.getSAMRecordAsSting(record), e);
 							throw e;
 						} catch (final BrokenBarrierException e) {
-							logger.error("Producer: BrokenBarrier exception caught whilst processing record: " + SAMUtils.getSAMRecordAsSting(record), e);
+							logger.error("producer: BrokenBarrier exception caught whilst processing record: " + SAMUtils.getSAMRecordAsSting(record), e);
 							throw e;
 						}
 						
@@ -1188,7 +1188,7 @@ public abstract class Pipeline {
 						// wait until queues are empty
 						int qSize = queue.size();
 						if (qSize > 0)
-							logger.info("Waiting for empty queue before continuing with next chr. qsize: " + qSize);
+							logger.info("waiting for empty queue before continuing with next chr. qsize: " + qSize);
 						while (qSize > 0) {
 							try {
 								Thread.sleep(100);
@@ -1207,7 +1207,7 @@ public abstract class Pipeline {
 				mainThread.interrupt();
 			} finally {
 				latch.countDown();
-				logger.info("Producer: shutting down - processed " + counter + " records, passed filter: " 
+				logger.info("producer: shutting down - processed " + counter + " records, passed filter: " 
 						+ passedFilterCount + ", invalidCount: " + invalidCount);
 			}
 		}
@@ -1350,7 +1350,7 @@ public abstract class Pipeline {
 		
 		@Override
 		public void run() {
-			logger.info("In Consumer run method with isControl: " + isControl);
+			logger.info("in consumer run method with isControl: " + isControl);
 			try {
 				long count = 0;
 				while (true) {
@@ -1395,17 +1395,17 @@ public abstract class Pipeline {
 //							logger.info("null record, barrier count > 2 - what now??? q.size: " + queue.size());
 							// just me left
 							if (queue.size() == 0 ) {
-								logger.info("Consumer: Processed all records in " + currentChr + ", waiting at barrier");
+								logger.info("consumer: processed all records in " + currentChr + ", waiting at barrier");
 								
 								try {
 									barrier.await();
 									assert map.isEmpty() : "Consumer: map was not empty following barrier reset";
 									count = 0;
 								} catch (final InterruptedException e) {
-									logger.error("Consumer: InterruptedException caught with map size: " + map.size(), e);
+									logger.error("consumer: InterruptedException caught with map size: " + map.size(), e);
 									throw e;
 								} catch (final BrokenBarrierException e) {
-									logger.error("Consumer: BrokenBarrierException caught with map size: " + map.size(), e);
+									logger.error("consumer: BrokenBarrierException caught with map size: " + map.size(), e);
 									throw e;
 								}
 							}
@@ -1425,21 +1425,9 @@ public abstract class Pipeline {
 				mainThread.interrupt();
 			} finally {
 				consumerLatch.countDown();
-				logger.info("Consumer: shutting down");
+				logger.info("consumer: shutting down");
 			}
 		}
-
-//		private void stealWork() {
-//			// check that work steal map is not too full
-//			logger.info("Stealing work...");
-//			while ( map.size() > maxMapSize && workStealMap.size() < maxMapSize) {
-//				final SAMRecordFilterWrapper rec = workStealQueue.poll();
-//				if (null != rec) {
-//					processSAMRecord(rec, true);
-////					workStealMinStartPosition.set(rec.getRecord().getAlignmentStart());
-//				}
-//			}
-//		}
 	}
 	
 	
@@ -1501,7 +1489,7 @@ public abstract class Pipeline {
 						final Integer i = entry.getKey();
 						final Accumulator normAcc = entry.getValue();
 						if (i.intValue() >  referenceBasesLength) {
-							logger.warn("Found position greater than reference array length: " + i.intValue() + " for chr: " + currentChr);
+							logger.warn("found position greater than reference array length: " + i.intValue() + " for chr: " + currentChr);
 						} else {
 							if (null == normAcc) {
 								logger.info("null control acc for key: " + i);
@@ -1523,7 +1511,7 @@ public abstract class Pipeline {
 					final Integer i = entry.getKey();
 					final Accumulator tumAcc = entry.getValue();
 					if (i.intValue() >  referenceBasesLength) {
-						logger.warn("Found position greater than reference array length: " + i.intValue() + " for chr: " + currentChr);
+						logger.warn("found position greater than reference array length: " + i.intValue() + " for chr: " + currentChr);
 					} else {
 						if (null == tumAcc) {
 							logger.info("null value for key: " + i);
@@ -1538,7 +1526,7 @@ public abstract class Pipeline {
 		
 		@Override
 		public void run() {
-			logger.info("In Cleaner run method");
+			logger.info("in cleaner run method");
 			try {
 				Thread.sleep(500);	// sleep to allow initial population of both queues
 			} catch (final InterruptedException e1) {
@@ -1551,7 +1539,7 @@ public abstract class Pipeline {
 					processMaps();
 						
 					if (barrier.getNumberWaiting() == barrier.getParties() - 1) {
-						logger.info("Cleaner: about to hit barrier - running processMapsAll");
+						logger.info("cleaner: about to hit barrier - running processMapsAll");
 						
 						processMapsAll();
 						// lets try purging here...
@@ -1559,18 +1547,18 @@ public abstract class Pipeline {
 						try {
 							previousPosition = 0;
 							barrier.await();
-							logger.info("Cleaner: no of keepers so far: " + positionRecordMap.size());
+							logger.info("cleaner: no of keepers so far: " + positionRecordMap.size());
 							Thread.sleep(100);	// sleep to allow initial map population
 						} catch (final InterruptedException e) {
-							logger.error("InterruptedException caught in Cleaner thread: ", e);
+							logger.error("InterruptedException caught in cleaner thread: ", e);
 							throw e;
 						} catch (final BrokenBarrierException e) {
-							logger.error("BrokenBarrierException caught in Cleaner thread: ", e);
+							logger.error("BrokenBarrierException caught in cleaner thread: ", e);
 							throw e;
 						}
 					} else if (consumerLatch.getCount() == 0) {
 						// if latches are shutdown - process remaining items in map and then exit
-						logger.info("Cleaner: consumer latch == 0 - running processMapsAll");
+						logger.info("cleaner: consumer latch == 0 - running processMapsAll");
 						processMapsAll();
 						break;
 					} else {
@@ -1578,17 +1566,17 @@ public abstract class Pipeline {
 						try {
 							Thread.sleep(5);	
 						} catch (final InterruptedException e) {
-							logger.error("InterruptedException caught in Cleaner sleep",e);
+							logger.error("InterruptedException caught in cleaner sleep",e);
 							throw e;
 						}
 					}
 				}
 			} catch (final Exception e) {
-				logger.error("Exception caught in Cleaner thread: ", e);
+				logger.error("Exception caught in cleaner thread: ", e);
 				mainThread.interrupt();
 			} finally {
 				cleanerLatch.countDown();
-				logger.info("Cleaner: finished - counting down cleanerLatch");
+				logger.info("cleaner: finished - counting down cleanerLatch");
 			}
 		}
 	}
@@ -1636,9 +1624,6 @@ public abstract class Pipeline {
 			if (null != pel && ! PileupElementLiteUtil.areBothStrandsRepresented(pel, sBiasAltPercentage)) {
 				VcfUtils.updateFilter(rec.getVcfRecord(), SnpUtils.STRAND_BIAS_ALT);
 			}
-//			if (null != pel && ! pel.isFoundOnBothStrands()) {
-//				VcfUtils.updateFilter(rec.getVcfRecord(), SnpUtils.STRAND_BIAS);
-//			}
 		}
 	}
 	
@@ -1685,46 +1670,9 @@ public abstract class Pipeline {
 				} else 	if (Classification.GERMLINE == rec.getClassification() &&  controlEndOfReadCount > 0) {
 					VcfUtils.updateFilter(rec.getVcfRecord(), SnpUtils.END_OF_READ + controlEndOfReadCount);
 				}
-			
-				
-//				VcfUtils.addFormatFieldsToVcf(rec.getVcfRecord(), Arrays.asList("5BP", controlEndOfReadCount > 0 ? ""+controlEndOfReadCount : Constants.MISSING_DATA_STRING, testEndOfReadCount > 0 ? ""+testEndOfReadCount : Constants.MISSING_DATA_STRING));
 			}
 		}
-			
-//		
-//		final PileupElementLite pel = Classification.GERMLINE != rec.getClassification() ? (null != test? test.getLargestVariant(ref) : null) : 
-//			(null != control ? control.getLargestVariant(ref) : null);
-//		
-//		if (null != pel && pel.getEndOfReadCount() > 0) {
-//			
-//			if (pel.getMiddleOfReadCount() >= 5 && pel.isFoundOnBothStrandsMiddleOfRead()) {
-//				// all good
-//			} else {
-//				VcfUtils.updateFilter(rec.getVcfRecord(), SnpUtils.END_OF_READ + pel.getEndOfReadCount());
-//			}
-//		}
 	}
-	
-	
-//	void checkForMutationInNormal() {
-//		int minCount = 0;
-//		for (final QSnpRecord record : positionRecordMap.values()) {
-//			if (null != record.getAnnotation() && record.getAnnotation().contains(SnpUtils.MUTATION_IN_NORMAL)) {
-//				// check to see if mutant count in normal is 3% or more
-//				// if not, remove annotation
-//				final String ND = record.getNormalNucleotides();
-//				final int normalCount = record.getNormalCount();
-//				final String alt = SnpUtils.getAltFromMutationString(record.getMutation());
-//				final int altCount = SnpUtils.getCountFromNucleotideString(ND, alt);
-//				
-//				if (((float)altCount / normalCount) * 100 < 3.0f) {
-//					VcfUtils.removeFilter(record.getVcfRecord(), SnpUtils.MUTATION_IN_NORMAL);
-//					minCount++;
-//				}
-//			}
-//		}
-//		logger.info("no of records with " + SnpUtils.MUTATION_IN_NORMAL + " annotation removed: " + minCount);
-//	}
 	
 	private void interrogateAccumulations(final Accumulator normal, final Accumulator tumour) {
 		
@@ -1759,7 +1707,6 @@ public abstract class Pipeline {
 			qRecord.setPileup((null != normal ? normal.toPileupString(normalBases) : "") 
 					+ "\t" + (null != tumour ? tumour.toPileupString(tumourBases) : ""));
 			// setup some values on the record
-//			qRecord.setRef(ref);
 			qRecord.setNormalCount(normalCoverage);
 			qRecord.setTumourCount(tumourCoverage);
 			
@@ -1806,27 +1753,6 @@ public abstract class Pipeline {
 				}
 				qRecord.setFlankingSequence(String.valueOf(cpgCharArray));
 				
-				// only do fisher for SOMATICS
-				/*
-				 * Not using the Fisher 2-tailed test at the mo...
-				 */
-//				if (Classification.SOMATIC == qRecord.getClassification()) {
-//					// fisher test work here - we need an alt to do this
-//					final int normalAlt = null != normal ? normal.getBaseCountForBase(alt) : 0;		// a
-//					final int normalRef = null != normal ? normal.getBaseCountForBase(ref) : 0;	// c
-//					final int tumourAlt = null != tumour ? tumour.getBaseCountForBase(alt) : 0;		// b
-//					final int tumourRef = null != tumour ? tumour.getBaseCountForBase(ref) : 0;	// d
-//					
-//					
-//					// don't run this if we have crazy large coverage - takes too long and holds up the other threads
-//					if (normalCoverage + tumourCoverage > 100000) {
-//						logger.info("skipping FisherExact pValue calculation - coverage too large: " + normalCoverage + ", tCov: " + tumourCoverage + ", at " + currentChr + ":" + position);
-//					} else {
-//						final double pValue = FisherExact.getTwoTailedFETMath(normalAlt, tumourAlt, normalRef, tumourRef);
-//						qRecord.setProbability(pValue);
-//						if (++pValueCount % 1000 == 0) logger.info("hit " + pValueCount + " pValue calculations");
-//					}
-//				}
 				
 				// strand bias check
 				checkForStrandBias(qRecord, normal, tumour, ref);
@@ -1843,9 +1769,6 @@ public abstract class Pipeline {
 			// to save on space, only put entry into acculumators map if it is empty, or if there is a position just before the current position
 			
 			adjacentAccumulators.put(qRecord.getChrPos(), new Pair<Accumulator, Accumulator>(normal, tumour));
-//			if (mutationId % 1000 == 0) {
-//				purgeNonAdjacentAccumulators();
-//			}
 		}
 	}
 	
@@ -1864,11 +1787,6 @@ public abstract class Pipeline {
 			if (null != left && null != middle) {
 				if ( ! ChrPositionUtils.areAdjacent(left, middle)
 						&& ! ChrPositionUtils.areAdjacent(middle, right)) {
-					// remove middle from adjacentAccums
-//					if ( (middle.getPosition() == 118124 || middle.getPosition() == 118125)
-//							&& middle.getChromosome().startsWith("GL000216") ) {
-//						logger.warn("removing middle : " + middle + ", left: " + left + ", right: " + right);
-//					}
 					adjacentAccumulators.remove(middle);
 					noRemoved++;
 				}
@@ -1950,9 +1868,6 @@ public abstract class Pipeline {
 					final QSnpRecord rec = positionRecordMap.get(ChrPointPosition.valueOf(start.getChromosome(), startPosition + k));
 					csRecords.add(rec);
 					ref += rec.getRef();
-//					if (alt.length() > 0) {
-//						alt += ",";
-//					}
 					if (null != rec.getMutation()) {
 						alt += rec.getMutation().charAt(rec.getMutation().length() -1);
 					}
@@ -1986,15 +1901,14 @@ public abstract class Pipeline {
 				for (int j = startPosition ; j <= endPosition ; j++) {
 					final ChrPosition cp = ChrPointPosition.valueOf(csChrPos.getChromosome(), j);
 					final Pair<Accumulator, Accumulator> accums = adjacentAccumulators.remove(cp);
-//					final Pair<Accumulator, Accumulator> accums = adjacentAccumulators.get(cp);
 					
 					if (null == accums) {
 						logger.warn("null accums in adjacentAccumulators for cp: " + cp);
 						logger.warn("chChrPos: " + csChrPos);
 					}
 					
-					final Accumulator control = accums.getLeft();
-					final Accumulator test = accums.getRight();
+					final Accumulator control = null != accums ? accums.getLeft() : null;
+					final Accumulator test = null != accums ? accums.getRight() : null;
 					if (null != control) {
 						accumulateReadBases(control, controlReadSeqMap, (j - startPosition));
 					}
@@ -2036,8 +1950,6 @@ public abstract class Pipeline {
 				// don't care about UNKNOWNs at the moment...
 				
 				if (totalAltCount >= 4 && ! (somatic && germline)) {
-//					logger.info("will create CS, totalAltCount: " + totalAltCount + " classification: " + classification + " : " + csChrPos.toString());
-					
 					
 					final StringBuilder controlSb = new StringBuilder();
 					List<String> bases = new ArrayList<>(controlMutationCount.keySet());
@@ -2073,8 +1985,6 @@ public abstract class Pipeline {
 						}
 					}
 					
-//					qlogger.info(csChrPos.toString() + " - ref bases: " + ref + ", alt: " + alt + " : " + classification + ", flag: " + flag + "\nnormal: " + normalSb.toString() + "\ntumour: " + tumourSb.toString());
-					
 					// create new VCFRecord with start position
 					final VcfRecord cs = VcfUtils.createVcfRecord(csChrPos, null, ref, alt);
 					if (somatic) {
@@ -2092,8 +2002,6 @@ public abstract class Pipeline {
 							 StringUtils.isNullOrEmpty(controlSb.toString()) ? Constants.MISSING_DATA_STRING : controlSb.toString(), 
 									 StringUtils.isNullOrEmpty(testSb.toString()) ? Constants.MISSING_DATA_STRING : testSb.toString()));
 					}
-					//cs.setFormatField(Arrays.asList(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP,
-					//	 normalSb.toString(), tumourSb.toString())); 
 					
 					compoundSnps.put(csChrPos, cs);
 					
@@ -2108,7 +2016,6 @@ public abstract class Pipeline {
 					} else {
 						noOfCompSnpsLowAltCount++;
 					}
-//					logger.info("won't create CS, totalAltCount: " + totalAltCount + " classification: " + classification + " : " + csChrPos.toString());
 				}
 			}
 		}
@@ -2118,7 +2025,7 @@ public abstract class Pipeline {
 		
 		for (int i = 0 ; i < compSnpSize.length ; i++) {
 			if (compSnpSize[i] > 0) {
-				logger.info("no of compound snps of length: " + i + " : " + compSnpSize[i]);
+				logger.info("number of compound snps of length: " + i + " : " + compSnpSize[i]);
 			}
 		}
 	}
@@ -2149,52 +2056,25 @@ public abstract class Pipeline {
 			}
 		}
 	}
-//	void accumulateReadBases(Accumulator acc, Map<Long, StringBuilder> readSeqMap, int position) {
-//		final Map<Long, Character> map = acc.getReadIdBaseMap();
-//		// get existing seq for each id
-//		for (final Entry<Long, Character> entry : map.entrySet()) {
-//			StringBuilder seq = readSeqMap.get(entry.getKey());
-//			if (null == seq) {
-//				// initialise based on how far away we are from the start
-//				seq = new StringBuilder();
-//				for (int q = (position) ; q > 0 ; q--) {
-//					seq.append("_");
-//				}
-//				readSeqMap.put(entry.getKey(), seq);
-//			}
-//			seq.append(entry.getValue());
-//		}
-//		
-//		// need to check that all elements have enough data in them
-//		for (final StringBuilder sb : readSeqMap.values()) {
-//			if (sb.length() <= position) {
-//				sb.append("_");
-//			}
-//		}
-//	}
 
 	protected void strandBiasCorrection() {
-			// remove SBIAS flag should there be no reads at all on the opposite strand
-			int noOfSnpsWithSBIAS = 0, removed = 0;
-			for (final QSnpRecord record : positionRecordMap.values()) {
-				if (record.getAnnotation().contains(SnpUtils.STRAND_BIAS_ALT)) {
-					noOfSnpsWithSBIAS++;
-					
-					// check to see if we have any reads at all on the opposite strand
-					// just checking the germline for the moment as we are currently in single file mode
-					final String ND = singleSampleMode ? record.getTumourNucleotides() : record.getNormalNucleotides();
-	//				logger.info("sending ND to check for strand bias: " + ND);
-					final boolean onBothStrands = SnpUtils.doesNucleotideStringContainReadsOnBothStrands(ND, sBiasCovPercentage);
-					if ( ! onBothStrands) {
-	//					logger.info("removing SBIAS annotation for ND: " + ND);
-						VcfUtils.removeFilter(record.getVcfRecord(), SnpUtils.STRAND_BIAS_ALT);
-						VcfUtils.updateFilter(record.getVcfRecord(), SnpUtils.STRAND_BIAS_COVERAGE);
-						removed++;
-					}
+		// remove SBIAS flag should there be no reads at all on the opposite strand
+		int noOfSnpsWithSBIAS = 0, removed = 0;
+		for (final QSnpRecord record : positionRecordMap.values()) {
+			if (record.getAnnotation().contains(SnpUtils.STRAND_BIAS_ALT)) {
+				noOfSnpsWithSBIAS++;
+				
+				// check to see if we have any reads at all on the opposite strand
+				// just checking the germline for the moment as we are currently in single file mode
+				final String ND = singleSampleMode ? record.getTumourNucleotides() : record.getNormalNucleotides();
+				final boolean onBothStrands = SnpUtils.doesNucleotideStringContainReadsOnBothStrands(ND, sBiasCovPercentage);
+				if ( ! onBothStrands) {
+					VcfUtils.removeFilter(record.getVcfRecord(), SnpUtils.STRAND_BIAS_ALT);
+					VcfUtils.updateFilter(record.getVcfRecord(), SnpUtils.STRAND_BIAS_COVERAGE);
+					removed++;
 				}
 			}
-			logger.info("no of snps with SBIAS: " + noOfSnpsWithSBIAS + ", and no removed: " + removed);
-			
 		}
-	
+		logger.info("no of snps with SBIAS: " + noOfSnpsWithSBIAS + ", and no removed: " + removed);
+	}
 }
