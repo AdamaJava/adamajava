@@ -104,7 +104,7 @@ public class SignatureGenerator {
 		bamFiles = FileUtils.findFilesEndingWithFilter(cmdLineInputFiles[1], ".bam");
 		if (bamFiles.length == 0) {
 			illuminaFiles = FileUtils.findFilesEndingWithFilter(cmdLineInputFiles[1], ".txt");
-			logger.info("Found " + illuminaFiles.length + " illumina snp chip files to process");
+			logger.info("found " + illuminaFiles.length + " illumina snp chip files to process");
 			Collections.sort(snps, new VcfPositionComparator());
 			
 			final List<File> results = new LinkedList<File>();
@@ -114,7 +114,7 @@ public class SignatureGenerator {
 					// add to new list
 					results.add(f);
 				} else {
-					logger.info("Skipping " + f.getName());
+					logger.info("skipping " + f.getName());
 				}
 			}
 			
@@ -153,7 +153,7 @@ public class SignatureGenerator {
 					illuminaFile.getName(), cmdLineInputFiles[0]);
 			
 			loadIlluminaData(illuminaFile, iIlluminaMap);
-			logger.info("Illumina data loaded: " + iIlluminaMap.size());
+			logger.info("illumina data loaded: " + iIlluminaMap.size());
 			
 			updateResultsIllumina(iIlluminaMap);
 			logger.info("updateResults - DONE");
@@ -216,7 +216,7 @@ public class SignatureGenerator {
 				}
 			}
 		} else {
-			logger.info("Could not read the illumina arrays design file: " + illumiaArraysDesign);
+			logger.info("could not read the illumina arrays design file: " + illumiaArraysDesign);
 		}
 	}
 
@@ -365,7 +365,7 @@ public class SignatureGenerator {
 		} else {
 			outputVCFFile = new File(bamFile.getAbsoluteFile() + SignatureUtil.QSIG_VCF_GZ);
 		}
-		logger.info("Will write output vcf to file: " + outputVCFFile.getAbsolutePath());
+		logger.info("will write output vcf to file: " + outputVCFFile.getAbsolutePath());
 		// standard output format
 		// check that can wriite to new file
 		if (FileUtils.canFileBeWrittenTo(outputVCFFile)) {
@@ -652,7 +652,7 @@ public class SignatureGenerator {
 			}
 			
 			arraySize = snps.size();
-			logger.info("Loaded " + arraySize + " positions into map (should be equal to: " + count + ")");
+			logger.info("loaded " + arraySize + " positions into map (should be equal to: " + count + ")");
 		}
 	}
 	
@@ -808,7 +808,7 @@ public class SignatureGenerator {
 					} else {
 						
 						if (++recordCount % intervalSize == 0) {
-							logger.info("Processed " + (recordCount / intervalSize) + "M records so far...");
+							logger.info("processed " + (recordCount / intervalSize) + "M records so far...");
 						}
 						
 						if (match(sam, vcf, true)) {
@@ -820,7 +820,6 @@ public class SignatureGenerator {
 							if (arrayPosition < arraySize) {
 								VcfRecord tmpVCF = snps.get(arrayPosition + j++);
 								while (match(sam, tmpVCF, false)) {
-									//								logger.info("got a subsequent match!");
 									updateResults(tmpVCF, sam);
 									if (arrayPosition + j < arraySize)
 										tmpVCF = snps.get(arrayPosition + j++);
@@ -830,7 +829,7 @@ public class SignatureGenerator {
 						}
 					}
 				}
-				logger.info("Processed " + recordCount + " records");
+				logger.info("processed " + recordCount + " records");
 			} catch (final Exception e) {
 				logger.error("Exception caught in Consumer thread - interrupting main thread", e);
 				mainThread.interrupt();

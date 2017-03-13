@@ -257,7 +257,7 @@ public class SignatureGeneratorBespoke {
 				}
 			}
 		} else {
-			logger.info("Could not read the illumina arrays design file: " + illumiaArraysDesign);
+			logger.info("could not read the illumina arrays design file: " + illumiaArraysDesign);
 		}
 	}
 
@@ -434,7 +434,7 @@ public class SignatureGeneratorBespoke {
 		} else {
 			outputVCFFile = new File(f.getAbsoluteFile() + SignatureUtil.QSIG_VCF_GZ);
 		}
-		logger.info("Will write output vcf to file: " + outputVCFFile.getAbsolutePath());
+		logger.info("will write output vcf to file: " + outputVCFFile.getAbsolutePath());
 		// standard output format
 		// check that can write to new file
 		if (FileUtils.canFileBeWrittenTo(outputVCFFile)) {
@@ -494,7 +494,6 @@ public class SignatureGeneratorBespoke {
 	}
 	
 	private boolean match(SAMRecord rec, VcfRecord thisVcf, boolean updatePointer) {
-		//logger.info("vcf: " + thisVcf.getChromosome() + ":" + thisVcf.getPosition() + ", rec: " + rec.getReferenceName() + ":" + rec.getAlignmentStart());
 		if (null == thisVcf) return false;
 		
 		String samChr = rec.getReferenceName().startsWith(Constants.CHR) ? rec.getReferenceName() : Constants.CHR + rec.getReferenceName();
@@ -614,7 +613,7 @@ public class SignatureGeneratorBespoke {
 				
 			}
 			arraySize = snps.size();
-			logger.info("Loaded " + arraySize + " positions into map (should be equal to: " + count + ")");
+			logger.info("loaded " + arraySize + " positions into map (should be equal to: " + count + ")");
 		}
 		md.update(Files.readAllBytes(Paths.get(randomSnpsFile)));
 		snpPositionsMD5 = md.digest();
@@ -772,11 +771,10 @@ public class SignatureGeneratorBespoke {
 					} else {
 						
 						if (++recordCount % intervalSize == 0) {
-							logger.info("Processed " + (recordCount / intervalSize) + "M records so far...");
+							logger.info("processed " + (recordCount / intervalSize) + "M records so far...");
 						}
 						
 						if (match(sam, vcf, true)) {
-//							logger.info("got a match!");
 							updateResults(vcf, sam);
 							
 							// get next cp and see if it matches
@@ -784,7 +782,6 @@ public class SignatureGeneratorBespoke {
 							if (arrayPosition < arraySize) {
 								VcfRecord tmpVCF = snps.get(arrayPosition + j++);
 								while (match(sam, tmpVCF, false)) {
-									//								logger.info("got a subsequent match!");
 									updateResults(tmpVCF, sam);
 									if (arrayPosition + j < arraySize)
 										tmpVCF = snps.get(arrayPosition + j++);
@@ -794,7 +791,7 @@ public class SignatureGeneratorBespoke {
 						}
 					}
 				}
-				logger.info("Processed " + recordCount + " records");
+				logger.info("processed " + recordCount + " records");
 			} catch (final Exception e) {
 				logger.error("Exception caught in Consumer thread - interrupting main thread", e);
 				mainThread.interrupt();
