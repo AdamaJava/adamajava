@@ -86,17 +86,17 @@ public final class MuTectPipeline extends Pipeline {
 		
 		
 		// load MuTect output file
-		logger.info("Loading MuTect data");
+		logger.info("loading MuTect data");
 		loadMuTectOutput(muTectFile, map);
 		if (map.isEmpty()) throw new SnpException("No MuTect data - empty file??");
-		logger.info("no of mutect entries: " + map.size());
+		logger.info("number of mutect entries: " + map.size());
 		
 		for (Entry<ChrPosition,String[]> entry : map.entrySet()) {
 			if ("KEEP".equals(entry.getValue()[34])) {
 				positionRecordMap.put(entry.getKey(), getQSnpRecord(entry.getValue()));
 			}
 		}
-		logger.info("no of mutect entries that are KEEP: " + positionRecordMap.size());
+		logger.info("number of mutect entries that are KEEP: " + positionRecordMap.size());
 		
 		// dump initial mutect data - save on memory
 		map.clear();
@@ -515,7 +515,7 @@ public final class MuTectPipeline extends Pipeline {
 				for (SAMRecord sam : reader) {
 					chrCount++;
 					if (++recordCount % 1000000 == 0) {
-						logger.info("Processed " + recordCount/1000000 + "M records so far...");
+						logger.info("processed " + recordCount/1000000 + "M records so far...");
 					}
 					
 					// quality checks
@@ -529,8 +529,7 @@ public final class MuTectPipeline extends Pipeline {
 						if (arrayPosition < arraySize) {
 							ChrPosition tmpCP = snps.get(arrayPosition + j++);
 							while (match(sam, tmpCP, false)) {
-								//								logger.info("got a subsequent match!");
-								updateResults(tmpCP, sam, chrCount);
+ 								updateResults(tmpCP, sam, chrCount);
 								if (arrayPosition + j < arraySize)
 									tmpCP = snps.get(arrayPosition + j++);
 								else tmpCP = null;
@@ -538,7 +537,7 @@ public final class MuTectPipeline extends Pipeline {
 						}
 					}
 				}
-				logger.info("Processed " + recordCount + " records");
+				logger.info("processed " + recordCount + " records");
 				
 			} finally {
 				try {
