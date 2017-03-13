@@ -600,23 +600,24 @@ public final class VcfPipeline extends Pipeline {
 			// get read index
 			final int indexInRead = SAMUtils.getIndexInReadFromPosition(sam, cp.getStartPosition());
 			
-//			logger.info("in updateResults - indexInRead: " + indexInRead);
 			
 			if (indexInRead > -1 && indexInRead < sam.getReadLength()) {
-//				logger.info("in updateResults - indexInRead > -1 && indexInRead < sam.getReadLength()");
 				
-				// no longer do any filtering on base quality
-				final byte baseQuality = sam.getBaseQualities()[indexInRead]; 
+				/*
+				 * only proceed if we have met the min base quality requirements
+				 */
+				final byte baseQuality = sam.getBaseQualities()[indexInRead];
+				if (baseQuality >= minBaseQual) {
 				
-				Accumulator acc = pileupMap.get(cp);
-				if (null == acc) {
-//					logger.info("in updateResults - no existing acc for position");
-					acc = new Accumulator(cp.getStartPosition());
-					final Accumulator oldAcc = pileupMap.putIfAbsent(cp, acc);
-					if (null != oldAcc) acc = oldAcc;
+					Accumulator acc = pileupMap.get(cp);
+					if (null == acc) {
+						acc = new Accumulator(cp.getStartPosition());
+						final Accumulator oldAcc = pileupMap.putIfAbsent(cp, acc);
+						if (null != oldAcc) acc = oldAcc;
+					}
+					acc.addBase(sam.getReadBases()[indexInRead], baseQuality, ! sam.getReadNegativeStrandFlag(), 
+							sam.getAlignmentStart(), cp.getStartPosition(), sam.getAlignmentEnd(), readId);
 				}
-				acc.addBase(sam.getReadBases()[indexInRead], baseQuality, ! sam.getReadNegativeStrandFlag(), 
-						sam.getAlignmentStart(), cp.getStartPosition(), sam.getAlignmentEnd(), readId);
 			}
 		}
 		
