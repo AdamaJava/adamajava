@@ -423,10 +423,10 @@ public class IndelMT {
 		QExec qexec = options.getQExec();
 		 
 		final DateFormat df = new SimpleDateFormat("yyyyMMdd");
- 		header.addOrReplace(VcfHeaderUtils.CURRENT_FILE_FORMAT);		
-		header.addOrReplace(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + df.format(Calendar.getInstance().getTime()));		
-		header.addOrReplace(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + qexec.getUuid().getValue());
-		header.addOrReplace(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=" + qexec.getToolName().getValue() + " v" + qexec.getToolVersion().getValue());
+ 		header.addOrReplace(VcfHeader.CURRENT_FILE_FORMAT);		
+		header.addOrReplace(VcfHeader.STANDARD_FILE_DATE + "=" + df.format(Calendar.getInstance().getTime()));		
+		header.addOrReplace(VcfHeader.STANDARD_UUID_LINE + "=" + qexec.getUuid().getValue());
+		header.addOrReplace(VcfHeader.STANDARD_SOURCE_LINE + "=" + qexec.getToolName().getValue() + " v" + qexec.getToolVersion().getValue());
 		
 		header.addOrReplace(VcfHeaderUtils.STANDARD_DONOR_ID + "=" + options.getDonorId());
 		header.addOrReplace(VcfHeaderUtils.STANDARD_CONTROL_SAMPLE + "=" + options.getControlSample());		
