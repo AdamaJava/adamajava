@@ -26,7 +26,7 @@ public class EmailUtils {
 		isError.read(errorStream);
 		
 		String errorMessage = new String(errorStream);
-		if (logger != null) logger.info("Email sending exit status: " + emalExitStatus + ", msg: " + errorMessage);
+		if (logger != null) logger.info("email sending exit status: " + emalExitStatus + ", msg: " + errorMessage);
 		
 		return emalExitStatus;
 	}

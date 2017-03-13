@@ -103,7 +103,7 @@ public class GermlineMode extends AbstractMode{
 	 		   }
 	 	   }
 	 	   
-	 	  logger.info("Number of SOMATIC records updated with GERM annotation: " + updatedRecordCount);
+	 	  logger.info("number of SOMATIC records updated with GERM annotation: " + updatedRecordCount);
 	 	}
   		
 	 }	 

@@ -52,7 +52,7 @@ public class MaSummarizer implements Summarizer {
 			reader.close();
 		}
 		
-		logger.info("Records parsed: " + maSummaryReport.getRecordsParsed());
+		logger.info("records parsed: " + maSummaryReport.getRecordsParsed());
 		
 		maSummaryReport.setFinishTime(DateUtils.getCurrentDateAsString());
 		return maSummaryReport;

@@ -64,7 +64,7 @@ public class FastaSummarizer implements Summarizer {
 					recordsParsed = fastaSummaryReport.getRecordsParsed();
 					
 					if (isLevelEnabled && recordsParsed % (FEEDBACK_LINES_COUNT * 2) == 0) {
-						logger.debug("Records parsed: " + recordsParsed);
+						logger.debug("records parsed: " + recordsParsed);
 					}
 				}
 			}
@@ -73,7 +73,7 @@ public class FastaSummarizer implements Summarizer {
 			reader.close();
 		}
 		
-		logger.info("Records parsed: " + fastaSummaryReport.getRecordsParsed());
+		logger.info("records parsed: " + fastaSummaryReport.getRecordsParsed());
 		fastaSummaryReport.setFinishTime(DateUtils.getCurrentDateAsString());
 		return fastaSummaryReport;
 	}

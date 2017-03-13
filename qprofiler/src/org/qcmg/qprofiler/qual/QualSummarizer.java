@@ -76,7 +76,7 @@ public class QualSummarizer implements Summarizer {
 			reader.close();
 		}
 			
-		logger.info("Records parsed: " + qualSummaryReport.getRecordsParsed());
+		logger.info("records parsed: " + qualSummaryReport.getRecordsParsed());
 		qualSummaryReport.setFinishTime(DateUtils.getCurrentDateAsString());
 		return qualSummaryReport;
 	}

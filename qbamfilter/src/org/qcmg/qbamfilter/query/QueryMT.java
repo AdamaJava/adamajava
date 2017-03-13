@@ -82,7 +82,7 @@ public class QueryMT {
 				} finally {
 					writeFactory.closeWriter();
 					logger.info(writeFactory.getLogMessage());
-					logger.info("Completed writing threads, added " + unmatchedCount
+					logger.info("completed writing threads, added " + unmatchedCount
 									+ " records to the output: " + unmatchedFile.getAbsolutePath());
 				}
 				
@@ -201,9 +201,9 @@ public class QueryMT {
 				throw new Exception(" threads have completed but queue isn't empty  (inputQueue, postfilteringQueue ):  "
 								+ readQueue.size() + ", " + postfilteringQueue.size());
 
-			logger.info("All threads finished");
+			logger.info("all threads finished");
 		} catch (Exception e) {
-			logger.error("Exception caught whilst waiting for threads to finish: " + e.getMessage(), e);
+			logger.error("exception caught whilst waiting for threads to finish: " + e.getMessage(), e);
 			throw e;
 		} finally {
 			// kill off any remaining threads
@@ -232,7 +232,7 @@ public class QueryMT {
 
 		@Override
 		public void run() {
-			logger.info("Start read input: " + input.getAbsolutePath());
+			logger.info("start read input: " + input.getAbsolutePath());
 			int countSleep = 0;
 			long count = 0;
 			try {
@@ -262,7 +262,7 @@ public class QueryMT {
 				} finally {
 					reader.close();
 				}
-				logger.info("Completed reading thread, read " + count
+				logger.info("completed reading thread, read " + count
 						+ " records from input: " + input.getAbsolutePath());
 			} catch (Exception e) {
 				logger.error("Exception caught in Reading thread", e);
@@ -355,7 +355,7 @@ public class QueryMT {
 						if (++count % 500000 == 0) {
 							int sortingQueueSize = qOut.size();
 							if (count % 1000000 == 0) {
-								logger.info("Filter thread record count: " + count
+								logger.info("filter thread record count: " + count
 										+ ", sorting queue size: "
 										+ sortingQueueSize);
 							}
@@ -367,10 +367,10 @@ public class QueryMT {
 
 					} // end else
 				}// end while
-				logger.info("Completed filtering thread: "
+				logger.info("completed filtering thread: "
 						+ Thread.currentThread().getName());
 			} catch (Exception e) {
-				logger.error("Exception caught in Filterer thread", e);
+				logger.error("exception caught in Filterer thread", e);
 				mainThread.interrupt();
 			} finally {
 				fLatch.countDown();
@@ -477,7 +477,7 @@ public class QueryMT {
 				if (!mainThread.isAlive())
 					throw new Exception("Writing threads failed since parent thread died.");
 				else
-					logger.info("Completed writing threads, added " + filteredCount
+					logger.info("completed writing threads, added " + filteredCount
 							+ " records to the output: " + file.getAbsolutePath());
 
 			} catch (Exception e) {
@@ -495,7 +495,7 @@ public class QueryMT {
 			if (record.getPassesFilter()) {
 				writer.addAlignment(record.getRecord());
 				if (++filteredCount % 1000000 == 0)
-					logger.info("Writer thread record count: " + filteredCount);
+					logger.info("writer thread record count: " + filteredCount);
 
 			} else if (writeUnmatchedOutput) {
 				// deal with unmatched records here

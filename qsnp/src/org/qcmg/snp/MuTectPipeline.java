@@ -515,7 +515,7 @@ public final class MuTectPipeline extends Pipeline {
 				for (SAMRecord sam : reader) {
 					chrCount++;
 					if (++recordCount % 1000000 == 0) {
-						logger.info("Processed " + recordCount/1000000 + "M records so far..");
+						logger.info("Processed " + recordCount/1000000 + "M records so far...");
 					}
 					
 					// quality checks

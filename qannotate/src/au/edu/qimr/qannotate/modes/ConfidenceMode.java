@@ -223,7 +223,7 @@ public class ConfidenceMode extends AbstractMode{
 		    }
 		}
 		
-		logger.info("Confidence breakdown, high: " + high + ", low: " + low + ", zero: " + zero + ", mergedHigh: " + mergedHigh + ", mergedLow: " + mergedLow + ", mergedZero: " + mergedZero);
+		logger.info("confidence breakdown, high: " + high + ", low: " + low + ", zero: " + zero + ", mergedHigh: " + mergedHigh + ", mergedLow: " + mergedLow + ", mergedZero: " + mergedZero);
  
 		//add header line  set number to 1
 		if (null != header ) {

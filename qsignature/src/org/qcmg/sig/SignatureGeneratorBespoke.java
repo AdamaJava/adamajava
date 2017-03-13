@@ -772,7 +772,7 @@ public class SignatureGeneratorBespoke {
 					} else {
 						
 						if (++recordCount % intervalSize == 0) {
-							logger.info("Processed " + (recordCount / intervalSize) + "M records so far..");
+							logger.info("Processed " + (recordCount / intervalSize) + "M records so far...");
 						}
 						
 						if (match(sam, vcf, true)) {

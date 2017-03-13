@@ -95,9 +95,9 @@ public class Vcf2maf extends AbstractMode{
 			this.controlBamId = column.getControlBamId();
 			this.donorId = option.getDonorId() == null? SampleColumn.getDonorId(reader.getHeader()) : option.getDonorId();
 		
-			logger.info(String.format("Test Sample %s is located on column %d after FORMAT", testSample, test_column));
-			logger.info(String.format("Control Sample %s is located on column %d after FORMAT", controlSample, control_column));
-			logger.info("Donor id is " + donorId);			
+			logger.info(String.format("test Sample %s is located on column %d after FORMAT", testSample, test_column));
+			logger.info(String.format("control Sample %s is located on column %d after FORMAT", controlSample, control_column));
+			logger.info("donor id is " + donorId);			
 		}
 					
 		String outputname;
@@ -177,8 +177,8 @@ public class Vcf2maf extends AbstractMode{
 		
 		logger.info("total input vcf record number is " + noIn);
 		logger.info("total output maf record number is " + noOut);
-		logger.info(String.format("There are somatic record: %d (high confidence), %d (high confidence consequence)", no_SHC, no_SHCC ));
-		logger.info(String.format("There are germatic record: %d (high confidence), %d (high confidence consequence)", no_GHC, no_GHCC));
+		logger.info(String.format("there are somatic record: %d (high confidence), %d (high confidence consequence)", no_SHC, no_SHCC ));
+		logger.info(String.format("there are germatic record: %d (high confidence), %d (high confidence consequence)", no_GHC, no_GHCC));
 		
 		//delete empty maf files
 		deleteEmptyMaf(SHCC, SHC,GHCC,GHC, SHCCVcf, SHCVcf,GHCCVcf,GHCVcf );//SLCC,SLC,GLCC,GLC );		
