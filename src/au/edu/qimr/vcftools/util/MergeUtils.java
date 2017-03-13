@@ -52,7 +52,7 @@ public class MergeUtils {
 		//get Filter, INFO and FORMAT from first header
 		
 		
-		String[] keys = new String[]{VcfHeaderUtils.HEADER_LINE_FILTER, VcfHeaderUtils.HEADER_LINE_FORMAT, VcfHeaderUtils.HEADER_LINE_INFO};
+		String[] keys = new String[]{VcfHeader.HEADER_LINE_FILTER, VcfHeader.HEADER_LINE_FORMAT, VcfHeader.HEADER_LINE_INFO};
 		for(String key : keys) {
 			for(VcfHeaderRecord re : headers[0].getRecords(key)) { 
 				mergedHeader.addOrReplace(re);	
@@ -81,11 +81,11 @@ public class MergeUtils {
 							}
 						}
 						
-						if (key.equals(VcfHeaderUtils.HEADER_LINE_FILTER)) {
+						if (key.equals(VcfHeader.HEADER_LINE_FILTER)) {
 							filterRule.put(re.getId(), newId);
-						} else if(key.equals(VcfHeaderUtils.HEADER_LINE_FORMAT)) {
+						} else if(key.equals(VcfHeader.HEADER_LINE_FORMAT)) {
 							formatRule.put(re.getId(), newId);
-						} else if(key.equals(VcfHeaderUtils.HEADER_LINE_INFO)) {
+						} else if(key.equals(VcfHeader.HEADER_LINE_INFO)) {
 							formatRule.put(re.getId(),  newId);
 						}
 						

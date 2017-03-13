@@ -54,12 +54,12 @@ public class MergeUtilsTest {
 		h2.addOrReplace(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "23456", true);
 		assertEquals(false, MergeUtils.canMergeBePerformed(h1, h2));
 		
-		h1.addOrReplace(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE, true);
-		h2.addOrReplace(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE, true);
+		h1.addOrReplace(VcfHeader.STANDARD_FINAL_HEADER_LINE, true);
+		h2.addOrReplace(VcfHeader.STANDARD_FINAL_HEADER_LINE, true);
 		assertEquals(false, MergeUtils.canMergeBePerformed(h1, h2));
 		
-		h1.addOrReplace(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE, true);
-		h2.addOrReplace(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE, true);
+		h1.addOrReplace(VcfHeader.STANDARD_FINAL_HEADER_LINE, true);
+		h2.addOrReplace(VcfHeader.STANDARD_FINAL_HEADER_LINE, true);
 		assertEquals(false, MergeUtils.canMergeBePerformed(h1, h2));
 		
 		h1.addOrReplace(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "123456\t789", true);
@@ -142,8 +142,8 @@ public class MergeUtilsTest {
 			fail("Didn't throw an exception!");
 		}catch(IllegalArgumentException e){}		
 		
-		h1.addOrReplace(VcfHeaderUtils.STANDARD_SOURCE_LINE+"=", true);	
-		h2.addOrReplace(VcfHeaderUtils.STANDARD_SOURCE_LINE+"=", true);	
+		h1.addOrReplace(VcfHeader.STANDARD_SOURCE_LINE+"=", true);	
+		h2.addOrReplace(VcfHeader.STANDARD_SOURCE_LINE+"=", true);	
 		
 		p = MergeUtils.getMergedHeaderAndRules(h1, h2);
  		assertEquals(true, null == p);
@@ -160,7 +160,7 @@ public class MergeUtilsTest {
  		assertEquals(2, mergedH.getAllMetaRecords().size());
 		
 		
-		h2.addOrReplace(VcfHeaderUtils.STANDARD_SOURCE_LINE+"=", true);
+		h2.addOrReplace(VcfHeader.STANDARD_SOURCE_LINE+"=", true);
 		p = MergeUtils.getMergedHeaderAndRules(h1, h2);
  		assertEquals(false, null == p);
  		mergedH = p.getLeft();
@@ -203,7 +203,7 @@ public class MergeUtilsTest {
 		
 		assertEquals(0, mergedH.getAllMetaRecords().size());
 		
-		h1.addOrReplace(VcfHeaderUtils.STANDARD_SOURCE_LINE+"=", true);
+		h1.addOrReplace(VcfHeader.STANDARD_SOURCE_LINE+"=", true);
 		p =MergeUtils.getMergedHeaderAndRules(h1);
  		assertEquals(false, null == p);
  		mergedH = p.getLeft();
@@ -235,7 +235,7 @@ public class MergeUtilsTest {
 		}catch(IllegalArgumentException e){}
 		
 		
-		h1.addOrReplace(VcfHeaderUtils.STANDARD_SOURCE_LINE+"=", true);
+		h1.addOrReplace(VcfHeader.STANDARD_SOURCE_LINE+"=", true);
 		p =MergeUtils.getMergedHeaderAndRules(h1, h1, h1);
  		assertEquals(false, null == p);
  		mergedH = p.getLeft();
@@ -259,7 +259,7 @@ public class MergeUtilsTest {
  		VcfHeader mergedH = p.getLeft();
 		assertEquals(0, mergedH.getAllMetaRecords().size());
 		
-		h1.addOrReplace(VcfHeaderUtils.HEADER_LINE_INFO + "=<ID=ABC,Number=.,Type=String,Description=\"My info field\">");
+		h1.addOrReplace(VcfHeader.HEADER_LINE_INFO + "=<ID=ABC,Number=.,Type=String,Description=\"My info field\">");
 		
 		 p =MergeUtils.getMergedHeaderAndRules(h1);
  		assertEquals(false, null == p);
@@ -279,14 +279,14 @@ public class MergeUtilsTest {
 		
 		VcfHeader h2 = new VcfHeader();
 		h2.addOrReplace("#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	http://purl.org/net/grafli/collectedsample#f124a2ca-5e24-419a-96f5-dd849ccc50aa	http://purl.org/net/grafli/collectedsample#64d9c65d-d0af-43e7-a835-8fe3c36b93bb");
-		h2.addOrReplace(VcfHeaderUtils.HEADER_LINE_INFO + "=<ID=ABC,Number=.,Type=String,Description=\"My info field UPDATED\">");
+		h2.addOrReplace(VcfHeader.HEADER_LINE_INFO + "=<ID=ABC,Number=.,Type=String,Description=\"My info field UPDATED\">");
 		p =MergeUtils.getMergedHeaderAndRules(h1, h2);
 		assertEquals(false, null == p);
 		mergedH = p.getLeft();
 		assertEquals(0, mergedH.getAllMetaRecords().size());
 		assertEquals(5, mergedH.getInfoRecords().size());
 		
-		h2.addOrReplace(VcfHeaderUtils.HEADER_LINE_INFO + "=<ID=DEF,Number=.,Type=String,Description=\"My second info field\">");
+		h2.addOrReplace(VcfHeader.HEADER_LINE_INFO + "=<ID=DEF,Number=.,Type=String,Description=\"My second info field\">");
 		p =MergeUtils.getMergedHeaderAndRules(h1, h2);
 		assertEquals(false, null == p);
 		mergedH = p.getLeft();
@@ -734,10 +734,10 @@ public class MergeUtilsTest {
 		final VcfHeader header = new VcfHeader();
 		final DateFormat df = new SimpleDateFormat("yyyyMMdd");
 		
-		header.addOrReplace(VcfHeaderUtils.CURRENT_FILE_FORMAT);		
-		header.addOrReplace(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + df.format(Calendar.getInstance().getTime()));		
-		header.addOrReplace(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + QExec.createUUid());		
-		header.addOrReplace(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=qSNP v2.0 (882)");		
+		header.addOrReplace(VcfHeader.CURRENT_FILE_FORMAT);		
+		header.addOrReplace(VcfHeader.STANDARD_FILE_DATE + "=" + df.format(Calendar.getInstance().getTime()));		
+		header.addOrReplace(VcfHeader.STANDARD_UUID_LINE + "=" + QExec.createUUid());		
+		header.addOrReplace(VcfHeader.STANDARD_SOURCE_LINE + "=qSNP v2.0 (882)");		
 		
 		header.addOrReplace(VcfHeaderUtils.STANDARD_DONOR_ID + "=");
 		header.addOrReplace(VcfHeaderUtils.STANDARD_CONTROL_SAMPLE + "=" + controlId);		
