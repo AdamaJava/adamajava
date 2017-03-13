@@ -97,7 +97,7 @@ public abstract class Pipeline {
 	
 	private int novelStartsFilterValue = 4;
 	private int mutantReadsFilterValue = 5;
-	private  int minBaseQual = 10;
+	int minBaseQual = 10;
 	
 	static int initialTestSumOfCountsLimit = 3;
 	static int baseQualityPercentage = 10;
