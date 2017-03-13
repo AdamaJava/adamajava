@@ -26,7 +26,6 @@ public class QOptions {
 
 	public QOptions(String[] args){
 		this.args = args;
- 
 	}
 	
 	//the main function to add options

@@ -78,7 +78,7 @@ public abstract class AbstractMode {
 	 * @throws IOException
 	 */
 	protected void writeVCF(File outputFile ) throws IOException {		 
-		logger.info("Writing VCF output");	 		
+		logger.info("creating VCF output...");	 		
 		final List<ChrPosition> orderedList = new ArrayList<>(positionRecordMap.keySet());
 		Collections.sort(orderedList, new ChrPositionComparator());
 		

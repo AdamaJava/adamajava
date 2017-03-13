@@ -139,8 +139,8 @@ public class TandemRepeatMode  extends AbstractMode{
 	public void addAnnotation(String dbfile) throws Exception {
 		
 		Map<String, HashSet<Repeat>> repeats = loadRepeat(dbfile );  //S1			
-		logger.info( " reference number inside TRF data file is " + repeats.size());
-		logger.info("loading into RAM");
+		logger.info( "reference number inside TRF data file is " + repeats.size());
+		logger.info("loading into RAM...");
 		if(repeats == null || repeats.size() == 0) return; 
 		
 		int totalRepeat = 0; 

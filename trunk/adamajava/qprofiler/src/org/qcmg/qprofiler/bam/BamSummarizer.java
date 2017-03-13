@@ -112,7 +112,7 @@ public class BamSummarizer implements Summarizer {
 		}
 		
 		bamSummaryReport.cleanUp();
-		logger.info("Records parsed: "+ bamSummaryReport.getRecordsParsed());
+		logger.info("records parsed: "+ bamSummaryReport.getRecordsParsed());
 		bamSummaryReport.setFinishTime(DateUtils.getCurrentDateAsString());
 		return bamSummaryReport;
 	}

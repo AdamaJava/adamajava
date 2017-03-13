@@ -79,7 +79,7 @@ public class FastqSummarizerMT implements Summarizer {
 				consumerThreads.shutdownNow();
 				throw new Exception("Producer thread has timed out");
 			}
-			logger.info("Producer thread finished, queue size: " + q.size());
+			logger.info("producer thread finished, queue size: " + q.size());
 			
 			if ( ! cLatch.await(30, TimeUnit.SECONDS)) {
 			
@@ -103,16 +103,16 @@ public class FastqSummarizerMT implements Summarizer {
 					consumerThreads.shutdownNow();
 				
 			} else {
-				logger.info("Consumer threads finished");
+				logger.info("consumer threads finished");
 			}
 
 			// if there are items left on the queue - means that the consumer threads encountered errors and were unable to complete the processing
 			if (q.size()  > 0 ) {
-				logger.error("No Consumer threads available to process items [" + q.size() + "] on queue");
+				logger.error("no consumer threads available to process items [" + q.size() + "] on queue");
 				throw new Exception("Consumer threads were unable to process all items on the queue");
 			}
 			
-			logger.info("Producer and Consumer threads have completed");
+			logger.info("producer and consumer threads have completed");
 		} catch (InterruptedException e) {
 			// restore interrupted status
 			logger.info("current thread about to be interrupted...");
@@ -121,15 +121,15 @@ public class FastqSummarizerMT implements Summarizer {
 			producerThreads.shutdownNow();
 			consumerThreads.shutdownNow();
 			
-			logger.error("Terminating due to failed Producer/Consumer threads");
+			logger.error("terminating due to failed Producer/Consumer threads");
 			throw e;
 		}
 		
-		logger.info("Records parsed: " + fastqSummaryReport.getRecordsParsed());
+		logger.info("records parsed: " + fastqSummaryReport.getRecordsParsed());
 		
 		fastqSummaryReport.setFinishTime(DateUtils.getCurrentDateAsString());
 
-        logger.info("Done in " + (System.currentTimeMillis() - start) / 1000 + " secs") ;
+        logger.info("done in " + (System.currentTimeMillis() - start) / 1000 + " secs") ;
         		
 		return fastqSummaryReport;
 	}

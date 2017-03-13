@@ -78,7 +78,7 @@ public class FaSummarizerMT implements Summarizer {
 				consumerThreads.shutdownNow();
 				throw new Exception("Producer thread has timed out");
 			}
-			logger.info("Producer thread finished, queue size: " + q.size());
+			logger.info("producer thread finished, queue size: " + q.size());
 			
 			if ( ! cLatch.await(10, TimeUnit.MINUTES)) {
 			
@@ -102,16 +102,16 @@ public class FaSummarizerMT implements Summarizer {
 					consumerThreads.shutdownNow();
 				
 			} else {
-				logger.info("Consumer threads finished");
+				logger.info("consumer threads finished");
 			}
 
 			// if there are items left on the queue - means that the consumer threads encountered errors and were unable to complete the processing
 			if (q.size()  > 0 ) {
-				logger.error("No Consumer threads available to process items [" + q.size() + "] on queue");
-				throw new Exception("Consumer threads were unable to process all items on the queue");
+				logger.error("no consumer threads available to process items [" + q.size() + "] on queue");
+				throw new Exception("consumer threads were unable to process all items on the queue");
 			}
 			
-			logger.info("Producer and Consumer threads have completed");
+			logger.info("producer and consumer threads have completed");
 		} catch (InterruptedException e) {
 			// restore interrupted status
 			logger.info("current thread about to be interrupted...");
@@ -120,16 +120,16 @@ public class FaSummarizerMT implements Summarizer {
 			producerThreads.shutdownNow();
 			consumerThreads.shutdownNow();
 			
-			logger.error("Terminating due to failed Producer/Consumer threads");
+			logger.error("terminating due to failed Producer/Consumer threads");
 			throw e;
 		}
 		
-		logger.info("Records parsed: " + faSummaryReport.getRecordsParsed());
+		logger.info("records parsed: " + faSummaryReport.getRecordsParsed());
 		logger.info("kmer coverage : " + faSummaryReport.getKmerCoverageCount());
 		
 		faSummaryReport.setFinishTime(DateUtils.getCurrentDateAsString());
 
-        logger.info("Done in " + (System.currentTimeMillis() - start) / 1000 + " secs") ;
+        logger.info("done in " + (System.currentTimeMillis() - start) / 1000 + " secs") ;
         		
 		return faSummaryReport;
 	}
@@ -156,16 +156,14 @@ public class FaSummarizerMT implements Summarizer {
 				while ( true ) {
 					byte[] record = queue.poll();
 					if (null != record) {
-						logger.info("Consumer: picked up record from queue");
+						logger.info("consumer: picked up record from queue");
 						try {
 							report.parseRecord(record);
 						} catch (Exception e) {
 							logger.error("record: " + record.toString());
-//							logger.error("Error caught parsing FastqRecord with readHeader: " + record.getReadHeader(), e);
 							throw e;
 						}
 					} else {
-//						logger.info("Consumer: null record from queue");
 						if (pLatch.getCount() == 0) break;
 						else Thread.sleep(5);
 					}
@@ -177,7 +175,7 @@ public class FaSummarizerMT implements Summarizer {
 				mainThread.interrupt();
 			} finally {
 				cLatch.countDown();
-				logger.debug("Consumer finished");
+				logger.debug("consumer finished");
 			}
 		}
 	}
@@ -201,33 +199,14 @@ public class FaSummarizerMT implements Summarizer {
 		public void run() {
 			logger.debug("Start Producer");
 			
-//			final int chunkSize = 1000000;
-			long totalBaseCount = 0;
-			
+			long totalBaseCount = 0;			
 			try (IndexedFastaSequenceFile faFile = new IndexedFastaSequenceFile(file);) {
 				ReferenceSequence refSeq = null;
 				
 				while ((refSeq = faFile.nextSequence()) != null) {
-//					logger.info("adding " + refSeq.getName() + " to queue");
-					
 					byte[] chrArray = refSeq.getBases();
 					totalBaseCount += chrArray.length;
 					queue.add(chrArray);
-					
-					// split the chromosome up into manageable chunks
-//					int chrLength = chrArray.length;
-//					int noOfArrays = (chrLength / chunkSize) + 1;
-//					
-//					for (int i = 0 ; i < noOfArrays ; i++) {
-//						int from = i * chunkSize;
-//						int to = (i + 1) * chunkSize;
-//						if (to > chrLength) {
-//							to = chrLength + 1;
-//						}
-//						byte[] b = Arrays.copyOfRange(chrArray, from, to);		// 0's are placed in array if we
-//						logger.info("adding " + refSeq.getName() + " from: " + from + " to: " + to + " to queue");
-//						queue.add(b);
-//					}
 					
 				}
 				logger.info("all done from producer, totalBaseCount: " + totalBaseCount);

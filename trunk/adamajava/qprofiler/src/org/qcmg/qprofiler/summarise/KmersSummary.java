@@ -28,7 +28,7 @@ public class KmersSummary {
 	 	
 	public KmersSummary( int length ) {	
 		if(length > maxKmers ){ 			
-			System.err.println("Array size exceed Integer.MAX_VALUE/2! please reduce kmers length below 6. ");
+			System.err.println("array size exceed Integer.MAX_VALUE/2! please reduce kmers length below 6. ");
 			System.exit(1);
 		}
 		

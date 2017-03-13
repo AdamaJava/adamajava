@@ -43,7 +43,7 @@ public class FastaSummaryReport extends SummaryReport {
 				}
 			}
 		}
-		logger.debug("Running with excludeAll: " + excludeAll); 
+		logger.debug("running with excludeAll: " + excludeAll); 
 	}
 	
 	@Override
