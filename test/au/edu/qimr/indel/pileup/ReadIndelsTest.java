@@ -227,7 +227,7 @@ public class ReadIndelsTest {
 				    
 		List<String> head1 = new ArrayList<String>(head);
 		head1.add("##INFO=<ID=SOMATIC1,Number=0,Type=Flag,Description=\"test1\">");       
-		head1.add(VcfHeader.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tS1\tS2");
+		head1.add(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tS1\tS2");
 		List<String> data1 = new ArrayList<String>();
 		data1.add("chrY	59033286	.	GT	G	724.73	PASS	SOMATIC1	GT:AD:DP:GQ:PL	0/0:0:0:0:0,0,0	0/1:80,17:97:99:368,0,3028");
 		data1.add("chrY	59033423	.	T	TC	219.73	PASS	SOMATIC1	GT:AD:DP:GQ:PL	0/1:7,4:11:99:257,0,348	0/1:17,2:19:72:72,0,702"); 
@@ -235,7 +235,7 @@ public class ReadIndelsTest {
 		       
 		head1 = new ArrayList<String>(head);
 		head1.add("##PG=\"creating second file\"");
-		head1.add(VcfHeader.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tS1\tS2");      
+		head1.add(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tS1\tS2");      
 		data1.clear();        
 		data1.add("chrY	59033285	.	GGT	G	724.73	PASS	SOMATIC	GT:AD:DP:GQ:PL	0/1:131,31:162:99:762,0,4864	0/1:80,17:97:99:368,0,3028");
 		data1.add("chrY	59033286	.	GT	G	724.73	PASS	SOMATIC	GT:AD:DP:GQ:PL	0/1:131,31:162:99:762,0,4864	0/1:80,17:97:99:368,0,3028");
