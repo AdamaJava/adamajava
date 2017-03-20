@@ -1378,9 +1378,9 @@ public class Q3Panel {
 //			header.addFilterLine(SnpUtils.END_OF_READ, "Indicates that the mutation occurred within the first or last 5 bp of all the reads contributing to the mutation");
 //			header.parseHeaderLine(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "sample1");
 			
-			header.addOrReplace(VcfHeader.CURRENT_FILE_FORMAT);		
-			header.addOrReplace(VcfHeader.STANDARD_FILE_DATE + "=" + date);		
-			header.addOrReplace(VcfHeader.STANDARD_UUID_LINE + "=" + QExec.createUUid());		
+			header.addOrReplace(VcfHeaderUtils.CURRENT_FILE_FORMAT);		
+			header.addOrReplace(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + date);		
+			header.addOrReplace(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + QExec.createUUid());		
 			VcfHeaderUtils.addQPGLine(header,1, "Q3Panel", exec.getToolVersion().getValue(), exec.getCommandLine().getValue(), date);
 			header.addFormat(VcfHeaderUtils.FORMAT_READ_DEPTH, ".","Integer",VcfHeaderUtils.FORMAT_READ_DEPTH_DESCRIPTION);
 			header.addFormat("FB", ".","String","Sum of contigs supporting the alt,sum of fragments supporting the alt,sum of read counts supporting the alt");
