@@ -237,21 +237,22 @@ public class VcfHeaderTest {
 		VcfHeaderRecord formatRec3 = header.getFormatRecord(VcfHeaderUtils.FORMAT_ALLELE_COUNT);
 		
 		// 3 should be equal to 1
-		assertEquals(true, formatRec1.equals(formatRec3));
+		assertEquals( true, formatRec1.equals(formatRec3) );
 	}
+	
 	@Test
 	public void parseDataFilter() {
 		VcfHeader header = new VcfHeader();
 		String filterLine = VcfHeaderUtils.HEADER_LINE_FILTER + "=<ID=" +  VcfHeaderUtils.FILTER_GERMLINE + ",Description=\"anything will do\">";
-		header.addOrReplace(filterLine,true);
-		assertEquals(filterLine, header.getFilterRecord(VcfHeaderUtils.FILTER_GERMLINE).toString());
-		header.addOrReplace(filterLine,true);
-		assertEquals(0, header.getFormatRecords().size());
-		assertEquals(0, header.getInfoRecords().size());
-		assertEquals(1, header.getFilterRecords().size());
-		header.addOrReplace(filterLine,true);
-		assertEquals(1, header.getFilterRecords().size());
-		VcfHeaderRecord filterRec1 = header.getFilterRecord(VcfHeaderUtils.FILTER_GERMLINE);
+		header.addOrReplace( filterLine, true );
+		assertEquals( filterLine, header.getFilterRecord(VcfHeaderUtils.FILTER_GERMLINE).toString() );
+		header.addOrReplace( filterLine, true );
+		assertEquals( 0, header.getFormatRecords().size());
+		assertEquals( 0, header.getInfoRecords().size());
+		assertEquals( 1, header.getFilterRecords().size());
+		header.addOrReplace( filterLine, true );
+		assertEquals( 1, header.getFilterRecords().size());
+		VcfHeaderRecord filterRec1 = header.getFilterRecord( VcfHeaderUtils.FILTER_GERMLINE );
 		
 		header.addFilter(VcfHeaderUtils.FILTER_GERMLINE, "anything will do yoo hoo");
 		assertEquals(1, header.getFilterRecords().size());
@@ -267,6 +268,7 @@ public class VcfHeaderTest {
 		// 3 should be equal to 1		
 		assertEquals(true, filterRec1.equals(filterRec3));
 	}
+	
 	@Test
 	public void parseDataQPG() {
 		VcfHeader header = new VcfHeader();
