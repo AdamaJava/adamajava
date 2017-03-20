@@ -31,7 +31,6 @@ public class VcfHeaderUtils {
 	
 	public static final DateFormat DF = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	
-//	public static final VcfHeaderRecord BLANK_HEADER_LINE = new VcfHeaderRecord("##");
 	public static final String BLANK_HEADER_LINE = Constants.DOUBLE_HASH;
 	
 	public static final String DESCRITPION_FILTER_GERMLINE = "Mutation is a germline variant in another patient";
@@ -402,21 +401,16 @@ public class VcfHeaderUtils {
 	public static String getQPGDate(VcfHeaderRecord  qpg){ return  qpg.getSubFieldValue(DATE);}
 	public static String getQPGVersion(VcfHeaderRecord  qpg){ return  qpg.getSubFieldValue(VERSION);}
 	public static String getQPGCommandLine(VcfHeaderRecord  qpg){ return  qpg.getSubFieldValue(COMMAND_LINE);}
+	
+		
+	//most common string for vcf header
 	public static final String HEADER_LINE_FILTER = "##FILTER";
-
 	public static final String HEADER_LINE_INFO = "##INFO";
-
 	public static final String HEADER_LINE_FORMAT = "##FORMAT";
-
 	public static final String CURRENT_FILE_FORMAT = "##fileformat=VCFv4.3";
-
 	public static final String STANDARD_FILE_FORMAT = "##fileformat";
-
 	public static final String STANDARD_FILE_DATE = "##fileDate";
-
 	public static final String STANDARD_SOURCE_LINE = "##qSource";
-
 	public static final String STANDARD_UUID_LINE = "##qUUID";
-
 	public static final String STANDARD_FINAL_HEADER_LINE = "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO";
 }

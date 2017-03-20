@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
+import org.qcmg.common.vcf.header.VcfHeaderUtils;
 
 /**
  * Represents the header of a vcf file.
@@ -23,22 +24,13 @@ import org.qcmg.common.util.Constants;
  */
 
 public class VcfHeader implements Iterable<VcfHeaderRecord> {
-	
-	public static final String HEADER_LINE_FILTER = "##FILTER";
-	public static final String HEADER_LINE_INFO = "##INFO";
-	public static final String HEADER_LINE_FORMAT = "##FORMAT";		
-	public static final String CURRENT_FILE_FORMAT = "##fileformat=VCFv4.3";
-	public static final String STANDARD_FILE_FORMAT = "##fileformat"; 
-	public static final String STANDARD_FILE_DATE = "##fileDate";
-	public static final String STANDARD_SOURCE_LINE = "##qSource";
-	public static final String STANDARD_UUID_LINE = "##qUUID";	
-	public static final String STANDARD_FINAL_HEADER_LINE = "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO";
-	
+		
 	//deal with special for the vcf chrom header line
 	VcfHeaderRecord chromLine = null;
  	
 	//store all record with formate ##key=<ID=id,...>, eg. qPG, Format, info and filter
 	private final List<VcfHeaderRecord> idRecords = new ArrayList<VcfHeaderRecord>();
+
 	//store all record follow patter ##key=value
 	private final List<VcfHeaderRecord> metaRecords = new ArrayList<VcfHeaderRecord>(); 
 		
@@ -112,7 +104,7 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 	 */
 	public void  addOrReplace(VcfHeaderRecord rec, boolean isReplace){  
 		
-		if(rec.getMetaKey().startsWith(VcfHeader.STANDARD_FINAL_HEADER_LINE) && rec.getId() == null){
+		if(rec.getMetaKey().startsWith(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE) && rec.getId() == null){
 			chromLine = (isReplace || chromLine == null)? rec : chromLine;
 		}else if(rec.getId() != null)
 			replaceRecord( idRecords, rec, isReplace);
@@ -203,40 +195,41 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 	 * 
 	 * @return a list of vcf header record follow pattern ##FORMAT=<ID=id,...>
 	 */
-	public List<VcfHeaderRecord> getFormatRecords() {	return getRecords(idRecords, HEADER_LINE_FORMAT); }
+	public List<VcfHeaderRecord> getFormatRecords() {	return getRecords(idRecords, VcfHeaderUtils.HEADER_LINE_FORMAT); }
 	
 	/**
 	 * 
 	 * @param id: specify an id string here
 	 * @return a vcf header Record which contains the specified id value: ##FORMAT=<ID=id,...>
 	 */
-	public VcfHeaderRecord getFormatRecord(String id){ 	return getRecord(idRecords, HEADER_LINE_FORMAT, id); }
+	public VcfHeaderRecord getFormatRecord(String id){ 	return getRecord(idRecords, VcfHeaderUtils.HEADER_LINE_FORMAT, id); }
 	
 	/**
 	 * 
 	 * @return a list of vcf header record follow pattern ##FILTER=<ID=id,...>
 	 */
-	public List<VcfHeaderRecord> getFilterRecords() { return getRecords(idRecords, HEADER_LINE_FILTER); }
+	public List<VcfHeaderRecord> getFilterRecords() { return getRecords(idRecords, VcfHeaderUtils.HEADER_LINE_FILTER); }
 	
 	/**
 	 * 
 	 * @param id: specify an id string here
 	 * @return a vcf header Record which contains the specified id value: ##FILTER=<ID=id,...>
 	 */
-	public VcfHeaderRecord getFilterRecord(String id) { return getRecord(idRecords, HEADER_LINE_FILTER, id); }
+//	public VcfHeaderRecord getFilterRecord(String id) { return getRecord(idRecords, VcfHeaderUtils.HEADER_LINE_INFO, id); }
+	public VcfHeaderRecord getFilterRecord(String id) { return getRecord(idRecords, VcfHeaderUtils.HEADER_LINE_FILTER, id); }
 
 	/**
 	 * 
 	 * @return a list of vcf header record follow pattern ##INFO=<ID=id,...>
 	 */
-	public List<VcfHeaderRecord> getInfoRecords() { return getRecords(idRecords, HEADER_LINE_INFO); }
+	public List<VcfHeaderRecord> getInfoRecords() { return getRecords(idRecords, VcfHeaderUtils.HEADER_LINE_INFO); }
 	
 	/**
 	 * 
 	 * @param id: specify an id string here
 	 * @return a vcf header Record which contains the specified id value: ##INFO=<ID=id,...>
 	 */
-	public VcfHeaderRecord getInfoRecord(String id) {  return getRecord(idRecords, HEADER_LINE_INFO, id); }
+	public VcfHeaderRecord getInfoRecord(String id) {  return getRecord(idRecords, VcfHeaderUtils.HEADER_LINE_INFO, id); }
 	
 	/**
 	 * @param key: the key string of ##key=<ID...>. 
@@ -266,6 +259,7 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 	 * @return a list of meta info header line which is not structured meta info line. eg. qUUID=1234_567
 	 */
 	public List<VcfHeaderRecord> getAllMetaRecords() { return metaRecords ; }	
+	
 	/**
 	 * 
 	 * @param key: a string match the meta info line ##<key>=<value>
@@ -280,19 +274,19 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 	 * 
 	 * @return the vcf header record with contain key of qUUID: ##qUUID=value
 	 */
-	public VcfHeaderRecord getUUID() {   return getRecord( metaRecords,STANDARD_UUID_LINE , null ); }	
+	public VcfHeaderRecord getUUID() {   return getRecord( metaRecords,VcfHeaderUtils.STANDARD_UUID_LINE , null ); }	
 
 	/**
 	 * 
 	 * @return the vcf header record with file date: ##fileDate=value
 	 */
-	public VcfHeaderRecord getFileDate() { return getRecord( metaRecords, STANDARD_FILE_DATE , null ); }
+	public VcfHeaderRecord getFileDate() { return getRecord( metaRecords, VcfHeaderUtils.STANDARD_FILE_DATE , null ); }
 
 	/**
 	 * 
 	 * @return the vcf header record with qSource: ##qSource=value
 	 */	
-	public VcfHeaderRecord getSource() {	return getRecord( metaRecords, STANDARD_SOURCE_LINE , null ); }
+	public VcfHeaderRecord getSource() {	return getRecord( metaRecords, VcfHeaderUtils.STANDARD_SOURCE_LINE , null ); }
 	
 	
 	/**
