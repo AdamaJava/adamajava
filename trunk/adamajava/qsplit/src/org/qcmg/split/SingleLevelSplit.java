@@ -54,9 +54,7 @@ public class SingleLevelSplit extends Split {
 		type = getType(options);
 		outputDirName = options.getDirNames()[0];
 		inputFileName = options.getInputFileNames()[0];
-//		inputFile = new File(inputFileName);
 		reader = SAMFileReaderFactory.createSAMFileReader(new File(inputFileName));
-//		reader = new SAMFileReader(inputFile);
 		logger = QLoggerFactory.getLogger(SingleLevelSplit.class);
 		commandLine = options.getCommandLine();
 		try {
@@ -91,15 +89,12 @@ public class SingleLevelSplit extends Split {
 	public SingleLevelSplit(final String inputFileName, final String outputDirName,
 			final boolean useFileNames, final SplitType type) throws Exception {
 		this.inputFileName = inputFileName;
-//		inputFile = new File(inputFileName);
 		this.type = type;
 		this.outputDirName = outputDirName;
 		this.useFileNames = useFileNames;
 		this.createIndex = false;
 		reader = SAMFileReaderFactory.createSAMFileReader(new File(inputFileName));
-//		reader = new SAMFileReader(inputFile);
 		logger = QLoggerFactory.getLogger(SingleLevelSplit.class);
-//		commandLine = options.getCommandLine();
 		try {
 			header = reader.getFileHeader();
 			extractHeaderReadGroupDetails();
@@ -108,14 +103,9 @@ public class SingleLevelSplit extends Split {
 			// single level stuff
 			setupSingleSplit();
 			
-//			openWriters();
-//			performSplit();
-//			closeWriters();
 		} finally {
 			reader.close();
 		}
-		
-
 	}
 	
 	@Override
@@ -125,7 +115,6 @@ public class SingleLevelSplit extends Split {
 		for (SAMFileWriter writer : writers) {
 			writer.close();
 		}
-		
 		
 		//rename the index file; we don't want to exception happen if rename failed
 		if(createIndex){
@@ -206,7 +195,6 @@ public class SingleLevelSplit extends Split {
 	private void determineSingleSplitOutputs(List<String> inputs, Map<Integer, String> singleSplitMap, List<SAMProgramRecord> pgs, String parentInput) throws IOException {
 		for (String s : inputs) {
 			boolean matchFound = false;
-//			logger.info("input: " + s);
 			
 			// if the input is in the zcToFileMap, we are done - add to singleSplitMap and move on
 			//here fileNameToZcMap store bams lists on RG
@@ -248,32 +236,6 @@ public class SingleLevelSplit extends Split {
 			return path.toRealPath().toString();
 		else
 			return filename;
-//		if (Files.isSymbolicLink(path)) {
-////			System.out.println("file : " + filename + " is a symbolic link");
-//			try {
-//				for (LinkOption c : LinkOption.values())
-//				    System.err.println(c);
-//
-////				System.out.println("sym link: " + Files.readSymbolicLink(path.toAbsolutePath()).getFileName().toString());
-//				System.err.println("path.toRealPath: " + path.toRealPath());
-//				Path p = Files.readSymbolicLink(path.toAbsolutePath());
-//				System.err.println("filename: " + filename + ", 1st sym link: " + p.toAbsolutePath());
-//				
-//				System.err.println("1st sym link is absolute: " + p.isAbsolute());
-//				System.err.println("1st sym link resolved: " + path.getParent().resolve(p));
-//				
-//				// this could also be a symbolic link...
-//				if (Files.isSymbolicLink(p.toAbsolutePath())) {
-//					System.err.println("filename: " + filename + ", 1st sym link: " + p.toAbsolutePath());
-//					return getLinkedFilename(p.toAbsolutePath().toString());
-//				}
-//				return getLinkedFilename(p.getFileName().toString());
-////				return  Files.readSymbolicLink(path.toAbsolutePath()).getFileName().toString();
-//			} catch (IOException e) {
-//				e.printStackTrace();
-//			}
-//		}
-//		return filename;
 	}
 	
 	static SAMProgramRecord getPGforInput(String input, List<SAMProgramRecord> pgs) {
@@ -289,7 +251,6 @@ public class SingleLevelSplit extends Split {
 				// need to use the filenames as the paths are non-conformant
 				File outputFile = new File(output);
 				output = outputFile.getName();
-//				System.out.println("seek perfect mathch output: " + output);
 				
 				if (output.equals(input)) 
 					return pg;
@@ -304,7 +265,6 @@ public class SingleLevelSplit extends Split {
 				// need to use the filenames as the paths are non-conformant
 				File outputFile = new File(output);
 				output = outputFile.getName();
-//				System.out.println("output: " + output);				
 				if(input.contains("19x.dedup") &&
 					(output.length() - 3) >= input.substring(0, input.indexOf("19x.dedup")).length() ){
 					// need to handle the 90ND_10CD.19x.dedup cases as these names have changed
@@ -410,7 +370,6 @@ public class SingleLevelSplit extends Split {
 		for (SAMReadGroupRecord record : header.getReadGroups()) {
 			String zc = getAttributeZc(record);
 			if (null == zc) {
-//				throw new Exception(
 //						"Input file header has RG fields lacking zx attributes");
 				// skip this RG line as we only care about qbammerge RGs here 
 				continue;
@@ -426,7 +385,7 @@ public class SingleLevelSplit extends Split {
 								+ zcInt);
 			}
 			Integer previousZc = fileNameToZcMap.put(fileName, zcInt);
-			if (null != previousZc && previousZc != zcInt) {
+			if (null != previousZc && ! previousZc.equals(zcInt)) {
 				throw new Exception(
 						"Malformed merged BAM file. Multiple ZC-to-originating-file mappings.");
 			}
@@ -447,10 +406,8 @@ public class SingleLevelSplit extends Split {
 			SAMFileHeader outputHeader = header.clone();
 			preserveZCReadGroup(outputHeader, zcInt);
 			HeaderUtils.addProgramRecord(outputHeader, "qsplit", Messages.getProgramVersion(), commandLine);
-//			conserveProgramRecords(outputHeader, zcInt);
 			zcToOutputHeaderMap.put(zcInt, outputHeader);
 		}
-//		stripZCsFromOutputHeader();
 	}
 	
 	/**
@@ -465,18 +422,14 @@ public class SingleLevelSplit extends Split {
 			 
 			String[] params = colonDelimitedPattern.split(zc);
 			Integer otherZcInt = Integer.parseInt(params[0]);
-//			logger.info("Looking for " + otherZcInt.intValue() + " in list: " + Arrays.deepToString(linkedZCs.toArray(new Integer[] {})));
 			if (linkedZCs.contains(otherZcInt)) {
 				keepers.add(readGroupRecord);
 			}
-//			if (otherZcInt == zcInt) {
-//				keepers.add(readGroupRecord);
-//			}
 		}
 		outputHeader.setReadGroups(keepers);
 	}
 	
-	private final List<Integer> retrieveOtherZCKeepers(int zc, Map<Integer, String> map) {
+	private List<Integer> retrieveOtherZCKeepers(int zc, Map<Integer, String> map) {
 		String value = map.get(zc);
 		List<Integer> linkedZCs = new ArrayList<Integer>();
 		if (null != value) {
@@ -504,7 +457,6 @@ public class SingleLevelSplit extends Split {
 		for (Entry<Integer, String> entry : singleSplitMap.entrySet()) {
 			Integer zc = entry.getKey();
 			String fileName = new File(entry.getValue()).getName();
-//			logger.info("fileName: " + fileName);
 			
 			SAMFileWriter outputWriter = splitWriters.get(fileName);
 			if (null == outputWriter) {
@@ -515,7 +467,6 @@ public class SingleLevelSplit extends Split {
 					SAMFileHeader outputHeader = zcToOutputHeaderMap.get(zc);
 					outputWriter = factory.makeSAMOrBAMWriter(outputHeader, true, outputFile);
 					splitWriters.put(fileName, outputWriter);
-//					logger.info("adding to map: " + zc + " : " + fileName);
 					
 				} else {
 					closeWriters();
@@ -556,7 +507,6 @@ public class SingleLevelSplit extends Split {
 			}
 			
 			// may need to do a further split, so keep hold of the ZC record attribute
-//			record.setAttribute("ZC", null);
 			writer.addAlignment(record);
 		}
 	}
