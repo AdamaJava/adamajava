@@ -34,9 +34,9 @@ public final class Main {
 						.getProgramVersion(), args);
 				options.detectBadOptions();
 				if (options.hasSingleLevel()) {
-					SingleLevelSplit op = new SingleLevelSplit(options);
+					new SingleLevelSplit(options);
 				} else {
-					Split operation = new Split(options);
+					new Split(options);
 				}
 				exitStatus = 0; // SUCCESS
 			}
@@ -63,9 +63,6 @@ public final class Main {
 		System.err.println(Messages.USAGE);
 		if (performLogging && null != logger) {
 			logger.error(errorMessage, throwable);
-//			for (StackTraceElement elem : throwable.getStackTrace()) {
-//				logger.error(elem.toString());
-//			}
 		}
 	}
 	

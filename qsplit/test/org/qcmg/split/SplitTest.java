@@ -69,7 +69,7 @@ public class SplitTest {
 		splitZCFile.put(1, splitFile);
 		
 		createSamFile(samFile, splitZCFile);
-		Split splitPass = new Split(samFile.getAbsolutePath(), tempFolder.getRoot().getAbsolutePath(), true, new SamSplitType());
+		new Split(samFile.getAbsolutePath(), tempFolder.getRoot().getAbsolutePath(), true, new SamSplitType());
 		
 		// check that only 1 output file has been created
 		// check that output file contains all the details
@@ -102,7 +102,7 @@ public class SplitTest {
 		
 		createSamFile(samFile, splitZCFile);
 		
-		Split splitPass = new Split(samFile.getAbsolutePath(), tempFolder.getRoot().getAbsolutePath(), true, new SamSplitType());
+		new Split(samFile.getAbsolutePath(), tempFolder.getRoot().getAbsolutePath(), true, new SamSplitType());
 		
 		// check that only 1 output file has been created
 		// check that output file contains all the details
@@ -251,7 +251,7 @@ public class SplitTest {
 			}
 		}
 		
-		Split splitPass = new Split(mergedFile.getAbsolutePath(), tempFolder.getRoot().getAbsolutePath(), true, new SamSplitType());
+		new Split(mergedFile.getAbsolutePath(), tempFolder.getRoot().getAbsolutePath(), true, new SamSplitType());
 
 		File splitFileA = new File(tempFolder.getRoot().getAbsolutePath() + SEP + ORIG1);
 		reader = SAMFileReaderFactory.createSAMFileReader(splitFileA);
