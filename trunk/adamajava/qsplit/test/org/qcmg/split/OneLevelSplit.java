@@ -233,7 +233,7 @@ public class OneLevelSplit {
 								+ zcInt);
 			}
 			Integer previousZc = fileNameToZcMap.put(fileName, zcInt);
-			if (null != previousZc && previousZc != zcInt) {
+			if (null != previousZc && ! previousZc.equals(zcInt)) {
 				throw new Exception(
 						"Malformed merged BAM file. Multiple ZC-to-originating-file mappings.");
 			}

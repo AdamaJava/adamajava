@@ -133,13 +133,13 @@ public class Split {
 			Integer zcInt = Integer.parseInt(params[0]);
 			String fileName = params[1];
 			String previous = zcToFileNameMap.put(zcInt, fileName);
-			if (null != previous && !previous.equals(fileName)) {
+			if (null != previous && ! previous.equals(fileName)) {
 				throw new Exception(
 						"Input file header contains conflicting output file details for ZC value "
 								+ zcInt);
 			}
 			Integer previousZc = fileNameToZcMap.put(fileName, zcInt);
-			if (null != previousZc && previousZc != zcInt) {
+			if (null != previousZc && ! previousZc.equals(zcInt)) {
 				throw new Exception(
 						"Malformed merged BAM file. Multiple ZC-to-originating-file mappings.");
 			}
@@ -213,18 +213,12 @@ public class Split {
 		}
 	}
 
-	static void conserveProgramRecords(SAMFileHeader outputHeader,
-			Integer zcInt) throws Exception {
+	static void conserveProgramRecords(SAMFileHeader outputHeader, Integer zcInt) throws Exception {
 		Vector<SAMProgramRecord> keepers = new Vector<SAMProgramRecord>();
-		for (final SAMProgramRecord programRecord : outputHeader
-				.getProgramRecords()) {
+		for (final SAMProgramRecord programRecord : outputHeader.getProgramRecords()) {
 			Integer zc = getAttributeZc( programRecord);
-			if (null == zc) {
+			if (null == zc || zc.equals(zcInt)) {
 				keepers.add(programRecord);
-			} else {
-				if (zcInt == zc) {
-					keepers.add(programRecord);
-				}
 			}
 		}
 		outputHeader.setProgramRecords(keepers);
@@ -238,7 +232,7 @@ public class Split {
 			 
 			String[] params = colonDelimitedPattern.split(zc);
 			Integer otherZcInt = Integer.parseInt(params[0]);
-			if (otherZcInt == zcInt) {
+			if (otherZcInt.equals(zcInt)) {
 				keepers.add(readGroupRecord);
 			}
 		}
