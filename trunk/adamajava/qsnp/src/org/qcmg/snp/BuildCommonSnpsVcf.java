@@ -96,7 +96,7 @@ public class BuildCommonSnpsVcf {
 			for (final File f : filesToProcess) mapOfFilesAndIds.put(f, i++);
 		}
 		
-		logger.info("Will create an output file based on the contents of " + mapOfFilesAndIds.size() + " files matching " + searchString);
+		logger.info("Will create an output file based on the contents of " + mapOfFilesAndIds.size() + " files matching " + Arrays.deepToString(searchString));
 		
 		if ( ! mapOfFilesAndIds.isEmpty()) {
 			
