@@ -96,6 +96,27 @@ public class VcfRecordTest {
 	}
 	
 	@Test
+	public void getSampleColumnTest(){
+/*
+ * 	public VcfFormatFieldRecord getSampleFormatRecord(int index){
+		String s = (index >= formatRecords.size())? null: formatRecords.get(index);
+		return (s == null)? null : new VcfFormatFieldRecord(formatRecords.get(0), s);
+	}		
+ */
+		//one sample
+		String line = "chr2\t92281414\t.\tAC\tTG\t.\tSBIAS;SAT3\tEND=92281415\tACCS\tAC,1,1,TG,0,4\tOK";
+		String[] params = TabTokenizer.tokenize(line);
+		VcfRecord re = new VcfRecord(params);
+
+		assertTrue(re.getSampleFormatRecord(1).toString().equals("ACCS\tAC,1,1,TG,0,4")); 
+ 		for(int i = 0; i < 10; i ++)
+ 			if(i == 1 ) assertTrue(re.getSampleFormatRecord(i).getSampleColumnString().equals("AC,1,1,TG,0,4")  ); 
+ 			else if( i == 2 ) assertTrue(re.getSampleFormatRecord(i).getSampleColumnString().equals("OK")  );
+ 			else assertTrue(re.getSampleFormatRecord(i) == null); 
+				
+	}	
+	
+	@Test
 	public void MissingSampleColumn(){
 		//one sample
 		String line = "chr2\t92281414\t.\tAC\tTG\t.\tSBIAS;SAT3\tEND=92281415\tACCS\tAC,1,1,TG,0,4";
