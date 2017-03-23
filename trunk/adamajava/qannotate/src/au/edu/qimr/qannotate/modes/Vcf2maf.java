@@ -11,18 +11,11 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.nio.file.Files;
-import java.nio.file.LinkOption;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.qcmg.common.log.QLogger;
@@ -42,7 +35,6 @@ import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 
-import akka.dispatch.Foreach;
 import au.edu.qimr.qannotate.Options;
 import au.edu.qimr.qannotate.utils.*;
  
@@ -64,7 +56,6 @@ public class Vcf2maf extends AbstractMode{
 	private final int test_column;
 	private final int control_column;
 	
-	// org.qcmg.common.dcc.DccConsequence.getWorstCaseConsequence(MutationType, String...)
 	//for unit test
 	Vcf2maf(int test_column, int control_column, String test, String control){ 
 		center = SnpEffMafRecord.center;
@@ -414,7 +405,6 @@ public class Vcf2maf extends AbstractMode{
 		// String str = alt; 
 	 	 if(type.equals(SVTYPE.DEL)){
 	 		 return (alt.length() == 1)? "-" : alt.substring(1);
-	 		//str = str.substring(1) + ((alt.length() == ref.length())? "": "-" );
 			 			
 		}else  if(type.equals(SVTYPE.INS)) {
 			return (ref.equalsIgnoreCase(alt))? "-" : alt.substring(1);
@@ -535,9 +525,6 @@ public class Vcf2maf extends AbstractMode{
 	         values[3] = SnpUtils.getCountFromNucleotideString(bases,alt, cs) + Constants.EMPTY_STRING;     
       	}
 		 
-      	 //get genotype base
-//		 if(  StringUtils.isMissingDtaString(gd)) return values;
-		 		 	     
 		  return values;
 	 }
 	 	 	 	 
@@ -604,14 +591,6 @@ public class Vcf2maf extends AbstractMode{
 			if(! StringUtils.isNullOrEmpty(effs[10])) maf.setColumnValue(MafElement.Genotype_Number,effs[10]);		
  	 }
 
-// 	public static Optional<String> getBamid(String key, VcfHeader header){
-// 		for (final VcfHeaderRecord hr : header.getMetaRecords()) { 
-//			if( hr.getData().indexOf(key) != -1) {
-//				return Optional.ofNullable(StringUtils.getValueFromKey(hr.getData(), key));
-//			}
-// 		}
-// 		return Optional.empty(); 
-// 	}
 	
 	@Override
 	void addAnnotation(String dbfile) throws Exception {
