@@ -52,13 +52,10 @@ public class GermlineModeTest {
 			try(VCFFileReader reader = new VCFFileReader(outputName)){
 				 
 				 //check header
-//				int i = 0; 
-				VcfHeader header = reader.getHeader();	
+				VcfHeader header = reader.getHeader();					
 				assertEquals(false, header.getFilterRecord(VcfHeaderUtils.FILTER_GERMLINE) != null);
 				assertEquals(true, header.getInfoRecord(VcfHeaderUtils.INFO_GERMLINE) != null);
 
-//				assertEquals(false, header.getFilterRecords().containsKey(VcfHeaderUtils.FILTER_GERMLINE));
-//				assertEquals(true, header.getInfoRecords().containsKey(VcfHeaderUtils.INFO_GERMLINE));
 				//check records
  				int inputs = 0;
  				int germNo = 0;
@@ -102,7 +99,6 @@ public class GermlineModeTest {
 			mode.inputRecord(new File(inputName));
 			mode.addAnnotation(GermlineFileName);
 			mode.writeVCF( new File(outputName));
-
 	        
 			 try(VCFFileReader reader = new VCFFileReader(outputName)){				 
 				//check records
@@ -115,7 +111,7 @@ public class GermlineModeTest {
 						assertTrue(re.getInfoRecord().getField(VcfHeaderUtils.INFO_GERMLINE) == null);
 	 				}
 				}
-				assertTrue(i == 1);
+				assertTrue( i == 1 );
 			 }	        
 		}
 	
