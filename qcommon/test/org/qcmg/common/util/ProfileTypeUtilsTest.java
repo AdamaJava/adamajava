@@ -19,7 +19,7 @@ public class ProfileTypeUtilsTest {
 		try {
 			ProfileTypeUtils.getType(new File("blah.faq.gz"));
 			Assert.fail("should have barfed");
-		} catch (Exception e) {}
+		} catch (IllegalArgumentException e) {}
 	}
 	@Test
 	public void gffs() throws Exception {
@@ -28,7 +28,7 @@ public class ProfileTypeUtilsTest {
 		try {
 			ProfileTypeUtils.getType(new File("blah.gff2"));
 			Assert.fail("should have barfed");
-		} catch (Exception e) {}
+		} catch (IllegalArgumentException e) {}
 	}
 	@Test
 	public void bams() throws Exception {
@@ -37,7 +37,7 @@ public class ProfileTypeUtilsTest {
 		try {
 			ProfileTypeUtils.getType(new File("blah.bam123"));
 			Assert.fail("should have barfed");
-		} catch (Exception e) {}
+		} catch (IllegalArgumentException e) {}
 	}
 
 }

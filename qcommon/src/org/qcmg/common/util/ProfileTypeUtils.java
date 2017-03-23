@@ -29,7 +29,7 @@ public class ProfileTypeUtils {
 	private static final String VCF_EXTENSION = "vcf";
 	private static final String VCF_GZ_EXTENSION = "vcf.gz";
 	
-	public static ProfileType getType(File f) throws Exception {
+	public static ProfileType getType(File f) {
 		String ext = null;
 		final String s = f.getName();
 	    int i = s.lastIndexOf('.');
@@ -66,7 +66,7 @@ public class ProfileTypeUtils {
 	    if(VCF_EXTENSION.equals(ext) || VCF_GZ_EXTENSION.equals(ext)) 
 	    	return ProfileType.VCF; 
 	    
-	    throw new Exception("Unsupported file type "+ ext);
+	    throw new IllegalArgumentException("Unsupported file type "+ ext);
 	}
 
 }
