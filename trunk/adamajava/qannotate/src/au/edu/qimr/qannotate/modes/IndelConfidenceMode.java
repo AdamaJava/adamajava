@@ -90,10 +90,8 @@ public class IndelConfidenceMode extends AbstractMode{
         try(BufferedReader reader = new BufferedReader(new FileReader(dbfile))){
             String line;
             while (( line = reader.readLine()) != null) {
-            		if (line.startsWith("geno")) {
-            			//header line
-            		} else {
-	                String[] array = line.split(" ");
+            		if ( !line.startsWith("geno")) { //head line
+            			String[] array = line.split(" ");
 	                	//int no = Integer.parseInt(array[0]) - 1;
 	                	String chr = IndelUtils.getFullChromosome(array[0]);
 	                	
