@@ -254,8 +254,8 @@ public class VcfRecord implements Comparable<VcfRecord> {
 	 * @return a VcfFormatFieldRecord for specified sample 
 	 */
 	public VcfFormatFieldRecord getSampleFormatRecord(int index){
-		String s = (index > formatRecords.size())? null: formatRecords.get(index);
-		return new VcfFormatFieldRecord(formatRecords.get(0), s);
+		String s = (index >= formatRecords.size() || index == 0)? null: formatRecords.get(index);
+		return (s == null)? null : new VcfFormatFieldRecord(formatRecords.get(0), s);
 	}
 	
 	
@@ -286,15 +286,13 @@ public class VcfRecord implements Comparable<VcfRecord> {
 	}
 	
 	public String getChromosome() { 	return cpp.getChromosome()  ; }
-	public int getPosition() { 	return cpp.getStartPosition(); }
-	
+	public int getPosition() { 	return cpp.getStartPosition(); }	
 	public void appendId(String additionalId) {
 		this.id = (StringUtils.isNullOrEmpty(this.id) || this.id.equals(Constants.MISSING_DATA_STRING)) ? additionalId : this.id + ";" + additionalId;
 	}
 	public void setId(String id) { this.id = id; }
 	public String getId() { 	return id; }
-	
-	 
+		 
 	@Override
 	/**
 	 * Join all vcf record fields into string with tab seperated. 
@@ -315,8 +313,7 @@ public class VcfRecord implements Comparable<VcfRecord> {
 		builder.append(NL);
 		return builder.toString();
 	}
-	
-	 
+		 
 	/**
 	 * Join first four sub fields of vcf record into string with tab seperated. 
 	 * return a vcf string of (chr, pos, ref, alt) trailing with a newline 
@@ -331,7 +328,6 @@ public class VcfRecord implements Comparable<VcfRecord> {
 		return builder.toString();
 	}
 		
-
 	@Override
 	public int hashCode() {
 		final int prime = 31;
