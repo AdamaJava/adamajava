@@ -296,7 +296,6 @@ public class AnnotateFilterMT implements Runnable {
 		private final CountDownLatch writeLatch;
 		private int countOutputSleep;
 		private final AbstractQueue<SAMRecord> queueOutClip;
-		private CountDownLatch clipLatch;
 		QueryExecutor pairQueryEx ;
 		QueryExecutor lifescopeQueryEx;		
 		QueryExecutor clipQueryEx;
@@ -476,8 +475,7 @@ public class AnnotateFilterMT implements Runnable {
 			if (record.getReadUnmappedFlag()) {
 				unmappedCount.incrementAndGet();
 				QSVUtil.writeUnmappedRecord(writer, record, start, end, parameters.isTumor());						
-//				QSVUtil.writeUnmappedRecord(writer, record, start, end, chromosome.getName(), parameters.getFindType(), softClipDir, parameters.isTumor());						
-				return add2queue(record, queueOutClip, start, clipLatch);
+				return add2queue(record, queueOutClip, start);
 			}
 
 
@@ -485,7 +483,7 @@ public class AnnotateFilterMT implements Runnable {
 			if (clipQueryEx.Execute(record)) {
 				goodClipCount.incrementAndGet();
 				SoftClipStaticMethods.writeSoftClipRecord(writer, record, start, end, chromosome.getName());    			
-				return add2queue(record, queueOutClip, start, clipLatch);
+				return add2queue(record, queueOutClip, start);
 			} else {
 				return true;
 			}			
@@ -535,6 +533,10 @@ public class AnnotateFilterMT implements Runnable {
 				return true;
 			}			
 		}
+		
+		private boolean add2queue(SAMRecord re, AbstractQueue<SAMRecord> queue, int count) {
+			return add2queue(re, queue, count, null);
+		}
 
 		//add to write queue
 		private boolean add2queue(SAMRecord re, AbstractQueue<SAMRecord> queue,
@@ -555,7 +557,7 @@ public class AnnotateFilterMT implements Runnable {
 						logger.info(Thread.currentThread().getName() + " "
 								+ QSVUtil.getStrackTrace(e) + " (queue size full) ");
 					}
-					if (latch.getCount() == 0) {
+					if (null != latch && latch.getCount() == 0) {
 						logger.error("output queue is not empty but writing thread are completed");
 						return false;
 					}
