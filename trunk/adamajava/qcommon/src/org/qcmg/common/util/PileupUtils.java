@@ -127,12 +127,9 @@ public class PileupUtils {
 	 * @return
 	 */
 	public static boolean doesPileupContainIndel(String pileup) {
-		if (containsCharacterNotPrecededByNewRead(pileup,  '+') ||
-			containsCharacterNotPrecededByNewRead(pileup, '-')) {
-			return true;
-		}
 			
-		return false;
+		return (containsCharacterNotPrecededByNewRead(pileup,  '+') ||
+				containsCharacterNotPrecededByNewRead(pileup, '-'));
 	}
 	
 	/**

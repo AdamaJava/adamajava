@@ -32,9 +32,8 @@ public class ChrPositionUtils {
 		
 		// now positions
 		if (a.getEndPosition() < b.getStartPosition() - buffer) return false;
-		if (a.getStartPosition() > b.getEndPosition() + buffer) return false;
 		
-		return true;
+		return  ! (a.getStartPosition() > b.getEndPosition() + buffer);
 	}
 	
 	/**
@@ -112,9 +111,8 @@ public class ChrPositionUtils {
 	public static boolean doChrPositionsOverlapPositionOnly(ChrPosition a, ChrPosition b) {
 		// positions
 		if (a.getStartPosition() > b.getEndPosition()) return false;
-		if (a.getEndPosition() < b.getStartPosition()) return false;
 		
-		return true;
+		return ! (a.getEndPosition() < b.getStartPosition());
 	}
 	
 
