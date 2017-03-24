@@ -6,7 +6,6 @@
  */
 package org.qcmg.qbasepileup.indel;
 
-import htsjdk.samtools.CigarOperator;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -103,24 +102,12 @@ public class IndelPosition {
 		this.inputString = line;		
 	}	
 	
-	public String getIndelFileType() {
-		return indelFileType;
-	}
-
 	public String getMutationType() {
 		return mutationType;
 	}
 
-	public byte[] getFlankingReferenceBases() {
-		return flankingReferenceBases;
-	}
-
 	public int getReferenceFlankStart() {
 		return referenceFlankStart;
-	}
-
-	public int getReferenceFlankEnd() {
-		return referenceFlankEnd;
 	}
 
 	public int getQcmgFlagColumn() {
@@ -185,18 +172,8 @@ public class IndelPosition {
 		return chromosome + ":" + start + "-" + end + ":" + mutationType + ":Length" + length;
 	}
 
-	public boolean isInsertionOrComplex() {
-		if (mutationType.equals(INS) || mutationType.equals(CTX)) {
-			return true;
-		}
-		return false;
-	}
-	
 	public boolean isDeletion() {
-		if (mutationType.equals(DEL)) {
-			return true;
-		}
-		return false;
+		return mutationType.equals(DEL);
 	}	
 
 	public int getTdColumn() {
@@ -208,28 +185,14 @@ public class IndelPosition {
 	}
 
 	public boolean isInsertion() {
-		if (mutationType.equals(INS)) {
-			return true;
-		}
-		return false;
+		return mutationType.equals(INS);
 	}
 	public boolean isComplex() {
-		if (mutationType.equals(CTX)) {
-			return true;
-		}
-		return false;
+		return mutationType.equals(CTX);
 	}
 
 	public String getInputString() {
 		return this.inputString;
-	}
-
-	public String getSource() {
-		if (isGermline) {
-			return "germline";
-		} else {
-			return "somatic";
-		}
 	}
 
 	public int getQCMGFlagColumn() {
@@ -238,16 +201,6 @@ public class IndelPosition {
 
 	public byte[] getMotif() {
 		return this.motif.getBytes();
-	}
-
-	public CigarOperator getCigarOperator() {
-		if (isInsertion()) {
-			return CigarOperator.INSERTION;
-		} 
-		if (isDeletion()) {
-			return CigarOperator.DELETION;
-		}
-		return null;
 	}
 
 	public boolean isSomatic() {
