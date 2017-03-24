@@ -47,9 +47,7 @@ public class ChrPointPosition  implements ChrPosition , Comparable<ChrPosition> 
 				return false;
 		} else if (!chr.equals(other.chr))
 			return false;
-		if (position != other.position)
-			return false;
-		return true;
+		return position == other.position;
 	}
 
 	@Override
