@@ -70,71 +70,30 @@ public final class Options {
 		parser.posixlyCorrect(true);
 		options = parser.parse(args);
 		List<String> nonoptions = (List<String>) options.nonOptionArguments();
-		if (!hasSelfOption()) {
-			if (3 > nonoptions.size()) {
-				hasInsufficientArguments = true;
-			} else {
-				hasInsufficientArguments = false;
-			}
-			if (4 < nonoptions.size()) {
-				hasTooManyArguments = true;
-			} else {
-				hasTooManyArguments = false;
-			}
-			if (0 < nonoptions.size()) {
-				outputFileName = nonoptions.get(0).trim();
-			} else {
-				outputFileName = null;
-			}
-			if (1 < nonoptions.size()) {
-				inputBAMFileName = nonoptions.get(1).trim();
-			} else {
-				inputBAMFileName = null;
-			}
-			if (2 < nonoptions.size()) {
-				inputMAFileNameA = nonoptions.get(2).trim();
-			} else {
-				inputMAFileNameA = null;
-			}
-			if (3 < nonoptions.size()) {
-				inputMAFileNameB = nonoptions.get(3).trim();
-			} else {
-				inputMAFileNameB = null;
-			}
+		
+		if ( ! hasSelfOption()) {
+			hasInsufficientArguments = 3 > nonoptions.size();
+			hasTooManyArguments = 4 < nonoptions.size();
+			inputMAFileNameA = 2 < nonoptions.size() ? nonoptions.get(2).trim() : null;
+			inputMAFileNameB = 3 < nonoptions.size() ? nonoptions.get(3).trim() : null;
 		} else {
-			if (2 > nonoptions.size()) {
-				hasInsufficientArguments = true;
-			} else {
-				hasInsufficientArguments = false;
-			}
-			if (3 < nonoptions.size()) {
-				hasTooManyArguments = true;
-			} else {
-				hasTooManyArguments = false;
-			}
-			if (0 < nonoptions.size()) {
-				outputFileName = nonoptions.get(0).trim();
-			} else {
-				outputFileName = null;
-			}
-			if (1 < nonoptions.size()) {
-				inputBAMFileName = nonoptions.get(1).trim();
-			} else {
-				inputBAMFileName = null;
-			}
+			hasInsufficientArguments = 2 > nonoptions.size();
+			hasTooManyArguments = 3 < nonoptions.size();
 			inputMAFileNameA = null;
 			inputMAFileNameB = null;
 		}
+		outputFileName = 0 < nonoptions.size() ? nonoptions.get(0).trim() : null;
+		inputBAMFileName = 1 < nonoptions.size() ? nonoptions.get(1).trim() : null;
 
-		List typesList = options.valuesOf("t");
+		List<String> typesList = (List<String>) options.valuesOf("t");
 		types = new String[typesList.size()];
 		typesList.toArray(types);
 
-		List lSizeList = options.valuesOf("l");
+		List<String> lSizeList = (List<String>) options.valuesOf("l");
 		lowerISizeLimits = new Integer[lSizeList.size()];
 		lSizeList.toArray(lowerISizeLimits);
 
-		List uSizeList = options.valuesOf("u");
+		List<String> uSizeList = (List<String>) options.valuesOf("u");
 		upperISizeLimits = new Integer[uSizeList.size()];
 		uSizeList.toArray(upperISizeLimits);
 
