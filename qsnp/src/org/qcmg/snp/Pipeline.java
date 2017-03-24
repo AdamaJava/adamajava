@@ -919,7 +919,7 @@ public abstract class Pipeline {
 	
 	static boolean isVariantOnBothStrands(List<PileupElement> baseCounts) {
 		final PileupElement pe = PileupElementUtil.getLargestVariant(baseCounts);
-		return null == pe ? false :  pe.isFoundOnBothStrands();
+		return null != pe && pe.isFoundOnBothStrands();
 	}
 	
 	/**
