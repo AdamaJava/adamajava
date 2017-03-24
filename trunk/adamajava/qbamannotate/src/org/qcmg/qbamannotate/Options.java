@@ -201,14 +201,6 @@ public final class Options {
 		parser.printHelpOn(System.out);
 	}
 
-	public Integer[] getLowerISizeLimit() {
-		return lowerISizeLimits;
-	}
-
-	public Integer[] getUpperISizeLimit() {
-		return upperISizeLimits;
-	}
-
 	public boolean hasTooManyTypeArguments() {
 		return types.length > 1;
 	}
