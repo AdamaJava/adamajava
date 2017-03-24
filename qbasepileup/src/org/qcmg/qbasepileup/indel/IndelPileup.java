@@ -39,9 +39,9 @@ public class IndelPileup {
 	private int nearbySoftClipCount = 0;
 	private int nearbyIndelCount = 0;	
 	private int partialIndelCount = 0;		
-	private int homopolymerWindow;
-	private int nearbyIndelWindow;
-	private int nearbySoftClipWindow;	
+	private final int homopolymerWindow;
+	private final int nearbyIndelWindow;
+	private final int nearbySoftClipWindow;	
 	private int forwardSupportingReads = 0;
 	private int reverseSupportingReads = 0;
 	private Set<Integer> novelStarts = new HashSet<Integer>();	
@@ -50,8 +50,8 @@ public class IndelPileup {
 	private Homopolymer homopolymer;
 	private boolean highCoverage;
 	private Map<String, SAMRecord> records = new HashMap<String, SAMRecord>();
-	private Options options;
-	private File referenceFile;
+	private final Options options;
+	private final File referenceFile;
 
 	public IndelPileup(Options options,InputBAM inputBam, IndelPosition position, File reference, int softClipWindow, int homopolymerWindow, int nearbyIndelWindow, boolean isTumour) throws QBasePileupException {
 		this.inputBam = inputBam;
@@ -218,11 +218,8 @@ public class IndelPileup {
 			indelEnd++;		
 		}
 		//make sure that the read bases span the indel
-		if (record.getAlignmentStart() <= indelStart && record.getAlignmentEnd() >= indelEnd) {
-			return true;
-		}		
 		
-		return false;
+		return record.getAlignmentStart() <= indelStart && record.getAlignmentEnd() >= indelEnd;
 	}	
 	
 	public void parseDeletionIndel(SAMRecord record) {
