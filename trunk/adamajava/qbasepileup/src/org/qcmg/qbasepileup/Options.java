@@ -372,10 +372,7 @@ public class Options {
 	}	
 
 	public boolean includeDuplicates() {
-		if (options.has("dup")) {
-			return true;
-		}
-		return false;
+		return options.has("dup");
 	}
 
 	public Integer getOutputFormat() {
