@@ -52,8 +52,8 @@ public class QueryMT {
 		@Override
 		public void run() {
 			try {
-				boolean presorted = header.getSortOrder().equals(sort)? true: false;			 
-				boolean index =  sort.equals(SAMFileHeader.SortOrder.coordinate) ? true: false;
+				boolean presorted = header.getSortOrder().equals(sort); 
+				boolean index =  sort.equals(SAMFileHeader.SortOrder.coordinate);
 				SAMFileHeader he = header.clone();
 				he.setSortOrder(sort);
 				 
@@ -414,8 +414,8 @@ public class QueryMT {
 			boolean run = true;
 			
 			try {
-				boolean presorted = header.getSortOrder().equals(sort)? true: false;
-				boolean index =  sort.equals(SAMFileHeader.SortOrder.coordinate) ? true: false;
+				boolean presorted = header.getSortOrder().equals(sort);
+				boolean index =  sort.equals(SAMFileHeader.SortOrder.coordinate);
 				//make sure don't change the input header since the writer of unmatched reads  should use it. 
 				SAMFileHeader he = header.clone();
 				he.setSortOrder(sort);
