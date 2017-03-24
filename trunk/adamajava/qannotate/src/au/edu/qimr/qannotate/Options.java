@@ -8,12 +8,7 @@ package au.edu.qimr.qannotate;
 import static java.util.Arrays.asList;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -164,32 +159,31 @@ public class Options {
 		parser.accepts("filtersToIgnore", LOG_DESCRIPTION).withRequiredArg().ofType(String.class);
 
         OptionSet options  = parser.parse(args);  
-        if(options.has("v") || options.has("version")){
-    		System.err.println( "qannotate: Current version is " + getVersion());
-    		System.exit(0);
+        if (options.has("v") || options.has("version")){
+	    		System.err.println( "qannotate: Current version is " + getVersion());
+	    		System.exit(0);
         }  
         
         Options.MODE mm = null;   	
-        if(options.has("mode")){
-        	final String	m = ((String) options.valueOf("mode")).toLowerCase();
-        	try{
-        		mm = MODE.valueOf(m);
-        	}catch(IllegalArgumentException | NullPointerException e){
-        		System.err.println("invalid mode specified: "  + m);
-        		System.exit(0);
-        	}
+        if (options.has("mode")){
+	        	final String	m = ((String) options.valueOf("mode")).toLowerCase();
+	        	try {
+	        		mm = MODE.valueOf(m);
+	        	} catch (IllegalArgumentException | NullPointerException e){
+	        		System.err.println("invalid mode specified: "  + m);
+	        		System.exit(1);
+	        	}
         }
         
-//        filtersToIgnore = (List<String>) options.valuesOf("filtersToIgnore");
+        if (mm == null) return options;
         
-        if(mm == null) return options;
-        
-        if(  mm.equals(MODE.confidence) || mm.equals(MODE.vcf2maf) ){
+        if (  mm.equals(MODE.confidence) || mm.equals(MODE.vcf2maf) ){
 	        parser.accepts(test,  Messages.getMessage("TUMOUR_SAMPLEID_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("testSample");
 	        parser.accepts(control, Messages.getMessage("NORMAL_SAMPLEID_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("controlSample");	                	
-        }else
+        } else {
             parser.acceptsAll( asList("d", "database"), Messages.getMessage("DATABASE_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("database file"); 
-
+        }
+        
         if(mm.equals(MODE.snpeff)){
 	        parser.accepts("config", Messages.getMessage("CONF_FILE_ERR_DESCRIPTION") ).withRequiredArg().ofType(String.class).describedAs("config file");
 	        parser.accepts("summaryFile", Messages.getMessage("SUMMARY_FILE_DESCRIPTION")  ).withRequiredArg().ofType(String.class).describedAs("stat output");
@@ -231,8 +225,8 @@ public class Options {
      * @throws Exception 
      */
     protected void checkIO( ) throws Exception{   	
-    	List<File> inputs = new ArrayList<File>();
-    	List<File> outputs = new ArrayList<File>();
+    	List<File> inputs = new ArrayList<>(4);
+    	List<File> outputs = new ArrayList<>(4);
     	
     	inputs.add(new File(inputFileName));
     	if( getConfigFileName() != null ) {
