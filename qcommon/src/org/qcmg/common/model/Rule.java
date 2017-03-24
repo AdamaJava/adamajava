@@ -73,9 +73,7 @@ public class Rule {
 			return false;
 		if (minCoverage != other.minCoverage)
 			return false;
-		if (noOfVariants != other.noOfVariants)
-			return false;
-		return true;
+		return noOfVariants == other.noOfVariants;
 	}
 	
 }

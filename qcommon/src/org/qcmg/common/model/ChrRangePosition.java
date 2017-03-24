@@ -149,9 +149,7 @@ public class ChrRangePosition  implements ChrPosition , Comparable<ChrPosition> 
 				return false;
 		} else if (!cpp.equals(other.cpp))
 			return false;
-		if (endPosition != other.endPosition)
-			return false;
-		return true;
+		return endPosition == other.endPosition;
 	}
 
 	
