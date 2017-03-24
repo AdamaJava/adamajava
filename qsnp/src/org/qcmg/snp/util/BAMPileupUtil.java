@@ -34,9 +34,6 @@ public class BAMPileupUtil {
 	public static void examinePileupVCF(List<SAMRecord> sams, QSnpGATKRecord record) {
 		String pileup = "";
 		String qualities = "";
-//		boolean debug = null != record && "chr1".equals(record.getChromosome()) && record.getPosition() == 4480470;
-		
-//		if (debug) logger.info("in examinePileupVCF with no of sam records: " + sams.size());
 		for (SAMRecord sam : sams ) {
 			
 			if ( eligibleSamRecordNonDupOnly(sam)) {
@@ -58,7 +55,6 @@ public class BAMPileupUtil {
 			}
 		}
 		
-//		if (debug) logger.info("in examinePileupVCF with pileup: " + pileup);
 		if (pileup.length() > 0) {
 			record.setPileup(PileupElementUtil.getPileupCounts(pileup, qualities));
 		}
@@ -109,12 +105,6 @@ public class BAMPileupUtil {
 					record.setTumourNucleotides(PileupElementUtil.getPileupElementString(PileupElementUtil.getPileupCounts(pileup, qualities), record.getRef().charAt(0)));
 				}
 			} 
-//			else if (Mode.QSNP_MUTATION_IN_NORMAL == mode) {
-//				// just want to add an annotation if the pileup contatins the mutation
-//				char mutationChar = record.getMutation().charAt(record.getMutation().length()-1);
-//				if (GenotypeComparisonUtil.isCharPresentInString(pileup, mutationChar))
-//					record.addAnnotation("mutation also found in pileup of (unfiltered) normal");
-//			}
 		}
 	}
 	
@@ -128,36 +118,6 @@ public class BAMPileupUtil {
 	 */
 	public static int getReadPosition(final SAMRecord sam, final int position) {
 		return SAMUtils.getIndexInReadFromPosition(sam, position);
-//		int offset = -1;
-//		final int readStart = sam.getAlignmentStart();
-//		final int readEnd = sam.getAlignmentEnd();
-//		final int readLength = sam.getReadLength();
-//		
-//		if (position == readStart) offset = 0;
-//		if (position == readEnd) offset = readLength-1;
-//		
-//		if (-1 == offset) {
-//			if (CoordMath.getLength(readStart, readEnd) == readLength) {
-//				//woohoo - no deletions
-//				offset = position - readStart;
-//				readLengthMatchCounter++;
-//			} else {
-////				// we have a deletion - use AlignmentBlocks to determine the position within the string
-//				
-//				int blockLengthTally = 0;
-//				for (AlignmentBlock block : sam.getAlignmentBlocks()) {
-//					if (block.getReferenceStart() <= position && (CoordMath.getEnd(block.getReferenceStart(),block.getLength()) >= position)) {
-//						offset = blockLengthTally + ( position -  block.getReferenceStart() );
-//						break;
-//					} else blockLengthTally += block.getLength();
-//				}
-//				
-//				if (-1 == offset) {
-//					posiitonInDeletionCounter++;
-//				}
-//			}
-//		}	
-//		return offset;
 	}
 	
 	/**
@@ -174,7 +134,7 @@ public class BAMPileupUtil {
 		if (null == record) return false;
 		Integer sm = record.getIntegerAttribute("SM");
 		return ! record.getDuplicateReadFlag() 
-			&& (null == sm ? false : sm.intValue() > SM_CUTOFF)
+			&& (null != sm && sm.intValue() > SM_CUTOFF)
 //			&& tallyMDMismatches(record.getStringAttribute("MD")) < MD_CUTOFF	// 
 			&& ((record.getReadPairedFlag() && record.getSecondOfPairFlag() && record.getProperPairFlag()) 
 					|| tallyCigarMatchMismatches(record.getCigar()) > CIGAR_CUTOFF);
@@ -196,25 +156,4 @@ public class BAMPileupUtil {
 		}
 		return tally;
 	}
-	
-//	public static int tallyMDMismatches(final String mdData) {
-//		int count = 0;
-//		if (null != mdData) {
-//			for (int i = 0, size = mdData.length() ; i < size ; ) {
-//					
-//				if (isValidMismatch(mdData.charAt(i))) {
-//					count++;
-//					i++;
-//				} else if ('^' == mdData.charAt(i)) {
-//					while (++i < size && Character.isLetter(mdData.charAt(i))) {}
-//				} else i++;	// need to increment this or could end up with infinite loop...
-//			}
-//		}
-//		return count;
-//	}
-//	
-//	private static boolean isValidMismatch(final char c) {
-//		return c == 'A' || c == 'C' || c == 'G' || c == 'T' || c == 'N';
-//	}
-
 }
