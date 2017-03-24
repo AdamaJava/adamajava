@@ -24,7 +24,6 @@ import org.qcmg.common.vcf.header.VcfHeaderUtils;
  */
 
 public class VcfHeader implements Iterable<VcfHeaderRecord> {
-		
 	//deal with special for the vcf chrom header line
 	VcfHeaderRecord chromLine = null;
  	
@@ -42,17 +41,16 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 		Iterator<T> ite = stack.iterator();
 		while(ite.hasNext()){
 			T re = ite.next();
-			boolean isSameId = (record.getId() == null && re.getId() == null) ? true : 
-				(re.getId() == null)? false: re.getId().equals(record.getId()); 
+			boolean isSameId = (record.getId() == null && re.getId() == null) || ((re.getId() == null)? false: re.getId().equals(record.getId()));
 			 
-			if( re.getMetaKey().equals(record.getMetaKey()) && isSameId   ){ 				
+			if( isSameId && re.getMetaKey().equals(record.getMetaKey())){ 				
 				isExist = true;
 				if(isReplace) ite.remove(); 
 			}			
 		}	
 		
 		//add record if not exist; replace record if exist and isReplace == true; 
-		if(!isExist || isReplace ) stack.add( record );			 
+		if( ! isExist || isReplace ) stack.add( record );			 
 	}
 		
 	/**
@@ -215,7 +213,6 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 	 * @param id: specify an id string here
 	 * @return a vcf header Record which contains the specified id value: ##FILTER=<ID=id,...>
 	 */
-//	public VcfHeaderRecord getFilterRecord(String id) { return getRecord(idRecords, VcfHeaderUtils.HEADER_LINE_INFO, id); }
 	public VcfHeaderRecord getFilterRecord(String id) { return getRecord(idRecords, VcfHeaderUtils.HEADER_LINE_FILTER, id); }
 
 	/**
