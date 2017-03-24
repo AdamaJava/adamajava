@@ -98,9 +98,7 @@ public class ChrPositionMutation  implements Comparable<ChrPositionMutation> {
 			return false;
 		if (mutation != other.mutation)
 			return false;
-		if (position != other.position)
-			return false;
-		return true;
+		return position == other.position;
 	}
 
 	@Override

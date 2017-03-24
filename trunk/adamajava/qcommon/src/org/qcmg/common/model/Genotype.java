@@ -112,9 +112,7 @@ public class Genotype {
 			return false;
 		if (secondAllele != other.secondAllele)
 			return false;
-		if (thirdAllele != other.thirdAllele)
-			return false;
-		return true;
+		return thirdAllele == other.thirdAllele;
 	}
 	
 }
