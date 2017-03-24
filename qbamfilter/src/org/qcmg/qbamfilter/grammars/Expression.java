@@ -9,14 +9,12 @@ package org.qcmg.qbamfilter.grammars;
 import java.util.ArrayList;
 
 import htsjdk.samtools.filter.SamRecordFilter;
-import htsjdk.samtools.Cigar;
-import htsjdk.samtools.CigarElement;
 import htsjdk.samtools.SAMRecord;
 
 public class Expression implements SamRecordFilter{
 
 	queryTree.Operator operator = queryTree.Operator.NULL;
-    ArrayList< SamRecordFilter > conditions = new ArrayList<SamRecordFilter>(); //since boolean is scalar type but Boolean is object type
+    ArrayList< SamRecordFilter > conditions = new ArrayList<>(); //since boolean is scalar type but Boolean is object type
 
     /**
      * @param con: the query condition check results, usually from SAMRecordFilter.filterOut(SAMrecord);
@@ -41,21 +39,22 @@ public class Expression implements SamRecordFilter{
      * @return ture if one of condition return true in case of "OR";
      * @return false if one of condition return false in case of "AND";
      */
-    public boolean filterOut(final SAMRecord record){
+    @Override
+	public boolean filterOut(final SAMRecord record){
 
-    	if(operator == queryTree.Operator.AND){
-	    	for(int i = 0; i < conditions.size(); i ++){
-	    		if(conditions.get(i).filterOut(record) != true)
-	    			return false;	    		
+	    	if(operator == queryTree.Operator.AND){
+		    	for(int i = 0; i < conditions.size(); i ++){
+		    		if( ! conditions.get(i).filterOut(record))
+		    			return false;	    		
+		    	}
+		    	return true;
+	    	}else{ // case of OR
+	    		for(int i = 0; i < conditions.size(); i ++){
+		    		if(conditions.get(i).filterOut(record))
+		    			return true;	    		
+		    	}
+	    		return false;
 	    	}
-	    	return true;
-    	}else{ // case of OR
-    		for(int i = 0; i < conditions.size(); i ++){
-	    		if(conditions.get(i).filterOut(record) == true)
-	    			return true;	    		
-	    	}
-    		return false;
-    	}
     }
 
 	@Override
