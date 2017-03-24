@@ -495,8 +495,8 @@ public class AnnotateFilterMT implements Runnable {
 		private boolean addToPairWriter(SAMRecord record, int count) throws Exception {
 
 			if ( ! record.getReadUnmappedFlag()) {
-
-				if ((translocationsOnly && QSVUtil.isTranslocationPair(record)) || !translocationsOnly) {
+				
+				if ( ! translocationsOnly || QSVUtil.isTranslocationPair(record)) {
 
 					//annotate the read
 					parameters.getAnnotator().annotate(record);
