@@ -57,7 +57,7 @@ public class SignatureCompareRelated {
 	
 	private float cutoff = 0.2f;
 	
-	private String[] cmdLineInputFiles;
+//	private String[] cmdLineInputFiles;
 	private String[] cmdLineOutputFiles;
 	private String outputXml;
 	private String[] paths;
@@ -140,22 +140,10 @@ public class SignatureCompareRelated {
 		}
 		
 		if (orderedUniqueFiles.isEmpty()) {
-			logger.warn("No signature files found based on path: " + paths + ", and searchSuffix: " + searchSuffix);
+			logger.warn("No signature files found based on path: " + Arrays.deepToString(paths) + ", and searchSuffix: " + searchSuffix);
 			exitStatus = 1;
 			return exitStatus;
 		}
-		
-		// remove GEMMS
-//		int countOfGemms = 0;
-//		Iterator<File> iter = orderedUniqueFiles.iterator();
-//		while (iter.hasNext()) {
-//			File f = iter.next();
-//			if (f.getAbsolutePath().contains("GEMM")) {
-//				iter.remove();
-//				countOfGemms++;
-//			}
-//		}
-//		logger.info("removed: " + countOfGemms + " GEMMS bams from list");
 		
 		Collections.sort(orderedUniqueFiles, FileUtils.FILE_COMPARATOR);
 		
@@ -335,29 +323,6 @@ public class SignatureCompareRelated {
 		}
 	}
 
-//	private void email() throws IOException, InterruptedException {
-//		if (suspiciousResults.isEmpty()) return;
-//		
-//		StringBuilder sb = new StringBuilder("Suspicious qsignature comparisons:\n");
-//		for (String s : suspiciousResults) sb.append(s + "\n");
-//		// add in log file path
-//		sb.append('\n').append("Log file path:\n").append(logFile);
-//		
-//		String[] cmd = { "/bin/bash", "-c", "echo \"" + sb.toString() + "\" | mail -s \"" + emailSubject + "\" " + email};
-////		String[] cmd = { "/bin/bash", "-c", "echo \"" + sb.toString() + "\" | mail -s \"Qsignature Comparison: all bams vs donor snp chip\" " + email};
-//		logger.debug(Arrays.deepToString(cmd));
-//		
-//		Process p = new ProcessBuilder(cmd).start();
-//		int emalExitStatus = p.waitFor();
-//		
-//		byte[] errorStream = new byte[1024];
-//		java.io.InputStream isError = p.getErrorStream();
-//		isError.read(errorStream);
-//		
-//		String errorMessage = new String(errorStream);
-//		logger.info("Email sending exit status: " + emalExitStatus + ", msg: " + errorMessage);
-//	}
-	
 	public static void main(String[] args) throws Exception {
 		LoadReferencedClasses.loadClasses(SignatureCompareRelated.class);
 		
@@ -373,12 +338,6 @@ public class SignatureCompareRelated {
 				System.err.println("Exception caught whilst running SignatureCompareRelated: " + e.getMessage());
 				System.err.println(Messages.USAGE);
 			}
-		}
-		
-		// email results
-		
-		if (exitStatus == 0) {
-//			sp.email();
 		}
 		
 		if (null != logger)
@@ -402,8 +361,6 @@ public class SignatureCompareRelated {
 		} else if (options.hasVersionOption()) {
 			System.err.println(Messages.getVersionMessage());
 			returnStatus = 0;
-//		} else if (options.getInputFileNames().length < 1) {
-//			System.err.println(Messages.USAGE);
 		} else if ( ! options.hasLogOption()) {
 			System.err.println(Messages.USAGE);
 		} else {
@@ -411,8 +368,6 @@ public class SignatureCompareRelated {
 			logFile = options.getLog();
 			logger = QLoggerFactory.getLogger(SignatureCompareRelated.class, logFile, options.getLogLevel());
 			
-			// get list of file names
-			cmdLineInputFiles = options.getInputFileNames();
 			
 			cmdLineOutputFiles = options.getOutputFileNames();
 			if (null != cmdLineOutputFiles && cmdLineOutputFiles.length > 0)
@@ -435,11 +390,6 @@ public class SignatureCompareRelated {
 			
 			if (options.hasAdditionalSearchStringOption())
 				additionalSearchStrings = options.getAdditionalSearchString();
-			
-//			if (options.hasEmailOption())
-//				email = options.getEmail();
-//			if (options.hasEmailSubjectOption())
-//				emailSubject = options.getEmaiSubjectl();
 			
 			if (options.hasExcludeVcfsFileOption())
 				excludeVcfsFile = options.getExcludeVcfsFile();
