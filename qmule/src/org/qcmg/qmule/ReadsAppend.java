@@ -8,13 +8,13 @@ package org.qcmg.qmule;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
 
 import htsjdk.samtools.*;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.HashMap;
+import java.util.List;
 
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.SAMOrBAMWriterFactory;
@@ -23,15 +23,11 @@ import org.qcmg.picard.SAMOrBAMWriterFactory;
 public class ReadsAppend {
 	File[] inputs;
 	File output;
-	HashMap<Integer, PrintWriter> outFast = new HashMap<Integer, PrintWriter>();  
-	HashMap<Integer, PrintWriter> outQual = new HashMap<Integer, PrintWriter>();
 	 
 	
 	ReadsAppend(File output, File[] inputs ) throws Exception{
 		this.output = output;
 		this.inputs =   inputs; 
-	//	printHeader(null);   	
-		
 		merging();
 	}
 	
@@ -41,12 +37,11 @@ public class ReadsAppend {
 	 */
 	void merging() throws Exception{	
 		System.out.println("start time : " + getTime()); 
-		//ArrayList<SAMFileReader> readers = new ArrayList<SAMFileReader>();	
 		
-		
-		ArrayList<SamReader> readers = new ArrayList<SamReader>();	
-		for (File f: inputs) 
+		List<SamReader> readers = new ArrayList<>();	
+		for (File f: inputs) {
 			readers.add( SAMFileReaderFactory.createSAMFileReader(f));
+		}
 		
 		SAMFileHeader header = readers.get(0).getFileHeader().clone();	
 		
@@ -54,18 +49,16 @@ public class ReadsAppend {
         SAMFileWriter writer = factory.getWriter();
         
         for( SamReader reader : readers){
-        	for( SAMRecord record : reader)
-        		writer.addAlignment(record);
-        	reader.close();
+	        	for( SAMRecord record : reader) {
+	        		writer.addAlignment(record);
+	        	}
+	        	reader.close();
         }
-        
-        
     	
     	factory.closeWriter();		
 		System.out.println("end time : " + getTime());
 		System.exit(0);
 	}
-	
 
 	
 	private String getTime(){
@@ -81,12 +74,14 @@ public class ReadsAppend {
     		
     		File output = new File(args[0]);
     		File[] inputs = new File[args.length-1];
-    		for (int i = 1; i < args.length; i++)
+    		for (int i = 1; i < args.length; i++) {
     			inputs[i-1] = new File(args[i])   ;
+    			
+    			System.out.println(inputs[i-1].toString());
+    		}
 
-    		System.out.println(inputs.toString() );
     		
-    		ReadsAppend myAppend = new ReadsAppend(output,  inputs );
+    		new ReadsAppend(output,  inputs );
 
     		System.exit(0);
     	}catch(Exception e){
