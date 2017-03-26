@@ -35,7 +35,6 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrPositionComparator;
 import org.qcmg.common.model.ChrRangePosition;
-import org.qcmg.common.model.ChrPositionName;
 import org.qcmg.common.util.Pair;
 import org.qcmg.motif.util.MotifConstants;
 import org.qcmg.motif.util.MotifUtils;
@@ -48,11 +47,9 @@ import org.qcmg.qbamfilter.query.QueryExecutor;
 
 public final class JobQueue {
 	
-//	public static final String UNMAPPED = "unmapped";
 	
 	private static final Comparator<ChrPosition> COMPARATOR = new ChrPositionComparator();
 	
-	private final HashMap<String, HashMap<Integer, AtomicLong>> perIdPerCoverageBaseCounts = new HashMap<String, HashMap<Integer, AtomicLong>>();
 	private final int numberThreads;
 	private final HashSet<Pair<File, File>> filePairs;
 	private final Map<ChrPosition, RegionCounter> results = new HashMap<>();
@@ -67,7 +64,6 @@ public final class JobQueue {
 	private final List<ChrPosition> includes;
 	private final List<ChrPosition> excludes;
 	private final Integer windowSize;
-//	private int cutoff = 10;
 	private final AbstractQueue<SAMRecord> outputQueue = new ConcurrentLinkedQueue<>();
 	private final SAMOrBAMWriterFactory bamWriterFactory;
 	private final MotifsAndRegexes motifsAndRegexes;
@@ -75,7 +71,6 @@ public final class JobQueue {
 	private final boolean includesOnly;
 	
 	private final List<ChrPosition> contigs;
-//	private List<SAMSequenceRecord> contigs;
 	
 	public JobQueue(final Configuration invariants)
 			throws Exception {
@@ -168,22 +163,15 @@ public final class JobQueue {
 		logger.info("Performing final reduce step on results");
 		reduceResults();
 		logger.info("Final reduce step complete");
-		logger.debug("Final reduced results: " + perIdPerCoverageBaseCounts);
+//		logger.debug("Final reduced results: " + perIdPerCoverageBaseCounts);
 	}
 	
 	private void writeOutput() {
 		if (outputQueue.isEmpty()) return;
-		
-		SAMFileWriter writer = null;
-		try {
-			writer = bamWriterFactory.getWriter();
-			
+		try (SAMFileWriter writer= bamWriterFactory.getWriter()) {
 			for (SAMRecord rec : outputQueue) {
 				writer.addAlignment(rec);
 			}
-			
-		} finally {
-			if (null != writer) writer.close();
 		}
 	}
 
@@ -203,33 +191,17 @@ public final class JobQueue {
 
 	private void queueCoverageJobs() throws Exception {
 		for (ChrPosition cp : contigs) {
-//			String refName = cp.getChromosome();
-//			int refLength = cp.getLength();
 			
 			Job job = new CoverageJob(cp, filePairs, filter,
 					algorithm, countIn, countOut, validation, windowSize, outputQueue, includes, excludes);
 			jobQueue.add(job);
 		}
-//		for (SAMSequenceRecord ssr : contigs) {
-//			String refName = ssr.getSequenceName();
-//			int refLength = ssr.getSequenceLength();
-//			
-//			Job job = new CoverageJob(refName,
-//					refLength, filePairs, filter,
-//					algorithm, countIn, countOut, validation, windowSize, outputQueue, includes, excludes);
-//			jobQueue.add(job);
-//		}
 		logger.info("Number of queued coverage jobs: " + jobQueue.size());
 		logger.info("Queued jobs are: " + jobQueue);
 	}
 	
 	private void addToMap(Map<String, AtomicInteger> map, String key, AtomicInteger value) {
-		if (map.containsKey(key)) {
-			AtomicInteger existingValue = map.get(key);
-			existingValue.addAndGet(value.get());
-		} else {
-			map.put(key, value);
-		}
+		map.computeIfAbsent(key, v -> new AtomicInteger()).addAndGet(value.get());
 	}
 
 	private void reduceResults() throws Exception {
