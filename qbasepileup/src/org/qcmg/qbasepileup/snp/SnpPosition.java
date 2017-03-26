@@ -109,7 +109,7 @@ public class SnpPosition {
 	}
 	
 	public String toOutputColumnsString() {
-		return toTabString() + TAB +  String.valueOf(referenceBases) + TAB + String.valueOf(altBases);
+		return toTabString() + TAB +  new String(referenceBases) + TAB + new String(altBases);
 	}
 	
 	@Override
