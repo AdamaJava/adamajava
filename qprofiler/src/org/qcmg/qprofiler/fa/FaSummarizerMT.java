@@ -97,9 +97,9 @@ public class FaSummarizerMT implements Summarizer {
 				}
 				
 				// final sleep to allow threads to finish processing final record
-				cLatch.await(10, TimeUnit.SECONDS);
-				if (cLatch.getCount() > 0)
+				if (cLatch.await(10, TimeUnit.SECONDS)) {
 					consumerThreads.shutdownNow();
+				}
 				
 			} else {
 				logger.info("consumer threads finished");
@@ -160,7 +160,7 @@ public class FaSummarizerMT implements Summarizer {
 						try {
 							report.parseRecord(record);
 						} catch (Exception e) {
-							logger.error("record: " + record.toString());
+							logger.error("record: " + new String(record));
 							throw e;
 						}
 					} else {
