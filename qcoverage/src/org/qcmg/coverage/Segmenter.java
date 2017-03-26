@@ -115,7 +115,7 @@ public class Segmenter {
 	}	
 
 	private void merge(boolean includeSubFeature) {
-		HashMap<String, List<Segment>> newSegments = new HashMap<String, List<Segment>>();
+		Map<String, List<Segment>> newSegments = new HashMap<>();
 		int subFeatures = 0;
 		int overlapFeatures = 0;
 		int adjacentFeatures = 0;
@@ -125,12 +125,10 @@ public class Segmenter {
 		for (Entry<String, List<Segment>> entry: segments.entrySet()) {			
 			String chr = entry.getKey();
 			List<Segment> list = entry.getValue();
-			Collections.sort(list);
+			list.sort(null);
 			
-			if (!newSegments.containsKey(chr)) {
-				List<Segment> emptyList = new ArrayList<Segment>();
-				newSegments.put(chr, emptyList);
-			}
+			newSegments.computeIfAbsent(chr,v -> new ArrayList<>());
+			
 			inRecords += list.size();
 			Segment currentSeg = list.get(0);
 			
