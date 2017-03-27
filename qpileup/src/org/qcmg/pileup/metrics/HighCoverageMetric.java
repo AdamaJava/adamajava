@@ -23,25 +23,27 @@ public class HighCoverageMetric extends Metric {
 	
 	protected AtomicLong recordCount = new AtomicLong();
 	protected final static String TAB_DELIMITER = PileupConstants.TAB_DELIMITER;
-	private Map<String,TreeMap<Integer,HighCoverageRecord>> qualRecordMap = new ConcurrentHashMap<String,TreeMap<Integer,HighCoverageRecord>>();
+	private final Map<String,TreeMap<Integer,HighCoverageRecord>> qualRecordMap = new ConcurrentHashMap<String,TreeMap<Integer,HighCoverageRecord>>();
 
 	public HighCoverageMetric(double minPosCount, int minWinCount, int minTotalBases) {
 		super(PileupConstants.METRIC_HCOV, minPosCount, minWinCount, minTotalBases);
 	}
 	
-	public Map<String, TreeMap<Integer, HighCoverageRecord>> getQualRecordMap() {
-		return qualRecordMap;
-	}
+//	public Map<String, TreeMap<Integer, HighCoverageRecord>> getQualRecordMap() {
+//		return qualRecordMap;
+//	}
 
-	public void setQualRecordMap(
-			Map<String, TreeMap<Integer, HighCoverageRecord>> qualRecordMap) {
-		this.qualRecordMap = qualRecordMap;
-	}
+//	public void setQualRecordMap(
+//			Map<String, TreeMap<Integer, HighCoverageRecord>> qualRecordMap) {
+//		this.qualRecordMap = qualRecordMap;
+//	}
 
+	@Override
 	public AtomicLong getRecordCount() {
 		return recordCount;
 	}
 
+	@Override
 	public void setRecordCount(AtomicLong recordCount) {
 		this.recordCount = recordCount;
 	}
@@ -92,26 +94,25 @@ public class HighCoverageMetric extends Metric {
 	}
 	
 	@Override
-	public void clear(Chromosome chromosome) {		
-		if (qualRecordMap.containsKey(chromosome.getName())) {
-			qualRecordMap.get(chromosome.getName()).clear();	
-		}		
+	public void clear(Chromosome chromosome) {
+		TreeMap<Integer, HighCoverageRecord> map  = qualRecordMap.get(chromosome.getName());
+		if (map != null) {
+			map.clear();
+		}
 	}
 	
 	@Override
 	public int size(Chromosome chromosome) {
-		return qualRecordMap.get(chromosome.getName()).size();
+		TreeMap<Integer, HighCoverageRecord> map  = qualRecordMap.get(chromosome.getName());
+		if (map != null) {
+			return map.size();
+		}
+		return 0;
 	}
 
 	@Override
 	public void addChromosome(String name) {
-		if (!qualRecordMap.containsKey(name)) {
-			TreeMap<Integer, HighCoverageRecord> map = new TreeMap<Integer, HighCoverageRecord>();
-			qualRecordMap.put(name, map);
-		}
-		if (!summaryMap.containsKey(name)) {
-			TreeMap<Integer, ResultSummary> map = new TreeMap<Integer, ResultSummary>();
-			summaryMap.put(name, map);
-		}		
+		qualRecordMap.computeIfAbsent(name, v -> new TreeMap<>());
+		summaryMap.computeIfAbsent(name, v -> new TreeMap<>());
 	}
 }
