@@ -21,7 +21,6 @@ import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfInfoFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
-import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils.VcfInfoType;
