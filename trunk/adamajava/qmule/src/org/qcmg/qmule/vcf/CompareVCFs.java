@@ -99,39 +99,6 @@ public class CompareVCFs {
 		logger.info(sb.toString());
 	}
 	
-//	public static int getReadPosition(SAMRecord sam, int position) {
-//		int offset = -1;
-//		int readStart = sam.getAlignmentStart();
-//		int readEnd = sam.getAlignmentEnd();
-//		int readLength = sam.getReadLength();
-//		
-//		if (position == readStart) offset = 0;
-//		if (position == readEnd) offset = readLength-1;
-//		
-//		if (-1 == offset) {
-//			if (CoordMath.getLength(readStart, readEnd) == readLength) {
-//				//woohoo - no deletions
-//				offset = position - readStart;
-////				readLengthMatchCounter++;
-//			} else {
-////				// we have a deletion - use AlignmentBlocks to determine the position within the string
-//				
-//				int blockLengthTally = 0;
-//				for (AlignmentBlock block : sam.getAlignmentBlocks()) {
-//					if (block.getReferenceStart() <= position && (CoordMath.getEnd(block.getReferenceStart(),block.getLength()) >= position)) {
-//						offset = blockLengthTally + ( position -  block.getReferenceStart() );
-//						break;
-//					} else blockLengthTally += block.getLength();
-//				}
-//				
-////				if (-1 == offset) {
-////					posiitonInDeletionCounter++;
-////				}
-//			}
-//		}	
-//		return offset;
-//	}
-	
 	private void examine() {
 		
 		final Map<RefAndMultiGenotype, AtomicLong> diffGenotypes = new HashMap<RefAndMultiGenotype, AtomicLong>();
@@ -163,7 +130,7 @@ public class CompareVCFs {
 				++normalAndTumour;
 				
 				// sanity check - compare ref - if not the same - oh dear...
-				assert normalVCF.getRef() == tumourVCF.getRef();
+				assert normalVCF.getRef().equals(tumourVCF.getRef());
 				
 				// compare mutations
 				char normalMut = normalVCF.getAlt().charAt(0);
@@ -175,8 +142,6 @@ public class CompareVCFs {
 						normalVCF.getInfo().substring(0, 3), normalVCF.getRefChar(), normalVCF.getAlt().charAt(0));
 				GenotypeEnum tumourGenotype = VcfUtils.calculateGenotypeEnum(
 						tumourVCF.getInfo().substring(0, 3), tumourVCF.getRefChar(), tumourVCF.getAlt().charAt(0));
-//				GenotypeEnum normalGenotype = normalVCF.getGenotypeEnum();
-//				GenotypeEnum tumourGenotype = tumourVCF.getGenotypeEnum();
 				
 				if (normalMut == tumourMut) {
 					sameMutation++;
@@ -190,7 +155,6 @@ public class CompareVCFs {
 							diffGenotypes.put(ramg, al);
 						}
 						al.incrementAndGet();
-//						logger.info(normalVCF.getRef() + " : " + normalGenotype + " : " + tumourGenotype);
 					}
 				} else {
 					diffMutation++;
