@@ -21,7 +21,6 @@ import org.qcmg.pileup.metrics.record.ResultSummary;
 import org.qcmg.pileup.metrics.record.StrandBiasRecord;
 import org.qcmg.pileup.model.Chromosome;
 import org.qcmg.pileup.model.QPileupRecord;
-import org.qcmg.pileup.model.StrandEnum;
 
 
 public class StrandBiasMetric extends Metric {
@@ -29,12 +28,12 @@ public class StrandBiasMetric extends Metric {
 	
 	private BufferedWriter tabFileWriter;	
 	final static String TAB_DELIMITER = PileupConstants.TAB_DELIMITER;		
-	private Map<String,TreeMap<Integer,StrandBiasRecord>> strandBiasMap = new ConcurrentHashMap<String,TreeMap<Integer,StrandBiasRecord>>();
-	private QLogger logger = QLoggerFactory.getLogger(getClass());
-	private File strandBiasOutputFile;
-	private Integer minPercentDifference;
-	private int minNonReferenceBases;
-	private String hdfFilePath;
+	private final Map<String,TreeMap<Integer,StrandBiasRecord>> strandBiasMap = new ConcurrentHashMap<String,TreeMap<Integer,StrandBiasRecord>>();
+	private final QLogger logger = QLoggerFactory.getLogger(getClass());
+	private final File strandBiasOutputFile;
+	private final Integer minPercentDifference;
+	private final int minNonReferenceBases;
+	private final String hdfFilePath;
 	
 	public StrandBiasMetric(String hdfName, String hdfFilePath, String pileupDir, 
 			Integer minPercentDifference, Integer minTotalBases, Integer minNonReferenceBases) {
@@ -44,33 +43,14 @@ public class StrandBiasMetric extends Metric {
 		this.minNonReferenceBases = minNonReferenceBases;
 		this.strandBiasOutputFile = new File(pileupDir + PileupConstants.FILE_SEPARATOR + hdfName + "_strand_bias.txt");
 	}
-
-	public BufferedWriter getTabFileWriter() {
-		return tabFileWriter;
-	}
-
-	public void setTabFileWriter(BufferedWriter tabFileWriter) {
-		this.tabFileWriter = tabFileWriter;
-	}
-	
 	
 	public Integer getMinPercentDifference() {
 		return minPercentDifference;
 	}
 
-	public void setMinPercentDifference(Integer minPercentDifference) {
-		this.minPercentDifference = minPercentDifference;
-	}
-	
 	public Map<String, TreeMap<Integer, StrandBiasRecord>> getStrandBiasMap() {
 		return strandBiasMap;
 	}
-
-	public void setStrandBiasMap(
-			Map<String, TreeMap<Integer, StrandBiasRecord>> strandBiasMap) {
-		this.strandBiasMap = strandBiasMap;
-	}
-
 
 	@Override
 	public void logOptions() {
@@ -137,10 +117,6 @@ public class StrandBiasMetric extends Metric {
 
 	@Override
 	public String getColumnHeaders() {
-		StringBuilder baseString = new StringBuilder();
-		for (StrandEnum e: StrandEnum.getBaseCounts()) {
-			baseString.append(e+ TAB_DELIMITER); 
-		}
 		return "#Chr"+ TAB_DELIMITER +"PosStart"+ TAB_DELIMITER + "PosEnd"+ TAB_DELIMITER 
 				+"RefBase"+ TAB_DELIMITER +"ForAltBase"
 		+ TAB_DELIMITER + "ForRefCount"+ TAB_DELIMITER +"ForAltBaseCount"+TAB_DELIMITER +"ForTotalBase"
@@ -167,7 +143,7 @@ public class StrandBiasMetric extends Metric {
 			
 			strandBiasMap.get(record.getChromosome()).put(record.getPosition(), record);
 		} else {
-			TreeMap<Integer,StrandBiasRecord> map = new TreeMap<Integer, StrandBiasRecord>();
+			TreeMap<Integer,StrandBiasRecord> map = new TreeMap<>();
 			map.put(record.getPosition(), record);
 			strandBiasMap.put(record.getChromosome(), map);
 		}
@@ -194,6 +170,7 @@ public class StrandBiasMetric extends Metric {
 		}	
 	}
 	
+	@Override
 	public int size(Chromosome chromosome) {
 		return strandBiasMap.get(chromosome.getName()).size();
 	}

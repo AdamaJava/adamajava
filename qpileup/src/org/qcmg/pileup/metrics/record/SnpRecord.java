@@ -39,7 +39,7 @@ public class SnpRecord extends MetricRecord {
 	private long totalBases;
 	private boolean strandBias = false;
 	private boolean inMismapRegion = false;
-	private String compareSnpString = "";
+	private final String compareSnpString = "";
 	private int altBaseCount;
 	protected final static String TAB_DELIMITER = PileupConstants.TAB_DELIMITER;
 	private String dbSNPMaf;
@@ -75,16 +75,17 @@ public class SnpRecord extends MetricRecord {
 		return chromosome;
 	}
 	
-	public void setChromosome(String chromosome) {
-		this.chromosome = chromosome;
-	}
+//	public void setChromosome(String chromosome) {
+//		this.chromosome = chromosome;
+//	}
 	
-	public Integer getPosition() {
-		return position;
-	}
-	public void setPosition(int position) {
-		this.position = position;
-	}
+//	@Override
+//	public Integer getPosition() {
+//		return position;
+//	}
+//	public void setPosition(int position) {
+//		this.position = position;
+//	}
 	
 	public String getAnalysisId() {
 		return analysisId;
@@ -410,6 +411,7 @@ public class SnpRecord extends MetricRecord {
 		return sb.toString();
 	}
 	
+	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append(this.chromosome + TAB_DELIMITER + this.position + TAB_DELIMITER + this.referenceBase + TAB_DELIMITER + this.altBase 

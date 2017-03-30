@@ -13,10 +13,10 @@ import org.qcmg.pileup.PileupUtil;
 
 public class MetricRecord {
 	
-	protected Integer position;
+	protected final Integer position;
 	protected Long count;
-	protected String type;
-	protected String chromosome;
+	protected final String type;
+	protected final String chromosome;
 	protected int totalReads;
 	protected int endPosition;
 
@@ -37,9 +37,9 @@ public class MetricRecord {
 		return position;
 	}
 
-	public void setPosition(Integer position) {
-		this.position = position;
-	}
+//	public void setPosition(Integer position) {
+//		this.position = position;
+//	}
 
 	public Long getCount() {
 		return count;
@@ -115,6 +115,7 @@ public class MetricRecord {
 		return result;
 	}	
 
+	@Override
 	public String toString() {
 		return this.type + "\t" + chromosome + " " + position + " " + count;
 	}

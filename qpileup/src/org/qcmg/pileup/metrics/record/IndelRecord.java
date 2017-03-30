@@ -13,28 +13,28 @@ import org.qcmg.pileup.PileupConstants;
 
 public class IndelRecord extends MetricRecord {
 	
-	private char referenceBase;
-	private String id;		
-	private String analysisId;
-	private String mutationType;	
+	private final char referenceBase;
+//	private String id;		
+//	private String analysisId;
+	private final String mutationType;	
 	private long allDelCount;	
-	private StringBuilder referenceBaseString = new StringBuilder();
+	private final StringBuilder referenceBaseString = new StringBuilder();
 	private long forwardCount;
 	private long reverseCount;
 	
 	public IndelRecord(String chromosome, int basePosition, int endPosition, char base, String mutationType, long count, long forCount, long revCount, int totalBases) {
-		super(PileupConstants.METRIC_INDEL,chromosome, (int) basePosition, count, totalBases);
+		super(PileupConstants.METRIC_INDEL,chromosome, basePosition, count, totalBases);
 		this.mutationType = mutationType;
 		this.referenceBase= base;
 		this.forwardCount = forCount;
 		this.reverseCount = revCount;
 		this.referenceBaseString.append(referenceBase);		
-		this.position = basePosition;
+//		this.position = basePosition;
 		this.endPosition = endPosition;
 	}
 	
 	public IndelRecord(String chromosome, int basePosition, int endPosition, char base, String mutationType, int count, int totalReads) {
-		super(PileupConstants.METRIC_INDEL,chromosome, (int) basePosition, count, totalReads);
+		super(PileupConstants.METRIC_INDEL,chromosome, basePosition, count, totalReads);
 		this.mutationType = mutationType;
 		this.endPosition = endPosition;	
 		this.referenceBase = base;
@@ -58,6 +58,7 @@ public class IndelRecord extends MetricRecord {
 	}
 
 	
+	@Override
 	public boolean hasStrandBias() {
 		if (getPercentTotalReads() > 20) {		
 			double diff = getSBiasScore();
@@ -71,38 +72,38 @@ public class IndelRecord extends MetricRecord {
 	public char getReferenceBase() {
 		return referenceBase;
 	}
-	public void setReferenceBase(char referenceBase) {
-		this.referenceBase = referenceBase;
-	}
+//	public void setReferenceBase(char referenceBase) {
+//		this.referenceBase = referenceBase;
+//	}
 	public String getChromosome() {
 		return chromosome;
 	}
-	public void setChromosome(String chromosome) {
-		this.chromosome = chromosome;
-	}
+//	public void setChromosome(String chromosome) {
+//		this.chromosome = chromosome;
+//	}
 	
-	public String getAnalysisId() {
-		return analysisId;
-	}
+//	public String getAnalysisId() {
+//		return analysisId;
+//	}
+//
+//	public void setAnalysisId(String analysisId) {
+//		this.analysisId = analysisId;
+//	}
 
-	public void setAnalysisId(String analysisId) {
-		this.analysisId = analysisId;
-	}
-
-	public String getId() {
-		return id;
-	}
-
-	public void setId(String id) {
-		this.id = id;
-	}
+//	public String getId() {
+//		return id;
+//	}
+//
+//	public void setId(String id) {
+//		this.id = id;
+//	}
 	public String getMutationType() {
 		return mutationType;
 	}
 
-	public void setMutationType(String mutationType) {
-		this.mutationType = mutationType;
-	}
+//	public void setMutationType(String mutationType) {
+//		this.mutationType = mutationType;
+//	}
 
 	private int length() {
 		return referenceBaseString.length();		
