@@ -21,8 +21,6 @@ import htsjdk.samtools.SAMRecord;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
-import org.qcmg.common.model.ChrRangePosition;
-import org.qcmg.common.model.ChrPositionName;
 import org.qcmg.common.util.Pair;
 import org.qcmg.motif.util.MotifConstants;
 import org.qcmg.motif.util.MotifUtils;
@@ -32,10 +30,6 @@ import org.qcmg.qbamfilter.query.QueryExecutor;
 
 class CoverageJob implements Job {
 	
-//	private final int refLength;
-//	private final int startPosition;
-//	private final int stopPosition;
-//	private final String refName;
 	private final ChrPosition cp;
 	private final QLogger logger;
 	private final QueryExecutor filter;
@@ -155,5 +149,4 @@ class CoverageJob implements Job {
 			logger.info(sb.toString());
 		}
 	}
-
 }
