@@ -117,21 +117,20 @@ public class GermlineMode extends AbstractMode{
  	 */
   		
  	boolean annotateGermlineSnp(VcfRecord inputVcf, VcfRecord germlineVcf , final int total){
- 		boolean flag = false;
  		
  		if ( ! inputVcf.getRef().equals(germlineVcf.getRef()) ){
  			logger.warn(String.format( "germline reference base (%s) are different to vcf Record (%s) for variant at position: %s ", 
  					germlineVcf.getRef(), inputVcf.getRef(), germlineVcf.getPosition() ));			 
- 			return flag ; 			 
+ 			return false ; 			 
  		}
  		
  		if ( ! VcfUtils.isRecordSomatic(inputVcf)) {
- 			return flag;
+ 			return false;
  		}
  		
  		String [] alts = inputVcf.getAlt().contains(Constants.COMMA_STRING) ? TabTokenizer.tokenize(inputVcf.getAlt(), Constants.COMMA) : new String[] {inputVcf.getAlt()}; 
- 		if (null == alts) return flag ;
  		
+ 		boolean flag = false;
  		//only annotate somatic variants
 			//annotation if at least one alts matches dbSNP alt		 
 		for (final String alt : alts) {
