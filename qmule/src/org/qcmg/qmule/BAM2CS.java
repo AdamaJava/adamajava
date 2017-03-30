@@ -11,15 +11,15 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 import htsjdk.samtools.*;
+
 import java.io.*;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
+
+import org.qcmg.common.string.StringUtils;
 
 
 public class BAM2CS {
@@ -46,7 +46,7 @@ public class BAM2CS {
 		for (SAMRecord record : reader) {
 			String id = ">" + record.getReadName();
 			Add2Fasta(id, record.getAttribute("CS").toString());
-			Add2Qual(id,  record.getAttribute("CQ").toString());
+			add2Qual(id,  record.getAttribute("CQ").toString());
 			num ++;			
 		}
 		
@@ -126,21 +126,21 @@ public class BAM2CS {
 	 * @param seq
 	 * @throws Exception
 	 */
-	void Add2Qual(String id, String seq) throws Exception{
+	void add2Qual(String id, String seq) throws Exception{
 		int len = seq.length();		
-		PrintWriter Writer;	
+		PrintWriter writer;	
 		
 		//get writer or create an new one
 		if(outQual.containsKey(len)){
-			Writer = outQual.get(len);
+			writer = outQual.get(len);
 		}else{
 			String fname = inBAM.getName();
 			int index = fname.lastIndexOf('.');
 			fname = fname.substring(0,index) + "." + len + ".qual";
 			File csFile = new File(outDir, fname);
-			Writer = new PrintWriter(new FileWriter(csFile));
-			outQual.put(len, Writer);	
-			printHeader(Writer);
+			writer = new PrintWriter(new FileWriter(csFile));
+			outQual.put(len, writer);	
+			printHeader(writer);
 			System.out.println(getTime() + " creating output: " + csFile.getAbsolutePath() );
 		}
 		
@@ -148,14 +148,17 @@ public class BAM2CS {
 		String qual = "";
 		for(int i = 0; i < len; i ++){
 			char c = seq.charAt(i);
-			int j = (int) c;
+			int j = c;
 			
-			if(qual == "")	qual += j;
-			else	qual += " " + j;
+			if(StringUtils.isNullOrEmpty(qual)){
+				qual += j;
+			} else	 {
+				qual += " " + j;
+			}
 		}		
 		
-		Writer.println(id);
-		Writer.println(qual);
+		writer.println(id);
+		writer.println(qual);
 
 	}
 	
