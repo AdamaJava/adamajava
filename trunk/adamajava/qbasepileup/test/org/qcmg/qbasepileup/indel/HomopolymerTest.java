@@ -127,7 +127,6 @@ public class HomopolymerTest {
 	@Test
 	public void testInHomopoylmerIsContiguous() {
 		
-		
 		Homopolymer hp = getHomopolymerObject("chr1", 28, 29, IndelPosition.INS, "T");		
 		boolean result = hp.isHomopolymer(Homopolymer.CONTIGUOUS, Homopolymer.CONTIGUOUS, Homopolymer.CONTIGUOUS, 2, 3);
 		assertIsInHomopolymer(true, result, Homopolymer.CONTIGUOUS, "3", hp);
@@ -152,7 +151,6 @@ public class HomopolymerTest {
 	
 	@Test
 	public void testInHomopoylmerIsDiscontiguous() {
-		
 		
 		Homopolymer hp = getHomopolymerObject("chr1", 28, 29, IndelPosition.INS, "T");		
 		boolean result = hp.isHomopolymer(Homopolymer.DISCONTIGUOUS, Homopolymer.DISCONTIGUOUS, Homopolymer.DISCONTIGUOUS, 2, 3);
@@ -183,7 +181,6 @@ public class HomopolymerTest {
 		byte[] down = {84, 84, 67, 65};
 		//true
 		Homopolymer hp = getHomopolymerObject("chr1", 28, 29, IndelPosition.INS, "T");
-//		hp.getReferenceSequence();
 		hp.setUpstreamReference(up);
 		hp.setDownstreamReference(down);
 		hp.setIndelReferenceBases(hp.getPosition().getMotif());
@@ -193,7 +190,6 @@ public class HomopolymerTest {
 		
 		//false - 
 		hp = getHomopolymerObject("chr1", 28, 29, IndelPosition.INS, "G");
-//		hp.getReferenceSequence();
 		hp.setUpstreamReference(up);
 		hp.setDownstreamReference(down);
 		hp.setIndelReferenceBases(hp.getPosition().getMotif());
@@ -203,7 +199,6 @@ public class HomopolymerTest {
 		
 		//not contiguous
 		hp = getHomopolymerObject("chr1", 28, 29, IndelPosition.INS, "G");
-//		hp.getReferenceSequence();
 		hp.setUpstreamReference(up);
 		hp.setDownstreamReference(down);
 		hp.setIndelReferenceBases(hp.getPosition().getMotif());
@@ -232,11 +227,7 @@ public class HomopolymerTest {
 	}	
 
 	private void assertSequenceEquals(String expected, byte[] sequenceArray) {
-		StringBuffer sb = new StringBuffer();
-		for (byte b: sequenceArray) {
-			sb.append((char) b);
-		}
-		assertEquals(expected, sb.toString());
+		assertEquals(expected, new String(sequenceArray));
 		
 	}
 
@@ -247,18 +238,5 @@ public class HomopolymerTest {
 		
 		return hp;
 	}
-
-//	private void setUpReferenceFile() throws IOException {
-//		//fasta file		
-//		BufferedWriter w = new BufferedWriter(new FileWriter(referenceFile));
-//		w.write("chr1\n");
-//		w.write("CAAGTCATTAGATAAATTCCTTGCTGTATTTTATTCTGTGATCACCCCTCTCTTGAACCCAATTATATAC\n");
-//		w.close();
-//		
-//		//index
-//		BufferedWriter w1 = new BufferedWriter(new FileWriter(referenceFile + ".fai"));
-//		w1.write("chr1\t70\t6\t70\t71\n");
-//		w1.close();
-//	}
 
 }
