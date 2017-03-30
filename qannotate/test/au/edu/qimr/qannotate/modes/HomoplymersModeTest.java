@@ -4,7 +4,6 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 import org.qcmg.common.string.StringUtils;
-import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 

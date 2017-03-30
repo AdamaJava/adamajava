@@ -7,14 +7,12 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.junit.After;
 import org.junit.Test;
 import org.qcmg.common.model.MafConfidence;
 import org.qcmg.common.util.IndelUtils;
-import org.qcmg.common.vcf.VcfInfoFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;

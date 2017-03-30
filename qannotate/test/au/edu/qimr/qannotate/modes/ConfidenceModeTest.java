@@ -6,9 +6,6 @@ import static org.qcmg.common.util.Constants.VCF_MERGE_DELIM;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.attribute.FileAttribute;
 import java.util.Arrays;
 import java.util.List;
 
@@ -17,7 +14,6 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.qcmg.common.model.MafConfidence;
 import org.qcmg.common.util.ChrPositionUtils;
-import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.SnpUtils;
 import org.qcmg.common.vcf.VcfFormatFieldRecord;
 import org.qcmg.common.vcf.VcfInfoFieldRecord;
@@ -26,7 +22,6 @@ import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 
-import au.edu.qimr.qannotate.Options;
 import au.edu.qimr.qannotate.utils.SampleColumn;
 
 public class ConfidenceModeTest {
