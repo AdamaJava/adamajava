@@ -31,49 +31,26 @@ import org.qcmg.pileup.model.StrandEnum;
 public class IndelMetric extends Metric {
 	
 	final static String TAB_DELIMITER = PileupConstants.TAB_DELIMITER;
-	private File dbSnpFile;	
-	private Map<String,TreeMap<Integer,IndelRecord>> insMap = new ConcurrentHashMap<String,TreeMap<Integer,IndelRecord>>();
-	private Map<String,TreeMap<Integer,IndelRecord>> delStartMap = new ConcurrentHashMap<String,TreeMap<Integer,IndelRecord>>();
-	private Map<String,TreeMap<Integer,IndelRecord>> delAllMap = new ConcurrentHashMap<String,TreeMap<Integer,IndelRecord>>();
-	//private Map<String,TreeMap<Integer,IndelRecord>> completeDelMap = new ConcurrentHashMap<String,TreeMap<Integer,IndelRecord>>();
+	private final Map<String,TreeMap<Integer,IndelRecord>> insMap = new ConcurrentHashMap<>();
+	private final Map<String,TreeMap<Integer,IndelRecord>> delStartMap = new ConcurrentHashMap<>();
+	private final Map<String,TreeMap<Integer,IndelRecord>> delAllMap = new ConcurrentHashMap<>();
 
 	public IndelMetric(Double posvalue, Integer winCount, Integer minTotalBases) {
 		super(PileupConstants.METRIC_INDEL, posvalue, winCount, minTotalBases);		
-	}
-
-	public File getDbSnpFile() {
-		return dbSnpFile;
-	}
-
-	public void setDbSnpFile(File dbSnpFile) {
-		this.dbSnpFile = dbSnpFile;
 	}
 	
 	public Map<String, TreeMap<Integer, IndelRecord>> getInsMap() {
 		return insMap;
 	}
 
-	public void setInsMap(Map<String, TreeMap<Integer, IndelRecord>> insMap) {
-		this.insMap = insMap;
-	}
-
 	public Map<String, TreeMap<Integer, IndelRecord>> getDelStartMap() {
 		return delStartMap;
-	}
-
-	public void setDelStartMap(
-			Map<String, TreeMap<Integer, IndelRecord>> delStartMap) {
-		this.delStartMap = delStartMap;
 	}
 
 	public Map<String, TreeMap<Integer, IndelRecord>> getDelAllMap() {
 		return delAllMap;
 	}
 
-	public void setDelAllMap(Map<String, TreeMap<Integer, IndelRecord>> delAllMap) {
-		this.delAllMap = delAllMap;
-	}
-	
 	@Override
 	public void processRecord(QPileupRecord record, int totalReads) throws Exception {		
 		
@@ -140,7 +117,7 @@ public class IndelMetric extends Metric {
 	
 	@Override
 	public List<String> getOptionsSummary() {
-		List<String> list = new ArrayList<String>();
+		List<String> list = new ArrayList<>();
 		list.add("Metric type: " + type);
 		list.add("Minimum value per position: " + positionValue);
 		list.add("Minimum count per window: " + windowCount);
@@ -152,25 +129,19 @@ public class IndelMetric extends Metric {
 		createChrMap(insMap, chromosome);
 		createChrMap(delAllMap, chromosome);
 		createChrMap(delStartMap, chromosome);
-		if (!summaryMap.containsKey(chromosome)) {
-			TreeMap<Integer, ResultSummary> map = new TreeMap<Integer, ResultSummary>();
-			summaryMap.put(chromosome, map);
-		}
+		summaryMap.putIfAbsent(chromosome, new TreeMap<>());
 	}
 
 	private void createChrMap(Map<String, TreeMap<Integer, IndelRecord>> map, String chromosome) {
-		if (!map.containsKey(chromosome)) {
-			TreeMap<Integer, IndelRecord> chrMap = new TreeMap<Integer, IndelRecord>();
-			map.put(chromosome, chrMap);
-		}		
+		map.putIfAbsent(chromosome, new TreeMap<>());
 	}
 
 	@Override
 	public void writeHeader(String hdfHeader, String execHeader, String uuid, String wiggleDir) throws IOException {
 		this.wiggleFile = new File(wiggleDir + PileupConstants.FILE_SEPARATOR +  type + ".wig");
-		BufferedWriter writer1 = new BufferedWriter(new FileWriter(wiggleFile, true));
-		writer1.write("track type=wiggle_0 name="+ type + PileupConstants.NEWLINE);
-		writer1.close();
+		try (BufferedWriter writer1 = new BufferedWriter(new FileWriter(wiggleFile, true));) {
+			writer1.write("track type=wiggle_0 name="+ type + PileupConstants.NEWLINE);
+		}
 	}
 	
 	public void addIndelRecord(Map<String, TreeMap<Integer, IndelRecord>> map, IndelRecord record, String chr) {
@@ -198,12 +169,8 @@ public class IndelMetric extends Metric {
 		return totalScore;
 	}
 
-	private int getTotalIndelCount(NavigableMap<Integer, IndelRecord> subMap) {
-		int totalSizeCount = 0;
-		for (Entry<Integer, IndelRecord> entry: subMap.entrySet()) {
-			totalSizeCount += entry.getValue().getCount();
-		}
-		return totalSizeCount;
+	private long getTotalIndelCount(NavigableMap<Integer, IndelRecord> subMap) {
+		return subMap.values().stream().mapToLong(ir -> ir.getCount().longValue()).sum();
 	}
 
 	public IndelRecord getRegularInsRecord(String chr, int position) {
