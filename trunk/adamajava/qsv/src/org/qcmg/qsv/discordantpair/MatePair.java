@@ -131,7 +131,7 @@ public class MatePair implements Comparable<MatePair> {
 
 	@Override
 	public String toString() {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		sb.append(leftMate.getReadName()).append(COMMA);
 		sb.append(leftMate.getReferenceName()).append(COMMA);
 		sb.append(leftMate.getStart()).append(COMMA);
@@ -153,19 +153,17 @@ public class MatePair implements Comparable<MatePair> {
 	}
 
 	public String toVerboseString(boolean isQCMG) {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		sb.append(leftMate.getReadName()).append(COMMA);
 		sb.append(leftMate.getReferenceName() ).append(COMMA);
 		sb.append(leftMate.getStart() ).append(COMMA);
 		sb.append(leftMate.getEnd()).append(COMMA);
-		//sb.append(leftMate.getZp()+ ",");
 		sb.append(leftMate.getFlags()).append(COMMA);
 		sb.append(leftMate.getStrand()).append(COMMA);
 		sb.append(rightMate.getReadName()).append(COMMA);
 		sb.append(rightMate.getReferenceName()).append(COMMA);
 		sb.append(rightMate.getStart()).append(COMMA);
 		sb.append(rightMate.getEnd()).append(COMMA);
-		//sb.append(rightMate.getZp()+ ",");
 		sb.append(rightMate.getFlags()).append(COMMA);
 		sb.append(rightMate.getStrand()).append(COMMA);
 		sb.append(pairOrder).append(COMMA);
@@ -179,7 +177,7 @@ public class MatePair implements Comparable<MatePair> {
 	}
 
 	public String toClusterString() {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		sb.append(leftMate.getReadName()).append(TAB);
 		sb.append(leftMate.getReferenceName()).append(TAB);
 		sb.append(leftMate.getStart()).append(TAB);
