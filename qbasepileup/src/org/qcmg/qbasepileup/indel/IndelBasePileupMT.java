@@ -24,6 +24,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import htsjdk.samtools.reference.IndexedFastaSequenceFile;
 
@@ -140,21 +141,19 @@ public class IndelBasePileupMT {
 
 	private List<String> getHeader() throws IOException {
 		
-		BufferedReader reader = new BufferedReader(new FileReader(inputFile));
-		List<String> header = new ArrayList<String>();
-		String line = null;
-		while ((line=reader.readLine()) != null) {
-			if (line.startsWith("#") || line.startsWith("analysis_id") || line.startsWith("Hugo") ||  line.startsWith("mutation")) {
-				header.add(line);
-			} else {
-				break;
+		List<String> header = new ArrayList<>();
+		try (BufferedReader reader = new BufferedReader(new FileReader(inputFile));) {
+			String line = null;
+			while ((line=reader.readLine()) != null) {
+				if (line.startsWith("#") || line.startsWith("analysis_id") || line.startsWith("Hugo") ||  line.startsWith("mutation")) {
+					header.add(line);
+				} else {
+					break;
+				}
 			}
 		}
-		reader.close();
 		return header;
-		
 	}
-
 
 	private class Reading implements Runnable {
 
@@ -180,7 +179,7 @@ public class IndelBasePileupMT {
             logger.info("Starting to read file: " + inputFile.getAbsolutePath());
             int countSleep = 0;
             long count = 0;
-            try {             	
+            try {      	
             	
         		BufferedReader reader = new BufferedReader(new FileReader(inputFile));        		
         		
@@ -257,29 +256,30 @@ public class IndelBasePileupMT {
 	
    private class Pileup implements Runnable {
 
-	        private final AbstractQueue<IndelPosition> queueIn;
-	        private final AbstractQueue<String[]> queueOut;
-	        private final Thread mainThread;
-	        private final CountDownLatch readLatch;
-	        private final CountDownLatch pileupLatch;
-	        private final CountDownLatch writeLatch;
-	        private int countOutputSleep;
-			private final InputBAM tumourBam;
-			private final InputBAM normalBam;
-			QueryExecutor exec = null;
-	        public Pileup(AbstractQueue<IndelPosition> queueIn,
-	                AbstractQueue<String[]> writeQueue, Thread mainThread,
-	                CountDownLatch readLatch, CountDownLatch pileupLatch,
-	                CountDownLatch wGoodLatch) throws Exception {
-	            this.queueIn = queueIn;
-	            this.queueOut = writeQueue;
-	            this.mainThread = mainThread;
-	            this.readLatch = readLatch;
-	            this.pileupLatch = pileupLatch;
-	            this.writeLatch = wGoodLatch;
-	            this.tumourBam = options.getTumourBam();
-	            this.normalBam = options.getNormalBam();	            
-	        }
+        private final AbstractQueue<IndelPosition> queueIn;
+        private final AbstractQueue<String[]> queueOut;
+        private final Thread mainThread;
+        private final CountDownLatch readLatch;
+        private final CountDownLatch pileupLatch;
+        private final CountDownLatch writeLatch;
+        private int countOutputSleep;
+		private final InputBAM tumourBam;
+		private final InputBAM normalBam;
+		QueryExecutor exec = null;
+		
+        public Pileup(AbstractQueue<IndelPosition> queueIn,
+                AbstractQueue<String[]> writeQueue, Thread mainThread,
+                CountDownLatch readLatch, CountDownLatch pileupLatch,
+                CountDownLatch wGoodLatch) throws Exception {
+            this.queueIn = queueIn;
+            this.queueOut = writeQueue;
+            this.mainThread = mainThread;
+            this.readLatch = readLatch;
+            this.pileupLatch = pileupLatch;
+            this.writeLatch = wGoodLatch;
+            this.tumourBam = options.getTumourBam();
+            this.normalBam = options.getNormalBam();	            
+        }
 
 	        @Override
 	        public void run() {
@@ -292,12 +292,12 @@ public class IndelBasePileupMT {
 	            try {
 	            	
 	                logger.info("Thread is starting indel pileups...");
-	            	IndelPosition position;
-	            	if (options.getFilterQuery() != null) {
-	        			this.exec  = new QueryExecutor(options.getFilterQuery());
-	        		}
+		            	IndelPosition position;
+		            	if (options.getFilterQuery() != null) {
+		        			this.exec  = new QueryExecutor(options.getFilterQuery());
+		        		}
 	            	
-	            	IndexedFastaSequenceFile indexedFasta = QBasePileupUtil.getIndexedFastaFile(options.getReference());
+		            	IndexedFastaSequenceFile indexedFasta = QBasePileupUtil.getIndexedFastaFile(options.getReference());
 	            	
 	                while (run) {
 	                    position = queueIn.poll();	                    
@@ -405,16 +405,6 @@ public class IndelBasePileupMT {
 	                String[] record;
 	                int count = 0;
 	                BufferedWriter writer = new BufferedWriter(new FileWriter(resultsFile));
-	               // BufferedWriter pileupFileWriter = new BufferedWriter(new FileWriter(pileupFile, true));
-	                
-	               // String pileupHeader = "mutation_id\tPosition\tTumour novel starts\t Total Tumour reads\t Total informative reads\tSupporting informative reads" +
-	               // 		"\tPartial matches in tumor reads\tInsertion nearby?\tSoftclip nearby?";
-	                
-	                StringBuffer dccHeader = new StringBuffer();
-	                
-	                for (String h: headers) {
-	                	dccHeader.append(h + "\n");
-	                }	                
 	               
 	                while (run) {
 	                    
@@ -443,17 +433,14 @@ public class IndelBasePileupMT {
 
 	                    } else {
 	                        writer.write(record[0]);
-	                        //pileupFileWriter.write(record[1]);
 	                        count++;
 	                    }
 	                }
 
 	                writer.close();
-	                //pileupFileWriter.close();
 	                
 	                //rewrite in order
-	                reorderFile(resultsFile, dccHeader.toString());
-	               // reorderPileupFile(pileupFile, pileupHeader);
+	                reorderFile(resultsFile, headers.stream().collect(Collectors.joining("\n")));
 	                
 	                
 	                if (!mainThread.isAlive()) {
@@ -467,10 +454,10 @@ public class IndelBasePileupMT {
 	                            + resultsFile.getAbsolutePath());
 	                }
 	            } catch (Exception e) {
-	            	logger.error("Setting exit status to 1 as exception caught in writing thread: " + QBasePileupUtil.getStrackTrace(e));
-	    	        if (exitStatus.intValue() == 0) {
-	    	        	exitStatus.incrementAndGet();
-	    	        }
+		            	logger.error("Setting exit status to 1 as exception caught in writing thread: " + QBasePileupUtil.getStrackTrace(e));
+		    	        if (exitStatus.intValue() == 0) {
+		    	        		exitStatus.incrementAndGet();
+		    	        }
 	                mainThread.interrupt();
 	            } finally {
 	                writeLatch.countDown();
@@ -495,6 +482,7 @@ public class IndelBasePileupMT {
 			private void printMap(Map<ChrRangePosition, String> map, File file, String header) throws IOException {
 				try (BufferedWriter writer = new BufferedWriter(new FileWriter(file));) {
 					writer.write(header);
+					writer.newLine();
 					for (Entry<ChrRangePosition, String> entry: map.entrySet()) {
 						writer.write(entry.getValue() + "\n");
 					}
