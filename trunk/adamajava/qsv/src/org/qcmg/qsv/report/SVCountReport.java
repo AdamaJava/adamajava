@@ -10,14 +10,11 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.qcmg.common.util.Constants;
 import org.qcmg.qsv.discordantpair.PairGroup;
 import org.qcmg.qsv.util.QSVUtil;
 
@@ -56,18 +53,18 @@ public class SVCountReport extends QSVReport {
     
     @Override
     public String getHeader() {
-        StringBuffer headings = new StringBuffer();
+        StringBuilder headings = new StringBuilder();
         headings.append("Mutation Type\t");
         headings.append("Sample\t");
         for (PairGroup zp : PairGroup.values()) {
-            headings.append(zp.toString() + "\t");
+            headings.append(zp.toString()).append(Constants.TAB);
         }            
         headings.append("TOTAL" + QSVUtil.getNewLine());
         return headings.toString();
     }
     
     private synchronized ConcurrentMap<String, AtomicInteger> singleCountMap() {
-        ConcurrentMap<String, AtomicInteger> map = new ConcurrentHashMap<String, AtomicInteger>();
+        ConcurrentMap<String, AtomicInteger> map = new ConcurrentHashMap<>();
         for (PairGroup zp : PairGroup.values()) {
             map.put(zp.toString(), new AtomicInteger());
         }
@@ -75,7 +72,7 @@ public class SVCountReport extends QSVReport {
     }  
 
     private String generateReport() {
-        StringBuffer sb = new StringBuffer();
+    		StringBuilder sb = new StringBuilder();
         sb.append(getCountString("somatic", somatic));
         sb.append(getCountString("germline", germline));
         sb.append(getCountString("normal-germline", normalGermline));
@@ -83,26 +80,23 @@ public class SVCountReport extends QSVReport {
     }
 
     public String getCountString(String type, ConcurrentMap<String, AtomicInteger> mapOfCounts) {
-        String line = "";
         
-        StringBuffer sb = new StringBuffer();
-        sb.append(type + "\t");
-        sb.append(sampleName + "\t");
+        StringBuilder sb = new StringBuilder();
+        sb.append(type).append(Constants.TAB);
+        sb.append(sampleName).append(Constants.TAB);
         
         for (PairGroup zp : PairGroup.values()) {
-            sb.append(mapOfCounts.get(zp.toString()) + "\t");
+            sb.append(mapOfCounts.get(zp.toString())).append(Constants.TAB);
         }        
         if (type.equals("somatic")) {
-        	sb.append(getSomaticCounts() +QSVUtil.getNewLine());
+        		sb.append(getSomaticCounts() +QSVUtil.getNewLine());
         } else if (type.equals("germline")) {
-        	sb.append(getGermlineCounts() +QSVUtil.getNewLine());
+        		sb.append(getGermlineCounts() +QSVUtil.getNewLine());
         } else {
-        	sb.append(getNormalGermlineCounts() +QSVUtil.getNewLine());
+        		sb.append(getNormalGermlineCounts() +QSVUtil.getNewLine());
         }
         
-        line += sb.toString();
-        
-        return line;
+        return sb.toString();
     }
 
     @Override
@@ -125,35 +119,19 @@ public class SVCountReport extends QSVReport {
 	}
 
 	public int getSomaticCounts() {
-		int count = 0;
-		List<String> keys = new ArrayList<>(somatic.keySet());
-		Collections.sort(keys);
-		for (String k : keys) {
-			AtomicInteger value = somatic.get(k);
-			count += value.intValue();
-		}
-		return count;
+		return somatic.values().stream().mapToInt(ai -> ai.get()).sum();
 	}
 
 	public int getGermlineCounts() {
-		int count = 0;
-		for (Entry<String, AtomicInteger> entry: germline.entrySet()) {
-			count += entry.getValue().intValue();
-		}
-		return count;
+		return germline.values().stream().mapToInt(ai -> ai.get()).sum();
 	}
 
 	public int getNormalGermlineCounts() {
-		int count = 0;
-		for (Entry<String, AtomicInteger> entry: normalGermline.entrySet()) {
-			count += entry.getValue().intValue();
-		}
-		return count;
+		return normalGermline.values().stream().mapToInt(ai -> ai.get()).sum();
 	}
 
 	@Override
 	public void writeHeader() throws IOException {
 		// TODO Auto-generated method stub
-		
 	}
 }
