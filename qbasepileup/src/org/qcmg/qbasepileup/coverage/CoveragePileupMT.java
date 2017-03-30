@@ -30,7 +30,7 @@ import org.qcmg.qbasepileup.QBasePileupUtil;
 public class CoveragePileupMT {
 	
 	private static QLogger logger = QLoggerFactory.getLogger(CoveragePileupMT.class);
-	private Options options;
+	private final Options options;
 	AtomicInteger totalExamined = new AtomicInteger();
 	AtomicInteger totalPassedFilters =new AtomicInteger();
 	AtomicInteger totalReadsNotMapped = new AtomicInteger();
@@ -118,8 +118,8 @@ public class CoveragePileupMT {
             pileupThreads.shutdownNow();
         }
         
-    	logger.debug("TOTAL POSITIONS: \t\t\t" + positionCount);
-    	logger.debug("UNIQUE POSITIONS: \t\t\t" + uniquePositionCount);
+	    	logger.debug("TOTAL POSITIONS: \t\t\t" + positionCount);
+	    	logger.debug("UNIQUE POSITIONS: \t\t\t" + uniquePositionCount);
 		logger.debug("TOTAL READS EXAMINED:\t\t"+totalExamined+"");
 		logger.debug("---------------------------------------------");
 		logger.debug("TOTAL READS KEPT:\t\t"+totalPassedFilters);
@@ -134,9 +134,9 @@ public class CoveragePileupMT {
         private final Thread mainThread;
         private final CountDownLatch readLatch;
         private final CountDownLatch pileupLatch;
-		private File positionsFile;
-		private String format;
-		private ArrayList<RangePosition> positions;		
+		private final File positionsFile;
+		private final String format;
+		private final ArrayList<RangePosition> positions;		
 
         public Reading(AbstractQueue<RangePosition> q, Thread mainThread,
                 CountDownLatch readLatch, CountDownLatch filterLatch, File positionsFile, String format) {
@@ -239,7 +239,7 @@ public class CoveragePileupMT {
 	        private final CountDownLatch pileupLatch;
 	        private final CountDownLatch writeLatch;
 	        private int countOutputSleep;
-			private List<InputBAM> currentInputs;
+			private final List<InputBAM> currentInputs;
 			private String file = null;
 			private QueryExecutor exec = null;
 
@@ -355,7 +355,6 @@ public class CoveragePileupMT {
 	        private final Thread mainThread;
 	        private final CountDownLatch filterLatch;
 	        private final CountDownLatch writeLatch;
-	        final static String TAB = "\t";
 
 	        public Writing(AbstractQueue<String> q, File f, Thread mainThread,
 	                CountDownLatch fLatch, CountDownLatch wLatch) {
@@ -429,12 +428,7 @@ public class CoveragePileupMT {
 	        }
 
 			private String getHeader() {
-				StringBuilder sb = new StringBuilder();
-				//version
-				sb.append("##qbasepileup version 1.0\n");
-				//column headers
-				sb.append("Chromosome" +TAB + "Position" +TAB + "Total" + TAB + "Bam_file\n");
-				return sb.toString();
+				return "##qbasepileup version 1.0\nChromosome\tPosition\tTotal\tBam_file\n";
 			}
 	    }
 
