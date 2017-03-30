@@ -26,6 +26,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 import htsjdk.samtools.reference.IndexedFastaSequenceFile;
 import htsjdk.samtools.SamReader;
@@ -508,12 +509,6 @@ public class IndelBasePileupByChrMT {
 	                int count = 0;
 	                BufferedWriter writer = new BufferedWriter(new FileWriter(resultsFile));
 	                               
-	                StringBuilder dccHeader = new StringBuilder();
-	                
-	                for (String h: headers) {
-	                		dccHeader.append(h + "\n");
-	                }	                
-	               
 	                while (run) {
 	                    
 	                    if ((record = queue.poll()) == null) {
@@ -546,7 +541,7 @@ public class IndelBasePileupByChrMT {
 	                writer.close();
 	                
 	                //rewrite in order
-	                reorderFile(resultsFile, dccHeader.toString());
+	                reorderFile(resultsFile, headers.stream().collect(Collectors.joining("\n")));
                
 	                
 	                if (!mainThread.isAlive()) {
@@ -573,7 +568,7 @@ public class IndelBasePileupByChrMT {
 	        }
 
 			private void reorderFile(File file, String header) throws IOException {
-				Map<ChrRangePosition, String> map = new TreeMap<ChrRangePosition, String>();
+				Map<ChrRangePosition, String> map = new TreeMap<>();
 				
 				try (BufferedReader reader = new BufferedReader(new FileReader(file));) {
 					
@@ -590,6 +585,7 @@ public class IndelBasePileupByChrMT {
 			private void printMap(Map<ChrRangePosition, String> map, File file, String header) throws IOException {
 				try (BufferedWriter writer = new BufferedWriter(new FileWriter(file));) {
 					writer.write(header);
+					writer.newLine();
 					for (Entry<ChrRangePosition, String> entry: map.entrySet()) {
 						writer.write(entry.getValue() + "\n");
 					}
