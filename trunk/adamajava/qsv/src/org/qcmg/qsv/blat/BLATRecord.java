@@ -95,24 +95,12 @@ public class BLATRecord implements Comparable<BLATRecord> {
 			blockSizes = null;
 			unmodifiedStarts = null;
 		}
-		
 	}
 	
 	public BLATRecord(String line) {
 		this(TabTokenizer.tokenize(line));
 	}
 
-
-	/**
-	 * Calculate blat score based on web BLAT
-	 * @return
-	 */
-//	private int calculateScore() {
-//		//web blat score: int pslScore(const struct psl *psl) https://lists.soe.ucsc.edu/pipermail/genome/2004-January/003883.html
-//		/* Return score for psl. */
-//		return score;
-//	}
-	
 	public int getSize() {
 		return size;
 	}
@@ -160,20 +148,6 @@ public class BLATRecord implements Comparable<BLATRecord> {
 	public int[] gettStarts() {
 		return tStarts;
 	}
-//	public String[] gettStarts() {
-//		if (getBlockCount() > 1) {
-//			String [] tStarts = rawData[20].split(",");
-//			if (tStarts != null) {
-//				for (int i=0; i<tStarts.length; i++) {						
-//					int newInt = Integer.parseInt(tStarts[i]) + 1;						
-//					tStarts[i] = newInt + "";
-//				}
-//			}
-//			
-//			return tStarts;
-//		} 
-//		return null;
-//	}
 
 	public Integer calculateMateBreakpoint(boolean isLeft, String knownReference, Integer knownBreakpoint, char knownStrand) {		
 		if (getBlockCount() == 1) {			
@@ -232,7 +206,7 @@ public class BLATRecord implements Comparable<BLATRecord> {
 			if (strand == QSVUtil.PLUS) {
 				nonTempBases = knownStrand == strand ? (size - queryEnd): startPos;
 			} else {
-				nonTempBases = knownStrand == strand ? queryStart - 0 : size - queryEnd;
+				nonTempBases = knownStrand == strand ? queryStart : size - queryEnd;
 			}
 			
 		} else {
