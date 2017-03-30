@@ -399,46 +399,46 @@ public class Options {
 
 	private void readPindelMutationFile(Map<String, String[]> pindelMutations,
 			File file, String type) throws IOException {
-		BufferedReader reader = new BufferedReader(new FileReader(file));
-		String line;
-		List<String> lines = new ArrayList<String>();
-		while ((line = reader.readLine()) != null) {
-			if (line.startsWith("####")) {
-				if (lines.size() > 0) {
-					String[] infos = lines.get(0).split("\t");
-					String chr = infos[3].replace("ChrID ", "");
-					Integer start = new Integer(infos[4].replace("BP ", ""));
-					Integer end = new Integer(infos[5].replace("BP ", ""));
-					if (type == "DEL") {
-						start++;
-						end--;
-					}
-					String key = chr + ":" + start + ":" + end + ":" + type;
-					String normal = "";
-					String tumour = "";
-					int normalCount = 0;
-					int tumourCount = 0;
-					for (int i=2; i<lines.size(); i++) {
-						String[] subLines = lines.get(i).split("\t");
-						String bam = subLines[subLines.length-2];
-						String name = subLines[subLines.length-1].replace("@", "");
-						if (bam.contains("Normal")) {
-							normal += name + ";";
-							normalCount++;
-						} else {
-							tumour += name + ";";
-							tumourCount++;
+		try (BufferedReader reader = new BufferedReader(new FileReader(file));) {
+			String line;
+			List<String> lines = new ArrayList<>();
+			while ((line = reader.readLine()) != null) {
+				if (line.startsWith("####")) {
+					if (lines.size() > 0) {
+						String[] infos = lines.get(0).split("\t");
+						String chr = infos[3].replace("ChrID ", "");
+						Integer start = new Integer(infos[4].replace("BP ", ""));
+						Integer end = new Integer(infos[5].replace("BP ", ""));
+						if ("DEL".equals(type)) {
+							start++;
+							end--;
 						}
+						String key = chr + ":" + start + ":" + end + ":" + type;
+						String normal = "";
+						String tumour = "";
+						int normalCount = 0;
+						int tumourCount = 0;
+						for (int i=2; i<lines.size(); i++) {
+							String[] subLines = lines.get(i).split("\t");
+							String bam = subLines[subLines.length-2];
+							String name = subLines[subLines.length-1].replace("@", "");
+							if (bam.contains("Normal")) {
+								normal += name + ";";
+								normalCount++;
+							} else {
+								tumour += name + ";";
+								tumourCount++;
+							}
+						}
+						String[] out = {tumourCount + ";" + normalCount, tumour, normal};
+						pindelMutations.put(key, out);
 					}
-					String[] out = {tumourCount + ";" + normalCount, tumour, normal};
-					pindelMutations.put(key, out);
+					lines.clear();
+				} else {
+					lines.add(line);
 				}
-				lines.clear();
-			} else {
-				lines.add(line);
 			}
 		}
-		reader.close();
 	}
 
 	public Integer getMaxCoverage() {
