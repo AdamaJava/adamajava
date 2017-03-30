@@ -152,7 +152,7 @@ public class ConfidenceMode extends AbstractMode{
 				
 			 		for (int i = 1 ; i <= 2 ; i++) {
 			 			/*
-			 			 * update the mrCount value of we are in percentage mode based on the totacl coverage of this position.
+			 			 * update the mrCount value of we are in percentage mode based on the total coverage of this position.
 			 			 */
 			 			if (percentageMode) {
 			 				int totalCoverage = getFieldFromFormatField(formatField, VcfHeaderUtils.FORMAT_READ_DEPTH, i);
@@ -262,18 +262,6 @@ public class ConfidenceMode extends AbstractMode{
 		return f.equals(Constants.EMPTY_STRING) ||  LESS_THAN_12_READS_NORMAL.equals(f)  ||   LESS_THAN_3_READS_NORMAL.equals(f);
 	}
 	
-	
-//	/**
-//	 * @param vcf
-//	 * @return
-//	 */
-//	public static final int getAltFrequency(VcfFormatFieldRecord re, String alt){
-////		 final String info =  vcf.getInfo();
-////		 final VcfFormatFieldRecord re = (info.contains(VcfHeaderUtils.INFO_SOMATIC)) ? vcf.getSampleFormatRecord(test_column) :  vcf.getSampleFormatRecord(control_column);
-//		 
-//		 return VcfUtils.getAltFrequency(re, alt);	 
-//	}
- 
 	/*
 	 * Get the relevant format field, and check the NNS value 
 	 */
@@ -285,13 +273,10 @@ public class ConfidenceMode extends AbstractMode{
 	 */
 	 public static final boolean checkNovelStarts(int score, VcfFormatFieldRecord formatField , int input) {
 		 int nns = getFieldFromFormatField(formatField, VcfHeaderUtils.FILTER_NOVEL_STARTS, input);
-		 if (nns == 0) {
-			 /*
-			  * Special case whereby if novel starts count is zero, we return true (eg. compound snps)
-			  */
-			 return true;
-		 }
-		 return nns >= score;
+		 /*
+		  * Special case whereby if novel starts count is zero, we return true (eg. compound snps)
+		  */
+		 return nns == 0 || nns >= score;
 	 }
 	 
 	 public static final boolean checkNovelStarts(int score, VcfFormatFieldRecord formatField ) {
