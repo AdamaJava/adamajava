@@ -59,11 +59,11 @@ public class MetadataRecordDS extends MetadataDS {
 	
 	@Override
 	public String getMetadata() throws Exception {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		records = (String[]) hdf.readDatasetBlock(fullName, 0, -1);
 			
 		for (String r: records) {
-			sb.append(((r) + "\n"));
+			sb.append(r + "\n");
 		}
 		return sb.toString();
 	}
@@ -169,7 +169,7 @@ public class MetadataRecordDS extends MetadataDS {
 	
 	public void checkHDFMetadata(String[] newRecords, boolean isBamOverride, Integer currentLowReadCount, Integer currentNonRefThreshold, Integer currentBamsAdded) throws QPileupException {
 		
-		ArrayList<String> finalRecords = new ArrayList<String>();
+		List<String> finalRecords = new ArrayList<>();
 		
 		for (String record: records) {
 			finalRecords.add(record);
@@ -239,7 +239,7 @@ public class MetadataRecordDS extends MetadataDS {
 		return found;
 	}
 
-	private void newRecordsArray(ArrayList<String> finalRecords) {
+	private void newRecordsArray(List<String> finalRecords) {
 		records = new String[finalRecords.size()];
 		
 		for (int i = 0; i < finalRecords.size(); i++) {
