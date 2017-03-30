@@ -49,8 +49,8 @@ public class IndelBasePileupMTTest {
 		log =  testFolder.getRoot().getAbsolutePath() + FILE_SEPERATOR + "test.log";
 		samFile = testFolder.getRoot().getAbsolutePath() + FILE_SEPERATOR + "input.sam";
 		bamFile = testFolder.getRoot().getAbsolutePath() + FILE_SEPERATOR + "input.bam";
-    	createBamFile();
-    	reference = this.getClass().getResource("/resources/example.fa").getFile();
+	    	createBamFile();
+	    	reference = this.getClass().getResource("/resources/example.fa").getFile();
 		
 		snps = testFolder.newFile("indels.dcc1").getAbsolutePath();
 		createIndelFile();
@@ -86,15 +86,15 @@ public class IndelBasePileupMTTest {
         String line;
         int count = 0;
         while ((line = reader.readLine()) != null) {        	
-        	count++;
-        	String[] vals = line.split("\t");
-        	if (count == 2) {
-        		
-	        	assertTrue(vals[23].startsWith("PASS;NNS;COVN12;HOMADJ"));
-	        	assertTrue(vals[24].startsWith("0;1;1;0[0|0];0;1;0"));
-	        	assertTrue(vals[25].startsWith("0;1;1;0[0|0];0;1;0;\"4 discontiguous GGTAATAAAAtATTGTAAAAC\""));
-	    		assertEquals(28, line.split("\t").length);
-        	}
+	        	count++;
+	        	String[] vals = line.split("\t");
+	        	if (count == 2) {
+	        		
+		        	assertTrue(vals[23].startsWith("PASS;NNS;COVN12;HOMADJ"));
+		        	assertTrue(vals[24].startsWith("0;1;1;0[0|0];0;1;0"));
+		        	assertTrue(vals[25].startsWith("0;1;1;0[0|0];0;1;0;\"4 discontiguous GGTAATAAAAtATTGTAAAAC\""));
+		    		assertEquals(28, line.split("\t").length);
+	        	}
         }
         assertEquals(2, count);
         reader.close();
@@ -115,12 +115,12 @@ public class IndelBasePileupMTTest {
         String line;
         int count = 0;
         while ((line = reader.readLine()) != null) {        	
-        	count++;
-        	String[] vals = line.split("\t");
-        	if (count == 2) {
-	        	assertTrue(vals[24].startsWith("0;0;0;0[0|0];0;0;0"));
-	    		assertEquals(28, line.split("\t").length);
-        	}
+	        	count++;
+	        	String[] vals = line.split("\t");
+	        	if (count == 2) {
+		        	assertTrue(vals[24].startsWith("0;0;0;0[0|0];0;0;0"));
+		    		assertEquals(28, line.split("\t").length);
+	        	}
         }
         assertEquals(2, count);
         reader.close();
@@ -141,14 +141,14 @@ public class IndelBasePileupMTTest {
         String line;
         int count = 0;
         while ((line = reader.readLine()) != null) {        	
-        	count++;
-        	if (count == 2) {
-	        	String[] vals = line.split("\t");
-	        	assertTrue(vals[23].startsWith("PASS;NNS;COVN12;HOMADJ"));
-	        	assertEquals("0;1;1;0[0|0];0;1;0", vals[24]);
-	        	assertTrue(vals[25].startsWith("0;1;1;0[0|0];0;1;0;\"4 discontiguous GGTAATAAAAtATTGTAAAAC\""));
-	    		assertEquals(28, line.split("\t").length);
-        	}
+	        	count++;
+	        	if (count == 2) {
+		        	String[] vals = line.split("\t");
+		        	assertTrue(vals[23].startsWith("PASS;NNS;COVN12;HOMADJ"));
+		        	assertEquals("0;1;1;0[0|0];0;1;0", vals[24]);
+		        	assertTrue(vals[25].startsWith("0;1;1;0[0|0];0;1;0;\"4 discontiguous GGTAATAAAAtATTGTAAAAC\""));
+		    		assertEquals(28, line.split("\t").length);
+	        	}
         }
         assertEquals(2, count);
         reader.close();
@@ -169,12 +169,12 @@ public class IndelBasePileupMTTest {
         String line;
         int count = 0;
         while ((line = reader.readLine()) != null) {        	
-        	count++;
-        	if (count == 2) {
-	        	String[] vals = line.split("\t");
-	        	assertEquals("0;0;0;0[0|0];0;0;0", vals[24]);
-	    		assertEquals(28, line.split("\t").length);
-        	}
+	        	count++;
+	        	if (count == 2) {
+		        	String[] vals = line.split("\t");
+		        	assertEquals("0;0;0;0[0|0];0;0;0", vals[24]);
+		    		assertEquals(28, line.split("\t").length);
+	        	}
         }
         assertEquals(2, count);
         reader.close();
@@ -185,7 +185,7 @@ public class IndelBasePileupMTTest {
 		
 		createSAMFile();
 		
-		try (SamReader reader =  SAMFileReaderFactory.createSAMFileReader(new File(samFile)) ){		
+		try (SamReader reader =  SAMFileReaderFactory.createSAMFileReader(new File(samFile)) ){
 	        SAMFileHeader header = reader.getFileHeader();
 	        
 			SAMFileWriterFactory factory = new SAMFileWriterFactory();
@@ -205,42 +205,34 @@ public class IndelBasePileupMTTest {
 		data.addAll(createSamHeader(SortOrder.coordinate));
 		data.addAll(createSamBody());
 
-		BufferedWriter out;
-		out = new BufferedWriter(new FileWriter(samFile));
-		for (final String line : data) {
-			out.write(line + "" + "\n");
+		try (BufferedWriter out = new BufferedWriter(new FileWriter(samFile));) {
+			for (final String line : data) {
+				out.write(line + "" + "\n");
+			}
 		}
-		out.close();
-
 	}	
 	
-	private static Collection<String> createSamHeader(
-			SortOrder sort) {
-		 final List<String> data = new ArrayList<String>();
-	        data.add("@HD	VN:1.0	GO:none	SO:"+ sort.name());	        
-	        data.add("@SQ	SN:chr1	LN:135534747");          
-	        data.add("@RG	ID:2012060803293054	PL:ILLUMINA	PU:lane_3	LB:Library_20120511_C	SM:Colo-829");
-	        data.add("@RG	ID:2012060803293054	PL:ILLUMINA	PU:lane_2	LB:Library_20120511_C	SM:Colo-829");
-	        return data;
+	private static Collection<String> createSamHeader(SortOrder sort) {
+		List<String> data = new ArrayList<>();
+        data.add("@HD	VN:1.0	GO:none	SO:"+ sort.name());	        
+        data.add("@SQ	SN:chr1	LN:135534747");          
+        data.add("@RG	ID:2012060803293054	PL:ILLUMINA	PU:lane_3	LB:Library_20120511_C	SM:Colo-829");
+        data.add("@RG	ID:2012060803293054	PL:ILLUMINA	PU:lane_2	LB:Library_20120511_C	SM:Colo-829");
+        return data;
 	}
 	
 	public static List<String> createSamBody() {
-		final List<String> data = new ArrayList<String>();
-		 
+		List<String> data = new ArrayList<>();
 		data.add("HWI-ST1240:61:D12U4ACXX:5:1111:7824:75112	83	chr1	51	0	34M1I66M	=	451	400	GTTTGGGTAATAAAAATTGTAAAACTTTTTTTTCTTTTTTTTTTGAGACAGAGTCTCCCTCTGTCGCCAGGCTGAAGTGCAGTGGCGCAATCTCGGCTCAC	DDDDDDDEDDDDDDDDDDDDDDC@DDDDDDDDDDDDDDDCEDEEFFFFFFHHHHJJJJJJJJJIJIJJJJJJJIJJJJJJJJJIJJJJHHHHHFFFFFCCC	X0:i:2	X1:i:1	XA:Z:chr19,-103413,34M1I66M,1;chr15,+102468929,57M1I43M,1;	ZC:i:11	MD:Z:13T86	RG:Z:2012060803293054	XG:i:1	AM:i:0	NM:i:2	SM:i:0	XM:i:1	XO:i:1	XT:A:R");
 		data.add("HWI-ST1240:61:D12U4ACXX:5:1111:7824:75112	1107	chr1	51	0	34M1I66M	=	451	400	GTTTGGGTAATAAAAATTGTAAAACTTTTTTTTCTTTTTTTTTTGAGACAGAGTCTCCCTCTGTCGCCAGGCTGAAGTGCAGTGGCGCAATCTCGGCTCAC	DDDDDDDEDDDDDDDDDDDDDDC@DDDDDDDDDDDDDDDCEDEEFFFFFFHHHHJJJJJJJJJIJIJJJJJJJIJJJJJJJJJIJJJJHHHHHFFFFFCCC	X0:i:2	X1:i:1	XA:Z:chr19,-103413,34M1I66M,1;chr15,+102468929,57M1I43M,1;	ZC:i:11	MD:Z:13T86	RG:Z:2012060803293054	XG:i:1	AM:i:0	NM:i:2	SM:i:0	XM:i:1	XO:i:1	XT:A:R");
-
 		return data;
     }	
 
-
 	private void createIndelFile() throws IOException {
-		BufferedWriter w = new BufferedWriter(new FileWriter(new File(snps)));
-		w.write("analysis_id\tanalyzed_sample_id\tmutation_id\tmutation_type\tchromosome\tchromosome_start\tchromosome_end\tchromosome_strand\trefsnp_allele\trefsnp_strand\treference_genome_allele\tcontrol_genotype\ttumour_genotype\tmutation\texpressed_allele\tquality_score\tprobability\tread_count\tis_annotated\tverification_status\tverification_platform\txref_ensembl_var_id\tnote\tQCMGflag\tND\tTD\tNNS\tFlankSeq\n");
-		w.write("id\ttest\ttest_ind1\t2\tchr1\t85\t86\t1\t-999\t-999\t-\t-999\tT\t-/T\t\t-999\t-999\t-999\t-999\t-999\t-999\t-999\t-999\tPASS\t--\t--\t--\t--\n");
-		w.close();
+		try (BufferedWriter w = new BufferedWriter(new FileWriter(new File(snps)));) {
+			w.write("analysis_id\tanalyzed_sample_id\tmutation_id\tmutation_type\tchromosome\tchromosome_start\tchromosome_end\tchromosome_strand\trefsnp_allele\trefsnp_strand\treference_genome_allele\tcontrol_genotype\ttumour_genotype\tmutation\texpressed_allele\tquality_score\tprobability\tread_count\tis_annotated\tverification_status\tverification_platform\txref_ensembl_var_id\tnote\tQCMGflag\tND\tTD\tNNS\tFlankSeq\n");
+			w.write("id\ttest\ttest_ind1\t2\tchr1\t85\t86\t1\t-999\t-999\t-\t-999\tT\t-/T\t\t-999\t-999\t-999\t-999\t-999\t-999\t-999\t-999\tPASS\t--\t--\t--\t--\n");
+		}
 	}
-	
-
 }
 
