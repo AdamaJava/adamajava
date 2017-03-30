@@ -41,7 +41,6 @@ public class DiscordantPairCluster {
 	private static final ReadMateLeftEndComparator READ_MATE_LEFT_END_COMP = new MatePair.ReadMateLeftEndComparator();
 	private static final ReadMateRightStartComparator READ_MATE_RIGHT_START_COMP = new MatePair.ReadMateRightStartComparator();
 	private static final ReadMateRightEndComparator READ_MATE_RIGHT_END_COMP = new MatePair.ReadMateRightEndComparator();
-//	private static final String NEWLINE = System.getProperty("line.separator");
 
 	private final List<MatePair> clusterMatePairs;
 	private final List<MatePair> matchedNormalMatePairs;
@@ -61,7 +60,6 @@ public class DiscordantPairCluster {
 	private String type;
 	private String strandOrientation = "";
 	private int id;
-//	private String svId; 
 	private int compareLeftStart;
 	private int compareRightStart;
 	private int compareLeftEnd;
@@ -326,21 +324,16 @@ public class DiscordantPairCluster {
 		 }
 
 		 int matchCount = 0;
-//		 List<MatePair> testStartPairs = copyAndOrderCurrentClusterPairs();
 		 List<MatePair> badStartPairs = new ArrayList<MatePair>();
 		 List<MatePair> removedPairs = new ArrayList<MatePair>();
 
 		 for (int i=0; i<maxStart; i++) {
-//			 MatePair toRemove = testStartPairs.remove(0);
 			 removedPairs.add(testPairs.remove(0));
-//			 testStartPairs.remove(0);
 			 startPos = testPairs.get(0).getRightMate().getStart();
-//			 startPos = testStartPairs.get(0).getRightMate().getStart();
 			 range = startPos + windowSize;
 			 int count = 0;
 			 List<MatePair> currentBadPairs = new ArrayList<MatePair>();
 			 for (MatePair m : testPairs) {
-//				 for (MatePair m : testStartPairs) {
 				 int rightMateStart = m.getRightMate().getStart();
 				 if (rightMateStart >= startPos && rightMateStart <= range) { 
 					 count++;
@@ -456,35 +449,13 @@ public class DiscordantPairCluster {
 		 this.qPrimerCateory = qPrimerCateory;
 	 }
 
-	 public String getZPCount() {
-		 if (zp.contains("_")) {
-			 String[] groups = zp.split("_");
-			 StringBuffer out = new StringBuffer();
-			 for (int i=0; i<groups.length; i++) {
-				 String a = groups[i];
-				 int count = 0;
-				 for (MatePair m : clusterMatePairs) {
-					 if (m.getZpType().toString().equals(groups[i])) {
-						 count++;
-					 } 
-				 }
-				 out.append(a + ": " + count + " | ");
-			 }
-			 return out.toString();
-
-		 } 
-		 return "";        
-	 }
-
 	 public void setId(int count) {
 		 this.id = count;
-
 	 }
 
 	 public int getId() {
 		 return this.id;
 	 }
-
 
 	 public String toVerboseString(String compareType, boolean isQCMG) {
 		 StringBuilder sb = new StringBuilder();
@@ -559,16 +530,12 @@ public class DiscordantPairCluster {
 				 if (key.startsWith("normal")) {
 					 if (QSVUtil.doesMatePairOverlapRegions(m, compareLeftStart, compareLeftEnd, 
 							 compareRightStart, compareRightEnd)) {
-//						 if (compareLowConfidencePairs(m, compareLeftStart, compareLeftEnd, 
-//								 compareRightStart, compareRightEnd)) {
 						 lowConfidenceNormalMatePairs++;
 					 }
 				 } else if (key.startsWith("tumour")) {
 
 					 if (QSVUtil.doesMatePairOverlapRegions(m, tumourCompareLeftStart, tumourCompareLeftEnd, 
 							 tumourCompareRightStart, tumourCompareRightEnd)) {
-//						 if (compareLowConfidencePairs(m, tumourCompareLeftStart, tumourCompareLeftEnd, 
-//								 tumourCompareRightStart, tumourCompareRightEnd)) {
 						 lowConfidenceNormalMatePairs++;
 					 }
 				 }
@@ -580,26 +547,6 @@ public class DiscordantPairCluster {
 	 public void setLowConfidenceNormalMatePairs(int lowConfidenceNormalMatePairs) {
 		 this.lowConfidenceNormalMatePairs = lowConfidenceNormalMatePairs;
 	 }
-
-//	 private boolean compareLowConfidencePairs(MatePair m, int compareLeftStart, int compareLeftEnd, 
-//			 int compareRightStart, int compareRightEnd) {
-//		 if ((m.getLeftMate().getStart() >= compareLeftStart 
-//				 && m.getLeftMate().getStart() <= compareLeftEnd)                        
-//				 || (m.getLeftMate().getEnd() >= compareLeftStart 
-//				 && m.getLeftMate().getEnd() <= compareLeftEnd)) {
-//
-//			 //check the right start or end is within the left range
-//			 if ((m.getRightMate().getStart() >= compareRightStart 
-//					 && m.getRightMate().getStart() <= compareRightEnd)                            
-//					 || (m.getRightMate().getEnd() >= compareRightStart 
-//					 && m.getRightMate().getEnd() <= compareRightEnd)                              
-//					 ) {
-//
-//				 return true;
-//			 }
-//		 }	
-//		 return false;
-//	 }
 
 	 private void readAndAnnotateRecords(QSVParameters findParameters, QSVParameters compareParameters, Map<String, SAMRecord[]> map, String ref, int start,
 			 int end, Annotator annotator, File bamFile) throws Exception {
@@ -636,18 +583,6 @@ public class DiscordantPairCluster {
 							 arr[1] = r;
 						 }
 					 }
-					 
-					 
-//					 if (map.containsKey(key)) {
-//						 if ( ! r.equals(arr[0])) {
-//							 arr[1] = r;
-////							 map.put(key, arr);
-//						 }
-//					 } else {
-//						 SAMRecord[] a = new SAMRecord[2];
-//						 a[0] = r;
-//						 map.put(key, a);
-//					 }	        		
 				 } else {
 					 annotator.annotateByTumorISize(findParameters.getLowerInsertSize(), findParameters.getUpperInsertSize(), r);
 
@@ -664,20 +599,6 @@ public class DiscordantPairCluster {
 								 arr[1] = r;
 							 }
 						 }
-						 
-						 
-//						 
-//						 if (map.containsKey(key)) {
-//							 SAMRecord[] arr = map.get(key);
-//							 if ( ! r.equals(arr[0])) {
-//								 arr[1] = r;
-//							//	 map.put(key, arr);
-//							 }
-//						 } else {
-//							 SAMRecord[] a = new SAMRecord[2];
-//							 a[0] = r;
-//							 map.put(key, a);
-//						 }	        		
 					 }
 				 }
 			 }
@@ -686,22 +607,8 @@ public class DiscordantPairCluster {
 	 }
 
 	 private boolean passesZPFilter(String currentZP, String zp1, String zp2) {
-		 
-		 
 		 return currentZP.equals(zp1)
 				 || (null != zp2 && currentZP.equals(zp2));
-		 
-		 
-//		 if (zp2 != null) {
-//			 if (currentZP.equals(zp1) || currentZP.equals(zp2)) {
-//				 return true;
-//			 }
-//		 } else {
-//			 if (currentZP.equals(zp1)) {
-//				 return true;
-//			 }
-//		 }
-//		 return false;
 	 }
 
 	 private void findQPrimerCategory(String pairType) throws Exception {
@@ -709,10 +616,6 @@ public class DiscordantPairCluster {
 		 this.qPrimerCateory = new QPrimerCategory(zp, leftReferenceName, rightReferenceName, pairType);
 		 qPrimerCateory.findClusterCategory(clusterMatePairs, leftStart, leftEnd, rightStart, rightEnd);
 
-		 //check if the size of the cluster is greater than the threshold
-		 //    	if (clusterMatePairs.size() >= qPrimerThreshold) {
-		 //    		this.qPrimerString = qPrimerCateory.toString();
-		 //    	}
 	 }
 
 	 public static class QSVRecordComparator implements Comparator<DiscordantPairCluster> {
@@ -720,14 +623,14 @@ public class DiscordantPairCluster {
 		 @Override
 		 public int compare(DiscordantPairCluster o1, DiscordantPairCluster o2) {
 			 if (o1.getLeftReferenceName().equals(o2.getLeftReferenceName())) {
-				 Integer i1 = o1.getLeftStart();
-				 Integer i2 = o2.getLeftStart();
-				 if (i1.equals(i2)) {
-					 Integer i3 = o1.getRightEnd();
-					 Integer i4 = o2.getRightEnd();
-					 return i3.compareTo(i4);
+				 int i1 = o1.getLeftStart();
+				 int i2 = o2.getLeftStart();
+				 if (i1 == i2) {
+					 int i3 = o1.getRightEnd();
+					 int i4 = o2.getRightEnd();
+					 return Integer.compare(i3, i4);
 				 } else {
-					 return i1.compareTo(i2);
+					 return Integer.compare(i1, i2);
 				 }
 			 } else {
 				 return o1.getLeftReferenceName().compareTo(o2.getLeftReferenceName());
