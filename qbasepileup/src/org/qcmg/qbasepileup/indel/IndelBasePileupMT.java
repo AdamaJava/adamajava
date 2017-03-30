@@ -24,12 +24,14 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import htsjdk.samtools.reference.IndexedFastaSequenceFile;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrRangePosition;
+import org.qcmg.common.util.Constants;
 import org.qcmg.qbamfilter.query.QueryExecutor;
 import org.qcmg.qbasepileup.InputBAM;
 import org.qcmg.qbasepileup.Options;
@@ -399,23 +401,12 @@ public class IndelBasePileupMT {
 	        public void run() {
 	            int countSleep = 0;
 	            boolean run = true;
-	            
 	           
 	            try {
 	                String[] record;
 	                int count = 0;
 	                BufferedWriter writer = new BufferedWriter(new FileWriter(resultsFile));
-	               // BufferedWriter pileupFileWriter = new BufferedWriter(new FileWriter(pileupFile, true));
 	                
-	               // String pileupHeader = "mutation_id\tPosition\tTumour novel starts\t Total Tumour reads\t Total informative reads\tSupporting informative reads" +
-	               // 		"\tPartial matches in tumor reads\tInsertion nearby?\tSoftclip nearby?";
-	                
-	                StringBuffer dccHeader = new StringBuffer();
-	                
-	                for (String h: headers) {
-	                	dccHeader.append(h + "\n");
-	                }	                
-	               
 	                while (run) {
 	                    
 	                    if ((record = queue.poll()) == null) {
@@ -424,9 +415,9 @@ public class IndelBasePileupMT {
 	                            Thread.sleep(sleepUnit);
 	                            countSleep++;
 	                        } catch (Exception e) {
-	                        	if (exitStatus.intValue() == 0) {
-	        	    	        	exitStatus.incrementAndGet();
-	        	    	        }
+		                        	if (exitStatus.intValue() == 0) {
+			        	    	        		exitStatus.incrementAndGet();
+			        	    	        }
 	                            logger.info(Thread.currentThread().getName() + " "
 	                                    + QBasePileupUtil.getStrackTrace(e));
 	                        }
@@ -443,17 +434,14 @@ public class IndelBasePileupMT {
 
 	                    } else {
 	                        writer.write(record[0]);
-	                        //pileupFileWriter.write(record[1]);
 	                        count++;
 	                    }
 	                }
 
 	                writer.close();
-	                //pileupFileWriter.close();
 	                
 	                //rewrite in order
-	                reorderFile(resultsFile, dccHeader.toString());
-	               // reorderPileupFile(pileupFile, pileupHeader);
+	                reorderFile(resultsFile, headers.stream().collect(Collectors.joining(Constants.NEW_LINE)));
 	                
 	                
 	                if (!mainThread.isAlive()) {
@@ -480,7 +468,7 @@ public class IndelBasePileupMT {
 	        }
 
 			private void reorderFile(File file, String header) throws IOException {
-				Map<ChrRangePosition, String> map = new TreeMap<ChrRangePosition, String>();
+				Map<ChrRangePosition, String> map = new TreeMap<>();
 				try (BufferedReader reader = new BufferedReader(new FileReader(file));) {
 					String line = reader.readLine();;
 					while(line != null) {
