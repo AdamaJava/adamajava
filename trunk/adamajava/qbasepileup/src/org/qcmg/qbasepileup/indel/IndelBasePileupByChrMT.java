@@ -90,8 +90,7 @@ public class IndelBasePileupByChrMT {
     
         // set up executor services
         ExecutorService readThread = Executors.newSingleThreadExecutor();
-        ExecutorService pileupThreads = Executors
-                .newFixedThreadPool(threadNo);
+        ExecutorService pileupThreads = Executors.newFixedThreadPool(threadNo);
         ExecutorService writeThread = Executors.newSingleThreadExecutor();
 
         try {
@@ -124,7 +123,7 @@ public class IndelBasePileupByChrMT {
             writeThread.awaitTermination(60, TimeUnit.HOURS);
 
             if (readQueue.size() != 0 || writeQueue.size() != 0) {
-            	exitStatus.incrementAndGet();
+            		exitStatus.incrementAndGet();
                 throw new Exception(
                         " threads have completed but queue isn't empty  (inputQueue, writeQueue ):  "
                                 + readQueue.size() + ", " + writeQueue.size());
@@ -353,9 +352,7 @@ public class IndelBasePileupByChrMT {
 		                        }
 	                        }
 	                        positionMap = null;
-	                              	                                                     
                         }                       
-	                   
 	                }
 	                indexedFasta.close();
 	                logger.info("Completed pileup thread: "
@@ -406,19 +403,12 @@ public class IndelBasePileupByChrMT {
 		        				IndelPositionPileup pileup = new IndelPositionPileup(tumourBam, normalBam, p, options, indexedFasta);	                        
 			                       
 		        				if (p.getFullChromosome().equals(fullChr)) {
-		        					if (positionMap.containsKey(new Integer(p.getStart()))) {
-		        						positionMap.get(new Integer(p.getStart())).add(pileup);
-		        					} else {
-		        						List<IndelPositionPileup> list = new ArrayList<IndelPositionPileup>();
-		        						list.add(pileup);
-		        						positionMap.put(new Integer(p.getStart()), list);
-		        					}	        					
+		        					Integer i = Integer.valueOf(p.getStart());
+		        					positionMap.computeIfAbsent(i, v -> new ArrayList<>()).add(pileup);
 		        				}
-		        				
 		        			}
 		        		}
 				 }
-	        	
 				return positionMap;
 			}
 
@@ -428,9 +418,6 @@ public class IndelBasePileupByChrMT {
          		
          		//get chromosome length
          		String fullChromosome = QBasePileupUtil.getFullChromosome(chromosome);
-         		//SAMSequenceRecord seq = reader.getFileHeader().getSequence(fullChromosome);
-         		
-         		//if (seq != null) {
          			int startKey = positionMap.firstKey()-250;
          			int endKey = positionMap.lastKey()+250;
          			logger.info("Getting records from "+fullChromosome+": " + startKey  + " to " + endKey);
@@ -451,7 +438,6 @@ public class IndelBasePileupByChrMT {
                  			}
              			}             				
              			
-        //     			if (!r.getReadUnmappedFlag() && (!r.getDuplicateReadFlag() || (r.getDuplicateReadFlag() && options.includeDuplicates())) && (exec == null || (exec !=null && exec.Execute(r)))) {
             			if(exec != null )
             				passFilter = exec.Execute(r);
             			else
@@ -459,23 +445,23 @@ public class IndelBasePileupByChrMT {
 
             			if(! passFilter) continue;
         
-             			int start = r.getAlignmentStart() - maxLength;
-             				int end = r.getAlignmentEnd() + maxLength;
-             				
-             				SortedMap<Integer, List<IndelPositionPileup>> subMap = positionMap.subMap(start, end);
-             				
-             				if (subMap != null && subMap.size() > 0) {
-             					
-             					for (Entry<Integer, List<IndelPositionPileup>> entry: subMap.entrySet()) {
-             						for (IndelPositionPileup p : entry.getValue()) {
-             							p.pileupRead(r, isTumour);
-             						}
-             					}
-             				}
-             		}
+         			int start = r.getAlignmentStart() - maxLength;
+     				int end = r.getAlignmentEnd() + maxLength;
+         				
+     				SortedMap<Integer, List<IndelPositionPileup>> subMap = positionMap.subMap(start, end);
+         				
+     				if (subMap != null && subMap.size() > 0) {
+     					
+     					for (Entry<Integer, List<IndelPositionPileup>> entry: subMap.entrySet()) {
+     						for (IndelPositionPileup p : entry.getValue()) {
+     							p.pileupRead(r, isTumour);
+     						}
+     					}
+     				}
+         		}
              		
-             		iter.close();
-             		reader.close();
+         		iter.close();
+         		reader.close();
 			}
      }
 	
