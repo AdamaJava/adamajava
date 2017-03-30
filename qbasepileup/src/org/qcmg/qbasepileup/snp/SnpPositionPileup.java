@@ -134,10 +134,10 @@ public class SnpPositionPileup {
 				revCoverageMap = setUpStandardMap();
 			}
 		} else {
-			coverageMap = new TreeMap<String, AtomicInteger>();
+			coverageMap = new TreeMap<>();
 			if (isStrand) {
-				forCoverageMap = new TreeMap<String, AtomicInteger>();
-				revCoverageMap = new TreeMap<String, AtomicInteger>();
+				forCoverageMap = new TreeMap<>();
+				revCoverageMap = new TreeMap<>();
 			}
 		}		
 	}
@@ -147,13 +147,13 @@ public class SnpPositionPileup {
 			forNovelStartMap = setUpStandardNovelStartMap();
 			revNovelStartMap = setUpStandardNovelStartMap();			
 		} else {
-			forNovelStartMap = new TreeMap<String, Set<Integer>>();
-			revNovelStartMap = new TreeMap<String, Set<Integer>>();
+			forNovelStartMap = new TreeMap<>();
+			revNovelStartMap = new TreeMap<>();
 		}		
 	}
 	
 	private Map<String, AtomicInteger> setUpStandardMap() {
-		Map<String, AtomicInteger> map = new TreeMap<String, AtomicInteger>();
+		Map<String, AtomicInteger> map = new TreeMap<>();
 		map.put("A", new AtomicInteger(0));
 		map.put("C", new AtomicInteger(0));		
 		map.put("G", new AtomicInteger(0));
@@ -163,12 +163,12 @@ public class SnpPositionPileup {
 	}		
 
 	private Map<String, Set<Integer>> setUpStandardNovelStartMap() {
-		Map<String, Set<Integer>> map = new TreeMap<String, Set<Integer>>();
-		map.put("A", new HashSet<Integer>());
-		map.put("C", new HashSet<Integer>());		
-		map.put("G", new HashSet<Integer>());
-		map.put("T", new HashSet<Integer>());
-		map.put("N", new HashSet<Integer>());
+		Map<String, Set<Integer>> map = new TreeMap<>();
+		map.put("A", new HashSet<>());
+		map.put("C", new HashSet<>());		
+		map.put("G", new HashSet<>());
+		map.put("T", new HashSet<>());
+		map.put("N", new HashSet<>());
 		return map;
 	}
 
@@ -407,7 +407,7 @@ public class SnpPositionPileup {
 		if (novelStartMap.containsKey(key)) {			
 			novelStartMap.get(key).add(alignmentStart);	
 		} else {			
-			Set<Integer> set = new HashSet<Integer>();
+			Set<Integer> set = new HashSet<>();
 			set.add(alignmentStart);
 			novelStartMap.put(key, set);
 		}		
@@ -717,10 +717,7 @@ public class SnpPositionPileup {
 	}
 
 	public String toMafString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append(position.getInputLine()).append(TAB);
-		sb.append(indelPresent > 0 ? "yes" : "");
-		return sb.toString();
+		return position.getInputLine() + (indelPresent > 0 ? "\tyes" : "\t");
 	}
 
 }
