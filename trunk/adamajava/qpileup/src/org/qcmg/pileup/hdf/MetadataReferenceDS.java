@@ -29,12 +29,12 @@ public class MetadataReferenceDS extends MetadataDS {
 	
 	@Override
 	public String getMetadata() throws Exception {
-		StringBuffer sb = new StringBuffer();	
+		StringBuilder sb = new StringBuilder();	
 		
 		records = (String[]) hdf.readDatasetBlock(fullName, 0, -1);
 			
 		for (String r: records) {
-			sb.append(((r) + "\n"));
+			sb.append(r + "\n");
 		}
 		return sb.toString();
 	}

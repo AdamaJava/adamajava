@@ -32,11 +32,11 @@ import org.qcmg.pileup.model.Chromosome;
 
 public class PileupHDF {
 	
-	private String hdfFileName;
+	private final String hdfFileName;
 	private H5File hdfFile;
-	private QLogger logger = QLoggerFactory.getLogger(getClass());
+	private final QLogger logger = QLoggerFactory.getLogger(getClass());
 	private int fileId =-1;
-	private boolean useHDFObject;
+	private final boolean useHDFObject;
 	
 	public PileupHDF(String name, boolean create, boolean useHDFObject) throws Exception {
 		this.hdfFileName = name;
@@ -112,7 +112,7 @@ public class PileupHDF {
 	}
 	
 	public synchronized List<Chromosome> getChromosomeLengths() throws Exception {
-		List<Chromosome> chromosomes = new ArrayList<Chromosome>();
+		List<Chromosome> chromosomes = new ArrayList<>();
 		List<String> groupList = getRootGroupMembers();	
 
 		for (String group: groupList) {
@@ -130,11 +130,7 @@ public class PileupHDF {
 	}	
 
 	public synchronized int getGroupIntegerAttribute(String fullName) throws Exception {
-		if (useHDFObject) {
-			return getIntegerAttributeByGroup(fullName);
-		} else {
-			return getH5IntegerAttributebyGroup(fullName);
-		}
+		return useHDFObject ? getIntegerAttributeByGroup(fullName) : getH5IntegerAttributebyGroup(fullName);
 	}	
 
 	public synchronized String bootstrapReferenceGroup(String name, int datasetLength) throws Exception {
@@ -554,7 +550,7 @@ public class PileupHDF {
 	private synchronized void createH5StringAttribute(String groupName, String datasetName, String attributeName, String value, int currentSize) throws Exception {
 		long[] dims = {1};
 		String[] attribute = {value};
-		byte[] bval = PileupUtil.stringToByte((String[]) attribute, currentSize);
+		byte[] bval = PileupUtil.stringToByte(attribute, currentSize);
         Object attrValue = bval;
 		int dataId = -1;
 		int spaceId = -1;
@@ -584,7 +580,7 @@ public class PileupHDF {
 	private synchronized void getH5RootMembers(List<String> groupList)
 			throws HDF5LibraryException {
 		String root = "/";			
-		int count = (int)H5.H5Gn_members(fileId, root);
+		int count = H5.H5Gn_members(fileId, root);
 		String[] oname = new String[count];
 		int[] otype = new int[count];
 		int[] ltype = new int[count];
@@ -732,7 +728,7 @@ public class PileupHDF {
 		int subSpaceId = H5.H5Screate_simple(1, selectedDims, null);		
 		
 		//allocate space for the data
-		theData = H5Datatype.allocateArray(dataTypeId, (int) size);
+		theData = H5Datatype.allocateArray(dataTypeId, size);
 		H5.H5Dread(datasetId, dataTypeId, subSpaceId, fileSpaceId,
                  HDF5Constants.H5P_DEFAULT, theData);
 		H5.H5Sclose(subSpaceId); 
