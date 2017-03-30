@@ -7,7 +7,6 @@
 package org.qcmg.motif.util;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -36,12 +35,7 @@ public class MotifUtils {
 		String [] arrayData = data.indexOf(M_D) == -1 ? new String[] {data} : TabTokenizer.tokenize(data, M_D);
 		
 		for (String s : arrayData) {
-			AtomicInteger ai = results.get(s);
-			if (null == ai) {
-				ai = new AtomicInteger();
-				results.put(s, ai);
-			}
-			ai.incrementAndGet();
+			results.computeIfAbsent(s, v -> new AtomicInteger()).incrementAndGet();
 		}
 		
 		return results;
@@ -69,14 +63,9 @@ public class MotifUtils {
 		 * And so we need to cater for reads that start/end outwith the CP
 		 * Assuming that a buffer of 1000 should be sufficient for now...
 		 */
-//		int buffer = 1000;
 		int startPos = contig.getStartPosition();
 		// we don't want a -ve startPos
-//		if (startPos > 1) {
-//			startPos = Math.max(1, startPos - buffer);
-//		}
 		int stopPos = contig.getEndPosition();
-//		int stopPos = contig.getEndPosition() + buffer;
 		int length = stopPos - startPos  + 1;
 		
 		int noOfBins = (length / windowSize) + 1;
@@ -111,61 +100,13 @@ public class MotifUtils {
 			if ( ! overlapExcludes.isEmpty()) {
 				// darn....
 				// need to determine if the overlapping position needs to be removed (ie, is entirely enclosed by an includes chrpos, or if it needs to be trimmed
-				
 				resizeOverlappingPositions(results, overlapExcludes, excludes, isUnmapped);
-				
 			}
 			// now add in the excludes
 			for (ChrPosition excludeCP : excludes) results.put(excludeCP, new RegionCounter(RegionType.EXCLUDES));
 		}
-		
 		return results;
 	}
-//	public static Map<ChrPosition, RegionCounter> getRegionMap(String chr, int length, int windowSize, List<ChrPosition> includes, List<ChrPosition> excludes, boolean isUnmapped) {
-//		
-//		int noOfBins = (length / windowSize) + 1;
-//		
-//		// create an initial map of OTHER ChrPos objects
-//		Map<ChrPosition, RegionCounter> results = new HashMap<>();
-//		
-//		for (int i = 0 ; i < noOfBins ; i++) {
-//			if ( ((i * windowSize) + 1) <= length) {
-//				ChrPosition cp = new ChrPosition(chr, (i * windowSize) + 1, Math.min((i + 1) * windowSize, length));
-//				results.put(cp, new RegionCounter(isUnmapped ? RegionType.UNMAPPED : RegionType.GENOMIC));
-//			}
-//		}
-//		
-//		// now go through the includes/excludes and if there are any overlaps - remove the OTHER ones and keep the inc/exc
-//		
-//		if (null != includes && ! includes.isEmpty()) {
-//			List<ChrPosition> overlapIncludes = getExistingOverlappingPositions(new ArrayList<ChrPosition>(results.keySet()), includes);
-//			if ( ! overlapIncludes.isEmpty()) {
-//				
-//				// darn....
-//				// need to determine if the overlapping position needs to be removed (ie, is entirely enclosed by an includes chrpos, or if it needs to be trimmed
-//				resizeOverlappingPositions(results, overlapIncludes, includes, isUnmapped);
-//				
-//			}
-//			// now add in the includes
-//			for (ChrPosition includesCP : includes) results.put(includesCP, new RegionCounter(RegionType.INCLUDES));
-//		}
-//		
-//		if (null != excludes && ! excludes.isEmpty()) {
-//			List<ChrPosition> overlapExcludes = getExistingOverlappingPositions(new ArrayList<ChrPosition>(results.keySet()), excludes);
-//			if ( ! overlapExcludes.isEmpty()) {
-//				// darn....
-//				// need to determine if the overlapping position needs to be removed (ie, is entirely enclosed by an includes chrpos, or if it needs to be trimmed
-//				
-//				resizeOverlappingPositions(results, overlapExcludes, excludes, isUnmapped);
-//				
-//			}
-//			// now add in the excludes
-//			for (ChrPosition excludeCP : excludes) results.put(excludeCP, new RegionCounter(RegionType.EXCLUDES));
-//		}
-//		
-//		return results;
-//	}
-	
 	
 	public static void resizeOverlappingPositions(Map<ChrPosition, RegionCounter> results, 
 			List<ChrPosition> overlappingPositions, List<ChrPosition> newPositions, boolean isUnmapped) {
@@ -178,7 +119,6 @@ public class MotifUtils {
 				
 				// overlapCP encloses newCP
 				else if (ChrPositionUtils.isChrPositionContained(overlapCP, newCP)) {
-					//create new CP(s)
 					
 					if (overlapCP.getStartPosition() < newCP.getStartPosition()) {
 						results.put(new ChrRangePosition(overlapCP.getChromosome(), overlapCP.getStartPosition(), newCP.getStartPosition() -1), new RegionCounter(isUnmapped ? RegionType.UNMAPPED : RegionType.GENOMIC));
@@ -208,17 +148,15 @@ public class MotifUtils {
 					}
 					// remove overlapCP
 					results.remove(overlapCP);
-					
 				}
 			}
 		}
-		
 	}
 	
 	public static List<ChrPosition> getExistingOverlappingPositions(List<ChrPosition> existingPositions, List<ChrPosition> newPositions) {
 		// sort both collections first
-		Collections.sort(existingPositions, COMPARATOR);
-		Collections.sort(newPositions, COMPARATOR);
+		existingPositions.sort(COMPARATOR);
+		newPositions.sort(COMPARATOR);
 		
 		List<ChrPosition> exisitingOverlaps = new ArrayList<>();
 		
@@ -232,25 +170,9 @@ public class MotifUtils {
 				}
 			}
 		}
-		
 		return exisitingOverlaps;
 	}
 
-//	static void addMotifToString(Map<String, AtomicInteger> existingString, String motif) {
-//		if (null != existingString) {
-//			if (StringUtils.isNullOrEmpty(motif)) {
-//				// do nowt
-//			} else {
-//		
-//				AtomicInteger ai = existingString.get(motif);
-//				if (null == ai) {
-//					ai = new AtomicInteger();
-//					existingString.put(motif, ai);
-//				}
-//				ai.incrementAndGet();
-//			}
-//		}
-//	}
 	static void addMotifToString(StringBuilder existingString, String motif) {
 		if (null != existingString && ! StringUtils.isNullOrEmpty(motif)) {
 			if (existingString.length() > 0) {
