@@ -177,25 +177,25 @@ public class MetadataRecordDS extends MetadataDS {
 
 		//check the info tags: ie low_read_count and non_reference_threshold
 		if (lowReadCount == null) {
-			lowReadCount = new Integer(currentLowReadCount);
+			lowReadCount = currentLowReadCount;
 		} else {
-			if (!lowReadCount.equals(currentLowReadCount)) {
+			if ( ! lowReadCount.equals(currentLowReadCount)) {
 				throw new QPileupException("READCOUNT_MERGE_ERROR", "" + lowReadCount, "" + currentLowReadCount);
 			} 
 		}
 		
 		if (nonreferenceThreshold == null) {
-			nonreferenceThreshold = new Integer(currentNonRefThreshold);
+			nonreferenceThreshold = currentNonRefThreshold;
 		} else {
-			if (!nonreferenceThreshold.equals(currentNonRefThreshold)) {
+			if ( ! nonreferenceThreshold.equals(currentNonRefThreshold)) {
 				throw new QPileupException("NONREF_MERGE_ERROR", "" + nonreferenceThreshold, "" + currentNonRefThreshold);
 			}
 		}
 		
 		if (bamsAdded == null) {
-			bamsAdded = new Integer(currentBamsAdded);
+			bamsAdded = currentBamsAdded;
 		} else {
-			bamsAdded += new Integer(currentBamsAdded);
+			bamsAdded = Integer.valueOf(bamsAdded.intValue() + currentBamsAdded.intValue());
 		}
 		
 		//check to see if they already exist in the records
@@ -219,7 +219,7 @@ public class MetadataRecordDS extends MetadataDS {
 				if (referenceFile == null) {
 					referenceFile = ref;						
 				} else {
-					if (!referenceFile.equals(ref)) {
+					if ( ! referenceFile.equals(ref)) {
 						throw new QPileupException("REFERENCE_MERGE_ERROR", "" + referenceFile, "" + ref);
 					}
 				}
