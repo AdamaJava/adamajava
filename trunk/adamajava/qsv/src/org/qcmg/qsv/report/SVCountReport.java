@@ -59,7 +59,7 @@ public class SVCountReport extends QSVReport {
         for (PairGroup zp : PairGroup.values()) {
             headings.append(zp.toString()).append(Constants.TAB);
         }            
-        headings.append("TOTAL" + QSVUtil.getNewLine());
+        headings.append("TOTAL").append(QSVUtil.getNewLine());
         return headings.toString();
     }
     
@@ -89,11 +89,11 @@ public class SVCountReport extends QSVReport {
             sb.append(mapOfCounts.get(zp.toString())).append(Constants.TAB);
         }        
         if (type.equals("somatic")) {
-        		sb.append(getSomaticCounts() +QSVUtil.getNewLine());
+        		sb.append(getSomaticCounts()).append(QSVUtil.getNewLine());
         } else if (type.equals("germline")) {
-        		sb.append(getGermlineCounts() +QSVUtil.getNewLine());
+        		sb.append(getGermlineCounts()).append(QSVUtil.getNewLine());
         } else {
-        		sb.append(getNormalGermlineCounts() +QSVUtil.getNewLine());
+        		sb.append(getNormalGermlineCounts()).append(QSVUtil.getNewLine());
         }
         
         return sb.toString();
@@ -101,7 +101,7 @@ public class SVCountReport extends QSVReport {
 
     @Override
     public void writeReport() throws Exception {
-        try (BufferedWriter writer = new BufferedWriter (new FileWriter(file, append));) {  
+        try (BufferedWriter writer = new BufferedWriter (new FileWriter(file, append))) {
 	        writer.write(getHeader());
 	        writer.write(generateReport());        
         }
@@ -117,17 +117,21 @@ public class SVCountReport extends QSVReport {
 			addCounts(germline, zp.toString(), germlineCount);
 			addCounts(normalGermline, zp.toString(), normalgermlineCount);
 	}
+	
+	private int getCounts(ConcurrentMap<String, AtomicInteger> map) {
+		return map.values().stream().mapToInt(ai -> ai.get()).sum();
+	}
 
 	public int getSomaticCounts() {
-		return somatic.values().stream().mapToInt(ai -> ai.get()).sum();
+		return getCounts(somatic);
 	}
 
 	public int getGermlineCounts() {
-		return germline.values().stream().mapToInt(ai -> ai.get()).sum();
+		return getCounts(germline);
 	}
 
 	public int getNormalGermlineCounts() {
-		return normalGermline.values().stream().mapToInt(ai -> ai.get()).sum();
+		return getCounts(normalGermline);
 	}
 
 	@Override
