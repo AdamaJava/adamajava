@@ -468,7 +468,7 @@ public class IndelBasePileupMT {
 
 			private void reorderFile(File file, String header) throws IOException {
 				Map<ChrRangePosition, String> map = new TreeMap<ChrRangePosition, String>();
-				try (BufferedReader reader = new BufferedReader(new FileReader(file));) {
+				try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
 					String line = reader.readLine();;
 					while(line != null) {
 						String[] values = line.split("\t");
@@ -480,7 +480,7 @@ public class IndelBasePileupMT {
 			}
 			
 			private void printMap(Map<ChrRangePosition, String> map, File file, String header) throws IOException {
-				try (BufferedWriter writer = new BufferedWriter(new FileWriter(file));) {
+				try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
 					writer.write(header);
 					writer.newLine();
 					for (Entry<ChrRangePosition, String> entry: map.entrySet()) {
