@@ -143,7 +143,7 @@ public class IndelBasePileupByChrMT {
 
 	private List<String> getHeader() throws IOException {
 		List<String> header = new ArrayList<>();
-		try (BufferedReader reader = new BufferedReader(new FileReader(inputFile));) {
+		try (BufferedReader reader = new BufferedReader(new FileReader(inputFile))) {
 			String line = null;
 			while ((line=reader.readLine()) != null) {
 				if (line.startsWith("#") || line.startsWith("analysis_id") || line.startsWith("Hugo") ||  line.startsWith("mutation")) {
@@ -377,7 +377,7 @@ public class IndelBasePileupByChrMT {
 				 TreeMap<Integer, List<IndelPositionPileup>> positionMap = new TreeMap<Integer, List<IndelPositionPileup>>();
 				 
 				 String fullChr = QBasePileupUtil.getFullChromosome(chromosome);
-				 try (BufferedReader reader = new BufferedReader(new FileReader(positionsFile));) {        		
+				 try (BufferedReader reader = new BufferedReader(new FileReader(positionsFile))) {        		
 	        		
 		        		String indelFileType = null;
 		        		if (options.hasPindelOption()) {
