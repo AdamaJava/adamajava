@@ -14,6 +14,7 @@ public class ClipRecord  extends MetricRecord{
 		super(type, chromosome, position, count, totalBases);
 	}	
 	
+	@Override
 	public String toString() {
 		return this.type + "\t" + chromosome + " " + position + " " + count;
 	}
@@ -46,7 +47,7 @@ public class ClipRecord  extends MetricRecord{
 		} else if (startCount == 0 || totalReads == 0) {
 			return 0;
 		} else {
-			return ((double)startCount/(double)totalReads * 100);
+			return ((double)startCount/totalReads * 100);
 		}
 	}
 }

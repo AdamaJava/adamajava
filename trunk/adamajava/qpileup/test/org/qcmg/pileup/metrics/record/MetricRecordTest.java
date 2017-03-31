@@ -20,11 +20,11 @@ public class MetricRecordTest {
 	@Test
 	public void testGetPercentTotalReads() {
 		record = new MetricRecord(PileupConstants.METRIC_CLIP, "chr1", 100, 10, 100);
-		assertEquals(10, record.getPercentTotalReads(), 0.1);
+		assertEquals(10, MetricRecord.getPercentage(record.getCount().longValue(), record.getTotalReads()), 0.1);
 		record.setCount(0L);
-		assertEquals(0, record.getPercentTotalReads(), 0.1);
+		assertEquals(0, MetricRecord.getPercentage(record.getCount().longValue(), record.getTotalReads()), 0.1);
 		record.setCount(110L);
-		assertEquals(100, record.getPercentTotalReads(), 0.1);
+		assertEquals(100, MetricRecord.getPercentage(record.getCount().longValue(), record.getTotalReads()), 0.1);
 	}
 	
 	@Test
