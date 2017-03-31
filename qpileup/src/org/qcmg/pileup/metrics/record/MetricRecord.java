@@ -37,10 +37,6 @@ public class MetricRecord {
 		return position;
 	}
 
-//	public void setPosition(Integer position) {
-//		this.position = position;
-//	}
-
 	public Long getCount() {
 		return count;
 	}
@@ -76,42 +72,54 @@ public class MetricRecord {
 	}
 
 	public double getRegularityScore() {
-		if (PileupUtil.isRegularityType(type)) {			
-			double percent = getPercentTotalReads();
-			if (percent > 100) {
-				return 100 * 100;
-			} else {
+		if (PileupUtil.isRegularityType(type)) {
+			double percent = getPercentage(count.longValue(), totalReads);
+//			double percent = getPercentTotalReads();
+//			if (percent > 100) {
+//				return 100 * 100;
+//			} else {
 				return percent * percent;
-			}
+//			}
 		} 
 		return 0;
 	}
-
-	public double getPercentTotalReads() {
-		if (count > totalReads) {
+	
+	public static double getPercentage(long count, long total) {
+		if (count > total) {
 			return 100;
-		} else if (count == 0 || totalReads == 0) {
+		} else if (count == 0 || total == 0) {
 			return 0;
 		} else {
-			return ((double)count/(double)totalReads * 100);
+			return ((double)count/total) * 100;
 		}	
 	}
+
+//	public double getPercentTotalReads() {
+//		if (count > totalReads) {
+//			return 100;
+//		} else if (count == 0 || totalReads == 0) {
+//			return 0;
+//		} else {
+//			return ((double)count/(double)totalReads * 100);
+//		}	
+//	}
 
 	public String toTmpString() {
 		return chromosome + "\t" + position + "\t" + endPosition + "\t" + type + "\t" + count + "\t" + totalReads + "\n";
 	}
 
 	public String toGFFString() {
+		double perc = getPercentage(count.longValue(), totalReads);
 		DecimalFormat f = new DecimalFormat("##.00");
 		String result = chromosome + "\t";
 		result += "qpileup" + "\t";
 		result += "." + "\t";
 		result += position + "\t";
 		result += endPosition + "\t";
-		result += f.format(getPercentTotalReads()) + "\t";
+		result += f.format(perc) + "\t";
 		result += "." + "\t";
 		result += "." + "\t";
-		result += "Name=" + getGFFType() + ";color=" + "#C0C0C0" + ";PercentScore=" + f.format(getPercentTotalReads()) + "\n";
+		result += "Name=" + getGFFType() + ";color=" + "#C0C0C0" + ";PercentScore=" + f.format(perc) + "\n";
 		return result;
 	}	
 

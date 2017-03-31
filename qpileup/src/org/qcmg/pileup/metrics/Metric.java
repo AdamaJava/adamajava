@@ -32,10 +32,10 @@ public class Metric {
 	protected int windowCount;
 	protected double positionValue;	
 	protected final static String TAB_DELIMITER = PileupConstants.TAB_DELIMITER;
-	protected Map<String,TreeMap<Integer,MetricRecord>> recordMap = new ConcurrentHashMap<String,TreeMap<Integer,MetricRecord>>();
-	protected Map<String,TreeMap<Integer,ResultSummary>> summaryMap = new ConcurrentHashMap<String,TreeMap<Integer,ResultSummary>>();
+	protected Map<String,TreeMap<Integer,MetricRecord>> recordMap = new ConcurrentHashMap<>();
+	protected Map<String,TreeMap<Integer,ResultSummary>> summaryMap = new ConcurrentHashMap<>();
     protected BaseDistributionRecord windowDistribution;
-	private QLogger logger = QLoggerFactory.getLogger(getClass());
+	private final QLogger logger = QLoggerFactory.getLogger(getClass());
 	protected File wiggleFile;
 	protected BaseDistributionRecord baseDistribution;
 	protected double minBasesPerPatient;
@@ -49,7 +49,7 @@ public class Metric {
 		this.minBasesPerPatient = minBasesPerPatient;		
 		this.windowDistribution = new BaseDistributionRecord(type, true);		
 		
-		if (!type.equals(PileupConstants.METRIC_SNP) && !type.equals(PileupConstants.METRIC_STRAND_BIAS)) {
+		if ( ! type.equals(PileupConstants.METRIC_SNP) && ! type.equals(PileupConstants.METRIC_STRAND_BIAS)) {
 			this.baseDistribution = new BaseDistributionRecord(type, false);		
 		}
 	}	
@@ -127,11 +127,6 @@ public class Metric {
 		return summaryMap;
 	}
 
-	public void setSummaryMap(
-			Map<String, TreeMap<Integer, ResultSummary>> summaryMap) {
-		this.summaryMap = summaryMap;
-	}
-
 	public double getMinBasesPerPatient() {
 		return minBasesPerPatient;
 	}
@@ -203,7 +198,7 @@ public class Metric {
 	}
 	
 	public List<String> getOptionsSummary() {
-		List<String> list = new ArrayList<String>();
+		List<String> list = new ArrayList<>();
 		list.add("Metric type: " + type);
 		list.add("Minimum value per position: " + positionValue);
 		list.add("Minimum count per window: " + windowCount);
@@ -222,12 +217,12 @@ public class Metric {
 	}
 
 	public void addChromosome(String name) {
-		if (!recordMap.containsKey(name)) {
-			TreeMap<Integer, MetricRecord> map = new TreeMap<Integer, MetricRecord>();
+		if ( ! recordMap.containsKey(name)) {
+			TreeMap<Integer, MetricRecord> map = new TreeMap<>();
 			recordMap.put(name, map);
 		}
-		if (!summaryMap.containsKey(name)) {
-			TreeMap<Integer, ResultSummary> map = new TreeMap<Integer, ResultSummary>();
+		if ( ! summaryMap.containsKey(name)) {
+			TreeMap<Integer, ResultSummary> map = new TreeMap<>();
 			summaryMap.put(name, map);
 		}
 	}

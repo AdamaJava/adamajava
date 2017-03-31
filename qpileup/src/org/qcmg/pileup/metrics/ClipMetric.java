@@ -36,7 +36,7 @@ public class ClipMetric extends Metric{
 		int basePos = (int) record.getBasePosition();
 		ClipRecord r = new ClipRecord(type, chr, basePos, count, totalReads);
 
-		if (r.getPercentTotalReads() >= positionValue && passesMinAvgBases(totalReads)) {		
+		if (MetricRecord.getPercentage(r.getCount().longValue(), r.getTotalReads()) >= positionValue && passesMinAvgBases(totalReads)) {		
 			r.setTotalReads(totalReads);
 			r.setStartCount(startCount);			
 			recordMap.get(chr).put(basePos, r);

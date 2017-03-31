@@ -31,9 +31,9 @@ public class NonReferenceMetric extends Metric{
 		String chr = record.getChromosome();
 		int basePos = (int) record.getBasePosition();
 		NonReferenceMetricRecord r = new NonReferenceMetricRecord(chr, basePos, count, forwardCount, reverseCount, totalReads);
-		if (r.getPercentTotalReads() >= positionValue && passesMinAvgBases(totalReads)) {			
+		if (MetricRecord.getPercentage(r.getCount().longValue(), r.getTotalReads()) >= positionValue && passesMinAvgBases(totalReads)) {			
 			r.setTotalReads(totalReads);
-			recordMap.get(chr).put(basePos, (MetricRecord) r);
+			recordMap.get(chr).put(basePos, r);
 		}				
 	}
 	
@@ -70,7 +70,7 @@ public class NonReferenceMetric extends Metric{
 	public MetricRecord getRegularRecord(String chr, int position) {
 		MetricRecord r = (recordMap.get(chr).get(position));
 		if (r != null) {			
-			if (r.getPercentTotalReads() > PileupConstants.MIN_NONREF_REGULAR_PERCENT) {
+			if (MetricRecord.getPercentage(r.getCount().longValue(), r.getTotalReads()) > PileupConstants.MIN_NONREF_REGULAR_PERCENT) {
 				return r;
 			}
 			if (r.hasStrandBias()) {

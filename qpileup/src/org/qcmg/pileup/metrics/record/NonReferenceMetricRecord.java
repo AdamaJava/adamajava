@@ -13,7 +13,7 @@ public class NonReferenceMetricRecord extends MetricRecord {
 	private long reverseCount;
 	
 	public NonReferenceMetricRecord(String chromosome, int basePosition, int count, int forCount, int revCount, int totalReads) {
-		super(PileupConstants.METRIC_NONREFBASE,chromosome, (int) basePosition, count, totalReads);
+		super(PileupConstants.METRIC_NONREFBASE,chromosome, basePosition, count, totalReads);
 		this.forwardCount = forCount;
 		this.reverseCount = revCount;
 	}
@@ -35,8 +35,9 @@ public class NonReferenceMetricRecord extends MetricRecord {
 	}
 
 	
+	@Override
 	public boolean hasStrandBias() {
-		if (getPercentTotalReads() > 20) {		
+		if (MetricRecord.getPercentage(getCount().longValue(), getTotalReads()) > 20) {		
 			double diff = getSBiasScore();
 			if (diff > 30) {
 				return true;
@@ -53,19 +54,20 @@ public class NonReferenceMetricRecord extends MetricRecord {
 	
 	@Override
 	public String toGFFString() {
+		double perc = MetricRecord.getPercentage(getCount().longValue(), getTotalReads());
 		DecimalFormat f = new DecimalFormat("##.00");
 		String result = chromosome + "\t";
 		result += "qpileup" + "\t";
 		result += "." + "\t";
 		result += position + "\t";
 		result += endPosition + "\t";
-		result += f.format(getPercentTotalReads()) + "\t";
+		result += f.format(perc) + "\t";
 		result += "." + "\t";
 		result += "." + "\t";
 		if (hasStrandBias()) {
-			result += "Name=NR-SBIAS;color=" + "#C0C0C0" + ";PercentScore=" + f.format(getPercentTotalReads()) + ";SBiasScore=" + f.format(getSBiasScore())  + ";ForwardCount=" + forwardCount + ";ReverseCount=" + reverseCount + "\n";
+			result += "Name=NR-SBIAS;color=" + "#C0C0C0" + ";PercentScore=" + f.format(perc) + ";SBiasScore=" + f.format(getSBiasScore())  + ";ForwardCount=" + forwardCount + ";ReverseCount=" + reverseCount + "\n";
 		} else {
-			result += "Name=NR;color=" + "#C0C0C0" + ";PercentScore=" + f.format(getPercentTotalReads()) + "\n";
+			result += "Name=NR;color=" + "#C0C0C0" + ";PercentScore=" + f.format(perc) + "\n";
 		}
 		return result;
 	}

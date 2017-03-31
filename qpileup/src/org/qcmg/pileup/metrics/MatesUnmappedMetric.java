@@ -29,7 +29,7 @@ public class MatesUnmappedMetric extends Metric{
 		int basePos =  (int)record.getBasePosition();
 		
 		MetricRecord r = new MetricRecord(type, chr, basePos, count, totalReads);
-		if (r.getPercentTotalReads() >= positionValue && passesMinAvgBases(totalReads)) {			
+		if (MetricRecord.getPercentage(r.getCount().longValue(), r.getTotalReads()) >= positionValue && passesMinAvgBases(totalReads)) {			
 			r.setTotalReads(totalReads);
 			recordMap.get(chr).put(basePos, r);
 		}				

@@ -14,8 +14,6 @@ import org.qcmg.pileup.PileupConstants;
 public class IndelRecord extends MetricRecord {
 	
 	private final char referenceBase;
-//	private String id;		
-//	private String analysisId;
 	private final String mutationType;	
 	private long allDelCount;	
 	private final StringBuilder referenceBaseString = new StringBuilder();
@@ -29,7 +27,6 @@ public class IndelRecord extends MetricRecord {
 		this.forwardCount = forCount;
 		this.reverseCount = revCount;
 		this.referenceBaseString.append(referenceBase);		
-//		this.position = basePosition;
 		this.endPosition = endPosition;
 	}
 	
@@ -44,6 +41,10 @@ public class IndelRecord extends MetricRecord {
 	public long getForwardCount() {
 		return forwardCount;
 	}
+	
+	public long getAllDelCount() {
+		return allDelCount;
+	}
 
 	public void setForwardCount(long forwardCount) {
 		this.forwardCount = forwardCount;
@@ -56,11 +57,10 @@ public class IndelRecord extends MetricRecord {
 	public void setReverseCount(long reverseCount) {
 		this.reverseCount = reverseCount;
 	}
-
 	
 	@Override
 	public boolean hasStrandBias() {
-		if (getPercentTotalReads() > 20) {		
+		if ( getPercentage(count.longValue(), totalReads) > 20) {		
 			double diff = getSBiasScore();
 			if (diff > PileupConstants.SBIAS_MIN) {
 				return true;
@@ -72,38 +72,12 @@ public class IndelRecord extends MetricRecord {
 	public char getReferenceBase() {
 		return referenceBase;
 	}
-//	public void setReferenceBase(char referenceBase) {
-//		this.referenceBase = referenceBase;
-//	}
 	public String getChromosome() {
 		return chromosome;
 	}
-//	public void setChromosome(String chromosome) {
-//		this.chromosome = chromosome;
-//	}
-	
-//	public String getAnalysisId() {
-//		return analysisId;
-//	}
-//
-//	public void setAnalysisId(String analysisId) {
-//		this.analysisId = analysisId;
-//	}
-
-//	public String getId() {
-//		return id;
-//	}
-//
-//	public void setId(String id) {
-//		this.id = id;
-//	}
 	public String getMutationType() {
 		return mutationType;
 	}
-
-//	public void setMutationType(String mutationType) {
-//		this.mutationType = mutationType;
-//	}
 
 	private int length() {
 		return referenceBaseString.length();		
@@ -157,19 +131,20 @@ public class IndelRecord extends MetricRecord {
 	
 	@Override
 	public String toGFFString() {
+		double perc = getPercentage(count.longValue(), totalReads);
 		DecimalFormat f = new DecimalFormat("##.00");
 		String result = chromosome + "\t";
 		result += "qpileup" + "\t";
 		result += "." + "\t";
 		result += position + "\t";
 		result += endPosition + "\t";
-		result += f.format(getPercentTotalReads()) + "\t";
+		result += f.format(perc) + "\t";
 		result += "." + "\t";
 		result += "." + "\t";
 		if (hasStrandBias()) {
-			result += "Name=" + mutationType + ";color=" + "#C0C0C0" + ";PercentScore=" + f.format(getPercentTotalReads()) + ";SBiasScore=" + f.format(getSBiasScore())  + ";ForwardCount=" + forwardCount + ";ReverseCount=" + reverseCount + "\n";
+			result += "Name=" + mutationType + ";color=" + "#C0C0C0" + ";PercentScore=" + f.format(perc) + ";SBiasScore=" + f.format(getSBiasScore())  + ";ForwardCount=" + forwardCount + ";ReverseCount=" + reverseCount + "\n";
 		} else {
-			result += "Name=" + mutationType + ";color=" + "#C0C0C0" + ";PercentScore=" + f.format(getPercentTotalReads()) + "\n";
+			result += "Name=" + mutationType + ";color=" + "#C0C0C0" + ";PercentScore=" + f.format(perc) + "\n";
 		}
 		return result;
 	}

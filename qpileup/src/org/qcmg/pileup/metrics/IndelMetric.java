@@ -9,7 +9,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
-
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
@@ -19,8 +18,8 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.qcmg.pileup.PileupConstants;
-
 import org.qcmg.pileup.metrics.record.IndelRecord;
+import org.qcmg.pileup.metrics.record.MetricRecord;
 import org.qcmg.pileup.metrics.record.ResultRecord;
 import org.qcmg.pileup.metrics.record.ResultSummary;
 import org.qcmg.pileup.model.Chromosome;
@@ -74,15 +73,15 @@ public class IndelMetric extends Metric {
 		
 		if (passesMinAvgBases(totalReads)) {
 			
-			if (inRecord.getPercentTotalReads() > positionValue) {						
+			if (MetricRecord.getPercentage(inRecord.getCount(), inRecord.getTotalReads()) > positionValue) {						
 				addIndelRecord(insMap, inRecord, chr);
 			} 
 			//any del record if it's starts or any position is greater than position value
-			if (delRecord.getPercentTotalReads() > positionValue) { 
+			if (MetricRecord.getPercentage(delRecord.getCount(), delRecord.getTotalReads()) > positionValue) { 
 				addIndelRecord(delStartMap, delRecord, chr);
 				//addDeletionStartRecord(delRecord, chr);				
 			} 
-			if (delRecord.getAllCountPercentTotalReads() > positionValue) {						
+			if (MetricRecord.getPercentage(delRecord.getAllDelCount(), delRecord.getTotalReads()) > positionValue) {						
 				addIndelRecord(delAllMap, delRecord, chr);			
 			}			
 		}		
@@ -176,7 +175,7 @@ public class IndelMetric extends Metric {
 	public IndelRecord getRegularInsRecord(String chr, int position) {
 		IndelRecord r = (insMap.get(chr).get(position));
 		if (r != null) {
-			if (r.getPercentTotalReads() > PileupConstants.MIN_INDEL_REGULAR_PERCENT) {
+			if (MetricRecord.getPercentage(r.getCount(), r.getTotalReads()) > PileupConstants.MIN_INDEL_REGULAR_PERCENT) {
 				return r;
 			}
 			if (r.hasStrandBias()) {
@@ -194,7 +193,7 @@ public class IndelMetric extends Metric {
 			for (int i = position+1; i<=delAllMap.get(chr).lastKey(); i++) {
 				IndelRecord current = (delAllMap.get(chr).get(i));				
 				if (current != null) {
-					if (current.getPercentTotalReads() > PileupConstants.MIN_INDEL_REGULAR_PERCENT) {
+					if (MetricRecord.getPercentage(current.getCount(), current.getTotalReads()) > PileupConstants.MIN_INDEL_REGULAR_PERCENT) {
 						r.setEndPosition(current.getPosition());
 						r.addIndelRecord(current);
 					}
@@ -202,7 +201,7 @@ public class IndelMetric extends Metric {
 					break;
 				}
 			}			
-			if (r.getPercentTotalReads() > PileupConstants.MIN_INDEL_REGULAR_PERCENT) {				
+			if (MetricRecord.getPercentage(r.getCount(), r.getTotalReads()) > PileupConstants.MIN_INDEL_REGULAR_PERCENT) {				
 				return r;
 			}
 			if (r.hasStrandBias()) {
