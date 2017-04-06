@@ -44,36 +44,9 @@ public class Alignment {
 			length = Math.max(length, nextMatch.read().length() + nextMatch.matchedPos());
 			start = Math.min(start, nextMatch.matchedPos());
 			
-//			Read read = nextMatch.read();
-//			int pos = nextMatch.matchedPos();
-//			if (read.length() + pos > length) {
-//				length = read.length() + pos;
-//			}
-//			if (pos < start) {
-//				start = pos;
-//			}
 		}
 		return length - start;
 	}
-	
-//	public void determingMatchingReads() {
-//		start = 0;
-//		length = seed.length();
-//		
-//		final int len = matchedReads.size();
-//		for (int i = 0 ; i < len ; i ++) {
-//			ReadMatch arw = matchedReads.get(i);
-//			if (arw.read().length() + arw.matchedPos() > length) {
-//				length = arw.read().length() + arw.matchedPos();
-//			}
-//			if (arw.matchedPos() < start) {
-//				start = arw.matchedPos();
-//			}
-//		}
-//	}
-	
-	
-	
 	public char[] getBasesOJH(int position)
 	{
 		char[] bases = new char[matchedReads.size()];
