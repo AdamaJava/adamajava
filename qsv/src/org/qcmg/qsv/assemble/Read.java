@@ -20,7 +20,6 @@ public class Read {
 	private final String forwordSeed;
 	private final String reverseSeed;
 	private TObjectIntHashMap<String> seeds;
-	private int index;
 	
 	public Read (String header, String tsequence) throws Exception {
 		if (header.startsWith(">") || header.startsWith("@")) {
@@ -83,14 +82,6 @@ public class Read {
 			seeds.put(String.copyValueOf(sequence, i, QSVAssemble.SEED_LENGTH), i);
 		}
 	}
-
-	public int getIndex() {
-		return index;
-	}
-	
-	public void setIndex(int i) {
-		index = i;
-	}
 	
 	public int length() {
 		return sequenceLength;
@@ -127,10 +118,6 @@ public class Read {
 	public char charAt(int pos, int position) {
 		return sequence[pos - position];
 	}
-	public char charAt(int pos) {
-		return sequence[pos];
-	}
-	
 	public String getSequence() {
 		return String.copyValueOf(sequence);
 	}
@@ -197,8 +184,5 @@ public class Read {
 			return false;
 		return true;
 	}
-	
-
-	
 	
 }
