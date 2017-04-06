@@ -178,7 +178,6 @@ public class Breakpoint implements Comparable<Breakpoint>{
 		if (tumourClips.size() > clipSize) {
 			this.isGermline = this.normalClips.size() > 0 ;
 			calculateStrand();
-//			name = reference + "_" + breakpoint + "_" + isLeft + "_" + (positiveStrand ? "+" : "-");
 			if (posStrandCount > clipSize || negStrandCount > clipSize || isRescue) {		
 				this.consensusRead = createContig(splitReadsMap, clipSize, isRescue);				
 			}			
@@ -204,13 +203,9 @@ public class Breakpoint implements Comparable<Breakpoint>{
 	}
 
 	private boolean belowMinInsertSize() {
-		
-//		logger.info("this.reference: " +this.reference + ", mateReference: " + mateReference + ", breakpoint: " + breakpoint + ", mateBreakpoint: " + mateBreakpoint + ",minInsertSize: " + minInsertSize);
-		
 		if (this.reference.equals(mateReference)) {
 			return belowMinInsertSize(breakpoint, mateBreakpoint, minInsertSize);
 		}
-		
 		return false;
 	}
 	
@@ -318,7 +313,7 @@ public class Breakpoint implements Comparable<Breakpoint>{
 		while (i.hasNext()) {
 			UnmappedRead r = i.next();
 			String h = SPLIT + r.getReadName();
-			if (!headers.contains(h)) {
+			if ( ! headers.contains(h)) {
 				i.remove();
 			}
 		}

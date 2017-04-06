@@ -302,7 +302,6 @@ public class FindClipClustersMT  {
 		logger.info("Potential records to find SVs in " + key + " is: " + bpList.size());
 		Collections.sort(bpList);		 
 		Map<SoftClipCluster, Boolean> clipRecords = new HashMap<>();
-//		List<SoftClipCluster> clipRecords = new ArrayList<SoftClipCluster>();
 		SoftClipCluster newRecord = null;
 		Iterator<SoftClipCluster> iterator = bpList.iterator();
 		int i=0;
@@ -326,14 +325,14 @@ public class FindClipClustersMT  {
 				}					
 			}
 
-			if ( ! recordOne.alreadyMatched()) {				
+			if ( ! recordOne.alreadyMatched()) {
 				clipRecords.put(recordOne, Boolean.TRUE);
 			}
 			iterator.remove();
 		}
 		logger.info("Total Clip SVs found for  " + key + " is: " + clipRecords.size() + " matched count: " + count);
 
-		return new ArrayList<SoftClipCluster>(clipRecords.keySet());
+		return new ArrayList<>(clipRecords.keySet());
 	}
 
 	private void findOverlaps(String key, List<QSVCluster> records, List<DiscordantPairCluster> clusters, List<SoftClipCluster> clips) throws Exception {
