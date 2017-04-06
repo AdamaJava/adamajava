@@ -29,56 +29,23 @@ public class QSVAssemble {
 	private int matchingSplitReads = 0;
 	private Read clipContig;
 	private Read reverseClipContig;
-	private int matchingClips = 0;
 	private String fullClipSequence;
 	private Read currentContig;
 
 
-	public QSVAssemble() throws Exception {
+	public QSVAssemble() {
 	}	
 	
-	public List<Read> getClipReads() {
-		return clipReads;
-	}
-
-	public Read getOutputRead() {
-		return outputRead;
-	}
-
 	public void setOutputRead(Read outputRead) {
 		this.outputRead = outputRead;
-	}
-
-	public List<Read> getSplitReads() {
-		return splitReads;
-	}
-
-	public String getFullContigSequence() {
-		return fullContigSequence;
 	}
 
 	public void setFullContigSequence(String fullContigSequence) {
 		this.fullContigSequence = fullContigSequence;
 	}
 
-	public Read getClipContig() {
-		return clipContig;
-	}
-
 	public void setClipContig(Read clipContig) {
 		this.clipContig = clipContig;
-	}
-
-	public Read getReverseClipContig() {
-		return reverseClipContig;
-	}
-
-	public String getFullClipSequence() {
-		return fullClipSequence;
-	}
-
-	public Read getCurrentContig() {
-		return currentContig;
 	}
 
 	public ConsensusRead getContigs(Integer bpPos, Read clipContig, List<Read> splitReads, boolean clipReverse, boolean isLeft) throws Exception {
@@ -159,12 +126,7 @@ public class QSVAssemble {
 	}
 	
 	public String assemble() throws Exception {		
-	
 		outputRead = clipContig;
-		
-		if (clipContig != null) {
-			matchingClips = clipContig.getHeader().split(",").length;	
-		}		
 		
 		if (splitReads.size() > 0 && clipContig != null) {			
 			
@@ -203,7 +165,6 @@ public class QSVAssemble {
 			return outputRead.getSequence();
 		} else {
 			if (clipReads.size() == 1) {
-				matchingClips++;
 				return clipReads.get(0).getSequence();
 			} else {
 				return null;
@@ -225,11 +186,10 @@ public class QSVAssemble {
 	private void createSeed(int currentIndex, Read seed, List<Read> reads, boolean isClips) throws Exception {
 		seed.createHashtable();
 
-		ConcurrentHashMap<Integer, ReadMatch> matches = new ConcurrentHashMap<Integer, ReadMatch>();
+		ConcurrentHashMap<Integer, ReadMatch> matches = new ConcurrentHashMap<>();
 		
 		findMatches(currentIndex, seed, matches, reads);	
 		Alignment alignment = new Alignment(matches, seed);
-//		alignment.determingMatchingReads();
 		
 		if (alignmentSizeGreater(alignment.calculateLength())) {
 			Read contig = alignment.constructConsensusSequence();		
@@ -311,10 +271,6 @@ public class QSVAssemble {
 
 	public int getMatchingSplitReads() {
 		return matchingSplitReads;
-	}
-	
-	public int getMatchingClips() {
-		return matchingClips;
 	}
 
 	public String getFinalClipContig(String leftConsensus, String rightConsensus) throws Exception {
