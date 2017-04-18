@@ -125,9 +125,9 @@ public class DCCReport extends QSVReport {
 
 	private String getValidationPlatform(String platform) {
 		if (platform.equals("solid")) {
-			return String.valueOf(4);
+			return "4";
 		} else if (platform.equals("illumina")) {
-			return String.valueOf(60);
+			return"60";
 		} else {
 			return "-999";
 		}
