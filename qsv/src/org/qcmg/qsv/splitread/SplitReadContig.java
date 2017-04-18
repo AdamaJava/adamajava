@@ -58,7 +58,7 @@ public class SplitReadContig {
 	private boolean isPotentialRepeat;
 	private boolean isPotentialSplitRead;
 	private String consensus;
-	private String referenceFile;
+//	private String referenceFile;
 	private Map<String, List<Chromosome>> chromosomes;
 	private boolean hasSoftClipEvidence;
 	private final BLAT blat;
@@ -92,7 +92,7 @@ public class SplitReadContig {
 
 		this.hasSoftClipEvidence = hasSoftClipEvidence;
 		this.confidenceLevel = confidence;
-		this.referenceFile = referenceFile;
+//		this.referenceFile = referenceFile;
 		this.chromosomes = chromosomes;
 		getSplitReadConsensus(softclipDir, expectedPairClassifications, clipContig, blatFile);
 	}
@@ -112,10 +112,6 @@ public class SplitReadContig {
 	public void setConsensus(String consensus) {
 		this.consensus = consensus;
 		this.length = consensus.length();
-	}
-
-	public String getConfidenceLevel() {
-		return confidenceLevel;
 	}
 
 	public void setConfidenceLevel(String confidenceLevel) {
@@ -206,17 +202,9 @@ public class SplitReadContig {
 		int random = r.nextInt(900000);
 		return "splitcon_" + knownSV.toString() + "_" + isTumour() + "_" + date.getTime() + "_" + random;
 	}
-
-	public String getLeftSequence() {
-		return leftSequence;
-	}
-
+	
 	public void setLeftSequence(String leftSequence) {
 		this.leftSequence = leftSequence;
-	}
-
-	public String getRightSequence() {
-		return rightSequence;
 	}
 
 	public void setRightSequence(String rightSequence) {
@@ -231,10 +219,6 @@ public class SplitReadContig {
 	public void setFindMH(boolean b) {
 		this.findMH = b;		
 	}		
-
-	public Map<String, List<Chromosome>> getChromosomes() {
-		return chromosomes;
-	}
 
 	public SplitReadAlignment getLeft() {
 		return left;
@@ -254,8 +238,8 @@ public class SplitReadContig {
 	}
 
 	private void getSplitReadConsensus(String softclipDir, Set<String> expectedPairClassifications, String clipContig, String blatFile) throws Exception {		
-		Map<String, UnmappedRead[]> map = new HashMap<String, UnmappedRead[]>();
-		List<UnmappedRead> splitReads = new ArrayList<UnmappedRead>();		
+		Map<String, UnmappedRead[]> map = new HashMap<>();
+		List<UnmappedRead> splitReads = new ArrayList<>();		
 
 		this.microhomology = QSVConstants.UNTESTED;
 		this.nonTemplateSequence = QSVConstants.UNTESTED;
@@ -394,7 +378,7 @@ public class SplitReadContig {
 			String reference, int intBreakpoint, Set<String> expectedPairClassifications) throws Exception {
 		//		SAMFileReader.setDefaultValidationStringency(ValidationStringency.SILENT);  
 		//        SamReader reader = SAMFileReaderFactory.createSAMFileReader(parameters.getInputBamFile(), "silent");
-		int buffer = parameters.getUpperInsertSize() + 200;
+		int buffer = parameters.getUpperInsertSize().intValue() + 200;
 		int count = 0;
 		
 		SAMRecordIterator iter = reader.queryOverlapping(reference, intBreakpoint-buffer, intBreakpoint+buffer);
@@ -650,26 +634,18 @@ public class SplitReadContig {
 			if (end > c.getTotalLength()) {
 				end = c.getTotalLength();
 			}
-			String bases = "";
 			
 			ConcurrentMap<String,byte[]> referenceMap = QSVUtil.getReferenceMap();
-			
 			byte[] basesArray = referenceMap.get(reference);
-			// array is zero-based, and picard is 1-based
-			bases = new String(Arrays.copyOfRange(basesArray, start -1, end -1));
 			
-			return bases;
+			// array is zero-based, and picard is 1-based
+			return new String(Arrays.copyOfRange(basesArray, start -1, end -1));
 		}
 		return "";		
 	}
 
 	public void determineSplitReadPotential() {
-		int buffer = 20;
-		if ( ! confidenceLevel.equals(QSVConstants.LEVEL_HIGH)) {
-			if ( ! hasSoftClipEvidence) {
-				buffer = 100;
-			}
-		}
+		int buffer = ( ! confidenceLevel.equals(QSVConstants.LEVEL_HIGH) &&  ! hasSoftClipEvidence) ? 100 : 20;
 		if (splitreadSV.splitReadEquals(knownSV, confidenceLevel, buffer)) {
 			isPotentialSplitRead = true;
 			mutationType = determineMutationType(splitreadSV);
@@ -681,10 +657,10 @@ public class SplitReadContig {
 	}
 
 	private String determineMutationType(StructuralVariant splitreadSV) {
-		String orientationCat = splitreadSV.getOrientationCategory();
 		if (!splitreadSV.getLeftReference().equals(splitreadSV.getRightReference())) {
 			return QSVConstants.CTX;
 		} else {
+			String orientationCat = splitreadSV.getOrientationCategory();
 			if (orientationCat.equals(QSVConstants.ORIENTATION_1)) {
 				return QSVConstants.DEL;
 			} else if (orientationCat.equals(QSVConstants.ORIENTATION_2)) {
@@ -1032,7 +1008,7 @@ public class SplitReadContig {
 		int end = newAlign.getQueryEnd();
 		int buffer = 50;
 
-		if (queryEnd > start && (end >= queryStart - buffer && end <= queryStart + buffer)) {					 
+		if (queryEnd > start && (end >= queryStart - buffer && end <= queryStart + buffer)) {				 
 			int currentDifference = Math.abs(end - queryStart);
 
 			if ((difference == length) || currentDifference < difference) {
