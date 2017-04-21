@@ -9,7 +9,7 @@ package org.qcmg.qsv.isize;
 import java.io.File;
 import java.io.IOException;
 import java.util.AbstractQueue;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
@@ -36,12 +36,12 @@ import org.qcmg.qsv.util.QSVUtil;
 public class SAMRecordCounterMT {
 	
 	private final QLogger logger = QLoggerFactory.getLogger(getClass());
-	private File bamFile;
+	private final File bamFile;
 	private ConcurrentHashMap<String, RunTypeRecord> runRecords;
-	private int noOfThreads;
-	private AtomicInteger exitStatus;
-	private int maxRecords;
-	private int checkPoint;
+	private final int noOfThreads;
+	private final AtomicInteger exitStatus;
+	private final int maxRecords;
+	private final int checkPoint;
 	private final int sleepUnit = 10;
 
 	public SAMRecordCounterMT(File file) throws QSVException, IOException {
@@ -100,22 +100,21 @@ public class SAMRecordCounterMT {
             processThreads.shutdownNow();
 
            for (Entry<String, RunTypeRecord> entry: runRecords.entrySet()) {
-        	   entry.getValue().calculateISize();
+        	   		entry.getValue().calculateISize();
            }
         }		
 	}
 	
-	public List<RunTypeRecord> getRunRecords() {
-		List<RunTypeRecord> r = new ArrayList<RunTypeRecord>(runRecords.values());
-		return r;
+	Collection<RunTypeRecord> getRunRecords() {
+		return runRecords.values();
 	}
 	
 	private void getReadGroups() throws IOException {
 
-			this.runRecords = new ConcurrentHashMap<String, RunTypeRecord>();
-			
-			SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile, "silent");
-			
+		this.runRecords = new ConcurrentHashMap<>();
+		
+		try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile, "silent")) {
+		
 			SAMFileHeader header = reader.getFileHeader();
 			
 			List<SAMReadGroupRecord> readGroups = header.getReadGroups();
@@ -132,8 +131,7 @@ public class SAMRecordCounterMT {
 				
 				runRecords.put(id, new RunTypeRecord(id, null, null, seqMapped));
 			}
-			
-			reader.close();		
+		}
 	}
 
 	private class Reader implements Runnable {
@@ -193,13 +191,13 @@ public class SAMRecordCounterMT {
                 logger.info("Completed reading thread, read " + count
                         + " records from input: " + bamFile.getAbsolutePath());
             } catch (Exception e) {
-            	logger.error("Setting exit status in CountReaderWorker thread to 1 as exception caught in reading method: " + QSVUtil.getStrackTrace(e));
-    	        if (exitStatus.intValue() == 0) {
-    	        	exitStatus.incrementAndGet();
-    	        }
+	            	logger.error("Setting exit status in CountReaderWorker thread to 1 as exception caught in reading method: " + QSVUtil.getStrackTrace(e));
+	    	        if (exitStatus.intValue() == 0) {
+	    	        		exitStatus.incrementAndGet();
+	    	        }
                 mainThread.interrupt();
             } finally {
-            	readLatch.countDown();
+            		readLatch.countDown();
                 logger.debug(String
                         .format("Exit Reading thread, total slept %d times * %d milli-seconds, "
                                 + "since input queue are full.fLatch  is %d; queus size is %d ",
@@ -303,7 +301,7 @@ public class SAMRecordCounterMT {
 	        }
 	  }
 
-	public int getExitStatus() {
-		return exitStatus.intValue();
-	}
+//	public int getExitStatus() {
+//		return exitStatus.intValue();
+//	}
 }
