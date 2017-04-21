@@ -9,6 +9,7 @@ package org.qcmg.qsv;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -53,7 +54,6 @@ public class QSVParameters {
 	private final String mapper;
 	private final boolean runSoftClipAnalysis;
 	private Collection<String> readGroupIds;
-//	private final List<String> readGroupIds = new ArrayList<String>();
 	private final int repeatCountCutoff;
 
 	private File inputBamFile;   
@@ -225,63 +225,51 @@ public class QSVParameters {
 	 */
 	private void getChromosomesToAnalyse(Options options) throws QSVException, IOException {
 
-		final SamReader inputSam = SAMFileReaderFactory.createSAMFileReader(inputBamFile, "silent"); 
-		this.header = inputSam.getFileHeader();        
-
-		//get chromosomes to run
-		final SAMSequenceDictionary sequenceDictionary = header.getSequenceDictionary();
-		final List<SAMSequenceRecord> sequenceRecords = sequenceDictionary.getSequences();
-		this.chromosomes = new HashMap<String, List<Chromosome>>();
-
-		//get all chromosomes
-		if (options.allChromosomes() || options.getIncludeTranslocations()) {
-			for (final SAMSequenceRecord seq : sequenceRecords) {
-				final String key = seq.getSequenceName();				
-				final Chromosome c = new Chromosome(key, seq.getSequenceLength());
-				final List<Chromosome> list = new ArrayList<>(1);
-				list.add(c);
-				chromosomes.put(key, list);
-			}        	        
-		} else {
-			//get those ranges provided
-			for (final String r : options.getRanges()) {
-				//subsection of a chromosome
-				if (r.contains(":")) {
-					final String chrName = r.split(":")[0];
-					final String pos = r.split(":")[1];
-					final Integer start = new Integer(pos.split("-")[0]);
-					final Integer end = new Integer(pos.split("-")[1]);
-					for (final SAMSequenceRecord seq : sequenceRecords) {
-						if (seq.getSequenceName().equals(chrName)) {
-							final Chromosome c = new Chromosome(chrName, seq.getSequenceLength(), start, end);
-							if (chromosomes.containsKey(chrName)) {
-								chromosomes.get(chrName).add(c);
-							} else {
-								final List<Chromosome> list = new ArrayList<Chromosome>();
-								list.add(c);
-								chromosomes.put(chrName, list);
-							}			        		
-						}
-					}									      					
-				} else {
-					//entire chromosome
-					final String chrName = r;
-					for (final SAMSequenceRecord seq : sequenceRecords) {
-						if (seq.getSequenceName().equals(chrName)) {
-							final Chromosome c= new Chromosome(chrName, seq.getSequenceLength());
-							if (chromosomes.containsKey(chrName)) {
-								chromosomes.get(chrName).add(c);
-							} else {
-								final List<Chromosome> list = new ArrayList<Chromosome>();
-								list.add(c);
-								chromosomes.put(chrName, list);
+		try ( SamReader inputSam = SAMFileReaderFactory.createSAMFileReader(inputBamFile, "silent")) { 
+			this.header = inputSam.getFileHeader();        
+	
+			//get chromosomes to run
+			final SAMSequenceDictionary sequenceDictionary = header.getSequenceDictionary();
+			final List<SAMSequenceRecord> sequenceRecords = sequenceDictionary.getSequences();
+			this.chromosomes = new HashMap<>();
+	
+			//get all chromosomes
+			if (options.allChromosomes() || options.getIncludeTranslocations()) {
+				for (final SAMSequenceRecord seq : sequenceRecords) {
+					final String key = seq.getSequenceName();				
+					final Chromosome c = new Chromosome(key, seq.getSequenceLength());
+					chromosomes.put(key, Arrays.asList(c));
+				}        	        
+			} else {
+				//get those ranges provided
+				for (final String r : options.getRanges()) {
+					//subsection of a chromosome
+					if (r.contains(":")) {
+						String [] rParams = r.split(":");
+						final String chrName = rParams[0];
+						final String pos = rParams[1];
+						String [] posParams = pos.split("-");
+						final Integer start = Integer.valueOf(posParams[0]);
+						final Integer end = Integer.valueOf(posParams[1]);
+						for (final SAMSequenceRecord seq : sequenceRecords) {
+							if (seq.getSequenceName().equals(chrName)) {
+								final Chromosome c = new Chromosome(chrName, seq.getSequenceLength(), start, end);
+								chromosomes.computeIfAbsent(chrName, v -> new ArrayList<>()).add(c);
 							}
-						}
-					}					
+						}									      					
+					} else {
+						//entire chromosome
+						final String chrName = r;
+						for (final SAMSequenceRecord seq : sequenceRecords) {
+							if (seq.getSequenceName().equals(chrName)) {
+								final Chromosome c= new Chromosome(chrName, seq.getSequenceLength());
+								chromosomes.computeIfAbsent(chrName, v -> new ArrayList<>()).add(c);
+							}
+						}					
+					}
 				}
 			}
 		}
-		inputSam.close();
 	}
 
 	/**
@@ -292,8 +280,9 @@ public class QSVParameters {
 	public String getLIMSMeta() {
 		final List<String> comments = header.getComments();
 		for (final String c: comments) {
-			if (c.split("\t").length >= 3) {
-				if (c.split("\t")[2].equals("QN:qlimsmeta")) {    				
+			String [] cParams = c.split("\t");
+			if (cParams.length >= 3) {
+				if (cParams[2].equals("QN:qlimsmeta")) {    				
 					return c;
 				}
 			}
@@ -327,15 +316,6 @@ public class QSVParameters {
 		return inputBamFile;
 	}
 
-	//	/**
-	//	 * Sets the input bam file.
-	//	 *
-	//	 * @param inputBamFile the new input bam file
-	//	 */
-	//	public void setInputBamFile(File inputBamFile) {
-	//		this.inputBamFile = inputBamFile;
-	//	}
-
 	/**
 	 * Checks if is the tumor sample.
 	 *
@@ -344,15 +324,6 @@ public class QSVParameters {
 	public boolean isTumor() {
 		return isTumor;
 	}
-
-	//	/**
-	//	 * Sets boolean to say if it is the tumor sample.
-	//	 *
-	//	 * @param isTumor the new tumor sample boolean
-	//	 */
-	//	public void setTumor(boolean isTumor) {
-	//		this.isTumor = isTumor;
-	//	}
 
 	/**
 	 * Gets the find type.
@@ -363,15 +334,6 @@ public class QSVParameters {
 		return findType;
 	}
 
-	//	/**
-	//	 * Sets the find type.
-	//	 *
-	//	 * @param findType the new find type
-	//	 */
-	//	public void setFindType(String findType) {
-	//		this.findType = findType;
-	//	}
-
 	/**
 	 * Gets the cluster size.
 	 *
@@ -381,15 +343,6 @@ public class QSVParameters {
 		return clusterSize;
 	}
 
-	//	/**
-	//	 * Sets the cluster size.
-	//	 *
-	//	 * @param clusterSize the new cluster size
-	//	 */
-	//	public void setClusterSize(Integer clusterSize) {
-	//		this.clusterSize = clusterSize;
-	//	}
-
 	/**
 	 * Gets the compare cluster size.
 	 *
@@ -398,16 +351,6 @@ public class QSVParameters {
 	public Integer getCompareClusterSize() {
 		return compareClusterSize;
 	}
-
-	//	/**
-	//	 * Sets the compare cluster size.
-	//	 *
-	//	 * @param compareClusterSize the new compare cluster size
-	//	 */
-//		public void setCompareClusterSize(Integer compareClusterSize) {
-//			this.compareClusterSize = compareClusterSize;
-//		}
-
 	/**
 	 * Gets the sample id.
 	 *
@@ -416,15 +359,6 @@ public class QSVParameters {
 	public String getSampleId() {
 		return sampleId;
 	}
-
-	//	/**
-	//	 * Sets the sample id.
-	//	 *
-	//	 * @param sampleId the new sample id
-	//	 */
-	//	public void setSampleId(String sampleId) {
-	//		this.sampleId = sampleId;
-	//	}
 
 	/**
 	 * Gets the filtered bam file.
@@ -435,15 +369,6 @@ public class QSVParameters {
 		return filteredBamFile;
 	}
 
-	//	/**
-	//	 * Sets the filtered bam file.
-	//	 *
-	//	 * @param filteredBamFile the new filtered bam file
-	//	 */
-	//	public void setFilteredBamFile(File filteredBamFile) {
-	//		this.filteredBamFile = filteredBamFile;
-	//	}
-
 	/**
 	 * Gets the header.
 	 *
@@ -453,15 +378,6 @@ public class QSVParameters {
 		return header;
 	}
 
-	//	/**
-	//	 * Sets the header.
-	//	 *
-	//	 * @param header the new header
-	//	 */
-	//	public void setHeader(SAMFileHeader header) {
-	//		this.header = header;
-	//	}
-
 	/**
 	 * Gets the lower insert size.
 	 *
@@ -470,15 +386,6 @@ public class QSVParameters {
 	public Integer getLowerInsertSize() {
 		return lowerInsertSize;
 	}
-
-	//	/**
-	//	 * Sets the lower insert size.
-	//	 *
-	//	 * @param lowerInsertSize the new lower insert size
-	//	 */
-	//	public void setLowerInsertSize(Integer lowerInsertSize) {
-	//		this.lowerInsertSize = lowerInsertSize;
-	//	}
 
 	/**
 	 * Gets the upper insert size.
@@ -507,15 +414,6 @@ public class QSVParameters {
 		return annotator;
 	}
 
-	//	/**
-	//	 * Sets the annotator.
-	//	 *
-	//	 * @param annotator the new annotator
-	//	 */
-	//	public void setAnnotator(Annotator annotator) {
-	//		this.annotator = annotator;
-	//	}
-
 	/**
 	 * Gets the average insert size.
 	 *
@@ -524,15 +422,6 @@ public class QSVParameters {
 	public int getAverageInsertSize() {
 		return averageInsertSize;
 	}
-
-	//	/**
-	//	 * Sets the average insert size.
-	//	 *
-	//	 * @param averageInsertSize the new average insert size
-	//	 */
-	//	public void setAverageInsertSize(int averageInsertSize) {
-	//		this.averageInsertSize = averageInsertSize;
-	//	}
 
 	/**
 	 * Gets the results dir.
@@ -543,15 +432,6 @@ public class QSVParameters {
 		return resultsDir;
 	}
 
-	//	/**
-	//	 * Sets the results dir.
-	//	 *
-	//	 * @param resultsDir the new results dir
-	//	 */
-	//	public void setResultsDir(String resultsDir) {
-	//		this.resultsDir = resultsDir;
-	//	}
-
 	/**
 	 * Gets the analysis date.
 	 *
@@ -560,15 +440,6 @@ public class QSVParameters {
 	public Date getAnalysisDate() {
 		return analysisDate;
 	}
-
-	//	/**
-	//	 * Sets the analysis date.
-	//	 *
-	//	 * @param analysisDate the new analysis date
-	//	 */
-	//	public void setAnalysisDate(Date analysisDate) {
-	//		this.analysisDate = analysisDate;
-	//	}
 
 	/**
 	 * Gets the pairing type.
@@ -579,15 +450,6 @@ public class QSVParameters {
 		return pairingType;
 	}
 
-	//	/**
-	//	 * Sets the pairing type.
-	//	 *
-	//	 * @param pairingType the new pairing type
-	//	 */
-	//	public void setPairingType(String pairingType) {
-	//		this.pairingType = pairingType;
-	//	}
-
 	/**
 	 * Gets the sequencing runs.
 	 *
@@ -596,15 +458,6 @@ public class QSVParameters {
 	public List<RunTypeRecord> getSequencingRuns() {
 		return sequencingRuns;
 	}
-
-	//	/**
-	//	 * Sets the sequencing runs.
-	//	 *
-	//	 * @param sequencingRuns the new sequencing runs
-	//	 */
-	//	public void setSequencingRuns(List<RunTypeRecord> sequencingRuns) {
-	//		this.sequencingRuns = sequencingRuns;
-	//	}
 
 	/**
 	 * Gets the q primer threshold.
@@ -615,15 +468,6 @@ public class QSVParameters {
 		return qPrimerThreshold;
 	}
 
-	//	/**
-	//	 * Sets the q primer threshold.
-	//	 *
-	//	 * @param qPrimerThreshold the new q primer threshold
-	//	 */
-	//	public void setqPrimerThreshold(Integer qPrimerThreshold) {
-	//		this.qPrimerThreshold = qPrimerThreshold;
-	//	}
-
 	/**
 	 * Gets the chromosomes.
 	 *
@@ -633,15 +477,6 @@ public class QSVParameters {
 		return chromosomes;
 	}
 
-	//	/**
-	//	 * Sets the chromosomes.
-	//	 *
-	//	 * @param chromosomes the chromosomes
-	//	 */
-	//	public void setChromosomes(Map<String, List<Chromosome>> chromosomes) {
-	//		this.chromosomes = chromosomes;
-	//	}
-
 	/**
 	 * Gets the mapper.
 	 *
@@ -650,15 +485,6 @@ public class QSVParameters {
 	public String getMapper() {
 		return mapper;
 	}
-
-	//	/**
-	//	 * Sets the mapper.
-	//	 *
-	//	 * @param mapper the new mapper
-	//	 */
-	//	public void setMapper(String mapper) {
-	//		this.mapper = mapper;
-	//	}
 
 	/**
 	 * Gets the reference.
@@ -687,15 +513,6 @@ public class QSVParameters {
 		return runSoftClipAnalysis;
 	}
 
-	//	/**
-	//	 * Sets the run soft clip analysis.
-	//	 *
-	//	 * @param runSoftClipAnalysis the new run soft clip analysis
-	//	 */
-	//	public void setRunSoftClipAnalysis(boolean runSoftClipAnalysis) {
-	//		this.runSoftClipAnalysis = runSoftClipAnalysis;
-	//	}
-
 	/**
 	 * Gets the read group ids.
 	 *
@@ -708,15 +525,6 @@ public class QSVParameters {
 	public Set<String> getReadGroupIdsAsSet() {
 		return new HashSet<String>(readGroupIds);
 	}
-
-	//	/**
-	//	 * Sets the read group ids.
-	//	 *
-	//	 * @param readGroupIds the new read group ids
-	//	 */
-	//	public void setReadGroupIds(List<String> readGroupIds) {
-	//		this.readGroupIds = readGroupIds;
-	//	}
 
 	public int getRepeatCountCutoff() {
 		return this.repeatCountCutoff;
