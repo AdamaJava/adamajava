@@ -33,7 +33,7 @@ public class RunTypeRecord {
         this.lower = lower;
         this.upper = upper;
         this.seqMapped = seqMapped;
-        this.isizeMap = new ConcurrentHashMap<Integer, AtomicInteger>();
+        this.isizeMap = new ConcurrentHashMap<>();
         this.count = new AtomicInteger(0);
     }    
 
@@ -65,7 +65,7 @@ public class RunTypeRecord {
         this.upper = isize.getISizeMax();
         
         if (this.upper == 0) {
-        	throw new QSVException("ZERO_UPPER", rgId);
+        		throw new QSVException("ZERO_UPPER", rgId);
         }
 	}
 
