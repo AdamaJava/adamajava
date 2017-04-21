@@ -16,14 +16,11 @@ import org.qcmg.qsv.QSVException;
 
 public class CalculateISize {
 	
-	public static final int MAX_CURVE_ISIZE = 5000;
-	public TreeMap<Integer, Double> leftMap = new TreeMap<Integer, Double>();
-	public TreeMap<Integer, Double> rightMap = new TreeMap<Integer, Double>();
-	public TreeMap<Integer, Integer> totalMap = new TreeMap<Integer, Integer>();
-	public double[] leftDyDx;
-	public double[] leftDyDx2;
-	public double[] rightDyDx;
-	public double[] rightDyDx2;
+	private final TreeMap<Integer, Double> leftMap = new TreeMap<>();
+	private final TreeMap<Integer, Double> rightMap = new TreeMap<>();
+	private final TreeMap<Integer, Integer> totalMap = new TreeMap<>();
+	private double[] leftDyDx;
+	private double[] rightDyDx;
 	private int isizeMin;
 	private int isizeMax;
 	
@@ -43,16 +40,6 @@ public class CalculateISize {
 		return rightMap;
 	}
 
-
-	public TreeMap<Integer, Integer> getTotalMap() {
-		return totalMap;
-	}
-
-//	public void setTotalMap(TreeMap<Integer, Integer> totalMap) {
-//		this.totalMap = totalMap;
-//	}
-
-	
 	public void calculate() throws QSVException {
 		//key = isize, value=count
 
@@ -121,7 +108,7 @@ public class CalculateISize {
 		//convert the map to arrays for x/y values
 		for (Entry<Integer, Double> entry: map.entrySet()) {
 			if (count == newRightMinIndex) {
-				isizeMax = entry.getKey() + 5;
+				isizeMax = entry.getKey().intValue() + 5;
 				break;
 			}
 			count++;				
@@ -129,7 +116,7 @@ public class CalculateISize {
 	}
 
 
-	public int findMaxIndex(double[] array) {
+	int findMaxIndex(double[] array) {
 		double max=0; 
 		int idx = -1;
 		for (int i=0; i<array.length; i++) {
@@ -141,7 +128,7 @@ public class CalculateISize {
 		return idx;
 	}
 	
-	public int findMinIndex(double[] array) {
+	private int findMinIndex(double[] array) {
 		double min=array[0]; 
 		int idx = 0;
 		for (int i=1; i<array.length; i++) {
@@ -153,7 +140,7 @@ public class CalculateISize {
 		return idx;
 	}
 
-	public double[] findFirstDerivative(Map<Integer, Double> xyMap) {
+	double[] findFirstDerivative(Map<Integer, Double> xyMap) {
 		double[] x = new double[xyMap.size()];
 		double[] y = new double[xyMap.size()];
 
@@ -178,7 +165,7 @@ public class CalculateISize {
 		
 	}
 
-	public void getLogMaps() {
+	void getLogMaps() {
 		Integer maxCount = null;
 		Integer maxKey = null;
 		
@@ -217,6 +204,4 @@ public class CalculateISize {
 	public int getISizeMax() {
 		return this.isizeMax;
 	}
-
-
 }
