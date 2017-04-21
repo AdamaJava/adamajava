@@ -31,7 +31,7 @@ public class SAMRecordCounterMTTest {
 		File file = testFolder.newFile("test.bam");
 		createBamFile(file);
 		SAMRecordCounterMT worker = new SAMRecordCounterMT(file);
-		List<RunTypeRecord> records = worker.getRunRecords();
+		List<RunTypeRecord> records = new ArrayList<>(worker.getRunRecords());
 		assertEquals(1, records.size());
 		RunTypeRecord record = records.get(0);
 		assertEquals("20110221052813657", record.getRgId());
@@ -40,7 +40,7 @@ public class SAMRecordCounterMTTest {
 	}
 
 	private void createBamFile(File file) throws IOException {
-		List<String> data = new ArrayList<String>();
+		List<String> data = new ArrayList<>();
 		data.addAll(createSamHeader(SortOrder.unsorted));
 
 		try (BufferedWriter out = new BufferedWriter(new FileWriter(file));) {
@@ -53,7 +53,7 @@ public class SAMRecordCounterMTTest {
 	}
 
 	private Collection<? extends String> createSamHeader(SortOrder sort) {
-		List<String> data = new ArrayList<String>();
+		List<String> data = new ArrayList<>(16);
 		 data.add("@HD	VN:1.0	GO:none	SO:"+ sort.name());
 	        data.add("@SQ	SN:chr1	LN:249250621	");
 	        data.add("@SQ	SN:chr4	LN:191154276	");
@@ -75,31 +75,31 @@ public class SAMRecordCounterMTTest {
 		createRecords(2,"140191020\t40", out);
 		createRecords(2,"140191020\t80", out);
 		createRecords(376,"140191020\t90", out);
-		createRecords(2820,"140191020\t100", out);
-		createRecords(5772,"140191020\t110", out);
-		createRecords(8896,"140191020\t120", out);
-		createRecords(11358,"140191020\t130", out);
-		createRecords(12626,"140191020\t140", out);
-		createRecords(13437,"140191020\t150", out);
-		createRecords(14032,"140191020\t160", out);
-		createRecords(14451,"140191020\t170", out);
-		createRecords(14537,"140191020\t180", out);
-		createRecords(14615,"140191020\t190", out);
-		createRecords(15806,"140191020\t200", out);
-		createRecords(16309,"140191020\t210", out);
-		createRecords(17540,"140191020\t220", out);
-		createRecords(20509,"140191020\t230", out);
-		createRecords(24656,"140191020\t240", out);
-		createRecords(28513,"140191020\t250", out);
-		createRecords(34720,"140191020\t260", out);
-		createRecords(40961,"140191020\t270", out);
-		createRecords(49129,"140191020\t280", out);
-		createRecords(58384,"140191020\t290", out);
-		createRecords(71585,"140191020\t300", out);
-		createRecords(73491,"140191020\t310", out);
-		createRecords(67551,"140191020\t320", out);
-		createRecords(57469,"140191020\t330", out);
-		createRecords(46505,"140191020\t340", out);
+		createRecords(282,"140191020\t100", out);
+		createRecords(577,"140191020\t110", out);
+		createRecords(889,"140191020\t120", out);
+		createRecords(113,"140191020\t130", out);
+		createRecords(126,"140191020\t140", out);
+		createRecords(134,"140191020\t150", out);
+		createRecords(143,"140191020\t160", out);
+		createRecords(145,"140191020\t170", out);
+		createRecords(143,"140191020\t180", out);
+		createRecords(146,"140191020\t190", out);
+		createRecords(158,"140191020\t200", out);
+		createRecords(163,"140191020\t210", out);
+		createRecords(175,"140191020\t220", out);
+		createRecords(205,"140191020\t230", out);
+		createRecords(246,"140191020\t240", out);
+		createRecords(281,"140191020\t250", out);
+		createRecords(347,"140191020\t260", out);
+		createRecords(406,"140191020\t270", out);
+		createRecords(491,"140191020\t280", out);
+		createRecords(588,"140191020\t290", out);
+		createRecords(715,"140191020\t300", out);
+		createRecords(739,"140191020\t310", out);
+		createRecords(655,"140191020\t320", out);
+		createRecords(574,"140191020\t330", out);
+		createRecords(4605,"140191020\t340", out);
 		createRecords(35617,"140191020\t350", out);
 		createRecords(26385,"140191020\t360", out);
 		createRecords(17762,"140191020\t370", out);
@@ -148,7 +148,7 @@ public class SAMRecordCounterMTTest {
 	}
 
 	private void createRecords(int size, String dataString, BufferedWriter out) throws IOException {
-		String s = "	129	chr7	140191000	63	50M	chr7\t"+dataString+END_OF_READ;
+		String s = "\t129\tchr7\t140191000\t63\t50M\tchr7\t"+dataString+END_OF_READ;
 		for (int i=0; i<= size; i++) {
 			out.write("254_166_1407" + i + s);
 		}
