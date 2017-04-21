@@ -29,21 +29,14 @@ public class QSVParametersTest {
     
     @Before
     public void setUp() throws IOException {
-    	normalBam = TestUtil.createSamFile(testFolder.newFile("normalBam.bam").getAbsolutePath(), SortOrder.coordinate, false);
-    	tumorBam = TestUtil.createSamFile(testFolder.newFile("tumorBam.bam").getAbsolutePath(), SortOrder.coordinate, false);
+	    	if (null == normalBam) {
+	    		normalBam = TestUtil.createSamFile(testFolder.newFile("normalBam.bam").getAbsolutePath(), SortOrder.coordinate, false);
+	    	}
+	    	if (null == tumorBam) {
+	    		tumorBam = TestUtil.createSamFile(testFolder.newFile("tumorBam.bam").getAbsolutePath(), SortOrder.coordinate, false);
+	    	}
     }
     
-    @After
-    public void tearDown() {
-    	if (normalBam.exists()) {
-    		normalBam.delete();
-    	}
-    	
-    	if (tumorBam.exists()) {
-    		tumorBam.delete();
-    	}
-    }
-
     @Test
     public void testParametersSetUpForNormal() throws Exception {    	
     	
@@ -84,12 +77,12 @@ public class QSVParametersTest {
     @Test
     public void testMapVsList() {
     		String rg ="20150316155612345"; 	
-    		List<String> rgList = new ArrayList<>();
+    		List<String> rgList = new ArrayList<>(2);
     		rgList.add("20150316155612345");
     		
     		// perform a million contains and time
     		long start = System.currentTimeMillis();
-    		int counter = 10000000;
+    		int counter = 100000;
     		int count = 0;
     		for (int i = 0 ; i < counter ; i++) {
     			if (rgList.contains(rg)) {
@@ -121,90 +114,88 @@ public class QSVParametersTest {
     
     @Test
     public void testMapVsList2() {
-    	String rg ="20150316155912345"; 	
-    	String rg2 ="20150316155912345"; 	
-    	List<String> rgList = new ArrayList<>();
-    	rgList.add("20150316155612345");
-    	rgList.add("20150316155912345");
-    	
-    	// perform a million contains and time
-    	long start = System.currentTimeMillis();
-    	int counter = 10000000;
-    	int count = 0;
-    	for (int i = 0 ; i < counter ; i++) {
-    		if (rgList.contains(rg)) {
-    			count++;
-    		}
-    	}
-    	System.out.println("2 list done in " + (System.currentTimeMillis() - start) + "ms with count: " + count);
-    	
-    	Set<String> rgMap = new HashSet<>(4);
-    	rgMap.add("20150316155612345");
-    	rgMap.add("20150316155912345");
-    	start = System.currentTimeMillis();
-    	count = 0;
-    	for (int i = 0 ; i < counter ; i++) {
-    		if (rgMap.contains(rg)) {
-    			count++;
-    		}
-    	}
-    	System.out.println("2 set done in " + (System.currentTimeMillis() - start) + "ms with count: " + count);
-    	
-    	start = System.currentTimeMillis();
-    	count = 0;
-    	for (int i = 0 ; i < counter ; i++) {
-    		if (rgList.contains(rg)) {
-    			count++;
-    		}
-    	}
-    	System.out.println("2 list done in " + (System.currentTimeMillis() - start) + "ms with count: " + count);
+	    	String rg ="20150316155912345"; 	
+	    	List<String> rgList = new ArrayList<>(3);
+	    	rgList.add("20150316155612345");
+	    	rgList.add("20150316155912345");
+	    	
+	    	// perform a million contains and time
+	    	long start = System.currentTimeMillis();
+	    	int counter = 100000;
+	    	int count = 0;
+	    	for (int i = 0 ; i < counter ; i++) {
+	    		if (rgList.contains(rg)) {
+	    			count++;
+	    		}
+	    	}
+	    	System.out.println("2 list done in " + (System.currentTimeMillis() - start) + "ms with count: " + count);
+	    	
+	    	Set<String> rgMap = new HashSet<>(4);
+	    	rgMap.add("20150316155612345");
+	    	rgMap.add("20150316155912345");
+	    	start = System.currentTimeMillis();
+	    	count = 0;
+	    	for (int i = 0 ; i < counter ; i++) {
+	    		if (rgMap.contains(rg)) {
+	    			count++;
+	    		}
+	    	}
+	    	System.out.println("2 set done in " + (System.currentTimeMillis() - start) + "ms with count: " + count);
+	    	
+	    	start = System.currentTimeMillis();
+	    	count = 0;
+	    	for (int i = 0 ; i < counter ; i++) {
+	    		if (rgList.contains(rg)) {
+	    			count++;
+	    		}
+	    	}
+	    	System.out.println("2 list done in " + (System.currentTimeMillis() - start) + "ms with count: " + count);
     	
     }
     @Test
     public void testMapVsList5() {
-    	String rg ="20150316155912345"; 	
-    	String rg2 ="20150316155912345"; 	
-    	List<String> rgList = new ArrayList<>();
-    	rgList.add("20150316155612345");
-    	rgList.add("20150316155912345");
-    	rgList.add("20150316156912345");
-    	rgList.add("20150316157912345");
-    	rgList.add("20150316158912345");
+	    	String rg ="20150316155912345"; 	
+	    	List<String> rgList = new ArrayList<>(6);
+	    	rgList.add("20150316155612345");
+	    	rgList.add("20150316155912345");
+	    	rgList.add("20150316156912345");
+	    	rgList.add("20150316157912345");
+	    	rgList.add("20150316158912345");
+	    	
+	    	// perform a million contains and time
+	    	long start = System.currentTimeMillis();
+	    	int counter = 100000;
+	    	int count = 0;
+	    	for (int i = 0 ; i < counter ; i++) {
+	    		if (rgList.contains(rg)) {
+	    			count++;
+	    		}
+	    	}
+	    	System.out.println("5 list done in " + (System.currentTimeMillis() - start) + "ms with count: " + count);
     	
-    	// perform a million contains and time
-    	long start = System.currentTimeMillis();
-    	int counter = 10000000;
-    	int count = 0;
-    	for (int i = 0 ; i < counter ; i++) {
-    		if (rgList.contains(rg)) {
-    			count++;
-    		}
-    	}
-    	System.out.println("5 list done in " + (System.currentTimeMillis() - start) + "ms with count: " + count);
-    	
-    	Set<String> rgMap = new HashSet<>(8);
-    	rgMap.add("20150316155612345");
-    	rgMap.add("20150316155912345");
-    	rgMap.add("20150316156912345");
-    	rgMap.add("20150316157912345");
-    	rgMap.add("20150316158912345");
-    	start = System.currentTimeMillis();
-    	count = 0;
-    	for (int i = 0 ; i < counter ; i++) {
-    		if (rgMap.contains(rg)) {
-    			count++;
-    		}
-    	}
-    	System.out.println("5 set done in " + (System.currentTimeMillis() - start) + "ms with count: " + count);
-    	
-    	start = System.currentTimeMillis();
-    	count = 0;
-    	for (int i = 0 ; i < counter ; i++) {
-    		if (rgList.contains(rg)) {
-    			count++;
-    		}
-    	}
-    	System.out.println("5 list done in " + (System.currentTimeMillis() - start) + "ms with count: " + count);
+	    	Set<String> rgMap = new HashSet<>(8);
+	    	rgMap.add("20150316155612345");
+	    	rgMap.add("20150316155912345");
+	    	rgMap.add("20150316156912345");
+	    	rgMap.add("20150316157912345");
+	    	rgMap.add("20150316158912345");
+	    	start = System.currentTimeMillis();
+	    	count = 0;
+	    	for (int i = 0 ; i < counter ; i++) {
+	    		if (rgMap.contains(rg)) {
+	    			count++;
+	    		}
+	    	}
+	    	System.out.println("5 set done in " + (System.currentTimeMillis() - start) + "ms with count: " + count);
+	    	
+	    	start = System.currentTimeMillis();
+	    	count = 0;
+	    	for (int i = 0 ; i < counter ; i++) {
+	    		if (rgList.contains(rg)) {
+	    			count++;
+	    		}
+	    	}
+	    	System.out.println("5 list done in " + (System.currentTimeMillis() - start) + "ms with count: " + count);
     	
     }
 
