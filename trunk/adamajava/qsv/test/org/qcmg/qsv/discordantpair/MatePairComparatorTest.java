@@ -2,63 +2,57 @@ package org.qcmg.qsv.discordantpair;
 
 import static org.junit.Assert.assertEquals;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import htsjdk.samtools.SamReader;
 import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMFileHeader.SortOrder;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qsv.QSVException;
 import org.qcmg.qsv.discordantpair.MatePair;
-import org.qcmg.qsv.discordantpair.PairGroup;
 import org.qcmg.qsv.util.TestUtil;
 
 public class MatePairComparatorTest {
 	
 	private List<SAMRecord> records;
     private List<MatePair> pairs;
-    private String fileName;
 
     @Rule
     public TemporaryFolder testFolder = new TemporaryFolder();
 
     @Before
     public void before() throws IOException, QSVException {
-        records = new ArrayList<SAMRecord>();
         pairs = new ArrayList<MatePair>();
-        fileName = testFolder.newFile("test.bam").getCanonicalPath();
-        TestUtil.createSamFile(fileName, PairGroup.AAC, SortOrder.coordinate, false);
-        SamReader read = SAMFileReaderFactory.createSAMFileReader(new File(fileName));//new SAMFileReader(new File(fileName));
-        
-        for (SAMRecord r : read) {
-            records.add(r);
-        }
-        read.close();
+        records = TestUtil.getAACSAMRecords(TestUtil.SOLID_SAM_FILE_HEADER_QUERY_NAME_SORTED);
         
         for (int i=0; i<16; i+=2) {
-        	 pairs.add(new MatePair(records.get(i), records.get(i+1)));
-        	
+        		pairs.add(new MatePair(records.get(i), records.get(i+1)));
         }       
     }
+//    @Before
+//    public void before() throws IOException, QSVException {
+//    	records = new ArrayList<SAMRecord>();
+//    	pairs = new ArrayList<MatePair>();
+//    	fileName = testFolder.newFile("test.bam").getCanonicalPath();
+//    	TestUtil.createSamFile(fileName, PairGroup.AAC, SortOrder.coordinate, false);
+//    	SamReader read = SAMFileReaderFactory.createSAMFileReader(new File(fileName));//new SAMFileReader(new File(fileName));
+//    	
+//    	for (SAMRecord r : read) {
+//    		records.add(r);
+//    	}
+//    	read.close();
+//    	
+//    	for (int i=0; i<16; i+=2) {
+//    		pairs.add(new MatePair(records.get(i), records.get(i+1)));
+//    		
+//    	}       
+//    }
 
-    @After
-    public void after() throws IOException {
-        records.clear();
-        File file = new File(fileName);
-        if (file.exists()) {
-            file.delete();
-        }
-    }
 	
 	@Test
     public void testSortByLeftReadStartComparator() {	  

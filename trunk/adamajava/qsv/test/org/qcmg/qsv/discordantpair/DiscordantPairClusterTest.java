@@ -46,28 +46,28 @@ public class DiscordantPairClusterTest {
     
     @Test
     public void testFindLeftStartOfCluster() {    	
-    	cluster.findLeftStartOfCluster();
-    	assertEquals(140188227, cluster.getLeftStart());
+	    	cluster.findLeftStartOfCluster();
+	    	assertEquals(140188227, cluster.getLeftStart());
     }
     
     @Test
     public void testFindLeftEndOfCluster() {    	
-    	cluster.findLeftEndOfCluster();
-    	assertEquals(140189108, cluster.getLeftEnd());
+	    	cluster.findLeftEndOfCluster();
+	    	assertEquals(140189108, cluster.getLeftEnd());
     }
     
     @Test
     public void testFindRightStartOfCluster() {    	
-    	cluster.findRightStartOfCluster();
-    	assertEquals(140191044, cluster.getRightStart());
+	    	cluster.findRightStartOfCluster();
+	    	assertEquals(140191044, cluster.getRightStart());
     }
     
     @Test
     public void testStrandOrientations() {    	
-    	assertEquals("+/+", cluster.countStrandOrientations());
-    	
-    	assertEquals(2, cluster.getStrandOrientations().get("-/-").get());
-    	assertEquals(4, cluster.getStrandOrientations().get("+/+").get());
+	    	assertEquals("+/+", cluster.countStrandOrientations());
+	    	
+	    	assertEquals(2, cluster.getStrandOrientations().get("-/-").get());
+	    	assertEquals(4, cluster.getStrandOrientations().get("+/+").get());
     	
     }
     
@@ -83,33 +83,33 @@ public class DiscordantPairClusterTest {
     
     @Test
     public void getIndexOfPair() {
-    	MatePair m = new MatePair("1887_329_319:20110221052813657,chr7,140188962,140189009,AAC,113,true,1887_329_319:20110221052813657,chr7,140191372,140191421,AAC,177,true,R1R2");
-    	assertEquals(3, cluster.getIndexOfPair(m));    
+	    	MatePair m = new MatePair("1887_329_319:20110221052813657,chr7,140188962,140189009,AAC,113,true,1887_329_319:20110221052813657,chr7,140191372,140191421,AAC,177,true,R1R2");
+	    	assertEquals(3, cluster.getIndexOfPair(m));    
     }
     
     @Test
     public void testCopyAndOrderCurrentClusterPairs() {
-    	List<MatePair> mates = cluster.copyAndOrderCurrentClusterPairs();
-    	assertEquals(6, mates.size());
-    	assertEquals(140191044, mates.get(0).getRightMate().getStart());
+	    	List<MatePair> mates = cluster.copyAndOrderCurrentClusterPairs();
+	    	assertEquals(6, mates.size());
+	    	assertEquals(140191044, mates.get(0).getRightMate().getStart());
     }
     
     @Test
     public void testGetBreakpointsCategory() throws Exception {
-    	assertBreakpoints("AAC", "chr7", "chr7", "1", 140189108,140191044);
-    	assertBreakpoints("AAB", "chr7", "chr7", "2", 140188227,140191629);
-    	assertBreakpoints("AAB", "chr7", "chr7", "5", 140188227,140191629);
-    	assertBreakpoints("BAA", "chr7", "chr7", "3", 140189108,140191629);
-    	assertBreakpoints("BAA", "chr7", "chr7", "4", 140188227,140191044);
+	    	assertBreakpoints("AAC", "chr7", "chr7", "1", 140189108,140191044);
+	    	assertBreakpoints("AAB", "chr7", "chr7", "2", 140188227,140191629);
+	    	assertBreakpoints("AAB", "chr7", "chr7", "5", 140188227,140191629);
+	    	assertBreakpoints("BAA", "chr7", "chr7", "3", 140189108,140191629);
+	    	assertBreakpoints("BAA", "chr7", "chr7", "4", 140188227,140191044);
     }
 
 	private void assertBreakpoints(String pair, String chr1,
-			String chr2, String cat, int expectedLeft, int expectedRight) {
+		String chr2, String cat, int expectedLeft, int expectedRight) {
 		QPrimerCategory c = new QPrimerCategory("AAC", "chr7", "chr7", "id", "pe");
-    	c.setPrimaryCategoryNo(cat);
-    	cluster.setqPrimerCateory(c);    	
-    	assertEquals(expectedLeft, cluster.getLeftBreakPoint());
-    	assertEquals(expectedRight, cluster.getRightBreakPoint());		
+	    	c.setPrimaryCategoryNo(cat);
+	    	cluster.setqPrimerCateory(c);    	
+	    	assertEquals(expectedLeft, cluster.getLeftBreakPoint());
+	    	assertEquals(expectedRight, cluster.getRightBreakPoint());		
 	}
 	
 	@Test
@@ -129,9 +129,5 @@ public class DiscordantPairClusterTest {
 		assertEquals("1", cluster.getqPrimerCateory().getPrimaryCategoryNo());
 		assertEquals(8, cluster.getLowConfidenceNormalMatePairs());
 	}
-
-
-
-
 
 }

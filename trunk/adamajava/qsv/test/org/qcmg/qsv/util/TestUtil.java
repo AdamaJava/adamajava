@@ -4,7 +4,11 @@ import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMFileHeader.SortOrder;
 import htsjdk.samtools.SAMFileWriter;
 import htsjdk.samtools.SAMFileWriterFactory;
+import htsjdk.samtools.SAMReadGroupRecord;
 import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SAMRecordCoordinateComparator;
+import htsjdk.samtools.SAMSequenceDictionary;
+import htsjdk.samtools.SAMSequenceRecord;
 import htsjdk.samtools.SamReader;
 
 import java.io.BufferedReader;
@@ -14,11 +18,13 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.picard.SAMFileReaderFactory;
@@ -39,6 +45,9 @@ public class TestUtil {
 	
 	private static final String FILE_SEPERATOR = System.getProperty("file.separator");
 	private static String NEWLINE = System.getProperty("line.separator");
+	
+	public final static SAMFileHeader SOLID_SAM_FILE_HEADER_COORDINATE_SORTED = createSamHeaderObject(SortOrder.coordinate);
+	public final static SAMFileHeader SOLID_SAM_FILE_HEADER_QUERY_NAME_SORTED = createSamHeaderObject(SortOrder.queryname);
 
 	public static String[] getValidOptions(final TemporaryFolder testFolder,
             final String normalBam, final String tumorBam, final String preprocessMode,
@@ -77,7 +86,7 @@ public class TestUtil {
 			iniFile.delete();
 		}		
 		
-		BufferedWriter out = new BufferedWriter(new FileWriter(iniFile));
+		try (BufferedWriter out = new BufferedWriter(new FileWriter(iniFile))) {
 		out.write("[general]" + NEWLINE);
 		out.write("log=test.log" + NEWLINE);
 		out.write("loglevel=DEBUG" + NEWLINE);
@@ -143,12 +152,12 @@ public class TestUtil {
     	out.write("lower=640" + NEWLINE);
     	out.write("upper=2360" + NEWLINE + NEWLINE);   
     	out.write("name=seq_mapped_1" + NEWLINE);
-    	out.close();
+		}
 		return iniFile.getAbsolutePath();
 	}
 
 	public static DiscordantPairCluster setupSolidCluster(PairGroup zp, String clusterType, TemporaryFolder testfolder, String chr1, String chr2) throws IOException, Exception {
-		  List<MatePair> pairs = setupMatePairs(testfolder, zp);
+		  List<MatePair> pairs = setupMatePairs();
 		  String query = "Cigar_M > 35 and option_SM > 14 and MD_mismatch < 3 and Flag_DuplicateRead == false ";
 		  String tumourFile = testfolder.newFile("tumor.bam").getAbsolutePath();
 		  createBamFile(tumourFile, zp, SortOrder.coordinate);
@@ -163,8 +172,8 @@ public class TestUtil {
 	          cluster.getClusterMatePairs().add(p);
 	      }
 	      
-	      if (!clusterType.equals("somatic")) {
-	    	  cluster.getMatchedReadPairs().add(pairs.get(0));
+	      if ( ! clusterType.equals("somatic")) {
+	    	  	cluster.getMatchedReadPairs().add(pairs.get(0));
 	      }
 	      
 	      cluster.setClusterEnds();
@@ -174,28 +183,40 @@ public class TestUtil {
 	}
 
     
-    public static List<MatePair> setupMatePairs(TemporaryFolder testFolder, PairGroup pg) throws IOException, QSVException {
-    	List<SAMRecord> records = new ArrayList<SAMRecord>();
-        List<MatePair> pairs = new ArrayList<MatePair>();
-        String fileName = testFolder.newFile("test.bam").getCanonicalPath();
+    public static List<MatePair> setupMatePairs() throws QSVException {
+    		List<SAMRecord> records = getAACSAMRecords(SOLID_SAM_FILE_HEADER_QUERY_NAME_SORTED);
         
-        TestUtil.createBamFile(fileName, pg, SortOrder.queryname);
-        
-        SamReader read = SAMFileReaderFactory.createSAMFileReader(new File(fileName));
-        
-        for (SAMRecord r : read) {
-            records.add(r);
-        }
-        
-        pairs.add(new MatePair(records.get(0), records.get(1)));
-        pairs.add(new MatePair(records.get(2), records.get(3)));
-        pairs.add(new MatePair(records.get(4), records.get(5)));
-        pairs.add(new MatePair(records.get(6), records.get(7)));
-        pairs.add(new MatePair(records.get(8), records.get(9)));
-        pairs.add(new MatePair(records.get(10), records.get(11)));
-        read.close();
-        return pairs;
+        return Arrays.asList(
+        		new MatePair(records.get(0), records.get(1)),
+        		new MatePair(records.get(2), records.get(3)),
+        		new MatePair(records.get(4), records.get(5)),
+        		new MatePair(records.get(6), records.get(7)),
+        		new MatePair(records.get(8), records.get(9)),
+        		new MatePair(records.get(10), records.get(11))
+        		);
 	}
+//    public static List<MatePair> setupMatePairs(TemporaryFolder testFolder, PairGroup pg) throws IOException, QSVException {
+//    	List<SAMRecord> records = new ArrayList<>();
+//    	List<MatePair> pairs = new ArrayList<>();
+//    	String fileName = testFolder.newFile("test.bam").getCanonicalPath();
+//    	
+//    	TestUtil.createBamFile(fileName, pg, SortOrder.queryname);
+//    	
+//    	try (SamReader read = SAMFileReaderFactory.createSAMFileReader(new File(fileName))) {
+//    		
+//    		for (SAMRecord r : read) {
+//    			records.add(r);
+//    		}
+//    		
+//    		pairs.add(new MatePair(records.get(0), records.get(1)));
+//    		pairs.add(new MatePair(records.get(2), records.get(3)));
+//    		pairs.add(new MatePair(records.get(4), records.get(5)));
+//    		pairs.add(new MatePair(records.get(6), records.get(7)));
+//    		pairs.add(new MatePair(records.get(8), records.get(9)));
+//    		pairs.add(new MatePair(records.get(10), records.get(11)));
+//    	}
+//    	return pairs;
+//    }
     
 	public static QSVParameters getQSVParameters(final TemporaryFolder testFolder, final String normalBam, final String tumorBam,
             final boolean isTumor, final String analysisMode) throws Exception {
@@ -274,12 +295,12 @@ public class TestUtil {
     public static File createBamFile(final String inputFileName, PairGroup pg, SortOrder sort)
             throws IOException {
     
-    	String samFile = inputFileName.replace("bam", "sam");
-    	if (pg != null) {
-    		createSamFile(samFile, pg, sort, false);
-    	} else {
-    		createSamFile(samFile, sort, false);
-    	}
+	    	String samFile = inputFileName.replace("bam", "sam");
+	    	if (pg != null) {
+	    		createSamFile(samFile, pg, sort, false);
+	    	} else {
+	    		createSamFile(samFile, sort, false);
+	    	}
     	
         SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(samFile));
         SAMFileHeader header = reader.getFileHeader();
@@ -300,99 +321,154 @@ public class TestUtil {
     public static File createSamFile(final String inputFileName, SortOrder sort, boolean isHiseq)
             throws IOException {
     
-        final List<String> data = new ArrayList<String>();
+        final List<String> data = new ArrayList<>();
         // create sam header and records
-        if (!isHiseq) {
-        	data.addAll(createSamHeader(sort));
-        	data.addAll(createSamBody());
+        if ( ! isHiseq) {
+	        	data.addAll(createSamHeader(sort));
+	        	data.addAll(createSamBody());
         } else {
-        	data.addAll(createHiseqSamHeader(sort));
-        	data.addAll(createHiseqSamBody());
+	        	data.addAll(createHiseqSamHeader(sort));
+	        	data.addAll(createHiseqSamBody());
         }
-        BufferedWriter out;
-        out = new BufferedWriter(new FileWriter(inputFileName));
-        for (final String line : data) {
-            out.write(line + "" + NEWLINE);
+        try ( BufferedWriter out = new BufferedWriter(new FileWriter(inputFileName))) {
+	        for (final String line : data) {
+	            out.write(line + "" + NEWLINE);
+	        }
         }
-        out.close();
 		return new File(inputFileName);
     }
 	 
 	 private static Collection<? extends String> createHiseqSamBody() {
-		List<String> data = new ArrayList<String>();
-
-		data = createHiseqAACSamBody();
-         
-        
-        return data;
-
+        return createHiseqAACSamBody();
 	}
 
 	public static File createSamFile(final String inputFileName, PairGroup pg, SortOrder sort, boolean isHiseq)
 	            throws IOException {
-	        final List<String> data = new ArrayList<String>();
+	        final List<String> data = new ArrayList<>();
 	        // create sam header and records
-	        if (!isHiseq) {
-	        	data.addAll(createSamHeader(sort));
+	        if ( ! isHiseq) {
+	        		data.addAll(createSamHeader(sort));
 	        } else {
-	        	data.addAll(createHiseqSamHeader(sort));
+	        		data.addAll(createHiseqSamHeader(sort));
 	        }
 	        
-	        if (!isHiseq) {
+	        if ( ! isHiseq) {
 		        if (pg.equals(PairGroup.AAC)) {
-		        	data.addAll(createAACSamBody());	    
-		        } else if (pg.equals(PairGroup.Cxx)) {
-		        	data.addAll(createCxxSamBody());
-		        } else {
-		        	//throw new QSVException();
+		        		data.addAll(createAACSamBody());	    
 		        }
 	        } else {
-	        	if (pg.equals(PairGroup.AAC)) {
-		        	data.addAll(createHiseqAACSamBody());	    
-		        } else if (pg.equals(PairGroup.Cxx)) {
-		        	data.addAll(createCxxSamBody());
-		        } else {
-		        	//throw new QSVException();
-		        }
+		        	if (pg.equals(PairGroup.AAC)) {
+			        	data.addAll(createHiseqAACSamBody());	    
+			    }
 	        }
 	       
-	        BufferedWriter out;
-	        out = new BufferedWriter(new FileWriter(inputFileName));
-	        for (final String line : data) {
-	            out.write(line + "" + NEWLINE);
+	        try (BufferedWriter out = new BufferedWriter(new FileWriter(inputFileName))) {
+		        for (final String line : data) {
+		            out.write(line + NEWLINE);
+		        }
 	        }
-	        out.close();
 	        return new File(inputFileName);
 	 }
-	 
+	
+	 public static SAMFileHeader createHiseqSamHeaderObject(SortOrder sort) {
+		 SAMSequenceDictionary dict = new SAMSequenceDictionary(
+				 Arrays.asList(new SAMSequenceRecord("chr1",249250621),
+						 new SAMSequenceRecord("chr4",191154276),
+						 new SAMSequenceRecord("chr7",159138663),
+						 new SAMSequenceRecord("chrX",155270560),
+						 new SAMSequenceRecord("chrY",59373566),
+						 new SAMSequenceRecord("chr10",135534747),
+						 new SAMSequenceRecord("chr19",59128983),
+						 new SAMSequenceRecord("GL000191.1",106433),
+						 new SAMSequenceRecord("SN:GL000211.1",166566),
+						 new SAMSequenceRecord("chrMT",16569)));
+		 SAMFileHeader h = new SAMFileHeader();
+		 h.setSequenceDictionary(dict);
+		 h.setSortOrder(sort);
+		 
+		 
+		 SAMReadGroupRecord rg1 = new SAMReadGroupRecord("20110221052813657");
+		 rg1.setPlatform("ILLUMINA");
+		 rg1.setLibrary("Library_20120511_C	SM:Colo-829");
+		 SAMReadGroupRecord rg2 = new SAMReadGroupRecord("20110221052813667");
+		 rg2.setPlatform("ILLUMINA");
+		 rg2.setLibrary("Library_20120511_C	SM:Colo-829");
+		 
+		 h.setReadGroups(Arrays.asList(rg1, rg2));
+		 return h;
+	 }
 
-
-	private static Collection<String> createHiseqSamHeader(
-			SortOrder sort) {
-		 final List<String> data = new ArrayList<String>();
-	        data.add("@HD	VN:1.0	GO:none	SO:"+ sort.name());
-	        data.add("@SQ	SN:chr1	LN:249250621	");
-	        data.add("@SQ	SN:chr4	LN:191154276	");
-	        data.add("@SQ	SN:chr7	LN:159138663	");
-	        data.add("@SQ	SN:chrX	LN:155270560	");
-	        data.add("@SQ	SN:chrY	LN:59373566	");
-	        data.add("@SQ	SN:chr10	LN:135534747");	        
-	        data.add("@SQ	SN:chr19	LN:59128983	");
-	        data.add("@SQ	SN:GL000191.1	LN:106433	");
-	        data.add("@SQ	SN:GL000211.1	LN:166566	");
-	        data.add("@SQ	SN:chrMT	LN:16569	");
-	        data.add("@RG	ID:20110221052813657	PL:ILLUMINA	PU:lane_3	LB:Library_20120511_C	SM:Colo-829");
-	        data.add("@RG	ID:20120608103628549	PL:ILLUMINA	PU:lane_2	LB:Library_20120511_C	SM:Colo-829");
-	        return data;
+	private static Collection<String> createHiseqSamHeader(SortOrder sort) {
+		final List<String> data = new ArrayList<>();
+		data.add("@HD	VN:1.0	GO:none	SO:"+ sort.name());
+		data.add("@SQ	SN:chr1	LN:249250621	");
+		data.add("@SQ	SN:chr4	LN:191154276	");
+		data.add("@SQ	SN:chr7	LN:159138663	");
+		data.add("@SQ	SN:chrX	LN:155270560	");
+		data.add("@SQ	SN:chrY	LN:59373566	");
+		data.add("@SQ	SN:chr10	LN:135534747");	        
+		data.add("@SQ	SN:chr19	LN:59128983	");
+		data.add("@SQ	SN:GL000191.1	LN:106433	");
+		data.add("@SQ	SN:GL000211.1	LN:166566	");
+		data.add("@SQ	SN:chrMT	LN:16569	");
+		data.add("@RG	ID:20110221052813657	PL:ILLUMINA	PU:lane_3	LB:Library_20120511_C	SM:Colo-829");
+		data.add("@RG	ID:20120608103628549	PL:ILLUMINA	PU:lane_2	LB:Library_20120511_C	SM:Colo-829");
+		return data;
 	}
-
-	private static List<String> createCxxSamBody() {
-		 final List<String> data = new ArrayList<String>();
-         return data;
+	
+	
+	public static List<SAMRecord> getAACSAMRecords(SAMFileHeader h) {
+		String rg = "20110221052813657";
+		String zp = "AAC";
+		
+		SAMRecord s1 = getSAM(h, "254_166_1407", 129, "chr7",140188379,  63, "50M", "=", 140191044,  2715, "ACGGCTCATGTCTCCTTAGAATGTATAAAAGCAAGCTGTGCTCTGACCAC", "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIA", "40A9", rg,zp);
+		SAMRecord s2 = getSAM(h, "254_166_1407", 65, "chr7",140191044,  63, "50M", "=", 140188379,  -2715, "ACTCCATTTCTAGAAAAAAATTAGAAAATTAACTGGAACCAGGAGAGGTG", "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIHIIIIIII@", "18C31", rg,zp);
+		SAMRecord s3 = getSAM(h, "1789_1456_806",65,  "chr7",140191179, 69,  "50M", "=", 140188227,  -3002, "ATGGCAAAACCCTGTCTCATTCCTTCAATCCTAGCACTTTGGGAGGCTGA", "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII@", "50", rg,zp);
+		SAMRecord s4 = getSAM(h, "1789_1456_806", 129, "chr7",140188227, 69, "50M", "=", 140188227,  -3002, "ATGGCAAAACCCTGTCTCATTCCTTCAATCCTAGCACTTTGGGAGGCTGA", "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII@", "50", rg,zp);
+		SAMRecord s5 = getSAM(h,"515_451_1845",129,	"chr7",	140188449,	69,	"50M","=",	140191238,	2839,	"AACCTCCTGAGGCTGAGTACAGTGGCTTATGCCTGTAATCCCAGCACACT","IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIICGIIIIIADI4","50",rg,zp);
+		SAMRecord s6 = getSAM(h,"515_451_1845",	65	,"chr7",	140191238,	69,	"50M","=",	140188449,	-2839	,"GTCACTTGAGGTCAGTTCAAGACCAGCCTGGCCAACATAGTGAAACCCCC","IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIB","50",rg,zp);
+		SAMRecord s7 = getSAM(h,"1887_329_319",	113,	"chr7",	140188962,	61,	"2H48M","=",	140191372,	2462	,"TGGCCTTTAGAAGTAGGAGAAGTACAGAGTACTTTGCCATTTTAAGGC","IIIIIII72IICBIIII5AIIIDIII<28II''<IIIIIIIEDIIIII","48",rg,zp);
+		SAMRecord s8 = getSAM(h,"1887_329_319",	177,	"chr7",	140191372,	61,	"50M","=",	140188962,	-2462	,"AAGAAGCACATGAGGAGGCTGAAGCCCAAAAGAAAGATGAGGCAGAGGTC",";III%%III''IIIGIIII%%IIIIIIIIIIIIIIIIIIIIIIIIIIIII","50",rg,zp);
+		SAMRecord s9 = getSAM(h,"690_397_1054",	113,	"chr7",	140188962,	61,	"3H47M","=",	140191394,	2485	,"TGGCCTTTAGAAGTAGGAGAAGTACAGAGTACTTTGCCATTTTAAGG","IIIIIIII8IIIIIIIIIIIIIIIIIII<IIIE@IIIIIIIIIIIII","47",rg,zp);
+		SAMRecord s10 = getSAM(h,"690_397_1054",	177,	"chr7",	140191394,	61	,"50M","=",	140188962,	-2485	,"AGCCCAAAAGAAAGATGAGGCAGAGGTCCAAGTAAACCACTAGCTTGTTG","2IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII","50",rg,zp);
+		SAMRecord s11 = getSAM(h,"1822_622_784",	113,	"chr7",	140188994,	39	,"6H44M","=",	140191589,	2642	,"TTTGCCATTTTAAGGCCCGGAAAATGAGGTTGTCGAGTCATGCA","G@HIIIIIII>IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII","44",rg,zp);
+		SAMRecord s12 = getSAM(h,"1822_622_784",	177,	"chr7",	140191589,	39,	"9H41M","=",	140188994,	-2642	,"GACCCAAATTGGTAATAACCAAAACTGTCCATGTTGGTCCT","?:9=I'&&&IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII","6C0C33",rg,zp);
+		SAMRecord s13 = getSAM(h,"874_1001_370",	113,	"chr7",	140189005,	63,	"50M","=",	140191611,	2656	,"AAGGCCCGGAAAATGAGGTTGTCGAGTCATGCACAAATGTTGCCTGTAAT","BIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII","50",rg,zp);
+		SAMRecord s14 = getSAM(h,"874_1001_370",	177,	"chr7",	140191611,	63,	"50M","=",	140189005,	-2656	,"AACTGTCCATGTTGGTCCTTTGTCCAGGATCTGTGACATTCTGAACTATT",">IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII","25T24",rg,zp);
+		SAMRecord s15 = getSAM(h,"2134_481_267",	129,	"chr7",	140189059,	56,	"50M","=",	140191509,	2500	,"TAGCCCATAAGTGAGCTTGGAGCTTGAGGAATTTAAACTTCTGCTTTATT","IIIII%%<BI9:DIIIIIIIE5>II&&IIIIGIIII:CII20BIIICFI@","50",rg,zp);
+		SAMRecord s16 = getSAM(h,"2134_481_267",	65,	"chr7",	140191509,	56,	"50M","=",	140189059,	-2500	,"TTGGACTGCATGCTGCTGTCTAGAGCTTTCTCAATGGACCTGGAACTTTA","IIIIIIIIIIIIHIIIIIIIIIIIIIIIIIIIDHIII((III**IIIIIA","14A35",rg,zp);
+		
+		
+		if (h.getSortOrder().equals(SortOrder.coordinate)) {
+			List<SAMRecord> recs = Arrays.asList(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, s14, s15, s16);
+			recs.sort(new SAMRecordCoordinateComparator());
+			return recs;
+		} else {
+			return Arrays.asList(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, s14, s15, s16);
+		}
+	}
+	
+	private static SAMRecord getSAM(SAMFileHeader h, String readName,int flags, String chr, int pos, int mapQ, String cigar, String mRef, int mPos, int iSize, String bases, String quals, String md, String rg ,String zp) {
+		SAMRecord s1 = new SAMRecord(h);
+		s1.setAlignmentStart(pos);
+		s1.setCigarString(cigar);
+		s1.setBaseQualityString(quals);
+		s1.setFlags(flags);
+		s1.setMappingQuality(mapQ);
+		s1.setInferredInsertSize(iSize);
+		s1.setReadName(readName);
+		s1.setReferenceName(chr);
+		s1.setReadString(bases);
+		s1.setAttribute("MD", md);
+		s1.setAttribute("RG", rg);
+		s1.setAttribute("ZP", zp);
+		s1.setMateReferenceName(mRef);
+		s1.setMateAlignmentStart(mPos);
+		return s1;
 	}
 
 	public static List<String> createAACSamBody() {
-		final List<String> data = new ArrayList<String>();
+		final List<String> data = new ArrayList<>();
 		 
 	     data.add("254_166_1407	129	chr7	140188379	63	50M	=	140191044	2715	ACGGCTCATGTCTCCTTAGAATGTATAAAAGCAAGCTGTGCTCTGACCAC	IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIA	MD:Z:40A9	RG:Z:20110221052813657	NH:i:1	CM:i:2	NM:i:1	SM:i:97	ZP:Z:AAC	CQ:Z:@B3B?BBAAB@B<;@>B5B>AB@AAAB;@@BB:A@A<>B=B@66>B;;=A	CS:Z:G21303221311222020322031133300023102321113222121011");
 		 data.add("254_166_1407	65	chr7	140191044	63	50M	=	140188379	-2715	ACTCCATTTCTAGAAAAAAATTAGAAAATTAACTGGAACCAGGAGAGGTG	IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIHIIIIIII@	MD:Z:18C31	RG:Z:20110221052813657	NH:i:1	CM:i:2	NM:i:1	SM:i:97	ZP:Z:AAC	CQ:Z:BBBBBBBBABB>>7AA:@??B??;>@?>5>@@B@@?1:@?=81<::>=?@	CS:Z:T31220130022322000000303220003030121020101202222011");
@@ -415,7 +491,7 @@ public class TestUtil {
     }
 	
 	 private static List<String>  createHiseqAACSamBody() {
-		 final List<String> data = new ArrayList<String>();			 																												 												
+		 final List<String> data = new ArrayList<>();			 																												 												
 		 data.add("HWI-ST1240:47:D12NAACXX:7:1112:14008:49131	97	chr10	89700049	37	101M	=	89712348	12400	TAAAAAATAGCCGGGCATGGTGTCACGTGCCTGTAGTTCCAGCTGCTTGGGAGGCTGAGGTGGGAGGATTGCCAGAGCCTGGGAGGTTGAGGCTGCAGTGA	CCCFFFFFHHHHHJIJJJJJFHHIGIJIIIIIIGIJJJJJJJJJJIIJIIJIJJHHHHFF@DCDBDDDDDDDDDDDDDDDDDBBDD?BDDDDDDDBCA>AA	X0:i:1	X1:i:0	ZC:i:15	MD:Z:101	RG:Z:20110221052813657	XG:i:0	NH:i:1	AM:i:37	NM:i:0	SM:i:37	XM:i:0	XO:i:0	ZP:Z:AAC	XT:A:U");
 	     data.add("HWI-ST1240:47:D12NAACXX:7:1112:14008:49131	145	chr10	89712348	37	101M	=	89700049	-12400	CACCAGAGGAGTTCAGCAATTTGCTGCTCTTAGGGCAGGGATCAATTCCTTAATATCTTAGGAAGACTAGGTATTGACAGTAATGGTGACAAAGCAATGAA	CDDDEEECEEFFFFFFHHHGHJJJJJJIIJJJJJIJJJJJJJIJJJJIJJIIIGIIJJJJJJJJIIIJIJJJJIJIJJJJJJJJJJJIHHHHHFFFFFCCC	X0:i:1	X1:i:0	ZC:i:15	MD:Z:101	RG:Z:20110221052813657	XG:i:0	NH:i:1	AM:i:37	NM:i:0	SM:i:37	XM:i:0	XO:i:0	ZP:Z:AAC	XT:A:U");
 	     data.add("HWI-ST1240:47:D12NAACXX:4:1304:9295:38861	97	chr10	89700053	37	101M	=	89712340	12388	AAATAGCCGGGCATGGTGTCACGTGCCTGTAGTTCCAGCTGCTTGGGAGGCTGAGGTGGGAGGATTGCCAGAGCCTGGGAGGTTGAGGCTGCAGTGAGCCA	CCCFFFFFHGHHHJJJGIJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJCHHFFFDDDEDDDDDDDCDDDDDDDD<ACDDDDDDDDDCDDDDDD	X0:i:1	X1:i:0	ZC:i:8	MD:Z:101	RG:Z:20110221052813657	XG:i:0	NH:i:1	AM:i:37	NM:i:0	SM:i:37	XM:i:0	XO:i:0	ZP:Z:AAC	XT:A:U");
@@ -438,7 +514,7 @@ public class TestUtil {
 	 
 
 	 public static List<String> createSamBody(PairGroup pg) {
-	        final List<String> data = new ArrayList<String>();
+	        final List<String> data = new ArrayList<>();
 
 	        // mate pairs
 	        data.add("254_166_1407	129	chr7	140191044	63	50M	chr7	140188379	-2715	ACTCCATTTCTAGAAAAAAATTAGAAAATTAACTGGAACCAGGAGAGGTG	IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIHIIIIIII@	MD:Z:18C31	RG:Z:20110221052813657	NH:i:1	CM:i:2	NM:i:1	SM:i:97	ZP:Z:ABC	CQ:Z:BBBBBBBBABB>>7AA:@??B??;>@?>5>@@B@@?1:@?=81<::>=?@	CS:Z:T31220130022322000000303220003030121020101202222011");
@@ -467,8 +543,36 @@ public class TestUtil {
 	        return data;
 	    }
 
+	 public static SAMFileHeader createSamHeaderObject(SortOrder sort) {
+		 SAMSequenceDictionary dict = new SAMSequenceDictionary(
+				 Arrays.asList(new SAMSequenceRecord("chr1",249250621),
+						 new SAMSequenceRecord("chr4",191154276),
+						 new SAMSequenceRecord("chr7",159138663),
+						 new SAMSequenceRecord("chrX",155270560),
+						 new SAMSequenceRecord("chrY",59373566),
+						 new SAMSequenceRecord("chr19",59128983),
+						 new SAMSequenceRecord("GL000191.1",106433),
+						 new SAMSequenceRecord("SN:GL000211.1",166566),
+						 new SAMSequenceRecord("chrMT",16569)));
+		 SAMFileHeader h = new SAMFileHeader();
+		 h.setSequenceDictionary(dict);
+		 h.setSortOrder(sort);
+		 
+		 SAMReadGroupRecord rg1 = new SAMReadGroupRecord("20110221052813657");
+		 rg1.setPlatform("SOLiD");
+		 rg1.setLibrary("Library_20100702_A	PI:1355	DS:RUNTYPE{50x50MP}");
+		 rg1.setAttribute("ZC", "Z:1:S0049_20100000_1_LMP");
+		 SAMReadGroupRecord rg2 = new SAMReadGroupRecord("20110221052813667");
+		 rg2.setPlatform("SOLiD");
+		 rg2.setLibrary("Library_20100702_A	PI:1355	DS:RUNTYPE{50x50MP}");
+		 rg2.setAttribute("ZC", "Z:1:S0049_20100000_2_LMP");
+		 
+		 h.setReadGroups(Arrays.asList(rg1, rg2));
+		 return h;
+	 }
+
 		public static List<String> createSamHeader(SortOrder sort) {
-	        final List<String> data = new ArrayList<String>();
+	        final List<String> data = new ArrayList<>();
 	        data.add("@HD	VN:1.0	GO:none	SO:"+ sort.name());
 	        data.add("@SQ	SN:chr1	LN:249250621	");
 	        data.add("@SQ	SN:chr4	LN:191154276	");
@@ -486,7 +590,7 @@ public class TestUtil {
 	    }
 
 	    public static List<String> createSamBody() {
-	        final List<String> data = new ArrayList<String>();
+	        final List<String> data = new ArrayList<>();
 
 	        // mate pairs
 	        data.add("254_166_1407	129	chr7	140191044	63	50M	chr7	140188379	-2715	ACTCCATTTCTAGAAAAAAATTAGAAAATTAACTGGAACCAGGAGAGGTG	IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIHIIIIIII@	MD:Z:18C31	RG:Z:20110221052813657	NH:i:1	CM:i:2	NM:i:1	SM:i:97	ZP:Z:ABC	CQ:Z:BBBBBBBBABB>>7AA:@??B??;>@?>5>@@B@@?1:@?=81<::>=?@	CS:Z:T31220130022322000000303220003030121020101202222011");
@@ -514,13 +618,9 @@ public class TestUtil {
 	    }
 	    
 	    public static SAMFileHeader getSAMHeader(String file) throws IOException {
-			final List<String> data = new ArrayList<String>();
-	        // create sam header and records
-	        data.addAll(createSamHeader(SortOrder.unsorted));	     
-	       
-	        try (BufferedWriter out = new BufferedWriter(new FileWriter(file));) {
-		        for (final String line : data) {
-		            out.write(line + "" + NEWLINE);
+	        try (BufferedWriter out = new BufferedWriter(new FileWriter(file))) {
+		        for (final String line : createSamHeader(SortOrder.unsorted)) {
+		            out.write(line + NEWLINE);
 		        }
 	        }
 	        
@@ -537,7 +637,7 @@ public class TestUtil {
 			testDir.mkdir();
 			String outFile = testDir + FILE_SEPERATOR + fileName;
 			
-			try (BufferedWriter writer = new BufferedWriter(new FileWriter(new File(outFile)));) {
+			try (BufferedWriter writer = new BufferedWriter(new FileWriter(new File(outFile)))) {
 			
 				if (pc.equals(PairClassification.AAC)) {
 					writeAACPairs(writer);
@@ -558,7 +658,6 @@ public class TestUtil {
 			writer.write("1887_329_319:20110221052813657,chr7,140188962,140189009,AAC,113,true,1887_329_319:20110221052813657,chr7,140191372,140191421,AAC,177,true,R1R2" + NEWLINE);
 			writer.write("690_397_1054:20110221052813657,chr7,140188962,140189008,AAC,113,true,690_397_1054:20110221052813657,chr7,140191394,140191443,AAC,177,true,R1R2" + NEWLINE);
 			writer.write("1822_622_784:20110221052813657,chr7,140188994,140189037,AAC,113,true,1822_622_784:20110221052813657,chr7,140191589,140191629,AAC,177,true,R1R2" + NEWLINE);
-			//writer.write("1822_622_785:20110221052813657,chr7,140198994,140199037,AAC,113,R1R2,true,1822_622_784:20110221052813657,chr7,140201589,140120629,AAC,177,R2R1,true" + NEWLINE);
 		}
 		
 		public static void writeCxxPairs(BufferedWriter writer) throws IOException {
@@ -572,61 +671,56 @@ public class TestUtil {
 		}
 
 		public static List<MatePair> readInMatePairs(File matePairsFile) throws IOException {
-			List<MatePair> pairs = new ArrayList<MatePair>();
-			BufferedReader reader = new BufferedReader(new FileReader(matePairsFile));
-			
-			String line = reader.readLine();
-			
-			while (line != null) {
-				pairs.add(new MatePair(line));
-				
-				line = reader.readLine();
+			List<MatePair> pairs = new ArrayList<>();
+			try (BufferedReader reader = new BufferedReader(new FileReader(matePairsFile))) {
+				String line = reader.readLine();
+				while (line != null) {
+					pairs.add(new MatePair(line));
+					
+					line = reader.readLine();
+				}
 			}
-			
-			reader.close();
 			Collections.sort(pairs, new MatePair.ReadMateLeftStartComparator());
 			return pairs;
 		}
 
-		public static QSVCluster setupQSVCluster(PairGroup zp, String clusterType,TemporaryFolder testFolder, String chr1, String chr2, boolean isGermline, boolean isSingleSide) throws IOException, Exception {
-			DiscordantPairCluster cluster = setupSolidCluster(zp, clusterType, testFolder, chr1, chr2);
-			SoftClipCluster clip = setUpClipRecord(chr1, chr2, isGermline, isSingleSide);
-			
-			if (isSingleSide) {
-				QSVCluster record = new QSVCluster(clip, "test");
-				record.addQSVClipRecord(clip);
-				record.setGermline(isGermline);
-				return record;
-			} else {
-				QSVCluster record = new QSVCluster(cluster, false, "test");
-				record.addQSVClipRecord(clip);
-				record.setGermline(isGermline);
-				return record;
-			}			
-		}
+	public static QSVCluster setupQSVCluster(PairGroup zp, String clusterType,TemporaryFolder testFolder, String chr1, String chr2, boolean isGermline, boolean isSingleSide) throws IOException, Exception {
+		DiscordantPairCluster cluster = setupSolidCluster(zp, clusterType, testFolder, chr1, chr2);
+		SoftClipCluster clip = setUpClipRecord(chr1, chr2, isGermline, isSingleSide);
 		
-		
+		if (isSingleSide) {
+			QSVCluster record = new QSVCluster(clip, "test");
+			record.addQSVClipRecord(clip);
+			record.setGermline(isGermline);
+			return record;
+		} else {
+			QSVCluster record = new QSVCluster(cluster, false, "test");
+			record.addQSVClipRecord(clip);
+			record.setGermline(isGermline);
+			return record;
+		}			
+	}
 
 		public static SoftClipCluster setUpClipRecord(String chr1, String chr2, boolean isGermline, boolean isSingleSide) throws Exception {
-				if (isSingleSide) {
-					Breakpoint b = getBreakpoint(false, isGermline, 20, false);	
-			        String value2 = "46\t0\t0\t2\t0\t0\t0\t0\t-\tchr10-89700299-false-neg\t66\t0\t48\tchr10\t135534747\t89712340\t89712388\t1\t48,\t18,\t89712340,";
-					b.setMateBreakpoint(89712341);
-					b.setMateReference("chr10");
-					b.setMateStrand(QSVUtil.MINUS);
-					b.setBlatRecord(new BLATRecord(value2.split("\t")));
-					return new SoftClipCluster(b);
-				} else {
-					return new SoftClipCluster(getBreakpoint(true, isGermline, 20, false), getBreakpoint(false, isGermline, 20, false));
-				}						
-		}	
+			if (isSingleSide) {
+				Breakpoint b = getBreakpoint(false, isGermline, 20, false);	
+		        String value2 = "46\t0\t0\t2\t0\t0\t0\t0\t-\tchr10-89700299-false-neg\t66\t0\t48\tchr10\t135534747\t89712340\t89712388\t1\t48,\t18,\t89712340,";
+				b.setMateBreakpoint(89712341);
+				b.setMateReference("chr10");
+				b.setMateStrand(QSVUtil.MINUS);
+				b.setBlatRecord(new BLATRecord(value2.split("\t")));
+				return new SoftClipCluster(b);
+			} else {
+				return new SoftClipCluster(getBreakpoint(true, isGermline, 20, false), getBreakpoint(false, isGermline, 20, false));
+			}		
+		}
 
 		
 		public static Breakpoint getBreakpoint(boolean isLeft, boolean isGermline, int consensus, boolean nCount) throws Exception {
 			
 			Breakpoint breakpoint; 
 			
-			HashSet<Clip> clips;
+			Set<Clip> clips;
 			if (isLeft) {
 				clips = getLeftClips(nCount);	
 				breakpoint = new Breakpoint(89712341, "chr10", isLeft, consensus, 50);
@@ -638,18 +732,15 @@ public class TestUtil {
 			for (Clip c : clips) {
 				breakpoint.addTumourClip(c);
 			}
-//			breakpoint.setTumourClips(clips);
 			if (isGermline) {
 				if (isLeft) {
 					for (Clip c : getLeftClips(false)) {
 						breakpoint.addNormalClip(c);
 					}
-//					breakpoint.setNormalClips(getLeftClips(false));
 				} else {
 					for (Clip c : getRightClips(false)) {
 						breakpoint.addNormalClip(c);
 					}
-//					breakpoint.setNormalClips(getRightClips(false));
 				}
 			}	
 			breakpoint.defineBreakpoint(3, false, null);
@@ -668,11 +759,12 @@ public class TestUtil {
 			
 			return breakpoint;
 		}
+		
 		public static Breakpoint getBreakpointNoChr(boolean isLeft, boolean isGermline, int consensus, boolean nCount) throws Exception {
 			
 			Breakpoint breakpoint; 
 			
-			HashSet<Clip> clips;
+			Set<Clip> clips;
 			if (isLeft) {
 				clips = getLeftClips(nCount);	
 				breakpoint = new Breakpoint(89712341, "10", isLeft, consensus, 50);
@@ -684,18 +776,15 @@ public class TestUtil {
 			for (Clip c : clips) {
 				breakpoint.addTumourClip(c);
 			}
-//			breakpoint.setTumourClips(clips);
 			if (isGermline) {
 				if (isLeft) {
 					for (Clip c : getLeftClips(false)) {
 						breakpoint.addNormalClip(c);
 					}
-//					breakpoint.setNormalClips(getLeftClips(false));
 				} else {
 					for (Clip c : getRightClips(false)) {
 						breakpoint.addNormalClip(c);
 					}
-//					breakpoint.setNormalClips(getRightClips(false));
 				}
 			}	
 			breakpoint.defineBreakpoint(3, false, null);
@@ -717,7 +806,7 @@ public class TestUtil {
 
 
 		private static HashSet<Clip> getRightClips(boolean nClips) throws QSVException {
-			HashSet<Clip> clips = new HashSet<Clip>();
+			HashSet<Clip> clips = new HashSet<>();
 			clips.add(new Clip("HWI-ST1240:47:D12NAACXX:1:2307:8115:32717:20120608115535190,chr10,89700299,-,right,GCAAAGATCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAAGAGATTATACTTTGTGTAAGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAG," + (nClips ? "NNNNNNNNNNNNNNN" : "GAGATTATACTTTGTGTAAGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAG") + ",GCAAAGATCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAA"));
 			clips.add(new Clip("HWI-ST1240:47:D12NAACXX:6:2301:10241:71660:20120608110941621,chr10,89700299,-,right,ATAGGCAACAGATCGAGACCTTGTTTCACAAAACGAACAGATCTGCAAAGATCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAAGAGATTATACTTTG," + (nClips ? "NNNNNNNNNNNNNNN" : "GAGATTATACTTTG") + ",ATAGGCAACAGATCGAGACCTTGTTTCACAAAACGAACAGATCTGCAAAGATCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAA"));
 			clips.add(new Clip("HWI-ST1240:47:D12NAACXX:4:1110:20608:86188:20120608092353631,chr10,89700299,-,right,CAAAACGAACAGATCTGCAAAGATCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAAGAGATTATACTTTGTGTAAGAGGTCCACCAGAGGAGTTCAGC," + (nClips ? "NNNNNNNNNNNNNNN" : "GAGATTATACTTTGTGTAAGAGGTCCACCAGAGGAGTTCAGC") + ",CAAAACGAACAGATCTGCAAAGATCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAA"));
@@ -725,13 +814,6 @@ public class TestUtil {
 			clips.add(new Clip("HWI-ST1240:47:D12NAACXX:5:2113:4661:50103:20120607102754932,chr10,89700299,-,right,GATCGAGACCTTGTTTCACAAAACGAACAGATCTGCAAAGATCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAAGAGATTATACTTTGTGTAAGAGGT," + (nClips ? "NNNNNNNNNNNNNNN" : "GAGATTATACTTTGTGTAAGAGGT") + ",GATCGAGACCTTGTTTCACAAAACGAACAGATCTGCAAAGATCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAA"));
 			clips.add(new Clip("HWI-ST1240:47:D12NAACXX:4:1114:3101:51165:20120608092353631,chr10,89700299,-,right,TCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAAGAGATTATACTTTGTGTAAGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAGGGCAGGG," + (nClips ? "NNNNNNNNNNNNNNN" : "GAGATTATACTTTGTGTAAGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAGGGCAGGG") + ",TCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAA"));
 
-//			clips.add(new Clip("HWI-ST1240:47:D12NAACXX:1:2307:8115:32717:20120608115535190,chr10,89700299,-,right,GAGATTATACTTTGTGTAAGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAG"));
-//			clips.add(new Clip("HWI-ST1240:47:D12NAACXX:6:2301:10241:71660:20120608110941621,chr10,89700299,-,right,GAGATTATACTTTG"));
-//			clips.add(new Clip("HWI-ST1240:47:D12NAACXX:4:1110:20608:86188:20120608092353631,chr10,89700299,-,right,GAGATTATACTTTGTGTAAGAGGTCCACCAGAGGAGTTCAGC"));
-//			clips.add(new Clip("HWI-ST1240:47:D12NAACXX:1:1204:3577:34360:20120608115535190,chr10,89700299,-,right,GAGATTATACTTTGTGTAAGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGC"));
-//			clips.add(new Clip("HWI-ST1240:47:D12NAACXX:5:2113:4661:50103:20120607102754932,chr10,89700299,-,right,GAGATTATACTTTGTGTAAGAGGT"));
-//			clips.add(new Clip("HWI-ST1240:47:D12NAACXX:4:1114:3101:51165:20120608092353631,chr10,89700299,-,right,GAGATTATACTTTGTGTAAGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAGGGCAGGG"));
-			
 			return clips;
 		}
 		
@@ -771,55 +853,46 @@ public class TestUtil {
 			return null;
 		}
 
-		private static HashSet<Clip> getLeftClips(boolean nClips) throws QSVException {
-			HashSet<Clip> clips = new HashSet<Clip>();	
+		private static Set<Clip> getLeftClips(boolean nClips) throws QSVException {
+			Set<Clip> clips = new HashSet<>();	
 			clips.add(new Clip("HWI-ST1240:47:D12NAACXX:7:2210:12278:86346:20120608113919562,chr10,89712341,+,left,ACTTTGTGTAAGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAGGGCAGGGATCAATTCCTTAATATCTTAGGAAGACTAGGTATTGACAGTAAT," + (nClips ? "NNNNNNNNNNNNNNN" : "ACTTTGTGTA") + ",AGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAGGGCAGGGATCAATTCCTTAATATCTTAGGAAGACTAGGTATTGACAGTAAT"));
 			clips.add(new Clip("HWI-ST1240:47:D12NAACXX:5:2311:7722:24906:20120607102754932,chr10,89712341,+,left,TCTCTTTGTGTAAGAGATTATACTTTGTGTAAGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAGGGCAGGGATCAATTCCTTAATATCTTAGGA," + (nClips ? "NNNNNNNNNNNNNNN" : "TCTCTTTGTGTAAGAGATTATACTTTGTGTA") + ",AGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAGGGCAGGGATCAATTCCTTAATATCTTAGGA"));
 			clips.add(new Clip("HWI-ST1240:47:D12NAACXX:4:2105:19785:71299:20120608092353631,chr10,89712341,+,left,AAAGATCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAAGAGATTATACTTTGTGTAAGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAGGG," + (nClips ? "NNNNNNNNNNNNNNN" : "AAAGATCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAAGAGATTATACTTTGTGTA") + ",AGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAGGG"));
 			clips.add(new Clip("HWI-ST1240:47:D12NAACXX:7:2305:11547:56681:20120608113919562,chr10,89712341,+,left,ACTTTGTGTAAGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAGGGCAGGGATCAATTCCTTAATATCTTAGGAAGACTAGGTATTGACAGTAAT," + (nClips ? "NNNNNNNNNNNNNNN" : "ACTTTGTGTA") + ",AGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAGGGCAGGGATCAATTCCTTAATATCTTAGGAAGACTAGGTATTGACAGTAAT"));
 			clips.add(new Clip("HWI-ST1240:47:D12NAACXX:8:2107:14006:55890:20120608020343585,chr10,89712341,+,left,TGTAAGAGATTATACTTTGTGTAAGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAGGGCAGGGATCAATTCCTTAATATCTTAGGAAGACTAGG," + (nClips ? "NNNNNNNNNNNNNNN" : "TGTAAGAGATTATACTTTGTGTA") + ",AGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAGGGCAGGGATCAATTCCTTAATATCTTAGGAAGACTAGG"));
 
-//			clips.add(new Clip("HWI-ST1240:47:D12NAACXX:7:2210:12278:86346:20120608113919562,chr10,89712341,+,left,ACTTTGTGTA"));
-//			clips.add(new Clip("HWI-ST1240:47:D12NAACXX:5:2311:7722:24906:20120607102754932,chr10,89712341,+,left,TCTCTTTGTGTAAGAGATTATACTTTGTGTA"));
-//			clips.add(new Clip("HWI-ST1240:47:D12NAACXX:4:2105:19785:71299:20120608092353631,chr10,89712341,+,left,AAAGATCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAAGAGATTATACTTTGTGTA"));
-//			clips.add(new Clip("HWI-ST1240:47:D12NAACXX:7:2305:11547:56681:20120608113919562,chr10,89712341,+,left,ACTTTGTGTA"));
-//			clips.add(new Clip("HWI-ST1240:47:D12NAACXX:8:2107:14006:55890:20120608020343585,chr10,89712341,+,left,TGTAAGAGATTATACTTTGTGTA"));
 			return clips;
 		}
 
-		public static DiscordantPairCluster setupHiseqCluster(String clusterType, TemporaryFolder testFolder, String qPrimerCategory) throws IOException, Exception {
-			  List<MatePair> pairs = new ArrayList<MatePair>();
-		      pairs.add(new MatePair("HWI-ST1240:47:D12NAACXX:7:1112:14008:49131:20120608113919562,chr10,89700049,89700149,AAC,97,false,HWI-ST1240:47:D12NAACXX:7:1112:14008:49131:20120608113919562,chr10,89712348,89712448,AAC,145,true,F1R2"));
-		      pairs.add(new MatePair("HWI-ST1240:47:D12NAACXX:4:1304:9295:38861:20120608092353631,chr10,89700053,89700153,AAC,97,false,HWI-ST1240:47:D12NAACXX:4:1304:9295:38861:20120608092353631,chr10,89712340,89712440,AAC,145,true,F1R2"));
-		      pairs.add(new MatePair("HWI-ST1240:47:D12NAACXX:7:1309:3779:55661:20120608113919562,chr10,89700060,89700160,AAC,97,false,HWI-ST1240:47:D12NAACXX:7:1309:3779:55661:20120608113919562,chr10,89712340,89712440,AAC,145,true,F1R2"));
-		      pairs.add(new MatePair("HWI-ST1240:47:D12NAACXX:6:2109:5161:48848:20120608110941621,chr10,89700064,89700164,AAC,97,false,HWI-ST1240:47:D12NAACXX:6:2109:5161:48848:20120608110941621,chr10,89712346,89712446,AAC,145,true,F1R2"));
-		      pairs.add(new MatePair("HWI-ST1240:47:D12NAACXX:8:1109:11792:69957:20120608020343585,chr10,89700200,89700300,AAC,161,false,HWI-ST1240:47:D12NAACXX:8:1109:11792:69957:20120608020343585,chr10,89712446,89712546,AAC,81,true,F2R1"));
-		      String tumourFile = testFolder.newFile("tumor.bam").getAbsolutePath();
-			  createHiseqBamFile(tumourFile, PairGroup.AAC, SortOrder.coordinate);
-			  String normalFile = testFolder.newFile("normal.bam").getAbsolutePath();
-			  createHiseqBamFile(normalFile, PairGroup.AAC, SortOrder.coordinate);
-		      QSVParameters tumor = TestUtil.getQSVParameters(testFolder, tumourFile, normalFile, true, "both", "both");
-		      QSVParameters normal = TestUtil.getQSVParameters(testFolder, tumourFile, normalFile, false, "both", "both");    
-		      String query = "Cigar_M > 35 and option_SM > 14 and MD_mismatch < 3 and Flag_DuplicateRead == false ";
-		      DiscordantPairCluster cluster = new DiscordantPairCluster("chr10", "chr10", "AAC", tumor, true);	      
-		
-		      for (MatePair p : pairs) {
-		          cluster.getClusterMatePairs().add(p);
-		      }
-		      
-		      if (!clusterType.equals("somatic")) {
-		    	  cluster.getMatchedReadPairs().add(pairs.get(0));
-		      }
+	public static DiscordantPairCluster setupHiseqCluster(String clusterType, TemporaryFolder testFolder, String qPrimerCategory) throws IOException, Exception {
+		  List<MatePair> pairs = new ArrayList<>();
+	      pairs.add(new MatePair("HWI-ST1240:47:D12NAACXX:7:1112:14008:49131:20120608113919562,chr10,89700049,89700149,AAC,97,false,HWI-ST1240:47:D12NAACXX:7:1112:14008:49131:20120608113919562,chr10,89712348,89712448,AAC,145,true,F1R2"));
+	      pairs.add(new MatePair("HWI-ST1240:47:D12NAACXX:4:1304:9295:38861:20120608092353631,chr10,89700053,89700153,AAC,97,false,HWI-ST1240:47:D12NAACXX:4:1304:9295:38861:20120608092353631,chr10,89712340,89712440,AAC,145,true,F1R2"));
+	      pairs.add(new MatePair("HWI-ST1240:47:D12NAACXX:7:1309:3779:55661:20120608113919562,chr10,89700060,89700160,AAC,97,false,HWI-ST1240:47:D12NAACXX:7:1309:3779:55661:20120608113919562,chr10,89712340,89712440,AAC,145,true,F1R2"));
+	      pairs.add(new MatePair("HWI-ST1240:47:D12NAACXX:6:2109:5161:48848:20120608110941621,chr10,89700064,89700164,AAC,97,false,HWI-ST1240:47:D12NAACXX:6:2109:5161:48848:20120608110941621,chr10,89712346,89712446,AAC,145,true,F1R2"));
+	      pairs.add(new MatePair("HWI-ST1240:47:D12NAACXX:8:1109:11792:69957:20120608020343585,chr10,89700200,89700300,AAC,161,false,HWI-ST1240:47:D12NAACXX:8:1109:11792:69957:20120608020343585,chr10,89712446,89712546,AAC,81,true,F2R1"));
+	      String tumourFile = testFolder.newFile("tumor.bam").getAbsolutePath();
+		  createHiseqBamFile(tumourFile, PairGroup.AAC, SortOrder.coordinate);
+		  String normalFile = testFolder.newFile("normal.bam").getAbsolutePath();
+		  createHiseqBamFile(normalFile, PairGroup.AAC, SortOrder.coordinate);
+	      QSVParameters tumor = TestUtil.getQSVParameters(testFolder, tumourFile, normalFile, true, "both", "both");
+	      QSVParameters normal = TestUtil.getQSVParameters(testFolder, tumourFile, normalFile, false, "both", "both");    
+	      String query = "Cigar_M > 35 and option_SM > 14 and MD_mismatch < 3 and Flag_DuplicateRead == false ";
+	      DiscordantPairCluster cluster = new DiscordantPairCluster("chr10", "chr10", "AAC", tumor, true);	      
+	
+	      for (MatePair p : pairs) {
+	          cluster.getClusterMatePairs().add(p);
+	      }
+	      
+	      if ( ! clusterType.equals("somatic")) {
+	    	  	cluster.getMatchedReadPairs().add(pairs.get(0));
+	      }
 //		      
-		      cluster.setClusterEnds();
-		      cluster.setNormalRange(3000);
-		      cluster.finalize(tumor, normal, clusterType, 1, query, "pe", true);
-		      cluster.getqPrimerCateory().setPrimaryCategoryNo(qPrimerCategory);
-		      return cluster;
-		}
-
-
-
-
+	      cluster.setClusterEnds();
+	      cluster.setNormalRange(3000);
+	      cluster.finalize(tumor, normal, clusterType, 1, query, "pe", true);
+	      cluster.getqPrimerCateory().setPrimaryCategoryNo(qPrimerCategory);
+	      return cluster;
+	}
 
 }

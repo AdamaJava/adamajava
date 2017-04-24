@@ -4,7 +4,8 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -31,8 +32,8 @@ import org.qcmg.qsv.util.TestUtil;
 public class FindDiscorantPairClustersMTTest {
 
 	private static final String FILE_SEPERATOR = System.getProperty("file.separator");
-	private File tumorBam;
-	private File normalBam;
+	private  File tumorBam;
+	private  File normalBam;
 	private MatePairsReader findReader;
 	private MatePairsReader compareReader;
 	private FindDiscordantPairClustersMT findClusters = null;
@@ -45,13 +46,15 @@ public class FindDiscorantPairClustersMTTest {
 
 	@Rule
 	public TemporaryFolder testFolder = new TemporaryFolder();
-
-
+	
 	@Before
 	public void setUp() throws Exception {
-		tumorBam = TestUtil.createBamFile(testFolder.newFile("tumor.bam").getAbsolutePath(), PairGroup.AAC, SortOrder.coordinate);
-		normalBam = TestUtil.createBamFile(testFolder.newFile("normal.bam").getAbsolutePath(), PairGroup.AAC, SortOrder.coordinate);
-
+		if (null == tumorBam) {
+			tumorBam = TestUtil.createBamFile(testFolder.newFile("tumor.bam").getAbsolutePath(), PairGroup.AAC, SortOrder.coordinate);
+		}
+		if (null == normalBam) {
+			normalBam = TestUtil.createBamFile(testFolder.newFile("normal.bam").getAbsolutePath(), PairGroup.AAC, SortOrder.coordinate);
+		}
 		tumor = TestUtil.getQSVParameters(testFolder, normalBam.getAbsolutePath(), tumorBam.getAbsolutePath(), true, "pair");
 		normal = TestUtil.getQSVParameters(testFolder, normalBam.getAbsolutePath(), tumorBam.getAbsolutePath(), false, "pair"); 
 		matePairDir = testFolder.newFolder("matepair"); 
@@ -156,11 +159,7 @@ public class FindDiscorantPairClustersMTTest {
 		TestUtil.createTmpClusterFile(matePairDir.getAbsolutePath() + FILE_SEPERATOR, PairClassification.AAC, "chr7_test_ND_AAC");
 		findClusters = new FindDiscordantPairClustersMT(PairGroup.AAC, countDownLatch, findReader, compareReader, tumor, normal, countReport, "", true); 
 		List<MatePair> pairs = TestUtil.readInMatePairs(new File(matePairDir.getAbsolutePath() + FILE_SEPERATOR + "AAC" + FILE_SEPERATOR + "chr7_test_ND_AAC"));
-		List<DiscordantPairCluster> records = new ArrayList<DiscordantPairCluster>();
-		DiscordantPairCluster cluster = TestUtil.setupSolidCluster(PairGroup.AAC, "somatic", testFolder, "chr7", "chr7");
-		records.add(cluster);
-		findClusters.classifyClusters(records, pairs);
-//		findClusters.classifyClusters(records, pairs, "type");
+		findClusters.classifyClusters(Arrays.asList(TestUtil.setupSolidCluster(PairGroup.AAC, "somatic", testFolder, "chr7", "chr7")), pairs);
 
 		assertEquals(1, findClusters.getClustersMap().get("germline").size());	
 	}
@@ -169,24 +168,8 @@ public class FindDiscorantPairClustersMTTest {
 	public void testClassifySomaticCluster() throws IOException, Exception {
 		TestUtil.createTmpClusterFile(matePairDir.getAbsolutePath() + FILE_SEPERATOR, PairClassification.AAC, "chr7_test_ND_AAC");
 		findClusters = new FindDiscordantPairClustersMT(PairGroup.AAC, countDownLatch, findReader, compareReader, tumor, normal, countReport, query, true); 
-		List<MatePair> pairs = TestUtil.readInMatePairs(new File(matePairDir.getAbsolutePath() + FILE_SEPERATOR + "AAC" + FILE_SEPERATOR + "chr7_test_ND_AAC"));
 
-		List<MatePair> pairs2 = new ArrayList<MatePair>();
-		//    	MatePair p = pairs.get(0);
-		MatePair mp = new MatePair("722_126_792:20110412030837875,chr4,100,200,Cxx,129,false,722_126_792:20110412030837875,chr15,300,400,Cxx,65,false,F2F1\n");
-		//    	p.getLeftMate().setStart(100);
-		//    	p.getLeftMate().setEnd(200);
-		//    	p.getRightMate().setStart(300);
-		//    	p.getRightMate().setEnd(400);
-		//    	pairs2.add(p);
-		pairs2.add(mp);
-
-		List<DiscordantPairCluster> records = new ArrayList<DiscordantPairCluster>();
-		DiscordantPairCluster cluster = TestUtil.setupSolidCluster(PairGroup.AAC, "somatic", testFolder, "chr7", "chr7");
-		records.add(cluster);
-		findClusters.classifyClusters(records, pairs2);
-//		findClusters.classifyClusters(records, pairs2, "type");
-
+		findClusters.classifyClusters(Arrays.asList(TestUtil.setupSolidCluster(PairGroup.AAC, "somatic", testFolder, "chr7", "chr7")), Arrays.asList(new MatePair("722_126_792:20110412030837875,chr4,100,200,Cxx,129,false,722_126_792:20110412030837875,chr15,300,400,Cxx,65,false,F2F1\n")));
 		assertEquals(1, findClusters.getClustersMap().get("somatic").size());	
 	}
 
@@ -195,11 +178,7 @@ public class FindDiscorantPairClustersMTTest {
 		TestUtil.createTmpClusterFile(matePairDir.getAbsolutePath() + FILE_SEPERATOR, PairClassification.AAC, "chr7_test_ND_AAC");
 		findClusters = new FindDiscordantPairClustersMT(PairGroup.AAC, countDownLatch, compareReader, findReader, normal, tumor, countReport, query, true); 
 
-		List<DiscordantPairCluster> records = new ArrayList<DiscordantPairCluster>();
-		DiscordantPairCluster cluster = TestUtil.setupSolidCluster(PairGroup.AAC, "somatic", testFolder, "chr7", "chr7");
-		records.add(cluster);
-		findClusters.classifyClusters(records, new ArrayList<MatePair>());
-//		findClusters.classifyClusters(records, new ArrayList<MatePair>(), "type");
+		findClusters.classifyClusters(Arrays.asList(TestUtil.setupSolidCluster(PairGroup.AAC, "somatic", testFolder, "chr7", "chr7")), Collections.emptyList());
 
 		assertEquals(1, findClusters.getClustersMap().get("normal-germline").size());	
 	}
@@ -297,22 +276,6 @@ public class FindDiscorantPairClustersMTTest {
 		for (Entry<String, List<DiscordantPairCluster>> entry : tClusters.entrySet()) {
 			System.out.println("entry key: " + entry.getKey() + ", no of DiscordantPairClusters: " + entry.getValue().size());
 		}
-		
 	}
-
-	//    @Test
-	//    public void isGermlineMatchNormal() {
-	//    	
-	//    		MatePair mp = new MatePair("254_166_1407:20110221052813657,chr7,1000,1100,AAC,129,false,254_166_1407:20110221052813657,chr7,5000,5150,AAC,65,false,F2F1,\n");
-	//    		assertEquals(true, FindDiscordantPairClustersMT.isGermlineMatchNormal(0, 2000, 3000, 6000, mp));
-	//    		assertEquals(true, FindDiscordantPairClustersMT.isGermlineMatchNormal(0, 1000, 3000, 6000, mp));
-	//    		assertEquals(true, FindDiscordantPairClustersMT.isGermlineMatchNormal(0, 1000, 1000, 6000, mp));
-	//    		assertEquals(true, FindDiscordantPairClustersMT.isGermlineMatchNormal(0, 1000, 5149, 6000, mp));
-	//    		assertEquals(true, FindDiscordantPairClustersMT.isGermlineMatchNormal(1000, 1100, 5000, 5150, mp));
-	//    		
-	//    		assertEquals(false, FindDiscordantPairClustersMT.isGermlineMatchNormal(1001, 1099, 5000, 5150, mp));
-	//    		assertEquals(false, FindDiscordantPairClustersMT.isGermlineMatchNormal(0, 999, 1000, 6000, mp));
-	//    		assertEquals(false, FindDiscordantPairClustersMT.isGermlineMatchNormal(0, 1000, 6000, 6001, mp));
-	//    }
 
 }
