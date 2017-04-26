@@ -82,8 +82,8 @@ public class QSVPipeline {
 		this.options = options;        
 		this.analysisDate = analysisDate;
 		this.analysisId = analysisId;
-		this.tumorRecords = new TreeMap<PairGroup, Map<String, List<DiscordantPairCluster>>>();
-		this.normalRecords = new TreeMap<PairGroup, Map<String, List<DiscordantPairCluster>>>();
+		this.tumorRecords = new TreeMap<>();
+		this.normalRecords = new TreeMap<>();
 		this.resultsDir = resultsDir;
 
 		//copy ini file to output directory
@@ -138,39 +138,8 @@ public class QSVPipeline {
 	 * Set qsv parameters with 2 input files - carry out in two separate threads in case isize needs to be calculated
 	 */
 	private void setQSVParameters(String resultsDir) throws Exception {
-
 		tumor = new QSVParameters(options, true, resultsDir, matePairDir, analysisDate, options.getSampleName());
 		normal = new QSVParameters(options, false, resultsDir, matePairDir, analysisDate, options.getSampleName());
-
-		//		ExecutorService executorService = Executors.newFixedThreadPool(2);
-		//		CountDownLatch countDownLatch = new CountDownLatch(2);
-		//
-		//		Callable<QSVParameters> tumourWorker = new CreateParametersCallable(countDownLatch,options, true, resultsDir, matePairDir, analysisDate, options.getSampleName());
-		//		Callable<QSVParameters> normalWorker = new CreateParametersCallable(countDownLatch,options, false, resultsDir, matePairDir, analysisDate, options.getSampleName());
-		//
-		//		Future<QSVParameters> tumourFuture = executorService
-		//				.submit(tumourWorker);
-		//		Future<QSVParameters> normalFuture = executorService
-		//				.submit(normalWorker);
-		//		executorService.shutdown();
-		//
-		//		try {
-		//			countDownLatch.await();
-		//			tumor = tumourFuture.get();
-		//			normal = normalFuture.get();
-		//		} catch (InterruptedException e) {
-		//			logger.debug("Thread interrupted while getting qsv parameters");
-		//            exitStatus.set(1);
-		//            Thread.currentThread().interrupt();
-		//		} catch (ExecutionException e) {
-		//			logger.debug("Thread interrupted while getting qsv parameters");
-		//            exitStatus.set(1);
-		//            Thread.currentThread().interrupt();
-		//		}
-		//		
-		//		if (exitStatus.intValue() == 1 || ((CreateParametersCallable) tumourWorker).getExitStatus() == 1 ||((CreateParametersCallable) normalWorker).getExitStatus() == 1) {
-		//			throw new QSVException ("QSV_PARAMETER_EXCEPTION");
-		//		}		
 	}
 
 	/*

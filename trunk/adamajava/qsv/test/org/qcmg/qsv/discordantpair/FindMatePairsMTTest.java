@@ -43,27 +43,20 @@ public class FindMatePairsMTTest {
 
     @Before
     public void setUp() throws Exception {
-    	File tumorBam = TestUtil.createSamFile(testFolder.newFile("tumor.bam").getAbsolutePath(), SortOrder.queryname, false);
+    		File tumorBam = TestUtil.createSamFile(testFolder.newFile("tumor.bam").getAbsolutePath(), SortOrder.queryname, false);
         File normalBam = TestUtil.createSamFile(testFolder.newFile("normal.bam").getAbsolutePath(), SortOrder.queryname, false);
         QSVParameters p = TestUtil.getQSVParameters(testFolder, normalBam.getAbsolutePath(), tumorBam.getAbsolutePath(), true, "none", "pair");
         matePairDir = testFolder.getRoot().getAbsolutePath() + FILE_SEPERATOR + "matepair" + FILE_SEPERATOR;        
         
         findMatePairs = new FindMatePairsMT(Thread.currentThread(), countDownLatch, p, new AtomicInteger(), "test", matePairDir, true);
 
-        File file = testFolder.newFile("testSamFile");
-        TestUtil.createSamFile(file.getAbsolutePath(), SortOrder.queryname, false);
-        SamReader reader = SAMFileReaderFactory.createSAMFileReader(file);//new SAMFileReader(file);
-
-        for (SAMRecord r : reader) {
-            records.add(r);
-        }
-        reader.close();
+        records = TestUtil.createSamBodyRecords(SortOrder.unsorted);
+        
     }
 
     @After
     public void tearDown() {
         findMatePairs = null;
-        records = null;
         matePairDir = null;
     }
 

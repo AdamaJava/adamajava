@@ -7,6 +7,7 @@ import htsjdk.samtools.SAMFileWriterFactory;
 import htsjdk.samtools.SAMReadGroupRecord;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMRecordCoordinateComparator;
+import htsjdk.samtools.SAMRecordQueryNameComparator;
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.SAMSequenceRecord;
 import htsjdk.samtools.SamReader;
@@ -157,7 +158,7 @@ public class TestUtil {
 	}
 
 	public static DiscordantPairCluster setupSolidCluster(PairGroup zp, String clusterType, TemporaryFolder testfolder, String chr1, String chr2) throws IOException, Exception {
-		  List<MatePair> pairs = setupMatePairs();
+		  List<MatePair> pairs = setupMatePairs(testfolder, zp);
 		  String query = "Cigar_M > 35 and option_SM > 14 and MD_mismatch < 3 and Flag_DuplicateRead == false ";
 		  String tumourFile = testfolder.newFile("tumor.bam").getAbsolutePath();
 		  createBamFile(tumourFile, zp, SortOrder.coordinate);
@@ -183,8 +184,8 @@ public class TestUtil {
 	}
 
     
-    public static List<MatePair> setupMatePairs() throws QSVException {
-    		List<SAMRecord> records = getAACSAMRecords(SOLID_SAM_FILE_HEADER_QUERY_NAME_SORTED);
+    public static List<MatePair> setupMatePairs(TemporaryFolder testFolder, PairGroup pg) throws QSVException {
+    		List<SAMRecord> records = getAACSAMRecords(SortOrder.unsorted);
         
         return Arrays.asList(
         		new MatePair(records.get(0), records.get(1)),
@@ -292,31 +293,67 @@ public class TestUtil {
 		return new File(inputFileName);
 	}
     
-    public static File createBamFile(final String inputFileName, PairGroup pg, SortOrder sort)
-            throws IOException {
+    public static File createBamFile(final String inputFileName, PairGroup pg, SortOrder sort) throws IOException {
     
-	    	String samFile = inputFileName.replace("bam", "sam");
 	    	if (pg != null) {
-	    		createSamFile(samFile, pg, sort, false);
+//	    		createSamFile(samFile, pg, sort, false);
+	    		SAMFileHeader h = sort == SortOrder.coordinate ? SOLID_SAM_FILE_HEADER_COORDINATE_SORTED : SOLID_SAM_FILE_HEADER_QUERY_NAME_SORTED;
+	    		List<SAMRecord> recs = getAACSAMRecords(sort);
+	    		
+	    		SAMFileWriterFactory factory = new SAMFileWriterFactory();
+	    		factory.setCreateIndex(true);
+	    		try (SAMFileWriter writer = factory.makeBAMWriter(h, false, new File(inputFileName))) {
+	    		
+		    		for (SAMRecord r: recs) {
+//		    			System.out.println("r zp tag: " + r.getAttribute("ZP"));
+//		    			System.out.println("mate ref: " + r.getMateReferenceName());
+		    			writer.addAlignment(r);
+		    		}
+	    		}
 	    	} else {
-	    		createSamFile(samFile, sort, false);
-	    	}
-    	
-        SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(samFile));
-        SAMFileHeader header = reader.getFileHeader();
-        
-		SAMFileWriterFactory factory = new SAMFileWriterFactory();
-		factory.setCreateIndex(true);
-		SAMFileWriter writer = factory.makeBAMWriter(header, false, new File(inputFileName));
-		
-		for (SAMRecord r: reader) {
-			writer.addAlignment(r);
-		}
-		reader.close();
-		writer.close();
+//	    		String samFile = inputFileName.replace("bam", "sam");
+//	    		createSamFile(samFile, sort, false);
+	    		List<SAMRecord> recs = createSamBodyRecords(sort);
+	    		SAMFileHeader h = sort == SortOrder.coordinate ? SOLID_SAM_FILE_HEADER_COORDINATE_SORTED : SOLID_SAM_FILE_HEADER_QUERY_NAME_SORTED;
+//	        try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(samFile))) {
+//		        SAMFileHeader header = reader.getFileHeader();
+				SAMFileWriterFactory factory = new SAMFileWriterFactory();
+				factory.setCreateIndex(true);
+				try (SAMFileWriter writer = factory.makeBAMWriter(h, false, new File(inputFileName))) {
+					for (SAMRecord r: recs) {
+						writer.addAlignment(r);
+					}
+				}
+//	        }
+	    }
         
 		return new File(inputFileName);
     }
+//    public static File createBamFile(final String inputFileName, PairGroup pg, SortOrder sort)
+//    		throws IOException {
+//    	
+//    	String samFile = inputFileName.replace("bam", "sam");
+//    	if (pg != null) {
+//    		createSamFile(samFile, pg, sort, false);
+//    	} else {
+//    		createSamFile(samFile, sort, false);
+//    	}
+//    	
+//    	SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(samFile));
+//    	SAMFileHeader header = reader.getFileHeader();
+//    	
+//    	SAMFileWriterFactory factory = new SAMFileWriterFactory();
+//    	factory.setCreateIndex(true);
+//    	SAMFileWriter writer = factory.makeBAMWriter(header, false, new File(inputFileName));
+//    	
+//    	for (SAMRecord r: reader) {
+//    		writer.addAlignment(r);
+//    	}
+//    	reader.close();
+//    	writer.close();
+//    	
+//    	return new File(inputFileName);
+//    }
 	
     public static File createSamFile(final String inputFileName, SortOrder sort, boolean isHiseq)
             throws IOException {
@@ -417,38 +454,41 @@ public class TestUtil {
 	}
 	
 	
-	public static List<SAMRecord> getAACSAMRecords(SAMFileHeader h) {
+	public static List<SAMRecord> getAACSAMRecords(SortOrder so) {
+		SAMFileHeader h = createSamHeaderObject(so); 
 		String rg = "20110221052813657";
 		String zp = "AAC";
+		Integer one = Integer.valueOf(1);
 		
-		SAMRecord s1 = getSAM(h, "254_166_1407", 129, "chr7",140188379,  63, "50M", "=", 140191044,  2715, "ACGGCTCATGTCTCCTTAGAATGTATAAAAGCAAGCTGTGCTCTGACCAC", "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIA", "40A9", rg,zp);
-		SAMRecord s2 = getSAM(h, "254_166_1407", 65, "chr7",140191044,  63, "50M", "=", 140188379,  -2715, "ACTCCATTTCTAGAAAAAAATTAGAAAATTAACTGGAACCAGGAGAGGTG", "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIHIIIIIII@", "18C31", rg,zp);
-		SAMRecord s3 = getSAM(h, "1789_1456_806",65,  "chr7",140191179, 69,  "50M", "=", 140188227,  -3002, "ATGGCAAAACCCTGTCTCATTCCTTCAATCCTAGCACTTTGGGAGGCTGA", "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII@", "50", rg,zp);
-		SAMRecord s4 = getSAM(h, "1789_1456_806", 129, "chr7",140188227, 69, "50M", "=", 140188227,  -3002, "ATGGCAAAACCCTGTCTCATTCCTTCAATCCTAGCACTTTGGGAGGCTGA", "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII@", "50", rg,zp);
-		SAMRecord s5 = getSAM(h,"515_451_1845",129,	"chr7",	140188449,	69,	"50M","=",	140191238,	2839,	"AACCTCCTGAGGCTGAGTACAGTGGCTTATGCCTGTAATCCCAGCACACT","IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIICGIIIIIADI4","50",rg,zp);
-		SAMRecord s6 = getSAM(h,"515_451_1845",	65	,"chr7",	140191238,	69,	"50M","=",	140188449,	-2839	,"GTCACTTGAGGTCAGTTCAAGACCAGCCTGGCCAACATAGTGAAACCCCC","IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIB","50",rg,zp);
-		SAMRecord s7 = getSAM(h,"1887_329_319",	113,	"chr7",	140188962,	61,	"2H48M","=",	140191372,	2462	,"TGGCCTTTAGAAGTAGGAGAAGTACAGAGTACTTTGCCATTTTAAGGC","IIIIIII72IICBIIII5AIIIDIII<28II''<IIIIIIIEDIIIII","48",rg,zp);
-		SAMRecord s8 = getSAM(h,"1887_329_319",	177,	"chr7",	140191372,	61,	"50M","=",	140188962,	-2462	,"AAGAAGCACATGAGGAGGCTGAAGCCCAAAAGAAAGATGAGGCAGAGGTC",";III%%III''IIIGIIII%%IIIIIIIIIIIIIIIIIIIIIIIIIIIII","50",rg,zp);
-		SAMRecord s9 = getSAM(h,"690_397_1054",	113,	"chr7",	140188962,	61,	"3H47M","=",	140191394,	2485	,"TGGCCTTTAGAAGTAGGAGAAGTACAGAGTACTTTGCCATTTTAAGG","IIIIIIII8IIIIIIIIIIIIIIIIIII<IIIE@IIIIIIIIIIIII","47",rg,zp);
-		SAMRecord s10 = getSAM(h,"690_397_1054",	177,	"chr7",	140191394,	61	,"50M","=",	140188962,	-2485	,"AGCCCAAAAGAAAGATGAGGCAGAGGTCCAAGTAAACCACTAGCTTGTTG","2IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII","50",rg,zp);
-		SAMRecord s11 = getSAM(h,"1822_622_784",	113,	"chr7",	140188994,	39	,"6H44M","=",	140191589,	2642	,"TTTGCCATTTTAAGGCCCGGAAAATGAGGTTGTCGAGTCATGCA","G@HIIIIIII>IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII","44",rg,zp);
-		SAMRecord s12 = getSAM(h,"1822_622_784",	177,	"chr7",	140191589,	39,	"9H41M","=",	140188994,	-2642	,"GACCCAAATTGGTAATAACCAAAACTGTCCATGTTGGTCCT","?:9=I'&&&IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII","6C0C33",rg,zp);
-		SAMRecord s13 = getSAM(h,"874_1001_370",	113,	"chr7",	140189005,	63,	"50M","=",	140191611,	2656	,"AAGGCCCGGAAAATGAGGTTGTCGAGTCATGCACAAATGTTGCCTGTAAT","BIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII","50",rg,zp);
-		SAMRecord s14 = getSAM(h,"874_1001_370",	177,	"chr7",	140191611,	63,	"50M","=",	140189005,	-2656	,"AACTGTCCATGTTGGTCCTTTGTCCAGGATCTGTGACATTCTGAACTATT",">IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII","25T24",rg,zp);
-		SAMRecord s15 = getSAM(h,"2134_481_267",	129,	"chr7",	140189059,	56,	"50M","=",	140191509,	2500	,"TAGCCCATAAGTGAGCTTGGAGCTTGAGGAATTTAAACTTCTGCTTTATT","IIIII%%<BI9:DIIIIIIIE5>II&&IIIIGIIII:CII20BIIICFI@","50",rg,zp);
-		SAMRecord s16 = getSAM(h,"2134_481_267",	65,	"chr7",	140191509,	56,	"50M","=",	140189059,	-2500	,"TTGGACTGCATGCTGCTGTCTAGAGCTTTCTCAATGGACCTGGAACTTTA","IIIIIIIIIIIIHIIIIIIIIIIIIIIIIIIIDHIII((III**IIIIIA","14A35",rg,zp);
+		SAMRecord s1 = getSAM(h, "254_166_1407", 129, "chr7",140188379,  63, "50M", "chr7", 140191044,  2715, "ACGGCTCATGTCTCCTTAGAATGTATAAAAGCAAGCTGTGCTCTGACCAC", "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIA", "40A9", rg,zp, one);
+		SAMRecord s2 = getSAM(h, "254_166_1407", 65, "chr7",140191044,  63, "50M", "chr7", 140188379,  -2715, "ACTCCATTTCTAGAAAAAAATTAGAAAATTAACTGGAACCAGGAGAGGTG", "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIHIIIIIII@", "18C31", rg,zp, one);
+		SAMRecord s3 = getSAM(h, "1789_1456_806",65,  "chr7",140191179, 69,  "50M", "chr7", 140188227,  -3002, "ATGGCAAAACCCTGTCTCATTCCTTCAATCCTAGCACTTTGGGAGGCTGA", "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII@", "50", rg,zp, one);
+		SAMRecord s4 = getSAM(h, "1789_1456_806", 129, "chr7",140188227, 69, "50M", "chr7", 140191179,  3002, "ATGGCAAAACCCTGTCTCATTCCTTCAATCCTAGCACTTTGGGAGGCTGA", "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII@", "50", rg,zp, one);
+		SAMRecord s5 = getSAM(h,"515_451_1845",129,	"chr7",	140188449,	69,	"50M","chr7",	140191238,	2839,	"AACCTCCTGAGGCTGAGTACAGTGGCTTATGCCTGTAATCCCAGCACACT","IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIICGIIIIIADI4","50",rg,zp, one);
+		SAMRecord s6 = getSAM(h,"515_451_1845",	65	,"chr7",	140191238,	69,	"50M","chr7",	140188449,	-2839	,"GTCACTTGAGGTCAGTTCAAGACCAGCCTGGCCAACATAGTGAAACCCCC","IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIB","50",rg,zp, one);
+		SAMRecord s7 = getSAM(h,"1887_329_319",	113,	"chr7",	140188962,	61,	"2H48M","chr7",	140191372,	2462	,"TGGCCTTTAGAAGTAGGAGAAGTACAGAGTACTTTGCCATTTTAAGGC","IIIIIII72IICBIIII5AIIIDIII<28II''<IIIIIIIEDIIIII","48",rg,zp, one);
+		SAMRecord s8 = getSAM(h,"1887_329_319",	177,	"chr7",	140191372,	61,	"50M","chr7",	140188962,	-2462	,"AAGAAGCACATGAGGAGGCTGAAGCCCAAAAGAAAGATGAGGCAGAGGTC",";III%%III''IIIGIIII%%IIIIIIIIIIIIIIIIIIIIIIIIIIIII","50",rg,zp, one);
+		SAMRecord s9 = getSAM(h,"690_397_1054",	113,	"chr7",	140188962,	61,	"3H47M","chr7",	140191394,	2485	,"TGGCCTTTAGAAGTAGGAGAAGTACAGAGTACTTTGCCATTTTAAGG","IIIIIIII8IIIIIIIIIIIIIIIIIII<IIIE@IIIIIIIIIIIII","47",rg,zp, one);
+		SAMRecord s10 = getSAM(h,"690_397_1054",	177,	"chr7",	140191394,	61	,"50M","chr7",	140188962,	-2485	,"AGCCCAAAAGAAAGATGAGGCAGAGGTCCAAGTAAACCACTAGCTTGTTG","2IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII","50",rg,zp, one);
+		SAMRecord s11 = getSAM(h,"1822_622_784",	113,	"chr7",	140188994,	39	,"6H44M","chr7",	140191589,	2642	,"TTTGCCATTTTAAGGCCCGGAAAATGAGGTTGTCGAGTCATGCA","G@HIIIIIII>IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII","44",rg,zp, one);
+		SAMRecord s12 = getSAM(h,"1822_622_784",	177,	"chr7",	140191589,	39,	"9H41M","chr7",	140188994,	-2642	,"GACCCAAATTGGTAATAACCAAAACTGTCCATGTTGGTCCT","?:9=I'&&&IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII","6C0C33",rg,zp, one);
+		SAMRecord s13 = getSAM(h,"874_1001_370",	113,	"chr7",	140189005,	63,	"50M","chr7",	140191611,	2656	,"AAGGCCCGGAAAATGAGGTTGTCGAGTCATGCACAAATGTTGCCTGTAAT","BIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII","50",rg,zp, one);
+		SAMRecord s14 = getSAM(h,"874_1001_370",	177,	"chr7",	140191611,	63,	"50M","chr7",	140189005,	-2656	,"AACTGTCCATGTTGGTCCTTTGTCCAGGATCTGTGACATTCTGAACTATT",">IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII","25T24",rg,zp, one);
+		SAMRecord s15 = getSAM(h,"2134_481_267",	129,	"chr7",	140189059,	56,	"50M","chr7",	140191509,	2500	,"TAGCCCATAAGTGAGCTTGGAGCTTGAGGAATTTAAACTTCTGCTTTATT","IIIII%%<BI9:DIIIIIIIE5>II&&IIIIGIIII:CII20BIIICFI@","50",rg,zp, one);
+		SAMRecord s16 = getSAM(h,"2134_481_267",	65,	"chr7",	140191509,	56,	"50M","chr7",	140189059,	-2500	,"TTGGACTGCATGCTGCTGTCTAGAGCTTTCTCAATGGACCTGGAACTTTA","IIIIIIIIIIIIHIIIIIIIIIIIIIIIIIIIDHIII((III**IIIIIA","14A35",rg,zp, one);
 		
+		
+		List<SAMRecord> recs = Arrays.asList(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, s14, s15, s16);
 		
 		if (h.getSortOrder().equals(SortOrder.coordinate)) {
-			List<SAMRecord> recs = Arrays.asList(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, s14, s15, s16);
 			recs.sort(new SAMRecordCoordinateComparator());
-			return recs;
-		} else {
-			return Arrays.asList(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, s14, s15, s16);
+		} else if (h.getSortOrder().equals(SortOrder.queryname)) {
+			recs.sort(new SAMRecordQueryNameComparator());
 		}
+		return recs;
 	}
 	
-	private static SAMRecord getSAM(SAMFileHeader h, String readName,int flags, String chr, int pos, int mapQ, String cigar, String mRef, int mPos, int iSize, String bases, String quals, String md, String rg ,String zp) {
+	private static SAMRecord getSAM(SAMFileHeader h, String readName,int flags, String chr, int pos, int mapQ, String cigar, String mRef, int mPos, int iSize, String bases, String quals, String md, String rg ,String zp, Integer nh) {
 		SAMRecord s1 = new SAMRecord(h);
 		s1.setAlignmentStart(pos);
 		s1.setCigarString(cigar);
@@ -462,6 +502,7 @@ public class TestUtil {
 		s1.setAttribute("MD", md);
 		s1.setAttribute("RG", rg);
 		s1.setAttribute("ZP", zp);
+		s1.setAttribute("NH", nh);
 		s1.setMateReferenceName(mRef);
 		s1.setMateAlignmentStart(mPos);
 		return s1;
@@ -548,11 +589,12 @@ public class TestUtil {
 				 Arrays.asList(new SAMSequenceRecord("chr1",249250621),
 						 new SAMSequenceRecord("chr4",191154276),
 						 new SAMSequenceRecord("chr7",159138663),
+						 new SAMSequenceRecord("chr10",135534747),
+						 new SAMSequenceRecord("chr19",59128983),
 						 new SAMSequenceRecord("chrX",155270560),
 						 new SAMSequenceRecord("chrY",59373566),
-						 new SAMSequenceRecord("chr19",59128983),
 						 new SAMSequenceRecord("GL000191.1",106433),
-						 new SAMSequenceRecord("SN:GL000211.1",166566),
+						 new SAMSequenceRecord("GL000211.1",166566),
 						 new SAMSequenceRecord("chrMT",16569)));
 		 SAMFileHeader h = new SAMFileHeader();
 		 h.setSequenceDictionary(dict);
@@ -588,6 +630,34 @@ public class TestUtil {
 	        
 	        return data;
 	    }
+		
+		public static List<SAMRecord> createSamBodyRecords(SortOrder so) {
+			SAMFileHeader h = createSamHeaderObject(so);
+			String rg = "20110221052813657";
+			SAMRecord s1 = getSAM(h, "254_166_1407", 129, "chr7",140191044,  63, "50M", "chr7", 140188379,  -2715, "ACTCCATTTCTAGAAAAAAATTAGAAAATTAACTGGAACCAGGAGAGGTG", "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIHIIIIIII@", "18C31", rg,"ABC", 1);
+			SAMRecord s2 = getSAM(h, "254_166_1407",	65	,"chr7",	140188379,	63,	"50M","chr7",140191044	,2715	, "ACGGCTCATGTCTCCTTAGAATGTATAAAAGCAAGCTGTGCTCTGACCAC","IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIA","40A9", rg, "ABC", 1);
+			SAMRecord s3 = getSAM(h, "736_1100_1853",	97	,"chr7",	140188275,	69	,"50M","chr4",85925068	,0	, "TATGACCTGGAAAACTCCTCCCGGCTTGGAATCTTCCCTTTTTTGGCTTC","IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII7","50", rg, "C**", 1);
+			SAMRecord s4 = getSAM(h, "736_1100_1853",	145	,"chr4",	85925068,	69,	"50M","chr7",	140188275,	0	, "TATGACCTGGAAAACTCCTCCCGGCTTGGAATCTTCCCTTTTTTGGCTTC","IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII7","50", rg, "C**", 1);
+			SAMRecord s5 = getSAM(h, "204_1749_420",	65	,"chrX",	6448103,	2	,"47M3H","chr7",	140190996	,0	, "GATCGCTTGAAGCCAGGAGCTCAAGACCAGCCTGGGCAATATAGCAA","IIIIIIIHIIIIIIIIIBIIIIIIIII@IIIIBIIIII?FII7IIIF","47",rg,"C**",2);
+			SAMRecord s6 = getSAM(h, "204_1749_420",	65	,"chr7",	140190996,	2	,"47M3H","chrX",	6448103	,0	, "GATCGCTTGAAGCCAGGAGCTCAAGACCAGCCTGGGCAATATAGCAA","IIIIIIIHIIIIIIIIIBIIIIIIIII@IIIIBIIIII?FII7IIIF","47",rg,"C**",2);
+			SAMRecord s7 = getSAM(h, "204_1749_421",	65	,"chrY",	6448103,	2	,"47M3H","chrX",	130833637	,0	, "GATCGCTTGAAGCCAGGAGCTCAAGACCAGCCTGGGCAATATAGCAA","IIIIIIIHIIIIIIIIIBIIIIIIIII@IIIIBIIIII?FII7IIIF","47",rg,"C**",2);
+			SAMRecord s8 = getSAM(h, "204_1749_421",	65	,"chrX",	130833637,	2,	"47M3H","chrY",	6448103	,0	, "GATCGCTTGAAGCCAGGAGCTCAAGACCAGCCTGGGCAATATAGCAA","IIIIIIIHIIIIIIIIIBIIIIIIIII@IIIIBIIIII?FII7IIIF","47",rg,"C**",2);
+			SAMRecord s9 = getSAM(h, "1789_1456_806",	129	,"chr7",	140188227,	69,	"50M","chr7",	140191179,	3002, "GGCCAATCAGAAACTCAAAAGAATGCAACCATTTGCCTGTTATCTACCTA","IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII@","50",rg,"AAC",1);
+			SAMRecord s10 = getSAM(h, "1789_1456_806",	65	,"chr7",	140191179,	69,	"50M","chr7",	140188227	,-3002	, "ATGGCAAAACCCTGTCTCATTCCTTCAATCCTAGCACTTTGGGAGGCTGA","IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII@","50",rg,"AAC",1);
+			SAMRecord s11 = getSAM(h, "1911_1919_2005",	129	,"chr19",	12241065,	61,	"50M","chr19",	12241090,	75	, "AGTTAAGGTTTGGTCAGTCAGTGATTGCTTCTATGTCTGCTGGGACTGGG","=56EI=2:II=6?IIF<<IIE7;IIH8=D;<75DII86<BIIIIIIAHI2","50",rg,"AAB",1);
+			SAMRecord s12 = getSAM(h, "1911_1919_2005",	65,"chr19",	12241090,	61	,"47M3H","chr19",	12241065,	-75	, "TGCTTCTATGTCTGCTGGGACTGGGATTTTTACTCTAGGGAGACTGA","IIIIIIIIIIIIFIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII","47",rg,"AAB",1);
+			
+			List<SAMRecord> recs = Arrays.asList(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12);
+			
+			
+			if (so.equals(SortOrder.coordinate)) {
+				recs.sort(new SAMRecordCoordinateComparator());
+			} else if (so.equals(SortOrder.queryname)) {
+				recs.sort(new SAMRecordQueryNameComparator());
+			}
+			return recs;
+			
+		}
 
 	    public static List<String> createSamBody() {
 	        final List<String> data = new ArrayList<>();

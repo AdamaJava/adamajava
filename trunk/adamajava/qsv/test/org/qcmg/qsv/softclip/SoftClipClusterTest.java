@@ -34,15 +34,6 @@ public class SoftClipClusterTest {
 	@Rule
 	public TemporaryFolder testFolder = new TemporaryFolder();
 
-	@Before
-	public void setUp() throws Exception {
-
-	}
-
-	@After
-	public void tearDown() {
-		clip = null;
-	}
 
 	@Test
 	public void testStartAndEndWith2Breakpoints() throws Exception {

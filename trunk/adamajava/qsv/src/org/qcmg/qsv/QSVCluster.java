@@ -54,7 +54,7 @@ public class QSVCluster {
 	private SplitReadContig splitReadContig;
 	private boolean potentialRepeatRegion;
 	private SplitReadContig normalSplitReadContig;
-	private String validationPlatform;
+//	private String validationPlatform;
 	private String features = new String();
 	
 	public QSVCluster(SoftClipCluster clipRecord, String sampleId) {
@@ -78,69 +78,9 @@ public class QSVCluster {
 			findGermline();
 		}
 	}	
-	
-	public String getSampleId() {
-		return sampleId;
-	}
-
-	public String getLeftReferenceFlank() {
-		return leftReferenceFlank;
-	}
-
-	public String getRightReferenceFlank() {
-		return rightReferenceFlank;
-	}
-
-	public String getSvId() {
-		return svId;
-	}
-
-	public void setSvId(String svId) {
-		this.svId = svId;
-	}
-
-	public String getAnalysisId() {
-		return analysisId;
-	}
-
-	public void setAnalysisId(String analysisId) {
-		this.analysisId = analysisId;
-	}
-
-	public String getConsensus() {
-		return consensus;
-	}
-
-	public void setConsensus(String consensus) {
-		this.consensus = consensus;
-	}
-
-	public boolean isRescued() {
-		return rescued;
-	}
-
-	public void setRescued(boolean rescued) {
-		this.rescued = rescued;
-	}
-
-	public SplitReadContig getSplitReadContig() {
-		return splitReadContig;
-	}
 
 	public void setSplitReadContig(SplitReadContig splitReadContig) {
 		this.splitReadContig = splitReadContig;
-	}
-
-	public SplitReadContig getNormalSplitReadContig() {
-		return normalSplitReadContig;
-	}
-
-	public String getValidationPlatform() {
-		return validationPlatform;
-	}
-
-	public String getFeatures() {
-		return features;
 	}
 
 	public boolean isGermline() {
@@ -163,18 +103,12 @@ public class QSVCluster {
 		return this.rightReference;
 	}
 	
-	private Integer getLeftBps() {
-		SoftClipCluster c = getPrimarySoftClipCluster();
-		return c.getRealLeftBreakpoint();
+	private int getLeftBps() {
+		return getPrimarySoftClipCluster().getRealLeftBreakpoint();
 	}
 	
-	private Integer getRightBps() {
-		SoftClipCluster c = getPrimarySoftClipCluster();
-		return c.getRealRightBreakpoint();
-	}
-
-	public boolean getHasOverlap() {
-		return  (pairRecord != null && clipRecords != null);
+	private int getRightBps() {
+		return getPrimarySoftClipCluster().getRealRightBreakpoint();
 	}
 
 	public List<SoftClipCluster> getClipRecords() {
@@ -202,11 +136,7 @@ public class QSVCluster {
 	 * @return the left breakpoint for the cluster
 	 */
 	public int getLeftBreakpoint() {		
-		if (clipRecords == null) {
-			return pairRecord.getLeftBreakPoint();
-		} else {
-			return getLeftBps();
-		}	
+		return clipRecords == null ? pairRecord.getLeftBreakPoint() : getLeftBps();
 	}
 	
 	/**
@@ -214,12 +144,7 @@ public class QSVCluster {
 	 * @return the right breakpoint for the cluster
 	 */
 	public int getRightBreakpoint() {
-		
-		if (clipRecords == null) {
-			return pairRecord.getRightBreakPoint();
-		} else {
-			return getRightBps();
-		}
+		return clipRecords == null ? pairRecord.getRightBreakPoint() : getRightBps();
 	}	
 	
 	/**
@@ -227,43 +152,39 @@ public class QSVCluster {
 	 * Used when writing results to output files
 	 * @return the final left breakpoint for the cluster
 	 */
-	public String getFinalLeftBreakpoint() {				
-		if (getOrientationCategory().equals(QSVConstants.ORIENTATION_2)) {
-			return getFinalRight();			
-		} else {	
-			return getFinalLeft();
-		}
+	public int getFinalLeftBreakpoint() {				
+		return getOrientationCategory().equals(QSVConstants.ORIENTATION_2) ? getFinalRight() : getFinalLeft();			
 	}
 	
 	/*
 	 * Left breakpoint - final value. 
 	 */
-	private String getFinalLeft() {
+	private int getFinalLeft() {
 		//split read contig breakpoint
 		if (isPairWithSplitRead()) {
-			return String.valueOf(splitReadContig.getUnsortedLeftBreakpoint());
+			return splitReadContig.getUnsortedLeftBreakpoint().intValue();
 		//clip record breakpoint
 		} else if (clipRecords == null) {
-			return String.valueOf(pairRecord.getLeftBreakPoint());
+			return pairRecord.getLeftBreakPoint();
 		} else {			
 			//discordant pair breakpoint
-			return String.valueOf(getLeftBps());
+			return getLeftBps();
 		}
 	}
 	
 	/*
 	 * Right breakpoint - final value. 
 	 */
-	private String getFinalRight() {
+	private int getFinalRight() {
 		//split read contig breakpoint
 		if (isPairWithSplitRead()) {
-			return String.valueOf(splitReadContig.getUnsortedRightBreakpoint());
+			return splitReadContig.getUnsortedRightBreakpoint().intValue();
 			//clip record breakpoint
 		} else if (clipRecords == null) {
-			return String.valueOf(pairRecord.getRightBreakPoint());
+			return pairRecord.getRightBreakPoint();
 		} else {
 			//discordant pair breakpoint
-			return String.valueOf(getRightBps());
+			return getRightBps();
 		}
 	}
 	
@@ -273,7 +194,7 @@ public class QSVCluster {
 	 * Used when writing results to output files
 	 * @return the final right breakpoint for the cluster
 	 */
-	public String getFinalRightBreakpoint() {		
+	public int getFinalRightBreakpoint() {		
 		if (getOrientationCategory().equals(QSVConstants.ORIENTATION_2)) {
 			return getFinalLeft();
 		} else {	
@@ -287,7 +208,7 @@ public class QSVCluster {
 	 */
 	public void addQSVClipRecord(SoftClipCluster clipRecord) {
 		if (clipRecords == null) {
-			clipRecords = new ArrayList<SoftClipCluster>();
+			clipRecords = new ArrayList<>();
 		}		
 		clipRecords.add(clipRecord);
 	}
@@ -297,53 +218,43 @@ public class QSVCluster {
 	 * @return true if there are clip records present 
 	 */
 	public boolean hasSoftClipEvidence() {
-		if (clipRecords != null) {
-			if (clipRecords.size() > 0) {
-				return true;
-			}
-		} 
-		return false;
+		return clipRecords != null && ! clipRecords.isEmpty();
 	}
 
 	/*
 	 * The primary soft clip cluster has a double sided breakpoint. 
 	 */
 	private boolean hasMatchingBreakpoints() {
-		boolean matchingBreakpoints = false;
 		if (clipRecords != null) {
 			SoftClipCluster c = getPrimarySoftClipCluster();
 			return c.findMatchingBreakpoints();
 		}
-		return matchingBreakpoints;
+		return false;
 	}
 
 	/**
 	 * Determine if the cluster is germline
 	 */
 	public void findGermline() {
-		boolean clipGermline = false;
-		boolean clusterGermline = false;
 		
 		//look for germline in clip records
 		if (clipRecords != null) {
 			for (SoftClipCluster c: clipRecords) {
 				if (c.isGermline()) {
-					clipGermline = true;
-					break;
+					this.isGermline = true;
+					return;
 				}
 			}
 		}
-		//look for germline pair reocrd
+		
+		//look for germline pair record
 		if (pairRecord != null) {
 			String type =  pairRecord.getType();			
 			if (type.equals("germline")) {
-				clusterGermline = true;
+				this.isGermline = true;
 			}
 		}
 		
-		if (clipGermline || clusterGermline) {
-			this.isGermline = true;
-		}	
 	}
 
 	/**
@@ -577,12 +488,10 @@ public class QSVCluster {
 	}
 	
 	private boolean isNormalPotentialSplitRead() {
-		if (normalSplitReadContig != null && splitReadContig != null) {
-			if (normalSplitReadContig.getIsPotentialSplitRead() && splitReadContig.getIsPotentialSplitRead()) {
-				return true;
-			}
-		}
-		return false;
+		return normalSplitReadContig != null 
+				&& normalSplitReadContig.getIsPotentialSplitRead()
+				&& splitReadContig != null
+				&& splitReadContig.getIsPotentialSplitRead();
 	}
 
 	/**
@@ -599,16 +508,6 @@ public class QSVCluster {
 		}
 	}
 	
-	public String getDCCMutationType() {		
-		if (pairRecord != null && clipRecords != null) {	
-			return pairRecord.getMutationType(true);
-		} else if (clipRecords != null){
-			return getClipsMutationType();
-		} else {
-			return pairRecord.getMutationType(true);
-		}
-	}
-
 	/*
 	 * Gets the mutation type for the clips
 	 */
@@ -640,7 +539,7 @@ public class QSVCluster {
 		if (c != null) {
 			return String.valueOf(c.getClipCount(isTumour, leftPos));
 		}
-		return String.valueOf(0);
+		return "0";
 	}
 	
 	/**
@@ -658,7 +557,7 @@ public class QSVCluster {
 				int maxCount = 0;
 				SoftClipCluster match = null;
 				
-				List<SoftClipCluster> potentialMatches = new ArrayList<SoftClipCluster>();
+				List<SoftClipCluster> potentialMatches = new ArrayList<>();
 				//give those with 2 breakpoints higher priority
 				for (SoftClipCluster c: clipRecords) {
 					if (c.hasMatchingBreakpoints()) {
@@ -754,18 +653,13 @@ public class QSVCluster {
 	/*
 	 * For dcc file - get the 200bp upstream and downstream of each breakpoint
 	 */
-	private void getReferenceFlank(File referenceFile, Map<String, List<Chromosome>> chromosomes) throws QSVException, IOException {
+	private void getReferenceFlank(File referenceFile, Map<String, List<Chromosome>> chromosomes) throws IOException {
 		if (referenceFile != null) {
-//			IndexedFastaSequenceFile f = QSVUtil.getReferenceFile(referenceFile);
 			ConcurrentMap<String, byte[]> referenceMap = QSVUtil.getReferenceMap();
     		
 			if (referenceMap != null) {
-//				if (f != null) {
 				leftReferenceFlank = getCurrentFlankSeq(referenceMap, leftReference, getLeftBreakpoint(), chromosomes.get(leftReference));
 				rightReferenceFlank = getCurrentFlankSeq(referenceMap, rightReference, getRightBreakpoint(), chromosomes.get(rightReference));
-//				leftReferenceFlank = getCurrentFlankSeq(f, leftReference, getLeftBreakpoint(), chromosomes.get(leftReference));
-//				rightReferenceFlank = getCurrentFlankSeq(f, rightReference, getRightBreakpoint(), chromosomes.get(rightReference));
-//				f.close();
 			}
 			
 		}				
@@ -800,58 +694,18 @@ public class QSVCluster {
 		} 
 		return bases;		
 	}
-//	public static String getCurrentFlankSeq(IndexedFastaSequenceFile f, String reference,
-//			int breakpoint, List<Chromosome> list) throws UnsupportedEncodingException {
-//		Chromosome c = null;
-//		if (list != null) {
-//			c = list.get(0);
-//		}
-//		String bases = "";
-//		if (c != null) {
-//			int start = breakpoint - 200;
-//			if (start < 0) {
-//				start = 1;
-//			}
-//			int end = breakpoint + 200;
-//			if (end > c.getTotalLength()) {
-//				end = c.getTotalLength();
-//			}
-//			
-//			try {
-//				ReferenceSequence subset = f.getSubsequenceAt(reference, start, end);
-//				bases = new String(subset.getBases(), "UTF-8");
-//			} catch (Exception e) {
-//				logger.info("Trying to get " + reference + " " + start + " " + end + " from chr " + c.toString());
-//				logger.info(QSVUtil.getStrackTrace(e));
-//			}
-//		} 
-//		return bases;		
-//	}
 
-	/*
-	 * Return true if it is a potential repeat region. Potiential repeat
-	 * if there are > 1000 clips in the immediate region around a breakpoint
-	 */
-	public boolean isPotentialRepeatRegion() {
-		if (splitReadContig != null) {
-			return splitReadContig.getIsPotentialRepeatRegion();
-		}
-		return false;
-	}
-	
 	/*
 	 * Return true if it is potential split read  region. Potiential repeat
 	 * if there are > 1000 clips in the immediate region around a breakpoint
 	 */
 	public boolean isPotentialSplitRead() {
-		if (splitReadContig != null) {
-			return splitReadContig.getIsPotentialSplitRead();
-		}
-		return false;
+		return splitReadContig != null
+				&& splitReadContig.getIsPotentialSplitRead();
 	}
 
 	private Set<String> findExpectedPairClassifications() {
-		Set<String> list = new HashSet<String>();
+		Set<String> list = new HashSet<>();
 		if (pairRecord != null) {
 			String pg = pairRecord.getZp();
 			if (pg.contains("_")) {
@@ -892,16 +746,13 @@ public class QSVCluster {
 	/**
 	 * Get the qprimer string for the cluster
 	 * @return qprimer string
-	 * @throws Exception
 	 */
-	public String getQPrimerString() throws Exception {
+	public String getQPrimerString() {
 		QPrimerCategory c = null;		
 		
 		if (pairRecord != null) {
-//			if (!rescuedCluster) {
-				c = pairRecord.getqPrimerCateory();
-				return c.toString(svId);
-//			}
+			c = pairRecord.getqPrimerCateory();
+			return c.toString(svId);
 		} 
 		
 		return "";
@@ -965,10 +816,8 @@ public class QSVCluster {
 	 * get contig sequence for clips from both breakpoints
 	 */
 	private String getClipContigSequence() throws Exception {
-		if (clipRecords != null) {
-			if (clipRecords.size() == 1) {				
-					return clipRecords.get(0).getOverlappingContigSequence();				
-			}
+		if (clipRecords != null && clipRecords.size() == 1) {
+			return clipRecords.get(0).getOverlappingContigSequence();				
 		}
 		return "";
 	}
@@ -976,7 +825,7 @@ public class QSVCluster {
 	/*
 	 * Gets the non template sequence for the cluster
 	 */
-	private String getNonTemplateSequence() throws Exception {
+	private String getNonTemplateSequence() {
 		//Only get homology for the somatics
 		if (isGermline) {
 			return QSVConstants.UNTESTED;
@@ -1022,7 +871,7 @@ public class QSVCluster {
 	/*
 	 * Get microhomology for the cluster. 
 	 */
-	private String getMicrohomology() throws Exception {
+	private String getMicrohomology() {
 		
 		//Only get homology for the somatics
 		if (isGermline) {
@@ -1086,12 +935,9 @@ public class QSVCluster {
 	 * split read evidence
 	 */
 	private boolean isPairWithSplitRead() {
-		if (!hasSoftClipEvidence() && isPotentialSplitRead()) {
-			if (!getConfidenceLevel().equals(QSVConstants.LEVEL_HIGH)) {
-				return true;
-			}
-		}			
-		return false;
+		return ! hasSoftClipEvidence() 
+				&& isPotentialSplitRead()
+				&& ! getConfidenceLevel().equals(QSVConstants.LEVEL_HIGH);
 	}
 	
 	/**
@@ -1120,7 +966,7 @@ public class QSVCluster {
 	 */
 	public String getDataString(String fileType, String tumourFindType, String normalFindType, boolean isQCMG, String validationPlatform) throws Exception {
 		if (fileType.equals("dcc")) {
-			this.validationPlatform = validationPlatform;
+//			this.validationPlatform = validationPlatform;
 			return toDCCString(validationPlatform);
 		} else if (fileType.equals("tab")) {
 			return toTabString();
@@ -1139,7 +985,6 @@ public class QSVCluster {
 	 */
 	private String getSoftClipConsensus() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("");
 		if (clipRecords != null && clipRecords.size() > 0) {
 			int count = 0;
 			for (SoftClipCluster c: clipRecords) {
@@ -1170,7 +1015,7 @@ public class QSVCluster {
 		if (isNormalPotentialSplitRead()) {
 			return normalSplitReadContig.getSplitReadBreakpointString();
 		}
-		return new String();
+		return "";
 	}
 
 	/*
@@ -1229,7 +1074,7 @@ public class QSVCluster {
 	 * @throws QSVException
 	 * @throws IOException 
 	 */
-	public void checkReferenceFlank(String referenceFile, Map<String, List<Chromosome>> chromosomes) throws QSVException, IOException {
+	public void checkReferenceFlank(String referenceFile, Map<String, List<Chromosome>> chromosomes) throws IOException {
 		if ( ! isGermline) {
 			if (referenceFile != null) {
 				if (leftReferenceFlank == null && rightReferenceFlank == null ||
@@ -1253,16 +1098,16 @@ public class QSVCluster {
 			ref1 = rightReference;
 			ref2 = leftReference;
 		}                                                    
-		List<String> features = new ArrayList<String>();
+		List<String> features = new ArrayList<>();
 		if (!ref1.equals(ref2)) {
 			List<GFF3Record> leftRecords = gffMap.get(ref1);
 			List<GFF3Record> rightRecords = gffMap.get(ref2);
-			features.addAll(findGFFFeatureOverlap("pos1", leftRecords, new Integer(getFinalLeftBreakpoint())));
-			features.addAll(findGFFFeatureOverlap("pos2", rightRecords, new Integer(getFinalRightBreakpoint())));
+			features.addAll(findGFFFeatureOverlap("pos1", leftRecords, (getFinalLeftBreakpoint())));
+			features.addAll(findGFFFeatureOverlap("pos2", rightRecords, (getFinalRightBreakpoint())));
 		} else {
 			List<GFF3Record> records = gffMap.get(leftReference);
-			features.addAll(findGFFFeatureOverlap("pos1", records, new Integer(getFinalLeftBreakpoint())));
-			features.addAll(findGFFFeatureOverlap("pos2", records, new Integer(getFinalRightBreakpoint())));			
+			features.addAll(findGFFFeatureOverlap("pos1", records, (getFinalLeftBreakpoint())));
+			features.addAll(findGFFFeatureOverlap("pos2", records, (getFinalRightBreakpoint())));			
 		}
 		StringBuilder builder = new StringBuilder();
 		if (features.size() > 0) {
@@ -1280,9 +1125,8 @@ public class QSVCluster {
 	/*
 	 * Find overlap between SV breakpoint and GFF feature 
 	 */
-	private List<String> findGFFFeatureOverlap(String pos, 
-			List<GFF3Record> gffRecords, int breakpoint) {
-		List<String> features = new ArrayList<String>();
+	private List<String> findGFFFeatureOverlap(String pos, List<GFF3Record> gffRecords, int breakpoint) {
+		List<String> features = new ArrayList<>();
 		if (gffRecords != null) {
 			for (GFF3Record r: gffRecords) {
 				if (breakpoint >= r.getStart() && breakpoint <= r.getEnd()) {
@@ -1385,16 +1229,16 @@ public class QSVCluster {
 	 * @return dcc string
 	 * @throws Exception
 	 */
-	private String toDCCString(String validationPlatform) throws Exception {
+	private String toDCCString(String validationPlatform) {
 		StringBuilder sb = new StringBuilder();
 		
 		String category = getOrientationCategory();	
 		String chrFrom = getDCCChr(leftReference.replace("chr", ""));
 	    String chrTo = getDCCChr(rightReference.replace("chr", ""));
 	    if (category.equals(QSVConstants.ORIENTATION_2)) {
-	    	String tmp = chrFrom;
-	    	chrFrom = chrTo;
-	    	chrTo = tmp;
+		    	String tmp = chrFrom;
+		    	chrFrom = chrTo;
+		    	chrTo = tmp;
 	    }	    
 	    
 	    String confidence = getConfidenceLevel();
@@ -1454,7 +1298,7 @@ public class QSVCluster {
 	 * @return tab string
 	 * @throws Exception
 	 */
-	private String toTabString() throws Exception {
+	private String toTabString() {
 		StringBuilder sb = new StringBuilder();
 		String category = getOrientationCategory();				
 		String chrFrom = leftReference.replace("chr", "");

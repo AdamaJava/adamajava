@@ -4,22 +4,17 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-import htsjdk.samtools.SamReader;
 import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMRecordIterator;
 import htsjdk.samtools.SAMFileHeader.SortOrder;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qsv.QSVException;
 import org.qcmg.qsv.discordantpair.MatePair;
 import org.qcmg.qsv.discordantpair.PairClassification;
@@ -28,39 +23,23 @@ import org.qcmg.qsv.util.TestUtil;
 public class MatePairTest {
     private List<SAMRecord> records;
     private List<MatePair> pairs;
-    private  String fileName;
 
     @Rule
     public TemporaryFolder testFolder = new TemporaryFolder();
 
     @Before
     public void setUp() throws IOException, QSVException {
-        records = new ArrayList<SAMRecord>();
-        pairs = new ArrayList<MatePair>();
-        fileName = testFolder.newFile("test.bam").getCanonicalPath();
-        TestUtil.createSamFile(fileName, SortOrder.coordinate, false);
-        SamReader read =  SAMFileReaderFactory.createSAMFileReader(new File(fileName));
-        
-        for (SAMRecord r : read) {
-            records.add(r);
-        }
-        
-        pairs.add(new MatePair(records.get(0), records.get(1)));
-        pairs.add(new MatePair(records.get(2), records.get(3)));
-        pairs.add(new MatePair(records.get(4), records.get(5)));
-        pairs.add(new MatePair(records.get(6), records.get(7)));
-        pairs.add(new MatePair(records.get(8), records.get(9)));
-        pairs.add(new MatePair(records.get(10), records.get(11)));
-        read.close();
-    }
-
-    @After
-    public void tearDown() throws IOException {
-        records.clear();
-        File file = new File(fileName);
-        if (file.exists()) {
-            file.delete();
-        }
+	    	if (null == records || records.isEmpty()) {
+	    		records = TestUtil.createSamBodyRecords(SortOrder.unsorted);
+	    		pairs = Arrays.asList(
+	    				new MatePair(records.get(0), records.get(1)),
+	    				new MatePair(records.get(2), records.get(3)),
+	    				new MatePair(records.get(4), records.get(5)),
+	    				new MatePair(records.get(6), records.get(7)),
+	    				new MatePair(records.get(8), records.get(9)),
+	    				new MatePair(records.get(10), records.get(11))
+	    				);
+	    	}
     }
 
     @Test
@@ -105,17 +84,29 @@ public class MatePairTest {
     }
       
     @Test
-    public void testGetPairClassificationFromSamRecord() throws QSVException, IOException {
-        SamReader read = SAMFileReaderFactory.createSAMFileReader(new File(fileName));
-
-        SAMRecordIterator iterator = read.iterator();
-        SAMRecord record = iterator.next();
+    public void testGetPairClassificationFromSamRecord() throws QSVException, IOException, CloneNotSupportedException {
+//        SamReader read = SAMFileReaderFactory.createSAMFileReader(new File(fileName));
+//
+//        SAMRecordIterator iterator = read.iterator();
+        SAMRecord record = (SAMRecord) records.get(0).clone();
         record.setAttribute("ZP", "C**");
         assertEquals("C**", record.getAttribute("ZP"));
         MatePair mate = new MatePair(record, record);
         assertEquals(PairClassification.Cxx, mate.getZpType());
-        read.close();
+//        read.close();
     }
+//    @Test
+//    public void testGetPairClassificationFromSamRecord() throws QSVException, IOException {
+//    	SamReader read = SAMFileReaderFactory.createSAMFileReader(new File(fileName));
+//    	
+//    	SAMRecordIterator iterator = read.iterator();
+//    	SAMRecord record = iterator.next();
+//    	record.setAttribute("ZP", "C**");
+//    	assertEquals("C**", record.getAttribute("ZP"));
+//    	MatePair mate = new MatePair(record, record);
+//    	assertEquals(PairClassification.Cxx, mate.getZpType());
+//    	read.close();
+//    }
     
     @Test
     public void checkSortOrder() {

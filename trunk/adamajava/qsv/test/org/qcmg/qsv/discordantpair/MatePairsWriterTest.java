@@ -32,7 +32,8 @@ public class MatePairsWriterTest {
         File mateDir = new File(testFolder.getRoot().toString() + FILE_SEPERATOR + PairClassification.AAC + FILE_SEPERATOR);
         mateDir.mkdir();
         writer = new MatePairsWriter(PairClassification.AAC, testFolder.getRoot().toString() + FILE_SEPERATOR, "test", "TD", "lmp");
-        matePairs = TestUtil.setupMatePairs();
+        matePairs = TestUtil.setupMatePairs(testFolder, PairGroup.AAC);
+//        matePairs = TestUtil.setupMatePairs();
     }
 
     @After

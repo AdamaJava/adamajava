@@ -39,7 +39,7 @@ public class Annotator  {
 	private final int isizeLowerLimit;
 	private final int isizeUpperLimit;
 	private final int averageiSize;
-	private final ConcurrentHashMap<String, AtomicLong> zpToCount = new ConcurrentHashMap<String, AtomicLong>();
+	private final ConcurrentHashMap<String, AtomicLong> zpToCount = new ConcurrentHashMap<>();
 	private String xmlReport;
 	private Double physCoverage;
 	private Double baseCoverage;

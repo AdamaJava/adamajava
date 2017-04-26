@@ -51,7 +51,8 @@ public class DiscordantPairClusterTest {
     }
     
     @Test
-    public void testFindLeftEndOfCluster() {    	
+    public void testFindLeftEndOfCluster() {   
+        assertEquals(cluster.getZp(), "AAC");
 	    	cluster.findLeftEndOfCluster();
 	    	assertEquals(140189108, cluster.getLeftEnd());
     }
@@ -95,7 +96,7 @@ public class DiscordantPairClusterTest {
     }
     
     @Test
-    public void testGetBreakpointsCategory() throws Exception {
+    public void testGetBreakpointsCategory() {
 	    	assertBreakpoints("AAC", "chr7", "chr7", "1", 140189108,140191044);
 	    	assertBreakpoints("AAB", "chr7", "chr7", "2", 140188227,140191629);
 	    	assertBreakpoints("AAB", "chr7", "chr7", "5", 140188227,140191629);
@@ -122,7 +123,10 @@ public class DiscordantPairClusterTest {
 	}
 	
 	@Test
-	public void testFinalizeAndGermlineRescue() throws Exception {		
+	public void testFinalizeAndGermlineRescue() throws IOException, Exception {
+		cluster = null;
+		cluster = TestUtil.setupSolidCluster(PairGroup.AAC, "somatic", testFolder, "chr7", "chr7");
+        assertEquals(cluster.getZp(), "AAC");
 		assertEquals("somatic", cluster.getType());
 		assertEquals(1, cluster.getId());
 		assertEquals("+/+", cluster.getStrandOrientation());

@@ -2,7 +2,6 @@ package org.qcmg.qsv.annotate;
 
 import static org.junit.Assert.assertEquals;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,7 +9,6 @@ import java.util.List;
 import htsjdk.samtools.DefaultSAMRecordFactory;
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMFileHeader.SortOrder;
-import htsjdk.samtools.SamReader;
 import htsjdk.samtools.SAMReadGroupRecord;
 import htsjdk.samtools.SAMRecord;
 
@@ -18,7 +16,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qsv.util.TestUtil;
 
 public class AnnotatorTest {   
@@ -28,21 +25,11 @@ public class AnnotatorTest {
     
     @Rule
     public TemporaryFolder testFolder = new TemporaryFolder();
-	private File tumourBam;
     
     @Before
     public void setUp() throws IOException, Exception {
-    	records = new ArrayList<SAMRecord>();
-        tumourBam = testFolder.newFile("test.bam");
-        TestUtil.createBamFile(tumourBam.getCanonicalPath(), null, SortOrder.coordinate);
-        SamReader read = SAMFileReaderFactory.createSAMFileReader(tumourBam);//new SAMFileReader(tumourBam);
-        
-        for (SAMRecord r : read) {
-            records.add(r);
-        }
-        
-        read.close();
-    	setupSequencingRuns();
+	    	records = TestUtil.createSamBodyRecords(SortOrder.coordinate);
+	    	setupSequencingRuns();
     }
     
     private void setupSequencingRuns() {
@@ -235,13 +222,6 @@ public class AnnotatorTest {
         assertEquals("W**", r5.getAttribute("ZP"));
         lmp.annotate(r6);
         assertEquals("ABC", r6.getAttribute("ZP"));
-        
-//        System.out.println(r1.getSAMString());
-//        System.out.println(r2.getSAMString());
-//        System.out.println(r3.getSAMString());
-//        System.out.println(r4.getSAMString());
-//        System.out.println(r5.getSAMString());
-//        System.out.println(r6.getSAMString());
         
         assertEquals(3, lmp.getDuplicates().intValue());
         assertEquals(3, lmp.getSingletons().intValue());

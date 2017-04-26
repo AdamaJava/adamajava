@@ -12,14 +12,9 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ConcurrentMap;
 
-import htsjdk.samtools.SAMFileHeader.SortOrder;
-
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -35,41 +30,21 @@ import org.qcmg.qsv.util.TestUtil;
 public class QSVClusterTest {
 	
 	private QSVCluster record;
-	private QSVParameters tumor;
-	private QSVParameters normal;
-	private List<QSVCluster> list;
 	
 	@Rule
 	public TemporaryFolder testFolder = new TemporaryFolder();
 	
 
-    @Before
-    public void setUp() throws IOException, Exception {
-    	File tumorBam = TestUtil.createSamFile(testFolder.newFile("tumor.bam").getAbsolutePath(), PairGroup.AAC, SortOrder.queryname, true);
-    	File normalBam = TestUtil.createSamFile(testFolder.newFile("normal.bam").getAbsolutePath(), PairGroup.AAC, SortOrder.queryname, true);
-        tumor = TestUtil.getQSVParameters(testFolder, normalBam.getAbsolutePath(), tumorBam.getAbsolutePath(), true, "both");
-        normal = TestUtil.getQSVParameters(testFolder, normalBam.getAbsolutePath(), tumorBam.getAbsolutePath(), false, "both"); 
-    	list = new ArrayList<QSVCluster>();
-    }
-    
-    @After
-    public void tearDown() {
-    	record = null;
-
-    	list = null;
-    	tumor = null;
-    	normal = null;
-    }
     
     @Test
     public void testFindGermline() throws IOException, Exception {
-    	record = TestUtil.setupQSVCluster(PairGroup.AAC, "germline", testFolder, "chr7", "chr7", true, false);    	
-    	record.findGermline();    	
-    	assertTrue(record.isGermline());
-    	
-    	record = TestUtil.setupQSVCluster(PairGroup.AAC, "somatic", testFolder, "chr7", "chr7", false, false);    	
-    	record.findGermline();    	
-    	assertFalse(record.isGermline());
+	    	record = TestUtil.setupQSVCluster(PairGroup.AAC, "germline", testFolder, "chr7", "chr7", true, false);    	
+	    	record.findGermline();    	
+	    	assertTrue(record.isGermline());
+	    	
+	    	record = TestUtil.setupQSVCluster(PairGroup.AAC, "somatic", testFolder, "chr7", "chr7", false, false);    	
+	    	record.findGermline();    	
+	    	assertFalse(record.isGermline());
     }
     
     @Test 

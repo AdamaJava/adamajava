@@ -4,30 +4,22 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import org.junit.After;
 import org.junit.Test;
-import org.qcmg.qsv.QSVException;
 import org.qcmg.qsv.util.TestUtil;
 
 public class ClipTest {
 	
-	Clip clip;
-	
-	@After
-	public void tearDown() throws Exception {
-		clip = null;
-	}
 	
 	@Test
 	public void testConstructor()  {
-		clip = TestUtil.getClip("+", "right");
+		Clip clip = TestUtil.getClip("+", "right");
 		assertFalse(clip.getIsReverse());
 		assertFalse(clip.isLeft());
 	}
 	
 	@Test
 	public void testConstructor2()  {
-		clip = TestUtil.getClip("-", "left");
+		Clip clip = TestUtil.getClip("-", "left");
 		assertTrue(clip.getIsReverse());
 		assertTrue(clip.isLeft());
 	}

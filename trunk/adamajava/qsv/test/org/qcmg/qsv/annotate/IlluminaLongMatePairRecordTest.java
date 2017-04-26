@@ -11,7 +11,6 @@ import htsjdk.samtools.SamReader;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMFileHeader.SortOrder;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -21,26 +20,22 @@ import org.qcmg.qsv.util.TestUtil;
 
 public class IlluminaLongMatePairRecordTest {
     
-	private List<SAMRecord> records = new ArrayList<SAMRecord>();
+	private final List<SAMRecord> records = new ArrayList<SAMRecord>();
     
     @Rule
     public TemporaryFolder testFolder = new TemporaryFolder();
     
     @Before
     public void setUp() throws IOException {
-    	File file = TestUtil.createSamFile(testFolder.newFile("test.bam").getAbsolutePath(), SortOrder.unsorted, true);
-        final SamReader sam = SAMFileReaderFactory.createSAMFileReader(file);//new SAMFileReader(file);
-        for (final SAMRecord samRecord : sam) {
-        	records.add(samRecord);
-        }
-        sam.close();
+	    	if (records.isEmpty()) {
+	    		File file = TestUtil.createSamFile(testFolder.newFile("test.bam").getAbsolutePath(), SortOrder.unsorted, true);
+	        try (final SamReader sam = SAMFileReaderFactory.createSAMFileReader(file)) {//new SAMFileReader(file);
+		        for (final SAMRecord samRecord : sam) {
+		        		records.add(samRecord);
+		        }
+	        }
+	    	}
     }
-    
-    @After
-    public void after() throws IOException {
-    	records.clear();
-    }   
-    
     
     @Test    
     public void testHandleOrientation() {
