@@ -38,7 +38,9 @@ public class MatePair implements Comparable<MatePair> {
 		if ( ! (check.equals(readName))) {
 			logger.info("Left" + readName);
 			logger.info("Right" + check);
-			logger.info("Mate" + toString());
+			if (null != leftMate && null != rightMate) {
+				logger.info("Mate" + toString());
+			}
 			throw new QSVException("PAIR_ERROR");
 		}
 		this.zp = PairClassification.valueOf(getPairClassificationFromSamRecord(leftRecord));
@@ -73,7 +75,7 @@ public class MatePair implements Comparable<MatePair> {
 
 	private String getPairClassificationFromSamRecord(SAMRecord samRecord) {
 		String zp = (String) samRecord.getAttribute(QSVConstants.ZP_SHORT);
-		if (zp.equals(QSVConstants.C_STAR_STAR)) {
+		if (QSVConstants.C_STAR_STAR.equals(zp)) {
 			zp = "Cxx";
 		}
 		return zp;

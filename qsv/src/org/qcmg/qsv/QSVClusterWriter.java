@@ -90,7 +90,7 @@ public class QSVClusterWriter {
 	 * @throws Exception
 	 */
 	public synchronized void writeQSVClusterRecords(Map<PairGroup, Map<String, List<DiscordantPairCluster>>> clusterRecords, boolean isTumour) throws Exception {
-		List<QSVCluster> svRecords = new ArrayList<QSVCluster>();
+		List<QSVCluster> svRecords = new ArrayList<>();
 		if (clusterRecords != null) {
 			//any discordant pair records that aren't already converted to QSV cluster records
 			for (Entry<PairGroup, Map<String, List<DiscordantPairCluster>>> entry: clusterRecords.entrySet()) {
@@ -121,10 +121,10 @@ public class QSVClusterWriter {
 		String base = tumorParameters.getResultsDir();
 		String sampleId = tumorParameters.getSampleId();
 
-		List<QSVCluster> somaticRecords = new ArrayList<QSVCluster>();
-		List<QSVCluster> germlineRecords = new ArrayList<QSVCluster>();
+		List<QSVCluster> somaticRecords = new ArrayList<>();
+		List<QSVCluster> germlineRecords = new ArrayList<>();
 
-		for (QSVCluster record: svRecords) {    		
+		for (QSVCluster record: svRecords) {
 			String id = "";
 
 			if (record.printRecord(isSingleSided)) {
@@ -134,32 +134,30 @@ public class QSVClusterWriter {
 					if (twoFileMode) {
 						if (record.isGermline()) {
 							if (isQCMG) {
-								id += "stgv_" + germlineCount.incrementAndGet();
+								id = "stgv_" + germlineCount.incrementAndGet();
 							} else {
-								id += "gm_" + germlineCount.incrementAndGet();
+								id = "gm_" + germlineCount.incrementAndGet();
 							}
 						} else {
 							if (isQCMG) {
-								id += "stsm_" + somaticCount.incrementAndGet();
+								id = "stsm_" + somaticCount.incrementAndGet();
 							} else {
-								id += "sm_" + somaticCount.incrementAndGet();
+								id = "sm_" + somaticCount.incrementAndGet();
 							}
 						}
 					} else {
 
 						if (isQCMG) {
-							id += "stgv_" + somaticCount.incrementAndGet();
+							id = "stgv_" + somaticCount.incrementAndGet();
 						} else {
-							id += "sv_" + somaticCount.incrementAndGet();
+							id = "sv_" + somaticCount.incrementAndGet();
 						}
 					}
 
 					record.checkReferenceFlank(tumorParameters.getReference(), tumorParameters.getChromosomes());
 					record.checkGFF(gffMap);
 
-
-					String svId = id;
-					record.setIdParameters(svId, analysisId, sampleId);
+					record.setIdParameters(id, analysisId, sampleId);
 
 					if (record.isGermline()) {		    			
 						germlineRecords.add(record);

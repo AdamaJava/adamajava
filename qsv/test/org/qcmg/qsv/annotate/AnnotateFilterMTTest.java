@@ -18,7 +18,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import htsjdk.samtools.SAMFileHeader.SortOrder;
 import htsjdk.samtools.SamReader;
 import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.ValidationStringency;
 
 import org.ini4j.InvalidFileFormatException;
 import org.junit.After;
@@ -53,7 +52,7 @@ public class AnnotateFilterMTTest {
     public static File outputDir;
 
     @Before
-    public void setUp() throws Exception {        
+    public void setUp() throws IOException {        
       	normalBam = testFolder.newFile("normal.bam");    	
     }
     
@@ -76,7 +75,7 @@ public class AnnotateFilterMTTest {
 			iniFile.delete();
 		}		
 		
-		try (BufferedWriter out = new BufferedWriter(new FileWriter(iniFile));) {
+		try (BufferedWriter out = new BufferedWriter(new FileWriter(iniFile))) {
 			out.write("[general]" + Constants.NL);
 			out.write("log=" + logFile.getAbsolutePath() + Constants.NL);
 			out.write("loglevel=DEBUG" + Constants.NL);
@@ -87,38 +86,27 @@ public class AnnotateFilterMTTest {
 			out.write("reference=" + reference.getAbsolutePath() + Constants.NL);
 			out.write("platform=illumina" + Constants.NL);
 			out.write("min_insert_size=50" + Constants.NL);
-	//		out.write("qcmg=true" + Constants.NL);
 			
 			out.write("[pair]" + Constants.NL);
 			out.write("pair_query=and(MAPQ >= 30, Cigar_M > 35, MD_mismatch < 3, Flag_DuplicateRead == false)" + Constants.NL);
 			out.write("pairing_type=pe" + Constants.NL);
 			out.write("cluster_size=3" + Constants.NL);
 			out.write("filter_size=3" + Constants.NL);
-	//		out.write("primer_size=3" + Constants.NL);
 			out.write("mapper=bwa" + Constants.NL);
-	//		out.write("[clip]" + Constants.NL);
-	//		out.write("clip_query=and(Cigar_M > 35,option_SM > 14,MD_mismatch < 3,Flag_DuplicateRead == false)" + Constants.NL);
-	//		out.write("clip_size=3" + Constants.NL);
-	//		out.write("consensus_length=20" + Constants.NL);
-	//		out.write("blatpath=/home/Software/BLAT" + Constants.NL);
-	//		out.write("blatserver=localhost" + Constants.NL);
-	//		out.write("blatport=50000" + Constants.NL);
 			
 			out.write("["+ QSVConstants.DISEASE_SAMPLE +"]" + Constants.NL);
 			out.write("name=TD" + Constants.NL);
-	//		out.write("sample_id=ICGC-DBLG-20110506-01-TD" + Constants.NL);
 			out.write("input_file=" + testBam.getAbsolutePath()+ Constants.NL);
 			
 			out.write("["+ QSVConstants.DISEASE_SAMPLE +"/size_1]" + Constants.NL);
 		    	out.write("rgid=20110221052813657" + Constants.NL);
 		    	out.write("lower=640" + Constants.NL);
 		    	out.write("upper=2360" + Constants.NL + Constants.NL);
-		//    	out.write("name=seq_mapped_1" + Constants.NL);
 		    	
 		    	out.write("["+ QSVConstants.CONTROL_SAMPLE +"]" + Constants.NL);
 		    	out.write("name=ND" + Constants.NL);
 		    	out.write("sample_id=ICGC-DBLG-20110506-01-ND" + Constants.NL);
-				out.write("input_file=" + controlBam.getAbsolutePath() + Constants.NL);
+			out.write("input_file=" + controlBam.getAbsolutePath() + Constants.NL);
 		    	out.write("["+ QSVConstants.CONTROL_SAMPLE +"/size_1]" + Constants.NL);
 		    	out.write("rgid=20110221052813657" + Constants.NL);
 		    	out.write("lower=640" + Constants.NL);
@@ -135,7 +123,7 @@ public class AnnotateFilterMTTest {
     
     @Test
     public void setupQueryExecutor() throws Exception {
-    	AbstractQueue<List<Chromosome>> readQueue = null;
+    		AbstractQueue<List<Chromosome>> readQueue = null;
 		AbstractQueue<SAMRecord> writeQueue = null;
 		AbstractQueue<SAMRecord> writeClipQueue = null;
 		Thread mainThread = null;
@@ -143,19 +131,19 @@ public class AnnotateFilterMTTest {
 		CountDownLatch fLatch = null;
 		CountDownLatch wGoodLatch = null;
 		
-		   String[] args = getValidOptions();
-	        Options options = new Options(args);
-	        options.parseIniFile();
-	        String matepairsDir = null;
-			QSVParameters p = new QSVParameters(options, true, testFolder.getRoot().toString() , matepairsDir , new Date(), "test");
+	   String[] args = getValidOptions();
+	    Options options = new Options(args);
+	    options.parseIniFile();
+	    String matepairsDir = null;
+		QSVParameters p = new QSVParameters(options, true, testFolder.getRoot().toString() , matepairsDir , new Date(), "test");
 		AnnotateFilterMT afmt = new AnnotateFilterMT(Thread.currentThread(), wGoodLatch, p, null, null, options);
-    		afmt.new AnnotationFiltering(readQueue, writeQueue, writeClipQueue, mainThread, readLatch, fLatch, wGoodLatch);
+		afmt.new AnnotationFiltering(readQueue, writeQueue, writeClipQueue, mainThread, readLatch, fLatch, wGoodLatch);
     	
-    	try {
-    		new QueryExecutor("and(Cigar_M > 35, option_SM > 10, MD_mismatch < 3, Flag_DuplicateRead == false)");
-    	} catch (Exception e) {
-    		e.printStackTrace();
-    	}
+	    	try {
+	    		new QueryExecutor("and(Cigar_M > 35, option_SM > 10, MD_mismatch < 3, Flag_DuplicateRead == false)");
+	    	} catch (Exception e) {
+	    		e.printStackTrace();
+	    	}
     }
 
     @Ignore
@@ -188,8 +176,8 @@ public class AnnotateFilterMTTest {
     
     @Ignore
     public void testRunBothFilter() throws Exception {        
-    	AtomicInteger exit = runFilterTest("both", true);
-    	assertEquals(0, exit.intValue()); assertEquals(0, exit.intValue());
+	    	AtomicInteger exit = runFilterTest("both", true);
+	    	assertEquals(0, exit.intValue()); assertEquals(0, exit.intValue());
         assertTrue(parameters.getFilteredBamFile().exists());
         assertTrue(parameters.getFilteredBamFile().toString().contains("discordantpair"));
         assertTrue(parameters.getFilteredBamFile().length() > 100);
@@ -232,16 +220,12 @@ public class AnnotateFilterMTTest {
 	}
 
 	private void assertRecordsFound(int total, File bam) throws IOException {
-		SamReader reader =  SAMFileReaderFactory.createSAMFileReader(bam);//new SAMFileReader(bam);
-        
-        int count = 0;
-        
-        for (SAMRecord r: reader) {
-        	count++;
-        }
-        
-        reader.close();
+		int count = 0;
+		try (SamReader reader =  SAMFileReaderFactory.createSAMFileReader(bam)) {
+	        for (SAMRecord r: reader) {
+	        		count++;
+	        }
+		}
         assertEquals(total, count);
-		
 	}
 }

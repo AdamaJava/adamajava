@@ -17,14 +17,10 @@ import org.qcmg.qsv.splitread.UnmappedRead;
 public class QSVAssembleTest {
 	
 	QSVAssemble assemble;
-	
-
-		
 
 	@Before
 	public void setUp() throws Exception {
 		assemble = new QSVAssemble();
-		setUpSplitReads();
 	}
 
 	private List<Read> setUpSplitReads() throws Exception {

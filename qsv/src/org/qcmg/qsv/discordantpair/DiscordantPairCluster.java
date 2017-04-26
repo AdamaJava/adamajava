@@ -78,7 +78,7 @@ public class DiscordantPairCluster {
 		this.type = "";
 		this.sampleType = findParameters.getFindType();
 		this.windowSize = findParameters.getUpperInsertSize();
-		this.strandOrientations = new HashMap<String, AtomicInteger>();
+		this.strandOrientations = new HashMap<>(8);
 		this.qPrimerThreshold = findParameters.getqPrimerThreshold();
 		this.lowConfidenceNormalMatePairs = 0;
 		this.isQCMG = isQCMG;
@@ -216,7 +216,7 @@ public class DiscordantPairCluster {
 	}
 
 	public void findLeftStartOfCluster() {
-		Collections.sort(clusterMatePairs, READ_MATE_LEFT_START_COMP);
+		clusterMatePairs.sort(READ_MATE_LEFT_START_COMP);
 		this.leftStart = clusterMatePairs.get(0).getLeftMate().getStart();
 	}
 
@@ -224,7 +224,7 @@ public class DiscordantPairCluster {
 	 * Sort mate pairs by left mate start and find left end of the cluster
 	 */
 	 public void findLeftEndOfCluster() {
-		Collections.sort(clusterMatePairs, READ_MATE_LEFT_END_COMP);
+		clusterMatePairs.sort(READ_MATE_LEFT_END_COMP);
 		int indexLast = clusterMatePairs.size() - 1;
 		this.leftEnd = clusterMatePairs.get(indexLast).getLeftMate().getEnd();
 	 }
@@ -233,17 +233,17 @@ public class DiscordantPairCluster {
 	  * Sort mate pairs by the right mate start and find right start
 	  */
 	 public void findRightStartOfCluster() {
-		 Collections.sort(clusterMatePairs, READ_MATE_RIGHT_START_COMP);
+		 clusterMatePairs.sort(READ_MATE_RIGHT_START_COMP);
 		 this.rightStart = clusterMatePairs.get(0).getRightMate().getStart();
 	 }    
 
 	 private void findRightEndOfCluster() {
-		 Collections.sort(clusterMatePairs, READ_MATE_RIGHT_END_COMP);
+		 clusterMatePairs.sort(READ_MATE_RIGHT_END_COMP);
 		 int indexLast = clusterMatePairs.size() - 1;
 		 this.rightEnd = clusterMatePairs.get(indexLast).getRightMate().getEnd();
 	 }
 
-	 public String countStrandOrientations() {
+	 String countStrandOrientations() {
 		 strandOrientations.put("+/+", new AtomicInteger());
 		 strandOrientations.put("-/-", new AtomicInteger());
 		 strandOrientations.put("+/-", new AtomicInteger());
@@ -251,16 +251,17 @@ public class DiscordantPairCluster {
 
 		 for (MatePair m: clusterMatePairs) {
 			 String orientation = m.getStrandOrientation();
+			 strandOrientations.get(orientation).incrementAndGet();
 
-			 if (orientation.equals("-/-")) {
-				 strandOrientations.get("-/-").incrementAndGet();
-			 } else if (orientation.equals("+/-")){
-				 strandOrientations.get("+/-").incrementAndGet();
-			 } else if (orientation.equals("-/+")) {
-				 strandOrientations.get("-/+").incrementAndGet();
-			 } else {
-				 strandOrientations.get("+/+").incrementAndGet();
-			 }
+//			 if (orientation.equals("-/-")) {
+//				 strandOrientations.get("-/-").incrementAndGet();
+//			 } else if (orientation.equals("+/-")){
+//				 strandOrientations.get("+/-").incrementAndGet();
+//			 } else if (orientation.equals("-/+")) {
+//				 strandOrientations.get("-/+").incrementAndGet();
+//			 } else {
+//				 strandOrientations.get("+/+").incrementAndGet();
+//			 }
 		 }
 
 		 int maxValue = 0;

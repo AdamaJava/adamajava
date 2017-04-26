@@ -17,15 +17,15 @@ import org.qcmg.qsv.annotate.RunTypeRecord;
 public class SummaryReport extends QSVReport {
 
 	private String runTime;
-	private Date runDate;
+	private final Date runDate;
 	private QSVParameters tumorParam;
 	private QSVParameters normalParam;
 	private Options options;
-	private boolean isQCMG;
-	private Object somaticCount;
-	private Object germlineCount;
-	private Object normalGermlineCount;
-	private String analysisId;
+	private final boolean isQCMG;
+	private int somaticCount;
+	private int germlineCount;
+	private int normalGermlineCount;
+	private final String analysisId;
 	private static String NEWLINE = System.getProperty("line.separator");
 
 	public SummaryReport(File file, Date runDate, String analysisId, boolean isQCMG) {

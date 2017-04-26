@@ -1,7 +1,6 @@
 package org.qcmg.qsv;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayOutputStream;
@@ -13,16 +12,12 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
-import htsjdk.samtools.SAMFileHeader.SortOrder;
 
-import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.qcmg.qsv.discordantpair.PairGroup;
 import org.qcmg.qsv.util.QSVUtil;
 import org.qcmg.qsv.util.TestUtil;
 
@@ -30,8 +25,6 @@ public class QSVTest {
 
     private  File normalBam;
     private  File tumorBam;
-    private  File filteredNormalBam;
-    private  File filteredTumorBam;
     private PrintStream defaultOutstream = null;
     private PrintStream testOutPrintStream = null;
     private ByteArrayOutputStream testOut = null;
@@ -39,21 +32,21 @@ public class QSVTest {
 	@Rule
 	public TemporaryFolder testFolder = new TemporaryFolder();
     
-    @Before
-    public void setUp() throws IOException {
-    	normalBam = TestUtil.createBamFile(testFolder.newFile("normalBam.bam").getAbsolutePath(), PairGroup.AAC, SortOrder.coordinate);
-    	tumorBam = TestUtil.createBamFile(testFolder.newFile("tumorBam.bam").getAbsolutePath(), PairGroup.AAC, SortOrder.coordinate);
-		filteredNormalBam = TestUtil.createBamFile(testFolder.newFile("normalBam_filtered.bam").getAbsolutePath(), PairGroup.AAC, SortOrder.queryname);
-		filteredTumorBam = TestUtil.createBamFile(testFolder.newFile("normalBam_filtered.bam").getAbsolutePath(), PairGroup.AAC, SortOrder.queryname);
-    }
+//    @Before
+//    public void setUp() throws IOException {
+////    	normalBam = TestUtil.createBamFile(testFolder.newFile("normalBam.bam").getAbsolutePath(), PairGroup.AAC, SortOrder.coordinate);
+////    	tumorBam = TestUtil.createBamFile(testFolder.newFile("tumorBam.bam").getAbsolutePath(), PairGroup.AAC, SortOrder.coordinate);
+////		filteredNormalBam = TestUtil.createBamFile(testFolder.newFile("normalBam_filtered.bam").getAbsolutePath(), PairGroup.AAC, SortOrder.queryname);
+////		filteredTumorBam = TestUtil.createBamFile(testFolder.newFile("normalBam_filtered.bam").getAbsolutePath(), PairGroup.AAC, SortOrder.queryname);
+//    }
     
-    @After
-    public void tearDown() throws IOException {    	
-    	normalBam = null;
-    	tumorBam = null;
-		filteredNormalBam = null;
-		filteredTumorBam = null;
-    }
+//    @After
+//    public void tearDown() throws IOException {    	
+////    	normalBam = null;
+////    	tumorBam = null;
+////		filteredNormalBam = null;
+////		filteredTumorBam = null;
+//    }
 
     public void setUpStreams() {
         defaultOutstream = System.err;

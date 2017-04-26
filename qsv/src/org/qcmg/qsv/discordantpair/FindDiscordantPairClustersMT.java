@@ -269,10 +269,8 @@ public class FindDiscordantPairClustersMT implements Callable <Map<String, List<
 	 * @param compareMatePairsList 
 	 * @param compareMatePairs map of read pairs to compare with
 	 * @return
-	 * @throws Exception 
-	 * @throws QPileupException 
 	 */    
-	void classifyClusters(List<DiscordantPairCluster> tempClusters, final List<MatePair> compareMatePairsList) throws Exception  {
+	void classifyClusters(List<DiscordantPairCluster> tempClusters, final List<MatePair> compareMatePairsList)  {
 		Queue<DiscordantPairCluster> queue = new ConcurrentLinkedQueue<>(tempClusters);
 		
 		// number of threads - max out
@@ -307,14 +305,12 @@ public class FindDiscordantPairClustersMT implements Callable <Map<String, List<
 
 		@Override
 		public void run() {
-//			int count = 0;
 			
 			while (true) {
 			
 				DiscordantPairCluster cluster = queue.poll();
 				// all items are in queue at kick-off so if null, we are done
 				if (cluster != null) {
-//					count++;
 					//set the ends of the cluster, check for any overlap
 					cluster.setClusterEnds();                
 		

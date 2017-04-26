@@ -13,7 +13,6 @@ import htsjdk.samtools.SAMFileHeader.SortOrder;
 import htsjdk.samtools.SamReader;
 import htsjdk.samtools.SAMRecord;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -32,18 +31,15 @@ public class PairedEndRecordTest {
     
     @Before
     public void setUp() throws IOException {
-    		File file = TestUtil.createSamFile(testFolder.newFile("test.bam").getAbsolutePath(), SortOrder.unsorted, true);
-        try (final SamReader sam = SAMFileReaderFactory.createSAMFileReader(file)){//new SAMFileReader(file);) {
-	        for (final SAMRecord samRecord : sam) {
-	        		records.add(samRecord);
+    		if (records.isEmpty()) {
+	    		File file = TestUtil.createSamFile(testFolder.newFile("test.bam").getAbsolutePath(), SortOrder.unsorted, true);
+	        try (final SamReader sam = SAMFileReaderFactory.createSAMFileReader(file)){//new SAMFileReader(file);) {
+		        for (final SAMRecord samRecord : sam) {
+		        		records.add(samRecord);
+		        }
 	        }
-        }
+    		}
     }
-    
-    @After
-    public void after() throws IOException {
-    		records.clear();
-    }   
     
     @Test    
     public void testHandleOrientation() {

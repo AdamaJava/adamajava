@@ -10,11 +10,8 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
-import java.util.NavigableMap;
 
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -23,24 +20,16 @@ import org.qcmg.qsv.QSVParameters;
 import org.qcmg.qsv.assemble.ConsensusRead;
 import org.qcmg.qsv.blat.BLAT;
 import org.qcmg.qsv.blat.BLATRecord;
-import org.qcmg.qsv.splitread.UnmappedRead;
 import org.qcmg.qsv.util.QSVUtil;
 import org.qcmg.qsv.util.TestUtil;
 
 public class BreakpointTest {
 	
 	Breakpoint breakpoint;
-	NavigableMap<Integer, List<UnmappedRead>> splitReadsMap;
 	
 	@Rule
     public TemporaryFolder testFolder = new TemporaryFolder();
-		
 
-	@Before
-	public void setUp() throws Exception {
-		splitReadsMap = null;
-	}
-	
 	@Test
 	public void testDefineBreakpointPassesFilterWithSomaticRight() throws Exception {
 		breakpoint = TestUtil.getBreakpoint(false, false, 20, false);
@@ -153,7 +142,6 @@ public class BreakpointTest {
 	
 	@Test
 	public void testFindRescuedMateBreakpoint() throws Exception {
-//		breakpoint = new Breakpoint();	
 		breakpoint = new Breakpoint(89712341, "chr10", true, -1, -1);	
 		HashSet<Clip> set = new HashSet<Clip>();
 		set.add(new Clip("test,chr10,89712341,+,left,ACTTTGAAAAAACAGTAATTAA,ACTTTGAAAAAACAGTAATT,AA"));	
@@ -161,11 +149,6 @@ public class BreakpointTest {
 		for (Clip c : set) {
 			breakpoint.addTumourClip(c);
 		}
-//		breakpoint.setTumourClips(set);	
-//		breakpoint.setName("chr10_89712341_true_+");
-//		breakpoint.setReference("chr10");
-//		breakpoint.setStrand(QSVUtil.PLUS);
-//		breakpoint.setBreakpoint(89712341);
 		breakpoint.setStrand(QSVUtil.PLUS);
 		String name = breakpoint.getName();
 		BLAT blat = createMock(BLAT.class);
@@ -180,7 +163,6 @@ public class BreakpointTest {
         assertTrue(breakpoint.findRescuedMateBreakpoint(blat, p, softClipDir));
         assertEquals(QSVUtil.MINUS, breakpoint.getMateStrand());
         // not so because we have now set isLeft to be true, rather than the default value which is false
-//        assertEquals(89700299, breakpoint.getMateBreakpoint());
         assertEquals(89700252, breakpoint.getMateBreakpoint());
         assertEquals("chr10", breakpoint.getMateReference());
 	}
@@ -194,7 +176,6 @@ public class BreakpointTest {
 		for (Clip c : set) {
 			breakpoint.addTumourClip(c);
 		}
-//		breakpoint.setTumourClips(set);		
 		if (isGermline) {
 			breakpoint.setGermline(true);
 			set.clear();
@@ -203,7 +184,6 @@ public class BreakpointTest {
 			for (Clip c : set) {
 				breakpoint.addNormalClip(c);
 			}
-//			breakpoint.setNormalClips(set);		
 		}
 		breakpoint.calculateStrand();
 		assertEquals(strand1, breakpoint.getStrand());
@@ -246,7 +226,6 @@ public class BreakpointTest {
 		assertEquals(true, Breakpoint.belowMinInsertSize(2, 1, 2));
 	}
 	
-
 	private int[][] setUpBases(int a, int b, int c, int d, int e) {
 		int[][] bases = new int[1][5];
 		bases[0][0] = a;
@@ -256,5 +235,4 @@ public class BreakpointTest {
 		bases[0][4] = e;
 		return bases;
 	}
-	
 }

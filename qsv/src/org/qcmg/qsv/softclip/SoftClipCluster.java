@@ -107,7 +107,7 @@ public class SoftClipCluster implements Comparable<SoftClipCluster> {
 	public String defineMutationType() throws Exception {
 		
 		if (oneSide) {
-			if (!leftReference.equals(rightReference)) {
+			if ( ! leftReference.equals(rightReference)) {
 				checkOrder();
 				return "CTX";
 			} else {
@@ -118,8 +118,8 @@ public class SoftClipCluster implements Comparable<SoftClipCluster> {
 			}
 			
 		} else {
-				checkOrder();
-				return findTwoSidedMutationType();	
+			checkOrder();
+			return findTwoSidedMutationType();	
 			
 		}
 	}
