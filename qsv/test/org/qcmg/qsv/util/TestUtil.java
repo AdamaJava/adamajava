@@ -185,7 +185,7 @@ public class TestUtil {
 
     
     public static List<MatePair> setupMatePairs(TemporaryFolder testFolder, PairGroup pg) throws QSVException {
-    		List<SAMRecord> records = getAACSAMRecords(SortOrder.unsorted);
+    		List<SAMRecord> records = getAACSAMRecords(SortOrder.queryname);
         
         return Arrays.asList(
         		new MatePair(records.get(0), records.get(1)),
