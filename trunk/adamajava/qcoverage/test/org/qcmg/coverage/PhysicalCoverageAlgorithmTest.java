@@ -135,8 +135,8 @@ public class PhysicalCoverageAlgorithmTest {
 	@Test
 	public void testApplyToPair2() {
 		PhysicalCoverageAlgorithm algorithm = new PhysicalCoverageAlgorithm();
-		int [] arrayNew = new int[1024*1024];
-		int [] arrayOld = new int[1024*1024];
+		int [] arrayNew = new int[1024];
+		int [] arrayOld = new int[1024];
 		SAMRecord rec1 = new SAMRecord(null);
 		
 		rec1.setAlignmentStart(1);
