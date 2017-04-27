@@ -19,8 +19,6 @@ import org.qcmg.motif.util.RegionType;
 public class MotifCoverageAlgorithmTest {
 	
 	Motifs stageOneMotifs;
-	Motifs stageTwoMotifs;
-	String stageOneRegex;
 	String stageTwoRegex;
 	
 	SAMRecord samPass;
@@ -36,10 +34,8 @@ public class MotifCoverageAlgorithmTest {
 	@Before
 	public void setup() {
 		stageOneMotifs = new Motifs(true, "TTAGGGTTAGGG");
-		stageTwoMotifs = null;
-		stageOneRegex = null;
 		stageTwoRegex = "((TTA|TCA|TTC|GTA|TGA|TTG|TAA|ATA|CTA|TTT|TTAA)GGG){2,}|(CCC(TAA|TGA|GAA|TAC|TCA|CAA|TTA|TAT|TAG|AAA|TTAA)){2,}";
-		mAndR = new MotifsAndRegexes(stageOneMotifs, stageOneRegex, stageTwoMotifs, stageTwoRegex, 10000);
+		mAndR = new MotifsAndRegexes(stageOneMotifs, null, null, stageTwoRegex, 10000);
 		mAndRStage1RegexStage2String = new MotifsAndRegexes(null, "...GGG{2,}|CCC...{2,}", new Motifs(true, "TTAGGGTTAGGG"), null, 10000);
 		mca = new MotifCoverageAlgorithm(mAndR);
 		mcaStage1RegexStage2String = new MotifCoverageAlgorithm(mAndRStage1RegexStage2String);
@@ -84,7 +80,6 @@ public class MotifCoverageAlgorithmTest {
 	}
 	@Test
 	public void stageTwoMotifsSameMatch() {
-		String s = mca.getStageTwoMotifs("ACGTTTAGGGTTAGGGACGT");
 		assertEquals("TTAGGGTTAGGG", mca.getStageTwoMotifs("ACGTTTAGGGTTAGGGACGT"));
 		assertEquals("TTAGGGTTAGGGTTAGGG", mca.getStageTwoMotifs("ACGTTTAGGGTTAGGGTTAGGGACGT"));
 		assertEquals("TTAGGGTTAGGGTTAGGGTTAGGG", mca.getStageTwoMotifs("ACGTTTAGGGTTAGGGTTAGGGTTAGGGACGT"));
