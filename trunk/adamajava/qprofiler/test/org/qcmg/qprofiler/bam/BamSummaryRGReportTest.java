@@ -5,47 +5,19 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ConcurrentSkipListMap;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicLongArray;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 
 import junit.framework.Assert;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SAMRecord;
 
 import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.qcmg.common.model.ProfileType;
-import org.qcmg.common.model.QCMGAtomicLongArray;
-import org.qcmg.picard.SAMFileReaderFactory;
-import org.qcmg.qprofiler.QProfiler;
-import org.qcmg.qprofiler.QProfilerSummary;
-import org.qcmg.qprofiler.StaticMethods;
-import org.qcmg.qprofiler.report.SummaryReport;
-import org.qcmg.qprofiler.summarise.Summarizer;
-import org.qcmg.qprofiler.util.SummaryReportUtils;
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.NodeList;
-
-import static java.util.stream.Collectors.toList;
  
 public class BamSummaryRGReportTest {
 	private static final String INPUT_FILE = "input.sam";
@@ -59,15 +31,16 @@ public class BamSummaryRGReportTest {
 	public void tempTest() throws Exception{
 		createMDerrFile();
 		
-		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-		DocumentBuilder builder = factory.newDocumentBuilder();
-		DOMImplementation domImpl = builder.getDOMImplementation();		
-		Document doc = domImpl.createDocument(null, "qProfiler", null);
-		Element root = doc.getDocumentElement();					 
+//		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+//		DocumentBuilder builder = factory.newDocumentBuilder();
+//		DOMImplementation domImpl = builder.getDOMImplementation();		
+//		Document doc = domImpl.createDocument(null, "qProfiler", null);
+//		Element root = doc.getDocumentElement();					 
 
 		BamSummarizer bs = new BamSummarizer();
 		BamSummaryReport sr = (BamSummaryReport) bs.summarize(new File(INPUT_FILE)); 
-		sr.toXml(root);		 
+		Assert.assertEquals(sr.getRecordsParsed(), 1);
+//		sr.toXml(root);
 	}
 	
 	@Test
