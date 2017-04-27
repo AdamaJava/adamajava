@@ -34,7 +34,7 @@ public class SeqFilterTest {
         SamReader Inreader = SAMFileReaderFactory.createSAMFileReader(new File(TestFile.INPUT_FILE_NAME));    //new SAMFileReader(new File(TestFile.INPUT_FILE_NAME));
         SAMRecord record = null ;
         for( SAMRecord re : Inreader){
-        	 record = re;
+        		record = re;
         }
         Inreader.close();
         
@@ -52,92 +52,94 @@ public class SeqFilterTest {
 
     }
     @Test
-    public void SpeedTest() throws Exception{
-    	String str = "CACTGCAGCCTTGTCCTTNNGGGCTCGAGCAATCCTCCCNCCTCAGCCTCACAAACAGTTGGGACTATAGGANNNN";
+    public void speedTest() {
+    		String str = "CACTGCAGCCTTGTCCTTNNGGGCTCGAGCAATCCTCCCNCCTCAGCCTCACAAACAGTTGGGACTATAGGANNNN";
       	int count = str.length() - str.replace("N", "").replace("n","").length();
       	
       	//test replace method
-    	long start = System.currentTimeMillis();
-    	for (int i = 0 ; i < 1000000 ; i++)  
-            assertTrue( str.length() - str.replace("N", "").replace("n","").length() == count);    	 
-    	System.out.println("time taken by replacement method: " + (System.currentTimeMillis() - start));
-    	
-    	start = System.currentTimeMillis();
-    	for (int i = 0 ; i < 1000000 ; i++)      		 
-             assertTrue( count == countN(str));   	 
-    	System.out.println("time taken by counting method: " + (System.currentTimeMillis() - start));    
-    	
+	    	long start = System.currentTimeMillis();
+	    	for (int i = 0 ; i < 10000 ; i++)  {
+	    		assertTrue( str.length() - str.replace("N", "").replace("n","").length() == count);
+	    	}
+	    	System.out.println("time taken by replacement method: " + (System.currentTimeMillis() - start));
+	    	
+	    	start = System.currentTimeMillis();
+	    	for (int i = 0 ; i < 10000 ; i++) {      		 
+	    		assertTrue( count == countN(str));
+	    	}
+	    	System.out.println("time taken by counting method: " + (System.currentTimeMillis() - start));    
     }
-    private int countN(String str){
-    	int count = 0;
-    	for(int i = 0; i < str.length(); i ++)
-    		if( str.charAt(i) == 'N' )
-    			count ++;
-    	
-    	return count;
-    			 
+    
+	private int countN(String str){
+	    	int count = 0;
+	    	for (int i = 0; i < str.length(); i ++) {
+	    		if( str.charAt(i) == 'N' ) {
+	    			count ++;
+	    		}
+	    	}
+	    	return count;
     }
     
     @Test
     public void testFilterOnEmptySequence() throws Exception {
-    	SAMRecord rec = new SAMRecord(null);
-    	rec.setReadString("");
-    	assertEquals(true, new SeqFilter("numberN", Comparator.Small, "4").filterOut(rec));
-    	assertEquals(true, new SeqFilter("numberN", Comparator.Small, "1").filterOut(rec));
-    	assertEquals(true, new SeqFilter("numberN", Comparator.Small, "100000").filterOut(rec));
-    	assertEquals(true, new SeqFilter("numberN", Comparator.SmallEqual, "0").filterOut(rec));
-    	assertEquals(false, new SeqFilter("numberN", Comparator.Small, "0").filterOut(rec));
-    	assertEquals(false, new SeqFilter("numberN", Comparator.GreatEqual, "100000").filterOut(rec));
-    	assertEquals(true, new SeqFilter("numberN", Comparator.GreatEqual, "0").filterOut(rec));
-    	assertEquals(false, new SeqFilter("numberN", Comparator.GreatEqual, "1").filterOut(rec));
+	    	SAMRecord rec = new SAMRecord(null);
+	    	rec.setReadString("");
+	    	assertEquals(true, new SeqFilter("numberN", Comparator.Small, "4").filterOut(rec));
+	    	assertEquals(true, new SeqFilter("numberN", Comparator.Small, "1").filterOut(rec));
+	    	assertEquals(true, new SeqFilter("numberN", Comparator.Small, "100000").filterOut(rec));
+	    	assertEquals(true, new SeqFilter("numberN", Comparator.SmallEqual, "0").filterOut(rec));
+	    	assertEquals(false, new SeqFilter("numberN", Comparator.Small, "0").filterOut(rec));
+	    	assertEquals(false, new SeqFilter("numberN", Comparator.GreatEqual, "100000").filterOut(rec));
+	    	assertEquals(true, new SeqFilter("numberN", Comparator.GreatEqual, "0").filterOut(rec));
+	    	assertEquals(false, new SeqFilter("numberN", Comparator.GreatEqual, "1").filterOut(rec));
     }
     
     @Test
     public void testFilterOnSequenceNoNs() throws Exception {
-    	SAMRecord rec = new SAMRecord(null);
-    	rec.setReadString("ACGT");
-    	assertEquals(true, new SeqFilter("numberN", Comparator.Small, "4").filterOut(rec));
-    	assertEquals(true, new SeqFilter("numberN", Comparator.Small, "1").filterOut(rec));
-    	assertEquals(true, new SeqFilter("numberN", Comparator.Small, "100000").filterOut(rec));
-    	assertEquals(true, new SeqFilter("numberN", Comparator.SmallEqual, "0").filterOut(rec));
-    	assertEquals(false, new SeqFilter("numberN", Comparator.Small, "0").filterOut(rec));
-    	assertEquals(false, new SeqFilter("numberN", Comparator.GreatEqual, "100000").filterOut(rec));
-    	assertEquals(true, new SeqFilter("numberN", Comparator.GreatEqual, "0").filterOut(rec));
-    	assertEquals(false, new SeqFilter("numberN", Comparator.GreatEqual, "1").filterOut(rec));
+	    	SAMRecord rec = new SAMRecord(null);
+	    	rec.setReadString("ACGT");
+	    	assertEquals(true, new SeqFilter("numberN", Comparator.Small, "4").filterOut(rec));
+	    	assertEquals(true, new SeqFilter("numberN", Comparator.Small, "1").filterOut(rec));
+	    	assertEquals(true, new SeqFilter("numberN", Comparator.Small, "100000").filterOut(rec));
+	    	assertEquals(true, new SeqFilter("numberN", Comparator.SmallEqual, "0").filterOut(rec));
+	    	assertEquals(false, new SeqFilter("numberN", Comparator.Small, "0").filterOut(rec));
+	    	assertEquals(false, new SeqFilter("numberN", Comparator.GreatEqual, "100000").filterOut(rec));
+	    	assertEquals(true, new SeqFilter("numberN", Comparator.GreatEqual, "0").filterOut(rec));
+	    	assertEquals(false, new SeqFilter("numberN", Comparator.GreatEqual, "1").filterOut(rec));
     }
     @Test
     public void testFilterOnSequenceNs() throws Exception {
-    	SAMRecord rec = new SAMRecord(null);
-    	rec.setReadString("N");
-    	assertEquals(true, new SeqFilter("numberN", Comparator.Small, "4").filterOut(rec));
-    	assertEquals(false, new SeqFilter("numberN", Comparator.Small, "1").filterOut(rec));
-    	assertEquals(true, new SeqFilter("numberN", Comparator.SmallEqual, "1").filterOut(rec));
-    	assertEquals(false, new SeqFilter("numberN", Comparator.SmallEqual, "0").filterOut(rec));
-    	assertEquals(true, new SeqFilter("numberN", Comparator.Equal, "1").filterOut(rec));
-    	assertEquals(true, new SeqFilter("numberN", Comparator.GreatEqual, "1").filterOut(rec));
-    	assertEquals(true, new SeqFilter("numberN", Comparator.Great, "0").filterOut(rec));
-    	assertEquals(false, new SeqFilter("numberN", Comparator.Great, "1").filterOut(rec));
-    	
-    	rec.setReadString("NNNN");
-    	assertEquals(false, new SeqFilter("numberN", Comparator.Small, "4").filterOut(rec));
-    	assertEquals(false, new SeqFilter("numberN", Comparator.Small, "1").filterOut(rec));
-    	assertEquals(false, new SeqFilter("numberN", Comparator.SmallEqual, "1").filterOut(rec));
-    	assertEquals(false, new SeqFilter("numberN", Comparator.SmallEqual, "0").filterOut(rec));
-    	assertEquals(false, new SeqFilter("numberN", Comparator.Equal, "1").filterOut(rec));
-    	assertEquals(true, new SeqFilter("numberN", Comparator.GreatEqual, "1").filterOut(rec));
-    	assertEquals(true, new SeqFilter("numberN", Comparator.Great, "0").filterOut(rec));
-    	assertEquals(true, new SeqFilter("numberN", Comparator.Great, "1").filterOut(rec));
-    	
-    	rec.setReadString("NNNNNNNNNN");
-    	assertEquals(false, new SeqFilter("numberN", Comparator.Small, "4").filterOut(rec));
-    	assertEquals(false, new SeqFilter("numberN", Comparator.Small, "10").filterOut(rec));
-    	assertEquals(true, new SeqFilter("numberN", Comparator.SmallEqual, "10").filterOut(rec));
-    	assertEquals(false, new SeqFilter("numberN", Comparator.SmallEqual, "0").filterOut(rec));
-    	assertEquals(false, new SeqFilter("numberN", Comparator.Equal, "1").filterOut(rec));
-    	assertEquals(true, new SeqFilter("numberN", Comparator.GreatEqual, "1").filterOut(rec));
-    	assertEquals(true, new SeqFilter("numberN", Comparator.Great, "0").filterOut(rec));
-    	assertEquals(true, new SeqFilter("numberN", Comparator.Great, "1").filterOut(rec));
-    	assertEquals(false, new SeqFilter("numberN", Comparator.Great, "1000").filterOut(rec));
+	    	SAMRecord rec = new SAMRecord(null);
+	    	rec.setReadString("N");
+	    	assertEquals(true, new SeqFilter("numberN", Comparator.Small, "4").filterOut(rec));
+	    	assertEquals(false, new SeqFilter("numberN", Comparator.Small, "1").filterOut(rec));
+	    	assertEquals(true, new SeqFilter("numberN", Comparator.SmallEqual, "1").filterOut(rec));
+	    	assertEquals(false, new SeqFilter("numberN", Comparator.SmallEqual, "0").filterOut(rec));
+	    	assertEquals(true, new SeqFilter("numberN", Comparator.Equal, "1").filterOut(rec));
+	    	assertEquals(true, new SeqFilter("numberN", Comparator.GreatEqual, "1").filterOut(rec));
+	    	assertEquals(true, new SeqFilter("numberN", Comparator.Great, "0").filterOut(rec));
+	    	assertEquals(false, new SeqFilter("numberN", Comparator.Great, "1").filterOut(rec));
+	    	
+	    	rec.setReadString("NNNN");
+	    	assertEquals(false, new SeqFilter("numberN", Comparator.Small, "4").filterOut(rec));
+	    	assertEquals(false, new SeqFilter("numberN", Comparator.Small, "1").filterOut(rec));
+	    	assertEquals(false, new SeqFilter("numberN", Comparator.SmallEqual, "1").filterOut(rec));
+	    	assertEquals(false, new SeqFilter("numberN", Comparator.SmallEqual, "0").filterOut(rec));
+	    	assertEquals(false, new SeqFilter("numberN", Comparator.Equal, "1").filterOut(rec));
+	    	assertEquals(true, new SeqFilter("numberN", Comparator.GreatEqual, "1").filterOut(rec));
+	    	assertEquals(true, new SeqFilter("numberN", Comparator.Great, "0").filterOut(rec));
+	    	assertEquals(true, new SeqFilter("numberN", Comparator.Great, "1").filterOut(rec));
+	    	
+	    	rec.setReadString("NNNNNNNNNN");
+	    	assertEquals(false, new SeqFilter("numberN", Comparator.Small, "4").filterOut(rec));
+	    	assertEquals(false, new SeqFilter("numberN", Comparator.Small, "10").filterOut(rec));
+	    	assertEquals(true, new SeqFilter("numberN", Comparator.SmallEqual, "10").filterOut(rec));
+	    	assertEquals(false, new SeqFilter("numberN", Comparator.SmallEqual, "0").filterOut(rec));
+	    	assertEquals(false, new SeqFilter("numberN", Comparator.Equal, "1").filterOut(rec));
+	    	assertEquals(true, new SeqFilter("numberN", Comparator.GreatEqual, "1").filterOut(rec));
+	    	assertEquals(true, new SeqFilter("numberN", Comparator.Great, "0").filterOut(rec));
+	    	assertEquals(true, new SeqFilter("numberN", Comparator.Great, "1").filterOut(rec));
+	    	assertEquals(false, new SeqFilter("numberN", Comparator.Great, "1000").filterOut(rec));
     	
     }
 }
