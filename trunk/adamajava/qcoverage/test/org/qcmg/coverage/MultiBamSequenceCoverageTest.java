@@ -7,12 +7,6 @@ import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 
-import htsjdk.samtools.BAMIndexer;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMFileWriter;
-import htsjdk.samtools.SAMFileWriterFactory;
-import htsjdk.samtools.SAMRecord;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -21,15 +15,11 @@ import org.junit.rules.ExpectedException;
 import org.qcmg.common.commandline.Executor;
 import org.qcmg.gff3.GFF3FileWriter;
 import org.qcmg.gff3.GFF3Record;
-import org.qcmg.picard.SAMFileReaderFactory;
 
 public class MultiBamSequenceCoverageTest {
 	final String inputSam1 = "coverage.sam";
 	final String inputBam1 = "coverage.bam";
 	final String inputIndex1 = "coverage.bai";
-//	final String inputSam2 = "coverage2.sam"; 
-//	final String inputBam2 = "coverage2.bam";
-//	final String inputIndex2 = "coverage2.bai";
 	final String output = "output";
 	final String gff3 = "test.gff3";
 	final String cmd =  String.format("--log ./logfile -t seq --gff3 %s --bam %s --bai %s -o %s",
