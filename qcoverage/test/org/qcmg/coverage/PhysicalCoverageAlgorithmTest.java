@@ -132,7 +132,7 @@ public class PhysicalCoverageAlgorithmTest {
 		Assert.assertArrayEquals(arrayOld, arrayNew);
 	}
 	
-	@Test
+	@Ignore
 	public void testApplyToPair2() {
 		PhysicalCoverageAlgorithm algorithm = new PhysicalCoverageAlgorithm();
 		int [] arrayNew = new int[1024];
