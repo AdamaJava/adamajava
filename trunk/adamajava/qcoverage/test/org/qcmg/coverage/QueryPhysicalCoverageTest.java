@@ -197,21 +197,6 @@ public class QueryPhysicalCoverageTest {
 	}
 
     @Test
-	public final void supersetRead() throws Exception {
-		File file = createGFF3File(54050, 54120);
-
-		ExpectedException.none();
-		Executor exec = execute(commandline);
-		assertTrue(0 == exec.getErrCode());
-
-		File outputFile = new File("output");
-		assertTrue(outputFile.exists());
-
-		deleteFile(outputFile);
-		file.delete();
-	}
-    
-    @Test
 	public final void subsetRead() throws Exception {
 		File file = createGFF3File(54030, 54070);
 
