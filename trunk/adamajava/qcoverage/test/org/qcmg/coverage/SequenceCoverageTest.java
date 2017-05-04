@@ -1,5 +1,6 @@
 package org.qcmg.coverage;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMFileWriter;
@@ -13,13 +14,17 @@ import htsjdk.samtools.SAMSequenceRecord;
 import htsjdk.samtools.SamReader;
 import htsjdk.samtools.SAMFileHeader.SortOrder;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.junit.After;
 import org.junit.Before;
@@ -69,48 +74,32 @@ public class SequenceCoverageTest {
 			createGFF3File(54000, 54025, f);
 			
 			File f2 = testFolder.newFile("gff2");
-			gff54030To54070 = f.getAbsolutePath();
+			gff54030To54070 = f2.getAbsolutePath();
 			createGFF3File(54030, 54070, f2);
 			
 			File f3 = testFolder.newFile("gff3");
-			gff54077To54120 = f.getAbsolutePath();
+			gff54077To54120 = f3.getAbsolutePath();
 			createGFF3File(54077, 54120, f3);
 			
 			File f4 = testFolder.newFile("gff4");
-			gff54000To54026 = f.getAbsolutePath();
+			gff54000To54026 = f4.getAbsolutePath();
 			createGFF3File(54000, 54026, f4);
 			
 			File f5 = testFolder.newFile("gff5");
-			gff54076To54120 = f.getAbsolutePath();
+			gff54076To54120 = f5.getAbsolutePath();
 			createGFF3File(54076, 54120, f5);
 			
 			File f6 = testFolder.newFile("gff6");
-			gff54000To54036 = f.getAbsolutePath();
+			gff54000To54036 = f6.getAbsolutePath();
 			createGFF3File(54000, 54036, f6);
 			
 			File f7 = testFolder.newFile("gff7");
-			gff54050To54120 = f.getAbsolutePath();
+			gff54050To54120 = f7.getAbsolutePath();
 			createGFF3File(54050, 54120, f7);
 		}
 	}
 
-//	@After
-//	public final void after() {
-//		try {
-//			File file = new File(inputSam1);
-//			file.delete();
-//			File bamFile = new File(inputBam1);
-//			bamFile.delete();
-//			File baiFile = new File(inputIndex1);
-//			baiFile.delete();
-//		} catch (Exception e) {
-//			System.err.println("File creation error in test harness: "
-//					+ e.getMessage());
-//		}
-//	}
-
-
-	private void createGFF3File(final int start, final int end, File file) throws Exception {
+	private void createGFF3File(final int start, final int end, File file) throws IOException {
 		GFF3Record record = new GFF3Record();
 		record.setSeqId("chr1");
 		record.setType("exon");
@@ -130,261 +119,168 @@ public class SequenceCoverageTest {
 	}
 	
 	@Test
-	public final void leftDisjointReadSeqCov() throws Exception {
+	public void beforeReadsStart() throws Exception {
+		File fOutput = new File(testFolder.getRoot().getAbsolutePath()+"/output");
 		ExpectedException.none();
-		Executor exec = execute("--log ./logfile -t seq --gff3 " + gff54000To54025 + " --bam " + bam + " --bai " + bai + " -o " + testFolder.getRoot().getAbsolutePath()+"/leftDisjointReadSeqCov");
+		Executor exec = execute("--log ./logfile -t seq --gff3 " + gff54000To54025 + " --bam " + bam + " --bai " + bai + " -o " +fOutput.getAbsolutePath());
+		
 		assertTrue(0 == exec.getErrCode());
-		assertTrue(new File(testFolder.getRoot().getAbsolutePath()+"/leftDisjointReadSeqCov").exists());
-	}
-
-	private void deleteFile(File outputFile) {
-		if (outputFile.exists()) {
-			outputFile.delete();
+		assertTrue(fOutput.exists());
+		
+		List<String> fileContents;
+		try (BufferedReader r= new BufferedReader( new FileReader(fOutput))) {
+			fileContents = r.lines().collect(Collectors.toList());
 		}
-	}
-
-	@Test
-	public final void rightDisjointReadSeqCov() throws Exception {
-		ExpectedException.none();
-		Executor exec = execute("--log ./logfile -t seq --gff3 " + gff54000To54025 + " --bam " + bam + " --bai " + bai + " -o  " + testFolder.getRoot().getAbsolutePath()+"/rightDisjointReadSeqCov");
-		assertTrue(0 == exec.getErrCode());
-
-		assertTrue(new File(testFolder.getRoot().getAbsolutePath()+"/rightDisjointReadSeqCov").exists());
-	}
-
-	@Test
-	public final void leftOnEndSeqCov() throws Exception {
-
-		ExpectedException.none();
-		Executor exec = execute("--log ./logfile -t seq --gff3 " + gff54000To54025 + " --bam " + bam + " --bai " + bai + " -o output");
-		assertTrue(0 == exec.getErrCode());
-
-		File outputFile = new File("output");
-		assertTrue(outputFile.exists());
-
-		deleteFile(outputFile);
-	}
+		
+		assertEquals(2, fileContents.size());
+		assertEquals("sequence	exon	26	0x", fileContents.get(1));
+		
+		fOutput.delete();
 	
+	}
 	@Test
-	public final void rightOnEndSeqCov() throws Exception {
-//		File file = createGFF3File(54000, 54025);
-
+	public void overlapReadsStart() throws Exception {
+		File fOutput = new File(testFolder.getRoot().getAbsolutePath()+"/output");
 		ExpectedException.none();
-//		Executor exec = execute("--log ./logfile -t seq --gff3 test.gff3 --bam coverage.bam --bai coverage.bai -o output");
-		Executor exec = execute("--log ./logfile -t seq --gff3 " + gff54000To54025 + " --bam " + bam + " --bai " + bai + " -o output");
-//		Executor exec = execute("--log ./logfile -t seq --gff3 test.gff3 --bam " + bam + " --bai " + bai + " -o output");
+		Executor exec = execute("--log ./logfile -t seq --gff3 " + gff54030To54070 + " --bam " + bam + " --bai " + bai + " -o " +fOutput.getAbsolutePath());
+		
 		assertTrue(0 == exec.getErrCode());
-
-		File outputFile = new File("output");
-		assertTrue(outputFile.exists());
-
-		deleteFile(outputFile);
-//		file.delete();
+		assertTrue(fOutput.exists());
+		
+		List<String> fileContents;
+		try (BufferedReader r= new BufferedReader( new FileReader(fOutput))) {
+			fileContents = r.lines().collect(Collectors.toList());
+		}
+		
+		assertEquals(2, fileContents.size());
+		assertEquals("sequence	exon	41	1x", fileContents.get(1));
+		
+		fOutput.delete();
 	}
 
-	@Test
-	public final void leftOverlapSeqCov() throws Exception {
-//		File file = createGFF3File(54000, 54025);
-
-		ExpectedException.none();
-		Executor exec = execute("--log ./logfile -t seq --gff3 " + gff54000To54025 + " --bam " + bam + " --bai " + bai + " -o output");
-//		Executor exec = execute("--log ./logfile -t seq --gff3 test.gff3 --bam " + bam + " --bai " + bai + " -o output");
-//		Executor exec = execute("--log ./logfile -t seq --gff3 test.gff3 --bam coverage.bam --bai coverage.bai -o output");
-		assertTrue(0 == exec.getErrCode());
-
-		File outputFile = new File("output");
-		assertTrue(outputFile.exists());
-
-		deleteFile(outputFile);
-//		file.delete();
-	}
-	
-	@Test
-	public final void rightOverlapSeqCov() throws Exception {
-//		File file = createGFF3File(54000, 54025);
-
-		ExpectedException.none();
-//		Executor exec = execute("--log ./logfile -t seq --gff3 test.gff3 --bam coverage.bam --bai coverage.bai -o output");
-		Executor exec = execute("--log ./logfile -t seq --gff3 " + gff54000To54025 + " --bam " + bam + " --bai " + bai + " -o output");
-//		Executor exec = execute("--log ./logfile -t seq --gff3 test.gff3 --bam " + bam + " --bai " + bai + " -o output");
-		assertTrue(0 == exec.getErrCode());
-
-		File outputFile = new File("output");
-		assertTrue(outputFile.exists());
-
-		deleteFile(outputFile);
-//		file.delete();
-	}
-
-	@Test
-	public final void subsetSeqCov() throws Exception {
-//		File file = createGFF3File(54000, 54025);
-
-		ExpectedException.none();
-//		Executor exec = execute("--log ./logfile -t seq --gff3 test.gff3 --bam coverage.bam --bai coverage.bai -o output");
-		Executor exec = execute("--log ./logfile -t seq --gff3 " + gff54000To54025 + " --bam " + bam + " --bai " + bai + " -o output");
-//		Executor exec = execute("--log ./logfile -t seq --gff3 test.gff3 --bam " + bam + " --bai " + bai + " -o output");
-		assertTrue(0 == exec.getErrCode());
-
-		File outputFile = new File("output");
-		assertTrue(outputFile.exists());
-
-		deleteFile(outputFile);
-//		file.delete();
-	}
-	
-	@Test
-	public final void supersetSeqCov() throws Exception {
-//		File file = createGFF3File(54000, 54025);
-
-		ExpectedException.none();
-		Executor exec = execute("--log ./logfile -t seq --gff3 " + gff54000To54025 + " --bam " + bam + " --bai " + bai + " -o output");
-//		Executor exec = execute("--log ./logfile -t seq --gff3 test.gff3 --bam " + bam + " --bai " + bai + " -o output");
-//		Executor exec = execute("--log ./logfile -t seq --gff3 test.gff3 --bam coverage.bam --bai coverage.bai -o output");
-		assertTrue(0 == exec.getErrCode());
-
-		File outputFile = new File("output");
-		assertTrue(outputFile.exists());
-
-		deleteFile(outputFile);
-//		file.delete();
-	}
 
     @Test
-	public final void leftDisjointRead() throws Exception {
-//		File file = createGFF3File(54000, 54025);
+	public final void afterRead() throws Exception {
+    		File fOutput = new File(testFolder.getRoot().getAbsolutePath()+"/output");
 
 		ExpectedException.none();
-//		Executor exec = execute("--log ./logfile -t phys --gff3 test.gff3 --bam coverage.bam --bai coverage.bai -o output");
-//		Executor exec = execute("--log ./logfile -t phys --gff3 test.gff3 --bam " + bam + " --bai " + bai + " -o output");
-		Executor exec = execute("--log ./logfile -t phys --gff3 " + gff54000To54025 + " --bam " + bam + " --bai " + bai + " -o output");
+		Executor exec = execute("--log ./logfile -t seq --gff3 " + gff54077To54120 + " --bam " + bam + " --bai " + bai + " -o " + fOutput.getAbsolutePath());
 		assertTrue(0 == exec.getErrCode());
 
-		File outputFile = new File("output");
-		assertTrue(outputFile.exists());
+		assertTrue(fOutput.exists());
+		List<String> fileContents;
+		try (BufferedReader r= new BufferedReader( new FileReader(fOutput))) {
+			fileContents = r.lines().collect(Collectors.toList());
+		}
+		
+		assertEquals(2, fileContents.size());
+		assertEquals("sequence	exon	44	0x", fileContents.get(1));
 
-		deleteFile(outputFile);
-//		file.delete();
-	}
-
-    @Test
-	public final void rightDisjointRead() throws Exception {
-//		File file = createGFF3File(54077, 54120);
-
-		ExpectedException.none();
-//		Executor exec = execute("--log ./logfile -t phys --gff3 test.gff3 --bam " + bam + " --bai " + bai + " -o output");
-		Executor exec = execute("--log ./logfile -t phys --gff3 " + gff54077To54120 + " --bam " + bam + " --bai " + bai + " -o output");
-//		Executor exec = execute("--log ./logfile -t phys --gff3 test.gff3 --bam coverage.bam --bai coverage.bai -o output");
-		assertTrue(0 == exec.getErrCode());
-
-		File outputFile = new File("output");
-		assertTrue(outputFile.exists());
-
-		deleteFile(outputFile);
-//		file.delete();
+		fOutput.delete();
 	}
 
    
     @Test
-	public final void leftOnEndRead() throws Exception {
-//		File file = createGFF3File(54000, 54026);
+	public final void overlapBeginningOfRead() throws Exception {
+    		File fOutput = new File(testFolder.getRoot().getAbsolutePath()+"/output");
 
 		ExpectedException.none();
-//		Executor exec = execute("--log ./logfile -t phys --gff3 test.gff3 --bam coverage.bam --bai coverage.bai -o output");
-		Executor exec = execute("--log ./logfile -t phys --gff3 " + gff54000To54026 + " --bam " + bam + " --bai " + bai + " -o output");
-//		Executor exec = execute("--log ./logfile -t phys --gff3 test.gff3 --bam " + bam + " --bai " + bai + " -o output");
+		Executor exec = execute("--log ./logfile -t seq --gff3 " + gff54000To54026 + " --bam " + bam + " --bai " + bai + " -o " + fOutput.getAbsolutePath());
 		assertTrue(0 == exec.getErrCode());
 
-		File outputFile = new File("output");
-		assertTrue(outputFile.exists());
+		assertTrue(fOutput.exists());
+		List<String> fileContents;
+		try (BufferedReader r= new BufferedReader( new FileReader(fOutput))) {
+			fileContents = r.lines().collect(Collectors.toList());
+		}
+		
+		assertEquals(3, fileContents.size());
+		assertEquals("sequence	exon	26	0x", fileContents.get(1));
+		assertEquals("sequence	exon	1	1x", fileContents.get(2));
 
-		deleteFile(outputFile);
-//		file.delete();
+		fOutput.delete();
 	}
 
     @Test
 	public final void rightOnEndRead() throws Exception {
-//		File file = createGFF3File(54076, 54120);
-
+    		File fOutput = new File(testFolder.getRoot().getAbsolutePath()+"/output");
 		ExpectedException.none();
-//		Executor exec = execute("--log ./logfile -t phys --gff3 test.gff3 --bam coverage.bam --bai coverage.bai -o output");
-		Executor exec = execute("--log ./logfile -t phys --gff3 " + gff54076To54120 + " --bam " + bam + " --bai " + bai + " -o output");
-//		Executor exec = execute("--log ./logfile -t phys --gff3 test.gff3 --bam " + bam + " --bai " + bai + " -o output");
+		Executor exec = execute("--log ./logfile -t seq --gff3 " + gff54076To54120 + " --bam " + bam + " --bai " + bai +   " -o " + fOutput.getAbsolutePath());
+		
 		assertTrue(0 == exec.getErrCode());
+		assertTrue(fOutput.exists());
+		
+		List<String> fileContents;
+		try (BufferedReader r= new BufferedReader( new FileReader(fOutput))) {
+			fileContents = r.lines().collect(Collectors.toList());
+		}
+		
+		assertEquals(2, fileContents.size());
+		assertEquals("sequence	exon	45	0x", fileContents.get(1));
 
-		File outputFile = new File("output");
-		assertTrue(outputFile.exists());
-
-		deleteFile(outputFile);
-//		file.delete();		
+		fOutput.delete();
 	}
 
     @Test
 	public final void leftOverlapRead() throws Exception {
-//		File file = createGFF3File(54000, 54036);
-
+    		File fOutput = new File(testFolder.getRoot().getAbsolutePath()+"/output");
 		ExpectedException.none();
-//		Executor exec = execute("--log ./logfile -t phys --gff3 test.gff3 --bam coverage.bam --bai coverage.bai -o output");
-		Executor exec = execute("--log ./logfile -t phys --gff3 " + gff54000To54036 + " --bam " + bam + " --bai " + bai + " -o output");
-//		Executor exec = execute("--log ./logfile -t phys --gff3 test.gff3 --bam " + bam + " --bai " + bai + " -o output");
+		Executor exec = execute("--log ./logfile -t seq --gff3 " + gff54000To54036 + " --bam " + bam + " --bai " + bai +  " -o " + fOutput.getAbsolutePath());
+		
 		assertTrue(0 == exec.getErrCode());
+		assertTrue(fOutput.exists());
+		
+		List<String> fileContents;
+		try (BufferedReader r= new BufferedReader( new FileReader(fOutput))) {
+			fileContents = r.lines().collect(Collectors.toList());
+		}
+		
+		assertEquals(3, fileContents.size());
+		assertEquals("sequence	exon	26	0x", fileContents.get(1));
+		assertEquals("sequence	exon	11	1x", fileContents.get(2));
 
-		File outputFile = new File("output");
-		assertTrue(outputFile.exists());
-
-		deleteFile(outputFile);
-//		file.delete();
+		fOutput.delete();
 	}
 
     @Test
 	public final void rightOverlapRead() throws Exception {
-//		File file = createGFF3File(54050, 54120);
-
+    		File fOutput = new File(testFolder.getRoot().getAbsolutePath()+"/output");
 		ExpectedException.none();
-//		Executor exec = execute("--log ./logfile -t phys --gff3 test.gff3 --bam coverage.bam --bai coverage.bai -o output");
-		Executor exec = execute("--log ./logfile -t phys --gff3 " + gff54050To54120 + " --bam " + bam + " --bai " + bai + " -o output");
-//		Executor exec = execute("--log ./logfile -t phys --gff3 test.gff3 --bam " + bam + " --bai " + bai + " -o output");
+		Executor exec = execute("--log ./logfile -t seq --gff3 " + gff54050To54120 + " --bam " + bam + " --bai " + bai +  " -o " + fOutput.getAbsolutePath());
+		
 		assertTrue(0 == exec.getErrCode());
+		assertTrue(fOutput.exists());
+		
+		List<String> fileContents;
+		try (BufferedReader r= new BufferedReader( new FileReader(fOutput))) {
+			fileContents = r.lines().collect(Collectors.toList());
+		}
+		
+		assertEquals(3, fileContents.size());
+		assertEquals("sequence	exon	50	0x", fileContents.get(1));
+		assertEquals("sequence	exon	21	1x", fileContents.get(2));
 
-		File outputFile = new File("output");
-		assertTrue(outputFile.exists());
-
-		deleteFile(outputFile);
-//		file.delete();
+		fOutput.delete();
 	}
 
-    @Test
-	public final void supersetRead() throws Exception {
-//		File file = createGFF3File(54050, 54120);
-
-		ExpectedException.none();
-//		Executor exec = execute("--log ./logfile -t phys --gff3 test.gff3 --bam coverage.bam --bai coverage.bai -o output");
-		Executor exec = execute("--log ./logfile -t phys --gff3 " + gff54050To54120 + " --bam " + bam + " --bai " + bai + " -o output");
-//		Executor exec = execute("--log ./logfile -t phys --gff3 test.gff3 --bam " + bam + " --bai " + bai + " -o output");
-		assertTrue(0 == exec.getErrCode());
-
-		File outputFile = new File("output");
-		assertTrue(outputFile.exists());
-
-		deleteFile(outputFile);
-//		file.delete();
-	}
-    
     @Test
 	public final void subsetRead() throws Exception {
-//		File file = createGFF3File(54030, 54070);
-
+    		File fOutput = new File(testFolder.getRoot().getAbsolutePath()+"/output");
 		ExpectedException.none();
-		Executor exec = execute("--log ./logfile -t phys --gff3 " + gff54030To54070 + " --bam " + bam + " --bai " + bai + " -o output");
-//		Executor exec = execute("--log ./logfile -t phys --gff3 test.gff3 --bam " + bam + " --bai " + bai + " -o output");
-//		Executor exec = execute("--log ./logfile -t phys --gff3 test.gff3 --bam coverage.bam --bai coverage.bai -o output");
+		Executor exec = execute("--log ./logfile -t seq --gff3 " + gff54030To54070 + " --bam " + bam + " --bai " + bai +" -o " + fOutput.getAbsolutePath());
+		
 		assertTrue(0 == exec.getErrCode());
+		assertTrue(fOutput.exists());
+		
+		List<String> fileContents;
+		try (BufferedReader r= new BufferedReader( new FileReader(fOutput))) {
+			fileContents = r.lines().collect(Collectors.toList());
+		}
+		
+		assertEquals(2, fileContents.size());
+		assertEquals("sequence	exon	41	1x", fileContents.get(1));
 
-		File outputFile = new File("output");
-		assertTrue(outputFile.exists());
-
-		deleteFile(outputFile);
-//		file.delete();
+		fOutput.delete();
 	}
 
     // TODO: No logging fail
@@ -398,33 +294,6 @@ public class SequenceCoverageTest {
     // TODO: Perfeature
     // TODO: XML out check
     
-//	public final void multireadCoverage() throws Exception {
-//	}
-
-//	public static final void createCoverageSam(final String fileName)
-//			throws Exception {
-//		File file = new File(fileName);
-//
-//		OutputStream os = new FileOutputStream(file);
-//		PrintStream ps = new PrintStream(os);
-//
-//		ps.println("@HD	VN:1.0	SO:coordinate");
-//		ps.println("@RG	ID:ZZ	SM:ES	DS:rl=50	");
-//		ps.println("@RG	ID:ZZZ	SM:ES	DS:rl=50	");
-//		ps.println("@PG	ID:SOLID-GffToSam	VN:1.4.3");
-//		ps.println("@SQ	SN:chr1	LN:100000");
-//		ps.println("@SQ	SN:chr2	LN:100000");
-//		ps.println("@SQ	SN:chr3	LN:100000");
-//		ps
-//				.println("1290_738_1025	0	chr1	54026	255	45M5H	*	0	0	AACATTCCAAAAGTCAACCATCCAAGTTTATTCTAAATAGATGTG	!DDDDDDDDDDDDDDDD''DDDDDD9DDDDDDDDD:<3B''DDD!	RG:Z:ZZ	CS:Z:T301130201000212101113201021003302230033233111	CQ:Z:BBB=B:@5?>B9A5?>B?'A49<475%@;6<+;9@'4)+8'1?:>");
-//		ps
-//				.println("2333_755_492	16	chr2	10103	255	10H40M	*	0	0	CACACCACACCCACACACCACACACCACACCCACACCCAC	!=DD?%+DD<)=DDD<@9)9C:DA.:DD>%%,<?('-,4!	RG:Z:ZZ	CS:Z:T0110001110211110111111111111100111001111	CQ:Z:%/&''(*6'&%+441*%=(31)<9(50=9%%8>?+%;<-1");
-//		ps
-//				.println("1879_282_595	0	chr3	60775	255	40M10H	*	0	0	TCTAAATTTGTTTGATCACATACTCCTTTTCTGGCTAACA	!DD,*@DDD''DD>5:DD>;DDDD=CDD8%%DA9-DDC0!	RG:Z:ZZ	CS:Z:T0223303001200123211133122020003210323011	CQ:Z:=><=,*7685'970/'437(4<:54*:84%%;/3''?;)(");
-//		ps.close();
-//		os.close();
-//	}
-	
 	public static final void createCoverageBam(String outputFileName,List<SAMRecord> recs, SAMFileHeader h) {
 		File outputFile = new File(outputFileName);
 		SAMFileWriterFactory.setDefaultCreateIndexWhileWriting(true);
@@ -483,7 +352,5 @@ public class SequenceCoverageTest {
 		s1.setMateAlignmentStart(mPos);
 		return s1;
 	}
-
-
 
 }
