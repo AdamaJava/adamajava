@@ -2,8 +2,10 @@ package org.qcmg.coverage;
 
 import static org.junit.Assert.assertTrue;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
 
@@ -181,19 +183,6 @@ public class InferencePhysicalCoverageTest {
 		assertTrue(outputFile.exists());
 	}
 
-    @Test
-	public final void supersetRead() throws Exception {
-		createGFF3File(54050, 54120);
-
-		ExpectedException.none();
-		Executor exec = execute(cmd);
-		assertTrue(0 == exec.getErrCode());
-
-		File outputFile = new File("output");
-		assertTrue(outputFile.exists());
-
-	}
-    
     @Test
 	public final void subsetRead() throws Exception {
 		createGFF3File(54030, 54070);
