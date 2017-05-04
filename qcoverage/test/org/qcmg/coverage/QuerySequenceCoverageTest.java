@@ -2,8 +2,10 @@ package org.qcmg.coverage;
 
 import static org.junit.Assert.assertTrue;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
 
@@ -98,7 +100,7 @@ public class QuerySequenceCoverageTest {
 
 		File outputFile = new File("output");
 		assertTrue(outputFile.exists());
-
+		new BufferedReader( new FileReader(outputFile)).lines().forEach(System.out::println);
 		deleteFile(outputFile);
 		file.delete();
 	}
@@ -109,110 +111,10 @@ public class QuerySequenceCoverageTest {
 		}
 	}
 
-	@Test
-	public final void rightDisjointReadSeqCov() throws Exception {
-		File file = createGFF3File(54000, 54025);
 
-		ExpectedException.none();
-		Executor exec = execute(commandline);
-		assertTrue(0 == exec.getErrCode());
-
-		File outputFile = new File("output");
-		assertTrue(outputFile.exists());
-
-		deleteFile(outputFile);
-		file.delete();
-	}
-
-	@Test
-	public final void leftOnEndSeqCov() throws Exception {
-		File file = createGFF3File(54000, 54025);
-
-		ExpectedException.none();
-		Executor exec = execute(commandline);
-		assertTrue(0 == exec.getErrCode());
-
-		File outputFile = new File("output");
-		assertTrue(outputFile.exists());
-
-		deleteFile(outputFile);
-		file.delete();
-	}
 	
-	@Test
-	public final void rightOnEndSeqCov() throws Exception {
-		File file = createGFF3File(54000, 54025);
 
-		ExpectedException.none();
-		Executor exec = execute(commandline);
-		assertTrue(0 == exec.getErrCode());
-
-		File outputFile = new File("output");
-		assertTrue(outputFile.exists());
-
-		deleteFile(outputFile);
-		file.delete();
-	}
-
-	@Test
-	public final void leftOverlapSeqCov() throws Exception {
-		File file = createGFF3File(54000, 54025);
-
-		ExpectedException.none();
-		Executor exec = execute(commandline);
-		assertTrue(0 == exec.getErrCode());
-
-		File outputFile = new File("output");
-		assertTrue(outputFile.exists());
-
-		deleteFile(outputFile);
-		file.delete();
-	}
 	
-	@Test
-	public final void rightOverlapSeqCov() throws Exception {
-		File file = createGFF3File(54000, 54025);
-
-		ExpectedException.none();
-		Executor exec = execute(commandline);
-		assertTrue(0 == exec.getErrCode());
-
-		File outputFile = new File("output");
-		assertTrue(outputFile.exists());
-
-		deleteFile(outputFile);
-		file.delete();
-	}
-
-	@Test
-	public final void subsetSeqCov() throws Exception {
-		File file = createGFF3File(54000, 54025);
-
-		ExpectedException.none();
-		Executor exec = execute(commandline);
-		assertTrue(0 == exec.getErrCode());
-
-		File outputFile = new File("output");
-		assertTrue(outputFile.exists());
-
-		deleteFile(outputFile);
-		file.delete();
-	}
-	
-	@Test
-	public final void supersetSeqCov() throws Exception {
-		File file = createGFF3File(54000, 54025);
-
-		ExpectedException.none();
-		Executor exec = execute(commandline);
-		assertTrue(0 == exec.getErrCode());
-
-		File outputFile = new File("output");
-		assertTrue(outputFile.exists());
-
-		deleteFile(outputFile);
-		file.delete();
-	}
 
     @Test
 	public final void leftDisjointRead() throws Exception {
@@ -305,20 +207,6 @@ public class QuerySequenceCoverageTest {
 		file.delete();
 	}
 
-    @Test
-	public final void supersetRead() throws Exception {
-		File file = createGFF3File(54050, 54120);
-
-		ExpectedException.none();
-		Executor exec = execute("--log ./logfile -t phys --gff3 test.gff3 --bam coverage.bam --bai coverage.bai -o output");
-		assertTrue(0 == exec.getErrCode());
-
-		File outputFile = new File("output");
-		assertTrue(outputFile.exists());
-
-		deleteFile(outputFile);
-		file.delete();
-	}
     
     @Test
 	public final void subsetRead() throws Exception {
