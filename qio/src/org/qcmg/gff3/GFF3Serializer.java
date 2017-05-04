@@ -76,7 +76,7 @@ public final class GFF3Serializer {
 		return result;
 	}
 
-	public static String serialise(final GFF3Record record) throws Exception {
+	public static String serialise(final GFF3Record record) {
 		StringBuilder result = new StringBuilder(record.getSeqId()).append(Constants.TAB);
 		result.append(record.getSource()).append(Constants.TAB);
 		result.append(record.getType()).append(Constants.TAB);
