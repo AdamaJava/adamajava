@@ -5,6 +5,7 @@ package org.qcmg.gff3;
 
 import java.io.Closeable;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -13,13 +14,13 @@ public final class GFF3FileWriter implements Closeable {
 	private final File file;
 	private final OutputStream outputStream;
 
-	public GFF3FileWriter(final File file) throws Exception {
+	public GFF3FileWriter(final File file) throws FileNotFoundException {
 		this.file = file;
 		OutputStream stream = new FileOutputStream(file);
 		outputStream = stream;
 	}
 
-	public void add(final GFF3Record record) throws Exception {
+	public void add(final GFF3Record record) throws IOException {
 		String encoded = GFF3Serializer.serialise(record) + "\n";
 		outputStream.write(encoded.getBytes());
 		outputStream.flush();
