@@ -26,17 +26,8 @@ import org.qcmg.gff3.GFF3FileWriter;
 import org.qcmg.gff3.GFF3Record;
 
 public class PhysicalCoverageTest {
-	final String inputSam1 = "coverage.sam"; 
-	final String inputBam1 = "coverage.bam";
-	final String inputIndex1 = "coverage.bai";
-	final String inputSam2 = "coverage2.sam"; 
-	final String inputBam2 = "coverage2.bam";
-	final String inputIndex2 = "coverage2.bai";
-	final String output = "output";
-	final String gff3 = "test.gff3";
 	static String inputBam;
 	static String inputBai;
-	static String cmd;
 	static Path tmpDir;
 	private File fOutput;
 	
