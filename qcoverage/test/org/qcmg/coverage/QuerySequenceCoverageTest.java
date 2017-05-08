@@ -5,21 +5,13 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import htsjdk.samtools.BAMIndexer;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMFileWriter;
-import htsjdk.samtools.SAMFileWriterFactory;
-import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMFileHeader.SortOrder;
 
 import org.junit.After;
@@ -32,7 +24,6 @@ import org.junit.rules.ExpectedException;
 import org.qcmg.common.commandline.Executor;
 import org.qcmg.gff3.GFF3FileWriter;
 import org.qcmg.gff3.GFF3Record;
-import org.qcmg.picard.SAMFileReaderFactory;
 
 public class QuerySequenceCoverageTest {
  	
