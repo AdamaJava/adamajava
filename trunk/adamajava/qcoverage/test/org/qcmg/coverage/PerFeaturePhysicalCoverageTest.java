@@ -47,7 +47,7 @@ public class PerFeaturePhysicalCoverageTest {
 	
 	
 	@BeforeClass
-	 public static void setup() throws Exception {
+	 public static void setup() throws IOException {
 		 tmpDir = Files.createTempDirectory(null);
 		 inputBam = Files.createTempFile(tmpDir, null, ".bam").toString();
 		 inputBai = inputBam.replace("bam", "bai");
