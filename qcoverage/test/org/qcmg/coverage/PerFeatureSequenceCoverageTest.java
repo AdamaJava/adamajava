@@ -35,7 +35,7 @@ public class PerFeatureSequenceCoverageTest {
 	public ExpectedException thrown = ExpectedException.none();
 	
 	@BeforeClass
-	 public static void setup() throws Exception {
+	 public static void setup() throws IOException {
 		 tmpDir = Files.createTempDirectory(null);
 		 inputBam = Files.createTempFile(tmpDir, null, ".bam").toString();
 		 inputBai = inputBam.replace("bam", "bai");
