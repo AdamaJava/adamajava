@@ -54,7 +54,7 @@ public class HTMLReportGenerator {
 		// get the header info
 //		HTMLReportUtils.generateHTMLHeader(sb);
 		sb.append("<html>\n<head>\n");
-		sb.append(HTMLReportUtils.createStyleSheet());
+		sb.append(HTMLReportUtils.SS);
 		sb.append(HTMLReportUtils.getStyle());
 		sb.append("<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js\"></script>\n");
 		sb.append("<script type=\"text/javascript\"> $(document).ready(function () {\n");
