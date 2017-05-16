@@ -257,7 +257,7 @@ public class MafUtils {
 				if (null != o1.getChromosome() && null != o2.getChromosome()) {
 					int chrDiff = chrComp.compare(o1.getChromosome(), o2.getChromosome());
 					if (0 != chrDiff) return chrDiff;
-					return o2.getStartPosition() - o2.getStartPosition();
+					return o1.getStartPosition() - o2.getStartPosition();
 				} else return 0;
 			}});
 		
