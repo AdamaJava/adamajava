@@ -487,15 +487,15 @@ public class HTMLReportUtils {
 		
 
 	public static String generateGoogleChart( String dataName, String chartTitle,
-			String width, Integer height, boolean logScale,  String chartType , String hTitle,  String otherOptions ) {
+			String width, int height, boolean logScale,  String chartType , String hTitle,  String otherOptions ) {
 		
 		String chartName = dataName + "Chart";		
 		StringBuilder sb = new StringBuilder();
 		initialChartSetup(sb, chartName, chartType);
 		
-		sb.append(chartName + String.format(".draw(%s, { width: %s, height: %d, title: ' %s '",dataName, width, height, chartTitle))	;
+		sb.append(chartName).append(String.format(".draw(%s, { width: %s, height: %d, title: ' %s '",dataName, width, height, chartTitle))	;
 		sb.append(", chartArea:{left:150,top:40,width:\"75%\",height:\"75%\"} ");
-		sb.append(", hAxis: {title: '" +  (hTitle == null? "Value":hTitle )+ "', titleColor: 'blue'}");
+		sb.append(", hAxis: {title: '").append( (hTitle == null? "Value":hTitle )).append("', titleColor: 'blue'}");
 		sb.append(", vAxis: {title: '").append((logScale ? "Log( Count )" : "Count")).append("', titleColor: 'blue',logScale: ").append(logScale).append(", format: '0'}");
 		sb.append(otherOptions).append(" });");
 		
