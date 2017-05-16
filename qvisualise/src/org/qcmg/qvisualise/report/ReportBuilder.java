@@ -1224,7 +1224,7 @@ public class ReportBuilder {
  		Map<String, String> duplicateMap = new HashMap<>();
 		Map<String, String> maxLengthMap = new HashMap<>();
 		Map<String, String> aveLengthMap = new HashMap<>();
-		Map<String, String> totalReadsMap = new HashMap<>();
+		Map<String, String> totalReadsMap = new LinkedHashMap<>();
 		Map<String, String> unmappedMap = new HashMap<>(); 	
 		Map<String, String> nonCanonicalMap = new HashMap<>(); 	
 		Map<String, String> isizeMap = new HashMap<>();
