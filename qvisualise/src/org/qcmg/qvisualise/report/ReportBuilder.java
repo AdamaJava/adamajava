@@ -624,13 +624,13 @@ public class ReportBuilder {
 				
 		}
 				
-		StringBuilder dataSB = new StringBuilder().append(HTMLReportUtils.generateGoogleaArrayToDataTable(map,  tabTitle, false, kmers, false));
-		StringBuilder chartSB = new StringBuilder().append( HTMLReportUtils.generateGoogleChart(tabTitle, "Kmers Distribution", "$(window).width()", MAX_REPORT_HEIGHT, false, HTMLReportUtils.LINE_CHART, "Cycle", 
-				", vAxis: { viewWindowMode:'explicit' }, fontSize:12, legend: { position: 'right', textStyle: { color: 'blue' } }, crosshair: { trigger: 'both' },  lineWidth: 2" ) );
+		String dataSB = HTMLReportUtils.generateGoogleaArrayToDataTable(map,  tabTitle, false, kmers, false);
+		String chartSB = HTMLReportUtils.generateGoogleChart(tabTitle, "Kmers Distribution", "$(window).width()", MAX_REPORT_HEIGHT, false, HTMLReportUtils.LINE_CHART, "Cycle", 
+				", vAxis: { viewWindowMode:'explicit' }, fontSize:12, legend: { position: 'right', textStyle: { color: 'blue' } }, crosshair: { trigger: 'both' },  lineWidth: 2");
 
 		ChartTab ct = new ChartTab(tabTitle, tabTitle);
-		ct.setData( dataSB.toString() );
-		ct.setChartInfo( chartSB.toString() );
+		ct.setData( dataSB);
+		ct.setChartInfo( chartSB);
 				
 		return ct;		
 	}
