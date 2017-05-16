@@ -161,19 +161,27 @@ public class HTMLReportUtils {
 		StringBuilder sb = new StringBuilder("\nvar " + name + " = google.visualization.arrayToDataTable([\n['value'");
 		
 		//add column name						 
-		 for(String label : labelNames) sb.append(  ",'" + label + "'" );
-		 if(showCombined) sb.append(  ",'combined'" );
+		 for (String label : labelNames) {
+			 sb.append(",'").append(label).append("'");
+		 }
+		 if (showCombined) {
+			 sb.append(  ",'combined'" );
+		 }
 		 sb.append( "],");
 		 
 		 //add data
 		 for(Entry<T, AtomicLongArray> row : dataSet.entrySet()){
-			 sb.append(  "\n['" + row.getKey() +"'" );
+			 sb.append(  "\n['").append(row.getKey()).append("'");
 			 AtomicLongArray array = row.getValue();			 
-			 for(int i = 0; i < array.length(); i++)   sb.append(  ", " + array.get(i));		
-			 if(showCombined){
+			 for(int i = 0; i < array.length(); i++) {
+				 sb.append(", ").append(array.get(i));		
+			 }
+			 if (showCombined) {
 				 long combined = 0;
-				 for(int i = 0; i < array.length(); i++)   combined += array.get(i) ;	
-				 sb.append( ", " + combined ); 
+				 for(int i = 0; i < array.length(); i++) {
+					 combined += array.get(i) ;	
+				 }
+				 sb.append(", ").append(combined); 
 			 }
 			 sb.append( "],");
 		 }
@@ -188,10 +196,11 @@ public class HTMLReportUtils {
 	public static String generateGoogleDataForTableStringMap(Map<String, String> dataSet, String ...names) {
 		StringBuilder sb = new StringBuilder();
 		 		
-			sb .append("\nvar "+ names[0])
-				.append(" = new google.visualization.DataTable(\n{cols: [{id: 'header', label: '" + names[1] + "', type: 'string'}");
-			for(int i = 2; i < names.length; i++)
-				sb.append( ", {id: 'value', label: '" + names[i] + "', type: 'string'}");
+			sb .append("\nvar ").append(names[0])
+				.append(" = new google.visualization.DataTable(\n{cols: [{id: 'header', label: '").append(names[1]).append("', type: 'string'}");
+			for(int i = 2; i < names.length; i++) {
+				sb.append( ", {id: 'value', label: '").append(names[i]).append("', type: 'string'}");
+			}
 			sb.append("],\nrows: [");
 			
 			int j = 0;
@@ -213,16 +222,16 @@ public class HTMLReportUtils {
 		StringBuilder sb = new StringBuilder();
 		int i = 1;
 		for (Entry<String, List<String>> entry : dataSet.entrySet()) {
-			sb .append("\nvar ");
-			sb.append(name + i++)
-			.append(" = new google.visualization.DataTable(\n{cols: [{id: 'value', label: '" + entry.getKey() + "', type: 'string'}], ");
+			sb.append("\nvar ");
+			sb.append(name).append(i++)
+			.append(" = new google.visualization.DataTable(\n{cols: [{id: 'value', label: '").append(entry.getKey()).append("', type: 'string'}], ");
 			
 			// now for the data
 			sb.append("\nrows: [");
 			
 			int j = 0;
 			for (String listEntry : entry.getValue()) {
-				if (j++ > 0) sb.append(",\n");				
+				if (j++ > 0) sb.append(",\n");
 				sb.append("{c:[");
 				sb.append("{v: '").append(listEntry).append("'}]}");
 			}
@@ -327,11 +336,11 @@ public class HTMLReportUtils {
 		if (COLUMN_CHART.equals(chartType) || AREA_CHART.equals(chartType)) {
 			sb.append(", fontSize:12");
 			sb.append(", hAxis: {title: 'Value', titleColor: 'blue'" + (width > 1000 ? ", textStyle:{fontSize:9}" : "") + "}");
-			sb.append(", vAxis: {title: '" + (logScale ? "Log( " : "") + "Count " + (logScale ? ") " : "") +"', titleColor: 'blue',logScale: " + logScale + ", }");
+			sb.append(", vAxis: {title: '" + (logScale ? "Log( " : "") + "Count " + (logScale ? ") " : "") +"', titleColor: 'blue',logScale: ").append(logScale).append(", }");
 			sb.append(", legend: 'none'");
 		} else if (BAR_CHART.equals(chartType)) {
 			sb.append(", fontSize:12");
-			sb.append(", hAxis: {title: '" + (logScale ? "Log( " : "") + "Count " + (logScale ? ") " : "") +"', titleColor: 'blue',logScale: " + logScale + "}");
+			sb.append(", hAxis: {title: '" + (logScale ? "Log( " : "") + "Count " + (logScale ? ") " : "") +"', titleColor: 'blue',logScale: ").append(logScale).append("}");
 			sb.append(", vAxis: {title: 'Value', titleColor: 'blue'}");
 			sb.append(", legend: 'none'");
 		} else if (PIE_CHART.equals(chartType)) {
@@ -348,9 +357,7 @@ public class HTMLReportUtils {
 		initialTableSetup(sb, chartName);
 		String heightStr = (height == null  ) ? "height: " + dataName +  ".getNumberOfRows() > 50 ?400:0" : "height:" + height; 			
 		String widthStr = (width == null) ? "width: '98%' " : "width:" + width; 
-		sb.append(chartName + ".draw(" + dataName +", {" + widthStr + "," +  heightStr + ", allowHtml: true,  showRowNumber:true");
-		
-		sb.append("});");
+		sb.append(chartName).append(".draw(").append(dataName).append(", {").append(widthStr).append(",").append(heightStr).append(", allowHtml: true,  showRowNumber:true});");
 		
 		return sb.toString();
 	}
@@ -369,7 +376,7 @@ public class HTMLReportUtils {
 			
 			String title = dn.contains("md") ? " title=\"cycles with mismatches over 1%\"" : "";
 			
-			sb.append("<td  id = \"" + dn + "ChartSummary_div\"" + title + "></td>");
+			sb.append("<td  id = \"").append(dn).append("ChartSummary_div\"").append(title).append("></td>");
 				
 			if ( ! even) { 	sb.append("</tr>\n"); }
 			i++;
@@ -416,7 +423,7 @@ public class HTMLReportUtils {
 		for (int i =0; i < tabIds.size(); i ++ ) {
 			String chartName =  prefix + tabIds.get(i) + "Chart_div";
 			if (i % columns == 0)  sb.append("<tr>");			 			
-			sb.append("<td id = \"" + chartName + "\"></td>");			
+			sb.append("<td id = \"").append(chartName).append("\"></td>");			
 			if (i % columns == (columns - 1))  sb.append("</tr>\n");			 			
 		}
 		
@@ -465,9 +472,9 @@ public class HTMLReportUtils {
 			if (legendFontSize > 10)
 				sb.append(", legendFontSize:10");
 		}
-		sb.append(", fontSize:12, titleFontSize:15, hAxis: {title: 'Count', titleColor: 'blue', logScale: " + logScale + "}");
+		sb.append(", fontSize:12, titleFontSize:15, hAxis: {title: 'Count', titleColor: 'blue', logScale: ").append(logScale).append("}");
 		sb.append(
-				", vAxis: {title: 'Cycle', titleColor: 'blue',logScale: " + logScale + "}});");
+				", vAxis: {title: 'Cycle', titleColor: 'blue',logScale: ").append(logScale).append("}});");
 		
 		return sb.toString();
 	}
@@ -489,8 +496,8 @@ public class HTMLReportUtils {
 		sb.append(chartName + String.format(".draw(%s, { width: %s, height: %d, title: ' %s '",dataName, width, height, chartTitle))	;
 		sb.append(", chartArea:{left:150,top:40,width:\"75%\",height:\"75%\"} ");
 		sb.append(", hAxis: {title: '" +  (hTitle == null? "Value":hTitle )+ "', titleColor: 'blue'}");
-		sb.append(", vAxis: {title: '" + (logScale ? "Log( Count )" : "Count") + "', titleColor: 'blue',logScale: " + logScale + ", format: '0'}");
-		sb.append(   otherOptions + " });");
+		sb.append(", vAxis: {title: '").append((logScale ? "Log( Count )" : "Count")).append("', titleColor: 'blue',logScale: ").append(logScale).append(", format: '0'}");
+		sb.append(otherOptions).append(" });");
 		
 		return sb.toString();
 	}
@@ -534,7 +541,7 @@ public class HTMLReportUtils {
 		sb.append(chartName)
 		.append(".draw(")
 		.append(dataName)
-		.append(", {fontSize:8,  drawBorder: false, cellWidth:11, cellHeight:" + cellHeight + ", numberOfColors: 256, " +
+		.append(", {fontSize:8,  drawBorder: false, cellWidth:11, cellHeight:").append(cellHeight).append(", numberOfColors: 256, " +
 				"passThroughBlack: true, " +
 				"emptyDataColor: {r: 255, g: 255, b: 255, a: 1}, startColor: {r: 0, g: 0, b: 255, a: 0.5}, " +
 		"endColor: {r: 255, g: 255, b: 0, a: 1}});\n");
@@ -582,7 +589,7 @@ public class HTMLReportUtils {
 			if ("\\".equals(string)) {
 				string = "\\\\";
 			}
-			sb.append(", {id: 'col_" + string + "', label: '" + string + "', type: 'number'}");
+			sb.append(", {id: 'col_").append(string).append("', label: '").append(string).append("', type: 'number'}");
 		}
 		sb.append("], \nrows: [");
 		
@@ -619,11 +626,8 @@ public class HTMLReportUtils {
 					String percent = percentages.get(cycleNumber);
 					sb.append(",f: '").append(cycle.count(cycleNumber, (T) string).get() + "(" +percent).append(")'");
 				}
-				
-				
 				sb.append("}");
 			}
-			
 			sb.append("]}");
 		}
 
@@ -637,8 +641,13 @@ public class HTMLReportUtils {
 	///////////////////////////////////////////////////////////////////////////
 	
 	private static void initialChartSetup(StringBuilder sb, String chartName, String chartType) {
-		sb.append( 
-		String.format("\nvar %s = new google.visualization.%s(document.getElementById('%s'));", chartName, chartType, chartName+"_div"));
+		sb.append("\nvar ")
+		.append(chartName)
+		.append(" = new google.visualization.")
+		.append(chartType)
+		.append("(document.getElementById('")
+		.append(chartName)
+		.append("_div'));");
 	}
 	private static void initialTableSetup(StringBuilder sb, String chartName) {
 		sb
@@ -669,13 +678,17 @@ public class HTMLReportUtils {
 		.append("_div'));");
 	}
 	
-	private static void basicChartSetup(StringBuilder sb, String chartName,
-			String chartData, String chartTitle, int width, int height) {
-		
+	private static void basicChartSetup(StringBuilder sb, String chartName, String chartData, String chartTitle, int width, int height) {
 		sb.append(chartName)
-		.append(String.format(".draw(%s, {width: %d, height: %d, title: ' %s '",chartData, width, height, chartTitle))
-		.append(", chartArea:{left:150,top:40,width:\"75%\",height:\"75%\"} ");
-		
+		.append(".draw(")
+		.append(chartData)
+		.append(", {width: ")
+		.append(width)
+		.append(", height: ")
+		.append(height)
+		.append(", title: '")
+		.append(chartTitle);
+		sb.append("', chartArea:{left:150,top:40,width:\"75%\",height:\"75%\"}");
 	}
 	
 }
