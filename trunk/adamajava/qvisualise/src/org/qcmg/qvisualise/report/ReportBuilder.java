@@ -1221,18 +1221,18 @@ public class ReportBuilder {
 	//xu code
 	private static Map<String, String>  createRgMap( Element summaryElement, Element isizeElement ) {		
 		
- 		Map<String, String> duplicateMap = new LinkedHashMap<>();
-		Map<String, String> maxLengthMap = new LinkedHashMap<>();
-		Map<String, String> aveLengthMap = new LinkedHashMap<>();
-		Map<String, String> totalReadsMap = new LinkedHashMap<>();
-		Map<String, String> unmappedMap = new LinkedHashMap<>(); 	
-		Map<String, String> nonCanonicalMap = new LinkedHashMap<>(); 	
-		Map<String, String> isizeMap = new LinkedHashMap<>();
-		Map<String, String> hardClipMap = new LinkedHashMap<>();
-		Map<String, String> softClipMap = new LinkedHashMap<>();
-		Map<String, String> overlapMap = new LinkedHashMap<>();
-		Map<String, String> lostMap = new LinkedHashMap<>();
-		Map<String, String> trimmedMap = new LinkedHashMap<>();
+ 		Map<String, String> duplicateMap = new HashMap<>();
+		Map<String, String> maxLengthMap = new HashMap<>();
+		Map<String, String> aveLengthMap = new HashMap<>();
+		Map<String, String> totalReadsMap = new HashMap<>();
+		Map<String, String> unmappedMap = new HashMap<>(); 	
+		Map<String, String> nonCanonicalMap = new HashMap<>(); 	
+		Map<String, String> isizeMap = new HashMap<>();
+		Map<String, String> hardClipMap = new HashMap<>();
+		Map<String, String> softClipMap = new HashMap<>();
+		Map<String, String> overlapMap = new HashMap<>();
+		Map<String, String> lostMap = new HashMap<>();
+		Map<String, String> trimmedMap = new HashMap<>();
 		
 		//isize
 		NodeList isizeNodes =  isizeElement.getElementsByTagName("ReadGroup"); 			
@@ -1252,7 +1252,6 @@ public class ReportBuilder {
 			//a NodeList of all descendant Elements 
 			NodeList rgNodes =  ((Element) readsChildren.item(i)).getElementsByTagName("*"); 
 			
-			//NodeList rgNodes = rgNodes.item(i).getChildNodes(); 
 			for(int j = 0; j < rgNodes.getLength(); j ++){
 				String nodeName =  rgNodes.item(j).getNodeName();
 				NamedNodeMap nodeMap = rgNodes.item(j).getAttributes();
