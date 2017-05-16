@@ -54,9 +54,9 @@ public class HTMLReportGenerator {
 		
 		// loop through all tabs, if we have descriptions set, disable them initially so they are not 'on' by default
 		for (Report report : reports) {
-			for (ChartTab tab: report.getTabs()) {	
+			for (ChartTab tab: report.getTabs()) {
 				//special case for summary table description, it is not belong to tab
-				if (null != tab.getDescription() || (tab != null && tab.getName() != null && tab.getName().equals("summ1"))) {
+				if (null != tab.getDescription() || (tab.getName() != null && tab.getName().equals("summ1"))) {
 					sb.append(" $(\"#").append(tab.getName()).append("1Desc_div\").toggle(false);\n");
 					sb.append(" $(\"#").append(tab.getName()).append("2Desc_div\").toggle(false);\n");
 				}
@@ -86,7 +86,6 @@ public class HTMLReportGenerator {
 		for (Report report : reports) {
 			sb.append(getReportBodyInfo(report));
 		}
-//		getReportBodyInfo(sb);
 		// add google chart info
 		HTMLReportUtils.generateHTMLHeader(sb);
 		

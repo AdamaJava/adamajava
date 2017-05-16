@@ -1291,25 +1291,29 @@ public class ReportBuilder {
 			try{ 
 				float lost =  Float.valueOf(lostMap.get(rg).replace("%", "").trim());
 				String color = (lost > 40)? "tomato":"yellow"; 
-				color = (lost < 20 ) ? "palegreen" : color; 
+				if (lost < 20) {
+					color = "palegreen";
+				}
 				lostColor = "', p: {style: 'text-align: right; background-color:" + color +";'}}" ;
 			}catch(NumberFormatException e){ }	//do nothing
 			
-			String ele  = startVBlock + totalReadsMap.get(rg) + endVBlock  
-					+ "," + startVBlock + aveLengthMap.get(rg) + endVBlock 
-					+ "," + startVBlock + maxLengthMap.get(rg) + endVBlock  						 	
-					+ "," + startVBlock + (isizeMap.get(rg) == null ? "-" : isizeMap.get(rg) ) + endVBlock  					
-					+ "," + startVBlock + unmappedMap.get(rg) + endVBlock  
- 					+ "," + startVBlock + nonCanonicalMap.get(rg) + endVBlock 
- 					+ "," + startVBlock + duplicateMap.get(rg) + endVBlock  
- 					+ "," + startVBlock + overlapMap.get(rg) + endVBlock  
-					+ "," + startVBlock + softClipMap.get(rg) + endVBlock  
-					+ "," + startVBlock + hardClipMap.get(rg) + endVBlock 
-					+ "," + startVBlock + trimmedMap.get(rg) + endVBlock
-					+ "," + startVBlock + lostMap.get(rg) + lostColor					
-					+ finalVBlock;
-			if(!rg.equals("overall")) summaryMap.put(rg, ele);	
-			else overallEle = ele; 
+			StringBuilder ele  = new StringBuilder(startVBlock).append(totalReadsMap.get(rg)).append(endVBlock)  
+					.append(",").append(startVBlock).append(aveLengthMap.get(rg)).append(endVBlock )
+					.append(",").append(maxLengthMap.get(rg)).append(endVBlock  						 	)
+					.append(",").append((isizeMap.get(rg) == null ? "-" : isizeMap.get(rg) )).append(endVBlock)  					
+					.append(",").append( unmappedMap.get(rg)).append( endVBlock  )
+					.append(",").append(nonCanonicalMap.get(rg)).append(endVBlock) 
+					.append(",").append(duplicateMap.get(rg)).append(endVBlock)  
+					.append(",").append(overlapMap.get(rg)).append( endVBlock  )
+					.append(",").append(softClipMap.get(rg)).append(endVBlock  )
+					.append(",").append(hardClipMap.get(rg)).append( endVBlock) 
+					.append(",").append(trimmedMap.get(rg)).append(endVBlock)
+					.append(",").append(lostMap.get(rg)).append(lostColor).append(finalVBlock);
+			if( ! rg.equals("overall")) {
+				summaryMap.put(rg, ele.toString());	
+			} else {
+				overallEle = ele.toString(); 
+			}
 		}
 		summaryMap.put("overall", overallEle);
 
