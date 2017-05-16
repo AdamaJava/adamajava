@@ -1,9 +1,10 @@
 package org.qcmg.qvisualise;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicLong;
@@ -67,5 +68,22 @@ public class QProfilerCollectionsUtilsTest {
 		discMap.clear();
 		results = QProfilerCollectionsUtils.splitFlagTallyByDistinguisher(flagMap, discMap, null);
 		assertEquals(1, results.size());
+	}
+	
+	@Test
+	public void headerTextToMap() {
+		Map<String, List<String>> m = QProfilerCollectionsUtils.convertHeaderTextToMap(null);
+		assertEquals(true, m.isEmpty());
+		m = QProfilerCollectionsUtils.convertHeaderTextToMap("");
+		assertEquals(true, m.isEmpty());
+		m = QProfilerCollectionsUtils.convertHeaderTextToMap("@HD");
+		assertEquals(1, m.size());
+		assertEquals(1, m.get("Header").size());
+		assertEquals("HD", m.get("Header").get(0));
+		m = QProfilerCollectionsUtils.convertHeaderTextToMap("@HD\n@SQ");
+		assertEquals(2, m.size());
+		assertEquals(1, m.get("Header").size());
+		assertEquals("@HD", m.get("Header").get(0));
+		assertEquals("@SQ", m.get("Sequence").get(0));
 	}
 }

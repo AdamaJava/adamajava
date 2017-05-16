@@ -15,12 +15,10 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicLongArray;
-import java.util.stream.Collectors;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -199,7 +197,6 @@ public class ReportBuilder {
 				
 				Map<String, AtomicLong> map = new HashMap<>();
 				QProfilerCollectionsUtils.populateTallyItemMap(element, map, false);
-				//System.out.println("no of entries in map: " + map.size());
 				List <String> list = new ArrayList<>();
 				
 				for (Entry<String, AtomicLong> entry : map.entrySet()) {
@@ -245,7 +242,6 @@ public class ReportBuilder {
 		return null;
 	}
 	
-
 	
 	private static void createSummary(Element reportElement, Report report) {
 		
@@ -456,8 +452,6 @@ public class ReportBuilder {
 		List<String> readGroups = null; 
 		
 		int cellingValue = 0;
-	//	List<Integer> maxAveChrs = new ArrayList<>(); 
-	//	int start = Integer.parseInt(e.getAttribute("start"));
 		for (int i = 0 , length = nlTop.getLength() ; i < length ; i++) {			
 			final Element nameElementTop = (Element) nlTop.item(i);
 			String chromosome =  nameElementTop.getAttribute("value");
@@ -481,9 +475,9 @@ public class ReportBuilder {
 				
 				final TreeMap<Integer, AtomicLongArray> map1 = ( TreeMap<Integer, AtomicLongArray> ) createRgCountMap(nameElement);
 				rgCountsMaps.put(chromosome, map1);	
-				if(cellingValue == 0)
+				if (cellingValue == 0) {
 					cellingValue = Integer.parseInt(nameElementTop.getAttribute("visuallCellingValue"));
-				//maxAveChrs.add(Integer.parseInt(nameElementTop.getAttribute("maxAveOfReadGroup")));
+				}
 			}
 		}	
 				
@@ -515,15 +509,13 @@ public class ReportBuilder {
 			TreeMap<Integer, AtomicLongArray> notTotalMap = new TreeMap<Integer, AtomicLongArray>();
 			for(Entry<Integer, AtomicLongArray> entry: map.getValue().entrySet()){
 				AtomicLongArray rgArray = new AtomicLongArray(readGroups.size());
-				//for(int j = 1; j < entry.getValue().length(); j ++)
-				for(int j = 1; j <= readGroups.size(); j ++)
+				for(int j = 1; j <= readGroups.size(); j ++) {
 					rgArray.addAndGet(j-1, entry.getValue().get(j));
+				}
 				notTotalMap.putIfAbsent(entry.getKey(), rgArray);
 			}	
 			
 			dataSB.append( HTMLReportUtils.generateGoogleaArrayToDataTable(notTotalMap,  tabName + keyWithOutPeriods, false, readGroups, false ) );			
-//			chartSB.append(HTMLReportUtils.generateGoogleChart(tabName + keyWithOutPeriods, keyWithOutPeriods, "$(window).width()", MIN_REPORT_HEIGHT/4, false, HTMLReportUtils.LINE_CHART, 
-//					null, ", vAxis: { viewWindowMode:'explicit', viewWindow:{  max: 500000 }}, fontSize:12, legend: {position: 'right', textStyle: {color: 'blue'}}, crosshair: {trigger: 'both'}, lineWidth: 2") );
 			int max = cellingValue; 
 			String extraOption = String.format(", vAxis: { viewWindowMode:'explicit', viewWindow:{  max: %d }}, fontSize:12, legend: {position: 'right', textStyle: {color: 'blue'}}, crosshair: {trigger: 'both'}, lineWidth: 2", max);
 			chartSB.append(HTMLReportUtils.generateGoogleChart(tabName + keyWithOutPeriods, keyWithOutPeriods, "$(window).width()", MIN_REPORT_HEIGHT/4, false, HTMLReportUtils.LINE_CHART, 
@@ -551,7 +543,6 @@ public class ReportBuilder {
 		//TAG-CS
 		final NodeList tagCSNL = tagElement.getElementsByTagName("CS");
 		if (tagCSNL.getLength() > 1) {
-//			System.out.println("NO OF CS NODES: " + tagCSNL.getLength());
 			final Element tagCSElement = (Element) tagCSNL.item(0);
 			for (ChartTab ct : buildMultiTabCycles(true,"TAG CS", tagCSElement, "tcs", "ColourByCycle", "BadColoursInReads", CycleDetailUtils.getTagCSNumericCycle(), CS_COLOURS, false)) {
 				report.addTab(ct);
@@ -561,7 +552,6 @@ public class ReportBuilder {
 		//TAG-CQ
 		final NodeList tagCQNL = tagElement.getElementsByTagName("CQ");
 		if (tagCQNL.getLength() > 1) {
-//			System.out.println("NO OF CQ NODES: " + tagCQNL.getLength());
 			final Element tagCQElement = (Element) tagCQNL.item(0);
 			for (ChartTab ct : buildMultiTabCycles(true,"TAG CQ", tagCQElement, "tcq",
 					"QualityByCycle", "BadQualsInReads", null, null, true)) {
@@ -621,7 +611,7 @@ public class ReportBuilder {
 		NodeList nl = mersElement.getElementsByTagName("CycleTally");
 		Element tallyElement = (Element) nl.item(0);
 		
-		List<String> kmers = new LinkedList ( Arrays.asList(  tallyElement.getAttribute("possibleValues").split(",")) );
+		List<String> kmers = Arrays.asList(  tallyElement.getAttribute("possibleValues").split(","));
 	 	
 		nl = tallyElement.getElementsByTagName("Cycle");		 
 		for (int i = 0, size = nl.getLength() ; i < size ; i++) {
@@ -651,7 +641,7 @@ public class ReportBuilder {
 			final Element headerElement = (Element) headerNL.item(0);
 			if (null != headerElement) {
 				Map<String, List<String>> headerList = QProfilerCollectionsUtils.convertHeaderTextToMap(headerElement.getTextContent());
-				if (null != headerList && ! headerList.isEmpty()) {
+				if ( ! headerList.isEmpty()) {
 					ChartTab ct = new ChartTab("BAMHeader", "head" + reportID);
 					ct.setData(HTMLReportUtils.generateGoogleDataForTable(headerList, ct.getName()));
 					String str = "";
@@ -809,9 +799,6 @@ public class ReportBuilder {
 					// first tab shows 0 - 1500
 					longTitle = ISIZE + ", 0 to 1500, split by read group";
 					final ChartTab ct1All = new ChartTab("0 to 1500 - All", (id + idCounter++));
-//					ct1All.setData(HTMLReportUtils.generateGoogleDataMultiSeries(
-//							(arrayMap).subMap(0, true, 1500, false),
-//							ct1All.getName(), false, readGroups, true));
 					
 					ct1All.setData( HTMLReportUtils.generateGoogleaArrayToDataTable((arrayMap).subMap(0, true, 1500, false), ct1All.getName(), false, readGroups, true ));
 					ct1All.setChartInfo(HTMLReportUtils.generateGoogleChart(ct1All.getName(), longTitle, 1400+"", MAX_REPORT_HEIGHT, true, HTMLReportUtils.SCATTER_CHART, 
@@ -837,9 +824,6 @@ public class ReportBuilder {
 					// tab shows 0 - 5000
 					longTitle = ISIZE + ", 0 to 5000, split by read group";
 					final ChartTab ct2All = new ChartTab("0 to 5000 - All", (id + idCounter++));
-//					ct2All.setData(HTMLReportUtils.generateGoogleDataMultiSeries(
-//							(arrayMap).subMap(0, true, 5000, false),
-//							ct2All.getName(), false, readGroups, true));
 					ct2All.setData(HTMLReportUtils.generateGoogleaArrayToDataTable((arrayMap).subMap(0, true, 5000, false), ct2All.getName(), false, readGroups, true) );					
 					ct2All.setChartInfo(HTMLReportUtils.generateGoogleChart(ct2All.getName(),longTitle, 1400+"", MAX_REPORT_HEIGHT, true,  HTMLReportUtils.SCATTER_CHART,
 							null, ", legend: {position: 'right', textStyle: {color: 'blue', fontSize: 14}}, crosshair: {trigger: 'both'}, pointSize: 2, lineWidth: 1"));
@@ -849,8 +833,6 @@ public class ReportBuilder {
 			} else {
 				// no need for sub tabs
 				parentCT = new ChartTab(ISIZE, id);
-//				parentCT.setData(HTMLReportUtils.generateGoogleDataMultiSeries( arrayMap,
-//						parentCT.getName(), false, readGroups, true));
 				parentCT.setData(HTMLReportUtils.generateGoogleaArrayToDataTable(arrayMap, parentCT.getName(), false, readGroups, false) );
 				parentCT.setChartInfo(HTMLReportUtils.generateGoogleScatterChart(parentCT.getName(),
 						ISIZE, 1200, 940, true));

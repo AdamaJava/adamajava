@@ -8,7 +8,6 @@ package org.qcmg.qvisualise.util;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,7 +37,7 @@ public class QProfilerCollectionsUtils {
 	 */
 	@SuppressWarnings("unchecked")
 	public static <T> Map<T, AtomicLong> splitFlagTallyByDistinguisher(Map<T, AtomicLong> flags, Map<String, T> distinguisherMap, T nonDistDesc) {
-		Map<T, AtomicLong> splitFlags = new LinkedHashMap<T, AtomicLong>();
+		Map<T, AtomicLong> splitFlags = new LinkedHashMap<>();
 		
 		// loop through flags, if <T> contains the specified value, add to value 
 		for (Entry<T, AtomicLong> entry : flags.entrySet()) {
@@ -59,7 +58,6 @@ public class QProfilerCollectionsUtils {
 			
 			if (null == value)
 				value =  null != nonDistDesc ? nonDistDesc : (T) "Other";
-//			T value = ((String)entry.getKey()).contains(distinguisher) ? distDesc : nonDistDesc;
 			
 			final AtomicLong currentCount = splitFlags.get(value);
 			
@@ -87,13 +85,9 @@ public class QProfilerCollectionsUtils {
 			Element cycleTallyElement = null;
 			if (nameElement.hasChildNodes()) {
 				cycleTallyElement = (Element) nameElement.getElementsByTagName("CycleTally").item(0);
-	//			if (cycleTallyElement instanceof Element) {
-	//			System.out.println("cycleTallyElement = "
-	//					+ cycleTallyElement.getNodeName());
 	
 				// get the cycles
 				final NodeList cycles = cycleTallyElement.getElementsByTagName("Cycle");
-	//			NodeList cycles = cycleTallyElement.getChildNodes();
 				for (int i = 0, size = cycles.getLength() ; i < size ; i++) {
 					if (cycles.item(i) instanceof Element) {
 						final Element cycleElement = (Element) cycles.item(i);
@@ -128,7 +122,6 @@ public class QProfilerCollectionsUtils {
 				
 				// get the cycles
 				final NodeList cycles = cycleTallyElement.getElementsByTagName("Cycle");
-				//			NodeList cycles = cycleTallyElement.getChildNodes();
 				for (int i = 0, size = cycles.getLength() ; i < size ; i++) {
 					if (cycles.item(i) instanceof Element) {
 						final Element cycleElement = (Element) cycles.item(i);
@@ -155,17 +148,11 @@ public class QProfilerCollectionsUtils {
 	@SuppressWarnings("unchecked")
 	public static <T> void populateTallyItemMap(Element cycleElement,
 			Map<T, AtomicLong> map, boolean isInteger) {
-//		public static <T> void populateTallyItemMap(Element cycleElement,
-//				Map<T, AtomicLong> map, Class<T> type) {
 		if (null != cycleElement) {
 			
-			//TODO replace following line with cycleElement.getElementsByTagName("TallyItem"); 
-//			NodeList tallyItemsNL = cycleElement.getChildNodes();
 			final NodeList tallyItemsNL = cycleElement.getElementsByTagName("TallyItem");
 			
-			// Map<T, Integer> cycleCount = new TreeMap<T, Integer>();
 			for (int j = 0, size = tallyItemsNL.getLength() ; j < size ; j++) {
-//				for (int j = 1, size = tallyItemsNL.getLength() ; j < size ; j++) {
 				if (tallyItemsNL.item(j) instanceof Element) {
 					Element tallyItemElement = (Element) tallyItemsNL.item(j);
 					if (tallyItemElement
@@ -266,71 +253,19 @@ public class QProfilerCollectionsUtils {
 		return binnedMap;
 	}
 	
-	public static Map<String, List<String>> convertSummaryTextToMap(String summaryText) {
-		if (null == summaryText) return null;
-		
-		String [] params = summaryText.split("\n");
-		Map<String, List<String>> results = new LinkedHashMap<String ,List<String>>();
-		if (params.length > 1) {
-			for (String param : params) {
-				
-				String key = null;
-				if (param.startsWith(Constants.HEADER_PREFIX)) {
-					key = "Header";
-				} else if (param.startsWith(Constants.SEQUENCE_PREFIX)) {
-					key = "Sequence";
-				} else if (param.startsWith(Constants.READ_GROUP_PREFIX)) {
-					key = "Read Group";
-				} else if (param.startsWith(Constants.PROGRAM_PREFIX)) {
-					key = "Program";
-				} else if (param.startsWith(Constants.COMMENT_PREFIX)) {
-					key = "Comments";
-				} else {
-					key = "Other";
-				}
-				addDataToList(results, key, param);
-			}
-		} else {
-			//FIXME split on '@' char, and add back in....
-			// hack to get around line breaks not being preserved in CDATA sections
-			// also check using UTF-16...
-			params = summaryText.split("@");
-			if (params.length > 1) {
-				for (String param : params) {
-					if (param.trim().length() > 0) {
-						String key = null;
-						if (param.startsWith("HD")) {
-							key = "Header";
-						} else if (param.startsWith("SQ")) {
-							key = "Sequence";
-						} else if (param.startsWith("RG")) {
-							key = "Read Group";
-						} else if (param.startsWith("PG")) {
-							key = "Program";
-						} else if (param.startsWith("CO")) {
-							key = "Comments";
-						} else {
-							key = "Other";
-						}
-						addDataToList(results, key, param);
-					}
-				}
-			}
-		}
-		return results;
-	}
 	
 	public static Map<String, List<String>> convertHeaderTextToMap(String headerText) {
-		if (null == headerText) return null;
+		if (null == headerText) return Collections.emptyMap();
 		
 		String [] params = headerText.split("\n");
 		 
-		Map<String, List<String>> results = new LinkedHashMap<String ,List<String>>();
+		Map<String, List<String>> results = new LinkedHashMap<>(8,0.9f);
 		
 		//init the map for order
 		String[] heads = {"Header","Sequence","Read Group","Program","Comments","Other"};
-		for(String key : heads)
+		for(String key : heads) {
 			results.put(key, null);
+		}
 		
 		if (params.length > 1) {
 			for (String param : params) {
@@ -379,21 +314,18 @@ public class QProfilerCollectionsUtils {
 			}
 		}
 				
-		//remove not exit head field
- 		for(String key : heads)
- 			if(results.get(key) == null)
+		//remove entries in map that came from the heads array and that have null values
+ 		for (String key : heads) {
+ 			if (results.get(key) == null) {
  				results.remove(key);
-
+ 			}
+ 		}
+ 					
 		return results;
 	}
 	
 	private static void addDataToList(Map<String, List<String>> map, String key, String data) {
-		List<String> tmpList = map.get(key);
-		if (null == tmpList) {
-			tmpList = new ArrayList<String>();
-			map.put(key, tmpList);
-		}
-		tmpList.add(data);
+		map.computeIfAbsent(key, v -> new ArrayList<>()).add(data);
 	}
 
 }
