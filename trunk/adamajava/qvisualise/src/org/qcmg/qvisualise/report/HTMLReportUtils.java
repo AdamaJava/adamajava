@@ -21,6 +21,10 @@ import org.qcmg.common.model.MAPQMiniMatrix;
 import org.qcmg.common.model.SummaryByCycle;
 
 public class HTMLReportUtils {
+	
+	public static final String SS = "<style type=\"text/css\">.header {font-family: Verdana, Helvetica, Arial;color: rgb(0,66,174);background: rgb(234,242,255);font-size: 15px;}\n.desc{padding: 5px 10px;font-family: Verdana, Helvetica, Arial; font-size:12px}\n.butt{font-family: Verdana, Helvetica, Arial; font-size:12px}\ntable { font-family: Verdana, Helvetica, Arial; font-size:12px }\n</style>\n";
+	
+	
 	public static final String BAR_CHART = "BarChart";
 	public static final String COLUMN_CHART = "ColumnChart";
 	public static final String PIE_CHART = "PieChart";
@@ -396,10 +400,10 @@ public class HTMLReportUtils {
 
 	public static String generateDescriptionButton(String dataName, String description, String buttname ) {
 
-		String DescriptionButton = (buttname == null)? "Description" : buttname; 
+		String descriptionButton = (buttname == null)? "Description" : buttname; 
 		StringBuilder sb = new StringBuilder();
-		sb.append("<button onclick=\"toggleDiv('" + dataName  + "Desc_div" + "');\" class=\"butt\">" + DescriptionButton + "</button>");
-		sb.append("<div id=\"" +  dataName  + "Desc_div\" class=\"desc\">");
+		sb.append("<button onclick=\"toggleDiv('").append(dataName).append("Desc_div');\" class=\"butt\">").append(descriptionButton).append("</button>");
+		sb.append("<div id=\"").append(dataName).append("Desc_div\" class=\"desc\">");
 		sb.append(description);
 		sb.append("</div>");
 	 
@@ -674,19 +678,4 @@ public class HTMLReportUtils {
 		
 	}
 	
-	public static String createStyleSheet() {
-		StringBuilder sb = new StringBuilder("<style type=\"text/css\">");
-		sb.append(".header {")
-		.append("font-family: Verdana, Helvetica, Arial;")
-		.append("color: rgb(0,66,174);")
-		.append("background: rgb(234,242,255);")
-		.append("font-size: 15px;}\n")
-		.append(".desc{padding: 5px 10px;font-family: Verdana, Helvetica, Arial; font-size:12px}\n")
-		.append(".butt{font-family: Verdana, Helvetica, Arial; font-size:12px}\n")
-	//xu added for show table under description 	
-		.append("table { font-family: Verdana, Helvetica, Arial; font-size:12px }\n")
-		.append("</style>\n");
-		
-		return sb.toString();
-	}
 }
