@@ -29,17 +29,11 @@ public class HTMLReportGenerator {
 			if (tab.getChildren().isEmpty() && null != tab.getData() &&  null != tab.getChartInfo()) {
 				sb.append(tab.getData());
 				sb.append(tab.getChartInfo());
-//				if (tab.isIncludeInSummary()) {
-//					sb.append(tab.getChartInfoSummary());
-//				}
 			} else {
 				for (ChartTab child : tab.getChildren()) {
 					if (null != child.getData() &&  null != child.getChartInfo() ) {
 						sb.append(child.getData());
 						sb.append(child.getChartInfo());
-//						if (child.isIncludeInSummary()) {
-//							sb.append(child.getChartInfoSummary());
-//						}
 					}
 				}
 			}
@@ -52,7 +46,6 @@ public class HTMLReportGenerator {
 		StringBuilder sb = new StringBuilder();
 		
 		// get the header info
-//		HTMLReportUtils.generateHTMLHeader(sb);
 		sb.append("<html>\n<head>\n");
 		sb.append(HTMLReportUtils.SS);
 		sb.append(HTMLReportUtils.getStyle());
@@ -64,12 +57,12 @@ public class HTMLReportGenerator {
 			for (ChartTab tab: report.getTabs()) {	
 				//special case for summary table description, it is not belong to tab
 				if (null != tab.getDescription() || (tab != null && tab.getName() != null && tab.getName().equals("summ1"))) {
-					sb.append(" $(\"#" + tab.getName() + "1Desc_div\").toggle(false);\n");
-					sb.append(" $(\"#" + tab.getName() + "2Desc_div\").toggle(false);\n");
+					sb.append(" $(\"#").append(tab.getName()).append("1Desc_div\").toggle(false);\n");
+					sb.append(" $(\"#").append(tab.getName()).append("2Desc_div\").toggle(false);\n");
 				}
 				for (ChartTab child: tab.getChildren()) {				
 					if (null != child.getDescription() ) {
-						sb.append(" $(\"#" + child.getName() + "Desc_div\").toggle(false);\n");
+						sb.append(" $(\"#").append(child.getName()).append("Desc_div\").toggle(false);\n");
 					} 
 				}
 			}
@@ -142,7 +135,7 @@ public class HTMLReportGenerator {
 		// display parent tabs
 		for (ChartTab tab : report.getTabs()) {  
 			sb.append("\n<li><a href=\"#\">");
-			sb.append(tab.getTitle() + "</a></li>");
+			sb.append(tab.getTitle()).append("</a></li>");
 		}
 		sb.append("\n</ul>");
 		
@@ -151,11 +144,11 @@ public class HTMLReportGenerator {
 			if (null == tab.getChildren() || tab.getChildren().isEmpty()) {
 				if (null == tab.getRenderingInfo()) {
 					if (null == tab.getDescription()) {
- 						sb.append("\n<div class=\"pane\" id=\"" + tab.getName() + "Chart_div\">");
+ 						sb.append("\n<div class=\"pane\" id=\"").append(tab.getName()).append("Chart_div\">");
  						sb.append(END_DIV);						
 					} else {
 						sb.append("\n<div class=\"pane\">");
-						sb.append("<p id=\"" + tab.getName() + "Chart_div\"></p>");
+						sb.append("<p id=\"").append(tab.getName()).append( "Chart_div\"></p>");
 						sb.append(END_DIV);
 					}
 				} else {
@@ -166,31 +159,28 @@ public class HTMLReportGenerator {
 				sb.append("\n<ul class=\"tabs\">");
 				for (ChartTab child : tab.getChildren()) {
 					sb.append("\n<li><a href=\"#\">");
-					sb.append(child.getTitle() + "</a></li>");
+					sb.append(child.getTitle()).append("</a></li>");
 				}
 				sb.append("\n</ul>");
 				for (ChartTab child : tab.getChildren()) {
 					if (null != child.getRenderingInfo()) {
 						sb.append(child.getRenderingInfo());  //xu code:: now child have rendering 
 					}else if (null == child.getDescription()) {
-						sb.append("\n<div class=\"pane\" id=\"" + child.getName() + "Chart_div\">");
+						sb.append("\n<div class=\"pane\" id=\"").append(child.getName()).append("Chart_div\">");
 						sb.append(END_DIV);
 					} else {
 						sb.append("\n<div class=\"pane\">");
 						sb.append(HTMLReportUtils.generateDescriptionButton(child.getName(), child.getDescription(), null));							
-						sb.append("<p id=\"" + child.getName() + "Chart_div\"></p>");
+						sb.append("<p id=\"").append(child.getName()).append("Chart_div\"></p>");
 						sb.append(END_DIV);
 					}
-//					sb.append("\n<div class=\"pane\" id=\"" + child.getName() + "Chart_div\">");
-//					sb.append(END_DIV);
 				}
 				sb.append(END_DIV);
 			}
 		}
 		
-		
 		if (reports.size() > 1)
-			sb.append(END_DIV+"\n");
+			sb.append(END_DIV).append("\n");
 		
 		return sb.toString();
 	}
