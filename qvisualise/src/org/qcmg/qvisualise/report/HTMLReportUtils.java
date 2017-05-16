@@ -13,14 +13,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicLongArray;
 
 import org.qcmg.common.model.MAPQMiniMatrix;
 import org.qcmg.common.model.SummaryByCycle;
-import org.qcmg.common.string.StringUtils;
 
 public class HTMLReportUtils {
 	public static final String BAR_CHART = "BarChart";
@@ -34,7 +32,6 @@ public class HTMLReportUtils {
 	public static final String COMBO_CHART = "ComboChart";
 
 	public static void generateHTMLHeader(StringBuilder sb) {
-// 		sb.append("<script type=\"text/javascript\" src=\"http://www.google.com/jsapi\"></script>\n");
  		
 		//here we use version 45 which was last year "current"
 		sb.append("<script src=\"http://cdn.jquerytools.org/1.2.5/full/jquery.tools.min.js\"></script>\n");		
@@ -346,7 +343,6 @@ public class HTMLReportUtils {
 		String chartName = dataName + "Chart";
 		initialTableSetup(sb, chartName);
 		String heightStr = (height == null  ) ? "height: " + dataName +  ".getNumberOfRows() > 50 ?400:0" : "height:" + height; 			
-//		String widthStr = (width == null) ? "width:" + dataName +  ".getNumberOfColumns() > 2 ?1300:450" : "width:" + width; 		 
 		String widthStr = (width == null) ? "width: '98%' " : "width:" + width; 
 		sb.append(chartName + ".draw(" + dataName +", {" + widthStr + "," +  heightStr + ", allowHtml: true,  showRowNumber:true");
 		
@@ -361,7 +357,9 @@ public class HTMLReportUtils {
 		int i = 0; 
 		for (String dn : dataNames) {
 			
-			if (i % 2 == 0) {
+			boolean even = i % 2 == 0; 
+			
+			if (even) {
 				sb.append("<tr>");
 			}
 			
@@ -369,7 +367,7 @@ public class HTMLReportUtils {
 			
 			sb.append("<td  id = \"" + dn + "ChartSummary_div\"" + title + "></td>");
 				
-			if (i % 2 == 1) { 	sb.append("</tr>\n"); }
+			if ( ! even) { 	sb.append("</tr>\n"); }
 			i++;
 		}
 		
@@ -586,7 +584,6 @@ public class HTMLReportUtils {
 		
 		// now for the data
 		int i = 0;
-		int k = -1;
 		for (Integer cycleNumber : cycle.cycles()) {
 			if (i++ > 0)
 				sb.append(",\n");
@@ -605,14 +602,14 @@ public class HTMLReportUtils {
 					for (T value : cycle.values(cycleNumber)) {
 						if (value.toString().equals( (Character.valueOf((char) (Integer.parseInt(string) + 64)).toString()))) {
 							al = cycle.count(cycleNumber,  value);
-//							sb.append(cycle.count(cycleNumber,  value).get());
 							break;	// break out of for loop
 						}
 					}
 					sb.append((null != al) ? al.get() : "null");
 					
-				} else
+				} else {
 					sb.append(cycle.count(cycleNumber, (T) string).get());
+				}
 				
 				if (null != percentages) {
 					String percent = percentages.get(cycleNumber);
