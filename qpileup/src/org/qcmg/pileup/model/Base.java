@@ -52,71 +52,32 @@ public class Base implements Comparable<Base>{
 		return base;
 	}
 
-//	public void setBase(char base) {
-//		this.base = base;
-//	}
-
-
 	public long getCount() {
 		return count;
 	}
-
-
-//	public void setCount(long count) {
-//		this.count = count;
-//	}
-
 
 	public long getTotalQual() {
 		return totalQual;
 	}
 
-
-	public void setTotalQual(long totalQual) {
-		this.totalQual = totalQual;
-	}
-
-
 	public double getAvgBaseQual() {
 		return avgBaseQual;
-	}
-
-
-	public void setAvgBaseQual(double avgBaseQual) {
-		this.avgBaseQual = avgBaseQual;
 	}
 
 	public long getForwardCount() {
 		return forwardCount;
 	}
 
-//	public void setForwardCount(long forwardCount) {
-//		this.forwardCount = forwardCount;
-//	}
-
 	public long getReverseCount() {
 		return reverseCount;
 	}
-
-//	public void setReverseCount(long reverseCount) {
-//		this.reverseCount = reverseCount;
-//	}
-
 
 	public double getForAvgBaseQual() {
 		return forAvgBaseQual;
 	}
 
-	public void setForAvgBaseQual(double forAvgBaseQual) {
-		this.forAvgBaseQual = forAvgBaseQual;
-	}
-
 	public double getRevAvgBaseQual() {
 		return revAvgBaseQual;
-	}
-
-	public void setRevAvgBaseQual(double revAvgBaseQual) {
-		this.revAvgBaseQual = revAvgBaseQual;
 	}
 
 
@@ -176,7 +137,7 @@ public class Base implements Comparable<Base>{
 
 	private String formatQual(double avgQual) {
 		if (avgQual == 0) {
-			return new String("0");
+			return "0";
 		} else {
 			DecimalFormat df = new DecimalFormat("####0.00");
 			return df.format(avgQual);
@@ -184,10 +145,7 @@ public class Base implements Comparable<Base>{
 	}
 
 	public boolean trueBase() {
-		if (base == 'N' || base == 'n') {
-			return false;
-		}
-		return true;		
+		return base != 'N' && base != 'n';
 	}
 	
 	public long getForTotalQual() {
