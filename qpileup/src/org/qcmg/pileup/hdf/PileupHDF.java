@@ -320,8 +320,7 @@ public class PileupHDF {
 	}
 		
 	public synchronized Group getGroup(String groupName) throws Exception {
-		Group g = (Group) hdfFile.get(groupName);
-		return g;
+		return (Group) hdfFile.get(groupName);
 	}
 	
 	private synchronized int getIntegerAttributeByGroup(String fullName) throws Exception {
@@ -548,10 +547,7 @@ public class PileupHDF {
 	}
 	
 	private synchronized void createH5StringAttribute(String groupName, String datasetName, String attributeName, String value, int currentSize) throws Exception {
-		long[] dims = {1};
 		String[] attribute = {value};
-		byte[] bval = PileupUtil.stringToByte(attribute, currentSize);
-        Object attrValue = bval;
 		int dataId = -1;
 		int spaceId = -1;
 		if (groupName != null) {			
@@ -559,13 +555,13 @@ public class PileupHDF {
 		} 
 		int typeId = H5.H5Tcopy(HDF5Constants.H5T_C_S1);
 		H5.H5Tset_size(typeId,currentSize);
-		spaceId = H5.H5Screate_simple(1, dims, null);
+		spaceId = H5.H5Screate_simple(1, new long[]{1}, null);
 		int attributeId = H5.H5Acreate(dataId, attributeName, typeId, spaceId, HDF5Constants.H5P_DEFAULT, HDF5Constants.H5P_DEFAULT);
 		
 		int tmptid = typeId;
         int tid = H5.H5Tget_native_type(tmptid);
         H5.H5Tclose(tmptid);
-        H5.H5Awrite(attributeId, tid, attrValue);
+        H5.H5Awrite(attributeId, tid, PileupUtil.stringToByte(attribute, currentSize));
 		H5.H5Aclose(attributeId);
 		H5.H5Sclose(spaceId);
 		H5.H5Tclose(tid);

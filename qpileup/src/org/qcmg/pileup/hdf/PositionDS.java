@@ -16,13 +16,13 @@ public class PositionDS  {
 	
 	private long[] positions;
 	private int[] bases;
-	private QLogger logger = QLoggerFactory.getLogger(getClass());
+	private final QLogger logger = QLoggerFactory.getLogger(getClass());
 	private int chunk;
 	private int numEntries;
-	private PileupHDF hdf;
-	private String datasetName;	
-	private String fullName;
-	private String reference;
+	private final PileupHDF hdf;
+	private final String datasetName;	
+	private final String fullName;
+	private final String reference;
  
 	public PositionDS(PileupHDF hdf, String group, int totalEntries,  int chunkSize, int blockSize) {
 		this.numEntries = totalEntries;
@@ -47,7 +47,7 @@ public class PositionDS  {
 			base = 'N';
 		}
 		positions[index] = position;
-		bases[index] = (int) base;
+		bases[index] = base;
 	}
 	
 	public synchronized void createDataset() throws Exception {
@@ -71,11 +71,9 @@ public class PositionDS  {
 	}
 
 	public Datatype[] createMemberDatatypes() {
-		Datatype[] memberDataTypes = new Datatype[] {
+		return  new Datatype[] {
 				new H5Datatype(Datatype.CLASS_INTEGER, 8, Datatype.NATIVE, -1),
 				new H5Datatype(Datatype.CLASS_CHAR, 8, Datatype.NATIVE, -1) };
-
-		return memberDataTypes;
 	}
 
 	public void readDatasetBlock(int startIndex,
