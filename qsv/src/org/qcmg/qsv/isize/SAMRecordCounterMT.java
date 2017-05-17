@@ -219,15 +219,6 @@ public class SAMRecordCounterMT {
 	         * 
 	         * @param qIn
 	         *            : store SAM record from input file
-	         * @param qOutGood
-	         *            : store satisfied record based on query
-	         * @param qOutBad
-	         *            : store unsatisfied record based on query (null is
-	         *            allowed)
-	         * @param query
-	         *            : query string
-	         * @param maxRecords
-	         *            : queue size
 	         * @param mainThread
 	         *            : parent thread
 	         * @param rLatch
