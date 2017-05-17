@@ -27,11 +27,10 @@ import org.w3c.dom.NodeList;
 public class QProfilerCollectionsUtils {
 	
 	/**
-	 * Splits the flags collection into 
+	 * Splits the flags collection
 	 * @param <T>
 	 * @param flags
-	 * @param distinguisher
-	 * @param distDesc
+	 * @param distinguisherMap
 	 * @param nonDistDesc
 	 * @return
 	 */
