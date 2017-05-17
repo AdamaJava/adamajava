@@ -27,12 +27,8 @@ public class ResultSummary {
 	int positionCount;
 	private final static double MIN_POSITION_COUNT  = 3;
 	private final static double MIN_ADJUSTED_REGULARITY_SCORE  = 5;
-	private double HIGH_ADJUSTED_REGULARITY_SCORE = 20;
-	private double MIN_REGULARITY_SCORE = 100;
-//	private final static double MIN_POSITION_COUNT  = 1.5;
-//	private final static double MIN_ADJUSTED_REGULARITY_SCORE  = 10;
-//	private double HIGH_ADJUSTED_REGULARITY_SCORE = 20;
-	//private double MIN_REGULARITY_SCORE = 0;	
+	private final double HIGH_ADJUSTED_REGULARITY_SCORE = 20;
+	private final double MIN_REGULARITY_SCORE = 100;
 	private boolean highCoverageMapper = false;
 	
 	public ResultSummary(String chromosome, int start, int end, long totalBases, boolean isBaseline) {
@@ -178,43 +174,23 @@ public class ResultSummary {
 	}
 	
 	public boolean isErrorRegion() {
-		if (isMisMapper() || isLowQualityMapper() || isHighCoverageMapper()) {
-			return true;
-		}
-		return false;
+		return isMisMapper() || isLowQualityMapper() || isHighCoverageMapper(); 
 	}
 	
 	public boolean isWritableErrorRegion() {
-		if (isLowQualityMapper() || isWritableMismapper() || isHighCoverageMapper()) {
-			return true;
-		}
-		
-		return false;
+		return isLowQualityMapper() || isWritableMismapper() || isHighCoverageMapper(); 
 	}
 
 	boolean highPositionCount() {
-		if (isMisMapper()) {
-			if (getPositionCountScore() > MIN_POSITION_COUNT) {
-				return true;
-			}
-		}
-		return false;
+		return isMisMapper() && getPositionCountScore() > MIN_POSITION_COUNT;
 	}
 
 	public boolean isMisMapper() {
-		if (misMapperCount >=2) {
-			return true;
-		}
-		return false;
+		return misMapperCount >=2; 
 	}
 	
 	public boolean isRegularMapper() {
-		if (isMisMapper()) {
-			if (getAdjustedRegularityScore() > MIN_ADJUSTED_REGULARITY_SCORE && getFinalRegularityScore() > MIN_REGULARITY_SCORE ) {
-				return true;
-			}
-		}
-		return false;
+		return isMisMapper() && getAdjustedRegularityScore() > MIN_ADJUSTED_REGULARITY_SCORE && getFinalRegularityScore() > MIN_REGULARITY_SCORE ; 
 	}
 	
 	public void addRecord(String key, ResultRecord record) {
@@ -268,11 +244,11 @@ public class ResultSummary {
 	}
 	
 	public double getPositionCountScore() {
-		return (double)positionCount / ( (double)getEnd() - (double) getStart() + 1);
+		return positionCount / ( (double)getEnd() - (double) getStart() + 1);
 	}
 	
 	public double getFinalRegularityScore() {
-		return (double)regularityScore / ( (double)getEnd() - (double) getStart() + 1);		
+		return regularityScore / ( (double)getEnd() - (double) getStart() + 1);		
 	}
 	
 	public double getRegularityPositionCountScore() {
@@ -320,11 +296,7 @@ public class ResultSummary {
 	}	
 	
 	private boolean isWritableMismapper() {
-		String mm = getMisMapperType();
-		if (mm != null) {
-			return true;
-		}
-		return false;
+		return null != getMisMapperType(); 
 	}
 
 	public boolean isHighCoverageMapper() {
@@ -410,21 +382,14 @@ public class ResultSummary {
 		return attrs;
 	}
 	
-	
 	public String checkTmpRecords(String key) {
-		if (resultRecords.get(key) != null) {
-			return resultRecords.get(key).toTmpString();
-		} else {
-			return "0\t0\t0\t";
-		}
+		ResultRecord rr =  resultRecords.get(key);
+		return null != rr ? rr.toTmpString() : "0\t0\t0\t";
 	}
 
 	public String checkRecords(String key) {
-		if (resultRecords.get(key) != null) {
-			return resultRecords.get(key).toString();
-		} else {
-			return "0\t0\t";
-		}
+		ResultRecord rr =  resultRecords.get(key);
+		return null != rr ? rr.toString() : "0\t0\t";
 	}
 	
 	public String toGFFString() {
@@ -441,10 +406,10 @@ public class ResultSummary {
 		}
 		return result;
 	}
-
+	
 	public String toTmpString(String[] headerList) {
 		StringBuilder sb = new StringBuilder();
-		sb.append(chromosome + "\t" + start + "\t" + end + "\t");
+		sb.append(chromosome).append("\t").append(start).append("\t").append(end).append("\t");
 		
 		for (String metric: headerList) {			
 			if (resultRecords.containsKey(metric)) {
@@ -452,13 +417,13 @@ public class ResultSummary {
 			} 
 		}
 
-		sb.append(totalBases + "\n");		
+		sb.append(totalBases).append("\n");		
 		return sb.toString();
 	}
 	
 	public String toString(String[] headerList) {
 		StringBuilder sb = new StringBuilder();
-		sb.append(chromosome + "\t" + start + "\t" + end + "\t");
+		sb.append(chromosome).append("\t").append(start).append("\t").append(end).append("\t");
 		
 		for (String metric: headerList) {
 			if (resultRecords.containsKey(metric)) {
@@ -467,7 +432,7 @@ public class ResultSummary {
 				sb.append("\t0\t0");
 			}
 		}
-		sb.append(totalBases + "\n");
+		sb.append(totalBases).append("\n");
 		return sb.toString();
 	}
 
