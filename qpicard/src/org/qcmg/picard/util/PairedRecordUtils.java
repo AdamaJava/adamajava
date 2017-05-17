@@ -1,6 +1,5 @@
 package org.qcmg.picard.util;
 
-import htsjdk.samtools.Cigar;
 import htsjdk.samtools.CigarElement;
 import htsjdk.samtools.CigarOperator;
 import htsjdk.samtools.SAMRecord;
@@ -60,13 +59,13 @@ public class PairedRecordUtils {
     
     public static boolean isCanonical(SAMRecord  record){
     	    	
-    	if(! isSameReference(record) ) return false; 
-    	
-    	if( record.getReadNegativeStrandFlag() == record.getMateNegativeStrandFlag() )
-    		return false;
-    	
-    	
-    	return true;    	
+	    	if ( ! isSameReference(record) ) return false; 
+	    	
+	    	if ( record.getReadNegativeStrandFlag() == record.getMateNegativeStrandFlag() )
+	    		return false;
+	    	
+	    	
+	    	return true;    	
     }
     
     public static boolean isSameReference(SAMRecord  record) {
