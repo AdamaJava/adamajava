@@ -11,12 +11,9 @@ import java.io.IOException;
 import java.util.Comparator;
 import java.util.HashMap;
 
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SamReader;
 import htsjdk.samtools.ValidationStringency;
 
 import org.apache.commons.cli.*;
-//import org.apache.commons.cli.CommandLine;
 
 public class NewOptions {
      	
@@ -25,11 +22,9 @@ public class NewOptions {
 	
 	private String tmpdir = null;
 	private String refFileName = null;
-    private SAMFileHeader header = null;	
-	private String sort = null;   
 	private final HashMap<String, String> RG = new HashMap<String, String>();
 	private final CommandLine cmd;
-	private boolean checkCMD = false;
+	private final boolean checkCMD = false;
 
     
     /**
@@ -39,54 +34,141 @@ public class NewOptions {
     	options.addOption("h", "help", false, OptLong.help.getDescription() );
     	options.addOption("v", "version", false,  OptLong.version.getDescription());
     	
-    	options.addOption(OptionBuilder.hasArg(false).withArgName(OptLong.reFinalBAM.getArgName()).withLongOpt(OptLong.reFinalBAM.toString())
-        		.withDescription(OptLong.reFinalBAM.getDescription()).create() );    
+    	OptionBuilder.hasArg(false);
+    		OptionBuilder.withArgName(OptLong.reFinalBAM.getArgName());
+		OptionBuilder.withLongOpt(OptLong.reFinalBAM.toString());
+		OptionBuilder.withDescription(OptLong.reFinalBAM.getDescription());
+		options.addOption(OptionBuilder.create() );    
     	
-    	options.addOption(OptionBuilder.hasArgs(1).withArgName(OptLong.input.getArgName()).withLongOpt(OptLong.input.toString())
-        		.withDescription(OptLong.input.getDescription()).create('i'));    	
-    	options.addOption( OptionBuilder.hasArgs(1).withArgName(OptLong.output.getArgName()).withLongOpt(OptLong.output.toString())
-        		.withDescription(OptLong.output.getDescription()).create('o') );    	
-    	options.addOption( OptionBuilder.hasArgs(1).withArgName(OptLong.log.getArgName()).withLongOpt(OptLong.log.toString())
-        		.withDescription(OptLong.log.getDescription()).create() );
+    	OptionBuilder.hasArgs(1);
+		OptionBuilder.withArgName(OptLong.input.getArgName());
+		OptionBuilder.withLongOpt(OptLong.input.toString());
+		OptionBuilder
+        		.withDescription(OptLong.input.getDescription());
+		options.addOption(OptionBuilder.create('i'));    	
+    	OptionBuilder.hasArgs(1);
+		OptionBuilder.withArgName(OptLong.output.getArgName());
+		OptionBuilder.withLongOpt(OptLong.output.toString());
+		OptionBuilder
+        		.withDescription(OptLong.output.getDescription());
+		options.addOption( OptionBuilder.create('o') );    	
+    	OptionBuilder.hasArgs(1);
+		OptionBuilder.withArgName(OptLong.log.getArgName());
+		OptionBuilder.withLongOpt(OptLong.log.toString());
+		OptionBuilder
+        		.withDescription(OptLong.log.getDescription());
+		options.addOption( OptionBuilder.create() );
     	    	
-    	options.addOption( OptionBuilder.hasArgs(1).withArgName(OptLong.RGID.getArgName()).withLongOpt(OptLong.RGID.toString())
-        		.withDescription(OptLong.RGID.getDescription()).create() );
-    	options.addOption( OptionBuilder.hasArgs(1).withArgName(OptLong.RGCN.getArgName()).withLongOpt(OptLong.RGCN.toString())
-        		.withDescription(OptLong.RGCN.getDescription()).create() );
-    	options.addOption( OptionBuilder.hasArgs(1).withArgName(OptLong.RGDS.getArgName()).withLongOpt(OptLong.RGDS.toString())
-        		.withDescription(OptLong.RGDS.getDescription()).create() );
-    	options.addOption( OptionBuilder.hasArgs(1).withArgName(OptLong.RGDT.getArgName()).withLongOpt(OptLong.RGDT.toString())
-        		.withDescription(OptLong.RGDT.getDescription()).create() );
-    	options.addOption( OptionBuilder.hasArgs(1).withArgName(OptLong.RGFO.getArgName()).withLongOpt(OptLong.RGFO.toString())
-        		.withDescription(OptLong.RGFO.getDescription()).create() );
-    	options.addOption( OptionBuilder.hasArgs(1).withArgName(OptLong.RGKS.getArgName()).withLongOpt(OptLong.RGKS.toString())
-        		.withDescription(OptLong.RGKS.getDescription()).create() );
-    	options.addOption( OptionBuilder.hasArgs(1).withArgName(OptLong.RGLB.getArgName()).withLongOpt(OptLong.RGLB.toString())
-        		.withDescription(OptLong.RGLB.getDescription()).create() );
-    	options.addOption( OptionBuilder.hasArgs(1).withArgName(OptLong.RGPG.getArgName()).withLongOpt(OptLong.RGPG.toString())
-        		.withDescription(OptLong.RGPG.getDescription()).create() );
-    	options.addOption( OptionBuilder.hasArgs(1).withArgName(OptLong.RGPI.getArgName()).withLongOpt(OptLong.RGPI.toString())
-        		.withDescription(OptLong.RGPI.getDescription()).create() );
-    	options.addOption( OptionBuilder.hasArgs(1).withArgName(OptLong.RGPL.getArgName()).withLongOpt(OptLong.RGPL.toString())
-        		.withDescription(OptLong.RGPL.getDescription()).create() );
-    	options.addOption( OptionBuilder.hasArgs(1).withArgName(OptLong.RGPU.getArgName()).withLongOpt(OptLong.RGPU.toString())
-        		.withDescription(OptLong.RGPU.getDescription()).create() );
-    	options.addOption( OptionBuilder.hasArgs(1).withArgName(OptLong.RGSM.getArgName()).withLongOpt(OptLong.RGSM.toString())
-        		.withDescription(OptLong.RGSM.getDescription()).create() ); 
+    	OptionBuilder.hasArgs(1);
+		OptionBuilder.withArgName(OptLong.RGID.getArgName());
+		OptionBuilder.withLongOpt(OptLong.RGID.toString());
+		OptionBuilder
+        		.withDescription(OptLong.RGID.getDescription());
+		options.addOption( OptionBuilder.create() );
+    	OptionBuilder.hasArgs(1);
+		OptionBuilder.withArgName(OptLong.RGCN.getArgName());
+		OptionBuilder.withLongOpt(OptLong.RGCN.toString());
+		OptionBuilder
+        		.withDescription(OptLong.RGCN.getDescription());
+		options.addOption( OptionBuilder.create() );
+    	OptionBuilder.hasArgs(1);
+		OptionBuilder.withArgName(OptLong.RGDS.getArgName());
+		OptionBuilder.withLongOpt(OptLong.RGDS.toString());
+		OptionBuilder
+        		.withDescription(OptLong.RGDS.getDescription());
+		options.addOption( OptionBuilder.create() );
+    	OptionBuilder.hasArgs(1);
+		OptionBuilder.withArgName(OptLong.RGDT.getArgName());
+		OptionBuilder.withLongOpt(OptLong.RGDT.toString());
+		OptionBuilder
+        		.withDescription(OptLong.RGDT.getDescription());
+		options.addOption( OptionBuilder.create() );
+    	OptionBuilder.hasArgs(1);
+		OptionBuilder.withArgName(OptLong.RGFO.getArgName());
+		OptionBuilder.withLongOpt(OptLong.RGFO.toString());
+		OptionBuilder
+        		.withDescription(OptLong.RGFO.getDescription());
+		options.addOption( OptionBuilder.create() );
+    	OptionBuilder.hasArgs(1);
+		OptionBuilder.withArgName(OptLong.RGKS.getArgName());
+		OptionBuilder.withLongOpt(OptLong.RGKS.toString());
+		OptionBuilder
+        		.withDescription(OptLong.RGKS.getDescription());
+		options.addOption( OptionBuilder.create() );
+    	OptionBuilder.hasArgs(1);
+		OptionBuilder.withArgName(OptLong.RGLB.getArgName());
+		OptionBuilder.withLongOpt(OptLong.RGLB.toString());
+		OptionBuilder
+        		.withDescription(OptLong.RGLB.getDescription());
+		options.addOption( OptionBuilder.create() );
+    	OptionBuilder.hasArgs(1);
+		OptionBuilder.withArgName(OptLong.RGPG.getArgName());
+		OptionBuilder.withLongOpt(OptLong.RGPG.toString());
+		OptionBuilder
+        		.withDescription(OptLong.RGPG.getDescription());
+		options.addOption( OptionBuilder.create() );
+    	OptionBuilder.hasArgs(1);
+		OptionBuilder.withArgName(OptLong.RGPI.getArgName());
+		OptionBuilder.withLongOpt(OptLong.RGPI.toString());
+		OptionBuilder
+        		.withDescription(OptLong.RGPI.getDescription());
+		options.addOption( OptionBuilder.create() );
+    	OptionBuilder.hasArgs(1);
+		OptionBuilder.withArgName(OptLong.RGPL.getArgName());
+		OptionBuilder.withLongOpt(OptLong.RGPL.toString());
+		OptionBuilder
+        		.withDescription(OptLong.RGPL.getDescription());
+		options.addOption( OptionBuilder.create() );
+    	OptionBuilder.hasArgs(1);
+		OptionBuilder.withArgName(OptLong.RGPU.getArgName());
+		OptionBuilder.withLongOpt(OptLong.RGPU.toString());
+		OptionBuilder
+        		.withDescription(OptLong.RGPU.getDescription());
+		options.addOption( OptionBuilder.create() );
+    	OptionBuilder.hasArgs(1);
+		OptionBuilder.withArgName(OptLong.RGSM.getArgName());
+		OptionBuilder.withLongOpt(OptLong.RGSM.toString());
+		OptionBuilder
+        		.withDescription(OptLong.RGSM.getDescription());
+		options.addOption( OptionBuilder.create() ); 
     	
-    	options.addOption( OptionBuilder.hasArgs(1).withArgName(OptLong.CO.getArgName()).withLongOpt(OptLong.CO.toString())
-        		.withDescription(OptLong.CO.getDescription()).create() ); 
-    	options.addOption( OptionBuilder.hasArgs(1).withArgName(OptLong.SQ.getArgName()).withLongOpt(OptLong.SQ.toString())
-        		.withDescription(OptLong.SQ.getDescription()).create() ); 
+    	OptionBuilder.hasArgs(1);
+		OptionBuilder.withArgName(OptLong.CO.getArgName());
+		OptionBuilder.withLongOpt(OptLong.CO.toString());
+		OptionBuilder
+        		.withDescription(OptLong.CO.getDescription());
+		options.addOption( OptionBuilder.create() ); 
+    	OptionBuilder.hasArgs(1);
+		OptionBuilder.withArgName(OptLong.SQ.getArgName());
+		OptionBuilder.withLongOpt(OptLong.SQ.toString());
+		OptionBuilder
+        		.withDescription(OptLong.SQ.getDescription());
+		options.addOption( OptionBuilder.create() ); 
     	
-    	options.addOption( OptionBuilder.hasArgs(1).withArgName(OptLong.loglevel.getArgName()).withLongOpt(OptLong.loglevel.toString())
-        		.withDescription(OptLong.loglevel.getDescription()).create() ); 
-    	options.addOption( OptionBuilder.hasArgs(1).withArgName(OptLong.tmpdir.getArgName()).withLongOpt(OptLong.tmpdir.toString())
-        		.withDescription(OptLong.tmpdir.getDescription()).create() ); 
-    	options.addOption( OptionBuilder.hasArgs(1).withArgName(OptLong.length.getArgName()).withLongOpt(OptLong.length.toString())
-        		.withDescription(OptLong.length.getDescription()).create() ); 
-    	options.addOption( OptionBuilder.hasArgs(1).withArgName(OptLong.validation.getArgName()).withLongOpt(OptLong.validation.toString())
-        		.withDescription(OptLong.validation.getDescription()).create() );   	
+    	OptionBuilder.hasArgs(1);
+		OptionBuilder.withArgName(OptLong.loglevel.getArgName());
+		OptionBuilder.withLongOpt(OptLong.loglevel.toString());
+		OptionBuilder
+        		.withDescription(OptLong.loglevel.getDescription());
+		options.addOption( OptionBuilder.create() ); 
+    	OptionBuilder.hasArgs(1);
+		OptionBuilder.withArgName(OptLong.tmpdir.getArgName());
+		OptionBuilder.withLongOpt(OptLong.tmpdir.toString());
+		OptionBuilder
+        		.withDescription(OptLong.tmpdir.getDescription());
+		options.addOption( OptionBuilder.create() ); 
+    	OptionBuilder.hasArgs(1);
+		OptionBuilder.withArgName(OptLong.length.getArgName());
+		OptionBuilder.withLongOpt(OptLong.length.toString());
+		OptionBuilder
+        		.withDescription(OptLong.length.getDescription());
+		options.addOption( OptionBuilder.create() ); 
+    	OptionBuilder.hasArgs(1);
+		OptionBuilder.withArgName(OptLong.validation.getArgName());
+		OptionBuilder.withLongOpt(OptLong.validation.toString());
+		OptionBuilder
+        		.withDescription(OptLong.validation.getDescription());
+		options.addOption( OptionBuilder.create() );   	
   
     	cmd = parser.parse( options, args ); 
     }
@@ -273,7 +355,7 @@ public class NewOptions {
 		if(cmd.hasOption(OptLong.CO.toString())){
 			String value =  cmd.getOptionValue( OptLong.CO.toString());
 			//if(value.isEmpty()) throw new Exception("no value specified on CO option: --" + OptLong.CO);
-			return (String) value;
+			return value;
 		}
 		return null;
 	}
@@ -425,7 +507,8 @@ public class NewOptions {
 	 
 	static class OptionComparator implements Comparator<Option>
 	 {
-	     public int compare(Option c1, Option c2)
+	     @Override
+		public int compare(Option c1, Option c2)
 	     {
 	         return OptLong.valueOf(c1.getLongOpt()).compareTo(OptLong.valueOf(c2.getLongOpt()));
 	     }
