@@ -15,8 +15,8 @@ public class NonReferenceRecord {
 	boolean isReverse;
 	private boolean isLowReadCount;
 	private boolean isHighNonRef;
-	private int lowReadCount;
-	private double highNonRefThreshold;
+	private final int lowReadCount;
+	private final double highNonRefThreshold;
 
 	public NonReferenceRecord(String reference, int datasetLength, boolean isReverse, int lowReadCount, int highNonRef) {
 		this.reference = reference;
@@ -26,7 +26,7 @@ public class NonReferenceRecord {
 		this.isLowReadCount = false;
 		this.isHighNonRef = false;
 		this.lowReadCount = lowReadCount;
-		this.highNonRefThreshold = (double) highNonRef/100.0;
+		this.highNonRefThreshold = highNonRef/100.0;
 	}
 	
 	public int[] getTotalBases() {
@@ -88,11 +88,7 @@ public class NonReferenceRecord {
 			Double total = new Double(totalBaseCount);
 			Double nonRef = new Double(nonReferenceCount);
 			Double percent = nonRef/total;
-			if (percent >= highNonRefThreshold) {
-				isHighNonRef = true;
-			} else {
-				isHighNonRef = false;
-			}
+			isHighNonRef = percent >= highNonRefThreshold;
 		}
 	}
 }
