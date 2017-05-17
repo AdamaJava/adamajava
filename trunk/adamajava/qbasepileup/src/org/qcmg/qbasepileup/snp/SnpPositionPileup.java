@@ -181,10 +181,7 @@ public class SnpPositionPileup {
 	}
 
 	public boolean isSingleBasePosition() {
-		if (position.getLength() == 1) {
-			return true;
-		} 
-		return false;
+		return position.getLength() == 1; 
 	}
 
 	public int getCountPositionStrand() {
