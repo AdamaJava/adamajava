@@ -48,10 +48,10 @@ public class ReportBuilder {
 	private static final String[] SEQ_COLOURS = new String[] { "green", "blue", "black", "red", "aqua" };
 	private static final String[] CS_COLOURS = new String[] { "blue", "green", "orange", "red", "black" };
 	private static int reportID;
-	private static int MAX_REPORT_HEIGHT = 900;
-	private static int MIN_REPORT_HEIGHT = 540;
-	private static int MAX_REPORT_WIDTH = 1400;
-	private static int MIN_REPORT_WIDTH = 800;
+	private static final int MAX_REPORT_HEIGHT = 900;
+	private static final int MIN_REPORT_HEIGHT = 540;
+	private static final int MAX_REPORT_WIDTH = 1400;
+	private static final int MIN_REPORT_WIDTH = 800;
 	
 	private static final String BAD_READS_DESCRIPTION = Messages.getMessage("BAD_READS_DESCRIPTION");
 	private static final String BAD_QUALS_DESCRIPTION = Messages.getMessage("BAD_QUALS_DESCRIPTION");
