@@ -20,13 +20,9 @@ public class MultipleAdjacentSnpsFilter implements SamRecordFilter {
 	private final static SAMTagUtil STU = SAMTagUtil.getSingleton();
 	private static final short MD_TAG = STU.MD;
 	
-//	private static final String TRIPLE_SNP_PATTERN = "\\w*[ACGT]0[ACGT]0[ACGT]\\w*";
 	public static final String TRIPLE_SNP_STRING = "[ACGT]0[ACGT]0[ACGT]";
 	public static final Pattern TRIPLE_SNP_PATTERN_MATCH_ALL = Pattern.compile(".*" +  TRIPLE_SNP_STRING + ".*");
 	public static final Pattern TRIPLE_SNP_PATTERN = Pattern.compile(TRIPLE_SNP_STRING);
-//	public static final Pattern TRIPLE_SNP_PATTERN = Pattern.compile(".*" + TRIPLE_SNP_STRING + ".*");
-	
-//	private final int maxAdjacentSnps = 3;
 	private final int position;
 	
 	public MultipleAdjacentSnpsFilter(int position) {
@@ -111,16 +107,11 @@ public class MultipleAdjacentSnpsFilter implements SamRecordFilter {
 			if (baseCount >= readPosition) {
 				return false;
 			} else if ((baseCount <= readPosition) && (baseCount + 3 >= readPosition)) {
-				if (deletion) return false;
-				return true;
+				return ! deletion;
 			}
 			
 			lastPosition = m.end();
 			baseCount += 3;
-			
-//			if (lastPosition < 0 || lastPosition > mdData.length()) {
-//				System.out.println("got lastPosition: " + lastPosition + ", md: " + mdData);
-//			}
 		}
 		
 		return false;
