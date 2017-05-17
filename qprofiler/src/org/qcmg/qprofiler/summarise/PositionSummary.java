@@ -13,7 +13,6 @@ package org.qcmg.qprofiler.summarise;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
@@ -21,7 +20,6 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicLongArray;
-import java.util.stream.LongStream;
 
 import org.qcmg.common.model.QCMGAtomicLongArray;
 
@@ -34,16 +32,15 @@ public class PositionSummary {
 	private final QCMGAtomicLongArray coverage = new QCMGAtomicLongArray(512);  // total coverage on that position
 	private final List<String> readGroupIds;
 	
-	private final ArrayList<Long> maxRgs = new ArrayList<Long>(); //store the max coverage from all read group at each position;
-	private Boolean hasAddPosition = true; //set to true after each time addPosition, set to false after getAverage
-	private int maxAverage = -1 ;  
+	private final List<Long> maxRgs = new ArrayList<>(); //store the max coverage from all read group at each position;
+	private boolean hasAddPosition = true; //set to true after each time addPosition, set to false after getAverage
 		
 	/**
 	 * No default constructor defined as we don't want the initial values of 
 	 * min and max to be zero (unless of course the passed in initial position value is zero)
 	 * Create the AtomicLongArray with size of 512 as we are binning by the million, and the largest chromosome is around the 250 mill mark
 	 * Should give us some breathing space..
-	 * @param position sets the first position value of this summary record to position
+	 * @param rgs sets the first position value of this summary record to position
 	 * 
 	 */	
 	public PositionSummary(List<String> rgs) {
@@ -51,8 +48,9 @@ public class PositionSummary {
 		min = new AtomicInteger(512*BUCKET_SIZE);
 		max = new AtomicInteger(0); 
 		rgCoverages = new QCMGAtomicLongArray[rgs.size()];
-		for(int i = 0; i < rgs.size(); i ++)
+		for(int i = 0; i < rgs.size(); i ++) {
 			rgCoverages[i] = new QCMGAtomicLongArray(512);
+		}
 	}
 	
 	public int getMin() { 	return min.intValue(); }
@@ -61,25 +59,6 @@ public class PositionSummary {
 	
 	public int getBinNumber() { return (max.get()/BUCKET_SIZE) + 1 ;}
 		
-	/**
-	 * 
-	 * @return the average coverage on each position based on the max counts from each read group
-	 */
-//	public int getAveOfMax(){ 			
-//		if( ! hasAddPosition && maxAverage > 0) return maxAverage; 		
-//		ArrayList<Long> maxRgs = new ArrayList<Long>(); //new long[max.get()/BUCKET_SIZE + 1];
-//		for (int i = 0, length = (max.get()/BUCKET_SIZE) + 1; i < length ; i++){ 	
-//			long[] rgCov = new long[rgCoverages.length];				
-//			for(int j = 0; j < rgCoverages.length; j ++)
-//				rgCov[j] = rgCoverages[j].get(i);
-//			Arrays.sort(rgCov);
-//			maxRgs.add( rgCov[rgCoverages.length - 1 ]); //get the max coverage of all readGroup at that position			 		
-//		}		
-//		//stream is slow but we only use it once
-//		maxAverage = (int) maxRgs.stream().mapToLong(val -> val).average().getAsDouble();
-//		hasAddPosition = false; 
-//		return maxAverage;  		
-//	}
 	
 	/**
 	 * 
@@ -94,7 +73,6 @@ public class PositionSummary {
 					rgCov[j] = rgCoverages[j].get(i);
 				Arrays.sort(rgCov);
 				maxRgs.add( rgCov[rgCoverages.length - 1 ]);   //get the max coverage of all readGroup at that position		
-//				System.out.println(i + ":" + maxRgs.size());    
 			}
 			hasAddPosition = false; 
 		}
@@ -110,12 +88,6 @@ public class PositionSummary {
 		if( hasAddPosition  || maxRgs.isEmpty())  
 			getMaxRgCoverage(); //caculate the maxRgs 
 				
-//		int num = 0;
-//		for(long coverage: maxRgs)
-//			if(coverage > floorValue) num ++;		
-//		System.out.print(maxRgs.size() +" (binSise) debug: bin number over floorVaue is " + num );		 
-//		System.out.println(", stream number is " + num);
-		
 		return  (int) maxRgs.stream().mapToLong(val -> val).filter(val -> val > floorValue).count();
 	}
 	
@@ -152,8 +124,7 @@ public class PositionSummary {
     public Map<Integer, AtomicLong> getCoverage() {
         ConcurrentMap<Integer, AtomicLong> sortedCoverage = new ConcurrentSkipListMap<Integer, AtomicLong>();
         for (int i = 0, length = (int)coverage.length() ; i < length ; i++) {
-               // if (coverage.get(i) > 0) //otherwise will appear null 
-                        sortedCoverage.put(i, new AtomicLong(coverage.get(i)));
+            sortedCoverage.put(i, new AtomicLong(coverage.get(i)));
         }
         return sortedCoverage;
     }
