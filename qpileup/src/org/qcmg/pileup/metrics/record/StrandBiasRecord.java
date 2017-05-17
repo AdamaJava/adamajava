@@ -18,7 +18,7 @@ public class StrandBiasRecord {
 	private int reverseRefCount = 0;
 	private double percentForwardAlt = 0;
 	private double percentReverseAlt = 0;
-	private double MIN_PERCENT_DIFFERENCE;
+	private final double MIN_PERCENT_DIFFERENCE;
 	private int forwardTotalBases;
 	private int reverseTotalBases;
 	
@@ -139,19 +139,12 @@ public class StrandBiasRecord {
 	}
 	
 	public boolean hasDifferentAltBase() {
-		if (forwardAltBase != reverseAltBase) {
-			return true;
-		}
-		return false;
+		return forwardAltBase != reverseAltBase;
 	}
 
 	public boolean hasStrandBias() {
 		double altBaseDifference = getAltBaseCountDifference();
-		
-		if (altBaseDifference > MIN_PERCENT_DIFFERENCE ) {
-			return true;
-		}
-		return false;
+		return altBaseDifference > MIN_PERCENT_DIFFERENCE;
 	}
 
 	public double getAltBaseCountDifference() {		
@@ -162,6 +155,7 @@ public class StrandBiasRecord {
 		}
 	}
 	
+	@Override
 	public String toString() {
 		 DecimalFormat df = new DecimalFormat("#.##");
 		return chromosome + "\t"+ position + "\t"+ position + "\t" + refBase  + "\t" + forwardAltBase + "\t" + forwardRefCount + "\t"+ forwardAltCount + "\t" +  forwardTotalBases + "\t" +
