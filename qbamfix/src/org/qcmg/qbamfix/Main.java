@@ -7,10 +7,8 @@
 package org.qcmg.qbamfix;
 
 import java.io.File;
-import java.util.Map;
 
 import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SamReader;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -36,17 +34,17 @@ public class Main {
             logger.info("log file: " + options.getLogFileName());
             
             if(options.isFinalBAM()){ 
-            	SAMFileHeader header = SAMFileReaderFactory.createSAMFileReader(new File(options.getInputFileName()),
-            			options.getValidation() ).getFileHeader().clone(); 
-            	HeaderUtils.addProgramRecord(header, options.getPGName(), options.getVersion(), Messages.reconstructCommandLine(args));
-
-            	ReheadFinalBAM refinalBAM = new ReheadFinalBAM(header, options, logger);
-            	
+	            	SAMFileHeader header = SAMFileReaderFactory.createSAMFileReader(new File(options.getInputFileName()),
+	            			options.getValidation() ).getFileHeader().clone(); 
+	            	HeaderUtils.addProgramRecord(header, options.getPGName(), options.getVersion(), Messages.reconstructCommandLine(args));
+	
+	            new ReheadFinalBAM(header, options, logger);
+	            	
             }else{
-            	FixHeader header=new FixHeader(options, logger);
-            	HeaderUtils.addProgramRecord(header.getHeader(), options.getPGName(), options.getVersion(), Messages.reconstructCommandLine(args));
-            	new FixBAM(header.getHeader(), options.getInputFileName(), 
-					options.getOutputFileName(),  options.getTmpDir(),logger, options.getSeqLength(), options.getValidation());
+	            	FixHeader header=new FixHeader(options, logger);
+	            	HeaderUtils.addProgramRecord(header.getHeader(), options.getPGName(), options.getVersion(), Messages.reconstructCommandLine(args));
+	            	new FixBAM(header.getHeader(), options.getInputFileName(), 
+						options.getOutputFileName(),  options.getTmpDir(),logger, options.getSeqLength(), options.getValidation());
             }
 			logger.logFinalExecutionStats(0);   		
 		} catch (Exception e) {

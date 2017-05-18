@@ -36,7 +36,7 @@ public class FixBAM {
 	 * >0, only report reads with specified length
 	 * <0, output reads without check the Seq lenght
 	 */
-	private int seqLength;   
+	private final int seqLength;   
 	private File input;
 	private File output;
 	private File tmpDir;
@@ -96,7 +96,7 @@ public class FixBAM {
 		else if(seqLength == 0)
 			log.info("length value is " + seqLength + " : output reads which seq length is equal to base quality string length" );
 		else
-			log.info("length value is " + seqLength + " : ignor reads seq length");
+			log.info("length value is " + seqLength + " : ignore reads seq length");
 		
 	 	//filter out all reads with unqualified Seq length
 		File tmpBAM = File.createTempFile(output.getName(), ".tmp.bam", tmpDir);
@@ -108,10 +108,11 @@ public class FixBAM {
 		
 		//create final output BAM and index, delete all tmp files
 		//create final sam without index 
-    	if(badMates.size() > 0 || output.getPath().endsWith(".sam")) 	
-    		secondFilterRun(badMates, tmpBAM );    		
-    	else
-    		tmp2outputBAM(tmpBAM);
+	    	if (badMates.size() > 0 || output.getPath().endsWith(".sam")) {
+	    		secondFilterRun(badMates, tmpBAM );    		
+	    	} else {
+	    		tmp2outputBAM(tmpBAM);
+	    	}
 
 	}
 	 
@@ -155,15 +156,15 @@ public class FixBAM {
 	 * @param reads: a list of record which didn't qualified on the firstFilterRun
 	 * @param inBAM: a bam file created by firstFilterRun, in which all satisfied records are stored
 	 * @return 
-	 * @throws Exception
+	 * @throws IOException
 	 */
-	HashMap<String, Integer> checkMate(List<SAMRecord> reads, File inBAM)throws Exception{
+	HashMap<String, Integer> checkMate(List<SAMRecord> reads, File inBAM)throws IOException{
 		
 		HashMap<String, Integer> badMateID = new HashMap<String, Integer>();
 		SamReader tmpreader = SAMFileReaderFactory.createSAMFileReader(inBAM,  validation);  	
-		if(! header.getSortOrder().equals(SAMFileHeader.SortOrder.coordinate)){
+		if( ! header.getSortOrder().equals(SAMFileHeader.SortOrder.coordinate)){
 			tmpreader.close();
-			throw new Exception("currently we can only work for output BAM with sorted by coordinate ");
+			throw new IllegalArgumentException("currently we can only work for output BAM with sorted by coordinate ");
 		}
 		
 		for(SAMRecord re: reads){
@@ -180,7 +181,7 @@ public class FixBAM {
 	
 	/**
 	 * 
-	 * @param output: all qualified recorda will be stored here
+	 * @param output: all qualified records will be stored here
 	 * @return list: unqualified records will be return  
 	 * @throws IOException 
 	 */
@@ -189,41 +190,41 @@ public class FixBAM {
 		SamReader reader = SAMFileReaderFactory.createSAMFileReader(input,  validation);  
 
 		SAMOrBAMWriterFactory factory;		
-		if(reader.getFileHeader().getSortOrder().equals(header.getSortOrder()))
-        	factory = new SAMOrBAMWriterFactory(header, true, output, tmpDir, 2000000, true );
-        else
-        	factory = new SAMOrBAMWriterFactory(header, false, output, tmpDir, 2000000, true);
+		if(reader.getFileHeader().getSortOrder().equals(header.getSortOrder())) {
+			factory = new SAMOrBAMWriterFactory(header, true, output, tmpDir, 2000000, true );
+		} else {
+        		factory = new SAMOrBAMWriterFactory(header, false, output, tmpDir, 2000000, true);
+		}
 						 
 		SAMFileWriter writer = factory.getWriter();
 		
-        List<SAMRecord> badReads = new ArrayList<SAMRecord>();
+        List<SAMRecord> badReads = new ArrayList<>();
         
         String id = header.getReadGroups().get(0).getId();  
         long NumofInput = 0;
         long NumofOutput = 0;
-        boolean ok2add = false;
-    	for( SAMRecord record : reader){
-    		record.setAttribute("RG", id );
+        boolean ok2add;
+	    	for( SAMRecord record : reader){
+	    		record.setAttribute("RG", id );
   
-    		if(seqLength > 0)
-    			ok2add = (record.getReadLength() == seqLength); 
-    		else if(seqLength == 0)
-    			ok2add = (record.getReadLength() == record.getBaseQualityString().length());
-    		else
-    			ok2add = true;
-    		
-    		if(ok2add){
-    			writer.addAlignment(record);	
-    			NumofOutput ++;
-    		}
-    		else
-    			badReads.add(record);
-    		
-    		NumofInput ++;	
+	    		if(seqLength > 0)
+	    			ok2add = (record.getReadLength() == seqLength); 
+	    		else if(seqLength == 0)
+	    			ok2add = (record.getReadLength() == record.getBaseQualityString().length());
+	    		else
+	    			ok2add = true;
+	    		
+	    		if (ok2add){
+	    			writer.addAlignment(record);	
+	    			NumofOutput ++;
+	    		} else {
+	    			badReads.add(record);
+	    		}
+	    		NumofInput ++;	
 		}
-    	//writer.close();
-    	factory.closeWriter();
-    	reader.close();
+	    	//writer.close();
+	    	factory.closeWriter();
+	    	reader.close();
     	
 		log.info("crteated a temp BAM: " + output.getPath());
 		if(factory.getLogMessage() != null)
@@ -239,11 +240,9 @@ public class FixBAM {
 	 * 
 	 * @param badIDs: a list of bad reads id stored in hash table
 	 * @param inBAM: input bam usually it is the tmp file created by first filter run
-	 * @param outBAM
-	 * @throws Exception
+	 * @throws IOException
 	 */
-//	void secondFilterRun(HashMap<String, Integer>  badIDs, File inBAM,  File outBAM)throws Exception{
-	void secondFilterRun(HashMap<String, Integer>  badIDs, File inBAM)throws Exception{
+	void secondFilterRun(HashMap<String, Integer>  badIDs, File inBAM)throws IOException{
 		SamReader reader = SAMFileReaderFactory.createSAMFileReader(inBAM, validation);
 		//set presort as true since the tmpBAM already sorted. otherwise throw exception
 		SAMOrBAMWriterFactory factory = new SAMOrBAMWriterFactory(header, true, output, tmpDir, 2000000, true ); 
@@ -251,17 +250,17 @@ public class FixBAM {
 		
         long NumofOutput = 0;
         long NumofBad = 0;
-    	for( SAMRecord record : reader){	
-    		if(badIDs.containsKey(record.getReadName()))
-    			NumofBad ++;
-    		else{
-    			writer.addAlignment(record);	
-    			NumofOutput ++;
-    		}
-    			
+	    	for( SAMRecord record : reader){	
+	    		if(badIDs.containsKey(record.getReadName()))
+	    			NumofBad ++;
+	    		else{
+	    			writer.addAlignment(record);	
+	    			NumofOutput ++;
+	    		}
+	    			
 		}
-    	factory.closeWriter();
-    	reader.close();
+	    	factory.closeWriter();
+	    	reader.close();
 
        	log.info("created final output " + output.getPath());
        	if(factory.getLogMessage() != null)
@@ -272,12 +271,11 @@ public class FixBAM {
          
     	//delete tmp files  
         inBAM.delete();
-    	log.info("deleted tmporary output BAM file: " + inBAM.getPath());
-        
-        //File inBai = new File(inBAM.getPath().replace("tmp.bam", "tmp.bai"));
-    	File inBai = new File(inBAM.getPath() + ".bai");
-    	inBai.delete();    	
-    	log.info("deleted tmporary output index file: " + inBai.getPath());
+	    	log.info("deleted tmporary output BAM file: " + inBAM.getPath());
+	        
+	    	File inBai = new File(inBAM.getPath() + ".bai");
+	    	inBai.delete();    	
+	    	log.info("deleted tmporary output index file: " + inBai.getPath());
 
 	} 
 }
