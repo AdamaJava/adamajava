@@ -5,10 +5,10 @@ package org.qcmg.pileup.metrics.record;
 
 public class ResultRecord {
 	
-	public String name;
-	public long numberPositions = 0;
-	public long totalCounts = 0;
-	public double totalRegularityScore = 0;
+	private final String name;
+	private long numberPositions;
+	private long totalCounts;
+	private double totalRegularityScore;
 
 	public ResultRecord(String name, long numberPositions, long totalCounts, double totalRegularityScore) {
 		super();
@@ -26,36 +26,21 @@ public class ResultRecord {
 		return numberPositions;
 	}
 
-	public void setNumberPositions(long numberPositions) {
-		this.numberPositions = numberPositions;
-	}
-
 	public long getTotalCounts() {
 		return totalCounts;
 	}
 
-	public void setTotalCounts(long totalCounts) {
-		this.totalCounts = totalCounts;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-	
 	public String toTmpString() {		
 		return numberPositions + "\t" + totalCounts + "\t" + totalRegularityScore + "\t";
 	}
 
+	@Override
 	public String toString() {
 		return numberPositions + "\t" + totalCounts + "\t";
 	}
 
 	public double getTotalRegularityScore() {
 		return totalRegularityScore;
-	}
-
-	public void setTotalRegularityScore(double regularityScore) {
-		this.totalRegularityScore = regularityScore;
 	}
 
 	public void mergeRecords(ResultRecord record) {	

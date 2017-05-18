@@ -34,11 +34,6 @@ public class MappingQualityMetric extends Metric {
 		return recordCount;
 	}
 
-	@Override
-	public void setRecordCount(AtomicLong recordCount) {
-		this.recordCount = recordCount;
-	}
-
 	public Map<String, TreeMap<Integer, MappingQualityRecord>> getQualRecordMap() {
 		return qualRecordMap;
 	}

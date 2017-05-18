@@ -21,12 +21,12 @@ import org.qcmg.pileup.PileupConstants;
 
 public class BaseDistributionRecord {
 	
-	private String type;
-	private ConcurrentSkipListMap<BigDecimal, AtomicLong> baseDistributionCountMap = new ConcurrentSkipListMap<BigDecimal, AtomicLong>();	
+	private final String type;
+	private ConcurrentSkipListMap<BigDecimal, AtomicLong> baseDistributionCountMap = new ConcurrentSkipListMap<>();	
 	private long totalPositions = 0;
-	private List<String> htmlFiles = new ArrayList<String>();
+	private final List<String> htmlFiles = new ArrayList<>();
 	int MIN_TOTAL_BASES = 100;
-	private boolean isWindow;
+	private final boolean isWindow;
 	
 	public BaseDistributionRecord(String type, boolean isWindow) {
 		this.type = type;

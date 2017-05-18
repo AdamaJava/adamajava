@@ -13,11 +13,11 @@ import org.qcmg.pileup.PileupConstants;
 public class ResultSummary {
 	
 	
-	public String chromosome;
-	public int start;
-	public int end;
-	Map<String, ResultRecord> resultRecords;
-	long totalBases;
+	private final String chromosome;
+	private final int start;
+	private int end;
+	final Map<String, ResultRecord> resultRecords;
+	private final long totalBases;
 	boolean isBaseline;
 	boolean isGreaterThanZero = false;	
 	int misMapperCount = 0;
@@ -37,26 +37,26 @@ public class ResultSummary {
 		this.start = start;
 		this.end = end;
 		this.totalBases = totalBases;
-		this.resultRecords = new HashMap<String, ResultRecord>();
+		this.resultRecords = new HashMap<>();
 	}
 	
 	public ResultSummary(String[] headerList, String line) {
 		String[] values = line.split("\t");
-		this.resultRecords = new HashMap<String, ResultRecord>();
+		this.resultRecords = new HashMap<>();
 		this.chromosome = values[0];
-		this.start = new Integer(values[1]);
-		this.end = new Integer(values[2]);
+		this.start = Integer.parseInt(values[1]);
+		this.end = Integer.parseInt(values[2]);
 		
 		int index = 3;
 		for (int i=0; i<headerList.length; i++) {
-			ResultRecord r = new ResultRecord(headerList[i], new Long(values[index]), new Long(values[index+1]), new Double(values[index+2]));
+			ResultRecord r = new ResultRecord(headerList[i], Long.parseLong(values[index]), Long.parseLong(values[index+1]), Double.parseDouble(values[index+2]));
 			addRecord(r.getName(), r);
 			if (!r.getName().equals(PileupConstants.METRIC_STRAND_BIAS)) {
 				positionCount += r.getNumberPositions();
 			}
 			index +=3;			
 		}
-		this.totalBases = new Integer(values[values.length-1]);
+		this.totalBases = Integer.parseInt(values[values.length-1]);
 		
 	}
 	
@@ -65,7 +65,7 @@ public class ResultSummary {
 		this.start = rs.start;
 		this.end = rs.end;
 		this.totalBases = rs.totalBases;
-		this.resultRecords = new HashMap<String, ResultRecord>(rs.resultRecords);		
+		this.resultRecords = new HashMap<>(rs.resultRecords);		
 		this.isGreaterThanZero = rs.isGreaterThanZero;
 		this.misMapperCount = rs.misMapperCount;
 		this.regularityScore = rs.regularityScore;
@@ -79,29 +79,13 @@ public class ResultSummary {
 	public int getMisMapperCount() {
 		return misMapperCount;
 	}
-
-	public void setMisMapperCount(int misMapperCount) {
-		this.misMapperCount = misMapperCount;
-	}
-
-	public void setLowQualityMapper(boolean lowQualityMapper) {
-		this.lowQualityMapper = lowQualityMapper;
-	}
 	
 	public String getChromosome() {
 		return chromosome;
 	}
 
-	public void setChromosome(String chromosome) {
-		this.chromosome = chromosome;
-	}
-
 	public int getStart() {
 		return start;
-	}
-
-	public void setStart(int start) {
-		this.start = start;
 	}
 
 	public int getEnd() {
@@ -116,34 +100,17 @@ public class ResultSummary {
 		return resultRecords;
 	}
 
-	public void setResultRecords(Map<String, ResultRecord> resultRecords) {
-		this.resultRecords = resultRecords;
-	}
-
 	public boolean isBaseline() {
 		return isBaseline;
-	}
-
-	public void setBaseline(boolean isBaseline) {
-		this.isBaseline = isBaseline;
 	}
 
 	public boolean isGreaterThanZero() {
 		return isGreaterThanZero;
 	}
-
-	public void setGreaterThanZero(boolean isGreaterThanZero) {
-		this.isGreaterThanZero = isGreaterThanZero;
-	}
 	
 	public long getTotalBases() {
 		return totalBases;
 	}
-
-	public void setTotalBases(long totalBases) {
-		this.totalBases = totalBases;
-	}
-	
 
 	public void setRegularityScore(int i) {
 		this.regularityScore = i;		
@@ -155,10 +122,6 @@ public class ResultSummary {
 
 	public boolean isHasClips() {
 		return hasClips;
-	}
-
-	public void setHasClips(boolean hasClips) {
-		this.hasClips = hasClips;
 	}
 
 	public boolean isLowQualityMapper() {

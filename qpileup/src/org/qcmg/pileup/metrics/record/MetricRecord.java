@@ -9,8 +9,6 @@ import java.text.DecimalFormat;
 import org.qcmg.pileup.PileupConstants;
 import org.qcmg.pileup.PileupUtil;
 
-
-
 public class MetricRecord {
 	
 	protected final Integer position;
@@ -74,12 +72,7 @@ public class MetricRecord {
 	public double getRegularityScore() {
 		if (PileupUtil.isRegularityType(type)) {
 			double percent = getPercentage(count.longValue(), totalReads);
-//			double percent = getPercentTotalReads();
-//			if (percent > 100) {
-//				return 100 * 100;
-//			} else {
-				return percent * percent;
-//			}
+			return percent * percent;
 		} 
 		return 0;
 	}
@@ -93,16 +86,6 @@ public class MetricRecord {
 			return ((double)count/total) * 100;
 		}	
 	}
-
-//	public double getPercentTotalReads() {
-//		if (count > totalReads) {
-//			return 100;
-//		} else if (count == 0 || totalReads == 0) {
-//			return 0;
-//		} else {
-//			return ((double)count/(double)totalReads * 100);
-//		}	
-//	}
 
 	public String toTmpString() {
 		return chromosome + "\t" + position + "\t" + endPosition + "\t" + type + "\t" + count + "\t" + totalReads + "\n";

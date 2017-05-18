@@ -17,13 +17,13 @@ import org.qcmg.pileup.PileupConstants;
 
 public class SnpRecord extends MetricRecord {	
 	
-	char referenceBase;
-	String id;
-	long totalReferenceBases = 0;
-	long totalNonReferenceBases = 0;
+	private char referenceBase;
+	private String id;
+	private long totalReferenceBases = 0;
+	private long totalNonReferenceBases = 0;
 	private String baseCountString;
 	private long highNonRef = 0;
-	String analysisId;
+	private String analysisId;
 	private char dbSnpStrand;
 	private char altBase;
 	private String mutation;
@@ -61,8 +61,6 @@ public class SnpRecord extends MetricRecord {
 		this.totalPatients = totalPatients;
 	}
 
-
-
 	public char getReferenceBase() {
 		return referenceBase;
 	}
@@ -75,24 +73,8 @@ public class SnpRecord extends MetricRecord {
 		return chromosome;
 	}
 	
-//	public void setChromosome(String chromosome) {
-//		this.chromosome = chromosome;
-//	}
-	
-//	@Override
-//	public Integer getPosition() {
-//		return position;
-//	}
-//	public void setPosition(int position) {
-//		this.position = position;
-//	}
-	
 	public String getAnalysisId() {
 		return analysisId;
-	}
-
-	public void setAnalysisId(String analysisId) {
-		this.analysisId = analysisId;
 	}
 
 	public char getDbSnpStrand() {
@@ -105,10 +87,6 @@ public class SnpRecord extends MetricRecord {
 
 	public String getMutation() {
 		return mutation;
-	}
-
-	public void setMutation(String mutation) {
-		this.mutation = mutation;
 	}
 
 	public String getDccBaseCountString() {
@@ -153,10 +131,6 @@ public class SnpRecord extends MetricRecord {
 
 	public GenotypeEnum getTumourGenotype() {
 		return tumourGenotype;
-	}
-
-	public void setTumourGenotype(GenotypeEnum tumourGenotype) {
-		this.tumourGenotype = tumourGenotype;
 	}
 
 	public long getHighNonRef() {
@@ -262,10 +236,6 @@ public class SnpRecord extends MetricRecord {
 	
 	public String getBaseCountString() {
 		return baseCountString;
-	}
-
-	public void setBaseCountString(String baseCountString) {
-		this.baseCountString = baseCountString;
 	}
 
 	public void setAltBase(char altBase) {
