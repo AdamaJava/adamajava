@@ -140,7 +140,7 @@ public class Options {
         checkIO();    //not yet complete         	
     }
     
-    public OptionSet parseArgs(final String[] args) throws Exception{  
+    public OptionSet parseArgs(final String[] args) {  
        	parser.allowsUnrecognizedOptions(); 
         parser.acceptsAll( asList("v", "version"), VERSION_DESCRIPTION);
         parser.accepts("mode", Messages.getMessage("MODE_OPTION_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("mode");   

@@ -33,14 +33,14 @@ public class TandemRepeatMode  extends AbstractMode{
 	
 	//for unit test only
 	@Deprecated
-	TandemRepeatMode( String input, String output, int buffer) throws Exception{	
+	TandemRepeatMode( String input, String output, int buffer) {	
 		this.input = input;
 		this.output = output;
 		this.commandLine = null;
 		this.buffer = buffer;
 	}	
 	
-	public TandemRepeatMode( Options options) throws Exception{	
+	public TandemRepeatMode( Options options) throws IOException{	
 		input = options.getInputFileName();
 		output = options.getOutputFileName();
 		commandLine = options.getCommandLine();
@@ -132,7 +132,7 @@ public class TandemRepeatMode  extends AbstractMode{
 	}
 	
 	@Override
-	public void addAnnotation(String dbfile) throws Exception {
+	public void addAnnotation(String dbfile) throws IOException {
 		
 		Map<String, HashSet<Repeat>> repeats = loadRepeat(dbfile );  //S1			
 		logger.info( "reference number inside TRF data file is " + repeats.size());
