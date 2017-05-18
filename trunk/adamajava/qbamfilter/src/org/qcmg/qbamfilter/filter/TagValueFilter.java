@@ -13,23 +13,20 @@ import htsjdk.samtools.SAMTagUtil;
 public final class TagValueFilter implements SamRecordFilter{
 
 	private static SAMTagUtil stu = SAMTagUtil.getSingleton();
-    private final String tag;
     private final short tagShort;
     private final String value;
     private final Comparator op;
 
 
     /**
-     * initilize optinal field name, comparator and field value
-     * @parm Tag : the optional field name,it will be convert ot uppercase automatically.
+     * initilise optional field name, comparator and field value
+     * @param tag : the optional field name,it will be convert to upper case automatically.
      * @param comp: see details of valid comparator on org.qcmg.qbamfilter.filter.Comparator.
      * @param value:  a string value.
-     * @throws Exception
      * See usage on method filterout.
      */
-    public TagValueFilter(String Tag, Comparator comp, String value )throws Exception{
-        tag = Tag.toUpperCase();
-        tagShort = stu.makeBinaryTag(Tag);
+    public TagValueFilter(String tag, Comparator comp, String value ){
+        tagShort = stu.makeBinaryTag(tag);
         this.value = value;
         op = comp;
     }

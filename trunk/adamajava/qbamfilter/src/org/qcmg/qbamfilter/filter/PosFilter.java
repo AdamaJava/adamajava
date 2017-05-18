@@ -24,9 +24,8 @@ public class PosFilter implements SamRecordFilter{
      * initilize allignment start position and query comparator
      * @param comp: see details of valid comparator on org.qcmg.qbamfilter.filter.Comparator.
      * @param value:  a integer string.
-     * @throws Exception if the  string value can't convert to integer
      */
-    public PosFilter(Comparator comp, String value )throws Exception{
+    public PosFilter(Comparator comp, String value ) {
         this.value = Integer.valueOf(value);
         op = comp;
     }

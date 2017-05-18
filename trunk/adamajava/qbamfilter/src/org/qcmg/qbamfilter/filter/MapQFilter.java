@@ -21,9 +21,8 @@ public class MapQFilter implements SamRecordFilter{
      * initilize Mapping quality  comparator and operator value
      * @param comp: see details of valid comparator on org.qcmg.qbamfilter.filter.Comparator.
      * @param value:  a integer string.
-     * @throws Exception if the string value can't convert to integer
      */
-    public MapQFilter(Comparator comp, String value )throws Exception{
+    public MapQFilter(Comparator comp, String value ) {
         this.value = Integer.valueOf(value);
         op = comp;
     }

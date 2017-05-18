@@ -17,10 +17,10 @@ public class MDFilter implements SamRecordFilter{
     private boolean MismatchFilter = false;
     private final int value;
     private final Comparator op;
-    static final Pattern pa = Pattern.compile("\\d[ATGCN]");
+    private static final Pattern pa = Pattern.compile("\\d[ATGCN]");
     
     /**
-     * Initialize cigar operator name, comparator and operator value
+     * Initialise cigar operator name, comparator and operator value
      * @param operatorName : At moment the valid name is "mismatch".
      * @param comp: see details of valid comparator on org.qcmg.qbamfilter.filter.Comparator. 
      * @param value:  a integer string.
@@ -55,7 +55,7 @@ public class MDFilter implements SamRecordFilter{
         return mis;
     }
     
-    static int tallyMDMismatches(String mdData) {
+    private static int tallyMDMismatches(String mdData) {
     	int count = 0;
 		if (null != mdData) {
 			for (int i = 0, size = mdData.length() ; i < size ; ) {
@@ -93,14 +93,10 @@ public class MDFilter implements SamRecordFilter{
 
         if(MismatchFilter){
             int mismatch = tallyMDMismatches(attribute);
-//            int mismatch = CountMismatch(attribute.toString());
             return op.eval(mismatch, value );
         }
-
         return false;
-
     }
-    
     
     /**
      * It is an inherited method and return false only. 
