@@ -76,8 +76,7 @@ public class PositionDS  {
 				new H5Datatype(Datatype.CLASS_CHAR, 8, Datatype.NATIVE, -1) };
 	}
 
-	public void readDatasetBlock(int startIndex,
-			int totalToRead) throws Exception {
+	public void readDatasetBlock(int startIndex, int totalToRead) throws Exception {
 		positions = (long[]) hdf.readDatasetBlock(fullName + "/position", startIndex, totalToRead);
 		bases = (int[]) hdf.readDatasetBlock(fullName + "/reference", startIndex, totalToRead);	
 	}
