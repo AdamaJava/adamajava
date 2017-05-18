@@ -3,7 +3,7 @@
  */
 package org.qcmg.pileup.hdf;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import ncsa.hdf.hdf5lib.exceptions.HDF5Exception;
@@ -41,13 +41,12 @@ public class MetadataRecordDS extends MetadataDS {
 		if (hdf.useHDFObject()) {
 			hdf.createGroup(DATASETNAME, "root");
 		} else {
-			
 			hdf.createH5Group(GROUPNAME);
 		}
 		createDataset();
 		hdf.createMetadataAttributes(fullName, lowReadCount, nonreferenceThreshold, bamsAdded);
 		logger.info("Bootstrapped in HDF: LowReadCount is below: " + lowReadCount);
-    	logger.info("Bootstrapped in HDF: Threshold for high nonreference is above: " + nonreferenceThreshold + " percent");
+    		logger.info("Bootstrapped in HDF: Threshold for high nonreference is above: " + nonreferenceThreshold + " percent");
 	}
 
 	public void instantiate() throws Exception {
@@ -63,7 +62,7 @@ public class MetadataRecordDS extends MetadataDS {
 		records = (String[]) hdf.readDatasetBlock(fullName, 0, -1);
 			
 		for (String r: records) {
-			sb.append(r + "\n");
+			sb.append(r).append("\n");
 		}
 		return sb.toString();
 	}
@@ -71,29 +70,24 @@ public class MetadataRecordDS extends MetadataDS {
 	public void updateFirstMember(int index, String mode, String runTime) throws Exception {
 		String[] data = records[index].split(COMMA_DELIMITER);
 		data[2] = "RUNTIME:" + runTime;
-		String out = "";
+		StringBuilder out = new StringBuilder();
 		for (int i=0; i<data.length; i++) {
-			out += data[i];
+			out.append(data[i]);
 			if (i != data.length - 1) {
-				out += ",";
+				out.append(",");
 			}
 		}
-		records[index] = out;
+		records[index] = out.toString();
 		hdf.writeDatasetBlock(fullName, 0, records.length, records);
 	}
 	
 
 	public String getMemberString(String date, String mode, String bam, String recordCount, String runTime, String reference) {
-		
-		String s = new String();
 		if (mode.equals("bootstrap") || mode.equals("merge")) {
-			s = "## METADATA=MODE:" + mode + COMMA_DELIMITER + "DATE:" + date + COMMA_DELIMITER + "RUNTIME:" + runTime + COMMA_DELIMITER + "HDF:" + hdf.getHDFFileName() + COMMA_DELIMITER+ "REFERENCE:"+reference+"\n";			
+			return "## METADATA=MODE:" + mode + COMMA_DELIMITER + "DATE:" + date + COMMA_DELIMITER + "RUNTIME:" + runTime + COMMA_DELIMITER + "HDF:" + hdf.getHDFFileName() + COMMA_DELIMITER+ "REFERENCE:"+reference+"\n";			
 		} else {
-			s = "## METADATA=MODE:" + mode + COMMA_DELIMITER + "DATE:" + date + COMMA_DELIMITER+ "RUNTIME:" + runTime + COMMA_DELIMITER + "HDF:" + hdf.getHDFFileName() + COMMA_DELIMITER + "FILE:" + bam + COMMA_DELIMITER + "RECORDS:" + recordCount + "\n";		
+			return "## METADATA=MODE:" + mode + COMMA_DELIMITER + "DATE:" + date + COMMA_DELIMITER+ "RUNTIME:" + runTime + COMMA_DELIMITER + "HDF:" + hdf.getHDFFileName() + COMMA_DELIMITER + "FILE:" + bam + COMMA_DELIMITER + "RECORDS:" + recordCount + "\n";		
 		}
-		
-		return s;
-		
 	}
 	
 	public void writeMember(String date, String currentTime, String mode, String bam, String recordCount, String runTime, String reference) throws Exception {
@@ -169,12 +163,8 @@ public class MetadataRecordDS extends MetadataDS {
 	
 	public void checkHDFMetadata(String[] newRecords, boolean isBamOverride, Integer currentLowReadCount, Integer currentNonRefThreshold, Integer currentBamsAdded) throws QPileupException {
 		
-		List<String> finalRecords = new ArrayList<>();
+		List<String> finalRecords = Arrays.asList(records);
 		
-		for (String record: records) {
-			finalRecords.add(record);
-		}
-
 		//check the info tags: ie low_read_count and non_reference_threshold
 		if (lowReadCount == null) {
 			lowReadCount = currentLowReadCount;
