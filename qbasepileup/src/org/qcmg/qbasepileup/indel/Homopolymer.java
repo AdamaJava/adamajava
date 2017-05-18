@@ -51,32 +51,32 @@ public class Homopolymer {
 		//don't find homopolymer for complex
 		if ( ! position.isComplex()) {	
 			
-		        boolean retrieved = getReferenceSequence();
+		    boolean retrieved = getReferenceSequence();
 			if (retrieved) {
 				countContiguousBases();
 				if ( ! type.equals("")) {
 					getSequence();
 				}	
 			}				
-		}		
+		}	
 	}
 
 	public String getSequence() {
 		StringBuilder sb = new StringBuilder();
 		
 		for (int i=0; i<upstreamReference.length; i++) {
-			sb.append((Character.toString((char) upstreamReference[i])));
+			sb.append((char) upstreamReference[i]);
 		}
 		for (int i=0; i<indelReferenceBases.length; i++) {
 			if (position.isDeletion()) {
 				sb.append("_");
 			} else {				
-				sb.append(Character.toString((char)indelReferenceBases[i]).toLowerCase());
+				sb.append(Character.toLowerCase((char)indelReferenceBases[i]));
 			}
 			
 		}
 		for (int i=0; i<downstreamReference.length; i++) {
-			sb.append((Character.toString((char) downstreamReference[i])));
+			sb.append((char) downstreamReference[i]);
 		}
 		
 		this.sequence = sb.toString();	
@@ -134,14 +134,14 @@ public class Homopolymer {
 		//see if it is embedded
 		if (isEmbeddedHomopolymer(finalUpIndex, upType, downType, upBaseCount, downBaseCount)) {
 			return;
-		}		
+		}
 
 		//if they are both contiguous, see which one is higher
-		if (!isHomopolymer(CONTIGUOUS, upType, downType, upBaseCount, downBaseCount) &&
-				!isHomopolymer(DISCONTIGUOUS, upType, downType, upBaseCount, downBaseCount)) {
+		if ( ! isHomopolymer(CONTIGUOUS, upType, downType, upBaseCount, downBaseCount) &&
+				! isHomopolymer(DISCONTIGUOUS, upType, downType, upBaseCount, downBaseCount)) {
 			type = "";
 			homopolymerCount = "";
-		}		
+		}
 	}
 
 	public String getUpType() {
@@ -227,12 +227,8 @@ public class Homopolymer {
 		this.indelReferenceBases = indelReferenceBases;
 	}
 
-	public int getHomopolymerWindow() {
-		return homopolymerWindow;
-	}
 
-	public synchronized boolean 
-	getReferenceSequence() {		
+	public synchronized boolean getReferenceSequence() {		
 		try {		
    		
     		//where are the start and end really???

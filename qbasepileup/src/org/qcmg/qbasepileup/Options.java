@@ -25,6 +25,9 @@ public class Options {
 
 	private static final String HELP_OPTION = Messages.getMessage("OPTION_HELP");	
 	private static final String VERSION_OPTION = Messages.getMessage("OPTION_VERSION");
+	public final static String INPUT_BAM = "bam";
+	public final static String INPUT_HDF = "hdf";
+	public final static String INPUT_LIST = "list";
 	
 	private final OptionParser parser = new OptionParser();
 	private final OptionSet options;
@@ -44,12 +47,9 @@ public class Options {
 	private final List<InputBAM> inputBAMs = new ArrayList<InputBAM>();
 	private File hdf;
 	private String inputType;
-	public final static String INPUT_BAM = "bam";
-	public final static String INPUT_HDF = "hdf";
-	public final static String INPUT_LIST = "list";
-	public int nearbyIndelWindow = 3;
-	public int nearbyHomopolymer = 10;
-	public int softClipWindow = 13;
+	private int nearbyIndelWindow = 3;
+	private int nearbyHomopolymer = 10;
+	private int softClipWindow = 13;
 	private InputBAM tumourBam;
 	private InputBAM normalBam;
 	private String mode= QBasePileupConstants.SNP_MODE;
@@ -134,7 +134,7 @@ public class Options {
 			threadNo = (Integer) options.valueOf("t");
 		} else {
 			threadNo = 1;
-		}	
+		}
 
 		if (options.has("filter")) {
 			filterQuery = (String) options.valueOf("filter");

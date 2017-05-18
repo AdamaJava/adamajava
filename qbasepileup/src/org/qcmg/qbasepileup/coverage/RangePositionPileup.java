@@ -6,30 +6,33 @@
  */
 package org.qcmg.qbasepileup.coverage;
 
-import java.util.Map.Entry;
-import java.util.TreeMap;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import htsjdk.samtools.SamReader;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMRecordIterator;
 
+import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.util.SAMUtils;
 import org.qcmg.qbamfilter.query.QueryExecutor;
 import org.qcmg.qbasepileup.InputBAM;
 import org.qcmg.qbasepileup.Options;
 
-public class RangePositionPileup {
+class RangePositionPileup {
 
 	private final InputBAM inputBam;
-	private final RangePosition position;
+	private final ChrRangePosition position;
 	private Options options;
 	private final QueryExecutor exec;
-	private TreeMap<Integer, Integer> countMap = new TreeMap<Integer, Integer>();
+	private final Map<Integer, AtomicInteger> countMap ;
 	private Integer maxCoverage = null;
 
-	public RangePositionPileup(InputBAM i, RangePosition position,
-			Options options, QueryExecutor exec) {
+	public RangePositionPileup(InputBAM i, ChrRangePosition position, Options options, QueryExecutor exec) {
 		this.inputBam = i;
 		this.position = position;
 		this.setOptions(options);
@@ -41,10 +44,10 @@ public class RangePositionPileup {
 		
 	}
 
-	private TreeMap<Integer, Integer> setUpCountMap() {
-		TreeMap<Integer, Integer> map = new TreeMap<Integer, Integer>();
-		for (int i=position.getStart(); i<=position.getEnd(); i++) {
-			map.put(i, 0);
+	private Map<Integer, AtomicInteger> setUpCountMap() {
+		Map<Integer, AtomicInteger> map = new HashMap<>();
+		for (int i=position.getStartPosition(); i<=position.getEndPosition(); i++) {
+			map.put(i, new AtomicInteger());
 		}
 		return map;
 	}
@@ -52,7 +55,7 @@ public class RangePositionPileup {
 	public void pileup() throws Exception {
 		try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(inputBam.getBamFile(), "silent");) {
 		
-			SAMRecordIterator iterator = reader.queryOverlapping(position.getChr(), position.getStart(), position.getEnd());
+			SAMRecordIterator iterator = reader.queryOverlapping(position.getChromosome(), position.getStartPosition(), position.getEndPosition());
 		
 			while(iterator.hasNext()) {
 				
@@ -79,18 +82,18 @@ public class RangePositionPileup {
 		int end = r.getAlignmentEnd();
 		
 		for (int i=start; i<=end; i++) {
-			if (countMap.containsKey(i)) {
-				int count = countMap.get(i) + 1;			
-				countMap.put(i, count);
+			AtomicInteger ai = countMap.get(i);
+			if (null != ai) {
+				ai.incrementAndGet();
 			}
 		}		
 	}
 	
-	public boolean passesMaxCoverage(Integer coverageCount) {
+	private  boolean passesMaxCoverage(int coverageCount) {
 		if (maxCoverage == null) {
 			return true;
 		} else {
-			if (coverageCount >= maxCoverage) {
+			if (coverageCount >= maxCoverage.intValue()) {
 				return true;
 			}
 		}
@@ -102,12 +105,15 @@ public class RangePositionPileup {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		
-		for (Entry<Integer, Integer> entry: countMap.entrySet()) {
-			if (maxCoverage == null || !passesMaxCoverage(entry.getValue())) {
-				sb.append(position.getChr() + "\t" +entry.getKey() + "\t" + entry.getValue() + "\t" + inputBam.getBamFile().getAbsolutePath() + "\n");
+		List<Integer> keys = new ArrayList<>(countMap.keySet());
+		keys.sort(null);
+		
+		for (Integer i : keys) {
+			AtomicInteger ai = countMap.get(i);
+			if (maxCoverage == null || ! passesMaxCoverage(ai.intValue())) {
+				sb.append(position.getChromosome()).append("\t").append(i).append("\t").append(ai.get()).append("\t").append(inputBam.getBamFile().getAbsolutePath()).append("\n");
 			}			
 		}
-		
 		return sb.toString();		
 	}
 
@@ -115,7 +121,7 @@ public class RangePositionPileup {
 		return options;
 	}
 
-	public void setOptions(Options options) {
+	private void setOptions(Options options) {
 		this.options = options;
 	}
 
