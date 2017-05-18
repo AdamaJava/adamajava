@@ -27,14 +27,12 @@ import au.edu.qimr.qannotate.utils.SampleColumn;
 @Deprecated
 public final class CustomerConfidenceMode extends AbstractMode{
 	
-	final String PASS = "PASS";
-	final String BP = "5BP"; 
-	final String SBIASCOV = "SBIASCOV"; 
+	private final static int MIN_READ_COUNTS = 50;
+	private final static int VARIANTS_RATE = 10 ;
+	private final static String PASS = "PASS";
+	private final static String BP = "5BP"; 
+	private final static String SBIASCOV = "SBIASCOV"; 
 	
-//	String description = null;
-	int min_read_counts = 50;
-	int variants_rate = 10 ;
-//	boolean passOnly = false;
 	
 	private int test_column = -2; //can't be -1 since will "+1"
 	private int control_column  = -2;
@@ -51,10 +49,6 @@ public final class CustomerConfidenceMode extends AbstractMode{
         logger.tool("output annotated records: " + options.getOutputFileName());
         logger.tool("logger file " + options.getLogFileName());
         logger.tool("logger level " + (options.getLogLevel() == null ? QLoggerFactory.DEFAULT_LEVEL.getName() :  options.getLogLevel()));
-        
-//        min_read_counts = options.get_min_read_count();
-//        variants_rate = options.get_min_mutant_rate();
-//        passOnly = options.isPassOnly();
         
 		inputRecord(new File( options.getInputFileName())   );	
 		
@@ -80,16 +74,13 @@ public final class CustomerConfidenceMode extends AbstractMode{
 	//inherited method from super
 	void addAnnotation() {		
 		//add header line
-		String description = "Set CONF to HIGH if total read counts more than " +  Integer.toString(min_read_counts) + "; and more than  "
-				+ Integer.toString( variants_rate) + "% reads contains variants; plus filter column is , \"5BP\" or \"SBIASCOV\". Set ZERO to remaining mutations ";	
+		String description = "Set CONF to HIGH if total read counts more than " +  MIN_READ_COUNTS + "; and more than  "
+				+ VARIANTS_RATE + "% reads contains variants; plus filter column is , \"5BP\" or \"SBIASCOV\". Set ZERO to remaining mutations ";	
  
 		header.addInfo(VcfHeaderUtils.INFO_CONFIDENCE, "1", "String", description);
 	      
-//		final Iterator<VcfRecord>  it =  positionRecordMap.values().iterator();
-//		while( it.hasNext() ){
-// final VcfRecord re = it.next();			
-		for (List<VcfRecord> vcfs : positionRecordMap.values()) 
-			for(VcfRecord re : vcfs){					
+		for (List<VcfRecord> vcfs : positionRecordMap.values()) {
+			for(VcfRecord re : vcfs){
 				boolean  flag = false;
 				String filter = re.getFilter().toUpperCase();
 				if(!filter.contains(Constants.SEMI_COLON_STRING) && 
@@ -97,21 +88,24 @@ public final class CustomerConfidenceMode extends AbstractMode{
 				 
 					final VcfFormatFieldRecord format = (re.getInfo().contains(VcfHeaderUtils.INFO_SOMATIC)) ? re.getSampleFormatRecord(test_column) :  re.getSampleFormatRecord(control_column);
 					final int total =  VcfUtils.getAltFrequency(  format, null );
-					if( total >=  min_read_counts) 
+					if( total >=  MIN_READ_COUNTS) {
 						try{
 							//final int mutants = Integer.parseInt( allel.getField(VcfHeaderUtils.FORMAT_MUTANT_READS));	
 							final int mutants =  VcfUtils.getAltFrequency(  format, re.getAlt() );
-							if( ((100 * mutants) / total) >= variants_rate  ) flag = true;  
+							if( ((100 * mutants) / total) >= VARIANTS_RATE  ) flag = true;  
 							
 						}catch(Exception e ){
 							logger.error("err during caculating mutants rate for variants: " + re.toString() + "\n" + e.getMessage());
 						}
+					}
 				} 							
 					
-				if(flag)
+				if (flag) {
 					re.getInfoRecord().setField(VcfHeaderUtils.INFO_CONFIDENCE, MafConfidence.HIGH.toString());				 
-				else	
+				} else {	
 					re.getInfoRecord().setField(VcfHeaderUtils.INFO_CONFIDENCE, MafConfidence.ZERO.toString());
+				}
+			}
 		}		
 	}
 	

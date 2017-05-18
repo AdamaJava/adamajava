@@ -38,21 +38,19 @@ import au.edu.qimr.qannotate.Options;
  */
 public class IndelConfidenceMode extends AbstractMode{
 	private final QLogger logger = QLoggerFactory.getLogger(IndelConfidenceMode.class);
-//	private final IndelConfidenceOptions options;
 	
-	final String input;
-	final String output;
-	final String commandLine;
-//	final int MAX_CONTIG_SIZE = 250000000;	
-	static final float DEFAULT_NIOC = 0.1f;
-	static final float DEFAULT_SSOI = 0.2f;
+	private final String input;
+	private final String output;
+	private final String commandLine;
+	private static final float DEFAULT_NIOC = 0.1f;
+	private static final float DEFAULT_SSOI = 0.2f;
 	static final int DEFAULT_HOMN = 6;
-	final Map<String,BitSet> mask = new HashMap<String, BitSet>();
+	private final Map<String,BitSet> mask = new HashMap<>();
 		
  	//filters 
-	public static final String FILTER_REPEAT = "REPEAT"; 
+	private static final String FILTER_REPEAT = "REPEAT"; 
 	public static final String DESCRIPTION_FILTER_REPEAT = "variants fallen in simple repeat region"; 
-	public static final String DESCRITPION_INFO_CONFIDENCE =  "set to HIGH if the variants passed all filter, "
+	private static final String DESCRITPION_INFO_CONFIDENCE =  "set to HIGH if the variants passed all filter, "
 			+ "nearby homopolymer sequence base less than six and less than 10% reads contains nearby indel; set to Zero if "
 			+ "coverage more than 1000, or fallen in repeat region; set to LOW for reminding variants";
  	
@@ -136,10 +134,9 @@ public class IndelConfidenceMode extends AbstractMode{
 	}
 	
  
-	 boolean isRepeat(VcfRecord vcf){
+	private boolean isRepeat(VcfRecord vcf){
         
 		String chr = IndelUtils.getFullChromosome(vcf.getChromosome()); 
-//   		if(!mask.containsKey(chr)) return false; 
 		BitSet chrMask = mask.get(chr);
 		if (null == chrMask) {
 			return false;

@@ -40,13 +40,13 @@ public class ConfidenceMode extends AbstractMode{
 	private final QLogger logger = QLoggerFactory.getLogger(ConfidenceMode.class);
 	
 	
-	public static final String[] CLASS_B_FILTERS= new String[] {PASS, MUTATION_IN_UNFILTERED_NORMAL, LESS_THAN_12_READS_NORMAL, LESS_THAN_3_READS_NORMAL};
+	static final String[] CLASS_B_FILTERS= new String[] {PASS, MUTATION_IN_UNFILTERED_NORMAL, LESS_THAN_12_READS_NORMAL, LESS_THAN_3_READS_NORMAL};
 	
-	public static final int HIGH_CONF_NOVEL_STARTS_PASSING_SCORE = 4;
-	public static final int LOW_CONF_NOVEL_STARTS_PASSING_SCORE = 4;
+	static final int HIGH_CONF_NOVEL_STARTS_PASSING_SCORE = 4;
+	static final int LOW_CONF_NOVEL_STARTS_PASSING_SCORE = 4;
 	
-	public static final int HIGH_CONF_ALT_FREQ_PASSING_SCORE = 5;	
-	public static final int LOW_CONF_ALT_FREQ_PASSING_SCORE = 4;	
+	static final int HIGH_CONF_ALT_FREQ_PASSING_SCORE = 5;	
+	static final int LOW_CONF_ALT_FREQ_PASSING_SCORE = 4;	
 	
 	//filters 
 	
@@ -271,7 +271,7 @@ public class ConfidenceMode extends AbstractMode{
 	 * @param formatField : vcf formate field string
 	 * @return true if novel start value higher than score or not exists
 	 */
-	 public static final boolean checkNovelStarts(int score, VcfFormatFieldRecord formatField , int input) {
+	 private static final boolean checkNovelStarts(int score, VcfFormatFieldRecord formatField , int input) {
 		 int nns = getFieldFromFormatField(formatField, VcfHeaderUtils.FILTER_NOVEL_STARTS, input);
 		 /*
 		  * Special case whereby if novel starts count is zero, we return true (eg. compound snps)
@@ -279,11 +279,11 @@ public class ConfidenceMode extends AbstractMode{
 		 return nns == 0 || nns >= score;
 	 }
 	 
-	 public static final boolean checkNovelStarts(int score, VcfFormatFieldRecord formatField ) {
+	 static final boolean checkNovelStarts(int score, VcfFormatFieldRecord formatField ) {
 		 return checkNovelStarts(score, formatField, 1);
 	 }
 	 
-	 public static int getFieldFromFormatField(VcfFormatFieldRecord formatField , String field, int input) {
+	 private static int getFieldFromFormatField(VcfFormatFieldRecord formatField , String field, int input) {
 		 String nnsString = formatField.getField(field);
 		 if (StringUtils.isNullOrEmpty(nnsString) || nnsString.equals(Constants.MISSING_DATA_STRING)) {
 			 return 0;

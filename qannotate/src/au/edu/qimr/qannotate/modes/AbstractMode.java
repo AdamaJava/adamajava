@@ -33,10 +33,10 @@ import org.qcmg.vcf.VCFFileWriter;
 
 import au.edu.qimr.qannotate.Main;
 
-public abstract class AbstractMode {
+abstract class AbstractMode {
 	private static final DateFormat df = new SimpleDateFormat("yyyyMMdd");
-	protected final Map<ChrPosition,List<VcfRecord>> positionRecordMap = new HashMap<ChrPosition,List<VcfRecord>>();
-	protected VcfHeader header = null;
+	final Map<ChrPosition,List<VcfRecord>> positionRecordMap = new HashMap<>();
+	VcfHeader header = null;
 
 	private final static QLogger logger = QLoggerFactory.getLogger(AbstractMode.class);	
 	
@@ -45,7 +45,7 @@ public abstract class AbstractMode {
 	 * @param f: read variants from input into RAM hash map
 	 * @throws IOException
 	 */
-	protected void inputRecord(File f) throws IOException{
+	void inputRecord(File f) throws IOException{
 		
         //read record into RAM, meanwhile wipe off the ID field value;
         try (VCFFileReader reader = new VCFFileReader(f)) {
@@ -77,7 +77,7 @@ public abstract class AbstractMode {
 	 * @param outputFile: add annotate variants from RAM hash map intp the output file
 	 * @throws IOException
 	 */
-	protected void writeVCF(File outputFile ) throws IOException {		 
+	void writeVCF(File outputFile ) throws IOException {		 
 		logger.info("creating VCF output...");	 		
 		final List<ChrPosition> orderedList = new ArrayList<>(positionRecordMap.keySet());
 		Collections.sort(orderedList, new ChrPositionComparator());
@@ -96,7 +96,7 @@ public abstract class AbstractMode {
 		}  
 	}
 	
-	public static VcfHeader reheader(VcfHeader header, String cmd, String inputVcfName) throws IOException {	
+	static VcfHeader reheader(VcfHeader header, String cmd, String inputVcfName) throws IOException {	
 		 
 		VcfHeader myHeader = header;  	
  		
@@ -128,7 +128,7 @@ public abstract class AbstractMode {
 	 * @param inputVcfName: add input file name into vcf header
 	 * @throws IOException
 	 */
-	protected void reheader(String cmd, String inputVcfName) throws IOException {	
+	void reheader(String cmd, String inputVcfName) throws IOException {	
 
 		if(header == null)
 	        try(VCFFileReader reader = new VCFFileReader(inputVcfName)) {

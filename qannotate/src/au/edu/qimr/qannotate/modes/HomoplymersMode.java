@@ -30,12 +30,10 @@ import au.edu.qimr.qannotate.Options;
 
 public class HomoplymersMode extends AbstractMode{
 	private final static QLogger logger = QLoggerFactory.getLogger(HomoplymersMode.class);
-	String input;
-	String output;
-	final String commandLine;
+	private final String input;
+	private final String output;
 	private final int homopolymerWindow;
 	private final int reportWindow;
-//	private final int homBase;
 	public static int defaultWindow = 100;
 	public static int defaultreport = 10;
 	public static int defaultHomoplymerBase = 5;
@@ -44,19 +42,15 @@ public class HomoplymersMode extends AbstractMode{
 	HomoplymersMode( int homoWindow, int reportWindow){		
 		this.input = null;
 		this.output = null;
-		this.commandLine = null;
 		this.homopolymerWindow = homoWindow;
 		this.reportWindow = reportWindow;
-//		this.homBase = defaultHomoplymerBase; 
 	}
 		
 	public HomoplymersMode(Options options) throws Exception{	
 		input = options.getInputFileName();
 		output = options.getOutputFileName();
-		commandLine = options.getCommandLine();
 		homopolymerWindow =  options.getHomoplymersWindow();
 		reportWindow = options.getHomoplymersReportSize();
-//		homBase = options.getHomoplymersReportSize();
 		logger.tool("input: " + options.getInputFileName());
         logger.tool("reference file: " + options.getDatabaseFileName() );
         logger.tool("output for annotated vcf records: " + options.getOutputFileName());
@@ -66,8 +60,6 @@ public class HomoplymersMode extends AbstractMode{
         logger.tool("report homoplymers base on both side of variants: " + reportWindow);
         reheader(options.getCommandLine(),options.getInputFileName());
  		addAnnotation(options.getDatabaseFileName() );		
-		
-		//writeVCF( new File(options.getOutputFileName()));	
 	}	
 	
 	
@@ -187,22 +179,30 @@ public class HomoplymersMode extends AbstractMode{
 				
 				int left = 0;
 				nearBase = (char) updownReference[0][finalUpIndex];			
-				for(int i = 0; i < mByte.length; i ++ ) 
-					if (nearBase == mByte[i])  left ++;
-					else  break;				 
+				for(int i = 0; i < mByte.length; i ++ ) { 
+					if (nearBase == mByte[i]) {
+						left ++;
+					} else {
+						break;				 
+					}
+				}
 				upBaseCount += left; 
 							
 				int right = 0;
 				nearBase = (char) updownReference[1][0];
-				for(int i = mByte.length -1; i >=0; i--) 
-					if (nearBase == mByte[i]) right++;
-					else break;
+				for(int i = mByte.length -1; i >=0; i--) { 
+					if (nearBase == mByte[i]) {
+						right++;
+					} else  {
+						break;
+					}
+				}
 				downBaseCount += right; 
 				
 				max = (left == right && left == mByte.length)? 
 						(downBaseCount + upBaseCount - mByte.length) : Math.max(downBaseCount, upBaseCount);
 							 			
-			}else{
+			} else {
 			    //INS don't have reference base
 				max = (updownReference[0][finalUpIndex] == updownReference[1][0] )? 
 						(downBaseCount + upBaseCount) : Math.max(downBaseCount, upBaseCount);
@@ -211,8 +211,8 @@ public class HomoplymersMode extends AbstractMode{
 			return (max == 1)? 0 : max;
 		}
 	
-   public static Map<String, byte[]> getReferenceBase(File reference) throws IOException{
-	   Map<String, byte[]> referenceBase = new HashMap<String, byte[]>();
+   private static Map<String, byte[]> getReferenceBase(File reference) throws IOException{
+	   Map<String, byte[]> referenceBase = new HashMap<>();
 	   File indexFile = new File(reference.getAbsolutePath() + ".fai");
 	   FastaSequenceIndex index = new FastaSequenceIndex(indexFile);
 	   try (IndexedFastaSequenceFile indexedFasta = new IndexedFastaSequenceFile(reference, index);) {
