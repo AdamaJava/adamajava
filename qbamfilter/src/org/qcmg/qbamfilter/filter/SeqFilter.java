@@ -44,15 +44,17 @@ public class  SeqFilter implements SamRecordFilter {
      */
     @Override
 	public boolean filterOut(SAMRecord record) {    	
-    	String base = record.getReadString();
-
-    	//traditional counting base is fast
-    	int count = 0;
-    	for(int i = 0; i < base.length(); i ++)
-    		if( base.charAt(i) == 'N' )
-    			count ++;
-    	
-    	return op.eval(count, value );
+	    	String base = record.getReadString();
+	
+	    	//traditional counting base is fast
+	    	int count = 0;
+	    	for(int i = 0; i < base.length(); i ++) {
+	    		if( base.charAt(i) == 'N' ) {
+	    			count ++;
+	    		}
+	    	}
+	    	
+	    	return op.eval(count, value );
 	}
     
     /**

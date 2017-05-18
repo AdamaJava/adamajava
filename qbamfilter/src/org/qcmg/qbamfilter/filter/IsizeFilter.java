@@ -17,9 +17,8 @@ public class IsizeFilter implements SamRecordFilter{
      * initilize Mapping quality  comparator and operator value
      * @param comp: see details of valid comparator on org.qcmg.qbamfilter.filter.Comparator.
      * @param value:  a integer string.
-     * @throws Exception if the string value can't convert to integer
      */
-    public IsizeFilter(Comparator comp, String value )throws Exception{
+    public IsizeFilter(Comparator comp, String value ) {
         this.value = Integer.valueOf(value);
         op = comp;
     }
