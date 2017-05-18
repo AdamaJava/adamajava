@@ -29,7 +29,6 @@ public class StrandDS {
 	private int datasetLength;
 	private String groupName;
 	private final String reference;
-//	private final String direction;
 	private final boolean isReverse;
 	private final Map<String, StrandElement> elementMap;
 
@@ -39,8 +38,6 @@ public class StrandDS {
 		this.datasetLength = datasetLength;
 		this.reference = reference;	
 		this.isReverse = isReverse;
-//		this.direction = isReverse ? "reverse" : "forward";
-//		getDirection();
 		this.groupName = "/"+ reference + "/"+ getDirection();
 		this.elementMap = setupMap(null);
 	}	
@@ -49,8 +46,6 @@ public class StrandDS {
 		this.hdf= hdf2;
 		this.reference = reference;
 		this.isReverse = isReverse;
-//		this.direction = isReverse ? "reverse" : "forward";
-//		getDirection();
 		this.groupName = "/"+ reference + "/"+ getDirection(); 
 		this.elementMap = setupMap(null);
 	}
@@ -59,8 +54,6 @@ public class StrandDS {
 		this.hdf= hdf2;
 		this.reference = reference;
 		this.isReverse = isReverse;
-//		this.direction = isReverse ? "reverse" : "forward";
-//		getDirection();
 		this.groupName = "/"+ reference + "/"+ getDirection(); 
 		this.elementMap =  setupSubElementMap(null, strandElements);;
 	}
@@ -69,8 +62,6 @@ public class StrandDS {
 		this.hdf= null;
 		this.reference = reference;
 		this.isReverse = isReverse;
-//		this.direction = isReverse ? "reverse" : "forward";
-//		getDirection();
 		this.elementMap = setupMap(datasetLength);		
 	}
 	
@@ -117,10 +108,6 @@ public class StrandDS {
 	}
 
 	public String getDirection() {
-//		this.direction = "forward";
-//		if (isReverse) {
-//			this.direction = "reverse";
-//		}
 		return isReverse ? "reverse" : "forward";
 	}
 	
@@ -171,7 +158,6 @@ public class StrandDS {
 		for (Map.Entry<String, StrandElement> entry: elementMap.entrySet()) {
 			
 			String name = entry.getKey();
-			
 			StrandElement element = entry.getValue();
 			
 			if (element.isLong()) {				
@@ -201,23 +187,18 @@ public class StrandDS {
 	}
 	
 	private long[] readLongDSBlock(String name, int startIndex, int size)  {
-		long[] array;
 		try {
-			array = (long[]) hdf.readDatasetBlock(getFullDatasetName(name), startIndex, size);
-			return array;		
+			return (long[]) hdf.readDatasetBlock(getFullDatasetName(name), startIndex, size);
 		} catch (Exception e) {
 			logger.error("Trying to read set: " + reference + " name " + getFullDatasetName(name) + " " + startIndex + " size: " + size);
-			array = new long[0];
 			logger.error(PileupUtil.getStrackTrace(e));
 			return null;
 		}		
 	}
 
 	private int[] readIntDSBlock(String name, int startIndex, int size)  {
-		int[] array;
 		try {
-			array = (int[]) hdf.readDatasetBlock(getFullDatasetName(name), startIndex, size);
-			return array;		
+			return  (int[]) hdf.readDatasetBlock(getFullDatasetName(name), startIndex, size);
 		} catch (Exception e) {
 			logger.error("Trying to read set: " + getFullDatasetName(name) + " " + startIndex + " size: " + size);
 			logger.error(PileupUtil.getStrackTrace(e));
@@ -261,25 +242,21 @@ public class StrandDS {
 			String name = entry.getKey();
 			StrandElement element = entry.getValue();
 			
-//			if (element.getName().equals("cigarD") && record.getPosition().intValue() >= 12300 &&  record.getPosition().intValue() <= 12310) {
-//				element.addElement(index, 5);
-//			} else {
-				if (element.isLong()) {
-					long longNo = record.getLongMember(name);
-					if (isRemove) {
-						element.removeElement(index, longNo);
-					} else {
-						element.addElement(index, longNo);
-					}
+			if (element.isLong()) {
+				long longNo = record.getLongMember(name);
+				if (isRemove) {
+					element.removeElement(index, longNo);
 				} else {
-					int intNo = record.getIntMember(name);
-					if (isRemove) {
-						element.removeElement(index, intNo);
-					} else {
-						element.addElement(index, intNo);
-					}
-				}	
-//			}
+					element.addElement(index, longNo);
+				}
+			} else {
+				int intNo = record.getIntMember(name);
+				if (isRemove) {
+					element.removeElement(index, intNo);
+				} else {
+					element.addElement(index, intNo);
+				}
+			}	
 		}		
 	}
 
@@ -312,11 +289,6 @@ public class StrandDS {
 		}
 		return map;	
 	}
-//
-//	public void getPileupRecord(int index) {
-//		// TODO Auto-generated method stub
-//		
-//	}
 
 	public Map<String, StrandElement> getStrandElementMap(int i,
 			StrandEnum[] strandElements) {
