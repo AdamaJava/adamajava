@@ -60,6 +60,11 @@ public class PileupUtilTest {
 	@Test
 	public void addChromosomeReference() {
 		assertFalse(PileupUtil.addChromosomeReference("chr2"));
+		assertTrue(PileupUtil.addChromosomeReference("2"));
+		assertFalse(PileupUtil.addChromosomeReference("chr21"));
+		assertTrue(PileupUtil.addChromosomeReference("21"));
+		assertFalse(PileupUtil.addChromosomeReference("chr24"));
+		assertFalse(PileupUtil.addChromosomeReference("24"));
 		assertTrue(PileupUtil.addChromosomeReference("X"));
 		assertTrue(PileupUtil.addChromosomeReference("Y"));
 		assertTrue(PileupUtil.addChromosomeReference("M"));
