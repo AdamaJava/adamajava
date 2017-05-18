@@ -96,7 +96,7 @@ abstract class AbstractMode {
 		}  
 	}
 	
-	static VcfHeader reheader(VcfHeader header, String cmd, String inputVcfName) throws IOException {	
+	static VcfHeader reheader(VcfHeader header, String cmd, String inputVcfName) {	
 		 
 		VcfHeader myHeader = header;  	
  		
