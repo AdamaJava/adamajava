@@ -15,9 +15,7 @@ import org.qcmg.common.util.Constants;
 public class SnpEffMafRecord {	
 	public static final String Unknown = "unknown";
 	public static final String UnTest = "untested";
-	public static final String Other = "other";
 	public static final String novel = "novel";
-	public static final char positive = '+';
 	public static final String none = "none";
 	public static final String Null = Constants.NULL_STRING;
 	public static final String Zero = "0";	
