@@ -40,7 +40,7 @@ public class ConfidenceMode extends AbstractMode{
 	private final QLogger logger = QLoggerFactory.getLogger(ConfidenceMode.class);
 	
 	
-	static final String[] CLASS_B_FILTERS= new String[] {PASS, MUTATION_IN_UNFILTERED_NORMAL, LESS_THAN_12_READS_NORMAL, LESS_THAN_3_READS_NORMAL};
+//	static final String[] CLASS_B_FILTERS= new String[] {PASS, MUTATION_IN_UNFILTERED_NORMAL, LESS_THAN_12_READS_NORMAL, LESS_THAN_3_READS_NORMAL};
 	
 	static final int HIGH_CONF_NOVEL_STARTS_PASSING_SCORE = 4;
 	static final int LOW_CONF_NOVEL_STARTS_PASSING_SCORE = 4;
@@ -303,9 +303,9 @@ public class ConfidenceMode extends AbstractMode{
 		 return Integer.parseInt(nnsString);
 	 }
 	 
-	 public static int getNNS(VcfFormatFieldRecord formatField) {
-		 return getFieldFromFormatField(formatField, VcfHeaderUtils.FILTER_NOVEL_STARTS, 1);
-	 }
+//	 public static int getNNS(VcfFormatFieldRecord formatField) {
+//		 return getFieldFromFormatField(formatField, VcfHeaderUtils.FILTER_NOVEL_STARTS, 1);
+//	 }
 	 
 	 /*
 	  * Setters because SampleColumn code is so brittle......
@@ -313,9 +313,9 @@ public class ConfidenceMode extends AbstractMode{
 	 public void setNNSCount(int c) {
 		 nnsCount = c;
 	 }
-	 public void setMRCount(int c) {
-		 mrCount = c;
-	 }
+//	 public void setMRCount(int c) {
+//		 mrCount = c;
+//	 }
 	 public void setMRPercentage(double d) {
 		 mrPercentage = d;
 	 }
