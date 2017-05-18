@@ -13,6 +13,7 @@ import java.io.StringWriter;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -144,10 +145,12 @@ public class PileupUtil {
 		} else {		
 			for (String readRange: readRanges) {			
 				if (readRange.contains(":")) {
-					String chrName = readRange.split(":")[0];
-					String pos = readRange.split(":")[1];
-					Integer start = new Integer(pos.split("-")[0]);
-					Integer end = new Integer(pos.split("-")[1]);
+					String [] params = readRange.split(":"); 
+					String chrName = params[0];
+					String pos = params[1];
+					String [] posParams = pos.split("-");
+					int start = Integer.parseInt(posParams[0]);
+					int end = Integer.parseInt(posParams[1]);
 					Chromosome chr = new Chromosome(chrName, getChromosomeByName(chrName, chromosomes).getTotalLength(), start, end);				
 					addToMap(chr, queueMap);	        					
 				} else {
@@ -165,19 +168,22 @@ public class PileupUtil {
 	}
 	
 	private static void addToMap(Chromosome chr, Map<String, List<Chromosome>> queueMap) {
-		if (queueMap.containsKey(chr.getName())) {
-			if (!queueMap.get(chr.getName()).contains(chr)) {
-				queueMap.get(chr.getName()).add(chr);
-			} 
+		
+		List<Chromosome> chrs = queueMap.get(chr.getName());
+		if (null == chrs) {
+			queueMap.put(chr.getName(), Arrays.asList(chr));
 		} else {
-			List<Chromosome> list = new ArrayList<Chromosome>();
-			list.add(chr);
-			queueMap.put(chr.getName(), list);
-		}				
+			/*
+			 * I hope there are not too many entries in the list here.....
+			 */
+			if ( ! chrs.contains(chr)) {
+				chrs.add(chr);
+			}
+		}
 	}
 	
 	private static Chromosome getChromosomeByName(String chrName, List<Chromosome> chromosomes) {
-    	Chromosome chr = null;
+    		Chromosome chr = null;
     	
 		for (Chromosome c: chromosomes) {
 			if (c.getName().equals(chrName)) {
@@ -213,25 +219,25 @@ public class PileupUtil {
 				Pattern pattern = Pattern.compile("\\d");
 			    Matcher matcher = pattern.matcher(ref);
 			    if (matcher.matches()) {			    	
-			    	if (new Integer(ref).intValue() < 23) {
-			    		return true;
-			    	}
+				    	if (new Integer(ref).intValue() < 23) {
+				    		return true;
+				    	}
 			    } else {
-			    	if (ref.equals("X") || ref.equals("Y") || ref.equals("M")) {
-			    		return true;
-			    	} 
+				    	if (ref.equals("X") || ref.equals("Y") || ref.equals("M")) {
+				    		return true;
+				    	} 
 			    }
 			} else if (ref.length() == 2) {
 				Pattern pattern = Pattern.compile("\\d{2}");
 			    Matcher matcher = pattern.matcher(ref);
 			    if (matcher.matches()) {			    	
-			    	if (new Integer(ref).intValue() < 23) {
-			    		return true;
-			    	}
+				    	if (new Integer(ref).intValue() < 23) {
+				    		return true;
+				    	}
 			    } else {
-			    	if (ref.equals("MT")) {
-			    		return true;
-			    	}
+				    	if (ref.equals("MT")) {
+				    		return true;
+				    	}
 			    }
 			}						
 		}
@@ -244,53 +250,21 @@ public class PileupUtil {
 			
 			String name = htmlDir + PileupConstants.FILE_SEPARATOR + "index.html";
 			
-			BufferedWriter writer = new BufferedWriter(new FileWriter(new File(name)));
+			try (BufferedWriter writer = new BufferedWriter(new FileWriter(new File(name)))) {
 			
-			writer.write("<html>");
-			writer.write("<body>");
+				writer.write("<html>");
+				writer.write("<body>");
+				
+				writer.write(links);
 			
-			writer.write(links);
-		
-			writer.write("</div>\n");
-			writer.write("<body>\n");
-			writer.write("</body>\n");
-			writer.write("</html>\n");
-			writer.close();
+				writer.write("</div>\n");
+				writer.write("<body>\n");
+				writer.write("</body>\n");
+				writer.write("</html>\n");
+			}
 			
 		} else {
 			new File(htmlDir).delete();
 		}		
 	}
-	//
-//	public static String getCurrentUser() throws IOException {
-//		return (getSingleLineCommandOutput("whoami"));
-//	}
-	
-//	public static String getFileOwner(File file) throws IOException {
-//		String owner = null;
-//		String command = "ls -l " + file.getCanonicalPath();
-//		
-//		String[] output = getSingleLineCommandOutput(command).split(" ");
-//
-//		if (output.length > 3) {
-//			owner = output[2];
-//		}
-//		if (owner != null) {
-//			return owner;
-//		} else {
-//			return "";
-//		}		
-//	}	
-//	
-//    private static String getSingleLineCommandOutput(String command) throws IOException {
-//    	Process p = Runtime.getRuntime().exec(command);
-//		BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
-//
-//		String line = br.readLine();
-//		
-//		br.close();
-//		
-//		return line;
-//	}
-//
 }

@@ -36,7 +36,7 @@ public class ChromosomeTest {
 //	}
 	
 	@Test
-	public void testConstructorWith2Args() {
+	public void testConstructorWith2Args() throws QPileupException {
 		Chromosome c = new Chromosome("chr1", 1000);
 		assertEquals("chr1", c.getName());
 		assertEquals(new Integer(1000), c.getTotalLength());

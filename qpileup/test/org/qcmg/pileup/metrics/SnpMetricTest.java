@@ -22,6 +22,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.pileup.PileupConstants;
+import org.qcmg.pileup.QPileupException;
 import org.qcmg.pileup.metrics.record.ResultRecord;
 import org.qcmg.pileup.metrics.record.SnpRecord;
 import org.qcmg.pileup.model.Chromosome;
@@ -94,7 +95,7 @@ public class SnpMetricTest {
 	}
 	
 	@Test
-	public void testClear() {
+	public void testClear() throws QPileupException {
 		metric.getSnpMap().get("chr1").put(10, getSnpRecord(10, 20, 100));
 		assertEquals(1, metric.getSnpMap().get("chr1").size());
 		metric.clear(new Chromosome("chr1", 100));

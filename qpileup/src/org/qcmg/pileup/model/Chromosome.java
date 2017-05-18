@@ -8,20 +8,15 @@ import org.qcmg.pileup.QPileupException;
 
 public class Chromosome implements Comparable<Chromosome>{
 	
-	String name;
-	Integer totalLength;	
-	Integer sectionLength;
-	Integer startPos;
-	Integer endPos;
-	private String hdfGroupName;
+	private final String name;
+	private final int totalLength;	
+	private final int sectionLength;
+	private final int startPos;
+	private final int endPos;
+	private final String hdfGroupName;
 
-	public Chromosome(String name, int totalLength) {
-		this.name = name;
-		this.hdfGroupName = "/"+ name;
-		this.totalLength = totalLength;	
-		this.sectionLength = this.totalLength;
-		this.startPos = 1;
-		this.endPos = this.totalLength;	
+	public Chromosome(String name, int totalLength) throws QPileupException {
+		this(name, totalLength, 1, totalLength);
 	}
 	
 	public Chromosome(String name, int totalLength, int startPos, int endPos) throws QPileupException {
@@ -40,51 +35,27 @@ public class Chromosome implements Comparable<Chromosome>{
 		return name;
 	}
 
-	public void setName(String name) {
-		this.name = name;
-	}
-
 	public Integer getTotalLength() {
-		return totalLength;
-	}
-
-	public void setTotalLength(Integer totalLength) {
-		this.totalLength = totalLength;
+		return Integer.valueOf(totalLength);
 	}
 
 	public Integer getSectionLength() {
-		return sectionLength;
-	}
-
-	public void setSectionLength(Integer sectionLength) {
-		this.sectionLength = sectionLength;
+		return Integer.valueOf(sectionLength);
 	}
 
 	public Integer getStartPos() {
-		return startPos;
-	}
-
-	public void setStartPos(Integer startPos) {
-		this.startPos = startPos;
+		return Integer.valueOf(startPos);
 	}
 
 	public Integer getEndPos() {
-		return endPos;
+		return Integer.valueOf(endPos);
 	}
-
-	public void setEndPos(Integer endPos) {
-		this.endPos = endPos;
-	}
-	
 	
 	public String getHdfGroupName() {
 		return hdfGroupName;
 	}
 
-	public void setHdfGroupName(String hdfGroupName) {
-		this.hdfGroupName = hdfGroupName;
-	}
-	
+	@Override
 	public String toString() {		
 		return this.name + ":" + this.startPos + "_" + this.endPos;
 	}
@@ -93,19 +64,36 @@ public class Chromosome implements Comparable<Chromosome>{
 	public int compareTo(Chromosome other) {
 		return this.name.compareTo(other.getName());		
 	}
-	
+
 	@Override
-	public boolean equals(Object o) {
-		 if (!(o instanceof Chromosome)) {
-			 return false;
-		 }
-	            
-		 Chromosome c = (Chromosome) o;
-	     
-		 return (c.getName().equals(name)) && c.getStartPos().equals(startPos) && c.getEndPos().equals(endPos);
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + endPos;
+		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		result = prime * result + startPos;
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Chromosome other = (Chromosome) obj;
+		if (endPos != other.endPos)
+			return false;
+		if (name == null) {
+			if (other.name != null)
+				return false;
+		} else if (!name.equals(other.name))
+			return false;
+		if (startPos != other.startPos)
+			return false;
+		return true;
 	}
 	
-	public int hashCode() {
-		return 31*name.hashCode() + startPos.hashCode() + endPos.hashCode();
-	}
 }

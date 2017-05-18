@@ -14,6 +14,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.qcmg.pileup.PileupConstants;
+import org.qcmg.pileup.QPileupException;
 import org.qcmg.pileup.metrics.record.MetricRecord;
 import org.qcmg.pileup.metrics.record.ResultRecord;
 import org.qcmg.pileup.model.Chromosome;
@@ -76,7 +77,7 @@ public class NonReferenceMetricTest {
 	}
 	
 	@Test
-	public void testClear() {
+	public void testClear() throws QPileupException {
 		metric.getRecordMap().get("chr1").put(10, getNonreferenceRecord(10, 20, 100));
 		assertEquals(1, metric.getRecordMap().get("chr1").size());
 		metric.clear(new Chromosome("chr1", 100));

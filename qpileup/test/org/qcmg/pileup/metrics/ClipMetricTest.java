@@ -14,6 +14,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.qcmg.pileup.PileupConstants;
+import org.qcmg.pileup.QPileupException;
 import org.qcmg.pileup.metrics.record.ClipRecord;
 import org.qcmg.pileup.metrics.record.MetricRecord;
 import org.qcmg.pileup.metrics.record.ResultRecord;
@@ -77,7 +78,7 @@ public class ClipMetricTest {
 	}
 	
 	@Test
-	public void testClear() {
+	public void testClear() throws QPileupException {
 		metric.getRecordMap().get("chr1").put(10, getClipRecord(10, 70));
 		assertEquals(1, metric.getRecordMap().get("chr1").size());
 		metric.clear(new Chromosome("chr1", 100));
