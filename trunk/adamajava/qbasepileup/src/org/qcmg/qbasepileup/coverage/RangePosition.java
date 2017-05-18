@@ -2,12 +2,12 @@
  * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
 package org.qcmg.qbasepileup.coverage;
-
-public class RangePosition {
+@Deprecated //use ChrRangePosition instead
+class RangePosition {
 	
-	final String chr;
-	final int start;
-	final int end;
+	private final String chr;
+	private final int start;
+	private final int end;
 	
 	public RangePosition(String chr, int start, int end) {
 		super();

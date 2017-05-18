@@ -26,9 +26,6 @@ public class IndelPosition {
 	public static final String CTX = "CTX";
 	private final String inputString;
 	private final String mutationType;
-	private byte[] flankingReferenceBases;
-	private int referenceFlankStart;
-	private int referenceFlankEnd;
 	private int tdColumn = -1;
 	private int ndColumn = -1;
 	private int qcmgFlagColumn = -1;
@@ -75,12 +72,13 @@ public class IndelPosition {
 		}
 	}
 
-	public IndelPosition(String name, String chromosome, Integer start, Integer end, String mutationType, String indelFileType, String line, boolean isGermline) {
+	public IndelPosition(String name, String chromosome, Integer start, Integer end, String mutationType, String indelFileType, String line, boolean isGermline, String motif) {
 		super();
 		this.chromosome = chromosome;
 		this.fullChromosome = QBasePileupUtil.getFullChromosome(chromosome);
 		this.mutationType = mutationType;
 		this.isGermline = isGermline;
+//		setMotif(motif);
 		
 		if (indelFileType.equals("pindel") || indelFileType.equals("strelka")) {
 			
@@ -106,14 +104,6 @@ public class IndelPosition {
 		return mutationType;
 	}
 
-	public int getReferenceFlankStart() {
-		return referenceFlankStart;
-	}
-
-	public int getQcmgFlagColumn() {
-		return qcmgFlagColumn;
-	}
-
 	public boolean isGermline() {
 		return isGermline;
 	}
@@ -123,15 +113,14 @@ public class IndelPosition {
 		this.length = motif.length();
 	}
 
-	public String getName() {
-		return name;
-	}
-
 	public String getChromosome() {
 		return chromosome;
 	}
 	public int getStart() {
 		return start.intValue();
+	}
+	public Integer getStartObject() {
+		return start;
 	}
 	public int getEnd() {
 		return end.intValue();
@@ -152,10 +141,10 @@ public class IndelPosition {
         final IndelPosition other = (IndelPosition) o;
         
         if (chromosome.equals(other.getChromosome())) {        	
-        	if (start.equals(other.getStart())) {
+        	if (start.equals(other.getStartObject())) {
         		return end.equals(other.getEnd());
         	} else {
-        		return start.equals(other.getStart());
+        		return start.equals(other.getStartObject());
         	}
         } else {
         	return chromosome.equals(other.getChromosome());
@@ -173,7 +162,7 @@ public class IndelPosition {
 	}
 
 	public boolean isDeletion() {
-		return mutationType.equals(DEL);
+		return DEL.equals(mutationType);
 	}	
 
 	public int getTdColumn() {
@@ -185,10 +174,10 @@ public class IndelPosition {
 	}
 
 	public boolean isInsertion() {
-		return mutationType.equals(INS);
+		return INS.equals(mutationType);
 	}
 	public boolean isComplex() {
-		return mutationType.equals(CTX);
+		return CTX.equals(mutationType);
 	}
 
 	public String getInputString() {
@@ -204,7 +193,7 @@ public class IndelPosition {
 	}
 
 	public boolean isSomatic() {
-		return !isGermline;
+		return ! isGermline;
 	}
 
 }
