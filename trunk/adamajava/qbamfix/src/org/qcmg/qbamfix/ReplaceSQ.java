@@ -8,7 +8,9 @@ package org.qcmg.qbamfix;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.IOException;
 import java.util.HashMap;
+
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.SAMSequenceRecord;
 
@@ -40,32 +42,32 @@ public class ReplaceSQ {
 		
 		return UR_updated;
 	}
-	private HashMap<String, Integer> getRefMap(String reffile) throws Exception{
+	private HashMap<String, Integer> getRefMap(String reffile) throws IOException{
 	
-		HashMap<String, Integer> refmap = new HashMap<String, Integer>();		
-		BufferedReader reader = new BufferedReader(new FileReader(reffile));
+		HashMap<String, Integer> refmap = new HashMap<>();		
 		String key = null;
 		int value = 0; 
-		String line = null;
+		String line;
 	
-		try {	       
+		try (BufferedReader reader = new BufferedReader(new FileReader(reffile))) {
 	        while ( ( line = reader.readLine()) != null) {
 		        	if(line.startsWith(">")){
-	        		//record pre contig to map
-	        		if(key != null)
-	        			refmap.put(key, value);	        		
-	        		//start current contig
-	        		key = line.replace(">", "");
-	        		value = 0;
-	        	}else
-		        	value += line.length();
+		        		//record pre contig to map
+		        		if (key != null) {
+		        			refmap.put(key, value);
+		        		}
+		        		//start current contig
+		        		key = line.replace(">", "");
+		        		value = 0;
+		        	} else {
+			        	value += line.length();
+		        	}
 	        }
 	       
 	        //record the last one
-	        if(key != null)
-    			refmap.put(key, value);	 
-	    } finally {
-	        reader.close();
+	        if (key != null) {
+    				refmap.put(key, value);
+	        }
 	    }
 	
 		return refmap;
