@@ -32,49 +32,48 @@ public class Options {
    protected static final String LOG_DESCRIPTION = Messages.getMessage("LOG_OPTION_DESCRIPTION");
    protected static final String LOG_LEVEL_OPTION_DESCRIPTION = Messages.getMessage("LOG_LEVEL_OPTION_DESCRIPTION");
    
-   protected static final String test = "test";
-   protected static final String control = "control";
+   private static final String test = "test";
+   private static final String control = "control";
 
-//    private final boolean commandCheck = false;
-    protected final String commandLine;
+   private final String commandLine;
     
- 	protected final Options.MODE mode;  
-    protected final  OptionParser parser;
-    protected QLogger logger = null;
+   private final Options.MODE mode;  
+   private final  OptionParser parser;
+   private final QLogger logger = null;
 	
  	
-	protected final String outputFileName ;
-	protected final String inputFileName ;
-	protected final String[] databaseFiles;
-	protected final String logFileName;
-	protected final String logLevel;  
+   private final String outputFileName ;
+   private final String inputFileName ;
+   private final String[] databaseFiles;
+   private final String logFileName;
+   private final String logLevel;  
 	
 	//vcf2maf 
-	protected  final String testSample;
-	protected  final String controlSample ;
+   private  final String testSample;
+   private  final String controlSample ;
 	
-	protected  final int bufferSize; //trf
-	protected  final int gap ; //cadd
+   private  final int bufferSize; //trf
+   private  final int gap ; //cadd
 	
-	private final Integer nnsCount;
-	private final Integer mrCount;
+   private final Integer nnsCount;
+   private final Integer mrCount;
 	private final Float mrPercentage;
 	
 	private final  List<String> filtersToIgnore;
 	
 	//Vcf2maf
-	protected final String center; 
-	protected final String sequencer; 
-	protected final String outputDir;
-	protected final String donorId; 
+	private final String center; 
+	private final String sequencer; 
+	private final String outputDir;
+	private final String donorId; 
 	
 	//snpeff
-	protected  final String configFileName ;
-	protected  final String summaryFileName ;
+	private  final String configFileName ;
+	private  final String summaryFileName ;
 	
 	//hom 
-	protected final int homWindow  ;
-	protected final int homReportSize;
+	private final int homWindow  ;
+	private final int homReportSize;
 	
     /**
      * check command line and store arguments and option information
@@ -224,50 +223,50 @@ public class Options {
      * @return true if input file readable and output file writable
      * @throws Exception 
      */
-    protected void checkIO( ) throws Exception{   	
-    	List<File> inputs = new ArrayList<>(4);
-    	List<File> outputs = new ArrayList<>(4);
-    	
-    	inputs.add(new File(inputFileName));
-    	if( getConfigFileName() != null ) {
-    		inputs.add(new File(getConfigFileName()));
-    	}
-    	if( databaseFiles != null ) 
-    		for(String name : databaseFiles)
-    		inputs.add (new File(name));
-    	
-    	if(outputFileName != null) {
-    		outputs.add(new File(outputFileName));
-    	}
-    	if( getSummaryFileName() != null) {
-    		outputs.add(new File(getSummaryFileName()));
-    	}
-    	
-    	//check output 	
-    	for (File out : outputs)  {   
-    		//out.getParentFile() maybe null if file name string exclude path eg. out = "ok.txt"
-    		File parent = out.getAbsoluteFile().getParentFile();    		    		
-    		if ( (out.exists() && ! out.canWrite()) || ( !out.exists() && !parent.canWrite())) {    				 
-    			throw new Exception( Messages.getMessage("OUTPUT_ERR_DESCRIPTION", out.getName()));
-    		}
-    	}	
-    	//check inputs
-    	for (File fin : inputs) {
-    		if ( ! fin.exists()) { 
-    			throw new Exception( Messages.getMessage("NONEXIST_INPUT_FILE", fin.getPath()));
-    		} else if ( ! fin.canRead()) {
-	        	 throw new Exception( Messages.getMessage("UNREAD_INPUT_FILE",fin.getPath()));
-    		}
-    	}
-    	//check whether file unique
- 	    inputs.addAll(outputs);
-       	for (int  i = inputs.size() -1; i > 0; i --) {
-	    		for (int j = i-1; j >= 0; j -- ){
-	    			if (inputs.get(i).getCanonicalFile().equals(inputs.get(j).getCanonicalFile())) {
-	    				throw new Exception( "below command line values are point to same file: \n\t" + inputs.get(i) + "\n\t" + inputs.get(j) );
-	    			}
+    private void checkIO( ) throws Exception{   	
+	    	List<File> inputs = new ArrayList<>(4);
+	    	List<File> outputs = new ArrayList<>(4);
+	    	
+	    	inputs.add(new File(inputFileName));
+	    	if( getConfigFileName() != null ) {
+	    		inputs.add(new File(getConfigFileName()));
+	    	}
+	    	if( databaseFiles != null ) 
+	    		for(String name : databaseFiles)
+	    		inputs.add (new File(name));
+	    	
+	    	if(outputFileName != null) {
+	    		outputs.add(new File(outputFileName));
+	    	}
+	    	if( getSummaryFileName() != null) {
+	    		outputs.add(new File(getSummaryFileName()));
+	    	}
+	    	
+	    	//check output 	
+	    	for (File out : outputs)  {   
+	    		//out.getParentFile() maybe null if file name string exclude path eg. out = "ok.txt"
+	    		File parent = out.getAbsoluteFile().getParentFile();    		    		
+	    		if ( (out.exists() && ! out.canWrite()) || ( !out.exists() && !parent.canWrite())) {    				 
+	    			throw new Exception( Messages.getMessage("OUTPUT_ERR_DESCRIPTION", out.getName()));
 	    		}
-       	}
+	    	}	
+	    	//check inputs
+	    	for (File fin : inputs) {
+	    		if ( ! fin.exists()) { 
+	    			throw new Exception( Messages.getMessage("NONEXIST_INPUT_FILE", fin.getPath()));
+	    		} else if ( ! fin.canRead()) {
+		        	 throw new Exception( Messages.getMessage("UNREAD_INPUT_FILE",fin.getPath()));
+	    		}
+	    	}
+	    	//check whether file unique
+	 	    inputs.addAll(outputs);
+	       	for (int  i = inputs.size() -1; i > 0; i --) {
+		    		for (int j = i-1; j >= 0; j -- ){
+		    			if (inputs.get(i).getCanonicalFile().equals(inputs.get(j).getCanonicalFile())) {
+		    				throw new Exception( "below command line values are point to same file: \n\t" + inputs.get(i) + "\n\t" + inputs.get(j) );
+		    			}
+		    		}
+	       	}
        	//here we don't check outdir for vcf2maf mode, the Vcf2Maf.java will do the job
     }
 
@@ -280,7 +279,7 @@ public class Options {
 	public String[] getDatabaseFiles(){ return  (mode.equals(MODE.cadd))? databaseFiles : null;}
     public MODE getMode(){	return  mode; }
    
-    public void displayHelp(MODE mode) throws Exception {   
+    private void displayHelp(MODE mode) throws Exception {   
         String mess = Messages.getMessage("USAGE");  
         if(mode != null){
         	switch (mode){        		

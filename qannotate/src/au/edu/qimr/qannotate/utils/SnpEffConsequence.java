@@ -116,7 +116,7 @@ public enum SnpEffConsequence {
 //	sequence_feature[compositionally_biased_region:Asp/Glu-rich__acidic_](LOW|||c.2144A>G|749|NOC2L|protein_coding|CODING|ENST00000327044|18|1)
 
 	private static final QLogger logger = QLoggerFactory.getLogger(SnpEffConsequence.class);
-	public static final String PROTEIN_CODING = "protein_coding";
+	private static final String PROTEIN_CODING = "protein_coding";
 	
 	
 	private final String ontologName;
@@ -124,9 +124,9 @@ public enum SnpEffConsequence {
 	private final String maf_calssification;
 	
 	
-	public static final String HIGH_IMPACT = "HIGH";
-	public static final String LOW_IMPACT = "LOW";
-	public static final String MODERATE_IMPACT = "MODERATE";
+	private static final String HIGH_IMPACT = "HIGH";
+	private static final String LOW_IMPACT = "LOW";
+	private static final String MODERATE_IMPACT = "MODERATE";
 	public static final String MODIFIER_IMPACT = "MODIFIER";
 
 
