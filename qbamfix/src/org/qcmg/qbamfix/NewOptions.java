@@ -271,7 +271,7 @@ public class NewOptions {
 	 */
 	public String getReferenceFile() throws Exception{
 		if(refFileName == null && cmd.hasOption(OptLong.SQ.toString())){
-			refFileName = cmd.getOptionValue(OptLong.SQ.toString()).toString();
+			refFileName = cmd.getOptionValue(OptLong.SQ.toString());
 			if(! new File( refFileName ).canRead())
 				throw new Exception("specified SQ file is not readable: --" +
 						OptLong.SQ.toString() + " " + refFileName);			 
