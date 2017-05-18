@@ -12,7 +12,6 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
@@ -26,6 +25,8 @@ import org.qcmg.pileup.model.Chromosome;
 
 
 public class PileupUtil {
+	
+	private static final Pattern pattern = Pattern.compile("\\d{1,2}");
 	
     public static String getCurrentTime(String seperator) {
     	//http://www.mkyong.com/java/java-how-to-get-current-date-time-date-and-calender/
@@ -196,10 +197,7 @@ public class PileupUtil {
 	}
 	
 	public static boolean isRegularityType(String type) {
-		if (type.equals(PileupConstants.METRIC_INDEL) || type.equals(PileupConstants.METRIC_NONREFBASE) || type.equals(PileupConstants.METRIC_CLIP)) {
-			return true;
-		}
-		return false;
+		return type.equals(PileupConstants.METRIC_INDEL) || type.equals(PileupConstants.METRIC_NONREFBASE) || type.equals(PileupConstants.METRIC_CLIP);
 	}
 	
 	public static String getFullChromosome(String ref) {		
@@ -212,34 +210,20 @@ public class PileupUtil {
 	
 	public static boolean addChromosomeReference(String ref) {
 		
-		if (ref.contains("chr")) {
+		if (ref.startsWith("chr")) {
 			return false;
 		} else {
-			if (ref.length() == 1) {
-				Pattern pattern = Pattern.compile("\\d");
-			    Matcher matcher = pattern.matcher(ref);
-			    if (matcher.matches()) {			    	
-				    	if (new Integer(ref).intValue() < 23) {
-				    		return true;
-				    	}
-			    } else {
-				    	if (ref.equals("X") || ref.equals("Y") || ref.equals("M")) {
-				    		return true;
-				    	} 
-			    }
-			} else if (ref.length() == 2) {
-				Pattern pattern = Pattern.compile("\\d{2}");
-			    Matcher matcher = pattern.matcher(ref);
-			    if (matcher.matches()) {			    	
-				    	if (new Integer(ref).intValue() < 23) {
-				    		return true;
-				    	}
-			    } else {
-				    	if (ref.equals("MT")) {
-				    		return true;
-				    	}
-			    }
-			}						
+			
+		 	if (ref.equals("X") || ref.equals("Y") || ref.equals("M") || ref.equals("MT")) {
+		  		return true;
+		  	} 
+			
+		    Matcher matcher = pattern.matcher(ref);
+		    if (matcher.matches()) {			    	
+			    	if (Integer.parseInt(ref) < 23) {
+			    		return true;
+			    	}
+		    }
 		}
 		return false;
 	}
