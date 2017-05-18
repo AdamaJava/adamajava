@@ -3,8 +3,10 @@
  */
 package org.qcmg.pileup.hdf;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import ncsa.hdf.hdf5lib.exceptions.HDF5Exception;
 
@@ -163,7 +165,7 @@ public class MetadataRecordDS extends MetadataDS {
 	
 	public void checkHDFMetadata(String[] newRecords, boolean isBamOverride, Integer currentLowReadCount, Integer currentNonRefThreshold, Integer currentBamsAdded) throws QPileupException {
 		
-		List<String> finalRecords = Arrays.asList(records);
+		List<String> finalRecords = Arrays.stream(records).collect(Collectors.toList());
 		
 		//check the info tags: ie low_read_count and non_reference_threshold
 		if (lowReadCount == null) {
