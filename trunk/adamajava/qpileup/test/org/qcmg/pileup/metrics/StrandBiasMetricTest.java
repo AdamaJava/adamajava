@@ -15,6 +15,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.pileup.PileupConstants;
+import org.qcmg.pileup.QPileupException;
 import org.qcmg.pileup.metrics.record.ResultRecord;
 import org.qcmg.pileup.metrics.record.StrandBiasRecord;
 import org.qcmg.pileup.model.Chromosome;
@@ -69,7 +70,7 @@ public class StrandBiasMetricTest {
 	}	
 	
 	@Test
-	public void testClear() {
+	public void testClear() throws QPileupException {
 		metric.getStrandBiasMap().get(CHR1).put(10, getSBiasRecord(10, 100));
 		assertEquals(1, metric.getStrandBiasMap().get(CHR1).size());
 		metric.clear(new Chromosome(CHR1, 100));
