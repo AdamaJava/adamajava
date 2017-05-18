@@ -143,8 +143,7 @@ public class StrandBiasRecord {
 	}
 
 	public boolean hasStrandBias() {
-		double altBaseDifference = getAltBaseCountDifference();
-		return altBaseDifference > MIN_PERCENT_DIFFERENCE;
+		return getAltBaseCountDifference()> MIN_PERCENT_DIFFERENCE;
 	}
 
 	public double getAltBaseCountDifference() {		
