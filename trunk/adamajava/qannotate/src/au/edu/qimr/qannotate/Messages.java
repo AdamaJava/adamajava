@@ -11,8 +11,8 @@ import java.util.ResourceBundle;
 /*
  * a collection of methods which return formated message string
  */
-public class Messages {
-    static final ResourceBundle messages = ResourceBundle.getBundle("au.edu.qimr.qannotate.messages");
+class Messages {
+    private static final ResourceBundle messages = ResourceBundle.getBundle("au.edu.qimr.qannotate.messages");
  
     public static String getMessage(final String identifier) {
         return messages.getString(identifier);
@@ -68,7 +68,6 @@ public class Messages {
 		for (final String arg : args) {
 			result += arg + " ";
 		}
-//		while( result.lastIndexOf(" ") == result.length() - 1 ) result = result.substring(0, result.length()-2);
 		result = result.trim();
 		return result;
 	}

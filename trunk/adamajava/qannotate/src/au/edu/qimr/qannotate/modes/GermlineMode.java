@@ -57,7 +57,7 @@ public class GermlineMode extends AbstractMode{
 	 */
  	@Override	
  	/**
- 	 * At moment Ther germline database only store single SNP position. 
+ 	 * At moment the germline database only store single SNP position. 
  	 */
 	void addAnnotation(String dbGermlineFile) throws Exception {
  		
@@ -72,16 +72,20 @@ public class GermlineMode extends AbstractMode{
   		try(VCFFileReader reader = new VCFFileReader(germFile)){
   			
   			//add header line first
-  			String date = (reader.getHeader().getFileDate() == null)? null: reader.getHeader().getFileDate().getMetaValue(); //new VcfHeaderUtils.SplitMetaRecord(reader.getHeader().getFileDate()).getValue();
+  			String date = (reader.getHeader().getFileDate() == null)? null: reader.getHeader().getFileDate().getMetaValue();
 	 		String germ = String.format("%s=<ID=%s,Number=1,Type=Integer,Description=\"%s\",Source=%s,FileDate=%s>", 
 				VcfHeaderUtils.HEADER_LINE_INFO, VcfHeaderUtils.INFO_GERMLINE,VcfHeaderUtils.DESCRITPION_INFO_GERMLINE,
 				germFile.getAbsolutePath(),  date);
 	 		header.addOrReplace(germ, true);
 	 		
 	 		int total = -1;	 
-	 		for(VcfHeaderRecord re : reader.getHeader().getRecords(VcfHeaderUtils.GERMDB_DONOR_NUMBER))  	 			 
-				try{ total = Integer.parseInt( re.getMetaValue());
-				}catch(Exception e){ total = 0; }
+	 		for(VcfHeaderRecord re : reader.getHeader().getRecords(VcfHeaderUtils.GERMDB_DONOR_NUMBER)) {
+				try{ 
+					total = Integer.parseInt( re.getMetaValue());
+				}catch(Exception e){ 
+					total = 0; 
+				}
+	 		}
 	 	    
 	 	   int updatedRecordCount = 0;
 	 	   for (final VcfRecord dbGermlineVcf : reader) {
@@ -116,7 +120,7 @@ public class GermlineMode extends AbstractMode{
  	 * @return true if the inputVcf is matched the germline vcf
  	 */
   		
- 	boolean annotateGermlineSnp(VcfRecord inputVcf, VcfRecord germlineVcf , final int total){
+ 	private boolean annotateGermlineSnp(VcfRecord inputVcf, VcfRecord germlineVcf , final int total){
  		
  		if ( ! inputVcf.getRef().equals(germlineVcf.getRef()) ){
  			logger.warn(String.format( "germline reference base (%s) are different to vcf Record (%s) for variant at position: %s ", 

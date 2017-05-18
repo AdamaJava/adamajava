@@ -41,11 +41,11 @@ import au.edu.qimr.qannotate.utils.*;
 
 public class Vcf2maf extends AbstractMode{
 	
-	public static final String PROTEINCODE = "protein_coding";
-	public static final String INTRON = "Intron";
+	private static final String PROTEINCODE = "protein_coding";
+	private static final String INTRON = "Intron";
 	
 	private static final QLogger logger = QLoggerFactory.getLogger(Vcf2maf.class);
-	protected final  Map<String,String> effRanking = new HashMap<String,String>();	
+	protected final  Map<String,String> effRanking = new HashMap<>();	
 	private final String center;
 	private final String sequencer;
 	private final String donorId;	 
@@ -213,7 +213,7 @@ public class Vcf2maf extends AbstractMode{
 		}		
 	}
 	
-	public static void createVcfHeaders(VcfHeader header, PrintWriter ... writers){
+	private static void createVcfHeaders(VcfHeader header, PrintWriter ... writers){
 		StringBuilder sb = new StringBuilder();
 		for (VcfHeaderRecord rec : header) {
 			if (sb.length() > 0) {
@@ -221,7 +221,6 @@ public class Vcf2maf extends AbstractMode{
 			}
 			sb.append(rec.toString());
 		}
-		
 		
 		Arrays.stream(writers).forEach(pw -> pw.println(sb.toString()));
 	}
@@ -379,7 +378,7 @@ public class Vcf2maf extends AbstractMode{
 
 	}
 	 
-	public static String getNotes(VcfInfoFieldRecord info){
+	 private static String getNotes(VcfInfoFieldRecord info){
 		String str = (info.getField(VcfHeaderUtils.INFO_TRF) != null) ? VcfHeaderUtils.INFO_TRF + Constants.EQ +info.getField(VcfHeaderUtils.INFO_TRF) + Constants.SEMI_COLON : Constants.EMPTY_STRING;		
 		if (info.getField(VcfHeaderUtils.INFO_HOM)!= null) {
 			String hom = info.getField(VcfHeaderUtils.INFO_HOM ).split(Constants.COMMA_STRING)[0];	
@@ -401,7 +400,7 @@ public class Vcf2maf extends AbstractMode{
 		//return str;
 	}
 	 
-	 public static String getMafAlt(String ref, String alt, SVTYPE type) {
+	 private static String getMafAlt(String ref, String alt, SVTYPE type) {
 		// String str = alt; 
 	 	 if(type.equals(SVTYPE.DEL)){
 	 		 return (alt.length() == 1)? "-" : alt.substring(1);

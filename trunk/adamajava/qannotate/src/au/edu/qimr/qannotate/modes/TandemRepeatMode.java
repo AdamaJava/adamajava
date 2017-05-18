@@ -21,19 +21,15 @@ import org.qcmg.vcf.VCFFileWriter;
 
 import au.edu.qimr.qannotate.Options;
 
-
-
 public class TandemRepeatMode  extends AbstractMode{
-	static final int BLOCK_INDEX_GAP = 100; //insert index for big block
-	static final int MaxErrLine = 100; 
+	private static final int BLOCK_INDEX_GAP = 100; //insert index for big block
+	private static final int MaxErrLine = 100; 
 	
 	private final QLogger logger = QLoggerFactory.getLogger(TandemRepeatMode.class);
-	String input;
-	String output;
-	final String commandLine;
-	final int buffer;
-	
-//	private final HashMap<String, HashMap<Integer, Block>> genomeRepeat = new HashMap<String, HashMap<Integer, Block>>();
+	private final String input;
+	private final String output;
+	private final String commandLine;
+	private final int buffer;
 	
 	//for unit test only
 	@Deprecated
@@ -288,7 +284,7 @@ public class TandemRepeatMode  extends AbstractMode{
 	 * @throws IOException
 	 */
 	Map<String, HashSet<Repeat>> loadRepeat(String dbfile) throws IOException {
-		Map<String, HashSet<Repeat>> allRepeats = new HashMap<String, HashSet<Repeat>>();
+		Map<String, HashSet<Repeat>> allRepeats = new HashMap<>();
 		int errLine = 0;
 		//s1: read whole file into Repeat list
         try(BufferedReader reader = new BufferedReader(new FileReader(dbfile))){
@@ -296,7 +292,7 @@ public class TandemRepeatMode  extends AbstractMode{
             while (( line = reader.readLine()) != null)  {
 	           try {
 	        	   		Repeat rep = new Repeat(line);
-	        	   		allRepeats.computeIfAbsent(rep.chr, (v) -> new HashSet<Repeat>()).add(rep);
+	        	   		allRepeats.computeIfAbsent(rep.chr, (v) -> new HashSet<>()).add(rep);
 	            } catch (NumberFormatException e) {
 		            	if (errLine ++ < MaxErrLine) {
 		            		logger.warn("can't retrive information from TRF repeat file: " + line);
@@ -319,43 +315,42 @@ public class TandemRepeatMode  extends AbstractMode{
 		if(repeats == null || repeats.size() == 0) return null; 
 		 
 			//S1: get unique block edge 
-			Set<Integer> starts = new HashSet<Integer>(); //list will be very slow
-			Set<Integer> ends = new HashSet<Integer>(); //list will be very slow
+			Set<Integer> starts = new HashSet<>(); //list will be very slow
+			Set<Integer> ends = new HashSet<>(); //list will be very slow
 			for(Repeat rep : repeats){				 
 				starts.add(rep.start);				
 				ends.add(rep.end);
 			}			
 			
 			//sort and unique the elements
-		   TreeSet<Integer> sortedStartEnd = new TreeSet<Integer>();
+		   TreeSet<Integer> sortedStartEnd = new TreeSet<>();
 		    sortedStartEnd.addAll(starts);
 		    sortedStartEnd.addAll(ends);
 		    
 		    //S2:create block for each start end but the edge may require one base shift
-//			ConcurrentHashMap<Integer, Block> blockIndex = new ConcurrentHashMap<Integer, Block>(); 
-			Map<Integer, Block> blockIndex = new HashMap<Integer, Block>(); 
+			Map<Integer, Block> blockIndex = new HashMap<>(); 
 			Iterator<Integer> it = sortedStartEnd.iterator(); 
 			int start = it.next();
 			int end = start; 
 			
 		    while(it.hasNext()){
 		    	
-		    	//do nothing if exists from starts disregards whether it is in ends or not
-		    	if(!starts.contains(start))
-		    		start += 1; 
-		    	
-		    	//trim if end is some repeat start
-		    	end = it.next();	
-		    	int end0 = end;  //store original boundary for next loop
-		    	 
-		    	if(starts.contains(end))		    		 
-		    		end -= 1; 
-		    	
-		    	if(start <= end)
-		    		blockIndex.put(start,  new Block(start, end));
-		    	
-		    	//next block must be one base forward
-		    	start = end0; 
+			    	//do nothing if exists from starts disregards whether it is in ends or not
+			    	if(!starts.contains(start))
+			    		start += 1; 
+			    	
+			    	//trim if end is some repeat start
+			    	end = it.next();	
+			    	int end0 = end;  //store original boundary for next loop
+			    	 
+			    	if(starts.contains(end))		    		 
+			    		end -= 1; 
+			    	
+			    	if(start <= end)
+			    		blockIndex.put(start,  new Block(start, end));
+			    	
+			    	//next block must be one base forward
+			    	start = end0; 
 		    }
 		    
 		    //S3: filling repeat 
@@ -376,19 +371,17 @@ public class TandemRepeatMode  extends AbstractMode{
 		    //S4: each gap insert a index
 	 	    Map<Integer, Block> inserts = new HashMap<Integer, Block>();
 		    for(Block block:  blockIndex.values() ){		    	
-		    	start = block.start;
-		    	//throw null exception since some block is null
-		    	while (block.end > BLOCK_INDEX_GAP + start){	    		
-		    		start += BLOCK_INDEX_GAP;
-		    		inserts.put(start , block);	
-		    	}	    	
+			    	start = block.start;
+			    	//throw null exception since some block is null
+			    	while (block.end > BLOCK_INDEX_GAP + start){	    		
+			    		start += BLOCK_INDEX_GAP;
+			    		inserts.put(start , block);	
+			    	}	    	
 		    }
 		    blockIndex.putAll(inserts);
 		    
 		    
 		    return new BlockIndex(sortedStartEnd.first(), sortedStartEnd.last(), blockIndex);
-		//return resetIndexedBlock(sortedStartEnd.first(), sortedStartEnd.last(),  blockIndex);
-		
 	}
 
 }
