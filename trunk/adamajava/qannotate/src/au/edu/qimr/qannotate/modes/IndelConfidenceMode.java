@@ -49,12 +49,11 @@ public class IndelConfidenceMode extends AbstractMode{
 		
  	//filters 
 	private static final String FILTER_REPEAT = "REPEAT"; 
-	public static final String DESCRIPTION_FILTER_REPEAT = "variants fallen in simple repeat region"; 
 	private static final String DESCRITPION_INFO_CONFIDENCE =  "set to HIGH if the variants passed all filter, "
 			+ "nearby homopolymer sequence base less than six and less than 10% reads contains nearby indel; set to Zero if "
 			+ "coverage more than 1000, or fallen in repeat region; set to LOW for reminding variants";
  	
-	public static final String DESCRITPION_FILTER_REPEAT = String.format( "this variants is fallen into the repeat region");
+	public static final String DESCRIPTION_FILTER_REPEAT = "this variants is fallen into the repeat region";
 	
 	@Deprecated
 	//unit test only
@@ -88,9 +87,8 @@ public class IndelConfidenceMode extends AbstractMode{
         try(BufferedReader reader = new BufferedReader(new FileReader(dbfile))){
             String line;
             while (( line = reader.readLine()) != null) {
-            		if ( !line.startsWith("geno")) { //head line
+            		if ( ! line.startsWith("geno")) { //head line
             			String[] array = line.split(" ");
-	                	//int no = Integer.parseInt(array[0]) - 1;
 	                	String chr = IndelUtils.getFullChromosome(array[0]);
 	                	
 	                	int start = Integer.parseInt(array[1]);
@@ -108,7 +106,7 @@ public class IndelConfidenceMode extends AbstractMode{
 	MafConfidence getConfidence(VcfRecord vcf){
 		String filter = vcf.getFilter();
 		VcfInfoFieldRecord info = vcf.getInfoRecord();
-		if( filter.equals(VcfHeaderUtils.FILTER_PASS)  && info!= null) {//|| filter.contains(IndelUtils.FILTER_HOM)){
+		if ( filter.equals(VcfHeaderUtils.FILTER_PASS)  && info!= null) {//|| filter.contains(IndelUtils.FILTER_HOM)){
 			
 			//check nearby indel  
 			float nioc = StringUtils.string2Number(info.getField(IndelUtils.INFO_NIOC), Float.class);			
@@ -123,7 +121,7 @@ public class IndelConfidenceMode extends AbstractMode{
 			
 			if(nioc <= DEFAULT_NIOC && lhomo <= DEFAULT_HOMN && ssoi >= DEFAULT_SSOI) return MafConfidence.HIGH;		
 			
-		}else if(filter.equals(IndelUtils.FILTER_HCOVN) || filter.equals(IndelUtils.FILTER_HCOVT) || 
+		} else if (filter.equals(IndelUtils.FILTER_HCOVN) || filter.equals(IndelUtils.FILTER_HCOVT) || 
 				filter.equals(FILTER_REPEAT) || filter.contains(Constants.SEMI_COLON + FILTER_REPEAT + Constants.SEMI_COLON)  ||
 				filter.startsWith(FILTER_REPEAT + Constants.SEMI_COLON) || filter.endsWith(Constants.SEMI_COLON + FILTER_REPEAT)) { 
 			return MafConfidence.ZERO;
@@ -164,7 +162,7 @@ public class IndelConfidenceMode extends AbstractMode{
 			    
 			//reheader
 		    VcfHeader hd = 	reader.getHeader();
-		    hd.addFilter(FILTER_REPEAT, DESCRITPION_FILTER_REPEAT );       	  
+		    hd.addFilter(FILTER_REPEAT, DESCRIPTION_FILTER_REPEAT );       	  
 		    hd.addInfo(VcfHeaderUtils.INFO_CONFIDENCE, "1", "String", DESCRITPION_INFO_CONFIDENCE);		    
 		    hd = reheader(hd, commandLine ,input);			    	  
 	
