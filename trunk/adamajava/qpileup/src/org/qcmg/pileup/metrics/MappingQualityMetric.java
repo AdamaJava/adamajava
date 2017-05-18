@@ -15,7 +15,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.qcmg.pileup.PileupConstants;
 import org.qcmg.pileup.metrics.record.MappingQualityRecord;
 import org.qcmg.pileup.metrics.record.ResultRecord;
-import org.qcmg.pileup.metrics.record.ResultSummary;
 import org.qcmg.pileup.model.Chromosome;
 import org.qcmg.pileup.model.QPileupRecord;
 import org.qcmg.pileup.model.StrandEnum;
@@ -24,16 +23,18 @@ public class MappingQualityMetric extends Metric {
 	
 	protected AtomicLong recordCount = new AtomicLong();
 	protected final static String TAB_DELIMITER = PileupConstants.TAB_DELIMITER;
-	private Map<String,TreeMap<Integer,MappingQualityRecord>> qualRecordMap = new ConcurrentHashMap<String,TreeMap<Integer,MappingQualityRecord>>();
+	private Map<String,TreeMap<Integer,MappingQualityRecord>> qualRecordMap = new ConcurrentHashMap<>();
 
 	public MappingQualityMetric(double minPosCount, int minWinCount, int minTotalBases) {
 		super(PileupConstants.METRIC_MAPPING, minPosCount, minWinCount, minTotalBases);
 	}
 	
+	@Override
 	public AtomicLong getRecordCount() {
 		return recordCount;
 	}
 
+	@Override
 	public void setRecordCount(AtomicLong recordCount) {
 		this.recordCount = recordCount;
 	}
@@ -50,7 +51,7 @@ public class MappingQualityMetric extends Metric {
 
 	@Override
 	public List<String> getOptionsSummary() {
-		List<String> list = new ArrayList<String>();
+		List<String> list = new ArrayList<>(4);
 		list.add("Metric type: " + type);
 		list.add("Maximum average quality per position: " + positionValue);
 		list.add("Minimum count per window: " + windowCount);
@@ -97,10 +98,11 @@ public class MappingQualityMetric extends Metric {
 	}
 	
 	@Override
-	public void clear(Chromosome chromosome) {		
-		if (qualRecordMap.containsKey(chromosome.getName())) {
-			qualRecordMap.get(chromosome.getName()).clear();	
-		}		
+	public void clear(Chromosome chromosome) {
+		TreeMap<Integer,MappingQualityRecord> map = qualRecordMap.get(chromosome.getName());
+		if (null != map) {
+			map.clear();
+		}
 	}
 	
 	@Override
@@ -110,13 +112,11 @@ public class MappingQualityMetric extends Metric {
 
 	@Override
 	public void addChromosome(String name) {
-		if (!qualRecordMap.containsKey(name)) {
-			TreeMap<Integer, MappingQualityRecord> map = new TreeMap<Integer, MappingQualityRecord>();
-			qualRecordMap.put(name, map);
+		if ( ! qualRecordMap.containsKey(name)) {
+			qualRecordMap.put(name,  new TreeMap<>());
 		}
-		if (!summaryMap.containsKey(name)) {
-			TreeMap<Integer, ResultSummary> map = new TreeMap<Integer, ResultSummary>();
-			summaryMap.put(name, map);
+		if ( ! summaryMap.containsKey(name)) {
+			summaryMap.put(name, new TreeMap<>());
 		}		
 	}
 }
