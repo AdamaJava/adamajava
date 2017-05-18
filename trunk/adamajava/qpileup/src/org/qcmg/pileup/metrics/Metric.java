@@ -87,40 +87,20 @@ public class Metric {
 		return type;
 	}
 
-	public void setType(String type) {
-		this.type = type;
-	}
-
 	public AtomicLong getRecordCount() {
 		return recordCount;
 	}
 
-	public void setRecordCount(AtomicLong recordCount) {
-		this.recordCount = recordCount;
-	}
-	
 	public int getWindowCount() {
 		return windowCount;
-	}
-
-	public void setWindowCount(int windowCount) {
-		this.windowCount = windowCount;
 	}
 
 	public double getPositionValue() {
 		return positionValue;
 	}
 
-	public void setPositionValue(double positionValue) {
-		this.positionValue = positionValue;
-	}
-
 	public Map<String, TreeMap<Integer, MetricRecord>> getRecordMap() {
 		return recordMap;
-	}
-
-	public void setRecordMap(Map<String, TreeMap<Integer, MetricRecord>> recordMap) {
-		this.recordMap = recordMap;
 	}
 
 	public Map<String, TreeMap<Integer, ResultSummary>> getSummaryMap() {
@@ -131,10 +111,6 @@ public class Metric {
 		return minBasesPerPatient;
 	}
 
-	public void setMinBasesPerPatient(double minBasesPerPatient) {
-		this.minBasesPerPatient = minBasesPerPatient;
-	}
-
 	public int getTotalPatients() {
 		return totalPatients;
 	}	
@@ -143,10 +119,6 @@ public class Metric {
 		return baseDistribution;
 	}
 
-	public void setBaseDistribution(BaseDistributionRecord baseDistribution) {
-		this.baseDistribution = baseDistribution;
-	}
-	
 	public File getWiggleFile() {
 		return this.wiggleFile;
 	}
@@ -198,7 +170,7 @@ public class Metric {
 	}
 	
 	public List<String> getOptionsSummary() {
-		List<String> list = new ArrayList<>();
+		List<String> list = new ArrayList<>(4);
 		list.add("Metric type: " + type);
 		list.add("Minimum value per position: " + positionValue);
 		list.add("Minimum count per window: " + windowCount);
@@ -218,12 +190,10 @@ public class Metric {
 
 	public void addChromosome(String name) {
 		if ( ! recordMap.containsKey(name)) {
-			TreeMap<Integer, MetricRecord> map = new TreeMap<>();
-			recordMap.put(name, map);
+			recordMap.put(name, new TreeMap<>());
 		}
 		if ( ! summaryMap.containsKey(name)) {
-			TreeMap<Integer, ResultSummary> map = new TreeMap<>();
-			summaryMap.put(name, map);
+			summaryMap.put(name, new TreeMap<>());
 		}
 	}
 

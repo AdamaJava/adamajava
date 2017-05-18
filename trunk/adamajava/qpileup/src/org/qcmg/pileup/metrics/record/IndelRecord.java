@@ -46,18 +46,10 @@ public class IndelRecord extends MetricRecord {
 		return allDelCount;
 	}
 
-	public void setForwardCount(long forwardCount) {
-		this.forwardCount = forwardCount;
-	}
-
 	public long getReverseCount() {
 		return reverseCount;
 	}
 
-	public void setReverseCount(long reverseCount) {
-		this.reverseCount = reverseCount;
-	}
-	
 	@Override
 	public boolean hasStrandBias() {
 		if ( getPercentage(count.longValue(), totalReads) > 20) {		

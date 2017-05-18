@@ -9,8 +9,8 @@ import org.qcmg.pileup.PileupConstants;
 
 public class NonReferenceMetricRecord extends MetricRecord {
 	
-	private long forwardCount;
-	private long reverseCount;
+	private final long forwardCount;
+	private final long reverseCount;
 	
 	public NonReferenceMetricRecord(String chromosome, int basePosition, int count, int forCount, int revCount, int totalReads) {
 		super(PileupConstants.METRIC_NONREFBASE,chromosome, basePosition, count, totalReads);
@@ -22,16 +22,8 @@ public class NonReferenceMetricRecord extends MetricRecord {
 		return forwardCount;
 	}
 
-	public void setForwardCount(long forwardCount) {
-		this.forwardCount = forwardCount;
-	}
-
 	public long getReverseCount() {
 		return reverseCount;
-	}
-
-	public void setReverseCount(long reverseCount) {
-		this.reverseCount = reverseCount;
 	}
 
 	

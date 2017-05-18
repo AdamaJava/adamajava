@@ -15,7 +15,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.qcmg.pileup.PileupConstants;
 import org.qcmg.pileup.metrics.record.HighCoverageRecord;
 import org.qcmg.pileup.metrics.record.ResultRecord;
-import org.qcmg.pileup.metrics.record.ResultSummary;
 import org.qcmg.pileup.model.Chromosome;
 import org.qcmg.pileup.model.QPileupRecord;
 
@@ -29,29 +28,15 @@ public class HighCoverageMetric extends Metric {
 		super(PileupConstants.METRIC_HCOV, minPosCount, minWinCount, minTotalBases);
 	}
 	
-//	public Map<String, TreeMap<Integer, HighCoverageRecord>> getQualRecordMap() {
-//		return qualRecordMap;
-//	}
-
-//	public void setQualRecordMap(
-//			Map<String, TreeMap<Integer, HighCoverageRecord>> qualRecordMap) {
-//		this.qualRecordMap = qualRecordMap;
-//	}
-
 	@Override
 	public AtomicLong getRecordCount() {
 		return recordCount;
 	}
 
-	@Override
-	public void setRecordCount(AtomicLong recordCount) {
-		this.recordCount = recordCount;
-	}
-
 
 	@Override
 	public List<String> getOptionsSummary() {
-		List<String> list = new ArrayList<String>();
+		List<String> list = new ArrayList<String>(4);
 		list.add("Metric type: " + type);
 		list.add("Maximum average quality per position: " + positionValue);
 		list.add("Minimum count per window: " + windowCount);

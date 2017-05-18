@@ -7,9 +7,9 @@ import java.text.DecimalFormat;
 
 public class StrandBiasRecord {
 	
-	String chromosome; 
-	int position;	
-	char refBase;
+	private final String chromosome; 
+	private final int position;	
+	private final char refBase;
 	private char forwardAltBase;
 	private int forwardAltCount = 0;
 	private int forwardRefCount = 0;
@@ -34,74 +34,38 @@ public class StrandBiasRecord {
 		return chromosome;
 	}
 
-	public void setChromosome(String chromosome) {
-		this.chromosome = chromosome;
-	}
-
 	public int getPosition() {
 		return position;
-	}
-
-	public void setPosition(int position) {
-		this.position = position;
 	}
 
 	public char getRefBase() {
 		return refBase;
 	}
 
-	public void setRefBase(char refBase) {
-		this.refBase = refBase;
-	}
-
 	public char getForwardAltBase() {
 		return forwardAltBase;
-	}
-
-	public void setForwardAltBase(char forwardAltBase) {
-		this.forwardAltBase = forwardAltBase;
 	}
 
 	public int getForwardAltCount() {
 		return forwardAltCount;
 	}
 
-	public void setForwardAltCount(int forwardAltCount) {
-		this.forwardAltCount = forwardAltCount;
-	}
-
 	public int getForwardRefCount() {
 		return forwardRefCount;
-	}
-
-	public void setForwardRefCount(int forwardRefCount) {
-		this.forwardRefCount = forwardRefCount;
 	}
 
 	public char getReverseAltBase() {
 		return reverseAltBase;
 	}
 
-	public void setReverseAltBase(char reverseAltBase) {
-		this.reverseAltBase = reverseAltBase;
-	}
-
 	public int getReverseAltCount() {
 		return reverseAltCount;
-	}
-
-	public void setReverseAltCount(int reverseAltCount) {
-		this.reverseAltCount = reverseAltCount;
 	}
 
 	public int getReverseRefCount() {
 		return reverseRefCount;
 	}
 
-	public void setReverseRefCount(int reverseRefCount) {
-		this.reverseRefCount = reverseRefCount;
-	}
-	
 	public double getPercentForwardAlt() {
 		return percentForwardAlt;
 	}

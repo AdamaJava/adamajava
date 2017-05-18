@@ -7,25 +7,15 @@ import org.qcmg.pileup.PileupConstants;
 
 public class HighCoverageRecord extends MetricRecord {
 
-	double avgTotalReads = 0;
-	
-
-
+	private final double avgTotalReads;
 
 	public HighCoverageRecord(String chromosome, Integer position, long count, int totalBases, double avgTotalReads) {
 		super(PileupConstants.METRIC_HCOV, chromosome, position, count, totalBases);
 		this.avgTotalReads = avgTotalReads;				
 	}
-	
 
 	public double getAvgTotalReads() {
 		return avgTotalReads;
 	}
-
-
-	public void setAvgTotalReads(double avgTotalReads) {
-		this.avgTotalReads = avgTotalReads;
-	}
-	
 
 }

@@ -7,23 +7,16 @@ import org.qcmg.pileup.PileupConstants;
 
 public class MappingQualityRecord extends MetricRecord {
 
-	double avgMappingQual = 0;
+	private final double avgMappingQual;
 	
 
 	public MappingQualityRecord(String chromosome, Integer position, long count, int totalBases) {
 		super(PileupConstants.METRIC_MAPPING, chromosome, position, count, totalBases);
-		this.avgMappingQual = 0;
-		if (count > 0 && totalBases > 0) {
-			this.avgMappingQual = (double) count / (double) totalBases;
-		}		
+		this.avgMappingQual = count > 0 && totalBases > 0 ? (double) count / (double) totalBases : 0;
 	}
 	
 	public double getAvgMappingQual() {
 		return avgMappingQual;
-	}
-
-	public void setAvgMappingQual(double avgMappingQual) {
-		this.avgMappingQual = avgMappingQual;
 	}
 
 }
