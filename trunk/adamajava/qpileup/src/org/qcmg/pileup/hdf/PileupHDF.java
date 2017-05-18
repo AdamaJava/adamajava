@@ -113,19 +113,15 @@ public class PileupHDF {
 	
 	public synchronized List<Chromosome> getChromosomeLengths() throws Exception {
 		List<Chromosome> chromosomes = new ArrayList<>();
-		List<String> groupList = getRootGroupMembers();	
 
-		for (String group: groupList) {
-			if (!group.equals("/metadata")) {
+		for (String group: getRootGroupMembers()) {
+			if ( ! group.equals("/metadata")) {
 				String name = group.replace("/", "");
 				int length = getGroupIntegerAttribute(group);				
-				Chromosome chr = new Chromosome(name, length);
-				chromosomes.add(chr);
+				chromosomes.add(new Chromosome(name, length));
 			}			
 		}
 		
-		//Collections.sort(chromosomes);		
-
 		return chromosomes;
 	}	
 
@@ -218,13 +214,7 @@ public class PileupHDF {
 	}	
 
 	public synchronized String[] getMetadataRecords(String fullName) throws Exception {
-		String[] records = null;
-		if (useHDFObject) {
-			records = (String[]) readDatasetBlock(fullName, 0, -1);
-		} else {
-			records = (String[]) readH5ScalarDSBlock(fullName, 0, -1);
-		}
-		return records;	
+		return  useHDFObject ? (String[]) readDatasetBlock(fullName, 0, -1) :  (String[]) readH5ScalarDSBlock(fullName, 0, -1);
 	}
 	
 	public synchronized void writeDatasetBlock(String name, int startIndex, int length, Object array) throws Exception {
@@ -262,7 +252,7 @@ public class PileupHDF {
 
 	public synchronized void extendStringDatasetBlock(String datasetName, int startIndex, int newLength) throws Exception {
 		
-		int datasetId = -1, dataspaceId = -1, filespaceId = -1;
+		int datasetId;
 		long[] newDims = { newLength };
 		if (useHDFObject) {
 			Dataset dataset = (Dataset) hdfFile.get(datasetName);
@@ -270,13 +260,11 @@ public class PileupHDF {
 		} else {
 			datasetId = H5.H5Dopen(fileId, datasetName, HDF5Constants.H5P_DEFAULT);
 		}
-		filespaceId = H5.H5Dget_space(datasetId);
-		dataspaceId = H5.H5Screate_simple(1, newDims, null);
 		H5.H5Dset_extent(datasetId, newDims);
         H5.H5Fflush(datasetId, HDF5Constants.H5F_SCOPE_GLOBAL);
 		
-		H5.H5Sclose(dataspaceId);
-		H5.H5Sclose(filespaceId);
+		H5.H5Sclose(H5.H5Screate_simple(1, newDims, null));
+		H5.H5Sclose(H5.H5Dget_space(datasetId));
 		H5.H5Dclose(datasetId);
 	}
 	
@@ -456,11 +444,8 @@ public class PileupHDF {
 	public synchronized Object readScalarDatasetBlock(String datasetName, int startIndex, int size) throws Exception {
 		H5ScalarDS ds = (H5ScalarDS) hdfFile.get(datasetName);
 		ds.init();
-		int rank = ds.getRank();
 		long[] selectedDims = ds.getSelectedDims();
 		long[] start = ds.getStartDims();
-		long[] stride = ds.getStride();
-		rank = 1;
 		start[0] = startIndex;
 		selectedDims[0] = size;
 		Object data =  ds.read();
@@ -473,11 +458,8 @@ public class PileupHDF {
 
 		Dataset ds = (ScalarDS) hdfFile.get(name);
 		ds.init();
-		int rank = ds.getRank();
 		long[] selectedDims = ds.getSelectedDims();
 		long[] start = ds.getStartDims();
-		long[] stride = ds.getStride();
-		rank = 1;
 		start[0] = startIndex;
 		selectedDims[0] = length;						
 		ds.write(array);
@@ -485,12 +467,8 @@ public class PileupHDF {
 	}
 	
 	public synchronized Group createGroup(String name, String parentGroupName) throws Exception {
-		Group group = null;	
-
 		Group parentGroup = (Group) hdfFile.get(parentGroupName);
-		group = hdfFile.createGroup(name, parentGroup);
-
-		return group;		
+		return hdfFile.createGroup(name, parentGroup);		
 	}	
 
 	//==========================================H5 methods================================================//
