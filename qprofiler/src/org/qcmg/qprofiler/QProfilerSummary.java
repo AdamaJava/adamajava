@@ -19,18 +19,18 @@
 
 package org.qcmg.qprofiler;
 
-import java.io.File;
+
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-
 import org.qcmg.qprofiler.report.SummaryReport;
-import org.w3c.dom.Document;
+
+import org.w3c.dom.bootstrap.DOMImplementationRegistry;
+import org.w3c.dom.ls.DOMImplementationLS;
+import org.w3c.dom.ls.LSOutput;
+import org.w3c.dom.ls.LSSerializer;
 import org.w3c.dom.Element;
 
 public class QProfilerSummary {
@@ -98,20 +98,21 @@ public class QProfilerSummary {
 	 * @param filename String representing the output file name 
 	 * @throws Exception thrown if problems occur creating the output file and transforming the xml into the file
 	 */
-	public void asXmlText( Element parent, String filename ) throws Exception {		
-		// Reading an XML file
-		Document doc = parent.getOwnerDocument();		
-		File xmlFile = new File( filename );
-
-		// Use a Transformer for output
-		TransformerFactory tFactory = TransformerFactory.newInstance();
-		Transformer transformer = tFactory.newTransformer();
-		transformer.setOutputProperty( OutputKeys.INDENT, "yes" );
-		transformer.setOutputProperty( OutputKeys.ENCODING, "ISO-8859-1" );
-		
-		DOMSource source = new DOMSource( doc );
-		StreamResult sr = new StreamResult( xmlFile );
-		transformer.transform( source, sr );
-	}
 	
+
+	public void asXmlText( Element parent, String filename )  {		
+		
+		try{        
+			DOMImplementationLS	impl = (DOMImplementationLS) DOMImplementationRegistry.newInstance().getDOMImplementation("XML 3.0 LS 3.0");	
+	        LSSerializer serializer = impl.createLSSerializer();
+	        serializer.getDomConfig().setParameter("format-pretty-print", true); //$NON-NLS-1$
+	        serializer.getDomConfig().setParameter("namespaces", false); //$NON-NLS-1$
+	        LSOutput output = impl.createLSOutput();
+	        output.setCharacterStream(new OutputStreamWriter(new FileOutputStream(filename)));
+	        serializer.write(parent.getOwnerDocument(), output);
+		}catch( ClassNotFoundException | InstantiationException | IllegalAccessException | ClassCastException | IOException ex){
+			ex.printStackTrace();
+		}
+		
+	}
 }
