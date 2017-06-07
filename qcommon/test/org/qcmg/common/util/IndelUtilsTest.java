@@ -72,32 +72,15 @@ public class IndelUtilsTest {
 		assertEquals(true, IndelUtils.refSameLengthAsAlts("ZX", "11,22,33,44,55,66,77,88,99"));
 	}
 	
-//	@Test
-//	public void areAltsSameLength() {
-//		try {
-//			assertEquals(false, IndelUtils.areAltsSameLength(null));
-//			Assert.fail("Should have thrown an IAE");
-//		} catch (IllegalArgumentException iae) {}
-//		try {
-//			assertEquals(false, IndelUtils.areAltsSameLength(""));
-//			Assert.fail("Should have thrown an IAE");
-//		} catch (IllegalArgumentException iae) {}
-//		
-//		assertEquals(true, IndelUtils.areAltsSameLength("A"));
-//		assertEquals(true, IndelUtils.areAltsSameLength("B"));
-//		assertEquals(true, IndelUtils.areAltsSameLength("c"));
-//		assertEquals(true, IndelUtils.areAltsSameLength("d"));
-//		assertEquals(true, IndelUtils.areAltsSameLength("d,e"));
-//		assertEquals(true, IndelUtils.areAltsSameLength("d,e,f"));
-//		assertEquals(true, IndelUtils.areAltsSameLength("d,e,f,g"));
-//		assertEquals(false, IndelUtils.areAltsSameLength("d,e,f,gh"));
-//		assertEquals(false, IndelUtils.areAltsSameLength("de,f,g,h"));
-//		assertEquals(false, IndelUtils.areAltsSameLength("d,e,fg,h"));
-//		assertEquals(true, IndelUtils.areAltsSameLength("d,e,f,g,h"));
-//		assertEquals(false, IndelUtils.areAltsSameLength("d,eee,fff,ggg,h"));
-//		assertEquals(false, IndelUtils.areAltsSameLength("dd,eee,fff,ggg,hhh"));
-//		assertEquals(true, IndelUtils.areAltsSameLength("ddd,eee,fff,ggg,hhh"));
-//	}
+	@Test
+	public void getMoti() {
+		assertEquals("C", IndelUtils.getMotif("C", "A", SVTYPE.SNP));
+		assertEquals("ABC", IndelUtils.getMotif("ABC", "DEF", SVTYPE.SNP));
+		assertEquals("ABC", IndelUtils.getMotif("ABC", "DEF", SVTYPE.DNP));
+		assertEquals("B", IndelUtils.getMotif("AB", "A", SVTYPE.DEL));
+		assertEquals("C", IndelUtils.getMotif("BC", "B", SVTYPE.DEL));
+		assertEquals("CDEF", IndelUtils.getMotif("B", "BCDEF", SVTYPE.INS));
+	}
 	
 	@Test
 	public void areAltsSameLength() {
