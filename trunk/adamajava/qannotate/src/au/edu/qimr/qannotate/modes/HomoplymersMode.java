@@ -89,18 +89,18 @@ public class HomoplymersMode extends AbstractMode{
 		ChrRangePosition pos = new ChrRangePosition(  re.getChrPosition());
 		SVTYPE variantType = IndelUtils.getVariantType(re.getRef(), re.getAlt());
 		String motif = IndelUtils.getMotif(re.getRef(), re.getAlt(), variantType);
-		byte[][] sideBases = getReferenceBase(base, pos, variantType);		
+		byte[][] sideBases = getReferenceBase(base, pos, variantType, homopolymerWindow);		
 		int homNo = findHomopolymer(sideBases,  motif,variantType);
 		String var = (variantType.equals(SVTYPE.INS) || variantType.equals(SVTYPE.DEL))?
 				motif : re.getAlt();
 		
-		String str = homNo + Constants.COMMA_STRING + getHomTxt(var, sideBases, variantType);
+		String str = homNo + Constants.COMMA_STRING + getHomTxt(var, sideBases, variantType, reportWindow);
 		re.appendInfo(VcfHeaderUtils.INFO_HOM + Constants.EQ + str);						 
 
 		return re; 
 	}
 	
-	private String getHomTxt(String variantStr, byte[][] updownReference, SVTYPE type ) {	
+	static String getHomTxt(String variantStr, byte[][] updownReference, SVTYPE type, int reportWindow ) {	
 		
 		//at the edge of reference, the report window maybe bigger than nearby base
 		int baseNo1 = Math.min(updownReference[0].length, reportWindow) ;	
@@ -122,7 +122,7 @@ public class HomoplymersMode extends AbstractMode{
 	}
 	
 	
-	private byte[][] getReferenceBase(byte[]  reference, ChrRangePosition pos, SVTYPE type) { 	
+	static byte[][] getReferenceBase(byte[]  reference, ChrRangePosition pos, SVTYPE type, int homopolymerWindow) { 	
 		//eg. INS: 21 T TC ,  DEL: 21  TCC T,  SNPs: TCC ATT
 		//T from INS or DEL  position.getPosition() is 21 but should be  referenceBase[20] which is end of upStream
 		//INS position.getEndPosition() is 21, downStream should start at referenceBase[21]
@@ -143,75 +143,75 @@ public class HomoplymersMode extends AbstractMode{
      	return new byte[][]{upstreamReference, downstreamReference};     	
 	}
 	
-	private int findHomopolymer(byte[][] updownReference, String motif, SVTYPE indelType){
+	static int findHomopolymer(byte[][] updownReference, String motif, SVTYPE indelType){
 			
-			int upBaseCount = 1;
-			int downBaseCount = 1;
-	 		//upstream - start from end since this is the side adjacent to the indel
-			//decide if it is contiguous		
-			int finalUpIndex = updownReference[0].length-1;	
-			
-			//count upstream homopolymer bases
-			char nearBase = (char) updownReference[0][finalUpIndex];
-			for (int i=finalUpIndex-1; i>=0; i--) {
-				if (nearBase == updownReference[0][i]) {
-					upBaseCount++;
-				} else {
-					break;
-				}
-			}
-			
-			//count downstream homopolymer
-			nearBase = (char) updownReference[1][0];
-			for (int i=1; i< updownReference[1].length; i++) {
-				if (nearBase == updownReference[1][i]) {
-					downBaseCount++;
-				} else {
-					break;
-				}
-			}
-			
-			int max  = 0;
-			//reset up or down stream for deletion and SNPs reference base
-			if(indelType.equals(SVTYPE.DEL) || indelType.equals(SVTYPE.SNP) || indelType.equals(SVTYPE.DNP)  
-					|| indelType.equals(SVTYPE.ONP) || indelType.equals(SVTYPE.TNP) ){			
-				byte[] mByte = motif.getBytes(); 	
-				
-				int left = 0;
-				nearBase = (char) updownReference[0][finalUpIndex];			
-				for(int i = 0; i < mByte.length; i ++ ) { 
-					if (nearBase == mByte[i]) {
-						left ++;
-					} else {
-						break;				 
-					}
-				}
-				upBaseCount += left; 
-							
-				int right = 0;
-				nearBase = (char) updownReference[1][0];
-				for(int i = mByte.length -1; i >=0; i--) { 
-					if (nearBase == mByte[i]) {
-						right++;
-					} else  {
-						break;
-					}
-				}
-				downBaseCount += right; 
-				
-				max = (left == right && left == mByte.length)? 
-						(downBaseCount + upBaseCount - mByte.length) : Math.max(downBaseCount, upBaseCount);
-							 			
+		int upBaseCount = 1;
+		int downBaseCount = 1;
+ 		//upstream - start from end since this is the side adjacent to the indel
+		//decide if it is contiguous		
+		int finalUpIndex = updownReference[0].length-1;	
+		
+		//count upstream homopolymer bases
+		char nearBase = (char) updownReference[0][finalUpIndex];
+		for (int i=finalUpIndex-1; i>=0; i--) {
+			if (nearBase == updownReference[0][i]) {
+				upBaseCount++;
 			} else {
-			    //INS don't have reference base
-				max = (updownReference[0][finalUpIndex] == updownReference[1][0] )? 
-						(downBaseCount + upBaseCount) : Math.max(downBaseCount, upBaseCount);
+				break;
 			}
-						
-			return (max == 1)? 0 : max;
 		}
+		
+		//count downstream homopolymer
+		nearBase = (char) updownReference[1][0];
+		for (int i=1; i< updownReference[1].length; i++) {
+			if (nearBase == updownReference[1][i]) {
+				downBaseCount++;
+			} else {
+				break;
+			}
+		}
+		
+		int max  = 0;
+		//reset up or down stream for deletion and SNPs reference base
+		if(indelType.equals(SVTYPE.DEL) || indelType.equals(SVTYPE.SNP) || indelType.equals(SVTYPE.DNP)  
+				|| indelType.equals(SVTYPE.ONP) || indelType.equals(SVTYPE.TNP) ){			
+			byte[] mByte = motif.getBytes(); 	
+			
+			int left = 0;
+			nearBase = (char) updownReference[0][finalUpIndex];			
+			for(int i = 0; i < mByte.length; i ++ ) { 
+				if (nearBase == mByte[i]) {
+					left ++;
+				} else {
+					break;				 
+				}
+			}
+			upBaseCount += left; 
+						
+			int right = 0;
+			nearBase = (char) updownReference[1][0];
+			for(int i = mByte.length -1; i >=0; i--) { 
+				if (nearBase == mByte[i]) {
+					right++;
+				} else  {
+					break;
+				}
+			}
+			downBaseCount += right; 
+			
+			max = (left == right && left == mByte.length)? 
+					(downBaseCount + upBaseCount - mByte.length) : Math.max(downBaseCount, upBaseCount);
+						 			
+		} else {
+		    //INS don't have reference base
+			max = (updownReference[0][finalUpIndex] == updownReference[1][0] )? 
+					(downBaseCount + upBaseCount) : Math.max(downBaseCount, upBaseCount);
+		}
+					
+		return (max == 1)? 0 : max;
+	}
 	
-   private static Map<String, byte[]> getReferenceBase(File reference) throws IOException{
+   static Map<String, byte[]> getReferenceBase(File reference) throws IOException{
 	   Map<String, byte[]> referenceBase = new HashMap<>();
 	   File indexFile = new File(reference.getAbsolutePath() + ".fai");
 	   FastaSequenceIndex index = new FastaSequenceIndex(indexFile);
