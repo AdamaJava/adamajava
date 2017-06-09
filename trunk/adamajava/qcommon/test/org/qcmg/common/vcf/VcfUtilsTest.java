@@ -576,6 +576,24 @@ public class VcfUtilsTest {
 	}
 	
 	@Test
+	public void isRecordASnpOrMnp() {
+		VcfRecord rec = new VcfRecord( new String[] {"1","1",".","A","G"});
+		assertEquals(true, VcfUtils.isRecordASnpOrMnp(rec));
+		rec = new VcfRecord( new String[] {"1","1",".","A","C,G"});
+		assertEquals(true, VcfUtils.isRecordASnpOrMnp(rec));
+		rec = new VcfRecord( new String[] {"1","1",".","A","C,G,T"});
+		assertEquals(true, VcfUtils.isRecordASnpOrMnp(rec));
+		rec = new VcfRecord( new String[] {"1","1",".","AC","CG,GA,TT"});
+		assertEquals(true, VcfUtils.isRecordASnpOrMnp(rec));
+		rec = new VcfRecord( new String[] {"1","1",".","AC","TT"});
+		assertEquals(true, VcfUtils.isRecordASnpOrMnp(rec));
+		rec = new VcfRecord( new String[] {"1","1",".","ACGT","TGCA"});
+		assertEquals(true, VcfUtils.isRecordASnpOrMnp(rec));
+		rec = new VcfRecord( new String[] {"1","1",".","ACGT","TGCA,VVVV"});
+		assertEquals(true, VcfUtils.isRecordASnpOrMnp(rec));
+	}
+	
+	@Test
 	public void testAdditionalSampleFF() {
 		VcfRecord rec = new VcfRecord( new String[] {"1","1",".","ACCACCACC","."});
 				//VcfUtils.createVcfRecord("1", 1, "");
