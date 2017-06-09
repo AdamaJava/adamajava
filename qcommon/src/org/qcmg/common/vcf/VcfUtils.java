@@ -438,6 +438,33 @@ public class VcfUtils {
 		return isSnp;
 	}
 	
+	public static boolean isRecordASnpOrMnp(VcfRecord vcf) {
+		if (null != vcf) {
+			final String ref = vcf.getRef();
+			final String alt = vcf.getAlt();
+			
+			if ( ! StringUtils.isNullOrEmpty(ref) && ! StringUtils.isNullOrEmpty(alt)) {
+				final int refLength = ref.length();
+				
+				if ( ! alt.contains(Constants.COMMA_STRING)) {
+					
+					/*
+					 * just check lengths match
+					 */
+					return refLength == alt.length();
+				} else {
+					String [] alts = alt.split(Constants.COMMA_STRING);
+					/*
+					 * need all of these alts to be the same length as the ref
+					 */
+					return Arrays.stream(alts).allMatch(s -> s.length() == refLength);
+				}
+				
+			}
+		}
+		return false;
+	}
+	
 	/**
 	 * Adds missing data '.' to the format field for the specified vcf record.
 	 * The position parameter indicates which column should have the missing data added to it.
