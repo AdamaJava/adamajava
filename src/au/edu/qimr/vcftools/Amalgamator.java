@@ -98,7 +98,7 @@ public class Amalgamator {
 								String ref = rec.getRef();
 								String alt = rec.getAlt();
 							
-								ChrPositionName cpn  = new ChrPositionName(rec.getChrPosition().getChromosome(), rec.getChrPosition().getStartPosition(),  ref.length(), ref + "\t" + alt);
+								ChrPositionName cpn  = new ChrPositionName(rec.getChrPosition().getChromosome(), rec.getChrPosition().getStartPosition(),  rec.getChrPosition().getStartPosition() + ref.length() - 1 , ref + "\t" + alt);
 								String [][] arr = positions.computeIfAbsent(cpn, v -> new String[fileCount][2]);
 								
 								List<String> ffList = rec.getFormatFields();
