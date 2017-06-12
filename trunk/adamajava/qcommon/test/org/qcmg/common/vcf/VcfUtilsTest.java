@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -59,6 +60,23 @@ public class VcfUtilsTest {
 		assertEquals(count,106);
 		count = VcfUtils.getAltFrequency(format, "_CA");
 		assertEquals(count,3);		;
+	}
+	
+	@Test
+	public void getAlleleDistMap() {
+		String ac = "A7[41.29],9[38.56],C14[38.43],12[37.83]";
+		Map<String, Integer> m = VcfUtils.getAllelicCoverageFromAC(ac);
+		assertEquals(2, m.size());
+		assertEquals(16, m.get("A").intValue());
+		assertEquals(26, m.get("C").intValue());
+		
+		ac = "A7[],9[],C14[],12[],G1[],10[],T100[],0[]";
+		m = VcfUtils.getAllelicCoverageFromAC(ac);
+		assertEquals(4, m.size());
+		assertEquals(16, m.get("A").intValue());
+		assertEquals(26, m.get("C").intValue());
+		assertEquals(11, m.get("G").intValue());
+		assertEquals(100, m.get("T").intValue());
 	}
 	
 	@Test

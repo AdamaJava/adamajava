@@ -88,7 +88,7 @@ public class VcfUtils {
 		 return count;
 	 }
 	
-	public static Map<String, Integer> getAllelicCoverage(String oabs) {
+	public static Map<String, Integer> getAllelicCoverageFromOABS(String oabs) {
 		
 		/*
 		 * need to decompose the OABs string into a map of string keys and corresponding counts
@@ -124,7 +124,48 @@ public class VcfUtils {
 		
 		return Collections.emptyMap();
 	}
-	 
+	
+	public static Map<String, Integer> getAllelicCoverageFromAC(String ac) {
+		
+		/*
+		 * need to decompose the OABs string into a map of string keys and corresponding counts
+		 * A7[41.29],9[38.56],C14[38.43],12[37.83]
+		 */
+		if ( ! StringUtils.isNullOrEmptyOrMissingData(ac)) {
+			
+			String [] a = ac.split(Constants.COMMA_STRING);
+			Map<String, Integer> m = new HashMap<>(a.length * 2);
+			
+			for (int j = 0 ; j < a.length ; j++) {
+				String pileup = a[j];
+				int openBracketIndex = pileup.indexOf(Constants.OPEN_SQUARE_BRACKET);
+				int startOfNumberIndex = 1;
+				for (int i = 1 ; i < openBracketIndex ; i++) {
+					char c = pileup.charAt(i);
+					if (Character.isDigit(c)) {
+						/*
+						 * end of the line
+						 */
+						startOfNumberIndex = i;
+						break;
+					}
+				}
+				
+				/*
+				 * get fs + rs count
+				 */
+				int fsCount = Integer.parseInt(pileup.substring(startOfNumberIndex, openBracketIndex));
+				String rs = a[++j];
+				openBracketIndex = rs.indexOf(Constants.OPEN_SQUARE_BRACKET);
+				int rsCount = Integer.parseInt(rs.substring(0, openBracketIndex));
+				m.put(pileup.substring(0, startOfNumberIndex),  fsCount + rsCount);
+			}
+			return m;
+		}
+		
+		return Collections.emptyMap();
+	}
+	
 	/**
 	 * Gets just the filters that end in the suppled suffix
 	 * USed for merged vcf records where the input file position is appended to each filter value
