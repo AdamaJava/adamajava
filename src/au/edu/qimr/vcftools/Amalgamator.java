@@ -64,7 +64,7 @@ public class Amalgamator {
 			}
 			
 			
-			String header = "#chr\tposition\tref\talt\tgold_standard";
+			String header = "#chr\tposition\tref\talt";
 			for (int i = 1 ; i <= vcfFiles.length ; i++) {
 				header += "\tGT:" + i;
 			}
@@ -123,9 +123,14 @@ public class Amalgamator {
 									 */
 									for (int z = 0 ; z < ref.length() ; z++) {
 										
-										ChrPositionName cpn  = new ChrPositionName(rec.getChrPosition().getChromosome(), rec.getChrPosition().getStartPosition(),  rec.getChrPosition().getStartPosition() + z , ref.charAt(z) + "\t" + alt.charAt(z));
+										ChrPositionName cpn  = new ChrPositionName(rec.getChrPosition().getChromosome(), rec.getChrPosition().getStartPosition() + z,  rec.getChrPosition().getStartPosition() + z , ref.charAt(z) + "\t" + alt.charAt(z));
 										String [][] arr = positions.computeIfAbsent(cpn, v -> new String[fileCount][2]);
 										
+										/*
+										 * most likely don't have GT and AC info for cs
+										 */
+										arr[index][0] =  "C/S";
+										arr[index][1] =  "C,S,0";
 									}
 								} else {
 								
@@ -139,15 +144,19 @@ public class Amalgamator {
 									 */
 									String [] formatHeaders = ffList.get(0).split(":");
 									int j = 0;
-									int position = 0;
+									int gtPosition = 0;
+									int oabsPosition = 0;
+									
 									for (String h : formatHeaders) {
 										if (VcfHeaderUtils.FORMAT_GENOTYPE.equals(h)) {
-											position = j;
-											break;
+											gtPosition = j;
+										} else  if (VcfHeaderUtils.FORMAT_ALLELE_COUNT.equals(h)) {
+											oabsPosition = j;
 										}
 										j++;
 									}
-									String gts = ffList.get(1).split(":")[position];
+									String [] params = ffList.get(1).split(":"); 
+									String gts = params[gtPosition];
 									/*
 									 * this could contain the ampesand - if so, get first (qsnp) element
 									 */
@@ -156,6 +165,19 @@ public class Amalgamator {
 										gts = gts.substring(0, ampesandIndex);
 									}
 									arr[index][0] =  gts;
+									/*
+									 * get allele dist next
+									 */
+									String oabs = params[oabsPosition];
+									ampesandIndex = oabs.indexOf(Constants.VCF_MERGE_DELIM);
+									if (ampesandIndex > -1) {
+										oabs = oabs.substring(0, ampesandIndex);
+									}
+//									logger.info("attempting to get allele dist for ac: " + oabs);
+									Map<String, Integer> alleleDist = VcfUtils.getAllelicCoverageFromAC(oabs);
+									arr[index][1] =  getAllelicDistFromMap(alleleDist, ref, alt);
+									
+									
 								}
 							}
 						}
@@ -163,10 +185,22 @@ public class Amalgamator {
 				}
 			}
 			logger.info("input: " + (index+1) + " has " + i + " entries");
+			logger.info("positions size: " + positions.size());
 			i = 0;
 			index++;
 		}
 		logger.info("Number of positions to be reported upon: " + positions.size());
+	}
+	
+	/*
+	 * Returns a string representing the coverage counts of ref, alt and rest based on entries in the supplied map
+	 */
+	static String getAllelicDistFromMap(Map<String, Integer> map, String ref, String alt) {
+		int refCount = map.computeIfAbsent(ref, v -> Integer.valueOf(0)).intValue();
+		int altCount = map.computeIfAbsent(alt, v -> Integer.valueOf(0)).intValue();
+		int restCount = map.entrySet().stream().filter(kv -> ! kv.getKey().equals(ref) && ! kv.getKey().equals(alt)).mapToInt(kv -> kv.getValue().intValue()).sum();
+		
+		return refCount + Constants.COMMA_STRING + altCount + Constants.COMMA_STRING + restCount; 
 	}
 	
 	public static final boolean isRecordHighConfOrPass(VcfRecord r) {
