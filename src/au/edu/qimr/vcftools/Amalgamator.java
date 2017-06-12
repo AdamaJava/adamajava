@@ -115,13 +115,13 @@ public class Amalgamator {
 									}
 									j++;
 								}
-								arr[index][0] =  ffList.get(1).split(":")[position];
+								arr[index++][0] =  ffList.get(1).split(":")[position];
 							}
 						}
 					}
 				}
 			}
-			logger.info("input1 has " + i + " entries");
+			logger.info("input: " + index + " has " + i + " entries");
 			i = 0;
 		}
 	}
