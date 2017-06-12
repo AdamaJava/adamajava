@@ -60,10 +60,10 @@ public class Amalgamator {
 				String gts = "";
 				String covs = "";
 				for(String[] arr : arrs) {
-					gts += "\t" + arr[0];
-					covs += "\t" + arr[1];
+					gts += "\t" + (null != arr[0] ? arr[0] : "./.");
+					covs += "\t" + (null != arr[1] ? arr[1] : ".");
 				}
-				ps.println(cpn.getChromosome() + "\t" + cpn.getStartPosition() + "\t" + cpn.getEndPosition() + "\t" + cpn.getName() + gts + covs);
+				ps.println(cpn.getChromosome() + "\t" + cpn.getStartPosition() + "\t" + cpn.getName() + gts + covs);
 			}
 		}
 		
@@ -120,9 +120,9 @@ public class Amalgamator {
 								/*
 								 * this could contain the ampesand - if so, get first (qsnp) element
 								 */
-								int ampseandINdex = gts.indexOf(Constants.VCF_MERGE_DELIM);
-								if (ampseandINdex > -1) {
-									gts = gts.substring(0, ampseandINdex);
+								int ampesandIndex = gts.indexOf(Constants.VCF_MERGE_DELIM);
+								if (ampesandIndex > -1) {
+									gts = gts.substring(0, ampesandIndex);
 								}
 								arr[index][0] =  gts;
 							}
@@ -134,6 +134,7 @@ public class Amalgamator {
 			i = 0;
 			index++;
 		}
+		logger.info("Number of positions to be reported upon: " + positions.size());
 	}
 	
 	public static final boolean isRecordHighConfOrPass(VcfRecord r) {
