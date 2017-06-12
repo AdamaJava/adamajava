@@ -65,10 +65,10 @@ public class Amalgamator {
 			
 			
 			String header = "#chr\tposition\tref\talt\tgold_standard";
-			for (int i = 0 ; i < vcfFiles.length ; i++) {
+			for (int i = 1 ; i <= vcfFiles.length ; i++) {
 				header += "\tGT:" + i;
 			}
-			for (int i = 0 ; i < vcfFiles.length ; i++) {
+			for (int i = 1 ; i <= vcfFiles.length ; i++) {
 				header += "\tAC:" + i;
 			}
 			ps.println(header);
@@ -113,35 +113,50 @@ public class Amalgamator {
 							 * only deal with snps and compounds for now
 							 */
 							if (VcfUtils.isRecordASnpOrMnp(rec)) {
+								
 								String ref = rec.getRef();
 								String alt = rec.getAlt();
-							
-								ChrPositionName cpn  = new ChrPositionName(rec.getChrPosition().getChromosome(), rec.getChrPosition().getStartPosition(),  rec.getChrPosition().getStartPosition() + ref.length() - 1 , ref + "\t" + alt);
-								String [][] arr = positions.computeIfAbsent(cpn, v -> new String[fileCount][2]);
 								
-								List<String> ffList = rec.getFormatFields();
-								/*
-								 * get position of GT from first entry, and then get second (germline and qsnp)
-								 */
-								String [] formatHeaders = ffList.get(0).split(":");
-								int j = 0;
-								int position = 0;
-								for (String h : formatHeaders) {
-									if (VcfHeaderUtils.FORMAT_GENOTYPE.equals(h)) {
-										position = j;
-										break;
+								if (ref.length() > 1) {
+									/*
+									 * split cs into constituent snps
+									 */
+									for (int z = 0 ; z < ref.length() ; z++) {
+										
+										ChrPositionName cpn  = new ChrPositionName(rec.getChrPosition().getChromosome(), rec.getChrPosition().getStartPosition(),  rec.getChrPosition().getStartPosition() + z , ref.charAt(z) + "\t" + alt.charAt(z));
+										String [][] arr = positions.computeIfAbsent(cpn, v -> new String[fileCount][2]);
+										
 									}
-									j++;
+								} else {
+								
+								
+									ChrPositionName cpn  = new ChrPositionName(rec.getChrPosition().getChromosome(), rec.getChrPosition().getStartPosition(),  rec.getChrPosition().getStartPosition() + ref.length() - 1 , ref + "\t" + alt);
+									String [][] arr = positions.computeIfAbsent(cpn, v -> new String[fileCount][2]);
+									
+									List<String> ffList = rec.getFormatFields();
+									/*
+									 * get position of GT from first entry, and then get second (germline and qsnp)
+									 */
+									String [] formatHeaders = ffList.get(0).split(":");
+									int j = 0;
+									int position = 0;
+									for (String h : formatHeaders) {
+										if (VcfHeaderUtils.FORMAT_GENOTYPE.equals(h)) {
+											position = j;
+											break;
+										}
+										j++;
+									}
+									String gts = ffList.get(1).split(":")[position];
+									/*
+									 * this could contain the ampesand - if so, get first (qsnp) element
+									 */
+									int ampesandIndex = gts.indexOf(Constants.VCF_MERGE_DELIM);
+									if (ampesandIndex > -1) {
+										gts = gts.substring(0, ampesandIndex);
+									}
+									arr[index][0] =  gts;
 								}
-								String gts = ffList.get(1).split(":")[position];
-								/*
-								 * this could contain the ampesand - if so, get first (qsnp) element
-								 */
-								int ampesandIndex = gts.indexOf(Constants.VCF_MERGE_DELIM);
-								if (ampesandIndex > -1) {
-									gts = gts.substring(0, ampesandIndex);
-								}
-								arr[index][0] =  gts;
 							}
 						}
 					}
