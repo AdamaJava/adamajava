@@ -55,6 +55,15 @@ public class Amalgamator {
 		
 		
 		try (PrintStream ps = new PrintStream(new FileOutputStream(new File(outputFileName)))) {
+			/*
+			 * put input files along with their positions into the file header
+			 */
+			int j = 1;
+			for (String s : vcfFiles) {
+				ps.println("##" + j++ + ": vcf file: " + s);
+			}
+			
+			
 			String header = "#chr\tposition\tref\talt\tgold_standard";
 			for (int i = 0 ; i < vcfFiles.length ; i++) {
 				header += "\tGT:" + i;
