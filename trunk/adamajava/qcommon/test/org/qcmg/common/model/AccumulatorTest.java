@@ -268,6 +268,27 @@ public class AccumulatorTest {
 	}
 	
 	@Test
+	public void getGenotypeRealLife() {
+		/*
+		 * C1[42],5[42],G0[0],60[40.07]
+		 */
+		Accumulator acc = new Accumulator(1);
+		for (int i = 1 ; i <= 60 ; i++) acc.addBase((byte)'G', (byte)40, false, 1, 1, 2, i);
+		for (int i = 1 ; i <= 5 ; i++) acc.addBase((byte)'C', (byte)42, false, 1, 1, 2, i + 61);
+		for (int i = 1 ; i <= 1 ; i++) acc.addBase((byte)'C', (byte)42, true, 1, 1, 2, i + 67);
+		
+		assertEquals("C1[42]5[42];G0[0]60[40]", acc.getObservedAllelesByStrand());
+		/*
+		 * first pass, we get hom wildtype
+		 */
+		assertEquals("GG", acc.getGenotype('G', new Rule(51, Integer.MAX_VALUE, 10), false, 10).toString());
+		/*
+		 * second pass, we get hom for alt!!!
+		 */
+		assertEquals("CC", acc.getGenotype('G', new Rule(51, Integer.MAX_VALUE, 10), true, 10).toString());
+	}
+	
+	@Test
 	public void testGetPileupElementString() {
 		Accumulator acc = new Accumulator(1);
 		for (int i = 0 ; i < 10 ; i++) acc.addBase((byte)'A', (byte)10, true, 1, 1, 2, 1);
