@@ -136,7 +136,7 @@ public class VcfUtils {
 			String [] a = ac.split(Constants.COMMA_STRING);
 			Map<String, Integer> m = new HashMap<>(a.length * 2);
 			
-			for (int j = 0 ; j < a.length ; j++) {
+			for (int j = 0 ; j < a.length ; j=j+2) {
 				String pileup = a[j];
 				int openBracketIndex = pileup.indexOf(Constants.OPEN_SQUARE_BRACKET);
 				int startOfNumberIndex = 1;
@@ -155,7 +155,7 @@ public class VcfUtils {
 				 * get fs + rs count
 				 */
 				int fsCount = Integer.parseInt(pileup.substring(startOfNumberIndex, openBracketIndex));
-				String rs = a[++j];
+				String rs = a[j+1];
 				openBracketIndex = rs.indexOf(Constants.OPEN_SQUARE_BRACKET);
 				int rsCount = Integer.parseInt(rs.substring(0, openBracketIndex));
 				m.put(pileup.substring(0, startOfNumberIndex),  fsCount + rsCount);
