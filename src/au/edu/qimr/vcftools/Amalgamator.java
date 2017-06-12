@@ -16,6 +16,7 @@ import org.qcmg.common.model.ChrPositionName;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.meta.QExec;
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.LoadReferencedClasses;
 import org.qcmg.common.vcf.VcfRecord;
@@ -115,14 +116,23 @@ public class Amalgamator {
 									}
 									j++;
 								}
-								arr[index++][0] =  ffList.get(1).split(":")[position];
+								String gts = ffList.get(1).split(":")[position];
+								/*
+								 * this could contain the ampesand - if so, get first (qsnp) element
+								 */
+								int ampseandINdex = gts.indexOf(Constants.VCF_MERGE_DELIM);
+								if (ampseandINdex > -1) {
+									gts = gts.substring(0, ampseandINdex);
+								}
+								arr[index][0] =  gts;
 							}
 						}
 					}
 				}
 			}
-			logger.info("input: " + index + " has " + i + " entries");
+			logger.info("input: " + (index+1) + " has " + i + " entries");
 			i = 0;
+			index++;
 		}
 	}
 	
