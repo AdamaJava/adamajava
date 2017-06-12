@@ -36,6 +36,8 @@ public class Constants {
 	public  static final char MINUS = '-';
 	public  static final char OPEN_BRACKET = '(';
 	public  static final char CLOSE_BRACKET = ')';
+	public  static final char OPEN_SQUARE_BRACKET = '[';
+	public  static final char CLOSE_SQUARE_BRACKET = ']';
 	
 	//at moment only for VcfInfoFieldRecord
 	public static final String NULL_STRING_UPPER_CASE = "NULL";

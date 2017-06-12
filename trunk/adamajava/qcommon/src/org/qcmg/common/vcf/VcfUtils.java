@@ -87,6 +87,43 @@ public class VcfUtils {
 		 
 		 return count;
 	 }
+	
+	public static Map<String, Integer> getAllelicCoverage(String oabs) {
+		
+		/*
+		 * need to decompose the OABs string into a map of string keys and corresponding counts
+		 */
+		if ( ! StringUtils.isNullOrEmptyOrMissingData(oabs)) {
+			
+			String [] a = oabs.split(Constants.SEMI_COLON_STRING);
+			Map<String, Integer> m = new HashMap<>(a.length * 2);
+			
+			for (String pileup : a) {
+				int openBracketIndex = pileup.indexOf(Constants.OPEN_SQUARE_BRACKET);
+				int startOfNumberIndex = 1;
+				for (int i = 1 ; i < openBracketIndex ; i++) {
+					char c = pileup.charAt(i);
+					if (Character.isDigit(c)) {
+						/*
+						 * end of the line
+						 */
+						startOfNumberIndex = i;
+						break;
+					}
+				}
+				
+				/*
+				 * get fs + rs count
+				 */
+				int fsCount = Integer.parseInt(pileup.substring(startOfNumberIndex, openBracketIndex));
+				int rsCount = Integer.parseInt(pileup.substring(pileup.indexOf(Constants.CLOSE_SQUARE_BRACKET) + 1, pileup.indexOf(Constants.OPEN_SQUARE_BRACKET, openBracketIndex + 1)));
+				m.put(pileup.substring(0, startOfNumberIndex),  fsCount + rsCount);
+			}
+			return m;
+		}
+		
+		return Collections.emptyMap();
+	}
 	 
 	/**
 	 * Gets just the filters that end in the suppled suffix
