@@ -55,6 +55,14 @@ public class Amalgamator {
 		
 		
 		try (PrintStream ps = new PrintStream(new FileOutputStream(new File(outputFileName)))) {
+			String header = "#chr\tposition\tref\talt\tgold_standard";
+			for (int i = 0 ; i < vcfFiles.length ; i++) {
+				header += "\tGT:" + i;
+			}
+			for (int i = 0 ; i < vcfFiles.length ; i++) {
+				header += "\tAC:" + i;
+			}
+			ps.println(header);
 			for (ChrPositionName cpn : recs) {
 				String[][] arrs = positions.get(cpn);
 				String gts = "";
