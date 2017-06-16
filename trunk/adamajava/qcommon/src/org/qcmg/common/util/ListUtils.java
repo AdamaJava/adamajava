@@ -35,5 +35,23 @@ public class ListUtils {
 		};
 		return c;
 	}
+	
+	/**
+	 * returns the first occurrence of the supplied string in the supplied array, or -1 if not present
+	 * 
+	 * @param array
+	 * @param s
+	 * @return
+	 */
+	public static int positionOfStringInArray(String [] array, String s) {
+		int i = 0;
+		for (String as : array) {
+			if (as.equals(s)) {
+				return i;
+			}
+			i++;
+		}
+		return -1;
+	}
 
 }
