@@ -1,5 +1,7 @@
 package org.qcmg.common.util;
 
+import static org.junit.Assert.*;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -24,6 +26,16 @@ public class ListUtilsTest {
 	}
 	
 	@Test
+	public void positionInArray() {
+		assertEquals(0, ListUtils.positionOfStringInArray(new String[]{"hello"}, "hello"));
+		assertEquals(-1, ListUtils.positionOfStringInArray(new String[]{"hello"}, "there"));
+		assertEquals(1, ListUtils.positionOfStringInArray(new String[]{"hello","there"}, "there"));
+		assertEquals(4, ListUtils.positionOfStringInArray(new String[]{"A","A","C","C","G","G","T","T"}, "G"));
+		assertEquals(6, ListUtils.positionOfStringInArray(new String[]{"A","A","C","C","G","G","T","T"}, "T"));
+		assertEquals(2, ListUtils.positionOfStringInArray(new String[]{"A","A","C","C","G","G","T","T"}, "C"));
+	}
+	
+	@Test
 	public void testListComparator() {
 		Comparator<String> abcde = ListUtils.createComparatorFromList(ABCDEF);
 		Comparator<String> ijk = ListUtils.createComparatorFromList(IJK);
@@ -37,11 +49,11 @@ public class ListUtilsTest {
 		
 		Collections.sort(unsortedList, abcde);
 		
-		Assert.assertEquals("A", unsortedList.get(0));
-		Assert.assertEquals("B", unsortedList.get(1));
-		Assert.assertEquals("C", unsortedList.get(2));
-		Assert.assertEquals("D", unsortedList.get(3));
-		Assert.assertEquals("E", unsortedList.get(4));
+		assertEquals("A", unsortedList.get(0));
+		assertEquals("B", unsortedList.get(1));
+		assertEquals("C", unsortedList.get(2));
+		assertEquals("D", unsortedList.get(3));
+		assertEquals("E", unsortedList.get(4));
 		
 		unsortedList.add("I");
 		unsortedList.add("J");
@@ -50,15 +62,15 @@ public class ListUtilsTest {
 		
 		Collections.sort(unsortedList, ijk);
 		
-		Assert.assertEquals("I", unsortedList.get(0));
-		Assert.assertEquals("J", unsortedList.get(1));
-		Assert.assertEquals("K", unsortedList.get(2));
-		Assert.assertEquals("A", unsortedList.get(3));
-		Assert.assertEquals("B", unsortedList.get(4));
-		Assert.assertEquals("C", unsortedList.get(5));
-		Assert.assertEquals("D", unsortedList.get(6));
-		Assert.assertEquals("E", unsortedList.get(7));
-		Assert.assertEquals("L", unsortedList.get(8));
+		assertEquals("I", unsortedList.get(0));
+		assertEquals("J", unsortedList.get(1));
+		assertEquals("K", unsortedList.get(2));
+		assertEquals("A", unsortedList.get(3));
+		assertEquals("B", unsortedList.get(4));
+		assertEquals("C", unsortedList.get(5));
+		assertEquals("D", unsortedList.get(6));
+		assertEquals("E", unsortedList.get(7));
+		assertEquals("L", unsortedList.get(8));
 	}
 	
 	@Test
