@@ -123,6 +123,33 @@ public class AccumulatorTest {
 	}
 	
 	@Test
+	public void getAlleleicDistribution() {
+		Accumulator acc = new Accumulator(1);
+		acc.addBase((byte)'A', (byte)10, true, 1, 1, 2, 1);
+		
+		assertEquals("1,0", acc.getAlleleicFrequencies('A',null));
+		assertEquals("1,0,0", acc.getAlleleicFrequencies('A',"A"));
+		assertEquals("1,0,0", acc.getAlleleicFrequencies('A',"C"));
+		assertEquals("1,0,0", acc.getAlleleicFrequencies('A',"T"));
+		assertEquals("1,0,0", acc.getAlleleicFrequencies('A',"X"));
+		
+		for (int i = 0 ; i < 5 ; i++) acc.addBase((byte)'G', (byte)10, true, 1, 1, 2, i);
+		assertEquals("1,5", acc.getAlleleicFrequencies('A',null));
+		assertEquals("1,0,5", acc.getAlleleicFrequencies('A',"A"));
+		assertEquals("1,0,5", acc.getAlleleicFrequencies('A',"C"));
+		assertEquals("1,5,0", acc.getAlleleicFrequencies('A',"G"));
+		assertEquals("1,0,5", acc.getAlleleicFrequencies('A',"X"));
+		
+		assertEquals("1,0,5,0", acc.getAlleleicFrequencies('A',"C,G"));
+		assertEquals("1,5,0,0", acc.getAlleleicFrequencies('A',"G,C"));
+		
+		for (int i = 0 ; i < 3 ; i++) acc.addBase((byte)'T', (byte)10, true, 1, 1, 2, i);
+		assertEquals("1,0,5,3", acc.getAlleleicFrequencies('A',"C,G"));
+		assertEquals("1,0,5,3,0", acc.getAlleleicFrequencies('A',"C,G,T"));
+		assertEquals("1,3,5", acc.getAlleleicFrequencies('A',"T"));
+	}
+	
+	@Test
 	public void testToSamtoolsPileupString2() {
 		Accumulator acc = new Accumulator(1);
 		acc.addBase((byte)'A', (byte)10, true, 1, 1, 2, 1);

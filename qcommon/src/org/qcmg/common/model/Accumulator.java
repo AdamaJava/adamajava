@@ -13,8 +13,10 @@ import gnu.trove.map.hash.TIntCharHashMap;
 import gnu.trove.procedure.TIntProcedure;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.PileupElementLiteUtil;
@@ -446,6 +448,42 @@ public class Accumulator {
 		}
 		
 		return pileup.toString();
+	}
+	
+	public String getAlleleicFrequencies(char ref, String alts) {
+		int refCount = getBaseCountForBase(ref);
+		
+		if (null == alts) {
+			/*
+			 * return ref count and other count
+			 */
+			return refCount + Constants.COMMA_STRING +(getCoverage() - refCount);
+		} else if (alts.length() == 1) {
+			char a = alts.charAt(0);
+			int altCount = ref != a ? getBaseCountForBase(alts.charAt(0)) : 0;
+			return refCount + Constants.COMMA_STRING + altCount + Constants.COMMA_STRING + (getCoverage() - refCount - altCount);
+			
+		} else {
+			/*
+			 * more than 1 alt
+			 */
+			String [] altsArray = alts.split(Constants.COMMA_STRING);
+			String [] altCounts = new String[altsArray.length];
+			int i = 0;
+			int tally = 0;
+			for (String s : altsArray) {
+				if (s.length() != 1 || s.charAt(0) == ref) {
+					/*
+					 * hmmm
+					 */
+				} else {
+					int count = getBaseCountForBase(s.charAt(0));
+					tally += count;
+					altCounts[i++] = count + "";
+				}
+			}
+			return refCount + Constants.COMMA_STRING + Arrays.stream(altCounts).collect(Collectors.joining(Constants.COMMA_STRING)) + Constants.COMMA_STRING + (getCoverage() - refCount - tally);
+		}
 	}
 	
 	public String getObservedAllelesByStrand() {
