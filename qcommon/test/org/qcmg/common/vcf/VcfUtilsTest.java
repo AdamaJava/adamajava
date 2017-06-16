@@ -112,7 +112,48 @@ public class VcfUtilsTest {
 		assertEquals("id", r.getId());
 		assertEquals("AAA", r.getRef());
 		assertEquals("alt", r.getAlt());
-				
+	}
+	
+	@Test
+	public void mergeAlts() {
+		assertEquals("A", VcfUtils.mergeAlts("A", "A"));
+		assertEquals("A,B", VcfUtils.mergeAlts("A", "B"));
+		assertEquals("A,B", VcfUtils.mergeAlts("A,B", "B"));
+		assertEquals("A,B,C", VcfUtils.mergeAlts("A,B,C", "B"));
+		assertEquals("A,B,C", VcfUtils.mergeAlts("A,B,C", "B,C"));
+		assertEquals("A,B,C", VcfUtils.mergeAlts("A,B", "B,C"));
+		assertEquals("A,B,C", VcfUtils.mergeAlts("A", "B,C"));
+		assertEquals("A,D,B,C", VcfUtils.mergeAlts("A,D", "B,C"));
+		assertEquals("AA", VcfUtils.mergeAlts("AA", "AA"));
+		assertEquals("AA,XX", VcfUtils.mergeAlts("AA", "XX"));
+		assertEquals("AA,BB,XX", VcfUtils.mergeAlts("AA,BB", "XX"));
+		assertEquals("AA,BB,XX", VcfUtils.mergeAlts("AA,BB", "BB,XX"));
+		assertEquals("AA,BB,XX", VcfUtils.mergeAlts("AA", "BB,XX"));
+		assertEquals("AA,BB,XX", VcfUtils.mergeAlts("AA", "BB,XX"));
+	}
+	
+	@Test
+	public void mergeAltsDiffLEngths() {
+		assertEquals("AA,A", VcfUtils.mergeAlts("AA", "A"));
+		assertEquals("A,AA", VcfUtils.mergeAlts("A", "AA"));
+	}
+	
+	@Test
+	public void getUpdatedGT() {
+		assertEquals("0/0", VcfUtils.getUpdatedGT("", "", "0/0"));
+		assertEquals("0/0", VcfUtils.getUpdatedGT("A", "A", "0/0"));
+		assertEquals("0/1", VcfUtils.getUpdatedGT("A", "A", "0/1"));
+		assertEquals("1/1", VcfUtils.getUpdatedGT("A", "A", "1/1"));
+		assertEquals("1/2", VcfUtils.getUpdatedGT("A", "A", "1/2"));
+		assertEquals("0/1", VcfUtils.getUpdatedGT("A,C", "A", "0/1"));
+		assertEquals("0/2", VcfUtils.getUpdatedGT("A,C", "C", "0/1"));
+		assertEquals("2/2", VcfUtils.getUpdatedGT("A,C", "C", "1/1"));
+		assertEquals("1/2", VcfUtils.getUpdatedGT("A,C", "A,C", "1/2"));
+		assertEquals("1/1", VcfUtils.getUpdatedGT("A,C", "A", "1/1"));
+		assertEquals("1/1", VcfUtils.getUpdatedGT("A,C", "A", "1/1"));
+		assertEquals("2/3", VcfUtils.getUpdatedGT("A,C,G", "C,G", "1/2"));
+		assertEquals("1/2", VcfUtils.getUpdatedGT("A,C,G", "A,C", "1/2"));
+		assertEquals("2/1", VcfUtils.getUpdatedGT("A,C", "C,A", "1/2"));
 	}
 	
 	@Test
