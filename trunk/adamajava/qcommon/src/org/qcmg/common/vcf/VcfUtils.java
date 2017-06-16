@@ -30,6 +30,7 @@ import org.qcmg.common.model.GenotypeEnum;
 import org.qcmg.common.model.PileupElement;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
+import org.qcmg.common.util.ListUtils;
 import org.qcmg.common.util.SnpUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 
@@ -926,6 +927,81 @@ public class VcfUtils {
 		} else {
 			return true;
 		}
+	}
+	
+	/**
+	 * merges the 2 supplied alt strings.
+	 * Returns a comma separated merged string containing the contents of the supplied alts
+	 * This will merge alts of different lengths, so if this is not desired, please
+	 * 
+	 * 
+	 * @param existingAlt
+	 * @param newAlt
+	 * @return
+	 */
+	public static String mergeAlts(String existingAlt, String newAlt) {
+		
+		if (existingAlt.equals(newAlt)) {
+			return existingAlt;
+		} else {
+			/*
+			 * possible scenarios:
+			 * - both existing and new alts contain a single alt, and are different (most likely)
+			 * -  existing contains multiple alts, one of which is the new alt
+			 * -  existing contains single alt, new alt contains multiple one of which is the existing
+			 * -  existing contains multiple alt, new alt contains multiple and they are all different
+			 */
+			int existingIndex = existingAlt.indexOf(Constants.COMMA_STRING);
+			int newIndex = newAlt.indexOf(Constants.COMMA_STRING);
+			
+			if (existingIndex == newIndex && existingIndex == -1) {
+				/*
+				 * append and return 
+				 */
+				return existingAlt + Constants.COMMA + newAlt;
+			} else {
+				String [] existingAltsArray = existingAlt.split(Constants.COMMA_STRING);
+				String [] newAltsArray = newAlt.split(Constants.COMMA_STRING);
+				
+				for (String ns : newAltsArray) {
+					/*
+					 * does this appear in the existing array?
+					 */
+					boolean match = false;
+					for (String es : existingAltsArray) {
+						if (ns.equals(es)) {
+							match = true;
+							break;
+						}
+					}
+					if ( ! match) {
+						existingAlt += Constants.COMMA_STRING + ns;
+					}
+				}
+				return existingAlt;
+			}
+		}
+	}
+	
+	public static String getUpdatedGT(String alts, String oldAlt, String oldGT) {
+		
+		if (alts.equals(oldAlt) || alts.startsWith(oldAlt + Constants.COMMA) || "0/0".equals(oldGT)) {
+			/*
+			 * no change
+			 */
+			return oldGT;
+		}
+		
+		int index = oldGT.indexOf("/");
+		int first = Integer.parseInt(oldGT.substring(0, index));
+		int second = Integer.parseInt(oldGT.substring(index + 1));
+		String [] oldAltArray = oldAlt.split(Constants.COMMA_STRING);
+		String [] altsArray = alts.split(Constants.COMMA_STRING);
+		
+		int newFirst = first > 0 ?  ListUtils.positionOfStringInArray(altsArray, oldAltArray[first -1]) + 1 : first;
+		int newSecond = second > 0 ?  ListUtils.positionOfStringInArray(altsArray, oldAltArray[second -1]) + 1: second;
+		
+		return newFirst + "/" + newSecond;
 	}
 	
 	
