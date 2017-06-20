@@ -2,6 +2,7 @@ package org.qcmg.snp;
 
 import static org.junit.Assert.assertEquals;
 import static org.qcmg.common.util.Constants.COLON;
+
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
@@ -21,6 +22,7 @@ import org.qcmg.common.util.Pair;
 import org.qcmg.common.util.SnpUtils;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
+import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.pileup.QSnpRecord;
 import org.qcmg.pileup.QSnpRecord.Classification;
@@ -969,5 +971,15 @@ public class PipelineTest {
 		assertEquals(SnpUtils.PASS , vcf.getFilter());
 		
 	}
+	
+	@Test
+	public void getHeader() {
+		VcfHeader h = Pipeline.getHeaderForQSnp("abc", "123", "456", "qsnp", null, null, "xyz");
+		assertEquals(true, null != h.getFormatRecord(VcfHeaderUtils.FORMAT_OBSERVED_ALLELES_BY_STRAND));
+		assertEquals(true, h.getFormatRecord(VcfHeaderUtils.FORMAT_OBSERVED_ALLELES_BY_STRAND).toString().contains(VcfHeaderUtils.FORMAT_OBSERVED_ALLELES_BY_STRAND_DESC));
+	}
+	
+	
+	
 	
 }
