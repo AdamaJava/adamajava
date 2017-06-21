@@ -499,7 +499,7 @@ public class Vcf2maf extends AbstractMode{
 		      		int refCounts =  Integer.parseInt(counts[2]) - Integer.parseInt(values[3])- Integer.parseInt(counts[6]);
 		      		values[2] = refCounts + "";		      		 
 	      		}catch(Exception e){	      			 
-	      				logger.warn("invalide " + IndelUtils.FORMAT_ACINDEL + " at vcf formate column: " + sample.toString());
+	      				logger.warn("invalid " + IndelUtils.FORMAT_ACINDEL + " at vcf format column: " + sample.toString());
 	      		}
       		 }
       	 } else if(  type.equals(SVTYPE.SNP) || type.equals(SVTYPE.DNP) || type.equals(SVTYPE.TNP) || type.equals(SVTYPE.ONP) ){
