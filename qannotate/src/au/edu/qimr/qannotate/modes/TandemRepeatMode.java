@@ -55,7 +55,7 @@ public class TandemRepeatMode  extends AbstractMode{
 		addAnnotation( options.getDatabaseFileName() );				
 	}	
 	
-	class Repeat {
+	static class Repeat {
 		final String chr;
 	    final int start;
 		final int end;
@@ -73,13 +73,13 @@ public class TandemRepeatMode  extends AbstractMode{
 		//convert line from dbfile and return a Repeat
 		//chr1    11114   11123   5       2.0     5       100     0       20      0.97    GGCGC
 		Repeat(String str) throws NumberFormatException{				
-            String[] array = str.split(Constants.TAB+"");
+            String[] array = str.split(Constants.TAB_STRING);
 			this.chr = IndelUtils.getFullChromosome( array[0] );
 			this.start = Integer.parseInt(array[1]);
 			this.end = Integer.parseInt(array[2]);
 			this.patternLength = Integer.parseInt(array[3]);
 			this.patternNo = (int) (Float.parseFloat(array[4]) + 0.5);			 			
-		} 
+		}
 		
 		String printMark(){		return patternLength + "_" + patternNo;	 }
 	}
@@ -98,7 +98,7 @@ public class TandemRepeatMode  extends AbstractMode{
 		
 		Block(int start, int end){ this(start, end, new ArrayList<Repeat>());  }	
 		
-		Block reset(int start, int end){ return new Block(start, end, this.repeats);  }
+//		Block reset(int start, int end){ return new Block(start, end, this.repeats);  }
 		
 		void addRepeat(Repeat re){repeats.add(re); }
 		int getStart() { return start; }
@@ -191,11 +191,11 @@ public class TandemRepeatMode  extends AbstractMode{
 		int start = vcf.getPosition() - buffer; //use vcf start it is may one base ahead	
 		if(start > indexedBlock.lastBlockEnd ) return false; //not in repeat region
 						
-		SVTYPE type = IndelUtils.getVariantType(vcf.getRef(), vcf.getAlt());			
+		SVTYPE type = IndelUtils.getVariantType(vcf.getRef(), vcf.getAlt());
 		int end = (type.equals(SVTYPE.INS))? buffer + vcf.getPosition() + vcf.getAlt().length()-1 : buffer + vcf.getChrPosition().getEndPosition();
 		if(end < indexedBlock.firstBlockStart) return false; //not in repeat region
 				
-		List<Block> coveredBlocks = new ArrayList<Block>();	
+		List<Block> coveredBlocks = new ArrayList<>();	
 		Map<Integer, Block> indexMap = indexedBlock.index;
 		//find first block
 		Block block = null;		
@@ -206,11 +206,12 @@ public class TandemRepeatMode  extends AbstractMode{
 			start = indexedBlock.firstBlockStart;
  		
 		//seek each base in a block gap region
-		for(int i = 0; i <= BLOCK_INDEX_GAP; i ++) 
+		for(int i = 0; i <= BLOCK_INDEX_GAP; i ++) {
 			if((block = indexMap.get(start - i)) != null){
 				coveredBlocks.add(block);
 				break; // stop backwards to gap				
-			}	
+			}
+		}
 		 
 		if(block == null) {
 			logger.warn("error on indexed blocks, can't find closest index for " + vcf.toString());
@@ -231,45 +232,54 @@ public class TandemRepeatMode  extends AbstractMode{
 			start = block.end + 1; 
 		}
 		
-		List<Repeat> coveredRepeats = new ArrayList<Repeat>();
-		for(Block blo: coveredBlocks)
-			if(!blo.repeats.isEmpty())
-				for(Repeat rep : blo.repeats)
-					if(!coveredRepeats.contains(rep))
+		List<Repeat> coveredRepeats = new ArrayList<>();
+		for(Block blo: coveredBlocks) {
+			if ( ! blo.repeats.isEmpty()) {
+				for (Repeat rep : blo.repeats) {
+					if( ! coveredRepeats.contains(rep)) {
 						coveredRepeats.add(rep);
+					}
+				}
+			}
+		}
 				
 		if(coveredRepeats.isEmpty()) return false; //do nothing
+		
+		
+		/*
+		 * sort list so results are reproducable (for our lovely regression tests)
+		 */
+		coveredRepeats.sort(Comparator.comparingInt(c -> ((Repeat) c).patternLength).thenComparingInt(c -> ((Repeat)c).patternNo));
 		
 		float rate = -1;
 		try{
 			 rate = Float.parseFloat(vcf.getInfoRecord().getField(IndelUtils.INFO_SSOI));
 		}catch(NullPointerException | NumberFormatException  e){} //do nothing			
 		 
-		boolean TRF_filter = false;
-		String TRF_info = ""; //"TRF=" + coveredRepeats.get(0).printMark();
+		boolean tRF_filter = false;
+		String tRF_info = ""; //"TRF=" + coveredRepeats.get(0).printMark();
 		for(int i = 0; i < coveredRepeats.size(); i++){
 			Repeat rep = coveredRepeats.get(i);
-			TRF_info +="," + rep.printMark();	
+			tRF_info +="," + rep.printMark();	
 			
 			//once find one TRF satisfied, the filter will be marked as TRF
-			if(TRF_filter) continue; 
+			if(tRF_filter) continue; 
 			
 			//discard TRF inside indel(DEL) region that is smaller than DEL size			
 			if(rep.start >= vcf.getPosition() && rep.end <= vcf.getChrPosition().getEndPosition() && 
 					(rep.end - rep.start) < (vcf.getRef().length()-1))
-				TRF_filter = false;
+				tRF_filter = false;
 			else if( rep.patternLength < 6 && rep.patternLength > 1 && rep.patternNo > 10)				
-				TRF_filter = true; //high frequence short TRF
+				tRF_filter = true; //high frequence short TRF
 			else if(rep.patternLength == 1 && rep.patternNo > 6)
-				TRF_filter = true; //homoplymers
+				tRF_filter = true; //homoplymers
 			else if ( (rep.patternLength < 6 &&  rep.patternLength > 0) 
 					&&  (rate < 0.2 && rate >= 0 )) // must check 0 value in case the repeat or ssoi value not exist
-				TRF_filter = true;  //low confidence short TRF
+				tRF_filter = true;  //low confidence short TRF
 		}
 		
-		TRF_info = "TRF=" + TRF_info.substring(1);
-		vcf.appendInfo(TRF_info);
-		if(TRF_filter){
+		vcf.appendInfo("TRF=" + tRF_info.substring(1));
+		if(tRF_filter){
 			VcfUtils.updateFilter(vcf, "TRF");
 			return true;
 		}
