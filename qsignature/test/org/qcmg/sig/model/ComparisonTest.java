@@ -67,7 +67,6 @@ public class ComparisonTest {
 		assertEquals(123456, c.getMainCoverage());
 		assertEquals(234567, c.getTestCoverage());
 		assertEquals(123456, c.getOverlapCoverage());
-		assertEquals(99999.0, c.getTotalScore(), 0.1);
 		
 		assertEquals("null:f1 (123456) vs null:f2 (234567) : " + (99999.0 / 123456) + ", 123456, 1234560", c.toString());
 		

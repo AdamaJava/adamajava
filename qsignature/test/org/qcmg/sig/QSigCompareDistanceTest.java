@@ -87,7 +87,7 @@ public class QSigCompareDistanceTest {
 		
 		Comparison c = QSigCompareDistance.compareRatios(map1, map2, F1, F2);
 		
-		assertEquals(0.0, c.getTotalScore(), 0.0001);
+//		assertEquals(0.0, c.getTotalScore(), 0.0001);
 		assertEquals(2 * 4, c.getNumberOfCalculations());
 		assertEquals(2, c.getOverlapCoverage());
 		assertEquals(2, c.getMainCoverage());
@@ -103,7 +103,7 @@ public class QSigCompareDistanceTest {
 		c = QSigCompareDistance.compareRatios(map1, map2, F1, F2);
 		
 		// sqr((20-10)^2 + 15^2) * 2
-		assertEquals(36.0555, c.getTotalScore(), 0.0001);
+		assertEquals(36.0555 / c.getOverlapCoverage(), c.getScore(), 0.0001);
 		assertEquals(4 * 4, c.getNumberOfCalculations());
 		assertEquals(4, c.getOverlapCoverage());
 		assertEquals(4, c.getMainCoverage());
@@ -117,7 +117,7 @@ public class QSigCompareDistanceTest {
 		c = QSigCompareDistance.compareRatios(map1, map2, F1, F2, positionsOfInterest);
 		// as before
 		// sqr((20-10)^2 + 15^2) * 2
-		assertEquals(36.0555, c.getTotalScore(), 0.0001);
+		assertEquals(36.0555 / c.getOverlapCoverage(), c.getScore(), 0.0001);
 		assertEquals(4 * 4, c.getNumberOfCalculations());
 		assertEquals(4, c.getOverlapCoverage());
 		assertEquals(4, c.getMainCoverage());
@@ -128,30 +128,30 @@ public class QSigCompareDistanceTest {
 		// add in positions of interest
 		positionsOfInterest.put(cp1, cp1);
 		c = QSigCompareDistance.compareRatios(map1, map2, F1, F2, positionsOfInterest);
-		assertEquals(0.0, c.getTotalScore(), 0.0001);
+		assertEquals(0.0, c.getScore(), 0.0001);
 		assertEquals(1, c.getOverlapCoverage());
 		
 		// add in positions of interest
 		positionsOfInterest.put(cp2, cp2);
 		c = QSigCompareDistance.compareRatios(map1, map2, F1, F2, positionsOfInterest);
-		assertEquals(0.0, c.getTotalScore(), 0.0001);
+		assertEquals(0.0, c.getScore(), 0.0001);
 		assertEquals(2, c.getOverlapCoverage());
 		
 		// add in positions of interest
 		positionsOfInterest.put(cp3, cp3);
 		c = QSigCompareDistance.compareRatios(map1, map2, F1, F2, positionsOfInterest);
-		assertEquals(18.0277, c.getTotalScore(), 0.0001);
+		assertEquals(18.0277 / 3, c.getScore(), 0.0001);
 		assertEquals(3, c.getOverlapCoverage());
 		
 		// add in positions of interest
 		positionsOfInterest.put(cp4, cp4);
 		c = QSigCompareDistance.compareRatios(map1, map2, F1, F2, positionsOfInterest);
-		assertEquals(36.0555, c.getTotalScore(), 0.0001);
+		assertEquals(36.0555 / 4, c.getScore(), 0.0001);
 		assertEquals(4, c.getOverlapCoverage());
 	}
 	
 	private void testEmptyComparison(Comparison c, int mainCov, int testCov) {
-		assertEquals(0.0, c.getTotalScore(), 0.0001);
+		assertEquals(Double.NaN, c.getScore(), 0.0001);
 		assertEquals(0, c.getNumberOfCalculations());
 		assertEquals(0, c.getOverlapCoverage());
 		assertEquals(mainCov, c.getMainCoverage());

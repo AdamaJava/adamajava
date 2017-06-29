@@ -20,7 +20,7 @@ public class Comparison implements Comparable<Comparison> {
 	private final long mainCovAtOverlaps;
 	private final long testCovAtOverlaps;
 	private final int overlapCoverage;
-	private final double totalScore;
+//	private final double totalScore;
 	private final double score;
 	private final int numberOfCalculations;
 	
@@ -44,9 +44,9 @@ public class Comparison implements Comparable<Comparison> {
 		return overlapCoverage;
 	}
 
-	public double getTotalScore() {
-		return totalScore;
-	}
+//	public double getTotalScore() {
+//		return totalScore;
+//	}
 
 	public int getNumberOfCalculations() {
 		return numberOfCalculations;
@@ -86,10 +86,10 @@ public class Comparison implements Comparable<Comparison> {
 		this.test = file2;
 		this.mainCoverage = size;
 		this.testCoverage = size2;
-		this.totalScore = finalTally;
+//		this.totalScore = finalTally;
 		this.overlapCoverage = count;
 		this.numberOfCalculations = noOfCalculations;
-		this.score = totalScore / overlapCoverage;
+		this.score = finalTally / overlapCoverage;
 		mainCovAtOverlaps = l;
 		testCovAtOverlaps = m;
 	}
