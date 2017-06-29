@@ -269,8 +269,7 @@ public class SignatureUtil {
 					short g = getCodedGenotype(f, homCutoff, hetUpperCutoff, hetLowerCutoff);
 					
 					if (isCodedGenotypeValid(g)) {
-						Integer i = ChrPositionCache.getChrPositionIndex(params[0], Integer.parseInt(params[1]));
-						ratios.put(i, g);
+						ratios.put(ChrPositionCache.getChrPositionIndex(params[0], Integer.parseInt(params[1])), g);
 					}
 				});
 			}
