@@ -16,9 +16,9 @@ import org.qcmg.common.model.ChrPosition;
 public class ChrPositionCache {
 	
 	
-	static ConcurrentMap<String, ChrPointPosition> cache = new ConcurrentHashMap<>();
-	static ConcurrentMap<ChrPosition, Integer> cacheWithIndex = new ConcurrentHashMap<>();
-	static AtomicInteger index = new AtomicInteger();
+	private static ConcurrentMap<String, ChrPointPosition> cache = new ConcurrentHashMap<>();
+	private static ConcurrentMap<ChrPosition, Integer> cacheWithIndex = new ConcurrentHashMap<>();
+	private static AtomicInteger index = new AtomicInteger();
 	
 	
 	public static ChrPointPosition getChrPosition(String chr, int position) {
@@ -41,7 +41,7 @@ public class ChrPositionCache {
 				i = prevI;
 			}
 		}
-		return i;
+		return i.intValue();
 	}
 
 }
