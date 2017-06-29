@@ -9,7 +9,6 @@ package org.qcmg.sig.util;
 import gnu.trove.map.hash.TIntShortHashMap;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -18,7 +17,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
-import org.qcmg.sig.QSigCompareDistance;
 import org.qcmg.sig.model.Comparison;
 
 public class ComparisonUtil {
@@ -100,7 +98,6 @@ public class ComparisonUtil {
 				 * See if we can get a clear genotype from file1Ratios before retrieving ratios from file2
 				 */
 				int g1 = 0;
-	//			String genotype = "";
 				for (int i = 0 ; i < 4 ; i++) {
 					double d = file1Ratio[i];
 					if (d > 0.90000) {
@@ -111,14 +108,11 @@ public class ComparisonUtil {
 						g1 += i == 0 ? 1 : i == 1 ? 10 : i == 2 ? 100 : 1000;
 					}
 				}
-	//			System.out.println("file1 genotype: " + genotype + ", g1: " + g1);
 				
 				if (g1 > 0) {
-	//				if ( ! genotype.isEmpty()) {
 					
 					final double[] file2Ratio = file2Ratios.get(file1RatiosEntry.getKey());
 					if (null != file2Ratio) {
-	//					String genotype2 = "";
 						int g2 = 0;
 						for (int i = 0 ; i < 4 ; i++) {
 							double d = file2Ratio[i];
@@ -130,24 +124,17 @@ public class ComparisonUtil {
 								g2 += i == 0 ? 1 : i == 1 ? 10 : i == 2 ? 100 : 1000;
 							}
 						}
-	//					System.out.println("file2 genotype2: " + genotype2 + ", g2: " + g2);
 						
 						if ( g2 > 0) {
 							if (g1 == g2) {
 								match++;
 							}
-	//						if ( ! genotype2.isEmpty()) {
-	//							if (genotype.equals(genotype2)) {
-	//								match++;
-	//							}
 							totalCompared++;
 							
 							f1TotalCov += file1Ratio[4];
 							f2TotalCov += file2Ratio[4];
 						}
 					}
-				} else {
-//					logger.info("file1Ratios: " + Arrays.toString(file1Ratio));
 				}
 			}
 			double concordance = totalCompared > 0 ? ((double)match / totalCompared) * 100 : 0;
