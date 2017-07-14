@@ -157,6 +157,23 @@ public class VcfUtilsTest {
 	}
 	
 	@Test
+	public void getFormatField() {
+		assertEquals(null, VcfUtils.getFormatField((List<String>)null, null, 0));
+		assertEquals(null, VcfUtils.getFormatField((List<String>)null, "", 0));
+		assertEquals(null, VcfUtils.getFormatField(Arrays.asList(""), "", 0));
+		assertEquals(null, VcfUtils.getFormatField(Arrays.asList("s"), "s", 0));
+		assertEquals("hello?", VcfUtils.getFormatField(Arrays.asList("s","hello?"), "s", 0));
+		assertEquals(null, VcfUtils.getFormatField(Arrays.asList("s","hello?"), "s", 1));
+		assertEquals(null, VcfUtils.getFormatField(Arrays.asList("s","hello?"), "t", 1));
+		assertEquals(null, VcfUtils.getFormatField(Arrays.asList("s","hello?"), "t", 0));
+		assertEquals("there", VcfUtils.getFormatField(Arrays.asList("s:t","hello?:there"), "t", 0));
+		assertEquals(null, VcfUtils.getFormatField(Arrays.asList("s:t","hello?:there"), "t", 1));
+		assertEquals("again", VcfUtils.getFormatField(Arrays.asList("s:t","hello?:there",":again"), "t", 1));
+		assertEquals("", VcfUtils.getFormatField(Arrays.asList("s:t","hello?:there",":again"), "s", 1));
+	}
+	
+	
+	@Test
 	public void getGEFromGATKVcf() {
 		VcfRecord r = new VcfRecord(new String[]{"GL000192.1","228788",".","G","T","1819.77",".","AC=2;AF=1.00;AN=2;DP=45;FS=0.000;MLEAC=2;MLEAF=1.00;MQ=53.11;MQ0=0;QD=31.96;SOR=1.038","GT:AD:DP:GQ:PL","1/1:0,45:45:99:1848,135,0"});
 		assertEquals(GenotypeEnum.TT, VcfUtils.getGEFromGATKVCFRec(r));
