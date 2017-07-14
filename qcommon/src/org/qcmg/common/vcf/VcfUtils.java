@@ -424,6 +424,56 @@ public class VcfUtils {
 		return results;
 	}
 	
+	/**
+	 * Returns a map of string arrays that represent the format field records
+	 * @param ff
+	 * @return
+	 */
+	public static Map<String, String[]> getFormatFieldsAsMap(List<String> ff) {
+		Map<String, String[]> ffm = new HashMap<>();
+		if (null != ff &&  ! ff.isEmpty()) {
+			
+			String [] headerFields = ff.get(0).split(Constants.COLON_STRING);
+			
+			for (String s : headerFields) {
+				ffm.computeIfAbsent(s, (z) -> new String[ff.size()-1]);
+			}
+			
+			for (int i = 1 ; i < ff.size() ; i++) {
+				String [] sa = ff.get(i).split(Constants.COLON_STRING);
+				
+				for (int j = 0 ; j < sa.length ; j++) {
+					String header = headerFields[j];
+					
+					ffm.get(header)[i-1] = sa[j];
+				}
+			}
+		}
+		return ffm;
+	}
+	
+	/**
+	 * generic method to retrieve a field from the format fields.
+	 * User needs to specify which field to retrieve, and from which sample (position)
+	 * position must be zero-based (ie. first column is 0).
+	 * @param ffs
+	 * @param key
+	 * @param position
+	 */
+	public static String getFormatField(List<String> ffs, String key, int position) {
+		return getFormatField(getFormatFieldsAsMap(ffs), key, position);
+	}
+	public static String getFormatField(Map<String, String[]> ffMap, String key, int position) {
+		if ( ! StringUtils.isNullOrEmptyOrMissingData(key) && null != ffMap && ! ffMap.isEmpty()) {
+			
+			String[] keyArray = ffMap.get(key);
+			if (null != keyArray && keyArray.length > position) {
+				return keyArray[position];
+			}
+		}
+		return null;
+	}
+	
 	public static String getGTString(String altsString, char ref, GenotypeEnum ge) {
 		String result = MISSING_DATA_STRING;
 		if (ge != null && ! StringUtils.isNullOrEmpty(altsString)) {
