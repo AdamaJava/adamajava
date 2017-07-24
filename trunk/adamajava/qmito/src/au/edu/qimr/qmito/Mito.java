@@ -7,8 +7,6 @@ package au.edu.qimr.qmito;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
-import org.qcmg.common.meta.QExec;
-import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.LoadReferencedClasses;
 
 public class Mito {	
