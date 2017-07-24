@@ -13,7 +13,7 @@ dependencies {
     configurations.compile.transitive = true
 	
     compile project(':qcommon')
-    compile project(':qlib')
+//    compile project(':qlib')
 	compile project(':qbamfilter')
 
 	
