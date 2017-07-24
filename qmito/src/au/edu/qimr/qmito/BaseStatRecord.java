@@ -8,9 +8,6 @@ package au.edu.qimr.qmito;
 import java.util.Hashtable;
 import java.util.Map;
 
-import au.edu.qimr.qmito.BaseStatRecord.Base;
-
-
 public class BaseStatRecord {
 	public enum Base{BaseA, BaseC,BaseG,BaseT; }
 

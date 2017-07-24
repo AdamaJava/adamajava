@@ -7,21 +7,11 @@
 package au.edu.qimr.qmito;
 
 import static java.util.Arrays.asList;
-
 import java.io.File;
-import java.util.List;
-
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMSequenceRecord;
-
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.meta.QExec;
-import org.qcmg.picard.SAMFileReaderFactory;
-import org.qcmg.qbamfilter.query.QueryExecutor;
-
 
 
 /*

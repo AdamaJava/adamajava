@@ -9,26 +9,8 @@ package au.edu.qimr.qmito;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
-import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.AbstractQueue;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 
-import htsjdk.samtools.reference.FastaSequenceIndex;
 import htsjdk.samtools.reference.IndexedFastaSequenceFile;
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SamReader;
@@ -47,8 +29,10 @@ import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.util.QLimsMetaFactory;
 import org.qcmg.qbamfilter.query.QueryExecutor;
 
-import au.edu.qimr.qlib.qpileup.*;
-import au.edu.qimr.qlib.util.*;
+import au.edu.qimr.qmito.lib.*;
+
+//import au.edu.qimr.qlib.qpileup.*;
+//import au.edu.qimr.qlib.util.*;
 
 public class MetricPileline {
 	
@@ -63,8 +47,6 @@ public class MetricPileline {
 	private byte[] referenceBases;
 	private String query;
 	private QExec qexec;
-//	private MetricOptions options;
-//	private QueryExecutor exec;
 	
     NonReferenceRecord forwardNonRef = null;
     NonReferenceRecord reverseNonRef = null;	
@@ -207,7 +189,7 @@ public class MetricPileline {
  			logger.info("Added " + numReads + " reads mapped on "+ referenceRecord.getSequenceName()+" and met query from BAM: " + bamFile);					 			 
     	} catch (Exception e) {
     		logger.error("Exception happened during reading: " + bamFile);
-            throw new Exception(ExceptionMessage.getStrackTrace(e) );
+            throw new Exception(MitoException.getStrackTrace(e) );
     	} 	
 	}
 	

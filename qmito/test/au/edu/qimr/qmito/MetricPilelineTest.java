@@ -1,39 +1,23 @@
 package au.edu.qimr.qmito;
 
-import static org.junit.Assert.*;
-
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
-
 import junit.framework.Assert;
-import htsjdk.samtools.reference.IndexedFastaSequenceFile;
-
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
-import org.qcmg.picard.SAMFileReaderFactory;
-import org.qcmg.qbamfilter.query.QueryExecutor;
+import au.edu.qimr.qmito.lib.*;
 
-import au.edu.qimr.qlib.qpileup.PositionElement;
-import au.edu.qimr.qlib.qpileup.QPileupRecord;
-import au.edu.qimr.qlib.qpileup.StrandDS;
-import au.edu.qimr.qlib.qpileup.StrandElement;
-import au.edu.qimr.qlib.qpileup.StrandEnum;
-import au.edu.qimr.qlib.util.Reference;
-import htsjdk.samtools.reference.FastaSequenceIndex;
-import htsjdk.samtools.reference.IndexedFastaSequenceFile;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMRecordIterator;
-import htsjdk.samtools.ValidationStringency;
-import htsjdk.samtools.SAMSequenceRecord;
+
+//import au.edu.qimr.qlib.qpileup.PositionElement;
+//import au.edu.qimr.qlib.qpileup.QPileupRecord;
+//import au.edu.qimr.qlib.qpileup.StrandDS;
+//import au.edu.qimr.qlib.qpileup.StrandElement;
+//import au.edu.qimr.qlib.qpileup.StrandEnum;
+//import au.edu.qimr.qlib.util.Reference;
+
 
 public class MetricPilelineTest {
 	private String input = "./input.bam";
