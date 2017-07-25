@@ -366,7 +366,7 @@ public class SummaryByCycleUtilsTest {
 		for (int i = 0 ; i < noOfRecords ; i++)
 			SummaryByCycleUtils.parseCharacterSummary(seqByCycle, dataString);
 		
-		Map<Integer, AtomicLong> output = SummaryByCycleUtils.getLengthsFromSummaryByCycle(seqByCycle, noOfRecords);
+		Map<Integer, AtomicLong> output = SummaryByCycleUtils.getLengthsFromSummaryByCycle(seqByCycle);
 		
 		Assert.assertEquals(1, output.size());
 		Assert.assertEquals(noOfRecords, output.get(50).get());
@@ -388,7 +388,7 @@ public class SummaryByCycleUtilsTest {
 		
 		Assert.assertEquals(noOfRecords + (minLength * noOfShortenedRecords), totalCount);
 		
-		output = SummaryByCycleUtils.getLengthsFromSummaryByCycle(seqByCycle, noOfRecords + (minLength * noOfShortenedRecords));
+		output = SummaryByCycleUtils.getLengthsFromSummaryByCycle(seqByCycle);
 		
 		Assert.assertEquals(minLength + 1, output.size());
 		Assert.assertEquals(noOfRecords, output.get(50).get());
