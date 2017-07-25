@@ -277,6 +277,30 @@ public class SummaryByCycleUtils {
 
 		}
 		return map;
-	}	
+	}
+
+	public static <T> Map<Integer, AtomicLong> getLengthsFromSummaryByCycle(SummaryByCycleNew2<T> summary, long totalSize) {
+        Map<Integer, AtomicLong> map = Collections.emptyMap();          
+        if (null != summary && ! summary.cycles().isEmpty()) {
+                long previousTally = totalSize;
+                long count;
+                map = new TreeMap<Integer, AtomicLong>();
+                for (Integer integer : summary.cycles()) {
+                        count = 0;
+                        for (Entry<T, AtomicLong> entry : summary.getValue(integer).entrySet()) {
+                                count += entry.getValue().get();
+                        }
+                        if (count != previousTally) {
+                                // add entry to map with difference as the tally
+                                map.put(integer -1, new AtomicLong(previousTally - count));
+                                previousTally = count;
+                        }
+                }
+                // pop the last entry into the map
+                map.put(summary.cycles().last(), new AtomicLong(previousTally));
+        }
+        return map;
+}
+	
 
 }
