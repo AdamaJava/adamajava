@@ -58,7 +58,6 @@ public class BaseUtils {
 	}
 	public static final boolean isACGT(char c) {
 		return isAT(c) || isCG(c);
-//		return c == A || c == C || c == G || c == T;
 	}
 	public static final boolean isACGTN(char c) {
 		return isACGT(c) || c == N;
@@ -95,6 +94,8 @@ public class BaseUtils {
 			return N;
 		throw new IllegalArgumentException("Supplied base was not complementable: " + originalBase);
 	}
+	
+
 	
 	
 	/**
@@ -172,40 +173,6 @@ public class BaseUtils {
 			throw new IllegalArgumentException("Unrecognised IUPAC code: " + code);
 		}
 	}
-//	public static String getGenotypeFromIUPACCode(char code) {
-//		if (DEFAULT_CHAR == code) return null;
-//		switch (code){
-//		case 'R':
-//			return "A/G";
-//		case 'Y':
-//			return "C/T";
-//		case 'S':
-//			return "C/G";
-//		case 'W':
-//			return "A/T";
-//		case 'K':
-//			return "G/T";
-//		case 'M':
-//			return "A/C";
-//		case 'V':
-//			return "A/C/G";
-//		case 'H':
-//			return "A/C/T";
-//		case 'D':
-//			return "A/G/T";
-//		case 'B':
-//			return "C/G/T";
-//		case 'N':
-//			return "A/C/G/T";
-//		case 'A':
-//		case 'C':
-//		case 'G':
-//		case 'T':
-//			return code + BASE_SEPARATOR + code;
-//		default:
-//			throw new IllegalArgumentException("Unrecognised IUPAC code: " + code);
-//		}
-//	}
 	
 	/**
 	 * Returns the (ordered) genotype based on the supplied vcf genotype string (which is in 0/0, 0/1, or 1/1 format) 
@@ -222,7 +189,6 @@ public class BaseUtils {
 	 * @see BaseUtils#getGenotype(char, char)
 	 */
 	public static Genotype getGenotypeFromVcf(String genotype, char ref, char alt) {
-//		public static String getGenotypeFromVcf(String genotype, char ref, char alt) {
 		if (null == genotype) return null;
 		if (genotype.length() != 3) throw new IllegalArgumentException("Genotype string needs to be in '0/1' format");
 		
@@ -233,36 +199,8 @@ public class BaseUtils {
 		else
 			return getGenotype(ref , ref);
 	}
-//	public static String getGenotypeFromVcf(String genotype, char ref, char alt) {
-//		if (null == genotype) return null;
-//		if (genotype.length() < 3) throw new IllegalArgumentException("Genotype string needs to be in '0/1' format");
-//		
-//		if ('1' == genotype.charAt(0) && '1' == genotype.charAt(2))
-//			return getOrderedGenotype(alt , alt);
-//		else if ('1' == genotype.charAt(2))
-//			return getOrderedGenotype(ref , alt);
-//		else
-//			return getOrderedGenotype(ref , ref);
-//	}
-	
-	/**
-	 * Returns an ordered genotype string based on the supplied characters.
-	 * <p>
-	 *  If <code>includeSep</code> is true, will place "/" between the ordered characters<br>
-	 * eg. if 'C' and 'A' and 'false' are passed in, output will be AC<br>
-	 * eg. if 'T' and 'G' and 'true' are passed in, output will be G/T
-	 *  
-	 * @param a char genotype base a
-	 * @param b char genotype base b
-	 * @param includeSep boolean indicating whether the '/' separator should be included in the returned String 
-	 * @return String containing the ordered genotype
-	 */
-//	public static Genotype getOrderedGenotype(char a, char b, boolean includeSep) {
-//		if (a < b)
-//			return a + (includeSep ? BASE_SEPARATOR : "") + b;
-//		else
-//			return b + (includeSep ? BASE_SEPARATOR : "") + a;
-//	}
+
+
 	/**
 	 * Convenience method that calls {@link BaseUtils#getOrderedGenotype(char, char, boolean)}
 	 * passing in <code>true</code> indicating that the separator should be included in the output
@@ -273,9 +211,7 @@ public class BaseUtils {
 	public static Genotype getGenotype(char a, char b) {
 		return new Genotype(a,b);
 	}
-//	public static String getOrderedGenotype(char a, char b) {
-//		return getOrderedGenotype(a,b,true);
-//	}
+
 	
 	/**
 	 * Returns ordered genotype based on the supplied String.
@@ -323,18 +259,6 @@ public class BaseUtils {
 		
 		return getGenotype(firstBase, secondBase);
 	}
-//	public static String getOrderedGenotype(String originalGenotype, boolean includeSeperator) {
-//		int i = 0;
-//		char firstBase = originalGenotype.charAt(i++);
-//		if ('[' == firstBase)
-//			firstBase = originalGenotype.charAt(i++);
-//		
-//		char secondBase = originalGenotype.charAt(i++);
-//		if ('/' == secondBase)
-//			secondBase = originalGenotype.charAt(i);
-//		
-//		return getOrderedGenotype(firstBase, secondBase, includeSeperator);
-//	}
 	
 	/**
 	 * Returns true if the supplied strings are equal, once they have been ordered, and any extraneous info has been removed
@@ -348,8 +272,7 @@ public class BaseUtils {
 		if (null == firstGen || null == secondGen) return false;
 		return getGenotype(firstGen).equals(getGenotype(secondGen));
 	}
-	
-	
+		
 	public static Optional<int[]> decodeDistribution(long code) {
 		if (code == 0) {
 			return Optional.of(EMPTY_DIST_ARRAY);
@@ -371,12 +294,10 @@ public class BaseUtils {
 		
 		
 	}
-	
-	
+		
 	public static long encodeDistribution(int as, int cs, int gs, int ts) {
 		long l = 0;
 		if (as > 0 && as <= MAX_UNSIGNED_SHORT_VALUE) {
-//			System.out.println("as: " + as);
 			l += ((long)as << 48);
 		} else if (as > MAX_UNSIGNED_SHORT_VALUE) {
 			logger.warn("A count is greater than " + MAX_UNSIGNED_SHORT_VALUE + ": " + as);
@@ -384,7 +305,6 @@ public class BaseUtils {
 		}
 		
 		if (cs > 0 && cs <= MAX_UNSIGNED_SHORT_VALUE) {
-//			System.out.println("cs: " + cs);
 			l += (long)cs << 32;
 		} else if (cs > MAX_UNSIGNED_SHORT_VALUE) {
 			logger.warn("C count is greater than " + MAX_UNSIGNED_SHORT_VALUE + ": " + cs);
@@ -392,7 +312,6 @@ public class BaseUtils {
 		}
 		
 		if (gs > 0 && gs <= MAX_UNSIGNED_SHORT_VALUE) {
-//			System.out.println("gs: " + gs);
 			l += ((long)gs << 16);
 		} else if (gs > MAX_UNSIGNED_SHORT_VALUE) {
 			logger.warn("G count is greater than " + MAX_UNSIGNED_SHORT_VALUE + ": " + gs);
@@ -400,7 +319,6 @@ public class BaseUtils {
 		}
 		
 		if (ts > 0 && ts <= MAX_UNSIGNED_SHORT_VALUE) {
-//			System.out.println("ts: " + ts);
 			l += ts;
 		} else if (ts > MAX_UNSIGNED_SHORT_VALUE) {
 			logger.warn("T count is greater than " + MAX_UNSIGNED_SHORT_VALUE + ": " + ts);

@@ -23,8 +23,6 @@ public class ReferenceNameComparator implements Comparator<String> , Serializabl
 		final char s2FirstChar = s2.charAt(0);
 		if (CHR == s1FirstChar && CHR == s2FirstChar && isNumeric(s1.charAt(3)) && isNumeric(s2.charAt(3))) {
 			// chr comparison - only want to compare numeric chr values here, not X,Y,MT
-			
-			
 			if (s1.length() < 6 && s2.length() < 6)
 				return Integer.valueOf(s1.substring(3)).compareTo(Integer.valueOf(s2.substring(3)));
 			else {
@@ -45,7 +43,7 @@ public class ReferenceNameComparator implements Comparator<String> , Serializabl
 		} else if (isNumeric(s1FirstChar) && isNumeric(s2FirstChar)) {
 			return Integer.compare(Integer.parseInt(s1), Integer.parseInt(s2));
 		} else {
-		return s1.compareToIgnoreCase(s2);
+			return s1.compareToIgnoreCase(s2);
 		}
 	}
 	
