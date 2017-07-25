@@ -91,8 +91,7 @@ public class SummaryByCycleUtils {
 	 * @param dataString String containing the data that we wish to summarise
 	 * eg. for CS this will be along the lines of T0123012301230123
 	 */
-	public static void parseCharacterSummary(SummaryByCycle<Character> summary,
-			String dataString) {
+	public static void parseCharacterSummary(SummaryByCycle<Character> summary, String dataString) {
 		parseCharacterSummary(summary, dataString, null, 0);
 	}
 	
@@ -249,29 +248,35 @@ public class SummaryByCycleUtils {
 			map.put(summary.cycles().last(), new AtomicLong(previousTally));
 		}
 		return map;
-	}
+	}	
 	
-	public static <T> Map<Integer, AtomicLong> getLengthsFromSummaryByCycle(SummaryByCycleNew2<T> summary, long totalSize) {
+	//xu totalSize should be seprate to first and second of pair
+	public static <T> Map<Integer, AtomicLong> getLengthsFromSummaryByCycle(SummaryByCycleNew2<T> summary) {
 		Map<Integer, AtomicLong> map = Collections.emptyMap();		
 		if (null != summary && ! summary.cycles().isEmpty()) {
-			long previousTally = totalSize;
-			long count;
+			long previousTally = -1;			 
 			map = new TreeMap<Integer, AtomicLong>();
-			for (Integer integer : summary.cycles()) {
-				count = 0;
-				for (Entry<T, AtomicLong> entry : summary.getValue(integer).entrySet()) {
+			for (Integer cycle : summary.cycles()) {
+				long count = 0;
+				for (Entry<T, AtomicLong> entry : summary.getValue(cycle).entrySet()) 
 					count += entry.getValue().get();
-				}
+				
+				//only for the begin of cycle
+				if(previousTally == -1) previousTally = count;
+				
 				if (count != previousTally) {
-					// add entry to map with difference as the tally
-					map.put(integer -1, new AtomicLong(previousTally - count));
+					// record one cycle advance if base counts difference
+					//previousTally - count = the number of short reads
+					map.put(cycle-1, new AtomicLong(previousTally - count ));
 					previousTally = count;
 				}
 			}
+			
 			// pop the last entry into the map
 			map.put(summary.cycles().last(), new AtomicLong(previousTally));
+
 		}
 		return map;
-	}
+	}	
 
 }

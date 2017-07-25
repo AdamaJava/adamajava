@@ -9,6 +9,7 @@ package org.qcmg.common.string;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.util.Constants;
@@ -303,7 +304,7 @@ public class StringUtils {
 		
 		return a + glue + b;
 	}
-	
+		
 	public static String toTitleCase (String input) {
 		StringBuilder titleCase = new StringBuilder();
 	    boolean nextTitleCase = true;

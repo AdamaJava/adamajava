@@ -6,7 +6,6 @@
  */
 package org.qcmg.common.vcf.header;
 
-
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -24,7 +23,6 @@ import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.SnpUtils;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
  
-
 public class VcfHeaderUtils {
 	
 	public static final QLogger logger = QLoggerFactory.getLogger(VcfHeaderUtils.class);
