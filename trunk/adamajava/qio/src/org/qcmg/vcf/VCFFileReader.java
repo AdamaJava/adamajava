@@ -6,6 +6,7 @@
  */
 package org.qcmg.vcf;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.Closeable;
 import java.io.File;
@@ -21,6 +22,9 @@ import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
 
 
+/**
+ * Contains an `InputStream` so remember to call close() or use in try-with-resources
+ */
 public final class VCFFileReader implements Closeable, Iterable<VcfRecord> {
     private final File file;
     private final InputStream inputStream;
@@ -56,7 +60,41 @@ public final class VCFFileReader implements Closeable, Iterable<VcfRecord> {
 	    	}
         
     }
+    
+    /**
+     * Constructor initialized by an InputStream. {@code markSupported()} for the supplied InputStream must be
+     * {@code true}.
+     * <p> 
+     * The value of {@code file} for the returned instance is {@code null}.
+     * 
+     * @param instrm
+     * @param headerMaxBytes
+     * @throws IOException
+     */
+    public VCFFileReader(final InputStream instrm, Integer headerMaxBytes) throws IOException {
+        
+        if (!instrm.markSupported()) {
+            throw new IOException("The supplied InputStream does not support marking");
+        }
+        instrm.mark(headerMaxBytes);
+        BufferedInputStream bis = new BufferedInputStream(instrm);
+        BufferedReader br = new BufferedReader(new InputStreamReader(bis));
+        header = VCFSerializer.readHeader(br);
+        instrm.reset();
+        inputStream = instrm;
+        file = null;
+    }
 
+    /**
+     * Uses a default value of 1048576 (1MB) for {@code headerMaxBytes}
+     * 
+     * @param instrm
+     * @throws IOException
+     */
+    public VCFFileReader(final InputStream instrm) throws IOException {
+        this(instrm, 1048576);
+    }    
+    
     public VCFFileReader(final String file) throws IOException  {
     		this (new File(file));
     }
@@ -72,6 +110,7 @@ public final class VCFFileReader implements Closeable, Iterable<VcfRecord> {
 
     @Override
 	public void close() throws IOException {
+        inputStream.close();
     }
 
     public File getFile() {
