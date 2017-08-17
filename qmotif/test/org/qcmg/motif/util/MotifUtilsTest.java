@@ -407,7 +407,7 @@ public class MotifUtilsTest {
 		includes.add(include2);
 		Map<ChrPosition, RegionCounter> map = MotifUtils.getRegionMap(contig, windowSize, includes, null);
 		List<ChrPosition> list = new ArrayList<>(map.keySet());
-		Collections.sort(list, new ChrPositionComparator());
+		list.sort(new ChrPositionComparator());
 		
 		// check to see if chr16:59999-59999 is covered by map
 		ChrRangePosition chr16CP = new ChrRangePosition("chr16", 59999, 59999);
@@ -437,7 +437,7 @@ public class MotifUtilsTest {
 		
 		Map<ChrPosition, RegionCounter> regions = MotifUtils.getRegionMap(new ChrRangePosition("chrY",1, size), windowSize, includes, null);
 		List<ChrPosition> positions = new ArrayList<>(regions.keySet());
-		Collections.sort(positions, new ChrPositionComparator());
+		positions.sort(new ChrPositionComparator());
 		
 		// want to check that I have uniform coverage over my region
 		Set<ChrPosition> regionChrPos = regions.keySet();
