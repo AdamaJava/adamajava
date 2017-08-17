@@ -348,7 +348,7 @@ public final class Motif {
 						.getLog(), moptions.getLogLevel());
 				mlogger.logInitialExecutionStats(getProgramName(),
 						getProgramVersion(), args);
-				Motif operation = new Motif(moptions);
+				new Motif(moptions);
 				exitStatus = 0; // SUCCESS
 			}
 		} catch (Throwable e) {

@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrPositionComparator;
@@ -19,20 +20,21 @@ import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.model.ChrPositionName;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.ChrPositionUtils;
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.TabTokenizer;
 
 public class MotifUtils {
 
 	private static final Comparator<ChrPosition> COMPARATOR = new ChrPositionComparator();
-	public static final char M_D = ':';
+	public static final char M_D = Constants.COLON;
 	
 	public static Map<String, AtomicInteger> convertStringArrayToMap(String data) {
 		if (StringUtils.isNullOrEmpty(data))
 			throw new IllegalArgumentException("Null or empty String array passed to convertStringArrayToMap");
 		
-		Map<String, AtomicInteger> results = new HashMap<>();
-		
 		String [] arrayData = data.indexOf(M_D) == -1 ? new String[] {data} : TabTokenizer.tokenize(data, M_D);
+		
+		Map<String, AtomicInteger> results = new HashMap<>(arrayData.length * 2);
 		
 		for (String s : arrayData) {
 			results.computeIfAbsent(s, v -> new AtomicInteger()).incrementAndGet();
@@ -42,15 +44,9 @@ public class MotifUtils {
 	}
 	
 	public static List<ChrPosition> getPositionsForChromosome(ChrPosition cp, List<ChrPosition> positions) {
-		if (cp == null)throw new IllegalArgumentException("null ChrPosition object passed to getPositionsForChromosome");
+		if (cp == null) throw new IllegalArgumentException("null ChrPosition object passed to getPositionsForChromosome");
 		
-		List<ChrPosition> results = new ArrayList<>();
-		for (ChrPosition pos : positions) {
-			if (ChrPositionUtils.doChrPositionsOverlap(cp, pos)) {
-				results.add(pos);
-			}
-		}
-		return results;
+		return positions.stream().filter(myCP -> ChrPositionUtils.doChrPositionsOverlap(cp, myCP)).collect(Collectors.toList());
 	}
 	
 	public static Map<ChrPosition, RegionCounter> getRegionMap(ChrPosition contig, int windowSize, List<ChrPosition> includes, List<ChrPosition> excludes) {
@@ -161,14 +157,7 @@ public class MotifUtils {
 		List<ChrPosition> exisitingOverlaps = new ArrayList<>();
 		
 		for(ChrPosition newCP : newPositions) {
-			
-			// loop through existing and see if they overlap
-			for (ChrPosition existingCP : existingPositions) {
-				
-				if (ChrPositionUtils.doChrPositionsOverlap(newCP, existingCP)) {
-					exisitingOverlaps.add(existingCP);
-				}
-			}
+			exisitingOverlaps.addAll(existingPositions.stream().filter(cp -> ChrPositionUtils.doChrPositionsOverlap(newCP, cp)).collect(Collectors.toList()));
 		}
 		return exisitingOverlaps;
 	}

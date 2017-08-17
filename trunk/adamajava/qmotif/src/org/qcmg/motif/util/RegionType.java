@@ -38,7 +38,6 @@ public enum RegionType {
 	 */
 	public boolean acceptRead(boolean mapped) {
 		return keepCounts && allowMappedStatus(mapped);
-//		return keepCounts && ! ( mapped && ! includeMapped);
 	}
 	
 	public boolean allowMappedStatus(boolean mapped) {
