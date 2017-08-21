@@ -3,6 +3,7 @@ package org.qcmg.sig.util;
 import static org.junit.Assert.assertEquals;
 import gnu.trove.map.TMap;
 import gnu.trove.map.hash.TIntShortHashMap;
+import gnu.trove.map.hash.TShortIntHashMap;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -125,9 +126,7 @@ public class SignatureUtilTest {
 		int [] indicies = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17};
 		List<Optional<float[]>> oeso_0031Floats = oeso_0031CovArray.stream().map(s -> SignatureUtil.getValuesFromCoverageStringFloat(s)).collect(Collectors.toList());
 		List<Short> oeso_0031Shorts = oeso_0031Floats.stream().map(of -> SignatureUtil.getCodedGenotype(of.get())).collect(Collectors.toList());
-//		TIntShortHashMap oeso_0031Map = new TIntShortHashMap(indicies, oeso_0031Shorts.toArray(new short[]{}));
 		oeso_0031Shorts.stream().forEach(System.out::println);
-		
 		
 		List<String> oeso_0050CovArray = Arrays.asList("A:25,C:0,G:31,T:0,N:0,TOTAL:56;NOVELCOV",
 "A:0,C:21,G:0,T:0,N:0,TOTAL:21;NOVELCOV",
@@ -151,8 +150,6 @@ public class SignatureUtilTest {
 		List<Short> oeso_0050Shorts = oeso_0050Floats.stream().map(of -> SignatureUtil.getCodedGenotype(of.get())).collect(Collectors.toList());
 		oeso_0050Shorts.stream().forEach(System.out::println);
 		
-		
-		
 		List<String> pn400007CovArray = Arrays.asList("A:70,C:1,G:0,T:0,N:0,TOTAL:71;NOVELCOV",
 "A:0,C:84,G:0,T:0,N:0,TOTAL:84;NOVELCOV",
 "A:0,C:41,G:0,T:34,N:0,TOTAL:75;NOVELCOV",
@@ -175,7 +172,6 @@ public class SignatureUtilTest {
 		List<Short> pn400007Shorts = pn400007Floats.stream().map(of -> SignatureUtil.getCodedGenotype(of.get())).collect(Collectors.toList());
 		pn400007Shorts.stream().forEach(System.out::println);
 		
-		
 		TIntShortHashMap oeso_0031Map = new TIntShortHashMap();
 		TIntShortHashMap oeso_0050Map = new TIntShortHashMap();
 		TIntShortHashMap pn400007Map = new TIntShortHashMap();
@@ -189,13 +185,10 @@ public class SignatureUtilTest {
 		System.out.println("c: " + c.toString());
 		Comparison c1 = ComparisonUtil.compareRatiosUsingSnpsFloat(oeso_0031Map, pn400007Map, new File("oeso_0031"), new File("pn400007"));
 		System.out.println("c1: " + c1.toString());
-		
-		
 	}
 	
 	@Test
-	public void getBEspokeARray() {
-		
+	public void getBespokeArray() {
 		try {
 			 SignatureUtil.decipherCoverageStringBespoke(null);
 			Assert.fail("Should have thrown an IAE");
@@ -280,6 +273,92 @@ public class SignatureUtilTest {
 		assertEquals(5, p.getSecond().get("rg2").size());
 	}
 	
+	@Test
+	public void getVAFDist() throws IOException {
+		File f = testFolder.newFile();
+		try (FileWriter w = new FileWriter(f);){
+			// add header
+			w.write("##fileformat=VCFv4.2\n");
+			w.write("##datetime=2016-08-17T14:44:30.088\n");
+			w.write("##program=SignatureGeneratorBespoke\n");
+			w.write("##version=1.0 (1230)\n");
+			w.write("##java_version=1.8.0_71\n");
+			w.write("##run_by_os=Linux\n");
+			w.write("##run_by_user=oliverH\n");
+			w.write("##positions=/software/genomeinfo/configs/qsignature/qsignature_positions.txt\n");
+			w.write("##positions_md5sum=d18c99f481afbe04294d11deeb418890\n");
+			w.write("##positions_count=1456203\n");
+			w.write("##filter_base_quality=10\n");
+			w.write("##filter_mapping_quality=10\n");
+			w.write("##illumina_array_design=/software/genomeinfo/configs/qsignature/Illumina_arrays_design.txt\n");
+			w.write("##cmd_line=SignatureGeneratorBespoke -i /software/genomeinfo/configs/qsignature/qsignature_positions.txt -illumina /software/genomeinfo/configs/qsignature/Illumina_arrays_design.txt -i /mnt/lustre/working/genomeinfo/share/mapping/aws/argsBams/dd625894-d1e3-4938-8d92-3a9f57c23e08.bam -d /mnt/lustre/home/oliverH/qsignature/bespoke/ -log /mnt/lustre/home/oliverH/qsignature/bespoke/siggen.log\n");
+			w.write("##INFO=<ID=QAF,Number=.,Type=String,Description=\"Lists the counts of As-Cs-Gs-Ts for each read group, along with the total\">\n");
+			w.write("##input=/mnt/lustre/working/genomeinfo/share/mapping/aws/argsBams/dd625894-d1e3-4938-8d92-3a9f57c23e08.bam\n");
+			w.write("##id:readgroup\n");
+			w.write("##rg1:143b8c38-62cb-414a-aac3-ea3a940cc6bb\n");
+			w.write("##rg2:65a79904-ee91-4f53-9a94-c02e23e071ef\n");
+			w.write("#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO\n");
+			for (short i = 0 ; i < 10 ; i++) {
+				w.write("chr1	10295" + i + "	cnvi0120648	T	.	.	.	FULLCOV=A:0,C:0,G:0,T:35,N:0,TOTAL:35;NOVELCOV=A:0,C:0,G:0,T:32,N:0,TOTAL:32\n");
+			}
+			for (short i = 0 ; i < 10 ; i++) {
+				w.write("chr2	10295" + i + "	cnvi0120648	T	.	.	.	FULLCOV=A:0,C:20,G:0,T:20,N:0,TOTAL:40;NOVELCOV=A:0,C:0,G:0,T:32,N:0,TOTAL:32\n");
+			}
+			for (short i = 0 ; i < 10 ; i++) {
+				w.write("chr3	10295" + i + "	cnvi0120648	T	.	.	.	FULLCOV=A:0,C:25,G:25,T:0,N:0,TOTAL:50;NOVELCOV=A:0,C:0,G:0,T:32,N:0,TOTAL:32\n");
+			}
+		}
+		
+		Map<Short, int[]> dist = SignatureUtil.getVariantAlleleFractionDistribution(f, 20);
+		for (short s = 0 ; s <=100 ; s++) {
+			switch (s) {
+			case 0: 
+				Assert.assertArrayEquals(new int[]{10,0}, dist.get(s)); break;
+			case 50:
+				Assert.assertArrayEquals(new int[]{10,0}, dist.get(s)); break;
+			case 100:
+				Assert.assertArrayEquals(new int[]{10,0}, dist.get(s)); break;
+			default :
+				Assert.assertArrayEquals(null, dist.get(s));
+			}
+		}
+//		
+//		TShortIntHashMap dist = SignatureUtil.getVariantAlleleFractionDistribution(f, 20);
+//		for (short s = 0 ; s <=100 ; s++) {
+//			switch (s) {
+//			case 0: 
+//				assertEquals(10, dist.get(s)); break;
+//			case 50:
+//				assertEquals(10, dist.get(s)); break;
+//			case 100:
+//				assertEquals(10, dist.get(s)); break;
+//			default :
+//				assertEquals(0, dist.get(s));
+//			}
+//		}
+	}
+	
+	@Test
+	public void getVAF() {
+		int [] counts = new int[] {10,0,0,0,10};
+		assertEquals(0.0f, SignatureUtil.getVAF(counts, "A"), 0.0001);
+		assertEquals(1.0f, SignatureUtil.getVAF(counts, "C"), 0.0001);
+		assertEquals(1.0f, SignatureUtil.getVAF(counts, "G"), 0.0001);
+		assertEquals(1.0f, SignatureUtil.getVAF(counts, "T"), 0.0001);
+		
+		counts = new int[] {10,10,0,0,20};
+		assertEquals(0.5f, SignatureUtil.getVAF(counts, "A"), 0.0001);
+		assertEquals(0.5f, SignatureUtil.getVAF(counts, "C"), 0.0001);
+		assertEquals(1.0f, SignatureUtil.getVAF(counts, "G"), 0.0001);
+		assertEquals(1.0f, SignatureUtil.getVAF(counts, "T"), 0.0001);
+	}
+	
+	@Test
+	public void getShortFromFloat() {
+		assertEquals(100, SignatureUtil.getFloatAsShort(1f));
+		assertEquals(10000, SignatureUtil.getFloatAsShort(100f));
+		assertEquals(5055, SignatureUtil.getFloatAsShort(50.55f));
+	}
 	
 	
 	@Test

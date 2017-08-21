@@ -23,8 +23,6 @@ final class Options {
 			.getMessage("MIN_MAPPING_QUALITY_DESCRIPTION");
 	private static final String MIN_BASE_QUALITY_DESCRIPTION = Messages
 			.getMessage("MIN_BASE_QUALITY_DESCRIPTION");
-//	private static final String SNP_CHIP_COVERAGE_DESCRIPTION = Messages
-//			.getMessage("SNP_CHIP_COVERAGE_DESCRIPTION");
 	private static final String OUTPUT_DESCRIPTION = Messages
 			.getMessage("OUTPUT_OPTION_DESCRIPTION");
 	private static final String DIR_OUTPUT_DESCRIPTION = Messages
@@ -60,8 +58,6 @@ final class Options {
 	private final Float homCutoff;
 	private final Float hetUpperCutoff;
 	private final Float hetLowerCutoff;
-//	private int snpChipCoverage;
-//	private float cutoff;
 	private final String log;
 	private final String logLevel;
 
@@ -96,8 +92,6 @@ final class Options {
 		.describedAs("hetLowerCutoff");
 		parser.accepts("noOfThreads", NO_OF_THREADS_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class)
 			.describedAs("noOfThreads");
-//		parser.accepts("snpChipCoverage", SNP_CHIP_COVERAGE_DESCRIPTION).withRequiredArg().ofType(Integer.class)
-//			.describedAs("snpChipCoverage");
 		parser.accepts("snpPositions", SNP_POSITION_DESCRIPTION).withRequiredArg().ofType(String.class)
 			.describedAs("snpPositions");
 		parser.accepts("sequential", SEQUENTIAL_OPTION_DESCRIPTION);

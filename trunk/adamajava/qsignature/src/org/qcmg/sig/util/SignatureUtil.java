@@ -8,8 +8,10 @@ package org.qcmg.sig.util;
 
 import static java.util.Comparator.comparing;
 import gnu.trove.map.TMap;
+import gnu.trove.map.hash.TFloatIntHashMap;
 import gnu.trove.map.hash.THashMap;
 import gnu.trove.map.hash.TIntShortHashMap;
+import gnu.trove.map.hash.TShortIntHashMap;
 
 import java.io.File;
 import java.io.IOException;
@@ -51,12 +53,14 @@ import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.DonorUtils;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.TabTokenizer;
+import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.illumina.IlluminaRecord;
 import org.qcmg.sig.model.Comparison;
 import org.qcmg.sig.model.SigMeta;
 import org.qcmg.tab.TabbedFileReader;
 import org.qcmg.tab.TabbedHeader;
 import org.qcmg.tab.TabbedRecord;
+import org.qcmg.vcf.VCFFileReader;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -306,6 +310,99 @@ public class SignatureUtil {
 			
 			return Optional.of(new Pair<>(new SigMeta(md, count, bq, mq), rgIds));
 		}
+	}
+	
+	public static Map<Short, int[]> getVariantAlleleFractionDistribution(File f, int minCoverage) throws IOException {
+		
+		Map<Short, int[]> dist = new HashMap<>(1000);
+		
+		/*
+		 * load file, get float value of VAF
+		 */
+		try (VCFFileReader reader = new VCFFileReader(f)) {
+			
+			for (VcfRecord vcf : reader) {
+				String info = vcf.getInfo();
+				
+				/*
+				 * get total, see if it is gte our minCoverage cutoff
+				 * expecting format to be FULLCOV=A:0,C:0,G:0,T:0,N:0,TOTAL:0;NOVELCOV=A:0,C:0,G:0,T:0,N:0,TOTAL:0 yuck....
+				 */
+				
+				int [] counts = decipherCoverageString(info);
+				
+				if (counts[4] >= 1) {
+				boolean passesCoverage = counts[4] >= minCoverage;
+				
+//				if (counts[4] >= minCoverage) {
+					
+					String ref = vcf.getRef();
+					short vafAsShort = getFloatAsShort(getVAF(counts, ref));
+//					if (vafAsShort == 25) {
+//						logger.info("vaf = 25, info: " + info + ", ref: " + ref);
+//					}
+//					dist.adjustOrPutValue(vafAsShort, 1, 1);
+					dist.computeIfAbsent(Short.valueOf(vafAsShort), v -> new int[2])[passesCoverage ? 0 : 1] += 1;
+					
+				}
+			}
+		}
+		
+		return dist;
+	}
+//	public static TShortIntHashMap getVariantAlleleFractionDistribution(File f, int minCoverage) throws IOException {
+//		
+//		TShortIntHashMap dist = new TShortIntHashMap(1000);
+//		
+//		/*
+//		 * load file, get float value of VAF
+//		 */
+//		try (VCFFileReader reader = new VCFFileReader(f)) {
+//			
+//			for (VcfRecord vcf : reader) {
+//				String info = vcf.getInfo();
+//				
+//				/*
+//				 * get total, see if it is gte our minCoverage cutoff
+//				 * expecting format to be FULLCOV=A:0,C:0,G:0,T:0,N:0,TOTAL:0;NOVELCOV=A:0,C:0,G:0,T:0,N:0,TOTAL:0 yuck....
+//				 */
+//				
+//				int [] counts = decipherCoverageString(info);
+//				
+//				if (counts[4] >= minCoverage) {
+//					
+//					String ref = vcf.getRef();
+//					short vafAsShort = getFloatAsShort(getVAF(counts, ref));
+////					if (vafAsShort == 25) {
+////						logger.info("vaf = 25, info: " + info + ", ref: " + ref);
+////					}
+//					dist.adjustOrPutValue(vafAsShort, 1, 1);
+//					
+//				}
+//			}
+//		}
+//		
+//		return dist;
+//	}
+	
+	/**
+	 * This returns a short version of a float multiplied by 100 so as to get 1 basis point precision
+	 * @param f
+	 * @return
+	 */
+	public static short getFloatAsShort(float f) {
+		return (short) (f * 100);
+	}
+	
+	public static float getVAF(int[] counts, String ref) {
+		float vaf = 0.0f;
+		switch (ref) {
+		case "A": vaf = (float)(counts[1] + counts[2] + counts[3]) / counts[4]; break;
+		case "C": vaf = (float)(counts[0] + counts[2] + counts[3]) / counts[4]; break;
+		case "G": vaf = (float)(counts[0] + counts[1] + counts[3]) / counts[4]; break;
+		case "T": vaf = (float)(counts[0] + counts[1] + counts[2]) / counts[4]; break;
+		}
+		return vaf;
 	}
 	
 	public static Pair<SigMeta, TMap<String, TIntShortHashMap>> loadSignatureRatiosBespokeGenotype(File file, int minCoverage, int minRGCoverage) throws IOException {
