@@ -100,7 +100,7 @@ public class SignatureGeneratorBespoke {
 	private final List<StringBuilder> resultsToWrite = new ArrayList<>();
 	private final AbstractQueue<SAMRecord> sams = new ConcurrentLinkedQueue<>();
 	private final Map<String, String[]> IlluminaArraysDesign = new ConcurrentHashMap<>();
-	private final List<String> sortedContigs = new ArrayList<String>();
+	private List<String> sortedContigs;
 	private byte[] snpPositionsMD5;
 	private final StringBuffer stdHeaderDetails = new StringBuffer();
 	
@@ -206,7 +206,7 @@ public class SignatureGeneratorBespoke {
 		for (final File illuminaFile : illuminaFiles) {
 			
 			// load contents of each illumina file into mem
-			final Map<ChrPosition, IlluminaRecord> iIlluminaMap = new HashMap<ChrPosition, IlluminaRecord>(1250000);	// not expecting more than 1000000
+			final Map<ChrPosition, IlluminaRecord> iIlluminaMap = new HashMap<>(1250000);	// not expecting more than 1000000
 			
 			// set some bam specific values
 			arrayPosition = 0;
@@ -302,36 +302,24 @@ public class SignatureGeneratorBespoke {
 	void createComparatorFromSAMHeader(SAMFileHeader header) throws IOException {
 		if (null == header) throw new IllegalArgumentException("null file passed to createComparatorFromSAMHeader");
 		
-		
-		for (final SAMSequenceRecord contig : header.getSequenceDictionary().getSequences()) {
-			sortedContigs.add(contig.getSequenceName());
-		}
-		
-//		try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(fileName)) {
-//			final SAMFileHeader header = reader.getFileHeader();
-//		}
+		/*
+		 * get contig names from bam header
+		 */
+		sortedContigs = header.getSequenceDictionary().getSequences().stream().map(SAMSequenceRecord::getSequenceName).collect(Collectors.toList());
 		
 		// try and sort according to the ordering of the bam file that is about to be processed
 		// otherwise, resort to alphabetic ordering and cross fingers...
 		if ( ! sortedContigs.isEmpty()) {
 			
 			chrComparator = ListUtils.createComparatorFromList(sortedContigs);
-			
-			Collections.sort(snps, new Comparator<VcfRecord>() {
-				@Override
-				public int compare(VcfRecord o1, VcfRecord o2) {
-					final int diff = chrComparator.compare(o1.getChromosome(), o2.getChromosome());
-					if (diff != 0) return diff;
-					return o1.getPosition() - o2.getPosition();
-				}
-			});
+			snps.sort(Comparator.comparing(VcfRecord::getChromosome, chrComparator).thenComparingInt(VcfRecord::getPosition));
 			
 		} else {
 			chrComparator = COMPARATOR;
-			Collections.sort(snps, new VcfPositionComparator());
+			snps.sort(new VcfPositionComparator());
 		}
 		
-		final Set<String> uniqueChrs = new HashSet<String>();
+		final Set<String> uniqueChrs = new HashSet<>();
 		logger.info("chr order:");
 		for (final VcfRecord vcf : snps) {
 			if (uniqueChrs.add(vcf.getChromosome())) {
@@ -405,7 +393,7 @@ public class SignatureGeneratorBespoke {
 			case  'T' : ts++;break;
 			}
 		}
-		return new StringBuilder().append(as).append(Constants.MINUS).append(cs).append(Constants.MINUS).append(gs).append(Constants.MINUS).append(ts).toString();
+		return "" + as + Constants.MINUS + cs + Constants.MINUS + gs + Constants.MINUS + ts;
 	}
 	
 	private void updateResultsIllumina(Map<ChrPosition, IlluminaRecord> iIlluminaMap) {
