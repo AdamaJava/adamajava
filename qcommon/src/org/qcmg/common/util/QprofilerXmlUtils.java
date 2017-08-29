@@ -6,8 +6,24 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.w3c.dom.DOMException;
+import org.w3c.dom.DOMImplementation;
+import org.w3c.dom.Document;
+import org.w3c.dom.DocumentType;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
+import org.w3c.dom.bootstrap.DOMImplementationRegistry;
+import org.w3c.dom.ls.DOMImplementationLS;
+import org.w3c.dom.ls.LSOutput;
+import org.w3c.dom.ls.LSSerializer;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+
 
 public class QprofilerXmlUtils {
 	
@@ -16,12 +32,15 @@ public class QprofilerXmlUtils {
 	public static final String UNKNOWN_READGROUP = "unkown_readgroup_id";
 	public static final String All_READGROUP = "overall";	
 	public static final String COMMA = ","; 
+	public static final String FirstOfPair = "FirstOfPair"; 
+	public static final String SecondOfPair = "SecondOfPair";
+	public static final String source = "source";
 	
 	//xml tag name
 	public static final String valueTally = "ValueTally";
 	public static final String rangeTally = "RangeTally";
 	public static final String cycleTally = "CycleTally";
-//	public static final String lengthTally = "LengthTally";	
+	public static final String cycle = "Cycle";
 	
 	public static final String tallyItem = "TallyItem";
 	public static final String rangeTallyItem = "RangeTallyItem";
@@ -37,10 +56,7 @@ public class QprofilerXmlUtils {
 	public static final String possibles = "possibleValues";
 	public static final String start = "start";
 	public static final String end = "end";
-	
-	
-	
-		
+			
 	public static <T> String joinByComma( List<T> possibles){		 		
 		StringBuilder sb = new StringBuilder();
 		for(T mer :  possibles)
@@ -131,9 +147,44 @@ public class QprofilerXmlUtils {
 	
 	public static  Element getChildElement(Element parent, String tagName, int itemNo){		
 		List<Element> elements = getChildElementByTagName( parent,  tagName);
-		
-		
 		return (itemNo >= elements.size()  )? null : elements.get(itemNo);		
 	}
+	
+	/**
+	 * 
+	 * @param parent: root element node
+	 * @param filename : output element and offsprings to text file
+	 */	
+	public static void asXmlText( Element parent, String filename )  {		
+	
+		try{        
+			DOMImplementationLS	impl = (DOMImplementationLS) DOMImplementationRegistry.newInstance().getDOMImplementation("XML 3.0 LS 3.0");	
+	        LSSerializer serializer = impl.createLSSerializer();
+	//        serializer.getDomConfig().setParameter("format-pretty-print", true); //$NON-NLS-1$
+	//        serializer.getDomConfig().setParameter("namespaces", false); //$NON-NLS-1$
+	        LSOutput output = impl.createLSOutput();
+	        output.setCharacterStream(new OutputStreamWriter(new FileOutputStream(filename)));
+	        serializer.write(parent.getOwnerDocument(), output);
+		}catch( ClassNotFoundException | InstantiationException | IllegalAccessException | ClassCastException | IOException ex){
+			ex.printStackTrace();
+		}
+		
+	}
+	
+	public static Element createRootElement( String namespaceURI, String qualifiedName, DocumentType doctype) throws  ParserConfigurationException{
+		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+		DocumentBuilder builder = factory.newDocumentBuilder();
+		DOMImplementation domImpl = builder.getDOMImplementation();		
+		Document doc = domImpl.createDocument( namespaceURI,  qualifiedName,  doctype );
+//		Document doc = domImpl.createDocument(null, "qProfiler", null);
+		return doc.getDocumentElement();
+	}
+
+	public static Element createSubElement(Element parent, String name) {
+		Element element = parent.getOwnerDocument().createElement(name);
+		parent.appendChild(element);
+		return element;
+	}
+	
 	
 }

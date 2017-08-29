@@ -94,7 +94,7 @@ public class VcfHeaderUtilsTest {
 	}
 	
 	@Test
-	public void mergeHeadersGATK() {
+	public void mergeHeadersGATK() throws Exception{
 		List<String> headerLines = new ArrayList<>();
 		headerLines.add("##fileformat=VCFv4.2");
 		headerLines.add("##fileDate=20150217");
@@ -116,6 +116,7 @@ public class VcfHeaderUtilsTest {
 		headerLines.add("##qTestVcf=/mnt/genomeinfo_projects/data/oesophageal/OESO_0054/seq_final/SmgresOesophageal_OESO0054_1DNA_7PrimaryTumour_SMGresABNW20140115031_IlluminaTruSEQMultiplexedManual_HumanTruSEQExomeEnrichmentTruSEQ_Bwa_HiSeq.jpearson.unfiltered.vcf");
 		headerLines.add("##qTestVcfUUID=8b87f064-677e-4708-8c0f-8ecea9084eb9");
 		headerLines.add("##qTestVcfGATKVersion=3.3-0-g37228af");
+		headerLines.add(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE); //must add CHROM line otherwise exception
 		VcfHeader gatkHeader = new VcfHeader(headerLines);
 		VcfHeader orig = new VcfHeader();
 		

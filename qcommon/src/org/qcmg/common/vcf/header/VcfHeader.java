@@ -138,25 +138,31 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 				
 	}
 	/**
-	 * create an new empty vcf Header
+	 * create an new empty vcf Header during vcf header merge, unit test etc
 	 */
 	public VcfHeader(){}	
 	
+ 
 	/**
 	 * create an new vcf header by reading whole list of string
 	 * @param headerRecords: a list of vcf header line
+	 * @throws Exception for invalid vcf header, eg.the list is null or missing CHROM line 
 	 */
-	public VcfHeader(final List<String> headerRecords){	
-		if(headerRecords == null) return;
+	public VcfHeader(final List<String> headerRecords) throws Exception{	
+		if(headerRecords == null || headerRecords.size() == 0) //return;
+			throw new Exception("Vcf Header can't null or empty");
 		
 		headerRecords.forEach( r -> {
 			try{
 				addOrReplace(r, false);
 			}catch(IllegalArgumentException e){
 				System.err.println(e.getMessage());
-			}
-			
+			}			
 		});
+		
+	if(chromLine == null) 
+		throw new Exception("Missing or error on #CHROM line on vcf header");
+	 
 			
 	}		 
 			
