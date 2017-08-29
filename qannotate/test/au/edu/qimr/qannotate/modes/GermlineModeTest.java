@@ -88,6 +88,7 @@ public class GermlineModeTest {
 		public void checkNonSomatic()throws Exception{
 		    final List<String> data = new ArrayList<String>();
 	        data.add("##fileformat=VCFv4.0");
+	        data.add(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT+"s1\ts2");
 	       
  	        //germ position but not somatic
 	        data.add("chrY\t14923588\t.\tG\tA\t.\t.\tFS=GTGATATTCCC\tGT:GD:AC:MR:NNS\t0/1:G/A:A0[0],15[36.2],G11[36.82],9[33]\t0/1:G/A:A0[0],33[35.73],G6[30.5],2[34]:15:13"); 
@@ -122,6 +123,7 @@ public class GermlineModeTest {
 	public static void createVcf() throws IOException{
         final List<String> data = new ArrayList<String>();
         data.add("##fileformat=VCFv4.0");
+        data.add(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT+"s1\ts2");
         //not germ: ref diferent
         data.add("chrY\t2675826\t.\tTG\tCA\t.\tCOVN12;MIUN\tSOMATIC;END=2675826\tACCS\tTG,5,37,CA,0,2\tAA,1,1,CA,4,1,CT,3,1,TA,11,76,TG,2,2,TG,0,1");
         //. = > GERM

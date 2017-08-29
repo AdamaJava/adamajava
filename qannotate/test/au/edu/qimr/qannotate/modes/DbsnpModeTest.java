@@ -184,6 +184,7 @@ public class DbsnpModeTest {
 	public static void createVcf() throws IOException{
         final List<String> data = new ArrayList<String>();
         data.add("##fileformat=VCFv4.0");
+        data.add(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT+"s1\ts2");
  
         data.add("chrY\t14923588\t.\tG\tA\t.\tSBIAS\t;FS=GTGATATTCCC\tGT:GD:AC:MR:NNS\t0/1:G/A:A0[0],15[36.2],G11[36.82],9[33]\t0/1:G/A:A0[0],33[35.73],G6[30.5],2[34]:15:13"); 
         data.add("chrY\t2675826\t.\tTG\tCA\t.\tCOVN12;MIUN\tSOMATIC;END=2675826\tACCS\tTG,5,37,CA,0,2\tAA,1,1,CA,4,1,CT,3,1,TA,11,76,TG,2,2,TG,0,1");
@@ -207,6 +208,7 @@ public class DbsnpModeTest {
         data.add("##INFO=<ID=CAF,Number=.,Type=String,Description=\"An ordered, comma delimited list of allele frequencies based on 1000Genomes, starting with the reference allele followed by alternate alleles as ordered in the ALT column. "
         		+ "Where a 1000Genomes alternate allele is not in the dbSNPs alternate allele set, the allele is added to the ALT column. "
         		+ " The minor allele is the second largest value in the list, and was previuosly reported in VCF as the GMAF.  This is the GMAF reported on the RefSNP and EntrezSNP pages and VariationReporter\">");  
+        data.add(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE);
         data.add("Y\t2675825\trs71432129\tTTG\tTGG,TCA\t.\t.\tRSPOS=2675826;RV;dbSNPBuildID=130;SSR=0;SAO=0;VP=050100000008000100000800;WGT=0;VC=MNV;SLO;CFL;GNO;CAF=[0.33,0.23,0.39]");
         data.add("Y\t2675829\trs112502114\tA\tC\t.\t.\tRSPOS=2675829;RV;dbSNPBuildID=132;SSR=0;SAO=0;VP=050100000008000100000100;WGT=0;VC=SNV;SLO;CFL;GNO");
         data.add("Y\t22012840\trs111477956\tC\tA\t.\t.\tRSPOS=22012840;RV;GMAF=0.113802559414991;dbSNPBuildID=132;SSR=0;SAO=0;VP=050100000000000100000100;WGT=0;VC=SNV;SLO;GNO;VLD");  
@@ -225,7 +227,7 @@ public class DbsnpModeTest {
         		+ " The minor allele is the second largest value in the list, and was previuosly reported in VCF as the GMAF.  This is the GMAF reported on the RefSNP and EntrezSNP pages and VariationReporter\">");  
       
         data.add("##INFO=<ID=VLD,Number=0,Type=Flag,Description=\"Is Validated. This bit is set if the variant has 2+ minor allele count based on frequency or genotype data.\">");
-        
+        data.add(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE);
         
         try(BufferedWriter out = new BufferedWriter(new FileWriter(dbSNPName));) {          
            for (final String line : data)  out.write(line + "\n");
