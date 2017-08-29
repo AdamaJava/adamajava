@@ -32,23 +32,22 @@ public class MergeUtilsTest {
 	public  TemporaryFolder testFolder = new TemporaryFolder();
 	
 	@Test
-	public void canHeadersBeMerged() {
+	public void canHeadersBeMerged() throws Exception {
 		VcfHeader qsnpHeader = new VcfHeader(getQsnpVcfHeader());
 		VcfHeader gatkHeader = new VcfHeader(getQsnpGATKVcfHeader());		
 		assertEquals(true, MergeUtils.canMergeBePerformed(qsnpHeader, qsnpHeader));
 		assertEquals(true, MergeUtils.canMergeBePerformed(gatkHeader, gatkHeader));
 		
-		qsnpHeader.addOrReplace(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "\tcontrol\ttest");
-		
+		qsnpHeader.addOrReplace(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "\tcontrol\ttest");		
 		assertEquals(false, MergeUtils.canMergeBePerformed(qsnpHeader, gatkHeader));
 		
 		VcfHeader h1 = new VcfHeader();
 		VcfHeader h2 = new VcfHeader();
 		assertEquals(false, MergeUtils.canMergeBePerformed(h1, h2));
 		
-		h1.addOrReplace(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "123456");
-		h2.addOrReplace(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "123456");
-		assertEquals(true, MergeUtils.canMergeBePerformed(h1, h2));
+		h1.addOrReplace( VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "123456");
+		h2.addOrReplace( VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "123456");
+		assertEquals( true, MergeUtils.canMergeBePerformed(h1, h2));
 		
 		h1.addOrReplace(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "123456", true);
 		h2.addOrReplace(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "23456", true);
@@ -80,7 +79,7 @@ public class MergeUtilsTest {
 	}
 	
 	@Test
-	public void getMergedHeadersAndRules() {
+	public void getMergedHeadersAndRules() throws Exception {
 		VcfHeader qsnpHeader = new VcfHeader(getQsnpVcfHeader());
 		VcfHeader gatkHeader = new VcfHeader(getQsnpVcfHeader());
 		Pair<VcfHeader, Rule> pair = MergeUtils.getMergedHeaderAndRules(qsnpHeader, gatkHeader);
@@ -94,7 +93,7 @@ public class MergeUtilsTest {
 	}
 	
 	@Test
-	public void mergeHeadersQLines() {
+	public void mergeHeadersQLines() throws Exception {
 		VcfHeader qsnpHeader = new VcfHeader(getQsnpVcfHeader());
 		VcfHeader gatkHeader = new VcfHeader(getQsnpGATKVcfHeader());
 		
@@ -295,7 +294,7 @@ public class MergeUtilsTest {
 	}
 	
 	@Test
-	public void mergeHeadersFromRealVcf() {
+	public void mergeHeadersFromRealVcf() throws Exception {
 		VcfHeader qsnpHeader = new VcfHeader(getQsnpVcfHeader());
 		VcfHeader gatkHeader = new VcfHeader(getQsnpGATKVcfHeader());
 		VcfHeader newHeader = MergeUtils.getMergedHeaderAndRules(qsnpHeader, gatkHeader).getLeft();
@@ -306,7 +305,7 @@ public class MergeUtilsTest {
 	}
 	
 	@Test
-	public void mergeHeadersFromSoonToBeRealVcf() {
+	public void mergeHeadersFromSoonToBeRealVcf() throws Exception {
 		VcfHeader qsnpHeader = new VcfHeader(getUpdatedQsnpVCfHeader());
 		VcfHeader gatkHeader = new VcfHeader(getQsnpGATKVcfHeader());
 		
