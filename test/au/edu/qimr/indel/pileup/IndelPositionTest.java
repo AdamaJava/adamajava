@@ -42,6 +42,7 @@ public class IndelPositionTest {
 	 	contigPileupTest.createSam(vcf + ".fai");	
 		 
 		List<String> data = new ArrayList<String>();
+		data.add(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE);
 		Support.createVcf(data,data, emptyVcf); //empty vcf; 
 
 	}
@@ -231,6 +232,7 @@ public class IndelPositionTest {
 		 IndelMTTest.createDelBam(tumourBAM);
 		 
         data.clear();;
+        data.add(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT+"s1");
         data.add("chr11	2672739	.	ATT	A	123.86	.	.	GT	0/1"); 
         Support.createVcf(data, data, "control.vcf");
 	

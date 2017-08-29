@@ -14,6 +14,7 @@ import java.util.List;
 
 import junit.framework.Assert;
 
+import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.SAMOrBAMWriterFactory;
 
@@ -73,6 +74,7 @@ public class Support {
 	public static void createGatkVcf(String vcf){	
 		
         List<String> data = new ArrayList<String>();
+        data.add(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT+"s1");
         data.add("chr11	2672739	.	ATT	A	123.86	.	.	GT	0/1"); 
         data.add("chrY	2672735	.	ATT	A	123.86	.	GATKINFO	GT	0/1"); 
         data.add("chr11	2672739	.	ATTC	A	123.86	.	.	GT	0/1"); 
@@ -84,7 +86,7 @@ public class Support {
 	public static void createVcf( List<String> data1, String output){	
         List<String> data = new ArrayList<String>();
         data.add("##fileformat=VCFv4.1");
-        data.add("#CHROM	POS	ID      REF     ALT     QUAL	FILTER	INFO	FORMAT	S1"); 
+        data.add(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT+"S1"); 
         
         createVcf(data, data1,output);		
 	}
@@ -92,10 +94,9 @@ public class Support {
 	public static void createVcf( List<String> header, List<String> records, String output){	
         List<String> data = new ArrayList<String>(header);
         data.addAll(records);
-        try( BufferedWriter out = new BufferedWriter(new FileWriter(output ))) {	
+        try( BufferedWriter out = new BufferedWriter(new FileWriter(output ))) {
         	for (String line : data)  
-                out.write(line + "\n");	   
-                   	            
+                out.write(line + "\n");                   	            
          }catch(IOException e){
          	System.err.println( Q3IndelException.getStrackTrace(e));	 	        	 
          	Assert.fail("Should not threw a Exception");
