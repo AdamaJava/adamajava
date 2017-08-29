@@ -55,7 +55,8 @@ public class VcfPipelineTest {
 		final File testInputBam = testFolder.newFile("test.bam");
 		final File vcfOutput = testFolder.newFile("output.vcf");
 		
-		List<String> vcfs = Arrays.asList("chrX	2710840	rs311168	C	T	.	.	AC=2;AF=1.00;AN=2;DP=31;FS=0.000;MLEAC=2;MLEAF=1.00;MQ=60.00;MQ0=0;QD=33.08;SOR=1.688;IN=1,2;DB;VLD;VAF=0.6125	GT:GD	1/1:T/T");
+		List<String> vcfs = Arrays.asList(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT+"s1",
+				"chrX	2710840	rs311168	C	T	.	.	AC=2;AF=1.00;AN=2;DP=31;FS=0.000;MLEAC=2;MLEAF=1.00;MQ=60.00;MQ0=0;QD=33.08;SOR=1.688;IN=1,2;DB;VLD;VAF=0.6125	GT:GD	1/1:T/T");
 		createFile(testInputBam, getBamFilechrX());
 		createFile(testInputVcf, vcfs);
 		
@@ -68,8 +69,8 @@ public class VcfPipelineTest {
 		IniFileGenerator.addStringToIniFile(iniFile, "[parameters]\nrunMode = vcf\nfilter = and (MAPQ > 10, CIGAR_M>34, MD_mismatch<=3)", true);	// append to file
 		
 		new VcfPipeline(new Ini(iniFile), new QExec("stackOverflow2", "test", null), true);
-		// check the vcf output file
-		assertEquals(vcfs.size(), noOfLinesInVCFOutputFile(vcfOutput));
+		// check the vcf output file, minus CHROM line
+		assertEquals(vcfs.size()-1, noOfLinesInVCFOutputFile(vcfOutput));
 		try (VCFFileReader reader = new VCFFileReader(vcfOutput);){
 			for (VcfRecord vcf : reader) {
 				// check that record has been updated with AC
@@ -85,7 +86,8 @@ public class VcfPipelineTest {
 		final File testInputBam = testFolder.newFile("test.bam");
 		final File vcfOutput = testFolder.newFile("output.vcf");
 		
-		List<String> vcfs = Arrays.asList("chrX	2710840	rs311168	C	T	.	.	AC=2;AF=1.00;AN=2;DP=31;FS=0.000;MLEAC=2;MLEAF=1.00;MQ=60.00;MQ0=0;QD=33.08;SOR=1.688;IN=1,2;DB;VLD;VAF=0.6125	GT:GD	1/1:T/T",
+		List<String> vcfs = Arrays.asList(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT+"s1",
+				"chrX	2710840	rs311168	C	T	.	.	AC=2;AF=1.00;AN=2;DP=31;FS=0.000;MLEAC=2;MLEAF=1.00;MQ=60.00;MQ0=0;QD=33.08;SOR=1.688;IN=1,2;DB;VLD;VAF=0.6125	GT:GD	1/1:T/T",
 				"chrX	2710895	rs311169	C	G	.	. 	AC=2;AF=1.00;AN=2;DP=22;FS=0.000;MLEAC=2;MLEAF=1.00;MQ=60.00;MQ0=0;QD=37.63;SOR=1.828;IN=1,2;DB;VAF=0.6161	GT:GD	1/1:G/G");
 		createFile(testInputBam, getBamFilechrX());
 		createFile(testInputVcf, vcfs);
@@ -99,8 +101,8 @@ public class VcfPipelineTest {
 		IniFileGenerator.addStringToIniFile(iniFile, "[parameters]\nrunMode = vcf\nfilter = and (MAPQ > 10, CIGAR_M>34, MD_mismatch<=3)", true);	// append to file
 		
 		new VcfPipeline(new Ini(iniFile), new QExec("stackOverflow2", "test", null), true);
-		// check the vcf output file
-		assertEquals(vcfs.size(), noOfLinesInVCFOutputFile(vcfOutput));
+		// check the vcf output file, minus CHROM line
+		assertEquals(vcfs.size()-1, noOfLinesInVCFOutputFile(vcfOutput));
 		try (VCFFileReader reader = new VCFFileReader(vcfOutput);){
 			for (VcfRecord vcf : reader) {
 				// check that record has been updated with AC
@@ -119,7 +121,8 @@ public class VcfPipelineTest {
 		final File testInputBam = testFolder.newFile("test.bam");
 		final File vcfOutput = testFolder.newFile("output.vcf");
 		
-		List<String> vcfs = Arrays.asList("chrX	2710840	rs311168	C	T	.	.	AC=2;AF=1.00;AN=2;DP=31;FS=0.000;MLEAC=2;MLEAF=1.00;MQ=60.00;MQ0=0;QD=33.08;SOR=1.688;IN=1,2;DB;VLD;VAF=0.6125	GT:GD	1/1:T/T",
+		List<String> vcfs = Arrays.asList(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT+"s1",
+				"chrX	2710840	rs311168	C	T	.	.	AC=2;AF=1.00;AN=2;DP=31;FS=0.000;MLEAC=2;MLEAF=1.00;MQ=60.00;MQ0=0;QD=33.08;SOR=1.688;IN=1,2;DB;VLD;VAF=0.6125	GT:GD	1/1:T/T",
 				"chrX	2710895	rs311169	C	G	.	. 	AC=2;AF=1.00;AN=2;DP=22;FS=0.000;MLEAC=2;MLEAF=1.00;MQ=60.00;MQ0=0;QD=37.63;SOR=1.828;IN=1,2;DB;VAF=0.6161	GT:GD	1/1:G/G",
 	"chrX	2711895	rs311169	C	G	.	. 	AC=2;AF=1.00;AN=2;DP=22;FS=0.000;MLEAC=2;MLEAF=1.00;MQ=60.00;MQ0=0;QD=37.63;SOR=1.828;IN=1,2;DB;VAF=0.6161	GT:GD	1/1:G/G");
 		createFile(testInputBam, getBamFilechrX());
@@ -134,8 +137,8 @@ public class VcfPipelineTest {
 		IniFileGenerator.addStringToIniFile(iniFile, "[parameters]\nrunMode = vcf\nfilter = and (MAPQ > 10, CIGAR_M>34, MD_mismatch<=3)", true);	// append to file
 		
 		new VcfPipeline(new Ini(iniFile), new QExec("stackOverflow2", "test", null), true);
-		// check the vcf output file
-		assertEquals(vcfs.size(), noOfLinesInVCFOutputFile(vcfOutput));
+		// check the vcf output file, minus CHROM line
+		assertEquals(vcfs.size()-1, noOfLinesInVCFOutputFile(vcfOutput));
 		try (VCFFileReader reader = new VCFFileReader(vcfOutput);){
 			for (VcfRecord vcf : reader) {
 				// check that record has been updated with AC
@@ -156,10 +159,11 @@ public class VcfPipelineTest {
 		final File testInputBam = testFolder.newFile("test.bam");
 		final File vcfOutput = testFolder.newFile("output.vcf");
 		
-		List<String> vcfs = Arrays.asList("chrX	2710840	rs311168	C	T	.	.	AC=2;AF=1.00;AN=2;DP=31;FS=0.000;MLEAC=2;MLEAF=1.00;MQ=60.00;MQ0=0;QD=33.08;SOR=1.688;IN=1,2;DB;VLD;VAF=0.6125	GT:GD	1/1:T/T",
+		List<String> vcfs = Arrays.asList(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT+"s1",
+				"chrX	2710840	rs311168	C	T	.	.	AC=2;AF=1.00;AN=2;DP=31;FS=0.000;MLEAC=2;MLEAF=1.00;MQ=60.00;MQ0=0;QD=33.08;SOR=1.688;IN=1,2;DB;VLD;VAF=0.6125	GT:GD	1/1:T/T",
 				"chrX	2710895	rs311169	C	G	.	. 	AC=2;AF=1.00;AN=2;DP=22;FS=0.000;MLEAC=2;MLEAF=1.00;MQ=60.00;MQ0=0;QD=37.63;SOR=1.828;IN=1,2;DB;VAF=0.6161	GT:GD	1/1:G/G",
 				"chrX	2711895	rs311169	C	G	.	. 	AC=2;AF=1.00;AN=2;DP=22;FS=0.000;MLEAC=2;MLEAF=1.00;MQ=60.00;MQ0=0;QD=37.63;SOR=1.828;IN=1,2;DB;VAF=0.6161	GT:GD	1/1:G/G",
-	"chrY	1000	rs311169	C	G	.	. 	AC=2;AF=1.00;AN=2;DP=22;FS=0.000;MLEAC=2;MLEAF=1.00;MQ=60.00;MQ0=0;QD=37.63;SOR=1.828;IN=1,2;DB;VAF=0.6161	GT:GD	1/1:G/G");
+				"chrY	1000	rs311169	C	G	.	. 	AC=2;AF=1.00;AN=2;DP=22;FS=0.000;MLEAC=2;MLEAF=1.00;MQ=60.00;MQ0=0;QD=37.63;SOR=1.828;IN=1,2;DB;VAF=0.6161	GT:GD	1/1:G/G");
 		createFile(testInputBam, getBamFilechrX());
 		createFile(testInputVcf, vcfs);
 		
@@ -172,8 +176,8 @@ public class VcfPipelineTest {
 		IniFileGenerator.addStringToIniFile(iniFile, "[parameters]\nrunMode = vcf\nfilter = and (MAPQ > 10, CIGAR_M>34, MD_mismatch<=3)", true);	// append to file
 		
 		new VcfPipeline(new Ini(iniFile), new QExec("stackOverflow2", "test", null), true);
-		// check the vcf output file
-		assertEquals(vcfs.size(), noOfLinesInVCFOutputFile(vcfOutput));
+		// check the vcf output file, minus CHROM line
+		assertEquals(vcfs.size()-1, noOfLinesInVCFOutputFile(vcfOutput));
 		try (VCFFileReader reader = new VCFFileReader(vcfOutput);){
 			for (VcfRecord vcf : reader) {
 				// check that record has been updated with AC
@@ -268,11 +272,13 @@ public class VcfPipelineTest {
 		final File testInputVcf = testFolder.newFile("test.vcf");
 		final File testInputBam = testFolder.newFile("test.bam");
 		final File vcfOutput = testFolder.newFile("output.vcf");
-		
+	
 		List<String> vcfs = new ArrayList<>();
+				
 		/*
 		 * 10000 is about enough to get the SO on my machine (runs with about 4gb mem)
 		 */
+		vcfs.add(  VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT+"s1");
 		for (int i = 0 ;i < 10000 ; i++) {
 			vcfs.add("chr1	" + (33161 + (i * 2)) + "	.	A	C	217.77	.	AC=1;AF=0.500;AN=2;BaseQRankSum=-0.724;ClippingRankSum=-1.102;DP=23;FS=9.901;MLEAC=1;MLEAF=0.500;MQ=47.64;MQ0=0;MQRankSum=-2.677;QD=9.47;ReadPosRankSum=0.724;SOR=1.185	GT:AD:DP:GQ:PL	0/1:14,9:23:99:246,0,496");
 		}
