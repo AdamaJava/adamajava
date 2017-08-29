@@ -35,7 +35,12 @@ public final class VCFSerializer {
 			headerLines.add(line);
 			line = reader.readLine();
 		}
-		return new VcfHeader(headerLines);
+		try {
+			return new VcfHeader(headerLines);
+		} catch (Exception e) {			 
+			//e.printStackTrace();
+			throw new IOException("Invalid Vcf Header: " + e.getMessage());
+		}
 	}
 
 	public static VcfRecord nextRecord(final BufferedReader reader)

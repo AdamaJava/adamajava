@@ -1,4 +1,4 @@
-package org.qcmg.io;
+package org.qcmg.Utils;
 
 import java.io.IOException;
 import java.io.InputStream;
