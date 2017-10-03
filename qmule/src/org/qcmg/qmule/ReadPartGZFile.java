@@ -21,31 +21,37 @@ import java.util.zip.GZIPInputStream;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.util.FileUtils;
-import org.qcmg.common.util.TabTokenizer;
+import org.qcmg.vcf.VCFSerializer;
 
 
 public class ReadPartGZFile {
 	
-	static InputStream getInputStream(File input_gzip_file) throws FileNotFoundException, IOException{
-		InputStream inputStream;		
-	       if (FileUtils.isFileGZip(input_gzip_file)) {
-	        	GZIPInputStream gzis = new GZIPInputStream(new FileInputStream(input_gzip_file));
-	        	try(InputStreamReader streamReader = new InputStreamReader(gzis)){
-		        	 inputStream = new GZIPInputStream(new FileInputStream(input_gzip_file));
-	        	}
-	    	} else {
-		        FileInputStream stream = new FileInputStream(input_gzip_file);
-		        try(InputStreamReader streamReader = new InputStreamReader(stream)){	         
-		        	BufferedReader in = new BufferedReader(streamReader);
-		        	inputStream = new FileInputStream(input_gzip_file);
-		        }
-	    	}
-		return inputStream;
-	}
+//	static InputStream getInputStream(File input_gzip_file) throws FileNotFoundException, IOException{
+//		InputStream inputStream;		
+//	      // if (FileUtils.isFileGZip(input_gzip_file)) {
+//		if (FileUtils.isInputGZip(input_gzip_file)) {
+//	        	GZIPInputStream gzis = new GZIPInputStream(new FileInputStream(input_gzip_file));
+//	        	try(InputStreamReader streamReader = new InputStreamReader(gzis)){
+//		        	 inputStream = new GZIPInputStream(new FileInputStream(input_gzip_file));
+//	        	}
+//	    	} else {
+//		        FileInputStream stream = new FileInputStream(input_gzip_file);
+//		        try(InputStreamReader streamReader = new InputStreamReader(stream)){	         
+//		        	BufferedReader in = new BufferedReader(streamReader);
+//		        	inputStream = new FileInputStream(input_gzip_file);
+//		        }
+//	    	}
+//		return inputStream;
+//	}
+	
+	
+	
 	
 	ReadPartGZFile(File input_gzip_file, int no) throws Exception{
-		
-	  InputStream inputStream = getInputStream(input_gzip_file);
+		         
+        //get a new stream rather than a closed one
+        InputStream  inputStream = FileUtils.isInputGZip( input_gzip_file) ? 
+        		new GZIPInputStream(new FileInputStream(input_gzip_file), 65536) : new FileInputStream(input_gzip_file); 
 
        try(BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream) )){
 	       int num = 0;
@@ -63,7 +69,10 @@ public class ReadPartGZFile {
 		  
 		  long startTime = System.currentTimeMillis();
 		  long num = 0;	
-		  InputStream inputStream = getInputStream(input_gzip_file);		   
+//		  InputStream inputStream = getInputStream(input_gzip_file);
+		  InputStream  inputStream = FileUtils.isInputGZip( input_gzip_file) ? 
+        		new GZIPInputStream(new FileInputStream(input_gzip_file), 65536) : new FileInputStream(input_gzip_file); 		  
+		  
 		  try(BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream) )){			 
 				String line;
 				while( (line = reader.readLine() ) != null){

@@ -279,7 +279,7 @@ public class WiggleFromPileup {
 			pileupFormat = options.getPileupFormat();
 			normalCoverage = options.getNormalCoverage();
 			tumourCoverage = options.getTumourCoverage();
-			compressOutput = FileUtils.isFileGZip(new File(cmdLineOutputFiles[0]));
+			compressOutput = FileUtils.isFileNameGZip(new File(cmdLineOutputFiles[0]));
 			
 			if (null == pileupFormat) throw new IllegalArgumentException("Please specify a pileupFormat relating to the pileup file (eg. NNTT)");
 			if (normalCoverage == 0) throw new IllegalArgumentException("Please specify a normal coverage value (eg. 20)");

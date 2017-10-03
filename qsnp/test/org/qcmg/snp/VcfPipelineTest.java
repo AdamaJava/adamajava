@@ -152,6 +152,7 @@ public class VcfPipelineTest {
 			}
 		}
 	}
+	
 	@Test
 	public void readsEndBefore4Snps() throws SnpException, Exception {
 		final File iniFile = testFolder.newFile("qsnp_vcf.ini");	

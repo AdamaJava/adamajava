@@ -14,35 +14,67 @@ import java.io.OutputStream;
 import java.util.zip.GZIPOutputStream;
 
 import org.qcmg.common.util.Constants;
+import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.vcf.VcfRecord;
 
 public final class VCFFileWriter implements Closeable {
 	private final File file;
 	private final OutputStream outputStream;
 	
-	private VCFFileWriter(final File file, boolean gzip, boolean append) throws IOException {
-		this.file = file;
-		OutputStream stream = gzip ? new GZIPOutputStream(new FileOutputStream(file, append)) : new FileOutputStream(file, append); 
-		outputStream = stream;
-	}
-		
+//	private VCFFileWriter(final File file, boolean gzip, boolean append) throws IOException {
+//		this.file = file;
+//		outputStream  = gzip ? new GZIPOutputStream(new FileOutputStream(file, append)) : new FileOutputStream(file, append); 
+//		 
+//	}
+//		
+//	/**
+//	 * Create a text VCFFileWriter not allowing appending
+//	 * @param file
+//	 * @throws IOException
+//	 */
+//	public VCFFileWriter(final File file) throws IOException {
+//		this(file, false,false);
+//	}
+//	/**
+//	 * create a gzip/txt VCFFileWriter not allowing appending
+//	 * @param file
+//	 * @param gzip
+//	 * @throws IOException
+//	 */
+//	public VCFFileWriter(final File file, boolean gzip) throws IOException {
+//		this(file, gzip, false);
+//	}
+//	
+//	/**
+//	 * Create a text VCFFileWriter. It will append to the file if it exists
+//	 * @param file
+//	 * @throws IOException
+//	 * */
+//	public static VCFFileWriter CreateAppendVcfWriter(final File file) throws IOException{
+//		return new VCFFileWriter( file, false, true);
+//	}
+	
+
 	/**
-	 * Create a text VCFFileWriter not allowing appending
+	 * create a gzip/txt VCFFileWriter according file name ending. 
+	 * @param file: add ending ( .gz/.gzip ) to file name end if want to create a gzip file
+	 * @param append: set to true if allowing appending
+	 * @throws IOException
+	 */
+	public VCFFileWriter(final File file, boolean append) throws IOException {
+		this.file = file;
+		boolean gzip = FileUtils.isFileNameGZip(file);
+		outputStream  = gzip ? new GZIPOutputStream(new FileOutputStream(file, append)) : new FileOutputStream(file, append); 		 
+	}
+	
+	/**
+	 * Create a text/gzip VCFFileWriter not allowing appending
 	 * @param file
 	 * @throws IOException
 	 */
 	public VCFFileWriter(final File file) throws IOException {
-		this(file, false,false);
-	}
-	/**
-	 * create a gzip/txt VCFFileWriter not allowing appending
-	 * @param file
-	 * @param gzip
-	 * @throws IOException
-	 */
-	public VCFFileWriter(final File file, boolean gzip) throws IOException {
-		this(file, gzip, false);
-	}
+		this(file,false);
+	}	
 	
 	/**
 	 * Create a text VCFFileWriter. It will append to the file if it exists
@@ -50,8 +82,8 @@ public final class VCFFileWriter implements Closeable {
 	 * @throws IOException
 	 * */
 	public static VCFFileWriter CreateAppendVcfWriter(final File file) throws IOException{
-		return new VCFFileWriter( file, false, true);
-	}
+		return new VCFFileWriter( file, true);
+	}	
 	
 	public void addHeader(final String headerString) throws IOException {
 		outputStream.write((headerString + Constants.NL).getBytes());

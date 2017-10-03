@@ -3,6 +3,7 @@
  */
 package org.qcmg.pileup;
 
+
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
@@ -10,8 +11,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
 import java.util.zip.GZIPInputStream;
-
 import org.qcmg.common.util.FileUtils;
+
 
 public final class PileupFileReader implements Closeable, Iterable<String> {
 //	public final class PileupFileReader implements Closeable, Iterable<PileupRecord> {
@@ -20,24 +21,16 @@ public final class PileupFileReader implements Closeable, Iterable<String> {
 
     public PileupFileReader(final File file) throws Exception {
         this.file = file;
-        	FileInputStream fileStream = new FileInputStream(file);
+        boolean isGzip = FileUtils.isInputGZip( file);  
+        inputStream =  (isGzip) ? new GZIPInputStream(new FileInputStream(file)) : new FileInputStream(file);    
         
-        if (FileUtils.isFileGZip(file)) {
-        		GZIPInputStream gzis = new GZIPInputStream(fileStream);
-        		inputStream = gzis;
-        	} else {
-        		inputStream = fileStream;
-        	}
     	}
 
-    	@Override
+    @Override
     public Iterator<String> iterator() {
         return getRecordIterator();
-    	}
-//    	@Override
-//    	public Iterator<PileupRecord> iterator() {
-//    		return getRecordIterator();
-//    	}
+    }
+    	
 
     public PileupRecordIterator getRecordIterator() {
         return new PileupRecordIterator(inputStream);
