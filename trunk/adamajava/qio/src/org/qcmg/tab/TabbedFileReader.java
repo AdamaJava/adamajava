@@ -16,7 +16,9 @@ import java.io.InputStreamReader;
 import java.util.Iterator;
 import java.util.zip.GZIPInputStream;
 
+import org.qcmg.Utils.IOStreamUtils;
 import org.qcmg.common.util.FileUtils;
+import org.qcmg.vcf.VCFSerializer;
 
 public final class TabbedFileReader implements Closeable, Iterable<TabbedRecord> {
     private final File file;
@@ -25,33 +27,14 @@ public final class TabbedFileReader implements Closeable, Iterable<TabbedRecord>
 
     public TabbedFileReader(final File file) throws IOException {
         this.file = file;
+        boolean isGzip = FileUtils.isInputGZip( file);
+        try(InputStream stream = (isGzip) ? new GZIPInputStream(new FileInputStream(file), 65536) : new FileInputStream(file);) {
+        	BufferedReader in = new BufferedReader(new InputStreamReader(stream));        
+        	header = TabbedSerializer.readHeader(in);       	
+        } 
         
-        if (FileUtils.isFileGZip(file)) {
-        	
-        		GZIPInputStream gzis = new GZIPInputStream(new FileInputStream(file), 65536);
-	        try {
-		        	InputStreamReader streamReader = new InputStreamReader(gzis);
-		        	BufferedReader in = new BufferedReader(streamReader);
-		        	header = TabbedSerializer.readHeader(in);
-	        	} finally {
-	        		gzis.close();
-	        	}
-		        
-	        	// setup the input stream to read the file contents
-	        	inputStream = new GZIPInputStream(new FileInputStream(file), 65536);
-        	} else {
-	            	FileInputStream stream = new FileInputStream(file);
-	        try {
-		        	InputStreamReader streamReader = new InputStreamReader(stream);
-		        	BufferedReader in = new BufferedReader(streamReader);
-		
-		        	header = TabbedSerializer.readHeader(in);
-	        	} finally {
-	        		stream.close();
-	        	}
-		        
-		        inputStream = new FileInputStream(file);
-        	}
+        //  create a new stream rather a closed one
+        inputStream = (isGzip) ? new GZIPInputStream(new FileInputStream(file), 65536) : new FileInputStream(file);          
     }
     
     public TabbedHeader getHeader() {

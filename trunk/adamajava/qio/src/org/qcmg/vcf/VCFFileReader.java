@@ -17,6 +17,7 @@ import java.io.InputStreamReader;
 import java.util.Iterator;
 import java.util.zip.GZIPInputStream;
 
+import org.qcmg.Utils.IOStreamUtils;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
@@ -32,35 +33,20 @@ public final class VCFFileReader implements Closeable, Iterable<VcfRecord> {
 
     public VCFFileReader(final File file) throws IOException    {
         this.file = file;
-               
-        if (FileUtils.isFileGZip(file)) {
-	        	GZIPInputStream gzis = new GZIPInputStream(new FileInputStream(file), 65536);
-	        try {
-		        	InputStreamReader streamReader = new InputStreamReader(gzis);
-		        	BufferedReader in = new BufferedReader(streamReader);
-		        	header = VCFSerializer.readHeader(in);
-	        	} finally {
-	        		gzis.close();
-	        	}
-	        	
-	        	// setup the input stream to read the file contents
-	        	inputStream = new GZIPInputStream(new FileInputStream(file), 65536);
-	    	} else {
-		        FileInputStream stream = new FileInputStream(file);
-		        try {
-		        	InputStreamReader streamReader = new InputStreamReader(stream);
-		        	BufferedReader in = new BufferedReader(streamReader);
-		        
-		        	header = VCFSerializer.readHeader(in);
-		        } finally {
-		        	stream.close();
-		        }
-		        
-	    		inputStream = new FileInputStream(file);
-	    	}
+        
+        boolean isGzip = FileUtils.isInputGZip( file);        
+        try(InputStream stream = (isGzip) ? new GZIPInputStream(new FileInputStream(file), 65536) : new FileInputStream(file);) {
+        	BufferedReader in = new BufferedReader(new InputStreamReader(stream));        
+        	header = VCFSerializer.readHeader(in);        	
+        }  
+        
+        //get a new stream rather than a closed one
+        inputStream = (isGzip) ? new GZIPInputStream(new FileInputStream(file), 65536) : new FileInputStream(file);  
         
     }
-    
+    public VCFFileReader(final String file) throws IOException  {
+    		this (new File(file));
+    }    
     /**
      * Constructor initialized by an InputStream. {@code markSupported()} for the supplied InputStream must be
      * {@code true}.
@@ -95,9 +81,7 @@ public final class VCFFileReader implements Closeable, Iterable<VcfRecord> {
         this(instrm, 1048576);
     }    
     
-    public VCFFileReader(final String file) throws IOException  {
-    		this (new File(file));
-    }
+
     
     @Override
 	public Iterator<VcfRecord> iterator() {

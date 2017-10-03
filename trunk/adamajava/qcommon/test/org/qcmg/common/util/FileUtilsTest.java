@@ -1,9 +1,15 @@
 package org.qcmg.common.util;
 
+import static org.junit.Assert.fail;
+
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -12,6 +18,7 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.zip.GZIPOutputStream;
 
 import org.junit.Assert;
 import org.junit.Ignore;
@@ -51,6 +58,28 @@ public class FileUtilsTest {
 		Assert.assertTrue(FileUtils.validOutputFile(testFile.getAbsolutePath()));
 	}
 	
+	@Test
+	public void testFileCheckSum() throws IOException{
+		String[] fnames = new String[] { "test.output.gz", "test.output" };
+		//create same files
+		for(String output: fnames) 		 
+			try(Writer writer = new FileWriter(output);) {				
+				for(int i = 0; i < 10; i++ ) writer.write("testing...");		 
+			} 		
+		Assert.assertTrue( FileUtils.getFileCheckSum(fnames[0]).equals(FileUtils.getFileCheckSum(fnames[1])) );		
+		
+		//change one of file
+		try(Writer writer = new FileWriter(fnames[1], true);) {				
+			writer.write("testing...");		 
+		}		
+		Assert.assertTrue( !FileUtils.getFileCheckSum(fnames[0]).equals(FileUtils.getFileCheckSum(fnames[1])) );	
+		
+		
+//		//debug
+//		System.out.println("test on small file , md5 string is " + FileUtils.getFileCheckSum(fnames[0]));
+//		String str = FileUtils.getFileCheckSum("/Users/christix/Documents/Eclipse/data/qprofiler/afbe8977-547e-49a9-b2fe-9f39d1154cf8.vcf");
+//		System.out.println("test on large file (4.6G), md5 string is " + str);
+	}
 	
 	@Test
 	public void testInputFile() throws Exception {
@@ -155,20 +184,51 @@ public class FileUtilsTest {
 	}
 	
 	@Test
-	public void testIsFileGzip() {
+	public void testIsInputGzip()    {
+		String[] fnames = new String[] { "test.output.gz", "test.output" };
+		//create testing data		
+		for(String output: fnames) 		 
+			try {
+				Writer writer = FileUtils.isFileNameGZip(new File(output))? 
+						 new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(output))) : new FileWriter(output);
+				for(int i = 0; i < 10; i++ ) writer.write("testing...");		 
+			} catch ( IOException  e ) {
+				fail( ); 				 
+			}  
+					 
+		//check output type
+		for(String output: fnames) {
+			File file = new File(output);			
+			try {
+				if( FileUtils.isFileNameGZip(file) )
+					Assert.assertTrue( FileUtils.isInputGZip(file) );
+				else
+					Assert.assertFalse( FileUtils.isInputGZip(file) );
+				Assert.assertTrue( file.delete());
+			} catch (IOException e) {
+				fail();
+			}
+		}	
+		
+		
+		
+	}
+	
+	@Test
+	public void testIsFileNameGzip() {
 		try {
-			Assert.assertFalse(FileUtils.isFileGZip(null));
+			Assert.assertFalse(FileUtils.isFileNameGZip(null));
 			Assert.fail("Should have thrown an exception");
 		} catch (IllegalArgumentException e) {}
 		//no
-		Assert.assertFalse(FileUtils.isFileGZip(new File("")));
-		Assert.assertFalse(FileUtils.isFileGZip(new File("testing")));
-		Assert.assertFalse(FileUtils.isFileGZip(new File("testing.testing")));
-		Assert.assertFalse(FileUtils.isFileGZip(new File("testing.testing.gzz")));
+		Assert.assertFalse(FileUtils.isFileNameGZip(new File("")));
+		Assert.assertFalse(FileUtils.isFileNameGZip(new File("testing")));
+		Assert.assertFalse(FileUtils.isFileNameGZip(new File("testing.testing")));
+		Assert.assertFalse(FileUtils.isFileNameGZip(new File("testing.testing.gzz")));
 		//yes
-		Assert.assertTrue(FileUtils.isFileGZip(new File("testing.testing.gz")));
-		Assert.assertTrue(FileUtils.isFileGZip(new File("testing.testing.gzip")));
-		Assert.assertTrue(FileUtils.isFileGZip(new File("testing.testing.gzip.gz")));
+		Assert.assertTrue(FileUtils.isFileNameGZip(new File("testing.testing.gz")));
+		Assert.assertTrue(FileUtils.isFileNameGZip(new File("testing.testing.gzip")));
+		Assert.assertTrue(FileUtils.isFileNameGZip(new File("testing.testing.gzip.gz")));
 	}
 	
 	@Test

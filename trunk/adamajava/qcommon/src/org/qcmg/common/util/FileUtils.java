@@ -15,6 +15,8 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.file.FileVisitOption;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -22,13 +24,17 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
-
+import java.util.zip.GZIPInputStream;
+import javax.xml.bind.DatatypeConverter;
 import org.qcmg.common.string.StringUtils;
+
 
 public class FileUtils {
 	
@@ -43,6 +49,36 @@ public class FileUtils {
 		}
 	};
 	
+	public static String getFileCheckSum( final String file ) {
+		if( file == null ) return null;
+		
+		File input = new File(file);
+		if( !input.exists() || !input.canRead() ) return null; 
+		
+	    try(FileInputStream inputStream = new FileInputStream(file);  ) {
+	        MessageDigest md = MessageDigest.getInstance("MD5");
+	        FileChannel channel = inputStream.getChannel();
+	        ByteBuffer buff = ByteBuffer.allocate(2048);
+	        while(channel.read(buff) != -1){
+	            buff.flip();
+	            md.update(buff);
+	            buff.clear();
+	        }
+	        byte[] hash = md.digest();
+	        return DatatypeConverter.printHexBinary(hash);
+	    } catch (IOException | NoSuchAlgorithmException e) { }		
+		
+//		double size = new File(file).length();
+//		boolean isBig =  ((size / 1024 ) /1024) /1024 > 1? true : false;			 
+//			try {
+//				byte[] b = Files.readAllBytes(Paths.get(file));
+//				byte[] hash = MessageDigest.getInstance("MD5").digest(b);
+//				return DatatypeConverter.printHexBinary(hash);													
+//			} catch (IOException | NoSuchAlgorithmException e) { }							
+		   		
+		//exception occurs
+		return null;  
+	}
 	
 	public static boolean validOutputFile(final String file) {
 		if (StringUtils.isNullOrEmpty(file)) return false;
@@ -51,8 +87,7 @@ public class FileUtils {
 	
 	public static boolean validOutputFile(final String file, final String extension) {
 		if (null != extension && ! isFileTypeValid(file, extension))
-			return false;
-		
+			return false;		
 		return canFileBeWrittenTo(file); 
 	}
 	
@@ -143,8 +178,30 @@ public class FileUtils {
 			return null != index && index.exists() ? index : null;
 		}
 	}
+	/**
+	 * 
+	 * @param file: an input file
+	 * @return true if input file is Gzip by check the first two byte of input file 
+	 * @throws IOException
+	 */
+	public static boolean isInputGZip(final File file) throws IOException {
+		//final PushbackInputStream pb = new PushbackInputStream(input, 2);
+		
+		try(final InputStream input = new FileInputStream(file);){			
+			int header = input.read(); //read ID1
+	        if(header == -1)   return false;	        
 	
-	public static boolean isFileGZip(final File file) {
+	        int b = input.read(); //read ID2
+	        if(b == -1)  return false;
+	        
+	        //ID2 * 256 + ID1 = 35615
+	        if( ( (b << 8) | header) == GZIPInputStream.GZIP_MAGIC) 
+	            return true;	         
+		}
+	     
+		return false;		
+	} 
+	public static boolean isFileNameGZip(final File file) {
 		return isFileTypeValid(file, "gz") || isFileTypeValid(file, "gzip");
 	}
 	

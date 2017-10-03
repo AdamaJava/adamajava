@@ -27,7 +27,7 @@ public class QFastqWriter implements FastqWriter {
 	private final Writer writer;
 	
 	public QFastqWriter(final File f) throws IOException {
-		if (FileUtils.isFileGZip(f)) {
+		if(FileUtils.isFileNameGZip(f)){
 			writer = new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(f)));
 		} else {
 			writer = new FileWriter(f);

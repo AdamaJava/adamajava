@@ -57,6 +57,11 @@ public class PairedRecordUtils {
         return false;
     }   
     
+    /**
+     * 
+     * @param record
+     * @return false if read and mate from different contig/chromosome or read and mate from same strand
+     */
     public static boolean isCanonical(SAMRecord  record){
     	    	
 	    	if ( ! isSameReference(record) ) return false; 

@@ -5,8 +5,6 @@ import java.io.InputStream;
 import java.io.PushbackInputStream;
 import java.util.zip.GZIPInputStream;
 
-
-
 public class IOStreamUtils {
     
     /**
@@ -21,9 +19,8 @@ public class IOStreamUtils {
         final PushbackInputStream pb = new PushbackInputStream(input, 2);
 
         int header = pb.read();
-        if(header == -1) {
-            return pb;
-        }
+        if(header == -1)   return pb;
+         
 
         int b = pb.read();
         if(b == -1) {
@@ -33,13 +30,9 @@ public class IOStreamUtils {
 
         pb.unread(new byte[]{(byte)header, (byte)b});
 
-        header = (b << 8) | header;
+        header = (b << 8) | header;        
+        return (header == GZIPInputStream.GZIP_MAGIC)?  new GZIPInputStream(pb) : pb;
 
-        if(header == GZIPInputStream.GZIP_MAGIC) {
-            return new GZIPInputStream(pb);
-        } else {
-            return pb;
-        }
     }
 
 }

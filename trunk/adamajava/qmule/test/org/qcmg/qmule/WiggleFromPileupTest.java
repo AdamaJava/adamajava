@@ -299,7 +299,7 @@ public class WiggleFromPileupTest {
 	
 	private void createPileupFile(File pileupFile) throws IOException {
 		
-		OutputStream os = FileUtils.isFileGZip(pileupFile) ? new GZIPOutputStream( new FileOutputStream(pileupFile)) 
+		OutputStream os = FileUtils.isFileNameGZip(pileupFile) ? new GZIPOutputStream( new FileOutputStream(pileupFile)) 
 		: new FileOutputStream(pileupFile);
 		
 //		OutputStream os = new FileOutputStream(pileupFile);
@@ -341,7 +341,7 @@ public class WiggleFromPileupTest {
 	
 	private void createGFF3File(File pileupFile) throws IOException {
 		
-		OutputStream os = FileUtils.isFileGZip(pileupFile) ? new GZIPOutputStream( new FileOutputStream(pileupFile)) 
+		OutputStream os = FileUtils.isFileNameGZip(pileupFile) ? new GZIPOutputStream( new FileOutputStream(pileupFile)) 
 		: new FileOutputStream(pileupFile);
 		
 //		OutputStream os = new FileOutputStream(pileupFile);

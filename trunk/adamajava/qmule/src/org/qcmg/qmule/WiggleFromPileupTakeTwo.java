@@ -288,7 +288,7 @@ public class WiggleFromPileupTakeTwo {
 			pileupFormat = options.getPileupFormat();
 			normalCoverage = options.getNormalCoverage();
 			tumourCoverage = options.getTumourCoverage();
-			compressOutput = FileUtils.isFileGZip(new File(cmdLineOutputFiles[0]));
+			compressOutput = FileUtils.isFileNameGZip(new File(cmdLineOutputFiles[0]));
 			gffRegions = options.getGffRegions();
 			
 			
