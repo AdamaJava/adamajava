@@ -96,6 +96,8 @@ public class IndelMT {
 			
 			IndelPosition topPos= qIn.poll();
 			File index = new File(bam.getAbsolutePath() + ".bai");
+			if( !index.exists() && bam.getAbsolutePath().endsWith(".bam") )
+				index = new File(bam.getAbsolutePath().replace(".bam", ".bai"));
 			
 			try (SamReader Breader =  SAMFileReaderFactory.createSAMFileReader(bam, index); ){		
 				SAMRecordIterator ite = Breader.query(contig.getSequenceName(), 0, contig.getSequenceLength(),false);		
