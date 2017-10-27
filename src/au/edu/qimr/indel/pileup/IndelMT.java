@@ -43,7 +43,6 @@ import au.edu.qimr.indel.pileup.ReadIndels;
 public class IndelMT {
 	public static final int  MAXRAMREADS = 1500; //maximum number of total reads in RAM
 	
- 
 	class ContigPileup implements Runnable {
 
 		private final AbstractQueue<IndelPosition> qIn;
@@ -272,7 +271,7 @@ public class IndelMT {
 		
 		//loading indels 
 		this.indelload = new ReadIndels(logger);		
-		if(options.getRunMode().equalsIgnoreCase(options.RUNMODE_GATK) ){	
+		if(options.getRunMode().equalsIgnoreCase(Options.RUNMODE_GATK) ){
 			//first load control
 			if(options.getControlInputVcf() != null){
 				indelload.LoadIndels(options.getControlInputVcf(),options.getRunMode());	
@@ -318,7 +317,6 @@ public class IndelMT {
         final CountDownLatch pileupLatch = new CountDownLatch(sortedContigs.size() * 2); // filtering thread               
         
         final AbstractQueue<IndelPileup> tumourQueue = new ConcurrentLinkedQueue<IndelPileup>();
-//        final AbstractQueue<Homopolymer> homopoQueue = new ConcurrentLinkedQueue<Homopolymer>();
         final AbstractQueue<IndelPileup> normalQueue = new ConcurrentLinkedQueue<IndelPileup>();
         // set up executor services
         ExecutorService pileupThreads = Executors.newFixedThreadPool(threadNo);    	
@@ -328,24 +326,21 @@ public class IndelMT {
         		query = new QueryExecutor(options.getFilterQuery());
         }
         
-     	//each time only throw threadNo thread, the loop finish untill the last threadNo                    	
-    	for (SAMSequenceRecord contig : sortedContigs ){       		
-    		if (options.getControlBam() != null) {    			
-    			 pileupThreads.execute(new ContigPileup(contig, getIndelList(contig), options.getControlBam(),query,
-    				normalQueue, Thread.currentThread(),pileupLatch ));
-    		}
-    		
-    		//getIndelList must be called repeately, since it will be empty after pileup
-    		 if (options.getTestBam() != null) {
-    			 pileupThreads.execute(new ContigPileup(contig, getIndelList(contig), options.getTestBam() , query,
-    					 tumourQueue, Thread.currentThread() ,pileupLatch));
-    		 }
-    		
-//    		if(options.getReference() != null)
-//    			pileupThreads.execute(new HomopoPileup(contig.getSequenceName(), getIndelList(contig), options.getReference(),
-//    				homopoQueue, options.nearbyHomopolymer,options.getNearbyHomopolymerReportWindow(), Thread.currentThread(),pileupLatch));    		
-    	}
-    	pileupThreads.shutdown();
+     	//each time only throw threadNo thread, the loop finish until the last threadNo                    	
+	    	for (SAMSequenceRecord contig : sortedContigs ){       		
+	    		if (options.getControlBam() != null) {		
+	    			 pileupThreads.execute(new ContigPileup(contig, getIndelList(contig), options.getControlBam(),query,
+	    				normalQueue, Thread.currentThread(),pileupLatch ));
+	    		}
+	    		
+	    		//getIndelList must be called repeatedly, since it will be empty after pileup
+	    		 if (options.getTestBam() != null) {
+	    			 pileupThreads.execute(new ContigPileup(contig, getIndelList(contig), options.getTestBam() , query,
+	    					 tumourQueue, Thread.currentThread() ,pileupLatch));
+	    		 }
+	    		
+	    	}
+	    	pileupThreads.shutdown();
     	
 		// wait for threads to complete
 		try {
@@ -353,7 +348,6 @@ public class IndelMT {
 			pileupThreads.awaitTermination(20, TimeUnit.HOURS);
 			logger.info("All threads finished");
 			
-//			writeVCF( tumourQueue, normalQueue, homopoQueue,options.getOutput(),indelload.getVcfHeader());			
 			writeVCF( tumourQueue, normalQueue,options.getOutput(),indelload.getVcfHeader());		
 			
 		} catch (Exception e) {
@@ -420,7 +414,7 @@ public class IndelMT {
 		
 	}
 	
-	 private void getHeaderForIndel(VcfHeader header ) throws Exception{
+	 private void getHeaderForIndel(VcfHeader header ) {
 
 		QExec qexec = options.getQExec();
 		 
@@ -440,10 +434,12 @@ public class IndelMT {
 					(options.getTestInputVcf() == null? null : options.getTestInputVcf().getAbsolutePath()));
 			header.addOrReplace(VcfHeaderUtils.STANDARD_INPUT_LINE + "_GATK_CONTROL=" + 
 					(options.getControlInputVcf() == null? null : options.getControlInputVcf().getAbsolutePath()));
- 		}else
-	 		for(int i = 0; i < options.getInputVcfs().size(); i ++)
+ 		} else {
+	 		for(int i = 0; i < options.getInputVcfs().size(); i ++) {
 	 			header.addOrReplace(VcfHeaderUtils.STANDARD_INPUT_LINE + "=" + options.getInputVcfs().get(i).getAbsolutePath());
-
+	 		}
+ 		}
+		
 		String controlBamID = null; 
 		if( options.getControlBam() != null ){
 			String normalBamName = options.getControlBam().getAbsolutePath();
@@ -488,18 +484,14 @@ public class IndelMT {
 		header.addInfo(VcfHeaderUtils.INFO_SOMATIC, "1", "String", SOMATIC_DESCRIPTION);
 		header.addInfo(IndelUtils.INFO_NIOC, "1", "String", IndelUtils.DESCRITPION_INFO_NIOC);
 		header.addInfo(IndelUtils.INFO_SSOI, "1", "String", IndelUtils.DESCRITPION_INFO_SSOI);		
-//		header.addInfo(IndelUtils.INFO_HOM, "1", "String", IndelUtils.DESCRITPION_INFO_HOM); 
 		header.addInfo(VcfHeaderUtils.INFO_MERGE_IN, "1", "String",VcfHeaderUtils.DESCRITPION_MERGE_IN); 
 				
 		header.addFormat(VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS, "1","String", "Genotype details: specific alleles");
-//		header.addFormatLine(IndelUtils.FORMAT_ACINDEL, "1", "String", IndelUtils.DESCRITPION_FORMAT_ACINDEL);
 		header.addFormat(IndelUtils.FORMAT_ACINDEL, ".", "String", IndelUtils.DESCRITPION_FORMAT_ACINDEL); //vcf validataion
 
 		VcfHeaderUtils.addQPGLineToHeader(header, qexec.getToolName().getValue(), qexec.getToolVersion().getValue(), qexec.getCommandLine().getValue() 
 				+  " [runMode: " + options.getRunMode() + "]");        
         		
-//		VcfHeaderUtils.addSampleId(header, VcfHeaderUtils.STANDARD_CONTROL_SAMPLE.replaceAll("#", ""), 1 ); // "qControlSample", 1);
-//		VcfHeaderUtils.addSampleId(header,  VcfHeaderUtils.STANDARD_TEST_SAMPLE.replaceAll("#", ""), 2);//"qTestSample"
 		VcfHeaderUtils.addSampleId(header, controlBamID, 1 ); // "qControlSample", 1);
 		VcfHeaderUtils.addSampleId(header,  testBamID, 2);//"qTestSample" 		 
 	}

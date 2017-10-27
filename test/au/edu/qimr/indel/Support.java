@@ -38,7 +38,7 @@ public class Support {
 	}
 	
 	public static void createBam( List<String> data1, String output) {
-        List<String> data = new ArrayList<String>();
+        List<String> data = new ArrayList<>();
         data.add("@HD	VN:1.0	SO:coordinate");
         data.add("@RG	ID:20140717025441134	SM:eBeads_20091110_CD	DS:rl=50");
         data.add("@PG	ID:qtest::Test	VN:0.2pre");
@@ -84,7 +84,7 @@ public class Support {
 	}
 	
 	public static void createVcf( List<String> data1, String output){	
-        List<String> data = new ArrayList<String>();
+        List<String> data = new ArrayList<>();
         data.add("##fileformat=VCFv4.1");
         data.add(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT+"S1"); 
         
@@ -92,7 +92,7 @@ public class Support {
 	}
 	
 	public static void createVcf( List<String> header, List<String> records, String output){	
-        List<String> data = new ArrayList<String>(header);
+        List<String> data = new ArrayList<>(header);
         data.addAll(records);
         try( BufferedWriter out = new BufferedWriter(new FileWriter(output ))) {
         	for (String line : data)  

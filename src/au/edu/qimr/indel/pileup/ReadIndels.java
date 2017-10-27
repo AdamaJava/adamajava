@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.qcmg.common.log.QLogger;
-import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.IndelUtils;
@@ -20,7 +19,7 @@ import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 
-import au.edu.qimr.indel.Options;
+import au.edu.qimr.indel.Q3IndelException;
 
 
 public class ReadIndels {
@@ -246,34 +245,21 @@ public class ReadIndels {
 	 * @return a map of, key is the indel position, value is the list a vcf record on that position. 
 	 * @throws Exception
 	 */
-	public Map<ChrRangePosition, IndelPosition> getIndelMap() throws Exception{	
+	public Map<ChrRangePosition, IndelPosition> getIndelMap() throws Q3IndelException{	
 	
-	Map<ChrRangePosition,IndelPosition> indelPositionMap = new  ConcurrentHashMap<ChrRangePosition,IndelPosition>();
-	for(VcfRecord vcf : positionRecordMap.values()){			
-		ChrRangePosition indelPos = new ChrRangePosition(vcf.getChrPosition(), vcf.getChrPosition().getEndPosition()); 
-		if(indelPositionMap.containsKey(indelPos)) 
-			indelPositionMap.get(indelPos).addVcf( vcf );
-			  else 
-			indelPositionMap.put(indelPos, new IndelPosition(vcf));
-	}	
-
-	return indelPositionMap;
-}
-//	public Map<ChrPosition, IndelPosition> getIndelMap() throws Exception{	
-//		
-//		Map<ChrPosition,IndelPosition> indelPositionMap = new  ConcurrentHashMap<ChrPosition,IndelPosition>();
-//		for(VcfRecord vcf : positionRecordMap.values()){			
-//			ChrPosition indelPos = vcf.getChrPosition(); 
-//			if(indelPositionMap.containsKey(indelPos)) 
-//				indelPositionMap.get(indelPos).addVcf( vcf );
-// 			  else 
-//				indelPositionMap.put(indelPos, new IndelPosition(vcf));
-//		}	
-//
-//		return indelPositionMap;
-//	}
+		Map<ChrRangePosition,IndelPosition> indelPositionMap = new  ConcurrentHashMap<>();
+		for(VcfRecord vcf : positionRecordMap.values()){
+			ChrRangePosition indelPos = new ChrRangePosition(vcf.getChrPosition(), vcf.getChrPosition().getEndPosition());
+			IndelPosition ip = indelPositionMap.get(indelPos);
+			if (null == ip) {
+				indelPositionMap.put(indelPos, new IndelPosition(vcf));
+			} else {
+				ip.addVcf(vcf);
+			}
+		}	
 	
-	
+		return indelPositionMap;
+	}
 	
 	public VcfHeader getVcfHeader(){ return header;	}
 	

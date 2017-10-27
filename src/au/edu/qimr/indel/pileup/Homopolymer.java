@@ -14,7 +14,6 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.util.IndelUtils.SVTYPE;
-import au.edu.qimr.indel.Q3IndelException;
 
 @Deprecated
 public class Homopolymer {
@@ -27,12 +26,12 @@ public class Homopolymer {
 	QLogger logger = QLoggerFactory.getLogger(Homopolymer.class);	
 	private byte[] upstreamReference;
 	private byte[] downstreamReference;
-	private int homopolymerWindow;
-	private int reportWindow;
+	private final int homopolymerWindow;
+	private final int reportWindow;
 
-	private List<Integer> maxBase = new ArrayList<Integer>();
-	private List<byte[]> homoString = new ArrayList<byte[]>();
-	private byte[] referenceBase;
+	private final List<Integer> maxBase = new ArrayList<Integer>();
+	private final List<byte[]> homoString = new ArrayList<byte[]>();
+	private final byte[] referenceBase;
 	
 	public Homopolymer(IndelPosition position, final byte[] referenceBase, int homopolymerWindow, int reportWindow) {
 		this.position =   position.getChrRangePosition();
@@ -56,7 +55,6 @@ public class Homopolymer {
  
  	
 	public String getPolymerSequence(int index){
-			
 		return  homoString.get(index) == null ? null : new String(   homoString.get(index));				 
 	}
 		
@@ -144,7 +142,7 @@ public class Homopolymer {
 	
 	public synchronized void getReferenceBase() { 	
 
-		int MaxEnd = referenceBase.length;
+		int maxEnd = referenceBase.length;
 	
 		//eg. INS: 21 T TC or DEL: 21  TCC T
 		//both T  position.getPosition() is 21 but should be  referenceBase[20] which is end of upStream
@@ -154,19 +152,16 @@ public class Homopolymer {
 		int indelStart = position.getStartPosition();
 	    int indelEnd = position.getEndPosition(); 
 	    
-    	//at least start from position 1 
-    	int wstart = Math.max( 0,indelStart-homopolymerWindow); 	
+	    	//at least start from position 1 
+	    	int wstart = Math.max( 0,indelStart-homopolymerWindow); 	
   	    upstreamReference = new byte[indelStart - wstart ]; 
 	    System.arraycopy(referenceBase, wstart, upstreamReference, 0, upstreamReference.length);
 		
-	    int wend = Math.min(MaxEnd, indelEnd + homopolymerWindow);  
+	    int wend = Math.min(maxEnd, indelEnd + homopolymerWindow);  
      	downstreamReference = new byte[wend - indelEnd ];     	 	
      	System.arraycopy(referenceBase, indelEnd, downstreamReference, 0, downstreamReference.length);    	
 	}
 	
-
-	public ChrRangePosition getChrRangePosition(){return position; }
-		
 
 	public static FastaSequenceIndex getFastaIndex(File reference) {
 		File indexFile = new File(reference.getAbsolutePath() + ".fai");	    		
@@ -178,15 +173,6 @@ public class Homopolymer {
 		IndexedFastaSequenceFile indexedFasta = new IndexedFastaSequenceFile(reference, index);
 		
 		return indexedFasta;
-	}
-	
-	
-	public static String getSequenceString(byte[] sequence) {
-		StringBuilder sb = new StringBuilder();
-		for (byte b: sequence) {
-			sb.append((char) b);
-		}
-		return sb.toString();
 	}
 
 }

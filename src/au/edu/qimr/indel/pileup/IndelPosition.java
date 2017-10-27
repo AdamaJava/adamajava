@@ -4,18 +4,17 @@
 package au.edu.qimr.indel.pileup;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
-
 import org.qcmg.common.model.ChrRangePosition;
-import org.qcmg.common.string.StringUtils;
-import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.util.IndelUtils.SVTYPE;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
+
+import au.edu.qimr.indel.Q3IndelException;
+
 public class IndelPosition {
 	
 	private final List<VcfRecord> vcfs ; 	
@@ -25,7 +24,7 @@ public class IndelPosition {
 	private final SVTYPE mutationType;	
 	private IndelPileup tumourPileup;
 	private IndelPileup normalPileup;
-	private Homopolymer polymer;	
+//	private Homopolymer polymer;	
 
 	/**
 	 * retrive information from a vcf record
@@ -62,7 +61,7 @@ public class IndelPosition {
 	}
 
 	//next job: check all vcfs are same type, start and end
-	public IndelPosition(List<VcfRecord> res, SVTYPE type) throws Exception{
+	public IndelPosition(List<VcfRecord> res, SVTYPE type) {
 		this(res.get(0), type);		
 		//append all vcfs
 		vcfs.clear();
@@ -74,9 +73,8 @@ public class IndelPosition {
 		this(re, IndelUtils.getVariantType(re.getRef(), re.getAlt() ));		
 	}
 	
-	public IndelPosition(List<VcfRecord> res ) throws Exception{
+	public IndelPosition(List<VcfRecord> res ) {
 		this(res, IndelUtils.getVariantType(res.get(0).getRef(), res.get(0).getAlt() ) );
-				
 	}
 	
 	public VcfRecord getIndelVcf(int index){		
@@ -87,9 +85,9 @@ public class IndelPosition {
 		return vcfs; 
 	}
 	
-	public void addVcf(VcfRecord vcf) throws Exception{
-		if(!IndelUtils.getVariantType(vcf.getRef(), vcf.getAlt() ).equals(mutationType) )
-			throw new Exception();
+	public void addVcf(VcfRecord vcf) throws Q3IndelException {
+		if( ! IndelUtils.getVariantType(vcf.getRef(), vcf.getAlt() ).equals(mutationType) )
+			throw new Q3IndelException("Variant types do not match! Expected " + mutationType + " but was: " + IndelUtils.getVariantType(vcf.getRef(), vcf.getAlt() ));
 				
 		vcfs.add(vcf);
 	}
@@ -157,7 +155,7 @@ public class IndelPosition {
 	
 	
 	public List<String> getMotifs( ) {	
-		List<String> motifs = new ArrayList<String>();
+		List<String> motifs = new ArrayList<>();
 		for(int i = 0; i < vcfs.size(); i ++)
 			motifs.add(i, getMotif(i));
 		
@@ -178,13 +176,11 @@ public class IndelPosition {
     	if( ! this.position.equals(other.position))
     		return false;
     	
-     
         return true; 
     }
 	    
     @Override
     public int hashCode() { 
-				
 		return position.hashCode();
    }
     
@@ -200,9 +196,9 @@ public class IndelPosition {
 			this.normalPileup = pileup;
 	}
 	
-	public void setHomopolymer(Homopolymer polymer){
-		this.polymer = polymer; 
-	}	
+//	public void setHomopolymer(Homopolymer polymer){
+//		this.polymer = polymer; 
+//	}	
 	
 	public VcfRecord getPileupedVcf(int index, final int gematic_nns, final float gematic_soi){
 		VcfRecord re = vcfs.get(index);		
