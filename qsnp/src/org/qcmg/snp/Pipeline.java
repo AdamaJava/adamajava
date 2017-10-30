@@ -457,7 +457,7 @@ public abstract class Pipeline {
 	
 		header.addFormat(VcfHeaderUtils.FORMAT_GENOTYPE, "1", "String" ,"Genotype");
 		header.addFormat(VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS, "1", "String","Genotype details: specific alleles (A,G,T or C)");
-		header.addFormat(VcfHeaderUtils.FORMAT_ALLELE_COUNT, ".", "String","Allele Count: lists number of reads on forward strand [avg base quality], reverse strand [avg base quality]");
+		header.addFormat(VcfHeaderUtils.FORMAT_ALLELE_COUNT, ".", "String",VcfHeaderUtils.FORMAT_ALLELE_COUNT_DESC);
 		header.addFormat(VcfHeaderUtils.FORMAT_OBSERVED_ALLELES_BY_STRAND, "1", "String",VcfHeaderUtils.FORMAT_OBSERVED_ALLELES_BY_STRAND_DESC);		
 		header.addFormat(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP, ".", "String","Allele Count Compound Snp: lists read sequence and count (forward strand, reverse strand)");
 		header.addFormat(VcfHeaderUtils.FORMAT_ALLELIC_DEPTHS, ".", "Integer","Allelic depths for the ref and alt alleles in the order listed");
