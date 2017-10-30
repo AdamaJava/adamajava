@@ -17,7 +17,6 @@ import java.io.InputStreamReader;
 import java.util.Iterator;
 import java.util.zip.GZIPInputStream;
 
-import org.qcmg.Utils.IOStreamUtils;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
@@ -36,8 +35,8 @@ public final class VCFFileReader implements Closeable, Iterable<VcfRecord> {
         
         boolean isGzip = FileUtils.isInputGZip( file);        
         try(InputStream stream = (isGzip) ? new GZIPInputStream(new FileInputStream(file), 65536) : new FileInputStream(file);) {
-        	BufferedReader in = new BufferedReader(new InputStreamReader(stream));        
-        	header = VCFSerializer.readHeader(in);        	
+	        	BufferedReader in = new BufferedReader(new InputStreamReader(stream));        
+	        	header = VCFSerializer.readHeader(in);        	
         }  
         
         //get a new stream rather than a closed one
@@ -59,7 +58,7 @@ public final class VCFFileReader implements Closeable, Iterable<VcfRecord> {
      */
     public VCFFileReader(final InputStream instrm, Integer headerMaxBytes) throws IOException {
         
-        if (!instrm.markSupported()) {
+        if ( ! instrm.markSupported()) {
             throw new IOException("The supplied InputStream does not support marking");
         }
         instrm.mark(headerMaxBytes);

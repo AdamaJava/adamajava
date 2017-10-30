@@ -18,8 +18,7 @@ import org.qcmg.common.vcf.header.VcfHeader;
 public final class VCFSerializer {
 	private static final String DEFAULT_HEADER_PREFIX = "#";
 
-	private static String nextNonheaderLine(final BufferedReader reader)
-			throws IOException {
+	private static String nextNonheaderLine(final BufferedReader reader) throws IOException {
 		String line = reader.readLine();
 		while (null != line && line.startsWith(DEFAULT_HEADER_PREFIX)) {
 			line = reader.readLine();
@@ -35,16 +34,10 @@ public final class VCFSerializer {
 			headerLines.add(line);
 			line = reader.readLine();
 		}
-		try {
-			return new VcfHeader(headerLines);
-		} catch (Exception e) {			 
-			//e.printStackTrace();
-			throw new IOException("Invalid Vcf Header: " + e.getMessage());
-		}
+		return new VcfHeader(headerLines);
 	}
 
-	public static VcfRecord nextRecord(final BufferedReader reader)
-			throws IOException , Exception {
+	public static VcfRecord nextRecord(final BufferedReader reader) throws IOException {
 		VcfRecord result = null;
 		final String line = nextNonheaderLine(reader);	
 		
@@ -54,11 +47,11 @@ public final class VCFSerializer {
 		return result;
 	}
 
-	public static VcfRecord parseRecord(final String line) throws Exception {
+	public static VcfRecord parseRecord(final String line) {
 		final String[] params = TabTokenizer.tokenize(line);
 		final int arrayLength = params.length; 
 		if (8 > arrayLength) {
-			throw new Exception("Bad VCF format. Insufficient columns: '" + line + "'");
+			throw new IllegalArgumentException("Bad VCF format. Insufficient columns: '" + line + "'");
 		}
 		
 		return new VcfRecord(params);
