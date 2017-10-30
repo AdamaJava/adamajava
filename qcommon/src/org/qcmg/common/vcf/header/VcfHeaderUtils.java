@@ -61,6 +61,8 @@ public class VcfHeaderUtils {
 	public static final String DESCRITPION_FILTER_TRF = "at least one of the repeat is with repeat sequence length less than six; "
 			+ "and the repeat frequence is more than 10 (or more than six for homoplymers repeat), "
 			+ ", or less than 20% of informative reads are strong supporting in case of indel variant";
+	public static final String FILTER_END_OF_READ = "5BP";
+	public static final String FILTER_END_OF_READ_DESC = "Bases that fall within 5bp of the start or finish of the (filtered) read.";
 
 	
 //	public static final String FILTER_HOM = "HOM";
