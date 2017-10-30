@@ -70,7 +70,7 @@ public class HomoplymersMode extends AbstractMode{
 		
 		try (VCFFileReader reader = new VCFFileReader(input) ;
 	            VCFFileWriter writer = new VCFFileWriter(new File(output))  ) {
-			header.addInfo(VcfHeaderUtils.INFO_HOM,  "2", "String",VcfHeaderUtils.DESCRITPION_INFO_HOM);
+			header.addInfo(VcfHeaderUtils.INFO_HOM,  ".", "String",VcfHeaderUtils.DESCRITPION_INFO_HOM);
 		    for(final VcfHeaderRecord record: header)	writer.addHeader(record.toString());
 		    
 		    int sum = 0;
