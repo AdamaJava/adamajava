@@ -73,7 +73,7 @@ public class GermlineMode extends AbstractMode{
   			
   			//add header line first
   			String date = (reader.getHeader().getFileDate() == null)? null: reader.getHeader().getFileDate().getMetaValue();
-	 		String germ = String.format("%s=<ID=%s,Number=1,Type=Integer,Description=\"%s\",Source=%s,FileDate=%s>", 
+	 		String germ = String.format("%s=<ID=%s,Number=2,Type=Integer,Description=\"%s\",Source=%s,FileDate=%s>", 
 				VcfHeaderUtils.HEADER_LINE_INFO, VcfHeaderUtils.INFO_GERMLINE,VcfHeaderUtils.DESCRITPION_INFO_GERMLINE,
 				germFile.getAbsolutePath(),  date);
 	 		header.addOrReplace(germ, true);
