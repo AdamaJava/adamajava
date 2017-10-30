@@ -34,6 +34,15 @@ public class StringUtils {
 		return String.valueOf(charArray);
 	}
 	
+	public static void updateStringBuilder(StringBuilder sb, CharSequence toAdd, char delim) {
+		if (null != sb) {
+			if (sb.length() > 0) {
+				sb.append(delim);
+			}
+			sb.append(toAdd);
+		}
+	}
+	
 	/**
 	 * * Pads a String <code>s</code> to take up <code>n</code>
 	 * characters, padding with char <code>c</code> on the
