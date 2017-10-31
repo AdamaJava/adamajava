@@ -40,6 +40,8 @@ public class Main {
         	   		new HomoplymersMode(options);
            } else if (options.getMode() == Options.MODE.trf) {
         	   		new TandemRepeatMode( options );
+           } else if (options.getMode() == Options.MODE.make_valid) {
+        	   		new MakeValidMode( options );
            } else {
             	   throw new Exception("No valid mode are specified on commandline: " + options.getMode().name()) ;
            }
