@@ -5,12 +5,17 @@
 */
 package org.qcmg.common.model;
 
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+
+import org.qcmg.common.vcf.VcfRecord;
 
 public class ChrPositionComparator implements Comparator<ChrPosition> {
 
 	private static final ReferenceNameComparator COMPARATOR = new ReferenceNameComparator();
+	public static final List<String> contigs = Arrays.asList("chr1","chr2", "chr3","chr4","chr5","chr6","chr7","chr8","chr9","chr10","chr11","chr12","chr13","chr14","chr15","chr16","chr17","chr18","chr19","chr20","chr21","chr22","chrX","chrY","GL000191.1","GL000192.1","GL000193.1","GL000194.1","GL000195.1","GL000196.1","GL000197.1","GL000198.1","GL000199.1","GL000200.1","GL000201.1","GL000202.1","GL000203.1","GL000204.1","GL000205.1","GL000206.1","GL000207.1","GL000208.1","GL000209.1","GL000210.1","GL000211.1","GL000212.1","GL000213.1","GL000214.1","GL000215.1","GL000216.1","GL000217.1","GL000218.1","GL000219.1","GL000220.1","GL000221.1","GL000222.1","GL000223.1","GL000224.1","GL000225.1","GL000226.1","GL000227.1","GL000228.1","GL000229.1","GL000230.1","GL000231.1","GL000232.1","GL000233.1","GL000234.1","GL000235.1","GL000236.1","GL000237.1","GL000238.1","GL000239.1","GL000240.1","GL000241.1","GL000242.1","GL000243.1","GL000244.1","GL000245.1","GL000246.1","GL000247.1","GL000248.1","GL000249.1","chrMT");
+	
 	
 	@Override
 	public int compare(ChrPosition o1, ChrPosition o2) {
@@ -58,6 +63,40 @@ public class ChrPositionComparator implements Comparator<ChrPosition> {
 			}
 		};
 		
+	}
+	
+	public static Comparator<VcfRecord> getVcfRecordComparator(List<String> list) {
+		
+		return	(null == list || list.isEmpty()) ? null
+		: 
+			new Comparator<VcfRecord>() {
+			@Override
+			public int compare(VcfRecord o1, VcfRecord o2) {
+				int diff = list.indexOf(o1.getChrPosition().getChromosome()) - list.indexOf(o2.getChrPosition().getChromosome());
+				if (diff == 0) {
+					diff = o1.getChrPosition().getStartPosition() - o2.getChrPosition().getStartPosition();   
+				}
+				return diff;
+			}
+		};
+		
+	}
+	
+	/**
+	 * Convenience method to return a VCFRecord comparator based on the GRCh37_ICGC_standard_v2.fa reference file used at QIMRB
+	 * 
+	 * @return
+	 */
+	public static Comparator<VcfRecord> getVcfRecordComparatorForGRCh37() {
+		return getVcfRecordComparator(contigs);
+	}
+	/**
+	 * Convenience method to return a ChrPosition comparator based on the GRCh37_ICGC_standard_v2.fa reference file used at QIMRB
+	 * 
+	 * @return
+	 */
+	public static Comparator<ChrPosition> getCPComparatorForGRCh37() {
+		return getComparator(getChrNameComparator(contigs));
 	}
 
 }
