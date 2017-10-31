@@ -89,6 +89,37 @@ public class VcfUtils {
 		 return count;
 	 }
 	
+	public static List<String> convertFFMapToList(Map<String, String[]> ffm) {
+		/*
+		 * needs to be  a list of string, ordered correctly
+		 */
+		List<String> header = new ArrayList<>(ffm.keySet());
+		header.sort((s1, s2) -> {
+			if (s1.equals(VcfHeaderUtils.FORMAT_GENOTYPE)) return -1; 
+			else if (s2.equals(VcfHeaderUtils.FORMAT_GENOTYPE)) return 1; 
+			else return s1.compareTo(s2);});
+		
+		List<StringBuilder> ffl = new ArrayList<>();
+		ffl.add(new StringBuilder(header.stream().collect(Collectors.joining(Constants.COLON_STRING))));
+		
+		for (String h : header) {
+			String[] sa = ffm.get(h);
+			for (int i = 1 ; i <= sa.length ; i++) {
+				StringBuilder sb;
+				if (ffl.size() <= i) {
+					sb = new StringBuilder();
+					ffl.add(sb);
+				} else {
+					sb = ffl.get(i);
+				}
+				StringUtils.updateStringBuilder(sb, sa[i-1], Constants.COLON);
+			}
+		}
+		return ffl.stream().map(StringBuilder::toString).collect(Collectors.toList());
+		
+//		return Collections.emptyList();
+	}
+	
 	public static Map<String, Integer> getAllelicCoverageFromOABS(String oabs) {
 		
 		/*
