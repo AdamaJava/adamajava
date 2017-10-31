@@ -90,14 +90,22 @@ public class VcfUtils {
 	 }
 	
 	public static List<String> convertFFMapToList(Map<String, String[]> ffm) {
+		return convertFFMapToList(ffm, null);
+	}
+	public static List<String> convertFFMapToList(Map<String, String[]> ffm, String [] orderedHeaders) {
 		/*
 		 * needs to be  a list of string, ordered correctly
 		 */
-		List<String> header = new ArrayList<>(ffm.keySet());
-		header.sort((s1, s2) -> {
-			if (s1.equals(VcfHeaderUtils.FORMAT_GENOTYPE)) return -1; 
-			else if (s2.equals(VcfHeaderUtils.FORMAT_GENOTYPE)) return 1; 
-			else return s1.compareTo(s2);});
+		List<String> header = null;
+		if (orderedHeaders == null) {
+			 header = new ArrayList<>(ffm.keySet());
+			header.sort((s1, s2) -> {
+				if (s1.equals(VcfHeaderUtils.FORMAT_GENOTYPE)) return -1; 
+				else if (s2.equals(VcfHeaderUtils.FORMAT_GENOTYPE)) return 1; 
+				else return s1.compareTo(s2);});
+     	} else {
+     		header = Arrays.asList(orderedHeaders);
+     	}
 		
 		List<StringBuilder> ffl = new ArrayList<>();
 		ffl.add(new StringBuilder(header.stream().collect(Collectors.joining(Constants.COLON_STRING))));
@@ -638,6 +646,9 @@ public class VcfUtils {
 	 * @param position
 	 */
 	public static void addMissingDataToFormatFields(VcfRecord vcf, int position) {
+		addMissingDataToFormatFields(vcf, position, 1);
+	}
+	public static void addMissingDataToFormatFields(VcfRecord vcf, int position, int count) {
 		if (null == vcf) {
 			throw new IllegalArgumentException("null vcf parameter passed to addMissingDataToFormatFields");
 		}
@@ -654,15 +665,16 @@ public class VcfUtils {
 			
 			String formatColumns = formatFields.get(0);
 			//split by ":"
-			int noOfColumns = formatColumns.split(":").length;
-			String missingData = ".";
-			for (int i = 1 ; i < noOfColumns ; i++) {
-				missingData +=":.";
+			int noOfColumns = formatColumns.split(Constants.COLON_STRING).length;
+			for (int j = 0 ; j < count ; j++) {
+				StringBuilder missingData = new StringBuilder(formatColumns.startsWith(VcfHeaderUtils.FORMAT_GENOTYPE) ? Constants.MISSING_GT : Constants.MISSING_DATA_STRING);
+				for (int i = 1 ; i < noOfColumns ; i++) {
+					missingData.append(":.");
+				}
+				formatFields.add(position, missingData.toString());
 			}
-			formatFields.add(position, missingData);
 			vcf.setFormatFields(formatFields);
 		}
-		
 	}
 	
 	/**
