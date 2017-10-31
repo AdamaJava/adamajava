@@ -44,6 +44,7 @@ public class Constants {
 	public static final String NULL_STRING = "null";
 	public static final String EMPTY_STRING = "";
 	public static final String CHR = "chr";
+	public static final String MISSING_GT = "./.";
 	
 	// SAM Header Prefixes
 	public static final String HEADER_PREFIX = "@HD";
