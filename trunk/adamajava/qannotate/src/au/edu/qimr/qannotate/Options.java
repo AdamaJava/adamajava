@@ -8,6 +8,7 @@ package au.edu.qimr.qannotate;
 import static java.util.Arrays.asList;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -23,7 +24,7 @@ import au.edu.qimr.qannotate.modes.*;
  * parse command line to options. 
  */
 public class Options {
-	public enum MODE {dbsnp, germline, snpeff,confidence, vcf2maf, cadd,indelconfidence,trf, hom}
+	public enum MODE {dbsnp, germline, snpeff,confidence, vcf2maf, cadd,indelconfidence,trf, hom, make_valid}
 	
    protected static final String VERSION_DESCRIPTION = Messages.getMessage("VERSION_OPTION_DESCRIPTION");
 	 
@@ -221,9 +222,13 @@ public class Options {
     /**
      * check input and output files
      * @return true if input file readable and output file writable
-     * @throws Exception 
+     * @throws IOException 
      */
-    private void checkIO( ) throws Exception{   	
+    private void checkIO( ) throws IOException {
+    	
+    		if (null == inputFileName) {
+    			throw new IllegalArgumentException("No input file was defined");
+    		}
 	    	List<File> inputs = new ArrayList<>(4);
 	    	List<File> outputs = new ArrayList<>(4);
 	    	
@@ -247,15 +252,15 @@ public class Options {
 	    		//out.getParentFile() maybe null if file name string exclude path eg. out = "ok.txt"
 	    		File parent = out.getAbsoluteFile().getParentFile();    		    		
 	    		if ( (out.exists() && ! out.canWrite()) || ( !out.exists() && !parent.canWrite())) {    				 
-	    			throw new Exception( Messages.getMessage("OUTPUT_ERR_DESCRIPTION", out.getName()));
+	    			throw new IllegalArgumentException( Messages.getMessage("OUTPUT_ERR_DESCRIPTION", out.getName()));
 	    		}
 	    	}	
 	    	//check inputs
 	    	for (File fin : inputs) {
 	    		if ( ! fin.exists()) { 
-	    			throw new Exception( Messages.getMessage("NONEXIST_INPUT_FILE", fin.getPath()));
+	    			throw new IllegalArgumentException( Messages.getMessage("NONEXIST_INPUT_FILE", fin.getPath()));
 	    		} else if ( ! fin.canRead()) {
-		        	 throw new Exception( Messages.getMessage("UNREAD_INPUT_FILE",fin.getPath()));
+		        	 throw new IllegalArgumentException( Messages.getMessage("UNREAD_INPUT_FILE",fin.getPath()));
 	    		}
 	    	}
 	    	//check whether file unique
@@ -263,7 +268,7 @@ public class Options {
 	       	for (int  i = inputs.size() -1; i > 0; i --) {
 		    		for (int j = i-1; j >= 0; j -- ){
 		    			if (inputs.get(i).getCanonicalFile().equals(inputs.get(j).getCanonicalFile())) {
-		    				throw new Exception( "below command line values are point to same file: \n\t" + inputs.get(i) + "\n\t" + inputs.get(j) );
+		    				throw new IllegalArgumentException( "below command line values are point to same file: \n\t" + inputs.get(i) + "\n\t" + inputs.get(j) );
 		    			}
 		    		}
 	       	}
