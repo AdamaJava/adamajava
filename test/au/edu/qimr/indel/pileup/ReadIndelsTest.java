@@ -102,14 +102,14 @@ public class ReadIndelsTest {
 					//merge indels but split alleles
 					assertTrue(indel.getIndelVcf(0).getFormatFields().get(1).equals("0/1:T/TC:7,4:11:99:257,0,348"));
  					assertTrue(indel.getIndelVcf(0).getFormatFields().get(2).equals(".:T/A:7,5:.:.:."));
-					assertTrue(indel.getIndelVcf(1).getFormatFields().get(1).equals(".:.:." ));
+					assertTrue(indel.getIndelVcf(1).getFormatFields().get(1).equals("./.:.:." ));
 					assertTrue(indel.getIndelVcf(1).getFormatFields().get(2).equals(".:T/A:7,5"));
 					assertTrue(indel.getIndelVcf(0).getInfo().equals("SOMATIC1" )); //info column from first file  
 					assertTrue(indel.getIndelVcf(1).getInfo().equals("SOMATIC" ));  //info column from second file
 				}else if(indel.getStart() == 59033286){
 					//indels only appear on second file,  
 					assertTrue(indel.getIndelVcf(0).getFormatFields().get(2).equals("0/1:GGT/G:131,31:162:99:762,0,4864" )); 
-					assertTrue(indel.getIndelVcf(0).getFormatFields().get(1).equals(".:.:.:.:.:." ));	
+					assertEquals("./.:.:.:.:.:.", indel.getIndelVcf(0).getFormatFields().get(1));	
 					assertTrue(indel.getIndelVcf(0).getInfo().equals("SOMATIC" )); //info column from second file  
 				}						 
 			}

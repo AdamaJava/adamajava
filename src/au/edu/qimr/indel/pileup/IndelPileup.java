@@ -25,18 +25,18 @@ public class IndelPileup {
 	private  int informativeCount; //crossover full indels start - end
 	private  int nearbysoftClip ; //reads contain softclipping in either side window
 	private  int nearbyIndel ;//= new ArrayList<Integer>(); //must be informative	
-	private int maxEvent; //max variant event allowed in a strong supporting read
+	private final int maxEvent; //max variant event allowed in a strong supporting read
 	
-	List<Integer> support = new ArrayList<Integer>();
-	List<Integer> strongSupport = new ArrayList<Integer>();
-	List<Integer> forwardstrong = new ArrayList<Integer>();
-	List<Integer> backwardstrong = new ArrayList<Integer>();
+	List<Integer> support = new ArrayList<>();
+	List<Integer> strongSupport = new ArrayList<>();
+	List<Integer> forwardstrong = new ArrayList<>();
+	List<Integer> backwardstrong = new ArrayList<>();
 	
-	List<Integer> partial = new ArrayList<Integer>();  
-	List<Integer> novelStart4strong = new ArrayList<Integer>(); 
-	List<Integer> novelStart4support = new ArrayList<Integer>(); 
+	List<Integer> partial = new ArrayList<>();  
+	List<Integer> novelStart4strong = new ArrayList<>(); 
+	List<Integer> novelStart4support = new ArrayList<>(); 
 	
-	public IndelPileup( IndelPosition pos, int nearbySoftClipWindow, int nearyIndelWindow, int maxEvent) throws Exception { 	
+	public IndelPileup( IndelPosition pos, int nearbySoftClipWindow, int nearyIndelWindow, int maxEvent) { 	
 		this.position = pos.getChrRangePosition();
 		this.indelStart = pos.getStart();
 		this.indelEnd = pos.getEnd();		
@@ -56,7 +56,7 @@ public class IndelPileup {
 		}		
 	}
 		
-	public void pileup(List<SAMRecord> pool) throws Exception{
+	public void pileup(List<SAMRecord> pool) {
 			
 		if(pool.size() == 0 ) return; 
 		this.coverage  = pool.size();		
@@ -94,7 +94,7 @@ public class IndelPileup {
 		int windowStart = indelStart - window;
 		int windowEnd =  indelEnd + window;
 		
- 		List<SAMRecord> regionPool = new ArrayList<SAMRecord>();
+ 		List<SAMRecord> regionPool = new ArrayList<>();
  		
 		for(SAMRecord re: pool){
 			Cigar cigar = re.getCigar();		 		
@@ -155,30 +155,20 @@ public class IndelPileup {
 		
 	}
 	
-//	private Set<Integer> addToNovelStarts(SAMRecord record, Set<Integer> NNSlist) {		
-//		if (record.getReadNegativeStrandFlag()) {			
-//			NNSlist.add(record.getAlignmentEnd());
-//		} else {
-//			NNSlist.add(record.getAlignmentStart());
-//		}
-//		return NNSlist; 		
-//	}	
-	
 	/**
 	 * 
 	 * @param pool: potential support or partial support reads
 	 * @param motif
 	 * @return the counts of support, forwardSupport,backwardSupport, partsupport, novelStarts 
-	 * @throws Exception
 	 */
-	private int[] getCounts(List<SAMRecord> pool, String motif) throws Exception{
+	private int[] getCounts(List<SAMRecord> pool, String motif) {
 		int support = 0;
 		int strong_support = 0;
 		int part_support = 0;
 		int forward_strong = 0;
 		int backward_strong = 0;
-		Set<Integer> novel4strong = new HashSet<Integer>();
-		Set<Integer> novel4support = new HashSet<Integer>();	
+		Set<Integer> novel4strong = new HashSet<>();
+		Set<Integer> novel4support = new HashSet<>();	
 				
 		//check this indel is nearby, partial or full match		
 		for(SAMRecord re : pool){
@@ -363,10 +353,7 @@ public class IndelPileup {
 		double minP = d * 100;
 		double fPercent = ((double) forwardstrong.get(index) / (double)support.get(index)) * 100;
 		double rPercent = ((double) backwardstrong.get(index) / (double)support.get(index)) * 100;
-		if( Math.min(fPercent, rPercent) < minP)
-			return true; 		 
-
-		return false;
+		return  Math.min(fPercent, rPercent) < minP ;
 	}
 	
 	//for unit test
