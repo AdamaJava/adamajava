@@ -58,10 +58,12 @@ public class DbsnpMode extends AbstractMode{
 		try (VCFFileReader reader= new VCFFileReader( dbSNPFile )) {
 			//add dbSNP version into header	
 			VcfHeaderRecord dbre = reader.getHeader().firstMatchedRecord(VcfHeaderUtils.STANDARD_DBSNP_LINE);
-			if( dbre != null)		 
-				header.addOrReplace(String.format("##INFO=<ID=%s,Number=0,Type=%s,Description=\"%s\",Source=%s,Version=%s>",
-						VcfHeaderUtils.INFO_DB, VcfInfoType.Flag.name(),VcfHeaderUtils.DESCRITPION_INFO_DB, dbSNPFile, dbre.getMetaValue()  ));					
-			 
+			if( dbre != null)	 {
+//				header.addOrReplace(String.format("##INFO=<ID=%s,Number=0,Type=%s,Description=\"%s\",Source=%s,Version=%s>",
+//						VcfHeaderUtils.INFO_DB, VcfInfoType.Flag.name(),VcfHeaderUtils.DESCRITPION_INFO_DB, dbSNPFile, dbre.getMetaValue()  ));
+				
+				header.addInfo(VcfHeaderUtils.INFO_DB,  "0", VcfInfoType.Flag.name(),VcfHeaderUtils.DESCRITPION_INFO_DB);
+			}
 		
 			for (final VcfRecord dbSNPVcf : reader) {				
 				final VcfInfoFieldRecord info = new VcfInfoFieldRecord(dbSNPVcf.getInfo());	
