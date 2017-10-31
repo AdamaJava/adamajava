@@ -667,7 +667,8 @@ public class VcfUtils {
 			//split by ":"
 			int noOfColumns = formatColumns.split(Constants.COLON_STRING).length;
 			for (int j = 0 ; j < count ; j++) {
-				StringBuilder missingData = new StringBuilder(formatColumns.startsWith(VcfHeaderUtils.FORMAT_GENOTYPE) ? Constants.MISSING_GT : Constants.MISSING_DATA_STRING);
+				StringBuilder missingData = new StringBuilder(formatColumns.startsWith(VcfHeaderUtils.FORMAT_GENOTYPE) ? Constants.MISSING_DATA_STRING : Constants.MISSING_DATA_STRING);
+//				StringBuilder missingData = new StringBuilder(formatColumns.startsWith(VcfHeaderUtils.FORMAT_GENOTYPE) ? Constants.MISSING_GT : Constants.MISSING_DATA_STRING);
 				for (int i = 1 ; i < noOfColumns ; i++) {
 					missingData.append(":.");
 				}
