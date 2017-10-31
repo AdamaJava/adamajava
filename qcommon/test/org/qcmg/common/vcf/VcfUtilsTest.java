@@ -476,7 +476,11 @@ public class VcfUtilsTest {
 		assertArrayEquals(new String[] {"T", "1/1","."} , VcfUtils.getMutationAndGTs("G",  GenotypeEnum.TT, null));
 		assertArrayEquals(new String[] {"A,T", "2/2","1/2"} , VcfUtils.getMutationAndGTs("G",  GenotypeEnum.TT, GenotypeEnum.AT));
 		assertArrayEquals(new String[] {"A,T", "2/2","1/2"} , VcfUtils.getMutationAndGTs("G",  GenotypeEnum.TT, GenotypeEnum.AT));
+		
+		assertArrayEquals(new String[] {"C,T", "0/1","0/2"} , VcfUtils.getMutationAndGTs("G",  GenotypeEnum.CG, GenotypeEnum.GT));
 	}
+	
+	
 	@Test
 	public void testGetMutationAndGTsRealLife() {
 		assertArrayEquals(new String[] {"C", "0/1","0/1"} , VcfUtils.getMutationAndGTs("G",  GenotypeEnum.CG, GenotypeEnum.CG));
