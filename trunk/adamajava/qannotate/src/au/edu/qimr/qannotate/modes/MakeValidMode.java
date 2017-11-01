@@ -17,6 +17,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -24,6 +25,8 @@ import java.util.stream.Collectors;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.meta.QExec;
+import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrPositionComparator;
 import org.qcmg.common.model.MafConfidence;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
@@ -33,9 +36,11 @@ import org.qcmg.common.vcf.VcfInfoFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
+import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils.VcfInfoType;
 import org.qcmg.vcf.VCFFileReader;
+import org.qcmg.vcf.VCFFileWriter;
 
 import au.edu.qimr.qannotate.Main;
 import au.edu.qimr.qannotate.Options;
@@ -93,7 +98,45 @@ public class MakeValidMode extends AbstractMode{
 		writeVCF(new File(options.getOutputFileName()) );	
 	}
 	
+	/**
+	 *Sort according to the list of contigs as found in the GRCh37 reference file
+	 *Ignore vcf records that are invalid
+	 *@see  invalidRefAndAlt
+	 * @param outputFile: add annotate variants from RAM hash map intp the output file
+	 * @throws IOException
+	 */
+	@Override
+	void writeVCF(File outputFile ) throws IOException {		 
+		logger.info("creating VCF output...");	 		
+		final List<ChrPosition> orderedList = new ArrayList<>(positionRecordMap.keySet());
+		orderedList.sort(ChrPositionComparator.getCPComparatorForGRCh37());
+		
+		try(VCFFileWriter writer = new VCFFileWriter( outputFile)) {
+			for(final VcfHeaderRecord record: header)  {
+				writer.addHeader(record.toString());
+			}
+			long count = 0; 
+			for (final ChrPosition position : orderedList)  
+				for(  VcfRecord record : positionRecordMap.get(position) ){
+					if (invalidRefAndAlt(record)) {
+						//ignore
+					} else {
+						writer.add( record );	
+						count ++;
+					}
+				}
+			logger.info(String.format("outputed %d VCF record, happend on %d variants location.",  count , orderedList.size()));
+		}  
+	}
 	
+	/**
+	 * Return false if the ref is equal to M, RR or the alt
+	 * @param vcf
+	 * @return
+	 */
+	public static boolean invalidRefAndAlt(VcfRecord vcf) {
+		return vcf.getRef().equals("M") || vcf.getRef().equals("RR") || vcf.getRef().equals(vcf.getAlt());
+	}
 	
 	private void makeVcfRecordsValid() {
 		for (List<VcfRecord> vcfs : positionRecordMap.values()) {
@@ -106,7 +149,7 @@ public class MakeValidMode extends AbstractMode{
 	/**
 	 * THIS METHOD HAS SIDE EFFECTS
 	 */
-	public static VcfRecord makeValid(VcfRecord vcf) {
+	public static void makeValid(VcfRecord vcf) {
 		
 		/*
 		 * filter
@@ -208,7 +251,6 @@ public class MakeValidMode extends AbstractMode{
 		}
 		
 		
-		return vcf;
 	}
 	
 	public static void fixFilters(VcfRecord vcf) {
@@ -347,6 +389,7 @@ public class MakeValidMode extends AbstractMode{
 		myHeader.addFilter(VcfHeaderUtils.FILTER_END_OF_READ,VcfHeaderUtils.FILTER_END_OF_READ_DESC); 
 		myHeader.addFormat(VcfHeaderUtils.FORMAT_ALLELE_COUNT, ".", "String",VcfHeaderUtils.FORMAT_ALLELE_COUNT_DESC);
 		myHeader.addFormat(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP, ".", "String",VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP_DESC);
+		myHeader.addFormat(VcfHeaderUtils.FORMAT_OBSERVED_ALLELES_BY_STRAND, ".", "String",VcfHeaderUtils.FORMAT_OBSERVED_ALLELES_BY_STRAND_DESC);
 		for (int i = 1 ; i <= 2 ; i++) {
 			String subscript = i == 1 ? "st" : "nd";
 			myHeader.addInfo(VcfHeaderUtils.INFO_SOMATIC + "_" + i, "0", "Flag", "Indicates that the " + i + subscript + " input file considered this record to be somatic.");

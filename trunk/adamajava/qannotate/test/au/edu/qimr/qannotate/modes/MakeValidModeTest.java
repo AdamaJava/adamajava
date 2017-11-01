@@ -28,8 +28,8 @@ public class MakeValidModeTest {
 		 /*
 		  * after
 		  */
-		 VcfRecord madeValidVcf = MakeValidMode.makeValid(vcf1);
-		 List<String> ffListMV = madeValidVcf.getFormatFields();
+		 MakeValidMode.makeValid(vcf1);
+		 List<String> ffListMV = vcf1.getFormatFields();
 		 assertEquals(5, ffListMV.size());
 		 assertEquals("GT:GD:AC:DP:OABS:MR:NNS", ffListMV.get(0));
 		 assertEquals("0/0:A/A:A61[38.72],13[21.62],C0[0],2[17]:76:A61[38.72]13[21.62];C0[0]2[17]:2:2", ffListMV.get(1));
@@ -55,8 +55,8 @@ public class MakeValidModeTest {
 		 /*
 		  * after
 		  */
-		 VcfRecord madeValidVcf = MakeValidMode.makeValid(vcf1);
-		 List<String> ffListMV = madeValidVcf.getFormatFields();
+		 MakeValidMode.makeValid(vcf1);
+		 List<String> ffListMV = vcf1.getFormatFields();
 		 assertEquals(5, ffListMV.size());
 		 assertEquals("GT:GD:AC:DP:OABS:MR:NNS", ffListMV.get(0));
 		 assertEquals(".:.:.:.:.:.:.", ffListMV.get(1));
@@ -82,8 +82,8 @@ public class MakeValidModeTest {
 		 /*
 		  * after
 		  */
-		 VcfRecord madeValidVcf = MakeValidMode.makeValid(vcf1);
-		 List<String> ffListMV = madeValidVcf.getFormatFields();
+		 MakeValidMode.makeValid(vcf1);
+		 List<String> ffListMV = vcf1.getFormatFields();
 		 assertEquals(5, ffListMV.size());
 		 assertEquals("GT:GD:AC:DP:OABS:MR:NNS:AD:GQ", ffListMV.get(0));
 		 assertEquals("0/1:A/G:A5[35.2],9[38.11],G11[36],13[37.54]:38:A5[35.2]9[38.11];G11[36]13[37.54]:14:13:26,12:99", ffListMV.get(1));
@@ -109,8 +109,8 @@ public class MakeValidModeTest {
 		 /*
 		  * after
 		  */
-		 VcfRecord madeValidVcf = MakeValidMode.makeValid(vcf1);
-		 List<String> ffListMV = madeValidVcf.getFormatFields();
+		 MakeValidMode.makeValid(vcf1);
+		 List<String> ffListMV = vcf1.getFormatFields();
 		 assertEquals(5, ffListMV.size());
 		 assertEquals("GT:ACCS", ffListMV.get(0));
 		 assertEquals("1/1:CA,13,10,CG,8,9,C_,2,0", ffListMV.get(1));
@@ -136,8 +136,8 @@ public class MakeValidModeTest {
 		 /*
 		  * after
 		  */
-		 VcfRecord madeValidVcf = MakeValidMode.makeValid(vcf1);
-		 List<String> ffListMV = madeValidVcf.getFormatFields();
+		 MakeValidMode.makeValid(vcf1);
+		 List<String> ffListMV = vcf1.getFormatFields();
 		 assertEquals(5, ffListMV.size());
 		 assertEquals("GT:AD:DP:GQ:GD:AC:OABS:MR:NNS", ffListMV.get(0));
 		 assertEquals(".:.:.:.:.:.:.:.:.", ffListMV.get(1));
