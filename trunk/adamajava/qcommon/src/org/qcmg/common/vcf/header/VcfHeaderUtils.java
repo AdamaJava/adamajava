@@ -30,6 +30,7 @@ public class VcfHeaderUtils {
 	public static final DateFormat DF = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	
 	public static final String BLANK_HEADER_LINE = Constants.DOUBLE_HASH;
+	public static final String FORMAT = BLANK_HEADER_LINE + "FORMAT";
 	
 	public static final String DESCRITPION_FILTER_GERMLINE = "Mutation is a germline variant in another patient";
 	public static final String DESCRITPION_INFO_GERMLINE = "Counts of donor occurs this mutation, total recorded donor number";
@@ -115,6 +116,10 @@ public class VcfHeaderUtils {
 	public static final String FORMAT_READ_DEPTH_DESCRIPTION = "Read depth at this position for this sample";
 	public static final String FORMAT_GENOTYPE_QUALITY = "GQ";
 	public static final String FORMAT_POSSIBLE_GENOTYPES = "PL";
+	public static final String FORMAT_CCM = "CCM";
+	public static final String FORMAT_CCM_DESC = "Cancel Call Matrix. Please refer to the following link for further details: https://genomeinfo.qimrberghofer.edu.au/wiki/qProfiler%20Development";
+	public static final String FORMAT_CCC = "CCC";
+	public static final String FORMAT_CCC_DESC = "Cancer Call Class. Please refer to the following link for further details: https://genomeinfo.qimrberghofer.edu.au/wiki/qProfiler%20Development";
 
 	
 	//Header lines
