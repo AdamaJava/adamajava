@@ -92,25 +92,26 @@ public class SampleSummary {
 				
 		String filter = "Other";
 		if(format.getField("FT") != null  && format.getField("FT").equals("PASS") ) filter = "PASS";				
-		increment(filter); //count to total		
-		increment( filter + type); //count svtype
-		increment( filter + type + gt);	//count genotyp	
+		increment(filter); //count to total
+		String filterAndType = filter + type;
+		increment(filterAndType ); //count svtype
+		increment( filterAndType + gt);	//count genotyp	
 				
-		if(isdbSNP) increment( filter + type.name() + "dbSNP");	//dbsnp					
+		if(isdbSNP) increment( filterAndType + "dbSNP");	//dbsnp					
 		if(type.equals(SVTYPE.SNP)){ 
 			//get Ti Tv counts based on GT value
-			List<TRANS> transTypes = new ArrayList<TRANS>();
+			List<TRANS> transTypes = new ArrayList<>();
 			String salt = vcf.getAlt().replace(",", "");
 			String sgt = gt.replace("|", "").replace("/", "").replace(".", "").replace("0", "");	
 			
-			Set<Character> uniqAlts = new HashSet<Character> (sgt.chars().mapToObj(e->(char)e).collect(Collectors.toList())  );												
+			Set<Character> uniqAlts = new HashSet<> (sgt.chars().mapToObj(e->(char)e).collect(Collectors.toList())  );												
 			for(char c : uniqAlts) 				 
 				transTypes.add(TRANS.getTrans( vcf.getRef().charAt(0), salt.charAt( c-'1' )) );		
  			
 			for(TRANS transType : transTypes){
 				String mark = transType.isTranstion() ? "Ti" : transType.isTransversion() ? "Tv" : "Other";	
-				increment(filter + type.name() + mark  );
-				increment(filter + type.name() + mark + transType.name() );			
+				increment(filterAndType + mark  );
+				increment(filterAndType + mark + transType.name() );			
 			}
 		}	 			
 	}	
