@@ -51,6 +51,7 @@ public class VcfSummaryReport  extends SummaryReport {
 		
 	}
 	
+	@Override
 	public void toXml(Element parent) {
 		Element parentElement = init(parent, ProfileType.VCF);				
 		vcfHeaderToXml(parentElement);  //Vcf header		
@@ -67,9 +68,9 @@ public class VcfSummaryReport  extends SummaryReport {
 		for(int i = 1; i < formats.size(); i ++){
 			VcfFormatFieldRecord re = new VcfFormatFieldRecord(formats.get(0), formats.get(i));
 			if((re.getField("INF") != null) && re.getField("INF").contains("SOMATIC"))
-				somaticSummaries[i-1].parseRecord(vcf, i);
+				somaticSummaries[i-1].parseRecord(vcf, re);
 			else
-				germlineSummaries[i-1].parseRecord(vcf, i);			
+				germlineSummaries[i-1].parseRecord(vcf, re);			
 		}		
 		
 	}
@@ -124,7 +125,7 @@ public class VcfSummaryReport  extends SummaryReport {
 				 ele =  createSubElement( ele, NodeHeaderStructuredLine );
 				 //ele.setAttribute("id", record.getId());
 				 for( Pair<String, String> p: record.getSubFields()) {
-					 String v = (String) p.getRight().trim();
+					 String v = p.getRight().trim();
 					 if( v.startsWith("\"") && v.endsWith("\"")) v = v.substring(1, v.length()-1).trim();
 					 
 					 ele.setAttribute(p.getLeft(), v);	

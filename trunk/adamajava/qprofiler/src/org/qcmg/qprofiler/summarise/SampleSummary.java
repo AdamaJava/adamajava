@@ -69,28 +69,26 @@ public class SampleSummary {
 	public SampleSummary(String value){
 		this.sampleType = value; 
 	}
-	List<String> gts = new ArrayList<>(); //store possible genotyp 0/1, 0/0, ./1 ...
+	Set<String> gts = new HashSet<>(); //store possible genotype 0/1, 0/0, ./1 ...
 	Map<String, AtomicLong> summary = new HashMap<>();
 	
 	AtomicLong counts = new AtomicLong();
-	QCMGAtomicLongArray sampleTrans = new QCMGAtomicLongArray(  TRANS.values().length );	
+	QCMGAtomicLongArray sampleTrans = new QCMGAtomicLongArray(  TRANS.values().length );
+	
 	public long getCounts(){ return counts.get();}
 
 	private void increment(String key){
-		if(!summary.containsKey(key)) 
-			summary.put(key, new AtomicLong());
-		summary.get(key).getAndIncrement();						
+		summary.computeIfAbsent(key, v -> new AtomicLong()).incrementAndGet();
 	}
 	
 
-	public void parseRecord( VcfRecord  vcf, int formateOrder) {
-		VcfFormatFieldRecord format = new VcfFormatFieldRecord(vcf.getFormatFields().get(0), vcf.getFormatFields().get(formateOrder));
+	public void parseRecord( VcfRecord  vcf, VcfFormatFieldRecord format) {
 		counts.incrementAndGet(); //total number
 		SVTYPE type = IndelUtils.getVariantType(vcf.getRef(), vcf.getAlt());
 		boolean isdbSNP = !StringUtils.isNullOrEmptyOrMissingData(vcf.getId());
 		
 		String gt = format.getField("GT"); //GT
-		if( !gts.contains(gt) ) gts.add(gt);
+		gts.add(gt);
 				
 		String filter = "Other";
 		if(format.getField("FT") != null  && format.getField("FT").equals("PASS") ) filter = "PASS";				
@@ -110,9 +108,7 @@ public class SampleSummary {
 				transTypes.add(TRANS.getTrans( vcf.getRef().charAt(0), salt.charAt( c-'1' )) );		
  			
 			for(TRANS transType : transTypes){
-				String mark = "Other";	
-				if(transType.isTranstion()) mark = "Ti";
-				else if(transType.isTransversion()) mark = "Tv";
+				String mark = transType.isTranstion() ? "Ti" : transType.isTransversion() ? "Tv" : "Other";	
 				increment(filter + type.name() + mark  );
 				increment(filter + type.name() + mark + transType.name() );			
 			}
@@ -153,8 +149,8 @@ public class SampleSummary {
 				//titv
 				if(type.equals(SVTYPE.SNP)){
 					Element titvE = SummaryReport.createSubElement(svtypeE, "Substitutions");
-					long sum1 =  summary.containsKey( filter + type.name() + "Ti") ?   summary.get(filter + type.name() + "Ti").get() : 0;
-					long sum2 =  summary.containsKey( filter + type.name() + "Tv") ?   summary.get(filter + type.name() + "Tv").get() : 0;				 
+					long sum1 =  summary.getOrDefault(filter + type.name() + "Ti", new AtomicLong(0)).get();
+					long sum2 =  summary.getOrDefault( filter + type.name() + "Tv", new AtomicLong(0)).get();	 
 					titvE.setAttribute("TiTvRatio", String.format("%.2f", (double) sum1/sum2) );
 					titvE.setAttribute("Transitions", summary.get(filter + type + "Ti") + "");
 					
