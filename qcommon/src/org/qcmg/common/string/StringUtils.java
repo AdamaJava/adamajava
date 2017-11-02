@@ -441,4 +441,12 @@ public class StringUtils {
 		return  rate;
 	}
 
+	public static String getStringFromCharSet(Set<Character> set) {
+		final StringBuilder sb = new StringBuilder();
+		if (null != set) {
+			for (final Character c : set) sb.append(c);
+		}
+		return sb.toString();
+	}
+
 }

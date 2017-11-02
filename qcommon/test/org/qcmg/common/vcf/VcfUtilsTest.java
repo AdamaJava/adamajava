@@ -17,6 +17,7 @@ import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.model.GenotypeEnum;
 import org.qcmg.common.model.MafConfidence;
 import org.qcmg.common.model.PileupElement;
+import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 
@@ -409,31 +410,6 @@ public class VcfUtilsTest {
 	}
 	
 	@Test
-	public void testGetADFromGenotypeField() {
-		String genotype = "";
-		assertEquals(0, VcfUtils.getADFromGenotypeField(genotype));
-		
-		genotype = "0/1:173,141:282:99:255,0,255";
-		assertEquals(314 , VcfUtils.getADFromGenotypeField(genotype));
-	}
-	
-	@Test
-	public void testGetDPFromGenotypeField() {
-		String genotype = "";
-		assertEquals(0 , VcfUtils.getDPFromFormatField(genotype));
-		
-		genotype = "0/1:173,141:282:99:255,0,255";
-		assertEquals(282 , VcfUtils.getDPFromFormatField(genotype));
-	}
-	
-	@Test
-	public void testCalculateGTField() {
-		assertEquals(null, VcfUtils.calculateGTField(null));
-		assertEquals("1/1", VcfUtils.calculateGTField(GenotypeEnum.AA));
-		assertEquals("0/1", VcfUtils.calculateGTField(GenotypeEnum.AC));
-	}
-	
-	@Test
 	public void testCalculateGenotypeEnum() {
 		
 		assertEquals(null, VcfUtils.calculateGenotypeEnum(null, '\u0000', '\u0000'));
@@ -514,27 +490,27 @@ public class VcfUtilsTest {
 	
 	@Test
 	public void testGetStringFromCharSet() {
-		assertEquals("", VcfUtils.getStringFromCharSet(null));
+		assertEquals("", StringUtils.getStringFromCharSet(null));
 		final Set<Character> set = new TreeSet<Character>();
 		
-		assertEquals("", VcfUtils.getStringFromCharSet(set));
+		assertEquals("", StringUtils.getStringFromCharSet(set));
 		set.add('T');
-		assertEquals("T", VcfUtils.getStringFromCharSet(set));
+		assertEquals("T", StringUtils.getStringFromCharSet(set));
 		set.add('G');
-		assertEquals("GT", VcfUtils.getStringFromCharSet(set));
+		assertEquals("GT", StringUtils.getStringFromCharSet(set));
 		set.add('C');
-		assertEquals("CGT", VcfUtils.getStringFromCharSet(set));
+		assertEquals("CGT", StringUtils.getStringFromCharSet(set));
 		set.add('A');
-		assertEquals("ACGT", VcfUtils.getStringFromCharSet(set));
+		assertEquals("ACGT", StringUtils.getStringFromCharSet(set));
 		set.add('A');
 		set.add('C');
 		set.add('G');
 		set.add('T');
-		assertEquals("ACGT", VcfUtils.getStringFromCharSet(set));
+		assertEquals("ACGT", StringUtils.getStringFromCharSet(set));
 		set.add('X');
 		set.add('Y');
 		set.add('Z');
-		assertEquals("ACGTXYZ", VcfUtils.getStringFromCharSet(set));
+		assertEquals("ACGTXYZ", StringUtils.getStringFromCharSet(set));
 	}
 	
 	
