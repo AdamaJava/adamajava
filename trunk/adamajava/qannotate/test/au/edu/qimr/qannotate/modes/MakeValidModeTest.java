@@ -1,6 +1,6 @@
 package au.edu.qimr.qannotate.modes;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 import java.util.List;
 
@@ -13,6 +13,47 @@ public class MakeValidModeTest {
 	 public void getupdatedGTs() {
 		 assertEquals("0/0", MakeValidMode.getUpdatedGT("A", "G", "A/A"));
 		 assertEquals("0/1", MakeValidMode.getUpdatedGT("G", "C,T", "C/G"));
+		 assertEquals("2/2", MakeValidMode.getUpdatedGT("G", "C,T", "T/T"));
+		 assertEquals("1/1", MakeValidMode.getUpdatedGT("G", "C,T", "C/C"));
+		 assertEquals("1/2", MakeValidMode.getUpdatedGT("G", "C,T", "C/T"));
+	 }
+	 
+	 @Test
+	 public void getRefAndAltsAsList() {
+		 List<String> refAndAlts = MakeValidMode.getRefAndAltsAsList("ref","alts");
+		 assertEquals(2, refAndAlts.size());
+		 assertEquals("ref", refAndAlts.get(0));
+		 assertEquals("alts", refAndAlts.get(1));
+		 
+		 refAndAlts = MakeValidMode.getRefAndAltsAsList("AC","CC,GG,TT,AA");
+		 assertEquals(5, refAndAlts.size());
+		 assertEquals("AC", refAndAlts.get(0));
+		 assertEquals("CC", refAndAlts.get(1));
+		 assertEquals("GG", refAndAlts.get(2));
+		 assertEquals("TT", refAndAlts.get(3));
+		 assertEquals("AA", refAndAlts.get(4));
+	 }
+	 
+	 @Test
+	 public void setupArrayWithMissingData() {
+		 try {
+			 assertArrayEquals(new String[0], MakeValidMode.createMissingDataArray(-1));
+			 fail("Should have thrown an exception");
+		 } catch (IllegalArgumentException iae) {}
+		 assertArrayEquals(new String[0], MakeValidMode.createMissingDataArray(0));
+		 assertArrayEquals(new String[]{"."}, MakeValidMode.createMissingDataArray(1));
+		 assertArrayEquals(new String[]{".","."}, MakeValidMode.createMissingDataArray(2));
+		 assertArrayEquals(new String[]{".",".",".",".","."}, MakeValidMode.createMissingDataArray(5));
+	 }
+	 
+	 @Test
+	 public void refAndAltsInvalid() {
+		assertEquals(false, MakeValidMode.invalidRefAndAlt( new VcfRecord(new String[]{"chr1","10051",".","A","C",".",".","."}))); 
+		assertEquals(true, MakeValidMode.invalidRefAndAlt( new VcfRecord(new String[]{"chr1","10051",".","A","A",".",".","."}))); 
+		assertEquals(true, MakeValidMode.invalidRefAndAlt( new VcfRecord(new String[]{"chr1","10051",".","M","C",".",".","."}))); 
+		assertEquals(true, MakeValidMode.invalidRefAndAlt( new VcfRecord(new String[]{"chr1","10051",".","RR","C",".",".","."}))); 
+		assertEquals(false, MakeValidMode.invalidRefAndAlt( new VcfRecord(new String[]{"chr1","10051",".","XX","C",".",".","."}))); 
+		assertEquals(false, MakeValidMode.invalidRefAndAlt( new VcfRecord(new String[]{"chr1","10051",".","XX","XXX",".",".","."}))); 
 	 }
 	 
 	 @Test
