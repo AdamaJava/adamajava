@@ -14,7 +14,6 @@ import org.qcmg.common.vcf.VcfUtils;
 public class QSnpGATKRecord {
 
 	private final VcfRecord gatkVcfRecord;
-	private String genotype;
 	private GenotypeEnum genotypeEnum;
 	private List<PileupElement> pileup;
 	
@@ -23,26 +22,12 @@ public class QSnpGATKRecord {
 		
 		if (null != gatkVcfRecord.getFormatFields() && ! gatkVcfRecord.getFormatFields().isEmpty()) {
 			//	 set genotype
-			genotype = VcfUtils.getGenotypeFromGATKVCFRecord(vcf);
 			genotypeEnum = VcfUtils.getGEFromGATKVCFRec(vcf);
 		}
 	}
 	
 	public VcfRecord getVCFRecord() {
 		return gatkVcfRecord;
-	}
-	
-	/**
-	 * 
-	 * @return
-	 */
-	public int getDPFromFormatField() {
-		if (null != gatkVcfRecord) {
-			List<String> extraFields = gatkVcfRecord.getFormatFields();
-			if (extraFields.size() > 1)
-				return VcfUtils.getDPFromFormatField(extraFields.get(1));
-		}
-		return -1;
 	}
 	
 	public String getChromosome() {
@@ -58,9 +43,6 @@ public class QSnpGATKRecord {
 		return gatkVcfRecord.getAlt();
 	}
 	
-	public String getGenotype() {
-		return genotype;
-	}
 	public GenotypeEnum getGenotypeEnum() {
 		return genotypeEnum;
 	}
@@ -70,5 +52,4 @@ public class QSnpGATKRecord {
 	public List<PileupElement> getPileup() {
 		return pileup;
 	}
-	
 }
