@@ -120,6 +120,13 @@ public class VcfHeaderUtils {
 	public static final String FORMAT_CCM_DESC = "Cancel Call Matrix. Please refer to the following link for further details: https://genomeinfo.qimrberghofer.edu.au/wiki/qProfiler%20Development";
 	public static final String FORMAT_CCC = "CCC";
 	public static final String FORMAT_CCC_DESC = "Cancer Call Class. Please refer to the following link for further details: https://genomeinfo.qimrberghofer.edu.au/wiki/qProfiler%20Development";
+	public static final String FORMAT_INFO = "INF";
+	public static final String FORMAT_INFO_DESCRIPTION = "Sample genotype information indicating if this genotype was 'called' (similar in concept to the INFO field). A semi-colon seperated list of information pertaining to this sample. Use ‘.’ to indicate the absence of information. These values should be described in the meta-information in the same way as INFOs";
+	public static final String FORMAT_FILTER = "FT";
+	public static final String FORMAT_FF = "FF";
+	public static final String FORMAT_FF_DESC = "Reads that failed qsnp's internal filtering";
+	public static final String FORMAT_FILTER_DESCRIPTION = "Sample genotype filter indicating if this genotype was 'called' (similar in concept to the FILTER field). Again, use PASS to indicate that all filters have been passed, a semi-colon separated list of codes for filters that fail, or ‘.’ to indicate that filters have not been applied. These values should be described in the meta-information in the same way as FILTERs";
+
 
 	
 	//Header lines
