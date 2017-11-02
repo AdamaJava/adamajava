@@ -35,6 +35,22 @@ public class MakeValidModeTest {
 	 }
 	 
 	 @Test
+	 public void getGTForCompoundSnp() {
+		 assertEquals("0/1", MakeValidMode.getGTForCS("AA", "CC", "AACC"));
+		 assertEquals("0/0", MakeValidMode.getGTForCS("AA", "CC", "AAGG"));
+		 assertEquals("1/1", MakeValidMode.getGTForCS("AA", "CC", "GGCC"));
+	 }
+	 
+	 @Test
+	 public void splitFormatField() {
+		 assertArrayEquals(new String[]{".","."}, MakeValidMode.splitFormatField(".&."));
+		 assertArrayEquals(new String[]{".:.",".:."}, MakeValidMode.splitFormatField(".&.:.&."));
+		 assertArrayEquals(new String[]{"0/1:.","1/1:."}, MakeValidMode.splitFormatField("0/1&1/1:.&."));
+		 assertArrayEquals(new String[]{"0/1:105","1/1:99"}, MakeValidMode.splitFormatField("0/1&1/1:105&99"));
+		 assertArrayEquals(new String[]{"0/1:105:.","1/1:99:10,3"}, MakeValidMode.splitFormatField("0/1&1/1:105&99:.&10,3"));
+	 }
+	 
+	 @Test
 	 public void setupArrayWithMissingData() {
 		 try {
 			 assertArrayEquals(new String[0], MakeValidMode.createMissingDataArray(-1));
