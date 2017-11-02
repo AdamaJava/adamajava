@@ -14,16 +14,13 @@ import org.qcmg.common.vcf.VcfUtils;
 public class QSnpGATKRecord {
 
 	private final VcfRecord gatkVcfRecord;
-	private GenotypeEnum genotypeEnum;
+	private final GenotypeEnum genotypeEnum;
 	private List<PileupElement> pileup;
 	
 	public QSnpGATKRecord(VcfRecord vcf) {
 		this.gatkVcfRecord = vcf;
-		
-		if (null != gatkVcfRecord.getFormatFields() && ! gatkVcfRecord.getFormatFields().isEmpty()) {
-			//	 set genotype
-			genotypeEnum = VcfUtils.getGEFromGATKVCFRec(vcf);
-		}
+		//	 set genotype
+		genotypeEnum = VcfUtils.getGEFromGATKVCFRec(vcf);
 	}
 	
 	public VcfRecord getVCFRecord() {
