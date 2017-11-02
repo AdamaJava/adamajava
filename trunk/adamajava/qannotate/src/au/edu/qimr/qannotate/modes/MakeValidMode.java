@@ -332,16 +332,11 @@ public class MakeValidMode extends AbstractMode {
 			}
 			
 			vcf.setFormatFields(gts);
-//			VcfUtils.addFormatFieldsToVcf(vcf, gts);
-			
 		}
-		
 		
 		if (vcf.getAlt().contains(Constants.COMMA_STRING)) {
 			updateVCfRecordGTField(vcf);
 		}
-		
-		
 	}
 	
 	public static void fixFilters(VcfRecord vcf) {
@@ -412,6 +407,14 @@ public class MakeValidMode extends AbstractMode {
 		return Math.min(firstNumber, secondNumber) + "/" + Math.max(firstNumber, secondNumber);
 	}
 
+	/**
+	 * Creates a list based on the ref and alts of a VcfRecord
+	 * alts will be split by comma so that each alt will have its own entry in the list.
+	 * 
+	 * @param ref
+	 * @param alts
+	 * @return
+	 */
 	public static List<String> getRefAndAltsAsList(String ref, String alts) {
 		List<String> list = new ArrayList<>();
 		list.add(ref);
@@ -439,7 +442,7 @@ public class MakeValidMode extends AbstractMode {
 	}
 	
 	/**
-	 * Splits the 
+	 * Splits the format field based on the '&' char, and return 2 strings, one for erach caller
 	 */
 	public static String[] splitFormatField(String ff) {
 		StringBuilder s1 = new StringBuilder();
