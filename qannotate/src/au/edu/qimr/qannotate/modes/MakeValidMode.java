@@ -5,33 +5,30 @@
 */
 package au.edu.qimr.qannotate.modes;
 
-import static org.qcmg.common.util.Constants.SEMI_COLON;
-import static org.qcmg.common.util.SnpUtils.LESS_THAN_12_READS_NORMAL;
-import static org.qcmg.common.util.SnpUtils.LESS_THAN_3_READS_NORMAL;
-import static org.qcmg.common.util.SnpUtils.MUTATION_IN_UNFILTERED_NORMAL;
-import static org.qcmg.common.util.SnpUtils.PASS;
 
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.Serializable;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.meta.QExec;
-import org.qcmg.common.model.ChrPosition;
-import org.qcmg.common.model.ChrPositionComparator;
-import org.qcmg.common.model.MafConfidence;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
-import org.qcmg.common.util.SnpUtils;
-import org.qcmg.common.vcf.VcfFormatFieldRecord;
+import org.qcmg.common.vcf.VcfFileMeta;
 import org.qcmg.common.vcf.VcfInfoFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
@@ -44,7 +41,6 @@ import org.qcmg.vcf.VCFFileWriter;
 
 import au.edu.qimr.qannotate.Main;
 import au.edu.qimr.qannotate.Options;
-import au.edu.qimr.qannotate.utils.SampleColumn;
 
 /**
  * 
@@ -56,32 +52,21 @@ import au.edu.qimr.qannotate.utils.SampleColumn;
  *
  */
 
-public class MakeValidMode extends AbstractMode{
+public class MakeValidMode extends AbstractMode {
+	
 	private static final QLogger logger = QLoggerFactory.getLogger(MakeValidMode.class);
 	private static final DateFormat df = new SimpleDateFormat("yyyyMMdd");
 	public static final String VCF_DELIM_STRING = Constants.VCF_MERGE_DELIM+"";
 	
-	
-//	static final String[] CLASS_B_FILTERS= new String[] {PASS, MUTATION_IN_UNFILTERED_NORMAL, LESS_THAN_12_READS_NORMAL, LESS_THAN_3_READS_NORMAL};
-	
-	static final int HIGH_CONF_NOVEL_STARTS_PASSING_SCORE = 4;
-	static final int LOW_CONF_NOVEL_STARTS_PASSING_SCORE = 4;
-	
-	static final int HIGH_CONF_ALT_FREQ_PASSING_SCORE = 5;	
-	static final int LOW_CONF_ALT_FREQ_PASSING_SCORE = 4;	
+	private VcfFileMeta meta;
 	
 	//filters 
 	
-	public static final String DESCRITPION_INFO_CONFIDENCE = String.format( "set to HIGH if the variants passed all filter, "
-			+ "appeared on more than %d novel stars reads and more than %d reads contains variants, is adjacent to reference sequence with less than %d homopolymer base; "
-			+ "Or set to LOW if the variants passed MIUN/MIN/GERM filter, appeared on more than %d novel stars reads and more than %d reads contains variants;"
-			+ "Otherwise set to Zero if the variants didn't matched one of above conditions.",
-			HIGH_CONF_NOVEL_STARTS_PASSING_SCORE, HIGH_CONF_ALT_FREQ_PASSING_SCORE,IndelConfidenceMode.DEFAULT_HOMN,  LOW_CONF_NOVEL_STARTS_PASSING_SCORE, LOW_CONF_ALT_FREQ_PASSING_SCORE);
+	public static final String DESCRIPTION_INFO_CONFIDENCE ="set to HIGH if the variants passed all filter, "
+			+ "appeared on more than 4 novel stars reads and more than 5 reads contains variants, is adjacent to reference sequence with less than 6 homopolymer base; "
+			+ "Or set to LOW if the variants passed MIUN/MIN/GERM filter, appeared on more than 4 novel stars reads and more than4 reads contains variants;"
+			+ "Otherwise set to Zero if the variants didn't matched one of above conditions.";
 
-
-	
-	//for unit testing
-	MakeValidMode(String patient){}
 
 	
 	public MakeValidMode( Options options) throws IOException {		 
@@ -90,44 +75,160 @@ public class MakeValidMode extends AbstractMode{
         logger.tool("logger file " + options.getLogFileName());
         logger.tool("logger level " + (options.getLogLevel() == null ? QLoggerFactory.DEFAULT_LEVEL.getName() :  options.getLogLevel()));
         
-		inputRecord(new File( options.getInputFileName()));
-		
-		makeVcfRecordsValid();
-		
-		reheader(options.getCommandLine(),options.getInputFileName())	;	
-		writeVCF(new File(options.getOutputFileName()) );	
+        processVcf(options.getInputFileName(), options.getOutputFileName(), options.getCommandLine());
 	}
 	
-	/**
-	 *Sort according to the list of contigs as found in the GRCh37 reference file
-	 *Ignore vcf records that are invalid
-	 *@see  invalidRefAndAlt
-	 * @param outputFile: add annotate variants from RAM hash map intp the output file
-	 * @throws IOException
-	 */
-	@Override
-	void writeVCF(File outputFile ) throws IOException {		 
-		logger.info("creating VCF output...");	 		
-		final List<ChrPosition> orderedList = new ArrayList<>(positionRecordMap.keySet());
-		orderedList.sort(ChrPositionComparator.getCPComparatorForGRCh37());
+	private void processVcf(String input, String output, String cmd) throws FileNotFoundException, IOException {
 		
-		try(VCFFileWriter writer = new VCFFileWriter( outputFile)) {
-			for(final VcfHeaderRecord record: header)  {
+		try (VCFFileReader reader = new VCFFileReader(new BufferedInputStream(new FileInputStream(input)));
+				VCFFileWriter writer = new VCFFileWriter(new File(output));) {
+			
+			VcfHeader inputHeader = reader.getHeader();
+			VcfHeader outputHeader = reheader(inputHeader, cmd, input);
+			meta = new VcfFileMeta(outputHeader);
+			
+			for(final VcfHeaderRecord record: outputHeader)  {
 				writer.addHeader(record.toString());
 			}
-			long count = 0; 
-			for (final ChrPosition position : orderedList)  
-				for(  VcfRecord record : positionRecordMap.get(position) ){
-					if (invalidRefAndAlt(record)) {
-						//ignore
-					} else {
-						writer.add( record );	
-						count ++;
+			Map<String, short[]> callerPositionsMap = meta.getCallerSamplePositions();
+			Map<String, AtomicInteger> statsMap = new HashMap<>();
+			for (VcfRecord vcf : reader) {
+				if ( ! invalidRefAndAlt(vcf)) {
+					makeValid(vcf);
+					addCCM(vcf, callerPositionsMap,statsMap);
+					addFormatDetails(vcf, callerPositionsMap);
+					writer.add(vcf);
+				}
+			}
+		}
+	}
+	
+	/*
+	 * adding INF and FT format fields
+	 * will aslo add AD and DP, should they not be present
+	 */
+	public static void addFormatDetails(VcfRecord v, Map<String, short[]> callerPositionsMap) {
+		/*
+		 * need to do this for all callers
+		 */
+		Map<String, String[]> ffMap = VcfUtils.getFormatFieldsAsMap(v.getFormatFields());
+		String[] gtArr = ffMap.get(VcfHeaderUtils.FORMAT_GENOTYPE);
+		String[] adArr = ffMap.get(VcfHeaderUtils.FORMAT_ALLELIC_DEPTHS);
+		String[] dpArr = ffMap.get(VcfHeaderUtils.FORMAT_READ_DEPTH);
+		
+		String [] infArray = new String[gtArr.length];
+		String [] ftArray = new String[gtArr.length];
+		Arrays.fill(infArray, Constants.MISSING_DATA_STRING);
+		Arrays.fill(ftArray, Constants.MISSING_DATA_STRING);
+		
+		if (null != gtArr) {
+			
+			/*
+			 * if single sample, skip
+			 */
+			if (gtArr.length > 1) {
+				
+				if ( ! callerPositionsMap.isEmpty()) {
+					/*
+					 * do this for each caller
+					 */
+					String info = v.getInfo();
+					boolean som1 = info.contains("SOMATIC_1") || (info.contains("SOMATIC") && info.contains("IN=1;"));
+					boolean som2 = info.contains("SOMATIC_2") || (info.contains("SOMATIC") && info.contains("IN=2;"));
+					
+					boolean pass1 = info.contains("CONF=HIGH_1") || (info.contains("CONF=HIGH") && info.contains("IN=1;"));
+					boolean pass2 = info.contains("CONF=HIGH_2") || (info.contains("CONF=HIGH") && info.contains("IN=2;"));
+					
+					
+					if (som1) {
+						short[] firstCaller = callerPositionsMap.get("1");
+						infArray[firstCaller[1] - 1] = "SOMATIC";
+					}
+					if (som2) {
+						short[] secondCaller = callerPositionsMap.get("2");
+						infArray[secondCaller[1] - 1] = "SOMATIC";
+					}
+					
+					if (pass1) {
+						short[]  firstCaller = callerPositionsMap.get("1");
+						ftArray[firstCaller[0] - 1] = "PASS";
+						ftArray[firstCaller[1] - 1] = "PASS";
+					}
+					if (pass2) {
+						short[]  secondCaller = callerPositionsMap.get("2");
+						ftArray[secondCaller[0] - 1] = "PASS";
+						ftArray[secondCaller[1] - 1] = "PASS";
 					}
 				}
-			logger.info(String.format("outputed %d VCF record, happend on %d variants location.",  count , orderedList.size()));
-		}  
+			}
+			
+			/*
+			 * ad next
+			 */
+			String [][] adAndDpArrays = getFFValues(ffMap, v.getRef(), v.getAlt());
+			
+			/*
+			 * update the map with the new entries, and update the vcf record
+			 */
+			ffMap.put(VcfHeaderUtils.FORMAT_INFO, infArray);
+			ffMap.put(VcfHeaderUtils.FORMAT_FILTER, ftArray);
+			ffMap.put(VcfHeaderUtils.FORMAT_ALLELIC_DEPTHS, adAndDpArrays[0]);
+			ffMap.put(VcfHeaderUtils.FORMAT_READ_DEPTH, adAndDpArrays[1]);
+			v.setFormatFields(VcfUtils.convertFFMapToList(ffMap));
+		}
 	}
+	
+	public static String [][] getFFValues(Map<String, String[]> ffMap, String ref, String alts) {
+		
+		String [] gtArr = ffMap.get(VcfHeaderUtils.FORMAT_GENOTYPE);
+		String [] acArr = ffMap.get(VcfHeaderUtils.FORMAT_ALLELE_COUNT);
+		String [] adArr = ffMap.getOrDefault(VcfHeaderUtils.FORMAT_ALLELIC_DEPTHS, createMissingDataArray(gtArr.length));
+		String [] dpArr = ffMap.getOrDefault(VcfHeaderUtils.FORMAT_READ_DEPTH, createMissingDataArray(gtArr.length));
+		
+		List<String> list = getRefAndAltsAsList(ref, alts);
+		
+		for (int i = 0 ; i < gtArr.length ; i++) {
+			String gt = gtArr[i];
+			String ac = null != acArr ? acArr[i] : null;
+			if ( ! StringUtils.isNullOrEmptyOrMissingData(gt) && ! Constants.MISSING_GT.equals(gt)
+					&& ! StringUtils.isNullOrEmptyOrMissingData(ac) && ! Constants.MISSING_GT.equals(ac)) {
+				
+				/*
+				 * if existing value is missing data, do something
+				 */
+				String ad = adArr[i];
+				Map<String, Integer> alleleicCounts = null;
+				if (StringUtils.isNullOrEmptyOrMissingData(ad)) {
+					alleleicCounts = VcfUtils.getAllelicCoverageFromAC(ac);
+					StringBuilder sb = new StringBuilder();
+					for (String s : list) {
+						StringUtils.updateStringBuilder(sb, alleleicCounts.getOrDefault(s, 0).toString(), Constants.COMMA);
+					}
+					adArr[i] = sb.toString();
+				}
+				
+				String dp = dpArr[i];
+				if (StringUtils.isNullOrEmptyOrMissingData(dp)) {
+					if (null == alleleicCounts) {
+						alleleicCounts = VcfUtils.getAllelicCoverageFromAC(ac);
+					}
+					dpArr[i] = alleleicCounts.values().stream().mapToInt(z -> z.intValue()).sum() + "";
+				}
+			}
+		}
+		return new String[][]{adArr, dpArr};
+	}
+	
+	public static String[] createMissingDataArray(int i) {
+		String [] arr = new String[i];
+		Arrays.fill(arr, Constants.MISSING_DATA_STRING);
+		return arr;
+	}
+	
+	public static void addCCM(VcfRecord vcf, Map<String, short[]> callerPositionsMap, Map<String, AtomicInteger> statsMap) {
+		 CCMMode.updateVcfRecordWithCCM(vcf, callerPositionsMap, statsMap);
+	}
+	
 	
 	/**
 	 * Return false if the ref is equal to M, RR or the alt
@@ -136,14 +237,6 @@ public class MakeValidMode extends AbstractMode{
 	 */
 	public static boolean invalidRefAndAlt(VcfRecord vcf) {
 		return vcf.getRef().equals("M") || vcf.getRef().equals("RR") || vcf.getRef().equals(vcf.getAlt());
-	}
-	
-	private void makeVcfRecordsValid() {
-		for (List<VcfRecord> vcfs : positionRecordMap.values()) {
-			for (VcfRecord vcf : vcfs){
-				makeValid(vcf);
-			}
-		}
 	}
 	
 	/**
@@ -181,8 +274,6 @@ public class MakeValidMode extends AbstractMode{
 				 */
 				String [] splitString = splitFormatField(s);
 				newFormatFieldsBySample.add(splitString);
-//				updatedFF.add((i * 2) -1 , splitString[0]);
-//				updatedFF.add(i *2, splitString[1]);
 			}
 			
 			for (String [] array : newFormatFieldsBySample) {
@@ -313,18 +404,19 @@ public class MakeValidMode extends AbstractMode{
 	}
 	
 	public static String getUpdatedGT(String ref, String alts, String gd) {
-		List<String> list = new ArrayList<>();
-		list.add(ref);
-		String [] altsArray = alts.split(Constants.COMMA_STRING);
-		for (String a : altsArray) {
-			list.add(a);
-		}
+		List<String> list = getRefAndAltsAsList(ref, alts);
 		
 		int firstNumber =  list.indexOf(gd.charAt(0)+"");
 		int secondNumber =  list.indexOf(gd.charAt(2)+"");
 		
-		
 		return Math.min(firstNumber, secondNumber) + "/" + Math.max(firstNumber, secondNumber);
+	}
+
+	private static List<String> getRefAndAltsAsList(String ref, String alts) {
+		List<String> list = new ArrayList<>();
+		list.add(ref);
+		list.addAll(Arrays.asList(alts.split(Constants.COMMA_STRING)));
+		return list;
 	}
 	
 	/**
@@ -383,13 +475,17 @@ public class MakeValidMode extends AbstractMode{
 		 * HOM, CONF, GERM, AC, ACCS, SOMATIC_1, 5BP
 		 */
 		myHeader.addInfo(VcfHeaderUtils.INFO_HOM,  ".", "String",VcfHeaderUtils.DESCRITPION_INFO_HOM);
-		myHeader.addInfo(VcfHeaderUtils.INFO_CONFIDENCE, ".", "String", DESCRITPION_INFO_CONFIDENCE);
+		myHeader.addInfo(VcfHeaderUtils.INFO_CONFIDENCE, ".", "String", DESCRIPTION_INFO_CONFIDENCE);
 		myHeader.addInfo(VcfHeaderUtils.INFO_GERMLINE, ".", "String", VcfHeaderUtils.DESCRITPION_INFO_GERMLINE);
 		myHeader.addInfo(VcfHeaderUtils.INFO_DB,  "0", VcfInfoType.Flag.name(),VcfHeaderUtils.DESCRITPION_INFO_DB);
 		myHeader.addFilter(VcfHeaderUtils.FILTER_END_OF_READ,VcfHeaderUtils.FILTER_END_OF_READ_DESC); 
 		myHeader.addFormat(VcfHeaderUtils.FORMAT_ALLELE_COUNT, ".", "String",VcfHeaderUtils.FORMAT_ALLELE_COUNT_DESC);
 		myHeader.addFormat(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP, ".", "String",VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP_DESC);
 		myHeader.addFormat(VcfHeaderUtils.FORMAT_OBSERVED_ALLELES_BY_STRAND, ".", "String",VcfHeaderUtils.FORMAT_OBSERVED_ALLELES_BY_STRAND_DESC);
+		myHeader.addFormat(VcfHeaderUtils.FORMAT_FILTER, ".", "String",VcfHeaderUtils.FORMAT_FILTER_DESCRIPTION);
+		myHeader.addFormat(VcfHeaderUtils.FORMAT_INFO, ".", "String",VcfHeaderUtils.FORMAT_INFO_DESCRIPTION);
+		myHeader.addOrReplace(VcfHeaderUtils.FORMAT +"=<ID=" + VcfHeaderUtils.FORMAT_CCM + ",Number=.,Type=String,Description=\"" + VcfHeaderUtils.FORMAT_CCM_DESC + "\">" );
+		myHeader.addOrReplace(VcfHeaderUtils.FORMAT +"=<ID=" + VcfHeaderUtils.FORMAT_CCC + ",Number=.,Type=String,Description=\"" + VcfHeaderUtils.FORMAT_CCC_DESC + "\">" );
 		for (int i = 1 ; i <= 2 ; i++) {
 			String subscript = i == 1 ? "st" : "nd";
 			myHeader.addInfo(VcfHeaderUtils.INFO_SOMATIC + "_" + i, "0", "Flag", "Indicates that the " + i + subscript + " input file considered this record to be somatic.");
@@ -432,18 +528,18 @@ public class MakeValidMode extends AbstractMode{
 	 * @param inputVcfName: add input file name into vcf header
 	 * @throws IOException
 	 */
-	@Override
-	void reheader(String cmd, String inputVcfName) throws IOException {	
-
-		if(header == null)
-	        try(VCFFileReader reader = new VCFFileReader(inputVcfName)) {
-	        	header = reader.getHeader();	
-	        	if(header == null)
-	        		throw new IOException("can't receive header from vcf file, maybe wrong format: " + inputVcfName);
-	        } 	
- 
-		header = reheader(header, cmd, inputVcfName);			
-	}
+//	@Override
+//	void reheader(String cmd, String inputVcfName) throws IOException {	
+//
+//		if(header == null)
+//	        try(VCFFileReader reader = new VCFFileReader(inputVcfName)) {
+//	        	header = reader.getHeader();	
+//	        	if(header == null)
+//	        		throw new IOException("can't receive header from vcf file, maybe wrong format: " + inputVcfName);
+//	        } 	
+// 
+//		header = reheader(header, cmd, inputVcfName);			
+//	}
 
 
 	@Override

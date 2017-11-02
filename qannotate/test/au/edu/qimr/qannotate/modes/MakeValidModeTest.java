@@ -9,7 +9,11 @@ import org.qcmg.common.vcf.VcfRecord;
 
 public class MakeValidModeTest {
 	
-	 
+	 @Test
+	 public void getupdatedGTs() {
+		 assertEquals("0/0", MakeValidMode.getUpdatedGT("A", "G", "A/A"));
+		 assertEquals("0/1", MakeValidMode.getUpdatedGT("G", "C,T", "C/G"));
+	 }
 	 
 	 @Test
 	 public void makeValidFirstCallerOnly() {

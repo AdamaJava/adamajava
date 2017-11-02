@@ -80,7 +80,7 @@ abstract class AbstractMode {
 	void writeVCF(File outputFile ) throws IOException {		 
 		logger.info("creating VCF output...");	 		
 		final List<ChrPosition> orderedList = new ArrayList<>(positionRecordMap.keySet());
-		Collections.sort(orderedList, new ChrPositionComparator());
+		orderedList.sort(ChrPositionComparator.getCPComparatorForGRCh37());
 		
 		try(VCFFileWriter writer = new VCFFileWriter( outputFile)) {
 			for(final VcfHeaderRecord record: header)  {
