@@ -47,7 +47,7 @@ public class VcfRecord implements Comparable<VcfRecord> {
         private String qualString;
         private String filter;
 //        private VcfInfoFieldRecord infoRecord;
-        private final List<String> formatRecords = new ArrayList<String>(4);
+        private final List<String> formatRecords = new ArrayList<String>(6);
        
         public Builder(ChrPosition cp, String ref, String alt){
         		//	we want to store a ChrPointPosition, as anything with an end is ambiguous
@@ -266,13 +266,15 @@ public class VcfRecord implements Comparable<VcfRecord> {
 	 */
 	public List<String> getFormatFields() {
 		// return a copy of this
-		if( formatRecords.size() == 0 ) return null;		
-		return new ArrayList<String>(formatRecords);
-		
+		return hasFormatFields() ? new ArrayList<>(formatRecords) : null;
+	}
+	
+	public boolean hasFormatFields() {
+		return null != formatRecords && ! formatRecords.isEmpty();
 	}
 	
 	public String getFormatFieldStrings(){ 
-		if(formatRecords.size() == 0 ) return Constants.EMPTY_STRING;		
+		if( ! hasFormatFields()) return Constants.EMPTY_STRING;		
 		
 		StringBuilder sb = new StringBuilder();
 		for (String s : formatRecords) {
