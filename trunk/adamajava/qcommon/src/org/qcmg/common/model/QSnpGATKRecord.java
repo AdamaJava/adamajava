@@ -19,8 +19,8 @@ public class QSnpGATKRecord {
 	
 	public QSnpGATKRecord(VcfRecord vcf) {
 		this.gatkVcfRecord = vcf;
-		//	 set genotype
-		genotypeEnum = VcfUtils.getGEFromGATKVCFRec(vcf);
+		//	 set genotype, only if we have format fields
+			genotypeEnum = VcfUtils.getGEFromGATKVCFRec(vcf);
 	}
 	
 	public VcfRecord getVCFRecord() {

@@ -271,74 +271,13 @@ public class VcfUtils {
 		return ff.contains(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP);
 	}
 	
-	/**
-	 * Returns the AD value from the genotype field in the GATK vcf output
-	 * This corresponds to: 
-	 * <code>GT:AD:DP:GQ:PL	0/1:<b>173,141</b>:282:99:255,0,255</code>
-	 * where the AD field is the total unfiltered coverage for the ref and alt alleles. 
-	 * @param genotype
-	 * @return int corresponding to the AD field in the GATK genotype field
-	 */
-	public static int getADFromGenotypeField(String genotype) {
-		if (null == genotype || genotype.length() == 0) return 0;
-		int tally = 0;
-		// looking for the number between the first and second colons
-		
-//		int firstIndex = genotype.indexOf(":");
-		final int firstIndex = 4;	// string should always start with 0/0
-		final int secondIndex = genotype.indexOf(":", firstIndex);
-		final String adNumbers = genotype.substring(firstIndex, secondIndex);
-		
-		for (int i = 0 , size = adNumbers.length() ; i < size ; ) {
-			
-			if (Character.isDigit(adNumbers.charAt(i))) {
-				int numberLength = 1;
-				while (++i < size && Character.isDigit(adNumbers.charAt(i))) {
-					numberLength++;
-				}
-				tally += Integer.parseInt(adNumbers.substring(i-numberLength, i));
-			} else i++;
-		}
-		return tally;
-	}
-	
-	/**
-	 * Returns the DP value from the genotype field in the GATK vcf output
-	 * This corresponds to: 
-	 * <code>GT:AD:DP:GQ:PL	0/1:173,141:<b>282</b>:99:255,0,255</code>
-	 * where the DP field is the total filtered coverage for all bases seen at this position. 
-	 * @param format
-	 * @return int corresponding to the DP field in the GATK genotype field
-	 */
-	public static int getDPFromFormatField(String format) {
-		if (null == format || format.length() == 0) return 0;
-		
-		// looking for the number between the second and third colons
-//		int firstIndex = genotype.indexOf(":");
-		final int firstIndex = 4;	// string should always start with 0/0
-		final int secondIndex = format.indexOf(":", firstIndex) +1;
-		if (secondIndex == -1) { 
-//			System.err.println("incorrect index for format field: " + format);
-			return -1;
-		}
-		
-		final int thirdIndex = format.indexOf(":", secondIndex);
-		
-		if (thirdIndex == -1) {
-//			System.err.println("incorrect index for format field: " + format);
-			return -1;
-		}
-		
-		final String dpString = format.substring(secondIndex, thirdIndex);
-		return Integer.parseInt(dpString);
-	}
 	
 	public static String getGenotypeFromGATKVCFRecord(VcfRecord rec) {
 		if (null == rec)
 			throw new IllegalArgumentException("VCFRecord passed to VcfUtils.getGenotypeFromGATKVCFRecord is null");
 		
 		List<String> formats = rec.getFormatFields();
-		if (formats.size() < 2) {
+		if (null == formats || formats.size() < 2) {
 			throw new IllegalArgumentException("VCFRecord passed to VcfUtils.getGenotypeFromGATKVCFRecord does not contain the appropriate number of format fields. rec: [" + (null != rec ? rec.toString() : null) + "]");
 		}
 		
@@ -356,8 +295,11 @@ public class VcfUtils {
 	}
 	
 	public static GenotypeEnum getGEFromGATKVCFRec(VcfRecord rec) {
-		final String genotypeString = getGenotypeFromGATKVCFRecord(rec);
-		return calculateGenotypeEnum(genotypeString, rec.getRefChar(), rec.getAlt().charAt(0));
+		if (rec.hasFormatFields()) {
+			final String genotypeString = getGenotypeFromGATKVCFRecord(rec);
+			return calculateGenotypeEnum(genotypeString, rec.getRefChar(), rec.getAlt().charAt(0));
+		} 
+		return null;
 	}
 	
 	/**
@@ -386,24 +328,6 @@ public class VcfUtils {
 			return null;
 		}
 	}
-	
-	/**
-	 * Returns a string representation of the vcf GT field, which is generally "0/0", "0/1", or "1/1"
-	 * 
-	 * In this case it is just the "0/1" and "1/1" values that are returned as it is assumed that were are only dealing with instances where we have a mutation.
-	 * 
-	 * If the supplied genotype is homozygous, returns "1/1", otherwise returns "0/1"
-	 * 
-	 * @param genotype GenotypeEnum 
-	 * @return String correspinding to the GT value relating to the supplied GenotypeEnum
-	 */
-	public static String calculateGTField(GenotypeEnum genotype) {
-		if (null == genotype) return null;
-		if (genotype.isHomozygous()) return "1/1";
-		else return "0/1";
-	}
-	
-
 	
 	public static String[] getMutationAndGTs(String refString, GenotypeEnum control, GenotypeEnum test) {
 		final String [] results = new String[3];
@@ -437,7 +361,7 @@ public class VcfUtils {
 		
 		final int size = alts.size();
 		
-		final String altsString = getStringFromCharSet(alts);
+		final String altsString = StringUtils.getStringFromCharSet(alts);
 		if (size == 0) {
 //			assert false : "empty list of alts from control and test: " + control + ", " + test;
 			Arrays.fill(results, MISSING_DATA_STRING);
@@ -530,14 +454,6 @@ public class VcfUtils {
 		return result;
 	}
 	 
-	public static String getStringFromCharSet(Set<Character> set) {
-		final StringBuilder sb = new StringBuilder();
-		if (null != set) {
-			for (final Character c : set) sb.append(c);
-		}
-		return sb.toString();
-	}
-	
 	/**
 	 * it adjust the endposition of cp if it is not corrected
 	 * @param cp: ChrPosition of variant position
