@@ -113,8 +113,6 @@ public class MakeValidMode extends AbstractMode {
 		 */
 		Map<String, String[]> ffMap = VcfUtils.getFormatFieldsAsMap(v.getFormatFields());
 		String[] gtArr = ffMap.get(VcfHeaderUtils.FORMAT_GENOTYPE);
-		String[] adArr = ffMap.get(VcfHeaderUtils.FORMAT_ALLELIC_DEPTHS);
-		String[] dpArr = ffMap.get(VcfHeaderUtils.FORMAT_READ_DEPTH);
 		
 		String [] infArray = new String[gtArr.length];
 		String [] ftArray = new String[gtArr.length];
@@ -220,6 +218,8 @@ public class MakeValidMode extends AbstractMode {
 	}
 	
 	public static String[] createMissingDataArray(int i) {
+		if (i <0 ) throw new IllegalArgumentException("Negative value passed to createMissingDataArray method!");
+		
 		String [] arr = new String[i];
 		Arrays.fill(arr, Constants.MISSING_DATA_STRING);
 		return arr;
@@ -412,7 +412,7 @@ public class MakeValidMode extends AbstractMode {
 		return Math.min(firstNumber, secondNumber) + "/" + Math.max(firstNumber, secondNumber);
 	}
 
-	private static List<String> getRefAndAltsAsList(String ref, String alts) {
+	public static List<String> getRefAndAltsAsList(String ref, String alts) {
 		List<String> list = new ArrayList<>();
 		list.add(ref);
 		list.addAll(Arrays.asList(alts.split(Constants.COMMA_STRING)));
@@ -438,6 +438,9 @@ public class MakeValidMode extends AbstractMode {
 		return refSeen && altSeen ? "0/1" : refSeen ? "0/0" : altSeen ? "1/1" : "./.";
 	}
 	
+	/**
+	 * Splits the 
+	 */
 	public static String[] splitFormatField(String ff) {
 		StringBuilder s1 = new StringBuilder();
 		StringBuilder s2 = new StringBuilder();
@@ -520,27 +523,6 @@ public class MakeValidMode extends AbstractMode {
 		
 		return myHeader;			
 	}
-	
-
-	/**
-	 * 
-	 * @param cmd: add this cmd string into vcf header
-	 * @param inputVcfName: add input file name into vcf header
-	 * @throws IOException
-	 */
-//	@Override
-//	void reheader(String cmd, String inputVcfName) throws IOException {	
-//
-//		if(header == null)
-//	        try(VCFFileReader reader = new VCFFileReader(inputVcfName)) {
-//	        	header = reader.getHeader();	
-//	        	if(header == null)
-//	        		throw new IOException("can't receive header from vcf file, maybe wrong format: " + inputVcfName);
-//	        } 	
-// 
-//		header = reheader(header, cmd, inputVcfName);			
-//	}
-
 
 	@Override
 	void addAnnotation(String dbfile) throws Exception {
