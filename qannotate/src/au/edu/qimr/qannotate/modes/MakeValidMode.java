@@ -75,10 +75,10 @@ public class MakeValidMode extends AbstractMode {
         logger.tool("logger file " + options.getLogFileName());
         logger.tool("logger level " + (options.getLogLevel() == null ? QLoggerFactory.DEFAULT_LEVEL.getName() :  options.getLogLevel()));
         
-        processVcf(options.getInputFileName(), options.getOutputFileName(), options.getCommandLine());
+        processVcfFile(options.getInputFileName(), options.getOutputFileName(), options.getCommandLine());
 	}
 	
-	private void processVcf(String input, String output, String cmd) throws FileNotFoundException, IOException {
+	private void processVcfFile(String input, String output, String cmd) throws FileNotFoundException, IOException {
 		
 		try (VCFFileReader reader = new VCFFileReader(new BufferedInputStream(new FileInputStream(input)));
 				VCFFileWriter writer = new VCFFileWriter(new File(output));) {
@@ -91,16 +91,19 @@ public class MakeValidMode extends AbstractMode {
 				writer.addHeader(record.toString());
 			}
 			Map<String, short[]> callerPositionsMap = meta.getCallerSamplePositions();
-			Map<String, AtomicInteger> statsMap = new HashMap<>();
 			for (VcfRecord vcf : reader) {
 				if ( ! invalidRefAndAlt(vcf)) {
-					makeValid(vcf);
-					addCCM(vcf, callerPositionsMap,statsMap);
-					addFormatDetails(vcf, callerPositionsMap);
+					processVcfRecord(vcf, callerPositionsMap);
 					writer.add(vcf);
 				}
 			}
 		}
+	}
+	
+	public static void processVcfRecord(VcfRecord v, Map<String, short[]> callerPositionsMap) {
+		makeValid(v);
+		addCCM(v, callerPositionsMap);
+		addFormatDetails(v, callerPositionsMap);
 	}
 	
 	/*
@@ -225,8 +228,8 @@ public class MakeValidMode extends AbstractMode {
 		return arr;
 	}
 	
-	public static void addCCM(VcfRecord vcf, Map<String, short[]> callerPositionsMap, Map<String, AtomicInteger> statsMap) {
-		 CCMMode.updateVcfRecordWithCCM(vcf, callerPositionsMap, statsMap);
+	public static void addCCM(VcfRecord vcf, Map<String, short[]> callerPositionsMap) {
+		 CCMMode.updateVcfRecordWithCCM(vcf, callerPositionsMap, null);
 	}
 	
 	
