@@ -383,7 +383,7 @@ public class MakeValidMode extends AbstractMode {
 		String alts = vcf.getAlt();
 		
 		String [] gds = ffMap.get("GD");
-		String [] gts = ffMap.get("GT");
+		String [] gts = ffMap.get(VcfHeaderUtils.FORMAT_GENOTYPE);
 		String [] replacementGTs = new String [gds.length]; 
 		for (int i = 0 ; i < gds.length ; i++) {
 			String gd = gds[i];
@@ -394,7 +394,7 @@ public class MakeValidMode extends AbstractMode {
 			}
 		}
 		
-		ffMap.put("GT", replacementGTs);
+		ffMap.put(VcfHeaderUtils.FORMAT_GENOTYPE, replacementGTs);
 		vcf.setFormatFields(VcfUtils.convertFFMapToList(ffMap, existingHeaders.split(Constants.COLON_STRING)));
 	}
 	
@@ -438,7 +438,7 @@ public class MakeValidMode extends AbstractMode {
 			altSeen = accs.contains(alts);
 		}
 		
-		return refSeen && altSeen ? "0/1" : refSeen ? "0/0" : altSeen ? "1/1" : "./.";
+		return refSeen && altSeen ? "0/1" : refSeen ? "0/0" : altSeen ? "1/1" : Constants.MISSING_GT;
 	}
 	
 	/**
