@@ -108,7 +108,7 @@ public class MakeValidMode extends AbstractMode {
 	
 	/*
 	 * adding INF and FT format fields
-	 * will aslo add AD and DP, should they not be present
+	 * will also add AD and DP, should they not be present
 	 */
 	public static void addFormatDetails(VcfRecord v, Map<String, short[]> callerPositionsMap) {
 		/*
