@@ -35,6 +35,25 @@ public class MakeValidModeTest {
 	 }
 	 
 	 @Test
+	 public void fixFilters() {
+		 VcfRecord v = new VcfRecord(new String[]{"chr1","10051",".","A","C",".","5BP10","."});
+		 assertEquals("5BP10", v.getFilter());
+		 MakeValidMode.fixFilters(v);
+		 assertEquals("5BP", v.getFilter());
+		 
+		 v = new VcfRecord(new String[]{"chr1","10051",".","A","C",".","MIN","."});
+		 assertEquals("MIN", v.getFilter());
+		 MakeValidMode.fixFilters(v);
+		 assertEquals("MIN", v.getFilter());
+		 
+		 v = new VcfRecord(new String[]{"chr1","10051",".","A","C",".","MIN;5BP1","."});
+		 assertEquals("MIN;5BP1", v.getFilter());
+		 MakeValidMode.fixFilters(v);
+		 assertEquals("MIN;5BP", v.getFilter());
+		 
+	 }
+	 
+	 @Test
 	 public void getGTForCompoundSnp() {
 		 assertEquals("0/1", MakeValidMode.getGTForCS("AA", "CC", "AACC"));
 		 assertEquals("0/0", MakeValidMode.getGTForCS("AA", "CC", "AAGG"));
