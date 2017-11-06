@@ -41,9 +41,8 @@ public class VcfFormatFieldRecordTest {
 		format.setField("AC", "ac");
 		format.setField("ACC", "acc");
 		format.setField("A", "a");
-		assertEquals(".:.:ac:1:nns:acc:a", format.getSampleColumnString());
 		assertEquals("GT:GD:AC:MR:NNS:ACC:A", format.getFormatColumnString());
-
+		assertEquals(".:.:ac:1:nns:acc:a", format.getSampleColumnString());
 	}
 	
 	@Test
@@ -52,7 +51,6 @@ public class VcfFormatFieldRecordTest {
 		assertEquals(true, format.isMissingSample());
 		format = new VcfFormatFieldRecord( "GT", "ABC");
 		assertEquals(false, format.isMissingSample());
-		
 	}
 	
 	@Test
@@ -69,7 +67,7 @@ public class VcfFormatFieldRecordTest {
 		
 		VcfFormatFieldRecord format = new VcfFormatFieldRecord( "GT:GD:AC:MR:NNS", ".:.:A1[39],0[0],T1[35],0[0]:1");
 		
-		assertTrue(format.getField("ok") == null);
+		assertEquals(null, format.getField("ok"));
 		assertTrue(format.getField("MR").equals("1"));
 		assertTrue(format.getField("NNS").equals(Constants.MISSING_DATA_STRING));
 		assertTrue(format.getField("GT").equals(Constants.MISSING_DATA_STRING));	
