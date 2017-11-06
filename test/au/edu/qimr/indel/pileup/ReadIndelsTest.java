@@ -108,7 +108,7 @@ public class ReadIndelsTest {
 					assertTrue(indel.getIndelVcf(1).getInfo().equals("SOMATIC" ));  //info column from second file
 				}else if(indel.getStart() == 59033286){
 					//indels only appear on second file,  
-					assertTrue(indel.getIndelVcf(0).getFormatFields().get(2).equals("0/1:GGT/G:131,31:162:99:762,0,4864" )); 
+					assertEquals("0/1:GGT/G:131,31:162:99:762,0,4864", indel.getIndelVcf(0).getFormatFields().get(2)); 
 					assertEquals(".:.:.:.:.:.", indel.getIndelVcf(0).getFormatFields().get(1));	
 					assertTrue(indel.getIndelVcf(0).getInfo().equals("SOMATIC" )); //info column from second file  
 				}						 

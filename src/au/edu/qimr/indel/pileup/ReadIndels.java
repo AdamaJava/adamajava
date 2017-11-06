@@ -211,13 +211,10 @@ public class ReadIndels {
 		
 		//add GD to second field 				
 		VcfFormatFieldRecord[] frecords = new VcfFormatFieldRecord[format.size() -  1];		
-		for(int i = 1; i < format.size(); i ++){			
+		for(int i = 1; i < format.size(); i ++){
 			VcfFormatFieldRecord re = new  VcfFormatFieldRecord(format.get(0), format.get(i));
 			String gd = IndelUtils.getGenotypeDetails(re, vcf.getRef(), vcf.getAlt() );
-			if(gd == null)
-				re.setField(1, VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS, Constants.MISSING_DATA_STRING);
-			else
-				re.setField(1, VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS, gd);
+			re.setField(1, VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS, gd == null ? Constants.MISSING_DATA_STRING : gd);
 			
 			//put . since not sure GT value after split
 			if(vcf.getAlt().contains(Constants.COMMA_STRING))
