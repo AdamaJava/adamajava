@@ -258,7 +258,6 @@ public class VcfRecord implements Comparable<VcfRecord> {
 		return (s == null)? null : new VcfFormatFieldRecord(formatRecords.get(0), s);
 	}
 	
-	
 	/**
 	 * 
 	 * @return the first element is value of FORMAT column: eg. GT:GD:AC
