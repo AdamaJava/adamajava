@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import org.junit.Assert;
 import org.junit.Test;
 import org.qcmg.common.util.IndelUtils.SVTYPE;
+import org.qcmg.common.vcf.VcfFormatFieldRecord;
 
 
 public class IndelUtilsTest {
@@ -70,6 +71,14 @@ public class IndelUtilsTest {
 		assertEquals(true, IndelUtils.refSameLengthAsAlts("Z", "1,2,3,4,5,6,7,8,9"));
 		assertEquals(false, IndelUtils.refSameLengthAsAlts("Z", "1,2,3,4,5,6,7,8,9,10"));
 		assertEquals(true, IndelUtils.refSameLengthAsAlts("ZX", "11,22,33,44,55,66,77,88,99"));
+	}
+	
+	@Test
+	public void getGD() {
+		VcfFormatFieldRecord ff = new VcfFormatFieldRecord("ACCS","CC,10,12,TT,29,14,T_,0,1&CC,10,12,TT,29,14,T_,0,1");
+		assertEquals(null, IndelUtils.getGenotypeDetails(ff, "CC","TT"));
+		ff = new VcfFormatFieldRecord("GT:ACCS","0/1:CC,10,12,TT,29,14,T_,0,1&CC,10,12,TT,29,14,T_,0,1");
+		assertEquals("CC/TT", IndelUtils.getGenotypeDetails(ff, "CC","TT"));
 	}
 	
 	@Test
