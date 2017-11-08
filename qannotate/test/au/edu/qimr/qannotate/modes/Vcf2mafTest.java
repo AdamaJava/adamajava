@@ -270,6 +270,22 @@ public class Vcf2mafTest {
 		 assertEquals("AA", altColumns[5]);
 		 assertEquals("AA,5,4,GG,52,47,_G,2,1", altColumns[6]);
 	 }
+	 @Test
+	 public void getAltColumnsRealLifeMergedCS2() {
+		 VcfFormatFieldRecord format = new VcfFormatFieldRecord( "ACCS","CC,10,12,TT,29,14,T_,0,1&CC,10,12,TT,29,14,T_,0,1");
+		 String ref = "CC";
+		 String alt = "TT";
+		 SVTYPE type = SVTYPE.DNP;
+		 String [] altColumns = Vcf2maf.getAltCounts(format, ref, alt, type, true);
+		 assertEquals(7, altColumns.length);
+		 assertEquals("0", altColumns[0]);
+		 assertEquals("66", altColumns[1]);
+		 assertEquals("22", altColumns[2]);
+		 assertEquals("43", altColumns[3]);
+		 assertEquals("TT", altColumns[4]);
+		 assertEquals("CC", altColumns[5]);
+		 assertEquals("CC,10,12,TT,29,14,T_,0,1", altColumns[6]);
+	 }
 	 
 	 @Test
 	 public void compoundSNPTest() throws Exception{
