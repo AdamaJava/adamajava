@@ -1,21 +1,49 @@
 package org.qcmg.vcf;
 
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.util.FileUtils;
+import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 
 public class VcfWriterReaderTest {
 	
+	public static final String[] vcfStrings = new String[] {"##test=test", VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE};
+	
 	@Rule
 	public  TemporaryFolder testFolder = new TemporaryFolder();
+	
+	@Test
+	public void getHeaderFromZippedVcfFile() throws IOException {
+		File file =  testFolder.newFile("header.vcf.gz");
+		
+		try(VCFFileWriter writer = new VCFFileWriter(file) ){
+			 writer.addHeader(Arrays.stream(vcfStrings).collect(Collectors.joining("\n")));
+		}
+		assertEquals(true, FileUtils.isInputGZip(file) );
+		
+		
+		/*
+		 * Should be able to get the header back out
+		 */
+		VcfHeader header = null;
+		try(VCFFileReader reader = new VCFFileReader(file) ){
+			header = reader.getHeader();
+		}
+		assertEquals(true, null != header);
+		assertEquals(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE, header.getChrom().toString());
+		assertEquals(1, header.getAllMetaRecords().size());
+		assertEquals("##test=test", header.getAllMetaRecords().get(0).toString());
+	}
 	
 	@Test
 	public void testValidation() throws IOException  {
@@ -55,7 +83,6 @@ public class VcfWriterReaderTest {
 	@Test
 	public void testCreateAppendVcfWriter() throws IOException {
 		File file =  testFolder.newFile("output.vcf");
-		String[] vcfStrings = new String[] {"##test=test", VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE};
 		
 		//create new file 
 		try(VCFFileWriter writer = new VCFFileWriter(file) ){
@@ -69,7 +96,7 @@ public class VcfWriterReaderTest {
 		
 		
 		//append to file
-		try(VCFFileWriter writer = VCFFileWriter.CreateAppendVcfWriter(file)   ){
+		try(VCFFileWriter writer = VCFFileWriter.createAppendVcfWriter(file)   ){
 			 writer.addHeader(vcfStrings[1]);				
 		} catch (Exception e) { fail(); }
 		
