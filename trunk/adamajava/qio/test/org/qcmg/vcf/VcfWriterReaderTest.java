@@ -23,11 +23,33 @@ public class VcfWriterReaderTest {
 	public  TemporaryFolder testFolder = new TemporaryFolder();
 	
 	@Test
-	public void getHeaderFromZippedVcfFile() throws IOException {
+	public void getHeaderFromZippedVcfFileUsingStreams() throws IOException {
 		File file =  testFolder.newFile("header.vcf.gz");
 		
 		try(VCFFileWriter writer = new VCFFileWriter(file) ){
 			 writer.addHeader(Arrays.stream(vcfStrings).collect(Collectors.joining("\n")));
+		}
+		assertEquals(true, FileUtils.isInputGZip(file) );
+		
+		/*
+		 * Should be able to get the header back out
+		 */
+		VcfHeader header = null;
+		try(VCFFileReader reader = VCFFileReader.createStream(file)){
+			header = reader.getHeader();
+		}
+		assertEquals(true, null != header);
+		assertEquals(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE, header.getChrom().toString());
+		assertEquals(1, header.getAllMetaRecords().size());
+		assertEquals("##test=test", header.getAllMetaRecords().get(0).toString());
+	}
+	
+	@Test
+	public void getHeaderFromZippedVcfFile() throws IOException {
+		File file =  testFolder.newFile("header.vcf.gz");
+		
+		try(VCFFileWriter writer = new VCFFileWriter(file) ){
+			writer.addHeader(Arrays.stream(vcfStrings).collect(Collectors.joining("\n")));
 		}
 		assertEquals(true, FileUtils.isInputGZip(file) );
 		
@@ -36,6 +58,7 @@ public class VcfWriterReaderTest {
 		 * Should be able to get the header back out
 		 */
 		VcfHeader header = null;
+		
 		try(VCFFileReader reader = new VCFFileReader(file) ){
 			header = reader.getHeader();
 		}
