@@ -11,6 +11,7 @@ import java.io.BufferedReader;
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -78,8 +79,22 @@ public final class VCFFileReader implements Closeable, Iterable<VcfRecord> {
      */
     public VCFFileReader(final InputStream instrm) throws IOException {
         this(instrm, 1048576);
-    }    
+    }
     
+    /**
+     * returns a stream over the supplied file
+     * If the file is zipped, appropriate action is taken
+     * @param f
+     * @return
+     * @throws IOException 
+     * @throws FileNotFoundException 
+     */
+    public static VCFFileReader createStream(File f) throws FileNotFoundException, IOException {
+    		if (null == f) throw new IllegalArgumentException("Null file passed to VCFFileReader.createStream");
+    		
+	    	InputStream is = FileUtils.isInputGZip(f) ? new BufferedInputStream( new GZIPInputStream(new FileInputStream(f), 1048576)): new BufferedInputStream(new FileInputStream(f));
+	    	return new VCFFileReader(is);
+    }
 
     
     @Override
