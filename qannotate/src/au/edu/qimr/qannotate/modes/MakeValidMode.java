@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serializable;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -22,12 +23,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.zip.GZIPInputStream;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.meta.QExec;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
+import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.vcf.VcfFileMeta;
 import org.qcmg.common.vcf.VcfInfoFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
@@ -79,8 +82,9 @@ public class MakeValidMode extends AbstractMode {
 	}
 	
 	private void processVcfFile(String input, String output, String cmd) throws FileNotFoundException, IOException {
+		File inputFile = new File(input);
 		
-		try (VCFFileReader reader = new VCFFileReader(new BufferedInputStream(new FileInputStream(input)));
+		try (VCFFileReader reader = VCFFileReader.createStream(inputFile);
 				VCFFileWriter writer = new VCFFileWriter(new File(output));) {
 			
 			VcfHeader inputHeader = reader.getHeader();
