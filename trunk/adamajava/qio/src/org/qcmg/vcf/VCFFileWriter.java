@@ -81,7 +81,7 @@ public final class VCFFileWriter implements Closeable {
 	 * @param file
 	 * @throws IOException
 	 * */
-	public static VCFFileWriter CreateAppendVcfWriter(final File file) throws IOException{
+	public static VCFFileWriter createAppendVcfWriter(final File file) throws IOException{
 		return new VCFFileWriter( file, true);
 	}	
 	
@@ -91,8 +91,8 @@ public final class VCFFileWriter implements Closeable {
 	}
 
 	public void add(final VcfRecord record) throws IOException {
-		String encoded = record.toString();
-		outputStream.write(encoded.getBytes());
+//		String encoded = record.toString();
+		outputStream.write(record.toString().getBytes());
 		outputStream.flush();
 	}
 
