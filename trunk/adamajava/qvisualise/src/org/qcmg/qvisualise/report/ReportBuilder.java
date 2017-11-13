@@ -442,7 +442,14 @@ public class ReportBuilder {
 	private static void createRNM(Element reportElement, Report report) {
 		final NodeList rnmNL = reportElement.getElementsByTagName("RNAME_POS");
 		final Element rnmElement = (Element) rnmNL.item(0);
-		final NodeList nlTop = rnmElement.getElementsByTagName("RNAME");	
+		final NodeList nlTop = rnmElement.getElementsByTagName("RNAME");
+		
+		/*
+		 * if we don't have the data in the xml, don't try and create a chart
+		 */
+		if (nlTop.getLength()<= 0) {
+			return;
+		}
 		
 		//get data from xml
 		Map<String, TreeMap<Integer, AtomicLong>> contigMaps = new HashMap<>();
