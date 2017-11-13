@@ -13,9 +13,14 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.picard.SAMFileReaderFactory;
+import org.w3c.dom.Document;
 
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SamReader;
@@ -67,6 +72,9 @@ public class KmersSummaryTest {
 	
 	@Test
 	public void producer() {
+//		assertEquals(",A,T,G,C,N", KmersSummary.producer(1,"",true));
+//		assertEquals(",A,T,G,C", KmersSummary.producer(1,"",false));
+//		assertEquals(",,AA,AT,AG,AC,,TA,TT,TG,TC,,GA,GT,GG,GC,,CA,CT,CG,CC", KmersSummary.producer(2,"",false));
 		assertEquals("A,T,G,C,N", KmersSummary.producer(1,"",true));
 		assertEquals("A,T,G,C", KmersSummary.producer(1,"",false));
 		assertEquals("AA,AT,AG,AC,TA,TT,TG,TC,GA,GT,GG,GC,CA,CT,CG,CC", KmersSummary.producer(2,"",false));
@@ -74,12 +82,25 @@ public class KmersSummaryTest {
 	}
 	
 	@Test
-	public void getPossibleKmerString() {
+	public void getPossibleKmerString()  {
 		KmersSummary summary = new KmersSummary(KmersSummary.maxKmers);
 		String [] kmers = summary.getPossibleKmerString(6, true);
 		assertEquals((int)Math.pow(5,6), kmers.length);
 		kmers = summary.getPossibleKmerString(6, false);
 		assertEquals((int)Math.pow(4,6), kmers.length);
+	}
+	
+	@Test
+	public void toXml() throws ParserConfigurationException {
+		KmersSummary summary = new KmersSummary(KmersSummary.maxKmers);
+//		summary.parseKmers( "AAAAAAAAAAAAAACCCCCCCCCCCCCCCGGGGGGGGGGGGGGGGTTTTTTTTTTTTTTTTTTTTTT".getBytes(), false );
+		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+		DocumentBuilder builder = factory.newDocumentBuilder();
+		
+		Document doc = builder.getDOMImplementation().createDocument(null, "qProfiler", null);
+		org.w3c.dom.Element root = doc.getDocumentElement();
+		summary.toXml(root, KmersSummary.maxKmers);
+		assertEquals(true, true);	// we made it!
 	}
 	
 	@Test
