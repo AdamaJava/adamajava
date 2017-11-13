@@ -3,9 +3,12 @@ package org.qcmg.qprofiler.summarise;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+
 import org.qcmg.common.model.QCMGAtomicLongArray;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.BaseUtils;
+import org.qcmg.common.util.Constants;
+import org.qcmg.common.util.TabTokenizer;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -16,11 +19,13 @@ public class KmersSummary {
 	private static final int iniCycleNo = 126;	
 	public static final int maxKmers = 6; 
 	public static final String atgc = "ATGC";  //make sure letter on same order
+	public static final char[] atgcCharArray = new char[]{'A','T','G','C'};
+	public static final char[] atgcnCharArray = new char[]{'A','T','G','C','N'};
 	
 	private final int merLength; 
 	private final int[] mersIndex; 
 	private final String[] mersStrList; 
-	private final byte[][] mersByteList; 
+//	private final byte[][] mersByteList; 
 	
 	//set to false when parseKmers are called; 
 	//set to true when short mers counts are recalculate; 
@@ -46,12 +51,12 @@ public class KmersSummary {
 		mersStrList = getPossibleKmerString(merLength, true);	
 				
 		//get all possible kmers in byte[] and assign an index for each byte combination
-		mersByteList = new byte[mersStrList.length][merLength];	
+//		mersByteList = new byte[mersStrList.length][merLength];	
 		for(int i = 0; i < mersStrList.length; i ++ ){
 			int entry = getEntry(mersStrList[i].getBytes());
 			mersIndex[ entry ] = i;
 		}											
-		tally =  new QCMGAtomicLongArray( (int) ( iniCycleNo * mersStrList.length ) );	
+		tally =  new QCMGAtomicLongArray( iniCycleNo * mersStrList.length );	
 		
 		//for short mers on the tail of reads
 		int index = 0; 
@@ -67,17 +72,21 @@ public class KmersSummary {
 //		lastCycleTally = new QCMGAtomicLongArray( mersStrList.length );	//smaller than 2 of power 25
 	}
 	
-	private String producer(final int k, final String mers , final boolean includeN){ 		
+	public static String producer(final int k, final String mers , final boolean includeN){
 		if(k == 0 )  return mers;			
 		
-		List<Character> bases = atgc.chars().mapToObj(c ->(char) c).collect(Collectors.toList() ); 
-		if(includeN ) bases.add('N'); 
+//		List<Character> bases = atgc.chars().mapToObj(c ->(char) c).collect(Collectors.toList() ); 
+//		if(includeN ) bases.add('N'); 
+		
+		char[] cToUse = includeN ? atgcnCharArray : atgcCharArray;
 				
-		String conStr = "";
-		for(char c : bases) 	 	 
-			conStr += "," + producer( k-1, mers + c,  includeN);			 
+		StringBuilder conStr = new StringBuilder();
+		for(char c : cToUse) 	 	 
+			StringUtils.updateStringBuilder(conStr, producer( k-1, mers + c,  includeN), Constants.COMMA);			 
+//		for(char c : cToUse) 	 	 
+//			conStr += "," + producer( k-1, mers + c,  includeN);			 
 		 		
-		return conStr;		
+		return conStr.toString();	
 	}
 	
 	public String[] getPossibleKmerString(final int k, final boolean includeN){
@@ -87,9 +96,9 @@ public class KmersSummary {
 		
 		//produce all possible kmers in String 
 		String str1 = producer( k, "", includeN );		
-		while(str1.contains(",,")) str1 = str1.replace(",,", ",");	
-		while(str1.startsWith(",")) str1 = str1.substring(1);			
-		return str1.split(",");			
+//		while(str1.contains(",,")) str1 = str1.replace(",,", ",");	
+//		while(str1.startsWith(",")) str1 = str1.substring(1);			
+		return TabTokenizer.tokenize(str1, Constants.COMMA);
 	}
 	
 	public void parseKmers( byte[] readString, boolean reverse ){

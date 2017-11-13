@@ -9,38 +9,41 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
-import org.qcmg.common.log.QLogger;
-import org.qcmg.common.log.QLoggerFactory;
+import org.junit.rules.TemporaryFolder;
 import org.qcmg.picard.SAMFileReaderFactory;
-import org.qcmg.qprofiler.QProfiler;
+
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SamReader;
+import htsjdk.samtools.util.SequenceUtil;
 
 public class KmersSummaryTest {
-	private static final String SAM_INPUT_FILE = "testInputFile.sam";
 	
-	@Before
-	public void createFile(){ createTestSamFile(); }
-	
-	@After
-	public void deleteFile(){ new File(SAM_INPUT_FILE).delete(); }
+	@org.junit.Rule
+	public  TemporaryFolder testFolder = new TemporaryFolder();
 	
 	@Test
-	public void bothReversedTest() throws IOException {		
+	public void bothReversedTest() throws IOException {
+		long start = System.currentTimeMillis();
 		KmersSummary summary = new KmersSummary(KmersSummary.maxKmers);	
- 		try( SamReader reader = SAMFileReaderFactory.createSAMFileReader( new File(SAM_INPUT_FILE)); ){
+		System.out.println("time taken to instantiate KmersSummary: " + (System.currentTimeMillis() - start));
+		
+		
+		
+		File input = testFolder.newFile();
+		createTestSamFile(input);
+		start = System.currentTimeMillis();
+		
+		
+ 		try( SamReader reader = SAMFileReaderFactory.createSAMFileReader(input); ){
  			for (SAMRecord samRecord : reader) 
 				summary.parseKmers(samRecord.getReadBases(), true );				
  		}
+ 		System.out.println("time taken to parse records: " + (System.currentTimeMillis() - start));
  		
 		//kmers3
 		// CAGNG TTAGG <= GTCNCAATCC <= CCTAACNCTG		    
@@ -61,18 +64,47 @@ public class KmersSummaryTest {
 				else
 					assertTrue(summary.getCount(cycle, base ) == 0);		
 	}
+	
+	@Test
+	public void producer() {
+		assertEquals("A,T,G,C,N", KmersSummary.producer(1,"",true));
+		assertEquals("A,T,G,C", KmersSummary.producer(1,"",false));
+		assertEquals("AA,AT,AG,AC,TA,TT,TG,TC,GA,GT,GG,GC,CA,CT,CG,CC", KmersSummary.producer(2,"",false));
+		
+	}
+	
+	@Test
+	public void getPossibleKmerString() {
+		KmersSummary summary = new KmersSummary(KmersSummary.maxKmers);
+		String [] kmers = summary.getPossibleKmerString(6, true);
+		assertEquals((int)Math.pow(5,6), kmers.length);
+		kmers = summary.getPossibleKmerString(6, false);
+		assertEquals((int)Math.pow(4,6), kmers.length);
+	}
+	
+	@Test
+	public void revComp() {
+		SAMRecord rec = new SAMRecord(null);
+		rec.setReadString("ATCG");
+		byte[] bases = rec.getReadBases();
+		bases = Arrays.copyOf(bases, bases.length);
+		SequenceUtil.reverseComplement(bases);
+		assertArrayEquals(new byte[]{'C','G','A','T'}, bases);
+		
+		byte[] basesAgain = rec.getReadBases();
+		assertArrayEquals(new byte[]{'A','T','C','G'}, basesAgain);
+	}
 		
 	@Test
 	public void bothForwardTest() throws IOException {
 
-		KmersSummary summary = new KmersSummary(6);	
-//		QLogger logger = QLoggerFactory.getLogger(QProfiler.class, "aa.log", null);		
-		try( SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(SAM_INPUT_FILE));){
-//			logger.logInitialExecutionStats("qprofiler", "", new String[] {""});
-			for (SAMRecord samRecord : reader) 
-				//for(int i = 0; i < 10000000; i ++)
-				summary.parseKmers(samRecord.getReadBases(), false );				
-//			logger.logFinalExecutionStats(0);
+		KmersSummary summary = new KmersSummary(6);
+		File input = testFolder.newFile();
+		createTestSamFile(input);
+		try( SamReader reader = SAMFileReaderFactory.createSAMFileReader(input);){
+			for (SAMRecord samRecord : reader) { 
+				summary.parseKmers(samRecord.getReadBases(), false );
+			}
 		}
 		
 		 //kmers1
@@ -112,8 +144,8 @@ public class KmersSummaryTest {
 					assertTrue(summary.getCount(cycle, base ) == 0);
 	}
 	
-	private static void createTestSamFile( ) {
-		List<String> data = new ArrayList<String>();
+	private static void createTestSamFile(File f ) {
+		List<String> data = new ArrayList<>();
 		data.add("@HD	VN:1.0	SO:coordinate");
 		data.add("@RG	ID:1959T	SM:eBeads_20091110_CD	DS:rl=50");
 		data.add("@SQ	SN:chr1	LN:249250621");
@@ -125,11 +157,11 @@ public class KmersSummaryTest {
 		data.add("970_1290_1068	163	chr1	10176	3	9M6H	=	10167	-59	CCTAACNCT	I&&HII%%I	RG:Z:1959T");
 		
 		
-		try(PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(SAM_INPUT_FILE)) ) ) {
+		try(PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(f)) ) ) {
 			for (String line : data)   out.println(line);			 
 		} catch (IOException e) {
 			Logger.getLogger("KmersSummaryTest").log(
-					Level.WARNING, "IOException caught whilst attempting to write to SAM test file: " + SAM_INPUT_FILE, e);
+					Level.WARNING, "IOException caught whilst attempting to write to SAM test file: " + f.getAbsolutePath(), e);
 		}  
 	}
 	
