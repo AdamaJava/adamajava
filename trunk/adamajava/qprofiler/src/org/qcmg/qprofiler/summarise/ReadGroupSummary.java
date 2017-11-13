@@ -199,11 +199,13 @@ public class ReadGroupSummary {
 		//skip non-paired reads
 		if( !record.getReadPairedFlag() )  return;  						
 				
+		
+		int iSize = record.getInferredInsertSize();
 		//record iSize, first pair only to avoid double iSize		
 		if(record.getFirstOfPairFlag()){
-			int tLen = Math.abs(record.getInferredInsertSize());
+			int tLen = Math.abs(iSize);
 			if( tLen > max_isize.get() ){ 
-				max_isize.getAndSet(record.getInferredInsertSize() );
+				max_isize.getAndSet(iSize );
 			}
 			if(tLen > bigTlenValue ) {
 				tLen = bigTlenValue;			
@@ -236,7 +238,7 @@ public class ReadGroupSummary {
 		}
 		
 		//only count reads with tlen > 0 to avoid double counts
-		if( record.getInferredInsertSize() <=  0) return; 
+		if( iSize <=  0) return; 
 		
 		//detailed pair inforamtion
 //		if(overlapBase == null)	overlapBase = PairedRecordUtils.getOverlapBase( record);				 
@@ -300,7 +302,6 @@ public class ReadGroupSummary {
 		if( bases == null )
 			throw new IllegalArgumentException("Illegal attempt to pass null value to Once setter (this.maxBases).");
 		
-		//if( readGroupId.equals(SummaryReportUtils.All_READGROUP ))			 	
 		this.maxBases = bases;
 		
 //		System.out.println("debug, maxBase: " + maxBases);
@@ -308,7 +309,7 @@ public class ReadGroupSummary {
 	
 	public long getMaxBases(){
 		
-		if(null == this.maxBases || this.maxBases <= 0) 
+		if(null == this.maxBases || this.maxBases < 0) 
 			throw new IllegalStateException("Illegal attempt to access unitialized or minus value (this.maxBases).");
 		
         return this.maxBases;
@@ -316,8 +317,10 @@ public class ReadGroupSummary {
 	
 	public long getCountedReads() {
 		long totalgoodRead = 0  ;
-		for (int i = 1 ; i < readLength.length() ; i++)			 
-			totalgoodRead += readLength.get(i);
+		for (int i = 1 ; i < readLength.length() ; i++) {
+			if (readLength.get(i) > 0)
+				totalgoodRead += readLength.get(i);
+		}
 		
 		return totalgoodRead + duplicate.get() + unmapped.get() + nonCanonical.get() ;		
 	}
@@ -344,14 +347,16 @@ public class ReadGroupSummary {
 						
 			//add counted read stats to readgroup summary	
 			int  maxReadLength = getMaxReadLength();
-			System.out.println("maxReadLength: " + maxReadLength);
 			if(! readGroupId.equals(SummaryReportUtils.All_READGROUP )){
 				setMaxBases( noOfRecords * maxReadLength );
 				lostPercentage += addCountedReadStats(rgElement, "trimmedBase", parseTrim(readLength, maxReadLength), maxBases);				
 			}else{
-				double percentage = 100 * (double) getTrimedBases() / getMaxBases() ;
-				BamSummaryReport.createSubElement(rgElement, "trimmedBase").setAttribute("basePercentage", String.format("%2.2f%%", percentage ));
-				lostPercentage += percentage;	
+				long mb = getMaxBases();
+				if (mb > 0) {
+					double percentage = 100 * (double) getTrimedBases() / mb ;
+					BamSummaryReport.createSubElement(rgElement, "trimmedBase").setAttribute("basePercentage", String.format("%2.2f%%", percentage ));
+					lostPercentage += percentage;
+				}
 			}
 						
 			lostPercentage += addCountedReadStats( rgElement, node_softClip, softClip, maxBases );
@@ -367,9 +372,7 @@ public class ReadGroupSummary {
 			
 			//by default String.format will round the tail of digits
 			
-			System.out.println("lostPercentage: " + lostPercentage);
 			stats.setAttribute("lostBases", String.format("%2.2f%%", lostPercentage) );
-//			stats.setAttribute("lostBases", ( readGroupId.equals(SummaryReportUtils.All_READGROUP ) )? "-" : String.format("%2.2f%%", lostPercentage) );					
 	}	
 	
 	public void pairSummary2Xml(Element parent) { 	 
@@ -409,19 +412,28 @@ public class ReadGroupSummary {
 		}
 		rgElement.setAttribute("stdDev", stdDev.getResult() + "");
 		
-		String modalIsize = "";
-		for(int i = 1; i < boundary; i ++ )
-			if(isize.get(i) == modal )
-				modalIsize += (StringUtils.isNullOrEmpty(modalIsize) ) ? i : "and" + i; 
-		rgElement.setAttribute( "ModalISize", modalIsize );
+		StringBuilder modalIsize = new StringBuilder();
+		boolean firstEntry = true;
+		for(int i = 1; i < boundary; i ++ ) {
+			if(isize.get(i) == modal ) {
+				if (firstEntry) {
+					modalIsize.append(i);
+					firstEntry = false;
+				} else {
+					modalIsize.append("and").append(i);
+				}
+			}
+		}
+		rgElement.setAttribute( "ModalISize", modalIsize.toString() );
 		
 		
 		//counts for each Tlen value
 		int start = 0;
-		for(int i = 0; i < boundary ; i ++ ) 
-			if(isize.get(i) != 0) 			
-				setISizeElement(rgElement,isize.get(i),   i, i);				
-		
+		for(int i = 0; i < boundary ; i ++ ) { 
+			if(isize.get(i) != 0) {
+				setISizeElement(rgElement,isize.get(i),   i, i);
+			}
+		}
 		
 		start = boundary;
 		long count = isize.get(boundary); 
