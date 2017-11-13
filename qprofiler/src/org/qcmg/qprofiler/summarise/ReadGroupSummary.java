@@ -254,13 +254,12 @@ public class ReadGroupSummary {
 	public long getNumFailedVendorQuality(){ return failedVendorQuality.get(); }
 
 	public int getMaxReadLength(){
-		int  maxReadLength  = 0 ;		 
-		for (int i = 1 ; i < readLength.length() ; i++) {
-			if(readLength.get(i) > maxReadLength) {
-				maxReadLength = i;
+		for (int i = (int)readLength.length() -1 ; i >= 1 ; i--) {
+			if(readLength.get(i) > 0) {
+				return i;
 			}
 		}
-		return maxReadLength; 
+		return 0;
 	}
 	
 	/**
@@ -345,6 +344,7 @@ public class ReadGroupSummary {
 						
 			//add counted read stats to readgroup summary	
 			int  maxReadLength = getMaxReadLength();
+			System.out.println("maxReadLength: " + maxReadLength);
 			if(! readGroupId.equals(SummaryReportUtils.All_READGROUP )){
 				setMaxBases( noOfRecords * maxReadLength );
 				lostPercentage += addCountedReadStats(rgElement, "trimmedBase", parseTrim(readLength, maxReadLength), maxBases);				
@@ -366,6 +366,8 @@ public class ReadGroupSummary {
 			stats.setAttribute("countedReads", noOfRecords + "" );
 			
 			//by default String.format will round the tail of digits
+			
+			System.out.println("lostPercentage: " + lostPercentage);
 			stats.setAttribute("lostBases", String.format("%2.2f%%", lostPercentage) );
 //			stats.setAttribute("lostBases", ( readGroupId.equals(SummaryReportUtils.All_READGROUP ) )? "-" : String.format("%2.2f%%", lostPercentage) );					
 	}	

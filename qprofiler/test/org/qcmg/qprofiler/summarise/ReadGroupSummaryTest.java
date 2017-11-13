@@ -7,16 +7,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import static org.junit.Assert.assertEquals;
 import org.junit.After;
 import org.junit.Test;
 import org.qcmg.qprofiler.bam.BamSummarizer;
 import org.qcmg.qprofiler.bam.BamSummaryReport;
 import org.qcmg.qprofiler.util.SummaryReportUtils;
-import org.w3c.dom.DOMImplementation;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.NodeList;
@@ -36,8 +34,8 @@ public class ReadGroupSummaryTest {
 		Element root = DocumentBuilderFactory.newInstance().newDocumentBuilder().getDOMImplementation().createDocument(null, "qProfiler", null).getDocumentElement();
 		BamSummaryReport sr = (BamSummaryReport) new BamSummarizer().summarize( new File(INPUT_FILE) ); 
 		sr.toXml(root);
-		Assert.assertEquals(sr.getRecordsParsed(), 12);				
-		NodeList nodes = ((Element) root.getElementsByTagName("SUMMARY").item(0)).getElementsByTagName("Reads");   
+		assertEquals(sr.getRecordsParsed(), 12);				
+		NodeList nodes = ((Element) root.getElementsByTagName("SUMMARY").item(0)).getElementsByTagName("Reads");
 		readsElementTest( (Element) nodes.item(0) );	
 	}
 	
@@ -50,7 +48,7 @@ public class ReadGroupSummaryTest {
 		BamSummaryReport sr = (BamSummaryReport) new BamSummarizer().summarize( new File(INPUT_FILE) ); 
 		sr.toXml(root);
 	
-		Assert.assertEquals( sr.getRecordsParsed(), 19 );		
+		assertEquals( sr.getRecordsParsed(), 19 );		
 		NodeList nodes = ((Element) root.getElementsByTagName("SUMMARY").item(0)).getElementsByTagName("Pairs");
 		pairsElementTest((Element) nodes.item(0)); 
 	}	
@@ -190,31 +188,31 @@ public class ReadGroupSummaryTest {
 		
 		//nonCountedReads
 		NamedNodeMap attrs = rgNode.getElementsByTagName("nonCountedReads").item(0).getAttributes();
-		Assert.assertEquals(attrs.getNamedItem( "failedVendorQualityReads").getNodeValue(), failed);
-		Assert.assertEquals(attrs.getNamedItem( "secondaryReads").getNodeValue(), secondary);
-		Assert.assertEquals(attrs.getNamedItem( "supplementaryReads").getNodeValue(), supplementary);
+		assertEquals(failed, attrs.getNamedItem( "failedVendorQualityReads").getNodeValue());
+		assertEquals(secondary, attrs.getNamedItem( "secondaryReads").getNodeValue());
+		assertEquals(supplementary, attrs.getNamedItem( "supplementaryReads").getNodeValue());
 						
 		//overall
 		attrs = rgNode.getElementsByTagName("overall").item(0).getAttributes();				
-		Assert.assertEquals(attrs.getNamedItem( "countedReads").getNodeValue(), total);
-		Assert.assertEquals(attrs.getNamedItem( "lostBases").getNodeValue(), lost);
-		Assert.assertEquals(attrs.getNamedItem( "aveLength").getNodeValue(), aveLength);
-		Assert.assertEquals(attrs.getNamedItem( "maxLength").getNodeValue(), maxLength);
+		assertEquals(total, attrs.getNamedItem( "countedReads").getNodeValue());
+		assertEquals(lost, attrs.getNamedItem( "lostBases").getNodeValue());
+		assertEquals(aveLength, attrs.getNamedItem( "aveLength").getNodeValue());
+		assertEquals(maxLength, attrs.getNamedItem( "maxLength").getNodeValue());
 		
 		//bad reads
-		Assert.assertEquals(rgNode.getElementsByTagName("duplicate").item(0).getAttributes().getNamedItem("percentage").getNodeValue(), duplicate );
-		Assert.assertEquals(rgNode.getElementsByTagName("unmapped").item(0).getAttributes().getNamedItem("percentage").getNodeValue(), unmapped );
-		Assert.assertEquals(rgNode.getElementsByTagName("nonCanonicalPair").item(0).getAttributes().getNamedItem("percentage").getNodeValue(), nonCanonical );
+		assertEquals(rgNode.getElementsByTagName("duplicate").item(0).getAttributes().getNamedItem("percentage").getNodeValue(), duplicate );
+		assertEquals(rgNode.getElementsByTagName("unmapped").item(0).getAttributes().getNamedItem("percentage").getNodeValue(), unmapped );
+		assertEquals(rgNode.getElementsByTagName("nonCanonicalPair").item(0).getAttributes().getNamedItem("percentage").getNodeValue(), nonCanonical );
  				
 		//chopped bases
-		Assert.assertEquals(rgNode.getElementsByTagName("softClip").item(0).getAttributes().getNamedItem("basePercentage").getNodeValue(), soft );
-		Assert.assertEquals(rgNode.getElementsByTagName("overlap").item(0).getAttributes().getNamedItem("basePercentage").getNodeValue(), overlap );
-		Assert.assertEquals(rgNode.getElementsByTagName("hardClip").item(0).getAttributes().getNamedItem("basePercentage").getNodeValue(), hard );
-		Assert.assertEquals(rgNode.getElementsByTagName("trimmedBase").item(0).getAttributes().getNamedItem("basePercentage").getNodeValue(), trimmed  );
+		assertEquals(rgNode.getElementsByTagName("softClip").item(0).getAttributes().getNamedItem("basePercentage").getNodeValue(), soft );
+		assertEquals(rgNode.getElementsByTagName("overlap").item(0).getAttributes().getNamedItem("basePercentage").getNodeValue(), overlap );
+		assertEquals(rgNode.getElementsByTagName("hardClip").item(0).getAttributes().getNamedItem("basePercentage").getNodeValue(), hard );
+		assertEquals(rgNode.getElementsByTagName("trimmedBase").item(0).getAttributes().getNamedItem("basePercentage").getNodeValue(), trimmed  );
 	}
 	
 	private static void createReadsInputFile() throws IOException{
-		List<String> data = new ArrayList<String>();
+		List<String> data = new ArrayList<>();
         data.add("@HD	VN:1.0	SO:coordinate");
         data.add("@RG	ID:1959T	SM:eBeads_20091110_CD	DS:rl=50");
         data.add("@RG	ID:1959N	SM:eBeads_20091110_ND	DS:rl=50");
@@ -289,7 +287,7 @@ public class ReadGroupSummaryTest {
 	
 	private static void createPairInputFile() throws IOException{
 		
-		List<String> data = new ArrayList<String>();
+		List<String> data = new ArrayList<>();
 		//non-canonical pair (tlen > 0 will be counted), f5f3, tlen(2025>1500)
 		data.add("243_146_a	115	chr1	10075	6	3H37M	=	12100	2025	ACCCTAACCCTAACCCTAACCNTAACCCTAACCCAAC	+3?GH##;9@D7HI5,:IIB\"!\"II##>II$$BIIC3	" +
 				"RG:Z:1959T	CS:Z:T11010020320310312010320010320013320012232201032202	CQ:Z:**:921$795*#5:;##):<5&'/=,,9(2*#453-'%(.2$6&39$+4'");
