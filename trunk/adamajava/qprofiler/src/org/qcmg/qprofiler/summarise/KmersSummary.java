@@ -79,13 +79,14 @@ public class KmersSummary {
 //		if(includeN ) bases.add('N'); 
 		
 		char[] cToUse = includeN ? atgcnCharArray : atgcCharArray;
-				
+//		String conStr = "";
 		StringBuilder conStr = new StringBuilder();
 		for(char c : cToUse) 	 	 
 			StringUtils.updateStringBuilder(conStr, producer( k-1, mers + c,  includeN), Constants.COMMA);			 
-//		for(char c : cToUse) 	 	 
+//		for(char c : bases) 	 	 
 //			conStr += "," + producer( k-1, mers + c,  includeN);			 
 		 		
+//		return conStr;	
 		return conStr.toString();	
 	}
 	
@@ -98,17 +99,16 @@ public class KmersSummary {
 		String str1 = producer( k, "", includeN );		
 //		while(str1.contains(",,")) str1 = str1.replace(",,", ",");	
 //		while(str1.startsWith(",")) str1 = str1.substring(1);			
-		return TabTokenizer.tokenize(str1, Constants.COMMA);
+		return str1.split(Constants.COMMA_STRING);
+//		return TabTokenizer.tokenize(str1, Constants.COMMA);
 	}
 	
 	public void parseKmers( byte[] readString, boolean reverse ){
 		//set to false, it indicate we have to recaculate short kmer for last cycle since new read comming
-//		if( parsedAllKmers.get() )  parsedAllKmers.set(false);
 		
 		 //get the biggest cycle
 		 int c = readString.length - merLength + 1;	
 		 if(c > cycleNo) cycleNo = c; 
-//		 if(readString.length > cycleNo) cycleNo = readString.length - merLength + 1;		 
 		 byte[] dataString =  readString.clone();  //can't point to same array
 		  
 		 if (reverse){  
@@ -117,7 +117,7 @@ public class KmersSummary {
 				dataString[j] = ( byte ) BaseUtils.getComplement( (char) dataReverse[i] );
 		 }
 		 
-		 //readString may have differnt length to other reads
+		 //readString may have different length to other reads
 		 for(int i = 0; i <= readString.length - merLength; i ++ ){
 			 byte[] mers = new byte[ merLength ];
 			 for(int j = 0; j <  merLength; j ++ )  mers[j] = dataString[ i + j ];	
@@ -168,8 +168,12 @@ public class KmersSummary {
 		if(mer.length > merLength || cycle >= cycleNo )  return 0;	
 				
 		// full length kmers counts are stored in tally already		 	
-		if(mer.length == merLength) 			
-			return  tally.get( getPosition(cycle, mer) );
+		if(mer.length == merLength) {
+			int pos = getPosition(cycle, mer);
+			if (pos >= 0 && pos < tally.length()) {
+				return  tally.get( pos );
+			}
+		}
 						
 		// accumulate all 6-mers start with the inputed short mer on the specified cycle position	
 		byte[] small = new byte[ merLength ];
@@ -178,8 +182,11 @@ public class KmersSummary {
 		for(int i = mer.length; i < merLength; i ++){ small[i] = 'A'; big[i] = 'N'; }
 		
 		long count = 0;	
-		for(int i = getPosition(cycle, small), j = getPosition(cycle, big); i <=j ; i ++ ) 
-		  count +=  tally.get(i) ;
+		for(int i = getPosition(cycle, small), j = getPosition(cycle, big); i <=j ; i ++ ) {
+			if (i >= 0 && i < tally.length()) {
+				count +=  tally.get(i) ;
+			}
+		}
  	 			
 		return count; 		
 	}
