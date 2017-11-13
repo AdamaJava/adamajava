@@ -501,10 +501,10 @@ public class BamSummaryReport extends SummaryReport {
 				
 		// Xu code: check if record has its fail or duplicate flag set. if so, miss out some of the summaries
 		//anyway, add to summary and then add to it's readgroup
-		rgSummaries.get(SummaryReportUtils.All_READGROUP).ParseRecord(record); 
+		rgSummaries.get(SummaryReportUtils.All_READGROUP).parseRecord(record); 
 
 		ReadGroupSummary rgSumm = rgSummaries.computeIfAbsent(readGroup, k -> new ReadGroupSummary(k));
-		boolean parsedRecord = rgSumm.ParseRecord(record);
+		boolean parsedRecord = rgSumm.parseRecord(record);
 		
 		if( parsedRecord  ) {			
 			// SEQ 
@@ -814,10 +814,10 @@ public class BamSummaryReport extends SummaryReport {
 		
 	void parseRNameAndPos(final String rName,  final int position, String rgid ) throws Exception {
 		 	
-		PositionSummary ps = (PositionSummary) rNamePosition.get(rName);
+		PositionSummary ps = rNamePosition.get(rName);
 		if (null == ps) {
 			rNamePosition.putIfAbsent(rName, new PositionSummary( readGroupIds));
-			ps = (PositionSummary) rNamePosition.get(rName);					
+			ps = rNamePosition.get(rName);					
 		}		
 	 
 		ps.addPosition(position, rgid );

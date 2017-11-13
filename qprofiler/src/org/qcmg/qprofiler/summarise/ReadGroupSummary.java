@@ -1,9 +1,6 @@
 package org.qcmg.qprofiler.summarise;
 
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -147,7 +144,7 @@ public class ReadGroupSummary {
 	 * @param record
 	 * @return false if record is duplicate, ....
 	 */
-	public Boolean ParseRecord( final SAMRecord record ){
+	public boolean parseRecord( final SAMRecord record ){
 				
 		if ( record.getSupplementaryAlignmentFlag())
 			supplementary.incrementAndGet();
@@ -161,17 +158,18 @@ public class ReadGroupSummary {
 			duplicate.incrementAndGet();
 		else if(! PairedRecordUtils.isCanonical(  record) ){
 			nonCanonical.incrementAndGet();			 
-			parsePairing( record , null); 			
+			parsePairing( record , PairedRecordUtils.getOverlapBase( record)); 			
 		}else{
 			//parse clips
 			 int lHard = 0;
 			 int lSoft = 0;
-			 for (CigarElement ce : record.getCigar().getCigarElements()) 
-				 if (ce.getOperator().equals(CigarOperator.HARD_CLIP))  
+			 for (CigarElement ce : record.getCigar().getCigarElements()) {
+				 if (ce.getOperator().equals(CigarOperator.HARD_CLIP)) {  
 					 lHard += ce.getLength();
-				 else if (ce.getOperator().equals(CigarOperator.SOFT_CLIP))  
+				 } else if (ce.getOperator().equals(CigarOperator.SOFT_CLIP)) {  
 					 lSoft += ce.getLength();
-				 				 
+				 }
+			 }
 			hardClip.increment(lHard);
 			softClip.increment(lSoft);
 			readLength.increment(record.getReadLength()+lHard);
@@ -197,16 +195,19 @@ public class ReadGroupSummary {
 	 * @param record: a mapped and paired read and not duplicate, not supplementary, secondary or failed
 	 * @param overlapBase
 	 */
-	public void parsePairing( SAMRecord record, Integer overlapBase ){
+	public void parsePairing( SAMRecord record, int overlapBase ){
 		//skip non-paired reads
 		if( !record.getReadPairedFlag() )  return;  						
 				
 		//record iSize, first pair only to avoid double iSize		
 		if(record.getFirstOfPairFlag()){
 			int tLen = Math.abs(record.getInferredInsertSize());
-			if( tLen > max_isize.get() ) 
-				max_isize.getAndSet(record.getInferredInsertSize() );			
-			if(tLen > bigTlenValue ) tLen = bigTlenValue;			
+			if( tLen > max_isize.get() ){ 
+				max_isize.getAndSet(record.getInferredInsertSize() );
+			}
+			if(tLen > bigTlenValue ) {
+				tLen = bigTlenValue;			
+			}
 	 			isize.increment(tLen); 	 
 		}
 		
@@ -220,13 +221,17 @@ public class ReadGroupSummary {
 		//pair from different reference, only look at first pair to avoid double counts
 		if( record.getMateUnmappedFlag() ){
 			mateUnmapped.incrementAndGet();
-			if(record.getProperPairFlag()) mateUnmapped_flag_p.incrementAndGet();	
+			if (record.getProperPairFlag()) {
+				mateUnmapped_flag_p.incrementAndGet();	
+			}
 			return; 
 		}
 		
 		if( !record.getReferenceName().equals( record.getMateReferenceName()) && record.getFirstOfPairFlag()){
 			diffRef.incrementAndGet();
-			if(record.getProperPairFlag()) diffRef_flag_p.incrementAndGet();					
+			if (record.getProperPairFlag()) {
+				diffRef_flag_p.incrementAndGet();					
+			}
 			return; 
 		}
 		
@@ -234,7 +239,7 @@ public class ReadGroupSummary {
 		if( record.getInferredInsertSize() <=  0) return; 
 		
 		//detailed pair inforamtion
-		if(overlapBase == null)	overlapBase = PairedRecordUtils.getOverlapBase( record);				 
+//		if(overlapBase == null)	overlapBase = PairedRecordUtils.getOverlapBase( record);				 
 		if( PairedRecordUtils.isF5toF3(record)) f5f3.parse( record, overlapBase ); 		
 		if( PairedRecordUtils.isF3toF5(record)) f3f5.parse( record, overlapBase );	 
 		if( PairedRecordUtils.isOutward(record)) outward.parse( record, overlapBase );		
@@ -250,8 +255,11 @@ public class ReadGroupSummary {
 
 	public int getMaxReadLength(){
 		int  maxReadLength  = 0 ;		 
-		for (int i = 1 ; i < readLength.length() ; i++) 
-			if(readLength.get(i) > 0) maxReadLength = i;			
+		for (int i = 1 ; i < readLength.length() ; i++) {
+			if(readLength.get(i) > maxReadLength) {
+				maxReadLength = i;
+			}
+		}
 		return maxReadLength; 
 	}
 	
