@@ -1,5 +1,7 @@
 package org.qcmg.qprofiler.summarise;
 
+import htsjdk.samtools.SAMRecord;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -10,6 +12,7 @@ import java.util.List;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import static org.junit.Assert.assertEquals;
+
 import org.junit.After;
 import org.junit.Test;
 import org.qcmg.qprofiler.bam.BamSummarizer;
@@ -26,7 +29,34 @@ public class ReadGroupSummaryTest {
 
 	@After
 	public void tearDown() {  new File(INPUT_FILE).delete(); 	}
-		
+	
+	
+	@Test
+	public void parseRecord() {
+		ReadGroupSummary s = new ReadGroupSummary("");
+		SAMRecord record = new SAMRecord(null);
+		assertEquals(false, s.parseRecord(record));
+		assertEquals(1, s.getCountedReads());
+		assertEquals(0, s.getMaxReadLength());
+		record.setFlags(0);
+		assertEquals(false, s.parseRecord(record));
+		assertEquals(2, s.getCountedReads());
+		assertEquals(0, s.getMaxReadLength());
+		record.setFlags(16);
+		assertEquals(false, s.parseRecord(record));
+		assertEquals(3, s.getCountedReads());
+		assertEquals(0, s.getMaxReadLength());
+		record.setFlags(256);
+		assertEquals(false, s.parseRecord(record));
+		assertEquals(3, s.getCountedReads());
+		assertEquals(0, s.getMaxReadLength());
+		record.setFlags(272);
+		assertEquals(false, s.parseRecord(record));
+		assertEquals(3, s.getCountedReads());
+		assertEquals(0, s.getMaxReadLength());
+	}
+	
+	
 	@Test
 	public void ReadsByRGTest() throws Exception{ 
 		createReadsInputFile();		
