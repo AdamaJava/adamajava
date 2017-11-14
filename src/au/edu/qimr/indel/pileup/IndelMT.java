@@ -414,7 +414,7 @@ public class IndelMT {
 		
 	}
 	
-	 private void getHeaderForIndel(VcfHeader header ) {
+	 private void getHeaderForIndel(VcfHeader header ) throws Exception {
 
 		QExec qexec = options.getQExec();
 		 
