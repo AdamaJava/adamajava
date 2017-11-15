@@ -94,6 +94,8 @@ MAIN: {
                           cnv_format_convert
                           fastq_kmer
                           add_entrezgene_to_maf
+                          sequence_lengths
+                          base_by_window
                           );
 
     if ($mode =~ /^$valid_modes[0]$/i or $mode =~ /\?/) {
@@ -101,74 +103,80 @@ MAIN: {
                    -verbose  => 99,
                    -sections => 'SYNOPSIS|COMMANDS' );
     }
-    elsif ($mode =~ /^$valid_modes[1]$/i) {
+    elsif ($mode eq $valid_modes[1]) {
         pod2usage(-exitstatus => 0, -verbose => 2)
     }
-    elsif ($mode =~ /^$valid_modes[2]$/i) {
+    elsif ($mode eq $valid_modes[2]) {
         print "$SVNID\n";
     }
-    elsif ($mode =~ /^$valid_modes[3]/i) {
+    elsif ($mode eq $valid_modes[3]) {
         search_bam_headers();
     }
-    elsif ($mode =~ /^$valid_modes[4]/i) {
+    elsif ($mode eq $valid_modes[4]) {
         moved_to_qcovtools( 'props_2_gff' );
     }
-    elsif ($mode =~ /^$valid_modes[5]/i) {
+    elsif ($mode eq $valid_modes[5]) {
         germline_2_qsig();
     }
-    elsif ($mode =~ /^$valid_modes[6]/i) {
+    elsif ($mode eq $valid_modes[6]) {
         qcmgschema_1();
     }
-    elsif ($mode =~ /^$valid_modes[7]/i) {
+    elsif ($mode eq $valid_modes[7]) {
         ega_20121116_a();
     }
-    elsif ($mode =~ /^$valid_modes[8]/i) {
+    elsif ($mode eq $valid_modes[8]) {
         hiseq_motif();
     }
-    elsif ($mode =~ /^$valid_modes[9]/i) {
+    elsif ($mode eq $valid_modes[9]) {
         pindel_2_dcc1();
     }
-    elsif ($mode =~ /^$valid_modes[10]/i) {
+    elsif ($mode eq $valid_modes[10]) {
         cosmic_vs_dbsnp();
     }
-    elsif ($mode =~ /^$valid_modes[11]/i) {
+    elsif ($mode eq $valid_modes[11]) {
         allele_freq();
     }
-    elsif ($mode =~ /^$valid_modes[12]/i) {
+    elsif ($mode eq $valid_modes[12]) {
         wig_2_bed();
     }
-    elsif ($mode =~ /^$valid_modes[13]/i) {
+    elsif ($mode eq $valid_modes[13]) {
         benchmark_wiki2tsv();
     }
-    elsif ($mode =~ /^$valid_modes[14]/i) {
+    elsif ($mode eq $valid_modes[14]) {
         verona1();
     }
-    elsif ($mode =~ /^$valid_modes[15]/i) {
+    elsif ($mode eq $valid_modes[15]) {
         N_count();
     }
-    elsif ($mode =~ /^$valid_modes[16]/i) {
+    elsif ($mode eq $valid_modes[16]) {
         telomere_analysis();
     }
-    elsif ($mode =~ /^$valid_modes[17]/i) {
+    elsif ($mode eq $valid_modes[17]) {
         Nruns_vs_telomere_motifs();
     }
-    elsif ($mode =~ /^$valid_modes[18]/i) {
+    elsif ($mode eq $valid_modes[18]) {
         align_2_csvs();
     }
-    elsif ($mode =~ /^$valid_modes[19]/i) {
+    elsif ($mode eq $valid_modes[19]) {
         wikitable_media2moin();
     }
-    elsif ($mode =~ /^$valid_modes[20]/i) {
+    elsif ($mode eq $valid_modes[20]) {
         moved_to_qcovtools( 'illumina_panel_manifest' );
     }
-    elsif ($mode =~ /^$valid_modes[21]/i) {
+    elsif ($mode eq $valid_modes[21]) {
         cnv_format_convert();
     }
-    elsif ($mode =~ /^$valid_modes[22]/i) {
+    elsif ($mode eq $valid_modes[22]) {
         fastq_kmer();
     }
-    elsif ($mode =~ /^$valid_modes[23]/i) {
+    elsif ($mode eq $valid_modes[23]) {
         add_entrezgene_to_maf();
+    }
+    elsif ($mode eq $valid_modes[24]) {
+        sequence_lengths();
+    }
+    elsif ($mode eq $valid_modes[25]) {
+        base_by_window();
     }
     else {
         die "jvptools mode [$mode] is unrecognised; valid modes are:\n   ".
@@ -1963,7 +1971,7 @@ sub N_count {
         unless (scalar @ARGV > 0);
 
     # Setup defaults for CLI params
-    my %params = ( fasta       => '/panfs/share/genomes/GRCh37_ICGC_standard_v2/GRCh37_ICGC_standard_v2.fa',
+    my %params = ( fasta       => '',
                    outfile     => '',
                    logfile     => '',
                    verbose     => 0 );
@@ -2605,6 +2613,80 @@ sub fastq_kmer {
 }
 
 
+sub sequence_lengths {
+   
+    # Print help message if no CLI params
+    pod2usage( -exitval  => 0,
+               -verbose  => 99,
+               -sections => 'SYNOPSIS|COMMAND DETAILS/sequence_lengths' )
+        unless (scalar @ARGV > 0);
+
+    # Setup defaults for CLI params
+    my %params = ( fasta       => '',
+                   outfile     => '',
+                   logfile     => '',
+                   verbose     => 0 );
+
+    my $results = GetOptions (
+           'r|fasta=s'            => \$params{fasta},         # -r
+           'o|outfile=s'          => \$params{outfile},       # -o
+           'l|logfile=s'          => \$params{logfile},       # -l
+           'v|verbose+'           => \$params{verbose},       # -v
+           );
+
+    # It is mandatory to supply fasta and outfile names
+    die "You must specify a FASTA input file\n" unless $params{fasta};
+    die "You must specify an output file\n" unless $params{outfile};
+
+    # Set up logging
+    glogfile($params{logfile}) if $params{logfile};
+    glogbegin;
+    glogprint( {l=>'EXEC'}, "CommandLine $CMDLINE\n" );
+    glogparams( \%params );
+    
+    my $ref = QCMG::IO::FastaReader->new(
+                  filename => $params{fasta},
+                  verbose  => $params{verbose} );
+
+    my $ra_seqs = $ref->sequences;
+
+    # Open the output file
+    my $outfh = IO::File->new( $params{outfile}, 'w' );
+    die "unable to open file $params{outfile} for writing: $!" unless
+        defined $outfh;
+    $outfh->print( join( "\t", qw( Seq SeqLen SeqInfo ) ),"\n" );
+
+    my @runs = ();
+    my $seqctr = 0;
+    my $seqlen_total = 0;
+    foreach my $seq (@{ $ref->sequences }) {
+        my $name = $seq->{defline};
+        $name =~ s/\>//;
+        $name =~ s/\s.*//g;
+
+        # If the line has |-separated elements, pull off the first one
+        my @fields = split /\|/, $name;
+        $name = shift @fields;
+        my $extra = '';
+        $extra = join( '|', @fields );
+
+        my $bases  = $seq->{sequence};
+        my $chrlen = length($bases);
+
+        $outfh->print( join( "\t", $name, $chrlen, $extra ),"\n" );
+
+        $seqctr++;
+        $seqlen_total += $chrlen;
+    }
+
+    $outfh->close;
+
+    glogprint( "Processed sequences: $seqctr\n" );
+    glogprint( "Total length: $seqlen_total\n" );
+    glogend;
+}
+
+
 __END__
 
 =head1 NAME
@@ -2666,6 +2748,8 @@ that routine you know you wrote but can't remember where it is.
  wikitable_media2moin - convert MediaWiki tables to Moin syntax
  cnv_format_convert - convert TITAN format to GAP
  add_entrezgene_to_maf - add Entrez Gene Id numbers to MAF
+ sequence_lengths   - output the length of each sequence in a FASTA
+ base_by_window     - output the base composition within a given window length
  version            - print version number and exit immediately
  help               - display usage summary
  man                - display full man page
