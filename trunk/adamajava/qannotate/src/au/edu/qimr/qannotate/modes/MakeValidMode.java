@@ -89,6 +89,7 @@ public class MakeValidMode extends AbstractMode {
 			VcfHeader inputHeader = reader.getHeader();
 			VcfHeader outputHeader = reheader(inputHeader, cmd, input);
 			meta = new VcfFileMeta(outputHeader);
+			boolean singleSample = ContentType.multipleSamples(meta.getType());
 			
 			for(final VcfHeaderRecord record: outputHeader)  {
 				writer.addHeader(record.toString());
@@ -96,7 +97,7 @@ public class MakeValidMode extends AbstractMode {
 			Map<String, short[]> callerPositionsMap = meta.getCallerSamplePositions();
 			for (VcfRecord vcf : reader) {
 				if ( ! invalidRefAndAlt(vcf)) {
-					processVcfRecord(vcf, callerPositionsMap);
+					processVcfRecord(vcf, callerPositionsMap, singleSample);
 					writer.add(vcf);
 				}
 			}
@@ -104,8 +105,16 @@ public class MakeValidMode extends AbstractMode {
 	}
 	
 	public static void processVcfRecord(VcfRecord v, Map<String, short[]> callerPositionsMap) {
+		processVcfRecord(v, callerPositionsMap, false);
+	}
+	public static void processVcfRecord(VcfRecord v, Map<String, short[]> callerPositionsMap, boolean singleSample) {
 		makeValid(v);
-		addCCM(v, callerPositionsMap);
+		/*
+		 * only run CCM mode if we have multiple samples
+		 */
+		if  ( ! singleSample) {
+			addCCM(v, callerPositionsMap);
+		}
 		addFormatDetails(v, callerPositionsMap);
 	}
 	
@@ -232,6 +241,9 @@ public class MakeValidMode extends AbstractMode {
 	}
 	
 	public static void addCCM(VcfRecord vcf, Map<String, short[]> callerPositionsMap) {
+		/*
+		 * don't do this if each caller only has a single sample
+		 */
 		 CCMMode.updateVcfRecordWithCCM(vcf, callerPositionsMap, null);
 	}
 	
