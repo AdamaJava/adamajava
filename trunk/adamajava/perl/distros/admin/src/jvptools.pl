@@ -19,6 +19,7 @@ use Carp qw( carp croak confess );
 use Data::Dumper;
 use Getopt::Long;
 use IO::File;
+use JSON;
 use Pod::Usage;
 use POSIX qw( floor );
 use Storable qw(dclone);
@@ -95,7 +96,7 @@ MAIN: {
                           fastq_kmer
                           add_entrezgene_to_maf
                           sequence_lengths
-                          base_by_window
+                          qprofiler_genome
                           );
 
     if ($mode =~ /^$valid_modes[0]$/i or $mode =~ /\?/) {
@@ -176,7 +177,7 @@ MAIN: {
         sequence_lengths();
     }
     elsif ($mode eq $valid_modes[25]) {
-        base_by_window();
+        qprofiler_genome();
     }
     else {
         die "jvptools mode [$mode] is unrecognised; valid modes are:\n   ".
@@ -2687,6 +2688,129 @@ sub sequence_lengths {
 }
 
 
+sub qprofiler_genome {
+   
+    # Print help message if no CLI params
+    pod2usage( -exitval  => 0,
+               -verbose  => 99,
+               -sections => 'SYNOPSIS|COMMAND DETAILS/qprofiler_genome' )
+        unless (scalar @ARGV > 0);
+
+    # Setup defaults for CLI params
+    my %params = ( windowsize  => 1000000,
+                   name        => '',
+                   fasta       => '',
+                   outfile     => '',
+                   logfile     => '',
+                   verbose     => 0 );
+
+    my $results = GetOptions (
+           'w|windowsize=i'       => \$params{windowsize},    # -w
+           'n|name=s'             => \$params{name},          # -n
+           'r|fasta=s'            => \$params{fasta},         # -r
+           'o|outfile=s'          => \$params{outfile},       # -o
+           'l|logfile=s'          => \$params{logfile},       # -l
+           'v|verbose+'           => \$params{verbose},       # -v
+           );
+
+    # It is mandatory to supply fasta and outfile names
+    die "You must specify a FASTA input file\n" unless $params{fasta};
+    die "You must specify an output file\n" unless $params{outfile};
+
+    # Set up logging
+    glogfile($params{logfile}) if $params{logfile};
+    glogbegin;
+    glogprint( {l=>'EXEC'}, "CommandLine $CMDLINE\n" );
+    glogparams( \%params );
+
+    # This is where we will put stuff for conversion to JSON
+    my $qprofiler_genome = { name       => $params{name},
+                             run_params => \%params,
+                             exec_vals  => glogexecvals() };
+    
+    my $ref = QCMG::IO::FastaReader->new(
+                  filename => $params{fasta},
+                  verbose  => $params{verbose} );
+
+    my $ra_seqs = $ref->sequences;
+
+    # Open the output file
+    my $outfh = IO::File->new( $params{outfile}, 'w' );
+    die "unable to open file $params{outfile} for writing: $!" unless
+        defined $outfh;
+
+    my @runs = ();
+    my $seqctr = 0;
+    my $seqlen_total = 0;
+    foreach my $seq (@{ $ref->sequences }) {
+        my $name = $seq->{defline};
+        $name =~ s/\>//;
+        $name =~ s/\s.*//g;
+    
+        glogprint( "Processing sequence $name\n" );
+
+        # If the line has |-separated elements, pull off the first one
+        my @fields = split /\|/, $name;
+        $name = shift @fields;
+        my $extra = '';
+        $extra = join( '|', @fields );
+
+        # Get length
+        my $bases  = $seq->{sequence};
+        my $chrlen = length($bases);
+        $qprofiler_genome->{ 'chromosome_lengths' }->{ $name } = $chrlen;
+
+        # Get base composition for each window so we can do GC%
+        my @bases             = split //, $bases;
+        my $bases_processed   = 0;
+        my $bases_unprocessed = scalar(@bases);
+
+        while ( $bases_unprocessed ) {
+            my $limit = ($bases_unprocessed > $params{windowsize})
+                        ? $params{windowsize}
+                        : $bases_unprocessed;
+
+            my $gc_count = 0;
+            my %tally = ( 'N'=> 0, 'A'=>0, 'C'=>0, 'G'=>0, 'T'=>0 );
+            foreach my $i ($bases_processed..($limit-1)) {
+                # Important to force case!
+                $tally{ uc( $bases[$i] ) }++;
+
+                $gc_count++ if ($bases[$i] eq 'g' or $bases[$i] eq 'G' or
+                                $bases[$i] eq 'c' or $bases[$i] eq 'C');
+            }
+
+            my $start = $bases_processed + 1;
+            my $end   = $start + $limit - 1;
+            #my $gc_percent = $gc_count / $limit;
+            my $gc_percent = ($tally{C}+$tally{G}) / 
+                             ($tally{A}+$tally{C}+$tally{G}+$tally{T});
+
+            glogprint( join("\t", $bases_processed, $bases_unprocessed, $limit,
+                                  $start, $end, $gc_percent,
+                                  $tally{'N'}, $tally{'A'}, $tally{'C'}, $tally{'G'}, $tally{'T'}
+                           ), "\n" );
+
+            $qprofiler_genome->{ 'gcpercent_windows' }->{ $name }->{ $start .'-'. $end } = 
+                sprintf( '%.3f', $gc_percent );
+            
+            $bases_processed   += $limit;
+            $bases_unprocessed -= $limit;
+        }
+
+        $seqctr++;
+        $seqlen_total += $chrlen;
+    }
+
+    $outfh->print( encode_json( $qprofiler_genome ) );
+    $outfh->close;
+
+    glogprint( "Processed sequences: $seqctr\n" );
+    glogprint( "Total length: $seqlen_total\n" );
+    glogend;
+}
+
+
 __END__
 
 =head1 NAME
@@ -2749,7 +2873,7 @@ that routine you know you wrote but can't remember where it is.
  cnv_format_convert - convert TITAN format to GAP
  add_entrezgene_to_maf - add Entrez Gene Id numbers to MAF
  sequence_lengths   - output the length of each sequence in a FASTA
- base_by_window     - output the base composition within a given window length
+ qprofiler_genome   - output JSON file with properties from a genome FASTA
  version            - print version number and exit immediately
  help               - display usage summary
  man                - display full man page
