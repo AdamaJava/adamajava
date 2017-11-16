@@ -374,8 +374,12 @@ public class VcfHeaderUtils {
 		return header;			
 	}
 	
-	public static boolean containsQIMRDetails(VcfHeader header) {  
+	public static boolean containsQIMRDetails(VcfHeader header) {
 		return  (header.getUUID() != null && ( !getqPGRecords(header).isEmpty()) );
+	}
+	
+	public static boolean containsContigs(VcfHeader header) {
+		return null != header && ! header.getContigRecords().isEmpty() ;
 	}		
 	
 	/**
@@ -419,6 +423,7 @@ public class VcfHeaderUtils {
 		
 	//most common string for vcf header
 	public static final String HEADER_LINE_FILTER = "##FILTER";
+	public static final String HEADER_LINE_CONTIG = "##contig";
 	public static final String HEADER_LINE_INFO = "##INFO";
 	public static final String HEADER_LINE_FORMAT = "##FORMAT";
 	public static final String CURRENT_FILE_FORMAT = "##fileformat=VCFv4.2";

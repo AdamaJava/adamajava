@@ -213,6 +213,11 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 	 * @return a list of vcf header record follow pattern ##FILTER=<ID=id,...>
 	 */
 	public List<VcfHeaderRecord> getFilterRecords() { return getRecords(idRecords, VcfHeaderUtils.HEADER_LINE_FILTER); }
+	/**
+	 * 
+	 * @return a list of vcf header record follow pattern ##FILTER=<ID=id,...>
+	 */
+	public List<VcfHeaderRecord> getContigRecords() { return getRecords(idRecords, VcfHeaderUtils.HEADER_LINE_CONTIG); }
 	
 	/**
 	 * 
