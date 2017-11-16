@@ -6,31 +6,26 @@
 package au.edu.qimr.qannotate.modes;
 
 
-import java.io.BufferedInputStream;
+import htsjdk.samtools.SAMSequenceRecord;
+import htsjdk.samtools.reference.ReferenceSequenceFile;
+import htsjdk.samtools.reference.ReferenceSequenceFileFactory;
+
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.Serializable;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.zip.GZIPInputStream;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.meta.QExec;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
-import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.vcf.VcfFileMeta;
 import org.qcmg.common.vcf.VcfInfoFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
@@ -469,7 +464,7 @@ public class MakeValidMode extends AbstractMode {
 		return new String[]{s1.toString(), s2.toString()};
 	}
 
-	static VcfHeader reheader(VcfHeader header, String cmd, String inputVcfName) {	
+	static VcfHeader reheader(VcfHeader header, String cmd, String inputVcfName, boolean addContigs, String refFile) {	
 		 
 		VcfHeader myHeader = header;  	
  		
@@ -482,6 +477,13 @@ public class MakeValidMode extends AbstractMode {
 		myHeader.addOrReplace(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + fileDate);
 		myHeader.addOrReplace(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + uuid);
 		myHeader.addOrReplace(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=" + pg+"-"+version);
+		
+		if (addContigs && ! StringUtils.isNullOrEmpty(refFile)) {
+			ReferenceSequenceFile ref = ReferenceSequenceFileFactory.getReferenceSequenceFile(new File(refFile));
+			for (SAMSequenceRecord ssr : ref.getSequenceDictionary().getSequences()) {
+				myHeader.addOrReplace(VcfHeaderUtils.HEADER_LINE_CONTIG + "=<ID=" + ssr.getSequenceName()+",URL="+refFile);
+			}
+		}
 		
 		/*
 		 * The following header lines need to be adjusted so as to be valid:
