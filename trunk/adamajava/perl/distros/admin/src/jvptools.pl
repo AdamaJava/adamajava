@@ -2764,6 +2764,7 @@ sub qprofiler_genome {
         my @bases             = split //, $bases;
         my $bases_processed   = 0;
         my $bases_unprocessed = scalar(@bases);
+        my $window_ctr        = 0;
 
         while ( $bases_unprocessed ) {
             my $limit = ($bases_unprocessed > $params{windowsize})
@@ -2772,31 +2773,34 @@ sub qprofiler_genome {
 
             my $gc_count = 0;
             my %tally = ( 'N'=> 0, 'A'=>0, 'C'=>0, 'G'=>0, 'T'=>0 );
-            foreach my $i ($bases_processed..($limit-1)) {
-                # Important to force case!
-                $tally{ uc( $bases[$i] ) }++;
-
-                $gc_count++ if ($bases[$i] eq 'g' or $bases[$i] eq 'G' or
-                                $bases[$i] eq 'c' or $bases[$i] eq 'C');
+            # Tally bases and remember to force upper case for simplicity
+            my $loop_start = $bases_processed;
+            my $loop_end   = $loop_start + $limit -1;
+            foreach my $i ($loop_start..$loop_end) {
+                $tally{ uc( $bases[ $i ] ) }++;
             }
 
-            my $start = $bases_processed + 1;
-            my $end   = $start + $limit - 1;
-            #my $gc_percent = $gc_count / $limit;
-            my $gc_percent = ($tally{C}+$tally{G}) / 
-                             ($tally{A}+$tally{C}+$tally{G}+$tally{T});
+            # For windows entirely full of N's, cope with zero denominator
+            my $total_nonN_bases = $tally{A}+$tally{C}+$tally{G}+$tally{T};
+            my $gc_percent = ($total_nonN_bases > 0) 
+                             ? ($tally{C}+$tally{G}) / $total_nonN_bases
+                             : 0;
 
-            glogprint( join("\t", $bases_processed, $bases_unprocessed, $limit,
-                                  $start, $end, $gc_percent,
-                                  $tally{'N'}, $tally{'A'}, $tally{'C'}, $tally{'G'}, $tally{'T'}
-                           ), "\n" );
+            #glogprint( join("\t", $bases_processed, $bases_unprocessed, $limit,
+            #                      $loop_start, $loop_end, sprintf('%.3f', $gc_percent),
+            #                      $tally{'N'}, $tally{'A'}, $tally{'C'}, $tally{'G'}, $tally{'T'}
+            #               ), "\n" );
 
-            $qprofiler_genome->{ 'gcpercent_windows' }->{ $name }->{ $start .'-'. $end } = 
+            my $label = $loop_start .'-'. $loop_end;
+            $qprofiler_genome->{ 'gcpercent_windows' }->{ $name }->{ $label } = 
                 sprintf( '%.3f', $gc_percent );
             
             $bases_processed   += $limit;
             $bases_unprocessed -= $limit;
+            $window_ctr++;
         }
+
+        glogprint( "  windows: $window_ctr\n" );
 
         $seqctr++;
         $seqlen_total += $chrlen;
