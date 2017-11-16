@@ -26,6 +26,7 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.meta.QExec;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
+import org.qcmg.common.vcf.ContentType;
 import org.qcmg.common.vcf.VcfFileMeta;
 import org.qcmg.common.vcf.VcfInfoFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
@@ -469,7 +470,8 @@ public class MakeValidMode extends AbstractMode {
 
 	static VcfHeader reheader(VcfHeader header, String cmd, String inputVcfName, boolean addContigs, String refFile) {	
 		 
-		VcfHeader myHeader = header;  	
+		VcfHeader myHeader = header; 
+		VcfFileMeta inputMeta = new VcfFileMeta(myHeader);
  		
 		String version = Main.class.getPackage().getImplementationVersion();
 		String pg = Main.class.getPackage().getImplementationTitle();
@@ -534,7 +536,11 @@ public class MakeValidMode extends AbstractMode {
 		VcfHeaderUtils.addQPGLineToHeader(myHeader, pg, version, cmd);
 		String[] exsitIds = myHeader.getSampleId();
 		
-		myHeader.addOrReplace(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + exsitIds[0] + "_1\t" + exsitIds[1] + "_1\t" + exsitIds[0] + "_2\t" + exsitIds[1] + "_2");
+		boolean multipleSamples = ContentType.multipleSamples(inputMeta.getType());
+		
+		myHeader.addOrReplace(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + exsitIds[0] + "_1\t" + (multipleSamples ? exsitIds[1] + "_1\t" : "") +  exsitIds[0] + "_2\t" + (multipleSamples ? exsitIds[1] + "_2\t" : ""));
+		
+//		myHeader.addOrReplace(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + exsitIds[0] + "_1\t" + exsitIds[1] + "_1\t" + exsitIds[0] + "_2\t" + exsitIds[1] + "_2");
 		
 		return myHeader;			
 	}
