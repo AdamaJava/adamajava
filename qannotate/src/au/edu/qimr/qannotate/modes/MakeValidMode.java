@@ -89,7 +89,7 @@ public class MakeValidMode extends AbstractMode {
 			VcfHeader inputHeader = reader.getHeader();
 			VcfHeader outputHeader = reheader(inputHeader, cmd, input);
 			meta = new VcfFileMeta(outputHeader);
-			boolean singleSample = ContentType.multipleSamples(meta.getType());
+			boolean singleSample = ! ContentType.multipleSamples(meta.getType());
 			
 			for(final VcfHeaderRecord record: outputHeader)  {
 				writer.addHeader(record.toString());
