@@ -115,7 +115,7 @@ public class MakeValidMode extends AbstractMode {
 		if  ( ! singleSample) {
 			addCCM(v, callerPositionsMap);
 		}
-		addFormatDetails(v, callerPositionsMap);
+		addFormatDetails(v, callerPositionsMap, singleSample);
 	}
 	
 	/*
@@ -123,6 +123,9 @@ public class MakeValidMode extends AbstractMode {
 	 * will also add AD and DP, should they not be present
 	 */
 	public static void addFormatDetails(VcfRecord v, Map<String, short[]> callerPositionsMap) {
+		addFormatDetails(v, callerPositionsMap, false);
+	}
+	public static void addFormatDetails(VcfRecord v, Map<String, short[]> callerPositionsMap, boolean singleSample) {
 		/*
 		 * need to do this for all callers
 		 */
@@ -146,11 +149,13 @@ public class MakeValidMode extends AbstractMode {
 					 * do this for each caller
 					 */
 					String info = v.getInfo();
+					VcfInfoFieldRecord infoRec = v.getInfoRecord();
+					String conf = infoRec.getField("CONF");
 					boolean som1 = info.contains("SOMATIC_1") || (info.contains("SOMATIC") && info.contains("IN=1;"));
 					boolean som2 = info.contains("SOMATIC_2") || (info.contains("SOMATIC") && info.contains("IN=2;"));
 					
-					boolean pass1 = info.contains("CONF=HIGH_1") || (info.contains("CONF=HIGH") && info.contains("IN=1;"));
-					boolean pass2 = info.contains("CONF=HIGH_2") || (info.contains("CONF=HIGH") && info.contains("IN=2;"));
+					boolean pass1 = conf.contains("HIGH_1") || (conf.contains("HIGH") && info.contains("IN=1;"));
+					boolean pass2 = conf.contains("HIGH_2") || (conf.contains("HIGH") && info.contains("IN=2;"));
 					
 					
 					if (som1) {
@@ -164,12 +169,12 @@ public class MakeValidMode extends AbstractMode {
 					
 					if (pass1) {
 						short[]  firstCaller = callerPositionsMap.get("1");
-						ftArray[firstCaller[0] - 1] = "PASS";
+						if ( ! singleSample) ftArray[firstCaller[0] - 1] = "PASS";
 						ftArray[firstCaller[1] - 1] = "PASS";
 					}
 					if (pass2) {
 						short[]  secondCaller = callerPositionsMap.get("2");
-						ftArray[secondCaller[0] - 1] = "PASS";
+						if ( ! singleSample) ftArray[secondCaller[0] - 1] = "PASS";
 						ftArray[secondCaller[1] - 1] = "PASS";
 					}
 				}
