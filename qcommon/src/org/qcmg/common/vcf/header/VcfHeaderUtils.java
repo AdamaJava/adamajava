@@ -424,6 +424,7 @@ public class VcfHeaderUtils {
 	//most common string for vcf header
 	public static final String HEADER_LINE_FILTER = "##FILTER";
 	public static final String HEADER_LINE_CONTIG = "##contig";
+	public static final String HEADER_LINE_REF = "##reference";
 	public static final String HEADER_LINE_INFO = "##INFO";
 	public static final String HEADER_LINE_FORMAT = "##FORMAT";
 	public static final String CURRENT_FILE_FORMAT = "##fileformat=VCFv4.2";
