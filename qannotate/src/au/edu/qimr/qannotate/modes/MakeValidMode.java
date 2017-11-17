@@ -77,17 +77,17 @@ public class MakeValidMode extends AbstractMode {
         logger.tool("logger file " + options.getLogFileName());
         logger.tool("logger level " + (options.getLogLevel() == null ? QLoggerFactory.DEFAULT_LEVEL.getName() :  options.getLogLevel()));
         
-        processVcfFile(options.getInputFileName(), options.getOutputFileName(), options.getCommandLine());
+        processVcfFile(options.getInputFileName(), options.getOutputFileName(), options.getCommandLine(), options.getDatabaseFileName());
 	}
 	
-	private void processVcfFile(String input, String output, String cmd) throws FileNotFoundException, IOException {
+	private void processVcfFile(String input, String output, String cmd, String ref) throws FileNotFoundException, IOException {
 		File inputFile = new File(input);
 		
 		try (VCFFileReader reader = VCFFileReader.createStream(inputFile);
 				VCFFileWriter writer = new VCFFileWriter(new File(output));) {
 			
 			VcfHeader inputHeader = reader.getHeader();
-			VcfHeader outputHeader = reheader(inputHeader, cmd, input);
+			VcfHeader outputHeader = reheader(inputHeader, cmd, input,  ref);
 			meta = new VcfFileMeta(outputHeader);
 			boolean singleSample = ! ContentType.multipleSamples(meta.getType());
 			logger.info("new vcf file meta: " + meta.getType());
@@ -504,7 +504,7 @@ public class MakeValidMode extends AbstractMode {
 		return new String[]{s1.toString(), s2.toString()};
 	}
 
-	static VcfHeader reheader(VcfHeader header, String cmd, String inputVcfName, boolean addContigs, String refFile) {	
+	static VcfHeader reheader(VcfHeader header, String cmd, String inputVcfName, String refFile) {	
 		 
 		VcfHeader myHeader = header; 
 		VcfFileMeta inputMeta = new VcfFileMeta(myHeader);
@@ -519,7 +519,8 @@ public class MakeValidMode extends AbstractMode {
 		myHeader.addOrReplace(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + uuid);
 		myHeader.addOrReplace(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=" + pg+"-"+version);
 		
-		if (addContigs && ! StringUtils.isNullOrEmpty(refFile)) {
+		boolean contigsAlreadyExist = VcfHeaderUtils.containsContigs(myHeader);
+		if ( ! contigsAlreadyExist && ! StringUtils.isNullOrEmpty(refFile)) {
 			ReferenceSequenceFile ref = ReferenceSequenceFileFactory.getReferenceSequenceFile(new File(refFile));
 			myHeader.addOrReplace(VcfHeaderUtils.HEADER_LINE_REF + "=file://" + refFile);
 			for (SAMSequenceRecord ssr : ref.getSequenceDictionary().getSequences()) {
