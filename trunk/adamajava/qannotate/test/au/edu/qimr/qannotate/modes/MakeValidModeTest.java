@@ -100,6 +100,59 @@ public class MakeValidModeTest {
 		assertEquals("0/1:C8[37.25],8[40.5],T30[40],36[38.81]:18,72:82:PASS:C/T:99:.:66:59:C8[37.25]8[40.5];T30[40]36[38.81]", ffListMV.get(1));
 		assertEquals("0/1:C8[37.25],8[40.5],T30[40],36[38.81]:18,72:90:PASS:C/T:99:.:66:59:.", ffListMV.get(2));
 	}
+	@Test
+	public void makeValidSecondCallerSingleSample() {
+		//chr1    823260  rs199973779     G       T       30.77   MR;NNS  AC=1;AF=0.500;AN=2;BaseQRankSum=-1.869;ClippingRankSum=1.147;DP=97;FS=13.216;MLEAC=1;MLEAF=0.500;MQ=58.20;MQRankSum=-4.675;QD=0.32;ReadPosRankSum=1.711;SOR=3.575;IN=2;DB;HOM=3,AGAGTGTGTAtAAATGCATAG;CONF=ZERO    GT:AD:DP:GQ:PL:GD:AC:OABS:MR:NNS        0/1:89,8:97:59:59,0,3932:G/T:G54[39.35],35[39.14]:.:0:0
+		VcfRecord vcf1 = new VcfRecord(new String[]{"chr1","823260","rs199973779","G","T","30.77","MR;NNS","AC=1;AF=0.500;AN=2;BaseQRankSum=-1.869;ClippingRankSum=1.147;DP=97;FS=13.216;MLEAC=1;MLEAF=0.500;MQ=58.20;MQRankSum=-4.675;QD=0.32;ReadPosRankSum=1.711;SOR=3.575;IN=2;DB;HOM=3,AGAGTGTGTAtAAATGCATAG;CONF=ZERO"
+				,"GT:AD:DP:GQ:PL:GD:AC:OABS:MR:NNS"
+				,"0/1:89,8:97:59:59,0,3932:G/T:G54[39.35],35[39.14]:.:0:0"});
+		Map<String, short[]> positions = new HashMap<>();
+		positions.put("1", new short[]{0,1});
+		positions.put("2", new short[]{0,2});
+		/*
+		 * before
+		 */
+		List<String> ffList = vcf1.getFormatFields();
+		assertEquals(2, ffList.size());
+		assertEquals("GT:AD:DP:GQ:PL:GD:AC:OABS:MR:NNS", ffList.get(0));
+		assertEquals("0/1:89,8:97:59:59,0,3932:G/T:G54[39.35],35[39.14]:.:0:0", ffList.get(1));
+		
+		/*
+		 * after
+		 */
+		MakeValidMode.processVcfRecord(vcf1, positions, true);
+		List<String> ffListMV = vcf1.getFormatFields();
+		assertEquals(3, ffListMV.size());
+		assertEquals("GT:AC:AD:DP:FT:GD:GQ:INF:MR:NNS:OABS", ffListMV.get(0));
+		assertEquals(".:.:.:.:.:.:.:.:.:.:.", ffListMV.get(1));
+		assertEquals("0/1:G54[39.35],35[39.14]:89,8:97:.:G/T:59:.:0:0:.", ffListMV.get(2));
+	}
+	@Test
+	public void makeValidFirstCallerSingleSample() {
+		//chr1    884101  rs4970455       A       C       .       PASS    FLANK=TGGTCCCCCTG;IN=1;DB;HOM=3,CACCCTGGTCcCCCTGGTCCT;CONF=HIGH   GT:GD:AC:DP:OABS:MR:NNS 1/1:C/C:C12[35.92],9[38.56]:21:C12[35.92]9[38.56]:21:15
+		VcfRecord vcf1 = new VcfRecord(new String[]{"chr1","884101","rs4970455","A","C",".","PASS","FLANK=TGGTCCCCCTG;IN=1;DB;HOM=3,CACCCTGGTCcCCCTGGTCCT;CONF=HIGH"
+				,"GT:GD:AC:DP:OABS:MR:NNS","1/1:C/C:C12[35.92],9[38.56]:21:C12[35.92]9[38.56]:21:15"});
+		Map<String, short[]> positions = new HashMap<>();
+		positions.put("1", new short[]{0,1});
+		positions.put("2", new short[]{0,2});
+		/*
+		 * before
+		 */
+		List<String> ffList = vcf1.getFormatFields();
+		assertEquals(2, ffList.size());
+		assertEquals("GT:GD:AC:DP:OABS:MR:NNS", ffList.get(0));
+		assertEquals("1/1:C/C:C12[35.92],9[38.56]:21:C12[35.92]9[38.56]:21:15", ffList.get(1));
+		
+		/*
+		 * after
+		 */
+		MakeValidMode.processVcfRecord(vcf1, positions, true);
+		List<String> ffListMV = vcf1.getFormatFields();
+		assertEquals(3, ffListMV.size());
+		assertEquals("GT:AC:AD:DP:FT:GD:INF:MR:NNS:OABS", ffListMV.get(0));
+		assertEquals("1/1:C12[35.92],9[38.56]:0,21:21:PASS:C/C:.:21:15:C12[35.92]9[38.56]", ffListMV.get(1));
+		assertEquals(".:.:.:.:.:.:.:.:.:.", ffListMV.get(2));
+	}
 	
 	 @Test
 	 public void getupdatedGTs() {
