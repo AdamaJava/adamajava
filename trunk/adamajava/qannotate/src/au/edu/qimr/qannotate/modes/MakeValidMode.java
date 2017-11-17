@@ -524,7 +524,7 @@ public class MakeValidMode extends AbstractMode {
 			ReferenceSequenceFile ref = ReferenceSequenceFileFactory.getReferenceSequenceFile(new File(refFile));
 			myHeader.addOrReplace(VcfHeaderUtils.HEADER_LINE_REF + "=file://" + refFile);
 			for (SAMSequenceRecord ssr : ref.getSequenceDictionary().getSequences()) {
-				myHeader.addOrReplace(VcfHeaderUtils.HEADER_LINE_CONTIG + "=<ID=" + ssr.getSequenceName()+",URL="+refFile);
+				myHeader.addOrReplace(VcfHeaderUtils.HEADER_LINE_CONTIG + "=<ID=" + ssr.getSequenceName()+",URL="+refFile + ">");
 			}
 		}
 		
