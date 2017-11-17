@@ -90,6 +90,8 @@ public class MakeValidMode extends AbstractMode {
 			VcfHeader outputHeader = reheader(inputHeader, cmd, input);
 			meta = new VcfFileMeta(outputHeader);
 			boolean singleSample = ! ContentType.multipleSamples(meta.getType());
+			logger.info("new vcf file meta: " + meta.getType());
+			logger.info("singleSample: " + singleSample);
 			
 			for(final VcfHeaderRecord record: outputHeader)  {
 				writer.addHeader(record.toString());
@@ -158,25 +160,42 @@ public class MakeValidMode extends AbstractMode {
 					boolean pass2 = conf.contains("HIGH_2") || (conf.contains("HIGH") && info.contains("IN=2;"));
 					
 					
+					short[] firstCaller = callerPositionsMap.get("1");
+					short[] secondCaller = callerPositionsMap.get("2");
+					
 					if (som1) {
-						short[] firstCaller = callerPositionsMap.get("1");
 						infArray[firstCaller[1] - 1] = "SOMATIC";
 					}
 					if (som2) {
-						short[] secondCaller = callerPositionsMap.get("2");
 						infArray[secondCaller[1] - 1] = "SOMATIC";
 					}
 					
 					if (pass1) {
-						short[]  firstCaller = callerPositionsMap.get("1");
 						if ( ! singleSample) ftArray[firstCaller[0] - 1] = "PASS";
 						ftArray[firstCaller[1] - 1] = "PASS";
 					}
 					if (pass2) {
-						short[]  secondCaller = callerPositionsMap.get("2");
 						if ( ! singleSample) ftArray[secondCaller[0] - 1] = "PASS";
 						ftArray[secondCaller[1] - 1] = "PASS";
 					}
+//					short[] firstCaller = callerPositionsMap.get("1");
+//					short[] secondCaller = callerPositionsMap.get("2");
+//					
+//					if (som1 && null != firstCaller) {
+//						infArray[firstCaller[1] - 1] = "SOMATIC";
+//					}
+//					if (som2 && null != secondCaller) {
+//						infArray[secondCaller[1] - 1] = "SOMATIC";
+//					}
+//					
+//					if (pass1 &&null != firstCaller) {
+//						if ( ! singleSample) ftArray[firstCaller[0] - 1] = "PASS";
+//						ftArray[firstCaller[1] - 1] = "PASS";
+//					}
+//					if (pass2 && null != secondCaller) {
+//						if ( ! singleSample) ftArray[secondCaller[0] - 1] = "PASS";
+//						ftArray[secondCaller[1] - 1] = "PASS";
+//					}
 				}
 			}
 			
