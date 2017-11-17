@@ -7,7 +7,10 @@ import java.util.List;
 import java.util.Map;
 
 import org.junit.Test;
+import org.qcmg.common.vcf.ContentType;
+import org.qcmg.common.vcf.VcfFileMeta;
 import org.qcmg.common.vcf.VcfRecord;
+import org.qcmg.common.vcf.header.VcfHeader;
 
 public class MakeValidModeTest {
 	
@@ -369,7 +372,40 @@ public class MakeValidModeTest {
 		 assertEquals(".:.:.:.:.:.:.:.:.", ffListMV.get(2));
 		 assertEquals("0/1:60,8:68:99:C/G:G27[39.48],31[37.94]:.:0:0", ffListMV.get(3));
 		 assertEquals("0/2:120,28:148:99:G/T:G55[39.82],61[36.74]:.:0:0", ffListMV.get(4));
-		 
+	 }
+	 
+	 @Test
+	 public void rehead() {
+		VcfHeader header = new VcfHeader();
+		header.addOrReplace("##fileDate=20171117");
+		header.addOrReplace("##1:qUUID=1e7f8938-7965-4cfc-85c9-f3197fa150d3");
+		header.addOrReplace("##1:qSource=qSNP v2.0 (2269)");
+		header.addOrReplace("##1:qDonorId=http://purl.org/net/grafli/donor#87c39cab-1720-4af9-9fe2-714511c6a830");
+		header.addOrReplace("##1:qControlSample=null");
+		header.addOrReplace("##1:qTestSample=c9a6be94-bdb7-4c0d-a89d-4addbf76e486");
+		header.addOrReplace("##1:qTestBam=/reference/genomeinfo/regression/data/COLO-829/0f443106-e17d-4200-87ec-bd66fe91195f_GS.bam");
+		header.addOrReplace("##1:qTestBamUUID=0f443106-e17d-4200-87ec-bd66fe91195f");
+		header.addOrReplace("##1:qAnalysisId=3d4ecf27-fc71-4853-ade6-4451a3771c7a");
+		header.addOrReplace("##2:qUUID=36419b4c-8bd6-4383-9ac0-bb2d8e243ae0");
+		header.addOrReplace("##2:qSource=qSNP v2.0 (2269)");
+		header.addOrReplace("##2:qDonorId=http://purl.org/net/grafli/donor#87c39cab-1720-4af9-9fe2-714511c6a830");
+		header.addOrReplace("##2:qControlSample=null");
+		header.addOrReplace("##2:qTestSample=c9a6be94-bdb7-4c0d-a89d-4addbf76e486");
+		header.addOrReplace("##2:qTestBam=/reference/genomeinfo/regression/data/COLO-829/0f443106-e17d-4200-87ec-bd66fe91195f_GS.bam");
+		header.addOrReplace("##2:qTestBamUUID=0f443106-e17d-4200-87ec-bd66fe91195f");
+		header.addOrReplace("##2:qAnalysisId=fa34f968-5fe3-4bff-a54f-c08813091e77");
+		header.addOrReplace("##2:qTestVcf=/mnt/lustre/working/genomeinfo/cromwell-test/analysis/2/0/20b6e966-9b36-4bf5-b598-0da638e6e6dd/testGatkHCCV.vcf.gz");
+		header.addOrReplace("##2:qTestVcfUUID=null");
+		header.addOrReplace("##2:qTestVcfGATKVersion=null");
+		header.addOrReplace("##INPUT=1,FILE=/mnt/lustre/working/genomeinfo/cromwell-test/analysis/3/d/3d4ecf27-fc71-4853-ade6-4451a3771c7a/3d4ecf27-fc71-4853-ade6-4451a3771c7a.vcf.gz");
+		header.addOrReplace("##INPUT=2,FILE=/mnt/lustre/working/genomeinfo/cromwell-test/analysis/f/a/fa34f968-5fe3-4bff-a54f-c08813091e77/fa34f968-5fe3-4bff-a54f-c08813091e77.vcf.gz");
+		header.addOrReplace("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\t0f443106-e17d-4200-87ec-bd66fe91195f");
+		VcfFileMeta meta = new VcfFileMeta(header);
+		assertEquals(ContentType.SINGLE_CALLER_SINGLE_SAMPLE, meta.getType());
+		
+		VcfHeader updatedHeader = MakeValidMode.reheader(header, "test", "mu_test.vcf", null);
+		meta = new VcfFileMeta(updatedHeader);
+		assertEquals(ContentType.MULTIPLE_CALLERS_SINGLE_SAMPLE, meta.getType());
 	 }
 	  			
 }
