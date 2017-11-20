@@ -375,6 +375,23 @@ public class MakeValidModeTest {
 	 }
 	 
 	 @Test
+	 public void needValidMakeover() {
+		 VcfHeader header = new VcfHeader();
+		header.addOrReplace("##fileDate=20171117");
+		header.addOrReplace("##qTestBamUUID=T");
+		header.addOrReplace("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tT");
+		assertEquals(true, MakeValidMode.doesMakeValidNeedToBeRun(header)); 
+		header.addOrReplace("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tT\tT");
+		assertEquals(false, MakeValidMode.doesMakeValidNeedToBeRun(header));
+		header.addOrReplace("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tT_1\tT_2");
+		assertEquals(false, MakeValidMode.doesMakeValidNeedToBeRun(header));
+		header.addOrReplace("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tN_1\tT_2");
+		assertEquals(true, MakeValidMode.doesMakeValidNeedToBeRun(header));
+		header.addOrReplace("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tN_1\tT_1\tN_2\tT_2");
+		assertEquals(false, MakeValidMode.doesMakeValidNeedToBeRun(header));
+	 }
+	 
+	 @Test
 	 public void rehead() {
 		VcfHeader header = new VcfHeader();
 		header.addOrReplace("##fileDate=20171117");
