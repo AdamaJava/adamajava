@@ -392,28 +392,37 @@ public class MakeValidModeTest {
 	 }
 	 
 	 @Test
+	 public void reheader2() {
+		 VcfHeader header = new VcfHeader();
+		 header.addOrReplace("##1:qControlSample=5b516b78-78a0-4562-8be6-60875d2abac3");
+		 header.addOrReplace("##1:qTestSample=e2d4e67a-92d7-405e-b055-f3053c81f079");
+		 header.addOrReplace("##1:qControlBamUUID=b3d0f8ad-4ffa-4b90-835b-8d4f9c11f32d");
+		 header.addOrReplace("##1:qTestBamUUID=d56d8b14-aa9c-4ac7-955d-707720fcce76");
+		 header.addOrReplace("##1:qAnalysisId=754b98fe-5034-403c-a8c0-14292ac1e625");
+		 header.addOrReplace("##2:qControlSample=5b516b78-78a0-4562-8be6-60875d2abac3");
+		 header.addOrReplace("##2:qTestSample=e2d4e67a-92d7-405e-b055-f3053c81f079");
+		header.addOrReplace("##2:qControlBamUUID=b3d0f8ad-4ffa-4b90-835b-8d4f9c11f32d");
+		header.addOrReplace("##2:qTestBamUUID=d56d8b14-aa9c-4ac7-955d-707720fcce76");
+		header.addOrReplace("##INPUT=1,FILE=/mnt/lustre/working/genomeinfo/analysis/7/5/754b98fe-5034-403c-a8c0-14292ac1e625/754b98fe-5034-403c-a8c0-14292ac1e625.vcf");
+		header.addOrReplace("##INPUT=2,FILE=/mnt/lustre/working/genomeinfo/analysis/c/9/c979fb09-15cc-4c14-ae34-6621c2e3d496/c979fb09-15cc-4c14-ae34-6621c2e3d496.vcf");
+		 header.addOrReplace("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tb3d0f8ad-4ffa-4b90-835b-8d4f9c11f32d\td56d8b14-aa9c-4ac7-955d-707720fcce76");
+		 VcfFileMeta meta = new VcfFileMeta(header);
+		 assertEquals(ContentType.SINGLE_CALLER_MULTIPLE_SAMPLES, meta.getType());
+		 VcfHeader updatedHeader = MakeValidMode.reheader(header, "test", "mu_test.vcf", null);
+		meta = new VcfFileMeta(updatedHeader);
+		assertEquals(ContentType.MULTIPLE_CALLERS_MULTIPLE_SAMPLES, meta.getType());
+		assertEquals("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tb3d0f8ad-4ffa-4b90-835b-8d4f9c11f32d_1\td56d8b14-aa9c-4ac7-955d-707720fcce76_1\tb3d0f8ad-4ffa-4b90-835b-8d4f9c11f32d_2\td56d8b14-aa9c-4ac7-955d-707720fcce76_2", updatedHeader.getChrom().toString());
+	 }
+	 
+	 @Test
 	 public void rehead() {
 		VcfHeader header = new VcfHeader();
 		header.addOrReplace("##fileDate=20171117");
-		header.addOrReplace("##1:qUUID=1e7f8938-7965-4cfc-85c9-f3197fa150d3");
-		header.addOrReplace("##1:qSource=qSNP v2.0 (2269)");
-		header.addOrReplace("##1:qDonorId=http://purl.org/net/grafli/donor#87c39cab-1720-4af9-9fe2-714511c6a830");
-		header.addOrReplace("##1:qControlSample=null");
 		header.addOrReplace("##1:qTestSample=c9a6be94-bdb7-4c0d-a89d-4addbf76e486");
-		header.addOrReplace("##1:qTestBam=/reference/genomeinfo/regression/data/COLO-829/0f443106-e17d-4200-87ec-bd66fe91195f_GS.bam");
 		header.addOrReplace("##1:qTestBamUUID=0f443106-e17d-4200-87ec-bd66fe91195f");
-		header.addOrReplace("##1:qAnalysisId=3d4ecf27-fc71-4853-ade6-4451a3771c7a");
 		header.addOrReplace("##2:qUUID=36419b4c-8bd6-4383-9ac0-bb2d8e243ae0");
-		header.addOrReplace("##2:qSource=qSNP v2.0 (2269)");
-		header.addOrReplace("##2:qDonorId=http://purl.org/net/grafli/donor#87c39cab-1720-4af9-9fe2-714511c6a830");
-		header.addOrReplace("##2:qControlSample=null");
 		header.addOrReplace("##2:qTestSample=c9a6be94-bdb7-4c0d-a89d-4addbf76e486");
-		header.addOrReplace("##2:qTestBam=/reference/genomeinfo/regression/data/COLO-829/0f443106-e17d-4200-87ec-bd66fe91195f_GS.bam");
 		header.addOrReplace("##2:qTestBamUUID=0f443106-e17d-4200-87ec-bd66fe91195f");
-		header.addOrReplace("##2:qAnalysisId=fa34f968-5fe3-4bff-a54f-c08813091e77");
-		header.addOrReplace("##2:qTestVcf=/mnt/lustre/working/genomeinfo/cromwell-test/analysis/2/0/20b6e966-9b36-4bf5-b598-0da638e6e6dd/testGatkHCCV.vcf.gz");
-		header.addOrReplace("##2:qTestVcfUUID=null");
-		header.addOrReplace("##2:qTestVcfGATKVersion=null");
 		header.addOrReplace("##INPUT=1,FILE=/mnt/lustre/working/genomeinfo/cromwell-test/analysis/3/d/3d4ecf27-fc71-4853-ade6-4451a3771c7a/3d4ecf27-fc71-4853-ade6-4451a3771c7a.vcf.gz");
 		header.addOrReplace("##INPUT=2,FILE=/mnt/lustre/working/genomeinfo/cromwell-test/analysis/f/a/fa34f968-5fe3-4bff-a54f-c08813091e77/fa34f968-5fe3-4bff-a54f-c08813091e77.vcf.gz");
 		header.addOrReplace("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\t0f443106-e17d-4200-87ec-bd66fe91195f");
@@ -423,6 +432,7 @@ public class MakeValidModeTest {
 		VcfHeader updatedHeader = MakeValidMode.reheader(header, "test", "mu_test.vcf", null);
 		meta = new VcfFileMeta(updatedHeader);
 		assertEquals(ContentType.MULTIPLE_CALLERS_SINGLE_SAMPLE, meta.getType());
+		assertEquals("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\t0f443106-e17d-4200-87ec-bd66fe91195f_1\t0f443106-e17d-4200-87ec-bd66fe91195f_2", updatedHeader.getChrom().toString());
 	 }
 	  			
 }
