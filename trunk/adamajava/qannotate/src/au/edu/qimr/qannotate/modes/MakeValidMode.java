@@ -87,23 +87,37 @@ public class MakeValidMode extends AbstractMode {
 				VCFFileWriter writer = new VCFFileWriter(new File(output));) {
 			
 			VcfHeader inputHeader = reader.getHeader();
-			VcfHeader outputHeader = reheader(inputHeader, cmd, input,  ref);
-			meta = new VcfFileMeta(outputHeader);
-			boolean singleSample = ! ContentType.multipleSamples(meta.getType());
-			logger.info("new vcf file meta: " + meta.getType());
-			logger.info("singleSample: " + singleSample);
 			
-			for(final VcfHeaderRecord record: outputHeader)  {
-				writer.addHeader(record.toString());
-			}
-			Map<String, short[]> callerPositionsMap = meta.getCallerSamplePositions();
-			for (VcfRecord vcf : reader) {
-				if ( ! invalidRefAndAlt(vcf)) {
-					processVcfRecord(vcf, callerPositionsMap, singleSample);
-					writer.add(vcf);
+			/*
+			 * check that input file is in need of a valid makeover
+			 */
+			if (doesMakeValidNeedToBeRun(inputHeader)) {
+			
+				VcfHeader outputHeader = reheader(inputHeader, cmd, input,  ref);
+				meta = new VcfFileMeta(outputHeader);
+				boolean singleSample = ! ContentType.multipleSamples(meta.getType());
+				logger.info("new vcf file meta: " + meta.getType());
+				logger.info("singleSample: " + singleSample);
+				
+				for(final VcfHeaderRecord record: outputHeader)  {
+					writer.addHeader(record.toString());
 				}
+				Map<String, short[]> callerPositionsMap = meta.getCallerSamplePositions();
+				for (VcfRecord vcf : reader) {
+					if ( ! invalidRefAndAlt(vcf)) {
+						processVcfRecord(vcf, callerPositionsMap, singleSample);
+						writer.add(vcf);
+					}
+				}
+			} else {
+				logger.info("Input vcf file already has multiple callers");
 			}
 		}
+	}
+	
+	public static boolean doesMakeValidNeedToBeRun(VcfHeader header) {
+		VcfFileMeta m = new VcfFileMeta(header);
+		return ! ContentType.multipleCallers(m.getType());
 	}
 	
 	public static void processVcfRecord(VcfRecord v, Map<String, short[]> callerPositionsMap) {
