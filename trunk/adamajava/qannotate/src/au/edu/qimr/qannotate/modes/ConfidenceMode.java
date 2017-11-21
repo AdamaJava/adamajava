@@ -12,6 +12,7 @@ import static org.qcmg.common.util.SnpUtils.MUTATION_IN_UNFILTERED_NORMAL;
 import static org.qcmg.common.util.SnpUtils.PASS;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -39,16 +40,11 @@ import au.edu.qimr.qannotate.utils.SampleColumn;
 public class ConfidenceMode extends AbstractMode{
 	private final QLogger logger = QLoggerFactory.getLogger(ConfidenceMode.class);
 	
-	
-//	static final String[] CLASS_B_FILTERS= new String[] {PASS, MUTATION_IN_UNFILTERED_NORMAL, LESS_THAN_12_READS_NORMAL, LESS_THAN_3_READS_NORMAL};
-	
 	static final int HIGH_CONF_NOVEL_STARTS_PASSING_SCORE = 4;
 	static final int LOW_CONF_NOVEL_STARTS_PASSING_SCORE = 4;
 	
 	static final int HIGH_CONF_ALT_FREQ_PASSING_SCORE = 5;	
 	static final int LOW_CONF_ALT_FREQ_PASSING_SCORE = 4;	
-	
-	//filters 
 	
 	public static final String DESCRITPION_INFO_CONFIDENCE = String.format( "set to HIGH if the variants passed all filter, "
 			+ "appeared on more than %d novel stars reads and more than %d reads contains variants, is adjacent to reference sequence with less than %d homopolymer base; "
@@ -91,7 +87,6 @@ public class ConfidenceMode extends AbstractMode{
 		test_column = column.getTestSampleColumn();
 		control_column = column.getControlSampleColumn();
 
-		//if(options.getpatientid == null)
 		addAnnotation();
 		reheader(options.getCommandLine(),options.getInputFileName())	;	
 		writeVCF(new File(options.getOutputFileName()) );	
@@ -103,7 +98,6 @@ public class ConfidenceMode extends AbstractMode{
 	}
 
 
-	//inherited method from super
 	void addAnnotation() {
 		
 		int high = 0;
@@ -303,19 +297,12 @@ public class ConfidenceMode extends AbstractMode{
 		 return Integer.parseInt(nnsString);
 	 }
 	 
-//	 public static int getNNS(VcfFormatFieldRecord formatField) {
-//		 return getFieldFromFormatField(formatField, VcfHeaderUtils.FILTER_NOVEL_STARTS, 1);
-//	 }
-	 
 	 /*
 	  * Setters because SampleColumn code is so brittle......
 	  */
 	 public void setNNSCount(int c) {
 		 nnsCount = c;
 	 }
-//	 public void setMRCount(int c) {
-//		 mrCount = c;
-//	 }
 	 public void setMRPercentage(double d) {
 		 mrPercentage = d;
 	 }
@@ -325,7 +312,7 @@ public class ConfidenceMode extends AbstractMode{
 
 
 	@Override
-	void addAnnotation(String dbfile) throws Exception {
+	void addAnnotation(String dbfile) throws IOException {
 		// TODO Auto-generated method stub		
 	}  
 }	

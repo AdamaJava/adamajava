@@ -362,7 +362,7 @@ public class ConfidenceModeTest {
 	}
 
 	 @Test
-	 public void ConfidenceTest() throws IOException, Exception{	
+	 public void confidenceTest() throws IOException, Exception{	
 	 	DbsnpModeTest.createVcf();
 		final ConfidenceMode mode = new ConfidenceMode(patient);		
 		mode.inputRecord(new File(DbsnpModeTest.inputName));
@@ -380,7 +380,7 @@ public class ConfidenceModeTest {
 		mode.reheader("unitTest", DbsnpModeTest.inputName);
 		mode.writeVCF(new File(DbsnpModeTest.outputName)  );
 		
-		try(VCFFileReader reader = new VCFFileReader(DbsnpModeTest.outputName)){				 				 
+		try(VCFFileReader reader = new VCFFileReader(DbsnpModeTest.outputName)){			 
 			for (final VcfRecord re : reader) {		
 				final VcfInfoFieldRecord infoRecord = new VcfInfoFieldRecord(re.getInfo()); 				
 				if(re.getPosition() == 2675826) 
@@ -403,7 +403,7 @@ public class ConfidenceModeTest {
 	 
 	 
 	 @Test
-	 public void SampleColumnNoIDTest() throws IOException, Exception{	
+	 public void sampleColumnNoIDTest() throws IOException, Exception{	
 	 	DbsnpModeTest.createVcf();
 		final ConfidenceMode mode = new ConfidenceMode(patient);		
 		mode.inputRecord(new File(DbsnpModeTest.inputName));
@@ -421,7 +421,7 @@ public class ConfidenceModeTest {
 		mode.reheader("unitTest", DbsnpModeTest.inputName);
 		mode.writeVCF(new File(DbsnpModeTest.outputName)  );
 		
-		try(VCFFileReader reader = new VCFFileReader(DbsnpModeTest.outputName)){				 				 
+		try(VCFFileReader reader = new VCFFileReader(DbsnpModeTest.outputName)){
 			for (final VcfRecord re : reader) {		
 				final VcfInfoFieldRecord infoRecord = new VcfInfoFieldRecord(re.getInfo()); 				
 				if(re.getPosition() == 2675826) 

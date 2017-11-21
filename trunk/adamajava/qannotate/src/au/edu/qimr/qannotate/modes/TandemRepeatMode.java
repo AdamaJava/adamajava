@@ -96,7 +96,7 @@ public class TandemRepeatMode  extends AbstractMode{
 			this.repeats = repeats; 
 		}
 		
-		Block(int start, int end){ this(start, end, new ArrayList<Repeat>());  }	
+		Block(int start, int end){ this(start, end, new ArrayList<>());  }	
 		
 //		Block reset(int start, int end){ return new Block(start, end, this.repeats);  }
 		
@@ -141,7 +141,7 @@ public class TandemRepeatMode  extends AbstractMode{
 		
 		int totalRepeat = 0; 
 		int totalBlock = 0;					
-		Map<String, BlockIndex> indexedBlock  = new HashMap<String, BlockIndex>();
+		Map<String, BlockIndex> indexedBlock  = new HashMap<>();
 		for(String chr: repeats.keySet()){
 			 logger.debug("indexing blocks for " + chr);
 			 indexedBlock.put(chr,  makeIndexedBlock( repeats.get(chr)));
@@ -379,7 +379,7 @@ public class TandemRepeatMode  extends AbstractMode{
 		    
 		    
 		    //S4: each gap insert a index
-	 	    Map<Integer, Block> inserts = new HashMap<Integer, Block>();
+	 	    Map<Integer, Block> inserts = new HashMap<>();
 		    for(Block block:  blockIndex.values() ){		    	
 			    	start = block.start;
 			    	//throw null exception since some block is null

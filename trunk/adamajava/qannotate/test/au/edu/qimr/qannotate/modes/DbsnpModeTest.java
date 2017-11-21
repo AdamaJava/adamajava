@@ -161,7 +161,7 @@ public class DbsnpModeTest {
 	 */
 	
 	@Test
-	public void VLDTest() throws IOException, Exception{
+	public void vLDTest() throws IOException, Exception{
 		createDbsnpHeader();
 		
 		final DbsnpMode mode = new DbsnpMode();		
@@ -173,7 +173,6 @@ public class DbsnpModeTest {
 		try (VCFFileReader reader = new VCFFileReader(outputName)) {
 			VcfHeader header = reader.getHeader();	
 			assertEquals( header.getInfoRecord(VcfHeaderUtils.INFO_VLD)!= null, true);
-//			assertEquals(true, header.getInfoRecords().containsKey(VcfHeaderUtils.INFO_VLD));
 		}		 
 	}		
 	
@@ -182,7 +181,7 @@ public class DbsnpModeTest {
 	 * @throws IOException
 	 */
 	public static void createVcf() throws IOException{
-        final List<String> data = new ArrayList<String>();
+        final List<String> data = new ArrayList<>();
         data.add("##fileformat=VCFv4.0");
         data.add(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT+"s1\ts2");
  
@@ -202,7 +201,7 @@ public class DbsnpModeTest {
 	 * a mini dbSNP vcf file 
 	 */
 	public static void createDbsnp() throws IOException{
-        final List<String> data = new ArrayList<String>();
+        final List<String> data = new ArrayList<>();
         data.add("##fileformat=VCFv4.0");
         data.add("##dbSNP_BUILD_ID=135");  
         data.add("##INFO=<ID=CAF,Number=.,Type=String,Description=\"An ordered, comma delimited list of allele frequencies based on 1000Genomes, starting with the reference allele followed by alternate alleles as ordered in the ALT column. "
@@ -219,7 +218,7 @@ public class DbsnpModeTest {
           
 	}
 	public static void createDbsnpHeader() throws IOException{
-        final List<String> data = new ArrayList<String>();
+        final List<String> data = new ArrayList<>();
         data.add("##fileformat=VCFv4.0");
         data.add("##dbSNP_BUILD_ID=135");  
         data.add("##INFO=<ID=CAF,Number=.,Type=String,Description=\"An ordered, comma delimited list of allele frequencies based on 1000Genomes, starting with the reference allele followed by alternate alleles as ordered in the ALT column. "

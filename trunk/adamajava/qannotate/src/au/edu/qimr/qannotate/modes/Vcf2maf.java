@@ -413,11 +413,8 @@ public class Vcf2maf extends AbstractMode{
 	 } 
 	 
 	 /**
+	  * If the record is a merged record, return values for the first caller
 	  * 
-	  * If the record is a merged record, return values for the first 
-	  * 
-	  * 
-	  * @param format
 	  * @return array[nns, depth, ref_count, alt_count, allele1, allele2, coverageString(AC,ACCS,ACINDEL)]; 
 	  * return null if the input sample hava no value eg. "."
 	  */	 
@@ -592,7 +589,7 @@ public class Vcf2maf extends AbstractMode{
 
 	
 	@Override
-	void addAnnotation(String dbfile) throws Exception {
+	void addAnnotation(String dbfile) throws IOException {
 		// TODO Auto-generated method stub
 	}
 

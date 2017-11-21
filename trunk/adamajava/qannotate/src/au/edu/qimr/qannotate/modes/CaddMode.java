@@ -32,12 +32,12 @@ public class  CaddMode extends AbstractMode{
 	private static final Comparator<ChrPosition> COMPARATOR = new ChrPositionComparator();
 	private final static String CADD = "CADD";
 	
-	static long outputNo = 0;
-	static long blockNo = 0;	
-	static long inputNo = 0;
+	private static long outputNo = 0;
+	private static long blockNo = 0;	
+	private static long inputNo = 0;
 	private final QLogger logger= QLoggerFactory.getLogger(CaddMode.class);
 	
-	String description = "query CADD library for this variant. Format: (Ref>Alt|isDerived|Consequence|ConsScore|ConsDetail|scoreSegDup|priPhyloP|GerpRS|mirSVR-E|cHmmTssA|motifDist|ESP_AFR|ESP_EUR|TG_AMR|FeatureID|FeatureID|CCDS|relcDNApos)";	
+	public static final String description = "query CADD library for this variant. Format: (Ref>Alt|isDerived|Consequence|ConsScore|ConsDetail|scoreSegDup|priPhyloP|GerpRS|mirSVR-E|cHmmTssA|motifDist|ESP_AFR|ESP_EUR|TG_AMR|FeatureID|FeatureID|CCDS|relcDNApos)";	
 		
 	public CaddMode( Options options) throws Exception {		
 		

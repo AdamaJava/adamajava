@@ -28,7 +28,9 @@ public class SnpEffMafRecordTest {
 				try {
 					rec.getColumnValue(i);
 					fail("Should have thrown an IllegalArgumentException");
-				} catch (ArrayIndexOutOfBoundsException iae) {}
+				} catch (ArrayIndexOutOfBoundsException iae) {
+					// intentionally left blank
+				}
 			} else  {
 				assertEquals(rec.getColumnValue(i), MafElement.getByColumnNo(i).getDefaultValue())  ;
 			}

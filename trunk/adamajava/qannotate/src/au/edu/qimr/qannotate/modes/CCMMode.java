@@ -31,7 +31,6 @@ public class CCMMode extends AbstractMode{
 	private final static QLogger logger = QLoggerFactory.getLogger(CCMMode.class);
 	
 	public static final String DOUBLE_ZERO = "0/0";
-	public static final String DOUBLE_DOT = "./.";
 	
 	private VcfFileMeta meta;
 	private Map<String, short[]> callerPositionsMap = Collections.emptyMap();
@@ -82,14 +81,14 @@ public class CCMMode extends AbstractMode{
 		 * deal with instances where we have single dot rather than double dot
 		 */
 		if (Constants.MISSING_DATA_STRING.equals(cGT)) {
-			cGT = DOUBLE_DOT;
+			cGT = Constants.MISSING_GT;
 		}
 		if (Constants.MISSING_DATA_STRING.equals(tGT)) {
-			tGT = DOUBLE_DOT;
+			tGT = Constants.MISSING_GT;
 		}
 		
-		if (DOUBLE_DOT.equals(cGT)) {
-			if (DOUBLE_DOT.equals(tGT)) 						return 1;
+		if (Constants.MISSING_GT.equals(cGT)) {
+			if (Constants.MISSING_GT.equals(tGT)) 						return 1;
 			if (DOUBLE_ZERO.equals(tGT)) 						return 2;
 			int[] testAlleles = getAlleles(tGT);
 			if (testAlleles[0] == 0 || testAlleles[1] == 0)	return 3;
@@ -98,7 +97,7 @@ public class CCMMode extends AbstractMode{
 		}
 			
 		if (DOUBLE_ZERO.equals(cGT)) {
-			if (DOUBLE_DOT.equals(tGT)) 						return 11;
+			if (Constants.MISSING_GT.equals(tGT)) 						return 11;
 			if (DOUBLE_ZERO.equals(tGT)) 						return 12;
 			int[] testAlleles = getAlleles(tGT);
 			if (testAlleles[0] == 0 || testAlleles[1] == 0)	return 13;
@@ -108,7 +107,7 @@ public class CCMMode extends AbstractMode{
 		
 		int[] controlAlleles = getAlleles(cGT);
 		if (controlAlleles[0] == 0 || controlAlleles[1] == 0) {
-			if (DOUBLE_DOT.equals(tGT)) 						return 21;
+			if (Constants.MISSING_GT.equals(tGT)) 						return 21;
 			if (DOUBLE_ZERO.equals(tGT)) 						return 22;
 			int[] testAlleles = getAlleles(tGT);
 			if (testAlleles[0] == 0 || testAlleles[1] == 0) {
@@ -127,7 +126,7 @@ public class CCMMode extends AbstractMode{
 		}
 		
 		if (controlAlleles[0] == controlAlleles[1]) {
-			if (DOUBLE_DOT.equals(tGT)) 						return 31;
+			if (Constants.MISSING_GT.equals(tGT)) 						return 31;
 			if (DOUBLE_ZERO.equals(tGT)) 						return 32;
 			int[] testAlleles = getAlleles(tGT);
 			if (testAlleles[0] == 0 || testAlleles[1] == 0) {
@@ -147,7 +146,7 @@ public class CCMMode extends AbstractMode{
 		/*
 		 * control is x/y by this point
 		 */
-		if (DOUBLE_DOT.equals(tGT)) 						return 41;
+		if (Constants.MISSING_GT.equals(tGT)) 						return 41;
 		if (DOUBLE_ZERO.equals(tGT)) 						return 42;
 		int[] testAlleles = getAlleles(tGT);
 		if (testAlleles[0] == 0 || testAlleles[1] == 0) {
@@ -239,7 +238,7 @@ public class CCMMode extends AbstractMode{
 		}
 	}
 	
-	void addAnnotation(){
+	private void addAnnotation(){
 		
 		/*
 		 * add header records for CCC and CCM

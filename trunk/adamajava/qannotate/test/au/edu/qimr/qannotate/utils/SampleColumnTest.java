@@ -4,25 +4,19 @@ import static org.junit.Assert.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.junit.After;
 import org.junit.Test;
-import org.qcmg.common.util.IndelUtils.SVTYPE;
-import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 
 import au.edu.qimr.qannotate.modes.DbsnpModeTest;
-import au.edu.qimr.qannotate.modes.Vcf2maf;
 import au.edu.qimr.qannotate.modes.Vcf2mafTest;
-import scala.actors.threadpool.Arrays;
 
 public class SampleColumnTest {
 	public static String input = DbsnpModeTest.inputName;	
 	
-	private String[] header0 = {
+	private final String[] header0 = {
     		VcfHeaderUtils.STANDARD_FILE_FORMAT + "=VCFv4.0",			
 			VcfHeaderUtils.STANDARD_DONOR_ID + "=MELA_0264",
 			VcfHeaderUtils.STANDARD_CONTROL_SAMPLE + "=CONTROL_sample",
