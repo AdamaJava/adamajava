@@ -30,19 +30,19 @@ public class DiscordantPairClusterTest {
         cluster = null;
     }
 
-    @Test
-    public void testSetters() {
-        cluster.setLeftStart(1);
-        assertEquals(1, cluster.getLeftStart());
-        cluster.setLeftEnd(2);
-        assertEquals(2, cluster.getLeftEnd());
-        cluster.setRightStart(3);
-        assertEquals(3, cluster.getRightStart());
-        cluster.setRightEnd(4);
-        assertEquals(4, cluster.getRightEnd());
-
-        assertEquals("somatic", cluster.getType());
-    }
+//    @Test
+//    public void testSetters() {
+//        cluster.setLeftStart(1);
+//        assertEquals(1, cluster.getLeftStart());
+//        cluster.setLeftEnd(2);
+//        assertEquals(2, cluster.getLeftEnd());
+//        cluster.setRightStart(3);
+//        assertEquals(3, cluster.getRightStart());
+//        cluster.setRightEnd(4);
+//        assertEquals(4, cluster.getRightEnd());
+//
+//        assertEquals("somatic", cluster.getType());
+//    }
     
     @Test
     public void testFindLeftStartOfCluster() {    	

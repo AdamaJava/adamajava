@@ -35,7 +35,7 @@ public class QPrimerCategory {
 	}
 
 	public QPrimerCategory(String zpType, String leftChr, String rightChr, String pairType) {
-		this.map = new HashMap<String,Integer>();
+		this.map = new HashMap<>();
 		this.zpType = zpType;
 		this.leftChr = leftChr;
 		this.rightChr = rightChr;
@@ -211,10 +211,10 @@ public class QPrimerCategory {
 	private void setCat5SwappedEnds(int clusterLeftStart, int clusterLeftEnd, int clusterRightStart, int clusterRightEnd) {
 		int leftPrimerStart = clusterLeftStart + 50;
 		int rightPrimerEnd = clusterRightEnd - 50;
-		Double middle = Math.ceil(((new Double(clusterLeftStart) + new Double(clusterRightEnd))/ new Double(2)));
+		Double middle = Math.ceil(((double)clusterLeftStart + clusterRightEnd)/ 2);
 		
 		int leftPrimerEnd = middle.intValue();
-		int rightPrimerStart = middle.intValue();
+		int rightPrimerStart = leftPrimerEnd;
 		
 		//swap!
 		startLeft = rightPrimerStart;
@@ -229,14 +229,14 @@ public class QPrimerCategory {
 
 	private void setStandardEnds(int clusterLeftStart, int clusterLeftEnd, int clusterRightStart, int clusterRightEnd) {
 		
-		Double endL = Math.ceil(((new Double(clusterLeftEnd) + new Double(clusterLeftStart))/ new Double(2)));		
+		Double endL = Math.ceil(((double)clusterLeftEnd + clusterLeftStart)/ 2);		
 		endLeft = endL.intValue();
 		startLeft = endLeft-499;
 		if (startLeft<clusterLeftStart) {
 			startLeft = clusterLeftStart;
 		}
 		
-		Double startR =  Math.ceil(((new Double(clusterRightEnd) + new Double(clusterRightStart))/2));		
+		Double startR =  Math.ceil(((double)clusterRightEnd + clusterRightStart)/2);		
 		startRight = startR.intValue();
 		
 		endRight = startRight + 499;
@@ -247,7 +247,7 @@ public class QPrimerCategory {
 	
 	private void setCat4Ends(int clusterLeftStart, int clusterLeftEnd, int clusterRightStart, int clusterRightEnd) {
 		
-		Double startL = Math.ceil(((new Double(clusterLeftEnd) + new Double(clusterLeftStart))/2));		
+		Double startL = Math.ceil(((double)clusterLeftEnd + clusterLeftStart)/2);		
 		startLeft = startL.intValue();
 		
 		endLeft = startLeft+499;
@@ -255,7 +255,7 @@ public class QPrimerCategory {
 			endLeft = clusterLeftEnd;
 		}
 		
-		Double endR = Math.ceil(((new Double(clusterRightEnd) + new Double(clusterRightStart))/2));		
+		Double endR = Math.ceil(((double)clusterRightEnd + clusterRightStart)/2);		
 		endRight = endR.intValue();
 		
 		startRight = endRight - 499;
@@ -271,7 +271,7 @@ public class QPrimerCategory {
 		
 		leftChr = tempLeft;
 		rightChr = tempRight;
-		Double endL = Math.ceil(((new Double(clusterRightEnd) + new Double(clusterRightStart))/2));			
+		Double endL = Math.ceil(((double)clusterRightEnd + clusterRightStart)/2);					
 		endLeft = endL.intValue();
 		
 		startLeft = endLeft-499;
@@ -279,7 +279,7 @@ public class QPrimerCategory {
 			startLeft = clusterRightStart;
 		}
 		
-		Double startR = Math.ceil(((new Double(clusterLeftEnd) + new Double(clusterLeftStart))/2));
+		Double startR = Math.ceil(((double)clusterLeftEnd + clusterLeftStart)/2);
 		startRight = startR.intValue();
 
 		endRight = startRight + 499;
@@ -307,7 +307,7 @@ public class QPrimerCategory {
 						primaryCategoryNo = entry.getKey();
 					}    			
 				} else {
-					List<String> categoryNos = new ArrayList<String>();
+					List<String> categoryNos = new ArrayList<>();
 					int max = -1;
 					
 					// sort keys so that tests pass....
@@ -336,13 +336,9 @@ public class QPrimerCategory {
 	}
 	
 	public String toString(String svId) {
-		String left = new String();
-		String right = new String();
-		
-		left = leftChr + ":" + startLeft + "-" + endLeft;
-		right = rightChr + ":" + startRight + "-" + endRight;
+		String left = leftChr + ":" + startLeft + "-" + endLeft;
+		String right = rightChr + ":" + startRight + "-" + endRight;
 
 			return svId + "\t" + left + "\t" + right + "\t" + reverseFlag + "\t" + primaryCategoryNo + "\t" + mixedCategories;
-	
 	}
 }
