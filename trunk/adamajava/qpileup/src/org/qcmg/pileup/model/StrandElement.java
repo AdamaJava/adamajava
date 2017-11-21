@@ -34,10 +34,6 @@ public class StrandElement {
 		return name;
 	}
 
-//	public void setName(String name) {
-//		this.name = name;
-//	}
-
 	public int[] getIntDataMembers() {
 		return intDataMembers;
 	}
@@ -57,10 +53,6 @@ public class StrandElement {
 	public boolean isLong() {
 		return isLong;
 	}
-
-//	public void setLong(boolean isLong) {
-//		this.isLong = isLong;
-//	}
 	
 	public void addElement(int index, int size) {		
 			if (isLong) {

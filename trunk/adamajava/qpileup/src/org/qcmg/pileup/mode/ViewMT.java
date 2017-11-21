@@ -39,13 +39,13 @@ import org.qcmg.pileup.model.StrandEnum;
 
 public class ViewMT {
 	
-	private PileupHDF hdf;	
-	private QLogger logger = QLoggerFactory.getLogger(getClass());
+	private final PileupHDF hdf;	
+	private final QLogger logger = QLoggerFactory.getLogger(getClass());
 	private int blockSize;
     private final int sleepUnit = 10;
     private int noOfThreads;	
-	private AtomicInteger exitStatus = new AtomicInteger();
-	private List<String> readRanges;
+	private final AtomicInteger exitStatus = new AtomicInteger();
+	private final List<String> readRanges;
 	
 	private List<StrandEnum> groupElements = new ArrayList<StrandEnum>();
 	private List<StrandEnum> viewElements = new ArrayList<StrandEnum>();
@@ -121,10 +121,10 @@ public class ViewMT {
 	
 
 	private String showHDFVersionOption() throws HDF5LibraryException, HDF5Exception {
-    	StringBuffer sb = new StringBuffer();
-    	sb.append("## VERSION_BOOTSTRAP=" + hdf.getVersionMessage() + "\n");
-    	sb.append("## VERSION_FILE=" +hdf.getVersionFileMessage() + "\n");
-    	return sb.toString();
+		StringBuilder sb = new StringBuilder();
+	    	sb.append("## VERSION_BOOTSTRAP=").append(hdf.getVersionMessage()).append("\n");
+	    	sb.append("## VERSION_FILE=").append(hdf.getVersionFileMessage()).append("\n");
+	    	return sb.toString();
 	}
 
 
