@@ -195,45 +195,42 @@ public class CCMMode extends AbstractMode{
 		Map<String, String[]> ffMap = VcfUtils.getFormatFieldsAsMap(v.getFormatFields());
 		String[] gtArr = ffMap.get(VcfHeaderUtils.FORMAT_GENOTYPE);
 		
-		String [] ccmArray = new String[gtArr.length];
-		String [] cccArray = new String[gtArr.length];
 		
-		if (null != gtArr) {
+		/*
+		 * if null or single sample, skip
+		 */
+		if (null != gtArr && gtArr.length > 1) {
 			
-			/*
-			 * if single sample, skip
-			 */
-			if (gtArr.length > 1) {
-				
-				if ( ! map.isEmpty()) {
-					/*
-					 * do this for each caller
-					 */
-					String key = "";
-					for (Map.Entry<String, short[]> entry : map.entrySet()) {
-						String cGT = gtArr[entry.getValue()[0] -1];
-						String tGT = gtArr[entry.getValue()[1] -1];
-						int ccm = getCCM(cGT, tGT);
-						key += key.length() > 0 ? ":" + ccm : ccm;
-						
-						ccmArray[entry.getValue()[0] -1] = ccm+"";
-						ccmArray[entry.getValue()[1] -1] = ccm+"";
-						CCM ccmE = CCM.getCCM(ccm);
-						cccArray[entry.getValue()[0] -1] = CCM.getControl(ccmE);
-						cccArray[entry.getValue()[1] -1] = CCM.getTest(ccmE);
-					}
-					if (null != statsMap) {
-						statsMap.computeIfAbsent(key, vv -> new AtomicInteger()).incrementAndGet();
-					}
+			if ( ! map.isEmpty()) {
+				String [] ccmArray = new String[gtArr.length];
+				String [] cccArray = new String[gtArr.length];
+				/*
+				 * do this for each caller
+				 */
+				String key = "";
+				for (Map.Entry<String, short[]> entry : map.entrySet()) {
+					String cGT = gtArr[entry.getValue()[0] -1];
+					String tGT = gtArr[entry.getValue()[1] -1];
+					int ccm = getCCM(cGT, tGT);
+					key += key.length() > 0 ? ":" + ccm : ccm;
 					
-					/*
-					 * update the map with the new entries, and update the vcf record
-					 */
-					ffMap.put(VcfHeaderUtils.FORMAT_CCM, ccmArray);
-					ffMap.put(VcfHeaderUtils.FORMAT_CCC, cccArray);
-					v.setFormatFields(VcfUtils.convertFFMapToList(ffMap));
-					
+					ccmArray[entry.getValue()[0] -1] = ccm+"";
+					ccmArray[entry.getValue()[1] -1] = ccm+"";
+					CCM ccmE = CCM.getCCM(ccm);
+					cccArray[entry.getValue()[0] -1] = CCM.getControl(ccmE);
+					cccArray[entry.getValue()[1] -1] = CCM.getTest(ccmE);
 				}
+				if (null != statsMap) {
+					statsMap.computeIfAbsent(key, vv -> new AtomicInteger()).incrementAndGet();
+				}
+				
+				/*
+				 * update the map with the new entries, and update the vcf record
+				 */
+				ffMap.put(VcfHeaderUtils.FORMAT_CCM, ccmArray);
+				ffMap.put(VcfHeaderUtils.FORMAT_CCC, cccArray);
+				v.setFormatFields(VcfUtils.convertFFMapToList(ffMap));
+				
 			}
 		}
 	}
@@ -253,11 +250,9 @@ public class CCMMode extends AbstractMode{
 		statsMap.entrySet().stream().sorted((e1, e2) -> {return e2.getValue().get() -  e1.getValue().get();}).forEach(e -> logger.info("key: " + e.getKey() + ", count: " + e.getValue().get()));
 	}
 
-
 	@Override
-	void addAnnotation(String dbfile) throws Exception {
+	void addAnnotation(String dbfile) throws IOException {
 		// TODO Auto-generated method stub
-		
 	}
 	
 }
