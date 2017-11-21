@@ -112,7 +112,7 @@ public class SnpEffMode extends AbstractMode{
 	}
 	
 	@Override
-	void addAnnotation(String dbSNPFile) throws Exception {
+	void addAnnotation(String dbSNPFile) throws IOException {
 		// TODO Auto-generated method stub
 		
 	}

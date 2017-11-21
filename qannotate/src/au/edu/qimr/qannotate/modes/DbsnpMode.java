@@ -8,6 +8,7 @@ package au.edu.qimr.qannotate.modes;
 import static org.qcmg.common.util.Constants.EQ;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 import org.qcmg.common.log.QLogger;
@@ -30,7 +31,6 @@ import au.edu.qimr.qannotate.Options;
 
 public class DbsnpMode extends AbstractMode{
 	private final static QLogger logger = QLoggerFactory.getLogger(DbsnpMode.class);
-//	private VcfRecord dbSNPVcf;
 	
 	//for unit Test
 	DbsnpMode(){}
@@ -53,15 +53,12 @@ public class DbsnpMode extends AbstractMode{
 		
 	//testing at momemnt
 	@Deprecated
-	void divAnnotation(String dbSNPFile) throws Exception{
+	void divAnnotation(String dbSNPFile) throws IOException{
  	    		 				 
 		try (VCFFileReader reader= new VCFFileReader( dbSNPFile )) {
 			//add dbSNP version into header	
 			VcfHeaderRecord dbre = reader.getHeader().firstMatchedRecord(VcfHeaderUtils.STANDARD_DBSNP_LINE);
 			if( dbre != null)	 {
-//				header.addOrReplace(String.format("##INFO=<ID=%s,Number=0,Type=%s,Description=\"%s\",Source=%s,Version=%s>",
-//						VcfHeaderUtils.INFO_DB, VcfInfoType.Flag.name(),VcfHeaderUtils.DESCRITPION_INFO_DB, dbSNPFile, dbre.getMetaValue()  ));
-				
 				header.addInfo(VcfHeaderUtils.INFO_DB,  "0", VcfInfoType.Flag.name(),VcfHeaderUtils.DESCRITPION_INFO_DB);
 			}
 		
@@ -100,7 +97,7 @@ public class DbsnpMode extends AbstractMode{
 	}
 	
 	@Override
-	void addAnnotation(String dbSNPFile) throws Exception{
+	void addAnnotation(String dbSNPFile) throws IOException{
 		 				 
 		try (VCFFileReader reader= new VCFFileReader( dbSNPFile )) {
 			//add dbSNP version into header		
@@ -237,78 +234,4 @@ public class DbsnpMode extends AbstractMode{
 		
 		return true; 
 	}	
-	
-	
-//	 void annotateDBsnp(VcfRecord  inputVcf, VcfRecord dbSNPVcf ){
-//		//trim the dbSNP alleles, since the first base maybe from reference if vcf second column different with "RSPOS" value 
-//		String[] db_alts = dbSNPVcf.getAlt().contains(Constants.COMMA_STRING) ? 
-//				TabTokenizer.tokenize(dbSNPVcf.getAlt(), Constants.COMMA) : new String[] {dbSNPVcf.getAlt()}; 
-//		int start = dbSNPVcf.getPosition();
-//		String rspos = dbSNPVcf.getInfoRecord().getField("RSPOS");
-//		if( !StringUtils.isNullOrEmpty(rspos)) 		
-//			start = Integer.parseInt(rspos);		
-//		for(int i = 0; i < db_alts.length; i ++)
-//			db_alts[i] = db_alts[i].substring(start-dbSNPVcf.getPosition());
-//				
-//		String[] input_alts = inputVcf.getAlt().contains(Constants.COMMA_STRING) ? 
-//				TabTokenizer.tokenize(inputVcf.getAlt(), Constants.COMMA) : new String[] {inputVcf.getAlt()}; 	
-//		
-//		//assign dbsnp id if one of allel matches
-//		boolean flag = false; 
-//		
-//		for(int i = 0; i < db_alts.length; i ++)
-//			for(int j = 0; j < input_alts.length; j ++) 
-//				if(db_alts[i].equalsIgnoreCase(input_alts[j])){
-//					inputVcf.setId(dbSNPVcf.getId());	
-//					inputVcf.appendInfo(VcfHeaderUtils.INFO_DB);
-//					if(dbSNPVcf.getInfoRecord().getField(VcfHeaderUtils.INFO_VLD) != null) 
-//						inputVcf.appendInfo(VcfHeaderUtils.INFO_VLD);
-//					 
-//					flag = true; 
-//					break;
-//				}
-//		
-//		//set alleles frequency
-//		if(flag){
-//			final String caf =dbSNPVcf.getInfoRecord().getField(VcfHeaderUtils.INFO_CAF);
-//			if(caf == null) return;
-//			String[] cafs = TabTokenizer.tokenize(caf.substring(1,caf.length() -1), Constants.COMMA);
-//			String[] vafs = new String[input_alts.length];
-//			for(int j = 0; j < input_alts.length; j ++){
-//				vafs[j] = ".";
-//				//cafs[i+1] since element [0] is reference allele frequency
-//				for(int i = 0; i < db_alts.length; i ++)
-//					if(db_alts[i].equalsIgnoreCase(input_alts[j]))
-//						vafs[j] = cafs[i+1];
-//			} 
-//			if(vafs.length == 1)
-//				inputVcf.appendInfo(StringUtils.addToString(VcfHeaderUtils.INFO_VAF, vafs[0], EQ));
-//			else{
-//				String str = StringUtils.addToString(VcfHeaderUtils.INFO_VAF, "[" + vafs[0], EQ);
-//				for(int i = 1; i < vafs.length; i ++ )
-//					str +=   "," + vafs[i];				
-//				inputVcf.appendInfo( str + "]");
-//			}			
-//		}		
-//	}
-	
-	
-	
-	
-//	public static String getCAF(VcfInfoFieldRecord info, int order) {
-//		final String caf =info.getField(VcfHeaderUtils.INFO_CAF);
-//		if (caf != null) {
-//			 
-//				String[] cafs = TabTokenizer.tokenize(caf.substring(1,caf.length() -1), Constants.COMMA);
-//				if(cafs.length > order)			
-//					return StringUtils.addToString(VcfHeaderUtils.INFO_VAF, cafs[order], EQ);	
-// 		}
-//		
-//		return null;
-//	}
-	
 }
-
-	
-	
- 

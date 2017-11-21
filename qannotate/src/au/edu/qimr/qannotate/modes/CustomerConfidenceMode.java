@@ -6,6 +6,7 @@
 package au.edu.qimr.qannotate.modes;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 import org.qcmg.common.log.QLogger;
@@ -89,14 +90,9 @@ public final class CustomerConfidenceMode extends AbstractMode{
 					final VcfFormatFieldRecord format = (re.getInfo().contains(VcfHeaderUtils.INFO_SOMATIC)) ? re.getSampleFormatRecord(test_column) :  re.getSampleFormatRecord(control_column);
 					final int total =  VcfUtils.getAltFrequency(  format, null );
 					if( total >=  MIN_READ_COUNTS) {
-						try{
-							//final int mutants = Integer.parseInt( allel.getField(VcfHeaderUtils.FORMAT_MUTANT_READS));	
-							final int mutants =  VcfUtils.getAltFrequency(  format, re.getAlt() );
-							if( ((100 * mutants) / total) >= VARIANTS_RATE  ) flag = true;  
-							
-						}catch(Exception e ){
-							logger.error("err during caculating mutants rate for variants: " + re.toString() + "\n" + e.getMessage());
-						}
+						//final int mutants = Integer.parseInt( allel.getField(VcfHeaderUtils.FORMAT_MUTANT_READS));	
+						final int mutants =  VcfUtils.getAltFrequency(  format, re.getAlt() );
+						if( ((100 * mutants) / total) >= VARIANTS_RATE  ) flag = true;  
 					}
 				} 							
 					
@@ -110,7 +106,7 @@ public final class CustomerConfidenceMode extends AbstractMode{
 	}
 	
 	@Override
-	void addAnnotation(String dbfile) throws Exception {
+	void addAnnotation(String dbfile) throws IOException {
 		// TODO Auto-generated method stub
 		
 	}				

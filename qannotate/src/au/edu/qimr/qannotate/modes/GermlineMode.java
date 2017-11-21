@@ -6,6 +6,7 @@
 package au.edu.qimr.qannotate.modes;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 import org.qcmg.common.log.QLogger;
@@ -59,7 +60,7 @@ public class GermlineMode extends AbstractMode{
  	/**
  	 * At moment the germline database only store single SNP position. 
  	 */
-	void addAnnotation(String dbGermlineFile) throws Exception {
+	void addAnnotation(String dbGermlineFile) throws IOException {
  		
  		//init remove all exsiting GERM annotation
  		for (List<VcfRecord> vcfs : positionRecordMap.values()) {

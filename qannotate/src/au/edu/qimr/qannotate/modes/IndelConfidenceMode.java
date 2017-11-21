@@ -8,6 +8,7 @@ package au.edu.qimr.qannotate.modes;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -82,7 +83,7 @@ public class IndelConfidenceMode extends AbstractMode{
 	 * @param dbfile
 	 * @throws Exception
 	 */
-	private void loadMask(String dbfile) throws Exception {		
+	private void loadMask(String dbfile) throws IOException {		
         //load repeat region to bitset
         try(BufferedReader reader = new BufferedReader(new FileReader(dbfile))){
             String line;
@@ -150,7 +151,7 @@ public class IndelConfidenceMode extends AbstractMode{
 
 
 	@Override
-	void addAnnotation(String dbfile) throws Exception {
+	void addAnnotation(String dbfile) throws IOException {
 		// TODO Auto-generated method stub
 		loadMask( dbfile );	
 		

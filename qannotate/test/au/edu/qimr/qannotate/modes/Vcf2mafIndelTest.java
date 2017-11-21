@@ -335,7 +335,7 @@ public class Vcf2mafIndelTest {
 		    
 	}
 	
-	public static SnpEffMafRecord toMafRecord(String line) throws Exception{
+	public static SnpEffMafRecord toMafRecord(String line) {
         //split string to maf record
 		SnpEffMafRecord maf = new SnpEffMafRecord();
         String[] eles = line.split("\\t");

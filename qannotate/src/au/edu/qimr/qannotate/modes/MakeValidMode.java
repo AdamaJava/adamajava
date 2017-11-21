@@ -598,7 +598,7 @@ public class MakeValidMode extends AbstractMode {
 	}
 
 	@Override
-	void addAnnotation(String dbfile) throws Exception {
+	void addAnnotation(String dbfile) throws IOException {
 		// TODO Auto-generated method stub		
 	}  
 }	
