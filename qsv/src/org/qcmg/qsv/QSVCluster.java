@@ -45,16 +45,16 @@ public class QSVCluster {
 	private String sampleId;
 	private final String leftReference;
 	private final String rightReference;
-	private String leftReferenceFlank;
-	private String rightReferenceFlank;
+	private String leftReferenceFlank = new String();
+	private String rightReferenceFlank = new String();
 	private String svId;
 	private String analysisId;
-	private String consensus;
+	private String consensus = new String();
 	private boolean rescued;
 	private SplitReadContig splitReadContig;
 	private boolean potentialRepeatRegion;
 	private SplitReadContig normalSplitReadContig;
-	private String features;
+	private String features = new String();
 	
 	public QSVCluster(SoftClipCluster clipRecord, String sampleId) {
 		this.clipRecords = new ArrayList<SoftClipCluster>();

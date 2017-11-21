@@ -129,16 +129,16 @@ public class QSVClusterTest {
     
     @Test
     public void testGetDataString() throws Exception {
-    	DiscordantPairCluster cluster = TestUtil.setupHiseqCluster("somatic", testFolder, "1");
-    	record = new QSVCluster(cluster, false,  "id");
-    	record.addQSVClipRecord(TestUtil.setUpClipRecord("chr10", "chr10", false, false));
-    	record.setIdParameters("sv1", "test", "testsample");
-    	assertEquals(37, record.getDataString("dcc", "TD", "ND", true, "solid").split("\t").length);
-    	//assertEquals(8,record.getDataString("vcf", "TD", "ND", true).split("\t").length);
-    	assertEquals(20,record.getDataString("tab", "TD", "ND", true, "solid").split("\t").length);
-    	assertEquals(1,record.getDataString("verbose", "TD", "ND", true, "solid").split("\t").length);
-    	assertEquals(5,record.getDataString("qprimer", "TD", "ND", true, "solid").split("\t").length);
-    	assertEquals(23,record.getDataString("softclip", "TD", "ND", true, "solid").split("\t").length);
+	    	DiscordantPairCluster cluster = TestUtil.setupHiseqCluster("somatic", testFolder, "1");
+	    	record = new QSVCluster(cluster, false,  "id");
+	    	record.addQSVClipRecord(TestUtil.setUpClipRecord("chr10", "chr10", false, false));
+	    	record.setIdParameters("sv1", "test", "testsample");
+	    	assertEquals(37, record.getDataString("dcc", "TD", "ND", true, "solid").split("\t").length);
+	    	//assertEquals(8,record.getDataString("vcf", "TD", "ND", true).split("\t").length);
+	    	assertEquals(20,record.getDataString("tab", "TD", "ND", true, "solid").split("\t").length);
+	    	assertEquals(1,record.getDataString("verbose", "TD", "ND", true, "solid").split("\t").length);
+	    	assertEquals(5,record.getDataString("qprimer", "TD", "ND", true, "solid").split("\t").length);
+	    	assertEquals(23,record.getDataString("softclip", "TD", "ND", true, "solid").split("\t").length);
     }
     
     @Test
