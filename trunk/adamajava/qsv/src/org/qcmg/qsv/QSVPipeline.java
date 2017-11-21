@@ -184,7 +184,7 @@ public class QSVPipeline {
 			QSVUtil.removeDirectory(dir);
 		}
 		if (!dir.mkdir()) {
-			throw new QSVException("DIR_CREATE_ERROR", dirName.toString());   
+			throw new QSVException("DIR_CREATE_ERROR", dirName);   
 		}
 	}
 

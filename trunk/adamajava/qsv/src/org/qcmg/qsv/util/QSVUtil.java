@@ -509,7 +509,7 @@ public class QSVUtil {
 			if (! QSVUtil.highNCount(readString, 0.2)) {
 
 				StringBuilder sb = new StringBuilder("unmapped,");
-				sb.append(record.getReadName() + COLON + (record.getReadGroup() != null ? record.getReadGroup().getId() : "")).append(',');
+				sb.append(record.getReadName()).append(COLON ).append(record.getReadGroup() != null ? record.getReadGroup().getId() : "").append(',');
 				sb.append(record.getReferenceName()).append(',');
 				sb.append(recordStart).append(',');
 				sb.append(readString).append(getNewLine());

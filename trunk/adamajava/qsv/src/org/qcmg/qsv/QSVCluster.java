@@ -45,17 +45,16 @@ public class QSVCluster {
 	private String sampleId;
 	private final String leftReference;
 	private final String rightReference;
-	private String leftReferenceFlank = new String();
-	private String rightReferenceFlank = new String();
+	private String leftReferenceFlank;
+	private String rightReferenceFlank;
 	private String svId;
 	private String analysisId;
-	private String consensus = new String();
+	private String consensus;
 	private boolean rescued;
 	private SplitReadContig splitReadContig;
 	private boolean potentialRepeatRegion;
 	private SplitReadContig normalSplitReadContig;
-//	private String validationPlatform;
-	private String features = new String();
+	private String features;
 	
 	public QSVCluster(SoftClipCluster clipRecord, String sampleId) {
 		this.clipRecords = new ArrayList<SoftClipCluster>();
@@ -1357,12 +1356,12 @@ public class QSVCluster {
 		builder.append(getHeader(svId));
 		
 		if (pairRecord != null) {
-			builder.append(">>DISCORDANT_PAIRS:" + QSVUtil.NEW_LINE + pairRecord.toVerboseString(compareType, isQCMG));
+			builder.append(">>DISCORDANT_PAIRS:").append(QSVUtil.NEW_LINE ).append(pairRecord.toVerboseString(compareType, isQCMG));
 		}
 		
 		if (clipRecords != null) {
-			builder.append(">>" + QSVUtil.NEW_LINE);
-			builder.append(">>SOFT_CLIPS:" + QSVUtil.NEW_LINE + clipRecordsVerboseString(findType, compareType));
+			builder.append(">>").append(QSVUtil.NEW_LINE);
+			builder.append(">>SOFT_CLIPS:").append(QSVUtil.NEW_LINE).append(clipRecordsVerboseString(findType, compareType));
 		}
 		
 		builder.append(QSVUtil.NEW_LINE);
@@ -1381,17 +1380,17 @@ public class QSVCluster {
 		String right = getClipBreakpointString(false, findType, compareType);
 		if (getOrientationCategory().equals(QSVConstants.ORIENTATION_2)) {
 			if (!right.equals("")) {
-				builder.append(">>POS1_CLIPS" + QSVUtil.NEW_LINE + right);
+				builder.append(">>POS1_CLIPS").append(QSVUtil.NEW_LINE).append(right);
 			}			
 			if (!left.equals("")) {
-				builder.append(">>POS2_CLIPS" + QSVUtil.NEW_LINE + left);
+				builder.append(">>POS2_CLIPS").append(QSVUtil.NEW_LINE).append(left);
 			}			
 		} else {
 			if (!left.equals("")) {
-				builder.append(">>POS1_CLIPS" + QSVUtil.NEW_LINE + left);
+				builder.append(">>POS1_CLIPS").append(QSVUtil.NEW_LINE).append(left);
 			}			
 			if (!right.equals("")) {
-				builder.append(">>POS2_CLIPS" + QSVUtil.NEW_LINE + right);
+				builder.append(">>POS2_CLIPS").append(QSVUtil.NEW_LINE).append(right);
 			}
 		}
 		
@@ -1411,16 +1410,16 @@ public class QSVCluster {
 		String lowND = c.getLowConfClips(isLeft, false);
 		
 		if (!td.equals("")) {
-			b.append(">>"+findType+"_clips" + QSVUtil.NEW_LINE + td);
+			b.append(">>").append(findType).append("_clips").append(QSVUtil.NEW_LINE).append(td);
 		}	
 		if (!nd.equals("")) {
-			b.append(">>"+compareType+"_clips" + QSVUtil.NEW_LINE + nd);
+			b.append(">>").append(compareType).append("_clips").append(QSVUtil.NEW_LINE).append(nd);
 		}
 		if (!lowTD.equals("")) {
-			b.append(">>"+findType+"_rescued_clips" + QSVUtil.NEW_LINE + lowTD);
+			b.append(">>").append(findType).append("_rescued_clips").append(QSVUtil.NEW_LINE).append(lowTD);
 		}	
 		if (!lowND.equals("")) {
-			b.append(">>"+compareType+"_rescued_clips" + QSVUtil.NEW_LINE + lowND);
+			b.append(">>").append(compareType).append("_rescued_clips").append(QSVUtil.NEW_LINE).append(lowND);
 		}
 		return b.toString();
 	}
@@ -1463,11 +1462,11 @@ public class QSVCluster {
 		}
 		
 		String bp = leftReference + ":" + getFinalLeftBreakpoint() + " | " + rightReference + ":" + getFinalRightBreakpoint();
-		header.append(">>"+id+QSVUtil.NEW_LINE);
-		header.append(">>Breakpoints: "+bp+QSVUtil.NEW_LINE);
-		header.append(">>Discordant pair signature: "+dis+QSVUtil.NEW_LINE);
-		header.append(">>Soft clipping signature:"+clip+QSVUtil.NEW_LINE);
-		header.append(">>" + QSVUtil.NEW_LINE);
+		header.append(">>").append(id).append(QSVUtil.NEW_LINE);
+		header.append(">>Breakpoints: ").append(bp).append(QSVUtil.NEW_LINE);
+		header.append(">>Discordant pair signature: ").append(dis).append(QSVUtil.NEW_LINE);
+		header.append(">>Soft clipping signature:").append(clip).append(QSVUtil.NEW_LINE);
+		header.append(">>").append(QSVUtil.NEW_LINE);
 
 		return header.toString();
 	}	

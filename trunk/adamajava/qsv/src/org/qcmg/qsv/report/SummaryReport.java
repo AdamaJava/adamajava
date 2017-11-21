@@ -42,27 +42,25 @@ public class SummaryReport extends QSVReport {
 
 	@Override
 	public void writeReport() throws Exception {
-		BufferedWriter writer = new BufferedWriter(new FileWriter(file));
+		try (BufferedWriter writer = new BufferedWriter(new FileWriter(file));) {
 		
-		if (options.isQCMG()) {
-			writeQCMGReport(writer);
-		} else {
-			
-			writeRunInfo(writer);
-			writer.write("GENERAL PARAMETERS:" + NEWLINE);
-			writer.write("Analysis ID: " + analysisId + NEWLINE);			
-			writer.write("Sample: " + options.getSampleName() + NEWLINE);			
-			writer.write("Preprocessing option: " + options.getPreprocessMode() + NEWLINE);
-			writer.write("SV analysis option: " + options.getAnalysisMode() + NEWLINE);
-			
-			writePairOptions(writer);
-			writeClipOptions(writer);
-
-			writeParameters(writer, "TEST", "CONTROL");
-						
-			
+			if (options.isQCMG()) {
+				writeQCMGReport(writer);
+			} else {
+				
+				writeRunInfo(writer);
+				writer.write("GENERAL PARAMETERS:" + NEWLINE);
+				writer.write("Analysis ID: " + analysisId + NEWLINE);			
+				writer.write("Sample: " + options.getSampleName() + NEWLINE);			
+				writer.write("Preprocessing option: " + options.getPreprocessMode() + NEWLINE);
+				writer.write("SV analysis option: " + options.getAnalysisMode() + NEWLINE);
+				
+				writePairOptions(writer);
+				writeClipOptions(writer);
+	
+				writeParameters(writer, "TEST", "CONTROL");
+			}
 		}
-		writer.close();
 	}
 
 	private void writeParameters(BufferedWriter writer, String test, String control) throws IOException {
@@ -137,16 +135,16 @@ public class SummaryReport extends QSVReport {
 
 	private String writeSampleParams(QSVParameters params, String titleType, String type) {
 		StringBuilder builder = new StringBuilder();
-		builder.append(titleType + " PARAMETERS:" + NEWLINE);
-		builder.append("Sample abbreviation: " + params.getFindType() + NEWLINE);
-		builder.append("Sample ID: " + params.getSampleId() + NEWLINE);
-		builder.append("Input BAM file: " + params.getInputBamFile() + NEWLINE);
-		builder.append("Discordant pair filtered "+type+" BAM file: " + params.getFilteredBamFile() + NEWLINE);
-		builder.append("Min lower insert size: " + params.getLowerInsertSize() + NEWLINE);
-		builder.append("Max upper insert size: " + params.getUpperInsertSize() + NEWLINE);	
+		builder.append(titleType).append(" PARAMETERS:").append(NEWLINE);
+		builder.append("Sample abbreviation: ").append(params.getFindType()).append(NEWLINE);
+		builder.append("Sample ID: ").append(params.getSampleId()).append(NEWLINE);
+		builder.append("Input BAM file: ").append(params.getInputBamFile()).append(NEWLINE);
+		builder.append("Discordant pair filtered ").append(type).append(" BAM file: ").append(params.getFilteredBamFile()).append(NEWLINE);
+		builder.append("Min lower insert size: ").append(params.getLowerInsertSize()).append(NEWLINE);
+		builder.append("Max upper insert size: ").append(params.getUpperInsertSize()).append(NEWLINE);	
 		
 		for (RunTypeRecord r: params.getSequencingRuns()) {
-			builder.append("Read group insert size: "  + r.toString() + NEWLINE);
+			builder.append("Read group insert size: ").append(r.toString()).append(NEWLINE);
 		}
 		
 		return builder.toString();

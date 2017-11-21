@@ -50,7 +50,7 @@ public class DiscordantPairCluster {
 	private final int windowSize;
 	private final String sampleType;
 	private final Map<String, AtomicInteger> strandOrientations;    
-	private final int qPrimerThreshold;
+//	private final int qPrimerThreshold;
 
 	private int lowConfidenceNormalMatePairs;
 	private int leftStart = -1;
@@ -70,8 +70,8 @@ public class DiscordantPairCluster {
 	private boolean isQCMG = false;		
 
 	public DiscordantPairCluster(String leftReferenceName, String rightReferenceName, String zp, QSVParameters findParameters, boolean isQCMG) {
-		this.clusterMatePairs = new ArrayList<MatePair>();
-		this.matchedNormalMatePairs = new ArrayList<MatePair>();
+		this.clusterMatePairs = new ArrayList<>();
+		this.matchedNormalMatePairs = new ArrayList<>();
 		this.leftReferenceName = leftReferenceName;
 		this.rightReferenceName = rightReferenceName;
 		this.zp = zp;
@@ -79,7 +79,7 @@ public class DiscordantPairCluster {
 		this.sampleType = findParameters.getFindType();
 		this.windowSize = findParameters.getUpperInsertSize();
 		this.strandOrientations = new HashMap<>(8);
-		this.qPrimerThreshold = findParameters.getqPrimerThreshold();
+//		this.qPrimerThreshold = findParameters.getqPrimerThreshold();
 		this.lowConfidenceNormalMatePairs = 0;
 		this.isQCMG = isQCMG;
 	}
@@ -104,33 +104,33 @@ public class DiscordantPairCluster {
 		return leftStart;
 	}
 
-	public void setLeftStart(int leftStart) {
-		this.leftStart = leftStart;
-	}
+//	public void setLeftStart(int leftStart) {
+//		this.leftStart = leftStart;
+//	}
 
 	public int getRightStart() {
 		return rightStart;
 	}
 
-	public void setRightStart(int rightStart) {
-		this.rightStart = rightStart;
-	}
+//	public void setRightStart(int rightStart) {
+//		this.rightStart = rightStart;
+//	}
 
 	public int getLeftEnd() {
 		return leftEnd;
 	}
 
-	public void setLeftEnd(int leftEnd) {
-		this.leftEnd = leftEnd;
-	}
+//	public void setLeftEnd(int leftEnd) {
+//		this.leftEnd = leftEnd;
+//	}
 
 	public int getRightEnd() {
 		return rightEnd;
 	}
 
-	public void setRightEnd(int rightEnd) {
-		this.rightEnd = rightEnd;
-	}
+//	public void setRightEnd(int rightEnd) {
+//		this.rightEnd = rightEnd;
+//	}
 
 	public List<MatePair> getClusterMatePairs() {
 		return clusterMatePairs;
@@ -204,9 +204,9 @@ public class DiscordantPairCluster {
 		return QSVUtil.getMutationByPairGroup(zp);		
 	}
 
-	public Integer getQPrimerThreshold() {
-		return this.qPrimerThreshold;
-	}
+//	public Integer getQPrimerThreshold() {
+//		return this.qPrimerThreshold;
+//	}
 
 	public void setClusterEnds() {
 		findLeftStartOfCluster();
@@ -252,16 +252,6 @@ public class DiscordantPairCluster {
 		 for (MatePair m: clusterMatePairs) {
 			 String orientation = m.getStrandOrientation();
 			 strandOrientations.get(orientation).incrementAndGet();
-
-//			 if (orientation.equals("-/-")) {
-//				 strandOrientations.get("-/-").incrementAndGet();
-//			 } else if (orientation.equals("+/-")){
-//				 strandOrientations.get("+/-").incrementAndGet();
-//			 } else if (orientation.equals("-/+")) {
-//				 strandOrientations.get("-/+").incrementAndGet();
-//			 } else {
-//				 strandOrientations.get("+/+").incrementAndGet();
-//			 }
 		 }
 
 		 int maxValue = 0;
@@ -304,7 +294,7 @@ public class DiscordantPairCluster {
 
 		 int nextIndex = 0;
 		 List<MatePair> testPairs = copyAndOrderCurrentClusterPairs();
-		 List<MatePair> badPairs = new ArrayList<MatePair>();
+		 List<MatePair> badPairs = new ArrayList<>();
 
 		 //check all pairs firstly
 		 int startPos = testPairs.get(0).getRightMate().getStart();
@@ -325,15 +315,15 @@ public class DiscordantPairCluster {
 		 }
 
 		 int matchCount = 0;
-		 List<MatePair> badStartPairs = new ArrayList<MatePair>();
-		 List<MatePair> removedPairs = new ArrayList<MatePair>();
+		 List<MatePair> badStartPairs = new ArrayList<>();
+		 List<MatePair> removedPairs = new ArrayList<>();
 
 		 for (int i=0; i<maxStart; i++) {
 			 removedPairs.add(testPairs.remove(0));
 			 startPos = testPairs.get(0).getRightMate().getStart();
 			 range = startPos + windowSize;
 			 int count = 0;
-			 List<MatePair> currentBadPairs = new ArrayList<MatePair>();
+			 List<MatePair> currentBadPairs = new ArrayList<>();
 			 for (MatePair m : testPairs) {
 				 int rightMateStart = m.getRightMate().getStart();
 				 if (rightMateStart >= startPos && rightMateStart <= range) { 
@@ -401,10 +391,10 @@ public class DiscordantPairCluster {
 
 	 public List<MatePair> copyAndOrderCurrentClusterPairs() {
 		 //test pairs to use for cluster detection
-		 List<MatePair> testPairs = new ArrayList<MatePair>(getClusterMatePairs());
+		 List<MatePair> testPairs = new ArrayList<>(getClusterMatePairs());
 
 		 //sort by start of right reads
-		 Collections.sort(testPairs, READ_MATE_RIGHT_START_COMP); 
+		 testPairs.sort(READ_MATE_RIGHT_START_COMP);
 		 return testPairs;
 	 }
 
@@ -460,10 +450,10 @@ public class DiscordantPairCluster {
 
 	 public String toVerboseString(String compareType, boolean isQCMG) {
 		 StringBuilder sb = new StringBuilder();
-		 sb.append(">>" +getChrRegionFrom() + " | " + getChrRegionTo() + QSVUtil.NEW_LINE);
+		 sb.append(">>").append(getChrRegionFrom()).append(" | ").append(getChrRegionTo()).append(QSVUtil.NEW_LINE);
 
 		 if (clusterMatePairs.size() > 0) {
-			 sb.append(">>" + sampleType + "_DISCORDANT_READS" + QSVUtil.NEW_LINE);
+			 sb.append(">>").append(sampleType).append("_DISCORDANT_READS").append(QSVUtil.NEW_LINE);
 			 Collections.sort(clusterMatePairs, READ_MATE_LEFT_START_COMP);
 			 for (MatePair p : clusterMatePairs) {
 				 sb.append(p.toVerboseString(isQCMG));
@@ -471,7 +461,7 @@ public class DiscordantPairCluster {
 		 }
 
 		 if (matchedNormalMatePairs.size() > 0) {
-			 sb.append("#" + compareType + "_DISCORDANT_READS" + QSVUtil.NEW_LINE);	      
+			 sb.append("#" ).append( compareType ).append( "_DISCORDANT_READS" ).append( QSVUtil.NEW_LINE);	      
 			 Collections.sort(matchedNormalMatePairs, READ_MATE_LEFT_START_COMP);
 			 for (MatePair p : matchedNormalMatePairs) {
 				 sb.append(p.toVerboseString(isQCMG));
@@ -480,8 +470,6 @@ public class DiscordantPairCluster {
 
 		 return sb.toString();
 	 }
-
-
 
 	 public void finalize(QSVParameters findParameters, QSVParameters compareParameters, String type, int count, String query, String pairType, boolean isQCMG) throws Exception {
 		 setType(type);
@@ -502,7 +490,7 @@ public class DiscordantPairCluster {
 	 }
 
 	 private void rescueGermlineReads(QSVParameters findParameters, QSVParameters compareParameters, String query) throws Exception {
-		 Map<String, SAMRecord[]> map = new HashMap<String, SAMRecord[]>();
+		 Map<String, SAMRecord[]> map = new HashMap<>();
 		 int leftMiddle = ((leftEnd - leftStart)/2) + leftStart;
 		 int rightMiddle = ((rightEnd - rightStart)/2) + rightStart;	
 		 int tumourCompareLeftStart = leftMiddle - findParameters.getUpperInsertSize();
@@ -564,7 +552,6 @@ public class DiscordantPairCluster {
 			 zp1 = zp;
 		 }
 		 Set<String> readGroupIds = compareParameters.getReadGroupIdsAsSet();
-//		 List<String> readGroupIds = compareParameters.getReadGroupIds();
 
 		 while (iter.hasNext()) {
 			 SAMRecord r = iter.next();
