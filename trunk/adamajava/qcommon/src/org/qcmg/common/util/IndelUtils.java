@@ -5,6 +5,9 @@
 */
 package org.qcmg.common.util;
 
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.vcf.VcfFormatFieldRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
@@ -216,13 +219,13 @@ public class IndelUtils {
 	 * @param re: VcfFormatFieldRecord
 	 * @param ref: reference base from vcf record column 5
 	 * @param alt
-	 * @return genotyp string. eg. A/T; return null if GT field is not exsit or empty
+	 * @return genotype string. eg. A/T; return null if GT field is not exist or empty
 	 */
 	public static String getGenotypeDetails(VcfFormatFieldRecord re, String ref, String alt){
 		//if "GT" field is not exist, do nothing
 		String sgt = re.getField(VcfHeaderUtils.FORMAT_GENOTYPE) ;
 		String gd = null;
-		if( ! StringUtils.isNullOrEmpty(sgt) && !sgt.equals(Constants.MISSING_DATA_STRING)){		
+		if( ! StringUtils.isNullOrEmpty(sgt) && !sgt.equals(Constants.MISSING_DATA_STRING)){
 			boolean isbar = sgt.contains(Constants.BAR_STRING);
 			String[] gts = isbar? sgt.split(Constants.BAR_STRING) : sgt.split("\\/"); 
 			String[] sgd = new String[gts.length];
@@ -242,7 +245,7 @@ public class IndelUtils {
 					default:
 						sgd[j] = Constants.MISSING_DATA_STRING; 
 				}				
-			gd = isbar? String.join("|", sgd) : String.join(Constants.SLASH_STRING, sgd);
+			gd = Arrays.stream(sgd).collect(Collectors.joining(isbar ?  "|" : Constants.SLASH_STRING));
 		}		
 		return gd;
 	}

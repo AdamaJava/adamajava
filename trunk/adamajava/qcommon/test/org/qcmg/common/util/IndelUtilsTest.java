@@ -74,11 +74,19 @@ public class IndelUtilsTest {
 	}
 	
 	@Test
-	public void getGD() {
+	public void getGDCompoundSnp() {
 		VcfFormatFieldRecord ff = new VcfFormatFieldRecord("ACCS","CC,10,12,TT,29,14,T_,0,1&CC,10,12,TT,29,14,T_,0,1");
 		assertEquals(null, IndelUtils.getGenotypeDetails(ff, "CC","TT"));
 		ff = new VcfFormatFieldRecord("GT:ACCS","0/1:CC,10,12,TT,29,14,T_,0,1&CC,10,12,TT,29,14,T_,0,1");
 		assertEquals("CC/TT", IndelUtils.getGenotypeDetails(ff, "CC","TT"));
+	}
+	@Test
+	public void getGD() {
+		assertEquals("A/A", IndelUtils.getGenotypeDetails( new VcfFormatFieldRecord("GT","0/0"), "A","C"));
+		assertEquals("C/C", IndelUtils.getGenotypeDetails( new VcfFormatFieldRecord("GT","1/1"), "A","C"));
+		assertEquals("A/C", IndelUtils.getGenotypeDetails( new VcfFormatFieldRecord("GT","0/1"), "A","C"));
+		assertEquals("C/T", IndelUtils.getGenotypeDetails( new VcfFormatFieldRecord("GT","1/2"), "A","C,T"));
+		assertEquals("G/G", IndelUtils.getGenotypeDetails( new VcfFormatFieldRecord("GT","1/1"), "A","G,T"));
 	}
 	
 	@Test
