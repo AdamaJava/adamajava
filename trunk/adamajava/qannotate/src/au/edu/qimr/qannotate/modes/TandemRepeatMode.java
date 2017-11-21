@@ -98,8 +98,6 @@ public class TandemRepeatMode  extends AbstractMode{
 		
 		Block(int start, int end){ this(start, end, new ArrayList<>());  }	
 		
-//		Block reset(int start, int end){ return new Block(start, end, this.repeats);  }
-		
 		void addRepeat(Repeat re){repeats.add(re); }
 		int getStart() { return start; }
 		int getEnd() { return end; }
@@ -137,7 +135,7 @@ public class TandemRepeatMode  extends AbstractMode{
 		Map<String, HashSet<Repeat>> repeats = loadRepeat(dbfile );  //S1			
 		logger.info( "reference number inside TRF data file is " + repeats.size());
 		logger.info("loading into RAM...");
-		if(repeats == null || repeats.size() == 0) return; 
+		if(repeats.size() == 0) return; 
 		
 		int totalRepeat = 0; 
 		int totalBlock = 0;					
@@ -169,12 +167,8 @@ public class TandemRepeatMode  extends AbstractMode{
 			
 	        for (final VcfRecord vcf : reader) {   
 		        	String vcfchr =  IndelUtils.getFullChromosome(vcf.getChromosome());	         
-		        	try{
-		 	    		if(annotate(vcf, indexedBlock.get(vcfchr)))
-		 	    			repeatCount ++; 	    			
-		        	}catch(Exception e){
-		        		System.out.println("exception on " + vcf.toString());	        		
-		        	}
+	 	    		if(annotate(vcf, indexedBlock.get(vcfchr)))
+	 	    			repeatCount ++; 	    			
 		    		count++;
 		    		writer.add(vcf);
 	        }

@@ -148,73 +148,54 @@ public class MakeValidMode extends AbstractMode {
 		Map<String, String[]> ffMap = VcfUtils.getFormatFieldsAsMap(v.getFormatFields());
 		String[] gtArr = ffMap.get(VcfHeaderUtils.FORMAT_GENOTYPE);
 		
-		String [] infArray = new String[gtArr.length];
-		String [] ftArray = new String[gtArr.length];
-		Arrays.fill(infArray, Constants.MISSING_DATA_STRING);
-		Arrays.fill(ftArray, Constants.MISSING_DATA_STRING);
 		
 		if (null != gtArr) {
+			
+			String [] infArray = new String[gtArr.length];
+			String [] ftArray = new String[gtArr.length];
+			Arrays.fill(infArray, Constants.MISSING_DATA_STRING);
+			Arrays.fill(ftArray, Constants.MISSING_DATA_STRING);
 			
 			/*
 			 * if single sample, skip
 			 */
-			if (gtArr.length > 1) {
+			if (gtArr.length > 1 &&  ! callerPositionsMap.isEmpty()) {
 				
-				if ( ! callerPositionsMap.isEmpty()) {
-					/*
-					 * do this for each caller
-					 */
-					String info = v.getInfo();
-					VcfInfoFieldRecord infoRec = v.getInfoRecord();
-					String conf = infoRec.getField("CONF");
-					boolean som1 = info.contains("SOMATIC_1") || (info.contains("SOMATIC") && info.contains("IN=1;"));
-					boolean som2 = info.contains("SOMATIC_2") || (info.contains("SOMATIC") && info.contains("IN=2;"));
-					
-					boolean pass1 = conf.contains("HIGH_1") || (conf.contains("HIGH") && info.contains("IN=1;"));
-					boolean pass2 = conf.contains("HIGH_2") || (conf.contains("HIGH") && info.contains("IN=2;"));
-					
-					
-					short[] firstCaller = callerPositionsMap.get("1");
-					short[] secondCaller = callerPositionsMap.get("2");
-					
-					if (som1) {
-						infArray[firstCaller[1] - 1] = "SOMATIC";
-					}
-					if (som2) {
-						infArray[secondCaller[1] - 1] = "SOMATIC";
-					}
-					
-					if (pass1) {
-						if ( ! singleSample) ftArray[firstCaller[0] - 1] = "PASS";
-						ftArray[firstCaller[1] - 1] = "PASS";
-					}
-					if (pass2) {
-						if ( ! singleSample) ftArray[secondCaller[0] - 1] = "PASS";
-						ftArray[secondCaller[1] - 1] = "PASS";
-					}
-//					short[] firstCaller = callerPositionsMap.get("1");
-//					short[] secondCaller = callerPositionsMap.get("2");
-//					
-//					if (som1 && null != firstCaller) {
-//						infArray[firstCaller[1] - 1] = "SOMATIC";
-//					}
-//					if (som2 && null != secondCaller) {
-//						infArray[secondCaller[1] - 1] = "SOMATIC";
-//					}
-//					
-//					if (pass1 &&null != firstCaller) {
-//						if ( ! singleSample) ftArray[firstCaller[0] - 1] = "PASS";
-//						ftArray[firstCaller[1] - 1] = "PASS";
-//					}
-//					if (pass2 && null != secondCaller) {
-//						if ( ! singleSample) ftArray[secondCaller[0] - 1] = "PASS";
-//						ftArray[secondCaller[1] - 1] = "PASS";
-//					}
+				/*
+				 * do this for each caller
+				 */
+				String info = v.getInfo();
+				VcfInfoFieldRecord infoRec = v.getInfoRecord();
+				String conf = infoRec.getField("CONF");
+				boolean som1 = info.contains("SOMATIC_1") || (info.contains("SOMATIC") && info.contains("IN=1;"));
+				boolean som2 = info.contains("SOMATIC_2") || (info.contains("SOMATIC") && info.contains("IN=2;"));
+				
+				boolean pass1 = conf.contains("HIGH_1") || (conf.contains("HIGH") && info.contains("IN=1;"));
+				boolean pass2 = conf.contains("HIGH_2") || (conf.contains("HIGH") && info.contains("IN=2;"));
+				
+				
+				short[] firstCaller = callerPositionsMap.get("1");
+				short[] secondCaller = callerPositionsMap.get("2");
+				
+				if (som1) {
+					infArray[firstCaller[1] - 1] = "SOMATIC";
+				}
+				if (som2) {
+					infArray[secondCaller[1] - 1] = "SOMATIC";
+				}
+				
+				if (pass1) {
+					if ( ! singleSample) ftArray[firstCaller[0] - 1] = "PASS";
+					ftArray[firstCaller[1] - 1] = "PASS";
+				}
+				if (pass2) {
+					if ( ! singleSample) ftArray[secondCaller[0] - 1] = "PASS";
+					ftArray[secondCaller[1] - 1] = "PASS";
 				}
 			}
 			
 			/*
-			 * ad next
+			 * add next
 			 */
 			String [][] adAndDpArrays = getFFValues(ffMap, v.getRef(), v.getAlt());
 			
@@ -589,10 +570,7 @@ public class MakeValidMode extends AbstractMode {
 		String[] exsitIds = myHeader.getSampleId();
 		
 		boolean multipleSamples = ContentType.multipleSamples(inputMeta.getType());
-		
 		myHeader.addOrReplace(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + exsitIds[0] + "_1\t" + (multipleSamples ? exsitIds[1] + "_1\t" : "") +  exsitIds[0] + "_2\t" + (multipleSamples ? exsitIds[1] + "_2\t" : ""));
-		
-//		myHeader.addOrReplace(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + exsitIds[0] + "_1\t" + exsitIds[1] + "_1\t" + exsitIds[0] + "_2\t" + exsitIds[1] + "_2");
 		
 		return myHeader;			
 	}
