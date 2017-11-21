@@ -21,16 +21,16 @@ import htsjdk.samtools.util.SequenceUtil;
 
 public class PileupSAMRecord {
 	
-	private QLogger logger = QLoggerFactory.getLogger(getClass());
+	private final QLogger logger = QLoggerFactory.getLogger(getClass());
 	private final SAMRecord record;
 	private boolean isReverse = false;
-	private byte[] baseQualities;
-	private int referenceStart;
-	private int referenceEnd;
-	private int readStart;
-	private int readEnd;
-	private List<PileupDataRecord> dsRecords;	
-	private boolean isDuplicate;
+	private final byte[] baseQualities;
+	private final int referenceStart;
+	private final int referenceEnd;
+	private final int readStart;
+	private final int readEnd;
+	private final List<PileupDataRecord> dsRecords;	
+	private final boolean isDuplicate;
 	private boolean isMateUnmapped;
 	
 	public PileupSAMRecord(SAMRecord record) {
@@ -53,9 +53,9 @@ public class PileupSAMRecord {
 		return isReverse;
 	}
 
-	public void setReverse(boolean isReverse) {
-		this.isReverse = isReverse;
-	}
+//	public void setReverse(boolean isReverse) {
+//		this.isReverse = isReverse;
+//	}
 
 	public String getReference() {
 		return record.getReferenceName();		

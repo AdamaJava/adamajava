@@ -18,15 +18,15 @@ public class Base implements Comparable<Base>{
 	
 	final char base;
 	final long count;
-	long totalQual;
+	final long totalQual;
 	double avgBaseQual;
 	private final long forwardCount;
 	private final long reverseCount;
 	private long forTotalQual;
 
 	private long revTotalQual;
-	private double forAvgBaseQual;
-	private double revAvgBaseQual;
+	private final double forAvgBaseQual;
+	private final double revAvgBaseQual;
 	
 	public Base(char base, long forwardCount, long reverseCount, long forTotalQual, long revTotalQual, double forAvgBaseQual, double revAvgBaseQual) {
 		this.base = base;
@@ -39,13 +39,6 @@ public class Base implements Comparable<Base>{
 		this.revTotalQual = revTotalQual;
 		this.forAvgBaseQual = forAvgBaseQual;
 		this.revAvgBaseQual = revAvgBaseQual;
-	}
-
-	public Base(char base, long forCount, long revCount) {
-		this.base = base;
-		this.count = forCount + revCount;
-		this.forwardCount = forCount;
-		this.reverseCount = revCount;
 	}
 
 	public char getBase() {

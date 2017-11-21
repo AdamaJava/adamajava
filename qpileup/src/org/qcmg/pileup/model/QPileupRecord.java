@@ -25,10 +25,7 @@ public class QPileupRecord {
 	final PositionElement position;
 	final Map<String, StrandElement> forwardElementMap;
 	final Map<String, StrandElement> reverseElementMap;
-	List<Base> bases = new ArrayList<Base>();
-//	private int windowStart;
-//	private int windowEnd;
-
+	List<Base> bases = new ArrayList<>();
 
 	public QPileupRecord(PositionElement positionElement, Map<String, StrandElement> forwardElementMap, Map<String, StrandElement> reverseElementMap) {
 		this.position = positionElement;
@@ -60,18 +57,10 @@ public class QPileupRecord {
 		return forwardElementMap;
 	}
 
-//	public void setForwardElementMap(Map<String, StrandElement> forwardElementMap) {
-//		this.forwardElementMap = forwardElementMap;
-//	}
-
 	public Map<String, StrandElement> getReverseElementMap() {
 		return reverseElementMap;
 	}
 
-//	public void setReverseElementMap(Map<String, StrandElement> reverseElementMap) {
-//		this.reverseElementMap = reverseElementMap;
-//	}
-	
 	public int getTotalBases(boolean includeForward, boolean includeReverse) {
 		int total = 0;
 
@@ -100,16 +89,12 @@ public class QPileupRecord {
 		if (includeForward) {
 			total += forwardElementMap.get("referenceNo").getIntElementValue(0);
 			total += forwardElementMap.get("nonreferenceNo").getIntElementValue(0);
-			//total += forwardElementMap.get("cigarS").getIntElementValue(0);
-			//total += forwardElementMap.get("cigarH").getIntElementValue(0);
 			total += forwardElementMap.get("cigarD").getIntElementValue(0);
 		}
 		
 		if (includeReverse) {
 			total += reverseElementMap.get("referenceNo").getIntElementValue(0);
 			total += reverseElementMap.get("nonreferenceNo").getIntElementValue(0);
-			//total += reverseElementMap.get("cigarS").getIntElementValue(0);
-			//total += reverseElementMap.get("cigarH").getIntElementValue(0);
 			total += reverseElementMap.get("cigarD").getIntElementValue(0);	
 		}
 		
@@ -149,7 +134,7 @@ public class QPileupRecord {
 	}
 	
 	private String getElementString(Map<String, StrandElement> elementMap, List<StrandEnum> elements) {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		
 		StrandEnum[] enums = StrandEnum.values();
 		int count = 0;
@@ -180,7 +165,7 @@ public class QPileupRecord {
 	}
 
 	public String getRecordString(List<StrandEnum> viewElements, List<StrandEnum> groupElements, boolean getForwardElements, boolean getReverseElements) {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		sb.append(getPositionString());
 		if (viewElements.size() == 0 && groupElements.size() == 0) {
 			sb.append(getForwardElementString(null)).append(DELIMITER);
@@ -206,7 +191,7 @@ public class QPileupRecord {
 	}
 	
 	public String getStrandRecordString() {
-		StringBuffer sb = new StringBuffer();		
+		StringBuilder sb = new StringBuilder();		
 		sb.append(getForwardElementString(null)).append(DELIMITER);
 		sb.append(getReverseElementString(null));		
 		return sb.toString();
@@ -214,7 +199,7 @@ public class QPileupRecord {
 	
 	@Override
 	public String toString() {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		sb.append(getPositionString());
 		sb.append(getForwardElementString(null));
 		sb.append(getReverseElementString(null));
@@ -223,7 +208,7 @@ public class QPileupRecord {
 	}
 
 	public String getTotalBasesString() {
-		StringBuffer sb = new StringBuffer();		
+		StringBuilder sb = new StringBuilder();		
 		sb.append(getForwardElementString(StrandEnum.getBaseCounts()));
 		sb.append(DELIMITER);
 		sb.append(getReverseElementString(StrandEnum.getBaseCounts()));
@@ -235,7 +220,7 @@ public class QPileupRecord {
 		Map<Character, Long> baseMap= getNonZeroBaseCountsMap(includeForward, includeReverse); 	
 		
 		long maxNo = 0;
-		TreeSet<Character> chars = new TreeSet<Character>();		
+		TreeSet<Character> chars = new TreeSet<>();		
 		
 		for (Entry<Character, Long> entry: baseMap.entrySet()) {
 			char current = entry.getKey();
@@ -295,7 +280,7 @@ public class QPileupRecord {
 	}
 
 	private Map<Character, Long> getNonZeroBaseCountsMap(boolean includeForward, boolean includeReverse) {
-		Map<Character, Long> map = new HashMap<Character, Long>();	
+		Map<Character, Long> map = new HashMap<>();	
 		
 		for (Base b: getTotalBasesList (includeForward, includeReverse)) {
 			addNonZeroBase(map, b);
@@ -343,9 +328,7 @@ public class QPileupRecord {
 		int altBaseCount = 0;
 		
 		for (int i=0; i< bases.size(); i++) {
-			
 			if (bases.get(i).getBase() == altBase) {
-				
 				altBaseCount += bases.get(i).getCount() ;
 			}
 		}
@@ -391,7 +374,7 @@ public class QPileupRecord {
 	private List<Base> getTotalTrueBases() {
 		List<Base> bases = getTotalBasesList(true, true);
 		
-		List<Base> trueBases = new ArrayList<Base>();
+		List<Base> trueBases = new ArrayList<>();
 		
 		for (Base b: bases) {
 			if (b.trueBase()) {
@@ -400,11 +383,6 @@ public class QPileupRecord {
 		}
 		return trueBases;
 	}
-
-
-//	public String getDistributionWindow() {
-//		return windowStart + "," + windowEnd;
-//	}
 	
 	public int getForwardBaseCount(char base) {
 		if (base == 'R') {

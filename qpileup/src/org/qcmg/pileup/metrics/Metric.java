@@ -179,9 +179,9 @@ public class Metric {
 	
 	public void writeHeader(String hdfHeader, String execHeader, String uuid, String wiggleDir) throws IOException {
 		this.wiggleFile = new File(wiggleDir + PileupConstants.FILE_SEPARATOR +  type + ".wig");
-		BufferedWriter writer1 = new BufferedWriter(new FileWriter(wiggleFile, true));
-		writer1.write("track type=wiggle_0 name="+ type + PileupConstants.NEWLINE);
-		writer1.close();
+		try (BufferedWriter writer1 = new BufferedWriter(new FileWriter(wiggleFile, true));) {
+			writer1.write("track type=wiggle_0 name="+ type + PileupConstants.NEWLINE);
+		}
 	}
 
 	public String getColumnHeaders() {

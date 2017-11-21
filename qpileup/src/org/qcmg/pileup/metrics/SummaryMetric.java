@@ -71,7 +71,6 @@ public class SummaryMetric {
 	private String chromSizes;
 	private List<Chromosome> chromosomes;
 	private Integer minBasesPerPatient;
-	//private BaseDistributionRecord totalBaseDistribution;
 	private final TreeMap<Integer, Integer> totalBaseCountMap;
 	private int totalPatients;
 	
@@ -114,33 +113,33 @@ public class SummaryMetric {
 		return pileupDir;
 	}
 
-	public void setPileupDir(String pileupDir) {
-		this.pileupDir = pileupDir;
-	}
+//	public void setPileupDir(String pileupDir) {
+//		this.pileupDir = pileupDir;
+//	}
 	
 	public String getUuid() {
 		return uuid;
 	}
 
-	public void setUuid(String uuid) {
-		this.uuid = uuid;
-	}
+//	public void setUuid(String uuid) {
+//		this.uuid = uuid;
+//	}
 
 	public String getExecHeader() {
 		return execHeader;
 	}
 
-	public void setExecHeader(String execHeader) {
-		this.execHeader = execHeader;
-	}
+//	public void setExecHeader(String execHeader) {
+//		this.execHeader = execHeader;
+//	}
 	
 	public String getHdfHeader() {
 		return hdfHeader;
 	}
 
-	public void setHdfHeader(String hdfHeader) {
-		this.hdfHeader = hdfHeader;
-	}	
+//	public void setHdfHeader(String hdfHeader) {
+//		this.hdfHeader = hdfHeader;
+//	}	
 
 	public void addMetric(String key, Metric metric) {
 		metrics.put(key, metric);		
@@ -198,33 +197,33 @@ public class SummaryMetric {
 	
 	public void finish() throws Exception {
         //close metrics output files and write distribution counts
-		BufferedWriter w = new BufferedWriter(new FileWriter(new File(distributionDir + PileupConstants.FILE_SEPARATOR + "total_base_distribution.txt")));
-		w.write("TotalPatients\t"+totalPatients+"\n");
-		w.write("TotalReads\tNumberPositions\n");
-		
-		for (Entry<Integer, Integer> entry: totalBaseCountMap.entrySet()) {
-			w.write(entry.getKey() + "\t" + entry.getValue() + "\n");
+		try (BufferedWriter w = new BufferedWriter(new FileWriter(new File(distributionDir + PileupConstants.FILE_SEPARATOR + "total_base_distribution.txt")));) {
+			w.write("TotalPatients\t"+totalPatients+"\n");
+			w.write("TotalReads\tNumberPositions\n");
+			
+			for (Entry<Integer, Integer> entry: totalBaseCountMap.entrySet()) {
+				w.write(entry.getKey() + "\t" + entry.getValue() + "\n");
+			}
 		}
-		w.close();		
+			
+		for (Entry<String, Metric> entry: metrics.entrySet()) {	
+			Metric metric = entry.getValue();
+			metric.write(pileupDir, distributionDir);
+	 		metric.close();
+		}        
+		   
+		String gffName = writeSummaryGFF();                
 		
-        for (Entry<String, Metric> entry: metrics.entrySet()) {	
-	    		Metric metric = entry.getValue();
-	    		metric.write(pileupDir, distributionDir);
-	   	 		metric.close();
-    	}        
-           
-        String gffName = writeSummaryGFF();                
-        
-        //write final SNP records and compare with gff
-    	if (metrics.containsKey(PileupConstants.METRIC_SNP)) {
-    		SnpMetric metric = (SnpMetric)metrics.get(PileupConstants.METRIC_SNP);
-    		metric.writeRecords(gffName, StrandEnum.getMetricsElements(), chromosomes);
-   	 		metric.close();	    		
-    	}
-        
-    	List<String> finalCounts = getFinalCountsStrings();
-        writeCountsToLog(finalCounts);
-        writeToMetricsSummaryFile(finalCounts);
+		//write final SNP records and compare with gff
+		if (metrics.containsKey(PileupConstants.METRIC_SNP)) {
+			SnpMetric metric = (SnpMetric)metrics.get(PileupConstants.METRIC_SNP);
+			metric.writeRecords(gffName, StrandEnum.getMetricsElements(), chromosomes);
+			metric.close();	    		
+		}
+		
+		List<String> finalCounts = getFinalCountsStrings();
+		writeCountsToLog(finalCounts);
+		writeToMetricsSummaryFile(finalCounts);
 	}	
 	
 	public String toHeaderString() {

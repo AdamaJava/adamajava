@@ -91,9 +91,7 @@ public class Chromosome implements Comparable<Chromosome>{
 				return false;
 		} else if (!name.equals(other.name))
 			return false;
-		if (startPos != other.startPos)
-			return false;
-		return true;
+		return startPos == other.startPos;
 	}
 	
 }

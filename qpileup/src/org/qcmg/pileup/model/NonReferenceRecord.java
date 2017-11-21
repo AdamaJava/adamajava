@@ -72,10 +72,11 @@ public class NonReferenceRecord {
 			isLowReadCount = true;
 		} else {
 			isLowReadCount = false;
-			Double total = new Double(totalBaseCount);
-			Double nonRef = new Double(nonReferenceCount);
-			Double percent = nonRef/total;
-			isHighNonRef = percent >= highNonRefThreshold;
+//			Double total = new Double(totalBaseCount);
+//			Double nonRef = new Double(nonReferenceCount);
+//			Double percent = nonRef/total;
+//			isHighNonRef = percent >= highNonRefThreshold;
+			isHighNonRef = ((double)nonReferenceCount / totalBaseCount) >= highNonRefThreshold;
 		}
 	}
 }

@@ -116,7 +116,8 @@ public class PileupUtil {
         int size = strings.length;
         byte[] bytes = new byte[size * length];
 
-        StringBuffer strBuff = new StringBuffer(length);
+        StringBuilder strBuff = new StringBuilder(length);
+//        StringBuffer strBuff = new StringBuffer(length);
         for (int i = 0; i < size; i++) {
             // initialize the string with spaces
             strBuff.replace(0, length, " ");
@@ -137,7 +138,7 @@ public class PileupUtil {
     }
 	
 	public static Map<String, List<Chromosome>> getChromosomeRangeMap(List<String> readRanges, List<Chromosome> chromosomes) throws QPileupException {
-		Map<String, List<Chromosome>> queueMap = new TreeMap<String, List<Chromosome>>();
+		Map<String, List<Chromosome>> queueMap = new TreeMap<>();
 		
 		if (readRanges.size() == 1 && readRanges.get(0).equals("all")) {
 			for (Chromosome chr: chromosomes)  {
@@ -184,23 +185,19 @@ public class PileupUtil {
 	}
 	
 	private static Chromosome getChromosomeByName(String chrName, List<Chromosome> chromosomes) {
-    		Chromosome chr = null;
-    	
 		for (Chromosome c: chromosomes) {
 			if (c.getName().equals(chrName)) {
-				chr = c;
-				break;
+				return c;
 			}
 		}
-		
-		return chr;
+		return null;
 	}
 	
 	public static boolean isRegularityType(String type) {
 		return type.equals(PileupConstants.METRIC_INDEL) || type.equals(PileupConstants.METRIC_NONREFBASE) || type.equals(PileupConstants.METRIC_CLIP);
 	}
 	
-	public static String getFullChromosome(String ref) {		
+	public static String getFullChromosome(String ref) {
 		if (addChromosomeReference(ref)) {			
 			return "chr" + ref;
 		} else {			

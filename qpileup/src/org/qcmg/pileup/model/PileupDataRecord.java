@@ -18,7 +18,7 @@ public class PileupDataRecord {
 	private int referenceNo = 0;
 	private int nonReferenceNo = 0;
 	private int highNonReference = 0;
-	private int lowReadCount = 0;
+	private final int lowReadCount = 0;
 	private int baseA = 0;
 	private int baseC = 0;
 	private int baseG = 0;
@@ -49,9 +49,6 @@ public class PileupDataRecord {
 	
 	final static String DELIMITER = PileupConstants.DELIMITER;
 	
-	public PileupDataRecord()  {
-		
-	}
 	
 	public PileupDataRecord(Integer position) {
 		this.position = position;
@@ -106,17 +103,17 @@ public class PileupDataRecord {
 		return baseG;
 	}
 
-	public void setBaseG(int baseG) {
-		this.baseG = baseG;
-	}
+//	public void setBaseG(int baseG) {
+//		this.baseG = baseG;
+//	}
 
 	public int getBaseT() {
 		return baseT;
 	}
 
-	public void setBaseT(int baseT) {
-		this.baseT = baseT;
-	}
+//	public void setBaseT(int baseT) {
+//		this.baseT = baseT;
+//	}
 
 	public int getBaseN() {
 		return baseN;
@@ -130,33 +127,33 @@ public class PileupDataRecord {
 		return aQual;
 	}
 
-	public void setaQual(long aQual) {
-		this.aQual = aQual;
-	}
+//	public void setaQual(long aQual) {
+//		this.aQual = aQual;
+//	}
 
 	public long getcQual() {
 		return cQual;
 	}
 
-	public void setcQual(long cQual) {
-		this.cQual = cQual;
-	}
+//	public void setcQual(long cQual) {
+//		this.cQual = cQual;
+//	}
 
 	public long getgQual() {
 		return gQual;
 	}
 
-	public void setgQual(long gQual) {
-		this.gQual = gQual;
-	}
+//	public void setgQual(long gQual) {
+//		this.gQual = gQual;
+//	}
 
 	public long gettQual() {
 		return tQual;
 	}
 
-	public void settQual(long tQual) {
-		this.tQual = tQual;
-	}
+//	public void settQual(long tQual) {
+//		this.tQual = tQual;
+//	}
 
 	public long getnQual() {
 		return nQual;
@@ -250,9 +247,9 @@ public class PileupDataRecord {
 		return this.lowReadCount;
 	}
 
-	public void setLowReadCount(int lowReadCount) {
-		this.lowReadCount = lowReadCount;
-	}
+//	public void setLowReadCount(int lowReadCount) {
+//		this.lowReadCount = lowReadCount;
+//	}
 
 	public void setMateUnmapped(int i) {
 		this.mateUnmapped  = i;
@@ -309,9 +306,9 @@ public class PileupDataRecord {
 		return isReverse;
 	}
 
-	public void setReverse(boolean isReverse) {
-		this.isReverse = isReverse;
-	}
+//	public void setReverse(boolean isReverse) {
+//		this.isReverse = isReverse;
+//	}
 
 	public void checkBase(char base, int qual, char referenceBase, SAMRecord record) throws QPileupException {
 		if (referenceBase != 'h' && referenceBase != '0' && base != 'd') {
@@ -351,6 +348,7 @@ public class PileupDataRecord {
 		this.referenceNo = referenceNo;
 	}
 
+	@Override
 	public String toString() {
 		StringBuffer sb = new StringBuffer();
 		
@@ -462,8 +460,8 @@ public class PileupDataRecord {
 		return member;
 	}
 
-	public void setIsReverse(boolean b) {
-		this.isReverse = b;		
-	}
+//	public void setIsReverse(boolean b) {
+//		this.isReverse = b;		
+//	}
 
 }
