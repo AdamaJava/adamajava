@@ -158,8 +158,6 @@ public class MatePairTest {
     @Test
     public void testEquals() {
         MatePair p = pairs.get(0);
-        
-       assertTrue(p.equals(p));
        assertFalse(p.equals(pairs.get(1)));       
     }
     
