@@ -71,19 +71,17 @@ public class QProfilerCollectionsUtils {
 		return splitFlags;
 	}
 	
-	public static <T> SummaryByCycle<T> generateSummaryByCycleFromElement(Element element,
-			String name) {
+	public static <T> SummaryByCycle<T> generateSummaryByCycleFromElement(Element element, String name) {
 
-		ConcurrentMap<Integer, ConcurrentMap<T, AtomicLong>> tally = new ConcurrentHashMap<Integer, ConcurrentMap<T, AtomicLong>>();
+		ConcurrentMap<Integer, ConcurrentMap<T, AtomicLong>> tally = new ConcurrentHashMap<>();
 		final NodeList nl = element.getElementsByTagName(name);
 		final Element nameElement = (Element) nl.item(0);
 
 		
 		if (null != nameElement) {
 			// now get the cycletally underneath..
-			Element cycleTallyElement = null;
 			if (nameElement.hasChildNodes()) {
-				cycleTallyElement = (Element) nameElement.getElementsByTagName("CycleTally").item(0);
+				Element cycleTallyElement = (Element) nameElement.getElementsByTagName("CycleTally").item(0);
 	
 				// get the cycles
 				final NodeList cycles = cycleTallyElement.getElementsByTagName("Cycle");
@@ -115,9 +113,8 @@ public class QProfilerCollectionsUtils {
 		
 		if (null != nameElement) {
 			// now get the cycletally underneath..
-			Element cycleTallyElement = null;
 			if (nameElement.hasChildNodes()) {
-				cycleTallyElement = (Element) nameElement.getElementsByTagName("CycleTally").item(0);
+				Element cycleTallyElement = (Element) nameElement.getElementsByTagName("CycleTally").item(0);
 				
 				// get the cycles
 				final NodeList cycles = cycleTallyElement.getElementsByTagName("Cycle");
@@ -130,9 +127,8 @@ public class QProfilerCollectionsUtils {
 						
 						if (null != tallyItemsNL && tallyItemsNL.item(0) instanceof Element) {
 							Element tallyItemElement = (Element) tallyItemsNL.item(0);
-							String percent = null;
 							if (tallyItemElement.getAttribute("percent").length() > 0) {
-								percent = tallyItemElement.getAttribute("percent");
+								String percent = tallyItemElement.getAttribute("percent");
 								// can't add null to ConcurrentHashMap
 								tally.put(Integer.parseInt(cycleElement.getAttribute("value")), percent);
 							}
@@ -269,7 +265,7 @@ public class QProfilerCollectionsUtils {
 		if (params.length > 1) {
 			for (String param : params) {
 				
-				String key = null;
+				String key;
 				if (param.startsWith(Constants.HEADER_PREFIX)) {
 					key = "Header";
 				} else if (param.startsWith(Constants.SEQUENCE_PREFIX)) {
@@ -293,7 +289,7 @@ public class QProfilerCollectionsUtils {
 			if (params.length > 1) {
 				for (String param : params) {
 					if (param.trim().length() > 0) {
-						String key = null;
+						String key;
 						if (param.startsWith("HD")) {
 							key = "Header";
 						} else if (param.startsWith("SQ")) {
