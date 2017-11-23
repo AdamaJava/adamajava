@@ -55,8 +55,8 @@ public class FastaSummarizer implements Summarizer {
 		final boolean isLevelEnabled = logger.isLevelEnabled(QLevel.DEBUG);
 		long recordsParsed = 0;
 		
-		SimpleFileReader reader =  new SimpleFileReader(file);
-		try {
+		
+		try (SimpleFileReader reader =  new SimpleFileReader(file);){
 			for (Record record : reader) {
 				if (null != record) {
 					
@@ -68,9 +68,6 @@ public class FastaSummarizer implements Summarizer {
 					}
 				}
 			}
-		
-		} finally {
-			reader.close();
 		}
 		
 		logger.info("records parsed: " + fastaSummaryReport.getRecordsParsed());

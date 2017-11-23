@@ -45,7 +45,7 @@ public class QualSummarizer implements Summarizer {
 	@Override
 	public SummaryReport summarize(File file) throws Exception {
 		
-		SimpleFileReader reader = new SimpleFileReader(file);
+		
 
 		// create the SummaryReport
 		QualSummaryReport qualSummaryReport = new QualSummaryReport(excludes);
@@ -55,7 +55,7 @@ public class QualSummarizer implements Summarizer {
 		// set logging level for printing of no of records parsed
 		final boolean isLevelEnabled = logger.isLevelEnabled(QLevel.DEBUG);
 		
-		try {
+		try (SimpleFileReader reader = new SimpleFileReader(file);){
 			for (Record record : reader) {
 				if (null != record) {
 					
@@ -72,8 +72,6 @@ public class QualSummarizer implements Summarizer {
 					}
 				}
 			}
-		} finally {
-			reader.close();
 		}
 			
 		logger.info("records parsed: " + qualSummaryReport.getRecordsParsed());

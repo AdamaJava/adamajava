@@ -46,8 +46,8 @@ public class GffSummarizer implements Summarizer {
 		// set logging level for printing of no of records parsed
 		final boolean isLevelEnabled = logger.isLevelEnabled(QLevel.DEBUG);
 
-		GFFReader reader = new GFFReader(file);
-		try {
+		
+		try (GFFReader reader = new GFFReader(file);){
 			for (Record record : reader) {
 				gffSummaryReport.parseRecord((GFFRecord) record);
 				
@@ -55,9 +55,6 @@ public class GffSummarizer implements Summarizer {
 					logger.debug("Records parsed: " + gffSummaryReport.getRecordsParsed());
 				}
 			}
-		
-		} finally {
-			reader.close();
 		}
 
 		gffSummaryReport.setFinishTime(DateUtils.getCurrentDateAsString());
