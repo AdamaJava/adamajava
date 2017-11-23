@@ -33,17 +33,8 @@ public class NonReferenceRecord {
 		return totalBases;
 	}
 
-	public void setTotalBases(int[] totalBases) {
-		this.totalBases = totalBases;
-	}
-
 	public int[] getNonReferences() {
 		return nonReferences;
-	}
-
-
-	public void setNonReferences(int[] nonReferences) {
-		this.nonReferences = nonReferences;
 	}
 
 	public int getNonReference(int i) {
@@ -58,17 +49,8 @@ public class NonReferenceRecord {
 		return isLowReadCount;
 	}
 
-
-	public void setLowReadCount(boolean isLowReadCount) {
-		this.isLowReadCount = isLowReadCount;
-	}
-
 	public boolean isHighNonRef() {
 		return isHighNonRef;
-	}
-
-	public void setHighNonRef(boolean isHighNonRef) {
-		this.isHighNonRef = isHighNonRef;
 	}
 
 	public void addNonReferenceMetrics(PileupDataRecord dataRecord, int index) {
@@ -85,10 +67,7 @@ public class NonReferenceRecord {
 			isLowReadCount = true;
 		} else {
 			isLowReadCount = false;
-			Double total = new Double(totalBaseCount);
-			Double nonRef = new Double(nonReferenceCount);
-			Double percent = nonRef/total;
-			isHighNonRef = percent >= highNonRefThreshold;
+			isHighNonRef = ((double)nonReferenceCount / totalBaseCount) >= highNonRefThreshold;
 		}
 	}
 }

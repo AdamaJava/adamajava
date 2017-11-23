@@ -7,15 +7,15 @@
 package au.edu.qimr.qmito.lib;
 
 import htsjdk.samtools.SAMRecord;
-import au.edu.qimr.qmito.Messages;;
+import au.edu.qimr.qmito.Messages;
 
 public class PileupDataRecord {
 
 	public static String headings;
-	private Integer position;
+	private final Integer position;
 	private int referenceNo = 0;
 	private int nonReferenceNo = 0;
-	private int highNonReference = 0;
+	private final int highNonReference = 0;
 	private int lowReadCount = 0;
 	private int baseA = 0;
 	private int baseC = 0;
@@ -46,15 +46,7 @@ public class PileupDataRecord {
 	boolean isReverse = false;
 	
 	//default delimiter is tab
-	String DELIMITER = "\t";
-	
-	public PileupDataRecord()  {
-		
-	}
-	
-	public PileupDataRecord(Integer position) {
-		this.position = position;
-	}
+	static final String DELIMITER = "\t";
 	
 	public PileupDataRecord(Integer position, boolean isReverse) {
 		this.position = position;
@@ -65,104 +57,52 @@ public class PileupDataRecord {
 		return this.position;
 	}	
 
-	public void setPosition(Integer position2) {
-		this.position = position2;
-		
-	}
 	public int getNonReferenceNo() {
 		return nonReferenceNo;
-	}
-
-	public void setNonReferenceNo(int nonReferenceNo) {
-		this.nonReferenceNo = nonReferenceNo;
 	}
 
 	public int getHighNonReference() {
 		return highNonReference;
 	}
 
-	public void setHighNonReference(int highNonReference) {
-		this.highNonReference = highNonReference;
-	}
-	
 	public int getBaseA() {
 		return baseA;
-	}
-
-	public void setBaseA(int baseA) {
-		this.baseA = baseA;
 	}
 
 	public int getBaseC() {
 		return baseC;
 	}
 
-	public void setBaseC(int baseC) {
-		this.baseC = baseC;
-	}
-
 	public int getBaseG() {
 		return baseG;
-	}
-
-	public void setBaseG(int baseG) {
-		this.baseG = baseG;
 	}
 
 	public int getBaseT() {
 		return baseT;
 	}
 
-	public void setBaseT(int baseT) {
-		this.baseT = baseT;
-	}
-
 	public int getBaseN() {
 		return baseN;
-	}
-
-	public void setBaseN(int baseN) {
-		this.baseN = baseN;
 	}
 
 	public long getaQual() {
 		return aQual;
 	}
 
-	public void setaQual(long aQual) {
-		this.aQual = aQual;
-	}
-
 	public long getcQual() {
 		return cQual;
-	}
-
-	public void setcQual(long cQual) {
-		this.cQual = cQual;
 	}
 
 	public long getgQual() {
 		return gQual;
 	}
 
-	public void setgQual(long gQual) {
-		this.gQual = gQual;
-	}
-
 	public long gettQual() {
 		return tQual;
 	}
 
-	public void settQual(long tQual) {
-		this.tQual = tQual;
-	}
-
 	public long getnQual() {
 		return nQual;
-	}
-
-	public void setnQual(long nQual) {
-		this.nQual = nQual;
 	}
 
 	public long getMapQual() {
@@ -312,7 +252,7 @@ public class PileupDataRecord {
 		this.isReverse = isReverse;
 	}
 
-	public void checkBase(char base, int qual, char referenceBase, SAMRecord record) throws Exception {
+	public void checkBase(char base, int qual, char referenceBase, SAMRecord record) {
 		if (referenceBase != 'h' && referenceBase != '0' && base != 'd') {
 			
 			if (base != referenceBase) {
@@ -345,10 +285,7 @@ public class PileupDataRecord {
 		return referenceNo;
 	}
 
-	public void setReferenceNo(int referenceNo) {
-		this.referenceNo = referenceNo;
-	}
-
+	@Override
 	public String toString() {
 		StringBuffer sb = new StringBuffer();
 		
@@ -370,13 +307,11 @@ public class PileupDataRecord {
 		return sb.toString();
 	}
 	
-	public void setDelimiter(String delimiter){	 this.DELIMITER = delimiter;}
-
 	public int getTotalBases() {
 		return  baseA + baseT  + baseC  + baseG  + baseN;
 	}
 
-	public int getIntMember(String name) throws Exception {
+	public int getIntMember(String name) {
 		StrandEnum strand = (StrandEnum.valueOf(name));
 		
 		int member = 0;
@@ -431,12 +366,12 @@ public class PileupDataRecord {
 		}
 		
 		if (member< 0) {
-			throw new Exception(Messages.getMessage("NEGATIVE_RECORD", name));
+			throw new IllegalArgumentException(Messages.getMessage("NEGATIVE_RECORD", name));
 		}
 		return member;
 	}
 
-	public long getLongMember(String name) throws Exception {
+	public long getLongMember(String name) {
 		StrandEnum strand = (StrandEnum.valueOf(name));
 		
 		long member = 0;
@@ -456,13 +391,8 @@ public class PileupDataRecord {
 			default: member = -1;
 		}
 		if (member< 0) {
-			throw new Exception(Messages.getMessage("NEGATIVE_RECORD"));
+			throw new IllegalArgumentException(Messages.getMessage("NEGATIVE_RECORD"));
 		}
 		return member;
 	}
-
-	public void setIsReverse(boolean b) {
-		this.isReverse = b;		
-	}
-
 }

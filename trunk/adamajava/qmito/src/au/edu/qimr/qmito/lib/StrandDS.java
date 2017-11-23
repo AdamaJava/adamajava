@@ -21,12 +21,12 @@ import org.qcmg.common.log.QLoggerFactory;
  */
 public class StrandDS {
 	
-	private QLogger logger = QLoggerFactory.getLogger(getClass());	
+	private final QLogger logger = QLoggerFactory.getLogger(getClass());	
 
-	private SAMSequenceRecord reference;
+	private final SAMSequenceRecord reference;
 	private String direction;
 	private boolean isReverse = false;
-	private Map<String, StrandElement> elementMap;
+	private final Map<String, StrandElement> elementMap;
 
 	/**
 	 * Set up an empty map where pileup dataset from indicated strand will be stored for all reference base 
@@ -41,7 +41,7 @@ public class StrandDS {
 	}
 	
 	private Map<String, StrandElement> setupSubElementMap(Integer datasetLength, StrandEnum[] memberNames) {
-		Map<String,StrandElement> map = new HashMap<String, StrandElement>();
+		Map<String,StrandElement> map = new HashMap<>();
 		
 		for (int i=0; i<memberNames.length; i++) {	
 			if (memberNames[i].toString().toLowerCase().contains("qual")) {
@@ -62,7 +62,7 @@ public class StrandDS {
 	}
 
 	private Map<String, StrandElement> setupMap(Integer datasetLength) {
-		Map<String,StrandElement> map = new HashMap<String, StrandElement>();
+		Map<String,StrandElement> map = new HashMap<>();
 		StrandEnum[] memberNames = StrandEnum.values();
 		
 		for (int i=0; i<memberNames.length; i++) {

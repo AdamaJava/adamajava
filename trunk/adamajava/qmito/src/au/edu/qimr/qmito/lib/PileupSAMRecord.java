@@ -19,16 +19,16 @@ import htsjdk.samtools.util.SequenceUtil;
 
 public class PileupSAMRecord {
 	
-	private QLogger logger = QLoggerFactory.getLogger(getClass());
+	private final QLogger logger = QLoggerFactory.getLogger(getClass());
 	private final SAMRecord record;
 	private boolean isReverse = false;
-	private byte[] baseQualities;
-	private int referenceStart;
-	private int referenceEnd;
-	private int readStart;
-	private int readEnd;
-	private List<PileupDataRecord> dsRecords;	
-	private boolean isDuplicate;
+	private final byte[] baseQualities;
+	private final int referenceStart;
+	private final int referenceEnd;
+	private final int readStart;
+	private final int readEnd;
+	private final List<PileupDataRecord> dsRecords;	
+	private final boolean isDuplicate;
 	private boolean isMateUnmapped;
 	
 	public PileupSAMRecord(SAMRecord record) {
@@ -49,10 +49,6 @@ public class PileupSAMRecord {
 	
 	public boolean isReverse() {
 		return isReverse;
-	}
-
-	public void setReverse(boolean isReverse) {
-		this.isReverse = isReverse;
 	}
 
 	public String getReference() {
@@ -83,9 +79,8 @@ public class PileupSAMRecord {
 		return record.getReadNegativeStrandFlag();
 	}
 	
-	public void pileup() throws Exception {
+	public void pileup() {
 		//converting MD field annotation to our standard
-		try {
 			String md = (String)record.getAttribute("MD");
 			if (md.contains("M")){				
 				String newM = md.replaceAll("M", "N");				
@@ -124,7 +119,7 @@ public class PileupSAMRecord {
 						referenceIndex += element.getLength();
 					} else {
 						String error = "ReferencePos: " + referencePos + " ReadStart: " + readStart + " ReadEnd: " + readEnd + " CigarOperator: " + operator.name();
-						throw new Exception(Messages.getMessage("CIGAR_ERROR", error, record.getSAMString()));						
+						throw new IllegalArgumentException(Messages.getMessage("CIGAR_ERROR", error, record.getSAMString()));						
 					}
 				} else {
 					//should be in the read
@@ -154,28 +149,17 @@ public class PileupSAMRecord {
 							referencePos += element.getLength();
 							referenceIndex+= element.getLength();											
 						} else if (operator == CigarOperator.P) {
-							throw new Exception(Messages.getMessage("CIGAR_P_ERROR", record.getSAMString()));
+							throw new IllegalArgumentException(Messages.getMessage("CIGAR_P_ERROR", record.getSAMString()));
 						} else {
 							String error = "ReferencePos: " + referencePos + " ReadStart: " + readStart + " ReadEnd: " + readEnd;
-							throw new Exception(Messages.getMessage("BASE_ERROR", error, record.getSAMString()));
+							throw new IllegalArgumentException(Messages.getMessage("BASE_ERROR", error, record.getSAMString()));
 						}						
 					} else {
 						String error = "ReferencePos: " + referencePos + " ReadStart" + readStart + " ReadEnd: " + readEnd + " CigarOperator: " + operator.name();
-						throw new Exception(Messages.getMessage("BASE_RANGE_ERROR", ""  + error, record.getSAMString()));
+						throw new IllegalArgumentException(Messages.getMessage("BASE_RANGE_ERROR", ""  + error, record.getSAMString()));
 					}
 				}
-				
-				
-				//debug investigate pileupDataRecord
-				//System.out.println(String.format("%s::cigar element: %s; referecePos: %d; read region (%d ~ %d); pileupDataRcord size: %d", 
- 				//		record.getCigar(),  operator.name(), referencePos, readStart,readEnd, dsRecords.size()));			
-
 	 		}
-			
-		} catch (Exception e) {
-			logger.warn("Error parsing SAMRecord: " + record.getSAMString());
-			throw new Exception(Messages.getMessage("PILEUP_ERROR"));   
-		}	
 	}
 
 	public void setCigarI(int referencePos) {
@@ -186,7 +170,7 @@ public class PileupSAMRecord {
 		dsRecords.add(d);
 	}
 
-	public void addReadDataRecord(int position, char base, char ref, int baseQual) throws Exception {
+	public void addReadDataRecord(int position, char base, char ref, int baseQual) {
 		
 		PileupDataRecord d = new PileupDataRecord(position, isReverse);
 		if (position == readStart) {						
@@ -211,11 +195,7 @@ public class PileupSAMRecord {
 		d.setMapQual(record.getMappingQuality());
 		d.checkBase(base, baseQual, ref, record);
 		
-		
-
 		dsRecords.add(d);	
-		
-	
 	}
 
 	public void setCigarRecords(int referencePos, int length, CigarOperator o, int readStart, int readEnd) {

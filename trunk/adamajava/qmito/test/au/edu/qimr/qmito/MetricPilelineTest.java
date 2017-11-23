@@ -27,7 +27,7 @@ public class MetricPilelineTest {
 	
 	@Before
 	public void createInput() throws IOException{	
-		TestFile.CreateBam(input);
+		TestFile.createBam(input);
 	}
 	@After
 	public void deleteInput(){	
