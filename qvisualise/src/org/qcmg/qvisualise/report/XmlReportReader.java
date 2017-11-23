@@ -26,10 +26,9 @@ public class XmlReportReader {
 	
 	public static Document createDocumentFromFile(File absoluteFile)  {
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-		DocumentBuilder builder = null;
 		Document doc = null;
 		try {
-			builder = factory.newDocumentBuilder();
+			DocumentBuilder builder = factory.newDocumentBuilder();
 			doc = builder.parse(absoluteFile);
 			doc.getDocumentElement().normalize();
 			log.info("qprofiler xml file encoding: " + doc.getXmlEncoding());
@@ -61,20 +60,13 @@ public class XmlReportReader {
 		tempFile.deleteOnExit();
 		log.info("created temp file: "+ tempFile.getAbsoluteFile());
 		
-		BufferedReader in = new BufferedReader(new FileReader(originalFile));
-		BufferedWriter out = new BufferedWriter(new FileWriter(tempFile));
 		
-		String originalLine = null;
-		try {
+		String originalLine;
+		try (BufferedReader in = new BufferedReader(new FileReader(originalFile));
+				BufferedWriter out = new BufferedWriter(new FileWriter(tempFile));){
 			while ((originalLine = in.readLine()) != null) {
 				if (originalLine.startsWith("<!DOCTYPE")) continue;
 				out.write(originalLine);
-			}
-		} finally {
-			try {
-				in.close();
-			} finally {
-				out.close();
 			}
 		}
 		
