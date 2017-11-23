@@ -285,9 +285,9 @@ public class BamSummarizerTest {
 	private void createDodgyDataFile(List<String> dodgyData) {
 		createTestSamFile(SAM_DODGY_INPUT_FILE, dodgyData);
 	}
-	private void createDodgyDataFileBWA(List<String> dodgyData) {
-		createTestSamFile(SAM_DODGY_INPUT_FILE, dodgyData);
-	}
+//	private void createDodgyDataFileBWA(List<String> dodgyData) {
+//		createTestSamFile(SAM_DODGY_INPUT_FILE, dodgyData);
+//	}
 
 	private static List<String> createValidSamData() {
 		List<String> data = new ArrayList<String>();
@@ -396,53 +396,18 @@ public class BamSummarizerTest {
 		
 		return data;
 	}
-	private static List<String> createSamDataExtraDataBWA() {
-		List<String> data = new ArrayList<String>();
-		for (String dataEntry : createSamDataHeaderBWA()) {
-			data.add(dataEntry);
-		}
-		data.add("@CO	called by createSamlDataExtraData()");
-		
-		for (String dataEntry : createSamDataBody()) {
-			data.add(dataEntry);
-		}
-		
-		data.add("429_1353_1176	171	chr1	10245	29	47M3H	*	0	0	" +
-				"CCTAAACCCTAAACCCTAACCCTAACCCTAACCCTAACCCTAACCCC	IIIIIIIIIIIIIIIIIIGIIIGI=AIGDI=6HC((@>I((C))I?,	" +
-				"RG:Z:1959T	CS:Z:G30230010023001002301002301002301002001000300000300	" +
-				"CQ:Z:=A<=<:@=A;:=75<<969/><178&<9/68&18,(;&99(/5);:&'12" +
-				"429_1353_1176	171	chr1	10245	29	47M3H	*	0	0	" +
-				"CCTAAACCCTAAACCCTAACCCTAACCCTAACCCTAACCCTAACCCC	IIIIIIIIIIIIIIIIIIGIIIGI=AIGDI=6HC((@>I((C))I?,	" +
-				"RG:Z:1959T	CS:Z:G30230010023001002301002301002301002001000300000300	" +
-				"CQ:Z:=A<=<:@=A;:=75<<969/><178&<9/68&18,(;&99(/5);:&'12" +
-				"429_1353_1176	171	chr1	10245	29	47M3H	*	0	0	" +
-				"CCTAAACCCTAAACCCTAACCCTAACCCTAACCCTAACCCTAACCCC	IIIIIIIIIIIIIIIIIIGIIIGI=AIGDI=6HC((@>I((C))I?,	" +
-				"RG:Z:1959T	CS:Z:G30230010023001002301002301002301002001000300000300	" +
-		"CQ:Z:=A<=<:@=A;:=75<<969/><178&<9/68&18,(;&99(/5);:&'12");
-		
-		return data;
-	}
 
 	private static void createTestSamFile(String name, List<String> data) {
 		String fileName = SAM_INPUT_FILE;
 		if (null != name)
 			fileName = name;
-
-		PrintWriter out = null;
-		try {
-			out = new PrintWriter(new BufferedWriter(new FileWriter(fileName)));
-
+		
+		try (PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(fileName)));) {
 			for (String line : data) {
 				out.println(line);
 			}
-			out.close();
 		} catch (IOException e) {
-			Logger.getLogger("BamSummarizerTest").log(
-					Level.WARNING,
-					"IOException caught whilst attempting to write to SAM test file: "
-							+ fileName, e);
-		} finally {
-			out.close();
+			Logger.getLogger("BamSummarizerTest").log(Level.WARNING, "IOException caught whilst attempting to write to SAM test file: "+ fileName, e);
 		}
 	}
 
