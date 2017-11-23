@@ -13,12 +13,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
 
 import org.qcmg.common.commandline.BlockingExecutor;
 import org.qcmg.common.log.QLogger;
@@ -70,9 +67,10 @@ public class BLAT {
 	 * @param fastaFile
 	 * @param blatOutputFile
 	 * @return
-	 * @throws Exception
+	 * @throws QSVException 
+	 * @throws IOException 
 	 */
-	public Map<String, BLATRecord> align(String fastaFile, String blatOutputFile) throws Exception {
+	public Map<String, BLATRecord> align(String fastaFile, String blatOutputFile) throws QSVException, IOException  {
 		 //run blat
 		 execute(fastaFile, blatOutputFile);
 
@@ -84,10 +82,10 @@ public class BLAT {
 	 * Parse blat results
 	 * @param blatOutputFile
 	 * @return map with blat records
-	 * @throws Exception
+	 * @throws IOException 
 	 */
-	public Map<String, BLATRecord> parseResults(String blatOutputFile) throws Exception {
-		Map<String, BLATRecord> records = new HashMap<String, BLATRecord>();
+	public Map<String, BLATRecord> parseResults(String blatOutputFile) throws IOException {
+		Map<String, BLATRecord> records = new HashMap<>();
 		File blatOutput = new File(blatOutputFile);
 		
 		try (TabbedFileReader reader = new TabbedFileReader(blatOutput);) {
@@ -153,9 +151,10 @@ public class BLAT {
 	 * @param leftReference
 	 * @param rightReference
 	 * @return
+	 * @throws QSVException 
 	 * @throws Exception
 	 */
-	public List<BLATRecord> alignConsensus(String softclipDir, String name, String consensus, String leftReference, String rightReference) throws Exception {
+	public List<BLATRecord> alignConsensus(String softclipDir, String name, String consensus, String leftReference, String rightReference) throws IOException, QSVException {
 		String base = softclipDir + QSVUtil.getFileSeparator() + name;
 		File faFile = new File(base + ".fa");
 		
@@ -199,11 +198,10 @@ public class BLAT {
 		 * java 8 List sort should be better than Collections.sort
 		 */
 		records.sort(null);
-//		Collections.sort(records);		
 		return records;		
 	}
 
-	public List<BLATRecord> getBlatResults(String blatFile, String leftReference, String rightReference, String name) throws Exception {
+	public List<BLATRecord> getBlatResults(String blatFile, String leftReference, String rightReference, String name) throws IOException {
 		File outFile = new File(blatFile.replace(".fa", ".psl"));
 		
 		List<BLATRecord> records = new ArrayList<>();
@@ -229,7 +227,6 @@ public class BLAT {
 		 * java 8 List sort should be better than Collections.sort
 		 */
 		records.sort(null);
-//		Collections.sort(records);	
 		return records;
 	}
 

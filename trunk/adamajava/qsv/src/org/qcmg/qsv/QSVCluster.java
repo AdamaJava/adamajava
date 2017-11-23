@@ -652,7 +652,7 @@ public class QSVCluster {
 	/*
 	 * For dcc file - get the 200bp upstream and downstream of each breakpoint
 	 */
-	private void getReferenceFlank(File referenceFile, Map<String, List<Chromosome>> chromosomes) throws IOException {
+	private void getReferenceFlank(File referenceFile, Map<String, List<Chromosome>> chromosomes) {
 		if (referenceFile != null) {
 			ConcurrentMap<String, byte[]> referenceMap = QSVUtil.getReferenceMap();
     		
@@ -668,7 +668,7 @@ public class QSVCluster {
 	 * For dcc file - get the 200bp upstream and downstream of a breakpoint
 	 */
 	public static String getCurrentFlankSeq(ConcurrentMap<String, byte[]> referenceMap, String reference,
-			int breakpoint, List<Chromosome> list) throws UnsupportedEncodingException {
+			int breakpoint, List<Chromosome> list) {
 		Chromosome c = null;
 		if (list != null) {
 			c = list.get(0);
@@ -961,9 +961,8 @@ public class QSVCluster {
 	 * @param isQCMG
 	 * @param validationPlatform
 	 * @return
-	 * @throws Exception
 	 */
-	public String getDataString(String fileType, String tumourFindType, String normalFindType, boolean isQCMG, String validationPlatform) throws Exception {
+	public String getDataString(String fileType, String tumourFindType, String normalFindType, boolean isQCMG, String validationPlatform) {
 		if (fileType.equals("dcc")) {
 //			this.validationPlatform = validationPlatform;
 			return toDCCString(validationPlatform);

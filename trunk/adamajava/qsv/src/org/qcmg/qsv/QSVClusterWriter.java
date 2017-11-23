@@ -61,7 +61,7 @@ public class QSVClusterWriter {
 	}
 
 	private Map<String, List<GFF3Record>> parseGFFFiles() throws IOException {
-		Map<String, List<GFF3Record>> gffMap = new HashMap<String, List<GFF3Record>>();
+		Map<String, List<GFF3Record>> gffMap = new HashMap<>();
 		for (String file: gffFiles) {
 
 			try (GFF3FileReader reader = new GFF3FileReader(new File(file));) {
@@ -72,7 +72,7 @@ public class QSVClusterWriter {
 					if (gffMap.containsKey(g3.getSeqId())) {
 						gffMap.get(g3.getSeqId()).add(g3);
 					} else {
-						List<GFF3Record> list = new ArrayList<GFF3Record>();
+						List<GFF3Record> list = new ArrayList<>();
 						list.add(g3);
 						gffMap.put(g3.getSeqId(), list);					
 					}

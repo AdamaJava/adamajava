@@ -12,7 +12,7 @@ import org.qcmg.common.log.QLoggerFactory;
 public class ProcessStreamHandler extends Thread {
 	InputStream is;
 	String type;
-	private QLogger logger = QLoggerFactory.getLogger(getClass());
+	private final QLogger logger = QLoggerFactory.getLogger(getClass());
 	
 	
 	public ProcessStreamHandler(InputStream is, String type) {
@@ -20,13 +20,14 @@ public class ProcessStreamHandler extends Thread {
 		this.type = type;
 	}
 
+	@Override
 	public void run() {
 		try {
 
 			StringBuilder output = new StringBuilder();
 			InputStreamReader isr = new InputStreamReader(is);
 			BufferedReader br = new BufferedReader(isr);
-			String line = null;
+			String line;
 			int count = 0;
 			while ((line = br.readLine()) != null) {
 				count++;

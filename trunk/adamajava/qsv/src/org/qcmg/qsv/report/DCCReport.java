@@ -44,7 +44,7 @@ public class DCCReport extends QSVReport {
 		writeHeader();
 	}
 
-	public DCCReport(File file, List<QSVCluster> records, String tumourFindType, String normalFindType, boolean isSingleSided, String platform) throws Exception {
+	public DCCReport(File file, List<QSVCluster> records, String tumourFindType, String normalFindType, boolean isSingleSided, String platform) throws IOException {
 		super(file);
 		this.qsvRecords = records;
 		this.isSingleSided = isSingleSided;
@@ -56,13 +56,14 @@ public class DCCReport extends QSVReport {
 
 	@Override
 	public void writeHeader() throws IOException {
-		BufferedWriter writer = new BufferedWriter(new FileWriter(file));	
-		writeExec(writer);
-		writeDCCMeta(writer);
-		writeLIMSMeta(writer);
-		writeToolSpecific(writer);		
-		writer.write(getHeader());
-		writer.close();
+		
+		try (BufferedWriter writer = new BufferedWriter(new FileWriter(file));) {	
+			writeExec(writer);
+			writeDCCMeta(writer);
+			writeLIMSMeta(writer);
+			writeToolSpecific(writer);		
+			writer.write(getHeader());
+		}
 	}
 
 	private void writeLIMSMeta(BufferedWriter writer) throws IOException {
@@ -109,7 +110,7 @@ public class DCCReport extends QSVReport {
 	}
 
 	@Override
-	public void writeReport() throws Exception {
+	public void writeReport() throws IOException {
 		try ( BufferedWriter writer = new BufferedWriter(new FileWriter(file, true))) {
 		    	 for (QSVCluster r: qsvRecords) {
 		    		 if (r.printRecord(isSingleSided)) {

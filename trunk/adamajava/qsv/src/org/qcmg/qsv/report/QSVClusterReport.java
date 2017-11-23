@@ -27,7 +27,7 @@ public class QSVClusterReport extends QSVReport {
 	private final boolean isSingleSided;
     private static String TAB = "\t";
     
-    public QSVClusterReport(String base, String mutationType, String end, String fileType, List<QSVCluster> qsvRecords, String tumourFindType, String normalFindType, boolean isSingleSided) throws Exception {
+    public QSVClusterReport(String base, String mutationType, String end, String fileType, List<QSVCluster> qsvRecords, String tumourFindType, String normalFindType, boolean isSingleSided) throws IOException {
         super(new File(base + "." + mutationType + end));
         this.fileType = fileType;
         this.qsvRecords = qsvRecords;
@@ -41,7 +41,7 @@ public class QSVClusterReport extends QSVReport {
         writeHeader();
         writeReport();
     }  
-    public QSVClusterReport(String base, String mutationType, String end, String fileType, List<QSVCluster> qsvRecords, boolean isSingleSided) throws Exception {
+    public QSVClusterReport(String base, String mutationType, String end, String fileType, List<QSVCluster> qsvRecords, boolean isSingleSided) throws IOException {
         super(new File(base + "." + mutationType + end));
         this.fileType = fileType;
         this.qsvRecords = qsvRecords;
@@ -53,7 +53,7 @@ public class QSVClusterReport extends QSVReport {
         writeReport();
     }    
         
-    public QSVClusterReport(String base, String mutationType, String end, String fileType, QSVCluster r, String tumourFindType, String normalFindType, boolean isQCMG, boolean isSingleSided)  throws Exception {    	
+    public QSVClusterReport(String base, String mutationType, String end, String fileType, QSVCluster r, String tumourFindType, String normalFindType, boolean isQCMG, boolean isSingleSided)  throws IOException {    	
     	super(new File(base + "." + r.getReference() + "." + mutationType + end));
         this.fileType = fileType;
         this.qsvRecords = new ArrayList<QSVCluster>();
@@ -78,7 +78,7 @@ public class QSVClusterReport extends QSVReport {
     }
 
     @Override
-	public synchronized void writeReport() throws Exception {
+	public synchronized void writeReport() throws IOException {
     		try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, true));) {
     			for (QSVCluster r: qsvRecords) {   
     				if (r.printRecord(isSingleSided)) {
