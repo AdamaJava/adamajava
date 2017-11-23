@@ -90,7 +90,7 @@ public class BreakpointTest {
 		String[] values =value.split("\t");
 		BLATRecord record = new BLATRecord(values);
 		
-		breakpoint = TestUtil.getBreakpointNoChr(true, false, 20, false);
+		breakpoint = TestUtil.getBreakpointNoChr(true, false, 20);
 		assertEquals(true, breakpoint.findMateBreakpoint(record));
 		
 		assertEquals(QSVUtil.PLUS, breakpoint.getMateStrand());
