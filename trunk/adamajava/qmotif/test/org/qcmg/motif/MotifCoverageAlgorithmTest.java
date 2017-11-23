@@ -186,7 +186,7 @@ public class MotifCoverageAlgorithmTest {
 		assertEquals(true, mca.applyTo(sam, map));
 		// same as initial sequence apart from the first character and the last 4 characters
 		assertEquals("CCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAA"
-				, rc.getMotifsForwardStrand().toString());
+				, rc.getMotifsForwardStrand());
 		
 	}
 
