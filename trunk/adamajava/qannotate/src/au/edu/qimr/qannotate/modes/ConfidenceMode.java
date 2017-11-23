@@ -62,7 +62,7 @@ public class ConfidenceMode extends AbstractMode{
 	private double mrPercentage = 0.0f;
 	
 	//for unit testing
-	ConfidenceMode(String patient){}
+	ConfidenceMode(){}
 
 	
 	public ConfidenceMode( Options options) throws Exception{				 
