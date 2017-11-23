@@ -267,10 +267,7 @@ public class SplitReadContig {
 				break;
 			}
 		}
-		map = null;
 		assemble(splitReads, clipContig, softclipDir, blatFile);
-		splitReads = null;
-
 	}
 
 	private void assemble(List<UnmappedRead> splitReads, String clipContig, String softclipDir, String blatFile) throws Exception {
@@ -375,7 +372,7 @@ public class SplitReadContig {
 	}
 
 	private void readSplitReads(SamReader reader, Map<String, UnmappedRead[]> map, List<UnmappedRead> splitReads, 
-			String reference, int intBreakpoint, Set<String> expectedPairClassifications) throws Exception {
+			String reference, int intBreakpoint, Set<String> expectedPairClassifications) throws QSVException {
 		//		SAMFileReader.setDefaultValidationStringency(ValidationStringency.SILENT);  
 		//        SamReader reader = SAMFileReaderFactory.createSAMFileReader(parameters.getInputBamFile(), "silent");
 		int buffer = parameters.getUpperInsertSize().intValue() + 200;
@@ -619,13 +616,11 @@ public class SplitReadContig {
 		}		
 	}
 
-	private String getReferenceSequence(String reference, int breakpoint, int leftBuffer, int rightBuffer) throws QSVException, IOException {		
-
-		Chromosome c = null;
+	private String getReferenceSequence(String reference, int breakpoint, int leftBuffer, int rightBuffer) {		
 		List<Chromosome> list = chromosomes.get(reference);
 
 		if (list != null) {
-			c = list.get(0);			
+			Chromosome c = list.get(0);			
 			int start = breakpoint - leftBuffer;
 			if (start < 0) {
 				start = 1;
@@ -704,7 +699,7 @@ public class SplitReadContig {
 	}
 
 	public void reorder() {
-		boolean rearrange = false;
+		boolean rearrange;
 		if (left.getReference().equals(right.getReference()) && 
 				left.getStartPos().intValue() > right.getStartPos().intValue()) {
 			rearrange = true;        
@@ -875,20 +870,15 @@ public class SplitReadContig {
 		return align;
 	}
 
-	private SplitReadAlignment getAlignmentDifference(Integer queryStart, Integer queryEnd,
-			int difference, SplitReadAlignment align) {
+	private SplitReadAlignment getAlignmentDifference(Integer queryStart, Integer queryEnd, int difference, SplitReadAlignment align) {
 		if (queryStart != null && queryEnd != null) {
 			Integer currentDifference = matchingQueryString(difference, queryStart, queryEnd, align);
 			if (passesBreakpointFilter(align) && currentDifference != null) {
 				return align;
-			} else {
-				align = null;
 			}
 		} else {
 			if (passesBreakpointFilter(align)) {
 				return align;
-			} else {
-				align = null;
 			}
 		}
 		return null;		

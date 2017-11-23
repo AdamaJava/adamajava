@@ -84,8 +84,7 @@ public class Annotator  {
 	 * @param record
 	 * @throws Exception
 	 */
-	public void annotate(SAMRecord record) throws Exception {
-//		public synchronized void annotate(SAMRecord record) throws Exception {
+	public void annotate(SAMRecord record) throws QSVException {
 
 		//NH is the number of reporte alignments. Only get those that have a single alignment
 		//		record.getAttribute("NH");
@@ -106,15 +105,8 @@ public class Annotator  {
 				lower = rtr.getLower();
 				upper = rtr.getUpper();
 			}
-//			for (RunTypeRecord runRecord: sequencingRuns) {
-//				if (runRecord.getRgId().equals(record.getReadGroup().getId())) {
-//					lower = runRecord.getLower();
-//					upper = runRecord.getUpper();
-//				}
-//			}
 		}
 
-//		totalCount.incrementAndGet();
 		//counts of singletons and duplicates
 		if ( ! record.getDuplicateReadFlag() && ! record.getReadFailsVendorQualityCheckFlag()) {
 			singletons.incrementAndGet();

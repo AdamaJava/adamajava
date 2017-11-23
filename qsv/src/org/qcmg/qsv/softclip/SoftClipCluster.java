@@ -54,7 +54,7 @@ public class SoftClipCluster implements Comparable<SoftClipCluster> {
 	private String orientationCategory = "";
 
 
-	public SoftClipCluster(Breakpoint leftBreakpoint) throws Exception {
+	public SoftClipCluster(Breakpoint leftBreakpoint) {
 		this.name = leftBreakpoint.getName();
 		this.leftBreakpointObject = leftBreakpoint;		
 		setStartAndEnd();		
@@ -63,7 +63,7 @@ public class SoftClipCluster implements Comparable<SoftClipCluster> {
 		this.mutationType = defineMutationType();
 	}
 	
-	public SoftClipCluster(Breakpoint leftBreakpoint, Breakpoint rightBreakpoint) throws Exception {
+	public SoftClipCluster(Breakpoint leftBreakpoint, Breakpoint rightBreakpoint) {
 		this.name = (leftBreakpoint.getName().compareTo(rightBreakpoint.getName()) > 0) 
 				? rightBreakpoint.getName() + ":" + leftBreakpoint.getName() : leftBreakpoint.getName() + ":" + rightBreakpoint.getName(); 
 		this.leftBreakpointObject = leftBreakpoint;
@@ -104,7 +104,7 @@ public class SoftClipCluster implements Comparable<SoftClipCluster> {
 		}		
 	}	
 
-	public String defineMutationType() throws Exception {
+	public String defineMutationType() {
 		
 		if (oneSide) {
 			if ( ! leftReference.equals(rightReference)) {
@@ -640,39 +640,39 @@ public class SoftClipCluster implements Comparable<SoftClipCluster> {
 			}
 		}
 
-		String leftReferenceSeq = null;
-		String rightReferenceSeq = null;
-		Integer leftBp = null;
-		Integer rightBp = null;
+		String leftReferenceSeq;
+		String rightReferenceSeq;
+//		Integer leftBp;
+//		Integer rightBp;
 		
 		if (cat != null) {
 			
 		if (leftBreakpointObject == null) {
-			leftReferenceSeq = rightBreakpointObject.getMateConsensus();
-			rightReferenceSeq = rightBreakpointObject.getBreakpointConsenus();
-			leftBp = rightBreakpointObject.getMateBreakpoint();
-			rightBp = rightBreakpointObject.getBreakpoint();
+//			leftReferenceSeq = rightBreakpointObject.getMateConsensus();
+//			rightReferenceSeq = rightBreakpointObject.getBreakpointConsenus();
+//			leftBp = rightBreakpointObject.getMateBreakpoint();
+//			rightBp = rightBreakpointObject.getBreakpoint();
 			return "";
 		} else if (rightBreakpointObject == null) {
-			leftReferenceSeq = leftBreakpointObject.getBreakpointConsenus();
-			rightReferenceSeq = leftBreakpointObject.getMateConsensus();
-			leftBp = leftBreakpointObject.getBreakpoint();
-			rightBp = leftBreakpointObject.getMateBreakpoint();
+//			leftReferenceSeq = leftBreakpointObject.getBreakpointConsenus();
+//			rightReferenceSeq = leftBreakpointObject.getMateConsensus();
+//			leftBp = leftBreakpointObject.getBreakpoint();
+//			rightBp = leftBreakpointObject.getMateBreakpoint();
 			return "";
 		} else {
 			leftReferenceSeq = leftBreakpointObject.getBreakpointConsenus();
 			rightReferenceSeq = rightBreakpointObject.getBreakpointConsenus();
-			leftBp = leftBreakpointObject.getBreakpoint();
-			rightBp = rightBreakpointObject.getBreakpoint();
+//			leftBp = leftBreakpointObject.getBreakpoint();
+//			rightBp = rightBreakpointObject.getBreakpoint();
 		}
 	
 			if (cat.equals(QSVConstants.ORIENTATION_2)) {
 				String tmp = leftReferenceSeq;			
 				leftReferenceSeq = rightReferenceSeq;
 				rightReferenceSeq = tmp;		
-				Integer tmpInt = leftBp;
-				leftBp = rightBp;
-				rightBp = tmpInt;
+//				Integer tmpInt = leftBp;
+//				leftBp = rightBp;
+//				rightBp = tmpInt;
 			} else if (cat.equals(QSVConstants.ORIENTATION_3)) {
 				rightReferenceSeq = QSVUtil.reverseComplement(rightReferenceSeq);
 			} else if (cat.equals(QSVConstants.ORIENTATION_4)) {

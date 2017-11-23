@@ -159,7 +159,7 @@ public class TestUtil {
 		return iniFile.getAbsolutePath();
 	}
 
-	public static DiscordantPairCluster setupSolidCluster(PairGroup zp, String clusterType, TemporaryFolder testfolder, String chr1, String chr2) throws IOException, Exception {
+	public static DiscordantPairCluster setupSolidCluster(PairGroup zp, String clusterType, TemporaryFolder testfolder, String chr1, String chr2) throws Exception {
 		  List<MatePair> pairs = setupMatePairs(testfolder, zp);
 		  String query = "Cigar_M > 35 and option_SM > 14 and MD_mismatch < 3 and Flag_DuplicateRead == false ";
 		  String tumourFile = testfolder.newFile("tumor.bam").getAbsolutePath();

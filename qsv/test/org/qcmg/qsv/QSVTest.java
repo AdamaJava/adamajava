@@ -32,22 +32,6 @@ public class QSVTest {
 	@Rule
 	public TemporaryFolder testFolder = new TemporaryFolder();
     
-//    @Before
-//    public void setUp() throws IOException {
-////    	normalBam = TestUtil.createBamFile(testFolder.newFile("normalBam.bam").getAbsolutePath(), PairGroup.AAC, SortOrder.coordinate);
-////    	tumorBam = TestUtil.createBamFile(testFolder.newFile("tumorBam.bam").getAbsolutePath(), PairGroup.AAC, SortOrder.coordinate);
-////		filteredNormalBam = TestUtil.createBamFile(testFolder.newFile("normalBam_filtered.bam").getAbsolutePath(), PairGroup.AAC, SortOrder.queryname);
-////		filteredTumorBam = TestUtil.createBamFile(testFolder.newFile("normalBam_filtered.bam").getAbsolutePath(), PairGroup.AAC, SortOrder.queryname);
-//    }
-    
-//    @After
-//    public void tearDown() throws IOException {    	
-////    	normalBam = null;
-////    	tumorBam = null;
-////		filteredNormalBam = null;
-////		filteredTumorBam = null;
-//    }
-
     public void setUpStreams() {
         defaultOutstream = System.err;
         testOut = new ByteArrayOutputStream();

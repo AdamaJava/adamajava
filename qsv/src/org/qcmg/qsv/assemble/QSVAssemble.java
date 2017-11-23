@@ -71,8 +71,8 @@ public class QSVAssemble {
 	
 	public ConsensusRead createFinalConsensusRead(boolean isLeft, boolean clipReverse, int bpPos) throws Exception {
 		fullClipSequence = clipContig.getSequence();
-		String finalClipString = null;
-		String finalReferenceString = null;
+		String finalClipString;
+		String finalReferenceString;
 		String header = "";
 		if (fullClipSequence.length() == fullContigSequence.length()) {
 			finalClipString = fullClipSequence;
@@ -108,13 +108,12 @@ public class QSVAssemble {
 	}
 
 	public ConsensusRead getFinalContig(List<UnmappedRead> inputSplitReads) throws Exception {
-		splitReads = new ArrayList<Read>();
+		splitReads = new ArrayList<>();
 		for (UnmappedRead r: inputSplitReads) {
 			splitReads.add(new Read(r.getReadName(), r.getSequence()));
 		}
 		
 		Read contig = getSplitReadsContigs(splitReads, clipContig, splitReads.size());
-		splitReads = null;
 		inputSplitReads = null;
 		if (contig != null) {
 			ConsensusRead r = new ConsensusRead(contig.getHeader(), contig.getSequence(), contig.getSequence(), contig.getSequence());
@@ -210,7 +209,6 @@ public class QSVAssemble {
 							currentContig = contig;
 						}
 					}
-					alignment = null;
 				} 
 			}
 		}

@@ -221,7 +221,7 @@ public class Breakpoint implements Comparable<Breakpoint>{
 		
 		if (tumourClips != null) {
 			
-			List<Read> splitReads = new ArrayList<Read>();
+			List<Read> splitReads = new ArrayList<>();
 			for (Clip c : tumourClips) {
 				if (c.getReadSequence().length() < QSVAssemble.SEED_LENGTH) {
 					logger.warn("c.getReadSequence().length(): " + c.getReadSequence().length() + ", c.getReadSequence(): " + c.getReadSequence() + " for clip: " + c.toString());
@@ -241,8 +241,8 @@ public class Breakpoint implements Comparable<Breakpoint>{
 					splits.addAll(entry.getValue());
 				}
 				
-				this.tumourSplitReads = new ArrayList<UnmappedRead>();
-				this.normalSplitReads = new ArrayList<UnmappedRead>();				
+				this.tumourSplitReads = new ArrayList<>();
+				this.normalSplitReads = new ArrayList<>();				
 				
 				int count = 0;
 
@@ -264,7 +264,6 @@ public class Breakpoint implements Comparable<Breakpoint>{
 						}
 					}
 				} 
-				splits = null;
 			}			
 			conRead = calculateClipConsensus(clipSize);		
 			
@@ -290,7 +289,6 @@ public class Breakpoint implements Comparable<Breakpoint>{
 					tumourSplitReads = parseMatchingSplitReads(headers, tumourSplitReads);
 					normalSplitReads = parseMatchingSplitReads(headers, normalSplitReads);
 					
-					assemble = null;
 					return splitConRead;
 				} else {
 					this.splitConsensusReads = 0;
@@ -299,12 +297,10 @@ public class Breakpoint implements Comparable<Breakpoint>{
 					}
 					tumourSplitReads = null;
 					normalSplitReads = null;
-					assemble = null;
 					return conRead;
 				}
 			}
 		}
-		assemble = null;
 		return conRead;
 	}
 	
