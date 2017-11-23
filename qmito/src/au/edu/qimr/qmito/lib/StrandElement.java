@@ -34,34 +34,18 @@ public class StrandElement {
 		return name;
 	}
 
-	public void setName(String name) {
-		this.name = name;
-	}
-
 	public int[] getIntDataMembers() {
 		return intDataMembers;
-	}
-
-	public void setIntDataMembers(int[] intDataMembers) {
-		this.intDataMembers = intDataMembers;
 	}
 
 	public long[] getLongDataMembers() {
 		return longDataMembers;
 	}
 
-	public void setLongDataMembers(long[] longDataMembers) {
-		this.longDataMembers = longDataMembers;
-	}
-
 	public boolean isLong() {
 		return isLong;
 	}
 
-	public void setLong(boolean isLong) {
-		this.isLong = isLong;
-	}
-	
 	public void addElement(int index, int size) {	
 		
 			if (isLong) {
@@ -103,24 +87,24 @@ public class StrandElement {
 		}
 	}
 
-	public void mergeElement(StrandElement strandElement) throws Exception {
-		if (!this.name.equals(strandElement.getName()) || this.isLong != strandElement.isLong()) {
-			String error = "Name: " + this.name + " vs " + strandElement.getName() + " isLongMember" + this.isLong + " vs " + strandElement.isLong(); 
-			throw new Exception(Messages.getMessage("STRAND_ELEMENT_MISMATCH", error));
-		}
-		if (isLong) {
-			long[] newLongDataMembers = strandElement.getLongDataMembers();
-			for (int i=0; i<longDataMembers.length; i++) {
-				longDataMembers[i] += newLongDataMembers[i];
-			}
-		} else {			
-			int[] newIntDataMembers = strandElement.getIntDataMembers();
-			for (int i=0; i<intDataMembers.length; i++) {
-				intDataMembers[i] += newIntDataMembers[i];				
-			}
-		}
-				
-	}
+//	public void mergeElement(StrandElement strandElement) throws Exception {
+//		if (!this.name.equals(strandElement.getName()) || this.isLong != strandElement.isLong()) {
+//			String error = "Name: " + this.name + " vs " + strandElement.getName() + " isLongMember" + this.isLong + " vs " + strandElement.isLong(); 
+//			throw new Exception(Messages.getMessage("STRAND_ELEMENT_MISMATCH", error));
+//		}
+//		if (isLong) {
+//			long[] newLongDataMembers = strandElement.getLongDataMembers();
+//			for (int i=0; i<longDataMembers.length; i++) {
+//				longDataMembers[i] += newLongDataMembers[i];
+//			}
+//		} else {			
+//			int[] newIntDataMembers = strandElement.getIntDataMembers();
+//			for (int i=0; i<intDataMembers.length; i++) {
+//				intDataMembers[i] += newIntDataMembers[i];				
+//			}
+//		}
+//				
+//	}
 
 	public long getLongElementValue(int index) {
 		return longDataMembers[index];		

@@ -10,8 +10,10 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.meta.QExec;
@@ -20,16 +22,16 @@ import org.apache.commons.math3.stat.inference.*;
 
 public class StatPileline {
 	
-	private QLogger logger = QLoggerFactory.getLogger(getClass());
+	private final QLogger logger = QLoggerFactory.getLogger(getClass());
 
-	private String outputFile;
-	private String inputControl;
-	private String inputTest;
+	private final String outputFile;
+	private final String inputControl;
+	private final String inputTest;
 	
-	private List<BaseStatRecord> control;
-	private List<BaseStatRecord> test;	  
+	private final List<BaseStatRecord> control;
+	private final List<BaseStatRecord> test;	  
 
-	private StatOptions options;
+	private final StatOptions options;
 	public StatPileline(StatOptions options) throws Exception {
 		inputTest = options.getTestMetricFileName();
 		inputControl = options.getControlMetricFileName();				 
@@ -47,35 +49,34 @@ public class StatPileline {
 	}
  
 	
-	public List<BaseStatRecord> readIn(String fileName) throws Exception{
+	public List<BaseStatRecord> readIn(String fileName) throws IOException{
 		
-		List<BaseStatRecord> counts = new ArrayList<BaseStatRecord>();
+		List<BaseStatRecord> counts = new ArrayList<>();
 		//skip all comment
-		BufferedReader reader = new  BufferedReader(new FileReader(fileName));
-		String line, column[];
-		while( (line = reader.readLine()) != null ){
-			if(line.startsWith("#")) continue;
-			if(line.startsWith("Reference")) continue;
-			if(line.length() < 10) continue;			
-			column = line.split("\t");
-			BaseStatRecord record = new BaseStatRecord();
-			record.ref = column[0];
-			record.position = Integer.parseInt( column[1]);
-			record.ref_base =  column[2].charAt(0);
-			record.setForward(BaseStatRecord.Base.BaseA, Integer.parseInt( column[3]));			
-			record.setForward(BaseStatRecord.Base.BaseC,  Integer.parseInt(column[4]));
-			record.setForward(BaseStatRecord.Base.BaseG, Integer.parseInt(column[5]));
-			record.setForward(BaseStatRecord.Base.BaseT, Integer.parseInt(column[6]));
-			
-			record.setReverse(BaseStatRecord.Base.BaseA, Integer.parseInt(column[33]));
-			record.setReverse(BaseStatRecord.Base.BaseC, Integer.parseInt(column[34]));
-			record.setReverse(BaseStatRecord.Base.BaseG, Integer.parseInt(column[35]));
-			record.setReverse(BaseStatRecord.Base.BaseT, Integer.parseInt(column[36]));	
-			
-			counts.add(record);
+		try (BufferedReader reader = new  BufferedReader(new FileReader(fileName));) {
+			String line, column[];
+			while( (line = reader.readLine()) != null ){
+				if(line.startsWith("#")) continue;
+				if(line.startsWith("Reference")) continue;
+				if(line.length() < 10) continue;			
+				column = line.split("\t");
+				BaseStatRecord record = new BaseStatRecord();
+				record.ref = column[0];
+				record.position = Integer.parseInt( column[1]);
+				record.ref_base =  column[2].charAt(0);
+				record.setForward(BaseStatRecord.Base.BaseA, Integer.parseInt( column[3]));			
+				record.setForward(BaseStatRecord.Base.BaseC,  Integer.parseInt(column[4]));
+				record.setForward(BaseStatRecord.Base.BaseG, Integer.parseInt(column[5]));
+				record.setForward(BaseStatRecord.Base.BaseT, Integer.parseInt(column[6]));
+				
+				record.setReverse(BaseStatRecord.Base.BaseA, Integer.parseInt(column[33]));
+				record.setReverse(BaseStatRecord.Base.BaseC, Integer.parseInt(column[34]));
+				record.setReverse(BaseStatRecord.Base.BaseG, Integer.parseInt(column[35]));
+				record.setReverse(BaseStatRecord.Base.BaseT, Integer.parseInt(column[36]));	
+				
+				counts.add(record);
+			}
 		}
-		
-		reader.close();
 		
 		return counts;
 	}
@@ -86,8 +87,8 @@ public class StatPileline {
 	 * @param output: output file name with full path
 	 * @throws Exception 
 	 */
- 	public void report() throws Exception{
- 		BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile, false));
+ 	public void report() throws IOException{
+ 		try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile, false));) {
 		
 		//headlines
  		createHeader(writer);
@@ -107,7 +108,7 @@ public class StatPileline {
  				line = "Two inputs are not in same order on lines:\n";
  				line += String.format("%s\t%d\t%s\n", control.get(i).ref, control.get(i).position, control.get(i).ref_base);
  				line += String.format("%s\t%d\t%s\n", test.get(i).ref, test.get(i).position, test.get(i).ref_base);				
- 				throw new Exception(line);
+ 				throw new IllegalArgumentException(line);
  				}
   			
  			conFor = control.get(i).getForwardArray();
@@ -137,13 +138,12 @@ public class StatPileline {
 			line += pairChi + "\n";
 			writer.write(line);
  		}
-		
+ 		}
  	  
-		writer.close();			
 	}
  
  	//create header lines
- 	private void createHeader(BufferedWriter writer) throws Exception{
+ 	private void createHeader(BufferedWriter writer) throws IOException{
 		QExec qexec = options.getQExec();
 		writer.write(qexec.getExecMetaDataToString());
 		

@@ -41,7 +41,7 @@ public enum StrandEnum{
 		cigarN("CigarN"),
 		cigarNStart("CigarN_start");
  		
-		static String DELIMITER = "\t";
+		static final String DELIMITER = "\t";
 		 
 		
 		private String type;		
@@ -56,10 +56,9 @@ public enum StrandEnum{
 	        return type;
 	    } 
 	    
-	    public static void setDelimiter(String delimiter){  DELIMITER =  delimiter ;}
 	    
-	    public static String getHeader(){
-	    	StringBuffer sb = new StringBuffer();
+	public static String getHeader(){
+	    	StringBuilder sb = new StringBuilder();
 	    	StrandEnum[] enums = StrandEnum.values();
 	    	
 	    	for (int i=0; i<enums.length; i++){
@@ -72,10 +71,10 @@ public enum StrandEnum{
 	    		}
 	    	}
 	    	return sb.toString();
-	    }
+	}
 
-		public static String getHeader(List<StrandEnum> viewElements){
-			StringBuffer sb = new StringBuffer();
+	public static String getHeader(List<StrandEnum> viewElements){
+		StringBuilder sb = new StringBuilder();
 	    	StrandEnum[] enums = StrandEnum.values();
 
 	    	for (int i=0; i<enums.length; i++){
@@ -95,12 +94,11 @@ public enum StrandEnum{
 	    		
 	    	}
 	    	return sb.toString();
-		}
+	}
 		
 
-		public static String getHeader(List<StrandEnum> groupElements, 
-				boolean getForwardElements, boolean getReverseElements){
-			StringBuffer sb = new StringBuffer();
+	public static String getHeader(List<StrandEnum> groupElements, 	boolean getForwardElements, boolean getReverseElements){
+		StringBuilder sb = new StringBuilder();
 	    	StrandEnum[] enums = StrandEnum.values();
 
 	    	if (getForwardElements){
@@ -123,10 +121,10 @@ public enum StrandEnum{
 		    	}
 	    	}
 	    	return sb.toString();
-		}
+	}
 		
 		public static List<StrandEnum> getBases(){
-			List<StrandEnum> list = new ArrayList<StrandEnum>();
+			List<StrandEnum> list = new ArrayList<>();
 			list.add(baseA);
 			list.add(baseC);
 			list.add(baseG);
@@ -150,8 +148,8 @@ public enum StrandEnum{
 		}
 		
 		//debug
-		public static String getBaseHeader( ){
-			StringBuffer sb = new StringBuffer();
+	public static String getBaseHeader( ){
+		StringBuilder sb = new StringBuilder();
 	    	StrandEnum[] enums = StrandEnum.values();
 	    	 
 		    	for (int i=0; i<5; i++) 		    		 
@@ -160,10 +158,10 @@ public enum StrandEnum{
 	    			sb.append(enums[i].getStrandEnum()).append("_rev").append(DELIMITER);		    	 
  
 	    	return sb.toString();
-		}
+	}
 		
 		public static List<StrandEnum> getCigars(){
-			List<StrandEnum> list = new ArrayList<StrandEnum>();
+			List<StrandEnum> list = new ArrayList<>();
 			list.add(cigarI);
 			list.add(cigarD);
 			list.add(cigarDStart);
@@ -177,7 +175,7 @@ public enum StrandEnum{
 		}
 		
 		public static List<StrandEnum> getQuals(){
-			List<StrandEnum> list = new ArrayList<StrandEnum>();
+			List<StrandEnum> list = new ArrayList<>();
 			list.add(qualA);
 			list.add(qualC);
 			list.add(qualG);
@@ -188,7 +186,7 @@ public enum StrandEnum{
 		}
 		
 		public static List<StrandEnum> getReadStats(){
-			List<StrandEnum> list = new ArrayList<StrandEnum>();
+			List<StrandEnum> list = new ArrayList<>();
 			list.add(startAll);
 			list.add(startNondup);
 			list.add(stopAll);
@@ -198,7 +196,7 @@ public enum StrandEnum{
 		}
 
 		public static List<StrandEnum> getMetrics() {
-			List<StrandEnum> list = new ArrayList<StrandEnum>();
+			List<StrandEnum> list = new ArrayList<>();
 			list.addAll(getBases());	
 			list.add(cigarI);
 			list.add(cigarD);
@@ -212,7 +210,7 @@ public enum StrandEnum{
 		}
 
 		public static StrandEnum[] getMetricsElements() {
-			List<StrandEnum> strandEnumList = new ArrayList<StrandEnum>();
+			List<StrandEnum> strandEnumList = new ArrayList<>();
 			
 			//total bases
 			strandEnumList.add(StrandEnum.baseA);

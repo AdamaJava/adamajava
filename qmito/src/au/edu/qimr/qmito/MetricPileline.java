@@ -36,25 +36,25 @@ import au.edu.qimr.qmito.lib.*;
 
 public class MetricPileline {
 	
-	private QLogger logger = QLoggerFactory.getLogger(getClass());
-	private String[] bamFiles;	
-	private String outputFile;
-	private String referenceFile;
+	private final QLogger logger = QLoggerFactory.getLogger(getClass());
+	private final String[] bamFiles;	
+	private final String outputFile;
+	private final String referenceFile;
 
-	private Integer lowReadCount;
-	private Integer nonrefThreshold;
-	private SAMSequenceRecord referenceRecord;
+	private final Integer lowReadCount;
+	private final Integer nonrefThreshold;
+	private final SAMSequenceRecord referenceRecord;
 	private byte[] referenceBases;
-	private String query;
-	private QExec qexec;
+	private final String query;
+	private final QExec qexec;
 	
     NonReferenceRecord forwardNonRef = null;
     NonReferenceRecord reverseNonRef = null;	
     private StrandDS forward = null;
     private StrandDS reverse = null;
     
-    private long[] Fmismatch = new long[100];
-    private long[] Rmismatch = new long[100];
+    private final long[] Fmismatch = new long[100];
+    private final long[] Rmismatch = new long[100];
     private long Ftotal = 0;
     private long Rtotal = 0;
     
@@ -187,10 +187,10 @@ public class MetricPileline {
 			reader.close();
  			logger.info("Total read " + total + " reads from input: " + bamFile);					 			 
  			logger.info("Added " + numReads + " reads mapped on "+ referenceRecord.getSequenceName()+" and met query from BAM: " + bamFile);					 			 
-    	} catch (Exception e) {
-    		logger.error("Exception happened during reading: " + bamFile);
-            throw new Exception(MitoException.getStrackTrace(e) );
-    	} 	
+	    	} catch (Exception e) {
+	    		logger.error("Exception happened during reading: " + bamFile, e);
+	    		throw e;
+	    	} 	
 	}
 	
 	private void add2Stat(SAMRecord record){
