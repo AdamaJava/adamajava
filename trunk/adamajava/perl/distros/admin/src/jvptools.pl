@@ -2792,8 +2792,15 @@ sub qprofiler_genome {
             #               ), "\n" );
 
             my $label = $loop_start .'-'. $loop_end;
-            $qprofiler_genome->{ 'gcpercent_windows' }->{ $name }->{ $label } = 
+            $qprofiler_genome->{ 'windows_gcpercent' }->{ $name }->{ $label } = 
                 sprintf( '%.3f', $gc_percent );
+
+            # Capture any windows with N's
+            if ($tally{N} > 0) {
+                $qprofiler_genome->{ 'windows_Nbases' }->{ $name }->{ $label } = 
+                    { nCount => $tally{N},
+                      baseCount => ($loop_end - $loop_start + 1) }
+            }
             
             $bases_processed   += $limit;
             $bases_unprocessed -= $limit;
