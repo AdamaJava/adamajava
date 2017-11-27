@@ -160,7 +160,6 @@ task timestamped_dist(type: Zip) {
      }
   }
 
-
 clean << {
     ant {
        delete(dir: "adama/build")
