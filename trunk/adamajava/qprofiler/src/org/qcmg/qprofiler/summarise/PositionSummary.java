@@ -136,7 +136,7 @@ public class PositionSummary {
 	 * @param position int relating to the position being added to the summary
 	 * @throws Exception 
 	 */
-	public void addPosition(final int position, String  rgid  ) throws Exception {
+	public void addPosition(final int position, String  rgid  ) {
 		
 		// my attempt at a non-blocking updating of max
 		int tempMax = max.get();
@@ -162,7 +162,7 @@ public class PositionSummary {
 		//count for nominated rg on that position
 		int order = readGroupIds.indexOf(rgid);
 		if(order < 0 )
-			throw new Exception("can't find readGroup Id on Bam header: @RG ID:"+ rgid);
+			throw new IllegalArgumentException("can't find readGroup Id on Bam header: @RG ID:"+ rgid);
 		
 		rgCoverages[ readGroupIds.indexOf(rgid)  ].increment(position / BUCKET_SIZE);  
 		//last element is the total counts on that position
