@@ -66,18 +66,14 @@ public class PairedRecordUtils {
     	    	
 	    	if ( ! isSameReference(record) ) return false; 
 	    	
-	    	if ( record.getReadNegativeStrandFlag() == record.getMateNegativeStrandFlag() )
-	    		return false;
-	    	
-	    	
-	    	return true;    	
+	    	return record.getReadNegativeStrandFlag() != record.getMateNegativeStrandFlag();    	
     }
     
     public static boolean isSameReference(SAMRecord  record) {
-    	if( !record.getReadPairedFlag() || record.getReadUnmappedFlag() || record.getMateUnmappedFlag() ) 
-    		return false; 
-    	
-    	return record.getReferenceName().equals( record.getMateReferenceName() );    	
+	    	if( !record.getReadPairedFlag() || record.getReadUnmappedFlag() || record.getMateUnmappedFlag() ) 
+	    		return false; 
+	    	
+	    	return record.getReferenceName().equals( record.getMateReferenceName() );    	
     }  
     
     /**
@@ -88,8 +84,9 @@ public class PairedRecordUtils {
      */
     public static int getOverlapBase(SAMRecord  record) {
 	 
-		//to avoid double the ovelap base, we only delegate all reverse strand reads and Tlen <= 0			 
-		if( ! record.getReadPairedFlag() || record.getInferredInsertSize() <= 0 )  return 0 ;	
+		//to avoid double the ovelap base, we only delegate all reverse strand reads and Tlen <= 0
+    		int iSize = record.getInferredInsertSize();
+		if( ! record.getReadPairedFlag() || iSize <= 0 )  return 0 ;	
 	 		
 		//get softClip
 		int lSoft = 0;
@@ -100,10 +97,10 @@ public class PairedRecordUtils {
 		}
 		//canonical read : readLength - softClip - TLEN 
 		if(record.getReadNegativeStrandFlag() == record.getMateNegativeStrandFlag()) {
-			return record.getReadLength() - lSoft - record.getInferredInsertSize();
+			return record.getReadLength() - lSoft - iSize;
 		} else {
 			//non-canocial reads: min(both read_end) - max(both read_start) 
-			int mate_end = record.getInferredInsertSize() + record.getAlignmentStart();
+			int mate_end = iSize + record.getAlignmentStart();
 			int read_end = record.getAlignmentStart() + record.getReadLength() - lSoft;
 			return Math.min( read_end, mate_end ) - Math.max(record.getAlignmentStart(), record.getMateAlignmentStart() );
 		} 	
@@ -113,9 +110,9 @@ public class PairedRecordUtils {
 
     private static boolean isReadF5(SAMRecord  record) {   return record.getSecondOfPairFlag();  }	
 	
-    private static boolean isReadLeftOfMate(SAMRecord record ) {   return record.getAlignmentStart() < record.getMateAlignmentStart(); }
+    static boolean isReadLeftOfMate(SAMRecord record ) {   return record.getAlignmentStart() < record.getMateAlignmentStart(); }
     
-    private static boolean isReadRightOfMate(SAMRecord record) {   return record.getAlignmentStart() > record.getMateAlignmentStart(); }
+    static boolean isReadRightOfMate(SAMRecord record) {   return record.getAlignmentStart() > record.getMateAlignmentStart(); }
 
     private static boolean isReadForward(SAMRecord record ) {   return ! record.getReadNegativeStrandFlag(); }   
 	
