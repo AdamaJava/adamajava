@@ -3129,37 +3129,37 @@ sub create_quiddell2_matrix {
 
             if (defined $old_var) {
                 if ($old_var eq 'non-silent sub') {
-                    if ($copynum > 5) {
+                    if ($copynum eq 'copy-neutral LOH') {
+                        $new_var = 'indel/non-silent sub + cnloh';
+                    }
+                    elsif ($copynum > 5) {
                         $new_var = 'indel/non-silent sub + high-gain';
                     }
                     elsif ($copynum < 2) {
                         $new_var = 'indel/non-silent sub + loss';
-                    }
-                    elsif ($copynum eq 'copy-neutral LOH') {
-                        $new_var = 'indel/non-silent sub + cnloh';
                     }
                 }
                 elsif ($old_var eq 'indel') {
-                    if ($copynum > 5) {
+                    if ($copynum eq 'copy-neutral LOH') {
+                        $new_var = 'indel/non-silent sub + cnloh';
+                    }
+                    elsif ($copynum > 5) {
                         $new_var = 'indel/non-silent sub + high-gain';
                     }
                     elsif ($copynum < 2) {
                         $new_var = 'indel/non-silent sub + loss';
-                    }
-                    elsif ($copynum eq 'copy-neutral LOH') {
-                        $new_var = 'indel/non-silent sub + cnloh';
                     }
                 }
             }
             else {
-                if ($copynum > 5) {
+                if ($copynum eq 'copy-neutral LOH') {
+                    $new_var = 'copy-neutral loss';
+                }
+                elsif ($copynum > 5) {
                     $new_var = 'high-gain (copy number > 5)';
                 }
                 elsif ($copynum < 2) {
                     $new_var = 'loss (copy number < 2)';
-                }
-                elsif ($copynum eq 'copy-neutral LOH') {
-                    $new_var = 'copy-neutral loss';
                 }
             }
 
