@@ -378,8 +378,13 @@ public class BamSummaryReport extends SummaryReport {
 
 		// ISIZE
 		Element tagISizeElement = createSubElement(bamReportElement, "ISIZE");
-		for(ReadGroupSummary summary: rgSummaries.values())
-			summary.iSize2Xml(tagISizeElement);
+		
+		rgSummaries.entrySet().stream().sorted((e1, e2) -> e1.getKey().compareTo(e2.getKey())).forEach(e -> e.getValue().iSize2Xml(tagISizeElement));
+		
+//		List<String> rgs = rgSummaries.keySet().stream().sorted().collect(Collectors.toList());
+//		for (String rg : rgs) {
+//			rgSummaries.get(rg).iSize2Xml(tagISizeElement);
+//		}
 		
 		// MRNM
 		if (null != samSeqDictionary) {
