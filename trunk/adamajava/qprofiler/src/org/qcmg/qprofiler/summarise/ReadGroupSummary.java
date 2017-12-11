@@ -203,16 +203,13 @@ public class ReadGroupSummary {
 		//record iSize, first pair only to avoid double iSize		
 		if(record.getFirstOfPairFlag()){
 			int tLen = Math.abs(iSize);
-//			max_isize.
 			int mi = maxIsize.get();
-			
 			while( tLen > mi ){
 				if ( ! maxIsize.compareAndSet(mi, tLen)) {
 					mi = maxIsize.get();
 				} else {
 					break;
 				}
-//				maxIsize.getAndSet(iSize );
 			}
 			if(tLen > bigTlenValue ) {
 				tLen = bigTlenValue;			
