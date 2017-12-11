@@ -383,7 +383,7 @@ public class BamSummarizerMT implements Summarizer {
 						
 						if (++count % 2000000 == 0) {
 							size = queue.size();
-							log.info("added " + count/1000000 + "M records, current queu size: " + size);
+							log.info("added " + count/1000000 + "M records, current queue size: " + size);
 							
 							if (cLatch.getCount() == 0) {
 								log.error("no consumer threads left, but queue is not empty");
