@@ -5,7 +5,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.qcmg.common.model.QCMGAtomicLongArray;
-import org.qcmg.common.string.StringUtils;
 import org.qcmg.qprofiler.bam.BamSummaryReport;
 import org.qcmg.qprofiler.report.SummaryReport;
 import org.qcmg.qprofiler.util.SummaryReportUtils;
@@ -48,7 +47,7 @@ public class ReadGroupSummary {
 		 
 	//QCMGAtomicLongArray.get(arrayTlenLimit) for tlen=[bigTlenValue, ~)
 	QCMGAtomicLongArray isize = new QCMGAtomicLongArray(bigTlenValue + 1);		
-	AtomicInteger max_isize = new AtomicInteger(); 
+	AtomicInteger maxIsize = new AtomicInteger(); 
 	
 	//bad reads inforamtion
 	AtomicLong duplicate = new AtomicLong();
@@ -204,8 +203,16 @@ public class ReadGroupSummary {
 		//record iSize, first pair only to avoid double iSize		
 		if(record.getFirstOfPairFlag()){
 			int tLen = Math.abs(iSize);
-			if( tLen > max_isize.get() ){ 
-				max_isize.getAndSet(iSize );
+//			max_isize.
+			int mi = maxIsize.get();
+			
+			while( tLen > mi ){
+				if ( ! maxIsize.compareAndSet(mi, tLen)) {
+					mi = maxIsize.get();
+				} else {
+					break;
+				}
+//				maxIsize.getAndSet(iSize );
 			}
 			if(tLen > bigTlenValue ) {
 				tLen = bigTlenValue;			
@@ -452,7 +459,7 @@ public class ReadGroupSummary {
 			setISizeElement(rgElement, count,   start, (bigTlenValue - 1));
 				
 		//region for oversize Tlen 
-		setISizeElement(rgElement, isize.get(bigTlenValue),   bigTlenValue, max_isize.get() );
+		setISizeElement(rgElement, isize.get(bigTlenValue),   bigTlenValue, maxIsize.get() );
 	}
 	
 	/**
