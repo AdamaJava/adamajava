@@ -17,14 +17,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicLongArray;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -49,7 +47,6 @@ import org.qcmg.common.model.SummaryByCycle;
 import org.qcmg.common.model.SummaryByCycleNew2;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.SummaryByCycleUtils;
-import org.qcmg.qprofiler.StaticMethods;
 import org.qcmg.qprofiler.report.SummaryReport;
 import org.qcmg.qprofiler.summarise.KmersSummary;
 import org.qcmg.qprofiler.summarise.PositionSummary;
@@ -60,7 +57,7 @@ import org.w3c.dom.Element;
 
 public class BamSummaryReport extends SummaryReport {	
 	
-	private long duplicateCount = 0;
+	private  long duplicateCount = 0;
 	private long unmappedCount = 0;
 	private long nonCanonicalPairCount = 0;		
 	private long failedVendorQualityCheckCount = 0;		
@@ -134,8 +131,10 @@ public class BamSummaryReport extends SummaryReport {
 			new ConcurrentSkipListMap<String, ConcurrentSkipListMap<Character, AtomicLong>>();
 	
 	//Xu Code: each RG softclips, hardclips, read length; 	
-	private final ConcurrentMap<String, ReadGroupSummary> rgSummaries = new ConcurrentHashMap<String, ReadGroupSummary>(){{  
-		put( SummaryReportUtils.All_READGROUP, new ReadGroupSummary( SummaryReportUtils.All_READGROUP) ); }}; 
+	private final ConcurrentMap<String, ReadGroupSummary> rgSummaries = new ConcurrentHashMap<>();
+	{
+		rgSummaries.put( SummaryReportUtils.All_READGROUP, new ReadGroupSummary( SummaryReportUtils.All_READGROUP) ); 
+	}
 			
 	private final KmersSummary kmersSummary = new KmersSummary( KmersSummary.maxKmers ); //default use biggest mers length
  	
@@ -795,14 +794,21 @@ public class BamSummaryReport extends SummaryReport {
 		
 		//for each real read group first	
 		long trimBases = 0;
-		long maxBases = 0; 
-		for(ReadGroupSummary summary: rgSummaries.values()) 
-			if(! summary.getReadGroupId().equals(SummaryReportUtils.All_READGROUP)){
+		long maxBases = 0;
+		List<String> sortedRGs = rgSummaries.keySet().stream().sorted().collect(Collectors.toList());
+		for (String rg : sortedRGs) {
+			ReadGroupSummary summary = rgSummaries.get(rg);
+			if(! rg.equals(SummaryReportUtils.All_READGROUP)){
 				summary.readSummary2Xml(rgClipElement);
 				summary.pairSummary2Xml(pairElement);  
 				trimBases += summary.getTrimedBases();
+				logger.info("for " + rg + ", summary.getMaxReadLength(): "  + summary.getMaxReadLength() + ", summary.getCountedReads(): " + summary.getCountedReads());
 				maxBases += summary.getMaxReadLength() * summary.getCountedReads(); 
 			}
+		}
+		if (maxBases == 0) {
+			logger.info("maxBases = 0, number of rgs: " + rgSummaries.size());
+		}
 		
 		//overall group at last
 		ReadGroupSummary summary = rgSummaries.get(SummaryReportUtils.All_READGROUP);
@@ -812,7 +818,7 @@ public class BamSummaryReport extends SummaryReport {
 		summary.pairSummary2Xml(pairElement); 					
 	}
 		
-	void parseRNameAndPos(final String rName,  final int position, String rgid ) throws Exception {
+	void parseRNameAndPos(final String rName,  final int position, String rgid ) {
 		 	
 		PositionSummary ps = rNamePosition.get(rName);
 		if (null == ps) {
