@@ -130,10 +130,14 @@ public class SignatureGeneratorBespoke {
 				// load in the Illumina arrays design document to get the list of snp ids and whether they should be complemented.
 				loadIlluminaArraysDesign();
 				processIlluminaFiles();
+			} else {
+				logger.info("Did not find any snp chip files to process");
 			}
 			
 			if (bamFiles.length > 0) {
 				processBamFiles();
+			} else {
+				logger.info("Did not find any bam files to process");
 			}
 		}
 		
@@ -162,7 +166,7 @@ public class SignatureGeneratorBespoke {
 	
 	private void processBamFiles() throws IOException {
 		for (final File bamFile : bamFiles) {
-			
+			logger.info("Processing data from " + bamFile.getAbsolutePath());
 			// set some bam specific values
 			arrayPosition = 0;
 			vcf = null;
