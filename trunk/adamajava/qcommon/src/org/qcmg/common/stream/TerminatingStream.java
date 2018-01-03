@@ -11,7 +11,6 @@ import java.util.concurrent.BlockingQueue;
 
 public class TerminatingStream<DataType> implements Runnable {
 	private final BlockingQueue<DataType> input;
-	private final BlockingQueue<DataType> output;
 	private final List<Operation<DataType>> operationSequence;
 	private final DataType endOfStreamInstance;
 
@@ -20,7 +19,6 @@ public class TerminatingStream<DataType> implements Runnable {
 			final List<Operation<DataType>> operationSequence,
 			final DataType endOfStreamInstance) {
 		this.input = input;
-		this.output = output;
 		this.operationSequence = operationSequence;
 		this.endOfStreamInstance = endOfStreamInstance;
 	}

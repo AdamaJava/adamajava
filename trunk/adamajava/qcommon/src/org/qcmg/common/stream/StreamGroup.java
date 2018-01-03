@@ -7,64 +7,27 @@
 package org.qcmg.common.stream;
 
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Vector;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 
 import org.qcmg.common.stream.Operation;
 import org.qcmg.common.stream.Stream;
 
 public class StreamGroup<RecordType> {
-	private List<Operation<RecordType>> operations;
-	private RecordType eosInstance;
-	private Iterable<RecordType> iterable;
-	private Vector<Stream<RecordType>> streams = new Vector<Stream<RecordType>>();
-	private int numberThreads;
+	private final List<Operation<RecordType>> operations;
+	private final RecordType eosInstance;
+	private final Iterable<RecordType> iterable;
+	private final Vector<Stream<RecordType>> streams = new Vector<Stream<RecordType>>();
+	private final int numberThreads;
 	private final Integer[] entries;
 
-	public StreamGroup(int numberThreads,
-			List<Operation<RecordType>> operations,
-			RecordType endOfStreamInstance, Iterable<RecordType> iterable)
-			throws Exception {
-		if (0 >= numberThreads) {
-			throw new Exception(
-					"Number of threads must be a positive integer value.");
-		}
-		this.numberThreads = numberThreads;
-		this.operations = operations;
-		this.eosInstance = endOfStreamInstance;
-		this.iterable = iterable;
-		this.entries = null;
-		startStreams();
-		for (Thread thread : streams) {
-			thread.join();
-		}
+	public StreamGroup(int numberThreads, List<Operation<RecordType>> operations, RecordType endOfStreamInstance, Iterable<RecordType> iterable) throws InterruptedException {
+		this(numberThreads, operations, endOfStreamInstance, iterable, null);
 	}
 
-	public StreamGroup(int numberThreads, Operation<RecordType> operation,
-			RecordType endOfStreamInstance, Iterable<RecordType> iterable)
-			throws Exception {
+	public StreamGroup(int numberThreads, List<Operation<RecordType>> operations, RecordType endOfStreamInstance, Iterable<RecordType> iterable, Integer[] entries) throws InterruptedException {
 		if (0 >= numberThreads) {
-			throw new Exception(
-					"Number of threads must be a positive integer value.");
-		}
-		this.numberThreads = numberThreads;
-		this.operations = new Vector<Operation<RecordType>>();
-		operations.add(operation);
-		this.eosInstance = endOfStreamInstance;
-		this.iterable = iterable;
-		this.entries = null;
-	}
-
-	public StreamGroup(int numberThreads,
-			List<Operation<RecordType>> operations,
-			RecordType endOfStreamInstance, Iterable<RecordType> iterable,
-			Integer[] entries) throws Exception {
-		if (0 >= numberThreads) {
-			throw new Exception(
-					"Number of threads must be a positive integer value.");
+			throw new IllegalArgumentException("Number of threads must be a positive integer value.");
 		}
 		this.numberThreads = numberThreads;
 		this.operations = operations;
@@ -77,22 +40,25 @@ public class StreamGroup<RecordType> {
 		}
 	}
 
+	public StreamGroup(int numberThreads, Operation<RecordType> operation, RecordType endOfStreamInstance, Iterable<RecordType> iterable) {
+		this(numberThreads, operation,endOfStreamInstance,  iterable, null);
+	}
+	
 	public StreamGroup(int numberThreads, Operation<RecordType> operation,
 			RecordType endOfStreamInstance, Iterable<RecordType> iterable,
-			Integer[] entries) throws Exception {
+			Integer[] entries) {
 		if (0 >= numberThreads) {
-			throw new Exception(
-					"Number of threads must be a positive integer value.");
+			throw new IllegalArgumentException("Number of threads must be a positive integer value.");
 		}
 		this.numberThreads = numberThreads;
-		this.operations = new Vector<Operation<RecordType>>();
+		this.operations = new Vector<>();
 		operations.add(operation);
 		this.eosInstance = endOfStreamInstance;
 		this.iterable = iterable;
 		this.entries = entries;
 	}
 
-	public void startStreams() throws Exception {
+	public void startStreams() throws InterruptedException {
 		for (int i = 0; i < numberThreads; i++) {
 			Stream<RecordType> stream = new Stream<RecordType>(operations, eosInstance);
 			streams.add(stream);
