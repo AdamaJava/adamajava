@@ -13,7 +13,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class Stream<DataType> extends Thread {
 	private final List<Operation<DataType>> operationSequence;
 	private final DataType endOfStreamInstance;
-	private BlockingQueue<DataType> inputQueue = new LinkedBlockingQueue<DataType>(
+	private final BlockingQueue<DataType> inputQueue = new LinkedBlockingQueue<>(
 			100);
 
 	public Stream(final List<Operation<DataType>> operationSequence,
