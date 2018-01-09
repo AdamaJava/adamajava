@@ -335,6 +335,22 @@ public class VcfUtilsTest {
 		
 	}
 	
+	@Test
+	public void testMissingDataInFormatField() {
+		VcfRecord r = new VcfRecord(new String[]{"chr1","52924633","rs12072217","C","T","671.77","NCIT","AC=1;AF=0.500;AN=2;BaseQRankSum=0.655;ClippingRankSum=-1.179;DB;DP=33;FS=1.363;MLEAC=1;MLEAF=0.500;MQ=60.00;MQ0=0;MQRankSum=-1.067;QD=20.36;ReadPosRankSum=-0.655;SOR=0.990","GT:AD:DP:GQ:PL","0/1:12,21:33:99:700,0,339"});
+		VcfUtils.addMissingDataToFormatFields(r, 2);
+		assertEquals(3, r.getFormatFields().size());
+		assertEquals("0/1:12,21:33:99:700,0,339", r.getFormatFields().get(1));
+		assertEquals(".:.:.:.:.", r.getFormatFields().get(2));
+	}
+	@Test
+	public void controlMissingDataInFormatField() {
+		VcfRecord r = new VcfRecord(new String[]{"chr1","52924633","rs12072217","C","T","671.77","NCIT","AC=1;AF=0.500;AN=2;BaseQRankSum=0.655;ClippingRankSum=-1.179;DB;DP=33;FS=1.363;MLEAC=1;MLEAF=0.500;MQ=60.00;MQ0=0;MQRankSum=-1.067;QD=20.36;ReadPosRankSum=-0.655;SOR=0.990","GT:AD:DP:GQ:PL","0/1:12,21:33:99:700,0,339"});
+		VcfUtils.addMissingDataToFormatFields(r, 1);
+		assertEquals(3, r.getFormatFields().size());
+		assertEquals("0/1:12,21:33:99:700,0,339", r.getFormatFields().get(2));
+		assertEquals(".:.:.:.:.", r.getFormatFields().get(1));
+	}
 	
 	@Test
 	public void missingDataToFormatField() {
@@ -652,6 +668,16 @@ public class VcfUtilsTest {
 		assertEquals(true, VcfUtils.isRecordASnpOrMnp(rec));
 		rec = new VcfRecord( new String[] {"1","1",".","ACGT","TGCA,VVVV"});
 		assertEquals(true, VcfUtils.isRecordASnpOrMnp(rec));
+		
+		/*
+		 * and now the nays
+		 */
+		assertEquals(false, VcfUtils.isRecordASnpOrMnp(new VcfRecord( new String[] {"1","1",".","A","TG"})));
+		assertEquals(false, VcfUtils.isRecordASnpOrMnp(new VcfRecord( new String[] {"1","1",".","AG","C"})));
+		assertEquals(false, VcfUtils.isRecordASnpOrMnp(new VcfRecord( new String[] {"1","1",".","A","C,CT"})));
+		assertEquals(false, VcfUtils.isRecordASnpOrMnp(new VcfRecord( new String[] {"1","1",".","A","CG,T"})));
+		assertEquals(false, VcfUtils.isRecordASnpOrMnp(new VcfRecord( new String[] {"1","1",".","AG","C,GT"})));
+		assertEquals(false, VcfUtils.isRecordASnpOrMnp(new VcfRecord( new String[] {"1","1",".","AG","CC,GT,T"})));
 	}
 	
 	@Test
