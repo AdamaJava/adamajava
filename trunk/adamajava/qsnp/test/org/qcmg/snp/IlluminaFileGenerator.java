@@ -10,19 +10,16 @@ public class IlluminaFileGenerator {
 	public static final char NL = '\n';
 	
 	public static void createIlluminaFile(File illuminaFile) throws IOException {
-		FileWriter writer = new FileWriter(illuminaFile);
-		try {
+		try (FileWriter writer = new FileWriter(illuminaFile);){
 			// add data
 			for (String s : generateIlluminaFileData()) {
 				writer.write(s + NL);
 			}
-		} finally {
-			writer.close();
 		}
 	}
 	
 	public static List<String> generateIlluminaFileData() {
-		List<String> data  = new ArrayList<String>();
+		List<String> data  = new ArrayList<>();
 		data.add("[Header]");
 		data.add("GSGT Version    1.8.4");
 		data.add("Processing Date 8/13/2011 12:29 AM");

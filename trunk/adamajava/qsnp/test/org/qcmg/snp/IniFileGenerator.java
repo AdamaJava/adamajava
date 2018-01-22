@@ -10,14 +10,11 @@ public class IniFileGenerator {
 	public static final char NL = '\n';
 	
 	public static void createRulesOnlyIni(File iniFile) throws IOException {
-		FileWriter writer = new FileWriter(iniFile);
-		try {
+		try (FileWriter writer = new FileWriter(iniFile);){
 			// add rules
 			for (String s : generateIniFileData()) {
 				writer.write(s + NL);
 			}
-		} finally {
-			writer.close();
 		}
 	}
 	
@@ -25,15 +22,13 @@ public class IniFileGenerator {
 		if (newFile) {
 			createRulesOnlyIni(iniFile);
 		}
-		FileWriter writer = new FileWriter(iniFile, true);
-		try {
+		
+		try (FileWriter writer = new FileWriter(iniFile, true);){
 			// add inputs
 			writer.write("[inputFiles]\n");
 			for (String s : inputs) {
 				writer.write(s + NL);
 			}
-		} finally {
-			writer.close();
 		}
 	}
 	
@@ -41,24 +36,19 @@ public class IniFileGenerator {
 		if (newFile) {
 			createRulesOnlyIni(iniFile);
 		}
-		FileWriter writer = new FileWriter(iniFile, true);
-		try {
+		
+		try (FileWriter writer = new FileWriter(iniFile, true);){
 			// add inputs
 			writer.write("[outputFiles]\n");
 			for (String s : outputs) {
 				writer.write(s + NL);
 			}
-		} finally {
-			writer.close();
 		}
 	}
 	
 	public static void addStringToIniFile(File iniFile, String data, boolean append) throws IOException {
-		FileWriter writer = new FileWriter(iniFile, append);
-		try {
+		try (FileWriter writer = new FileWriter(iniFile, append);) {
 			writer.write(NL + data + NL);
-		} finally {
-			writer.close();
 		}
 	}
 	
