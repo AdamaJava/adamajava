@@ -11,8 +11,8 @@ dependencies {
     
     compile project(':qcommon')
 
-    compile name: 'htsjdk', version: '2.14.0-SNAPSHOT'
-//    	compile name: 'htsjdk', version: '1.140'
+//    compile name: 'htsjdk', version: '2.14.0-SNAPSHOT'
+    	compile name: 'htsjdk', version: '1.140'
     compile name: 'picard', version: 'lib'
 	compile name: 'aws-java-sdk-bundle', version: '1.11.252'
 	compile name: 'vcf-store-lambda_2.12-1.0-SNAPSHOT'
