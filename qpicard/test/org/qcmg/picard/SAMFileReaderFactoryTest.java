@@ -8,6 +8,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SAMFileHeader.SortOrder;
+import htsjdk.samtools.BamFileIoUtils;
+import htsjdk.samtools.SamFiles;
 import htsjdk.samtools.SamReader;
 import htsjdk.samtools.SAMFileWriter;
 import htsjdk.samtools.SAMProgramRecord;
@@ -15,6 +18,7 @@ import htsjdk.samtools.SAMReadGroupRecord;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.SAMSequenceRecord;
+import htsjdk.samtools.SamReader.Type;
 
 import org.junit.Assert;
 import org.junit.Rule;
@@ -181,6 +185,77 @@ public class SAMFileReaderFactoryTest {
 	}
 	
 	@Test
+	public void validEverythingAndStreams() throws IOException {
+		File bamFile = testFolder.newFile("testValidHeaderValidBody.bam");
+		getBamFile(bamFile, true, true, true);
+		
+		assertEquals(true, BamFileIoUtils.isBamFile(bamFile));
+		
+		File bamFileIndex = SamFiles.findIndex(bamFile);
+		assertEquals(true, bamFileIndex.exists());
+		
+		int recordCount = 0;
+		SamReader reader = SAMFileReaderFactory.createSAMFileReaderAsStream(bamFile,bamFileIndex);
+		assertEquals(Type.BAM_TYPE, reader.type());
+		assertEquals(true, reader.hasIndex());
+		
+		try {
+			for (SAMRecord s : reader) {
+				recordCount++;
+			}
+			assertEquals(validBamRecordCount, recordCount);
+		} finally {
+			reader.close();
+		}
+	}
+	@Test
+	public void validEverythingAndStreamsAndSam() throws IOException {
+		File samFile = testFolder.newFile("validEverythingAndStreamsAndSam.sam");
+		getBamFile(samFile, true, true, true);
+		
+		assertEquals(false, BamFileIoUtils.isBamFile(samFile));
+		
+		int recordCount = 0;
+		SamReader reader = SAMFileReaderFactory.createSAMFileReaderAsStream(samFile);
+		assertEquals(Type.SAM_TYPE, reader.type());
+		assertEquals(false, reader.hasIndex());
+		
+		try {
+			for (SAMRecord s : reader) {
+				recordCount++;
+			}
+			assertEquals(validBamRecordCount, recordCount);
+		} finally {
+			reader.close();
+		}
+	}
+	
+	@Test
+	public void validEverythingAndStreamsNoIndex() throws IOException {
+		File bamFile = testFolder.newFile("testValidHeaderValidBody.bam");
+		getBamFile(bamFile, true, true);
+		
+		assertEquals(true, BamFileIoUtils.isBamFile(bamFile));
+		
+		File bamFileIndex = SamFiles.findIndex(bamFile);
+		assertEquals(null,  bamFileIndex);
+		
+		int recordCount = 0;
+		SamReader reader = SAMFileReaderFactory.createSAMFileReaderAsStream(bamFile);
+		assertEquals(Type.BAM_TYPE, reader.type());
+		assertEquals(false, reader.hasIndex());
+		
+		try {
+			for (SAMRecord s : reader) {
+				recordCount++;
+			}
+			assertEquals(validBamRecordCount, recordCount);
+		} finally {
+			reader.close();
+		}
+	}
+	
+	@Test
 	public void testValidHeaderValidBody() throws IOException {
 		File bamFile = testFolder.newFile("testValidHeaderValidBody.bam");
 		getBamFile(bamFile, true, true);
@@ -233,15 +308,19 @@ public class SAMFileReaderFactoryTest {
 		assertEquals(validBamRecordCount, recordCount);
 	}
 	
-	
 	private static void getBamFile(File bamFile, boolean validHeader, boolean validRecords) {
+		getBamFile(bamFile, validHeader,  validRecords, false);
+	}
+	
+	private static void getBamFile(File bamFile, boolean validHeader, boolean validRecords, boolean createIndex) {
 		SAMFileHeader header = getHeader(validHeader);
-		SAMOrBAMWriterFactory factory = new SAMOrBAMWriterFactory(header, false, bamFile, false);
+		SAMOrBAMWriterFactory factory = new SAMOrBAMWriterFactory(header, false, bamFile, createIndex);
 		try {
 			SAMFileWriter writer = factory.getWriter();
 			for (SAMRecord s : getRecords(validRecords,header)) {
 				writer.addAlignment(s);
 			}
+			writer.close();
 		} finally {
 			factory.closeWriter();
 		}
@@ -318,6 +397,7 @@ public class SAMFileReaderFactoryTest {
 	private static SAMFileHeader getHeader(boolean valid) {
 		SAMFileHeader header = new SAMFileHeader();
 		header.setTextHeader(VALID_HEADER);
+		header.setSortOrder(SortOrder.coordinate);
 		
 		SAMProgramRecord bwaPG = new SAMProgramRecord("bwa");
 		bwaPG.setProgramName("bwa");
