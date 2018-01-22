@@ -10,19 +10,17 @@ public class PileupFileGenerator {
 	public static final char NL = '\n';
 	
 	public static void createPileupFile(File pileupFile) throws IOException {
-		FileWriter writer = new FileWriter(pileupFile);
-		try {
+		
+		try (FileWriter writer = new FileWriter(pileupFile);){
 			// add data
 			for (String s : generatePileupFileData()) {
 				writer.write(s + NL);
 			}
-		} finally {
-			writer.close();
 		}
 	}
 	
 	public static List<String> generatePileupFileData() {
-		List<String> data  = new ArrayList<String>();
+		List<String> data  = new ArrayList<>();
 		data.add("chr1	16450	G	11	,..,.......	IIIIIIHIIII	9	,........	IIIIIIIII");
 		data.add("chr1	16451	A	12	,..,.......^1.	IIIII7=IIIII	9	,........	IHIIIIIII");
 		data.add("chr1	16452	A	12	,..,........	IIII=HIIIIII	9	,........	IIIIIIIII");
