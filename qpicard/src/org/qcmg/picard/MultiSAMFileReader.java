@@ -120,7 +120,7 @@ public final class MultiSAMFileReader implements Closeable, Iterable<SAMRecord> 
 	 */
 	public MultiSAMFileReader(final Set<File> files, final boolean iteratorOnly, String validation) throws Exception {
 		for (final File file : files) {
-			final SamReader reader = SAMFileReaderFactory.createSAMFileReader(file, validation);
+			final SamReader reader = SAMFileReaderFactory.createSAMFileReaderAsStream(file.getAbsolutePath(), validation);
 			final SAMFileHeader header = reader.getFileHeader();
 			if (SAMFileHeader.SortOrder.coordinate != header.getSortOrder()) {
 				throw new Exception("Input files must be coordinate sorted");
@@ -128,6 +128,16 @@ public final class MultiSAMFileReader implements Closeable, Iterable<SAMRecord> 
 			readers.add(reader);
 		}
 	}
+//	public MultiSAMFileReader(final Set<File> files, final boolean iteratorOnly, String validation) throws Exception {
+//		for (final File file : files) {
+//			final SamReader reader = SAMFileReaderFactory.createSAMFileReader(file, validation);
+//			final SAMFileHeader header = reader.getFileHeader();
+//			if (SAMFileHeader.SortOrder.coordinate != header.getSortOrder()) {
+//				throw new Exception("Input files must be coordinate sorted");
+//			}
+//			readers.add(reader);
+//		}
+//	}
 	
 	public String getAttributeZc(SAMReadGroupRecord  record) throws Exception {
 		String lowZc = record.getAttribute("zc");

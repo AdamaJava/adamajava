@@ -208,6 +208,31 @@ public class SAMFileReaderFactoryTest {
 			reader.close();
 		}
 	}
+	
+	@Test
+	public void validEverythingAndStreamsAsString() throws IOException {
+		File bamFile = testFolder.newFile("testValidHeaderValidBody.bam");
+		getBamFile(bamFile, true, true, true);
+		
+		assertEquals(true, BamFileIoUtils.isBamFile(bamFile));
+		
+		File bamFileIndex = SamFiles.findIndex(bamFile);
+		assertEquals(true, bamFileIndex.exists());
+		
+		int recordCount = 0;
+		SamReader reader = SAMFileReaderFactory.createSAMFileReaderAsStream(bamFile.getAbsolutePath(), null);
+		assertEquals(Type.BAM_TYPE, reader.type());
+		assertEquals(true, reader.hasIndex());
+		
+		try {
+			for (SAMRecord s : reader) {
+				recordCount++;
+			}
+			assertEquals(validBamRecordCount, recordCount);
+		} finally {
+			reader.close();
+		}
+	}
 	@Test
 	public void validEverythingAndStreamsAndSam() throws IOException {
 		File samFile = testFolder.newFile("validEverythingAndStreamsAndSam.sam");
@@ -217,6 +242,27 @@ public class SAMFileReaderFactoryTest {
 		
 		int recordCount = 0;
 		SamReader reader = SAMFileReaderFactory.createSAMFileReaderAsStream(samFile);
+		assertEquals(Type.SAM_TYPE, reader.type());
+		assertEquals(false, reader.hasIndex());
+		
+		try {
+			for (SAMRecord s : reader) {
+				recordCount++;
+			}
+			assertEquals(validBamRecordCount, recordCount);
+		} finally {
+			reader.close();
+		}
+	}
+	@Test
+	public void validEverythingAndStreamsAndSamAsString() throws IOException {
+		File samFile = testFolder.newFile("validEverythingAndStreamsAndSam.sam");
+		getBamFile(samFile, true, true, true);
+		
+		assertEquals(false, BamFileIoUtils.isBamFile(samFile));
+		
+		int recordCount = 0;
+		SamReader reader = SAMFileReaderFactory.createSAMFileReaderAsStream(samFile.getAbsolutePath(),null);
 		assertEquals(Type.SAM_TYPE, reader.type());
 		assertEquals(false, reader.hasIndex());
 		
