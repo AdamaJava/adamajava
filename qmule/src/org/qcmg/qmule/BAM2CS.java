@@ -6,11 +6,9 @@
  */
 package org.qcmg.qmule;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
-
-import htsjdk.samtools.*;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.SamReaderFactory;
 
 import java.io.*;
 import java.net.InetAddress;
@@ -40,8 +38,9 @@ public class BAM2CS {
 	 * @throws Exception 
 	 */
 	void CreateCSfile() throws Exception{	
-
-		SamReader reader = new SAMFileReader(inBAM);
+		
+		SamReaderFactory samReaderFactory = SamReaderFactory.makeDefault();	
+		SamReader reader = samReaderFactory.open(inBAM);
 		int num = 0;
 		for (SAMRecord record : reader) {
 			String id = ">" + record.getReadName();
