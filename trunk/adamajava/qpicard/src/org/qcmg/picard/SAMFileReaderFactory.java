@@ -12,6 +12,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.file.Path;
 
 import htsjdk.samtools.BamFileIoUtils;
 import htsjdk.samtools.SamFiles;
@@ -28,12 +29,21 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.string.StringUtils;
 //import org.qcmg.picard.aws.QSeekableStreamFactory;
 
+
+
+import com.amazonaws.services.cloudfront.model.Paths;
+
 import vcfstore.htsjdk.S3AwareSeekableStreamFactory;
 import vcfstore.protocol.s3.S3AwareURLStreamHandlerFactory;
 
 public class SAMFileReaderFactory {
 //	EnumSet<Option> defultOption = SamReaderFactory.Option.DEFAULTS;
 	static ValidationStringency DefaultStringency = ValidationStringency.SILENT;
+	static {
+		// this factory makes a handler that provides openConnection(...) on s3: URLs
+		// this can only be called once for each JVM, hence the static block
+		URL.setURLStreamHandlerFactory(new S3AwareURLStreamHandlerFactory());
+	}
 	
 	private static final QLogger logger = QLoggerFactory.getLogger(SAMFileReaderFactory.class);
 	
@@ -57,16 +67,14 @@ public class SAMFileReaderFactory {
 	
 	public static SamReader createSAMFileReader(final File bamFile, final String stringency) {
 				 
-			if ("lenient".equalsIgnoreCase(stringency)) {
-				return createSAMFileReader(bamFile,null, ValidationStringency.LENIENT, new Option[0]);
-			} else if ("strict".equalsIgnoreCase(stringency)) {
-				return createSAMFileReader(bamFile,null, ValidationStringency.STRICT, new Option[0]);
-			} 
-			
-			return createSAMFileReader(bamFile,null, DefaultStringency, new Option[0]);
-			 
+		if ("lenient".equalsIgnoreCase(stringency)) {
+			return createSAMFileReader(bamFile,null, ValidationStringency.LENIENT, new Option[0]);
+		} else if ("strict".equalsIgnoreCase(stringency)) {
+			return createSAMFileReader(bamFile,null, ValidationStringency.STRICT, new Option[0]);
+		} 
+		
+		return createSAMFileReader(bamFile,null, DefaultStringency, new Option[0]);
 	}
-	
 	
 	/**
 	 * Creates and returns a SamReader instance based on the supplied bam file, and the supplied Validation Stringency.
@@ -144,6 +152,7 @@ public class SAMFileReaderFactory {
 		
 		if (BamFileIoUtils.isBamFile(bamFile)) {
 			SeekableStream is = SeekableStreamFactory.getInstance().getStreamFor(bamFile.getAbsolutePath());
+			System.out.println("is is a " + is.getClass());
 			resources = SamInputResource.of(is);
 			if (null != indexFile) {
 				SeekableStream indexStream = SeekableStreamFactory.getInstance().getStreamFor(indexFile.getAbsolutePath());
@@ -151,6 +160,7 @@ public class SAMFileReaderFactory {
 			}
 		} else {
 			InputStream is = new FileInputStream(bamFile);
+			System.out.println("is is a " + is.getClass());
 			resources = SamInputResource.of(is);
 		}
 		
@@ -159,16 +169,35 @@ public class SAMFileReaderFactory {
 	}
 	
 	
+	public static SamReader createSAMFileReaderAsStream(final String bamFile, final String stringency) throws IOException {
+		if (StringUtils.isNullOrEmpty(bamFile)) {
+			throw new IllegalArgumentException("Please provide a bam file");
+		}
+		String indexFile = null;
+		
+		/*
+		 * try and get index file, if the supplied bam file exists
+		 */
+		if (new File(bamFile).exists()) {
+			Path indexPath = SamFiles.findIndex(java.nio.file.Paths.get(bamFile));
+			if (null != indexPath) {
+				indexFile = indexPath.toString();
+			}
+		}
+		
+		ValidationStringency vs =null != stringency ? ValidationStringency.valueOf(stringency) : DefaultStringency;
+		
+		return createSAMFileReaderAsStream(bamFile, indexFile, vs);
+	}
+	
 	public static SamReader createSAMFileReaderAsStream(final String bamFile, String indexFile, final ValidationStringency stringency) throws IOException {
 		if (StringUtils.isNullOrEmpty(bamFile)) {
 			throw new IllegalArgumentException("Please provide a bam file");
 		}
 		
-		// this factory makes a handler that provides openConnection(...) on s3: URLs
-		URL.setURLStreamHandlerFactory(new S3AwareURLStreamHandlerFactory());
-		
 		SeekableStreamFactory.setInstance(new S3AwareSeekableStreamFactory());
 		SeekableStream bamSource = SeekableStreamFactory.getInstance().getStreamFor(bamFile);
+		System.out.println("bamSource is a " + bamSource.getClass());
 		
 		SamInputResource resources = SamInputResource.of(bamSource);
 		

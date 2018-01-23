@@ -28,8 +28,8 @@ public class StandardPipelineTest {
 	@Test
 	public void testRunStandardMode() throws Exception{
 		final File logFile = testFolder.newFile("qsnp.log");
-		final File normalBam = createCoverageSam("normal.bam");
-		final File tumourBam = createTumourCoverageSam("tumour.bam");
+		final File normalBam = createCoverageSam("normal.sam");
+		final File tumourBam = createTumourCoverageSam("tumour.sam");
 		final File reference = createRefFile("StandardPipelineTest.reference.fa");
 		final File ini = testFolder.newFile("ini.ini");
 		final File vcf = testFolder.newFile("output.vcf");
