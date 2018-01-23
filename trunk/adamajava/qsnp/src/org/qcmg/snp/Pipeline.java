@@ -674,7 +674,7 @@ public abstract class Pipeline {
 		logger.info("number of somatic snps that have evidence of mutation in unfiltered normal: " + noOfAffectedRecords);
 	}
 	
-	public  VcfRecord convertQSnpToVCF(QSnpRecord rec) throws Exception {
+	public  VcfRecord convertQSnpToVCF(QSnpRecord rec) {
 		final VcfRecord vcf = rec.getVcfRecord();
 		
 		String altString = null != rec.getMutation() ? SnpUtils.getAltFromMutationString(rec.getMutation()) : null;
