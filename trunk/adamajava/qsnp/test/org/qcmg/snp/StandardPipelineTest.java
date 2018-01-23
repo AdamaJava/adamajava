@@ -1,7 +1,6 @@
 package org.qcmg.snp;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -38,29 +37,23 @@ public class StandardPipelineTest {
 		IniFileGenerator.addInputFiles(ini, false, "ref = " + reference.getAbsolutePath());
 		IniFileGenerator.addInputFiles(ini, false, "controlBam = " + normalBam.getAbsolutePath());
 		IniFileGenerator.addInputFiles(ini, false, "testBam = " + tumourBam.getAbsolutePath());
-//		IniFileGenerator.addStringToIniFile(ini, "[filter]\nquery = \"Flag_DuplicateRead == false\"", true);
+		IniFileGenerator.addStringToIniFile(ini, "[filter]\nquery = \"Flag_DuplicateRead == false\"", true);
 		IniFileGenerator.addOutputFiles(ini, false, "vcf = " + vcf.getAbsolutePath());
 		IniFileGenerator.addStringToIniFile(ini, "[parameters]\nrunMode = standard", true);
-//		IniFileGenerator.addStringToIniFile(ini, "\nannotateMode = dcc", true);		
-//		new StandardPipeline(new Ini(ini));
 		
 		final String command = "-log " + logFile.getAbsolutePath() + " -i " + ini.getAbsolutePath();
 		final Executor exec = new Executor(command, "org.qcmg.snp.Main");
 		assertEquals(0, exec.getErrCode());
-		assertTrue(0 == exec.getOutputStreamConsumer().getLines().length);
 	}
 	
 	@SuppressWarnings("unused")
-	private int noOfColumnsInDCCOutputFile(File dccFile) throws Exception {
-		final TabbedFileReader reader = new TabbedFileReader(dccFile);
-		try {
+	private int noOfColumnsInDCCOutputFile(File dccFile) throws IOException {
+		try (TabbedFileReader reader = new TabbedFileReader(dccFile);) {
 			for (final TabbedRecord vcf : reader) {
 				if (vcf.getData().startsWith("analysis")) continue;	// header line
 				final String[] data = vcf.getData().split("\t");
 				return data.length;
 			}
-		} finally {
-			reader.close();
 		}
 		return -1;
 	}
@@ -139,7 +132,7 @@ public class StandardPipelineTest {
 	}
 	
 	
-	public final File createCoverageSam(final String fileName) throws Exception {
+	public final File createCoverageSam(final String fileName) throws IOException {
 		final File file = testFolder.newFile(fileName);
 		try (final OutputStream os = new FileOutputStream(file);
 			final PrintStream ps = new PrintStream(os);) {
@@ -167,7 +160,7 @@ public class StandardPipelineTest {
 		return file;
 	}
 	
-	public final File createTumourCoverageSam(final String fileName) throws Exception {
+	public final File createTumourCoverageSam(final String fileName) throws IOException {
 		final File file = testFolder.newFile(fileName);
 		
 		try (final OutputStream os = new FileOutputStream(file);
