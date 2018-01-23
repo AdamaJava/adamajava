@@ -36,7 +36,7 @@ public class VcfFileMetaTest {
 		assertArrayEquals(new short[]{3,4}, meta.getCallerSamplePositions().get("2"));
 	}
 	
-	@Ignore
+	@Test
 	public void mcss() {
 		VcfHeader header = new VcfHeader();
 		header.addOrReplace("##fileDate=20171117");
@@ -61,7 +61,7 @@ public class VcfFileMetaTest {
 		header.addOrReplace("##2:qTestVcfGATKVersion=null");
 		header.addOrReplace("##INPUT=1,FILE=/mnt/lustre/working/genomeinfo/cromwell-test/analysis/3/d/3d4ecf27-fc71-4853-ade6-4451a3771c7a/3d4ecf27-fc71-4853-ade6-4451a3771c7a.vcf.gz");
 		header.addOrReplace("##INPUT=2,FILE=/mnt/lustre/working/genomeinfo/cromwell-test/analysis/f/a/fa34f968-5fe3-4bff-a54f-c08813091e77/fa34f968-5fe3-4bff-a54f-c08813091e77.vcf.gz");
-		header.addOrReplace("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\t0f443106-e17d-4200-87ec-bd66fe91195f");
+		header.addOrReplace("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\t0f443106-e17d-4200-87ec-bd66fe91195f_1\t0f443106-e17d-4200-87ec-bd66fe91195f_2");
 		VcfFileMeta meta = new VcfFileMeta(header);
 		assertEquals(ContentType.MULTIPLE_CALLERS_SINGLE_SAMPLE, meta.getType());
 	}
