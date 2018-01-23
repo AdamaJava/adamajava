@@ -14,7 +14,7 @@ import org.qcmg.pileup.QSnpRecord;
 public class TestVcfPipeline extends Pipeline {
 	
 	static VcfHeader controlVcfHeader;
-	static VcfHeader testVcfHeader;
+	VcfHeader testVcfHeader;
 	String controlVcfFile, testVcfFile;
 	
 	public TestVcfPipeline() {
@@ -22,6 +22,10 @@ public class TestVcfPipeline extends Pipeline {
 	}
 	public TestVcfPipeline(boolean singleSampleMode) {
 		super(new QExec("qSNP","TEST",new String[] {}), singleSampleMode);
+	}
+	
+	public void setTestVcfHeader(VcfHeader h) {
+		this.testVcfHeader = h;
 	}
 
 	@Override
