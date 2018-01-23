@@ -25,14 +25,15 @@ dependencies {
 }
 
 jar.doFirst {
-  //classpath = configurations.runtime.collect { it.name }.join(' ')
+  def classpath = configurations.runtime.collect { it.name }.join(' ')
   jar {
      manifest {
         attributes 'Implementation-Title': project.name,
                    'Implementation-Version': "$version ($svnVersion)",
                    'SVN-Version': svnVersion,
                    'Built-By': System.properties['user.name'],
-                   'Date': new java.util.Date().toString()
+                   'Date': new java.util.Date().toString(),
+                   'Class-Path' : classpath
      }
   }
 }
