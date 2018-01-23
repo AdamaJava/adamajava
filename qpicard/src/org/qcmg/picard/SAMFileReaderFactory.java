@@ -152,7 +152,7 @@ public class SAMFileReaderFactory {
 		
 		if (BamFileIoUtils.isBamFile(bamFile)) {
 			SeekableStream is = SeekableStreamFactory.getInstance().getStreamFor(bamFile.getAbsolutePath());
-			System.out.println("is is a " + is.getClass());
+//			System.out.println("is is a " + is.getClass());
 			resources = SamInputResource.of(is);
 			if (null != indexFile) {
 				SeekableStream indexStream = SeekableStreamFactory.getInstance().getStreamFor(indexFile.getAbsolutePath());
@@ -160,7 +160,7 @@ public class SAMFileReaderFactory {
 			}
 		} else {
 			InputStream is = new FileInputStream(bamFile);
-			System.out.println("is is a " + is.getClass());
+//			System.out.println("is is a " + is.getClass());
 			resources = SamInputResource.of(is);
 		}
 		
@@ -197,7 +197,7 @@ public class SAMFileReaderFactory {
 		
 		SeekableStreamFactory.setInstance(new S3AwareSeekableStreamFactory());
 		SeekableStream bamSource = SeekableStreamFactory.getInstance().getStreamFor(bamFile);
-		System.out.println("bamSource is a " + bamSource.getClass());
+//		System.out.println("bamSource is a " + bamSource.getClass());
 		
 		SamInputResource resources = SamInputResource.of(bamSource);
 		
