@@ -83,7 +83,7 @@ import org.qcmg.picard.util.QBamIdFactory;
 import org.qcmg.picard.util.QDccMetaFactory;
 import org.qcmg.picard.util.SAMUtils;
 import org.qcmg.pileup.QSnpRecord;
-import org.qcmg.pileup.QSnpRecord.Classification;
+import org.qcmg.common.model.Classification;
 import org.qcmg.qbamfilter.query.QueryExecutor;
 import org.qcmg.snp.util.GenotypeComparisonUtil;
 import org.qcmg.snp.util.IniFileUtil;
