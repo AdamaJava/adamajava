@@ -16,7 +16,7 @@ import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.SnpUtils;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.pileup.QSnpRecord;
-import org.qcmg.pileup.QSnpRecord.Classification;
+import org.qcmg.common.model.Classification;
 public class GenotypeComparisonUtil {
 	
 	

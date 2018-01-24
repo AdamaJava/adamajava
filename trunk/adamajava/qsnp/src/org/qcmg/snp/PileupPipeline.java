@@ -23,7 +23,7 @@ import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.pileup.PileupFileReader;
 import org.qcmg.pileup.QSnpRecord;
-import org.qcmg.pileup.QSnpRecord.Classification;
+import org.qcmg.common.model.Classification;
 import org.qcmg.snp.util.HeaderUtil;
 import org.qcmg.snp.util.IniFileUtil;
 import org.qcmg.snp.util.QJumperWorker;

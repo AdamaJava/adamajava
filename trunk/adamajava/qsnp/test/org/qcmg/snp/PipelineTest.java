@@ -25,7 +25,7 @@ import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.pileup.QSnpRecord;
-import org.qcmg.pileup.QSnpRecord.Classification;
+import org.qcmg.common.model.Classification;
 
 public class PipelineTest {
 	

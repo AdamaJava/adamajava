@@ -5,7 +5,7 @@ import org.junit.Test;
 import org.qcmg.common.model.GenotypeEnum;
 import org.qcmg.common.util.SnpUtils;
 import org.qcmg.pileup.QSnpRecord;
-import org.qcmg.pileup.QSnpRecord.Classification;
+import org.qcmg.common.model.Classification;
 
 public class GenotypeComparisonUtilTest {
 
