@@ -17,18 +17,28 @@ repositories {
 }
 dependencies {
     	configurations.compile.transitive = true
+		
 	compile name: 'qcommon', version: '0.4'
 	compile name: 'qbamfilter', version: '1.2'
 	compile name: 'qpicard', version: '1.1'
 	compile name: 'qio', version: '0.1pre'
+	
+	compile name: 'htsjdk', version: '2.14.1-SNAPSHOT'
+	compile name: 'picard', version: 'lib'
+	compile name: 'aws-java-sdk-bundle', version: '1.11.252'
+	compile name: 'vcf-store-lambda_2.12-1.0-SNAPSHOT'
+	compile name: 'typesafe-config', version: '2.10.1'
+	compile name: 'aws-v4-signer-java', version: '1.3'
+	compile name: 'slf4j-simple', version: '1.7.25'
+	compile name: 'slf4j-api', version: '1.7.25'
 
 	copy {
 		from zipTree("../lib/ini4j-0.5.2-SNAPSHOT-all.zip")
      		into 'build/deps'
         }
 
-	compile name: 'htsjdk', version: '1.140'	
-	compile name: 'picard', version: 'lib' 
+//	compile name: 'htsjdk', version: '1.140'	
+//	compile name: 'picard', version: 'lib' 
 	compile name: 'jopt-simple', version: '4.6'
 	compile name: 'ini4j', version: '0.5.2-SNAPSHOT'
 	testCompile name: 'junit', version: '4.10'		
