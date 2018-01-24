@@ -4,7 +4,7 @@
 package org.qcmg.qmule.vcf;
 
 import org.qcmg.common.model.GenotypeEnum;
-import org.qcmg.pileup.QSnpRecord.Classification;
+import org.qcmg.common.model.Classification;
 
 public class RefAndMultiGenotype {
 	
