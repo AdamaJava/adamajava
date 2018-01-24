@@ -10,8 +10,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.regex.Pattern;
 
+import org.qcmg.common.model.Classification;
 import org.qcmg.common.util.BaseUtils;
-import org.qcmg.pileup.QSnpRecord.Classification;
 
 public final class QPileupSerializer {
 	private static final Pattern tabbedPattern = Pattern.compile("[\\t]");

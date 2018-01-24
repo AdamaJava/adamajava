@@ -3,7 +3,8 @@
  */
 package org.qcmg.pileup;
 
-import org.qcmg.pileup.QSnpRecord.Classification;
+import org.qcmg.common.model.Classification;
+
 
 
 public class VerifiedSnpRecord {
