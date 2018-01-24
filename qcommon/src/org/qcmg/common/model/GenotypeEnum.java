@@ -6,6 +6,8 @@
  */
 package org.qcmg.common.model;
 
+import org.qcmg.common.util.Constants;
+
 /**
  * Alphabetic Genotype Enum
  * 
@@ -73,6 +75,29 @@ public enum GenotypeEnum {
 	
 	public String getDisplayString(){
 		return firstAllele + "/" + secondAllele;
+	}
+	
+	public String getAltAlleleString(){
+		return firstAllele + Constants.COMMA_STRING + secondAllele;
+	}
+	
+	public String getQualifyingAltAlleles(char ref) {
+		
+		if (containsAllele(ref)) {
+			
+			if (isHomozygous()) {
+				return null;
+			} else {
+				return ((secondAllele == ref) ? firstAllele : secondAllele) + Constants.EMPTY_STRING;
+			}
+			
+		} else {
+			if (isHomozygous()) {
+				return firstAllele + Constants.EMPTY_STRING;
+			} else {
+				return getAltAlleleString();
+			}
+		}
 	}
 	
 	public GenotypeEnum getComplement() {

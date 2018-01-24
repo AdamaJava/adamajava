@@ -33,6 +33,43 @@ public class GenotypeEnumTest {
 	}
 	
 	@Test
+	public void getAltAlleleString() {
+		for (GenotypeEnum ge : GenotypeEnum.values()) {
+			assertEquals(ge.getFirstAllele() + "," + ge.getSecondAllele(), ge.getAltAlleleString());
+		}
+	}
+	
+	@Test
+	public void getQualifyingAltAlleles() {
+		assertEquals(null, GenotypeEnum.AA.getQualifyingAltAlleles('A'));
+		assertEquals(null, GenotypeEnum.CC.getQualifyingAltAlleles('C'));
+		assertEquals(null, GenotypeEnum.GG.getQualifyingAltAlleles('G'));
+		assertEquals(null, GenotypeEnum.TT.getQualifyingAltAlleles('T'));
+		
+		assertEquals("A", GenotypeEnum.AA.getQualifyingAltAlleles('C'));
+		assertEquals("C", GenotypeEnum.CC.getQualifyingAltAlleles('A'));
+		assertEquals("G", GenotypeEnum.GG.getQualifyingAltAlleles('T'));
+		assertEquals("T", GenotypeEnum.TT.getQualifyingAltAlleles('G'));
+		
+		assertEquals("A,G", GenotypeEnum.AG.getQualifyingAltAlleles('C'));
+		assertEquals("C,T", GenotypeEnum.CT.getQualifyingAltAlleles('A'));
+		assertEquals("G,T", GenotypeEnum.GT.getQualifyingAltAlleles('C'));
+		assertEquals("C,G", GenotypeEnum.CG.getQualifyingAltAlleles('T'));
+		
+		assertEquals("C", GenotypeEnum.AC.getQualifyingAltAlleles('A'));
+		assertEquals("G", GenotypeEnum.AG.getQualifyingAltAlleles('A'));
+		assertEquals("T", GenotypeEnum.AT.getQualifyingAltAlleles('A'));
+		
+		assertEquals("A", GenotypeEnum.AC.getQualifyingAltAlleles('C'));
+		assertEquals("A,G", GenotypeEnum.AG.getQualifyingAltAlleles('C'));
+		
+		assertEquals("T", GenotypeEnum.AT.getQualifyingAltAlleles('A'));
+		assertEquals("A,T", GenotypeEnum.AT.getQualifyingAltAlleles('C'));
+		assertEquals("A,T", GenotypeEnum.AT.getQualifyingAltAlleles('G'));
+		assertEquals("A", GenotypeEnum.AT.getQualifyingAltAlleles('T'));
+	}
+	
+	@Test
 	public void testIsHomozygous() {
 		GenotypeEnum ge = GenotypeEnum.getGenotypeEnum('A', 'A');
 		assertEquals(GenotypeEnum.AA, ge);
