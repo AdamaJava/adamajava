@@ -7,7 +7,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.regex.Pattern;
 
-import org.qcmg.pileup.QSnpRecord.Classification;
+import org.qcmg.common.model.Classification;
+
 
 public final class VerifiedSnpSerializer {
 	private static final Pattern tabbedPattern = Pattern.compile("[\\t]");

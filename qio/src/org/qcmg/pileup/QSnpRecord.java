@@ -9,14 +9,13 @@ package org.qcmg.pileup;
 import static org.qcmg.common.util.Constants.TAB;
 
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.Classification;
 import org.qcmg.common.model.GenotypeEnum;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.vcf.VcfRecord;
 
 public class QSnpRecord {
-	public enum Classification{
-		SOMATIC, GERMLINE, UNKNOWN
-	}
+	
 	
 	private int id;
 	private final VcfRecord vcf;
