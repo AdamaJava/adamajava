@@ -848,6 +848,30 @@ public class VcfUtilsTest {
 		
 	}
 	
+	@Test
+	public void getGTStringWithCommas() {
+		assertEquals(".", VcfUtils.getGTStringWhenAltHasCommas(null, '\u0000', null));
+		assertEquals(".", VcfUtils.getGTStringWhenAltHasCommas("", '\u0000', null));
+		assertEquals(".", VcfUtils.getGTStringWhenAltHasCommas("A", 'C', null));
+		assertEquals("0/0", VcfUtils.getGTStringWhenAltHasCommas("A", 'C', GenotypeEnum.CC));
+		assertEquals("0/0", VcfUtils.getGTStringWhenAltHasCommas("A,G", 'C', GenotypeEnum.CC));
+		assertEquals("0/0", VcfUtils.getGTStringWhenAltHasCommas("A,G", 'T', GenotypeEnum.TT));
+		assertEquals("0/1", VcfUtils.getGTStringWhenAltHasCommas("A,G", 'C', GenotypeEnum.AC));
+		assertEquals("1/2", VcfUtils.getGTStringWhenAltHasCommas("A,G", 'C', GenotypeEnum.AG));
+		assertEquals("0/2", VcfUtils.getGTStringWhenAltHasCommas("A,G", 'C', GenotypeEnum.CG));
+		assertEquals("0/2", VcfUtils.getGTStringWhenAltHasCommas("A,G,T", 'C', GenotypeEnum.CG));
+		assertEquals("1/3", VcfUtils.getGTStringWhenAltHasCommas("A,G,T", 'C', GenotypeEnum.AT));
+		assertEquals("0/1", VcfUtils.getGTStringWhenAltHasCommas("A,G,T", 'C', GenotypeEnum.AC));
+		assertEquals("1/2", VcfUtils.getGTStringWhenAltHasCommas("A,G,T", 'C', GenotypeEnum.AG));
+		assertEquals("1/1", VcfUtils.getGTStringWhenAltHasCommas("A,G,T", 'C', GenotypeEnum.AA));
+		assertEquals("0/0", VcfUtils.getGTStringWhenAltHasCommas("A,G,T", 'C', GenotypeEnum.CC));
+		assertEquals("0/2", VcfUtils.getGTStringWhenAltHasCommas("A,G,T", 'C', GenotypeEnum.CG));
+		assertEquals("0/3", VcfUtils.getGTStringWhenAltHasCommas("A,G,T", 'C', GenotypeEnum.CT));
+		assertEquals("2/2", VcfUtils.getGTStringWhenAltHasCommas("A,G,T", 'C', GenotypeEnum.GG));
+		assertEquals("2/3", VcfUtils.getGTStringWhenAltHasCommas("A,G,T", 'C', GenotypeEnum.GT));
+		assertEquals("3/3", VcfUtils.getGTStringWhenAltHasCommas("A,G,T", 'C', GenotypeEnum.TT));
+	}
+	
 
 	@Test
 	public void minWithAM() {

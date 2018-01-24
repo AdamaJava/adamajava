@@ -519,6 +519,32 @@ public class VcfUtils {
 		
 		return result;
 	}
+	
+	/**
+	 * Get GT from genotype, ref, alt
+	 * @param altsString
+	 * @param ref
+	 * @param ge
+	 * @return
+	 */
+	public static String getGTStringWhenAltHasCommas(String altsString, char ref, GenotypeEnum ge) {
+		String result = MISSING_DATA_STRING;
+		if (ge != null && ! StringUtils.isNullOrEmpty(altsString)) {
+			if (ge.containsAllele(ref)) {
+				if (ge.isHeterozygous()) {
+					int index = altsString.indexOf(ref == ge.getFirstAllele() ? ge.getSecondAllele() : ge.getFirstAllele());
+					result = "0/" + ((index / 2) + 1);
+				} else {
+					result = "0/0";
+				}
+			} else {
+				int index1 = altsString.indexOf(ge.getFirstAllele());
+				int index2 = altsString.indexOf(ge.getSecondAllele());
+				result = ((index1 / 2) + 1) + "/" + ((index2 / 2) + 1);
+			}
+		}
+		return result;
+	}
 	 
 	/**
 	 * it adjust the endposition of cp if it is not corrected
