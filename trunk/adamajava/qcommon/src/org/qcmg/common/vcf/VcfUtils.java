@@ -165,6 +165,72 @@ public class VcfUtils {
 		return Collections.emptyMap();
 	}
 	
+	/**
+	 * calculates the AD for a sample based on the ref, alts, and OABS
+	 * Should be safe to use for snps and compound snps alike - yay
+	 * 
+	 * Will return the missing data string should OABS empty
+	 */
+	public static String getAD(String ref, String alts, String oabs) {
+		if (StringUtils.isNullOrEmptyOrMissingData(oabs)) {
+			return Constants.MISSING_DATA_STRING;
+		}
+		Map<String, Integer> alleleCounts = getAllelicCoverage(oabs);
+		if (alleleCounts.isEmpty()) {
+			return Constants.MISSING_DATA_STRING;
+		}
+		
+		StringBuilder sb = new StringBuilder();
+		StringUtils.updateStringBuilder(sb, alleleCounts.getOrDefault(ref, 0).toString(), Constants.COMMA);
+		for (String alt : alts.split(Constants.COMMA_STRING)) {
+			StringUtils.updateStringBuilder(sb, alleleCounts.getOrDefault(alt, 0).toString(), Constants.COMMA);
+		}
+		
+		return sb.length() > 0 ? sb.toString() : Constants.MISSING_DATA_STRING;
+	}
+	
+	public static Map<String, Integer> getAllelicCoverage(String oabs) {
+		
+		/*
+		 * need to decompose the OABs string into a map of string keys and corresponding counts
+		 */
+		if ( ! StringUtils.isNullOrEmptyOrMissingData(oabs)) {
+			
+			String [] a = oabs.split(Constants.SEMI_COLON_STRING);
+			Map<String, Integer> m = new HashMap<>(a.length * 2);
+			
+			for (String pileup : a) {
+				int openBracketIndex = pileup.indexOf(Constants.OPEN_SQUARE_BRACKET);
+				/*
+				 * only populate map if we have a valid OABS
+				 */
+				if (openBracketIndex > -1) {
+					int startOfNumberIndex = 1;
+					for (int i = 1 ; i < openBracketIndex ; i++) {
+						char c = pileup.charAt(i);
+						if (Character.isDigit(c)) {
+							/*
+							 * end of the line
+							 */
+							startOfNumberIndex = i;
+							break;
+						}
+					}
+					
+					/*
+					 * get fs + rs count
+					 */
+					int fsCount = Integer.parseInt(pileup.substring(startOfNumberIndex, openBracketIndex));
+					int rsCount = Integer.parseInt(pileup.substring(pileup.indexOf(Constants.CLOSE_SQUARE_BRACKET) + 1, pileup.indexOf(Constants.OPEN_SQUARE_BRACKET, openBracketIndex + 1)));
+					m.put(pileup.substring(0, startOfNumberIndex),  fsCount + rsCount);
+				}
+			}
+			return m;
+		}
+		
+		return Collections.emptyMap();
+	}
+	
 	public static Map<String, Integer> getAllelicCoverageFromAC(String ac) {
 		
 		/*
@@ -726,7 +792,7 @@ public class VcfUtils {
 				
 				// check that the 2 lists of the same size
 				if (existingFF.size() != additionalFormatFields.size()) {
-					logger.warn("format field size mismatch. Exiting record has " 
+					logger.warn("format field size mismatch. Existing record has " 
 				+ existingFF.size() + " entries, whereas additionalFormatFields has " 
 							+ additionalFormatFields.size() + " entries - skipping addition");
 					logger.info("vcf: " + vcf.toString() + ", additional fields: " + Arrays.deepToString(additionalFormatFields.toArray(new String[]{})));
@@ -1037,6 +1103,35 @@ public class VcfUtils {
 		int scIndex = info.indexOf(Constants.SEMI_COLON_STRING, index);
 		String conf = info.substring(index + CONF_LENGTH, scIndex > -1 ? scIndex : info.length());
 		return conf;
+	}
+	
+	/**
+	 * will return true if:
+	 * altCount is >= maxCoverage
+	 * OR
+	 * altCount is 5% (or more) of the totalReadCount
+	 * 
+	 * @param altCount
+	 * @param totalReadCount
+	 * @param percentage
+	 * @param minCoverage
+	 * @return
+	 */
+	public static boolean mutationInNorma(int altCount, int totalReadCount, int percentage, int maxCoverage) {
+		if (altCount == 0) {
+			return false;
+		}
+		/*
+		 * if altCount is greater than the maxCoverage
+		 */
+		if (altCount >= maxCoverage) {
+			return true;
+		}
+		/*
+		 * calculate percentage
+		 */
+		float passingCount = totalReadCount > 0 ? (((float)totalReadCount / 100) * percentage) : 0;
+		return altCount >= passingCount;
 	}
  
 }

@@ -64,6 +64,69 @@ public class VcfUtilsTest {
 	}
 	
 	@Test
+	public void decomposeOABS() {
+		String oabs = "A0[0]33[35.73];G6[30.5]2[34]";
+		Map<String, Integer> m = VcfUtils.getAllelicCoverage(oabs);
+		assertEquals(2, m.size());
+		assertEquals(33, m.get("A").intValue());
+		assertEquals(8, m.get("G").intValue());
+		
+		oabs = "AB10[0]33[35.73];GH26[30.5]12[34]";
+		m = VcfUtils.getAllelicCoverage(oabs);
+		assertEquals(2, m.size());
+		assertEquals(43, m.get("AB").intValue());
+		assertEquals(38, m.get("GH").intValue());
+	}
+	
+	@Test
+	public void decomposeEOR() {
+		String eor = "A0[]33[];G6[]2[]";
+		Map<String, Integer> m = VcfUtils.getAllelicCoverage(eor);
+		assertEquals(2, m.size());
+		assertEquals(33, m.get("A").intValue());
+		assertEquals(8, m.get("G").intValue());
+		
+		eor = "AB10[]33[];GH26[]12[]";
+		m = VcfUtils.getAllelicCoverage(eor);
+		assertEquals(2, m.size());
+		assertEquals(43, m.get("AB").intValue());
+		assertEquals(38, m.get("GH").intValue());
+	}
+	
+	@Test
+	public void getAD() {
+		assertEquals(".", VcfUtils.getAD(null, null, null));
+		assertEquals(".", VcfUtils.getAD(null, null, ""));
+		assertEquals(".", VcfUtils.getAD(null, null, "."));
+		assertEquals(".", VcfUtils.getAD(null, null, "asdasfg"));
+		assertEquals("20,0", VcfUtils.getAD("A", "G", "A10[10]10[20]"));
+		assertEquals("20,0", VcfUtils.getAD("A", "C", "A10[10]10[20]"));
+		assertEquals("20,0", VcfUtils.getAD("A", "T", "A10[10]10[20]"));
+		
+		assertEquals("20,12", VcfUtils.getAD("A", "T", "A10[10]10[20];T1[]11[]"));
+		assertEquals("12,20", VcfUtils.getAD("T", "A", "A10[10]10[20];T1[]11[]"));
+		assertEquals("12,0", VcfUtils.getAD("T", "C", "A10[10]10[20];T1[]11[]"));
+		
+		assertEquals("12,20", VcfUtils.getAD("T", "A", "A10[10]10[20];T1[]11[];C22[1]33[5]"));
+		assertEquals("12,20,55", VcfUtils.getAD("T", "A,C", "A10[10]10[20];T1[]11[];C22[1]33[5]"));
+		assertEquals("0,20,55", VcfUtils.getAD("G", "A,C", "A10[10]10[20];T1[]11[];C22[1]33[5]"));
+		
+	}
+	
+	@Test
+	public void getADCompundSnp() {
+		assertEquals("20,0", VcfUtils.getAD("AC", "GT", "AC10[10]10[20]"));
+		assertEquals("20,7", VcfUtils.getAD("AC", "GT", "AC10[10]10[20];GT4[7]3[6]"));
+		assertEquals("7,20", VcfUtils.getAD("GT", "AC", "AC10[10]10[20];GT4[7]3[6]"));
+		assertEquals("7,0", VcfUtils.getAD("GT", "AA", "AC10[10]10[20];GT4[7]3[6]"));
+		assertEquals("20,0", VcfUtils.getAD("AC", "GG", "AC10[10]10[20];GT4[7]3[6]"));
+		assertEquals("0,0", VcfUtils.getAD("GG", "TT", "AC10[10]10[20];GT4[7]3[6]"));
+		assertEquals("0,2", VcfUtils.getAD("GG", "TT", "AC10[10]10[20];GT4[7]3[6];TT1[1]1[1]"));
+		assertEquals("0,2,20", VcfUtils.getAD("GG", "TT,AC", "AC10[10]10[20];GT4[7]3[6];TT1[1]1[1]"));
+		assertEquals("0,2,20,7", VcfUtils.getAD("GG", "TT,AC,GT", "AC10[10]10[20];GT4[7]3[6];TT1[1]1[1]"));
+	}
+	
+	@Test
 	public void getAlleleDistMap() {
 		String ac = "A7[41.29],9[38.56],C14[38.43],12[37.83]";
 		Map<String, Integer> m = VcfUtils.getAllelicCoverageFromAC(ac);
@@ -784,4 +847,56 @@ public class VcfUtilsTest {
 		assertEquals("0/1:6,3:9:62:62,0,150:A/C:A10[12.5],2[33],C20[1],30[2]", rec.getFormatFields().get(1));
 		
 	}
+	
+
+	@Test
+	public void minWithAM() {
+		//static boolean mutationInNorma(int altCount, int totalReadCount, int percentage, int minCoverage) {
+		assertEquals(true, VcfUtils.mutationInNorma(1, 10, 5, 0));
+		assertEquals(true, VcfUtils.mutationInNorma(1, 20, 5, 0));
+		assertEquals(true, VcfUtils.mutationInNorma(1, 30, 5, 0));
+		assertEquals(true, VcfUtils.mutationInNorma(1, 30, 5, 1));
+		assertEquals(false, VcfUtils.mutationInNorma(1, 30, 5, 2));
+		assertEquals(false, VcfUtils.mutationInNorma(1, 30, 5, 3));
+		assertEquals(true, VcfUtils.mutationInNorma(3, 300, 5, 3));
+	}
+	
+	@Test
+	public void getFFAsMap() {
+		Map<String, String[]> ffMap = VcfUtils.getFormatFieldsAsMap(Arrays.asList("GT:AD:CCC:CCM:DP:FT:GQ:INF:QL","0/0:.:Reference:14:.:PASS:.:NCIG:.","1/1:0,120:SomaticNoReference:14:120:PASS:99:SOMATIC:5348.77"));
+		assertEquals(9, ffMap.size());
+		assertArrayEquals(new String[]{".","5348.77"}, ffMap.get("QL"));
+	}
+	
+	@Test
+	public void min() {
+		assertEquals(false, VcfUtils.mutationInNorma(0, 0, 0, 0));
+		assertEquals(false, VcfUtils.mutationInNorma(0, 10, 1, 2));
+		assertEquals(true, VcfUtils.mutationInNorma(1, 10, 1, 2));
+		assertEquals(true, VcfUtils.mutationInNorma(2, 10, 1, 2));
+		assertEquals(true, VcfUtils.mutationInNorma(2, 10, 1, 3));
+		assertEquals(true, VcfUtils.mutationInNorma(2, 10, 25, 2));
+		assertEquals(false, VcfUtils.mutationInNorma(2, 10, 25, 3));
+		
+		
+		assertEquals(false, VcfUtils.mutationInNorma(1, 24, 5, 3));
+		assertEquals(true, VcfUtils.mutationInNorma(3, 63, 5, 3));
+		assertEquals(true, VcfUtils.mutationInNorma(4, 79, 5, 3));
+		assertEquals(true, VcfUtils.mutationInNorma(4, 99, 5, 3));
+		
+		assertEquals(false, VcfUtils.mutationInNorma(1, 30, 5, 3));
+		assertEquals(true, VcfUtils.mutationInNorma(1, 10, 5, 3));
+		assertEquals(true, VcfUtils.mutationInNorma(2, 10, 5, 3));
+		assertEquals(true, VcfUtils.mutationInNorma(3, 10, 5, 3));
+		assertEquals(true, VcfUtils.mutationInNorma(4, 10, 5, 3));
+		
+		assertEquals(false, VcfUtils.mutationInNorma(1, 100, 5, 3));
+		assertEquals(false, VcfUtils.mutationInNorma(2, 100, 5, 3));
+		assertEquals(true, VcfUtils.mutationInNorma(3, 100, 5, 3));
+		assertEquals(true, VcfUtils.mutationInNorma(4, 100, 5, 3));
+		assertEquals(true, VcfUtils.mutationInNorma(5, 100, 5, 3));
+		assertEquals(true, VcfUtils.mutationInNorma(6, 100, 5, 3));
+	}
+	
+	
 }
