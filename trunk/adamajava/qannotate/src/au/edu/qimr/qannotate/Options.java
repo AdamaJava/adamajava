@@ -280,7 +280,7 @@ public class Options {
 	public String getCommandLine() {	return commandLine; }	
 	public String getInputFileName(){return inputFileName;}
 	public String getOutputFileName(){return outputFileName;}
-	public String getDatabaseFileName(){return databaseFiles[0];}	
+	public String getDatabaseFileName(){return null != databaseFiles && databaseFiles.length > 0 ? databaseFiles[0] : null;}	
 	public String[] getDatabaseFiles(){ return  (mode.equals(MODE.cadd))? databaseFiles : null;}
     public MODE getMode(){	return  mode; }
    
