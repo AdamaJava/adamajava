@@ -70,14 +70,15 @@ public class MakeValidMode extends AbstractMode {
 	
 	public MakeValidMode( Options options) throws IOException {
 		logger.tool("input: " + options.getInputFileName());
-		if ( ! StringUtils.isNullOrEmpty(options.getDatabaseFileName())) {
-			logger.tool("reference file: " + options.getDatabaseFileName());
+		String refFile = options.getDatabaseFileName();
+		if ( ! StringUtils.isNullOrEmpty(refFile)) {
+			logger.tool("reference file: " + refFile);
 		}
         logger.tool("output annotated records: " + options.getOutputFileName());
         logger.tool("logger file " + options.getLogFileName());
         logger.tool("logger level " + (options.getLogLevel() == null ? QLoggerFactory.DEFAULT_LEVEL.getName() :  options.getLogLevel()));
         
-        processVcfFile(options.getInputFileName(), options.getOutputFileName(), options.getCommandLine(), options.getDatabaseFileName());
+        processVcfFile(options.getInputFileName(), options.getOutputFileName(), options.getCommandLine(), refFile);
 	}
 	
 	private void processVcfFile(String input, String output, String cmd, String ref) throws FileNotFoundException, IOException {
