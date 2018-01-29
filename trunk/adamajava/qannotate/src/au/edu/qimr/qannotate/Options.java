@@ -79,7 +79,7 @@ public class Options {
     /**
      * check command line and store arguments and option information
      */   
-    public Options(final String[] args) throws Exception{      	
+    public Options(final String[] args) throws IOException{      	
 	    	parser = new OptionParser();    	       
 	    	OptionSet options =  parseArgs(args);
 	    	
