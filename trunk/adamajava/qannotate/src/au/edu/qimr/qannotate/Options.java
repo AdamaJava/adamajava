@@ -284,24 +284,26 @@ public class Options {
 	public String[] getDatabaseFiles(){ return  (mode.equals(MODE.cadd))? databaseFiles : null;}
     public MODE getMode(){	return  mode; }
    
-    private void displayHelp(MODE mode) throws Exception {   
+    private void displayHelp(MODE mode) throws IOException {   
         String mess = Messages.getMessage("USAGE");  
         if(mode != null){
         	switch (mode){        		
-                case dbsnp: mess = Messages.getMessage("DBSNP_USAGE"); break;
-                case germline: mess = Messages.getMessage("GERMLINE_USAGE"); break;
-                case trf: mess = Messages.getMessage("TRF_USAGE"); break;
-                case snpeff: mess = Messages.getMessage("SNPEFF_USAGE"); break;
-                case confidence: mess = Messages.getMessage("CONFIDENCE_USAGE"); break;
-                case cadd: mess = Messages.getMessage("CADD_USAGE"); break;
-                case indelconfidence: mess = Messages.getMessage("INDELCONFIDENCE_USAGE"); break;
-                case vcf2maf: mess = Messages.getMessage("VCF2MAF_USAGE"); break;
-                case hom: mess = Messages.getMessage("HOM_USAGE"); break;
+            case dbsnp: mess = Messages.getMessage("DBSNP_USAGE"); break;
+            case germline: mess = Messages.getMessage("GERMLINE_USAGE"); break;
+            case trf: mess = Messages.getMessage("TRF_USAGE"); break;
+            case snpeff: mess = Messages.getMessage("SNPEFF_USAGE"); break;
+            case confidence: mess = Messages.getMessage("CONFIDENCE_USAGE"); break;
+            case cadd: mess = Messages.getMessage("CADD_USAGE"); break;
+            case indelconfidence: mess = Messages.getMessage("INDELCONFIDENCE_USAGE"); break;
+            case vcf2maf: mess = Messages.getMessage("VCF2MAF_USAGE"); break;
+            case hom: mess = Messages.getMessage("HOM_USAGE"); break;
+			case make_valid:	mess = Messages.getMessage("MAKE_VALID_USAGE"); break;
+			default:
+				break;
             } 
         }   
         
         System.out.println(mess);          
-        Thread.sleep(1);
         parser.printHelpOn(System.err);    
     }   
         
