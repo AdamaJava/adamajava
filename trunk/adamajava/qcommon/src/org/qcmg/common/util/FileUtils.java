@@ -66,16 +66,7 @@ public class FileUtils {
 	        }
 	        byte[] hash = md.digest();
 	        return DatatypeConverter.printHexBinary(hash);
-	    } catch (IOException | NoSuchAlgorithmException e) { }		
-		
-//		double size = new File(file).length();
-//		boolean isBig =  ((size / 1024 ) /1024) /1024 > 1? true : false;			 
-//			try {
-//				byte[] b = Files.readAllBytes(Paths.get(file));
-//				byte[] hash = MessageDigest.getInstance("MD5").digest(b);
-//				return DatatypeConverter.printHexBinary(hash);													
-//			} catch (IOException | NoSuchAlgorithmException e) { }							
-		   		
+	    } catch (IOException | NoSuchAlgorithmException e) { }				   		
 		//exception occurs
 		return null;  
 	}
@@ -209,7 +200,6 @@ public class FileUtils {
 	 * Returns a collection of Files from a string representing a directory that passes the supplied name filter
 	 * If the string representing a directory turns out in fact to be a file, return the file (wrapped in an array)
 	 * If the string representing a directory turns out not to be a directory, thrown an exception
-	 * 
 	 * 
 	 * @param directoryOrFile String corresponding to a directory structure to be searched, or a file to be returned
 	 * @param filter String containing the filefilter to be applied

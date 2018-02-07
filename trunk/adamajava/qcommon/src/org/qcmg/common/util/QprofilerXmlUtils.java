@@ -44,7 +44,6 @@ public class QprofilerXmlUtils {
 	
 	public static final String tallyItem = "TallyItem";
 	public static final String rangeTallyItem = "RangeTallyItem";
-
 	
 	//count	
 	public static final String totalCount = "totalCount";
@@ -138,16 +137,43 @@ public class QprofilerXmlUtils {
 				continue;
 			
 			if(children.item(i).getNodeName().equals(tagName))
-				elements.add((Element) children.item(i));
-			
+				elements.add((Element) children.item(i));			
 		}
 		
 		return elements; 		
 	}
-	
+	/**
+	 * 
+	 * @param parent : parent element
+	 * @param tagName: first generation children element name
+	 * @param itemNo: the order of first generation children
+	 * @return element if exists, otherwise return null
+	 */
 	public static  Element getChildElement(Element parent, String tagName, int itemNo){		
 		List<Element> elements = getChildElementByTagName( parent,  tagName);
 		return (itemNo >= elements.size()  )? null : elements.get(itemNo);		
+	}
+	
+	/**
+	 * 
+	 * @param parent
+	 * @param tagName: The name of the tag to match on
+	 * @return a list of Element of all generation offspring Elements with a given tag name and order
+	 */
+	public static List<Element> getOffspringElementByTagName( Element parent, String tagName ){
+				
+		List<Element> elements = new ArrayList<Element>(); 
+		if( parent == null ) return elements;
+				
+		NodeList offspring = parent.getElementsByTagName(tagName);
+		for( int i = 0; i < offspring.getLength(); i ++ ){
+			if( ! (offspring.item(i) instanceof Element) )
+				continue;			
+			if(offspring.item(i).getNodeName().equals(tagName))
+				elements.add((Element) offspring.item(i));			
+		}
+		
+		return elements; 		
 	}
 	
 	/**
@@ -160,8 +186,6 @@ public class QprofilerXmlUtils {
 		try{        
 			DOMImplementationLS	impl = (DOMImplementationLS) DOMImplementationRegistry.newInstance().getDOMImplementation("XML 3.0 LS 3.0");	
 	        LSSerializer serializer = impl.createLSSerializer();
-	//        serializer.getDomConfig().setParameter("format-pretty-print", true); //$NON-NLS-1$
-	//        serializer.getDomConfig().setParameter("namespaces", false); //$NON-NLS-1$
 	        LSOutput output = impl.createLSOutput();
 	        output.setCharacterStream(new OutputStreamWriter(new FileOutputStream(filename)));
 	        serializer.write(parent.getOwnerDocument(), output);
@@ -176,7 +200,6 @@ public class QprofilerXmlUtils {
 		DocumentBuilder builder = factory.newDocumentBuilder();
 		DOMImplementation domImpl = builder.getDOMImplementation();		
 		Document doc = domImpl.createDocument( namespaceURI,  qualifiedName,  doctype );
-//		Document doc = domImpl.createDocument(null, "qProfiler", null);
 		return doc.getDocumentElement();
 	}
 
