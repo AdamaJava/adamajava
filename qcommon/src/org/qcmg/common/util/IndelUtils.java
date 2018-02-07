@@ -107,11 +107,11 @@ public class IndelUtils {
 		if (alt != null) {
 			int refLen = ref.length();
 			int altLen = alt.length();
-			 //snp
+			 // snp
 			 if ( refLen == altLen ) {
 				 switch (refLen) {
 					 case 1: return SVTYPE.SNP;	
-					 case 2: return SVTYPE.DNP;	
+					 case 2: return SVTYPE.DNP;
 					 case 3: return SVTYPE.TNP;
 					 default: return SVTYPE.ONP;
 				 }
@@ -185,6 +185,8 @@ public class IndelUtils {
 	 * @return
 	 */
 	public static String getFullChromosome(String ref) {
+		if(ref == null ) return null; //stop exception
+		
 		/*
 		 * Deal with MT special case first
 		 */
