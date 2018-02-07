@@ -20,40 +20,6 @@ import org.qcmg.common.vcf.VcfRecord;
 public final class VCFFileWriter implements Closeable {
 	private final File file;
 	private final OutputStream outputStream;
-	
-//	private VCFFileWriter(final File file, boolean gzip, boolean append) throws IOException {
-//		this.file = file;
-//		outputStream  = gzip ? new GZIPOutputStream(new FileOutputStream(file, append)) : new FileOutputStream(file, append); 
-//		 
-//	}
-//		
-//	/**
-//	 * Create a text VCFFileWriter not allowing appending
-//	 * @param file
-//	 * @throws IOException
-//	 */
-//	public VCFFileWriter(final File file) throws IOException {
-//		this(file, false,false);
-//	}
-//	/**
-//	 * create a gzip/txt VCFFileWriter not allowing appending
-//	 * @param file
-//	 * @param gzip
-//	 * @throws IOException
-//	 */
-//	public VCFFileWriter(final File file, boolean gzip) throws IOException {
-//		this(file, gzip, false);
-//	}
-//	
-//	/**
-//	 * Create a text VCFFileWriter. It will append to the file if it exists
-//	 * @param file
-//	 * @throws IOException
-//	 * */
-//	public static VCFFileWriter CreateAppendVcfWriter(final File file) throws IOException{
-//		return new VCFFileWriter( file, false, true);
-//	}
-	
 
 	/**
 	 * create a gzip/txt VCFFileWriter according file name ending. 
