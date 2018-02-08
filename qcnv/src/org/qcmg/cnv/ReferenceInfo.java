@@ -7,9 +7,8 @@
 package org.qcmg.cnv;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.Map;
 
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.picard.SAMFileReaderFactory;
@@ -26,14 +25,12 @@ public class ReferenceInfo {
 	final SAMSequenceRecord ref;
 	final private int windowSize;	
 	final private int windowNumber;	
-	HashMap<String, int[]> counts = new HashMap<String, int[]>();
-//	private ArrayList<Count> counts = new ArrayList<Count>();
+	Map<String, int[]> counts = new HashMap<>();
 
 
 	/**
 	 * This construction works for window mode only
-	 * @param chr: refernce record
-	 * @param noWindow: total windows number are divided in this reference
+	 * @param chr: reference record
 	 * @param sizeFixWindow: the fixed window size
 	 */
 	public ReferenceInfo(SAMSequenceRecord chr, int sizeFixWindow){
@@ -58,23 +55,23 @@ public class ReferenceInfo {
 			qbamFilter = new QueryExecutor(query);
 		
 		//check each reads start point and counts it into belonging window
-		SamReader rbam =   SAMFileReaderFactory.createSAMFileReader(new File(bam), ValidationStringency.SILENT);  
-		SAMRecordIterator ite =	rbam.query(ref.getSequenceName(), 0, ref.getSequenceLength(),true);
-		while(ite.hasNext()){
-			SAMRecord record = ite.next();
-			if(qbamFilter != null && !qbamFilter.Execute(record))
-				continue; 
-				
-			int pos = record.getAlignmentStart() / windowSize ;
-			chrArray[pos] ++; 
-		}		
-		rbam.close();	
+		try (SamReader rbam =   SAMFileReaderFactory.createSAMFileReader(new File(bam), ValidationStringency.SILENT);) {  
+			SAMRecordIterator ite =	rbam.query(ref.getSequenceName(), 0, ref.getSequenceLength(),true);
+			while(ite.hasNext()){
+				SAMRecord record = ite.next();
+				if(qbamFilter != null && !qbamFilter.Execute(record))
+					continue; 
+					
+				int pos = record.getAlignmentStart() / windowSize ;
+				chrArray[pos] ++; 
+			}		
+		}
 		
 		for( String key :counts.keySet()){
 			if(key.contains(id))
-				throw new Exception("sample id duplicated:" + id);
+				throw new RuntimeException("sample id duplicated:" + id);
 			if(counts.get(key).length != chrArray.length)
-				throw new Exception("Algorithm error, same reference but different window number");
+				throw new RuntimeException("Algorithm error, same reference but different window number");
 		}
 	   
 		counts.put(id, chrArray);

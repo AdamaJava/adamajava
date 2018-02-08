@@ -61,15 +61,15 @@ public class MtCounts {
     }  	     	   	    
 	/**
 	 * it call threads, parallel the BAMFileReader.query for single genome  
-	 * @param logger: an instance of QLogger
 	 * @throws Exception 
 	 */
-    void callCounts() throws Exception{
-    	SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(inputs[0]),ValidationStringency.SILENT );			
-		List<SAMSequenceRecord> genome = reader.getFileHeader().getSequenceDictionary().getSequences();
-		reader.close();
+    void callCounts() throws Exception {
+    		List<SAMSequenceRecord> genome;
+    		try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(inputs[0]),ValidationStringency.SILENT )) {			
+			genome = reader.getFileHeader().getSequenceDictionary().getSequences();
+    		}
 		
-		final AbstractQueue<ReferenceInfo> infoQueue = new ConcurrentLinkedQueue<ReferenceInfo>();
+		final AbstractQueue<ReferenceInfo> infoQueue = new ConcurrentLinkedQueue<>();
 		
 	    ExecutorService queryThreads = Executors.newFixedThreadPool(noOfThreads);	       
 	    logger.info("starting parallel counts based on genome file name");     
@@ -115,15 +115,10 @@ public class MtCounts {
 		
 		/**
 		 * 
-		 * @param normal: normal BAM
-		 * @param tumor: tumour BAM
-		 * @param chr: reference record
 		 * @param windowSize: fixed window size, set value less than 0 if count each base
-		 * @param tmpDir
 		 * @param infoQueue
-		 * @throws IOException
 		 */
-		WindowCount(  String[] inputs, String[] ids, SAMSequenceRecord chr, AbstractQueue<ReferenceInfo> infoQueue, int windowSize, String query  ) throws IOException {
+		WindowCount(  String[] inputs, String[] ids, SAMSequenceRecord chr, AbstractQueue<ReferenceInfo> infoQueue, int windowSize, String query  ) {
 
 			this.inputs = inputs;
 			this.ids = ids; 
@@ -133,6 +128,7 @@ public class MtCounts {
 			this.query = query;
 		}
 	 
+		@Override
 		public void run() {
 			try {	
 				
