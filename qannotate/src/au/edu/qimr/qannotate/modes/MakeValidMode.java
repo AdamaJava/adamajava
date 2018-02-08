@@ -54,7 +54,6 @@ import au.edu.qimr.qannotate.Options;
 public class MakeValidMode extends AbstractMode {
 	
 	private static final QLogger logger = QLoggerFactory.getLogger(MakeValidMode.class);
-	private static final DateFormat df = new SimpleDateFormat("yyyyMMdd");
 	public static final String VCF_DELIM_STRING = Constants.VCF_MERGE_DELIM+"";
 	
 	private VcfFileMeta meta;
@@ -507,7 +506,7 @@ public class MakeValidMode extends AbstractMode {
  		
 		String version = Main.class.getPackage().getImplementationVersion();
 		String pg = Main.class.getPackage().getImplementationTitle();
-		final String fileDate = df.format(Calendar.getInstance().getTime());
+		final String fileDate = new SimpleDateFormat(AbstractMode.DATE_FORMAT_STRING).format(Calendar.getInstance().getTime());
 		final String uuid = QExec.createUUid();
 		
 		myHeader.addOrReplace(VcfHeaderUtils.CURRENT_FILE_FORMAT);

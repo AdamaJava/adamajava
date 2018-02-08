@@ -436,7 +436,7 @@ public class Vcf2maf extends AbstractMode{
 					 useFirst = false;
 				 gd = useFirst ? gds[0] : gds[1];
 			 }
-	 		 String[] pairs = gd.contains("|") ? gd.split("|") : gd.split("/");
+	 		 String[] pairs = gd.contains("|") ? gd.split("\\|") : gd.split("\\/");
 	 		 if(pairs.length > 0) values[4] = getMafAlt(ref, pairs[0], type);
 			 if(pairs.length > 1) values[5] = getMafAlt(ref, pairs[1], type);			 
 		 }else  if(type.equals(SVTYPE.DEL) || type.equals(SVTYPE.INS) ){
@@ -487,7 +487,7 @@ public class Vcf2maf extends AbstractMode{
 	      		try{  
 	      			values[6] = acindel;  //default value is "null" string not null	    			
 		      		String[] counts = values[6].split(COMMA_STRING);
-		      		if(counts.length != 9) throw new Exception();
+		      		if(counts.length != 9) throw new RuntimeException("Counts length was not equal to 9, and that is worthy of en exception (aparently)");
 		      		values[0] = counts[0]; //strong supporting reads nns
 		      		values[1] = counts[2]; //informative
 

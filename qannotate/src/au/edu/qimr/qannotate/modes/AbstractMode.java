@@ -7,7 +7,6 @@ package au.edu.qimr.qannotate.modes;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -33,7 +32,7 @@ import org.qcmg.vcf.VCFFileWriter;
 import au.edu.qimr.qannotate.Main;
 
 abstract class AbstractMode {
-	private static final DateFormat df = new SimpleDateFormat("yyyyMMdd");
+	public static final String DATE_FORMAT_STRING = "yyyyMMdd";
 	final Map<ChrPosition,List<VcfRecord>> positionRecordMap = new HashMap<>();
 	VcfHeader header = null;
 
@@ -101,7 +100,7 @@ abstract class AbstractMode {
  		
 		String version = Main.class.getPackage().getImplementationVersion();
 		String pg = Main.class.getPackage().getImplementationTitle();
-		final String fileDate = df.format(Calendar.getInstance().getTime());
+		final String fileDate = new SimpleDateFormat(DATE_FORMAT_STRING).format(Calendar.getInstance().getTime());
 		final String uuid = QExec.createUUid();
 		
 		myHeader.addOrReplace(VcfHeaderUtils.CURRENT_FILE_FORMAT);
