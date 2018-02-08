@@ -171,10 +171,10 @@ public class HomoplymersMode extends AbstractMode{
 			}
 		}
 		
-		int max  = 0;
+		int max;
 		//reset up or down stream for deletion and SNPs reference base
 		if(indelType.equals(SVTYPE.DEL) || indelType.equals(SVTYPE.SNP) || indelType.equals(SVTYPE.DNP)  
-				|| indelType.equals(SVTYPE.ONP) || indelType.equals(SVTYPE.TNP) ){			
+				|| indelType.equals(SVTYPE.ONP) || indelType.equals(SVTYPE.TNP) ){
 			byte[] mByte = motif.getBytes(); 	
 			
 			int left = 0;

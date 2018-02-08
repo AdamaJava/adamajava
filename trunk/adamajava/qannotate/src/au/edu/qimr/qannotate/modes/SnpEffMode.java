@@ -97,7 +97,7 @@ public class SnpEffMode extends AbstractMode{
 		//run snpEff, store output to a tmp file
     		logger.tool( Arrays.deepToString(args));	 
 		
-		boolean ok = false;
+		boolean ok;
 		try(PrintStream original = new PrintStream(System.out);
 				PrintStream ps =  new PrintStream(tmpFile)){
 			
