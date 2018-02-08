@@ -178,14 +178,21 @@ public class HomoplymersMode extends AbstractMode{
 			byte[] mByte = motif.getBytes(); 	
 			
 			int left = 0;
-			nearBase = (char) updownReference[0][finalUpIndex];			
-			for(int i = 0; i < mByte.length; i ++ ) { 
-				if (nearBase == mByte[i]) {
+			nearBase = (char) updownReference[0][finalUpIndex];
+			for (byte b : mByte) {
+				if (nearBase == b) {
 					left ++;
 				} else {
 					break;				 
 				}
 			}
+//			for(int i = 0; i < mByte.length; i ++ ) { 
+//				if (nearBase == mByte[i]) {
+//					left ++;
+//				} else {
+//					break;				 
+//				}
+//			}
 			upBaseCount += left; 
 						
 			int right = 0;
