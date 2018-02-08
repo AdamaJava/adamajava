@@ -89,11 +89,11 @@ public final class Options {
 		types = new String[typesList.size()];
 		typesList.toArray(types);
 
-		List<String> lSizeList = (List<String>) options.valuesOf("l");
+		List<Integer> lSizeList = (List<Integer>) options.valuesOf("l");
 		lowerISizeLimits = new Integer[lSizeList.size()];
 		lSizeList.toArray(lowerISizeLimits);
 
-		List<String> uSizeList = (List<String>) options.valuesOf("u");
+		List<Integer> uSizeList = (List<Integer>) options.valuesOf("u");
 		upperISizeLimits = new Integer[uSizeList.size()];
 		uSizeList.toArray(upperISizeLimits);
 
