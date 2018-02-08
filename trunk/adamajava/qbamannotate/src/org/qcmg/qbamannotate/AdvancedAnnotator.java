@@ -71,15 +71,12 @@ public final class AdvancedAnnotator {
 	}
 
 	private static String getExtension(File f) {
-		String ext = null;
 		String s = f.getName();
 		int i = s.lastIndexOf('.');
-		if (f.isDirectory()) {
-			ext = null;
-		} else if (i > 0 && i < s.length() - 1) {
-			ext = s.substring(i + 1).toLowerCase();
+		if (i > 0 && i < s.length() - 1 &&  ! f.isDirectory() ) {
+			return s.substring(i + 1).toLowerCase();
 		}
-		return ext;
+		return null;
 	}
 
 }
