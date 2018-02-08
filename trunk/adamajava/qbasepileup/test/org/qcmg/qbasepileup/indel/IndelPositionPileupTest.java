@@ -162,7 +162,7 @@ public class IndelPositionPileupTest {
 		IndexedFastaSequenceFile indexedFasta = createMock(IndexedFastaSequenceFile.class);
 		byte[] bytes = new byte[1];
 		bytes[0] = 1;
-		expect(indexedFasta.getSubsequenceAt("chr7", 140188962, 140188962)).andReturn(new ReferenceSequence("test", 1234, new String("C").getBytes()));
+		expect(indexedFasta.getSubsequenceAt("chr7", 140188962, 140188962)).andReturn(new ReferenceSequence("test", 1234, "C".getBytes()));
 		replay(indexedFasta);
 		return indexedFasta;
 	}
