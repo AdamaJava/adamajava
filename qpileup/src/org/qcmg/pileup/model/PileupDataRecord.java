@@ -103,17 +103,9 @@ public class PileupDataRecord {
 		return baseG;
 	}
 
-//	public void setBaseG(int baseG) {
-//		this.baseG = baseG;
-//	}
-
 	public int getBaseT() {
 		return baseT;
 	}
-
-//	public void setBaseT(int baseT) {
-//		this.baseT = baseT;
-//	}
 
 	public int getBaseN() {
 		return baseN;
@@ -127,33 +119,17 @@ public class PileupDataRecord {
 		return aQual;
 	}
 
-//	public void setaQual(long aQual) {
-//		this.aQual = aQual;
-//	}
-
 	public long getcQual() {
 		return cQual;
 	}
-
-//	public void setcQual(long cQual) {
-//		this.cQual = cQual;
-//	}
 
 	public long getgQual() {
 		return gQual;
 	}
 
-//	public void setgQual(long gQual) {
-//		this.gQual = gQual;
-//	}
-
 	public long gettQual() {
 		return tQual;
 	}
-
-//	public void settQual(long tQual) {
-//		this.tQual = tQual;
-//	}
 
 	public long getnQual() {
 		return nQual;
@@ -247,13 +223,8 @@ public class PileupDataRecord {
 		return this.lowReadCount;
 	}
 
-//	public void setLowReadCount(int lowReadCount) {
-//		this.lowReadCount = lowReadCount;
-//	}
-
 	public void setMateUnmapped(int i) {
 		this.mateUnmapped  = i;
-		
 	}
 	
 	public int getMateUnmapped() {
@@ -306,10 +277,6 @@ public class PileupDataRecord {
 		return isReverse;
 	}
 
-//	public void setReverse(boolean isReverse) {
-//		this.isReverse = isReverse;
-//	}
-
 	public void checkBase(char base, int qual, char referenceBase, SAMRecord record) throws QPileupException {
 		if (referenceBase != 'h' && referenceBase != '0' && base != 'd') {
 			
@@ -350,7 +317,7 @@ public class PileupDataRecord {
 
 	@Override
 	public String toString() {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		
 		StrandEnum[] enums = StrandEnum.values();
 		try {
@@ -364,7 +331,7 @@ public class PileupDataRecord {
 					sb.append(DELIMITER);
 				}
 			}
-		} catch (Exception e) {
+		} catch (QPileupException e) {
 			e.printStackTrace();
 		}
 
@@ -459,9 +426,5 @@ public class PileupDataRecord {
 		}
 		return member;
 	}
-
-//	public void setIsReverse(boolean b) {
-//		this.isReverse = b;		
-//	}
 
 }
