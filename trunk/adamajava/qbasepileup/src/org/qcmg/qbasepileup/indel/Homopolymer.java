@@ -19,7 +19,7 @@ public class Homopolymer {
 	public static final String DISCONTIGUOUS = "discontiguous";
 	public static final String EMBEDDED = "embedded";
 	
-	QLogger logger = QLoggerFactory.getLogger(Homopolymer.class);
+	private final QLogger logger = QLoggerFactory.getLogger(Homopolymer.class);
     private IndelPosition position;
 	private String type = "";
 	private String homopolymerCount = "";
@@ -61,7 +61,7 @@ public class Homopolymer {
 		}	
 	}
 
-	public String getSequence() {
+	private String getSequence() {
 		StringBuilder sb = new StringBuilder();
 		
 		for (int i=0; i<upstreamReference.length; i++) {
@@ -83,7 +83,7 @@ public class Homopolymer {
 		return this.sequence;
 	}
 
-	public void countContiguousBases() {
+	private void countContiguousBases() {
 		
 		upType = "";
 		downType = "";

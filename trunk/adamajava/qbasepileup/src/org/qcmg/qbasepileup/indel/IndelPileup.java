@@ -82,33 +82,32 @@ public class IndelPileup {
 	public void pileupReads(QueryExecutor exec, IndexedFastaSequenceFile indexedFasta) throws Exception {
 				
 	//	setDefaultValidationStringency();
-		SamReader reader =   SAMFileReaderFactory.createSAMFileReader(inputBam.getBamFile(),  ValidationStringency.SILENT);   //new SAMFileReader(inputBam.getBamFile());			
-		
-		SAMRecordIterator iter = reader.queryOverlapping(position.getFullChromosome(), position.getStart(), position.getEnd());		
-		boolean passFilter;
-		while (iter.hasNext()) {
-			SAMRecord r = iter.next();
-			//reset soft clip in indel flag
-//			if (!r.getReadUnmappedFlag() &&  (!r.getDuplicateReadFlag() || r.getDuplicateReadFlag() && options.includeDuplicates()) && (exec == null || (exec !=null && exec.Execute(r)))) {
-
-			if(exec != null )
-				passFilter = exec.Execute(r);
-			else
-				passFilter = !r.getReadUnmappedFlag() && (!r.getDuplicateReadFlag() || options.includeDuplicates());
-
-			if(! passFilter) continue;
-			
-			if (totalReads >= 1000) {
-				highCoverage = true;
-				break;
+		try (SamReader reader =   SAMFileReaderFactory.createSAMFileReader(inputBam.getBamFile(),  ValidationStringency.SILENT);) {   //new SAMFileReader(inputBam.getBamFile());			
+			SAMRecordIterator iter = reader.queryOverlapping(position.getFullChromosome(), position.getStart(), position.getEnd());		
+			boolean passFilter;
+			while (iter.hasNext()) {
+				SAMRecord r = iter.next();
+				//reset soft clip in indel flag
+	//			if (!r.getReadUnmappedFlag() &&  (!r.getDuplicateReadFlag() || r.getDuplicateReadFlag() && options.includeDuplicates()) && (exec == null || (exec !=null && exec.Execute(r)))) {
+	
+				if(exec != null )
+					passFilter = exec.Execute(r);
+				else
+					passFilter = !r.getReadUnmappedFlag() && (!r.getDuplicateReadFlag() || options.includeDuplicates());
+	
+				if(! passFilter) continue;
+				
+				if (totalReads >= 1000) {
+					highCoverage = true;
+					break;
+				}
+				totalReads++;
+				
+				filterSAMRecord(r);						 
 			}
-			totalReads++;
 			
-			filterSAMRecord(r);						 
+			iter.close();
 		}
-		
-		iter.close();
-		reader.close();
 	
 		if (isTumour) {
 			//only need to count homopolymers if it is the tumour bam
@@ -279,7 +278,8 @@ public class IndelPileup {
 	public boolean nearbyIndel(SAMRecord record) {		
 		
 		final Cigar cigar = record.getCigar();
-		if ( ! cigar.toString().contains("I") && ! cigar.toString().contains("D")) {
+		String cigarString = cigar.toString();
+		if ( ! cigarString.contains("I") && ! cigarString.contains("D")) {
 			return false;
 		}
 		
@@ -297,15 +297,9 @@ public class IndelPileup {
 			windowEnd = Math.min(record.getAlignmentEnd(), indelEnd+ nearbyIndelWindow-1);
 		}
 		
-		//SSystem.out.println(windowStart + " " + indelStart + " " + indelEnd + " " + windowEnd);
-
 		int refPos = record.getAlignmentStart();	
-//		System.out.println(cigar.toString() + " " + record.getReadName());
-//		System.out.println(windowStart + " " + indelStart + " " + indelEnd + " " + windowEnd);
-//		System.out.println("s" + record.getAlignmentStart() + " e " + record.getAlignmentEnd());
 		for (CigarElement ce : cigar.getCigarElements()) {
 			int cigarLength = ce.getLength();			
-//			System.out.println("refPos" + refPos + " " + ce.getOperator().toString() + " " + ce.getLength());
 			if (CigarOperator.DELETION == ce.getOperator()) {
 				int currentRefPos = refPos;
 				//need to check is isn't just part of a partial indel for the supplied position
