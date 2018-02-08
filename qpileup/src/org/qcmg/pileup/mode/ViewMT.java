@@ -56,8 +56,8 @@ public class ViewMT {
 	private boolean getForwardElements = true;
 	private boolean getReverseElements = true;
 	private boolean isHDFVersionOption = false;
-	private List<PileupHDF> graphHDFs;
-	private File htmlDir;
+//	private List<PileupHDF> graphHDFs;
+//	private File htmlDir;
 	final static String DELIMITER = PileupConstants.DELIMITER;
 	
 	public ViewMT(Options options) throws Exception {		
@@ -81,8 +81,8 @@ public class ViewMT {
 			new File(pileupDirName).mkdir();
 			this.noOfThreads = options.getThreadNo();
 			this.blockSize = PileupUtil.getBlockSize(options.getMode(), noOfThreads);
-			this.graphHDFs = new ArrayList<PileupHDF>();
-			this.htmlDir = options.getHtmlDir();
+//			this.graphHDFs = new ArrayList<PileupHDF>();
+//			this.htmlDir = options.getHtmlDir();
 		}		
 	}
 	
@@ -138,7 +138,7 @@ public class ViewMT {
 		}
 		
 		//set up initial metadata characteristics		
-		final AbstractQueue<List<Chromosome>> readQueue = new ConcurrentLinkedQueue<List<Chromosome>>();
+		final AbstractQueue<List<Chromosome>> readQueue = new ConcurrentLinkedQueue<>();
 	
 	    final CountDownLatch readLatch = new CountDownLatch(1); // reading
 	                                                            // thread
@@ -196,8 +196,8 @@ public class ViewMT {
 	        private final AbstractQueue<List<Chromosome>> queue;
 	        private final CountDownLatch rLatch;
 	        private final CountDownLatch fLatch;	  
-	        private Map<String, List<Chromosome>> queueMap = new TreeMap<String, List<Chromosome>>();
-	        private List<Chromosome> chromosomes = new ArrayList<Chromosome>();
+	        private Map<String, List<Chromosome>> queueMap = new TreeMap<>();
+	        private List<Chromosome> chromosomes = new ArrayList<>();
 	        
 	        public Setup(AbstractQueue<List<Chromosome>> q, Thread currentThread,
 	                CountDownLatch readLatch, CountDownLatch filterLatch) {
@@ -231,13 +231,13 @@ public class ViewMT {
 	            }
 	        }
 
-			private void addMapToQueue() throws Exception {
+			private void addMapToQueue() throws QPileupException {
 				for (Map.Entry<String, List<Chromosome>> entry: queueMap.entrySet()) {
 					addToQueue(entry.getKey(), entry.getValue());
 				}				
 			}
 
-			private void addToQueue(String key, List<Chromosome> list) throws Exception {
+			private void addToQueue(String key, List<Chromosome> list) throws QPileupException {
 				if (!isViewOption) {
 					logger.info("Read chromosome: " + key);
 				}
@@ -435,39 +435,39 @@ public class ViewMT {
 				}
 				
 
-	        	int totalToRead = endPos - startPos + 1;
-        		int startIndex = startPos - 1;
-            	PositionDS position = new PositionDS(hdf, chromosome.getHdfGroupName());
-        		StrandDS forward = new StrandDS(hdf, chromosome.getName(), false);	
-        		StrandDS reverse = new StrandDS(hdf, chromosome.getName(), true);
-
-        		//read
-        		if (!isViewOption) {
-        			logger.info("Reading from: " + chromosome.getName() + " Start: " + startPos + " End: " + endPos);
-        		}
-        		position.readDatasetBlock(startIndex, totalToRead);
-        		forward.readDatasetBlock(startIndex, totalToRead);
-        		reverse.readDatasetBlock(startIndex, totalToRead);
-        		
-        		if (!isViewOption) {
-        			writer.write("#" + hdf.getFile().getName() + "\n");
-        		}
-        		
-        		//write      		
-        		for (int i=0; i<position.getDatasetLength(); i++) {
-        			QPileupRecord qRecord = new QPileupRecord(position.getPositionElement(i), forward.getStrandElementMap(i), reverse.getStrandElementMap(i));
-        			
-        			String output = qRecord.getRecordString(viewElements, groupElements, getForwardElements, getReverseElements);	
-        			
-        			if (isViewOption) {
-        				System.out.print(output + "\n");
-        			} else {          				
-        				writer.write(output + "\n");
-        			}
-        		} 
-        		if (!isViewOption) {
-        			logger.info("Finished writing: " + chromosome.getName() + " Start: " + startPos + " End: " + endPos);
-        		}
+		        	int totalToRead = endPos - startPos + 1;
+	        		int startIndex = startPos - 1;
+	            	PositionDS position = new PositionDS(hdf, chromosome.getHdfGroupName());
+	        		StrandDS forward = new StrandDS(hdf, chromosome.getName(), false);	
+	        		StrandDS reverse = new StrandDS(hdf, chromosome.getName(), true);
+	
+	        		//read
+	        		if (!isViewOption) {
+	        			logger.info("Reading from: " + chromosome.getName() + " Start: " + startPos + " End: " + endPos);
+	        		}
+	        		position.readDatasetBlock(startIndex, totalToRead);
+	        		forward.readDatasetBlock(startIndex, totalToRead);
+	        		reverse.readDatasetBlock(startIndex, totalToRead);
+	        		
+	        		if (!isViewOption) {
+	        			writer.write("#" + hdf.getFile().getName() + "\n");
+	        		}
+	        		
+	        		//write      		
+	        		for (int i=0; i<position.getDatasetLength(); i++) {
+	        			QPileupRecord qRecord = new QPileupRecord(position.getPositionElement(i), forward.getStrandElementMap(i), reverse.getStrandElementMap(i));
+	        			
+	        			String output = qRecord.getRecordString(viewElements, groupElements, getForwardElements, getReverseElements);	
+	        			
+	        			if (isViewOption) {
+	        				System.out.print(output + "\n");
+	        			} else {          				
+	        				writer.write(output + "\n");
+	        			}
+	        		} 
+	        		if (!isViewOption) {
+	        			logger.info("Finished writing: " + chromosome.getName() + " Start: " + startPos + " End: " + endPos);
+	        		}
 	        }      
 	  }
 }
