@@ -26,8 +26,8 @@ import org.qcmg.common.vcf.header.VcfHeaderRecord;
 public class VcfHeaderUtils {
 	
 	public static final QLogger logger = QLoggerFactory.getLogger(VcfHeaderUtils.class);
-	
-	public static final DateFormat DF = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	public static final String DATE_FORMAT_STRING = "yyyy-MM-dd HH:mm:ss"; 
+	public final DateFormat DF = new SimpleDateFormat(DATE_FORMAT_STRING);
 	
 	public static final String BLANK_HEADER_LINE = Constants.DOUBLE_HASH;
 	public static final String FORMAT = BLANK_HEADER_LINE + "FORMAT";
