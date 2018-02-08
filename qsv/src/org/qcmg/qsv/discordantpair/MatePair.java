@@ -38,9 +38,6 @@ public class MatePair implements Comparable<MatePair> {
 		if ( ! (check.equals(readName))) {
 			logger.info("Left" + readName);
 			logger.info("Right" + check);
-			if (null != leftMate && null != rightMate) {
-				logger.info("Mate" + toString());
-			}
 			throw new QSVException("PAIR_ERROR");
 		}
 		this.zp = PairClassification.valueOf(getPairClassificationFromSamRecord(leftRecord));

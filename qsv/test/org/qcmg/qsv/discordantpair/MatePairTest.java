@@ -1,8 +1,6 @@
 package org.qcmg.qsv.discordantpair;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -58,7 +56,17 @@ public class MatePairTest {
         assertEquals(140191093, mate.getRightMate().getEnd());
         assertEquals(PairClassification.ABC, mate.getZpType());
     }
-
+    
+    
+    @Test
+    public void testConstructorWithTwoSamRecordsThatAreNotEqual() {
+        SAMRecord first = records.get(0);
+        SAMRecord second = records.get(2);
+        try {
+	        new MatePair(first, second);
+	        fail("Should have exceptioned");
+        } catch (QSVException qsve) {}
+    }
     
     @Test
     public void testConstructorWithReadLine() {
