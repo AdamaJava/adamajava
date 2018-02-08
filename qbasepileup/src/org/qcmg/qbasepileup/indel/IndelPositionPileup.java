@@ -16,14 +16,12 @@ import org.qcmg.qbasepileup.InputBAM;
 import org.qcmg.qbasepileup.Options;
 import org.qcmg.qbasepileup.QBasePileupException;
 
-
-
 public class IndelPositionPileup {	
 	
 	private IndelPosition position;	
 	private IndelPileup tumourPileup;
 	private IndelPileup normalPileup;
-	private String pileupFlags = new String();
+	private String pileupFlags = "";
 	private final Options options;
 	private final IndexedFastaSequenceFile indexedFasta;
 	
@@ -34,12 +32,6 @@ public class IndelPositionPileup {
 		tumourPileup = new IndelPileup(options, tumourBam, position, options.getReference(), options.getSoftClipWindow(), options.getNearbyHomopolymerWindow(), options.getNearbyIndelWindow(), true);
         normalPileup = new IndelPileup(options, normalBam,  position, options.getReference(), options.getSoftClipWindow(), options.getNearbyHomopolymerWindow(), options.getNearbyIndelWindow(), false);      
 	}
-	
-//	public IndelPositionPileup(InputBAM tumourBam, InputBAM normalBam, org.qcmg.qbasepileup.indel.IndelPosition position, String reference) throws QBasePileupException {
-//		this.position = position;
-//		tumourPileup = new IndelPileup(options, tumourBam, position,  new File(reference), 13, 10, 3, true); 
-//        normalPileup = new IndelPileup(options, normalBam,  position, new File(reference), 13, 10, 3, false);      
-//	}
 
 	public IndelPosition getPosition() {
 		return position;
@@ -72,8 +64,6 @@ public class IndelPositionPileup {
         this.pileupFlags = calculatePileupFlags();
         
 	}
-	
-
 
 	//pileup single reads only
 	public void pileupRead(SAMRecord r, boolean isTumour) {
