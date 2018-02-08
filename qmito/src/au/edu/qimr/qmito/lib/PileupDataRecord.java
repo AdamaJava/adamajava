@@ -287,7 +287,7 @@ public class PileupDataRecord {
 
 	@Override
 	public String toString() {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		
 		StrandEnum[] enums = StrandEnum.values();
 		try {
