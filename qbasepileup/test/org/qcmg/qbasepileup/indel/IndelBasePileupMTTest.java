@@ -46,15 +46,7 @@ public class IndelBasePileupMTTest {
 	
 	@Before
 	public void setUp() throws IOException {
-//		log =  testFolder.getRoot().getAbsolutePath() + FILE_SEPERATOR + "test.log";
-//		samFile = testFolder.getRoot().getAbsolutePath() + FILE_SEPERATOR + "input.sam";
-//		bamFile = testFolder.getRoot().getAbsolutePath() + FILE_SEPERATOR + "input.bam";
-//	    	createBamFile();
 	    	reference = this.getClass().getResource("/resources/example.fa").getFile();
-		
-//		snps = testFolder.newFile("indels.dcc1").getAbsolutePath();
-//		createIndelFile();
-//		output = testFolder.getRoot().getAbsolutePath() + FILE_SEPERATOR + "output.dcc1";		
 	}
 	
 	@After
@@ -155,21 +147,21 @@ public class IndelBasePileupMTTest {
         new IndelBasePileupByChrMT(options.getSomaticIndelFile(), options.getSomaticOutputFile(), null, false, options);
         assertTrue(new File(output).exists());
        
-        BufferedReader reader = new BufferedReader(new FileReader(new File(output)));
-        String line;
-        int count = 0;
-        while ((line = reader.readLine()) != null) {        	
-	        	count++;
-	        	if (count == 2) {
-		        	String[] vals = line.split("\t");
-		        	assertTrue(vals[23].startsWith("PASS;NNS;COVN12;HOMADJ"));
-		        	assertEquals("0;1;1;0[0|0];0;1;0", vals[24]);
-		        	assertTrue(vals[25].startsWith("0;1;1;0[0|0];0;1;0;\"4 discontiguous GGTAATAAAAtATTGTAAAAC\""));
-		    		assertEquals(28, vals.length);
-	        	}
+        try (BufferedReader reader = new BufferedReader(new FileReader(new File(output)));) {
+	        String line;
+	        int count = 0;
+	        while ((line = reader.readLine()) != null) {        	
+		        	count++;
+		        	if (count == 2) {
+			        	String[] vals = line.split("\t");
+			        	assertTrue(vals[23].startsWith("PASS;NNS;COVN12;HOMADJ"));
+			        	assertEquals("0;1;1;0[0|0];0;1;0", vals[24]);
+			        	assertTrue(vals[25].startsWith("0;1;1;0[0|0];0;1;0;\"4 discontiguous GGTAATAAAAtATTGTAAAAC\""));
+			    		assertEquals(28, vals.length);
+		        	}
+	        }
+	        assertEquals(2, count);
         }
-        assertEquals(2, count);
-        reader.close();
 	}
 	
 	@Test
@@ -192,19 +184,19 @@ public class IndelBasePileupMTTest {
         new IndelBasePileupByChrMT(options.getSomaticIndelFile(), options.getSomaticOutputFile(), null, false, options);
         assertTrue(new File(output).exists());
        
-        BufferedReader reader = new BufferedReader(new FileReader(new File(output)));
-        String line;
-        int count = 0;
-        while ((line = reader.readLine()) != null) {        	
-	        	count++;
-	        	if (count == 2) {
-		        	String[] vals = line.split("\t");
-		        	assertEquals("0;0;0;0[0|0];0;0;0", vals[24]);
-		    		assertEquals(28, line.split("\t").length);
-	        	}
+        try (BufferedReader reader = new BufferedReader(new FileReader(new File(output)));) {
+	        String line;
+	        int count = 0;
+	        while ((line = reader.readLine()) != null) {        	
+		        	count++;
+		        	if (count == 2) {
+			        	String[] vals = line.split("\t");
+			        	assertEquals("0;0;0;0[0|0];0;0;0", vals[24]);
+			    		assertEquals(28, line.split("\t").length);
+		        	}
+	        }
+	        assertEquals(2, count);
         }
-        assertEquals(2, count);
-        reader.close();
 	}
 	
 	
