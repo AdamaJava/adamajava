@@ -146,22 +146,22 @@ public class PileupHDF {
 	
 	public synchronized String getHDFHeader() throws Exception{
 		
-	    	StringBuffer sb = new StringBuffer();
-	    	sb.append("## DATE=" + PileupUtil.getCurrentDate() + "\n");
-	    	sb.append("## VERSION_BOOTSTRAP=" + getVersionMessage() + "\n");
-	    	sb.append("## VERSION_FILE=" +getVersionFileMessage() + "\n");
-	    	sb.append("## HDF=" +getFile().getAbsolutePath() + "\n"); 	
+	    	StringBuilder sb = new StringBuilder();
+	    	sb.append("## DATE=").append(PileupUtil.getCurrentDate()).append("\n");
+	    	sb.append("## VERSION_BOOTSTRAP=").append(getVersionMessage()).append("\n");
+	    	sb.append("## VERSION_FILE=").append(getVersionFileMessage()).append("\n");
+	    	sb.append("## HDF=").append(getFile().getAbsolutePath()).append("\n"); 	
 	    	
 	    	MetadataReferenceDS referenceDS = new MetadataReferenceDS(this, "");
 	    	sb.append(referenceDS.getMetadata());
 	    	
 	    	MetadataRecordDS metaDS = new MetadataRecordDS(this);
-	    	sb.append("## INFO=BAMS_ADDED:" +metaDS.getAttribute("bams_added") + "\n"); 
-	    	sb.append("## INFO=LOW_READ_COUNT:" +metaDS.getAttribute("low_read_count") + "\n"); 
-	    	sb.append("## INFO=MIN_NONREF_PERCENT:" +metaDS.getAttribute("non_reference_threshold") + "\n"); 
+	    	sb.append("## INFO=BAMS_ADDED:").append(metaDS.getAttribute("bams_added")).append("\n"); 
+	    	sb.append("## INFO=LOW_READ_COUNT:").append(metaDS.getAttribute("low_read_count")).append("\n"); 
+	    	sb.append("## INFO=MIN_NONREF_PERCENT:").append(metaDS.getAttribute("non_reference_threshold")).append("\n"); 
 	    	sb.append(metaDS.getMetadata());
 	    	
-			return sb.toString();
+		return sb.toString();
 	}
 
 	
@@ -175,8 +175,8 @@ public class PileupHDF {
 		}
 	}
 
-	public synchronized List<String> getRootGroupMembers() throws Exception {
-		List<String> groupList = new ArrayList<String>();
+	public synchronized List<String> getRootGroupMembers() throws HDF5LibraryException {
+		List<String> groupList = new ArrayList<>();
 		if (useHDFObject) {
 			getRootMembers(groupList);
 		} else {
@@ -791,7 +791,7 @@ public class PileupHDF {
 
 	public List<String> getBamFilesInHeader() throws Exception {
 		String header = getHDFHeader();
-		List<String> bamFiles = new ArrayList<String>();
+		List<String> bamFiles = new ArrayList<>();
 		if (header != null) {
 			String[] lines = header.split("\n");
 			for (String line: lines) {
