@@ -81,8 +81,8 @@ public class IndelBasePileupByChrMT {
 		
 		logger.info("**********PROCESSING " + (isGermline ? "GERMLINE" : "SOMATIC") + " FILE**********");
 		
-		final AbstractQueue<String> readQueue = new ConcurrentLinkedQueue<String>();    
-        final AbstractQueue<String[]> writeQueue = new ConcurrentLinkedQueue<String[]>();
+		final AbstractQueue<String> readQueue = new ConcurrentLinkedQueue<>();    
+        final AbstractQueue<String[]> writeQueue = new ConcurrentLinkedQueue<>();
     
         final CountDownLatch readLatch = new CountDownLatch(1); // reading
         final CountDownLatch pileupLatch = new CountDownLatch(threadNo); // filtering thread
@@ -180,8 +180,8 @@ public class IndelBasePileupByChrMT {
             logger.info("Starting to read file: " + inputFile.getAbsolutePath());
             int countSleep = 0;
             long count = 0;
-            try {             	
-        		BufferedReader reader = new BufferedReader(new FileReader(inputFile));        		
+            try (BufferedReader reader = new BufferedReader(new FileReader(inputFile));) {  	
+        		        		
         		
         		String line;
         		
@@ -219,8 +219,6 @@ public class IndelBasePileupByChrMT {
                     }
         		}
         		
-        		reader.close();                            
-                
                 logger.info("Completed reading thread, read " + count
                         + " records from input: " + inputFile.getAbsolutePath());
             } catch (Exception e) {
@@ -286,7 +284,7 @@ public class IndelBasePileupByChrMT {
 		        			this.exec  = new QueryExecutor(options.getFilterQuery());
 		        		}
 	                while (run) {
-	                	chromosome = queueIn.poll();	                    
+	                		chromosome = queueIn.poll();	                    
 
 	                    if (chromosome == null) {
 	                        // must check whether reading thread finished first.
@@ -374,7 +372,7 @@ public class IndelBasePileupByChrMT {
 	        }
 
 			private synchronized TreeMap<Integer, List<IndelPositionPileup>> getPositionMap(String chromosome, IndexedFastaSequenceFile indexedFasta) throws IOException, QBasePileupException {
-				 TreeMap<Integer, List<IndelPositionPileup>> positionMap = new TreeMap<Integer, List<IndelPositionPileup>>();
+				 TreeMap<Integer, List<IndelPositionPileup>> positionMap = new TreeMap<>();
 				 
 				 String fullChr = QBasePileupUtil.getFullChromosome(chromosome);
 				 try (BufferedReader reader = new BufferedReader(new FileReader(positionsFile))) {        		
@@ -403,8 +401,7 @@ public class IndelBasePileupByChrMT {
 		        				IndelPositionPileup pileup = new IndelPositionPileup(tumourBam, normalBam, p, options, indexedFasta);	                        
 			                       
 		        				if (p.getFullChromosome().equals(fullChr)) {
-		        					Integer i = Integer.valueOf(p.getStart());
-		        					positionMap.computeIfAbsent(i, v -> new ArrayList<>()).add(pileup);
+		        					positionMap.computeIfAbsent(Integer.valueOf(p.getStart()), v -> new ArrayList<>()).add(pileup);
 		        				}
 		        			}
 		        		}
@@ -414,54 +411,53 @@ public class IndelBasePileupByChrMT {
 
 			private void pileupReads(InputBAM bam, String chromosome, TreeMap<Integer, List<IndelPositionPileup>> positionMap, boolean isTumour) throws Exception {
 				 
-				SamReader reader = SAMFileReaderFactory.createSAMFileReader(bam.getBamFile(), "silent");
+				try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(bam.getBamFile(), "silent");) {
          		
-         		//get chromosome length
-         		String fullChromosome = QBasePileupUtil.getFullChromosome(chromosome);
-         			int startKey = positionMap.firstKey()-250;
-         			int endKey = positionMap.lastKey()+250;
-         			logger.info("Getting records from "+fullChromosome+": " + startKey  + " to " + endKey);
-             		SAMRecordIterator iter = reader.queryOverlapping(fullChromosome, startKey, endKey);	
-             		boolean passFilter;
-             		while (iter.hasNext()) {
-             			SAMRecord r = iter.next();
-             			//reset soft clip in indel flag
-             			if (isTumour) {
-             				totalTumourReads.incrementAndGet();
-                 			if (totalTumourReads.longValue() % 10000000 == 0) {
-                 				logger.info("Tumour reads processed: " + totalTumourReads.longValue() + ". Current read starts at: " + r.getReferenceName() + ":" + r.getAlignmentStart());
-                 			}
-             			} else {
-             				totalNormalReads.incrementAndGet();
-                 			if (totalNormalReads.longValue() % 10000000 == 0) {
-                 				logger.info("Normal reads processed: " + totalNormalReads.longValue() + ". Current read starts at: " + r.getReferenceName() + ":" + r.getAlignmentStart());
-                 			}
-             			}             				
-             			
-            			if(exec != null )
-            				passFilter = exec.Execute(r);
-            			else
-            				passFilter = !r.getReadUnmappedFlag() && (!r.getDuplicateReadFlag() || options.includeDuplicates());
-
-            			if(! passFilter) continue;
-        
-         			int start = r.getAlignmentStart() - maxLength;
-     				int end = r.getAlignmentEnd() + maxLength;
-         				
-     				SortedMap<Integer, List<IndelPositionPileup>> subMap = positionMap.subMap(start, end);
-         				
-     				if (subMap != null && subMap.size() > 0) {
-     					
-     					for (Entry<Integer, List<IndelPositionPileup>> entry: subMap.entrySet()) {
-     						for (IndelPositionPileup p : entry.getValue()) {
-     							p.pileupRead(r, isTumour);
-     						}
-     					}
-     				}
-         		}
-             		
-         		iter.close();
-         		reader.close();
+	         		//get chromosome length
+	         		String fullChromosome = QBasePileupUtil.getFullChromosome(chromosome);
+	         			int startKey = positionMap.firstKey()-250;
+	         			int endKey = positionMap.lastKey()+250;
+	         			logger.info("Getting records from "+fullChromosome+": " + startKey  + " to " + endKey);
+	             		SAMRecordIterator iter = reader.queryOverlapping(fullChromosome, startKey, endKey);	
+	             		boolean passFilter;
+	             		while (iter.hasNext()) {
+	             			SAMRecord r = iter.next();
+	             			//reset soft clip in indel flag
+	             			if (isTumour) {
+	             				totalTumourReads.incrementAndGet();
+	                 			if (totalTumourReads.longValue() % 10000000 == 0) {
+	                 				logger.info("Tumour reads processed: " + totalTumourReads.longValue() + ". Current read starts at: " + r.getReferenceName() + ":" + r.getAlignmentStart());
+	                 			}
+	             			} else {
+	             				totalNormalReads.incrementAndGet();
+	                 			if (totalNormalReads.longValue() % 10000000 == 0) {
+	                 				logger.info("Normal reads processed: " + totalNormalReads.longValue() + ". Current read starts at: " + r.getReferenceName() + ":" + r.getAlignmentStart());
+	                 			}
+	             			}             				
+	             			
+	            			if(exec != null )
+	            				passFilter = exec.Execute(r);
+	            			else
+	            				passFilter = !r.getReadUnmappedFlag() && (!r.getDuplicateReadFlag() || options.includeDuplicates());
+	
+	            			if(! passFilter) continue;
+	        
+	         			int start = r.getAlignmentStart() - maxLength;
+	     				int end = r.getAlignmentEnd() + maxLength;
+	         				
+	     				SortedMap<Integer, List<IndelPositionPileup>> subMap = positionMap.subMap(start, end);
+	         				
+	     				if (subMap != null && subMap.size() > 0) {
+	     					
+	     					for (Entry<Integer, List<IndelPositionPileup>> entry: subMap.entrySet()) {
+	     						for (IndelPositionPileup p : entry.getValue()) {
+	     							p.pileupRead(r, isTumour);
+	     						}
+	     					}
+	     				}
+	         		}
+	             	iter.close();
+				}
 			}
      }
 	
@@ -493,38 +489,37 @@ public class IndelBasePileupByChrMT {
 	            try {
 	                String[] record;
 	                int count = 0;
-	                BufferedWriter writer = new BufferedWriter(new FileWriter(resultsFile));
+	                try (BufferedWriter writer = new BufferedWriter(new FileWriter(resultsFile));) {
 	                               
-	                while (run) {
-	                    
-	                    if ((record = queue.poll()) == null) {
-	                        
-	                        try {
-	                            Thread.sleep(sleepUnit);
-	                            countSleep++;
-	                        } catch (Exception e) {
-		                        	if (exitStatus.intValue() == 0) {
-		                        		exitStatus.incrementAndGet();
-		        	    	        		}
-		                            logger.info(Thread.currentThread().getName() + " "
-		                                    + QBasePileupUtil.getStrackTrace(e));
-	                        }
-	                        if (filterLatch.getCount() == 0 && queue.size() == 0) {
-		                        run = false;
+		                while (run) {
+		                    
+		                    if ((record = queue.poll()) == null) {
+		                        
+		                        try {
+		                            Thread.sleep(sleepUnit);
+		                            countSleep++;
+		                        } catch (Exception e) {
+			                        	if (exitStatus.intValue() == 0) {
+			                        		exitStatus.incrementAndGet();
+			        	    	        		}
+			                            logger.info(Thread.currentThread().getName() + " "
+			                                    + QBasePileupUtil.getStrackTrace(e));
+		                        }
+		                        if (filterLatch.getCount() == 0 && queue.size() == 0) {
+			                        run = false;
+			                    }
+	
+		                        if ((count % checkPoint == 0) && (!mainThread.isAlive())) {
+		                        		writer.close();	                        	
+		                            throw new Exception("Writing threads failed since parent thread died.");
+		                        }
+	
+		                    } else {
+		                        writer.write(record[0]);
+		                        count++;
 		                    }
-
-	                        if ((count % checkPoint == 0) && (!mainThread.isAlive())) {
-	                        		writer.close();	                        	
-	                            throw new Exception("Writing threads failed since parent thread died.");
-	                        }
-
-	                    } else {
-	                        writer.write(record[0]);
-	                        count++;
-	                    }
+		                }
 	                }
-
-	                writer.close();
 	                
 	                //rewrite in order
 	                reorderFile(resultsFile, headers.stream().collect(Collectors.joining("\n")));
