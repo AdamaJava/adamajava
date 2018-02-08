@@ -54,9 +54,7 @@ public final class AdvancedAnnotator {
 		if (null == ext) {
 			throw new BamAnnotateException("UNSUITABLE_FILE");
 		}
-		ext = "." + ext;
-		Annotator pass = new Annotator(outputFile, inputBAMFile, firstMAFile,
-				type);
+		Annotator pass = new Annotator(outputFile, inputBAMFile, firstMAFile, type);
 		type.generateReport();
 		type.resetCount();
 		unmatchedRecordCount = pass.getNumberOfUnmatchedRecords();
