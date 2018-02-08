@@ -11,8 +11,10 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.util.AbstractQueue;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -26,6 +28,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import htsjdk.samtools.SamReader;
 import htsjdk.samtools.SAMRecordIterator;
@@ -33,6 +36,7 @@ import htsjdk.samtools.SAMRecordIterator;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ReferenceNameComparator;
+import org.qcmg.common.util.Constants;
 import org.qcmg.qbamfilter.query.QueryExecutor;
 import org.qcmg.qbasepileup.InputBAM;
 import org.qcmg.qbasepileup.Options;
@@ -55,10 +59,10 @@ public class SnpBasePileupMT {
 	final int sleepUnit = 20;
 	final int maxRecords = 100000;
 	final int checkPoint = 10000;
-	private List<String> headerLines = new ArrayList<String>();
+	private List<String> headerLines = new ArrayList<>();
 
 
-	public SnpBasePileupMT(Options options) throws Exception {		
+	public SnpBasePileupMT(Options options) throws IOException {		
 		this.options = options;	
 		threadNo = options.getThreadNo();
 		execute();
@@ -70,17 +74,17 @@ public class SnpBasePileupMT {
 		return 0;
 	}
 
-	private void execute() throws Exception {
+	private void execute() throws IOException {
 
 		//get maf headers
 		if (options.getMode().equals(QBasePileupConstants.COMPOUND_SNP_MODE)) {
 			headerLines = QBasePileupUtil.getHeaderLines(options.getPositionsFile());			
 		}
 
-		final AbstractQueue<SnpPosition> readQueue = new ConcurrentLinkedQueue<SnpPosition>();    
+		final AbstractQueue<SnpPosition> readQueue = new ConcurrentLinkedQueue<>();    
 		final List<SnpPosition> positions = new ArrayList<>();
 
-		final AbstractQueue<String> writeQueue = new ConcurrentLinkedQueue<String>();
+		final AbstractQueue<String> writeQueue = new ConcurrentLinkedQueue<>();
 
 		// thread
 		final CountDownLatch pileupLatch = new CountDownLatch(threadNo); // filtering thread
@@ -253,7 +257,7 @@ public class SnpBasePileupMT {
 			this.mainThread = mainThread;
 			this.pileupLatch = pileupLatch;
 			this.writeLatch = wGoodLatch;
-			this.currentInputs = new ArrayList<InputBAM>();
+			this.currentInputs = new ArrayList<>();
 			for (InputBAM i : inputs) {
 				currentInputs.add(i);
 			}
@@ -410,7 +414,7 @@ public class SnpBasePileupMT {
 				String record;
 				int count = 0;
 				try (BufferedWriter writer = new BufferedWriter(new FileWriter(resultsFile));) {
-					Map<String, Map<String, String>> inputMap = new HashMap<String, Map<String, String>>();
+					Map<String, Map<String, String>> inputMap = new HashMap<>();
 					
 					writer.write(getHeader());
 					while (run) {
@@ -439,36 +443,41 @@ public class SnpBasePileupMT {
 						} else {
 							if (options.getOutputFormat() == 2) {
 								String[] vals = record.split("\t");
-								String position = "";
-								String bam = "";
-								String info = "";
-								for (int i=0; i<vals.length; i++) {
-									if (i<5) {
-										position += vals[i] + TAB;
-									}
-									if (i==5) {
-										position += vals[i];
-									}
-									if (i==6) {
-										bam = vals[i];
-									}
-									if (i > 6) {
-										if (i == vals.length-1) {
-											info += vals[i];
-										} else {
-											info += vals[i] + TAB;
-										}
+								String position = Arrays.stream(vals, 0, 6).collect(Collectors.joining(Constants.TAB_STRING));
+								String info = Arrays.stream(vals, 7, vals.length).collect(Collectors.joining(Constants.TAB_STRING));
+								String bam = vals[6];
+								
+//								StringBuilder position = new StringBuilder();
+//								StringBuilder info = new StringBuilder();
+//								String bam = "";
+//								for (int i=0; i<vals.length; i++) {
+////									if (i<5) {
+////										position.append(vals[i]).append(TAB);
+////									}
+////									if (i==5) {
+////										position.append(vals[i]);
+////									}
+//									if (i==6) {
+//										bam = vals[i];
+//									}
+//									if (i > 6) {
+//										if (i == vals.length-1) {
+//											info.append(vals[i]);
+//										} else {
+//											info.append(vals[i]).append(TAB);
+//										}
+//
+//									}
+//								}
 
-									}
-								}
-
-								Map<String, String> map = inputMap.get(position);
-								if (null == map) {
-									map = new HashMap<String, String>();
-									inputMap.put(position, map);
-								}
-
-								map.put(bam, info);
+								inputMap.computeIfAbsent(position.toString(), f ->  new HashMap<String, String>()).put(bam,  info.toString());
+//								Map<String, String> map = inputMap.get(position);
+//								if (null == map) {
+//									map = new HashMap<String, String>();
+//									inputMap.put(position, map);
+//								}
+//
+//								map.put(bam, info);
 
 							} else {
 //								outputList.add(record);
@@ -568,9 +577,9 @@ public class SnpBasePileupMT {
 			if (options.getMode().equals(QBasePileupConstants.SNP_CHECK_MODE)) {
 				for (String line: headerLines) {
 					if (line.startsWith("Hugo")) {
-						sb.append(line + "\t" + "Indel_Check\n");
+						sb.append(line).append("\tIndel_Check\n");
 					} else {
-						sb.append(line + "\n");
+						sb.append(line).append("\n");
 					}						
 				}
 			}

@@ -46,34 +46,34 @@ public class IndelBasePileupMTTest {
 	
 	@Before
 	public void setUp() throws IOException {
-		log =  testFolder.getRoot().getAbsolutePath() + FILE_SEPERATOR + "test.log";
-		samFile = testFolder.getRoot().getAbsolutePath() + FILE_SEPERATOR + "input.sam";
-		bamFile = testFolder.getRoot().getAbsolutePath() + FILE_SEPERATOR + "input.bam";
-	    	createBamFile();
+//		log =  testFolder.getRoot().getAbsolutePath() + FILE_SEPERATOR + "test.log";
+//		samFile = testFolder.getRoot().getAbsolutePath() + FILE_SEPERATOR + "input.sam";
+//		bamFile = testFolder.getRoot().getAbsolutePath() + FILE_SEPERATOR + "input.bam";
+//	    	createBamFile();
 	    	reference = this.getClass().getResource("/resources/example.fa").getFile();
 		
-		snps = testFolder.newFile("indels.dcc1").getAbsolutePath();
-		createIndelFile();
-		output = testFolder.getRoot().getAbsolutePath() + FILE_SEPERATOR + "output.dcc1";		
+//		snps = testFolder.newFile("indels.dcc1").getAbsolutePath();
+//		createIndelFile();
+//		output = testFolder.getRoot().getAbsolutePath() + FILE_SEPERATOR + "output.dcc1";		
 	}
 	
 	@After
 	public void after() throws IOException {
-		new File(log).delete();
-		new File(samFile).delete();
-		new File(bamFile).delete();
-		new File(output).delete();
-		new File(snps).delete();
-		log = null;
-		samFile = null;
-		bamFile = null;		
-		snps = null;
 		reference = null;
-		output = null;	
 	}
 
 	@Test
 	public void testIndelBasePileupMT() throws Exception {
+		
+		log =  testFolder.getRoot().getAbsolutePath() + FILE_SEPERATOR + "test.log";
+		samFile = testFolder.getRoot().getAbsolutePath() + FILE_SEPERATOR + "input.sam";
+		bamFile = testFolder.getRoot().getAbsolutePath() + FILE_SEPERATOR + "input.bam";
+	    	createBamFile();
+	    	
+	    	snps = testFolder.newFile("indels.dcc1").getAbsolutePath();
+		createIndelFile();
+		output = testFolder.getRoot().getAbsolutePath() + FILE_SEPERATOR + "output.dcc1";
+		
 		
         assertFalse(new File(log).exists());
         assertFalse(new File(output).exists());
@@ -93,7 +93,7 @@ public class IndelBasePileupMTTest {
 		        	assertTrue(vals[23].startsWith("PASS;NNS;COVN12;HOMADJ"));
 		        	assertTrue(vals[24].startsWith("0;1;1;0[0|0];0;1;0"));
 		        	assertTrue(vals[25].startsWith("0;1;1;0[0|0];0;1;0;\"4 discontiguous GGTAATAAAAtATTGTAAAAC\""));
-		    		assertEquals(28, line.split("\t").length);
+		    		assertEquals(28, vals.length);
 	        	}
         }
         assertEquals(2, count);
@@ -102,6 +102,15 @@ public class IndelBasePileupMTTest {
 	
 	@Test
 	public void testIndelBasePileupMTWithFilter() throws Exception {
+		
+		log =  testFolder.getRoot().getAbsolutePath() + FILE_SEPERATOR + "test.log";
+		samFile = testFolder.getRoot().getAbsolutePath() + FILE_SEPERATOR + "input.sam";
+		bamFile = testFolder.getRoot().getAbsolutePath() + FILE_SEPERATOR + "input.bam";
+	    	createBamFile();
+	    	
+     	snps = testFolder.newFile("indels.dcc1").getAbsolutePath();
+		createIndelFile();
+		output = testFolder.getRoot().getAbsolutePath() + FILE_SEPERATOR + "output.dcc1";
 		
         assertFalse(new File(log).exists());
         assertFalse(new File(output).exists());
@@ -119,7 +128,7 @@ public class IndelBasePileupMTTest {
 	        	String[] vals = line.split("\t");
 	        	if (count == 2) {
 		        	assertTrue(vals[24].startsWith("0;0;0;0[0|0];0;0;0"));
-		    		assertEquals(28, line.split("\t").length);
+		    		assertEquals(28, vals.length);
 	        	}
         }
         assertEquals(2, count);
@@ -128,6 +137,15 @@ public class IndelBasePileupMTTest {
 	
 	@Test
 	public void testIndelBasePileupByChrMT() throws Exception {
+		
+		log =  testFolder.getRoot().getAbsolutePath() + FILE_SEPERATOR + "test.log";
+		samFile = testFolder.getRoot().getAbsolutePath() + FILE_SEPERATOR + "input.sam";
+		bamFile = testFolder.getRoot().getAbsolutePath() + FILE_SEPERATOR + "input.bam";
+	    	createBamFile();
+	    	
+     	snps = testFolder.newFile("indels.dcc1").getAbsolutePath();
+		createIndelFile();
+		output = testFolder.getRoot().getAbsolutePath() + FILE_SEPERATOR + "output.dcc1";
 		
         assertFalse(new File(log).exists());
         assertFalse(new File(output).exists());
@@ -147,7 +165,7 @@ public class IndelBasePileupMTTest {
 		        	assertTrue(vals[23].startsWith("PASS;NNS;COVN12;HOMADJ"));
 		        	assertEquals("0;1;1;0[0|0];0;1;0", vals[24]);
 		        	assertTrue(vals[25].startsWith("0;1;1;0[0|0];0;1;0;\"4 discontiguous GGTAATAAAAtATTGTAAAAC\""));
-		    		assertEquals(28, line.split("\t").length);
+		    		assertEquals(28, vals.length);
 	        	}
         }
         assertEquals(2, count);
@@ -156,6 +174,15 @@ public class IndelBasePileupMTTest {
 	
 	@Test
 	public void testIndelBasePileupByChrMTWithFilter() throws Exception {
+		
+		log =  testFolder.getRoot().getAbsolutePath() + FILE_SEPERATOR + "test.log";
+		samFile = testFolder.getRoot().getAbsolutePath() + FILE_SEPERATOR + "input.sam";
+		bamFile = testFolder.getRoot().getAbsolutePath() + FILE_SEPERATOR + "input.bam";
+	    	createBamFile();
+	    	
+     	snps = testFolder.newFile("indels.dcc1").getAbsolutePath();
+		createIndelFile();
+		output = testFolder.getRoot().getAbsolutePath() + FILE_SEPERATOR + "output.dcc1";
 		
         assertFalse(new File(log).exists());
         assertFalse(new File(output).exists());
@@ -201,13 +228,13 @@ public class IndelBasePileupMTTest {
 	}
 
 	private void createSAMFile() throws IOException {
-		final List<String> data = new ArrayList<String>();
+		final List<String> data = new ArrayList<>();
 		data.addAll(createSamHeader(SortOrder.coordinate));
 		data.addAll(createSamBody());
 
 		try (BufferedWriter out = new BufferedWriter(new FileWriter(samFile));) {
 			for (final String line : data) {
-				out.write(line + "" + "\n");
+				out.write(line + "\n");
 			}
 		}
 	}	
