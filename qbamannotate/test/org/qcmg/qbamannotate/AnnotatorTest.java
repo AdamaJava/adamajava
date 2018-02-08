@@ -4,9 +4,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
-import java.io.PrintStream;
 
 import htsjdk.samtools.SamReader;
 import htsjdk.samtools.SAMRecord;
@@ -19,7 +16,6 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.qcmg.common.commandline.StreamConsumer;
 import org.qcmg.picard.SAMFileReaderFactory;
-import org.qcmg.testing.SamTestData;
 import org.qcmg.testing.TestDataSolid0039_20091125_2_TD04_LMP_20100531;
 
 public class AnnotatorTest {
