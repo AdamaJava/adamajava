@@ -1,5 +1,6 @@
 package org.qcmg.qbamannotate;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
@@ -76,7 +77,7 @@ public class MainTest {
 		ExpectedException.none();
 		String command = "--log ./logfile --type lmp -l 0 -u 10000 output.sam test.sam f3.ma r3.ma";
 		Executor exec = new Executor(command, "org.qcmg.qbamannotate.Main");
-		assertTrue(0 == exec.getErrCode());
+		assertEquals(0, exec.getErrCode());
 		//assertTrue(0 == exec.getErrorStreamConsumer().getLines().length);
 	}
 
