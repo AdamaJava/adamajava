@@ -56,12 +56,8 @@ abstract class AbstractMode {
 					pos = new ChrRangePosition(chr, pos.getStartPosition(), pos.getEndPosition());
 				}
 				
-				List<VcfRecord> res = positionRecordMap.get(pos); 
-				if( res == null){
-					res = new ArrayList<VcfRecord>();
-					positionRecordMap.put(pos, res);
-				}
-				res.add(vcf);	
+				positionRecordMap.computeIfAbsent(pos, v -> new ArrayList<>()).add(vcf);
+				
 			}
 		}
         logger.info("loaded " + positionRecordMap.size() + " vcf entries from " + f.getAbsolutePath());
