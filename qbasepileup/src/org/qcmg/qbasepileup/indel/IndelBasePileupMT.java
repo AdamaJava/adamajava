@@ -94,7 +94,7 @@ public class IndelBasePileupMT {
 
         try {   
         	
-        	List<String> headers = getHeader(); 
+        	List<String> headers = QBasePileupUtil.getHeaderLines(inputFile, true);
         	this.dccColumns = QBasePileupUtil.parseDCCHeader(headers);
         	
         	
@@ -139,21 +139,21 @@ public class IndelBasePileupMT {
         }
     } 
 
-	private List<String> getHeader() throws IOException {
-		
-		List<String> header = new ArrayList<>();
-		try (BufferedReader reader = new BufferedReader(new FileReader(inputFile));) {
-			String line = null;
-			while ((line=reader.readLine()) != null) {
-				if (line.startsWith("#") || line.startsWith("analysis_id") || line.startsWith("Hugo") ||  line.startsWith("mutation")) {
-					header.add(line);
-				} else {
-					break;
-				}
-			}
-		}
-		return header;
-	}
+//	private List<String> getHeader() throws IOException {
+//		
+//		List<String> header = new ArrayList<>();
+//		try (BufferedReader reader = new BufferedReader(new FileReader(inputFile));) {
+//			String line = null;
+//			while ((line=reader.readLine()) != null) {
+//				if (line.startsWith("#") || line.startsWith("analysis_id") || line.startsWith("Hugo") ||  line.startsWith("mutation")) {
+//					header.add(line);
+//				} else {
+//					break;
+//				}
+//			}
+//		}
+//		return header;
+//	}
 
 	private class Reading implements Runnable {
 
