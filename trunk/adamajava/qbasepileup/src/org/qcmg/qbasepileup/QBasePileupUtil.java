@@ -241,12 +241,16 @@ public class QBasePileupUtil {
 	}
 
 	public static List<String> getHeaderLines(File file) throws IOException {
-		List<String> headers = new ArrayList<String>();
+		return getHeaderLines(file, false);
+	}
+	
+	public static List<String> getHeaderLines(File file, boolean includeMutation) throws IOException {
+		List<String> headers = new ArrayList<>();
 		try (BufferedReader reader = new BufferedReader(new FileReader(file));) {
 			String line;
 			while ((line=reader.readLine()) != null) {
-				if ((line.startsWith("Hugo") || line.startsWith("#") || line.startsWith("analysis_id"))) {
-						headers.add(line);
+				if (line.startsWith("Hugo") || line.startsWith("#") || line.startsWith("analysis_id") || (includeMutation && line.startsWith("mutation"))) {
+					headers.add(line);
 				}
 			}
 		}

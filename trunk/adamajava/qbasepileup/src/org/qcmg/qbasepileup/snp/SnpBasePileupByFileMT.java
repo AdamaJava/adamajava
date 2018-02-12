@@ -11,6 +11,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.util.AbstractQueue;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -59,9 +60,9 @@ public class SnpBasePileupByFileMT {
 	final int maxRecords = 100000;
 	final int checkPoint = 10000;
 	private Map<String, List<SnpPosition>> snpPositions;
-	private List<String> headerLines = new ArrayList<String>();
+	private List<String> headerLines = new ArrayList<>();
 
-	public SnpBasePileupByFileMT(Options options) throws Exception {		
+	public SnpBasePileupByFileMT(Options options) throws IOException {		
 		this.options = options;	
 		threadNo = options.getThreadNo();
 		execute();
@@ -74,16 +75,16 @@ public class SnpBasePileupByFileMT {
 		return 0;
 	}
 
-	private void execute() throws Exception {
+	private void execute() throws IOException {
 
 		//get maf headers
 		if (options.getMode().equals(QBasePileupConstants.COMPOUND_SNP_MODE)) {
 			headerLines = QBasePileupUtil.getHeaderLines(options.getPositionsFile());			
 		}				
 
-		final AbstractQueue<InputBAM> readQueue = new ConcurrentLinkedQueue<InputBAM>();    
+		final AbstractQueue<InputBAM> readQueue = new ConcurrentLinkedQueue<>();    
 
-		final AbstractQueue<String> writeQueue = new ConcurrentLinkedQueue<String>();    
+		final AbstractQueue<String> writeQueue = new ConcurrentLinkedQueue<>();    
 
 		final CountDownLatch pileupLatch = new CountDownLatch(threadNo); // filtering thread
 		final CountDownLatch writeLatch = new CountDownLatch(1); // writing thread for satisfied records
@@ -148,10 +149,10 @@ public class SnpBasePileupByFileMT {
 	} 
 
 	private Map<String, List<SnpPosition>> loadPositionsFile(File positionsFile, String format) throws Exception {
-		Map<String, List<SnpPosition>> snpPositions = new HashMap<String, List<SnpPosition>>();
+		Map<String, List<SnpPosition>> snpPositions = new HashMap<>();
 
-		IndexedFastaSequenceFile indexedFastaFile = QBasePileupUtil.getIndexedFastaFile(options.getReference());
-		FastaSequenceIndex index = QBasePileupUtil.getFastaIndex(options.getReference());
+//		IndexedFastaSequenceFile indexedFastaFile = QBasePileupUtil.getIndexedFastaFile(options.getReference());
+//		FastaSequenceIndex index = QBasePileupUtil.getFastaIndex(options.getReference());
 		int count = 0;
 		String line;
 		int mutationColumn = -1;
@@ -170,7 +171,7 @@ public class SnpBasePileupByFileMT {
 	
 					String[] columns = QBasePileupUtil.getSNPPositionColumns(format, values, count);
 	
-					p = new SnpPosition(columns[0],columns[1],new Integer(columns[2]),new Integer(columns[3]), line);
+					p = new SnpPosition(columns[0],columns[1], Integer.valueOf(columns[2]), Integer.valueOf(columns[3]), line);
 	
 					if (options.getOutputFormat() == 2) {
 						p.setAltBases(values[5].getBytes());
