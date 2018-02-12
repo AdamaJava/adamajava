@@ -447,40 +447,8 @@ public class SnpBasePileupMT {
 								String info = Arrays.stream(vals, 7, vals.length).collect(Collectors.joining(Constants.TAB_STRING));
 								String bam = vals[6];
 								
-//								StringBuilder position = new StringBuilder();
-//								StringBuilder info = new StringBuilder();
-//								String bam = "";
-//								for (int i=0; i<vals.length; i++) {
-////									if (i<5) {
-////										position.append(vals[i]).append(TAB);
-////									}
-////									if (i==5) {
-////										position.append(vals[i]);
-////									}
-//									if (i==6) {
-//										bam = vals[i];
-//									}
-//									if (i > 6) {
-//										if (i == vals.length-1) {
-//											info.append(vals[i]);
-//										} else {
-//											info.append(vals[i]).append(TAB);
-//										}
-//
-//									}
-//								}
-
-								inputMap.computeIfAbsent(position.toString(), f ->  new HashMap<String, String>()).put(bam,  info.toString());
-//								Map<String, String> map = inputMap.get(position);
-//								if (null == map) {
-//									map = new HashMap<String, String>();
-//									inputMap.put(position, map);
-//								}
-//
-//								map.put(bam, info);
-
+								inputMap.computeIfAbsent(position, f ->  new HashMap<String, String>()).put(bam,  info);
 							} else {
-//								outputList.add(record);
 								writer.write(record);
 							}
 							count++;
