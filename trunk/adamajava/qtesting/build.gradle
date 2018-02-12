@@ -4,6 +4,7 @@ def isExecutable = false
 
 repositories {
     flatDir(dirs:"$projectDir/../lib")
+    mavenCentral()
 }
 
 dependencies {
