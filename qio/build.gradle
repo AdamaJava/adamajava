@@ -15,6 +15,7 @@ def svnVersion = rev
 
 repositories {
     flatDir(dirs:"$projectDir/../lib")
+    mavenCentral()
 }
 
 dependencies {

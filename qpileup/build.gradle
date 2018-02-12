@@ -14,7 +14,11 @@ repositories {
     flatDir(dirs:"$projectDir/../lib")
     flatDir(dirs:"$buildDir/deps/hdf-java/lib")    
     flatDir(dirs:"$buildDir/deps/ini4j-0.5.2-SNAPSHOT")
-   // mavenCentral() 
+    mavenCentral() 
+}
+
+test { 
+  environment "LD_LIBRARY_PATH",  "$buildDir/deps/hdf-java/lib/linux:" + (System.getenv("LD_LIBRARY_PATH") ?: "")
 }
 
 dependencies {
@@ -22,8 +26,8 @@ dependencies {
 
     compile project(':qcommon')
     compile project(':qpicard')
-	compile project(':qio')
-	compile project(':qbamfilter')
+    compile project(':qio')
+    compile project(':qbamfilter')
 	
     ant {
        untar(src: "../lib/hdf-java-2.8-bin.tar", dest: "build/deps")
@@ -44,8 +48,8 @@ dependencies {
   	 
     //testCompile project(':qtesting')
     testCompile name: 'easymock', version: '3.1'
-	testCompile name: 'objenesis', version: '1.2'
-	testCompile name: 'cglib-nodep', version: '2.2.3'
+    testCompile name: 'objenesis', version: '1.2'
+    testCompile name: 'cglib-nodep', version: '2.2.3'
     testCompile name: 'junit', version: '4.10'
     
       

@@ -6,8 +6,9 @@ def scriptname = 'qmotif'
 def isExecutable = true
 
 repositories {
-	flatDir(dirs:"$buildDir/deps/ini4j-0.5.2-SNAPSHOT")
+    flatDir(dirs:"$buildDir/deps/ini4j-0.5.2-SNAPSHOT")
     flatDir(dirs:"$projectDir/../lib")
+    mavenCentral()
 }
 
 dependencies {
