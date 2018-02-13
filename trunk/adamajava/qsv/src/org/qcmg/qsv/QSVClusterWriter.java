@@ -7,11 +7,8 @@
 package org.qcmg.qsv;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -47,7 +44,7 @@ public class QSVClusterWriter {
 	private final List<String> gffFiles;
 	private final Map<String, List<GFF3Record>> gffMap;
 
-	public QSVClusterWriter(QSVParameters tumor, QSVParameters normal, boolean isQCMG, String analysisId, boolean singleSided, boolean twoFileMode, int minInsertSize, String validationPlatform, List<String> gffFiles) throws Exception {
+	public QSVClusterWriter(QSVParameters tumor, QSVParameters normal, boolean isQCMG, String analysisId, boolean singleSided, boolean twoFileMode, int minInsertSize, String validationPlatform, List<String> gffFiles) throws IOException {
 		this.tumorParameters = tumor;
 		this.normalParameters = normal;
 		this.isQCMG = isQCMG;
@@ -88,9 +85,9 @@ public class QSVClusterWriter {
 	 * Write cluster records
 	 * @param clusterRecords
 	 * @param isTumour
-	 * @throws Exception
+	 * @throws IOException
 	 */
-	public synchronized void writeQSVClusterRecords(Map<PairGroup, Map<String, List<DiscordantPairCluster>>> clusterRecords, boolean isTumour) throws Exception {
+	public synchronized void writeQSVClusterRecords(Map<PairGroup, Map<String, List<DiscordantPairCluster>>> clusterRecords, boolean isTumour) throws IOException {
 		List<QSVCluster> svRecords = new ArrayList<>();
 		if (clusterRecords != null) {
 			//any discordant pair records that aren't already converted to QSV cluster records
@@ -121,9 +118,9 @@ public class QSVClusterWriter {
 	/**
 	 * Write the records for the tumour/test sample to file 
 	 * @param svRecords
-	 * @throws Exception
+	 * @throws IOException
 	 */
-	public synchronized void writeTumourSVRecords(List<QSVCluster> svRecords) throws Exception {
+	public synchronized void writeTumourSVRecords(List<QSVCluster> svRecords) throws IOException {
 		String base = tumorParameters.getResultsDir();
 		String sampleId = tumorParameters.getSampleId();
 
@@ -186,9 +183,9 @@ public class QSVClusterWriter {
 	/**
 	 * Write the records for the normal/control sample to file 
 	 * @param svRecords
-	 * @throws Exception
+	 * @throws IOException
 	 */
-	public synchronized void writeNormalSVRecords(List<QSVCluster> svRecords) throws Exception {
+	public synchronized void writeNormalSVRecords(List<QSVCluster> svRecords) throws IOException {
 		String type = "normal-germline";
 		String base = normalParameters.getResultsDir();
 		String sampleId = normalParameters.getSampleId();
@@ -216,9 +213,9 @@ public class QSVClusterWriter {
 	 * @param records
 	 * @param analysisDate
 	 * @param sampleId
-	 * @throws Exception
+	 * @throws IOException
 	 */
-	public synchronized void writeReports(String base, String type, List<QSVCluster> records, String sampleId) throws Exception {		
+	public synchronized void writeReports(String base, String type, List<QSVCluster> records, String sampleId) throws IOException {		
 		String outType = type + ".";
 		if (!twoFileMode) {
 			outType = "";
