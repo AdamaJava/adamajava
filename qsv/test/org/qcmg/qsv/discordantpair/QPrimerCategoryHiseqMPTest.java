@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.After;
 import org.junit.Test;
@@ -102,8 +103,8 @@ public class QPrimerCategoryHiseqMPTest {
 	@Test
 	public void testFindCategoryNoOneCategory() throws Exception {
 		category = new QPrimerCategory("AAB", "chr1", "chr1", "id", "imp");
-		Map<String, Integer> map = new HashMap<String, Integer>();
-		map.put("1", 2);
+		Map<String, AtomicInteger> map = new HashMap<>();
+		map.put("1", new AtomicInteger(2));
 		category.setMap(map);
 		
 		category.findCategoryNo();
@@ -115,9 +116,9 @@ public class QPrimerCategoryHiseqMPTest {
 	@Test
 	public void testFindCategoryNoTwoCategories() throws Exception {
 		category = new QPrimerCategory("AAB", "chr1", "chr1", "id", "imp");
-		Map<String, Integer> map = new HashMap<String, Integer>();
-		map.put("1", 2);
-		map.put("2", 1);
+		Map<String, AtomicInteger> map = new HashMap<>();
+		map.put("1", new AtomicInteger(2));
+		map.put("2", new AtomicInteger(1));
 		category.setMap(map);
 		
 		category.findCategoryNo();
@@ -166,7 +167,7 @@ public class QPrimerCategoryHiseqMPTest {
 		String line = "test,"+leftChr+",1000,2000,"+zp+",167,false,test,"+rightChr+",5000,6000,zp,167,false,"+pairOrder;
 		MatePair m = new MatePair(line);
 		
-		List<MatePair> list = new ArrayList<MatePair>();
+		List<MatePair> list = new ArrayList<>();
 		list.add(m);
 		return list;
 	}

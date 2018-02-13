@@ -12,12 +12,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import org.qcmg.common.util.Constants;
 import org.qcmg.qsv.util.QSVConstants;
 
 public class QPrimerCategory {
 
-	private Map<String, Integer> map;
+	private Map<String, AtomicInteger> map;
 	private String primaryCategoryNo;
 	private String mixedCategories;
 	private int startLeft;
@@ -43,11 +45,11 @@ public class QPrimerCategory {
 		this.pairType = pairType;
 	}
 
-	public Map<String, Integer> getMap() {
+	public Map<String, AtomicInteger> getMap() {
 		return map;
 	}
 
-	public void setMap(Map<String, Integer> map) {
+	public void setMap(Map<String, AtomicInteger> map) {
 		this.map = map;
 	}
 
@@ -211,9 +213,8 @@ public class QPrimerCategory {
 	private void setCat5SwappedEnds(int clusterLeftStart, int clusterLeftEnd, int clusterRightStart, int clusterRightEnd) {
 		int leftPrimerStart = clusterLeftStart + 50;
 		int rightPrimerEnd = clusterRightEnd - 50;
-		Double middle = Math.ceil(((double)clusterLeftStart + clusterRightEnd)/ 2);
 		
-		int leftPrimerEnd = middle.intValue();
+		int leftPrimerEnd = (int)Math.ceil(((double)clusterLeftStart + clusterRightEnd)/ 2);
 		int rightPrimerStart = leftPrimerEnd;
 		
 		//swap!
@@ -229,15 +230,13 @@ public class QPrimerCategory {
 
 	private void setStandardEnds(int clusterLeftStart, int clusterLeftEnd, int clusterRightStart, int clusterRightEnd) {
 		
-		Double endL = Math.ceil(((double)clusterLeftEnd + clusterLeftStart)/ 2);		
-		endLeft = endL.intValue();
+		endLeft = (int) Math.ceil(((double)clusterLeftEnd + clusterLeftStart)/ 2);	
 		startLeft = endLeft-499;
 		if (startLeft<clusterLeftStart) {
 			startLeft = clusterLeftStart;
 		}
 		
-		Double startR =  Math.ceil(((double)clusterRightEnd + clusterRightStart)/2);		
-		startRight = startR.intValue();
+		startRight = (int) Math.ceil(((double)clusterRightEnd + clusterRightStart)/2);
 		
 		endRight = startRight + 499;
 		if (endRight>clusterRightEnd) {
@@ -247,16 +246,14 @@ public class QPrimerCategory {
 	
 	private void setCat4Ends(int clusterLeftStart, int clusterLeftEnd, int clusterRightStart, int clusterRightEnd) {
 		
-		Double startL = Math.ceil(((double)clusterLeftEnd + clusterLeftStart)/2);		
-		startLeft = startL.intValue();
+		startLeft = (int) Math.ceil(((double)clusterLeftEnd + clusterLeftStart)/2);
 		
 		endLeft = startLeft+499;
 		if (endLeft>clusterLeftEnd) {
 			endLeft = clusterLeftEnd;
 		}
 		
-		Double endR = Math.ceil(((double)clusterRightEnd + clusterRightStart)/2);		
-		endRight = endR.intValue();
+		endRight = (int) Math.ceil(((double)clusterRightEnd + clusterRightStart)/2);	
 		
 		startRight = endRight - 499;
 		if (startRight<clusterRightStart) {
@@ -271,16 +268,14 @@ public class QPrimerCategory {
 		
 		leftChr = tempLeft;
 		rightChr = tempRight;
-		Double endL = Math.ceil(((double)clusterRightEnd + clusterRightStart)/2);					
-		endLeft = endL.intValue();
+		endLeft = (int) Math.ceil(((double)clusterRightEnd + clusterRightStart)/2);	
 		
 		startLeft = endLeft-499;
 		if (startLeft<clusterRightStart) {
 			startLeft = clusterRightStart;
 		}
 		
-		Double startR = Math.ceil(((double)clusterLeftEnd + clusterLeftStart)/2);
-		startRight = startR.intValue();
+		startRight = (int) Math.ceil(((double)clusterLeftEnd + clusterLeftStart)/2);
 
 		endRight = startRight + 499;
 		if (endRight>clusterLeftEnd) {
@@ -289,12 +284,7 @@ public class QPrimerCategory {
 	}
 
 	private void addToCategoryMap(String key) {
-		Integer value = map.get(key);
-		if (null == value) {
-			map.put(key, Integer.valueOf(1));
-		} else {
-			map.put(key, Integer.valueOf(value.intValue() + 1));
-		}
+		map.computeIfAbsent(key, f -> new AtomicInteger()).incrementAndGet();
 	}
 	
 	public void findCategoryNo() throws Exception {
@@ -303,7 +293,7 @@ public class QPrimerCategory {
 				throw new Exception ("Pairs could not be assigned to qPrimer category");
 			} else {
 				if (map.size() == 1) {
-					for (Entry<String, Integer> entry: map.entrySet()) {
+					for (Entry<String, AtomicInteger> entry: map.entrySet()) {
 						primaryCategoryNo = entry.getKey();
 					}    			
 				} else {
@@ -316,16 +306,15 @@ public class QPrimerCategory {
 					Collections.reverse(keys);
 					
 					for (String key : keys) {
-						Integer value = map.get(key);
-						mixedCategories += "Cat" + key + "(" + value + "),";
+						AtomicInteger value = map.get(key);
+						mixedCategories += "Cat" + key + "(" + value.get() + "),";
 						if (value.intValue() > max) {
 							max = value.intValue();
 						}
-						
 					}
 					
 					//see if it happens more than once
-					for (Entry<String, Integer> entry: map.entrySet()) {
+					for (Entry<String, AtomicInteger> entry: map.entrySet()) {
 						if (entry.getValue().intValue() == max) {
 							categoryNos.add(entry.getKey());
 						}
@@ -336,9 +325,21 @@ public class QPrimerCategory {
 	}
 	
 	public String toString(String svId) {
-		String left = leftChr + ":" + startLeft + "-" + endLeft;
-		String right = rightChr + ":" + startRight + "-" + endRight;
-
-			return svId + "\t" + left + "\t" + right + "\t" + reverseFlag + "\t" + primaryCategoryNo + "\t" + mixedCategories;
+		StringBuilder sb = new StringBuilder(svId);
+		sb.append(Constants.TAB);
+		//left
+		sb.append(leftChr).append(Constants.COLON);
+		sb.append(startLeft).append('-');
+		sb.append(endLeft).append(Constants.TAB);
+		//right
+		sb.append(rightChr).append(Constants.COLON);
+		sb.append(startRight).append('-');
+		sb.append(endRight).append(Constants.TAB);
+		
+		sb.append(reverseFlag).append(Constants.TAB);
+		sb.append(primaryCategoryNo).append(Constants.TAB);
+		sb.append(mixedCategories);
+		
+		return sb.toString();
 	}
 }
