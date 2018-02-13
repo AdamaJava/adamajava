@@ -20,10 +20,11 @@ dependencies {
     compile group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: awsSdkV
     compile group: 'uk.co.lucasweb', name: 'aws-v4-signer-java', version: awsV4SignerV
     compile group: 'org.slf4j', name: 'slf4j-api', version: slf4jV
+    compile group: 'org.slf4j', name: 'slf4j-simple, version: slf4jV
     compile group: 'com.typesafe', name: 'config', version: typesafeConfigV
 }
 
-jar.doFirst {
+/*jar.doFirst {
   def classpath = configurations.runtime.collect { it.name }.join(' ')
   println "classpath: ${classpath}"
   jar {
@@ -35,4 +36,4 @@ jar.doFirst {
                    'Date': new java.util.Date().toString()
      }
   }
-}
+}*/
