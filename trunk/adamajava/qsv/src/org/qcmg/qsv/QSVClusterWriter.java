@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -95,14 +96,19 @@ public class QSVClusterWriter {
 			//any discordant pair records that aren't already converted to QSV cluster records
 			for (Entry<PairGroup, Map<String, List<DiscordantPairCluster>>> entry: clusterRecords.entrySet()) {
 				for (Map.Entry<String, List<DiscordantPairCluster>> mutationTypeEntry : entry.getValue().entrySet()) {   
-					List<DiscordantPairCluster> currentClusters = mutationTypeEntry.getValue();               
+					List<DiscordantPairCluster> currentClusters = mutationTypeEntry.getValue();      
 
-					for (DiscordantPairCluster r: currentClusters) {                    	
+					/*
+					 * sort so that output is consistent 
+					 */
+					currentClusters.sort(new DiscordantPairCluster.QSVRecordComparator());
+					
+					for (DiscordantPairCluster r: currentClusters) {
 						QSVCluster record = new QSVCluster(r, false, tumorParameters.getSampleId());
 						svRecords.add(record);
-					}                    
+					}
 				}
-			}       
+			}   
 		}
 
 		if (isTumour) {
@@ -123,6 +129,11 @@ public class QSVClusterWriter {
 
 		List<QSVCluster> somaticRecords = new ArrayList<>();
 		List<QSVCluster> germlineRecords = new ArrayList<>();
+		
+		/*
+		 * order QSVCluster records for consistent output <hello regression tests>
+		 */
+		
 
 		for (QSVCluster record: svRecords) {
 			String id = "";

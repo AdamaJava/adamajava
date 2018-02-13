@@ -8,7 +8,6 @@ package org.qcmg.qsv;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -57,7 +56,7 @@ public class QSVCluster {
 	private String features = new String();
 	
 	public QSVCluster(SoftClipCluster clipRecord, String sampleId) {
-		this.clipRecords = new ArrayList<SoftClipCluster>();
+		this.clipRecords = new ArrayList<>();
 		clipRecords.add(clipRecord);
 		this.pairRecord = null;
 		this.sampleId = sampleId;
@@ -1303,9 +1302,9 @@ public class QSVCluster {
 	    String chrTo = rightReference.replace("chr", "");
 	    
 	    if (category.equals(QSVConstants.ORIENTATION_2)) {
-	    	String tmp = chrFrom;
-	    	chrFrom = chrTo;
-	    	chrTo = tmp;
+		    	String tmp = chrFrom;
+		    	chrFrom = chrTo;
+		    	chrTo = tmp;
 	    }
 
         sb.append(analysisId).append(TAB); // analysis_id
@@ -1335,9 +1334,9 @@ public class QSVCluster {
         sb.append(getConfidenceLevel()).append(TAB);
         sb.append(getMicrohomology()).append(TAB);
         sb.append(getNonTemplateSequence()).append(TAB);        
-    	sb.append(getSplitReadBreakpointString()).append(TAB);
-    	sb.append(getNormalSplitReadBreakpointString()).append(TAB);
-    	sb.append(getEventNotes()).append(TAB);
+	    	sb.append(getSplitReadBreakpointString()).append(TAB);
+	    	sb.append(getNormalSplitReadBreakpointString()).append(TAB);
+	    	sb.append(getEventNotes()).append(TAB);
         sb.append(this.consensus);
         return sb.toString();
 	}

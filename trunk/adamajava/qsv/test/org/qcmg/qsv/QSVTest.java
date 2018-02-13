@@ -156,31 +156,4 @@ public class QSVTest {
         cleanUpStreams();
     }
 
-    @Ignore
-    public void testQSVWithModePairBoth() throws Exception {
-        String[] args = TestUtil.getValidOptions(testFolder, normalBam.getAbsolutePath(), tumorBam.getAbsolutePath(), "pair","pair");
-        QSV qsv = new QSV();
-        int exitStatus = qsv.runQSV(args);
-        assertEquals(0, exitStatus);
-        File results = new File(qsv.getResultsDirectory());
-        assertTrue(results.exists());
-
-        List<String> filesCreated = Arrays.asList(testFolder.getRoot().list());
-        	
-        assertTrue(filesCreated.contains("normalBam.discordantpair.filtered.bam"));
-        assertTrue(filesCreated.contains("tumorBam.discordantpair.filtered.bam"));
-        
-        List<String> filesCreated2 = Arrays.asList(results.list());
-        assertTrue(filesCreated2.contains("test.ND.pairing_stats.xml"));
-        assertTrue(filesCreated2.contains("test.TD.pairing_stats.xml"));
-        
-        //make sure exception is thrown if results directory can be created. 
-//        try {
-//        testFolder.delete();
-//        qsv.createResultsDirectory();
-//        } catch (QSVException e) {
-//            assertFalse(new File(qsv.getResultsDirectory()).exists());
-//        }       
-    }
-
 }

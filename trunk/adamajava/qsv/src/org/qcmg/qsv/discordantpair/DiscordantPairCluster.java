@@ -104,33 +104,17 @@ public class DiscordantPairCluster {
 		return leftStart;
 	}
 
-//	public void setLeftStart(int leftStart) {
-//		this.leftStart = leftStart;
-//	}
-
 	public int getRightStart() {
 		return rightStart;
 	}
-
-//	public void setRightStart(int rightStart) {
-//		this.rightStart = rightStart;
-//	}
 
 	public int getLeftEnd() {
 		return leftEnd;
 	}
 
-//	public void setLeftEnd(int leftEnd) {
-//		this.leftEnd = leftEnd;
-//	}
-
 	public int getRightEnd() {
 		return rightEnd;
 	}
-
-//	public void setRightEnd(int rightEnd) {
-//		this.rightEnd = rightEnd;
-//	}
 
 	public List<MatePair> getClusterMatePairs() {
 		return clusterMatePairs;
@@ -203,10 +187,6 @@ public class DiscordantPairCluster {
 	public String getRealMutationType() {
 		return QSVUtil.getMutationByPairGroup(zp);		
 	}
-
-//	public Integer getQPrimerThreshold() {
-//		return this.qPrimerThreshold;
-//	}
 
 	public void setClusterEnds() {
 		findLeftStartOfCluster();
