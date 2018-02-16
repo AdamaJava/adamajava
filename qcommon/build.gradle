@@ -20,7 +20,7 @@ dependencies {
     compile group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: awsSdkV
     compile group: 'uk.co.lucasweb', name: 'aws-v4-signer-java', version: awsV4SignerV
     compile group: 'org.slf4j', name: 'slf4j-api', version: slf4jV
-    compile group: 'org.slf4j', name: 'slf4j-simple, version: slf4jV
+    compile group: 'org.slf4j', name: 'slf4j-simple', version: slf4jV
     compile group: 'com.typesafe', name: 'config', version: typesafeConfigV
 }
 
