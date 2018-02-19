@@ -18,7 +18,7 @@ public class Main {
 
 		try {
             final Options options = new Options(args);             
-        		LoadReferencedClasses.loadClasses(Main.class);    
+        		//LoadReferencedClasses.loadClasses(Main.class);    
            logger = QLoggerFactory.getLogger(Main.class, options.getLogFileName(),  options.getLogLevel());	            		               
            logger.logInitialExecutionStats(options.getPGName(), options.getVersion(),args);	    
                      
