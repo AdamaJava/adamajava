@@ -17,6 +17,7 @@ import java.io.File;
 import java.util.List;
 
 import htsjdk.samtools.SamReader;
+import htsjdk.samtools.ValidationStringency;
 import htsjdk.samtools.SAMProgramRecord;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMSequenceDictionary;
@@ -30,6 +31,8 @@ import org.qcmg.qprofiler.report.SummaryReport;
 import org.qcmg.qprofiler.summarise.Summarizer;
 
 public class BamSummarizer implements Summarizer {
+	
+	public static final ValidationStringency DEFAULT_VS = ValidationStringency.SILENT;
 	
 	private String [] includes;
 	private String [] tags;
@@ -58,7 +61,9 @@ public class BamSummarizer implements Summarizer {
 	
 	@Override
 	public SummaryReport summarize(String input, String index, String[] regions) throws Exception {
-		SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(input), validation);
+//		SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(input), validation);
+		ValidationStringency vs = null != validation ? ValidationStringency.valueOf(validation) : DEFAULT_VS;
+		SamReader reader = SAMFileReaderFactory.createSAMFileReaderAsStream(input, index, vs);
 		
 		// create the SummaryReport
 		BamSummaryReport bamSummaryReport = new BamSummaryReport(includes, maxRecords, tags, tagsInt, tagsChar);
