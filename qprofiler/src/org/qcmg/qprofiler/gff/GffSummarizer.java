@@ -37,17 +37,17 @@ public class GffSummarizer implements Summarizer {
 	private static final QLogger logger = QLoggerFactory.getLogger(GffSummarizer.class);
 	
 	@Override
-	public SummaryReport summarize(File file) throws IOException {
+	public SummaryReport summarize(String input, String index, String[] regions) throws IOException {
 
 		GffSummaryReport gffSummaryReport = new GffSummaryReport();
-		gffSummaryReport.setFileName(file.getAbsolutePath());
+		gffSummaryReport.setFileName(input);
 		gffSummaryReport.setStartTime(DateUtils.getCurrentDateAsString());
 		
 		// set logging level for printing of no of records parsed
 		final boolean isLevelEnabled = logger.isLevelEnabled(QLevel.DEBUG);
 
 		
-		try (GFFReader reader = new GFFReader(file);){
+		try (GFFReader reader = new GFFReader(new File(input));){
 			for (Record record : reader) {
 				gffSummaryReport.parseRecord((GFFRecord) record);
 				

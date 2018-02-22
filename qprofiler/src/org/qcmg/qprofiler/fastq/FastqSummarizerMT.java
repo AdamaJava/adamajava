@@ -40,14 +40,14 @@ public class FastqSummarizerMT implements Summarizer {
 	}
 	
 	@Override
-	public SummaryReport summarize(File file) throws Exception {
+	public SummaryReport summarize(String input, String index, String[] regions) throws Exception {
 		
 		Queue<FastqRecord> q  = new ConcurrentLinkedQueue<>();
 		
 		long start = System.currentTimeMillis();
 		
 		final FastqSummaryReport fastqSummaryReport = new FastqSummaryReport();
-		fastqSummaryReport.setFileName(file.getAbsolutePath());
+		fastqSummaryReport.setFileName(input);
 		fastqSummaryReport.setStartTime(DateUtils.getCurrentDateAsString());
 		
 		
@@ -64,7 +64,7 @@ public class FastqSummarizerMT implements Summarizer {
 		
 //		 setup and kick-off single Producer thread
 		ExecutorService producerThreads = Executors.newFixedThreadPool(1);
-		producerThreads.execute(new Producer(q, file, Thread.currentThread(), pLatch,  cLatch));
+		producerThreads.execute(new Producer(q, new File(input), Thread.currentThread(), pLatch,  cLatch));
 
 		// don't allow any new threads to start
 		producerThreads.shutdown();

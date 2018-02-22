@@ -35,8 +35,7 @@ public class FastaSummarizerTest {
 	public void testSummarize() throws Exception {
 		System.out.println("in testSummarize()");
 		FastaSummarizer qs = new FastaSummarizer();
-		FastaSummaryReport sr = (FastaSummaryReport) qs.summarize(new File(
-				FASTA_INPUT_FILE));
+		FastaSummaryReport sr = (FastaSummaryReport) qs.summarize(FASTA_INPUT_FILE, null, null);
 
 		Assert.assertNotNull(sr);
 		Assert.assertEquals(2, sr.getFastaByCycle().count(1, '2').get());
@@ -50,7 +49,7 @@ public class FastaSummarizerTest {
 
 		FastaSummarizer qs = new FastaSummarizer();
 		try {
-			qs.summarize(new File(FASTA_DODGY_INPUT_FILE));
+			qs.summarize(FASTA_DODGY_INPUT_FILE, null, null);
 			Assert.fail("Should have thrown an Exception");
 		} catch (Exception e) {
 			Assert.assertTrue(e.getMessage().startsWith("Bad sequence format"));
@@ -65,7 +64,7 @@ public class FastaSummarizerTest {
 		createDodgyDataFile(new ArrayList<String>());
 
 		FastaSummarizer qs = new FastaSummarizer();
-		FastaSummaryReport sr = (FastaSummaryReport) qs.summarize(new File(FASTA_DODGY_INPUT_FILE));
+		FastaSummaryReport sr = (FastaSummaryReport) qs.summarize(FASTA_DODGY_INPUT_FILE, null, null);
 		Assert.assertEquals(0, sr.getRecordsParsed());
 
 		deleteDodgyDataFile();
@@ -78,7 +77,7 @@ public class FastaSummarizerTest {
 
 		FastaSummarizer qs = new FastaSummarizer();
 		try {
-			qs.summarize(new File(FASTA_DODGY_INPUT_FILE));
+			qs.summarize(FASTA_DODGY_INPUT_FILE, null, null);
 			Assert.fail("Should have thrown an Exception");
 		} catch (Exception e) {
 			Assert.assertTrue(e.getMessage().startsWith("Bad id format"));
@@ -94,7 +93,7 @@ public class FastaSummarizerTest {
 		
 		FastaSummarizer qs = new FastaSummarizer();
 		try {
-			qs.summarize(new File(FASTA_DODGY_INPUT_FILE));
+			qs.summarize(FASTA_DODGY_INPUT_FILE, null, null);
 			Assert.fail("Should have thrown an Exception");
 		} catch (Exception e) {
 			Assert.assertTrue(e.getMessage().startsWith("Bad id format"));
@@ -115,7 +114,7 @@ public class FastaSummarizerTest {
 //		} catch (Exception e) {
 //			Assert.assertTrue(e.getMessage().startsWith("Bad id format"));
 //		}
-		FastaSummaryReport sr = (FastaSummaryReport) qs.summarize(new File(FASTA_DODGY_INPUT_FILE));
+		FastaSummaryReport sr = (FastaSummaryReport) qs.summarize(FASTA_DODGY_INPUT_FILE, null, null);
 		Assert.assertEquals(3, sr.getRecordsParsed());
 		
 		deleteDodgyDataFile();
@@ -128,7 +127,7 @@ public class FastaSummarizerTest {
 		createDodgyDataFile(createFastaDataDodgyBody());
 		
 		FastaSummarizer qs = new FastaSummarizer();
-		FastaSummaryReport sr = (FastaSummaryReport) qs.summarize(new File(FASTA_DODGY_INPUT_FILE));
+		FastaSummaryReport sr = (FastaSummaryReport) qs.summarize(FASTA_DODGY_INPUT_FILE, null, null);
 		Assert.assertEquals(5, sr.getRecordsParsed());
 		
 		deleteDodgyDataFile();
@@ -140,8 +139,7 @@ public class FastaSummarizerTest {
 		createDodgyDataFile(createFastaDataBody());
 
 		FastaSummarizer qs = new FastaSummarizer();
-		FastaSummaryReport sr = (FastaSummaryReport) qs.summarize(new File(
-				FASTA_DODGY_INPUT_FILE));
+		FastaSummaryReport sr = (FastaSummaryReport) qs.summarize(FASTA_DODGY_INPUT_FILE, null, null);
 		Assert.assertEquals(5, sr.getRecordsParsed());
 		Assert.assertEquals(5, sr.getRecordsParsed());
 

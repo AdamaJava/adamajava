@@ -41,14 +41,14 @@ public class FaSummarizerMT implements Summarizer {
 	}
 	
 	@Override
-	public SummaryReport summarize(File file) throws Exception {
+	public SummaryReport summarize(String input, String index, String[] regions) throws Exception {
 		
 		Queue<byte[]> q  = new ConcurrentLinkedQueue<>();
 		
 		long start = System.currentTimeMillis();
 		
 		final FaSummaryReport faSummaryReport = new FaSummaryReport();
-		faSummaryReport.setFileName(file.getAbsolutePath());
+		faSummaryReport.setFileName(input);
 		faSummaryReport.setStartTime(DateUtils.getCurrentDateAsString());
 		
 		logger.info("will create " + (noOfConsumerThreads -1 ) + " consumer threads");
@@ -57,7 +57,7 @@ public class FaSummarizerMT implements Summarizer {
 		final CountDownLatch cLatch = new CountDownLatch(noOfConsumerThreads -1);
 //		 setpup and kick-off single Producer thread
 		ExecutorService producerThreads = Executors.newFixedThreadPool(1);
-		producerThreads.execute(new Producer(q, file, Thread.currentThread(), pLatch,  cLatch));
+		producerThreads.execute(new Producer(q, new File(input), Thread.currentThread(), pLatch,  cLatch));
 		
 		
 		ExecutorService consumerThreads = Executors.newFixedThreadPool(noOfConsumerThreads - 1);

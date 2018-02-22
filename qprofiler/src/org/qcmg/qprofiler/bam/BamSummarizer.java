@@ -57,12 +57,12 @@ public class BamSummarizer implements Summarizer {
 	}
 	
 	@Override
-	public SummaryReport summarize(File file) throws Exception {
-		SamReader reader = SAMFileReaderFactory.createSAMFileReader(file, validation);
+	public SummaryReport summarize(String input, String index, String[] regions) throws Exception {
+		SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(input), validation);
 		
 		// create the SummaryReport
 		BamSummaryReport bamSummaryReport = new BamSummaryReport(includes, maxRecords, tags, tagsInt, tagsChar);
-		bamSummaryReport.setFileName(file.getAbsolutePath());
+		bamSummaryReport.setFileName(input);
 		bamSummaryReport.setStartTime(DateUtils.getCurrentDateAsString());
 		readGroupIds = reader.getFileHeader().getReadGroups().stream().map( it -> it.getId()  ).collect(toList()); 
 		bamSummaryReport.setReadGroups(readGroupIds);

@@ -23,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.qcmg.common.date.DateUtils;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -57,6 +58,7 @@ public class QProfiler {
 	private final static String FILE_SEPERATOR = System.getProperty("file.separator");
 	
 	private static String[] cmdLineFiles;
+	private static String[] cmdLineIndexFiles;
 	private static String[] cmdLineInclude;
 	private static String[] cmdLineTags;
 	private static String[] cmdLineTagsInt;
@@ -109,15 +111,20 @@ public class QProfiler {
 		 * additional files are specified for processing
 		 */
 
-		final Map<ProfileType, List<File>> sortedFiles = new HashMap<ProfileType, List<File>>();
+		final Map<ProfileType, List<Pair<String, String>>> sortedFiles = new HashMap<>();
 		
 		for (int i = 0 ; i < cmdLineFiles.length ; i++) {
-			File f = new File(cmdLineFiles[i]);
-			ProfileType type = ProfileTypeUtils.getType(f);
-			if ( ! sortedFiles.containsKey(type)) {
-				sortedFiles.put(type, new ArrayList<File>());
+			String f = cmdLineFiles[i];
+//			File f = new File(cmdLineFiles[i]);
+			/*
+			 * see if we have a corresponding index
+			 */
+			String index = null;
+			if (null != cmdLineIndexFiles && cmdLineIndexFiles.length >= i) {
+				index = cmdLineIndexFiles[i];
 			}
-			sortedFiles.get(type).add(f);
+			ProfileType type = ProfileTypeUtils.getType(f);
+			sortedFiles.computeIfAbsent(type, v -> new ArrayList<>()).add(Pair.of(f, index));
 		}
 		
 		if ( ! sortedFiles.isEmpty()) {
@@ -174,12 +181,12 @@ public class QProfiler {
 	 * @param gffFiles names of GFF files to be processed
 	 * @return SummaryReport objects for each file processed
 	 */
-	private void processFiles(Map<ProfileType, List<File>> files) throws RuntimeException{
+	private void processFiles(Map<ProfileType, List<Pair<String, String>>> files) throws RuntimeException{
 		
-		for (Map.Entry<ProfileType, List<File>> entry : files.entrySet()) {
+		for (Map.Entry<ProfileType, List<Pair<String, String>>> entry : files.entrySet()) {
 			
-			for (final File file : entry.getValue()) {
-				logger.info("processing file " + file);
+			for (final Pair<String, String> pair : entry.getValue()) {
+				logger.info("processing file " + pair.getLeft());
 				final Summarizer summarizer = getSummarizer(entry.getKey());
 				if (null != summarizer) {
 					Runnable task = new Runnable() {
@@ -188,9 +195,9 @@ public class QProfiler {
 							logger.info("running " + summarizer.getClass().getSimpleName());
 							SummaryReport sr = null;
 							try {
-								sr = summarizer.summarize(file);
+								sr = summarizer.summarize(pair.getLeft(), pair.getRight(), null);
 							} catch (Exception e) {
-								logger.error( "Exception caught whilst running summarizer for file: " + file.getName(), e );
+								logger.error( "Exception caught whilst running summarizer for file: " + pair.getLeft(), e );
 								// set the exit status to failure if any of the tasks throw an exception
 								exitStatus = 1;
 								throw new RuntimeException(e);
@@ -320,6 +327,7 @@ public class QProfiler {
 				}
 			}
 			
+			cmdLineIndexFiles = options.getIndexFileNames();
 			cmdLineInclude = options.getBamIncludes();
 			cmdLineTags = options.getTags();
 			cmdLineTagsInt = options.getTagsInt();

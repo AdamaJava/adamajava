@@ -74,12 +74,14 @@ public class BamSummarizerMT implements Summarizer {
 	}
 		
 	@Override
-	public SummaryReport summarize(File file) throws Exception {
+	public SummaryReport summarize(String input, String index, String[] regions) throws Exception {
+		
+		File file = new File(input);
 		
 		// check to see if index file exists - if not, run in single producer mode as will not be able to perform indexed lookups
 		SamReader reader = SAMFileReaderFactory.createSAMFileReader(file);
 		if ( ! reader.hasIndex() && noOfProducerThreads > 1) {
-			logger.warn("using 1 producer thread - no index found for bam file: " + file.getAbsolutePath());
+			logger.warn("using 1 producer thread - no index found for bam file: " + input);
 			noOfProducerThreads = 1;
 		}
 		
@@ -96,7 +98,7 @@ public class BamSummarizerMT implements Summarizer {
 		long start = System.currentTimeMillis();
 		
 		final BamSummaryReport bamSummaryReport = new BamSummaryReport( includes, maxRecords, tags, tagsInt, tagsChar );
-		bamSummaryReport.setFileName(file.getAbsolutePath());
+		bamSummaryReport.setFileName(input);
 		bamSummaryReport.setStartTime(DateUtils.getCurrentDateAsString());
 		
 		final AbstractQueue<String> sequences = new ConcurrentLinkedQueue<>();

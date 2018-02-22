@@ -45,10 +45,10 @@ public class FastaSummarizer implements Summarizer {
 	}
 	
 	@Override
-	public SummaryReport summarize(File file) throws Exception {
+	public SummaryReport summarize(String input, String index, String[] regions) throws Exception {
 		// create the SummaryReport
 		FastaSummaryReport fastaSummaryReport = new FastaSummaryReport(excludes);
-		fastaSummaryReport.setFileName(file.getAbsolutePath());
+		fastaSummaryReport.setFileName(input);
 		fastaSummaryReport.setStartTime(DateUtils.getCurrentDateAsString());
 		
 		// set logging level for printing of no of records parsed
@@ -56,7 +56,7 @@ public class FastaSummarizer implements Summarizer {
 		long recordsParsed = 0;
 		
 		
-		try (SimpleFileReader reader =  new SimpleFileReader(file);){
+		try (SimpleFileReader reader =  new SimpleFileReader(new File(input));){
 			for (Record record : reader) {
 				if (null != record) {
 					

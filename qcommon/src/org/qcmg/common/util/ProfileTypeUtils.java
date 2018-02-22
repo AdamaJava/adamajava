@@ -29,20 +29,23 @@ public class ProfileTypeUtils {
 	private static final String VCF_EXTENSION = "vcf";
 	private static final String VCF_GZ_EXTENSION = "vcf.gz";
 	
-	public static ProfileType getType(File f) {
+	public static ProfileType getType(String s) {
 		String ext = null;
-		final String s = f.getName();
+//		final String s = f.getName();/
 	    int i = s.lastIndexOf('.');
 	    
-	    if ( ! f.isDirectory() && i > 0 &&  i < s.length() - 1) {
-		    	ext = s.substring(i+1).toLowerCase();
+	    if ( i > 0 &&  i < s.length() - 1) {
+	    	ext = s.substring(i+1).toLowerCase();
 	    }
+//	    if ( ! f.isDirectory() && i > 0 &&  i < s.length() - 1) {
+//	    	ext = s.substring(i+1).toLowerCase();
+//	    }
 	    
 	    
 	    // if ext is equal to gz, then find the previous extension
 	    if (GZ_EXTENSION.equals(ext)) {
-		    	i = s.lastIndexOf('.', i -1);
-		    	ext = s.substring(i+1).toLowerCase();
+	    	i = s.lastIndexOf('.', i -1);
+	    	ext = s.substring(i+1).toLowerCase();
 	    }
 	    	    
 	    if (BAM_EXTENSION.equals(ext) || SAM_EXTENSION.equals(ext))

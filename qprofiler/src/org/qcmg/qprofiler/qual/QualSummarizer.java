@@ -43,19 +43,19 @@ public class QualSummarizer implements Summarizer {
 	}
 	
 	@Override
-	public SummaryReport summarize(File file) throws Exception {
+	public SummaryReport summarize(String input, String index, String[] regions) throws Exception {
 		
 		
 
 		// create the SummaryReport
 		QualSummaryReport qualSummaryReport = new QualSummaryReport(excludes);
-		qualSummaryReport.setFileName(file.getAbsolutePath());
+		qualSummaryReport.setFileName(input);
 		qualSummaryReport.setStartTime(DateUtils.getCurrentDateAsString());
 		
 		// set logging level for printing of no of records parsed
 		final boolean isLevelEnabled = logger.isLevelEnabled(QLevel.DEBUG);
 		
-		try (SimpleFileReader reader = new SimpleFileReader(file);){
+		try (SimpleFileReader reader = new SimpleFileReader(new File(input));){
 			for (Record record : reader) {
 				if (null != record) {
 					
