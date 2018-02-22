@@ -592,7 +592,7 @@ public class ReportBuilder {
 		}
 	}
 
-	private static void createSEQ(Element reportElement, Report report) {
+	public static void createSEQ(Element reportElement, Report report) {
 		//SEQ
 		final NodeList seqNL = reportElement.getElementsByTagName("SEQ");
 		final Element seqElement = (Element) seqNL.item(0);
