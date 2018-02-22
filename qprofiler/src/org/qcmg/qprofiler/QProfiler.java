@@ -120,7 +120,7 @@ public class QProfiler {
 			 * see if we have a corresponding index
 			 */
 			String index = null;
-			if (null != cmdLineIndexFiles && cmdLineIndexFiles.length >= i) {
+			if (null != cmdLineIndexFiles && cmdLineIndexFiles.length > i) {
 				index = cmdLineIndexFiles[i];
 			}
 			ProfileType type = ProfileTypeUtils.getType(f);
