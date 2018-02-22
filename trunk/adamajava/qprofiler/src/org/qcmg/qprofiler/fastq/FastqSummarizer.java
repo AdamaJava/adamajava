@@ -42,19 +42,19 @@ public class FastqSummarizer implements Summarizer {
 	}
 	
 	@Override
-	public SummaryReport summarize(File file) throws Exception {
+	public SummaryReport summarize(String input, String index, String[] regions) throws Exception {
 		
 		
 		// create the SummaryReport
 		FastqSummaryReport fastqSummaryReport = new FastqSummaryReport(excludes);
-		fastqSummaryReport.setFileName(file.getAbsolutePath());
+		fastqSummaryReport.setFileName(input);
 		fastqSummaryReport.setStartTime(DateUtils.getCurrentDateAsString());
 		
 		// set logging level for printing of no of records parsed
 //		final boolean isLevelEnabled = logger.isLevelEnabled(QLevel.DEBUG);
 		
 		long recordsParsed = 0;
-		try (FastqReader reader =  new FastqReader(file);) {
+		try (FastqReader reader =  new FastqReader(new File(input));) {
 			for (FastqRecord record : reader) {
 				if (null != record) {
 					

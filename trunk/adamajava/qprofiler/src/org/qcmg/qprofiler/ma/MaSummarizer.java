@@ -24,18 +24,18 @@ public class MaSummarizer implements Summarizer {
 	private final static QLogger logger = QLoggerFactory.getLogger(MaSummarizer.class);
 	
 	@Override
-	public SummaryReport summarize(File file) throws Exception {
+	public SummaryReport summarize(String input, String index, String[] regions) throws Exception {
 		
 		MAFileReader reader = null;
 		try {
-			reader = new MAFileReader(file);
+			reader = new MAFileReader(new File(input));
 		} catch (Exception e) {
-			logger.error("Exception caught whilst trying to instantiate MAFileReader with file: " + file.getName(), e);
+			logger.error("Exception caught whilst trying to instantiate MAFileReader with file: " + input, e);
 		}
 		
 		// create the SummaryReport
 		MaSummaryReport maSummaryReport = new MaSummaryReport();
-		maSummaryReport.setFileName(file.getAbsolutePath());
+		maSummaryReport.setFileName(input);
 		maSummaryReport.setStartTime(DateUtils.getCurrentDateAsString());
 		
 		// set logging level for printing of no of records parsed

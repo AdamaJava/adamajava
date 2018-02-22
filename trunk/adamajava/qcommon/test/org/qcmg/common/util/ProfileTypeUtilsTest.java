@@ -2,8 +2,6 @@ package org.qcmg.common.util;
 
 import static org.junit.Assert.*;
 
-import java.io.File;
-
 import org.junit.Assert;
 import org.junit.Test;
 import org.qcmg.common.model.ProfileType;
@@ -12,30 +10,30 @@ public class ProfileTypeUtilsTest {
 	
 	@Test
 	public void fastqs() throws Exception {
-		assertEquals(ProfileType.FASTQ, ProfileTypeUtils.getType(new File(".fq.gz")));
-		assertEquals(ProfileType.FASTQ, ProfileTypeUtils.getType(new File("blah.fq")));
-		assertEquals(ProfileType.FASTQ, ProfileTypeUtils.getType(new File("blah.fastq.gz")));
-		assertEquals(ProfileType.FASTQ, ProfileTypeUtils.getType(new File("blah.fastq")));
+		assertEquals(ProfileType.FASTQ, ProfileTypeUtils.getType(".fq.gz"));
+		assertEquals(ProfileType.FASTQ, ProfileTypeUtils.getType("blah.fq"));
+		assertEquals(ProfileType.FASTQ, ProfileTypeUtils.getType("blah.fastq.gz"));
+		assertEquals(ProfileType.FASTQ, ProfileTypeUtils.getType("blah.fastq"));
 		try {
-			ProfileTypeUtils.getType(new File("blah.faq.gz"));
+			ProfileTypeUtils.getType(("blah.faq.gz"));
 			Assert.fail("should have barfed");
 		} catch (IllegalArgumentException e) {}
 	}
 	@Test
 	public void gffs() throws Exception {
-		assertEquals(ProfileType.GFF, ProfileTypeUtils.getType(new File("blah.gff")));
-		assertEquals(ProfileType.GFF, ProfileTypeUtils.getType(new File("blah.gff3")));
+		assertEquals(ProfileType.GFF, ProfileTypeUtils.getType(("blah.gff")));
+		assertEquals(ProfileType.GFF, ProfileTypeUtils.getType(("blah.gff3")));
 		try {
-			ProfileTypeUtils.getType(new File("blah.gff2"));
+			ProfileTypeUtils.getType(("blah.gff2"));
 			Assert.fail("should have barfed");
 		} catch (IllegalArgumentException e) {}
 	}
 	@Test
 	public void bams() throws Exception {
-		assertEquals(ProfileType.BAM, ProfileTypeUtils.getType(new File("blah.sam")));
-		assertEquals(ProfileType.BAM, ProfileTypeUtils.getType(new File("blah.bam")));
+		assertEquals(ProfileType.BAM, ProfileTypeUtils.getType(("blah.sam")));
+		assertEquals(ProfileType.BAM, ProfileTypeUtils.getType(("blah.bam")));
 		try {
-			ProfileTypeUtils.getType(new File("blah.bam123"));
+			ProfileTypeUtils.getType(("blah.bam123"));
 			Assert.fail("should have barfed");
 		} catch (IllegalArgumentException e) {}
 	}

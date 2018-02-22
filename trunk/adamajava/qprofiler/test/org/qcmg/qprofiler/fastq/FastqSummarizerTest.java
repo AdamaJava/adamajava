@@ -74,8 +74,7 @@ BCCFDFFFHHHHHJJJJIJJJJJIJIJJJJJJJGHJJJJJJJJJJIJFHIJJJHHHFFDDDDDCDCDDDDDDDDDDDDDD
 	public void testSummarize() throws Exception {
 		logger.info("in testSummarize()");
 		FastqSummarizer qs = new FastqSummarizer();
-		FastqSummaryReport sr = (FastqSummaryReport) qs.summarize(new File(
-				FASTQ_INPUT_FILE));
+		FastqSummaryReport sr = (FastqSummaryReport) qs.summarize(FASTQ_INPUT_FILE, null, null);
 
 		Assert.assertNotNull(sr);
 		Assert.assertEquals(4, sr.getRecordsParsed());

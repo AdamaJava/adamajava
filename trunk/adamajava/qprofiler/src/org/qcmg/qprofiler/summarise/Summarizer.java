@@ -8,6 +8,7 @@
  */
 package org.qcmg.qprofiler.summarise;
 
+
 import java.io.File;
 
 import org.qcmg.qprofiler.report.SummaryReport;
@@ -18,9 +19,14 @@ public interface Summarizer {
 	/**
 	 * Summarises the data held in the submitted file, returning a SummaryReport object
 	 * 
-	 * @param file File to be summarised
+	 * @param input String input containing data to be summarised
+	 * @param index String index relating to the input to be summarised
+	 * @param regions String[] containing regions in the input file to be summarised
 	 * @return SummaryReport object containing the summations
 	 * @throws Exception
 	 */
-	public SummaryReport summarize(File file) throws Exception;
+	public SummaryReport summarize(String input, String index, String[] regions) throws Exception;
+	public default SummaryReport summarize(File input) throws Exception {
+		return summarize(input.getAbsolutePath(), null, null);
+	}
 }

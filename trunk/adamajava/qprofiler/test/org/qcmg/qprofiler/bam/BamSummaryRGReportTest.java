@@ -38,7 +38,7 @@ public class BamSummaryRGReportTest {
 //		Element root = doc.getDocumentElement();					 
 
 		BamSummarizer bs = new BamSummarizer();
-		BamSummaryReport sr = (BamSummaryReport) bs.summarize(new File(INPUT_FILE)); 
+		BamSummaryReport sr = (BamSummaryReport) bs.summarize(INPUT_FILE, null, null); 
 		Assert.assertEquals(sr.getRecordsParsed(), 1);
 //		sr.toXml(root);
 	}
@@ -54,7 +54,7 @@ public class BamSummaryRGReportTest {
 		Element root = doc.getDocumentElement();					 
 
 		BamSummarizer bs = new BamSummarizer();
-		BamSummaryReport sr = (BamSummaryReport) bs.summarize(new File(INPUT_FILE)); 
+		BamSummaryReport sr = (BamSummaryReport) bs.summarize(INPUT_FILE, null, null); 
 		sr.toXml(root);
 		Assert.assertEquals(sr.getRecordsParsed(), 12);
 		testXmlOutput(root);

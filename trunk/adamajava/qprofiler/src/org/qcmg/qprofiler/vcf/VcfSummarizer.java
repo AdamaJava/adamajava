@@ -19,15 +19,15 @@ public class VcfSummarizer implements Summarizer {
 	private String[] excludes;
 		
 	@Override
-	public SummaryReport summarize(File file) throws Exception{
+	public SummaryReport summarize(String input, String index, String[] regions) throws Exception{
 		
 		// set logging level for printing of no of records parsed
 		final boolean isLevelEnabled = logger.isLevelEnabled(QLevel.DEBUG);
 		VcfSummaryReport vcfSummaryReport; 
 		
-		try (VCFFileReader reader = new VCFFileReader(file)  ) {
+		try (VCFFileReader reader = new VCFFileReader(new File(input))) {
 			vcfSummaryReport = new VcfSummaryReport(reader.getHeader());
-			vcfSummaryReport.setFileName(file.getAbsolutePath());
+			vcfSummaryReport.setFileName(input);
 			vcfSummaryReport.setStartTime(DateUtils.getCurrentDateAsString());
 		
         	//no chr in front of position
