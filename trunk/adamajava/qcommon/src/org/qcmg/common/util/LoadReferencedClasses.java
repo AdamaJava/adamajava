@@ -76,7 +76,7 @@ public class LoadReferencedClasses {
 						String classToLoad = je.getName().replace(".class", "").replaceAll(FILE_SEPARATOR, ".");
 						try {
 							//classToLoad = classToLoad.replaceAll(FILE_SEPARATOR, ".");
-							System.out.println("about to load class: " + classToLoad);
+//							System.out.println("about to load class: " + classToLoad);
 							clazz.getClassLoader().loadClass(classToLoad);
 						} catch (NoClassDefFoundError e) {	
 							//XXX catching errors is not recommended, but is necessary in this instance
