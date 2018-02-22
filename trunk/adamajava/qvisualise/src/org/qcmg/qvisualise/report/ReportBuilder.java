@@ -602,11 +602,26 @@ public class ReportBuilder {
 				CycleDetailUtils.getSeqCycle(), SEQ_COLOURS, false);
 		 	
 		//add kmers tab
-		ChartTab parentCT = tabs.get(0);			
-		parentCT.addChild( createKmersTab((Element) seqElement.getElementsByTagName("mers1").item(0), "kmer_1" ) );
-		parentCT.addChild( createKmersTab((Element) seqElement.getElementsByTagName("mers2").item(0), "kmer_2" ) );
-		parentCT.addChild( createKmersTab((Element) seqElement.getElementsByTagName("mers3").item(0), "kmer_3") );	 
-		parentCT.addChild( createKmersTab((Element) seqElement.getElementsByTagName("mers6").item(0), "kmer_6" ) ); //debug
+		ChartTab parentCT = tabs.get(0);
+		/*
+		 * check to see if we have kmer data before heading down this path
+		 */
+		NodeList nl = seqElement.getElementsByTagName("mers1");
+		if (null != nl && nl.getLength() > 0) {
+			parentCT.addChild( createKmersTab((Element) nl.item(0), "kmer_1" ) );
+		}
+		nl = seqElement.getElementsByTagName("mers2");
+		if (null != nl && nl.getLength() > 0) {
+			parentCT.addChild( createKmersTab((Element) nl.item(0), "kmer_2" ) );
+		}
+		nl = seqElement.getElementsByTagName("mers3");
+		if (null != nl && nl.getLength() > 0) {
+			parentCT.addChild( createKmersTab((Element) nl.item(0), "kmer_3" ) );
+		}
+		nl = seqElement.getElementsByTagName("mers6");
+		if (null != nl && nl.getLength() > 0) {
+			parentCT.addChild( createKmersTab((Element) nl.item(0), "kmer_6" ) );
+		}
 		report.addTab(parentCT);
 		
 		
