@@ -30,6 +30,7 @@ final class Options {
 	private static final String LOG_LEVEL_OPTION_DESCRIPTION = Messages.getMessage("LOG_LEVEL_OPTION_DESCRIPTION");
 	private static final String OUTPUT_FILE_DESCRIPTION = Messages.getMessage("OUTPUT_FILE_DESCRIPTION");
 	private static final String INPUT_FILE_DESCRIPTION = Messages.getMessage("INPUT_FILE_DESCRIPTION");
+	private static final String INDEX_FILE_DESCRIPTION = Messages.getMessage("INDEX_FILE_DESCRIPTION");
 	private static final String VALIDATION_STRINGENCY_OPTION_DESCRIPTION = Messages.getMessage("VALIDATION_STRINGENCY_DESCRIPTION");
 	private static final String NO_HTML_DESCRIPTION = Messages.getMessage("NO_HTML_OPTION_DESCRIPTION");
 	
@@ -37,6 +38,7 @@ final class Options {
 	private final OptionSet options;
 //	private final List<String> fileNames;
 	private final String[] fileNames;
+	private final String[] indexFileNames;
 	private final String outputFileName;
 	private final String[] includes;
 	private final String[] tags;
@@ -61,6 +63,7 @@ final class Options {
 		parser.accepts("ntConsumer", NO_OF_THREADS_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
 		parser.accepts("maxRecords", MAX_RECORDS_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
 		parser.accepts("include", INCLUDE_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
+		parser.accepts("index", INPUT_FILE_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
 //		parser.accepts("exclude", EXCLUDES_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
 		parser.accepts("log", LOG_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("loglevel", LOG_LEVEL_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
@@ -118,6 +121,11 @@ final class Options {
 		fileNames = new String[inputs.size()];
 		inputs.toArray(fileNames);
 		
+		// indexes
+		List<String> indexes = (List<String>) options.valuesOf("index");
+		indexFileNames = new String[indexes.size()];
+		indexes.toArray(indexFileNames);
+		
 		
 		// output
 		outputFileName = (String) options.valueOf("output");
@@ -152,6 +160,9 @@ final class Options {
 
 	String[] getFileNames() {
 		return fileNames;
+	}
+	String[] getIndexFileNames() {
+		return indexFileNames;
 	}
 //	List<String> getFileNames() {
 //		return fileNames;
