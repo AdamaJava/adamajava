@@ -95,11 +95,6 @@ public class QSVClusterWriter {
 				for (Map.Entry<String, List<DiscordantPairCluster>> mutationTypeEntry : entry.getValue().entrySet()) {   
 					List<DiscordantPairCluster> currentClusters = mutationTypeEntry.getValue();      
 
-					/*
-					 * sort so that output is consistent 
-					 */
-					currentClusters.sort(new DiscordantPairCluster.QSVRecordComparator());
-					
 					for (DiscordantPairCluster r: currentClusters) {
 						QSVCluster record = new QSVCluster(r, false, tumorParameters.getSampleId());
 						svRecords.add(record);
@@ -127,11 +122,6 @@ public class QSVClusterWriter {
 		List<QSVCluster> somaticRecords = new ArrayList<>();
 		List<QSVCluster> germlineRecords = new ArrayList<>();
 		
-		/*
-		 * order QSVCluster records for consistent output <hello regression tests>
-		 */
-		
-
 		for (QSVCluster record: svRecords) {
 			String id = "";
 
