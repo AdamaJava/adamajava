@@ -82,45 +82,6 @@ public class FlagUtilTest {
 			if ((i & 0x800) == 2048) {
 				assertEquals(true, FlagUtil.getFlagString(i).contains("S"));
 			}
-			
 		}
 	}
-	
-//	public enum TRANS{
-//		AG(0), GA(1), CT(2), TC(3),			
-//		AC(4), CA(5),AT(6), TA(7),CG(8), GC(9), GT(10), TG(11), 
-//		NA(12),AN(13), NG(14), GN(15),NT(16),TN(17),NC(18),CN(19), Others(20); 
-//		public final int order;
-//		 
-//		TRANS(int od){
-//			this.order = od;  			 
-//		}
-//		
-//		public int toCharCode(){
-//			
-//			int ascRef =  (int) name().charAt(0) ;
-//			int ascii = ascRef *2 + (int) name().charAt(1);	
-//			
-//			System.out.println(  "case " + ascii + " : return " + name() + ";");
-//			
-//			return ascii;
-//		}
-//	}		
-	
-	
-			
-//	@Test
-//	public void xuTest() {
-//		
-//		int[] inArray = new int[21];;
-//		for(TRANS tr :  TRANS.values())
-//			inArray[tr.order] =  tr.toCharCode();		
-//		
-//		Arrays.sort(inArray);
-//		for (int i = 0; i < inArray.length; i ++) {
-//			 System.out.println(i + "th = " + inArray[i]);
-//		}
-//	}
-	
-
 }

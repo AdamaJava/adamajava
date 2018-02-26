@@ -75,18 +75,11 @@ public class KmersSummary {
 	public static String producer(final int k, final String mers , final boolean includeN){
 		if(k == 0 )  return mers;			
 		
-//		List<Character> bases = atgc.chars().mapToObj(c ->(char) c).collect(Collectors.toList() ); 
-//		if(includeN ) bases.add('N'); 
-		
 		char[] cToUse = includeN ? atgcnCharArray : atgcCharArray;
-//		String conStr = "";
 		StringBuilder conStr = new StringBuilder();
-		for(char c : cToUse) 	 	 
-			StringUtils.updateStringBuilder(conStr, producer( k-1, mers + c,  includeN), Constants.COMMA);			 
-//		for(char c : bases) 	 	 
-//			conStr += "," + producer( k-1, mers + c,  includeN);			 
-		 		
-//		return conStr;	
+		for(char c : cToUse) {
+			StringUtils.updateStringBuilder(conStr, producer( k-1, mers + c,  includeN), Constants.COMMA);
+		}
 		return conStr.toString();	
 	}
 	
@@ -97,10 +90,7 @@ public class KmersSummary {
 		
 		//produce all possible kmers in String 
 		String str1 = producer( k, "", includeN );		
-//		while(str1.contains(",,")) str1 = str1.replace(",,", ",");	
-//		while(str1.startsWith(",")) str1 = str1.substring(1);			
 		return str1.split(Constants.COMMA_STRING);
-//		return TabTokenizer.tokenize(str1, Constants.COMMA);
 	}
 	
 	public void parseKmers( byte[] readString, boolean reverse ){
@@ -145,7 +135,6 @@ public class KmersSummary {
 				case 'T' : no = 4; break;
 			}
 			entry += no << ( j * 3 ); 	
-//			entry += ( mers[i] - '@' ) << ( j * 5 ); 	
 		}
 		
 		return entry;
@@ -220,10 +209,7 @@ public class KmersSummary {
 	
 	public void toXml( Element parent, int klength ) { 
 		
-//		if( ! parsedAllKmers.get() )  recaculatelastCycle();
-							
 		final String elementName = "mers" + klength; 				
-//		String[] possibleMers = getPossibleKmerString(klength, false); 		//don't want output N base	
 		
 		String[] possibleMers = getPopularKmerString(16,  klength, false) ;
 		Document doc = parent.getOwnerDocument();
