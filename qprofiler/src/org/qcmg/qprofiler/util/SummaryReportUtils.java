@@ -95,100 +95,100 @@ public class SummaryReportUtils {
 	}
 	
 	//Xu code
-	public static <T> void ToXmlWithoutPercentage(Element parent, String elementName, Map<T, AtomicLong> map) {
-		//lengthMapToXml(parent, elementName, map, null);
-		Document doc = parent.getOwnerDocument();
-		Element element = doc.createElement(elementName);
-		parent.appendChild(element);
-				
-		if (null != map && ! map.isEmpty()) {		
-		// get keys and sort them
-			List<T> sortedKeys = new ArrayList<>(map.keySet());
-			Collections.sort(sortedKeys, null);
-			try {
-				for (T key : sortedKeys) {
-					Element cycleE = doc.createElement("TallyItem");
-					AtomicLong ml = map.get(key);					
-					cycleE.setAttribute("value", key.toString());
-					cycleE.setAttribute("count", ml.get()+"");					
-					element.appendChild(cycleE);
-				}
-			} catch (DOMException e) {
-				e.printStackTrace();
-			}
-		}
-	}
+//	public static <T> void ToXmlWithoutPercentage(Element parent, String elementName, Map<T, AtomicLong> map) {
+//		//lengthMapToXml(parent, elementName, map, null);
+//		Document doc = parent.getOwnerDocument();
+//		Element element = doc.createElement(elementName);
+//		parent.appendChild(element);
+//				
+//		if (null != map && ! map.isEmpty()) {		
+//		// get keys and sort them
+//			List<T> sortedKeys = new ArrayList<>(map.keySet());
+//			Collections.sort(sortedKeys, null);
+//			try {
+//				for (T key : sortedKeys) {
+//					Element cycleE = doc.createElement("TallyItem");
+//					AtomicLong ml = map.get(key);					
+//					cycleE.setAttribute("value", key.toString());
+//					cycleE.setAttribute("count", ml.get()+"");					
+//					element.appendChild(cycleE);
+//				}
+//			} catch (DOMException e) {
+//				e.printStackTrace();
+//			}
+//		}
+//	}
 
-	public static ConcurrentMap<String, ConcurrentMap<Integer, AtomicLong>> binIsize(int binSize, Map<String, AtomicLongArray> iSizeByReadGroupMap, Map<String, QCMGAtomicLongArray> iSizeByReadGroupMapBinned) {
-		ConcurrentMap<String, ConcurrentMap<Integer, AtomicLong>> results = new ConcurrentHashMap<>();
-		for (Entry<String, AtomicLongArray> entry : iSizeByReadGroupMap.entrySet()) {
-			// add entry to results map of  maps
-			String readGroup = entry.getKey();
-			ConcurrentMap<Integer, AtomicLong> iSizeLengths = new ConcurrentHashMap<>();
-			results.putIfAbsent(readGroup, iSizeLengths);
-			
-			AtomicLongArray array = entry.getValue();
-			for (int i = 0 ; i < array.length() ; i++) {
-				long longValue = array.get(i);
-				if (longValue > 0) {
-				
-					AtomicLong al = iSizeLengths.get(i);
-					if (null == al) {
-						al = new AtomicLong();
-						AtomicLong existingLong = iSizeLengths.putIfAbsent(i, al);
-						if (null != existingLong) al = existingLong;
-					}
-					al.addAndGet(longValue);
-				}
-			}
-		}
-		
-		// now for the binned map
-		for (Entry<String, QCMGAtomicLongArray> entry : iSizeByReadGroupMapBinned.entrySet()) {
-			String readGroup = entry.getKey();
-			ConcurrentMap<Integer, AtomicLong> iSizeLengths = results.get(readGroup);
-			if (null == iSizeLengths) {
-				iSizeLengths = new ConcurrentHashMap<Integer, AtomicLong>();
-				ConcurrentMap<Integer, AtomicLong>  existingResults = results.putIfAbsent(readGroup, iSizeLengths);
-				if (null != existingResults) {
-					iSizeLengths = existingResults;
-				}
-			}
-			QCMGAtomicLongArray array = entry.getValue();
-			for (int i = 0 ; i < array.length() ; i++) {
-				long l = array.get(i);
-				if (l > 0) {
-					Integer binNumber = (i == 0 ? MAX_I_SIZE : i * 1000000);
-					AtomicLong al = iSizeLengths.get(binNumber);
-					if (null == al) {
-						al = new AtomicLong();
-						AtomicLong existingAL = iSizeLengths.putIfAbsent(binNumber, al);
-						if (null != existingAL) {
-							al = existingAL;
-						}
-					}
-					al.addAndGet(l);
-				}
-			}
-		}
-		return results;
-	}
+//	public static ConcurrentMap<String, ConcurrentMap<Integer, AtomicLong>> binIsize(int binSize, Map<String, AtomicLongArray> iSizeByReadGroupMap, Map<String, QCMGAtomicLongArray> iSizeByReadGroupMapBinned) {
+//		ConcurrentMap<String, ConcurrentMap<Integer, AtomicLong>> results = new ConcurrentHashMap<>();
+//		for (Entry<String, AtomicLongArray> entry : iSizeByReadGroupMap.entrySet()) {
+//			// add entry to results map of  maps
+//			String readGroup = entry.getKey();
+//			ConcurrentMap<Integer, AtomicLong> iSizeLengths = new ConcurrentHashMap<>();
+//			results.putIfAbsent(readGroup, iSizeLengths);
+//			
+//			AtomicLongArray array = entry.getValue();
+//			for (int i = 0 ; i < array.length() ; i++) {
+//				long longValue = array.get(i);
+//				if (longValue > 0) {
+//				
+//					AtomicLong al = iSizeLengths.get(i);
+//					if (null == al) {
+//						al = new AtomicLong();
+//						AtomicLong existingLong = iSizeLengths.putIfAbsent(i, al);
+//						if (null != existingLong) al = existingLong;
+//					}
+//					al.addAndGet(longValue);
+//				}
+//			}
+//		}
+//		
+//		// now for the binned map
+//		for (Entry<String, QCMGAtomicLongArray> entry : iSizeByReadGroupMapBinned.entrySet()) {
+//			String readGroup = entry.getKey();
+//			ConcurrentMap<Integer, AtomicLong> iSizeLengths = results.get(readGroup);
+//			if (null == iSizeLengths) {
+//				iSizeLengths = new ConcurrentHashMap<Integer, AtomicLong>();
+//				ConcurrentMap<Integer, AtomicLong>  existingResults = results.putIfAbsent(readGroup, iSizeLengths);
+//				if (null != existingResults) {
+//					iSizeLengths = existingResults;
+//				}
+//			}
+//			QCMGAtomicLongArray array = entry.getValue();
+//			for (int i = 0 ; i < array.length() ; i++) {
+//				long l = array.get(i);
+//				if (l > 0) {
+//					Integer binNumber = (i == 0 ? MAX_I_SIZE : i * 1000000);
+//					AtomicLong al = iSizeLengths.get(binNumber);
+//					if (null == al) {
+//						al = new AtomicLong();
+//						AtomicLong existingAL = iSizeLengths.putIfAbsent(binNumber, al);
+//						if (null != existingAL) {
+//							al = existingAL;
+//						}
+//					}
+//					al.addAndGet(l);
+//				}
+//			}
+//		}
+//		return results;
+//	}
 	
-	public static <T> void lengthMapToXml(Element parent, String elementName,
-			AtomicLongArray array) {
-		Map<Integer, AtomicLong> map = new TreeMap<Integer, AtomicLong>();
-		
-		for (int i = 0 , length = array.length() ; i < length ; i++) {
-			if (array.get(i) > 0)
-				map.put(i, new AtomicLong(array.get(i)));
-		}
-		
-		Document doc = parent.getOwnerDocument();
-		Element element = doc.createElement(elementName);
-		parent.appendChild(element);
-		
-		lengthMapToXmlTallyItem(element, "ValueTally", map, null);
-	}
+//	public static <T> void lengthMapToXml(Element parent, String elementName,
+//			AtomicLongArray array) {
+//		Map<Integer, AtomicLong> map = new TreeMap<Integer, AtomicLong>();
+//		
+//		for (int i = 0 , length = array.length() ; i < length ; i++) {
+//			if (array.get(i) > 0)
+//				map.put(i, new AtomicLong(array.get(i)));
+//		}
+//		
+//		Document doc = parent.getOwnerDocument();
+//		Element element = doc.createElement(elementName);
+//		parent.appendChild(element);
+//		
+//		lengthMapToXmlTallyItem(element, "ValueTally", map, null);
+//	}
 	public static <T> void lengthMapToXml(Element parent, String elementName,
 			QCMGAtomicLongArray array) {
 		Map<Integer, AtomicLong> map = new TreeMap<Integer, AtomicLong>();
@@ -262,138 +262,138 @@ public class SummaryReportUtils {
 	 * @param elementName String representing the name to be used when creating the element
 	 * @return 
 	 */
-	public static <T> void toXmlWithPercentage(SummaryByCycle<T> sumByCycle,  Element parent, String elementName , Map<Integer, AtomicLong> percentageMap, long total) {
-		final NumberFormat nf = new DecimalFormat("0.0#%");
-		Document doc = parent.getOwnerDocument();
-		Element element = doc.createElement(elementName);
-		parent.appendChild(element);
-		
-		// adding another level to conform to DTD..
-		Element cycleTallyElement = doc.createElement("CycleTally");
-		element.appendChild(cycleTallyElement);
-		cycleTallyElement.setAttribute("possibleValues", sumByCycle.getPossibleValuesAsString());
-		Element possValuesE = doc.createElement("PossibleValues");
-		for (T t : sumByCycle.getPossibleValues()) {
-			Element valueE = doc.createElement("Value");
-			valueE.setAttribute("value", t.toString());
-			possValuesE.appendChild(valueE);
-		}
-		possValuesE.setAttribute("possibleValues", sumByCycle.getPossibleValuesAsString());
-		cycleTallyElement.appendChild(possValuesE);
-		
-		try {
-			long count = total;
-			for (Integer cycle : sumByCycle.cycles()) {
-				long mapTotal = getCountOfMapValues(sumByCycle.getValue(cycle));
-				double percentage = (((double) mapTotal / count));
-				AtomicLong ml = percentageMap.get(cycle);
-				if (null != ml) {
-					count -= ml.get();
-				}
-				
-				Element cycleE = doc.createElement("Cycle");
-				cycleE.setAttribute("value", cycle.toString());
-				cycleTallyElement.appendChild(cycleE);
-				for (T value : sumByCycle.values(cycle)) {
-					Element tallyE = doc.createElement("TallyItem");
-					tallyE.setAttribute("value", value.toString());
-					tallyE.setAttribute("count", sumByCycle.count(cycle, value).get()+"");
-					tallyE.setAttribute("percent", nf.format(percentage));
-					cycleE.appendChild(tallyE);
-				}
-			}
-		} catch (DOMException e) {
-			e.printStackTrace();
-		}
-	}
-	public static <T> void toXmlWithPercentage(SummaryByCycle<T> sumByCycle,  Element parent, String elementName , AtomicLongArray percentageArray, long total) {
-		final NumberFormat nf = new DecimalFormat("0.0#%");
-		Document doc = parent.getOwnerDocument();
-		Element element = doc.createElement(elementName);
-		parent.appendChild(element);
-		
-		// adding another level to conform to DTD..
-		Element cycleTallyElement = doc.createElement("CycleTally");
-		element.appendChild(cycleTallyElement);
-		cycleTallyElement.setAttribute("possibleValues", sumByCycle.getPossibleValuesAsString());
-		Element possValuesE = doc.createElement("PossibleValues");
-		for (T t : sumByCycle.getPossibleValues()) {
-			Element valueE = doc.createElement("Value");
-			valueE.setAttribute("value", t.toString());
-			possValuesE.appendChild(valueE);
-		}
-		possValuesE.setAttribute("possibleValues", sumByCycle.getPossibleValuesAsString());
-		cycleTallyElement.appendChild(possValuesE);
-		
-		try {
-			long count = total;
-			for (Integer cycle : sumByCycle.cycles()) {
-				long mapTotal = getCountOfMapValues(sumByCycle.getValue(cycle));
-				double percentage = (((double) mapTotal / count));
-				AtomicLong ml = new AtomicLong(percentageArray.get(cycle));
-				if (null != ml) {
-					count -= ml.get();
-				}
-				
-				Element cycleE = doc.createElement("Cycle");
-				cycleE.setAttribute("value", cycle.toString());
-				cycleTallyElement.appendChild(cycleE);
-				for (T value : sumByCycle.values(cycle)) {
-					Element tallyE = doc.createElement("TallyItem");
-					tallyE.setAttribute("value", value.toString());
-					tallyE.setAttribute("count", sumByCycle.count(cycle, value).get()+"");
-					tallyE.setAttribute("percent", nf.format(percentage));
-					cycleE.appendChild(tallyE);
-				}
-			}
-		} catch (DOMException e) {
-			e.printStackTrace();
-		}
-	}
-	public static <T> void toXmlWithPercentage(SummaryByCycle<T> sumByCycle,  Element parent, String elementName , QCMGAtomicLongArray percentageArray, long total) {
-		final NumberFormat nf = new DecimalFormat("0.0#%");
-		Document doc = parent.getOwnerDocument();
-		Element element = doc.createElement(elementName);
-		parent.appendChild(element);
-		
-		// adding another level to conform to DTD..
-		Element cycleTallyElement = doc.createElement("CycleTally");
-		element.appendChild(cycleTallyElement);
-		cycleTallyElement.setAttribute("possibleValues", sumByCycle.getPossibleValuesAsString());
-		Element possValuesE = doc.createElement("PossibleValues");
-		for (T t : sumByCycle.getPossibleValues()) {
-			Element valueE = doc.createElement("Value");
-			valueE.setAttribute("value", t.toString());
-			possValuesE.appendChild(valueE);
-		}
-		possValuesE.setAttribute("possibleValues", sumByCycle.getPossibleValuesAsString());
-		cycleTallyElement.appendChild(possValuesE);
-		
-		try {
-			long count = total;
-			for (Integer cycle : sumByCycle.cycles()) {
-				long mapTotal = getCountOfMapValues(sumByCycle.getValue(cycle));
-				double percentage = (((double) mapTotal / count));
-				AtomicLong ml = new AtomicLong(percentageArray.get(cycle));
-				if (null != ml) {
-					count -= ml.get();
-				}
-				
-				Element cycleE = doc.createElement("Cycle");
-				cycleE.setAttribute("value", cycle.toString());
-				cycleTallyElement.appendChild(cycleE);
-				for (T value : sumByCycle.values(cycle)) {
-					Element tallyE = doc.createElement("TallyItem");
-					tallyE.setAttribute("value", value.toString());
-					tallyE.setAttribute("count", sumByCycle.count(cycle, value).get()+"");
-					tallyE.setAttribute("percent", nf.format(percentage));
-					cycleE.appendChild(tallyE);
-				}
-			}
-		} catch (DOMException e) {
-			e.printStackTrace();
-		}
-	}
+//	public static <T> void toXmlWithPercentage(SummaryByCycle<T> sumByCycle,  Element parent, String elementName , Map<Integer, AtomicLong> percentageMap, long total) {
+//		final NumberFormat nf = new DecimalFormat("0.0#%");
+//		Document doc = parent.getOwnerDocument();
+//		Element element = doc.createElement(elementName);
+//		parent.appendChild(element);
+//		
+//		// adding another level to conform to DTD..
+//		Element cycleTallyElement = doc.createElement("CycleTally");
+//		element.appendChild(cycleTallyElement);
+//		cycleTallyElement.setAttribute("possibleValues", sumByCycle.getPossibleValuesAsString());
+//		Element possValuesE = doc.createElement("PossibleValues");
+//		for (T t : sumByCycle.getPossibleValues()) {
+//			Element valueE = doc.createElement("Value");
+//			valueE.setAttribute("value", t.toString());
+//			possValuesE.appendChild(valueE);
+//		}
+//		possValuesE.setAttribute("possibleValues", sumByCycle.getPossibleValuesAsString());
+//		cycleTallyElement.appendChild(possValuesE);
+//		
+//		try {
+//			long count = total;
+//			for (Integer cycle : sumByCycle.cycles()) {
+//				long mapTotal = getCountOfMapValues(sumByCycle.getValue(cycle));
+//				double percentage = (((double) mapTotal / count));
+//				AtomicLong ml = percentageMap.get(cycle);
+//				if (null != ml) {
+//					count -= ml.get();
+//				}
+//				
+//				Element cycleE = doc.createElement("Cycle");
+//				cycleE.setAttribute("value", cycle.toString());
+//				cycleTallyElement.appendChild(cycleE);
+//				for (T value : sumByCycle.values(cycle)) {
+//					Element tallyE = doc.createElement("TallyItem");
+//					tallyE.setAttribute("value", value.toString());
+//					tallyE.setAttribute("count", sumByCycle.count(cycle, value).get()+"");
+//					tallyE.setAttribute("percent", nf.format(percentage));
+//					cycleE.appendChild(tallyE);
+//				}
+//			}
+//		} catch (DOMException e) {
+//			e.printStackTrace();
+//		}
+//	}
+//	public static <T> void toXmlWithPercentage(SummaryByCycle<T> sumByCycle,  Element parent, String elementName , AtomicLongArray percentageArray, long total) {
+//		final NumberFormat nf = new DecimalFormat("0.0#%");
+//		Document doc = parent.getOwnerDocument();
+//		Element element = doc.createElement(elementName);
+//		parent.appendChild(element);
+//		
+//		// adding another level to conform to DTD..
+//		Element cycleTallyElement = doc.createElement("CycleTally");
+//		element.appendChild(cycleTallyElement);
+//		cycleTallyElement.setAttribute("possibleValues", sumByCycle.getPossibleValuesAsString());
+//		Element possValuesE = doc.createElement("PossibleValues");
+//		for (T t : sumByCycle.getPossibleValues()) {
+//			Element valueE = doc.createElement("Value");
+//			valueE.setAttribute("value", t.toString());
+//			possValuesE.appendChild(valueE);
+//		}
+//		possValuesE.setAttribute("possibleValues", sumByCycle.getPossibleValuesAsString());
+//		cycleTallyElement.appendChild(possValuesE);
+//		
+//		try {
+//			long count = total;
+//			for (Integer cycle : sumByCycle.cycles()) {
+//				long mapTotal = getCountOfMapValues(sumByCycle.getValue(cycle));
+//				double percentage = (((double) mapTotal / count));
+//				AtomicLong ml = new AtomicLong(percentageArray.get(cycle));
+//				if (null != ml) {
+//					count -= ml.get();
+//				}
+//				
+//				Element cycleE = doc.createElement("Cycle");
+//				cycleE.setAttribute("value", cycle.toString());
+//				cycleTallyElement.appendChild(cycleE);
+//				for (T value : sumByCycle.values(cycle)) {
+//					Element tallyE = doc.createElement("TallyItem");
+//					tallyE.setAttribute("value", value.toString());
+//					tallyE.setAttribute("count", sumByCycle.count(cycle, value).get()+"");
+//					tallyE.setAttribute("percent", nf.format(percentage));
+//					cycleE.appendChild(tallyE);
+//				}
+//			}
+//		} catch (DOMException e) {
+//			e.printStackTrace();
+//		}
+//	}
+//	public static <T> void toXmlWithPercentage(SummaryByCycle<T> sumByCycle,  Element parent, String elementName , QCMGAtomicLongArray percentageArray, long total) {
+//		final NumberFormat nf = new DecimalFormat("0.0#%");
+//		Document doc = parent.getOwnerDocument();
+//		Element element = doc.createElement(elementName);
+//		parent.appendChild(element);
+//		
+//		// adding another level to conform to DTD..
+//		Element cycleTallyElement = doc.createElement("CycleTally");
+//		element.appendChild(cycleTallyElement);
+//		cycleTallyElement.setAttribute("possibleValues", sumByCycle.getPossibleValuesAsString());
+//		Element possValuesE = doc.createElement("PossibleValues");
+//		for (T t : sumByCycle.getPossibleValues()) {
+//			Element valueE = doc.createElement("Value");
+//			valueE.setAttribute("value", t.toString());
+//			possValuesE.appendChild(valueE);
+//		}
+//		possValuesE.setAttribute("possibleValues", sumByCycle.getPossibleValuesAsString());
+//		cycleTallyElement.appendChild(possValuesE);
+//		
+//		try {
+//			long count = total;
+//			for (Integer cycle : sumByCycle.cycles()) {
+//				long mapTotal = getCountOfMapValues(sumByCycle.getValue(cycle));
+//				double percentage = (((double) mapTotal / count));
+//				AtomicLong ml = new AtomicLong(percentageArray.get(cycle));
+//				if (null != ml) {
+//					count -= ml.get();
+//				}
+//				
+//				Element cycleE = doc.createElement("Cycle");
+//				cycleE.setAttribute("value", cycle.toString());
+//				cycleTallyElement.appendChild(cycleE);
+//				for (T value : sumByCycle.values(cycle)) {
+//					Element tallyE = doc.createElement("TallyItem");
+//					tallyE.setAttribute("value", value.toString());
+//					tallyE.setAttribute("count", sumByCycle.count(cycle, value).get()+"");
+//					tallyE.setAttribute("percent", nf.format(percentage));
+//					cycleE.appendChild(tallyE);
+//				}
+//			}
+//		} catch (DOMException e) {
+//			e.printStackTrace();
+//		}
+//	}
 	public static <T> void toXmlWithPercentage(SummaryByCycleNew2<T> sumByCycle,  Element parent, String elementName , QCMGAtomicLongArray percentageArray, long total) {
 		final NumberFormat nf = new DecimalFormat("0.0#%");
 		Document doc = parent.getOwnerDocument();
@@ -487,68 +487,68 @@ public class SummaryReportUtils {
 			e.printStackTrace();
 		}
 	}
-	public static void binnedLengthMapToRangeTallyXml(Element parent, QCMGAtomicLongArray array) {
-		
-		Document doc = parent.getOwnerDocument();
-		Element element = doc.createElement("RangeTally");
-		parent.appendChild(element);
-		
-		try {
-			long length = array.length();
-			for (int i = 0 ; i < length ; i++) {
-				if (array.get(i) > 0) {
-					Element cycleE = doc.createElement("RangeTallyItem");
-					cycleE.setAttribute("start", "" + i);
-					int endValue = i < MAX_I_SIZE ? 
-							i + (INITIAL_I_SIZE_BUCKET_SIZE - 1) : 
-								i + (FINAL_I_SIZE_BUCKET_SIZE - 1); 
-							cycleE.setAttribute("end", "" + endValue);
-							cycleE.setAttribute("count", "" + array.get(i));
-							element.appendChild(cycleE);
-				}
-			}
-		} catch (DOMException e) {
-			e.printStackTrace();
-		}
-	}
+//	public static void binnedLengthMapToRangeTallyXml(Element parent, QCMGAtomicLongArray array) {
+//		
+//		Document doc = parent.getOwnerDocument();
+//		Element element = doc.createElement("RangeTally");
+//		parent.appendChild(element);
+//		
+//		try {
+//			long length = array.length();
+//			for (int i = 0 ; i < length ; i++) {
+//				if (array.get(i) > 0) {
+//					Element cycleE = doc.createElement("RangeTallyItem");
+//					cycleE.setAttribute("start", "" + i);
+//					int endValue = i < MAX_I_SIZE ? 
+//							i + (INITIAL_I_SIZE_BUCKET_SIZE - 1) : 
+//								i + (FINAL_I_SIZE_BUCKET_SIZE - 1); 
+//							cycleE.setAttribute("end", "" + endValue);
+//							cycleE.setAttribute("count", "" + array.get(i));
+//							element.appendChild(cycleE);
+//				}
+//			}
+//		} catch (DOMException e) {
+//			e.printStackTrace();
+//		}
+//	}
 	
-	public static void binnedLengthMapToRangeTallyXml(Element parent, QCMGAtomicLongArray array, QCMGAtomicLongArray array2) {
-		
-		Document doc = parent.getOwnerDocument();
-		Element element = doc.createElement("RangeTally");
-		parent.appendChild(element);
-		
-		try {
-			long length = array.length();
-			for (int i = 0 ; i < length ; i++) {
-				if (array.get(i) > 0) {
-					Element cycleE = doc.createElement("RangeTallyItem");
-					cycleE.setAttribute("start", "" + i);
-					int endValue = i < MAX_I_SIZE ? 
-							i + (INITIAL_I_SIZE_BUCKET_SIZE - 1) : 
-								i + (FINAL_I_SIZE_BUCKET_SIZE - 1); 
-							cycleE.setAttribute("end", "" + endValue);
-							cycleE.setAttribute("count", "" + array.get(i));
-							element.appendChild(cycleE);
-				}
-			}
-			length = array2.length();
-			for (int i = 0 ; i < length ; i++) {
-				if (array2.get(i) > 0) {
-					Element cycleE = doc.createElement("RangeTallyItem");
-					cycleE.setAttribute("start", "" + i);
-					int endValue = i < MAX_I_SIZE ? 
-							i + (INITIAL_I_SIZE_BUCKET_SIZE - 1) : 
-								i + (FINAL_I_SIZE_BUCKET_SIZE - 1); 
-							cycleE.setAttribute("end", "" + endValue);
-							cycleE.setAttribute("count", "" + array2.get(i));
-							element.appendChild(cycleE);
-				}
-			}
-		} catch (DOMException e) {
-			e.printStackTrace();
-		}
-	}
+//	public static void binnedLengthMapToRangeTallyXml(Element parent, QCMGAtomicLongArray array, QCMGAtomicLongArray array2) {
+//		
+//		Document doc = parent.getOwnerDocument();
+//		Element element = doc.createElement("RangeTally");
+//		parent.appendChild(element);
+//		
+//		try {
+//			long length = array.length();
+//			for (int i = 0 ; i < length ; i++) {
+//				if (array.get(i) > 0) {
+//					Element cycleE = doc.createElement("RangeTallyItem");
+//					cycleE.setAttribute("start", "" + i);
+//					int endValue = i < MAX_I_SIZE ? 
+//							i + (INITIAL_I_SIZE_BUCKET_SIZE - 1) : 
+//								i + (FINAL_I_SIZE_BUCKET_SIZE - 1); 
+//							cycleE.setAttribute("end", "" + endValue);
+//							cycleE.setAttribute("count", "" + array.get(i));
+//							element.appendChild(cycleE);
+//				}
+//			}
+//			length = array2.length();
+//			for (int i = 0 ; i < length ; i++) {
+//				if (array2.get(i) > 0) {
+//					Element cycleE = doc.createElement("RangeTallyItem");
+//					cycleE.setAttribute("start", "" + i);
+//					int endValue = i < MAX_I_SIZE ? 
+//							i + (INITIAL_I_SIZE_BUCKET_SIZE - 1) : 
+//								i + (FINAL_I_SIZE_BUCKET_SIZE - 1); 
+//							cycleE.setAttribute("end", "" + endValue);
+//							cycleE.setAttribute("count", "" + array2.get(i));
+//							element.appendChild(cycleE);
+//				}
+//			}
+//		} catch (DOMException e) {
+//			e.printStackTrace();
+//		}
+//	}
 	
 	/**
 	 * Same as <code>SummaryReportUtils.tallyQualScores</code> but operates on
@@ -584,16 +584,16 @@ public class SummaryReportUtils {
 			SummaryByCycleUtils.incrementCount(map, countUnderTen);
 		}
 	}
-	public static void tallyQualScores(byte [] data, AtomicLongArray array) {
-		if (null != data) {
-			int countUnderTen = 0;
-			for (byte b : data) {
-				if ((b & 0xFF) < 10)
-					countUnderTen++;
-			}
-			array.incrementAndGet(countUnderTen);
-		}
-	}
+//	public static void tallyQualScores(byte [] data, AtomicLongArray array) {
+//		if (null != data) {
+//			int countUnderTen = 0;
+//			for (byte b : data) {
+//				if ((b & 0xFF) < 10)
+//					countUnderTen++;
+//			}
+//			array.incrementAndGet(countUnderTen);
+//		}
+//	}
 	public static void tallyQualScores(byte [] data, QCMGAtomicLongArray array) {
 		if (null != data) {
 			int countUnderTen = 0;
@@ -693,16 +693,16 @@ public class SummaryReportUtils {
 			SummaryByCycleUtils.incrementCount(map, Integer.valueOf(count));
 		}
 	}
-	public static void tallyBadReadsAsString(String data, AtomicLongArray array) {
-		if (null != data) {
-			int count = 0;
-			for (int i = 0, size = data.length() ; i < size ; i++) {
-				if (isInValid(data.charAt(i)))
-					count++;
-			}
-			array.incrementAndGet(count);
-		}
-	}
+//	public static void tallyBadReadsAsString(String data, AtomicLongArray array) {
+//		if (null != data) {
+//			int count = 0;
+//			for (int i = 0, size = data.length() ; i < size ; i++) {
+//				if (isInValid(data.charAt(i)))
+//					count++;
+//			}
+//			array.incrementAndGet(count);
+//		}
+//	}
 	public static void tallyBadReadsAsString(String data, QCMGAtomicLongArray array) {
 		if (null != data) {
 			int count = 0;

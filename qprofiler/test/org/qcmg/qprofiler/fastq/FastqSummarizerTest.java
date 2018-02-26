@@ -1,5 +1,7 @@
 package org.qcmg.qprofiler.fastq;
 
+import static org.junit.Assert.assertEquals;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -9,19 +11,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 import junit.framework.Assert;
-//import htsjdk.samtools.PicardException;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 
 public class FastqSummarizerTest {
 	private static final QLogger logger = QLoggerFactory.getLogger(FastqSummarizerTest.class);
 	
-	private static final String FASTQ_INPUT_FILE = "testInputFile.fastq";
-	private static final String FASTQ_DODGY_INPUT_FILE = "testInputFileDodgy.fastq";
+	@Rule
+	public TemporaryFolder testFolder = new TemporaryFolder();
 	
 	
 	/*
@@ -59,22 +60,14 @@ GCCGTTTTCTCTGGAAGCCTCTTAAGAACACAGTGGCGCAGGCTGGGTGGAGCCGTCCCCCCATGGAGCACAGGCAGACA
 BCCFDFFFHHHHHJJJJIJJJJJIJIJJJJJJJGHJJJJJJJJJJIJFHIJJJHHHFFDDDDDCDCDDDDDDDDDDDDDDDDDD@CDDDDDDDDDBBCCA
 	 */
 
-	@Before
-	public void setup() {
-		createTestFastqFile(FASTQ_INPUT_FILE, createValidFastqData());
-	}
-
-	@After
-	public void tearDown() {
-		File outputFile = new File(FASTQ_INPUT_FILE);
-		Assert.assertTrue(outputFile.delete());
-	}
-
 	@Test
 	public void testSummarize() throws Exception {
 		logger.info("in testSummarize()");
+		
+		File f = testFolder.newFile("testSummarize.fasta");
+		createTestFastqFile(f, createValidFastqData());
 		FastqSummarizer qs = new FastqSummarizer();
-		FastqSummaryReport sr = (FastqSummaryReport) qs.summarize(FASTQ_INPUT_FILE, null, null);
+		FastqSummaryReport sr = (FastqSummaryReport) qs.summarize(f.getAbsolutePath(), null, null);
 
 		Assert.assertNotNull(sr);
 		Assert.assertEquals(4, sr.getRecordsParsed());
@@ -85,173 +78,141 @@ BCCFDFFFHHHHHJJJJIJJJJJIJIJJJJJJJGHJJJJJJJJJJIJFHIJJJHHHFFDDDDDCDCDDDDDDDDDDDDDD
 	@Test
 	public void testSummarizeMissingData() throws Exception {
 		logger.info("in testSummarizeMissingData()");
-		createDodgyDataFile(createFastqDataMissingData());
+		File f = testFolder.newFile("testSummarizeMissingData.fasta");
+		createDodgyDataFile(f, createFastqDataMissingData());
 
 		FastqSummarizer qs = new FastqSummarizer();
 		try {
-			qs.summarize(new File(FASTQ_DODGY_INPUT_FILE));
+			qs.summarize(f);
 			Assert.fail("Should have thrown an Exception");
 		} catch (Exception e) {
 			Assert.assertTrue(e.getMessage().startsWith("Quality header must start with +:"));
 		}
-
-		deleteDodgyDataFile();
 	}
 	
 	@Test
 	public void testSummarizeDataOfDifferingLengths() throws Exception {
 		logger.info("in testSummarizeMissingData()");
-		createDodgyDataFile(createFastqDataOfDifferingLengths());
+		File f = testFolder.newFile("testSummarizeDataOfDifferingLengths.fasta");
+		createDodgyDataFile(f,createFastqDataOfDifferingLengths());
 		
 		FastqSummarizer qs = new FastqSummarizer();
 		try {
-			qs.summarize(new File(FASTQ_DODGY_INPUT_FILE));
+			qs.summarize(f.getAbsolutePath(), null, null);
 			Assert.fail("Should have thrown an Exception");
 		} catch (Exception e) {
-			Assert.assertTrue(e.getMessage().startsWith("Sequence and quality line must be the same length"));
+			assertEquals(true, e.getMessage().startsWith("Sequence and quality line must be the same length"));
 		}
-		
-		deleteDodgyDataFile();
 	}
 
 	@Test
 	public void testSummarizeEmptyFile() throws Exception {
 		logger.info("in testSummarizeEmptyFile()");
-		createDodgyDataFile(new ArrayList<String>());
+		File f = testFolder.newFile("testSummarizeEmptyFile.fasta");
+		createDodgyDataFile(f, new ArrayList<String>());
 
 		FastqSummarizer qs = new FastqSummarizer();
-		FastqSummaryReport sr = (FastqSummaryReport) qs.summarize(new File(FASTQ_DODGY_INPUT_FILE));
+		FastqSummaryReport sr = (FastqSummaryReport) qs.summarize(f);
 		Assert.assertEquals(0, sr.getRecordsParsed());
-
-		deleteDodgyDataFile();
 	}
 
 	@Test
 	public void testSummarizeExtraData() throws Exception {
 		logger.info("in testSummarizeExtraData()");
-		createDodgyDataFile(createFastqDataExtraData());
+		File f = testFolder.newFile("testSummarizeExtraData.fasta");
+		createDodgyDataFile(f, createFastqDataExtraData());
 
 		FastqSummarizer qs = new FastqSummarizer();
 		try {
-			qs.summarize(new File(FASTQ_DODGY_INPUT_FILE));
+			qs.summarize(f);
 			Assert.fail("Should have thrown an Exception");
 		} catch (Exception e) {
-			Assert.assertTrue(e.getMessage().startsWith("Sequence header must start with @:"));
+			Assert.assertEquals(true, e.getMessage().startsWith("Sequence header must start with @:"));
 		}
-
-		deleteDodgyDataFile();
 	}
 	
 	@Ignore
 	public void testSummarizeActualDuffData() throws Exception {
 		logger.info("in testSummarizeExtraData()");
-		createDodgyDataFile(createActualDuffFastqData());
+		File f = testFolder.newFile("testSummarizeActualDuffData.fasta");
+		createDodgyDataFile(f, createActualDuffFastqData());
 		
 		FastqSummarizer qs = new FastqSummarizer();
 		try {
-			qs.summarize(new File(FASTQ_DODGY_INPUT_FILE));
+			qs.summarize(f);
 			Assert.fail("Should have thrown an Exception");
 		} catch (Exception e) {
 			Assert.assertTrue(e.getMessage().startsWith("Bad id format"));
 		}
-		
-		deleteDodgyDataFile();
 	}
 	
 	@Test
 	public void testSummarizeActualDataShouldWork() throws Exception {
 		logger.info("in testSummarizeActualDataShouldWork()");
-		createDodgyDataFile(createFastqDataBodyShouldWork());
+		File f = testFolder.newFile("testSummarizeActualDataShouldWork.fasta");
+		createDodgyDataFile(f, createFastqDataBodyShouldWork());
 		
 		FastqSummarizer qs = new FastqSummarizer();
-		qs.summarize(new File(FASTQ_DODGY_INPUT_FILE));
-		
-		deleteDodgyDataFile();
+		qs.summarize(f);
 	}
 	
 	@Test
 	public void testSummarizeCrapData() throws Exception {
 		logger.info("in testSummarizeCrapData()");
-		createDodgyDataFile(createFastqDataCrapBody());
+		File f = testFolder.newFile("testSummarizeCrapData.fasta");
+		createDodgyDataFile(f, createFastqDataCrapBody());
 		
 		FastqSummarizer qs = new FastqSummarizer();
 		try {
-			qs.summarize(new File(FASTQ_DODGY_INPUT_FILE));
+			qs.summarize(f);
 			Assert.fail("Should have thrown an Exception");
 		} catch (Exception e) {
 			//debug
 			System.out.println("error message: " + e.getMessage());
 			
-//			Assert.assertTrue(e.getMessage().startsWith("Invalid fastq character"));
-			//tomorrow continue check, kmers error since reads not ATGC but $./...
 			Assert.assertTrue(e.getMessage().length() > 0);
 		}
-//		FastqSummaryReport sr = (FastqSummaryReport) qs.summarize(new File(FASTQ_DODGY_INPUT_FILE));
-//		Assert.assertEquals(3, sr.getRecordsParsed());
-		
-		deleteDodgyDataFile();
 	}
 	
 	@Ignore
 	public void testSummarizeDifferentData() throws Exception {
 		logger.info("in testSummarizeDifferentData()");
-		//TODO update method name - it is in fact non-dodgy!!!
-		createDodgyDataFile(createFastqDataDodgyBody());
+		File f = testFolder.newFile("testSummarizeDifferentData.fasta");
+		createDodgyDataFile(f, createFastqDataDodgyBody());
 		
 		FastqSummarizer qs = new FastqSummarizer();
-		FastqSummaryReport sr = (FastqSummaryReport) qs.summarize(new File(FASTQ_DODGY_INPUT_FILE));
+		FastqSummaryReport sr = (FastqSummaryReport) qs.summarize(f);
 		Assert.assertEquals(5, sr.getRecordsParsed());
-		
-		deleteDodgyDataFile();
 	}
 
 	@Ignore
 	public void testSummarizeNoHeader() throws Exception {
 		logger.info("in testSummarizeNoHeader()");
-		createDodgyDataFile(createFastqDataBody());
+		File f = testFolder.newFile("testSummarizeNoHeader.fasta");
+		createDodgyDataFile(f, createFastqDataBody());
 
 		FastqSummarizer qs = new FastqSummarizer();
-		FastqSummaryReport sr = (FastqSummaryReport) qs.summarize(new File(
-				FASTQ_DODGY_INPUT_FILE));
+		FastqSummaryReport sr = (FastqSummaryReport) qs.summarize(f);
 		Assert.assertEquals(5, sr.getRecordsParsed());
 		Assert.assertEquals(5, sr.getRecordsParsed());
-
-		deleteDodgyDataFile();
 	}
 
-	private void deleteDodgyDataFile() {
-		File outputFile = new File(FASTQ_DODGY_INPUT_FILE);
-		Assert.assertTrue(outputFile.delete());
-	}
-
-	private void createDodgyDataFile(List<String> dodgyData) {
-		createTestFastqFile(FASTQ_DODGY_INPUT_FILE, dodgyData);
+	private void createDodgyDataFile(File f, List<String> dodgyData) {
+		createTestFastqFile(f, dodgyData);
 	}
 
 	private static List<String> createValidFastqData() {
-		List<String> data = new ArrayList<String>();
-		
-//		for (String dataEntry : createFastqDataHeader()) {
-//			data.add(dataEntry);
-//		}
-//		data.add("# called by createValidFastqData()");
+		List<String> data = new ArrayList<>();
 		
 		for (String dataEntry : createFastqDataBody()) {
 			data.add(dataEntry);
 		}
-		
 		return data;
 	}
 
-//	private static List<String> createFastqDataHeader() {
-//		List<String> data = new ArrayList<String>();
-//		data.add("# test fastq file");
-//		data.add("# auto-generated from FastqSummarizerTest.java");
-//		return data;
-//	}
 	
 	private static List<String> createFastqDataBody() {
-		List<String> data = new ArrayList<String>();
+		List<String> data = new ArrayList<>();
 		data.add("@2_1110_310_F3");
 		data.add("GATTTGGGGTTCAAAGCAGTATCGATCAAATAGTAAATCCATTTGTTCAACTCACAGTTT");
 		data.add("+2_1110_310_F3");
@@ -271,7 +232,7 @@ BCCFDFFFHHHHHJJJJIJJJJJIJIJJJJJJJGHJJJJJJJJJJIJFHIJJJHHHFFDDDDDCDCDDDDDDDDDDDDDD
 		return data;
 	}
 	private static List<String> createFastqDataBodyShouldWork() {
-		List<String> data = new ArrayList<String>();
+		List<String> data = new ArrayList<>();
 		data.add("@ERR091788.1 HSQ955_155:2:1101:1473:2037/1");
 		data.add("GGGCANCCAGCAGCCCTCGGGGCTTCTCTGTTTATGGAGTAGCCATTCTCGTATCCTTCTACTTTCTTAAACTTTCTTTCACTTACAAAAAAATAGTGGA");
 		data.add("+");
@@ -280,7 +241,7 @@ BCCFDFFFHHHHHJJJJIJJJJJIJIJJJJJJJGHJJJJJJJJJJIJFHIJJJHHHFFDDDDDCDCDDDDDDDDDDDDDD
 	}
 	
 	private static List<String> createFastqDataDodgyBody() {
-		List<String> data = new ArrayList<String>();
+		List<String> data = new ArrayList<>();
 		data.add(">2_1110_310_F3");
 		data.add("G22001202300110203202312222020302022200203300000200");
 		data.add(">2_28_553_F3");
@@ -295,7 +256,7 @@ BCCFDFFFHHHHHJJJJIJJJJJIJIJJJJJJJGHJJJJJJJJJJIJFHIJJJHHHFFDDDDDCDCDDDDDDDDDDDDDD
 	}
 	
 	private static List<String> createFastqDataCrapBody() {
-		List<String> data = new ArrayList<String>();
+		List<String> data = new ArrayList<>();
 		data.add("@2_1110_310_F3");
 		data.add("G220012023001102032<<<<<!@#$%^&*()!@#!@#!@#!@#");
 		data.add("+2_28_553_F3");
@@ -309,7 +270,7 @@ BCCFDFFFHHHHHJJJJIJJJJJIJIJJJJJJJGHJJJJJJJJJJIJFHIJJJHHHFFDDDDDCDCDDDDDDDDDDDDDD
 	
 	//@TODO - update with actual fastq duff data when available
 	private static List<String> createActualDuffFastqData() {
-		List<String> data = new ArrayList<String>();
+		List<String> data = new ArrayList<>();
 		
 		data.add(">1766_862_327_F3");
 		data.add("T01121112112121222300000031021231102012320213101000");
@@ -327,7 +288,7 @@ BCCFDFFFHHHHHJJJJIJJJJJIJIJJJJJJJGHJJJJJJJJJJIJFHIJJJHHHFFDDDDDCDCDDDDDDDDDDDDDD
 	}
 
 	private static List<String> createFastqDataMissingData() {
-		List<String> data = new ArrayList<String>();
+		List<String> data = new ArrayList<>();
 		
 		data.add("@id_123");
 		data.add("@id_234");
@@ -338,7 +299,7 @@ BCCFDFFFHHHHHJJJJIJJJJJIJIJJJJJJJGHJJJJJJJJJJIJFHIJJJHHHFFDDDDDCDCDDDDDDDDDDDDDD
 	}
 	
 	private static List<String> createFastqDataOfDifferingLengths() {
-		List<String> data = new ArrayList<String>();
+		List<String> data = new ArrayList<>();
 		
 		data.add("@id_123");
 		data.add("ACGTACGT");
@@ -348,7 +309,7 @@ BCCFDFFFHHHHHJJJJIJJJJJIJIJJJJJJJGHJJJJJJJJJJIJFHIJJJHHHFFDDDDDCDCDDDDDDDDDDDDDD
 	}
 
 	private static List<String> createFastqDataExtraData() {
-		List<String> data = new ArrayList<String>();
+		List<String> data = new ArrayList<>();
 		
 		data.add("@2_1110_310_F3");
 		data.add("GATTTGGGGTTCAAAGCAGTATCGATCAAATAGTAAATCCATTTGTTCAACTCACAGTTT");
@@ -363,21 +324,13 @@ BCCFDFFFHHHHHJJJJIJJJJJIJIJJJJJJJGHJJJJJJJJJJIJFHIJJJHHHFFDDDDDCDCDDDDDDDDDDDDDD
 		return data;
 	}
 
-	private static void createTestFastqFile(String name, List<String> data) {
-		String fileName = FASTQ_INPUT_FILE;
-		if (null != name)
-			fileName = name;
-
-		PrintWriter out;
-		try {
-			out = new PrintWriter(new BufferedWriter(new FileWriter(fileName)));
-
+	private static void createTestFastqFile(File file, List<String> data) {
+		try (PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(file)));){
 			for (String line : data) {
 				out.println(line);
 			}
-			out.close();
 		} catch (IOException e) {
-			logger.error("IOException caught whilst attempting to write to FASTQ test file: " +fileName , e);
+			logger.error("IOException caught whilst attempting to write to FASTQ test file: " +file.getAbsolutePath() , e);
 		}
 	}
 

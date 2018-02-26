@@ -2,18 +2,10 @@ package org.qcmg.qprofiler.bam;
 
 import junit.framework.Assert;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicLongArray;
-import java.util.stream.Stream;
 
 import org.junit.Test;
-import org.qcmg.common.model.QCMGAtomicLongArray;
 import org.qcmg.qprofiler.summarise.PositionSummary;
 
 
