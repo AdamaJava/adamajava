@@ -36,8 +36,11 @@ public class ComparisonUtil {
 		
 		for (Comparison comp : comparisons) {
 			
+//			sb.append(SignatureUtil.nf.format(comp.getScore())).append("[").append(comp.getOverlapCoverage())
+//				.append(",").append(comp.getNumberOfCalculations()).append("],");
+			
 			sb.append(SignatureUtil.nf.format(comp.getScore())).append("[").append(comp.getOverlapCoverage())
-				.append(",").append(comp.getNumberOfCalculations()).append("],");
+			.append("],");
 		}
 		
 		sb.deleteCharAt(sb.length() - 1);		// remove trailing comma
@@ -50,8 +53,8 @@ public class ComparisonUtil {
 		
 		for (Comparison comp : comparisons) {
 			// only care about comparisons that had a large number of calculations
-			if (comp.getNumberOfCalculations() < MINIMUM_NO_OF_CALCULATIONS)
-				continue;
+//			if (comp.getNumberOfCalculations() < MINIMUM_NO_OF_CALCULATIONS)
+//				continue;
 			if (comp.getScore() > cutoff) return true;
 		}
 		return false;
@@ -67,20 +70,20 @@ public class ComparisonUtil {
 				throw new IllegalArgumentException("null files passed to compareRatios");
 			
 			if (file1Ratios.isEmpty() || file2Ratios.isEmpty()) {
-				return  new Comparison(file1.getAbsolutePath(), file1Ratios.size(), file2.getAbsolutePath(), file2Ratios.size(), 0, 0, 0, 0, 0);
+				return  new Comparison(file1.getAbsolutePath(), file1Ratios.size(), file2.getAbsolutePath(), file2Ratios.size(), 0, 0);
 			}
 			
 			// if the files are the same, return a comparison object without doing the comparison
 			if (file1.equals(file2)) {
-				return  new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), 0, file1Ratios.size(), 0, 0, 0);
+				return  new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), 0, file1Ratios.size());
 			}
 			
 			boolean checkPositionsList = null != positionsOfInterest && ! positionsOfInterest.isEmpty();
 			
 			int match = 0;
 			int totalCompared = 0;
-			long f1TotalCov = 0;
-			long f2TotalCov = 0;
+//			long f1TotalCov = 0;
+//			long f2TotalCov = 0;
 			for (Entry<ChrPosition, double[]> file1RatiosEntry : file1Ratios.entrySet()) {
 				
 				// check to see if position is in the list of desired positions, if not continue
@@ -131,8 +134,8 @@ public class ComparisonUtil {
 							}
 							totalCompared++;
 							
-							f1TotalCov += file1Ratio[4];
-							f2TotalCov += file2Ratio[4];
+//							f1TotalCov += file1Ratio[4];
+//							f2TotalCov += file2Ratio[4];
 						}
 					}
 				}
@@ -140,7 +143,7 @@ public class ComparisonUtil {
 			double concordance = totalCompared > 0 ? ((double)match / totalCompared) * 100 : 0;
 			logger.info("match: " + match + ", totalCompared: " + totalCompared + " percentage concordance: " + concordance);
 			
-			Comparison comp = new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), match, totalCompared, 0, f1TotalCov, f2TotalCov);
+			Comparison comp = new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), match, totalCompared);
 			return comp;
 		}
 	
@@ -155,11 +158,11 @@ public class ComparisonUtil {
 			throw new IllegalArgumentException("null files passed to compareRatios");
 		
 		if (file1Ratios.isEmpty() || file2Ratios.isEmpty()) {
-			return  new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), 0, 0, 0, 0, 0);
+			return  new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), 0, 0);
 		}
 		
 		if (file1.equals(file2)) {
-			return  new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), 0, file1Ratios.size(), 0, 0, 0);
+			return  new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), 0, file1Ratios.size());
 		}
 		AtomicInteger match = new AtomicInteger();
 		AtomicInteger totalCompared = new AtomicInteger();
@@ -177,7 +180,7 @@ public class ComparisonUtil {
 			return true;
 		});
 		
-		Comparison comp = new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), match.get(), totalCompared.get(), 0,0,0);
+		Comparison comp = new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), match.get(), totalCompared.get());
 		return comp;
 		
 	}
