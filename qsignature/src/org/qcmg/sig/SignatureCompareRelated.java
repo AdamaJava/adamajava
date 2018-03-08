@@ -300,7 +300,7 @@ public class SignatureCompareRelated {
 			Element compE = doc.createElement(id);
 			compE.setAttribute("score", comp.getScore() + "");
 			compE.setAttribute("overlap", comp.getOverlapCoverage() + "");
-			compE.setAttribute("calcs", comp.getNumberOfCalculations() + "");
+//			compE.setAttribute("calcs", comp.getNumberOfCalculations() + "");
 			compsE.appendChild(compE);
 		}
 		

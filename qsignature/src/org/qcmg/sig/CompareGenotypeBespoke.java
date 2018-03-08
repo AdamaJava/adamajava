@@ -64,7 +64,7 @@ public class CompareGenotypeBespoke {
 	
 	private final Map<File, Pair<SigMeta,TIntShortHashMap>> cache = new THashMap<>();
 	
-	List<String> suspiciousResults = new ArrayList<String>();
+	List<String> suspiciousResults = new ArrayList<>();
 	
 	private int engage() throws Exception {
 		
