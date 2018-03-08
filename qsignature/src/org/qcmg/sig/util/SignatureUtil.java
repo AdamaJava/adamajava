@@ -971,9 +971,9 @@ public class SignatureUtil {
 			compE.setAttribute("file2", id2 + "");
 			compE.setAttribute("score", comp.getScore() + "");
 			compE.setAttribute("overlap", comp.getOverlapCoverage() + "");
-			compE.setAttribute("calcs", comp.getNumberOfCalculations() + "");
-			compE.setAttribute("f1AveCovAtOverlaps", comp.getMainAveCovAtOverlaps() + "");
-			compE.setAttribute("f2AveCovAtOverlaps", comp.getTestAveCovAtOverlaps() + "");
+//			compE.setAttribute("calcs", comp.getNumberOfCalculations() + "");
+//			compE.setAttribute("f1AveCovAtOverlaps", comp.getMainAveCovAtOverlaps() + "");
+//			compE.setAttribute("f2AveCovAtOverlaps", comp.getTestAveCovAtOverlaps() + "");
 			compsE.appendChild(compE);
 		}
 		

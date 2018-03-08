@@ -17,12 +17,12 @@ public class Comparison implements Comparable<Comparison> {
 	
 	private final int mainCoverage;
 	private final int testCoverage;
-	private final long mainCovAtOverlaps;
-	private final long testCovAtOverlaps;
+//	private final long mainCovAtOverlaps;
+//	private final long testCovAtOverlaps;
 	private final int overlapCoverage;
 //	private final double totalScore;
 	private final double score;
-	private final int numberOfCalculations;
+	//private final int numberOfCalculations;
 	
 	public String getMain() {
 		return main;
@@ -48,30 +48,26 @@ public class Comparison implements Comparable<Comparison> {
 //		return totalScore;
 //	}
 
-	public int getNumberOfCalculations() {
-		return numberOfCalculations;
-	}
-	
 	public double getScore() {
 		return score;
 	}
 	
-	public int getMainAveCovAtOverlaps() {
-//		System.out.println("mainCovAtOverlaps: " + mainCovAtOverlaps);
-//		System.out.println("overlapCoverage: " + overlapCoverage);
-		return overlapCoverage > 0 ? (int)(mainCovAtOverlaps / overlapCoverage) : -1; 
-	}
-	public int getTestAveCovAtOverlaps() {
-//		System.out.println("testCovAtOverlaps: " + testCovAtOverlaps);
-//		System.out.println("overlapCoverage: " + overlapCoverage);
-		return overlapCoverage > 0 ? (int)(testCovAtOverlaps / overlapCoverage) : -1; 
-	}
-	
-	public Comparison(File file1, int size, File file2, int size2, double finalTally, int count, int noOfCalculations, long l, long m) {
-		this(file1 != null ? file1.getAbsolutePath() : null, size, file2 != null ? file2.getAbsolutePath() : null, size2, finalTally, count, noOfCalculations, l, m);
+//	public int getMainAveCovAtOverlaps() {
+////		System.out.println("mainCovAtOverlaps: " + mainCovAtOverlaps);
+////		System.out.println("overlapCoverage: " + overlapCoverage);
+//		return overlapCoverage > 0 ? (int)(mainCovAtOverlaps / overlapCoverage) : -1; 
+//	}
+//	public int getTestAveCovAtOverlaps() {
+////		System.out.println("testCovAtOverlaps: " + testCovAtOverlaps);
+////		System.out.println("overlapCoverage: " + overlapCoverage);
+//		return overlapCoverage > 0 ? (int)(testCovAtOverlaps / overlapCoverage) : -1; 
+//	}
+//	
+	public Comparison(File file1, int size, File file2, int size2, double finalTally, int count) {
+		this(file1 != null ? file1.getAbsolutePath() : null, size, file2 != null ? file2.getAbsolutePath() : null, size2, finalTally, count);
 	}
 
-	public Comparison(String file1, int size, String file2, int size2, double finalTally, int count, int noOfCalculations, long l, long m) {
+	public Comparison(String file1, int size, String file2, int size2, double finalTally, int count) {
 		
 		if (null == file1 || null == file2) 
 			throw new IllegalArgumentException("null files passed to Comparison constructor");
@@ -79,7 +75,7 @@ public class Comparison implements Comparable<Comparison> {
 		if (finalTally > 0.0 && count == 0)
 			throw new IllegalArgumentException("non-zero tally but zero count passed to Comparison constructor");
 		
-		if (size < 0 || size2 < 0 || finalTally < 0.0 || count < 0 || noOfCalculations < 0)
+		if (size < 0 || size2 < 0 || finalTally < 0.0 || count < 0)
 			throw new IllegalArgumentException("negative value(s) passed to Comparison constructor");
 		
 		this.main = file1;
@@ -88,10 +84,10 @@ public class Comparison implements Comparable<Comparison> {
 		this.testCoverage = size2;
 //		this.totalScore = finalTally;
 		this.overlapCoverage = count;
-		this.numberOfCalculations = noOfCalculations;
+		//this.numberOfCalculations = noOfCalculations;
 		this.score = finalTally / overlapCoverage;
-		mainCovAtOverlaps = l;
-		testCovAtOverlaps = m;
+	//	mainCovAtOverlaps = l;
+	//	testCovAtOverlaps = m;
 	}
 	
 	public String toSummaryString() {
@@ -111,7 +107,7 @@ public class Comparison implements Comparable<Comparison> {
 		sb.append(test).append(" (").append(testCoverage).append(") : ");
 		sb.append(Double.isNaN(score) ? "NaN" : score);
 		sb.append(", ").append(overlapCoverage);
-		sb.append(", ").append(numberOfCalculations);
+//		sb.append(", ").append(numberOfCalculations);
 		return sb.toString();
 	}
 
