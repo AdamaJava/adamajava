@@ -88,7 +88,7 @@ public class QSigCompareDistanceTest {
 		Comparison c = QSigCompareDistance.compareRatios(map1, map2, F1, F2);
 		
 //		assertEquals(0.0, c.getTotalScore(), 0.0001);
-		assertEquals(2 * 4, c.getNumberOfCalculations());
+//		assertEquals(2 * 4, c.getNumberOfCalculations());
 		assertEquals(2, c.getOverlapCoverage());
 		assertEquals(2, c.getMainCoverage());
 		assertEquals(2, c.getTestCoverage());
@@ -104,7 +104,7 @@ public class QSigCompareDistanceTest {
 		
 		// sqr((20-10)^2 + 15^2) * 2
 		assertEquals(36.0555 / c.getOverlapCoverage(), c.getScore(), 0.0001);
-		assertEquals(4 * 4, c.getNumberOfCalculations());
+//		assertEquals(4 * 4, c.getNumberOfCalculations());
 		assertEquals(4, c.getOverlapCoverage());
 		assertEquals(4, c.getMainCoverage());
 		assertEquals(4, c.getTestCoverage());
@@ -118,7 +118,7 @@ public class QSigCompareDistanceTest {
 		// as before
 		// sqr((20-10)^2 + 15^2) * 2
 		assertEquals(36.0555 / c.getOverlapCoverage(), c.getScore(), 0.0001);
-		assertEquals(4 * 4, c.getNumberOfCalculations());
+//		assertEquals(4 * 4, c.getNumberOfCalculations());
 		assertEquals(4, c.getOverlapCoverage());
 		assertEquals(4, c.getMainCoverage());
 		assertEquals(4, c.getTestCoverage());
@@ -152,7 +152,7 @@ public class QSigCompareDistanceTest {
 	
 	private void testEmptyComparison(Comparison c, int mainCov, int testCov) {
 		assertEquals(Double.NaN, c.getScore(), 0.0001);
-		assertEquals(0, c.getNumberOfCalculations());
+//		assertEquals(0, c.getNumberOfCalculations());
 		assertEquals(0, c.getOverlapCoverage());
 		assertEquals(mainCov, c.getMainCoverage());
 		assertEquals(testCov, c.getTestCoverage());

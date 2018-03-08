@@ -395,12 +395,12 @@ public class QSigCompareDistance {
 			throw new IllegalArgumentException("null files passed to compareRatios");
 		
 		if (file1Ratios.isEmpty() || file2Ratios.isEmpty()) {
-			return  new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), 0, 0, 0, 0, 0);
+			return  new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), 0, 0);
 		}
 		
 		// if the files are the same, return a comparison object without doing the comparison
 		if (file1.equals(file2)) {
-			return  new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), 0, file1Ratios.size(), 0, 0, 0);
+			return  new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), 0, file1Ratios.size());
 		}
 		
 		boolean checkPositionsList = null != positionsOfInterest && ! positionsOfInterest.isEmpty();
@@ -408,10 +408,10 @@ public class QSigCompareDistance {
 		
 //		int overlapCount = 0, nonOverlapCount = 0;
 		int count = 0;
-		int noOfCalculations = 0;
+//		int noOfCalculations = 0;
 		double finalTally = 0.0;
-		long f1TotalCov = 0;
-		long f2TotalCov = 0;
+//		long f1TotalCov = 0;
+//		long f2TotalCov = 0;
 		for (Entry<ChrPosition, double[]> file1RatiosEntry : file1Ratios.entrySet()) {
 			
 			// check to see if position is in the list of desired positions, if not continue
@@ -435,17 +435,18 @@ public class QSigCompareDistance {
 					if (Double.isNaN(file2Value)) continue;
 					
 					tally += FastMath.pow((file1Value - file2Value), 2);
-					noOfCalculations++;
+//					noOfCalculations++;
 				}
 //				System.out.println("about to add " + file1Ratio[4] + " to f1 tally at " + file1RatiosEntry.getKey().toString());
 //				System.out.println("about to add " + file2Ratio[4] + " to f2 tally at " + file1RatiosEntry.getKey().toString());
-				f1TotalCov += file1Ratio[4];
-				f2TotalCov += file2Ratio[4];
+//				f1TotalCov += file1Ratio[4];
+//				f2TotalCov += file2Ratio[4];
 				finalTally += FastMath.sqrt(tally);
 				count++;
 			}
 		}
-		Comparison comp = new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), finalTally, count, noOfCalculations, f1TotalCov, f2TotalCov);
+		Comparison comp = new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), finalTally, count);
+//		Comparison comp = new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), finalTally, count, noOfCalculations, f1TotalCov, f2TotalCov);
 //		System.out.println("overlapCount: " + overlapCount + ", nonOverlapCount: " + nonOverlapCount);
 		return comp;
 	}
@@ -459,12 +460,12 @@ public class QSigCompareDistance {
 			throw new IllegalArgumentException("null files passed to compareRatios");
 		
 		if (file1Ratios.isEmpty() || file2Ratios.isEmpty()) {
-			return  new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), 0, 0, 0, 0, 0);
+			return  new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), 0, 0);
 		}
 		
 		// if the files are the same, return a comparison object without doing the comparison
 		if (file1.equals(file2)) {
-			return  new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), 0, file1Ratios.size(), 0, 0, 0);
+			return  new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), 0, file1Ratios.size());
 		}
 		
 		boolean checkPositionsList = null != positionsOfInterest && ! positionsOfInterest.isEmpty();
@@ -472,10 +473,10 @@ public class QSigCompareDistance {
 		
 //		int overlapCount = 0, nonOverlapCount = 0;
 		int count = 0;
-		int noOfCalculations = 0;
+//		int noOfCalculations = 0;
 		double finalTally = 0.0;
-		long f1TotalCov = 0;
-		long f2TotalCov = 0;
+//		long f1TotalCov = 0;
+//		long f2TotalCov = 0;
 		for (Entry<ChrPosition, float[]> file1RatiosEntry : file1Ratios.entrySet()) {
 			
 			// check to see if position is in the list of desired positions, if not continue
@@ -499,17 +500,18 @@ public class QSigCompareDistance {
 					if (Double.isNaN(file2Value)) continue;
 					
 					tally += FastMath.pow((file1Value - file2Value), 2);
-					noOfCalculations++;
+//					noOfCalculations++;
 				}
 //				System.out.println("about to add " + file1Ratio[4] + " to f1 tally at " + file1RatiosEntry.getKey().toString());
 //				System.out.println("about to add " + file2Ratio[4] + " to f2 tally at " + file1RatiosEntry.getKey().toString());
-				f1TotalCov += file1Ratio[4];
-				f2TotalCov += file2Ratio[4];
+//				f1TotalCov += file1Ratio[4];
+//				f2TotalCov += file2Ratio[4];
 				finalTally += FastMath.sqrt(tally);
 				count++;
 			}
 		}
-		Comparison comp = new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), finalTally, count, noOfCalculations, f1TotalCov, f2TotalCov);
+		Comparison comp = new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), finalTally, count);
+//		Comparison comp = new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), finalTally, count, noOfCalculations, f1TotalCov, f2TotalCov);
 //		System.out.println("overlapCount: " + overlapCount + ", nonOverlapCount: " + nonOverlapCount);
 		return comp;
 	}
