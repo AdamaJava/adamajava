@@ -8,10 +8,8 @@ package org.qcmg.sig.util;
 
 import static java.util.Comparator.comparing;
 import gnu.trove.map.TMap;
-import gnu.trove.map.hash.TFloatIntHashMap;
 import gnu.trove.map.hash.THashMap;
 import gnu.trove.map.hash.TIntShortHashMap;
-import gnu.trove.map.hash.TShortIntHashMap;
 
 import java.io.File;
 import java.io.IOException;
@@ -350,40 +348,6 @@ public class SignatureUtil {
 		
 		return dist;
 	}
-//	public static TShortIntHashMap getVariantAlleleFractionDistribution(File f, int minCoverage) throws IOException {
-//		
-//		TShortIntHashMap dist = new TShortIntHashMap(1000);
-//		
-//		/*
-//		 * load file, get float value of VAF
-//		 */
-//		try (VCFFileReader reader = new VCFFileReader(f)) {
-//			
-//			for (VcfRecord vcf : reader) {
-//				String info = vcf.getInfo();
-//				
-//				/*
-//				 * get total, see if it is gte our minCoverage cutoff
-//				 * expecting format to be FULLCOV=A:0,C:0,G:0,T:0,N:0,TOTAL:0;NOVELCOV=A:0,C:0,G:0,T:0,N:0,TOTAL:0 yuck....
-//				 */
-//				
-//				int [] counts = decipherCoverageString(info);
-//				
-//				if (counts[4] >= minCoverage) {
-//					
-//					String ref = vcf.getRef();
-//					short vafAsShort = getFloatAsShort(getVAF(counts, ref));
-////					if (vafAsShort == 25) {
-////						logger.info("vaf = 25, info: " + info + ", ref: " + ref);
-////					}
-//					dist.adjustOrPutValue(vafAsShort, 1, 1);
-//					
-//				}
-//			}
-//		}
-//		
-//		return dist;
-//	}
 	
 	/**
 	 * This returns a short version of a float multiplied by 100 so as to get 1 basis point precision
@@ -660,7 +624,7 @@ public class SignatureUtil {
 			}
 		}
 		
-		Collections.sort(orderedSnpChipFiles, FileUtils.FILE_COMPARATOR);
+		orderedSnpChipFiles.sort(FileUtils.FILE_COMPARATOR);
 		logger.info("No of unique and filtered snp chip files: " + orderedSnpChipFiles.size());
 		return orderedSnpChipFiles;
 	}
@@ -948,7 +912,9 @@ public class SignatureUtil {
 			fileE.setAttribute("id", value[0] + "");
 			fileE.setAttribute("name", f);
 			fileE.setAttribute("coverage", value[1] + "");
-			fileE.setAttribute("average_coverage_at_positions", value[2] + "");
+			if (value[2] > -1) {
+				fileE.setAttribute("average_coverage_at_positions", value[2] + "");
+			}
 			filesE.appendChild(fileE);
 		}
 		
@@ -971,9 +937,6 @@ public class SignatureUtil {
 			compE.setAttribute("file2", id2 + "");
 			compE.setAttribute("score", comp.getScore() + "");
 			compE.setAttribute("overlap", comp.getOverlapCoverage() + "");
-//			compE.setAttribute("calcs", comp.getNumberOfCalculations() + "");
-//			compE.setAttribute("f1AveCovAtOverlaps", comp.getMainAveCovAtOverlaps() + "");
-//			compE.setAttribute("f2AveCovAtOverlaps", comp.getTestAveCovAtOverlaps() + "");
 			compsE.appendChild(compE);
 		}
 		

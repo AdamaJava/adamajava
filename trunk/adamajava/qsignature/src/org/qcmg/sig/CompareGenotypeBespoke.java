@@ -6,21 +6,16 @@
  */
 package org.qcmg.sig;
 
-import gnu.trove.map.TMap;
-import gnu.trove.map.hash.THashMap;
-import gnu.trove.map.hash.TIntShortHashMap;
-import gnu.trove.set.hash.THashSet;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.IntSummaryStatistics;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-
 
 import org.apache.commons.math3.util.Pair;
 import org.qcmg.common.log.QLogger;
@@ -32,6 +27,11 @@ import org.qcmg.sig.model.Comparison;
 import org.qcmg.sig.model.SigMeta;
 import org.qcmg.sig.util.ComparisonUtil;
 import org.qcmg.sig.util.SignatureUtil;
+
+import gnu.trove.map.TMap;
+import gnu.trove.map.hash.THashMap;
+import gnu.trove.map.hash.TIntShortHashMap;
+import gnu.trove.set.hash.THashSet;
 
 /**
  * This class gets a list of all .qsig.vcf files from the supplied path.
@@ -221,7 +221,7 @@ public class CompareGenotypeBespoke {
 			 * average coverage
 			 */
 			//TODO put this back in
-//			IntSummaryStatistics iss = result.values().stream()
+//			IntSummaryStatistics iss = result.getValue().values().stream()
 //				.mapToInt(array -> (int) array[4])
 //				.summaryStatistics();
 //			fileIdsAndCounts.get(f)[2] = (int) iss.getAverage();
