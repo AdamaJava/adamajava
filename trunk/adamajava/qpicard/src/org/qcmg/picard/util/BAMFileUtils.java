@@ -4,6 +4,15 @@
 package org.qcmg.picard.util;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.qcmg.picard.SAMFileReaderFactory;
+
+import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SAMSequenceRecord;
+import htsjdk.samtools.SamReader;
 
 public class BAMFileUtils {
 	
@@ -22,6 +31,16 @@ public class BAMFileUtils {
 			}
 		}
 		return false;
+	}
+	
+	public static List<String> getContigsFromHeader(File bamFile) throws IOException {
+		try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile)) {
+			
+			return reader.getFileHeader().getSequenceDictionary().getSequences()
+					.stream()
+					.map(SAMSequenceRecord::getSequenceName)
+					.collect(Collectors.toList());
+		}
 	}
 
 }
