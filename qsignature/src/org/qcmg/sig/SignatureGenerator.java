@@ -36,12 +36,14 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.meta.QExec;
 import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrPositionComparator;
 import org.qcmg.common.model.PileupElement;
 import org.qcmg.common.model.ReferenceNameComparator;
 import org.qcmg.common.string.StringUtils;
@@ -58,6 +60,7 @@ import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.illumina.IlluminaFileReader;
 import org.qcmg.illumina.IlluminaRecord;
 import org.qcmg.picard.SAMFileReaderFactory;
+import org.qcmg.picard.util.BAMFileUtils;
 import org.qcmg.picard.util.PileupElementUtil;
 import org.qcmg.picard.util.SAMUtils;
 import org.qcmg.record.Record;
@@ -168,6 +171,11 @@ public class SignatureGenerator {
 		
 		if (null != bamFiles &&  bamFiles.length > 0) {
 			
+			// load snp file - 1.5 million in here...
+			if (snps.isEmpty()) {		//may have been loaded when dealing with illumina files
+				loadRandomSnpPositions(cmdLineInputFiles[0]);
+			}
+			
 			for (final File bamFile : bamFiles) {
 			
 				// set some bam specific values
@@ -176,12 +184,24 @@ public class SignatureGenerator {
 				
 				final VcfHeader header = generateVcfHeader(bamFile, cmdLineInputFiles[0]);
 				
-				// load snp file - 1.5 million in here...
-				if (snps.isEmpty()) {		//may have been loaded when dealing with illumina files
-					loadRandomSnpPositions(cmdLineInputFiles[0]);
+				List<String> bamContigs = BAMFileUtils.getContigsFromHeader(bamFile);
+				
+				if (SignatureUtil.doContigsStartWithDigit(bamContigs)) {
+					/*
+					 * add 'chr' to numerical contigs in bamContigs to see if that gives us a match
+					 * If not, throw a wobbly
+					 */
+					bamContigs = SignatureUtil.addChrToContigs(bamContigs);
 				}
 				
-				createComparatorFromSAMHeader(bamFile);
+				/*
+				 * Set chrComparator and
+				 * order snps based on bam contig order
+				 */
+				chrComparator = ChrPositionComparator.getChrNameComparator(bamContigs);
+				snps.sort(ChrPositionComparator.getVcfRecordComparator(bamContigs));
+				
+//				createComparatorFromSAMHeader(bamFile);
 				
 				runSequentially(bamFile);
 				

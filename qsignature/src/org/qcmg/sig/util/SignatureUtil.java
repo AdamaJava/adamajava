@@ -29,6 +29,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -43,15 +44,18 @@ import javax.xml.transform.stream.StreamResult;
 import org.apache.commons.math3.util.Pair;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.BaseUtils;
 import org.qcmg.common.util.ChrPositionCache;
+import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.DonorUtils;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfRecord;
+import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.illumina.IlluminaRecord;
 import org.qcmg.sig.model.Comparison;
 import org.qcmg.sig.model.SigMeta;
@@ -140,6 +144,57 @@ public class SignatureUtil {
 		if (m.find())
 			return m.group();
 		return UNKNOWN;
+	}
+
+	/**
+	 * adds chr to the beginning of the elements in the list that start with a digit
+	 * @param contigs
+	 * @return
+	 */
+	public static List<String> addChrToContigs(List<String> contigs) {
+		return contigs.stream()
+				.map(f -> (Character.isDigit(f.charAt(0)) ? "chr" + f : f))
+				.collect(Collectors.toList());
+	}
+	
+	/**
+	 * Get the unique contig names from the list of vcfs
+	 * @param vcfs
+	 * @return
+	 */
+	public static List<String> getUniqueContigsFromListOfVcfRecords(List<VcfRecord> vcfs) {
+		return vcfs.stream()
+				.map(v -> v.getChrPosition().getChromosome())
+				.distinct()
+				.collect(Collectors.toList());
+	}
+	
+	/**
+	 * returns true if ant of the supplied contigs start with a digit
+	 * eg. 
+	 * @param contigs
+	 * @return
+	 */
+	public static boolean doContigsStartWithDigit(List<String> contigs) {
+		return contigs.stream().anyMatch(p -> Character.isDigit(p.charAt(0)));
+	}
+	
+	
+	public static List<VcfRecord> addChrToVcfRecords(List<VcfRecord> vcfs) {
+		
+		List<VcfRecord> updatedVcfs = new ArrayList<>();
+		for (VcfRecord v : vcfs) {
+			if (Character.isDigit(v.getChrPosition().getChromosome().charAt(0))) {
+				ChrPosition oldCP = v.getChrPosition();
+				v = VcfUtils.cloneWithNewChrPos(v, ChrPositionUtils.cloneWithNewChromosomeName(oldCP, "chr" + oldCP.getChromosome()));
+			}
+			updatedVcfs.add(v);
+		}
+		return updatedVcfs;
+		
+//		return vcfs.stream()
+//				.map(f -> (Character.isDigit(f.getChrPosition().getChromosome().charAt(0)) ? "chr" + f : f))
+//				.collect(Collectors.toList());
 	}
 
 	public static Map<File, Map<ChrPosition, double[]>> getDonorSnpChipData(String donor, List<File> files) throws IOException {

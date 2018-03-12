@@ -37,6 +37,16 @@ public class SignatureUtilTest {
 		assertEquals("UNKNOWN", SignatureUtil.getPatientFromFile(new File("/path/project/AAAA_33/SNP_array/5555.txt")));
 	}
 	
+	
+	@Test
+	public void doContigsStartWithDigit() {
+		assertEquals(true, SignatureUtil.doContigsStartWithDigit(Arrays.asList("1")));
+		assertEquals(false, SignatureUtil.doContigsStartWithDigit(Arrays.asList("c1")));
+		assertEquals(false, SignatureUtil.doContigsStartWithDigit(Arrays.asList("chr1")));
+		assertEquals(true, SignatureUtil.doContigsStartWithDigit(Arrays.asList("chr1","2")));
+		assertEquals(false, SignatureUtil.doContigsStartWithDigit(Arrays.asList("chr1","X2")));
+	}
+	
 	@Test
 	public void getSigMetaEmptyHeader() {
 		assertEquals(Optional.empty(), SignatureUtil.getSigMetaAndRGsFromHeader(null));
