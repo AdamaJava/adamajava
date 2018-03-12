@@ -574,7 +574,7 @@ public class VcfUtils {
 	
 	public static VcfRecord resetAllel(VcfRecord re, String alt){
 		VcfRecord re1  =  new VcfRecord.Builder(re.getChrPosition(), re.getRef(), alt)
-		.id(re.getId()).qualString(re.getQualString()).filter(re.getFilter()).build();
+				.id(re.getId()).qualString(re.getQualString()).filter(re.getFilter()).build();
 		
 		re1.setInfo(re.getInfo());
 		re1.setFormatFields(re.getFormatFields());
@@ -582,6 +582,21 @@ public class VcfUtils {
 		return re1; 
 	}
 	
+	/**
+	 * Returns a new VcfREcord based on the passed in VcfRecord but with the passed in ChrPosition obj
+	 * @param re
+	 * @param cp
+	 * @return
+	 */
+	public static VcfRecord cloneWithNewChrPos(VcfRecord re, ChrPosition cp){
+		VcfRecord re1  =  new VcfRecord.Builder(cp, re.getRef(), re.getAlt())
+				.id(re.getId()).qualString(re.getQualString()).filter(re.getFilter()).build();
+		
+		re1.setInfo(re.getInfo());
+		re1.setFormatFields(re.getFormatFields());
+		
+		return re1; 
+	}
 
 	
 	/**
