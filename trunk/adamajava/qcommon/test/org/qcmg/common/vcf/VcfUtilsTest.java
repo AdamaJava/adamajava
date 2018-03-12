@@ -18,11 +18,11 @@ import org.qcmg.common.model.GenotypeEnum;
 import org.qcmg.common.model.MafConfidence;
 import org.qcmg.common.model.PileupElement;
 import org.qcmg.common.string.StringUtils;
+import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 
 public class VcfUtilsTest {
-	
 	
 	@Test
 	public void getAltFrequencyTest() throws Exception{
@@ -61,6 +61,19 @@ public class VcfUtilsTest {
 		assertEquals(count,106);
 		count = VcfUtils.getAltFrequency(format, "_CA");
 		assertEquals(count,3);		;
+	}
+	
+	@Test
+	public void addChrToCP() {
+		String str =  "1\t2675825\t.\tTTG\tTCA\t.\tMIN;MIUN\tSOMATIC;END=2675826\tACCS\tTTG,5,37,TCA,0,2\tTAA,1,1,TCA,4,1,TCT,3,1,TTA,11,76,TTG,2,2,_CA,0,3,TTG,0,1" ;
+		VcfRecord vcf  = new VcfRecord(str.split("\t"));
+		VcfRecord vcfClone = VcfUtils.cloneWithNewChrPos(vcf, ChrPositionUtils.cloneWithNewChromosomeName(vcf.getChrPosition(), "chr1"));
+		assertEquals("chr1", vcfClone.getChromosome());
+		assertEquals(vcf.getAlt(), vcfClone.getAlt());
+		assertEquals(vcf.getRef(), vcfClone.getRef());
+		assertEquals(vcf.getQualString(), vcfClone.getQualString());
+		assertEquals(vcf.getInfoRecord(), vcfClone.getInfoRecord());
+		assertEquals(vcf.getFormatFieldStrings(), vcfClone.getFormatFieldStrings());
 	}
 	
 	@Test
