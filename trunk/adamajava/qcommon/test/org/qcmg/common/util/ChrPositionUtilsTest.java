@@ -34,6 +34,16 @@ public class ChrPositionUtilsTest {
 	}
 	
 	@Test
+	public void cloneWithNewName() {
+		ChrRangePosition cp = new ChrRangePosition("1", 100, 200);
+		assertEquals("chr1", ChrPositionUtils.cloneWithNewChromosomeName(cp, "chr1").getChromosome());
+		assertEquals("chrXY", ChrPositionUtils.cloneWithNewChromosomeName(cp, "chrXY").getChromosome());
+		assertEquals("myCP", ChrPositionUtils.cloneWithNewChromosomeName(cp, "myCP").getChromosome());
+		assertEquals("1", ChrPositionUtils.cloneWithNewChromosomeName(cp, "1").getChromosome());
+		
+	}
+	
+	@Test
 	public void getAmplicons() {
 		ChrRangePosition cp1 = new ChrRangePosition("1", 100, 200);
 		ChrRangePosition cp2 = new ChrRangePosition("1", 100, 200);
