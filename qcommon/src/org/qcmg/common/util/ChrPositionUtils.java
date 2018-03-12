@@ -117,7 +117,6 @@ public class ChrPositionUtils {
 	
 
 	public static ChrPosition cloneWithNewChromosomeName(ChrPosition cp, String newChr) {
-		
 		if (cp instanceof ChrPointPosition) {
 			return ChrPointPosition.valueOf(newChr, cp.getStartPosition());
 		} else if  (cp instanceof ChrRangePosition) {
@@ -125,7 +124,6 @@ public class ChrPositionUtils {
 		} else {
 			throw new UnsupportedOperationException("cloneWithNewName not yet implemented for any types other than ChrPointPosition and ChrRangePosition!!!");
 		}
-		
 	}
 	
 	/**
