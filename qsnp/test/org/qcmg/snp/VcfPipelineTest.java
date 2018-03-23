@@ -263,6 +263,16 @@ public class VcfPipelineTest {
 	}
 	
 	@Test
+	public void testVcfOmissionBasedOnLackOfData() {
+		VcfRecord vcf = new VcfRecord(new String[]{"chrX","84428775",".","C","CT","368.74",".","AC=1;AF=0.500;AN=2;BaseQRankSum=1.883;ClippingRankSum=0.000;DP=18;ExcessHet=3.0103;FS=0.000;MLEAC=1;MLEAF=0.500;MQ=60.00;MQRankSum=0.000;QD=20.49;ReadPosRankSum=0.774;SOR=0.941","GT","./."});
+		assertEquals(true, VcfPipeline.FF_NOT_ENOUGH_INFO.equals(vcf.getFormatFieldStrings()));
+		vcf = new VcfRecord(new String[]{"chrX","84428775",".","C","CT","368.74",".","AC=1;AF=0.500;AN=2;BaseQRankSum=1.883;ClippingRankSum=0.000;DP=18;ExcessHet=3.0103;FS=0.000;MLEAC=1;MLEAF=0.500;MQ=60.00;MQRankSum=0.000;QD=20.49;ReadPosRankSum=0.774;SOR=0.941","GT","C/CT"});
+		assertEquals(false, VcfPipeline.FF_NOT_ENOUGH_INFO.equals(vcf.getFormatFieldStrings()));
+		vcf = new VcfRecord(new String[]{"chrX","84428775",".","C","CT","368.74",".","AC=1;AF=0.500;AN=2;BaseQRankSum=1.883;ClippingRankSum=0.000;DP=18;ExcessHet=3.0103;FS=0.000;MLEAC=1;MLEAF=0.500;MQ=60.00;MQRankSum=0.000;QD=20.49;ReadPosRankSum=0.774;SOR=0.941","GT:AD","./.:0"});
+		assertEquals(false, VcfPipeline.FF_NOT_ENOUGH_INFO.equals(vcf.getFormatFieldStrings()));
+	}
+	
+	@Test
 	public void stackOverflow() throws SnpException, Exception {
 		/*
 		 * I think that this is due to the comparator placing chrMT  before the GL's whereas in the bam headers and vcfs, chrMT is last.

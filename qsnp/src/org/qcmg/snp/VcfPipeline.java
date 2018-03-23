@@ -65,6 +65,8 @@ public final class VcfPipeline extends Pipeline {
 	private final static ReferenceNameComparator COMPARATOR = new ReferenceNameComparator();
 	public final static Comparator<ChrPosition> CHR_COMPARATOR = new ChrPositionComparator();
 	
+	public static final String FF_NOT_ENOUGH_INFO = "GT\t./.";
+	
 	private final static QLogger logger = QLoggerFactory.getLogger(VcfPipeline.class);
 
 	private static VcfHeader controlVcfHeader;
@@ -376,7 +378,7 @@ public final class VcfPipeline extends Pipeline {
 		return qpr;
 	}
 
-	private static void loadVCFData(String vcfFile, Map<ChrPosition,QSnpRecord> map, boolean isControl) throws Exception {
+	private static void loadVCFData(String vcfFile, Map<ChrPosition,QSnpRecord> map, boolean isControl) throws IOException {
 		if (FileUtils.canFileBeRead(vcfFile)) {
 			
 			try (VCFFileReader reader  = new VCFFileReader(new File(vcfFile));) {
@@ -394,22 +396,31 @@ public final class VcfPipeline extends Pipeline {
 					
 					// if the length of the reference bases != length of the alt bases, its not a snp (or compound snp)
 					if (VcfUtils.isRecordAMnp(qpr)) {	// input file should be snps only
-						final QSnpRecord snpRecord = new QSnpRecord(qpr);
-						if (null != qpr.getFormatFields() && ! qpr.getFormatFields().isEmpty()) {
-							//	 set genotype
-							if (isControl) {
-								snpRecord.setNormalNucleotides(Constants.MISSING_DATA_STRING);
-//								snpRecord.setNormalNucleotides(VcfUtils.getGenotypeFromGATKVCFRecord(qpr));
-								snpRecord.setNormalGenotype(VcfUtils.getGEFromGATKVCFRec(qpr));
-							} else {
-								snpRecord.setTumourNucleotides(Constants.MISSING_DATA_STRING);
-//								snpRecord.setTumourNucleotides(VcfUtils.getGenotypeFromGATKVCFRecord(qpr));
-								snpRecord.setTumourGenotype(VcfUtils.getGEFromGATKVCFRec(qpr));
+						
+						/*
+						 * some GATK records have the following format field entry:
+						 * GT	./.
+						 * Not much we can do with those records, so ignore
+						 */
+						if ( ! FF_NOT_ENOUGH_INFO.equals(qpr.getFormatFieldStrings())) {
+							
+						
+							final QSnpRecord snpRecord = new QSnpRecord(qpr);
+							if (null != qpr.getFormatFields() && ! qpr.getFormatFields().isEmpty()) {
+								//	 set genotype
+								if (isControl) {
+									snpRecord.setNormalNucleotides(Constants.MISSING_DATA_STRING);
+									snpRecord.setNormalGenotype(VcfUtils.getGEFromGATKVCFRec(qpr));
+								} else {
+									snpRecord.setTumourNucleotides(Constants.MISSING_DATA_STRING);
+									snpRecord.setTumourGenotype(VcfUtils.getGEFromGATKVCFRec(qpr));
+								}
 							}
+							map.put(qpr.getChrPosition() , snpRecord);
+						} else {
+							logger.warn("skipping record due to sever lack of information: " + qpr.toString());
 						}
-						map.put(qpr.getChrPosition() , snpRecord);
 					}
-//					map.put(new ChrPosition(qpr.getChromosome(), qpr.getPosition()),new QSnpGATKRecord(qpr));
 				}
 			}
 		}
