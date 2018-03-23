@@ -92,6 +92,21 @@ public class SnpUtilsTest {
 		assertEquals(1, SnpUtils.getCountFromNucleotideString(bases, "G_", true));
 		
 	}
+	@Test
+	public void getBaseCountsACs() {
+		String bases = "C29[36.97],29[37.48]";
+		assertEquals(58, SnpUtils.getCountFromNucleotideString(bases, "C", false));
+		
+		bases = "A1[12],0[0],T4[14.5],4[31.75]";
+		assertEquals(8, SnpUtils.getCountFromNucleotideString(bases, "T", false));
+		assertEquals(1, SnpUtils.getCountFromNucleotideString(bases, "A", false));
+		try {
+			SnpUtils.getCountFromNucleotideString(bases, ".", false);
+			fail("Should have thrown an exception");
+		} catch (Exception e) {}
+		
+		
+	}
 	
 	@Test
 	public void getCSDist() {
