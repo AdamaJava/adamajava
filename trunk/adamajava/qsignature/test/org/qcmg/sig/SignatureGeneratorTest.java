@@ -79,51 +79,51 @@ public class SignatureGeneratorTest {
 		assertEquals(true, result.contains("C:17"));
 	}
 	
-	@Test
-	public void testCreateComparatorFromSAMHeader() throws IOException {
-//		SignatureGenerator qss = new SignatureGenerator();
-//		qss.logger = QLoggerFactory.getLogger(SignatureGeneratorTest.class);
-		try {
-			qss.createComparatorFromSAMHeader(null);
-			Assert.fail("Should have thrown an IAE");
-		} catch (final IllegalArgumentException iae) {}
-		
-		final File bamFile = testFolder.newFile("bamFile");
-		getBamFile(bamFile, false, true);
-		qss.createComparatorFromSAMHeader(bamFile);
-
-		// no seq in header - should default to ReferenceNameComparator sorting
-		int i = qss.chrComparator.compare("chr1", "chr2");
-		assertEquals(true, i < 0);
-		i = qss.chrComparator.compare("chr10", "chr2");
-		assertEquals(true, i > 0);
-		
-		// header is ordered chr5, 4, 3, 2, 1
-		getBamFile(bamFile, true, true);
-		qss.createComparatorFromSAMHeader(bamFile);
-		i = qss.chrComparator.compare("chr1", "chr2");
-		assertEquals(true, i < 0);
-	}
+//	@Test
+//	public void testCreateComparatorFromSAMHeader() throws IOException {
+////		SignatureGenerator qss = new SignatureGenerator();
+////		qss.logger = QLoggerFactory.getLogger(SignatureGeneratorTest.class);
+//		try {
+//			qss.createComparatorFromSAMHeader(null);
+//			Assert.fail("Should have thrown an IAE");
+//		} catch (final IllegalArgumentException iae) {}
+//		
+//		final File bamFile = testFolder.newFile("bamFile");
+//		getBamFile(bamFile, false, true);
+//		qss.createComparatorFromSAMHeader(bamFile);
+//
+//		// no seq in header - should default to ReferenceNameComparator sorting
+//		int i = qss.chrComparator.compare("chr1", "chr2");
+//		assertEquals(true, i < 0);
+//		i = qss.chrComparator.compare("chr10", "chr2");
+//		assertEquals(true, i > 0);
+//		
+//		// header is ordered chr5, 4, 3, 2, 1
+//		getBamFile(bamFile, true, true);
+//		qss.createComparatorFromSAMHeader(bamFile);
+//		i = qss.chrComparator.compare("chr1", "chr2");
+//		assertEquals(true, i < 0);
+//	}
 	
-	@Test
-	public void doesComparatorWorkForNonChrs() throws IOException {
-		
-		final File bamFile = testFolder.newFile("bamFile");
-		getBamFile(bamFile, false, true);
-		qss.createComparatorFromSAMHeader(bamFile);
-
-		// no seq in header - should default to ReferenceNameComparator sorting
-		int i = qss.chrComparator.compare("chr1", "chr2");
-		assertEquals(true, i < 0);
-		i = qss.chrComparator.compare("chr10", "chr2");
-		assertEquals(true, i > 0);
-		
-		getBamFile(bamFile, true, false);
-		
-		qss.createComparatorFromSAMHeader(bamFile);
-		i = qss.chrComparator.compare("1", "2");
-		assertEquals(true, i < 0);
-	}
+//	@Test
+//	public void doesComparatorWorkForNonChrs() throws IOException {
+//		
+//		final File bamFile = testFolder.newFile("bamFile");
+//		getBamFile(bamFile, false, true);
+//		qss.createComparatorFromSAMHeader(bamFile);
+//
+//		// no seq in header - should default to ReferenceNameComparator sorting
+//		int i = qss.chrComparator.compare("chr1", "chr2");
+//		assertEquals(true, i < 0);
+//		i = qss.chrComparator.compare("chr10", "chr2");
+//		assertEquals(true, i > 0);
+//		
+//		getBamFile(bamFile, true, false);
+//		
+//		qss.createComparatorFromSAMHeader(bamFile);
+//		i = qss.chrComparator.compare("1", "2");
+//		assertEquals(true, i < 0);
+//	}
 	
 	
 	/**
@@ -286,87 +286,85 @@ public class SignatureGeneratorTest {
     
     @Test
     public void runProcessWithHG19BamFile() throws Exception {
-    	final File positionsOfInterestFile = testFolder.newFile("runProcessWithHG19BamFile.snps.txt");
-    	final File illuminaArraysDesignFile = testFolder.newFile("runProcessWithHG19BamFile.illuminaarray.txt");
-//    	final File snpChipFile = testFolder.newFile("runProcessWithSnpChipFile_snpChip.txt");
-    	final File bamFile = testFolder.newFile("runProcessWithHG19BamFile.bam");
-    	final File logFile = testFolder.newFile("runProcessWithHG19BamFile.log");
-    	final String outputFIleName = bamFile.getAbsolutePath() + ".qsig.vcf.gz";
-    	final File outputFile = new File(outputFIleName);
-    	
-//    	writeSnpChipFile(snpChipFile);
-    	writeSnpPositionsFile(positionsOfInterestFile);
-    	writeIlluminaArraysDesignFile(illuminaArraysDesignFile);
-    	getBamFile(bamFile, true, false);
-    	
-    	final int exitStatus = qss.setup(new String[] {"--log" , logFile.getAbsolutePath(), "-i" , positionsOfInterestFile.getAbsolutePath(), "-i" , bamFile.getAbsolutePath(),  "-i" , illuminaArraysDesignFile.getAbsolutePath()} );
-    	assertEquals(0, exitStatus);
-    	
-    	assertTrue(outputFile.exists());
-   	
-    	final List<VcfRecord> recs = new ArrayList<>();
-    	try (VCFFileReader reader = new VCFFileReader(outputFile);) {    			
-	    	for (final VcfRecord rec : reader) {
-	    		recs.add(rec);
-	    		System.out.println("rec: " + rec.toString());
+	    	final File positionsOfInterestFile = testFolder.newFile("runProcessWithHG19BamFile.snps.txt");
+	    	final File illuminaArraysDesignFile = testFolder.newFile("runProcessWithHG19BamFile.illuminaarray.txt");
+	    	final File bamFile = testFolder.newFile("runProcessWithHG19BamFile.bam");
+	    	final File logFile = testFolder.newFile("runProcessWithHG19BamFile.log");
+	    	final String outputFIleName = bamFile.getAbsolutePath() + ".qsig.vcf.gz";
+	    	final File outputFile = new File(outputFIleName);
+	    	
+	    	writeSnpPositionsFile(positionsOfInterestFile);
+	    	writeIlluminaArraysDesignFile(illuminaArraysDesignFile);
+	    	getBamFile(bamFile, true, false);
+	    	
+	    	final int exitStatus = qss.setup(new String[] {"--log" , logFile.getAbsolutePath(), "-i" , positionsOfInterestFile.getAbsolutePath(), "-i" , bamFile.getAbsolutePath(),  "-i" , illuminaArraysDesignFile.getAbsolutePath()} );
+	    	assertEquals(0, exitStatus);
+	    	
+	    	assertTrue(outputFile.exists());
+	   	
+	    	final List<VcfRecord> recs = new ArrayList<>();
+	    	try (VCFFileReader reader = new VCFFileReader(outputFile);) {    			
+		    	for (final VcfRecord rec : reader) {
+		    		recs.add(rec);
+		    		System.out.println("rec: " + rec.toString());
+		    	}
 	    	}
-    	}
-       	
-    	assertEquals(6, recs.size());
+	       	
+	    	assertEquals(6, recs.size());
     }
     
-    private void writeSnpChipFile(File snpChipFile) throws IOException {
-    	try (Writer writer = new FileWriter(snpChipFile);) {
-	    	writer.write("[Header]\n");
-	    	writer.write("GSGT Version    1.9.4\n");
-	    	writer.write("Processing Date 3/1/2013 9:06 PM\n");
-	    	writer.write("Content         HumanOmni2.5-8v1_A.bpm\n");
-	    	writer.write("Num SNPs        2379855\n");
-	    	writer.write("Total SNPs      2379855\n");
-	    	writer.write("Num Samples     57\n");
-	    	writer.write("Total Samples   57\n");
-	    	writer.write("File    31 of 57\n");
-	    	writer.write("[Data]\n");
-	    	writer.write("SNP Name        Sample ID       Allele1 - Top   Allele2 - Top   GC Score        Sample Name     Sample Group    Sample Index    SNP Index       SNP Aux Allele1 - Forward       Allele2 - Forward       Allele1 - Design        Allele2 - Design        Allele1 - AB    Allele2 - AB    Chr     Position        GT Score        Cluster Sep     SNP     ILMN Strand     Customer Strand Top Genomic Sequence    Theta   R       X       Y       X Raw   Y Raw   B Allele Freq   Log R Ratio\n");
-	    	writer.write("rs1000000	WG0227767_DNAG01_LP6005272_DNA_G01	A	G	0.8140	AOCS_094_5_6	G01	20	381565	0	T	C	T	C	A	B	12	126890980	0.7990	1.0000	[T/C]	BOT	BOT		0.444	2.019	1.099	0.920	13935	7437	0.5219	0.0314\n");
-	    	writer.write("rs10000023	WG0227769_DNAG01_LP6005274_DNA_G01	C	C	0.8221	AOCS_094_1_1	G01	31	691448	0	G	G	G	G	B	B	4	95733906	0.8042	1.0000	[T/G]	BOT	BOT		0.970	1.928	0.086	1.843	1593	18194	1.0000	0.1902\n");
-	    	writer.write("rs1000002	WG0227768_DNAG01_LP6005273_DNA_G01	A	A	0.8183	AOCS_094_6_7	UQueensland_Grimmond2	157	719472	0	A	A	A	A	A	A	3	183635768	0.8018	0.4106	[A/G]	TOP	TOP		0.039	0.745	0.702	0.043	5494	277	0.0000	0.4090\n");
-    	}
+    static void writeSnpChipFile(File snpChipFile) throws IOException {
+	    	try (Writer writer = new FileWriter(snpChipFile);) {
+		    	writer.write("[Header]\n");
+		    	writer.write("GSGT Version    1.9.4\n");
+		    	writer.write("Processing Date 3/1/2013 9:06 PM\n");
+		    	writer.write("Content         HumanOmni2.5-8v1_A.bpm\n");
+		    	writer.write("Num SNPs        2379855\n");
+		    	writer.write("Total SNPs      2379855\n");
+		    	writer.write("Num Samples     57\n");
+		    	writer.write("Total Samples   57\n");
+		    	writer.write("File    31 of 57\n");
+		    	writer.write("[Data]\n");
+		    	writer.write("SNP Name        Sample ID       Allele1 - Top   Allele2 - Top   GC Score        Sample Name     Sample Group    Sample Index    SNP Index       SNP Aux Allele1 - Forward       Allele2 - Forward       Allele1 - Design        Allele2 - Design        Allele1 - AB    Allele2 - AB    Chr     Position        GT Score        Cluster Sep     SNP     ILMN Strand     Customer Strand Top Genomic Sequence    Theta   R       X       Y       X Raw   Y Raw   B Allele Freq   Log R Ratio\n");
+		    	writer.write("rs1000000	WG0227767_DNAG01_LP6005272_DNA_G01	A	G	0.8140	AOCS_094_5_6	G01	20	381565	0	T	C	T	C	A	B	12	126890980	0.7990	1.0000	[T/C]	BOT	BOT		0.444	2.019	1.099	0.920	13935	7437	0.5219	0.0314\n");
+		    	writer.write("rs10000023	WG0227769_DNAG01_LP6005274_DNA_G01	C	C	0.8221	AOCS_094_1_1	G01	31	691448	0	G	G	G	G	B	B	4	95733906	0.8042	1.0000	[T/G]	BOT	BOT		0.970	1.928	0.086	1.843	1593	18194	1.0000	0.1902\n");
+		    	writer.write("rs1000002	WG0227768_DNAG01_LP6005273_DNA_G01	A	A	0.8183	AOCS_094_6_7	UQueensland_Grimmond2	157	719472	0	A	A	A	A	A	A	3	183635768	0.8018	0.4106	[A/G]	TOP	TOP		0.039	0.745	0.702	0.043	5494	277	0.0000	0.4090\n");
+	    	}
     }
-    private void writeIlluminaArraysDesignFile(File illuminaArraysDesign) throws IOException {
-    	try (Writer writer = new FileWriter(illuminaArraysDesign);) {
-    		writer.write("#dbSNP Id	Reference Genome	dbSNP alleles	Chr	Position(hg19)	dbSNP Strand	IlluminaDesign	ComplementArrayCalls?\n");
+    static void writeIlluminaArraysDesignFile(File illuminaArraysDesign) throws IOException {
+	    	try (Writer writer = new FileWriter(illuminaArraysDesign);) {
+	    		writer.write("#dbSNP Id	Reference Genome	dbSNP alleles	Chr	Position(hg19)	dbSNP Strand	IlluminaDesign	ComplementArrayCalls?\n");
 			writer.write("rs1000000	G	C/T	chr12	126890980	-	[T/C]	yes\n");
 			writer.write("rs10000004	A	A/G	chr4	75406448	+	[T/C]	yes\n");
 			writer.write("rs10000006	T	C/T	chr4	108826383	+	[A/G]	yes\n");
 			writer.write("rs1000002	C	A/G	chr3	183635768	-	[A/G]	yes\n");
 			writer.write("rs10000021	G	G/T	chr4	159441457	+	[A/C]	yes\n");
 			writer.write("rs10000023	G	G/T	chr4	95733906	+	[T/G]	no\n");
-    	}
+	    	}
     }
-    private void writeSnpPositionsFile(File snpPositions) throws IOException {
-    	try (Writer writer = new FileWriter(snpPositions);) {
-    		writer.write("chr3	183635768	random_1016708	C	RANDOM_POSITION\n");
-    		writer.write("chr4	75406448	random_649440	A	RANDOM_POSITION\n");
-    		writer.write("chr4	95733906	random_1053689	G	RANDOM_POSITION\n");
-    		writer.write("chr4	108826383	random_1146989	T	RANDOM_POSITION\n");
-    		writer.write("chr4	159441457	random_1053689	G	RANDOM_POSITION\n");
-    		writer.write("chr12	126890980	random_169627	G	RANDOM_POSITION\n");
-    	}
+    static void writeSnpPositionsFile(File snpPositions) throws IOException {
+	    	try (Writer writer = new FileWriter(snpPositions);) {
+	    		writer.write("chr3	183635768	random_1016708	C	RANDOM_POSITION\n");
+	    		writer.write("chr4	75406448	random_649440	A	RANDOM_POSITION\n");
+	    		writer.write("chr4	95733906	random_1053689	G	RANDOM_POSITION\n");
+	    		writer.write("chr4	108826383	random_1146989	T	RANDOM_POSITION\n");
+	    		writer.write("chr4	159441457	random_1053689	G	RANDOM_POSITION\n");
+	    		writer.write("chr12	126890980	random_169627	G	RANDOM_POSITION\n");
+	    	}
     }
 	
-    private static void getBamFile(File bamFile, boolean validHeader, boolean useChrs) {
-    	final SAMFileHeader header = getHeader(validHeader, useChrs);
-    	List<SAMRecord> data = getRecords(useChrs, header, true);
-//    	if ( ! validHeader) header.setSequenceDictionary(new SAMSequenceDictionary());
-    	final SAMOrBAMWriterFactory factory = new SAMOrBAMWriterFactory(header, false, bamFile, false);
-    	try {
-    		final SAMFileWriter writer = factory.getWriter();
-    		if (null != data)
-    			for (final SAMRecord s : data) writer.addAlignment(s);
-    	} finally {
-    		factory.closeWriter();
-    	}
+    static void getBamFile(File bamFile, boolean validHeader, boolean useChrs) {
+	    	final SAMFileHeader header = getHeader(validHeader, useChrs);
+	    	List<SAMRecord> data = getRecords(useChrs, header, true);
+	//    	if ( ! validHeader) header.setSequenceDictionary(new SAMSequenceDictionary());
+	    	final SAMOrBAMWriterFactory factory = new SAMOrBAMWriterFactory(header, false, bamFile, false);
+	    	try {
+	    		final SAMFileWriter writer = factory.getWriter();
+	    		if (null != data)
+	    			for (final SAMRecord s : data) writer.addAlignment(s);
+	    	} finally {
+	    		factory.closeWriter();
+	    	}
     }
     
 	private static SAMFileHeader getHeader(boolean valid, boolean useChrs) {

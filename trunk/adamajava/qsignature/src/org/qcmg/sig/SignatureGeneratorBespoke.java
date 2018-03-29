@@ -61,6 +61,7 @@ import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.illumina.IlluminaFileReader;
 import org.qcmg.illumina.IlluminaRecord;
 import org.qcmg.picard.SAMFileReaderFactory;
+import org.qcmg.picard.util.BAMFileUtils;
 import org.qcmg.picard.util.SAMUtils;
 import org.qcmg.record.Record;
 import org.qcmg.sig.model.BaseReadGroup;
@@ -176,7 +177,22 @@ public class SignatureGeneratorBespoke {
 				header = reader.getFileHeader();
 			}
 			
-			createComparatorFromSAMHeader(header);
+			List<String> bamContigs = BAMFileUtils.getContigsFromHeader(header);
+			if (SignatureUtil.doContigsStartWithDigit(bamContigs)) {
+				/*
+				 * add 'chr' to numerical contigs in bamContigs to see if that gives us a match
+				 * If not, throw a wobbly
+				 */
+				bamContigs = SignatureUtil.addChrToContigs(bamContigs);
+			}
+			
+			/*
+			 * Set chrComparator and
+			 * order snps based on bam contig order
+			 */
+			chrComparator = ChrPositionComparator.getChrNameComparator(bamContigs);
+			snps.sort(ChrPositionComparator.getVcfRecordComparator(bamContigs));
+			
 			
 			try {
 				runSequentially(bamFile);
@@ -303,34 +319,34 @@ public class SignatureGeneratorBespoke {
 		}
 	}
 	
-	void createComparatorFromSAMHeader(SAMFileHeader header) throws IOException {
-		if (null == header) throw new IllegalArgumentException("null file passed to createComparatorFromSAMHeader");
-		
-		/*
-		 * get contig names from bam header
-		 */
-		sortedContigs = header.getSequenceDictionary().getSequences().stream().map(SAMSequenceRecord::getSequenceName).collect(Collectors.toList());
-		
-		// try and sort according to the ordering of the bam file that is about to be processed
-		// otherwise, resort to alphabetic ordering and cross fingers...
-		if ( ! sortedContigs.isEmpty()) {
-			
-			chrComparator = ListUtils.createComparatorFromList(sortedContigs);
-			snps.sort(Comparator.comparing(VcfRecord::getChromosome, chrComparator).thenComparingInt(VcfRecord::getPosition));
-			
-		} else {
-			chrComparator = COMPARATOR;
-			snps.sort(new VcfPositionComparator());
-		}
-		
-		final Set<String> uniqueChrs = new HashSet<>();
-		logger.info("chr order:");
-		for (final VcfRecord vcf : snps) {
-			if (uniqueChrs.add(vcf.getChromosome())) {
-				logger.info(vcf.getChromosome());
-			}
-		}
-	}
+//	void createComparatorFromSAMHeader(SAMFileHeader header) throws IOException {
+//		if (null == header) throw new IllegalArgumentException("null file passed to createComparatorFromSAMHeader");
+//		
+//		/*
+//		 * get contig names from bam header
+//		 */
+//		sortedContigs = header.getSequenceDictionary().getSequences().stream().map(SAMSequenceRecord::getSequenceName).collect(Collectors.toList());
+//		
+//		// try and sort according to the ordering of the bam file that is about to be processed
+//		// otherwise, resort to alphabetic ordering and cross fingers...
+//		if ( ! sortedContigs.isEmpty()) {
+//			
+//			chrComparator = ListUtils.createComparatorFromList(sortedContigs);
+//			snps.sort(Comparator.comparing(VcfRecord::getChromosome, chrComparator).thenComparingInt(VcfRecord::getPosition));
+//			
+//		} else {
+//			chrComparator = COMPARATOR;
+//			snps.sort(new VcfPositionComparator());
+//		}
+//		
+//		final Set<String> uniqueChrs = new HashSet<>();
+//		logger.info("chr order:");
+//		for (final VcfRecord vcf : snps) {
+//			if (uniqueChrs.add(vcf.getChromosome())) {
+//				logger.info(vcf.getChromosome());
+//			}
+//		}
+//	}
 	
 	private void updateResults(Map<String, String> rgIds) {
 		
@@ -558,21 +574,20 @@ public class SignatureGeneratorBespoke {
 	}
 	
 	private void updateResults(VcfRecord vcf, SAMRecord sam) {
-		// get read index
-		final int indexInRead = SAMUtils.getIndexInReadFromPosition(sam, vcf.getPosition());
-		
-		if (indexInRead > -1 && indexInRead < sam.getReadLength()) {
+		if (null != sam && null != vcf) {
+			// get read index
+			final int indexInRead = SAMUtils.getIndexInReadFromPosition(sam, vcf.getPosition());
 			
-			if (sam.getBaseQualities()[indexInRead] < minBaseQuality) return;
-			
-			final char c = sam.getReadString().charAt(indexInRead);
-			
-			List<BaseReadGroup> bsps = results.get(vcf.getChrPosition());
-			if (null == bsps) {
-				bsps = new ArrayList<BaseReadGroup>();
-				results.put(vcf.getChrPosition(), bsps);
+			if (indexInRead > -1 && indexInRead < sam.getReadLength()) {
+				
+				if (sam.getBaseQualities()[indexInRead] < minBaseQuality) return;
+				
+				final char c = sam.getReadString().charAt(indexInRead);
+				String rgId = null != sam.getReadGroup() ? sam.getReadGroup().getId() : "null";
+				
+				results.computeIfAbsent(vcf.getChrPosition(), f -> new ArrayList<>())
+					.add(new BaseReadGroup(c, rgId));
 			}
-			bsps.add(new BaseReadGroup(c, sam.getReadGroup().getId()));
 		}
 	}
 	
