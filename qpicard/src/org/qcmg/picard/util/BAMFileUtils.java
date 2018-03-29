@@ -33,14 +33,17 @@ public class BAMFileUtils {
 		return false;
 	}
 	
-	public static List<String> getContigsFromHeader(File bamFile) throws IOException {
+	public static List<String> getContigsFromBamFile(File bamFile) throws IOException {
 		try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile)) {
-			
-			return reader.getFileHeader().getSequenceDictionary().getSequences()
-					.stream()
-					.map(SAMSequenceRecord::getSequenceName)
-					.collect(Collectors.toList());
+			return getContigsFromHeader(reader.getFileHeader());
 		}
+	}
+	
+	public static List<String> getContigsFromHeader(SAMFileHeader header) {
+		return header.getSequenceDictionary().getSequences()
+				.stream()
+				.map(SAMSequenceRecord::getSequenceName)
+				.collect(Collectors.toList());
 	}
 
 }
