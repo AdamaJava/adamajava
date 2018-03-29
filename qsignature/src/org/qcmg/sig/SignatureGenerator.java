@@ -36,7 +36,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -136,7 +135,7 @@ public class SignatureGenerator {
 		for (final File illuminaFile : illuminaFiles) {
 			
 			// load contents of each illumina file into mem
-			final Map<ChrPosition, IlluminaRecord> iIlluminaMap = new HashMap<ChrPosition, IlluminaRecord>(1250000);	// not expecting more than 1000000
+			final Map<ChrPosition, IlluminaRecord> iIlluminaMap = new HashMap<>(1250000);	// not expecting more than 1000000
 			
 			// set some bam specific values
 			arrayPosition = 0;
@@ -184,7 +183,7 @@ public class SignatureGenerator {
 				
 				final VcfHeader header = generateVcfHeader(bamFile, cmdLineInputFiles[0]);
 				
-				List<String> bamContigs = BAMFileUtils.getContigsFromHeader(bamFile);
+				List<String> bamContigs = BAMFileUtils.getContigsFromBamFile(bamFile);
 				
 				if (SignatureUtil.doContigsStartWithDigit(bamContigs)) {
 					/*
@@ -200,8 +199,6 @@ public class SignatureGenerator {
 				 */
 				chrComparator = ChrPositionComparator.getChrNameComparator(bamContigs);
 				snps.sort(ChrPositionComparator.getVcfRecordComparator(bamContigs));
-				
-//				createComparatorFromSAMHeader(bamFile);
 				
 				runSequentially(bamFile);
 				
@@ -278,46 +275,46 @@ public class SignatureGenerator {
 		}
 	}
 	
-	void createComparatorFromSAMHeader(File fileName) throws IOException {
-		if (null == fileName) throw new IllegalArgumentException("null file passed to createComparatorFromSAMHeader");
-		
-		final List<String> sortedContigs = new ArrayList<String>();
-		
-		try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(fileName)) {
-			final SAMFileHeader header = reader.getFileHeader();
-			for (final SAMSequenceRecord contig : header.getSequenceDictionary().getSequences()) {
-				sortedContigs.add(contig.getSequenceName());
-			}
-		}
-		
-		// try and sort according to the ordering of the bam file that is about to be processed
-		// otherwise, resort to alphabetic ordering and cross fingers...
-		if ( ! sortedContigs.isEmpty()) {
-			
-			chrComparator = ListUtils.createComparatorFromList(sortedContigs);
-			
-			Collections.sort(snps, new Comparator<VcfRecord>() {
-				@Override
-				public int compare(VcfRecord o1, VcfRecord o2) {
-					final int diff = chrComparator.compare(o1.getChromosome(), o2.getChromosome());
-					if (diff != 0) return diff;
-					return o1.getPosition() - o2.getPosition();
-				}
-			});
-			
-		} else {
-			chrComparator = COMPARATOR;
-			Collections.sort(snps, new VcfPositionComparator());
-		}
-		
-		final Set<String> uniqueChrs = new HashSet<String>();
-		logger.info("chr order:");
-		for (final VcfRecord vcf : snps) {
-			if (uniqueChrs.add(vcf.getChromosome())) {
-				logger.info(vcf.getChromosome());
-			}
-		}
-	}
+//	void createComparatorFromSAMHeader(File fileName) throws IOException {
+//		if (null == fileName) throw new IllegalArgumentException("null file passed to createComparatorFromSAMHeader");
+//		
+//		final List<String> sortedContigs = new ArrayList<String>();
+//		
+//		try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(fileName)) {
+//			final SAMFileHeader header = reader.getFileHeader();
+//			for (final SAMSequenceRecord contig : header.getSequenceDictionary().getSequences()) {
+//				sortedContigs.add(contig.getSequenceName());
+//			}
+//		}
+//		
+//		// try and sort according to the ordering of the bam file that is about to be processed
+//		// otherwise, resort to alphabetic ordering and cross fingers...
+//		if ( ! sortedContigs.isEmpty()) {
+//			
+//			chrComparator = ListUtils.createComparatorFromList(sortedContigs);
+//			
+//			Collections.sort(snps, new Comparator<VcfRecord>() {
+//				@Override
+//				public int compare(VcfRecord o1, VcfRecord o2) {
+//					final int diff = chrComparator.compare(o1.getChromosome(), o2.getChromosome());
+//					if (diff != 0) return diff;
+//					return o1.getPosition() - o2.getPosition();
+//				}
+//			});
+//			
+//		} else {
+//			chrComparator = COMPARATOR;
+//			Collections.sort(snps, new VcfPositionComparator());
+//		}
+//		
+//		final Set<String> uniqueChrs = new HashSet<String>();
+//		logger.info("chr order:");
+//		for (final VcfRecord vcf : snps) {
+//			if (uniqueChrs.add(vcf.getChromosome())) {
+//				logger.info(vcf.getChromosome());
+//			}
+//		}
+//	}
 	
 	private void updateResults() throws Exception {
 		// update the snps list with the details from the results map
