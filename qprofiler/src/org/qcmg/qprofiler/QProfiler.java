@@ -310,11 +310,11 @@ public class QProfiler {
 				throw new QProfilerException("INSUFFICIENT_ARGUMENTS");
 			} else {
 				// loop through supplied files - check they can be read
-				for (int i = 0 ; i < cmdLineFiles.length ; i++ ) {
-					if ( ! FileUtils.canFileBeRead(cmdLineFiles[i])) {
-						throw new QProfilerException("INPUT_FILE_ERROR" , cmdLineFiles[i]);
-					}
-				}
+//				for (int i = 0 ; i < cmdLineFiles.length ; i++ ) {
+//					if ( ! FileUtils.canFileBeRead(cmdLineFiles[i])) {
+//						throw new QProfilerException("INPUT_FILE_ERROR" , cmdLineFiles[i]);
+//					}
+//				}
 			}
 			
 			// set outputfile - if supplied, check that it can be written to
