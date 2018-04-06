@@ -425,9 +425,10 @@ public class SignatureGeneratorBespoke {
 			// lookup corresponding snp in illumina map
 			final IlluminaRecord illRec = iIlluminaMap.get(ChrPointPosition.valueOf(snp.getChromosome(), snp.getPosition()));
 			if (null == illRec) continue;
-			
+			logger.info("got illumina record!");
 			final String [] params = illuminaArraysDesignMap.get(illRec.getSnpId());
 			if (null == params) continue;
+			logger.info("got params!");
 			
 			snp.setInfo(SignatureUtil.getCoverageStringForIlluminaRecord(illRec, params, 20));
 			
