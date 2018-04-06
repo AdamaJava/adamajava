@@ -217,7 +217,7 @@ public class SignatureGeneratorBespoke {
 		}
 	}
 	
-	private void processIlluminaFiles() {
+	private void processIlluminaFiles() throws IOException {
 		for (final File illuminaFile : illuminaFiles) {
 			
 			// load contents of each illumina file into mem
@@ -235,6 +235,14 @@ public class SignatureGeneratorBespoke {
 					
 			if (null != inputType && inputType.length() == 4)
 				inputType = inputType.substring(1, 3);
+			
+			
+			/*
+			 * load data from snp chip fileinto map
+			 */
+			logger.info("about to load data from snp chip file " + illuminaFile);
+			loadIlluminaData(illuminaFile, iIlluminaMap);
+			logger.info("loaded " + iIlluminaMap.size() + " positions from snp chip file");
 			
 			 
 			updateResultsIllumina(iIlluminaMap);
