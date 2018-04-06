@@ -10,7 +10,6 @@ import gnu.trove.map.hash.THashMap;
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMReadGroupRecord;
 import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMSequenceRecord;
 import htsjdk.samtools.SamReader;
 
 import java.io.BufferedReader;
@@ -25,14 +24,11 @@ import java.security.MessageDigest;
 import java.time.LocalDateTime;
 import java.util.AbstractQueue;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
@@ -53,9 +49,7 @@ import org.qcmg.common.model.ChrPositionComparator;
 import org.qcmg.common.model.ReferenceNameComparator;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.FileUtils;
-import org.qcmg.common.util.ListUtils;
 import org.qcmg.common.util.TabTokenizer;
-import org.qcmg.common.vcf.VcfPositionComparator;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.illumina.IlluminaFileReader;
@@ -78,6 +72,7 @@ public class SignatureGeneratorBespoke {
 	private String logFile;
 	private String[] cmdLineInputFiles;
 	private String illumiaArraysDesign;
+	private String snpPositions;
 	private int exitStatus;
 	private QExec exec;
 	
@@ -96,31 +91,31 @@ public class SignatureGeneratorBespoke {
 	
 	Comparator<String> chrComparator;
 	
-	private final List<VcfRecord> snps = new ArrayList<VcfRecord>();
+	private final List<VcfRecord> snps = new ArrayList<>();
 	private final Map<ChrPosition, List<BaseReadGroup>> results = new ConcurrentHashMap<>();
 	private final List<StringBuilder> resultsToWrite = new ArrayList<>();
 	private final AbstractQueue<SAMRecord> sams = new ConcurrentLinkedQueue<>();
-	private final Map<String, String[]> IlluminaArraysDesign = new ConcurrentHashMap<>();
+	private final Map<String, String[]> illuminaArraysDesignMap = new ConcurrentHashMap<>();
 	private List<String> sortedContigs;
 	private byte[] snpPositionsMD5;
-	private final StringBuffer stdHeaderDetails = new StringBuffer();
+	private final StringBuilder stdHeaderDetails = new StringBuilder();
 	
 	public int engage() throws Exception {
 		
-		bamFiles = FileUtils.findFilesEndingWithFilter(cmdLineInputFiles[1], ".bam");
-		illuminaFiles = FileUtils.findFilesEndingWithFilter(cmdLineInputFiles[1], ".txt");
+		bamFiles = FileUtils.findFilesEndingWithFilter(cmdLineInputFiles[0], ".bam");
+		illuminaFiles = FileUtils.findFilesEndingWithFilter(cmdLineInputFiles[0], ".txt");
 		
 		if (bamFiles.length == 0 && illuminaFiles.length == 0) {
 			/*
 			 * nothing to process - go home
 			 */
-			logger.warn("Could not find any bam or txt files in " + cmdLineInputFiles[1]);
+			logger.warn("Could not find any bam or txt files in " + cmdLineInputFiles[0]);
 		} else {
 			/*
 			 * load snp positions file, create md5sum
 			 */
 			
-			loadRandomSnpPositions(cmdLineInputFiles[0]);
+			loadRandomSnpPositions(snpPositions);
 			
 			assert snpPositionsMD5.length > 0 : "md5sum digest array for snp positions is empty!!!";
 			assert ! snps.isEmpty() : "no snps positions loaded!!!";
@@ -155,7 +150,7 @@ public class SignatureGeneratorBespoke {
 		stdHeaderDetails.append("##java_version=").append(exec.getJavaVersion().getValue()).append(Constants.NL);
 		stdHeaderDetails.append("##run_by_os=").append(exec.getOsName().getValue()).append(Constants.NL);
 		stdHeaderDetails.append("##run_by_user=").append(exec.getRunBy().getValue()).append(Constants.NL);
-		stdHeaderDetails.append("##positions=").append(cmdLineInputFiles[0]).append(Constants.NL);
+		stdHeaderDetails.append("##positions=").append(snpPositions).append(Constants.NL);
 		stdHeaderDetails.append(SignatureUtil.MD_5_SUM).append("=").append(DatatypeConverter.printHexBinary(snpPositionsMD5).toLowerCase()).append(Constants.NL);
 		stdHeaderDetails.append(SignatureUtil.POSITIONS_COUNT).append("=").append(snps.size()).append(Constants.NL);
 		stdHeaderDetails.append(SignatureUtil.MIN_BASE_QUAL).append("=").append(minBaseQuality).append(Constants.NL);
@@ -248,11 +243,9 @@ public class SignatureGeneratorBespoke {
 			logger.info("about to write output");
 			try {
 				writeOutput(illuminaFile, null);
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
+			} catch (IOException e) {
 				e.printStackTrace();
 			}
-//			writeVCFOutput(illuminaFile, header);
 			
 			// clean out results, and erase info field from snps
 			results.clear();
@@ -273,7 +266,7 @@ public class SignatureGeneratorBespoke {
 				for (final TabbedRecord rec : reader) {
 					final String [] params = TabTokenizer.tokenize(rec.getData());
 					final String id = params[0];
-					IlluminaArraysDesign.put(id, params);
+					illuminaArraysDesignMap.put(id, params);
 				}
 			}
 		} else {
@@ -425,7 +418,7 @@ public class SignatureGeneratorBespoke {
 			final IlluminaRecord illRec = iIlluminaMap.get(ChrPointPosition.valueOf(snp.getChromosome(), snp.getPosition()));
 			if (null == illRec) continue;
 			
-			final String [] params = IlluminaArraysDesign.get(illRec.getSnpId());
+			final String [] params = illuminaArraysDesignMap.get(illRec.getSnpId());
 			if (null == params) continue;
 			
 			snp.setInfo(SignatureUtil.getCoverageStringForIlluminaRecord(illRec, params, 20));
@@ -676,7 +669,7 @@ public class SignatureGeneratorBespoke {
 			
 			// get list of file names
 			cmdLineInputFiles = options.getInputFileNames();
-			if (cmdLineInputFiles.length < 2) {
+			if (cmdLineInputFiles.length < 1) {
 				throw new QSignatureException("INSUFFICIENT_INPUT_FILES");
 			} else {
 				// loop through supplied files - check they can be read
@@ -695,6 +688,12 @@ public class SignatureGeneratorBespoke {
 			
 			if (options.hasIlluminaArraysDesignOption()) {
 				illumiaArraysDesign = options.getIlluminaArraysDesign();
+			}
+			if (options.hasSnpPositionsOption()) {
+				snpPositions = options.getSnpPositions();
+			}
+			if (null == snpPositions || ! FileUtils.canFileBeRead(snpPositions)) {
+				throw new QSignatureException("INSUFFICIENT_INPUT_FILES");
 			}
 			
 			validationStringency = options.getValidation();

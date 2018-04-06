@@ -168,6 +168,12 @@ final class Options {
 	public String getIlluminaArraysDesign() {
 		return (String) options.valueOf("illuminaArraysDesign");
 	}
+	public boolean hasSnpPositionsOption() {
+		return options.has("snpPositions");
+	}
+	public String getSnpPositions() {
+		return (String) options.valueOf("snpPositions");
+	}
 	
 	public boolean hasEmailOption() {
 		return options.has("email");
