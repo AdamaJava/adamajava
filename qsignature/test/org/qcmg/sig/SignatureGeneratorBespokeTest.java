@@ -68,7 +68,7 @@ public class SignatureGeneratorBespokeTest {
 	    SignatureGeneratorTest.writeIlluminaArraysDesignFile(illuminaArraysDesignFile);
 	    SignatureGeneratorTest.getBamFile(bamFile, true, false);
 	    	
-	    	final int exitStatus = qss.setup(new String[] {"--log" , logFile.getAbsolutePath(), "-i" , positionsOfInterestFile.getAbsolutePath(), "-i" , bamFile.getAbsolutePath(),  "-i" , illuminaArraysDesignFile.getAbsolutePath()} );
+	    	final int exitStatus = qss.setup(new String[] {"--log" , logFile.getAbsolutePath(), "-snpPositions" , positionsOfInterestFile.getAbsolutePath(), "-i" , bamFile.getAbsolutePath(),  "-illuminaArraysDesign" , illuminaArraysDesignFile.getAbsolutePath()} );
 	    	assertEquals(0, exitStatus);
 	    	
 	    	assertTrue(outputFile.exists());
