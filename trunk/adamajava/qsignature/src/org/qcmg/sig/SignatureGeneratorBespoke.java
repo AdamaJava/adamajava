@@ -425,10 +425,8 @@ public class SignatureGeneratorBespoke {
 			// lookup corresponding snp in illumina map
 			final IlluminaRecord illRec = iIlluminaMap.get(ChrPointPosition.valueOf(snp.getChromosome(), snp.getPosition()));
 			if (null == illRec) continue;
-//			logger.info("got illumina record!");
 			final String [] params = illuminaArraysDesignMap.get(illRec.getSnpId());
 			if (null == params) continue;
-//			logger.info("got params!");
 			
 			/*
 			 * add to resultsToWrite
@@ -437,12 +435,12 @@ public class SignatureGeneratorBespoke {
 			sb.append(Constants.TAB);
 			sb.append(snp.getPosition());
 			sb.append(Constants.TAB);
-			sb.append(Constants.MISSING_DATA).append(Constants.TAB);	// id
-			sb.append(snp.getRef()).append(Constants.TAB);										// ref allele
+			sb.append(snp.getId()).append(Constants.TAB);			// id
+			sb.append(snp.getRef()).append(Constants.TAB);			// ref allele
 			sb.append(Constants.MISSING_DATA).append(Constants.TAB);	// alt allele
 			sb.append(Constants.MISSING_DATA).append(Constants.TAB);	// qual
 			sb.append(Constants.MISSING_DATA).append(Constants.TAB);	// filter
-			sb.append("QAF=t:");																	// info
+			sb.append("QAF=t:");										// info
 			String coverageString = SignatureUtil.getCoverageStringForIlluminaRecord(illRec, params, 20, true);
 			sb.append(coverageString);
 			
