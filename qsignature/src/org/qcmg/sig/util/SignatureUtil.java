@@ -95,6 +95,7 @@ public class SignatureUtil {
 	public static final String POSITIONS_COUNT = "##positions_count";
 	public static final String MIN_BASE_QUAL = "##filter_base_quality";
 	public static final String MIN_MAPPING_QUAL = "##filter_mapping_quality";
+	public static final String MIN_GC_SCORE = "##filter_gc_score";
 	public static final String RG_PREFIX = "##rg";
 	public static final String NAN = "nan";
 	
