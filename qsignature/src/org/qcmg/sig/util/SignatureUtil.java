@@ -44,7 +44,6 @@ import javax.xml.transform.stream.StreamResult;
 import org.apache.commons.math3.util.Pair;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
-import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.BaseUtils;
@@ -83,6 +82,7 @@ public class SignatureUtil {
 	public static final String SAMPLE_REGEX = "[A-Z]{4}_[A-Z]{4}_[0-9]{8}_[0-9]{2}_[A-Z]{2}";
 	public static final String TYPE_REGEX = "_[A-Z]{2}_";
 	private static final char[] BASES = new char[] {'A', 'C', 'G', 'T', 'N'};
+	private static final char[] BASES_NO_N = new char[] {'A', 'C', 'G', 'T'};
 	
 	public static final String SNP_ARRAY = "SNP_array";
 	public static final String UNKNOWN = "UNKNOWN";
@@ -106,28 +106,47 @@ public class SignatureUtil {
 	 * METHODS
 	 */
 	
-	public static String getCoverageStringFromCharsAndInts(char c1, char c2, int i1, int i2) {
-		StringBuilder sb = new StringBuilder("FULLCOV=");
-		
-		for (char c : BASES) {
-			if (c1 == c && c2 == c) {
-				sb.append(c).append(Constants.COLON).append(i1 + i2).append(Constants.COMMA);
-			} else if (c1 == c) {
-				sb.append(c).append(Constants.COLON).append(i1).append(Constants.COMMA);
-			} else if (c2 == c) {
-				sb.append(c).append(Constants.COLON).append(i2).append(Constants.COMMA);
-			} else {
-				sb.append(c).append(":0,");
+	public static String getCoverageStringFromCharsAndInts(char c1, char c2, int i1, int i2, boolean bespoke) {
+		StringBuilder sb = new StringBuilder();
+		if (bespoke) {
+			
+			for (char c : BASES_NO_N) {
+				if (c1 == c && c2 == c) {
+					StringUtils.updateStringBuilder(sb, ""+(i1+i2), '-');
+				} else if (c1 == c) {
+					StringUtils.updateStringBuilder(sb, ""+i1, '-');
+				} else if (c2 == c) {
+					StringUtils.updateStringBuilder(sb, ""+i2, '-');
+				} else {
+					StringUtils.updateStringBuilder(sb, "0", '-');
+				}
 			}
+			
+		} else {
+			sb.append("FULLCOV=");
+			
+			for (char c : BASES) {
+				if (c1 == c && c2 == c) {
+					sb.append(c).append(Constants.COLON).append(i1 + i2).append(Constants.COMMA);
+				} else if (c1 == c) {
+					sb.append(c).append(Constants.COLON).append(i1).append(Constants.COMMA);
+				} else if (c2 == c) {
+					sb.append(c).append(Constants.COLON).append(i2).append(Constants.COMMA);
+				} else {
+					sb.append(c).append(":0,");
+				}
+			}
+			
+			// add total
+			sb.append("TOTAL:").append(i1 + i2);
+			
+			// and finally novel start count
+			sb.append(EMPTY_NOVEL_STARTS);
 		}
-		
-		// add total
-		sb.append("TOTAL:").append(i1 + i2);
-		
-		// and finally novel start count
-		sb.append(EMPTY_NOVEL_STARTS);
-		
 		return sb.toString();
+	}
+	public static String getCoverageStringFromCharsAndInts(char c1, char c2, int i1, int i2) {
+		return getCoverageStringFromCharsAndInts(c1, c2, i1, i2, false);
 	}
 	
 	public static String getPatientFromFile(File file) {
@@ -713,6 +732,9 @@ public class SignatureUtil {
 	
 	
 	public static String getCoverageStringForIlluminaRecord(IlluminaRecord illRec, String [] params, int arbitraryCoverage) {
+		return getCoverageStringForIlluminaRecord(illRec, params, arbitraryCoverage, false);
+	}
+	public static String getCoverageStringForIlluminaRecord(IlluminaRecord illRec, String [] params, int arbitraryCoverage, boolean bespoke) {
 		
 		//# get bases that are probed for at this genomic coordinate
 		final char snpChar1 = illRec.getSnp().charAt(1);
@@ -810,7 +832,7 @@ public class SignatureUtil {
 		int altCoverage = (int) Math.floor(illRec.getbAlleleFreq() * totalCoverage);
 		int refCoverage = totalCoverage - altCoverage;
 		
-		return getCoverageStringFromCharsAndInts(base1, base2, refCoverage, altCoverage);
+		return getCoverageStringFromCharsAndInts(base1, base2, refCoverage, altCoverage, bespoke);
 		
 	}
 	
