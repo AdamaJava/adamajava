@@ -430,7 +430,25 @@ public class SignatureGeneratorBespoke {
 			if (null == params) continue;
 			logger.info("got params!");
 			
-			snp.setInfo(SignatureUtil.getCoverageStringForIlluminaRecord(illRec, params, 20));
+			/*
+			 * add to resultsToWrite
+			 */
+			final StringBuilder sb = new StringBuilder(snp.getChromosome());
+			sb.append(Constants.TAB);
+			sb.append(snp.getPosition());
+			sb.append(Constants.TAB);
+			sb.append(Constants.MISSING_DATA).append(Constants.TAB);	// id
+			sb.append(snp.getRef()).append(Constants.TAB);										// ref allele
+			sb.append(Constants.MISSING_DATA).append(Constants.TAB);	// alt allele
+			sb.append(Constants.MISSING_DATA).append(Constants.TAB);	// qual
+			sb.append(Constants.MISSING_DATA).append(Constants.TAB);	// filter
+			sb.append("QAF=t:");																	// info
+			String coverageString = SignatureUtil.getCoverageStringForIlluminaRecord(illRec, params, 20, true);
+			sb.append(coverageString);
+			
+			resultsToWrite.add(sb);
+			
+			snp.setInfo(coverageString);
 			
 		}
 	}
