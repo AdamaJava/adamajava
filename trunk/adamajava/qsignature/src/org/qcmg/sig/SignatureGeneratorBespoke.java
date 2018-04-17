@@ -46,7 +46,6 @@ import org.qcmg.common.meta.QExec;
 import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrPositionComparator;
-import org.qcmg.common.model.ReferenceNameComparator;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.TabTokenizer;
@@ -65,8 +64,6 @@ import org.qcmg.tab.TabbedRecord;
 
 
 public class SignatureGeneratorBespoke {
-	
-	private final static ReferenceNameComparator COMPARATOR = new ReferenceNameComparator();
 	
 	static QLogger logger;
 	private String logFile;
@@ -87,6 +84,7 @@ public class SignatureGeneratorBespoke {
 	
 	private int minMappingQuality = 10;
 	private int minBaseQuality = 10;
+	private static float minGCScore = 0.70000f ;
 	private String validationStringency;
 	
 	Comparator<String> chrComparator;
@@ -98,7 +96,6 @@ public class SignatureGeneratorBespoke {
 	private final Map<String, String[]> illuminaArraysDesignMap = new ConcurrentHashMap<>();
 	private List<String> sortedContigs;
 	private byte[] snpPositionsMD5;
-	private final StringBuilder stdHeaderDetails = new StringBuilder();
 	
 	public int engage() throws Exception {
 		
@@ -120,7 +117,6 @@ public class SignatureGeneratorBespoke {
 			assert snpPositionsMD5.length > 0 : "md5sum digest array for snp positions is empty!!!";
 			assert ! snps.isEmpty() : "no snps positions loaded!!!";
 			
-			setupHeader();
 			
 			if (illuminaFiles.length > 0) {
 				// load in the Illumina arrays design document to get the list of snp ids and whether they should be complemented.
@@ -140,24 +136,29 @@ public class SignatureGeneratorBespoke {
 		return exitStatus;
 	}
 
-	private void setupHeader() {
+	private StringBuilder getHeader(boolean bam) {
 		LocalDateTime timePoint = LocalDateTime.now();
-		
-		stdHeaderDetails.append("##fileformat=VCFv4.2").append(Constants.NL);
-		stdHeaderDetails.append("##datetime=").append(timePoint.toString()).append(Constants.NL);
-		stdHeaderDetails.append("##program=").append(exec.getToolName().getValue()).append(Constants.NL);
-		stdHeaderDetails.append("##version=").append(exec.getToolVersion().getValue()).append(Constants.NL);
-		stdHeaderDetails.append("##java_version=").append(exec.getJavaVersion().getValue()).append(Constants.NL);
-		stdHeaderDetails.append("##run_by_os=").append(exec.getOsName().getValue()).append(Constants.NL);
-		stdHeaderDetails.append("##run_by_user=").append(exec.getRunBy().getValue()).append(Constants.NL);
-		stdHeaderDetails.append("##positions=").append(snpPositions).append(Constants.NL);
-		stdHeaderDetails.append(SignatureUtil.MD_5_SUM).append("=").append(DatatypeConverter.printHexBinary(snpPositionsMD5).toLowerCase()).append(Constants.NL);
-		stdHeaderDetails.append(SignatureUtil.POSITIONS_COUNT).append("=").append(snps.size()).append(Constants.NL);
-		stdHeaderDetails.append(SignatureUtil.MIN_BASE_QUAL).append("=").append(minBaseQuality).append(Constants.NL);
-		stdHeaderDetails.append(SignatureUtil.MIN_MAPPING_QUAL).append("=").append(minMappingQuality).append(Constants.NL);
-		stdHeaderDetails.append("##illumina_array_design=").append(illumiaArraysDesign).append(Constants.NL);
-		stdHeaderDetails.append("##cmd_line=").append(exec.getCommandLine().getValue()).append(Constants.NL);
-		stdHeaderDetails.append("##INFO=<ID=QAF,Number=.,Type=String,Description=\"Lists the counts of As-Cs-Gs-Ts for each read group, along with the total\">").append(Constants.NL);
+		StringBuilder sb = new StringBuilder();
+		sb.append("##fileformat=VCFv4.2").append(Constants.NL);
+		sb.append("##datetime=").append(timePoint.toString()).append(Constants.NL);
+		sb.append("##program=").append(exec.getToolName().getValue()).append(Constants.NL);
+		sb.append("##version=").append(exec.getToolVersion().getValue()).append(Constants.NL);
+		sb.append("##java_version=").append(exec.getJavaVersion().getValue()).append(Constants.NL);
+		sb.append("##run_by_os=").append(exec.getOsName().getValue()).append(Constants.NL);
+		sb.append("##run_by_user=").append(exec.getRunBy().getValue()).append(Constants.NL);
+		sb.append("##positions=").append(snpPositions).append(Constants.NL);
+		sb.append(SignatureUtil.MD_5_SUM).append("=").append(DatatypeConverter.printHexBinary(snpPositionsMD5).toLowerCase()).append(Constants.NL);
+		sb.append(SignatureUtil.POSITIONS_COUNT).append("=").append(snps.size()).append(Constants.NL);
+		if (bam) {
+			sb.append(SignatureUtil.MIN_BASE_QUAL).append("=").append(minBaseQuality).append(Constants.NL);
+			sb.append(SignatureUtil.MIN_MAPPING_QUAL).append("=").append(minMappingQuality).append(Constants.NL);
+		} else {
+			sb.append(SignatureUtil.MIN_GC_SCORE).append("=").append(minGCScore).append(Constants.NL);
+		}
+		sb.append("##illumina_array_design=").append(illumiaArraysDesign).append(Constants.NL);
+		sb.append("##cmd_line=").append(exec.getCommandLine().getValue()).append(Constants.NL);
+		sb.append("##INFO=<ID=QAF,Number=.,Type=String,Description=\"Lists the counts of As-Cs-Gs-Ts for each read group, along with the total\">").append(Constants.NL);
+		return sb;
 	}
 	
 	private void processBamFiles() throws IOException {
@@ -209,7 +210,7 @@ public class SignatureGeneratorBespoke {
 			updateResults(rgIds);
 			
 			// output vcf file
-			writeOutput(bamFile, rgIds);
+			writeOutput(bamFile, rgIds, true);
 			
 			// clean out results, and erase info field from snps
 			results.clear();
@@ -250,7 +251,7 @@ public class SignatureGeneratorBespoke {
 			
 			logger.info("about to write output");
 			try {
-				writeOutput(illuminaFile, null);
+				writeOutput(illuminaFile, null, false);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -295,7 +296,7 @@ public class SignatureGeneratorBespoke {
 				
 				
 				
-				if (tempRec.getGCScore() >= 0.70000f 
+				if (tempRec.getGCScore() >= minGCScore 
 						&& null != tempRec.getChr()
 						&& ! "0".equals(tempRec.getChr())
 						&& ! Float.isNaN(tempRec.getbAlleleFreq())
@@ -320,37 +321,8 @@ public class SignatureGeneratorBespoke {
 		}
 	}
 	
-//	void createComparatorFromSAMHeader(SAMFileHeader header) throws IOException {
-//		if (null == header) throw new IllegalArgumentException("null file passed to createComparatorFromSAMHeader");
-//		
-//		/*
-//		 * get contig names from bam header
-//		 */
-//		sortedContigs = header.getSequenceDictionary().getSequences().stream().map(SAMSequenceRecord::getSequenceName).collect(Collectors.toList());
-//		
-//		// try and sort according to the ordering of the bam file that is about to be processed
-//		// otherwise, resort to alphabetic ordering and cross fingers...
-//		if ( ! sortedContigs.isEmpty()) {
-//			
-//			chrComparator = ListUtils.createComparatorFromList(sortedContigs);
-//			snps.sort(Comparator.comparing(VcfRecord::getChromosome, chrComparator).thenComparingInt(VcfRecord::getPosition));
-//			
-//		} else {
-//			chrComparator = COMPARATOR;
-//			snps.sort(new VcfPositionComparator());
-//		}
-//		
-//		final Set<String> uniqueChrs = new HashSet<>();
-//		logger.info("chr order:");
-//		for (final VcfRecord vcf : snps) {
-//			if (uniqueChrs.add(vcf.getChromosome())) {
-//				logger.info(vcf.getChromosome());
-//			}
-//		}
-//	}
 	
 	private void updateResults(Map<String, String> rgIds) {
-		
 		
 		/*
 		 * create map from snps list - need ref allele
@@ -447,12 +419,10 @@ public class SignatureGeneratorBespoke {
 			resultsToWrite.add(sb);
 			
 			snp.setInfo(coverageString);
-			
 		}
 	}
 	
-	
-	private void writeOutput(File f, Map<String, String> rgIds) throws IOException {
+	private void writeOutput(File f, Map<String, String> rgIds, boolean bam) throws IOException {
 		// if we have an output folder defined, place the vcf files there, otherwise they will live next to the input file
 		File outputVCFFile = null;
 		if (null != outputDirectory) {
@@ -475,9 +445,11 @@ public class SignatureGeneratorBespoke {
 				/*
 				 * Header contains some standard bumf, some file specific bumf, and finally the column header
 				 */
-				os.write(stdHeaderDetails.toString().getBytes());
+				os.write(getHeader(bam).toString().getBytes());
 				os.write(("##input=" + f.getAbsolutePath() + Constants.NL).getBytes());
-				os.write((sbRgIds.toString()).getBytes());
+				if (null != rgIds) {
+					os.write((sbRgIds.toString()).getBytes());
+				}
 				os.write(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE.getBytes());
 				os.write(Constants.NL);
 				
@@ -492,7 +464,6 @@ public class SignatureGeneratorBespoke {
 			logger.warn("Can't write to output vcf file: " + outputVCFFile.getAbsolutePath());
 		}
 	}
-	
 	
 	private void advanceVCFAndPosition(boolean nextChromosome, SAMRecord rec) {
 		if (arrayPosition >= arraySize) {
