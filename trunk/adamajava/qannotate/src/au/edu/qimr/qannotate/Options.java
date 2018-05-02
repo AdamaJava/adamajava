@@ -24,43 +24,39 @@ import au.edu.qimr.qannotate.modes.*;
  * parse command line to options. 
  */
 public class Options {
-	public enum MODE {dbsnp, germline, snpeff,confidence, vcf2maf, cadd,indelconfidence,trf, hom, make_valid}
+	public enum MODE { dbsnp, germline, snpeff,confidence, vcf2maf, cadd,indelconfidence,trf, hom, make_valid, snppileup }
 	
-   protected static final String VERSION_DESCRIPTION = Messages.getMessage("VERSION_OPTION_DESCRIPTION");
-	 
-   protected static final String HELP_DESCRIPTION = Messages.getMessage("HELP_OPTION_DESCRIPTION");  
-    
-   protected static final String LOG_DESCRIPTION = Messages.getMessage("LOG_OPTION_DESCRIPTION");
-   protected static final String LOG_LEVEL_OPTION_DESCRIPTION = Messages.getMessage("LOG_LEVEL_OPTION_DESCRIPTION");
+    protected static final String VERSION_DESCRIPTION = Messages.getMessage("VERSION_OPTION_DESCRIPTION");	 
+    protected static final String HELP_DESCRIPTION = Messages.getMessage("HELP_OPTION_DESCRIPTION");      
+    protected static final String LOG_DESCRIPTION = Messages.getMessage("LOG_OPTION_DESCRIPTION");
+    protected static final String LOG_LEVEL_OPTION_DESCRIPTION = Messages.getMessage("LOG_LEVEL_OPTION_DESCRIPTION");
    
-   private static final String test = "test";
-   private static final String control = "control";
-
-   private final String commandLine;
+    private static final String test = "test";
+    private static final String control = "control";
+    private final String commandLine;
     
-   private final Options.MODE mode;  
-   private final  OptionParser parser;
-   private final QLogger logger = null;
-	
- 	
-   private final String outputFileName ;
-   private final String inputFileName ;
-   private final String[] databaseFiles;
-   private final String logFileName;
-   private final String logLevel;  
+    private final Options.MODE mode;  
+    private final  OptionParser parser;
+    private final QLogger logger = null;
+	 	
+    private final String outputFileName ;
+    private final String inputFileName ;
+    private final String[] databaseFiles;
+    private final String logFileName;
+    private final String logLevel;  
 	
 	//vcf2maf 
-   private  final String testSample;
-   private  final String controlSample ;
+    private  final String testSample;
+    private  final String controlSample ;
 	
-   private  final int bufferSize; //trf
-   private  final int gap ; //cadd
+    private  final int bufferSize; //trf
+    private  final int gap ; //cadd
 	
-   private final Integer nnsCount;
-   private final Integer mrCount;
-	private final Float mrPercentage;
+    private final Integer nnsCount;
+    private final Integer mrCount;
+    private final Float mrPercentage;
 	
-	private final  List<String> filtersToIgnore;
+    private final  List<String> filtersToIgnore;
 	
 	//Vcf2maf
 	private final String center; 
@@ -281,7 +277,7 @@ public class Options {
 	public String getInputFileName(){return inputFileName;}
 	public String getOutputFileName(){return outputFileName;}
 	public String getDatabaseFileName(){return null != databaseFiles && databaseFiles.length > 0 ? databaseFiles[0] : null;}	
-	public String[] getDatabaseFiles(){ return  (mode.equals(MODE.cadd))? databaseFiles : null;}
+	public String[] getDatabaseFiles(){ return  (mode.equals(MODE.cadd) || mode.equals(MODE.snppileup))? databaseFiles : null;}
     public MODE getMode(){	return  mode; }
    
     private void displayHelp(MODE mode) throws IOException {   
@@ -298,6 +294,7 @@ public class Options {
             case vcf2maf: mess = Messages.getMessage("VCF2MAF_USAGE"); break;
             case hom: mess = Messages.getMessage("HOM_USAGE"); break;
 			case make_valid:	mess = Messages.getMessage("MAKE_VALID_USAGE"); break;
+			case snppileup:	mess = Messages.getMessage("MAKE_PILEUP_USAGE"); break;
 			default:
 				break;
             } 

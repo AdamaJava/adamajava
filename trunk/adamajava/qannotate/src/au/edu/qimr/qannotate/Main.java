@@ -42,6 +42,8 @@ public class Main {
         	   		new TandemRepeatMode( options );
            } else if (options.getMode() == Options.MODE.make_valid) {
         	   		new MakeValidMode( options );
+           } else if (options.getMode() == Options.MODE.snppileup) {
+   	   			new SnpPileupMode( options );
            } else {
             	   throw new Exception("No valid mode are specified on commandline: " + options.getMode().name()) ;
            }

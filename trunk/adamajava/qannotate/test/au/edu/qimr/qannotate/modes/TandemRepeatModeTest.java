@@ -3,6 +3,7 @@ package au.edu.qimr.qannotate.modes;
 import static org.junit.Assert.*;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -14,6 +15,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.junit.AfterClass;
 import org.junit.Test;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.ChrPositionUtils;
@@ -24,9 +26,19 @@ import org.qcmg.common.vcf.VcfUtils;
 import au.edu.qimr.qannotate.modes.TandemRepeatMode.*;
 
 public class TandemRepeatModeTest {
-	String repeatFileName = "repeat.txt";
+	String repeatFileName = "input.repeat";
 	String inputVcfName = "input.vcf";
 	String outputVcfName = "output.vcf";
+
+	@AfterClass
+	public static void deleteInput() {	
+		File dir = new File(".");
+		if(!dir.isDirectory()) throw new IllegalStateException("wtf mate?");
+		for(File file : dir.listFiles()) {
+		    if(file.getName().startsWith("input.") || file.getName().startsWith("output.") )
+		       file.delete();
+		}
+	}
 	
 	@Test
 	public void checkRepeatTest() throws Exception{
