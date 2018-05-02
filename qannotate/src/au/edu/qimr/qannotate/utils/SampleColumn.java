@@ -50,8 +50,8 @@ public class SampleColumn {
 	    
 		//incase both point into same column
 		for (int i = 0; i < samples.length; i++) { 	
-			if( ( controlS != null && samples[i].equalsIgnoreCase(controlS )) || 
-					samples[i].equalsIgnoreCase(sampleIds[0][1]) || 
+			if( ( controlS != null && samples[i].equalsIgnoreCase(controlS )) ||  //match sampleid
+					samples[i].equalsIgnoreCase(sampleIds[0][1]) ||  //match bamid
 					samples[i].equalsIgnoreCase(VcfHeaderUtils.STANDARD_CONTROL_SAMPLE.substring(2)) ) {
 				cc = i + 1;										 				
 			}

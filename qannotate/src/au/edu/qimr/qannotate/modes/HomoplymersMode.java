@@ -38,7 +38,7 @@ public class HomoplymersMode extends AbstractMode{
 	public static int defaultreport = 10;
 	public static int defaultHomoplymerBase = 5;
 	
-	@Deprecated
+	@Deprecated //for unit test
 	HomoplymersMode( int homoWindow, int reportWindow){		
 		this.input = null;
 		this.output = null;
