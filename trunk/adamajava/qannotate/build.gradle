@@ -12,8 +12,10 @@ repositories {
 dependencies {
     configurations.compile.transitive = true
 
-    compile project(':qcommon')
-    compile project(':qio')
+    compile project( ':qcommon' )
+    compile project( ':qio' )
+	compile project( ':qpicard' )
+	compile project( ':qbamfilter' )
 
 	compile name: 'snpEff', version: '4.0e'	
     compile name: 'htsjdk', version: '2.14.1-SNAPSHOT-all'
