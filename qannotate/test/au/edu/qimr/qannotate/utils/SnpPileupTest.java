@@ -54,19 +54,19 @@ public class SnpPileupTest {
 			//discard pair with different base
 			if( pos == 282753 )					
 				 //assertEquals(anno, "2[0,1,0,0,0,0,0,0,0]"); 
-				assertEquals(anno, "2[0,1,A0,T0,G0,C0,O0]");
+				assertEquals(anno, "2[0,1,A0,C0,G0,T0,O0]");
 			
 			//count as one for pair with same base, here the snp base is [A]
 			else if( pos == 282768 )	
-				assertEquals(anno, "2[1,0,A1,T0,G0,C0,O0]");
+				assertEquals(anno, "2[1,0,A1,C0,G0,T0,O0]");
 			
 			//count as one for pair with same base, here the snp base is others(del)
 			else if( pos == 282769 )	
-				assertEquals(anno, "2[1,0,A0,T0,G0,C0,O1]"); 
+				assertEquals(anno, "2[1,0,A0,C0,G0,T0,O1]"); 
 			
 			//snp on adjacent to insertion location since inertion don't take reference space
 			else
-				assertEquals(anno, "2[1,0,A0,T1,G0,C0,O0]");
+				assertEquals(anno, "2[1,0,A0,C0,G0,T1,O0]");
 		}
 		 
 	}
@@ -85,19 +85,19 @@ public class SnpPileupTest {
 			
 			//discard pair with different base
 			if( pos == 282753 )					
-				 assertEquals(anno, "2[0,1,A0,T0,G0,C0,O0]"); 
+				 assertEquals(anno, "2[0,1,A0,C0,G0,T0,O0]"); 
 			
 			//count as one for pair with same base, here the snp base is [A]
 			else if( pos == 282768 )	
-				assertEquals(anno, "2[1,0,A1,T0,G0,C0,O0]");
+				assertEquals(anno, "2[1,0,A1,C0,G0,T0,O0]");
 			
 			//count as one for pair with same base, here the snp base is others(del)
 			else if( pos == 282769 )	
-				assertEquals(anno, "2[1,0,A0,T0,G0,C0,O1]"); 
+				assertEquals(anno, "2[1,0,A0,C0,G0,T0,O1]"); 
 			
 			//snp on adjacent to insertion location since inertion don't take reference space
 			else
-				assertEquals(anno, "2[1,0,A0,T1,G0,C0,O0]");  
+				assertEquals(anno, "2[1,0,A0,C0,G0,T1,O0]");
 		}
 	}
 	
@@ -117,26 +117,26 @@ public class SnpPileupTest {
 		pool.get(1).setCigar(pool.get(0).getCigar());
 	 		
 		for(int pos : new int[]{ 282753, 282768, 282769, 282783 }){
-			ChrPointPosition chrP = new ChrPointPosition("chr11", pos);		 			
+			ChrPointPosition chrP = new ChrPointPosition("chr11", pos);
 			SnpPileup pileup= new SnpPileup( chrP, pool );
-			String anno = pileup.getAnnotation() ; 
+			String anno = pileup.getAnnotation();
 			
 			//discard pair with different base
 			if( pos == 282753 )					
-				 assertEquals(anno, "2[0,1,A0,T0,G0,C0,O0]"); 
+				 assertEquals(anno, "2[0,1,A0,C0,G0,T0,O0]"); 
 			
 			//after ciagr changed, the base position also shift
 			//base on second become [T]
 			else if( pos == 282768 )	
-				assertEquals(anno, "2[0,1,A0,T0,G0,C0,O0]");
+				assertEquals(anno, "2[0,1,A0,C0,G0,T0,O0]");
 			
 			//count as one for pair with same base, here the snp base is others(del)
 			else if( pos == 282769 )	
-				assertEquals(anno, "2[1,0,A0,T0,G0,C0,O1]"); 
+				assertEquals(anno, "2[1,0,A0,C0,G0,T0,O1]"); 
 			
 			//snp on adjacent to insertion location since inertion don't take reference space
 			else
-				assertEquals(anno, "2[1,0,A0,T1,G0,C0,O0]");  
+				assertEquals(anno, "2[1,0,A0,C0,G0,T1,O0]");  
 		}
 	}
 	
