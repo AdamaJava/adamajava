@@ -53,19 +53,20 @@ public class SnpPileupTest {
 			
 			//discard pair with different base
 			if( pos == 282753 )					
-				 assertEquals(anno, "2[0,1,0,0,0,0,0,0,0]"); 
+				 //assertEquals(anno, "2[0,1,0,0,0,0,0,0,0]"); 
+				assertEquals(anno, "2[0,1,A0,T0,G0,C0,O0]");
 			
 			//count as one for pair with same base, here the snp base is [A]
 			else if( pos == 282768 )	
-				assertEquals(anno, "2[1,0,0,0,1,0,0,0,0]");
+				assertEquals(anno, "2[1,0,A1,T0,G0,C0,O0]");
 			
 			//count as one for pair with same base, here the snp base is others(del)
 			else if( pos == 282769 )	
-				assertEquals(anno, "2[1,0,0,0,0,0,0,0,1]"); 
+				assertEquals(anno, "2[1,0,A0,T0,G0,C0,O1]"); 
 			
 			//snp on adjacent to insertion location since inertion don't take reference space
 			else
-				assertEquals(anno, "2[1,0,0,0,0,1,0,0,0]");
+				assertEquals(anno, "2[1,0,A0,T1,G0,C0,O0]");
 		}
 		 
 	}
@@ -84,19 +85,19 @@ public class SnpPileupTest {
 			
 			//discard pair with different base
 			if( pos == 282753 )					
-				 assertEquals(anno, "2[0,1,0,0,0,0,0,0,0]"); 
+				 assertEquals(anno, "2[0,1,A0,T0,G0,C0,O0]"); 
 			
 			//count as one for pair with same base, here the snp base is [A]
 			else if( pos == 282768 )	
-				assertEquals(anno, "2[1,0,0,0,1,0,0,0,0]");
+				assertEquals(anno, "2[1,0,A1,T0,G0,C0,O0]");
 			
 			//count as one for pair with same base, here the snp base is others(del)
 			else if( pos == 282769 )	
-				assertEquals(anno, "2[1,0,0,0,0,0,0,0,1]"); 
+				assertEquals(anno, "2[1,0,A0,T0,G0,C0,O1]"); 
 			
 			//snp on adjacent to insertion location since inertion don't take reference space
 			else
-				assertEquals(anno, "2[1,0,0,0,0,1,0,0,0]");  
+				assertEquals(anno, "2[1,0,A0,T1,G0,C0,O0]");  
 		}
 	}
 	
@@ -122,20 +123,20 @@ public class SnpPileupTest {
 			
 			//discard pair with different base
 			if( pos == 282753 )					
-				 assertEquals(anno, "2[0,1,0,0,0,0,0,0,0]"); 
+				 assertEquals(anno, "2[0,1,A0,T0,G0,C0,O0]"); 
 			
 			//after ciagr changed, the base position also shift
 			//base on second become [T]
 			else if( pos == 282768 )	
-				assertEquals(anno, "2[0,1,0,0,0,0,0,0,0]");
+				assertEquals(anno, "2[0,1,A0,T0,G0,C0,O0]");
 			
 			//count as one for pair with same base, here the snp base is others(del)
 			else if( pos == 282769 )	
-				assertEquals(anno, "2[1,0,0,0,0,0,0,0,1]"); 
+				assertEquals(anno, "2[1,0,A0,T0,G0,C0,O1]"); 
 			
 			//snp on adjacent to insertion location since inertion don't take reference space
 			else
-				assertEquals(anno, "2[1,0,0,0,0,1,0,0,0]");  
+				assertEquals(anno, "2[1,0,A0,T1,G0,C0,O0]");  
 		}
 	}
 	

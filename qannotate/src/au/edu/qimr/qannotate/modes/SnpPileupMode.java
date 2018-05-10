@@ -39,7 +39,7 @@ public class SnpPileupMode extends AbstractMode{
 	
 	private final static QLogger logger = QLoggerFactory.getLogger(SnpPileupMode.class);
 	private QueryExecutor query =  new QueryExecutor( "and (flag_ReadUnmapped == false,flag_NotprimaryAlignment == false,"
-			+ " flag_ReadFailsVendorQuality == false, flag_SupplementaryRead == false, Flag_DuplicateRead == false, CIGAR_M > 34, MAPQ >10 )");
+			+ " flag_ReadFailsVendorQuality == false, flag_SupplementaryRead == false, Flag_DuplicateRead == false, CIGAR_M > 34, MAPQ >10, MD_mismatch <= 3 )");
 	
 	public SnpPileupMode(Options options) throws Exception{	
 
@@ -51,30 +51,13 @@ public class SnpPileupMode extends AbstractMode{
               
         //read vcf records to Map<ChrPosition,List<VcfRecord>> positionRecordMap
         inputRecord(new File(options.getInputFileName()));   
-        
-        
+                
         Map<ChrPosition, String[]> acsnpMap = new HashMap<>(); 
         for(int i = 0; i < options.getDatabaseFiles().length; i ++ ) 
         	for(SnpPileup pileup: addAnnotation( options.getDatabaseFiles()[i]  , i ) ){
         		String[] anno = acsnpMap.computeIfAbsent( pileup.getPosition(), k-> new String[ options.getDatabaseFiles().length] );
-        		anno[i] = pileup.getAnnotation();
-       		
+        		anno[i] = pileup.getAnnotation();       		
         	}
-        	
-         
-        
-//        //get the list of bam files to pileup, bam file order same to sample order on #CHROM line
-//        List<ACSNP> annotated = new ArrayList<>();
-//        for(int i = 0; i < options.getDatabaseFiles().length; i ++ )
-//        	annotated.addAll( addAnnotation( options.getDatabaseFiles()[i]  , i ) );		
-//        
-//        //adding the annoation into positionRecordMap
-//        Map<ChrPosition, String[]> acsnpMap = new HashMap<>();  
-//        String[] acsnp;//options.getDatabaseFiles().length
-//        for(ACSNP ac: annotated){
-//        	acsnp = acsnpMap.computeIfAbsent( ac.chrP, k-> new String[ options.getDatabaseFiles().length] );
-//        	acsnp[ac.sampleColumnNo] = ac.getACSNP();
-//        }
         
         String[] acsnp;//options.getDatabaseFiles().length
         for(ChrPosition pos: positionRecordMap.keySet()) 
