@@ -86,7 +86,9 @@ public class SnpPileup {
 	
 	public String getAnnotation(){
 		//coverage[coverage, vendor, secondary ,supply, duplicate,errMD]
-		String str = String.format("%d[%d,%d,%d,%d,%d,%d,%d,%d,%d]",coverage, overSame, overDiff ,unOver, duplicate, atgco[0], atgco[1], atgco[2], atgco[3], atgco[4] );
+//		String str = String.format("%d[%d,%d,%d,%d,%d,%d,%d,%d,%d]",coverage, overSame, overDiff ,unOver, duplicate, atgco[0], atgco[1], atgco[2], atgco[3], atgco[4] );
+		String str = String.format("%d[%d,%d,A%d,T%d,G%d,C%d,O%d]",coverage, overSame, overDiff, atgco[0], atgco[1], atgco[2], atgco[3], atgco[4] );
+
 		return str;
 	}	
 		
