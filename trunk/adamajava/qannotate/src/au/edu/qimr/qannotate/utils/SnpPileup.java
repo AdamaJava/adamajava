@@ -74,11 +74,11 @@ public class SnpPileup {
 			byte[] bases = re.getReadBases();		
 			if( (char) bases[offset-1]  == 'A' )
 				return 0;
-			else if( (char) bases[offset-1]  == 'T' )
+			else if( (char) bases[offset-1]  == 'C' )
 				return 1;
 			else if( (char) bases[offset-1]  == 'G' )
 				return 2;
-			else if( (char) bases[offset-1]  == 'C' )
+			else if( (char) bases[offset-1]  == 'T' )
 				return 3;
 		}  		
 		return 4;
@@ -87,7 +87,7 @@ public class SnpPileup {
 	public String getAnnotation(){
 		//coverage[coverage, vendor, secondary ,supply, duplicate,errMD]
 //		String str = String.format("%d[%d,%d,%d,%d,%d,%d,%d,%d,%d]",coverage, overSame, overDiff ,unOver, duplicate, atgco[0], atgco[1], atgco[2], atgco[3], atgco[4] );
-		String str = String.format("%d[%d,%d,A%d,T%d,G%d,C%d,O%d]",coverage, overSame, overDiff, atgco[0], atgco[1], atgco[2], atgco[3], atgco[4] );
+		String str = String.format("%d[%d,%d,A%d,C%d,G%d,T%d,O%d]",coverage, overSame, overDiff, atgco[0], atgco[1], atgco[2], atgco[3], atgco[4] );
 
 		return str;
 	}	
