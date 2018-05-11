@@ -21,7 +21,6 @@ dependencies {
     compile project(':qio')
     compile project(':qbamfilter')
     compile project(':qpicard')
-    compile project(':qmaths')
     
 	copy { 
      from zipTree("../lib/findbugs-1.3.9.zip")

@@ -266,5 +266,34 @@ public class SAMUtils {
 				 && ! rec.getReadUnmappedFlag()
 				 && ! rec.getNotPrimaryAlignmentFlag();
 	 }
+	 
+	 
+		/**
+		 * eg. cigar: 10S12M1I10M , MD:Z:10A11 (MD tag don't store insertion, it just present the reference base according to ciagar.M ciagr.D)
+		 * refer to: https://github.com/vsbuffalo/devnotes/wiki/The-MD-Tag-in-BAM-Files
+		 * @param cigar
+		 * @param i
+		 * @return the number of softclip/insertion base in front of the offset ith position of the MD tag
+		 */
+		public static int getAdjustedReadOffset(Cigar cigar, int i) {
+			int offset = 0, rollingLength = 0;
+			for (CigarElement ce : cigar.getCigarElements()) {
+				CigarOperator co = ce.getOperator();
+				
+				// Match/mismatch
+				if (co.consumesReadBases() && co.consumesReferenceBases()) {
+					rollingLength += ce.getLength();
+				} else if (co.consumesReadBases()) {
+					offset += ce.getLength();
+				} else if (co.consumesReferenceBases()) {
+//					rollingLength += ce.getLength();
+				}
+				if (rollingLength >= i) {
+					break;
+				}
+				
+			}
+			return offset;
+		}	
 
 }

@@ -1,4 +1,4 @@
-package org.qcmg.maths;
+package org.qcmg.common.math;
 
 import static org.junit.Assert.assertEquals;
 
@@ -7,7 +7,7 @@ import java.util.Random;
 
 import org.junit.Ignore;
 import org.junit.Test;
-import org.qcmg.maths.FisherExact;
+import org.qcmg.common.math.FisherExact;
 
 public class FisherExactTest {
 	
