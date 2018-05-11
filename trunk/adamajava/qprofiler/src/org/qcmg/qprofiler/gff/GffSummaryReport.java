@@ -22,7 +22,7 @@ public class GffSummaryReport extends SummaryReport {
 
 	@Override
 	public void toXml(Element parent) {
-		Element element = init(parent, ProfileType.GFF);
+		Element element = init(parent, ProfileType.gff);
 			
 		colorByCycle.toXml( element, "ColourByCycle");
 		qualityByCycle.toXml( element, "QualityByCycle");

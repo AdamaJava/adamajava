@@ -88,7 +88,7 @@ public abstract class SummaryReport {
 		element.setAttribute("execution_finished", getFinishTime());
 		
 		//don't list records_parsed on xml for BAM type
-		if(!reportType.equals(ProfileType.BAM))
+		if(!reportType.equals(ProfileType.bam))
 			element.setAttribute("records_parsed", String.format("%,d", getRecordsParsed()) );				 
 		if (null != maxRecords)
 			element.setAttribute("max_no_of_records", String.format("%,d",maxRecords) );

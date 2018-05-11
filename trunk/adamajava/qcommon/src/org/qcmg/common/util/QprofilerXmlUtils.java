@@ -32,29 +32,61 @@ public class QprofilerXmlUtils {
 	public static final String UNKNOWN_READGROUP = "unkown_readgroup_id";
 	public static final String All_READGROUP = "overall";	
 	public static final String COMMA = ","; 
-	public static final String FirstOfPair = "FirstOfPair"; 
-	public static final String SecondOfPair = "SecondOfPair";
-	public static final String source = "source";
 	
+	//summary
+	public static final String readGroup = "readGroup";
+	public static final String summary = "summary";
+	public static final String reads = "reads"; 
+	public static final String readPairs= "readPairs"; 
+	public static final String FirstOfPair = "firstReadInPair"; 
+	public static final String SecondOfPair = "secondReadInPair";
+	public static final String mdCycle = "mdMismatchCycles";	
+	public static final String filteredReads = "filteredReads";
+	public static final String fileReads = "fileReads";
+	
+	public static final String duplicateReads = "duplicateReads";
+	public static final String unmappedReads = 	"unmappedReads";
+	public static final String nonCanonicalPair = "nonCanonicalPair";
+	public static final String trimmedBase = "trimmedBase";
+	public static final String softClippedBases = "softClippedBases";
+	public static final String hardClippedBases = "hardClippedBases";
+	public static final String overlapBases = "overlapBases";
+	
+ 
 	//xml tag name
 	public static final String valueTally = "ValueTally";
 	public static final String rangeTally = "RangeTally";
 	public static final String cycleTally = "CycleTally";
-	public static final String cycle = "Cycle";
-	
+	public static final String cycle = "Cycle";	
 	public static final String tallyItem = "TallyItem";
 	public static final String rangeTallyItem = "RangeTallyItem";
 	
 	//count	
+	public static final String source = "source";
 	public static final String totalCount = "totalCount";
 	public static final String totalBase = "totalBases";
 	public static final String counts = "counts";
 	public static final String count = "count";	
+	public static final String readCount = "readCount";
 	public static final String value = "value";
 	public static final String percent = "percent";
+	public static final String basePercent = "basePercent";
 	public static final String possibles = "possibleValues";
 	public static final String start = "start";
 	public static final String end = "end";
+	
+	//summary tags
+	
+//	<filteredReads failedVendorQualityCount="0" secondaryAlignmentCount="0" supplementaryAlignmentCount="420"/>
+//	<duplicateReads basePercent="14.09" readCount="4629"/>
+//	<unmappedReads basePercent="0.06" readCount="21"/>
+//	<nonCanonicalPair basePercent="11.17" readCount="3669"/>
+//	<trimmedBase basePercent="0.00" max="0" mean="0" median="0" min="0" mode="0" readCount="0"/>
+//	<softClippedBases basePercent="19.48" max="131" mean="53" median="15" min="1" mode="5" readCount="18139"/>
+//	<hardClippedBases basePercent="0.00" max="0" mean="0" median="0" min="0" mode="0" readCount="0"/>
+//	<overlapBases basePercent="4.19" max="151" mean="60" median="60" min="1" mode="2" readCount="3455"/>
+//	<overall averageLength="151" lostBasesPercent="49.00" maxLength="151" readCount="32844"/>
+	
 			
 	public static <T> String joinByComma( List<T> possibles){		 		
 		StringBuilder sb = new StringBuilder();
