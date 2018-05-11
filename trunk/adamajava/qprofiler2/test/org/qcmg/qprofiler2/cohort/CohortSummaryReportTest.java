@@ -70,8 +70,6 @@ public class CohortSummaryReportTest {
 		Element root = builder.getDOMImplementation().createDocument(null, "qProfiler", null).getDocumentElement();
 		VcfSummaryReport report = (VcfSummaryReport) (new  VcfSummarizer(category)).summarize( input) ;
 		report.toXml( root );
-	 
-	//	QprofilerXmlUtils.asXmlText(root, "test.xml");
 		
 		String sample1 = "test1";	
 		int outputSize = 0;

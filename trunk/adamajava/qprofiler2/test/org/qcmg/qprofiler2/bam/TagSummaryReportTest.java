@@ -1,8 +1,6 @@
 package org.qcmg.qprofiler2.bam;
 
 
-
-
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -53,7 +51,6 @@ public class TagSummaryReportTest {
 		
 		Element root = createRootElement("ROOT");			
 		report.toXml(root);		
-	//	QprofilerXmlUtils.asXmlText(root, "/Users/christix/Documents/Eclipse/data/qprofiler/test.xml" );		
 		checkXml( root );
 	}	
 	
