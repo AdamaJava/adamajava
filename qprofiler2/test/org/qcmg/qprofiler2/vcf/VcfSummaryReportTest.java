@@ -192,7 +192,6 @@ public class VcfSummaryReportTest {
 			Node nreport = root.getChildNodes().item(0);
 			assertTrue(nreport.getNodeName().equals( ProfileType.VCF  + "Report"));
 			
-			//QprofilerXmlUtils.asXmlText(root, "/Users/christix/Documents/Eclipse/data/qprofiler/vcf/test.xml");			
 			return nreport;
 			
 		}catch (Exception e ) {				 
@@ -229,8 +228,7 @@ public class VcfSummaryReportTest {
 	  try( BufferedWriter out = new BufferedWriter( new FileWriter(inputfile) ); ){      
 	     for ( final String line : data )  out.write( line + "\n");
 	  }   
-					  
-	 // return  new File( inputfile );			  
+					  		  
 	}
 	/**
 	 * 	add header information into this file without appending. 
