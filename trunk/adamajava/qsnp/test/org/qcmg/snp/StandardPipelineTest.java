@@ -7,9 +7,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.stream.Collectors;
 
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -44,6 +48,17 @@ public class StandardPipelineTest {
 		final String command = "-log " + logFile.getAbsolutePath() + " -i " + ini.getAbsolutePath();
 		final Executor exec = new Executor(command, "org.qcmg.snp.Main");
 		assertEquals(0, exec.getErrCode());
+		List<String> vcfs = Files.lines(Paths.get(vcf.getPath())).filter(s -> ! s.startsWith("#")).collect(Collectors.toList());
+		assertEquals(7, vcfs.size());
+		assertEquals("chr1	11770567	.	AAAAA	TGTGG	.	SAN3;MR	SOMATIC	ACCS	.	TGTGG,1,3", vcfs.get(0));
+		assertEquals("chr1	11770573	.	A	G	.	SAN3;MR;NNS;SBIASCOV	SOMATIC;FLANK=AAAAAGAAAAA	GT:GD:AC:DP:OABS:MR:NNS	.:.:.:0:.:0:0	1/1:G/G:G0[0],3[40]:3:G0[0]3[40]:3:3", vcfs.get(1));
+		assertEquals("chr1	11770575	.	A	G	.	SAN3;MR	SOMATIC;FLANK=AAAAAGAAAAA	GT:GD:AC:DP:OABS:MR:NNS	.:.:.:0:.:0:0	1/1:G/G:G1[40],3[40]:4:G1[40]3[40]:4:4", vcfs.get(2));
+		assertEquals("chr1	11770579	.	AA	GT	.	SAN3;MR	SOMATIC	ACCS	.	GT,1,3", vcfs.get(3));
+		assertEquals("chr1	11770583	.	AAAAA	GCGGC	.	SAN3;MR	SOMATIC	ACCS	.	GCGGC,1,3", vcfs.get(4));
+		assertEquals("chr1	11770591	.	AAAAA	TGTGG	.	MR;SAN3;5BP1	SOMATIC	ACCS	.	TGTGG,1,3", vcfs.get(5));
+		assertEquals("chr1	11770596	.	A	C	.	SAN3;MR;5BP1	SOMATIC;FLANK=AAAAACAAAAA	GT:GD:AC:DP:OABS:MR:NNS	.:.:.:0:.:0:0	1/1:C/C:C1[40],3[40]:4:C1[40]3[40]:4:4", vcfs.get(6));
+		
+		vcfs.stream().forEach(System.out::println);
 	}
 	
 	@SuppressWarnings("unused")
