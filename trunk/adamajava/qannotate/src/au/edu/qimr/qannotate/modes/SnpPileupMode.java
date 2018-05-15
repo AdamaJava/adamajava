@@ -20,7 +20,7 @@ import org.qcmg.common.util.IndelUtils;
 
 import org.qcmg.common.vcf.VcfFormatFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
-
+import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qbamfilter.query.QueryExecutor;
@@ -70,7 +70,7 @@ public class SnpPileupMode extends AbstractMode{
         			for(int f = 1; f < field.size(); f ++){
         				VcfFormatFieldRecord forR = vcf.getSampleFormatRecord(f);
         				String value = ( acsnp.length < f || acsnp[f-1] == null )? Constants.MISSING_DATA_STRING : acsnp[f-1] ;       						
-        				forR.setField("ACSNP", value);  
+        				forR.setField(VcfHeaderUtils.FORMAT_ACSNP, value);  
         				field.set(f, forR.getSampleColumnString());
         				if(f == 1) //only set once
         					field.set(0, forR.getFormatColumnString());
@@ -80,6 +80,8 @@ public class SnpPileupMode extends AbstractMode{
         	}        
           
 		reheader(options.getCommandLine(),options.getInputFileName());
+	//	header.addOrReplace(VcfHeaderUtils.FORMAT +"=<ID=" + VcfHeaderUtils.FORMAT_CCM + ",Number=.,Type=String,Description=\"" + VcfHeaderUtils.FORMAT_CCM_DESC + "\">" );
+		header.addFormat(VcfHeaderUtils.FORMAT_ACSNP, ".", "String", VcfHeaderUtils.FORMAT_ACSNP_DESC);
 		writeVCF( new File(options.getOutputFileName()));	        
 	}
 	
