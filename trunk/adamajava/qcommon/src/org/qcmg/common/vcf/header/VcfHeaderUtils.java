@@ -129,6 +129,9 @@ public class VcfHeaderUtils {
 	public static final String FORMAT_END_OF_READ = "EOR";
 	public static final String FORMAT_END_OF_READ_DESC = "Bases that fall within 5bp of the start or finish of the (filtered) read.";
 
+	public static final String FORMAT_ACSNP = "ACSNP";
+	public static final String FORMAT_ACSNP_DESC = "Allel counts for snp pileup. it follows the format: read_coverage[overlap_pairs_with same_base, overlap_pairs_with different_base, number_of_base_A,  number_of_base_T, number_of_base_G, number_of_base_C, number_of_other_base]";
+	
 	
 	//Header lines
 //	public static final String CURRENT_FILE_FORMAT = "##fileformat=VCFv4.3";
