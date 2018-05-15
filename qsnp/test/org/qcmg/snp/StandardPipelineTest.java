@@ -58,7 +58,7 @@ public class StandardPipelineTest {
 		assertEquals("chr1	11770591	.	AAAAA	TGTGG	.	MR;SAN3;5BP1	SOMATIC	ACCS	.	TGTGG,1,3", vcfs.get(5));
 		assertEquals("chr1	11770596	.	A	C	.	SAN3;MR;5BP1	SOMATIC;FLANK=AAAAACAAAAA	GT:GD:AC:DP:OABS:MR:NNS	.:.:.:0:.:0:0	1/1:C/C:C1[40],3[40]:4:C1[40]3[40]:4:4", vcfs.get(6));
 		
-		vcfs.stream().forEach(System.out::println);
+//		vcfs.forEach(System.out::println);
 	}
 	
 	@SuppressWarnings("unused")
