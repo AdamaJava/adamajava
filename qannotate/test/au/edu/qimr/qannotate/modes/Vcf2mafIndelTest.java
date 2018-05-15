@@ -340,7 +340,8 @@ public class Vcf2mafIndelTest {
 		SnpEffMafRecord maf = new SnpEffMafRecord();
         String[] eles = line.split("\\t");
         
-        assertTrue(eles.length == MafElement.values().length);
+        //last two optional column for acsnp
+        assertTrue(eles.length + 2 == MafElement.values().length);
              
         for(int i = 0; i < eles.length; i ++){
         //	maf.setColumnValue( MafElement.getByColumnNo( i+1), ""); //wipe off all default value

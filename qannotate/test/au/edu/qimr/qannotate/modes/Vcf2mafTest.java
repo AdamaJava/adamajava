@@ -775,10 +775,10 @@ public class Vcf2mafTest {
 			
 			assertTrue(new File(outputDir + "/MELA_0264.CONTROL.TEST.maf").exists());
 			//below empty files will be deleted at last stage
-			assertFalse(new File(outputDir + "/MELA_0264.CONTROL.TEST.Germline.HighConfidence.Consequence.maf").exists());
 			assertFalse(new File(outputDir + "/MELA_0264.CONTROL.TEST.Somatic.HighConfidence.Consequence.maf").exists());
 			assertFalse(new File(outputDir + "/MELA_0264.CONTROL.TEST.Germline.HighConfidence.maf").exists());
-			assertFalse(new File(outputDir + "/MELA_0264.CONTROL.TEST.Somatic.HighConfidence.maf").exists());			
+			assertFalse(new File(outputDir + "/MELA_0264.CONTROL.TEST.Somatic.HighConfidence.maf").exists());		
+			assertFalse(new File(outputDir + "/MELA_0264.CONTROL.TEST.Germline.HighConfidence.Consequence.maf").exists());			
         }catch(Exception e){
         		fail(e.getMessage()); 
         }

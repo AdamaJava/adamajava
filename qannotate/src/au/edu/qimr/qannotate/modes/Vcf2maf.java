@@ -56,6 +56,8 @@ public class Vcf2maf extends AbstractMode{
 	private final int test_column;
 	private final int control_column;
 	
+	private boolean hasACSNP = false; 
+	
 	//for unit test
 	Vcf2maf(int test_column, int control_column, String test, String control){ 
 		center = SnpEffMafRecord.center;
@@ -126,15 +128,17 @@ public class Vcf2maf extends AbstractMode{
 				PrintWriter outGHCVcf = new PrintWriter(GHCVcf);
 				){
 			
-			reheader( option.getCommandLine(), option.getInputFileName());			
-			createMafHeader(out,out_SHCC,out_SHC,out_GHCC,out_GHC); //out_SLCC,out_SLC,out_GLCC,out_GLC);			
+			reheader( option.getCommandLine(), option.getInputFileName());	
+			
 			createVcfHeaders(reader.getHeader(), outSHCCVcf, outSHCVcf, outGHCCVcf, outGHCVcf);
 			
+			
+			createMafHeader(out,out_SHCC,out_SHC,out_GHCC,out_GHC); //out_SLCC,out_SLC,out_GLCC,out_GLC);						
 			for (final VcfRecord vcf : reader) {
 				
 	    			noIn ++;
 	    			SnpEffMafRecord maf = converter(vcf);
-	    			String Smaf = maf.getMafLine();
+	    			String Smaf = maf.getMafLine(hasACSNP);
 	    			out.println(Smaf);
 	    			noOut ++;
 	    			int rank = Integer.parseInt(maf.getColumnValue( MafElement.Consequence_rank));//40
@@ -200,7 +204,7 @@ public class Vcf2maf extends AbstractMode{
 			String line = null; //boolean flag = false;
 	        try( BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(f))); ){
 		        	while (null != (line = reader.readLine()) ) {
-		        		if(line.startsWith(Constants.HASH_STRING) || line.equals(SnpEffMafRecord.getSnpEffMafHeaderline())) {
+		        		if(line.startsWith(Constants.HASH_STRING) || line.startsWith( SnpEffMafRecord.getSnpEffMafHeaderline().substring(0, 20))) {
 		        			line = null;         
 		        		} else {
 		        			break; //find non header line
@@ -235,15 +239,19 @@ public class Vcf2maf extends AbstractMode{
 			
 			for(VcfHeaderRecord re: VcfHeaderUtils.getqPGRecords(header))  
 				write.println(re.toString());
-			 
-			
+			 			
 			for(VcfHeaderRecord re: header.getInfoRecords())
 				write.println(re.toString());
+			
+			//if vcf header contain ACSNP descripion  then we have to output to maf file
+			if( header.getFormatRecord(VcfHeaderUtils.FORMAT_ACSNP) != null )
+				hasACSNP = true;
  			
 			for(MafElement ele: EnumSet.allOf( MafElement.class))
-				write.println(ele.getDescriptionLine());
-	
-			write.println(SnpEffMafRecord.getSnpEffMafHeaderline());	 
+				if(hasACSNP || (!hasACSNP && ele.getColumnNumber() < 63))
+					write.println(ele.getDescriptionLine());
+ 			
+			write.println(SnpEffMafRecord.getSnpEffMafHeaderline(hasACSNP));	 
 		 }	 
 	}
 
@@ -355,11 +363,13 @@ public class Vcf2maf extends AbstractMode{
 		    	maf.setColumnValue(MafElement.T_Alt_Count , Tvalues[3]); //t_alt_count
 		    	maf.setColumnValue(MafElement.Tumor_Seq_Allele1 , Tvalues[4] );  //TD allele1
 		    	maf.setColumnValue(MafElement.Tumor_Seq_Allele2, Tvalues[5]);		//TD allele2
-		}		
+		}	
+		
+		//acsnp from test sample if exstis for Katia project temporary
+		if(hasACSNP) maf.setColumnValue(MafElement.Note_Test_ACSNP, sample.getField(VcfHeaderUtils.FORMAT_ACSNP)); 		
 		
 		sample =  new VcfFormatFieldRecord(formats.get(0), formats.get(control_column));
-		final String[] Nvalues = getAltCounts( sample, vcf.getRef(), vcf.getAlt(),type, mergedRecord);
-		
+		final String[] Nvalues = getAltCounts( sample, vcf.getRef(), vcf.getAlt(),type, mergedRecord);		
 		if (Nvalues != null){	//allesls counts
 			maf.setColumnValue(MafElement.ND, Nvalues[6]);
 		    	maf.setColumnValue(MafElement.N_Depth, Nvalues[1]);
@@ -367,7 +377,10 @@ public class Vcf2maf extends AbstractMode{
 		    	maf.setColumnValue(MafElement.N_Alt_Count, Nvalues[3]);
 		    	maf.setColumnValue(MafElement.Match_Norm_Seq_Allele1, Nvalues[4]); //ND allele1
 		    	maf.setColumnValue(MafElement.Match_Norm_Seq_Allele2 , Nvalues[5]);	//ND allele2
-		}		
+		}	
+		//acsnp from test sample if exstis for Katia project temporary
+		if(hasACSNP) maf.setColumnValue(MafElement.Note_Control_ACSNP, sample.getField(VcfHeaderUtils.FORMAT_ACSNP)); 		
+
 
 		//NNS eg, ND5:TD7
 		String nns = getMafAlt(vcf.getRef(), vcf.getAlt(), type);
