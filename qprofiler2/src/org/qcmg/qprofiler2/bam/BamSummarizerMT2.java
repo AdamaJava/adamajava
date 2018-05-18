@@ -26,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SamReader;
+import htsjdk.samtools.ValidationStringency;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMRecordIterator;
 import htsjdk.samtools.SAMSequenceDictionary;
@@ -39,9 +40,9 @@ import org.qcmg.qprofiler2.Summarizer;
 import org.qcmg.qprofiler2.report.SummaryReport;
 
 
-public class BamSummarizerMT implements Summarizer {
+public class BamSummarizerMT2 implements Summarizer {
 	
-	final static QLogger logger = QLoggerFactory.getLogger(BamSummarizerMT.class);
+	final static QLogger logger = QLoggerFactory.getLogger(BamSummarizerMT2.class);
 	
 	private int noOfProducerThreads;
 	private final int noOfConsumerThreads;
@@ -54,10 +55,12 @@ public class BamSummarizerMT implements Summarizer {
 	private final String [] tagsInt;
 	private final String [] tagsChar;
 	private final String validation;
+	ValidationStringency vs;
 	private final static String UNMAPPED_READS = "Unmapped";
 //	private boolean torrentBam = false;
+
 	
-	public BamSummarizerMT(int noOfProducerThreads, int noOfThreads, String [] includes, 
+	public BamSummarizerMT2(int noOfProducerThreads, int noOfThreads, String [] includes, 
 			int maxNoOfRecords, String [] tags, String [] tagsInt, String [] tagsChar, String validation) {
 		super();
 		this.noOfProducerThreads = noOfProducerThreads;
@@ -69,16 +72,29 @@ public class BamSummarizerMT implements Summarizer {
 		this.tagsChar = tagsChar;
 		this.validation = validation;
 	}
-		
+	
+	
 	@Override
-	public SummaryReport summarize(File file) throws Exception {
+	public SummaryReport summarize(String input, String index) throws Exception {
 		
+		File file = new File(input);
+		vs= null == validation ? BamSummarizer2.DEFAULT_VS : ValidationStringency.valueOf(validation);
 		// check to see if index file exists - if not, run in single producer mode as will not be able to perform indexed lookups
-		SamReader reader = SAMFileReaderFactory.createSAMFileReader(file);
+		SamReader reader = SAMFileReaderFactory.createSAMFileReaderAsStream(input, index, vs);
 		if ( ! reader.hasIndex() && noOfProducerThreads > 1) {
-			logger.warn("using 1 producer thread - no index found for bam file: " + file.getAbsolutePath());
+			logger.warn("using 1 producer thread - no index found for bam file: " + input);
 			noOfProducerThreads = 1;
-		}
+		}	
+		
+//	@Override
+//	public SummaryReport summarize(String file, String index) throws Exception {
+//		
+//		// check to see if index file exists - if not, run in single producer mode as will not be able to perform indexed lookups
+//		SamReader reader = SAMFileReaderFactory.createSAMFileReader(file);
+//		if ( ! reader.hasIndex() && noOfProducerThreads > 1) {
+//			logger.warn("using 1 producer thread - no index found for bam file: " + file.getAbsolutePath());
+//			noOfProducerThreads = 1;
+//		}
 		
 		//get sorted sequence for threads
 		final AbstractQueue<String> sequences = new ConcurrentLinkedQueue<>();
@@ -117,7 +133,7 @@ public class BamSummarizerMT implements Summarizer {
 		}
 		long start = System.currentTimeMillis();
 		
-		final BamSummaryReport bamSummaryReport =  BamSummarizer.createReport(file, includes, maxRecords, tags, tagsInt, tagsChar );
+		final BamSummaryReport2 bamSummaryReport =  BamSummarizer2.createReport(file, includes, maxRecords, tags, tagsInt, tagsChar );
 		
 
 		 		
@@ -220,12 +236,12 @@ public class BamSummarizerMT implements Summarizer {
 	
 	public static class SingleProducerConsumer implements Runnable {
 		private final AbstractQueue<SAMRecord> queue;
-		private final BamSummaryReport report;
+		private final BamSummaryReport2 report;
 		private final Thread mainThread;
 		private final CountDownLatch cLatch;
 		private final CountDownLatch pLatch;
 		
-		SingleProducerConsumer(AbstractQueue<SAMRecord> q, BamSummaryReport report, Thread mainThread, CountDownLatch cLatch, CountDownLatch pLatch) {
+		SingleProducerConsumer(AbstractQueue<SAMRecord> q, BamSummaryReport2 report, Thread mainThread, CountDownLatch cLatch, CountDownLatch pLatch) {
 			queue = q;
 			this.report = report;
 			this.mainThread = mainThread;
@@ -266,14 +282,14 @@ public class BamSummarizerMT implements Summarizer {
 	
 	public static class Consumer implements Runnable {
 		private final AbstractQueue<SAMRecord> [] queues;
-		private final BamSummaryReport report;
+		private final BamSummaryReport2 report;
 		private final Thread mainThread;
 		private final CountDownLatch cLatch;
 		private final CountDownLatch pLatch;
 		private final int queueId;
 		private final int noOfQueues;
 		
-		Consumer(AbstractQueue<SAMRecord>[] queues, BamSummaryReport report, Thread mainThread, CountDownLatch cLatch, CountDownLatch pLatch, int queueId) {
+		Consumer(AbstractQueue<SAMRecord>[] queues, BamSummaryReport2 report, Thread mainThread, CountDownLatch cLatch, CountDownLatch pLatch, int queueId) {
 			this.queues = queues;
 			this.report = report;
 			this.mainThread = mainThread;
@@ -341,7 +357,7 @@ public class BamSummarizerMT implements Summarizer {
 		private final AbstractQueue<String> sequences;
 		private final QLogger log = QLoggerFactory.getLogger(Producer.class);
 		
-		Producer(AbstractQueue<SAMRecord> q, File f, Thread mainThread, CountDownLatch pLatch, CountDownLatch cLatch, AbstractQueue<String> sequences, BamSummaryReport report) {
+		Producer(AbstractQueue<SAMRecord> q, File f, Thread mainThread, CountDownLatch pLatch, CountDownLatch cLatch, AbstractQueue<String> sequences, BamSummaryReport2 report) {
 			queue = q;
 			file = f;
 			this.mainThread = mainThread;
@@ -354,7 +370,10 @@ public class BamSummarizerMT implements Summarizer {
 		public void run() {
 			log.debug("start producer ");
 			
+			
 			SamReader reader = SAMFileReaderFactory.createSAMFileReader(file, validation);
+			//debug
+			System.out.println( "hasIndex: " +reader.hasIndex());
 			
 			long size = 0;
 			long count = 0;
@@ -431,7 +450,10 @@ public class BamSummarizerMT implements Summarizer {
 		public void run() {
 			logger.debug("start producer");
 			SamReader reader = SAMFileReaderFactory.createSAMFileReader(file, validation);
-			
+
+			//debug
+			System.out.println( "single Producer hasIndex: " +reader.hasIndex());
+
 			int size = 0;
 			long count = 0;
 			long start = System.currentTimeMillis();

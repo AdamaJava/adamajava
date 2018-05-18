@@ -31,7 +31,7 @@ import htsjdk.samtools.SAMTagUtil;
 import htsjdk.samtools.SAMUtils;
 
 //for sam record tag information
-public class TagSummaryReport {
+public class TagSummaryReport2 {
 
 	public final static int errReadLimit  = 100;	
 	private final static SAMTagUtil STU = SAMTagUtil.getSingleton();
@@ -49,9 +49,9 @@ public class TagSummaryReport {
 	private final short ZF = STU.makeBinaryTag("ZF");
 	
 	// TAGS
-	final CycleSummary<Character> tagCSByCycle = new CycleSummary<Character>(BamSummaryReport.cc, 512);
+	final CycleSummary<Character> tagCSByCycle = new CycleSummary<Character>(BamSummaryReport2.cc, 512);
 	private final QCMGAtomicLongArray csBadReadLineLengths = new QCMGAtomicLongArray(128);
-	final CycleSummary<Integer> tagCQByCycle = new CycleSummary<Integer>(BamSummaryReport.ii, 512);
+	final CycleSummary<Integer> tagCQByCycle = new CycleSummary<Integer>(BamSummaryReport2.ii, 512);
 	private final QCMGAtomicLongArray cqBadReadLineLengths = new QCMGAtomicLongArray(128);
 	private final SummaryByCycle<Integer> zmSmMatrix = new SummaryByCycle<Integer>(128);
 	
@@ -66,7 +66,7 @@ public class TagSummaryReport {
 	final ConcurrentMap<Integer, MAPQMatrix> mapQMatrix = new ConcurrentSkipListMap<Integer, MAPQMatrix>();
 	
 	@SuppressWarnings("unchecked")
-	final CycleSummary<Character>[] tagMDMismatchByCycle = new CycleSummary[]{new CycleSummary<Character>(BamSummaryReport.cc, 512), new CycleSummary<Character>(BamSummaryReport.cc, 512), new CycleSummary<Character>(BamSummaryReport.cc, 512)};	
+	final CycleSummary<Character>[] tagMDMismatchByCycle = new CycleSummary[]{new CycleSummary<Character>(BamSummaryReport2.cc, 512), new CycleSummary<Character>(BamSummaryReport2.cc, 512), new CycleSummary<Character>(BamSummaryReport2.cc, 512)};	
 	private final QCMGAtomicLongArray[] mdRefAltLengthsForward = new QCMGAtomicLongArray[]{new QCMGAtomicLongArray(32), new QCMGAtomicLongArray(32), new QCMGAtomicLongArray(32)};	
 	private final QCMGAtomicLongArray[] mdRefAltLengthsReverse = new QCMGAtomicLongArray[]{new QCMGAtomicLongArray(32), new QCMGAtomicLongArray(32), new QCMGAtomicLongArray(32)};	
     final QCMGAtomicLongArray[] allReadsLineLengths = new QCMGAtomicLongArray[]{new QCMGAtomicLongArray(1024), new QCMGAtomicLongArray(1024), new QCMGAtomicLongArray(1024)};
@@ -91,7 +91,7 @@ public class TagSummaryReport {
 	private final ConcurrentMap<String, ReadIDSummary> readIdSummary = new ConcurrentHashMap<String, ReadIDSummary>();
 	private final ConcurrentMap<String, AtomicLong> inValidReadIds = new ConcurrentHashMap<String, AtomicLong>();
 	
-	public TagSummaryReport( String [] tags, String [] tagsInt, String [] tagsChar) {
+	public TagSummaryReport2( String [] tags, String [] tagsInt, String [] tagsChar) {
 		this.tags = tags;
 		this.tagsInt = tagsInt;
 		this.tagsChar = tagsChar;	
@@ -299,7 +299,7 @@ public class TagSummaryReport {
 		
 		for(int order = 0; order < 3; order ++){ 
 			// SummaryReportUtils.lengthMapToXml(tagMDElement, "AllReads", sourceName[order], allReadsLineLengths[order]);
-			CycleSummaryUtils.toXmlWithPercentage(tagMDMismatchByCycle[order], tagMDElement,"MismatchByCycle", BamSummaryReport.sourceName[order], allReadsLineLengths[order]  ); 		
+			CycleSummaryUtils.toXmlWithPercentage(tagMDMismatchByCycle[order], tagMDElement,"MismatchByCycle", BamSummaryReport2.sourceName[order], allReadsLineLengths[order]  ); 		
 			// TAG-MD ref>alt switch the ints back to Strings
 			for(String strand : new String[]{"MutationForward", "MutationReverse"}){
 				Map<String, AtomicLong> mdRefAltLengthsString = new HashMap<String, AtomicLong>();
@@ -309,7 +309,7 @@ public class TagSummaryReport {
 					if (l <= 0)  continue;
 					mdRefAltLengthsString.put(CycleSummaryUtils.getStringFromInt(m), new AtomicLong(l));					 
 				}
-				SummaryReportUtils.lengthMapToXml(tagMDElement, strand, BamSummaryReport.sourceName[order], mdRefAltLengthsString);
+				SummaryReportUtils.lengthMapToXml(tagMDElement, strand, BamSummaryReport2.sourceName[order], mdRefAltLengthsString);
 			}
 		}	
 		

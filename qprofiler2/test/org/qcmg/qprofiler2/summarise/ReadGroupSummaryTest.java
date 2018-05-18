@@ -18,8 +18,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.qcmg.common.model.ProfileType;
 import org.qcmg.common.util.QprofilerXmlUtils;
-import org.qcmg.qprofiler2.bam.BamSummarizer;
-import org.qcmg.qprofiler2.bam.BamSummaryReport;
+import org.qcmg.qprofiler2.bam.BamSummarizer2;
+import org.qcmg.qprofiler2.bam.BamSummaryReport2;
 import org.qcmg.qprofiler2.bam.TagSummaryReportTest;
 import org.qcmg.qprofiler2.summarise.ReadGroupSummary;
 import org.qcmg.qprofiler2.util.SummaryReportUtils;
@@ -39,21 +39,20 @@ public class ReadGroupSummaryTest {
 	@Before
 	public void setUp() throws Exception{ createPairInputFile(); }
 	
-	@After
-	public void tearDown() { 
-		new File(INPUT_FILE).delete();
-		new File(TEST_FILE).delete();		
-	}	
+//	@After
+//	public void tearDown() { 
+//		new File(INPUT_FILE).delete();
+//		new File(TEST_FILE).delete();		
+//	}	
 	
 	@Test
 	public void iSizeTest() throws Exception{
 		createPairInputFile();		
 		Element root = DocumentBuilderFactory.newInstance().newDocumentBuilder().getDOMImplementation().createDocument(null, "qProfiler", null).getDocumentElement();
-		BamSummaryReport sr = (BamSummaryReport) new BamSummarizer().summarize( new File(INPUT_FILE) ); 
+		BamSummaryReport2 sr = (BamSummaryReport2) new BamSummarizer2().summarize( INPUT_FILE ); 
 		sr.toXml(root);
 		
-		root = QprofilerXmlUtils.getChildElement(root, ProfileType.bam +"Report", 0);		
-				
+		root = QprofilerXmlUtils.getChildElement( root, ProfileType.bam +"Report", 0 );				
 		//from summary node
 		Element  pairHead =  QprofilerXmlUtils.getChildElement( QprofilerXmlUtils.getChildElement(root, QprofilerXmlUtils.summary, 0), QprofilerXmlUtils.readPairs,0);
 		List<Element> eleList =  QprofilerXmlUtils.getChildElementByTagName(pairHead, QprofilerXmlUtils.readGroup   );	
@@ -95,7 +94,7 @@ public class ReadGroupSummaryTest {
 	public void PairsByRGTest() throws Exception{
 		
 		Element root = DocumentBuilderFactory.newInstance().newDocumentBuilder().getDOMImplementation().createDocument(null, "qProfiler", null).getDocumentElement();
-		BamSummaryReport sr = (BamSummaryReport) new BamSummarizer().summarize( new File(INPUT_FILE) ); 
+		BamSummaryReport2 sr = (BamSummaryReport2) new BamSummarizer2().summarize( INPUT_FILE); 
 		sr.toXml(root);
 		QprofilerXmlUtils.asXmlText(root, TEST_FILE);  //debug
 	
@@ -201,7 +200,7 @@ public class ReadGroupSummaryTest {
 		createReadsInputFile();		
 		
 		Element root = DocumentBuilderFactory.newInstance().newDocumentBuilder().getDOMImplementation().createDocument(null, "qProfiler", null).getDocumentElement();
-		BamSummaryReport sr = (BamSummaryReport) new BamSummarizer().summarize( new File(INPUT_FILE) ); 
+		BamSummaryReport2 sr = (BamSummaryReport2) new BamSummarizer2().summarize( INPUT_FILE ); 
 		sr.toXml(root);
 		Assert.assertEquals(sr.getRecordsParsed(), 12);				
 		NodeList nodes = ((Element) root.getElementsByTagName( QprofilerXmlUtils.summary ).item(0)).getElementsByTagName( QprofilerXmlUtils.reads  );   

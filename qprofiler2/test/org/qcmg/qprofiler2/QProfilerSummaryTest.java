@@ -7,7 +7,7 @@ import java.io.File;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.qcmg.qprofiler2.QProfiler;
+import org.qcmg.qprofiler2.QProfiler2;
 import org.qcmg.qprofiler2.bam.BamSummarizerTest;
 
 import junit.framework.Assert;
@@ -61,7 +61,7 @@ public class QProfilerSummaryTest {
 		File outputFile = testFolder.newFile(output);
 		String[] args = {"--nohtml", "--log",  logFile.getAbsolutePath(), "--input", inputFile.getAbsolutePath(),
 				 "-o", outputFile.getAbsolutePath()};
-		int exitStatus =  new QProfiler().setup(args); //not main, so no exit info on log file
+		int exitStatus =  new QProfiler2().setup(args); //not main, so no exit info on log file
 		
 		return exitStatus;
 	}

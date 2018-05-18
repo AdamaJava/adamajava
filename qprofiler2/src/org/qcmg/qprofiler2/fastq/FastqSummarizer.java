@@ -19,10 +19,10 @@
 
 package org.qcmg.qprofiler2.fastq;
 
-import java.io.File;
-
 import htsjdk.samtools.fastq.FastqReader;
 import htsjdk.samtools.fastq.FastqRecord;
+
+import java.io.File;
 
 import org.qcmg.common.date.DateUtils;
 import org.qcmg.common.log.QLogger;
@@ -38,15 +38,15 @@ public class FastqSummarizer implements Summarizer {
 	
 	
 	@Override
-	public SummaryReport summarize(File file) throws Exception {
+	public SummaryReport summarize(String file, String index) throws Exception {
 				
 		// create the SummaryReport
 		FastqSummaryReport fastqSummaryReport = new FastqSummaryReport();
-		fastqSummaryReport.setFileName(file.getAbsolutePath());
+		fastqSummaryReport.setFileName(file );
 		fastqSummaryReport.setStartTime(DateUtils.getCurrentDateAsString());
 		
 		long recordsParsed = 0;
-		try (FastqReader reader =  new FastqReader(file);) {
+		try (FastqReader reader =  new FastqReader(new File(file))) {
 			for (FastqRecord record : reader) {
 				if (null != record) {
 					

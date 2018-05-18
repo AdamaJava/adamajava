@@ -17,8 +17,8 @@ import org.qcmg.common.messages.QMessage;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 
-final class Options {
-	private static final QMessage messages = new QMessage(QProfiler.class, ResourceBundle.getBundle("org.qcmg.qprofiler2.messages") );
+final class Options2 {
+	private static final QMessage messages = new QMessage(QProfiler2.class, ResourceBundle.getBundle("org.qcmg.qprofiler2.messages") );
 	
 	private static final String HELP_DESCRIPTION = messages.getMessage("HELP_OPTION_DESCRIPTION");
 	private static final String VERSION_DESCRIPTION = messages.getMessage("VERSION_OPTION_DESCRIPTION");
@@ -32,6 +32,7 @@ final class Options {
 	private static final String LOG_LEVEL_OPTION_DESCRIPTION = messages.getMessage("LOG_LEVEL_OPTION_DESCRIPTION");
 	private static final String OUTPUT_FILE_DESCRIPTION = messages.getMessage("OUTPUT_FILE_DESCRIPTION");
 	private static final String INPUT_FILE_DESCRIPTION = messages.getMessage("INPUT_FILE_DESCRIPTION");
+	private static final String INDEX_FILE_DESCRIPTION = messages.getMessage("INDEX_FILE_DESCRIPTION");
 	private static final String VALIDATION_STRINGENCY_OPTION_DESCRIPTION = messages.getMessage("VALIDATION_STRINGENCY_DESCRIPTION");
 	private static final String NO_HTML_DESCRIPTION = messages.getMessage("NO_HTML_OPTION_DESCRIPTION");
 	
@@ -41,6 +42,7 @@ final class Options {
 	private final OptionParser parser = new OptionParser();
 	private final OptionSet options;
 	private final String[] fileNames;
+	private final String[] indexFileNames;
 	private final String outputFileName;
 	private final String[] includes;
 	private final String[] tags;
@@ -55,7 +57,7 @@ final class Options {
 	private final String[] formats; //vcf mode
 
 	@SuppressWarnings("unchecked")
-	Options(final String[] args) throws Exception {
+	Options2(final String[] args) throws Exception {
 
 		parser.accepts("help", HELP_DESCRIPTION);
 		parser.accepts("version", VERSION_DESCRIPTION);
@@ -74,6 +76,8 @@ final class Options {
 		parser.accepts("validation", VALIDATION_STRINGENCY_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("nohtml", NO_HTML_DESCRIPTION);
 		parser.accepts("format", FORMAT_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
+		parser.accepts("index", INPUT_FILE_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
+
 		parser.posixlyCorrect(true);
 
 		options = parser.parse(args);
@@ -126,7 +130,12 @@ final class Options {
 		List<String> inputs = (List<String>) options.valuesOf("input");
 		fileNames = new String[inputs.size()];
 		inputs.toArray(fileNames);
-				
+
+		// indexes
+		List<String> indexes = (List<String>) options.valuesOf("index");
+		indexFileNames = new String[indexes.size()];
+		indexes.toArray(indexFileNames);
+		
 		// output
 		outputFileName = (String) options.valueOf("output");		
 		if ( ! options.nonOptionArguments().isEmpty())
@@ -161,6 +170,10 @@ final class Options {
 		return fileNames;
 	}
 
+
+	String[] getIndexFileNames() {
+		return indexFileNames;
+	}
 	
 	String[] getBamIncludes() {
 		return includes;

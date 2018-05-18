@@ -7,7 +7,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.qcmg.common.util.QprofilerXmlUtils;
-import org.qcmg.qprofiler2.bam.TagSummaryReport;
+import org.qcmg.qprofiler2.bam.TagSummaryReport2;
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -22,7 +22,7 @@ public class TagSummaryReportTest {
 	@Test
 	public void simpleTest() throws Exception{
 		
-		TagSummaryReport report = new TagSummaryReport( null, null, null);
+		TagSummaryReport2 report = new TagSummaryReport2( null, null, null);
 		SAMRecord record = new SAMRecord(null);
 		record.setReadName("TESTDATA");
 		

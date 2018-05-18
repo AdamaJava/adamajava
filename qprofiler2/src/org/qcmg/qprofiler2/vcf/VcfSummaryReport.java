@@ -1,6 +1,7 @@
 package org.qcmg.qprofiler2.vcf;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -82,21 +83,19 @@ public class VcfSummaryReport  extends SummaryReport {
 				if(!counts.containsKey(key))  counts.put( key, new AtomicLong() );
 				counts.get(key).getAndIncrement();			
 			}	 
-			SampleSummary summary = summaries.computeIfAbsent( key, (k) -> new SampleSummary() );
+			SampleSummary summary = summaries.computeIfAbsent( key, (k) -> new SampleSummary() );		
 			summary.parseRecord( vcf, i );			
 		}				
 	}
 
-	void summaryToXml(Element parent){
-		Element summaryElement = QprofilerXmlUtils.createSubElement(parent, NodeSummary);
-		
+	void summaryToXml(Element parent){				
+		Element summaryElement = QprofilerXmlUtils.createSubElement(parent, NodeSummary);		
 		List<HashMap<String, Element>> categories =  new ArrayList< HashMap<String, Element>>();
 		for(int i = 0; i <= formatCategories.length; i ++) 
-			categories.add(   new HashMap<String, Element>() ); 
-				
+			categories.add(   new HashMap<String, Element>() ); 	
+		
 		for( String key : summaries.keySet() ) {			
-			String[] cats = key.split(Seperator);			
-			
+			String[] cats = key.split(Seperator);				
 			String newKey = cats[0];			
 			Element ele = categories.get(0).computeIfAbsent( newKey, (k) -> QprofilerXmlUtils.createSubElement( summaryElement, Sample) );
 			ele.setAttribute( "value", cats[0] ); 

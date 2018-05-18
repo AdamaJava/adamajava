@@ -44,7 +44,7 @@ public class CohortSummaryReportTest {
 		//new  VcfSummarizer(null); cause exception since for(Sting cat: null)
 		DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();			 
 		Element root = builder.getDOMImplementation().createDocument(null, "qProfiler", null).getDocumentElement();
-		VcfSummaryReport report = (VcfSummaryReport) (new  VcfSummarizer(new String[0])).summarize( input) ;
+		VcfSummaryReport report = (VcfSummaryReport) (new  VcfSummarizer(new String[0])).summarize( input.getAbsolutePath()) ;
 		report.toXml( root );
 		Element sampleE = (Element) root.getElementsByTagName(VcfSummaryReport.Sample).item(0);
 		CohortSummaryReport xReport = new CohortSummaryReport( input,sampleE );
@@ -68,7 +68,7 @@ public class CohortSummaryReportTest {
 		VcfSummaryReportTest.createVcfFile( null, input );
 		DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();			 
 		Element root = builder.getDOMImplementation().createDocument(null, "qProfiler", null).getDocumentElement();
-		VcfSummaryReport report = (VcfSummaryReport) (new  VcfSummarizer(category)).summarize( input) ;
+		VcfSummaryReport report = (VcfSummaryReport) (new  VcfSummarizer(category)).summarize( input.getAbsolutePath()) ;
 		report.toXml( root );
 		
 		String sample1 = "test1";	

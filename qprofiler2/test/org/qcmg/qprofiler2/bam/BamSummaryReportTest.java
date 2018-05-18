@@ -22,7 +22,7 @@ import org.qcmg.common.model.MAPQMiniMatrix;
 import org.qcmg.common.model.SummaryByCycle;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.SummaryByCycleUtils;
-import org.qcmg.qprofiler2.bam.BamSummaryReport;
+import org.qcmg.qprofiler2.bam.BamSummaryReport2;
 import org.qcmg.qprofiler2.summarise.PositionSummary;
 import org.qcmg.qprofiler2.util.SummaryReportUtils;
 
@@ -31,7 +31,7 @@ public class BamSummaryReportTest {
 		
 	@Test
 	public void testParseRNameAndPos() throws Exception {
-		BamSummaryReport bsr = new BamSummaryReport(new String [] {"matrices","coverage"}, -1, null, null, null);
+		BamSummaryReport2 bsr = new BamSummaryReport2(new String [] {"matrices","coverage"}, -1, null, null, null);
 		final String rg = "rg1";
 		List<String> rgs = Arrays.asList(rg);
 		bsr.setReadGroups(rgs );
@@ -81,7 +81,7 @@ public class BamSummaryReportTest {
 	
 	@Test
 	public void testParseCoverageSeperateComponents() {
-		BamSummaryReport bsr = new BamSummaryReport(new String [] {"matrices","coverage"}, -1, null, null, null);
+		BamSummaryReport2 bsr = new BamSummaryReport2(new String [] {"matrices","coverage"}, -1, null, null, null);
 		ConcurrentMap<Integer, AtomicLong> queue = bsr.getCoverageQueue();
 		ConcurrentMap<Integer, AtomicLong> map = bsr.getCoverage();
 		
@@ -115,7 +115,7 @@ public class BamSummaryReportTest {
 	
 	@Test
 	public void testGenerateMAPQSubMaps() throws Exception{
-		BamSummaryReport bsr = new BamSummaryReport(new String [] {"matrices","coverage"}, -1, null, null, null);
+		BamSummaryReport2 bsr = new BamSummaryReport2(new String [] {"matrices","coverage"}, -1, null, null, null);
 		
 		ConcurrentMap<MAPQMiniMatrix, AtomicLong> mapQCMMatrix = new ConcurrentSkipListMap<MAPQMiniMatrix, AtomicLong>();
 		ConcurrentMap<MAPQMiniMatrix, AtomicLong> mapQSMMatrix = new ConcurrentSkipListMap<MAPQMiniMatrix, AtomicLong>();

@@ -16,8 +16,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.qcmg.qprofiler2.bam.BamSummarizer;
-import org.qcmg.qprofiler2.bam.BamSummaryReport;
+import org.qcmg.qprofiler2.bam.BamSummarizer2;
+import org.qcmg.qprofiler2.bam.BamSummaryReport2;
 
 public class BamSummarizerTest {
 	private static final String SAM_INPUT_FILE = "testInputFile.sam";
@@ -37,8 +37,8 @@ public class BamSummarizerTest {
 
 	@Test
 	public void testSummarize() throws Exception {
-		BamSummarizer bs = new BamSummarizer();
-		BamSummaryReport sr = (BamSummaryReport) bs.summarize(new File( SAM_INPUT_FILE));
+		BamSummarizer2 bs = new BamSummarizer2();
+		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize( SAM_INPUT_FILE);
 
 		Assert.assertNotNull(sr);
 		
@@ -49,16 +49,16 @@ public class BamSummarizerTest {
 	@Test
 	public void testSummarizeMaxRecords() throws Exception {
 		for (int i = 1 ; i < 6 ; i++) {
-			BamSummarizer bs = new BamSummarizer(null, i, null, null, null, null);
-			BamSummaryReport sr = (BamSummaryReport) bs.summarize(new File(SAM_INPUT_FILE));
+			BamSummarizer2 bs = new BamSummarizer2(null, i, null, null, null, null);
+			BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize( SAM_INPUT_FILE);
 
 			Assert.assertNotNull(sr);
 			Assert.assertEquals(i, sr.getRecordsParsed());
 		}
 		
 		// test with 0 value - should return everything
-		BamSummarizer bs = new BamSummarizer(null, 0, null, null, null, null);
-		BamSummaryReport sr = (BamSummaryReport) bs.summarize(new File( SAM_INPUT_FILE));
+		BamSummarizer2 bs = new BamSummarizer2(null, 0, null, null, null, null);
+		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize( SAM_INPUT_FILE);
 		
 		Assert.assertNotNull(sr);
 		Assert.assertEquals(5, sr.getRecordsParsed());
@@ -68,8 +68,8 @@ public class BamSummarizerTest {
 	public void testSummarizeWithExcludesAll() throws Exception {
 		String[] args = new String[] {};
 		// no excludes defined - should return everything
-		BamSummarizer bs = new BamSummarizer(args, 0, null, null, null, null);
-		BamSummaryReport sr = (BamSummaryReport) bs.summarize(new File( SAM_INPUT_FILE));
+		BamSummarizer2 bs = new BamSummarizer2(args, 0, null, null, null, null);
+		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize( SAM_INPUT_FILE);
 		
 		Assert.assertNotNull(sr);
 		Assert.assertEquals(5, sr.getRecordsParsed());
@@ -81,8 +81,8 @@ public class BamSummarizerTest {
 		// all - collections should be null
 		String[] args2 = new String[] {"all"};
 		// no excludes defined - should return everything
-		bs = new BamSummarizer(args2, 0, null, null, null, null);
-		sr = (BamSummaryReport) bs.summarize(new File( SAM_INPUT_FILE));
+		bs = new BamSummarizer2(args2, 0, null, null, null, null);
+		sr = (BamSummaryReport2) bs.summarize( SAM_INPUT_FILE);
 		
 		Assert.assertNotNull(sr);
 		Assert.assertEquals(5, sr.getRecordsParsed());
@@ -91,9 +91,8 @@ public class BamSummarizerTest {
 	@Test
 	public void testSummarizeWithExcludeCoverage() throws Exception {
 		// first check we are getting coverage info
-		BamSummarizer bs = new BamSummarizer();
-		BamSummaryReport sr = (BamSummaryReport) bs.summarize(new File(
-				SAM_INPUT_FILE));
+		BamSummarizer2 bs = new BamSummarizer2();
+		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize(SAM_INPUT_FILE);
 		
 		Assert.assertNotNull(sr);
 		Assert.assertTrue(sr.getCoverage().isEmpty());
@@ -103,9 +102,8 @@ public class BamSummarizerTest {
 		
 		// great - now lets exclude it!
 		String[] args = new String[] {"coverage"};
-		bs = new BamSummarizer(args, 0, null, null, null, null);
-		sr = (BamSummaryReport) bs.summarize(new File(
-				SAM_INPUT_FILE));
+		bs = new BamSummarizer2(args, 0, null, null, null, null);
+		sr = (BamSummaryReport2) bs.summarize(SAM_INPUT_FILE);
 		
 		Assert.assertNotNull(sr);
 		Assert.assertFalse(sr.getCoverage().isEmpty());
@@ -116,9 +114,8 @@ public class BamSummarizerTest {
 	@Test
 	public void testSummarizeWithIncludeMatrices() throws Exception {
 		// first check we are getting coverage info
-		BamSummarizer bs = new BamSummarizer();
-		BamSummaryReport sr = (BamSummaryReport) bs.summarize(new File(
-				SAM_INPUT_FILE));
+		BamSummarizer2 bs = new BamSummarizer2();
+		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize(SAM_INPUT_FILE);
 		
 		Assert.assertNotNull(sr);
 		Assert.assertTrue(sr.getMapQMatrix().isEmpty());
@@ -127,8 +124,8 @@ public class BamSummarizerTest {
 		bs = null; sr = null; 
 		
 		// great - now lets include it!
-		bs = new BamSummarizer(new String[] {"matrices"}, 0, null, null, null, null);
-		sr = (BamSummaryReport) bs.summarize(new File(SAM_INPUT_FILE));
+		bs = new BamSummarizer2(new String[] {"matrices"}, 0, null, null, null, null);
+		sr = (BamSummaryReport2) bs.summarize( SAM_INPUT_FILE);
 		
 		Assert.assertNotNull(sr);
 		Assert.assertFalse(sr.getMapQMatrix().isEmpty());
@@ -136,7 +133,7 @@ public class BamSummarizerTest {
 		Assert.assertTrue(sr.getCoverage().isEmpty());
 	}
 	
-	private void testSummaryReport(BamSummaryReport sr) {
+	private void testSummaryReport(BamSummaryReport2 sr) {
 		// ceegars
 		Assert.assertEquals(1, sr.getCigarValuesCount().get("13H").get());
 		Assert.assertEquals(1, sr.getCigarValuesCount().get("15H").get());
@@ -183,9 +180,9 @@ public class BamSummarizerTest {
 	public void testSummarizeMissingData() throws Exception {
 		createDodgyDataFile(createSamDataMissingData());
 
-		BamSummarizer qs = new BamSummarizer();
+		BamSummarizer2 qs = new BamSummarizer2();
 		try {
-			qs.summarize(new File(SAM_DODGY_INPUT_FILE));
+			qs.summarize(SAM_DODGY_INPUT_FILE);
 			Assert.fail("Should have thrown an exception");
 		} catch (Exception e) {
 			Assert.assertTrue(e.getMessage().startsWith("Error parsing text SAM file. Not enough fields"));
@@ -198,9 +195,9 @@ public class BamSummarizerTest {
 	public void testSummarizeEmptyFile() throws Exception {
 		createDodgyDataFile(new ArrayList<String>());
 
-		BamSummarizer qs = new BamSummarizer();
+		BamSummarizer2 qs = new BamSummarizer2();
 		try {
-			qs.summarize(new File(SAM_DODGY_INPUT_FILE));
+			qs.summarize(SAM_DODGY_INPUT_FILE);
 		} catch (Exception e) {
 			Assert.fail("Should have not thrown an Exception");
 		}
@@ -218,9 +215,9 @@ public class BamSummarizerTest {
 		 * unfortunately, setting this flag means we miss other problems with the reads such as those described in this test
 		 */
 		
-		BamSummarizer qs = new BamSummarizer();
+		BamSummarizer2 qs = new BamSummarizer2();
 		try {
-			qs.summarize(new File(SAM_DODGY_INPUT_FILE));
+			qs.summarize(SAM_DODGY_INPUT_FILE);
 			Assert.fail("Should have thrown an Exception");
 		} catch (Exception e) {
 			Assert.assertTrue(e.getMessage().startsWith("Error parsing text SAM file. Not enough fields in tag"));
@@ -238,9 +235,9 @@ public class BamSummarizerTest {
 		 * unfortunately, setting this flag means we miss other problems with the reads such as those described in this test
 		 */
 		
-		BamSummarizer qs = new BamSummarizer();
+		BamSummarizer2 qs = new BamSummarizer2();
 		try {
-			qs.summarize(new File(SAM_DODGY_INPUT_FILE));
+			qs.summarize(SAM_DODGY_INPUT_FILE);
 			Assert.fail("Should have thrown an Exception");
 		} catch (Exception e) {
 			Assert.assertTrue(e.getMessage().startsWith("Error parsing text SAM file. Not enough fields"));
@@ -259,9 +256,9 @@ public class BamSummarizerTest {
 		 * unfortunately, setting this flag means we miss other problems with the reads such as those described in this test
 		 */
 
-		BamSummarizer qs = new BamSummarizer();
+		BamSummarizer2 qs = new BamSummarizer2();
 		try {
-			qs.summarize(new File(SAM_DODGY_INPUT_FILE));
+			qs.summarize(SAM_DODGY_INPUT_FILE);
 			Assert.fail("Should have thrown an Exception");
 		} catch (Exception e) {
 //			Assert.fail("Should NOT have thrown an Exception");

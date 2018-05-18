@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 import org.qcmg.common.model.QCMGAtomicLongArray;
 import org.qcmg.common.util.BaseUtils;
 import org.qcmg.common.util.QprofilerXmlUtils;
-import org.qcmg.qprofiler2.bam.BamSummaryReport;
+import org.qcmg.qprofiler2.bam.BamSummaryReport2;
 import org.w3c.dom.Element;
 
 public class KmersSummary {
@@ -229,7 +229,7 @@ public class KmersSummary {
 			Set<String> possibleMers = getPopularKmerString(16,  klength, false, pair) ;			
 			
 			element.setAttribute( "possibleValues", QprofilerXmlUtils.joinByComma(new ArrayList<String>( possibleMers)));
-			element.setAttribute( "source",  BamSummaryReport.sourceName[pair] );
+			element.setAttribute( "source",  BamSummaryReport2.sourceName[pair] );
 			element.setAttribute( "parsedReads",  parsedCount[pair].get()+"" );
 			for(int i = 0; i <  cycleNo; i++ ){ 		
 				List<Long> counts = new ArrayList<Long>();

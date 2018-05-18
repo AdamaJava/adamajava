@@ -45,17 +45,17 @@ public class FastaSummarizer implements Summarizer {
 	}
 	
 	@Override
-	public SummaryReport summarize(File file) throws Exception {
+	public SummaryReport summarize(String file, String index) throws Exception {
 		// create the SummaryReport
 		FastaSummaryReport fastaSummaryReport = new FastaSummaryReport();
-		fastaSummaryReport.setFileName(file.getAbsolutePath());
+		fastaSummaryReport.setFileName(file );
 		fastaSummaryReport.setStartTime(DateUtils.getCurrentDateAsString());
 		
 		// set logging level for printing of no of records parsed
 		final boolean isLevelEnabled = logger.isLevelEnabled(QLevel.DEBUG);
 		long recordsParsed = 0;
 		
-		SimpleFileReader reader =  new SimpleFileReader(file);
+		SimpleFileReader reader =  new SimpleFileReader(new File(file));
 		try {
 			for (Record record : reader) {
 				if (null != record) {					
