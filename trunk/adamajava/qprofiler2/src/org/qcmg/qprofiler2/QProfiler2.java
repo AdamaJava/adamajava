@@ -20,6 +20,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.qcmg.common.date.DateUtils;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -29,37 +30,31 @@ import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.LoadReferencedClasses;
 import org.qcmg.common.util.ProfileTypeUtils;
 import org.qcmg.common.util.QprofilerXmlUtils;
-import org.qcmg.qprofiler2.bam.BamSummarizer;
-import org.qcmg.qprofiler2.bam.BamSummarizerMT;
+import org.qcmg.qprofiler2.bam.BamSummarizer2;
+import org.qcmg.qprofiler2.bam.BamSummarizerMT2;
 import org.qcmg.qprofiler2.cohort.CohortSummarizer;
-import org.qcmg.qprofiler2.fa.FaSummarizerMT;
 import org.qcmg.qprofiler2.fasta.FastaSummarizer;
 import org.qcmg.qprofiler2.fastq.FastqSummarizer;
 import org.qcmg.qprofiler2.fastq.FastqSummarizerMT;
-import org.qcmg.qprofiler2.gff.GffSummarizer;
-import org.qcmg.qprofiler2.ma.MaSummarizer;
-import org.qcmg.qprofiler2.qual.QualSummarizer;
 import org.qcmg.qprofiler2.report.SummaryReport;
 import org.qcmg.qprofiler2.vcf.VcfSummarizer;
 import org.qcmg.qvisualise2.QVisualise;
 import org.w3c.dom.Element;
 
 
-public class QProfiler {
+public class QProfiler2 {
 	
-	private static QLogger logger;
-	
+	private static QLogger logger;	
 	private final static int NO_OF_PROCESORS = Runtime.getRuntime().availableProcessors();
 	private final static String USER_DIR = System.getProperty("user.dir");
-	private final static String FILE_SEPERATOR = System.getProperty("file.separator");
-	
+	private final static String FILE_SEPERATOR = System.getProperty("file.separator");	
 	private static String[] cmdLineFiles;
+	private static String[] cmdLineIndexFiles;
 	private static String[] cmdLineInclude;
 	private static String[] cmdLineTags;
 	private static String[] cmdLineFormats; //vcf mode
 	private static String[] cmdLineTagsInt;
 	private static String[] cmdLineTagsChar;
-
 	private static ExecutorService exec;
 	private static String version;
 	
@@ -72,7 +67,6 @@ public class QProfiler {
 	private String validation;
 	private boolean noHtml; 
 	
-
 	/*
 	 * This is the "main" method for this class. It will be invoked by the
 	 * instanceMain() method of the superclass. All logic for running the
@@ -85,7 +79,7 @@ public class QProfiler {
 		Element root = QprofilerXmlUtils.createRootElement(null, "qProfiler", null);
 		
 		// Create new Summary object ready to hold our processing
-		QProfilerSummary sol = new QProfilerSummary();
+		QProfilerSummary2 sol = new QProfilerSummary2();
 		sol.setStartTime(DateUtils.getCurrentDateAsString());
 				
 		/*
@@ -97,17 +91,21 @@ public class QProfiler {
 		 * things like load an existing XML and output it in text format if no
 		 * additional files are specified for processing
 		 */
-
-		final Map<ProfileType, List<File>> sortedFiles = new HashMap<ProfileType, List<File>>();		
+		
+		final Map<ProfileType, List<Pair<String, String>>> sortedFiles = new HashMap<>();
 		
 		for (int i = 0 ; i < cmdLineFiles.length ; i++) {
-			ProfileType type = ProfileTypeUtils.getType(cmdLineFiles[i]);			
-			
-			if ( ! sortedFiles.containsKey(type))  
-				sortedFiles.put(type, new ArrayList<File>());			 
-			sortedFiles.get(type).add(new File (cmdLineFiles[i]) );
-		}
-		
+			String f = cmdLineFiles[i];
+			 
+			// see if we have a corresponding index
+			String index = null;
+			if (null != cmdLineIndexFiles && cmdLineIndexFiles.length > i) {
+				index = cmdLineIndexFiles[i];
+			}
+			ProfileType type = ProfileTypeUtils.getType(f);
+			sortedFiles.computeIfAbsent(type, v -> new ArrayList<>()).add(Pair.of(f, index));
+		}		
+				
 		if ( ! sortedFiles.isEmpty()) {			
 			/*
 			 * If neither XML nor text output files is requested then we should
@@ -125,12 +123,14 @@ public class QProfiler {
 			}
 			
 			//do xmlSummary here
-			List<File> xmls = sortedFiles.remove(ProfileType.XML);
-			if(xmls != null )
+			if(sortedFiles.containsKey(ProfileType.XML )){
+				List<String> xmls = new ArrayList<>();
+				sortedFiles.remove( ProfileType.XML ).forEach(p -> xmls.add(  p.getLeft()));
 				processXmlFiles( xmls, outputFile);
-			
+			}
+			//after removed xml files				
 			if ( ! sortedFiles.isEmpty())			
-				processFiles(sortedFiles, root);	
+				processFiles( sortedFiles, root );	
 			else
 				//no xml output required if no inputs except xml
 				return exitStatus; 
@@ -144,8 +144,7 @@ public class QProfiler {
 		root.setAttribute("startTime", sol.getStartTime());
 		root.setAttribute("finishTime", sol.getFinishTime());
 		root.setAttribute("user", System.getProperty("user.name"));
-		root.setAttribute("operatingSystem", System.getProperty("os.name"));
-		
+		root.setAttribute("operatingSystem", System.getProperty("os.name"));		
 		root.setAttribute("version", version);
 		sol.setFinishTime(DateUtils.getCurrentDateAsString());		
 		QprofilerXmlUtils.asXmlText(root, outputFile);
@@ -167,11 +166,10 @@ public class QProfiler {
 		return exitStatus;
 	}
 	
-	private void processXmlFiles(List<File> files, String output)throws Exception{
+	private void processXmlFiles(List<String> files, String output)throws Exception{
 			 				
 			final CohortSummarizer summarizer = new CohortSummarizer();
-			//List<XmlSummaryReport> reports = new ArrayList<>();
-			for (final File file :files) 
+			for (final String file :files) 
 				 summarizer.summarize(file) ;
 				 
 			summarizer.outputSumamry(  new File( output+".tsv" ));
@@ -182,32 +180,30 @@ public class QProfiler {
 	 * 
 	 * @param gffFiles names of GFF files to be processed
 	 * @return SummaryReport objects for each file processed
-	 */
-	//private void processFiles(Map<ProfileType, List<File>> files, Element root) throws RuntimeException{
-	private void processFiles(Map<ProfileType, List<File>> files, Element root) throws Exception{		
-		for (Map.Entry<ProfileType, List<File>> entry : files.entrySet()) {					
-			//for all summary except xmlSummary
-			for (final File file : entry.getValue()) {
-				logger.info("processing file " + file);
+	 */	
+	private void processFiles(Map<ProfileType, List<Pair<String, String>>> files, Element root) throws RuntimeException{		
+		for (Map.Entry<ProfileType, List<Pair<String, String>>> entry : files.entrySet()) {			
+			for (final Pair<String, String> pair : entry.getValue()) {
+				logger.info("processing file " + pair.getLeft());
 				final Summarizer summarizer = getSummarizer(entry.getKey());
 				if (null != summarizer) {
 					Runnable task = new Runnable() {
 						@Override
 						public void run() {
-							logger.info("running " + summarizer.getClass().getSimpleName());						 
-							try {								
-								SummaryReport sr = summarizer.summarize(file);							 
+							logger.info("running " + summarizer.getClass().getSimpleName());
+							SummaryReport sr = null;
+							try {
+								sr = summarizer.summarize(pair.getLeft(), pair.getRight());
 								sr.toXml(root);
 							} catch (Exception e) {
-								logger.error( "Exception caught whilst running summarizer for file: " + file.getName(), e );
-								// set the exit status to failure if any of the tasks throw an exception
+								logger.error( "Exception caught whilst running summarizer for file: " + pair.getLeft(), e );
 								exitStatus = 1;
 								//throw new RuntimeException(e);
-							}							
+							}
 							logger.debug("done with " + summarizer.getClass());
 						}
 					};
-					exec.execute(task);
+					exec.execute( task );
 				}
 			}
 		}
@@ -228,9 +224,6 @@ public class QProfiler {
 			switch (key) {
 			case VCF: summarizer = new VcfSummarizer( cmdLineFormats );
 				break;
-			case gff:
-				summarizer = new GffSummarizer();
-				break;
 			case FASTA:
 				summarizer = new FastaSummarizer(cmdLineInclude);
 				break;
@@ -244,24 +237,14 @@ public class QProfiler {
 				break;
 			case bam:
 				if (noOfConsumerThreads > 0) {
-					summarizer = new BamSummarizerMT(noOfProducerThreads, noOfConsumerThreads, cmdLineInclude, maxRecords, cmdLineTags, cmdLineTagsInt, cmdLineTagsChar, validation);
+					summarizer = new BamSummarizerMT2(noOfProducerThreads, noOfConsumerThreads, cmdLineInclude, maxRecords, cmdLineTags, cmdLineTagsInt, cmdLineTagsChar, validation);
 				} else {
-					summarizer = new BamSummarizer(cmdLineInclude, maxRecords, cmdLineTags, cmdLineTagsInt, cmdLineTagsChar, validation);
+					summarizer = new BamSummarizer2(cmdLineInclude, maxRecords, cmdLineTags, cmdLineTagsInt, cmdLineTagsChar, validation);
 				}
-				break;
-			case QUAL:
-				summarizer = new QualSummarizer(cmdLineInclude);
-				break;
-			case MA:
-				summarizer = new MaSummarizer();
-				break;
-			case FA:
-				summarizer = new FaSummarizerMT(noOfConsumerThreads);
 				break;
 			case XML:
 				summarizer = new CohortSummarizer();
-				break;
-				
+				break;				
 			default:
 				logger.warn("Summarizer for type " + key + " does not yet exist");
 			}
@@ -271,9 +254,9 @@ public class QProfiler {
 
 	public static void main(String args[]) throws Exception{
 		// loads all classes in referenced jars into memory to avoid nightly build sheninegans
-		LoadReferencedClasses.loadClasses(QProfiler.class);
+		LoadReferencedClasses.loadClasses(QProfiler2.class);
 		
-		QProfiler qp = new QProfiler();
+		QProfiler2 qp = new QProfiler2();
 		int exitStatus = qp.setup(args);
 		if (null != logger) {
 			logger.logFinalExecutionStats(exitStatus);
@@ -286,7 +269,7 @@ public class QProfiler {
 	
 	public int setup(String args[]) throws Exception{
 		int returnStatus = 1;
-		Options options = new Options(args);
+		Options2 options = new Options2(args);
 		QMessage messages = options.getMessage();
 		if (options.hasHelpOption()) {
 			System.err.println(messages.getUsage()  );
@@ -302,8 +285,8 @@ public class QProfiler {
 		} else {
 			// configure logging
 			logFile = options.getLog();
-			version = QProfiler.class.getPackage().getImplementationVersion();
-			logger = QLoggerFactory.getLogger(QProfiler.class, logFile, options.getLogLevel());
+			version = QProfiler2.class.getPackage().getImplementationVersion();
+			logger = QLoggerFactory.getLogger(QProfiler2.class, logFile, options.getLogLevel());
 			logger.logInitialExecutionStats("qprofiler", version, args);
 			
 			// get list of file names

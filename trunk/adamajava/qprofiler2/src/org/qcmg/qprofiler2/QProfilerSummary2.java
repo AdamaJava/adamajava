@@ -25,7 +25,7 @@ import java.util.List;
 import org.qcmg.qprofiler2.report.SummaryReport;
 import org.w3c.dom.Element;
 
-public class QProfilerSummary {
+public class QProfilerSummary2 {
 	private final List<SummaryReport> reports = new ArrayList<SummaryReport>();
 	private String startTime;
 	private String finishTime;
@@ -84,12 +84,8 @@ public class QProfilerSummary {
 	
 	/**
 	 * Writes the contents of the SummaryReports contained in the reports collection to a file
-	 * 
 	 * @param parent Element parent node that all SummaryReports are added to
 	 * @param filename String representing the output file name 
 	 * @throws Exception thrown if problems occur creating the output file and transforming the xml into the file
 	 */
-	
-
-
 }

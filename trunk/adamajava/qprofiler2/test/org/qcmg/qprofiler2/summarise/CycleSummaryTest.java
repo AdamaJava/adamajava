@@ -23,8 +23,8 @@ import org.junit.Test;
 import org.qcmg.common.model.ProfileType;
 import org.qcmg.common.util.QprofilerXmlUtils;
 import org.qcmg.picard.SAMFileReaderFactory;
-import org.qcmg.qprofiler2.bam.BamSummarizer;
-import org.qcmg.qprofiler2.bam.BamSummaryReport;
+import org.qcmg.qprofiler2.bam.BamSummarizer2;
+import org.qcmg.qprofiler2.bam.BamSummaryReport2;
 import org.qcmg.qprofiler2.bam.TagSummaryReportTest;
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
@@ -224,8 +224,8 @@ public class CycleSummaryTest {
 		Document doc = domImpl.createDocument(null,"qProfiler",null);
 		Element root = doc.getDocumentElement();					 
 
-		BamSummarizer bs = new BamSummarizer();
-		BamSummaryReport sr = (BamSummaryReport) bs.summarize(new File(INPUT_FILE)); 
+		BamSummarizer2 bs = new BamSummarizer2();
+		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize(INPUT_FILE); 
 		sr.toXml(root);
 		Assert.assertEquals(sr.getRecordsParsed(), 4);		
 		

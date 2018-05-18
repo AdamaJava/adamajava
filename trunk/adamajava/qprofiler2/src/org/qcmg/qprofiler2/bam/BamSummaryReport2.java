@@ -49,7 +49,7 @@ import org.qcmg.qprofiler2.util.FlagUtil;
 import org.qcmg.qprofiler2.util.SummaryReportUtils;
 import org.w3c.dom.Element;
 
-public class BamSummaryReport extends SummaryReport {	
+public class BamSummaryReport2 extends SummaryReport {	
 
 	private final static int mateRefNameMinusOne = 255;
 	public static final Character cc = Character.MAX_VALUE;
@@ -92,7 +92,7 @@ public class BamSummaryReport extends SummaryReport {
 		put( QprofilerXmlUtils.All_READGROUP, new ReadGroupSummary( QprofilerXmlUtils.All_READGROUP) ); }}; 
 			
 	private final KmersSummary kmersSummary = new KmersSummary( KmersSummary.maxKmers ); //default use biggest mers length
- 	TagSummaryReport tagReport; 
+ 	TagSummaryReport2 tagReport; 
  	
 	private int zeroCoverageCount;
 	private boolean includeCoverage;
@@ -101,9 +101,9 @@ public class BamSummaryReport extends SummaryReport {
 	private SAMSequenceDictionary samSeqDictionary;
 	private List<String> readGroupIds = Arrays.asList( QprofilerXmlUtils.UNKNOWN_READGROUP ); //init	
 	
-	public BamSummaryReport(String [] includes, int maxRecs, String [] tags, String [] tagsInt, String [] tagsChar) {
+	public BamSummaryReport2(String [] includes, int maxRecs, String [] tags, String [] tagsInt, String [] tagsChar) {
 		super();		
-		tagReport = new TagSummaryReport(tags, tagsInt, tagsChar);
+		tagReport = new TagSummaryReport2(tags, tagsInt, tagsChar);
 
 		if (maxRecs > 0) maxRecords = Long.valueOf(maxRecs);		
 		
@@ -422,15 +422,11 @@ public class BamSummaryReport extends SummaryReport {
 		summary.setMaxBases(maxBases);
 		summary.setTrimedBases(trimBases);
 		summary.readSummary2Xml(readElement);
-		summary.pairSummary2Xml(pairElement); 	
+		summary.pairSummary2Xml(pairElement);
 	}
 		
-	void parseRNameAndPos(final String rName,  final int position, String rgid ) throws Exception {		 	
-		PositionSummary ps = (PositionSummary) rNamePosition.get(rName);
-		if (null == ps) {
-			rNamePosition.putIfAbsent(rName, new PositionSummary( readGroupIds));
-			ps = (PositionSummary) rNamePosition.get(rName);					
-		}			 
+	void parseRNameAndPos( final String rName,  final int position, String rgid ) throws Exception {		 			
+		PositionSummary ps = (PositionSummary) rNamePosition.computeIfAbsent(rName, k->new PositionSummary( readGroupIds));
 		ps.addPosition(position, rgid );
 	}
 		

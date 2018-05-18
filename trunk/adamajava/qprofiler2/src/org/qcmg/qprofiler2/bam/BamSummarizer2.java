@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.util.List;
 
 import htsjdk.samtools.SamReader;
+import htsjdk.samtools.ValidationStringency;
 import htsjdk.samtools.SAMProgramRecord;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMSequenceDictionary;
@@ -30,7 +31,8 @@ import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qprofiler2.Summarizer;
 import org.qcmg.qprofiler2.report.SummaryReport;
 
-public class BamSummarizer implements Summarizer {
+public class BamSummarizer2 implements Summarizer {
+	public static final ValidationStringency DEFAULT_VS = ValidationStringency.SILENT;
 	
 	private String [] includes;
 	private String [] tags;
@@ -39,9 +41,9 @@ public class BamSummarizer implements Summarizer {
 	private int maxRecords;
 	private String validation;
 
-	private final static QLogger logger = QLoggerFactory.getLogger(BamSummarizer.class);	
-	public BamSummarizer() {}	// default constructor	
-	public BamSummarizer(String [] includes, int maxRecords, String [] tags, String [] tagsInt, String [] tagsChar, String validation) {
+	private final static QLogger logger = QLoggerFactory.getLogger(BamSummarizer2.class);	
+	public BamSummarizer2() {}	// default constructor	
+	public BamSummarizer2(String [] includes, int maxRecords, String [] tags, String [] tagsInt, String [] tagsChar, String validation) {
 		this.includes = includes;
 		this.maxRecords = maxRecords;
 		this.tags = tags;
@@ -50,7 +52,7 @@ public class BamSummarizer implements Summarizer {
 		this.validation = validation;
 	}
 	
-	public static BamSummaryReport createReport(File file,String [] includes, int maxRecords, String [] tags, String [] tagsInt, String [] tagsChar) throws IOException{
+	public static BamSummaryReport2 createReport(File file,String [] includes, int maxRecords, String [] tags, String [] tagsInt, String [] tagsChar) throws IOException{
 		
 		// create the SummaryReport
 		SamReader reader = SAMFileReaderFactory.createSAMFileReader(file);
@@ -64,7 +66,7 @@ public class BamSummarizer implements Summarizer {
 			if ("tmap".equals(pgLine.getId())){ torrentBam = true;break;}		
 		reader.close();
 				
-		BamSummaryReport bamSummaryReport = new BamSummaryReport(includes, maxRecords, tags, tagsInt, tagsChar);		
+		BamSummaryReport2 bamSummaryReport = new BamSummaryReport2(includes, maxRecords, tags, tagsInt, tagsChar);		
 		if(torrentBam) bamSummaryReport.setTorrentBam();
 		bamSummaryReport.setBamHeader(bamHeader);
 		bamSummaryReport.setSamSequenceDictionary(samSeqDict);
@@ -74,12 +76,17 @@ public class BamSummarizer implements Summarizer {
 		return bamSummaryReport;			
 	}
 	
+
 	@Override
-	public SummaryReport summarize(File file) throws Exception {
+	public SummaryReport summarize(String input, String index) throws Exception {
+		ValidationStringency vs = null != validation ? ValidationStringency.valueOf(validation) : DEFAULT_VS;
+		SamReader reader = SAMFileReaderFactory.createSAMFileReaderAsStream(input, index, vs);
 		
+		// create the SummaryReport		
+        BamSummaryReport2 bamSummaryReport = createReport(new File(input), includes, maxRecords, tags, tagsInt, tagsChar);
+      		
 		boolean logLevelEnabled = logger.isLevelEnabled(QLevel.DEBUG);
-		BamSummaryReport bamSummaryReport = createReport(file, includes, maxRecords, tags, tagsInt, tagsChar);
-		SamReader reader = SAMFileReaderFactory.createSAMFileReader(file, validation);
+		
 		long currentRecordCount = 0;
 		for (SAMRecord samRecord : reader) {				 
 			bamSummaryReport.parseRecord(samRecord);

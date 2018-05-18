@@ -16,7 +16,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.gff.GFFReader;
-import org.qcmg.qprofiler2.QProfiler;
+import org.qcmg.qprofiler2.QProfiler2;
 
 public class QProfilerTest {
 	
@@ -60,7 +60,7 @@ public class QProfilerTest {
 		
 		String[] args = {"-log",  logFile.getAbsolutePath(), "-input", GFF_FILE_NAME_1_FILE.getAbsolutePath(),
 				"-input", GFF_FILE_NAME_2_FILE.getAbsolutePath(), "-o", outputFile.getAbsolutePath(), "--nohtml"};
-		int exitStatus = new QProfiler().setup(args);
+		int exitStatus = new QProfiler2().setup(args);
 		Assert.assertEquals(0, exitStatus);
 		
 		Assert.assertTrue(outputFile.exists());
@@ -71,7 +71,7 @@ public class QProfilerTest {
 	public final void executeWithNoArgs() throws Exception {
 		String[] args = {};
 		try {
-			int exitStatus = new QProfiler().setup(args);
+			int exitStatus = new QProfiler2().setup(args);
 			Assert.assertEquals(1, exitStatus);
 		} catch (Exception e) {
 			Assert.fail("no exception should have been thrown from executeWithNoArgs()");
@@ -87,7 +87,7 @@ public class QProfilerTest {
 		
 		String[] args = new String[]{"-inc","html,all", "-input", GFF_FILE_NAME_1_FILE.getAbsolutePath(), "-log",logFile.getAbsolutePath()};
 		try {
-			int exitStatus = new QProfiler().setup(args);
+			int exitStatus = new QProfiler2().setup(args);
 			Assert.assertEquals(0, exitStatus);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -96,7 +96,7 @@ public class QProfilerTest {
 		
 		String[] args2 = new String[]{"-include","html,all,matricies,coverage", "-input", GFF_FILE_NAME_1_FILE.getAbsolutePath(), "-log",logFile2.getAbsolutePath()};
 		try {
-			int exitStatus =new QProfiler().setup(args2);
+			int exitStatus =new QProfiler2().setup(args2);
 			Assert.assertEquals(0, exitStatus);
 		} catch (Exception e) {
 			Assert.fail("no exception should have been thrown from executeWithExcludeArgs()");
@@ -110,7 +110,7 @@ public class QProfilerTest {
 		
 		String[] args = {"-input",inputFile.getAbsolutePath(), "-log", logFile.getAbsolutePath()};
 		try {
-			new QProfiler().setup(args);
+			new QProfiler2().setup(args);
 			Assert.fail("Should have thrown a QProfilerException");
 		} catch (Exception qpe) {
 			Assert.assertEquals("Unsupported file type test", qpe.getMessage());
@@ -123,7 +123,7 @@ public class QProfilerTest {
 		
 		String[] args = {"-input","test123.sam", "-log", logFile.getAbsolutePath()};
 		try {
-			new QProfiler().setup(args);
+			new QProfiler2().setup(args);
 			Assert.fail("Should have thrown a QProfilerException");
 		} catch (Exception qpe) {
 			qpe.printStackTrace();

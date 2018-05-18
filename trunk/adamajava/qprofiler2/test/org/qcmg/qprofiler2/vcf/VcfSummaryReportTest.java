@@ -14,7 +14,7 @@ import org.qcmg.common.util.IndelUtils.SVTYPE;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.vcf.VCFFileReader;
-import org.qcmg.qprofiler2.QProfiler;
+import org.qcmg.qprofiler2.QProfiler2;
 import org.qcmg.qprofiler2.summarise.SampleSummary;
 import org.qcmg.qprofiler2.vcf.VcfSummaryReport;
 import org.w3c.dom.*;
@@ -155,23 +155,24 @@ public class VcfSummaryReportTest {
 	}
 	
 	@Test
-	public void SampleWithSpecial() {
-				
+	public void SampleWithSpecial() {				
 		try {
 			//sample contain special letter same to the seperator
 			String lastSample = "http" + VcfSummaryReport.Seperator + "last";				
 			File file = new File("input.vcf");
 			createVcfFile(lastSample, file);	
 			
-			QProfiler qp = new QProfiler();
-			int exitStatus = qp.setup("--nohtml --input input.vcf --output output.xml --log output.log".split(" "));
-			assertTrue(1 == exitStatus);
+			QProfiler2 qp = new QProfiler2();
+			int exitStatus = qp.setup( "--nohtml --input input.vcf --output output.xml --log output.log".split(" ") );
+			
+			System.out.println("exitStatus: " + exitStatus);
+			assertTrue( 1 == exitStatus );
 			
 			//normal sample name
 			lastSample = lastSample.replace(VcfSummaryReport.Seperator, "");
 			createVcfFile(lastSample, file);			
-			qp = new QProfiler();
-			exitStatus = qp.setup("--nohtml --input input.vcf --output output.xml --log output.log".split(" "));
+			qp = new QProfiler2();
+			exitStatus = qp.setup( "--nohtml --input input.vcf --output output.xml --log output.log".split(" ") );
 			assertTrue(0 == exitStatus);
 		} catch (Exception e) {
 			fail("throw unexpected Exception");
@@ -359,23 +360,6 @@ public class VcfSummaryReportTest {
 				}				
 			}			
 		}				
-	}
-	
-	@Test
-	public void xuTest(){
-		String xml = "<resp><status>good</status><msg>hi</msg></resp>";
-		String path = "/resp/status";		
-		
-        double[] a = {2.3,4,3,6,8,9};
-        double[] b = {3,6,6,8.4,7,10};
-        PearsonsCorrelation correlation = new PearsonsCorrelation();
-        double r2 = correlation.correlation(a, b);
-        System.out.println(r2);
-        
- /*       
-        > a<-read.csv("/Users/christix/aa.tsv",sep="\t");
-        > plot(a)
-        */
 	}
 	
 }

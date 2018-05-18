@@ -8,9 +8,6 @@
  */
 package org.qcmg.qprofiler2;
 
-import java.io.File;
-import java.io.IOException;
-
 import org.qcmg.qprofiler2.report.SummaryReport;
 
 public interface Summarizer {
@@ -18,12 +15,15 @@ public interface Summarizer {
 
 	/**
 	 * Summarises the data held in the submitted file, returning a SummaryReport object
-	 * 
 	 * @param file File to be summarised
+	 * 
 	 * @return SummaryReport object containing the summations
 	 * @throws Exception
 	 */
-	public SummaryReport summarize(File file) throws Exception;
-	
+//	public SummaryReport summarize(File file) throws Exception;
+	public SummaryReport summarize(String input, String index) throws Exception;
+	public default SummaryReport summarize(String input) throws Exception {
+		return summarize(input, null);
+	}	
 	
 }

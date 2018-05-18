@@ -30,7 +30,7 @@ public class CohortSummarizer implements Summarizer {
 	public CohortSummarizer( ) { }	
 		
 	@Override
-	public SummaryReport summarize(File file) throws Exception{
+	public SummaryReport summarize(String file, String index) throws Exception{
 		logger.info("processing file " + file);
 		
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance(); 		 		
@@ -41,7 +41,7 @@ public class CohortSummarizer implements Summarizer {
 		NodeList sampleNS =	 doc.getElementsByTagName("Sample");
 		
 		for(int i = 0; i < sampleNS.getLength(); i ++) 
-			reports.add( new CohortSummaryReport(file, (Element) sampleNS.item(i)) );
+			reports.add( new CohortSummaryReport(new File(file), (Element) sampleNS.item(i)) );
 				
 		return null; 
 	}
@@ -59,11 +59,11 @@ public class CohortSummarizer implements Summarizer {
 					writer.write(( order ++) + "\t" + str + "\n");	
 				//summry to log file
 				
-				System.out.println(report.sampleId);
+				//System.out.println(report.sampleId);
 				for(int i = 0; i < sumCounts.length; i++){
 					long[] reportCounts = report.getCountSum();					
 					//debug
-					System.out.println(i + " (summCount[i]): " + sumCounts[i] + " += " + reportCounts[i]);
+					//System.out.println(i + " (summCount[i]): " + sumCounts[i] + " += " + reportCounts[i]);
 					sumCounts[i] += reportCounts[i];
 				}			
 			}

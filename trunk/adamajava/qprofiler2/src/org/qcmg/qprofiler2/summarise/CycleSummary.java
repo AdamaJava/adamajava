@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.qcmg.common.util.QprofilerXmlUtils;
-import org.qcmg.qprofiler2.bam.BamSummaryReport;
+import org.qcmg.qprofiler2.bam.BamSummaryReport2;
 import org.qcmg.qprofiler2.util.SummaryReportUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -186,8 +186,6 @@ public class CycleSummary<T> {
 				// and it SHOULD mean we keep the array in a consistent state 
 				Thread.sleep(200);
 				
-				
-				System.out.println("About to resize tally...");
 				// get new capacity
 				int capacity = 1 << ((newCycleMask == -1 ? cycleMask.get() : newCycleMask) + keyMask.get());
 				
