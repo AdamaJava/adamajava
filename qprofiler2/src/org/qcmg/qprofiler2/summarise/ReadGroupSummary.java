@@ -307,9 +307,8 @@ public class ReadGroupSummary {
 
 	}	
 	
-	public long getMaxBases(){
-		
-		if(null == this.maxBases || this.maxBases <= 0) 
+	public long getMaxBases(){		
+		if(null == this.maxBases || this.maxBases <= 0) 			 
 			throw new IllegalStateException("Illegal attempt to access unitialized or minus value (this.maxBases).");
 		
         return this.maxBases;

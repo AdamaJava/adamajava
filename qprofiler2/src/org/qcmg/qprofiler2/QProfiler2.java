@@ -144,16 +144,16 @@ public class QProfiler2 {
 		root.setAttribute("startTime", sol.getStartTime());
 		root.setAttribute("finishTime", sol.getFinishTime());
 		root.setAttribute("user", System.getProperty("user.name"));
-		root.setAttribute("operatingSystem", System.getProperty("os.name"));		
+		root.setAttribute( "operatingSystem", System.getProperty("os.name") );
 		root.setAttribute("version", version);
 		sol.setFinishTime(DateUtils.getCurrentDateAsString());		
 		QprofilerXmlUtils.asXmlText(root, outputFile);
 		
 		//output tsv file if inputs are xml			
-		if ( ! noHtml) {
-			String qVisLogFile = logFile.replace("log", "html.log");
-			String [] args = {"-i",outputFile, "-log", qVisLogFile};
-			logger.info("about to run qVisualise on qProfiler output");
+		if ( ! noHtml ) {
+			String qVisLogFile = logFile.replace( "log", "html.log" );
+			String [] args = { "-i",outputFile, "-log", qVisLogFile };
+			logger.info( "about to run qVisualise on qProfiler output" );
 			try {
 				int exitstatus = new QVisualise().setup(args);
 				if (exitstatus == 0) logger.info("qVisualise output generated: " + outputFile + ".html");
