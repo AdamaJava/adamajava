@@ -304,7 +304,6 @@ public class ReadGroupSummary {
 		
 		//if( readGroupId.equals(XmlUtils.All_READGROUP ))			 	
 		this.maxBases = bases;
-
 	}	
 	
 	public long getMaxBases(){		
