@@ -98,7 +98,7 @@ public class ReportBuilderUtils {
 			
 			StringBuilder ele  = new StringBuilder(startVBlock).append(totalReadsMap.get(rg)).append(endVBlock)  
                     .append(",").append(startVBlock).append(aveLengthMap.get(rg)).append(endVBlock )
-                    .append(",").append(startVBlock).append(maxLengthMap.get(rg)).append(endVBlock                                                          )
+                    .append(",").append(startVBlock).append(maxLengthMap.get(rg)).append(endVBlock )
                     .append(",").append(startVBlock).append((isizeMap.get(rg) == null ? "-" : isizeMap.get(rg) )).append(endVBlock)                                         
                     .append(",").append(startVBlock).append( unmappedMap.get(rg)).append( endVBlock  )
                     .append(",").append(startVBlock).append(nonCanonicalMap.get(rg)).append(endVBlock) 
@@ -109,12 +109,10 @@ public class ReportBuilderUtils {
                     .append(",").append(startVBlock).append(trimmedMap.get(rg)).append(endVBlock)
                     .append(",").append(startVBlock).append(lostMap.get(rg)).append(lostColor);			
 						
-			if( ! rg.equals("overall")) summaryMap.put(rg, ele.toString());     
-			else overallEle = ele.toString(); 
-         
+			if( !rg.equals("overall") ) summaryMap.put( rg, ele.toString() );     
+			else overallEle = ele.toString();         
 		}
-		summaryMap.put("overall", overallEle);
-
+		summaryMap.put( "overall", overallEle );
 		return summaryMap;
 	}
 	
