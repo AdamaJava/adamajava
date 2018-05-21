@@ -190,7 +190,6 @@ public class SAMFileReaderFactory {
 		
 		SeekableStreamFactory.setInstance(new S3AwareSeekableStreamFactory());
 		SeekableStream bamSource = SeekableStreamFactory.getInstance().getStreamFor(bamFile);
-//		System.out.println("bamSource is a " + bamSource.getClass());
 		
 		SamInputResource resources = SamInputResource.of(bamSource);
 		
@@ -209,64 +208,4 @@ public class SAMFileReaderFactory {
 		
 		return reader;
 	}
-	
-//	public static SamReader createSAMFileReaderAsAWSStream(String bucket, String bamFile, String indexFile, ValidationStringency stringency) throws IOException {
-//		
-//		BasicAWSCredentials creds = new BasicAWSCredentials("YOUR_KEY", "YOUR_SECRET"); 
-//		S3Client client = S3Client.builder().region(Region.AP_SOUTHEAST_2).build();
-//		ResponseInputStream ris = client.getObject(GetObjectRequest.builder()
-//                .bucket(bucket)
-//                .key(bamFile)
-//                .build(),
-//                StreamingResponseHandler.toInputStream());
-//		
-//		SamInputResource resources;
-//		resources = SamInputResource.of(ris);
-//		
-////		if (null == bamFile) {
-////			throw new IllegalArgumentException("Please provide a bam file");
-////		}
-//		SamReaderFactory factory = SamReaderFactory.makeDefault();		
-//		factory.validationStringency(null != stringency ? stringency : DefaultStringency);
-//		logger.debug("Setting Validation Stringency on SamReader to: " + factory.validationStringency().name());	
-//		
-//		SamReader reader =  factory.open(resources);
-//		System.out.println("reader.hasIndex(): " + reader.hasIndex());
-//		System.out.println("reader.type(): " + reader.type());
-//		System.out.println("reader.type(): " + reader.type());
-//		return reader;
-//	}
-	
-//	public static SamReader createSAMFileReaderThanksConrad(String bucket, String bamFile, String indexFile, ValidationStringency stringency) throws IOException {
-//		
-//		// this factory makes a handler that provides openConnection(...) on s3: URLs
-//		URL.setURLStreamHandlerFactory(new S3AwareURLStreamHandlerFactory());
-////		AWSCredentials credentials = AWSUtils.getAWSCredentials();
-////		System.out.println("key: " + credentials.getAWSAccessKeyId());
-////		System.out.println("secret key: " + credentials.getAWSSecretKey());
-//		
-//		SeekableStreamFactory.setInstance(new S3AwareSeekableStreamFactory());
-//		String bamPath = "s3://" + bucket + "/" + bamFile;
-//		SeekableStream bamSource = SeekableStreamFactory.getInstance().getStreamFor(bamPath);
-//		
-//		SamInputResource resources = SamInputResource.of(bamSource);
-//		
-//		if (null != indexFile) {
-//			String indexPath = "s3://" + bucket + "/" + indexFile;
-//			System.out.println("setting up index, index path: " + indexPath);
-//			SeekableStream indexSource = SeekableStreamFactory.getInstance().getStreamFor(indexPath);
-//			resources = resources.index(indexSource);
-//			System.out.println("have setup index, index path: " + indexPath);
-//		}
-//		
-//		SamReaderFactory factory = SamReaderFactory.makeDefault();		
-//		factory.validationStringency(null != stringency ? stringency : DefaultStringency);
-//		SamReader reader =  factory.open(resources);
-//		
-//		System.out.println("reader.hasIndex(): " + reader.hasIndex());
-//		System.out.println("reader.type(): " + reader.type());
-//		
-//		return reader;
-//	}
-	
 }
