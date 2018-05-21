@@ -211,8 +211,6 @@ public class BamSummaryReport2 extends SummaryReport {
 		// ISIZE
 		Element tagISizeElement = QprofilerXmlUtils.createSubElement(bamReportElement, "ISIZE");
 		SummaryReportUtils.iSize2Xml(tagISizeElement, rgSummaries);
-//		for(ReadGroupSummary summary: rgSummaries.values())
-//			summary.iSize2Xml(tagISizeElement);
 	}	
 	
 	private void createMRNM(Element bamReportElement){
@@ -425,9 +423,9 @@ public class BamSummaryReport2 extends SummaryReport {
 		summary.pairSummary2Xml(pairElement);
 	}
 		
-	void parseRNameAndPos( final String rName,  final int position, String rgid ) throws Exception {		 			
-		PositionSummary ps = (PositionSummary) rNamePosition.computeIfAbsent(rName, k->new PositionSummary( readGroupIds));
-		ps.addPosition(position, rgid );
+	void parseRNameAndPos( final String rName,  final int position, String rgid ) throws Exception {
+		PositionSummary ps = (PositionSummary) rNamePosition.computeIfAbsent( rName, k->new PositionSummary( readGroupIds) );
+		ps.addPosition( position, rgid );
 	}
 		
 	//setting

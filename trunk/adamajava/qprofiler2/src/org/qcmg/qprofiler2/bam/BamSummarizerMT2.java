@@ -86,16 +86,6 @@ public class BamSummarizerMT2 implements Summarizer {
 			noOfProducerThreads = 1;
 		}	
 		
-//	@Override
-//	public SummaryReport summarize(String file, String index) throws Exception {
-//		
-//		// check to see if index file exists - if not, run in single producer mode as will not be able to perform indexed lookups
-//		SamReader reader = SAMFileReaderFactory.createSAMFileReader(file);
-//		if ( ! reader.hasIndex() && noOfProducerThreads > 1) {
-//			logger.warn("using 1 producer thread - no index found for bam file: " + file.getAbsolutePath());
-//			noOfProducerThreads = 1;
-//		}
-		
 		//get sorted sequence for threads
 		final AbstractQueue<String> sequences = new ConcurrentLinkedQueue<>();
 		try {
@@ -113,14 +103,9 @@ public class BamSummarizerMT2 implements Summarizer {
 			sequences.add(UNMAPPED_READS);
 			for (SAMSequenceRecord rec : orderedSamSequences) {
 				sequences.add(rec.getSequenceName());
-			}
-			
-		} finally {
-			reader.close();
-		}		
-		
-		
-		
+			}			
+		} finally { reader.close(); }		
+				
 		ConcurrentLinkedQueue<SAMRecord>[] queues = null;
 		AbstractQueue<SAMRecord> q  = null;
 		if (noOfProducerThreads == 1) {
@@ -128,15 +113,11 @@ public class BamSummarizerMT2 implements Summarizer {
 		} else {
 			queues = new ConcurrentLinkedQueue[noOfProducerThreads];
 			for (int i = 0 ; i < noOfProducerThreads ; i++)  
-				queues[i] = new ConcurrentLinkedQueue<SAMRecord>();
-			 
+				queues[i] = new ConcurrentLinkedQueue<SAMRecord>();			 
 		}
 		long start = System.currentTimeMillis();
 		
-		final BamSummaryReport2 bamSummaryReport =  BamSummarizer2.createReport(file, includes, maxRecords, tags, tagsInt, tagsChar );
-		
-
-		 		
+		final BamSummaryReport2 bamSummaryReport =  BamSummarizer2.createReport(file, includes, maxRecords, tags, tagsInt, tagsChar );				 		
 		logger.info("will create " + noOfConsumerThreads + " consumer threads");
 
 		final CountDownLatch pLatch = new CountDownLatch(noOfProducerThreads);
@@ -148,7 +129,7 @@ public class BamSummarizerMT2 implements Summarizer {
 			 : new Consumer(queues, bamSummaryReport, Thread.currentThread(), cLatch, pLatch, i % noOfProducerThreads));
 		}
 		
-//		setpup and kick-off single Producer thread
+		// setpup and kick-off single Producer thread
 		ExecutorService producerThreads = Executors.newFixedThreadPool(noOfProducerThreads);
 		if (noOfProducerThreads == 1) {
 			producerThreads.execute(new SingleProducer(q, file, Thread.currentThread(), pLatch, cLatch));

@@ -60,8 +60,7 @@ final class Options2 {
 	Options2(final String[] args) throws Exception {
 
 		parser.accepts("help", HELP_DESCRIPTION);
-		parser.accepts("version", VERSION_DESCRIPTION);
-		
+		parser.accepts("version", VERSION_DESCRIPTION);		
 		parser.accepts("input", INPUT_FILE_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("output", OUTPUT_FILE_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("ntProducer", NO_OF_THREADS_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
@@ -77,9 +76,7 @@ final class Options2 {
 		parser.accepts("nohtml", NO_HTML_DESCRIPTION);
 		parser.accepts("format", FORMAT_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
 		parser.accepts("index", INPUT_FILE_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
-
 		parser.posixlyCorrect(true);
-
 		options = parser.parse(args);
 		
 		// no of threads - Consumer
