@@ -318,8 +318,7 @@ public class ReportBuilder {
 					}						 					
 					return false;					
 				}				
-			});
-			
+			});			
 			report.addTab( ChartTabBuilderUtils.createTabFromValueTally(para) );
 		}
 	}
@@ -337,22 +336,14 @@ public class ReportBuilder {
 		int rgNo = nameElementTop.getAttribute("possibleValues").split(",").length;
 		int cellingValue = Integer.parseInt(nameElementTop.getAttribute("visuallCellingValue"));	
 				
-
 		//create coverage by read group
 		ChartTabBuilder  para = new ChartTabBuilder (rnameE, "RangeTally", "Coverage with GC percentage", "rgccov")
 			.setDataContinue().legend(ChartTabBuilder.defaultLegend).setValueRange().VAxisMaxValue(cellingValue).setShowCombinedLine()
 			.chartType(HTMLReportUtils.LINE_CHART).width(ChartTabBuilder.windowWidth).HAxisTitle("position").height((MIN_REPORT_HEIGHT/4) *(rgNo/4) )
 			.setParentTagFilter(ChartTabBuilder.filterOfGCRef);		
 		parentCT.addChild( ChartTabBuilderUtils.createTabWithGCPercent(para) );
-			
-//		ChartTabBuilder  para = new ChartTabBuilder (rnameE, "RangeTally", "Coverage by readGroup", "rcov").setDataContinue()
-//				.legend(ChartTabBuilder.defaultLegend).setValueRange().VAxisMaxValue(cellingValue).setShowCombinedLine()
-//				.chartType(HTMLReportUtils.LINE_CHART).width(ChartTabBuilder.windowWidth).HAxisTitle("position")
-//				.height((MIN_REPORT_HEIGHT/4) *( rgNo/4 ) ).setParentTagFilter( filter );						
-//		parentCT.addChild( ChartTabBuilderUtils.createTabFromPossibleValue(para) );	
 					
 		//create coverage by chromosome
-		//if(rgNo > 3) cellingValue = cellingValue * ( rgNo / 3 );
 		para = new ChartTabBuilder (rnmElement,"CoverageByReadGroup", "Coverage by chromosome", "ccov")
 				.legend(ChartTabBuilder.defaultLegend).setValueRange().setDataContinue().explorer(ChartTabBuilder.defaultZoomInExplorer)
 				.HAxisFormat(ChartTabBuilder.AXIS_FORMAT_SHORT) 
@@ -364,9 +355,7 @@ public class ReportBuilder {
 				.legend(ChartTabBuilder.defaultLegend).setValueRange().setDataContinue().explorer(ChartTabBuilder.defaultZoomInExplorer)
 				.LineWidth(0.2).PointSize(1).DataOpacity(0.2).HAxisFormat(ChartTabBuilder.AXIS_FORMAT_SHORT)
 				.chartType(HTMLReportUtils.LINE_CHART).height(ChartTabBuilder.windowHeight).width(ChartTabBuilder.windowWidth).HAxisTitle("position");					 		
-		parentCT.addChild( ChartTabBuilderUtils.createTabSmoothy(para) );
-
-				
+		parentCT.addChild( ChartTabBuilderUtils.createTabSmoothy(para) );				
 	}
 
 	private static ChartTab createMDChartTab(Element tagElement) {
