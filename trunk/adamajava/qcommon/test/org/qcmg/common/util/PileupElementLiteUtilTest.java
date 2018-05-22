@@ -8,6 +8,9 @@ import org.qcmg.common.model.Accumulator;
 import org.qcmg.common.model.PileupElementLite;
 import org.qcmg.common.model.Rule;
 
+import gnu.trove.list.TIntList;
+import gnu.trove.list.array.TIntArrayList;
+
 public class PileupElementLiteUtilTest {
 	
 	
@@ -36,6 +39,26 @@ public class PileupElementLiteUtilTest {
 		
 		assertEquals(false, PileupElementLiteUtil.passesWeightedVotingCheck(100, 2, (double)5/2));
 		assertEquals(true, PileupElementLiteUtil.passesWeightedVotingCheck(100, 3, (double)5/2));
+	}
+	
+	@Test
+	public void getDetailsFromCombinedListInMap() {
+		TIntList l = new TIntArrayList();
+		l.add(1);	// readid
+		l.add(2);	// startPos
+		l.add(3);	// qual
+		
+		assertEquals(1, PileupElementLiteUtil.getDetailsFromCombinedListInMap(l, 3, 0,1).size());
+		assertEquals(2, PileupElementLiteUtil.getDetailsFromCombinedListInMap(l, 3, 0,1).get(1));
+		
+		l.add(2);	// readid
+		l.add(2);	// startPos
+		l.add(3);	// qual
+		
+		assertEquals(2, PileupElementLiteUtil.getDetailsFromCombinedListInMap(l, 3, 0,1).size());
+		assertEquals(2, PileupElementLiteUtil.getDetailsFromCombinedListInMap(l, 3, 0,1).get(1));
+		assertEquals(2, PileupElementLiteUtil.getDetailsFromCombinedListInMap(l, 3, 0,1).get(2));
+		
 	}
 	
 	@Test
