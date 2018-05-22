@@ -8,6 +8,8 @@ package org.qcmg.common.util;
 
 import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
+import gnu.trove.map.TIntIntMap;
+import gnu.trove.map.hash.TIntIntHashMap;
 import gnu.trove.procedure.TIntProcedure;
 
 import java.text.DecimalFormat;
@@ -29,6 +31,47 @@ public class PileupElementLiteUtil {
 		PileupElementLite pel = accum.getLargestVariant(ref);
 		if (null == pel) return 0;
 		return pel.getNovelStartCount();
+	}
+	
+	public static TIntList getDetailsFromCombinedList(TIntList combinedList, int divider, int remainder) {
+		if (null == combinedList || combinedList.isEmpty()) {
+			return new TIntArrayList(0);
+		}
+		/*
+		 * read ids are the even numbered elements in this list (0 based)
+		 */
+		TIntList l = new TIntArrayList();
+		for (int i = 0, len = combinedList.size() ; i < len ; i++) {
+			if (i % divider == remainder) {
+				l.add(combinedList.get(i));
+			}
+		}
+		return l;
+	}
+	
+	public static TIntIntMap getDetailsFromCombinedListInMap(TIntList combinedList, int divider, int keyRemainder, int valueRemainder) {
+		if (null == combinedList || combinedList.isEmpty()) {
+			return new TIntIntHashMap(0);
+		}
+		/*
+		 * read ids are the even numbered elements in this list (0 based)
+		 */
+		TIntIntMap l = new TIntIntHashMap();
+		int key = 0, value = 0;
+		for (int i = 0, len = combinedList.size() ; i < len ; i++) {
+			if (i % divider == keyRemainder) {
+				key =combinedList.get(i);
+			}
+			if (i % divider == valueRemainder) {
+				value =combinedList.get(i); 
+			}
+			if (key != 0 && value != 0) {
+				l.put(key, value);
+				key = 0;
+				value =0;
+			}
+		}
+		return l;
 	}
 	
 	public static boolean[] isAccumulatorAKeeper(final Accumulator accum, final char ref, final Rule rule, final int percentage) {
@@ -174,12 +217,12 @@ public class PileupElementLiteUtil {
 		
 		StringBuilder sb = new StringBuilder(base);
 		sb.append(forwardCount).append(OPEN_BRACKET);
-		double forwardQual = forwardCount == 0 ? 0.0 : (double)pel.getTotalForwardQualityScore() / forwardCount; 
-		sb.append(nf.format(forwardQual));
+		float qual = forwardCount == 0 ? 0.0f : (float)pel.getTotalForwardQualityScore() / forwardCount; 
+		sb.append(nf.format(qual));
 		sb.append(CLOSE_BRACKET);
 		sb.append(reverseCount).append(OPEN_BRACKET);
-		double reverseQual = reverseCount == 0 ? 0.0 : (double)pel.getTotalReverseQualityScore() / reverseCount; 
-		sb.append(nf.format(reverseQual));
+		qual = reverseCount == 0 ? 0.0f : (float)pel.getTotalReverseQualityScore() / reverseCount; 
+		sb.append(nf.format(qual));
 		sb.append(CLOSE_BRACKET);
 		return sb.toString();
 	}
@@ -192,7 +235,7 @@ public class PileupElementLiteUtil {
 		TIntList forwardReadIds = null;
 		TIntList reverseReadIds = null;
 		
-		TIntArrayList ids = pel.getForwardReadIds();
+		TIntList ids = pel.getForwardReadIds();
 		if (null != ids) {
 			forwardReadIds = new TIntArrayList(ids);
 		}
