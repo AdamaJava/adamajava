@@ -21,8 +21,8 @@ public class ProfileTypeUtilsTest {
 	}
 	@Test
 	public void gffs() throws Exception {
-		assertEquals( ProfileType.gff, ProfileTypeUtils.getType(("blah.gff")));
-		assertEquals( ProfileType.gff, ProfileTypeUtils.getType(("blah.gff3")));
+		assertEquals( ProfileType.GFF, ProfileTypeUtils.getType(("blah.gff")));
+		assertEquals( ProfileType.GFF, ProfileTypeUtils.getType(("blah.gff3")));
 		try {
 			ProfileTypeUtils.getType(("blah.gff2"));
 			Assert.fail("should have barfed");
@@ -30,8 +30,8 @@ public class ProfileTypeUtilsTest {
 	}
 	@Test
 	public void bams() throws Exception {
-		assertEquals( ProfileType.bam, ProfileTypeUtils.getType(("blah.sam")) );
-		assertEquals( ProfileType.bam, ProfileTypeUtils.getType(("blah.bam")) );
+		assertEquals( ProfileType.BAM, ProfileTypeUtils.getType(("blah.sam")) );
+		assertEquals( ProfileType.BAM, ProfileTypeUtils.getType(("blah.bam")) );
 		try {
 			ProfileTypeUtils.getType(("blah.bam123"));
 			Assert.fail("should have barfed");
