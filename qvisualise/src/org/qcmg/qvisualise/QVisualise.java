@@ -29,15 +29,13 @@ import org.w3c.dom.NodeList;
 
 public class QVisualise {
 	
-	private static QLogger logger;
-	
+	private static QLogger logger;	
 	private static final String XML_EXTENTION = "xml";
 	private static final String HTML_EXTENTION = "html";
 	private static final String REPORT = "Report";
 	
 	private String inputFile;
-	private String outputFile;
-	
+	private String outputFile;	
 	private int exitStatus;
 	
 	protected int engage() throws Exception {
@@ -45,9 +43,8 @@ public class QVisualise {
 		
 		if (null != doc) {
 			final List<ProfileType> reportElements = new ArrayList<ProfileType>();
-			final List<Report> reports = new ArrayList<Report>();
-			
-			for (ProfileType type : ProfileType.values()) {
+			final List<Report> reports = new ArrayList<Report>();			
+			for (ProfileType type : ProfileType.values()) {				
 				if (null != doc.getElementsByTagName(type.getReportName() + REPORT).item(0))
 					reportElements.add(type);
 			}
