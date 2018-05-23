@@ -231,7 +231,7 @@ public class QProfiler {
 			switch (key) {
 			case VCF: summarizer = new VcfSummarizer();
 				break;
-			case gff:
+			case GFF:
 				summarizer = new GffSummarizer();
 				break;
 			case FASTA:
@@ -244,7 +244,7 @@ public class QProfiler {
 					summarizer = new FastqSummarizer(cmdLineInclude);
 				}
 				break;
-			case bam:
+			case BAM:
 				if (noOfConsumerThreads > 0) {
 					summarizer = new BamSummarizerMT(noOfProducerThreads, noOfConsumerThreads, cmdLineInclude, maxRecords, cmdLineTags, cmdLineTagsInt, cmdLineTagsChar, validation);
 				} else {

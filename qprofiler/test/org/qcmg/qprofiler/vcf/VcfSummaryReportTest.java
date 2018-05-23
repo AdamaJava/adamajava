@@ -269,7 +269,7 @@ public class VcfSummaryReportTest {
 			vcfSummaryReport.toXml(root);
 			
 			Node nreport = root.getChildNodes().item(0);
-			assertTrue(nreport.getNodeName().equals( ProfileType.VCF  + "Report"));
+			assertTrue(nreport.getNodeName().equals( ProfileType.VCF.getReportName()  + "Report"));
 			return nreport;
 			
 		}catch ( ParserConfigurationException | IOException e ) {				 
