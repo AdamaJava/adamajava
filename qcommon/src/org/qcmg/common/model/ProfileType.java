@@ -16,14 +16,12 @@ public enum ProfileType {
 	XML("XML"),
 	MA("MA"),
 	FA("FA"),	// genome files - hopefully...
-	FASTQ("fastq"),
+	FASTQ("FASTQ"),
 	VCF("vcf");
 	
 	 
 	private String reportName;	
-	private ProfileType(String name) { 
-		 
-		this.reportName = name; }	
+	private ProfileType(String name) { this.reportName = name; }	
 	public String getReportName() { return reportName; }
 	
 	 
