@@ -83,7 +83,7 @@ public abstract class SummaryReport {
 	}
 
 	protected Element init(Element parent, ProfileType reportType, Long noOfDuplicates,  Long maxRecords) {
-		Element element = parent.getOwnerDocument().createElement(reportType + "Report");
+		Element element = parent.getOwnerDocument().createElement(reportType.getReportName() + "Report");
 		parent.appendChild(element);
 				
 		element.setAttribute( "uuid", QExec.createUUid() ); //add uuid 
@@ -94,7 +94,7 @@ public abstract class SummaryReport {
 		element.setAttribute("finishTime", getFinishTime());
 				
 		//don't list records_parsed on xml for BAM type
-		if(!reportType.equals(ProfileType.bam))
+		if(!reportType.equals(ProfileType.BAM))
 			element.setAttribute("records_parsed", String.format("%,d", getRecordsParsed()) );	
 		if(reportType.equals(ProfileType.VCF  ))
 			element.setAttribute("file_checksum", FileUtils.getFileCheckSum(getFileName()));

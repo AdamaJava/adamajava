@@ -49,7 +49,7 @@ public class CycleSummaryTest {
 	
 	@Test
 	public void getLengthsFromSummaryByCycleTest() throws Exception{  
-  		Element root = QprofilerXmlUtils.getChildElement(getSummarizedRoot(),  ProfileType.bam +"Report", 0);
+  		Element root = QprofilerXmlUtils.getChildElement(getSummarizedRoot(),  ProfileType.BAM.getReportName() +"Report", 0);
   		for(String parent : new String[]{"SEQ", "QUAL"}){
  			
  			List<Element> elements = QprofilerXmlUtils.getChildElementByTagName( 
