@@ -235,7 +235,7 @@ public class QProfiler2 {
 					summarizer = new FastqSummarizer();					
 				}
 				break;
-			case bam:
+			case BAM:
 				if (noOfConsumerThreads > 0) {
 					summarizer = new BamSummarizerMT2(noOfProducerThreads, noOfConsumerThreads, cmdLineInclude, maxRecords, cmdLineTags, cmdLineTagsInt, cmdLineTagsChar, validation);
 				} else {

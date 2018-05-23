@@ -52,7 +52,7 @@ public class ReadGroupSummaryTest {
 		BamSummaryReport2 sr = (BamSummaryReport2) new BamSummarizer2().summarize( INPUT_FILE ); 
 		sr.toXml(root);
 		
-		root = QprofilerXmlUtils.getChildElement( root, ProfileType.bam +"Report", 0 );				
+		root = QprofilerXmlUtils.getChildElement( root, ProfileType.BAM.getReportName() +"Report", 0 );				
 		//from summary node
 		Element  pairHead =  QprofilerXmlUtils.getChildElement( QprofilerXmlUtils.getChildElement(root, QprofilerXmlUtils.summary, 0), QprofilerXmlUtils.readPairs,0);
 		List<Element> eleList =  QprofilerXmlUtils.getChildElementByTagName(pairHead, QprofilerXmlUtils.readGroup   );	

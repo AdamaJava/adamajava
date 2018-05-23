@@ -148,7 +148,7 @@ public class BamSummaryReport2 extends SummaryReport {
 	@Override
 	public void toXml( Element parent ) {	
 		
-		Element bamReportElement = init(parent, ProfileType.bam, null,  maxRecords);		
+		Element bamReportElement = init(parent, ProfileType.BAM, null,  maxRecords);		
 		createBamHeader( bamReportElement);
 		summaryToXml(bamReportElement ); //Summary for all read group
 		createSeq(bamReportElement );
