@@ -56,7 +56,7 @@ public class ReportBuilderTest {
 		
 		
 //		element.appendChild(doc.createElement("SEQ"));
-		Report r = new Report(ProfileType.bam, null, null, null);
+		Report r = new Report(ProfileType.BAM, null, null, null);
 		ReportBuilder.createSEQ(e, r);
 		assertEquals(1, r.getTabs().size());
 		
@@ -78,7 +78,7 @@ public class ReportBuilderTest {
 	    is.setCharacterStream(new StringReader(xml));
 	    Document doc = db.parse(is);
 	    Element e = doc.getDocumentElement();
-	    Report r = new Report(ProfileType.bam, null, null, null);
+	    Report r = new Report(ProfileType.BAM, null, null, null);
 		ReportBuilder.createSEQ(e, r);
 		assertEquals(1, r.getTabs().size());
 		assertEquals(3, r.getTabs().get(0).getChildren().size());
@@ -108,7 +108,7 @@ public class ReportBuilderTest {
 	    is.setCharacterStream(new StringReader(xml));
 	    Document doc = db.parse(is);
 	    Element e = doc.getDocumentElement();
-	    Report r = new Report(ProfileType.bam, null, null, null);
+	    Report r = new Report(ProfileType.BAM, null, null, null);
 		ReportBuilder.createSEQ(e, r);
 		assertEquals(1, r.getTabs().size());
 		assertEquals(4, r.getTabs().get(0).getChildren().size());
@@ -144,7 +144,7 @@ public class ReportBuilderTest {
 	    is.setCharacterStream(new StringReader(xml));
 	    Document doc = db.parse(is);
 	    Element e = doc.getDocumentElement();
-	    Report r = new Report(ProfileType.bam, null, null, null);
+	    Report r = new Report(ProfileType.BAM, null, null, null);
 		ReportBuilder.createSEQ(e, r);
 		assertEquals(1, r.getTabs().size());
 		assertEquals(5, r.getTabs().get(0).getChildren().size());
@@ -186,7 +186,7 @@ public class ReportBuilderTest {
 	    is.setCharacterStream(new StringReader(xml));
 	    Document doc = db.parse(is);
 	    Element e = doc.getDocumentElement();
-	    Report r = new Report(ProfileType.bam, null, null, null);
+	    Report r = new Report(ProfileType.BAM, null, null, null);
 		ReportBuilder.createSEQ(e, r);
 		assertEquals(1, r.getTabs().size());
 		assertEquals(5, r.getTabs().get(0).getChildren().size());
@@ -228,7 +228,7 @@ public class ReportBuilderTest {
 	    is.setCharacterStream(new StringReader(xml));
 	    Document doc = db.parse(is);
 	    Element e = doc.getDocumentElement();
-	    Report r = new Report(ProfileType.bam, null, null, null);
+	    Report r = new Report(ProfileType.BAM, null, null, null);
 		ReportBuilder.createSEQ(e, r);
 		assertEquals(1, r.getTabs().size());
 		assertEquals(6, r.getTabs().get(0).getChildren().size());

@@ -79,7 +79,7 @@ public class ReportBuilder {
 		reportID = reportNumberId;
 		
 		switch (type) {
-		case bam:
+		case BAM:
  			createBamHeader(reportElement, report);
 			createSEQ(reportElement, report);
 			createQUALS(reportElement, report);
