@@ -49,7 +49,7 @@ public class ProfileTypeUtils {
 	    }
 	    	    
 	    if (BAM_EXTENSION.equals(ext) || SAM_EXTENSION.equals(ext))
-	    	return ProfileType.bam;
+	    	return ProfileType.BAM;
 	    if (FASTA_EXTENSION.equals(ext))
 	    	return ProfileType.FASTA;
 	    if (QUAL_EXTENSION.equals(ext))
@@ -57,12 +57,10 @@ public class ProfileTypeUtils {
 	    if (XML_EXTENSION.equals(ext))
 	    	return ProfileType.XML;
 	    if (GFF_EXTENSION.equals(ext) || GFF_EXTENSION_3.equals(ext))
-	    	return ProfileType.gff;
+	    	return ProfileType.GFF;
 	    if (MA_EXTENSION.equals(ext))
 	    	return ProfileType.MA;
-	    if (FASTQ_EXTENSION.equals(ext) || FQ_EXTENSION.equals(ext))
-	    	return ProfileType.FASTQ;
-	    if (FASTQ_GZ_EXTENSION.equals(ext) || FQ_GZ_EXTENSION.equals(ext))
+	    if (FASTQ_EXTENSION.equals(ext) || FQ_EXTENSION.equals(ext) || FASTQ_GZ_EXTENSION.equals(ext) || FQ_GZ_EXTENSION.equals(ext))
 	    	return ProfileType.FASTQ;
 	    if (FA_EXTENSION.equals(ext))
 	    	return ProfileType.FA;	    

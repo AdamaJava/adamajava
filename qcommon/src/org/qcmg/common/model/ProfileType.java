@@ -9,21 +9,20 @@ package org.qcmg.common.model;
 
 //? need further test whether upcase or lowcase
 public enum ProfileType {
-	gff("gff"), 
-	FASTA("fasta"), 
-	QUAL("qual"), 
-	bam("bam"),
-	XML("XML"),
-	MA("MA"),
-	FA("FA"),	// genome files - hopefully...
-	FASTQ("FASTQ"),
-	VCF("vcf");
 	
-	 
+	BAM("bam"),
+	XML("xml"),
+	FASTQ("fastq"),
+	FASTA("fasta"), 	
+	VCF("vcf"),
+
+	//below only used on qprofiler1.0
+	GFF("gff"), 
+	MA("ma"),
+	QUAL("qual"), 
+	FA("fa");	// genome files - hopefully...	
+
 	private String reportName;	
 	private ProfileType(String name) { this.reportName = name; }	
-	public String getReportName() { return reportName; }
-	
-	 
-	
+	public String getReportName() { return reportName; }	 	
 }
