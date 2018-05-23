@@ -267,7 +267,7 @@ public class BamSummaryReport extends SummaryReport {
 	@Override
 	public void toXml(Element parent) {
 		
-		Element bamReportElement = init(parent, ProfileType.bam, null, includes, maxRecords);
+		Element bamReportElement = init(parent, ProfileType.BAM, null, includes, maxRecords);
 		
 		// bam file HEADER
 		// xml transformer can't handle large entries in the CDATA section so leave out bam header if its large (I'm looking at you here Platypus)

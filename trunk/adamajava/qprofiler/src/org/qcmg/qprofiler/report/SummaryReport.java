@@ -80,7 +80,7 @@ public abstract class SummaryReport {
 	}
 	
 	protected Element init(Element parent, ProfileType reportType, Long noOfDuplicates, String [] excludes, Long maxRecords) {
-		Element element = parent.getOwnerDocument().createElement(reportType + "Report");
+		Element element = parent.getOwnerDocument().createElement(reportType.getReportName() + "Report");
 		parent.appendChild(element);
 		
 		element.setAttribute("file", getFileName());
@@ -88,7 +88,7 @@ public abstract class SummaryReport {
 		element.setAttribute("execution_finished", getFinishTime());
 		
 		//don't list records_parsed on xml for BAM type
-		if(!reportType.equals(ProfileType.bam))
+		if(!reportType.equals(ProfileType.BAM))
 			element.setAttribute("records_parsed", String.format("%,d", getRecordsParsed()) );				 
 		if (null != maxRecords)
 			element.setAttribute("max_no_of_records", String.format("%,d",maxRecords) );
