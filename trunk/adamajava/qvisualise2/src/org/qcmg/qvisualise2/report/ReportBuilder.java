@@ -69,7 +69,7 @@ public class ReportBuilder {
 		reportID = reportNumberId;
 		
 		switch (type) { 
-			case bam:		
+			case BAM:		
 				createBamHeader( reportElement, report );
 				createSummary( reportElement, report );
 				createRNEXT( reportElement, report );
