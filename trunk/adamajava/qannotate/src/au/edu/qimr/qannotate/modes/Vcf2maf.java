@@ -54,8 +54,7 @@ public class Vcf2maf extends AbstractMode{
 	private String testBamId;
 	private String controlBamId;
 	private final int test_column;
-	private final int control_column;
-	
+	private final int control_column;	
 	private boolean hasACSNP = false; 
 	
 	//for unit test
