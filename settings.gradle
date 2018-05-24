@@ -1,6 +1,5 @@
 include "qcommon"
 include "qmotif"
-include "qmaths"
 include "qio"
 include "qpicard"
 include "qsignature"
