@@ -24,5 +24,6 @@ public enum ProfileType {
 
 	private String reportName;	
 	private ProfileType(String name) { this.reportName = name; }	
-	public String getReportName() { return reportName; }	 	
+	public String getReportName() { return reportName; }
+	
 }
