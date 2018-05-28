@@ -1,7 +1,6 @@
 package org.qcmg.snp;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -67,7 +66,6 @@ public class PileupPipelineTest {
 		final String command = "-log " + logFile.getAbsolutePath() + " -i " + iniFile.getAbsolutePath();
 		final Executor exec = new Executor(command, "org.qcmg.snp.Main");
  		assertEquals(0, exec.getErrCode());		
-		assertTrue(0 == exec.getOutputStreamConsumer().getLines().length);
 		// check the vcf output file
 		assertEquals(1, noOfLinesInVCFOutputFile(vcfOutput));
 	}
@@ -95,7 +93,6 @@ public class PileupPipelineTest {
 		final String command = "-log " + logFile.getAbsolutePath() + " -i " + iniFile.getAbsolutePath();
 		final Executor exec = new Executor(command, "org.qcmg.snp.Main");
 		assertEquals(0, exec.getErrCode());		
-		assertTrue(0 == exec.getOutputStreamConsumer().getLines().length);
 		
 		// check the vcf output file
 		assertEquals(2, noOfLinesInVCFOutputFile(vcfOutput));

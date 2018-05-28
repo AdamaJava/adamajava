@@ -189,6 +189,8 @@ public class PileupElementLiteUtilTest {
 		Accumulator accum = new Accumulator(1);
 		accum.addBase((byte)'A', (byte) 1, true, 1, 1, 2, 1);
 		assertEquals("A1[1],0[0]", PileupElementLiteUtil.toSummaryString(accum.getLargestVariant('\u0000'), "A"));
+		accum.addBase((byte)'T', (byte) 1, true, 1, 1, 2, 1);
+		assertEquals("T1[1],0[0]", PileupElementLiteUtil.toSummaryString(accum.getLargestVariant('\u0000'), "T"));
 	}
 	@Test
 	public void toOABS() {

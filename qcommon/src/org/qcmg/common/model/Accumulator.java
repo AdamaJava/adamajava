@@ -6,11 +6,10 @@
  */
 package org.qcmg.common.model;
 
+import gnu.trove.list.TIntList;
 import gnu.trove.iterator.TIntIterator;
-import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.map.TIntCharMap;
 import gnu.trove.map.hash.TIntCharHashMap;
-import gnu.trove.procedure.TIntProcedure;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -18,6 +17,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.PileupElementLiteUtil;
 
@@ -37,6 +37,7 @@ public class Accumulator {
 	
 	private static final char DOT = '.';
 	public static final int END_OF_READ_DISTANCE = 5;
+	public static final float UNFILTERED_PERCENTAGE = 3f;
 	
 	private PileupElementLite A;
 	private PileupElementLite C;
@@ -67,15 +68,10 @@ public class Accumulator {
 	private int nCount;
 	private final int position;
 	
-	private boolean unfilteredA;
-	private boolean unfilteredC;
-	private boolean unfilteredG;
-	private boolean unfilteredT;
-	// now need 2 unfiltered to trigger the MIUN flag - any more and move to int...
-	private boolean unfilteredA2;
-	private boolean unfilteredC2;
-	private boolean unfilteredG2;
-	private boolean unfilteredT2;
+	private short unfilteredACount = 0;
+	private short unfilteredCCount = 0;
+	private short unfilteredGCount = 0;
+	private short unfilteredTCount = 0;
 	
 	public Accumulator(int position) {
 		this.position = position;
@@ -87,29 +83,13 @@ public class Accumulator {
 
 	public void addUnfilteredBase(final byte base) {
 		switch (base) {
-		case A_BYTE: if (unfilteredA) {
-			unfilteredA2 = true;
-		} else {
-			unfilteredA = true;
-		}
+		case A_BYTE: unfilteredACount++;
 		break;
-		case C_BYTE:  if (unfilteredC) {
-			unfilteredC2 = true;
-		} else {
-			unfilteredC = true;
-		}
+		case C_BYTE: unfilteredCCount++;
 		break;
-		case G_BYTE: if (unfilteredG) {
-			unfilteredG2 = true;
-		} else {
-			unfilteredG = true;
-		}
+		case G_BYTE:  unfilteredGCount++;
 		break;
-		case T_BYTE: if (unfilteredT) {
-			unfilteredT2 = true;
-		} else {
-			unfilteredT = true;
-		}
+		case T_BYTE: unfilteredTCount++;
 		break;
 		}
 	}
@@ -179,33 +159,33 @@ public class Accumulator {
 			for (int i = 0 , count = T.getForwardCount() ; i < count ; i++)
 				pileup.append(T_CHAR);
 			for (int i = 0 , count = T.getReverseCount() ; i < count ; i++)
-				pileup.append(T_CHAR);
+				pileup.append(T_CHAR_LC);
 		}
 		
 		return pileup.toString();
 	}
 	
-	public String getPileupQualities() {
-		StringBuilder qualities = new StringBuilder();
-		if (null != A) {
-			qualities.append(A.getForwardQualitiesAsString());
-			qualities.append(A.getReverseQualitiesAsString());
-		}
-		if (null != C) {
-			qualities.append(C.getForwardQualitiesAsString());
-			qualities.append(C.getReverseQualitiesAsString());
-		}
-		if (null != G) {
-			qualities.append(G.getForwardQualitiesAsString());
-			qualities.append(G.getReverseQualitiesAsString());
-		}
-		if (null != T) {
-			qualities.append(T.getForwardQualitiesAsString());
-			qualities.append(T.getReverseQualitiesAsString());
-		}
-		
-		return qualities.toString();
-	}
+//	public String getPileupQualities() {
+//		StringBuilder qualities = new StringBuilder();
+//		if (null != A) {
+//			qualities.append(A.getForwardQualitiesAsString());
+//			qualities.append(A.getReverseQualitiesAsString());
+//		}
+//		if (null != C) {
+//			qualities.append(C.getForwardQualitiesAsString());
+//			qualities.append(C.getReverseQualitiesAsString());
+//		}
+//		if (null != G) {
+//			qualities.append(G.getForwardQualitiesAsString());
+//			qualities.append(G.getReverseQualitiesAsString());
+//		}
+//		if (null != T) {
+//			qualities.append(T.getForwardQualitiesAsString());
+//			qualities.append(T.getReverseQualitiesAsString());
+//		}
+//		
+//		return qualities.toString();
+//	}
 	
 	private int getNS(PileupElementLite peLite) {
 		if (null != peLite) return peLite.getNovelStartCount();
@@ -230,12 +210,12 @@ public class Accumulator {
 	public String toString() {
 		return position + ":" + getPileup();
 	}
-	
-	public String toPileupString(String pileup) {
-		if (null == pileup)
-			pileup = getPileup();
-		return pileup.length() + Constants.TAB + pileup + Constants.TAB + getPileupQualities();
-	}
+//	
+//	public String toPileupString(String pileup) {
+//		if (null == pileup)
+//			pileup = getPileup();
+//		return pileup.length() + Constants.TAB + pileup + Constants.TAB + getPileupQualities();
+//	}
 	
 	/**
 	 * Use '.' and ',' rather than the reference in the pileup string
@@ -279,8 +259,7 @@ public class Accumulator {
 	}
 	
 	public boolean containsMultipleAlleles() {
-		int differentBases = 0;
-//		if (null != DOT) differentBases++;
+		byte differentBases = 0;
 		if (null != A) differentBases++;
 		if (null != C) differentBases++;
 		if (null != G) differentBases++;
@@ -305,13 +284,48 @@ public class Accumulator {
 		return '\u0000';
 	}
 	
+	
 	public String getUnfilteredPileup() {
-		StringBuilder pileup = new StringBuilder();
-		if (unfilteredA2) pileup.append(A_CHAR);
-		if (unfilteredC2) pileup.append(C_CHAR);
-		if (unfilteredG2) pileup.append(G_CHAR);
-		if (unfilteredT2) pileup.append(T_CHAR);
-		return pileup.toString();
+		StringBuilder sb = new StringBuilder();
+		if (unfilteredACount > 0) {
+			StringUtils.updateStringBuilder(sb, A_STRING + unfilteredACount, Constants.SEMI_COLON);
+		}
+		if (unfilteredCCount > 0) {
+			StringUtils.updateStringBuilder(sb, C_STRING + unfilteredCCount, Constants.SEMI_COLON);
+		}
+		if (unfilteredGCount > 0) {
+			StringUtils.updateStringBuilder(sb, G_STRING + unfilteredGCount, Constants.SEMI_COLON);
+		}
+		if (unfilteredTCount > 0) {
+			StringUtils.updateStringBuilder(sb, T_STRING + unfilteredTCount, Constants.SEMI_COLON);
+		}
+		return sb.length() > 0 ? sb.toString() : Constants.MISSING_DATA_STRING;
+	}
+	
+	public String getEndOfReadsPileup() {
+		StringBuilder sb = new StringBuilder();
+		if (null != A && A.getEndOfReadCount() > 0) {
+			StringUtils.updateStringBuilder(sb, A_STRING + A.getEndOfReadString(), Constants.SEMI_COLON);
+		}
+		if (null != C && C.getEndOfReadCount() > 0) {
+			StringUtils.updateStringBuilder(sb, C_STRING + C.getEndOfReadString(), Constants.SEMI_COLON);
+		}
+		if (null != G && G.getEndOfReadCount() > 0) {
+			StringUtils.updateStringBuilder(sb, G_STRING + G.getEndOfReadString(), Constants.SEMI_COLON);
+		}
+		if (null != T && T.getEndOfReadCount() > 0) {
+			StringUtils.updateStringBuilder(sb, T_STRING + T.getEndOfReadString(), Constants.SEMI_COLON);
+		}
+		return sb.length() > 0 ? sb.toString() : Constants.MISSING_DATA_STRING;
+	}
+	
+	public List<PileupElementLite> getPELs() {
+		List<PileupElementLite> pels = new ArrayList<PileupElementLite>(5);
+		if (null != A) pels.add(A);
+		if (null != C) pels.add(C);
+		if (null != G) pels.add(G);
+		if (null != T) pels.add(T);
+		return pels;
 	}
 
 	public int getCoverage() {
@@ -336,6 +350,14 @@ public class Accumulator {
 		else if (pel.isEmpty()) return null;
 		
 		return pel.get(0);
+	}
+	
+	public PileupElementLite getPelForBase(char base) {
+		if (null != A && base == A_CHAR) return A;
+		if (null != C && base == C_CHAR) return C;
+		if (null != G && base == G_CHAR) return G;
+		if (null != T && base == T_CHAR) return T;
+		return null;
 	}
 	
 	public int getBaseCountForBase(char base) {
@@ -492,19 +514,16 @@ public class Accumulator {
 			pileup.append(PileupElementLiteUtil.toObservedAlleleByStrand(A, A_STRING));
 		}
 		if (null != C) {
-			if (pileup.length() > 0) pileup.append(Constants.SEMI_COLON);
-			pileup.append(PileupElementLiteUtil.toObservedAlleleByStrand(C, C_STRING));
+			StringUtils.updateStringBuilder(pileup, PileupElementLiteUtil.toObservedAlleleByStrand(C, C_STRING), Constants.SEMI_COLON);
 		}
 		if (null != G) {
-			if (pileup.length() > 0) pileup.append(Constants.SEMI_COLON);
-			pileup.append(PileupElementLiteUtil.toObservedAlleleByStrand(G, G_STRING));
+			StringUtils.updateStringBuilder(pileup, PileupElementLiteUtil.toObservedAlleleByStrand(G, G_STRING), Constants.SEMI_COLON);
 		}
 		if (null != T) {
-			if (pileup.length() > 0) pileup.append(Constants.SEMI_COLON);
-			pileup.append(PileupElementLiteUtil.toObservedAlleleByStrand(T, T_STRING));
+			StringUtils.updateStringBuilder(pileup, PileupElementLiteUtil.toObservedAlleleByStrand(T, T_STRING), Constants.SEMI_COLON);
 		}
 		
-		return pileup.toString();
+		return pileup.length() == 0 ? Constants.MISSING_DATA_STRING : pileup.toString();
 	}
 	
 	public String getReadIdsPerAllele() {
@@ -513,16 +532,13 @@ public class Accumulator {
 			sb.append(PileupElementLiteUtil.getBaseAndReadIds(A, A_STRING));
 		}
 		if (null != C) {
-			if (sb.length() > 0) sb.append(COMMA);
-			sb.append(PileupElementLiteUtil.getBaseAndReadIds(C, C_STRING));
+			StringUtils.updateStringBuilder(sb, PileupElementLiteUtil.getBaseAndReadIds(C, C_STRING), COMMA);
 		}
 		if (null != G) {
-			if (sb.length() > 0) sb.append(COMMA);
-			sb.append(PileupElementLiteUtil.getBaseAndReadIds(G, G_STRING));
+			StringUtils.updateStringBuilder(sb, PileupElementLiteUtil.getBaseAndReadIds(G, G_STRING), COMMA);
 		}
 		if (null != T) {
-			if (sb.length() > 0) sb.append(COMMA);
-			sb.append(PileupElementLiteUtil.getBaseAndReadIds(T, T_STRING));
+			StringUtils.updateStringBuilder(sb, PileupElementLiteUtil.getBaseAndReadIds(T, T_STRING), COMMA);
 		}
 		
 		return sb.toString();
@@ -539,21 +555,21 @@ public class Accumulator {
 		final TIntCharMap map = new TIntCharHashMap();
 		
 		if (null != A) {
-			TIntArrayList ids = A.getForwardReadIds();
-			if (ids != null) {
+			TIntList ids = A.getForwardReadIds();
+			if ( ! ids.isEmpty()) {
 				updateMap(map, ids.iterator(), A_CHAR);
 			}
 			
 			ids = A.getReverseReadIds();
 			
-			if (ids != null) {
+			if ( ! ids.isEmpty()) {
 				updateMap(map, ids.iterator(), A_CHAR_LC);
 			}
 		}
 		
 		if (null != C) {
-			TIntArrayList ids = C.getForwardReadIds();
-			if (ids != null) {
+			TIntList ids = C.getForwardReadIds();
+			if ( ! ids.isEmpty()) {
 				updateMap(map, ids.iterator(), C_CHAR);
 			}
 			
@@ -565,20 +581,20 @@ public class Accumulator {
 		}
 		
 		if (null != G) {
-			TIntArrayList ids = G.getForwardReadIds();
-			if (ids != null) {
+			TIntList ids = G.getForwardReadIds();
+			if ( ! ids.isEmpty()) {
 				updateMap(map, ids.iterator(), G_CHAR);
 			}
 			 ids = G.getReverseReadIds();
 			 
-			if (ids != null) {
+			if ( ! ids.isEmpty()) {
 				updateMap(map, ids.iterator(), G_CHAR_LC);
 			}
 		}
 		
 		if (null != T) {
-			TIntArrayList ids = T.getForwardReadIds();
-			if (ids != null) {
+			TIntList ids = T.getForwardReadIds();
+			if ( ! ids.isEmpty()) {
 				updateMap(map, ids.iterator(), T_CHAR);
 			}
 			 ids = T.getReverseReadIds();

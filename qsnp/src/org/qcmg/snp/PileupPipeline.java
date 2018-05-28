@@ -31,6 +31,7 @@ import org.qcmg.snp.util.QJumperWorker.Mode;
 
 /**
  */
+@Deprecated
 public final class PileupPipeline extends Pipeline {
 
 	//input Files
@@ -40,6 +41,7 @@ public final class PileupPipeline extends Pipeline {
 
 	/**
 	 */
+	@Deprecated
 	public PileupPipeline(final Ini iniFile, QExec qexec, boolean singleSample) throws SnpException, IOException, Exception {
 		super(qexec, singleSample);
 

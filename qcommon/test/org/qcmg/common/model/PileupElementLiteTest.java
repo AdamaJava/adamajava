@@ -152,8 +152,9 @@ public class PileupElementLiteTest {
 		assertEquals(5, pel.getNovelStartCount());
 		
 		// doesn't increment count as we are adding a value less than current forward start position of 100
+		//NOTE that this is no longer true, we no longer keep track of the current forward start position, instead electing to keep all start positions
 		pel.addForwardQuality((byte) 0, 99,1, false);
-		assertEquals(5, pel.getNovelStartCount());
+		assertEquals(6, pel.getNovelStartCount());
 	}
 	
 	@Ignore
@@ -162,7 +163,7 @@ public class PileupElementLiteTest {
 		
 		int no = 10000000;
 		
-		Queue<Integer> queue = new ArrayDeque<Integer>();
+		Queue<Integer> queue = new ArrayDeque<>();
 		long start = System.currentTimeMillis();
 		for (int i = 0 ; i < no ; i++) {
 			queue.add(Integer.valueOf(i));
@@ -177,7 +178,7 @@ public class PileupElementLiteTest {
 		}
 		System.out.println("time taken trove: " + (System.currentTimeMillis() - start));
 		
-		queue = new ArrayDeque<Integer>();
+		queue = new ArrayDeque<>();
 		
 		start = System.currentTimeMillis();
 		for (int i = 0 ; i < no ; i++) {

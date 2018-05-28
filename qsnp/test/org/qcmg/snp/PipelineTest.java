@@ -56,6 +56,16 @@ public class PipelineTest {
 	}
 	
 	@Test
+	public void getCountFromString() {
+		assertEquals(1, Pipeline.getCountFromString("A1", 'A'));
+		assertEquals(1, Pipeline.getCountFromString("A1;B2", 'A'));
+		assertEquals(2, Pipeline.getCountFromString("A1;B2", 'B'));
+		assertEquals(-1, Pipeline.getCountFromString("A1;B2", 'C'));
+		assertEquals(10, Pipeline.getCountFromString("C10;A1;B2", 'C'));
+		assertEquals(-1, Pipeline.getCountFromString("C10;A1;B2", 'X'));
+	}
+	
+	@Test
 	public void accumulateReadBases() {
 		final Pipeline pipeline = new TestPipeline();
 		
