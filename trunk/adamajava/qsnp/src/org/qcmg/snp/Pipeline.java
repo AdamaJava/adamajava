@@ -73,7 +73,7 @@ import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-import org.qcmg.common.math.*;
+import org.qcmg.maths.FisherExact;
 import org.qcmg.picard.MultiSAMFileIterator;
 import org.qcmg.picard.MultiSAMFileReader;
 import org.qcmg.picard.SAMFileReaderFactory;
@@ -659,19 +659,41 @@ public abstract class Pipeline {
 			final QSnpRecord record = entry.getValue();
 			if (Classification.SOMATIC == record.getClassification()
 					&& (null == record.getAnnotation() 
-					|| ! record.getAnnotation().contains(SnpUtils.MUTATION_IN_NORMAL))	// PASS will pass this test :)
-					&& ! StringUtils.isNullOrEmpty(record.getUnfilteredNormalPileup())) {
+					|| ! record.getAnnotation().contains(SnpUtils.MUTATION_IN_NORMAL))) { // PASS will pass this test :)
 				
-				final char alt = record.getMutation().charAt(record.getMutation().length()-1);
+				String unfilteredPileup = record.getUnfilteredNormalPileup();
 				
-				if (record.getUnfilteredNormalPileup().indexOf(Character.toUpperCase(alt)) > -1) {
-					VcfUtils.updateFilter(record.getVcfRecord(), SnpUtils.MUTATION_IN_UNFILTERED_NORMAL);
-					noOfAffectedRecords++;
+				if ( ! StringUtils.isNullOrEmpty(unfilteredPileup)) {
+				
+					final char alt = record.getMutation().charAt(record.getMutation().length()-1);
+					
+					int count = getCountFromString(unfilteredPileup, alt);
+					if (count >= 2) {
+						VcfUtils.updateFilter(record.getVcfRecord(), SnpUtils.MUTATION_IN_UNFILTERED_NORMAL);
+						noOfAffectedRecords++;
+					}
 				}
 			}
 		}
 		
 		logger.info("number of somatic snps that have evidence of mutation in unfiltered normal: " + noOfAffectedRecords);
+	}
+	
+	/**
+	 * 
+	 * @param s
+	 * @param base
+	 * @return
+	 */
+	public static int getCountFromString(String s, char base) {
+		if ( ! StringUtils.isNullOrEmpty(s)) {
+			int basePos = s.indexOf(base);
+			if (basePos > -1) {
+				int colonIndex = s.indexOf(Constants.SEMI_COLON, basePos);
+				return colonIndex > -1 ? Integer.parseInt(s.substring(basePos+1, colonIndex)) : Integer.parseInt(s.substring(basePos+1));
+			}
+		}
+		return -1;
 	}
 	
 	public  VcfRecord convertQSnpToVCF(QSnpRecord rec) {
@@ -790,6 +812,7 @@ public abstract class Pipeline {
 		logger.info("number of snps that have evidence of mutation in unfiltered normal: " + noOfAffectedRecords);
 	}
 	
+	@Deprecated
 	void parsePileup(String record) throws IOException {
 		final String[] params = TabTokenizer.tokenize(record);
 
@@ -859,7 +882,7 @@ public abstract class Pipeline {
 
 			//TODO check that this is right (param[3] == alt)
 			final QSnpRecord qRecord = new QSnpRecord(params[0], Integer.parseInt(params[1]), params[2], params[3]);
-			qRecord.setPileup(record);
+//			qRecord.setPileup(record);
 			// setup some values on the record
 //			qRecord.setRef(params[2].charAt(0));
 			qRecord.setNormalCount(normalCoverage);
@@ -969,52 +992,52 @@ public abstract class Pipeline {
 	/**
 	 * use the available threads to get the fisher exact test two tailed pvalues into the probability field of the qsnp records
 	 */
-	void populateProbabilities() {
-		logger.info("about to hit Fisher Exact Test two tailed pvalue");
-		final Queue<QSnpRecord> queue = new ConcurrentLinkedQueue<QSnpRecord>();
-		for (final QSnpRecord rec : positionRecordMap.values()) {
-			queue.add(rec);
-		}
-		
-		final int noOfThreadsToUse = 5;
-		final ExecutorService service = Executors.newFixedThreadPool(noOfThreadsToUse);
-		for (int i = 0 ; i < noOfThreadsToUse ; i++) {
-			service.execute(new Runnable() {
-
-				@Override
-				public void run() {
-					// take a QSnpRecord, if none left we are done
-					while (true) {
-						final QSnpRecord record = queue.poll();
-						if (null == record) break;
-						
-						final String mutation = record.getMutation();
-						if (StringUtils.isNullOrEmpty(mutation)) continue;
-						
-						final String ref = record.getRef();
-						final String alt = SnpUtils.getAltFromMutationString(mutation);
-						
-						final int aNormalAlt = SnpUtils.getCountFromNucleotideString(record.getNormalNucleotides(), alt);
-						final int bTumourAlt = SnpUtils.getCountFromNucleotideString(record.getTumourNucleotides(), alt);
-						final int cNormalRef = SnpUtils.getCountFromNucleotideString(record.getNormalNucleotides(), ref);
-						final int dTumourRef = SnpUtils.getCountFromNucleotideString(record.getTumourNucleotides(), ref);
-						
-						final double pValue = FisherExact.getTwoTailedFET(aNormalAlt, bTumourAlt, cNormalRef, dTumourRef);
-	//					logger.info("pvalue for following values (a,b,c,d:pvalue): " + normalAlt + "," + tumourAlt + "," + normalRef + "," + tumourRef + ": " + pValue);
-						record.setProbability(pValue);
-					}
-				}});
-		}
-		service.shutdown();
-		
-		try {
-			service.awaitTermination(10, TimeUnit.HOURS);
-		} catch (final InterruptedException e) {
-			e.printStackTrace();
-		}
-		
-		logger.info("about to hit Fisher Exact Test two tailed pvalue - DONE");
-	}
+//	void populateProbabilities() {
+//		logger.info("about to hit Fisher Exact Test two tailed pvalue");
+//		final Queue<QSnpRecord> queue = new ConcurrentLinkedQueue<QSnpRecord>();
+//		for (final QSnpRecord rec : positionRecordMap.values()) {
+//			queue.add(rec);
+//		}
+//		
+//		final int noOfThreadsToUse = 5;
+//		final ExecutorService service = Executors.newFixedThreadPool(noOfThreadsToUse);
+//		for (int i = 0 ; i < noOfThreadsToUse ; i++) {
+//			service.execute(new Runnable() {
+//
+//				@Override
+//				public void run() {
+//					// take a QSnpRecord, if none left we are done
+//					while (true) {
+//						final QSnpRecord record = queue.poll();
+//						if (null == record) break;
+//						
+//						final String mutation = record.getMutation();
+//						if (StringUtils.isNullOrEmpty(mutation)) continue;
+//						
+//						final String ref = record.getRef();
+//						final String alt = SnpUtils.getAltFromMutationString(mutation);
+//						
+//						final int aNormalAlt = SnpUtils.getCountFromNucleotideString(record.getNormalNucleotides(), alt);
+//						final int bTumourAlt = SnpUtils.getCountFromNucleotideString(record.getTumourNucleotides(), alt);
+//						final int cNormalRef = SnpUtils.getCountFromNucleotideString(record.getNormalNucleotides(), ref);
+//						final int dTumourRef = SnpUtils.getCountFromNucleotideString(record.getTumourNucleotides(), ref);
+//						
+//						final double pValue = FisherExact.getTwoTailedFET(aNormalAlt, bTumourAlt, cNormalRef, dTumourRef);
+//	//					logger.info("pvalue for following values (a,b,c,d:pvalue): " + normalAlt + "," + tumourAlt + "," + normalRef + "," + tumourRef + ": " + pValue);
+//						record.setProbability(pValue);
+//					}
+//				}});
+//		}
+//		service.shutdown();
+//		
+//		try {
+//			service.awaitTermination(10, TimeUnit.HOURS);
+//		} catch (final InterruptedException e) {
+//			e.printStackTrace();
+//		}
+//		
+//		logger.info("about to hit Fisher Exact Test two tailed pvalue - DONE");
+//	}
 	
 	void walkBams() throws Exception {
 		walkBams(includeDuplicates);
@@ -1702,11 +1725,11 @@ public abstract class Pipeline {
 		
 		if (normalPass[0] || normalPass[1] || tumourPass[0] || tumourPass[1]) {
 		
-			final String normalBases = null != normal ? normal.toSamtoolsPileupString(ref) : "";
-			final String tumourBases = null != tumour ? tumour.toSamtoolsPileupString(ref) : "";
+//			final String normalBases = null != normal ? normal.toSamtoolsPileupString(ref) : "";
+//			final String tumourBases = null != tumour ? tumour.toSamtoolsPileupString(ref) : "";
 			final QSnpRecord qRecord = new QSnpRecord(currentChr, position, ref+"");
-			qRecord.setPileup((null != normal ? normal.toPileupString(normalBases) : "") 
-					+ "\t" + (null != tumour ? tumour.toPileupString(tumourBases) : ""));
+//			qRecord.setPileup((null != normal ? normal.toPileupString(normalBases) : "") 
+//					+ "\t" + (null != tumour ? tumour.toPileupString(tumourBases) : ""));
 			// setup some values on the record
 			qRecord.setNormalCount(normalCoverage);
 			qRecord.setTumourCount(tumourCoverage);

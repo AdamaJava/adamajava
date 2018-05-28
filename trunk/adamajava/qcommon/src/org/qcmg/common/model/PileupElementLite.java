@@ -6,6 +6,9 @@
  */
 package org.qcmg.common.model;
 
+import org.qcmg.common.util.PileupElementLiteUtil;
+
+import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
@@ -20,74 +23,36 @@ import gnu.trove.set.hash.TIntHashSet;
  */
 public class PileupElementLite implements Comparable<PileupElementLite> {
 	
-	private TIntArrayList reverseStrandStartPositions;
-	private TIntArrayList reverseReadIds;
-	private TIntArrayList forwardReadIds;
+	private TIntList reverseReadIdStartPositionsQualityList;
+	private TIntList forwardReadIdStartPositionsQualityList;
 	
-	private volatile int forwardCount;
-	private volatile int reverseCount;
-	private QCMGIntArray forwardQualitiesArray;
-	private QCMGIntArray reverseQualitiesArray;
-	
-	private int lastForwardStartPosition;
-	private int forwardNovelStartCount;
-	
-	private int endOfReadCountFS;
-	private int endOfReadCountRS;
+	private short endOfReadCountFS;
+	private short endOfReadCountRS;
 
-	public TIntArrayList getForwardReadIds() {
-		return forwardReadIds;
-	}
-
-	public TIntArrayList getReverseReadIds() {
-		return reverseReadIds;
-	}
-	
-	/**
-	 * 
-	 * @param startPosition
-	 * @param forwardStrand
-	 */
-	private void updateNovelStarts(int startPosition, boolean forwardStrand) {
-		if (forwardStrand) {
-			if (startPosition > lastForwardStartPosition) {
-				forwardNovelStartCount++;
-				lastForwardStartPosition = startPosition;
-			}
-		} else {
-			if (null == reverseStrandStartPositions) {
-				reverseStrandStartPositions = new TIntArrayList();
-			}
-			reverseStrandStartPositions.add(startPosition);
+	public TIntList getForwardReadIds() {
+		if (null == forwardReadIdStartPositionsQualityList) {
+			return new TIntArrayList(0);
 		}
+		return PileupElementLiteUtil.getDetailsFromCombinedList(forwardReadIdStartPositionsQualityList, 3, 0);
+	}
+
+	public TIntList getReverseReadIds() {
+		if (null == reverseReadIdStartPositionsQualityList) {
+			return new TIntArrayList(0);
+		}
+		return PileupElementLiteUtil.getDetailsFromCombinedList(reverseReadIdStartPositionsQualityList, 3, 0);
 	}
 	
 	public int getForwardCount() {
-		// set volatile variable so that we don't have to recalculate each time this method is called
-		int total = forwardCount;
-		if (total == 0) {
-			if (null != forwardQualitiesArray) {
-				for (int i = 0, len = forwardQualitiesArray.length() ; i < len ; i++) {
-					total +=  forwardQualitiesArray.get(i);
-				}
-				forwardCount = total;
-			}
-		}
-		return total;
+		return forwardReadIdStartPositionsQualityList == null || forwardReadIdStartPositionsQualityList.isEmpty() ? 0 : forwardReadIdStartPositionsQualityList.size() / 3;
 	}
 	
 	public int getReverseCount() {
-		// set volatile variable so that we don't have to recalculate each time this method is called
-		int total = reverseCount;
-		if (total == 0) {
-			if (null != reverseQualitiesArray) {
-				for (int i = 0, len = reverseQualitiesArray.length() ; i < len ; i++) {
-					total +=  reverseQualitiesArray.get(i);
-				}
-				reverseCount = total;
-			}
-		}
-		return total;
+		return reverseReadIdStartPositionsQualityList == null || reverseReadIdStartPositionsQualityList.isEmpty() ? 0 : reverseReadIdStartPositionsQualityList.size() / 3;
+	}
+	
+	public TIntList getReadIdStartPositionsQualityList(boolean fs) {
+		return fs ? forwardReadIdStartPositionsQualityList : reverseReadIdStartPositionsQualityList;
 	}
 	
 	public int getTotalCount() {
@@ -110,26 +75,24 @@ public class PileupElementLite implements Comparable<PileupElementLite> {
 	}
 	
 	public void addForwardQuality(byte b, int startPosition, int readId, boolean endOfRead) {
-		if (null == forwardQualitiesArray) {
-			forwardQualitiesArray = new QCMGIntArray(100);
-			forwardReadIds =new TIntArrayList();
+		if (null == forwardReadIdStartPositionsQualityList) {
+			forwardReadIdStartPositionsQualityList = new TIntArrayList();
 		}
 		
-		forwardReadIds.add(readId);
-		forwardQualitiesArray.increment(b);
-		updateNovelStarts(startPosition, true);
+		forwardReadIdStartPositionsQualityList.add(readId);
+		forwardReadIdStartPositionsQualityList.add(startPosition);
+		forwardReadIdStartPositionsQualityList.add(b);
 		if (endOfRead) endOfReadCountFS++;
 	}
 
 	public void addReverseQuality(byte b, int startPosition, int readId, boolean endOfRead) {
-		if (null == reverseQualitiesArray) {
-			reverseQualitiesArray = new QCMGIntArray(100);
-			reverseReadIds = new TIntArrayList();
+		if (null == reverseReadIdStartPositionsQualityList) {
+			reverseReadIdStartPositionsQualityList = new TIntArrayList();
 		}
 		
-		reverseReadIds.add(readId);
-		reverseQualitiesArray.increment(b);
-		updateNovelStarts(startPosition, false);
+		reverseReadIdStartPositionsQualityList.add(readId);
+		reverseReadIdStartPositionsQualityList.add(startPosition);
+		reverseReadIdStartPositionsQualityList.add(b);
 		if (endOfRead) endOfReadCountRS++;
 	}
 	
@@ -137,41 +100,32 @@ public class PileupElementLite implements Comparable<PileupElementLite> {
 		return endOfReadCountFS + endOfReadCountRS;
 	}
 	
+	public String getEndOfReadString() {
+		return endOfReadCountFS + "[]" + endOfReadCountRS + "[]";
+	}
+	
 	public int getMiddleOfReadCount() {
 		return getTotalCount() - getEndOfReadCount();
 	}
 	
 	public int getNovelStartCount() {
-		if (null != reverseStrandStartPositions) {
-			TIntSet set = new TIntHashSet(reverseStrandStartPositions);
-			return forwardNovelStartCount + set.size();
+		int ns = 0;
+		if (null != reverseReadIdStartPositionsQualityList) {
+			ns = new TIntHashSet(PileupElementLiteUtil.getDetailsFromCombinedList(reverseReadIdStartPositionsQualityList, 3,1)).size();
 		}
-		return forwardNovelStartCount;
+		if (null != forwardReadIdStartPositionsQualityList) {
+			ns += new TIntHashSet(PileupElementLiteUtil.getDetailsFromCombinedList(forwardReadIdStartPositionsQualityList, 3, 1)).size();
+		}
+		return ns;
 	}
 	
 	public int getTotalForwardQualityScore() {
-		int total = 0;
-		if (null != forwardQualitiesArray) {
-			for (int i = 0, len = forwardQualitiesArray.length() ; i < len ; i++) {
-				int count = forwardQualitiesArray.get(i);
-				if (count > 0) {
-					total += 	(count * i);
-				}
-			}
-		}
-		return total;
+		return forwardReadIdStartPositionsQualityList == null || forwardReadIdStartPositionsQualityList.isEmpty() ? 0 : 
+			PileupElementLiteUtil.getDetailsFromCombinedList(forwardReadIdStartPositionsQualityList, 3,2).sum();
 	}
 	public int getTotalReverseQualityScore() {
-		int total = 0;
-		if (null != reverseQualitiesArray) {
-			for (int i = 0, len = reverseQualitiesArray.length() ; i < len ; i++) {
-				int count = reverseQualitiesArray.get(i);
-				if (count > 0) {
-					total += 	(count * i);
-				}
-			}
-		}
-		return total;
+		return reverseReadIdStartPositionsQualityList == null || reverseReadIdStartPositionsQualityList.isEmpty() ? 0 : 
+			PileupElementLiteUtil.getDetailsFromCombinedList(reverseReadIdStartPositionsQualityList, 3,2).sum();
 	}
 	
 	public int getTotalQualityScore() {
@@ -179,30 +133,32 @@ public class PileupElementLite implements Comparable<PileupElementLite> {
 	}
 	
 	public String getForwardQualitiesAsString() {
-		if (null != forwardQualitiesArray) {
-			StringBuilder sb = new StringBuilder();
-			for (int i = 0, len = forwardQualitiesArray.length() ; i < len ; i++) {
-				int count = forwardQualitiesArray.get(i);
-				char c = (char) (i + 33);
-				for (int j = 0 ; j < count ; j++) {
-					sb.append(c);
-				}
-			}
-			return sb.toString();
-		} else return "";
+		return "";
+//		if (null != forwardQualitiesArray) {
+//			StringBuilder sb = new StringBuilder();
+//			for (int i = 0, len = forwardQualitiesArray.length() ; i < len ; i++) {
+//				int count = forwardQualitiesArray.get(i);
+//				char c = (char) (i + 33);
+//				for (int j = 0 ; j < count ; j++) {
+//					sb.append(c);
+//				}
+//			}
+//			return sb.toString();
+//		} else return "";
 	}
 	public String getReverseQualitiesAsString() {
-		if (null != reverseQualitiesArray) {
-			StringBuilder sb = new StringBuilder();
-			for (int i = 0, len = reverseQualitiesArray.length() ; i < len ; i++) {
-				int count = reverseQualitiesArray.get(i);
-				char c = (char) (i + 33);
-				for (int j = 0 ; j < count ; j++) {
-					sb.append(c);
-				}
-			}
-			return sb.toString();
-		} else return "";
+		return "";
+//		if (null != reverseQualitiesArray) {
+//			StringBuilder sb = new StringBuilder();
+//			for (int i = 0, len = reverseQualitiesArray.length() ; i < len ; i++) {
+//				int count = reverseQualitiesArray.get(i);
+//				char c = (char) (i + 33);
+//				for (int j = 0 ; j < count ; j++) {
+//					sb.append(c);
+//				}
+//			}
+//			return sb.toString();
+//		} else return "";
 	}
 
 	/**

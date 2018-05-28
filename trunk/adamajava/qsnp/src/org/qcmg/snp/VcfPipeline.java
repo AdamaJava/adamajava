@@ -177,7 +177,7 @@ public final class VcfPipeline extends Pipeline {
 	
 	void populateAccumulators() {
 		
-		List<ChrPosition> orderedCPs = new ArrayList<ChrPosition>(positionRecordMap.keySet());
+		List<ChrPosition> orderedCPs = new ArrayList<>(positionRecordMap.keySet());
 		
 		for (ChrPosition cp : orderedCPs) {
 			
@@ -192,7 +192,7 @@ public final class VcfPipeline extends Pipeline {
 	void preIdentifyCompoundSnps() {
 		// populate the accumulators collections - used by the compoundSnps()
 		ChrPosition previousCP = null;
-		List<ChrPosition> orderedCPs = new ArrayList<ChrPosition>(positionRecordMap.keySet());
+		List<ChrPosition> orderedCPs = new ArrayList<>(positionRecordMap.keySet());
 		Collections.sort(orderedCPs, CHR_COMPARATOR);
 		
 		for (ChrPosition cp : orderedCPs) {

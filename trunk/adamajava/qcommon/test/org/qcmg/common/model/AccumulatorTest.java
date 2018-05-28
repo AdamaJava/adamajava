@@ -60,38 +60,39 @@ public class AccumulatorTest {
 		Accumulator acc = new Accumulator(1);
 		String basesString = "ACGTACGTGTACACT";
 		for (byte b : basesString.getBytes()) acc.addUnfilteredBase(b);
-		Assert.assertEquals("ACGT", acc.getUnfilteredPileup());
+//		Assert.assertEquals("ACGT", acc.getUnfilteredPileup());
+		assertEquals("A4;C4;G3;T4", acc.getUnfilteredPileup());
 	}
 	
 	@Test
 	public void singleUnfilteredPileup() {
 		Accumulator acc = new Accumulator(1);
 		for (byte b : "ACGT".getBytes()) acc.addUnfilteredBase(b);
-		Assert.assertEquals("", acc.getUnfilteredPileup());
+		Assert.assertEquals("A1;C1;G1;T1", acc.getUnfilteredPileup());
 		
 		acc = new Accumulator(1);
 		for (byte b : "ACGTA".getBytes()) acc.addUnfilteredBase(b);
-		Assert.assertEquals("A", acc.getUnfilteredPileup());
+		Assert.assertEquals("A2;C1;G1;T1", acc.getUnfilteredPileup());
 		
 		acc = new Accumulator(1);
 		for (byte b : "ACCGT".getBytes()) acc.addUnfilteredBase(b);
-		Assert.assertEquals("C", acc.getUnfilteredPileup());
+		Assert.assertEquals("A1;C2;G1;T1", acc.getUnfilteredPileup());
 		
 		acc = new Accumulator(1);
 		for (byte b : "ATTTGT".getBytes()) acc.addUnfilteredBase(b);
-		Assert.assertEquals("T", acc.getUnfilteredPileup());
+		Assert.assertEquals("A1;G1;T4", acc.getUnfilteredPileup());
 		
 		acc = new Accumulator(1);
 		for (byte b : "AAAATTTGT".getBytes()) acc.addUnfilteredBase(b);
-		Assert.assertEquals("AT", acc.getUnfilteredPileup());
+		Assert.assertEquals("A4;G1;T4", acc.getUnfilteredPileup());
 		
 		acc = new Accumulator(1);
 		for (byte b : "AAAACTTTCGT".getBytes()) acc.addUnfilteredBase(b);
-		Assert.assertEquals("ACT", acc.getUnfilteredPileup());
+		Assert.assertEquals("A4;C2;G1;T4", acc.getUnfilteredPileup());
 		
 		acc = new Accumulator(1);
 		for (byte b : "AAAACTTTCGTG".getBytes()) acc.addUnfilteredBase(b);
-		Assert.assertEquals("ACGT", acc.getUnfilteredPileup());
+		Assert.assertEquals("A4;C2;G2;T4", acc.getUnfilteredPileup());
 	}
 	
 	@Test
@@ -381,24 +382,24 @@ public class AccumulatorTest {
 		} catch (UnsupportedOperationException uoe) {}
 	}
 	
-	@Test
-	public void testGetPileupQualities() {
-		Accumulator acc = new Accumulator(1010101);
-		acc.addBase((byte)'G', (byte)'(', true, 1010100, 1010101, 1010102, 1);
-		assertEquals("I", acc.getPileupQualities());
-		acc.addBase((byte)'G', (byte)'(', true, 1010100, 1010101, 1010102, 1);
-		assertEquals("II", acc.getPileupQualities());
-		acc.addBase((byte)'A', (byte)'$', false, 1010100, 1010101, 1010102, 1);
-		assertEquals("EII", acc.getPileupQualities());
-		acc.addBase((byte)'T', (byte)'&', false, 1010100, 1010101, 1010102, 1);
-		acc.addBase((byte)'T', (byte)'&', false, 1010100, 1010101, 1010102, 1);
-		assertEquals("EIIGG", acc.getPileupQualities());
-		acc.addBase((byte)'C', (byte)'\'', false, 1010100, 1010101, 1010102, 1);
-		acc.addBase((byte)'C', (byte)'!', true, 1010100, 1010101, 1010102, 1);
-		acc.addBase((byte)'C', (byte)'!', false, 1010100, 1010101, 1010102, 1);
-		acc.addBase((byte)'C', (byte)'\'', true, 1010100, 1010101, 1010102, 1);
-		assertEquals("EBHBHIIGG", acc.getPileupQualities());
-	}
+//	@Test
+//	public void testGetPileupQualities() {
+//		Accumulator acc = new Accumulator(1010101);
+//		acc.addBase((byte)'G', (byte)'(', true, 1010100, 1010101, 1010102, 1);
+//		assertEquals("I", acc.getPileupQualities());
+//		acc.addBase((byte)'G', (byte)'(', true, 1010100, 1010101, 1010102, 1);
+//		assertEquals("II", acc.getPileupQualities());
+//		acc.addBase((byte)'A', (byte)'$', false, 1010100, 1010101, 1010102, 1);
+//		assertEquals("EII", acc.getPileupQualities());
+//		acc.addBase((byte)'T', (byte)'&', false, 1010100, 1010101, 1010102, 1);
+//		acc.addBase((byte)'T', (byte)'&', false, 1010100, 1010101, 1010102, 1);
+//		assertEquals("EIIGG", acc.getPileupQualities());
+//		acc.addBase((byte)'C', (byte)'\'', false, 1010100, 1010101, 1010102, 1);
+//		acc.addBase((byte)'C', (byte)'!', true, 1010100, 1010101, 1010102, 1);
+//		acc.addBase((byte)'C', (byte)'!', false, 1010100, 1010101, 1010102, 1);
+//		acc.addBase((byte)'C', (byte)'\'', true, 1010100, 1010101, 1010102, 1);
+//		assertEquals("EBHBHIIGG", acc.getPileupQualities());
+//	}
 	
 	@Test
 	public void readIdBaseMap() {
@@ -426,7 +427,7 @@ public class AccumulatorTest {
 	@Test
 	public void getOABS() {
 		Accumulator acc = new Accumulator(1);
-		assertEquals("", acc.getObservedAllelesByStrand());
+		assertEquals(".", acc.getObservedAllelesByStrand());
 		
 		for (int i = 0 ; i < 10 ; i++) acc.addBase((byte)'A', (byte)10, true, 1, 1, 2, i);
 		assertEquals("A10[10]0[0]", acc.getObservedAllelesByStrand());
@@ -475,7 +476,7 @@ public class AccumulatorTest {
 		}
 	}
 	
-	@Ignore
+	@Test
 	public void testAddBase() {
 		Accumulator acc = new Accumulator(100000);
 		int noOfLoops = 1000000;
@@ -492,7 +493,7 @@ public class AccumulatorTest {
 	public void testIntToCollection() {
 		int noOfLoops = 1000000;
 		Random random = new Random();
-		List<Integer> list = new ArrayList<Integer>(32);
+		List<Integer> list = new ArrayList<>(32);
 		QCMGIntArray intArray = new QCMGIntArray(32);
 		long start = System.currentTimeMillis();
 		for (int i = 0 ; i < noOfLoops ; i++) {
