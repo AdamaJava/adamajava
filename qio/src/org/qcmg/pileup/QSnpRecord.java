@@ -12,6 +12,7 @@ import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.Classification;
 import org.qcmg.common.model.GenotypeEnum;
 import org.qcmg.common.string.StringUtils;
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.vcf.VcfRecord;
 
 public class QSnpRecord {
@@ -19,7 +20,7 @@ public class QSnpRecord {
 	
 	private int id;
 	private final VcfRecord vcf;
-	private String pileup;
+//	private String pileup;
 	private GenotypeEnum normalGenotype;
 	private GenotypeEnum tumourGenotype;
 	private int normalCount;
@@ -30,7 +31,7 @@ public class QSnpRecord {
 	private String mutation;
 	private String normalPileup;
 	private String unfilteredNormalPileup;
-	private Double probablility;
+//	private Double probablility;
 	private String normalNucleotides;
 	private String tumourNucleotides;
 	private String normalOABS;
@@ -67,12 +68,12 @@ public class QSnpRecord {
 	public int getPosition() {
 		return vcf.getPosition();
 	}
-	public String getPileup() {
-		return pileup;
-	}
-	public void setPileup(String pileup) {
-		this.pileup = pileup;
-	}
+//	public String getPileup() {
+//		return pileup;
+//	}
+//	public void setPileup(String pileup) {
+//		this.pileup = pileup;
+//	}
 	public GenotypeEnum getNormalGenotype() {
 		return normalGenotype;
 	}
@@ -122,8 +123,8 @@ public class QSnpRecord {
 	}
 	
 	public String getFormattedString() {
-		return pileup + TAB
-		+ (null != normalGenotype ? normalGenotype.getDisplayString() : "") + TAB
+//		return pileup + TAB
+		return (null != normalGenotype ? normalGenotype.getDisplayString() : "") + TAB
 		+ (null != tumourGenotype ? tumourGenotype.getDisplayString() : "") + TAB 
 		+ classification + TAB
 		+ (null != mutation ? mutation : "") + TAB
@@ -159,7 +160,8 @@ public class QSnpRecord {
 		}
 		sb.append("-999").append(TAB);		// expressed_allele
 		sb.append("-999").append(TAB);		// quality_score
-		sb.append(null != probablility ? probablility.toString() : "-999").append(TAB);	// probability
+		sb.append("-999").append(TAB);		// probability
+//		sb.append(null != probablility ? probablility.toString() : "-999").append(TAB);	// probability
 		sb.append(Classification.GERMLINE != classification ? tumourCount : normalCount).append(TAB);
 		sb.append(StringUtils.isNullOrEmpty(vcf.getFilter()) ? "--" : vcf.getFilter()).append(TAB);
 		sb.append(StringUtils.isNullOrEmpty(normalNucleotides) ? "--" : normalNucleotides).append(TAB);
@@ -217,9 +219,11 @@ public class QSnpRecord {
 	}
 	public String getNormalOABS() {
 		return normalOABS;
+//		return null == normalNucleotides ? null : normalNucleotides.replaceAll(Constants.COMMA_STRING, Constants.EMPTY_STRING);
 	}
 	public String getTumourOABS() {
 		return tumourOABS;
+//		return null == tumourNucleotides ? null : tumourNucleotides.replaceAll(Constants.COMMA_STRING, Constants.EMPTY_STRING);
 	}
 	public void setUnfilteredNormalPileup(String unfilteredNormalPileup) {
 		this.unfilteredNormalPileup = unfilteredNormalPileup;
@@ -248,12 +252,12 @@ public class QSnpRecord {
 	public String getFlankingSequence() {
 		return flankingSequence;
 	}
-	public double getProbability() {
-		return probablility;
-	}
-	public void setProbability(double probability) {
-		this.probablility = Double.valueOf(probability);
-	}
+//	public double getProbability() {
+//		return probablility;
+//	}
+//	public void setProbability(double probability) {
+//		this.probablility = Double.valueOf(probability);
+//	}
 
 	public VcfRecord getVcfRecord() {
 		return vcf;

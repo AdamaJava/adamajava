@@ -42,7 +42,7 @@ public final class QPileupSerializer {
 		QSnpRecord result = new QSnpRecord(params[0], Integer.parseInt(params[1]), params[2], params[3]);
 		
 		//FIXME - just want the actual pileup ideally...
-		result.setPileup(line);
+//		result.setPileup(line);
 		result.setNormalGenotype(BaseUtils.getGenotypeEnum(params[15]));
 		result.setTumourGenotype(BaseUtils.getGenotypeEnum(params[16]));
 		result.setClassification(getClassification(params[17]));
