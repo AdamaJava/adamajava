@@ -73,7 +73,6 @@ import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-import org.qcmg.maths.FisherExact;
 import org.qcmg.picard.MultiSAMFileIterator;
 import org.qcmg.picard.MultiSAMFileReader;
 import org.qcmg.picard.SAMFileReaderFactory;
