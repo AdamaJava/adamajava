@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Assert;
 import org.junit.Test;
 import org.qcmg.common.model.ChrPointPosition;
@@ -213,6 +214,30 @@ public class VcfUtilsTest {
 	public void mergeAltsDiffLEngths() {
 		assertEquals("AA,A", VcfUtils.mergeAlts("AA", "A"));
 		assertEquals("A,AA", VcfUtils.mergeAlts("A", "AA"));
+	}
+	
+	@Test
+	public void getOABSDetails() {
+		Map<String, int[]> map = VcfUtils.getAllelicCoverageFromOABS("A1[10]0[0]");
+		assertEquals(1, map.size());
+		assertEquals(1, map.get("A")[0]);
+		assertEquals(0, map.get("A")[1]);
+		
+		map = VcfUtils.getAllelicCoverageFromOABS("A1[10]0[0];B0[0]10[2]");
+		assertEquals(2, map.size());
+		assertEquals(1, map.get("A")[0]);
+		assertEquals(0, map.get("A")[1]);
+		assertEquals(0, map.get("B")[0]);
+		assertEquals(10, map.get("B")[1]);
+		
+		map = VcfUtils.getAllelicCoverageFromOABS("A1[10]0[0];B0[0]10[2];C12[44]21[33]");
+		assertEquals(3, map.size());
+		assertEquals(1, map.get("A")[0]);
+		assertEquals(0, map.get("A")[1]);
+		assertEquals(0, map.get("B")[0]);
+		assertEquals(10, map.get("B")[1]);
+		assertEquals(12, map.get("C")[0]);
+		assertEquals(21, map.get("C")[1]);
 	}
 	
 	@Test
