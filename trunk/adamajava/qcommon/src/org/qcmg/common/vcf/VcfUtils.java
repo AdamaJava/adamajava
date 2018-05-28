@@ -22,6 +22,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPointPosition;
@@ -128,7 +129,7 @@ public class VcfUtils {
 //		return Collections.emptyList();
 	}
 	
-	public static Map<String, Integer> getAllelicCoverageFromOABS(String oabs) {
+	public static Map<String, int[]> getAllelicCoverageFromOABS(String oabs) {
 		
 		/*
 		 * need to decompose the OABs string into a map of string keys and corresponding counts
@@ -136,7 +137,7 @@ public class VcfUtils {
 		if ( ! StringUtils.isNullOrEmptyOrMissingData(oabs)) {
 			
 			String [] a = oabs.split(Constants.SEMI_COLON_STRING);
-			Map<String, Integer> m = new HashMap<>(a.length * 2);
+			Map<String, int[]> m = new HashMap<>(a.length * 2);
 			
 			for (String pileup : a) {
 				int openBracketIndex = pileup.indexOf(Constants.OPEN_SQUARE_BRACKET);
@@ -157,7 +158,7 @@ public class VcfUtils {
 				 */
 				int fsCount = Integer.parseInt(pileup.substring(startOfNumberIndex, openBracketIndex));
 				int rsCount = Integer.parseInt(pileup.substring(pileup.indexOf(Constants.CLOSE_SQUARE_BRACKET) + 1, pileup.indexOf(Constants.OPEN_SQUARE_BRACKET, openBracketIndex + 1)));
-				m.put(pileup.substring(0, startOfNumberIndex),  fsCount + rsCount);
+				m.put(pileup.substring(0, startOfNumberIndex), new int[]{fsCount, rsCount});
 			}
 			return m;
 		}
