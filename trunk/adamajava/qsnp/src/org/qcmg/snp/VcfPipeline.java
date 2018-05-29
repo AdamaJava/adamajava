@@ -358,9 +358,9 @@ public final class VcfPipeline extends Pipeline {
 			
 			// create new QSnpRecord with the mergedVcf details
 			qpr = new QSnpRecord(mergedVcf);
-			qpr.setNormalNucleotides(normal.getNormalNucleotides());
+			qpr.setNormalOABS(normal.getNormalOABS());
 			qpr.setNormalGenotype(normal.getNormalGenotype());
-			qpr.setTumourNucleotides(tumour.getTumourNucleotides());
+			qpr.setTumourOABS(tumour.getTumourOABS());
 			qpr.setTumourGenotype(tumour.getTumourGenotype());
 			
 			
@@ -409,10 +409,10 @@ public final class VcfPipeline extends Pipeline {
 							if (null != qpr.getFormatFields() && ! qpr.getFormatFields().isEmpty()) {
 								//	 set genotype
 								if (isControl) {
-									snpRecord.setNormalNucleotides(Constants.MISSING_DATA_STRING);
+//									snpRecord.setNormalNucleotides(Constants.MISSING_DATA_STRING);
 									snpRecord.setNormalGenotype(VcfUtils.getGEFromGATKVCFRec(qpr));
 								} else {
-									snpRecord.setTumourNucleotides(Constants.MISSING_DATA_STRING);
+//									snpRecord.setTumourNucleotides(Constants.MISSING_DATA_STRING);
 									snpRecord.setTumourGenotype(VcfUtils.getGEFromGATKVCFRec(qpr));
 								}
 							}
@@ -464,14 +464,16 @@ public final class VcfPipeline extends Pipeline {
 		
 		final PileupElementLite pel = acc.getLargestVariant(ref);
 		if (normal) {
-			rec.setNormalNucleotides(acc.getPileupElementString());
+			rec.setNormalOABS(acc.getObservedAllelesByStrand());
+//			rec.setNormalNucleotides(acc.getPileupElementString());
 			rec.setNormalCount(acc.getCoverage());
 			rec.setNormalPileup(acc.getPileup());
 			rec.setNormalNovelStartCount(null != pel ? pel.getNovelStartCount() : 0);
 		} else {
 			// tumour fields
 			rec.setTumourCount(acc.getCoverage());
-			rec.setTumourNucleotides(acc.getPileupElementString());
+			rec.setTumourOABS(acc.getObservedAllelesByStrand());
+//			rec.setTumourNucleotides(acc.getPileupElementString());
 			rec.setTumourNovelStartCount(null != pel ? pel.getNovelStartCount() : 0);
 		}
 	}

@@ -38,6 +38,7 @@ import org.qcmg.snp.util.RulesUtil;
 
 /**
  */
+@Deprecated
 public final class TorrentPipeline extends Pipeline {
 
 	//input Files
@@ -54,6 +55,7 @@ public final class TorrentPipeline extends Pipeline {
 
 	/**
 	 */
+	@Deprecated
 	public TorrentPipeline(final Ini iniFile, QExec qexec, boolean singleSample) throws SnpException, IOException, Exception {
 		super(qexec, singleSample);
 		
@@ -148,12 +150,12 @@ public final class TorrentPipeline extends Pipeline {
 				String info = filteredInfo.get(cp);
 				if (null != info) {
 					// do we need to update ND
-					if (info.contains("ND")) {
-						qsr.setNormalNucleotides(PileupElementUtil.getPileupElementString(normalPileupElements, ref));
-					}
-					if (info.contains("TD")) {
-						qsr.setTumourNucleotides(PileupElementUtil.getPileupElementString(tumourPileupElements, ref));
-					}
+//					if (info.contains("ND")) {
+//						qsr.setNormalNucleotides(PileupElementUtil.getPileupElementString(normalPileupElements, ref));
+//					}
+//					if (info.contains("TD")) {
+//						qsr.setTumourNucleotides(PileupElementUtil.getPileupElementString(tumourPileupElements, ref));
+//					}
 				}
 			}
 			

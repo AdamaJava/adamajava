@@ -908,8 +908,8 @@ public abstract class Pipeline {
 			qRecord.setNormalGenotype(PileupElementUtil.getGenotype(normalBaseCountsPassRule, ref));
 			qRecord.setTumourGenotype(PileupElementUtil.getGenotype(tumourBaseCountsPassRule, ref));
 			
-			qRecord.setNormalNucleotides(PileupElementUtil.getPileupElementString(normalBaseCounts, ref));
-			qRecord.setTumourNucleotides(PileupElementUtil.getPileupElementString(tumourBaseCounts, ref));
+//			qRecord.setNormalNucleotides(PileupElementUtil.getPileupElementString(normalBaseCounts, ref));
+//			qRecord.setTumourNucleotides(PileupElementUtil.getPileupElementString(tumourBaseCounts, ref));
 			
 			// set Id
 			qRecord.setId(++mutationId);
@@ -1741,8 +1741,8 @@ public abstract class Pipeline {
 			qRecord.setNormalGenotype(null != normal ? normal.getGenotype(ref, normalRule, normalPass[1], baseQualityPercentage) : null);
 			qRecord.setTumourGenotype(null != tumour ? tumour.getGenotype(ref, tumourRule, tumourPass[1], baseQualityPercentage) : null);
 			
-			qRecord.setNormalNucleotides(null != normal ? normal.getPileupElementString() : null);
-			qRecord.setTumourNucleotides(null != tumour ? tumour.getPileupElementString() : null);
+//			qRecord.setNormalNucleotides(null != normal ? normal.getPileupElementString() : null);
+//			qRecord.setTumourNucleotides(null != tumour ? tumour.getPileupElementString() : null);
 			qRecord.setNormalOABS(null != normal ? normal.getObservedAllelesByStrand() : null);
 			qRecord.setTumourOABS(null != tumour ? tumour.getObservedAllelesByStrand() : null);
 			// add unfiltered normal
@@ -2088,10 +2088,14 @@ public abstract class Pipeline {
 				noOfSnpsWithSBIAS++;
 				
 				// check to see if we have any reads at all on the opposite strand
-				// just checking the germline for the moment as we are currently in single file mode
-				final String ND = singleSampleMode ? record.getTumourNucleotides() : record.getNormalNucleotides();
-				final boolean onBothStrands = SnpUtils.doesNucleotideStringContainReadsOnBothStrands(ND, sBiasCovPercentage);
-				if ( ! onBothStrands) {
+				String oabs = singleSampleMode ? record.getTumourOABS() : record.getNormalOABS();
+//				final String ND = singleSampleMode ? record.getTumourNucleotides() : record.getNormalNucleotides();
+				Map<String, int[]> basesAndCoverageByStrand = VcfUtils.getAllelicCoverageFromOABS(oabs);
+				
+				boolean bothStrands = basesAndCoverageByStrand.values().stream().anyMatch(array -> array[0] > 0 && array[1] > 0);
+//				final boolean onBothStrands = SnpUtils.doesNucleotideStringContainReadsOnBothStrands(ND, sBiasCovPercentage);
+//				final boolean onBothStrands = SnpUtils.doesNucleotideStringContainReadsOnBothStrands(ND, sBiasCovPercentage);
+				if ( ! bothStrands) {
 					VcfUtils.removeFilter(record.getVcfRecord(), SnpUtils.STRAND_BIAS_ALT);
 					VcfUtils.updateFilter(record.getVcfRecord(), SnpUtils.STRAND_BIAS_COVERAGE);
 					removed++;

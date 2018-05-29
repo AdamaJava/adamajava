@@ -103,7 +103,7 @@ public class TranscriptomeMule {
 		if (tumourVariantCount >= 3) {
 			// keeper
 			QSnpRecord rec = new QSnpRecord(params[0], Integer.parseInt(params[1]), params[2]);
-			rec.setTumourNucleotides(PileupElementUtil.getPileupElementString(tumourBaseCounts, rec.getRef().charAt(0)));
+			rec.setTumourOABS(PileupElementUtil.getOABS(tumourBaseCounts, rec.getRef().charAt(0)));
 			positions.add(rec);
 		}
 

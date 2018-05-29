@@ -8,6 +8,8 @@ package org.qcmg.pileup;
 
 import static org.qcmg.common.util.Constants.TAB;
 
+import java.util.function.UnaryOperator;
+
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.Classification;
 import org.qcmg.common.model.GenotypeEnum;
@@ -17,6 +19,11 @@ import org.qcmg.common.vcf.VcfRecord;
 
 public class QSnpRecord {
 	
+	private static UnaryOperator<String> convertOABSToNucleotides = (String s) -> 
+	{if (null != s) {
+		String oabs = s.replaceAll(Constants.SEMI_COLON_STRING, Constants.EMPTY_STRING).replaceAll(Constants.CLOSE_SQUARE_BRACKET+"", Constants.CLOSE_SQUARE_BRACKET+Constants.COMMA_STRING);
+		return oabs.substring(0,  oabs.length() -1);
+	} else return null;};
 	
 	private int id;
 	private final VcfRecord vcf;
@@ -32,8 +39,8 @@ public class QSnpRecord {
 	private String normalPileup;
 	private String unfilteredNormalPileup;
 //	private Double probablility;
-	private String normalNucleotides;
-	private String tumourNucleotides;
+//	private String normalNucleotides;
+//	private String tumourNucleotides;
 	private String normalOABS;
 	private String tumourOABS;
 	private String flankingSequence;
@@ -132,6 +139,8 @@ public class QSnpRecord {
 	}
 	
 	public String getGATKFormattedString() {
+		String controlBases = getNormalNucleotides();
+		String testBases = getTumourNucleotides();
 		return vcf.getChromosome() + TAB
 		+ vcf.getPosition() + TAB
 		+ vcf.getRef() + TAB
@@ -140,11 +149,13 @@ public class QSnpRecord {
 		+ classification + TAB
 		+ (null != mutation ? mutation : "") + TAB
 		+ (StringUtils.isNullOrEmpty(vcf.getFilter()) ? "" : vcf.getFilter()) + TAB
-		+ (StringUtils.isNullOrEmpty(normalNucleotides) ? "--" : normalNucleotides) + TAB	 
-		+ (StringUtils.isNullOrEmpty(tumourNucleotides) ? "--" : tumourNucleotides);
+		+ (StringUtils.isNullOrEmpty(controlBases) ? "--" : controlBases) + TAB	 
+		+ (StringUtils.isNullOrEmpty(testBases) ? "--" : testBases);
 	}
 	
 	public String getDCCData(final String mutationIdPrefix, final String chr) {
+		String controlBases = getNormalNucleotides();
+		String testBases = getTumourNucleotides();
 		StringBuilder sb = new StringBuilder();
 		sb.append(mutationIdPrefix + id).append(TAB);
 		sb.append("1").append(TAB);
@@ -164,8 +175,8 @@ public class QSnpRecord {
 //		sb.append(null != probablility ? probablility.toString() : "-999").append(TAB);	// probability
 		sb.append(Classification.GERMLINE != classification ? tumourCount : normalCount).append(TAB);
 		sb.append(StringUtils.isNullOrEmpty(vcf.getFilter()) ? "--" : vcf.getFilter()).append(TAB);
-		sb.append(StringUtils.isNullOrEmpty(normalNucleotides) ? "--" : normalNucleotides).append(TAB);
-		sb.append(StringUtils.isNullOrEmpty(tumourNucleotides) ? "--" : tumourNucleotides);
+		sb.append(StringUtils.isNullOrEmpty(controlBases) ? "--" : controlBases).append(TAB);
+		sb.append(StringUtils.isNullOrEmpty(testBases) ? "--" : testBases);
 		
 		return sb.toString();
 	}
@@ -200,17 +211,29 @@ public class QSnpRecord {
 		return id;
 	}
 	public String getNormalNucleotides() {
-		return normalNucleotides;
+		return convertOABSToNucleotides.apply(normalOABS);
+//		if (null != normalOABS) {
+//			String oabs = normalOABS.replaceAll(Constants.SEMI_COLON_STRING, Constants.EMPTY_STRING).replaceAll(Constants.CLOSE_SQUARE_BRACKET+"", Constants.CLOSE_SQUARE_BRACKET+Constants.COMMA_STRING);
+//			return oabs.substring(0,  oabs.length() -1);
+//		}
+//		return null;
+//		return normalNucleotides;
 	}
-	public void setNormalNucleotides(String normalNucleotides) {
-		this.normalNucleotides = normalNucleotides;
-	}
+//	public void setNormalNucleotides(String normalNucleotides) {
+//		this.normalNucleotides = normalNucleotides;
+//	}
 	public String getTumourNucleotides() {
-		return tumourNucleotides;
+		return convertOABSToNucleotides.apply(tumourOABS);
+//		if (null != tumourOABS) {
+//			String oabs = tumourOABS.replaceAll(Constants.SEMI_COLON_STRING, Constants.EMPTY_STRING).replaceAll(Constants.CLOSE_SQUARE_BRACKET+"", Constants.CLOSE_SQUARE_BRACKET+Constants.COMMA_STRING);
+//			return oabs.substring(0,  oabs.length() -1);
+//		}
+//		return null;
+//		return tumourNucleotides;
 	}
-	public void setTumourNucleotides(String tumourNucleotides) {
-		this.tumourNucleotides = tumourNucleotides;
-	}
+//	public void setTumourNucleotides(String tumourNucleotides) {
+//		this.tumourNucleotides = tumourNucleotides;
+//	}
 	public void setTumourOABS(String tumourOABS) {
 		this.tumourOABS = tumourOABS;
 	}
