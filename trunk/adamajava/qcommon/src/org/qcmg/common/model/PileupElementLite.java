@@ -10,7 +10,6 @@ import org.qcmg.common.util.PileupElementLiteUtil;
 
 import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
-import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
 
 
@@ -132,35 +131,6 @@ public class PileupElementLite implements Comparable<PileupElementLite> {
 		return getTotalForwardQualityScore() + getTotalReverseQualityScore();
 	}
 	
-	public String getForwardQualitiesAsString() {
-		return "";
-//		if (null != forwardQualitiesArray) {
-//			StringBuilder sb = new StringBuilder();
-//			for (int i = 0, len = forwardQualitiesArray.length() ; i < len ; i++) {
-//				int count = forwardQualitiesArray.get(i);
-//				char c = (char) (i + 33);
-//				for (int j = 0 ; j < count ; j++) {
-//					sb.append(c);
-//				}
-//			}
-//			return sb.toString();
-//		} else return "";
-	}
-	public String getReverseQualitiesAsString() {
-		return "";
-//		if (null != reverseQualitiesArray) {
-//			StringBuilder sb = new StringBuilder();
-//			for (int i = 0, len = reverseQualitiesArray.length() ; i < len ; i++) {
-//				int count = reverseQualitiesArray.get(i);
-//				char c = (char) (i + 33);
-//				for (int j = 0 ; j < count ; j++) {
-//					sb.append(c);
-//				}
-//			}
-//			return sb.toString();
-//		} else return "";
-	}
-
 	/**
 	 * Note: this class has a natural ordering that is inconsistent with equals.
 	 */
