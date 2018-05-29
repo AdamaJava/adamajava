@@ -237,7 +237,7 @@ public class GenotypeUtil {
 		/*
 		 * adding FF - failed filters
 		 */
-		sb.append(null != acc ? acc.getUnfilteredPileup() : Constants.MISSING_DATA_STRING).append(Constants.COLON);
+		sb.append(null != acc ? acc.getFailedFilterPileup() : Constants.MISSING_DATA_STRING).append(Constants.COLON);
 		
 		String [] altAlleleArray = alt.length() == 1 ? new String[]{alt} : TabTokenizer.tokenize(alt, Constants.COMMA);
 		

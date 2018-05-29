@@ -12,10 +12,8 @@ import gnu.trove.map.TIntCharMap;
 import gnu.trove.map.hash.TIntCharHashMap;
 
 import java.util.ArrayList;
-//import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
-//import java.util.stream.Collectors;
 
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
@@ -64,14 +62,13 @@ public class Accumulator {
 	public static final String G_STRING = "G";
 	public static final String T_STRING = "T";
 	
-	
 	private int nCount;
 	private final int position;
 	
-	private short unfilteredACount = 0;
-	private short unfilteredCCount = 0;
-	private short unfilteredGCount = 0;
-	private short unfilteredTCount = 0;
+	private short failedFilterACount = 0;
+	private short failedFilterCCount = 0;
+	private short failedFilterGCount = 0;
+	private short failedFilterTCount = 0;
 	
 	public Accumulator(int position) {
 		this.position = position;
@@ -81,15 +78,15 @@ public class Accumulator {
 		return position;
 	}
 
-	public void addUnfilteredBase(final byte base) {
+	public void addFailedFilterBase(final byte base) {
 		switch (base) {
-		case A_BYTE: unfilteredACount++;
+		case A_BYTE: failedFilterACount++;
 		break;
-		case C_BYTE: unfilteredCCount++;
+		case C_BYTE: failedFilterCCount++;
 		break;
-		case G_BYTE:  unfilteredGCount++;
+		case G_BYTE:  failedFilterGCount++;
 		break;
-		case T_BYTE: unfilteredTCount++;
+		case T_BYTE: failedFilterTCount++;
 		break;
 		}
 	}
@@ -285,19 +282,19 @@ public class Accumulator {
 	}
 	
 	
-	public String getUnfilteredPileup() {
+	public String getFailedFilterPileup() {
 		StringBuilder sb = new StringBuilder();
-		if (unfilteredACount > 0) {
-			StringUtils.updateStringBuilder(sb, A_STRING + unfilteredACount, Constants.SEMI_COLON);
+		if (failedFilterACount > 0) {
+			StringUtils.updateStringBuilder(sb, A_STRING + failedFilterACount, Constants.SEMI_COLON);
 		}
-		if (unfilteredCCount > 0) {
-			StringUtils.updateStringBuilder(sb, C_STRING + unfilteredCCount, Constants.SEMI_COLON);
+		if (failedFilterCCount > 0) {
+			StringUtils.updateStringBuilder(sb, C_STRING + failedFilterCCount, Constants.SEMI_COLON);
 		}
-		if (unfilteredGCount > 0) {
-			StringUtils.updateStringBuilder(sb, G_STRING + unfilteredGCount, Constants.SEMI_COLON);
+		if (failedFilterGCount > 0) {
+			StringUtils.updateStringBuilder(sb, G_STRING + failedFilterGCount, Constants.SEMI_COLON);
 		}
-		if (unfilteredTCount > 0) {
-			StringUtils.updateStringBuilder(sb, T_STRING + unfilteredTCount, Constants.SEMI_COLON);
+		if (failedFilterTCount > 0) {
+			StringUtils.updateStringBuilder(sb, T_STRING + failedFilterTCount, Constants.SEMI_COLON);
 		}
 		return sb.length() > 0 ? sb.toString() : Constants.MISSING_DATA_STRING;
 	}
