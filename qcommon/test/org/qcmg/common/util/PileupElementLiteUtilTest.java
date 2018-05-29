@@ -209,7 +209,7 @@ public class PileupElementLiteUtilTest {
 		assertEquals(0, PileupElementLiteUtil.getLargestVariantNovelStarts(accum, 'N'));
 		assertEquals(0, PileupElementLiteUtil.getLargestVariantNovelStarts(accum, 'X'));
 		
-		accum.addUnfilteredBase((byte)'A');
+		accum.addFailedFilterBase((byte)'A');
 		assertEquals(0, PileupElementLiteUtil.getLargestVariantNovelStarts(accum, 'A'));
 		byte A = 'A';
 		accum.addBase(A, (byte) 1, true, 1, 1, 2, 1);
