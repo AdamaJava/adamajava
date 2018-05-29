@@ -485,8 +485,7 @@ public class Vcf2maf extends AbstractMode{
 				 logger.warn("Have an empty map from SnpUtils.getCompoundSnpDistribution(" + dist + ")!!!");
 			 }
 		 }
-	 	 
-	 	 
+	 	 	 	 
 		 if(type == null)
 			 type = IndelUtils.getVariantType(ref, alt);
 		 
