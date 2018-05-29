@@ -1366,7 +1366,7 @@ public abstract class Pipeline {
 					acc.addBase(bases[i + offset], qualities[i + offset], forwardStrand, 
 							startPosition, i + startPosAndRefOffset, readEndPosition, readId);
 				} else {
-					acc.addUnfilteredBase(bases[i + offset]);
+					acc.addFailedFilterBase(bases[i + offset]);
 				}
 			}
 		}
@@ -1724,30 +1724,22 @@ public abstract class Pipeline {
 		
 		if (normalPass[0] || normalPass[1] || tumourPass[0] || tumourPass[1]) {
 		
-//			final String normalBases = null != normal ? normal.toSamtoolsPileupString(ref) : "";
-//			final String tumourBases = null != tumour ? tumour.toSamtoolsPileupString(ref) : "";
 			final QSnpRecord qRecord = new QSnpRecord(currentChr, position, ref+"");
-//			qRecord.setPileup((null != normal ? normal.toPileupString(normalBases) : "") 
-//					+ "\t" + (null != tumour ? tumour.toPileupString(tumourBases) : ""));
 			// setup some values on the record
 			qRecord.setNormalCount(normalCoverage);
 			qRecord.setTumourCount(tumourCoverage);
 			
 			// set normal pileup to only contain the different bases found in normal, rather than the whole pileup string
 			// which contains special chars indicating start/end of reads along with mapping qualities
-//			if (normalCoverage > 0)
-//				qRecord.setNormalPileup(normal.getCompressedPileup());
 			// use all base counts to form genotype
 			qRecord.setNormalGenotype(null != normal ? normal.getGenotype(ref, normalRule, normalPass[1], baseQualityPercentage) : null);
 			qRecord.setTumourGenotype(null != tumour ? tumour.getGenotype(ref, tumourRule, tumourPass[1], baseQualityPercentage) : null);
 			
-//			qRecord.setNormalNucleotides(null != normal ? normal.getPileupElementString() : null);
-//			qRecord.setTumourNucleotides(null != tumour ? tumour.getPileupElementString() : null);
 			qRecord.setNormalOABS(null != normal ? normal.getObservedAllelesByStrand() : null);
 			qRecord.setTumourOABS(null != tumour ? tumour.getObservedAllelesByStrand() : null);
 			// add unfiltered normal
 			if (null != normal)
-				qRecord.setUnfilteredNormalPileup(normal.getUnfilteredPileup());
+				qRecord.setUnfilteredNormalPileup(normal.getFailedFilterPileup());
 			
 			
 			qRecord.setNormalNovelStartCount(PileupElementLiteUtil.getLargestVariantNovelStarts(normal, ref));
@@ -1788,8 +1780,6 @@ public abstract class Pipeline {
 			qRecord.setId(++mutationId);
 			logger.debug("adding: " + qRecord.getDCCDataNSFlankingSeq(null, null));
 			positionRecordMap.put(qRecord.getChrPos(), qRecord);
-			
-			// to save on space, only put entry into acculumators map if it is empty, or if there is a position just before the current position
 			
 			adjacentAccumulators.put(qRecord.getChrPos(), new Pair<Accumulator, Accumulator>(normal, tumour));
 		}

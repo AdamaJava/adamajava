@@ -177,7 +177,7 @@ public class ProcessBamRecordTest {
 			if (passesFilter)
 				acc.addBase(bases[i + offset], qualities[i + offset], forwardStrand, startPosition, startPosition + i + referenceOffset, endPosition, 1);
 			else
-				acc.addUnfilteredBase(bases[i + offset]);
+				acc.addFailedFilterBase(bases[i + offset]);
 		}
 	}
 

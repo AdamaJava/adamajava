@@ -54,40 +54,40 @@ public class AccumulatorTest {
 	public void testUnfilteredPileup() {
 		Accumulator acc = new Accumulator(1);
 		String basesString = "ACGTACGTGTACACT";
-		for (byte b : basesString.getBytes()) acc.addUnfilteredBase(b);
+		for (byte b : basesString.getBytes()) acc.addFailedFilterBase(b);
 //		Assert.assertEquals("ACGT", acc.getUnfilteredPileup());
-		assertEquals("A4;C4;G3;T4", acc.getUnfilteredPileup());
+		assertEquals("A4;C4;G3;T4", acc.getFailedFilterPileup());
 	}
 	
 	@Test
 	public void singleUnfilteredPileup() {
 		Accumulator acc = new Accumulator(1);
-		for (byte b : "ACGT".getBytes()) acc.addUnfilteredBase(b);
-		Assert.assertEquals("A1;C1;G1;T1", acc.getUnfilteredPileup());
+		for (byte b : "ACGT".getBytes()) acc.addFailedFilterBase(b);
+		Assert.assertEquals("A1;C1;G1;T1", acc.getFailedFilterPileup());
 		
 		acc = new Accumulator(1);
-		for (byte b : "ACGTA".getBytes()) acc.addUnfilteredBase(b);
-		Assert.assertEquals("A2;C1;G1;T1", acc.getUnfilteredPileup());
+		for (byte b : "ACGTA".getBytes()) acc.addFailedFilterBase(b);
+		Assert.assertEquals("A2;C1;G1;T1", acc.getFailedFilterPileup());
 		
 		acc = new Accumulator(1);
-		for (byte b : "ACCGT".getBytes()) acc.addUnfilteredBase(b);
-		Assert.assertEquals("A1;C2;G1;T1", acc.getUnfilteredPileup());
+		for (byte b : "ACCGT".getBytes()) acc.addFailedFilterBase(b);
+		Assert.assertEquals("A1;C2;G1;T1", acc.getFailedFilterPileup());
 		
 		acc = new Accumulator(1);
-		for (byte b : "ATTTGT".getBytes()) acc.addUnfilteredBase(b);
-		Assert.assertEquals("A1;G1;T4", acc.getUnfilteredPileup());
+		for (byte b : "ATTTGT".getBytes()) acc.addFailedFilterBase(b);
+		Assert.assertEquals("A1;G1;T4", acc.getFailedFilterPileup());
 		
 		acc = new Accumulator(1);
-		for (byte b : "AAAATTTGT".getBytes()) acc.addUnfilteredBase(b);
-		Assert.assertEquals("A4;G1;T4", acc.getUnfilteredPileup());
+		for (byte b : "AAAATTTGT".getBytes()) acc.addFailedFilterBase(b);
+		Assert.assertEquals("A4;G1;T4", acc.getFailedFilterPileup());
 		
 		acc = new Accumulator(1);
-		for (byte b : "AAAACTTTCGT".getBytes()) acc.addUnfilteredBase(b);
-		Assert.assertEquals("A4;C2;G1;T4", acc.getUnfilteredPileup());
+		for (byte b : "AAAACTTTCGT".getBytes()) acc.addFailedFilterBase(b);
+		Assert.assertEquals("A4;C2;G1;T4", acc.getFailedFilterPileup());
 		
 		acc = new Accumulator(1);
-		for (byte b : "AAAACTTTCGTG".getBytes()) acc.addUnfilteredBase(b);
-		Assert.assertEquals("A4;C2;G2;T4", acc.getUnfilteredPileup());
+		for (byte b : "AAAACTTTCGTG".getBytes()) acc.addFailedFilterBase(b);
+		Assert.assertEquals("A4;C2;G2;T4", acc.getFailedFilterPileup());
 	}
 	
 	@Test
