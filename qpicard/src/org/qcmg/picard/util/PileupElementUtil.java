@@ -324,6 +324,18 @@ public class PileupElementUtil {
 		return result;
 	}
 	
+	public static String getOABS(List<PileupElement> pileupElements, char reference) {
+		if (null == pileupElements || pileupElements.isEmpty()) return null;
+		String result = "";
+		for (PileupElement pe : pileupElements) {
+			if (result.length() > 0) result += ";";
+			result += DOT == pe.getBase() ? reference : pe.getBase();
+			result += (pe.getForwardCount() + "[" + nf.format(getRMSQualities(pe.getForwardQualities())) + "]" 
+					+ pe.getReverseCount() + "[" + nf.format(getRMSQualities(pe.getReverseQualities())) + "]");
+		}
+		return result;
+	}
+	
 	/**
 	 * Recreate PileupElement collection from String
 	 * <p>
