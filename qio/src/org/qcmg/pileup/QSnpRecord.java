@@ -27,7 +27,6 @@ public class QSnpRecord {
 	
 	private int id;
 	private final VcfRecord vcf;
-//	private String pileup;
 	private GenotypeEnum normalGenotype;
 	private GenotypeEnum tumourGenotype;
 	private int normalCount;
@@ -38,9 +37,6 @@ public class QSnpRecord {
 	private String mutation;
 	private String normalPileup;
 	private String unfilteredNormalPileup;
-//	private Double probablility;
-//	private String normalNucleotides;
-//	private String tumourNucleotides;
 	private String normalOABS;
 	private String tumourOABS;
 	private String flankingSequence;
@@ -53,10 +49,7 @@ public class QSnpRecord {
 		this(chr, position, ref, null);
 	}
 	public QSnpRecord(String chr, int position, String ref, String alt) {
-//		int length = StringUtils.isNullOrEmpty(ref) ? 1 : ref.length();
-		//vcf = VcfUtils.createVcfRecord(new ChrPosition(chr, position, (position + length) -1), null, ref, alt);
 		vcf = new VcfRecord.Builder(chr, position, ref).allele(alt).build();
-		
 	}
 	
 	public ChrPosition getChrPos() {
@@ -75,12 +68,6 @@ public class QSnpRecord {
 	public int getPosition() {
 		return vcf.getPosition();
 	}
-//	public String getPileup() {
-//		return pileup;
-//	}
-//	public void setPileup(String pileup) {
-//		this.pileup = pileup;
-//	}
 	public GenotypeEnum getNormalGenotype() {
 		return normalGenotype;
 	}
@@ -111,7 +98,6 @@ public class QSnpRecord {
 	public int getTumourCount() {
 		return tumourCount;
 	}
-	
 	public String getAnnotation() {
 		return vcf.getFilter();
 	}
@@ -121,7 +107,6 @@ public class QSnpRecord {
 	public String getMutation() {
 		return mutation;
 	}
-	
 	public void setNormalPileup(String normalPileup) {
 		this.normalPileup = normalPileup;
 	}
@@ -130,7 +115,6 @@ public class QSnpRecord {
 	}
 	
 	public String getFormattedString() {
-//		return pileup + TAB
 		return (null != normalGenotype ? normalGenotype.getDisplayString() : "") + TAB
 		+ (null != tumourGenotype ? tumourGenotype.getDisplayString() : "") + TAB 
 		+ classification + TAB
@@ -212,28 +196,10 @@ public class QSnpRecord {
 	}
 	public String getNormalNucleotides() {
 		return convertOABSToNucleotides.apply(normalOABS);
-//		if (null != normalOABS) {
-//			String oabs = normalOABS.replaceAll(Constants.SEMI_COLON_STRING, Constants.EMPTY_STRING).replaceAll(Constants.CLOSE_SQUARE_BRACKET+"", Constants.CLOSE_SQUARE_BRACKET+Constants.COMMA_STRING);
-//			return oabs.substring(0,  oabs.length() -1);
-//		}
-//		return null;
-//		return normalNucleotides;
 	}
-//	public void setNormalNucleotides(String normalNucleotides) {
-//		this.normalNucleotides = normalNucleotides;
-//	}
 	public String getTumourNucleotides() {
 		return convertOABSToNucleotides.apply(tumourOABS);
-//		if (null != tumourOABS) {
-//			String oabs = tumourOABS.replaceAll(Constants.SEMI_COLON_STRING, Constants.EMPTY_STRING).replaceAll(Constants.CLOSE_SQUARE_BRACKET+"", Constants.CLOSE_SQUARE_BRACKET+Constants.COMMA_STRING);
-//			return oabs.substring(0,  oabs.length() -1);
-//		}
-//		return null;
-//		return tumourNucleotides;
 	}
-//	public void setTumourNucleotides(String tumourNucleotides) {
-//		this.tumourNucleotides = tumourNucleotides;
-//	}
 	public void setTumourOABS(String tumourOABS) {
 		this.tumourOABS = tumourOABS;
 	}
@@ -242,11 +208,9 @@ public class QSnpRecord {
 	}
 	public String getNormalOABS() {
 		return normalOABS;
-//		return null == normalNucleotides ? null : normalNucleotides.replaceAll(Constants.COMMA_STRING, Constants.EMPTY_STRING);
 	}
 	public String getTumourOABS() {
 		return tumourOABS;
-//		return null == tumourNucleotides ? null : tumourNucleotides.replaceAll(Constants.COMMA_STRING, Constants.EMPTY_STRING);
 	}
 	public void setUnfilteredNormalPileup(String unfilteredNormalPileup) {
 		this.unfilteredNormalPileup = unfilteredNormalPileup;
@@ -275,13 +239,6 @@ public class QSnpRecord {
 	public String getFlankingSequence() {
 		return flankingSequence;
 	}
-//	public double getProbability() {
-//		return probablility;
-//	}
-//	public void setProbability(double probability) {
-//		this.probablility = Double.valueOf(probability);
-//	}
-
 	public VcfRecord getVcfRecord() {
 		return vcf;
 	}
