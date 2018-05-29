@@ -12,10 +12,10 @@ import gnu.trove.map.TIntCharMap;
 import gnu.trove.map.hash.TIntCharHashMap;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+//import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
+//import java.util.stream.Collectors;
 
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
@@ -135,35 +135,35 @@ public class Accumulator {
 			peLite.addReverseQuality(qual, startPosition, readId, endOfRead);
 	}
 	
-	public String getPileup() {
-		StringBuilder pileup = new StringBuilder();
-		if (null != A) {
-			for (int i = 0 , count = A.getForwardCount() ; i < count ; i++)
-				pileup.append(A_CHAR);
-			for (int i = 0 , count = A.getReverseCount() ; i < count ; i++)
-				pileup.append(A_CHAR_LC);
-		}
-		if (null != C) {
-			for (int i = 0 , count = C.getForwardCount() ; i < count ; i++)
-				pileup.append(C_CHAR);
-			for (int i = 0 , count = C.getReverseCount() ; i < count ; i++)
-				pileup.append(C_CHAR_LC);
-		}
-		if (null != G) {
-			for (int i = 0 , count = G.getForwardCount() ; i < count ; i++)
-				pileup.append(G_CHAR);
-			for (int i = 0 , count = G.getReverseCount() ; i < count ; i++)
-				pileup.append(G_CHAR_LC);
-		}
-		if (null != T) {
-			for (int i = 0 , count = T.getForwardCount() ; i < count ; i++)
-				pileup.append(T_CHAR);
-			for (int i = 0 , count = T.getReverseCount() ; i < count ; i++)
-				pileup.append(T_CHAR_LC);
-		}
-		
-		return pileup.toString();
-	}
+//	public String getPileup() {
+//		StringBuilder pileup = new StringBuilder();
+//		if (null != A) {
+//			for (int i = 0 , count = A.getForwardCount() ; i < count ; i++)
+//				pileup.append(A_CHAR);
+//			for (int i = 0 , count = A.getReverseCount() ; i < count ; i++)
+//				pileup.append(A_CHAR_LC);
+//		}
+//		if (null != C) {
+//			for (int i = 0 , count = C.getForwardCount() ; i < count ; i++)
+//				pileup.append(C_CHAR);
+//			for (int i = 0 , count = C.getReverseCount() ; i < count ; i++)
+//				pileup.append(C_CHAR_LC);
+//		}
+//		if (null != G) {
+//			for (int i = 0 , count = G.getForwardCount() ; i < count ; i++)
+//				pileup.append(G_CHAR);
+//			for (int i = 0 , count = G.getReverseCount() ; i < count ; i++)
+//				pileup.append(G_CHAR_LC);
+//		}
+//		if (null != T) {
+//			for (int i = 0 , count = T.getForwardCount() ; i < count ; i++)
+//				pileup.append(T_CHAR);
+//			for (int i = 0 , count = T.getReverseCount() ; i < count ; i++)
+//				pileup.append(T_CHAR_LC);
+//		}
+//		
+//		return pileup.toString();
+//	}
 	
 //	public String getPileupQualities() {
 //		StringBuilder qualities = new StringBuilder();
@@ -208,7 +208,7 @@ public class Accumulator {
 	
 	@Override
 	public String toString() {
-		return position + ":" + getPileup();
+		return position + ":" + getObservedAllelesByStrand();
 	}
 //	
 //	public String toPileupString(String pileup) {
@@ -381,14 +381,14 @@ public class Accumulator {
 	 * Just return a single instance of each base seen at this position
 	 * @return
 	 */
-	public String getCompressedPileup() {
-		StringBuilder pileup = new StringBuilder();
-		if (null != A) pileup.append(A_STRING);
-		if (null != C) pileup.append(C_STRING);
-		if (null != G) pileup.append(G_STRING);
-		if (null != T) pileup.append(T_STRING);
-		return pileup.toString();
-	}
+//	public String getCompressedPileup() {
+//		StringBuilder pileup = new StringBuilder();
+//		if (null != A) pileup.append(A_STRING);
+//		if (null != C) pileup.append(C_STRING);
+//		if (null != G) pileup.append(G_STRING);
+//		if (null != T) pileup.append(T_STRING);
+//		return pileup.toString();
+//	}
 	
 	private char getCharFromPel(PileupElementLite pel) {
 		if (A == pel) return A_CHAR;
@@ -451,62 +451,62 @@ public class Accumulator {
 		}
 	}
 	
-	public String getPileupElementString() {
-		StringBuilder pileup = new StringBuilder();
-		if (null != A) {
-			pileup.append(PileupElementLiteUtil.toSummaryString(A, A_STRING));
-		}
-		if (null != C) {
-			if (pileup.length() > 0) pileup.append(COMMA);
-			pileup.append(PileupElementLiteUtil.toSummaryString(C, C_STRING));
-		}
-		if (null != G) {
-			if (pileup.length() > 0) pileup.append(COMMA);
-			pileup.append(PileupElementLiteUtil.toSummaryString(G, G_STRING));
-		}
-		if (null != T) {
-			if (pileup.length() > 0) pileup.append(COMMA);
-			pileup.append(PileupElementLiteUtil.toSummaryString(T, T_STRING));
-		}
-		
-		return pileup.toString();
-	}
+//	public String getPileupElementString() {
+//		StringBuilder pileup = new StringBuilder();
+//		if (null != A) {
+//			pileup.append(PileupElementLiteUtil.toSummaryString(A, A_STRING));
+//		}
+//		if (null != C) {
+//			if (pileup.length() > 0) pileup.append(COMMA);
+//			pileup.append(PileupElementLiteUtil.toSummaryString(C, C_STRING));
+//		}
+//		if (null != G) {
+//			if (pileup.length() > 0) pileup.append(COMMA);
+//			pileup.append(PileupElementLiteUtil.toSummaryString(G, G_STRING));
+//		}
+//		if (null != T) {
+//			if (pileup.length() > 0) pileup.append(COMMA);
+//			pileup.append(PileupElementLiteUtil.toSummaryString(T, T_STRING));
+//		}
+//		
+//		return pileup.toString();
+//	}
 	
-	public String getAlleleicFrequencies(char ref, String alts) {
-		int refCount = getBaseCountForBase(ref);
-		
-		if (null == alts) {
-			/*
-			 * return ref count and other count
-			 */
-			return refCount + Constants.COMMA_STRING +(getCoverage() - refCount);
-		} else if (alts.length() == 1) {
-			char a = alts.charAt(0);
-			int altCount = ref != a ? getBaseCountForBase(alts.charAt(0)) : 0;
-			return refCount + Constants.COMMA_STRING + altCount + Constants.COMMA_STRING + (getCoverage() - refCount - altCount);
-			
-		} else {
-			/*
-			 * more than 1 alt
-			 */
-			String [] altsArray = alts.split(Constants.COMMA_STRING);
-			String [] altCounts = new String[altsArray.length];
-			int i = 0;
-			int tally = 0;
-			for (String s : altsArray) {
-				if (s.length() != 1 || s.charAt(0) == ref) {
-					/*
-					 * hmmm
-					 */
-				} else {
-					int count = getBaseCountForBase(s.charAt(0));
-					tally += count;
-					altCounts[i++] = count + "";
-				}
-			}
-			return refCount + Constants.COMMA_STRING + Arrays.stream(altCounts).collect(Collectors.joining(Constants.COMMA_STRING)) + Constants.COMMA_STRING + (getCoverage() - refCount - tally);
-		}
-	}
+//	public String getAlleleicFrequencies(char ref, String alts) {
+//		int refCount = getBaseCountForBase(ref);
+//		
+//		if (null == alts) {
+//			/*
+//			 * return ref count and other count
+//			 */
+//			return refCount + Constants.COMMA_STRING +(getCoverage() - refCount);
+//		} else if (alts.length() == 1) {
+//			char a = alts.charAt(0);
+//			int altCount = ref != a ? getBaseCountForBase(alts.charAt(0)) : 0;
+//			return refCount + Constants.COMMA_STRING + altCount + Constants.COMMA_STRING + (getCoverage() - refCount - altCount);
+//			
+//		} else {
+//			/*
+//			 * more than 1 alt
+//			 */
+//			String [] altsArray = alts.split(Constants.COMMA_STRING);
+//			String [] altCounts = new String[altsArray.length];
+//			int i = 0;
+//			int tally = 0;
+//			for (String s : altsArray) {
+//				if (s.length() != 1 || s.charAt(0) == ref) {
+//					/*
+//					 * hmmm
+//					 */
+//				} else {
+//					int count = getBaseCountForBase(s.charAt(0));
+//					tally += count;
+//					altCounts[i++] = count + "";
+//				}
+//			}
+//			return refCount + Constants.COMMA_STRING + Arrays.stream(altCounts).collect(Collectors.joining(Constants.COMMA_STRING)) + Constants.COMMA_STRING + (getCoverage() - refCount - tally);
+//		}
+//	}
 	
 	public String getObservedAllelesByStrand() {
 		StringBuilder pileup = new StringBuilder();
