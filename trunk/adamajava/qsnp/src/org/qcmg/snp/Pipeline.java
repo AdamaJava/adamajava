@@ -660,7 +660,7 @@ public abstract class Pipeline {
 					&& (null == record.getAnnotation() 
 					|| ! record.getAnnotation().contains(SnpUtils.MUTATION_IN_NORMAL))) { // PASS will pass this test :)
 				
-				String unfilteredPileup = record.getUnfilteredNormalPileup();
+				String unfilteredPileup = record.getControlFailedFilter();
 				
 				if ( ! StringUtils.isNullOrEmpty(unfilteredPileup)) {
 				
@@ -1739,7 +1739,7 @@ public abstract class Pipeline {
 			qRecord.setTumourOABS(null != tumour ? tumour.getObservedAllelesByStrand() : null);
 			// add unfiltered normal
 			if (null != normal)
-				qRecord.setUnfilteredNormalPileup(normal.getFailedFilterPileup());
+				qRecord.setControlFailedFilter(normal.getFailedFilterPileup());
 			
 			
 			qRecord.setNormalNovelStartCount(PileupElementLiteUtil.getLargestVariantNovelStarts(normal, ref));
