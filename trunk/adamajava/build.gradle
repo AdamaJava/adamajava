@@ -20,15 +20,12 @@ params.each {param ->
 
 
 if (null == rev) rev = "???"
-   
-svnVersion = rev
+revision = rev  
 }
 version = 1.0
 
 subprojects {
-   //apply plugin: 'java'
    apply plugin: 'eclipse'
-   //apply plugin: 'code-quality'
 
    sourceCompatibility = 1.8
 

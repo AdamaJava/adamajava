@@ -29,7 +29,7 @@ jar.doFirst {
      manifest {
         attributes 'Implementation-Title': project.name,
                    'Implementation-Version': version,
-                   'SVN-Version': svnVersion,
+                   'SVN-Version': revision,
                    'Built-By': System.properties['user.name'],
                    'Date': new java.util.Date().toString(),
                    'Main-Class' : mainclass,
