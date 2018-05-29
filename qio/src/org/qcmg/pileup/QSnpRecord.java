@@ -36,7 +36,7 @@ public class QSnpRecord {
 	private Classification classification;
 	private String mutation;
 //	private String normalPileup;
-	private String unfilteredNormalPileup;
+	private String failedFilterControl;
 	private String normalOABS;
 	private String tumourOABS;
 	private String flankingSequence;
@@ -212,11 +212,11 @@ public class QSnpRecord {
 	public String getTumourOABS() {
 		return tumourOABS;
 	}
-	public void setUnfilteredNormalPileup(String unfilteredNormalPileup) {
-		this.unfilteredNormalPileup = unfilteredNormalPileup;
+	public void setControlFailedFilter(String unfilteredNormalPileup) {
+		this.failedFilterControl = unfilteredNormalPileup;
 	}
-	public String getUnfilteredNormalPileup() {
-		return unfilteredNormalPileup;
+	public String getControlFailedFilter() {
+		return failedFilterControl;
 	}
 	public int getNovelStartCount() {
 		return Classification.GERMLINE != classification ? tumourNovelStartCount : normalNovelStartCount;
