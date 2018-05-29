@@ -163,7 +163,8 @@ public final class MuTectPipeline extends Pipeline {
 				int nsCount = acc.getNovelStartsCountForBase(alt);
 				rec.setTumourNovelStartCount(nsCount);
 				
-				rec.setTumourNucleotides(acc.getPileupElementString());
+//				rec.setTumourNucleotides(acc.getPileupElementString());
+				rec.setTumourOABS(acc.getObservedAllelesByStrand());
 				
 				// check for strand bias
 				PileupElementLite pel = acc.getLargestVariant(ref);
@@ -249,7 +250,7 @@ public final class MuTectPipeline extends Pipeline {
 			double normalRefQuality = Double.parseDouble(mtData[32]);
 			double aveQual = normalRefQuality / normalRefCount;
 			
-			ND = ref + ":" + normalRefCount + "[" + NF.format(aveQual) + "],0[0]";
+			ND = ref + normalRefCount + "[" + NF.format(aveQual) + "]0[0]";
 			normalPileup = "" + ref;
 		}
 		
@@ -258,14 +259,14 @@ public final class MuTectPipeline extends Pipeline {
 			double aveQual = normalAltQuality / normalAltCount;
 			
 			if (null == ND) {
-				ND = alt + ":" + normalAltCount + "[" + NF.format(aveQual) + "],0[0]";
+				ND = alt + normalAltCount + "[" + NF.format(aveQual) + "]0[0]";
 			} else {
-				ND += "," + alt + ":" + normalAltCount + "[" + NF.format(aveQual) + "],0[0]";
+				ND += ";" + alt + normalAltCount + "[" + NF.format(aveQual) + "]0[0]";
 			}
 			
 			normalPileup = null == normalPileup ? "" + alt : "" + ref + alt;
 		}
-		rec.setNormalNucleotides(ND);
+		rec.setNormalOABS(ND);
 		rec.setNormalPileup(normalPileup);
 		
 		// hard-coding all to somatic
@@ -432,14 +433,16 @@ public final class MuTectPipeline extends Pipeline {
 					
 					PileupElementLite pel = acc.getLargestVariant(ref);
 					if (isNormal) {
-						rec.setNormalNucleotides(acc.getPileupElementString());
+						rec.setNormalOABS(acc.getObservedAllelesByStrand());
+//						rec.setNormalNucleotides(acc.getPileupElementString());
 						rec.setNormalCount(acc.getCoverage());
 						rec.setNormalPileup(acc.getPileup());
 						rec.setNormalNovelStartCount(null != pel ? pel.getNovelStartCount() : 0);
 					} else {
 						// tumour fields
 						rec.setTumourCount(acc.getCoverage());
-						rec.setTumourNucleotides(acc.getPileupElementString());
+						rec.setTumourOABS(acc.getObservedAllelesByStrand());
+//						rec.setTumourNucleotides(acc.getPileupElementString());
 						rec.setTumourNovelStartCount(null != pel ? pel.getNovelStartCount() : 0);
 					}
 				}

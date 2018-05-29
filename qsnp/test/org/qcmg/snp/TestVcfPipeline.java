@@ -54,9 +54,9 @@ public class TestVcfPipeline extends Pipeline {
 			
 			// create new QSnpRecord with the mergedVcf details
 			qpr = new QSnpRecord(mergedVcf);
-			qpr.setNormalNucleotides(normal.getNormalNucleotides());
+			qpr.setNormalOABS(normal.getNormalOABS());
 			qpr.setNormalGenotype(normal.getNormalGenotype());
-			qpr.setTumourNucleotides(tumour.getTumourNucleotides());
+			qpr.setTumourOABS(tumour.getTumourOABS());
 			qpr.setTumourGenotype(tumour.getTumourGenotype());
 			
 			

@@ -99,10 +99,10 @@ public class BAMPileupUtil {
 				if (null == record.getNormalGenotype()) {
 					record.setNormalPileup(pileup);
 					record.setNormalCount(pileup.length());
-					record.setNormalNucleotides(PileupElementUtil.getPileupElementString(PileupElementUtil.getPileupCounts(pileup, qualities), record.getRef().charAt(0)));
+//					record.setNormalNucleotides(PileupElementUtil.getPileupElementString(PileupElementUtil.getPileupCounts(pileup, qualities), record.getRef().charAt(0)));
 				} else if (null == record.getTumourGenotype()) {
 					record.setTumourCount(pileup.length());
-					record.setTumourNucleotides(PileupElementUtil.getPileupElementString(PileupElementUtil.getPileupCounts(pileup, qualities), record.getRef().charAt(0)));
+//					record.setTumourNucleotides(PileupElementUtil.getPileupElementString(PileupElementUtil.getPileupCounts(pileup, qualities), record.getRef().charAt(0)));
 				}
 			} 
 		}
