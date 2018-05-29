@@ -938,7 +938,7 @@ public class PipelineTest {
 		// add in tumour nucleotides
 		String tumourOABS = "A0[26.65]4[28.2];G1[20]8[24.33]"; 
 		snp.setTumourOABS(tumourOABS);
-		final String normalOABS = "A5[28.01]10[26.6];G9[19.34]4[25.51]";
+		final String normalOABS = "G5[28.01]10[26.6]";
 		snp.setNormalOABS(normalOABS);
 		snp.setNormalGenotype(GenotypeEnum.GG);
 		snp.setTumourGenotype(GenotypeEnum.AG);
@@ -947,7 +947,7 @@ public class PipelineTest {
 		
 		final Pipeline pipeline = new TestPipeline();
 		pipeline.classifyPileupRecord(snp);
-		assertEquals(SnpUtils.LESS_THAN_12_READS_NORMAL + Constants.SEMI_COLON_STRING+ SnpUtils.MUTANT_READS + Constants.SEMI_COLON_STRING + SnpUtils.NOVEL_STARTS , snp.getAnnotation());
+		assertEquals(SnpUtils.LESS_THAN_12_READS_NORMAL  + Constants.SEMI_COLON_STRING+ SnpUtils.MUTANT_READS + Constants.SEMI_COLON_STRING + SnpUtils.NOVEL_STARTS , snp.getAnnotation());
 		VcfRecord vcf = pipeline.convertQSnpToVCF(snp);
 		assertEquals(SnpUtils.LESS_THAN_12_READS_NORMAL + Constants.SEMI_COLON_STRING + SnpUtils.MUTANT_READS + Constants.SEMI_COLON_STRING + SnpUtils.NOVEL_STARTS , vcf.getFilter());
 		

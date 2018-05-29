@@ -467,7 +467,7 @@ public final class VcfPipeline extends Pipeline {
 			rec.setNormalOABS(acc.getObservedAllelesByStrand());
 //			rec.setNormalNucleotides(acc.getPileupElementString());
 			rec.setNormalCount(acc.getCoverage());
-			rec.setNormalPileup(acc.getPileup());
+//			rec.setNormalPileup(acc.getPileup());
 			rec.setNormalNovelStartCount(null != pel ? pel.getNovelStartCount() : 0);
 		} else {
 			// tumour fields

@@ -111,7 +111,7 @@ public class GenotypeComparisonUtil {
 				} else {
 					char M = reference == tumour.getFirstAllele() ? tumour.getSecondAllele() : tumour.getFirstAllele();
 					// if there is evidence of the variant in the normal - > GERMLINE
-					if (record.getNormalCount() > 0 && StringUtils.isCharPresentInString(record.getNormalPileup(), M)) {
+					if (record.getNormalCount() > 0 && StringUtils.isCharPresentInString(record.getNormalOABS(), M)) {
 						
 						record.setClassification(Classification.GERMLINE);
 						record.setMutation(reference + MUT_DELIM + M);
@@ -130,7 +130,7 @@ public class GenotypeComparisonUtil {
 				
 				if (tumour.isHomozygous()) {
 					char M = tumour.getFirstAllele();
-					if (record.getNormalCount() > 0 && (StringUtils.isCharPresentInString(record.getNormalPileup(), M))) {
+					if (record.getNormalCount() > 0 && (StringUtils.isCharPresentInString(record.getNormalOABS(), M))) {
 //						if (record.getNormalCount() > 0 && (record.getNormalPileup().contains(""+M) 
 //								|| record.getNormalPileup().contains(""+Character.toLowerCase(M)))) {
 						
@@ -153,8 +153,8 @@ public class GenotypeComparisonUtil {
 					char B = tumour.getSecondAllele();
 					
 					if (record.getNormalCount() > 0 
-							&& StringUtils.isCharPresentInString(record.getNormalPileup(), A) 
-							&& StringUtils.isCharPresentInString(record.getNormalPileup(), B)) {
+							&& StringUtils.isCharPresentInString(record.getNormalOABS(), A) 
+							&& StringUtils.isCharPresentInString(record.getNormalOABS(), B)) {
 						record.setClassification(Classification.GERMLINE);
 						record.setMutation(reference + MUT_DELIM + tumour.getDisplayString());
 //						record.addAnnotation("mutation also found in pileup of normal");
@@ -293,7 +293,7 @@ public class GenotypeComparisonUtil {
 			if (null != mutation) {
 				char M = mutation.charAt(mutation.length()-1);
 				
-				if (StringUtils.isCharPresentInString(record.getNormalPileup(), M)) {
+				if (StringUtils.isCharPresentInString(record.getNormalOABS(), M)) {
 					final String ND = record.getNormalNucleotides();
 					final int normalCount = record.getNormalCount();
 //					final String alt = SnpUtils.getAltFromMutationString(mutation);

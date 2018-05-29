@@ -35,7 +35,7 @@ public class QSnpRecord {
 	private int tumourNovelStartCount;
 	private Classification classification;
 	private String mutation;
-	private String normalPileup;
+//	private String normalPileup;
 	private String unfilteredNormalPileup;
 	private String normalOABS;
 	private String tumourOABS;
@@ -107,12 +107,12 @@ public class QSnpRecord {
 	public String getMutation() {
 		return mutation;
 	}
-	public void setNormalPileup(String normalPileup) {
-		this.normalPileup = normalPileup;
-	}
-	public String getNormalPileup() {
-		return normalPileup;
-	}
+//	public void setNormalPileup(String normalPileup) {
+//		this.normalPileup = normalPileup;
+//	}
+//	public String getNormalPileup() {
+//		return normalPileup;
+//	}
 	
 	public String getFormattedString() {
 		return (null != normalGenotype ? normalGenotype.getDisplayString() : "") + TAB

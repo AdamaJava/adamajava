@@ -28,7 +28,7 @@ public class TorrentPipelineTest {
 		snp.setTumourOABS("A13[12.94]15[20.01];C0[0]2[30.07];G0[0]2[27.54]");
 		snp.setNormalGenotype(GenotypeEnum.AA);
 		snp.setTumourGenotype(GenotypeEnum.AT);
-		snp.setNormalPileup("ACGT");
+//		snp.setNormalPileup("ACGT");
 		snp.setNormalCount(49);
 		
 		TestPipeline tp = new TestPipeline();
@@ -50,7 +50,7 @@ public class TorrentPipelineTest {
 		snp.setTumourOABS("C34[25.33]49[14.69];A18[18.13]1[11];G0[0]2[11];T0[0]2[10.51]");
 		snp.setNormalGenotype(GenotypeEnum.CC);
 		snp.setTumourGenotype(GenotypeEnum.AC);
-		snp.setNormalPileup("ACG");
+//		snp.setNormalPileup("ACG");
 		snp.setNormalCount(219);
 		
 		tp.positionRecordMap.put(cp, snp);		//overwrite the old snp
@@ -71,7 +71,7 @@ public class TorrentPipelineTest {
 		snp.setTumourOABS("C168[15.03]130[24.14];T10[12.48]12[15.2];G1[12]0[0]");
 		snp.setNormalGenotype(GenotypeEnum.CC);
 		snp.setTumourGenotype(GenotypeEnum.CT);
-		snp.setNormalPileup("ACGT");
+//		snp.setNormalPileup("ACGT");
 		snp.setNormalCount(603);
 		
 		tp.positionRecordMap.put(cp, snp);		//overwrite the old snp
