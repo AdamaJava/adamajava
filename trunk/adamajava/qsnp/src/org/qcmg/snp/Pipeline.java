@@ -896,8 +896,8 @@ public abstract class Pipeline {
 			
 			// set normal pileup to only contain the different bases found in normal, rather than the whole pileup string
 			// which contains special chars indicating start/end of reads along with mapping qualities
-			if (normalCoverage > 0)
-				qRecord.setNormalPileup(PileupElementUtil.getBasesFromPileupElements(normalBaseCounts, ref));
+//			if (normalCoverage > 0)
+//				qRecord.setNormalPileup(PileupElementUtil.getBasesFromPileupElements(normalBaseCounts, ref));
 
 			// use all base counts to form genotype
 			final List<PileupElement> normalBaseCountsPassRule = PileupElementUtil
@@ -1735,8 +1735,8 @@ public abstract class Pipeline {
 			
 			// set normal pileup to only contain the different bases found in normal, rather than the whole pileup string
 			// which contains special chars indicating start/end of reads along with mapping qualities
-			if (normalCoverage > 0)
-				qRecord.setNormalPileup(normal.getCompressedPileup());
+//			if (normalCoverage > 0)
+//				qRecord.setNormalPileup(normal.getCompressedPileup());
 			// use all base counts to form genotype
 			qRecord.setNormalGenotype(null != normal ? normal.getGenotype(ref, normalRule, normalPass[1], baseQualityPercentage) : null);
 			qRecord.setTumourGenotype(null != tumour ? tumour.getGenotype(ref, tumourRule, tumourPass[1], baseQualityPercentage) : null);

@@ -245,13 +245,13 @@ public final class MuTectPipeline extends Pipeline {
 		// all on the forward strand...
 		// division by zero
 		String ND = null;
-		String normalPileup = null;
+//		String normalPileup = null;
 		if (normalRefCount > 0) {
 			double normalRefQuality = Double.parseDouble(mtData[32]);
 			double aveQual = normalRefQuality / normalRefCount;
 			
 			ND = ref + normalRefCount + "[" + NF.format(aveQual) + "]0[0]";
-			normalPileup = "" + ref;
+//			normalPileup = "" + ref;
 		}
 		
 		if (normalAltCount > 0) {
@@ -264,10 +264,10 @@ public final class MuTectPipeline extends Pipeline {
 				ND += ";" + alt + normalAltCount + "[" + NF.format(aveQual) + "]0[0]";
 			}
 			
-			normalPileup = null == normalPileup ? "" + alt : "" + ref + alt;
+//			normalPileup = null == normalPileup ? "" + alt : "" + ref + alt;
 		}
 		rec.setNormalOABS(ND);
-		rec.setNormalPileup(normalPileup);
+//		rec.setNormalPileup(normalPileup);
 		
 		// hard-coding all to somatic
 		rec.setClassification(Classification.SOMATIC);
@@ -436,7 +436,7 @@ public final class MuTectPipeline extends Pipeline {
 						rec.setNormalOABS(acc.getObservedAllelesByStrand());
 //						rec.setNormalNucleotides(acc.getPileupElementString());
 						rec.setNormalCount(acc.getCoverage());
-						rec.setNormalPileup(acc.getPileup());
+//						rec.setNormalPileup(acc.getPileup());
 						rec.setNormalNovelStartCount(null != pel ? pel.getNovelStartCount() : 0);
 					} else {
 						// tumour fields

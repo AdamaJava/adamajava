@@ -97,7 +97,7 @@ public class BAMPileupUtil {
 		if (pileup.length() > 0) {
 			if (Mode.QSNP == mode) {
 				if (null == record.getNormalGenotype()) {
-					record.setNormalPileup(pileup);
+//					record.setNormalPileup(pileup);
 					record.setNormalCount(pileup.length());
 //					record.setNormalNucleotides(PileupElementUtil.getPileupElementString(PileupElementUtil.getPileupCounts(pileup, qualities), record.getRef().charAt(0)));
 				} else if (null == record.getTumourGenotype()) {

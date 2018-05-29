@@ -275,7 +275,8 @@ public class GenotypeComparisonUtilTest {
 		QSnpRecord record = new QSnpRecord("1", 1, "A");
 		record.setTumourGenotype(GenotypeEnum.AG);
 		record.setNormalCount(2);
-		record.setNormalPileup("Ag");
+		record.setNormalOABS("A1[10]0[];G0[0]1[10]");
+//		record.setNormalPileup("Ag");
 		GenotypeComparisonUtil.compareSingleGenotype(record);
 		Assert.assertEquals(Classification.GERMLINE, record.getClassification());
 		Assert.assertEquals("A>G", record.getMutation());
@@ -283,7 +284,8 @@ public class GenotypeComparisonUtilTest {
 		record = new QSnpRecord("1", 1, "A");
 		record.setTumourGenotype(GenotypeEnum.AG);
 		record.setNormalCount(3);
-		record.setNormalPileup("AGG");
+//		record.setNormalPileup("AGG");
+		record.setNormalOABS("A1[10]0[];G2[10]0[0]");
 		GenotypeComparisonUtil.compareSingleGenotype(record);
 		Assert.assertEquals(Classification.GERMLINE, record.getClassification());
 		Assert.assertEquals("A>G", record.getMutation());
@@ -291,7 +293,8 @@ public class GenotypeComparisonUtilTest {
 		record = new QSnpRecord("1", 1, "A");
 		record.setTumourGenotype(GenotypeEnum.AG);
 		record.setNormalCount(2);
-		record.setNormalPileup("AA");	// no evidence
+//		record.setNormalPileup("AA");	// no evidence
+		record.setNormalOABS("A2[10]0[]");
 		GenotypeComparisonUtil.compareSingleGenotype(record);
 		Assert.assertEquals(Classification.SOMATIC, record.getClassification());
 		Assert.assertEquals("A>G", record.getMutation());
@@ -299,7 +302,8 @@ public class GenotypeComparisonUtilTest {
 		record = new QSnpRecord("1", 1, "A");
 		record.setTumourGenotype(GenotypeEnum.GT);
 		record.setNormalCount(3);
-		record.setNormalPileup("CAc");	// no evidence
+//		record.setNormalPileup("CAc");	// no evidence
+		record.setNormalOABS("C1[10]1[12];A1[10]0[]");
 		GenotypeComparisonUtil.compareSingleGenotype(record);
 		Assert.assertEquals(Classification.SOMATIC, record.getClassification());
 		Assert.assertEquals("A>G/T", record.getMutation());
@@ -307,7 +311,8 @@ public class GenotypeComparisonUtilTest {
 		record = new QSnpRecord("1", 1, "A");
 		record.setTumourGenotype(GenotypeEnum.TT);
 		record.setNormalCount(4);
-		record.setNormalPileup("AtGg");	// no evidence
+		record.setNormalOABS("G1[10]1[12];A1[10]0[];T0[0]1[12]");
+//		record.setNormalPileup("AtGg");	// no evidence
 		GenotypeComparisonUtil.compareSingleGenotype(record);
 		Assert.assertEquals(Classification.GERMLINE, record.getClassification());
 		Assert.assertEquals("A>T", record.getMutation());
@@ -360,7 +365,8 @@ public class GenotypeComparisonUtilTest {
 		QSnpRecord record = new QSnpRecord("chr12", 58638253, "G");
 		record.setTumourGenotype(GenotypeEnum.AT);
 		record.setNormalCount(3);
-		record.setNormalPileup("AaT");
+		record.setNormalOABS("A1[10]1[12];T1[10]0[0]");
+//		record.setNormalPileup("AaT");
 		
 		GenotypeComparisonUtil.compareSingleGenotype(record);
 		Assert.assertEquals(Classification.GERMLINE, record.getClassification());
@@ -372,7 +378,8 @@ public class GenotypeComparisonUtilTest {
 		QSnpRecord record2 = new QSnpRecord("chr14", 94914340, "G");
 		record2.setTumourGenotype(GenotypeEnum.CT);
 		record2.setNormalCount(4);
-		record2.setNormalPileup("TCCT");
+		record2.setNormalOABS("C2[10]0[0];T2[10]0[0]");
+//		record2.setNormalPileup("TCCT");
 		
 		GenotypeComparisonUtil.compareSingleGenotype(record2);
 		Assert.assertEquals(Classification.GERMLINE, record2.getClassification());
@@ -382,7 +389,8 @@ public class GenotypeComparisonUtilTest {
 		record3.setTumourGenotype(GenotypeEnum.GG);
 		record3.setTumourCount(4);
 		record3.setNormalCount(1);
-		record3.setNormalPileup("G");
+		record3.setNormalOABS("G1[10]0[0]");
+//		record3.setNormalPileup("G");
 		GenotypeComparisonUtil.compareSingleGenotype(record3);
 		Assert.assertEquals(Classification.GERMLINE, record3.getClassification());
 		Assert.assertEquals(SnpUtils.LESS_THAN_3_READS_NORMAL, record3.getAnnotation());
