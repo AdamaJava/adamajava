@@ -89,7 +89,6 @@ public class BuildCommonSnpsVcf {
 				}
 				if (passesFilter) mapOfFilesAndIds.put(f, i++);
 			}
-//			dcc1Files = mapOfFilesAndIds.keySet().toArray(dcc1Files);
 		} else {
 			int i = 1;
 			// need to populate the map
@@ -156,7 +155,6 @@ public class BuildCommonSnpsVcf {
 				if (null == commonSnpVcf.getId()) {
 					commonSnpVcf.setId(dbSNPVcf.getId());
 				} else {
-//					logger.info("multiple dbSnp positions exist at : " + cp.toIGVString());
 					commonSnpVcf.setId(commonSnpVcf.getId() + ";" + dbSNPVcf.getId());
 				}
 				
@@ -188,8 +186,6 @@ public class BuildCommonSnpsVcf {
 	private VcfHeader getHeaderForCommonSnps(final String [] searchString, final String [] searchDirectory, String[] additionalSearchStrings, Map<File, Integer> mapOfFilesAndIds) throws Exception {
 		final VcfHeader header = new VcfHeader();
 		final DateFormat df = new SimpleDateFormat("yyyyMMdd");
- //		final String fileDate = df.format(Calendar.getInstance().getTime());
-		//final String uuid = QExec.createUUid();		
 
 
 		//move input uuid into preuuid
