@@ -296,8 +296,6 @@ public class BuildCommonSnpsVcf {
 					alt = alt1 + "," + alt2;
 				}
 						
-//				String alt = alt1.equals(alt2) ? alt1 : alt1 + "," + alt2;
-				
 				// check to see if this appears in the map already - if so, update patient (if not already there)
 				VcfRecord vcfRec = snpPositions.get(cp);
 				if (vcfRec != null) {
