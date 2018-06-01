@@ -324,9 +324,7 @@ public class BuildCommonSnpsVcf {
 						}
 					}
 					
-					//				if ( ! existingDonors.contains(donor)) {
 					vcfRec.setInfo(existingDonors + ";" + id);
-					//				}	// else do nothing
 				} else {
 					// add
 					vcfRec = VcfUtils.createVcfRecord(cp, null, ref, alt);
