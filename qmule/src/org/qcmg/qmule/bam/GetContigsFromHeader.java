@@ -70,7 +70,7 @@ public class GetContigsFromHeader {
 						StringBuilder key = new StringBuilder();
 						key.append(contig);
 						contigs.add(contig);
-						while (basesToMakeUp.longValue() > 0) {
+						while (basesToMakeUp.longValue() > 1000000) {
 							Optional<Entry<String, Integer>> e1 = map.entrySet().stream().filter(en -> ! contigs.contains(en.getKey())).filter(en -> en.getValue() < basesToMakeUp.longValue()).max((en1, en2) -> en2.getValue() - en1.getValue());
 							if (e1.isPresent()) {
 								key.append(" -L ");
