@@ -29,6 +29,44 @@ public class SignatureUtilTest {
 	@org.junit.Rule
 	public  TemporaryFolder testFolder = new TemporaryFolder();
 	
+	public static final List<String> BAM_HEADER = Arrays.asList("##fileformat=VCFv4.2",
+			"##datetime=2016-08-18T14:37:22.871",
+			"##program=SignatureGeneratorBespoke",
+			"##version=1.0 (1230)",
+			"##java_version=1.8.0_71",
+			"##run_by_os=Linux",
+			"##run_by_user=oliverH",
+			"##positions=/software/genomeinfo/configs/qsignature/qsignature_positions.txt",
+			"##positions_md5sum=d18c99f481afbe04294d11deeb418890",
+			"##positions_count=1456203",
+			"##filter_base_quality=10",
+			"##filter_mapping_quality=10",
+			"##illumina_array_design=/software/genomeinfo/configs/qsignature/Illumina_arrays_design.txt",
+			"##cmd_line=SignatureGeneratorBespoke -i /software/genomeinfo/configs/qsignature/qsignature_positions.txt -illumina /software/genomeinfo/configs/qsignature/Illumina_arrays_design.txt -i /mnt/lustre/home/oliverH/qbammerge/dodgy_sample_merge/dodgy_exome.bam -log /mnt/lustre/home/oliverH/qsignature/bespoke/siggenbes.log -d /mnt/lustre/home/oliverH/qsignature/bespoke/",
+			"##INFO=<ID=QAF,Number=.,Type=String,Description=\"Lists the counts of As-Cs-Gs-Ts for each read group, along with the total\">",
+			"##input=/mnt/lustre/home/oliverH/qbammerge/dodgy_sample_merge/dodgy_exome.bam",
+			"##id:readgroup",
+			"##rg1:fc17fe15-6c1a-42aa-9270-0787d84c8001",
+			"##rg2:14989e3c-e669-46c2-866d-a8c504679743",
+			"#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO");
+	
+	public static final List<String> SNP_CHIP_HEADER = Arrays.asList("##fileformat=VCFv4.2",
+			"##datetime=2018-04-17T16:03:13.028",
+			"##program=SignatureGeneratorBespoke",
+			"##version=1.0 (2477)",
+			"##java_version=1.8.0_152",
+			"##run_by_os=Linux",
+			"##run_by_user=oliverH",
+			"##positions=/software/genomeinfo/configs/qsignature/qsignature_positions.txt",
+			"##positions_md5sum=d18c99f481afbe04294d11deeb418890",
+			"##positions_count=1456203",
+			"##filter_gc_score=0.7",
+			"##illumina_array_design=/software/genomeinfo/configs/qsignature/Illumina_arrays_design.txt",
+			"##cmd_line=SignatureGeneratorBespoke -i /mnt/lustre/working/genomeinfo/data/20180309_KNArrays/202047900199_R05C01.array.txt -d /mnt/backedup/home/oliverH/qsignature -snpPositions /software/genomeinfo/configs/qsignature/qsignature_positions.txt -illuminaArraysDesign /software/genomeinfo/configs/qsignature/Illumina_arrays_design.txt -log /mnt/backedup/home/oliverH/qsignature/202047900199_R05C01.array.txt.qsig.log",
+			"##INFO=<ID=QAF,Number=.,Type=String,Description=\"Lists the counts of As-Cs-Gs-Ts for each read group, along with the total\">",
+			"##input=/mnt/lustre/working/genomeinfo/data/20180309_KNArrays/202047900199_R05C01.array.txt",
+			"#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO");
+	
 	@Test
 	public void testGetPatientFromFile() {
 		assertEquals("AAAA_1234", SignatureUtil.getPatientFromFile(new File("/path/project/AAAA_1234/SNP_array/1234.txt")));
@@ -59,30 +97,8 @@ public class SignatureUtilTest {
 	}
 	
 	@Test
-	public void getSigMeta() {
-		List<String> hs = Arrays.asList("##fileformat=VCFv4.2",
-"##datetime=2016-08-18T14:37:22.871",
-"##program=SignatureGeneratorBespoke",
-"##version=1.0 (1230)",
-"##java_version=1.8.0_71",
-"##run_by_os=Linux",
-"##run_by_user=oliverH",
-"##positions=/software/genomeinfo/configs/qsignature/qsignature_positions.txt",
-"##positions_md5sum=d18c99f481afbe04294d11deeb418890",
-"##positions_count=1456203",
-"##filter_base_quality=10",
-"##filter_mapping_quality=10",
-"##illumina_array_design=/software/genomeinfo/configs/qsignature/Illumina_arrays_design.txt",
-"##cmd_line=SignatureGeneratorBespoke -i /software/genomeinfo/configs/qsignature/qsignature_positions.txt -illumina /software/genomeinfo/configs/qsignature/Illumina_arrays_design.txt -i /mnt/lustre/home/oliverH/qbammerge/dodgy_sample_merge/dodgy_exome.bam -log /mnt/lustre/home/oliverH/qsignature/bespoke/siggenbes.log -d /mnt/lustre/home/oliverH/qsignature/bespoke/",
-"##INFO=<ID=QAF,Number=.,Type=String,Description=\"Lists the counts of As-Cs-Gs-Ts for each read group, along with the total\">",
-"##input=/mnt/lustre/home/oliverH/qbammerge/dodgy_sample_merge/dodgy_exome.bam",
-"##id:readgroup",
-"##rg1:fc17fe15-6c1a-42aa-9270-0787d84c8001",
-"##rg2:14989e3c-e669-46c2-866d-a8c504679743",
-"#CHROM  POS     ID      REF     ALT     QUAL    FILTER  INFO");
-		
-		
-		TabbedHeader h = new TabbedHeader(hs);
+	public void getSigMetaBam() {
+		TabbedHeader h = new TabbedHeader(BAM_HEADER);
 		Optional<Pair<SigMeta, Map<String, String>>> o =SignatureUtil.getSigMetaAndRGsFromHeader(h); 
 		assertEquals(true, o.isPresent());
 		
@@ -94,6 +110,33 @@ public class SignatureUtilTest {
 		assertEquals(true, o.get().getSecond().containsKey("rg2"));
 		assertEquals("fc17fe15-6c1a-42aa-9270-0787d84c8001", o.get().getSecond().get("rg1"));
 		assertEquals("14989e3c-e669-46c2-866d-a8c504679743", o.get().getSecond().get("rg2"));
+	}
+	
+	@Test
+	public void getSigMetaSnpChip() {
+		TabbedHeader h = new TabbedHeader(SNP_CHIP_HEADER);
+		Optional<Pair<SigMeta, Map<String, String>>> o =SignatureUtil.getSigMetaAndRGsFromHeader(h); 
+		assertEquals(true, o.isPresent());
+		
+		assertEquals(true, o.get().getFirst().isValid());			// valid SigMeta
+		assertEquals(true, o.get().getSecond().isEmpty());	// non-empty rg map
+		assertEquals(0, o.get().getSecond().size());				// non-empty rg map
+	}
+	
+	@Test
+	public void canSigMEtasBeCompared() {
+		TabbedHeader h = new TabbedHeader(SNP_CHIP_HEADER);
+		Optional<Pair<SigMeta, Map<String, String>>> o =SignatureUtil.getSigMetaAndRGsFromHeader(h); 
+		assertEquals(true, o.isPresent());
+		SigMeta snpChpSM = o.get().getFirst();
+		
+		h = new TabbedHeader(BAM_HEADER);
+		o =SignatureUtil.getSigMetaAndRGsFromHeader(h); 
+		assertEquals(true, o.isPresent());
+		SigMeta bamSM = o.get().getFirst();
+		
+		assertEquals(true, SigMeta.suitableForComparison(snpChpSM, bamSM));
+		assertEquals(true, SigMeta.suitableForComparison(bamSM, snpChpSM));
 	}
 	
 	@Test
@@ -233,40 +276,7 @@ public class SignatureUtilTest {
 	@Test
 	public void bespokeGenotype() throws IOException {
 		File f = testFolder.newFile();
-		try (FileWriter w = new FileWriter(f);){
-			// add header
-			w.write("##fileformat=VCFv4.2\n");
-			w.write("##datetime=2016-08-17T14:44:30.088\n");
-			w.write("##program=SignatureGeneratorBespoke\n");
-			w.write("##version=1.0 (1230)\n");
-			w.write("##java_version=1.8.0_71\n");
-			w.write("##run_by_os=Linux\n");
-			w.write("##run_by_user=oliverH\n");
-			w.write("##positions=/software/genomeinfo/configs/qsignature/qsignature_positions.txt\n");
-			w.write("##positions_md5sum=d18c99f481afbe04294d11deeb418890\n");
-			w.write("##positions_count=1456203\n");
-			w.write("##filter_base_quality=10\n");
-			w.write("##filter_mapping_quality=10\n");
-			w.write("##illumina_array_design=/software/genomeinfo/configs/qsignature/Illumina_arrays_design.txt\n");
-			w.write("##cmd_line=SignatureGeneratorBespoke -i /software/genomeinfo/configs/qsignature/qsignature_positions.txt -illumina /software/genomeinfo/configs/qsignature/Illumina_arrays_design.txt -i /mnt/lustre/working/genomeinfo/share/mapping/aws/argsBams/dd625894-d1e3-4938-8d92-3a9f57c23e08.bam -d /mnt/lustre/home/oliverH/qsignature/bespoke/ -log /mnt/lustre/home/oliverH/qsignature/bespoke/siggen.log\n");
-			w.write("##INFO=<ID=QAF,Number=.,Type=String,Description=\"Lists the counts of As-Cs-Gs-Ts for each read group, along with the total\">\n");
-			w.write("##input=/mnt/lustre/working/genomeinfo/share/mapping/aws/argsBams/dd625894-d1e3-4938-8d92-3a9f57c23e08.bam\n");
-			w.write("##id:readgroup\n");
-			w.write("##rg1:143b8c38-62cb-414a-aac3-ea3a940cc6bb\n");
-			w.write("##rg2:65a79904-ee91-4f53-9a94-c02e23e071ef\n");
-			w.write("#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO\n");
-			w.write("chr1	47851\t.\tC\t.\t.\t.\tQAF=t:0-12-0-0,rg1:0-9-0-0,rg2:0-3-0-0\n");
-			w.write("chr1	50251\t.\tT\t.\t.\t.\tQAF=t:0-0-0-11,rg1:0-0-0-9,rg2:0-0-0-2\n");
-			w.write("chr1\t51938	.\tT\t.\t.\t.\tQAF=t:0-0-0-9,rg1:0-0-0-5,rg2:0-0-0-4\n");
-			w.write("chr1\t52651	.\tT\t.\t.\t.\tQAF=t:0-0-0-3,rg1:0-0-0-1,rg2:0-0-0-2\n");
-			w.write("chr1\t64251	.\tA\t.\t.\t.\tQAF=t:9-0-0-0,rg1:5-0-0-0,rg2:4-0-0-0\n");
-			w.write("chr1\t98222	.\tC\t.\t.\t.\tQAF=t:0-12-0-0,rg1:0-5-0-0,rg2:0-7-0-0\n");
-			w.write("chr1\t99236	.\tT\t.\t.\t.\tQAF=t:0-0-0-22,rg1:0-0-0-12,rg2:0-0-0-10\n");
-			w.write("chr1\t101095	.\tT\t.\t.\t.\tQAF=t:0-0-0-10,rg1:0-0-0-5,rg2:0-0-0-5\n");
-			w.write("chr1\t102954	.\tT\t.\t.\t.\tQAF=t:0-0-1-64,rg1:0-0-0-36,rg2:0-0-1-28\n");
-			w.write("chr1\t104813	.\tG\t.\t.\t.\tQAF=t:0-1-17-0,rg1:0-1-10-0,rg2:0-0-7-0\n");
-			w.write("chr1\t106222	.\tT\t.\t.\t.\tQAF=t:0-0-0-4,rg1:0-0-0-1,rg2:0-0-0-3\n");
-		}
+		createBamVcfFile(f);
 		
 		Pair<SigMeta, TMap<String, TIntShortHashMap>> p = SignatureUtil.loadSignatureRatiosBespokeGenotype(f, 10, 10);
 		assertEquals(7, p.getSecond().get("all").size());
@@ -288,26 +298,9 @@ public class SignatureUtilTest {
 		File f = testFolder.newFile();
 		try (FileWriter w = new FileWriter(f);){
 			// add header
-			w.write("##fileformat=VCFv4.2\n");
-			w.write("##datetime=2016-08-17T14:44:30.088\n");
-			w.write("##program=SignatureGeneratorBespoke\n");
-			w.write("##version=1.0 (1230)\n");
-			w.write("##java_version=1.8.0_71\n");
-			w.write("##run_by_os=Linux\n");
-			w.write("##run_by_user=oliverH\n");
-			w.write("##positions=/software/genomeinfo/configs/qsignature/qsignature_positions.txt\n");
-			w.write("##positions_md5sum=d18c99f481afbe04294d11deeb418890\n");
-			w.write("##positions_count=1456203\n");
-			w.write("##filter_base_quality=10\n");
-			w.write("##filter_mapping_quality=10\n");
-			w.write("##illumina_array_design=/software/genomeinfo/configs/qsignature/Illumina_arrays_design.txt\n");
-			w.write("##cmd_line=SignatureGeneratorBespoke -i /software/genomeinfo/configs/qsignature/qsignature_positions.txt -illumina /software/genomeinfo/configs/qsignature/Illumina_arrays_design.txt -i /mnt/lustre/working/genomeinfo/share/mapping/aws/argsBams/dd625894-d1e3-4938-8d92-3a9f57c23e08.bam -d /mnt/lustre/home/oliverH/qsignature/bespoke/ -log /mnt/lustre/home/oliverH/qsignature/bespoke/siggen.log\n");
-			w.write("##INFO=<ID=QAF,Number=.,Type=String,Description=\"Lists the counts of As-Cs-Gs-Ts for each read group, along with the total\">\n");
-			w.write("##input=/mnt/lustre/working/genomeinfo/share/mapping/aws/argsBams/dd625894-d1e3-4938-8d92-3a9f57c23e08.bam\n");
-			w.write("##id:readgroup\n");
-			w.write("##rg1:143b8c38-62cb-414a-aac3-ea3a940cc6bb\n");
-			w.write("##rg2:65a79904-ee91-4f53-9a94-c02e23e071ef\n");
-			w.write("#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO\n");
+			for (String s : BAM_HEADER) {
+				w.write(s + "\n");
+			}
 			for (short i = 0 ; i < 10 ; i++) {
 				w.write("chr1	10295" + i + "	cnvi0120648	T	.	.	.	FULLCOV=A:0,C:0,G:0,T:35,N:0,TOTAL:35;NOVELCOV=A:0,C:0,G:0,T:32,N:0,TOTAL:32\n");
 			}
@@ -346,6 +339,49 @@ public class SignatureUtilTest {
 //				assertEquals(0, dist.get(s));
 //			}
 //		}
+	}
+	
+	@Test
+	public void compareBams() throws IOException {
+		File f1 = testFolder.newFile();
+		File f2 = testFolder.newFile();
+		createBamVcfFile(f1);
+		createBamVcfFile(f2);
+		Pair<SigMeta, TMap<String, TIntShortHashMap>> p1 = SignatureUtil.loadSignatureRatiosBespokeGenotype(f1,10,10);
+		Pair<SigMeta, TMap<String, TIntShortHashMap>> p2 = SignatureUtil.loadSignatureRatiosBespokeGenotype(f2,10,10);
+		Pair<SigMeta, TIntShortHashMap> ratios1 = new Pair<>(p1.getKey(), p1.getSecond().get("all"));
+		Pair<SigMeta, TIntShortHashMap> ratios2 = new Pair<>(p2.getKey(), p2.getSecond().get("all"));
+		Comparison comp = ComparisonUtil.compareRatiosUsingSnpsFloat(ratios1.getValue(), ratios2.getValue(), f1, f2);
+		assertEquals(1.0, comp.getScore(), 0.0001d);
+		assertEquals(7, comp.getOverlapCoverage());	// 7 of the 11 have coverage over 10
+	}
+	@Test
+	public void compareSnpChips() throws IOException {
+		File f1 = testFolder.newFile();
+		File f2 = testFolder.newFile();
+		createSnpChipVcfFile(f1);
+		createSnpChipVcfFile(f2);
+		Pair<SigMeta, TMap<String, TIntShortHashMap>> p1 = SignatureUtil.loadSignatureRatiosBespokeGenotype(f1,10,10);
+		Pair<SigMeta, TMap<String, TIntShortHashMap>> p2 = SignatureUtil.loadSignatureRatiosBespokeGenotype(f2,10,10);
+		Pair<SigMeta, TIntShortHashMap> ratios1 = new Pair<>(p1.getKey(), p1.getSecond().get("all"));
+		Pair<SigMeta, TIntShortHashMap> ratios2 = new Pair<>(p2.getKey(), p2.getSecond().get("all"));
+		Comparison comp = ComparisonUtil.compareRatiosUsingSnpsFloat(ratios1.getValue(), ratios2.getValue(), f1, f2);
+		assertEquals(1.0, comp.getScore(), 0.0001d);
+		assertEquals(11, comp.getOverlapCoverage());	// 7 of the 11 have coverage over 10
+	}
+	@Test
+	public void compareSnpChipAndBam() throws IOException {
+		File f1 = testFolder.newFile();
+		File f2 = testFolder.newFile();
+		createBamVcfFile(f1);
+		createSnpChipVcfFile(f2);
+		Pair<SigMeta, TMap<String, TIntShortHashMap>> p1 = SignatureUtil.loadSignatureRatiosBespokeGenotype(f1,10,10);
+		Pair<SigMeta, TMap<String, TIntShortHashMap>> p2 = SignatureUtil.loadSignatureRatiosBespokeGenotype(f2,10,10);
+		Pair<SigMeta, TIntShortHashMap> ratios1 = new Pair<>(p1.getKey(), p1.getSecond().get("all"));
+		Pair<SigMeta, TIntShortHashMap> ratios2 = new Pair<>(p2.getKey(), p2.getSecond().get("all"));
+		Comparison comp = ComparisonUtil.compareRatiosUsingSnpsFloat(ratios1.getValue(), ratios2.getValue(), f1, f2);
+		assertEquals(0.0, comp.getScore(), 0.0001d);
+		assertEquals(7, comp.getOverlapCoverage());	// 7 of the 11 have coverage over 10
 	}
 	
 	@Test
@@ -579,7 +615,6 @@ public class SignatureUtilTest {
 		assertEquals(1, SignatureUtil.removeClosedProjectFilesFromList(files, excludes).size());
 	}
 	
-	
 	@Test
 	public void testAddFileToCollection() {
 		SignatureUtil.addFileToCollection(null, null, null);
@@ -600,7 +635,6 @@ public class SignatureUtilTest {
 		assertEquals(3, collection.size());
 	}
 	
-	
 	@Test
 	public void testPopulateSnpChipFilesList() throws Exception {
 		try {
@@ -620,7 +654,6 @@ public class SignatureUtilTest {
 		assertEquals(0, SignatureUtil.populateSnpChipFilesList(snpChipFile1.getAbsolutePath(), "ip1", null, "snap").size());
 		assertEquals(0, SignatureUtil.populateSnpChipFilesList(snpChipFile1.getAbsolutePath(), "ip1", null, "sn1p").size());
 		assertEquals(1, SignatureUtil.populateSnpChipFilesList(snpChipFile1.getAbsolutePath(), "ip1", null, "snp").size());
-		
 	}
 	
 	@Test
@@ -838,7 +871,44 @@ public class SignatureUtilTest {
 			}
 		}
 		assertEquals(20, coverages[4]);
-		
 	}
-
+	
+	private void createSnpChipVcfFile(File f) throws IOException {
+		try (FileWriter w = new FileWriter(f);){
+			// add header
+			for (String s : SNP_CHIP_HEADER) {
+				w.write(s+"\n");
+			}
+			w.write("chr1\t47851\trs3131972\tA\t.\t.\t.\tQAF=t:0-0-22-0\n");
+			w.write("chr1\t50251\trs4970383\tC\t.\t.\t.\tQAF=t:0-37-0-0\n");
+			w.write("chr1\t51938\trs7537756\tA\t.\t.\t.\tQAF=t:17-0-13-0\n");
+			w.write("chr1\t52651\trs13302982\tA\t.\t.\t.\tQAF=t:0-0-25-0\n");
+			w.write("chr1\t64251\trs3748597\tT\t.\t.\t.\tQAF=t:0-25-0-0\n");
+			w.write("chr1\t98222\trs3935066\tG\t.\t.\t.\tQAF=t:19-0-0-0\n");
+			w.write("chr1\t99236\trs28561399\tG\t.\t.\t.\tQAF=t:0-0-21-0\n");
+			w.write("chr1\t101095\trs2341354\tA\t.\t.\t.\tQAF=t:12-0-9-0\n");
+			w.write("chr1\t102954\trs2465136\tT\t.\t.\t.\tQAF=t:0-12-0-15\n");
+			w.write("chr1\t104813\trs7526076\tA\t.\t.\t.\tQAF=t:16-0-11-0\n");
+			w.write("chr1\t106222\trs9442372\tA\t.\t.\t.\tQAF=t:18-0-12-0\n");
+		}
+	}
+	private void createBamVcfFile(File f) throws IOException {
+		try (FileWriter w = new FileWriter(f);){
+			// add header
+			for (String s : BAM_HEADER) {
+				w.write(s+"\n");
+			}
+			w.write("chr1	47851\t.\tC\t.\t.\t.\tQAF=t:0-12-0-0,rg1:0-9-0-0,rg2:0-3-0-0\n");
+			w.write("chr1	50251\t.\tT\t.\t.\t.\tQAF=t:0-0-0-11,rg1:0-0-0-9,rg2:0-0-0-2\n");
+			w.write("chr1\t51938	.\tT\t.\t.\t.\tQAF=t:0-0-0-9,rg1:0-0-0-5,rg2:0-0-0-4\n");
+			w.write("chr1\t52651	.\tT\t.\t.\t.\tQAF=t:0-0-0-3,rg1:0-0-0-1,rg2:0-0-0-2\n");
+			w.write("chr1\t64251	.\tA\t.\t.\t.\tQAF=t:9-0-0-0,rg1:5-0-0-0,rg2:4-0-0-0\n");
+			w.write("chr1\t98222	.\tC\t.\t.\t.\tQAF=t:0-12-0-0,rg1:0-5-0-0,rg2:0-7-0-0\n");
+			w.write("chr1\t99236	.\tT\t.\t.\t.\tQAF=t:0-0-0-22,rg1:0-0-0-12,rg2:0-0-0-10\n");
+			w.write("chr1\t101095	.\tT\t.\t.\t.\tQAF=t:0-0-0-10,rg1:0-0-0-5,rg2:0-0-0-5\n");
+			w.write("chr1\t102954	.\tT\t.\t.\t.\tQAF=t:0-0-1-64,rg1:0-0-0-36,rg2:0-0-1-28\n");
+			w.write("chr1\t104813	.\tG\t.\t.\t.\tQAF=t:0-1-17-0,rg1:0-1-10-0,rg2:0-0-7-0\n");
+			w.write("chr1\t106222	.\tT\t.\t.\t.\tQAF=t:0-0-0-4,rg1:0-0-0-1,rg2:0-0-0-3\n");
+		}
+	}
 }
