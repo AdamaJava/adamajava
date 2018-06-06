@@ -361,8 +361,9 @@ public class SignatureUtil {
 			
 			String md = "";
 			int count = 0;
-			int bq = 0;
-			int mq = 0;
+			int bq = -1;
+			int mq = -1;
+			float gc = -1f;
 			Map<String, String> rgIds = new THashMap<>();
 			for (String s : h) {
 				if (s.startsWith(SignatureUtil.MD_5_SUM)) {
@@ -371,6 +372,8 @@ public class SignatureUtil {
 					count = Integer.parseInt(s.substring(POSITIONS_COUNT.length() + 1));
 				} else if (s.startsWith(MIN_BASE_QUAL)) {
 					bq = Integer.parseInt(s.substring(MIN_BASE_QUAL.length() + 1));
+				} else if (s.startsWith(MIN_GC_SCORE)) {
+					gc = Float.parseFloat(s.substring(MIN_GC_SCORE.length() + 1));
 				} else if (s.startsWith(MIN_MAPPING_QUAL)) {
 					mq = Integer.parseInt(s.substring(MIN_MAPPING_QUAL.length() + 1));
 				} else if (s.startsWith(RG_PREFIX)) {
@@ -381,7 +384,7 @@ public class SignatureUtil {
 				}
 			}
 			
-			return Optional.of(new Pair<>(new SigMeta(md, count, bq, mq), rgIds));
+			return Optional.of(new Pair<>(new SigMeta(md, count, bq, mq, gc), rgIds));
 		}
 	}
 	
@@ -486,8 +489,7 @@ public class SignatureUtil {
 				 * Need to tease out the pertinent bits
 				 */
 				int commaIndex = coverage.indexOf(Constants.COMMA);
-				String totalCov = coverage.substring(coverage.indexOf(Constants.COLON) + 1, commaIndex);
-				
+				String totalCov = coverage.substring(coverage.indexOf(Constants.COLON) + 1, commaIndex > -1 ? commaIndex : coverage.length());
 				
 				Optional<float[]> array = getValuesFromCoverageStringBespoke(totalCov, minCoverage);
 				array.ifPresent(f -> {
