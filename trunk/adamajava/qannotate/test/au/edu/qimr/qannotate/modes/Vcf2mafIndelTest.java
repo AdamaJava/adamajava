@@ -339,7 +339,7 @@ public class Vcf2mafIndelTest {
         //split string to maf record
 		SnpEffMafRecord maf = new SnpEffMafRecord();
         String[] eles = line.split("\\t");
-        
+        System.out.println("eles.length: " + eles.length);
         //last two optional column for acsnp
         assertTrue(eles.length + 2 == MafElement.values().length);
              
