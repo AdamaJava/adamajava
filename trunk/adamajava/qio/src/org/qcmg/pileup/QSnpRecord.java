@@ -35,7 +35,6 @@ public class QSnpRecord {
 	private int tumourNovelStartCount;
 	private Classification classification;
 	private String mutation;
-//	private String normalPileup;
 	private String failedFilterControl;
 	private String normalOABS;
 	private String tumourOABS;
