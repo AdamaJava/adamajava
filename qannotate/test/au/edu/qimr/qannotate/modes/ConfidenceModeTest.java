@@ -189,6 +189,20 @@ public class ConfidenceModeTest {
 		 String conf = info.getField(VcfHeaderUtils.INFO_CONFIDENCE);
 		 assertEquals("HIGH_1,ZERO_2", conf);
 	 }
+	 @Test
+	 public void confidenceRealLifeMerged3() {
+		 //now try the merged record
+		 VcfRecord vcf = new VcfRecord(new String[]{"chr6","130796720","rs150594394","C","T",".","PASS_1;PASS_2","SOMATIC_1;FLANK=AGCGATGCAGA;SOMATIC_2;IN=1,2;DB;VAF=0.04821;HOM=0,GCGTGAGCGAtGCAGAAGACG;EFF=intergenic_region(MODIFIER||||||||||1)","GT:GD:AC:DP:OABS:MR:NNS:AD:GQ:PL","0/0&.:C/C&C/C:C7[32.86],5[35.2]&C7[32.86],5[35.2]:12&.:C7[32.86]5[35.2]&.:0&0:0&0:.:.:.","1/1&1/1:T/T&T/T:T2[36],3[36]&T2[36],3[36]:5&5:T2[36]3[36]&.:5&5:5&5:0,5:15:172,15,0"});
+		 ConfidenceMode cm =new ConfidenceMode();
+		 cm.positionRecordMap.put(vcf.getChrPosition(), Arrays.asList(vcf));
+		 cm.setSampleColumn(2,1);
+		 cm.addAnnotation();
+		 
+		 vcf = cm.positionRecordMap.get(vcf.getChrPosition()).get(0);
+		 VcfInfoFieldRecord info = vcf.getInfoRecord();
+		 String conf = info.getField(VcfHeaderUtils.INFO_CONFIDENCE);
+		 assertEquals("HIGH_1,HIGH_2", conf);
+	 }
 	 
 	 @Test
 	 public void confidenceRealLife2() {
