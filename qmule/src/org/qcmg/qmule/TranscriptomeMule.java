@@ -15,12 +15,13 @@ import java.util.List;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.PileupElement;
+import org.qcmg.common.string.StringUtils;
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.PileupUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.picard.util.PileupElementUtil;
 import org.qcmg.pileup.PileupFileReader;
-import org.qcmg.pileup.QSnpRecord;
 
 public class TranscriptomeMule {
 	
@@ -34,7 +35,7 @@ public class TranscriptomeMule {
 //	private static int[] tumourStartPositions = null;
 	private int[] tumourStartPositions = null;
 	
-	private final List<QSnpRecord> positions = new ArrayList<QSnpRecord>(100000);
+	private final List<StringBuilder> positions = new ArrayList<>(100000);
 	
 	private static QLogger logger;
 	
@@ -56,11 +57,14 @@ public class TranscriptomeMule {
 		
 		try {
 			writer.write(header + "\n");
-			for (QSnpRecord record : positions)
-				writer.write(record.getChromosome() + "\t"
-						+ record.getPosition() + "\t"
-						+ record.getRef() + "\t"
-						+ record.getTumourNucleotides() + "\n");
+			for (StringBuilder sb : positions) {
+				writer.write(sb.toString() + Constants.NEW_LINE);
+			}
+//			for (QSnpRecord record : positions)
+//				writer.write(record.getChromosome() + "\t"
+//						+ record.getPosition() + "\t"
+//						+ record.getRef() + "\t"
+//						+ record.getTumourNucleotides() + "\n");
 		} finally {
 			writer.close();
 		}
@@ -102,9 +106,14 @@ public class TranscriptomeMule {
 		
 		if (tumourVariantCount >= 3) {
 			// keeper
-			QSnpRecord rec = new QSnpRecord(params[0], Integer.parseInt(params[1]), params[2]);
-			rec.setTumourOABS(PileupElementUtil.getOABS(tumourBaseCounts, rec.getRef().charAt(0)));
-			positions.add(rec);
+			StringBuilder sb = new StringBuilder(params[0]);
+			StringUtils.updateStringBuilder(sb, params[1], Constants.TAB);
+			StringUtils.updateStringBuilder(sb, params[2], Constants.TAB);
+			StringUtils.updateStringBuilder(sb, PileupElementUtil.getOABS(tumourBaseCounts, params[2].charAt(0)), Constants.TAB);
+			
+//			QSnpRecord rec = new QSnpRecord(params[0], Integer.parseInt(params[1]), params[2]);
+//			rec.setTumourOABS(PileupElementUtil.getOABS(tumourBaseCounts, rec.getRef().charAt(0)));
+			positions.add(sb);
 		}
 
 	}

@@ -6,7 +6,9 @@
 package au.edu.qimr.qannotate;
 
 import java.text.MessageFormat;
+import java.util.Arrays;
 import java.util.ResourceBundle;
+import java.util.stream.Collectors;
 
 /*
  * a collection of methods which return formated message string
@@ -64,12 +66,12 @@ class Messages {
 	 * @return the string
 	 */
 	public static String reconstructCommandLine(final String[] args) {
-		String result = getProgramName() + " ";
-		for (final String arg : args) {
-			result += arg + " ";
-		}
-		result = result.trim();
-		return result;
+		return getProgramName() + " " + Arrays.stream(args).collect(Collectors.joining(" "));
+//		String result = getProgramName() + " ";
+//		for (final String arg : args) {
+//			result += arg + " ";
+//		}
+//		return result;
 	}
 
 

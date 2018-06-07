@@ -21,8 +21,8 @@ public class VcfFormatFieldRecord {
 	 * create an empty record
 	 */
 	public VcfFormatFieldRecord( ){
-		keys = new ArrayList<String>( );
-		values = new ArrayList<String>( );		
+		keys = new ArrayList<>(4);
+		values = new ArrayList<>(4);		
 	}
 	
 	/**
@@ -41,8 +41,8 @@ public class VcfFormatFieldRecord {
 		final String[] kk = format.split(Constants.COLON_STRING);	
 		final String[] vv= sample.split(Constants.COLON_STRING);
 		
-		keys = new ArrayList<String>(kk.length * 2);
-		values = new ArrayList<String>(kk.length * 2);
+		keys = new ArrayList<>(kk.length + 1);
+		values = new ArrayList<>(kk.length + 1);
 						
 		
 		for(int i = 0; i < kk.length; i ++) {
@@ -161,7 +161,7 @@ public class VcfFormatFieldRecord {
 	
 	@Override
 	public String toString(){
-		return getFormatColumnString() + "\t" + getSampleColumnString();
+		return getFormatColumnString() + Constants.TAB + getSampleColumnString();
 	}
 	
 	/**
@@ -183,12 +183,16 @@ public class VcfFormatFieldRecord {
 	 */
 	private int getKeyIndex(String key){
 		
-		int index = -1;
-		for(int i = 0; i < keys.size(); i ++) 
-			if(keys.get(i).equals(key)){
-				index = i;
-				break;
-			}
-		return index; 
+		return keys.indexOf(key);
+		
+		
+//		int index = -1;
+//		for (int i = 0; i < keys.size(); i ++) {
+//			if (keys.get(i).equals(key)){
+//				index = i;
+//				break;
+//			}
+//		}
+//		return index; 
 	}
 }

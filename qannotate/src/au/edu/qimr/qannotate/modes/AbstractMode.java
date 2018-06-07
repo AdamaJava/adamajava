@@ -33,6 +33,7 @@ import au.edu.qimr.qannotate.Main;
 
 abstract class AbstractMode {
 	public static final String DATE_FORMAT_STRING = "yyyyMMdd";
+	
 	final Map<ChrPosition,List<VcfRecord>> positionRecordMap = new HashMap<>();
 	VcfHeader header = null;
 
@@ -43,7 +44,7 @@ abstract class AbstractMode {
 	 * @param f: read variants from input into RAM hash map
 	 * @throws IOException
 	 */
-	void inputRecord(File f) throws IOException{
+	protected void loadVcfRecordsFromFile(File f) throws IOException {
 		
         //read record into RAM, meanwhile wipe off the ID field value;
         try (VCFFileReader reader = new VCFFileReader(f)) {
@@ -55,9 +56,7 @@ abstract class AbstractMode {
 				if ( ! pos.getChromosome().equals(chr)) {
 					pos = new ChrRangePosition(chr, pos.getStartPosition(), pos.getEndPosition());
 				}
-				
-				positionRecordMap.computeIfAbsent(pos, v -> new ArrayList<>()).add(vcf);
-				
+				positionRecordMap.computeIfAbsent(pos, function -> new ArrayList<VcfRecord>(2)).add(vcf);
 			}
 		}
         logger.info("loaded " + positionRecordMap.size() + " vcf entries from " + f.getAbsolutePath());
@@ -74,7 +73,7 @@ abstract class AbstractMode {
 	void writeVCF(File outputFile ) throws IOException {		 
 		logger.info("creating VCF output...");	 		
 		final List<ChrPosition> orderedList = new ArrayList<>(positionRecordMap.keySet());
-		orderedList.sort(ChrPositionComparator.getCPComparatorForGRCh37());
+		orderedList.sort( ChrPositionComparator.getCPComparatorForGRCh37());
 		
 		try(VCFFileWriter writer = new VCFFileWriter( outputFile)) {
 			for(final VcfHeaderRecord record: header)  {
@@ -96,7 +95,7 @@ abstract class AbstractMode {
  		
 		String version = Main.class.getPackage().getImplementationVersion();
 		String pg = Main.class.getPackage().getImplementationTitle();
-		final String fileDate = new SimpleDateFormat(DATE_FORMAT_STRING).format(Calendar.getInstance().getTime());
+		final String fileDate = new SimpleDateFormat("yyyyMMdd").format(Calendar.getInstance().getTime());
 		final String uuid = QExec.createUUid();
 		
 		myHeader.addOrReplace(VcfHeaderUtils.CURRENT_FILE_FORMAT);

@@ -10,14 +10,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.util.Constants;
 
 public class StringUtils {
-	public static final char TAB = '\t';
+	public static final char TAB = Constants.TAB;
+	public static final String DOT = Constants.MISSING_DATA_STRING;
 	public static final String RETURN = "\n";
-	public static final String DOT = ".";
 
 	/**
 	 * 
@@ -40,6 +41,14 @@ public class StringUtils {
 				sb.append(delim);
 			}
 			sb.append(toAdd);
+		}
+	}
+	
+	public static String parseArray2String(Object[] values){
+		if (null != values) {
+			return Arrays.stream(values).map(s -> s.toString()).collect(Collectors.joining(Constants.COMMA_STRING));
+		} else {
+			return null;
 		}
 	}
 	
@@ -101,19 +110,6 @@ public class StringUtils {
 		
 		return position;
 	}
-	
-	
-	public static String parseArray2String(Object[] values){
-		StringBuilder sb = new StringBuilder();	
-		for (Object t : values)  
-			if(t instanceof Number) sb.append(t + ",");
-			else sb.append(t.toString() + ",");	 
-		 
-		if (sb.length() > 0)
-			return sb.substring(0, sb.length()-1);
-		return null;		
-	}
-	
 	
 	public static <T> List<T> getChildArrayFromParentArray(T[] parentArray, Integer[] childArrayPositions) {
 		if (null == parentArray || null == childArrayPositions)
@@ -216,7 +212,7 @@ public class StringUtils {
 	}
 	
 	public static boolean isNullOrEmptyOrMissingData(final String test, boolean ignoreWhiteSpace) {
-		return null == test || (ignoreWhiteSpace ? test.trim().isEmpty() : test.isEmpty()) || Constants.MISSING_DATA_STRING.equals(test);
+		return null == test || (ignoreWhiteSpace ? test.trim().isEmpty() : test.isEmpty()) || Constants.MISSING_DATA_STRING.equals(test) || Constants.MISSING_GT.equals(test);
 	}
 	public static boolean isNullOrEmptyOrMissingData(final String test) {
 		return isNullOrEmptyOrMissingData(test, true);

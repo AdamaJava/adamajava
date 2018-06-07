@@ -1,4 +1,4 @@
-version = '2.0'
+version = '2.1.4'
 
 def mainclass = 'org.qcmg.snp.Main'
 def scriptname = 'qsnp'
@@ -36,6 +36,7 @@ dependencies {
     compile name: 'trove', version: '3.1a1'
     compile name: 'htsjdk', version: '1.140'
     compile name: 'ini4j', version: '0.5.2-SNAPSHOT'
+    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.4'
 
     testCompile name: 'junit', version: '4.10'
 }

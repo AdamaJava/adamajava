@@ -88,8 +88,9 @@ public class IndelConfidenceMode extends AbstractMode{
         try(BufferedReader reader = new BufferedReader(new FileReader(dbfile))){
             String line;
             while (( line = reader.readLine()) != null) {
-            		if ( ! line.startsWith("geno")) { //head line
-            			String[] array = line.split(" ");
+            		if ( ! line.startsWith("geno")) {
+	                String[] array = line.split(" ");
+	                	//int no = Integer.parseInt(array[0]) - 1;
 	                	String chr = IndelUtils.getFullChromosome(array[0]);
 	                	
 	                	int start = Integer.parseInt(array[1]);
@@ -170,16 +171,16 @@ public class IndelConfidenceMode extends AbstractMode{
 		    for(final VcfHeaderRecord record: hd)  
 		    	writer.addHeader(record.toString());
 		
-	        for (final VcfRecord vcf : reader) {
-		        	if( isRepeat(vcf) ){
-		        		VcfUtils.updateFilter(vcf, FILTER_REPEAT);
-		        		repeatCount ++;
-		        	}
-		    		vcf.getInfoRecord().setField(VcfHeaderUtils.INFO_CONFIDENCE, getConfidence(vcf).toString());		
-		    		
-		    		count++;
-		    		posCheck.add(vcf.getChrPosition());
-		    		writer.add(vcf);
+	        for (final VcfRecord vcf : reader) {               	
+	        	if( isRepeat(vcf) ){
+	        		VcfUtils.updateFilter(vcf, FILTER_REPEAT);
+	        		repeatCount ++;
+	        	}
+	    		vcf.getInfoRecord().setField(VcfHeaderUtils.INFO_CONFIDENCE, getConfidence(vcf).toString());		
+	    		
+	    		count++;
+	    		posCheck.add(vcf.getChrPosition());
+	    		writer.add(vcf);
 	        }
 		}  
 		logger.info(String.format("outputed %d VCF record, happend on %d variants location.",  count , posCheck.size()));

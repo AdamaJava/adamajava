@@ -12,7 +12,7 @@ import org.qcmg.common.vcf.header.VcfHeaderUtils;
 
 
 public class SampleColumn {
-	 
+	
 	private final int test_column ; //can't be -1 since will "+1"
 	private final int control_column ;
 	private final String test_Sample;

@@ -203,7 +203,7 @@ public class GatkUniqueSnps {
 			getPileup(jumper1, qpr);
 			
 			if (++count % 100 == 0)
-				logger.info("hit " + count + " vcf records, " + qpr.getFormattedString());
+				logger.info("hit " + count + " vcf records, " + qpr.toString());
 			
 			if (qpr.getAnnotation() == null)
 				noAnnotation++;
@@ -246,7 +246,8 @@ public class GatkUniqueSnps {
 					}
 				}
 				somaticWriter.write(somaticAnalysisId + "\t" + tumourSampleId + "\t" 
-						+ record.getDCCData(mutationIdPrefix, ensemblChr) + "\n");
+						+ "\n");
+//				+ record.getDCCData(mutationIdPrefix, ensemblChr) + "\n");
 			}
 		} finally {
 			somaticWriter.close();
@@ -256,7 +257,7 @@ public class GatkUniqueSnps {
 	private static QSnpRecord getQPileupRecord(QSnpGATKRecord vcfRec) {
 		final QSnpRecord qpr = new QSnpRecord(vcfRec.getChromosome(), vcfRec.getPosition(), vcfRec.getRef());
 		qpr.setTumourGenotype(vcfRec.getGenotypeEnum());
-		qpr.setMutation(vcfRec.getRef() + Constants.MUT_DELIM + vcfRec.getAlt());
+//		qpr.setMutation(vcfRec.getRef() + Constants.MUT_DELIM + vcfRec.getAlt());
 //		qpr.getVcfRecord().setFilter(vcfRec.getAnnotation());
 		qpr.setClassification(Classification.SOMATIC);
 		return qpr;
@@ -304,7 +305,8 @@ public class GatkUniqueSnps {
 	
 	public static void examinePileup(List<SAMRecord> sams, QSnpRecord record) throws Exception {
 		
-		final char mutation = record.getMutation().charAt(record.getMutation().length() -1);
+		final char mutation = record.getAlt().charAt(0);
+//		final char mutation = record.getMutation().charAt(record.getMutation().length() -1);
 		boolean mutationFoundInNormal = false;
 		int normalCoverage = 0;
 		for (final SAMRecord sam : sams ) {
@@ -333,7 +335,7 @@ public class GatkUniqueSnps {
 			VcfUtils.updateFilter(record.getVcfRecord(), VcfHeaderUtils.FILTER_MUTATION_IN_NORMAL);
 		}
 		
-		record.setNormalCount(normalCoverage);
+//		record.setNormalCount(normalCoverage);
 		
 		if (normalCoverage < 12) {
 			VcfUtils.updateFilter(record.getVcfRecord(), VcfHeaderUtils.FILTER_COVERAGE_NORMAL_12);
@@ -383,8 +385,8 @@ public class GatkUniqueSnps {
 				final ChrPosition id = ChrPointPosition.valueOf(chr, rec.getPosition());
 				
 				final QSnpRecord qpr = somaticPileupMap.get(id);
-				if (null != qpr && null != qpr.getMutation() && (null == qpr.getAnnotation() || ! qpr.getAnnotation().contains(VcfHeaderUtils.FILTER_GERMLINE))) {
-					final String mutation = qpr.getMutation();
+				if (null != qpr && null != qpr.getAlt() && (null == qpr.getAnnotation() || ! qpr.getAnnotation().contains(VcfHeaderUtils.FILTER_GERMLINE))) {
+					final String mutation = qpr.getAlt();
 					if (mutation.length() == 3) {
 						final char c = mutation.charAt(2);
 						

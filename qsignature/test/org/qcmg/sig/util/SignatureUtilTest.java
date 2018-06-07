@@ -45,9 +45,8 @@ public class SignatureUtilTest {
 			"##cmd_line=SignatureGeneratorBespoke -i /software/genomeinfo/configs/qsignature/qsignature_positions.txt -illumina /software/genomeinfo/configs/qsignature/Illumina_arrays_design.txt -i /mnt/lustre/home/oliverH/qbammerge/dodgy_sample_merge/dodgy_exome.bam -log /mnt/lustre/home/oliverH/qsignature/bespoke/siggenbes.log -d /mnt/lustre/home/oliverH/qsignature/bespoke/",
 			"##INFO=<ID=QAF,Number=.,Type=String,Description=\"Lists the counts of As-Cs-Gs-Ts for each read group, along with the total\">",
 			"##input=/mnt/lustre/home/oliverH/qbammerge/dodgy_sample_merge/dodgy_exome.bam",
-			"##id:readgroup",
-			"##rg1:fc17fe15-6c1a-42aa-9270-0787d84c8001",
-			"##rg2:14989e3c-e669-46c2-866d-a8c504679743",
+			"##rg1=fc17fe15-6c1a-42aa-9270-0787d84c8001",
+			"##rg2=14989e3c-e669-46c2-866d-a8c504679743",
 			"#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO");
 	
 	public static final List<String> SNP_CHIP_HEADER = Arrays.asList("##fileformat=VCFv4.2",
@@ -325,20 +324,6 @@ public class SignatureUtilTest {
 				Assert.assertArrayEquals(null, dist.get(s));
 			}
 		}
-//		
-//		TShortIntHashMap dist = SignatureUtil.getVariantAlleleFractionDistribution(f, 20);
-//		for (short s = 0 ; s <=100 ; s++) {
-//			switch (s) {
-//			case 0: 
-//				assertEquals(10, dist.get(s)); break;
-//			case 50:
-//				assertEquals(10, dist.get(s)); break;
-//			case 100:
-//				assertEquals(10, dist.get(s)); break;
-//			default :
-//				assertEquals(0, dist.get(s));
-//			}
-//		}
 	}
 	
 	@Test
@@ -406,7 +391,6 @@ public class SignatureUtilTest {
 		assertEquals(5055, SignatureUtil.getFloatAsShort(50.55f));
 	}
 	
-	
 	@Test
 	public void genotypeShort() {
 		/*
@@ -434,7 +418,6 @@ public class SignatureUtilTest {
 		assertEquals(1, SignatureUtil.getCodedGenotype(new float[]{0.0f,0.0f,0.0f,0.4f}));
 		assertEquals(100, SignatureUtil.getCodedGenotype(new float[]{0.0f,0.4f,0.0f,0.0f}));
 		assertEquals(10, SignatureUtil.getCodedGenotype(new float[]{0.0f,0.0f,0.59f,0.0f}));
-		
 	}
 	
 	@Test
@@ -461,9 +444,6 @@ public class SignatureUtilTest {
 		assertEquals(false, SignatureUtil.isCodedGenotypeValid((short) 2001));
 		assertEquals(false, SignatureUtil.isCodedGenotypeValid((short) 2222));
 	}
-	
-	
-	
 	
 	@Test
 	public void testGetCoverageStringFromCharsAndInts() {

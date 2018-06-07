@@ -91,9 +91,9 @@ public class IndelUtilsTest {
 	
 	@Test
 	public void getMoti() {
-		assertEquals("C", IndelUtils.getMotif("C", "A", SVTYPE.SNP));
-		assertEquals("ABC", IndelUtils.getMotif("ABC", "DEF", SVTYPE.SNP));
-		assertEquals("ABC", IndelUtils.getMotif("ABC", "DEF", SVTYPE.DNP));
+		assertEquals("A", IndelUtils.getMotif("C", "A", SVTYPE.SNP));
+		assertEquals("DEF", IndelUtils.getMotif("ABC", "DEF", SVTYPE.SNP));
+		assertEquals("DEF", IndelUtils.getMotif("ABC", "DEF", SVTYPE.DNP));
 		assertEquals("B", IndelUtils.getMotif("AB", "A", SVTYPE.DEL));
 		assertEquals("C", IndelUtils.getMotif("BC", "B", SVTYPE.DEL));
 		assertEquals("CDEF", IndelUtils.getMotif("B", "BCDEF", SVTYPE.INS));

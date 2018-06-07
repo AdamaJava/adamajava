@@ -37,6 +37,7 @@ public class SeqFilterTest {
         		record = re;
         }
         Inreader.close();
+        assertEquals(false, null == record);
         
         //create a base string
         String str = "ACCCTNNNNCTAACCCTAACCNTAACCCTAACCCAAC";

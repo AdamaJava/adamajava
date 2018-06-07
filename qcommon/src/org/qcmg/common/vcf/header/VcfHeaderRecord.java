@@ -16,7 +16,7 @@ public class VcfHeaderRecord implements Comparable<VcfHeaderRecord> {
 	public static final String TYPE = "Type";	
 	public static final String DESCRIPTION = "Description";	
 	public static final String SOURCE = "Source";
-	public static final String FORMAT = "FORMAT";	
+	public static final String FORMAT = "FORMAT";
 	public static final Pattern PATTERN = Pattern.compile("=(\\s*)\"(.*?)\"(\\s*),");
 	
 	private final String value;
@@ -53,11 +53,12 @@ public class VcfHeaderRecord implements Comparable<VcfHeaderRecord> {
 		this.pairs = getPairs(vstr);
 		
 		Pair<String, String> pid = null; 
-		if (pairs != null ){
+		if(pairs != null ){
 			vstr = "<";
-			for (Pair<String, String> p : pairs){ 
-				vstr += p.getLeft() +  ((p.getRight() == null) ? "": "=" + p.getRight() ) + Constants.COMMA;
-			}			
+			for(Pair<String, String> p : pairs){ 
+				vstr += p.getLeft() +  ((p.getRight() == null) ? "": "=" + p.getRight() ) + ",";
+			}
+			
 			vstr = vstr.substring(0, vstr.length()-1) + ">";
 			for (Pair<String, String> p : pairs) {
 				if(p.getKey().equals(ID)){ 
@@ -97,7 +98,7 @@ public class VcfHeaderRecord implements Comparable<VcfHeaderRecord> {
 	
 	@Override
 	public String toString() { 
-		return  (value == null) ? key : key + Constants.EQ + value ; 
+		return  (value == null) ? key : key + Constants.EQ + value ;
 	}		
 
 	@Override
@@ -159,7 +160,6 @@ public class VcfHeaderRecord implements Comparable<VcfHeaderRecord> {
 	 */
 	public String getId(){ return id;} 	
 	
-	
 	/**
 	 * 
 	 * @param pairKey
@@ -169,12 +169,12 @@ public class VcfHeaderRecord implements Comparable<VcfHeaderRecord> {
 	public String getSubFieldValue(String pairKey){ 
 		if(pairs != null) {
 			for(Pair<String, String> pair : pairs) {
-				if(pair.getLeft().equalsIgnoreCase( pairKey)  ) {				 
+				if(pair.getLeft().equalsIgnoreCase(pairKey)  ) {				 
 					return pair.getRight(); 
 				}
 			}
 		}
-		return null; 		
+		return null; 
 	}
 	public List<Pair<String,String>> getSubFields(){ return pairs; }	
 	
@@ -185,15 +185,14 @@ public class VcfHeaderRecord implements Comparable<VcfHeaderRecord> {
 	 */
 	static String parseDescription(String str){
 		String str1 = str.trim();
-		String str2 = "";
-		str2 += (str1.startsWith("\""))? str1 : "\"" + str1;
+		String str2 = (str1.startsWith("\""))? str1 : "\"" + str1;
 		str2 += (str1.endsWith("\""))? "" : "\"";
 		return str2;
 	}
 
 	static private List<Pair<String,String>> getPairs(String sValue){
 		
-		if( !sValue.startsWith("<")  || !sValue.endsWith(">")) 
+		if( ! sValue.startsWith("<")  || ! sValue.endsWith(">")) 
 			return null; 
 			
 		List<Pair<String,String>> values =  new ArrayList<Pair<String,String>>();
@@ -215,10 +214,10 @@ public class VcfHeaderRecord implements Comparable<VcfHeaderRecord> {
  			for(int j = 0; j < subs.length; j++){
  				subs[j] = subs[j].trim();	 	 				
  				String key = null, value = null;
- 				if(quotStr.size() > i &&   j == subs.length-1 ) //the key bf quot string
- 				{	key = subs[j].replace("=", "").trim();
+ 				if (quotStr.size() > i &&   j == subs.length-1 ) {//the key bf quot string
+ 					key = subs[j].replace("=", "").trim();
  					value = "\"" + quotStr.get(i) + "\"";
- 				}else{  //non quot string sub field
+ 				} else {  //non quot string sub field
 	 				int index = subs[j].indexOf(Constants.EQ);
 	 				if(index > 0){ key = subs[j].substring(0,index).trim(); value = subs[j].substring(index+1).trim();}
 	 				else key = subs[j];	 					

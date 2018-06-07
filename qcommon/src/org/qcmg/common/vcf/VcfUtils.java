@@ -16,8 +16,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -34,8 +33,6 @@ import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.ListUtils;
 import org.qcmg.common.util.SnpUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-
-
 
 public class VcfUtils {
 	
@@ -125,8 +122,6 @@ public class VcfUtils {
 			}
 		}
 		return ffl.stream().map(StringBuilder::toString).collect(Collectors.toList());
-		
-//		return Collections.emptyList();
 	}
 	
 	public static Map<String, int[]> getAllelicCoverageFromOABS(String oabs) {
@@ -162,7 +157,6 @@ public class VcfUtils {
 			}
 			return m;
 		}
-		
 		return Collections.emptyMap();
 	}
 	
@@ -338,7 +332,6 @@ public class VcfUtils {
 		return ff.contains(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP);
 	}
 	
-	
 	public static String getGenotypeFromGATKVCFRecord(VcfRecord rec) {
 		if (null == rec)
 			throw new IllegalArgumentException("VCFRecord passed to VcfUtils.getGenotypeFromGATKVCFRecord is null");
@@ -396,63 +389,39 @@ public class VcfUtils {
 		}
 	}
 	
-	public static String[] getMutationAndGTs(String refString, GenotypeEnum control, GenotypeEnum test) {
-		final String [] results = new String[3];
-		final Set<Character> alts= new TreeSet<Character>();
-		char ref = '\u0000';
-		
-		if ( ! StringUtils.isNullOrEmpty(refString)) {
-			if (refString.length() > 1) {
-				logger.warn("getting the first char from ref: " + refString + "  in VcfUtils.getMutationAndGTs");
-			}
-			ref = refString.charAt(0);
-			
-			
-			if (null != control) {
-				if (ref != control.getFirstAllele()) {
-					alts.add(control.getFirstAllele());
-				}
-				if (ref != control.getSecondAllele()) {
-					alts.add(control.getSecondAllele());
-				}
-			}
-			if (null != test) {
-				if (ref != test.getFirstAllele()) {
-					alts.add(test.getFirstAllele());
-				}
-				if (ref != test.getSecondAllele()) {
-					alts.add(test.getSecondAllele());
-				}
-			}
+	/**
+	 * Returns the alleles that the genotype corresponds to based on the supplied genotype, reference and alt alleles string
+	 * 
+	 * @param genotype
+	 * @param ref
+	 * @param alts
+	 * @return
+	 */
+	public static List<String> getAlleles(String genotype, String ref, String alts) {
+		if (StringUtils.isNullOrEmptyOrMissingData(genotype) || Constants.MISSING_GT.equals(genotype)
+				|| StringUtils.isNullOrEmptyOrMissingData(ref)) {
+			return Collections.emptyList();
 		}
+		int gt1 = Integer.valueOf(genotype.charAt(0) + "");
+		int gt2 = Integer.valueOf(genotype.charAt(2) + "");
 		
-		final int size = alts.size();
-		
-		final String altsString = StringUtils.getStringFromCharSet(alts);
-		if (size == 0) {
-//			assert false : "empty list of alts from control and test: " + control + ", " + test;
-			Arrays.fill(results, MISSING_DATA_STRING);
-		
-		} else if (size == 1) {
-			results[0] = alts.iterator().next().toString();
-			results[1] = null != control ? control.getGTString(ref) : MISSING_DATA_STRING;
-			results[2] = null != test ? test.getGTString(ref) : MISSING_DATA_STRING;
+		List<String> l = new ArrayList<>(2);
+		String [] altsArr = alts.split(Constants.COMMA_STRING);
+		if (gt1 == 0) {
+			l.add(ref);
 		} else {
-			String alt = "";
-			for (final char c : alts) {
-				if (alt.length() == 0) {
-					alt = "" + c;
-				} else { 
-					alt += "," + c;
-				}
-			}
-			results[0] = alt;
-			results[1] = getGTString(altsString, ref, control);
-			results[2] = getGTString(altsString, ref, test);
+			l.add(altsArr[gt1 - 1]);
 		}
 		
-		return results;
+		if (gt2 == 0) {
+			l.add(ref);
+		} else {
+			l.add(altsArr[gt2 - 1]);
+		}
+		return l;
 	}
+	
+
 	
 	/**
 	 * Returns a map of string arrays that represent the format field records
@@ -504,23 +473,6 @@ public class VcfUtils {
 		return null;
 	}
 	
-	public static String getGTString(String altsString, char ref, GenotypeEnum ge) {
-		String result = MISSING_DATA_STRING;
-		if (ge != null && ! StringUtils.isNullOrEmpty(altsString)) {
-			if (ge.containsAllele(ref)) {
-				if (ge.isHeterozygous()) {
-					result = "0/" + (altsString.indexOf(ref == ge.getFirstAllele() ? ge.getSecondAllele() : ge.getFirstAllele()) + 1);
-				} else {
-					result = "0/0";
-				}
-			} else {
-				result = (altsString.indexOf(ge.getFirstAllele()) + 1) + "/" + (altsString.indexOf(ge.getSecondAllele()) + 1);
-			}
-		}
-		
-		return result;
-	}
-	
 	/**
 	 * Get GT from genotype, ref, alt
 	 * @param altsString
@@ -529,7 +481,7 @@ public class VcfUtils {
 	 * @return
 	 */
 	public static String getGTStringWhenAltHasCommas(String altsString, char ref, GenotypeEnum ge) {
-		String result = MISSING_DATA_STRING;
+		String result = Constants.MISSING_GT;
 		if (ge != null && ! StringUtils.isNullOrEmpty(altsString)) {
 			if (ge.containsAllele(ref)) {
 				if (ge.isHeterozygous()) {
@@ -657,6 +609,49 @@ public class VcfUtils {
 		return false;
 	}
 	
+	
+	public static Map<String, int[]> getAllelicCoverageWithStrand(String oabs) {
+		
+		/*
+		 * need to decompose the OABs string into a map of string keys and corresponding counts
+		 */
+		if ( ! StringUtils.isNullOrEmptyOrMissingData(oabs)) {
+			
+			String [] a = oabs.split(Constants.SEMI_COLON_STRING);
+			Map<String, int[]> m = new HashMap<>(a.length * 2);
+			
+			for (String pileup : a) {
+				int openBracketIndex = pileup.indexOf(Constants.OPEN_SQUARE_BRACKET);
+				/*
+				 * only populate map if we have a valid OABS
+				 */
+				if (openBracketIndex > -1) {
+					int startOfNumberIndex = 1;
+					for (int i = 1 ; i < openBracketIndex ; i++) {
+						char c = pileup.charAt(i);
+						if (Character.isDigit(c)) {
+							/*
+							 * end of the line
+							 */
+							startOfNumberIndex = i;
+							break;
+						}
+					}
+					
+					/*
+					 * get fs + rs count
+					 */
+					int fsCount = Integer.parseInt(pileup.substring(startOfNumberIndex, openBracketIndex));
+					int rsCount = Integer.parseInt(pileup.substring(pileup.indexOf(Constants.CLOSE_SQUARE_BRACKET) + 1, pileup.indexOf(Constants.OPEN_SQUARE_BRACKET, openBracketIndex + 1)));
+					m.put(pileup.substring(0, startOfNumberIndex),  new int[] {fsCount,rsCount});
+				}
+			}
+			return m;
+		}
+		
+		return Collections.emptyMap();
+	}
+	
 	/**
 	 * Adds missing data '.' to the format field for the specified vcf record.
 	 * The position parameter indicates which column should have the missing data added to it.
@@ -691,8 +686,7 @@ public class VcfUtils {
 			//split by ":"
 			int noOfColumns = formatColumns.split(Constants.COLON_STRING).length;
 			for (int j = 0 ; j < count ; j++) {
-				StringBuilder missingData = new StringBuilder(formatColumns.startsWith(VcfHeaderUtils.FORMAT_GENOTYPE) ? Constants.MISSING_DATA_STRING : Constants.MISSING_DATA_STRING);
-//				StringBuilder missingData = new StringBuilder(formatColumns.startsWith(VcfHeaderUtils.FORMAT_GENOTYPE) ? Constants.MISSING_GT : Constants.MISSING_DATA_STRING);
+				StringBuilder missingData = new StringBuilder(formatColumns.startsWith(VcfHeaderUtils.FORMAT_GENOTYPE) ? Constants.MISSING_GT : Constants.MISSING_DATA_STRING);
 				for (int i = 1 ; i < noOfColumns ; i++) {
 					missingData.append(":.");
 				}
@@ -702,127 +696,95 @@ public class VcfUtils {
 		}
 	}
 	
+	public static void addAdditionalSamplesToFormatField(VcfRecord vcf, List<String> additionalSampleFormatFields) {
+		
+		if (null == additionalSampleFormatFields || null == vcf || additionalSampleFormatFields.size() < 2) {
+			throw new IllegalArgumentException("Invalid arguments passed to VcfUtils.addAdditionalSamplesToFormatField");
+		}
+		
+		/*
+		 * split list up and add 1 at a time...
+		 */
+		
+		if (additionalSampleFormatFields.size() == 2) {
+			addAdditionalSampleToFormatField(vcf, additionalSampleFormatFields);
+		} else {
+			for (int i = 1; i < additionalSampleFormatFields.size() ; i++) {
+				addAdditionalSampleToFormatField(vcf, Arrays.asList(additionalSampleFormatFields.get(0), additionalSampleFormatFields.get(i)));
+			}
+		}
+	}
+	
 	/**
 	 * Attempts to add an additional samples format field to the existing vcf records format fields.
 	 * 
 	 */
 	public static void addAdditionalSampleToFormatField(VcfRecord vcf, List<String> additionalSampleFormatFields) {
-		if ( null != additionalSampleFormatFields && additionalSampleFormatFields.size() == 2) {
+		if ( null != additionalSampleFormatFields && additionalSampleFormatFields.size() > 1) {
+			
+//			logger.info("attempting to add sample ff to vcf rec: " + vcf.toString());
+//			additionalSampleFormatFields.stream().forEach(s -> logger.info("new ff: " + s));
+			List<String[]> additionalSampleFormatFieldsParams = additionalSampleFormatFields.stream().map(s -> s.split(Constants.COLON_STRING)).collect(Collectors.toList());
 			
 			List<String> existingFF = vcf.getFormatFields();
 			
-			if(existingFF == null)
+			if( existingFF.isEmpty()) {
 				throw new IllegalArgumentException("can't append additionalSampleFormatField to vcf with null on format column: " + vcf.toString());
-		 
-			
-			String newSampleFormatFields = additionalSampleFormatFields.get(0);
-			String existingFormatFields =existingFF.get(0);
-			
-			if ( newSampleFormatFields.equals(existingFormatFields)) {
-				existingFF.add(additionalSampleFormatFields.get(1));
-				vcf.setFormatFields(existingFF);
-			} else {
-				
-				Map<String, StringBuilder> ff = new HashMap<>();
-				
-				List<String [] > existingFFParams = new ArrayList<>();
-				for (String s : existingFF) {
-					existingFFParams.add(s.split(":"));
-				}
-				
-				/*
-				 * insert original data first, with missingData value at end for additional sample
-				 */
-				int i = 0;
-				int noOfExistingSamples = existingFF.size() -1;
-				for (String s : existingFFParams.get(0)) {
-					StringBuilder sb = new StringBuilder();
-					
-					for (int j = 1 ; j <= noOfExistingSamples ; j++) {
-						if (sb.length() > 0) {
-							sb.append(':');
-						}
-						sb.append(existingFFParams.get(j)[i]);
-					}
-					
-					sb.append(":.");	// for the additional sample
-					
-					ff.put(s,  sb);
-					i++;
-				}
-				
-				String [] newSampleFormatParamsHeaders = additionalSampleFormatFields.get(0).split(":");
-				String [] newSampleFormatParamsData = additionalSampleFormatFields.get(1).split(":");
-				
-				int z = 0;
-				for (String s : newSampleFormatParamsHeaders) {
-					StringBuilder sb = ff.get(s);
-					if (null == sb) {
-						sb = new StringBuilder();
-						for (int k = 0 ; k < noOfExistingSamples ; k++) {
-							if (k > 0) {
-								sb.append(':');
-							}
-							sb.append('.');
-						}
-						sb.append(':').append(newSampleFormatParamsData[z]);
-						ff.put(s,sb);
-					} else {
-						sb.deleteCharAt(sb.length() -1);
-						sb.append(newSampleFormatParamsData[z]);
-					}
-					z++;
-				}
-				
-				/*
-				 * re-populate the vcf format field
-				 */
-				StringBuilder header = new StringBuilder();
-				List<StringBuilder> values = new ArrayList<>();
-				
-				/*
-				 * try and maintain ordering
-				 */
-				String hugeHeader = existingFormatFields + ':' + newSampleFormatFields;
-				for (String s : hugeHeader.split(":")) {
-					
-					StringBuilder sb = ff.remove(s);
-					if (null != sb) {
-						if (header.length() > 0) {
-							header.append(':');
-						}
-						header.append(s);
-						
-						String [] params = sb.toString().split(":");
-						int m = 0;
-						for (String s1 : params) {
-							StringBuilder sb1 =  values.size() > m ? values.get(m) : null;
-							if (null == sb1) {
-								sb1 = new StringBuilder(s1);
-								values.add(sb1);
-							} else {
-								sb1.append(':').append(s1);
-							}
-							m++;
-						}
-					}
-				}
-				
-				List<String> finalList = new ArrayList<>();
-				finalList.add(header.toString());
-				for (StringBuilder sb : values) {
-					finalList.add(sb.toString());
-				}
-				vcf.setFormatFields(finalList);
-				
 			}
+			
+			int noOfExistingSamples = existingFF.size() -1;
+			Map<String, String[]> ffMap = getFormatFieldsAsMap(existingFF);
+			
+			int noOfNewSamples = additionalSampleFormatFields.size() - 1;
+			int updatedNumberOfSamples = noOfExistingSamples + noOfNewSamples;
+			/*
+			 * loop through existing fields, if new sample has data for it, add, otherwise using missing data
+			 * if new sample has additional fields, add to map, inserting missing data for any existing samples
+			 * easy huh?
+			 */
+			String [] emptyFF = new String[noOfExistingSamples];
+			Arrays.fill(emptyFF, Constants.MISSING_DATA_STRING);
+			
+			String [] newSampleHeaders = additionalSampleFormatFieldsParams.get(0);
+			for (int i = 0 ; i < newSampleHeaders.length ; i++) {
+				String key = newSampleHeaders[i];
+				String [] ff = ffMap.computeIfAbsent(key, v -> emptyFF);
+				
+				for (int j = 1 ; j <= noOfNewSamples ; j++) {
+					String [] newSampleData = additionalSampleFormatFieldsParams.get(j);
+					ff = Arrays.copyOf(ff, ff.length + 1);
+					ff[noOfExistingSamples + j -1 ] = newSampleData[i];
+					ffMap.put(key,  ff);
+				}
+			}
+			
+			/*
+			 * loop through map, and append missing data to any values that aren't of the correct length
+			 */
+			List<String> keysToBeefUp = ffMap.entrySet().stream().filter(e -> e.getValue().length < updatedNumberOfSamples).map(e -> e.getKey()).collect(Collectors.toList());
+			for (String s : keysToBeefUp) {
+				String[] ff = ffMap.get(s);
+				int origLen = ff.length;
+				ff =  Arrays.copyOf(ff, updatedNumberOfSamples);
+				for (int d = origLen ; d < updatedNumberOfSamples ; d++) {
+					ff[d] = VcfHeaderUtils.FORMAT_GENOTYPE.equals(s) ? Constants.MISSING_GT : Constants.MISSING_DATA_STRING;
+				}
+				ffMap.put(s, ff);
+			}
+			
+			/*
+			 * finally, update the vcf record with the updated map
+			 */
+			List<String> updatedFFs = convertFFMapToList(ffMap);
+			vcf.setFormatFields(updatedFFs);
+			
 		}
 	}
 	public static void addFormatFieldsToVcf(VcfRecord vcf, List<String> additionalFormatFields) {
-		 addFormatFieldsToVcf(vcf,  additionalFormatFields, false);
+		 addFormatFieldsToVcf(vcf,  additionalFormatFields, false, '\u0000');
 	}
 	
-	public static void addFormatFieldsToVcf(VcfRecord vcf, List<String> additionalFormatFields, boolean appendInfo) {
+	public static void addFormatFieldsToVcf(VcfRecord vcf, List<String> additionalFormatFields, boolean appendInfo, char separator) {
 		if ( null != additionalFormatFields && ! additionalFormatFields.isEmpty()) {
 			// if there are no existing format fields, set field to be additional..
 			
@@ -870,10 +832,15 @@ public class VcfUtils {
 									// get existing entry 
 									String [] existingArray = existingFF.get(j).split(COLON_STRING);
 									String existingValue = existingArray[index];
+									
+									if (StringUtils.isNullOrEmptyOrMissingData(existingValue)) {
 									/*
 									 * always want to put delimited into place if we are in appendInfo mode
 									 */
-										existingArray[index] = existingValue + Constants.VCF_MERGE_DELIM + additionalValue;
+										existingArray[index] = additionalValue;
+									} else {
+										existingArray[index] = existingValue + separator + additionalValue;
+									}
 //									}
 									// re-insert into vcf
 										existingFF.set(j, Arrays.stream(existingArray).collect(Collectors.joining(Constants.COLON_STRING)));
@@ -902,80 +869,130 @@ public class VcfUtils {
 		}
 	}
 	
+	
 	/**
-	 * Attempts to merge a number of vcf records that have the same start position
-	 * NOTE that only the first 8 columns are merged, info, format fields will be empty
+	 * Will return a Optional<VcfRecord> that represents the smooshing together of the supplied control and test VCfRecords that are assumed to be GATK generated.
+	 * If control OR test is null, will return the non-null one, with an additional entry in the format field containing the missing data char.
+	 * If control AND test are null, returns an empty Optional
+	 * 
+	 * If both control and test exist, will merge the records into a single record with (hopefully) all required data populated.
 	 * 
 	 * 
-	 * 
-	 * @param records
+	 * @param control
+	 * @param test
 	 * @return
 	 */
-	public static VcfRecord mergeVcfRecords(Set<VcfRecord> records) {
+	public static Optional<VcfRecord> mergeGATKVcfRecs(VcfRecord control, VcfRecord test) {
+		if (null == control && null == test) {
+			return Optional.empty();
+		}
+		if (null != test) {
+			prepareGATKVcfForMerge(test);
+		}
+		if (null != control) {
+			prepareGATKVcfForMerge(control);
+		}
 		
-		VcfRecord mergeRecord = null;
+		if (null == test) {
+			addMissingDataToFormatFields(control, 2);
+			return  Optional.ofNullable(control);
+		}
 		
-		if ( ! records.isEmpty()) {
-			String chr = null;
-			int startPos = -1;
-			String ref = "";
+		if (null == control) {
+			addMissingDataToFormatFields(test, 1);
+			return Optional.ofNullable(test) ;
+		}
+		
+		/*
+		 * Have both control and test
+		 * Strip out the quality and info fields as they will be sample specific.
+		 * Check that ref is the same, and that alt is the same
+		 */
+		if (control.getAlt().equals(test.getAlt())) {
+			List<String> ff = test.getFormatFields();
+			addAdditionalSampleToFormatField(control, ff);
+//			prepareGATKVcfForMerge(control);
+			return Optional.ofNullable(control);
+		} else {
 			
 			/*
-			 * get largest ref string first
+			 * alts are not the same and so need to update the GT format field to reflect the new alt layout
 			 */
-			for (VcfRecord vcf : records) {
-				if (null == chr) {
-					chr = vcf.getChrPosition().getChromosome();
-				}
-				if (chr.equals(vcf.getChrPosition().getChromosome())) {
-					if (-1 == startPos) {
-						startPos = vcf.getChrPosition().getStartPosition();
-					}
-					if (startPos == vcf.getChrPosition().getStartPosition()) {
-						if (ref.length() < vcf.getRef().length()) {
-							ref = vcf.getRef();
-						}
-					}
-				}
-			}
+			String combinedAlts = control.getAlt() + Constants.COMMA + test.getAlt();
+			/*
+			 * Should only have to update the test gt field as the control one went first...
+			 */
+			VcfRecord m = createVcfRecord(control.getChrPosition(), null, control.getRef(), combinedAlts);
+			m.setQualString(MISSING_DATA_STRING);
+			/*
+			 * need to update PL entry in format field if it exists to cater for triallelic values - just put in 0s for the additional allele
+			 */
+			List<String> cFF = control.getFormatFields();
+			m.setFormatFields(cFF);
+//			prepareGATKVcfForMerge(m);
+//			prepareGATKVcfForMerge(test);
 			
-			List<String> altStrings = new ArrayList<>();
+			List<String> tFFs = test.getFormatFields(); 
+			String tFF = tFFs.get(1);
+			String tGT = tFF.substring(0, tFF.indexOf(Constants.COLON));
 			
-			for (VcfRecord vcf : records) {
-				if (null == chr) {
-					chr = vcf.getChrPosition().getChromosome();
+			if (tGT.equals("0/0")) {
+				// do nowt
+			} else {
+				/*
+				 * increment each side of genotype with control alt count as long as it is non-zero
+				 */
+				int noOfControlAlts = control.getAlt().split(Constants.COMMA_STRING).length;
+				
+				int firstGT = Integer.parseInt(tGT.charAt(0) + "");
+				int secondGT = Integer.parseInt(tGT.charAt(2) + "");
+				if (firstGT > 0) {
+					firstGT += noOfControlAlts;
 				}
-				if (chr.equals(vcf.getChrPosition().getChromosome())) {
-					
-					if (-1 == startPos) {
-						startPos = vcf.getChrPosition().getStartPosition();
-					}
-					if (startPos == vcf.getChrPosition().getStartPosition()) {
-						
-						
-						// get alt based on this ref and the largest ref
-						altStrings.add(getUpdateAltString(ref, vcf.getRef(), vcf.getAlt()));
-						
-					}
+				if (secondGT > 0) {
+					secondGT += noOfControlAlts;
 				}
+				tFF = tFF.replace(tGT, firstGT + Constants.SLASH_STRING + secondGT);
+				tFFs.remove(1);
+				tFFs.add(tFF);
+				
+				addAdditionalSampleToFormatField(m, tFFs);
 			}
-			
-			StringBuilder sb = new StringBuilder();
-			Collections.sort(altStrings);
-			for (String s : altStrings) {
-				if (sb.length() > 0) {
-					sb.append(",");
-				}
-				sb.append(s);
-			}
-			
-			if (ref.length() == 0) {
-				logger.warn("Got zero length ref!!! ref: " + ref + ", entries in set: " + records.size());
-			}
-			mergeRecord = new VcfRecord.Builder(chr, startPos, ref).allele(sb.toString()).build();
-					
+			return Optional.ofNullable(m);
 		}
-		return mergeRecord;
+	}
+	
+//	public static boolean isDPFormatFieldPresent(VcfRecord v) {
+//		return v.getFormatFields().get(0).contains(VcfHeaderUtils.FORMAT_READ_DEPTH);
+//	}
+	
+	public static final void prepareGATKVcfForMerge(VcfRecord v) {
+		/*
+		 * need to remove AC and AN from info field
+		 */
+		VcfInfoFieldRecord i = v.getInfoRecord();
+		if (null != i) {
+			i.removeField("AN");
+			i.removeField("AC");
+			i.removeField("AF");
+			i.removeField("MLEAF");
+			i.removeField("MLEAC");
+		}
+		Map<String, String[]> ffMap = getFormatFieldsAsMap(v.getFormatFields());
+		ffMap.remove("PL");
+		
+		/*
+		 * make sure record has DP,AD,QL field - if not add with missing data
+		 */
+		ffMap.computeIfAbsent(VcfHeaderUtils.FORMAT_READ_DEPTH, f -> new String[]{Constants.MISSING_DATA_STRING});
+		ffMap.computeIfAbsent(VcfHeaderUtils.FORMAT_ALLELIC_DEPTHS, f -> new String[]{Constants.MISSING_DATA_STRING});
+//		ffMap.computeIfAbsent(VcfHeaderUtils.FORMAT_INFO, f -> new String[]{Constants.MISSING_DATA_STRING});
+		ffMap.computeIfAbsent(VcfHeaderUtils.FORMAT_QL, f -> new String[]{StringUtils.isNullOrEmptyOrMissingData(v.getQualString()) ? Constants.MISSING_DATA_STRING : v.getQualString()});
+		/*
+		 * reset qual field as it won't be applicable once merged
+		 */
+		v.setQualString(MISSING_DATA_STRING);
+		v.setFormatFields(convertFFMapToList(ffMap));
 	}
 	
 	
@@ -1030,21 +1047,213 @@ public class VcfUtils {
 		
 		rec.setFilter(StringUtils.removeFromString(rec.getFilter(), filter, Constants.SC));
 	}
-
-	public static boolean isRecordSomatic(VcfRecord rec) {
-		String info = rec.getInfo();
-		if (StringUtils.isNullOrEmpty(info) || ! info.contains(VcfHeaderUtils.INFO_SOMATIC)) {
+	
+	public static Map<String, String[]> getFormatFieldsAsMap(String ff) {
+		return getFormatFieldsAsMap(Arrays.asList(ff.split(Constants.TAB_STRING)));
+	}
+	
+	
+	
+	/**
+	 * For SOMATIC records, if all format columns have a PASS in them, then we are a PASS.
+	 * For Germline, only care about the control column(s) being a PASS
+	 * @param v
+	 * @return
+	 */
+	public static boolean isRecordAPass(VcfRecord v) {
+		
+		Map<String, String[]> ffMap = getFormatFieldsAsMap(v.getFormatFields());
+		String [] filterArr = ffMap.get(VcfHeaderUtils.FORMAT_FILTER);
+		
+		long passCount =  null != filterArr ? Arrays.asList(filterArr).stream().filter(f -> f.contains(VcfHeaderUtils.FILTER_PASS)).count() : 0;
+		if (passCount == 0) {
 			return false;
 		}
 		
-		if (isMergedRecord(rec)) {
+		/*
+		 * if all columns have a pass, we are done
+		 */
+		if (passCount == filterArr.length) {
+			return true;
+			
+//			/*
+//			 * single sample - return true
+//			 * only handle single sample data that has 2 constituent sets of data for now...
+//			 */
+//			if (filterArr.length == 1 || (isMergedRecord(v) && filterArr.length == 2)) {
+//				return true;
+//			}
+//		
+//			/*
+//			 * if we are all germline or all somatic, then pass
+//			 */
+//			if (somCount == 0 || somCount * 2 >= filterArr.length ) {
+//				return true;
+//			}
+		}
+		
+		String [] infoArr = ffMap.get(VcfHeaderUtils.FORMAT_INFO);
+		long somCount =   null != infoArr ? Arrays.asList(infoArr).stream().filter(f -> f.contains(VcfHeaderUtils.INFO_SOMATIC)).count() : 0;
+		/*
+		 * germline, just look at pass in control fields
+		 */
+		if (somCount == 0) {
+			int i = 0;
+			boolean allPasses = true;
+			for (String s : filterArr) {
+				if (i++ %2 == 0) {
+					if ( ! s.equals(VcfHeaderUtils.FILTER_PASS)) {
+						allPasses = false;
+						break;
+					}
+				}
+			}
+			return allPasses;
+		}
+		return false;	
+	}
+	
+	/**
+	 * If germline, only examine control sample filter field. If this is a PASS, check out the corresponding test sample to make sure the coverage is decent.
+	 * If somatic, only examine test sample filter field. If this is a PASS, check out the corresponding control sample to make sure the coverage is decent.
+	 * 
+	 * @param v
+	 * @return
+	 */
+	public static boolean isRecordAPassOldSkool(VcfRecord v) {
+		
+		Map<String, String[]> ffMap = getFormatFieldsAsMap(v.getFormatFields());
+		String [] filterArr = ffMap.get(VcfHeaderUtils.FORMAT_FILTER);
+		if (null == filterArr) {
+			return false;
+		}
+		
+		long passCount = Arrays.stream(filterArr).filter(f ->VcfHeaderUtils.FILTER_PASS.equals(f)).count();
+		
+		if (passCount == filterArr.length) {
+			/*
+			 * PASS in all filter fields - thumbs up!
+			 */
+			return true;
+		}
+		
+		/*
+		 * if we are in single sample mode and we don't have a PASS, then FAIL
+		 */
+		if (filterArr.length == 1) {
+			return false;
+		}
+		
+		String [] infArr = ffMap.get(VcfHeaderUtils.FORMAT_INFO);
+		String [] dpArr = ffMap.get(VcfHeaderUtils.FORMAT_READ_DEPTH);
+		boolean pass = true;
+		for (int i = 0 ; i < filterArr.length ; i++) {
+			if (pass && i % 2 ==0) {
+				if ( ! samplesPass(filterArr[i], (null != dpArr ? dpArr[i] : null), filterArr[i + 1], (null != infArr ? infArr[i+1] : null), (null != dpArr ? dpArr[i+1] : null))) {
+					pass = false;
+				}
+			}
+		}
+		return pass;
+	}
+	
+	public static boolean samplesPass(String controlFilter, String controlCov, String testFilter, String testInfo, String testCov) {
+		/*
+		 * If both filters are pass, great
+		 */
+		if (VcfHeaderUtils.FILTER_PASS.equals(controlFilter) && VcfHeaderUtils.FILTER_PASS.equals(testFilter)) {
+			return true;
+		}
+		
+		/*
+		 * if neither filter are pass, not so great
+		 */
+		if ( ! VcfHeaderUtils.FILTER_PASS.equals(controlFilter) && ! VcfHeaderUtils.FILTER_PASS.equals(testFilter)) {
+			return false;
+		}
+		
+		/*
+		 * if testInfo contains SOMATIC, then testFilter must equal PASS and control coverage must be up to scratch
+		 */
+		if (null != testInfo && testInfo.contains(VcfHeaderUtils.INFO_SOMATIC)) {
+			return VcfHeaderUtils.FILTER_PASS.equals(testFilter) && null != controlCov && Integer.parseInt(controlCov) > 8;
+		} else {
+			return VcfHeaderUtils.FILTER_PASS.equals(controlFilter) && null != testCov &&Integer.parseInt(testCov) > 8;
+		}
+	}
+
+	/**
+	 * returns true if the info field contains SOMATIC, or if more than half of format fields contain SOMATIC (this should mean all callers called this somatic, as we are only populating the test info field with this tag)
+	 */
+	public static boolean isRecordSomatic(VcfRecord rec) {
+		String info = rec.getInfo();
+		if ( ! StringUtils.isNullOrEmpty(info) && info.contains(VcfHeaderUtils.INFO_SOMATIC)) {
+			return true;
+		}
+		
+//		if (isMergedRecord(rec)) {
+			/*
+			 * check out the format fields - need all records to be somatic
+			 */
+			String ff = rec.getFormatFieldStrings();
+			Map<String, String[]> m =getFormatFieldsAsMap(ff);
+			
+			if (m.isEmpty()) {
+				return false;
+			}
+			String [] infos = m.get(VcfHeaderUtils.FORMAT_INFO);
+			if (null == infos || infos.length == 0) {
+				return false;
+			}
+			long somCount =  Arrays.asList(infos).stream().filter(f ->null != f && f.contains(VcfHeaderUtils.INFO_SOMATIC)).count();
+			return somCount * 2 >= infos.length;
+			
+//			if (noOfSomatics == 0) {
+//				return false;
+//			}
+//			return noOfSomatics * 2 >= filter.length;
+//		}
 			/*
 			 *SOMATIC_1 and SOMATIC_2 to return true
 			 */
-			return info.contains(VcfHeaderUtils.INFO_SOMATIC + "_1") && info.contains(VcfHeaderUtils.INFO_SOMATIC + "_2");  
-		} else {
+//			return info.contains(VcfHeaderUtils.INFO_SOMATIC + "_1") && info.contains(VcfHeaderUtils.INFO_SOMATIC + "_2");  
+//		} else {
+//		}
+	}
+	
+	/**
+	 * return true if info field OR the specified format column contains SOMATIC
+	 * position is zero based
+	 * @param rec
+	 * @param formatColumn
+	 * @return
+	 */
+	public static boolean isRecordSomatic(VcfRecord rec, int formatColumn) {
+		String info = rec.getInfo();
+		if ( ! StringUtils.isNullOrEmpty(info) && info.contains(VcfHeaderUtils.INFO_SOMATIC)) {
 			return true;
 		}
+		
+//		if (isMergedRecord(rec)) {
+		/*
+		 * check out the format fields - need all records to be somatic
+		 */
+		String ff = rec.getFormatFieldStrings();
+		Map<String, String[]> m =getFormatFieldsAsMap(ff);
+		
+		if (m.isEmpty()) {
+			return false;
+		}
+		String [] filter = m.get(VcfHeaderUtils.FORMAT_INFO);
+		if (null == filter) {
+			return false;
+		}
+		
+		if (filter.length > formatColumn) {
+			return filter[formatColumn].contains(VcfHeaderUtils.INFO_SOMATIC); 
+		}
+		
+		return false;
 	}
 	
 	/**
@@ -1146,7 +1355,9 @@ public class VcfUtils {
 		String conf = info.substring(index + CONF_LENGTH, scIndex > -1 ? scIndex : info.length());
 		return conf;
 	}
-	
+
+
+
 	/**
 	 * will return true if:
 	 * altCount is >= maxCoverage

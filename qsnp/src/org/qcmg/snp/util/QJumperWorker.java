@@ -85,7 +85,7 @@ public class QJumperWorker<T> implements Runnable {
 					
 					T record = primaryQueue.pollFirst();
 					if (null != record) {
-						getPileup(record);
+//						getPileup(record);
 					} else {
 						// work stealing mode
 						if (null == workStealingQueue) break;
@@ -101,7 +101,7 @@ public class QJumperWorker<T> implements Runnable {
 						// setup qj for work stealing bam file
 						qj.setupReader(workStealingBamFile);
 						while (true) {
-							getPileup(record);
+//							getPileup(record);
 							
 							record = workStealingQueue.pollLast();
 							if (null == record) break;
@@ -119,38 +119,38 @@ public class QJumperWorker<T> implements Runnable {
 		logger.info("QJumperWorker thread - DONE - pileup fetched for " + count + " positions");
 	}
 	
-	private void getPileup(T record) throws Exception {
-		switch (mode) {
-		case VCF:
-				getGatkPileup((QSnpGATKRecord) record) ;
-				break;
-		case QSNP:
-		case QSNP_MUTATION_IN_NORMAL:
-				getQsnpPileup((QSnpRecord) record) ;
-				break;
-		}
-	}
+//	private void getPileup(T record) throws Exception {
+//		switch (mode) {
+//		case VCF:
+//				getGatkPileup((QSnpGATKRecord) record) ;
+//				break;
+//		case QSNP:
+//		case QSNP_MUTATION_IN_NORMAL:
+//				getQsnpPileup((QSnpRecord) record) ;
+//				break;
+//		}
+//	}
 	
-	private void getGatkPileup(QSnpGATKRecord gatkRec) throws Exception {
-		List<SAMRecord> samRecords = qj.getOverlappingRecordsAtPosition(gatkRec.getChromosome(), gatkRec.getPosition());
-		BAMPileupUtil.examinePileupVCF(samRecords, gatkRec);
-		if (++count % 1000 == 0) {
-			logger.info("hit " + count + " vcf positions");
-		}
-		if (null != gatkRec.getPileup() && gatkRec.getPileup().size() > 0)
-			++updatedPileup;
-	}
+//	private void getGatkPileup(QSnpGATKRecord gatkRec) throws Exception {
+//		List<SAMRecord> samRecords = qj.getOverlappingRecordsAtPosition(gatkRec.getChromosome(), gatkRec.getPosition());
+//		BAMPileupUtil.examinePileupVCF(samRecords, gatkRec);
+//		if (++count % 1000 == 0) {
+//			logger.info("hit " + count + " vcf positions");
+//		}
+//		if (null != gatkRec.getPileup() && gatkRec.getPileup().size() > 0)
+//			++updatedPileup;
+//	}
 	
-	private void getQsnpPileup(QSnpRecord qsnp) throws Exception {
-		List<SAMRecord> samRecords = qj.getOverlappingRecordsAtPosition(qsnp.getChromosome(), qsnp.getPosition(), qsnp.getPosition());
-		BAMPileupUtil.examinePileupSNP(samRecords, qsnp, mode);
-		
-		if (++count % 1000 == 0) {
-			logger.info("hit " + count + " qsnp positions");
-		}
-		if (null != qsnp.getNormalNucleotides() && null != qsnp.getTumourNucleotides())
-			++updatedPileup;
-	}
+//	private void getQsnpPileup(QSnpRecord qsnp) throws Exception {
+//		List<SAMRecord> samRecords = qj.getOverlappingRecordsAtPosition(qsnp.getChromosome(), qsnp.getPosition(), qsnp.getPosition());
+//		BAMPileupUtil.examinePileupSNP(samRecords, qsnp, mode);
+//		
+//		if (++count % 1000 == 0) {
+//			logger.info("hit " + count + " qsnp positions");
+//		}
+//		if (null != qsnp.getNormalNucleotides() && null != qsnp.getTumourNucleotides())
+//			++updatedPileup;
+//	}
 	
 
 //	public void run() {

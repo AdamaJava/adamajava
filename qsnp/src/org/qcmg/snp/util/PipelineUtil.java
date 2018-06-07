@@ -1,31 +1,5 @@
 package org.qcmg.snp.util;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
-
-import org.qcmg.common.util.Pair;
-import org.qcmg.common.util.SnpUtils;
-import org.qcmg.common.log.QLogger;
-import org.qcmg.common.log.QLoggerFactory;
-import org.qcmg.common.model.Accumulator;
-import org.qcmg.common.model.Classification;
-import org.qcmg.common.model.Rule;
-import org.qcmg.common.string.StringUtils;
-import org.qcmg.common.util.AccumulatorUtils;
-import org.qcmg.common.util.ChrPositionUtils;
-import org.qcmg.common.util.Constants;
-import org.qcmg.common.vcf.VcfRecord;
-import org.qcmg.common.vcf.VcfUtils;
-import org.qcmg.common.vcf.header.VcfHeaderUtils;
-
 import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.map.TIntCharMap;
@@ -37,12 +11,38 @@ import gnu.trove.map.hash.TIntObjectHashMap;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+
+import org.qcmg.common.log.QLogger;
+import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.model.Accumulator;
+import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.Classification;
+import org.qcmg.common.model.Rule;
+import org.qcmg.common.string.StringUtils;
+import org.qcmg.common.util.AccumulatorUtils;
+import org.qcmg.common.util.ChrPositionUtils;
+import org.qcmg.common.util.Pair;
+import org.qcmg.common.util.Constants;
+import org.qcmg.common.util.SnpUtils;
+import org.qcmg.common.vcf.VcfRecord;
+import org.qcmg.common.vcf.VcfUtils;
+import org.qcmg.common.vcf.header.VcfHeaderUtils;
+
 public class PipelineUtil {
 	
 	public static final String OPEN_CLOSE_BRACKETS = "[]";
 	public static final String ZERO_ZERO_GT = "0/0";
 	private static final QLogger logger = QLoggerFactory.getLogger(PipelineUtil.class);
-	
 	
 	public static List<List<VcfRecord>> listOfListOfAdjacentVcfs(List<VcfRecord> snps) {
 		if (null == snps) {
@@ -91,62 +91,6 @@ public class PipelineUtil {
 		}
 		return loloRecs;
 	}
-	/**
-	 * Checks each character in the alt string against the corresponding character in the alt string. If any are the same, returns true. False otherwise
-	 * @param alt
-	 * @param ref
-	 * @return
-	 */
-	public static boolean isAltFreeOfRef(String alt, String ref) {
-		
-		/*
-		 * alt and ref must be not null, empty, missing data, and must be the same length  
-		 */
-		if ( ! StringUtils.isNullOrEmptyOrMissingData(alt) &&  ! StringUtils.isNullOrEmptyOrMissingData(ref)) {
-			int len = alt.length();
-			if (len == ref.length()) {
-				for (int i = 0 ; i < len ; i++) {
-					if (alt.charAt(i) == ref.charAt(i)) {
-						return false;
-					}
-				}
-			}
-		}
-		
-		return true;
-	}
-	
-	/**
-	 * Returns a short array of the genotype eg [0,1] will translate to GT "0/1"
-	 *  
-	 * @param alleles
-	 * @param map
-	 * @param currentCounter
-	 * @return
-	 */
-	public static short[] getGenotypeArray(List<String> sampleAlleles, List<String> allAlleles) {
-		short[] gt = new short[]{-1,-1};
-		
-		if (null != sampleAlleles) {
-			int i = 0;
-			for (String a : sampleAlleles) {
-				if (i < 2) {
-					/*
-					 * only do this twice at most
-					 */
-					int pos = allAlleles.indexOf(a);
-					if (pos == -1) {
-						//hmmmmm.....
-					}
-					gt[i++] = (short)pos;
-				}
-				if (sampleAlleles.size() == 1) {
-					gt[i] = gt[0];
-				}
-			}
-		}
-		return gt;
-	}
 	
 	/**
 	 * Given the top 2 bases from both control and test, along with the reference, return the alt string, and the control and test genotype strings.
@@ -190,6 +134,111 @@ public class PipelineUtil {
 		return Arrays.asList(allels.isEmpty() ? Constants.MISSING_DATA_STRING : allels.stream().collect(Collectors.joining(Constants.COMMA_STRING)), cgt,tgt);
 	}
 	
+	/**
+	 * Returns a short array of the genotype eg [0,1] will translate to GT "0/1"
+	 *  
+	 * @param alleles
+	 * @param map
+	 * @param currentCounter
+	 * @return
+	 */
+	public static short[] getGenotypeArray(List<String> sampleAlleles, List<String> allAlleles) {
+		short[] gt = new short[]{-1,-1};
+		
+		if (null != sampleAlleles) {
+			int i = 0;
+			for (String a : sampleAlleles) {
+				if (i < 2) {
+					/*
+					 * only do this twice at most
+					 */
+					int pos = allAlleles.indexOf(a);
+					if (pos == -1) {
+						//hmmmmm.....
+					}
+					gt[i++] = (short)pos;
+				}
+				if (sampleAlleles.size() == 1) {
+					gt[i] = gt[0];
+				}
+			}
+		}
+		return gt;
+	}
+	
+	/**
+	 * Checks each character in the alt string against the corresponding character in the alt string. If any are the same, returns true. False otherwise
+	 * @param alt
+	 * @param ref
+	 * @return
+	 */
+	public static boolean isAltFreeOfRef(String alt, String ref) {
+		
+		/*
+		 * alt and ref must be not null, empty, missing data, and must be the same length  
+		 */
+		if ( ! StringUtils.isNullOrEmptyOrMissingData(alt) &&  ! StringUtils.isNullOrEmptyOrMissingData(ref)) {
+			int len = alt.length();
+			if (len == ref.length()) {
+				for (int i = 0 ; i < len ; i++) {
+					if (alt.charAt(i) == ref.charAt(i)) {
+						return false;
+					}
+				}
+			}
+		}
+		
+		return true;
+	}
+	
+	/**
+	 * Gets a list of bases from the map that make up the genotype. This will be the 2 sets of bases with the largest coverage (based on counts and then strand).
+	 * 
+	 * @param basesAndCounts
+	 * @param minimumCoverage
+	 * @return
+	 */
+	public static List<String> getBasesForGenotype(Map<String, short[]> basesAndCounts, int minimumCoverage, String ref) {
+		if (null != basesAndCounts) {
+			
+			List<String> genotypeBases = basesAndCounts.entrySet().stream()
+				.filter(e -> ! e.getKey().contains("_"))
+				.filter(e -> e.getValue().length == 4)
+				.filter(e -> (e.getValue()[0] + e.getValue()[2]) >= minimumCoverage )
+				.filter(e -> e.getKey().equals(ref) || isAltFreeOfRef(e.getKey(), ref))
+				.sorted(
+						Comparator.comparing((Map.Entry<String,  short[]> e) -> e.getValue()[0] + e.getValue()[2], Comparator.reverseOrder())
+						.thenComparing(e -> e.getValue()[0] > 0 && e.getValue()[2] > 0, Comparator.reverseOrder()))
+				.map(e -> e.getKey())
+				.collect(Collectors.toList());
+			
+			if (genotypeBases.size() > 2) {
+				return Arrays.asList(genotypeBases.get(0), genotypeBases.get(1));
+			}
+			
+			return genotypeBases;
+		}
+		return Collections.emptyList();
+	}
+	
+	/**
+	 * Returns the Observed Alleles By Strand for this map of bases and counts.
+	 *  
+	 * @param basesAndCounts
+	 * @return
+	 */
+	public static Optional<String> getOABS(Map<String, short[]> basesAndCounts) {
+		if (null != basesAndCounts) {
+			String oabs = basesAndCounts.entrySet().stream()
+					.filter(e -> e.getValue().length == 4)
+					.sorted((e1, e2) -> e1.getKey().compareTo(e2.getKey()))
+					.map(e -> e.getKey() + e.getValue()[0] + OPEN_CLOSE_BRACKETS + e.getValue()[2] + OPEN_CLOSE_BRACKETS)
+					.collect(Collectors.joining(Constants.SEMI_COLON_STRING));
+			
+			return Optional.ofNullable(oabs.length() > 0 ? oabs : null);
+		}
+		return Optional.empty();
+	}
 	
 	/**
 	 * It is assumed that the list of accumulators are ordered and adjacent - will throw an IllegalArgumentException should this not be the case
@@ -333,6 +382,20 @@ public class PipelineUtil {
 			return true;
 			});
 		
+		
+		
+//		TMap<String, int[]> basesAndCounts = new THashMap<>(); 
+//		moReadIdsAndBases.forEachEntry((i,sb) -> {
+//			int [] counts = basesAndCounts.get(sb.toString());
+//			if (null == counts) {
+//				counts = new int[2];
+//				basesAndCounts.put(sb.toString(), counts);
+//			}
+//			counts[i > 0 ? 0 : 1]++;
+//			
+//			return true;
+//		});
+		
 		return allelesCountsNNS;
 	}
 	
@@ -359,6 +422,28 @@ public class PipelineUtil {
 		return set.size();
 	}
 	
+	/**
+	 * Returns a VcfRecord with just the positional and ref and alt information provided. Does not contain filter, info, format etc.
+	 * @param vcfs
+	 * @return
+	 */
+	public static VcfRecord createSkeletonCompoundSnp(List<VcfRecord> vcfs) {
+		/*
+		 * sort list
+		 */
+		vcfs.sort(null);
+		StringBuilder ref = new StringBuilder();
+		StringBuilder alt = new StringBuilder();
+		ChrPosition startPosition = vcfs.get(0).getChrPosition();
+		
+		for (VcfRecord v : vcfs) {
+			ref.append(v.getRefChar());
+			alt.append(v.getAlt());
+		}
+		return VcfUtils.createVcfRecord(startPosition, null, ref.toString(), alt.toString());
+	}
+	
+	
 	public static Pair<List<Accumulator>, List<Accumulator>> getAccs(Map<VcfRecord, Pair<Accumulator, Accumulator>> vcfs) {
 		/*
 		 * sort keys in map
@@ -383,6 +468,53 @@ public class PipelineUtil {
 		}
 		
 		return new Pair<>(cAccs,tAccs);
+	}
+	
+	public static Optional<String> getReference(Collection<VcfRecord> vcfs) {
+		return Optional.ofNullable(vcfs.stream().sorted().map(VcfRecord::getRef).collect(Collectors.joining()));
+	}
+	
+	/**
+	 * REturns a count of either the novel starts
+	 * 
+	 * map contains bases as key, and short array contains 4 elements, which are (in this order):
+	 * forward strand count
+	 * forward strand novel starts count
+	 * reverse strand count
+	 * reverse strand novel starts count
+	 * 
+	 * Offset dictates whether you are getting novel starts (offset = 1), or counts (offset = 0)
+	 * 
+	 * 
+	 * @param map
+	 * @param key
+	 * @param offset
+	 * @return
+	 */
+	public static int getCount(Map<String,  short[]> map, String key, int offset) {
+		short[] sa =map.get(key);
+		return (null !=  sa) ? sa[0 + offset] + sa[2 + offset] : 0;
+	}
+	
+	/**
+	 * returns the novel starts counts for both strands for this base (key)
+	 *  @see getCount(Map<String,  short[]> map, String key, int offset)
+	 * @param map
+	 * @param key
+	 * @return
+	 */
+	public static int getNovelStartsCounts(Map<String,  short[]> map, String key) {
+		return getCount(map, key, 1);
+	}
+	/**
+	 * Returns the total count for both strands for this base
+	 * @see getCount(Map<String,  short[]> map, String key, int offset)
+	 * @param map
+	 * @param key
+	 * @return
+	 */
+	public static int getTotalCounts(Map<String,  short[]> map, String key) {
+		return getCount(map, key, 0);
 	}
 	
 	public static String[] getMR(Map<String, short[]> map, String[] aAlts, int firstG, int secondG) {
@@ -432,50 +564,6 @@ public class PipelineUtil {
 		return new String[]{mr.toString(), nns.toString()};
 	}
 	
-	/**
-	 * returns the novel starts counts for both strands for this base (key)
-	 *  @see getCount(Map<String,  short[]> map, String key, int offset)
-	 * @param map
-	 * @param key
-	 * @return
-	 */
-	public static int getNovelStartsCounts(Map<String,  short[]> map, String key) {
-		return getCount(map, key, 1);
-	}
-	
-	/**
-	 * REturns a count of either the novel starts
-	 * 
-	 * map contains bases as key, and short array contains 4 elements, which are (in this order):
-	 * forward strand count
-	 * forward strand novel starts count
-	 * reverse strand count
-	 * reverse strand novel starts count
-	 * 
-	 * Offset dictates whether you are getting novel starts (offset = 1), or counts (offset = 0)
-	 * 
-	 * 
-	 * @param map
-	 * @param key
-	 * @param offset
-	 * @return
-	 */
-	public static int getCount(Map<String,  short[]> map, String key, int offset) {
-		short[] sa =map.get(key);
-		return (null !=  sa) ? sa[0 + offset] + sa[2 + offset] : 0;
-	}
-	
-	/**
-	 * Returns the total count for both strands for this base
-	 * @see getCount(Map<String,  short[]> map, String key, int offset)
-	 * @param map
-	 * @param key
-	 * @return
-	 */
-	public static int getTotalCounts(Map<String,  short[]> map, String key) {
-		return getCount(map, key, 0);
-	}
-	
 	public static int getCoverage(Map<String, short[]> map) {
 		/*
 		 * Only care about strings without underscores (which denote missing bases)
@@ -486,30 +574,8 @@ public class PipelineUtil {
 			.sum();
 	}
 	
-	public static Optional<String> getReference(Collection<VcfRecord> vcfs) {
-		return Optional.ofNullable(vcfs.stream().sorted().map(VcfRecord::getRef).collect(Collectors.joining()));
-	}
-	
-	/**
-	 * Returns the Observed Alleles By Strand for this map of bases and counts.
-	 *  
-	 * @param basesAndCounts
-	 * @return
-	 */
-	public static Optional<String> getOABS(Map<String, short[]> basesAndCounts) {
-		if (null != basesAndCounts) {
-			String oabs = basesAndCounts.entrySet().stream()
-					.filter(e -> e.getValue().length == 4)
-					.sorted((e1, e2) -> e1.getKey().compareTo(e2.getKey()))
-					.map(e -> e.getKey() + e.getValue()[0] + OPEN_CLOSE_BRACKETS + e.getValue()[2] + OPEN_CLOSE_BRACKETS)
-					.collect(Collectors.joining(Constants.SEMI_COLON_STRING));
-			
-			return Optional.ofNullable(oabs.length() > 0 ? oabs : null);
-		}
-		return Optional.empty();
-	}
-	
 	public static String getCSFilters(String [] alts, int fg, int sg, int totalCov, Map<String, short[]> map, int sBiasCov, int sBiasAlt, boolean runSBias, boolean isControl) {
+		
 		
 		/*
 		 * sbias and coverage for now
@@ -553,35 +619,146 @@ public class PipelineUtil {
 		return sb.length() == 0 ? Constants.MISSING_DATA_STRING : sb.toString();
 	}
 	
-	
 	/**
-	 * Gets a list of bases from the map that make up the genotype. This will be the 2 sets of bases with the largest coverage (based on counts and then strand).
+	 * Create compound snp based purely on GATK vcf information.
+	 * Classification (ie. SOMATIC) must be same for all snps - thats about the only rule...
+	 * oh, and the genotypes need to be the same for all control samples and for all test samples
+	 * eg. 0/0 ->0/1 for all snps in cs
 	 * 
-	 * @param basesAndCounts
-	 * @param minimumCoverage
+	 * @param vcfs
 	 * @return
 	 */
-	public static List<String> getBasesForGenotype(Map<String, short[]> basesAndCounts, int minimumCoverage, String ref) {
-		if (null != basesAndCounts) {
-			
-			List<String> genotypeBases = basesAndCounts.entrySet().stream()
-				.filter(e -> ! e.getKey().contains("_"))
-				.filter(e -> e.getValue().length == 4)
-				.filter(e -> (e.getValue()[0] + e.getValue()[2]) >= minimumCoverage )
-				.filter(e -> e.getKey().equals(ref) || isAltFreeOfRef(e.getKey(), ref))
-				.sorted(
-						Comparator.comparing((Map.Entry<String,  short[]> e) -> e.getValue()[0] + e.getValue()[2], Comparator.reverseOrder())
-						.thenComparing(e -> e.getValue()[0] > 0 && e.getValue()[2] > 0, Comparator.reverseOrder()))
-				.map(e -> e.getKey())
-				.collect(Collectors.toList());
-			
-			if (genotypeBases.size() > 2) {
-				return Arrays.asList(genotypeBases.get(0), genotypeBases.get(1));
+	public static Optional<VcfRecord> createCompoundSnpGATK(List<VcfRecord> vcfs) {
+		return createCompoundSnpGATK(vcfs, false);
+	}
+	public static Optional<VcfRecord> createCompoundSnpGATK(List<VcfRecord> vcfs, boolean singleSampleMode) {
+		short somCount = 0;
+		String csRef = "";
+		String csAlt = "";
+		List<String> controlGTs = singleSampleMode ? null : new ArrayList<>(vcfs.size() + 1);
+		List<String> controlDPs = singleSampleMode ? null : new ArrayList<>(vcfs.size() + 1);
+		List<String> controlADs = singleSampleMode ? null : new ArrayList<>(vcfs.size() + 1);
+		List<String> controlGQs = singleSampleMode ? null : new ArrayList<>(vcfs.size() + 1);
+		List<String> controlQLs = singleSampleMode ? null : new ArrayList<>(vcfs.size() + 1);
+		List<String> controlINFs = singleSampleMode ? null : new ArrayList<>(vcfs.size() + 1);
+		List<String> testDPs = new ArrayList<>(vcfs.size() + 1);
+		List<String> testGTs = new ArrayList<>(vcfs.size() + 1);
+		List<String> testADs = new ArrayList<>(vcfs.size() + 1);
+		List<String> testGQs = new ArrayList<>(vcfs.size() + 1);
+		List<String> testQLs = new ArrayList<>(vcfs.size() + 1);
+		List<String> testINFs = new ArrayList<>(vcfs.size() + 1);
+		for (VcfRecord v : vcfs) {
+			if (VcfUtils.isRecordSomatic(v)) {
+				somCount++;
 			}
+			csRef += v.getRef();
+			csAlt += v.getAlt();
+			Map<String, String[]> ffMap = VcfUtils.getFormatFieldsAsMap(v.getFormatFields());
+			String [] gtArr = ffMap.get(VcfHeaderUtils.FORMAT_GENOTYPE);
+			String [] dpArr = ffMap.get(VcfHeaderUtils.FORMAT_READ_DEPTH);
+			if (null == dpArr) {
+				logger.warn("null dp array for rec: " + v.toString());
+			}
+			String [] adArr = ffMap.get(VcfHeaderUtils.FORMAT_ALLELIC_DEPTHS);
+			String [] gqArr = ffMap.get(VcfHeaderUtils.FORMAT_GENOTYPE_QUALITY);
+			String [] qlArr = ffMap.get(VcfHeaderUtils.FORMAT_QL);
+			String [] infArr = ffMap.get(VcfHeaderUtils.FORMAT_INFO);
 			
-			return genotypeBases;
+			if (singleSampleMode) {
+				
+				testGTs.add(gtArr[0]);
+				testDPs.add(dpArr[0]);
+				testADs.add(adArr[0]);
+				testGQs.add(gqArr[0]);
+				testQLs.add(qlArr[0]);
+				testINFs.add(infArr[0]);
+			} else {
+				
+				controlGTs.add(gtArr[0]);
+				testGTs.add(gtArr[1]);
+				controlDPs.add(dpArr[0]);
+				testDPs.add(dpArr[1]);
+				controlADs.add(adArr[0]);
+				testADs.add(adArr[1]);
+				controlGQs.add(gqArr[0]);
+				testGQs.add(gqArr[1]);
+				controlQLs.add(qlArr[0]);
+				testQLs.add(qlArr[1]);
+				controlINFs.add(infArr[0]);
+			}
 		}
-		return Collections.emptyList();
+		
+		/*
+		 * if we have a comma in the alt field, don't proceed
+		 */
+		if ( ! csAlt.contains(Constants.COMMA_STRING)) {
+			if (somCount == 0 || somCount == vcfs.size()) {
+			// if gts are the same, alls well
+				if (singleSampleMode || (controlGTs.stream().distinct().count() == 1 && testGTs.stream().distinct().count() == 1 )) {
+				
+					VcfRecord firstRec = vcfs.get(0);
+					VcfRecord v = VcfUtils.createVcfRecord(firstRec.getChrPosition(), null, csRef, csAlt);
+					
+					/*
+					 * sort collections to get lowest value first - thats what we will use
+					 */
+					if ( ! singleSampleMode) {
+						controlDPs.sort(null);
+						controlADs.sort(null);
+						controlGQs.sort(null);
+						controlQLs.sort(null);
+					}
+					testDPs.sort(null);
+					testADs.sort(null);
+					testGQs.sort(null);
+					testQLs.sort(null);
+					
+					/*
+					 * unique INF lists
+					 */
+					List<String> infoList = singleSampleMode ? testINFs : controlINFs;
+					String cINF = infoList.stream().distinct().collect(Collectors.joining(Constants.SEMI_COLON_STRING));
+					
+					
+					/*
+					 * format fields - going for GT:AD:DP:FT:GQ:INF:NNS:OABS:QL
+					 * of which FT,NNS, and OABS will be missing data string
+					 */
+					StringBuilder cSB = null;
+					if ( ! singleSampleMode) {
+						cSB = new StringBuilder(controlGTs.get(0));								//GT
+						StringUtils.updateStringBuilder(cSB, controlADs.get(0), Constants.COLON);	//AD
+						StringUtils.updateStringBuilder(cSB, controlDPs.get(0), Constants.COLON);		//DP
+						StringUtils.updateStringBuilder(cSB, Constants.MISSING_DATA_STRING, Constants.COLON);	//FT
+						StringUtils.updateStringBuilder(cSB,controlGQs.get(0), Constants.COLON);		// GQ field
+						StringUtils.updateStringBuilder(cSB,cINF, Constants.COLON);		// INF field
+						StringUtils.updateStringBuilder(cSB, Constants.MISSING_DATA_STRING, Constants.COLON);	//NNS
+						StringUtils.updateStringBuilder(cSB, Constants.MISSING_DATA_STRING, Constants.COLON);	//OABS
+						StringUtils.updateStringBuilder(cSB, controlQLs.get(0), Constants.COLON);								//QL
+					}
+					
+					StringBuilder tSB = new StringBuilder(testGTs.get(0));
+					StringUtils.updateStringBuilder(tSB, testADs.get(0), Constants.COLON);
+					StringUtils.updateStringBuilder(tSB, testDPs.get(0), Constants.COLON);
+					StringUtils.updateStringBuilder(tSB, Constants.MISSING_DATA_STRING, Constants.COLON);
+					StringUtils.updateStringBuilder(tSB, testGQs.get(0), Constants.COLON);	// GQ field
+					StringUtils.updateStringBuilder(tSB, somCount > 0 ? "SOMATIC" : Constants.MISSING_DATA_STRING, Constants.COLON);	// INF field
+					StringUtils.updateStringBuilder(tSB, Constants.MISSING_DATA_STRING, Constants.COLON);	//NNS
+					StringUtils.updateStringBuilder(tSB, Constants.MISSING_DATA_STRING, Constants.COLON);	//OABS
+					StringUtils.updateStringBuilder(tSB, testQLs.get(0), Constants.COLON);									//QL
+					
+					if ( singleSampleMode) {
+						v.setFormatFields(Arrays.asList("GT:AD:DP:FT:GQ:INF:NNS:OABS:QL", tSB.toString()));
+					} else {
+						v.setFormatFields(Arrays.asList("GT:AD:DP:FT:GQ:INF:NNS:OABS:QL", cSB.toString(), tSB.toString()));
+					}
+					
+					return Optional.of(v);
+				}
+			}
+		}
+		
+		return Optional.empty();
 	}
 	
 	public static Optional<VcfRecord> createCompoundSnp(Map<VcfRecord, Pair<Accumulator, Accumulator>> vcfs, List<Rule> controlRules, List<Rule> testRules, boolean runSBias, int sBiasCov, int sBiasAlt) {
@@ -685,4 +862,5 @@ public class PipelineUtil {
 		
 		return Optional.ofNullable(v);
 	}
+
 }

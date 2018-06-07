@@ -127,13 +127,13 @@ public class MainTest {
 		}
 		
 		// ADD IN RULES
-		addRulesToIniFile(iniFile);
-		try {
-			exitStatus = new Main().setup(new String[]{"-input", iniFile.getAbsolutePath(), "-log", logFile.getAbsolutePath()});
-			Assert.fail("Should have thrown a SnpException");
-		} catch (SnpException e) {
-			Assert.assertEquals(true, e.getMessage().startsWith(Messages.getMessage("EMPTY_PILEUP_FILE")));
-		}
+//		addRulesToIniFile(iniFile);
+//		try {
+//			exitStatus = new Main().setup(new String[]{"-input", iniFile.getAbsolutePath(), "-log", logFile.getAbsolutePath()});
+//			Assert.fail("Should have thrown a SnpException");
+//		} catch (SnpException e) {
+//			Assert.assertEquals(true, e.getMessage().startsWith(Messages.getMessage("EMPTY_PILEUP_FILE")));
+//		}
 		
 	}
 	

@@ -63,8 +63,8 @@ public class BAMPileupUtil {
 	public static void examinePileupSNP(final List<SAMRecord> sams, final QSnpRecord record, final Mode mode) {
 		String pileup = "", qualities = "";
 		
-		final char mutation = Mode.QSNP_MUTATION_IN_NORMAL == mode ? 
-				record.getMutation().charAt(record.getMutation().length()-1) : '\u0000';
+//		final char mutation = Mode.QSNP_MUTATION_IN_NORMAL == mode ? 
+//				record.getMutation().charAt(record.getMutation().length()-1) : '\u0000';
 		
 		for (final SAMRecord sam : sams ) {
 			
@@ -83,10 +83,10 @@ public class BAMPileupUtil {
 				if (Mode.QSNP_MUTATION_IN_NORMAL == mode) {
 					// both chars should always be upper case at this point
 					assert ! Character.isLowerCase(c);
-					if (c == mutation) {
-						VcfUtils.updateFilter(record.getVcfRecord(), SnpUtils.MUTATION_IN_UNFILTERED_NORMAL);
-						return;
-					}
+//					if (c == mutation) {
+//						VcfUtils.updateFilter(record.getVcfRecord(), SnpUtils.MUTATION_IN_UNFILTERED_NORMAL);
+//						return;
+//					}
 				}
 				
 				pileup += sam.getReadNegativeStrandFlag() ? Character.toLowerCase(c) : c;
@@ -98,10 +98,10 @@ public class BAMPileupUtil {
 			if (Mode.QSNP == mode) {
 				if (null == record.getNormalGenotype()) {
 //					record.setNormalPileup(pileup);
-					record.setNormalCount(pileup.length());
+//					record.setNormalCount(pileup.length());
 //					record.setNormalNucleotides(PileupElementUtil.getPileupElementString(PileupElementUtil.getPileupCounts(pileup, qualities), record.getRef().charAt(0)));
 				} else if (null == record.getTumourGenotype()) {
-					record.setTumourCount(pileup.length());
+//					record.setTumourCount(pileup.length());
 //					record.setTumourNucleotides(PileupElementUtil.getPileupElementString(PileupElementUtil.getPileupCounts(pileup, qualities), record.getRef().charAt(0)));
 				}
 			} 

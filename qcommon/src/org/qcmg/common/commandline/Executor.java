@@ -21,6 +21,7 @@ public class Executor {
 				+ qualifiedMainClassName + " ";
 		String execCommand = javaCommand + arguments;
 //		System.out.println("execCommand: " + execCommand);
+//		System.out.println("classpath: " + classpath);
 		
 		Process process = Runtime.getRuntime().exec(execCommand);
 		outputStreamConsumer = new StreamConsumer(process.getInputStream());

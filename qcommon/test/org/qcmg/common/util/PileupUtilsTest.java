@@ -1,6 +1,6 @@
 package org.qcmg.common.util;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -118,8 +118,8 @@ public class PileupUtilsTest {
 		
 		// try to access a non-existant position in string array
 		try {
-			Assert.assertEquals("3", PileupUtils.getBases(new String[] {"1","2"}, new int[] {10}));
-			Assert.fail("should have thrown an exception");
+			assertEquals("3", PileupUtils.getBases(new String[] {"1","2"}, new int[] {10}));
+			fail("should have thrown an exception");
 		} catch (ArrayIndexOutOfBoundsException e) {}
 	}
 	
@@ -130,7 +130,7 @@ public class PileupUtilsTest {
 		
 		try {
 			PileupUtils.getQualities(params, positions);
-			Assert.fail("Should have thrown an exception");
+			fail("Should have thrown an exception");
 		} catch (IllegalArgumentException iae) {}
 		
 		params = new String[] {"0","Hello","World","1","Goodbye","Everyone"};
@@ -149,7 +149,7 @@ public class PileupUtilsTest {
 		// try to access a non-existant position in string array
 		try {
 			assertEquals("3", PileupUtils.getQualities(new String[] {"1","2"}, new int[] {10}));
-			Assert.fail("should have thrown an exception");
+			fail("should have thrown an exception");
 		} catch (ArrayIndexOutOfBoundsException e) {}
 	}
 	

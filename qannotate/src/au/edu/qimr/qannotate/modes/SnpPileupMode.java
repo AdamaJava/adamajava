@@ -50,7 +50,7 @@ public class SnpPileupMode extends AbstractMode{
         logger.tool(	"logger level " + (options.getLogLevel() == null ? QLoggerFactory.DEFAULT_LEVEL.getName() :  options.getLogLevel())	);
               
         //read vcf records to Map<ChrPosition,List<VcfRecord>> positionRecordMap
-        inputRecord(new File(options.getInputFileName()));   
+        loadVcfRecordsFromFile(new File(options.getInputFileName()));   
                 
         Map<ChrPosition, String[]> acsnpMap = new HashMap<>(); 
         for(int i = 0; i < options.getDatabaseFiles().length; i ++ ) 

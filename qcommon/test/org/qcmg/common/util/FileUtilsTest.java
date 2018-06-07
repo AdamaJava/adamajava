@@ -216,7 +216,7 @@ public class FileUtilsTest {
 	@Test
 	public void testIsFileNameGzip() {
 		try {
-			Assert.assertFalse(FileUtils.isFileNameGZip(null));
+			Assert.assertFalse(FileUtils.isFileNameGZip((File)null));
 			Assert.fail("Should have thrown an exception");
 		} catch (IllegalArgumentException e) {}
 		//no

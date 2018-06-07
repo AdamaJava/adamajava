@@ -35,7 +35,7 @@ X Raw   Y Raw   B Allele Freq   Log R Ratio
 			
 			// ignore header lines until we hit [DATA]
 			line = reader.readLine();
-			while ( ! line.startsWith(DATA_LINE)) {
+			while (null != line &&  ! line.startsWith(DATA_LINE)) {
 				line = reader.readLine();
 			}
 			// next line is still header....

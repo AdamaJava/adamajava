@@ -1,12 +1,13 @@
 package org.qcmg.common.model;
 
+import static org.junit.Assert.*;
+
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLongArray;
 
-import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -18,6 +19,9 @@ public class QCMGAtomicLongArrayTest {
 		
 		for (int i = 0 ; i < 17 ; i++) {
 			array.increment(i);
+		}
+		for (int i = 0 ; i < 17 ; i++) {
+			assertEquals(1, array.get(i));
 		}
 		
 	}
@@ -57,21 +61,22 @@ public class QCMGAtomicLongArrayTest {
 	@Test
 	public void testResize() throws InterruptedException {
 		
-		final int noOfLoops = 10000000;
+		final int noOfLoops = 1000000;
 		
 		final QCMGAtomicLongArray array = new QCMGAtomicLongArray(10);
 		// will create an array of length 20
 		
 		// create 2 threads, one that just increments values 0-20, and another that resizes
 		ExecutorService executor = Executors.newFixedThreadPool(4);
-		for (int j = 0 ; j < 3 ; j++)
-		executor.execute(new Runnable() {
-			@Override
-			public void run() {
-				for (int i = 0 ; i < noOfLoops ; i++)
-					array.increment(i % 20);
-			}
-		});
+		for (int j = 0 ; j < 3 ; j++) {
+			executor.execute(new Runnable() {
+				@Override
+				public void run() {
+					for (int i = 0 ; i < noOfLoops ; i++)
+						array.increment(i % 20);
+				}
+			});
+		}
 		executor.execute(new Runnable() {
 			@Override
 			public void run() {
@@ -86,7 +91,7 @@ public class QCMGAtomicLongArrayTest {
 		executor.awaitTermination(1, TimeUnit.MINUTES);
 		
 		for (int i = 0 ; i < 20 ; i++) {
-			Assert.assertEquals((noOfLoops / 20) *3, array.get(i));
+			assertEquals((noOfLoops / 20) *3, array.get(i));
 		}
 	}
 

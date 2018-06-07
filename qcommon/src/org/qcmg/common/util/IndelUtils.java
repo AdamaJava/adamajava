@@ -15,10 +15,11 @@ import org.qcmg.common.vcf.header.VcfHeaderUtils;
 public class IndelUtils {
 	public enum SVTYPE {
 		
-		SNP(1),DNP(2),TNP(3), ONP(4),INS(5),DEL(6),CTX(7),UNKNOWN(0);
+		SNP(1, true),DNP(2, true),TNP(3, true), ONP(4, true),INS(5, false),DEL(6, false),CTX(7, false),UNKNOWN(0, false);
 		
 		public final int order;
-		SVTYPE(int od){this.order = od;}		
+		public final boolean isSnpOrCS;
+		SVTYPE(int od, boolean isSnpOrCS){this.order = od;this.isSnpOrCS = isSnpOrCS;}		
 		public int getOrder(){return order; }
 		static public int getSize() { return CTX.order + 1;}
 		public String toVariantType(){
@@ -163,8 +164,7 @@ public class IndelUtils {
 		}
 		
 		//single allele
-		int commaIndex = alts.indexOf(Constants.COMMA);
-		if (commaIndex == -1) {
+		if ( ! alts.contains(Constants.COMMA_STRING)) {
 			return alts;
 		}
 		
@@ -227,7 +227,7 @@ public class IndelUtils {
 		//if "GT" field is not exist, do nothing
 		String sgt = re.getField(VcfHeaderUtils.FORMAT_GENOTYPE) ;
 		String gd = null;
-		if( ! StringUtils.isNullOrEmpty(sgt) && !sgt.equals(Constants.MISSING_DATA_STRING)){
+		if ( ! StringUtils.isNullOrEmptyOrMissingData(sgt)) {		
 			boolean isbar = sgt.contains(Constants.BAR_STRING);
 			String[] gts = isbar? sgt.split(Constants.BAR_STRING) : sgt.split("\\/"); 
 			String[] sgd = new String[gts.length];
@@ -263,7 +263,7 @@ public class IndelUtils {
 		if(type.equals(SVTYPE.UNKNOWN))
 			return null; 
 		
-		return ref;  //return ref for snp, mnp 		
+		return alt;  //return alt for snp, mnp 		
 	}
 	
 	/**

@@ -527,10 +527,10 @@ public class MakeValidMode extends AbstractMode {
 		 * The following header lines need to be adjusted so as to be valid:
 		 * HOM, CONF, GERM, AC, ACCS, SOMATIC_1, 5BP
 		 */
-		myHeader.addInfo(VcfHeaderUtils.INFO_HOM,  ".", "String",VcfHeaderUtils.DESCRITPION_INFO_HOM);
+		myHeader.addInfo(VcfHeaderUtils.INFO_HOM,  ".", "String",VcfHeaderUtils.INFO_HOM_DESC);
 		myHeader.addInfo(VcfHeaderUtils.INFO_CONFIDENCE, ".", "String", DESCRIPTION_INFO_CONFIDENCE);
-		myHeader.addInfo(VcfHeaderUtils.INFO_GERMLINE, ".", "String", VcfHeaderUtils.DESCRITPION_INFO_GERMLINE);
-		myHeader.addInfo(VcfHeaderUtils.INFO_DB,  "0", VcfInfoType.Flag.name(),VcfHeaderUtils.DESCRITPION_INFO_DB);
+		myHeader.addInfo(VcfHeaderUtils.INFO_GERMLINE, ".", "String", VcfHeaderUtils.INFO_GERMLINE_DESC);
+		myHeader.addInfo(VcfHeaderUtils.INFO_DB,  "0", VcfInfoType.Flag.name(),VcfHeaderUtils.INFO_DB_DESC);
 		myHeader.addFilter(VcfHeaderUtils.FILTER_END_OF_READ,VcfHeaderUtils.FILTER_END_OF_READ_DESC); 
 		myHeader.addFormat(VcfHeaderUtils.FORMAT_ALLELE_COUNT, ".", "String",VcfHeaderUtils.FORMAT_ALLELE_COUNT_DESC);
 		myHeader.addFormat(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP, ".", "String",VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP_DESC);

@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.AfterClass;
@@ -15,15 +16,16 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.vcf.VcfRecord;
+import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 
 public class GermlineModeTest {
 	
-	final static String GermlineFileName = "germline.vcf";
-	final static String inputName = "input.vcf"; 
-	final static String outputName = "output.vcf";
+	final static String GERMLINE_FILENAME = "germline.vcf";
+	final static String iNPUT_FILENAME = "input.vcf"; 
+	final static String OUTPUT_FILENAME = "output.vcf";
   	
 	@BeforeClass
 	public static void createInput() throws IOException{	
@@ -34,26 +36,74 @@ public class GermlineModeTest {
 	 @AfterClass
 	 public static void deleteIO(){
 
-		 new File(inputName).delete();
-		 new File(GermlineFileName).delete();
-		 new File(outputName).delete();
-	 }	
+		 new File(iNPUT_FILENAME).delete();
+		 new File(GERMLINE_FILENAME).delete();
+		 new File(OUTPUT_FILENAME).delete();
+	 }
+	 
+	 @Test
+	 public void getDataForInfoField() {
+		 assertEquals(null, GermlineMode.getDataForInfoField(null, null));
+		 assertEquals(null, GermlineMode.getDataForInfoField("", null));
+		 assertEquals(null, GermlineMode.getDataForInfoField("A", null));
+		 assertEquals(null, GermlineMode.getDataForInfoField(null, new String[]{}));
+		 assertEquals("A:1:2:1:2", GermlineMode.getDataForInfoField("A", new String[]{"1","2","1","2"}));
+		 assertEquals("T:11:2:1:12", GermlineMode.getDataForInfoField("T", new String[]{"11","2","1","12"}));
+		 assertEquals("ABC:11:2:1:12", GermlineMode.getDataForInfoField("ABC", new String[]{"11","2","1","12"}));
+	 }
+	 
+	 @Test
+	 public void annotate() {
+		 
+		VcfRecord r = new VcfRecord(new String[]{"chr1","16534","rs201459529","C","T",".",".","IN=2;DB","GT:AD:DP:GQ:PL:FT:MR:NNS:OABS:INF",".:.:.:.:.:.:.:.:.:.","1/1:0,2:2:6:69,6,0:SBIASCOV;SAT3:2:2:T0[0]2[34.5]:SOMATIC"});
+		assertEquals(true, GermlineMode.annotateGermlineSnp(r, "C", "T", new String[]{"1","1","1","1"}));
+		assertEquals(true, r.getInfo().contains("GERM=T:1:1:1:1"));
+		assertEquals(false, GermlineMode.annotateGermlineSnp(r, "C", "A", new String[]{"1","1","1","1"}));
+		assertEquals(false, r.getInfo().contains("GERM=A:1:1:1:1"));
+		
+		r = new VcfRecord(new String[]{"chr1","16534","rs201459529","C","T,A",".",".","IN=2;DB","GT:AD:DP:GQ:PL:FT:MR:NNS:OABS:INF",".:.:.:.:.:.:.:.:.:.","1/1:0,2:2:6:69,6,0:SBIASCOV;SAT3:2:2:T0[0]2[34.5]:SOMATIC"});
+		assertEquals(true, GermlineMode.annotateGermlineSnp(r, "C", "T", new String[]{"1","1","1","1"}));
+		assertEquals(true, r.getInfo().contains("GERM=T:1:1:1:1"));
+		assertEquals(true, GermlineMode.annotateGermlineSnp(r, "C", "A", new String[]{"1","1","1","1"}));
+		assertEquals(true, r.getInfo().contains("GERM=T:1:1:1:1,A:1:1:1:1"));
+		 
+	 }
+//	 @Test
+//	 public void addToINFO() {
+//		 VcfRecord v = new VcfRecord(new String[]{"chr1","100",".","A","C",".",".","SOMATIC"});
+//		 VcfRecord germVcf = new VcfRecord(new String[]{"chr1","100",".","A","C",".",".","86"});
+//		 GermlineMode.annotateGermlineSnp(v, germVcf, 185);
+//		 assertEquals("SOMATIC;GERM=C:86,185", v.getInfo());
+//		 
+//		 VcfRecord v2 = new VcfRecord(new String[]{"chr1","100",".","A","G",".",".","SOMATIC"});
+//		 GermlineMode.annotateGermlineSnp(v2, germVcf, 185);
+//		 assertEquals("SOMATIC", v2.getInfo());
+//		 
+//		 VcfRecord v3 = new VcfRecord(new String[]{"chr1","100",".","A","C,G",".",".","SOMATIC"});
+//		 GermlineMode.annotateGermlineSnp(v3, germVcf, 185);
+//		 assertEquals("SOMATIC;GERM=C:86,185", v3.getInfo());
+//		 
+//		 VcfRecord v4 = new VcfRecord(new String[]{"chr1","100",".","A","C,T",".",".","SOMATIC"});
+//		 VcfRecord germVcf2 = new VcfRecord(new String[]{"chr1","100",".","A","C,T",".",".","86"});
+//		 GermlineMode.annotateGermlineSnp(v4, germVcf2, 185);
+//		 assertEquals("SOMATIC;GERM=C:86,185,T:86,185", v4.getInfo());
+//	 }
 	 
 		@Test
 		public void germlineModeTest() throws Exception {
 			createVcf();
 			final GermlineMode mode = new GermlineMode();		
-			mode.inputRecord(new File(inputName));
-			mode.addAnnotation(GermlineFileName);						
-			mode.reheader("testing run",   inputName);
-			mode.writeVCF( new File(outputName));
+			mode.loadVcfRecordsFromFile(new File(iNPUT_FILENAME));
+			mode.addAnnotation(GERMLINE_FILENAME);						
+			mode.reheader("testing run",   iNPUT_FILENAME);
+			mode.writeVCF( new File(OUTPUT_FILENAME));
 			
-			try(VCFFileReader reader = new VCFFileReader(outputName)){
+			try(VCFFileReader reader = new VCFFileReader(OUTPUT_FILENAME)){
 				 
 				 //check header
-				VcfHeader header = reader.getHeader();					
+				VcfHeader header = reader.getHeader();	
 				assertEquals(false, header.getFilterRecord(VcfHeaderUtils.FILTER_GERMLINE) != null);
-				assertEquals(true, header.getInfoRecord(VcfHeaderUtils.INFO_GERMLINE) != null);
+//				assertEquals(true, header.getInfoRecord(VcfHeaderUtils.INFO_GERMLINE) != null);
 
 				//check records
  				int inputs = 0;
@@ -61,46 +111,40 @@ public class GermlineModeTest {
  				
 				for (final VcfRecord re : reader) {	
 	 				inputs ++;
+	 				
 	 				if(re.getInfoRecord().getField(VcfHeaderUtils.INFO_GERMLINE) != null)
 	 					germNo ++;
 	 				
-					if(re.getPosition() == 2675826){						
-						assertTrue(re.getId().equals(Constants.MISSING_DATA_STRING));
-						assertTrue(re.getFilter().equals("COVN12;MIUN"));							
-						assertTrue(re.getInfoRecord().getField(VcfHeaderUtils.INFO_GERMLINE) == null );	
-					}else if(re.getPosition() == 14923588)
-						//assertTrue(re.getFilter().equals(VcfHeaderUtils.FILTER_GERMLINE));	
-						assertTrue(re.getInfoRecord().getField(VcfHeaderUtils.INFO_GERMLINE).equals("6,185"));	
-					else if(re.getPosition() == 22012840 || re.getPosition() == 22012841 ||re.getPosition() == 22012842 ){
-						assertTrue(re.getInfoRecord().getField(VcfHeaderUtils.INFO_GERMLINE).equals("86,185"));	
-					}else if(re.getPosition() == 22012843){
-						assertTrue(re.getFilter().equals(Constants.MISSING_DATA_STRING));	
-						assertTrue(re.getInfoRecord().getField(VcfHeaderUtils.INFO_GERMLINE) ==null );	
-					}
+	 				if (re.getPosition() == 95813205) {
+	 					assertEquals("T:10:283:293:0", re.getInfoRecord().getField(VcfHeaderUtils.INFO_GERMLINE));
+	 				}
+	 				if (re.getPosition() == 	60781981) {
+	 					assertEquals("G:10:302:312:0", re.getInfoRecord().getField(VcfHeaderUtils.INFO_GERMLINE));
+	 				}
 				}
-				assertTrue(inputs == 6);
-				assertTrue(germNo == 4);
+				assertTrue(inputs == 2);
+				assertTrue(germNo == 2);
 			 }
 		}	 
 	 
 		@Test
-		public void checkNonSomatic()throws Exception{
-		    final List<String> data = new ArrayList<String>();
+		public void checkNonSomatic() throws Exception {
+		    final List<String> data = new ArrayList<String>(4);
 	        data.add("##fileformat=VCFv4.0");
 	        data.add(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT+"s1\ts2");
 	       
  	        //germ position but not somatic
 	        data.add("chrY\t14923588\t.\tG\tA\t.\t.\tFS=GTGATATTCCC\tGT:GD:AC:MR:NNS\t0/1:G/A:A0[0],15[36.2],G11[36.82],9[33]\t0/1:G/A:A0[0],33[35.73],G6[30.5],2[34]:15:13"); 
-	        try(BufferedWriter out = new BufferedWriter(new FileWriter(inputName));) {          
+	        try(BufferedWriter out = new BufferedWriter(new FileWriter(iNPUT_FILENAME));) {          
 	            for (final String line : data)   out.write(line + "\n");                  
 	         }
 	        
 			final GermlineMode mode = new GermlineMode();		
-			mode.inputRecord(new File(inputName));
-			mode.addAnnotation(GermlineFileName);
-			mode.writeVCF( new File(outputName));
+			mode.loadVcfRecordsFromFile(new File(iNPUT_FILENAME));
+			mode.addAnnotation(GERMLINE_FILENAME);
+			mode.writeVCF( new File(OUTPUT_FILENAME));
 	        
-			 try(VCFFileReader reader = new VCFFileReader(outputName)){				 
+			 try(VCFFileReader reader = new VCFFileReader(OUTPUT_FILENAME)){				 
 				//check records
  				int i = 0;
 				for (final VcfRecord re : reader) {	
@@ -114,30 +158,34 @@ public class GermlineModeTest {
 				assertTrue( i == 1 );
 			 }	        
 		}
+		@Test
+		public void checkSomatic()throws Exception{
+			
+			VcfRecord r = new VcfRecord(new String[]{"chr1","16534","rs201459529","C","T",".",".","AF=1.00;DP=2;FS=0.000;MLEAC=2;MLEAF=1.00;MQ=34.79;MQ0=0;QD=20.87;SOR=2.303;IN=2;DB","GT:AD:DP:GQ:PL:FT:MR:NNS:OABS:INF",".:.:.:.:.:.:.:.:.:.","1/1:0,2:2:6:69,6,0:SBIASCOV;SAT3:2:2:T0[0]2[34.5]:SOMATIC"});
+			
+			final GermlineMode mode = new GermlineMode();		
+			mode.positionRecordMap.put(r.getChrPosition(), Arrays.asList(r));
+			mode.addAnnotation(GERMLINE_FILENAME);
+			
+			List<VcfRecord> recs = mode.positionRecordMap.get(r.getChrPosition());
+			assertEquals(1, recs.size());
+			assertEquals(true, VcfUtils.isRecordSomatic(recs.get(0)));
+		}
 	
 	/**
 	 * create input vcf file containing 2 dbSNP SNPs and one verified SNP
 	 * @throws IOException
 	 */
 	public static void createVcf() throws IOException{
-        final List<String> data = new ArrayList<String>();
-        data.add("##fileformat=VCFv4.0");
-        data.add(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT+"s1\ts2");
-        //not germ: ref diferent
-        data.add("chrY\t2675826\t.\tTG\tCA\t.\tCOVN12;MIUN\tSOMATIC;END=2675826\tACCS\tTG,5,37,CA,0,2\tAA,1,1,CA,4,1,CT,3,1,TA,11,76,TG,2,2,TG,0,1");
-        //. = > GERM
-        data.add("chrY\t14923588\t.\tG\tA\t.\t.\tSOMATIC;FS=GTGATATTCCC\tGT:GD:AC:MR:NNS\t0/1:G/A:A0[0],15[36.2],G11[36.82],9[33]\t0/1:G/A:A0[0],33[35.73],G6[30.5],2[34]:15:13"); 
-        //MIUN => MIUN;GERM
-        data.add("chrY\t22012840\t.\tC\tA\t.\tMIUN\tSOMATIC\tGT:GD:AC:MR:NNS\t0/1:C/A:A0[0],15[36.2],C11[36.82],9[33]\t0/1:C/A:A0[0],33[35.73],C6[30.5],2[34]:15:13");  
-        //MIUN;PASS => MIUN;GERM
-        data.add("chrY\t22012841\t.\tC\tA\t.\tMIUN;PASS\tSOMATIC\tGT:GD:AC:MR:NNS\t0/1:C/A:A0[0],15[36.2],C11[36.82],9[33]\t0/1:C/A:A0[0],33[35.73],C6[30.5],2[34]:15:13");  
-        //PASS;MIUN => MIUN;GERM
-        data.add("chrY\t22012842\t.\tC\tA\t.\tPASS;MIUN\tSOMATIC\tGT:GD:AC:MR:NNS\t0/1:C/A:A0[0],15[36.2],C11[36.82],9[33]\t0/1:C/A:A0[0],33[35.73],C6[30.5],2[34]:15:13");  
-        //not germ: position different
-        data.add("chrY\t22012843\t.\tC\tA\t.\t.\tSOMATIC\tGT:GD:AC:MR:NNS\t0/1:C/A:A0[0],15[36.2],C11[36.82],9[33]\t0/1:C/A:A0[0],33[35.73],C6[30.5],2[34]:15:13");  
+        List<String> data =Arrays.asList(
+        		"##fileformat=VCFv4.2",
+        		VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT,
+        		"chr1	95813205	rs11165387	C	T	.	.	FLANK=CTTCGTGTCTT;BaseQRankSum=1.846;ClippingRankSum=-1.363;DP=35;FS=3.217;MQ=60.00;MQRankSum=-1.052;QD=18.76;ReadPosRankSum=-1.432;SOR=0.287;IN=1,2;DB;VAF=0.6175;HOM=0,TCCTTCTTCGtGTCTTTCCTT;EFF=downstream_gene_variant(MODIFIER||3602|||RP11-14O19.1|lincRNA|NON_CODING|ENST00000438093||1),intergenic_region(MODIFIER||||||||||1)	GT:AD:CCC:CCM:DP:EOR:FF:FT:GQ:INF:NNS:OABS:QL	0/1:17,15:Germline:22:32:T0[]1[]:C1;T8:PASS:.:.:15:C4[36.5]13[38.54];T5[41]10[39.7]:.	0/0:26,0:ReferenceNoVariant:22:26:C1[]1[]:C7:PASS:.:.:.:C8[36.5]18[39.56]:.	0/1:16,18:Germline:21:34:.:.:PASS:99:.:.:.:656.77	./.:.:HomozygousLoss:21:.:.:.:PASS:.:NCIG:.:.:.",
+        		"chr1	60781981	rs5015226	T	G	.	.	FLANK=ACCAAGTGCCT;DP=53;FS=0.000;MQ=60.00;QD=31.16;SOR=0.730;IN=1,2;DB;HOM=0,CGAAAACCAAgTGCCTGCATT;EFF=intergenic_region(MODIFIER||||||||||1)	GT:AD:CCC:CCM:DP:EOR:FF:FT:GQ:INF:NNS:OABS:QL	1/1:0,46:Germline:34:47:G0[]1[]:G5;T1:PASS:.:.:42:C0[0]1[12];G23[40.04]23[36.83]:.	1/1:0,57:Germline:34:57:G2[]0[]:G3:PASS:.:.:51:G24[39]33[39.18]:.	1/1:0,53:Germline:34:53:.:.:PASS:99:.:.:.:2418.77	1/1:0,60:Germline:34:60:.:.:PASS:99:.:.:.:2749.77"
+        		);
         
-        try(BufferedWriter out = new BufferedWriter(new FileWriter(inputName));) {          
-            for (final String line : data)   out.write(line + "\n");                  
+        try(BufferedWriter out = new BufferedWriter(new FileWriter(iNPUT_FILENAME));) {          
+            for (String line : data)   out.write(line + "\n");                  
          }  
 	}	
 	
@@ -145,19 +193,26 @@ public class GermlineModeTest {
 	 * a mini dbSNP vcf file 
 	 */
 	public static void createGermlineFile() throws IOException{
-        final List<String> data = new ArrayList<String>();
-        data.add("##fileformat=VCFv4.0");
-        data.add("##search_string=GermlineSNV.dcc1");  
-        data.add("##dornorNumber=185");
-        data.add("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO");
-        data.add("Y\t2675826\t.\tC\tA\t.\t.\t86");
-        data.add("Y\t14923588\t.\tG\tA,T\t.\t.\t6");
-        data.add("Y\t22012840\t.\tC\tA\t.\t.\t86");
-        data.add("Y\t22012841\t.\tC\tA\t.\t.\t86");
-        data.add("Y\t22012842\t.\tC\tA\t.\t.\t86");
+        List<String> data = Arrays.asList("chr1_11894494_C_T:0:1:1:0:rs372880659",
+"chr1_143540358_A_T:183:1:1:183:rs76379294",
+"chr1_95813205_C_T:10:283:293:0:rs11165387",
+"chr1_36332201_A_G:2:0:2:0:rs79659675",
+"chr1_79040252_A_G:0:1:1:0:novel",
+"chr1_147325053_G_A:1:0:1:0:novel",
+"chr1_44499568_T_G:1:0:1:0:novel",
+"chr1_60781981_T_G:10:302:312:0:rs5015226",
+"chr1_173643835_T_C:0:2:2:0:rs1903411");
+//        data.add("##search_string=GermlineSNV.dcc1");  
+//        data.add("##dornorNumber=185");
+//        data.add("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO");
+//        data.add("Y\t2675826\t.\tC\tA\t.\t.\t86");
+//        data.add("Y\t14923588\t.\tG\tA,T\t.\t.\t6");
+//        data.add("Y\t22012840\t.\tC\tA\t.\t.\t86");
+//        data.add("Y\t22012841\t.\tC\tA\t.\t.\t86");
+//        data.add("Y\t22012842\t.\tC\tA\t.\t.\t86");
 
-        try(BufferedWriter out = new BufferedWriter(new FileWriter(GermlineFileName));) {          
-           for (final String line : data)  out.write(line + "\n");
+        try(BufferedWriter out = new BufferedWriter(new FileWriter(GERMLINE_FILENAME));) {
+           for (String line : data)  out.write(line + "\n");
         }  
 	}	
 }

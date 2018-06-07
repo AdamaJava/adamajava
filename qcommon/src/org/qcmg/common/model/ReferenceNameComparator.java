@@ -48,7 +48,8 @@ public class ReferenceNameComparator implements Comparator<String> , Serializabl
 	}
 	
 	private boolean isNumeric(char ch) {
-	   return ch >= '0' && ch <= '9';
+		return Character.isDigit(ch);
+//	   return ch >= '0' && ch <= '9';
 	 }
 	
 	private String getIntegerFromString(String string) {

@@ -57,7 +57,7 @@ public class CigarFilterTest {
     */
     @Test(expected=Exception.class)
     public void InvalidTest() throws Exception{
-         SamRecordFilter filter = new CigarFilter("o", Comparator.Equal, "0");
+        new CigarFilter("o", Comparator.Equal, "0");
      }
      
     

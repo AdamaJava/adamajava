@@ -12,6 +12,7 @@ import java.util.regex.Pattern;
 
 import org.qcmg.common.model.Classification;
 import org.qcmg.common.util.BaseUtils;
+import org.qcmg.common.model.Classification;
 
 public final class QPileupSerializer {
 	private static final Pattern tabbedPattern = Pattern.compile("[\\t]");
@@ -46,7 +47,7 @@ public final class QPileupSerializer {
 		result.setNormalGenotype(BaseUtils.getGenotypeEnum(params[15]));
 		result.setTumourGenotype(BaseUtils.getGenotypeEnum(params[16]));
 		result.setClassification(getClassification(params[17]));
-		result.setMutation(params[18]);
+//		result.setMutation(params[18]);
 		result.getVcfRecord().setFilter(params[19]);
 		
 		return result;

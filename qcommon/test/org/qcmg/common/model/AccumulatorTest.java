@@ -49,45 +49,94 @@ public class AccumulatorTest {
 			Assert.fail("Should have thrown an IllegalArgExc");
 		} catch (IllegalArgumentException iae) {}
 	}
+	@Test
+	public void endOfReads() {
+		Accumulator acc = new Accumulator(100);
+		assertEquals(".", acc.getEndOfReadsPileup());
+		acc.addBase((byte)'C', (byte)10, true, 100, 100, 200, 1);
+		assertEquals("C1[]0[]", acc.getEndOfReadsPileup());
+		acc.addBase((byte)'C', (byte)10, true, 1, 100, 200, 1);
+		assertEquals("C1[]0[]", acc.getEndOfReadsPileup());
+		acc.addBase((byte)'C', (byte)10, true, 99, 100, 200, 1);
+		assertEquals("C2[]0[]", acc.getEndOfReadsPileup());
+		acc.addBase((byte)'C', (byte)10, true, 95, 100, 200, 1);
+		assertEquals("C2[]0[]", acc.getEndOfReadsPileup());
+		acc.addBase((byte)'C', (byte)10, true, 1, 100, 106, 1);
+		assertEquals("C2[]0[]", acc.getEndOfReadsPileup());
+		acc.addBase((byte)'C', (byte)10, true, 1, 100, 105, 1);
+		assertEquals("C2[]0[]", acc.getEndOfReadsPileup());
+		acc.addBase((byte)'C', (byte)10, true, 1, 100, 104, 1);
+		assertEquals("C3[]0[]", acc.getEndOfReadsPileup());
+		acc.addBase((byte)'C', (byte)10, true, 1, 100, 100, 1);
+		assertEquals("C4[]0[]", acc.getEndOfReadsPileup());
+		acc.addBase((byte)'T', (byte)10, false, 98, 100, 104, 2);
+		assertEquals("C4[]0[];T0[]1[]", acc.getEndOfReadsPileup());
+	}
 	
 	@Test
 	public void testUnfilteredPileup() {
 		Accumulator acc = new Accumulator(1);
-		String basesString = "ACGTACGTGTACACT";
+		String basesString = "ACGT";
 		for (byte b : basesString.getBytes()) acc.addFailedFilterBase(b);
-//		Assert.assertEquals("ACGT", acc.getUnfilteredPileup());
-		assertEquals("A4;C4;G3;T4", acc.getFailedFilterPileup());
+		assertEquals("A1;C1;G1;T1", acc.getFailedFilterPileup());
+		for (byte b : basesString.getBytes()) acc.addFailedFilterBase(b);
+		assertEquals("A2;C2;G2;T2", acc.getFailedFilterPileup());
+		for (byte b : basesString.getBytes()) acc.addFailedFilterBase(b);
+		assertEquals("A3;C3;G3;T3", acc.getFailedFilterPileup());
 	}
+	
+	@Test
+	public void testUnfilteredPileupPercentage() {
+		Accumulator acc = new Accumulator(1);
+		for (int i = 0 ; i < 100 ; i ++) {
+			acc.addBase((byte)'A', (byte)10, true, 1, 1, 2, i);
+		}
+		
+		String basesString = "GG";
+		for (byte b : basesString.getBytes()) {
+			acc.addFailedFilterBase(b);
+		}
+		assertEquals("G2", acc.getFailedFilterPileup());
+		/*
+		 * need 3 percent
+		 */
+		basesString = "G";
+		for (byte b : basesString.getBytes()) {
+			acc.addFailedFilterBase(b);
+		}
+		assertEquals("G3", acc.getFailedFilterPileup());
+	}
+	
 	
 	@Test
 	public void singleUnfilteredPileup() {
 		Accumulator acc = new Accumulator(1);
 		for (byte b : "ACGT".getBytes()) acc.addFailedFilterBase(b);
-		Assert.assertEquals("A1;C1;G1;T1", acc.getFailedFilterPileup());
+		assertEquals("A1;C1;G1;T1", acc.getFailedFilterPileup());
 		
 		acc = new Accumulator(1);
 		for (byte b : "ACGTA".getBytes()) acc.addFailedFilterBase(b);
-		Assert.assertEquals("A2;C1;G1;T1", acc.getFailedFilterPileup());
+		assertEquals("A2;C1;G1;T1", acc.getFailedFilterPileup());
 		
 		acc = new Accumulator(1);
 		for (byte b : "ACCGT".getBytes()) acc.addFailedFilterBase(b);
-		Assert.assertEquals("A1;C2;G1;T1", acc.getFailedFilterPileup());
+		assertEquals("A1;C2;G1;T1", acc.getFailedFilterPileup());
 		
 		acc = new Accumulator(1);
 		for (byte b : "ATTTGT".getBytes()) acc.addFailedFilterBase(b);
-		Assert.assertEquals("A1;G1;T4", acc.getFailedFilterPileup());
+		assertEquals("A1;G1;T4", acc.getFailedFilterPileup());
 		
 		acc = new Accumulator(1);
 		for (byte b : "AAAATTTGT".getBytes()) acc.addFailedFilterBase(b);
-		Assert.assertEquals("A4;G1;T4", acc.getFailedFilterPileup());
+		assertEquals("A4;G1;T4", acc.getFailedFilterPileup());
 		
 		acc = new Accumulator(1);
 		for (byte b : "AAAACTTTCGT".getBytes()) acc.addFailedFilterBase(b);
-		Assert.assertEquals("A4;C2;G1;T4", acc.getFailedFilterPileup());
+		assertEquals("A4;C2;G1;T4", acc.getFailedFilterPileup());
 		
 		acc = new Accumulator(1);
 		for (byte b : "AAAACTTTCGTG".getBytes()) acc.addFailedFilterBase(b);
-		Assert.assertEquals("A4;C2;G2;T4", acc.getFailedFilterPileup());
+		assertEquals("A4;C2;G2;T4", acc.getFailedFilterPileup());
 	}
 	
 	@Test
@@ -377,7 +426,7 @@ public class AccumulatorTest {
 		} catch (UnsupportedOperationException uoe) {}
 	}
 	
-//	@Test
+//	@Ignore
 //	public void testGetPileupQualities() {
 //		Accumulator acc = new Accumulator(1010101);
 //		acc.addBase((byte)'G', (byte)'(', true, 1010100, 1010101, 1010102, 1);

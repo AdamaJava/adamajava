@@ -13,6 +13,7 @@ import static org.qcmg.common.util.Constants.SEMI_COLON;
 import static org.qcmg.common.util.Constants.TAB;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -241,11 +242,13 @@ public class VcfRecord implements Comparable<VcfRecord> {
 		if (field.size() == 1)  
 			throw new IllegalArgumentException("missing sample column information");
 		 
-		for (int i = 0; i < field.size(); i ++)  
-			if(StringUtils.isNullOrEmpty(field.get(i)))
+		for (int i = 0; i < field.size(); i ++) {
+			if(StringUtils.isNullOrEmpty(field.get(i))) {
 				formatRecords.add( Constants.MISSING_DATA_STRING);
-			else
-				formatRecords.add( field.get(i));	 
+			} else {
+				formatRecords.add( field.get(i));
+			}
+		}
 	}
 	
 	/**
@@ -265,11 +268,17 @@ public class VcfRecord implements Comparable<VcfRecord> {
 	 */
 	public List<String> getFormatFields() {
 		// return a copy of this
-		return hasFormatFields() ? new ArrayList<>(formatRecords) : null;
+		if( formatRecords.size() == 0 ) return Collections.emptyList();		
+		return new ArrayList<>(formatRecords);
+		
 	}
 	
 	public boolean hasFormatFields() {
 		return null != formatRecords && ! formatRecords.isEmpty();
+	}
+	
+	public int getFormatColumnCount() {
+		return formatRecords.size();
 	}
 	
 	public String getFormatFieldStrings(){ 
@@ -277,11 +286,7 @@ public class VcfRecord implements Comparable<VcfRecord> {
 		
 		StringBuilder sb = new StringBuilder();
 		for (String s : formatRecords) {
-			if (sb.length() > 0) {
-				sb.append(Constants.TAB);
-			}			
-			sb.append(s);			
-			
+			StringUtils.updateStringBuilder(sb, s, TAB);
 		}
 		return sb.toString();	
 	}

@@ -21,8 +21,6 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.commandline.Executor;
 import org.qcmg.common.model.Accumulator;
-import org.qcmg.tab.TabbedFileReader;
-import org.qcmg.tab.TabbedRecord;
 
 public class StandardPipelineTest {
 	
@@ -41,7 +39,6 @@ public class StandardPipelineTest {
 		IniFileGenerator.addInputFiles(ini, false, "ref = " + reference.getAbsolutePath());
 		IniFileGenerator.addInputFiles(ini, false, "controlBam = " + normalBam.getAbsolutePath());
 		IniFileGenerator.addInputFiles(ini, false, "testBam = " + tumourBam.getAbsolutePath());
-		IniFileGenerator.addStringToIniFile(ini, "[filter]\nquery = \"Flag_DuplicateRead == false\"", true);
 		IniFileGenerator.addOutputFiles(ini, false, "vcf = " + vcf.getAbsolutePath());
 		IniFileGenerator.addStringToIniFile(ini, "[parameters]\nrunMode = standard", true);
 		
@@ -49,28 +46,42 @@ public class StandardPipelineTest {
 		final Executor exec = new Executor(command, "org.qcmg.snp.Main");
 		assertEquals(0, exec.getErrCode());
 		List<String> vcfs = Files.lines(Paths.get(vcf.getPath())).filter(s -> ! s.startsWith("#")).collect(Collectors.toList());
-		assertEquals(7, vcfs.size());
-		assertEquals("chr1	11770567	.	AAAAA	TGTGG	.	SAN3;MR	SOMATIC	ACCS	.	TGTGG,1,3", vcfs.get(0));
-		assertEquals("chr1	11770573	.	A	G	.	SAN3;MR;NNS;SBIASCOV	SOMATIC;FLANK=AAAAAGAAAAA	GT:GD:AC:DP:OABS:MR:NNS	.:.:.:0:.:0:0	1/1:G/G:G0[0],3[40]:3:G0[0]3[40]:3:3", vcfs.get(1));
-		assertEquals("chr1	11770575	.	A	G	.	SAN3;MR	SOMATIC;FLANK=AAAAAGAAAAA	GT:GD:AC:DP:OABS:MR:NNS	.:.:.:0:.:0:0	1/1:G/G:G1[40],3[40]:4:G1[40]3[40]:4:4", vcfs.get(2));
-		assertEquals("chr1	11770579	.	AA	GT	.	SAN3;MR	SOMATIC	ACCS	.	GT,1,3", vcfs.get(3));
-		assertEquals("chr1	11770583	.	AAAAA	GCGGC	.	SAN3;MR	SOMATIC	ACCS	.	GCGGC,1,3", vcfs.get(4));
-		assertEquals("chr1	11770591	.	AAAAA	TGTGG	.	MR;SAN3;5BP1	SOMATIC	ACCS	.	TGTGG,1,3", vcfs.get(5));
-		assertEquals("chr1	11770596	.	A	C	.	SAN3;MR;5BP1	SOMATIC;FLANK=AAAAACAAAAA	GT:GD:AC:DP:OABS:MR:NNS	.:.:.:0:.:0:0	1/1:C/C:C1[40],3[40]:4:C1[40]3[40]:4:4", vcfs.get(6));
+		
+		
+//		vcfs.stream().forEach(System.out::println);
+		
+		assertEquals(20, vcfs.size());
+		assertEquals("chr1	11770567	.	A	T	.	.	FLANK=AAAAATAAAAA	GT:AD:DP:EOR:FF:FT:INF:NNS:OABS	./.:.:.:.:.:.:.:.:.	1/1:0,4:4:.:.:.:SOMATIC:4:T1[40]3[40]", vcfs.get(0));
+		assertEquals("chr1	11770568	.	A	G	.	.	FLANK=AAAAAGAAAAA	GT:AD:DP:EOR:FF:FT:INF:NNS:OABS	./.:.:.:.:.:.:.:.:.	1/1:0,4:4:.:.:.:SOMATIC:4:G1[37]3[40]", vcfs.get(1));
+		assertEquals("chr1	11770569	.	A	T	.	.	FLANK=AAAAATAAAAA	GT:AD:DP:EOR:FF:FT:INF:NNS:OABS	./.:.:.:.:.:.:.:.:.	1/1:0,4:4:.:.:.:SOMATIC:4:T1[39]3[40]", vcfs.get(2));
+		assertEquals("chr1	11770570	.	A	G	.	.	FLANK=AAAAAGAAAAA	GT:AD:DP:EOR:FF:FT:INF:NNS:OABS	./.:.:.:.:.:.:.:.:.	1/1:0,4:4:.:.:.:SOMATIC:4:G1[40]3[40]", vcfs.get(3));
+		assertEquals("chr1	11770571	.	A	G	.	.	FLANK=AAAAAGAAAAA	GT:AD:DP:EOR:FF:FT:INF:NNS:OABS	./.:.:.:.:.:.:.:.:.	1/1:0,4:4:.:.:.:SOMATIC:4:G1[40]3[38.67]", vcfs.get(4));
+		assertEquals("chr1	11770573	.	A	G	.	.	FLANK=AAAAAGAAAAA	GT:AD:DP:EOR:FF:FT:INF:NNS:OABS	./.:.:.:.:.:.:.:.:.	1/1:0,3:3:.:G1:.:SOMATIC:3:G0[0]3[40]", vcfs.get(5));
+		assertEquals("chr1	11770575	.	A	G	.	.	FLANK=AAAAAGAAAAA	GT:AD:DP:EOR:FF:FT:INF:NNS:OABS	./.:.:.:.:.:.:.:.:.	1/1:0,4:4:.:.:.:SOMATIC:4:G1[40]3[40]", vcfs.get(6));
+		assertEquals("chr1	11770579	.	A	G	.	.	FLANK=AAAAAGAAAAA	GT:AD:DP:EOR:FF:FT:INF:NNS:OABS	./.:.:.:.:.:.:.:.:.	1/1:0,4:4:.:.:.:SOMATIC:4:G1[36]3[40]", vcfs.get(7));
+		assertEquals("chr1	11770580	.	A	T	.	.	FLANK=AAAAATAAAAA	GT:AD:DP:EOR:FF:FT:INF:NNS:OABS	./.:.:.:.:.:.:.:.:.	1/1:0,4:4:.:.:.:SOMATIC:4:T1[40]3[40]", vcfs.get(8));
+		assertEquals("chr1	11770583	.	A	G	.	.	FLANK=AAAAAGAAAAA	GT:AD:DP:EOR:FF:FT:INF:NNS:OABS	./.:.:.:.:.:.:.:.:.	1/1:0,4:4:.:.:.:SOMATIC:4:G1[34]3[40]", vcfs.get(9));
+		assertEquals("chr1	11770584	.	A	C	.	.	FLANK=AAAAACAAAAA	GT:AD:DP:EOR:FF:FT:INF:NNS:OABS	./.:.:.:.:.:.:.:.:.	1/1:0,4:4:.:.:.:SOMATIC:4:C1[35]3[40]", vcfs.get(10));
+		assertEquals("chr1	11770585	.	A	G	.	.	FLANK=AAAAAGAAAAA	GT:AD:DP:EOR:FF:FT:INF:NNS:OABS	./.:.:.:.:.:.:.:.:.	1/1:0,4:4:.:.:.:SOMATIC:4:G1[40]3[40]", vcfs.get(11));
+		assertEquals("chr1	11770586	.	A	G	.	.	FLANK=AAAAAGAAAAA	GT:AD:DP:EOR:FF:FT:INF:NNS:OABS	./.:.:.:.:.:.:.:.:.	1/1:0,4:4:.:.:.:SOMATIC:4:G1[40]3[40]", vcfs.get(12));
+		assertEquals("chr1	11770587	.	A	C	.	.	FLANK=AAAAACAAAAA	GT:AD:DP:EOR:FF:FT:INF:NNS:OABS	./.:.:.:.:.:.:.:.:.	1/1:0,4:4:.:.:.:SOMATIC:4:C1[40]3[40]", vcfs.get(13));
+		assertEquals("chr1	11770591	.	A	T	.	.	FLANK=AAAAATAAAAA	GT:AD:DP:EOR:FF:FT:INF:NNS:OABS	./.:.:.:.:.:.:.:.:.	1/1:0,4:4:.:.:.:SOMATIC:4:T1[40]3[40]", vcfs.get(14));
+		assertEquals("chr1	11770592	.	A	G	.	.	FLANK=AAAAAGAAAAA	GT:AD:DP:EOR:FF:FT:INF:NNS:OABS	./.:.:.:.:.:.:.:.:.	1/1:0,4:4:.:.:.:SOMATIC:4:G1[40]3[40]", vcfs.get(15));
+		assertEquals("chr1	11770593	.	A	T	.	.	FLANK=AAAAATAAAAA	GT:AD:DP:EOR:FF:FT:INF:NNS:OABS	./.:.:.:.:.:.:.:.:.	1/1:0,4:4:.:.:.:SOMATIC:4:T1[29]3[40]", vcfs.get(16));
+		assertEquals("chr1	11770594	.	A	G	.	.	FLANK=AAAAAGAAAAA	GT:AD:DP:EOR:FF:FT:INF:NNS:OABS	./.:.:.:.:.:.:.:.:.	1/1:0,4:4:G0[]1[]:.:.:SOMATIC:4:G1[23]3[40]", vcfs.get(17));
+		assertEquals("chr1	11770595	.	A	G	.	.	FLANK=AAAAAGAAAAA	GT:AD:DP:EOR:FF:FT:INF:NNS:OABS	./.:.:.:.:.:.:.:.:.	1/1:0,4:4:G0[]1[]:.:.:SOMATIC:4:G1[40]3[40]", vcfs.get(18));
+		assertEquals("chr1	11770596	.	A	C	.	.	FLANK=AAAAACAAAAA	GT:AD:DP:EOR:FF:FT:INF:NNS:OABS	./.:.:.:.:.:.:.:.:.	1/1:0,4:4:C0[]1[]:.:.:SOMATIC:4:C1[40]3[40]", vcfs.get(19));
+		
+//		assertEquals(7, vcfs.size());
+//		assertEquals("chr1	11770567	.	AAAAA	TGTGG	.	SAN3;MR	SOMATIC	ACCS	.	TGTGG,1,3", vcfs.get(0));
+//		assertEquals("chr1	11770573	.	A	G	.	SAN3;MR;NNS;SBIASCOV	SOMATIC;FLANK=AAAAAGAAAAA	GT:GD:AC:DP:OABS:MR:NNS	.:.:.:0:.:0:0	1/1:G/G:G0[0],3[40]:3:G0[0]3[40]:3:3", vcfs.get(1));
+//		assertEquals("chr1	11770575	.	A	G	.	SAN3;MR	SOMATIC;FLANK=AAAAAGAAAAA	GT:GD:AC:DP:OABS:MR:NNS	.:.:.:0:.:0:0	1/1:G/G:G1[40],3[40]:4:G1[40]3[40]:4:4", vcfs.get(2));
+//		assertEquals("chr1	11770579	.	AA	GT	.	SAN3;MR	SOMATIC	ACCS	.	GT,1,3", vcfs.get(3));
+//		assertEquals("chr1	11770583	.	AAAAA	GCGGC	.	SAN3;MR	SOMATIC	ACCS	.	GCGGC,1,3", vcfs.get(4));
+//		assertEquals("chr1	11770591	.	AAAAA	TGTGG	.	MR;SAN3;5BP1	SOMATIC	ACCS	.	TGTGG,1,3", vcfs.get(5));
+//		assertEquals("chr1	11770596	.	A	C	.	SAN3;MR;5BP1	SOMATIC;FLANK=AAAAACAAAAA	GT:GD:AC:DP:OABS:MR:NNS	.:.:.:0:.:0:0	1/1:C/C:C1[40],3[40]:4:C1[40]3[40]:4:4", vcfs.get(6));
 		
 //		vcfs.forEach(System.out::println);
-	}
-	
-	@SuppressWarnings("unused")
-	private int noOfColumnsInDCCOutputFile(File dccFile) throws IOException {
-		try (TabbedFileReader reader = new TabbedFileReader(dccFile);) {
-			for (final TabbedRecord vcf : reader) {
-				if (vcf.getData().startsWith("analysis")) continue;	// header line
-				final String[] data = vcf.getData().split("\t");
-				return data.length;
-			}
-		}
-		return -1;
 	}
 	
 	@Ignore

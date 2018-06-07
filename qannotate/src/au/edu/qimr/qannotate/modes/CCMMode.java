@@ -47,7 +47,7 @@ public class CCMMode extends AbstractMode{
         logger.tool("logger level " + (options.getLogLevel() == null ? QLoggerFactory.DEFAULT_LEVEL.getName() :  options.getLogLevel()));
 		
 
-		inputRecord(new File( options.getInputFileName()));
+        loadVcfRecordsFromFile(new File( options.getInputFileName()));
 		
 		/*
 		 * don't have access to header until after records have been loaded...

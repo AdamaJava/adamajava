@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrRangePosition;
 
@@ -162,6 +163,7 @@ public class ChrPositionUtilsTest {
 		assertEquals(false, ChrPositionUtils.isChrPositionContained(cp2, cp4));
 		assertEquals(false, ChrPositionUtils.isChrPositionContained(cp4, cp2));
 	}
+	
 	
 	@Test
 	public void arePositionsAdjacent() {
