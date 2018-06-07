@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 import org.qcmg.common.model.QCMGAtomicLongArray;
 import org.qcmg.common.model.SubsitutionEnum;
 import org.qcmg.common.string.StringUtils;
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.util.IndelUtils.SVTYPE;
 import org.qcmg.common.util.QprofilerXmlUtils;
@@ -51,29 +52,35 @@ public class SampleSummary {
 	 * @param type
 	 * @param gt
 	 * @param ad
-	 * @param DP
+	 * @param dp
 	 * @param map
 	 */
-	public static void incrementGTAD(SVTYPE type,String gt, String ad, String DP, Map<String, QCMGAtomicLongArray> map){	
+	public static void incrementGTAD(SVTYPE type,String gt, String ad, String dp, Map<String, QCMGAtomicLongArray> map){	
 		
 		if( ad == null || ad.contains(".") ||  gt == null || gt.contains(".")  ||  gt.equals("0/0") || gt.equals("0|0") ) 
 				return;		
 		
-		map.computeIfAbsent(type.name() , (k) -> new QCMGAtomicLongArray(102));		
-
-		//bf: vaf = f(1)/(f(0) + f(1) + f(2) ..)  now: vaf (f(1) + f(2) +...) /DP
-		String[] ads = ad.split(",");
-		int vaf = 0; 
-		for(int i = 1; i < ads.length; i ++) {
-			if (i > 0) {
-				vaf += Integer.parseInt(ads[i]);
+		int commaIndex = ad.indexOf(Constants.COMMA);
+		int vaf = 0;
+		
+		/*
+		 * vaf needs to equal the sum of all the numbers in the AD field, apart from the first number (which is the reference count)
+		 */
+		while (commaIndex > -1) {
+			int nextConmmaIndex = ad.indexOf(Constants.COMMA, commaIndex + 1);
+			if (nextConmmaIndex > -1) {
+				vaf += Integer.parseInt(ad.substring(commaIndex + 1, nextConmmaIndex));
+				commaIndex = nextConmmaIndex;
+			} else {
+				vaf += Integer.parseInt(ad.substring(commaIndex + 1));
+				break;
 			}
 		}
 		 
-		int dp = Integer.parseInt(DP);
-		int rate = (int) ( 0.5 + (double) ( vaf * 100 ) / dp );
-		map.get( type.name()  ).increment( rate );	
+		int rate = (int) ( 0.5 + (double) ( vaf * 100 ) / Integer.parseInt(dp) );
+		map.computeIfAbsent(type.name() , (k) -> new QCMGAtomicLongArray(51)).increment( rate );	
 	}
+	
 //	private void incrementGTAD(SVTYPE type,String gt, String ad, String DP){	
 //		
 //		if( ad == null || ad.contains(".") ||  gt == null || gt.contains(".")  ||  gt.equals("0/0") || gt.equals("0|0") ) 

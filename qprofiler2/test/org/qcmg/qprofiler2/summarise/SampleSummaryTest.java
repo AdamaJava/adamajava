@@ -87,10 +87,32 @@ public class SampleSummaryTest {
 //		for (int i = 0 ; i < ar.length() ; i++) {
 //			System.out.println("ar[" + i + "]: " + ar.get(i));
 //		}
-		assertEquals(204, ar.length());
+		assertEquals(102, ar.length());
 		assertEquals(1, ar.get(50));
 	}
 	
+//	@Test
+//	public void speedTest() {
+//		Map<String, QCMGAtomicLongArray> map = new HashMap<>();
+//		SVTYPE type = IndelUtils.getVariantType("A", "B");
+//		assertEquals(0, map.size());
+//		int counter  = 1000000;
+//		long start = System.currentTimeMillis();
+//		for (int i = 0 ; i < counter ; i++) {
+//			SampleSummary.incrementGTAD(type, "0/1", "10,10", "20", map);
+//		}
+//		System.out.println("time taken new: " + (System.currentTimeMillis() - start));
+//		
+//		
+//		//reseet
+//		map = new HashMap<>();
+//		start = System.currentTimeMillis();
+//		for (int i = 0 ; i < counter ; i++) {
+//			SampleSummary.incrementGTADOLD(type, "0/1", "10,10", "20", map);
+//		}
+//		System.out.println("time taken old: " + (System.currentTimeMillis() - start));
+//	}
+//	
 	@Test
 	/**
 	 * check titv elements by different inputs, check the boundary value of titvratio, such as 0, round to half,etc 
