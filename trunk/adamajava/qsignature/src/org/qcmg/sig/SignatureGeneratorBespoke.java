@@ -434,11 +434,13 @@ public class SignatureGeneratorBespoke {
 		// standard output format
 		// check that can write to new file
 		if (FileUtils.canFileBeWrittenTo(outputVCFFile)) {
-			final StringBuilder sbRgIds = new StringBuilder("##id:readgroup\n");
+			final StringBuilder sbRgIds = new StringBuilder();
+//			final StringBuilder sbRgIds = new StringBuilder("##id=readgroup\n");
 			if (null != rgIds) {
 				rgIds.entrySet().stream()
 					.sorted(Comparator.comparing(Entry::getValue))
-					.forEach(e -> sbRgIds.append("##").append(e.getValue()).append(Constants.COLON).append(e.getKey()).append(Constants.NL));
+					.forEach(e -> sbRgIds.append("##").append(e.getValue()).append(Constants.EQ).append(e.getKey()).append(Constants.NL));
+//				.forEach(e -> sbRgIds.append("##").append(e.getValue()).append(Constants.COLON).append(e.getKey()).append(Constants.NL));
 			}
 			
 			try (OutputStream os = new GZIPOutputStream(new FileOutputStream(outputVCFFile), 1024 * 1024)) {

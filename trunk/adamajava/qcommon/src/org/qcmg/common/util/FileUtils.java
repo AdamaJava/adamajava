@@ -296,7 +296,6 @@ public class FileUtils {
 			
 			if (null != potentialMafDirectories) {
 				for (File f : potentialMafDirectories) {
-	//				System.out.println("about to recurse in...");
 					files.addAll(Arrays.asList(findDirectories(f.getAbsolutePath(), filter, true)));
 				}
 			}

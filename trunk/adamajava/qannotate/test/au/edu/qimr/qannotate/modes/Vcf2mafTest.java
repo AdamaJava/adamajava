@@ -14,14 +14,13 @@ import java.util.stream.Collectors;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.commandline.Executor;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.IndelUtils;
-import org.qcmg.common.util.IndelUtils.SVTYPE;
-import org.qcmg.common.vcf.VcfFormatFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
@@ -98,7 +97,9 @@ public class Vcf2mafTest {
 		 assertEquals(false, Vcf2maf.isHighConfidence(maf));
 		 maf.setColumnValue(MafElement.Confidence, "HIGH_2,HIGH_2");
 		 assertEquals(false, Vcf2maf.isHighConfidence(maf));
-		 maf.setColumnValue(MafElement.Confidence, "HIGH_1,HIGH_2");
+		 maf.setColumnValue(MafElement.Confidence, "HIGH,HIGH");
+		 assertEquals(false, Vcf2maf.isHighConfidence(maf));
+		 maf.setColumnValue(MafElement.Confidence, "PASS");
 		 assertEquals(true, Vcf2maf.isHighConfidence(maf));
 	 }
 	 
@@ -163,139 +164,22 @@ public class Vcf2mafTest {
 	 }
 	 
 	 
-	 @Test
-	 public void getAltColumns() {
-		 VcfFormatFieldRecord format = new VcfFormatFieldRecord( "GT:GD:AC:MR:NNS", ".:.:A1[39],0[0],T1[35],0[0]:1:nns:nns2");
-		 String ref = "A";
-		 String alt = "T";
-		 SVTYPE type = SVTYPE.SNP;
-		 String [] altColumns = Vcf2maf.getAltCounts(format, ref, alt, type, false);
-		 assertNotNull(altColumns);
-		 assertEquals(7, altColumns.length);
-	 }
-	 @Test
-	 public void getAltColumnsRealLife() {
-		 VcfFormatFieldRecord format = new VcfFormatFieldRecord( "GT:GD:AC:MR:NNS","0/0:T/T:C0[0],2[34.5],T13[38.15],19[35.58]:2:2");
-		 String ref = "T";
-		 String alt = "C";
-		 SVTYPE type = SVTYPE.SNP;
-		 String [] altColumns = Vcf2maf.getAltCounts(format, ref, alt, type, false);
-		 assertEquals(7, altColumns.length);
-		 assertEquals("2", altColumns[0]);
-		 assertEquals("34", altColumns[1]);
-		 assertEquals("32", altColumns[2]);
-		 assertEquals("2", altColumns[3]);
-		 assertEquals("T", altColumns[4]);
-		 assertEquals("T", altColumns[5]);
-		 assertEquals("C0[0],2[34.5],T13[38.15],19[35.58]", altColumns[6]);
-	 }
 	 
 	 @Test
-	 public void getAltColumnsRealLife2() {
-		 VcfFormatFieldRecord format = new VcfFormatFieldRecord( "GT:GD:AC:MR:NNS","0/1:C/G:C6[39.5],2[42],G12[39.5],15[34.87]:8:8");
-		 String ref = "C";
-		 String alt = "G";
-		 SVTYPE type = SVTYPE.SNP;
-		 String [] altColumns = Vcf2maf.getAltCounts(format, ref, alt, type, false);
-		 assertEquals(7, altColumns.length);
-		 assertEquals("8", altColumns[0]);
-		 assertEquals("35", altColumns[1]);
-		 assertEquals("8", altColumns[2]);
-		 assertEquals("27", altColumns[3]);
-		 assertEquals("C", altColumns[4]);
-		 assertEquals("G", altColumns[5]);
-		 assertEquals("C6[39.5],2[42],G12[39.5],15[34.87]", altColumns[6]);
-	 }
-	 @Test
-	 public void getAltColumnsRealLife3() {
-		 VcfFormatFieldRecord format = new VcfFormatFieldRecord( "GT:GD:AC:MR:NNS","0/1:A/C:A21[33.81],15[34.2],C5[37.2],0[0]:5:5");
-		 String ref = "A";
-		 String alt = "C";
-		 SVTYPE type = SVTYPE.SNP;
-		 String [] altColumns = Vcf2maf.getAltCounts(format, ref, alt, type, false);
-		 assertEquals(7, altColumns.length);
-		 assertEquals("5", altColumns[0]);
-		 assertEquals("41", altColumns[1]);
-		 assertEquals("36", altColumns[2]);
-		 assertEquals("5", altColumns[3]);
-		 assertEquals("A", altColumns[4]);
-		 assertEquals("C", altColumns[5]);
-		 assertEquals("A21[33.81],15[34.2],C5[37.2],0[0]", altColumns[6]);
-	 }
-	 @Test
-	 public void converter() {
+	 public void compoundSNPTest() {
 		 
-		 final Vcf2maf v2m = new Vcf2maf(2,1, null, null);	//test column2; normal column 1			
-		 final String[] parms = {"chrY","32463932",".","A","C",".","SBIASALT;5BP1","FLANK=CCCAACTAGTT;IN=1;DB;HOM=3,CCAAGCCCAAcTAGTTTTTTG;CONF=ZERO;EFF=downstream_gene_variant(MODIFIER||2001|||RP11-626K17.3|lincRNA|NON_CODING|ENST00000565549||1),intergenic_region(MODIFIER||||||||||1)",
-				 "GT:GD:AC:MR:NNS","0/1:A/C:A21[33.81],15[34.2],C5[37.2],0[0]:5:5","0/0:A/A:A58[34.55],58[35],C7[37.14],0[0]:7:6"};
 		 
-		 final VcfRecord vcf = new VcfRecord(parms);
-		 final SnpEffMafRecord maf = v2m.converter(vcf);
-		 assertEquals("A", maf.getColumnValue(MafElement.Reference_Allele));
-		 assertEquals("A", maf.getColumnValue(MafElement.Tumor_Seq_Allele1));
-		 assertEquals("A", maf.getColumnValue(MafElement.Tumor_Seq_Allele2));
-		 assertEquals("A", maf.getColumnValue(MafElement.Match_Norm_Seq_Allele1));
-		 assertEquals("C", maf.getColumnValue(MafElement.Match_Norm_Seq_Allele2));
-	 }
-	 
-	 @Test
-	 public void getAltColumnsRealLifeMerged() {
-		 VcfFormatFieldRecord format = new VcfFormatFieldRecord( "GT:GD:AC:MR:NNS:AD:DP:GQ:PL","0/1&0/1:A/C&A/C:A13[38.85],5[40],C6[36.83],0[0]&A15[38.27],7[38.43],C7[36.14],0[0]:6&7:6&7:8,6:14:99:141,0,189");
-		 String ref = "A";
-		 String alt = "C";
-		 SVTYPE type = SVTYPE.SNP;
-		 String [] altColumns = Vcf2maf.getAltCounts(format, ref, alt, type, true);
-		 assertEquals(7, altColumns.length);
-		 assertEquals("6", altColumns[0]);
-		 assertEquals("24", altColumns[1]);
-		 assertEquals("18", altColumns[2]);
-		 assertEquals("6", altColumns[3]);
-		 assertEquals("A", altColumns[4]);
-		 assertEquals("C", altColumns[5]);
-		 assertEquals("A13[38.85],5[40],C6[36.83],0[0]", altColumns[6]);
-	 }
-	 @Test
-	 public void getAltColumnsRealLifeMergedCS() {
-		 VcfFormatFieldRecord format = new VcfFormatFieldRecord( "ACCS","AA,5,4,GG,52,47,_G,2,1&AA,5,4,GG,52,47,_G,2,1");
-		 String ref = "GG";
-		 String alt = "AA";
-		 SVTYPE type = SVTYPE.DNP;
-		 String [] altColumns = Vcf2maf.getAltCounts(format, ref, alt, type, true);
-		 assertEquals(7, altColumns.length);
-		 assertEquals("0", altColumns[0]);
-		 assertEquals("111", altColumns[1]);
-		 assertEquals("99", altColumns[2]);
-		 assertEquals("9", altColumns[3]);
-		 assertEquals("GG", altColumns[4]);
-		 assertEquals("AA", altColumns[5]);
-		 assertEquals("AA,5,4,GG,52,47,_G,2,1", altColumns[6]);
-	 }
-	 @Test
-	 public void getAltColumnsRealLifeMergedCS2() {
-		 VcfFormatFieldRecord format = new VcfFormatFieldRecord( "ACCS","CC,10,12,TT,29,14,T_,0,1&CC,10,12,TT,29,14,T_,0,1");
-		 String ref = "CC";
-		 String alt = "TT";
-		 SVTYPE type = SVTYPE.DNP;
-		 String [] altColumns = Vcf2maf.getAltCounts(format, ref, alt, type, true);
-		 assertEquals(7, altColumns.length);
-		 assertEquals("0", altColumns[0]);
-		 assertEquals("66", altColumns[1]);
-		 assertEquals("22", altColumns[2]);
-		 assertEquals("43", altColumns[3]);
-		 assertEquals("TT", altColumns[4]);
-		 assertEquals("CC", altColumns[5]);
-		 assertEquals("CC,10,12,TT,29,14,T_,0,1", altColumns[6]);
-	 }
-	 
-	 @Test
-	 public void compoundSNPTest() throws Exception{
+		 /*
+		  * chr1    11836441        rs71492357      TG      CA      .       .       IN=1,2;DB;EFF=upstream_gene_variant(MODIFIER||2547||615|C1orf167|protein_coding|CODING|ENST00000444493||1|WARNING_TRANSCRIPT_NO_START_CODON),upstream_gene_variant(MODIFIER||3433||531|C1orf167|protein_coding|CODING|ENST00000449278||1|WARNING_TRANSCRIPT_NO_START_CODON),downstream_gene_variant(MODIFIER||693|||RP11-56N19.5|antisense|NON_CODING|ENST00000376620||1),intron_variant(MODIFIER|||c.314-80TG>CA|827|C1orf167|protein_coding|CODING|ENST00000312793|2|1|WARNING_TRANSCRIPT_NO_START_CODON),intron_variant(MODIFIER|||c.2237-80TG>CA|1473|C1orf167|protein_coding|CODING|ENST00000433342|9|1),intron_variant(MODIFIER|||n.1210-80TG>CA||C1orf167|processed_transcript|CODING|ENST00000484153|7|1)       GT:DP:FT:MR:NNS:OABS:INF        1/1:22:.:22:22:CA14[]8[];C_1[]0[];_A1[]0[]:.;CONF=HIGH  1/1:19:.:19:16:CA18[]1[]:.;.    1/1:22:.:22:22:CA14[]8[];C_1[]0[];_A1[]0[]:.;CONF=HIGH  1/1:19:.:19:16:CA18[]1[]:.;.
+		  */
 	          
 		String[] array = {
-				"chrY","2675826","rs75454623","TG","CA",".","COVN12;MIUN","SOMATIC;END=2675826;CONF=ZERO;EFF="
-		        		+ "missense_variant(MODERATE|MISSENSE|Acc/Ccc|p.Thr248Pro/c.742A>C|540|SAMD11|protein_coding|CODING|ENST00000455979|5|1|WARNING_TRANSCRIPT_NO_START_CODON),"		
-		        		+ "missense_variant(MODERATE|MISSENSE|Acc/Ccc|p.Thr329Pro/c.985A>C|588|SAMD11|protein_coding|CODING|ENST00000341065|9|1|WARNING_TRANSCRIPT_NO_START_CODON)," 
-		        		+ "downstream_gene_variant(MODIFIER||1446||749|NOC2L|protein_coding|CODING|ENST00000327044||1)"
-		        		+ "","ACCS","TG,5,37,CA,0,2","AA,1,1,CA,4,1,CT,3,1,TA,11,76,TG,2,2,_G,0,1"		 
+				"chr1","11836441","rs71492357","TG","CA",".",".","IN=1,2;DB;EFF=upstream_gene_variant(MODIFIER||2547||615|C1orf167|protein_coding|CODING|ENST00000444493||1|WARNING_TRANSCRIPT_NO_START_CODON),upstream_gene_variant(MODIFIER||3433||531|C1orf167|protein_coding|CODING|ENST00000449278||1|WARNING_TRANSCRIPT_NO_START_CODON),downstream_gene_variant(MODIFIER||693|||RP11-56N19.5|antisense|NON_CODING|ENST00000376620||1),intron_variant(MODIFIER|||c.314-80TG>CA|827|C1orf167|protein_coding|CODING|ENST00000312793|2|1|WARNING_TRANSCRIPT_NO_START_CODON),intron_variant(MODIFIER|||c.2237-80TG>CA|1473|C1orf167|protein_coding|CODING|ENST00000433342|9|1),intron_variant(MODIFIER|||n.1210-80TG>CA||C1orf167|processed_transcript|CODING|ENST00000484153|7|1)"
+				,"GT:DP:FT:MR:NNS:OABS:INF"
+				,"1/1:22:.:22:22:CA14[]8[];C_1[]0[];_A1[]0[]:.;CONF=HIGH"
+				,"1/1:19:.:19:16:CA18[]1[]:.;."
+				,"1/1:22:.:22:22:CA14[]8[];C_1[]0[];_A1[]0[]:.;CONF=HIGH"
+				,"1/1:19:.:19:16:CA18[]1[]:.;."		 
 		};
 		
 		final VcfRecord vcf = new VcfRecord(array);
@@ -303,29 +187,31 @@ public class Vcf2mafTest {
 		SnpEffMafRecord maf = mode.converter(vcf);
 
 		assertFalse(maf == null);		
-		assertEquals("TG", maf.getColumnValue(11));	
-		assertEquals("TA", maf.getColumnValue(12));	
-		assertEquals("CA", maf.getColumnValue(13));	
-		assertEquals("TG", maf.getColumnValue(18));	
-		assertEquals("TG", maf.getColumnValue(19));	
-		assertTrue(maf.getColumnValue(14).equals("rs75454623"));	 
- 		assertTrue(maf.getColumnValue(36).equals("TG,5,37,CA,0,2" ));			//ND
- 		assertTrue(maf.getColumnValue(37).equals("AA,1,1,CA,4,1,CT,3,1,TA,11,76,TG,2,2,_G,0,1" ));	//TD
+		assertEquals("TG", maf.getColumnValue(MafElement.Reference_Allele));	
+		assertEquals("CA", maf.getColumnValue(MafElement.Tumor_Seq_Allele1));
+		assertEquals("CA", maf.getColumnValue(MafElement.Tumor_Seq_Allele2));
+		assertEquals("CA", maf.getColumnValue(MafElement.Match_Norm_Seq_Allele1));
+		assertEquals("CA", maf.getColumnValue(MafElement.Match_Norm_Seq_Allele2));
+		assertTrue(maf.getColumnValue(14).equals("rs71492357"));	 
+ 		assertEquals("CA14[]8[];C_1[]0[];_A1[]0[]", maf.getColumnValue(MafElement.ND));			//ND
+ 		assertEquals("CA18[]1[]", maf.getColumnValue(MafElement.TD));
  		assertTrue(maf.getColumnValue(33).equals("TEST"));   //tumour sample
  		assertTrue(maf.getColumnValue(34).equals("CONTROL"));   //normal sample
  		
- 		assertTrue(maf.getColumnValue(41).equals("CA:ND0:TD0"));   //NNS field is not existed at format		 		//		 		
- 		assertTrue(maf.getColumnValue(45).equals("103"));  //t_deep ("AA,1,1,CA,4,1,CT,3,1,TA,11,76,TG,2,2,_G,0,1" ))
- 		assertTrue(maf.getColumnValue(46).equals("4"));  //t_ref C8[7.62],2[2]
- 		assertTrue(maf.getColumnValue(47).equals("5"));  //t_allel A2[8],28[31.18]	
- 		assertTrue(maf.getColumnValue(48).equals("44"));  //n_deep "TG,5,37,CA,0,2"
- 		assertTrue(maf.getColumnValue(49).equals("42")); //C6[6.67],0[0]
- 		assertTrue(maf.getColumnValue(50).equals("2"));  //A1[5],0[0]
+ 		assertEquals("22:16", maf.getColumnValue(MafElement.Novel_Starts));		 		
+ 		assertTrue(maf.getColumnValue(MafElement.T_Depth).equals("19"));
+ 		assertTrue(maf.getColumnValue(MafElement.T_Ref_Count).equals("0"));
+ 		assertTrue(maf.getColumnValue(MafElement.T_Alt_Count).equals("19"));	
+ 		assertTrue(maf.getColumnValue(MafElement.N_Depth).equals("22"));
+ 		assertTrue(maf.getColumnValue(MafElement.N_Ref_Count).equals("0"));
+ 		assertTrue(maf.getColumnValue(MafElement.N_Alt_Count).equals("22"));
  		
  		//we get consequence with high rank, then long length, should be second annotation
- 		assertTrue(maf.getColumnValue(51+1).equals("p.Thr329Pro"));
- 		assertTrue(maf.getColumnValue(50+1).equals("ENST00000341065"));
- 		assertTrue(maf.getColumnValue(52+1).equals("c.985A>C"));
+ 		assertEquals("null", maf.getColumnValue(MafElement.Amino_Acid_Change));
+// 		c.2237-80TG>CA|1473|C1orf167|protein_coding|CODING|ENST00000433342
+ 		assertEquals("ENST00000433342", maf.getColumnValue(MafElement.Transcript_ID));
+// 		assertEquals("null", maf.getColumnValue(MafElement.CDS_Change));
+ 		assertEquals("c.2237-80TG>CA", maf.getColumnValue(MafElement.CDS_Change));
 	 }
 	
 	 //do it tomorrow
@@ -333,14 +219,116 @@ public class Vcf2mafTest {
 	 public void confidenceTest() {
 		 
 		 final Vcf2maf v2m = new Vcf2maf(2,1, null, null);	//test column2; normal column 1			
-		 final String[] parms = {"chrY","22012840",".","C","A",".","SBIAS","VLD;FLANK=GTGATATTCCC;VAF=0.11;"
-				 + "CONF=HIGH_1,ZERO_2;EFF=sequence_feature[compositionally_biased_region:Glu/Lys-rich](LOW|||c.1252G>C|591|CCDC148|protein_coding|CODING|ENST00000283233|10|1),"
-				 + "splice_acceptor_variant(HIGH|||n.356G>C||CCDC148-AS1|antisense|NON_CODING|ENST00000412781|5|1)",
-				 "GT:GD:AC","0/0:C/C:A1[5],0[0],C6[6.67],0[0],T1[6],21[32.81]","1/0:A/C:C8[7.62],2[2],A2[8],28[31.18]"};
+		 final String[] parms = {"chr1","16534646","rs221058","C","G",".",".","FLANK=CTGGCGAGGCT;BaseQRankSum=0.337;ClippingRankSum=-0.625;DP=17;FS=0.000;MQ=60.00;MQ0=0;MQRankSum=-0.818;QD=15.22;ReadPosRankSum=-1.491;SOR=0.836;IN=1,2;DB;VLD;VAF=0.2062;EFF=missense_variant(MODERATE|MISSENSE|Ggc/Cgc|p.Gly163Arg/c.487G>C|802|ARHGEF19|protein_coding|CODING|ENST00000270747|3|1),upstream_gene_variant(MODIFIER||1625||167|ARHGEF19|protein_coding|CODING|ENST00000441785||1|WARNING_TRANSCRIPT_NO_START_CODON),upstream_gene_variant(MODIFIER||1625|||ARHGEF19|processed_transcript|CODING|ENST00000478210||1),upstream_gene_variant(MODIFIER||1608||305|ARHGEF19|protein_coding|CODING|ENST00000449495||1|WARNING_TRANSCRIPT_INCOMPLETE),upstream_gene_variant(MODIFIER||1169|||ARHGEF19|processed_transcript|CODING|ENST00000471928||1),upstream_gene_variant(MODIFIER||1140|||ARHGEF19|processed_transcript|CODING|ENST00000478117||1)"
+				 ,"GT:DP:FT:MR:NNS:OABS:INF:AD:GQ","0/1:17:.:9:9:C2[33]6[31.33];G2[33]7[37.29]:PASS:.:.","0/0:14:.:.:.:C3[35]9[35.44];G0[0]2[40]:PASS.:.:.","0/1:17:.:9:9:C2[33]6[31.33];G2[33]7[37.29]:PASS:8,9:99",".:.:SAT3:.:.:C3[35]9[35.44];G0[0]2[40]:.;.:.:."};
 		 
 		 final VcfRecord vcf = new VcfRecord(parms);
 		 final SnpEffMafRecord maf = v2m.converter(vcf);
-		 assertEquals("HIGH_1,ZERO_2", maf.getColumnValue(38));		 
+		 assertEquals("FAIL", maf.getColumnValue(MafElement.Confidence));
+	 }
+	 
+	 @Test
+	 public void confidenceRealLife() {
+		 
+		 Vcf2maf v2m = new Vcf2maf(2,1, null, null);	//test column2; normal column 1			
+		 VcfRecord rec = new VcfRecord( new String[] {"chr1","13302","rs180734498","C","T",".",".","FLANK=GGACATGCTGT;IN=1,2;DB;VAF=0.1143",
+					"GT:AD:CCC:CCM:DP:FT:GQ:INF:MR:NNS:OABS",
+					"0/1:.:Germline:23:34:PASS:.:.:10:9:C13[39.69]11[39.73];T9[37]1[42]",
+					"0/1:.:Germline:23:80:PASS:.:.:9:8:C35[40.11]36[39.19];T8[38.88]1[42]",
+					"0/1:26,10:Germline:22:36:PASS:99:.:10:9:C13[39.69]11[39.73];T9[37]1[42]",
+					"0/0:.:LOH:22:80:PASS:.:.:.:.:C35[40.11]36[39.19];T8[38.88]1[42]"});
+		 
+		 SnpEffMafRecord maf = v2m.converter(rec);
+		 assertEquals("PASS", maf.getColumnValue(MafElement.Confidence));
+		 
+		 rec = new VcfRecord( new String[] {"chr1","13418",".","G","A",".",".","FLANK=ACCCCAAGATC;IN=1,2;DB;VAF=0.1143",
+					"GT:AD:CCC:CCM:DP:FT:GQ:INF:MR:NNS:OABS",
+					"0/1:.:Germline:22:54:PASS:.:.:6:6:A5[42]1[37];G26[38.92]22[37.36]",
+					"0/0:.:LOH:22:159:PASS:.:.:.:.:A4[39.5]2[42];G81[38.6]72[37.33]",
+					"0/1:45,6:Germline:22:51:PASS:65:.:6:6:A5[42]1[37];G26[38.92]22[37.36]",
+			"0/0:.:LOH:22:159:PASS:.:.:.:.:A4[39.5]2[42];G81[38.6]72[37.33]"});
+		 
+		 maf = v2m.converter(rec);
+		 assertEquals("PASS", maf.getColumnValue(MafElement.Confidence));
+	 }
+	 
+	 @Test
+	 public void somaticAndGermlinePASSBecomesGermline() {
+		 
+		 Vcf2maf v2m = new Vcf2maf(2,1, null, null);	//test column2; normal column 1			
+		 VcfRecord rec = new VcfRecord( new String[] {"chr1","13302","rs180734498","C","T",".",".","FLANK=GGACATGCTGT;IN=1,2;DB;VAF=0.1143",
+				 "GT:AD:CCC:CCM:DP:FT:GQ:INF:NNS:OABS",
+				 "0/1:24,10:Germline:23:34:PASS:.:.:9:C13[39.69]11[39.73];T9[37]1[42]",
+				 "0/1:71,9:Germline:23:80:PASS:.:SOMATIC:8:C35[40.11]36[39.19];T8[38.88]1[42]",
+				 "0/1:26,10:Germline:22:36:PASS:99:.:.:.",
+		 "0/0:.:LOH:22:80:PASS:.:.:.:."});
+		 
+		 SnpEffMafRecord maf = v2m.converter(rec);
+		 assertEquals("GERM", maf.getColumnValue(MafElement.Mutation_Status));
+		 assertEquals("PASS", maf.getColumnValue(MafElement.Confidence));
+	 }
+	 
+	 @Test
+	 public void ifGermlineOnlyLookAtControl() {
+		 
+		 Vcf2maf v2m = new Vcf2maf(2,1, null, null);	//test column2; normal column 1			
+		 VcfRecord rec = new VcfRecord( new String[] {"chr1","13302","rs180734498","C","T",".",".","FLANK=GGACATGCTGT;IN=1,2",
+				 "GT:AD:CCC:CCM:DP:FT:GQ:INF:MR:NNS:OABS",
+				 "0/1:.:Germline:23:34:PASS:.:.:10:9:C13[39.69]11[39.73];T9[37]1[42]",
+				 "0/1:.:Germline:23:80:PASS:.:.:9:8:C35[40.11]36[39.19];T8[38.88]1[42]",
+				 "0/1:26,10:Germline:22:36:PASS:99:.:10:9:C13[39.69]11[39.73];T9[37]1[42]",
+		 		 "0/1:.:Germline:22:80:PASS:.:.:.:.:C35[40.11]36[39.19];T8[38.88]1[42]"});
+		 
+		 SnpEffMafRecord maf = v2m.converter(rec);
+		 assertEquals("PASS", maf.getColumnValue(MafElement.Confidence));
+		 
+		 rec = new VcfRecord( new String[] {"chr1","13418",".","G","A",".",".","FLANK=ACCCCAAGATC;IN=1,2;DB;VAF=0.1143",
+				 "GT:AD:CCC:CCM:DP:FT:GQ:INF:MR:NNS:OABS",
+				 "0/1:.:Germline:22:54:PASS:.:.:6:6:A5[42]1[37];G26[38.92]22[37.36]",
+				 "0/1:.:Germline:22:159:PASS:.:.:.:.:A4[39.5]2[42];G81[38.6]72[37.33]",
+				 "0/1:45,6:Germline:22:51:PASS:65:.:6:6:A5[42]1[37];G26[38.92]22[37.36]",
+		 		 "0/1:.:Germline:22:159:SBIASALT:.:.:.:.:A4[39.5]2[42];G81[38.6]72[37.33]"});
+		 
+		 maf = v2m.converter(rec);
+		 assertEquals("PASS", maf.getColumnValue(MafElement.Confidence));
+		 rec = new VcfRecord( new String[] {"chr1","13418",".","G","A",".",".","FLANK=ACCCCAAGATC;IN=1,2;DB;VAF=0.1143",
+				 "GT:AD:CCC:CCM:DP:FT:GQ:INF:MR:NNS:OABS",
+				 "0/1:.:Germline:22:54:PASS:.:.:6:6:A5[42]1[37];G26[38.92]22[37.36]",
+				 "0/1:.:Germline:22:159:SBIASALT:.:.:.:.:A4[39.5]2[42];G81[38.6]72[37.33]",
+				 "0/1:45,6:Germline:22:51:PASS:65:.:6:6:A5[42]1[37];G26[38.92]22[37.36]",
+		 		 "0/1:.:Germline:22:159:PASS:.:.:.:.:A4[39.5]2[42];G81[38.6]72[37.33]"});
+		 
+		 maf = v2m.converter(rec);
+		 assertEquals("PASS", maf.getColumnValue(MafElement.Confidence));
+		 rec = new VcfRecord( new String[] {"chr1","13418",".","G","A",".",".","FLANK=ACCCCAAGATC;IN=1,2;DB;VAF=0.1143",
+				 "GT:AD:CCC:CCM:DP:FT:GQ:INF:MR:NNS:OABS",
+				 "0/1:.:Germline:22:54:PASS:.:.:6:6:A5[42]1[37];G26[38.92]22[37.36]",
+				 "0/1:.:Germline:22:159:SBIASALT:.:.:.:.:A4[39.5]2[42];G81[38.6]72[37.33]",
+				 "0/1:45,6:Germline:22:51:PASS:65:.:6:6:A5[42]1[37];G26[38.92]22[37.36]",
+				 "0/1:.:Germline:22:159:SBIASALT:.:.:.:.:A4[39.5]2[42];G81[38.6]72[37.33]"});
+		 
+		 maf = v2m.converter(rec);
+		 assertEquals("PASS", maf.getColumnValue(MafElement.Confidence));
+		 
+		 rec = new VcfRecord( new String[] {"chr1","13418",".","G","A",".",".","FLANK=ACCCCAAGATC;IN=1,2;DB;VAF=0.1143",
+				 "GT:AD:CCC:CCM:DP:FT:GQ:INF:MR:NNS:OABS",
+				 "0/1:.:Germline:22:54:PASS:.:.:6:6:A5[42]1[37];G26[38.92]22[37.36]",
+				 "0/1:.:Germline:22:159:SBIASALT:.:.:.:.:A4[39.5]2[42];G81[38.6]72[37.33]",
+				 "0/1:45,6:Germline:22:51:PASS:65:.:6:6:A5[42]1[37];G26[38.92]22[37.36]",
+				 "./.:.:.:.:.:.:.:.:.:.:A4[39.5]2[42];G81[38.6]72[37.33]"});
+		 
+		 maf = v2m.converter(rec);
+		 assertEquals("PASS", maf.getColumnValue(MafElement.Confidence));
+		 
+		 rec = new VcfRecord( new String[] {"chr1","13418",".","G","A",".",".","FLANK=ACCCCAAGATC;IN=1,2;DB;VAF=0.1143",
+				 "GT:AD:CCC:CCM:DP:FT:GQ:INF:MR:NNS:OABS",
+				 "0/1:.:Germline:22:54:PASS:.:.:6:6:A5[42]1[37];G26[38.92]22[37.36]",
+				 "0/1:.:Germline:22:159:SBIASALT:.:.:.:.:A4[39.5]2[42];G81[38.6]72[37.33]",
+				 "0/1:45,6:Germline:22:51:PASS:65:.:6:6:A5[42]1[37];G26[38.92]22[37.36]",
+				 "0/1:.:Germline:22:5:.:.:.:.:.:A1[39.5]1[42];G1[38.6]2[37.33]"});
+		 
+		 maf = v2m.converter(rec);
+		 assertEquals("PASS", maf.getColumnValue(MafElement.Confidence));
 	 }
 	 
 	 @Test
@@ -370,165 +358,167 @@ public class Vcf2mafTest {
 	 }
 	 
 	 @Test
-	 public void Flank_NoteTest(){
+	 public void flankNoteTest(){
 		VcfRecord vcf = new VcfRecord.Builder("chrY",22012840,"C").allele("A").build();
 		final Vcf2maf v2m = new Vcf2maf(2,1, null, null);	//test column2; normal column 1			
 		
 		//get flank first
 		vcf.setInfo("HOM=28,CTTTTCTTTCaTTTTTTTTTT;FLANK=CTTTCATTTTT");				
 		SnpEffMafRecord maf = v2m.converter(vcf);
-		maf.getColumnValue(MafElement.Var_Plus_Flank).equals("CTTTCATTTTT");
-		maf.getColumnValue(MafElement.Notes).equals("HOM=28");
+		assertEquals("CTTTCATTTTT", maf.getColumnValue(MafElement.Var_Plus_Flank));
+		assertEquals("HOM=28", maf.getColumnValue(MafElement.Notes));
 		
 		//get flank from reference
 		vcf.setInfo("HOM=28,CTTTTCTTTCaTTTTTTTTTT;TRF=10_6,20_3");				
 		maf = v2m.converter(vcf);
-		maf.getColumnValue(MafElement.Var_Plus_Flank).equals("CTTTTCTTTCaTTTTTTTTTT");
-		maf.getColumnValue(MafElement.Notes).equals("TRF=10_6,20_3;HOM=28");
+		assertEquals("CTTTTCTTTCaTTTTTTTTTT", maf.getColumnValue(MafElement.Var_Plus_Flank));
+		assertEquals("TRF=10_6,20_3;HOM=28", maf.getColumnValue(MafElement.Notes));
 		
 	 }
 	 
 	 @Test 
 	 public void converterTest() {
 		 
-		 	final SnpEffMafRecord Dmaf = new SnpEffMafRecord();			
+		 	final SnpEffMafRecord snpEffREc = new SnpEffMafRecord();			
 			final Vcf2maf v2m = new Vcf2maf(2,1, null, null);	//test column2; normal column 1			
-			final String[] parms = {"chrY","22012840",".","C","A",".","SBIAS","VLD;CONF=LOW;FLANK=GTGATATTCCC;VAF=0.11;"
-					+ "IN=1;EFF=sequence_feature[compositionally_biased_region:Glu/Lys-rich](LOW|||c.1252G>C|591|CCDC148|protein_coding|CODING|ENST00000283233|10|1),"
-					+ "splice_acceptor_variant(HIGH|||n.356G>C||CCDC148-AS1|antisense|NON_CODING|ENST00000412781|5|1)",
-					"GT:GD:AC","0/0:C/C:A1[5],0[0],C6[6.67],0[0],T1[6],21[32.81]","1/0:A/C:C8[7.62],2[2],A2[8],28[31.18]"};
+			final String[] parms = {"chr1","19595137","rs2235795","C","T",".",".","FLANK=ATACGTGGCCT;DP=9;FS=0.000;MQ=60.00;MQ0=0;QD=28.75;SOR=1.402;IN=1,2;DB;VLD;VAF=0.6584;EFF=missense_variant(MODERATE|MISSENSE|Gcg/Acg|p.Ala77Thr/c.229G>A|153|AKR7L|protein_coding|CODING|ENST00000420396|4|1),downstream_gene_variant(MODIFIER||1890|||AKR7L|retained_intron|CODING|ENST00000493176||1),non_coding_exon_variant(MODIFIER|||n.431G>A||AKR7L|polymorphic_pseudogene|CODING|ENST00000457194|4|1),non_coding_exon_variant(MODIFIER|||n.763G>A||AKR7L|polymorphic_pseudogene|CODING|ENST00000429712|6|1)"
+					,"GT:DP:FT:MR:NNS:OABS:INF:AD:GQ"
+					,"1/1:9:COVN12:9:9:T6[36.67]3[37.67]:.:.:."
+					,"1/1:10:PASS:10:10:T8[36.12]2[30]:.:.:."
+					,"1/1:9:COVN12:9:9:T6[36.67]3[37.67]:.:0,9:27"
+					,"1/1:10:PASS:10:10:T8[36.12]2[30]:.:0,10:30"};
 			
 	 		final VcfRecord vcf = new VcfRecord(parms);
 	 		final SnpEffMafRecord maf = v2m.converter(vcf);
  			 		
-	 		assertEquals("LOW", maf.getColumnValue(MafElement.Confidence));
+	 		assertEquals("FAIL", maf.getColumnValue(MafElement.Confidence));
 	 		assertEquals(false, Vcf2maf.isHighConfidence(maf));
 	 		
-	 		assertEquals("HIGH", maf.getColumnValue(MafElement.Eff_Impact));
-	 		assertTrue(maf.getColumnValue(52).equals(Dmaf.getColumnValue(52) ));
-	 		assertTrue(maf.getColumnValue(53).equals(Dmaf.getColumnValue(53) ));
-	 		assertTrue(maf.getColumnValue(54).equals(Dmaf.getColumnValue(54) ));
-	 		assertTrue(maf.getColumnValue(1).equals("CCDC148-AS1" ));
-	 		assertTrue(maf.getColumnValue(55).equals("antisense" ));
-	 		assertTrue(maf.getColumnValue(56).equals("NON_CODING"));
-	 		assertTrue(maf.getColumnValue(51).equals("ENST00000412781" ));
-	 		assertTrue(maf.getColumnValue(57).equals("5" ));
-	 		assertTrue(maf.getColumnValue(58).equals("1" ));	
-	 		String ontology = "splice_acceptor_variant";
-	 		assertTrue(maf.getColumnValue(59).equals(ontology ));
-	 		assertTrue(maf.getColumnValue(60).equals( SnpEffConsequence.getClassicName(ontology) ));	 		
-	 		assertTrue(maf.getColumnValue(40).equals(SnpEffConsequence.getConsequenceRank(ontology)+""));	 		
-	 		assertTrue(maf.getColumnValue(9).equals(SnpEffConsequence.getMafClassification(ontology) ));
+	 		assertEquals("MODERATE", maf.getColumnValue(MafElement.Eff_Impact));
+	 		assertEquals("p.Ala77Thr", maf.getColumnValue(MafElement.Amino_Acid_Change));
+	 		assertEquals("c.229G>A", maf.getColumnValue(MafElement.CDS_Change));
+	 		assertEquals("Gcg/Acg", maf.getColumnValue(MafElement.Codon_Change));
+	 		assertEquals("AKR7L", maf.getColumnValue(MafElement.Hugo_Symbol));
+	 		assertEquals("protein_coding", maf.getColumnValue(55));
+	 		assertEquals("CODING", maf.getColumnValue(56));
+	 		assertEquals("ENST00000420396", maf.getColumnValue(51));
+	 		assertEquals("4", maf.getColumnValue(MafElement.Exon_Intron_Rank));
+	 		assertEquals("1",maf.getColumnValue(58));
+	 		String ontology = "missense_variant";
+	 		assertEquals(ontology, maf.getColumnValue(59));
+	 		assertEquals(SnpEffConsequence.getClassicName(ontology), maf.getColumnValue(60));	 		
+	 		assertEquals(SnpEffConsequence.getConsequenceRank(ontology)+"", maf.getColumnValue(40));	 		
+	 		assertEquals(SnpEffConsequence.getMafClassification(ontology) , maf.getColumnValue(9));
 	 			 		
 	 		//for other columns after A.M confirmation
-	 		assertTrue(maf.getColumnValue(2).equals(Dmaf.getColumnValue(2) ));		
-	 		assertTrue(maf.getColumnValue(3).equals(SnpEffMafRecord.center ));		
-	 		assertTrue(maf.getColumnValue(4).equals(Dmaf.getColumnValue(4) ));		
-	 		assertTrue(maf.getColumnValue(5).equals("Y"));		
-	 		assertTrue(maf.getColumnValue(6).equals(parms[1] ));		
-	 		assertTrue(maf.getColumnValue(7).equals(parms[1] ));		
-	 		assertTrue(maf.getColumnValue(8).equals(Dmaf.getColumnValue(8) ));		
-	 		assertTrue(maf.getColumnValue(10).equals(IndelUtils.SVTYPE.SNP.name()));	
-	 		assertTrue(maf.getColumnValue(11).equals(parms[3] ));		
+	 		assertEquals(snpEffREc.getColumnValue(2), maf.getColumnValue(2));		
+	 		assertEquals(SnpEffMafRecord.center , maf.getColumnValue(3));		
+	 		assertEquals(snpEffREc.getColumnValue(4) , maf.getColumnValue(4));		
+	 		assertEquals("1", maf.getColumnValue(5));		
+	 		assertEquals(parms[1], maf.getColumnValue(6));		
+	 		assertEquals(parms[1] , maf.getColumnValue(7));		
+	 		assertEquals(snpEffREc.getColumnValue(8) , maf.getColumnValue(8));		
+	 		assertEquals(IndelUtils.SVTYPE.SNP.name(), maf.getColumnValue(10));	
+	 		assertEquals(parms[3] , maf.getColumnValue(11));		
 	 		
 	 		//check format field	
-			assertTrue(maf.getColumnValue(12).equals("A" ));			
-	 		assertTrue(maf.getColumnValue(13).equals("C" ));	 		
-	 		assertTrue(maf.getColumnValue(14).equals(SnpEffMafRecord.novel ));	//dbsnp		
-	 		assertTrue(maf.getColumnValue(15).equals("VLD" ));	//dbSNP validation
+	 		assertEquals("T", maf.getColumnValue(12));			
+	 		assertEquals("T", maf.getColumnValue(13));	 		
+	 		assertEquals("rs2235795", maf.getColumnValue(MafElement.DbSNP_RS));		
+	 		assertEquals("VLD", maf.getColumnValue(15));	//dbSNP validation
 	 			 		
-	 		assertTrue(maf.getColumnValue(16).equals(SnpEffMafRecord.Null));	//tumour sample	
-	 		assertTrue(maf.getColumnValue(17).equals(SnpEffMafRecord.Null ));	//normal sample
+	 		assertEquals("null", maf.getColumnValue(MafElement.Tumor_Sample_Barcode));	//tumour sample	
+	 		assertEquals("null", maf.getColumnValue(MafElement.Matched_Norm_Sample_Barcode));	//normal sample
 	 		
-			assertTrue(maf.getColumnValue(18).equals("C" ));		//normal allel1	
-	 		assertTrue(maf.getColumnValue(19).equals("C" ));	 	//normal allel2		
-	 		assertTrue(maf.getColumnValue(35).equals(parms[6] ));		//QFlag is filter column	
-	 		assertTrue(maf.getColumnValue(36).equals("A1[5],0[0],C6[6.67],0[0],T1[6],21[32.81]" ));	//ND
-	 		assertTrue(maf.getColumnValue(37).equals("C8[7.62],2[2],A2[8],28[31.18]" ));		
-	 		assertTrue(maf.getColumnValue(41).equals("A:ND0:TD0" )); //NNS unkown
-	 		assertTrue(maf.getColumnValue(42).equals("GTGATATTCCC"  )); //Var_Plus_Flank	 
-	 		assertTrue(maf.getColumnValue(43).equals("0.11"  )); //Var_Plus_Flank	 
-	 		assertTrue(maf.getColumnValue(44).equals(Dmaf.getColumnValue(44)  )); //Germ=0,185 
+	 		assertEquals("T", maf.getColumnValue(MafElement.Match_Norm_Seq_Allele1));	
+	 		assertEquals("T", maf.getColumnValue(MafElement.Match_Norm_Seq_Allele2));		
+	 		assertEquals(parms[6], maf.getColumnValue(35));		//QFlag is filter column	
+	 		assertEquals("T6[36.67]3[37.67]", maf.getColumnValue(MafElement.ND));
+	 		assertEquals("T8[36.12]2[30]", maf.getColumnValue(MafElement.TD));		
+	 		assertEquals("9:10", maf.getColumnValue(41)); //NNS unkown
+	 		assertEquals("ATACGTGGCCT", maf.getColumnValue(42)); //Var_Plus_Flank	 
+	 		assertEquals("0.6584", maf.getColumnValue(43)); //Var_Plus_Flank	 
+	 		assertEquals(snpEffREc.getColumnValue(44), maf.getColumnValue(44)); //Germ=0,185 
 	 		
 	 		//"chrY","22012840",".","C","A",
 	 		//"GT:GD:AC","0/0:T/C:A1[5],0[0],C6[6.67],0[0],T1[6],21[32.81]","0/0:A/C:C8[7.62],2[2],A2[8],28[31.18]"};
-	 		assertTrue(maf.getColumnValue(45).equals("40"));  // t_deep column2
-	 		assertTrue(maf.getColumnValue(46).equals("10"));  // t_ref C8[7.62],2[2]
-	 		assertTrue(maf.getColumnValue(47).equals("30"));  // t_allel A2[8],28[31.18]
+	 		assertEquals("10", maf.getColumnValue(MafElement.T_Depth));  // t_deep column2
+	 		assertEquals("0", maf.getColumnValue(MafElement.T_Ref_Count));  // t_ref C8[7.62],2[2]
+	 		assertEquals("10", maf.getColumnValue(MafElement.T_Alt_Count));  // t_allel A2[8],28[31.18]
 	 		
-	 		assertTrue(maf.getColumnValue(48).equals("29"));  // n_deep column1
-	 		assertTrue(maf.getColumnValue(49).equals("6"));   // C6[6.67],0[0]
-	 		assertTrue(maf.getColumnValue(50).equals("1"));   // A1[5],0[0]
+	 		assertEquals("9", maf.getColumnValue(MafElement.N_Depth));  // n_deep column1
+	 		assertEquals("0", maf.getColumnValue(MafElement.N_Ref_Count));
+	 		assertEquals("9",maf.getColumnValue(MafElement.N_Alt_Count));   // A1[5],0[0]
 	 		
-	 		assertEquals("1", maf.getColumnValue(MafElement.Input));   // IN=1,2
+	 		assertEquals("1,2", maf.getColumnValue(MafElement.Input));   // IN=1,2
 	 		
 	 		//other column
-	 		assertTrue(maf.getColumnValue(26).equals(VcfHeaderUtils.INFO_GERMLINE));  //somatic
+	 		assertEquals(VcfHeaderUtils.INFO_GERMLINE, maf.getColumnValue(26));  //somatic
 	 }
 	 
-	 @Test 
-	 public void converterMergedRecAll() {
-		 
-		 final SnpEffMafRecord Dmaf = new SnpEffMafRecord();			
-		 final Vcf2maf v2m = new Vcf2maf(2,1, null, null);	//test column2; normal column 1			
-		 final String[] parms = {"chr1","625903",".","A","C",".","PASS_1;MIN_2","FLANK=TAATACTTTGG;SOMATIC_2;IN=1,2;CONF=HIGH_1,ZERO_2;EFF=upstream_gene_variant(MODIFIER||3850||312|OR4F16|protein_coding|CODING|ENST00000332831||1),intron_variant(MODIFIER|||n.169+29509T>G||RP5-857K21.4|lincRNA|NON_CODING|ENST00000440200|1|1)","GT:GD:AC:MR:NNS:AD:DP:GQ:PL","0/1&.:A/C&A/A:A5[41],13[39.31],C1[42],4[40.75]&A5[41],13[39.31],C1[42],4[40.75]:5&5:5&5:.:.:.:.","0/1&0/1:A/C&A/C:A20[41],23[39.78],C2[42],15[40.67]&A20[41],23[39.78],C2[42],15[40.67]:17&17:17&17:41,15:56:99:212,0,1149"};
-		 
-		 final VcfRecord vcf = new VcfRecord(parms);
-		 final SnpEffMafRecord maf = v2m.converter(vcf);
-		 
-		 assertTrue(maf.getColumnValue(MafElement.Confidence).equals("HIGH_1,ZERO_2" ));
-	 	assertEquals(false, Vcf2maf.isHighConfidence(maf));
-	 	
-	 	assertEquals("MODIFIER", maf.getColumnValue(MafElement.Eff_Impact));
-		 String ontology = "upstream_gene_variant";
-		 assertTrue(maf.getColumnValue(59).equals(ontology ));
-		 assertTrue(maf.getColumnValue(60).equals( SnpEffConsequence.getClassicName(ontology) ));	 		
-		 assertTrue(maf.getColumnValue(40).equals(SnpEffConsequence.getConsequenceRank(ontology)+""));	 		
-		 assertTrue(maf.getColumnValue(9).equals(SnpEffConsequence.getMafClassification(ontology) ));
-		 
-		 //for other columns after A.M confirmation
-		 assertTrue(maf.getColumnValue(2).equals(Dmaf.getColumnValue(2) ));		
-		 assertTrue(maf.getColumnValue(3).equals(SnpEffMafRecord.center ));		
-		 assertTrue(maf.getColumnValue(4).equals(Dmaf.getColumnValue(4) ));		
-		 assertEquals("1", maf.getColumnValue(MafElement.Chromosome));
-		 assertTrue(maf.getColumnValue(6).equals(parms[1] ));		
-		 assertTrue(maf.getColumnValue(7).equals(parms[1] ));		
-		 assertTrue(maf.getColumnValue(8).equals(Dmaf.getColumnValue(8) ));		
-		 assertTrue(maf.getColumnValue(10).equals(IndelUtils.SVTYPE.SNP.name()));	
-		 assertTrue(maf.getColumnValue(11).equals(parms[3] ));		
-		 
-		 //check format field	
-		 assertTrue(maf.getColumnValue(12).equals("A" ));			
-		 assertTrue(maf.getColumnValue(13).equals("C" ));	 		
-		 assertTrue(maf.getColumnValue(14).equals(SnpEffMafRecord.novel ));	//dbsnp		
-		 assertEquals(SnpEffMafRecord.Null, maf.getColumnValue(MafElement.DbSNP_Val_Status ));	//dbSNP validation
-		 
-		 assertTrue(maf.getColumnValue(16).equals(SnpEffMafRecord.Null ));	//tumour sample	
-		 assertTrue(maf.getColumnValue(17).equals(SnpEffMafRecord.Null ));	//normal sample
-		 
-		 assertTrue(maf.getColumnValue(18).equals("A" ));		//normal allel1	
-		 assertTrue(maf.getColumnValue(19).equals("C" ));	 	//normal allel2		
-		 assertTrue(maf.getColumnValue(35).equals(parms[6] ));		//QFlag is filter column	
-		 assertEquals("A5[41],13[39.31],C1[42],4[40.75]", maf.getColumnValue(MafElement.ND));	//ND
-		 assertTrue(maf.getColumnValue(MafElement.TD).equals("A20[41],23[39.78],C2[42],15[40.67]" ));		
-		 
-		 assertEquals("1,2", maf.getColumnValue(MafElement.Input));   // IN=1,2
-		 
-		 //other column
-		 assertTrue(maf.getColumnValue(26).equals(VcfHeaderUtils.INFO_GERMLINE));  //somatic
-	 }
+//	 @Test 
+//	 public void converterMergedRecAll() {
+//		 
+//		 final SnpEffMafRecord Dmaf = new SnpEffMafRecord();			
+//		 final Vcf2maf v2m = new Vcf2maf(2,1, null, null);	//test column2; normal column 1			
+//		 final String[] parms = {"chr1","625903",".","A","C",".","PASS_1;MIN_2","FLANK=TAATACTTTGG;IN=1,2;CONF=HIGH_1,ZERO_2;EFF=upstream_gene_variant(MODIFIER||3850||312|OR4F16|protein_coding|CODING|ENST00000332831||1),intron_variant(MODIFIER|||n.169+29509T>G||RP5-857K21.4|lincRNA|NON_CODING|ENST00000440200|1|1)","GT:GD:AC:MR:NNS:AD:DP:GQ:PL","0/1&.:A/C&A/A:A5[41],13[39.31],C1[42],4[40.75]&A5[41],13[39.31],C1[42],4[40.75]:5&5:5&5:.:.:.:.","0/1&0/1:A/C&A/C:A20[41],23[39.78],C2[42],15[40.67]&A20[41],23[39.78],C2[42],15[40.67]:17&17:17&17:41,15:56:99:212,0,1149"};
+//		 
+//		 final VcfRecord vcf = new VcfRecord(parms);
+//		 final SnpEffMafRecord maf = v2m.converter(vcf);
+//		 
+//		 assertTrue(maf.getColumnValue(MafElement.Confidence).equals("HIGH_1,ZERO_2" ));
+//	 	assertEquals(false, Vcf2maf.isHighConfidence(maf));
+//	 	
+//	 	assertEquals("MODIFIER", maf.getColumnValue(MafElement.Eff_Impact));
+//		 String ontology = "upstream_gene_variant";
+//		 assertTrue(maf.getColumnValue(59).equals(ontology ));
+//		 assertTrue(maf.getColumnValue(60).equals( SnpEffConsequence.getClassicName(ontology) ));	 		
+//		 assertTrue(maf.getColumnValue(40).equals(SnpEffConsequence.getConsequenceRank(ontology)+""));	 		
+//		 assertTrue(maf.getColumnValue(9).equals(SnpEffConsequence.getMafClassification(ontology) ));
+//		 
+//		 //for other columns after A.M confirmation
+//		 assertTrue(maf.getColumnValue(2).equals(Dmaf.getColumnValue(2) ));		
+//		 assertTrue(maf.getColumnValue(3).equals(SnpEffMafRecord.center ));		
+//		 assertTrue(maf.getColumnValue(4).equals(Dmaf.getColumnValue(4) ));		
+//		 assertEquals("1", maf.getColumnValue(MafElement.Chromosome));
+//		 assertTrue(maf.getColumnValue(6).equals(parms[1] ));		
+//		 assertTrue(maf.getColumnValue(7).equals(parms[1] ));		
+//		 assertTrue(maf.getColumnValue(8).equals(Dmaf.getColumnValue(8) ));		
+//		 assertTrue(maf.getColumnValue(10).equals(IndelUtils.SVTYPE.SNP.name()));	
+//		 assertTrue(maf.getColumnValue(11).equals(parms[3] ));		
+//		 
+//		 //check format field	
+//		 assertTrue(maf.getColumnValue(12).equals("A" ));			
+//		 assertTrue(maf.getColumnValue(13).equals("C" ));	 		
+//		 assertTrue(maf.getColumnValue(14).equals(SnpEffMafRecord.novel ));	//dbsnp		
+//		 assertEquals(SnpEffMafRecord.Null, maf.getColumnValue(MafElement.DbSNP_Val_Status ));	//dbSNP validation
+//		 
+//		 assertTrue(maf.getColumnValue(16).equals(SnpEffMafRecord.Null ));	//tumour sample	
+//		 assertTrue(maf.getColumnValue(17).equals(SnpEffMafRecord.Null ));	//normal sample
+//		 
+//		 assertTrue(maf.getColumnValue(18).equals("A" ));		//normal allel1	
+//		 assertTrue(maf.getColumnValue(19).equals("C" ));	 	//normal allel2		
+//		 assertTrue(maf.getColumnValue(35).equals(parms[6] ));		//QFlag is filter column	
+//		 assertEquals("A5[41],13[39.31],C1[42],4[40.75]", maf.getColumnValue(MafElement.ND));	//ND
+//		 assertTrue(maf.getColumnValue(MafElement.TD).equals("A20[41],23[39.78],C2[42],15[40.67]" ));		
+//		 
+//		 assertEquals("1,2", maf.getColumnValue(MafElement.Input));   // IN=1,2
+//		 
+//		 //other column
+//		 assertTrue(maf.getColumnValue(26).equals(VcfHeaderUtils.INFO_GERMLINE));  //somatic
+//	 }
 	 
-	 @Test 
+	 @Ignore
 	 public void converterMergedRecHC() {
 		 
 		 final SnpEffMafRecord Dmaf = new SnpEffMafRecord();			
 		 final Vcf2maf v2m = new Vcf2maf(2,1, null, null);	//test column2; normal column 1			
-		 final String[] parms = {"chr1","625903",".","A","C",".","PASS_1;PASS_2","FLANK=TAATACTTTGG;SOMATIC_1;SOMATIC_2;IN=1,2;CONF=HIGH_1,HIGH_2;EFF=upstream_gene_variant(MODIFIER||3850||312|OR4F16|protein_coding|CODING|ENST00000332831||1),intron_variant(MODIFIER|||n.169+29509T>G||RP5-857K21.4|lincRNA|NON_CODING|ENST00000440200|1|1)","GT:GD:AC:MR:NNS:AD:DP:GQ:PL","0/1&.:A/C&A/A:A5[41],13[39.31],C1[42],4[40.75]&A5[41],13[39.31],C1[42],4[40.75]:5&5:5&5:.:.:.:.","0/1&0/1:A/C&A/C:A20[41],23[39.78],C2[42],15[40.67]&A20[41],23[39.78],C2[42],15[40.67]:17&17:17&17:41,15:56:99:212,0,1149"};
+		 final String[] parms = {"chr1","11938210",".","GC","AA",".",".","IN=1,2;EFF=non_coding_exon_variant(MODIFIER|||n.384GC>AA||RP5-934G17.6|processed_pseudogene|NON_CODING|ENST00000438808|1|1)","GT:DP:FT:MR:NNS:OABS:INF","1/1:17:.:17:16:AA9[]8[];_A2[]1[]:.;CONF=HIGH","1/1:12:.:12:12:AA9[]3[]:.;.","1/1:17:.:17:16:AA9[]8[];_A2[]1[]:.;CONF=HIGH","1/1:12:.:12:12:AA9[]3[]:.;."};
 		 
 		 final VcfRecord vcf = new VcfRecord(parms);
 		 final SnpEffMafRecord maf = v2m.converter(vcf);
 		 
-		 assertTrue(maf.getColumnValue(MafElement.Confidence).equals("HIGH_1,HIGH_2" ));
+		 assertTrue(maf.getColumnValue(MafElement.Confidence).equals("HIGH,HIGH" ));
 		 assertEquals(true, Vcf2maf.isHighConfidence(maf));
 		 
 		 assertEquals("MODIFIER", maf.getColumnValue(MafElement.Eff_Impact));
@@ -567,30 +557,25 @@ public class Vcf2mafTest {
 		 assertEquals("1,2", maf.getColumnValue(MafElement.Input));   // IN=1,2
 		 
 		 //other column
-		 assertTrue(maf.getColumnValue(MafElement.Mutation_Status).equals(VcfHeaderUtils.INFO_SOMATIC));  //somatic
-	 }
-	 
-	 @Test
-	 public void whyIsItNotInMySHCCFile() {
-		 
+		// assertTrue(maf.getColumnValue(MafElement.Mutation_Status).equals(VcfHeaderUtils.INFO_SOMATIC));  //somatic
 	 }
 	 
 	 /**
 	  * deal with p.Met1? column missing "/" 
 	  * @throws Exception: unit tests will failed
 	  */
-	 @Test     
-	 public void snpEffTest() {
- 		 
-		 String[] str = {"chr10","87489317","rs386746181","TG","CC",".","PASS","SOMATIC;DB;CONF=HIGH;"
-		 + "EFF=start_lost(HIGH||atg/GGtg|p.Met1?|580|GRID1|protein_coding|CODING|ENST00000536331||1);"
-		 + "LOF=(GRID1|ENSG00000182771|4|0.25);END=87489318","ACCS","TG,29,36,_G,0,1","CC,4,12,TG,15,12"};
-		 
-		 Vcf2maf v2m = new Vcf2maf(1,2, null, null);	
-		 SnpEffMafRecord maf  = v2m.converter(new VcfRecord(str));	
-		 assertTrue(maf.getColumnValue(MafElement.Amino_Acid_Change  ).equals("p.Met1?")); //52
-		 assertTrue(maf.getColumnValue(MafElement.CDS_Change).equals(SnpEffMafRecord.Null)); 		//53	 
-	 }
+//	 @Test     
+//	 public void snpEffTest() {
+// 		 
+//		 String[] str = {"chr10","87489317","rs386746181","TG","CC",".","PASS","SOMATIC;DB;CONF=HIGH;"
+//		 + "EFF=start_lost(HIGH||atg/GGtg|p.Met1?|580|GRID1|protein_coding|CODING|ENST00000536331||1);"
+//		 + "LOF=(GRID1|ENSG00000182771|4|0.25);END=87489318","ACCS","TG,29,36,_G,0,1","CC,4,12,TG,15,12"};
+//		 
+//		 Vcf2maf v2m = new Vcf2maf(1,2, null, null);	
+//		 SnpEffMafRecord maf  = v2m.converter(new VcfRecord(str));	
+//		 assertTrue(maf.getColumnValue(MafElement.Amino_Acid_Change  ).equals("p.Met1?")); //52
+//		 assertTrue(maf.getColumnValue(MafElement.CDS_Change).equals(SnpEffMafRecord.Null)); 		//53	 
+//	 }
 	 
 	 @Test     
 	 public void cdsChange() {
@@ -653,7 +638,7 @@ public class Vcf2mafTest {
 		 
 	 }
 	 	 
-	 @Test
+	 @Ignore
 	 public void defaultValueTest() {
 		 	final SnpEffMafRecord Dmaf = new SnpEffMafRecord();			
 			final Vcf2maf v2m = new Vcf2maf(2,1, null, null);	//test column2; normal column 1
@@ -682,14 +667,15 @@ public class Vcf2mafTest {
 	 }
 	
 	 @Test
-	 public void BAMidTest()throws IOException, Exception{
+	 public void bamIdTest()throws IOException, Exception{
 			String[] str = {        		
 					VcfHeaderUtils.STANDARD_FILE_FORMAT + "=VCFv4.0",	
 					VcfHeaderUtils.STANDARD_CONTROL_SAMPLE + "=CONTROL_sample",
 					VcfHeaderUtils.STANDARD_TEST_SAMPLE + "=TEST_sample",	
 					VcfHeaderUtils.STANDARD_TEST_BAMID + "=TEST_bamID",				
-					VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tqControlSample\tqTestSample",
-					"GL000236.1\t7127\t.\tT\tC\t.\tMR;MIUN\tSOMATIC;MR=4;NNS=4;FS=CCAGCCTATTT;CONF=ZERO\tGT:GD:AC:MR:NNS\t0/0:T/T:T9[37.11],18[38.33]:.:4\t0/1:C/T:C1[12],3[41],T19[35.58],30[33.63]:.:5"};			
+					VcfHeaderUtils.STANDARD_CONTROL_BAMID + "=CONTROL_bamID",				
+					VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tCONTROL_bamID\tTEST_bamID",
+					"chr1\t7722099\trs6698334\tC\tT\t.\t.\tBaseQRankSum=-0.736;ClippingRankSum=0.736;DP=3;FS=0.000;MQ=60.00;MQ0=0;MQRankSum=0.736;QD=14.92;ReadPosRankSum=0.736;SOR=0.223;IN=2;DB;VLD;VAF=0.06887;EFF=intron_variant(MODIFIER|||c.805+173C>T|1673|CAMTA1|protein_coding|CODING|ENST00000303635|8|1),intron_variant(MODIFIER|||c.805+173C>T|1659|CAMTA1|protein_coding|CODING|ENST00000439411|8|1)\tGT:AD:DP:GQ:FT:MR:NNS:OABS:INF\t.:.:.:.:.:.:.:.:CONF=ZERO\t.:.:.:.:.:.:.:.:.\t0/1:1,2:3:35:COVN8:2:2:C0[0]1[39];T1[35]1[37]:CONF=ZERO\t.:.:.:.:.:.:.:.:."};			
 		        createVcf(str); 
 	        	try {
 					Vcf2mafTest.createVcf(str);
@@ -706,15 +692,15 @@ public class Vcf2mafTest {
 					    	
 						SnpEffMafRecord maf =  Vcf2mafIndelTest.toMafRecord(line);		
 		 				assertTrue(maf.getColumnValue(16).equals("TEST_bamID"));
-		 				assertTrue(maf.getColumnValue(17).equals(MafElement.Matched_Norm_Sample_Barcode.getDefaultValue()));     
+		 				assertEquals("CONTROL_bamID", maf.getColumnValue(MafElement.Matched_Norm_Sample_Barcode));     
 		 				assertTrue(maf.getColumnValue(33).equals("TEST_sample"));
-				 		assertTrue(maf.getColumnValue(MafElement.BAM_File).equals("TEST_bamID:null"));
+				 		assertEquals("TEST_bamID:CONTROL_bamID", maf.getColumnValue(MafElement.BAM_File));
 				    }	
 				}
 		 
 	 }
 	 
-	 @Test
+	 @Ignore
 	 public  void singleSampleTest() throws IOException, Exception{
  		 
 		String[] str = {
@@ -757,9 +743,11 @@ public class Vcf2mafTest {
 	public void fileNameTest() {
 		String[] str = {VcfHeaderUtils.STANDARD_FILE_FORMAT + "=VCFv4.0",			
 				VcfHeaderUtils.STANDARD_DONOR_ID + "=MELA_0264",
-				VcfHeaderUtils.STANDARD_CONTROL_SAMPLE + "=CONTROL",
-				VcfHeaderUtils.STANDARD_TEST_SAMPLE + "=TEST",				
-				VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tCONTROL\tTEST"	
+				VcfHeaderUtils.STANDARD_CONTROL_BAMID + "=CONTROL_UUID",
+				VcfHeaderUtils.STANDARD_TEST_BAMID + "=TEST_UUID",				
+				VcfHeaderUtils.STANDARD_CONTROL_SAMPLE + "=CONTROL_sample",
+				VcfHeaderUtils.STANDARD_TEST_SAMPLE + "=TEST_sample",				
+				VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tCONTROL_UUID\tTEST_UUID"	
 		};
 		        
         try{
@@ -773,7 +761,7 @@ public class Vcf2mafTest {
 	        	fail(); 
 			}    			
 			
-			assertTrue(new File(outputDir + "/MELA_0264.CONTROL.TEST.maf").exists());
+			assertTrue(new File(outputDir + "/MELA_0264.CONTROL_sample.TEST_sample.maf").exists());
 			//below empty files will be deleted at last stage
 			assertFalse(new File(outputDir + "/MELA_0264.CONTROL.TEST.Somatic.HighConfidence.Consequence.maf").exists());
 			assertFalse(new File(outputDir + "/MELA_0264.CONTROL.TEST.Germline.HighConfidence.maf").exists());
@@ -784,13 +772,15 @@ public class Vcf2mafTest {
         }
 	}
 	
-	@Test
+	@Ignore
 	public void areVcfFilesCreated() throws Exception {
 		String[] str = {VcfHeaderUtils.STANDARD_FILE_FORMAT + "=VCFv4.0",			
 				VcfHeaderUtils.STANDARD_DONOR_ID + "=ABCD_1234",
-				VcfHeaderUtils.STANDARD_CONTROL_SAMPLE + "=CONTROL",
-				VcfHeaderUtils.STANDARD_TEST_SAMPLE + "=TEST",				
-				VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tCONTROL\tTEST"	,
+				VcfHeaderUtils.STANDARD_CONTROL_BAMID + "=CONTROL_uuid",
+				VcfHeaderUtils.STANDARD_TEST_BAMID + "=TEST_uuid",				
+				VcfHeaderUtils.STANDARD_TEST_SAMPLE + "=TEST_sample",				
+				VcfHeaderUtils.STANDARD_CONTROL_SAMPLE + "=CONTROL_sample",				
+				VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tCONTROL_uuid\tTEST_uuid"	,
 				"chr10\t87489317\trs386746181\tTG\tCC\t.\tPASS\tSOMATIC;DB;CONF=HIGH;"
 						 + "EFF=start_lost(HIGH||atg/GGtg|p.Met1?|580|GRID1|protein_coding|CODING|ENST00000536331||1);"
 						 + "LOF=(GRID1|ENSG00000182771|4|0.25);END=87489318\tACCS\tTG,29,36,_G,0,1\tCC,4,12,TG,15,12"
@@ -851,13 +841,16 @@ public class Vcf2mafTest {
 	public void fileNameWithNoSampleidTest() throws IOException{
 		String[] str = {"##fileformat=VCFv4.0",			
 				VcfHeaderUtils.STANDARD_DONOR_ID +"=MELA_0264",
-				VcfHeaderUtils.STANDARD_TEST_SAMPLE +"=TEST",				
-				VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tCONTROL\tTEST"};
+				VcfHeaderUtils.STANDARD_TEST_BAMID +"=TEST_uuid",				
+				VcfHeaderUtils.STANDARD_CONTROL_BAMID +"=CONTROL_uuid",				
+				VcfHeaderUtils.STANDARD_TEST_SAMPLE +"=TEST_sample",				
+				VcfHeaderUtils.STANDARD_CONTROL_SAMPLE +"=CONTROL_sample",				
+				VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tCONTROL_uuid\tTEST_uuid"};
 
         createVcf(str);
         
-        try {
-			final String command = "--mode vcf2maf --control control  --log " + outputDir + "/output.log  -i " + inputName + " --outdir " + outputDir;	
+        try{  
+			final String command = "-mode vcf2maf   --log " + outputDir + "/output.log  -i " + inputName + " --outdir " + outputDir;	
 //			String[] args = {"-m", "vcf2maf", "--control", "control"," --log", outputDir + "/output.log" ,"-i",  inputName , "--outdir " ,outputDir};
 //			Main.main(args);
 			final Executor exec = new Executor(command, "au.edu.qimr.qannotate.Main");        	

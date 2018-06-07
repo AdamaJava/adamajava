@@ -253,35 +253,35 @@ public class BAMPileupUtilTest {
 		Assert.assertTrue(BAMPileupUtil.eligibleSamRecord(record));
 	}
 	
-	@Test
-	public void testExaminePileupSNPMutationMode() {
-		SAMRecord record = new SAMRecord(null);
-		record.setAlignmentStart(100);
-		record.setReadBases("ACGT".getBytes());
-		record.setBaseQualityString("IIII");
-		record.setCigarString("4M");
-		List<SAMRecord> records = new ArrayList<SAMRecord>();
-		records.add(record);
-		
-		QSnpRecord qsnpRecord = new QSnpRecord("chr1", 100, "A");
-		qsnpRecord.setMutation("A>G");
-		Mode mode = Mode.QSNP_MUTATION_IN_NORMAL;
-		
-		BAMPileupUtil.examinePileupSNP(records, qsnpRecord, mode);
-		Assert.assertNull(qsnpRecord.getAnnotation());
-		
-		qsnpRecord = new QSnpRecord("chr1", 102, "A");
-		qsnpRecord.setMutation("A>G");
-		
-		BAMPileupUtil.examinePileupSNP(records, qsnpRecord, mode);
-		Assert.assertEquals(SnpUtils.MUTATION_IN_UNFILTERED_NORMAL, qsnpRecord.getAnnotation());
-		
-		qsnpRecord.setMutation("G>T");
-		qsnpRecord.getVcfRecord().setFilter(null);
-		
-		BAMPileupUtil.examinePileupSNP(records, qsnpRecord, mode);
-		Assert.assertNull(qsnpRecord.getAnnotation());
-	}
+//	@Test
+//	public void testExaminePileupSNPMutationMode() {
+//		SAMRecord record = new SAMRecord(null);
+//		record.setAlignmentStart(100);
+//		record.setReadBases("ACGT".getBytes());
+//		record.setBaseQualityString("IIII");
+//		record.setCigarString("4M");
+//		List<SAMRecord> records = new ArrayList<SAMRecord>();
+//		records.add(record);
+//		
+//		QSnpRecord qsnpRecord = new QSnpRecord("chr1", 100, "A");
+//		qsnpRecord.setMutation("A>G");
+//		Mode mode = Mode.QSNP_MUTATION_IN_NORMAL;
+//		
+//		BAMPileupUtil.examinePileupSNP(records, qsnpRecord, mode);
+//		Assert.assertNull(qsnpRecord.getAnnotation());
+//		
+//		qsnpRecord = new QSnpRecord("chr1", 102, "A");
+//		qsnpRecord.setMutation("A>G");
+//		
+//		BAMPileupUtil.examinePileupSNP(records, qsnpRecord, mode);
+//		Assert.assertEquals(SnpUtils.MUTATION_IN_UNFILTERED_NORMAL, qsnpRecord.getAnnotation());
+//		
+//		qsnpRecord.setMutation("G>T");
+//		qsnpRecord.getVcfRecord().setFilter(null);
+//		
+//		BAMPileupUtil.examinePileupSNP(records, qsnpRecord, mode);
+//		Assert.assertNull(qsnpRecord.getAnnotation());
+//	}
 	
 //	@Test
 //	public void testExaminePileupSNPQSnpMode() {

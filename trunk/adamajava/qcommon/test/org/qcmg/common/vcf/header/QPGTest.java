@@ -64,7 +64,7 @@ public class QPGTest {
 		
 		//discussion tomorrow		
 		VcfHeader header = new VcfHeader();
-		String date = new SimpleDateFormat(VcfHeaderUtils.DATE_FORMAT_STRING).format(new Date());
+		String date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
 		 
 		String cl = "grep -w \"hello???\" my_big_file.txt";			
 		VcfHeaderUtils.addQPGLine(header, order, tool, ver, cl, date);
@@ -93,8 +93,8 @@ public class QPGTest {
 		final String cl = "grep -w \"hello???\" my_big_file.txt";
 		
 		VcfHeader header = new VcfHeader();
-		VcfHeaderUtils.addQPGLine(header,order, tool, ver, cl, new SimpleDateFormat(VcfHeaderUtils.DATE_FORMAT_STRING).format(new Date()));
-		VcfHeaderUtils.addQPGLine(header,order + 1, tool, ver, cl, new SimpleDateFormat(VcfHeaderUtils.DATE_FORMAT_STRING).format(new Date()));
+		VcfHeaderUtils.addQPGLine(header,order, tool, ver, cl, new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+		VcfHeaderUtils.addQPGLine(header,order + 1, tool, ver, cl, new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
 		
 		// calling getqPGLines sorts the internal collection
 		final VcfHeaderRecord qpg = VcfHeaderUtils.getqPGRecords(header).get(0);	//order + 1
@@ -111,7 +111,7 @@ public class QPGTest {
 		assertEquals(qpg2, list.get(1));  //order
 		assertEquals(qpg, list.get(0));    //order+1
 		
-		VcfHeaderUtils.addQPGLine( header, order - 1, tool, ver, cl, new SimpleDateFormat(VcfHeaderUtils.DATE_FORMAT_STRING).format(new Date()));
+		VcfHeaderUtils.addQPGLine( header, order - 1, tool, ver, cl, new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
 		final VcfHeaderRecord qpg3 =VcfHeaderUtils.getqPGRecords( header).get(2);
 		list.add(qpg3);
 		Collections.sort(list);

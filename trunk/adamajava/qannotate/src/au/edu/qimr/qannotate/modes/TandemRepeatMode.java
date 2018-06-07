@@ -157,8 +157,8 @@ public class TandemRepeatMode  extends AbstractMode{
 			//reheader
 		    VcfHeader hd = 	reader.getHeader();
 		    hd = reheader(hd, commandLine ,input);			    
-		    hd.addInfo(VcfHeaderUtils.INFO_TRF, "1", "String", VcfHeaderUtils.DESCRITPION_INFO_TRF); 
-		    hd.addFilter(VcfHeaderUtils.FILTER_TRF, VcfHeaderUtils.DESCRITPION_FILTER_TRF );
+		    hd.addInfo(VcfHeaderUtils.INFO_TRF, "1", "String", VcfHeaderUtils.INFO_TRF_DESC); 
+		    hd.addFilter(VcfHeaderUtils.FILTER_TRF, VcfHeaderUtils.FILTER_TRF_DESC );
 		    
 		    for(final VcfHeaderRecord record: hd) {
 		    		writer.addHeader(record.toString());			
@@ -174,7 +174,7 @@ public class TandemRepeatMode  extends AbstractMode{
 	        }
 		}  
 					
-		logger.info(String.format("outputed %d VCF record, including %d marked as TRF.",  count , repeatCount ));		
+		logger.info(String.format("outputed %d VCF records, including %d marked as TRF.",  count , repeatCount ));		
 	}
 	
 
@@ -200,14 +200,14 @@ public class TandemRepeatMode  extends AbstractMode{
 			start = indexedBlock.firstBlockStart;
  		
 		//seek each base in a block gap region
-		for(int i = 0; i <= BLOCK_INDEX_GAP; i ++) {
+		for(int i = 0; i <= BLOCK_INDEX_GAP; i ++)  {
 			if((block = indexMap.get(start - i)) != null){
 				coveredBlocks.add(block);
 				break; // stop backwards to gap				
 			}
 		}
 		 
-		if(block == null) {
+		if( block == null) {
 			logger.warn("error on indexed blocks, can't find closest index for " + vcf.toString());
 			throw new IllegalArgumentException("error on indexed blocks, can't find closest index for " + vcf.toString());
 		}
@@ -218,7 +218,7 @@ public class TandemRepeatMode  extends AbstractMode{
 		 
 			block = indexMap.get(start);
 			if(block == null) {
-				logger.warn("error on indexed blocks, can't find closest index for " + vcf.toString());			
+				logger.warn("error on indexed blocks, can't find closest index for " + vcf.toString());
 				throw new IllegalArgumentException("error on indexed blocks, can't find closest index for " + vcf.toString());
 			}
 			
@@ -226,19 +226,17 @@ public class TandemRepeatMode  extends AbstractMode{
 			start = block.end + 1; 
 		}
 		
-		List<Repeat> coveredRepeats = new ArrayList<>();
-		for(Block blo: coveredBlocks) {
-			if ( ! blo.repeats.isEmpty()) {
-				for (Repeat rep : blo.repeats) {
-					if( ! coveredRepeats.contains(rep)) {
-						coveredRepeats.add(rep);
-					}
-				}
-			}
+		Set<Repeat>coveredRepeatsSet = new HashSet<>();
+		for (Block blo: coveredBlocks) {
+			coveredRepeatsSet.addAll(blo.repeats);
 		}
 				
-		if(coveredRepeats.isEmpty()) return false; //do nothing
+		if(coveredRepeatsSet.isEmpty()) return false; //do nothing
 		
+		/*
+		 * unique the list
+		 */
+		List<Repeat> coveredRepeats = new ArrayList<>(coveredRepeatsSet);
 		
 		/*
 		 * sort list so results are reproducable (for our lovely regression tests)
@@ -294,6 +292,11 @@ public class TandemRepeatMode  extends AbstractMode{
         try(BufferedReader reader = new BufferedReader(new FileReader(dbfile))){
             String line; //chr1    11114   11123   5       2.0     5       100     0       20      0.97    GGCGC
             while (( line = reader.readLine()) != null)  {
+            	/*
+            	 * ignore header line
+            	 */
+            		if (line.startsWith("chrom\tstart")) continue;
+            		
 	           try {
 	        	   		Repeat rep = new Repeat(line);
 	        	   		allRepeats.computeIfAbsent(rep.chr, (v) -> new HashSet<>()).add(rep);
@@ -304,7 +307,6 @@ public class TandemRepeatMode  extends AbstractMode{
 	            }             
             }
         } 
-        
         return allRepeats; 		
 	}
 	

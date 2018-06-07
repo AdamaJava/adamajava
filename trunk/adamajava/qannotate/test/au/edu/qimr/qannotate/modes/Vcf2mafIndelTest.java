@@ -51,7 +51,7 @@ public class Vcf2mafIndelTest {
 	}
 	
 	@Test
-	public void Frame_Shift_Test()  {
+	public void frame_Shift_Test()  {
 			String[] str = {VcfHeaderUtils.STANDARD_FILE_FORMAT + "=VCFv4.0",			
 					VcfHeaderUtils.STANDARD_DONOR_ID + "=MELA_0264",
 					VcfHeaderUtils.STANDARD_CONTROL_SAMPLE + "=CONTROL",
@@ -90,7 +90,7 @@ public class Vcf2mafIndelTest {
 
 	//test record with some missing sample information, also test the uuid from vcf header to maf column 16,17,33 and 34
 	@Test 
-	public void EveryTest() throws Exception{
+	public void everyTest() throws IOException{
         String[] str = {
         		VcfHeaderUtils.STANDARD_FILE_FORMAT + "=VCFv4.0",			
 				VcfHeaderUtils.STANDARD_DONOR_ID + "=MELA_0264",
@@ -98,7 +98,7 @@ public class Vcf2mafIndelTest {
 				VcfHeaderUtils.STANDARD_TEST_SAMPLE + "=TEST_sample",	
 				VcfHeaderUtils.STANDARD_CONTROL_BAMID + "=CONTROL_bamID",
 				VcfHeaderUtils.STANDARD_TEST_BAMID + "=TEST_bamID",				
-				VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tqControlSample\tqTestSample",
+				VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tCONTROL_bamID\tTEST_bamID",
 			 	 	"chr1\t72119\t.\tG\tGTATA\t.\tNNS;COVN12;REPEAT\tSOMATIC;NIOC=0;SVTYPE=INS;END=72120;CONF=ZERO;EFF=downstream_gene_variant(MODIFIER||2112||305|OR4F5|protein_coding|CODING|ENST00000335137||1),intergenic_region(MODIFIER||||||||||1)\t"
  	 	                  + "GT:GD:AD:DP:GQ:PL:ACINDEL\t.:.:.:.:.:.:.\t1/1:GTATA/GTATA:0,2:2:6:90,6,0:1,5,5,1[0,1],1[1],1,0,2", 	                  
 	
@@ -189,7 +189,7 @@ public class Vcf2mafIndelTest {
 				VcfHeaderUtils.STANDARD_TEST_SAMPLE + "=TEST_bam",
 				VcfHeaderUtils.STANDARD_CONTROL_BAMID + "=CONTROL_bamID",
 				VcfHeaderUtils.STANDARD_TEST_BAMID + "=TEST_bamID",
-				VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tqControlSample\tqTestSample",				
+				VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tCONTROL_bamID\tTEST_bamID",				
 		        "chr1\t16864\t.\tGCA\tG\t154.73\tPASS\tAC=1;AF=0.500;AN=2;BaseQRankSum=-0.387;ClippingRankSum=-0.466;DP=12;FS=0.000;MLEAC=1;MLEAF=0.500;MQ=53.00;MQ0=0;MQRankSum=0.143;QD=12.89;ReadPosRankSum=-0.143;SOR=0.495;NIOC=0;SVTYPE=DEL;END=16866;CONF=HIGH;EFF=intergenic_region(MODIFIER||||||||||1)\t"
 		        + "GT:GD:AD:DP:GQ:PL:ACINDEL\t0/1:GCA/G:6,5:11:99:192,0,516:8,18,16,8[2,6],9[9],0,0,0\t.:GC/G:8,15:23:99:601,0,384:12,35,34,12[8,4],15[13],0,1,0",
  		        "chr2\t23114\t.\tT\tTAA\t129.73\t.\tAC=1;AF=0.500;AN=2;BaseQRankSum=0.103;ClippingRankSum=-0.470;DP=11;FS=7.782;MLEAC=1;MLEAF=0.500;MQ=27.00;MQ0=0;MQRankSum=0.470;QD=11.79;ReadPosRankSum=-1.453;SOR=3.599;HOMTXT=ATAATAAAATaaAAAAAAAGAC;NIOC=0;SVTYPE=INS;END=23115;CONF=LOW;EFF=intergenic_region(MODIFIER||||||||||1)\t"
@@ -235,7 +235,7 @@ public class Vcf2mafIndelTest {
  				assertTrue(maf.getColumnValue(35).equals("PASS")); //QFlag
  				assertTrue(maf.getColumnValue(36).equals("8,18,16,8[2,6],9[9],0,0,0"));    //ND
  				assertTrue(maf.getColumnValue(37).equals("12,35,34,12[8,4],15[13],0,1,0"));
- 				assertTrue(maf.getColumnValue(38).equals("HIGH")); 
+ 				assertEquals("HIGH", maf.getColumnValue(38)); 
  				assertTrue(maf.getColumnValue(39).equals("MODIFIER"));
  				assertTrue(maf.getColumnValue(40).equals("100")); //??
  				
@@ -291,17 +291,17 @@ public class Vcf2mafIndelTest {
 	}
 	
 	@Test
-	public void IdsTest() throws Exception{
+	public void idsTest() throws Exception{
         String[] str = {VcfHeaderUtils.STANDARD_FILE_FORMAT + "=VCFv4.0",			
         		VcfHeaderUtils.STANDARD_FILE_FORMAT + "=VCFv4.0",			
         		VcfHeaderUtils.STANDARD_DONOR_ID + "=MELA_0264",
         		VcfHeaderUtils.STANDARD_CONTROL_SAMPLE + "=CONTROL_sample",
         		VcfHeaderUtils.STANDARD_TEST_SAMPLE + "=TEST_sample" ,
-        		VcfHeaderUtils.STANDARD_CONTROL_BAM + "=CONTROL_bam",
+        		VcfHeaderUtils.STANDARD_CONTROL_BAMID + "=CONTROL_bam",
         		VcfHeaderUtils.STANDARD_TEST_BAM + "=TEST_bam",
-        	//	VcfHeaderUtils.STANDARD_CONTROL_BAMID + "=CONTROL_bamID",
+        		VcfHeaderUtils.STANDARD_CONTROL_BAMID + "=CONTROL_bamID",
         		VcfHeaderUtils.STANDARD_TEST_BAMID + "=TEST_bamID",
-				VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tCONTROL_bam\tTEST_sample",				
+        		VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tCONTROL_bamID\tTEST_bamID",				
 		        "chr1\t16864\t.\tGCA\tG\t154.73\tPASS\tAC=1;AF=0.500;AN=2;BaseQRankSum=-0.387;ClippingRankSum=-0.466;DP=12;FS=0.000;MLEAC=1;MLEAF=0.500;MQ=53.00;MQ0=0;MQRankSum=0.143;QD=12.89;ReadPosRankSum=-0.143;SOR=0.495;NIOC=0;SVTYPE=DEL;END=16866;CONF=HIGH;EFF=intergenic_region(MODIFIER||||||||||1)\t"
 		        + "GT:GD:AD:DP:GQ:PL:ACINDEL\t0/1:GCA/G:6,5:11:99:192,0,516:8,18,16,8[2,6],9[9],0,0,0\t.:GC/G:8,15:23:99:601,0,384:12,35,34,12[8,4],15[13],0,1,0"
         };
@@ -341,11 +341,11 @@ public class Vcf2mafIndelTest {
         String[] eles = line.split("\\t");
         System.out.println("eles.length: " + eles.length);
         //last two optional column for acsnp
-        assertTrue(eles.length + 2 == MafElement.values().length);
+        assertTrue(eles.length == MafElement.values().length);
              
         for(int i = 0; i < eles.length; i ++){
         //	maf.setColumnValue( MafElement.getByColumnNo( i+1), ""); //wipe off all default value
-        	maf.setColumnValue( MafElement.getByColumnNo( i+1), eles[i]);       	
+        		maf.setColumnValue( MafElement.getByColumnNo( i+1), eles[i]);       	
         }
 		return maf; 		
 	}	

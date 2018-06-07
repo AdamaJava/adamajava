@@ -34,8 +34,8 @@ public class Constants {
 	public static final String BAR_STRING = "\\|";
 	public static final String SLASH_STRING = "/";
 	public  static final char MINUS = '-';
-	public  static final char OPEN_BRACKET = '(';
-	public  static final char CLOSE_BRACKET = ')';
+	public  static final char OPEN_PARENTHESES = '(';
+	public  static final char CLOSE_PARENTHESES = ')';
 	public  static final char OPEN_SQUARE_BRACKET = '[';
 	public  static final char CLOSE_SQUARE_BRACKET = ']';
 	
@@ -45,6 +45,7 @@ public class Constants {
 	public static final String EMPTY_STRING = "";
 	public static final String CHR = "chr";
 	public static final String MISSING_GT = "./.";
+	
 	
 	// SAM Header Prefixes
 	public static final String HEADER_PREFIX = "@HD";
@@ -58,5 +59,5 @@ public class Constants {
 	public static final char VCF_MERGE_DELIM = '&';
 	//  used as delimiter when merging vcf records for format field
 	public static final String VCF_MERGE_INFO = "IN";
-	public static final String HIGH_1_HIGH_2 = "HIGH_1,HIGH_2";
+	public static final String HIGH_1_HIGH_2 = "HIGH,HIGH";
 }

@@ -98,5 +98,6 @@ public class ChrPositionComparator implements Comparator<ChrPosition> {
 	public static Comparator<ChrPosition> getCPComparatorForGRCh37() {
 		return getComparator(getChrNameComparator(contigs));
 	}
+	
 
 }

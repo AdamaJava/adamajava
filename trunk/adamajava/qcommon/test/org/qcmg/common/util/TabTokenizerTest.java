@@ -3,6 +3,7 @@ package org.qcmg.common.util;
 import java.util.regex.Pattern;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class TabTokenizerTest {
@@ -36,7 +37,7 @@ public class TabTokenizerTest {
 		Assert.assertEquals(2, i);
 	}
 	
-	@Test
+	@Ignore
 	public void testSpeedComparison() {
 		String data = "1\t2\t3\t4\t5\t6\t7\t8\t9\t10\t11\t12\t13\t14\t15\t16\t17\t18\t19\t20";
 		Assert.assertEquals(20, TabTokenizer.tokenize(data).length);
@@ -75,7 +76,7 @@ public class TabTokenizerTest {
 		System.out.println("tt: " + (System.currentTimeMillis() - start) + ", counter: " + counter);
 	}
 	
-	@Test
+	@Ignore
 	public void testSpeed2Comparison() {
 		String data = "1\t2\t\t3\t4\t5\t6\t7\t8\t9\t10\t\t11\t12\t13\t14\t15\t\t16\t17\t18\t19\t20";
 		Assert.assertEquals(23, TabTokenizer.tokenize(data).length);

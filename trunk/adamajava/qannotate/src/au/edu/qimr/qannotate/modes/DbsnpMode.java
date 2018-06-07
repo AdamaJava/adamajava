@@ -20,7 +20,6 @@ import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.util.TabTokenizer;
-import org.qcmg.common.vcf.VcfInfoFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
@@ -43,47 +42,14 @@ public class DbsnpMode extends AbstractMode{
         logger.tool("logger file " + options.getLogFileName());
         logger.tool("logger level " + (options.getLogLevel() == null ? QLoggerFactory.DEFAULT_LEVEL.getName() :  options.getLogLevel()));
 		
-		inputRecord(new File( options.getInputFileName())   );		
-		removeExistingDbSnpIds();		
- 		addAnnotation(options.getDatabaseFileName() );		
+		loadVcfRecordsFromFile(new File( options.getInputFileName())   );
+		
+		removeExistingDbSnpIds();
+		
+ 		addAnnotation(options.getDatabaseFileName() );
+		
 		reheader(options.getCommandLine(),options.getInputFileName())	;
 		writeVCF( new File(options.getOutputFileName()));	
-	}
-	
-		
-	//testing at momemnt
-	@Deprecated
-	void divAnnotation(String dbSNPFile) throws IOException{
- 	    		 				 
-		try (VCFFileReader reader= new VCFFileReader( dbSNPFile )) {
-			//add dbSNP version into header	
-			VcfHeaderRecord dbre = reader.getHeader().firstMatchedRecord(VcfHeaderUtils.STANDARD_DBSNP_LINE);
-			if( dbre != null)	 {
-				header.addInfo(VcfHeaderUtils.INFO_DB,  "0", VcfInfoType.Flag.name(),VcfHeaderUtils.DESCRITPION_INFO_DB);
-			}
-		
-			for (final VcfRecord dbSNPVcf : reader) {				
-				final VcfInfoFieldRecord info = new VcfInfoFieldRecord(dbSNPVcf.getInfo());	
-				int start =  dbSNPVcf.getPosition();
-				int end =  dbSNPVcf.getRef().length() +  dbSNPVcf.getPosition() -1;		
-				String ref = IndelUtils.getFullChromosome(dbSNPVcf.getChromosome());
-				List<VcfRecord> inputVcfs = positionRecordMap.get(new ChrRangePosition(ref, start, end ));	
-				//if not exists, move start position to RSPOS to see if we have a position there instead
-				if (null == inputVcfs){
-					int rsposStart = Integer.parseInt(info.getField("RSPOS"));
-					if (start != rsposStart)  
-						inputVcfs = positionRecordMap.get(new ChrRangePosition(ref, rsposStart, end ));									 					 
-				}
-								
-				if (null == inputVcfs) continue;
-				
-				for(VcfRecord inputVcf : inputVcfs ){
-					inputVcf.setId(dbSNPVcf.getId());
-					inputVcf.appendInfo("dbRef=" + dbSNPVcf.getRef());
-					inputVcf.appendInfo("dbAlt=" + dbSNPVcf.getAlt());
-				}
-			}
-		}
 	}
 	
 	private void removeExistingDbSnpIds() {
@@ -104,12 +70,12 @@ public class DbsnpMode extends AbstractMode{
 			VcfHeaderRecord dbre = reader.getHeader().firstMatchedRecord(VcfHeaderUtils.STANDARD_DBSNP_LINE);
 			 
 			if (dbre != null)  
-				header.addOrReplace(String.format("##INFO=<ID=%s,Number=0,Type=%s,Description=\"%s\",Source=%s,Version=%s>",
+				header.addOrReplace(String.format("##INFO=<ID=%s,Number=0,Type=%s,Description=\"%s\">",
 								VcfHeaderUtils.INFO_DB, VcfInfoType.Flag.name(),
-								VcfHeaderUtils.DESCRITPION_INFO_DB, dbSNPFile, dbre.getMetaValue() )  );  		
+								VcfHeaderUtils.INFO_DB_DESC )  );  		
 		 
 			if (reader.getHeader().getInfoRecord(VcfHeaderUtils.INFO_CAF) != null )	
-				header.addOrReplace( String.format("##INFO=<ID=%s,Number=.,Type=String,Description=\"%s\">", VcfHeaderUtils.INFO_VAF, VcfHeaderUtils.DESCRITPION_INFO_VAF  )	);
+				header.addOrReplace( String.format("##INFO=<ID=%s,Number=.,Type=String,Description=\"%s\">", VcfHeaderUtils.INFO_VAF, VcfHeaderUtils.INFO_VAF_DESC  )	);
 
 			if (reader.getHeader().getInfoRecord(VcfHeaderUtils.INFO_VLD) != null )	
 				header.addOrReplace( reader.getHeader().getInfoRecord(VcfHeaderUtils.INFO_VLD));

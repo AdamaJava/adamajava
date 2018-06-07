@@ -10,7 +10,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Deque;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.CountDownLatch;
@@ -24,7 +23,6 @@ import org.qcmg.common.string.StringUtils;
 import org.qcmg.pileup.PileupFileReader;
 import org.qcmg.pileup.QSnpRecord;
 import org.qcmg.common.model.Classification;
-import org.qcmg.snp.util.HeaderUtil;
 import org.qcmg.snp.util.IniFileUtil;
 import org.qcmg.snp.util.QJumperWorker;
 import org.qcmg.snp.util.QJumperWorker.Mode;
@@ -58,12 +56,12 @@ public final class PileupPipeline extends Pipeline {
 		logger.info("Loading Samtools mpileup data");
 		walkPileup(pileupFile);
 		
-		if (positionRecordMap.isEmpty()) throw new SnpException("EMPTY_PILEUP_FILE");
+//		if (positionRecordMap.isEmpty()) throw new SnpException("EMPTY_PILEUP_FILE");
 		
 		logger.info("Loading Samtools mpileup data - DONE");
 		
 		// time for post-processing
-		classifyPileup();
+//		classifyPileup();
 		
 		// STOP here if only outputting vcf
 		
@@ -89,14 +87,14 @@ public final class PileupPipeline extends Pipeline {
 		
 		// we want a submap of normal vcfs that don't have tumour entries
 		Map<ChrPosition, QSnpRecord> somaticNoRecordOfMutationInNormal = new TreeMap<ChrPosition, QSnpRecord>();
-		for (Entry<ChrPosition, QSnpRecord> entry : positionRecordMap.entrySet()) {
-			QSnpRecord record = entry.getValue();
-			if (Classification.SOMATIC == record.getClassification()
-					&& (null == record.getAnnotation() 
-					|| ! record.getAnnotation().contains("mutation also found in pileup of normal"))) {
-				somaticNoRecordOfMutationInNormal.put(entry.getKey(), record);
-			}
-		}
+//		for (Entry<ChrPosition, QSnpRecord> entry : positionRecordMap.entrySet()) {
+//			QSnpRecord record = entry.getValue();
+//			if (Classification.SOMATIC == record.getClassification()
+//					&& (null == record.getAnnotation() 
+//					|| ! record.getAnnotation().contains("mutation also found in pileup of normal"))) {
+//				somaticNoRecordOfMutationInNormal.put(entry.getKey(), record);
+//			}
+//		}
 		
 		logger.info("number of SOMATIC snps that don't have evidence of mutation in normal: " + somaticNoRecordOfMutationInNormal.size());
 		
@@ -156,23 +154,23 @@ public final class PileupPipeline extends Pipeline {
 		logger.tool("mutationIdPrefix: " + mutationIdPrefix);
 	}
 	
-	@Override
-	public String getOutputHeader(boolean isSomatic) {
-		if (isSomatic) return HeaderUtil.DCC_SOMATIC_HEADER_MINIMAL;
-		else return HeaderUtil.DCC_GERMLINE_HEADER_MINIMAL;
-	}
-	
-	@Override
-	public String getFormattedRecord(QSnpRecord record, final String ensemblChr) {
-		return record.getDCCData(mutationIdPrefix, ensemblChr);
-	}
+//	@Override
+//	public String getOutputHeader(boolean isSomatic) {
+//		if (isSomatic) return HeaderUtil.DCC_SOMATIC_HEADER_MINIMAL;
+//		else return HeaderUtil.DCC_GERMLINE_HEADER_MINIMAL;
+//	}
+//	
+//	@Override
+//	public String getFormattedRecord(QSnpRecord record, final String ensemblChr) {
+//		return record.getDCCData(mutationIdPrefix, ensemblChr);
+//	}
 
 	private void walkPileup(String pileupFileName) throws Exception {
 		PileupFileReader reader = new PileupFileReader(new File(pileupFileName));
 		long count = 0;
 		try {
 			for (String record : reader) {
-				parsePileup(record);
+//				parsePileup(record);
 				if (++count % 1000000 == 0)
 					logger.info("hit " + count + " pileup records, with " + mutationId + " keepers.");
 			}

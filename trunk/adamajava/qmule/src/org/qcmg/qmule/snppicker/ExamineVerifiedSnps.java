@@ -29,9 +29,9 @@ public class ExamineVerifiedSnps {
 	
 	private static final QLogger logger = QLoggerFactory.getLogger(ExamineVerifiedSnps.class);
 	
-	private static Map<ChrPosition,QSnpRecord> pileup = new HashMap<ChrPosition,QSnpRecord>(80000);
-	private static Map<ChrPosition,VcfRecord> vcfRecords = new HashMap<ChrPosition,VcfRecord>(80000);
-	private static Map<ChrPosition,VerifiedSnpRecord> verifiedSNPs = new HashMap<ChrPosition,VerifiedSnpRecord>(250);
+	private static Map<ChrPosition,QSnpRecord> pileup = new HashMap<>(80000);
+	private static Map<ChrPosition,VcfRecord> vcfRecords = new HashMap<>(80000);
+	private static Map<ChrPosition,VerifiedSnpRecord> verifiedSNPs = new HashMap<>(250);
 
 	public static void main(String[] args) throws Exception {
 		logger.info("hello...");
@@ -90,7 +90,8 @@ public class ExamineVerifiedSnps {
 						writer.write(vsr.getFormattedString() + "\tOK - no entry in qsnp\n");
 					} else {
 						writer.write(vsr.getFormattedString() + "\t???\t" + qpr.getClassification() + "\t" 
-								+ qpr.getMutation() + getAnnotationAndNote(qpr) + "\n");
+								+  getAnnotationAndNote(qpr) + "\n");
+//						+ qpr.getMutation() + getAnnotationAndNote(qpr) + "\n");
 					}
 					
 				} else if ("yes".equals(vsr.getStatus())) {
@@ -98,7 +99,8 @@ public class ExamineVerifiedSnps {
 					if (null != qpr) {
 						qsnpVerifiedYes++;
 						writer.write(vsr.getFormattedString() + "\tOK - entry in qsnp\t" + qpr.getClassification() + "\t" 
-								+ qpr.getMutation() + getAnnotationAndNote(qpr) +"\n");
+								+ getAnnotationAndNote(qpr) +"\n");
+//						+ qpr.getMutation() + getAnnotationAndNote(qpr) +"\n");
 					} else {
 						writer.write(vsr.getFormattedString() + "\t???\n");
 					}
@@ -108,7 +110,8 @@ public class ExamineVerifiedSnps {
 						qsnpVerifiedNoGL++;
 					
 						writer.write(vsr.getFormattedString() + "\tentry in qsnp\t" + qpr.getClassification() + "\t" 
-								+ qpr.getMutation() + getAnnotationAndNote(qpr) +"\n");
+								+ getAnnotationAndNote(qpr) +"\n");
+//						+ qpr.getMutation() + getAnnotationAndNote(qpr) +"\n");
 					} else {
 						writer.write(vsr.getFormattedString() + "\tNo entry in qsnp\n");
 					}

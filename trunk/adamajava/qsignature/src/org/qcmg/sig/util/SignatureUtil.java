@@ -377,7 +377,7 @@ public class SignatureUtil {
 				} else if (s.startsWith(MIN_MAPPING_QUAL)) {
 					mq = Integer.parseInt(s.substring(MIN_MAPPING_QUAL.length() + 1));
 				} else if (s.startsWith(RG_PREFIX)) {
-					int ci = s.indexOf(Constants.COLON);
+					int ci = s.indexOf(Constants.EQ);
 					if (ci > -1) {
 						rgIds.put(s.substring(2, ci), s.substring(ci + 1));
 					}

@@ -66,11 +66,13 @@ public class QualFilterTest {
         SamReader Inreader = SAMFileReaderFactory.createSAMFileReader(new File(TestFile.INPUT_FILE_NAME));
         SAMRecord record = null ;
         for( SAMRecord re : Inreader){
-        	 record = re;
+	        	 record = re;
+	        	 break;
         }
         Inreader.close();
         
-        //create a base quality array 
+        assertEquals(false, record == null);
+        //create a base quality array
         byte[] qualities = new byte[record.getReadLength()];
         for(int i = 0; i < record.getReadLength(); i ++)
         	qualities[i] = 20;

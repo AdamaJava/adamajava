@@ -76,7 +76,6 @@ public enum GenotypeEnum {
 	public String getDisplayString(){
 		return firstAllele + "/" + secondAllele;
 	}
-	
 	public String getAltAlleleString(){
 		return firstAllele + Constants.COMMA_STRING + secondAllele;
 	}

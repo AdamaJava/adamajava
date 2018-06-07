@@ -7,54 +7,40 @@
 package org.qcmg.snp;
 
 import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMSequenceRecord;
-import htsjdk.samtools.SamReader;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 import org.ini4j.Ini;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
-import org.qcmg.common.meta.QDccMeta;
 import org.qcmg.common.meta.QExec;
-import org.qcmg.common.model.Accumulator;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrPositionComparator;
-import org.qcmg.common.model.GenotypeEnum;
-import org.qcmg.common.model.PileupElementLite;
-import org.qcmg.common.model.ReferenceNameComparator;
 import org.qcmg.common.string.StringUtils;
-import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.FileUtils;
-import org.qcmg.common.util.Pair;
-import org.qcmg.common.util.SnpUtils;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-import org.qcmg.picard.SAMFileReaderFactory;
-import org.qcmg.picard.util.QDccMetaFactory;
-import org.qcmg.picard.util.SAMUtils;
-import org.qcmg.pileup.QSnpRecord;
 import org.qcmg.common.model.Classification;
-import org.qcmg.qbamfilter.query.QueryExecutor;
-import org.qcmg.snp.util.HeaderUtil;
+import org.qcmg.snp.util.GenotypeUtil;
 import org.qcmg.snp.util.IniFileUtil;
+import org.qcmg.snp.util.PipelineUtil;
 import org.qcmg.vcf.VCFFileReader;
 
 
@@ -62,7 +48,6 @@ import org.qcmg.vcf.VCFFileReader;
  */
 public final class VcfPipeline extends Pipeline {
 	
-	private final static ReferenceNameComparator COMPARATOR = new ReferenceNameComparator();
 	public final static Comparator<ChrPosition> CHR_COMPARATOR = new ChrPositionComparator();
 	
 	public static final String FF_NOT_ENOUGH_INFO = "GT\t./.";
@@ -72,20 +57,16 @@ public final class VcfPipeline extends Pipeline {
 	private static VcfHeader controlVcfHeader;
 	private static VcfHeader testVcfHeader;
 	
-	private final ConcurrentMap<ChrPosition, Accumulator> controlPileup = new ConcurrentHashMap<>();
-	private final ConcurrentMap<ChrPosition, Accumulator> testPileup = new ConcurrentHashMap<>();
+//	private final ConcurrentMap<ChrPosition, Accumulator> controlPileup = new ConcurrentHashMap<>(1024 * 1024 * 8);
+//	private final ConcurrentMap<ChrPosition, Accumulator> testPileup = new ConcurrentHashMap<>(1024 * 1024 * 8);
 	
-	private final ConcurrentMap<ChrPosition, Accumulator> controlPileupCS = new ConcurrentHashMap<>();
-	private final ConcurrentMap<ChrPosition, Accumulator> testPileupCS = new ConcurrentHashMap<>();
-
-	private final ConcurrentMap<ChrPosition, QSnpRecord> controlVCFMap = new ConcurrentHashMap<>(); //not expecting more than 100000
-	private final ConcurrentMap<ChrPosition, QSnpRecord> testVCFMap = new ConcurrentHashMap<>(1024 * 128);
+	private ConcurrentMap<ChrPosition, VcfRecord> controlVCFMap = new ConcurrentHashMap<>(1024 * 1024 * 8); //not expecting more than 100000
+	private ConcurrentMap<ChrPosition, VcfRecord> testVCFMap = new ConcurrentHashMap<>(1024 * 1024 * 8);
 	
 	//input Files
 	private String controlVcfFile, testVcfFile;
-	private String controlBam;
-	private String testBam;
-	private int mutationId;
+//	private String controlBam;
+//	private String testBam;
 	
 	/**
 	 */
@@ -96,19 +77,19 @@ public final class VcfPipeline extends Pipeline {
 		ingestIni(iniFile);
 		
 		// setup normalBam and tumourBam variables
-		if ( ! singleSampleMode) {
-			if (null != controlBams && controlBams.length > 0) {
-				controlBam = controlBams[0];
-			} else {
-				throw new SnpException("No normal bam file specified");
-			}
-		
-		}
-		if (null != testBams && testBams.length > 0) {
-			testBam = testBams[0];
-		} else {
-			throw new SnpException("No tumour bam file specified");
-		}
+//		if ( ! singleSampleMode) {
+//			if (null != controlBams && controlBams.length > 0) {
+//				controlBam = controlBams[0];
+//			} else {
+//				throw new SnpException("No control bam file specified");
+//			}
+//		
+//		}
+//		if (null != testBams && testBams.length > 0) {
+//			testBam = testBams[0];
+//		} else {
+//			throw new SnpException("No test bam file specified");
+//		}
 		
 		// load vcf files
 		if ( ! singleSampleMode) {
@@ -131,39 +112,56 @@ public final class VcfPipeline extends Pipeline {
 		
 		if ( ! singleSampleMode) {
 			logger.info("merging data");
-			mergeControlAndTestRecords();
-			logger.info("merging data - DONE [" + positionRecordMap.size() + "]");
+			mergeControlAndTestVcfs();
+			logger.info("merging data - DONE [" + snps.size() + "]");
 		} else {
-			// put test map into positions map
-			positionRecordMap.putAll(testVCFMap);
+			
+			/*
+			 * add all test entries to snps, after adding and removing some fields to prepare for further processing 
+			 */
+			testVCFMap.values().stream().forEach(vcf -> {VcfUtils.prepareGATKVcfForMerge(vcf); snps.add(vcf);});
 		}
+		/*
+		 * attempt tp clear some memory
+		 */
+		controlVCFMap.clear();
+		controlVCFMap = null;
+		testVCFMap.clear();
+		testVCFMap = null;
 		
-		
-		// identify potential compound snps up from and only store accumulators for those positions
-		logger.info("about to preidentify compound snps");
-		preIdentifyCompoundSnps();
-		logger.info("about to preidentify compound snps - DONE [" + adjacentAccumulators.size() + "]");
+		/*
+		 * get headers from bam files, and sort snps according to order in bam header
+		 */
+		Comparator<VcfRecord> c;
+		if (null != testBams && testBams.length > 0) {
+			List<SAMFileHeader> th = getBamFileHeaders(testBams[0]);
+			List<String> contigs = th.get(0).getSequenceDictionary().getSequences().stream().map(r -> r.getSequenceName()).collect(Collectors.toList());
+			
+			contigs.stream().forEach(s -> logger.info("contigs: " + s));
+			c = ChrPositionComparator.getVcfRecordComparator(contigs);
+		} else {
+			c = ChrPositionComparator.getVcfRecordComparatorForGRCh37();
+		}
+		/*
+		 * sort snps
+		 */
+		snps.sort(c);
+		logger.info("Total number of snps (before compund snps has been run): "  + snps.size());
 		
 		// add pileup from the normal bam file
-		logger.info("adding pileup to vcf records map[" + positionRecordMap.size() + "]");
-		addPileup();
-		logger.info("adding pileup to vcf records map - DONE[" + positionRecordMap.size() + "]");
+//		logger.info("adding pileup to vcf records map[" + snps.size() + "]");
+//		addPileup();
+//		logger.info("adding pileup to vcf records map - DONE[" + snps.size() + "]");
 		
-		logger.info("about to populate accumulators");
-		populateAccumulators();
-		logger.info("about to populate accumulators - DONE [" + adjacentAccumulators.size() + "]");
+//		logger.info("about to populate accumulators");
+//		populateAccumulators();
+//		logger.info("about to populate accumulators - DONE [" + adjacentAccumulators.size() + "]");
 		
-		logger.info("about to clean snp map[" + positionRecordMap.size() + "]");
-		cleanSnpMap();
-		logger.info("about to clean snp map - DONE[" + positionRecordMap.size() + "]");
 
 		// time for post-processing
-		logger.info("about to classify[" + positionRecordMap.size() + "]");
+		logger.info("about to classify[" + snps.size() + "]");
 		classifyPileup();
-		logger.info("about to classify - DONE[" + positionRecordMap.size() + "]");
-		
-		
-		strandBiasCorrection();
+		logger.info("about to classify - DONE[" + snps.size() + "]");
 		
 		// compound snps!
 		logger.info("about to do compound snps");
@@ -172,41 +170,231 @@ public final class VcfPipeline extends Pipeline {
 		
 		// write output
 		writeVCF(vcfFile);
-
 	}
 	
-	void populateAccumulators() {
+	@Override
+	void compoundSnps() {
+		List<List<VcfRecord>> loloSnps = PipelineUtil.listOfListOfAdjacentVcfs(snps);
+		logger.info("Getting loloSnps [ " + loloSnps.size() + "] - DONE");
 		
-		List<ChrPosition> orderedCPs = new ArrayList<>(positionRecordMap.keySet());
-		
-		for (ChrPosition cp : orderedCPs) {
-			
-			// get entries from control and test maps
-			Accumulator control = controlPileupCS.get(cp);
-			Accumulator test = testPileupCS.get(cp);
-			
-			adjacentAccumulators.put(cp, new Pair<Accumulator, Accumulator>(control, test));
+		if (loloSnps.isEmpty()) {
+			return;
 		}
-	}
-	
-	void preIdentifyCompoundSnps() {
-		// populate the accumulators collections - used by the compoundSnps()
-		ChrPosition previousCP = null;
-		List<ChrPosition> orderedCPs = new ArrayList<>(positionRecordMap.keySet());
-		Collections.sort(orderedCPs, CHR_COMPARATOR);
 		
-		for (ChrPosition cp : orderedCPs) {
-			if (null != previousCP) {
-				if (ChrPositionUtils.areAdjacent(previousCP, cp)) {
-//					logger.info("in preIdentifyCompoundSnps with potential adjacent snps: " + previousCP.toString() + " and " + cp.toString());
-					// add to accumulators
-					adjacentAccumulators.put(previousCP, new Pair<Accumulator,Accumulator>(null, null));
-					adjacentAccumulators.put(cp, new Pair<Accumulator,Accumulator>(null, null));
+		Set<VcfRecord> toRemove = new HashSet<>(1024 * 8);
+		
+		for (List<VcfRecord> loSnps : loloSnps) {
+			
+			Optional<VcfRecord> optionalVcf = PipelineUtil.createCompoundSnpGATK(loSnps, singleSampleMode);
+			
+			/*
+			 * if present, add to compound snps collection and remove from snps collection, if not present, do nowt
+			 */
+			if (optionalVcf.isPresent()) {
+				compoundSnps.add(optionalVcf.get());
+				toRemove.addAll(loSnps);
+			}
+		}
+		
+		if (toRemove.size() > 0) {
+			logger.info("About to call remove with toRemove size: " + toRemove.size());
+			Iterator<VcfRecord> iter = snps.iterator();
+			while (iter.hasNext()) {
+				VcfRecord v = iter.next();
+				if (toRemove.contains(v)) {
+					iter.remove();
 				}
 			}
-			previousCP = cp;
+			logger.info("About to call remove with toRemove size: " + toRemove.size() + " - DONE");
+		}
+		
+		logger.info("Created " + compoundSnps.size() + " compound snps so far");
+	}
+	
+	void classifyPileup() {
+		for (VcfRecord v : snps) {
+			String alts = v.getAlt();
+			List<String> ff = v.getFormatFields();
+			
+			String cGT = null;
+			String tGT =  null;
+			
+			if (singleSampleMode) {
+				 tGT = ff.size() > 1 ? ff.get(1) : null;
+			} else {
+				cGT = ff.size() > 1 ? ff.get(1) : null;
+				tGT = ff.size() > 2 ? ff.get(2) : null;
+			}
+			
+			
+			if (null != cGT) {
+				cGT = cGT.split(Constants.COLON_STRING)[0];
+				if (Constants.MISSING_GT.equals(cGT) || Constants.MISSING_DATA_STRING.equals(cGT)) {
+					cGT = null;
+				}
+			}
+			if (null != tGT) {
+				tGT = tGT.split(Constants.COLON_STRING)[0];
+				if (Constants.MISSING_GT.equals(tGT) || Constants.MISSING_DATA_STRING.equals(tGT)) {
+					tGT = null;
+				}
+			}
+			
+			/*
+			 * if cGT is null  set GT field to be "./."
+			 */
+			boolean controlNoCallInGATK = null == cGT;
+			if (controlNoCallInGATK) {
+				cGT = "0/0";
+				updateGTFieldIFNoCall(v, 0, true);
+			}
+			boolean testNoCallInGATK = null == tGT;
+			if (testNoCallInGATK) {
+				tGT = "0/0";
+				updateGTFieldIFNoCall(v, 0, false);
+			}
+			
+			/*
+			 * classify
+			 */
+			Classification c = Classification.UNKNOWN;
+			if ( ! singleSampleMode) {
+				c = GenotypeUtil.getClassification(null,  cGT,  tGT, alts);
+			}
+			
+			
+			String controlAdditionalFields = null;
+			String testAdditionalFields = testNoCallInGATK ? ".:" + VcfHeaderUtils.FORMAT_NCIG : (Classification.SOMATIC == c ? ".:" + Classification.SOMATIC.toString() : ".:.");
+			if ( ! singleSampleMode) {
+				controlAdditionalFields = controlNoCallInGATK ? ".:" + VcfHeaderUtils.FORMAT_NCIG : ".:.";
+			}
+			
+			
+			String header = VcfHeaderUtils.FORMAT_FILTER + ":" + VcfHeaderUtils.FORMAT_INFO;
+			
+			/*
+			 * Get additional format info
+			 * If we are in single sample mode, only return data for the test sample 
+			 */
+			List<String> additionalFF = singleSampleMode ?  Arrays.asList(header, testAdditionalFields)
+					:	Arrays.asList(header , controlAdditionalFields ,testAdditionalFields);
+			
+			VcfUtils.addFormatFieldsToVcf(v, additionalFF);
 		}
 	}
+//	void classifyPileup() {
+//		for (VcfRecord v : snps) {
+//			Accumulator cAcc = controlPileup.get(v.getChrPosition());
+//			Accumulator tAcc = testPileup.get(v.getChrPosition());
+//			
+//			String ref = v.getRef();
+//			String alts = v.getAlt();
+//			String [] aAlts = alts.split(Constants.COMMA_STRING);
+//			
+//			List<String> ff = v.getFormatFields();
+//			
+//			String cGT = ff.size() > 1 ? ff.get(1) : null;
+//			String tGT = ff.size() > 2 ? ff.get(2) : null;
+//			
+//			if (null != cGT) {
+//				cGT = cGT.split(Constants.COLON_STRING)[0];
+//				if (Constants.MISSING_GT.equals(cGT) || Constants.MISSING_DATA_STRING.equals(cGT)) {
+//					cGT = null;
+//				}
+//			}
+//			if (null != tGT) {
+//				tGT = tGT.split(Constants.COLON_STRING)[0];
+//				if (Constants.MISSING_GT.equals(tGT) || Constants.MISSING_DATA_STRING.equals(tGT)) {
+//					tGT = null;
+//				}
+//			}
+//			
+//			/*
+//			 * if cGT is null and we have coverage, set GT field to be "0/0"
+//			 * GATK didn't make a call, we have coverage, and so I think its fair to say that is is wildtype
+//			 */
+//			if (null == cGT) {
+//				int refCov = null == cAcc ? 0 : cAcc.getBaseCountForBase(ref.charAt(0));
+//				if (refCov > 3) {
+//					cGT = "0/0";
+//					int totalCov = null == cAcc ? 0 : cAcc.getCoverage();
+//					updateGTFieldIFNoCall(v, totalCov, true);
+//				}
+//			}
+//			if (null == tGT) {
+//				int refCov = null == tAcc ? 0 : tAcc.getBaseCountForBase(ref.charAt(0));
+//				if (refCov > 3) {
+//					tGT = "0/0";
+//					int totalCov = null == tAcc ? 0 : tAcc.getCoverage();
+//					updateGTFieldIFNoCall(v, totalCov, false);
+//				}
+//			}
+//			
+//			/*
+//			 * classify
+//			 */
+//			Classification c = GenotypeUtil.getClassification(null != cAcc ? cAcc.getCompressedPileup() : null,  cGT,  tGT, alts);
+//			/*
+//			 * If classification is somatic, add to info field for test sample
+//			 */
+////			if (Classification.SOMATIC == c) {
+////				v.appendInfo(VcfHeaderUtils.INFO_SOMATIC);
+////			}
+//			
+//			/*
+//			 * Get additional format info
+//			 */
+//			List<String> cMrNns = GenotypeUtil.getMRandNNS(cGT, aAlts, cAcc); 
+//			List<String> tMrNns = GenotypeUtil.getMRandNNS(tGT, aAlts, tAcc);
+//			String cFT = GenotypeUtil.getFormatFilter(cAcc, cGT, aAlts,  ref.charAt(0), runSBIASAnnotation,  sBiasAltPercentage, sBiasCovPercentage, c, true);
+//			String tFT = GenotypeUtil.getFormatFilter(tAcc, tGT, aAlts,  ref.charAt(0), runSBIASAnnotation,  sBiasAltPercentage, sBiasCovPercentage, c, false);
+//			
+//			List<String> additionalFF = Arrays.asList("FT:INF:MR:NNS:OABS"
+//					, cFT + Constants.COLON + Constants.MISSING_DATA + Constants.COLON + cMrNns.get(0)+ Constants.COLON +cMrNns.get(1)+ Constants.COLON + (null != cAcc ? cAcc.getObservedAllelesByStrand() : Constants.MISSING_DATA)
+//					,tFT + Constants.COLON + (Classification.SOMATIC == c ? Classification.SOMATIC : Constants.MISSING_DATA) + Constants.COLON +tMrNns.get(0)+ Constants.COLON +tMrNns.get(1)+ Constants.COLON + (null != tAcc ? tAcc.getObservedAllelesByStrand() : Constants.MISSING_DATA));
+//			VcfUtils.addFormatFieldsToVcf(v, additionalFF);
+//		}
+//	}
+	
+	public static void updateGTFieldIFNoCall(VcfRecord v, int coverage, boolean isControl) {
+		Map<String, String[]> ffMap = VcfUtils.getFormatFieldsAsMap(v.getFormatFields());
+		String [] gtArr = ffMap.get(VcfHeaderUtils.FORMAT_GENOTYPE);
+		if (null != gtArr) {
+			int pos = isControl ? 0 : gtArr.length -1;
+			/*
+			 * update entry pos - should currently be null or missing data
+			 */
+			if (StringUtils.isNullOrEmptyOrMissingData(gtArr[pos])) {
+				gtArr[pos] = "./.";
+			}
+		
+			/*
+			 * add entry to dp field while we are at it
+			 */
+			if (coverage > 0) {
+				String [] dpArr = ffMap.get(VcfHeaderUtils.FORMAT_READ_DEPTH);
+				/*
+				 * update entry pos - should currently be null or missing data
+				 */
+				if (null != dpArr && StringUtils.isNullOrEmptyOrMissingData(dpArr[pos])) {
+					dpArr[pos] = coverage +"";
+				}
+			}
+			
+			/*
+			 * update vcf record
+			 */
+			v.setFormatFields(VcfUtils.convertFFMapToList(ffMap));
+		}
+	}
+	
+//	void populateAccumulators() {
+//		for (VcfRecord vcf : snps) {
+//			ChrPosition cp = vcf.getChrPosition();
+//			// get entries from control and test maps
+//			adjacentAccumulators.put(vcf, new Pair<>( controlPileup.get(cp), testPileup.get(cp)));
+//		}
+//	}
 	
 	@Override
 	VcfHeader getExistingVCFHeaderDetails()  {
@@ -247,138 +435,57 @@ public final class VcfPipeline extends Pipeline {
 		// override this if dealing with input VCFs and the existing headers are to be kept
 		return existingHeader;
 	}
-
-	
-	@Override
-	String getDccMetaData() throws Exception {
-		if (null == controlBams || controlBams.length == 0 || 
-				StringUtils.isNullOrEmpty(controlBams[0]) 
-				|| null == testBams || testBams.length == 0 
-				|| StringUtils.isNullOrEmpty(testBams[0])) return null;
-		
-		final SAMFileHeader controlHeader = SAMFileReaderFactory.createSAMFileReader(new File(controlBams[0])).getFileHeader();
-		final SAMFileHeader analysisHeader = SAMFileReaderFactory.createSAMFileReader(new File(testBams[0])).getFileHeader();
-		
-		final QDccMeta dccMeta = QDccMetaFactory.getDccMeta(qexec, controlHeader, analysisHeader, "GATK");
-		
-		return dccMeta.getDCCMetaDataToString();
-	}
-	
-		
-	private void cleanSnpMap() {
-		logger.info("about to clean the map");
-		int normalUpdated = 0, tumourUpdated = 0;
-		for (final QSnpRecord record : positionRecordMap.values()) {
-			// if entry doesn't have a normal genotype, but contains a normal nucleotides string
-			// set normal genotype to hom ref
-			if (null == record.getNormalGenotype() && null != record.getNormalNucleotides()) {
-				final String refString = record.getRef();
-				if (refString.length() > 1) {
-					logger.warn("refString: " + refString + " in VcfPipeline.cleanSnpMap");
-				}
-				final char ref = refString.charAt(0);
-				record.setNormalGenotype(GenotypeEnum.getGenotypeEnum(ref, ref));
-				normalUpdated++;
-			}
-			
-			// if we don't have a tumour vcf call, just classify as Germline, annotate and off we go  
-			if ( ! singleSampleMode && null == record.getTumourGenotype()) {
-				record.setClassification(Classification.GERMLINE);
-				VcfUtils.updateFilter(record.getVcfRecord(), SnpUtils.NO_CALL_IN_TEST);
-				
-				tumourUpdated++;
-			}
-		}
-		
-		logger.info("added genotypes (hom ref) for " + normalUpdated + " normals, and set classification to GERMLINE for " + tumourUpdated + " tumours");
-	}
-
-	private void addPileup() throws Exception {
-		
-		logger.info("setting up pileup threads");
-		final long start = System.currentTimeMillis();
-		
-		final int noOfThreads = singleSampleMode ? 1 : 2;
-		
-		final CountDownLatch latch = new CountDownLatch(noOfThreads);
-		final ExecutorService service = Executors.newFixedThreadPool(noOfThreads);
-		
-		if ( ! singleSampleMode) {
-			service.execute(new Pileup(controlBam, latch, true, query));
-		}
-		service.execute(new Pileup(testBam, latch, false, query));
-		service.shutdown();
-		
-		try {
-			latch.await();
-			logger.info("pileup threads finished in " + ((System.currentTimeMillis() - start)/1000) + " seconds");
-		} catch (final InterruptedException ie) {
-			logger.error("InterruptedException caught",ie);
-			Thread.currentThread().interrupt();
-		}
-		
-		
-	}
 	
 	
-	private void mergeControlAndTestRecords() {
-		
-		// loop through normal vcf map - get corresponding tumour if present
-		for (final Entry<ChrPosition, QSnpRecord> entry : controlVCFMap.entrySet()) {
-			final QSnpRecord tumour = testVCFMap.get(entry.getKey());
-			positionRecordMap.put(entry.getKey(), getQSnpRecord(entry.getValue(), tumour));
-		}
-		
-		// loop through tumour, making sure entry exists in qsnp map
-		for (final Entry<ChrPosition, QSnpRecord> entry : testVCFMap.entrySet()) {
-			
-			final QSnpRecord snpRecord = positionRecordMap.get(entry.getKey());
-			if (null == snpRecord) {
-				positionRecordMap.put(entry.getKey(), getQSnpRecord(null, entry.getValue()));
+//	private void addPileup() throws Exception {
+//		
+//		logger.info("setting up pileup threads");
+//		final long start = System.currentTimeMillis();
+//		
+//		final int noOfThreads = singleSampleMode ? 1 : 2;
+//		
+//		final CountDownLatch latch = new CountDownLatch(noOfThreads);
+//		final ExecutorService service = Executors.newFixedThreadPool(noOfThreads);
+//		
+//		if ( ! singleSampleMode) {
+//			service.execute(new Pileup(controlBam, latch, true, query));
+//		}
+//		service.execute(new Pileup(testBam, latch, false, query));
+//		service.shutdown();
+//		
+//		try {
+//			latch.await();
+//			logger.info("pileup threads finished in " + ((System.currentTimeMillis() - start)/1000) + " seconds");
+//		} catch (final InterruptedException ie) {
+//			logger.error("InterruptedException caught",ie);
+//			Thread.currentThread().interrupt();
+//		}
+//		
+//	}
+	
+	private void mergeControlAndTestVcfs() {
+		for (Entry <ChrPosition, VcfRecord> cEntry : controlVCFMap.entrySet()) {
+			VcfRecord tVcf = testVCFMap.remove(cEntry.getKey());
+			VcfRecord cVcf = cEntry.getValue();
+			/*
+			 * control only
+			 */
+			if (null == tVcf) {
+				/*
+				 * add empty 
+				 */
+				VcfUtils.mergeGATKVcfRecs(cVcf, null).ifPresent(v -> snps.add(v));
+			} else {
+				VcfUtils.mergeGATKVcfRecs(cVcf, tVcf).ifPresent(v -> snps.add(v));
 			}
 		}
-	}
-	
-	QSnpRecord getQSnpRecord(QSnpRecord normal, QSnpRecord tumour) {
-		QSnpRecord qpr = null;
 		
-		//TODO need to merge the underlying VcfRecords should both exist
-		
-		if (null != normal && null != tumour) {
-			// create new VcfRecord
-			VcfRecord mergedVcf = normal.getVcfRecord();
-			// add filter and format fields
-			mergedVcf.addFilter(tumour.getVcfRecord().getFilter());
-			
-			VcfUtils.addAdditionalSampleToFormatField(mergedVcf, tumour.getVcfRecord().getFormatFields());
-			
-//			List<String> formatFields = mergedVcf.getFormatFields();
-//			formatFields.add(tumour.getVcfRecord().getFormatFields().get(1));
-//			mergedVcf.setFormatFields(formatFields);
-			
-			// create new QSnpRecord with the mergedVcf details
-			qpr = new QSnpRecord(mergedVcf);
-			qpr.setNormalOABS(normal.getNormalOABS());
-			qpr.setNormalGenotype(normal.getNormalGenotype());
-			qpr.setTumourOABS(tumour.getTumourOABS());
-			qpr.setTumourGenotype(tumour.getTumourGenotype());
-			
-			
-		} else if (null != normal) {
-			qpr = normal;
-			// need to add a format field entry for the empty tumoursample
-			VcfUtils.addMissingDataToFormatFields(qpr.getVcfRecord(), 2);
-		} else {
-			// tumour only
-			qpr = tumour;
-			VcfUtils.addMissingDataToFormatFields(qpr.getVcfRecord(), 1);
+		for (VcfRecord vcf : testVCFMap.values()) {
+			VcfUtils.mergeGATKVcfRecs(null, vcf).ifPresent(v -> snps.add(v));
 		}
-		
-		qpr.setId(++mutationId);
-		return qpr;
 	}
 
-	private static void loadVCFData(String vcfFile, Map<ChrPosition,QSnpRecord> map, boolean isControl) throws IOException {
+	private static void loadVCFData(String vcfFile, Map<ChrPosition,VcfRecord> map, boolean isControl) throws Exception {
 		if (FileUtils.canFileBeRead(vcfFile)) {
 			
 			try (VCFFileReader reader  = new VCFFileReader(new File(vcfFile));) {
@@ -389,37 +496,8 @@ public final class VcfPipeline extends Pipeline {
 				}
 				for (final VcfRecord qpr : reader) {
 					
-					
-					
-//					if (SnpUtils.PASS.equals(qpr.getFilter())) {	// only deal with top notch snps
-					
-					
-					// if the length of the reference bases != length of the alt bases, its not a snp (or compound snp)
 					if (VcfUtils.isRecordAMnp(qpr)) {	// input file should be snps only
-						
-						/*
-						 * some GATK records have the following format field entry:
-						 * GT	./.
-						 * Not much we can do with those records, so ignore
-						 */
-						if ( ! FF_NOT_ENOUGH_INFO.equals(qpr.getFormatFieldStrings())) {
-							
-						
-							final QSnpRecord snpRecord = new QSnpRecord(qpr);
-							if (null != qpr.getFormatFields() && ! qpr.getFormatFields().isEmpty()) {
-								//	 set genotype
-								if (isControl) {
-//									snpRecord.setNormalNucleotides(Constants.MISSING_DATA_STRING);
-									snpRecord.setNormalGenotype(VcfUtils.getGEFromGATKVCFRec(qpr));
-								} else {
-//									snpRecord.setTumourNucleotides(Constants.MISSING_DATA_STRING);
-									snpRecord.setTumourGenotype(VcfUtils.getGEFromGATKVCFRec(qpr));
-								}
-							}
-							map.put(qpr.getChrPosition() , snpRecord);
-						} else {
-							logger.warn("skipping record due to sever lack of information: " + qpr.toString());
-						}
+						map.put(qpr.getChrPosition(), qpr);
 					}
 				}
 			}
@@ -430,6 +508,10 @@ public final class VcfPipeline extends Pipeline {
 	protected void ingestIni(Ini ini) throws SnpException {
 		
 		super.ingestIni(ini);
+		
+		// RULES
+		controlRules = IniFileUtil.getRules(ini, "control");
+		testRules = IniFileUtil.getRules(ini, "test");
 
 		// ADDITIONAL INPUT FILES
 		controlVcfFile = IniFileUtil.getInputFile(ini, "controlVcf");
@@ -444,289 +526,215 @@ public final class VcfPipeline extends Pipeline {
 		logger.tool("mutationIdPrefix: " + mutationIdPrefix);
 	}
 
-	@Override
-	protected String getFormattedRecord(QSnpRecord record, final String ensemblChr) {
-		return record.getDCCDataNSFlankingSeq(mutationIdPrefix, ensemblChr);
-	}
-
-	@Override
-	protected String getOutputHeader(boolean isSomatic) {
-		if (isSomatic) return HeaderUtil.DCC_SOMATIC_HEADER;
-		else return HeaderUtil.DCC_GERMLINE_HEADER;
-	}
-	
-	public static  void updateQsnpRecord(ChrPosition chrPos, QSnpRecord rec, Accumulator acc, boolean normal) {
-		final String refString = rec.getRef();
-		if (refString.length() > 1) {
-			logger.warn("refString: " + refString + " in VcfPipeline.cleanSnpMap");
-		}
-		final char ref = refString.charAt(0);
-		
-		final PileupElementLite pel = acc.getLargestVariant(ref);
-		if (normal) {
-			rec.setNormalOABS(acc.getObservedAllelesByStrand());
-//			rec.setNormalNucleotides(acc.getPileupElementString());
-			rec.setNormalCount(acc.getCoverage());
-//			rec.setNormalPileup(acc.getPileup());
-			rec.setNormalNovelStartCount(null != pel ? pel.getNovelStartCount() : 0);
-		} else {
-			// tumour fields
-			rec.setTumourCount(acc.getCoverage());
-			rec.setTumourOABS(acc.getObservedAllelesByStrand());
-//			rec.setTumourNucleotides(acc.getPileupElementString());
-			rec.setTumourNovelStartCount(null != pel ? pel.getNovelStartCount() : 0);
-		}
-	}
-	
 	/**
 	 * Class that reads SAMRecords from a Queue and after checking that they satisfy some criteria 
 	 * (ie. not duplicates, reasonable mapping quality) attempts to match the record against the current vcf record.
 	 * If there is a match (ie. the sam record encompasses the vcf position, then a record of the base and strand at that position is kept.
 	 * 
 	 */
-	public class Pileup implements Runnable {
-		private final SamReader reader;
-		private QueryExecutor qbamFilter;
-		private final boolean isNormal;
-		private final ConcurrentMap<ChrPosition , Accumulator> pileupMap;
-		private int arraySize;
-		private int arrayPosition;
-		private ChrPosition cp;
-		private Comparator<String> chrNameComparator;
-		private final List<ChrPosition> snps;
-		private final CountDownLatch latch;
-		private final boolean runqBamFilter;
-		
-		public Pileup(final String bamFile, final CountDownLatch latch, final boolean isNormal, String query) throws Exception {
-			this.isNormal = isNormal;
-			pileupMap = isNormal ? controlPileup : testPileup;
-			reader = SAMFileReaderFactory.createSAMFileReader(new File(bamFile));
-			snps = new ArrayList<ChrPosition>(positionRecordMap.keySet());
-			if ( ! StringUtils.isNullOrEmpty(query) && ! "QCMG".equals(query))
-				qbamFilter = new QueryExecutor(query);
-			runqBamFilter = null != qbamFilter;
-			this.latch = latch;
-		}
-		
-		private void createComparatorFromSAMHeader(SamReader reader) {
-			final SAMFileHeader header = reader.getFileHeader();
-			
-			final List<String> sortedContigs = new ArrayList<String>();
-			for (final SAMSequenceRecord contig : header.getSequenceDictionary().getSequences()) {
-				sortedContigs.add(contig.getSequenceName());
-			}
-			
-			// try and sort according to the ordering of the bam file that is about to be processed
-			// otherwise, resort to alphabetic ordering and cross fingers...
-			
-			chrNameComparator = ChrPositionComparator.getChrNameComparator(sortedContigs);
-			Comparator<ChrPosition> c = ChrPositionComparator.getComparator(chrNameComparator);
-			snps.sort(c);
-			arraySize = snps.size();
-		}
-		
-		private void advanceCPAndPosition() {
-			if (arrayPosition >= arraySize) {
-//				logger.info("in advanceCPAndPosition - arrayPosition > arraySize, arrayPosition: " + arrayPosition + ",  arraySize: " +arraySize);
-				// reached the end of the line
-				
-				/*
-				 * check to see if we still have this acc in the map, and update if we do
-				 */
-				if (null != cp && pileupMap.containsKey(cp)) {
-					Accumulator acc = pileupMap.remove(cp);
-					if (null != acc) {
-						updateCompoundSnpDetails(cp, acc);
-						updateQsnpRecord(cp, positionRecordMap.get(cp), acc, isNormal);
-					}
-				}
-				cp = null;
-				return;
-			}
-			if (null != cp) {
-				// update QSnpRecord with our findings
-				final Accumulator acc = pileupMap.remove(cp);
-				if (null != acc) {
-					updateCompoundSnpDetails(cp, acc);
-					updateQsnpRecord(cp, positionRecordMap.get(cp), acc, isNormal);
-//					logger.info("in advanceCPAndPosition -null != acc");
-					
-					// if position is a potential CS, keep accumulation data
-				}
-			}
-			cp = snps.get(arrayPosition++);
-		}
-		
-		private void updateCompoundSnpDetails(ChrPosition chrPos, Accumulator acc) {
-			if (adjacentAccumulators.containsKey(chrPos)) {
-				if (isNormal) {
-					controlPileupCS.put(chrPos, acc);
-				} else {
-					testPileupCS.put(chrPos, acc);
-				}
-			}
-		}
-		
-		
-		private boolean match(SAMRecord rec, ChrPosition thisCPf, boolean updatePointer) {
-			
-//			logger.info("in match with rec: " + rec + ", thisCPf: " + thisCPf + ", updatePointer: " + updatePointer);
-			
-			
-			if (null == thisCPf) return false;
-			if (rec.getReferenceName().equals(thisCPf.getChromosome())) {
-//				logger.info("in match with ref names are equal");
-				
-				if (rec.getAlignmentEnd() < thisCPf.getStartPosition()) {
-					return false;
-				}
-				
-				if (rec.getAlignmentStart() <= thisCPf.getStartPosition()) {
-					return true;
-				}
-				
-				// finished with this cp - update results and get a new cp
-				if (updatePointer) {
-					advanceCPAndPosition();
-					return match(rec, cp, true);
-				} else {
-					return false;
-				}
-				
-				
-			} else if (chrNameComparator.compare(rec.getReferenceName(), thisCPf.getChromosome()) < 1) {
-//				logger.info("in match with rec ref name < thisCPf chr");
-				// keep iterating through bam file 
-				return false;
-			} else {
-//				logger.info("in match with rec ref name > thisCPf chr");
-				if (updatePointer) {
-					// need to get next ChrPos
-					advanceCPAndPosition();
-					return match(rec, cp, true);
-				} else {
-					return false;
-				}
-			}
-		}
-		private void updateResults(ChrPosition cp, SAMRecord sam, int readId) {
-			// get read index
-			final int indexInRead = SAMUtils.getIndexInReadFromPosition(sam, cp.getStartPosition());
-			
-			
-			if (indexInRead > -1 && indexInRead < sam.getReadLength()) {
-				
-				/*
-				 * only proceed if we have met the min base quality requirements
-				 */
-				final byte baseQuality = sam.getBaseQualities()[indexInRead];
-				if (baseQuality >= minBaseQual) {
-				
-					Accumulator acc = pileupMap.get(cp);
-					if (null == acc) {
-						acc = new Accumulator(cp.getStartPosition());
-						final Accumulator oldAcc = pileupMap.putIfAbsent(cp, acc);
-						if (null != oldAcc) acc = oldAcc;
-					}
-					acc.addBase(sam.getReadBases()[indexInRead], baseQuality, ! sam.getReadNegativeStrandFlag(), 
-							sam.getAlignmentStart(), cp.getStartPosition(), sam.getAlignmentEnd(), readId);
-				}
-			}
-		}
-		
-		@Override
-		public void run() {
-			try {
-				createComparatorFromSAMHeader(reader);
-				// reset some key values
-				arrayPosition = 0;
-				cp = null;
-				// load first VCFRecord
-				advanceCPAndPosition();
-				
-				/*
-				 * if we don't have a cp - exit!
-				 */
-				if (cp != null) {
-				
-					long recordCount = 0;
-					
-					// don't think int overflow will affect us here.
-					// if we have more than the 2 billion records in the bam, then it will oveflow to be -ve, but that should be ok
-					// if we get more than 4 billion reads, it *should* go back to 0 - will test this
-					// and that should be ok because 
-					
-					int chrCounter = 0;
-					// take items off the queue and process
-					for (final SAMRecord sam : reader) {
-						chrCounter++;
-						if (++recordCount % 1000000 == 0) {
-							logger.info("processed " + recordCount/1000000 + "M records so far...");
-						}
-						
-						if (includeDuplicates) {
-							// we are in amplicon mode and so we want to keep dups - just check to see if we have the failed vendor flag set
-							if ( ! SAMUtils.isSAMRecordValid(sam)) continue;
-						} else {
-							// quality checks
-							if ( ! SAMUtils.isSAMRecordValidForVariantCalling(sam)) continue;
-						}
-						
-						try {
-							if (runqBamFilter && ! qbamFilter.Execute(sam)) {
-								continue;
-							}
-						} catch (Exception e) {
-							e.printStackTrace();
-							throw new RuntimeException("Exception caught whilst running qbamfilter");
-						}
-						
-						/*
-						 * need to ensure that the cp is on the same contig as the bam record.
-						 * Could cause SO if we have to tail recurse using advanceCPAndPosition
-						 * do this in a while for now.
-						 * May also need to advance the position as well... 
-						 * Assuming of course that the bam file is sorted...
-						 */
-						if (null == cp) break;
-						while (null != cp && chrNameComparator.compare(sam.getReferenceName(), cp.getChromosome()) > 1) {
-							advanceCPAndPosition();
-						}
-						
-						if (match(sam, cp, true)) {
-							updateResults(cp, sam, chrCounter);
-							
-							// get next cp and see if it matches
-							int j = 0;
-							if (arrayPosition < arraySize) {
-								ChrPosition tmpCP = snps.get(arrayPosition + j++);
-								while (match(sam, tmpCP, false)) {
-									updateResults(tmpCP, sam, chrCounter);
-									if (arrayPosition + j < arraySize)
-										tmpCP = snps.get(arrayPosition + j++);
-									else tmpCP = null;
-								}
-							}
-						}
-					}
-					logger.info("processed " + recordCount + " records");
-					
-					/*
-					 * make sure final record is updated
-					 */
-					advanceCPAndPosition();
-				}
-				
-			} finally {
-				try {
-					reader.close();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} finally {
-					latch.countDown();
-				}
-			}
-		}
-	}
+//	public class Pileup implements Runnable {
+//		private final SamReader reader;
+//		private QueryExecutor qbamFilter;
+////		private final boolean isNormal;
+//		private final ConcurrentMap<ChrPosition , Accumulator> pileupMap;
+//		private int arraySize;
+//		private int arrayPosition;
+//		private ChrPosition cp;
+//		private Comparator<String> chrNameComparator;
+//		private final CountDownLatch latch;
+//		private final boolean runqBamFilter;
+//		
+//		public Pileup(final String bamFile, final CountDownLatch latch, final boolean isNormal, String query) throws Exception {
+////			this.isNormal = isNormal;
+//			pileupMap = isNormal ? controlPileup : testPileup;
+//			reader = SAMFileReaderFactory.createSAMFileReader(new File(bamFile));
+//			if ( ! StringUtils.isNullOrEmpty(query) && ! "QCMG".equals(query))
+//				qbamFilter = new QueryExecutor(query);
+//			runqBamFilter = null != qbamFilter;
+//			this.latch = latch;
+//		}
+//		
+//		private void createComparatorFromSAMHeader(SamReader reader) {
+//			final SAMFileHeader header = reader.getFileHeader();
+//			
+//			final List<String> sortedContigs = new ArrayList<>();
+//			for (final SAMSequenceRecord contig : header.getSequenceDictionary().getSequences()) {
+//				sortedContigs.add(contig.getSequenceName());
+//			}
+//			
+//			chrNameComparator = ChrPositionComparator.getChrNameComparator(sortedContigs);
+////			Comparator<ChrPosition> c = ChrPositionComparator.getComparator(chrNameComparator);
+//			
+//			arraySize = snps.size();
+//		}
+//		
+//		private void advanceCPAndPosition() {
+//			if (arrayPosition >= arraySize) {
+//				cp = null;
+//				return;
+//			}
+//			cp = snps.get(arrayPosition++).getChrPosition();
+//		}
+//		
+//		
+//		
+//		private boolean match(SAMRecord rec, ChrPosition thisCPf, boolean updatePointer) {
+//			
+////			logger.info("in match with rec: " + rec + ", thisCPf: " + thisCPf + ", updatePointer: " + updatePointer);
+//			
+//			
+//			if (null == thisCPf) return false;
+//			if (rec.getReferenceName().equals(thisCPf.getChromosome())) {
+////				logger.info("in match with ref names are equal");
+//				
+//				if (rec.getAlignmentEnd() < thisCPf.getStartPosition()) {
+//					return false;
+//				}
+//				
+//				if (rec.getAlignmentStart() <= thisCPf.getStartPosition()) {
+//					return true;
+//				}
+//				
+//				// finished with this cp - update results and get a new cp
+//				if (updatePointer) {
+//					advanceCPAndPosition();
+//					return match(rec, cp, true);
+//				} else {
+//					return false;
+//				}
+//				
+//				
+//			} else if (chrNameComparator.compare(rec.getReferenceName(), thisCPf.getChromosome()) < 1) {
+////				logger.info("in match with rec ref name < thisCPf chr");
+//				// keep iterating through bam file 
+//				return false;
+//			} else {
+//				logger.info("in match with rec ref name > thisCPf chr: " + cp.getChromosome() + Constants.COLON +  cp.getStartPosition() + ", rec: " + rec.getContig() + Constants.COLON + rec.getAlignmentStart());
+//				if (updatePointer) {
+//					// need to get next ChrPos
+//					advanceCPAndPosition();
+//					return match(rec, cp, true);
+//				} else {
+//					return false;
+//				}
+//			}
+//		}
+//		private void updateResults(ChrPosition cp, SAMRecord sam, int readId) {
+//			// get read index
+//			final int indexInRead = SAMUtils.getIndexInReadFromPosition(sam, cp.getStartPosition());
+//			
+//			if (indexInRead > -1 && indexInRead < sam.getReadLength()) {
+//				/*
+//				 * only proceed if we have met the min base quality requirements
+//				 */
+//				final byte baseQuality = sam.getBaseQualities()[indexInRead];
+//				if (baseQuality >= minBaseQual) {
+//				
+//					Accumulator acc = pileupMap.get(cp);
+//					if (null == acc) {
+//						acc = new Accumulator(cp.getStartPosition());
+//						final Accumulator oldAcc = pileupMap.putIfAbsent(cp, acc);
+//						if (null != oldAcc) acc = oldAcc;
+//					}
+//					acc.addBase(sam.getReadBases()[indexInRead], baseQuality, ! sam.getReadNegativeStrandFlag(), 
+//							sam.getAlignmentStart(), cp.getStartPosition(), sam.getAlignmentEnd(), readId);
+//				}
+//			}
+//		}
+//		
+//		@Override
+//		public void run() {
+//			try {
+//				createComparatorFromSAMHeader(reader);
+//				// reset some key values
+//				arrayPosition = 0;
+//				cp = null;
+//				// load first VCFRecord
+//				advanceCPAndPosition();
+//				
+//				/*
+//				 * if we don't have a cp - exit!
+//				 */
+//				if (cp != null) {
+//				
+//					long recordCount = 0;
+//					
+//					// don't think int overflow will affect us here.
+//					// if we have more than the 2 billion records in the bam, then it will oveflow to be -ve, but that should be ok
+//					// if we get more than 4 billion reads, it *should* go back to 0 - will test this
+//					// and that should be ok because 
+//					
+//					int chrCounter = 0;
+//					// take items off the queue and process
+//					for (final SAMRecord sam : reader) {
+//						chrCounter++;
+//						if (++recordCount % 1000000 == 0) {
+//							logger.info("processed " + recordCount/1000000 + "M records so far...");
+//						}
+//						
+//						if (includeDuplicates) {
+//							// we are in amplicon mode and so we want to keep dups - just check to see if we have the failed vendor flag set
+//							if ( ! SAMUtils.isSAMRecordValid(sam)) continue;
+//						} else {
+//							// quality checks
+//							if ( ! SAMUtils.isSAMRecordValidForVariantCalling(sam)) continue;
+//						}
+//						
+//						try {
+//							if (runqBamFilter && ! qbamFilter.Execute(sam)) {
+//								continue;
+//							}
+//						} catch (Exception e) {
+//							e.printStackTrace();
+//							throw new RuntimeException("Exception caught whilst running qbamfilter");
+//						}
+//						
+//						/*
+//						 * need to ensure that the cp is on the same contig as the bam record.
+//						 * Could cause SO if we have to tail recurse using advanceCPAndPosition
+//						 * do this in a while for now.
+//						 * May also need to advance the position as well... 
+//						 * Assuming of course that the bam file is sorted...
+//						 */
+//						if (null == cp) break;
+//						while (null != cp && chrNameComparator.compare(sam.getReferenceName(), cp.getChromosome()) > 1) {
+//							advanceCPAndPosition();
+//						}
+//						
+//						if (match(sam, cp, true)) {
+//							updateResults(cp, sam, chrCounter);
+//							
+//							// get next cp and see if it matches
+//							int j = 0;
+//							if (arrayPosition < arraySize) {
+//								ChrPosition tmpCP = snps.get(arrayPosition + j++).getChrPosition();
+//								while (match(sam, tmpCP, false)) {
+//									updateResults(tmpCP, sam, chrCounter);
+//									if (arrayPosition + j < arraySize)
+//										tmpCP = snps.get(arrayPosition + j++).getChrPosition();
+//									else tmpCP = null;
+//								}
+//							}
+//						}
+//					}
+//					logger.info("processed " + recordCount + " records");
+//					
+//					/*
+//					 * make sure final record is updated
+//					 */
+//					advanceCPAndPosition();
+//				}
+//				
+//			} finally {
+//				try {
+//					reader.close();
+//				} catch (IOException e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				} finally {
+//					latch.countDown();
+//				}
+//			}
+//		}
+//	}
 }

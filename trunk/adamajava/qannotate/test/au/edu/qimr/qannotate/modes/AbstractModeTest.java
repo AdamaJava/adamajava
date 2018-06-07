@@ -15,6 +15,7 @@ import java.util.List;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
@@ -67,16 +68,21 @@ public class AbstractModeTest {
 	   }
 	       
 		DbsnpMode db = new DbsnpMode();
-		db.inputRecord(new File(inputName));		
+		db.loadVcfRecordsFromFile(new File(inputName));		
 		db.reheader("testing run",   inputName);
 		db.writeVCF(new File(outputName));
 		
 		
         try (VCFFileReader reader = new VCFFileReader(new File(outputName))) {
-        	int i = 0;
-        	for (VcfHeaderRecord re :  reader.getHeader())	i ++;	 
-        	assertEquals(7, i);	        	
-        	assertEquals(false, "abcd_12345678_xzy_999666333".equals( reader.getHeader().getUUID().toString()) );
+	        	int i = 0;
+	        	for (VcfHeaderRecord re :  reader.getHeader()) {
+	        		if (re.toString().startsWith(VcfHeaderUtils.STANDARD_UUID_LINE)) {
+	        			// new UUID should have been inserted by now
+	        			assertEquals(false, "abcd_12345678_xzy_999666333".equals(StringUtils.getValueFromKey(re.getMetaValue(), VcfHeaderUtils.STANDARD_UUID_LINE)));
+	        		}
+	        		i ++;
+	        	}
+	        	assertEquals(7, i);	// removed blank lines
         }		
 	}
 	

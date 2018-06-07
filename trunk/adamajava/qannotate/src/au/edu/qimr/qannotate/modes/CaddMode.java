@@ -176,11 +176,11 @@ public class  CaddMode extends AbstractMode{
 		ChrPosition pos = re.getChrPosition();
 		String chr = pos.getChromosome();	
 		boolean change = false; 
-	    	if(chr.startsWith("chr"))  	{
+	    	if (chr.startsWith("chr"))  	{
 	    		chr = chr.substring(3);
 	    		change = true;
 	    	}
-	    	if(chr.equalsIgnoreCase("m")) {
+	    	if (chr.equalsIgnoreCase("m")) {
 	    		chr = "MT";
 	    		change = true;
 	    	}
@@ -189,9 +189,9 @@ public class  CaddMode extends AbstractMode{
 			pos =  new ChrRangePosition(chr, re.getChrPosition().getStartPosition(), re.getChrPosition().getEndPosition());
 		}
 		
-		positionRecordMap.computeIfAbsent(pos, v -> new ArrayList<VcfRecord>()).add(re);
+		positionRecordMap.computeIfAbsent(pos, v -> new ArrayList<>()).add(re) ;
 	}
 		
-		@Override
-		void addAnnotation(String database) throws Exception { }
+	@Override
+	void addAnnotation(String database) throws Exception { }
 }

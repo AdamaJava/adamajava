@@ -65,9 +65,9 @@ public class Accumulator {
 	private int nCount;
 	private final int position;
 	
-	private short failedFilterACount = 0;
+	private short failedFiltedACount = 0;
 	private short failedFilterCCount = 0;
-	private short failedFilterGCount = 0;
+	private short failedfilterGCount = 0;
 	private short failedFilterTCount = 0;
 	
 	public Accumulator(int position) {
@@ -80,11 +80,11 @@ public class Accumulator {
 
 	public void addFailedFilterBase(final byte base) {
 		switch (base) {
-		case A_BYTE: failedFilterACount++;
+		case A_BYTE: failedFiltedACount++;
 		break;
 		case C_BYTE: failedFilterCCount++;
 		break;
-		case G_BYTE:  failedFilterGCount++;
+		case G_BYTE:  failedfilterGCount++;
 		break;
 		case T_BYTE: failedFilterTCount++;
 		break;
@@ -161,7 +161,7 @@ public class Accumulator {
 //		
 //		return pileup.toString();
 //	}
-	
+//	
 //	public String getPileupQualities() {
 //		StringBuilder qualities = new StringBuilder();
 //		if (null != A) {
@@ -257,6 +257,7 @@ public class Accumulator {
 	
 	public boolean containsMultipleAlleles() {
 		byte differentBases = 0;
+//		if (null != DOT) differentBases++;
 		if (null != A) differentBases++;
 		if (null != C) differentBases++;
 		if (null != G) differentBases++;
@@ -284,14 +285,14 @@ public class Accumulator {
 	
 	public String getFailedFilterPileup() {
 		StringBuilder sb = new StringBuilder();
-		if (failedFilterACount > 0) {
-			StringUtils.updateStringBuilder(sb, A_STRING + failedFilterACount, Constants.SEMI_COLON);
+		if (failedFiltedACount > 0) {
+			StringUtils.updateStringBuilder(sb, A_STRING + failedFiltedACount, Constants.SEMI_COLON);
 		}
 		if (failedFilterCCount > 0) {
 			StringUtils.updateStringBuilder(sb, C_STRING + failedFilterCCount, Constants.SEMI_COLON);
 		}
-		if (failedFilterGCount > 0) {
-			StringUtils.updateStringBuilder(sb, G_STRING + failedFilterGCount, Constants.SEMI_COLON);
+		if (failedfilterGCount > 0) {
+			StringUtils.updateStringBuilder(sb, G_STRING + failedfilterGCount, Constants.SEMI_COLON);
 		}
 		if (failedFilterTCount > 0) {
 			StringUtils.updateStringBuilder(sb, T_STRING + failedFilterTCount, Constants.SEMI_COLON);
@@ -378,14 +379,14 @@ public class Accumulator {
 	 * Just return a single instance of each base seen at this position
 	 * @return
 	 */
-//	public String getCompressedPileup() {
-//		StringBuilder pileup = new StringBuilder();
-//		if (null != A) pileup.append(A_STRING);
-//		if (null != C) pileup.append(C_STRING);
-//		if (null != G) pileup.append(G_STRING);
-//		if (null != T) pileup.append(T_STRING);
-//		return pileup.toString();
-//	}
+	public String getCompressedPileup() {
+		StringBuilder pileup = new StringBuilder();
+		if (null != A) pileup.append(A_STRING);
+		if (null != C) pileup.append(C_STRING);
+		if (null != G) pileup.append(G_STRING);
+		if (null != T) pileup.append(T_STRING);
+		return pileup.toString();
+	}
 	
 	private char getCharFromPel(PileupElementLite pel) {
 		if (A == pel) return A_CHAR;

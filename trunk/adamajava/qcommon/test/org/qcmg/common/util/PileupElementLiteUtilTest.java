@@ -1,6 +1,8 @@
 package org.qcmg.common.util;
 
 import static org.junit.Assert.assertEquals;
+import gnu.trove.list.TIntList;
+import gnu.trove.list.array.TIntArrayList;
 
 import org.junit.Assert;
 import org.junit.Test;

@@ -42,7 +42,7 @@ public enum MafElement {
 	Sequence_Source(28, SnpEffMafRecord.Unknown, "eg. capillary, amplicon, capture, WGS. Default value: Unknown."),  
 	Validation_Method(29, SnpEffMafRecord.Unknown,"The assay platforms used for the validation call, Default value: Unknown."), //Validation_Method NO. If Validation_Status = Untested then "SnpEffMafRecord.none" If Validation_Status = Valid or Invalid, then not "SnpEffMafRecord.none" (case insensitive)
 	Score(30, SnpEffMafRecord.Null, "Not in use. Default value: null."), //Score
-	BAM_File(31,  SnpEffMafRecord.Null, "Tumor sample AlignedReadGroupSet."), //BAM_File
+	BAM_File(31,  SnpEffMafRecord.Null, "Tumor sample AlignedReadGroupSet followed by the control ARGS (if present)."), //BAM_File
 	Sequencer(32, SnpEffMafRecord.Unknown, "Sequencer eg. Illumina HiSeq, SOLID, Default value: Unknown."),  
 	Tumor_Sample_UUID(33, SnpEffMafRecord.none, "Tumor sample identifier eg. 6a6cf50e-f803-4245-8ae9-02b39774ff04."),  //retriving from vcf header, eg. ##qTestSample=6a6cf50e-f803-4245-8ae9-02b39774ff04.	
 	Matched_Norm_Sample_UUID(34,  SnpEffMafRecord.none,"Normal sample identifier eg. 6946f2e6-24aa-4cb8-a2fb-35fc3486bb9a."), // retriving from vcf header, eg. ##qControlSample=6946f2e6-24aa-4cb8-a2fb-35fc3486bb9a.	

@@ -119,7 +119,7 @@ public class FlagFilterTest {
      */
     @Test(expected = Exception.class)
     public void InvalidValueTest()throws Exception{
-       SamRecordFilter filter = new FlagFilter("ReadPaired", Comparator.Equal, "ok");
+       new FlagFilter("ReadPaired", Comparator.Equal, "ok");
     }
 
     /**
@@ -127,8 +127,7 @@ public class FlagFilterTest {
      */
     @Test(expected = Exception.class)
     public void InvalidCompTest() throws Exception{
-       SamRecordFilter filter = new FlagFilter("ReadPaired", Comparator.Great, "1");
-
+       new FlagFilter("ReadPaired", Comparator.Great, "1");
     }
     
     /**
@@ -136,7 +135,6 @@ public class FlagFilterTest {
      */
     @Test(expected = Exception.class)
     public void InvalidFlagTest() throws Exception{
-       SamRecordFilter filter = new FlagFilter("ReadNotPair", Comparator.NotEqual, "1");
-
+       new FlagFilter("ReadNotPair", Comparator.NotEqual, "1");
     }
 }

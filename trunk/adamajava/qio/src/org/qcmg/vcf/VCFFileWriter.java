@@ -20,7 +20,7 @@ import org.qcmg.common.vcf.VcfRecord;
 public final class VCFFileWriter implements Closeable {
 	private final File file;
 	private final OutputStream outputStream;
-
+	
 	/**
 	 * create a gzip/txt VCFFileWriter according file name ending. 
 	 * @param file: add ending ( .gz/.gzip ) to file name end if want to create a gzip file
@@ -57,7 +57,6 @@ public final class VCFFileWriter implements Closeable {
 	}
 
 	public void add(final VcfRecord record) throws IOException {
-//		String encoded = record.toString();
 		outputStream.write(record.toString().getBytes());
 		outputStream.flush();
 	}

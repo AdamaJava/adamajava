@@ -30,6 +30,8 @@ public class Main {
         	    		new SnpEffMode(   options  );
 			} else if (options.getMode() == Options.MODE.confidence) {
         	    		new ConfidenceMode(   options);
+			} else if (options.getMode() == Options.MODE.ccm) {
+				new CCMMode(   options);
 			} else if (options.getMode() == Options.MODE.vcf2maf) {
 				new Vcf2maf(  options );
 			} else if (options.getMode() == Options.MODE.cadd) {
@@ -45,7 +47,8 @@ public class Main {
            } else if (options.getMode() == Options.MODE.snppileup) {
    	   			new SnpPileupMode( options );
            } else {
-            	   throw new Exception("No valid mode are specified on commandline: " + options.getMode().name()) ;
+        	   		logger.error("No valid mode are specified on commandline: " + options.getMode());
+        	   		throw new Exception("No valid mode are specified on commandline: " + options.getMode()) ;
            }
 
             logger.logFinalExecutionStats(0);
@@ -53,9 +56,9 @@ public class Main {
         } catch (Exception e) {
 	        	System.out.println("Exception caught!");
 	        	e.printStackTrace();
-	        	System.err.println(Thread.currentThread().getName() + " " + e.toString());
+	        	System.err.println(Thread.currentThread().getName() + " " + e.toString() + " : " + e.getLocalizedMessage());
 	        	if (null != logger) {
-		        	logger.info(Thread.currentThread().getName() + " " + e.toString());	            
+		        	logger.info(Thread.currentThread().getName() + " " + e.toString() + " : " + e.getMessage());	            
 		        	logger.logFinalExecutionStats(1);
 	        	}
         		System.out.println("About to return exit code of 1");

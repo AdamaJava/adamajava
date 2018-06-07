@@ -33,11 +33,11 @@ public class SampleColumnTest {
 	public void clear(){	new File(input).delete();	}
 	
 	@Test
-	public void SampleNameTest1() throws IOException {
-		String[] Sheader = header0.clone(); 
-		Sheader[Sheader.length-1] = VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tqControlSample\tqTestSample";	
+	public void sampleNameTest1() throws IOException {
+		String[] sHeader = header0.clone(); 
+		sHeader[sHeader.length-1] = VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tqControlSample\tqTestSample";	
 		
-        	Vcf2mafTest.createVcf(Sheader);                
+        	Vcf2mafTest.createVcf(sHeader);                
         	try(VCFFileReader reader = new VCFFileReader(input); ){
     			SampleColumn column = SampleColumn.getSampleColumn(null, null , reader.getHeader());
     			assertTrue(column.getControlSample().equals("CONTROL_sample"));
@@ -57,11 +57,11 @@ public class SampleColumnTest {
 	}
 	
 	@Test
-	public void SampleNameTest2() throws IOException {
-		String[] Sheader = header0.clone(); 
-		Sheader[Sheader.length-1] = VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tCONTROL_bamID\tTEST_bamID";
+	public void sampleNameTest2() throws IOException {
+		String[] sHeader = header0.clone(); 
+		sHeader[sHeader.length-1] = VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tCONTROL_bamID\tTEST_bamID";
 		 			
-    	Vcf2mafTest.createVcf(  Sheader );                
+    	Vcf2mafTest.createVcf(  sHeader );                
     	try(VCFFileReader reader = new VCFFileReader(input); ){
 			SampleColumn column = SampleColumn.getSampleColumn(null, null , reader.getHeader());
 			assertTrue(column.getControlSample().equals("CONTROL_sample"));
@@ -81,7 +81,7 @@ public class SampleColumnTest {
 	 * second sample column (TEST_bamID) matches header qTestBamUUID;  
 	 * @throws IOException
 	 */
-	public void SampleNameTest3() throws IOException {
+	public void sampleNameTest3() throws IOException {
 		String[] Sheader = header0.clone(); 		
 		Sheader[2] = VcfHeaderUtils.STANDARD_CONTROL_SAMPLE + "=Sample:CONTROL_sample";
 		Sheader[Sheader.length-1] = VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tSample:CONTROL_sample\tTEST_bamID";
@@ -101,13 +101,13 @@ public class SampleColumnTest {
 	}	
 	
 	@Test
-	public void SampleNameTest4() throws IOException {
-		String[] Sheader = header0.clone(); 
-		Sheader[6] = VcfHeaderUtils.STANDARD_CONTROL_BAMID + "=null";
-		Sheader[7] = VcfHeaderUtils.STANDARD_TEST_BAMID + "=";
-		Sheader[Sheader.length-1] = VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tCONTROL_bam\tTEST_bam";
+	public void sampleNameTest4() throws IOException {
+		String[] sHeader = header0.clone(); 
+		sHeader[6] = VcfHeaderUtils.STANDARD_CONTROL_BAMID + "=null";
+		sHeader[7] = VcfHeaderUtils.STANDARD_TEST_BAMID + "=";
+		sHeader[sHeader.length-1] = VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tCONTROL_bam\tTEST_bam";
 		 			
-    	Vcf2mafTest.createVcf(  Sheader );                
+    	Vcf2mafTest.createVcf(  sHeader );                
     	try(VCFFileReader reader = new VCFFileReader(input); ){
 			SampleColumn column = SampleColumn.getSampleColumn(null, null , reader.getHeader());
 			assertTrue(column.getControlSample().equals("CONTROL_sample"));
@@ -120,13 +120,13 @@ public class SampleColumnTest {
 	}	
 	
 	@Test
-	public void SampleNameTest5() throws IOException {
-		String[] Sheader = header0.clone(); 
-		Sheader[6] = VcfHeaderUtils.STANDARD_CONTROL_BAMID_1 + "=bamid_1";
-		Sheader[7] = VcfHeaderUtils.STANDARD_TEST_BAMID + "=";
-		Sheader[Sheader.length-1] = VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tbamid_1\tTEST_bam";
+	public void sampleNameTest5() throws IOException {
+		String[] sHeader = header0.clone(); 
+		sHeader[6] = VcfHeaderUtils.STANDARD_CONTROL_BAMID_1 + "=bamid_1";
+		sHeader[7] = VcfHeaderUtils.STANDARD_TEST_BAMID + "=";
+		sHeader[sHeader.length-1] = VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tbamid_1\tTEST_bam";
 		 			
-    	Vcf2mafTest.createVcf(  Sheader );                
+    	Vcf2mafTest.createVcf(  sHeader );                
     	try(VCFFileReader reader = new VCFFileReader(input); ){
 			SampleColumn column = SampleColumn.getSampleColumn(null, null , reader.getHeader());
 			assertTrue(column.getControlSample().equals("CONTROL_sample"));

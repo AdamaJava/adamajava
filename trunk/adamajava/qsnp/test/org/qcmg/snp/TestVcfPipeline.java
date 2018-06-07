@@ -28,16 +28,6 @@ public class TestVcfPipeline extends Pipeline {
 		this.testVcfHeader = h;
 	}
 
-	@Override
-	protected String getFormattedRecord(final QSnpRecord record, final String ensemblChr) {
-		throw new UnsupportedOperationException("Test class - do not use");
-	}
-
-	@Override
-	protected String getOutputHeader(final boolean isSomatic) {
-		throw new UnsupportedOperationException("Test class - do not use");
-	}
-	
 	QSnpRecord getQSnpRecord(QSnpRecord normal, QSnpRecord tumour) {
 		QSnpRecord qpr = null;
 		
@@ -54,11 +44,11 @@ public class TestVcfPipeline extends Pipeline {
 			
 			// create new QSnpRecord with the mergedVcf details
 			qpr = new QSnpRecord(mergedVcf);
-			qpr.setNormalOABS(normal.getNormalOABS());
-			qpr.setNormalGenotype(normal.getNormalGenotype());
-			qpr.setTumourOABS(tumour.getTumourOABS());
-			qpr.setTumourGenotype(tumour.getTumourGenotype());
-			
+//			qpr.setNormalNucleotides(normal.getNormalNucleotides());
+//			qpr.setNormalGenotype(normal.getNormalGenotype());
+//			qpr.setTumourNucleotides(tumour.getTumourNucleotides());
+//			qpr.setTumourGenotype(tumour.getTumourGenotype());
+//			
 			
 		} else if (null != normal) {
 			qpr = normal;
@@ -69,7 +59,7 @@ public class TestVcfPipeline extends Pipeline {
 			qpr = tumour;
 			VcfUtils.addMissingDataToFormatFields(qpr.getVcfRecord(), 1);
 		}		
-		qpr.setId(++mutationId);
+//		qpr.setId(++mutationId);
 		return qpr;
 	}
 	

@@ -11,6 +11,7 @@ import java.util.List;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 
+@Deprecated
 public class QSnpGATKRecord {
 
 	private final VcfRecord gatkVcfRecord;

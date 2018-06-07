@@ -6,10 +6,18 @@
  */
 package org.qcmg.snp;
 
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.ToIntFunction;
+
 import org.ini4j.Ini;
 import org.qcmg.common.meta.QExec;
-import org.qcmg.pileup.QSnpRecord;
-import org.qcmg.snp.util.HeaderUtil;
+import org.qcmg.common.util.Constants;
+import org.qcmg.common.vcf.VcfRecord;
+import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.snp.util.IniFileUtil;
 
 public class StandardPipeline extends Pipeline {
@@ -28,30 +36,61 @@ public class StandardPipeline extends Pipeline {
 		
 		walkBams();
 		
-		logger.info("number of records that have a genotype: " + classifyCount + ", out of " + positionRecordMap.size() 
-				+ ". Somatic: " + classifySomaticCount + "[" + classifySomaticLowCoverage + "], germline: " 
-				+ classifyGermlineCount + "[" + classifyGermlineLowCoverage + "] no classification: " + classifyNoClassificationCount + ", no mutation: " + classifyNoMutationCount);
-		
-		incorporateUnfilteredNormal();
-		
-		strandBiasCorrection();
-		
-		compoundSnps();
+		examineData();
 		
 		// write output
 		writeVCF(vcfFile);
 	}
 	
-	@Override
-	protected String getFormattedRecord(final QSnpRecord record, final String ensemblChr) {
-		return record.getDCCDataNSFlankingSeq(mutationIdPrefix, ensemblChr);
+	/*
+	 * want to print out some basic stats from the snps that we have collected
+	 */
+	private void examineData() {
+		int compoundSnpCount = 0;
+		int somaticCount = 0;
+		int germlineCount = 0;
+		int count = 0;
+		Map<String, AtomicInteger> mutationMap = new HashMap<>(); 
+		Map<String, AtomicInteger> genotypeMap = new HashMap<>(); 
+		
+		for (VcfRecord v : snps) {
+			count++;
+			String ref = v.getRef();
+			if (ref.length() > 1) {
+				compoundSnpCount++;
+			}
+			
+			boolean isSomatic = VcfUtils.isRecordSomatic(v);
+			if (isSomatic) {
+				somaticCount++;
+			} else {
+				germlineCount++;
+			}
+			
+			String refAlts = ref + "->" + v.getAlt();
+			mutationMap.computeIfAbsent(refAlts, f -> new AtomicInteger()).incrementAndGet();
+			
+			List<String> ff = v.getFormatFields();
+			String gt = "";
+			for (int i = 1 ; i < ff.size() ; i++) {
+				String f = ff.get(i); 
+				if (gt.length() > 0) {
+					gt += "->";
+				}
+				gt += f.substring(0, f.indexOf(Constants.COLON_STRING));
+			}
+			genotypeMap.computeIfAbsent(gt, f -> new AtomicInteger()).incrementAndGet();
+		}
+		
+		
+		logger.tool("Total number of snps: " + count + ", of which " + somaticCount + " were somatic, and " + germlineCount + " germline.");
+		logger.tool("mutation distribution:");
+		mutationMap.entrySet().stream().sorted(Comparator.comparingInt(e -> e.getValue().intValue())).forEach( e -> logger.tool("mutation: " + e.getKey() + " occurred " + e.getValue().intValue() + " times"));
+		
+		logger.tool("genotype distribution:");
+		genotypeMap.entrySet().stream().sorted(Comparator.comparingInt(e -> e.getValue().intValue())).forEach( e -> logger.tool("genotype: " + e.getKey() + " occurred " + e.getValue().intValue() + " times"));
 	}
-
-	@Override
-	protected String getOutputHeader(boolean isSomatic) {
-		if (isSomatic) return HeaderUtil.DCC_SOMATIC_HEADER;
-		else return HeaderUtil.DCC_GERMLINE_HEADER;
-	}
+	
 	
 	@Override
 	void ingestIni(Ini ini) throws SnpException {

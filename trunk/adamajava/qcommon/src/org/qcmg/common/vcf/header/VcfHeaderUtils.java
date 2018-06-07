@@ -6,11 +6,9 @@
  */
 package org.qcmg.common.vcf.header;
 
-import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -29,16 +27,27 @@ public class VcfHeaderUtils {
 	public static final String DATE_FORMAT_STRING = "yyyy-MM-dd HH:mm:ss"; 
 	public final DateFormat DF = new SimpleDateFormat(DATE_FORMAT_STRING);
 	
+	public static final String HEADER_LINE_FILTER = "##FILTER";
+	public static final String HEADER_LINE_INFO = "##INFO";
+	public static final String HEADER_LINE_FORMAT = "##FORMAT";
+	public static final String HEADER_LINE_REF = "##reference";
+	public static final String HEADER_LINE_CONTIG = "##contig";
+	public static final String CURRENT_FILE_FORMAT = "##fileformat=VCFv4.2";
+	public static final String STANDARD_FILE_FORMAT = "##fileformat";
+	public static final String STANDARD_FILE_DATE = "##fileDate";
+	public static final String STANDARD_SOURCE_LINE = "##qSource";
+	public static final String STANDARD_UUID_LINE = "##qUUID";
+	public static final String STANDARD_FINAL_HEADER_LINE = "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO";
+	
 	public static final String BLANK_HEADER_LINE = Constants.DOUBLE_HASH;
 	public static final String FORMAT = BLANK_HEADER_LINE + "FORMAT";
+	public static final String FILTER_GERMLINE_DESC = "Mutation is a germline variant in another patient";
+	public static final String INFO_GERMLINE_DESC = "Alt allele followed by number of calls with VAF < 30%, then number of calls with VAF < 30%, number of calls with coverage < 100, number of calls with coverage > 100";
+//	public static final String INFO_GERMLINE_DESC = "Counts of donor occurs this mutation, total recorded donor number";
 	
-	public static final String DESCRITPION_FILTER_GERMLINE = "Mutation is a germline variant in another patient";
-	public static final String DESCRITPION_INFO_GERMLINE = "Counts of donor occurs this mutation, total recorded donor number";
-	
-	
-	public static final String DESCRITPION_FORMAT_COMPOUND_SNP_ALLELE_COUNT = "Allele Count Compound Snp: lists read sequence and count (forward strand, reverse strand) ";
-	public static final String DESCRITPION_INFO_DB = "dbSNP Membership";
-	public static final String DESCRITPION_INFO_VAF = "Variant allele frequencies based on 1000Genomes from dbSNP as the CAF. CAF starting with the reference allele followed " +
+	public static final String FORMAT_COMPOUND_SNP_ALLELE_COUNT_DESC = "Allele Count Compound Snp: lists read sequence and count (forward strand, reverse strand) ";
+	public static final String INFO_DB_DESC = "dbSNP Membership";
+	public static final String INFO_VAF_DESC = "Variant allele frequencies based on 1000Genomes from dbSNP as the CAF. CAF starting with the reference allele followed " +
 			 "by alternate alleles as ordered in the ALT column.   Here we only take the related allel frequency.";
  	
 	//FILTER FIELDS
@@ -59,17 +68,12 @@ public class VcfHeaderUtils {
 	public static final String FILTER_STRAND_BIAS_ALT = SnpUtils.STRAND_BIAS_ALT;
 	public static final String FILTER_STRAND_BIAS_COV = SnpUtils.STRAND_BIAS_COVERAGE;
 	public static final String FILTER_TRF = "TRF";
-	public static final String DESCRITPION_FILTER_TRF = "at least one of the repeat is with repeat sequence length less than six; "
+	public static final String FILTER_TRF_DESC = "at least one of the repeat is with repeat sequence length less than six; "
 			+ "and the repeat frequence is more than 10 (or more than six for homoplymers repeat), "
 			+ ", or less than 20% of informative reads are strong supporting in case of indel variant";
 	public static final String FILTER_END_OF_READ = "5BP";
 	public static final String FILTER_END_OF_READ_DESC = "Bases that fall within 5bp of the start or finish of the (filtered) read.";
 
-	
-//	public static final String FILTER_HOM = "HOM";
-//	public static final String DESCRITPION_FILTER_HOM = "fallen in homoplymers region that is more than 5 repeat base";
-
-	
 	//INFO FIELDS
 	public static final String INFO_MUTATION = "MU";
 	public static final String INFO_FLANKING_SEQUENCE = "FLANK";
@@ -92,10 +96,10 @@ public class VcfHeaderUtils {
 	public static final String INFO_MERGE_IN = Constants.VCF_MERGE_INFO;
 	public static final String DESCRITPION_MERGE_IN = "Indicates which INput file this vcf record came from. Multiple values are allowed which indicate that the record has been merged from more than 1 input file";	
 	public static final String INFO_TRF = FILTER_TRF;
-	public static final String DESCRITPION_INFO_TRF = "List all repeat reported by TRFFinder,  crossing over the variant position.all repeat follow <repeat sequence Length>_<repeat frequency>, separated by ';'";
+	public static final String INFO_TRF_DESC = "List all repeat reported by TRFFinder,  crossing over the variant position.all repeat follow <repeat sequence Length>_<repeat frequency>, separated by ';'";
 
 	public static final String INFO_HOM = "HOM";
-	public static final String DESCRITPION_INFO_HOM = "nearby reference sequence fallen in a specified widow size,  leading by the number of homopolymers base.";
+	public static final String INFO_HOM_DESC = "nearby reference sequence fallen in a specified widow size,  leading by the number of homopolymers base.";
 	
 	
 	//FORMAT FIELDS
@@ -112,6 +116,7 @@ public class VcfHeaderUtils {
 	public static final String FORMAT_NOVEL_STARTS = FILTER_NOVEL_STARTS;
 	//GATK specific format fields
 	public static final String FORMAT_ALLELIC_DEPTHS = "AD";
+	public static final String FORMAT_AD_DESC = "Allelic depths for the ref and alt alleles in the order listed";
 	public static final String FORMAT_READ_DEPTH = "DP";
 	public static final String FORMAT_READ_DEPTH_DESCRIPTION = "Read depth at this position for this sample";
 	public static final String FORMAT_GENOTYPE_QUALITY = "GQ";
@@ -120,21 +125,24 @@ public class VcfHeaderUtils {
 	public static final String FORMAT_CCM_DESC = "Cancel Call Matrix. Please refer to the following link for further details: https://genomeinfo.qimrberghofer.edu.au/wiki/qProfiler%20Development";
 	public static final String FORMAT_CCC = "CCC";
 	public static final String FORMAT_CCC_DESC = "Cancer Call Class. Please refer to the following link for further details: https://genomeinfo.qimrberghofer.edu.au/wiki/qProfiler%20Development";
-	public static final String FORMAT_INFO = "INF";
-	public static final String FORMAT_INFO_DESCRIPTION = "Sample genotype information indicating if this genotype was 'called' (similar in concept to the INFO field). A semi-colon seperated list of information pertaining to this sample. Use ‘.’ to indicate the absence of information. These values should be described in the meta-information in the same way as INFOs";
-	public static final String FORMAT_FILTER = "FT";
-	public static final String FORMAT_FF = "FF";
-	public static final String FORMAT_FF_DESC = "Reads that failed qsnp's internal filtering";
-	public static final String FORMAT_FILTER_DESCRIPTION = "Sample genotype filter indicating if this genotype was 'called' (similar in concept to the FILTER field). Again, use PASS to indicate that all filters have been passed, a semi-colon separated list of codes for filters that fail, or ‘.’ to indicate that filters have not been applied. These values should be described in the meta-information in the same way as FILTERs";
-	public static final String FORMAT_END_OF_READ = "EOR";
-	public static final String FORMAT_END_OF_READ_DESC = "Bases that fall within 5bp of the start or finish of the (filtered) read.";
+	public static final String FORMAT_QL = "QL";
+	public static final String FORMAT_QL_DESC = "Quality - Phred-scaled quality score for the assertion made in ALT. Taken from GATK's Haplotype Caller.";
+	public static final String FORMAT_NCIG = "NCIG";
 
 	public static final String FORMAT_ACSNP = "ACSNP";
 	public static final String FORMAT_ACSNP_DESC = "Allel counts for snp pileup. it follows the format: read_coverage[overlap_pairs_with same_base, overlap_pairs_with different_base, number_of_base_A,  number_of_base_T, number_of_base_G, number_of_base_C, number_of_other_base]";
 	
 	
+	public static final String FORMAT_FILTER = "FT";
+	public static final String FORMAT_FF = "FF";
+	public static final String FORMAT_FF_DESC = "Reads that failed qsnp's internal filtering";
+	public static final String FORMAT_FILTER_DESCRIPTION = "Sample genotype filter indicating if this genotype was 'called' (similar in concept to the FILTER field). Again, use PASS to indicate that all filters have been passed, a semi-colon separated list of codes for filters that fail, or ‘.’ to indicate that filters have not been applied. These values should be described in the meta-information in the same way as FILTERs";
+	public static final String FORMAT_INFO = "INF";
+	public static final String FORMAT_INFO_DESCRIPTION = "Sample genotype information indicating if this genotype was 'called' (similar in concept to the INFO field). A semi-colon seperated list of information pertaining to this sample. Use ‘.’ to indicate the absence of information. These values should be described in the meta-information in the same way as INFOs";
+	public static final String FORMAT_END_OF_READ = "EOR";
+	public static final String FORMAT_END_OF_READ_DESC = "Bases that fall within 5bp of the start or finish of the (filtered) read.";
+	
 	//Header lines
-//	public static final String CURRENT_FILE_FORMAT = "##fileformat=VCFv4.3";
 	public static final String STANDARD_ANALYSIS_ID = "##qAnalysisId";
 	public static final String STANDARD_DONOR_ID = "##qDonorId";
 	public static final String STANDARD_CONTROL_SAMPLE = "##qControlSample";
@@ -163,11 +171,6 @@ public class VcfHeaderUtils {
 	public static final String STANDARD_INPUT_LINE = "##qINPUT";
 	public static final String HEADER_LINE_QPG = "##qPG";
 	
-//	public static final String HEADER_LINE_FILTER = "##FILTER";
-//	public static final String HEADER_LINE_INFO = "##INFO";
-//	public static final String HEADER_LINE_FORMAT = "##FORMAT";	
-//	public static final String HEADER_LINE_CHROM = "#CHROM";	
-////	public static final String STANDARD_FINAL_HEADER_LINE = "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO";
 	public static final String STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT = VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\t";
 	
 	public static final String GATK_CMD_LINE = "##GATKCommandLine";
@@ -178,8 +181,7 @@ public class VcfHeaderUtils {
 	public static final String DATE = "Date";
 	public static final String COMMAND_LINE = "CL";
 
-	
-	
+
 	public enum VcfInfoType {
 
 		UNKNOWN, String, Integer, Float, Flag, Character;
@@ -256,8 +258,7 @@ public class VcfHeaderUtils {
 		}
 		
 		// create and add to existing collection
-		addQPGLine(header, currentLargestOrder + 1, tool, version, commandLine,   new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
-		
+		addQPGLine(header, currentLargestOrder + 1, tool, version, commandLine,  new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
 	}
 	
 	/**
@@ -283,9 +284,11 @@ public class VcfHeaderUtils {
 			throw new IllegalArgumentException("Null header passed to VcfHeaderUtils.getGATKVersionFromHeaderLine");
 						
 		List<VcfHeaderRecord> recs = header.getRecords(GATK_CMD_LINE);		
-		for(VcfHeaderRecord rec : recs)
-			if(rec.getId() != null)
-				return rec.getSubFieldValue(GATK_CMD_LINE_VERSION);	 		 
+		for(VcfHeaderRecord rec : recs) {
+			if(rec.getId() != null) {
+				return rec.getSubFieldValue(GATK_CMD_LINE_VERSION);
+			}
+		}
 		return null; 	
 	}
 	
@@ -320,62 +323,6 @@ public class VcfHeaderUtils {
 			original.addOrReplace(rec.toString(), overwrite);
 		 
 		return original;
-	}
-	
-	
-	/**
-	 * Splits a VcfHeaderRecord meta object on '=' and returns a String array with the results of the split command.
-	 * If the record does not contain '=' then a 2 element array is returned, with the first element containing record.toString(), and the second element containing null
-	 * @param <T>
-	 * @param rec VcfHeaderRecord
-	 * @return String [] containing the result of rec.toString().split("=")
-	 */
-//	public static String[]  splitMetaRecord(VcfHeaderRecord rec) {
-//		if (null == rec ) 
-//			throw new IllegalArgumentException("Null record passed to VcfHeaderUtils.splitMetaRecord");
-//		 		
-//		return  (rec.getMetaValue() == null)? new String[]{ rec.getMetaKey(), null } : new String[]{rec.getMetaKey(), rec.getMetaValue()};
-//		
-////		int index = rec.toString().indexOf(Constants.EQ_STRING);
-////		if (index >= 0) {
-////			return  rec.toString().split(Constants.EQ_STRING);
-////		}
-////		
-////		return new String[] {rec.toString(), null};
-//	}
-	
-//	public static class SplitMetaRecord{
-//		String[] pair; 
-//		public SplitMetaRecord(Record record){
-//			this.pair =  splitMetaRecord(record);
-//		}
-//		
-//		public String getKey(){ return pair[0]; }
-//		public String getValue(){ return pair[1]; }
-//	}
-		
-	public static <T> VcfHeader reheader(VcfHeader header, String cmd, String inputVcfName, Class<T> mainClass) throws IOException {	
-		DateFormat df = new SimpleDateFormat( "yyyyMMdd" ); 
- 		
-		String version = mainClass.getPackage().getImplementationVersion();
-		String pg = mainClass.getPackage().getImplementationTitle();
-		final String fileDate = df.format(Calendar.getInstance().getTime());
-		final String uuid = QExec.createUUid();
-		
-		header.addOrReplace(VcfHeaderUtils.CURRENT_FILE_FORMAT);
-		header.addOrReplace(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + fileDate);
-		header.addOrReplace(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + uuid);
-		header.addOrReplace(VcfHeaderUtils.STANDARD_SOURCE_LINE + "=" + pg+"-"+version);	
-			
-		String inputUuid = (header.getUUID() == null)? null: header.getUUID().getMetaValue();   
-		header.addOrReplace(VcfHeaderUtils.STANDARD_INPUT_LINE + "=" + inputUuid + ":"+ inputVcfName);
-		
-		if(version == null) version = Constants.NULL_STRING_UPPER_CASE;
-	    if(pg == null ) pg = Constants.NULL_STRING_UPPER_CASE;
-	    if(cmd == null) cmd = Constants.NULL_STRING_UPPER_CASE;
-		VcfHeaderUtils.addQPGLineToHeader(header, pg, version, cmd);
-		
-		return header;			
 	}
 	
 	public static boolean containsQIMRDetails(VcfHeader header) {
@@ -417,24 +364,23 @@ public class VcfHeaderUtils {
 		return header.getRecords(VcfHeaderUtils.HEADER_LINE_QPG).stream().map(x -> x).collect(Collectors.toList());		
 	}
 	
-	public static VcfHeaderRecord getqPGRecord(VcfHeader header, String id){ 	return header.getIDRecord(VcfHeaderUtils.HEADER_LINE_QPG, id); }	
-	public static int getQPGOrder( VcfHeaderRecord  qpg){ return Integer.parseInt(qpg.getId()); }
-	public static String getQPGTool(VcfHeaderRecord  qpg){ return  qpg.getSubFieldValue(TOOL);}
-	public static String getQPGDate(VcfHeaderRecord  qpg){ return  qpg.getSubFieldValue(DATE);}
-	public static String getQPGVersion(VcfHeaderRecord  qpg){ return  qpg.getSubFieldValue(VERSION);}
-	public static String getQPGCommandLine(VcfHeaderRecord  qpg){ return  qpg.getSubFieldValue(COMMAND_LINE);}
-	
+	public static VcfHeaderRecord getqPGRecord(VcfHeader header, String id){ 	
+		return header.getIDRecord(VcfHeaderUtils.HEADER_LINE_QPG, id); 
+	}	
+	public static int getQPGOrder( VcfHeaderRecord  qpg){ 
+		return Integer.parseInt(qpg.getId()); 
+	}
+	public static String getQPGTool(VcfHeaderRecord  qpg){ 
+		return  qpg.getSubFieldValue(TOOL);
+	}
+	public static String getQPGDate(VcfHeaderRecord  qpg){ 
+		return  qpg.getSubFieldValue(DATE);
+	}
+	public static String getQPGVersion(VcfHeaderRecord  qpg){ 
+		return  qpg.getSubFieldValue(VERSION);
+	}
+	public static String getQPGCommandLine(VcfHeaderRecord  qpg){ 
+		return  qpg.getSubFieldValue(COMMAND_LINE);
+	}
 		
-	//most common string for vcf header
-	public static final String HEADER_LINE_FILTER = "##FILTER";
-	public static final String HEADER_LINE_CONTIG = "##contig";
-	public static final String HEADER_LINE_REF = "##reference";
-	public static final String HEADER_LINE_INFO = "##INFO";
-	public static final String HEADER_LINE_FORMAT = "##FORMAT";
-	public static final String CURRENT_FILE_FORMAT = "##fileformat=VCFv4.2";
-	public static final String STANDARD_FILE_FORMAT = "##fileformat";
-	public static final String STANDARD_FILE_DATE = "##fileDate";
-	public static final String STANDARD_SOURCE_LINE = "##qSource";
-	public static final String STANDARD_UUID_LINE = "##qUUID";
-	public static final String STANDARD_FINAL_HEADER_LINE = "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO";
 }

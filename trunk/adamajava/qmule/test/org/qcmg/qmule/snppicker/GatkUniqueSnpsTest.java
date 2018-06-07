@@ -46,7 +46,7 @@ public class GatkUniqueSnpsTest {
 		records.add(record);
 		
 		QSnpRecord qpr = new QSnpRecord("chr1", 168512486, "G");
-		qpr.setMutation("G>C");
+		qpr.setAlt("C");
 		
 		GatkUniqueSnps.examinePileup(records, qpr);
 		
@@ -94,7 +94,7 @@ public class GatkUniqueSnpsTest {
 		records.add(record);
 		
 		QSnpRecord qpr = new QSnpRecord("chr1", 55524237, "G");
-		qpr.setMutation("G>A");
+		qpr.setAlt("A");
 		
 		GatkUniqueSnps.examinePileup(records, qpr);
 		
@@ -107,7 +107,7 @@ public class GatkUniqueSnpsTest {
 	@Test
 	public void testExaminePileup() throws Exception {
 		QSnpRecord qpr = new QSnpRecord("chr1", 101, "G");
-		qpr.setMutation("G>C");
+		qpr.setAlt("C");
 		
 		GatkUniqueSnps.examinePileup(samRecords.subList(0,1), qpr);
 		
@@ -116,7 +116,7 @@ public class GatkUniqueSnpsTest {
 		Assert.assertTrue(qpr.getAnnotation().contains(SnpUtils.LESS_THAN_12_READS_NORMAL));
 		
 		qpr = new QSnpRecord("chr1", 102, "G");
-		qpr.setMutation("G>C");
+		qpr.setAlt("C");
 		
 		GatkUniqueSnps.examinePileup(samRecords.subList(0, 1), qpr);
 		
@@ -125,7 +125,7 @@ public class GatkUniqueSnpsTest {
 		Assert.assertTrue(qpr.getAnnotation().contains(SnpUtils.LESS_THAN_12_READS_NORMAL));
 		
 		qpr = new QSnpRecord("chr1", 110, "A");
-		qpr.setMutation("A>G");
+		qpr.setAlt("G");
 		
 		GatkUniqueSnps.examinePileup(samRecords.subList(0, 10), qpr);
 		
@@ -134,13 +134,13 @@ public class GatkUniqueSnpsTest {
 		Assert.assertTrue(qpr.getAnnotation().contains(SnpUtils.LESS_THAN_12_READS_NORMAL));
 		
 		qpr = new QSnpRecord("chr1", 112, "A");
-		qpr.setMutation("A>G");
+		qpr.setAlt("G");
 		
 		GatkUniqueSnps.examinePileup(samRecords, qpr);
 		Assert.assertNull(qpr.getAnnotation());
 		
 		qpr = new QSnpRecord("chr1", 112, "G");
-		qpr.setMutation("G>A");
+		qpr.setAlt("A");
 		
 		GatkUniqueSnps.examinePileup(samRecords, qpr);
 		Assert.assertNotNull(qpr.getAnnotation());
