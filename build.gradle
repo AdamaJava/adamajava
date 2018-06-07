@@ -27,7 +27,7 @@ dependencies {
     	compile name: 'htsjdk', version: '1.140'
     compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.4'
     compile name: 'qcommon', version: '0.4'
-    compile name: 'qio', version: '0.1pre'
+    compile name: 'qio', version: '0.1.1'
 
     testCompile name: 'junit', version: '4.10'
 }
