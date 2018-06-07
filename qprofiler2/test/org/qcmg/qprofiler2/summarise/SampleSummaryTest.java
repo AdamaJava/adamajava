@@ -7,11 +7,15 @@ import javax.xml.parsers.ParserConfigurationException;
 import static org.junit.Assert.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.Test;
+import org.qcmg.common.model.QCMGAtomicLongArray;
 import org.qcmg.common.model.SubsitutionEnum;
 import org.qcmg.common.util.IndelUtils.SVTYPE;
+import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.util.QprofilerXmlUtils;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.qprofiler2.summarise.SampleSummary;
@@ -71,6 +75,20 @@ public class SampleSummaryTest {
 				assertEquals(ele.getAttribute("count"), "4");
 			else if(ele.getAttribute("type").equals("1/1"))
 				assertEquals(ele.getAttribute("count"), "2");
+	}
+	@Test
+	public void incrementGTAD() {
+		Map<String, QCMGAtomicLongArray> map = new HashMap<>();
+		SVTYPE type = IndelUtils.getVariantType("A", "B");
+		assertEquals(0, map.size());
+		SampleSummary.incrementGTAD(type, "0/1", "10,10", "20", map);
+		assertEquals(1, map.size());
+		QCMGAtomicLongArray ar = map.get(SVTYPE.SNP.name());
+//		for (int i = 0 ; i < ar.length() ; i++) {
+//			System.out.println("ar[" + i + "]: " + ar.get(i));
+//		}
+		assertEquals(204, ar.length());
+		assertEquals(1, ar.get(50));
 	}
 	
 	@Test
