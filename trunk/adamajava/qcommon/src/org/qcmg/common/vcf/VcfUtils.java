@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -43,7 +44,86 @@ public class VcfUtils {
 	public static final int CONF_LENGTH = (VcfHeaderUtils.INFO_CONFIDENCE + Constants.EQ).length();
 
 	
+	
+	/**
+	 * Attempts to merge a number of vcf records that have the same start position
+	 * NOTE that only the first 8 columns are merged, info, format fields will be empty
+	 * 
+	 * 
+	 * 
+	 * @param records
+	 * @return
+	 */
+	public static VcfRecord mergeVcfRecords(Set<VcfRecord> records) {
+		
+		VcfRecord mergeRecord = null;
+		
+		if ( ! records.isEmpty()) {
+			String chr = null;
+			int startPos = -1;
+			String ref = "";
+			
+			/*
+			 * get largest ref string first
+			 */
+			for (VcfRecord vcf : records) {
+				if (null == chr) {
+					chr = vcf.getChrPosition().getChromosome();
+				}
+				if (chr.equals(vcf.getChrPosition().getChromosome())) {
+					if (-1 == startPos) {
+						startPos = vcf.getChrPosition().getStartPosition();
+					}
+					if (startPos == vcf.getChrPosition().getStartPosition()) {
+						if (ref.length() < vcf.getRef().length()) {
+							ref = vcf.getRef();
+						}
+					}
+				}
+			}
+			
+			List<String> altStrings = new ArrayList<>();
+			
+			for (VcfRecord vcf : records) {
+				if (null == chr) {
+					chr = vcf.getChrPosition().getChromosome();
+				}
+				if (chr.equals(vcf.getChrPosition().getChromosome())) {
+					
+					if (-1 == startPos) {
+						startPos = vcf.getChrPosition().getStartPosition();
+					}
+					if (startPos == vcf.getChrPosition().getStartPosition()) {
+						
+						
+						// get alt based on this ref and the largest ref
+						altStrings.add(getUpdateAltString(ref, vcf.getRef(), vcf.getAlt()));
+						
+					}
+				}
+			}
+			
+			StringBuilder sb = new StringBuilder();
+			Collections.sort(altStrings);
+			for (String s : altStrings) {
+				if (sb.length() > 0) {
+					sb.append(",");
+				}
+				sb.append(s);
+			}
+			
+			if (ref.length() == 0) {
+				logger.warn("Got zero length ref!!! ref: " + ref + ", entries in set: " + records.size());
+			}
+			mergeRecord = new VcfRecord.Builder(chr, startPos, ref).allele(sb.toString()).build();
+					
+		}
+		return mergeRecord;
+	}
+	
  /**
+  * 
+  * 
   * 
   * @param re: String record from sample format column. eg. 0/1:A/C:A2[17.5],34[25.79],C2[28.5],3[27.67]
   * @param base: allel base, eg. [A,T,G,C] for SNP; [AAT, GC...] for compound SNP; null for all base
@@ -52,6 +132,7 @@ public class VcfUtils {
 	public static int getAltFrequency( VcfFormatFieldRecord re, String base){
 		
 		int count = 0;
+		
  		 
 		final Matcher m;
 		String countString = null;
