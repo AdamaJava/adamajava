@@ -186,7 +186,7 @@ public class MergeUtils {
 			List<String> rFF =  r.getFormatFields() ;
 			if (null != rFF &&  ! rFF.isEmpty()) {
 				if (null == thisRecordsRules) {
-					VcfUtils.addFormatFieldsToVcf(mergedRecord, r.getFormatFields(), true);
+					VcfUtils.addFormatFieldsToVcf(mergedRecord, r.getFormatFields(), true, Constants.COMMA);
 				} else {
 					/*
 					 * create new header string, substituting in the new values should any be present in the rules map
@@ -203,7 +203,7 @@ public class MergeUtils {
 					if ( ! newHeader.toString().equals(rFF.get(0))) {
 						rFF.set(0, newHeader.toString());
 					}
-					VcfUtils.addFormatFieldsToVcf(mergedRecord, rFF, true);
+					VcfUtils.addFormatFieldsToVcf(mergedRecord, rFF, true, Constants.COMMA);
 					
 				}
 			}
