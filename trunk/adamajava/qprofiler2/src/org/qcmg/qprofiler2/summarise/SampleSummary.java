@@ -38,29 +38,62 @@ public class SampleSummary {
 	
 	AtomicLong counts = new AtomicLong();
 	QCMGAtomicLongArray sampleTrans = new QCMGAtomicLongArray(  SubsitutionEnum.values().length );	
-	public long getCounts(){ return counts.get();}
 
 	private void increment(String key){		
 		summary.computeIfAbsent(key, v -> new AtomicLong()).incrementAndGet();
 	}
-		
-	private void incrementGTAD(SVTYPE type,String gt, String ad, String DP){	
+	
+	/**
+	 * Updates the supplied map with 
+	 *  
+	 * NOT SIDE-EFFECT FREE
+	 * 
+	 * @param type
+	 * @param gt
+	 * @param ad
+	 * @param DP
+	 * @param map
+	 */
+	public static void incrementGTAD(SVTYPE type,String gt, String ad, String DP, Map<String, QCMGAtomicLongArray> map){	
 		
 		if( ad == null || ad.contains(".") ||  gt == null || gt.contains(".")  ||  gt.equals("0/0") || gt.equals("0|0") ) 
 				return;		
 		
-		summaryAD.computeIfAbsent(type.name() , (k) -> new QCMGAtomicLongArray(102));		
+		map.computeIfAbsent(type.name() , (k) -> new QCMGAtomicLongArray(102));		
 
 		//bf: vaf = f(1)/(f(0) + f(1) + f(2) ..)  now: vaf (f(1) + f(2) +...) /DP
 		String[] ads = ad.split(",");
-		int sum = 0, vaf = 0; 
-		for(int i = 1; i < ads.length; i ++)
-			if(i > 0) vaf += Integer.parseInt(ads[i]);
+		int vaf = 0; 
+		for(int i = 1; i < ads.length; i ++) {
+			if (i > 0) {
+				vaf += Integer.parseInt(ads[i]);
+			}
+		}
 		 
 		int dp = Integer.parseInt(DP);
 		int rate = (int) ( 0.5 + (double) ( vaf * 100 ) / dp );
-		summaryAD.get( type.name()  ).increment( rate );	
+		map.get( type.name()  ).increment( rate );	
 	}
+//	private void incrementGTAD(SVTYPE type,String gt, String ad, String DP){	
+//		
+//		if( ad == null || ad.contains(".") ||  gt == null || gt.contains(".")  ||  gt.equals("0/0") || gt.equals("0|0") ) 
+//			return;		
+//		
+//		summaryAD.computeIfAbsent(type.name() , (k) -> new QCMGAtomicLongArray(102));		
+//		
+//		//bf: vaf = f(1)/(f(0) + f(1) + f(2) ..)  now: vaf (f(1) + f(2) +...) /DP
+//		String[] ads = ad.split(",");
+//		int vaf = 0; 
+//		for(int i = 1; i < ads.length; i ++) {
+//			if (i > 0) {
+//				vaf += Integer.parseInt(ads[i]);
+//			}
+//		}
+//		
+//		int dp = Integer.parseInt(DP);
+//		int rate = (int) ( 0.5 + (double) ( vaf * 100 ) / dp );
+//		summaryAD.get( type.name()  ).increment( rate );	
+//	}
 		
 
 	public void parseRecord( VcfRecord  vcf, int formateOrder) {
@@ -76,7 +109,7 @@ public class SampleSummary {
 		increment( type + gt);	//count genotyp	
 						
 		//variant allel frequence VAF	 
-		incrementGTAD(type , gt, format.getField("AD"), format.getField("DP"));				
+		incrementGTAD(type , gt, format.getField("AD"), format.getField("DP"), summaryAD);				
  								
 		if(isdbSNP) increment(  type.name() + "dbSNP");	//dbsnp					
 		if(type.equals(SVTYPE.SNP)){ 
