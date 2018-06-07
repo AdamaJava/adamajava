@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -14,11 +13,17 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.meta.QExec;
+import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.LoadReferencedClasses;
+import org.qcmg.common.vcf.ContentType;
+import org.qcmg.common.vcf.VcfFileMeta;
 import org.qcmg.common.vcf.VcfRecord;
-import org.qcmg.common.vcf.header.*;
+import org.qcmg.common.vcf.VcfUtils;
+import org.qcmg.common.vcf.header.VcfHeader;
+import org.qcmg.common.vcf.header.VcfHeaderRecord;
+import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 import org.qcmg.vcf.VCFFileWriter;
 
@@ -34,9 +39,12 @@ public class MergeSameSamples {
 	private String logFile;
 	private int exitStatus;
 	
-	private final Map<VcfRecord, VcfRecord> mergedRecords = new HashMap<>(1024 * 1024 * 8, 0.95f);
+	private final Map<ChrPosition, VcfRecord> input1 = new HashMap<>(1024 * 1024 * 8, 0.95f);
+	private final List< VcfRecord> mergedRecords = new ArrayList<>(1024 * 1024);
+	
 	
 	private VcfHeader [] headers;
+	private ContentType [] contentTypes;
 	private VcfHeader mergedHeader;
 	
 	protected int engage() throws IOException {
@@ -52,6 +60,8 @@ public class MergeSameSamples {
 			logger.info("about to load vcf files");
 			loadVcfs();
 			
+//			addMissingFormatFields();
+			
 			writeOutput();
 		} else {
 			logger.error("Headers from supplied vcf files cannot be merged - exiting");
@@ -62,16 +72,26 @@ public class MergeSameSamples {
 	
 	private boolean canHeadersBeMerged() throws IOException {
 		headers = new VcfHeader[vcfFiles.length];
+		contentTypes = new ContentType[vcfFiles.length];
 		try (VCFFileReader reader = new VCFFileReader(new File(vcfFiles[0]))) {
 			headers[0] = reader.getHeader();
+			VcfFileMeta meta = new VcfFileMeta(headers[0]);
+			contentTypes[0] = meta.getType();
 		}
 		try (VCFFileReader reader = new VCFFileReader(new File(vcfFiles[1]))) {
 			headers[1] = reader.getHeader();
+			VcfFileMeta meta = new VcfFileMeta(headers[1]);
+			contentTypes[1] = meta.getType();
 		}
 		boolean canHeadersBeMerged = MergeUtils.canMergeBePerformed(headers);
+		if (canHeadersBeMerged) {
+			/*
+			 * check to see if we have the same content type across the board
+			 */
+			canHeadersBeMerged = (contentTypes[0] == contentTypes[1]);
+		}
 		logger.info("canHeadersBeMerged: " + canHeadersBeMerged);
 		return canHeadersBeMerged;
-		
 	}
 
 	private void loadVcfHeaders() throws IOException {
@@ -79,27 +99,45 @@ public class MergeSameSamples {
 		Pair<VcfHeader, Rule> pair = MergeUtils.getMergedHeaderAndRules(headers);
 		mergedHeader = null != pair ? pair.getLeft() : null;
 		if (null == mergedHeader) {
-			throw new IllegalArgumentException("MergedHEader is null from MergeUtils.getMergedHeaderAndRules");
+			throw new IllegalArgumentException("Null mergedHeader from MergeUtils.getMergedHeaderAndRules");
 		}
-//		mergedHeader.addQPGLine(1, exec);
 		VcfHeaderUtils.addQPGLine(mergedHeader, 1, exec);
-		
 		mergedHeader.addOrReplace(VcfHeaderUtils.CURRENT_FILE_FORMAT);
 		
 		int i = 1; 
 		for (String s : vcfFiles) {
 			logger.info("adding header entry for input " + i + " : " + s);
-			mergedHeader.addOrReplace (VcfHeaderUtils.BLANK_HEADER_LINE + "INPUT=" + i + ",FILE=" + s, false);
+			mergedHeader.addOrReplace(VcfHeaderUtils.BLANK_HEADER_LINE + i + Constants.COLON + "VCFFileToBeMerged=" + s);
 			i++;
 		}
 	}
 	
+//	private void addMissingFormatFields() {
+//		/*
+//		 * for input1 records, add 2 format fields to the end of the record
+//		 */
+//		for (VcfRecord v : input1.values()) {
+//			List<String> ff = v.getFormatFields();
+//			VcfUtils.addAdditionalSamplesToFormatField(v, Arrays.asList(ff.get(0), Constants.MISSING_DATA_STRING, Constants.MISSING_DATA_STRING));
+//		}
+//		
+//		/*
+//		 * for input2 records, add 2 format fields to beginning of format fields
+//		 */
+//		for (VcfRecord v : input2) {
+//			VcfUtils.addMissingDataToFormatFields(v, 1);
+//			VcfUtils.addMissingDataToFormatFields(v, 1);
+//		}
+//	}
+	
 	
 	private void writeOutput() throws IOException {
-		List<VcfRecord> recs = new ArrayList<>(mergedRecords.values());
-		Collections.sort(recs);
+		List<VcfRecord> recs = new ArrayList<>(mergedRecords);
+//		recs.addAll(input1.values());
+//		recs.addAll(input2);
+		recs.sort(null);
 		
-		logger.info("writing output");
+		logger.info("writing output [" + recs.size() + " records]");
 		try (VCFFileWriter writer = new VCFFileWriter(new File(outputFileName))) {
 			Iterator<VcfHeaderRecord> iter =mergedHeader.iterator(); 
 			while (iter.hasNext()) {
@@ -126,7 +164,7 @@ public class MergeSameSamples {
 				 * Add in IN=1 to info field
 				 */
 				rec.appendInfo(Constants.VCF_MERGE_INFO + "=1");
-				mergedRecords.put(rec, rec);
+				input1.put(rec.getChrPosition(), rec);
 			}
 		}
 		logger.info("input1 has " + i + " entries");
@@ -138,18 +176,34 @@ public class MergeSameSamples {
 //					break;
 				}
 				/*
-				 * Add in IN=1 to info field
+				 * Add in IN=2 to info field
 				 */
 				rec.appendInfo(Constants.VCF_MERGE_INFO + "=2");
 				
-				VcfRecord input1Rec = mergedRecords.get(rec);
+				VcfRecord input1Rec = input1.remove(rec.getChrPosition());
 				if (null != input1Rec) {
 					VcfRecord mr = MergeUtils.mergeRecords(null, input1Rec, rec);
-					mergedRecords.put(rec, mr);
+					mergedRecords.add(mr);
 				} else {
-					mergedRecords.put(rec, rec);
+//					input2.add(rec);
+					/*
+					 * add missing format columns to rec
+					 */
+					VcfUtils.addMissingDataToFormatFields(rec, 1, ContentType.multipleSamples(contentTypes[0]) ? 2 : 1);
+//					VcfUtils.addMissingDataToFormatFields(rec, 1);
+					mergedRecords.add(MergeUtils.mergeRecords(null, rec));
 				}
 			}
+		}
+		for (VcfRecord rec : input1.values()) {
+			/*
+			 * add missing sample columns at end
+			 */
+//			List<String> ff = rec.getFormatFields();
+//			VcfUtils.addAdditionalSamplesToFormatField(rec, Arrays.asList(ff.get(0), Constants.MISSING_DATA_STRING, Constants.MISSING_DATA_STRING));
+			int position = ContentType.multipleSamples(contentTypes[0]) ? 3 : 2;
+			VcfUtils.addMissingDataToFormatFields(rec, position, ContentType.multipleSamples(contentTypes[0]) ? 2 : 1);
+			mergedRecords.add(MergeUtils.mergeRecords(null, rec));
 		}
 		logger.info("input2 has " + i + " entries");
 	}
