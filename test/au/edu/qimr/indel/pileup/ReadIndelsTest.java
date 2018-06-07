@@ -94,22 +94,24 @@ public class ReadIndelsTest {
 				IndelPosition indel = positionRecordMap.get(key);
 				if(indel.getStart() == 59033287){
 					//merge only
-					assertTrue(indel.getIndelVcf(0).getFormatFields().get(1).equals("0/0:GT/GT:0:0:0:0,0,0"));
-					assertTrue(indel.getIndelVcf(0).getFormatFields().get(2).equals("0/1:GT/G:131,31:162:99:762,0,4864"));
+					System.out.println("indel.getIndelVcf(0).getFormatFields().get(0): " + indel.getIndelVcf(0).getFormatFields().get(0));
+					assertEquals("GT:AD:DP:GD:GQ:PL", indel.getIndelVcf(0).getFormatFields().get(0));
+					assertEquals("0/0:0:0:GT/GT:0:0,0,0", indel.getIndelVcf(0).getFormatFields().get(1));
+					assertEquals("0/1:131,31:162:GT/G:99:762,0,4864", indel.getIndelVcf(0).getFormatFields().get(2));
 					assertTrue(indel.getIndelVcf(0).getInfo().equals("SOMATIC1")); //info column from first file
 						 
 				}else if(indel.getStart() == 59033423){	
 					//merge indels but split alleles
-					assertTrue(indel.getIndelVcf(0).getFormatFields().get(1).equals("0/1:T/TC:7,4:11:99:257,0,348"));
- 					assertTrue(indel.getIndelVcf(0).getFormatFields().get(2).equals(".:T/A:7,5:.:.:."));
-					assertTrue(indel.getIndelVcf(1).getFormatFields().get(1).equals(".:.:." ));
-					assertTrue(indel.getIndelVcf(1).getFormatFields().get(2).equals(".:T/A:7,5"));
+					assertEquals("0/1:7,4:11:T/TC:99:257,0,348", indel.getIndelVcf(0).getFormatFields().get(1));
+ 					assertEquals(".:7,5:.:T/A:.:.", indel.getIndelVcf(0).getFormatFields().get(2));
+					assertEquals("./.:.:.", indel.getIndelVcf(1).getFormatFields().get(1));
+					assertEquals(".:T/A:7,5", indel.getIndelVcf(1).getFormatFields().get(2));
 					assertTrue(indel.getIndelVcf(0).getInfo().equals("SOMATIC1" )); //info column from first file  
 					assertTrue(indel.getIndelVcf(1).getInfo().equals("SOMATIC" ));  //info column from second file
 				}else if(indel.getStart() == 59033286){
 					//indels only appear on second file,  
 					assertEquals("0/1:GGT/G:131,31:162:99:762,0,4864", indel.getIndelVcf(0).getFormatFields().get(2)); 
-					assertEquals(".:.:.:.:.:.", indel.getIndelVcf(0).getFormatFields().get(1));	
+					assertEquals("./.:.:.:.:.:.", indel.getIndelVcf(0).getFormatFields().get(1));	
 					assertTrue(indel.getIndelVcf(0).getInfo().equals("SOMATIC" )); //info column from second file  
 				}						 
 			}
