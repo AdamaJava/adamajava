@@ -1,7 +1,6 @@
 package org.qcmg.qprofiler2.vcf;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -69,7 +68,7 @@ public class VcfSummaryReport  extends SummaryReport {
 		for(int i = 1; i < formats.size(); i ++){
 			String key = sampleIds[i-1]; 
 			VcfFormatFieldRecord re = new VcfFormatFieldRecord(formats.get(0), formats.get(i));
-			for(String cate : formatCategories ){				
+			for(String cate : formatCategories ){
 				//new
 				int pos = cate.indexOf("="); 
 				if(pos > 0){
@@ -77,20 +76,19 @@ public class VcfSummaryReport  extends SummaryReport {
 					String formatValue = cate.substring(pos+1).trim();
 					key += Seperator +  ( re.getField(formatKey) != null && re.getField(formatKey).equalsIgnoreCase(formatValue) ? formatValue : "Other" );
 						
-				}else				
+				} else {
 					//sample id may be various: http://purl.org/..   so make the Seperator longer and unique
 					key += Seperator + (re.getField(cate) != null? re.getField(cate) : "Other" ) ;
-				if(!counts.containsKey(key))  counts.put( key, new AtomicLong() );
-				counts.get(key).getAndIncrement();			
+				}
+				counts.computeIfAbsent(key, k ->  new AtomicLong() ).getAndIncrement();
 			}	 
-			SampleSummary summary = summaries.computeIfAbsent( key, (k) -> new SampleSummary() );		
-			summary.parseRecord( vcf, i );			
+			summaries.computeIfAbsent( key, (k) -> new SampleSummary() ).parseRecord( vcf, i );
 		}				
 	}
 
 	void summaryToXml(Element parent){				
 		Element summaryElement = QprofilerXmlUtils.createSubElement(parent, NodeSummary);		
-		List<HashMap<String, Element>> categories =  new ArrayList< HashMap<String, Element>>();
+		List<Map<String, Element>> categories =  new ArrayList<>();
 		for(int i = 0; i <= formatCategories.length; i ++) 
 			categories.add(   new HashMap<String, Element>() ); 	
 		
@@ -101,16 +99,15 @@ public class VcfSummaryReport  extends SummaryReport {
 			ele.setAttribute( "value", cats[0] ); 
 			
 			for( int i = 1; i < cats.length; i ++ ) {
-				newKey += Seperator + cats[i];	
-				if(! categories.get(i).containsKey( newKey) )
-					categories.get(i).put( newKey, QprofilerXmlUtils.createSubElement(ele,  NodeCategory ) );
-				ele = categories.get(i).get(  newKey );	
+				newKey += Seperator + cats[i];
+				Map<String, Element> map = categories.get(i);
+				if(! map.containsKey( newKey) )
+					map.put( newKey, QprofilerXmlUtils.createSubElement(ele,  NodeCategory ) );
+				ele = map.get(  newKey );	
 				ele.setAttribute("value", cats[i]);
 				int pos = formatCategories[i-1].indexOf("=");
-				String type = "FORMAT:" + (pos > 0 ? formatCategories[i-1].substring(0,pos)  : formatCategories[i-1]);
-				//ele.setAttribute("type", "FORMAT:" + formatCategories[i-1]);
-				ele.setAttribute("type", type);
-				ele.setAttribute("count", counts.get(newKey)+"");
+				ele.setAttribute("type",  "FORMAT:" + (pos > 0 ? formatCategories[i-1].substring(0,pos)  : formatCategories[i-1]));
+				ele.setAttribute("count", counts.get(newKey).toString());
 			}
 			summaries.get(key).toXML(ele);
 		}		
