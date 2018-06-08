@@ -11,10 +11,7 @@ package org.qcmg.qprofiler2.fastq;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicLongArray;
 import htsjdk.samtools.fastq.FastqRecord;
 import htsjdk.samtools.SAMUtils;
 import org.qcmg.common.model.ProfileType;
@@ -124,35 +121,4 @@ public class FastqSummaryReport extends SummaryReport {
 				logger.error( "Invalid read id: " + id );
 		}		 						 			 	 
 	}
-
-//	private <T> void updateMap(ConcurrentMap<T, AtomicLong> map , T key) {
-//		AtomicLong al = map.get(key);
-//		if (null == al) {
-//			al = new AtomicLong();
-//			AtomicLong existing = map.putIfAbsent(key, al);
-//			if (null != existing) {
-//				al = existing;
-//			}
-//		}
-//		al.incrementAndGet();
-//	}
-//	
-//	private <T> void updateMapAndPosition(ConcurrentMap<T, AtomicLongArray> map , T key, int position) {
-//		
-//		
-//		AtomicLongArray ala = map.get(key);
-//		if (null == ala) {
-//			ala = new AtomicLongArray(256);
-//			AtomicLongArray existing = map.putIfAbsent(key, ala);
-//			if (null != existing) {
-//				ala = existing;
-//			}
-//		}
-//		ala.incrementAndGet(position);
-//	}
-	
-//	CycleSummary<Character> getFastqBaseByCycle() {
-//		return seqByCycle;
-//	}
-	
 }
