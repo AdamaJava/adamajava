@@ -1,5 +1,7 @@
 package org.qcmg.qprofiler2.summarise;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -147,7 +149,7 @@ public class ReadGroupSummary {
 	 * @param record
 	 * @return true if record parsed; otherwise return false since record duplicate, supplementary, secondary, failedVendorQuality, unmapped or nonCanonical. 
 	 */
-	public Boolean ParseRecord( final SAMRecord record ){
+	public boolean parseRecord( final SAMRecord record ){
 				
 		//record counts disregard good or not
 		inputReadCounts.incrementAndGet();  
@@ -168,10 +170,13 @@ public class ReadGroupSummary {
 		}else{
 			//parse clips
 			 int lHard = 0, lSoft = 0;
-			 for (CigarElement ce : record.getCigar().getCigarElements()) 
-				 if (ce.getOperator().equals(CigarOperator.HARD_CLIP))   lHard += ce.getLength();
-				 else if (ce.getOperator().equals(CigarOperator.SOFT_CLIP)) lSoft += ce.getLength();
-				 				 
+			 for (CigarElement ce : record.getCigar().getCigarElements()) {
+				 if (ce.getOperator().equals(CigarOperator.HARD_CLIP)) {
+					 lHard += ce.getLength();
+				 } else if (ce.getOperator().equals(CigarOperator.SOFT_CLIP)) {
+					 lSoft += ce.getLength();
+				 }
+			 }
 			hardClip.increment(lHard);
 			softClip.increment(lSoft);
 			readLength.increment(record.getReadLength()+lHard);
@@ -492,57 +497,54 @@ public class ReadGroupSummary {
 		}		
 			
 	private double addCountedReadStats(Element rgElement, String nodeName, QCMGAtomicLongArray array, long maxBases ){
-		ConcurrentHashMap<String, AtomicLong> map = new ConcurrentHashMap<String, AtomicLong>();
 		
 		//get the position of median
-			long bases = 0,counts = 0;
-			long arrayLength = null != array ? array.length() : 0;
-			for (int i = 1 ; i < arrayLength ; i++){
-				counts += array.get(i);
-				bases += i * array.get(i);
+		long bases = 0,counts = 0;
+		long arrayLength = null != array ? array.length() : 0;
+		for (int i = 1 ; i < arrayLength ; i++){
+			counts += array.get(i);
+			bases += i * array.get(i);
+		}
+		
+		int mean = (counts == 0) ? 0: (int) (bases / counts);
+//			long medium = arrayLength > 0 ? array.get( (int) (arrayLength / 2)) : 0;
+		
+		long medium = 0;
+		for (int i = 0 ; i < arrayLength ; i++) {
+			if((medium += array.get(i)) >= counts/2  ){
+				medium = i; 
+				break; 
 			}
-			
-			int mean = (counts == 0) ? 0: (int) (bases / counts);
-			long medium = arrayLength > 0 ? array.get( (int) (arrayLength / 2)) : 0;
-			
-			medium = 0;
-			for (int i = 0 ; i < arrayLength ; i++)
-				if((medium += array.get(i)) >= counts/2  ){
-					medium = i; 
-					break; 
-				}
-			int min = 0, max = 0, mode = 0; 
-			long highest = 0;
-			for (int i = 1 ; i < arrayLength ; i++) 
-				if(array.get(i) > 0){
-					//last non-zero position
-					max = i;					
-					//first non-zero position
-					min = ( min == 0 ) ? i : min; 					
-					//mode is the number of read which length is most popular
-					if(array.get(i) > highest){
-						highest = array.get(i);
-						mode = i; 
-					}  
-				}
-								
-	 		map.put( "min", new AtomicLong(min));
-			map.put( "max", new AtomicLong(max) );
-			map.put("mean",new AtomicLong(mean));
-			map.put( "mode", new AtomicLong(mode)) ;
-			map.put( "median", new AtomicLong(medium) );	
-			map.put("readCount",new AtomicLong(counts));				
+		}
+		int min = 0, max = 0, mode = 0; 
+		long highest = 0;
+		for (int i = 1 ; i < arrayLength ; i++) {
+			if(array.get(i) > 0){
+				//last non-zero position
+				max = i;					
+				//first non-zero position
+				min = ( min == 0 ) ? i : min; 					
+				//mode is the number of read which length is most popular
+				if(array.get(i) > highest){
+					highest = array.get(i);
+					mode = i; 
+				}  
+			}
+		}
+							
+		Element stats = QprofilerXmlUtils.createSubElement(rgElement, nodeName);		
+		stats.setAttribute( "min", min+"");
+		stats.setAttribute( "max", max +"");
+		stats.setAttribute("mean",mean+"");
+		stats.setAttribute( "mode", mode+"") ;
+		stats.setAttribute( "median", medium+"" );	
+		stats.setAttribute("readCount",counts+"");				
 
-			Element stats = QprofilerXmlUtils.createSubElement(rgElement, nodeName);		
-			for(String key : map.keySet()) 
-				stats.setAttribute(key,  map.get(key)+"");
-				
-
-			//deal with boundary value, missing reads
-			double percentage = (maxBases == 0)? 0: 100 * (double) bases /  maxBases ;		
-			stats.setAttribute("basePercent",  String.format("%2.2f", percentage    ));		
-			
-			return percentage; 
+		//deal with boundary value, missing reads
+		double percentage = (maxBases == 0)? 0: 100 * (double) bases /  maxBases ;		
+		stats.setAttribute("basePercent",  String.format("%2.2f", percentage    ));		
+		
+		return percentage; 
 	}
 	
 	private QCMGAtomicLongArray parseTrim( QCMGAtomicLongArray readLengthArray, int maxReadLength ) {

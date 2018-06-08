@@ -1,35 +1,24 @@
 package org.qcmg.qprofiler2.summarise;
 
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 
-import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
-import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.qcmg.common.model.ProfileType;
 import org.qcmg.common.util.QprofilerXmlUtils;
 import org.qcmg.qprofiler2.bam.BamSummarizer2;
 import org.qcmg.qprofiler2.bam.BamSummaryReport2;
-import org.qcmg.qprofiler2.bam.TagSummaryReportTest;
 import org.qcmg.qprofiler2.summarise.ReadGroupSummary;
-import org.qcmg.qprofiler2.util.SummaryReportUtils;
-import org.w3c.dom.DOMImplementation;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.NodeList;
 
-import javafx.util.Pair;
 import junit.framework.Assert;
 
 public class ReadGroupSummaryTest {
@@ -91,7 +80,7 @@ public class ReadGroupSummaryTest {
 	}
  	
 	@Test
-	public void PairsByRGTest() throws Exception{
+	public void PairsByRGTest() throws Exception {
 		
 		Element root = DocumentBuilderFactory.newInstance().newDocumentBuilder().getDOMImplementation().createDocument(null, "qProfiler", null).getDocumentElement();
 		BamSummaryReport2 sr = (BamSummaryReport2) new BamSummarizer2().summarize( INPUT_FILE); 
@@ -227,7 +216,7 @@ public class ReadGroupSummaryTest {
 				 		break;	
 				 		
 				 	default:
-				 		throw new Exception("unexpected read group appears on xml SUMMARY section");
+				 		throw new IllegalArgumentException("unexpected read group appears on xml SUMMARY section");
 				 }
 			}
 		}
@@ -261,7 +250,7 @@ public class ReadGroupSummaryTest {
 	}
 	
 	private static void createReadsInputFile() throws IOException{
-		List<String> data = new ArrayList<String>();
+		List<String> data = new ArrayList<>();
         data.add("@HD	VN:1.0	SO:coordinate");
         data.add("@RG	ID:1959T	SM:eBeads_20091110_CD	DS:rl=50");
         data.add("@RG	ID:1959N	SM:eBeads_20091110_ND	DS:rl=50");
@@ -336,7 +325,7 @@ public class ReadGroupSummaryTest {
 	
 	private static void createPairInputFile() throws IOException{
 		
-		List<String> data = new ArrayList<String>();
+		List<String> data = new ArrayList<>();
 		// first read of proper mapped pair; non-canonical pair (tlen > 0 will be counted), f5f3, tlen(2025>1500)
 		data.add("243_146_a	115	chr1	10075	6	3H37M	=	12100	2025	ACCCTAACCCTAACCCTAACCNTAACCCTAACCCAAC	+3?GH##;9@D7HI5,:IIB\"!\"II##>II$$BIIC3	" +
 				"RG:Z:1959T	CS:Z:T11010020320310312010320010320013320012232201032202	CQ:Z:**:921$795*#5:;##):<5&'/=,,9(2*#453-'%(.2$6&39$+4'");
