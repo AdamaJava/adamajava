@@ -38,6 +38,23 @@ public class KmersSummaryTest {
 	public void deleteFile(){ new File(SAM_INPUT_FILE).delete(); }
 	
 	@Test
+	public void producer() {
+		assertEquals("A,T,G,C,N", KmersSummary.producer(1,"",true));
+		assertEquals("A,T,G,C", KmersSummary.producer(1,"",false));
+		assertEquals("AA,AT,AG,AC,TA,TT,TG,TC,GA,GT,GG,GC,CA,CT,CG,CC", KmersSummary.producer(2,"",false));
+		
+	}
+	
+	@Test
+	public void getPossibleKmerString()  {
+		KmersSummary summary = new KmersSummary(KmersSummary.maxKmers);
+		String [] kmers = summary.getPossibleKmerString(6, true);
+		assertEquals((int)Math.pow(5,6), kmers.length);
+		kmers = summary.getPossibleKmerString(6, false);
+		assertEquals((int)Math.pow(4,6), kmers.length);
+	}
+	
+	@Test
 	public void bothReversedTest() throws IOException {		
 		KmersSummary summary = new KmersSummary(KmersSummary.maxKmers);	
  		try( SamReader reader = SAMFileReaderFactory.createSAMFileReader( new File(SAM_INPUT_FILE)); ){
