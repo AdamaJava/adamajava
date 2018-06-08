@@ -15,7 +15,7 @@ repositories {
 			dirs '/home/genomelocal/devel/adamajava/adamajava/lib'
 			dirs '../lib'
 		}
-		
+		mavenCentral()
     //flatDir(dirs:"$projectDir/../lib")
 }
 
