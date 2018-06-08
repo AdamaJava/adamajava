@@ -2,18 +2,10 @@ package org.qcmg.qprofiler2.bam;
 
 import junit.framework.Assert;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicLongArray;
-import java.util.stream.Stream;
 
 import org.junit.Test;
-import org.qcmg.common.model.QCMGAtomicLongArray;
 import org.qcmg.qprofiler2.summarise.PositionSummary;
 
 
@@ -21,7 +13,7 @@ public class PositionSummaryTest {
 
 	@Test
 	public void testAddPositionMinMax() throws Exception {
-		List<String> rgs = Arrays.asList(new String[] {"rg1", "rg2"});
+		List<String> rgs = Arrays.asList("rg1", "rg2");
 		PositionSummary ps = new PositionSummary(rgs);
 		
 		// add some positions to the summary obj
@@ -48,7 +40,7 @@ public class PositionSummaryTest {
 	
 	@Test
 	public void testAddPositionMap() throws Exception {
-		List<String> rgs = Arrays.asList(new String[] {"rg1", "rg2", "rg3"});
+		List<String> rgs = Arrays.asList("rg1", "rg2", "rg3");
 		PositionSummary ps = new PositionSummary(rgs);
 		
 		// add some positions to the summary obj

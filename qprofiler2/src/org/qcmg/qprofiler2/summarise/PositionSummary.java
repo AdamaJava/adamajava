@@ -13,15 +13,15 @@ package org.qcmg.qprofiler2.summarise;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicLongArray;
-import java.util.stream.LongStream;
 
 import org.qcmg.common.model.QCMGAtomicLongArray;
 
@@ -36,7 +36,6 @@ public class PositionSummary {
 	
 	private final ArrayList<Long> maxRgs = new ArrayList<Long>(); //store the max coverage from all read group at each position;
 	private Boolean hasAddPosition = true; //set to true after each time addPosition, set to false after getAverage
-	private int maxAverage = -1 ;  
 		
 	/**
 	 * No default constructor defined as we don't want the initial values of 
@@ -66,9 +65,9 @@ public class PositionSummary {
 	 * @return the max read coverage based on the max coverage from each read group and each position
 	 */
 	public long getMaxRgCoverage(){
-		if( hasAddPosition  || maxRgs.isEmpty()){ 
+		if( hasAddPosition  || maxRgs.isEmpty()){
 			maxRgs.clear();
-			for (int i = 0, length = (max.get()/BUCKET_SIZE) + 1; i < length ; i++){ 	
+			for (int i = 0, length = (max.get()/BUCKET_SIZE) + 1; i < length ; i++){
 				long[] rgCov = new long[rgCoverages.length];				
 				for(int j = 0; j < rgCoverages.length; j ++)
 					rgCov[j] = rgCoverages[j].get(i);
@@ -108,8 +107,8 @@ public class PositionSummary {
 	 */
 	
 	public Map<Integer,  AtomicLongArray> getCoverageByRgId(List<String> rgs) {
-		ConcurrentMap<Integer, AtomicLongArray> sortedCoverage = new ConcurrentSkipListMap<Integer, AtomicLongArray>();		
-		for (int i = 0; i < getBinNumber() ; i++){ 	
+		Map<Integer, AtomicLongArray> sortedCoverage = new TreeMap<Integer, AtomicLongArray>();		
+		for (int i = 0, max =getBinNumber() ; i < max ; i++){ 	
 			if(coverage.get(i) == 0) continue; 
 			AtomicLongArray array = new AtomicLongArray( rgs.size() );						
 			//skip coverages[coverages.length-2].get(i) since it for non-RG record
@@ -118,22 +117,20 @@ public class PositionSummary {
 				int order = readGroupIds.indexOf(rgs.get(j));
 				array.getAndAdd(j, rgCoverages[order].get(i)) ;				
 			}
-			
 			sortedCoverage.put( i, array );			
 		}
-		
 		return sortedCoverage;
 	}
 	
 	
 	/**
      * Returns a map which holds the coverage of positions binned by millions
+     * doesn't need to be sorted
      */
     public Map<Integer, AtomicLong> getCoverage() {
-        ConcurrentMap<Integer, AtomicLong> sortedCoverage = new ConcurrentSkipListMap<Integer, AtomicLong>();
+        Map<Integer, AtomicLong> sortedCoverage = new HashMap<Integer, AtomicLong>();
         for (int i = 0, length = (int)coverage.length() ; i < length ; i++) {
-               // if (coverage.get(i) > 0) //otherwise will appear null 
-                        sortedCoverage.put(i, new AtomicLong(coverage.get(i)));
+        		sortedCoverage.put(i, new AtomicLong(coverage.get(i)));
         }
         return sortedCoverage;
     }
@@ -143,9 +140,8 @@ public class PositionSummary {
 	 * It will adjust the min/max values, and increment the coverage map accordingly
 	 * 
 	 * @param position int relating to the position being added to the summary
-	 * @throws Exception 
 	 */
-	public void addPosition(final int position, String  rgid  ) throws Exception {
+	public void addPosition(final int position, String  rgid  ) {
 		
 		// my attempt at a non-blocking updating of max
 		int tempMax = max.get();
@@ -171,7 +167,7 @@ public class PositionSummary {
 		//count for nominated rg on that position
 		int order = readGroupIds.indexOf(rgid);
 		if(order < 0 )
-			throw new Exception("can't find readGroup Id on Bam header: @RG ID:"+ rgid);
+			throw new IllegalArgumentException("can't find readGroup Id on Bam header: @RG ID:"+ rgid);
 		
 		rgCoverages[ readGroupIds.indexOf(rgid)  ].increment(position / BUCKET_SIZE);  
 		//last element is the total counts on that position
