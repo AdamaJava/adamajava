@@ -248,7 +248,7 @@ public class BamSummaryReport2 extends SummaryReport {
 	 * Parse a SAMRecord Collate various pieces of info from the SAMRecord ready for the summariser to retrieve
 	 * @param record SAMRecord next row in file
 	 */
-	public void parseRecord( final SAMRecord record ) throws Exception{
+	public void parseRecord( final SAMRecord record ) {
  		updateRecordsParsed();
 		
 		String readGroup = QprofilerXmlUtils.UNKNOWN_READGROUP;
@@ -257,10 +257,10 @@ public class BamSummaryReport2 extends SummaryReport {
 				
 		// Xu code: check if record has its fail or duplicate flag set. if so, miss out some of the summaries
 		//anyway, add to summary and then add to it's readgroup
-		rgSummaries.get(QprofilerXmlUtils.All_READGROUP).ParseRecord(record); 
+		rgSummaries.get(QprofilerXmlUtils.All_READGROUP).parseRecord(record); 
 
 		ReadGroupSummary rgSumm = rgSummaries.computeIfAbsent(readGroup, k -> new ReadGroupSummary(k));
-		boolean parsedRecord = rgSumm.ParseRecord(record);
+		boolean parsedRecord = rgSumm.parseRecord(record);
 		
 		final int order = (!record.getReadPairedFlag())? 0: (record.getFirstOfPairFlag())? 1 : 2;			
 		if( parsedRecord  ) {	
@@ -423,7 +423,7 @@ public class BamSummaryReport2 extends SummaryReport {
 		summary.pairSummary2Xml(pairElement);
 	}
 		
-	void parseRNameAndPos( final String rName,  final int position, String rgid ) throws Exception {
+	void parseRNameAndPos( final String rName,  final int position, String rgid ) {
 		PositionSummary ps = (PositionSummary) rNamePosition.computeIfAbsent( rName, k->new PositionSummary( readGroupIds) );
 		ps.addPosition( position, rgid );
 	}
