@@ -24,7 +24,8 @@ import au.edu.qimr.qannotate.modes.*;
  * parse command line to options. 
  */
 public class Options {
-	public enum MODE { dbsnp, germline, snpeff,confidence, vcf2maf, cadd,indelconfidence,trf, hom, ccm,make_valid, snppileup }
+	public enum MODE { dbsnp, germline, snpeff,confidence, vcf2maf, cadd,indelconfidence,trf, hom, ccm,make_valid, overlap }
+
 	
     protected static final String VERSION_DESCRIPTION = Messages.getMessage("VERSION_OPTION_DESCRIPTION");	 
     protected static final String HELP_DESCRIPTION = Messages.getMessage("HELP_OPTION_DESCRIPTION");      
@@ -298,7 +299,7 @@ public class Options {
 	public String getInputFileName(){return inputFileName;}
 	public String getOutputFileName(){return outputFileName;}
 	public String getDatabaseFileName(){return null != databaseFiles && databaseFiles.length > 0 ? databaseFiles[0] : null;}	
-	public String[] getDatabaseFiles(){ return  (mode.equals(MODE.cadd) || mode.equals(MODE.snppileup))? databaseFiles : null;}
+	public String[] getDatabaseFiles(){ return  (mode.equals(MODE.cadd) || mode.equals(MODE.overlap))? databaseFiles : null;}
     public MODE getMode(){	return  mode; }
    
     private void displayHelp(MODE mode) throws IOException {   
@@ -315,7 +316,7 @@ public class Options {
             case vcf2maf: mess = Messages.getMessage("VCF2MAF_USAGE"); break;
             case hom: mess = Messages.getMessage("HOM_USAGE"); break;
 			case make_valid:	mess = Messages.getMessage("MAKE_VALID_USAGE"); break;
-			case snppileup:	mess = Messages.getMessage("MAKE_PILEUP_USAGE"); break;
+			case overlap:	mess = Messages.getMessage("MAKE_PILEUP_USAGE"); break;
 			default:
 				break;
             } 
