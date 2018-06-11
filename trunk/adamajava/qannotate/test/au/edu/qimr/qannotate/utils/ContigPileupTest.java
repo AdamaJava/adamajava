@@ -14,7 +14,10 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.picard.SAMFileReaderFactory;
+import org.qcmg.qbamfilter.query.QueryExecutor;
+
 import static org.junit.Assert.assertTrue;
 
 import htsjdk.samtools.SAMRecord;
@@ -26,13 +29,12 @@ public class ContigPileupTest {
 	
 	@BeforeClass
 	public static void createInput() {	
-		SnpPileupTest.createSam( makeReads4Pool() ); 
+		VariantPileupTest.createSam( makeReads4Pool() );		 
 	}
 	
 	@AfterClass
 	public static void deleteInput() {	
-		SnpPileupTest.deleteInput();
-	//	new File(SnpPileupTest.inputBam).delete();
+		VariantPileupTest.deleteInput();
 	}		
 		
 	@Test
@@ -40,42 +42,107 @@ public class ContigPileupTest {
 	 	List<SAMRecord> current_pool = new ArrayList<SAMRecord>();
 	 	List<SAMRecord> next_pool = new ArrayList<SAMRecord>(); 
 	 	
-	 	ChrPosition[] snps = new ChrPosition[]{ new ChrPointPosition( "chr11", 282753), new ChrPointPosition( "chr11", 282757) , new ChrPointPosition( "chr11", 282768) , new ChrPointPosition( "chr11", 282783 ) };
-	 	initPool( snps[0], current_pool,   next_pool );
-	 	
+	 	ChrPosition[] snps = new ChrPosition[]{ new ChrPointPosition( "chr11", 282753), new ChrPointPosition( "chr11", 282757) , new ChrPointPosition( "chr11", 282768) , new ChrPointPosition( "chr11", 282783 ) };	 		 	
+	 	initPool( snps[0], current_pool,   next_pool );	 	
 	 	assertTrue( current_pool.size() == 2 );
 	 	assertTrue( next_pool.size() == 1 );	 
 
-	 	ContigPileup pile = new ContigPileup(null,  null, null, null, null, null, null);
-		pile.resetPool( snps[1], current_pool,   next_pool);	
+	 	ContigPileup pile = new ContigPileup(null,  null, null, null, null,0, null, null);
+		//pile.resetPool( snps[1], current_pool,   next_pool );	
+	 	pile.resetPool( new VcfRecord.Builder( snps[1], "T").build(), current_pool,   next_pool );			
 	 	assertTrue( current_pool.size() == 1 );	 
 	 	assertTrue( next_pool.size() == 1 );	
 	 		 	
-		pile.resetPool( snps[2], current_pool,   next_pool);	
+		//pile.resetPool( snps[2], current_pool,   next_pool );	
+		pile.resetPool( new VcfRecord.Builder( snps[2], "T").build(), current_pool,   next_pool );	
 	 	assertTrue( current_pool.size() == 2 );	 
 	 	assertTrue( next_pool.size() == 0 );	
 	 	
-		pile.resetPool( snps[3], current_pool,   next_pool);	
+		//pile.resetPool( snps[3], current_pool,   next_pool );	 	
+	 	pile.resetPool( new VcfRecord.Builder( snps[3], "T").build(), current_pool,   next_pool );	
 	 	assertTrue( current_pool.size() == 0 );
 	 	assertTrue( next_pool.size() == 0 );
 	}
 	
 	@Test				
 	public void runTest(){
-	 	ChrPosition[] snps = new ChrPosition[]{ new ChrPointPosition( "chr11", 282753), new ChrPointPosition( "chr11", 282757) , new ChrPointPosition( "chr11", 282768) , new ChrPointPosition( "chr11", 282783 ) };
-		AbstractQueue<ChrPosition> qIn = new ConcurrentLinkedQueue< ChrPosition >( Arrays.asList( snps ) ); 
-		AbstractQueue< SnpPileup > queue = new ConcurrentLinkedQueue<>();
-		SamReader reader =  SAMFileReaderFactory.createSAMFileReader( new File( SnpPileupTest.inputBam) ) ;				 
+	 	ChrPosition[] poss = new ChrPosition[]{ new ChrPointPosition( "chr11", 282753), new ChrPointPosition( "chr11", 282757) , new ChrPointPosition( "chr11", 282768) , new ChrPointPosition( "chr11", 282783 ) };
+	 	VcfRecord[] snps = new VcfRecord[4];
+	 	for(int i = 0; i < 4; i++ )
+	 		snps[i] = new VcfRecord.Builder(poss[i],	"T").allele("A").build();
+	 	
+	 	AbstractQueue<VcfRecord> qIn = new ConcurrentLinkedQueue< >( Arrays.asList( snps ) ); 
+		AbstractQueue< VariantPileup > queue = new ConcurrentLinkedQueue<>();
+		SamReader reader =  SAMFileReaderFactory.createSAMFileReader( new File( VariantPileupTest.inputBam) ) ;				 
 		 SAMSequenceRecord contig = reader.getFileHeader().getSequenceDictionary().getSequence(1); 		
-		ContigPileup pile = new ContigPileup( contig, qIn, new File( SnpPileupTest.inputBam),null, queue, Thread.currentThread(), new CountDownLatch( 2));
-		pile.run();
-		
-		
+		ContigPileup pile = new ContigPileup( contig, qIn, new File( VariantPileupTest.inputBam), null, queue,0, Thread.currentThread(), new CountDownLatch( 2));
+		pile.run();		
 	}
-
+	
+	@Test
+	public void mnpTest(){
+		AbstractQueue< VariantPileup > qOut = new ConcurrentLinkedQueue<>();
+		AbstractQueue<VcfRecord> qIn = new ConcurrentLinkedQueue<>();
+		qIn.add( new VcfRecord.Builder( "chr11", 282754, "T").allele("C").build() );
+		qIn.add( new VcfRecord.Builder( "chr11", 282757, "CA").allele("AC").build() );
+		qIn.add( new VcfRecord.Builder( "chr11", 282758, "AG").allele("GA").build());
+		qIn.add( new VcfRecord.Builder( "chr11", 282759, "GGCAA").allele("GCAAA").build() );
+								 
+  	 	ContigPileup pileup = new ContigPileup( new SAMSequenceRecord("chr11", 10000000), qIn, new File( VariantPileupTest.inputBam ), null, qOut, 1, Thread.currentThread(), new CountDownLatch(1) );  
+  	 	pileup.run();	  	 	
+  	 	assertTrue( qOut.size() == 4 );	
+  	 	
+  	 	for(VariantPileup vp : qOut){
+  	 		//only one reference reads
+  	 		if(vp.getVcf().getPosition() == 282754) 
+  	 			assertTrue(vp.getAnnotation().equals("2[0,0,2,0,0]") ); //?
+  	 		
+  	 		//only aaaa2222	99	chr11	282751 
+  	 		else  if(vp.getVcf().getPosition() == 282757) 
+  	 			assertTrue(vp.getAnnotation().equals("1[0,0,1,0,0]") );
+  	 		else  if(vp.getVcf().getPosition() == 282758) 
+  	 			assertTrue(vp.getAnnotation().equals("3[1,0,2,0,0]") );
+  	 		
+  	 		//pair aaaa2222, and  aaaa1111	147	chr11	282758
+  	 		else  if(vp.getVcf().getPosition() == 282759) 
+  	 			assertTrue(vp.getAnnotation().equals("3[1,0,2,0,0]") );
+  	 	}				
+	}	
+	
+	@Test
+	public void indelTest(){
+		AbstractQueue< VariantPileup > qOut = new ConcurrentLinkedQueue<>();
+		AbstractQueue<VcfRecord> qIn = new ConcurrentLinkedQueue<>();
+		qIn.add( new VcfRecord.Builder( "chr11", 282754, "T").allele("TCC").build() );
+		qIn.add( new VcfRecord.Builder( "chr11", 282758, "AG").allele("A").build() );
+		qIn.add( new VcfRecord.Builder( "chr11", 282758, "AGGCAA").allele("A").build());
+		qIn.add( new VcfRecord.Builder( "chr11", 282759, "GGCAA").allele("G").build() );
+		
+						 
+  	 	ContigPileup pileup = new ContigPileup( new SAMSequenceRecord("chr11", 10000000), qIn, new File( VariantPileupTest.inputBam ), null, qOut, 1, Thread.currentThread(), new CountDownLatch(1) );  
+  	 	pileup.run();	   	 	
+  	 	assertTrue( qOut.size() == 4 );	
+  	 	
+  	 	for(VariantPileup vp : qOut){
+  	 		//only one reference reads
+  	 		if(vp.getVcf().getRef().equals("T")) 
+  	 			assertTrue(vp.getAnnotation().equals("1[0,0,1,0,0]") ); //?
+  	 		
+  	 		//only aaaa2222	99	chr11	282751 
+  	 		else  if(vp.getVcf().getRef().equals("AG")) 
+  	 			assertTrue(vp.getAnnotation().equals("1[0,0,1,0,0]") );
+  	 		else  if(vp.getVcf().getRef().equals("AGGCAA")) 
+  	 			assertTrue(vp.getAnnotation().equals("1[0,0,1,0,0]") );
+  	 		
+  	 		//pair aaaa2222, and  aaaa1111	147	chr11	282758
+  	 		else  if(vp.getVcf().getRef().equals("GGCAA")) 
+  	 			assertTrue(vp.getAnnotation().equals("3[1,0,2,0,0]") );
+  	 	}
+	}	
+	
 	private void initPool( ChrPosition topPos, List<SAMRecord> current_pool, List<SAMRecord> next_pool ) {
 		
-		 try(SamReader inreader =  SAMFileReaderFactory.createSAMFileReader(new File( SnpPileupTest.inputBam ));){  					 
+		 try(SamReader inreader =  SAMFileReaderFactory.createSAMFileReader(new File( VariantPileupTest.inputBam ));){  					 
 			 for(SAMRecord re : inreader){		 		
 		 		//bam file already sorted, skip non-indel region record
 		 		//query take longer time so put to last condition

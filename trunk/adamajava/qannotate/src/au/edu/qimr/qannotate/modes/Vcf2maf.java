@@ -256,7 +256,7 @@ public class Vcf2maf extends AbstractMode{
 				write.println(re.toString());
 			
 			//if vcf header contain ACSNP descripion  then we have to output to maf file
-			if( header.getFormatRecord(VcfHeaderUtils.FORMAT_ACSNP) != null )
+			if( header.getFormatRecord(VcfHeaderUtils.FORMAT_ACLAP) != null )
 				hasACSNP = true;
  			
 			for(MafElement ele: EnumSet.allOf( MafElement.class))

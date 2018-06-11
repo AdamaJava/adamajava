@@ -44,8 +44,11 @@ public class Main {
         	   		new TandemRepeatMode( options );
            } else if (options.getMode() == Options.MODE.make_valid) {
         	   		new MakeValidMode( options );
-           } else if (options.getMode() == Options.MODE.snppileup) {
-   	   			new SnpPileupMode( options );
+//           } else if (options.getMode() == Options.MODE.snppileup) {
+//   	   			new SnpPileupMode( options );
+   	   	   } else if (options.getMode() == Options.MODE.overlap) {
+   	   			new OverlapMode( options );
+
            } else {
         	   		logger.error("No valid mode are specified on commandline: " + options.getMode());
         	   		throw new Exception("No valid mode are specified on commandline: " + options.getMode()) ;
