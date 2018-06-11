@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
@@ -17,7 +18,7 @@ import org.qcmg.common.util.IndelUtils.SVTYPE;
 import org.qcmg.common.util.QprofilerXmlUtils;
 import org.qcmg.common.vcf.VcfFormatFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
-
+import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.w3c.dom.Element;
 
 public class SampleSummary {
@@ -33,7 +34,7 @@ public class SampleSummary {
 	public final static String transitions ="Transitions";
 	public final static String transversions = "Transversions";
 		
-	List< String > gts = new ArrayList<>(); //store possible genotyp 0/1, 0/0, ./1 ...
+	Set< String > gts = new HashSet<>(); //store possible genotyp 0/1, 0/0, ./1 ...
 	Map< String, AtomicLong > summary = new HashMap<>();
 	Map<String, QCMGAtomicLongArray> summaryAD = new HashMap<>();
 	
@@ -109,21 +110,21 @@ public class SampleSummary {
 		SVTYPE type = IndelUtils.getVariantType(vcf.getRef(), vcf.getAlt());
 		boolean isdbSNP = !StringUtils.isNullOrEmptyOrMissingData(vcf.getId());
 		
-		String gt = format.getField("GT"); //GT
-		if( !gts.contains(gt) ) gts.add(gt);
+		String gt = format.getField(VcfHeaderUtils.FORMAT_GENOTYPE); //GT
+		gts.add(gt);
 				
 		increment( type + ""); //count svtype
 		increment( type + gt);	//count genotyp	
 						
 		//variant allel frequence VAF	 
-		incrementGTAD(type , gt, format.getField("AD"), format.getField("DP"), summaryAD);				
+		incrementGTAD(type , gt, format.getField(VcfHeaderUtils.FORMAT_ALLELIC_DEPTHS), format.getField(VcfHeaderUtils.FORMAT_READ_DEPTH), summaryAD);				
  								
 		if(isdbSNP) increment(  type.name() + "dbSNP");	//dbsnp					
 		if(type.equals(SVTYPE.SNP)){ 
 			//get Ti Tv counts based on GT value			
 			String salt = vcf.getAlt().replace(",", "");
 			String sgt = gt.replace("|", "").replace("/", "").replace(".", "").replace("0", "");				
-			List<SubsitutionEnum> transTypes = new ArrayList<SubsitutionEnum>();
+			List<SubsitutionEnum> transTypes = new ArrayList<>();
 			new HashSet<Character> (sgt.chars().mapToObj(e->(char)e).collect(Collectors.toList())).forEach(
 				c ->  transTypes.add( SubsitutionEnum.getTrans( vcf.getRef().charAt(0), salt.charAt( c-'1' ) )) 
 			);
@@ -137,26 +138,27 @@ public class SampleSummary {
 	}	 			
 		
 	public void toXML(Element parent){
-		Element reportE = QprofilerXmlUtils.createSubElement(parent, report);	
+		Element reportE = QprofilerXmlUtils.createSubElement(parent, report);
+		List<String> orderedGTs = new ArrayList<>(gts);
+		orderedGTs.sort(null);
 		for(SVTYPE type : SVTYPE.values()){	
-			//only output none zero value
-			if( !summary.containsKey( type.name())) continue;		
-			final long total = summary.get( type.name()).get();
+			//only output non zero value
+			AtomicLong totalAL = summary.get( type.name());
+			if( null == totalAL) continue;
 			Element svtypeE = QprofilerXmlUtils.createSubElement(reportE,  variantType);
 			svtypeE.setAttribute("type", type.toVariantType() );
-			svtypeE.setAttribute( QprofilerXmlUtils.count, total + "");
+			svtypeE.setAttribute( QprofilerXmlUtils.count, totalAL.toString());
 			String key =  type.name() + "dbSNP";
 			svtypeE.setAttribute("inDBSNP", summary .containsKey(key)? summary.get(key).get()+"" : "0" ); 
 			
 			Element genotypeE = QprofilerXmlUtils.createSubElement(svtypeE, genotypes);
-			for(String gt : gts){
+			for(String gt : orderedGTs){
 				key =  type.name() + gt;
-				if(summary.containsKey(key) && summary.get(key).get() > 0){
+				AtomicLong al = summary.get(key);
+				if (null != al && al.get() > 0) {
 					Element element = QprofilerXmlUtils.createSubElement(genotypeE, genotype);
 					element.setAttribute("type", gt);
-					long count = summary.containsKey(key)? summary.get(key).get()   : 0;
-					element.setAttribute( QprofilerXmlUtils.count, count+"" ); 
-					QCMGAtomicLongArray array = summaryAD.get(key);
+					element.setAttribute( QprofilerXmlUtils.count, al.toString()); 
 				}
 			}
 							
@@ -179,7 +181,7 @@ public class SampleSummary {
 					String mark = tran.isTranstion()? "Ti" :  "Tv" ;
 					if( ! summary.containsKey(key = type.name() + mark + tran.name())) continue;	
 					Element subE = QprofilerXmlUtils.createSubElement( titvMethodE, substitution );							
-					subE.setAttribute( QprofilerXmlUtils.count, summary.get(key).get() + "" );
+					subE.setAttribute( QprofilerXmlUtils.count, summary.get(key).toString());
 					subE.setAttribute("change", tran.toString());							
 				}
 			}
