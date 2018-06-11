@@ -190,7 +190,7 @@ public class GermlineMode extends AbstractMode{
 			if (gAlt.equals(alt)) {
 				/*
 				 * add to INFO field as this information is positional.
-				 * Add alt to counts so it is possible to distinguish which alt this GERM annotaiton is being applied to
+				 * Add alt to counts so it is possible to distinguish which alt this GERM annotation is being applied to
 				 * If a GERM annotation already exists, then we need to append...
 				 */
 				VcfInfoFieldRecord info = vcf.getInfoRecord();
