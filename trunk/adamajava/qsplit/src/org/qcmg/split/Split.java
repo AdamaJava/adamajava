@@ -278,7 +278,7 @@ public class Split {
 				throw new Exception("Input file contains records lacking ZC integer attribute");
 			}
 			
-			SAMFileWriter writer = zcToWriterMap.get(zc);
+			SAMFileWriter writer = zcToWriterMap.get((Integer)zc);
 			
 			if (null == writer) {
 				closeWriters();
