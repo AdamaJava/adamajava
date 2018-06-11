@@ -106,7 +106,7 @@ public class  CaddMode extends AbstractMode{
 	    	if(chr.equalsIgnoreCase("m")) chr = "MT"; 
 
     	
-		for(TabixReader tabix : tabixs){			
+		for(TabixReader tabix : tabixs){	
 			TabixReader.Iterator it = tabix.query(chr, start, end);
 			while(( line = it.next())!= null){
 				blockSize ++;  
@@ -124,7 +124,8 @@ public class  CaddMode extends AbstractMode{
 		    		int s = Integer.parseInt(eles[1]);  //start position = second column
 		    		int e = s + eles[2].length() - 1;   //start position + length -1
 		    		
-		    		List<VcfRecord> inputVcfs = positionRecordMap.get(new ChrRangePosition(chr, s, e ));	    
+		    		ChrPosition cp  = new ChrRangePosition(chr, s, e);
+		    		List<VcfRecord> inputVcfs = positionRecordMap.get(cp);	    
 				if ( (null == inputVcfs) || inputVcfs.size() == 0 ) {
 					continue; 
 				}
@@ -156,9 +157,9 @@ public class  CaddMode extends AbstractMode{
 		//output
 		final List<ChrPosition> orderedList = new ArrayList<>(positionRecordMap.keySet());
 		orderedList.sort(COMPARATOR);
-		for (final ChrPosition position : orderedList)  {
+		for (final ChrPosition position : orderedList) {
 			for(VcfRecord re: positionRecordMap.get(position)) {
-				writer.add( re );	
+				writer.add( re );
 			}
 		}
 			 			
