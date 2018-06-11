@@ -559,9 +559,9 @@ public class HTMLReportUtils {
 		boolean useValuesFromCycles = null == stringList || ! stringList.containsAll(cycle.getPossibleValues());
 		
 		if (useValuesFromCycles) {
-			stringList = new ArrayList<String>();
+			stringList = new ArrayList<>();
 			if (isQualData) {
-				Set<Integer> possibleIntegerValues = new TreeSet<Integer>();
+				TreeSet<Integer> possibleIntegerValues = new TreeSet<>();
 				// get values in sorted integer format
 				for (T value : cycle.getPossibleValues()) {
 					String valueString = value.toString();
@@ -575,7 +575,7 @@ public class HTMLReportUtils {
 					}
 				}
 				
-				for (Iterator<Integer> iter = ((TreeSet<Integer>) possibleIntegerValues).descendingIterator() ; iter.hasNext() ; ) {
+				for (Iterator<Integer> iter = (possibleIntegerValues).descendingIterator() ; iter.hasNext() ; ) {
 					stringList.add(iter.next().toString());
 				}
 				
