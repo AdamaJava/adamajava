@@ -59,7 +59,7 @@ public class Vcf2maf extends AbstractMode{
 	private boolean hasACSNP = false; 
 	
 	//for unit test
-	Vcf2maf(int test_column, int control_column, String test, String control){ 
+	Vcf2maf(int test_column, int control_column, String test, String control, ContentType contentType){ 
 		center = SnpEffMafRecord.center;
 		sequencer = SnpEffMafRecord.Unknown; 
 		this.donorId = SnpEffMafRecord.Unknown; 		
@@ -69,7 +69,7 @@ public class Vcf2maf extends AbstractMode{
 		this.controlSample = control;		
 		this.testBamId = null; 
 		this.controlBamId = null;
-		this.contentType = null;
+		this.contentType = contentType;
 	}
  
 	//EFF= Effect ( Effect_Impact | Functional_Class | Codon_Change | Amino_Acid_Change| Amino_Acid_Length | Gene_Name | Transcript_BioType | Gene_Coding | Transcript_ID | Exon_Rank  | Genotype_Number [ | ERRORS | WARNINGS ] )	
@@ -379,65 +379,67 @@ public class Vcf2maf extends AbstractMode{
 		String [] oabsArr = ffMap.get(VcfHeaderUtils.FORMAT_OBSERVED_ALLELES_BY_STRAND);
 		if (null != oabsArr) {
 			
-		String [] dpArr = ffMap.get(VcfHeaderUtils.FORMAT_READ_DEPTH);
-		if (null == dpArr) {
-			logger.warn("no dp format field found: " + vcf.toString());
-		}
-		Map<String, Integer> covMap = VcfUtils.getAllelicCoverage(oabsArr[testColumn -1]);
-		int refCount = 0;
-		int altCount = 0;
-		int totalCount = covMap.values().stream().mapToInt(Integer::intValue).sum();
-		if (null != covMap) {
-			Integer i = covMap.get(vcf.getRef());
-			if (null != i) {
-				refCount = i.intValue();
+			String [] dpArr = ffMap.get(VcfHeaderUtils.FORMAT_READ_DEPTH);
+			if (null == dpArr) {
+				logger.warn("no dp format field found: " + vcf.toString());
 			}
-			i = covMap.get(vcf.getAlt());
-			if (null != i) {
-				altCount = i.intValue();
+			Map<String, Integer> covMap = VcfUtils.getAllelicCoverage(oabsArr[testColumn -1]);
+			int refCount = 0;
+			int altCount = 0;
+			int totalCount = covMap.values().stream().mapToInt(Integer::intValue).sum();
+			if (null != covMap) {
+				Integer i = covMap.get(vcf.getRef());
+				if (null != i) {
+					refCount = i.intValue();
+				}
+				i = covMap.get(vcf.getAlt());
+				if (null != i) {
+					altCount = i.intValue();
+				}
 			}
-		}
-		
-		String [] gtArr = ffMap.get(VcfHeaderUtils.FORMAT_GENOTYPE);
-		if (null == gtArr) {
-			throw new IllegalArgumentException("No GT info found in format fields: " + formats.stream().collect(Collectors.joining(Constants.COMMA_STRING)));
-		}
-		String gt = gtArr[testColumn - 1];
-		List<String> alleles = VcfUtils.getAlleles(gt, vcf.getRef(), vcf.getAlt());
-		
-		String [] nnsArr = ffMap.get(VcfHeaderUtils.FORMAT_NOVEL_STARTS);
-		
-		maf.setColumnValue(MafElement.TD,  oabsArr[testColumn - 1]); //TD
-	    	maf.setColumnValue(MafElement.T_Depth , null != dpArr ? dpArr[testColumn - 1] : totalCount+""); //t_depth
-	    	maf.setColumnValue(MafElement.T_Ref_Count , refCount + ""); //t_ref_count
-	    	maf.setColumnValue(MafElement.T_Alt_Count , altCount + ""); //t_alt_count
-	    	maf.setColumnValue(MafElement.Tumor_Seq_Allele1 , alleles.isEmpty() ? vcf.getRef() : alleles.get(0));  //TD allele1
-	    	maf.setColumnValue(MafElement.Tumor_Seq_Allele2, alleles.isEmpty() ? vcf.getRef() : alleles.get(1));		//TD allele2
-		
-		    	
-	    	covMap = VcfUtils.getAllelicCoverage(oabsArr[controlColumn -1 ]);
-	    	totalCount = covMap.values().stream().mapToInt(Integer::intValue).sum();
-	    	refCount = 0;
-	   	altCount = 0;
-		if (null != covMap) {
-			Integer i = covMap.get(vcf.getRef());
-			if (null != i) {
-				refCount = i.intValue();
+			
+			String [] gtArr = ffMap.get(VcfHeaderUtils.FORMAT_GENOTYPE);
+			if (null == gtArr) {
+				throw new IllegalArgumentException("No GT info found in format fields: " + formats.stream().collect(Collectors.joining(Constants.COMMA_STRING)));
 			}
-			i = covMap.get(vcf.getAlt());
-			if (null != i) {
-				altCount = i.intValue();
-			}
-		}
-		alleles = VcfUtils.getAlleles(gt, vcf.getRef(), vcf.getAlt());
-		
-		maf.setColumnValue(MafElement.ND, oabsArr[controlColumn - 1]);
-	    	maf.setColumnValue(MafElement.N_Depth,   null != dpArr ? dpArr[controlColumn - 1] : totalCount +"");
-	    	maf.setColumnValue(MafElement.N_Ref_Count, refCount + ""); 
-	    	maf.setColumnValue(MafElement.N_Alt_Count, altCount + "");
-	    	maf.setColumnValue(MafElement.Match_Norm_Seq_Allele1, alleles.isEmpty() ? null : alleles.get(0)); //ND allele1
-	    	maf.setColumnValue(MafElement.Match_Norm_Seq_Allele2 , alleles.isEmpty() ? null : alleles.get(1));	//ND allele2
-		maf.setColumnValue(MafElement.Novel_Starts, nnsArr[controlColumn - 1] + Constants.COLON_STRING + nnsArr[testColumn - 1]);	
+			String gt = gtArr[testColumn - 1];
+			List<String> alleles = VcfUtils.getAlleles(gt, vcf.getRef(), vcf.getAlt());
+			
+			String [] nnsArr = ffMap.get(VcfHeaderUtils.FORMAT_NOVEL_STARTS);
+			
+			maf.setColumnValue(MafElement.TD,  oabsArr[testColumn - 1]); //TD
+		    	maf.setColumnValue(MafElement.T_Depth , null != dpArr ? dpArr[testColumn - 1] : totalCount+""); //t_depth
+		    	maf.setColumnValue(MafElement.T_Ref_Count , refCount + ""); //t_ref_count
+		    	maf.setColumnValue(MafElement.T_Alt_Count , altCount + ""); //t_alt_count
+		    	maf.setColumnValue(MafElement.Tumor_Seq_Allele1 , alleles.isEmpty() ? vcf.getRef() : alleles.get(0));  //TD allele1
+		    	maf.setColumnValue(MafElement.Tumor_Seq_Allele2, alleles.isEmpty() ? vcf.getRef() : alleles.get(1));		//TD allele2
+			
+		    	if (ContentType.multipleSamples(contentType)) {
+			    	covMap = VcfUtils.getAllelicCoverage(oabsArr[controlColumn -1 ]);
+			    	totalCount = covMap.values().stream().mapToInt(Integer::intValue).sum();
+			    	refCount = 0;
+			   	altCount = 0;
+				if (null != covMap) {
+					Integer i = covMap.get(vcf.getRef());
+					if (null != i) {
+						refCount = i.intValue();
+					}
+					i = covMap.get(vcf.getAlt());
+					if (null != i) {
+						altCount = i.intValue();
+					}
+				}
+				alleles = VcfUtils.getAlleles(gt, vcf.getRef(), vcf.getAlt());
+				
+				
+				maf.setColumnValue(MafElement.ND, oabsArr[controlColumn - 1]);
+			    	maf.setColumnValue(MafElement.N_Depth,   null != dpArr ? dpArr[controlColumn - 1] : totalCount +"");
+			    	maf.setColumnValue(MafElement.N_Ref_Count, refCount + ""); 
+			    	maf.setColumnValue(MafElement.N_Alt_Count, altCount + "");
+			    	maf.setColumnValue(MafElement.Match_Norm_Seq_Allele1, alleles.isEmpty() ? null : alleles.get(0)); //ND allele1
+			    	maf.setColumnValue(MafElement.Match_Norm_Seq_Allele2 , alleles.isEmpty() ? null : alleles.get(1));	//ND allele2
+				maf.setColumnValue(MafElement.Novel_Starts, nnsArr[controlColumn - 1] + Constants.COLON_STRING + nnsArr[testColumn - 1]);	
+		    	}
 		}
 		if (type == SVTYPE.INS || type == SVTYPE.DEL) {
 			boolean mergedRecord = VcfUtils.isMergedRecord(vcf);
