@@ -129,8 +129,11 @@ public class VcfHeaderUtils {
 	public static final String FORMAT_QL_DESC = "Quality - Phred-scaled quality score for the assertion made in ALT. Taken from GATK's Haplotype Caller.";
 	public static final String FORMAT_NCIG = "NCIG";
 
-	public static final String FORMAT_ACSNP = "ACSNP";
-	public static final String FORMAT_ACSNP_DESC = "Allel counts for snp pileup. it follows the format: read_coverage[overlap_pairs_with same_base, overlap_pairs_with different_base, number_of_base_A,  number_of_base_T, number_of_base_G, number_of_base_C, number_of_other_base]";
+//	public static final String FORMAT_ACSNP = "ACSNP";
+//	public static final String FORMAT_ACSNP_DESC = "Allel counts for snp pileup. it follows the format: read_coverage[overlap_pairs_with same_base, overlap_pairs_with different_base, number_of_base_A,  number_of_base_T, number_of_base_G, number_of_base_C, number_of_other_base]";
+
+	public static final String FORMAT_ACLAP = "ACLAP";
+    public static final String FORMAT_ACLAP_DESC = "Allel counts with overlap inforamtion. it follows the format: read_coverage[overlap_pairs_with same_base, overlap_pairs_with different_base, number_of_ref_base,  number_of_alt_base, number_of_base_others]";
 	
 	
 	public static final String FORMAT_FILTER = "FT";
