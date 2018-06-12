@@ -19,11 +19,11 @@ public class VariantPileup {
 	private final SVTYPE variantType;
 	private final int sampleColumnNo; //the first sample column marked as 1; 
 	
-	private  AtomicLong pairSame = new AtomicLong(); 
-	private  AtomicLong pairDiff = new AtomicLong(); 
-	private  AtomicLong refCount = new AtomicLong();
-	private  AtomicLong altCount = new AtomicLong();
-	private  AtomicLong otherCount = new AtomicLong();	
+	private final AtomicLong pairSame = new AtomicLong(); 
+	private final AtomicLong pairDiff = new AtomicLong(); 
+	private final AtomicLong refCount = new AtomicLong();
+	private final AtomicLong altCount = new AtomicLong();
+	private final AtomicLong otherCount = new AtomicLong();	
 	private int depth = 0;
 		
 	/**
