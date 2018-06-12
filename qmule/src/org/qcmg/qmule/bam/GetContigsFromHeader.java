@@ -43,7 +43,7 @@ public class GetContigsFromHeader {
 		
 		if (args.length > 1 && null != args[1]) {
 			int numberOfContigs = map.keySet().size();
-			long length = map.values().stream().collect(Collectors.summingLong(Integer::longValue));
+			long length = map.values().stream().mapToLong(Integer::longValue).sum();
 			int numberOfEntries = Integer.parseInt(args[1]) - 1;
 			
 			long noOFBasesPerEntry = length / numberOfEntries;
@@ -86,7 +86,7 @@ public class GetContigsFromHeader {
 				}
 			}
 			
-			results.entrySet().stream().forEach(e -> System.out.println("contigs: " + e.getKey() + ", size: " + e.getValue()));
+			results.entrySet().forEach(e -> System.out.println("contigs: " + e.getKey() + ", size: " + e.getValue()));
 			System.out.println("contigs.size(): " + contigs.size());
 			
 			/*
