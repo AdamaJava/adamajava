@@ -7,10 +7,8 @@
 package org.qcmg.snp.util;
 
 import java.util.Deque;
-import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
-import htsjdk.samtools.SAMRecord;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -27,32 +25,16 @@ public class QJumperWorker<T> implements Runnable {
 	}
 	
 	private final CountDownLatch latch;
-//	private  Map<ChrPosition, QSnpGATKRecord>  vcfs;
-	private Deque<T> primaryQueue;
-	private Deque<T> workStealingQueue;
-	private String primaryBamFile;
-	private String workStealingBamFile;
-//	private  Map<ChrPosition, QSnpRecord>  snps;
+	private final Deque<T> primaryQueue;
+	private final Deque<T> workStealingQueue;
+	private final String primaryBamFile;
+	private final String workStealingBamFile;
 	private final QJumper  qj = new QJumper();
 	private final Mode mode;
-	private int count, updatedPileup;
+	private int count;
 	
 	private final QLogger logger = QLoggerFactory.getLogger(QJumperWorker.class);
 
-//	public QJumperWorker(CountDownLatch latch, String bamFile, Map<ChrPosition, QSnpGATKRecord> vcfs) {
-//		this.latch = latch;
-////		this.vcfs = vcfs;
-//		this.qj.setupReader(bamFile);
-//		this.mode = Mode.VCF;
-//	}
-	
-//	public QJumperWorker(CountDownLatch latch, String bamFile, Map<ChrPosition, QSnpRecord> snps, Mode mode) {
-//		this.latch = latch;
-////		this.snps = snps;
-//		this.qj.setupReader(bamFile);
-//		this.mode = mode;
-//	}
-	
 	public QJumperWorker(CountDownLatch latch, String primaryBamFile, Deque<T> primaryQueue,
 			String wsBamFile, Deque<T> wsQueue, Mode mode) {
 		this.latch = latch;
@@ -62,11 +44,6 @@ public class QJumperWorker<T> implements Runnable {
 		this.workStealingQueue = wsQueue;
 		this.mode = mode;
 	}
-	
-//	public QJumperWorker(CountDownLatch latch, String primaryBamFile, Deque<T> primaryQueue,
-//			String wsBamFile, Deque<T> wsQueue) {
-//		this(latch, primaryBamFile, primaryQueue, wsBamFile, wsQueue, Mode.VCF);
-//	}
 	
 	public QJumperWorker(CountDownLatch latch, String primaryBamFile, Deque<T> primaryQueue, Mode mode) {
 		this(latch, primaryBamFile, primaryQueue, null, null, mode);
