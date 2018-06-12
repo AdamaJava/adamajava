@@ -33,8 +33,8 @@ public final class CustomerConfidenceMode extends AbstractMode{
 	final String SBIASCOV = "SBIASCOV"; 
 	
 //	String description = null;
-	int min_read_counts = 50;
-	int variants_rate = 10 ;
+	private static final int min_read_counts = 50;
+	private static final int variants_rate = 10 ;
 //	boolean passOnly = false;
 	
 	private int test_column = -2; //can't be -1 since will "+1"
