@@ -34,9 +34,8 @@ public class HomoplymersMode extends AbstractMode{
 	private final String output;
 	private final int homopolymerWindow;
 	private int reportWindow;
-	public static int defaultWindow = 100;
-	public static int defaultreport = 10;
-	public static int defaultHomoplymerBase = 5;
+	public static final int defaultWindow = 100;
+	public static final int defaultreport = 10;
 	
 	@Deprecated //for unit test
 	HomoplymersMode( int homoWindow, int reportWindow){		
@@ -112,7 +111,6 @@ public class HomoplymersMode extends AbstractMode{
 		 * need to deal with multiple alts - find the one that gives the greatest HOM count and use that
 		 */
 		int homNo = 0;
-//		String var = "";
 		if (motif.contains(Constants.COMMA_STRING)) {
 			String [] altAlleles = motif.split(Constants.COMMA_STRING);
 			int maxHomValue = 0;
@@ -266,27 +264,20 @@ public class HomoplymersMode extends AbstractMode{
 			}
 			
 			int left = 0;
-			nearBase = (char) updownReference[0][finalUpIndex];			
-			for(int i = 0; i < mByte.length; i ++ ) {
-				if (nearBase == mByte[i])  {
+			nearBase = (char) updownReference[0][finalUpIndex];
+			for (byte b : mByte) {
+				if (nearBase == b)  {
 					left ++;
 				} else {
 					break;				 
 				}
 			}
-//			for(int i = 0; i < mByte.length; i ++ ) { 
-//				if (nearBase == mByte[i]) {
-//					left ++;
-//				} else {
-//					break;				 
-//				}
-//			}
 			upBaseCount += left; 
 						
 			int right = 0;
 			nearBase = (char) updownReference[1][0];
-			for(int i = mByte.length -1; i >=0; i--) { 
-				if (nearBase == mByte[i]) {
+			for (byte b : mByte) {
+				if (nearBase == b) {
 					right++;
 				} else {
 					break;

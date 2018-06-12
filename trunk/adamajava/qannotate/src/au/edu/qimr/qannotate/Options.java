@@ -147,8 +147,8 @@ public class Options {
         	( mode == MODE.snpeff ?  outputFileName +  ".snpEff_summary.html" : null);
         	
         //homoplymers
-        homWindow  = (options.has("window"))? (int) options.valueOf("window") : 100;  //default is 100
-        homReportSize = (options.has("report"))? (int) options.valueOf("report") : 10; //default is 10
+        homWindow  = (options.has("window"))? (int) options.valueOf("window") : HomoplymersMode.defaultWindow;  //default is 100
+        homReportSize = (options.has("report"))? (int) options.valueOf("report") : HomoplymersMode.defaultreport; //default is 10
         		
         checkIO();    //not yet complete         	
     }
