@@ -3,9 +3,7 @@ package au.edu.qimr.qannotate.modes;
 import java.io.File;
 import java.util.AbstractQueue;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
@@ -44,7 +42,7 @@ public class OverlapMode extends AbstractMode{
 //			+ " flag_ReadFailsVendorQuality == false, flag_SupplementaryRead == false, Flag_DuplicateRead == false, CIGAR_M > 34, MAPQ >10, MD_mismatch <= 3 )");
 
 	
-	private QueryExecutor query =  new QueryExecutor( "and (Flag_DuplicateRead == false, CIGAR_M > 34, MAPQ >10, MD_mismatch <= 3 )");
+	private final QueryExecutor query =  new QueryExecutor( "and (Flag_DuplicateRead == false, CIGAR_M > 34, MAPQ >10, MD_mismatch <= 3 )");
 	
 	public OverlapMode(Options options) throws Exception{	
 		logger.tool(	"input: " + options.getInputFileName()	);
@@ -54,13 +52,7 @@ public class OverlapMode extends AbstractMode{
         logger.tool(	"logger level " + (options.getLogLevel() == null ? QLoggerFactory.DEFAULT_LEVEL.getName() :  options.getLogLevel())	);
               
         //read vcf records to Map<ChrPosition,List<VcfRecord>> positionRecordMap
-      // inputRecord(new File(options.getInputFileName()));  
-       loadVcfRecordsFromFile(new File( options.getInputFileName())   );
-//      Map<VcfRecord, String[]> aclapMap = new HashMap<>(); 
-//        	for(VariantPileup pileup: addAnnotation( options.getDatabaseFiles()[i], i  )  ) {
-//        		String[] anno = aclapMap.computeIfAbsent( pileup.getVcf(), k-> new String[ options.getDatabaseFiles().length] );
-//        		anno[i] = pileup.getAnnotation();       		
-//        	}
+        loadVcfRecordsFromFile(new File( options.getInputFileName())   );
               
         Map<VcfRecord, String[]> annotationMap = annotation( options.getDatabaseFiles() );        
 	    String[] acOverlap;//options.getDatabaseFiles().length
@@ -88,16 +80,17 @@ public class OverlapMode extends AbstractMode{
 	@Override
 	void addAnnotation(String bamfile) throws Exception { }
 
-	Map<VcfRecord, String[]> annotation( String[] bamfiles ) throws Exception { 
+	private Map<VcfRecord, String[]> annotation( String[] bamfiles ) throws Exception { 
 		
 		//get sequence from bam header, start from biggest contig
 		final TreeSet<SAMSequenceRecord> contigs = new TreeSet<>( 
 				(SAMSequenceRecord s1, SAMSequenceRecord s2) -> s2.getSequenceLength() -  s1.getSequenceLength() );
 		for(String bamfile : bamfiles){
-			SamReader reader =  SAMFileReaderFactory.createSAMFileReader( new File(bamfile) ) ;				 
-			for (final SAMSequenceRecord contig : reader.getFileHeader().getSequenceDictionary().getSequences())  				
-				contigs.add(contig);
-			reader.close(); 
+			try (SamReader reader =  SAMFileReaderFactory.createSAMFileReader( new File(bamfile) ) ;) {				 
+				for (final SAMSequenceRecord contig : reader.getFileHeader().getSequenceDictionary().getSequences())  	{			
+					contigs.add(contig);
+				}
+			}
 		}
 								
 		//load snp records
