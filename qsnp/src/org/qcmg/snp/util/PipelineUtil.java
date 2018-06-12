@@ -273,7 +273,7 @@ public class PipelineUtil {
 				if (acc.getPosition() != pos + 1) {
 					
 					logger.warn("Accumulator objects are not in sequence!:");
-					accs.stream().forEach(a -> logger.warn(a.toString()));
+					accs.forEach(a -> logger.warn(a.toString()));
 					throw new IllegalArgumentException("List of Accumulator objects are not in sequence!");
 				}
 			}
