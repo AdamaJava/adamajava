@@ -37,18 +37,10 @@ public class QPileupRecord {
 		return forwardElementMap;
 	}
 
-	public void setForwardElementMap(Map<String, StrandElement> forwardElementMap) {
-		this.forwardElementMap = forwardElementMap;
-	}
-
 	public Map<String, StrandElement> getReverseElementMap() {
 		return reverseElementMap;
 	}
 
-	public void setReverseElementMap(Map<String, StrandElement> reverseElementMap) {
-		this.reverseElementMap = reverseElementMap;
-	}
-	
 	public int getTotalBases(boolean includeForward, boolean includeReverse) {
 		int total = 0;
 
