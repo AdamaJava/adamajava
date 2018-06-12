@@ -16,8 +16,6 @@ import htsjdk.samtools.SAMRecord;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.QSnpGATKRecord;
-import org.qcmg.common.util.SnpUtils;
-import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.picard.util.PileupElementUtil;
 import org.qcmg.picard.util.SAMUtils;
 import org.qcmg.pileup.QSnpRecord;
@@ -25,9 +23,9 @@ import org.qcmg.snp.util.QJumperWorker.Mode;
 
 public class BAMPileupUtil {
 	
-	public static int SM_CUTOFF = 14;
-	public static int MD_CUTOFF = 3;
-	public static int CIGAR_CUTOFF = 34;
+	public static final int SM_CUTOFF = 14;
+	public static final int MD_CUTOFF = 3;
+	public static final int CIGAR_CUTOFF = 34;
 	
 	private static final QLogger logger = QLoggerFactory.getLogger(BAMPileupUtil.class);
 	
