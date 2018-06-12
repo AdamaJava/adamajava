@@ -67,7 +67,7 @@ public class VcfHeaderRecord implements Comparable<VcfHeaderRecord> {
 			}
 		}		
 		this.value = vstr;
-		this.id = (pid == null)? null : (String) pid.getRight();				
+		this.id = (pid == null)? null : pid.getRight();				
 	}
 
 	/**
@@ -195,11 +195,11 @@ public class VcfHeaderRecord implements Comparable<VcfHeaderRecord> {
 		if( ! sValue.startsWith("<")  || ! sValue.endsWith(">")) 
 			return null; 
 			
-		List<Pair<String,String>> values =  new ArrayList<Pair<String,String>>();
+		List<Pair<String,String>> values =  new ArrayList<>();
 		//remove space around = 			
 		String subLine = sValue.substring( 1, sValue.length()-1).trim()+Constants.COMMA;
 				 
-		List<String> quotStr = new ArrayList<String>();
+		List<String> quotStr = new ArrayList<>();
 		Matcher matcher = PATTERN.matcher(subLine);
  		while(matcher.find()){
  			String mstr = matcher.group();
