@@ -261,7 +261,7 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 	
 	
 	public Map<String, VcfHeaderRecord> getRecordsAsMap(String type) {
-		return (Map<String, VcfHeaderRecord>) getRecords(idRecords, type).stream().collect(Collectors.toMap(r -> r.getId(), r -> r));
+		return getRecords(idRecords, type).stream().collect(Collectors.toMap(r -> r.getId(), r -> r));
 	}
 	
 	/**
