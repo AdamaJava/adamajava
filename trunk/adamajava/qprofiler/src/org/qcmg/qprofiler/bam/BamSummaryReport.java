@@ -89,7 +89,7 @@ public class BamSummaryReport extends SummaryReport {
 	private Map<Integer, AtomicLong> tagCQLineLengths = null;
 	private final QCMGAtomicLongArray cqBadReadLineLengths = new QCMGAtomicLongArray(128);
 
-	private final ConcurrentMap<String, AtomicLong> tagRGLineLengths = new ConcurrentHashMap<String, AtomicLong>();
+	private final ConcurrentMap<String, AtomicLong> tagRGLineLengths = new ConcurrentHashMap<>();
 	private final QCMGAtomicLongArray tagZMLineLengths = new QCMGAtomicLongArray(2048);
 	private final QCMGAtomicLongArray tagCMLineLengths = new QCMGAtomicLongArray(128);
 	private final QCMGAtomicLongArray tagSMLineLengths = new QCMGAtomicLongArray(256);
@@ -101,34 +101,31 @@ public class BamSummaryReport extends SummaryReport {
 	private final QCMGAtomicLongArray allReadsLineLengths = new QCMGAtomicLongArray(1024);
 
 	// new tags for JP
-	private final ConcurrentMap<String, AtomicLong> tagZPLineLengths = new ConcurrentHashMap<String, AtomicLong>();
+	private final ConcurrentMap<String, AtomicLong> tagZPLineLengths = new ConcurrentHashMap<>();
 	private final QCMGAtomicLongArray tagZFLineLengths = new QCMGAtomicLongArray(128);
 	
 	// mapqMatrix
-	private final ConcurrentMap<Integer, MAPQMatrix> mapQMatrix = new ConcurrentSkipListMap<Integer, MAPQMatrix>();
+	private final ConcurrentMap<Integer, MAPQMatrix> mapQMatrix = new ConcurrentSkipListMap<>();
 	private final SummaryByCycle<Integer> zmSmMatrix = new SummaryByCycle<Integer>(128);
 	private final QCMGAtomicLongArray MRNMLengths = new QCMGAtomicLongArray(mateRefNameMinusOne + 1);
-	private final ConcurrentMap<String, AtomicLong> cigarValuesCount = new ConcurrentHashMap<String, AtomicLong>();
+	private final ConcurrentMap<String, AtomicLong> cigarValuesCount = new ConcurrentHashMap<>();
 	private final QCMGAtomicLongArray mapQualityLengths = new QCMGAtomicLongArray(256);
 	
 	// FLAGS
-	private final Map<String, AtomicLong> flagBinaryCount = new ConcurrentSkipListMap<String, AtomicLong>();
+	private final Map<String, AtomicLong> flagBinaryCount = new ConcurrentSkipListMap<>();
 	private final QCMGAtomicLongArray flagIntegerCount = new QCMGAtomicLongArray(2048);
 
 	// Coverage
-	private final ConcurrentMap<Integer, AtomicLong> coverage = new ConcurrentSkipListMap<Integer, AtomicLong>();
-	private final ConcurrentNavigableMap<Integer, AtomicLong> coverageQueue = new ConcurrentSkipListMap<Integer, AtomicLong>();
-	private final ConcurrentMap<String, PositionSummary> rNamePosition = new ConcurrentHashMap<String, PositionSummary>(85);  //chr=>coveragesummary	
+	private final ConcurrentMap<Integer, AtomicLong> coverage = new ConcurrentSkipListMap<>();
+	private final ConcurrentNavigableMap<Integer, AtomicLong> coverageQueue = new ConcurrentSkipListMap<>();
+	private final ConcurrentMap<String, PositionSummary> rNamePosition = new ConcurrentHashMap<>(85);  //chr=>coveragesummary	
 	
 	private final QCMGAtomicLongArray cigarLengths = new QCMGAtomicLongArray(1024);	
 	private final QCMGAtomicLongArray p1Lengths = new QCMGAtomicLongArray(1024);
 	private final QCMGAtomicLongArray p2Lengths = new QCMGAtomicLongArray(1024);
-	private final ConcurrentMap<String, ConcurrentSkipListMap<String, AtomicLong>> additionalTags = 
-			new ConcurrentSkipListMap<String, ConcurrentSkipListMap<String, AtomicLong>>();
-	private final ConcurrentMap<String, QCMGAtomicLongArray> additionalIntegerTags = 
-			new ConcurrentSkipListMap<String, QCMGAtomicLongArray>();
-	private final ConcurrentMap<String, ConcurrentSkipListMap<Character, AtomicLong>> additionalCharacterTags = 
-			new ConcurrentSkipListMap<String, ConcurrentSkipListMap<Character, AtomicLong>>();
+	private final ConcurrentMap<String, ConcurrentSkipListMap<String, AtomicLong>> additionalTags = new ConcurrentSkipListMap<>();
+	private final ConcurrentMap<String, QCMGAtomicLongArray> additionalIntegerTags = 	new ConcurrentSkipListMap<>();
+	private final ConcurrentMap<String, ConcurrentSkipListMap<Character, AtomicLong>> additionalCharacterTags = new ConcurrentSkipListMap<>();
 	
 	//Xu Code: each RG softclips, hardclips, read length; 	
 	private final ConcurrentMap<String, ReadGroupSummary> rgSummaries = new ConcurrentHashMap<>();
@@ -205,7 +202,7 @@ public class BamSummaryReport extends SummaryReport {
 	private void setupAdditionalTagMaps(){
 		if (null != tags) {
 			for (String tag : tags)
-				additionalTags.put(tag, new ConcurrentSkipListMap<String, AtomicLong>());
+				additionalTags.put(tag, new ConcurrentSkipListMap<>());
 		}
 		if (null != tagsInt) {
 			for (String tagInt : tagsInt)
@@ -213,7 +210,7 @@ public class BamSummaryReport extends SummaryReport {
 		}
 		if (null != tagsChar) {
 			for (String tagChar : tagsChar)
-				additionalCharacterTags.put(tagChar,  new ConcurrentSkipListMap<Character, AtomicLong>());
+				additionalCharacterTags.put(tagChar,  new ConcurrentSkipListMap<>());
 		}
 	}
 
@@ -240,7 +237,7 @@ public class BamSummaryReport extends SummaryReport {
 				coverage.put(0, new AtomicLong(zeroCoverageCount));
 			// if there are any entries left in the queue, add them to the map
 			if ( ! coverageQueue.isEmpty()) {
-				int lastEntry = ((ConcurrentSkipListMap<Integer, AtomicLong>)coverageQueue).lastKey().intValue();
+				int lastEntry = coverageQueue.lastKey().intValue();
 				//					int lastEntry = ((TreeMap<Integer, AtomicLong>)coverageQueue).lastKey().intValue();
 				lastEntry++;	// increment as headMap returns values less than the passed in key
 				removeCoverageFromQueueAndAddToMap(lastEntry, coverageQueue, coverage);
@@ -381,10 +378,6 @@ public class BamSummaryReport extends SummaryReport {
 		
 		rgSummaries.entrySet().stream().sorted((e1, e2) -> e1.getKey().compareTo(e2.getKey())).forEach(e -> e.getValue().iSize2Xml(tagISizeElement));
 		
-//		List<String> rgs = rgSummaries.keySet().stream().sorted().collect(Collectors.toList());
-//		for (String rg : rgs) {
-//			rgSummaries.get(rg).iSize2Xml(tagISizeElement);
-//		}
 		
 		// MRNM
 		if (null != samSeqDictionary) {
