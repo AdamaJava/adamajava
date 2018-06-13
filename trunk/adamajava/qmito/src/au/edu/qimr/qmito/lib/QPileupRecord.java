@@ -35,78 +35,6 @@ public class QPileupRecord {
 		return sb.toString();
 	}
 
-	public Map<String, StrandElement> getForwardElementMap() {
-		return forwardElementMap;
-	}
-
-	public Map<String, StrandElement> getReverseElementMap() {
-		return reverseElementMap;
-	}
-
-	public int getTotalBases(boolean includeForward, boolean includeReverse) {
-		int total = 0;
-
-		if (includeForward) {
-			total += forwardElementMap.get("baseA").getIntElementValue(0);
-			total += forwardElementMap.get("baseC").getIntElementValue(0);
-			total += forwardElementMap.get("baseT").getIntElementValue(0);
-			total += forwardElementMap.get("baseG").getIntElementValue(0);
-			total += forwardElementMap.get("baseN").getIntElementValue(0);
-		}
-		
-		if (includeReverse) {
-			total += reverseElementMap.get("baseA").getIntElementValue(0);
-			total += reverseElementMap.get("baseC").getIntElementValue(0);
-			total += reverseElementMap.get("baseT").getIntElementValue(0);
-			total += reverseElementMap.get("baseG").getIntElementValue(0);
-			total += reverseElementMap.get("baseN").getIntElementValue(0);		
-		}
-		
-		return total;
-	}
-	
-	public int getTotalReads(boolean includeForward, boolean includeReverse) {
-		int total = 0;
-
-		if (includeForward) {
-			total += forwardElementMap.get("referenceNo").getIntElementValue(0);
-			total += forwardElementMap.get("nonreferenceNo").getIntElementValue(0);
-			total += forwardElementMap.get("cigarD").getIntElementValue(0);
-		}
-		
-		if (includeReverse) {
-			total += reverseElementMap.get("referenceNo").getIntElementValue(0);
-			total += reverseElementMap.get("nonreferenceNo").getIntElementValue(0);
-			total += reverseElementMap.get("cigarD").getIntElementValue(0);	
-		}
-		
-		return total;
-	}
-	
-	public long getForwardElement(String name) {
-		
-		StrandElement e = forwardElementMap.get(name);
-		if (e.isLong()) {
-			return e.getLongElementValue(0);
-		} else {
-			return e.getIntElementValue(0);
-		}		
-	}
-	
-	public long getReverseElement(String name) {
-		StrandElement e = reverseElementMap.get(name);
-		
-		if (e.isLong()) {
-			return e.getLongElementValue(0);
-		} else {
-			return e.getIntElementValue(0);
-		}		
-	}
-	
-	public long getTotalElement(String name) {
-		return getForwardElement(name) + getReverseElement(name);		
-	}
- 	
 	public String getForwardElementString(List<StrandEnum> elements) {
 		return getElementString(forwardElementMap, elements);
 	}
@@ -123,7 +51,7 @@ public class QPileupRecord {
 		for (int i=0; i<enums.length; i++) {
 			if (elements != null) {   //???
 				
-				if (elements.contains(enums[i])) {			
+				if (elements.contains(enums[i])) {
 					sb.append(elementMap.get(enums[i].toString()).getStrandElementMember(0));	
 					
 					
@@ -165,8 +93,4 @@ public class QPileupRecord {
 		sb.append("\n");
 		return sb.toString();
 	}
-
-	public long getElementCount(String base) {
-		return getForwardElement(base) + getReverseElement(base);
-	}	
 }

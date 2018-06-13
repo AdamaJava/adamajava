@@ -13,13 +13,11 @@ public class StrandElement {
 	private long [] longDataMembers = null;
 	private boolean isLong = false;
 	
-	public StrandElement(String name, boolean isLong) {
-//		this.name = name;
+	public StrandElement(boolean isLong) {
 		this.isLong = isLong;
 	}
 	
-	public StrandElement(String name, int datasetLength, boolean isLong) {
-//		this.name = name;
+	public StrandElement( int datasetLength, boolean isLong) {
 		this.isLong = isLong;
 		if (isLong) {
 			this.longDataMembers = new long[datasetLength];
