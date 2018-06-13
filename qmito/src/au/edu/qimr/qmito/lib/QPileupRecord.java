@@ -9,14 +9,16 @@ package au.edu.qimr.qmito.lib;
 import java.util.List;
 import java.util.Map;
 
+import org.qcmg.common.util.Constants;
+
 public class QPileupRecord {
 
-	PositionElement position;
-	Map<String, StrandElement> forwardElementMap;
-	Map<String, StrandElement> reverseElementMap;	
+	private final PositionElement position;
+	private final Map<String, StrandElement> forwardElementMap;
+	private final Map<String, StrandElement> reverseElementMap;	
 	
     //default delimiter is tab
-	static final String DELIMITER = "\t";
+	static final String DELIMITER = Constants.TAB_STRING;
 
 	public QPileupRecord(PositionElement position, 
 			Map<String, StrandElement> forwardElementMap, Map<String, StrandElement> reverseElementMap) {
