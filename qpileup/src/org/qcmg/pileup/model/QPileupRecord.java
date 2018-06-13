@@ -65,21 +65,23 @@ public class QPileupRecord {
 		int total = 0;
 
 		if (includeForward) {
-			total += forwardElementMap.get("baseA").getIntElementValue(0);
-			total += forwardElementMap.get("baseC").getIntElementValue(0);
-			total += forwardElementMap.get("baseT").getIntElementValue(0);
-			total += forwardElementMap.get("baseG").getIntElementValue(0);
-			total += forwardElementMap.get("baseN").getIntElementValue(0);
+			total += getTotalBasesFromMap(forwardElementMap);
 		}
 		
 		if (includeReverse) {
-			total += reverseElementMap.get("baseA").getIntElementValue(0);
-			total += reverseElementMap.get("baseC").getIntElementValue(0);
-			total += reverseElementMap.get("baseT").getIntElementValue(0);
-			total += reverseElementMap.get("baseG").getIntElementValue(0);
-			total += reverseElementMap.get("baseN").getIntElementValue(0);		
+			total += getTotalBasesFromMap(reverseElementMap);
 		}
 		
+		return total;
+	}
+	
+	public static int getTotalBasesFromMap(Map<String, StrandElement> map) {
+		int total = 0;
+		total += map.get("baseA").getIntElementValue(0);
+		total += map.get("baseC").getIntElementValue(0);
+		total += map.get("baseT").getIntElementValue(0);
+		total += map.get("baseG").getIntElementValue(0);
+		total += map.get("baseN").getIntElementValue(0);
 		return total;
 	}
 	
@@ -87,23 +89,27 @@ public class QPileupRecord {
 		int total = 0;
 
 		if (includeForward) {
-			total += forwardElementMap.get("referenceNo").getIntElementValue(0);
-			total += forwardElementMap.get("nonreferenceNo").getIntElementValue(0);
-			total += forwardElementMap.get("cigarD").getIntElementValue(0);
+			total += getTotalReadsFromMap(forwardElementMap);
 		}
 		
 		if (includeReverse) {
-			total += reverseElementMap.get("referenceNo").getIntElementValue(0);
-			total += reverseElementMap.get("nonreferenceNo").getIntElementValue(0);
-			total += reverseElementMap.get("cigarD").getIntElementValue(0);	
+			total += getTotalReadsFromMap(reverseElementMap);
 		}
 		
 		return total;
 	}
 	
-	public long getForwardElement(String name) {
-		
-		StrandElement e = forwardElementMap.get(name);
+	public static int getTotalReadsFromMap(Map<String, StrandElement> map) {
+		int total = 0;
+		total += map.get("referenceNo").getIntElementValue(0);
+		total += map.get("nonreferenceNo").getIntElementValue(0);
+		total += map.get("cigarD").getIntElementValue(0);
+		return total;
+	}
+	
+	
+	public static long getElementFromMap(String name, Map<String, StrandElement> map) {
+		StrandElement e = map.get(name);
 		if (e.isLong()) {
 			return e.getLongElementValue(0);
 		} else {
@@ -111,14 +117,12 @@ public class QPileupRecord {
 		}		
 	}
 	
+	public long getForwardElement(String name) {
+		return getElementFromMap(name, forwardElementMap);
+	}
+	
 	public long getReverseElement(String name) {
-		StrandElement e = reverseElementMap.get(name);
-		
-		if (e.isLong()) {
-			return e.getLongElementValue(0);
-		} else {
-			return e.getIntElementValue(0);
-		}		
+		return getElementFromMap(name, reverseElementMap);
 	}
 	
 	public long getTotalElement(String name) {
