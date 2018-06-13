@@ -10,8 +10,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import htsjdk.samtools.SAMSequenceRecord;
-import org.qcmg.common.log.QLogger;
-import org.qcmg.common.log.QLoggerFactory;
 
 
 /**
@@ -21,11 +19,6 @@ import org.qcmg.common.log.QLoggerFactory;
  */
 public class StrandDS {
 	
-	private final QLogger logger = QLoggerFactory.getLogger(getClass());	
-
-	private final SAMSequenceRecord reference;
-	private String direction;
-	private boolean isReverse = false;
 	private final Map<String, StrandElement> elementMap;
 
 	/**
@@ -34,32 +27,9 @@ public class StrandDS {
 	 * @param isReverse: a flag to  indicate whether stored base information are from reverse strand or not.   
 	 */
 	public StrandDS(SAMSequenceRecord reference, boolean isReverse ) {
-		this.reference = reference;
-		this.isReverse = isReverse;
-		getDirection();
 		this.elementMap = setupMap(reference.getSequenceLength());		
 	}
 	
-	private Map<String, StrandElement> setupSubElementMap(Integer datasetLength, StrandEnum[] memberNames) {
-		Map<String,StrandElement> map = new HashMap<>();
-		
-		for (int i=0; i<memberNames.length; i++) {	
-			if (memberNames[i].toString().toLowerCase().contains("qual")) {
-				if (datasetLength == null) {
-					map.put(memberNames[i].toString(), new StrandElement(memberNames[i].toString(), true));
-				} else {
-					map.put(memberNames[i].toString(), new StrandElement(memberNames[i].toString(), datasetLength, true));
-				}
-			} else {
-				if (datasetLength == null) {
-					map.put(memberNames[i].toString(), new StrandElement(memberNames[i].toString(), false));
-				} else {
-					map.put(memberNames[i].toString(), new StrandElement(memberNames[i].toString(), datasetLength, false));
-				}		
-			}
-		}
-		return map;
-	}
 
 	private Map<String, StrandElement> setupMap(Integer datasetLength) {
 		Map<String,StrandElement> map = new HashMap<>();
@@ -68,29 +38,20 @@ public class StrandDS {
 		for (int i=0; i<memberNames.length; i++) {
 			if (i>=StrandEnum.LONG_INDEX_START && i <= StrandEnum.LONG_INDEX_END) {
 				if (datasetLength == null) {
-					map.put(memberNames[i].toString(), new StrandElement(memberNames[i].toString(), true));
+					map.put(memberNames[i].toString(), new StrandElement(true));
 				} else {
-					map.put(memberNames[i].toString(), new StrandElement(memberNames[i].toString(), datasetLength, true));
+					map.put(memberNames[i].toString(), new StrandElement(datasetLength, true));
 				}
 			} else {
 				if (datasetLength == null) {
-					map.put(memberNames[i].toString(), new StrandElement(memberNames[i].toString(), false));
+					map.put(memberNames[i].toString(), new StrandElement( false));
 				} else {
-					map.put(memberNames[i].toString(), new StrandElement(memberNames[i].toString(), datasetLength, false));
+					map.put(memberNames[i].toString(), new StrandElement(datasetLength, false));
 				}
 			}	
 		}
 		return map;
 	}
-
-	public String getDirection() {
-		this.direction = "forward";
-		if (isReverse) {
-			this.direction = "reverse";
-		}
-		return direction;
-	}
-	
 
 	public void finalizeMetrics(int size, boolean isRemove, NonReferenceRecord nonRefRecord) {
 		
@@ -143,12 +104,6 @@ public class StrandDS {
 		}		
 	}
 
-	public Map<String, StrandElement> getElementsMap() {
-		return this.elementMap;
-		
-	}
-
-
 	public Map<String, StrandElement> getStrandElementMap(int i) {
 		Map<String, StrandElement> map = setupMap(1);
 		for (Map.Entry<String, StrandElement> entry: map.entrySet()) {	
@@ -165,29 +120,5 @@ public class StrandDS {
 		}
 		return map;	
 	}
-
-	public void getPileupRecord(int index) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	public Map<String, StrandElement> getStrandElementMap(int i,
-			StrandEnum[] strandElements) {
-		Map<String, StrandElement> map = setupSubElementMap(1, strandElements);
-		for (Map.Entry<String, StrandElement> entry: map.entrySet()) {	
-			String name = entry.getKey();			
-			StrandElement element = entry.getValue();
-			//get the value for the master element map
-			StrandElement masterElement = elementMap.get(name);
-			
-			if (element.isLong()) {
-				element.addElement(0, masterElement.getLongElementValue(i));
-			} else {
-				element.addElement(0, masterElement.getIntElementValue(i));
-			}	
-		}
-		return map;	
-	}
-	
 
 }
