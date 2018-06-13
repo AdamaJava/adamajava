@@ -10,6 +10,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 import java.util.regex.Pattern;
@@ -28,11 +29,11 @@ import org.qcmg.picard.SAMFileReaderFactory;
 
 public class Split {
 	static final Pattern colonDelimitedPattern = Pattern.compile("[:]+");
-	final HashMap<Integer, String> zcToFileNameMap = new HashMap<Integer, String>();
-	final HashMap<String, Integer> fileNameToZcMap = new HashMap<String, Integer>();
-	final HashMap<Integer, SAMFileWriter> zcToWriterMap = new HashMap<Integer, SAMFileWriter>();
-	final HashMap<Integer, SAMFileHeader> zcToOutputHeaderMap = new HashMap<Integer, SAMFileHeader>();
-	final ArrayList<File> outputNames = new ArrayList<File>();
+	final Map<Integer, String> zcToFileNameMap = new HashMap<>();
+	final Map<String, Integer> fileNameToZcMap = new HashMap<>();
+	final Map<Integer, SAMFileWriter> zcToWriterMap = new HashMap<>();
+	final Map<Integer, SAMFileHeader> zcToOutputHeaderMap = new HashMap<>();
+	final ArrayList<File> outputNames = new ArrayList<>();
 	boolean useFileNames;
 	boolean createIndex;
 	String outputDirName;
@@ -214,7 +215,7 @@ public class Split {
 	}
 
 	static void conserveProgramRecords(SAMFileHeader outputHeader, Integer zcInt) throws Exception {
-		Vector<SAMProgramRecord> keepers = new Vector<SAMProgramRecord>();
+		Vector<SAMProgramRecord> keepers = new Vector<>();
 		for (final SAMProgramRecord programRecord : outputHeader.getProgramRecords()) {
 			Integer zc = getAttributeZc( programRecord);
 			if (null == zc || zc.equals(zcInt)) {
@@ -225,7 +226,7 @@ public class Split {
 	}
 
 	void preserveZCReadGroup(SAMFileHeader outputHeader, Integer zcInt) throws Exception{
-		Vector<SAMReadGroupRecord> keepers = new Vector<SAMReadGroupRecord>();
+		Vector<SAMReadGroupRecord> keepers = new Vector<>();
 		for (final SAMReadGroupRecord readGroupRecord : outputHeader
 				.getReadGroups()) {
 			String zc =  getAttributeZc( readGroupRecord );
@@ -278,7 +279,7 @@ public class Split {
 				throw new Exception("Input file contains records lacking ZC integer attribute");
 			}
 			
-			SAMFileWriter writer = zcToWriterMap.get((Integer)zc);
+			SAMFileWriter writer = zcToWriterMap.get(zc);
 			
 			if (null == writer) {
 				closeWriters();
