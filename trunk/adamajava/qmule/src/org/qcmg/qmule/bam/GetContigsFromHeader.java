@@ -86,7 +86,7 @@ public class GetContigsFromHeader {
 				}
 			}
 			
-			results.entrySet().forEach(e -> System.out.println("contigs: " + e.getKey() + ", size: " + e.getValue()));
+			results.forEach((k,v) -> System.out.println("contigs: " + k + ", size: " + v));
 			System.out.println("contigs.size(): " + contigs.size());
 			
 			/*
