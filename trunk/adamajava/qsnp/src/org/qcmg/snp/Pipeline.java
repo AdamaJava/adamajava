@@ -908,7 +908,7 @@ public abstract class Pipeline {
 			this.minStartPosition = minStartPosition;
 		}
 		
-		private void processSAMRecord(final SAMRecordFilterWrapper record) {
+		public void processSAMRecord(final SAMRecordFilterWrapper record) {
 			final SAMRecord sam = record.getRecord();
 			final boolean forwardStrand = ! sam.getReadNegativeStrandFlag();
 			final int startPosition = sam.getAlignmentStart();
@@ -969,6 +969,9 @@ public abstract class Pipeline {
 					acc.addBase(bases[i + offset], qualities[i + offset], forwardStrand, 
 							startPosition, i + startPosAndRefOffset, readEndPosition, readId);
 				} else {
+//					if ((i + startPosAndRefOffset) == 4511341) {
+//						System.out.println("failed filter: " + readId + " at position 4511341");
+//					}
 					acc.addFailedFilterBase(bases[i + offset]);
 				}
 			}
