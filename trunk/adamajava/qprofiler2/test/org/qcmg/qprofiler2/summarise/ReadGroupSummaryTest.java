@@ -1,6 +1,7 @@
 package org.qcmg.qprofiler2.summarise;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -8,6 +9,7 @@ import java.util.List;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.qcmg.common.model.ProfileType;
@@ -28,11 +30,11 @@ public class ReadGroupSummaryTest {
 	@Before
 	public void setUp() throws Exception{ createPairInputFile(); }
 	
-//	@After
-//	public void tearDown() { 
-//		new File(INPUT_FILE).delete();
-//		new File(TEST_FILE).delete();		
-//	}	
+	@After
+	public void tearDown() { 
+		new File(INPUT_FILE).delete();
+		new File(TEST_FILE).delete();		
+	}	
 	
 	@Test
 	public void iSizeTest() throws Exception{
