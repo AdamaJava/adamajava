@@ -36,7 +36,7 @@ import org.qcmg.picard.SAMFileReaderFactory;
 public class SingleLevelSplit extends Split {
 	private static final String QBM = "qbammerge";
 	
-	Map<Integer, String> singleSplitMap = new HashMap<Integer, String>();
+	Map<Integer, String> singleSplitMap = new HashMap<>();
 	private String commandLine;
 	
 	private final QLogger logger;
@@ -110,7 +110,7 @@ public class SingleLevelSplit extends Split {
 	
 	@Override
 	void closeWriters() {
-		Set<SAMFileWriter> writers = new HashSet<SAMFileWriter>(zcToWriterMap.values());
+		Set<SAMFileWriter> writers = new HashSet<>(zcToWriterMap.values());
 		logger.info("Number of writers to close: " + writers.size());
 		for (SAMFileWriter writer : writers) {
 			writer.close();
@@ -304,7 +304,7 @@ public class SingleLevelSplit extends Split {
 	}
 	
 	static List<String> getProgramRecordInputs(SAMProgramRecord pg) throws IOException {
-		List<String> inputs = new ArrayList<String>();
+		List<String> inputs = new ArrayList<>();
 		
 		String cl = pg.getCommandLine();
 		String [] params = TabTokenizer.tokenize(cl, ' ');
@@ -415,7 +415,7 @@ public class SingleLevelSplit extends Split {
 	 */
 	@Override
 	void preserveZCReadGroup(SAMFileHeader outputHeader, Integer zcInt) throws Exception{
-		Vector<SAMReadGroupRecord> keepers = new Vector<SAMReadGroupRecord>();
+		Vector<SAMReadGroupRecord> keepers = new Vector<>();
 		List<Integer> linkedZCs = retrieveOtherZCKeepers(zcInt, singleSplitMap);
 		for (final SAMReadGroupRecord readGroupRecord : outputHeader.getReadGroups()) {
 			String zc =  getAttributeZc( readGroupRecord );
@@ -431,7 +431,7 @@ public class SingleLevelSplit extends Split {
 	
 	private List<Integer> retrieveOtherZCKeepers(int zc, Map<Integer, String> map) {
 		String value = map.get(zc);
-		List<Integer> linkedZCs = new ArrayList<Integer>();
+		List<Integer> linkedZCs = new ArrayList<>();
 		if (null != value) {
 			for (Entry<Integer, String> entry : map.entrySet()) {
 				if (value.equals(entry.getValue())) {
@@ -452,7 +452,7 @@ public class SingleLevelSplit extends Split {
 		factory.setCreateIndex(createIndex);
 		
 		// create map of file to writer objects
-		Map<String, SAMFileWriter> splitWriters = new HashMap<String, SAMFileWriter>();
+		Map<String, SAMFileWriter> splitWriters = new HashMap<>();
 		
 		for (Entry<Integer, String> entry : singleSplitMap.entrySet()) {
 			Integer zc = entry.getKey();
@@ -494,7 +494,7 @@ public class SingleLevelSplit extends Split {
 				throw new Exception("Input file contains records lacking ZC integer attribute");
 			}
 			
-			SAMFileWriter writer = zcToWriterMap.get((Integer)zc);
+			SAMFileWriter writer = zcToWriterMap.get(zc);
 
 			if (null == writer) {
 				closeWriters();
