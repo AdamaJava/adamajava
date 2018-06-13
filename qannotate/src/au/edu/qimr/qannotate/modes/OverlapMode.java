@@ -86,7 +86,7 @@ public class OverlapMode extends AbstractMode{
 		final TreeSet<SAMSequenceRecord> contigs = new TreeSet<>( 
 				(SAMSequenceRecord s1, SAMSequenceRecord s2) -> s2.getSequenceLength() -  s1.getSequenceLength() );
 		for(String bamfile : bamfiles){
-			try (SamReader reader =  SAMFileReaderFactory.createSAMFileReader( new File(bamfile) ) ;) {				 
+			try (SamReader reader =  SAMFileReaderFactory.createSAMFileReader( new File(bamfile))) {				 
 				for (final SAMSequenceRecord contig : reader.getFileHeader().getSequenceDictionary().getSequences())  	{			
 					contigs.add(contig);
 				}
