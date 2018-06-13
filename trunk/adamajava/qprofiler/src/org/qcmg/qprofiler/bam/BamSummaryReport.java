@@ -237,7 +237,7 @@ public class BamSummaryReport extends SummaryReport {
 				coverage.put(0, new AtomicLong(zeroCoverageCount));
 			// if there are any entries left in the queue, add them to the map
 			if ( ! coverageQueue.isEmpty()) {
-				int lastEntry = coverageQueue.lastKey().intValue();
+				int lastEntry = coverageQueue.lastKey();
 				//					int lastEntry = ((TreeMap<Integer, AtomicLong>)coverageQueue).lastKey().intValue();
 				lastEntry++;	// increment as headMap returns values less than the passed in key
 				removeCoverageFromQueueAndAddToMap(lastEntry, coverageQueue, coverage);
