@@ -2,18 +2,13 @@ package org.qcmg.snp;
 
 import static org.junit.Assert.assertEquals;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -28,14 +23,11 @@ import org.qcmg.picard.util.SAMUtils;
 
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMRecordIterator;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SamReaderFactory;
 
 public class PipelineTest {
 	
 	@Rule
-	public  TemporaryFolder testFolder = new TemporaryFolder();
+	public final TemporaryFolder testFolder = new TemporaryFolder();
 	
 	
 //	@Test
@@ -85,7 +77,6 @@ public class PipelineTest {
 		
 		Accumulator[] array = new Accumulator[5000000];
 		Pipeline.Consumer c = pipeline.new Consumer(consumerLatch, normalLatch, tumourLatch, true, null, null, array, null, new AtomicInteger(100));
-//				Pipeline.Consumer c = new pipeline.Consumer(consumerLatch, normalLatch, tumourLatch, true, mainThread, barrier, array, queue, 100)
 		List<SAMRecord> records = getRecords();
 		assertEquals(33, records.size());
 		int readId = 1;
@@ -95,7 +86,7 @@ public class PipelineTest {
 				srw.setPassesFilter(true);
 				c.processSAMRecord(srw);
 			} else {
-				System.out.println("invalid rec: " + rec.format());
+				System.out.println("invalid rec: " + rec.toString());
 			}
 		}
 //		
