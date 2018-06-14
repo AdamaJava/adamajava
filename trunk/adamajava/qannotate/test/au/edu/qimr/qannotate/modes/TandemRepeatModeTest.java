@@ -13,7 +13,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 
 import org.junit.AfterClass;
 import org.junit.Test;
@@ -41,7 +40,7 @@ public class TandemRepeatModeTest {
 	}
 	
 	@Test
-	public void checkRepeatTest() throws Exception{
+	public void checkRepeatTest() throws IOException{
 		createRepeat();
 		TandemRepeatMode trf = new TandemRepeatMode( inputVcfName, outputVcfName, 0);		
 		Map<String, HashSet<Repeat>> repeats = trf.loadRepeat(repeatFileName );		
@@ -57,7 +56,7 @@ public class TandemRepeatModeTest {
 		Map<Integer, Block> blocks = index.index;
  		assertTrue(blocks.size() == 24); //some big gap will be divided to multi block, each block maximum size is 200		
 		
-		Set<Block> uniqBlocks = new HashSet<Block>(blocks.values());
+		Set<Block> uniqBlocks = new HashSet<>(blocks.values());
 		int areaLength = 0;
 		for(Block blk: uniqBlocks) 
 			areaLength += blk.getEnd() - blk.getStart() + 1;
@@ -76,10 +75,6 @@ public class TandemRepeatModeTest {
 		assertTrue(blocks.get(1801).getEnd() == 1802);
 		assertTrue(blocks.get(1803).getEnd() == 1900);
 		assertTrue(blocks.get(1901).getEnd() == 2000);
-				 		
-	    TreeSet<Integer> sortedStartEnd = new TreeSet<Integer>();
-	    sortedStartEnd.addAll(blocks.keySet());	  
-	    
 	}
 	
 	@Test
@@ -131,7 +126,7 @@ public class TandemRepeatModeTest {
 	
 	
 	@Test
-	public void noBufferTest() throws Exception{
+	public void noBufferTest() throws IOException{
 		createRepeat();
 		TandemRepeatMode trf = new TandemRepeatMode( inputVcfName, outputVcfName, 0);		
 		Map<String, HashSet<Repeat>> repeats = trf.loadRepeat(repeatFileName );	
@@ -184,7 +179,7 @@ public class TandemRepeatModeTest {
 	}
 		
 	@Test
- 	public void bufferTest() throws Exception{
+ 	public void bufferTest() throws IOException{
 		createRepeat();
 		TandemRepeatMode trf = new TandemRepeatMode( inputVcfName, outputVcfName, 5);		
 		Map<String, HashSet<Repeat>> repeats = trf.loadRepeat(repeatFileName );				
@@ -223,7 +218,7 @@ public class TandemRepeatModeTest {
 	}
 	
 	@Test
-	public void embededTRFTest() throws Exception{
+	public void embededTRFTest() throws IOException{
 		createRepeat();
 		TandemRepeatMode trf = new TandemRepeatMode( inputVcfName, outputVcfName, 0);		
 		Map<String, HashSet<Repeat>> repeats = trf.loadRepeat(repeatFileName );				
@@ -253,7 +248,7 @@ public class TandemRepeatModeTest {
 	}
 	
 	private void createRepeat() throws IOException{
-		 final List<String> data = new ArrayList<String>();		 
+		 final List<String> data = new ArrayList<>();		 
 		 data.add("chr1\t100\t115\t3\t13.7");
 		 data.add("chr1\t115\t130\t1\t12.0");
 //		 data.add("chr1\t115\t300\t8\t2.0");
