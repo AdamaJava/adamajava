@@ -10,7 +10,7 @@ import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 
-
+@Deprecated
 public class SampleColumn {
 	
 	private final int test_column ; //can't be -1 since will "+1"

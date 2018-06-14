@@ -23,11 +23,13 @@ import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.picard.SAMFileReaderFactory;
+import org.qcmg.picard.SAMOrBAMWriterFactory;
 import org.qcmg.qbamfilter.query.QueryExecutor;
 
 import au.edu.qimr.qannotate.Options;
 import au.edu.qimr.qannotate.utils.ContigPileup;
 import au.edu.qimr.qannotate.utils.VariantPileup;
+import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMSequenceRecord;
 import htsjdk.samtools.SamReader;
 import scala.actors.threadpool.Arrays;
@@ -119,7 +121,18 @@ public class OverlapMode extends AbstractMode{
 		Map<VcfRecord, String[]> pileuped = new HashMap<>();
 		for(VariantPileup pileup : queue){ 
 			String[] anno = pileuped.computeIfAbsent( pileup.getVcf(), k-> new String[bamfiles.length] );
-			anno[pileup.getSampleColumnNo()-1] = pileup.getAnnotation();			
+			anno[pileup.getSampleColumnNo()-1] = pileup.getAnnotation();	
+			
+//			//debug
+//			if(pileup.getVcf().getPosition() == 4511341){			
+//				try (SamReader Breader =  SAMFileReaderFactory.createSAMFileReader(new File(bamfiles[0]));){
+//					SAMOrBAMWriterFactory fact = new SAMOrBAMWriterFactory(Breader.getFileHeader(), false, new File("output.33.bam"));				 
+//					for(SAMRecord re: pileup.getReads33())
+//						fact.getWriter().addAlignment(re);
+//					fact.closeWriter();					 
+//				}
+//			}
+			
 		}
 				
 		return pileuped;		

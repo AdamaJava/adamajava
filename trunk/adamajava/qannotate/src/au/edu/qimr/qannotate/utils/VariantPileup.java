@@ -11,6 +11,11 @@ import org.qcmg.common.util.IndelUtils.SVTYPE;
 import org.qcmg.common.util.Pair;
 import org.qcmg.common.vcf.VcfRecord;
 import htsjdk.samtools.SAMRecord;
+
+import org.qcmg.picard.SAMOrBAMWriterFactory;
+import org.qcmg.picard.util.SAMUtils;
+import htsjdk.samtools.SAMTools;
+import scala.Math;
 import scala.actors.threadpool.Arrays;
 
 public class VariantPileup {
@@ -25,7 +30,10 @@ public class VariantPileup {
 	private final AtomicLong altCount = new AtomicLong();
 	private final AtomicLong otherCount = new AtomicLong();	
 	private int depth = 0;
-		
+	
+	//debug
+	List<SAMRecord> reads = new ArrayList<>();
+	public List<SAMRecord> getReads33(){ return reads; 	}
 	/**
 	 * 
 	 * @param vcf: a vcf record of SNP, MNP, INDEL; this method only support one alternate bases, that is not allow common (,) appear on ALT column. 
@@ -43,12 +51,24 @@ public class VariantPileup {
 		List<SAMRecord>  pool = applyFilter(pool1);
 
 		//debug
-		if(vcf.getPosition() == 4511341 ){
+		if(vcf.getPosition() == 4511341 ){			 
 			System.out.print("coverage: " + pool1.size() + ", informative: " + pool.size() + " => " + vcf.toSimpleString());
+			int no = 0;
 			for(SAMRecord re: pool){
+				 
+				reads.add(re);
+				if(!SAMUtils.isSAMRecordValidForVariantCalling(re))System.out.println("not valid");				 
 				int pos = re.getReadPositionAtReferencePosition(4511341);
-				System.out.println(re.getReadName() + " ::: " +  re.getAlignmentStart() + " ~ " + re.getAlignmentEnd() + "(" + pos + "), MD: "  +  re.getAttribute("MD"));
+				//debug check base
+				byte[] baseQ = re.getBaseQualities(); 	
+				if(baseQ[pos-1] < 10 )
+				System.out.println(  re.getDuplicateReadFlag() + re.getReadName() + " ::: " +  re.getAlignmentStart() + " ~ " + re.getAlignmentEnd()  + "(base:" + pos + "th), cigar:" + re.getCigarString() );
+				
+//				for(int i = Math.max(0, pos-10); i< Math.min(pos+10, baseQ.length); i ++)
+//					if(baseQ[i] < 10 ){System.out.println(no + " read contains low quality base on " + i  ); no++;break;				
+						
 			}
+		
 		}
 		
 		depth = pool.size();		//total number of reads
@@ -94,23 +114,22 @@ public class VariantPileup {
 		int end =  variantType.order <= 4? vcf.getPosition() + vcf.getRef().length()-1 : vcf.getPosition() + vcf.getRef().length()+1;
 				
 		for(SAMRecord re: poolIn){
-			if( re.getAlignmentStart() > start || re.getAlignmentEnd() < end ) continue;	
-			boolean containN = false;
-			if( variantType.equals(SVTYPE.INS) ){
-				int insStart = re.getReadPositionAtReferencePosition(vcf.getPosition()); //return 1 if first base; 0 if deletion in read
-				int insEnd = re.getReadPositionAtReferencePosition(vcf.getPosition()+1);
-				//deletion occurs, belong to nearby indel, add to pool; otherwise check N
-				if(insStart != 0 && insEnd != 0 ){						
-					byte[] maskedReadBases = re.getReadBases();
-					for (int i = insStart+1; i< insEnd; i++)
-						try{																	
-							if( (char)maskedReadBases[i] == 'N') {containN = true; break; }	
-						}catch(Exception e){
-							System.err.println(i + "th base exception " + insStart + "-" + insEnd );								
-						}					
-					}//end check N
-				}//end INS
-			if( !containN ) pool.add(re);				
+			if( re.getAlignmentStart() > start || re.getAlignmentEnd() < end ) continue;
+			int baseStart = re.getReadPositionAtReferencePosition( start ); //return 1 if first base; 0 if deletion in read
+			int baseEnd = re.getReadPositionAtReferencePosition( end );
+			boolean add2Pool = true;
+			if(baseStart == 0 || baseEnd == 0 ) ;
+			else if( variantType.order < 5 ){  //check snp mnp etc
+				byte[]  baseQ = re.getBaseQualities();
+				for(int i = baseStart-1; i < baseEnd; i ++)
+					if(baseQ[i] < 10 ){ add2Pool = false; break;}						
+			}else if( variantType.equals(SVTYPE.INS) ){
+				//deletion occurs, belong to nearby indel, add to pool; otherwise check N			 				
+				byte[] maskedReadBases = re.getReadBases();
+				for ( int i = baseStart; i < baseEnd; i++ )
+					if( (char)maskedReadBases[i] == 'N'){ add2Pool = false; break;}									 
+			}//end INS
+			if( add2Pool )  pool.add( re ) ;			 			
 		}		
 			
 		return pool; 
