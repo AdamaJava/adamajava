@@ -265,9 +265,6 @@ public class HomoplymersModeTest {
 		31 CCCCC
 		36 CCCCC
 	*/			
-	
-		String ref = "AATGCAATTGGATCGGACCCTCCCCCCCCCCCCCCCCCCC"	;				  
-		byte[] bytes = ref.getBytes();
-		return bytes; 	
+		return "AATGCAATTGGATCGGACCCTCCCCCCCCCCCCCCCCCCC".getBytes(); 	
 	}		
 }
