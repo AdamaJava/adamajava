@@ -210,12 +210,13 @@ public class VariantPileupTest {
         data.add("@PG	ID:qtest::Test	VN:0.2pre");
         data.add("@SQ	SN:chr1	LN:249250621");
         data.add("@SQ	SN:chr11	LN:243199373");
+ 
         data.add("@CO	create by qcmg.qbamfilter.filter::TestFile"); 
         data.addAll(reads);
                   
        
         try( BufferedWriter out =  new BufferedWriter( new FileWriter( ftmp )) ){
-           for ( String line : data )  out.write( line + "\n" );          
+           for ( String line : data )  out.write( line + "\n"  );          
            out.close();
         } catch (IOException e) {
             System.err.println( "IOException caught whilst attempting to write to SAM test file: " + ftmp  + e );

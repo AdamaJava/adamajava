@@ -56,7 +56,7 @@ public class Vcf2maf extends AbstractMode{
 	private final int testColumn;
 	private int controlColumn;
 	private final ContentType contentType;
-	private boolean hasACSNP = false; 
+	private boolean hasACLAP = false; 
 	
 	//for unit test
 	Vcf2maf(int test_column, int control_column, String test, String control, ContentType contentType){ 
@@ -257,13 +257,13 @@ public class Vcf2maf extends AbstractMode{
 			
 			//if vcf header contain ACSNP descripion  then we have to output to maf file
 			if( header.getFormatRecord(VcfHeaderUtils.FORMAT_ACLAP) != null )
-				hasACSNP = true;
+				hasACLAP = true;
  			
 			for(MafElement ele: EnumSet.allOf( MafElement.class))
-				if(hasACSNP || (!hasACSNP && ele.getColumnNumber() < 63))
+				if(hasACLAP || (!hasACLAP && ele.getColumnNumber() < 63))
 					write.println(ele.getDescriptionLine());
  			
-			write.println(SnpEffMafRecord.getSnpEffMafHeaderline(hasACSNP));	 
+			write.println(SnpEffMafRecord.getSnpEffMafHeaderline(hasACLAP));	 
 		 }	 
 	}
 
