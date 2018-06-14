@@ -14,8 +14,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.junit.AfterClass;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.IndelUtils;
@@ -28,22 +29,16 @@ public class TandemRepeatModeTest {
 	String repeatFileName = "input.repeat";
 	String inputVcfName = "input.vcf";
 	String outputVcfName = "output.vcf";
-
-	@AfterClass
-	public static void deleteInput() {	
-		File dir = new File(".");
-		if(!dir.isDirectory()) throw new IllegalStateException("wtf mate?");
-		for(File file : dir.listFiles()) {
-		    if(file.getName().startsWith("input.") || file.getName().startsWith("output.") )
-		       file.delete();
-		}
-	}
 	
+	@Rule
+	public final TemporaryFolder testFolder = new TemporaryFolder();
+
 	@Test
 	public void checkRepeatTest() throws IOException{
-		createRepeat();
+		File f = testFolder.newFile();
+		createRepeat(f);
 		TandemRepeatMode trf = new TandemRepeatMode( inputVcfName, outputVcfName, 0);		
-		Map<String, HashSet<Repeat>> repeats = trf.loadRepeat(repeatFileName );		
+		Map<String, HashSet<Repeat>> repeats = trf.loadRepeat(f.getAbsolutePath() );		
 		assertTrue(repeats.get("chr1").size() == 9);
 		BlockIndex index = trf.makeIndexedBlock(  repeats.get("chr1"));
 		assertEquals(100, index.firstBlockStart);
@@ -127,9 +122,10 @@ public class TandemRepeatModeTest {
 	
 	@Test
 	public void noBufferTest() throws IOException{
-		createRepeat();
+		File f = testFolder.newFile();
+		createRepeat(f);
 		TandemRepeatMode trf = new TandemRepeatMode( inputVcfName, outputVcfName, 0);		
-		Map<String, HashSet<Repeat>> repeats = trf.loadRepeat(repeatFileName );	
+		Map<String, HashSet<Repeat>> repeats = trf.loadRepeat(f.getAbsolutePath() );	
 		BlockIndex index = trf.makeIndexedBlock(  repeats.get("chr1"));
 		assertEquals(100, index.firstBlockStart);
 		assertEquals(2000, index.lastBlockEnd);
@@ -180,9 +176,10 @@ public class TandemRepeatModeTest {
 		
 	@Test
  	public void bufferTest() throws IOException{
-		createRepeat();
+		File f = testFolder.newFile();
+		createRepeat(f);
 		TandemRepeatMode trf = new TandemRepeatMode( inputVcfName, outputVcfName, 5);		
-		Map<String, HashSet<Repeat>> repeats = trf.loadRepeat(repeatFileName );				
+		Map<String, HashSet<Repeat>> repeats = trf.loadRepeat(f.getAbsolutePath() );				
 		BlockIndex index = trf.makeIndexedBlock(  repeats.get("chr1"));
 		assertEquals(100, index.firstBlockStart);
 		assertEquals(2000, index.lastBlockEnd);
@@ -219,9 +216,10 @@ public class TandemRepeatModeTest {
 	
 	@Test
 	public void embededTRFTest() throws IOException{
-		createRepeat();
+		File f = testFolder.newFile();
+		createRepeat(f);
 		TandemRepeatMode trf = new TandemRepeatMode( inputVcfName, outputVcfName, 0);		
-		Map<String, HashSet<Repeat>> repeats = trf.loadRepeat(repeatFileName );				
+		Map<String, HashSet<Repeat>> repeats = trf.loadRepeat(f.getAbsolutePath() );				
 		BlockIndex index = trf.makeIndexedBlock(  repeats.get("chr1"));
 		assertEquals(100, index.firstBlockStart);
 		assertEquals(2000, index.lastBlockEnd);
@@ -247,7 +245,7 @@ public class TandemRepeatModeTest {
 		
 	}
 	
-	private void createRepeat() throws IOException{
+	private void createRepeat(File f) throws IOException{
 		 final List<String> data = new ArrayList<>();		 
 		 data.add("chr1\t100\t115\t3\t13.7");
 		 data.add("chr1\t115\t130\t1\t12.0");
@@ -260,7 +258,7 @@ public class TandemRepeatModeTest {
 		 data.add("chr1\t1700\t2000\t4\t6.0\t4\t90\t0\t30\t1.19\tGCGG");
 		 data.add("chr1\t1803\t2000\t1\t200.0");
 		  
-        try(BufferedWriter out = new BufferedWriter(new FileWriter(repeatFileName));) {          
+        try(BufferedWriter out = new BufferedWriter(new FileWriter(f));) {          
             for (final String line : data)   out.write(line + "\n");                  
          }  
 		
