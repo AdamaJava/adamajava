@@ -11,9 +11,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
@@ -23,23 +23,9 @@ import org.qcmg.vcf.VCFFileReader;
 
 public class GermlineModeTest {
 	
-	final static String GERMLINE_FILENAME = "germline.vcf";
-	final static String iNPUT_FILENAME = "input.vcf"; 
-	final static String OUTPUT_FILENAME = "output.vcf";
+	@Rule
+	public final TemporaryFolder testFolder = new TemporaryFolder();
   	
-	@BeforeClass
-	public static void createInput() throws IOException{	
-	
-		createGermlineFile();
-	}
-	
-	 @AfterClass
-	 public static void deleteIO(){
-
-		 new File(iNPUT_FILENAME).delete();
-		 new File(GERMLINE_FILENAME).delete();
-		 new File(OUTPUT_FILENAME).delete();
-	 }
 	 
 	 @Test
 	 public void getDataForInfoField() {
@@ -66,117 +52,107 @@ public class GermlineModeTest {
 		assertEquals(true, r.getInfo().contains("GERM=T:1:1:1:1"));
 		assertEquals(true, GermlineMode.annotateGermlineSnp(r, "C", "A", new String[]{"1","1","1","1"}));
 		assertEquals(true, r.getInfo().contains("GERM=T:1:1:1:1,A:1:1:1:1"));
-		 
 	 }
-//	 @Test
-//	 public void addToINFO() {
-//		 VcfRecord v = new VcfRecord(new String[]{"chr1","100",".","A","C",".",".","SOMATIC"});
-//		 VcfRecord germVcf = new VcfRecord(new String[]{"chr1","100",".","A","C",".",".","86"});
-//		 GermlineMode.annotateGermlineSnp(v, germVcf, 185);
-//		 assertEquals("SOMATIC;GERM=C:86,185", v.getInfo());
-//		 
-//		 VcfRecord v2 = new VcfRecord(new String[]{"chr1","100",".","A","G",".",".","SOMATIC"});
-//		 GermlineMode.annotateGermlineSnp(v2, germVcf, 185);
-//		 assertEquals("SOMATIC", v2.getInfo());
-//		 
-//		 VcfRecord v3 = new VcfRecord(new String[]{"chr1","100",".","A","C,G",".",".","SOMATIC"});
-//		 GermlineMode.annotateGermlineSnp(v3, germVcf, 185);
-//		 assertEquals("SOMATIC;GERM=C:86,185", v3.getInfo());
-//		 
-//		 VcfRecord v4 = new VcfRecord(new String[]{"chr1","100",".","A","C,T",".",".","SOMATIC"});
-//		 VcfRecord germVcf2 = new VcfRecord(new String[]{"chr1","100",".","A","C,T",".",".","86"});
-//		 GermlineMode.annotateGermlineSnp(v4, germVcf2, 185);
-//		 assertEquals("SOMATIC;GERM=C:86,185,T:86,185", v4.getInfo());
-//	 }
 	 
-		@Test
-		public void germlineModeTest() throws Exception {
-			createVcf();
-			final GermlineMode mode = new GermlineMode();		
-			mode.loadVcfRecordsFromFile(new File(iNPUT_FILENAME));
-			mode.addAnnotation(GERMLINE_FILENAME);						
-			mode.reheader("testing run",   iNPUT_FILENAME);
-			mode.writeVCF( new File(OUTPUT_FILENAME));
-			
-			try(VCFFileReader reader = new VCFFileReader(OUTPUT_FILENAME)){
-				 
-				 //check header
-				VcfHeader header = reader.getHeader();	
-				assertEquals(false, header.getFilterRecord(VcfHeaderUtils.FILTER_GERMLINE) != null);
-//				assertEquals(true, header.getInfoRecord(VcfHeaderUtils.INFO_GERMLINE) != null);
+	@Test
+	public void germlineModeTest() throws Exception {
+		File f = testFolder.newFile();
+		File db = testFolder.newFile();
+		File out = testFolder.newFile();
+		createVcf(f);
+		createGermlineFile(db);
+		final GermlineMode mode = new GermlineMode();		
+		mode.loadVcfRecordsFromFile(f);
+		mode.addAnnotation(db.getAbsolutePath());						
+		mode.reheader("testing run",   f.getAbsolutePath());
+		mode.writeVCF(out);
+		
+		try(VCFFileReader reader = new VCFFileReader(out)){
+			 
+			 //check header
+			VcfHeader header = reader.getHeader();	
+			assertEquals(false, header.getFilterRecord(VcfHeaderUtils.FILTER_GERMLINE) != null);
 
-				//check records
- 				int inputs = 0;
- 				int germNo = 0;
+			//check records
+			int inputs = 0;
+			int germNo = 0;
+			
+			for (final VcfRecord re : reader) {	
+ 				inputs ++;
  				
-				for (final VcfRecord re : reader) {	
-	 				inputs ++;
-	 				
-	 				if(re.getInfoRecord().getField(VcfHeaderUtils.INFO_GERMLINE) != null)
-	 					germNo ++;
-	 				
-	 				if (re.getPosition() == 95813205) {
-	 					assertEquals("T:10:283:293:0", re.getInfoRecord().getField(VcfHeaderUtils.INFO_GERMLINE));
-	 				}
-	 				if (re.getPosition() == 	60781981) {
-	 					assertEquals("G:10:302:312:0", re.getInfoRecord().getField(VcfHeaderUtils.INFO_GERMLINE));
-	 				}
-				}
-				assertTrue(inputs == 2);
-				assertTrue(germNo == 2);
-			 }
-		}	 
+ 				if(re.getInfoRecord().getField(VcfHeaderUtils.INFO_GERMLINE) != null)
+ 					germNo ++;
+ 				
+ 				if (re.getPosition() == 95813205) {
+ 					assertEquals("T:10:283:293:0", re.getInfoRecord().getField(VcfHeaderUtils.INFO_GERMLINE));
+ 				}
+ 				if (re.getPosition() == 	60781981) {
+ 					assertEquals("G:10:302:312:0", re.getInfoRecord().getField(VcfHeaderUtils.INFO_GERMLINE));
+ 				}
+			}
+			assertTrue(inputs == 2);
+			assertTrue(germNo == 2);
+		 }
+	}	 
 	 
-		@Test
-		public void checkNonSomatic() throws Exception {
-		    final List<String> data = new ArrayList<String>(4);
-	        data.add("##fileformat=VCFv4.0");
-	        data.add(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT+"s1\ts2");
-	       
- 	        //germ position but not somatic
-	        data.add("chrY\t14923588\t.\tG\tA\t.\t.\tFS=GTGATATTCCC\tGT:GD:AC:MR:NNS\t0/1:G/A:A0[0],15[36.2],G11[36.82],9[33]\t0/1:G/A:A0[0],33[35.73],G6[30.5],2[34]:15:13"); 
-	        try(BufferedWriter out = new BufferedWriter(new FileWriter(iNPUT_FILENAME));) {          
-	            for (final String line : data)   out.write(line + "\n");                  
-	         }
-	        
-			final GermlineMode mode = new GermlineMode();		
-			mode.loadVcfRecordsFromFile(new File(iNPUT_FILENAME));
-			mode.addAnnotation(GERMLINE_FILENAME);
-			mode.writeVCF( new File(OUTPUT_FILENAME));
-	        
-			 try(VCFFileReader reader = new VCFFileReader(OUTPUT_FILENAME)){				 
-				//check records
- 				int i = 0;
-				for (final VcfRecord re : reader) {	
-	 				i ++;
-	 				if (re.getPosition() == 14923588) {
-						assertTrue(re.getFilter().equals(Constants.MISSING_DATA_STRING));
-						//assertTrue(re.getInfoRecord().getField(VcfHeaderUtils.INFO_GERMLINE).equals("86,185"));
-						assertTrue(re.getInfoRecord().getField(VcfHeaderUtils.INFO_GERMLINE) == null);
-	 				}
-				}
-				assertTrue( i == 1 );
-			 }	        
-		}
-		@Test
-		public void checkSomatic()throws Exception{
-			
-			VcfRecord r = new VcfRecord(new String[]{"chr1","16534","rs201459529","C","T",".",".","AF=1.00;DP=2;FS=0.000;MLEAC=2;MLEAF=1.00;MQ=34.79;MQ0=0;QD=20.87;SOR=2.303;IN=2;DB","GT:AD:DP:GQ:PL:FT:MR:NNS:OABS:INF",".:.:.:.:.:.:.:.:.:.","1/1:0,2:2:6:69,6,0:SBIASCOV;SAT3:2:2:T0[0]2[34.5]:SOMATIC"});
-			
-			final GermlineMode mode = new GermlineMode();		
-			mode.positionRecordMap.put(r.getChrPosition(), Arrays.asList(r));
-			mode.addAnnotation(GERMLINE_FILENAME);
-			
-			List<VcfRecord> recs = mode.positionRecordMap.get(r.getChrPosition());
-			assertEquals(1, recs.size());
-			assertEquals(true, VcfUtils.isRecordSomatic(recs.get(0)));
-		}
+	@Test
+	public void checkNonSomatic() throws Exception {
+		File db = testFolder.newFile();
+		File out = testFolder.newFile();
+		File f = testFolder.newFile();
+		createGermlineFile(db);
+		
+		
+	    final List<String> data = new ArrayList<String>(4);
+        data.add("##fileformat=VCFv4.0");
+        data.add(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT+"s1\ts2");
+       
+        //germ position but not somatic
+        data.add("chrY\t14923588\t.\tG\tA\t.\t.\tFS=GTGATATTCCC\tGT:GD:AC:MR:NNS\t0/1:G/A:A0[0],15[36.2],G11[36.82],9[33]\t0/1:G/A:A0[0],33[35.73],G6[30.5],2[34]:15:13"); 
+        try(BufferedWriter bw = new BufferedWriter(new FileWriter(f));) {          
+            for (final String line : data)   bw.write(line + "\n");                  
+         }
+        
+		final GermlineMode mode = new GermlineMode();		
+		mode.loadVcfRecordsFromFile(f);
+		mode.addAnnotation(db.getAbsolutePath());
+		mode.writeVCF(out);
+        
+		 try(VCFFileReader reader = new VCFFileReader(out)){ 
+			//check records
+			int i = 0;
+			for (final VcfRecord re : reader) {	
+ 				i ++;
+ 				if (re.getPosition() == 14923588) {
+					assertTrue(re.getFilter().equals(Constants.MISSING_DATA_STRING));
+					//assertTrue(re.getInfoRecord().getField(VcfHeaderUtils.INFO_GERMLINE).equals("86,185"));
+					assertTrue(re.getInfoRecord().getField(VcfHeaderUtils.INFO_GERMLINE) == null);
+ 				}
+			}
+			assertTrue( i == 1 );
+		 }	        
+	}
+	@Test
+	public void checkSomatic()throws IOException{
+		File db = testFolder.newFile();
+		createGermlineFile(db);
+		
+		VcfRecord r = new VcfRecord(new String[]{"chr1","16534","rs201459529","C","T",".",".","AF=1.00;DP=2;FS=0.000;MLEAC=2;MLEAF=1.00;MQ=34.79;MQ0=0;QD=20.87;SOR=2.303;IN=2;DB","GT:AD:DP:GQ:PL:FT:MR:NNS:OABS:INF",".:.:.:.:.:.:.:.:.:.","1/1:0,2:2:6:69,6,0:SBIASCOV;SAT3:2:2:T0[0]2[34.5]:SOMATIC"});
+		
+		final GermlineMode mode = new GermlineMode();		
+		mode.positionRecordMap.put(r.getChrPosition(), Arrays.asList(r));
+		mode.addAnnotation(db.getAbsolutePath());
+		
+		List<VcfRecord> recs = mode.positionRecordMap.get(r.getChrPosition());
+		assertEquals(1, recs.size());
+		assertEquals(true, VcfUtils.isRecordSomatic(recs.get(0)));
+	}
 	
 	/**
 	 * create input vcf file containing 2 dbSNP SNPs and one verified SNP
 	 * @throws IOException
 	 */
-	public static void createVcf() throws IOException{
+	static void createVcf(File f) throws IOException{
         List<String> data =Arrays.asList(
         		"##fileformat=VCFv4.2",
         		VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT,
@@ -184,7 +160,7 @@ public class GermlineModeTest {
         		"chr1	60781981	rs5015226	T	G	.	.	FLANK=ACCAAGTGCCT;DP=53;FS=0.000;MQ=60.00;QD=31.16;SOR=0.730;IN=1,2;DB;HOM=0,CGAAAACCAAgTGCCTGCATT;EFF=intergenic_region(MODIFIER||||||||||1)	GT:AD:CCC:CCM:DP:EOR:FF:FT:GQ:INF:NNS:OABS:QL	1/1:0,46:Germline:34:47:G0[]1[]:G5;T1:PASS:.:.:42:C0[0]1[12];G23[40.04]23[36.83]:.	1/1:0,57:Germline:34:57:G2[]0[]:G3:PASS:.:.:51:G24[39]33[39.18]:.	1/1:0,53:Germline:34:53:.:.:PASS:99:.:.:.:2418.77	1/1:0,60:Germline:34:60:.:.:PASS:99:.:.:.:2749.77"
         		);
         
-        try(BufferedWriter out = new BufferedWriter(new FileWriter(iNPUT_FILENAME));) {          
+        try(BufferedWriter out = new BufferedWriter(new FileWriter(f));) {          
             for (String line : data)   out.write(line + "\n");                  
          }  
 	}	
@@ -192,7 +168,7 @@ public class GermlineModeTest {
 	/**
 	 * a mini dbSNP vcf file 
 	 */
-	public static void createGermlineFile() throws IOException{
+	static void createGermlineFile(File f) throws IOException{
         List<String> data = Arrays.asList("chr1_11894494_C_T:0:1:1:0:rs372880659",
 "chr1_143540358_A_T:183:1:1:183:rs76379294",
 "chr1_95813205_C_T:10:283:293:0:rs11165387",
@@ -202,16 +178,8 @@ public class GermlineModeTest {
 "chr1_44499568_T_G:1:0:1:0:novel",
 "chr1_60781981_T_G:10:302:312:0:rs5015226",
 "chr1_173643835_T_C:0:2:2:0:rs1903411");
-//        data.add("##search_string=GermlineSNV.dcc1");  
-//        data.add("##dornorNumber=185");
-//        data.add("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO");
-//        data.add("Y\t2675826\t.\tC\tA\t.\t.\t86");
-//        data.add("Y\t14923588\t.\tG\tA,T\t.\t.\t6");
-//        data.add("Y\t22012840\t.\tC\tA\t.\t.\t86");
-//        data.add("Y\t22012841\t.\tC\tA\t.\t.\t86");
-//        data.add("Y\t22012842\t.\tC\tA\t.\t.\t86");
 
-        try(BufferedWriter out = new BufferedWriter(new FileWriter(GERMLINE_FILENAME));) {
+        try(BufferedWriter out = new BufferedWriter(new FileWriter(f));) {
            for (String line : data)  out.write(line + "\n");
         }  
 	}	
