@@ -75,8 +75,8 @@ public enum MafElement {
 	Effect_Class(60,  SnpEffMafRecord.Null, "Convert value of Effect_Ontology to Effect_Class."), 
 	Input(61, SnpEffMafRecord.Null,"Indicates in which vcf the variant was reported."),
 	Notes(62, SnpEffMafRecord.Null, "Additional information from annotated vcf record info column, eg. TRF, HOM, Default value: null."),
-	Note_Test_ACSNP(63, SnpEffMafRecord.Null, "Additional information from annotated vcf record on test format column if the ACSNP field exsts, Default value: null."),
-	Note_Control_ACSNP(64, SnpEffMafRecord.Null, "Additional information from annotated vcf record on control format column if the ACSNP field exsts, Default value: null.");
+	Note_Test_ACLAP(63, SnpEffMafRecord.Null, "Additional information from annotated vcf record on test format column if the ACLAP field exsts, Default value: null."),
+	Note_Control_ACLAP(64, SnpEffMafRecord.Null, "Additional information from annotated vcf record on control format column if the ACLAP field exsts, Default value: null.");
 		   
 
 	private final int columnNo;
