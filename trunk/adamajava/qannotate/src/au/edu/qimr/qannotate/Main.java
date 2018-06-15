@@ -48,7 +48,8 @@ public class Main {
 //   	   			new SnpPileupMode( options );
    	   	   } else if (options.getMode() == Options.MODE.overlap) {
    	   			new OverlapMode( options );
-
+	   	   	} else if (options.getMode() == Options.MODE.vcf2maftmp) {
+				new Vcf2mafTmp(  options );
            } else {
         	   		logger.error("No valid mode are specified on commandline: " + options.getMode());
         	   		throw new Exception("No valid mode are specified on commandline: " + options.getMode()) ;

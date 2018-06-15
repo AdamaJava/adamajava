@@ -24,7 +24,7 @@ import au.edu.qimr.qannotate.modes.*;
  * parse command line to options. 
  */
 public class Options {
-	public enum MODE { dbsnp, germline, snpeff,confidence, vcf2maf, cadd,indelconfidence,trf, hom, ccm,make_valid, overlap }
+	public enum MODE { dbsnp, germline, snpeff,confidence, vcf2maf, cadd,indelconfidence,trf, hom, ccm,make_valid, overlap,vcf2maftmp }
 
 	
     protected static final String VERSION_DESCRIPTION = Messages.getMessage("VERSION_OPTION_DESCRIPTION");	 
