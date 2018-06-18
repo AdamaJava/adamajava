@@ -11,19 +11,13 @@ import org.qcmg.common.util.IndelUtils.SVTYPE;
 import org.qcmg.common.util.Pair;
 import org.qcmg.common.vcf.VcfRecord;
 import htsjdk.samtools.SAMRecord;
-
-import org.qcmg.picard.SAMOrBAMWriterFactory;
-import org.qcmg.picard.util.SAMUtils;
-import htsjdk.samtools.SAMTools;
-import scala.Math;
 import scala.actors.threadpool.Arrays;
 
 public class VariantPileup {
 	
 	private final VcfRecord vcf; 
 	private final SVTYPE variantType;
-	private final int sampleColumnNo; //the first sample column marked as 1; 
-	
+	private final int sampleColumnNo; //the first sample column marked as 1; 	
 	private final AtomicLong pairSame = new AtomicLong(); 
 	private final AtomicLong pairDiff = new AtomicLong(); 
 	private final AtomicLong refCount = new AtomicLong();
@@ -31,9 +25,6 @@ public class VariantPileup {
 	private final AtomicLong otherCount = new AtomicLong();	
 	private int depth = 0;
 	
-	//debug
-	List<SAMRecord> reads = new ArrayList<>();
-	public List<SAMRecord> getReads33(){ return reads; 	}
 	/**
 	 * 
 	 * @param vcf: a vcf record of SNP, MNP, INDEL; this method only support one alternate bases, that is not allow common (,) appear on ALT column. 
@@ -49,35 +40,12 @@ public class VariantPileup {
 		
 		//copy pool to another array for further filtering
 		List<SAMRecord>  pool = applyFilter(pool1);
-
-		//debug
-		if(vcf.getPosition() == 4511341 ){			 
-			System.out.print("coverage: " + pool1.size() + ", informative: " + pool.size() + " => " + vcf.toSimpleString());
-			int no = 0;
-			for(SAMRecord re: pool){
-				 
-				reads.add(re);
-				if(!SAMUtils.isSAMRecordValidForVariantCalling(re))System.out.println("not valid");				 
-				int pos = re.getReadPositionAtReferencePosition(4511341);
-				//debug check base
-				byte[] baseQ = re.getBaseQualities(); 	
-				if(baseQ[pos-1] < 10 )
-				System.out.println(  re.getDuplicateReadFlag() + re.getReadName() + " ::: " +  re.getAlignmentStart() + " ~ " + re.getAlignmentEnd()  + "(base:" + pos + "th), cigar:" + re.getCigarString() );
-				
-//				for(int i = Math.max(0, pos-10); i< Math.min(pos+10, baseQ.length); i ++)
-//					if(baseQ[i] < 10 ){System.out.println(no + " read contains low quality base on " + i  ); no++;break;				
-						
-			}
-		
-		}
 		
 		depth = pool.size();		//total number of reads
 		Map<String,  Pair<SAMRecord,SAMRecord>> pairPool = new HashMap<>();		
 		Map<String, SAMRecord> singlePool = new HashMap<>();
 		
 		for(SAMRecord re : pool){
-//			System.out.println(re.getReadName() + " :: " + re.getAlignmentStart() + "~" +  re.getAlignmentEnd());
-			
 			String key = re.getReadName();
 			if(pairPool.containsKey(key)){ pairPool.remove(key); }		
 			if(singlePool.containsKey(key)){
@@ -129,18 +97,9 @@ public class VariantPileup {
 				for ( int i = baseStart; i < baseEnd; i++ )
 					if( (char)maskedReadBases[i] == 'N'){ add2Pool = false; break;}									 
 			}//end INS
-			if( add2Pool )  pool.add( re ) ;			 			
-		}		
-			
-		return pool; 
-	 
-//		System.err.println(vcf.toSimpleString() + ": 0 is impossible vairant postion: " + re.getReadName() + " :: " +re.getAlignmentStart() + " ~ " +re.getAlignmentEnd());		
-//		System.err.println(insStart + "-" + insEnd  + " shift to " + re.getReadPositionAtReferencePosition(start, true) + "-" + re.getReadPositionAtReferencePosition(end , true));
-//		if(!vcf.getChromosome().equals("chr2")) continue;
-//		System.err.print("\n(" + start + "~" + end +")" + vcf.toSimpleString() );
-//		System.err.println( re.getReadBases().length + "bases mapped to ref " + re.getAlignmentStart() + "-" + re.getAlignmentEnd() );
-//		System.err.println(  " (ref=>offset) " + re.getReadPositionAtReferencePosition(re.getAlignmentStart()) + "-" + re.getReadPositionAtReferencePosition(re.getAlignmentEnd()));
-		
+			if( add2Pool )  pool.add( re );			 			
+		}			
+		return pool;
 	}
 	
 	/**
@@ -162,6 +121,7 @@ public class VariantPileup {
 		else if( Arrays.equals(bases, vcf.getAlt().getBytes()) ) altCount.incrementAndGet();
 		else otherCount.incrementAndGet();			
 	}
+	
 	/**
 	 * check whether this read contain same deletion(supporting read), partial deletion (others), the other case are belong to reference counts
 	 * @param re: a selected read aligned over deletion region
@@ -182,6 +142,7 @@ public class VariantPileup {
 		//smaller deltion than vcf, partial supporting reads
 		else otherCount.incrementAndGet();
 	}
+	
 	/**
 	 * check whether this read contain same insertion(supporting read), partial insertion (others), the other case are belong to reference counts
 	 * @param re: a selected read aligned over insertion region

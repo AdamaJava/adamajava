@@ -37,9 +37,33 @@ public class VariantPileupTest {
 		String bam = "tumor";
 		String log = ".log";
 		
-		File[] files = (new File(USER_DIR)).listFiles(f->f.getName().contains(bam) | f.getName().contains(log) );
-		for(File f : files) f.delete();		
-}	
+		File[] files = ( new File(USER_DIR)).listFiles( f->f.getName().contains(bam) | f.getName().contains(log) );
+		for( File f : files ) f.delete();		
+	}	
+	
+	@Test
+	public void baseQualityTest() throws Exception{
+		
+		//snp position
+		VcfRecord vcf = new VcfRecord.Builder("chr11",	282768,	"T").allele("A").build();
+		List<SAMRecord> pool = makePool(vcf);
+		reSetQuality(pool, 282768 );		
+		VariantPileup pileup = new VariantPileup(vcf, pool,0);
+		assertTrue(pileup.getAnnotation().equals("1[0,0,0,1,0]")); 		
+		
+		//mnp position
+		vcf = new VcfRecord.Builder("chr11",	282767,	"TT").allele("AA").build();
+		pileup = new VariantPileup(vcf, pool,0);
+		assertTrue(pileup.getAnnotation().equals("1[0,0,0,0,1]"));
+				
+		//insert position not affect by base quality
+		vcf = new VcfRecord.Builder( "chr1",	183014,	"G" ).allele( "GTT" ).build();
+		pool = makePool( vcf );
+		reSetQuality(pool, 183014 );
+		pileup = new VariantPileup(vcf, pool,0);
+		assertTrue( pileup.getAnnotation().equals( "3[0,0,1,1,1]" ) ); 
+		
+	}
 		
 	@Test
 	public void mnpTest() throws Exception{
@@ -130,6 +154,19 @@ public class VariantPileupTest {
 		  pileup = new VariantPileup(vs, pool,0);		 
 		assertTrue(pileup.getAnnotation().equals("2[0,0,1,1,0]"));
 	}	
+	
+	private void reSetQuality(List<SAMRecord> pool, int pos ) throws IOException{		
+		//reset quality 
+		for(int i = 0; i < pool.size(); i ++ ){
+			SAMRecord re = pool.get(i);
+			int base = re.getReadPositionAtReferencePosition(pos);
+			byte[] baseQ = re.getBaseQualities();
+			if(base > 0){
+				baseQ[ base-1 ] = (byte) ( 9 + i );
+				re.setBaseQualities( baseQ );		
+			}	
+		}		
+	}
 	
 	 // @return a SAMRecord pool overlap the indel position
 	private List<SAMRecord> makePool(VcfRecord vs) throws IOException{
@@ -244,17 +281,16 @@ public class VariantPileupTest {
 //    	 second.add("three");
 //    	 System.out.println("original.size is "+ original.size());
 //    	 System.out.println("second.size is "+ second.size());
-//    	 
-//    	 
+//    	     	 
 //    	 List<String> third = ops(second);
 //       	 System.out.println("third.size is "+ third.size());
-//    	 System.out.println("second.size is "+ second.size());
-//     	 
+//    	 System.out.println("second.size is "+ second.size());     	 
 //     }
 //     
-//     private  List<String> ops(List<String>  in ){
+//     private  List<String> ops( List<String>  in ){
 //    	 List<String> third = in;
 //    	 third.add("four");
 //    	 return third; 
 //     }
+     
 }
