@@ -32,21 +32,17 @@ dependencies {
 
 	compile group: 'com.github.samtools', name: 'htsjdk', version: '2.14.1'
 	compile group: 'net.sf.jopt-simple', name: 'jopt-simple', version: '4.6'
-
     compile name: 'jhdf'
     compile name: 'jhdf5'
     compile name: 'jhdfobj'  
     compile name: 'jhdf5obj'  
-    compile name: 'hdf-java', version: '2.6.1'
     compile name: 'ini4j', version: '0.5.2-SNAPSHOT'
-  	 
-    //testCompile project(':qtesting')
+
     testCompile name: 'easymock', version: '3.1'
     testCompile name: 'objenesis', version: '1.2'
     testCompile name: 'cglib-nodep', version: '2.2.3'
 	testCompile group: 'junit', name: 'junit', version: '4.10'
-    
-      
+         
 }
 
 
