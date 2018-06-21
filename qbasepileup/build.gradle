@@ -18,6 +18,10 @@ dependencies {
 	compile project(':qpileup')
 	compile project(':qbamfilter')
 
+	ant {
+		untar(src: "../lib/hdf-java-2.8-bin.tar", dest: "build/deps")
+		unzip(src: "../lib/ini4j-0.5.2-SNAPSHOT-all.zip", dest: "build/deps")
+	 }
 	compile name: 'jhdf'
 	compile name: 'jhdf5'
 	compile name: 'jhdfobj'
