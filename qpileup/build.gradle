@@ -7,6 +7,9 @@ def scriptname = 'qpileup'
 def isExecutable = true
 
 repositories {
+    flatDir(dirs:"$projectDir/../lib")
+    flatDir(dirs:"$buildDir/deps/hdf-java/lib")
+    flatDir(dirs:"$buildDir/deps/ini4j-0.5.2-SNAPSHOT")
     mavenCentral() 
 }
 
