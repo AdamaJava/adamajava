@@ -4,15 +4,6 @@ def mainclass = 'org.qcmg.qmule.Main'
 def scriptname = 'qmule'
 def isExecutable = true
 
-repositories {
-    flatDir(dirs:"$projectDir/../lib")
-    mavenCentral()
-}
-
-configurations {
-}
-
-
 dependencies {
     configurations.compile.transitive = true
 
@@ -20,14 +11,13 @@ dependencies {
     compile project(':qio')
     compile project(':qpicard')
 
-    ant {
-       unzip(src: "../lib/findbugs-1.3.9.zip", dest: "build/deps")
-    }
 
-    compile name: 'jopt-simple', version: '4.6'
-    compile name: 'htsjdk', version: '1.140'
+//    compile name: 'findbugs', version: '1.3.9'
 
-    testCompile name: 'junit', version: '4.10'
+	
+	compile group: 'com.github.samtools', name: 'htsjdk', version: '2.14.1'
+	compile group: 'net.sf.jopt-simple', name: 'jopt-simple', version: '4.6'
+	testCompile group: 'junit', name: 'junit', version: '4.10'
 }
 
 jar.doFirst {

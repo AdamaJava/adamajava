@@ -5,14 +5,6 @@ def scriptname = 'qsv'
 def isExecutable = true
 
 
-
-repositories {
-    flatDir(dirs:"$buildDir/deps/ini4j-0.5.2-SNAPSHOT")
-    flatDir(dirs:"$projectDir/../lib")    
-    flatDir(dirs:"$buildDir/deps/hdf-java/lib")    
-    mavenCentral()
-}
-
 dependencies {
     configurations.compile.transitive = true
 
@@ -20,19 +12,17 @@ dependencies {
     compile project(':qbamannotate')
     compile project(':qpicard')
 
-    ant {
-       unzip(src: "../lib/ini4j-0.5.2-SNAPSHOT-all.zip", dest: "build/deps")
-       untar(src: "../lib/hdf-java-2.8-bin.tar", dest: "build/deps")
-    }
-
-    compile name: 'jopt-simple', version: '4.6'
-    compile name: 'htsjdk', version: '1.140'
+	compile group: 'com.github.samtools', name: 'htsjdk', version: '2.14.1'
     compile name: 'ini4j', version: '0.5.2-SNAPSHOT'
-	compile name: 'trove', version: '3.1a1'
+    compile name: 'trove', version: '3.1a1'
     testCompile name: 'easymock', version: '3.1'
     testCompile name: 'objenesis', version: '1.2'
     testCompile name: 'cglib-nodep', version: '2.2.3'
-    testCompile name: 'junit', version: '4.10'
+
+	
+	compile group: 'net.sf.jopt-simple', name: 'jopt-simple', version: '4.6'
+	testCompile group: 'junit', name: 'junit', version: '4.10'
+
  
 }
 

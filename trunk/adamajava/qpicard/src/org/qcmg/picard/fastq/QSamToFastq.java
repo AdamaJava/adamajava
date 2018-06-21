@@ -15,11 +15,11 @@ import java.util.List;
 import java.util.Map;
 
 import org.qcmg.picard.SAMFileReaderFactory;
+
 import picard.PicardException;
 import picard.cmdline.CommandLineProgram;
-import picard.cmdline.Option;
 import picard.cmdline.StandardOptionDefinitions;
-
+import picard.cmdline.Option;
 //import picard.cmdline.Usage;
 import htsjdk.samtools.util.IOUtil;
  

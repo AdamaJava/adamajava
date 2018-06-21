@@ -4,26 +4,12 @@ def mainclass = 'org.qcmg.qvisualise.QVisualise'
 def scriptname = 'qvisualise'
 def isExecutable = true
 
-repositories {
-    flatDir(dirs:"$projectDir/../lib")
-    mavenCentral()
-}
 
 dependencies {
     configurations.compile.transitive = true
-
     compile project(':qcommon')
-    
-    copy { 
-     from zipTree("../lib/findbugs-1.3.9.zip")
-     into 'build/deps'
-     include '**/*.jar'
-	} 
-
-
-    compile name: 'jopt-simple', version: '4.6'
-    testCompile name: 'junit', version: '4.10'
-   
+	compile group: 'net.sf.jopt-simple', name: 'jopt-simple', version: '4.6'
+    testCompile group: 'junit', name: 'junit', version: '4.10'  
 }
 
 jar.doFirst {
@@ -43,11 +29,6 @@ jar.doFirst {
 
 build.doLast {
     def jarname = project.name
-    //ant {
-     //  copy(file: "bin/${scriptname}", todir: "build/bin")
-      // replace(file: "build/bin/${scriptname}", token: "VERSION", value: "${version}")
-       //chmod(file: "build/bin/${scriptname}", perm: "a+rwx")
-    //}
     ant {
        echo(file: "build/flat/${scriptname}", message: "#!/bin/bash\njava -jar ${jarname}-${version}.jar \$@")
        chmod(file: "build/flat/${scriptname}", perm: "u+rwx")

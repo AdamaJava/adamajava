@@ -4,10 +4,6 @@ def mainclass = 'org.qcmg.sig.QSignature'
 def scriptname = 'qsignature'
 def isExecutable = true
 
-repositories {
-    flatDir(dirs:"$projectDir/../lib")
-    mavenCentral()
-}
 
 dependencies {
     configurations.compile.transitive = true
@@ -17,12 +13,12 @@ dependencies {
     compile project(':qio')
     
 
-    compile name: 'jopt-simple', version: '4.6'
-    compile name: 'htsjdk', version: '1.140'
-    compile name: 'trove', version: '3.1a1'
-    compile name: 'commons-math3', version: '3.3'
 
-    testCompile name: 'junit', version: '4.10'
+    compile name: 'trove', version: '3.1a1'
+//	compile 'org.apache.commons:commons-math3:3.3'
+	compile group: 'com.github.samtools', name: 'htsjdk', version: '2.14.1'
+	compile group: 'net.sf.jopt-simple', name: 'jopt-simple', version: '4.6'
+	testCompile group: 'junit', name: 'junit', version: '4.10'
 }
 
 jar.doFirst {

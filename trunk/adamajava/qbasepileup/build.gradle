@@ -4,7 +4,6 @@ def mainclass = 'org.qcmg.qbasepileup.QBasePileup'
 def scriptname = 'qbasepileup'
 def isExecutable = true
 
-
 repositories {
     flatDir(dirs:"$projectDir/../lib")
     flatDir(dirs:"$buildDir/deps/hdf-java/lib")
@@ -19,20 +18,12 @@ dependencies {
 	compile project(':qpileup')
 	compile project(':qbamfilter')
 
-	ant {
-		untar(src: "../lib/hdf-java-2.8-bin.tar", dest: "build/deps")
-		untar(src: "../lib/hdf-java-2.8-bin.tar", dest: "build/deps")
-		unzip(src: "../lib/ini4j-0.5.2-SNAPSHOT-all.zip", dest: "build/deps")
-	}
-	
-    compile name: 'htsjdk', version: '1.140'
-	compile name: 'jopt-simple', version: '4.6'
 	compile name: 'jhdf'
 	compile name: 'jhdf5'
 	compile name: 'jhdfobj'
 	compile name: 'jhdf5obj'
-
-    testCompile name: 'junit', version: '4.10'
+	compile group: 'net.sf.jopt-simple', name: 'jopt-simple', version: '4.6'
+	testCompile group: 'junit', name: 'junit', version: '4.10'
 	testCompile name: 'easymock', version: '3.1'
 	testCompile name: 'objenesis', version: '1.2'
 	testCompile name: 'cglib-nodep', version: '2.2.3'
