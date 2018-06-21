@@ -4,7 +4,11 @@ def mainclass = 'org.qcmg.snp.Main'
 def scriptname = 'qsnp'
 def isExecutable = true
 
-
+repositories {
+	flatDir(dirs:"$projectDir/../lib")
+	flatDir(dirs:"$buildDir/deps/ini4j-0.5.2-SNAPSHOT")
+	mavenCentral()
+}
 
 dependencies {
     configurations.compile.transitive = true
@@ -15,13 +19,11 @@ dependencies {
     compile project(':qpicard')
     
 //     from zipTree("../lib/findbugs-1.3.9.zip")
-//     from zipTree("../lib/ini4j-0.5.2-SNAPSHOT-all.zip")
-
+	copy { from zipTree("../lib/ini4j-0.5.2-SNAPSHOT-all.zip") into 'build/deps' } 
+    compile name: 'ini4j', version: '0.5.2-SNAPSHOT'
 
     compile name: 'trove', version: '3.1a1'
-    compile name: 'ini4j', version: '0.5.2-SNAPSHOT'
-    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.4'
-	
+    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.4'	
 	compile group: 'com.github.samtools', name: 'htsjdk', version: '2.14.1'
 	compile group: 'net.sf.jopt-simple', name: 'jopt-simple', version: '4.6'
 	testCompile group: 'junit', name: 'junit', version: '4.10'

@@ -12,6 +12,11 @@ dependencies {
     compile project(':qio')
     compile project(':qbamfilter')
     compile project(':qpicard')
+    
+	copy {
+		from zipTree("../lib/ini4j-0.5.2-SNAPSHOT-all.zip")
+		into 'build/deps'
+	 }    
 
 //    compile name: 'ini4j', version: '0.5.2'
     compile name: 'ini4j', version: '0.5.2-SNAPSHOT'
