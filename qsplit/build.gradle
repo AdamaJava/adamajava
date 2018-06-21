@@ -4,22 +4,17 @@ def mainclass = 'org.qcmg.split.Main'
 def scriptname = 'qsplit'
 def isExecutable = true
 
-repositories {
-    flatDir(dirs:"$projectDir/../lib")
-    mavenCentral()
-}
 
 dependencies {
     configurations.compile.transitive = true
 
     compile project(':qcommon')
     compile project(':qpicard')
-    
-    compile name: 'jopt-simple', version: '4.6'
-    compile name: 'htsjdk', version: '1.140'
-
     testCompile project(':qtesting')
-    testCompile name: 'junit', version: '4.10'
+	
+	compile group: 'com.github.samtools', name: 'htsjdk', version: '2.14.1'
+	compile group: 'net.sf.jopt-simple', name: 'jopt-simple', version: '4.6'
+	testCompile group: 'junit', name: 'junit', version: '4.10'
 }
 
 jar.doFirst {

@@ -1,6 +1,7 @@
 defaultTasks "build"
 allprojects {
    apply plugin: 'java'
+   repositories { flatDir(dirs:"$projectDir/../lib"); mavenCentral() }
 }
 ext {
 def proc = "svn info .".execute()

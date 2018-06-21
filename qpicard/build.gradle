@@ -2,21 +2,16 @@ version = '1.1'
 
 def isExecutable = false
 
-repositories {
-    flatDir(dirs:"$projectDir/../lib")
-    mavenCentral()
-}
-
 dependencies {
     configurations.compile.transitive = true
     
     compile project(':qcommon')
     compile project(':qio')
-
-    compile name: 'htsjdk', version: '2.14.1-SNAPSHOT-all'
-    compile name: 'picard', version: 'lib'
-    
-    testCompile name: 'junit', version: '4.10'
+	
+	compile 'com.github.broadinstitute:picard:1.130'
+	compile 'com.github.samtools:htsjdk:2.14.1'
+    testCompile group: 'junit', name: 'junit', version: '4.10'
+	 
 }
 
 jar.doFirst {

@@ -4,14 +4,6 @@ def mainclass = 'org.qcmg.snp.Main'
 def scriptname = 'qsnp'
 def isExecutable = true
 
-repositories {
-    flatDir(dirs:"$buildDir/deps/ini4j-0.5.2-SNAPSHOT")
-    flatDir(dirs:"$projectDir/../lib")
-    mavenCentral()
-}
-
-configurations {
-}
 
 
 dependencies {
@@ -22,23 +14,18 @@ dependencies {
     compile project(':qbamfilter')
     compile project(':qpicard')
     
-	copy { 
-     from zipTree("../lib/findbugs-1.3.9.zip")
-     into 'build/deps'
-     include '**/*.jar'
-	}
-	copy { 
-     from zipTree("../lib/ini4j-0.5.2-SNAPSHOT-all.zip")
-     into 'build/deps'
-	}
+//     from zipTree("../lib/findbugs-1.3.9.zip")
+//     from zipTree("../lib/ini4j-0.5.2-SNAPSHOT-all.zip")
 
-    compile name: 'jopt-simple', version: '4.6'
+
     compile name: 'trove', version: '3.1a1'
-    compile name: 'htsjdk', version: '1.140'
     compile name: 'ini4j', version: '0.5.2-SNAPSHOT'
     compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.4'
+	
+	compile group: 'com.github.samtools', name: 'htsjdk', version: '2.14.1'
+	compile group: 'net.sf.jopt-simple', name: 'jopt-simple', version: '4.6'
+	testCompile group: 'junit', name: 'junit', version: '4.10'
 
-    testCompile name: 'junit', version: '4.10'
 }
 
 jar.doFirst {
