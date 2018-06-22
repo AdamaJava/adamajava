@@ -5,10 +5,8 @@ def scriptname = 'qbasepileup'
 def isExecutable = true
 
 repositories {
-    flatDir(dirs:"$projectDir/../lib")
     flatDir(dirs:"$buildDir/deps/hdf-java/lib")
-    flatDir(dirs:"$buildDir/deps/ini4j-0.5.2-SNAPSHOT")
-    mavenCentral()
+	flatDir(dirs:"$buildDir/deps/ini4j-0.5.2-SNAPSHOT")
 }
 
 dependencies {
@@ -30,9 +28,11 @@ dependencies {
 	compile group: 'com.github.samtools', name: 'htsjdk', version: '2.14.1'
 	compile group: 'net.sf.jopt-simple', name: 'jopt-simple', version: '4.6'
 	testCompile group: 'junit', name: 'junit', version: '4.10'
-	testCompile name: 'easymock', version: '3.1'
-	testCompile name: 'objenesis', version: '1.2'
-	testCompile name: 'cglib-nodep', version: '2.2.3'
+	testCompile group: 'org.easymock', name: 'easymock', version: '3.1'
+	
+	//seems no longer used
+	//testCompile name: 'objenesis', version: '1.2'	
+	//testCompile name: 'cglib-nodep', version: '2.2.3'
 }
 
 jar.doFirst {
