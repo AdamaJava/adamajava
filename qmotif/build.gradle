@@ -5,6 +5,12 @@ def mainclass = 'org.qcmg.motif.Motif'
 def scriptname = 'qmotif'
 def isExecutable = true
 
+repositories {
+	flatDir(dirs:"$projectDir/../lib")
+	flatDir(dirs:"$buildDir/deps/ini4j-0.5.2-SNAPSHOT")
+	mavenCentral()
+}
+
 dependencies {
     configurations.compile.transitive = true
 
