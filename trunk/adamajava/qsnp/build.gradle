@@ -18,7 +18,6 @@ dependencies {
     compile project(':qbamfilter')
     compile project(':qpicard')
     
-//     from zipTree("../lib/findbugs-1.3.9.zip")
 	copy { from zipTree("../lib/ini4j-0.5.2-SNAPSHOT-all.zip") into 'build/deps' } 
     compile name: 'ini4j', version: '0.5.2-SNAPSHOT'
 
