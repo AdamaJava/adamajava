@@ -5,7 +5,6 @@ def scriptname = 'qsv'
 def isExecutable = true
 
 repositories {
-	flatDir(dirs:"$buildDir/deps/ini4j-0.5.2-SNAPSHOT")
 }
 
 dependencies {
@@ -15,11 +14,11 @@ dependencies {
     compile project(':qbamannotate')
     compile project(':qpicard')
 	
-	copy { from zipTree("../lib/ini4j-0.5.2-SNAPSHOT-all.zip") into 'build/deps' }
+        // https://mvnrepository.com/artifact/org.ini4j/ini4j
+        compile group: 'org.ini4j', name: 'ini4j', version: '0.5.2'
 	
 	compile 'com.github.samtools:htsjdk:2.14.1'	
 	compile 'net.sf.jopt-simple:jopt-simple:4.6'	
-	compile name: 'ini4j-0.5.2-SNAPSHOT'
     compile name: 'trove', version: '3.1a1'
 		
 	testCompile 'junit:junit:4.10'

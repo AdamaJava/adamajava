@@ -5,7 +5,7 @@ def scriptname = 'qsnp'
 def isExecutable = true
 
 repositories {
-	flatDir(dirs:"$buildDir/deps/ini4j-0.5.2-SNAPSHOT")
+	//flatDir(dirs:"$buildDir/deps/ini4j-0.5.2-SNAPSHOT")
 }
 
 dependencies {
@@ -16,8 +16,9 @@ dependencies {
     compile project(':qbamfilter')
     compile project(':qpicard')
     
-	copy { from zipTree("../lib/ini4j-0.5.2-SNAPSHOT-all.zip") into 'build/deps' } 
-    compile name: 'ini4j-0.5.2-SNAPSHOT'
+//	copy { from zipTree("../lib/ini4j-0.5.2-SNAPSHOT-all.zip") into 'build/deps' } 
+ //   compile name: 'ini4j-0.5.2-SNAPSHOT'
+    compile group: 'org.ini4j', name: 'ini4j', version: '0.5.2'
 
     compile name: 'trove-3.1a1'
 	compile 'org.apache.commons:commons-lang3:3.4'
