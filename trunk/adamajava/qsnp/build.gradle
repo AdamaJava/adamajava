@@ -17,14 +17,13 @@ dependencies {
     compile project(':qpicard')
     
 	copy { from zipTree("../lib/ini4j-0.5.2-SNAPSHOT-all.zip") into 'build/deps' } 
-    compile name: 'ini4j', version: '0.5.2-SNAPSHOT'
+    compile name: 'ini4j-0.5.2-SNAPSHOT'
 
-    compile name: 'trove', version: '3.1a1'
-    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.4'	
-	compile group: 'com.github.samtools', name: 'htsjdk', version: '2.14.1'
-	compile group: 'net.sf.jopt-simple', name: 'jopt-simple', version: '4.6'
-	testCompile group: 'junit', name: 'junit', version: '4.10'
-
+    compile name: 'trove-3.1a1'
+	compile 'org.apache.commons:commons-lang3:3.4'
+	compile 'com.github.samtools:htsjdk:2.14.1'
+	compile 'net.sf.jopt-simple:jopt-simple:4.6'
+	testCompile 'junit:junit:4.10'
 }
 
 jar.doFirst {
@@ -41,7 +40,6 @@ jar.doFirst {
      }
   }
 }
-
 
 build.doLast {
     def jarname = project.name
