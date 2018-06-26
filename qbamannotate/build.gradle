@@ -10,12 +10,12 @@ dependencies {
     compile project(':qcommon')
     compile project(':qio')
     compile project(':qpicard')
-
-	compile group: 'net.sf.jopt-simple', name: 'jopt-simple', version: '4.6'
-	compile group: 'com.github.samtools', name: 'htsjdk', version: '2.14.1'
+	
+	compile 'net.sf.jopt-simple:jopt-simple:4.6'
+	compile 'com.github.samtools:htsjdk:2.14.1'
 
     testCompile project(':qtesting')
-	testCompile group: 'junit', name: 'junit', version: '4.10'
+	testCompile 'junit:junit:4.10'
 }
 
 jar.doFirst {

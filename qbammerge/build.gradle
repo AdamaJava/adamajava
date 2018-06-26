@@ -9,15 +9,13 @@ dependencies {
     configurations.compile.transitive = true
 
     compile project(':qcommon')
-    compile project(':qpicard')
-    
-	compile group: 'com.github.samtools', name: 'htsjdk', version: '2.14.1'
-	compile group: 'net.sf.jopt-simple', name: 'jopt-simple', version: '4.6'
-
+    compile project(':qpicard')    
+	compile 'net.sf.jopt-simple:jopt-simple:4.6'
+	compile 'com.github.samtools:htsjdk:2.14.1'
+	
     testCompile project(':qtesting')
     testCompile project(':qsplit')
-    testCompile group: 'junit', name: 'junit', version: '4.10'
-
+	testCompile 'junit:junit:4.10'
 }
 
 jar.doFirst {
