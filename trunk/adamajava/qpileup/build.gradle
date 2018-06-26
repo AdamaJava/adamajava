@@ -8,7 +8,6 @@ def isExecutable = true
 
 repositories {
     flatDir(dirs:"$buildDir/deps/hdf-java/lib")
-    flatDir(dirs:"$buildDir/deps/ini4j-0.5.2-SNAPSHOT")
 }
 
 test { 
@@ -25,13 +24,12 @@ dependencies {
 	
     ant {
        untar(src: "../lib/hdf-java-2.8-bin.tar", dest: "build/deps")
-       unzip(src: "../lib/ini4j-0.5.2-SNAPSHOT-all.zip", dest: "build/deps")
     }
 
 	compile 'com.github.samtools:htsjdk:2.14.1'
 	compile 'net.sf.jopt-simple:jopt-simple:4.6'
-	compile name: 'ini4j-0.5.2-SNAPSHOT'
-	
+	// https://mvnrepository.com/artifact/org.ini4j/ini4j
+        compile group: 'org.ini4j', name: 'ini4j', version: '0.5.2'
     compile name: 'jhdf'
     compile name: 'jhdf5'
     compile name: 'jhdfobj'  
