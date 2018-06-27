@@ -4,23 +4,14 @@ allprojects {
    repositories { flatDir(dirs:"$projectDir/../lib"); mavenCentral() }
 }
 ext {
-def proc = "svn info .".execute()
-if (proc.waitFor() != 0) {
-	throw new RuntimeException('svn version info gathering failed')
-}
+  def proc = "git rev-parse --short HEAD".execute()
+  if (proc.waitFor() != 0) {
+	throw new RuntimeException('git version info gathering failed')
+  }
+  revision = proc.text.trim()
 
-timestamp = new java.text.SimpleDateFormat('yyyyMMddHHmmss').format(new
-java.util.Date()) 
-   
-params = proc.in.text.split(System.getProperty("line.separator"))
-params.each {param ->
-        if (param.startsWith("Revision")) {
-                rev = param.split()[1]
-        }
-}
-
-if (null == rev) rev = "???"
-revision = rev  
+  timestamp = new java.text.SimpleDateFormat('yyyyMMddHHmmss').format(new
+  java.util.Date()) 
 }
 version = 1.0
 
