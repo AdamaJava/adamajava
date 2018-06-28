@@ -259,10 +259,10 @@ public class Amalgamator {
 		} else {
 			// configure logging
 			logFile = options.getLog();
-			version = MergeSameSamples.class.getPackage().getImplementationVersion();
+			version = Amalgamator.class.getPackage().getImplementationVersion();
 			if (null == version) {	version = "local"; }
-			logger = QLoggerFactory.getLogger(MergeSameSamples.class, logFile, options.getLogLevel());
-			exec = logger.logInitialExecutionStats("q3vcftools MergeSameSample", version, args);
+			logger = QLoggerFactory.getLogger(Amalgamator.class, logFile, options.getLogLevel());
+			exec = logger.logInitialExecutionStats("q3vcftools Amalgamator", version, args);
 			
 			// get list of file names
 			vcfFiles = options.getVcfs();
