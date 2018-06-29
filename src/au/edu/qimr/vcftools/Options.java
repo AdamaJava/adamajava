@@ -48,7 +48,6 @@ final class Options {
 	private final Integer swDiffThreshold;
 	private final Integer tileMatchThreshold;
 	private final Integer maxIndelLength;
-	private final Integer ampliconBoundary;
 	private final String xml;
 	private final String logLevel;
 	private final String uuid;
@@ -59,6 +58,8 @@ final class Options {
 //		parser.acceptsAll(asList("v", "version"), VERSION_DESCRIPTION);
 		parser.accepts("help", HELP_DESCRIPTION);
 		parser.accepts("version", VERSION_DESCRIPTION);
+		parser.accepts("somatic", VERSION_DESCRIPTION);
+		parser.accepts("germline", VERSION_DESCRIPTION);
 		
 		parser.accepts("xml", INPUT_FILE_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("output", OUTPUT_FILE_DESCRIPTION).withRequiredArg().ofType(String.class);
@@ -96,7 +97,6 @@ final class Options {
 		swDiffThreshold =  (Integer) options.valueOf("swDiffThreshold");
 		tileMatchThreshold =  (Integer) options.valueOf("tileMatchThreshold");
 		maxIndelLength =  (Integer) options.valueOf("maxIndelLength");
-		ampliconBoundary =  (Integer) options.valueOf("ampliconBoundary");
 		xml = (String) options.valueOf("xml");
 		
 		// inputs
@@ -113,12 +113,6 @@ final class Options {
 		dbSnpFileName = (String) options.valueOf("dbsnp");
 		uuid = (String) options.valueOf("uuid");
 		
-		if ( ! options.nonOptionArguments().isEmpty()) {}
-//			throw new IllegalArgumentException(Messages.getMessage("USAGE"));
-		
-//		List<String> nonoptions = options.nonOptionArguments();
-//		fileNames = new String[nonoptions.size()];
-//		nonoptions.toArray(fileNames);
 	}
 
 	boolean hasVersionOption() {
@@ -127,6 +121,12 @@ final class Options {
 
 	boolean hasHelpOption() {
 		return options.has("help");
+	}
+	boolean hasSomaticOption() {
+		return options.has("somatic");
+	}
+	boolean hasGermlineOption() {
+		return options.has("germline");
 	}
 	boolean hasMinBinSizeOption() {
 		return options.has("minBinSize");
@@ -189,10 +189,6 @@ final class Options {
 	Integer getMaxIndelLength() {
 		return maxIndelLength;
 	}
-	Integer getAmpliconBoundary() {
-		return ampliconBoundary;
-	}
-	
 	String getXml() {
 		return xml;
 	}
