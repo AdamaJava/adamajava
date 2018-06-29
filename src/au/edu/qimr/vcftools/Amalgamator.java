@@ -34,6 +34,8 @@ public class Amalgamator {
 	private String version;
 	private String logFile;
 	private int exitStatus;
+	private boolean somatic;
+	private boolean germline;
 	
 	private final Map<ChrPositionName, String[][]> positions = new HashMap<>();
 	
@@ -108,7 +110,8 @@ public class Amalgamator {
 						/*
 						 * we want germline (for now - need to optionalise)
 						 */
-						if ( ! isRecordSomatic(rec)) {
+						boolean recordSomatic = isRecordSomatic(rec);
+						if ( (recordSomatic && somatic) || ( ! recordSomatic && germline)) {
 							/*
 							 * only deal with snps and compounds for now
 							 */
@@ -289,6 +292,17 @@ public class Amalgamator {
 			
 			logger.info("vcf input files: " + Arrays.deepToString(vcfFiles));
 			logger.info("outputFile: " + outputFileName);
+			
+			somatic = options.hasSomaticOption();
+			germline = options.hasGermlineOption();
+			
+			if ( ! somatic && ! germline) {
+				somatic = true; germline = true;
+			}
+			if (somatic)
+				logger.info("Will process somatic records");
+			if (germline)
+				logger.info("Will process germline records");
 			
 			return engage();
 		}
