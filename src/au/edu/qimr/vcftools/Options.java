@@ -9,6 +9,7 @@
 package au.edu.qimr.vcftools;
 
 import java.util.List;
+import java.util.Optional;
 
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
@@ -76,7 +77,7 @@ final class Options {
 		parser.accepts("swDiffThreshold", MIN_BIN_SIZE_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
 		parser.accepts("tileMatchThreshold", MIN_BIN_SIZE_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
 		parser.accepts("maxIndelLength", MIN_BIN_SIZE_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
-		parser.accepts("ampliconBoundary", MIN_BIN_SIZE_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
+		parser.accepts("goldStandard", MIN_BIN_SIZE_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("log", LOG_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("loglevel", LOG_LEVEL_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("uuid", LOG_LEVEL_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
@@ -191,6 +192,12 @@ final class Options {
 	}
 	String getXml() {
 		return xml;
+	}
+	Optional<String> getGoldStandard() {
+		if (options.has("goldStandard")) {
+			return Optional.of((String) options.valueOf("goldStandard"));
+		}
+		return Optional.empty();
 	}
 	String getCosmicFile() {
 		return cosmicFileName;

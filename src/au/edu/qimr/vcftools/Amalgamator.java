@@ -5,13 +5,18 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPositionName;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -19,6 +24,7 @@ import org.qcmg.common.meta.QExec;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.LoadReferencedClasses;
+import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
@@ -33,6 +39,7 @@ public class Amalgamator {
 	private String outputFileName;
 	private String version;
 	private String logFile;
+	private String goldStandard;
 	private int exitStatus;
 	private boolean somatic;
 	private boolean germline;
@@ -44,14 +51,38 @@ public class Amalgamator {
 			
 		logger.info("about to load vcf files");
 		loadVcfs();
-		
+		addGoldStandard();
 		writeOutput();
 		return exitStatus;
 	}
 	
+	private void addGoldStandard() throws IOException {
+		if (null != goldStandard) {
+			Path p = new File(goldStandard).toPath();
+			Map<ChrPosition, String> gsMap = Files.lines(p).map(s -> TabTokenizer.tokenize(s))
+					.filter(arr -> arr[2].length() == 1 && arr[3].length() == 1)
+//					.map(arr -> new ChrPositionName(arr[0], Integer.parseInt(arr[1].replaceAll(",", "")),Integer.parseInt(arr[1].replaceAll(",", "")), arr[3]))
+					.collect(Collectors.toMap(arr ->  new ChrPointPosition(arr[0], Integer.parseInt(arr[1].replaceAll(",", ""))), arr -> arr[3]));
+			logger.info("number of gold standard positions:" + gsMap.size());
+			
+			List<ChrPositionName> recs = new ArrayList<>(positions.keySet());
+			recs.forEach(r ->{
+				ChrPosition cp = r.getChrPointPosition();
+				if (gsMap.containsKey(cp)) {
+					/*
+					 * remove entry from positions, and re-insert with id
+					 */
+					String[][] details = positions.remove(r);
+					positions.put(new ChrPositionName(r.getChromosome(), r.getStartPosition(), r.getEndPosition(), "GS:" + gsMap.get(cp) + "\t" + r.getName()), details);
+				}
+			});
+			
+		}
+	}
+	
 	private void writeOutput() throws FileNotFoundException {
 		List<ChrPositionName> recs = new ArrayList<>(positions.keySet());
-		Collections.sort(recs);
+		recs.sort(null);
 		
 		logger.info("writing output");
 		
@@ -66,7 +97,7 @@ public class Amalgamator {
 			}
 			
 			
-			String header = "#chr\tposition\tref\talt";
+			String header = "#chr\tposition\tid\tref\talt";
 			for (int i = 1 ; i <= vcfFiles.length ; i++) {
 				header += "\tGT:" + i;
 			}
@@ -94,6 +125,7 @@ public class Amalgamator {
 		int i = 0;
 		int fileCount = vcfFiles.length;
 		int index = 0;
+		int somaticCount = 0;
 		for (String s : vcfFiles) {
 			
 			try (VCFFileReader reader = new VCFFileReader(new File(s))) {
@@ -108,7 +140,7 @@ public class Amalgamator {
 					if (isRecordHighConfOrPass(rec)) {
 						
 						/*
-						 * we want germline (for now - need to optionalise)
+						 * only process record if it is of the desired type .eg somatic
 						 */
 						boolean recordSomatic = isRecordSomatic(rec);
 						if ( (recordSomatic && somatic) || ( ! recordSomatic && germline)) {
@@ -126,7 +158,7 @@ public class Amalgamator {
 									 */
 									for (int z = 0 ; z < ref.length() ; z++) {
 										
-										ChrPositionName cpn  = new ChrPositionName(rec.getChrPosition().getChromosome(), rec.getChrPosition().getStartPosition() + z,  rec.getChrPosition().getStartPosition() + z , ref.charAt(z) + "\t" + alt.charAt(z));
+										ChrPositionName cpn  = new ChrPositionName(rec.getChrPosition().getChromosome(), rec.getChrPosition().getStartPosition() + z,  rec.getChrPosition().getStartPosition() + z , ".\t" + ref.charAt(z) + "\t" + alt.charAt(z));
 										String [][] arr = positions.computeIfAbsent(cpn, v -> new String[fileCount][2]);
 										
 										/*
@@ -138,7 +170,7 @@ public class Amalgamator {
 								} else {
 								
 								
-									ChrPositionName cpn  = new ChrPositionName(rec.getChrPosition().getChromosome(), rec.getChrPosition().getStartPosition(),  rec.getChrPosition().getStartPosition() + ref.length() - 1 , ref + "\t" + alt);
+									ChrPositionName cpn  = new ChrPositionName(rec.getChrPosition().getChromosome(), rec.getChrPosition().getStartPosition(),  rec.getChrPosition().getStartPosition() + ref.length() - 1 , ".\t" + ref + "\t" + alt);
 									String [][] arr = positions.computeIfAbsent(cpn, v -> new String[fileCount][2]);
 									
 									List<String> ffList = rec.getFormatFields();
@@ -158,7 +190,10 @@ public class Amalgamator {
 										}
 										j++;
 									}
-									String [] params = ffList.get(1).split(":"); 
+									/*
+									 * if germline, get from second entry in list, for somatic, get third
+									 */
+									String [] params = ffList.get(recordSomatic ? 2 : 1).split(":"); 
 									String gts = params[gtPosition];
 									/*
 									 * this could contain the ampesand - if so, get first (qsnp) element
@@ -303,6 +338,8 @@ public class Amalgamator {
 				logger.info("Will process somatic records");
 			if (germline)
 				logger.info("Will process germline records");
+			
+			options.getGoldStandard().ifPresent(s -> goldStandard = s);
 			
 			return engage();
 		}
