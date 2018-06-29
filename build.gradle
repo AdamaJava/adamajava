@@ -3,6 +3,7 @@ allprojects {
    apply plugin: 'java'
    repositories { flatDir(dirs:"$projectDir/../lib"); mavenCentral() }
 }
+
 ext {
   def proc = "git rev-parse --short HEAD".execute()
   if (proc.waitFor() != 0) {
@@ -15,95 +16,61 @@ ext {
 }
 version = 1.0
 
+def adamalib=file('adama/build/lib').absolutePath  
 subprojects {
    apply plugin: 'eclipse'
-
    sourceCompatibility = 1.8
-
    defaultTasks "build"
    libsDirName = "lib"
-
    test.workingDir = getProperty('buildDir').getAbsolutePath() + '/classes/test'
-
+   
    sourceSets {
-      main {
-            java {
-                srcDir 'src'
-            }
-            resources {
-                srcDir 'src'
-            }
-      }
+      main { java.srcDirs=['src']; resources.srcDirs=['src'] }
+      test { java.srcDirs=['test']; test.resources.srcDirs=['test'] }
+   }      	
 
-      test {
-            java {
-                srcDir 'test'
-            }
-            resources {
-                srcDir 'test'
-            }
-        }
-    }
+   jar.doFirst {
+      if(project.hasProperty('mainClassName') && project.getProperty('mainClassName') != null ) 
+	manifest.attributes 'Main-Class' : project.mainClassName 
 
-    // copies project jar files into adama/build/lib
-    build.doLast {
-      println "copying ${project} libs to adama"
-      copy {
-         from project.configurations.compile
-         into file('adama/build/lib')
-      }
-      project.tasks.withType(Jar).each {archiveTask ->
-          copy {
-             from archiveTask.archivePath
-             into file('adama/build/lib')
-          }
-      }
-
-    }
-
-}
-
-// copies thirdpary libs (from ./lib) into adama/build/lib
-build.doLast {
-  delete('adama/build/lib')
-  mkdir ('adama/build/lib')
-	copy {
-	   from 'lib'
-           into 'adama/build/lib'
-           include '**/*.so'
+      def classpath = project.configurations.runtime.collect { it.name }.join(' ')
+      manifest {    
+        attributes 'Implementation-Title': project.name,
+        	   'Implementation-Version': "$version ($revision)",
+        	   'SVN-Version': revision,
+                   'Built-By': System.properties['user.name'],
+                   'Date': new java.util.Date().toString(),
+                   'Class-Path' : project.configurations.runtime.collect { it.name }.join(' ')
 	}
-	println "should have copied from ${libsDirName} to adama/build/lib"
+    }
 
-    subprojects.each {project ->
-         println "copying ${project} libs to adama"
-         copy {
-              from project.configurations.compile
-              into file('adama/build/lib')
+    build.doLast {
+    	def jarname = project.name
+    	ant {
+      	    echo(file: "build/flat/${jarname}", message: "#!/bin/bash\njava -jar ${jarname}-${version}.jar \$@")
+            chmod(file: "build/flat/${jarname}", perm: "u+rwx")
         }
-         project.tasks.withType(Jar).each {archiveTask ->
-         copy {
-            from archiveTask.archivePath
-           into file('adama/build/lib')
-         }
-     }
-   }
+        println  "copying ${project} libs to " + file('adama/build/lib').absolutePath
+        copy { from configurations.compile, 'build/lib'; into file('build/flat') }
+        copy { from project.configurations.compile, 'build/lib'; into file('adama/build/lib') }
+        copy { from project.configurations.compile, 'build/lib'; into adamalib }
+    }
 }
 
+//create adama/build/lib under root before subprojects build
+build.doLast {
+    delete(adamalib)
+    mkdir (adamalib)
+    copy{ from 'lib'; into 'adama/build/lib'; include '**/*.so' }
+    println "should have copied from ${libsDirName} to " + adamalib
+}
 
 task dist(type: Zip) {
-
   def zippedDir = "${project.name}-${version}"
   into(zippedDir){
-    into ('lib') {
-      from 'adama/build/lib'
-    }
-    into ('licenses') {
-      from 'adama/licenses'
-    }
-    into ('bin') {
-      from 'adama/bin'
-      fileMode = 0755
-    }
+    into ('lib') {  from 'adama/build/lib'}
+    into ('licenses') { from 'adama/licenses' }
+    into ('bin') { from 'adama/bin'; fileMode = 0755 }
   }
   destinationDir = 'adama/build/distributions' as File
 }
@@ -113,16 +80,9 @@ task timestamped_dist(type: Zip) {
      destinationDir = new java.io.File("adama/build/timestamped_distributions")
      version = "${timestamp}"
      into(zippedDir) {
-       into('lib') {
-        from 'adama/build/lib'
-       }
-       into('bin') {
-           from 'adama/bin'
-           fileMode = 0755
-       }
-       into('licenses') {
-           from 'adama/licenses'
-       }
+       into('lib') { from 'adama/build/lib' }
+       into('bin') {  from 'adama/bin';  fileMode = 0755 }
+       into('licenses') {  from 'adama/licenses' }
      }
  }
  
@@ -131,22 +91,10 @@ task timestamped_dist(type: Zip) {
      destinationDir = new java.io.File("adama/build/timestamped_distributions")
      version = "LATEST"
      into(zippedDir) {
-       into('lib') {
-        from 'adama/build/lib'
-       }
-       into('bin') {
-           from 'adama/bin'
-           fileMode = 0755
-       }
-       into('licenses') {
-           from 'adama/licenses'
-       }
+       into('lib') { from 'adama/build/lib' }
+       into('bin') { from 'adama/bin'; fileMode = 0755 }
+       into('licenses') { from 'adama/licenses' }
      }
   }
 
-clean << {
-    ant {
-       delete(dir: "adama/build")
-    }
-}
-
+clean << { ant { delete(dir: "adama/build") } ; subprojects {delete('adama/build/lib')} }

@@ -1,6 +1,7 @@
 version = '2.0'
+apply plugin: 'application'
 
-def mainclass = 'org.qcmg.qvisualise2.QVisualise'
+mainClassName = 'org.qcmg.qvisualise2.QVisualise'
 def scriptname = 'qvisualise2'
 def isExecutable = true
 
@@ -10,35 +11,6 @@ dependencies {
 	compile project(':qcommon')
 	compile 'net.sf.jopt-simple:jopt-simple:4.6'
 	testCompile 'junit:junit:4.10'
-}
-
-jar.doFirst {
-	def classpath = configurations.runtime.collect { it.name }.join(' ')
-  jar {
-     manifest {
-        attributes 'Implementation-Title': project.name,
-                   'Implementation-Version': "$version ($revision)",
-                   'SVN-Version': revision,
-                   'Built-By': System.properties['user.name'],
-                   'Date': new java.util.Date().toString(),
-                   'Main-Class' : mainclass,
-                   'Class-Path' : classpath
-     }
-  }
-}
-
-build.doLast {
-    def jarname = project.name
-
-    ant {
-       echo(file: "build/flat/${scriptname}", message: "#!/bin/bash\njava -jar ${jarname}-${version}.jar \$@")
-       chmod(file: "build/flat/${scriptname}", perm: "u+rwx")
-    }
-    copy {
-       from configurations.compile
-       from 'build/lib'
-       into file('build/flat')
-    }
 }
 
 task findbugs(dependsOn: build) << {

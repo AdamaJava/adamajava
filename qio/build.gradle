@@ -6,17 +6,4 @@ dependencies {
     configurations.compile.transitive = true
     compile project(':qcommon')
     testCompile 'junit:junit:4.10'
-}
-
-jar.doFirst {
-  def classpath = configurations.runtime.collect { it.name }.join(' ')
-  jar {
-     manifest {
-        attributes 'Implementation-Title': project.name,
-                   'Implementation-Version': "$version ($revision)",
-                   'SVN-Version': revision,
-                   'Built-By': System.properties['user.name'],
-                   'Date': new java.util.Date().toString()
-     }
-  }
-}
+} 
