@@ -9,7 +9,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,7 +16,7 @@ import java.util.stream.Collectors;
 
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrPointPosition;
-import org.qcmg.common.model.ChrPositionName;
+import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.meta.QExec;
@@ -44,8 +43,38 @@ public class Amalgamator {
 	private boolean somatic;
 	private boolean germline;
 	
-	private final Map<ChrPositionName, String[][]> positions = new HashMap<>();
+	private final Map<ChrPosition, IdRefAlt> positions = new HashMap<>(1024 * 64);
 	
+	private class IdRefAlt {
+		private String id;
+		private String ref;
+		private String alt;
+		public String[] gts;
+		public String[] acs;
+		IdRefAlt(String ref, String alt, int fileCount) {
+			this.ref = ref;
+			this.alt = alt;
+			gts = new String[fileCount];
+			acs = new String[fileCount];
+		}
+		void setId(String id) {
+			this.id = id;
+		}
+		public String toString() {
+			return (null != id ? "GS:" + id : Constants.MISSING_DATA_STRING) + Constants.TAB 
+					+ ref + Constants.TAB + alt + Constants.TAB + 
+					getStringFromArray(gts, "./.") + Constants.TAB + getStringFromArray(acs, Constants.MISSING_DATA_STRING);
+		}
+		
+	}
+	
+	public static String getStringFromArray(String [] arr, String missingData) {
+		StringBuilder sb = new StringBuilder();
+		for (String s : arr) {
+			StringUtils.updateStringBuilder(sb, (null == s ? missingData : s), Constants.TAB);
+		}
+		return sb.toString();
+	}
 	
 	protected int engage() throws IOException {
 			
@@ -65,15 +94,14 @@ public class Amalgamator {
 					.collect(Collectors.toMap(arr ->  new ChrPointPosition(arr[0], Integer.parseInt(arr[1].replaceAll(",", ""))), arr -> arr[3]));
 			logger.info("number of gold standard positions:" + gsMap.size());
 			
-			List<ChrPositionName> recs = new ArrayList<>(positions.keySet());
-			recs.forEach(r ->{
-				ChrPosition cp = r.getChrPointPosition();
-				if (gsMap.containsKey(cp)) {
+			List<ChrPosition> recs = new ArrayList<>(positions.keySet());
+			recs.forEach(r -> {
+				String goldStandardAlt = gsMap.get(r);
+				if (null != goldStandardAlt) {
 					/*
-					 * remove entry from positions, and re-insert with id
+					 * update entry in positions map
 					 */
-					String[][] details = positions.remove(r);
-					positions.put(new ChrPositionName(r.getChromosome(), r.getStartPosition(), r.getEndPosition(), "GS:" + gsMap.get(cp) + "\t" + r.getName()), details);
+					positions.get(r).setId(goldStandardAlt);
 				}
 			});
 			
@@ -81,7 +109,7 @@ public class Amalgamator {
 	}
 	
 	private void writeOutput() throws FileNotFoundException {
-		List<ChrPositionName> recs = new ArrayList<>(positions.keySet());
+		List<ChrPosition> recs = new ArrayList<>(positions.keySet());
 		recs.sort(null);
 		
 		logger.info("writing output");
@@ -105,20 +133,12 @@ public class Amalgamator {
 				header += "\tAC:" + i;
 			}
 			ps.println(header);
-			for (ChrPositionName cpn : recs) {
-				String[][] arrs = positions.get(cpn);
-				String gts = "";
-				String covs = "";
-				for(String[] arr : arrs) {
-					gts += "\t" + (null != arr[0] ? arr[0] : "./.");
-					covs += "\t" + (null != arr[1] ? arr[1] : ".");
-				}
-				ps.println(cpn.getChromosome() + "\t" + cpn.getStartPosition() + "\t" + cpn.getName() + gts + covs);
+			for (ChrPosition cp : recs) {
+				IdRefAlt ira = positions.get(cp);
+				ps.println(cp.getChromosome() + Constants.TAB + cp.getStartPosition() + Constants.TAB +ira.toString());
 			}
 		}
-		
 		logger.info("writing output- DONE");
-		
 	}
 	
 	private void loadVcfs() throws IOException {
@@ -158,64 +178,20 @@ public class Amalgamator {
 									 */
 									for (int z = 0 ; z < ref.length() ; z++) {
 										
-										ChrPositionName cpn  = new ChrPositionName(rec.getChrPosition().getChromosome(), rec.getChrPosition().getStartPosition() + z,  rec.getChrPosition().getStartPosition() + z , ".\t" + ref.charAt(z) + "\t" + alt.charAt(z));
-										String [][] arr = positions.computeIfAbsent(cpn, v -> new String[fileCount][2]);
+										ChrPosition cpn  = new ChrPointPosition(rec.getChrPosition().getChromosome(), rec.getChrPosition().getStartPosition() + z);
+										final int position = z;
+										IdRefAlt ira = positions.computeIfAbsent(cpn, v -> new IdRefAlt(ref.charAt(position)+"", alt.charAt(position) + "", fileCount));
 										
 										/*
 										 * most likely don't have GT and AC info for cs
 										 */
-										arr[index][0] =  "C/S";
-										arr[index][1] =  "C,S,0";
+										ira.gts[index] =  "C/S";
+										ira.acs[index] =  "C,S,0";
 									}
 								} else {
-								
-								
-									ChrPositionName cpn  = new ChrPositionName(rec.getChrPosition().getChromosome(), rec.getChrPosition().getStartPosition(),  rec.getChrPosition().getStartPosition() + ref.length() - 1 , ".\t" + ref + "\t" + alt);
-									String [][] arr = positions.computeIfAbsent(cpn, v -> new String[fileCount][2]);
-									
-									List<String> ffList = rec.getFormatFields();
-									/*
-									 * get position of GT from first entry, and then get second (germline and qsnp)
-									 */
-									String [] formatHeaders = ffList.get(0).split(":");
-									int j = 0;
-									int gtPosition = 0;
-									int oabsPosition = 0;
-									
-									for (String h : formatHeaders) {
-										if (VcfHeaderUtils.FORMAT_GENOTYPE.equals(h)) {
-											gtPosition = j;
-										} else  if (VcfHeaderUtils.FORMAT_ALLELE_COUNT.equals(h)) {
-											oabsPosition = j;
-										}
-										j++;
-									}
-									/*
-									 * if germline, get from second entry in list, for somatic, get third
-									 */
-									String [] params = ffList.get(recordSomatic ? 2 : 1).split(":"); 
-									String gts = params[gtPosition];
-									/*
-									 * this could contain the ampesand - if so, get first (qsnp) element
-									 */
-									int ampesandIndex = gts.indexOf(Constants.VCF_MERGE_DELIM);
-									if (ampesandIndex > -1) {
-										gts = gts.substring(0, ampesandIndex);
-									}
-									arr[index][0] =  gts;
-									/*
-									 * get allele dist next
-									 */
-									String oabs = params[oabsPosition];
-									ampesandIndex = oabs.indexOf(Constants.VCF_MERGE_DELIM);
-									if (ampesandIndex > -1) {
-										oabs = oabs.substring(0, ampesandIndex);
-									}
-//									logger.info("attempting to get allele dist for ac: " + oabs);
-									Map<String, Integer> alleleDist = VcfUtils.getAllelicCoverageFromAC(oabs);
-									arr[index][1] =  getAllelicDistFromMap(alleleDist, ref, alt);
-									
-									
+									ChrPosition cpn  = new ChrPointPosition(rec.getChrPosition().getChromosome(), rec.getChrPosition().getStartPosition());
+									IdRefAlt ira = positions.computeIfAbsent(cpn, v -> new IdRefAlt(ref, alt, fileCount));
+									updateGTsAndACs(index, rec, recordSomatic, ref, alt, ira);
 								}
 							}
 						}
@@ -228,6 +204,51 @@ public class Amalgamator {
 			index++;
 		}
 		logger.info("Number of positions to be reported upon: " + positions.size());
+	}
+
+	static void updateGTsAndACs(int index, VcfRecord rec, boolean recordSomatic, String ref, String alt, IdRefAlt ira) {
+		List<String> ffList = rec.getFormatFields();
+		/*
+		 * get position of GT from first entry, and then get second (germline and qsnp)
+		 */
+		String [] formatHeaders = ffList.get(0).split(":");
+		int gtPosition = getPositionFromHeader(formatHeaders, VcfHeaderUtils.FORMAT_GENOTYPE);
+		int oabsPosition = getPositionFromHeader(formatHeaders, VcfHeaderUtils.FORMAT_ALLELE_COUNT);
+		
+		/*
+		 * if germline, get from second entry in list, for somatic, get third
+		 */
+		String [] params = ffList.get(recordSomatic ? 2 : 1).split(":"); 
+		ira.gts[index] =  getStringFromArray(params, gtPosition);
+		/*
+		 * get allele dist next
+		 */
+		String oabs = getStringFromArray(params, oabsPosition);
+		Map<String, Integer> alleleDist = VcfUtils.getAllelicCoverageFromAC(oabs);
+		ira.acs[index] =  getAllelicDistFromMap(alleleDist, ref, alt);
+	}
+	
+	static String getStringFromArray(String [] array, int position) {
+		if (null == array || position < 0 || position >= array.length) {
+			throw new IllegalArgumentException("Array is null, or position is beyond end of array");
+		}
+		String gts = array[position];
+		int ampesandIndex = gts.indexOf(Constants.VCF_MERGE_DELIM);
+		if (ampesandIndex > -1) {
+			gts = gts.substring(0, ampesandIndex);
+		}
+		return gts;
+	}
+	
+	static int getPositionFromHeader(String [] headers, String header) {
+		int j = 0;
+		for (String h : headers) {
+			if (header.equals(h)) {
+				return j;
+			}
+			j++;
+		}
+		return -1;
 	}
 	
 	/*
