@@ -1,12 +1,9 @@
 version = '2.1.4'
+apply plugin: 'application'
 
-def mainclass = 'org.qcmg.snp.Main'
+mainClassName = 'org.qcmg.snp.Main'
 def scriptname = 'qsnp'
 def isExecutable = true
-
-repositories {
-	//flatDir(dirs:"$buildDir/deps/ini4j-0.5.2-SNAPSHOT")
-}
 
 dependencies {
     configurations.compile.transitive = true
@@ -16,8 +13,6 @@ dependencies {
     compile project(':qbamfilter')
     compile project(':qpicard')
     
-//	copy { from zipTree("../lib/ini4j-0.5.2-SNAPSHOT-all.zip") into 'build/deps' } 
- //   compile name: 'ini4j-0.5.2-SNAPSHOT'
     compile group: 'org.ini4j', name: 'ini4j', version: '0.5.2'
 
     compile name: 'trove-3.1a1'
@@ -27,34 +22,7 @@ dependencies {
 	testCompile 'junit:junit:4.10'
 }
 
-jar.doFirst {
-  def classpath = configurations.runtime.collect { it.name }.join(' ')
-  jar {
-     manifest {
-        attributes 'Implementation-Title': project.name,
-                   'Implementation-Version': "$version ($revision)",
-                   'SVN-Version': revision,
-                   'Built-By': System.properties['user.name'],
-                   'Date': new java.util.Date().toString(),
-                   'Main-Class' : mainclass,
-                   'Class-Path' : classpath
-     }
-  }
-}
-
-build.doLast {
-    def jarname = project.name
-    ant {
-       echo(file: "build/flat/${scriptname}", message: "#!/bin/bash\njava -jar ${jarname}-${version}.jar \$@")
-       chmod(file: "build/flat/${scriptname}", perm: "u+rwx")
-    }
-    copy {
-       from configurations.compile
-       from 'build/lib'
-       into file('build/flat')
-    }
-}
-
+ 
 task findbugs(dependsOn: build) << {
         def outputFileName = project.name
     ant {

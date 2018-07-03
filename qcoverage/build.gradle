@@ -1,6 +1,7 @@
 version = '0.7pre'
+apply plugin: 'application'
 
-def mainclass = 'org.qcmg.coverage.Coverage'
+mainClassName = 'org.qcmg.coverage.Coverage'
 def scriptname = 'qcoverage'
 def isExecutable = true
 
@@ -19,30 +20,3 @@ dependencies {
     testCompile project(':qtesting')
 }
 
-jar.doFirst {
-  def classpath = configurations.runtime.collect { it.name }.join(' ')
-  jar {
-     manifest {
-        attributes 'Implementation-Title': project.name,
-                   'Implementation-Version': "$version ($revision)",
-                   'SVN-Version': revision,
-                   'Built-By': System.properties['user.name'],
-                   'Date': new java.util.Date().toString(),
-                   'Main-Class' : mainclass,
-                   'Class-Path' : classpath
-     }
-  }
-}
-
-build.doLast {
-    def jarname = project.name
-    ant {
-       echo(file: "build/flat/${scriptname}", message: "#!/bin/bash\njava -Xmx24G -jar ${jarname}-${version}.jar \"\$@\"")
-       chmod(file: "build/flat/${scriptname}", perm: "u+rwx")
-    }
-    copy {
-       from configurations.compile
-       from 'build/lib'
-       into file('build/flat')
-    }
-}

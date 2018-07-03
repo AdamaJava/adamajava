@@ -1,54 +1,23 @@
 version = '1.2'
+apply plugin: 'application'
 def xmlVersion = '0.3'
 
-def mainclass = 'org.qcmg.motif.Motif'
+mainClassName = 'org.qcmg.motif.Motif'
 def scriptname = 'qmotif'
 def isExecutable = true
 
-repositories {
-	flatDir(dirs:"$projectDir/../lib")
-	mavenCentral()
-}
+repositories { mavenCentral() }
 
 dependencies {
     configurations.compile.transitive = true
-
     compile project(':qcommon')
     compile project(':qio')
     compile project(':qbamfilter')
     compile project(':qpicard')
-    
-        // https://mvnrepository.com/artifact/org.ini4j/ini4j
-        compile group: 'org.ini4j', name: 'ini4j', version: '0.5.2'
+           
+    compile group: 'org.ini4j', name: 'ini4j', version: '0.5.2'
 	compile 'com.github.samtools:htsjdk:2.14.1'	
 	compile 'net.sf.jopt-simple:jopt-simple:4.6'
 	testCompile 'junit:junit:4.10'
 }
 
-jar.doFirst {
-  def classpath = configurations.runtime.collect { it.name }.join(' ')
-  jar {
-     manifest {
-        attributes 'Implementation-Title': project.name,
-                   'Implementation-Version': "$version ($revision) ($xmlVersion)",
-                   'SVN-Version': revision,
-                   'Built-By': System.properties['user.name'],
-                   'Date': new java.util.Date().toString(),
-                   'Main-Class' : mainclass,
-                   'Class-Path' : classpath
-     }
-  }
-}
-
-build.doLast {
-    def jarname = project.name
-    ant {
-       echo(file: "build/flat/${scriptname}", message: "#!/bin/bash\njava -Xmx24G -jar ${jarname}-${version}.jar \"\$@\"")
-       chmod(file: "build/flat/${scriptname}", perm: "u+rwx")
-    }
-    copy {
-       from configurations.compile
-       from 'build/lib'
-       into file('build/flat')
-    }
-}
