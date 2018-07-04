@@ -1,6 +1,6 @@
 version = '2.1.2'
-apply plugin: 'application'
 
+apply plugin: 'application'
 mainClassName = 'au.edu.qimr.qannotate.Main'
 
 def scriptname = 'qannotate'
