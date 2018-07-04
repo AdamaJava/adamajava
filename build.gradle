@@ -15,6 +15,7 @@ repositories {
 			dirs '/home/genomelocal/devel/adamajava/adamajava/adama/build/lib'
 			dirs '/home/genomelocal/devel/adamajava/adamajava/lib'
 			dirs '../lib'
+			dirs '../../adamajava/adama/build/lib/'
 		}
 		
     //flatDir(dirs:"$projectDir/../lib")
