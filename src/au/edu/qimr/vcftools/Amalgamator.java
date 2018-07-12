@@ -47,10 +47,10 @@ public class Amalgamator {
 	
 	private class IdRefAlt {
 		private String id;
-		private String ref;
-		private String alt;
-		public String[] gts;
-		public String[] acs;
+		private final String ref;
+		private final String alt;
+		private final String[] gts;
+		private final String[] acs;
 		IdRefAlt(String ref, String alt, int fileCount) {
 			this.ref = ref;
 			this.alt = alt;
@@ -122,6 +122,9 @@ public class Amalgamator {
 			int j = 1;
 			for (String s : vcfFiles) {
 				ps.println("##" + j++ + ": vcf file: " + s);
+			}
+			if (null != goldStandard) {
+				ps.println("##: gold standard file: " + goldStandard);
 			}
 			
 			
@@ -307,14 +310,14 @@ public class Amalgamator {
 		Options options = new Options(args);
 
 		if (options.hasHelpOption()) {
-			System.err.println(Messages.USAGE);
+			System.err.println(Messages.AMALGAMATOR_USAGE);
 			options.displayHelp();
 			returnStatus = 0;
 		} else if (options.hasVersionOption()) {
 			System.err.println(Messages.getVersionMessage());
 			returnStatus = 0;
 		} else if (options.getVcfs().length < 1) {
-			System.err.println(Messages.USAGE);
+			System.err.println(Messages.AMALGAMATOR_USAGE);
 		} else {
 			// configure logging
 			logFile = options.getLog();

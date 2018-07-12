@@ -29,8 +29,10 @@ final class Options {
 	private static final String LOG_LEVEL_OPTION_DESCRIPTION = Messages.getMessage("LOG_LEVEL_OPTION_DESCRIPTION");
 	private static final String OUTPUT_FILE_DESCRIPTION = Messages.getMessage("OUTPUT_FILE_DESCRIPTION");
 	private static final String INPUT_FILE_DESCRIPTION = Messages.getMessage("INPUT_FILE_DESCRIPTION");
-	private static final String VALIDATION_STRINGENCY_OPTION_DESCRIPTION = Messages.getMessage("VALIDATION_STRINGENCY_DESCRIPTION");
-	private static final String NO_HTML_DESCRIPTION = Messages.getMessage("NO_HTML_OPTION_DESCRIPTION");
+	private static final String GOLD_STANDARD_DESCRIPTION = Messages.getMessage("GOLD_STANDARD_DESCRIPTION");
+	private static final String VCF_DESCRIPTION = Messages.getMessage("VCF_DESCRIPTION");
+	private static final String SOMATIC_DESCRIPTION = Messages.getMessage("SOMATIC_DESCRIPTION");
+	private static final String GERMLINE_DESCRIPTION = Messages.getMessage("GERMLINE_DESCRIPTION");
 	
 	private final OptionParser parser = new OptionParser();
 	private final OptionSet options;
@@ -59,8 +61,8 @@ final class Options {
 //		parser.acceptsAll(asList("v", "version"), VERSION_DESCRIPTION);
 		parser.accepts("help", HELP_DESCRIPTION);
 		parser.accepts("version", VERSION_DESCRIPTION);
-		parser.accepts("somatic", VERSION_DESCRIPTION);
-		parser.accepts("germline", VERSION_DESCRIPTION);
+		parser.accepts("somatic", SOMATIC_DESCRIPTION);
+		parser.accepts("germline", GERMLINE_DESCRIPTION);
 		
 		parser.accepts("xml", INPUT_FILE_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("output", OUTPUT_FILE_DESCRIPTION).withRequiredArg().ofType(String.class);
@@ -77,11 +79,11 @@ final class Options {
 		parser.accepts("swDiffThreshold", MIN_BIN_SIZE_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
 		parser.accepts("tileMatchThreshold", MIN_BIN_SIZE_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
 		parser.accepts("maxIndelLength", MIN_BIN_SIZE_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
-		parser.accepts("goldStandard", MIN_BIN_SIZE_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
+		parser.accepts("goldStandard", GOLD_STANDARD_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("log", LOG_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("loglevel", LOG_LEVEL_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("uuid", LOG_LEVEL_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
-		parser.accepts("vcf", TAGS_CHAR_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
+		parser.accepts("vcf", VCF_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
 		parser.posixlyCorrect(true);
 
 		options = parser.parse(args);
@@ -217,10 +219,6 @@ final class Options {
 	String[] getVcfs() {
 		return vcfs;
 	}
-//	List<String> getFileNames() {
-//		return fileNames;
-//	}
-	
 	
 	String getLog() {
 		return log;
