@@ -18,12 +18,6 @@ final class Options {
 
 	private static final String HELP_DESCRIPTION = Messages.getMessage("HELP_OPTION_DESCRIPTION");
 	private static final String VERSION_DESCRIPTION = Messages.getMessage("VERSION_OPTION_DESCRIPTION");
-	private static final String NO_OF_THREADS_OPTION_DESCRIPTION = Messages.getMessage("NO_OF_THREADS_OPTION_DESCRIPTION");
-	private static final String INCLUDE_OPTION_DESCRIPTION = Messages.getMessage("INCLUDE_OPTION_DESCRIPTION");
-	private static final String TAGS_OPTION_DESCRIPTION = Messages.getMessage("TAGS_OPTION_DESCRIPTION");
-	private static final String TAGS_INT_OPTION_DESCRIPTION = Messages.getMessage("TAGS_INT_OPTION_DESCRIPTION");
-	private static final String TAGS_CHAR_OPTION_DESCRIPTION = Messages.getMessage("TAGS_CHAR_OPTION_DESCRIPTION");
-	private static final String MAX_RECORDS_OPTION_DESCRIPTION = Messages.getMessage("MAX_RECORDS_OPTION_DESCRIPTION");
 	private static final String LOG_OPTION_DESCRIPTION = Messages.getMessage("LOG_OPTION_DESCRIPTION");
 	private static final String MIN_BIN_SIZE_OPTION_DESCRIPTION = Messages.getMessage("MIN_BIN_SIZE_OPTION_DESCRIPTION");
 	private static final String LOG_LEVEL_OPTION_DESCRIPTION = Messages.getMessage("LOG_LEVEL_OPTION_DESCRIPTION");
@@ -36,7 +30,6 @@ final class Options {
 	
 	private final OptionParser parser = new OptionParser();
 	private final OptionSet options;
-//	private final List<String> fileNames;
 	private final String[] vcfs;
 	private final String outputFileName;
 	private final String tiledRefFileName;
@@ -57,8 +50,6 @@ final class Options {
 
 	@SuppressWarnings("unchecked")
 	Options(final String[] args) throws Exception {
-//		parser.acceptsAll(asList("h", "help"), HELP_DESCRIPTION);
-//		parser.acceptsAll(asList("v", "version"), VERSION_DESCRIPTION);
 		parser.accepts("help", HELP_DESCRIPTION);
 		parser.accepts("version", VERSION_DESCRIPTION);
 		parser.accepts("somatic", SOMATIC_DESCRIPTION);
