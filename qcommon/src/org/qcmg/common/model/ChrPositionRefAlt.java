@@ -89,8 +89,11 @@ public class ChrPositionRefAlt implements ChrPosition, Comparable<ChrPositionRef
 	}
 	@Override
 	public int compareTo(ChrPositionRefAlt o) {
-		// TODO Auto-generated method stub
-		return this.cpRef.compareTo(o.cpRef);
+		int diff = this.cpRef.compareTo(o.cpRef);
+		if (diff == 0) {
+			return this.alt.compareTo(o.alt);
+		}
+		return diff;
 	}
 
 }
