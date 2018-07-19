@@ -36,7 +36,7 @@ public class ChrPositionRefAltTest {
 	@Test
 	public void getRef() {
 		ChrPositionRefAlt cp1 = new ChrPositionRefAlt("1", 1,1, "ref","alt");
-		assertEquals("ref", cp1.getRef());
+		assertEquals("ref", cp1.getName());
 		assertEquals("alt", cp1.getAlt());
 	}
 	
