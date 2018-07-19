@@ -71,6 +71,16 @@ public class GoldStandardGenerator {
 		
 		logger.info("writing output");
 		
+		/*
+		 * get some stats
+		 */
+		Map<String, AtomicInteger> mutationCounts = new HashMap<>();
+		recs.forEach(cpra -> {
+			String mutation = cpra.getName() + "->" + cpra.getAlt();
+			mutationCounts.computeIfAbsent(mutation, f -> new AtomicInteger()).incrementAndGet();
+		});
+		mutationCounts.entrySet().stream().sorted().forEach(e -> logger.info("mutation: " + e.getKey() + ", counts: " + e.getValue().get()));
+		
 		
 		try (PrintStream ps = new PrintStream(new FileOutputStream(new File(outputFileName)))) {
 			/*
@@ -85,12 +95,13 @@ public class GoldStandardGenerator {
 			}
 			
 			
-			String header = "#chr\tposition\tref\talt";
+			String header = "#chr\tposition\tref\talt\t";
 			ps.println(header);
 			for (ChrPositionRefAlt cp : recs) {
 				ps.println(cp.toTabSeperatedString());
 			}
 		}
+		
 		logger.info("writing output- DONE");
 	}
 	
