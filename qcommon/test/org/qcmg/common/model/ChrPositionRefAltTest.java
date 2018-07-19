@@ -73,6 +73,48 @@ public class ChrPositionRefAltTest {
 	}
 	
 	@Test
+	public void testComparatorWithRefAndAlt() {
+		List<ChrPositionRefAlt> positions = new ArrayList<>();
+		ChrPositionRefAlt cp1 = new ChrPositionRefAlt("chr22", 2,2, "C","G");
+		ChrPositionRefAlt cp2 = new ChrPositionRefAlt("chr22", 2,2, "C","T");
+		positions.add(cp1);
+		positions.add(cp2);
+		positions.sort(null);
+		assertEquals(cp1, positions.get(0));
+		assertEquals(cp2, positions.get(1));
+		/*
+		 * this will appear at beginning as A is before C
+		 */
+		ChrPositionRefAlt cp3 = new ChrPositionRefAlt("chr22", 2,2, "A","C");
+		positions.add(cp3);
+		positions.sort(null);
+		assertEquals(cp1, positions.get(1));
+		assertEquals(cp2, positions.get(2));
+		assertEquals(cp3, positions.get(0));
+		/*
+		 * this will appear at end as T is after A & C
+		 */
+		ChrPositionRefAlt cp4 = new ChrPositionRefAlt("chr22", 2,2, "T","C");
+		positions.add(cp4);
+		positions.sort(null);
+		assertEquals(cp1, positions.get(1));
+		assertEquals(cp2, positions.get(2));
+		assertEquals(cp3, positions.get(0));
+		assertEquals(cp4, positions.get(3));
+		/*
+		 * this will squeeze in at second last place as T is after A & C, and A is before C
+		 */
+		ChrPositionRefAlt cp5 = new ChrPositionRefAlt("chr22", 2,2, "T","A");
+		positions.add(cp5);
+		positions.sort(null);
+		assertEquals(cp1, positions.get(1));
+		assertEquals(cp2, positions.get(2));
+		assertEquals(cp3, positions.get(0));
+		assertEquals(cp4, positions.get(4));
+		assertEquals(cp5, positions.get(3));
+	}
+	
+	@Test
 	public void doesEqualsWork() {
 		ChrPositionRefAlt cp1 = new ChrPositionRefAlt("chr22", 1,1,"","");
 		assertEquals(true, cp1.equals(cp1));
@@ -84,6 +126,10 @@ public class ChrPositionRefAltTest {
 		ChrPositionRefAlt cp4 = new ChrPositionRefAlt("chr22", 1,1,"Hello","There");
 		assertEquals(true, cp4.equals(cp4));
 		assertEquals(false, cp3.equals(cp4));
+		ChrPositionRefAlt cp5 = new ChrPositionRefAlt("chr22", 1,1,"Hello","There");
+		assertEquals(true, cp5.equals(cp5));
+		ChrPositionRefAlt cp6 = new ChrPositionRefAlt("chr22", 1,1,"Why Hello","There");
+		assertEquals(false, cp5.equals(cp6));
 	}
 	
 	@Ignore

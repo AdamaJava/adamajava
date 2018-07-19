@@ -91,7 +91,16 @@ public class ChrPositionRefAlt implements ChrPosition, Comparable<ChrPositionRef
 	public int compareTo(ChrPositionRefAlt o) {
 		int diff = this.cpRef.compareTo(o.cpRef);
 		if (diff == 0) {
-			return this.alt.compareTo(o.alt);
+			/*
+			 * look at ref first
+			 */
+			diff = cpRef.getName().compareTo(o.cpRef.getName());
+			if (diff == 0) {
+				/*
+				 * finally look at alt
+				 */
+				return this.alt.compareTo(o.alt);
+			}
 		}
 		return diff;
 	}
