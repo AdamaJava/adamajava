@@ -11,7 +11,8 @@ repositories {
 		dirs '/Users/oliverh/development/sf/trunk/adamajava/qcommon/build/lib'
 		dirs '/Users/oliverh/development/sf/trunk/adamajava/qmule/build/lib'
 		dirs '../lib'
-		dirs '../../adamajava/adama/build/lib/'
+		dirs '../../adamajava/qcommon/adama/build/lib/'
+		dirs '../../adamajava/qmule/adama/build/lib/'
 	}
     //flatDir(dirs:"$projectDir/../lib")
 }
