@@ -30,7 +30,7 @@ public class ChrPositionRefAlt implements ChrPosition, Comparable<ChrPositionRef
 	public String getAlt() {
 		return alt;
 	}
-	public String getRef() {
+	public String getName() {
 		return cpRef.getName();
 	}
 	
