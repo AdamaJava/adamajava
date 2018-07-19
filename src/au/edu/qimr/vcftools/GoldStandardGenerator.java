@@ -13,6 +13,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -80,7 +81,7 @@ public class GoldStandardGenerator {
 			String mutation = cpra.getName() + "->" + cpra.getAlt();
 			mutationCounts.computeIfAbsent(mutation, f -> new AtomicInteger()).incrementAndGet();
 		});
-		mutationCounts.entrySet().stream().sorted(Comparator.comparing(EntrySet::getValue).forEach(e -> logger.info("mutation: " + e.getKey() + ", counts: " + e.getValue().get()));
+		mutationCounts.entrySet().stream().sorted(Comparator.comparingInt(e -> e.getValue().get())).forEach(e -> logger.info("mutation: " + e.getKey() + ", counts: " + e.getValue().get()));
 		
 		
 		try (PrintStream ps = new PrintStream(new FileOutputStream(new File(outputFileName)))) {
