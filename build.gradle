@@ -6,12 +6,9 @@ def isExecutable = true
 
 repositories {
 	flatDir {
-            dirs '/home/genomelocal/devel/adamajava/adamajava/lib'
-            dirs '/home/genomelocal/devel/adamajava/adamajava/qcommon/build/lib'						
-            dirs '/home/genomelocal/devel/adamajava/adamajava/qpicard/build/lib'						
-            dirs '/home/genomelocal/devel/adamajava/adamajava/qio/build/lib'						
-            dirs '/home/genomelocal/devel/adamajava/adamajava/adama/build/lib'						
             dirs '../lib'
+			dirs '../../adamajava/adama/build/lib/'
+			dirs '../../adamajava/lib/'
 	}
   mavenCentral()
 }
