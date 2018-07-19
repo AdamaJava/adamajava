@@ -30,6 +30,9 @@ public class ChrPositionRefAlt implements ChrPosition, Comparable<ChrPositionRef
 	public String getAlt() {
 		return alt;
 	}
+	public String getRef() {
+		return cpRef.getName();
+	}
 	
 	public String toTabSeperatedString() {
 		return cpRef.getChromosome() + Constants.TAB + cpRef.getStartPosition() + Constants.TAB + cpRef.getName() + Constants.TAB +  alt;
