@@ -10,8 +10,6 @@ repositories {
 		dirs '/Users/oliverh/development/sf/trunk/adamajava/lib'
 		dirs '/Users/oliverh/development/sf/trunk/adamajava/qcommon/build/lib'
 		dirs '/Users/oliverh/development/sf/trunk/adamajava/qmule/build/lib'
-		dirs '/home/genomelocal/devel/adamajava/adamajava/adama/build/lib'
-		dirs '/home/genomelocal/devel/adamajava/adamajava/lib'
 		dirs '../lib'
 		dirs '../../adamajava/adama/build/lib/'
 	}
