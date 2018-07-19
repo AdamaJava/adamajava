@@ -6,12 +6,12 @@ def isExecutable = true
 
 repositories {
 	flatDir {
-            dirs '../lib'
-			dirs '../../adamajava/qcommon/adama/build/lib/'
-			dirs '../../adamajava/qbamfilter/adama/build/lib/'
-			dirs '../../adamajava/qpicard/adama/build/lib/'
-			dirs '../../adamajava/qio/adama/build/lib/'
-			dirs '../../adamajava/lib/'
+            dirs '../../lib'
+			dirs '../../../adamajava/qcommon/adama/build/lib/'
+			dirs '../../../adamajava/qbamfilter/adama/build/lib/'
+			dirs '../../../adamajava/qpicard/adama/build/lib/'
+			dirs '../../../adamajava/qio/adama/build/lib/'
+			dirs '../../../adamajava/lib/'
 	}
   mavenCentral()
 }
