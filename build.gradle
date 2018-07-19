@@ -4,15 +4,17 @@ def mainclass = 'au.edu.qimr.vcftools.Merge'
 def scriptname = 'q3vcftools'
 def isExecutable = true
 
+configurations {
+	sshAntTask
+}
+
 repositories {
 	//jcenter()
 	
 		flatDir {
-			dirs '/Users/oliverh/development/sf/trunk/adamajava/lib'
-			dirs '/Users/oliverh/development/sf/trunk/adamajava/qcommon/build/lib'
-			dirs '/Users/oliverh/development/sf/trunk/adamajava/qio/build/lib'
-			dirs '/home/genomelocal/devel/adamajava/adamajava/adama/build/lib'
-			dirs '/home/genomelocal/devel/adamajava/adamajava/lib'
+			dirs '/Users/oliverh/devel/sf/trunk/adamajava/lib'
+			dirs '/Users/oliverh/devel/sf/trunk/adamajava/qcommon/build/lib'
+			dirs '/Users/oliverh/devel/sf/trunk/adamajava/qio/build/lib'
 			dirs '../lib'
 			dirs '../../adamajava/adama/build/lib/'
 		}
@@ -30,6 +32,10 @@ dependencies {
     compile name: 'qcommon', version: '0.4'
     compile name: 'qio', version: '0.1.1'
 	compile name: 'trove', version: '3.1a1'
+	// https://mvnrepository.com/artifact/com.jcraft/jsch
+	compile group: 'com.jcraft', name: 'jsch', version: '0.1.54'
+	
+	sshAntTask 'org.apache.ant:ant-jsch:1.10.4'
 
     testCompile name: 'junit', version: '4.10'
 }
@@ -66,6 +72,33 @@ build.doLast {
        from 'build/lib'
        into file('build/flat')
     }
+}
+
+task update {
+	doLast {
+	description = 'Update files on remote server.'
+ 
+	// Get passphrase from user input.
+	def console = System.console()
+	def passphrase = console.readPassword('%s: ', 'Please enter the passphrase for the keyfile')
+		 
+	// Redefine scp Ant task, with the classpath property set to our newly defined
+	// sshAntTask configuration classpath.
+	ant.taskdef(name: 'scp', classname: 'org.apache.tools.ant.taskdefs.optional.ssh.Scp',
+			classpath: configurations.sshAntTask.asPath)
+			 
+	// Invoke the scp Ant task. (Use gradle -i update to see the output of the Ant task.)
+	ant.scp(todir: 'oliverH@10.10.58.11:/mnt/backedup/home/oliverH',
+			keyfile: '${user.home}/.ssh/id_rsa',
+			//passphrase: passphrase as String, // Use phassphrase entered by the user.
+			password:passphrase as String, // Use phassphrase entered by the user.
+			verbose: 'true') {
+		fileset(dir: 'build') {
+			include(name: '**/**')
+		}
+		trust="true"
+	}
+}
 }
 
 task findbugs(dependsOn: build) << {
