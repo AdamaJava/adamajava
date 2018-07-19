@@ -16,7 +16,8 @@ repositories {
 			dirs '/Users/oliverh/devel/sf/trunk/adamajava/qcommon/build/lib'
 			dirs '/Users/oliverh/devel/sf/trunk/adamajava/qio/build/lib'
 			dirs '../lib'
-			dirs '../../adamajava/adama/build/lib/'
+			dirs '../../adamajava/qcommon/adama/build/lib/'
+			dirs '../../adamajava/qio/adama/build/lib/'
 		}
 		mavenCentral()
     //flatDir(dirs:"$projectDir/../lib")
