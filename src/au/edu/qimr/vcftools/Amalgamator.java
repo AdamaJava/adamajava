@@ -218,18 +218,28 @@ public class Amalgamator {
 		String [] formatHeaders = ffList.get(0).split(":");
 		int gtPosition = getPositionFromHeader(formatHeaders, VcfHeaderUtils.FORMAT_GENOTYPE);
 		int oabsPosition = getPositionFromHeader(formatHeaders, VcfHeaderUtils.FORMAT_ALLELE_COUNT);
+		int adAllPosition = -1;
+		if (oabsPosition == -1) {
+			adAllPosition = getPositionFromHeader(formatHeaders, "ADALL");
+		}
 		
 		/*
+		 * If list contains 2 elements, set position to 1, otherwise 
 		 * if germline, get from second entry in list, for somatic, get third
 		 */
-		String [] params = ffList.get(recordSomatic ? 2 : 1).split(":"); 
+		int position = ffList.size() == 2 ? 1 : recordSomatic ? 2 : 1;
+		String [] params = ffList.get(position).split(":"); 
 		ira.gts[index] =  getStringFromArray(params, gtPosition);
 		/*
 		 * get allele dist next
 		 */
-		String oabs = getStringFromArray(params, oabsPosition);
-		Map<String, Integer> alleleDist = VcfUtils.getAllelicCoverageFromAC(oabs);
-		ira.acs[index] =  getAllelicDistFromMap(alleleDist, ref, alt);
+		if (oabsPosition > -1) {
+			String oabs = getStringFromArray(params, oabsPosition);
+			Map<String, Integer> alleleDist = VcfUtils.getAllelicCoverageFromAC(oabs);
+			ira.acs[index] =  getAllelicDistFromMap(alleleDist, ref, alt);
+		} else if (adAllPosition > -1) {
+			ira.acs[index] = "ADALL:" + getStringFromArray(params, adAllPosition);
+		}
 	}
 	
 	static String getStringFromArray(String [] array, int position) {
