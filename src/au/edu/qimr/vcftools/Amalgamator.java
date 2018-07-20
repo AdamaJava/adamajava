@@ -270,6 +270,9 @@ public class Amalgamator {
 		if (r.getInfo().contains("CONF=HIGH_1,HIGH_2")) {
 			return true;
 		}
+		if ("PASS".equals(r.getFilter())) {
+			return true;
+		}
 		List<String> l = r.getFormatFields();
 		/*
 		 * all fields in list ( apart from first) should have PASS
