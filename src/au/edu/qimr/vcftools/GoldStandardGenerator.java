@@ -128,6 +128,20 @@ public class GoldStandardGenerator {
 						 */
 						boolean recordSomatic = Amalgamator.isRecordSomatic(rec);
 						if ( (recordSomatic && somatic) || ( ! recordSomatic && germline)) {
+							
+							/*
+							 * get GT field as this needs to be the same across samples
+							 */
+							List<String> ffList = rec.getFormatFields();
+							String [] formatHeaders = ffList.get(0).split(":");
+							int gtPosition = Amalgamator.getPositionFromHeader(formatHeaders, VcfHeaderUtils.FORMAT_GENOTYPE);
+							int position = ffList.size() == 2 ? 1 : recordSomatic ? 2 : 1;
+							String [] params = ffList.get(position).split(":"); 
+							String gt =  Amalgamator.getStringFromArray(params, gtPosition);
+							if (null != gt && gt.length() != 0) {
+								gt = Constants.TAB_STRING + gt;
+							}
+							
 							/*
 							 * only deal with snps and compounds for now
 							 */
@@ -142,12 +156,12 @@ public class GoldStandardGenerator {
 									 */
 									for (int z = 0 ; z < ref.length() ; z++) {
 										
-										ChrPositionRefAlt cpn  = new ChrPositionRefAlt(rec.getChrPosition().getChromosome(), rec.getChrPosition().getStartPosition() + z, rec.getChrPosition().getStartPosition() + z, ref.charAt(z)+"",  alt.charAt(z) + "");
+										ChrPositionRefAlt cpn  = new ChrPositionRefAlt(rec.getChrPosition().getChromosome(), rec.getChrPosition().getStartPosition() + z, rec.getChrPosition().getStartPosition() + z, ref.charAt(z)+"",  alt.charAt(z) + gt);
 										positions.computeIfAbsent(cpn, v -> new AtomicInteger()).incrementAndGet();
 										
 									}
 								} else {
-									ChrPositionRefAlt cpn  = new ChrPositionRefAlt(rec.getChrPosition().getChromosome(), rec.getChrPosition().getStartPosition(), rec.getChrPosition().getStartPosition(), ref, alt);
+									ChrPositionRefAlt cpn  = new ChrPositionRefAlt(rec.getChrPosition().getChromosome(), rec.getChrPosition().getStartPosition(), rec.getChrPosition().getStartPosition(), ref, alt+gt);
 									positions.computeIfAbsent(cpn, v -> new AtomicInteger()).incrementAndGet();
 								}
 							}
