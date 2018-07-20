@@ -88,7 +88,8 @@ public class Amalgamator {
 	private void addGoldStandard() throws IOException {
 		if (null != goldStandard) {
 			Path p = new File(goldStandard).toPath();
-			Map<ChrPosition, String> gsMap = Files.lines(p).map(s -> TabTokenizer.tokenize(s))
+			Map<ChrPosition, String> gsMap = Files.lines(p).filter(s -> ! s.startsWith("#"))
+					.map(s -> TabTokenizer.tokenize(s))
 					.filter(arr -> arr[2].length() == 1 && arr[3].length() == 1)
 //					.map(arr -> new ChrPositionName(arr[0], Integer.parseInt(arr[1].replaceAll(",", "")),Integer.parseInt(arr[1].replaceAll(",", "")), arr[3]))
 					.collect(Collectors.toMap(arr ->  new ChrPointPosition(arr[0], Integer.parseInt(arr[1].replaceAll(",", ""))), arr -> arr[3]));
