@@ -133,12 +133,21 @@ public class GoldStandardGenerator {
 							 * get GT field as this needs to be the same across samples
 							 */
 							List<String> ffList = rec.getFormatFields();
-							String [] formatHeaders = ffList.get(0).split(":");
-							int gtPosition = Amalgamator.getPositionFromHeader(formatHeaders, VcfHeaderUtils.FORMAT_GENOTYPE);
-							int position = ffList.size() == 2 ? 1 : recordSomatic ? 2 : 1;
-							String [] params = ffList.get(position).split(":"); 
-							String gt =  Amalgamator.getStringFromArray(params, gtPosition);
-							if (null != gt && gt.length() != 0) {
+							String gt = "";
+							if (ffList.size() > 1) {
+								if (ffList.get(0).startsWith(VcfHeaderUtils.FORMAT_GENOTYPE)) {
+									int position = ffList.size() == 2 ? 1 : recordSomatic ? 2 : 1;
+									String stringOfInterest = ffList.get(position);
+									int colonIndex = stringOfInterest.indexOf(":");
+									gt = stringOfInterest.substring(0, colonIndex > -1 ? colonIndex : stringOfInterest.length());
+								}
+							}
+//							String [] formatHeaders = ffList.get(0).split(":");
+//							int gtPosition = Amalgamator.getPositionFromHeader(formatHeaders, VcfHeaderUtils.FORMAT_GENOTYPE);
+//							int position = ffList.size() == 2 ? 1 : recordSomatic ? 2 : 1;
+//							String [] params = ffList.get(position).split(":"); 
+//							String gt =  Amalgamator.getStringFromArray(params, gtPosition);
+							if (null != gt && gt.length() > 0) {
 								gt = Constants.TAB_STRING + gt;
 							}
 							
