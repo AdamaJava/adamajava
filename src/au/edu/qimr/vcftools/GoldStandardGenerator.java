@@ -140,6 +140,10 @@ public class GoldStandardGenerator {
 									String stringOfInterest = ffList.get(position);
 									int colonIndex = stringOfInterest.indexOf(":");
 									gt = stringOfInterest.substring(0, colonIndex > -1 ? colonIndex : stringOfInterest.length());
+									int ampIndex = gt.indexOf(Constants.VCF_MERGE_DELIM);
+									if (ampIndex > -1) {
+										gt = gt.substring(0, ampIndex);
+									}
 								}
 							}
 //							String [] formatHeaders = ffList.get(0).split(":");
