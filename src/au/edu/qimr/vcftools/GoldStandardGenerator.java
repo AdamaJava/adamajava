@@ -149,15 +149,10 @@ public class GoldStandardGenerator {
 						 * split cs into constituent snps
 						 */
 						for (int z = 0 ; z < ref.length() ; z++) {
-							
-							addToMap(map, rec.getChrPosition().getChromosome(),  rec.getChrPosition().getStartPosition() + z, rec.getChrPosition().getStartPosition() + z, ref.charAt(z)+"",  alt.charAt(z) +Constants.TAB+ gt);
-//							ChrPositionRefAlt cpn  = new ChrPositionRefAlt(rec.getChrPosition().getChromosome(), rec.getChrPosition().getStartPosition() + z, rec.getChrPosition().getStartPosition() + z, ref.charAt(z)+"",  alt.charAt(z) + gt);
-//							map.computeIfAbsent(cpn, v -> new AtomicInteger()).incrementAndGet();
+							addToMap(map, rec.getChrPosition().getChromosome(),  rec.getChrPosition().getStartPosition() + z, rec.getChrPosition().getStartPosition() + z, ref.charAt(z)+"",  alt.charAt(z) +Constants.TAB_STRING+ gt);
 						}
 					} else {
 						addToMap(map, rec.getChrPosition().getChromosome(), rec.getChrPosition().getStartPosition(), rec.getChrPosition().getStartPosition(), ref, alt+Constants.TAB+gt);
-//						ChrPositionRefAlt cpn  = new ChrPositionRefAlt(rec.getChrPosition().getChromosome(), rec.getChrPosition().getStartPosition(), rec.getChrPosition().getStartPosition(), ref, alt+gt);
-//						map.computeIfAbsent(cpn, v -> new AtomicInteger()).incrementAndGet();
 					}
 				}
 			}
