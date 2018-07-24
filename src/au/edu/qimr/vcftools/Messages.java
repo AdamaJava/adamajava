@@ -18,6 +18,7 @@ final class Messages {
     static final String ERROR_PREFIX = Messages.getProgramName() + COLON;
     static final String USAGE =	Messages.getMessage("USAGE");
     static final String AMALGAMATOR_USAGE =	Messages.getMessage("AMALGAMATOR_USAGE");
+    static final String GOLD_STANDARD_USAGE =	Messages.getMessage("GOLD_STANDARD_USAGE");
 
     static String getMessage(final String identifier) {
         return messages.getString(identifier);

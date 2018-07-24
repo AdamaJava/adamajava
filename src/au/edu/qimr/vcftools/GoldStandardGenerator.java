@@ -219,14 +219,14 @@ public class GoldStandardGenerator {
 		Options options = new Options(args);
 
 		if (options.hasHelpOption()) {
-			System.err.println(Messages.AMALGAMATOR_USAGE);
+			System.err.println(Messages.GOLD_STANDARD_USAGE);
 			options.displayHelp();
 			returnStatus = 0;
 		} else if (options.hasVersionOption()) {
 			System.err.println(Messages.getVersionMessage());
 			returnStatus = 0;
 		} else if (options.getVcfs().length < 1) {
-			System.err.println(Messages.AMALGAMATOR_USAGE);
+			System.err.println(Messages.GOLD_STANDARD_USAGE);
 		} else {
 			// configure logging
 			logFile = options.getLog();
