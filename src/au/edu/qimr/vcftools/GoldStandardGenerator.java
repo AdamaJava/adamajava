@@ -242,6 +242,7 @@ public class GoldStandardGenerator {
 					}
 				}
 			}
+			vcfOutput = options.hasVcfOutputOption();
 			
 			// set outputfile - if supplied, check that it can be written to
 			if (null != options.getOutputFileName()) {
@@ -251,6 +252,13 @@ public class GoldStandardGenerator {
 				} else {
 					throw new Exception("OUTPUT_FILE_WRITE_ERROR");
 				}
+				
+				/*
+				 * if output is a vcf file, set vcfOutput flag
+				 */
+				if (outputFileName.endsWith(".vcf") || outputFileName.endsWith(".vcf.gz")) {
+					vcfOutput = true;
+				}
 			}
 			
 			logger.info("vcf input files: " + Arrays.deepToString(vcfFiles));
@@ -258,7 +266,6 @@ public class GoldStandardGenerator {
 			
 			somatic = options.hasSomaticOption();
 			germline = options.hasGermlineOption();
-			vcfOutput = options.hasVcfOutputOption();
 			
 			if ( ! somatic && ! germline) {
 				somatic = true; germline = true;
