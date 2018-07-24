@@ -16,7 +16,6 @@ import java.util.stream.Stream;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.meta.QExec;
 import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.util.Constants;
@@ -30,7 +29,6 @@ import au.edu.qimr.vcftools.Rule;
 
 public class MergeUtilsTest {
 	
-	public  TemporaryFolder testFolder = new TemporaryFolder();
 	
 	public static String controlId = "http://purl.org/net/grafli/collectedsample#f124a2ca-5e24-419a-96f5-dd849ccc50aa"; //"ABC_123";
 	public static String testId = "http://purl.org/net/grafli/collectedsample#64d9c65d-d0af-43e7-a835-8fe3c36b93bb";   //"DEF_456";
