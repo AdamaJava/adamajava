@@ -82,6 +82,9 @@ public class GoldStandardGenerator {
 			
 			
 			String header = vcfOutput ? VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE : "#chr\tposition\tref\talt\tGT";
+			if (vcfOutput) {
+				ps.println(VcfHeaderUtils.CURRENT_FILE_FORMAT);
+			}
 			ps.println(header);
 			for (ChrPositionRefAlt cp : recs) {
 				if (vcfOutput) {
