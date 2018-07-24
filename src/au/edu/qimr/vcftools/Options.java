@@ -27,6 +27,7 @@ final class Options {
 	private static final String VCF_DESCRIPTION = Messages.getMessage("VCF_DESCRIPTION");
 	private static final String SOMATIC_DESCRIPTION = Messages.getMessage("SOMATIC_DESCRIPTION");
 	private static final String GERMLINE_DESCRIPTION = Messages.getMessage("GERMLINE_DESCRIPTION");
+	private static final String VCF_OUTPUT_DESCRIPTION = Messages.getMessage("VCF_OUTPUT_DESCRIPTION");
 	
 	private final OptionParser parser = new OptionParser();
 	private final OptionSet options;
@@ -54,6 +55,7 @@ final class Options {
 		parser.accepts("version", VERSION_DESCRIPTION);
 		parser.accepts("somatic", SOMATIC_DESCRIPTION);
 		parser.accepts("germline", GERMLINE_DESCRIPTION);
+		parser.accepts("vcfOutput", VCF_OUTPUT_DESCRIPTION);
 		
 		parser.accepts("xml", INPUT_FILE_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("output", OUTPUT_FILE_DESCRIPTION).withRequiredArg().ofType(String.class);
@@ -235,6 +237,10 @@ final class Options {
 		if (options.has("validation")) {
 			return (String) options.valueOf("validation");
 		} else return null;
+	}
+
+	public boolean hasVcfOutputOption() {
+		return options.has("vcfOutput");
 	}
 
 }
