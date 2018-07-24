@@ -85,7 +85,13 @@ public class GoldStandardGenerator {
 			ps.println(header);
 			for (ChrPositionRefAlt cp : recs) {
 				if (vcfOutput) {
-					ps.println(cp.getChromosome() + Constants.TAB + cp.getStartPosition() + "\t.\t" + cp.getName() + cp.getAlt());
+					/*
+					 * need to split alt and GT
+					 */
+					int tabIndex = cp.getAlt().indexOf(Constants.TAB);
+					String alt = cp.getAlt().substring(0, tabIndex);
+//					String gt = cp.getAlt().substring(tabIndex + 1);
+					ps.println(cp.getChromosome() + Constants.TAB + cp.getStartPosition() + "\t.\t" + cp.getName() + Constants.TAB + alt + "\t.\t.\t.");
 				} else {
 					ps.println(cp.toTabSeperatedString());
 				}
