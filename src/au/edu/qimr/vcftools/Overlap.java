@@ -107,6 +107,33 @@ public class Overlap {
 		logger.info("number of partially unique variants: " + partiallyUniqueVariants.entrySet().stream().mapToInt(e -> e.getValue().size()).sum());
 		partiallyUniqueVariants.entrySet().stream().forEach(e -> logger.info("files: " + e.getKey() + " have " + e.getValue().size() + " partially unique variants"));
 		
+		
+		/*
+		 * print summary stats
+		 */
+		String[] inputs = new String[numberOfInputFiles];
+		int i = 0;
+		if (null != goldStandard) {
+			inputs[i++] = goldStandard;
+		}
+		for (String s : vcfFiles) {
+			inputs[i++] = s;
+		}
+		
+		
+		
+		logger.info("123: " + centreVenn);
+		logger.info("12: " + partiallyUniqueVariants.get(inputs[0] + Constants.TAB + inputs[1]).size());
+		logger.info("23: " + partiallyUniqueVariants.get(inputs[1] + Constants.TAB + inputs[2]).size());
+		logger.info("13: " + partiallyUniqueVariants.get(inputs[0] + Constants.TAB + inputs[2]).size());
+		logger.info("1: " + uniqueVariants.get(inputs[0]).size());
+		logger.info("2: " + uniqueVariants.get(inputs[1]).size());
+		logger.info("3: " + uniqueVariants.get(inputs[2]).size());
+		logger.info("file 1: " + inputs[0]);
+		logger.info("file 2: " + inputs[1]);
+		logger.info("file 3: " + inputs[2]);
+		
+		
 	}
 	
 	
