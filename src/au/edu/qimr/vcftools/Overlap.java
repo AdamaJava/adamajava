@@ -102,7 +102,10 @@ public class Overlap {
 		
 		
 		logger.info("number of unique variants: " + uniqueVariants.entrySet().stream().mapToInt(e -> e.getValue().size()).sum());
+		 uniqueVariants.entrySet().stream().forEach(e -> logger.info("file: " + e.getKey() + " has " + e.getValue().size() + " unique variants"));
+		
 		logger.info("number of partially unique variants: " + partiallyUniqueVariants.entrySet().stream().mapToInt(e -> e.getValue().size()).sum());
+		partiallyUniqueVariants.entrySet().stream().forEach(e -> logger.info("files: " + e.getKey() + " have " + e.getValue().size() + " partially unique variants"));
 		
 	}
 	
