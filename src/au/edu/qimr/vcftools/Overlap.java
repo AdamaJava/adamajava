@@ -5,6 +5,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -14,6 +16,8 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+import org.qcmg.common.model.ChrPointPosition;
+import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrPositionRefAlt;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -21,6 +25,7 @@ import org.qcmg.common.meta.QExec;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.LoadReferencedClasses;
+import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
@@ -47,9 +52,23 @@ public class Overlap {
 			
 		logger.info("about to load vcf files");
 		loadVcfs();
+		addGoldStandard();
 		outputStats();
 //		writeOutput();
 		return exitStatus;
+	}
+	
+	private void addGoldStandard() throws IOException {
+		if (null != goldStandard) {
+			Path p = new File(goldStandard).toPath();
+			Files.lines(p).filter(s -> ! s.startsWith("#"))
+					.map(s -> TabTokenizer.tokenize(s))
+					.filter(arr -> arr[2].length() == 1 && arr[3].length() == 1)
+					.forEach(arr -> {
+						addToMap(positions, arr[0],Integer.parseInt(arr[1].replaceAll(",", "")),Integer.parseInt(arr[1].replaceAll(",", "")), arr[2], arr[3], goldStandard);
+					});
+			
+		}
 	}
 	
 	private void outputStats() {
@@ -185,7 +204,7 @@ public class Overlap {
 				 */
 				if (VcfUtils.isRecordASnpOrMnp(rec)) {
 					
-					String gt = GoldStandardGenerator.getGT(rec, recordSomatic);
+//					String gt = GoldStandardGenerator.getGT(rec, recordSomatic);
 					
 					String ref = rec.getRef();
 					String alt = rec.getAlt();
@@ -195,10 +214,12 @@ public class Overlap {
 						 * split cs into constituent snps
 						 */
 						for (int z = 0 ; z < ref.length() ; z++) {
-							addToMap(map, rec.getChrPosition().getChromosome(),  rec.getChrPosition().getStartPosition() + z, rec.getChrPosition().getStartPosition() + z, ref.charAt(z)+"",  alt.charAt(z) +Constants.TAB_STRING+ gt, input);
+							addToMap(map, rec.getChrPosition().getChromosome(),  rec.getChrPosition().getStartPosition() + z, rec.getChrPosition().getStartPosition() + z, ref.charAt(z)+"",  alt.charAt(z)+"", input);
+//							addToMap(map, rec.getChrPosition().getChromosome(),  rec.getChrPosition().getStartPosition() + z, rec.getChrPosition().getStartPosition() + z, ref.charAt(z)+"",  alt.charAt(z) +Constants.TAB_STRING+ gt, input);
 						}
 					} else {
-						addToMap(map, rec.getChrPosition().getChromosome(), rec.getChrPosition().getStartPosition(), rec.getChrPosition().getStartPosition(), ref, alt+Constants.TAB+gt, input);
+						addToMap(map, rec.getChrPosition().getChromosome(), rec.getChrPosition().getStartPosition(), rec.getChrPosition().getStartPosition(), ref, alt, input);
+//						addToMap(map, rec.getChrPosition().getChromosome(), rec.getChrPosition().getStartPosition(), rec.getChrPosition().getStartPosition(), ref, alt+Constants.TAB+gt, input);
 					}
 				}
 			}
